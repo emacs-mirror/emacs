@@ -27,7 +27,7 @@ void *stackpointer;
 mps_arena_t arena;
 mps_thr_t thread;
 mps_pool_t pool;
-mps_pool_t pools[100];
+mps_pool_t pools[1000];
 
 static void test(void) {
  int i;
@@ -100,13 +100,17 @@ static void test(void) {
 
  i = 0;
 
- while ((i < 100) && (res == MPS_RES_OK)) {
+ while (i < sizeof pools / sizeof pools[0]) {
   res = mps_pool_create(&pools[i], arena, mps_class_mv(), (size_t) 64, (size_t) 64, (size_t) 64);
-  i++;
+  if (res == MPS_RES_OK) {
+    i++;
+  } else {
+    break;
+  }
  }
  report_res("poolcr", res);
 
- for (i -= 2; i >= 0; i--) {
+ for (i--; i >= 0; i--) {
   mps_pool_destroy(pools[i]);
  }
 

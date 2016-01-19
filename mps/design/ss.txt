@@ -7,7 +7,7 @@ Stack and register scanning
 :Author: Gareth Rees
 :Date: 2014-10-22
 :Status: complete design
-:Revision: $Id: //info.ravenbrook.com/project/mps/master/design/thread-manager.txt#7 $
+:Revision: $Id$
 :Copyright: See `Copyright and License`_.
 :Index terms: pair: stack and register scanning; design
 

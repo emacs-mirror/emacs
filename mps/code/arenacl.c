@@ -81,8 +81,15 @@ static Bool ClientChunkCheck(ClientChunk clChunk)
 ATTRIBUTE_UNUSED
 static Bool ClientArenaCheck(ClientArena clientArena)
 {
+  Arena arena;
+
   CHECKS(ClientArena, clientArena);
-  CHECKD(Arena, ClientArena2Arena(clientArena));
+  arena = ClientArena2Arena(clientArena);
+  CHECKD(Arena, arena);
+  /* See <code/arena.c#.reserved.check> */
+  CHECKL(arena->committed <= arena->reserved);
+  CHECKL(arena->spareCommitted == 0);
+
   return TRUE;
 }
 
@@ -125,12 +132,13 @@ static Res clientChunkCreate(Chunk *chunkReturn, ClientArena clientArena,
   chunk = ClientChunk2Chunk(clChunk);
 
   res = ChunkInit(chunk, arena, alignedBase,
-                  AddrAlignDown(limit, ArenaGrainSize(arena)), boot);
+                  AddrAlignDown(limit, ArenaGrainSize(arena)),
+                  AddrOffset(base, limit), boot);
   if (res != ResOK)
     goto failChunkInit;
 
-  ClientArena2Arena(clientArena)->committed +=
-    AddrOffset(base, PageIndexBase(chunk, chunk->allocBase));
+  arena->committed += ChunkPagesToSize(chunk, chunk->allocBase);
+
   BootBlockFinish(boot);
 
   clChunk->sig = ClientChunkSig;
@@ -176,8 +184,10 @@ static Res ClientChunkInit(Chunk chunk, BootBlock boot)
 
 static Bool clientChunkDestroy(Tree tree, void *closureP, Size closureS)
 {
+  Arena arena;
   Chunk chunk;
   ClientChunk clChunk;
+  Size size;
 
   AVERT(Tree, tree);
   AVER(closureP == UNUSED_POINTER);
@@ -187,8 +197,15 @@ static Bool clientChunkDestroy(Tree tree, void *closureP, Size closureS)
   
   chunk = ChunkOfTree(tree);
   AVERT(Chunk, chunk);
+  arena = ChunkArena(chunk);  
+  AVERT(Arena, arena);
   clChunk = Chunk2ClientChunk(chunk);
   AVERT(ClientChunk, clChunk);
+  AVER(chunk->pages == clChunk->freePages);
+
+  size = ChunkPagesToSize(chunk, chunk->allocBase);
+  AVER(arena->committed >= size);
+  arena->committed -= size;
 
   clChunk->sig = SigInvalid;
   ChunkFinish(chunk);
@@ -257,7 +274,7 @@ static Res ClientArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
   AVER(base != (Addr)0);
   AVERT(ArenaGrainSize, grainSize);
 
-  if (size < grainSize * MPS_WORD_SHIFT)
+  if (size < grainSize * MPS_WORD_WIDTH)
     /* Not enough room for a full complement of zones. */
     return ResMEMORY;
 
@@ -324,6 +341,10 @@ static void ClientArenaFinish(Arena arena)
 
   clientArena->sig = SigInvalid;
 
+  /* Destroying the chunks should leave nothing behind. */
+  AVER(arena->reserved == 0);
+  AVER(arena->committed == 0);
+
   ArenaFinish(arena); /* <code/arena.c#finish.caller> */
 }
 
@@ -348,27 +369,6 @@ static Res ClientArenaExtend(Arena arena, Addr base, Size size)
 }
 
 
-/* ClientArenaReserved -- return the amount of reserved address space */
-
-static Size ClientArenaReserved(Arena arena)
-{
-  Size size;
-  Ring node, nextNode;
-
-  AVERT(Arena, arena);
-
-  size = 0;
-  /* .req.extend.slow */
-  RING_FOR(node, &arena->chunkRing, nextNode) {
-    Chunk chunk = RING_ELT(Chunk, arenaRing, node);
-    AVERT(Chunk, chunk);
-    size += ChunkSize(chunk);
-  }
-
-  return size;
-}
-
-
 /* ClientArenaPagesMarkAllocated -- Mark the pages allocated */
 
 static Res ClientArenaPagesMarkAllocated(Arena arena, Chunk chunk,
@@ -376,9 +376,12 @@ static Res ClientArenaPagesMarkAllocated(Arena arena, Chunk chunk,
                                          Pool pool)
 {
   Index i;
+  ClientChunk clChunk;
   
   AVERT(Arena, arena);
   AVERT(Chunk, chunk);
+  clChunk = Chunk2ClientChunk(chunk);
+  AVERT(ClientChunk, clChunk);
   AVER(chunk->allocBase <= baseIndex);
   AVER(pages > 0);
   AVER(baseIndex + pages <= chunk->pages);
@@ -387,15 +390,17 @@ static Res ClientArenaPagesMarkAllocated(Arena arena, Chunk chunk,
   for (i = 0; i < pages; ++i)
     PageAlloc(chunk, baseIndex + i, pool);
 
-  Chunk2ClientChunk(chunk)->freePages -= pages;
+  arena->committed += ChunkPagesToSize(chunk, pages);
+  AVER(clChunk->freePages >= pages);
+  clChunk->freePages -= pages;
 
   return ResOK;
 }
 
 
-/* ClientFree - free a region in the arena */
+/* ClientArenaFree - free a region in the arena */
 
-static void ClientFree(Addr base, Size size, Pool pool)
+static void ClientArenaFree(Addr base, Size size, Pool pool)
 {
   Arena arena;
   Chunk chunk = NULL;           /* suppress "may be used uninitialized" */
@@ -436,6 +441,8 @@ static void ClientFree(Addr base, Size size, Pool pool)
   AVER(BTIsSetRange(chunk->allocTable, baseIndex, limitIndex));
   BTResRange(chunk->allocTable, baseIndex, limitIndex);
 
+  AVER(arena->committed >= size);
+  arena->committed -= size;
   clChunk->freePages += pages;
 }
 
@@ -451,10 +458,9 @@ DEFINE_ARENA_CLASS(ClientArenaClass, this)
   this->varargs = ClientArenaVarargs;
   this->init = ClientArenaInit;
   this->finish = ClientArenaFinish;
-  this->reserved = ClientArenaReserved;
   this->extend = ClientArenaExtend;
   this->pagesMarkAllocated = ClientArenaPagesMarkAllocated;
-  this->free = ClientFree;
+  this->free = ClientArenaFree;
   this->chunkInit = ClientChunkInit;
   this->chunkFinish = ClientChunkFinish;
   AVERT(ArenaClass, this);

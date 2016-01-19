@@ -133,8 +133,8 @@ the function ``VMCopy()``. This allows the initialization of a
 temporary VM descriptor on the stack. Second, call ``VMInit()`` to
 reserve address space and initialize the temporary VM descriptor.
 Third, call ``VMMap()`` on the new VM to map enough memory to store a
-``VMChunkStruct``. Fourth, call ``VMCopy()`` to copy the temporary VM
-descriptor into its place in the ``VMChunkStruct``.
+``VMChunk``. Fourth, call ``VMCopy()`` to copy the temporary VM
+descriptor into its place in the ``VMChunk``.
 
 _`.sol.params`: To meet `.req.params`_, the interface provides the
 function ``VMParamFromArgs()``, which decodes relevant keyword

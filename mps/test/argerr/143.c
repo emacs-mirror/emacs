@@ -4,6 +4,10 @@ TEST_HEADER
  summary = UNALIGNED stackpointer for mps_root_create_reg
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= mpsi.c
+ assertcond = AddrIsAligned(reg_scan_p, sizeof(Word))
 END_HEADER
 */
 

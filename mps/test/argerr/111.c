@@ -4,6 +4,10 @@ TEST_HEADER
  summary = UNALIGNED base for mps_root_create_table
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= root.c
+ assertcond = AddrIsAligned(base, sizeof(Word))
 END_HEADER
 */
 
