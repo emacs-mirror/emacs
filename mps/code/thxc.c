@@ -36,6 +36,7 @@ typedef struct mps_thr_s {      /* OS X / Mach thread structure */
   Serial serial;                /* from arena->threadSerial */
   Arena arena;                  /* owning arena */
   RingStruct arenaRing;         /* attaches to arena */
+  Bool alive;                   /* thread believed to be alive? */
   thread_port_t port;           /* thread kernel port */
 } ThreadStruct;
 
@@ -46,6 +47,7 @@ Bool ThreadCheck(Thread thread)
   CHECKU(Arena, thread->arena);
   CHECKL(thread->serial < thread->arena->threadSerial);
   CHECKD_NOSIG(Ring, &thread->arenaRing);
+  CHECKL(BoolCheck(thread->alive));
   CHECKL(MACH_PORT_VALID(thread->port));
   return TRUE;
 }
@@ -78,6 +80,7 @@ Res ThreadRegister(Thread *threadReturn, Arena arena)
 
   thread->serial = arena->threadSerial;
   ++arena->threadSerial;
+  thread->alive = TRUE;
   thread->port = mach_thread_self();
   thread->sig = ThreadSig;
   AVERT(Thread, thread);
@@ -108,62 +111,80 @@ void ThreadDeregister(Thread thread, Arena arena)
 }
 
 
-/*  mapThreadRing -- map over threads on ring calling a function on each one
- *                   except the current thread
+/* mapThreadRing -- map over threads on ring calling a function on
+ * each one except the current thread.
+ *
+ * Threads that are found to be dead (that is, if func returns FALSE)
+ * are marked as dead and moved to deadRing, in order to implement
+ * design.thread-manager.sol.thread.term.attempt.
  */
 
-static void mapThreadRing(Ring threadRing, void (*func)(Thread))
+static void mapThreadRing(Ring threadRing, Ring deadRing, Bool (*func)(Thread))
 {
   Ring node, next;
   mach_port_t self;
 
   AVERT(Ring, threadRing);
+  AVERT(Ring, deadRing);
+  AVER(FUNCHECK(func));
 
   self = mach_thread_self();
   AVER(MACH_PORT_VALID(self));
   RING_FOR(node, threadRing, next) {
     Thread thread = RING_ELT(Thread, arenaRing, node);
     AVERT(Thread, thread);
-    if(thread->port != self)
-      (*func)(thread);
+    AVER(thread->alive);
+    if (thread->port != self
+        && !(*func)(thread))
+    {
+      thread->alive = FALSE;
+      RingRemove(&thread->arenaRing);
+      RingAppend(deadRing, &thread->arenaRing);
+    }
   }
 }
 
 
-static void threadSuspend(Thread thread)
+static Bool threadSuspend(Thread thread)
 {
   kern_return_t kern_return;
   kern_return = thread_suspend(thread->port);
   /* No rendezvous is necessary: thread_suspend "prevents the thread
    * from executing any more user-level instructions" */
   AVER(kern_return == KERN_SUCCESS);
+  /* Experimentally, values other then KERN_SUCCESS indicate the thread has
+     terminated <https://info.ravenbrook.com/mail/2014/10/25/18-12-36/0/>. */
+  /* design.thread-manager.sol.thread.term.attempt */
+  return kern_return == KERN_SUCCESS;
 }
 
-static void threadResume(Thread thread)
+static Bool threadResume(Thread thread)
 {
   kern_return_t kern_return;
   kern_return = thread_resume(thread->port);
   /* Mach has no equivalent of EAGAIN. */
   AVER(kern_return == KERN_SUCCESS);
+  /* Experimentally, values other then KERN_SUCCESS indicate the thread has
+     terminated <https://info.ravenbrook.com/mail/2014/10/25/18-12-36/0/>. */
+  /* design.thread-manager.sol.thread.term.attempt */
+  return kern_return == KERN_SUCCESS;
 }
 
 
 /* ThreadRingSuspend -- suspend all threads on a ring, except the
  * current one.
  */
-void ThreadRingSuspend(Ring threadRing)
+void ThreadRingSuspend(Ring threadRing, Ring deadRing)
 {
-  AVERT(Ring, threadRing);
-  mapThreadRing(threadRing, threadSuspend);
+  mapThreadRing(threadRing, deadRing, threadSuspend);
 }
 
 /* ThreadRingResume -- resume all threads on a ring, except the
  * current one.
  */
-void ThreadRingResume(Ring threadRing)
+void ThreadRingResume(Ring threadRing, Ring deadRing)
 {
-  AVERT(Ring, threadRing);
-  mapThreadRing(threadRing, threadResume);
+  mapThreadRing(threadRing, deadRing, threadResume);
 }
 
 Thread ThreadRingThread(Ring threadRing)
@@ -199,17 +220,18 @@ Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
   AVER(MACH_PORT_VALID(self));
   if (thread->port == self) {
     /* scan this thread's stack */
+    AVER(thread->alive);
     res = StackScan(ss, stackBot);
     if(res != ResOK)
       return res;
-  } else {
+  } else if (thread->alive) {
     MutatorFaultContextStruct mfcStruct;
     THREAD_STATE_S threadState;
     Addr *stackBase, *stackLimit, stackPtr;
     mach_msg_type_number_t count;
     kern_return_t kern_return;
 
-    /* Note: We could get the thread state and check the suspend cound in
+    /* Note: We could get the thread state and check the suspend count in
        order to assert that the thread is suspended, but it's probably
        unnecessary and is a lot of work to check a static condition. */
 
@@ -257,6 +279,7 @@ Res ThreadDescribe(Thread thread, mps_lib_FILE *stream, Count depth)
                "Thread $P ($U) {\n", (WriteFP)thread, (WriteFU)thread->serial,
                "  arena $P ($U)\n",
                (WriteFP)thread->arena, (WriteFU)thread->arena->serial,
+               "  alive $S\n", WriteFYesNo(thread->alive),
                "  port $U\n", (WriteFU)thread->port,
                "} Thread $P ($U)\n", (WriteFP)thread, (WriteFU)thread->serial,
                NULL);
