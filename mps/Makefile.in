@@ -73,7 +73,7 @@ install: @INSTALL_TARGET@
 test-make-build:
 	$(MAKE) $(TARGET_OPTS) testci
 	$(MAKE) -C code -f anan$(MPS_BUILD_NAME).gmk VARIETY=cool clean testansi
-	$(MAKE) -C code -f anan$(MPS_BUILD_NAME).gmk VARIETY=cool CFLAGS="-DCONFIG_POLL_NONE" clean testpoll
+	$(MAKE) -C code -f anan$(MPS_BUILD_NAME).gmk VARIETY=cool CFLAGS="-DCONFIG_POLL_NONE" clean testpollnone
 
 test-xcode-build:
 	$(XCODEBUILD) -config Debug   -target testci

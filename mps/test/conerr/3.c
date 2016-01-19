@@ -1,7 +1,7 @@
 /* 
 TEST_HEADER
  id = $Id$
- summary = destroy an arena which isn't an arena, with a pointer in
+ summary = destroy an arena which isn't an arena
  language = c
  link = testlib.o
 OUTPUT_SPEC
@@ -11,13 +11,15 @@ OUTPUT_SPEC
 END_HEADER
 */
 
+#include "mpmst.h"
 #include "testlib.h"
 
 static void test(void)
 {
+ char buf[sizeof(ArenaStruct)];
  mps_arena_t arena;
 
- arena = (mps_arena_t)&arena;
+ arena = (void *)buf;
  mps_arena_destroy(arena);
  comment("Destroy arena.");
 }

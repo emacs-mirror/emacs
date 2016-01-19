@@ -4,6 +4,8 @@ TEST_HEADER
  summary = null scan state to fix (function)
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ abort = true
 END_HEADER
 */
 
@@ -449,7 +451,7 @@ static void test(void)
  mps_ap_t ap;
 
  int j;
- mycell *a;
+ mycell *a, *b;
 
  cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE), "create arena");
 
@@ -481,9 +483,20 @@ static void test(void)
 
  for (j=1; j<1000; j++)
  {
-  allocone(ap, 1000);
+  b = allocone(ap, 1000);
+  setref(b, 0, a);
+  a = b;
  }
 
+ mps_arena_collect(arena);
+
+ mps_ap_destroy(ap);
+ mps_pool_destroy(pool);
+ mps_chain_destroy(chain);
+ mps_fmt_destroy(format);
+ mps_root_destroy(root);
+ mps_thread_dereg(thread);
+ mps_arena_destroy(arena);
 }
 
 int main(void)
