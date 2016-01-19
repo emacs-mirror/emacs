@@ -115,7 +115,8 @@ void ThreadDeregister(Thread thread, Arena arena)
  * each one except the current thread.
  *
  * Threads that are found to be dead (that is, if func returns FALSE)
- * are marked as dead and moved to deadRing.
+ * are marked as dead and moved to deadRing, in order to implement
+ * design.thread-manager.sol.thread.term.attempt.
  */
 
 static void mapThreadRing(Ring threadRing, Ring deadRing, Bool (*func)(Thread))
@@ -151,6 +152,9 @@ static Bool threadSuspend(Thread thread)
   /* No rendezvous is necessary: thread_suspend "prevents the thread
    * from executing any more user-level instructions" */
   AVER(kern_return == KERN_SUCCESS);
+  /* Experimentally, values other then KERN_SUCCESS indicate the thread has
+     terminated <https://info.ravenbrook.com/mail/2014/10/25/18-12-36/0/>. */
+  /* design.thread-manager.sol.thread.term.attempt */
   return kern_return == KERN_SUCCESS;
 }
 
@@ -160,6 +164,9 @@ static Bool threadResume(Thread thread)
   kern_return = thread_resume(thread->port);
   /* Mach has no equivalent of EAGAIN. */
   AVER(kern_return == KERN_SUCCESS);
+  /* Experimentally, values other then KERN_SUCCESS indicate the thread has
+     terminated <https://info.ravenbrook.com/mail/2014/10/25/18-12-36/0/>. */
+  /* design.thread-manager.sol.thread.term.attempt */
   return kern_return == KERN_SUCCESS;
 }
 
