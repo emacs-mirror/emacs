@@ -862,17 +862,19 @@ Bool ArenaStep(Globals globals, double interval, double multiplier)
 Res ArenaFinalize(Arena arena, Ref obj)
 {
   Res res;
+  Pool refpool;
 
   AVERT(Arena, arena);
-  AVER(ArenaHasAddr(arena, (Addr)obj));
+  AVER(PoolOfAddr(&refpool, arena, (Addr)obj));
+  AVER(PoolHasAttr(refpool, AttrGC));
 
   if (!arena->isFinalPool) {
-    Pool pool;
+    Pool finalpool;
 
-    res = PoolCreate(&pool, arena, PoolClassMRG(), argsNone);
+    res = PoolCreate(&finalpool, arena, PoolClassMRG(), argsNone);
     if (res != ResOK)
       return res;
-    arena->finalPool = pool;
+    arena->finalPool = finalpool;
     arena->isFinalPool = TRUE;
   }
 
