@@ -96,8 +96,7 @@ Building the MPS for development
 
 If you're making modifications to the MPS itself, want to build MPS
 libraries for linking, or want to build MPS tests and tools, you should
-use the MPS build.  This uses makefiles or Xcode projects.  [Coming
-soon, Microsoft Visual Studio solutions.]
+use the MPS build.  This uses makefiles or Xcode projects.
 
 
 Prerequisites

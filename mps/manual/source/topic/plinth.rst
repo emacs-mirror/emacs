@@ -22,8 +22,8 @@ The :dfn:`plinth` is a program module that provides the MPS with the
 support it needs from the execution environment. The MPS uses the plinth instead of (say) the Standard C Library because:
 
 #. The MPS is designed to be portable to systems that have only a
-   *conforming freestanding implementation* of the C language: that
-   is, systems which potentially lack some of the facilities of the
+   :term:`freestanding` implementation of the C language: that is,
+   systems which potentially lack some of the facilities of the
    Standard C Library, such as standard I/O. The plinth provides a way
    to map MPS requirements to the facilities provided on the platform,
    whatever they are.
@@ -39,17 +39,18 @@ facilities is included with the MPS, and this is good enough for most
 applications.
 
 There are many reasons why you might want to write your own plinth.
-You may be targeting a *freestanding environment* such as an embedded
-system. You might need to write the telemetry stream to a system
-logging facility, or transmit it over a serial port or network
-connection. Or you might need to direct debugging output to a
-convenient window in the user interface.
+You may be targeting an embedded system with only a
+:term:`freestanding` implementation of the C language. You might need
+to write the telemetry stream to a system logging facility, or
+transmit it over a serial port or network connection. Or you might
+need to direct debugging output to a convenient window in the user
+interface.
 
 The plinth is divided into two parts:
 
 #. The :ref:`topic-plinth-io` provides general-purpose I/O
-   functionality. It is used by the :term:`telemetry` system to output
-   a stream of events to assist with debugging and profiling.
+   functionality. It is used to output a :term:`telemetry stream` of
+   events to assist with debugging and profiling.
 
 #. The :ref:`topic-plinth-lib` provides miscellaneous functionality
    that would be available via the Standard C Library on a hosted
@@ -254,12 +255,17 @@ Library module
 
         In the ANSI Library module, ``mpsliban.c``, this reports the
         failure by calling ``fprintf(stderr, "...%s...", message)``,
-        flushes the :term:`telemetry` stream by calling
+        flushes the :term:`telemetry stream` by calling
         :c:func:`mps_telemetry_flush`, and, in the :term:`cool`
         :term:`variety`, terminates the program by calling
         :c:func:`abort`. You can change this behaviour with
         :c:func:`mps_lib_assert_fail_install`. For a discussion of the
         default behaviour, see :ref:`topic-error-assertion-handling`.
+
+    .. warning::
+
+        This function must not call any function in MPS, and it must
+        not access memory managed by the MPS.
 
 .. c:function:: extern mps_lib_assert_fail_t mps_lib_assert_fail_install(mps_lib_assert_fail_t handler)
 
@@ -275,6 +281,11 @@ Library module
     ``handler`` is the assertion handler to install.
     
     Returns the previously installed handler.
+
+    .. warning::
+
+        The installed assertion handler must not call any function in
+        MPS, and it must not access memory managed by the MPS.
 
 .. c:type:: typedef void (*mps_lib_assert_fail_t)(const char *, unsigned, const char *)
 

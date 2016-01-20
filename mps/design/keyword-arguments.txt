@@ -137,6 +137,9 @@ arena or pool class. For example::
 This leaves the main body of code, and any future code, free to just
 handle keyword arguments only.
 
+Varargs methods must be thread-safe as they are called without taking
+the arena lock.
+
 The use of varargs is deprecated in the manual and the interface and these
 methods can be deleted at some point in the future.
 

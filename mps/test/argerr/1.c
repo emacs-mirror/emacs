@@ -4,6 +4,8 @@ TEST_HEADER
  summary = create an arena with an unaligned arena_t
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ abort = true
 END_HEADER
 */
 

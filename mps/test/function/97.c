@@ -218,7 +218,8 @@ static void test(void)
   tracegraph(b[1]);
   tracegraph(b[2]);
   tracegraph(b[3]);
-  
+
+  comment("f[0] = %p", f[0]); /* avoid compiler warning about used f */
   comment("ok");
  }
 

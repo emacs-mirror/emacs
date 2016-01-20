@@ -4,6 +4,10 @@ TEST_HEADER
  summary = allocate in destroyed AP
  language = c
  link = myfmt.o testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= mpsi.c
+ assertcond = TESTT(Buffer, buf)
 END_HEADER
 */
 

@@ -414,10 +414,34 @@ Memory Management Glossary: F
 
         .. seealso:: :term:`free block`, :term:`free block chain`.
 
+
+    freestanding
+
+        In the :term:`C` programming language as defined by
+        :term:`C90`, a freestanding implementation "accepts any
+        strictly conforming program in which the use of the features
+        specified in the library section is confined to the contents
+        of the standard headers ``<float.h>``, ``<limits.h>``,
+        ``<stdarg.h>``, and ``<stddef.h>``." The :term:`C99` standard
+        adds ``<iso646.h>``, ``<stdbool.h>``, and ``<stdint.h>`` to
+        this list.
+
+        In particular, a freestanding implementation need not provide
+        the other features of the standard C library, including I/O,
+        time, and string operations.
+
+        .. opposite:: :term:`hosted`.
+
+        .. mps:specific::
+
+            The MPS is designed to be portable to a freestanding
+            implementation, by restricting the use of other features
+            either to :term:`platform`\-specific modules or to the
+            replaceable :term:`plinth` modules.
+
+        .. bibref:: :ref:`ISO/IEC 9899:1990 <C1990>`, :ref:`ISO/IEC 9899:1999 <C1999>`.
+
     free store
-
-        .. see:: :term:`heap`.
-
     freestore
 
         .. see:: :term:`heap`.

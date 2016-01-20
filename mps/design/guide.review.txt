@@ -1,52 +1,62 @@
 .. mode: -*- rst -*-
 
-ANSI fake VM
-============
+Review checklist
+================
 
-:Tag: design.mps.vman
-:Author: David Jones
-:Date: 1996-11-07
-:Status: incomplete document
+:Tag: guide.review
+:Status: incomplete documentation
+:Author: Gareth Rees
+:Organization: Ravenbrook Limited
+:Date: 2015-08-10
 :Revision: $Id$
-:Copyright: See `Copyright and License`_.
-:Index terms:   pair: ANSI fake VM; design
+:Copyright: See section `Copyright and License`_.
+:Index terms: pair: review; checklist
 
 
-_`.intro`: The ANSI fake VM is an implementation of the MPS VM
-interface (see `design.mps.vm`_) using only services provided by the
-ANSI C Library (standard.ansic.7).
+Introduction
+------------
 
-.. _design.mps.vm: vm
+_`.scope`: This document contains a list of checks to apply when
+reviewing code or other documents in the Memory Pool System.
 
-_`.page.size`: The VM uses a fake page size, given by the constant
-``VMAN_PAGE_SIZE`` in ``config.h``.
+_`.readership`: This document is intended for reviewers.
 
-_`.align`: The VM is aligned to the arena grain size by adding the
-grain size to the requested size, allocating a block that large using
-``malloc()``, then rounding the pointer to the block up to a multiple
-of the grain size and storing the result in ``vm->base``. The block is
-stored in ``vm->block``, which is passed to ``free()`` in
-``VMFinish()``.
+_`.example`: The "example" links are issues caused by a failure to
+apply the checklist item.
+
+_`.diff`: Some items in the checklist are particularly susceptible to
+being ignored if one reviews only via the version control diff. These
+items refer to this tag.
+
+
+Checklist
+---------
+
+_`.test`: If a new feature has been added to the code, is there a test
+case? Example: job003923_.
+
+.. _job003923: http://www.ravenbrook.com/project/mps/issue/job003923/
+
+_`.unwind`: If code has been updated in a function that unwinds its
+state in failure cases, have the failure cases been updated to
+correspond? Example: job003922_. See `.diff`_.
+
+.. _job003922: http://www.ravenbrook.com/project/mps/issue/job003922/
+
 
 
 Document History
 ----------------
-- 1996-11-07 David Jones. Incomplete document.
 
-- 2002-06-07 RB_ Converted from MMInfo database design document.
+2015-08-10  GDR_  Created.
 
-- 2013-05-23 GDR_ Converted to reStructuredText.
-
-- 2014-06-18 GDR_ Bring up to date.
-
-.. _RB: http://www.ravenbrook.com/consultants/rb/
 .. _GDR: http://www.ravenbrook.com/consultants/gdr/
 
 
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited. All rights reserved.
+Copyright © 2015 Ravenbrook Limited. All rights reserved.
 <http://www.ravenbrook.com/>. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

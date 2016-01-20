@@ -1,4 +1,4 @@
-/* prmci6xc.c: PROTECTION MUTATOR CONTEXT x64 (MAC OS X)
+/* prmci6xc.c: PROTECTION MUTATOR CONTEXT x64 (OS X)
  *
  * $Id$
  * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
@@ -9,22 +9,26 @@
  *
  * SOURCES
  *
- * .source.linux.kernel: Linux kernel source files.
- *
  *
  * ASSUMPTIONS
+ *
+ * .sp: The stack pointer in the context is RSP.
  *
  * .context.regroots: The root regs are assumed to be recorded in the context
  * at pointer-aligned boundaries.
  *
- * .assume.regref: The resisters in the context can be modified by
+ * .assume.regref: The registers in the context can be modified by
  * storing into an MRef pointer.
  */
 
 #include "prmcxc.h"
 #include "prmci6.h"
 
-SRCID(prmci6li, "$Id$");
+SRCID(prmci6xc, "$Id$");
+
+#if !defined(MPS_OS_XC) || !defined(MPS_ARCH_I6)
+#error "prmci6xc.c is specific to MPS_OS_XC and MPS_ARCH_I6"
+#endif
 
 
 /* Prmci6AddressHoldingReg -- return an address of a register in a context */
@@ -70,7 +74,7 @@ MRef Prmci6AddressHoldingReg(MutatorFaultContext mfc, unsigned int regnum)
 }
 
 
-/* Prmci3DecodeFaultContext -- decode fault to find faulting address and IP */
+/* Prmci6DecodeFaultContext -- decode fault to find faulting address and IP */
 
 void Prmci6DecodeFaultContext(MRef *faultmemReturn,
                               Byte **insvecReturn,
@@ -81,7 +85,7 @@ void Prmci6DecodeFaultContext(MRef *faultmemReturn,
 }
 
 
-/* Prmci3StepOverIns -- modify context to step over instruction */
+/* Prmci6StepOverIns -- modify context to step over instruction */
 
 void Prmci6StepOverIns(MutatorFaultContext mfc, Size inslen)
 {

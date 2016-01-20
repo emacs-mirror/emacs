@@ -174,6 +174,7 @@ static void testInArena(mps_arena_t arena, mps_pool_debug_option_s *options)
     MPS_ARGS_ADD(args, MPS_KEY_MVFF_ARENA_HIGH, TRUE);
     MPS_ARGS_ADD(args, MPS_KEY_MVFF_SLOT_HIGH, TRUE);
     MPS_ARGS_ADD(args, MPS_KEY_MVFF_FIRST_FIT, TRUE);
+    MPS_ARGS_ADD(args, MPS_KEY_SPARE, rnd_double());
     die(stress(arena, NULL, align, randomSizeAligned, "MVFF",
                mps_class_mvff(), args), "stress MVFF");
   } MPS_ARGS_END(args);

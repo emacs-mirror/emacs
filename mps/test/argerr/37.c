@@ -4,6 +4,10 @@ TEST_HEADER
  summary = wrong size_t to free (MV)
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= pool.c
+ assertcond = (alignedLimit) <= _ch->limit
 END_HEADER
 */
 

@@ -33,7 +33,8 @@ static void test(void) {
   mps_stack_scan_ambig, stackpointer, 0), "create root");
 
  die(mps_pool_create(&pool, arena, mps_class_mv(),
-  1024*32, 1024*16, 1024*256), "pool");
+                     (size_t)(1024*32), (size_t)(1024*16), (size_t)(1024*256)),
+     "create MV pool");
 
  while (mps_alloc(&q, pool, 64*1024)==MPS_RES_OK);
  p=0;

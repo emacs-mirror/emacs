@@ -4,6 +4,8 @@ TEST_HEADER
  summary = UNALIGNED 1st arg to pool_create
  language = c
  link = testlib.o newfmt.o
+OUTPUT_SPEC
+ abort = true
 END_HEADER
 */
 
@@ -24,7 +26,6 @@ static void test(void)
  mps_arena_t arena;
  mps_thr_t thread;
  mps_root_t root;
-
  mps_chain_t chain;
  mps_fmt_t format;
 

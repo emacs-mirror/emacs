@@ -122,7 +122,7 @@ static void MVFFReduce(MVFF mvff)
   targetFree = freeLimit / 2;
 
   /* Each time around this loop we either break, or we free at least
-     one page back to the arena, thus ensuring that eventually the
+     one grain back to the arena, thus ensuring that eventually the
      loop will terminate */
 
   /* NOTE: If this code becomes very hot, then the test of whether there's
@@ -133,7 +133,7 @@ static void MVFFReduce(MVFF mvff)
          && LandFindLargest(&freeRange, &oldFreeRange, MVFFFreeLand(mvff),
                             grainSize, FindDeleteNONE))
   {
-    RangeStruct pageRange, oldRange;
+    RangeStruct grainRange, oldRange;
     Size size;
     Res res;
     Addr base, limit;
@@ -143,7 +143,7 @@ static void MVFFReduce(MVFF mvff)
     base = AddrAlignUp(RangeBase(&freeRange), grainSize);
     limit = AddrAlignDown(RangeLimit(&freeRange), grainSize);
     
-    /* Give up if this block doesn't contain a whole aligned page,
+    /* Give up if this block doesn't contain a whole aligned grain,
        even though smaller better-aligned blocks might, because
        LandFindLargest won't be able to find those anyway. */
     if (base >= limit)
@@ -155,12 +155,12 @@ static void MVFFReduce(MVFF mvff)
     if (size > freeSize - targetFree)
       size = SizeAlignUp(freeSize - targetFree, grainSize);
 
-    /* Calculate the range of pages we can return to the arena near the
+    /* Calculate the range of grains we can return to the arena near the
        top end of the free memory (because we're first fit). */
-    RangeInit(&pageRange, AddrSub(limit, size), limit);
-    AVER(!RangeIsEmpty(&pageRange));
-    AVER(RangesNest(&freeRange, &pageRange));
-    AVER(RangeIsAligned(&pageRange, grainSize));
+    RangeInit(&grainRange, AddrSub(limit, size), limit);
+    AVER(!RangeIsEmpty(&grainRange));
+    AVER(RangesNest(&freeRange, &grainRange));
+    AVER(RangeIsAligned(&grainRange, grainSize));
 
     /* Delete the range from the free list before attempting to delete
        it from the total allocated memory, so that we don't have
@@ -168,21 +168,21 @@ static void MVFFReduce(MVFF mvff)
        to delete from the TotalCBS we add back to the free list, which
        can't fail. */
 
-    res = LandDelete(&oldRange, MVFFFreeLand(mvff), &pageRange);
+    res = LandDelete(&oldRange, MVFFFreeLand(mvff), &grainRange);
     if (res != ResOK)
       break;
-    freeSize -= RangeSize(&pageRange);
+    freeSize -= RangeSize(&grainRange);
     AVER(freeSize == LandSize(MVFFFreeLand(mvff)));
 
-    res = LandDelete(&oldRange, MVFFTotalLand(mvff), &pageRange);
+    res = LandDelete(&oldRange, MVFFTotalLand(mvff), &grainRange);
     if (res != ResOK) {
       RangeStruct coalescedRange;
-      res = LandInsert(&coalescedRange, MVFFFreeLand(mvff), &pageRange);
+      res = LandInsert(&coalescedRange, MVFFFreeLand(mvff), &grainRange);
       AVER(res == ResOK);
       break;
     }
 
-    ArenaFree(RangeBase(&pageRange), RangeSize(&pageRange), MVFFPool(mvff));
+    ArenaFree(RangeBase(&grainRange), RangeSize(&grainRange), MVFFPool(mvff));
   }
 }
 
@@ -445,9 +445,9 @@ static void MVFFDebugVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
 
 /* MVFFInit -- initialize method for MVFF */
 
-ARG_DEFINE_KEY(mvff_slot_high, Bool);
-ARG_DEFINE_KEY(mvff_arena_high, Bool);
-ARG_DEFINE_KEY(mvff_first_fit, Bool);
+ARG_DEFINE_KEY(MVFF_SLOT_HIGH, Bool);
+ARG_DEFINE_KEY(MVFF_ARENA_HIGH, Bool);
+ARG_DEFINE_KEY(MVFF_FIRST_FIT, Bool);
 
 static Res MVFFInit(Pool pool, ArgList args)
 {
@@ -520,7 +520,7 @@ static Res MVFFInit(Pool pool, ArgList args)
 
   LocusPrefInit(MVFFLocusPref(mvff));
   LocusPrefExpress(MVFFLocusPref(mvff),
-                   arenaHigh ? LocusPrefHigh : LocusPrefLow, NULL);
+                   arenaHigh ? LocusPrefHIGH : LocusPrefLOW, NULL);
 
   /* An MFS pool is explicitly initialised for the two CBSs partly to
    * share space, but mostly to avoid a call to PoolCreate, so that
@@ -595,6 +595,7 @@ static Bool mvffFinishVisitor(Bool *deleteReturn, Land land, Range range,
   AVER(closureP != NULL);
   pool = closureP;
   AVERT(Pool, pool);
+  AVER(closureS == UNUSED_SIZE);
   UNUSED(closureS);
 
   ArenaFree(RangeBase(range), RangeSize(range), pool);
@@ -612,7 +613,8 @@ static void MVFFFinish(Pool pool)
   AVERT(MVFF, mvff);
   mvff->sig = SigInvalid;
 
-  b = LandIterateAndDelete(MVFFTotalLand(mvff), mvffFinishVisitor, pool, 0);
+  b = LandIterateAndDelete(MVFFTotalLand(mvff), mvffFinishVisitor, pool,
+                           UNUSED_SIZE);
   AVER(b);
   AVER(LandSize(MVFFTotalLand(mvff)) == 0);
 

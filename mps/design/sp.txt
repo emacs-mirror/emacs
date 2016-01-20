@@ -1,0 +1,226 @@
+.. mode: -*- rst -*-
+
+Stack probe
+===========
+
+:Tag: design.mps.sp
+:Author: Gareth Rees
+:Date: 2014-10-23
+:Status: complete design
+:Revision: $Id$
+:Copyright: See `Copyright and License`_.
+:Index terms: pair: stack probe; design
+
+
+Introduction
+------------
+
+_`.intro`: This is the design of the stack probe module.
+
+_`.readership`: Any MPS developer; anyone porting the MPS to a new
+platform.
+
+_`.overview`: This module ensures that the stack cannot overflow while
+the MPS is holding a lock, so that a mutator can handle stack overflow
+faults and call into the MPS from the handler.
+
+
+Requirements
+------------
+
+_`.req.overflow`: The mutator should be able to call into the MPS from
+a stack overflow fault handler. (This is a convenient way to handle
+stack overflows in dynamic language implementations: if the stack
+overflow exception and associated backtrace are to be represented as
+objects, this may require allocation, and hence a call into the MPS.)
+
+_`.req.complete`: In an application where the mutator might call into
+the MPS from a stack overflow fault handler, then whenever the MPS
+takes a lock, it must complete the operation and release the lock
+without running out of stack. (This is because running out of stack
+would cause a stack overflow fault, causing the mutator would enter
+the MPS recursively, which would fail because the lock is held.)
+
+
+Design
+------
+
+_`.sol.probe`: Before taking the arena lock in ``ArenaEnterLock()``,
+the MPS *probes* the stack: that is, it checks whether there are at
+least ``StackProbeDEPTH`` words available, and provokes a stack
+overflow fault if there are not. (This ensures that the fault occurs
+outside of the arena lock where it can be handled safely.)
+
+_`.sol.depth`: The configuration parameter ``StackProbeDEPTH``
+specifies the maximum number of words of stack that the MPS might use.
+(It is simpler, faster, and more reliable, to determine this globally
+than to try to figure it out dynamically.)
+
+_`.sol.depth.constraint`: Operating systems typically use a single
+"guard page" to detect stack overflow and grow the stack. (See for
+example the documentation for Windows_.) This means that the probe
+will be ineffective if it skips over the guard page into the memory
+beyond. If ``StackProbeDEPTH`` is greater than or equal to the number
+of words per page, the implementation might need to carry out multiple
+probes. (This constraint is checked in ``MPMCheck()``.)
+
+.. _Windows: http://support.microsoft.com/kb/100775
+
+_`.sol.depth.no-recursion`: In order to implement this design, the MPS
+must have constant bounded stack depth, and therefore, no recursion.
+
+_`.sol.depth.analysis`: Here's a table showing a deep call into the
+MPS (in the master sources at changelevel 187378), starting in
+``ArenaAccess()`` at the point where the arena ring lock is taken. The
+access forces a scan of a segment in an AMC pool, which fixes a
+reference to an object in an AMC pool's oldspace, which has to be
+forwarded, and this overflows the forwarding buffer, which requires
+the arena to allocate a new buffer in an appropriate zone, by
+searching the splay tree representing free memory.
+
+The "Args" column gives the number of arguments to the function (all
+arguments to functions in the MPS are word-sized or smaller, since we
+prohibit passing structures by value), and the "Locals" column gives
+the number of words in local variables. The value "≤64" for the stack
+usage of the object format's scan method is the limit that's
+documented in the manual.
+
+====  ======  ========================
+Args  Locals  Function
+====  ======  ========================
+   5       0  ``PoolAccess()``
+   5       0  ``PoolSegAccess()``
+   3       5  ``TraceSegAccess()``
+   4       1  ``traceScanSeg()``
+   4       8  ``traceScanSegRes()``
+   4       0  ``PoolScan()``
+   4       5  ``AMCScan()``
+   3     ≤64  ``format->scan()``
+   4      15  ``AMCFix()``
+   4       5  ``BufferFill()``
+   6      10  ``AMCBufferFill()``
+   6       9  ``PoolGenAlloc()``
+   7       5  ``SegAlloc()``
+   5       5  ``ArenaAlloc()``
+   5       5  ``arenaAllocPolicy()``
+   5      11  ``arenaAllocFromLand()``
+   7       1  ``LandFindInZones()``
+   7      16  ``cbsFindInZones()``
+   5       3  ``cbsFindFirst()``
+   6       7  ``SplayFindFirst()``
+   3       7  ``SplaySplay()``
+   4       8  ``SplaySplitDown()``
+   3       0  ``SplayZig()``
+ 109    ≤190  **Total**
+====  ======  ========================
+
+We expect that a compiler will often be able to share stack space
+between function arguments and local variables, but in the worst case
+where it cannot, this call requires no more than 299 words of stack
+space.
+
+This isn't necessarily the deepest call into the MPS (the MPS's
+modular design and class system makes it hard to do a complete
+analysis using call graph tools), but it's probably close. The value
+for ``StackProbeDEPTH`` is thus chosen to be a round number that's
+comfortably larger than this.
+
+
+Interface
+---------
+
+``void StackProbe(Size depth)``
+
+_`.if.probe`: If there are at least ``depth`` words of stack
+available, return. If not, provoke a stack overflow fault.
+
+
+Issues
+------
+
+_`.issue.an`: The generic implementation is non-functional. This means
+that it is only suitable for use with programs that do not handle
+stack overflow faults, or do not call into the MPS from the handler.
+This is because our customers have only required `.req.overflow`_ on
+Windows so far. If this becomes a requirement on other platforms, the
+following Standard C implementation might work::
+
+    void StackProbe(Size depth) {
+      volatile Word w;
+      Word *p = &w - depth;
+      w = *p;
+    }
+
+The use of ``volatile`` here is to prevent compilers from warning
+about the variable ``w`` being written but never read, or worse,
+optimizing away the whole statement under the "as if" rule.
+
+
+Implementations
+---------------
+
+_`.impl.an`: Generic implementation in ``span.c``. This implementation
+does nothing. See `.issue.an`_.
+
+_`.impl.w3i3`: Implementation for Windows on IA-32 in ``spw3i3.c``.
+This uses assembly to get the stack pointer (from the ESP register)
+and to read the location ``depth`` words below the stack pointer.
+
+_`.impl.w3i6`: Implementation for Windows on x86-64 in ``spw3i6.c``.
+This passes the argument ``depth*sizeof(Word)`` to the Windows
+function |alloca|_, for which the documentation says, "A stack
+overflow exception is generated if the space cannot be allocated."
+
+.. |alloca| replace:: ``_alloca()``
+.. _alloca: http://msdn.microsoft.com/en-us/library/wb1s57t5.aspx
+
+
+Document History
+----------------
+
+- 2014-10-23 GDR_ Initial draft.
+
+.. _GDR: http://www.ravenbrook.com/consultants/gdr/
+
+
+Copyright and License
+---------------------
+
+Copyright © 2014 Ravenbrook Limited. All rights reserved.
+<http://www.ravenbrook.com/>. This is an open source license. Contact
+Ravenbrook for commercial licensing options.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+#. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+#. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+#. Redistributions in any form must be accompanied by information on how
+   to obtain complete source code for this software and any
+   accompanying software that uses this software.  The source code must
+   either be included in the distribution or be available for no more than
+   the cost of distribution plus a nominal fee, and must be freely
+   redistributable under reasonable conditions.  For an executable file,
+   complete source code means the source code for all modules it contains.
+   It does not include source code for modules or files that typically
+   accompany the major components of the operating system on which the
+   executable file runs.
+
+**This software is provided by the copyright holders and contributors
+"as is" and any express or implied warranties, including, but not
+limited to, the implied warranties of merchantability, fitness for a
+particular purpose, or non-infringement, are disclaimed.  In no event
+shall the copyright holders and contributors be liable for any direct,
+indirect, incidental, special, exemplary, or consequential damages
+(including, but not limited to, procurement of substitute goods or
+services; loss of use, data, or profits; or business interruption)
+however caused and on any theory of liability, whether in contract,
+strict liability, or tort (including negligence or otherwise) arising in
+any way out of the use of this software, even if advised of the
+possibility of such damage.**

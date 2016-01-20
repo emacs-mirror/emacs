@@ -6,7 +6,7 @@
  * .purpose: Simple interface to threads that makes it possible to
  * write test cases that are portable between Windows (using the
  * implementation in testthrw3.c) and Unix (using the implementation
- * in testthrix.c).
+ * in testthrix.c). See <design/testthr/>.
  */
 
 #ifndef testthr_h

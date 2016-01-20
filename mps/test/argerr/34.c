@@ -4,6 +4,9 @@ TEST_HEADER
  summary = high bit set 3rd arg to mps_alloc (MV)
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ error = true
+ errtext = allocation failed (correct): RESOURCE
 END_HEADER
 */
 

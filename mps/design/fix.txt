@@ -40,9 +40,11 @@ condemned space).
 _`.protocol.was-marked.conservative`: It is always okay to set the
 ``wasMarked`` field to ``TRUE``.
 
-_`.protocol.was-marked.finalizable`: The MRG pool (design.mps.poolmrg)
+_`.protocol.was-marked.finalizable`: The MRG pool (design.mps.poolmrg_)
 uses the value of the ``wasMarked`` field to determine whether an
 object is finalizable.
+
+.. _design.mps.poolmrg: poolmrg
 
 
 Implementation

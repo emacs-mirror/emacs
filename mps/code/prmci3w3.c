@@ -1,4 +1,4 @@
-/* prmci3w3.c: PROTECTION MUTATOR CONTEXT INTEL 386 (Win32)
+/* prmci3w3.c: PROTECTION MUTATOR CONTEXT INTEL 386 (Windows)
  *
  * $Id$
  * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
@@ -15,7 +15,7 @@
  *
  * ASSUMPTIONS
  *
- * .assume.regref: The resisters in the context can be modified by
+ * .assume.regref: The registers in the context can be modified by
  * storing into an MRef pointer.
  */
 
@@ -24,6 +24,10 @@
 #include "mpm.h"
 
 SRCID(prmci3w3, "$Id$");
+
+#if !defined(MPS_OS_W3) || !defined(MPS_ARCH_I3)
+#error "prmci3w3.c is specific to MPS_OS_W3 and MPS_ARCH_I3"
+#endif
 
 
 /* Prmci3AddressHoldingReg -- Return an address for a given machine register */

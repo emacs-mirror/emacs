@@ -56,17 +56,17 @@ void LocusPrefExpress(LocusPref pref, LocusPrefKind kind, void *p)
   AVER(pref != &locusPrefDefault);
 
   switch(kind) {
-  case LocusPrefHigh:
+  case LocusPrefHIGH:
     AVER(p == NULL);
     pref->high = TRUE;
     break;
 
-  case LocusPrefLow:
+  case LocusPrefLOW:
     AVER(p == NULL);
     pref->high = FALSE;
     break;
 
-  case LocusPrefZoneSet:
+  case LocusPrefZONESET:
     AVER(p != NULL);
     pref->zones = *(ZoneSet *)p;
     break;

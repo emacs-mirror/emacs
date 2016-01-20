@@ -47,13 +47,13 @@ function/41.c
 function/42.c
 function/43.c
 function/44.c
-% function/45.c -- setref: to non-data object @@@@
+function/45.c
 function/46.c
 function/47.c
 function/48.c
 function/49.c
 function/50.c
-% function/51.c -- job003739
+function/51.c
 function/52.c
 function/53.c
 function/55.c
@@ -72,7 +72,7 @@ function/67.c
 function/69.c
 function/70.c
 function/71.c
-% function/72.c -- testcase seems bogus
+function/72.c
 function/73.c
 function/74.c
 function/75.c
@@ -109,7 +109,7 @@ function/117.c
 function/118.c
 function/119.c
 function/120.c
-% function/121.c -- job003495
+function/121.c
 function/122.c
 function/123.c
 function/124.c
@@ -120,7 +120,7 @@ function/128.c
 function/129.c
 % function/130.c -- job003789
 % function/131.c -- job003789
-function/132.c
+% function/132.c -- job003869
 function/133.c
 function/134.c
 function/135.c
@@ -151,8 +151,8 @@ function/165.c
 % 166 -- no such test
 function/167.c
 % 168-169 -- no such test
-% function/170.c -- commit limit logic seems wrong @@@@
-% function/171.c -- job003495
+function/170.c
+function/171.c
 function/200.c
 % 201-202 -- no such test
 function/203.c
@@ -167,4 +167,6 @@ function/223.c
 function/224.c
 % 225 -- no such test
 function/226.c
+function/227.c
 function/228.c
+function/229.c

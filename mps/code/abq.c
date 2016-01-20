@@ -231,13 +231,13 @@ Count ABQDepth(ABQ abq)
 }
 
 
-/* ABQIterate -- call 'iterate' for each element in an ABQ */
-void ABQIterate(ABQ abq, ABQIterateMethod iterate, void *closureP, Size closureS)
+/* ABQIterate -- call 'visitor' for each element in an ABQ */
+void ABQIterate(ABQ abq, ABQVisitor visitor, void *closureP, Size closureS)
 {
   Index copy, index, in;
 
   AVERT(ABQ, abq);
-  AVER(FUNCHECK(iterate));
+  AVER(FUNCHECK(visitor));
 
   copy = abq->out;
   index = abq->out;
@@ -247,7 +247,7 @@ void ABQIterate(ABQ abq, ABQIterateMethod iterate, void *closureP, Size closureS
     void *element = ABQElement(abq, index);
     Bool delete = FALSE;
     Bool cont;
-    cont = (*iterate)(&delete, element, closureP, closureS);
+    cont = (*visitor)(&delete, element, closureP, closureS);
     AVERT(Bool, cont);
     AVERT(Bool, delete);
     if (!delete) {

@@ -119,37 +119,6 @@ many small objects. They must be used according to the
         :term:`thread`: each thread must create its own allocation
         point or points.
 
-    .. note::
-
-        There's an alternative function :c:func:`mps_ap_create_v` that
-        takes its extra arguments using the standard :term:`C`
-        ``va_list`` mechanism.
-
-
-.. c:function:: mps_res_t mps_ap_create(mps_ap_t *ap_o, mps_pool_t pool, ...)
-
-    .. deprecated:: starting with version 1.112.
-
-        Use :c:func:`mps_ap_create_k` instead: the :term:`keyword
-        arguments` interface is more reliable and produces better
-        error messages.
-
-    An alternative to :c:func:`mps_ap_create_k` that takes its extra
-    arguments using the standard :term:`C` variable argument list
-    mechanism.
-
-
-.. c:function:: mps_res_t mps_ap_create_v(mps_ap_t *ap_o, mps_pool_t pool, va_list args)
-
-    .. deprecated:: starting with version 1.112.
-
-        Use :c:func:`mps_ap_create_k` instead: the :term:`keyword
-        arguments` interface is more reliable and produces better
-        error messages.
-
-    An alternative to :c:func:`mps_ap_create_k` that takes its extra
-    arguments using the standard :term:`C` ``va_list`` mechanism.
-
 
 .. c:function:: void mps_ap_destroy(mps_ap_t ap)
 
@@ -246,7 +215,8 @@ is thus::
     size_t aligned_size = ALIGN(size); /* see note 1 */
     do {
         mps_res_t res = mps_reserve(&p, ap, aligned_size);
-        if (res != MPS_RES_OK) /* handle the error */;
+        if (res != MPS_RES_OK)
+            /* handle the error */;
         /* p is now an ambiguous reference to the reserved block */
         obj = p;
         /* initialize obj */
@@ -595,8 +565,9 @@ The *reserve* operation thus looks like this::
         }
     }
 
-The critical path consists of an add, a store, and a branch (and
-branch prediction should work well since the test usually succeeds).
+The critical path consists of three loads, an add, two stores, and a
+branch (and branch prediction should work well since the test usually
+succeeds).
 
 .. note::
 
@@ -629,8 +600,9 @@ The *commit* operation thus looks like this::
         /* p is valid */
     }
 
-The critical path here consists of a store and a branch (and again,
-branch prediction should work well since the test almost never fails).
+The critical path here consists of three loads, a store and a branch
+(and again, branch prediction should work well since the test almost
+never fails).
 
 .. note::
 

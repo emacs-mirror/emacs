@@ -1,7 +1,7 @@
 /* tree.c: BINARY TREE IMPLEMENTATION
  *
  * $Id$
- * Copyright (C) 2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (C) 2014-2015 Ravenbrook Limited.  See end of file for license.
  *
  * Simple binary trees with utilities, for use as building blocks.
  * Keep it simple, like Rings (see ring.h).
@@ -9,10 +9,9 @@
  * The performance requirements on tree implementation will depend on
  * how each individual function is applied in the MPS.
  *
- * .note.stack: It's important that the MPS have a bounded stack
- * size, and this is a problem for tree algorithms.  Basically,
- * we have to avoid recursion.  TODO: Design documentation for this
- * requirement, meanwhile see job003651 and job003640.
+ * .note.stack: It's important that the MPS have a bounded stack size,
+ * and this is a problem for tree algorithms. Basically, we have to
+ * avoid recursion. See design.mps.sp.sol.depth.no-recursion.
  */
 
 #include "tree.h"
@@ -50,7 +49,8 @@ Bool TreeCheckLeaf(Tree tree)
  */
 
 static Count TreeDebugCountBetween(Tree node,
-                                   TreeCompare compare, TreeKeyMethod key,
+                                   TreeCompareFunction compare,
+                                   TreeKeyFunction key,
                                    TreeKey min, TreeKey max)
 {
   if (node == TreeEMPTY)
@@ -63,7 +63,8 @@ static Count TreeDebugCountBetween(Tree node,
          TreeDebugCountBetween(TreeRight(node), compare, key, key(node), max);
 }
 
-Count TreeDebugCount(Tree tree, TreeCompare compare, TreeKeyMethod key)
+Count TreeDebugCount(Tree tree, TreeCompareFunction compare,
+                     TreeKeyFunction key)
 {
   AVERT(Tree, tree);
   return TreeDebugCountBetween(tree, compare, key, NULL, NULL);
@@ -80,7 +81,8 @@ Count TreeDebugCount(Tree tree, TreeCompare compare, TreeKeyMethod key)
  * or CompareGREATER for its right.
  */
 
-Compare TreeFind(Tree *treeReturn, Tree root, TreeKey key, TreeCompare compare)
+Compare TreeFind(Tree *treeReturn, Tree root, TreeKey key,
+                 TreeCompareFunction compare)
 {
   Tree node, parent;
   Compare cmp = CompareEQUAL;
@@ -126,7 +128,8 @@ Compare TreeFind(Tree *treeReturn, Tree root, TreeKey key, TreeCompare compare)
  * *treeReturn unchanged and return FALSE.
  */
 
-Bool TreeFindNext(Tree *treeReturn, Tree root, TreeKey key, TreeCompare compare)
+Bool TreeFindNext(Tree *treeReturn, Tree root, TreeKey key,
+                  TreeCompareFunction compare)
 {
   Tree node, best = NULL;
   Bool result = FALSE;
@@ -169,7 +172,7 @@ Bool TreeFindNext(Tree *treeReturn, Tree root, TreeKey key, TreeCompare compare)
  */
 
 Bool TreeInsert(Tree *treeReturn, Tree root, Tree node,
-                TreeKey key, TreeCompare compare)
+                TreeKey key, TreeCompareFunction compare)
 {
   Tree parent;
   Compare cmp;
@@ -318,8 +321,8 @@ static Tree stepUpLeft(Tree node, Tree *parentIO)
 }
 
 Bool TreeTraverse(Tree tree,
-                  TreeCompare compare,
-                  TreeKeyMethod key,
+                  TreeCompareFunction compare,
+                  TreeKeyFunction key,
                   TreeVisitor visit, void *closureP, Size closureS)
 {
   Tree parent, node;
@@ -565,7 +568,7 @@ void TreeTraverseAndDelete(Tree *treeIO, TreeVisitor visitor,
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2014-2015 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
