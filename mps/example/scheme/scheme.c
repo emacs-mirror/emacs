@@ -1017,22 +1017,12 @@ static void table_delete(obj_t tbl, obj_t key)
 }
 
 
-/* port_close -- close and definalize a port                         %%MPS
- *
- * Ports objects are registered for finalization when they are created
- * (see make_port). When closed, we definalize them. This is purely an
- * optimization: it would be harmless to finalize them because setting
- * 'stream' to NULL prevents the stream from being closed multiple
- * times. See topic/finalization.
- */
 static void port_close(obj_t port)
 {
   assert(TYPE(port) == TYPE_PORT);
   if(port->port.stream != NULL) {
-    mps_addr_t port_ref = port;
     fclose(port->port.stream);
     port->port.stream = NULL;
-    mps_definalize(arena, &port_ref);
   }
 }
 
