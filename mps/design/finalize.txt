@@ -16,11 +16,13 @@ Overview
 --------
 
 _`.overview`: Finalization is implemented internally using the
-Guardian Pool Class (design.mps.poolmrg). Objects can be registered
-for finalization using an interface function (called
-``mps_finalize()``). Notification of finalization is given to the client
-via the messaging interface. ``PoolClassMRG`` (design.mps.poolmrg)
-implements a Message Class which implements the finalization messages.
+Guardian pool class (design.mps.poolmrg_). Objects can be registered
+for finalization using ``mps_finalize()``. Notification of
+finalization is given to the client via the messaging interface. The
+Guardian pool class implements a ``Message`` subclass which implements
+the finalization messages.
+
+.. _design.mps.poolmrg: poolmrg
 
 
 Requirements
@@ -62,7 +64,9 @@ Implementation
 _`.int.over`: Registering an object for finalization corresponds to
 allocating a reference of rank FINAL to that object. This reference is
 allocated in a guardian object in a pool of ``PoolClassMRG`` (see
-design.mps.poolmrg).
+design.mps.poolmrg_).
+
+.. _design.mps.poolmrg: poolmrg
 
 _`.int.arena.struct`: The MRG pool used for managing final references
 is kept in the Arena (Space), referred to as the "final pool".

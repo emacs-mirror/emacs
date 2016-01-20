@@ -4,6 +4,10 @@ TEST_HEADER
  summary = MAX+1 root mode for mps_root_create_fmt
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= root.c
+ assertcond = (mode & (RootModeCONSTANT | RootModePROTECTABLE | RootModePROTECTABLE_INNER)) == mode
 END_HEADER
 */
 
@@ -29,7 +33,7 @@ static void test(void)
 
  cdie(mps_thread_reg(&thread, arena), "register thread");
 
- cdie(mps_root_create_fmt(&root, arena, mps_rank_ambig(), MPS_RM_MAX+1, 
+ cdie(mps_root_create_fmt(&root, arena, mps_rank_ambig(), 8,
                       fmtscan, a, &a[32]),
       "root create");
 

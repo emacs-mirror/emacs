@@ -102,7 +102,7 @@ mps_res_t myscan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
 
      if (obj->ref[0] != NULL)
      {
-      if (formatcomments) printf("Fix: %x.\n", (int) &(obj->ref[0]));
+      if (formatcomments) printf("Fix: %p.\n", (void*)&(obj->ref[0]));
       res = MPS_FIX(ss, (mps_addr_t *) &(obj->ref[0])); /* pun! */
       if (res != MPS_RES_OK)
       {
@@ -111,7 +111,7 @@ mps_res_t myscan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
      }
      if (obj->ref[1] != NULL)
      {
-      if (formatcomments) printf("Fix: %x.\n", (int) &(obj->ref[1]));
+      if (formatcomments) printf("Fix: %p.\n", (void*)&(obj->ref[1]));
       res = MPS_FIX(ss, (mps_addr_t *) &(obj->ref[1])); /* pun! */
       if (res != MPS_RES_OK)
       {
@@ -154,7 +154,7 @@ void mycopy(mps_addr_t object, mps_addr_t to)
 /* mycell *toj = to;
 */
 
- if (formatcomments) printf("copy! %x -> %x\n", (int) object, (int) to);
+ if (formatcomments) printf("copy! %p -> %p\n", object, to);
 
 /* this line is bad, because the objects might overlap,
    and then C doesn't guarantee to do the right thing!

@@ -214,7 +214,6 @@
 #include "mpsiw3.c"     /* Windows interface layer extras */
 
 /* Windows on 64-bit Intel with Microsoft Visual Studio */
-/* ssw3i6.asm is also required, but can't be included here */
 
 #elif defined(MPS_PF_W3I6MV)
 

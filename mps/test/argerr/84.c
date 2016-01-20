@@ -4,6 +4,10 @@ TEST_HEADER
  summary = null ld for is_stale
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= ld.c
+ assertcond = ld != NULL
 END_HEADER
 */
 

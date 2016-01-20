@@ -19,7 +19,8 @@ static void test(void) {
  die(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE), "create");
 
  die(mps_pool_create(&pool, arena, mps_class_mv(),
-  1024*32, 1024*16, 1024*256), "pool");
+                    (size_t)(1024*32), (size_t)(1024*16), (size_t)(1024*256)),
+     "create MV pool");
 
  die(mps_alloc(&q, pool, 1024*1024), "alloc");
 

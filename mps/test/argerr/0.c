@@ -4,6 +4,10 @@ TEST_HEADER
  summary = create an arena with a NULL arena_t
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= mpsi.c
+ assertcond = mps_arena_o != NULL
 END_HEADER
 */
 

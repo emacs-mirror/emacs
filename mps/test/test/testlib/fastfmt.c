@@ -139,7 +139,7 @@ static mps_res_t myscan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
   {
    mycell *obj = base;
    mps_res_t res;
-   mps_addr_t p, q;
+   mps_addr_t p;
 
    switch (obj->tag & 0x3)
    {
@@ -151,7 +151,6 @@ static mps_res_t myscan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
      /* make sure to fix the assoc pointer first */
      p = obj->data.assoc;
      if (p != NULL) {
-      q = p;
       res = MPS_FIX(ss, (mps_addr_t *) &p);
       if (res != MPS_RES_OK) return res;
       obj->data.assoc = p;
@@ -162,7 +161,6 @@ static mps_res_t myscan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
       p = obj->data.ref[i].addr;
       if (p != NULL)
       {
-       q = p;
        res = MPS_FIX(ss, (mps_addr_t *) &p);
        if (res != MPS_RES_OK) return res;
        obj->data.ref[i].addr = p;

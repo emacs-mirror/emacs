@@ -17,12 +17,12 @@
  *
  * ASSUMPTIONS
  *
- * .sp: The stack pointer in the context is uc_stack.ss_sp.
+ * .sp: The stack pointer in the context is ESP.
  *
  * .context.regroots: The root regs are assumed to be recorded in the context
  * at pointer-aligned boundaries.
  *
- * .assume.regref: The resisters in the context can be modified by
+ * .assume.regref: The registers in the context can be modified by
  * storing into an MRef pointer.
  */
 
@@ -30,6 +30,10 @@
 #include "prmci3.h"
 
 SRCID(prmci3li, "$Id$");
+
+#if !defined(MPS_OS_LI) || !defined(MPS_ARCH_I3)
+#error "prmci3li.c is specific to MPS_OS_LI and MPS_ARCH_I3"
+#endif
 
 
 /* Prmci3AddressHoldingReg -- return an address of a register in a context */

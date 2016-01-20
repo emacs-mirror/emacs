@@ -1,7 +1,7 @@
 /* mpm.h: MEMORY POOL MANAGER DEFINITIONS
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2015 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .trans.bufferinit: The Buffer data structure has an Init field and
@@ -18,6 +18,8 @@
 
 #include "event.h"
 #include "lock.h"
+#include "prot.h"
+#include "sp.h"
 #include "th.h"
 #include "ss.h"
 #include "mpslib.h"
@@ -44,6 +46,7 @@ extern Bool FunCheck(Fun f);
 extern Bool ShiftCheck(Shift shift);
 extern Bool AttrCheck(Attr attr);
 extern Bool RootVarCheck(RootVar rootVar);
+extern Bool AccessSetCheck(AccessSet mode);
 
 
 /* Address/Size Interface -- see <code/mpm.c> */
@@ -222,9 +225,9 @@ extern Res PoolFixEmergency(Pool pool, ScanState ss, Seg seg, Addr *refIO);
 extern void PoolReclaim(Pool pool, Trace trace, Seg seg);
 extern void PoolTraceEnd(Pool pool, Trace trace);
 extern Res PoolAddrObject(Addr *pReturn, Pool pool, Seg seg, Addr addr);
-extern void PoolWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
+extern void PoolWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
                      void *v, size_t s);
-extern void PoolFreeWalk(Pool pool, FreeBlockStepMethod f, void *p);
+extern void PoolFreeWalk(Pool pool, FreeBlockVisitor f, void *p);
 extern Size PoolTotalSize(Pool pool);
 extern Size PoolFreeSize(Pool pool);
 
@@ -276,9 +279,9 @@ extern Res PoolTrivFramePop(Pool pool, Buffer buf, AllocFrame frame);
 extern void PoolNoFramePopPending(Pool pool, Buffer buf, AllocFrame frame);
 extern void PoolTrivFramePopPending(Pool pool, Buffer buf, AllocFrame frame);
 extern Res PoolNoAddrObject(Addr *pReturn, Pool pool, Seg seg, Addr addr);
-extern void PoolNoWalk(Pool pool, Seg seg, FormattedObjectsStepMethod step,
+extern void PoolNoWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
                        void *p, size_t s);
-extern void PoolTrivFreeWalk(Pool pool, FreeBlockStepMethod f, void *p);
+extern void PoolTrivFreeWalk(Pool pool, FreeBlockVisitor f, void *p);
 extern PoolDebugMixin PoolNoDebugMixin(Pool pool);
 extern BufferClass PoolNoBufferClass(void);
 extern Size PoolNoSize(Pool pool);
@@ -518,6 +521,7 @@ extern Ring GlobalsRememberedSummaryRing(Globals);
 #define GlobalsArena(glob) PARENT(ArenaStruct, globals, glob)
 
 #define ArenaThreadRing(arena)  (&(arena)->threadRing)
+#define ArenaDeadRing(arena)    (&(arena)->deadRing)
 #define ArenaEpoch(arena)       ((arena)->epoch) /* .epoch.ts */
 #define ArenaTrace(arena, ti)   (&(arena)->trace[ti])
 #define ArenaZoneShift(arena)   ((arena)->zoneShift)
@@ -559,13 +563,14 @@ extern Bool (ArenaStep)(Globals globals, double interval, double multiplier);
 extern void ArenaClamp(Globals globals);
 extern void ArenaRelease(Globals globals);
 extern void ArenaPark(Globals globals);
-extern void ArenaExposeRemember(Globals globals, int remember);
+extern void ArenaExposeRemember(Globals globals, Bool remember);
 extern void ArenaRestoreProtection(Globals globals);
 extern Res ArenaStartCollect(Globals globals, int why);
 extern Res ArenaCollect(Globals globals, int why);
 extern Bool ArenaHasAddr(Arena arena, Addr addr);
 extern Res ArenaAddrObject(Addr *pReturn, Arena arena, Addr addr);
 extern void ArenaChunkInsert(Arena arena, Chunk chunk);
+extern void ArenaChunkRemoved(Arena arena, Chunk chunk);
 
 extern void ArenaSetEmergency(Arena arena, Bool emergency);
 extern Bool ArenaEmergency(Arena arean);
@@ -931,30 +936,6 @@ extern void (ShieldFlush)(Arena arena);
 #endif  /* SHIELD */
 
 
-/* Protection Interface
- *
- * See <design/prot/> for the design of the generic interface including
- * the contracts for these functions.
- *
- * This interface has several different implementations, typically one
- * per platform, see <code/prot.c>* for the various implementations, and
- * <design/prot/>* for the corresponding designs. */
-
-extern void ProtSetup(void);
-
-extern Size ProtGranularity(void);
-extern void ProtSet(Addr base, Addr limit, AccessSet mode);
-extern void ProtSync(Arena arena);
-extern Bool ProtCanStepInstruction(MutatorFaultContext context);
-extern Res ProtStepInstruction(MutatorFaultContext context);
-
-
-/* Mutator Fault Context */
-
-extern Addr MutatorFaultContextSP(MutatorFaultContext mfc);
-extern Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext mfc);
-
-
 /* Location Dependency -- see <code/ld.c> */
 
 extern void LDReset(mps_ld_t ld, Arena arena);
@@ -1033,11 +1014,6 @@ extern LandClass LandClassGet(void);
   IsSubclassPoly((land)->class, className ## Get())
 
 
-/* Stack Probe */
-
-extern void StackProbe(Size depth);
-
-
 /* STATISTIC -- gather statistics (in some varieties)
  *
  * The argument of STATISTIC is an expression; the expansion followed by
@@ -1078,7 +1054,7 @@ extern void StackProbe(Size depth);
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2015 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

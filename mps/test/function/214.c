@@ -40,7 +40,8 @@ static void test (void) {
  cdie(mps_thread_reg(&thread, arena), "register thread");
  die(
   mps_pool_create(&pool, arena, mps_class_mvt(),
-                  OBJSIZE, OBJSIZE, OBJSIZE, DEPTH, FRAGLIMIT),
+                  (size_t)OBJSIZE, (size_t)OBJSIZE, (size_t)OBJSIZE,
+                  (mps_word_t)DEPTH, (mps_word_t)FRAGLIMIT),
   "create MVT pool");
 
  die(mps_ap_create(&ap, pool, mps_rank_ambig()), "create ap");

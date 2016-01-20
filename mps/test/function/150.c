@@ -141,9 +141,6 @@ static void messagepoll(mycell **ref, int faction)
 }
 
 
-#define clear(type, var) (*((volatile type*)&(var)) = NULL)
-
-
 static void test(void)
 {
  mps_pool_t poolamc, poolawl, poollo;
@@ -198,13 +195,12 @@ static void test(void)
  /* register loads of objects for finalization (1000*4) */
 
  a = allocone(apamc, 2, 1);
- b = a;
 
  for (j=0; j<1000; j++) {
-  a = allocone(apamc, 2, mps_rank_exact());
+  b = allocone(apamc, 2, mps_rank_exact());
   c = allocone(apawl, 2, mps_rank_weak());
   d = allocone(aplo, 2, mps_rank_exact()); /* rank irrelevant here! */
-  mps_finalize(arena, (mps_addr_t*)&a);
+  mps_finalize(arena, (mps_addr_t*)&b);
   mps_finalize(arena, (mps_addr_t*)&c);
   mps_finalize(arena, (mps_addr_t*)&d);
   mps_finalize(arena, (mps_addr_t*)&d);
@@ -212,16 +208,16 @@ static void test(void)
   setref(a, 0, b);
   setref(a, 1, c);
   setref(c, 1, d);
-  b = a;
+  a = b;
  }
 
  /* throw them all away and collect everything */
 
- clear(mycell*, a);
- clear(mycell*, b);
- clear(mycell*, c);
- clear(mycell*, d);
- clear(mycell*, exfmt_root);
+ a = NULL;
+ b = NULL;
+ c = NULL;
+ d = NULL;
+ exfmt_root = NULL;
 
  for (j=0; j<5; j++) {
   mps_arena_collect(arena);

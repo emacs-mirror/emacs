@@ -17,7 +17,6 @@ END_HEADER
 #include "mpsavm.h"
 
 #define MVFF_HI_PARMS EXTEND,AVGSIZE,MPS_PF_ALIGN,1,1,0
-#define MVFF_LO_PARMS EXTEND,AVGSIZE,MPS_PF_ALIGN,0,0,1
 
 mps_arena_t arena;
 
@@ -33,9 +32,9 @@ static void test(void)
 
  unsigned long com0, com1;
 
-/* create a VM arena of 30MB */
+/* create a VM arena of 40MB */
 
- cdie(mps_arena_create(&arena, mps_arena_class_vmnz(), (size_t) (1024*1024*40)),
+ cdie(mps_arena_create(&arena, mps_arena_class_vm(), (size_t)(1024*1024*40)),
   "create arena");
 
 
@@ -49,19 +48,28 @@ static void test(void)
   mps_pool_create(&poolhi, arena, mps_class_mvff(), MVFF_HI_PARMS),
   "create high pool");
 
- cdie(
-  mps_pool_create(&poollo, arena, mps_class_mvff(), MVFF_LO_PARMS),
-  "create low pool");
+ MPS_ARGS_BEGIN(args) {
+   MPS_ARGS_ADD(args, MPS_KEY_EXTEND_BY, EXTEND);
+   MPS_ARGS_ADD(args, MPS_KEY_MEAN_SIZE, AVGSIZE);
+   MPS_ARGS_ADD(args, MPS_KEY_MVFF_ARENA_HIGH, 0);
+   MPS_ARGS_ADD(args, MPS_KEY_MVFF_SLOT_HIGH, 0);
+   MPS_ARGS_ADD(args, MPS_KEY_MVFF_FIRST_FIT, 1);
+   /* Set SPARE to 0 as we want this pool to return memory to the
+      arena as soon as it is freed so we can allocate it elsewhere. */
+   MPS_ARGS_ADD(args, MPS_KEY_SPARE, 0.0);
+   cdie(mps_pool_create_k(&poollo, arena, mps_class_mvff(), args),
+        "create low pool");
+ } MPS_ARGS_END(args);
 
 /* set the spare commit limit to something very big */
  mps_arena_spare_commit_limit_set(arena, (size_t)-1);
 
 /* allocate a jolly big object, clamp the commit limit down, leaving
-   64KB space, then free it */
+   128KB space, then free it */
 
  die(mps_alloc(&objs[0], poollo, BIGSIZE), "alloc");
  com0 = mps_arena_committed(arena);
- mps_arena_commit_limit_set(arena, com0+(1024*64));
+ mps_arena_commit_limit_set(arena, com0+(1024*128));
 
  mps_free(poollo, objs[0], BIGSIZE);
  com1 = mps_arena_committed(arena);

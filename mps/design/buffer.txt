@@ -15,8 +15,8 @@ Allocation buffers and allocation points
 Introduction
 ------------
 
-_`.scope`: This document describes the design of allocation buffers
-and allocation points.
+_`.scope`: This is the design of allocation buffers and allocation
+points.
 
 _`.purpose`: The purpose of this document is to record design
 decisions made concerning allocation buffers and allocation points and
@@ -128,7 +128,9 @@ Classes
 -------
 
 _`.class.hierarchy`: The ``Buffer`` data structure is designed to be
-subclassable (see design.mps.protocol).
+subclassable (see design.mps.protocol_).
+
+.. _design.mps.protocol: protocol
 
 _`.class.hierarchy.buffer`: The basic buffer class (``BufferClass``)
 supports basic allocation-point buffering, and is appropriate for
@@ -178,14 +180,18 @@ _`.subclassing`: Pools may create their own subclasses of the standard
 buffer classes. This is sometimes useful if the pool needs to add an
 extra field to the buffer. The convenience macro
 ``DEFINE_BUFFER_CLASS()`` may be used to define subclasses of buffer
-classes. See design.mps.protocol.int.define-special.
+classes. See design.mps.protocol.int.define-special_.
+
+.. _design.mps.protocol.int.define-special: protocol#int.define-special
 
 _`.replay`: To work with the allocation replayer (see
-design.mps.telemetry.replayer), the buffer class has to emit an event
+design.mps.telemetry.replayer_), the buffer class has to emit an event
 for each call to an external interface, containing all the parameters
 passed by the user. If a new event type is required to carry this
 information, the replayer (impl.c.eventrep) must then be extended to
 recreate the call.
+
+.. _design.mps.telemetry.replayer: telemetry#replayer
 
 _`.replay.pool-buffer`: The replayer must also be updated if the
 association of buffer class to pool or the buffer class hierarchy is
@@ -288,13 +294,11 @@ pool using the ``PoolClass`` ``BufferEmpty()`` method).
 _`.count.generic`: These fields are maintained by the generic buffer 
 code in ``BufferAttach()`` and ``BufferDetach()``.
 
-_`.count.other`: Similar count fields are maintained in the pool and
-the arena. They are maintained on an internal (buffers used internally
-by the MPS) and external (buffers used for mutator allocation points)
-basis. The fields are also updated by the buffer code. The fields are:
+_`.count.other`: Similar count fields are maintained in the arena.
+They are maintained on an internal (buffers used internally by the
+MPS) and external (buffers used for mutator allocation points) basis.
+The fields are also updated by the buffer code. The fields are:
 
-- in the pool: ``fillMutatorSize``, ``fillInternalSize``,
-  ``emptyMutatorSize``, and ``emptyInternalSize`` (4 fields);
 - in the arena, ``fillMutatorSize``, ``fillInternalSize``,
   ``emptyMutatorSize``, ``emptyInternalSize``, and
   ``allocMutatorSize`` (5 fields).
@@ -404,8 +408,6 @@ Memory Barriers will need to be placed at the points indicated.
 ::
 
  * DESIGN
- *
- * design.mps.buffer.
  *
  * An allocation buffer is an interface to a pool which provides
  * very fast allocation, and defers the need for synchronization in
@@ -613,7 +615,9 @@ _`.method.arena`: Returns the arena which owns a buffer.
 _`.method.arena.thread-safe`: ``BufferArena()`` must be thread safe
 (see impl.c.mpsi.thread-safety). This is achieved simple because the
 underlying operation is a read of shared-non-mutable data (see
-design.mps.thread-safety).
+design.mps.thread-safety_).
+
+.. _design.mps.thread-safety: thread-safety
 
 ``Pool BufferPool(Buffer buffer)``
 
@@ -721,7 +725,9 @@ Document History
   ``BufferSpace()``, ``BufferSet()`` and ``BufferReset()`` are now
   ``BufferArena()``, ``BufferAttach()`` and ``BufferDetach()``
   respectively; ``BufferExpose()`` and ``BufferCover()`` have been
-  moved to the Shield interface; see design.mps.shield).
+  moved to the Shield interface; see design.mps.shield_).
+
+  .. _design.mps.shield: shield
 
 .. _RB: http://www.ravenbrook.com/consultants/rb/
 .. _GDR: http://www.ravenbrook.com/consultants/gdr/

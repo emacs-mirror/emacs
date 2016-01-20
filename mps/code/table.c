@@ -222,8 +222,8 @@ Res TableGrow(Table table, Count extraCapacity)
 
 extern Res TableCreate(Table *tableReturn,
                        Count length,
-                       TableAllocMethod tableAlloc,
-                       TableFreeMethod tableFree,
+                       TableAllocFunction tableAlloc,
+                       TableFreeFunction tableFree,
                        void *allocClosure,
                        Word unusedKey,
                        Word deletedKey)

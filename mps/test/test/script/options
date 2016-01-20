@@ -26,7 +26,7 @@ sub platform_detect {
      local $os = `uname`;
      local $osrel = `uname -r`;
      local $processor = `uname -p`;
-     chop($os); chop($osrel); chop($processor);
+     chomp($os); chomp($osrel); chomp($processor);
      $platform_class = $os."_".$osrel."_".$processor;
      $platform_class =~ s/ /_/g;
      $platform_phylum = "unix";

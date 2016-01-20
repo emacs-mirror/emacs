@@ -85,7 +85,7 @@ Bool AMSSegCheck(AMSSeg amsseg)
 
 /* AMSSegFreeWalk -- walk the free space in a segment */
 
-void AMSSegFreeWalk(AMSSeg amsseg, FreeBlockStepMethod f, void *p)
+void AMSSegFreeWalk(AMSSeg amsseg, FreeBlockVisitor f, void *p)
 {
   Pool pool;
   Seg seg;
@@ -785,7 +785,7 @@ static void AMSDebugVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
  *  allocated in the pool.  See <design/poolams/#init>.
  */
 
-ARG_DEFINE_KEY(ams_support_ambiguous, Bool);
+ARG_DEFINE_KEY(AMS_SUPPORT_AMBIGUOUS, Bool);
 
 static Res AMSInit(Pool pool, ArgList args)
 {
@@ -831,13 +831,15 @@ Res AMSInitInternal(AMS ams, Format format, Chain chain, unsigned gen,
   Res res;
 
   /* Can't check ams, it's not initialized. */
-  AVERT(Format, format);
-  AVERT(Chain, chain);
-  AVER(gen <= ChainGens(chain));
-
   pool = AMSPool(ams);
   AVERT(Pool, pool);
+  AVERT(Format, format);
+  AVER(FormatArena(format) == PoolArena(pool));
   pool->format = format;
+  AVERT(Chain, chain);
+  AVER(gen <= ChainGens(chain));
+  AVER(chain->arena == PoolArena(pool));
+
   pool->alignment = pool->format->alignment;
   ams->grainShift = SizeLog2(PoolAlignment(pool));
 
@@ -1653,7 +1655,7 @@ static void AMSReclaim(Pool pool, Trace trace, Seg seg)
 
 /* AMSFreeWalk -- free block walking method of the pool class */
 
-static void AMSFreeWalk(Pool pool, FreeBlockStepMethod f, void *p)
+static void AMSFreeWalk(Pool pool, FreeBlockVisitor f, void *p)
 {
   AMS ams;
   Ring node, ring, nextNode;    /* for iterating over the segments */

@@ -3,7 +3,7 @@
  * See <design/object-debug>.
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  */
 
@@ -15,9 +15,9 @@
 #include <stdarg.h>
 
 
-/* tag init methods: copying the user-supplied data into the tag */
+/* tag init function: copies the user-supplied data into the tag */
 
-typedef void (*TagInitMethod)(void* tag, va_list args);
+typedef void (*TagInitFunction)(void *tag, va_list args);
 
 
 /* PoolDebugOptions -- option structure for debug pool init
@@ -30,7 +30,7 @@ typedef struct PoolDebugOptionsStruct {
   Size  fenceSize;
   const void *freeTemplate;
   Size  freeSize;
-  /* TagInitMethod tagInit; */
+  /* TagInitFunction tagInit; */
   /* Size  tagSize; */
 } PoolDebugOptionsStruct;
 
@@ -47,7 +47,7 @@ typedef struct PoolDebugMixinStruct {
   Size fenceSize;
   const struct AddrStruct *freeTemplate;
   Size freeSize;
-  TagInitMethod tagInit;
+  TagInitFunction tagInit;
   Size tagSize;
   Pool tagPool;
   Count missingTags;
@@ -73,7 +73,7 @@ extern void DebugPoolFreeCheck(Pool pool, Addr base, Addr limit);
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

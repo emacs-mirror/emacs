@@ -111,10 +111,6 @@ typedef struct mps_pool_s {     /* generic structure */
   Align alignment;              /* alignment for units */
   Format format;                /* format only if class->attr&AttrFMT */
   PoolFixMethod fix;            /* fix method */
-  double fillMutatorSize;       /* bytes filled, mutator buffers */
-  double emptyMutatorSize;      /* bytes emptied, mutator buffers */
-  double fillInternalSize;      /* bytes filled, internal buffers */
-  double emptyInternalSize;     /* bytes emptied, internal buffers */
 } PoolStruct;
 
 
@@ -530,7 +526,6 @@ typedef struct mps_arena_class_s {
   ArenaVarargsMethod varargs;
   ArenaInitMethod init;
   ArenaFinishMethod finish;
-  ArenaReservedMethod reserved;
   ArenaPurgeSpareMethod purgeSpare;
   ArenaExtendMethod extend;
   ArenaGrowMethod grow;
@@ -718,7 +713,8 @@ typedef struct mps_arena_s {
 
   ReservoirStruct reservoirStruct; /* <design/reservoir/> */
 
-  Size committed;               /* amount of committed RAM */
+  Size reserved;                /* total reserved address space */
+  Size committed;               /* total committed memory */
   Size commitLimit;             /* client-configurable commit limit */
 
   Size spareCommitted;          /* Amount of memory in hysteresis fund */
@@ -759,6 +755,7 @@ typedef struct mps_arena_s {
 
   /* thread fields (<code/thread.c>) */
   RingStruct threadRing;        /* ring of attached threads */
+  RingStruct deadRing;          /* ring of dead threads */
   Serial threadSerial;          /* serial of next thread */
  
   /* shield fields (<code/shield.c>) */

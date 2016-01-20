@@ -59,7 +59,7 @@ AWL properties
 
 * Supports allocation via :term:`allocation points`. If an allocation
   point is created in an AWL pool, the call to
-  :c:func:`mps_ap_create_k` accepts one keyword argument,
+  :c:func:`mps_ap_create_k` accepts one optional keyword argument,
   :c:macro:`MPS_KEY_RANK`.
 
 * Supports :term:`allocation frames` but does not use them to improve
@@ -350,18 +350,8 @@ AWL interface
             res = mps_pool_create_k(&pool, arena, mps_class_awl(), args);
         } MPS_ARGS_END(args);
 
-    .. deprecated:: starting with version 1.112.
-
-        When using :c:func:`mps_pool_create`, pass the format and
-        find-dependent function like this::
-
-            mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
-                                      mps_pool_class_t mps_class_awl(),
-                                      mps_fmt_t fmt,
-                                      mps_awl_find_dependent_t find_dependent)
-
     When creating an :term:`allocation point` on an AWL pool,
-    :c:func:`mps_ap_create_k` accepts one keyword argument:
+    :c:func:`mps_ap_create_k` accepts one optional keyword argument:
 
     * :c:macro:`MPS_KEY_RANK` (type :c:type:`mps_rank_t`, default
       :c:func:`mps_rank_exact`) specifies the :term:`rank` of
@@ -377,13 +367,6 @@ AWL interface
             MPS_ARGS_ADD(args, MPS_KEY_RANK, mps_rank_weak());
             res = mps_ap_create_k(&ap, awl_pool, args);
         } MPS_ARGS_END(args);
-
-    .. deprecated:: starting with version 1.112.
-
-        When using :c:func:`mps_ap_create`, pass the rank like this::
-
-            mps_res_t mps_ap_create(mps_ap_t *ap_o, mps_pool_t pool,
-                                    mps_rank_t rank)
 
 
 .. c:type:: mps_addr_t (*mps_awl_find_dependent_t)(mps_addr_t addr)

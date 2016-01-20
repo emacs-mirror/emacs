@@ -20,14 +20,18 @@
  * .context.regroots: The root regs are assumed to be recorded in the context
  * at pointer-aligned boundaries.
  *
- * .assume.regref: The resisters in the context can be modified by
+ * .assume.regref: The registers in the context can be modified by
  * storing into an MRef pointer.
  */
 
 #include "prmcxc.h"
 #include "prmci3.h"
 
-SRCID(prmci3li, "$Id$");
+SRCID(prmci3xc, "$Id$");
+
+#if !defined(MPS_OS_XC) || !defined(MPS_ARCH_I3)
+#error "prmci3xc.c is specific to MPS_OS_XC and MPS_ARCH_I3"
+#endif
 
 
 /* Prmci3AddressHoldingReg -- return an address of a register in a context */

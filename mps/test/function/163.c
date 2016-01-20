@@ -47,16 +47,16 @@ static void test(void) {
  unsigned int i;
  unsigned long nLarge;
 
- cdie(mps_arena_create(&arena, mps_arena_class_vmnz(),
+ cdie(mps_arena_create(&arena, mps_arena_class_vm(),
   (size_t) (1024*1024*50)), "create arena");
  cdie(mps_thread_reg(&thread, arena), "register thread");
 
  mps_arena_commit_limit_set(arena, COMLIMIT1);
 
- die(
-  mps_pool_create(&pool, arena, mps_class_mvff(),
-                  EXTENDBY, 8, MPS_PF_ALIGN, 0, 0, 1),
-  "create MVFF pool");
+ die(mps_pool_create(&pool, arena, mps_class_mvff(),
+                     (size_t)EXTENDBY, (size_t)8, (mps_align_t)MPS_PF_ALIGN,
+                     (mps_bool_t)0, (mps_bool_t)0, (mps_bool_t)1),
+     "create MVFF pool");
 
  for (i = 0; i < NSMALL; i++) {
   die(mps_alloc(&smallObjects[i], pool, SMALLSIZE), "small alloc failed");

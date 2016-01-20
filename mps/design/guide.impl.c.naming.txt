@@ -1,0 +1,144 @@
+.. mode: -*- rst -*-
+
+C Style -- naming
+=================
+
+:Tag: guide.impl.c.naming
+:Author: Gareth Rees
+:Date: 2014-10-07
+:Status: incomplete guide
+:Format: rst
+:Revision: $Id$
+:Copyright: See `Copyright and License`_.
+:Index terms:
+   pair: C language; naming guide
+   pair: C language naming; guide
+
+
+Introduction
+------------
+
+_`.scope`: This document describes the conventions for naming in C
+source code that's internal in the MPS. See design.mps.interface-c_
+for the corresponding conventions for the public interface.
+
+.. _design.mps.interface-c: interface-c
+
+_`.readership`: This document is intended for anyone working on or
+with the C source code.
+
+
+Capitalization
+--------------
+
+_`.capital.macro`: Statement-like macros have names consisting of
+uppercase words separated by underscores, for example
+``ARG_DEFINE_KEY``.
+
+_`.capital.constant`: Constants have names consisting of a type (named
+according to `.capital.program`_ or `.capital.other`_), concatenated
+with an identifier in uppercase with underscores, for example
+``BufferFramePOP_PENDING``.
+
+_`.capital.program`: Other names with program scope consist of
+concatenated title-case words, for example ``BufferFramePush``.
+
+_`.capital.other`: Other names (including function parameters, names
+with block scope, and names with file scope) consist of concatenated
+words, the first of which is lowercase and the remainder are
+uppercase. For example, ``poolReturn``.
+
+
+Prefixes
+--------
+
+_`.prefix.program`: Any name with program scope must start with the
+name of the module to which it belongs. For example, names belonging
+to the buffer module must start with ``buffer`` or ``Buffer`` or
+``BUFFER``. Justification: the C language lacks a namespace facility
+so the only way to avoid name clashes is for each name to be globally
+unique.
+
+_`.prefix.file`: Any name with file scope should start with the name
+of the module to which it belongs. Justification: makes it easy to
+tell which module a function belongs to; makes it easy to set
+breakpoints in the debugger.
+
+
+Suffixes
+--------
+
+_`.suffix.struct`: The type of a structure must be the same as the
+structure tag, and must consist of the type of the pointer to the
+structure concatenated with ``Struct``. For example, ``ArenaStruct``.
+
+_`.suffix.union`: The type of a union must be the same as the union
+tag, and must consist of the type of the pointer to the union
+concatenated with ``Union``. For example, ``PageUnion``.
+
+_`.suffix.class`: The type of a class (see design.mps.protocol_)
+must end with ``Class``. For example, ``ArenaClass``.
+
+.. _design.mps.protocol: protocol
+
+_`.suffix.method`: The type of a method in a class must end with
+``Method``. For example, ``PoolFixMethod``.
+
+_`.suffix.visitor`: The type of a visitor function must end with
+``Visitor``. For example, ``TreeVisitor``.
+
+_`.suffix.function`: The type of other functions must end with
+``Function``. For example, ``TreeKeyFunction``.
+
+
+Document History
+----------------
+
+- 2014-10-07  GDR_  Created based on job003693_.
+
+.. _job003693: http://www.ravenbrook.com/project/mps/issue/job003693/
+.. _GDR: http://www.ravenbrook.com/consultants/gdr
+
+
+Copyright and License
+---------------------
+
+This document is copyright © 2002-2012 [Ravenbrook
+Limited](http://www.ravenbrook.com/). All rights reserved. This is an
+open source license. Contact Ravenbrook for commercial licensing
+options.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+#.  Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
+
+#.  Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer in the
+    documentation and/or other materials provided with the distribution.
+
+#.  Redistributions in any form must be accompanied by information on
+    how to obtain complete source code for this software and any
+    accompanying software that uses this software. The source code must
+    either be included in the distribution or be available for no more
+    than the cost of distribution plus a nominal fee, and must be freely
+    redistributable under reasonable conditions. For an executable file,
+    complete source code means the source code for all modules it
+    contains. It does not include source code for modules or files that
+    typically accompany the major components of the operating system on
+    which the executable file runs.
+
+**This software is provided by the copyright holders and contributors
+"as is" and any express or implied warranties, including, but not
+limited to, the implied warranties of merchantability, fitness for a
+particular purpose, or non-infringement, are disclaimed. In no event
+shall the copyright holders and contributors be liable for any direct,
+indirect, incidental, special, exemplary, or consequential damages
+(including, but not limited to, procurement of substitute goods or
+services; loss of use, data, or profits; or business interruption)
+however caused and on any theory of liability, whether in contract,
+strict liability, or tort (including negligence or otherwise) arising in
+any way out of the use of this software, even if advised of the
+possibility of such damage.**

@@ -57,7 +57,7 @@ _`.def.key`: A *key* is a value associated with each node; the keys
 are totally ordered by a client provided comparator.
 
 _`.def.comparator`: A *comparator* is a function that compares keys to
-determine their ordering (see also `.type.tree.compare.method`_).
+determine their ordering (see also `.type.tree.compare.function`_).
 
 _`.def.successor`: Node *N*\ :subscript:`2` is the *successor* of node
 *N*\ :subscript:`1` if *N*\ :subscript:`1` and *N*\ :subscript:`2` are
@@ -165,17 +165,17 @@ _`.type.treekey`: ``TreeKey`` is the type of a key associated with a
 node in a binary tree. It is an alias for ``void *`` but expresses the
 intention.
 
-``typedef TreeKey (*TreeKeyMethod)(Tree tree)``
+``typedef TreeKey (*TreeKeyFunction)(Tree tree)``
 
-_`.type.tree.key.method`: A function of type ``TreeKey`` returns the
+_`.type.tree.key.function`: A function of type ``TreeKey`` returns the
 key associated with a node in a binary tree. (Since there is no space
 in a ``TreeStruct`` to store a key, it is expected that the
 ``TreeStruct`` is embedded in another structure from which the key can
 be extracted.)
 
-``typedef Compare (*TreeCompare)(Tree tree, TreeKey key)``
+``typedef Compare (*TreeCompareFunction)(Tree tree, TreeKey key)``
 
-_`.type.tree.compare.method`: A function of type ``TreeCompare`` is
+_`.type.tree.compare.function`: A function of type ``TreeCompareFunction`` is
 required to compare ``key`` with the key the client associates with
 that splay tree node ``tree``, and return the appropriate Compare
 value (see `.usage.compare`_ for an example). The function compares a
@@ -184,10 +184,10 @@ more obvious. This is because the details of the mapping between nodes
 and keys is left to the client (see `.type.tree`_), and the splaying
 operations compare keys with nodes (see `.impl.splay`_).
 
-``typedef Res (*TreeDescribeMethod)(Tree tree, mps_lib_FILE *stream)``
+``typedef Res (*TreeDescribeFunction)(Tree tree, mps_lib_FILE *stream)``
 
-_`.type.tree.describe.method`: A function of type
-``TreeDescribeMethod`` is required to write (via ``WriteF()``) a
+_`.type.tree.describe.function`: A function of type
+``TreeDescribeFunction`` is required to write (via ``WriteF()``) a
 client-oriented representation of the splay node. The output should be
 non-empty, short, and without newline characters. This is provided for
 debugging only.
@@ -219,32 +219,32 @@ the root of the splay tree. It is intended that the
 `.usage.client-tree`_ for an example). No convenience functions are
 provided for allocation or deallocation.
 
-``typedef Bool (*SplayTestNodeMethod)(SplayTree splay, Tree tree, void *closureP, Size closureS)``
+``typedef Bool (*SplayTestNodeFunction)(SplayTree splay, Tree tree, void *closureP, Size closureS)``
 
-_`.type.splay.test.node.method`: A function of type
-``SplayTestNodeMethod`` required to determine whether the node itself
+_`.type.splay.test.node.function`: A function of type
+``SplayTestNodeFunction`` required to determine whether the node itself
 meets some client determined property (see `.prop`_ and
 `.usage.test.node`_ for an example). Parameters ``closureP`` and
 ``closureS`` describe the environment for the function (see
 `.function.splay.find.first`_ and `.function.splay.find.last`_).
 
-``typedef Bool (*SplayTestTreeMethod)(SplayTree splay, Tree tree, void *closureP, Size closureS)``
+``typedef Bool (*SplayTestTreeFunction)(SplayTree splay, Tree tree, void *closureP, Size closureS)``
 
-_`.type.splay.test.tree.method`: A function of type
-``SplayTestTreeMethod`` is required to determine whether any of the
+_`.type.splay.test.tree.function`: A function of type
+``SplayTestTreeFunction`` is required to determine whether any of the
 nodes in the sub-tree rooted at the given node meet some client
 determined property (see `.prop`_ and `.usage.test.tree`_ for an
 example). In particular, it must be a precise (not conservative)
 indication of whether there are any nodes in the sub-tree for which
-the ``testNode`` method (see `.type.splay.test.node.method`_) would
+the ``testNode`` function (see `.type.splay.test.node.function`_) would
 return ``TRUE``. Parameters ``closureP`` and ``closureS`` describe the
 environment for the function (see `.function.splay.find.first`_ and
 `.function.splay.find.last`_).
 
-``typedef void (*SplayUpdateNodeMethod)(SplayTree splay, Tree tree)``
+``typedef void (*SplayUpdateNodeFunction)(SplayTree splay, Tree tree)``
 
-_`.type.splay.update.node.method`: A function of type
-``SplayUpdateNodeMethod`` is required to update any client data
+_`.type.splay.update.node.function`: A function of type
+``SplayUpdateNodeFunction`` is required to update any client data
 structures associated with a node to maintain some client determined
 property (see `.prop`_) given that the children of the node have
 changed. (See `.usage.callback`_ for an example)
@@ -256,9 +256,9 @@ Functions
 _`.function.no-thread`: The interface functions are not designed to be
 either thread-safe or re-entrant. Clients of the interface are
 responsible for synchronization, and for ensuring that client-provided
-methods invoked by the splay module (`.type.tree.compare.method`_,
-`.type.tree.key.method`_, `.type.splay.test.node.method`_,
-`.type.splay.test.tree.method`_, `.type.splay.update.node.method`_) do
+functions invoked by the splay module (`.type.tree.compare.function`_,
+`.type.tree.key.function`_, `.type.splay.test.node.function`_,
+`.type.splay.test.tree.function`_, `.type.splay.update.node.function`_) do
 not call functions of the splay module.
 
 ``Bool SplayTreeCheck(SplayTree splay)``
@@ -267,16 +267,16 @@ _`.function.splay.tree.check`: This is a check function for the
 ``SplayTree`` type (see guide.impl.c.adt.method.check and
 design.mps.check_).
 
-``void SplayTreeInit(SplayTree splay, TreeCompareMethod compare, TreeKeyMethod nodeKey, SplayUpdateNodeMethod updateNode)``
+``void SplayTreeInit(SplayTree splay, TreeCompareFunction compare, TreeKeyFunction nodeKey, SplayUpdateNodeFunction updateNode)``
 
 _`.function.splay.tree.init`: This function initialises a
 ``SplayTree`` (see guide.impl.c.adt.method.init). The ``nodeKey``
 function extracts a key from a tree node, and the ``compare`` function
 defines a total ordering on keys of nodes (see `.req.order`_). The
-effect of supplying a compare method that does not implement a total
-ordering is undefined. The ``updateNode`` method is used to keep
+effect of supplying a compare function that does not implement a total
+ordering is undefined. The ``updateNode`` function is used to keep
 client properties up to date when the tree structure changes; the
-value ``SplayTrivUpdate`` may be used for this method if there is no
+value ``SplayTrivUpdate`` may be used for this function if there is no
 need to maintain client properties. (See `.usage.initialization`_ for
 an example use).
 
@@ -340,7 +340,7 @@ _`.function.splay.tree.next`: If the tree contains a right neighbour
 for ``key``, splay the tree at that node and return it. Otherwise
 return ``TreeEMPTY``. See `.req.iterate`_.
 
-``Res SplayTreeDescribe(SplayTree splay, mps_lib_FILE *stream, Count depth, TreeDescribeMethod nodeDescribe)``
+``Res SplayTreeDescribe(SplayTree splay, mps_lib_FILE *stream, Count depth, TreeDescribeFunction nodeDescribe)``
 
 _`.function.splay.tree.describe`: This function prints (using
 ``WriteF()``) to the stream a textual representation of the given
@@ -348,25 +348,25 @@ splay tree, using ``nodeDescribe`` to print client-oriented
 representations of the nodes (see `.req.debug`_). Provided for
 debugging only.
 
-``Bool SplayFindFirst(Tree *nodeReturn, SplayTree splay, SplayTestNodeMethod testNode, SplayTestTreeMethod testTree, void *closureP, Size closureS)``
+``Bool SplayFindFirst(Tree *nodeReturn, SplayTree splay, SplayTestNodeFunction testNode, SplayTestTreeFunction testTree, void *closureP, Size closureS)``
 
 _`.function.splay.find.first`: Find the first node in the tree that
 satisfies some client property, as determined by the ``testNode`` and
-``testTree`` methods (see `.req.property.find`_). ``closureP`` and
+``testTree`` functions (see `.req.property.find`_). ``closureP`` and
 ``closureS`` are arbitrary values, and are passed to the ``testNode``
-and ``testTree`` methods which may use the values as closure
+and ``testTree`` functions which may use the values as closure
 environments. If there is no satisfactory node, return ``FALSE``;
 otherwise set ``*nodeReturn`` to the node and return ``TRUE``. See
 `.usage.delete`_ for an example.
 
-``Bool SplayFindLast(Tree *nodeReturn, SplayTree splay, SplayTestNodeMethod testNode, SplayTestTreeMethod testTree, void *closureP, Size closureS)``
+``Bool SplayFindLast(Tree *nodeReturn, SplayTree splay, SplayTestNodeFunction testNode, SplayTestTreeFunction testTree, void *closureP, Size closureS)``
 
 _`.function.splay.find.last`: As ``SplayFindFirst()``, but find the
 last node in the tree that satisfies the client property.
 
 ``void SplayNodeRefresh(SplayTree splay, Tree tree, TreeKey key)``
 
-_`.function.splay.node.refresh`: Call the ``updateNode`` method on the
+_`.function.splay.node.refresh`: Call the ``updateNode`` function on the
 given node, and on any other nodes that may require updating. The
 client key for the node must also be supplied; the function splays the
 tree at this key. (See `.usage.insert`_ for an example use). This
@@ -375,7 +375,7 @@ a node changes (see `.req.property.change`_).
 
 ``void SplayNodeUpdate(SplayTree splay, Tree node)``
 
-_`.function.splay.node.update`: Call the ``updateNode`` method on the
+_`.function.splay.node.update`: Call the ``updateNode`` function on the
 given node, but leave other nodes unchanged. This may be called when a
 new node is created, to get the client property off the ground.
 
@@ -388,21 +388,21 @@ implementation provides additional features to permit clients to cache
 maximum (or minimum) values of client properties for all the nodes in
 a subtree. The splay tree implementation uses the cached values as
 part of ``SplayFindFirst()`` and ``SplayFindLast()`` via the
-``testNode`` and ``testTree`` methods. The client is free to choose
+``testNode`` and ``testTree`` functions. The client is free to choose
 how to represent the client property, and how to compute and store the
 cached value.
 
 _`.prop.update`: The cached values depend upon the topology of the
 tree, which may vary as a result of operations on the tree. The client
 is given the opportunity to compute new cache values whenever
-necessary, via the ``updateNode`` method (see
+necessary, via the ``updateNode`` function (see
 `.function.splay.tree.init`_). This happens whenever the tree is
-restructured. The client may use the ``SplayNodeRefresh()`` method to
+restructured. The client may use the ``SplayNodeRefresh()`` function to
 indicate that the client attributes at a node have changed (see
 `.req.property.change`_). A call to ``SplayNodeRefresh()`` splays the
 tree at the specified node, which may provoke calls to the
-``updateNode`` method as a result of the tree restructuring. The
-``updateNode`` method will also be called whenever a new splay node is
+``updateNode`` function as a result of the tree restructuring. The
+``updateNode`` function will also be called whenever a new splay node is
 inserted into the tree.
 
 _`.prop.example`: For example, if implementing an address-ordered tree
@@ -412,7 +412,7 @@ each block as the client property. The client can then maintain as a
 cached value in each node the size of the largest block in the subtree
 rooted at that node. This will permit a fast search for the first or
 last block of at least a given size. See `.usage.callback`_ for an
-example ``updateNode`` method for such a client.
+example ``updateNode`` function for such a client.
 
 _`.prop.ops`: The splay operations must cause client properties for
 nodes to be updated in the following circumstances (see `.impl`_ for
@@ -470,8 +470,8 @@ _`.usage.client-node`: Node structure to embed a ``Tree`` (see `.type.tree`_)::
       Size maxSize;          /* cached value for maximum size in subtree */
     } FreeBlockStruct;
 
-_`.usage.callback`: ``updateNode`` callback method (see
-`.type.splay.update.node.method`_)::
+_`.usage.callback`: ``updateNode`` callback function (see
+`.type.splay.update.node.function`_)::
 
     void FreeBlockUpdateNode(SplayTree splay, Tree tree)
     {
@@ -499,7 +499,7 @@ _`.usage.callback`: ``updateNode`` callback method (see
       freeNode->maxSize = maxSize;
     }
 
-_`.usage.compare`: Comparison function (see `.type.tree.compare.method`_)::
+_`.usage.compare`: Comparison function (see `.type.tree.compare.function`_)::
 
     Compare FreeBlockCompare(Tree tree, TreeKey key) {
       Addr base1, base2, limit2;
@@ -518,7 +518,7 @@ _`.usage.compare`: Comparison function (see `.type.tree.compare.method`_)::
     }
 
 _`.usage.test.tree`: Test tree function (see
-`.type.splay.test.tree.method`_)::
+`.type.splay.test.tree.function`_)::
 
     Bool FreeBlockTestTree(SplayTree splay, Tree tree
                            void *closureP, Size closureS) {
@@ -532,7 +532,7 @@ _`.usage.test.tree`: Test tree function (see
     }
 
 _`.usage.test.node`: Test node function (see
-`.type.splay.test.node.method`_)::
+`.type.splay.test.node.function`_)::
 
     Bool FreeBlockTestNode(SplayTree splay, Tree tree
                            void *closureP, Size closureS) {
@@ -832,7 +832,7 @@ splay around the same key. The new root will be the last node in the
 sub-tree and will have a null right child; this is set to be the right
 child of the node to be deleted.
 
-_`.impl.search`: ``SplayTreeSearch()``: Splay the node around the
+_`.impl.find`: ``SplayTreeFind()``: Splay the node around the
 supplied key. If the splay found a matching node, return it; otherwise
 return failure.
 
@@ -877,8 +877,10 @@ Testing
 -------
 
 _`.test`: There is no plan to test splay trees directly. It is
-believed that the testing described in design.mps.cbs.test will be
+believed that the testing described in design.mps.cbs.test_ will be
 sufficient to test this implementation.
+
+.. _design.mps.cbs.test: cbs#test
 
 
 Error Handling
@@ -895,7 +897,7 @@ _`.error.bad-compare`: Initialising a ``SplayTree`` with a compare
 function that is not a valid compare function, or which doesn't
 implement a total ordering on splay nodes.
 
-_`.error.bad-describe`: Passing an invalid describe method to
+_`.error.bad-describe`: Passing an invalid describe function to
 ``SplayTreeDescribe()``.
 
 _`.error.out-of-stack`: Stack exhaustion under ``SplayTreeDescribe()``.

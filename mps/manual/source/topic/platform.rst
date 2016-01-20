@@ -56,6 +56,8 @@ and compiler are supported.
 .. index::
    single: platform; interface
 
+.. _topic-platform-interface:
+
 Platform interface
 ------------------
 

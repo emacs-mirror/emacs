@@ -1,7 +1,7 @@
 /* lockix.c: RECURSIVE LOCKS FOR POSIX SYSTEMS
  *
  * $Id$
- * Copyright (c) 2001,2007 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * .posix: The implementation uses a POSIX interface, and should be reusable
  * for many Unix-like operating systems.
@@ -131,9 +131,9 @@ void (LockClaim)(Lock lock)
 }
 
 
-/* LockReleaseMPM -- release a lock (non-recursive) */
+/* LockRelease -- release a lock (non-recursive) */
 
-void (LockReleaseMPM)(Lock lock)
+void (LockRelease)(Lock lock)
 {
   int res;
 
@@ -239,13 +239,13 @@ void (LockClaimGlobal)(void)
 
 void (LockReleaseGlobal)(void)
 {
-  LockReleaseMPM(globalLock);
+  LockRelease(globalLock);
 }
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

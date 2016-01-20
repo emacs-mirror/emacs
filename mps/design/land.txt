@@ -73,20 +73,20 @@ Interface
 Types
 .....
 
-``typedef LandStruct *Land;``
+``typedef LandStruct *Land``
 
 _`.type.land`: The type of a generic land instance.
 
-``typedef Bool (*LandVisitor)(Land land, Range range, void *closureP, Size closureS);``
+``typedef Bool (*LandVisitor)(Land land, Range range, void *closureP, Size closureS)``
 
 _`.type.visitor`: Type ``LandVisitor`` is a callback function that may
 be passed to ``LandIterate()``. It is called for every isolated
 contiguous range in address order. The function must return a ``Bool``
 indicating whether to continue with the iteration.
 
-``typedef Bool (*LandDeleteVisitor)(Bool *deleteReturn, Land land, Range range, void *closureP, Size closureS);``
+``typedef Bool (*LandDeleteVisitor)(Bool *deleteReturn, Land land, Range range, void *closureP, Size closureS)``
 
-_`.type.visitor`: Type ``LandDeleteVisitor`` is a callback function that may
+_`.type.deletevisitor`: Type ``LandDeleteVisitor`` is a callback function that may
 be passed to ``LandIterateAndDelete()``. It is called for every isolated
 contiguous range in address order. The function must return a ``Bool``
 indicating whether to continue with the iteration. It may additionally
@@ -186,6 +186,16 @@ return ``TRUE``, then ``LandIterate()`` returns ``TRUE``
 _`.function.iterate.and.delete`: As ``LandIterate()``, but the visitor
 function additionally returns a Boolean indicating whether the range
 should be deleted from the land.
+
+_`.function.iterate.and.delete.justify`: The reason for having both
+``LandIterate()`` and ``LandIterateAndDelete()`` is that it may be
+possible to use a more efficient algorithm, or to preserve more
+properties of the data structure, when it is known that the land willl
+not be modified during the iteration. For example, in the CBS
+implementation, ``LandIterate()`` uses ``TreeTraverse()`` which
+preserves the tree structure, whereas ``LandIterateAndDelete()`` uses
+``TreeTraverseAndDelete()`` which flattens the tree structure, losing
+information about recently accessed nodes.
 
 ``Bool LandFindFirst(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete)``
 
@@ -311,7 +321,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2014 Ravenbrook Limited. All rights reserved. 
+Copyright © 2014-2015 Ravenbrook Limited. All rights reserved. 
 <http://www.ravenbrook.com/>. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

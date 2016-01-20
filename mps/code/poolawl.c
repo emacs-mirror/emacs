@@ -1,7 +1,7 @@
 /* poolawl.c: AUTOMATIC WEAK LINKED POOL CLASS
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2015 Ravenbrook Limited.  See end of file for license.
  *
  *
  * DESIGN
@@ -74,7 +74,7 @@ typedef struct awlStatTotalStruct {
 
 /* the type of a function to find an object's dependent object */
 
-typedef Addr (*FindDependentMethod)(Addr object);
+typedef Addr (*FindDependentFunction)(Addr object);
 
 /* AWLStruct -- AWL pool structure
  *
@@ -86,7 +86,7 @@ typedef struct AWLStruct {
   Shift alignShift;
   PoolGenStruct pgen;       /* generation representing the pool */
   Count succAccesses;       /* number of successive single accesses */
-  FindDependentMethod findDependent; /*  to find a dependent object */
+  FindDependentFunction findDependent; /*  to find a dependent object */
   awlStatTotalStruct stats;
   Sig sig;
 } AWLStruct, *AWL;
@@ -544,13 +544,13 @@ static Addr awlNoDependent(Addr addr)
 
 /* AWLInit -- initialize an AWL pool */
 
-ARG_DEFINE_KEY(awl_find_dependent, Fun);
+ARG_DEFINE_KEY(AWL_FIND_DEPENDENT, Fun);
 
 static Res AWLInit(Pool pool, ArgList args)
 {
   AWL awl;
   Format format;
-  FindDependentMethod findDependent = awlNoDependent;
+  FindDependentFunction findDependent = awlNoDependent;
   Chain chain;
   Res res;
   ArgStruct arg;
@@ -564,7 +564,7 @@ static Res AWLInit(Pool pool, ArgList args)
   ArgRequire(&arg, args, MPS_KEY_FORMAT);
   format = arg.val.format;
   if (ArgPick(&arg, args, MPS_KEY_AWL_FIND_DEPENDENT))
-    findDependent = (FindDependentMethod)arg.val.addr_method;
+    findDependent = (FindDependentFunction)arg.val.addr_method;
   if (ArgPick(&arg, args, MPS_KEY_CHAIN))
     chain = arg.val.chain;
   else {
@@ -575,6 +575,7 @@ static Res AWLInit(Pool pool, ArgList args)
     gen = arg.val.u;
 
   AVERT(Format, format);
+  AVER(FormatArena(format) == PoolArena(pool));
   pool->format = format;
   pool->alignment = format->alignment;
 
@@ -583,6 +584,7 @@ static Res AWLInit(Pool pool, ArgList args)
 
   AVERT(Chain, chain);
   AVER(gen <= ChainGens(chain));
+  AVER(chain->arena == PoolArena(pool));
 
   res = PoolGenInit(&awl->pgen, ChainGen(chain, gen), pool);
   if (res != ResOK)
@@ -1204,6 +1206,7 @@ static Res AWLAccess(Pool pool, Seg seg, Addr addr,
   AVER(SegBase(seg) <= addr);
   AVER(addr < SegLimit(seg));
   AVER(SegPool(seg) == pool);
+  AVERT(AccessSet, mode);
   
   /* Attempt scanning a single reference if permitted */
   if(AWLCanTrySingleAccess(PoolArena(pool), awl, seg, addr)) {
@@ -1232,7 +1235,7 @@ static Res AWLAccess(Pool pool, Seg seg, Addr addr,
 
 /* AWLWalk -- walk all objects */
 
-static void AWLWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
+static void AWLWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
                     void *p, size_t s)
 {
   AWL awl;
@@ -1373,7 +1376,7 @@ static Bool AWLCheck(AWL awl)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2015 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

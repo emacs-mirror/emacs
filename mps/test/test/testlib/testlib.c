@@ -2,7 +2,6 @@
 some useful functions for testing the MPS */
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 #include <math.h>
@@ -552,18 +551,12 @@ void *TQElement(TimeQueue TQ)
 
 void *TQPop(TimeQueue TQ)
 {
- void *ref;
- void *nref;
- unsigned long ntime;
  unsigned long i, c, s;
 
  asserts(!TQEmpty(TQ), "TQPop called on empty TimeQueue");
 
- ref = TQ->element[0].ref;
  TQ->used -= 1;
  s = TQ->used;
- ntime = TQ->element[s].time;
- nref = TQ->element[s].ref;
  i = 0;
  while (1) {
   c = (2*i)+1;

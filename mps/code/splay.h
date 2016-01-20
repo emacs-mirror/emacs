@@ -1,7 +1,7 @@
 /* splay.h: SPLAY TREE HEADER
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * .source: <design/splay/>
  */
@@ -15,21 +15,21 @@
 
 typedef struct SplayTreeStruct *SplayTree;
 
-typedef Bool (*SplayTestNodeMethod)(SplayTree splay, Tree node,
-                                    void *closureP, Size closureS);
-typedef Bool (*SplayTestTreeMethod)(SplayTree splay, Tree node,
-                                    void *closureP, Size closureS);
+typedef Bool (*SplayTestNodeFunction)(SplayTree splay, Tree node,
+                                      void *closureP, Size closureS);
+typedef Bool (*SplayTestTreeFunction)(SplayTree splay, Tree node,
+                                      void *closureP, Size closureS);
 
-typedef void (*SplayUpdateNodeMethod)(SplayTree splay, Tree node);
+typedef void (*SplayUpdateNodeFunction)(SplayTree splay, Tree node);
 extern void SplayTrivUpdate(SplayTree splay, Tree node);
 
 #define SplayTreeSig      ((Sig)0x5195B1A1) /* SIGnature SPLAY */
 
 typedef struct SplayTreeStruct {
   Sig sig;
-  TreeCompare compare;
-  TreeKeyMethod nodeKey;
-  SplayUpdateNodeMethod updateNode;
+  TreeCompareFunction compare;
+  TreeKeyFunction nodeKey;
+  SplayUpdateNodeFunction updateNode;
   Tree root;
 } SplayTreeStruct;
 
@@ -38,9 +38,9 @@ typedef struct SplayTreeStruct {
 
 extern Bool SplayTreeCheck(SplayTree splay);
 extern void SplayTreeInit(SplayTree splay,
-                          TreeCompare compare,
-                          TreeKeyMethod nodeKey,
-                          SplayUpdateNodeMethod updateNode);
+                          TreeCompareFunction compare,
+                          TreeKeyFunction nodeKey,
+                          SplayUpdateNodeFunction updateNode);
 extern void SplayTreeFinish(SplayTree splay);
 
 extern Bool SplayTreeInsert(SplayTree splay, Tree node);
@@ -55,24 +55,24 @@ extern Bool SplayTreeNeighbours(Tree *leftReturn,
 extern Tree SplayTreeFirst(SplayTree splay);
 extern Tree SplayTreeNext(SplayTree splay, TreeKey oldKey);
 
-typedef Bool (*SplayFindMethod)(Tree *nodeReturn, SplayTree splay,
-                                SplayTestNodeMethod testNode,
-                                SplayTestTreeMethod testTree,
-                                void *closureP, Size closureS);
+typedef Bool (*SplayFindFunction)(Tree *nodeReturn, SplayTree splay,
+                                  SplayTestNodeFunction testNode,
+                                  SplayTestTreeFunction testTree,
+                                  void *closureP, Size closureS);
 extern Bool SplayFindFirst(Tree *nodeReturn, SplayTree splay,
-                           SplayTestNodeMethod testNode,
-                           SplayTestTreeMethod testTree,
+                           SplayTestNodeFunction testNode,
+                           SplayTestTreeFunction testTree,
                            void *closureP, Size closureS);
 extern Bool SplayFindLast(Tree *nodeReturn, SplayTree splay,
-                          SplayTestNodeMethod testNode,
-                          SplayTestTreeMethod testTree,
+                          SplayTestNodeFunction testNode,
+                          SplayTestTreeFunction testTree,
                           void *closureP, Size closureS);
 
 extern void SplayNodeRefresh(SplayTree splay, Tree node);
 extern void SplayNodeInit(SplayTree splay, Tree node);
 
 extern Res SplayTreeDescribe(SplayTree splay, mps_lib_FILE *stream,
-                             Count depth, TreeDescribeMethod nodeDescribe);
+                             Count depth, TreeDescribeFunction nodeDescribe);
 
 extern void SplayDebugUpdate(SplayTree splay, Tree tree);
 extern Count SplayDebugCount(SplayTree splay);
@@ -83,7 +83,7 @@ extern Count SplayDebugCount(SplayTree splay);
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

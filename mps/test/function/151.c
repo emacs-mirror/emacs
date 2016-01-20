@@ -25,7 +25,6 @@ static void test(void)
  mps_pool_t spool;
  mps_thr_t thread;
  mps_frame_t frame;
- mycell *p;
 
 /* create an arena that can't grow beyond 30 M */
 
@@ -54,7 +53,7 @@ static void test(void)
 
  for (i=0; i < ITERATIONS; i++) {
   die(mps_ap_frame_push(&frame, sap), "push");
-  p = allocdumb(sap, OBJSIZE, mps_rank_exact());
+  (void)allocdumb(sap, OBJSIZE, mps_rank_exact());
   die(mps_ap_frame_pop(sap, frame), "pop");
   comment("%i of %i", i, ITERATIONS);
  }

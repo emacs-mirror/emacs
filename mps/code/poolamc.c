@@ -22,7 +22,7 @@ typedef struct AMCStruct *AMC;
 typedef struct amcGenStruct *amcGen;
 
 /* Function returning TRUE if block in nailboarded segment is pinned. */
-typedef Bool (*amcPinnedMethod)(AMC amc, Nailboard board, Addr base, Addr limit);
+typedef Bool (*amcPinnedFunction)(AMC amc, Nailboard board, Addr base, Addr limit);
 
 
 /* forward declarations */
@@ -31,7 +31,6 @@ static Bool amcSegHasNailboard(Seg seg);
 static Nailboard amcSegNailboard(Seg seg);
 static Bool AMCCheck(AMC amc);
 static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO);
-static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO);
 extern PoolClass AMCZPoolClassGet(void);
 extern BufferClass amcBufClassGet(void);
 extern SegClass amcSegClassGet(void);
@@ -71,7 +70,7 @@ enum {
 
 /* amcSegStruct -- AMC-specific fields appended to GCSegStruct
  *
- * .seq.old: The "old" flag is FALSE if the segment has never been
+ * .seg.old: The "old" flag is FALSE if the segment has never been
  * collected, and so its size is accounted against the pool
  * generation's newSize; it is TRUE if the segment has been collected
  * at least once, and so its size is accounted against the pool
@@ -394,71 +393,6 @@ static amcGen amcSegGen(Seg seg)
 
 #define AMCSig          ((Sig)0x519A3C99) /* SIGnature AMC */
 
-typedef struct PageRetStruct {
-  Count pCond;     /* pages Condemned */
-  Count pRet;      /* pages Retained (in place) */
-  /* Small */
-  Count pCS;       /* pages Condemned in Small segments */
-  Count pRS;       /* pages Retained in Small segments */
-  /* Medium */
-  Count sCM;       /* segments Condemned: Medium */
-                   /* ...= upper bound of how many extra pages it */
-                   /*    would have cost, had we chosen to LSP-pad */
-                   /*    all these segments. */
-  Count pCM;       /* pages Condemned in Medium segments */
-  Count sRM;       /* segments Retained: Medium */
-  Count pRM;       /* pages Retained in Medium segments: */
-  Count pRM1;      /*   ...because obj 1 was preserved in place */
-                   /*   ...because a rest obj was pip, causing: */
-  Count pRMrr;     /*     ...retained rest pages (page where rest obj is) */
-  Count pRMr1;     /*     ...retained obj 1 pages (purely NMR pad) */
-  /* Large */
-  Count sCL;       /* segments Condemned: Large */
-                   /* ...= upper bound of how many extra pages it */
-                   /*    has cost to LSP-pad all these segments. */
-  Count pCL;       /* pages Condemned in Large segments */
-  Count sRL;       /* segments Retained: Large */
-  Count pRL;       /* pages Retained in Large segments */
-  Count pRLr;      /*   ...because a rest obj (actually LSP) was pip */
-
-  /* The interesting things about this report are:
-   *   - How many pages are actually being retained? (pRet)
-   *   - Percentage? (pRet/pCond)
-   *   - Is the major contribution from Small, Medium, or Large segs?
-   *
-   * Generally, pages retained because obj 1 needed to be preserved in 
-   * place are ok (because no alternative placement could have retained 
-   * fewer pages), but pages retained by a rest obj are unfortunate 
-   * (better placement, putting the small rest objs in their own seg, 
-   * would have retained fewer pages).  In particular:
-   *
-   * The LSP threshold is a payoff between the wasted space from 
-   * LSP-padding, versus the risk of increased page-retention (due to 
-   * rest objs) from not LSP-padding.
-   *
-   * For Medium segs, where we do not do LSP-padding:
-   *   - LSP would have required at most sCM extra pages;
-   *   - the extra retention incurred by not LSP-padding is pRMr1.
-   * A high pRMr1 => lots of Medium segs getting retained by the rest 
-   * objs tacked on after obj 1.  Consider lowering LSP-threshold.
-   *
-   * For Large segs we do LSP padding.  This has a cost; upper bound is 
-   * sCL extra pages.  But the benefit should be greatly reduced ambig 
-   * refs to rest objs.  With LSP, the only rest obj is the LSP pad 
-   * itself.  We expect that ambig refs to this are rare, so currently 
-   * we do not implement .large.lsp-no-retain.  But we do record the 
-   * occurrence of pages retained by a ref to an LSP pad: pPLr.  A high 
-   * pRLr => perhaps .large.lsp-no-retain should be implemented?
-   *
-   * If the mutator is causing a lot of page retention, then sRM/pRM
-   * and sRL/pRL should give some picture of the number of retained 
-   * objects and their average size.
-   */
-} PageRetStruct;
-
-/* static => init'd to zero */
-static struct PageRetStruct pageretstruct_Zero;
-
 typedef struct AMCStruct { /* <design/poolamc/#struct> */
   PoolStruct poolStruct;   /* generic pool structure */
   RankSet rankSet;         /* rankSet for entire pool */
@@ -471,13 +405,9 @@ typedef struct AMCStruct { /* <design/poolamc/#struct> */
   amcGen afterRampGen;     /* the generation after rampGen */
   unsigned rampCount;      /* <design/poolamc/#ramp.count> */
   int rampMode;            /* <design/poolamc/#ramp.mode> */
-  amcPinnedMethod pinned;  /* function determining if block is pinned */
+  amcPinnedFunction pinned; /* function determining if block is pinned */
   Size extendBy;           /* segment size to extend pool by */
   Size largeSize;          /* min size of "large" segments */
-
-  /* page retention in an in-progress trace */
-  STATISTIC_DECL(PageRetStruct pageretstruct[TraceLIMIT]);
-
   Sig sig;                 /* <design/pool/#outer-structure.sig> */
 } AMCStruct;
 
@@ -804,8 +734,6 @@ static Res amcInitComm(Pool pool, RankSet rankSet, ArgList args)
   AMC amc;
   Res res;
   Arena arena;
-  TraceId ti;
-  Trace trace;
   Index i;
   size_t genArraySize;
   size_t genCount;
@@ -815,16 +743,6 @@ static Res amcInitComm(Pool pool, RankSet rankSet, ArgList args)
   Size largeSize = AMC_LARGE_SIZE_DEFAULT;
   ArgStruct arg;
   
-  /* Suppress a warning about this structure not being used when there
-     are no statistics.  Note that simply making the declaration conditional
-     does not work, because we carefully reference expressions inside
-     STATISTICS to prevent such warnings on parameters and local variables.
-     It's just that clang 4.0 on Mac OS X does some sort of extra check
-     that produces a special warnings about static variables. */
-#if !defined(STATISTICS)
-  UNUSED(pageretstruct_Zero);
-#endif
-
   AVER(pool != NULL);
 
   amc = PoolAMC(pool);
@@ -844,7 +762,9 @@ static Res amcInitComm(Pool pool, RankSet rankSet, ArgList args)
     largeSize = arg.val.size;
   
   AVERT(Format, pool->format);
+  AVER(FormatArena(pool->format) == arena);
   AVERT(Chain, chain);
+  AVER(chain->arena == arena);
   AVER(extendBy > 0);
   AVER(largeSize > 0);
   /* TODO: it would be nice to be able to manage large objects that
@@ -853,6 +773,7 @@ static Res amcInitComm(Pool pool, RankSet rankSet, ArgList args)
    * assertion catches this bad case. */
   AVER(largeSize >= extendBy);
   pool->alignment = pool->format->alignment;
+  pool->fix = AMCFix;
   amc->rankSet = rankSet;
 
   RingInit(&amc->genRing);
@@ -866,16 +787,6 @@ static Res amcInitComm(Pool pool, RankSet rankSet, ArgList args)
 
   amc->rampCount = 0;
   amc->rampMode = RampOUTSIDE;
-
-  TRACE_SET_ITER(ti, trace, TraceSetUNIV, arena)
-    STATISTIC(amc->pageretstruct[ti] = pageretstruct_Zero);
-  TRACE_SET_ITER_END(ti, trace, TraceSetUNIV, arena);
-
-  if(pool->format->headerSize == 0) {
-    pool->fix = AMCFix;
-  } else {
-    pool->fix = AMCHeaderFix;
-  }
 
   if (interior) {
     amc->pinned = amcPinnedInterior;
@@ -1308,24 +1219,6 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
   amc = PoolAMC(pool);
   AVERT(AMC, amc);
 
-  STATISTIC_STAT( {
-    Count pages;
-    Size size = SegSize(seg);
-    AVER(SizeIsArenaGrains(size, pool->arena));
-    pages = size / ArenaGrainSize(pool->arena);
-    AVER(pages != 0);
-    amc->pageretstruct[trace->ti].pCond += pages;
-    if(pages == 1) {
-      amc->pageretstruct[trace->ti].pCS += pages;
-    } else if(size < amc->largeSize) {
-      amc->pageretstruct[trace->ti].sCM += 1;
-      amc->pageretstruct[trace->ti].pCM += pages;
-    } else {
-      amc->pageretstruct[trace->ti].sCL += 1;
-      amc->pageretstruct[trace->ti].pCL += pages;
-    }
-  } );
-
   gen = amcSegGen(seg);
   AVERT(amcGen, gen);
   if (!amcseg->old) {
@@ -1654,157 +1547,9 @@ static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   AMC amc;
   Res res;
   Format format;       /* cache of pool->format */
-  Ref ref;             /* reference to be fixed */
-  Ref newRef;          /* new location, if moved */
-  Size length;         /* length of object to be relocated */
-  Buffer buffer;       /* buffer to allocate new copy into */
-  amcGen gen;          /* generation of old copy of object */
-  TraceSet grey;       /* greyness of object being relocated */
-  Seg toSeg;           /* segment to which object is being relocated */
-
-  /* <design/trace/#fix.noaver> */
-  AVERT_CRITICAL(Pool, pool);
-  AVERT_CRITICAL(ScanState, ss);
-  AVERT_CRITICAL(Seg, seg);
-  AVER_CRITICAL(refIO != NULL);
-  EVENT0(AMCFix);
-
-  /* For the moment, assume that the object was already marked. */
-  /* (See <design/fix/#protocol.was-marked>.) */
-  ss->wasMarked = TRUE;
-
-  /* If the reference is ambiguous, set up the datastructures for */
-  /* managing a nailed segment.  This involves marking the segment */
-  /* as nailed, and setting up a per-word mark table */
-  if(ss->rank == RankAMBIG) {
-    /* .nail.new: Check to see whether we need a Nailboard for */
-    /* this seg.  We use "SegNailed(seg) == TraceSetEMPTY" */
-    /* rather than "!amcSegHasNailboard(seg)" because this avoids */
-    /* setting up a new nailboard when the segment was nailed, but */
-    /* had no nailboard.  This must be avoided because otherwise */
-    /* assumptions in AMCFixEmergency will be wrong (essentially */
-    /* we will lose some pointer fixes because we introduced a */
-    /* nailboard). */
-    if(SegNailed(seg) == TraceSetEMPTY) {
-      res = amcSegCreateNailboard(seg, pool);
-      if(res != ResOK)
-        return res;
-      ++ss->nailCount;
-      SegSetNailed(seg, TraceSetUnion(SegNailed(seg), ss->traces));
-    }
-    amcFixInPlace(pool, seg, ss, refIO);
-    return ResOK;
-  }
-
-  amc = PoolAMC(pool);
-  AVERT_CRITICAL(AMC, amc);
-  format = pool->format;
-  ref = *refIO;
-  AVER_CRITICAL(SegBase(seg) <= ref);
-  AVER_CRITICAL(ref < SegLimit(seg));
-  arena = pool->arena;
-
-  /* .exposed.seg: Statements tagged ".exposed.seg" below require */
-  /* that "seg" (that is: the 'from' seg) has been ShieldExposed. */
-  ShieldExpose(arena, seg);
-  newRef = (*format->isMoved)(ref);  /* .exposed.seg */
-
-  if(newRef == (Addr)0) {
-    Addr clientQ;
-    clientQ = (*format->skip)(ref);
-
-    /* If object is nailed already then we mustn't copy it: */
-    if (SegNailed(seg) != TraceSetEMPTY
-        && !(amcSegHasNailboard(seg)
-             && !(*amc->pinned)(amc, amcSegNailboard(seg), ref, clientQ)))
-    {
-      /* Segment only needs greying if there are new traces for */
-      /* which we are nailing. */
-      if(!TraceSetSub(ss->traces, SegNailed(seg))) {
-        if(SegRankSet(seg) != RankSetEMPTY) /* not for AMCZ */
-          SegSetGrey(seg, TraceSetUnion(SegGrey(seg), ss->traces));
-        SegSetNailed(seg, TraceSetUnion(SegNailed(seg), ss->traces));
-      }
-      res = ResOK;
-      goto returnRes;
-    } else if(ss->rank == RankWEAK) {
-      /* Object is not preserved (neither moved, nor nailed) */
-      /* hence, reference should be splatted. */
-      goto updateReference;
-    }
-    /* Object is not preserved yet (neither moved, nor nailed) */
-    /* so should be preserved by forwarding. */
-
-    /* <design/fix/#protocol.was-marked> */
-    ss->wasMarked = FALSE;
-
-    /* Get the forwarding buffer from the object's generation. */
-    gen = amcSegGen(seg);
-    buffer = gen->forward;
-    AVER_CRITICAL(buffer != NULL);
-
-    length = AddrOffset(ref, clientQ);  /* .exposed.seg */
-    STATISTIC_STAT(++ss->forwardedCount);
-    ss->forwardedSize += length;
-    do {
-      res = BUFFER_RESERVE(&newRef, buffer, length, FALSE);
-      if(res != ResOK)
-        goto returnRes;
-
-      toSeg = BufferSeg(buffer);
-      ShieldExpose(arena, toSeg);
-
-      /* Since we're moving an object from one segment to another, */
-      /* union the greyness and the summaries together. */
-      grey = SegGrey(seg);
-      if(SegRankSet(seg) != RankSetEMPTY) { /* not for AMCZ */
-        grey = TraceSetUnion(grey, ss->traces);
-        SegSetSummary(toSeg, RefSetUnion(SegSummary(toSeg), SegSummary(seg)));
-      } else {
-        AVER(SegRankSet(toSeg) == RankSetEMPTY);
-      }
-      SegSetGrey(toSeg, TraceSetUnion(SegGrey(toSeg), grey));
-
-      /* <design/trace/#fix.copy> */
-      (void)AddrCopy(newRef, ref, length);  /* .exposed.seg */
-
-      ShieldCover(arena, toSeg);
-    } while(!BUFFER_COMMIT(buffer, newRef, length));
-    ss->copiedSize += length;
-
-    (*format->move)(ref, newRef);  /* .exposed.seg */
-
-    EVENT1(AMCFixForward, newRef);
-  } else {
-    /* reference to broken heart (which should be snapped out -- */
-    /* consider adding to (non-existant) snap-out cache here) */
-    STATISTIC_STAT(++ss->snapCount);
-  }
-
-  /* .fix.update: update the reference to whatever the above code */
-  /* decided it should be */
-updateReference:
-  *refIO = newRef;
-  res = ResOK;
-
-returnRes:
-  ShieldCover(arena, seg);  /* .exposed.seg */
-  return res;
-}
-
-
-/* AMCHeaderFix -- fix a reference to the pool, with headers
- *
- * See <design/poolamc/#header.fix>.
- */
-static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
-{
-  Arena arena;
-  AMC amc;
-  Res res;
-  Format format;       /* cache of pool->format */
   Size headerSize;     /* cache of pool->format->headerSize */
   Ref ref;             /* reference to be fixed */
+  Addr base;           /* base address of reference */
   Ref newRef;          /* new location, if moved */
   Addr newBase;        /* base address of new copy */
   Size length;         /* length of object to be relocated */
@@ -1853,6 +1598,8 @@ static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   headerSize = format->headerSize;
   ref = *refIO;
   AVER_CRITICAL(AddrAdd(SegBase(seg), headerSize) <= ref);
+  base = AddrSub(ref, headerSize);
+  AVER_CRITICAL(AddrIsAligned(base, PoolAlignment(pool)));  
   AVER_CRITICAL(ref < SegLimit(seg)); /* see .ref-limit */
   arena = pool->arena;
 
@@ -1919,7 +1666,7 @@ static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
       SegSetGrey(toSeg, TraceSetUnion(SegGrey(toSeg), grey));
 
       /* <design/trace/#fix.copy> */
-      (void)AddrCopy(newBase, AddrSub(ref, headerSize), length);  /* .exposed.seg */
+      (void)AddrCopy(newBase, base, length);  /* .exposed.seg */
 
       ShieldCover(arena, toSeg);
     } while (!BUFFER_COMMIT(buffer, newBase, length));
@@ -1958,8 +1705,6 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
   Size preservedInPlaceSize = (Size)0;
   AMC amc;
   Size headerSize;
-  Addr p1;  /* first obj in seg */
-  Bool obj1pip = FALSE;  /* first obj was preserved in place */
   Addr padBase;          /* base of next padding object */
   Size padLength;        /* length of next padding object */
 
@@ -1981,7 +1726,6 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
   } else {
     limit = SegLimit(seg);
   }
-  p1 = p;
   padBase = p;
   padLength = 0;
   while(p < limit) {
@@ -2003,8 +1747,6 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
     if(preserve) {
       ++preservedInPlaceCount;
       preservedInPlaceSize += length;
-      if(p == p1)
-        obj1pip = TRUE;
       if (padLength > 0) {
         /* Replace run of forwarding pointers and unreachable objects
          * with a padding object. */
@@ -2053,38 +1795,6 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
     AVER(SegBuffer(seg) == NULL);
 
     PoolGenFree(&gen->pgen, seg, 0, SegSize(seg), 0, Seg2amcSeg(seg)->deferred);
-  } else {
-    /* Seg retained */
-    STATISTIC_STAT( {
-      Count pages;
-      Size size = SegSize(seg);
-      AVER(SizeIsArenaGrains(size, pool->arena));
-      pages = size / ArenaGrainSize(pool->arena);
-      AVER(pages != 0);
-      amc->pageretstruct[trace->ti].pRet += pages;
-      if(pages == 1) {
-        amc->pageretstruct[trace->ti].pRS += pages;
-      } else if(size < amc->largeSize) {
-        amc->pageretstruct[trace->ti].sRM += 1;
-        amc->pageretstruct[trace->ti].pRM += pages;
-        if(obj1pip) {
-          amc->pageretstruct[trace->ti].pRM1 += pages;
-        } else {
-          /* Seg retained by a rest obj.  Cost: one rest page, */
-          /* plus pages-1 pages of pure padding. */
-          amc->pageretstruct[trace->ti].pRMrr += 1;
-          amc->pageretstruct[trace->ti].pRMr1 += pages - 1;
-        }
-      } else {
-        amc->pageretstruct[trace->ti].sRL += 1;
-        amc->pageretstruct[trace->ti].pRL += pages;
-        if(!obj1pip) {
-          /* Seg retained by a rest obj */
-          amc->pageretstruct[trace->ti].pRLr += pages;
-        }
-      }
-    } );
-
   }
 }
 
@@ -2135,40 +1845,9 @@ static void AMCReclaim(Pool pool, Trace trace, Seg seg)
 }
 
 
-/* AMCTraceEnd -- emit end-of-trace event */
-
-static void AMCTraceEnd(Pool pool, Trace trace)
-{
-  AMC amc;
-  TraceId ti;
-  
-  AVERT(Pool, pool);
-  AVERT(Trace, trace);
-
-  amc = PoolAMC(pool);
-  AVERT(AMC, amc);
-  ti = trace->ti;
-  AVERT(TraceId, ti);
-
-  STATISTIC_STAT ({
-    Count pRetMin = 100;
-    PageRetStruct *pr = &amc->pageretstruct[ti];
-    if(pr->pRet >= pRetMin) {
-      EVENT21(AMCTraceEnd, ArenaEpoch(pool->arena), (EventFU)trace->why,
-              ArenaGrainSize(pool->arena), amc->largeSize, pRetMin, pr->pCond,
-
-              pr->pRet, pr->pCS, pr->pRS, pr->sCM, pr->pCM, pr->sRM, pr->pRM,
-              pr->pRM1, pr->pRMrr, pr->pRMr1, pr->sCL, pr->pCL, pr->sRL,
-              pr->pRL, pr->pRLr);
-    }
-    *pr = pageretstruct_Zero;
-  });
-}
-
-
 /* AMCWalk -- Apply function to (black) objects in segment */
 
-static void AMCWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
+static void AMCWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
                     void *p, size_t s)
 {
   Addr object, nextObject, limit;
@@ -2218,8 +1897,7 @@ static void AMCWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
 
 /* amcWalkAll -- Apply a function to all (black) objects in a pool */
 
-static void amcWalkAll(Pool pool, FormattedObjectsStepMethod f,
-                       void *p, size_t s)
+static void amcWalkAll(Pool pool, FormattedObjectsVisitor f, void *p, size_t s)
 {
   Arena arena;
   Ring ring, next, node;
@@ -2453,7 +2131,6 @@ DEFINE_POOL_CLASS(AMCZPoolClass, this)
   this->fix = AMCFix;
   this->fixEmergency = AMCFixEmergency;
   this->reclaim = AMCReclaim;
-  this->traceEnd = AMCTraceEnd;
   this->rampBegin = AMCRampBegin;
   this->rampEnd = AMCRampEnd;
   this->addrObject = AMCAddrObject;
@@ -2574,7 +2251,6 @@ static Bool AMCCheck(AMC amc)
   /* if BEGIN or RAMPING, count must not be zero. */
   CHECKL((amc->rampCount != 0) || ((amc->rampMode != RampBEGIN) &&
                                    (amc->rampMode != RampRAMPING)));
-  /* pageretstruct[ti] is statistics only, currently unchecked */
 
   return TRUE;
 }

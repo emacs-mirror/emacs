@@ -1,11 +1,330 @@
-# commpost.nmk: SECOND COMMON FRAGMENT FOR PLATFORMS USING NMAKE -*- makefile -*-
+# -*- makefile -*-
+#
+# comm.nmk: COMMON NMAKE FRAGMENT
 #
 # $Id$
 # Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
 #
 # DESCRIPTION
 #
-# Second common makefile fragment for w3*mv.nmk.  See commpre.nmk
+# This makefile fragment is included in more specific makefiles for
+# platforms which use nmake.
+#
+# %%PART: When adding a new part, add a new parameter for the files included
+# in the part
+# Parameters:
+#   PFM        platform code, e.g. "w3i3mv"
+#   PFMDEFS    /D options to define platforms preprocessor symbols
+#              to the compiler. Avoid using this if possible, as it
+#              prevents the MPS being built with a simple command like
+#              "cl mps.c".
+#   MPMCOMMON  list of sources which make up the "mpm" part for all
+#              platforms. Each source is stripped of its .c extension
+#              and surrounded with [brackets].
+#   MPMPF      as above for the current platform.
+#   PLINTH     as above for the "plinth" part
+#   AMC        as above for the "amc" part
+#   AMS        as above for the "ams" part
+#   LO         as above for the "lo" part
+#   POOLN      as above for the "pooln" part
+#   SNC        as above for the "snc" part
+#   POOLS      as above for all pools included in the target
+#   MPM        as above for the MPMCOMMON + MPMPF + PLINTH + POOLS 
+#   DW         as above for the "dw" part
+#   FMTTEST    as above for the "fmttest" part
+#   FMTSCHEME  as above for the "fmtscheme" part
+#   TESTLIB    as above for the "testlib" part
+#   TESTTHR    as above for the "testthr" part
+#   NOISY      if defined, causes command to be emitted
+#
+#
+# EDITING
+#
+# To add new targets. varieties, and parts:
+# Search for the string "%%TARGET", "%%VARIETY", or "%%PART" in this makefile
+# and follow the instructions.
+#
+
+
+# TARGETS
+# 
+# 
+# %%TARGET: When adding a new target, add it to one of the variables
+# in this section. Library components go in LIB_TARGETS.
+
+LIB_TARGETS=mps.lib
+
+# Test cases go in TEST_TARGETS.
+
+TEST_TARGETS=\
+    abqtest.exe \
+    airtest.exe \
+    amcss.exe \
+    amcsshe.exe \
+    amcssth.exe \
+    amsss.exe \
+    amssshe.exe \
+    apss.exe \
+    arenacv.exe \
+    awlut.exe \
+    awluthe.exe \
+    awlutth.exe \
+    btcv.exe \
+    bttest.exe \
+    djbench.exe \
+    exposet0.exe \
+    expt825.exe \
+    finalcv.exe \
+    finaltest.exe \
+    fotest.exe \
+    gcbench.exe \
+    landtest.exe \
+    locbwcss.exe \
+    lockcov.exe \
+    lockut.exe \
+    locusss.exe \
+    locv.exe \
+    messtest.exe \
+    mpmss.exe \
+    mpsicv.exe \
+    mv2test.exe \
+    nailboardtest.exe \
+    poolncv.exe \
+    qs.exe \
+    sacss.exe \
+    segsmss.exe \
+    steptest.exe \
+    teletest.exe \
+    walkt0.exe \
+    zcoll.exe \
+    zmess.exe
+
+# Stand-alone programs go in EXTRA_TARGETS if they should always be
+# built, or in OPTIONAL_TARGETS if they should only be built if 
+
+EXTRA_TARGETS=mpseventcnv.exe mpseventtxt.exe
+OPTIONAL_TARGETS=mpseventsql.exe
+
+# This target records programs that we were once able to build but
+# can't at the moment:
+# 
+# replay -- depends on the EPVM pool.
+
+UNBUILDABLE_TARGETS=replay.exe
+
+ALL_TARGETS=$(LIB_TARGETS) $(TEST_TARGETS) $(EXTRA_TARGETS)
+
+
+# PARAMETERS
+#
+#
+# %%PART: When adding a new part, add the sources for the new part here.
+
+MPMCOMMON=\
+    [abq] \
+    [arena] \
+    [arenacl] \
+    [arenavm] \
+    [arg] \
+    [boot] \
+    [bt] \
+    [buffer] \
+    [cbs] \
+    [dbgpool] \
+    [dbgpooli] \
+    [event] \
+    [failover] \
+    [format] \
+    [freelist] \
+    [global] \
+    [land] \
+    [ld] \
+    [locus] \
+    [message] \
+    [meter] \
+    [mpm] \
+    [mpsi] \
+    [nailboard] \
+    [pool] \
+    [poolabs] \
+    [poolmfs] \
+    [poolmrg] \
+    [poolmv2] \
+    [poolmv] \
+    [protocol] \
+    [range] \
+    [ref] \
+    [reserv] \
+    [ring] \
+    [root] \
+    [sa] \
+    [sac] \
+    [seg] \
+    [shield] \
+    [splay] \
+    [ss] \
+    [table] \
+    [trace] \
+    [traceanc] \
+    [tract] \
+    [tree] \
+    [version] \
+    [vm] \
+    [walk]
+PLINTH = [mpsliban] [mpsioan]
+AMC = [poolamc]
+AMS = [poolams] [poolamsi]
+AWL = [poolawl]
+LO = [poollo]
+MVFF = [poolmvff]
+POOLN = [pooln]
+SNC = [poolsnc]
+FMTDY = [fmtdy] [fmtno]
+FMTTEST = [fmthe] [fmtdy] [fmtno] [fmtdytst]
+FMTSCHEME = [fmtscheme]
+TESTLIB = [testlib] [getoptl]
+TESTTHR = [testthrw3]
+POOLS = $(AMC) $(AMS) $(AWL) $(LO) $(MV2) $(MVFF) $(SNC)
+MPM = $(MPMCOMMON) $(MPMPF) $(POOLS) $(PLINTH)
+
+
+# CHECK PARAMETERS
+#
+#
+# %%PART: When adding a new part, add checks for the parameter with the
+# sources for the new part.
+
+!IFNDEF PFM
+!ERROR comm.nmk: PFM not defined
+!ENDIF
+!IFNDEF MPM
+!ERROR comm.nmk: MPM not defined
+!ENDIF
+!IFNDEF MPMCOMMON
+!ERROR comm.nmk: MPMCOMMON not defined
+!ENDIF
+!IFNDEF MPMPF
+!ERROR comm.nmk: MPMPF not defined
+!ENDIF
+!IFNDEF PLINTH
+!ERROR comm.nmk: PLINTH not defined
+!ENDIF
+!IFNDEF LO
+!ERROR comm.nmk: LO not defined
+!ENDIF
+!IFNDEF AMC
+!ERROR comm.nmk: AMC not defined
+!ENDIF
+!IFNDEF AMS
+!ERROR comm.nmk: AMS not defined
+!ENDIF
+!IFNDEF POOLN
+!ERROR comm.nmk: POOLN not defined
+!ENDIF
+!IFNDEF SNC
+!ERROR comm.nmk: SNC not defined
+!ENDIF
+!IFNDEF FMTDY
+!ERROR comm.nmk: FMTDY not defined
+!ENDIF
+!IFNDEF FMTTEST
+!ERROR comm.nmk: FMTTEST not defined
+!ENDIF
+!IFNDEF FMTSCHEME
+!ERROR comm.nmk: FMTSCHEME not defined
+!ENDIF
+!IFNDEF TESTLIB
+!ERROR comm.nmk: TESTLIB not defined
+!ENDIF
+!IFNDEF TESTTHR
+!ERROR comm.nmk: TESTTHR not defined
+!ENDIF
+
+
+# DECLARATIONS
+
+
+!IFDEF NOISY
+ECHO = rem
+!ELSE
+.SILENT:
+ECHO = echo
+!ENDIF
+
+
+# C FLAGS
+
+CFLAGSTARGETPRE =
+CFLAGSTARGETPOST =
+CRTFLAGSHOT =
+CRTFLAGSCOOL =
+LINKFLAGSHOT =
+LINKFLAGSCOOL =
+
+CFLAGSSQLPRE = /nologo $(PFMDEFS)
+CFLAGSCOMMONPRE = /nologo $(PFMDEFS) $(CFLAGSTARGETPRE)
+CFLAGSSQLPOST =
+CFLAGSCOMMONPOST = $(CFLAGSTARGETPOST)
+
+# Flags for use in the variety combinations
+CFLAGSHOT = /O2
+# (above /O2 (maximise speed) used to be set to /Ox
+# (maximise optimisations) in for tool versions before VS 9)
+# We used to have /GZ here (stack probe).
+# Note that GZ is specific to version 12 of the cl tool.  drj 2003-11-04
+# It is ignored on earlier versions of the cl tool.
+# /GZ here generates a dependency on the C library and when we are
+# building a DLL, mpsdy.dll, the linker step will fail (error LNK2001:
+# unresolved external symbol __chkesp).  See
+# http://support.microsoft.com/kb/q191669/
+CFLAGSCOOL =
+CFLAGSINTERNAL = /Zi
+CFLAGSEXTERNAL =
+
+# The combinations of variety
+# %%VARIETY: When adding a new variety, define a macro containing the set
+# of flags for the new variety.
+CFRASH = /DCONFIG_VAR_RASH $(CRTFLAGSHOT)  $(CFLAGSHOT)  $(CFLAGSEXTERNAL)
+CFHOT  = /DCONFIG_VAR_HOT  $(CRTFLAGSHOT)  $(CFLAGSHOT)  $(CFLAGSINTERNAL)
+CFCOOL = /DCONFIG_VAR_COOL $(CRTFLAGSCOOL) $(CFLAGSCOOL) $(CFLAGSINTERNAL)
+
+# Microsoft documentation is not very clear on the point of using both
+# optimization and debug information
+
+# LINKER FLAGS
+# %%VARIETY: When adding a new variety, define a macro containing the flags
+# for the new variety
+LINKER = link
+LINKFLAGSCOMMON = /nologo /LARGEADDRESSAWARE
+LINKFLAGSINTERNAL = /DEBUG
+# ( Internal flags used to be set to /DEBUG:full )
+LINKFLAGSEXTERNAL = /RELEASE
+
+LFRASH = $(LINKFLAGSHOT)    $(LINKFLAGSEXTERNAL)
+LFHOT  = $(LINKFLAGSHOT)    $(LINKFLAGSINTERNAL)
+LFCOOL = $(LINKFLAGSCOOL)   $(LINKFLAGSINTERNAL)
+
+#LFCV = /PROFILE /DEBUG:full /DEBUGTYPE:cv
+
+# Library manager
+# %%VARIETY: When adding a new variety, define a macro containing the flags
+# for the new variety
+LIBMAN = lib                  # can't call this LIB - it screws the environment
+LIBFLAGSCOMMON =
+
+LIBFLAGSRASH =
+LIBFLAGSHOT =
+LIBFLAGSCOOL =
+
+# Browser database manager [not used at present]
+#BSC = bscmake
+#BSCFLAGS = /nologo /n
+
+
+# == Common definitions ==
+# %%PART: When adding a new part, add it here, unless it's platform-specific
+# [It is not possible use a macro, like $(PFM), in a substitution,
+# hence all parts end up being platform-specific.]
 
 
 # == Pseudo-targets ==
@@ -56,16 +375,79 @@ variety: $(PFM)\$(VARIETY)\$(TARGET)
 !ENDIF
 !ENDIF
 
-# testrun testci testall testansi testpoll
+# testrun testci testall testansi testpollnone
 # Runs automated test cases.
 
-testrun testci testall testansi testpoll: $(TEST_TARGETS)
+testrun testci testall testansi testpollnone: $(TEST_TARGETS)
 !IFDEF VARIETY
 	..\tool\testrun.bat $(PFM) $(VARIETY) $@
 !ELSE
 	$(MAKE) /nologo /f $(PFM).nmk VARIETY=cool $@
 	$(MAKE) /nologo /f $(PFM).nmk VARIETY=hot $@
 !ENDIF
+
+
+# FLAGS AMALGAMATION
+#
+# %%VARIETY: When adding a new variety, add the following macros that
+# expand to sets of flags that the variety should use:
+#
+# CFLAGS --  when compiling C;
+# CFLAGSSQL -- when compiling mpseventsql;
+# LINKFLAGS -- when building executables;
+# LIBFLAGS -- when building libraries.
+
+!IF "$(VARIETY)" == "hot"
+CFLAGS=$(CFLAGSCOMMONPRE) $(CFHOT) $(CFLAGSCOMMONPOST)
+CFLAGSSQL=$(CFLAGSSQLPRE) $(CFHOT) $(CFLAGSSQLPOST)
+LINKFLAGS=$(LINKFLAGSCOMMON) $(LFHOT)
+LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSHOT)
+
+!ELSEIF "$(VARIETY)" == "cool"
+CFLAGS=$(CFLAGSCOMMONPRE) $(CFCOOL) $(CFLAGSCOMMONPOST)
+CFLAGSSQL=$(CFLAGSSQLPRE) $(CFCOOL) $(CFLAGSSQLPOST)
+LINKFLAGS=$(LINKFLAGSCOMMON) $(LFCOOL)
+LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSCOOL)
+
+!ELSEIF "$(VARIETY)" == "rash"
+CFLAGS=$(CFLAGSCOMMONPRE) $(CFRASH) $(CFLAGSCOMMONPOST)
+CFLAGSSQL=$(CFLAGSSQLPRE) $(CFRASH) $(CFLAGSSQLPOST)
+LINKFLAGS=$(LINKFLAGSCOMMON) $(LFRASH)
+LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSRASH)
+
+!ENDIF
+
+
+# SOURCE TO OBJECT FILE MAPPINGS
+#
+# %%PART: When adding a new part, add new macros which expand to the object
+# files included in the part
+#
+# Note: nmake doesn't expand variables within a string replacement
+# operation. We work around this by writing out a temporary makefile
+# and including it.
+
+TEMPMAKE=$(TEMP)\mps.nmk
+!IF [echo MPMOBJ0 = $$(MPM:[=$(PFM)\$(VARIETY)\) > $(TEMPMAKE)] == 0 \
+ && [echo FMTDYOBJ0 = $$(FMTDY:[=$(PFM)\$(VARIETY)\) >> $(TEMPMAKE)] == 0 \
+ && [echo FMTTESTOBJ0 = $$(FMTTEST:[=$(PFM)\$(VARIETY)\) >> $(TEMPMAKE)] == 0 \
+ && [echo FMTSCHEMEOBJ0 = $$(FMTSCHEME:[=$(PFM)\$(VARIETY)\) >> $(TEMPMAKE)] == 0 \
+ && [echo POOLNOBJ0 = $$(POOLN:[=$(PFM)\$(VARIETY)\) >> $(TEMPMAKE)] == 0 \
+ && [echo TESTLIBOBJ0 = $$(TESTLIB:[=$(PFM)\$(VARIETY)\) >> $(TEMPMAKE)] == 0 \
+ && [echo TESTTHROBJ0 = $$(TESTTHR:[=$(PFM)\$(VARIETY)\) >> $(TEMPMAKE)] == 0
+!INCLUDE $(TEMPMAKE)
+!IF [del $(TEMPMAKE)] != 0
+!ERROR Failed to delete $(TEMPMAKE)
+!ENDIF
+!ENDIF
+
+MPMOBJ = $(MPMOBJ0:]=.obj)
+FMTDYOBJ = $(FMTDYOBJ0:]=.obj)
+FMTTESTOBJ = $(FMTTESTOBJ0:]=.obj)
+FMTSCHEMEOBJ = $(FMTSCHEMEOBJ0:]=.obj)
+POOLNOBJ = $(POOLNOBJ0:]=.obj)
+TESTLIBOBJ = $(TESTLIBOBJ0:]=.obj)
+TESTTHROBJ = $(TESTTHROBJ0:]=.obj)
 
 
 # THE MPS LIBRARY
@@ -319,18 +701,18 @@ $(PFM)\$(VARIETY)\sqlite3.obj:
 # Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
 # All rights reserved.  This is an open source license.  Contact
 # Ravenbrook for commercial licensing options.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
 # met:
-# 
+#
 # 1. Redistributions of source code must retain the above copyright
 # notice, this list of conditions and the following disclaimer.
-# 
+#
 # 2. Redistributions in binary form must reproduce the above copyright
 # notice, this list of conditions and the following disclaimer in the
 # documentation and/or other materials provided with the distribution.
-# 
+#
 # 3. Redistributions in any form must be accompanied by information on how
 # to obtain complete source code for this software and any accompanying
 # software that uses this software.  The source code must either be
@@ -341,7 +723,7 @@ $(PFM)\$(VARIETY)\sqlite3.obj:
 # include source code for modules or files that typically accompany the
 # major components of the operating system on which the executable file
 # runs.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
 # IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
 # TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR

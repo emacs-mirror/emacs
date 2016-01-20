@@ -4,6 +4,8 @@ TEST_HEADER
  summary = UNALIGNED arena for mps_root_create_fmt
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ abort = true
 END_HEADER
 */
 

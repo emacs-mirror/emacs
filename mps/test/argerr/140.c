@@ -4,6 +4,9 @@ TEST_HEADER
  summary = null thread for mps_root_create_reg
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertcond = SigCheck Thread: thread
 END_HEADER
 */
 
