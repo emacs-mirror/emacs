@@ -4,6 +4,8 @@ TEST_HEADER
  summary = UNALIGNED ap to mps_reserve
  language = c
  link = testlib.o newfmt.o
+OUTPUT_SPEC
+ abort = true
 END_HEADER
 */
 
@@ -51,7 +53,7 @@ static void test(void)
 
  cdie(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
 
- ddie(
+ cdie(
   mps_pool_create(&pool, arena, mps_class_amc(), format, chain),
   "create pool");
 

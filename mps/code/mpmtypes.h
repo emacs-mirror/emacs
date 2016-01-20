@@ -120,7 +120,6 @@ typedef void (*ArenaVarargsMethod)(ArgStruct args[], va_list varargs);
 typedef Res (*ArenaInitMethod)(Arena *arenaReturn,
                                ArenaClass class, ArgList args);
 typedef void (*ArenaFinishMethod)(Arena arena);
-typedef Size (*ArenaReservedMethod)(Arena arena);
 typedef Size (*ArenaPurgeSpareMethod)(Arena arena, Size size);
 typedef Res (*ArenaExtendMethod)(Arena arena, Addr base, Size size);
 typedef Res (*ArenaGrowMethod)(Arena arena, LocusPref pref, Size size);
@@ -148,11 +147,11 @@ typedef Res (*TraceFixMethod)(ScanState ss, Ref *refIO);
 /* Heap Walker */
 
 /* This type is used by the PoolClass method Walk */
-typedef void (*FormattedObjectsStepMethod)(Addr obj, Format fmt, Pool pool,
+typedef void (*FormattedObjectsVisitor)(Addr obj, Format fmt, Pool pool,
                                            void *v, size_t s);
 
 /* This type is used by the PoolClass method Walk */
-typedef void (*FreeBlockStepMethod)(Addr base, Addr limit, Pool pool, void *p);
+typedef void (*FreeBlockVisitor)(Addr base, Addr limit, Pool pool, void *p);
 
 
 /* Seg*Method -- see <design/seg/> */
@@ -230,10 +229,9 @@ typedef void (*PoolFramePopPendingMethod)(Pool pool, Buffer buf,
                                           AllocFrame frame);
 typedef Res (*PoolAddrObjectMethod)(Addr *pReturn,
                                     Pool pool, Seg seg, Addr addr);
-typedef void (*PoolWalkMethod)(Pool pool, Seg seg,
-                               FormattedObjectsStepMethod f,
+typedef void (*PoolWalkMethod)(Pool pool, Seg seg, FormattedObjectsVisitor f,
                                void *v, size_t s);
-typedef void (*PoolFreeWalkMethod)(Pool pool, FreeBlockStepMethod f, void *p);
+typedef void (*PoolFreeWalkMethod)(Pool pool, FreeBlockVisitor f, void *p);
 typedef BufferClass (*PoolBufferClassMethod)(void);
 typedef Res (*PoolDescribeMethod)(Pool pool, mps_lib_FILE *stream, Count depth);
 typedef PoolDebugMixin (*PoolDebugMixinMethod)(Pool pool);
@@ -308,9 +306,9 @@ typedef Res (*LandDescribeMethod)(Land land, mps_lib_FILE *stream, Count depth);
 
 /* Locus preferences */
 enum {
-  LocusPrefHigh = 1,
-  LocusPrefLow, 
-  LocusPrefZoneSet,
+  LocusPrefHIGH = 1,
+  LocusPrefLOW, 
+  LocusPrefZONESET,
   LocusPrefLIMIT
 };
 
@@ -335,6 +333,7 @@ enum {
 /* This is checked by <code/mpsi.c#check>. */
 
 enum {
+  RankMIN = 0,
   RankAMBIG = 0,
   RankEXACT = 1,
   RankFINAL = 2,

@@ -76,14 +76,14 @@ class, a subclass of ``LandClass`` suitable for passing to
 
 ``LandClass CBSFastLandClassGet(void)``
 
-_`.function.class`: Returns a subclass of ``CBSLandClass`` that
+_`.function.class.fast`: Returns a subclass of ``CBSLandClass`` that
 maintains, for each subtree, the size of the largest block in that
 subtree. This enables the ``LandFindFirst()``, ``LandFindLast()``, and
 ``LandFindLargest()`` generic functions.
 
 ``LandClass CBSZonedLandClassGet(void)``
 
-_`.function.class`: Returns a subclass of ``CBSFastLandClass`` that
+_`.function.class.zoned`: Returns a subclass of ``CBSFastLandClass`` that
 maintains, for each subtree, the union of the zone sets of all ranges
 in that subtree. This enables the ``LandFindInZones()`` generic
 function.
@@ -197,7 +197,9 @@ Testing
 _`.test`: The following testing will be performed on this module:
 
 _`.test.land`: A generic test for land implementations. See
-design.mps.land.test.
+design.mps.land.test_.
+
+.. _design.mps.land.test: land#test
 
 _`.test.pool`: The arena and two pools (MVT_ and MVFF_) are
 implemented on top of a CBS. These are subject to testing in
@@ -243,7 +245,9 @@ Document History
 ----------------
 
 - 1998-05-01 Gavin Matthews. This document was derived from the
-  outline in design.mps.poolmv2(2).
+  outline in design.mps.poolmv2_.
+
+.. _design.mps.poolmv2: poolmv2
 
 - 1998-07-22 Gavin Matthews. Updated in response to approval comments
   in change.epcore.anchovy.160040. There is too much fragmentation in

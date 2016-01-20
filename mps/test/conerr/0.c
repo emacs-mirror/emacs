@@ -4,6 +4,8 @@ TEST_HEADER
  summary = create an arena and then destroy it, twice!
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ abort = true
 END_HEADER
 */
 

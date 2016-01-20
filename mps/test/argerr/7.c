@@ -4,6 +4,8 @@ TEST_HEADER
  summary = UNALIGNED 2nd arg to fmt_create_A
  language = c
  link = testlib.o newfmt.o
+OUTPUT_SPEC
+ abort = true
 END_HEADER
 */
 
@@ -17,10 +19,8 @@ void *stackpointer;
 static void test(void)
 {
  mps_arena_t arena;
- mps_pool_t pool;
  mps_thr_t thread;
  mps_root_t root;
-
  mps_fmt_t format;
 
  cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE), "create arena");

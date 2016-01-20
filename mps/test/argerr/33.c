@@ -1,9 +1,13 @@
 /* 
 TEST_HEADER
  id = $Id$
- summary = highbit set 3rd arg to mps_free
+ summary = highbit set 3rd arg to mps_free (MFS)
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= pool.c
+ assertcond = (alignedLimit) <= _ch->limit
 END_HEADER
 */
 

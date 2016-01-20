@@ -12,10 +12,10 @@
  *
  * ASSUMPTIONS
  *
- * .error.resume: PThreadextResume is assumed to succeed unless the thread
- * has been destroyed.
- * .error.suspend: PThreadextSuspend is assumed to succeed unless the thread
- * has been destroyed. In this case, the suspend context is set to NULL;
+ * .error.resume: PThreadextResume is assumed to succeed unless the
+ * thread has been terminated.
+ * .error.suspend: PThreadextSuspend is assumed to succeed unless the
+ * thread has been terminated.
  *
  * .stack.full-descend:  assumes full descending stack.
  * i.e. stack pointer points to the last allocated location;
@@ -48,9 +48,10 @@ typedef struct mps_thr_s {       /* PThreads thread structure */
   Serial serial;                 /* from arena->threadSerial */
   Arena arena;                   /* owning arena */
   RingStruct arenaRing;          /* threads attached to arena */
+  Bool alive;                    /* thread believed to be alive? */
   PThreadextStruct thrextStruct; /* PThreads extension */
   pthread_t id;                  /* Pthread object of thread */
-  MutatorFaultContext mfc;       /* Context if thread is suspended */
+  MutatorFaultContext mfc;       /* Context if suspended, NULL if not */
 } ThreadStruct;
 
 
@@ -62,6 +63,7 @@ Bool ThreadCheck(Thread thread)
   CHECKU(Arena, thread->arena);
   CHECKL(thread->serial < thread->arena->threadSerial);
   CHECKD_NOSIG(Ring, &thread->arenaRing);
+  CHECKL(BoolCheck(thread->alive));
   CHECKD(PThreadext, &thread->thrextStruct);
   return TRUE;
 }
@@ -98,6 +100,7 @@ Res ThreadRegister(Thread *threadReturn, Arena arena)
   thread->serial = arena->threadSerial;
   ++arena->threadSerial;
   thread->arena = arena;
+  thread->alive = TRUE;
   thread->mfc = NULL;
 
   PThreadextInit(&thread->thrextStruct, thread->id);
@@ -130,69 +133,83 @@ void ThreadDeregister(Thread thread, Arena arena)
 }
 
 
-/*  mapThreadRing -- map over threads on ring calling a function on each one
- *                   except the current thread
+/* mapThreadRing -- map over threads on ring calling a function on
+ * each one except the current thread.
+ *
+ * Threads that are found to be dead (that is, if func returns FALSE)
+ * are moved to deadRing, in order to implement
+ * design.thread-manager.sol.thread.term.attempt.
  */
 
-static void mapThreadRing(Ring threadRing, void (*func)(Thread))
+static void mapThreadRing(Ring threadRing, Ring deadRing, Bool (*func)(Thread))
 {
   Ring node, next;
   pthread_t self;
 
   AVERT(Ring, threadRing);
+  AVERT(Ring, deadRing);
+  AVER(FUNCHECK(func));
 
   self = pthread_self();
   RING_FOR(node, threadRing, next) {
     Thread thread = RING_ELT(Thread, arenaRing, node);
     AVERT(Thread, thread);
-    if(! pthread_equal(self, thread->id)) /* .thread.id */
-      (*func)(thread);
+    AVER(thread->alive);
+    if (!pthread_equal(self, thread->id) /* .thread.id */
+        && !(*func)(thread))
+    {
+      thread->alive = FALSE;
+      RingRemove(&thread->arenaRing);
+      RingAppend(deadRing, &thread->arenaRing);
+    }
   }
 }
 
 
-/* ThreadRingSuspend -- suspend all threads on a ring, expect the current one */
+/* ThreadRingSuspend -- suspend all threads on a ring, except the
+ * current one.
+ */
 
-
-static void threadSuspend(Thread thread)
+static Bool threadSuspend(Thread thread)
 {
-  /* .error.suspend */
-  /* In the error case (PThreadextSuspend returning ResFAIL), we */
-  /* assume the thread has been destroyed. */
-  /* In which case we simply continue. */
+  /* .error.suspend: if PThreadextSuspend fails, we assume the thread
+   * has been terminated. */
   Res res;
+  AVER(thread->mfc == NULL);
   res = PThreadextSuspend(&thread->thrextStruct, &thread->mfc);
-  if(res != ResOK)
-    thread->mfc = NULL;
+  AVER(res == ResOK);
+  AVER(thread->mfc != NULL);
+  /* design.thread-manager.sol.thread.term.attempt */
+  return res == ResOK;
 }
 
 
 
-void ThreadRingSuspend(Ring threadRing)
+void ThreadRingSuspend(Ring threadRing, Ring deadRing)
 {
-  mapThreadRing(threadRing, threadSuspend);
+  mapThreadRing(threadRing, deadRing, threadSuspend);
 }
 
 
 /* ThreadRingResume -- resume all threads on a ring (expect the current one) */
 
 
-static void threadResume(Thread thread)
+static Bool threadResume(Thread thread)
 {
-  /* .error.resume */
-  /* If the previous suspend failed (thread->mfc == NULL), */
-  /* or in the error case (PThreadextResume returning ResFAIL), */
-  /* assume the thread has been destroyed. */
-  /* In which case we simply continue. */
-  if(thread->mfc != NULL) {
-    (void)PThreadextResume(&thread->thrextStruct);
-    thread->mfc = NULL;
-  }
+  Res res;
+  /* .error.resume: If PThreadextResume fails, we assume the thread
+   * has been terminated. */
+  AVER(thread->mfc != NULL);
+  res = PThreadextResume(&thread->thrextStruct);
+  AVER(res == ResOK);
+  thread->mfc = NULL;
+  /* design.thread-manager.sol.thread.term.attempt */
+  return res == ResOK;
 }
 
-void ThreadRingResume(Ring threadRing)
+void ThreadRingResume(Ring threadRing, Ring deadRing)
 {
-  mapThreadRing(threadRing, threadResume);
+  mapThreadRing(threadRing, deadRing, threadResume);
 }
 
 
@@ -210,12 +227,12 @@ Thread ThreadRingThread(Ring threadRing)
 
 /* ThreadArena -- get the arena of a thread
  *
- * Must be thread-safe.  See <design/interface-c/#thread-safety>.
+ * Must be thread-safe. See <design/interface-c/#check.testt>.
  */
 
 Arena ThreadArena(Thread thread)
 {
-  /* Can't check thread as that would not be thread-safe. */
+  AVER(TESTT(Thread, thread));
   return thread->arena;
 }
 
@@ -231,20 +248,16 @@ Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
   self = pthread_self();
   if(pthread_equal(self, thread->id)) {
     /* scan this thread's stack */
+    AVER(thread->alive);
     res = StackScan(ss, stackBot);
     if(res != ResOK)
       return res;
-  } else {
+  } else if (thread->alive) {
     MutatorFaultContext mfc;
     Addr *stackBase, *stackLimit, stackPtr;
 
     mfc = thread->mfc;
-    if(mfc == NULL) {
-      /* .error.suspend */
-      /* We assume that the thread must have been destroyed. */
-      /* We ignore the situation by returning immediately. */
-      return ResOK;
-    }
+    AVER(mfc != NULL);
 
     stackPtr = MutatorFaultContextSP(mfc);
     /* .stack.align */
@@ -280,6 +293,7 @@ Res ThreadDescribe(Thread thread, mps_lib_FILE *stream, Count depth)
                "Thread $P ($U) {\n", (WriteFP)thread, (WriteFU)thread->serial,
                "  arena $P ($U)\n",
                (WriteFP)thread->arena, (WriteFU)thread->arena->serial,
+               "  alive $S\n", WriteFYesNo(thread->alive),
                "  id $U\n",          (WriteFU)thread->id,
                "} Thread $P ($U)\n", (WriteFP)thread, (WriteFU)thread->serial,
                NULL);

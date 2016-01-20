@@ -57,7 +57,7 @@ static void test(void) {
 
  mps_fmt_t format;
 
- locell *a,*b,*c,*z;
+ locell *a;
  int i;
 
  alloclocomments = 0;
@@ -85,13 +85,13 @@ static void test(void) {
   "create ap");
 
  a = string_ch("Hello there");
- b = string_ch("Wibble wobble foo");
- c = string_ch("Ba ");
+ (void)string_ch("Wibble wobble foo");
+ (void)string_ch("Ba ");
 
  for (i=0; i<10000; i++) {
   a = conc(string_ch("B"), a);
-  c = conc(string_ch("Hello there"), string_ch(" folks!"));
-  z = alloclo(ap, 0x4000);
+  (void)conc(string_ch("Hello there"), string_ch(" folks!"));
+  (void)alloclo(ap, 0x4000);
  }
 
  mps_arena_park(arena);

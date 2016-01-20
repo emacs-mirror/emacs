@@ -25,14 +25,14 @@ static void test(void) {
  mps_addr_t a;
  char * c;
 
- cdie(mps_arena_create(&arena, mps_arena_class_vmnz(),
+ cdie(mps_arena_create(&arena, mps_arena_class_vm(),
   (size_t) (1024*1024*50)), "create arena");
  cdie(mps_thread_reg(&thread, arena), "register thread");
 
- die(
-  mps_pool_create(&pool, arena, mps_class_mvff_debug(), &debugOpts,
-                  8192, 8, 8, 0, 1, 0),
-  "create MVFF pool");
+ die(mps_pool_create(&pool, arena, mps_class_mvff_debug(), &debugOpts,
+                     (size_t)8192, (size_t)8, (mps_align_t)8,
+                     (mps_bool_t)0, (mps_bool_t)1, (mps_bool_t)0),
+     "create MVFF pool");
 
  die(mps_alloc(&a, pool, 63), "alloc a");
  

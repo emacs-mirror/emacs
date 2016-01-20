@@ -101,9 +101,9 @@ static void test(void)
 
    for(j=0; j<1000; j++) {
      if (j == 500) {
-       size0 = mps_arena_committed(arena);
+       size0 = mps_arena_committed(arena) - mps_arena_spare_committed(arena);
        mps_arena_collect(arena);
-       size1 = mps_arena_committed(arena);
+       size1 = mps_arena_committed(arena) - mps_arena_spare_committed(arena);
        asserts(((long) size1)-((long) size0) < 1024*1024,
                "Collection made arena bigger: %lu -> %lu",
                (unsigned long) size0, (unsigned long) size1);
@@ -172,6 +172,7 @@ static void test(void)
  comment("Maximum size increase:");
  report("mincr", "%ld", mdiff);
 
+ comment("ambig[i] = %p", ambig[i]); /* stop compiler optimizing ambig away */
  comment("Finished main loop");
 
  for (i=0; i<NAPS; i++) {

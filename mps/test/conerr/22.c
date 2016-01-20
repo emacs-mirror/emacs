@@ -4,6 +4,10 @@ TEST_HEADER
  summary = free though not allocated
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= tract.c
+ assertcond = found
 END_HEADER
 */
 
@@ -18,7 +22,7 @@ static void test(void)
  size_t avgSize;
  size_t maxSize;
 
- mps_addr_t obj;
+ mps_addr_t obj = (mps_addr_t)MPS_PF_ALIGN;
 
  extendBy = (size_t) 4096;
  avgSize  = (size_t) 32;

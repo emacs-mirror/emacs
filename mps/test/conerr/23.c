@@ -4,6 +4,10 @@ TEST_HEADER
  summary = free though not allocated
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= tract.c
+ assertcond = found
 END_HEADER
 */
 

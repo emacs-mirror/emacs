@@ -92,7 +92,7 @@ If the queue is full, return ``TRUE``, otherwise return ``FALSE``.
 
 Return the number of elements in the queue.
 
-``typedef Bool (*ABQIterateMethod)(Bool *deleteReturn, void *element, void *closureP, Size closureS)``
+``typedef Bool (*ABQVisitor)(Bool *deleteReturn, void *element, void *closureP, Size closureS)``
 
 A callback function for ``ABQIterate()``. The parameter ``element`` is
 an element in the queue, and ``closureP`` and ``closureS`` are the
@@ -102,10 +102,10 @@ the queue, or ``TRUE`` if ``element`` must be deleted from the queue.
 It must return ``TRUE`` if the iteration must continue, or ``FALSE``
 if the iteration must stop after processing ``element``.
 
-``void ABQIterate(ABQ abq, ABQIterateMethod iterate, void *closureP, Size closureS)``
+``void ABQIterate(ABQ abq, ABQVisitor visitor, void *closureP, Size closureS)``
 
-Call ``iterate`` for each elements in the queue, passing the element
-and ``closureP``. See ``ABQIterateMethod`` for details.
+Call ``visitor`` for each element in the queue, passing the element
+and ``closureP``. See ``ABQVisitor`` for details.
 
 
 Document History

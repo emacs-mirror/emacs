@@ -33,8 +33,6 @@ static void test(void)
  mps_chain_t chain;
  mps_ap_t ap;
 
- mycell *a;
-
  cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE),
       "create arena");
 
@@ -56,7 +54,7 @@ static void test(void)
   mps_ap_create(&ap, pool, mps_rank_exact()),
   "create ap");
 
-  a = allocdumb(ap, 1024*1024*80);
+ (void)allocdumb(ap, 1024*1024*80);
 
  mps_arena_park(arena);
  mps_ap_destroy(ap);

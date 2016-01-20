@@ -1,14 +1,14 @@
 /* protix.c: PROTECTION FOR UNIX
  *
  *  $Id$
- *  Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ *  Copyright (c) 2001-2015 Ravenbrook Limited.  See end of file for license.
  *
  *  Somewhat generic across different Unix systems.  Shared between
- *  Darwin (OS X), FreeBSD, and Linux.
+ *  OS X, FreeBSD, and Linux.
  *
- *  This file does not contain a signal handler.  That's in protsgix.c
- *  (for FreeBSD and Darwin on Intel); in protxcpp.c (for Darwin on
- *  PowerPC); in protlii3.c (for Intel Linux).
+ *  This file does not contain a signal handler. That's in protsgix.c for
+ *  historical reasons (there used to be separate implementations for the
+ *  different flavours of Unix).
  *
  *
  *  SOURCES
@@ -20,12 +20,11 @@
  *  ASSUMPTIONS
  *
  *  .assume.mprotect.base: We assume that the first argument to mprotect can
- *    be safely passed as a void *.  Single UNIX Specification Version 2
- *    (aka X/OPEN XSH5) says that the parameter is a void *.  Some
- *    Unix-likes may declare this parameter as a caddr_t.  FreeBSD used to
- *    do this (on the now very obsolete FreeBSD 2.2.x series).  The
- *    Darwin man page documents it as caddr_t but it appears to be
- *    implemented correctly as void *.  caddr_t is usually char *.
+ *    be safely passed as a void *. Single UNIX Specification Version 2 (aka
+ *    X/OPEN XSH5) says that the parameter is a void *. Some Unix-likes may
+ *    declare this parameter as a caddr_t. FreeBSD used to do this (on the now
+ *    very obsolete FreeBSD 2.2.x series), as did OS X, but both now implement
+ *    it correctly as void *. caddr_t is usually char *.
  *
  *  .assume.write-only:  More of an anti-assumption really.  We
  *    assume that asking the OS for a write-only page (that is, flags =
@@ -67,6 +66,7 @@ void ProtSet(Addr base, Addr limit, AccessSet mode)
   AVER(base < limit);
   AVER(base != 0);
   AVER(AddrOffset(base, limit) <= INT_MAX);     /* should be redundant */
+  AVERT(AccessSet, mode);
 
   /* Convert between MPS AccessSet and UNIX PROT thingies.
      In this function, AccessREAD means protect against read accesses
@@ -123,7 +123,7 @@ Size ProtGranularity(void)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2015 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

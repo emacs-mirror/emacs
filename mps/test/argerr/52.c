@@ -4,6 +4,10 @@ TEST_HEADER
  summary = NULL ap to mps_ap_destroy
  language = c
  link = testlib.o newfmt.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= mpsi.c
+ assertcond = mps_ap != NULL
 END_HEADER
 */
 
@@ -47,7 +51,7 @@ static void test(void)
 
  cdie(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
 
- ddie(
+ cdie(
   mps_pool_create(&pool, arena, mps_class_amc(), format, chain),
   "create pool");
 

@@ -1,0 +1,311 @@
+.. mode: -*- rst -*-
+
+Protection mutator context
+==========================
+
+:Tag: design.mps.prmc
+:Author: Gareth Rees
+:Date: 2014-10-23
+:Status: complete design
+:Revision: $Id$
+:Copyright: See `Copyright and License`_.
+:Index terms: pair: protection mutator context; design
+
+
+Introduction
+------------
+
+_`.intro`: This is the design of the protection mutator context
+module.
+
+_`.readership`: Any MPS developer; anyone porting the MPS to a new
+platform.
+
+_`.overview`: The protection mutator context module decodes the
+*context* of a mutator thread at the point when it caused a protection
+fault, so that access to a protected region of memory can be handled,
+or when it was suspended by the thread manager, so that its registers
+and control stack can be scanned.
+
+_`.def.context`: The *context* of a thread (also called its
+*continuation*) is an abstract representation of the control state of
+the thread at a point in time, including enough information to
+continue the thread from that point.
+
+_`.status`: The protection mutator context module does not currently
+present a clean interface to the rest of the MPS: source files are
+inconsistently named, and the implementation is (necessarily) mixed up
+with the implementation of the memory protection module
+(design.mps.prot_) and the thread manager
+(design.mps.thread-manager_).
+
+.. _design.mps.prot: prot
+.. _design.mps.thread-manager: thread-manager
+
+
+Requirements
+------------
+
+_`.req.fault.addr`: Must determine the address that the mutator was
+trying to access when it caused a protection fault. (Without this
+address the MPS can't handle the fault. See ``ArenaAccess()``.)
+
+_`.req.fault.access`: Should determine whether the mutator was trying
+to read or write the address when it caused a protection fault. (This
+enables a performance improvement in the case of a write fault. A read
+fault must be handled by ensuring the address pointed to has been
+fixed, which may require scanning the segment, whereas a write fault
+merely requires that the segment's summary be discarded. See
+``TraceSegAccess()``.)
+
+_`.req.fault.step`: Should be able to emulate the access that caused
+the fault. (This enables a significant performance improvement for
+weak hash tables. See request.dylan.160044_.)
+
+.. _request.dylan.160044: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/dylan/160044/
+
+_`.req.suspend.scan`: Must capature enough information to ambiguously
+scan all roots in the context of a thread that has been suspended by
+the thread manager. (This is necessary for conservative garbage
+collection to work. See design.mps.thread-manager.if.scan_.)
+
+.. _design.mps.thread-manager.if.scan: thread-manager#if.scan
+
+
+Interface
+---------
+
+``typedef MutatorFaultContextStruct *MutatorFaultContext``
+
+_`.if.context`: A structure representing the context of the mutator at
+the point when a protection fault occurred, or when it was suspended
+by the thread manager. This structure should be declared in a header
+so that it can be inlined in the ``Thread`` structure if necessary.
+See design.mps.thread-manager.if.thread_.
+
+.. _design.mps.thread-manager.if.thread: thread-manager#if.thread
+
+``Bool ProtCanStepInstruction(MutatorFaultContext context)``
+
+_`.if.canstep`: Examine the context to determine whether the
+protection module can single-step the instruction which is causing the
+fault. Return ``TRUE`` if ``ProtStepInstruction()`` is capable of
+single-stepping the instruction, or ``FALSE`` if not.
+
+``Bool Res ProtStepInstruction(MutatorFaultContext context)``
+
+_`.if.step`: Single-step the instruction which is causing the fault.
+Update the mutator context according to the emulation or execution of
+the instruction, so that resuming the mutator will not cause the
+instruction which was caused the fault to be re-executed. Return
+``ResOK`` if the instruction was single-stepped successfully, or
+``ResUNIMPL`` if the instruction cannot be single-stepped.
+
+This function is only called if ``ProtCanStepInstruction(context)``
+returned ``TRUE``.
+
+``Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext context)``
+
+_`.if.context.scan`: Scan all roots found in ``context`` using the
+given scan state (typically by calling ``TraceScanAreaTagged()``), and
+return the result code from the scanner.
+
+``Addr MutatorFaultContextSP(MutatorFaultContext context)``
+
+_`.if.context.sp`: Return the pointer to the "top" of the thread's
+stack at the point given by ``context``. In the common case, where the
+stack grows downwards, this is actually the lowest stack address.
+
+
+Implementations
+---------------
+
+Generic implementation
+......................
+
+_`.impl.an`: In ``prmcan.c``.
+
+_`.impl.an.context`: There is no definition of
+``MutatorFaultContextStruct`` and so the mutator context cannot be
+decoded.
+
+_`.impl.an.fault`: Compatible only with the generic memory protection
+module (design.mps.prot.impl.an_) where there are no protection
+faults.
+
+.. _design.mps.prot.impl.an: prot#impl.an
+
+_`.impl.an.suspend`: Compatible only with the generic thread manager
+module (design.mps.thread-manager.impl.an_) where there is only one
+thread, and so no threads are suspended.
+
+.. _design.mps.thread-manager.impl.an: thread-manager#impl.an
+
+
+Unix implementation
+...................
+
+_`.impl.ix`: In ``protsgix.c``, with processor-specific parts in
+``proti3.c`` and ``proti6.c``, and other platform-specific parts in
+``prmci3fr.c``, ``prmci3li.c``, ``prmci6fr.c``, and ``prmci6li.c``.
+
+_`.impl.ix.context`: The context consists of the |siginfo_t|_ and
+|ucontext_t|_ structures. POSIX specifies some of the fields in
+``siginfo_t``, but says nothing about the contents of ``ucontext_t``.
+This is decoded on a platform-by-platform basis.
+
+.. |siginfo_t| replace:: ``siginfo_t``
+.. _siginfo_t: http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/signal.h.html
+.. |ucontext_t| replace:: ``ucontext_t``
+.. _ucontext_t: http://pubs.opengroup.org/onlinepubs/9699919799/functions/sigaction.html
+
+_`.impl.ix.fault.addr`: POSIX specifies that ``siginfo_t.si_addr`` is
+the address that the faulting instruction was attempting to access.
+
+_`.impl.ix.fault.mode`: This implementation does not attempt to
+determine whether the fault was a read or write.
+
+_`.impl.ix.fault.step`: This is implemented only on IA-32, and only
+for "simple MOV" instructions.
+
+_`.impl.ix.suspend`: ``PThreadextSuspend()`` records the context of
+each suspended thread, and ``ThreadRingSuspend()`` stores this in the
+``Thread`` structure.
+
+_`.impl.ix.context.scan`: The context's root registers are found in
+the ``ucontext_t.uc_mcontext`` structure.
+
+_`.impl.ix.context.sp`: The stack pointer is obtained from
+``ucontext_t.uc_mcontext.mc_esp`` (FreeBSD on IA-32),
+``uc_mcontext.gregs[REG_ESP]`` (Linux on IA-32),
+``ucontext_t.uc_mcontext.mc_rsp`` (FreeBSD on x86-64), or
+``uc_mcontext.gregs[REG_RSP]`` (Linux on x86-64).
+
+
+Windows implementation
+......................
+
+_`.impl.w3`: In ``proti3.c``, ``proti6.c``, ``prmci3w3.c``, and
+``prmci6w3.c``.
+
+_`.impl.w3.context`: The context of a thread that hit a protection
+fault is given by the |EXCEPTION_POINTERS|_ structure passed to a
+vectored exception handler, which points to |EXCEPTION_RECORD|_ and
+|CONTEXT|_ structures.
+
+.. |EXCEPTION_POINTERS| replace:: ``EXCEPTION_POINTERS``
+.. _EXCEPTION_POINTERS: http://msdn.microsoft.com/en-us/library/windows/desktop/ms679331.aspx
+.. |EXCEPTION_RECORD| replace:: ``EXCEPTION_RECORD``
+.. _EXCEPTION_RECORD: http://msdn.microsoft.com/en-us/library/windows/desktop/aa363082.aspx
+.. |CONTEXT| replace:: ``CONTEXT``
+.. _CONTEXT: http://msdn.microsoft.com/en-gb/library/windows/desktop/ms679284.aspx
+
+_`.impl.w3.fault.addr`: ``EXCEPTION_RECORD.ExceptionAddress`` is the
+address that the faulting instruction was trying to access.
+
+_`.impl.w3.fault.mode`: ``EXCEPTION_RECORD.ExceptionInformation[0]``
+is 0 for a read fault, 1 for a write fault, and 8 for an execute
+fault (which we handle as a read fault).
+
+_`.impl.w3.fault.step`: This is implemented only on IA-32, and only
+for "simple MOV" instructions.
+
+_`.impl.w3.suspend`: The context of a suspended thread is returned by
+|GetThreadContext|_.
+
+.. |GetThreadContext| replace:: ``GetThreadContext()``
+.. _GetThreadContext: http://msdn.microsoft.com/en-gb/library/windows/desktop/ms679362.aspx
+
+_`.impl.w3.context.scan`: The context's root registers are found in
+the |CONTEXT|_ structure.
+
+_`.impl.w3.context.sp`: The stack pointer is obtained from
+``CONTEXT.Esp`` (on IA-32) or ``CONTEXT.Rsp`` (on x86-64).
+
+
+OS X implementation
+...................
+
+_`.impl.xc`: In ``protxc.c``, with processor-specific parts in
+``proti3.c`` and ``proti6.c``, and other platform-specific parts in
+``prmci3xc.c`` and ``prmci6xc.c``.
+
+_`.impl.xc.context`: The context consists of the
+``__Request__mach_exception_raise_state_identity_t`` and
+``x86_thread_state32_t`` or ``x86_thread_state64_t`` structures. There
+doesn't seem to be any documentation for these structures, but they
+are defined in the Mach headers.
+
+_`.impl.xc.fault.addr`: ``__Request__mach_exception_raise_state_identity_t.code[1]`` is the
+address that the faulting instruction was trying to access.
+
+_`.impl.xc.fault.mode`: This implementation does not attempt to
+determine whether the fault was a read or write.
+
+_`.impl.xc.fault.step`: This is implemented only on IA-32, and only
+for "simple MOV" instructions.
+
+_`.impl.xc.suspend`: The context of a suspended thread is obtained by
+calling |thread_get_state|_.
+
+.. |thread_get_state| replace:: ``thread_get_state()``
+.. _thread_get_state: http://www.gnu.org/software/hurd/gnumach-doc/Thread-Execution.html
+
+_`.impl.xc.context.scan`: The thread's registers are found in the
+``x86_thread_state32_t`` or ``x86_thread_state64_t`` structure.
+
+_`.impl.xc.context.sp`: The stack pointer is obtained from
+``x86_thread_state32_t.__esp`` (on IA-32) or
+``x86_thread_state64_t.__rsp`` (on x86-64).
+
+
+Document History
+----------------
+
+- 2014-10-23 GDR_ Initial draft based on design.mps.thread-manager_
+  and design.mps.prot_.
+
+.. _GDR: http://www.ravenbrook.com/consultants/gdr/
+
+
+Copyright and License
+---------------------
+
+Copyright © 2014 Ravenbrook Limited. All rights reserved.
+<http://www.ravenbrook.com/>. This is an open source license. Contact
+Ravenbrook for commercial licensing options.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+#. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+#. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+#. Redistributions in any form must be accompanied by information on how
+   to obtain complete source code for this software and any
+   accompanying software that uses this software.  The source code must
+   either be included in the distribution or be available for no more than
+   the cost of distribution plus a nominal fee, and must be freely
+   redistributable under reasonable conditions.  For an executable file,
+   complete source code means the source code for all modules it contains.
+   It does not include source code for modules or files that typically
+   accompany the major components of the operating system on which the
+   executable file runs.
+
+**This software is provided by the copyright holders and contributors
+"as is" and any express or implied warranties, including, but not
+limited to, the implied warranties of merchantability, fitness for a
+particular purpose, or non-infringement, are disclaimed.  In no event
+shall the copyright holders and contributors be liable for any direct,
+indirect, incidental, special, exemplary, or consequential damages
+(including, but not limited to, procurement of substitute goods or
+services; loss of use, data, or profits; or business interruption)
+however caused and on any theory of liability, whether in contract,
+strict liability, or tort (including negligence or otherwise) arising in
+any way out of the use of this software, even if advised of the
+possibility of such damage.**

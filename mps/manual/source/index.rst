@@ -21,6 +21,7 @@ Appendices
     glossary/index
     copyright
     contact
+    contributing
     release
 
 * :ref:`genindex`

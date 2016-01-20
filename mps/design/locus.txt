@@ -1,7 +1,7 @@
 .. mode: -*- rst -*-
 
-MPS Configuration
-=================
+Locus manager
+=============
 
 :Tag: design.mps.locus
 :Author: Gavin Matthews
@@ -84,7 +84,7 @@ Why is it important to manage address space?
 
    The locus manager manages the mapping from clumps to zones.
 
-   To specify a clump, pools can pass ``LocusPrefZoneSet`` and a set
+   To specify a clump, pools can pass ``LocusPrefZONESET`` and a set
    of zones to ``LocusPrefExpress()``.
 
 #. Prevent address space fragmentation (within the arena)
@@ -141,7 +141,7 @@ Why is it important to manage address space?
 
     Pools can specify a preference for High and Low ends of address
     space, which implies a search-order. Pools could also specify
-    clumping, using either ``LocusPrefGen`` or ``LocusPrefZoneSet``.
+    clumping, using ``LocusPrefZONESET``.
 
 
 Discovering the layout
@@ -515,7 +515,7 @@ _`.arch.chunk`: Arenas may allocate more address space in additional
 chunks, which may be disjoint from the existing chunks. Inter-chunk
 space will be represented by dummy regions. There are also sentinel
 regions at both ends of the address space. See
-`design.mps.arena.chunk`_.
+design.mps.arena.chunk_.
 
 .. _design.mps.arena.chunk: arena#chunk
 

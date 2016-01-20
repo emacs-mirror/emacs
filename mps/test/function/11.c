@@ -74,7 +74,7 @@ static void test(void)
      b = c;
    }
 
-   comment("%d: %x", j, (int) a);
+   comment("%d: %p", j, a);
  }
 
  mps_arena_park(arena);

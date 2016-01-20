@@ -3,9 +3,13 @@ TEST_HEADER
  id = $Id$
  summary = unaligned scan state to fix (function)
  language = c
- link = testlib.o newfmt.o
+ link = testlib.o
+OUTPUT_SPEC
+ abort = true
 END_HEADER
 */
+
+#include <string.h>
 
 #include "testlib.h"
 #include "mpscamc.h"
@@ -15,7 +19,6 @@ END_HEADER
 */
 
 #include "mps.h"
-#include "newfmt.h"
 
 /* tags */
 
@@ -76,9 +79,7 @@ static int freeze=0;
 
 typedef int tag;
 
-/* typedef union mycell mycell;
- (it's in the header)
-*/
+typedef union mycell mycell;
 
 struct padsingle {tag tag;};
 
@@ -450,7 +451,7 @@ static void test(void)
  mps_ap_t ap;
 
  int j;
- mycell *a;
+ mycell *a, *b;
 
  cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE), "create arena");
 
@@ -469,7 +470,7 @@ static void test(void)
 
  cdie(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
 
- ddie(
+ cdie(
   mps_pool_create(&pool, arena, mps_class_amc(), format, chain),
   "create pool");
 
@@ -482,7 +483,9 @@ static void test(void)
 
  for (j=1; j<1000; j++)
  {
-  allocone(ap, 1000);
+  b = allocone(ap, 1000);
+  setref(b, 0, a);
+  a = b;
  }
 
 }

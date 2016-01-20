@@ -153,6 +153,7 @@ Bool GlobalsCheck(Globals arenaGlobals)
   }
 
   CHECKD_NOSIG(Ring, &arena->threadRing);
+  CHECKD_NOSIG(Ring, &arena->deadRing);
 
   CHECKL(BoolCheck(arena->insideShield));
   CHECKL(arena->shCacheLimit <= ShieldCacheSIZE);
@@ -185,7 +186,7 @@ Bool GlobalsCheck(Globals arenaGlobals)
     CHECKL(TraceIdMessagesCheck(arena, ti));
   TRACE_SET_ITER_END(ti, trace, TraceSetUNIV, arena);
 
-  for(rank = 0; rank < RankLIMIT; ++rank)
+  for(rank = RankMIN; rank < RankLIMIT; ++rank)
     CHECKD_NOSIG(Ring, &arena->greyRing[rank]);
   CHECKD_NOSIG(Ring, &arena->chainRing);
 
@@ -277,6 +278,7 @@ Res GlobalsInit(Globals arenaGlobals)
   arenaGlobals->rememberedSummaryIndex = 0;
 
   RingInit(&arena->threadRing);
+  RingInit(&arena->deadRing);
   arena->threadSerial = (Serial)0;
   RingInit(&arena->formatRing);
   arena->formatSerial = (Serial)0;
@@ -308,7 +310,7 @@ Res GlobalsInit(Globals arenaGlobals)
     arena->tMessage[ti] = NULL;
   }
 
-  for(rank = 0; rank < RankLIMIT; ++rank)
+  for(rank = RankMIN; rank < RankLIMIT; ++rank)
     RingInit(&arena->greyRing[rank]);
   STATISTIC(arena->writeBarrierHitCount = 0);
   RingInit(&arena->chainRing);
@@ -405,7 +407,8 @@ void GlobalsFinish(Globals arenaGlobals)
   RingFinish(&arena->chainRing);
   RingFinish(&arena->messageRing);
   RingFinish(&arena->threadRing);
-  for(rank = 0; rank < RankLIMIT; ++rank)
+  RingFinish(&arena->deadRing);
+  for(rank = RankMIN; rank < RankLIMIT; ++rank)
     RingFinish(&arena->greyRing[rank]);
   RingFinish(&arenaGlobals->rootRing);
   RingFinish(&arenaGlobals->poolRing);
@@ -438,7 +441,7 @@ void GlobalsPrepareToDestroy(Globals arenaGlobals)
   arenaGlobals->defaultChain = NULL;
   ChainDestroy(defaultChain);
 
-  LockReleaseMPM(arenaGlobals->lock);
+  LockRelease(arenaGlobals->lock);
   /* Theoretically, another thread could grab the lock here, but it's */
   /* not worth worrying about, since an attempt after the lock has been */
   /* destroyed would lead to a crash just the same. */
@@ -495,8 +498,9 @@ void GlobalsPrepareToDestroy(Globals arenaGlobals)
   AVER(RingIsSingle(&arena->chainRing));
   AVER(RingIsSingle(&arena->messageRing));
   AVER(RingIsSingle(&arena->threadRing));
+  AVER(RingIsSingle(&arena->deadRing));
   AVER(RingIsSingle(&arenaGlobals->rootRing));
-  for(rank = 0; rank < RankLIMIT; ++rank)
+  for(rank = RankMIN; rank < RankLIMIT; ++rank)
     AVER(RingIsSingle(&arena->greyRing[rank]));
 
   /* At this point the following pools still exist:
@@ -548,7 +552,7 @@ void ArenaEnterLock(Arena arena, Bool recursive)
   } else {
     LockClaim(lock);
   }
-  AVERT(Arena, arena); /* can't AVER it until we've got the lock */
+  AVERT(Arena, arena); /* can't AVERT it until we've got the lock */
   if(recursive) {
     /* already in shield */
   } else {
@@ -591,7 +595,7 @@ void ArenaLeaveLock(Arena arena, Bool recursive)
   if(recursive) {
     LockReleaseRecursive(lock);
   } else {
-    LockReleaseMPM(lock);
+    LockRelease(lock);
   }
   return;
 }
@@ -653,7 +657,8 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
         res = PoolAccess(SegPool(seg), seg, addr, mode, context);
         AVER(res == ResOK); /* Mutator can't continue unless this succeeds */
       } else {
-        /* Protection was already cleared: nothing to do now. */
+        /* Protection was already cleared, for example by another thread
+           or a fault in a nested exception handler: nothing to do now. */
       }
       EVENT4(ArenaAccess, arena, count, addr, mode);
       ArenaLeave(arena);

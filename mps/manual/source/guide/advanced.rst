@@ -347,7 +347,7 @@ In the toy Scheme interpreter this behaviour is encapsulated into ``table_find``
 .. code-block:: c
     :emphasize-lines: 7
 
-    static struct bucket_s *table_find(obj_t tbl, obj_t buckets, obj_t key, int add)
+    static struct bucket_s *table_find(obj_t tbl, obj_t key, int add)
     {
         struct bucket_s *b;
         assert(TYPE(tbl) == TYPE_TABLE);

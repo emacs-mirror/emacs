@@ -16,6 +16,7 @@
 #include "mpstd.h"
 #include "mps.h"
 
+#include <math.h> /* pow */
 #include <stdio.h> /* fflush, printf, putchar, stdout */
 
 #define testArenaSIZE     ((size_t)((size_t)64 << 20))
@@ -42,22 +43,6 @@ static mps_gen_param_s testChain[genCOUNT] = {
     {gen2SIZE, gen2MORTALITY},
     {gen3SIZE, gen3MORTALITY},
 };
-
-/* run the test several times, calling mps_arena_step at a different
- * frequency each time.  When we call it often, tracing is never done
- * during allocation.  When we call it never, tracing is always done
- * during allocation.
- */
-
-static unsigned long step_frequencies[] = {
-    1000,
-    5000,
-    10000,
-    1000000000, /* one billion */
-};
-
-static unsigned test_number = 0;
-
 
 /* objNULL needs to be odd so that it's ignored in exactRoots. */
 #define objNULL           ((mps_addr_t)MPS_WORD_CONST(0xDECEA5ED))
@@ -295,9 +280,8 @@ static void test_step(mps_arena_t arena, double multiplier)
 
 /* test -- the body of the test */
 
-static void *test(void *arg, size_t s)
+static void test(mps_arena_t arena, unsigned long step_period)
 {
-    mps_arena_t arena;
     mps_fmt_t format;
     mps_chain_t chain;
     mps_root_t exactRoot, ambigRoot;
@@ -309,9 +293,6 @@ static void *test(void *arg, size_t s)
     mps_word_t collections, old_collections;
     double total_mps_time, total_time;
     double t1;
-
-    arena = (mps_arena_t)arg;
-    (void)s; /* unused */
 
     die(dylan_fmt(&format, arena), "fmt_create");
     die(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
@@ -336,8 +317,7 @@ static void *test(void *arg, size_t s)
                               &ambigRoots[0], ambigRootsCOUNT),
         "root_create_table(ambig)");
 
-    printf("Stepping every %lu allocations.\n",
-           (unsigned long)step_frequencies[test_number]);
+    printf("Stepping every %lu allocations.\n", step_period);
 
     mps_message_type_enable(arena, mps_message_type_gc());
 
@@ -376,7 +356,7 @@ static void *test(void *arg, size_t s)
 
         ++objs;
 
-        if (objs % step_frequencies[test_number] == 0)
+        if (objs % step_period == 0)
             test_step(arena, 0.0);
 
         if (objs % multiStepFREQ == 0)
@@ -484,33 +464,19 @@ static void *test(void *arg, size_t s)
     mps_pool_destroy(pool);
     mps_chain_destroy(chain);
     mps_fmt_destroy(format);
-
-    return NULL;
 }
 
 int main(int argc, char *argv[])
 {
+    mps_arena_t arena;
     prepare_clock();
-
     testlib_init(argc, argv);
-
-    while (test_number < NELEMS(step_frequencies)) {
-        mps_arena_t arena;
-        mps_thr_t thread;
-        void *r;
-
-        set_clock_timing();
-        die(mps_arena_create(&arena, mps_arena_class_vm(),
-                             testArenaSIZE),
-            "arena_create");
-        mps_arena_clamp(arena);
-        die(mps_thread_reg(&thread, arena), "thread_reg");
-        mps_tramp(&r, test, arena, 0);
-        mps_thread_dereg(thread);
-        mps_arena_destroy(arena);
-        ++ test_number;
-    }
-
+    set_clock_timing();
+    die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
+        "arena_create");
+    mps_arena_clamp(arena);
+    test(arena, (unsigned long)pow(10, rnd() % 10));
+    mps_arena_destroy(arena);
     printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
     return 0;
 }
