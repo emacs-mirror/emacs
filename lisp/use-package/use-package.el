@@ -71,6 +71,11 @@ then the expanded macros do their job silently."
   :type 'sexp
   :group 'use-package)
 
+(defcustom use-package-always-pin nil
+  "Treat every package as though it had specified `:pin SYM."
+  :type 'symbol
+  :group 'use-package)
+
 (defcustom use-package-minimum-reported-time 0.1
   "Minimal load time that will be reported.
 
@@ -1075,6 +1080,11 @@ this file.  Usage:
                    (if use-package-always-ensure
                        (use-package-plist-maybe-put
                         args0 :ensure use-package-always-ensure)
+                     args0)))
+           (args* (use-package-sort-keywords
+                   (if use-package-always-pin
+                       (use-package-plist-maybe-put
+                        args* :pin use-package-always-pin)
                      args0))))
 
       ;; When byte-compiling, pre-load the package so all its symbols are in
