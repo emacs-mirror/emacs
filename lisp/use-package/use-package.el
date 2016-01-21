@@ -1085,7 +1085,7 @@ this file.  Usage:
                    (if use-package-always-pin
                        (use-package-plist-maybe-put
                         args* :pin use-package-always-pin)
-                     args0))))
+                     args*))))
 
       ;; When byte-compiling, pre-load the package so all its symbols are in
       ;; scope.
