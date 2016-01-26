@@ -109,7 +109,7 @@ screenshots.
 
 There are other substitution abilities included, which are quite flexible
 (ability to use regexp for example). This makes which-key very customizable.
-This functionality is targeting [[https://github.com/syl20bnr/spacemacs][spacEmacs]].
+This functionality is targeting [[https://github.com/syl20bnr/spacemacs][spacemacs]].
 
 *** Side Window Bottom Option
 Popup side window on bottom. This is the current default. To restore this setup use
