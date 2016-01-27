@@ -1330,6 +1330,20 @@ RESULT must be an `ert-test-result-with-condition'."
 
 ;;; Running tests in batch mode.
 
+(defun ert-test-location (test)
+  "Return a string description the source location of TEST."
+  (let* ((loc
+          (find-definition-noselect (ert-test-name test) 'ert-deftest))
+         (buffer
+          (car loc))
+         (point (cdr loc))
+         (file
+          (file-relative-name
+           (buffer-file-name buffer)))
+         (line (with-current-buffer buffer
+                 (line-number-at-pos point))))
+    (format "at %s line %s." file line)))
+
 (defvar ert-batch-backtrace-right-margin 70
   "The maximum line length for printing backtraces in `ert-run-tests-batch'.")
 
@@ -1435,13 +1449,14 @@ Returns the stats object."
           (let* ((max (prin1-to-string (length (ert--stats-tests stats))))
                  (format-string (concat "%9s  %"
                                         (prin1-to-string (length max))
-                                        "s/" max "  %S")))
+                                        "s/" max "  %S %s")))
             (message format-string
                      (ert-string-for-test-result result
                                                  (ert-test-result-expected-p
                                                   test result))
                      (1+ (ert--stats-test-pos stats test))
-                     (ert-test-name test)))))))))
+                     (ert-test-name test)
+                     (ert-test-location test)))))))))
 
 ;;;###autoload
 (defun ert-run-tests-batch-and-exit (&optional selector)
