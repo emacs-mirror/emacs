@@ -424,7 +424,7 @@ static void error(const char *format, ...)
  * that type.
  *
  * These functions illustrate the two-phase MPS Allocation Point
- * Protocol with `reserve` and `commmit`.  This protocol allows very fast
+ * Protocol with `reserve` and `commit`.  This protocol allows very fast
  * in-line allocation without locking, but there is a very tiny chance that
  * the object must be re-initialized.  In nearly all cases, however, it's
  * just a pointer bump. See topic/allocation.
