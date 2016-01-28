@@ -1363,7 +1363,6 @@ mps_res_t _mps_fix2(mps_ss_t mps_ss, mps_addr_t *mps_ref_io)
   tract = PageTract(&chunk->pageTable[i]);
   if (!TRACT_SEG(&seg, tract)) {
     /* Reference points to a tract but not a segment, so it can't be white. */
-    AVER_CRITICAL(TractWhite(tract) == TraceSetEMPTY);
     goto done;
   }
 

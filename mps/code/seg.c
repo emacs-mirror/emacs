@@ -161,7 +161,6 @@ static Res SegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
     AVER(TractP(tract) == NULL);
     AVER(!TractHasSeg(tract));
     AVER(TractPool(tract) == pool);
-    AVER(TractWhite(tract) == TraceSetEMPTY);
     TRACT_SET_SEG(tract, seg);
     if (addr == base) {
       AVER(seg->firstTract == NULL);
@@ -231,7 +230,6 @@ static void SegFinish(Seg seg)
   
   TRACT_TRACT_FOR(tract, addr, arena, seg->firstTract, limit) {
     AVERT(Tract, tract);
-    TractSetWhite(tract, TraceSetEMPTY);
     TRACT_UNSET_SEG(tract);
   }
   AVER(addr == seg->limit);
