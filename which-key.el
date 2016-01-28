@@ -321,6 +321,14 @@ prefixes in `which-key-paging-prefixes'"
   :group 'which-key
   :type 'boolean)
 
+(defcustom which-key-show-operator-state-maps nil
+  "Experimental: Try to show the right keys following an evil
+command that reads a motion, such as \"y\", \"d\" and \"c\" from
+normal state. This is experimental, because there might be some
+valid keys missing and it might be showing some invalid keys."
+  :group 'which-key
+  :type 'boolean)
+
 (defcustom which-key-hide-alt-key-translations t
   "Hide key translations using Alt key if non nil.
 These translations are not relevant most of the times since a lot
@@ -1203,7 +1211,8 @@ An empty stiring is returned if no title exists."
             (t ""))))
     (which-key--using-top-level "Top-level bindings")
     (which-key--current-show-keymap-name
-     which-key--current-show-keymap-name)))
+     which-key--current-show-keymap-name)
+    (t "")))
 
 (defun which-key--maybe-replace-key-based (string keys)
   "KEYS is a string produced by `key-description'
@@ -1909,6 +1918,27 @@ is selected interactively by mode in `minor-mode-map-alist'."
                                    (cons keymap-name keymap)))
           (t (which-key--hide-popup)))))
 
+(defun which-key--show-keymap-no-intercept (keymap-name keymap)
+  (setq which-key--current-prefix nil
+        which-key--current-show-keymap-name keymap-name)
+  (when (keymapp keymap)
+    (let ((formatted-keys (which-key--get-formatted-key-bindings
+                           (which-key--get-keymap-bindings keymap))))
+      (cond ((= (length formatted-keys) 0)
+             (message "which-key: Keymap empty"))
+            ((listp which-key-side-window-location)
+             (setq which-key--last-try-2-loc
+                   (apply #'which-key--try-2-side-windows
+                          formatted-keys 0 which-key-side-window-location)))
+            (t (setq which-key--pages-plist
+                     (which-key--create-pages formatted-keys (window-width)))
+               (which-key--show-page 0)))))
+  (let* ((key (key-description (list (read-key)))))
+    (cond ((and which-key-use-C-h-commands (string= "C-h" key))
+           (which-key-C-h-dispatch))
+          (t (setq unread-command-events (listify-key-sequence key))
+             (which-key--hide-popup)))))
+
 (defun which-key--create-buffer-and-show (&optional prefix-keys)
   "Fill `which-key--buffer' with key descriptions and reformat.
 Finally, show the buffer."
@@ -1950,6 +1980,14 @@ Finally, show the buffer."
            (which-key--create-buffer-and-show prefix-keys)
            (when which-key-idle-secondary-delay
              (which-key--start-timer which-key-idle-secondary-delay)))
+          ((and which-key-show-operator-state-maps
+                (bound-and-true-p evil-state)
+                (eq evil-state 'operator))
+           (which-key--show-keymap-no-intercept
+            "evil operator state keys + motion keys"
+            (make-composed-keymap (list evil-operator-shortcut-map
+                                        evil-operator-state-map
+                                        evil-motion-state-map))))
           ((and which-key--current-page-n
                 (not which-key--using-top-level)
                 (not which-key--current-show-keymap-name))
