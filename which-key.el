@@ -1701,7 +1701,9 @@ enough space based on your settings and frame size." prefix-keys)
 
 (defun which-key--reload-key-sequence (key-seq)
   (let ((next-event (mapcar (lambda (ev) (cons t ev))
-                            (listify-key-sequence key-seq))))
+                            (if (listp key-seq)
+                                key-seq
+                              (listify-key-sequence key-seq)))))
     (setq prefix-arg current-prefix-arg
           unread-command-events next-event)))
 
