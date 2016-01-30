@@ -525,7 +525,6 @@ typedef struct mps_arena_class_s {
   size_t offset;                /* offset of generic struct in outer struct */
   ArenaVarargsMethod varargs;
   ArenaInitMethod init;
-  ArenaConfigureMethod configure;
   ArenaFinishMethod finish;
   ArenaPurgeSpareMethod purgeSpare;
   ArenaExtendMethod extend;
