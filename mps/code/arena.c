@@ -998,7 +998,7 @@ static Res arenaAllocFromLand(Tract *tractReturn, ZoneSet zones, Bool high,
 {
   Arena arena;
   RangeStruct range, oldRange;
-  Chunk chunk;
+  Chunk chunk = NULL; /* suppress uninit warning */
   Bool found, b;
   Index baseIndex;
   Count pages;
