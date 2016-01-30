@@ -1947,8 +1947,12 @@ is selected interactively by mode in `minor-mode-map-alist'."
     (let* ((key (key-description (list (read-key)))))
       (cond ((and which-key-use-C-h-commands (string= "C-h" key))
              (which-key-C-h-dispatch))
-            (t (setq unread-command-events (listify-key-sequence key))
-               (which-key--hide-popup))))))
+            ((string= key "ESC")
+             (which-key--hide-popup)
+             (keyboard-quit))
+            (t
+             (which-key--hide-popup)
+             (setq unread-command-events (listify-key-sequence key)))))))
 
 (defun which-key--create-buffer-and-show (&optional prefix-keys)
   "Fill `which-key--buffer' with key descriptions and reformat.
