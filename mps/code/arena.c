@@ -408,7 +408,7 @@ Res ArenaConfigure(Arena arena, ArgList args)
       return res;
   }
 
-  return (*arena->class->configure)(arena, args);
+  return ResOK;
 }
 
 
