@@ -1812,7 +1812,7 @@ after first page."
   (interactive)
   (let ((which-key-inhibit t))
     (which-key--hide-popup-ignore-command)
-    (message "Aborted key sequence")))
+    (keyboard-quit)))
 
 ;;;###autoload
 (defun which-key-C-h-dispatch ()
