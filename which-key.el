@@ -1007,7 +1007,7 @@ call signature in different emacs versions"
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Max dimension of available window functions
 
-(defun which-key--popup-max-dimensions (selected-window-width)
+(defun which-key--popup-max-dimensions ()
   "Dimesion functions should return the maximum possible (height
 . width) of the intended popup. SELECTED-WINDOW-WIDTH is the
 width of currently active window, not the which-key buffer
@@ -1016,7 +1016,8 @@ window."
     (minibuffer (which-key--minibuffer-max-dimensions))
     (side-window (which-key--side-window-max-dimensions))
     (frame (which-key--frame-max-dimensions))
-    (custom (funcall which-key-custom-popup-max-dimensions-function selected-window-width))))
+    (custom (funcall which-key-custom-popup-max-dimensions-function
+                     (window-width)))))
 
 (defun which-key--minibuffer-max-dimensions ()
   "Return max-dimensions of minibuffer (height . width).
@@ -1509,12 +1510,12 @@ Returns a plist that holds the page strings, as well as metadata."
             :keys/page (reverse keys/page) :n-pages n-pages
             :tot-keys (apply #'+ keys/page)))))
 
-(defun which-key--create-pages (keys sel-win-width)
+(defun which-key--create-pages (keys)
   "Create page strings using `which-key--partition-columns'.
 Will try to find the best number of rows and columns using the
 given dimensions and the length and wdiths of KEYS. SEL-WIN-WIDTH
 is the width of the live window."
-  (let* ((max-dims (which-key--popup-max-dimensions sel-win-width))
+  (let* ((max-dims (which-key--popup-max-dimensions))
          (max-lines (car max-dims))
          (max-width (cdr max-dims))
          (prefix-keys-desc (key-description which-key--current-prefix))
@@ -1843,7 +1844,7 @@ prefix) if `which-key-use-C-h-commands' is non nil."
   (let (pages1)
     (let ((which-key-side-window-location loc1)
           (which-key--multiple-locations t))
-      (setq pages1 (which-key--create-pages keys (window-width))))
+      (setq pages1 (which-key--create-pages keys)))
     (if (< 0 (plist-get pages1 :n-pages))
         (progn
           (setq which-key--pages-plist pages1)
@@ -1853,8 +1854,8 @@ prefix) if `which-key-use-C-h-commands' is non nil."
           loc1)
       (let ((which-key-side-window-location loc2)
             (which-key--multiple-locations t))
-        (setq which-key--pages-plist (which-key--create-pages
-                                      keys (window-width)))
+        (setq which-key--pages-plist
+              (which-key--create-pages keys))
         (which-key--show-page page-n)
         loc2))))
 
@@ -1905,7 +1906,7 @@ is selected interactively by mode in `minor-mode-map-alist'."
                    (apply #'which-key--try-2-side-windows
                           formatted-keys 0 which-key-side-window-location)))
             (t (setq which-key--pages-plist
-                     (which-key--create-pages formatted-keys (window-width)))
+                     (which-key--create-pages formatted-keys))
                (which-key--show-page 0)))))
   (let* ((key (key-description (list (read-key))))
          (next-def (lookup-key keymap (kbd key))))
@@ -1942,7 +1943,7 @@ is selected interactively by mode in `minor-mode-map-alist'."
                        (apply #'which-key--try-2-side-windows
                               formatted-keys 0 which-key-side-window-location)))
                 (t (setq which-key--pages-plist
-                         (which-key--create-pages formatted-keys (window-width)))
+                         (which-key--create-pages formatted-keys))
                    (which-key--show-page 0)))))
       (let* ((key (key-description (list (read-key)))))
         (when (string= key "`")
@@ -1971,7 +1972,7 @@ Finally, show the buffer."
                  (apply #'which-key--try-2-side-windows
                         formatted-keys 0 which-key-side-window-location)))
           (t (setq which-key--pages-plist
-                   (which-key--create-pages formatted-keys (window-width)))
+                   (which-key--create-pages formatted-keys))
              (which-key--show-page 0)))))
 
 (defun which-key--update ()
