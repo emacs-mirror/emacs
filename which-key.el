@@ -422,8 +422,8 @@ to a non-nil value for the execution of a command. Like this
 ;; Internal Vars
 (defvar which-key--buffer nil
   "Internal: Holds reference to which-key buffer.")
-(defvar which-key--window nil
-  "Internal: Holds reference to which-key window.")
+;; (defvar which-key--window nil
+;;   "Internal: Holds reference to which-key window.")
 (defvar which-key--timer nil
   "Internal: Holds reference to open window timer.")
 (defvar which-key--paging-timer nil
@@ -874,6 +874,9 @@ total height."
   "Hide which-key buffer when frame popup is used."
   (when (frame-live-p which-key--frame)
     (delete-frame which-key--frame)))
+
+(defun which-key--popup-showing-p ()
+  (window-live-p (get-buffer-window which-key--buffer)))
 
 (defun which-key--show-popup (act-popup-dim)
   "Show the which-key buffer.
