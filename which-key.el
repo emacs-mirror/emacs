@@ -453,6 +453,9 @@ showing.")
 used.")
 (defvar which-key--multiple-locations nil)
 (defvar which-key--using-top-level nil)
+(defvar which-key--using-show-keymap nil)
+(defvar which-key--using-show-operator-keymap nil)
+(defvar which-key--inhibit-next-operator-popup nil)
 (defvar which-key--current-show-keymap-name nil)
 (defvar which-key--prior-show-keymap-args nil)
 
@@ -843,6 +846,8 @@ total height."
   (unless (member real-this-command which-key--paging-functions)
     (setq which-key--current-page-n nil
           which-key--using-top-level nil
+          which-key--using-show-keymap nil
+          which-key--using-show-operator-keymap nil
           which-key--current-show-keymap-name nil
           which-key--prior-show-keymap-args nil
           which-key--on-last-page nil)
@@ -1566,8 +1571,9 @@ area."
                                (key-binding (kbd paging-key))))
          (key (if paging-key-bound which-key-paging-key "C-h")))
     (when (and which-key-use-C-h-commands
-               (not (and which-key-allow-evil-operators
-                         (bound-and-true-p evil-this-operator))))
+               (or which-key--using-show-operator-keymap
+                   (not (and which-key-allow-evil-operators
+                             (bound-and-true-p evil-this-operator)))))
       (propertize (format "[%s paging/help]" key)
                   'face 'which-key-note-face))))
 
@@ -1886,7 +1892,8 @@ is selected interactively by mode in `minor-mode-map-alist'."
 
 (defun which-key--show-keymap (keymap-name keymap &optional prior-args)
   (setq which-key--current-prefix nil
-        which-key--current-show-keymap-name keymap-name)
+        which-key--current-show-keymap-name keymap-name
+        which-key--using-show-keymap t)
   (when prior-args (push prior-args which-key--prior-show-keymap-args))
   (when (keymapp keymap)
     (let ((formatted-keys (which-key--get-formatted-key-bindings
@@ -1915,35 +1922,40 @@ is selected interactively by mode in `minor-mode-map-alist'."
        (evil-get-command-property def :suppress-operator)))
 
 (defun which-key--show-evil-operator-keymap ()
-  (let ((keymap-name "evil operator state keys + motion keys")
-        (keymap
-         (make-composed-keymap (list evil-operator-shortcut-map
-                                     evil-operator-state-map
-                                     evil-motion-state-map))))
-    (setq which-key--current-prefix nil
-          which-key--current-show-keymap-name keymap-name)
-    (when (keymapp keymap)
-      (let ((formatted-keys (which-key--get-formatted-key-bindings
-                             (which-key--get-keymap-bindings
-                              keymap 'which-key--evil-operator-filter))))
-        (cond ((= (length formatted-keys) 0)
-               (message "which-key: Keymap empty"))
-              ((listp which-key-side-window-location)
-               (setq which-key--last-try-2-loc
-                     (apply #'which-key--try-2-side-windows
-                            formatted-keys 0 which-key-side-window-location)))
-              (t (setq which-key--pages-plist
-                       (which-key--create-pages formatted-keys (window-width)))
-                 (which-key--show-page 0)))))
-    (let* ((key (key-description (list (read-key)))))
-      (cond ((and which-key-use-C-h-commands (string= "C-h" key))
-             (which-key-C-h-dispatch))
-            ((string= key "ESC")
-             (which-key--hide-popup)
-             (keyboard-quit))
-            (t
-             (which-key--hide-popup)
-             (setq unread-command-events (listify-key-sequence key)))))))
+  (if which-key--inhibit-next-operator-popup
+      (setq which-key--inhibit-next-operator-popup nil)
+    (let ((keymap
+           (make-composed-keymap (list evil-operator-shortcut-map
+                                       evil-operator-state-map
+                                       evil-motion-state-map))))
+      (setq which-key--current-prefix nil
+            which-key--current-show-keymap-name "evil operator/motion keys"
+            which-key--using-show-operator-keymap t)
+      (when (keymapp keymap)
+        (let ((formatted-keys (which-key--get-formatted-key-bindings
+                               (which-key--get-keymap-bindings
+                                keymap 'which-key--evil-operator-filter))))
+          (cond ((= (length formatted-keys) 0)
+                 (message "which-key: Keymap empty"))
+                ((listp which-key-side-window-location)
+                 (setq which-key--last-try-2-loc
+                       (apply #'which-key--try-2-side-windows
+                              formatted-keys 0 which-key-side-window-location)))
+                (t (setq which-key--pages-plist
+                         (which-key--create-pages formatted-keys (window-width)))
+                   (which-key--show-page 0)))))
+      (let* ((key (key-description (list (read-key)))))
+        (when (string= key "`")
+          ;; evil-goto-mark reads the next char manually
+          (setq which-key--inhibit-next-operator-popup t))
+        (cond ((and which-key-use-C-h-commands (string= "C-h" key))
+               (which-key-C-h-dispatch))
+              ((string= key "ESC")
+               (which-key--hide-popup)
+               (keyboard-quit))
+              (t
+               (which-key--hide-popup)
+               (setq unread-command-events (listify-key-sequence key))))))))
 
 (defun which-key--create-buffer-and-show (&optional prefix-keys)
   "Fill `which-key--buffer' with key descriptions and reformat.
@@ -1988,11 +2000,13 @@ Finally, show the buffer."
              (which-key--start-timer which-key-idle-secondary-delay)))
           ((and which-key-show-operator-state-maps
                 (bound-and-true-p evil-state)
-                (eq evil-state 'operator))
+                (eq evil-state 'operator)
+                (not which-key--using-show-operator-keymap))
            (which-key--show-evil-operator-keymap))
           ((and which-key--current-page-n
                 (not which-key--using-top-level)
-                (not which-key--current-show-keymap-name))
+                (not which-key--using-show-operator-keymap)
+                (not which-key--using-show-keymap))
            (which-key--hide-popup)))))
 
 ;; Timers
