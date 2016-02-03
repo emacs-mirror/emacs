@@ -1429,7 +1429,7 @@ BUFFER that follow the key sequence KEY-SEQ."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Functions for laying out which-key buffer pages
 
-(defun which-key--pad (columns)
+(defun which-key--normalize-columns (columns)
   "Pad COLUMNS to the same length using empty strings."
   (let ((max-len (cl-reduce (lambda (a x) (max a (length x))) columns
                             :initial-value 0)))
@@ -1442,7 +1442,7 @@ BUFFER that follow the key sequence KEY-SEQ."
 
 (defsubst which-key--join-columns (columns)
   "Transpose columns into rows, concat rows into lines and rows into page."
-  (let* ((padded (which-key--pad (nreverse columns)))
+  (let* ((padded (which-key--normalize-columns (nreverse columns)))
          (rows (apply #'cl-mapcar #'list padded)))
     (mapconcat (lambda (row) (mapconcat #'identity row " ")) rows "\n")))
 
@@ -1477,9 +1477,10 @@ that width."
             list (nthcdr n list)))
     (nreverse res)))
 
-(defun which-key--partition-columns (keys avl-lines avl-width)
+(defun which-key--list-to-pages (keys avl-lines avl-width)
   "Convert list of KEYS to columns based on dimensions AVL-LINES and AVL-WIDTH.
-Returns a plist that holds the page strings, as well as metadata."
+Returns a plist that holds the page strings, as well as
+metadata."
   (let ((cols-w-widths (mapcar #'which-key--pad-column
                                (which-key--partition-list avl-lines keys)))
         (page-width 0) (n-pages 0) (n-keys 0)
@@ -1511,7 +1512,7 @@ Returns a plist that holds the page strings, as well as metadata."
             :tot-keys (apply #'+ keys/page)))))
 
 (defun which-key--create-pages (keys)
-  "Create page strings using `which-key--partition-columns'.
+  "Create page strings using `which-key--list-to-pages'.
 Will try to find the best number of rows and columns using the
 given dimensions and the length and wdiths of KEYS. SEL-WIN-WIDTH
 is the width of the live window."
