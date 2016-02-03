@@ -204,7 +204,7 @@ mps_res_t mps_arena_commit_limit_set(mps_arena_t arena, size_t limit)
 void mps_arena_spare_commit_limit_set(mps_arena_t arena, size_t limit)
 {
   ArenaEnter(arena);
-  (void)ArenaSetSpareCommitLimit(arena, limit);
+  ArenaSetSpareCommitLimit(arena, limit);
   ArenaLeave(arena);
 
   return;
