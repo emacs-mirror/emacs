@@ -1703,35 +1703,21 @@ enough space based on your settings and frame size." prefix-keys)
 ;; paging functions
 
 (defun which-key--reload-key-sequence (key-seq)
-  (let ((next-event (mapcar (lambda (ev) (cons t ev))
-                            (if (listp key-seq)
-                                key-seq
-                              (listify-key-sequence key-seq)))))
+  (let ((next-event (mapcar (lambda (ev) (cons t ev)) key-seq)))
     (setq prefix-arg current-prefix-arg
           unread-command-events next-event)))
 
 (defun which-key-turn-page (delta)
-  "Show the next page of keys.
-Will force an update if called before `which-key--update'."
-  (cond
-   ;; No which-key buffer showing
-   ((null which-key--current-page-n)
-    (let* ((keysbl
-            (vconcat (butlast (append (this-single-command-keys) nil)))))
-      (which-key--reload-key-sequence keysbl)
-      (which-key--create-buffer-and-show keysbl)))
-   ;; which-key buffer showing. turn page
-   (t
-    (let ((next-page
-           (if which-key--current-page-n
-               (+ which-key--current-page-n delta) 0)))
-      (which-key--reload-key-sequence (which-key--current-key-list))
-      (if which-key--last-try-2-loc
-          (let ((which-key-side-window-location which-key--last-try-2-loc)
-                (which-key--multiple-locations t))
-            (which-key--show-page next-page))
-        (which-key--show-page next-page))
-      (which-key--start-paging-timer)))))
+  "Show the next page of keys."
+  (let ((next-page (if which-key--current-page-n
+                       (+ which-key--current-page-n delta) 0)))
+    (which-key--reload-key-sequence (which-key--current-key-list))
+    (if which-key--last-try-2-loc
+        (let ((which-key-side-window-location which-key--last-try-2-loc)
+              (which-key--multiple-locations t))
+          (which-key--show-page next-page))
+      (which-key--show-page next-page))
+    (which-key--start-paging-timer)))
 
 ;;;###autoload
 (defun which-key-show-standard-help ()
