@@ -385,33 +385,6 @@ failInit:
 }
 
 
-/* ArenaConfigure -- configure an arena */
-
-Res ArenaConfigure(Arena arena, ArgList args)
-{
-  Res res;
-  mps_arg_s arg;
-
-  AVERT(Arena, arena);
-  AVERT(ArgList, args);
-
-  if (ArgPick(&arg, args, MPS_KEY_COMMIT_LIMIT)) {
-    Size limit = arg.val.size;
-    res = ArenaSetCommitLimit(arena, limit);
-    if (res != ResOK)
-      return res;
-  }
-  if (ArgPick(&arg, args, MPS_KEY_SPARE_COMMIT_LIMIT)) {
-    Size limit = arg.val.size;
-    res = ArenaSetSpareCommitLimit(arena, limit);
-    if (res != ResOK)
-      return res;
-  }
-
-  return ResOK;
-}
-
-
 /* ArenaFinish -- finish the generic part of the arena
  *
  * .finish.caller: Unlike PoolFinish, this is called by the class finish
