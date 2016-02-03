@@ -1314,7 +1314,7 @@ Size ArenaSpareCommitLimit(Arena arena)
   return arena->spareCommitLimit;
 }
 
-Res ArenaSetSpareCommitLimit(Arena arena, Size limit)
+void ArenaSetSpareCommitLimit(Arena arena, Size limit)
 {
   AVERT(Arena, arena);
   /* Can't check limit, as all possible values are allowed. */
@@ -1326,7 +1326,6 @@ Res ArenaSetSpareCommitLimit(Arena arena, Size limit)
   }
 
   EVENT2(SpareCommitLimitSet, arena, limit);
-  return ResOK;
 }
 
 /* Used by arenas which don't use spare committed memory */
