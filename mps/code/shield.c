@@ -83,7 +83,7 @@ void (ShieldSuspend)(Arena arena)
   AVER(arena->insideShield);
 
   if (!arena->suspended) {
-    ThreadRingSuspend(ArenaThreadRing(arena));
+    ThreadRingSuspend(ArenaThreadRing(arena), ArenaDeadRing(arena));
     arena->suspended = TRUE;
   }
 }
@@ -266,7 +266,7 @@ void (ShieldLeave)(Arena arena)
   /* Ensuring the mutator is running at this point
    * guarantees inv.outside.running */
   if (arena->suspended) {
-    ThreadRingResume(ArenaThreadRing(arena));
+    ThreadRingResume(ArenaThreadRing(arena), ArenaDeadRing(arena));
     arena->suspended = FALSE;
   }
   arena->insideShield = FALSE;

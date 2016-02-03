@@ -87,6 +87,14 @@ static mps_res_t stress(mps_arena_t arena, mps_pool_debug_option_s *options,
     check_allocated_size(pool, ap, allocated);
   }
 
+  /* Check introspection functions */
+  for (i = 0; i < NELEMS(ps); ++i) {
+    mps_pool_t addr_pool = NULL;
+    Insist(mps_arena_has_addr(arena, ps[i]));
+    Insist(mps_addr_pool(&addr_pool, arena, ps[i]));
+    Insist(addr_pool == pool);
+  }
+
   mps_pool_check_fenceposts(pool);
 
   for (k=0; k<testLOOPS; ++k) {
