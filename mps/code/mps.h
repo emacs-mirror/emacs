@@ -439,7 +439,6 @@ extern mps_res_t mps_arena_create(mps_arena_t *, mps_arena_class_t, ...);
 extern mps_res_t mps_arena_create_v(mps_arena_t *, mps_arena_class_t, va_list);
 extern mps_res_t mps_arena_create_k(mps_arena_t *, mps_arena_class_t,
                                     mps_arg_s []);
-extern mps_res_t mps_arena_configure(mps_arena_t, mps_arg_s []);
 extern void mps_arena_destroy(mps_arena_t);
 
 extern size_t mps_arena_reserved(mps_arena_t);

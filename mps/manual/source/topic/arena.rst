@@ -92,19 +92,6 @@ the way that they acquire the memory to be managed.
     :c:func:`mps_arena_destroy`.
 
 
-.. c:function:: mps_res_t mps_arena_configure(mps_arena_t arena, mps_arg_s args[])
-
-    Configure an :term:`arena`.
-
-    ``arena`` is the arena to configure.
-
-    ``args`` are :term:`keyword arguments` specifying configuration
-    parameters. See the documentation for the arena class.
-
-    Returns :c:macro:`MPS_RES_OK` if the arena was configured
-    successfully, or another :term:`result code` otherwise.
-
-
 .. c:function:: void mps_arena_destroy(mps_arena_t arena)
 
     Destroy an :term:`arena`.
@@ -185,10 +172,6 @@ Client arenas
         call :c:func:`mps_arena_extend` later on.
 
         Client arenas have no mechanism for returning unused memory.
-
-    When configuring a client arena, :c:func:`mps_arena_configure`
-    accepts the :term:`keyword argument`
-    :c:macro:`MPS_KEY_COMMIT_LIMIT` as described above.
 
 
 .. c:function:: mps_res_t mps_arena_extend(mps_arena_t arena, mps_addr_t base, size_t size)
@@ -312,11 +295,6 @@ Virtual memory arenas
             res = mps_arena_create_k(&arena, mps_arena_class_vm(), args);
         } MPS_ARGS_END(args);
 
-    When configuring a virtual memory arena,
-    :c:func:`mps_arena_configure` accepts the :term:`keyword
-    arguments` :c:macro:`MPS_KEY_COMMIT_LIMIT` and
-    :c:macro:`MPS_KEY_SPARE_COMMIT_LIMIT` as described above.
-
 
 .. index::
    single: arena; properties
@@ -349,9 +327,10 @@ Arena properties
     memory that the MPS will map to RAM via the operating system's
     virtual memory interface.
 
-    The commit limit can be changed by passing the
+    The commit limit can be set by passing the
     :c:macro:`MPS_KEY_COMMIT_LIMIT` :term:`keyword argument` to
-    :c:func:`mps_arena_create_k` or :c:func:`mps_arena_configure`. The
+    :c:func:`mps_arena_create_k`. It can be changed by calling
+    :c:func:`mps_arena_commit_limit_set`. The
     commit limit cannot be set to a value that is lower than the
     number of bytes that the MPS is using. If an attempt is made to
     set the commit limit to a value greater than or equal to that
@@ -374,6 +353,20 @@ Arena properties
         cannot be more spare committed memory than the spare commit
         limit, and there can't be so much spare committed memory that
         there is more committed memory than the commit limit.
+
+
+.. c:function:: mps_res_t mps_arena_commit_limit_set(mps_arena_t arena, size_t limit)
+
+    Change the :term:`commit limit` for an :term:`arena`.
+
+    ``arena`` is the arena to change the commit limit for.
+
+    ``limit`` is the new commit limit in :term:`bytes (1)`.
+
+    Returns :c:macro:`MPS_RES_OK` if successful, or another
+    :term:`result code` if not.
+
+    See :c:func:`mps_arena_spare_commit_limit` for details.
 
 
 .. c:function:: size_t mps_arena_committed(mps_arena_t arena)
@@ -469,10 +462,11 @@ Arena properties
     use, neither by the :term:`client program`, or by the MPS itself)
     the MPS is allowed to have.
 
-    The spare commit limit can be changed by passing the
+    The spare commit limit can be set by passing the
     :c:macro:`MPS_KEY_SPARE_COMMIT_LIMIT` :term:`keyword
-    argument` to :c:func:`mps_arena_create_k` or
-    :c:func:`mps_arena_configure`. Setting it to a value lower than
+    argument` to :c:func:`mps_arena_create_k`. It can be changed
+    by calling :c:func:`mps_arena_spare_commit_limit_set`.
+    Setting it to a value lower than
     the current amount of spare committed memory causes spare
     committed memory to be uncommitted so as to bring the value under
     the limit. In particular, setting it to 0 will mean that the MPS
@@ -500,8 +494,8 @@ Arena properties
 
     The amount of "spare committed" memory can be limited passing the
     :c:macro:`MPS_KEY_SPARE_COMMIT_LIMIT` :term:`keyword
-    argument` to :c:func:`mps_arena_create_k` or
-    :c:func:`mps_arena_configure`. The value of the limit can be
+    argument` to :c:func:`mps_arena_create_k` or by calling
+    :c:func:`mps_arena_spare_commit_limit_set`. The value of the limit can be
     retrieved with :c:func:`mps_arena_spare_commit_limit`. This is
     analogous to the functions for limiting the amount of
     :term:`committed <mapped>` memory.
@@ -510,6 +504,23 @@ Arena properties
 
         :term:`Client arenas` do not use spare committed memory, and
         so this function always returns 0.
+
+
+.. c:function:: void mps_arena_spare_commit_limit_set(mps_arena_t arena, size_t limit)
+
+    Change the :term:`spare commit limit` for an :term:`arena`.
+
+    ``arena`` is the arena to change the spare commit limit for.
+
+    ``limit`` is the new spare commit limit in :term:`bytes (1)`.
+
+    Non-virtual-memory arena classes (for example, a :term:`client
+    arena`) do not have spare committed memory. For these arenas, this
+    function sets a value but has no other effect.
+
+    Initially the spare commit limit is a configuration-dependent
+    value. The value of the limit can be retrieved by the function
+    :c:func:`mps_arena_spare_commit_limit`.
 
 
 .. index::

@@ -320,7 +320,7 @@ static mps_res_t root_single(mps_ss_t ss, void *p, size_t s)
  *   mps_arena_reserved
  * incidentally tests:
  *   mps_alloc
- *   mps_arena_configure
+ *   mps_arena_commit_limit_set
  *   mps_class_mv
  *   mps_pool_create
  *   mps_pool_destroy
@@ -347,10 +347,7 @@ static void arena_commit_test(mps_arena_t arena)
     res = mps_alloc(&p, pool, FILLER_OBJECT_SIZE);
   } while (res == MPS_RES_OK);
   die_expect(res, MPS_RES_COMMIT_LIMIT, "Commit limit allocation");
-  MPS_ARGS_BEGIN(args) {
-    MPS_ARGS_ADD(args, MPS_KEY_COMMIT_LIMIT, limit);
-    die(mps_arena_configure(arena, args), "commit_limit_set after");
-  } MPS_ARGS_END(args);
+  die(mps_arena_commit_limit_set(arena, limit), "commit_limit_set after");
   res = mps_alloc(&p, pool, FILLER_OBJECT_SIZE);
   die_expect(res, MPS_RES_OK, "Allocation failed after raising commit_limit");
   mps_pool_destroy(pool);
