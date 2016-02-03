@@ -300,6 +300,13 @@ this documentation.
     It is necessary to call :c:func:`mps_pool_destroy` first.
 
 
+``global.c: PoolHasAttr(pool, AttrGC)``
+
+    The client program called :c:func:`mps_finalize` on a reference
+    that does not belong to an :term:`automatically managed <automatic
+    memory management>` :term:`pool`.
+
+
 ``lockix.c: res == 0``
 
 ``lockw3.c: lock->claims == 0``
