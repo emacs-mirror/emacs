@@ -1511,6 +1511,31 @@ metadata."
             :keys/page (reverse keys/page) :n-pages n-pages
             :tot-keys (apply #'+ keys/page)))))
 
+(defun which-key--create-pages-1
+    (keys available-lines available-width &optional min-lines vertical)
+  "Create page strings using `popalist-list-to-page'.
+Will try to find the best number of rows and columns using the
+given dimensions and the length and widths of ITEMS. Use VERTICAL
+if the ITEMS are laid out vertically and the number of columns
+should be minimized."
+  (let ((result (which-key--list-to-pages
+                 keys available-lines available-width))
+        (min-lines (or min-lines 0))
+        found prev-result)
+    (if (or vertical
+            (> (plist-get result :n-pages) 1)
+            (= 1 available-lines))
+        result
+      ;; simple search for a fitting page
+      (while (and (> available-lines min-lines)
+                  (not found))
+        (setq available-lines (- available-lines 1)
+              prev-result result
+              result (which-key--list-to-pages
+                      keys available-lines available-width)
+              found (> (plist-get result :n-pages) 1)))
+      (if found prev-result result))))
+
 (defun which-key--create-pages (keys)
   "Create page strings using `which-key--list-to-pages'.
 Will try to find the best number of rows and columns using the
@@ -1521,33 +1546,24 @@ is the width of the live window."
          (max-width (cdr max-dims))
          (prefix-keys-desc (key-description which-key--current-prefix))
          (full-prefix (which-key--full-prefix prefix-keys-desc))
-         (prefix-left (when (eq which-key-show-prefix 'left)
-                        (+ 2 (which-key--string-width full-prefix))))
+         (prefix (when (eq which-key-show-prefix 'left)
+                   (+ 2 (which-key--string-width full-prefix))))
          (prefix-top-bottom (member which-key-show-prefix '(bottom top)))
          (avl-lines (if prefix-top-bottom (- max-lines 1) max-lines))
          (min-lines (min avl-lines which-key-min-display-lines))
-         (avl-width (if prefix-left (- max-width prefix-left) max-width))
+         (avl-width (if prefix (- max-width prefix) max-width))
          (vertical (and (eq which-key-popup-type 'side-window)
-                        (member which-key-side-window-location '(left right))))
-         (result (which-key--partition-columns keys avl-lines avl-width))
-         found prev-result)
-    (cond ((or vertical (> (plist-get result :n-pages) 1) (= 1 avl-lines))
-           result)
-          ;; do a simple search for the smallest number of lines
-          (t (while (and (> avl-lines min-lines) (not found))
-               (setq avl-lines (- avl-lines 1)
-                     prev-result result
-                     result (which-key--partition-columns
-                             keys avl-lines avl-width)
-                     found (> (plist-get result :n-pages) 1)))
-             (if found prev-result result)))))
+                        (member which-key-side-window-location '(left right)))))
+    (which-key--create-pages-1 keys avl-lines avl-width min-lines vertical)))
 
-(defun which-key--lighter-status (n-shown n-tot)
-  "Possibly show N-SHOWN keys and N-TOT keys in the mode line."
+(defun which-key--lighter-status (page-n)
+  "Possibly show number of keys and total in the mode line."
   (when which-key-show-remaining-keys
-    (setq which-key--lighter-backup (cadr (assq 'which-key-mode minor-mode-alist)))
-    (setcar (cdr (assq 'which-key-mode minor-mode-alist))
-            (format " WK: %s/%s keys" n-shown n-tot))))
+    (let ((n-shown (nth page-n (plist-get which-key--pages-plist :keys/page)))
+          (n-tot (plist-get which-key--pages-plist :tot-keys)))
+      (setq which-key--lighter-backup (cadr (assq 'which-key-mode minor-mode-alist)))
+      (setcar (cdr (assq 'which-key-mode minor-mode-alist))
+              (format " WK: %s/%s keys" n-shown n-tot)))))
 
 (defun which-key--lighter-restore ()
   "Restore the lighter for which-key."
@@ -1623,6 +1639,64 @@ including prefix arguments."
         (define-key map (kbd "C-h") #'which-key-C-h-dispatch))
       map)))
 
+(defun which-key--process-page (page-n pages-plist)
+  (let* ((page (nth page-n (plist-get pages-plist :pages)))
+         (height (plist-get pages-plist :page-height))
+         (n-pages (plist-get pages-plist :n-pages))
+         (prefix-keys (key-description which-key--current-prefix))
+         (full-prefix (which-key--full-prefix prefix-keys))
+         (nxt-pg-hint (which-key--next-page-hint prefix-keys))
+         ;; not used in left case
+         (status-line
+          (concat (propertize (which-key--maybe-get-prefix-title
+                               (which-key--current-key-string))
+                              'face 'which-key-note-face)
+                  (when (< 1 n-pages)
+                    (propertize (format " (%s of %s)"
+                                        (1+ page-n) n-pages)
+                                'face 'which-key-note-face)))))
+    (pcase which-key-show-prefix
+      (`left
+       (let* ((page-cnt (propertize (format "%s/%s" (1+ page-n) n-pages)
+                                    'face 'which-key-separator-face))
+              (first-col-width (+ 2 (max (which-key--string-width full-prefix)
+                                         (which-key--string-width page-cnt))))
+              (prefix (format (concat "%-" (int-to-string first-col-width) "s")
+                              full-prefix))
+              (page-cnt (if (> n-pages 1)
+                            (format (concat "%-" (int-to-string first-col-width) "s")
+                                    page-cnt)
+                          (make-string first-col-width 32)))
+              lines first-line new-end)
+         (if (= 1 height)
+             (concat prefix page)
+           (setq lines (split-string page "\n")
+                 first-line (concat prefix (car lines) "\n" page-cnt)
+                 new-end (concat "\n" (make-string first-col-width 32)))
+           (cons
+            (concat first-line (mapconcat #'identity (cdr lines) new-end))
+            nil))))
+      (`top
+       (cons
+        (concat (when (or (= 0 echo-keystrokes)
+                          (not (eq which-key-side-window-location 'bottom)))
+                  (concat full-prefix " "))
+                status-line " " nxt-pg-hint "\n" page)
+        nil))
+      (`bottom
+       (cons
+        (concat page "\n"
+                (when (or (= 0 echo-keystrokes)
+                          (not (eq which-key-side-window-location 'bottom)))
+                  (concat full-prefix " "))
+                status-line " " nxt-pg-hint)
+        nil))
+      (`echo
+       (cons page
+             (concat full-prefix (when prefix-keys " ")
+                     status-line (when status-line " ")
+                     nxt-pg-hint))))))
+
 (defun which-key--show-page (n)
   "Show page N, starting from 0."
   (which-key--init-buffer) ;; in case it was killed
@@ -1635,71 +1709,17 @@ enough space based on your settings and frame size." prefix-keys)
       (setq page-n (mod n n-pages)
             which-key--current-page-n page-n)
       (when (= n-pages (1+ n)) (setq which-key--on-last-page t))
-      (let* ((page (nth page-n (plist-get which-key--pages-plist :pages)))
-             (height (plist-get which-key--pages-plist :page-height))
-             (width (nth page-n (plist-get which-key--pages-plist :page-widths)))
-             (n-shown (nth page-n (plist-get which-key--pages-plist :keys/page)))
-             (n-tot (plist-get which-key--pages-plist :tot-keys))
-             (full-prefix (which-key--full-prefix prefix-keys))
-             (status-left (propertize (format "%s/%s" (1+ page-n) n-pages)
-                                      'face 'which-key-separator-face))
-             (status-top (propertize (which-key--maybe-get-prefix-title
-                                      (which-key--current-key-string))
-                                     'face 'which-key-note-face))
-             (status-top (concat status-top
-                                 (when (< 1 n-pages)
-                                   (propertize (format " (%s of %s)"
-                                                       (1+ page-n) n-pages)
-                                               'face 'which-key-note-face))))
-             (first-col-width (+ 2 (max (which-key--string-width full-prefix)
-                                        (which-key--string-width status-left))))
-             (prefix-left (format (concat "%-" (int-to-string first-col-width) "s")
-                                  full-prefix))
-             (status-left (format (concat "%-" (int-to-string first-col-width) "s")
-                                  status-left))
-             (nxt-pg-hint (which-key--next-page-hint prefix-keys))
-             new-end lines first)
-        (cond ((and (< 1 n-pages)
-                    (eq which-key-show-prefix 'left))
-               (setq lines (split-string page "\n")
-                     first (concat prefix-left (car lines) "\n" status-left)
-                     new-end (concat "\n" (make-string first-col-width 32))
-                     page  (concat first (mapconcat #'identity (cdr lines) new-end))))
-              ((eq which-key-show-prefix 'left)
-               (if (= 1 height)
-                   (setq page (concat prefix-left page))
-                 (setq lines (split-string page "\n")
-                       first (concat prefix-left (car lines)
-                                     "\n" (make-string first-col-width 32))
-                       new-end (concat "\n" (make-string first-col-width 32))
-                       page  (concat first (mapconcat #'identity (cdr lines) new-end)))))
-              ((eq which-key-show-prefix 'top)
-               (setq page
-                     (concat
-                      (when (or (= 0 echo-keystrokes)
-                                (not (eq which-key-side-window-location 'bottom)))
-                        (concat full-prefix " "))
-                      status-top " " nxt-pg-hint "\n" page)))
-              ((eq which-key-show-prefix 'bottom)
-               (setq page
-                     (concat
-                      page "\n"
-                      (when (or (= 0 echo-keystrokes)
-                                (not (eq which-key-side-window-location 'bottom)))
-                        (concat full-prefix " "))
-                      status-top " " nxt-pg-hint)))
-              ((eq which-key-show-prefix 'echo)
-               (which-key--echo (concat full-prefix
-                                        (when prefix-keys " ")
-                                        status-top (when status-top " ")
-                                        nxt-pg-hint))))
-        (which-key--lighter-status n-shown n-tot)
+      (let ((page-echo (which-key--process-page page-n which-key--pages-plist))
+            (height (plist-get which-key--pages-plist :page-height))
+            (width (nth page-n (plist-get which-key--pages-plist :page-widths))))
+        (which-key--lighter-status page-n)
         (if (eq which-key-popup-type 'minibuffer)
-            (which-key--echo page)
+            (which-key--echo (car page-echo))
           (with-current-buffer which-key--buffer
             (erase-buffer)
-            (insert page)
+            (insert (car page-echo))
             (goto-char (point-min)))
+          (when (cdr page-echo) (which-key--echo (cdr page-echo)))
           (which-key--show-popup (cons height width)))))
     ;; used for paging at top-level
     (if (fboundp 'set-transient-map)
