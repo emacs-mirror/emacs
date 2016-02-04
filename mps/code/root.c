@@ -672,7 +672,7 @@ Res RootDescribe(Root root, mps_lib_FILE *stream, Count depth)
     return res;
 
   switch(root->var) {
-    case RootTABLE:
+  case RootTABLE:
     res = WriteF(stream, depth + 2,
                  "table base $A limit $A\n",
                  (WriteFA)root->the.table.base,
@@ -682,7 +682,7 @@ Res RootDescribe(Root root, mps_lib_FILE *stream, Count depth)
       return res;
     break;
 
-    case RootTABLE_MASKED:
+  case RootTABLE_MASKED:
     res = WriteF(stream, depth + 2,
                  "table base $A limit $A mask $B\n",
                  (WriteFA)root->the.tableMasked.base,
@@ -693,7 +693,7 @@ Res RootDescribe(Root root, mps_lib_FILE *stream, Count depth)
       return res;
     break;
 
-    case RootFUN:
+  case RootFUN:
     res = WriteF(stream, depth + 2,
                  "scan function $F\n", (WriteFF)root->the.fun.scan,
                  "environment p $P s $W\n",
@@ -712,7 +712,18 @@ Res RootDescribe(Root root, mps_lib_FILE *stream, Count depth)
       return res;
     break;
 
-    case RootFMT:
+  case RootREG_MASKED:
+    res = WriteF(stream, depth + 2,
+                 "thread $P\n", (WriteFP)root->the.regMasked.thread,
+		 "mask $B\n", (WriteFB)root->the.regMasked.mask,
+		 "pattern $B\n", (WriteFB)root->the.regMasked.pattern,
+		 "stackBot $P\n", (WriteFP)root->the.regMasked.stackBot,
+                 NULL);
+    if (res != ResOK)
+      return res;
+    break;
+
+  case RootFMT:
     res = WriteF(stream, depth + 2,
                  "scan function $F\n", (WriteFF)root->the.fmt.scan,
                  "format base $A limit $A\n",
@@ -722,7 +733,7 @@ Res RootDescribe(Root root, mps_lib_FILE *stream, Count depth)
       return res;
     break;
           
-    default:
+  default:
     NOTREACHED;
   }
 
