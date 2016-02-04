@@ -462,7 +462,9 @@ manually updated package."
   (if (package-installed-p package)
       t
     (if (or (assoc package package-archive-contents) no-refresh)
-        (package-install package t)
+        (if (boundp 'package-selected-packages)
+            (package-install package t)
+            (package-install package))
       (progn
         (package-refresh-contents)
         (use-package-ensure-elpa package t)))))
