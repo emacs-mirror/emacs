@@ -35,22 +35,22 @@
 ;;
 ;;   (require 'bind-key)
 ;;
-;;   (bind-key "c-c x" 'my-ctrl-c-x-command)
+;;   (bind-key "C-c x" 'my-ctrl-c-x-command)
 ;;
 ;; If you want the keybinding to override all minor modes that may also bind
 ;; the same key, use the `bind-key*' form:
 ;;
-;;   (bind-key* "<c-return>" 'other-window)
+;;   (bind-key* "<C-return>" 'other-window)
 ;;
 ;; If you want to rebind a key only in a particular keymap, use:
 ;;
-;;   (bind-key "c-c x" 'my-ctrl-c-x-command some-other-mode-map)
+;;   (bind-key "C-c x" 'my-ctrl-c-x-command some-other-mode-map)
 ;;
 ;; To unbind a key within a keymap (for example, to stop your favorite major
 ;; mode from changing a binding that you don't want to override everywhere),
 ;; use `unbind-key':
 ;;
-;;   (unbind-key "c-c x" some-other-mode-map)
+;;   (unbind-key "C-c x" some-other-mode-map)
 ;;
 ;; To bind multiple keys at once, or set up a prefix map, a `bind-keys' macro
 ;; is provided.  It accepts keyword arguments, please see its documentation
