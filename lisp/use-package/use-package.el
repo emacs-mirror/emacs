@@ -1023,6 +1023,7 @@ deferred until the prefix key sequence is pressed."
 ;; The main macro
 ;;
 
+;;;###autoload
 (defmacro use-package (name &rest args)
   "Declare an Emacs package by specifying a group of configuration options.
 
