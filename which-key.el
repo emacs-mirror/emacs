@@ -276,6 +276,11 @@ prefixes in `which-key-paging-prefixes'"
                         'which-key-use-C-h-commands
                         "2015-12-2")
 
+(defcustom which-key-is-verbose nil
+  "Whether to warn about potential mistakes in configuration."
+  :group 'which-key
+  :type 'boolean)
+
 (defvar which-key-C-h-map
   (let ((map (make-sparse-keymap)))
     (dolist (bind '(("\C-a" . which-key-abort)
@@ -650,8 +655,9 @@ bottom."
     (cond ((null alist) (list (cons keys value)))
           ((assoc-string keys alist)
            (when (not (string-equal (cdr (assoc-string keys alist)) value))
-             (message "which-key: changing %s name from %s to %s in the %s alist"
-                      key (cdr (assoc-string keys alist)) value alist-name)
+             (when which-key-is-verbose
+               (message "which-key: changing %s name from %s to %s in the %s alist"
+                        key (cdr (assoc-string keys alist)) value alist-name))
              (setcdr (assoc-string keys alist) value))
            alist)
           (t (cons (cons keys value) alist)))))
@@ -706,7 +712,8 @@ string."
   (let ((keys (key-description (kbd key-seq-str))))
     (if (and (null force)
              (assoc-string keys which-key-prefix-title-alist))
-        (message "which-key: Prefix title not added. A title exists for this prefix.")
+        (when which-key-is-verbose
+          (message "which-key: Prefix title not added. A title exists for this prefix."))
       (push (cons keys title) which-key-prefix-title-alist))))
 
 ;;;###autoload
