@@ -651,8 +651,14 @@ manually updated package."
            (and allow-vector (vectorp (car x))))
        (symbolp (cdr x))))
 
+(defsubst use-package-is-string-pair (x)
+  "Return t if X has the type (STRING . STRING)."
+  (and (consp x)
+       (stringp (car x))
+       (stringp (cdr x))))
+
 (defun use-package-normalize-pairs
-    (name label arg &optional recursed allow-vector)
+    (name label arg &optional recursed allow-vector allow-string-cdrs)
   "Normalize a list of string/symbol pairs."
   (cond
    ((or (stringp arg) (and allow-vector (vectorp arg)))
@@ -662,16 +668,18 @@ manually updated package."
    ((and (not recursed) (listp arg) (listp (cdr arg)))
     (mapcar #'(lambda (x)
                 (let ((ret (use-package-normalize-pairs
-                            name label x t allow-vector)))
+                            name label x t allow-vector allow-string-cdrs)))
                   (if (listp ret)
                       (car ret)
                     ret))) arg))
+   ((and allow-string-cdrs (use-package-is-string-pair arg))
+    (list arg))
    (t arg)))
 
 (defun use-package-normalize-binder (name keyword args)
   (use-package-as-one (symbol-name keyword) args
     (lambda (label arg)
-      (use-package-normalize-pairs name label arg nil t))))
+      (use-package-normalize-pairs name label arg nil t t))))
 
 (defalias 'use-package-normalize/:bind 'use-package-normalize-binder)
 (defalias 'use-package-normalize/:bind* 'use-package-normalize-binder)
@@ -857,12 +865,13 @@ deferred until the prefix key sequence is pressed."
      (apply
       #'nconc
       (mapcar #'(lambda (command)
-                  (append
-                   `((unless (fboundp ',command)
-                       (autoload #',command ,name-string nil t)))
-                   (when (bound-and-true-p byte-compile-current-file)
-                     `((eval-when-compile
-                         (declare-function ,command ,name-string))))))
+                  (when (not (stringp command))
+                    (append
+                     `((unless (fboundp ',command)
+                         (autoload #',command ,name-string nil t)))
+                     (when (bound-and-true-p byte-compile-current-file)
+                       `((eval-when-compile
+                           (declare-function ,command ,name-string)))))))
               (delete-dups (plist-get state :commands))))
 
      body)))
