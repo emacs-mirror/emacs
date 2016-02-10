@@ -659,7 +659,12 @@ manually updated package."
 
 (defun use-package-normalize-pairs
     (name label arg &optional recursed allow-vector allow-string-cdrs)
-  "Normalize a list of string/symbol pairs."
+  "Normalize a list of string/symbol pairs.
+If RECURSED is non-nil, recurse into sublists.
+If ALLOW-VECTOR is non-nil, then the key to bind may specify a
+vector of keys, as accepted by `define-key'.
+If ALLOW-STRING-CDRS is non-nil, then the command name to bind to
+may also be a string, as accepted by `define-key'."
   (cond
    ((or (stringp arg) (and allow-vector (vectorp arg)))
     (list (cons arg (use-package-as-symbol name))))
