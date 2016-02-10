@@ -128,8 +128,8 @@ static void collect(mps_arena_t arena, size_t expected)
     mps_message_discard(arena, message);
     ++ finalized;
   }
-  printf("tag_cons=%lu finalized=%lu expected=%lu\n",
-         (unsigned long)tag_cons, (unsigned long)finalized, (unsigned long)expected);
+  printf("finalized=%lu expected=%lu\n",
+         (unsigned long)finalized, (unsigned long)expected);
   Insist(finalized == expected);
 }
 
@@ -165,12 +165,24 @@ static void alloc_recursively(mps_arena_t arena, mps_ap_t ap,
 
 /* test -- Run the test case in the specified mode. */
 
+#define MODES(R, X) \
+  R(X, DEFAULT, "Use default scanner (tagged with 0).") \
+  R(X, CONS,    "Scan words tagged \"cons\".") \
+  R(X, INVALID, "Scan words tagged \"invalid\".")
+
+#define MODES_ENUM(X, id, comment) MODE_ ## id,
+
 enum {
-  MODE_DEFAULT,                 /* Use default scanner (tagged with 0). */
-  MODE_CONS,                    /* Scan words tagged "cons". */
-  MODE_INVALID,                 /* Scan words tagged "invalid". */
+  MODES(MODES_ENUM, X)
   MODE_LIMIT
 };
+
+#define MODES_NAME(X, id, comment) #id,
+
+const char *mode_name[] = {
+  MODES(MODES_NAME, X)
+};
+
 
 static void test(int mode, void *marker)
 {
@@ -181,6 +193,8 @@ static void test(int mode, void *marker)
   mps_pool_t pool;
   mps_ap_t ap;
   size_t expected = 0;
+
+  printf("test(%s)\n", mode_name[mode]);
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), mps_args_none), "arena");
   mps_message_type_enable(arena, mps_message_type_finalization());
@@ -266,6 +280,10 @@ int main(int argc, char *argv[])
   tag_fwd = tags[1];
   tag_imm = tags[2];
   tag_invalid = tags[3];
+
+  printf("tags: cons = %u, fwd = %u, imm = %u, invalid = %u\n",
+         (unsigned)tag_cons, (unsigned)tag_fwd,
+         (unsigned)tag_imm, (unsigned)tag_invalid);
 
   for (mode = 0; mode < MODE_LIMIT; ++mode) {
     test(mode, marker);
