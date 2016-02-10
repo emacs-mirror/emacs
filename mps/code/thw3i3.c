@@ -75,7 +75,7 @@ Res ThreadScan(ScanState ss, Thread thread, Word *stackBot,
 
   id = GetCurrentThreadId();
 
-  if(id != thread->id) { /* .thread.id */
+  if (id != thread->id) { /* .thread.id */
     CONTEXT context;
     BOOL success;
     Word *stackBase, *stackLimit;
