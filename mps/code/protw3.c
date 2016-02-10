@@ -1,7 +1,7 @@
 /* protw3.c: PROTECTION FOR WIN32
  *
  *  $Id$
- *  Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ *  Copyright (c) 2001-2015 Ravenbrook Limited.  See end of file for license.
  */
 
 #include "mpm.h"
@@ -26,6 +26,7 @@ void ProtSet(Addr base, Addr limit, AccessSet mode)
 
   AVER(base < limit);
   AVER(base != 0);
+  AVERT(AccessSet, mode);
 
   newProtect = PAGE_EXECUTE_READWRITE;
   if((mode & AccessWRITE) != 0)
@@ -140,7 +141,7 @@ void ProtSync(Arena arena)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2015 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

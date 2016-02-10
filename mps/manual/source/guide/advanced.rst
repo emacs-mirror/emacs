@@ -28,14 +28,6 @@ call ``close-input-file``, then the underlying file handle should still
 be closed when the port object :term:`dies <dead>`. This procedure is
 known as :term:`finalization`.
 
-.. note::
-
-    It's generally a bad idea to depend on finalization to release your
-    resources (see the :ref:`topic-finalization-cautions` section in
-    :ref:`topic-finalization`). Treat it as a last resort when more
-    reliable mechanisms for releasing resources (like Scheme's
-    ``with-open-input-file``) aren't available.
-
 Any block in an :term:`automatically managed <automatic memory
 management>` :term:`pool` can be registered for finalization by calling
 :c:func:`mps_finalize`. In the toy Scheme interpreter, this can be done
@@ -138,25 +130,36 @@ Here's an example session showing finalization taking place:
         not_condemned 0
         clock: 3807
 
-The toy Scheme interpreter :dfn:`definalizes` ports by calling
-:c:func:`mps_definalize` when they are closed. This is purely an
-optimization: setting ``stream`` to ``NULL`` ensures that the file
-handle wouldn't be closed more than once, even if the port object were
-later finalized.
+It's wise not to depend on finalization as the only method for
+releasing resources (see the :ref:`topic-finalization-cautions`
+section in :ref:`topic-finalization`), because the garbage collector
+does not promise to collect particular objects at particular times,
+and in any case it does so only when it can prove that the object is
+:term:`dead`. So it is best to provide a reliable mechanism for
+releasing the resource (here, the Scheme function
+``close-input-port``), and use finalization as a backup strategy.
+
+But this raises the possibility that a port will be closed twice: once
+via ``close-input-port`` and a second time via finalization. So it's
+necessary to make ports robust against be closed multiple times. The
+toy Scheme interpreter does so by setting ``stream`` to ``NULL``: this
+ensures that the file handle won't be closed more than once.
 
 .. code-block:: c
-    :emphasize-lines: 8
+    :emphasize-lines: 6
 
     static void port_close(obj_t port)
     {
         assert(TYPE(port) == TYPE_PORT);
         if(port->port.stream != NULL) {
-            mps_addr_t port_ref = port;
             fclose(port->port.stream);
             port->port.stream = NULL;
-            mps_definalize(arena, &port_ref);
         }
     }
+
+Note that because finalization messages are processed synchronously
+via the message queue (and the Scheme interpreter is single-threaded)
+there is no need for a lock here.
 
 It's still possible that the toy Scheme interpreter might run out of
 open file handles despite having some or all of its port objects being

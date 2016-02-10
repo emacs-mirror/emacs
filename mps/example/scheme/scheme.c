@@ -416,7 +416,7 @@ static void error(const char *format, ...)
  * that type.
  *
  * These functions illustrate the two-phase MPS Allocation Point
- * Protocol with `reserve` and `commmit`.  This protocol allows very fast
+ * Protocol with `reserve` and `commit`.  This protocol allows very fast
  * in-line allocation without locking, but there is a very tiny chance that
  * the object must be re-initialized.  In nearly all cases, however, it's
  * just a pointer bump. See topic/allocation.
@@ -1017,22 +1017,12 @@ static void table_delete(obj_t tbl, obj_t key)
 }
 
 
-/* port_close -- close and definalize a port                         %%MPS
- *
- * Ports objects are registered for finalization when they are created
- * (see make_port). When closed, we definalize them. This is purely an
- * optimization: it would be harmless to finalize them because setting
- * 'stream' to NULL prevents the stream from being closed multiple
- * times. See topic/finalization.
- */
 static void port_close(obj_t port)
 {
   assert(TYPE(port) == TYPE_PORT);
   if(port->port.stream != NULL) {
-    mps_addr_t port_ref = port;
     fclose(port->port.stream);
     port->port.stream = NULL;
-    mps_definalize(arena, &port_ref);
   }
 }
 
