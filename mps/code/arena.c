@@ -423,6 +423,11 @@ static void arenaFreeLandFinish(Arena arena)
   AVERT(Arena, arena);
   AVER(arena->hasFreeLand);
   
+  /* We're about to free the memory occupied by the free land, which
+     contains a CBS.  We want to make sure that LandFinish doesn't try
+     to check the CBS, so nuke it here.  TODO: LandReset? */
+  arena->freeLandStruct.splayTreeStruct.root = TreeEMPTY;
+
   /* The CBS block pool can't free its own memory via ArenaFree because
    * that would use the free land. */
   MFSFinishTracts(ArenaCBSBlockPool(arena), arenaMFSPageFreeVisitor,
