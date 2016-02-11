@@ -1470,9 +1470,6 @@ ATTRIBUTE_NO_SANITIZE_ADDRESS
 Res TraceScanAreaTagged(ScanState ss, Word *base, Word *limit, Word mask,
                         Word pattern)
 {
-  Res res;
-  Word word, *p;
-
   AVERT(ScanState, ss);
   AVER(base != NULL);
   AVER(limit != NULL);
@@ -1481,20 +1478,20 @@ Res TraceScanAreaTagged(ScanState ss, Word *base, Word *limit, Word mask,
   EVENT3(TraceScanAreaTagged, ss, base, limit);
 
   TRACE_SCAN_BEGIN(ss) {
-    p = base;
-  loop:
-    if (p >= limit)
-      goto out;
-    word = *p++;
-    if ((word & mask) != pattern)
-      goto loop;
-    if (!TRACE_FIX1(ss, (Ref)word))
-      goto loop;
-    res = TRACE_FIX2(ss, (Ref *)(p-1));
-    if(res == ResOK)
-      goto loop;
-    return res;
-  out:
+    Word *p = base;
+    while (p < limit) {
+      Word word = *p;
+      if ((word & mask) == pattern) {
+        Ref ref = (Ref)(word ^ pattern);
+        if (TRACE_FIX1(ss, ref)) {
+          Res res = TRACE_FIX2(ss, &ref);
+          if(res != ResOK)
+            return res;
+          *p = (Word)ref | pattern;
+        }
+      }
+      ++p;
+    }
     AVER(p == limit);
   } TRACE_SCAN_END(ss);
 

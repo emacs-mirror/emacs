@@ -54,19 +54,14 @@ static mps_word_t make_cons(mps_ap_t ap, mps_word_t car, mps_word_t cdr)
 
 static void fwd(mps_addr_t old, mps_addr_t new)
 {
-  cons_t cons;
-  Insist(TAG(old) == tag_cons);
-  cons = UNTAGGED(old, cons);
+  cons_t cons = old;
   cons->car = TAGGED(0, fwd);
   cons->cdr = (mps_word_t)new;
 }
 
 static mps_addr_t isfwd(mps_addr_t addr)
 {
-  cons_t cons;
-  if (TAG(addr) != tag_cons)
-    return NULL;
-  cons = UNTAGGED(addr, cons);
+  cons_t cons = addr;
   if (TAG(cons->car) != tag_fwd)
     return NULL;
   return (mps_addr_t)cons->cdr;
@@ -82,27 +77,24 @@ static void pad(mps_addr_t addr, size_t size)
   }
 }
 
-static mps_res_t scan(mps_ss_t ss, mps_addr_t client_base,
-                      mps_addr_t client_limit)
+static mps_res_t scan(mps_ss_t ss, mps_addr_t base,
+                      mps_addr_t limit)
 {
-  mps_addr_t *base, *limit;
-  Insist(TAG(client_base) == tag_cons);
-  Insist(TAG(client_limit) == tag_cons);
-  base = (mps_addr_t *)UNTAGGED(client_base, cons);
-  limit = (mps_addr_t *)UNTAGGED(client_limit, cons);
   MPS_SCAN_BEGIN(ss) {
-    while (base < limit) {
-      if (MPS_FIX1(ss, *base)) {
-        mps_addr_t addr = *base;
-        mps_word_t tag = TAG(addr);
-        if (tag == tag_cons) {
-          mps_res_t res = MPS_FIX2(ss, &addr);
+    mps_word_t *p = base;
+    while (p < (mps_word_t *)limit) {
+      mps_word_t word = *p;
+      mps_word_t tag = TAG(word);
+      if (tag == tag_cons) {
+        mps_addr_t ref = UNTAGGED(word, cons);
+        if (MPS_FIX1(ss, ref)) {
+          mps_res_t res = MPS_FIX2(ss, &ref);
           if (res != MPS_RES_OK)
             return res;
-          *base = addr;
+          *p = TAGGED(ref, cons);
         }
       }
-      ++base;
+      ++p;
     }
   } MPS_SCAN_END(ss);
   return MPS_RES_OK;
@@ -124,7 +116,7 @@ static void collect(mps_arena_t arena, size_t expected)
     cdie(mps_message_get(&message, arena, mps_message_type_finalization()),
          "message_get");
     mps_message_finalization_ref(&objaddr, arena, message);
-    Insist(TAG(objaddr) == tag_cons);
+    Insist(TAG(objaddr) == 0);
     mps_message_discard(arena, message);
     ++ finalized;
   }
@@ -148,8 +140,11 @@ static void alloc_recursively(mps_arena_t arena, mps_ap_t ap,
   Insist(TAG(p) == tag_cons);
   r = TAGGED(p, imm);
   UNTAGGED(p, cons)->cdr = r;
-  addr = (mps_addr_t)p;
+  addr = (mps_addr_t)UNTAGGED(p, cons);
   die(mps_finalize(arena, &addr), "finalize");
+  /* Avoid leaving a zero-tagged reference on the stack, as it will
+     prevent finalization when scanned with the default mode. */
+  addr = NULL;
   if (count > 1) {
     alloc_recursively(arena, ap, expected, count - 1);
   } else {
@@ -225,8 +220,6 @@ static void test(int mode, void *marker)
   }
 
   MPS_ARGS_BEGIN(args) {
-    MPS_ARGS_ADD(args, MPS_KEY_FMT_HEADER_SIZE, tag_cons);
-    MPS_ARGS_ADD(args, MPS_KEY_FMT_ALIGN, sizeof(cons_s));
     MPS_ARGS_ADD(args, MPS_KEY_FMT_SCAN, scan);
     MPS_ARGS_ADD(args, MPS_KEY_FMT_SKIP, skip);
     MPS_ARGS_ADD(args, MPS_KEY_FMT_FWD, fwd);
