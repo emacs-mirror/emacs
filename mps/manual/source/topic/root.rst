@@ -97,7 +97,7 @@ scan it for references:
 #. :c:func:`mps_root_create_table` if the root consists of a table of
    references;
 
-#. :c:func:`mps_root_create_table_masked` if the root consists of a
+#. :c:func:`mps_root_create_table_tagged` if the root consists of a
    table of :term:`tagged references`;
 
 #. :c:func:`mps_root_create_stack` if the root consists of the
@@ -490,7 +490,7 @@ Root interface
             mps_addr_t base = my_table;
             mps_root_create_table(..., base, ...)
 
-.. c:function:: mps_res_t mps_root_create_table_masked(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_addr_t *base, size_t count, mps_word_t mask)
+.. c:function:: mps_res_t mps_root_create_table_tagged(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_addr_t *base, size_t count, mps_word_t mask, mps_word_t pattern)
 
     Register a :term:`root` that consists of a vector of :term:`tagged
     references`.
@@ -509,8 +509,11 @@ Root interface
     ``count`` is the number of tagged references in the vector.
 
     ``mask`` is a :term:`bitmask` whose set bits specify the location of
-    the :term:`tag`. References are assumed to have a tag of zero: any
-    value in the vector with a non-zero tag is ignored.
+    the :term:`tag`.
+
+    ``pattern`` is a the value of the tag that indicates that the value
+    in the vector is a reference.  Any value in the vector with a tag
+    that does not match the pattern is ignored.
 
     Returns :c:macro:`MPS_RES_OK` if the root was registered
     successfully, :c:macro:`MPS_RES_MEMORY` if the new root
@@ -523,6 +526,7 @@ Root interface
     For example::
 
         #define TAG_MASK 0x3            /* bottom two bits */
+        #define TAG_PATTERN 0x1         /* bottom bit set for references */
 
         /* Global symbol table. */
         size_t symtab_size;
@@ -538,7 +542,8 @@ Root interface
                                            mps_rank_exact(),
                                            (mps_rm_t)0,
                                            base, symtab_size * 2,
-                                           (mps_word_t)TAG_MASK);
+                                           (mps_word_t)TAG_MASK,
+                                           (mps_word_t)TAG_PATTERN);
         if (res != MPS_RES_OK) errror("can't create symtab root");
 
     .. warning::
