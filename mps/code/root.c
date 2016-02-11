@@ -516,7 +516,7 @@ Res RootScan(ScanState ss, Root root)
     break;
 
     case RootTABLE_MASKED:
-    res = TraceScanAreaMasked(ss,
+    res = TraceScanAreaTagged(ss,
                               root->the.tableMasked.base,
                               root->the.tableMasked.limit,
                               root->the.tableMasked.mask,

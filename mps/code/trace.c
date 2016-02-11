@@ -1457,7 +1457,7 @@ Res TraceScanArea(ScanState ss, Word *base, Word *limit)
 }
 
 
-/* TraceScanAreaMasked -- scan contiguous area of filtered references
+/* TraceScanAreaTagged -- scan contiguous area of tagged references
  *
  * This is as TraceScanArea except words are only fixed if they have
  * the given value when masked with a mask.
@@ -1467,7 +1467,7 @@ Res TraceScanArea(ScanState ss, Word *base, Word *limit)
  */
 
 ATTRIBUTE_NO_SANITIZE_ADDRESS
-Res TraceScanAreaMasked(ScanState ss, Word *base, Word *limit, Word mask,
+Res TraceScanAreaTagged(ScanState ss, Word *base, Word *limit, Word mask,
                         Word pattern)
 {
   Res res;

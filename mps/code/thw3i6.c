@@ -105,7 +105,7 @@ Res ThreadScan(ScanState ss, Thread thread, Word *stackBot,
     /* scan stack inclusive of current sp and exclusive of
      * stackBot (.stack.full-descend)
      */
-    res = TraceScanAreaMasked(ss, stackBase, stackLimit, mask, pattern);
+    res = TraceScanAreaTagged(ss, stackBase, stackLimit, mask, pattern);
     if(res != ResOK)
       return res;
 
@@ -114,7 +114,7 @@ Res ThreadScan(ScanState ss, Thread thread, Word *stackBot,
      * unnecessarily scans the rest of the context.  The optimisation
      * to scan only relevant parts would be machine dependent.
      */
-    res = TraceScanAreaMasked(ss, (Word *)&context,
+    res = TraceScanAreaTagged(ss, (Word *)&context,
                               (Word *)((char *)&context + sizeof(CONTEXT)),
                               mask, pattern);
     if(res != ResOK)

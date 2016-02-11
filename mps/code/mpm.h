@@ -474,7 +474,7 @@ extern double TraceWorkFactor;
   END
 
 extern Res TraceScanArea(ScanState ss, Word *base, Word *limit);
-extern Res TraceScanAreaMasked(ScanState ss, Word *base, Word *limit,
+extern Res TraceScanAreaTagged(ScanState ss, Word *base, Word *limit,
                                Word mask, Word value);
 extern void TraceScanSingleRef(TraceSet ts, Rank rank, Arena arena,
                                Seg seg, Ref *refIO);
