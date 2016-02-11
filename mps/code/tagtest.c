@@ -174,7 +174,7 @@ enum {
 
 #define MODES_NAME(X, id, comment) #id,
 
-const char *mode_name[] = {
+static const char *mode_name[] = {
   MODES(MODES_NAME, X)
 };
 
