@@ -5289,21 +5289,7 @@
 				SDKROOT = macosx;
 				SYMROOT = xc;
 				WARNING_CFLAGS = (
-					"-pedantic",
-					"-Waggregate-return",
-					"-Wall",
-					"-Wcast-qual",
-					"-Wextra",
-					"-Winline",
-					"-Wmissing-prototypes",
-					"-Wnested-externs",
-					"-Wno-extended-offsetof",
-					"-Wpointer-arith",
-					"-Wshadow",
-					"-Wstrict-aliasing=2",
-					"-Wstrict-prototypes",
-					"-Wunreachable-code",
-					"-Wwrite-strings",
+					"-pedantic\n-Waggregate-return\n-Wall\n-Wcast-qual\n-Wconversion\n-Wduplicate-enum\n-Wextra\n-Winline\n-Wmissing-prototypes\n-Wmissing-variable-declarations\n-Wnested-externs\n-Wno-extended-offsetof\n-Wpointer-arith\n-Wshadow\n-Wstrict-aliasing=2\n-Wstrict-prototypes\n-Wunreachable-code\n-Wwrite-strings\n",
 				);
 			};
 			name = RASH;
@@ -5726,21 +5712,7 @@
 				SDKROOT = macosx;
 				SYMROOT = xc;
 				WARNING_CFLAGS = (
-					"-pedantic",
-					"-Waggregate-return",
-					"-Wall",
-					"-Wcast-qual",
-					"-Wextra",
-					"-Winline",
-					"-Wmissing-prototypes",
-					"-Wnested-externs",
-					"-Wno-extended-offsetof",
-					"-Wpointer-arith",
-					"-Wshadow",
-					"-Wstrict-aliasing=2",
-					"-Wstrict-prototypes",
-					"-Wunreachable-code",
-					"-Wwrite-strings",
+					"-pedantic\n-Waggregate-return\n-Wall\n-Wcast-qual\n-Wconversion\n-Wduplicate-enum\n-Wextra\n-Winline\n-Wmissing-prototypes\n-Wmissing-variable-declarations\n-Wnested-externs\n-Wno-extended-offsetof\n-Wpointer-arith\n-Wshadow\n-Wstrict-aliasing=2\n-Wstrict-prototypes\n-Wunreachable-code\n-Wwrite-strings\n",
 				);
 			};
 			name = Debug;
@@ -5781,21 +5753,7 @@
 				SDKROOT = macosx;
 				SYMROOT = xc;
 				WARNING_CFLAGS = (
-					"-pedantic",
-					"-Waggregate-return",
-					"-Wall",
-					"-Wcast-qual",
-					"-Wextra",
-					"-Winline",
-					"-Wmissing-prototypes",
-					"-Wnested-externs",
-					"-Wno-extended-offsetof",
-					"-Wpointer-arith",
-					"-Wshadow",
-					"-Wstrict-aliasing=2",
-					"-Wstrict-prototypes",
-					"-Wunreachable-code",
-					"-Wwrite-strings",
+					"-pedantic\n-Waggregate-return\n-Wall\n-Wcast-qual\n-Wconversion\n-Wduplicate-enum\n-Wextra\n-Winline\n-Wmissing-prototypes\n-Wmissing-variable-declarations\n-Wnested-externs\n-Wno-extended-offsetof\n-Wpointer-arith\n-Wshadow\n-Wstrict-aliasing=2\n-Wstrict-prototypes\n-Wunreachable-code\n-Wwrite-strings\n",
 				);
 			};
 			name = Release;
