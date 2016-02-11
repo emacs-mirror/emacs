@@ -271,7 +271,7 @@ Res ThreadScan(ScanState ss, Thread thread, Word *stackBot,
     /* scan stack inclusive of current sp and exclusive of
      * stackBot (.stack.full-descend)
      */
-    res = TraceScanAreaMasked(ss, stackBase, stackLimit, mask, pattern);
+    res = TraceScanAreaTagged(ss, stackBase, stackLimit, mask, pattern);
     if(res != ResOK)
       return res;
 

@@ -111,7 +111,7 @@ Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext mfc,
      unnecessarily scans the rest of the context.  The optimisation
      to scan only relevant parts would be machine dependent. */
   mc = &mfc->ucontext->uc_mcontext;
-  res = TraceScanAreaMasked(ss,
+  res = TraceScanAreaTagged(ss,
                             (Word *)mc,
                             (Word *)((char *)mc + sizeof(*mc)),
                             mask, pattern);
