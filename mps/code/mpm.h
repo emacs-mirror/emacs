@@ -950,10 +950,10 @@ extern void LDMerge(mps_ld_t ld, Arena arena, mps_ld_t from);
 extern Res RootCreateTable(Root *rootReturn, Arena arena,
                            Rank rank, RootMode mode,
                            Word *base, Word *limit);
-extern Res RootCreateTableMasked(Root *rootReturn, Arena arena,
+extern Res RootCreateTableTagged(Root *rootReturn, Arena arena,
                                  Rank rank, RootMode mode,
                                  Word *base, Word *limit,
-                                 Word mask);
+                                 Word mask, Word pattern);
 extern Res RootCreateReg(Root *rootReturn, Arena arena,
                            Rank rank, Thread thread,
                            mps_reg_scan_t scan,

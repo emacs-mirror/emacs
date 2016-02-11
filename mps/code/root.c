@@ -290,9 +290,9 @@ Res RootCreateTable(Root *rootReturn, Arena arena,
   return res;
 }
 
-Res RootCreateTableMasked(Root *rootReturn, Arena arena,
+Res RootCreateTableTagged(Root *rootReturn, Arena arena,
                           Rank rank, RootMode mode, Word *base, Word *limit,
-                          Word mask)
+                          Word mask, Word pattern)
 {
   union RootUnion theUnion;
 
@@ -306,7 +306,7 @@ Res RootCreateTableMasked(Root *rootReturn, Arena arena,
   theUnion.tableMasked.base = base;
   theUnion.tableMasked.limit = limit;
   theUnion.tableMasked.mask = mask;
-  theUnion.tableMasked.pattern = 0;
+  theUnion.tableMasked.pattern = pattern;
 
   return rootCreateProtectable(rootReturn, arena, rank, mode, RootTABLE_MASKED,
                                (Addr)base, (Addr)limit, &theUnion);

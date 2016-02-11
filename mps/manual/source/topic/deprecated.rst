@@ -166,6 +166,21 @@ Deprecated in version 1.115
         argument is ignored.
 
 
+.. c:function:: mps_res_t mps_root_create_table_masked(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_addr_t *base, size_t count, mps_word_t mask)
+
+    .. deprecated::
+    
+        Use :c:func:`mps_root_create_table_masked` instead, passing
+        zero for the ``pattern`` argument.
+
+    Register a :term:`root` that consists of a vector of :term:`tagged
+    references` whose pattern is zero.
+    
+    This function is equivalent to calling
+    :c:func:`mps_root_create_table_tagged` with a ``pattern`` argument
+    of zero.
+
+
 .. c:type:: mps_res_t (*mps_reg_scan_t)(mps_ss_t ss, mps_thr_t thr, void *p, size_t s)
 
     .. deprecated::
