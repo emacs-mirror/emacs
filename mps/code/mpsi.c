@@ -1314,11 +1314,11 @@ mps_res_t mps_root_create_table(mps_root_t *mps_root_o, mps_arena_t arena,
   return MPS_RES_OK;
 }
 
-mps_res_t mps_root_create_table_masked(mps_root_t *mps_root_o,
+mps_res_t mps_root_create_table_tagged(mps_root_t *mps_root_o,
                                        mps_arena_t arena,
                                        mps_rank_t mps_rank, mps_rm_t mps_rm,
                                        mps_addr_t *base, size_t size,
-                                       mps_word_t mask)
+                                       mps_word_t mask, mps_word_t pattern)
 {
   Rank rank = (Rank)mps_rank;
   Root root;
@@ -1331,12 +1331,13 @@ mps_res_t mps_root_create_table_masked(mps_root_t *mps_root_o,
   AVER(base != NULL);
   AVER(size > 0);
   /* Can't check anything about mask */
+  AVER((pattern & mask) == pattern);
 
   /* See .root.table-size. */
 
-  res = RootCreateTableMasked(&root, arena, rank, mode,
+  res = RootCreateTableTagged(&root, arena, rank, mode,
                               (Word *)base, (Word *)base + size,
-                              mask);
+                              mask, pattern);
 
   ArenaLeave(arena);
 
@@ -1344,6 +1345,16 @@ mps_res_t mps_root_create_table_masked(mps_root_t *mps_root_o,
     return (mps_res_t)res;
   *mps_root_o = (mps_root_t)root;
   return MPS_RES_OK;
+}
+
+mps_res_t mps_root_create_table_masked(mps_root_t *mps_root_o,
+                                       mps_arena_t arena,
+                                       mps_rank_t mps_rank, mps_rm_t mps_rm,
+                                       mps_addr_t *base, size_t size,
+                                       mps_word_t mask)
+{
+  return mps_root_create_table_tagged(mps_root_o, arena, mps_rank, mps_rm,
+                                      base, size, mask, 0);
 }
 
 mps_res_t mps_root_create_fmt(mps_root_t *mps_root_o, mps_arena_t arena,

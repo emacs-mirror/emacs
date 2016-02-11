@@ -22,6 +22,9 @@ New features
    :term:`registers` of a :term:`thread` when scanning them. This
    supports :term:`tagged references` in these locations.
 
+#. New function :c:func:`mps_root_create_table_tagged` for roots
+   containing :term:`tagged references`.
+
 
 Interface changes
 .................
@@ -38,6 +41,9 @@ Interface changes
 
 #. The function :c:func:`mps_root_create_reg` is deprecated in favour
    of :c:func:`mps_root_create_stack`.
+
+#. The function :c:func:`mps_root_create_table_masked` is deprecated in
+   favour of :c:func:`mps_root_create_table_tagged`.
 
 
 Other changes
