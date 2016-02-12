@@ -24,23 +24,23 @@ typedef struct StackContextStruct {
 } StackContextStruct;
 
 
-/* STACK_CONTEXT_BEGIN -- enter arena and save context */
+/* STACK_CONTEXT_BEGIN -- save context */
 
-#define STACK_CONTEXT_BEGIN(arena) BEGIN \
-  StackContextStruct _sc; \
-  ArenaEnter(arena); \
-  STACK_CONTEXT_SAVE(&_sc); \
-  AVER(arena->scAtArenaEnter == NULL); \
-  arena->scAtArenaEnter = &_sc; \
-  BEGIN
+#define STACK_CONTEXT_BEGIN(arena) \
+  BEGIN \
+    StackContextStruct _sc; \
+    STACK_CONTEXT_SAVE(&_sc); \
+    AVER(arena->scAtArenaEnter == NULL); \
+    arena->scAtArenaEnter = &_sc; \
+    BEGIN
 
 
 /* STACK_CONTEXT_END -- clear context and leave arena */
 
-#define STACK_CONTEXT_END(arena) END; \
-  AVER(arena->scAtArenaEnter != NULL); \
-  arena->scAtArenaEnter = NULL; \
-  ArenaLeave(arena); \
+#define STACK_CONTEXT_END(arena) \
+    END; \
+    AVER(arena->scAtArenaEnter != NULL); \
+    arena->scAtArenaEnter = NULL; \
   END
 
 
