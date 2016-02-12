@@ -449,7 +449,7 @@ static void test(void)
  mps_ap_t ap;
 
  int j;
- mycell *a;
+ mycell *a, *b;
 
  cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE), "create arena");
 
@@ -481,7 +481,9 @@ static void test(void)
 
  for (j=1; j<1000; j++)
  {
-  allocone(ap, 1000);
+  b = allocone(ap, 1000);
+  setref(b, 0, a);
+  a = b;
  }
 
 }

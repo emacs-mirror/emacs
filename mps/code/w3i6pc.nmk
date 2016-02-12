@@ -7,11 +7,8 @@
 
 PFM = w3i6pc
 
-PFMDEFS = /DCONFIG_PF_STRING="w3i6pc" /DCONFIG_PF_W3I6PC /DWIN32 /D_WINDOWS
+CFLAGSTARGETPRE = /Tamd64-coff
 
-CFLAGSCOMMONPRE = $(CFLAGSCOMMONPRE) /Tamd64-coff
-
-# MPM platform-specific sources.
 MPMPF = \
     [lockw3] \
     [mpsiw3] \
@@ -24,9 +21,8 @@ MPMPF = \
     [thw3i6] \
     [vmw3]
 
-!INCLUDE commpre.nmk
 !INCLUDE pc.nmk
-!INCLUDE commpost.nmk
+!INCLUDE comm.nmk
 
 
 # C. COPYRIGHT AND LICENSE

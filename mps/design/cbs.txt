@@ -76,14 +76,14 @@ class, a subclass of ``LandClass`` suitable for passing to
 
 ``LandClass CBSFastLandClassGet(void)``
 
-_`.function.class`: Returns a subclass of ``CBSLandClass`` that
+_`.function.class.fast`: Returns a subclass of ``CBSLandClass`` that
 maintains, for each subtree, the size of the largest block in that
 subtree. This enables the ``LandFindFirst()``, ``LandFindLast()``, and
 ``LandFindLargest()`` generic functions.
 
 ``LandClass CBSZonedLandClassGet(void)``
 
-_`.function.class`: Returns a subclass of ``CBSFastLandClass`` that
+_`.function.class.zoned`: Returns a subclass of ``CBSFastLandClass`` that
 maintains, for each subtree, the union of the zone sets of all ranges
 in that subtree. This enables the ``LandFindInZones()`` generic
 function.

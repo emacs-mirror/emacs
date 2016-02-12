@@ -111,8 +111,8 @@ MVT interface
     Return the :term:`pool class` for an MVT (Manual Variable
     Temporal) :term:`pool`.
 
-    When creating an MVT pool, :c:func:`mps_pool_create_k` may take
-    six :term:`keyword arguments`:
+    When creating an MVT pool, :c:func:`mps_pool_create_k` accepts six
+    optional :term:`keyword arguments`:
 
     * :c:macro:`MPS_KEY_ALIGN` (type :c:type:`mps_align_t`, default is
       :c:macro:`MPS_PF_ALIGN`) is the
@@ -196,51 +196,3 @@ MVT interface
             MPS_ARGS_ADD(args, MPS_KEY_MVT_FRAG_LIMIT, 0.5);
             res = mps_pool_create_k(&pool, arena, mps_class_mvt(), args);
         } MPS_ARGS_END(args);
-
-    .. deprecated:: starting with version 1.112.
-
-        When using :c:func:`mps_pool_create`, pass the arguments like
-        this::
-
-            mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
-                                      mps_pool_class_t mps_class_mvt(),
-                                      size_t minimum_size,
-                                      size_t mean_size,
-                                      size_t maximum_size,
-                                      mps_word_t reserve_depth,
-                                      mps_word_t fragmentation_limit)
-
-        .. note::
-
-           The fragmentation_limit is a percentage from 0 to 100
-           inclusive when passed to :c:func:`mps_pool_create`, not a
-           double from 0.0 to 1.0 as in :c:func:`mps_pool_create_k`.
-
-
-.. index::
-   pair: MVT; introspection
-
-MVT introspection
------------------
-
-::
-
-   #include "mpscmvt.h"
-
-.. c:function:: size_t mps_mvt_free_size(mps_pool_t pool)
-
-    Return the total amount of free space in an MVT pool.
-
-    ``pool`` is the MVT pool.
-
-    Returns the total free space in the pool, in :term:`bytes (1)`.
-
-
-.. c:function:: size_t mps_mvt_size(mps_pool_t pool)
-
-    Return the total size of an MVT pool.
-
-    ``pool`` is the MVT pool.
-
-    Returns the total size of the pool, in :term:`bytes (1)`. This
-    is the sum of allocated space and free space.

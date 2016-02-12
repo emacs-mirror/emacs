@@ -166,7 +166,7 @@ implemented using the same mechanism as normal locks. (But an
 operating system-specific mechanism is used, if possible, to ensure
 that the global locks are initialized just once.)
 
-_`.impl.ansi`: Single-threaded generic implementation ``lockan.c``:
+_`.impl.an`: Single-threaded generic implementation ``lockan.c``:
 
 - single-threaded;
 - no need for locking;
@@ -174,7 +174,7 @@ _`.impl.ansi`: Single-threaded generic implementation ``lockan.c``:
 - provides checking in debug version;
 - otherwise does nothing except keep count of claims.
 
-_`.impl.win`: Windows implementation ``lockw3.c``:
+_`.impl.w3`: Windows implementation ``lockw3.c``:
 
 - supports Windows threads;
 - uses critical section objects [cso]_;
@@ -182,7 +182,7 @@ _`.impl.win`: Windows implementation ``lockw3.c``:
 - recursive and non-recursive calls use the same Windows function;
 - also performs checking.
 
-_`.impl.posix`: POSIX implementation ``lockix.c``:
+_`.impl.ix`: POSIX implementation ``lockix.c``:
 
 - supports [POSIXThreads]_;
 - locking structure contains a mutex, initialized to check for
@@ -194,7 +194,7 @@ _`.impl.posix`: POSIX implementation ``lockix.c``:
   success or ``EDEADLK`` (indicating a recursive claim);
 - also performs checking.
 
-_`.impl.linux`: Linux implementation ``lockli.c``:
+_`.impl.li`: Linux implementation ``lockli.c``:
 
 - supports [POSIXThreads]_;
 - also supports [LinuxThreads]_, a partial implementation of POSIX Threads

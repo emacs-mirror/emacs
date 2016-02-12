@@ -1,7 +1,7 @@
 /* splay.c: SPLAY TREE IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2015 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: Splay trees are used to manage potentially unbounded
  * collections of ordered things.  In the MPS these are usually
@@ -9,10 +9,9 @@
  *
  * .source: <design/splay>
  *
- * .note.stack: It's important that the MPS have a bounded stack
- * size, and this is a problem for tree algorithms.  Basically,
- * we have to avoid recursion.  TODO: Design documentation for this
- * requirement, meanwhile see job003651 and job003640.
+ * .note.stack: It's important that the MPS have a bounded stack size,
+ * and this is a problem for tree algorithms. Basically, we have to
+ * avoid recursion. See design.mps.sp.sol.depth.no-recursion.
  */
 
 
@@ -1402,7 +1401,7 @@ Res SplayTreeDescribe(SplayTree splay, mps_lib_FILE *stream, Count depth,
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2015 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

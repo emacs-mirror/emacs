@@ -1,7 +1,7 @@
 /* cbs.c: COALESCING BLOCK STRUCTURE IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2015 Ravenbrook Limited.  See end of file for license.
  *
  * .intro: This is a portable implementation of coalescing block
  * structures.
@@ -1069,7 +1069,7 @@ static Res cbsFindInZones(Bool *foundReturn, Range rangeReturn,
   AVERT(CBS, cbs);
   AVER(IsLandSubclass(CBSLand(cbs), CBSZonedLandClass));
   /* AVERT(ZoneSet, zoneSet); */
-  AVER(BoolCheck(high));
+  AVERT(Bool, high);
 
   landFind = high ? cbsFindLast : cbsFindFirst;
   splayFind = high ? SplayFindLast : SplayFindFirst;
@@ -1208,7 +1208,7 @@ DEFINE_LAND_CLASS(CBSZonedLandClass, class)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2015 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

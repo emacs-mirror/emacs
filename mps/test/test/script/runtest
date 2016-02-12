@@ -241,7 +241,7 @@ sub run_testset {
  } else {
   while (<TESTSET>) {
    unless (/(^%)|(^\s*$)/) {
-    chop;
+    chomp;
     &run_from_testset($_);
    }
   }
