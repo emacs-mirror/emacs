@@ -7,7 +7,7 @@
 #
 # This file is included by platform nmake files that use the Pelles C
 # compiler. It defines the compiler-specific variables that the common
-# nmake file fragment (<code/commpost.nmk>) requires.
+# nmake fragment (comm.nmk) requires.
 
 CC = pocc
 LIBMAN = polib

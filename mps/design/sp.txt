@@ -7,7 +7,7 @@ Stack probe
 :Author: Gareth Rees
 :Date: 2014-10-23
 :Status: complete design
-:Revision: $Id: //info.ravenbrook.com/project/mps/master/design/thread-manager.txt#7 $
+:Revision: $Id$
 :Copyright: See `Copyright and License`_.
 :Index terms: pair: stack probe; design
 
@@ -143,7 +143,7 @@ that it is only suitable for use with programs that do not handle
 stack overflow faults, or do not call into the MPS from the handler.
 This is because our customers have only required `.req.overflow`_ on
 Windows so far. If this becomes a requirement on other platforms, the
-following Standard C implementation is likely to work::
+following Standard C implementation might work::
 
     void StackProbe(Size depth) {
       volatile Word w;
@@ -151,8 +151,9 @@ following Standard C implementation is likely to work::
       w = *p;
     }
 
-(The use of ``volatile`` is to prevent compilers from warning about
-the variable ``w`` being written but never read.)
+The use of ``volatile`` here is to prevent compilers from warning
+about the variable ``w`` being written but never read, or worse,
+optimizing away the whole statement under the "as if" rule.
 
 
 Implementations

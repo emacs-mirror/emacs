@@ -29,3 +29,5 @@ Reference
     plinth
     platform
     porting
+    deprecated
+    

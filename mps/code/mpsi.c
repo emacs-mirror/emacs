@@ -1,14 +1,14 @@
 /* mpsi.c: MEMORY POOL SYSTEM C INTERFACE LAYER
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2015 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (c) 2002 Global Graphics Software.
  *
  * .purpose: This code bridges between the MPS interface to C,
  * <code/mps.h>, and the internal MPM interfaces, as defined by
  * <code/mpm.h>.  .purpose.check: It performs checking of the C client's
  * usage of the MPS Interface.  .purpose.thread: It excludes multiple
- * threads from the MPM by locking the Arena (see .thread-safety).
+ * threads from the MPM by locking the Arena (see <design/thread-safety/>).
  *
  * .design: <design/interface-c/>
  *
@@ -248,7 +248,7 @@ void mps_arena_park(mps_arena_t arena)
 void mps_arena_expose(mps_arena_t arena)
 {
   ArenaEnter(arena);
-  ArenaExposeRemember(ArenaGlobals(arena), 0);
+  ArenaExposeRemember(ArenaGlobals(arena), FALSE);
   ArenaLeave(arena);
 }
 
@@ -256,7 +256,7 @@ void mps_arena_expose(mps_arena_t arena)
 void mps_arena_unsafe_expose_remember_protection(mps_arena_t arena)
 {
   ArenaEnter(arena);
-  ArenaExposeRemember(ArenaGlobals(arena), 1);
+  ArenaExposeRemember(ArenaGlobals(arena), TRUE);
   ArenaLeave(arena);
 }
 
@@ -1385,6 +1385,7 @@ mps_res_t mps_root_create_reg(mps_root_t *mps_root_o, mps_arena_t arena,
   AVER(mps_reg_scan != NULL);
   AVER(mps_reg_scan == mps_stack_scan_ambig); /* .reg.scan */
   AVER(reg_scan_p != NULL); /* stackBot */
+  AVER(AddrIsAligned(reg_scan_p, sizeof(Word)));
   AVER(rank == mps_rank_ambig());
   AVER(mps_rm == (mps_rm_t)0);
 
@@ -2002,7 +2003,7 @@ void _mps_args_set_key(mps_arg_s args[MPS_ARGS_MAX], unsigned i,
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2015 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
