@@ -324,6 +324,7 @@ static mps_res_t root_single(mps_ss_t ss, void *p, size_t s)
  *   mps_arena_reserved
  * incidentally tests:
  *   mps_alloc
+ *   mps_arena_commit_limit_set
  *   mps_class_mv
  *   mps_pool_create
  *   mps_pool_destroy
