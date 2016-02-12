@@ -38,29 +38,10 @@ usable.
 
    See :ref:`design-lock` for the design, and ``lock.h`` for the
    interface. There are implementations for Linux in ``lockli.c``,
-   POSIX in ``lockix.c``, and Windows in ``lockw3.c``. There is a
-   generic implementation in ``lockan.c``, which cannot actually take
-   any locks and so only works for a single thread.
+   POSIX in ``lockix.c``, and Windows in ``lockw3.c``.
 
-#. The **thread manager** module suspends and resumes :term:`threads`,
-   so that the MPS can gain exclusive access to :term:`memory (2)`,
-   and so that it can scan the :term:`registers` and :term:`control
-   stack` of suspended threads.
-
-   See :ref:`design-thread-manager` for the design, and ``th.h`` for
-   the interface. There are implementations for POSIX in ``thix.c``
-   plus ``pthrdext.c``, OS X using Mach in ``thxc.c``, Windows in
-   ``thw3.c``. There is a generic implementation in ``than.c``, which
-   necessarily only supports a single thread.
-
-#. The **virtual mapping** module reserves :term:`address space` from
-   the operating system (and returns it), and :term:`maps <mapping>`
-   address space to :term:`main memory` (and unmaps it).
-
-   See :ref:`design-vm` for the design, and ``vm.h`` for the
-   interface. There are implementations for POSIX in ``vmix.c``, and
-   Windows in ``vmw3.c``. There is a generic implementation in
-   ``vman.c``, which fakes virtual memory by calling :c:func:`malloc`.
+   There is a generic implementation in ``lockan.c``, which cannot
+   actually take any locks and so only works for a single thread.
 
 #. The **memory protection** module applies :term:`protection` to
    areas of :term:`memory (2)`, ensuring that attempts to read or
@@ -70,10 +51,13 @@ usable.
    See :ref:`design-prot` for the design, and ``prot.h`` for the
    interface. There are implementations for POSIX in ``protix.c`` plus
    ``protsgix.c``, Linux in ``protli.c``, Windows in ``protw3.c``, and
-   OS X using Mach in ``protxc.c``. There is a generic implementation
-   in ``protan.c``, which can't provide memory protection, so it
-   forces memory to be scanned until that there is no further need to
-   protect it.
+   OS X using Mach in ``protxc.c``.
+
+   There is a generic implementation in ``protan.c``, which can't
+   provide memory protection, so it forces memory to be scanned until
+   that there is no further need to protect it. This means it can't
+   support incremental collection, and has no control over pause
+   times.
 
 #. The **protection mutator context** module figures out what the
    :term:`mutator` was doing when it caused a :term:`protection
@@ -83,8 +67,10 @@ usable.
 
    See :ref:`design-prmc` for the design, and ``prot.h`` for the
    interface. There are implementations on Unix, Windows, and OS X for
-   IA-32 and x86-64. There is a generic implementation in
-   ``prmcan.c``, which can't provide these features.
+   IA-32 and x86-64.
+
+   There is a generic implementation in ``prmcan.c``, which can't
+   provide these features, and so only supports a single thread.
 
 #. The **stack probe** module checks that there is enough space on the
    :term:`control stack` for the MPS to complete any operation that it
@@ -93,8 +79,12 @@ usable.
 
    See :ref:`design-sp` for the design, and ``sp.h`` for the
    interface. There are implementations on Windows on IA-32 in
-   ``spi3w3.c`` and x86-64 in ``spi6w3.c``. There is a generic
-   implementation in ``span.c``, which can't provide this feature.
+   ``spi3w3.c`` and x86-64 in ``spi6w3.c``.
+
+   There is a generic implementation in ``span.c``, which can't
+   provide this feature, and so is only suitable for use with a client
+   program that does not handle stack overflow faults, or does not
+   call into the MPS from the handler.
 
 #. The **stack and register scanning** module :term:`scans` the
    :term:`registers` and :term:`control stack` of a thread.
@@ -103,8 +93,34 @@ usable.
    interface. There are implementations for POSIX on IA-32 in
    ``ssixi3.c`` and x86-64 in ``ssixi6.c``, and for Windows with
    Microsoft Visual C/C++ on IA-32 in ``ssw3i3mv.c`` and x86-64 in
-   ``ssw3i6mv.c``. There is a generic implementation in ``ssan.c``,
-   which calls :c:func:`setjmp` to spill the registers.
+   ``ssw3i6mv.c``.
+
+   There is a generic implementation in ``ssan.c``, which calls
+   :c:func:`setjmp` to spill the registers and scans the whole jump
+   buffer, thus overscanning compared to a platform-specific
+   implementation.
+
+#. The **thread manager** module suspends and resumes :term:`threads`,
+   so that the MPS can gain exclusive access to :term:`memory (2)`,
+   and so that it can scan the :term:`registers` and :term:`control
+   stack` of suspended threads.
+
+   See :ref:`design-thread-manager` for the design, and ``th.h`` for
+   the interface. There are implementations for POSIX in ``thix.c``
+   plus ``pthrdext.c``, OS X using Mach in ``thxc.c``, Windows in
+   ``thw3.c``.
+
+   There is a generic implementation in ``than.c``, which necessarily
+   only supports a single thread.
+
+#. The **virtual mapping** module reserves :term:`address space` from
+   the operating system (and returns it), and :term:`maps <mapping>`
+   address space to :term:`main memory` (and unmaps it).
+
+   See :ref:`design-vm` for the design, and ``vm.h`` for the
+   interface. There are implementations for POSIX in ``vmix.c``, and
+   Windows in ``vmw3.c``. There is a generic implementation in
+   ``vman.c``, which fakes virtual memory by calling :c:func:`malloc`.
 
 
 Platform detection
@@ -185,15 +201,17 @@ Makefile
 --------
 
 Add a makefile even if you expect to use an integrated development
-environment like Visual Studio or Xcode. Makefiles make it easier to
-carry out continuous integration and delivery.
+environment (IDE) like Visual Studio or Xcode. Makefiles make it
+easier to carry out continuous integration and delivery, and are less
+likely to stop working because of incompatibilities between IDE
+versions.
 
-The makefile must be named ``osarct.gmk``, and must define ``PFM`` to
-be the platform code, ``MPMPF`` to be the list of platform modules
-(the same files included by ``mps.c``), and ``LIBS`` to be the linker
-options for any libraries required by the test cases. Then it must
-include the compiler-specific makefile and ``comm.gmk``. For example,
-``lii6ll.gmk`` looks like this::
+On Unix platforms, the makefile must be named ``osarct.gmk``, and must
+define ``PFM`` to be the platform code, ``MPMPF`` to be the list of
+platform modules (the same files included by ``mps.c``), and ``LIBS``
+to be the linker options for any libraries required by the test cases.
+Then it must include the compiler-specific makefile and ``comm.gmk``.
+For example, ``lii6ll.gmk`` looks like this::
 
     PFM = lii6ll
 
@@ -222,6 +240,29 @@ improve performance by compiling the MPS and their object format in
 the same compilation unit. These steps would be more complicated if
 the MPS required particular compilation options.
 
+On Windows, the makefile must be named ``osarct.nmk``, and must define
+``PFM`` to be the platform code, and ``MPMPF`` to be the list of
+platform modules (the same files included by ``mps.c``) in square
+brackets. Then it must include the compiler-specific makefile and
+``comm.nmk``. For example, ``w3i6mv.nmk`` looks like this::
+
+    PFM = w3i6mv
+
+    MPMPF = \
+        [lockw3] \
+        [mpsiw3] \
+        [prmci6w3] \
+        [proti6] \
+        [protw3] \
+        [spw3i6] \
+        [ssw3i6mv] \
+        [thw3] \
+        [thw3i6] \
+        [vmw3]
+
+    !INCLUDE mv.nmk
+    !INCLUDE comm.nmk
+
 
 Porting strategy
 ----------------
@@ -230,15 +271,17 @@ Start the port by selecting existing implementations of the functional
 modules, using the generic implementations where nothing else will do.
 Then check that the "smoke tests" pass, by running::
 
-    make -f osarct.gmk testrun
+    make -f osarct.gmk testrun    # Unix
+    nmake /f osarct.nmk testrun   # Windows
 
-Most or all of the test cases should pass at this point (if you're
+Most or all of the test cases should pass at this point. If you're
 using the generic threading implementation, then the multi-threaded
-test cases ``amcssth`` and ``awlutth`` are expected to fail; and if
-you're using the generic lock implementation, then the lock
-utilization test case ``lockut`` is expected to fail). However,
-performance will be very poor if you're using the generic memory
-protection implementation.
+test cases are expected to fail. If you're using the generic lock
+implementation, then the lock utilization test case ``lockut`` is
+expected to fail. If you're using the generic memory protection
+implementation, all the tests that rely on incremental collection are
+expected to fail. See ``tool/testcases.txt`` for a database of test
+cases and the configurations in which they are expected to pass.
 
 Now that there is a working system to build on, porting the necessary
 modules to the new platform can be done incrementally. It's a good

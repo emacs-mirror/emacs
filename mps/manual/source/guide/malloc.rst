@@ -9,17 +9,19 @@ Implementing malloc and free
 
 The MPS function :c:func:`mps_free` is unlike the Standard C Library
 function :c:func:`free` in that it takes a ``size`` argument. That's
-because it's nearly always the case that either the size of an object
-is known statically based on its type (for example, a structure), or
-else the size of the object is easily computed from information that
-needs to be stored anyway (for example, a vector), and so memory can
-be saved by not storing the size separately.
+because it's nearly always the case that either the size of a block is
+known statically based on its type (for example, a structure), or else
+the size of the block is easily computed from information that needs
+to be stored anyway (for example, a vector), and so memory can be
+saved by not storing the size separately. It's also better for virtual
+memory performance, as a block does not have to be touched in order
+to free it.
 
 But sometimes you need to interact with :term:`foreign code` which
 requires :c:func:`malloc` and :c:func:`free` (or a pair of functions
-with the same interface). How can you use the MPS to implement these
-functions? By storing the size in a header adjacent to the object,
-like this::
+with the same interface). In this situation you can implement this
+interface using a global pool variable, and putting the size of each
+block into its header, like this::
 
     #include "mps.h"
 

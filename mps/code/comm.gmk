@@ -36,7 +36,6 @@
 # NOISY   if defined and non-empty, causes commands to be emitted
 # MPMPF   platform-dependent C sources for the "mpm" part
 # MPMS    assembler sources for the "mpm" part (.s files)
-# MPMPS   pre-processor assembler sources for the "mpm" part (.S files)
 #
 # %%PART: When adding a new part, add a new parameter above for the
 # files included in the part.
@@ -309,12 +308,12 @@ all: $(ALL_TARGETS)
 # testci = continuous integration tests, must be known good
 # testall = all test cases, for ensuring quality of a release
 # testansi = tests that run on the generic ("ANSI") platform
-# testpoll = tests that run on the generic platform with CONFIG_POLL_NONE
+# testpollnone = tests that run on the generic platform with CONFIG_POLL_NONE
 
-TEST_SUITES=testrun testci testall testansi testpoll
+TEST_SUITES=testrun testci testall testansi testpollnone
 
 $(addprefix $(PFM)/$(VARIETY)/,$(TEST_SUITES)): $(TEST_TARGETS)
-	../tool/testrun.sh "$(PFM)/$(VARIETY)" "$(notdir $@)"
+	../tool/testrun.sh -s "$(notdir $@)" "$(PFM)/$(VARIETY)"
 
 
 # These convenience targets allow one to type "make foo" to build target

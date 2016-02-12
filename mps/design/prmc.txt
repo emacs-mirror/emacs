@@ -7,7 +7,7 @@ Protection mutator context
 :Author: Gareth Rees
 :Date: 2014-10-23
 :Status: complete design
-:Revision: $Id: //info.ravenbrook.com/project/mps/master/design/tests.txt#2 $
+:Revision: $Id$
 :Copyright: See `Copyright and License`_.
 :Index terms: pair: protection mutator context; design
 
