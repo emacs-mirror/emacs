@@ -36,7 +36,7 @@
  * isn't compatible enough for MPS purposes.
  */
 
-#if defined(_MSC_VER) && defined(_WIN32) && defined(_M_IX86) && !defined(__POCC__)
+#if defined(_MSC_VER) && defined(_WIN32) && defined(_M_IX86) && !defined(__POCC__) && !defined(__clang__)
 #if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_W3I3MV)
 #error "specified CONFIG_PF_... inconsistent with detected w3i3mv"
 #endif
@@ -61,7 +61,7 @@
  * <http://msdn.microsoft.com/en-us/library/ms235286> 
  */
 
-#elif defined(_MSC_VER) && defined(_WIN32) && defined(_WIN64) && defined(_M_X64) && !defined(__POCC__)
+#elif defined(_MSC_VER) && defined(_WIN32) && defined(_WIN64) && defined(_M_X64) && !defined(__POCC__) && !defined(__clang__)
 #if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_W3I6MV)
 #error "specified CONFIG_PF_... inconsistent with detected w3i6mv"
 #endif
@@ -70,6 +70,28 @@
 #define MPS_OS_W3
 #define MPS_ARCH_I6
 #define MPS_BUILD_MV
+#define MPS_T_WORD      unsigned __int64
+#define MPS_T_ULONGEST  unsigned __int64
+#define MPS_WORD_WIDTH  64
+#define MPS_WORD_SHIFT  6
+#define MPS_PF_ALIGN    16
+
+
+/* clang-cl
+ * <http://clang.llvm.org/docs/UsersManual.html#clang-cl>
+ * Compatible with Visual Studio C, so we just detect the difference with
+ * defined(__clang__).
+ */
+
+#elif defined(__clang__) && defined(_WIN32) && defined(_WIN64) && defined(_M_X64)
+#if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_W3I6LL)
+#error "specified CONFIG_PF_... inconsistent with detected w3i6ll"
+#endif
+#define MPS_PF_W3I6LL
+#define MPS_PF_STRING   "w3i6ll"
+#define MPS_OS_W3
+#define MPS_ARCH_I6
+#define MPS_BUILD_LL
 #define MPS_T_WORD      unsigned __int64
 #define MPS_T_ULONGEST  unsigned __int64
 #define MPS_WORD_WIDTH  64
