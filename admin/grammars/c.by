@@ -94,6 +94,7 @@
 %put STATIC summary "Declaration Modifier: static <type> <name> ..."
 %token CONST "const"
 %put CONST summary "Declaration Modifier: const <type> <name> ..."
+%token CONSTEXPR "constexpr"
 %token VOLATILE "volatile"
 %put VOLATILE summary "Declaration Modifier: volatile <type> <name> ..."
 %token REGISTER "register"
@@ -150,6 +151,7 @@
 %token TRY "try"
 %token CATCH "catch"
 %put { TRY CATCH } summary "try { <body> } catch { <catch code> }"
+%token NOEXCEPT "noexcept"
 
 ;; Leave these alone for now.
 %token OPERATOR "operator"
@@ -680,6 +682,7 @@ metadeclmod
 
 CVDECLMOD
   : CONST
+  | CONSTEXPR
   | VOLATILE
   ;
 
@@ -695,6 +698,7 @@ cv-declmods
 METADECLMOD
   : VIRTUAL
   | MUTABLE
+  | EXPLICIT
   ;
 
 ;; C++: A type can be modified into a reference by "&"
@@ -858,6 +862,7 @@ post-fcn-modifiers
   | CONST
   | OVERRIDE
   | FINAL
+  | NOEXCEPT
   ;
 
 opt-throw
@@ -1203,6 +1208,7 @@ expr-start
   | PLUS
   | STAR
   | AMPERSAND
+  | ;; EMPTY
   ;
 
 expr-binop
@@ -1221,12 +1227,14 @@ expr-binop
 ;; Use expression for parsing only.  Don't actually return anything
 ;; for now.  Hopefully we can fix this later.
 expression
-  : unaryexpression QUESTION unaryexpression COLON unaryexpression
-    ( (identity start) (identity end) )
-  | unaryexpression expr-binop unaryexpression
-    ( (identity start) (identity end) )
-  | unaryexpression
-    ( (identity start) (identity end) )
+  : expr-start unaryexpression opt-more-expression
+    ( (identity start) (- end 1) )
+  ;
+
+opt-more-expression
+  : QUESTION unaryexpression COLON unaryexpression
+  | expr-binop unaryexpression
+  | ;; EMPTY
   ;
 
 unaryexpression
@@ -1240,9 +1248,9 @@ unaryexpression
   | string-seq
   | type-cast expression  ;; A cast to some other type
  ;; Casting the results of one expression to something else.
-  | semantic-list expression
+  | semantic-list unaryexpression
   | semantic-list
-  | expr-start expression
+ ;;| expr-start expression
   ;
 
 ;;; c.by ends here
