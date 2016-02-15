@@ -44,8 +44,7 @@ typedef struct RootStruct {
     struct {
       Word *base;               /* beginning of table */
       Word *limit;              /* one off end of table */
-      Word mask;                /* tag mask for scanning */
-      Word pattern;             /* tag pattern for scanning */
+      mps_scan_tag_s tag;       /* tag for scanning */
     } tableMasked;
     struct {
       mps_reg_scan_t scan;      /* function for scanning registers */
@@ -55,8 +54,7 @@ typedef struct RootStruct {
     } reg;
     struct {
       Thread thread;            /* passed to scan */
-      Word mask;                /* tag mask for scanning */
-      Word pattern;             /* tag pattern for scanning */
+      mps_scan_tag_s tag;       /* tag for scanning */
       Word *stackBot;           /* bottom of stack */
     } regMasked;
     struct {
@@ -120,7 +118,7 @@ Bool RootCheck(Root root)
     case RootTABLE_MASKED:
     CHECKL(root->the.tableMasked.base != 0);
     CHECKL(root->the.tableMasked.base < root->the.tableMasked.limit);
-    CHECKL((~root->the.tableMasked.mask & root->the.tableMasked.pattern) == 0);
+    CHECKL((~root->the.tableMasked.tag.mask & root->the.tableMasked.tag.pattern) == 0);
     break;
 
     case RootFUN:
@@ -135,7 +133,7 @@ Bool RootCheck(Root root)
 
     case RootREG_MASKED:
     CHECKD_NOSIG(Thread, root->the.regMasked.thread); /* <design/check/#hidden-type> */
-    CHECKL((~root->the.regMasked.mask & root->the.regMasked.pattern) == 0);
+    CHECKL((~root->the.regMasked.tag.mask & root->the.regMasked.tag.pattern) == 0);
     /* Can't check anything about stackBot. */
     break;
 
@@ -305,8 +303,8 @@ Res RootCreateTableTagged(Root *rootReturn, Arena arena,
 
   theUnion.tableMasked.base = base;
   theUnion.tableMasked.limit = limit;
-  theUnion.tableMasked.mask = mask;
-  theUnion.tableMasked.pattern = pattern;
+  theUnion.tableMasked.tag.mask = mask;
+  theUnion.tableMasked.tag.pattern = pattern;
 
   return rootCreateProtectable(rootReturn, arena, rank, mode, RootTABLE_MASKED,
                                (Addr)base, (Addr)limit, &theUnion);
@@ -347,8 +345,8 @@ Res RootCreateRegMasked(Root *rootReturn, Arena arena,
   AVER((~mask & pattern) == 0);
 
   theUnion.regMasked.thread = thread;
-  theUnion.regMasked.mask = mask;
-  theUnion.regMasked.pattern = pattern;
+  theUnion.regMasked.tag.mask = mask;
+  theUnion.regMasked.tag.pattern = pattern;
   theUnion.regMasked.stackBot = stackBot;
 
   return rootCreate(rootReturn, arena, rank, (RootMode)0, RootREG_MASKED,
@@ -516,11 +514,12 @@ Res RootScan(ScanState ss, Root root)
     break;
 
     case RootTABLE_MASKED:
-    res = TraceScanAreaTagged(ss,
-                              root->the.tableMasked.base,
-                              root->the.tableMasked.limit,
-                              root->the.tableMasked.mask,
-                              root->the.tableMasked.pattern);
+    /* FIXME: wrap in checking method */
+    res = mps_scan_area_tagged(&ss->ss_s,
+			       root->the.tableMasked.base,
+			       root->the.tableMasked.limit,
+			       &root->the.tableMasked.tag,
+			       sizeof(root->the.tableMasked.tag));
     ss->scannedSize += AddrOffset(root->the.table.base, root->the.table.limit);
     if (res != ResOK)
       goto failScan;
@@ -542,8 +541,9 @@ Res RootScan(ScanState ss, Root root)
     case RootREG_MASKED:
     res = ThreadScan(ss, root->the.regMasked.thread,
                      root->the.regMasked.stackBot,
-                     root->the.regMasked.mask,
-                     root->the.regMasked.pattern);
+		     mps_scan_area_tagged,
+		     &root->the.regMasked.tag,
+		     sizeof(root->the.regMasked.tag));
     if (res != ResOK)
       goto failScan;
     break;
@@ -684,10 +684,11 @@ Res RootDescribe(Root root, mps_lib_FILE *stream, Count depth)
 
   case RootTABLE_MASKED:
     res = WriteF(stream, depth + 2,
-                 "table base $A limit $A mask $B\n",
+                 "table base $A limit $A mask $B pattern $B\n",
                  (WriteFA)root->the.tableMasked.base,
                  (WriteFA)root->the.tableMasked.limit,
-                 (WriteFB)root->the.tableMasked.mask,
+                 (WriteFB)root->the.tableMasked.tag.mask,
+		 (WriteFB)root->the.tableMasked.tag.pattern,
                  NULL);
     if (res != ResOK)
       return res;
@@ -715,8 +716,8 @@ Res RootDescribe(Root root, mps_lib_FILE *stream, Count depth)
   case RootREG_MASKED:
     res = WriteF(stream, depth + 2,
                  "thread $P\n", (WriteFP)root->the.regMasked.thread,
-		 "mask $B\n", (WriteFB)root->the.regMasked.mask,
-		 "pattern $B\n", (WriteFB)root->the.regMasked.pattern,
+		 "mask $B\n", (WriteFB)root->the.regMasked.tag.mask,
+		 "pattern $B\n", (WriteFB)root->the.regMasked.tag.pattern,
 		 "stackBot $P\n", (WriteFP)root->the.regMasked.stackBot,
                  NULL);
     if (res != ResOK)

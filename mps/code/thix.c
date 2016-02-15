@@ -240,7 +240,8 @@ Arena ThreadArena(Thread thread)
 /* ThreadScan -- scan the state of a thread (stack and regs) */
 
 Res ThreadScan(ScanState ss, Thread thread, Word *stackBot,
-               Word mask, Word pattern)
+	       mps_area_scan_t scan_area,
+	       void *closure, size_t closure_size)
 {
   pthread_t self;
   Res res;
@@ -250,7 +251,7 @@ Res ThreadScan(ScanState ss, Thread thread, Word *stackBot,
   if(pthread_equal(self, thread->id)) {
     /* scan this thread's stack */
     AVER(thread->alive);
-    res = StackScan(ss, stackBot, mask, pattern);
+    res = StackScan(ss, stackBot, scan_area, closure, closure_size);
     if(res != ResOK)
       return res;
   } else if (thread->alive) {
@@ -271,12 +272,12 @@ Res ThreadScan(ScanState ss, Thread thread, Word *stackBot,
     /* scan stack inclusive of current sp and exclusive of
      * stackBot (.stack.full-descend)
      */
-    res = TraceScanAreaTagged(ss, stackBase, stackLimit, mask, pattern);
+    res = scan_area(&ss->ss_s, stackBase, stackLimit, closure, closure_size);
     if(res != ResOK)
       return res;
 
     /* scan the registers in the mutator fault context */
-    res = MutatorFaultContextScan(ss, mfc, mask, pattern);
+    res = MutatorFaultContextScan(ss, mfc, scan_area, closure, closure_size);
     if(res != ResOK)
       return res;
   }

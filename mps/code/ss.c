@@ -25,7 +25,9 @@ SRCID(ss, "$Id$");
  */
 
 Res StackScanInner(ScanState ss, Word *stackBot, Word *stackTop,
-                   Count nSavedRegs, Word mask, Word pattern)
+                   Count nSavedRegs,
+		   mps_area_scan_t scan_area,
+		   void *closure, size_t closure_size)
 {
   Arena arena;
   Res res;
@@ -47,16 +49,16 @@ Res StackScanInner(ScanState ss, Word *stackBot, Word *stackTop,
   if (arena->stackAtArenaEnter != NULL) {
     AVER(stackTop < arena->stackAtArenaEnter);
     AVER(arena->stackAtArenaEnter < stackBot);
-    res = TraceScanAreaTagged(ss, stackTop, stackTop + nSavedRegs,
-                              mask, pattern);
+    res = scan_area(&ss->ss_s, stackTop, stackTop + nSavedRegs,
+		    closure, closure_size);
     if (res != ResOK)
       return res;
-    res = TraceScanAreaTagged(ss, arena->stackAtArenaEnter, stackBot,
-                              mask, pattern);
+    res = scan_area(&ss->ss_s, arena->stackAtArenaEnter, stackBot,
+		    closure, closure_size);
     if (res != ResOK)
       return res;
   } else {
-    res = TraceScanAreaTagged(ss, stackTop, stackBot, mask, pattern);
+    res = scan_area(&ss->ss_s, stackTop, stackBot, closure, closure_size);
     if (res != ResOK)
       return res;
   }
