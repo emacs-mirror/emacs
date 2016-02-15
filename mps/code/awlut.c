@@ -268,7 +268,8 @@ static void *setup(void *v, size_t s)
   thr = guff->thr;
 
   die(mps_root_create_stack(&stack, arena, mps_rank_ambig(),
-                            0, thr, sizeof(mps_word_t) - 1, 0, v),
+                            0, thr, mps_scan_area_tagged,
+			    sizeof(mps_word_t) - 1, 0, v),
       "Root Create\n");
   die(mps_fmt_create_A(&dylanfmt, arena, dylan_fmt_A()),
       "Format Create\n");

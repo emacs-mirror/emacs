@@ -352,7 +352,9 @@ Res RootCreateReg(Root *rootReturn, Arena arena,
 
 Res RootCreateRegMasked(Root *rootReturn, Arena arena,
                         Rank rank, Thread thread,
-                        Word mask, Word pattern, Word *stackBot)
+			mps_area_scan_t scan_area,
+                        Word mask, Word pattern,
+			Word *stackBot)
 {
   union RootUnion theUnion;
 
@@ -364,7 +366,7 @@ Res RootCreateRegMasked(Root *rootReturn, Arena arena,
   AVER((~mask & pattern) == 0);
 
   theUnion.regMasked.thread = thread;
-  theUnion.regMasked.scan_area = mps_scan_area_tagged;
+  theUnion.regMasked.scan_area = scan_area;
   theUnion.regMasked.tag.mask = mask;
   theUnion.regMasked.tag.pattern = pattern;
   theUnion.regMasked.stackBot = stackBot;

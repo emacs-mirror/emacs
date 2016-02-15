@@ -1450,10 +1450,13 @@ mps_res_t mps_root_create_reg(mps_root_t *mps_root_o, mps_arena_t arena,
 }
 
 
+/* FIXME: re-document */
 mps_res_t mps_root_create_stack(mps_root_t *mps_root_o, mps_arena_t arena,
                                 mps_rank_t mps_rank, mps_rm_t mps_rm,
-                                mps_thr_t thread, mps_word_t mask,
-                                mps_word_t pattern, void *reg_scan_p)
+                                mps_thr_t thread,
+				mps_area_scan_t scan_area,
+				mps_word_t mask, mps_word_t pattern,
+				void *stack)
 {
   Rank rank = (Rank)mps_rank;
   Root root;
@@ -1462,15 +1465,16 @@ mps_res_t mps_root_create_stack(mps_root_t *mps_root_o, mps_arena_t arena,
   ArenaEnter(arena);
 
   AVER(mps_root_o != NULL);
-  AVER(reg_scan_p != NULL); /* stackBot */
-  AVER(AddrIsAligned(reg_scan_p, sizeof(Word)));
+  AVER(stack != NULL); /* stackBot */
+  AVER(AddrIsAligned(stack, sizeof(Word)));
   AVER(rank == mps_rank_ambig());
   AVER(mps_rm == (mps_rm_t)0);
   AVER((~mask & pattern) == 0);
 
   /* See .root-mode. */
   res = RootCreateRegMasked(&root, arena, rank, thread,
-                            mask, pattern, (Word *)reg_scan_p);
+                            scan_area, mask, pattern,
+			    (Word *)stack);
 
   ArenaLeave(arena);
 

@@ -209,13 +209,15 @@ static void test(int mode, void *marker)
   case MODE_CONS:
     /* Scan words tagged "cons" -- everything will live. */
     die(mps_root_create_stack(&root, arena, mps_rank_ambig(), 0, thread,
-                              TAG_MASK, tag_cons, marker), "root");
+                              mps_scan_area_tagged, TAG_MASK, tag_cons,
+			      marker), "root");
     expected = 0;
     break;
   case MODE_INVALID:
     /* Scan words tagged "invalid" -- everything will die. */
     die(mps_root_create_stack(&root, arena, mps_rank_ambig(), 0, thread,
-                              TAG_MASK, tag_invalid, marker), "root");
+                              mps_scan_area_tagged, TAG_MASK, tag_invalid,
+			      marker), "root");
     expected = OBJCOUNT;
     break;
   }

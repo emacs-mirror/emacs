@@ -963,6 +963,7 @@ extern Res RootCreateReg(Root *rootReturn, Arena arena,
                            void *p, size_t s);
 extern Res RootCreateRegMasked(Root *rootReturn, Arena arena,
                                Rank rank, Thread thread,
+			       mps_area_scan_t scan_area,
                                Word mask, Word pattern,
                                Word *stackBot);
 extern Res RootCreateFmt(Root *rootReturn, Arena arena,
