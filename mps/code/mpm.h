@@ -961,11 +961,11 @@ extern Res RootCreateReg(Root *rootReturn, Arena arena,
                            Rank rank, Thread thread,
                            mps_reg_scan_t scan,
                            void *p, size_t s);
-extern Res RootCreateRegMasked(Root *rootReturn, Arena arena,
-                               Rank rank, Thread thread,
-			       mps_area_scan_t scan_area,
-                               Word mask, Word pattern,
-                               Word *stackBot);
+extern Res RootCreateThreadTagged(Root *rootReturn, Arena arena,
+				  Rank rank, Thread thread,
+				  mps_area_scan_t scan_area,
+				  Word mask, Word pattern,
+				  Word *stackBot);
 extern Res RootCreateFmt(Root *rootReturn, Arena arena,
                            Rank rank, RootMode mode,
                            mps_fmt_scan_t scan,
