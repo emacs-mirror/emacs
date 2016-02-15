@@ -507,7 +507,8 @@ Res RootScan(ScanState ss, Root root)
 
   switch(root->var) {
     case RootTABLE:
-    res = TraceScanArea(ss, root->the.table.base, root->the.table.limit);
+    res = TraceScanArea(ss, root->the.table.base, root->the.table.limit,
+			mps_scan_area, NULL, 0);
     ss->scannedSize += AddrOffset(root->the.table.base, root->the.table.limit);
     if (res != ResOK)
       goto failScan;

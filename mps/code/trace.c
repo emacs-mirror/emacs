@@ -1427,46 +1427,19 @@ void TraceScanSingleRef(TraceSet ts, Rank rank, Arena arena,
  * limit, inclusive of base and exclusive of limit.  */
 
 
-Res TraceScanArea(ScanState ss, Word *base, Word *limit)
+Res TraceScanArea(ScanState ss, Word *base, Word *limit,
+		  mps_area_scan_t scan_area,
+		  void *closure, size_t closure_size)
 {
+  AVERT(ScanState, ss);
   AVER(base != NULL);
   AVER(limit != NULL);
   AVER(base < limit);
 
   EVENT3(TraceScanArea, ss, base, limit);
 
-  return mps_scan_area(&ss->ss_s, base, limit, NULL, 0);
+  return scan_area(&ss->ss_s, base, limit, closure, closure_size);
 }
-
-
-#if 0
-/* TraceScanAreaTagged -- scan contiguous area of tagged references
- *
- * This is as TraceScanArea except words are only fixed if they have
- * the given value when masked with a mask.
- *
- * This has ATTRIBUTE_NO_SANITIZE_ADDRESS otherwise Clang's address
- * sanitizer will think we have run off the end of an array.
- */
-
-Res TraceScanAreaTagged(ScanState ss, Word *base, Word *limit,Word mask,
-                        Word pattern)
-{
-  mps_scan_tag_s tag;
-  
-  AVERT(ScanState, ss);
-  AVER(base != NULL);
-  AVER(limit != NULL);
-  AVER(base < limit);
-
-  EVENT3(TraceScanAreaTagged, ss, base, limit);
-
-  tag.mask = mask;
-  tag.pattern = pattern;
-
-  return mps_scan_area_tagged(&ss->ss_s, base, limit, &tag, 0);
-}
-#endif
 
 
 /* traceCondemnAll -- condemn everything and notify all the chains */

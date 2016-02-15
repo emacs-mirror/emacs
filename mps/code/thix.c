@@ -272,7 +272,8 @@ Res ThreadScan(ScanState ss, Thread thread, Word *stackBot,
     /* scan stack inclusive of current sp and exclusive of
      * stackBot (.stack.full-descend)
      */
-    res = scan_area(&ss->ss_s, stackBase, stackLimit, closure, closure_size);
+    res = TraceScanArea(ss, stackBase, stackLimit,
+			scan_area, closure, closure_size);
     if(res != ResOK)
       return res;
 
