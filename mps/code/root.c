@@ -38,15 +38,15 @@ typedef struct RootStruct {
       size_t s;                 /* environment for scan */
     } fun;
     struct {
-      Word *base;               /* beginning of table */
-      Word *limit;              /* one off end of table */
+      Word *base;               /* beginning of area */
+      Word *limit;              /* one off end of area */
       mps_area_scan_t scan_area;/* area scanning function */
       void *closure;            /* closure for scanning function */
       size_t closure_size;      /* closure for scanning function */
-    } table;
+    } area;
     struct {
-      Word *base;               /* beginning of table */
-      Word *limit;              /* one off end of table */
+      Word *base;               /* beginning of area */
+      Word *limit;              /* one off end of area */
       mps_area_scan_t scan_area;/* area scanning function */
       mps_scan_tag_s tag;       /* tag for scanning */
     } areaTagged;
@@ -76,7 +76,7 @@ typedef struct RootStruct {
 
 Bool RootVarCheck(RootVar rootVar)
 {
-  CHECKL(rootVar == RootTABLE || rootVar == RootAREA_TAGGED
+  CHECKL(rootVar == RootAREA || rootVar == RootAREA_TAGGED
          || rootVar == RootFUN || rootVar == RootFMT || rootVar == RootREG
          || rootVar == RootREG_MASKED);
   UNUSED(rootVar);
@@ -115,14 +115,17 @@ Bool RootCheck(Root root)
   /* Don't need to check var here, because of the switch below */
   switch(root->var)
   {
-    case RootTABLE:
-    CHECKL(root->the.table.base != 0);
-    CHECKL(root->the.table.base < root->the.table.limit);
+    case RootAREA:
+    CHECKL(root->the.area.base != 0);
+    CHECKL(root->the.area.base < root->the.area.limit);
+    CHECKL(FUNCHECK(root->the.area.scan_area));
+    /* Can't check anything about closure */
     break;
 
     case RootAREA_TAGGED:
     CHECKL(root->the.areaTagged.base != 0);
     CHECKL(root->the.areaTagged.base < root->the.areaTagged.limit);
+    CHECKL(FUNCHECK(root->the.areaTagged.scan_area));
     CHECKL((~root->the.areaTagged.tag.mask & root->the.areaTagged.tag.pattern) == 0);
     break;
 
@@ -138,6 +141,7 @@ Bool RootCheck(Root root)
 
     case RootREG_MASKED:
     CHECKD_NOSIG(Thread, root->the.regMasked.thread); /* <design/check/#hidden-type> */
+    CHECKL(FUNCHECK(root->the.regMasked.scan_area));
     CHECKL((~root->the.regMasked.tag.mask & root->the.regMasked.tag.pattern) == 0);
     /* Can't check anything about stackBot. */
     break;
@@ -167,7 +171,7 @@ Bool RootCheck(Root root)
 }
 
 
-/* rootCreate, RootCreateTable, RootCreateReg, RootCreateFmt, RootCreateFun
+/* rootCreate, RootCreateArea, RootCreateReg, RootCreateFmt, RootCreateFun
  *
  * RootCreate* set up the appropriate union member, and call the generic
  * create function to do the actual creation
@@ -271,8 +275,11 @@ static Res rootCreateProtectable(Root *rootReturn, Arena arena,
   return ResOK;
 }
 
-Res RootCreateTable(Root *rootReturn, Arena arena,
-                    Rank rank, RootMode mode, Word *base, Word *limit)
+Res RootCreateArea(Root *rootReturn, Arena arena,
+		   Rank rank, RootMode mode,
+		   Word *base, Word *limit,
+		   mps_area_scan_t scan_area,
+		   void *closure, size_t closure_size)
 {
   Res res;
   union RootUnion theUnion;
@@ -284,15 +291,17 @@ Res RootCreateTable(Root *rootReturn, Arena arena,
   AVER(AddrIsAligned(base, sizeof(Word)));
   AVER(base < limit);
   AVER(AddrIsAligned(limit, sizeof(Word)));
+  AVER(FUNCHECK(scan_area));
+  /* Can't check anything about closure */
 
-  theUnion.table.base = base;
-  theUnion.table.limit = limit;
-  theUnion.table.scan_area = mps_scan_area;
-  theUnion.table.closure = NULL;
-  theUnion.table.closure_size = 0;
+  theUnion.area.base = base;
+  theUnion.area.limit = limit;
+  theUnion.area.scan_area = scan_area;
+  theUnion.area.closure = closure;
+  theUnion.area.closure_size = closure_size;
 
   res = rootCreateProtectable(rootReturn, arena, rank, mode,
-                              RootTABLE, (Addr)base, (Addr)limit, &theUnion);
+                              RootAREA, (Addr)base, (Addr)limit, &theUnion);
   return res;
 }
 
@@ -517,14 +526,14 @@ Res RootScan(ScanState ss, Root root)
   }
 
   switch(root->var) {
-    case RootTABLE:
+    case RootAREA:
     res = TraceScanArea(ss,
-			root->the.table.base,
-			root->the.table.limit,
-			root->the.table.scan_area,
-			root->the.table.closure,
-			root->the.table.closure_size);
-    ss->scannedSize += AddrOffset(root->the.table.base, root->the.table.limit);
+			root->the.area.base,
+			root->the.area.limit,
+			root->the.area.scan_area,
+			root->the.area.closure,
+			root->the.area.closure_size);
+    ss->scannedSize += AddrOffset(root->the.area.base, root->the.area.limit);
     if (res != ResOK)
       goto failScan;
     break;
@@ -536,7 +545,7 @@ Res RootScan(ScanState ss, Root root)
 			root->the.areaTagged.scan_area,
 			&root->the.areaTagged.tag,
 			sizeof(root->the.areaTagged.tag));
-    ss->scannedSize += AddrOffset(root->the.table.base, root->the.table.limit);
+    ss->scannedSize += AddrOffset(root->the.areaTagged.base, root->the.areaTagged.limit);
     if (res != ResOK)
       goto failScan;
     break;
@@ -688,11 +697,14 @@ Res RootDescribe(Root root, mps_lib_FILE *stream, Count depth)
     return res;
 
   switch(root->var) {
-  case RootTABLE:
+  case RootAREA:
     res = WriteF(stream, depth + 2,
-                 "table base $A limit $A\n",
-                 (WriteFA)root->the.table.base,
-                 (WriteFA)root->the.table.limit,
+                 "area base $A limit $A scan_area $P closure $P closure_size $U\n",
+                 (WriteFA)root->the.area.base,
+                 (WriteFA)root->the.area.limit,
+		 (WriteFP)root->the.area.scan_area,
+		 (WriteFP)root->the.area.closure,
+		 (WriteFP)root->the.area.closure_size,
                  NULL);
     if (res != ResOK)
       return res;
@@ -700,9 +712,10 @@ Res RootDescribe(Root root, mps_lib_FILE *stream, Count depth)
 
   case RootAREA_TAGGED:
     res = WriteF(stream, depth + 2,
-                 "table base $A limit $A mask $B pattern $B\n",
+                 "area base $A limit $A scan_area $P mask $B pattern $B\n",
                  (WriteFA)root->the.areaTagged.base,
                  (WriteFA)root->the.areaTagged.limit,
+		 (WriteFP)root->the.areaTagged.scan_area,
                  (WriteFB)root->the.areaTagged.tag.mask,
 		 (WriteFB)root->the.areaTagged.tag.pattern,
                  NULL);
@@ -732,6 +745,7 @@ Res RootDescribe(Root root, mps_lib_FILE *stream, Count depth)
   case RootREG_MASKED:
     res = WriteF(stream, depth + 2,
                  "thread $P\n", (WriteFP)root->the.regMasked.thread,
+		 "scan_area $P\n", (WriteFP)root->the.regMasked.scan_area,
 		 "mask $B\n", (WriteFB)root->the.regMasked.tag.mask,
 		 "pattern $B\n", (WriteFB)root->the.regMasked.tag.pattern,
 		 "stackBot $P\n", (WriteFP)root->the.regMasked.stackBot,
