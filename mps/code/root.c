@@ -49,7 +49,7 @@ typedef struct RootStruct {
       Word *limit;              /* one off end of table */
       mps_area_scan_t scan_area;/* area scanning function */
       mps_scan_tag_s tag;       /* tag for scanning */
-    } tableMasked;
+    } areaTagged;
     struct {
       mps_reg_scan_t scan;      /* function for scanning registers */
       Thread thread;            /* passed to scan */
@@ -76,7 +76,7 @@ typedef struct RootStruct {
 
 Bool RootVarCheck(RootVar rootVar)
 {
-  CHECKL(rootVar == RootTABLE || rootVar == RootTABLE_MASKED
+  CHECKL(rootVar == RootTABLE || rootVar == RootAREA_TAGGED
          || rootVar == RootFUN || rootVar == RootFMT || rootVar == RootREG
          || rootVar == RootREG_MASKED);
   UNUSED(rootVar);
@@ -120,10 +120,10 @@ Bool RootCheck(Root root)
     CHECKL(root->the.table.base < root->the.table.limit);
     break;
 
-    case RootTABLE_MASKED:
-    CHECKL(root->the.tableMasked.base != 0);
-    CHECKL(root->the.tableMasked.base < root->the.tableMasked.limit);
-    CHECKL((~root->the.tableMasked.tag.mask & root->the.tableMasked.tag.pattern) == 0);
+    case RootAREA_TAGGED:
+    CHECKL(root->the.areaTagged.base != 0);
+    CHECKL(root->the.areaTagged.base < root->the.areaTagged.limit);
+    CHECKL((~root->the.areaTagged.tag.mask & root->the.areaTagged.tag.pattern) == 0);
     break;
 
     case RootFUN:
@@ -296,9 +296,9 @@ Res RootCreateTable(Root *rootReturn, Arena arena,
   return res;
 }
 
-Res RootCreateTableTagged(Root *rootReturn, Arena arena,
-                          Rank rank, RootMode mode, Word *base, Word *limit,
-                          Word mask, Word pattern)
+Res RootCreateAreaTagged(Root *rootReturn, Arena arena,
+                         Rank rank, RootMode mode, Word *base, Word *limit,
+			 mps_area_scan_t scan_area, Word mask, Word pattern)
 {
   union RootUnion theUnion;
 
@@ -310,13 +310,13 @@ Res RootCreateTableTagged(Root *rootReturn, Arena arena,
   /* Can't check anything about mask. */
   AVER((mask & pattern) == pattern);
 
-  theUnion.tableMasked.base = base;
-  theUnion.tableMasked.limit = limit;
-  theUnion.tableMasked.scan_area = mps_scan_area_tagged;
-  theUnion.tableMasked.tag.mask = mask;
-  theUnion.tableMasked.tag.pattern = pattern;
+  theUnion.areaTagged.base = base;
+  theUnion.areaTagged.limit = limit;
+  theUnion.areaTagged.scan_area = scan_area;
+  theUnion.areaTagged.tag.mask = mask;
+  theUnion.areaTagged.tag.pattern = pattern;
 
-  return rootCreateProtectable(rootReturn, arena, rank, mode, RootTABLE_MASKED,
+  return rootCreateProtectable(rootReturn, arena, rank, mode, RootAREA_TAGGED,
                                (Addr)base, (Addr)limit, &theUnion);
 }
 
@@ -529,13 +529,13 @@ Res RootScan(ScanState ss, Root root)
       goto failScan;
     break;
 
-    case RootTABLE_MASKED:
+    case RootAREA_TAGGED:
     res = TraceScanArea(ss,
-			root->the.tableMasked.base,
-			root->the.tableMasked.limit,
-			root->the.tableMasked.scan_area,
-			&root->the.tableMasked.tag,
-			sizeof(root->the.tableMasked.tag));
+			root->the.areaTagged.base,
+			root->the.areaTagged.limit,
+			root->the.areaTagged.scan_area,
+			&root->the.areaTagged.tag,
+			sizeof(root->the.areaTagged.tag));
     ss->scannedSize += AddrOffset(root->the.table.base, root->the.table.limit);
     if (res != ResOK)
       goto failScan;
@@ -698,13 +698,13 @@ Res RootDescribe(Root root, mps_lib_FILE *stream, Count depth)
       return res;
     break;
 
-  case RootTABLE_MASKED:
+  case RootAREA_TAGGED:
     res = WriteF(stream, depth + 2,
                  "table base $A limit $A mask $B pattern $B\n",
-                 (WriteFA)root->the.tableMasked.base,
-                 (WriteFA)root->the.tableMasked.limit,
-                 (WriteFB)root->the.tableMasked.tag.mask,
-		 (WriteFB)root->the.tableMasked.tag.pattern,
+                 (WriteFA)root->the.areaTagged.base,
+                 (WriteFA)root->the.areaTagged.limit,
+                 (WriteFB)root->the.areaTagged.tag.mask,
+		 (WriteFB)root->the.areaTagged.tag.pattern,
                  NULL);
     if (res != ResOK)
       return res;

@@ -1366,9 +1366,9 @@ mps_res_t mps_root_create_table_masked(mps_root_t *mps_root_o,
   /* Can't check anything about mask. */
 
   /* .root.table-size */
-  res = RootCreateTableTagged(&root, arena, rank, mode,
-			      (Word *)base, (Word *)base + size,
-			      mask, 0);
+  res = RootCreateAreaTagged(&root, arena, rank, mode,
+			     (Word *)base, (Word *)base + size,
+			     mps_scan_area_masked, mask, 0);
 
   ArenaLeave(arena);
 

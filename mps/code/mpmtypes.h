@@ -360,7 +360,7 @@ enum {
 enum {
   RootFUN,
   RootTABLE,
-  RootTABLE_MASKED,
+  RootAREA_TAGGED,
   RootREG,
   RootREG_MASKED,
   RootFMT,
