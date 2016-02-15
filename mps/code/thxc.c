@@ -211,7 +211,8 @@ Arena ThreadArena(Thread thread)
 #include "prmcxc.h"
 
 Res ThreadScan(ScanState ss, Thread thread, Word *stackBot,
-               Word mask, Word pattern)
+	       mps_area_scan_t scan_area,
+	       void *closure, size_t closure_size)
 {
   mach_port_t self;
   Res res;
@@ -259,12 +260,12 @@ Res ThreadScan(ScanState ss, Thread thread, Word *stackBot,
     /* scan stack inclusive of current sp and exclusive of
      * stackBot (.stack.full-descend)
      */
-    res = TraceScanAreaTagged(ss, stackBase, stackLimit, mask, pattern);
+    res = scan_area(ss, stackBase, stackLimit, closure, closure_sized);
     if(res != ResOK)
       return res;
 
     /* scan the registers in the mutator fault context */
-    res = MutatorFaultContextScan(ss, &mfcStruct, mask, pattern);
+    res = MutatorFaultContextScan(ss, &mfcStruct, scan_area, closure, closure_size);
     if(res != ResOK)
       return res;
   }

@@ -68,7 +68,8 @@ SRCID(thw3i3, "$Id$");
 
 
 Res ThreadScan(ScanState ss, Thread thread, Word *stackBot,
-               Word mask, Word pattern)
+	       mps_area_scan_t scan_area,
+	       void *closure, size_t closure_size)
 {
   DWORD id;
   Res res;
@@ -105,7 +106,7 @@ Res ThreadScan(ScanState ss, Thread thread, Word *stackBot,
     /* scan stack inclusive of current sp and exclusive of
      * stackBot (.stack.full-descend)
      */
-    res = TraceScanAreaTagged(ss, stackBase, stackLimit, mask, pattern);
+    res = scan_area(ss, stackBase, stackLimit, closure, closure_size);
     if(res != ResOK)
       return res;
 
@@ -114,14 +115,14 @@ Res ThreadScan(ScanState ss, Thread thread, Word *stackBot,
      * unnecessarily scans the rest of the context.  The optimisation
      * to scan only relevant parts would be machine dependent.
      */
-    res = TraceScanAreaTagged(ss, (Word *)&context,
-                              (Word *)((char *)&context + sizeof(CONTEXT)),
-                              mask, pattern);
+    res = scan_area(ss, (Word *)&context,
+		    (Word *)((char *)&context + sizeof(CONTEXT)),
+		    closure, closure_size);
     if(res != ResOK)
       return res;
 
   } else { /* scan this thread's stack */
-    res = StackScan(ss, stackBot, mask, pattern);
+    res = StackScan(ss, stackBot, scan_area, closure, closure_size);
     if(res != ResOK)
       return res;
   }

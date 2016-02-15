@@ -1426,27 +1426,6 @@ void TraceScanSingleRef(TraceSet ts, Rank rank, Arena arena,
  * [base, limit).  I.e., it calls Fix on all words from base up to
  * limit, inclusive of base and exclusive of limit.  */
 
-static mps_res_t mps_scan_area(mps_ss_t, mps_word_t *, mps_word_t *);
-
-static mps_res_t mps_scan_area(mps_ss_t ss, mps_word_t *base, mps_word_t *limit)
-{
-  MPS_SCAN_BEGIN(ss) {
-    mps_word_t *p = base;
-    while (p < limit) {
-      mps_word_t word = *p;
-      mps_addr_t ref = (mps_addr_t)word;
-      if (MPS_FIX1(ss, ref)) {
-        mps_res_t res = MPS_FIX2(ss, &ref);
-        if (res != MPS_RES_OK)
-          return res;
-        *p = (mps_word_t)ref;
-      }
-      ++p;
-    }
-  } MPS_SCAN_END(ss);
-
-  return MPS_RES_OK;
-}
 
 Res TraceScanArea(ScanState ss, Word *base, Word *limit)
 {
@@ -1456,11 +1435,11 @@ Res TraceScanArea(ScanState ss, Word *base, Word *limit)
 
   EVENT3(TraceScanArea, ss, base, limit);
 
-  return mps_scan_area(&ss->ss_s, base, limit);
+  return mps_scan_area(&ss->ss_s, base, limit, NULL, 0);
 }
 
 
-
+#if 0
 /* TraceScanAreaTagged -- scan contiguous area of tagged references
  *
  * This is as TraceScanArea except words are only fixed if they have
@@ -1470,38 +1449,11 @@ Res TraceScanArea(ScanState ss, Word *base, Word *limit)
  * sanitizer will think we have run off the end of an array.
  */
 
-static mps_res_t mps_scan_area_tagged(mps_ss_t,
-                                      mps_word_t *, mps_word_t *,
-                                      mps_word_t, mps_word_t);
-
-ATTRIBUTE_NO_SANITIZE_ADDRESS
-static mps_res_t mps_scan_area_tagged(mps_ss_t ss,
-                                      mps_word_t *base, mps_word_t *limit,
-                                      mps_word_t mask, mps_word_t pattern)
-{
-  MPS_SCAN_BEGIN(ss) {
-    mps_word_t *p = base;
-    while (p < limit) {
-      mps_word_t word = *p;
-      if ((word & mask) == pattern) {
-        mps_addr_t ref = (mps_addr_t)(word ^ pattern);
-        if (MPS_FIX1(ss, ref)) {
-          mps_res_t res = MPS_FIX2(ss, &ref);
-          if (res != MPS_RES_OK)
-            return res;
-          *p = (mps_word_t)ref | pattern;
-        }
-      }
-      ++p;
-    }
-  } MPS_SCAN_END(ss);
-
-  return MPS_RES_OK;
-}
-
-Res TraceScanAreaTagged(ScanState ss, Word *base, Word *limit, Word mask,
+Res TraceScanAreaTagged(ScanState ss, Word *base, Word *limit,Word mask,
                         Word pattern)
 {
+  mps_scan_tag_s tag;
+  
   AVERT(ScanState, ss);
   AVER(base != NULL);
   AVER(limit != NULL);
@@ -1509,8 +1461,12 @@ Res TraceScanAreaTagged(ScanState ss, Word *base, Word *limit, Word mask,
 
   EVENT3(TraceScanAreaTagged, ss, base, limit);
 
-  return mps_scan_area_tagged(&ss->ss_s, base, limit, mask, pattern);
+  tag.mask = mask;
+  tag.pattern = pattern;
+
+  return mps_scan_area_tagged(&ss->ss_s, base, limit, &tag, 0);
 }
+#endif
 
 
 /* traceCondemnAll -- condemn everything and notify all the chains */
