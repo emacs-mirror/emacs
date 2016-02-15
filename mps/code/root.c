@@ -51,12 +51,6 @@ typedef struct RootStruct {
       mps_scan_tag_s tag;       /* tag for scanning */
     } areaTagged;
     struct {
-      mps_reg_scan_t scan;      /* function for scanning registers */
-      Thread thread;            /* passed to scan */
-      void *p;                  /* passed to scan */
-      size_t s;                 /* passed to scan */
-    } reg;
-    struct {
       Thread thread;            /* passed to scan */
       mps_area_scan_t scan_area;/* area scanner for stack and registers */
       mps_scan_tag_s tag;       /* tag for scanning */
@@ -77,7 +71,7 @@ typedef struct RootStruct {
 Bool RootVarCheck(RootVar rootVar)
 {
   CHECKL(rootVar == RootAREA || rootVar == RootAREA_TAGGED
-         || rootVar == RootFUN || rootVar == RootFMT || rootVar == RootREG
+         || rootVar == RootFUN || rootVar == RootFMT
          || rootVar == RootTHREAD_TAGGED);
   UNUSED(rootVar);
   return TRUE;
@@ -131,12 +125,6 @@ Bool RootCheck(Root root)
 
     case RootFUN:
     CHECKL(root->the.fun.scan != NULL);
-    break;
-
-    case RootREG:
-    CHECKL(root->the.reg.scan != NULL);
-    CHECKD_NOSIG(Thread, root->the.reg.thread); /* <design/check/#hidden-type> */
-    /* Can't check anything about p or s. */
     break;
 
     case RootTHREAD_TAGGED:
@@ -327,27 +315,6 @@ Res RootCreateAreaTagged(Root *rootReturn, Arena arena,
 
   return rootCreateProtectable(rootReturn, arena, rank, mode, RootAREA_TAGGED,
                                (Addr)base, (Addr)limit, &theUnion);
-}
-
-Res RootCreateReg(Root *rootReturn, Arena arena,
-                  Rank rank, Thread thread,
-                  mps_reg_scan_t scan, void *p, size_t s)
-{
-  union RootUnion theUnion;
-
-  AVER(rootReturn != NULL);
-  AVERT(Arena, arena);
-  AVERT(Rank, rank);
-  AVERT(Thread, thread);
-  AVER(ThreadArena(thread) == arena);
-  AVER(scan != NULL);
-
-  theUnion.reg.scan = scan;
-  theUnion.reg.thread = thread;
-  theUnion.reg.p = p;
-  theUnion.reg.s = s;
-
-  return rootCreate(rootReturn, arena, rank, (RootMode)0, RootREG, &theUnion);
 }
 
 Res RootCreateThreadTagged(Root *rootReturn, Arena arena,
@@ -558,13 +525,6 @@ Res RootScan(ScanState ss, Root root)
       goto failScan;
     break;
 
-  case RootREG:
-    res = (*root->the.reg.scan)(&ss->ss_s, root->the.reg.thread,
-                                root->the.reg.p, root->the.reg.s);
-    if (res != ResOK)
-      goto failScan;
-    break;
-
   case RootTHREAD_TAGGED:
     res = ThreadScan(ss, root->the.threadTagged.thread,
                      root->the.threadTagged.stackBot,
@@ -730,15 +690,6 @@ Res RootDescribe(Root root, mps_lib_FILE *stream, Count depth)
                  "scan function $F\n", (WriteFF)root->the.fun.scan,
                  "environment p $P s $W\n",
                  (WriteFP)root->the.fun.p, (WriteFW)root->the.fun.s,
-                 NULL);
-    if (res != ResOK)
-      return res;
-    break;
-
-    case RootREG:
-    res = WriteF(stream, depth + 2,
-                 "thread $P\n", (WriteFP)root->the.reg.thread,
-                 "environment p $P", (WriteFP)root->the.reg.p,
                  NULL);
     if (res != ResOK)
       return res;
