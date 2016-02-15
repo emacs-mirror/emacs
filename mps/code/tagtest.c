@@ -106,7 +106,7 @@ static mps_addr_t skip(mps_addr_t addr)
 }
 
 
-static void collect(mps_arena_t arena, size_t expected)
+static void collect(mps_arena_t arena, size_t expected, int strict)
 {
   size_t finalized = 0;
   mps_arena_collect(arena);
@@ -122,7 +122,7 @@ static void collect(mps_arena_t arena, size_t expected)
   }
   printf("finalized=%lu expected=%lu\n",
          (unsigned long)finalized, (unsigned long)expected);
-  Insist(finalized == expected);
+  Insist(finalized == expected || !strict);
 }
 
 
@@ -131,7 +131,8 @@ static void collect(mps_arena_t arena, size_t expected)
  */
 
 static void alloc_recursively(mps_arena_t arena, mps_ap_t ap,
-                              size_t expected, size_t count)
+                              size_t expected, size_t count,
+			      int strict)
 {
   mps_word_t p, r;
   mps_word_t q = TAGGED(count << tag_bits, imm);
@@ -146,9 +147,9 @@ static void alloc_recursively(mps_arena_t arena, mps_ap_t ap,
      prevent finalization when scanned with the default mode. */
   addr = NULL;
   if (count > 1) {
-    alloc_recursively(arena, ap, expected, count - 1);
+    alloc_recursively(arena, ap, expected, count - 1, strict);
   } else {
-    collect(arena, expected);
+    collect(arena, expected, strict);
   }
   if (expected == 0) {
     Insist(TAG(p) == tag_cons);
@@ -235,7 +236,7 @@ static void test(int mode, void *marker)
 
   die(mps_ap_create_k(&ap, pool, mps_args_none), "ap");
 
-  alloc_recursively(arena, ap, expected, OBJCOUNT);
+  alloc_recursively(arena, ap, expected, OBJCOUNT, mode != MODE_DEFAULT);
 
   mps_arena_park(arena);
   mps_ap_destroy(ap);

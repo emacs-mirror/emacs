@@ -1451,8 +1451,13 @@ mps_res_t mps_stack_scan_ambig(mps_ss_t mps_ss,
                                mps_thr_t thread, void *p, size_t s)
 {
   ScanState ss = PARENT(ScanStateStruct, ss_s, mps_ss);
+  mps_scan_tag_s tag;
+  
   UNUSED(s);
-  return ThreadScan(ss, thread, (Word *)p, sizeof(mps_word_t) - 1, 0);
+
+  tag.mask = sizeof(mps_word_t) - 1;
+  tag.pattern = 0;
+  return ThreadScan(ss, thread, (Word *)p, mps_scan_area_tagged, &tag, sizeof(tag));
 }
 
 

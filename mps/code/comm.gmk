@@ -200,6 +200,7 @@ MPMCOMMON = \
     root.c \
     sa.c \
     sac.c \
+    scan.c \
     seg.c \
     shield.c \
     splay.c \
