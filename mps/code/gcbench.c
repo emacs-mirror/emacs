@@ -178,7 +178,8 @@ static void *start(void *p) {
   RESMUST(mps_thread_reg(&thread->mps_thread, arena));
   RESMUST(mps_root_create_stack(&thread->reg_root, arena, mps_rank_ambig(),
                                 (mps_rm_t)0, thread->mps_thread,
-                                sizeof(mps_word_t) - 1, 0, &marker));
+                                mps_scan_area_tagged,
+				sizeof(mps_word_t) - 1, 0, &marker));
   RESMUST(mps_ap_create_k(&thread->ap, pool, mps_args_none));
   thread->fn(thread);
   mps_ap_destroy(thread->ap);
