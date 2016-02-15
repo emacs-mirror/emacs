@@ -49,16 +49,17 @@ Res StackScanInner(ScanState ss, Word *stackBot, Word *stackTop,
   if (arena->stackAtArenaEnter != NULL) {
     AVER(stackTop < arena->stackAtArenaEnter);
     AVER(arena->stackAtArenaEnter < stackBot);
-    res = scan_area(&ss->ss_s, stackTop, stackTop + nSavedRegs,
-		    closure, closure_size);
+    res = TraceScanArea(ss, stackTop, stackTop + nSavedRegs,
+			scan_area, closure, closure_size);
     if (res != ResOK)
       return res;
-    res = scan_area(&ss->ss_s, arena->stackAtArenaEnter, stackBot,
-		    closure, closure_size);
+    res = TraceScanArea(ss, arena->stackAtArenaEnter, stackBot,
+			scan_area, closure, closure_size);
     if (res != ResOK)
       return res;
   } else {
-    res = scan_area(&ss->ss_s, stackTop, stackBot, closure, closure_size);
+    res = TraceScanArea(ss, stackTop, stackBot,
+			scan_area, closure, closure_size);
     if (res != ResOK)
       return res;
   }
