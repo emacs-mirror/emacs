@@ -4,8 +4,7 @@
  * Copyright (c) 2015 Ravenbrook Limited.  See end of file for license.
  *
  * .overview: This test case checks that the MPS correctly handles
- * tagged pointers via the object format and via stack and register
- * scanning.
+ * tagged pointers via the object format and tagged area scanning.
  */
 
 #include <stdio.h>              /* printf */
@@ -16,7 +15,7 @@
 #include "mpscamc.h"
 #include "testlib.h"
 
-#define OBJCOUNT (1000)         /* Number of conses to allocate */
+#define OBJCOUNT 1000           /* Number of conses to allocate */
 
 typedef struct cons_s {
   mps_word_t car, cdr;
@@ -30,6 +29,7 @@ static mps_word_t tag_cons;     /* Tag bits indicating pointer to cons */
 static mps_word_t tag_fwd;      /* Tag bits indicating forwarding pointer */
 static mps_word_t tag_imm;      /* Tag bits indicating immediate value */
 static mps_word_t tag_invalid;  /* Invalid tag bits */
+static mps_addr_t refs[OBJCOUNT]; /* Tagged references to objects */
 
 #define TAG_COUNT ((mps_word_t)1 << tag_bits) /* Number of distinct tags */
 #define TAG_MASK (TAG_COUNT - 1) /* Tag mask */
@@ -106,7 +106,7 @@ static mps_addr_t skip(mps_addr_t addr)
 }
 
 
-static void collect(mps_arena_t arena, size_t expected, int strict)
+static void collect(mps_arena_t arena, size_t expected)
 {
   size_t finalized = 0;
   mps_arena_collect(arena);
@@ -122,47 +122,13 @@ static void collect(mps_arena_t arena, size_t expected, int strict)
   }
   printf("finalized=%lu expected=%lu\n",
          (unsigned long)finalized, (unsigned long)expected);
-  Insist(finalized == expected || !strict);
-}
-
-
-/* alloc_recursively -- Allocate 'count' objects and remember pointers
- * to those objects on the stack.
- */
-
-static void alloc_recursively(mps_arena_t arena, mps_ap_t ap,
-                              size_t expected, size_t count,
-			      int strict)
-{
-  mps_word_t p, r;
-  mps_word_t q = TAGGED(count << tag_bits, imm);
-  mps_addr_t addr;
-  p = make_cons(ap, q, q);
-  Insist(TAG(p) == tag_cons);
-  r = TAGGED(p, imm);
-  UNTAGGED(p, cons)->cdr = r;
-  addr = (mps_addr_t)UNTAGGED(p, cons);
-  die(mps_finalize(arena, &addr), "finalize");
-  /* Avoid leaving a zero-tagged reference on the stack, as it will
-     prevent finalization when scanned with the default mode. */
-  addr = NULL;
-  if (count > 1) {
-    alloc_recursively(arena, ap, expected, count - 1, strict);
-  } else {
-    collect(arena, expected, strict);
-  }
-  if (expected == 0) {
-    Insist(TAG(p) == tag_cons);
-    Insist(UNTAGGED(p, cons)->car == q);
-    Insist(UNTAGGED(p, cons)->cdr == r);
-  }
+  Insist(finalized == expected);
 }
 
 
 /* test -- Run the test case in the specified mode. */
 
 #define MODES(R, X) \
-  R(X, DEFAULT, "Use default scanner (tagged with 0).") \
   R(X, CONS,    "Scan words tagged \"cons\".") \
   R(X, INVALID, "Scan words tagged \"invalid\".")
 
@@ -180,7 +146,7 @@ static const char *mode_name[] = {
 };
 
 
-static void test(int mode, void *marker)
+static void test(int mode)
 {
   mps_arena_t arena;
   mps_thr_t thread;
@@ -189,6 +155,7 @@ static void test(int mode, void *marker)
   mps_pool_t pool;
   mps_ap_t ap;
   size_t expected = 0;
+  size_t i;
 
   printf("test(%s)\n", mode_name[mode]);
 
@@ -200,24 +167,20 @@ static void test(int mode, void *marker)
   default:
     Insist(0);
     /* fall through */
-  case MODE_DEFAULT:
-    /* Default stack scanner only recognizes words tagged with 0. */
-    die(mps_root_create_reg(&root, arena, mps_rank_ambig(), 0, thread,
-                            mps_stack_scan_ambig, marker, 0), "root");
-    expected = (tag_cons != 0) * OBJCOUNT;
-    break;
   case MODE_CONS:
     /* Scan words tagged "cons" -- everything will live. */
-    die(mps_root_create_thread_tagged(&root, arena, mps_rank_ambig(), 0, thread,
-				      mps_scan_area_tagged, TAG_MASK, tag_cons,
-				      marker), "root");
+    die(mps_root_create_table_tagged(&root, arena, mps_rank_ambig(), 0,
+				     refs, OBJCOUNT,
+				     mps_scan_area_tagged, TAG_MASK, tag_cons),
+	"root");
     expected = 0;
     break;
   case MODE_INVALID:
     /* Scan words tagged "invalid" -- everything will die. */
-    die(mps_root_create_thread_tagged(&root, arena, mps_rank_ambig(), 0, thread,
-				      mps_scan_area_tagged, TAG_MASK, tag_invalid,
-				      marker), "root");
+    die(mps_root_create_table_tagged(&root, arena, mps_rank_ambig(), 0,
+				     refs, OBJCOUNT,
+				     mps_scan_area_tagged, TAG_MASK, tag_invalid),
+	"root");
     expected = OBJCOUNT;
     break;
   }
@@ -238,7 +201,20 @@ static void test(int mode, void *marker)
 
   die(mps_ap_create_k(&ap, pool, mps_args_none), "ap");
 
-  alloc_recursively(arena, ap, expected, OBJCOUNT, mode != MODE_DEFAULT);
+  for (i = 0; i < OBJCOUNT; ++i) {
+    mps_word_t p, r;
+    mps_word_t q = TAGGED(i << tag_bits, imm);
+    mps_addr_t addr;
+    p = make_cons(ap, q, q);
+    Insist(TAG(p) == tag_cons);
+    r = TAGGED(p, imm);
+    UNTAGGED(p, cons)->cdr = r;
+    refs[i] = (mps_addr_t)p;
+    addr = (mps_addr_t)UNTAGGED(p, cons);
+    die(mps_finalize(arena, &addr), "finalize");
+  }
+
+  collect(arena, expected);
 
   mps_arena_park(arena);
   mps_ap_destroy(ap);
@@ -251,7 +227,6 @@ static void test(int mode, void *marker)
 
 int main(int argc, char *argv[])
 {
-  void *marker = &marker;
   mps_word_t tags[sizeof(mps_word_t)];
   size_t i;
   int mode;
@@ -282,7 +257,7 @@ int main(int argc, char *argv[])
          (unsigned)tag_imm, (unsigned)tag_invalid);
 
   for (mode = 0; mode < MODE_LIMIT; ++mode) {
-    test(mode, marker);
+    test(mode);
   }
 
   printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
