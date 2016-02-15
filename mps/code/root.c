@@ -61,7 +61,7 @@ typedef struct RootStruct {
       mps_area_scan_t scan_area;/* area scanner for stack and registers */
       mps_scan_tag_s tag;       /* tag for scanning */
       Word *stackBot;           /* bottom of stack */
-    } regMasked;
+    } threadTagged;
     struct {
       mps_fmt_scan_t scan;      /* format-like scanner */
       Addr base, limit;         /* passed to scan */
@@ -78,7 +78,7 @@ Bool RootVarCheck(RootVar rootVar)
 {
   CHECKL(rootVar == RootAREA || rootVar == RootAREA_TAGGED
          || rootVar == RootFUN || rootVar == RootFMT || rootVar == RootREG
-         || rootVar == RootREG_MASKED);
+         || rootVar == RootTHREAD_TAGGED);
   UNUSED(rootVar);
   return TRUE;
 }
@@ -139,10 +139,10 @@ Bool RootCheck(Root root)
     /* Can't check anything about p or s. */
     break;
 
-    case RootREG_MASKED:
-    CHECKD_NOSIG(Thread, root->the.regMasked.thread); /* <design/check/#hidden-type> */
-    CHECKL(FUNCHECK(root->the.regMasked.scan_area));
-    CHECKL((~root->the.regMasked.tag.mask & root->the.regMasked.tag.pattern) == 0);
+    case RootTHREAD_TAGGED:
+    CHECKD_NOSIG(Thread, root->the.threadTagged.thread); /* <design/check/#hidden-type> */
+    CHECKL(FUNCHECK(root->the.threadTagged.scan_area));
+    CHECKL((~root->the.threadTagged.tag.mask & root->the.threadTagged.tag.pattern) == 0);
     /* Can't check anything about stackBot. */
     break;
 
@@ -350,11 +350,11 @@ Res RootCreateReg(Root *rootReturn, Arena arena,
   return rootCreate(rootReturn, arena, rank, (RootMode)0, RootREG, &theUnion);
 }
 
-Res RootCreateRegMasked(Root *rootReturn, Arena arena,
-                        Rank rank, Thread thread,
-			mps_area_scan_t scan_area,
-                        Word mask, Word pattern,
-			Word *stackBot)
+Res RootCreateThreadTagged(Root *rootReturn, Arena arena,
+			   Rank rank, Thread thread,
+			   mps_area_scan_t scan_area,
+			   Word mask, Word pattern,
+			   Word *stackBot)
 {
   union RootUnion theUnion;
 
@@ -365,13 +365,13 @@ Res RootCreateRegMasked(Root *rootReturn, Arena arena,
   AVER(ThreadArena(thread) == arena);
   AVER((~mask & pattern) == 0);
 
-  theUnion.regMasked.thread = thread;
-  theUnion.regMasked.scan_area = scan_area;
-  theUnion.regMasked.tag.mask = mask;
-  theUnion.regMasked.tag.pattern = pattern;
-  theUnion.regMasked.stackBot = stackBot;
+  theUnion.threadTagged.thread = thread;
+  theUnion.threadTagged.scan_area = scan_area;
+  theUnion.threadTagged.tag.mask = mask;
+  theUnion.threadTagged.tag.pattern = pattern;
+  theUnion.threadTagged.stackBot = stackBot;
 
-  return rootCreate(rootReturn, arena, rank, (RootMode)0, RootREG_MASKED,
+  return rootCreate(rootReturn, arena, rank, (RootMode)0, RootTHREAD_TAGGED,
                     &theUnion);
 }
 
@@ -565,12 +565,12 @@ Res RootScan(ScanState ss, Root root)
       goto failScan;
     break;
 
-  case RootREG_MASKED:
-    res = ThreadScan(ss, root->the.regMasked.thread,
-                     root->the.regMasked.stackBot,
-		     root->the.regMasked.scan_area,
-		     &root->the.regMasked.tag,
-		     sizeof(root->the.regMasked.tag));
+  case RootTHREAD_TAGGED:
+    res = ThreadScan(ss, root->the.threadTagged.thread,
+                     root->the.threadTagged.stackBot,
+		     root->the.threadTagged.scan_area,
+		     &root->the.threadTagged.tag,
+		     sizeof(root->the.threadTagged.tag));
     if (res != ResOK)
       goto failScan;
     break;
@@ -744,13 +744,13 @@ Res RootDescribe(Root root, mps_lib_FILE *stream, Count depth)
       return res;
     break;
 
-  case RootREG_MASKED:
+  case RootTHREAD_TAGGED:
     res = WriteF(stream, depth + 2,
-                 "thread $P\n", (WriteFP)root->the.regMasked.thread,
-		 "scan_area $P\n", (WriteFP)root->the.regMasked.scan_area,
-		 "mask $B\n", (WriteFB)root->the.regMasked.tag.mask,
-		 "pattern $B\n", (WriteFB)root->the.regMasked.tag.pattern,
-		 "stackBot $P\n", (WriteFP)root->the.regMasked.stackBot,
+                 "thread $P\n", (WriteFP)root->the.threadTagged.thread,
+		 "scan_area $P\n", (WriteFP)root->the.threadTagged.scan_area,
+		 "mask $B\n", (WriteFB)root->the.threadTagged.tag.mask,
+		 "pattern $B\n", (WriteFB)root->the.threadTagged.tag.pattern,
+		 "stackBot $P\n", (WriteFP)root->the.threadTagged.stackBot,
                  NULL);
     if (res != ResOK)
       return res;

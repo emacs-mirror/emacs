@@ -1472,9 +1472,9 @@ mps_res_t mps_root_create_stack(mps_root_t *mps_root_o, mps_arena_t arena,
   AVER((~mask & pattern) == 0);
 
   /* See .root-mode. */
-  res = RootCreateRegMasked(&root, arena, rank, thread,
-                            scan_area, mask, pattern,
-			    (Word *)stack);
+  res = RootCreateThreadTagged(&root, arena, rank, thread,
+			       scan_area, mask, pattern,
+			       (Word *)stack);
 
   ArenaLeave(arena);
 
