@@ -1300,11 +1300,12 @@ mps_res_t mps_root_create_table(mps_root_t *mps_root_o, mps_arena_t arena,
   AVER(size > 0);
 
   /* .root.table-size: size is the length of the array at base, not */
-  /* the size in bytes.  However, RootCreateTable expects base and */
+  /* the size in bytes.  However, RootCreateArea expects base and */
   /* limit pointers.  Be careful. */
 
-  res = RootCreateTable(&root, arena, rank, mode,
-                        (Word *)base, (Word *)base + size);
+  res = RootCreateArea(&root, arena, rank, mode,
+		       (Word *)base, (Word *)base + size,
+		       mps_scan_area, NULL, 0);
 
   ArenaLeave(arena);
 
@@ -1314,6 +1315,7 @@ mps_res_t mps_root_create_table(mps_root_t *mps_root_o, mps_arena_t arena,
   return MPS_RES_OK;
 }
 
+/* FIXME: document */
 mps_res_t mps_root_create_area(mps_root_t *mps_root_o,
 			       mps_arena_t arena,
 			       mps_rank_t mps_rank, mps_rm_t mps_rm,
@@ -1322,7 +1324,9 @@ mps_res_t mps_root_create_area(mps_root_t *mps_root_o,
 			       void *closure, size_t closure_size)
 {
   Rank rank = (Rank)mps_rank;
+  Root root;
   RootMode mode = (RootMode)mps_rm;
+  Res res;
 
   ArenaEnter(arena);
 
@@ -1333,25 +1337,25 @@ mps_res_t mps_root_create_area(mps_root_t *mps_root_o,
   AVER(FUNCHECK(scan_area));
   /* Can't check anything about closure */
 
-  /* See .root.table-size. */
-
-  /* FIXME: Implement! */
-  UNUSED(rank);
-  UNUSED(mode);
-  UNUSED(closure);
-  UNUSED(closure_size);
-  NOTREACHED;
+  res = RootCreateArea(&root, arena, rank, mode,
+		       base, limit,
+		       scan_area, closure, closure_size);
 
   ArenaLeave(arena);
 
-  return ResUNIMPL;
+  if (res != ResOK)
+    return (mps_res_t)res;
+  *mps_root_o = (mps_root_t)root;
+  return MPS_RES_OK;
 }
 
-mps_res_t mps_root_create_table_masked(mps_root_t *mps_root_o,
+mps_res_t mps_root_create_table_tagged(mps_root_t *mps_root_o,
                                        mps_arena_t arena,
                                        mps_rank_t mps_rank, mps_rm_t mps_rm,
                                        mps_addr_t *base, size_t size,
-                                       mps_word_t mask)
+				       mps_area_scan_t scan_area,
+                                       mps_word_t mask,
+				       mps_word_t pattern)
 {
   Rank rank = (Rank)mps_rank;
   Root root;
@@ -1363,12 +1367,14 @@ mps_res_t mps_root_create_table_masked(mps_root_t *mps_root_o,
   AVER(mps_root_o != NULL);
   AVER(base != NULL);
   AVER(size > 0);
+  AVER(FUNCHECK(scan_area));
   /* Can't check anything about mask. */
+  AVER((pattern & mask) == pattern);
 
   /* .root.table-size */
   res = RootCreateAreaTagged(&root, arena, rank, mode,
 			     (Word *)base, (Word *)base + size,
-			     mps_scan_area_masked, mask, 0);
+			     scan_area, mask, pattern);
 
   ArenaLeave(arena);
 
@@ -1376,6 +1382,17 @@ mps_res_t mps_root_create_table_masked(mps_root_t *mps_root_o,
     return (mps_res_t)res;
   *mps_root_o = (mps_root_t)root;
   return MPS_RES_OK;
+}
+
+mps_res_t mps_root_create_table_masked(mps_root_t *mps_root_o,
+                                       mps_arena_t arena,
+                                       mps_rank_t mps_rank, mps_rm_t mps_rm,
+                                       mps_addr_t *base, size_t size,
+                                       mps_word_t mask)
+{
+  return mps_root_create_table_tagged(mps_root_o, arena, mps_rank, mps_rm,
+				      base, size, mps_scan_area_masked,
+				      mask, 0);
 }
 
 mps_res_t mps_root_create_fmt(mps_root_t *mps_root_o, mps_arena_t arena,

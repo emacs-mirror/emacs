@@ -947,9 +947,11 @@ extern void LDMerge(mps_ld_t ld, Arena arena, mps_ld_t from);
 
 /* Root Interface -- see <code/root.c> */
 
-extern Res RootCreateTable(Root *rootReturn, Arena arena,
-                           Rank rank, RootMode mode,
-                           Word *base, Word *limit);
+extern Res RootCreateArea(Root *rootReturn, Arena arena,
+			  Rank rank, RootMode mode,
+			  Word *base, Word *limit,
+			  mps_area_scan_t scan_area,
+			  void *closure, size_t closure_size);
 extern Res RootCreateAreaTagged(Root *rootReturn, Arena arena,
 				Rank rank, RootMode mode,
 				Word *base, Word *limit,

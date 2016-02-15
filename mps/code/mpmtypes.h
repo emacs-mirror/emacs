@@ -359,7 +359,7 @@ enum {
 
 enum {
   RootFUN,
-  RootTABLE,
+  RootAREA,
   RootAREA_TAGGED,
   RootREG,
   RootREG_MASKED,
