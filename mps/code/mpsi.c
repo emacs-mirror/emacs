@@ -1453,13 +1453,31 @@ mps_res_t mps_root_create_reg(mps_root_t *mps_root_o, mps_arena_t arena,
 /* FIXME: document */
 mps_res_t mps_root_create_thread(mps_root_t *mps_root_o,
 				 mps_arena_t arena,
-				 mps_rank_t mps_rank,
-				 mps_rm_t mps_rm,
 				 mps_thr_t thread,
-				 mps_area_scan_t scan_area,
-				 void *closure,
-				 size_t closure_size,
 				 void *stack)
+{
+  return mps_root_create_thread_tagged(mps_root_o,
+				       arena,
+				       mps_rank_ambig(),
+				       (mps_rm_t)0,
+				       thread,
+				       mps_scan_area_tagged,
+				       sizeof(mps_word_t) - 1,
+				       0,
+				       stack);
+}
+
+
+/* FIXME: document */
+mps_res_t mps_root_create_thread_scanned(mps_root_t *mps_root_o,
+					 mps_arena_t arena,
+					 mps_rank_t mps_rank,
+					 mps_rm_t mps_rm,
+					 mps_thr_t thread,
+					 mps_area_scan_t scan_area,
+					 void *closure,
+					 size_t closure_size,
+					 void *stack)
 {
   Rank rank = (Rank)mps_rank;
   Root root;

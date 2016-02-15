@@ -127,9 +127,7 @@ static void test_main(void *marker, int interior, int stack)
     error("Couldn't register thread");
 
   if (stack) {
-    res = mps_root_create_thread_tagged(&reg_root, scheme_arena, mps_rank_ambig(),
-                                0, thread, mps_scan_area_tagged,
-				sizeof(mps_word_t) - 1, 0, marker);
+    res = mps_root_create_thread(&reg_root, scheme_arena, thread, marker);
     if (res != MPS_RES_OK)
       error("Couldn't create root");
   }
