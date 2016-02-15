@@ -362,7 +362,7 @@ enum {
   RootAREA,
   RootAREA_TAGGED,
   RootREG,
-  RootREG_MASKED,
+  RootTHREAD_TAGGED,
   RootFMT,
   RootLIMIT
 };
