@@ -693,6 +693,7 @@ extern mps_res_t mps_root_create_reg(mps_root_t *, mps_arena_t,
                                      mps_reg_scan_t, void *, size_t);
 extern mps_res_t mps_root_create_stack(mps_root_t *, mps_arena_t,
                                        mps_rank_t, mps_rm_t, mps_thr_t,
+				       mps_area_scan_t,
                                        mps_word_t, mps_word_t,
                                        void *);
 extern void mps_root_destroy(mps_root_t);
