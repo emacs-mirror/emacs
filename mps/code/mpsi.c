@@ -40,13 +40,9 @@
  * present.  This is because the MPM doesn't ever try to protect them.
  * In future, it will.
  *
- * .reg-scan: (rule.universal.complete) At present, we only support
- * register scanning using our own ambiguous register and stack scanning
- * method, mps_stack_scan_ambig.  This may never change, but the way the
- * interface is designed allows for the possibility of change.
- *
  * .naming: (rule.impl.guide) The exported identifiers do not follow the
- * normal MPS naming conventions.  See <design/interface-c/#naming>.  */
+ * normal MPS naming conventions.  See <design/interface-c/#naming>.
+ */
 
 #include "mpm.h"
 #include "mps.h"
@@ -1421,7 +1417,7 @@ mps_res_t mps_root_create_fmt(mps_root_t *mps_root_o, mps_arena_t arena,
 mps_res_t mps_root_create_reg(mps_root_t *mps_root_o, mps_arena_t arena,
                               mps_rank_t mps_rank, mps_rm_t mps_rm,
                               mps_thr_t thread, mps_reg_scan_t mps_reg_scan,
-                              void *reg_scan_p, size_t mps_size)
+                              void *stack, size_t mps_size)
 {
   Rank rank = (Rank)mps_rank;
   Root root;
@@ -1432,14 +1428,18 @@ mps_res_t mps_root_create_reg(mps_root_t *mps_root_o, mps_arena_t arena,
   AVER(mps_root_o != NULL);
   AVER(mps_reg_scan != NULL);
   AVER(mps_reg_scan == mps_stack_scan_ambig); /* .reg.scan */
-  AVER(reg_scan_p != NULL); /* stackBot */
-  AVER(AddrIsAligned(reg_scan_p, sizeof(Word)));
+  AVER(stack != NULL); /* stackBot */
+  AVER(AddrIsAligned(stack, sizeof(Word)));
   AVER(rank == mps_rank_ambig());
   AVER(mps_rm == (mps_rm_t)0);
 
+  UNUSED(mps_size);
+
   /* See .root-mode. */
-  res = RootCreateReg(&root, arena, rank, thread,
-                      mps_reg_scan, reg_scan_p, mps_size);
+  res = RootCreateThreadTagged(&root, arena, rank, thread,
+			       mps_scan_area_tagged,
+			       sizeof(mps_word_t) - 1, 0,
+			       (Word *)stack);
 
   ArenaLeave(arena);
 
@@ -1487,19 +1487,22 @@ mps_res_t mps_root_create_stack(mps_root_t *mps_root_o, mps_arena_t arena,
 
 /* mps_stack_scan_ambig -- scan the thread state ambiguously
  *
- * See .reg-scan.  */
+ * This is a helper function for the deprecated mps_root_create_reg
+ * and should no longer be reached since that has been reimplemented
+ * in terms of the more general RootCreateThreadTagged.
+ */
 
 mps_res_t mps_stack_scan_ambig(mps_ss_t mps_ss,
                                mps_thr_t thread, void *p, size_t s)
 {
-  ScanState ss = PARENT(ScanStateStruct, ss_s, mps_ss);
-  mps_scan_tag_s tag;
-  
+  UNUSED(mps_ss);
+  UNUSED(thread);
+  UNUSED(p);
   UNUSED(s);
 
-  tag.mask = sizeof(mps_word_t) - 1;
-  tag.pattern = 0;
-  return ThreadScan(ss, thread, (Word *)p, mps_scan_area_tagged, &tag, sizeof(tag));
+  NOTREACHED;
+
+  return ResUNIMPL;
 }
 
 
