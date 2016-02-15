@@ -526,7 +526,7 @@ Res RootScan(ScanState ss, Root root)
   }
 
   switch(root->var) {
-    case RootAREA:
+  case RootAREA:
     res = TraceScanArea(ss,
 			root->the.area.base,
 			root->the.area.limit,
@@ -538,7 +538,7 @@ Res RootScan(ScanState ss, Root root)
       goto failScan;
     break;
 
-    case RootAREA_TAGGED:
+  case RootAREA_TAGGED:
     res = TraceScanArea(ss,
 			root->the.areaTagged.base,
 			root->the.areaTagged.limit,
@@ -550,20 +550,20 @@ Res RootScan(ScanState ss, Root root)
       goto failScan;
     break;
 
-    case RootFUN:
+  case RootFUN:
     res = (*root->the.fun.scan)(&ss->ss_s, root->the.fun.p, root->the.fun.s);
     if (res != ResOK)
       goto failScan;
     break;
 
-    case RootREG:
+  case RootREG:
     res = (*root->the.reg.scan)(&ss->ss_s, root->the.reg.thread,
                                 root->the.reg.p, root->the.reg.s);
     if (res != ResOK)
       goto failScan;
     break;
 
-    case RootREG_MASKED:
+  case RootREG_MASKED:
     res = ThreadScan(ss, root->the.regMasked.thread,
                      root->the.regMasked.stackBot,
 		     root->the.regMasked.scan_area,
@@ -573,14 +573,14 @@ Res RootScan(ScanState ss, Root root)
       goto failScan;
     break;
     
-    case RootFMT:
+  case RootFMT:
     res = (*root->the.fmt.scan)(&ss->ss_s, root->the.fmt.base, root->the.fmt.limit);
     ss->scannedSize += AddrOffset(root->the.fmt.base, root->the.fmt.limit);
     if (res != ResOK)
       goto failScan;
     break;
 
-    default:
+  default:
     NOTREACHED;
     res = ResUNIMPL;
     goto failScan;
