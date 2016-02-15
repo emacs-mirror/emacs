@@ -4582,8 +4582,7 @@ int main(int argc, char *argv[])
      need to be scanned by the MPS because we are passing references to
      objects around in C parameters, return values, and keeping them in
      automatic local variables. See topic/root. */
-  res = mps_root_create_stack(&reg_root, arena, mps_rank_ambig(),
-                              0, thread, sizeof(mps_word_t) - 1, 0, marker);
+  res = mps_root_create_thread(&reg_root, arena, thread, marker);
   if (res != MPS_RES_OK) error("Couldn't create root");
 
   /* Make sure we can pick up finalization messages. */
