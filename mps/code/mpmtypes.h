@@ -361,7 +361,6 @@ enum {
   RootFUN,
   RootAREA,
   RootAREA_TAGGED,
-  RootREG,
   RootTHREAD_TAGGED,
   RootFMT,
   RootLIMIT
