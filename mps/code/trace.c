@@ -1426,7 +1426,6 @@ void TraceScanSingleRef(TraceSet ts, Rank rank, Arena arena,
  * [base, limit).  I.e., it calls Fix on all words from base up to
  * limit, inclusive of base and exclusive of limit.  */
 
-
 Res TraceScanArea(ScanState ss, Word *base, Word *limit,
 		  mps_area_scan_t scan_area,
 		  void *closure, size_t closure_size)

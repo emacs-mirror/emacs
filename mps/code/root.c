@@ -40,10 +40,14 @@ typedef struct RootStruct {
     struct {
       Word *base;               /* beginning of table */
       Word *limit;              /* one off end of table */
+      mps_area_scan_t scan_area;/* area scanning function */
+      void *closure;            /* closure for scanning function */
+      size_t closure_size;      /* closure for scanning function */
     } table;
     struct {
       Word *base;               /* beginning of table */
       Word *limit;              /* one off end of table */
+      mps_area_scan_t scan_area;/* area scanning function */
       mps_scan_tag_s tag;       /* tag for scanning */
     } tableMasked;
     struct {
@@ -54,6 +58,7 @@ typedef struct RootStruct {
     } reg;
     struct {
       Thread thread;            /* passed to scan */
+      mps_area_scan_t scan_area;/* area scanner for stack and registers */
       mps_scan_tag_s tag;       /* tag for scanning */
       Word *stackBot;           /* bottom of stack */
     } regMasked;
@@ -282,6 +287,9 @@ Res RootCreateTable(Root *rootReturn, Arena arena,
 
   theUnion.table.base = base;
   theUnion.table.limit = limit;
+  theUnion.table.scan_area = mps_scan_area;
+  theUnion.table.closure = NULL;
+  theUnion.table.closure_size = 0;
 
   res = rootCreateProtectable(rootReturn, arena, rank, mode,
                               RootTABLE, (Addr)base, (Addr)limit, &theUnion);
@@ -300,9 +308,11 @@ Res RootCreateTableTagged(Root *rootReturn, Arena arena,
   AVER(base != 0);
   AVER(base < limit);
   /* Can't check anything about mask. */
+  AVER((mask & pattern) == pattern);
 
   theUnion.tableMasked.base = base;
   theUnion.tableMasked.limit = limit;
+  theUnion.tableMasked.scan_area = mps_scan_area_tagged;
   theUnion.tableMasked.tag.mask = mask;
   theUnion.tableMasked.tag.pattern = pattern;
 
@@ -345,6 +355,7 @@ Res RootCreateRegMasked(Root *rootReturn, Arena arena,
   AVER((~mask & pattern) == 0);
 
   theUnion.regMasked.thread = thread;
+  theUnion.regMasked.scan_area = mps_scan_area_tagged;
   theUnion.regMasked.tag.mask = mask;
   theUnion.regMasked.tag.pattern = pattern;
   theUnion.regMasked.stackBot = stackBot;
@@ -507,20 +518,24 @@ Res RootScan(ScanState ss, Root root)
 
   switch(root->var) {
     case RootTABLE:
-    res = TraceScanArea(ss, root->the.table.base, root->the.table.limit,
-			mps_scan_area, NULL, 0);
+    res = TraceScanArea(ss,
+			root->the.table.base,
+			root->the.table.limit,
+			root->the.table.scan_area,
+			root->the.table.closure,
+			root->the.table.closure_size);
     ss->scannedSize += AddrOffset(root->the.table.base, root->the.table.limit);
     if (res != ResOK)
       goto failScan;
     break;
 
     case RootTABLE_MASKED:
-    /* FIXME: wrap in checking method */
-    res = mps_scan_area_tagged(&ss->ss_s,
-			       root->the.tableMasked.base,
-			       root->the.tableMasked.limit,
-			       &root->the.tableMasked.tag,
-			       sizeof(root->the.tableMasked.tag));
+    res = TraceScanArea(ss,
+			root->the.tableMasked.base,
+			root->the.tableMasked.limit,
+			root->the.tableMasked.scan_area,
+			&root->the.tableMasked.tag,
+			sizeof(root->the.tableMasked.tag));
     ss->scannedSize += AddrOffset(root->the.table.base, root->the.table.limit);
     if (res != ResOK)
       goto failScan;
@@ -542,7 +557,7 @@ Res RootScan(ScanState ss, Root root)
     case RootREG_MASKED:
     res = ThreadScan(ss, root->the.regMasked.thread,
                      root->the.regMasked.stackBot,
-		     mps_scan_area_tagged,
+		     root->the.regMasked.scan_area,
 		     &root->the.regMasked.tag,
 		     sizeof(root->the.regMasked.tag));
     if (res != ResOK)
