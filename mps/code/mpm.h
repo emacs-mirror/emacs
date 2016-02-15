@@ -957,6 +957,11 @@ extern Res RootCreateAreaTagged(Root *rootReturn, Arena arena,
 				Word *base, Word *limit,
 				mps_area_scan_t scan_area,
 				Word mask, Word pattern);
+extern Res RootCreateThread(Root *rootReturn, Arena arena,
+			    Rank rank, Thread thread,
+			    mps_area_scan_t scan_area,
+			    void *closure, size_t closure_size,
+			    Word *stackBot);
 extern Res RootCreateThreadTagged(Root *rootReturn, Arena arena,
 				  Rank rank, Thread thread,
 				  mps_area_scan_t scan_area,
