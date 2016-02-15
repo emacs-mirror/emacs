@@ -139,7 +139,7 @@ static void *kid_thread(void *arg)
   closure_t cl = arg;
 
   die(mps_thread_reg(&thread, (mps_arena_t)arena), "thread_reg");
-  die(mps_root_create_stack(&reg_root, arena, mps_rank_ambig(),
+  die(mps_root_create_thread_tagged(&reg_root, arena, mps_rank_ambig(),
                             0, thread, mps_scan_area_tagged,
 			    sizeof(mps_word_t) - 1, 0, marker),
       "root_create");
@@ -318,7 +318,7 @@ static void test_arena(int mode)
                             &ambigRoots[0], ambigRootsCOUNT),
       "root_create_table(ambig)");
   die(mps_thread_reg(&thread, arena), "thread_reg");
-  die(mps_root_create_stack(&reg_root, arena, mps_rank_ambig(),
+  die(mps_root_create_thread_tagged(&reg_root, arena, mps_rank_ambig(),
                             0, thread, mps_scan_area_tagged,
 			    sizeof(mps_word_t) - 1, 0, marker),
       "root_create");

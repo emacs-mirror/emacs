@@ -176,7 +176,7 @@ static void *start(void *p) {
   gcthread_t thread = p;
   void *marker;
   RESMUST(mps_thread_reg(&thread->mps_thread, arena));
-  RESMUST(mps_root_create_stack(&thread->reg_root, arena, mps_rank_ambig(),
+  RESMUST(mps_root_create_thread_tagged(&thread->reg_root, arena, mps_rank_ambig(),
                                 (mps_rm_t)0, thread->mps_thread,
                                 mps_scan_area_tagged,
 				sizeof(mps_word_t) - 1, 0, &marker));

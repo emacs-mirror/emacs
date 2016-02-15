@@ -574,7 +574,7 @@ static void StackScan(mps_arena_t arena, int on)
 {
   if(on) {
     Insist(root_stackreg == NULL);
-    die(mps_root_create_stack(&root_stackreg, arena,
+    die(mps_root_create_thread_tagged(&root_stackreg, arena,
                               mps_rank_ambig(), (mps_rm_t)0, stack_thr,
                               mps_scan_area_tagged,
 			      sizeof(mps_word_t) - 1, 0, stack_start),
@@ -763,7 +763,7 @@ static void *testscriptB(void *arg, size_t s)
   /* root_stackreg: stack & registers are ambiguous roots = mutator's workspace */
   stack_start = &stack_starts_here;
   stack_thr = thr;
-  die(mps_root_create_stack(&root_stackreg, arena,
+  die(mps_root_create_thread_tagged(&root_stackreg, arena,
                             mps_rank_ambig(), (mps_rm_t)0, stack_thr,
                             mps_scan_area_tagged,
 			    sizeof(mps_word_t) - 1, 0, stack_start),

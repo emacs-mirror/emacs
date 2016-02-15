@@ -53,9 +53,15 @@ typedef struct RootStruct {
     struct {
       Thread thread;            /* passed to scan */
       mps_area_scan_t scan_area;/* area scanner for stack and registers */
-      mps_scan_tag_s tag;       /* tag for scanning */
+      union {
+	struct {
+	  void *p;
+	  size_t s;
+	} closure;
+	mps_scan_tag_s tag;       /* tag for scanning */
+      } the;
       Word *stackBot;           /* bottom of stack */
-    } threadTagged;
+    } thread;
     struct {
       mps_fmt_scan_t scan;      /* format-like scanner */
       Addr base, limit;         /* passed to scan */
@@ -72,6 +78,7 @@ Bool RootVarCheck(RootVar rootVar)
 {
   CHECKL(rootVar == RootAREA || rootVar == RootAREA_TAGGED
          || rootVar == RootFUN || rootVar == RootFMT
+	 || rootVar == RootTHREAD
          || rootVar == RootTHREAD_TAGGED);
   UNUSED(rootVar);
   return TRUE;
@@ -128,9 +135,9 @@ Bool RootCheck(Root root)
     break;
 
     case RootTHREAD_TAGGED:
-    CHECKD_NOSIG(Thread, root->the.threadTagged.thread); /* <design/check/#hidden-type> */
-    CHECKL(FUNCHECK(root->the.threadTagged.scan_area));
-    CHECKL((~root->the.threadTagged.tag.mask & root->the.threadTagged.tag.pattern) == 0);
+    CHECKD_NOSIG(Thread, root->the.thread.thread); /* <design/check/#hidden-type> */
+    CHECKL(FUNCHECK(root->the.thread.scan_area));
+    CHECKL((~root->the.thread.the.tag.mask & root->the.thread.the.tag.pattern) == 0);
     /* Can't check anything about stackBot. */
     break;
 
@@ -317,6 +324,32 @@ Res RootCreateAreaTagged(Root *rootReturn, Arena arena,
                                (Addr)base, (Addr)limit, &theUnion);
 }
 
+Res RootCreateThread(Root *rootReturn, Arena arena,
+		     Rank rank, Thread thread,
+		     mps_area_scan_t scan_area,
+		     void *closure, size_t closure_size,
+		     Word *stackBot)
+{
+  union RootUnion theUnion;
+
+  AVER(rootReturn != NULL);
+  AVERT(Arena, arena);
+  AVERT(Rank, rank);
+  AVERT(Thread, thread);
+  AVER(ThreadArena(thread) == arena);
+  AVER(FUNCHECK(scan_area));
+  /* Can't check anything about closure. */
+
+  theUnion.thread.thread = thread;
+  theUnion.thread.scan_area = scan_area;
+  theUnion.thread.the.closure.p = closure;
+  theUnion.thread.the.closure.s = closure_size;
+  theUnion.thread.stackBot = stackBot;
+
+  return rootCreate(rootReturn, arena, rank, (RootMode)0, RootTHREAD,
+                    &theUnion);
+}
+
 Res RootCreateThreadTagged(Root *rootReturn, Arena arena,
 			   Rank rank, Thread thread,
 			   mps_area_scan_t scan_area,
@@ -330,13 +363,14 @@ Res RootCreateThreadTagged(Root *rootReturn, Arena arena,
   AVERT(Rank, rank);
   AVERT(Thread, thread);
   AVER(ThreadArena(thread) == arena);
+  AVER(FUNCHECK(scan_area));
   AVER((~mask & pattern) == 0);
 
-  theUnion.threadTagged.thread = thread;
-  theUnion.threadTagged.scan_area = scan_area;
-  theUnion.threadTagged.tag.mask = mask;
-  theUnion.threadTagged.tag.pattern = pattern;
-  theUnion.threadTagged.stackBot = stackBot;
+  theUnion.thread.thread = thread;
+  theUnion.thread.scan_area = scan_area;
+  theUnion.thread.the.tag.mask = mask;
+  theUnion.thread.the.tag.pattern = pattern;
+  theUnion.thread.stackBot = stackBot;
 
   return rootCreate(rootReturn, arena, rank, (RootMode)0, RootTHREAD_TAGGED,
                     &theUnion);
@@ -525,12 +559,22 @@ Res RootScan(ScanState ss, Root root)
       goto failScan;
     break;
 
+  case RootTHREAD:
+    res = ThreadScan(ss, root->the.thread.thread,
+                     root->the.thread.stackBot,
+		     root->the.thread.scan_area,
+		     root->the.thread.the.closure.p,
+		     root->the.thread.the.closure.s);
+    if (res != ResOK)
+      goto failScan;
+    break;
+
   case RootTHREAD_TAGGED:
-    res = ThreadScan(ss, root->the.threadTagged.thread,
-                     root->the.threadTagged.stackBot,
-		     root->the.threadTagged.scan_area,
-		     &root->the.threadTagged.tag,
-		     sizeof(root->the.threadTagged.tag));
+    res = ThreadScan(ss, root->the.thread.thread,
+                     root->the.thread.stackBot,
+		     root->the.thread.scan_area,
+		     &root->the.thread.the.tag,
+		     sizeof(root->the.thread.the.tag));
     if (res != ResOK)
       goto failScan;
     break;
@@ -695,13 +739,26 @@ Res RootDescribe(Root root, mps_lib_FILE *stream, Count depth)
       return res;
     break;
 
+  case RootTHREAD:
+    res = WriteF(stream, depth + 2,
+                 "thread $P\n", (WriteFP)root->the.thread.thread,
+		 "scan_area $P\n", (WriteFP)root->the.thread.scan_area,
+		 "closure $P size $U\n",
+		 (WriteFP)root->the.thread.the.closure.p,
+		 (WriteFU)root->the.thread.the.closure.s,
+		 "stackBot $P\n", (WriteFP)root->the.thread.stackBot,
+                 NULL);
+    if (res != ResOK)
+      return res;
+    break;
+
   case RootTHREAD_TAGGED:
     res = WriteF(stream, depth + 2,
-                 "thread $P\n", (WriteFP)root->the.threadTagged.thread,
-		 "scan_area $P\n", (WriteFP)root->the.threadTagged.scan_area,
-		 "mask $B\n", (WriteFB)root->the.threadTagged.tag.mask,
-		 "pattern $B\n", (WriteFB)root->the.threadTagged.tag.pattern,
-		 "stackBot $P\n", (WriteFP)root->the.threadTagged.stackBot,
+                 "thread $P\n", (WriteFP)root->the.thread.thread,
+		 "scan_area $P\n", (WriteFP)root->the.thread.scan_area,
+		 "mask $B\n", (WriteFB)root->the.thread.the.tag.mask,
+		 "pattern $B\n", (WriteFB)root->the.thread.the.tag.pattern,
+		 "stackBot $P\n", (WriteFP)root->the.thread.stackBot,
                  NULL);
     if (res != ResOK)
       return res;
