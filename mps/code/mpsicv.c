@@ -602,7 +602,7 @@ int main(int argc, char *argv[])
                             marker, (size_t)0),
         "root_create_reg");
   } else {
-    die(mps_root_create_stack(&reg_root, arena,
+    die(mps_root_create_thread_tagged(&reg_root, arena,
                               mps_rank_ambig(), (mps_rm_t)0,
                               thread, mps_scan_area_tagged,
 			      sizeof(mps_word_t) - 1, 0, marker),
