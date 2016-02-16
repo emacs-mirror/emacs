@@ -506,6 +506,8 @@ Fixing interface
 .. index::
    single: scanning; area scanners
 
+.. _topic-area-scanners:
+
 Area scanners
 -------------
 
