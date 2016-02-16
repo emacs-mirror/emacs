@@ -152,7 +152,7 @@ least) two steps, a *reserve* followed by a *commit*.
     The description of the protocol assumes that you have declared
     your threads' :term:`control stacks` and :term:`registers` to be
     :term:`ambiguous roots`, by calling
-    :c:func:`mps_root_create_stack`. This is the simplest way to write
+    :c:func:`mps_root_create_thread`. This is the simplest way to write
     a client, but other scenarios are possible. Please :ref:`contact
     us <contact>` if your use case is not covered here (for example,
     if you need an exact collector).

@@ -5,6 +5,7 @@
  * See end of file for license.
  *
  * TODO: Design document.
+ * FIXME: Manual entries for mps_scan_area etc.
  */
 
 #include "mps.h"

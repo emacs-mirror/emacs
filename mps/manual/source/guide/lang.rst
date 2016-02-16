@@ -972,12 +972,11 @@ You register a thread with an :term:`arena` by calling
     if (res != MPS_RES_OK) error("Couldn't register thread");
 
 You register the thread's :term:`registers` and :term:`control stack`
-as a root by calling :c:func:`mps_root_create_stack`::
+as a root by calling :c:func:`mps_root_create_thread`::
 
     void *marker = &marker;
     mps_root_t stack_root;
-    res = mps_root_create_stack(&reg_root, arena, mps_rank_ambig(),
-                                0, thread, sizeof(mps_word_t) - 1, 0, marker);
+    res = mps_root_create_thread(&reg_root, arena, thread, marker);
     if (res != MPS_RES_OK) error("Couldn't create root");
 
 In order to scan the control stack, the MPS needs to know where the

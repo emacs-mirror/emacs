@@ -705,10 +705,9 @@ Res RootDescribe(Root root, mps_lib_FILE *stream, Count depth)
   switch(root->var) {
   case RootAREA:
     res = WriteF(stream, depth + 2,
-                 "area base $A limit $A scan_area $P closure $P closure_size $U\n",
+                 "area base $A limit $A scan_area closure $P closure_size $U\n",
                  (WriteFA)root->the.area.base,
                  (WriteFA)root->the.area.limit,
-		 (WriteFP)root->the.area.scan_area,
 		 (WriteFP)root->the.area.closure,
 		 (WriteFP)root->the.area.closure_size,
                  NULL);
@@ -718,10 +717,9 @@ Res RootDescribe(Root root, mps_lib_FILE *stream, Count depth)
 
   case RootAREA_TAGGED:
     res = WriteF(stream, depth + 2,
-                 "area base $A limit $A scan_area $P mask $B pattern $B\n",
+                 "area base $A limit $A scan_area mask $B pattern $B\n",
                  (WriteFA)root->the.areaTagged.base,
                  (WriteFA)root->the.areaTagged.limit,
-		 (WriteFP)root->the.areaTagged.scan_area,
                  (WriteFB)root->the.areaTagged.tag.mask,
 		 (WriteFB)root->the.areaTagged.tag.pattern,
                  NULL);
@@ -742,7 +740,6 @@ Res RootDescribe(Root root, mps_lib_FILE *stream, Count depth)
   case RootTHREAD:
     res = WriteF(stream, depth + 2,
                  "thread $P\n", (WriteFP)root->the.thread.thread,
-		 "scan_area $P\n", (WriteFP)root->the.thread.scan_area,
 		 "closure $P size $U\n",
 		 (WriteFP)root->the.thread.the.closure.p,
 		 (WriteFU)root->the.thread.the.closure.s,
@@ -755,7 +752,6 @@ Res RootDescribe(Root root, mps_lib_FILE *stream, Count depth)
   case RootTHREAD_TAGGED:
     res = WriteF(stream, depth + 2,
                  "thread $P\n", (WriteFP)root->the.thread.thread,
-		 "scan_area $P\n", (WriteFP)root->the.thread.scan_area,
 		 "mask $B\n", (WriteFB)root->the.thread.the.tag.mask,
 		 "pattern $B\n", (WriteFB)root->the.thread.the.tag.pattern,
 		 "stackBot $P\n", (WriteFP)root->the.thread.stackBot,

@@ -122,9 +122,7 @@ Deprecated in version 1.115
 
     .. deprecated::
 
-        Use :c:func:`mps_root_create_stack` instead, passing
-        ``sizeof(mps_word_t) - 1`` for the ``mask`` argument, and
-        ``0`` for the ``pattern`` argument.
+        Use :c:func:`mps_root_create_thread` instead.
 
     Register a :term:`root` that consists of the :term:`references`
     fixed in a :term:`thread's <thread>` registers and stack by a
@@ -176,9 +174,12 @@ Deprecated in version 1.115
     Register a :term:`root` that consists of a vector of :term:`tagged
     references` whose pattern is zero.
     
-    This function is equivalent to calling
-    :c:func:`mps_root_create_table_tagged` with a ``pattern`` argument
-    of zero.
+    This function is equivalent to::
+
+      mps_root_create_table_tagged(root_o, arena, rank, rm,
+                                   base, size,
+				   mps_scan_area_tagged,
+				   mask, 0)
 
 
 .. c:type:: mps_res_t (*mps_reg_scan_t)(mps_ss_t ss, mps_thr_t thr, void *p, size_t s)
