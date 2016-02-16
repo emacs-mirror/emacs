@@ -394,7 +394,7 @@ Root interface
     This is the most common kind of thread root.
 
     This function is equivalent to calling::
-      
+
         mps_root_create_thread_tagged(root_o,
 	                              arena,
 				      mps_rank_ambig(),
@@ -481,15 +481,14 @@ Root interface
 	   format.
 
      .. note::
-        
+
         An optimization that may be worth considering is setting some
         of the top bits in ``mask`` so that addresses that cannot be
         allocated by the MPS are rejected quickly. This requires
         expertise with the platform's virtual memory interface.
 
-                
 .. c:function:: mps_res_t mps_root_create_thread_scanned(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_thr_t thread, mps_area_scan_t scan_area, void *closure, size_t closure_size, void *stack)
-						
+
     Register a :term:`root` that consists of the :term:`references` in
     a :term:`thread's <thread>` registers and stack, scanned by an
     arbitrary area scanning function.
@@ -529,6 +528,82 @@ Root interface
     The registered root description persists until it is destroyed by
     calling :c:func:`mps_root_destroy`.
 
+.. c:function:: mps_res_t mps_root_create_area(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_word_t *base, mps_word_t *limit, mps_area_scan_t scan_area, void *closure, size_t closure_size)
+
+    Register a :term:`root` that consists of an area of memory scanned
+    by an area scanning function.
+
+    ``root_o`` points to a location that will hold the address of the
+    new root description.
+
+    ``arena`` is the arena.
+
+    ``rank`` is the :term:`rank` of references in the root.
+
+    ``rm`` is the :term:`root mode`.
+
+    ``base`` points to the first word to be scanned.
+
+    ``limit`` points to the location just beyond the end of the area to be scanned.
+
+    ``scan_area`` is an area scanning function, for example
+    :c:func:`mps_scan_area`, or a similar user-defined function. See
+    :ref:`topic-area-scanners`.
+
+    ``closure`` is an arbitrary pointer that is passed to ``scan_area``
+    and intended to point to any parameters it needs.
+
+    ``closure_size`` is an arbitrary size that is passed to
+    ``scan_area`` but is conventionally the size of the parameter
+    object pointer to by ``closure``.
+
+    Returns :c:macro:`MPS_RES_OK` if the root was registered
+    successfully, :c:macro:`MPS_RES_MEMORY` if the new root
+    description could not be allocated, or another :term:`result code`
+    if there was another error.
+
+    The registered root description persists until it is destroyed by
+    calling :c:func:`mps_root_destroy`.
+
+.. c:function:: mps_res_t mps_root_create_area_tagged(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_word_t *base, mps_word_t *limit, mps_area_scan_t scan_area, mps_word_t mask, mps_word_t pattern)
+
+    Register a :term:`root` that consists of an area of memory scanned by
+    a tagged area scanning function.
+
+    ``root_o`` points to a location that will hold the address of the
+    new root description.
+
+    ``arena`` is the arena.
+
+    ``rank`` is the :term:`rank` of references in the root.
+
+    ``rm`` is the :term:`root mode`.
+
+    ``base`` points to a vector of tagged references.
+
+    ``count`` is the number of tagged references in the vector.
+
+    ``scan_area`` is an tagged area scanning function that will be
+    used to scan the table, for example :c:func:`mps_scan_area_tagged`
+    or :c:func:`mps_scan_area_tagged_or_zero`.  See
+    :ref:`topic-area-scanners`.
+
+    ``mask`` is a :term:`bitmask` that is passed to ``scan_area`` to
+    be applied to the words in the vector to locate the :term:`tag`.
+
+    ``pattern`` is passed to ``scan_area`` to determine whether to
+    consider a word as a reference.  For example,
+    :c:func:`mps_scan_area_tagged` will not consider any word that is
+    unequal to this (after masking with ``mask``) to be a reference.
+
+    Returns :c:macro:`MPS_RES_OK` if the root was registered
+    successfully, :c:macro:`MPS_RES_MEMORY` if the new root
+    description could not be allocated, or another :term:`result code`
+    if there was another error.
+
+    The registered root description persists until it is destroyed by
+    calling :c:func:`mps_root_destroy`.
+
 .. c:function:: mps_res_t mps_root_create_table(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_addr_t *base, size_t count)
 
     Register a :term:`root` that consists of a vector of
@@ -546,6 +621,12 @@ Root interface
     ``base`` points to a vector of references.
 
     ``count`` is the number of references in the vector.
+
+    This function is equivalent to::
+
+        mps_root_create_area(root_o, arena, rank, mode,
+                             (void *)base, (void *)(base + count),
+                             mps_scan_area, NULL, 0)
 
     Returns :c:macro:`MPS_RES_OK` if the root was registered
     successfully, :c:macro:`MPS_RES_MEMORY` if the new root
@@ -616,6 +697,12 @@ Root interface
 
     The registered root description persists until it is destroyed by
     calling :c:func:`mps_root_destroy`.
+
+    This function is equivalent to::
+
+        mps_root_create_area_tagged(root_o, arena, rank, mode,
+                                    (void *)base, (void *)(base + size),
+                                    scan_area, mask, pattern)
 
     For example::
 
