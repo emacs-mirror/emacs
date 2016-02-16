@@ -1387,7 +1387,7 @@ mps_res_t mps_root_create_table_masked(mps_root_t *mps_root_o,
                                        mps_word_t mask)
 {
   return mps_root_create_table_tagged(mps_root_o, arena, mps_rank, mps_rm,
-				      base, size, mps_scan_area_masked,
+				      base, size, mps_scan_area_tagged,
 				      mask, 0);
 }
 
@@ -1450,7 +1450,6 @@ mps_res_t mps_root_create_reg(mps_root_t *mps_root_o, mps_arena_t arena,
 }
 
 
-/* FIXME: document */
 mps_res_t mps_root_create_thread(mps_root_t *mps_root_o,
 				 mps_arena_t arena,
 				 mps_thr_t thread,
@@ -1468,7 +1467,6 @@ mps_res_t mps_root_create_thread(mps_root_t *mps_root_o,
 }
 
 
-/* FIXME: document */
 mps_res_t mps_root_create_thread_scanned(mps_root_t *mps_root_o,
 					 mps_arena_t arena,
 					 mps_rank_t mps_rank,
@@ -1507,7 +1505,6 @@ mps_res_t mps_root_create_thread_scanned(mps_root_t *mps_root_o,
 }
 
 
-/* FIXME: re-document */
 mps_res_t mps_root_create_thread_tagged(mps_root_t *mps_root_o,
 					mps_arena_t arena,
 					mps_rank_t mps_rank,
