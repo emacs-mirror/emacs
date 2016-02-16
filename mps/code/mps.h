@@ -163,12 +163,12 @@ extern const struct mps_key_s _mps_key_ARGS_END;
 #define MPS_KEY_ARGS_END        (&_mps_key_ARGS_END)
 extern mps_arg_s mps_args_none[];
 
-extern const struct mps_key_s _mps_key_ARENA_SIZE;
-#define MPS_KEY_ARENA_SIZE      (&_mps_key_ARENA_SIZE)
-#define MPS_KEY_ARENA_SIZE_FIELD size
 extern const struct mps_key_s _mps_key_ARENA_GRAIN_SIZE;
 #define MPS_KEY_ARENA_GRAIN_SIZE (&_mps_key_ARENA_GRAIN_SIZE)
 #define MPS_KEY_ARENA_GRAIN_SIZE_FIELD size
+extern const struct mps_key_s _mps_key_ARENA_SIZE;
+#define MPS_KEY_ARENA_SIZE      (&_mps_key_ARENA_SIZE)
+#define MPS_KEY_ARENA_SIZE_FIELD size
 extern const struct mps_key_s _mps_key_ARENA_ZONED;
 #define MPS_KEY_ARENA_ZONED     (&_mps_key_ARENA_ZONED)
 #define MPS_KEY_ARENA_ZONED_FIELD b
@@ -184,6 +184,12 @@ extern const struct mps_key_s _mps_key_GEN;
 extern const struct mps_key_s _mps_key_RANK;
 #define MPS_KEY_RANK            (&_mps_key_RANK)
 #define MPS_KEY_RANK_FIELD      rank
+extern const struct mps_key_s _mps_key_COMMIT_LIMIT;
+#define MPS_KEY_COMMIT_LIMIT (&_mps_key_COMMIT_LIMIT)
+#define MPS_KEY_COMMIT_LIMIT_FIELD size
+extern const struct mps_key_s _mps_key_SPARE_COMMIT_LIMIT;
+#define MPS_KEY_SPARE_COMMIT_LIMIT (&_mps_key_SPARE_COMMIT_LIMIT)
+#define MPS_KEY_SPARE_COMMIT_LIMIT_FIELD size
 
 extern const struct mps_key_s _mps_key_EXTEND_BY;
 #define MPS_KEY_EXTEND_BY       (&_mps_key_EXTEND_BY)

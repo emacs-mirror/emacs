@@ -17,6 +17,12 @@ New features
    specifying the minimum size of the memory segments that the pool
    requests from the :term:`arena`.
 
+#. The function :c:func:`mps_arena_create_k` accepts two new
+   :term:`keyword arguments`. :c:macro:`MPS_KEY_COMMIT_LIMIT`
+   sets the :term:`commit limit` for the arena, and
+   :c:macro:`MPS_KEY_SPARE_COMMIT_LIMIT` sets the :term:`spare
+   commit limit` for the arena.
+
 #. New area scanning functions :c:func:`mps_scan_area`,
    :c:func:`mps_scan_area_masked`, :c:func:`mps_scan_area_tagged`,
    :c:func:`mps_scan_area_tagged_or_zero` for use when scanning,
@@ -51,7 +57,6 @@ Interface changes
 
 #. The function :c:func:`mps_root_create_table_masked` is deprecated in
    favour of :c:func:`mps_root_create_table_tagged`.
-
 
 Other changes
 .............
