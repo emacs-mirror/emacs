@@ -91,11 +91,16 @@
 #include "poolmv2.c"
 #include "poolmvff.c"
 
-/* ANSI Plinth */
+/* Plinth */
 
 #if defined(PLINTH)     /* see CONFIG_PLINTH_NONE in config.h  */
+#if defined(MPS_OS_W3)
+#include "mpslibw3.c"
+#include "mpsiow3.c"
+#else
 #include "mpsliban.c"
 #include "mpsioan.c"
+#endif
 #endif
 
 /* Generic ("ANSI") platform */
@@ -216,6 +221,21 @@
 /* Windows on 64-bit Intel with Microsoft Visual Studio */
 
 #elif defined(MPS_PF_W3I6MV)
+
+#include "lockw3.c"     /* Windows locks */
+#include "thw3.c"       /* Windows threading */
+#include "thw3i6.c"     /* Windows on 64-bit Intel thread stack scan */
+#include "vmw3.c"       /* Windows virtual memory */
+#include "protw3.c"     /* Windows protection */
+#include "proti6.c"     /* 64-bit Intel mutator context decoding */
+#include "prmci6w3.c"   /* Windows on 64-bit Intel mutator context */
+#include "ssw3i6mv.c"   /* Windows on 64-bit Intel stack scan for Microsoft C */
+#include "spw3i6.c"     /* Windows on 64-bit Intel stack probe */
+#include "mpsiw3.c"     /* Windows interface layer extras */
+
+/* Windows on 64-bit Intel with clang-cl */
+
+#elif defined(MPS_PF_W3I6LL)
 
 #include "lockw3.c"     /* Windows locks */
 #include "thw3.c"       /* Windows threading */
