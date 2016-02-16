@@ -17,8 +17,9 @@ MPMPF = \
     [thw3i3] \
     [vmw3]
 
+!INCLUDE commpre.nmk
 !INCLUDE mv.nmk
-!INCLUDE comm.nmk
+!INCLUDE commpost.nmk
 
 
 # C. COPYRIGHT AND LICENSE

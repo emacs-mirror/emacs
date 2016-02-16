@@ -243,8 +243,9 @@ the MPS required particular compilation options.
 On Windows, the makefile must be named ``osarct.nmk``, and must define
 ``PFM`` to be the platform code, and ``MPMPF`` to be the list of
 platform modules (the same files included by ``mps.c``) in square
-brackets. Then it must include the compiler-specific makefile and
-``comm.nmk``. For example, ``w3i6mv.nmk`` looks like this::
+brackets. Then it must include ``commpre.nmk``, the compiler-specific
+makefile and ``commpost.nmk``. For example, ``w3i6mv.nmk`` looks like
+this::
 
     PFM = w3i6mv
 
@@ -260,8 +261,10 @@ brackets. Then it must include the compiler-specific makefile and
         [thw3i6] \
         [vmw3]
 
+    !INCLUDE commpre.nmk
     !INCLUDE mv.nmk
-    !INCLUDE comm.nmk
+    !INCLUDE commpost.nmk
+
 
 
 Porting strategy
