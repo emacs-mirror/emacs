@@ -223,7 +223,7 @@ Res ThreadScan(ScanState ss, Thread thread, Word *stackBot,
   if (thread->port == self) {
     /* scan this thread's stack */
     AVER(thread->alive);
-    res = StackScan(ss, stackBot, mask, pattern);
+    res = StackScan(ss, stackBot, scan_area, closure, closure_size);
     if(res != ResOK)
       return res;
   } else if (thread->alive) {
