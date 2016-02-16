@@ -28,15 +28,17 @@ New features
    :c:func:`mps_scan_area_tagged_or_zero` for use when scanning,
    especially when scanning threads and :term:`tagged references`.
 
-#. New thread root functions :c:func:`mps_root_create_thread` and
-   :c:func:`mps_root_create_thread_tagged` allow flexible scanning of
+#. New thread root functions :c:func:`mps_root_create_thread`,
+   :c:func:`mps_root_create_thread_tagged`, and
+   :c:func:`mps_root_create_thread_scanned` allow flexible scanning of
    thread stacks and registers in any format, with convenient
    implementations provided for :term:`tagged references`.
 
 #. New function :c:func:`mps_root_create_table_tagged` for tables of roots
    containing :term:`tagged references`.
 
-#. New area root function :c:func:`mps_root_create_area` for areas of memory
+#. New area root functions :c:func:`mps_root_create_area` and
+   :c:func:`mps_root_create_area_tagged` for areas of memory
    that can be scanned by area scanning functions.
 
 Interface changes

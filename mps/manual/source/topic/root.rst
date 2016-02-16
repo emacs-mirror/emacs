@@ -83,7 +83,7 @@ Roots can be deregistered at any time by calling
 :c:func:`mps_root_destroy`. All roots registered in an :term:`arena`
 must be deregistered before the arena is destroyed.
 
-There are six ways to register a root, depending on how you need to
+There are five ways to register a root, depending on how you need to
 scan it for references:
 
 #. :c:func:`mps_root_create` if you need a custom root scanning
@@ -94,11 +94,11 @@ scan it for references:
    by the format's :term:`scan method` (of type
    :c:type:`mps_fmt_scan_t`);
 
+#. :c:func:`mps_root_create_area` if the root consists of an area
+   of memory;
+
 #. :c:func:`mps_root_create_table` if the root consists of a table of
    references;
-
-#. :c:func:`mps_root_create_table_tagged` if the root consists of a
-   table of :term:`tagged references`;
 
 #. :c:func:`mps_root_create_thread` if the root consists of the
    :term:`registers` and :term:`control stack` of a thread. See
