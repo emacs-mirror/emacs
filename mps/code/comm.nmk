@@ -160,6 +160,7 @@ MPMCOMMON=\
     [root] \
     [sa] \
     [sac] \
+    [scan] \
     [seg] \
     [shield] \
     [splay] \
