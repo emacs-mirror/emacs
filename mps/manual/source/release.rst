@@ -17,14 +17,21 @@ New features
    specifying the minimum size of the memory segments that the pool
    requests from the :term:`arena`.
 
-#. New function :c:func:`mps_root_create_stack` applies a mask and
-   pattern test to all words in the :term:`control stack` and
-   :term:`registers` of a :term:`thread` when scanning them. This
-   supports :term:`tagged references` in these locations.
+#. New area scanning functions :c:func:`mps_scan_area`,
+   :c:func:`mps_scan_area_masked`, :c:func:`mps_scan_area_tagged`,
+   :c:func:`mps_scan_area_tagged_or_zero` for use when scanning,
+   especially when scanning threads and :term:`tagged references`.
 
-#. New function :c:func:`mps_root_create_table_tagged` for roots
+#. New thread root functions :c:func:`mps_root_create_thread` and
+   :c:func:`mps_root_create_thread_tagged` allow flexible scanning of
+   thread stacks and registers in any format, with convenient
+   implementations provided for :term:`tagged references`.
+
+#. New function :c:func:`mps_root_create_table_tagged` for tables of roots
    containing :term:`tagged references`.
 
+#. New area root function :c:func:`mps_root_create_area` for areas of memory
+   that can be scanned by area scanning functions.
 
 Interface changes
 .................
@@ -40,7 +47,7 @@ Interface changes
    :c:func:`mps_pool_free_size` and :c:func:`mps_pool_total_size`.
 
 #. The function :c:func:`mps_root_create_reg` is deprecated in favour
-   of :c:func:`mps_root_create_stack`.
+   of :c:func:`mps_root_create_thread_tagged`.
 
 #. The function :c:func:`mps_root_create_table_masked` is deprecated in
    favour of :c:func:`mps_root_create_table_tagged`.

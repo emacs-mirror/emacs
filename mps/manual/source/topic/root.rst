@@ -100,7 +100,7 @@ scan it for references:
 #. :c:func:`mps_root_create_table_tagged` if the root consists of a
    table of :term:`tagged references`;
 
-#. :c:func:`mps_root_create_stack` if the root consists of the
+#. :c:func:`mps_root_create_thread` if the root consists of the
    :term:`registers` and :term:`control stack` of a thread. See
    :ref:`topic-root-thread` below.
 
@@ -146,7 +146,7 @@ Thread roots
 
 Every thread's :term:`registers` and :term:`control stack` potentially
 contain references to allocated objects, so should be registered as a
-root by calling :c:func:`mps_root_create_stack`.
+root by calling :c:func:`mps_root_create_thread`.
 
 The MPS's stack scanner needs to know how to find the :term:`cold end`
 of the part of the stack to scan. The :term:`cold end` of the relevant
@@ -170,8 +170,7 @@ registers a thread root and then calls the program::
     res = mps_thread_reg(&thread, arena);
     if (res != MPS_RES_OK) error("Couldn't register thread");
 
-    res = mps_root_create_stack(&stack_root, arena, mps_rank_ambig(),
-                                0, thread, 0, 0, marker);
+    res = mps_root_create_thread(&stack_root, arena, thread, marker);
     if (res != MPS_RES_OK) error("Couldn't create root");
 
     exit_code = start(argc, argv);
@@ -331,6 +330,10 @@ Root interface
     The registered root description persists until it is destroyed by
     calling :c:func:`mps_root_destroy`.
 
+    This is the most general kind of root, but gives the MPS the least
+    information to use for optimisation.  Use a more specialized kind
+    of root whenever possible.
+
 
 .. c:type:: mps_res_t (*mps_root_scan_t)(mps_ss_t ss, void *p, size_t s)
 
@@ -384,7 +387,25 @@ Root interface
     calling :c:func:`mps_root_destroy`.
 
 
-.. c:function:: mps_res_t mps_root_create_stack(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_thr_t thr, mps_word_t mask, mps_word_t pattern, void *stack)
+.. c:function:: mps_res_t mps_root_create_thread(mps_root_t *root_o, mps_arena_t arena, mps_thr_t thr, void *stack)
+
+    Register a :term:`root` that consists of the :term:`references` in
+    a :term:`thread's <thread>` registers and stack that are word aligned.
+    This is the most common kind of thread root.
+
+    This function is equivalent to calling::
+      
+        mps_root_create_thread_tagged(root_o,
+	                              arena,
+				      mps_rank_ambig(),
+				      (mps_rm_t)0,
+				      thr,
+				      mps_scan_area_tagged,
+				      sizeof(mps_word_t) - 1,
+				      0,
+				      stack);
+
+.. c:function:: mps_res_t mps_root_create_thread_tagged(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_thr_t thr, mps_area_scan_t scan_area, mps_word_t mask, mps_word_t pattern, void *stack)
 
     Register a :term:`root` that consists of the :term:`references` in
     a :term:`thread's <thread>` registers and stack that match a
@@ -401,12 +422,19 @@ Root interface
 
     ``thr`` is the thread.
 
-    ``mask`` is an arbitrary mask that is applied to each word in the
-    thread's registers and stack.
+    ``scan_area`` is an tagged area scanning function that will be
+    used to scan the threads registers and stack, for example
+    :c:func:`mps_scan_area_tagged` or
+    :c:func:`mps_scan_area_tagged_or_zero`.
 
-    ``pattern`` is an arbitrary pattern; any word that is unequal to
-    this (after masking with ``mask``) is not considered to be a
-    reference.
+    ``mask`` is a :term:`bitmask` that is passed to ``scan_area`` to
+    be applied to the thread's registers and stack to locate the
+    :term:`tag`.
+
+    ``pattern`` is passed to ``scan_area`` to determine whether to
+    consider a word as a reference.  For example,
+    :c:func:`mps_scan_area_tagged` will not consider any word that is
+    unequal to this (after masking with ``mask``) to be a reference.
 
     ``stack`` is a pointer into the thread's stack. On platforms where
     the stack grows downwards (currently, all supported platforms),
@@ -429,9 +457,27 @@ Root interface
         ignored and if it was the last reference to the object the MPS
         might incorrectly determine that it was dead. 
 
-        You can avoid this risk by setting ``mask`` and ``pattern`` to
-        zero: in this case all words in registers and on the stack are
-        scanned, leading to possible additional scanning and retention.
+        You can avoid this risk in several ways:
+
+	#. Choosing to tag pointers with zero, setting ``scan_area``
+	   as :c:func:`mps_scan_area_tagged` and setting ``pattern``
+	   to zero.
+
+        #. Set ``scan_area`` to :c:func:`mps_scan_area_tagged_or_zero`
+	   so that untagged pointers are scanned.  Thist may lead to
+	   some additional scanning and retention.
+
+	#. Use :c:func:`mps_root_create_thread_scanned` and set
+	   ``scan_area`` to :c:func:`mps_scan_area`: in this case all
+	   words in registers and on the stack are scanned, leading to
+	   possible additional scanning and retention.
+
+	#. Write your own compiler with complete control over register
+	   contents and stack format, use
+	   :c:func:`mps_root_create_thread_scanned` and set
+	   ``scan_area`` to your own custom scanner, derived from the
+	   source code of :c:func:`mps_scan_area`, that knows the
+	   format.
 
      .. note::
         
@@ -441,6 +487,46 @@ Root interface
         expertise with the platform's virtual memory interface.
 
                 
+.. c:function:: mps_res_t mps_root_create_thread_scanned(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_thr_t thread, mps_area_scan_t scan_area, void *closure, size_t closure_size, void *stack)
+						
+    Register a :term:`root` that consists of the :term:`references` in
+    a :term:`thread's <thread>` registers and stack, scanned by an
+    arbitrary area scanning function.
+
+    ``root_o`` points to a location that will hold the address of the
+    new root description.
+
+    ``arena`` is the arena.
+
+    ``rank`` is the :term:`rank` of references in the root.
+
+    ``rm`` is the :term:`root mode`.
+
+    ``thr`` is the thread.
+
+    ``scan_area`` is an area scanning function that will be used to
+    scan the threads registers and stack, for example
+    :c:func:`mps_scan_area`, or a similar user-defined function.
+
+    ``closure`` is an arbitrary pointer that is passed to ``scan_area``
+    and intended to point to any parameters it needs.
+
+    ``closure_size`` is an arbitrary size that is passed to
+    ``scan_area`` but is conventionally the size of the parameter
+    object pointer to by ``closure``.
+
+    ``stack`` is a pointer into the thread's stack. On platforms where
+    the stack grows downwards (currently, all supported platforms),
+    locations below this address will be scanned.
+
+    Returns :c:macro:`MPS_RES_OK` if the root was registered
+    successfully, :c:macro:`MPS_RES_MEMORY` if the new root
+    description could not be allocated, or another :term:`result code`
+    if there was another error.
+
+    The registered root description persists until it is destroyed by
+    calling :c:func:`mps_root_destroy`.
+
 .. c:function:: mps_res_t mps_root_create_table(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_addr_t *base, size_t count)
 
     Register a :term:`root` that consists of a vector of
@@ -490,7 +576,7 @@ Root interface
             mps_addr_t base = my_table;
             mps_root_create_table(..., base, ...)
 
-.. c:function:: mps_res_t mps_root_create_table_tagged(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_addr_t *base, size_t count, mps_word_t mask, mps_word_t pattern)
+.. c:function:: mps_res_t mps_root_create_table_tagged(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_addr_t *base, size_t count, mps_area_scan_t scan_area, mps_word_t mask, mps_word_t pattern)
 
     Register a :term:`root` that consists of a vector of :term:`tagged
     references`.
@@ -508,12 +594,17 @@ Root interface
 
     ``count`` is the number of tagged references in the vector.
 
-    ``mask`` is a :term:`bitmask` whose set bits specify the location of
-    the :term:`tag`.
+    ``scan_area`` is an tagged area scanning function that will be
+    used to scan the table, for example :c:func:`mps_scan_area_tagged`
+    or :c:func:`mps_scan_area_tagged_or_zero`.
 
-    ``pattern`` is a the value of the tag that indicates that the value
-    in the vector is a reference.  Any value in the vector with a tag
-    that does not match the pattern is ignored.
+    ``mask`` is a :term:`bitmask` that is passed to ``scan_area`` to
+    be applied to the words in the vector to locate the :term:`tag`.
+
+    ``pattern`` is passed to ``scan_area`` to determine whether to
+    consider a word as a reference.  For example,
+    :c:func:`mps_scan_area_tagged` will not consider any word that is
+    unequal to this (after masking with ``mask``) to be a reference.
 
     Returns :c:macro:`MPS_RES_OK` if the root was registered
     successfully, :c:macro:`MPS_RES_MEMORY` if the new root
@@ -538,10 +629,11 @@ Root interface
         mps_res_t res;
         mps_root_t root;
         mps_addr_t base = symtab;
-        res = mps_root_create_table_masked(&root, arena,
+        res = mps_root_create_table_tagged(&root, arena,
                                            mps_rank_exact(),
                                            (mps_rm_t)0,
                                            base, symtab_size * 2,
+					   mps_scan_area_tagged,
                                            (mps_word_t)TAG_MASK,
                                            (mps_word_t)TAG_PATTERN);
         if (res != MPS_RES_OK) errror("can't create symtab root");
