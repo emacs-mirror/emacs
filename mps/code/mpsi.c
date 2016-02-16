@@ -1295,12 +1295,13 @@ mps_res_t mps_root_create_table(mps_root_t *mps_root_o, mps_arena_t arena,
   AVER(base != NULL);
   AVER(size > 0);
 
-  /* .root.table-size: size is the length of the array at base, not */
-  /* the size in bytes.  However, RootCreateArea expects base and */
-  /* limit pointers.  Be careful. */
+  /* .root.table-size: size is the length of the array at base, not
+     the size in bytes.  However, RootCreateArea expects base and limit
+     pointers.  Be careful.  Avoid type punning by casting through
+     void *. */
 
   res = RootCreateArea(&root, arena, rank, mode,
-		       (Word *)base, (Word *)base + size,
+		       (void *)base, (void *)(base + size),
 		       mps_scan_area, NULL, 0);
 
   ArenaLeave(arena);
@@ -1311,7 +1312,6 @@ mps_res_t mps_root_create_table(mps_root_t *mps_root_o, mps_arena_t arena,
   return MPS_RES_OK;
 }
 
-/* FIXME: document */
 mps_res_t mps_root_create_area(mps_root_t *mps_root_o,
 			       mps_arena_t arena,
 			       mps_rank_t mps_rank, mps_rm_t mps_rm,
@@ -1369,7 +1369,7 @@ mps_res_t mps_root_create_table_tagged(mps_root_t *mps_root_o,
 
   /* .root.table-size */
   res = RootCreateAreaTagged(&root, arena, rank, mode,
-			     (Word *)base, (Word *)base + size,
+			     (void *)base, (void *)(base + size),
 			     scan_area, mask, pattern);
 
   ArenaLeave(arena);
