@@ -1657,6 +1657,7 @@
 		3124CAE4156BE6D500753214 /* fmthe.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fmthe.c; sourceTree = "<group>"; };
 		3124CAEB156BE7F300753214 /* amcss */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = amcss; sourceTree = BUILT_PRODUCTS_DIR; };
 		3124CAF5156BE81100753214 /* amcss.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = amcss.c; sourceTree = "<group>"; };
+		314562191C72ABFA00D7A514 /* scan.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = scan.c; sourceTree = "<group>"; };
 		315B7AFC17834FDB00B097C4 /* proti3.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = proti3.c; sourceTree = "<group>"; };
 		315B7AFD17834FDB00B097C4 /* proti6.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = proti6.c; sourceTree = "<group>"; };
 		317B3C2A1731830100F9A469 /* arg.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = arg.c; sourceTree = "<group>"; };
@@ -2476,6 +2477,7 @@
 				31EEAC31156AB2F200714D05 /* sac.c */,
 				311F2F7417398B7100C15B6A /* sac.h */,
 				311F2F7517398B8E00C15B6A /* sc.h */,
+				314562191C72ABFA00D7A514 /* scan.c */,
 				31EEAC1D156AB2B200714D05 /* seg.c */,
 				31EEAC32156AB2F200714D05 /* shield.c */,
 				31EEAC43156AB32500714D05 /* splay.c */,
