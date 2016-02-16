@@ -30,7 +30,9 @@
 SRCID(ssw3i6mv, "$Id$");
 
 
-Res StackScan(ScanState ss, Word *stackBot, Word mask, Word pattern)
+Res StackScan(ScanState ss, Word *stackBot,
+	      mps_area_scan_t scan_area,
+	      void *closure, size_t closure_size)
 {
   jmp_buf jb;
 
@@ -62,7 +64,7 @@ Res StackScan(ScanState ss, Word *stackBot, Word mask, Word pattern)
   AVER(offsetof(_JUMP_BUFFER, R15) == offsetof(_JUMP_BUFFER, Rbx) + 64);
 
   return StackScanInner(ss, stackBot, (Word *)&((_JUMP_BUFFER *)jb)->Rbx, 9,
-                        mask, pattern);
+			scan_area, closure, closure_size);
 }
 
 /* C. COPYRIGHT AND LICENSE
