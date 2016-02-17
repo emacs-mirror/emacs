@@ -627,7 +627,6 @@ extern Res ArenaNoGrow(Arena arena, LocusPref pref, Size size);
 
 extern Size ArenaAvail(Arena arena);
 extern Size ArenaCollectable(Arena arena);
-extern Size ArenaScannable(Arena arena);
 
 extern Res ArenaExtend(Arena, Addr base, Size size);
 
