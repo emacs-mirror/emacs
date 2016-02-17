@@ -1327,15 +1327,6 @@ Size ArenaCollectable(Arena arena)
 }
 
 
-/* ArenaScannable -- return estimate of scannable memory in arena */
-
-Size ArenaScannable(Arena arena)
-{
-  /* Conservative estimate -- see job003929. */
-  return ArenaCommitted(arena) - ArenaSpareCommitted(arena);
-}
-
-
 /* ArenaExtend -- Add a new chunk in the arena */
 
 Res ArenaExtend(Arena arena, Addr base, Size size)
