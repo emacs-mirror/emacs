@@ -153,6 +153,7 @@ Bool GlobalsCheck(Globals arenaGlobals)
   }
 
   CHECKD_NOSIG(Ring, &arena->threadRing);
+  CHECKD_NOSIG(Ring, &arena->deadRing);
 
   CHECKL(BoolCheck(arena->insideShield));
   CHECKL(arena->shCacheLimit <= ShieldCacheSIZE);
@@ -277,6 +278,7 @@ Res GlobalsInit(Globals arenaGlobals)
   arenaGlobals->rememberedSummaryIndex = 0;
 
   RingInit(&arena->threadRing);
+  RingInit(&arena->deadRing);
   arena->threadSerial = (Serial)0;
   RingInit(&arena->formatRing);
   arena->formatSerial = (Serial)0;
@@ -405,6 +407,7 @@ void GlobalsFinish(Globals arenaGlobals)
   RingFinish(&arena->chainRing);
   RingFinish(&arena->messageRing);
   RingFinish(&arena->threadRing);
+  RingFinish(&arena->deadRing);
   for(rank = RankMIN; rank < RankLIMIT; ++rank)
     RingFinish(&arena->greyRing[rank]);
   RingFinish(&arenaGlobals->rootRing);
@@ -495,6 +498,7 @@ void GlobalsPrepareToDestroy(Globals arenaGlobals)
   AVER(RingIsSingle(&arena->chainRing));
   AVER(RingIsSingle(&arena->messageRing));
   AVER(RingIsSingle(&arena->threadRing));
+  AVER(RingIsSingle(&arena->deadRing));
   AVER(RingIsSingle(&arenaGlobals->rootRing));
   for(rank = RankMIN; rank < RankLIMIT; ++rank)
     AVER(RingIsSingle(&arena->greyRing[rank]));
@@ -802,17 +806,19 @@ Bool ArenaStep(Globals globals, double interval, double multiplier)
 Res ArenaFinalize(Arena arena, Ref obj)
 {
   Res res;
+  Pool refpool;
 
   AVERT(Arena, arena);
-  AVER(ArenaHasAddr(arena, (Addr)obj));
+  AVER(PoolOfAddr(&refpool, arena, (Addr)obj));
+  AVER(PoolHasAttr(refpool, AttrGC));
 
   if (!arena->isFinalPool) {
-    Pool pool;
+    Pool finalpool;
 
-    res = PoolCreate(&pool, arena, PoolClassMRG(), argsNone);
+    res = PoolCreate(&finalpool, arena, PoolClassMRG(), argsNone);
     if (res != ResOK)
       return res;
-    arena->finalPool = pool;
+    arena->finalPool = finalpool;
     arena->isFinalPool = TRUE;
   }
 
