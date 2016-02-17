@@ -17,6 +17,12 @@ New features
    specifying the minimum size of the memory segments that the pool
    requests from the :term:`arena`.
 
+#. The function :c:func:`mps_arena_create_k` accepts two new
+   :term:`keyword arguments`. :c:macro:`MPS_KEY_COMMIT_LIMIT`
+   sets the :term:`commit limit` for the arena, and
+   :c:macro:`MPS_KEY_SPARE_COMMIT_LIMIT` sets the :term:`spare
+   commit limit` for the arena.
+
 
 Interface changes
 .................
@@ -30,7 +36,6 @@ Interface changes
    :c:func:`mps_mvt_free_size` and :c:func:`mps_mvt_size` are now
    deprecated in favour of the generic functions
    :c:func:`mps_pool_free_size` and :c:func:`mps_pool_total_size`.
-
 
 Other changes
 .............
@@ -64,6 +69,18 @@ Other changes
    :c:macro:`MPS_RES_RESOURCE`. See job003899_.
    
    .. _job003899: https://www.ravenbrook.com/project/mps/issue/job003899/
+
+#. Unfinalizable objects can no longer be registered for finalization.
+   Previously the objects would be registered but never finalized. See
+   job003865_.
+
+   .. _job003865: https://www.ravenbrook.com/project/mps/issue/job003865/
+
+#. :c:func:`mps_arena_has_addr` now returns the correct result for
+   objects allocated from the :ref:`pool-mfs`, :ref:`pool-mv`, and
+   :ref:`pool-mvff` pools. See job003866_.
+
+   .. _job003866: https://www.ravenbrook.com/project/mps/issue/job003866/
 
 
 .. _release-notes-1.114:

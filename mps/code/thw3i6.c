@@ -74,7 +74,13 @@ Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
 
   id = GetCurrentThreadId();
 
-  if(id != thread->id) { /* .thread.id */
+  if (id == thread->id) { /* .thread.id */
+    /* scan this thread's stack */
+    AVER(thread->alive);
+    res = StackScan(ss, stackBot);
+    if(res != ResOK)
+      return res;
+  } else if (thread->alive) {
     CONTEXT context;
     BOOL success;
     Addr *stackBase, *stackLimit, stackPtr;
@@ -114,11 +120,6 @@ Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
      */
     res = TraceScanAreaTagged(ss, (Addr *)&context,
            (Addr *)((char *)&context + sizeof(CONTEXT)));
-    if(res != ResOK)
-      return res;
-
-  } else { /* scan this thread's stack */
-    res = StackScan(ss, stackBot);
     if(res != ResOK)
       return res;
   }

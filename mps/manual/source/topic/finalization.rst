@@ -221,10 +221,8 @@ Finalization interface
     :term:`result code` if not.
 
     This function registers the block pointed to by ``*ref_p`` for
-    finalization. This block must have been allocated from a
-    :term:`pool` in ``arena``. Violations of this constraint may not
-    be checked by the MPS, and may be unsafe, causing the MPS to crash
-    in undefined ways.
+    finalization. This block must have been allocated from an
+    automatically managed :term:`pool` in ``arena``.
 
     .. note::
 
@@ -251,6 +249,13 @@ Finalization interface
         This function receives a pointer to a reference. This is to
         avoid placing the restriction on the :term:`client program`
         that the C call stack be a :term:`root`.
+
+    .. warning::
+
+        Definalization is not yet efficient: the current
+        implementation just loops over all finalized objects. If you
+        need efficient definalization, please :ref:`contact us
+        <contact>`.
 
 
 .. index::

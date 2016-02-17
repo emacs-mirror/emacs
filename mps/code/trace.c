@@ -1,7 +1,7 @@
 /* trace.c: GENERIC TRACER IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.
+ * Copyright (c) 2001-2015 Ravenbrook Limited.
  * See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
@@ -1188,6 +1188,7 @@ void TraceSegAccess(Arena arena, Seg seg, AccessSet mode)
 
   AVERT(Arena, arena);
   AVERT(Seg, seg);
+  AVERT(AccessSet, mode);
 
   /* If it's a read access, then the segment must be grey for a trace */
   /* which is flipped. */
@@ -1899,7 +1900,7 @@ Res TraceDescribe(Trace trace, mps_lib_FILE *stream, Count depth)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited
+ * Copyright (C) 2001-2015 Ravenbrook Limited
  * <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.

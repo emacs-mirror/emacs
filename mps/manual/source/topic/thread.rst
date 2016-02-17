@@ -100,6 +100,7 @@ Signal and exception handling issues
     for co-operating: if you are in this situation, please :ref:`contact
     us <contact>`.
 
+
 .. index::
    single: thread; interface
 
@@ -141,6 +142,9 @@ Thread interface
 
         It is recommended that all threads be registered with all
         arenas.
+
+    It is an error if a thread terminates while it is registered. The
+    client program must call :c:func:`mps_thread_dereg` first.
 
 
 .. c:function:: void mps_thread_dereg(mps_thr_t thr)

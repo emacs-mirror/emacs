@@ -44,6 +44,7 @@ alloc-frame_            Allocation frame protocol
 an_                     Generic modules
 arena_                  Arena
 arenavm_                Virtual memory arena
+bootstrap_              Bootstrapping
 bt_                     Bit tables
 buffer_                 Allocation buffers and allocation points
 cbs_                    Coalescing block structures
@@ -61,6 +62,7 @@ freelist_               Free list allocator
 guide.hex.trans_        Transliterating the alphabet into hexadecimal
 guide.impl.c.format_    Coding standard: conventions for the general format of C source code in the MPS
 guide.impl.c.naming_    Coding standard: conventions for internal names
+guide.review_           Review checklist
 interface-c_            C interface
 io_                     I/O subsystem
 keyword-arguments_      Keyword arguments
@@ -121,6 +123,7 @@ writef_                 The WriteF function
 .. _an: an
 .. _arena: arena
 .. _arenavm: arenavm
+.. _bootstrap: bootstrap
 .. _bt: bt
 .. _buffer: buffer
 .. _cbs: cbs
@@ -138,6 +141,7 @@ writef_                 The WriteF function
 .. _guide.hex.trans: guide.hex.trans
 .. _guide.impl.c.format: guide.impl.c.format
 .. _guide.impl.c.naming: guide.impl.c.naming
+.. _guide.review: guide.review
 .. _interface-c: interface-c
 .. _io: io
 .. _keyword-arguments: keyword-arguments

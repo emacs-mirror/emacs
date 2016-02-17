@@ -992,7 +992,7 @@ static Size arenaUnmapSpare(Arena arena, Size size, Chunk filter)
   while (RingNext(node) != &vmArena->spareRing && purged < size) {
     Ring next = RingNext(node);
     Page page = PageOfSpareRing(next);
-    Chunk chunk;
+    Chunk chunk = NULL; /* suppress uninit warning */
     Bool b;
     /* Use the fact that the page table resides in the chunk to find the
        chunk that owns the page. */
