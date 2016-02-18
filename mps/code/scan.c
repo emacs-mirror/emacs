@@ -33,17 +33,17 @@ mps_res_t mps_scan_area(mps_ss_t ss,
   (void)closure_size; /* unused */
 
   MPS_SCAN_BEGIN(ss) {
-    mps_word_t *_p = base;
-    while (_p < limit) {
-      mps_word_t word = *_p;
+    mps_word_t *p = base;
+    while (p < limit) {
+      mps_word_t word = *p;
       mps_addr_t ref = (mps_addr_t)word;
       if (MPS_FIX1(ss, ref)) {
         mps_res_t res = MPS_FIX2(ss, &ref);
         if (res != MPS_RES_OK)
           return res;
-        *_p = (mps_word_t)ref;
+        *p = (mps_word_t)ref;
       }
-      ++_p;
+      ++p;
     }
   } MPS_SCAN_END(ss);
 
