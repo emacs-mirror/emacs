@@ -104,11 +104,11 @@ instruction which was caused the fault to be re-executed. Return
 This function is only called if ``ProtCanStepInstruction(context)``
 returned ``TRUE``.
 
-``Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext context)``
+``Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext mfc, mps_area_scan_t scan, void *closure, size_t closure_size)``
 
 _`.if.context.scan`: Scan all roots found in ``context`` using the
-given scan state (typically by calling ``TraceScanAreaTagged()``), and
-return the result code from the scanner.
+given scan state by calling ``scan``, and return the result code from
+the scanner.
 
 ``Addr MutatorFaultContextSP(MutatorFaultContext context)``
 
