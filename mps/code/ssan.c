@@ -26,7 +26,7 @@ Res StackScan(ScanState ss, Word *stackBot,
               void *closure, size_t closure_size)
 {
   jmp_buf jb;
-  Word *stackTop = (Word *)&jb;
+  Word *stackTop = (void *)&jb;
 
   /* .assume.stack: This implementation assumes that the stack grows
    * downwards, so that the address of the jmp_buf is the limit of the
