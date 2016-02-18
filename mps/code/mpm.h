@@ -961,12 +961,12 @@ extern Res RootCreateThread(Root *rootReturn, Arena arena,
                             Rank rank, Thread thread,
                             mps_area_scan_t scan_area,
                             void *closure, size_t closure_size,
-                            Word *stackBot);
+                            Word *stackCold);
 extern Res RootCreateThreadTagged(Root *rootReturn, Arena arena,
                                   Rank rank, Thread thread,
                                   mps_area_scan_t scan_area,
                                   Word mask, Word pattern,
-                                  Word *stackBot);
+                                  Word *stackCold);
 extern Res RootCreateFmt(Root *rootReturn, Arena arena,
                            Rank rank, RootMode mode,
                            mps_fmt_scan_t scan,

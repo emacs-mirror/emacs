@@ -38,7 +38,7 @@
  * setjmp magic.
  */
  
-/* StackContextStackTop - return the stack top from the stack context.
+/* StackContextStackHot - return the stack hot end from the stack context.
  * 
  * We assume the stack is full.  In other words the stack top points at
  * a word that contains a potential Ref.
@@ -68,7 +68,7 @@ typedef struct StackContextStruct {
  * which we assume to be stored on the stack because it is no longer
  * needed once we have _longjmp()ed back. So take the minimum of the 
  * SP and the base of the StackContext structure. */
-#define StackContextStackTop(sc) \
+#define StackContextStackHot(sc) \
   (StackContextSP(sc) < (Addr*)(sc) ? StackContextSP(sc) : (Addr*)(sc))
 
 
@@ -103,7 +103,7 @@ typedef struct StackContextStruct {
  * which we assume to be stored on the stack because it is no longer
  * needed once we have _longjmp()ed back. So take the minimum of the 
  * SP and the base of the StackContext structure. */
-#define StackContextStackTop(sc) \
+#define StackContextStackHot(sc) \
   (StackContextSP(sc) < (Addr*)(sc) ? StackContextSP(sc) : (Addr*)(sc))
 
 
@@ -119,7 +119,7 @@ typedef struct StackContextStruct {
 
 #define STACK_CONTEXT_SAVE(sc) ((void)setjmp((sc)->jumpBuffer))
 
-#define StackContextStackTop(sc) \
+#define StackContextStackHot(sc) \
   ((Addr *)((_JUMP_BUFFER *)(sc)->jumpBuffer)->Esp)
 
 
@@ -135,7 +135,7 @@ typedef struct StackContextStruct {
 
 #define STACK_CONTEXT_SAVE(sc) ((void)setjmp((sc)->jumpBuffer))
 
-#define StackContextStackTop(sc) \
+#define StackContextStackHot(sc) \
   ((Addr *)((_JUMP_BUFFER *)(sc)->jumpBuffer)->Rsp)
 
 
@@ -155,7 +155,7 @@ typedef struct StackContextStruct {
 
 #define STACK_CONTEXT_SAVE(sc) ((void)setjmp((sc)->jumpBuffer))
 
-#define StackContextStackTop(sc) ((Addr *)(sc)->jumpBuffer)
+#define StackContextStackHot(sc) ((Addr *)(sc)->jumpBuffer)
 
 
 #endif /* platform defines */
