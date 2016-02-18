@@ -165,12 +165,12 @@ registers a thread root and then calls the program::
     mps_thr_t thread;
     mps_root_t stack_root;
     int exit_code;
-    void *marker = &marker;
+    void *cold = &cold;
 
     res = mps_thread_reg(&thread, arena);
     if (res != MPS_RES_OK) error("Couldn't register thread");
 
-    res = mps_root_create_thread(&stack_root, arena, thread, marker);
+    res = mps_root_create_thread(&stack_root, arena, thread, cold);
     if (res != MPS_RES_OK) error("Couldn't create root");
 
     exit_code = start(argc, argv);
@@ -387,7 +387,7 @@ Root interface
     calling :c:func:`mps_root_destroy`.
 
 
-.. c:function:: mps_res_t mps_root_create_thread(mps_root_t *root_o, mps_arena_t arena, mps_thr_t thr, void *stack)
+.. c:function:: mps_res_t mps_root_create_thread(mps_root_t *root_o, mps_arena_t arena, mps_thr_t thr, void *cold)
 
     Register a :term:`root` that consists of the :term:`references` in
     a :term:`thread's <thread>` registers and stack that are word aligned.
@@ -403,9 +403,9 @@ Root interface
                                       mps_scan_area_tagged,
                                       sizeof(mps_word_t) - 1,
                                       0,
-                                      stack);
+                                      cold);
 
-.. c:function:: mps_res_t mps_root_create_thread_tagged(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_thr_t thr, mps_area_scan_t scan_area, mps_word_t mask, mps_word_t pattern, void *stack)
+.. c:function:: mps_res_t mps_root_create_thread_tagged(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_thr_t thr, mps_area_scan_t scan_area, mps_word_t mask, mps_word_t pattern, void *cold)
 
     Register a :term:`root` that consists of the :term:`references` in
     a :term:`thread's <thread>` registers and stack that match a
@@ -437,9 +437,10 @@ Root interface
     :c:func:`mps_scan_area_tagged` will not consider any word that is
     unequal to this (after masking with ``mask``) to be a reference.
 
-    ``stack`` is a pointer into the thread's stack. On platforms where
-    the stack grows downwards (currently, all supported platforms),
-    locations below this address will be scanned.
+    ``cold`` is a pointer to the :term:`cold end` of stack to be
+    scanned. On platforms where the stack grows downwards (currently,
+    all supported platforms), locations below this address will be
+    scanned.
 
     Returns :c:macro:`MPS_RES_OK` if the root was registered
     successfully, :c:macro:`MPS_RES_MEMORY` if the new root
@@ -487,7 +488,7 @@ Root interface
         allocated by the MPS are rejected quickly. This requires
         expertise with the platform's virtual memory interface.
 
-.. c:function:: mps_res_t mps_root_create_thread_scanned(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_thr_t thread, mps_area_scan_t scan_area, void *closure, size_t closure_size, void *stack)
+.. c:function:: mps_res_t mps_root_create_thread_scanned(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_thr_t thread, mps_area_scan_t scan_area, void *closure, size_t closure_size, void *cold)
 
     Register a :term:`root` that consists of the :term:`references` in
     a :term:`thread's <thread>` registers and stack, scanned by an
@@ -516,9 +517,10 @@ Root interface
     ``scan_area`` but is conventionally the size of the parameter
     object pointer to by ``closure``.
 
-    ``stack`` is a pointer into the thread's stack. On platforms where
-    the stack grows downwards (currently, all supported platforms),
-    locations below this address will be scanned.
+    ``cold`` is a pointer to the :term:`cold end` of stack to be
+    scanned. On platforms where the stack grows downwards (currently,
+    all supported platforms), locations below this address will be
+    scanned.
 
     Returns :c:macro:`MPS_RES_OK` if the root was registered
     successfully, :c:macro:`MPS_RES_MEMORY` if the new root
