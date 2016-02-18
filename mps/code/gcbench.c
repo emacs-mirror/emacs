@@ -177,7 +177,7 @@ static void *start(void *p) {
   void *marker;
   RESMUST(mps_thread_reg(&thread->mps_thread, arena));
   RESMUST(mps_root_create_thread(&thread->reg_root, arena,
-				 thread->mps_thread, &marker));
+                                 thread->mps_thread, &marker));
   RESMUST(mps_ap_create_k(&thread->ap, pool, mps_args_none));
   thread->fn(thread);
   mps_ap_destroy(thread->ap);

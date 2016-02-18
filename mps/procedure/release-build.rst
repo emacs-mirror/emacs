@@ -147,7 +147,7 @@ On a Unix (including OS X) machine:
         View:
                 //info.ravenbrook.com/project/mps/version/$VERSION/... //$CLIENT/mps-kit-$RELEASE/...
                 //info.ravenbrook.com/project/mps/release/$RELEASE/... //$CLIENT/release/$RELEASE/...
-	END
+        END
 
 #. Sync this client to *CHANGELEVEL*::
 
@@ -169,7 +169,7 @@ On a Unix (including OS X) machine:
 #. Sync the version sources again::
 
         rm -rf /tmp/$CLIENT/version/$VERSION
-	p4 -c $CLIENT sync -f @$CHANGELEVEL
+        p4 -c $CLIENT sync -f @$CHANGELEVEL
 
 #. Create a zip file containing the MPS sources, and open it for add::
 

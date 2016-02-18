@@ -1427,8 +1427,8 @@ void TraceScanSingleRef(TraceSet ts, Rank rank, Arena arena,
  * limit, inclusive of base and exclusive of limit.  */
 
 Res TraceScanArea(ScanState ss, Word *base, Word *limit,
-		  mps_area_scan_t scan_area,
-		  void *closure, size_t closure_size)
+                  mps_area_scan_t scan_area,
+                  void *closure, size_t closure_size)
 {
   AVERT(ScanState, ss);
   AVER(base != NULL);

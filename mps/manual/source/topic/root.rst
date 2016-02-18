@@ -396,14 +396,14 @@ Root interface
     This function is equivalent to calling::
 
         mps_root_create_thread_tagged(root_o,
-	                              arena,
-				      mps_rank_ambig(),
-				      (mps_rm_t)0,
-				      thr,
-				      mps_scan_area_tagged,
-				      sizeof(mps_word_t) - 1,
-				      0,
-				      stack);
+                                      arena,
+                                      mps_rank_ambig(),
+                                      (mps_rm_t)0,
+                                      thr,
+                                      mps_scan_area_tagged,
+                                      sizeof(mps_word_t) - 1,
+                                      0,
+                                      stack);
 
 .. c:function:: mps_res_t mps_root_create_thread_tagged(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_thr_t thr, mps_area_scan_t scan_area, mps_word_t mask, mps_word_t pattern, void *stack)
 
@@ -460,25 +460,25 @@ Root interface
 
         You can avoid this risk in several ways:
 
-	#. Choosing to tag pointers with zero, setting ``scan_area``
-	   as :c:func:`mps_scan_area_tagged` and setting ``pattern``
-	   to zero.
+        #. Choosing to tag pointers with zero, setting ``scan_area``
+           as :c:func:`mps_scan_area_tagged` and setting ``pattern``
+           to zero.
 
         #. Set ``scan_area`` to :c:func:`mps_scan_area_tagged_or_zero`
-	   so that untagged pointers are scanned.  Thist may lead to
-	   some additional scanning and retention.
+           so that untagged pointers are scanned.  Thist may lead to
+           some additional scanning and retention.
 
-	#. Use :c:func:`mps_root_create_thread_scanned` and set
-	   ``scan_area`` to :c:func:`mps_scan_area`: in this case all
-	   words in registers and on the stack are scanned, leading to
-	   possible additional scanning and retention.
+        #. Use :c:func:`mps_root_create_thread_scanned` and set
+           ``scan_area`` to :c:func:`mps_scan_area`: in this case all
+           words in registers and on the stack are scanned, leading to
+           possible additional scanning and retention.
 
-	#. Write your own compiler with complete control over register
-	   contents and stack format, use
-	   :c:func:`mps_root_create_thread_scanned` and set
-	   ``scan_area`` to your own custom scanner, derived from the
-	   source code of :c:func:`mps_scan_area`, that knows the
-	   format.
+        #. Write your own compiler with complete control over register
+           contents and stack format, use
+           :c:func:`mps_root_create_thread_scanned` and set
+           ``scan_area`` to your own custom scanner, derived from the
+           source code of :c:func:`mps_scan_area`, that knows the
+           format.
 
      .. note::
 
@@ -723,7 +723,7 @@ Root interface
                                            mps_rank_exact(),
                                            (mps_rm_t)0,
                                            base, symtab_size * 2,
-					   mps_scan_area_tagged,
+                                           mps_scan_area_tagged,
                                            (mps_word_t)TAG_MASK,
                                            (mps_word_t)TAG_PATTERN);
         if (res != MPS_RES_OK) errror("can't create symtab root");

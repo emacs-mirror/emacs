@@ -33,8 +33,8 @@ Addr MutatorFaultContextSP(MutatorFaultContext mfc)
 
 
 Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext mfc,
-			    mps_area_scan_t scan_area,
-			    void *closure, size_t closure_size)
+                            mps_area_scan_t scan_area,
+                            void *closure, size_t closure_size)
 {
   Res res;
 

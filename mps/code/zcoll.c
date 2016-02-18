@@ -575,7 +575,7 @@ static void StackScan(mps_arena_t arena, int on)
   if(on) {
     Insist(root_stackreg == NULL);
     die(mps_root_create_thread(&root_stackreg, arena,
-			       stack_thr, stack_start),
+                               stack_thr, stack_start),
         "root_stackreg");
     Insist(root_stackreg != NULL);
   } else {
@@ -762,7 +762,7 @@ static void *testscriptB(void *arg, size_t s)
   stack_start = &stack_starts_here;
   stack_thr = thr;
   die(mps_root_create_thread(&root_stackreg, arena,
-			     stack_thr, stack_start),
+                             stack_thr, stack_start),
       "root_stackreg");
 
 

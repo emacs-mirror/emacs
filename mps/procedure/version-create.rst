@@ -145,8 +145,8 @@ the parent branch. A typical invocation looks like this::
 
         p4 client -i <<END
         Client: git-fusion-mps-version-$VERSION
-	Description: Git-fusion client for syncing MPS version $VERSION
-	Root: /home/git-fusion/.git-fusion/views/mps-version-$VERSION/p4
+        Description: Git-fusion client for syncing MPS version $VERSION
+        Root: /home/git-fusion/.git-fusion/views/mps-version-$VERSION/p4
         View: //info.ravenbrook.com/project/mps/version/$VERSION/... //git-fusion-mps-version-$VERSION/...
         END
 

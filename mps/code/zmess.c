@@ -331,7 +331,7 @@ static void *testscriptB(void *arg, size_t s)
   
   /* root_stackreg: stack & registers are ambiguous roots = mutator's workspace */
   die(mps_root_create_thread(&root_stackreg, arena,
-			     thr, &stack_starts_here),
+                             thr, &stack_starts_here),
       "root_stackreg");
 
   /* Make myrootCOUNT registered-for-finalization objects. */
