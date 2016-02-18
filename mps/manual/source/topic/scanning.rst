@@ -531,7 +531,7 @@ the scanners, found in ``scan.c`` in the MPS source code.
     
         mps_res_t scan(mps_ss_t ss,
                        mps_word_t *base, mps_word_t *limit,
-		       void *closure, size_t closure_size);
+                       void *closure, size_t closure_size);
     
     ``ss`` is the :term:`scan state`.
     

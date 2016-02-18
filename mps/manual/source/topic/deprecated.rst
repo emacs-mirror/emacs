@@ -178,8 +178,8 @@ Deprecated in version 1.115
 
       mps_root_create_table_tagged(root_o, arena, rank, rm,
                                    base, size,
-				   mps_scan_area_tagged,
-				   mask, 0)
+                                   mps_scan_area_tagged,
+                                   mask, 0)
 
 
 .. c:type:: mps_res_t (*mps_reg_scan_t)(mps_ss_t ss, mps_thr_t thr, void *p, size_t s)

@@ -69,7 +69,7 @@ SRCID(thw3i6, "$Id$");
 
 Res ThreadScan(ScanState ss, Thread thread, Word *stackBot,
                mps_area_scan_t scan_area,
-	       void *closure, size_t closure_size)
+               void *closure, size_t closure_size)
 {
   DWORD id;
   Res res;
@@ -107,7 +107,7 @@ Res ThreadScan(ScanState ss, Thread thread, Word *stackBot,
      * stackBot (.stack.full-descend)
      */
     res = TraceScanArea(ss, stackBase, stackLimit,
-			scan_area, closure, closure_size);
+                        scan_area, closure, closure_size);
     if(res != ResOK)
       return res;
 
@@ -117,8 +117,8 @@ Res ThreadScan(ScanState ss, Thread thread, Word *stackBot,
      * to scan only relevant parts would be machine dependent.
      */
     res = TraceScanArea(ss, (Word *)&context,
-			(Word *)((char *)&context + sizeof(CONTEXT)),
-			scan_area, closure, closure_size);
+                        (Word *)((char *)&context + sizeof(CONTEXT)),
+                        scan_area, closure, closure_size);
     if(res != ResOK)
       return res;
 
