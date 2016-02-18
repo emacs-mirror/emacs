@@ -17,11 +17,13 @@ SRCID(root, "$Id$");
 
 #define RootSig         ((Sig)0x51960029) /* SIGnature ROOT */
 
+typedef struct ClosureStruct {
+  void *p;
+  size_t s;
+} ClosureStruct;
+
 typedef union AreaScanUnion {
-  struct {
-    void *p;
-    size_t s;
-  } closure;
+  ClosureStruct closure;
   mps_scan_tag_s tag;       /* tag for scanning */
 } AreaScanUnion;
 
@@ -42,8 +44,7 @@ typedef struct RootStruct {
   union RootUnion {
     struct {
       mps_root_scan_t scan;     /* the function which does the scanning */
-      void *p;                  /* environment for scan */
-      size_t s;                 /* environment for scan */
+      ClosureStruct closure;    /* closure for scan function */
     } fun;
     struct {
       Word *base;               /* beginning of area */
@@ -128,6 +129,8 @@ Bool RootCheck(Root root)
 
     case RootFUN:
     CHECKL(root->the.fun.scan != NULL);
+    /* Can't check anything about closure as it could mean anything to
+       scan. */
     break;
 
     case RootTHREAD_TAGGED:
@@ -413,8 +416,8 @@ Res RootCreateFun(Root *rootReturn, Arena arena, Rank rank,
   AVER(FUNCHECK(scan));
 
   theUnion.fun.scan = scan;
-  theUnion.fun.p = p;
-  theUnion.fun.s = s;
+  theUnion.fun.closure.p = p;
+  theUnion.fun.closure.s = s;
 
   return rootCreate(rootReturn, arena, rank, (RootMode)0, RootFUN, &theUnion);
 }
@@ -552,7 +555,9 @@ Res RootScan(ScanState ss, Root root)
     break;
 
   case RootFUN:
-    res = (*root->the.fun.scan)(&ss->ss_s, root->the.fun.p, root->the.fun.s);
+    res = root->the.fun.scan(&ss->ss_s,
+                             root->the.fun.closure.p,
+                             root->the.fun.closure.s);
     if (res != ResOK)
       goto failScan;
     break;
@@ -729,7 +734,8 @@ Res RootDescribe(Root root, mps_lib_FILE *stream, Count depth)
     res = WriteF(stream, depth + 2,
                  "scan function $F\n", (WriteFF)root->the.fun.scan,
                  "environment p $P s $W\n",
-                 (WriteFP)root->the.fun.p, (WriteFW)root->the.fun.s,
+                 (WriteFP)root->the.fun.closure.p,
+                 (WriteFW)root->the.fun.closure.s,
                  NULL);
     if (res != ResOK)
       return res;
