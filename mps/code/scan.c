@@ -4,8 +4,12 @@
  * Copyright (c) 2001-2016 Ravenbrook Limited.
  * See end of file for license.
  *
+ * .outside: The code in this file is written as if *outside* the MPS,
+ * and so is restricted to facilities in the MPS interface.  MPS users
+ * are invited to read this code and use it as a basis for their own
+ * scanners.  See topic "Area Scanners" in the MPS manual.
+ *
  * TODO: Design document.
- * FIXME: Manual entries for mps_scan_area etc.
  */
 
 #include "mps.h"
