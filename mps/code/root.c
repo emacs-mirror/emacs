@@ -112,14 +112,14 @@ Bool RootCheck(Root root)
   /* Don't need to check var here, because of the switch below */
   switch(root->var)
   {
-    case RootAREA:
+  case RootAREA:
     CHECKL(root->the.area.base != 0);
     CHECKL(root->the.area.base < root->the.area.limit);
     CHECKL(FUNCHECK(root->the.area.scan_area));
     /* Can't check anything about closure */
     break;
 
-    case RootAREA_TAGGED:
+  case RootAREA_TAGGED:
     CHECKL(root->the.area.base != 0);
     CHECKL(root->the.area.base < root->the.area.limit);
     CHECKL(FUNCHECK(root->the.area.scan_area));
@@ -127,13 +127,13 @@ Bool RootCheck(Root root)
        scan_area. */
     break;
 
-    case RootFUN:
+  case RootFUN:
     CHECKL(root->the.fun.scan != NULL);
     /* Can't check anything about closure as it could mean anything to
        scan. */
     break;
 
-    case RootTHREAD_TAGGED:
+  case RootTHREAD_TAGGED:
     CHECKD_NOSIG(Thread, root->the.thread.thread); /* <design/check/#hidden-type> */
     CHECKL(FUNCHECK(root->the.thread.scan_area));
     /* Can't check anything about tag as it could mean anything to
@@ -141,13 +141,13 @@ Bool RootCheck(Root root)
     /* Can't check anything about stackBot. */
     break;
 
-    case RootFMT:
+  case RootFMT:
     CHECKL(root->the.fmt.scan != NULL);
     CHECKL(root->the.fmt.base != 0);
     CHECKL(root->the.fmt.base < root->the.fmt.limit);
     break;
 
-    default:
+  default:
     NOTREACHED;
   }
   CHECKL(RootModeCheck(root->mode));
