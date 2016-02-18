@@ -252,7 +252,7 @@ Res ThreadScan(ScanState ss, Thread thread, Word *stackBot,
 
     stackPtr = MutatorFaultContextSP(&mfcStruct);
     /* .stack.align */
-    stackBase  = (Word *)AddrAlignUp(stackPtr, sizeof(Addr));
+    stackBase  = (Word *)AddrAlignUp(stackPtr, sizeof(Word));
     stackLimit = stackBot;
     if (stackBase >= stackLimit)
       return ResOK;    /* .stack.below-bottom */

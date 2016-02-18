@@ -98,7 +98,7 @@ Res ThreadScan(ScanState ss, Thread thread, Word *stackBot,
 
     stackPtr  = (Addr)context.Rsp;   /* .i6.sp */
     /* .stack.align */
-    stackBase  = (Word *)AddrAlignUp(stackPtr, sizeof(Addr));
+    stackBase  = (Word *)AddrAlignUp(stackPtr, sizeof(Word));
     stackLimit = stackBot;
     if (stackBase >= stackLimit)
       return ResOK;    /* .stack.below-bottom */
