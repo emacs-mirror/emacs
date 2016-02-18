@@ -1364,8 +1364,8 @@ mps_res_t mps_root_create_table_tagged(mps_root_t *mps_root_o,
   AVER(base != NULL);
   AVER(size > 0);
   AVER(FUNCHECK(scan_area));
-  /* Can't check anything about mask. */
-  AVER((pattern & mask) == pattern);
+  /* Can't check anything about mask or pattern, as they could mean
+     anything to scan_area. */
 
   /* .root.table-size */
   res = RootCreateAreaTagged(&root, arena, rank, mode,
@@ -1527,7 +1527,8 @@ mps_res_t mps_root_create_thread_tagged(mps_root_t *mps_root_o,
   AVER(rank == mps_rank_ambig());
   AVER(mps_rm == (mps_rm_t)0);
   AVER(FUNCHECK(scan_area));
-  AVER((~mask & pattern) == 0);
+  /* Can't check anything about mask or pattern, as they could mean
+     anything to scan_area. */
 
   /* See .root-mode. */
   res = RootCreateThreadTagged(&root, arena, rank, thread,

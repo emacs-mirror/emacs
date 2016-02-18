@@ -306,8 +306,8 @@ Res RootCreateAreaTagged(Root *rootReturn, Arena arena,
   AVERT(Rank, rank);
   AVER(base != 0);
   AVER(base < limit);
-  /* Can't check anything about mask. */
-  AVER((mask & pattern) == pattern);
+  /* Can't check anything about mask or pattern, as they could mean
+     anything to scan_area. */
 
   theUnion.area.base = base;
   theUnion.area.limit = limit;
@@ -359,7 +359,8 @@ Res RootCreateThreadTagged(Root *rootReturn, Arena arena,
   AVERT(Thread, thread);
   AVER(ThreadArena(thread) == arena);
   AVER(FUNCHECK(scan_area));
-  AVER((~mask & pattern) == 0);
+  /* Can't check anything about mask or pattern, as they could mean
+     anything to scan_area. */
 
   theUnion.thread.thread = thread;
   theUnion.thread.scan_area = scan_area;
