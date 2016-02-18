@@ -22,8 +22,8 @@ SRCID(ssan, "$Id$");
 
 
 Res StackScan(ScanState ss, Word *stackBot,
-	      mps_area_scan_t scan_area,
-	      void *closure, size_t closure_size)
+              mps_area_scan_t scan_area,
+              void *closure, size_t closure_size)
 {
   jmp_buf jb;
   Word *stackTop = (Word *)&jb;
@@ -38,7 +38,7 @@ Res StackScan(ScanState ss, Word *stackBot,
   (void)setjmp(jb);
 
   return StackScanInner(ss, stackBot, stackTop, sizeof jb / sizeof(Word),
-			scan_area, closure, closure_size);
+                        scan_area, closure, closure_size);
 }
 
 

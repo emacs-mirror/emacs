@@ -211,8 +211,8 @@ Arena ThreadArena(Thread thread)
 #include "prmcxc.h"
 
 Res ThreadScan(ScanState ss, Thread thread, Word *stackBot,
-	       mps_area_scan_t scan_area,
-	       void *closure, size_t closure_size)
+               mps_area_scan_t scan_area,
+               void *closure, size_t closure_size)
 {
   mach_port_t self;
   Res res;
@@ -261,7 +261,7 @@ Res ThreadScan(ScanState ss, Thread thread, Word *stackBot,
      * stackBot (.stack.full-descend)
      */
     res = TraceScanArea(ss, stackBase, stackLimit,
-			scan_area, closure, closure_size);
+                        scan_area, closure, closure_size);
     if(res != ResOK)
       return res;
 

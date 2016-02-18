@@ -474,8 +474,8 @@ extern double TraceWorkFactor;
   END
 
 extern Res TraceScanArea(ScanState ss, Word *base, Word *limit,
-			 mps_area_scan_t scan_area,
-			 void *closure, size_t closure_size);
+                         mps_area_scan_t scan_area,
+                         void *closure, size_t closure_size);
 extern void TraceScanSingleRef(TraceSet ts, Rank rank, Arena arena,
                                Seg seg, Ref *refIO);
 
@@ -948,25 +948,25 @@ extern void LDMerge(mps_ld_t ld, Arena arena, mps_ld_t from);
 /* Root Interface -- see <code/root.c> */
 
 extern Res RootCreateArea(Root *rootReturn, Arena arena,
-			  Rank rank, RootMode mode,
-			  Word *base, Word *limit,
-			  mps_area_scan_t scan_area,
-			  void *closure, size_t closure_size);
+                          Rank rank, RootMode mode,
+                          Word *base, Word *limit,
+                          mps_area_scan_t scan_area,
+                          void *closure, size_t closure_size);
 extern Res RootCreateAreaTagged(Root *rootReturn, Arena arena,
-				Rank rank, RootMode mode,
-				Word *base, Word *limit,
-				mps_area_scan_t scan_area,
-				Word mask, Word pattern);
+                                Rank rank, RootMode mode,
+                                Word *base, Word *limit,
+                                mps_area_scan_t scan_area,
+                                Word mask, Word pattern);
 extern Res RootCreateThread(Root *rootReturn, Arena arena,
-			    Rank rank, Thread thread,
-			    mps_area_scan_t scan_area,
-			    void *closure, size_t closure_size,
-			    Word *stackBot);
+                            Rank rank, Thread thread,
+                            mps_area_scan_t scan_area,
+                            void *closure, size_t closure_size,
+                            Word *stackBot);
 extern Res RootCreateThreadTagged(Root *rootReturn, Arena arena,
-				  Rank rank, Thread thread,
-				  mps_area_scan_t scan_area,
-				  Word mask, Word pattern,
-				  Word *stackBot);
+                                  Rank rank, Thread thread,
+                                  mps_area_scan_t scan_area,
+                                  Word mask, Word pattern,
+                                  Word *stackBot);
 extern Res RootCreateFmt(Root *rootReturn, Arena arena,
                            Rank rank, RootMode mode,
                            mps_fmt_scan_t scan,

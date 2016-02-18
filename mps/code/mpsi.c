@@ -1301,8 +1301,8 @@ mps_res_t mps_root_create_table(mps_root_t *mps_root_o, mps_arena_t arena,
      void *. */
 
   res = RootCreateArea(&root, arena, rank, mode,
-		       (void *)base, (void *)(base + size),
-		       mps_scan_area, NULL, 0);
+                       (void *)base, (void *)(base + size),
+                       mps_scan_area, NULL, 0);
 
   ArenaLeave(arena);
 
@@ -1313,11 +1313,11 @@ mps_res_t mps_root_create_table(mps_root_t *mps_root_o, mps_arena_t arena,
 }
 
 mps_res_t mps_root_create_area(mps_root_t *mps_root_o,
-			       mps_arena_t arena,
-			       mps_rank_t mps_rank, mps_rm_t mps_rm,
-			       mps_word_t *base, mps_word_t *limit,
-			       mps_area_scan_t scan_area,
-			       void *closure, size_t closure_size)
+                               mps_arena_t arena,
+                               mps_rank_t mps_rank, mps_rm_t mps_rm,
+                               mps_word_t *base, mps_word_t *limit,
+                               mps_area_scan_t scan_area,
+                               void *closure, size_t closure_size)
 {
   Rank rank = (Rank)mps_rank;
   Root root;
@@ -1334,8 +1334,8 @@ mps_res_t mps_root_create_area(mps_root_t *mps_root_o,
   /* Can't check anything about closure */
 
   res = RootCreateArea(&root, arena, rank, mode,
-		       base, limit,
-		       scan_area, closure, closure_size);
+                       base, limit,
+                       scan_area, closure, closure_size);
 
   ArenaLeave(arena);
 
@@ -1349,9 +1349,9 @@ mps_res_t mps_root_create_table_tagged(mps_root_t *mps_root_o,
                                        mps_arena_t arena,
                                        mps_rank_t mps_rank, mps_rm_t mps_rm,
                                        mps_addr_t *base, size_t size,
-				       mps_area_scan_t scan_area,
+                                       mps_area_scan_t scan_area,
                                        mps_word_t mask,
-				       mps_word_t pattern)
+                                       mps_word_t pattern)
 {
   Rank rank = (Rank)mps_rank;
   Root root;
@@ -1369,8 +1369,8 @@ mps_res_t mps_root_create_table_tagged(mps_root_t *mps_root_o,
 
   /* .root.table-size */
   res = RootCreateAreaTagged(&root, arena, rank, mode,
-			     (void *)base, (void *)(base + size),
-			     scan_area, mask, pattern);
+                             (void *)base, (void *)(base + size),
+                             scan_area, mask, pattern);
 
   ArenaLeave(arena);
 
@@ -1387,8 +1387,8 @@ mps_res_t mps_root_create_table_masked(mps_root_t *mps_root_o,
                                        mps_word_t mask)
 {
   return mps_root_create_table_tagged(mps_root_o, arena, mps_rank, mps_rm,
-				      base, size, mps_scan_area_tagged,
-				      mask, 0);
+                                      base, size, mps_scan_area_tagged,
+                                      mask, 0);
 }
 
 mps_res_t mps_root_create_fmt(mps_root_t *mps_root_o, mps_arena_t arena,
@@ -1437,9 +1437,9 @@ mps_res_t mps_root_create_reg(mps_root_t *mps_root_o, mps_arena_t arena,
 
   /* See .root-mode. */
   res = RootCreateThreadTagged(&root, arena, rank, thread,
-			       mps_scan_area_tagged,
-			       sizeof(mps_word_t) - 1, 0,
-			       (Word *)stack);
+                               mps_scan_area_tagged,
+                               sizeof(mps_word_t) - 1, 0,
+                               (Word *)stack);
 
   ArenaLeave(arena);
 
@@ -1451,31 +1451,31 @@ mps_res_t mps_root_create_reg(mps_root_t *mps_root_o, mps_arena_t arena,
 
 
 mps_res_t mps_root_create_thread(mps_root_t *mps_root_o,
-				 mps_arena_t arena,
-				 mps_thr_t thread,
-				 void *stack)
+                                 mps_arena_t arena,
+                                 mps_thr_t thread,
+                                 void *stack)
 {
   return mps_root_create_thread_tagged(mps_root_o,
-				       arena,
-				       mps_rank_ambig(),
-				       (mps_rm_t)0,
-				       thread,
-				       mps_scan_area_tagged,
-				       sizeof(mps_word_t) - 1,
-				       0,
-				       stack);
+                                       arena,
+                                       mps_rank_ambig(),
+                                       (mps_rm_t)0,
+                                       thread,
+                                       mps_scan_area_tagged,
+                                       sizeof(mps_word_t) - 1,
+                                       0,
+                                       stack);
 }
 
 
 mps_res_t mps_root_create_thread_scanned(mps_root_t *mps_root_o,
-					 mps_arena_t arena,
-					 mps_rank_t mps_rank,
-					 mps_rm_t mps_rm,
-					 mps_thr_t thread,
-					 mps_area_scan_t scan_area,
-					 void *closure,
-					 size_t closure_size,
-					 void *stack)
+                                         mps_arena_t arena,
+                                         mps_rank_t mps_rank,
+                                         mps_rm_t mps_rm,
+                                         mps_thr_t thread,
+                                         mps_area_scan_t scan_area,
+                                         void *closure,
+                                         size_t closure_size,
+                                         void *stack)
 {
   Rank rank = (Rank)mps_rank;
   Root root;
@@ -1493,8 +1493,8 @@ mps_res_t mps_root_create_thread_scanned(mps_root_t *mps_root_o,
 
   /* See .root-mode. */
   res = RootCreateThread(&root, arena, rank, thread,
-			 scan_area, closure, closure_size,
-			 (Word *)stack);
+                         scan_area, closure, closure_size,
+                         (Word *)stack);
 
   ArenaLeave(arena);
 
@@ -1506,14 +1506,14 @@ mps_res_t mps_root_create_thread_scanned(mps_root_t *mps_root_o,
 
 
 mps_res_t mps_root_create_thread_tagged(mps_root_t *mps_root_o,
-					mps_arena_t arena,
-					mps_rank_t mps_rank,
-					mps_rm_t mps_rm,
-					mps_thr_t thread,
-					mps_area_scan_t scan_area,
-					mps_word_t mask,
-					mps_word_t pattern,
-					void *stack)
+                                        mps_arena_t arena,
+                                        mps_rank_t mps_rank,
+                                        mps_rm_t mps_rm,
+                                        mps_thr_t thread,
+                                        mps_area_scan_t scan_area,
+                                        mps_word_t mask,
+                                        mps_word_t pattern,
+                                        void *stack)
 {
   Rank rank = (Rank)mps_rank;
   Root root;
@@ -1531,8 +1531,8 @@ mps_res_t mps_root_create_thread_tagged(mps_root_t *mps_root_o,
 
   /* See .root-mode. */
   res = RootCreateThreadTagged(&root, arena, rank, thread,
-			       scan_area, mask, pattern,
-			       (Word *)stack);
+                               scan_area, mask, pattern,
+                               (Word *)stack);
 
   ArenaLeave(arena);
 
