@@ -30,7 +30,7 @@
 SRCID(ssw3i6mv, "$Id$");
 
 
-Res StackScan(ScanState ss, Word *stackBot,
+Res StackScan(ScanState ss, Word *stackCold,
               mps_area_scan_t scan_area,
               void *closure, size_t closure_size)
 {
@@ -63,7 +63,7 @@ Res StackScan(ScanState ss, Word *stackBot,
   AVER(offsetof(_JUMP_BUFFER, R14) == offsetof(_JUMP_BUFFER, Rbx) + 56);
   AVER(offsetof(_JUMP_BUFFER, R15) == offsetof(_JUMP_BUFFER, Rbx) + 64);
 
-  return StackScanInner(ss, stackBot, (Word *)&((_JUMP_BUFFER *)jb)->Rbx, 9,
+  return StackScanInner(ss, stackCold, (Word *)&((_JUMP_BUFFER *)jb)->Rbx, 9,
                         scan_area, closure, closure_size);
 }
 

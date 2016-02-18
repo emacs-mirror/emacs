@@ -14,30 +14,30 @@
 
 /* StackScan -- scan the current thread's stack
  *
- * StackScan scans the stack of the current thread, Between stackBot and the
- * current top of stack. It also fixes any roots which may be in callee-save
- * registers.
+ * StackScan scans the stack of the current thread, Between stackCold
+ * and the current hot end of the stack. It also fixes any roots which
+ * may be in callee-save registers.
  *
  * See the specific implementation for the exact registers which are scanned.
  *
  * If a stack pointer has been stashed at arena entry (through the MPS
  * interface in mpsi*.c) then only the registers and the stack between
- * stackAtArenaEnter and stackBot is scanned, to avoid scanning false
+ * stackAtArenaEnter and stackCold is scanned, to avoid scanning false
  * ambiguous references on the MPS's own stack.  This is particularly
  * important for transforms (trans.c).
  *
- * The word pointed to by stackBot is fixed if the stack is by convention
+ * The word pointed to by stackCold is fixed if the stack is by convention
  * empty, and not fixed if it is full.  Where empty means sp points to first
  * free word beyond the top of stack.  Full means sp points to the top of
  * stack itself.
  */
 
-extern Res StackScan(ScanState ss, Word *stackBot,
+extern Res StackScan(ScanState ss, Word *stackCold,
                      mps_area_scan_t scan_area,
                      void *closure, size_t closure_size);
-extern Res StackScanInner(ScanState ss, Word *stackBot, Word *stackTop,
+extern Res StackScanInner(ScanState ss, Word *stackCold, Word *stackHot,
                           Count nSavedRegs, mps_area_scan_t scan_area,
-                          void *closure, size_t closure_s);
+                          void *closure, size_t closure_size);
 
 #endif /* ss_h */
 

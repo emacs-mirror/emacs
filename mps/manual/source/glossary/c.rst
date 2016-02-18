@@ -589,7 +589,7 @@ Memory Management Glossary: C
 
         .. similar:: :term:`stack`.
 
-        .. seealso:: :term:`data stack`.
+        .. seealso:: :term:`cold end`, :term:`data stack`, :term:`hot end`.
 
     cool
 

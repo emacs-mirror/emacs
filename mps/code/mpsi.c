@@ -1417,7 +1417,7 @@ mps_res_t mps_root_create_fmt(mps_root_t *mps_root_o, mps_arena_t arena,
 mps_res_t mps_root_create_reg(mps_root_t *mps_root_o, mps_arena_t arena,
                               mps_rank_t mps_rank, mps_rm_t mps_rm,
                               mps_thr_t thread, mps_reg_scan_t mps_reg_scan,
-                              void *stack, size_t mps_size)
+                              void *cold, size_t mps_size)
 {
   Rank rank = (Rank)mps_rank;
   Root root;
@@ -1428,8 +1428,8 @@ mps_res_t mps_root_create_reg(mps_root_t *mps_root_o, mps_arena_t arena,
   AVER(mps_root_o != NULL);
   AVER(mps_reg_scan != NULL);
   AVER(mps_reg_scan == mps_stack_scan_ambig); /* .reg.scan */
-  AVER(stack != NULL); /* stackBot */
-  AVER(AddrIsAligned(stack, sizeof(Word)));
+  AVER(cold != NULL);
+  AVER(AddrIsAligned(cold, sizeof(Word)));
   AVER(rank == mps_rank_ambig());
   AVER(mps_rm == (mps_rm_t)0);
 
@@ -1439,7 +1439,7 @@ mps_res_t mps_root_create_reg(mps_root_t *mps_root_o, mps_arena_t arena,
   res = RootCreateThreadTagged(&root, arena, rank, thread,
                                mps_scan_area_tagged,
                                sizeof(mps_word_t) - 1, 0,
-                               (Word *)stack);
+                               (Word *)cold);
 
   ArenaLeave(arena);
 
@@ -1475,7 +1475,7 @@ mps_res_t mps_root_create_thread_scanned(mps_root_t *mps_root_o,
                                          mps_area_scan_t scan_area,
                                          void *closure,
                                          size_t closure_size,
-                                         void *stack)
+                                         void *cold)
 {
   Rank rank = (Rank)mps_rank;
   Root root;
@@ -1484,8 +1484,8 @@ mps_res_t mps_root_create_thread_scanned(mps_root_t *mps_root_o,
   ArenaEnter(arena);
 
   AVER(mps_root_o != NULL);
-  AVER(stack != NULL); /* stackBot */
-  AVER(AddrIsAligned(stack, sizeof(Word)));
+  AVER(cold != NULL);
+  AVER(AddrIsAligned(cold, sizeof(Word)));
   AVER(rank == mps_rank_ambig());
   AVER(mps_rm == (mps_rm_t)0);
   AVER(FUNCHECK(scan_area));
@@ -1494,7 +1494,7 @@ mps_res_t mps_root_create_thread_scanned(mps_root_t *mps_root_o,
   /* See .root-mode. */
   res = RootCreateThread(&root, arena, rank, thread,
                          scan_area, closure, closure_size,
-                         (Word *)stack);
+                         (Word *)cold);
 
   ArenaLeave(arena);
 
@@ -1513,7 +1513,7 @@ mps_res_t mps_root_create_thread_tagged(mps_root_t *mps_root_o,
                                         mps_area_scan_t scan_area,
                                         mps_word_t mask,
                                         mps_word_t pattern,
-                                        void *stack)
+                                        void *cold)
 {
   Rank rank = (Rank)mps_rank;
   Root root;
@@ -1522,8 +1522,8 @@ mps_res_t mps_root_create_thread_tagged(mps_root_t *mps_root_o,
   ArenaEnter(arena);
 
   AVER(mps_root_o != NULL);
-  AVER(stack != NULL); /* stackBot */
-  AVER(AddrIsAligned(stack, sizeof(Word)));
+  AVER(cold != NULL);
+  AVER(AddrIsAligned(cold, sizeof(Word)));
   AVER(rank == mps_rank_ambig());
   AVER(mps_rm == (mps_rm_t)0);
   AVER(FUNCHECK(scan_area));
@@ -1533,7 +1533,7 @@ mps_res_t mps_root_create_thread_tagged(mps_root_t *mps_root_o,
   /* See .root-mode. */
   res = RootCreateThreadTagged(&root, arena, rank, thread,
                                scan_area, mask, pattern,
-                               (Word *)stack);
+                               (Word *)cold);
 
   ArenaLeave(arena);
 

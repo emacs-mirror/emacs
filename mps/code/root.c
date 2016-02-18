@@ -56,7 +56,7 @@ typedef struct RootStruct {
       Thread thread;            /* passed to scan */
       mps_area_scan_t scan_area;/* area scanner for stack and registers */
       AreaScanUnion the;
-      Word *stackBot;           /* bottom of stack */
+      Word *stackCold;          /* cold end of stack */
     } thread;
     struct {
       mps_fmt_scan_t scan;      /* format-like scanner */
@@ -138,7 +138,7 @@ Bool RootCheck(Root root)
     CHECKL(FUNCHECK(root->the.thread.scan_area));
     /* Can't check anything about tag as it could mean anything to
        scan_area. */
-    /* Can't check anything about stackBot. */
+    /* Can't check anything about stackCold. */
     break;
 
   case RootFMT:
@@ -328,7 +328,7 @@ Res RootCreateThread(Root *rootReturn, Arena arena,
                      Rank rank, Thread thread,
                      mps_area_scan_t scan_area,
                      void *closure, size_t closure_size,
-                     Word *stackBot)
+                     Word *stackCold)
 {
   union RootUnion theUnion;
 
@@ -344,7 +344,7 @@ Res RootCreateThread(Root *rootReturn, Arena arena,
   theUnion.thread.scan_area = scan_area;
   theUnion.thread.the.closure.p = closure;
   theUnion.thread.the.closure.s = closure_size;
-  theUnion.thread.stackBot = stackBot;
+  theUnion.thread.stackCold = stackCold;
 
   return rootCreate(rootReturn, arena, rank, (RootMode)0, RootTHREAD,
                     &theUnion);
@@ -354,7 +354,7 @@ Res RootCreateThreadTagged(Root *rootReturn, Arena arena,
                            Rank rank, Thread thread,
                            mps_area_scan_t scan_area,
                            Word mask, Word pattern,
-                           Word *stackBot)
+                           Word *stackCold)
 {
   union RootUnion theUnion;
 
@@ -371,7 +371,7 @@ Res RootCreateThreadTagged(Root *rootReturn, Arena arena,
   theUnion.thread.scan_area = scan_area;
   theUnion.thread.the.tag.mask = mask;
   theUnion.thread.the.tag.pattern = pattern;
-  theUnion.thread.stackBot = stackBot;
+  theUnion.thread.stackCold = stackCold;
 
   return rootCreate(rootReturn, arena, rank, (RootMode)0, RootTHREAD_TAGGED,
                     &theUnion);
@@ -564,7 +564,7 @@ Res RootScan(ScanState ss, Root root)
 
   case RootTHREAD:
     res = ThreadScan(ss, root->the.thread.thread,
-                     root->the.thread.stackBot,
+                     root->the.thread.stackCold,
                      root->the.thread.scan_area,
                      root->the.thread.the.closure.p,
                      root->the.thread.the.closure.s);
@@ -574,7 +574,7 @@ Res RootScan(ScanState ss, Root root)
 
   case RootTHREAD_TAGGED:
     res = ThreadScan(ss, root->the.thread.thread,
-                     root->the.thread.stackBot,
+                     root->the.thread.stackCold,
                      root->the.thread.scan_area,
                      &root->the.thread.the.tag,
                      sizeof(root->the.thread.the.tag));
@@ -747,7 +747,7 @@ Res RootDescribe(Root root, mps_lib_FILE *stream, Count depth)
                  "closure $P size $U\n",
                  (WriteFP)root->the.thread.the.closure.p,
                  (WriteFU)root->the.thread.the.closure.s,
-                 "stackBot $P\n", (WriteFP)root->the.thread.stackBot,
+                 "stackCold $P\n", (WriteFP)root->the.thread.stackCold,
                  NULL);
     if (res != ResOK)
       return res;
@@ -758,7 +758,7 @@ Res RootDescribe(Root root, mps_lib_FILE *stream, Count depth)
                  "thread $P\n", (WriteFP)root->the.thread.thread,
                  "mask $B\n", (WriteFB)root->the.thread.the.tag.mask,
                  "pattern $B\n", (WriteFB)root->the.thread.the.tag.pattern,
-                 "stackBot $P\n", (WriteFP)root->the.thread.stackBot,
+                 "stackCold $P\n", (WriteFP)root->the.thread.stackCold,
                  NULL);
     if (res != ResOK)
       return res;

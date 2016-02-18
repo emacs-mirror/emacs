@@ -153,15 +153,15 @@ threads are discovered to have terminated, move them to ``deadRing``.
 _`.if.ring.thread`: Return the thread that owns the given element of
 the thread ring.
 
-``Res ThreadScan(ScanState ss, Thread thread, void *stackBot)``
+``Res ThreadScan(ScanState ss, Thread thread, Word *stackCold, mps_area_scan_t scan_area, void *closure, size_t closure_size)``
 
-_`.if.scan`: Scan the stacks and root registers of ``thread``,
-treating each value found as an ambiguous reference. ``stackBot``
-points to the "bottom" of the thread's stack---this is the value that
-was supplied by the client program when it called
-``mps_root_create_reg()``. In the common case, where the stack grows
-downwards, ``stackBot`` is actually the highest stack address. Return
-``ResOK`` if successful, another result code otherwise.
+_`.if.scan`: Scan the stacks and root registers of ``thread``, using
+``ss`` and ``scan_area``. ``stackCold`` points to the cold end of the
+thread's stack---this is the value that was supplied by the client
+program when it called ``mps_root_create_thread()``. In the common
+case, where the stack grows downwards, ``stackCold`` is the highest
+stack address. Return ``ResOK`` if successful, another result code
+otherwise.
 
 
 Implementations

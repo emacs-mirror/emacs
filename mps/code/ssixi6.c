@@ -47,7 +47,7 @@ SRCID(ssixi6, "$Id$");
 #define ASMV(x) __asm__ volatile (x)
 
 
-Res StackScan(ScanState ss, Word *stackBot,
+Res StackScan(ScanState ss, Word *stackCold,
               mps_area_scan_t scan_area,
               void *closure, size_t closure_size)
 {
@@ -64,7 +64,7 @@ Res StackScan(ScanState ss, Word *stackBot,
   ASMV("mov %%r14, %0" : "=m" (calleeSaveRegs[4]));
   ASMV("mov %%r15, %0" : "=m" (calleeSaveRegs[5]));
   
-  return StackScanInner(ss, stackBot, calleeSaveRegs, NELEMS(calleeSaveRegs),
+  return StackScanInner(ss, stackCold, calleeSaveRegs, NELEMS(calleeSaveRegs),
                         scan_area, closure, closure_size);
 }
 

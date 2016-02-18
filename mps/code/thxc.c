@@ -210,7 +210,7 @@ Arena ThreadArena(Thread thread)
 
 #include "prmcxc.h"
 
-Res ThreadScan(ScanState ss, Thread thread, Word *stackBot,
+Res ThreadScan(ScanState ss, Thread thread, Word *stackCold,
                mps_area_scan_t scan_area,
                void *closure, size_t closure_size)
 {
@@ -223,7 +223,7 @@ Res ThreadScan(ScanState ss, Thread thread, Word *stackBot,
   if (thread->port == self) {
     /* scan this thread's stack */
     AVER(thread->alive);
-    res = StackScan(ss, stackBot, scan_area, closure, closure_size);
+    res = StackScan(ss, stackCold, scan_area, closure, closure_size);
     if(res != ResOK)
       return res;
   } else if (thread->alive) {
@@ -253,12 +253,12 @@ Res ThreadScan(ScanState ss, Thread thread, Word *stackBot,
     stackPtr = MutatorFaultContextSP(&mfcStruct);
     /* .stack.align */
     stackBase  = (Word *)AddrAlignUp(stackPtr, sizeof(Word));
-    stackLimit = stackBot;
+    stackLimit = stackCold;
     if (stackBase >= stackLimit)
       return ResOK;    /* .stack.below-bottom */
 
     /* scan stack inclusive of current sp and exclusive of
-     * stackBot (.stack.full-descend)
+     * stackCold (.stack.full-descend)
      */
     res = TraceScanArea(ss, stackBase, stackLimit,
                         scan_area, closure, closure_size);
