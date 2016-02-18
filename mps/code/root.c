@@ -122,7 +122,8 @@ Bool RootCheck(Root root)
     CHECKL(root->the.area.base != 0);
     CHECKL(root->the.area.base < root->the.area.limit);
     CHECKL(FUNCHECK(root->the.area.scan_area));
-    CHECKL((~root->the.area.the.tag.mask & root->the.area.the.tag.pattern) == 0);
+    /* Can't check anything about tag as it could mean anything to
+       scan_area. */
     break;
 
     case RootFUN:
@@ -132,7 +133,8 @@ Bool RootCheck(Root root)
     case RootTHREAD_TAGGED:
     CHECKD_NOSIG(Thread, root->the.thread.thread); /* <design/check/#hidden-type> */
     CHECKL(FUNCHECK(root->the.thread.scan_area));
-    CHECKL((~root->the.thread.the.tag.mask & root->the.thread.the.tag.pattern) == 0);
+    /* Can't check anything about tag as it could mean anything to
+       scan_area. */
     /* Can't check anything about stackBot. */
     break;
 
