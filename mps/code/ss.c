@@ -24,7 +24,7 @@ SRCID(ss, "$Id$");
  * scanning.
  */
 
-Res StackScanInner(ScanState ss, Word *stackBot, Word *stackTop,
+Res StackScanInner(ScanState ss, Word *stackCold, Word *stackHot,
                    Count nSavedRegs,
                    mps_area_scan_t scan_area,
                    void *closure, size_t closure_size)
@@ -33,8 +33,8 @@ Res StackScanInner(ScanState ss, Word *stackBot, Word *stackTop,
   Res res;
 
   AVERT(ScanState, ss);
-  AVER(stackTop < stackBot);
-  AVER(AddrIsAligned((Addr)stackTop, sizeof(Addr)));  /* .assume.align */
+  AVER(stackHot < stackCold);
+  AVER(AddrIsAligned((Addr)stackHot, sizeof(Addr)));  /* .assume.align */
   AVER(0 < nSavedRegs);
   AVER(nSavedRegs < 128);       /* sanity check */
 
@@ -47,18 +47,18 @@ Res StackScanInner(ScanState ss, Word *stackBot, Word *stackTop,
      (trans.c).  Otherwise, scan the whole stack. */
 
   if (arena->stackAtArenaEnter != NULL) {
-    AVER(stackTop < arena->stackAtArenaEnter);
-    AVER(arena->stackAtArenaEnter < stackBot);
-    res = TraceScanArea(ss, stackTop, stackTop + nSavedRegs,
+    AVER(stackHot < arena->stackAtArenaEnter);
+    AVER(arena->stackAtArenaEnter < stackCold);
+    res = TraceScanArea(ss, stackHot, stackHot + nSavedRegs,
                         scan_area, closure, closure_size);
     if (res != ResOK)
       return res;
-    res = TraceScanArea(ss, arena->stackAtArenaEnter, stackBot,
+    res = TraceScanArea(ss, arena->stackAtArenaEnter, stackCold,
                         scan_area, closure, closure_size);
     if (res != ResOK)
       return res;
   } else {
-    res = TraceScanArea(ss, stackTop, stackBot,
+    res = TraceScanArea(ss, stackHot, stackCold,
                         scan_area, closure, closure_size);
     if (res != ResOK)
       return res;
