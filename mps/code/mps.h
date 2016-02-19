@@ -690,6 +690,11 @@ extern mps_res_t mps_root_create_area(mps_root_t *, mps_arena_t,
                                       mps_rank_t, mps_rm_t,
                                       mps_word_t *, mps_word_t *,
                                       mps_area_scan_t, void *, size_t);
+extern mps_res_t mps_root_create_area_tagged(mps_root_t *, mps_arena_t,
+                                             mps_rank_t, mps_rm_t,
+                                             mps_word_t *, mps_word_t *,
+                                             mps_area_scan_t,
+                                             mps_word_t, mps_word_t);
 extern mps_res_t mps_root_create_fmt(mps_root_t *, mps_arena_t,
                                      mps_rank_t, mps_rm_t,
                                      mps_fmt_scan_t, mps_addr_t,
