@@ -104,6 +104,9 @@ scan it for references:
    :term:`registers` and :term:`control stack` of a thread. See
    :ref:`topic-root-thread` below.
 
+Several of these categories of roots have variants for dealing with
+:term:`tagged references`.  See :ref:`topic-scanning-tag`.
+
 .. index::
    pair: root; cautions
 
@@ -461,12 +464,12 @@ Root interface
 
         You can avoid this risk in several ways:
 
-        #. Choosing to tag pointers with zero, setting ``scan_area``
-           as :c:func:`mps_scan_area_tagged` and setting ``pattern``
-           to zero.
+        #. Choose to tag pointers with zero, setting ``scan_area`` to
+           :c:func:`mps_scan_area_tagged` and setting ``pattern`` to
+           zero.
 
         #. Set ``scan_area`` to :c:func:`mps_scan_area_tagged_or_zero`
-           so that untagged pointers are scanned.  Thist may lead to
+           so that untagged pointers are scanned.  This may lead to
            some additional scanning and retention.
 
         #. Use :c:func:`mps_root_create_thread_scanned` and set
@@ -484,9 +487,10 @@ Root interface
      .. note::
 
         An optimization that may be worth considering is setting some
-        of the top bits in ``mask`` so that addresses that cannot be
-        allocated by the MPS are rejected quickly. This requires
-        expertise with the platform's virtual memory interface.
+        of the top bits in ``mask`` and ``pattern`` so that addresses
+        that cannot be allocated by the MPS are rejected quickly. This
+        requires expertise with the platform's virtual memory
+        interface.
 
 .. c:function:: mps_res_t mps_root_create_thread_scanned(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_thr_t thread, mps_area_scan_t scan_area, void *closure, size_t closure_size, void *cold)
 
