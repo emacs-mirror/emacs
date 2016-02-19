@@ -1420,11 +1420,15 @@ void TraceScanSingleRef(TraceSet ts, Rank rank, Arena arena,
 }
 
 
-/* TraceScanArea -- scan contiguous area of references
+/* TraceScanArea -- scan an area of memory for references
  *
- * This is a convenience function for scanning the contiguous area
- * [base, limit).  I.e., it calls Fix on all words from base up to
- * limit, inclusive of base and exclusive of limit.  */
+ * This is a wrapper for area scanning functions, which should not
+ * otherwise be called directly from within the MPS.  This function
+ * checks arguments and takes care of accounting for the scanned
+ * memory.
+ *
+ * c.f. FormatScan()
+ */
 
 Res TraceScanArea(ScanState ss, Word *base, Word *limit,
                   mps_area_scan_t scan_area,
@@ -1437,6 +1441,11 @@ Res TraceScanArea(ScanState ss, Word *base, Word *limit,
 
   EVENT3(TraceScanArea, ss, base, limit);
 
+  /* scannedSize is accumulated whether or not scan_area succeeds, so
+     it's safe to accumulate now so that we can tail-call
+     scan_area. */
+  ss->scannedSize += AddrOffset(base, limit);
+  
   return scan_area(&ss->ss_s, base, limit, closure, closure_size);
 }
 

@@ -537,7 +537,6 @@ Res RootScan(ScanState ss, Root root)
                         root->the.area.scan_area,
                         root->the.area.the.closure.p,
                         root->the.area.the.closure.s);
-    ss->scannedSize += AddrOffset(root->the.area.base, root->the.area.limit);
     if (res != ResOK)
       goto failScan;
     break;
@@ -549,7 +548,6 @@ Res RootScan(ScanState ss, Root root)
                         root->the.area.scan_area,
                         &root->the.area.the.tag,
                         sizeof(root->the.area.the.tag));
-    ss->scannedSize += AddrOffset(root->the.area.base, root->the.area.limit);
     if (res != ResOK)
       goto failScan;
     break;
