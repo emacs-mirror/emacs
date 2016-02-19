@@ -1345,13 +1345,15 @@ mps_res_t mps_root_create_area(mps_root_t *mps_root_o,
   return MPS_RES_OK;
 }
 
-mps_res_t mps_root_create_table_tagged(mps_root_t *mps_root_o,
-                                       mps_arena_t arena,
-                                       mps_rank_t mps_rank, mps_rm_t mps_rm,
-                                       mps_addr_t *base, size_t size,
-                                       mps_area_scan_t scan_area,
-                                       mps_word_t mask,
-                                       mps_word_t pattern)
+mps_res_t mps_root_create_area_tagged(mps_root_t *mps_root_o,
+                                      mps_arena_t arena,
+                                      mps_rank_t mps_rank,
+                                      mps_rm_t mps_rm,
+                                      mps_word_t *base,
+                                      mps_word_t *limit,
+                                      mps_area_scan_t scan_area,
+                                      mps_word_t mask,
+                                      mps_word_t pattern)
 {
   Rank rank = (Rank)mps_rank;
   Root root;
@@ -1362,14 +1364,14 @@ mps_res_t mps_root_create_table_tagged(mps_root_t *mps_root_o,
 
   AVER(mps_root_o != NULL);
   AVER(base != NULL);
-  AVER(size > 0);
+  AVER(limit != NULL);
+  AVER(base < limit);
   AVER(FUNCHECK(scan_area));
   /* Can't check anything about mask or pattern, as they could mean
      anything to scan_area. */
 
-  /* .root.table-size */
   res = RootCreateAreaTagged(&root, arena, rank, mode,
-                             (void *)base, (void *)(base + size),
+                             base, limit,
                              scan_area, mask, pattern);
 
   ArenaLeave(arena);
@@ -1379,6 +1381,21 @@ mps_res_t mps_root_create_table_tagged(mps_root_t *mps_root_o,
   *mps_root_o = (mps_root_t)root;
   return MPS_RES_OK;
 }
+  
+
+mps_res_t mps_root_create_table_tagged(mps_root_t *mps_root_o,
+                                       mps_arena_t arena,
+                                       mps_rank_t mps_rank, mps_rm_t mps_rm,
+                                       mps_addr_t *base, size_t size,
+                                       mps_area_scan_t scan_area,
+                                       mps_word_t mask,
+                                       mps_word_t pattern)
+{
+  return mps_root_create_area_tagged(mps_root_o, arena, mps_rank, mps_rm,
+                                     (void *)base, (void *)(base + size),
+                                     scan_area, mask, pattern);
+}
+
 
 mps_res_t mps_root_create_table_masked(mps_root_t *mps_root_o,
                                        mps_arena_t arena,
