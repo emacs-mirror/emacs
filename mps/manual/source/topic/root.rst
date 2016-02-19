@@ -429,7 +429,7 @@ Root interface
     to scan the threads registers and stack, for example
     :c:func:`mps_scan_area_tagged` or
     :c:func:`mps_scan_area_tagged_or_zero`.  See
-    :ref:`topic-area-scanners`.
+    :ref:`topic-scanning-area`.
 
     ``mask`` is a :term:`bitmask` that is passed to ``scan_area`` to
     be applied to the thread's registers and stack to locate the
@@ -512,7 +512,7 @@ Root interface
     ``scan_area`` is an area scanning function that will be used to
     scan the threads registers and stack, for example
     :c:func:`mps_scan_area`, or a similar user-defined function. See
-    :ref:`topic-area-scanners`.
+    :ref:`topic-scanning-area`.
 
     ``closure`` is an arbitrary pointer that is passed to ``scan_area``
     and intended to point to any parameters it needs.
@@ -554,7 +554,7 @@ Root interface
 
     ``scan_area`` is an area scanning function, for example
     :c:func:`mps_scan_area`, or a similar user-defined function. See
-    :ref:`topic-area-scanners`.
+    :ref:`topic-scanning-area`.
 
     ``closure`` is an arbitrary pointer that is passed to ``scan_area``
     and intended to point to any parameters it needs.
@@ -592,7 +592,7 @@ Root interface
     ``scan_area`` is an tagged area scanning function that will be
     used to scan the table, for example :c:func:`mps_scan_area_tagged`
     or :c:func:`mps_scan_area_tagged_or_zero`.  See
-    :ref:`topic-area-scanners`.
+    :ref:`topic-scanning-area`.
 
     ``mask`` is a :term:`bitmask` that is passed to ``scan_area`` to
     be applied to the words in the vector to locate the :term:`tag`.
@@ -686,7 +686,7 @@ Root interface
     ``scan_area`` is an tagged area scanning function that will be
     used to scan the table, for example :c:func:`mps_scan_area_tagged`
     or :c:func:`mps_scan_area_tagged_or_zero`.  See
-    :ref:`topic-area-scanners`.
+    :ref:`topic-scanning-area`.
 
     ``mask`` is a :term:`bitmask` that is passed to ``scan_area`` to
     be applied to the words in the vector to locate the :term:`tag`.

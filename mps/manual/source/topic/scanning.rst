@@ -506,13 +506,13 @@ Fixing interface
 .. index::
    single: scanning; area scanners
 
-.. _topic-area-scanners:
+.. _topic-scanning-area:
 
 Area scanners
 -------------
 
 An area scanner :term:`scans` an area of memory for
-:term:`refrerences <reference>`. Various functions in the MPS interface,
+:term:`references <reference>`. Various functions in the MPS interface,
 :such as :c:func:`mps_root_create_thread_tagged`, accept area scanners as
 arguments so that the :term:`client program` can specify how to scan
 special areas such as the :term:`control stack`.
@@ -585,7 +585,9 @@ the scanners, found in ``scan.c`` in the MPS source code.
 
 .. c:function:: mps_res_t mps_scan_area_masked(mps_ss_t ss, mps_word_t *base, mps_word_t *limit, void *closure, size_t closure_size)
 
-    Scan an area of memory :term:`fixing <fix>` every word, but but remove tag bits before fixing references, and restore them afterwards.  ``closure`` should point to an :c:type:`mps_scan_tag_s`.
+    Scan an area of memory :term:`fixing <fix>` every word, but remove
+    tag bits before fixing references, and restore them afterwards.
+    ``closure`` should point to an :c:type:`mps_scan_tag_s`.
     
     For example, if ``mask`` is 0b111 (decimal 7), then this scanner
     will clear the bottom three bits of each word before fixing.  A word
