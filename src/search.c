@@ -92,7 +92,7 @@ static EMACS_INT boyer_moore (EMACS_INT, unsigned char *, ptrdiff_t,
                               ptrdiff_t, int);
 static EMACS_INT search_buffer (Lisp_Object, ptrdiff_t, ptrdiff_t,
                                 ptrdiff_t, ptrdiff_t, EMACS_INT, int,
-                                Lisp_Object, Lisp_Object, bool);
+                                Lisp_Object, Lisp_Object, bool, bool);
 
 static _Noreturn void
 matcher_overflow (void)
@@ -103,7 +103,10 @@ matcher_overflow (void)
 /* Compile a regexp and signal a Lisp error if anything goes wrong.
    PATTERN is the pattern to compile.
    CP is the place to put the result.
-   TRANSLATE is a translation table for ignoring case, or nil for none.
+   CASE_FOLD_TRANSLATE is a translation table for ignoring case, or
+   nil for none.
+   CASE_FOLD is true if CASE_FOLD_TRANSLATE should be used by default.
+   Can be turned on/off in the pattern.
    POSIX is true if we want full backtracking (POSIX style) for this pattern.
    False means backtrack only enough to get a valid match.
 
@@ -111,13 +114,19 @@ matcher_overflow (void)
 
 static void
 compile_pattern_1 (struct regexp_cache *cp, Lisp_Object pattern,
-		   Lisp_Object translate, bool posix)
+		   Lisp_Object case_fold_translate, bool case_fold,
+		   bool posix)
 {
   char *val;
   reg_syntax_t old;
 
+  if (NILP (case_fold_translate))
+      case_fold = false;
+
   cp->regexp = Qnil;
-  cp->buf.translate = (! NILP (translate) ? translate : make_number (0));
+  cp->buf.translate = (! NILP (case_fold_translate) ?
+                       case_fold_translate : make_number (0));
+  cp->buf.case_fold = case_fold;
   cp->posix = posix;
   cp->buf.multibyte = STRING_MULTIBYTE (pattern);
   cp->buf.charset_unibyte = charset_unibyte;
@@ -193,7 +202,10 @@ clear_regexp_cache (void)
 /* Compile a regexp if necessary, but first check to see if there's one in
    the cache.
    PATTERN is the pattern to compile.
-   TRANSLATE is a translation table for ignoring case, or nil for none.
+   CASE_FOLD_TRANSLATE is a translation table for ignoring case, or
+   nil for none.
+   CASE_FOLD is true if CASE_FOLD_TRANSLATE should be used by default.
+   Can be turned on/off in the pattern.
    REGP is the structure that says where to store the "register"
    values that will result from matching this pattern.
    If it is 0, we should compile the pattern not to record any
@@ -203,9 +215,13 @@ clear_regexp_cache (void)
 
 struct re_pattern_buffer *
 compile_pattern (Lisp_Object pattern, struct re_registers *regp,
-		 Lisp_Object translate, bool posix, bool multibyte)
+		 Lisp_Object case_fold_translate, bool case_fold,
+		 bool posix, bool multibyte)
 {
   struct regexp_cache *cp, **cpp;
+
+  if (NILP (case_fold_translate))
+      case_fold = false;
 
   for (cpp = &searchbuf_head; ; cpp = &cp->next)
     {
@@ -220,7 +236,9 @@ compile_pattern (Lisp_Object pattern, struct re_registers *regp,
       if (SCHARS (cp->regexp) == SCHARS (pattern)
 	  && STRING_MULTIBYTE (cp->regexp) == STRING_MULTIBYTE (pattern)
 	  && !NILP (Fstring_equal (cp->regexp, pattern))
-	  && EQ (cp->buf.translate, (! NILP (translate) ? translate : make_number (0)))
+	  && EQ (cp->buf.translate, (! NILP (case_fold_translate) ?
+                                     case_fold_translate : make_number (0)))
+	  && cp->buf.case_fold == case_fold
 	  && cp->posix == posix
 	  && (EQ (cp->syntax_table, Qt)
 	      || EQ (cp->syntax_table, BVAR (current_buffer, syntax_table)))
@@ -234,7 +252,7 @@ compile_pattern (Lisp_Object pattern, struct re_registers *regp,
       if (cp->next == 0)
 	{
 	compile_it:
-	  compile_pattern_1 (cp, pattern, translate, posix);
+	  compile_pattern_1 (cp, pattern, case_fold_translate, case_fold, posix);
 	  break;
 	}
     }
@@ -279,8 +297,8 @@ looking_at_1 (Lisp_Object string, bool posix)
   bufp = compile_pattern (string,
 			  (NILP (Vinhibit_changing_match_data)
 			   ? &search_regs : NULL),
-			  (!NILP (BVAR (current_buffer, case_fold_search))
-			   ? BVAR (current_buffer, case_canon_table) : Qnil),
+			  BVAR (current_buffer, case_canon_table),
+			  !NILP (BVAR (current_buffer, case_fold_search)),
 			  posix,
 			  !NILP (BVAR (current_buffer, enable_multibyte_characters)));
 
@@ -394,8 +412,8 @@ string_match_1 (Lisp_Object regexp, Lisp_Object string, Lisp_Object start,
   bufp = compile_pattern (regexp,
 			  (NILP (Vinhibit_changing_match_data)
 			   ? &search_regs : NULL),
-			  (!NILP (BVAR (current_buffer, case_fold_search))
-			   ? BVAR (current_buffer, case_canon_table) : Qnil),
+			  BVAR (current_buffer, case_canon_table),
+			  !NILP (BVAR (current_buffer, case_fold_search)),
 			  posix,
 			  STRING_MULTIBYTE (string));
   immediate_quit = 1;
@@ -468,7 +486,7 @@ fast_string_match_internal (Lisp_Object regexp, Lisp_Object string,
   ptrdiff_t val;
   struct re_pattern_buffer *bufp;
 
-  bufp = compile_pattern (regexp, 0, table,
+  bufp = compile_pattern (regexp, 0, table, true,
 			  0, STRING_MULTIBYTE (string));
   immediate_quit = 1;
   re_match_object = string;
@@ -495,7 +513,7 @@ fast_c_string_match_ignore_case (Lisp_Object regexp,
   regexp = string_make_unibyte (regexp);
   re_match_object = Qt;
   bufp = compile_pattern (regexp, 0,
-			  Vascii_canon_table, 0,
+			  Vascii_canon_table, true, 0,
 			  0);
   immediate_quit = 1;
   val = re_search (bufp, string, len, 0, len, 0);
@@ -559,7 +577,7 @@ fast_looking_at (Lisp_Object regexp, ptrdiff_t pos, ptrdiff_t pos_byte,
       multibyte = ! NILP (BVAR (current_buffer, enable_multibyte_characters));
     }
 
-  buf = compile_pattern (regexp, 0, Qnil, 0, multibyte);
+  buf = compile_pattern (regexp, 0, Qnil, false, 0, multibyte);
   immediate_quit = 1;
   len = re_match_2 (buf, (char *) p1, s1, (char *) p2, s2,
 		    pos_byte, NULL, limit_byte);
@@ -1056,13 +1074,10 @@ search_command (Lisp_Object string, Lisp_Object bound, Lisp_Object noerror,
 			 BVAR (current_buffer, case_eqv_table));
 
   np = search_buffer (string, PT, PT_BYTE, lim, lim_byte, n, RE,
-		      (!NILP (BVAR (current_buffer, case_fold_search))
-		       ? BVAR (current_buffer, case_canon_table)
-		       : Qnil),
-		      (!NILP (BVAR (current_buffer, case_fold_search))
-		       ? BVAR (current_buffer, case_eqv_table)
-		       : Qnil),
-		      posix);
+                      BVAR (current_buffer, case_canon_table),
+                      BVAR (current_buffer, case_eqv_table),
+		      !NILP (BVAR (current_buffer, case_fold_search)),
+                      posix);
   if (np <= 0)
     {
       if (NILP (noerror))
@@ -1159,7 +1174,9 @@ static struct re_registers search_regs_1;
 static EMACS_INT
 search_buffer (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 	       ptrdiff_t lim, ptrdiff_t lim_byte, EMACS_INT n,
-	       int RE, Lisp_Object trt, Lisp_Object inverse_trt, bool posix)
+	       int RE,
+	       Lisp_Object case_fold_trt, Lisp_Object case_fold_inverse_trt,
+	       bool case_fold, bool posix)
 {
   ptrdiff_t len = SCHARS (string);
   ptrdiff_t len_byte = SBYTES (string);
@@ -1185,7 +1202,8 @@ search_buffer (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
       bufp = compile_pattern (string,
 			      (NILP (Vinhibit_changing_match_data)
 			       ? &search_regs : &search_regs_1),
-			      trt, posix,
+			      case_fold_trt, case_fold,
+			      posix,
 			      !NILP (BVAR (current_buffer, enable_multibyte_characters)));
 
       immediate_quit = 1;	/* Quit immediately if user types ^G,
@@ -1317,6 +1335,12 @@ search_buffer (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
       bool boyer_moore_ok = 1;
       USE_SAFE_ALLOCA;
 
+      /* we have a trivial or non-RE search, so don't need to bother
+         with case-folding.  */
+      if (!case_fold)
+	case_fold_trt = case_fold_inverse_trt = Qnil;
+
+
       /* MULTIBYTE says whether the text to be searched is multibyte.
 	 We must convert PATTERN to match that, or we will not really
 	 find things right.  */
@@ -1361,14 +1385,15 @@ search_buffer (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
       if (multibyte)
 	{
 	  /* Fill patbuf by translated characters in STRING while
-	     checking if we can use boyer-moore search.  If TRT is
-	     non-nil, we can use boyer-moore search only if TRT can be
-	     represented by the byte array of 256 elements.  For that,
-	     all non-ASCII case-equivalents of all case-sensitive
-	     characters in STRING must belong to the same character
-	     group (two characters belong to the same group iff their
-	     multibyte forms are the same except for the last byte;
-	     i.e. every 64 characters form a group; U+0000..U+003F,
+	     checking if we can use boyer-moore search.  If
+	     CASE_FOLD_TRT is non-nil, we can use boyer-moore search
+	     only if CASE_FOLD_TRT can be represented by the byte
+	     array of 256 elements.  For that, all non-ASCII
+	     case-equivalents of all case-sensitive characters in
+	     STRING must belong to the same character group (two
+	     characters belong to the same group iff their multibyte
+	     forms are the same except for the last byte; i.e. every
+	     64 characters form a group; U+0000..U+003F,
 	     U+0040..U+007F, U+0080..U+00BF, ...).  */
 
 	  while (--len >= 0)
@@ -1390,7 +1415,7 @@ search_buffer (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 
 	      c = STRING_CHAR_AND_LENGTH (base_pat, in_charlen);
 
-	      if (NILP (trt))
+	      if (NILP (case_fold_trt))
 		{
 		  str = base_pat;
 		  charlen = in_charlen;
@@ -1398,12 +1423,12 @@ search_buffer (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 	      else
 		{
 		  /* Translate the character.  */
-		  TRANSLATE (translated, trt, c);
+		  TRANSLATE (translated, case_fold_trt, c);
 		  charlen = CHAR_STRING (translated, str_base);
 		  str = str_base;
 
 		  /* Check if C has any other case-equivalents.  */
-		  TRANSLATE (inverse, inverse_trt, c);
+		  TRANSLATE (inverse, case_fold_inverse_trt, c);
 		  /* If so, check if we can use boyer-moore.  */
 		  if (c != inverse && boyer_moore_ok)
 		    {
@@ -1438,7 +1463,7 @@ search_buffer (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 			    boyer_moore_ok = 0;
 			  if (c == inverse)
 			    break;
-			  TRANSLATE (inverse, inverse_trt, inverse);
+			  TRANSLATE (inverse, case_fold_inverse_trt, inverse);
 			}
 		    }
 		}
@@ -1473,11 +1498,11 @@ search_buffer (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 		  base_pat++;
 		}
 	      c = *base_pat++;
-	      TRANSLATE (translated, trt, c);
+	      TRANSLATE (translated, case_fold_trt, c);
 	      *pat++ = translated;
 	      /* Check that none of C's equivalents violates the
 		 assumptions of boyer_moore.  */
-	      TRANSLATE (inverse, inverse_trt, c);
+	      TRANSLATE (inverse, case_fold_inverse_trt, c);
 	      while (1)
 		{
 		  if (inverse >= 0200)
@@ -1487,7 +1512,7 @@ search_buffer (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 		    }
 		  if (c == inverse)
 		    break;
-		  TRANSLATE (inverse, inverse_trt, inverse);
+		  TRANSLATE (inverse, case_fold_inverse_trt, inverse);
 		}
 	    }
 	}
@@ -1497,10 +1522,10 @@ search_buffer (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 
       EMACS_INT result
 	= (boyer_moore_ok
-	   ? boyer_moore (n, pat, len_byte, trt, inverse_trt,
+	   ? boyer_moore (n, pat, len_byte, case_fold_trt, case_fold_inverse_trt,
 			  pos_byte, lim_byte,
 			  char_base)
-	   : simple_search (n, pat, raw_pattern_size, len_byte, trt,
+	   : simple_search (n, pat, raw_pattern_size, len_byte, case_fold_trt,
 			    pos, pos_byte, lim, lim_byte));
       SAFE_FREE ();
       return result;

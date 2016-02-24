@@ -152,13 +152,17 @@ typedef unsigned long reg_syntax_t;
 /* If this bit is set, ^ and $ only match at beg/end of buffer.  */
 #define RE_NO_NEWLINE_ANCHOR (RE_SHY_GROUPS << 1)
 
+/* If this bit is set, (?i) can turn on case folding and (?-i) can
+   turn it off.  */
+#define RE_EMBEDDED_CASE_FOLD (RE_NO_NEWLINE_ANCHOR << 1)
+
 /* If this bit is set, turn on internal regex debugging.
    If not set, and debugging was on, turn it off.
    This only works if regex.c is compiled -DDEBUG.
    We define this bit always, so that all that's needed to turn on
    debugging is to recompile regex.c; the calling code can always have
    this bit set, and it won't affect anything in the normal case. */
-#define RE_DEBUG (RE_NO_NEWLINE_ANCHOR << 1)
+#define RE_DEBUG (RE_EMBEDDED_CASE_FOLD << 1)
 
 /* This global variable defines the particular regexp syntax to use (for
    some interfaces).  When a regexp is compiled, the syntax used is
@@ -182,7 +186,8 @@ extern size_t re_max_failures;
    don't delete them!)  */
 /* [[[begin syntaxes]]] */
 #define RE_SYNTAX_EMACS							\
-  (RE_CHAR_CLASSES | RE_INTERVALS | RE_SHY_GROUPS | RE_FRUGAL)
+  (RE_CHAR_CLASSES | RE_INTERVALS | RE_SHY_GROUPS | RE_FRUGAL |		\
+   RE_EMBEDDED_CASE_FOLD)
 
 #define RE_SYNTAX_AWK							\
   (RE_BACKSLASH_ESCAPE_IN_LISTS   | RE_DOT_NOT_NULL			\
@@ -406,6 +411,10 @@ struct re_pattern_buffer
   /* If true, multi-byte form in the target of match should be
      recognized as a multibyte character.  */
   unsigned target_multibyte : 1;
+
+  /* If true, apply the TRANSLATE table by default.  This can be
+     turned on/off in the pattern.  */
+  unsigned case_fold : 1;
 
   /* Charset of unibyte characters at compiling time. */
   int charset_unibyte;

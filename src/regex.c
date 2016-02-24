@@ -581,13 +581,14 @@ typedef enum
 	/* Start remembering the text that is matched, for storing in a
 	   register.  Followed by one byte with the register number, in
 	   the range 0 to one less than the pattern buffer's re_nsub
-	   field.  */
+	   field.  Shy groups have register number REGNUM_SHY.  */
   start_memory,
 
 	/* Stop remembering the text that is matched and store it in a
 	   memory register.  Followed by one byte with the register
 	   number, in the range 0 to one less than `re_nsub' in the
-	   pattern buffer.  */
+	   pattern buffer.  Shy groups have register number
+	   REGNUM_SHY.  */
   stop_memory,
 
 	/* Match a duplicate of something remembered. Followed by one
@@ -669,7 +670,10 @@ typedef enum
   notsyntaxspec
 
 #ifdef emacs
-  ,before_dot,	/* Succeeds if before point.  */
+  ,case_fold_yes,
+  case_fold_no,
+
+  before_dot,	/* Succeeds if before point.  */
   at_dot,	/* Succeeds if at point.  */
   after_dot,	/* Succeeds if after point.  */
 
@@ -684,6 +688,13 @@ typedef enum
   notcategoryspec
 #endif /* emacs */
 } re_opcode_t;
+
+/* values of the fastmap[] array.  FASTMAP_MARK means that this
+   character is in the fastmap.  FASTMAP_CASE_FOLD means additionally,
+   all characters that TRANSLATE to this character are marked too.  */
+#define FASTMAP_MARK      1
+#define FASTMAP_CASE_FOLD 2
+
 
 /* Common operations on the compiled pattern.  */
 
@@ -846,13 +857,13 @@ static int debug = -100000;
 # define DEBUG_PRINT_DOUBLE_STRING(w, s1, sz1, s2, sz2)			\
   if (debug > 0) print_double_string (w, s1, sz1, s2, sz2)
 
-
 /* Print the fastmap in human-readable form.  */
 
 static void
 print_fastmap (char *fastmap)
 {
   unsigned was_a_range = 0;
+  unsigned was_case_fold = 0;
   unsigned i = 0;
 
   while (i < (1 << BYTEWIDTH))
@@ -860,8 +871,10 @@ print_fastmap (char *fastmap)
       if (fastmap[i++])
 	{
 	  was_a_range = 0;
+	  was_case_fold = fastmap[i-1] & FASTMAP_CASE_FOLD;
 	  putchar (i - 1);
-	  while (i < (1 << BYTEWIDTH)  &&  fastmap[i])
+	  while (i < (1 << BYTEWIDTH)  && fastmap[i] &&
+		 was_case_fold == (fastmap[i] & FASTMAP_CASE_FOLD))
 	    {
 	      was_a_range = 1;
 	      i++;
@@ -871,6 +884,8 @@ print_fastmap (char *fastmap)
 	      printf ("-");
 	      putchar (i - 1);
 	    }
+	  if (was_case_fold)
+	    printf ("(case-fold)");
 	}
     }
   putchar ('\n');
@@ -1091,6 +1106,14 @@ print_partial_compiled_pattern (re_char *start, re_char *end)
 	  break;
 
 # ifdef emacs
+	case case_fold_yes:
+	  fprintf (stderr, "/case_fold_yes");
+	  break;
+
+	case case_fold_no:
+	  fprintf (stderr, "/case_fold_no");
+	  break;
+
 	case before_dot:
 	  fprintf (stderr, "/before_dot");
 	  break;
@@ -1428,12 +1451,16 @@ typedef struct
 #define POP_FAILURE_INT() fail_stack.stack[--fail_stack.avail].integer
 
 /* Individual items aside from the registers.  */
-#define NUM_NONREG_ITEMS 3
+#ifdef emacs
+  #define NUM_NONREG_ITEMS 4
+#else
+  #define NUM_NONREG_ITEMS 3
+#endif
 
 /* Used to examine the stack (to detect infinite loops).  */
-#define FAILURE_PAT(h) fail_stack.stack[(h) - 1].pointer
-#define FAILURE_STR(h) (fail_stack.stack[(h) - 2].pointer)
-#define NEXT_FAILURE_HANDLE(h) fail_stack.stack[(h) - 3].integer
+#define FAILURE_PAT(h) fail_stack.stack[(h) - NUM_NONREG_ITEMS + 2].pointer
+#define FAILURE_STR(h) (fail_stack.stack[(h) - NUM_NONREG_ITEMS + 1].pointer)
+#define NEXT_FAILURE_HANDLE(h) fail_stack.stack[(h) - NUM_NONREG_ITEMS].integer
 #define TOP_FAILURE_HANDLE() fail_stack.frame
 
 
@@ -1526,7 +1553,7 @@ do {									\
 
    Does `return FAILURE_CODE' if runs out of memory.  */
 
-#define PUSH_FAILURE_POINT(pattern, string_place)			\
+#define PUSH_FAILURE_POINT_1(pattern, string_place)			\
 do {									\
   char *destination;							\
   /* Must be int, so when we don't save any registers, the arithmetic	\
@@ -1552,10 +1579,35 @@ do {									\
   DEBUG_PRINT ("  Push pattern %p: ", pattern);				\
   DEBUG_PRINT_COMPILED_PATTERN (bufp, pattern, pend);			\
   PUSH_FAILURE_POINTER (pattern);					\
-  									\
+} while(0)
+#define PUSH_FAILURE_POINT_2(pattern, string_place)			\
+do {									\
   /* Close the frame by moving the frame pointer past it.  */		\
   fail_stack.frame = fail_stack.avail;					\
 } while (0)
+
+#ifdef emacs
+#define PUSH_FAILURE_POINT(pattern, string_place)			\
+do {									\
+  PUSH_FAILURE_POINT_1(pattern, string_place);                          \
+                                                                        \
+  DEBUG_PRINT ("  Push case-fold stack pos: %d\n", case_fold_stack_pos); \
+  PUSH_FAILURE_INT (case_fold_stack_pos);				\
+									\
+  PUSH_FAILURE_POINT_2(pattern, string_place);                          \
+} while (0)
+
+#else
+
+#define PUSH_FAILURE_POINT(pattern, string_place)			\
+do {									\
+  PUSH_FAILURE_POINT_1(pattern, string_place);                          \
+  PUSH_FAILURE_POINT_2(pattern, string_place);                          \
+} while (0)
+
+#endif
+
+
 
 /* Estimate the size of data pushed by a typical failure stack entry.
    An estimate is all we need, because all we use this for
@@ -1577,7 +1629,7 @@ do {									\
    Also assumes the variables `fail_stack' and (if debugging), `bufp',
    `pend', `string1', `size1', `string2', and `size2'.  */
 
-#define POP_FAILURE_POINT(str, pat)                                     \
+#define POP_FAILURE_POINT_1(str, pat)                                   \
 do {									\
   assert (!FAIL_STACK_EMPTY ());					\
 									\
@@ -1589,7 +1641,9 @@ do {									\
   /* Pop the saved registers.  */					\
   while (fail_stack.frame < fail_stack.avail)				\
     POP_FAILURE_REG_OR_COUNT ();					\
-									\
+} while (0) /* POP_FAILURE_POINT_1 */
+#define POP_FAILURE_POINT_2(str, pat)                                   \
+do {									\
   pat = POP_FAILURE_POINTER ();						\
   DEBUG_PRINT ("  Popping pattern %p: ", pat);				\
   DEBUG_PRINT_COMPILED_PATTERN (bufp, pat, pend);			\
@@ -1609,8 +1663,29 @@ do {									\
   assert (fail_stack.frame <= fail_stack.avail);			\
 									\
   DEBUG_STATEMENT (nfailure_points_popped++);				\
+} while (0) /* POP_FAILURE_POINT_2 */
+
+#ifdef emacs
+
+#define POP_FAILURE_POINT(str, pat)                                     \
+do {									\
+  POP_FAILURE_POINT_1(str,pat);                                         \
+                                                                        \
+  case_fold_stack_pos = POP_FAILURE_INT ();				\
+  DEBUG_PRINT ("  Popping case-fold stack pos: %d\n", case_fold_stack_pos); \
+                                                                        \
+  POP_FAILURE_POINT_2(str,pat);                                         \
 } while (0) /* POP_FAILURE_POINT */
 
+#else
+
+#define POP_FAILURE_POINT(str, pat)             \
+do {                                            \
+  POP_FAILURE_POINT_1(str,pat);                 \
+  POP_FAILURE_POINT_2(str,pat);                 \
+} while (0) /* POP_FAILURE_POINT */
+
+#endif
 
 
 /* Registers are set to a sentinel when they haven't yet matched.  */
@@ -1633,7 +1708,11 @@ static boolean at_endline_loc_p (re_char *p, re_char *pend,
 				 reg_syntax_t syntax);
 static re_char *skip_one_char (re_char *p);
 static int analyze_first (re_char *p, re_char *pend,
-			  char *fastmap, const int multibyte);
+			  char *fastmap, const int multibyte
+#ifdef emacs
+			  , const int case_fold
+#endif
+			  );
 
 /* Fetch the next character in the uncompiled pattern, with no
    translation.  */
@@ -1653,6 +1732,12 @@ static int analyze_first (re_char *p, re_char *pend,
 #ifndef TRANSLATE
 # define TRANSLATE(d) \
   (RE_TRANSLATE_P (translate) ? RE_TRANSLATE (translate, (d)) : (d))
+# ifdef emacs
+#  define TRANSLATE_COND(d, cond) \
+    ((cond) && RE_TRANSLATE_P (translate) ? RE_TRANSLATE (translate, (d)) : (d))
+# else
+#  define TRANSLATE_COND(d, cond) TRANSLATE(d)
+# endif
 #endif
 
 
@@ -1761,9 +1846,12 @@ static int analyze_first (re_char *p, re_char *pend,
 
 
 /* Since we have one byte reserved for the register number argument to
-   {start,stop}_memory, the maximum number of groups we can report
-   things about is what fits in that byte.  */
-#define MAX_REGNUM 255
+   {start,stop}_memory, the maximum number of groups we can report things
+   about is what fits in that byte.  Shy groups have a special regnum value
+   above the normal ones.  */
+#define MAX_REGNUM_NONSHY 254
+#define REGNUM_SHY        255
+#define MAX_REGNUM        255
 
 /* But patterns can have more than `MAX_REGNUM' registers.  We just
    ignore the excess.  */
@@ -1783,6 +1871,10 @@ typedef struct
   pattern_offset_t fixup_alt_jump;
   pattern_offset_t laststart_offset;
   regnum_t regnum;
+
+#ifdef emacs
+  bool case_fold;
+#endif
 } compile_stack_elt_t;
 
 
@@ -1902,7 +1994,7 @@ struct range_table_work_area
     								\
     for (C0 = (FROM); C0 <= (TO); C0++)				\
       {								\
-	C1 = TRANSLATE (C0);					\
+	C1 = TRANSLATE_COND (C0, case_fold);			\
 	if (! ASCII_CHAR_P (C1))				\
 	  {							\
 	    SET_RANGE_TABLE_WORK_AREA ((work_area), C1, C1);	\
@@ -1928,7 +2020,7 @@ struct range_table_work_area
 	  SET_LIST_BIT (C0);						       \
 	else								       \
 	  {								       \
-	    C2 = TRANSLATE (C1);					       \
+	    C2 = TRANSLATE_COND (C1, case_fold);			       \
 	    if (C2 == C1						       \
 		|| (C1 = RE_CHAR_TO_UNIBYTE (C2)) < 0)			       \
 	      C1 = C0;							       \
@@ -1963,7 +2055,7 @@ struct range_table_work_area
     SET_RANGE_TABLE_WORK_AREA ((work_area), (FROM), (TO));		   \
     for (C0 = (FROM); C0 <= (TO); C0++)					   \
       {									   \
-	C1 = TRANSLATE (C0);						   \
+	C1 = TRANSLATE_COND (C0, case_fold);				   \
 	if ((C2 = RE_CHAR_TO_UNIBYTE (C1)) >= 0				   \
 	    || (C1 != C0 && (C2 = RE_CHAR_TO_UNIBYTE (C0)) >= 0))	   \
 	  SET_LIST_BIT (C2);						   \
@@ -2438,6 +2530,12 @@ regex_compile (const_re_char *pattern, size_t size, reg_syntax_t syntax,
   /* How to translate the characters in the pattern.  */
   RE_TRANSLATE_TYPE translate = bufp->translate;
 
+  /* Whether we're applying a case translation by default.  The
+     pattern can turn this on/off.  */
+#ifdef emacs
+  bool case_fold = bufp->case_fold;
+#endif
+
   /* Address of the count-byte of the most recently inserted `exactn'
      command.  This makes it possible to tell if a new exact-match
      character can be added to that command or if the character requires
@@ -2494,6 +2592,9 @@ regex_compile (const_re_char *pattern, size_t size, reg_syntax_t syntax,
   if (compile_stack.stack == NULL)
     return REG_ESPACE;
 
+#ifdef emacs
+  compile_stack.stack->case_fold = case_fold;
+#endif
   compile_stack.size = INIT_COMPILE_STACK_SIZE;
   compile_stack.avail = 0;
 
@@ -2697,7 +2798,11 @@ regex_compile (const_re_char *pattern, size_t size, reg_syntax_t syntax,
 		    size_t startoffset = 0;
 		    re_opcode_t ofj =
 		      /* Check if the loop can match the empty string.  */
-		      (simple || !analyze_first (laststart, b, NULL, 0))
+		      (simple || !analyze_first (laststart, b, NULL, 0
+#ifdef emacs
+						 , case_fold
+#endif
+						 ))
 		      ? on_failure_jump : on_failure_jump_loop;
 		    assert (skip_one_char (laststart) <= b);
 
@@ -2744,7 +2849,11 @@ regex_compile (const_re_char *pattern, size_t size, reg_syntax_t syntax,
 		GET_BUFFER_SPACE (7); /* We might use less.  */
 		if (many_times_ok)
 		  {
-		    boolean emptyp = analyze_first (laststart, b, NULL, 0);
+		    boolean emptyp = analyze_first (laststart, b, NULL, 0
+#ifdef emacs
+						    , case_fold
+#endif
+						    );
 
 		    /* The non-greedy multiple match looks like
 		       a repeat..until: we only need a conditional jump
@@ -2925,7 +3034,7 @@ regex_compile (const_re_char *pattern, size_t size, reg_syntax_t syntax,
 				&& re_iswctype (c, cc))
 			      {
 				SET_LIST_BIT (ch);
-				c1 = TRANSLATE (c);
+				c1 = TRANSLATE_COND(c, case_fold);
 				if (c1 == c)
 				  continue;
 				if (ASCII_CHAR_P (c1))
@@ -3119,35 +3228,98 @@ regex_compile (const_re_char *pattern, size_t size, reg_syntax_t syntax,
 		if (p+1 < pend)
 		  {
 		    /* Look for a special (?...) construct */
-		    if ((syntax & RE_SHY_GROUPS) && *p == '?')
+		    if ( ((syntax & RE_SHY_GROUPS) ||
+			  (syntax & RE_EMBEDDED_CASE_FOLD)) &&
+			 *p == '?')
 		      {
 			PATFETCH (c); /* Gobble up the '?'.  */
-			while (!shy)
+
+#ifdef emacs
+			if ( (syntax & RE_EMBEDDED_CASE_FOLD) &&
+			     p < pend &&
+			     (*p == 'i' || *p == '-'))
 			  {
+			    /* embedded modifiers */
+
 			    PATFETCH (c);
 			    switch (c)
 			      {
-			      case ':': shy = 1; break;
-			      case '0':
-				/* An explicitly specified regnum must start
-				   with non-0. */
-				if (regnum == 0)
-				  FREE_STACK_RETURN (REG_BADPAT);
-			      case '1': case '2': case '3': case '4':
-			      case '5': case '6': case '7': case '8': case '9':
-				regnum = 10*regnum + (c - '0'); break;
+			      case 'i':
+				case_fold = true;
+				break;
+
+			      case '-':
+				{
+				  PATFETCH (c);
+				  if( c != 'i' )
+				    {
+				      /* I only know how to do ?-i */
+				      FREE_STACK_RETURN (REG_BADPAT);
+				    }
+				  case_fold = false;
+				}
+				break;
+
 			      default:
-				/* Only (?:...) is supported right now. */
+				/* unknown */
 				FREE_STACK_RETURN (REG_BADPAT);
+			      }
+
+			    /* I now must see a ')', possibly with a \ */
+			    PATFETCH (c);
+			    if (!(syntax & RE_NO_BK_PARENS))
+			      {
+				if (c != '\\')
+				  FREE_STACK_RETURN (REG_BADPAT);
+				PATFETCH (c);
+			      }
+
+			    if (c != ')')
+			      FREE_STACK_RETURN (REG_BADPAT);
+
+			    if (case_fold) BUF_PUSH (case_fold_yes);
+			    else           BUF_PUSH (case_fold_no);
+			    break;
+			  }
+			else
+#endif
+                        if (syntax & RE_SHY_GROUPS)
+			  {
+			    /* shy groups */
+			    while (!shy)
+			      {
+				PATFETCH (c);
+				switch (c)
+				  {
+				  case ':': shy = 1; break;
+				  case '0':
+				    /* An explicitly specified regnum must start
+				       with non-0. */
+				    if (regnum == 0)
+				      FREE_STACK_RETURN (REG_BADPAT);
+				  case '1': case '2': case '3': case '4':
+				  case '5': case '6': case '7': case '8': case '9':
+				    regnum = 10*regnum + (c - '0'); break;
+				  default:
+				    /* Only (?:...) is supported right now. */
+				    FREE_STACK_RETURN (REG_BADPAT);
+				  }
 			      }
 			  }
 		      }
 		  }
 
 		if (!shy)
-		  regnum = ++bufp->re_nsub;
+		  {
+		    regnum = ++bufp->re_nsub;
+		    if (regnum > MAX_REGNUM_NONSHY)
+		      regnum = 0;
+		  }
 		else if (regnum)
 		  { /* It's actually not shy, but explicitly numbered.  */
+		    if (regnum > MAX_REGNUM_NONSHY)
+		      FREE_STACK_RETURN (REG_BADPAT);
+
 		    shy = 0;
 		    if (regnum > bufp->re_nsub)
 		      bufp->re_nsub = regnum;
@@ -3162,7 +3334,7 @@ regex_compile (const_re_char *pattern, size_t size, reg_syntax_t syntax,
 		  }
 		else
 		  /* It's really shy.  */
-		  regnum = - bufp->re_nsub;
+		  regnum = REGNUM_SHY;
 
 		if (COMPILE_STACK_FULL)
 		  {
@@ -3182,10 +3354,15 @@ regex_compile (const_re_char *pattern, size_t size, reg_syntax_t syntax,
 		  = fixup_alt_jump ? fixup_alt_jump - bufp->buffer + 1 : 0;
 		COMPILE_STACK_TOP.laststart_offset = b - bufp->buffer;
 		COMPILE_STACK_TOP.regnum = regnum;
+#ifdef emacs
+		COMPILE_STACK_TOP.case_fold = case_fold;
+#endif
 
 		/* Do not push a start_memory for groups beyond the last one
-		   we can represent in the compiled pattern.  */
-		if (regnum <= MAX_REGNUM && regnum > 0)
+		   we can represent in the compiled pattern.  Do push
+		   start_memory for shy groups.  This is required to remember
+		   the case_fold state.  */
+		if (regnum <= MAX_REGNUM)
 		  BUF_PUSH_2 (start_memory, regnum);
 
 		compile_stack.avail++;
@@ -3240,6 +3417,10 @@ regex_compile (const_re_char *pattern, size_t size, reg_syntax_t syntax,
 		    : 0;
 		laststart = bufp->buffer + COMPILE_STACK_TOP.laststart_offset;
 		regnum = COMPILE_STACK_TOP.regnum;
+#ifdef emacs
+		case_fold = COMPILE_STACK_TOP.case_fold;
+#endif
+
 		/* If we've reached MAX_REGNUM groups, then this open
 		   won't actually generate any code, so we'll have to
 		   clear pending_exact explicitly.  */
@@ -3247,7 +3428,7 @@ regex_compile (const_re_char *pattern, size_t size, reg_syntax_t syntax,
 
 		/* We're at the end of the group, so now we know how many
 		   groups were inside this one.  */
-		if (regnum <= MAX_REGNUM && regnum > 0)
+		if (regnum <= MAX_REGNUM)
 		  BUF_PUSH_2 (stop_memory, regnum);
 	      }
 	      break;
@@ -3641,7 +3822,8 @@ regex_compile (const_re_char *pattern, size_t size, reg_syntax_t syntax,
 
 	    if (multibyte)
 	      {
-		c = TRANSLATE (c);
+		c = TRANSLATE_COND (c, case_fold);
+
 		len = CHAR_STRING (c, b);
 		b += len;
 	      }
@@ -3650,7 +3832,7 @@ regex_compile (const_re_char *pattern, size_t size, reg_syntax_t syntax,
 		c1 = RE_CHAR_TO_MULTIBYTE (c);
 		if (! CHAR_BYTE8_P (c1))
 		  {
-		    re_wchar_t c2 = TRANSLATE (c1);
+		    re_wchar_t c2 = TRANSLATE_COND (c1, case_fold);
 
 		    if (c1 != c2 && (c1 = RE_CHAR_TO_UNIBYTE (c2)) >= 0)
 		      c = c1;
@@ -3685,7 +3867,7 @@ regex_compile (const_re_char *pattern, size_t size, reg_syntax_t syntax,
   if (debug > 0)
     {
       re_compile_fastmap (bufp);
-      DEBUG_PRINT ("\nCompiled pattern: \n");
+      DEBUG_PRINT ("\nCompiled pattern:\n");
       print_compiled_pattern (bufp);
     }
   debug--;
@@ -3776,6 +3958,25 @@ at_begline_loc_p (const_re_char *pattern, const_re_char *p, reg_syntax_t syntax)
   re_char *prev = p - 2;
   boolean odd_backslashes;
 
+  /* I skip all the preceding embedded modifiers (things like
+     "(?i)").  */
+  if (syntax & RE_EMBEDDED_CASE_FOLD)
+    while (prev >= pattern && *prev == ')')
+      {
+	re_char* p = prev-1;
+	if ( !(syntax & RE_NO_BK_PARENS) && (p < pattern || *p-- != '\\')) break;
+	if (p < pattern || *p-- != 'i') break;
+	if (p < pattern || *p == '-') p--;
+	if (p < pattern || *p-- != '?') break;
+	if (p < pattern || *p-- != '(') break;
+	if ( !(syntax & RE_NO_BK_PARENS) && (p < pattern || *p-- != '\\')) break;
+
+	/* We just skipped an embedded modifier.  */
+	prev = p;
+      }
+  if (prev < pattern)
+    return true;
+
   /* After a subexpression?  */
   if (*prev == '(')
     odd_backslashes = (syntax & RE_NO_BK_PARENS) == 0;
@@ -3814,6 +4015,26 @@ at_begline_loc_p (const_re_char *pattern, const_re_char *p, reg_syntax_t syntax)
 static boolean
 at_endline_loc_p (const_re_char *p, const_re_char *pend, reg_syntax_t syntax)
 {
+  /* I skip all the following embedded modifiers (things like
+     "(?i)").  */
+  const re_char modifier_start = (syntax & RE_NO_BK_PARENS) ? '(' : '\\';
+  if (syntax & RE_EMBEDDED_CASE_FOLD)
+    while (p < pend && p[0] == modifier_start)
+      {
+	re_char* pnext = p+1;
+	if (pnext >= pend || *pnext++ != '(') break;
+	if (pnext >= pend || *pnext++ != '?') break;
+	if (pnext >= pend || *pnext == '-') pnext++;
+	if (pnext >= pend || *pnext++ != 'i') break;
+	if ( !(syntax & RE_NO_BK_PARENS) && (pnext >= pend || *pnext++ != '\\')) break;
+	if (pnext >= pend || *pnext++ != ')') break;
+
+	/* We just skipped an embedded modifier.  */
+	p = pnext;
+      }
+  if (p == pend)
+    return true;
+
   re_char *next = p;
   boolean next_backslash = *next == '\\';
   re_char *next_next = p + 1 < pend ? p + 1 : 0;
@@ -3856,8 +4077,12 @@ group_in_compile_stack (compile_stack_type compile_stack, regnum_t regnum)
    Return -1 if fastmap was not updated accurately.  */
 
 static int
-analyze_first (const_re_char *p, const_re_char *pend, char *fastmap,
-	       const int multibyte)
+analyze_first_1 (const_re_char *p, const_re_char *pend, char *fastmap,
+		 const int multibyte
+#ifdef emacs
+		 , bool* case_fold_stack, int* case_fold_stack_pos
+#endif
+	       )
 {
   int j, k;
   boolean not;
@@ -3865,6 +4090,11 @@ analyze_first (const_re_char *p, const_re_char *pend, char *fastmap,
   /* If all elements for base leading-codes in fastmap is set, this
      flag is set true.  */
   boolean match_any_multibyte_characters = false;
+  char fastmap_mark = FASTMAP_MARK
+#ifdef emacs
+      | (case_fold_stack[*case_fold_stack_pos] ? FASTMAP_CASE_FOLD : 0)
+#endif
+      ;
 
   assert (p);
 
@@ -3919,7 +4149,7 @@ analyze_first (const_re_char *p, const_re_char *pend, char *fastmap,
 		 character is an ASCII or a leading code.  Otherwise,
 		 each byte is a character.  Thus, this works in both
 		 cases. */
-	      fastmap[p[1]] = 1;
+	      fastmap[p[1]] = fastmap_mark;
 	      if (! multibyte)
 		{
 		  /* For the case of matching this unibyte regex
@@ -3927,7 +4157,7 @@ analyze_first (const_re_char *p, const_re_char *pend, char *fastmap,
 		     the corresponding multibyte character.  */
 		  int c = RE_CHAR_TO_MULTIBYTE (p[1]);
 
-		  fastmap[CHAR_LEADING_CODE (c)] = 1;
+		  fastmap[CHAR_LEADING_CODE (c)] = fastmap_mark;
 		}
 	    }
 	  break;
@@ -3946,7 +4176,7 @@ analyze_first (const_re_char *p, const_re_char *pend, char *fastmap,
 	    /* Chars beyond end of bitmap are possible matches.  */
 	    for (j = CHARSET_BITMAP_SIZE (&p[-1]) * BYTEWIDTH;
 		 j < (1 << BYTEWIDTH); j++)
-	      fastmap[j] = 1;
+	      fastmap[j] = fastmap_mark;
 	  }
 
 	  /* Fallthrough */
@@ -3956,7 +4186,7 @@ analyze_first (const_re_char *p, const_re_char *pend, char *fastmap,
 	  for (j = CHARSET_BITMAP_SIZE (&p[-1]) * BYTEWIDTH - 1, p++;
 	       j >= 0; j--)
 	    if (!!(p[j / BYTEWIDTH] & (1 << (j % BYTEWIDTH))) ^ not)
-	      fastmap[j] = 1;
+	      fastmap[j] = fastmap_mark;
 
 #ifdef emacs
 	  if (/* Any leading code can possibly start a character
@@ -3973,7 +4203,7 @@ analyze_first (const_re_char *p, const_re_char *pend, char *fastmap,
 		{
 		  for (j = MIN_MULTIBYTE_LEADING_CODE;
 		       j <= MAX_MULTIBYTE_LEADING_CODE; j++)
-		    fastmap[j] = 1;
+		    fastmap[j] = fastmap_mark;
 		  match_any_multibyte_characters = true;
 		}
 	    }
@@ -4001,7 +4231,7 @@ analyze_first (const_re_char *p, const_re_char *pend, char *fastmap,
 		  EXTRACT_CHARACTER (c, p);
 		  lc2 = CHAR_LEADING_CODE (c);
 		  for (j = lc1; j <= lc2; j++)
-		    fastmap[j] = 1;
+		    fastmap[j] = fastmap_mark;
 		}
 	    }
 #endif
@@ -4015,7 +4245,7 @@ analyze_first (const_re_char *p, const_re_char *pend, char *fastmap,
 	  k = *p++;
 	  for (j = 0; j < (1 << BYTEWIDTH); j++)
 	    if ((SYNTAX (j) == (enum syntaxcode) k) ^ not)
-	      fastmap[j] = 1;
+	      fastmap[j] = fastmap_mark;
 	  break;
 #else  /* emacs */
 	  /* This match depends on text properties.  These end with
@@ -4029,7 +4259,7 @@ analyze_first (const_re_char *p, const_re_char *pend, char *fastmap,
 	  k = *p++;
 	  for (j = (1 << BYTEWIDTH); j >= 0; j--)
 	    if ((CHAR_HAS_CATEGORY (j, k)) ^ not)
-	      fastmap[j] = 1;
+	      fastmap[j] = fastmap_mark;
 
 	  /* Any leading code can possibly start a character which
 	     has or doesn't has the specified category.  */
@@ -4037,10 +4267,20 @@ analyze_first (const_re_char *p, const_re_char *pend, char *fastmap,
 	    {
 	      for (j = MIN_MULTIBYTE_LEADING_CODE;
 		   j <= MAX_MULTIBYTE_LEADING_CODE; j++)
-		fastmap[j] = 1;
+		fastmap[j] = fastmap_mark;
 	      match_any_multibyte_characters = true;
 	    }
 	  break;
+
+	case case_fold_yes:
+	  case_fold_stack[*case_fold_stack_pos] = true;
+	  fastmap_mark |= FASTMAP_CASE_FOLD;
+	  continue;
+
+	case case_fold_no:
+	  case_fold_stack[*case_fold_stack_pos] = false;
+	  fastmap_mark &= ~FASTMAP_CASE_FOLD;
+	  continue;
 
       /* All cases after this match the empty string.  These end with
 	 `continue'.  */
@@ -4098,7 +4338,14 @@ analyze_first (const_re_char *p, const_re_char *pend, char *fastmap,
 	    { /* We have to look down both arms.
 		 We first go down the "straight" path so as to minimize
 		 stack usage when going through alternatives.  */
-	      int r = analyze_first (p, pend, fastmap, multibyte);
+#ifdef emacs
+	      int r = analyze_first_1 (p, pend, fastmap, multibyte,
+				       case_fold_stack, case_fold_stack_pos);
+	      fastmap_mark = FASTMAP_MARK |
+		(case_fold_stack[*case_fold_stack_pos] ? FASTMAP_CASE_FOLD : 0);
+#else
+	      int r = analyze_first_1 (p, pend, fastmap, multibyte);
+#endif
 	      if (r) return r;
 	      p += j;
 	    }
@@ -4130,7 +4377,22 @@ analyze_first (const_re_char *p, const_re_char *pend, char *fastmap,
 
 
 	case start_memory:
+#ifdef emacs
+	  case_fold_stack[*case_fold_stack_pos + 1] = case_fold_stack[*case_fold_stack_pos];
+	  (*case_fold_stack_pos)++;
+#endif
+	  p += 1;
+	  continue;
+
+
 	case stop_memory:
+#ifdef emacs
+	  (*case_fold_stack_pos)--;
+	  if (case_fold_stack[*case_fold_stack_pos])
+	    fastmap_mark |= FASTMAP_CASE_FOLD;
+	  else
+	    fastmap_mark &= ~FASTMAP_CASE_FOLD;
+#endif
 	  p += 1;
 	  continue;
 
@@ -4149,6 +4411,24 @@ analyze_first (const_re_char *p, const_re_char *pend, char *fastmap,
   return 1;
 
 } /* analyze_first */
+
+static int
+analyze_first (const_re_char *p, const_re_char *pend, char *fastmap,
+	       const int multibyte
+#ifdef emacs
+	       , const int case_fold
+#endif
+	       )
+{
+#ifdef emacs
+  bool case_fold_stack[100] = {case_fold};
+  int case_fold_stack_pos = 0;
+  return analyze_first_1 (p, pend, fastmap, multibyte,
+			  case_fold_stack, &case_fold_stack_pos);
+#else
+  return analyze_first_1 (p, pend, fastmap, multibyte);
+#endif
+}
 
 /* re_compile_fastmap computes a ``fastmap'' for the compiled pattern in
    BUFP.  A fastmap records which of the (1 << BYTEWIDTH) possible
@@ -4179,7 +4459,11 @@ re_compile_fastmap (struct re_pattern_buffer *bufp)
   bufp->fastmap_accurate = 1;	    /* It will be when we're done.  */
 
   analysis = analyze_first (bufp->buffer, bufp->buffer + bufp->used,
-			    fastmap, RE_MULTIBYTE_P (bufp));
+			    fastmap, RE_MULTIBYTE_P (bufp)
+#ifdef emacs
+			    , bufp->case_fold
+#endif
+			    );
   bufp->can_be_null = (analysis != 0);
   return 0;
 } /* re_compile_fastmap */
@@ -4367,8 +4651,11 @@ re_search_2 (struct re_pattern_buffer *bufp, const char *str1, size_t size1,
 			int buf_charlen;
 
 			buf_ch = STRING_CHAR_AND_LENGTH (d, buf_charlen);
-			buf_ch = RE_TRANSLATE (translate, buf_ch);
 			if (fastmap[CHAR_LEADING_CODE (buf_ch)])
+			  break;
+
+			buf_ch = RE_TRANSLATE (translate, buf_ch);
+			if (fastmap[CHAR_LEADING_CODE (buf_ch)] & FASTMAP_CASE_FOLD)
 			  break;
 
 			range -= buf_charlen;
@@ -4380,12 +4667,14 @@ re_search_2 (struct re_pattern_buffer *bufp, const char *str1, size_t size1,
 			register re_wchar_t ch, translated;
 
 			buf_ch = *d;
+			if (fastmap[buf_ch])
+			  break;
 			ch = RE_CHAR_TO_MULTIBYTE (buf_ch);
 			translated = RE_TRANSLATE (translate, ch);
 			if (translated != ch
 			    && (ch = RE_CHAR_TO_UNIBYTE (translated)) >= 0)
 			  buf_ch = ch;
-			if (fastmap[buf_ch])
+			if (fastmap[buf_ch] & FASTMAP_CASE_FOLD)
 			  break;
 			d++;
 			range--;
@@ -4397,7 +4686,6 @@ re_search_2 (struct re_pattern_buffer *bufp, const char *str1, size_t size1,
 		    while (range > lim)
 		      {
 			int buf_charlen;
-
 			buf_ch = STRING_CHAR_AND_LENGTH (d, buf_charlen);
 			if (fastmap[CHAR_LEADING_CODE (buf_ch)])
 			  break;
@@ -4418,23 +4706,36 @@ re_search_2 (struct re_pattern_buffer *bufp, const char *str1, size_t size1,
 	      if (multibyte)
 		{
 		  buf_ch = STRING_CHAR (d);
-		  buf_ch = TRANSLATE (buf_ch);
-		  if (! fastmap[CHAR_LEADING_CODE (buf_ch)])
-		    goto advance;
+		  if ( fastmap[CHAR_LEADING_CODE (buf_ch)])
+		    goto backwards_search_found_start;
+
+		  if ( RE_TRANSLATE_P (translate))
+		    {
+		      buf_ch = RE_TRANSLATE (translate, buf_ch);
+		      if ( fastmap[CHAR_LEADING_CODE (buf_ch)] & FASTMAP_CASE_FOLD)
+			goto backwards_search_found_start;
+		    }
 		}
 	      else
 		{
 		  register re_wchar_t ch, translated;
 
 		  buf_ch = *d;
+		  if ( fastmap[buf_ch])
+		    goto backwards_search_found_start;
 		  ch = RE_CHAR_TO_MULTIBYTE (buf_ch);
 		  translated = TRANSLATE (ch);
 		  if (translated != ch
 		      && (ch = RE_CHAR_TO_UNIBYTE (translated)) >= 0)
 		    buf_ch = ch;
-		  if (! fastmap[TRANSLATE (buf_ch)])
-		    goto advance;
+		  if ( fastmap[buf_ch] & FASTMAP_CASE_FOLD)
+		    goto backwards_search_found_start;
 		}
+
+	      goto advance;
+
+	    backwards_search_found_start: ;
+
 	    }
 	}
 
@@ -4961,6 +5262,14 @@ re_match_2_internal (struct re_pattern_buffer *bufp, const_re_char *string1,
   /* We use this to map every character in the string.	*/
   RE_TRANSLATE_TYPE translate = bufp->translate;
 
+  /* True if by default we're applying a case translation.  The pattern
+     can turn this on/off.  */
+
+#ifdef emacs
+  bool case_fold_stack[100] = {bufp->case_fold};
+  int case_fold_stack_pos = 0;
+#endif
+
   /* Nonzero if BUFP is setup from a multibyte regex.  */
   const boolean multibyte = RE_MULTIBYTE_P (bufp);
 
@@ -5366,7 +5675,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp, const_re_char *string1,
 		  }
 		buf_ch = STRING_CHAR_AND_LENGTH (d, buf_charlen);
 
-		if (TRANSLATE (buf_ch) != pat_ch)
+		if (TRANSLATE_COND (buf_ch, case_fold_stack[case_fold_stack_pos]) != pat_ch)
 		  {
 		    d = dfail;
 		    goto fail;
@@ -5397,7 +5706,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp, const_re_char *string1,
 		buf_ch = RE_CHAR_TO_MULTIBYTE (*d);
 		if (! CHAR_BYTE8_P (buf_ch))
 		  {
-		    buf_ch = TRANSLATE (buf_ch);
+		    buf_ch = TRANSLATE_COND (buf_ch, case_fold_stack[case_fold_stack_pos]);
 		    buf_ch = RE_CHAR_TO_UNIBYTE (buf_ch);
 		    if (buf_ch < 0)
 		      buf_ch = *d;
@@ -5428,6 +5737,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp, const_re_char *string1,
 	    PREFETCH ();
 	    buf_ch = RE_STRING_CHAR_AND_LENGTH (d, buf_charlen,
 						target_multibyte);
+	    /* Unconditional TRANSLATE; only looking at whitespace.  */
 	    buf_ch = TRANSLATE (buf_ch);
 
 	    if ((!(bufp->syntax & RE_DOT_NEWLINE)
@@ -5479,7 +5789,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp, const_re_char *string1,
 	      {
 		int c1;
 
-		c = TRANSLATE (c);
+		c = TRANSLATE_COND (c, case_fold_stack[case_fold_stack_pos]);
 		c1 = RE_CHAR_TO_UNIBYTE (c);
 		if (c1 >= 0)
 		  {
@@ -5493,7 +5803,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp, const_re_char *string1,
 
 		if (! CHAR_BYTE8_P (c1))
 		  {
-		    c1 = TRANSLATE (c1);
+		    c1 = TRANSLATE_COND (c1, case_fold_stack[case_fold_stack_pos]);
 		    c1 = RE_CHAR_TO_UNIBYTE (c1);
 		    if (c1 >= 0)
 		      {
@@ -5559,12 +5869,19 @@ re_match_2_internal (struct re_pattern_buffer *bufp, const_re_char *string1,
 	case start_memory:
 	  DEBUG_PRINT ("EXECUTING start_memory %d:\n", *p);
 
-	  /* In case we need to undo this operation (via backtracking).  */
-	  PUSH_FAILURE_REG (*p);
+#ifdef emacs
+	  case_fold_stack[case_fold_stack_pos + 1] = case_fold_stack[case_fold_stack_pos];
+	  case_fold_stack_pos++;
+#endif
 
-	  regstart[*p] = d;
-	  regend[*p] = NULL;	/* probably unnecessary.  -sm  */
-	  DEBUG_PRINT ("  regstart: %td\n", POINTER_TO_OFFSET (regstart[*p]));
+          if (*p <= MAX_REGNUM_NONSHY)
+	    {
+	      /* In case we need to undo this operation (via backtracking).  */
+	      PUSH_FAILURE_REG (*p);
+	      regstart[*p] = d;
+	      regend[*p] = NULL;	/* probably unnecessary.  -sm  */
+	      DEBUG_PRINT ("  regstart: %td\n", POINTER_TO_OFFSET (regstart[*p]));
+	    }
 
 	  /* Move past the register number and inner group count.  */
 	  p += 1;
@@ -5576,23 +5893,30 @@ re_match_2_internal (struct re_pattern_buffer *bufp, const_re_char *string1,
 	case stop_memory:
 	  DEBUG_PRINT ("EXECUTING stop_memory %d:\n", *p);
 
-	  assert (!REG_UNSET (regstart[*p]));
-	  /* Strictly speaking, there should be code such as:
+#ifdef emacs
+	  case_fold_stack_pos--;
+#endif
 
-		assert (REG_UNSET (regend[*p]));
-		PUSH_FAILURE_REGSTOP ((unsigned int)*p);
+	  if (*p <= MAX_REGNUM_NONSHY)
+	    {
+	      assert (!REG_UNSET (regstart[*p]));
+	      /* Strictly speaking, there should be code such as:
 
-	     But the only info to be pushed is regend[*p] and it is known to
-	     be UNSET, so there really isn't anything to push.
-	     Not pushing anything, on the other hand deprives us from the
-	     guarantee that regend[*p] is UNSET since undoing this operation
-	     will not reset its value properly.  This is not important since
-	     the value will only be read on the next start_memory or at
-	     the very end and both events can only happen if this stop_memory
-	     is *not* undone.  */
+		 assert (REG_UNSET (regend[*p]));
+		 PUSH_FAILURE_REGSTOP ((unsigned int)*p);
 
-	  regend[*p] = d;
-	  DEBUG_PRINT ("      regend: %td\n", POINTER_TO_OFFSET (regend[*p]));
+		 But the only info to be pushed is regend[*p] and it is known to
+		 be UNSET, so there really isn't anything to push.
+		 Not pushing anything, on the other hand deprives us from the
+		 guarantee that regend[*p] is UNSET since undoing this operation
+		 will not reset its value properly.  This is not important since
+		 the value will only be read on the next start_memory or at
+		 the very end and both events can only happen if this stop_memory
+		 is *not* undone.  */
+
+	      regend[*p] = d;
+	      DEBUG_PRINT ("      regend: %td\n", POINTER_TO_OFFSET (regend[*p]));
+	    }
 
 	  /* Move past the register number and the inner group count.  */
 	  p += 1;
@@ -6180,6 +6504,16 @@ re_match_2_internal (struct re_pattern_buffer *bufp, const_re_char *string1,
 	  break;
 
 #ifdef emacs
+	case case_fold_yes:
+	  DEBUG_PRINT ("EXECUTING case_fold_yes.\n");
+	  case_fold_stack[case_fold_stack_pos] = true;
+	  break;
+
+	case case_fold_no:
+	  case_fold_stack[case_fold_stack_pos] = false;
+	  DEBUG_PRINT ("EXECUTING case_fold_no.\n");
+	  break;
+
 	case before_dot:
 	  DEBUG_PRINT ("EXECUTING before_dot.\n");
 	  if (PTR_BYTE_POS (d) >= PT_BYTE)
@@ -6481,9 +6815,18 @@ regcomp (regex_t *_Restrict_ preg, const char *_Restrict_ pattern,
       /* Map uppercase characters to corresponding lowercase ones.  */
       for (i = 0; i < CHAR_SET_SIZE; i++)
 	preg->translate[i] = ISUPPER (i) ? TOLOWER (i) : i;
+
+#ifdef emacs
+      preg->case_fold = true;
+#endif
     }
   else
-    preg->translate = NULL;
+    {
+      preg->translate = NULL;
+#ifdef emacs
+      preg->case_fold = false;
+#endif
+    }
 
   /* If REG_NEWLINE is set, newlines are treated differently.  */
   if (cflags & REG_NEWLINE)
