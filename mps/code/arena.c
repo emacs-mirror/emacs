@@ -758,7 +758,7 @@ void ArenaChunkRemoved(Arena arena, Chunk chunk)
  * This is a primitive allocator used to allocate pages for the arena
  * Land. It is called rarely and can use a simple search. It may not
  * use the Land or any pool, because it is used as part of the
- * bootstrap.
+ * bootstrap.  See design.mps.bootstrap.land.sol.alloc.
  */
 
 static Res arenaAllocPageInChunk(Addr *baseReturn, Chunk chunk, Pool pool)
@@ -866,7 +866,7 @@ static void arenaExcludePage(Arena arena, Range pageRange)
  * The arena's free land can't get memory for its block pool in the
  * usual way (via ArenaAlloc), because it is the mechanism behind
  * ArenaAlloc! So we extend the block pool via a back door (see
- * arenaExtendCBSBlockPool).
+ * arenaExtendCBSBlockPool).  See design.mps.bootstrap.land.sol.pool.
  *
  * Only fails if it can't get a page for the block pool.
  */
