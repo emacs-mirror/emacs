@@ -1247,6 +1247,9 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
 
 /* amcScanNailedRange -- make one scanning pass over a range of
  * addresses in a nailed segment.
+ *
+ * *totalReturn is set to FALSE if not all the objects between base and
+ * limit have been scanned.  It is not touched otherwise.
  */
 static Res amcScanNailedRange(Bool *totalReturn, Bool *moreReturn,
                               Size *bytesScanned, ScanState ss,
