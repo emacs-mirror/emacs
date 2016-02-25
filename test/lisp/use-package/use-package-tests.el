@@ -46,5 +46,7 @@
 
 ;; Local Variables:
 ;; indent-tabs-mode: nil
+;; no-byte-compile: t
+;; no-update-autoloads: t
 ;; End:
 ;;; use-package-tests.el ends here
