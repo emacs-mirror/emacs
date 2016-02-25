@@ -503,10 +503,7 @@ manually updated package."
 
 (defalias 'use-package-normalize/:if 'use-package-normalize-test)
 (defalias 'use-package-normalize/:when 'use-package-normalize-test)
-
-(defun use-package-normalize/:unless (name keyword args)
-  (not (use-package-only-one (symbol-name keyword) args
-         #'use-package-normalize-value)))
+(defalias 'use-package-normalize/:unless 'use-package-normalize-test)
 
 (defun use-package-handler/:if (name keyword pred rest state)
   (let ((body (use-package-process-keywords name rest state)))
