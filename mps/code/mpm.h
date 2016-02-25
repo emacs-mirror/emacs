@@ -1,7 +1,7 @@
 /* mpm.h: MEMORY POOL MANAGER DEFINITIONS
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2015 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .trans.bufferinit: The Buffer data structure has an Init field and
@@ -46,6 +46,7 @@ extern Bool FunCheck(Fun f);
 extern Bool ShiftCheck(Shift shift);
 extern Bool AttrCheck(Attr attr);
 extern Bool RootVarCheck(RootVar rootVar);
+extern Bool AccessSetCheck(AccessSet mode);
 
 
 /* Address/Size Interface -- see <code/mpm.c> */
@@ -498,7 +499,6 @@ extern Bool ArenaClassCheck(ArenaClass class);
 
 extern Bool ArenaCheck(Arena arena);
 extern Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args);
-extern Res ArenaConfigure(Arena arena, ArgList args);
 extern void ArenaDestroy(Arena arena);
 extern Res ArenaInit(Arena arena, ArenaClass class, Size grainSize,
                      ArgList args);
@@ -522,6 +522,7 @@ extern Ring GlobalsRememberedSummaryRing(Globals);
 #define GlobalsArena(glob) PARENT(ArenaStruct, globals, glob)
 
 #define ArenaThreadRing(arena)  (&(arena)->threadRing)
+#define ArenaDeadRing(arena)    (&(arena)->deadRing)
 #define ArenaEpoch(arena)       ((arena)->epoch) /* .epoch.ts */
 #define ArenaTrace(arena, ti)   (&(arena)->trace[ti])
 #define ArenaZoneShift(arena)   ((arena)->zoneShift)
@@ -1069,7 +1070,7 @@ extern LandClass LandClassGet(void);
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2015 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

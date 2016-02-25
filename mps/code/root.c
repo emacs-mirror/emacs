@@ -139,7 +139,7 @@ Bool RootCheck(Root root)
     CHECKL(root->protBase != (Addr)0);
     CHECKL(root->protLimit != (Addr)0);
     CHECKL(root->protBase < root->protLimit);
-    /* there is no AccessSetCheck */
+    CHECKL(AccessSetCheck(root->pm));
   } else {
     CHECKL(root->protBase == (Addr)0);
     CHECKL(root->protLimit == (Addr)0);
@@ -558,7 +558,7 @@ Bool RootOfAddr(Root *rootReturn, Arena arena, Addr addr)
 void RootAccess(Root root, AccessSet mode)
 {
   AVERT(Root, root);
-  /* Can't AVERT mode. */
+  AVERT(AccessSet, mode);
   AVER((root->pm & mode) != AccessSetEMPTY);
   AVER(mode == AccessWRITE); /* only write protection supported */
 

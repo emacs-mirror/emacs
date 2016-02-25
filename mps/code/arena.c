@@ -207,9 +207,9 @@ Res ArenaInit(Arena arena, ArenaClass class, Size grainSize, ArgList args)
   
   if (ArgPick(&arg, args, MPS_KEY_ARENA_ZONED))
     zoned = arg.val.b;
-  if (ArgPick(&arg, args, MPS_KEY_ARENA_COMMIT_LIMIT))
+  if (ArgPick(&arg, args, MPS_KEY_COMMIT_LIMIT))
     commitLimit = arg.val.size;
-  if (ArgPick(&arg, args, MPS_KEY_ARENA_SPARE_COMMIT_LIMIT))
+  if (ArgPick(&arg, args, MPS_KEY_SPARE_COMMIT_LIMIT))
     spareCommitLimit = arg.val.size;
 
   arena->class = class;
@@ -289,11 +289,11 @@ ARG_DEFINE_KEY(VMW3_TOP_DOWN, Bool);
 
 /* ArenaCreate -- create the arena and call initializers */
 
-ARG_DEFINE_KEY(ARENA_COMMIT_LIMIT, Size);
 ARG_DEFINE_KEY(ARENA_GRAIN_SIZE, Size);
 ARG_DEFINE_KEY(ARENA_SIZE, Size);
-ARG_DEFINE_KEY(ARENA_SPARE_COMMIT_LIMIT, Size);
 ARG_DEFINE_KEY(ARENA_ZONED, Bool);
+ARG_DEFINE_KEY(COMMIT_LIMIT, Size);
+ARG_DEFINE_KEY(SPARE_COMMIT_LIMIT, Size);
 
 static Res arenaFreeLandInit(Arena arena)
 {
@@ -385,31 +385,6 @@ failInit:
 }
 
 
-/* ArenaConfigure -- configure an arena */
-
-Res ArenaConfigure(Arena arena, ArgList args)
-{
-  Res res;
-  mps_arg_s arg;
-
-  AVERT(Arena, arena);
-  AVERT(ArgList, args);
-
-  if (ArgPick(&arg, args, MPS_KEY_ARENA_COMMIT_LIMIT)) {
-    Size limit = arg.val.size;
-    res = ArenaSetCommitLimit(arena, limit);
-    if (res != ResOK)
-      return res;
-  }
-  if (ArgPick(&arg, args, MPS_KEY_ARENA_SPARE_COMMIT_LIMIT)) {
-    Size limit = arg.val.size;
-    (void)ArenaSetSpareCommitLimit(arena, limit);
-  }
-
-  return (*arena->class->configure)(arena, args);
-}
-
-
 /* ArenaFinish -- finish the generic part of the arena
  *
  * .finish.caller: Unlike PoolFinish, this is called by the class finish
@@ -448,6 +423,11 @@ static void arenaFreeLandFinish(Arena arena)
   AVERT(Arena, arena);
   AVER(arena->hasFreeLand);
   
+  /* We're about to free the memory occupied by the free land, which
+     contains a CBS.  We want to make sure that LandFinish doesn't try
+     to check the CBS, so nuke it here.  TODO: LandReset? */
+  arena->freeLandStruct.splayTreeStruct.root = TreeEMPTY;
+
   /* The CBS block pool can't free its own memory via ArenaFree because
    * that would use the free land. */
   MFSFinishTracts(ArenaCBSBlockPool(arena), arenaMFSPageFreeVisitor,
@@ -1038,7 +1018,7 @@ Res ArenaFreeLandAlloc(Tract *tractReturn, Arena arena, ZoneSet zones,
                        Bool high, Size size, Pool pool)
 {
   RangeStruct range, oldRange;
-  Chunk chunk;
+  Chunk chunk = NULL; /* suppress uninit warning */
   Bool found, b;
   Index baseIndex;
   Count pages;
@@ -1262,7 +1242,6 @@ void ArenaSetSpareCommitLimit(Arena arena, Size limit)
   }
 
   EVENT2(SpareCommitLimitSet, arena, limit);
-  return;
 }
 
 /* Used by arenas which don't use spare committed memory */
@@ -1414,10 +1393,10 @@ static void ArenaTrivCompact(Arena arena, Trace trace)
 
 Bool ArenaHasAddr(Arena arena, Addr addr)
 {
-  Seg seg;
+  Tract tract;
 
   AVERT(Arena, arena);
-  return SegOfAddr(&seg, arena, addr);
+  return TractOfAddr(&tract, arena, addr);
 }
 
 
