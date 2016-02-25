@@ -357,6 +357,7 @@ Unless the KEYWORD being processed intends to ignore remaining
 keywords, it must call this function recursively, passing in the
 plist with its keyword and argument removed, and passing in the
 next value for the STATE."
+  (declare (indent 1))
   (unless (null plist)
     (let* ((keyword (car plist))
            (arg (cadr plist))
