@@ -525,7 +525,6 @@ typedef struct mps_arena_class_s {
   size_t offset;                /* offset of generic struct in outer struct */
   ArenaVarargsMethod varargs;
   ArenaInitMethod init;
-  ArenaConfigureMethod configure;
   ArenaFinishMethod finish;
   ArenaPurgeSpareMethod purgeSpare;
   ArenaExtendMethod extend;
@@ -756,6 +755,7 @@ typedef struct mps_arena_s {
 
   /* thread fields (<code/thread.c>) */
   RingStruct threadRing;        /* ring of attached threads */
+  RingStruct deadRing;          /* ring of dead threads */
   Serial threadSerial;          /* serial of next thread */
  
   /* shield fields (<code/shield.c>) */
