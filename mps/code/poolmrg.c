@@ -746,7 +746,12 @@ Res MRGRegister(Pool pool, Ref ref)
 }
 
 
-/* MRGDeregister -- deregister (once) an object for finalization */
+/* MRGDeregister -- deregister (once) an object for finalization
+ *
+ * TODO: Definalization loops over all finalizable objects in the heap,
+ * and so using it could accidentally be disastrous for performance.
+ * See job003953 and back out changelist 187123 if this is fixed.
+ */
 
 Res MRGDeregister(Pool pool, Ref obj)
 {

@@ -87,6 +87,14 @@ static mps_res_t stress(mps_arena_t arena, mps_pool_debug_option_s *options,
     check_allocated_size(pool, ap, allocated);
   }
 
+  /* Check introspection functions */
+  for (i = 0; i < NELEMS(ps); ++i) {
+    mps_pool_t addr_pool = NULL;
+    Insist(mps_arena_has_addr(arena, ps[i]));
+    Insist(mps_addr_pool(&addr_pool, arena, ps[i]));
+    Insist(addr_pool == pool);
+  }
+
   mps_pool_check_fenceposts(pool);
 
   for (k=0; k<testLOOPS; ++k) {
@@ -213,7 +221,7 @@ int main(int argc, char *argv[])
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, 2 * testArenaSIZE);
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_GRAIN_SIZE, rnd_grain(2*testArenaSIZE));
-    MPS_ARGS_ADD(args, MPS_KEY_ARENA_COMMIT_LIMIT, testArenaSIZE);
+    MPS_ARGS_ADD(args, MPS_KEY_COMMIT_LIMIT, testArenaSIZE);
     test(mps_arena_class_vm(), args, &fenceOptions);
   } MPS_ARGS_END(args);
 
