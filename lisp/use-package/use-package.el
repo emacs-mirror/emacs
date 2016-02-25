@@ -698,7 +698,9 @@ may also be a string, as accepted by `define-key'."
        (use-package-sort-keywords
         (use-package-plist-maybe-put rest :defer t))
        (use-package-plist-append state :commands commands))
-     `((ignore (,(if bind-macro bind-macro 'bind-keys) ,@arg))))))
+     `((ignore
+        ,(macroexpand
+          `(,(if bind-macro bind-macro 'bind-keys) ,@arg)))))))
 
 (defun use-package-handler/:bind* (name keyword arg rest state)
   (use-package-handler/:bind name keyword arg rest state 'bind-keys*))
