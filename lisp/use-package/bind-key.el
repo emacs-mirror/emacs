@@ -293,7 +293,7 @@ function symbol (unquoted)."
 ;;;###autoload
 (defmacro bind-keys* (&rest args)
   (macroexp-progn
-   (bind-keys-form (cons :map (cons override-global-map args)))))
+   (bind-keys-form `(:map override-global-map ,@args))))
 
 (defun get-binding-description (elem)
   (cond
