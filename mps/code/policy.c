@@ -85,19 +85,21 @@ Res PolicyAlloc(Tract *tractReturn, Arena arena, LocusPref pref,
       if (arena->class->purgeSpare(arena, size) >= size)
         res = arena->class->grow(arena, pref, size);
     }
-    if (res != ResOK)
-      return res;
-    if (zones != ZoneSetEMPTY) {
-      res = ArenaFreeLandAlloc(&tract, arena, zones, pref->high, size, pool);
-      if (res == ResOK)
-        goto found;
+    if (res == ResOK) {
+      if (zones != ZoneSetEMPTY) {
+        res = ArenaFreeLandAlloc(&tract, arena, zones, pref->high, size, pool);
+        if (res == ResOK)
+          goto found;
+      }
+      if (moreZones != zones) {
+        res = ArenaFreeLandAlloc(&tract, arena, moreZones, pref->high,
+                                 size, pool);
+        if (res == ResOK)
+          goto found;
+      }
     }
-    if (moreZones != zones) {
-      res = ArenaFreeLandAlloc(&tract, arena, moreZones, pref->high,
-                               size, pool);
-      if (res == ResOK)
-        goto found;
-    }
+    /* TODO: Log an event here, since something went wrong, before
+       trying the next plan anyway. */
   }
 
   /* Plan D: add every zone that isn't blacklisted.  This might mix GC'd
