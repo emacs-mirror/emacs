@@ -66,6 +66,11 @@ then the expanded macros do their job silently."
   :type 'boolean
   :group 'use-package)
 
+(defcustom use-package-always-defer nil
+  "If non-nil, assume `:defer t` unless `:demand t` is given."
+  :type 'sexp
+  :group 'use-package)
+
 (defcustom use-package-always-ensure nil
   "Treat every package as though it had specified `:ensure SEXP`."
   :type 'sexp
@@ -1126,7 +1131,8 @@ this file.  Usage:
 
       (let ((body
              (macroexp-progn
-              (use-package-process-keywords name args*))))
+              (use-package-process-keywords name args*
+                (and use-package-always-defer '(:deferred t))))))
         (if use-package-debug
             (display-buffer
              (save-current-buffer
