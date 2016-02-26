@@ -66,9 +66,15 @@ then the expanded macros do their job silently."
   :type 'boolean
   :group 'use-package)
 
+(defcustom use-package-check-before-init nil
+  "If non-nil, check that package exists before executing its `:init' block.
+The check is performed by looking for the module using `locate-library'."
+  :type 'boolean
+  :group 'use-package)
+
 (defcustom use-package-always-defer nil
   "If non-nil, assume `:defer t` unless `:demand t` is given."
-  :type 'sexp
+  :type 'boolean
   :group 'use-package)
 
 (defcustom use-package-always-ensure nil
@@ -938,7 +944,13 @@ deferred until the prefix key sequence is pressed."
   (let ((body (use-package-process-keywords name rest state)))
     (use-package-concat
      ;; The user's initializations
-     (use-package-hook-injector (use-package-as-string name) :init arg)
+     (let ((init-body
+            (use-package-hook-injector (use-package-as-string name)
+                                       :init arg)))
+       (if use-package-check-before-init
+           `((if (locate-library ,(use-package-as-string name))
+                 ,(macroexp-progn init-body)))
+         init-body))
      body)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
