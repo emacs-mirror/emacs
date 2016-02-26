@@ -77,6 +77,14 @@ Res PolicyAlloc(Tract *tractReturn, Arena arena, LocusPref pref,
   /* Plan C: Extend the arena, then try A and B again. */
   if (moreZones != ZoneSetEMPTY) {
     res = arena->class->grow(arena, pref, size);
+    /* If we can't extent because we hit the commit limit, try purging
+       some spare committed memory and try again.*/
+    /* TODO: This would be a good time to *remap* VM instead of
+       returning it to the OS. */
+    if (res == ResCOMMIT_LIMIT) {
+      if (arena->class->purgeSpare(arena, size) >= size)
+        res = arena->class->grow(arena, pref, size);
+    }
     if (res != ResOK)
       return res;
     if (zones != ZoneSetEMPTY) {
