@@ -123,6 +123,8 @@ the user specified."
     :no-require
     :bind
     :bind*
+    :bind-keymap
+    :bind-keymap*
     :interpreter
     :mode
     :commands
@@ -708,6 +710,63 @@ may also be a string, as accepted by `define-key'."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
+;; :bind-keymap, :bind-keymap*
+;;
+
+(defalias 'use-package-normalize/:bind-keymap 'use-package-normalize-binder)
+(defalias 'use-package-normalize/:bind-keymap* 'use-package-normalize-binder)
+
+(defun use-package-autoload-keymap (keymap-symbol package override)
+  "Loads PACKAGE and then binds the key sequence used to invoke
+this function to KEYMAP-SYMBOL.  It then simulates pressing the
+same key sequence a again, so that the next key pressed is routed
+to the newly loaded keymap.
+
+This function supports use-package's :bind-keymap keyword.  It
+works by binding the given key sequence to an invocation of this
+function for a particular keymap.  The keymap is expected to be
+defined by the package.  In this way, loading the package is
+deferred until the prefix key sequence is pressed."
+  (if (not (require package nil t))
+      (use-package-error (format "Could not load package.el: %s" package))
+    (if (and (boundp keymap-symbol)
+             (keymapp (symbol-value keymap-symbol)))
+        (let* ((kv (this-command-keys-vector))
+               (key (key-description kv))
+               (keymap (symbol-value keymap-symbol)))
+          (if override
+              (bind-key* key keymap)
+            (bind-key key keymap))
+          (setq unread-command-events
+                (listify-key-sequence kv)))
+      (use-package-error
+       (format "use-package: package.el %s failed to define keymap %s"
+               package keymap-symbol)))))
+
+(defun use-package-handler/:bind-keymap
+    (name keyword arg rest state &optional override)
+  (let ((form (mapcar
+               #'(lambda (binding)
+                   `(,(if override
+                          'bind-key*
+                        'bind-key)
+                     ,(car binding)
+                     #'(lambda ()
+                         (interactive)
+                         (use-package-autoload-keymap
+                          ',(cdr binding) ',(use-package-as-symbol name) ,override)))) arg)))
+    (use-package-concat
+     (use-package-process-keywords name
+       (use-package-sort-keywords
+        (use-package-plist-maybe-put rest :defer t))
+       state)
+     `((ignore ,@form)))))
+
+(defun use-package-handler/:bind-keymap* (name keyword arg rest state)
+  (use-package-handler/:bind-keymap name keyword arg rest state t))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
 ;; :interpreter
 ;;
 
@@ -1010,6 +1069,9 @@ this file.  Usage:
 :bind          Bind keys, and define autoloads for the bound commands.
 :bind*         Bind keys, and define autoloads for the bound commands,
                *overriding all minor mode bindings*.
+:bind-keymap   Bind a key prefix to an auto-loaded keymap defined in the
+               package.  This is like `:bind', but for keymaps.
+:bind-keymap*  Like `:bind-keymap', but overrides all minor mode bindings
 
 :defer         Defer loading of a package -- this is implied when using
                `:commands', `:bind', `:bind*', `:mode' or `:interpreter'.
