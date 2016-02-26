@@ -212,6 +212,7 @@ function symbol (unquoted)."
          (prefix (plist-get args :prefix))
          (filter (plist-get args :filter))
          (menu-name (plist-get args :menu-name))
+         (pkg (plist-get args :package))
          (key-bindings (progn
                          (while (keywordp (car args))
                            (pop args)
@@ -233,30 +234,43 @@ function symbol (unquoted)."
               (nconc first (list (car args)))
             (setq first (list (car args))))
           (setq args (cdr args))))
-      (append
-       (when prefix-map
-         `((defvar ,prefix-map)
-           ,@(when doc `((put ',prefix-map 'variable-documentation ,doc)))
-           ,@(if menu-name
-                 `((define-prefix-command ',prefix-map nil ,menu-name))
-               `((define-prefix-command ',prefix-map)))
-           ,@(if maps
-                 (mapcar
-                  #'(lambda (m)
-                      `(bind-key ,prefix ',prefix-map ,m ,filter)) maps)
-               `((bind-key ,prefix ',prefix-map nil ,filter)))))
-       (cl-mapcan
-        (lambda (form)
-          (if prefix-map
-              `((bind-key ,(car form) ',(cdr form) ,prefix-map ,filter))
-            (if maps
-                (mapcar
-                 #'(lambda (m)
-                     `(bind-key ,(car form) ',(cdr form) ,m ,filter)) maps)
-              `((bind-key ,(car form) ',(cdr form) nil ,filter)))))
-        first)
-       (when next
-         (bind-keys-form next))))))
+      (cl-flet ((wrap (maps bindings)
+                      (if (and maps pkg)
+                          `((eval-after-load
+                                ,(if (symbolp pkg) `',pkg pkg)
+                              '(progn ,@bindings)))
+                        bindings)))
+        (append
+         (when prefix-map
+           `((defvar ,prefix-map)
+             ,@(when doc `((put ',prefix-map 'variable-documentation ,doc)))
+             ,@(if menu-name
+                   `((define-prefix-command ',prefix-map nil ,menu-name))
+                 `((define-prefix-command ',prefix-map)))
+             ,@(if maps
+                   (wrap maps
+                         (mapcar
+                          #'(lambda (m)
+                              `(bind-key ,prefix ',prefix-map ,m ,filter))
+                          maps))
+                 `((bind-key ,prefix ',prefix-map nil ,filter)))))
+         (wrap maps
+               (cl-mapcan
+                (lambda (form)
+                  (if prefix-map
+                      `((bind-key ,(car form) ',(cdr form) ,prefix-map ,filter))
+                    (if maps
+                        (mapcar
+                         #'(lambda (m)
+                             `(bind-key ,(car form) ',(cdr form) ,m ,filter))
+                         maps)
+                      `((bind-key ,(car form) ',(cdr form) nil ,filter)))))
+                first))
+         (when next
+           (bind-keys-form
+            (if pkg
+                (cons :package (cons pkg next))
+              next))))))))
 
 ;;;###autoload
 (defmacro bind-keys (&rest args)
