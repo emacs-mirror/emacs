@@ -597,7 +597,7 @@ manually updated package."
   (let ((body (use-package-process-keywords name rest state)))
     (use-package-concat
      (mapcar #'(lambda (path)
-                 `(eval-and-compile (push ,path load-path))) arg)
+                 `(eval-and-compile (add-to-list 'load-path ,path))) arg)
      body)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -785,7 +785,7 @@ deferred until the prefix key sequence is pressed."
   (let* (commands
          (form (mapcar #'(lambda (interpreter)
                            (push (cdr interpreter) commands)
-                           `(push ',interpreter interpreter-mode-alist)) arg)))
+                           `(add-to-list 'interpreter-mode-alist ',interpreter)) arg)))
     (use-package-concat
      (use-package-process-keywords name
        (use-package-sort-keywords
@@ -804,7 +804,7 @@ deferred until the prefix key sequence is pressed."
   (let* (commands
          (form (mapcar #'(lambda (mode)
                            (push (cdr mode) commands)
-                           `(push ',mode auto-mode-alist)) arg)))
+                           `(add-to-list 'auto-mode-alist ',mode)) arg)))
     (use-package-concat
      (use-package-process-keywords name
        (use-package-sort-keywords
