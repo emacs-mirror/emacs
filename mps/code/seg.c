@@ -142,6 +142,7 @@ static Res SegInit(Seg seg, Pool pool, Addr base, Size size,
   Arena arena;
   SegClass class;
   Res res;
+  Bool b;
 
   AVER(seg != NULL);
   AVERT(Pool, pool);
@@ -175,6 +176,7 @@ static Res SegInit(Seg seg, Pool pool, Addr base, Size size,
   AVER(addr == SegLimit(seg));
 
   RingInit(SegPoolRing(seg));
+  TreeInit(SegTree(seg));
 
   /* Class specific initialization comes last */
   res = class->init(seg, pool, base, size, withReservoirPermit, args);
@@ -183,6 +185,8 @@ static Res SegInit(Seg seg, Pool pool, Addr base, Size size,
    
   AVERT(Seg, seg);
   RingAppend(&pool->segRing, SegPoolRing(seg));
+  b = SplayTreeInsert(ArenaSegSplay(arena), SegTree(seg));
+  AVER(b); /* not already in tree */
   return ResOK;
 
 failInit:
@@ -204,6 +208,7 @@ static void SegFinish(Seg seg)
   Addr base, addr, limit;
   Tract tract;
   SegClass class;
+  Bool b;
 
   AVERT(Seg, seg);
   class = seg->class;
@@ -230,6 +235,8 @@ static void SegFinish(Seg seg)
   }
   AVER(addr == SegLimit(seg));
 
+  b = SplayTreeDelete(ArenaSegSplay(arena), SegTree(seg));
+  AVER(b); /* seg should be in arena splay tree */
   RingRemove(SegPoolRing(seg));
   RingFinish(SegPoolRing(seg));
 
@@ -243,6 +250,34 @@ static void SegFinish(Seg seg)
   AVER(seg->sm == AccessSetEMPTY);
   AVER(seg->pm == AccessSetEMPTY);
  
+}
+
+
+#define segOfTree(_tree) TREE_ELT(Seg, treeStruct, _tree)
+
+Compare SegCompare(Tree tree, TreeKey key)
+{
+  Seg seg;
+  Addr addr;
+
+  AVERT_CRITICAL(Tree, tree);
+  AVER_CRITICAL(tree != TreeEMPTY);
+  AVER_CRITICAL(key != NULL);
+
+  seg = segOfTree(tree);
+  addr = (Addr)key; /* FIXME: See baseOfKey in cbs.c */
+
+  if (addr < SegBase(seg))
+    return CompareLESS;
+  else if (addr >= SegLimit(seg))
+    return CompareGREATER;
+  else
+    return CompareEQUAL;
+}
+
+TreeKey SegKey(Tree tree)
+{
+  return (TreeKey)SegBase(segOfTree(tree)); /* FIXME: See cbsBlockKey in cbs.c */
 }
 
 
@@ -442,11 +477,12 @@ Size SegSize(Seg seg)
 
 Bool SegOfAddr(Seg *segReturn, Arena arena, Addr addr)
 {
-  Tract tract;
-  AVER_CRITICAL(segReturn != NULL);   /* .seg.critical */
+  Tree tree;
+  AVER_CRITICAL(segReturn != NULL);   /* .seg.critical FIXME: maybe not with white-cuckoo */
   AVERT_CRITICAL(Arena, arena);       /* .seg.critical */
-  if (TractOfAddr(&tract, arena, addr)) {
-    return TRACT_SEG(segReturn, tract);
+  if (SplayTreeFind(&tree, ArenaSegSplay(arena), (TreeKey)addr)) { /* FIXME: cast */
+    *segReturn = segOfTree(tree);
+    return TRUE;
   } else {
     return FALSE;
   }
