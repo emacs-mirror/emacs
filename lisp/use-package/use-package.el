@@ -58,7 +58,8 @@ If you customize this, then you should require the `use-package'
 feature in files that use `use-package', even if these files only
 contain compiled expansions of the macros.  If you don't do so,
 then the expanded macros do their job silently."
-  :type 'boolean
+  :type '(choice (const :tag "Quiet" nil) (const :tag "Verbose" t)
+                 (const :tag "Debug" debug))
   :group 'use-package)
 
 (defcustom use-package-debug nil
@@ -1136,7 +1137,7 @@ this file.  Usage:
                               (plist-get args* :defines))
                     (with-demoted-errors
                         ,(format "Cannot load %s: %%S" name)
-                      ,(if use-package-verbose
+                      ,(if (eq use-package-verbose 'debug)
                            `(message "Compiling package %s" ',name-symbol))
                       ,(unless (plist-get args* :no-require)
                          (use-package-load-name name)))))))
