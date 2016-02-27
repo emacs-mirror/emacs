@@ -80,6 +80,7 @@
 #include "land.c"
 #include "failover.c"
 #include "vm.c"
+#include "policy.c"
 
 /* Additional pool classes */
 

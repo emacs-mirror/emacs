@@ -67,13 +67,23 @@ Arena's free land
 _`.land`: Before the arena can allocate memory, a range of addresses
 must be inserted into the arena's free land (so that the free land can
 hand out memory from this range). But before addresses can be inserted
-into the arena's free land, the arena must be able to allocate memory
-(to store the nodes in the tree representing those addresses).
+into the arena's free land, the free land's block pool must have
+memory from the arena to store the nodes in the tree representing
+those addresses.
 
 _`.land.sol`: The arena has two "back door" mechanisms and uses them
-in combination. First, there is a mechanism for allocating a block of
-memory directly from a chunk, bypassing the free land; second, the MFS
-pool class has a mechanism for extending it with a block of memory.
+in combination.
+
+_`.land.sol.alloc`: First, there is a mechanism for allocating a
+page of memory directly from a chunk, bypassing the free land.
+
+_`.land.sol.pool`: Second, the free land's block pool has an option to
+prevent it extending itself by allocating memory from the arena.
+Instead, it fails allocations with ``ResLIMIT``.  The free land's
+block pool also has a mechanism, ``MFSExtend`` to extend it with a
+block of memory.  When the free land fails with ``ResLIMIT`` the arena
+uses `.land.sol.alloc`_ to provide it with memory.
+
 
 
 Document History
@@ -81,15 +91,19 @@ Document History
 
 - 2015-09-01 GDR_ Initial draft.
 
+- 2016-02-25 RB_ Improving description of arena free land bootstrap
+  and cross-referencing from source code.
+
 .. _GDR: http://www.ravenbrook.com/consultants/gdr/
+.. _RB: http://www.ravenbrook.com/consultants/rb/
 
 
 Copyright and License
 ---------------------
 
-Copyright © 2015 Ravenbrook Limited. All rights reserved.
-<http://www.ravenbrook.com/>. This is an open source license. Contact
-Ravenbrook for commercial licensing options.
+Copyright © 2015-2016 Ravenbrook Limited
+<http://www.ravenbrook.com/>. All rights reserved. This is an open
+source license. Contact Ravenbrook for commercial licensing options.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
