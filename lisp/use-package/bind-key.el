@@ -205,6 +205,11 @@ Accepts keyword arguments:
 
 The rest of the arguments are conses of keybinding string and a
 function symbol (unquoted)."
+  ;; jww (2016-02-26): This is a hack; this whole function needs to be
+  ;; rewritten to normalize arguments the way that use-package.el does.
+  (if (and (eq (car args) :package)
+           (not (eq (car (cdr (cdr args))) :map)))
+      (setq args (cons :map (cons 'global-map args))))
   (let* ((map (plist-get args :map))
          (maps (if (listp map) map (list map)))
          (doc (plist-get args :prefix-docstring))
@@ -224,7 +229,7 @@ function symbol (unquoted)."
     (when (and menu-name (not prefix))
       (error "If :menu-name is supplied, :prefix must be too"))
     (let ((args key-bindings)
-          first next)
+          saw-map first next)
       (while args
         (if (keywordp (car args))
             (progn
@@ -235,7 +240,8 @@ function symbol (unquoted)."
             (setq first (list (car args))))
           (setq args (cdr args))))
       (cl-flet ((wrap (maps bindings)
-                      (if (and maps pkg)
+                      (if (and maps pkg
+                               (not (equal maps '(global-map))))
                           `((eval-after-load
                                 ,(if (symbolp pkg) `',pkg pkg)
                               '(progn ,@bindings)))
@@ -247,7 +253,7 @@ function symbol (unquoted)."
              ,@(if menu-name
                    `((define-prefix-command ',prefix-map nil ,menu-name))
                  `((define-prefix-command ',prefix-map)))
-             ,@(if maps
+             ,@(if (and maps (not (equal maps '(global-map))))
                    (wrap maps
                          (mapcar
                           #'(lambda (m)
@@ -259,7 +265,7 @@ function symbol (unquoted)."
                 (lambda (form)
                   (if prefix-map
                       `((bind-key ,(car form) ',(cdr form) ,prefix-map ,filter))
-                    (if maps
+                    (if (and maps (not (equal maps '(global-map))))
                         (mapcar
                          #'(lambda (m)
                              `(bind-key ,(car form) ',(cdr form) ,m ,filter))
