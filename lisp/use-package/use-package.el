@@ -740,7 +740,7 @@ function for a particular keymap.  The keymap is expected to be
 defined by the package.  In this way, loading the package is
 deferred until the prefix key sequence is pressed."
   (if (not (require package nil t))
-      (use-package-error (format "Could not load package.el: %s" package))
+      (use-package-error (format "Cannot load package.el: %s" package))
     (if (and (boundp keymap-symbol)
              (keymapp (symbol-value keymap-symbol)))
         (let* ((kv (this-command-keys-vector))
@@ -986,7 +986,7 @@ deferred until the prefix key sequence is pressed."
              config-body)
           `((if (not ,(use-package-load-name name t))
                 (ignore
-                 (message (format "Could not load %s" ',name)))
+                 (message (format "Cannot load %s" ',name)))
               ,@config-body)))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
