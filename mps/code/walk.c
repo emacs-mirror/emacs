@@ -10,104 +10,57 @@
 SRCID(walk, "$Id$");
 
 
-/* Heap Walking
- */
+/* mps_arena_formatted_objects_walk -- iterate over all objects */
 
+typedef struct ObjectsWalkClosureStruct {
+  Arena arena;
+  mps_formatted_objects_stepper_t stepper;
+  void *closureP;
+  size_t closureS;
+} ObjectsWalkClosureStruct, *ObjectsWalkClosure;
 
-#define FormattedObjectsStepClosureSig ((Sig)0x519F05C1)
-
-typedef struct FormattedObjectsStepClosureStruct *FormattedObjectsStepClosure;
-
-typedef struct FormattedObjectsStepClosureStruct {
-  Sig sig;
-  mps_formatted_objects_stepper_t f;
-  void *p;
-  size_t s;
-} FormattedObjectsStepClosureStruct;
-
-
-ATTRIBUTE_UNUSED
-static Bool FormattedObjectsStepClosureCheck(FormattedObjectsStepClosure c)
+static void objectsWalkStep(Addr addr, Format format, Pool pool,
+                            void *closureP, Size closureS)
 {
-  CHECKS(FormattedObjectsStepClosure, c);
-  CHECKL(FUNCHECK(c->f));
-  /* p and s fields are arbitrary closures which cannot be checked */
+  ObjectsWalkClosure ow = closureP;
+  AVER(closureS == sizeof(*ow));
+  ow->stepper(addr, format, pool, ow->closureP, ow->closureS);
+}
+
+static Bool objectsWalkVisit(Seg seg, void *closure)
+{
+  ObjectsWalkClosure ow = closure;
+  Pool pool;
+  
+  pool = SegPool(seg);
+  if (PoolHasAttr(pool, AttrFMT)) {
+    ShieldExpose(ow->arena, seg);
+    PoolWalk(pool, seg, objectsWalkStep, ow, sizeof(*ow));
+    ShieldCover(ow->arena, seg);
+  }
+
   return TRUE;
 }
 
-
-static void ArenaFormattedObjectsStep(Addr object, Format format, Pool pool,
-                                      void *p, size_t s)
-{
-  FormattedObjectsStepClosure c;
-  /* Can't check object */
-  AVERT(Format, format);
-  AVERT(Pool, pool);
-  c = p;
-  AVERT(FormattedObjectsStepClosure, c);
-  AVER(s == 0);
-
-  (*c->f)((mps_addr_t)object, (mps_fmt_t)format, (mps_pool_t)pool,
-          c->p, c->s);
-}
-
-
-/* ArenaFormattedObjectsWalk -- iterate over all objects
- *
- * So called because it walks all formatted objects in an arena.  */
-
-static void ArenaFormattedObjectsWalk(Arena arena, FormattedObjectsVisitor f,
-                                      void *p, size_t s)
-{
-  Seg seg;
-  FormattedObjectsStepClosure c;
-
-  AVERT(Arena, arena);
-  AVER(FUNCHECK(f));
-  AVER(f == ArenaFormattedObjectsStep);
-  /* p and s are arbitrary closures. */
-  /* Know that p is a FormattedObjectsStepClosure  */
-  /* Know that s is 0 */
-  AVER(p != NULL);
-  AVER(s == 0);
-
-  c = p;
-  AVERT(FormattedObjectsStepClosure, c);
-
-  if (SegFirst(&seg, arena)) {
-    do {
-      Pool pool;
-      pool = SegPool(seg);
-      if (PoolHasAttr(pool, AttrFMT)) {
-        ShieldExpose(arena, seg);
-        PoolWalk(pool, seg, f, p, s);
-        ShieldCover(arena, seg);
-      }
-    } while(SegNext(&seg, arena, seg));
-  }
-}
-
-
-/* mps_arena_formatted_objects_walk -- iterate over all objects
- *
- * Client interface to ArenaFormattedObjectsWalk.  */
-
 void mps_arena_formatted_objects_walk(mps_arena_t mps_arena,
-                                      mps_formatted_objects_stepper_t f,
-                                      void *p, size_t s)
+                                      mps_formatted_objects_stepper_t stepper,
+                                      void *closureP, size_t closureS)
 {
   Arena arena = (Arena)mps_arena;
-  FormattedObjectsStepClosureStruct c;
+  ObjectsWalkClosureStruct owStruct;
 
   ArenaEnter(arena);
+
   AVERT(Arena, arena);
-  AVER(FUNCHECK(f));
-  /* p and s are arbitrary closures, hence can't be checked */
-  c.sig = FormattedObjectsStepClosureSig;
-  c.f = f;
-  c.p = p;
-  c.s = s;
-  ArenaFormattedObjectsWalk(arena, ArenaFormattedObjectsStep, &c, 0);
+  AVER(FUNCHECK(stepper));
+  /* closureP and closureS are arbitrary closures, hence can't be checked */
+
+  owStruct.arena = arena;
+  owStruct.stepper = stepper;
+  owStruct.closureP = closureP;
+  owStruct.closureS = closureS;
+  SegTraverse(arena, objectsWalkVisit, &owStruct);
+
   ArenaLeave(arena);
 }
 
