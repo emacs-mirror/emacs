@@ -703,45 +703,53 @@ static Res arenaRememberSummaryOne(Globals global, Addr base, RefSet summary)
 }
 
 /* ArenaExposeRemember -- park arena and then lift all protection
-   barriers.  Parameter 'remember' specifies whether to remember the
-   protection state or not (for later restoration with
-   ArenaRestoreProtection).
-   */
+ *
+ * Parameter 'remember' specifies whether to remember the protection
+ * state or not (for later restoration with ArenaRestoreProtection).
+ */
+
+typedef struct ArenaExposeRememberClosureStruct {
+  Globals globals;
+  Bool remember;
+} ArenaExposeRememberClosureStruct, *ArenaExposeRememberClosure;
+
+static Bool ArenaExposeRememberVisit(Seg seg, void *closure)
+{
+  ArenaExposeRememberClosure aer = closure;
+  Addr base = SegBase(seg);
+
+  if (IsSubclassPoly(ClassOfSeg(seg), GCSegClassGet())) {
+    if (aer->remember) {
+      RefSet summary = SegSummary(seg);
+      if (summary != RefSetUNIV) {
+        Res res = arenaRememberSummaryOne(aer->globals, base, summary);
+        if (res != ResOK) {
+          /* If we got an error then stop trying to remember any
+             protections. */
+          aer->remember = 0;
+        }
+      }
+    }
+    SegSetSummary(seg, RefSetUNIV);
+    AVER(SegSM(seg) == AccessSetEMPTY);
+  }
+
+  return TRUE;
+}
+
 void ArenaExposeRemember(Globals globals, Bool remember)
 {
-  Seg seg;
-  Arena arena;
+  ArenaExposeRememberClosureStruct aerStruct;
 
   AVERT(Globals, globals);
   AVERT(Bool, remember);
 
   ArenaPark(globals);
 
-  arena = GlobalsArena(globals);
-  if(SegFirst(&seg, arena)) {
-    Addr base;
+  aerStruct.globals = globals;
+  aerStruct.remember = remember;
 
-    do {
-      base = SegBase(seg);
-      if(IsSubclassPoly(ClassOfSeg(seg), GCSegClassGet())) {
-        if(remember) {
-          RefSet summary;
-
-          summary = SegSummary(seg);
-          if(summary != RefSetUNIV) {
-            Res res = arenaRememberSummaryOne(globals, base, summary);
-            if(res != ResOK) {
-              /* If we got an error then stop trying to remember any
-              protections. */
-              remember = 0;
-            }
-          }
-        }
-        SegSetSummary(seg, RefSetUNIV);
-        AVER(SegSM(seg) == AccessSetEMPTY);
-      }
-    } while(SegNext(&seg, arena, seg));
-  }
+  SegTraverse(GlobalsArena(globals), ArenaExposeRememberVisit, &aerStruct);
 }
 
 void ArenaRestoreProtection(Globals globals)
