@@ -44,7 +44,6 @@ typedef struct TractStruct { /* Tract structure */
   PagePoolUnion pool; /* MUST BE FIRST (<design/arena/#tract.field> pool) */
   void *p;                     /* pointer for use of owning pool */
   Addr base;                   /* Base address of the tract */
-  BOOLFIELD(hasSeg);           /* does tract have a seg in p? */
 } TractStruct;
 
 
@@ -57,27 +56,10 @@ extern Addr TractLimit(Tract tract, Arena arena);
 #define TractPool(tract)         ((tract)->pool.pool)
 #define TractP(tract)            ((tract)->p)
 #define TractSetP(tract, pp)     ((void)((tract)->p = (pp)))
-#define TractHasSeg(tract)       ((Bool)(tract)->hasSeg)
-#define TractSetHasSeg(tract, b) ((void)((tract)->hasSeg = (b)))
 
 extern Bool TractCheck(Tract tract);
 extern void TractInit(Tract tract, Pool pool, Addr base);
 extern void TractFinish(Tract tract);
-
-
-/* TRACT_*SEG -- Test / set / unset seg->tract associations
- *
- * These macros all multiply evaluate the tract parameter
- */
-
-#define TRACT_SEG(segReturn, tract) \
-  (TractHasSeg(tract) && ((*(segReturn) = (Seg)TractP(tract)), TRUE))
-
-#define TRACT_SET_SEG(tract, seg) \
-  (TractSetHasSeg(tract, TRUE), TractSetP(tract, seg))
-
-#define TRACT_UNSET_SEG(tract) \
-  (TractSetHasSeg(tract, FALSE), TractSetP(tract, NULL))
 
 
 /* PageUnion -- page descriptor

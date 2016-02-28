@@ -46,9 +46,6 @@ Bool TractCheck(Tract tract)
     CHECKU(Pool, TractPool(tract));
     CHECKL(AddrIsArenaGrain(TractBase(tract), TractArena(tract)));
   }
-  if (TractHasSeg(tract)) {
-    CHECKU(Seg, (Seg)TractP(tract));
-  }
   return TRUE;
 }
 
@@ -63,7 +60,6 @@ void TractInit(Tract tract, Pool pool, Addr base)
   tract->pool.pool = pool;
   tract->base = base;
   tract->p = NULL;
-  tract->hasSeg = FALSE;
 
   AVERT(Tract, tract);
 
@@ -76,8 +72,6 @@ void TractFinish(Tract tract)
 {
   AVERT(Tract, tract);
 
-  /* Check that there's no segment - and hence no shielding. */
-  AVER(!TractHasSeg(tract));
   tract->pool.pool = NULL;
 }
 

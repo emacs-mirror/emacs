@@ -137,8 +137,7 @@ void SegFree(Seg seg)
 static Res SegInit(Seg seg, Pool pool, Addr base, Size size,
                    Bool withReservoirPermit, ArgList args)
 {
-  Tract tract;
-  Addr addr, limit;
+  Addr limit;
   Arena arena;
   SegClass class;
   Res res;
@@ -164,20 +163,9 @@ static Res SegInit(Seg seg, Pool pool, Addr base, Size size,
   seg->pm = AccessSetEMPTY;
   seg->sm = AccessSetEMPTY;
   seg->depth = 0;
-
-  seg->sig = SegSig;  /* set sig now so tract checks will see it */
-
-  TRACT_FOR(tract, addr, arena, base, limit) {
-    AVERT(Tract, tract);
-    AVER(TractP(tract) == NULL);
-    AVER(!TractHasSeg(tract));
-    AVER(TractPool(tract) == pool);
-    TRACT_SET_SEG(tract, seg);
-  }
-  AVER(addr == SegLimit(seg));
-
   RingInit(SegPoolRing(seg));
   TreeInit(SegTree(seg));
+  seg->sig = SegSig;  /* set sig now so tract checks will see it */
 
   /* Class specific initialization comes last */
   res = class->init(seg, pool, base, size, withReservoirPermit, args);
@@ -192,10 +180,6 @@ static Res SegInit(Seg seg, Pool pool, Addr base, Size size,
 
 failInit:
   RingFinish(SegPoolRing(seg));
-  TRACT_FOR(tract, addr, arena, base, limit) {
-    AVERT(Tract, tract);
-    TRACT_UNSET_SEG(tract);
-  }
   seg->sig = SigInvalid;
   return res;
 }
@@ -206,8 +190,6 @@ failInit:
 static void SegFinish(Seg seg)
 {
   Arena arena;
-  Addr base, addr, limit;
-  Tract tract;
   SegClass class;
   Bool b;
 
@@ -228,14 +210,6 @@ static void SegFinish(Seg seg)
   /* See <code/shield.c#shield.flush> */
   ShieldFlush(PoolArena(SegPool(seg)));
 
-  base = SegBase(seg);
-  limit = SegLimit(seg);
-  TRACT_FOR(tract, addr, arena, base, limit) {
-    AVERT(Tract, tract);
-    TRACT_UNSET_SEG(tract);
-  }
-  AVER(addr == SegLimit(seg));
-
   /* IMPORTANT: Keep in sync with segTrivMerge. */
   b = SplayTreeDelete(ArenaSegSplay(arena), SegTree(seg));
   AVER(b); /* seg should be in arena splay tree */
@@ -252,7 +226,6 @@ static void SegFinish(Seg seg)
   /* fund are not protected) */
   AVER(seg->sm == AccessSetEMPTY);
   AVER(seg->pm == AccessSetEMPTY);
- 
 }
 
 
@@ -265,7 +238,7 @@ Compare SegCompare(Tree tree, TreeKey key)
 
   AVERT_CRITICAL(Tree, tree);
   AVER_CRITICAL(tree != TreeEMPTY);
-  AVER_CRITICAL(key != NULL);
+  /* Can't check anything about key -- it's an arbitrary address. */
 
   seg = segOfTree(tree);
   addr = (Addr)key; /* FIXME: See baseOfKey in cbs.c */
@@ -729,7 +702,7 @@ Bool SegCheck(Seg seg)
   /*  CHECKL(RingNext(&seg->poolRing) != &seg->poolRing); */
 
   CHECKD_NOSIG(Ring, &seg->poolRing);
-   
+
   /* "pm", "sm", and "depth" not checked.  See .check.shield. */
   CHECKL(RankSetCheck(seg->rankSet));
   if (seg->rankSet == RankSetEMPTY) {
@@ -890,8 +863,6 @@ static Res segTrivMerge(Seg seg, Seg segHi,
 {
   Pool pool;
   Arena arena;
-  Tract tract;
-  Addr addr;
   Bool b;
 
   AVERT(Seg, seg);
@@ -922,15 +893,6 @@ static Res segTrivMerge(Seg seg, Seg segHi,
   AVER(seg->depth == 0);
 
   /* no need to update fields which match. See .similar */
-
-  TRACT_FOR(tract, addr, arena, mid, limit) {
-    AVERT(Tract, tract);
-    AVER(TractHasSeg(tract));
-    AVER(segHi == TractP(tract));
-    AVER(TractPool(tract) == pool);
-    TRACT_SET_SEG(tract, seg);
-  }
-  AVER(addr == limit);
 
   /* Finish segHi. */
   /* IMPORTANT: Keep in sync with SegFinish. */
@@ -975,9 +937,7 @@ static Res segTrivSplit(Seg seg, Seg segHi,
                         Addr base, Addr mid, Addr limit,
                         Bool withReservoirPermit)
 {
-  Tract tract;
   Pool pool;
-  Addr addr;
   Arena arena;
   Bool b;
 
@@ -1016,16 +976,6 @@ static Res segTrivSplit(Seg seg, Seg segHi,
   RingInit(SegPoolRing(segHi));
   TreeInit(SegTree(segHi));
   segHi->sig = SegSig;
-  RingInit(SegPoolRing(segHi));
-
-  TRACT_FOR(tract, addr, arena, mid, limit) {
-    AVERT(Tract, tract);
-    AVER(TractHasSeg(tract));
-    AVER(seg == TractP(tract));
-    AVER(TractPool(tract) == pool);
-    TRACT_SET_SEG(tract, segHi);
-  }
-  AVER(addr == SegLimit(segHi));
 
   AVERT(Seg, seg);
   AVERT(Seg, segHi);
