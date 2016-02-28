@@ -419,6 +419,9 @@ failDefine:
  * way to select the segments in a particular zone set.  Perhaps using
  * a union ZoneSet on the segment splay tree.  See
  * CBSZonedBlockStruct.
+ *
+ * TODO: This function would be more efficient if there were a way to
+ * select the subset of segments that are collectible.
  */
 
 typedef struct TraceCondemnZonesClosureStruct {
@@ -1624,11 +1627,44 @@ static Res rootGrey(Root root, void *p)
  * grey-mutator tracing.
  */
 
+static Bool traceStartVisit(Seg seg, void *closure)
+{
+  Trace trace = closure;
+  Size size = SegSize(seg);
+
+  AVER(!TraceSetIsMember(SegGrey(seg), trace));
+
+  /* A segment can only be grey if it contains some references. */
+  /* This is indicated by the rankSet begin non-empty.  Such */
+  /* segments may only belong to scannable pools. */
+  if (SegRankSet(seg) != RankSetEMPTY) {
+    /* Turn the segment grey if there might be a reference in it */
+    /* to the white set.  This is done by seeing if the summary */
+    /* of references in the segment intersects with the */
+    /* approximation to the white set. */
+    if (ZoneSetInter(SegSummary(seg), trace->white) != ZoneSetEMPTY) {
+      /* Note: can a white seg get greyed as well?  At this point */
+      /* we still assume it may.  (This assumption runs out in */
+      /* PoolTrivGrey). */
+      PoolGrey(SegPool(seg), trace, seg);
+      if (TraceSetIsMember(SegGrey(seg), trace)) {
+        trace->foundation += size;
+      }
+    }
+
+    if (PoolHasAttr(SegPool(seg), AttrGC) &&
+        !TraceSetIsMember(SegWhite(seg), trace)) {
+      trace->notCondemned += size;
+    }
+  }
+
+  return TRUE;
+}  
+
 Res TraceStart(Trace trace, double mortality, double finishingTime)
 {
   Arena arena;
   Res res;
-  Seg seg;
 
   AVERT(Trace, trace);
   AVER(trace->state == TraceINIT);
@@ -1641,43 +1677,9 @@ Res TraceStart(Trace trace, double mortality, double finishingTime)
   
   /* From the already set up white set, derive a grey set. */
 
-  /* @@@@ Instead of iterating over all the segments, we could */
-  /* iterate over all pools which are scannable and thence over */
-  /* all their segments.  This might be better if the minority */
-  /* of segments are scannable.  Perhaps we should choose */
-  /* dynamically which method to use. */
-
-  if(SegFirst(&seg, arena)) {
-    do {
-      Size size = SegSize(seg);
-      AVER(!TraceSetIsMember(SegGrey(seg), trace));
-
-      /* A segment can only be grey if it contains some references. */
-      /* This is indicated by the rankSet begin non-empty.  Such */
-      /* segments may only belong to scannable pools. */
-      if(SegRankSet(seg) != RankSetEMPTY) {
-        /* Turn the segment grey if there might be a reference in it */
-        /* to the white set.  This is done by seeing if the summary */
-        /* of references in the segment intersects with the */
-        /* approximation to the white set. */
-        if(ZoneSetInter(SegSummary(seg), trace->white) != ZoneSetEMPTY) {
-          /* Note: can a white seg get greyed as well?  At this point */
-          /* we still assume it may.  (This assumption runs out in */
-          /* PoolTrivGrey). */
-          PoolGrey(SegPool(seg), trace, seg);
-          if(TraceSetIsMember(SegGrey(seg), trace)) {
-            trace->foundation += size;
-          }
-        }
-
-        if(PoolHasAttr(SegPool(seg), AttrGC)
-           && !TraceSetIsMember(SegWhite(seg), trace))
-        {
-          trace->notCondemned += size;
-        }
-      }
-    } while (SegNext(&seg, arena, seg));
-  }
+  /* TODO: This might be more efficient if we could select all the
+     segments that are scannable (non-empty rank set). */
+  SegTraverse(arena, traceStartVisit, trace);
 
   res = RootsIterate(ArenaGlobals(arena), rootGrey, (void *)trace);
   AVER(res == ResOK);
