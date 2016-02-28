@@ -1290,9 +1290,6 @@ mps_res_t _mps_fix2(mps_ss_t mps_ss, mps_addr_t *mps_ref_io)
 {
   ScanState ss = PARENT(ScanStateStruct, ss_s, mps_ss);
   Ref ref;
-  Chunk chunk;
-  Index i;
-  Tract tract;
   Seg seg;
   Res res;
   Pool pool;
@@ -1312,32 +1309,9 @@ mps_res_t _mps_fix2(mps_ss_t mps_ss, mps_addr_t *mps_ref_io)
   STATISTIC(++ss->fixRefCount);
   EVENT4(TraceFix, ss, mps_ref_io, ref, ss->rank);
 
-  /* This sequence of tests is equivalent to calling TractOfAddr(),
-   * but inlined so that we can distinguish between "not pointing to
-   * chunk" and "pointing to chunk but not to tract" so that we can
-   * check the rank in the latter case. See
-   * <design/trace/#fix.tractofaddr.inline>
-   *
-   * If compilers fail to do a good job of inlining ChunkOfAddr and
-   * TreeFind then it may become necessary to inline at least the
-   * comparison against the root of the tree. See
-   * <https://info.ravenbrook.com/mail/2014/06/11/13-32-08/0/>
-   */
-  if (!ChunkOfAddr(&chunk, ss->arena, ref))
-    /* Reference points outside MPS-managed address space: ignore. */
-    goto done;
-
-  i = INDEX_OF_ADDR(chunk, ref);
-  if (!BTGet(chunk->allocTable, i)) {
-    /* Reference points into a chunk but not to an allocated tract.
-     * See <design/trace/#exact.legal> */
-    AVER_CRITICAL(ss->rank < RankEXACT);
-    goto done;
-  }
-
-  tract = PageTract(&chunk->pageTable[i]);
-  if (!TRACT_SEG(&seg, tract)) {
-    /* Reference points to a tract but not a segment, so it can't be white. */
+  /* FIXME: Replace with hashtable test. */
+  if (!SegOfAddr(&seg, ss->arena, ref)) {
+    /* FIXME: Check for exact poitner to chunk but not segment. */
     goto done;
   }
 
@@ -1346,17 +1320,9 @@ mps_res_t _mps_fix2(mps_ss_t mps_ss, mps_addr_t *mps_ref_io)
      * active traces. See <design/trace/#fix.tractofaddr> */
     STATISTIC_STAT
       ({
-        if(TRACT_SEG(&seg, tract)) {
-          ++ss->segRefCount;
-          EVENT1(TraceFixSeg, seg);
-        }
+        ++ss->segRefCount;
+        EVENT1(TraceFixSeg, seg);
       });
-    goto done;
-  }
-
-  if (!TRACT_SEG(&seg, tract)) {
-    /* Tracts without segments must not be condemned. */
-    NOTREACHED;
     goto done;
   }
 
@@ -1364,7 +1330,7 @@ mps_res_t _mps_fix2(mps_ss_t mps_ss, mps_addr_t *mps_ref_io)
   STATISTIC(++ss->whiteSegRefCount);
   EVENT1(TraceFixSeg, seg);
   EVENT0(TraceFixWhite);
-  pool = TractPool(tract);
+  pool = SegPool(seg);
   res = (*ss->fix)(pool, ss, seg, &ref);
   if (res != ResOK) {
     /* PoolFixEmergency must not fail. */
