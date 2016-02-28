@@ -33,7 +33,7 @@ typedef struct SplayTreeStruct {
   Tree root;
 } SplayTreeStruct;
 
-#define SplayTreeRoot(splay)    RVALUE((splay)->root)
+#define SplayTreeRoot(splay)    ((splay)->root)
 #define SplayTreeIsEmpty(splay) (SplayTreeRoot(splay) == TreeEMPTY)
 
 extern Bool SplayTreeCheck(SplayTree splay);

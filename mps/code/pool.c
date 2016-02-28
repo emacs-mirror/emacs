@@ -433,7 +433,7 @@ Res PoolFixEmergency(Pool pool, ScanState ss, Seg seg, Addr *refIO)
 
 /* PoolReclaim -- reclaim a segment in the pool */
 
-void PoolReclaim(Pool pool, Trace trace, Seg seg)
+Bool PoolReclaim(Pool pool, Trace trace, Seg seg)
 {
   AVERT_CRITICAL(Pool, pool);
   AVERT_CRITICAL(Trace, trace);
@@ -446,7 +446,7 @@ void PoolReclaim(Pool pool, Trace trace, Seg seg)
   /* Should only be reclaiming segments which are still white. */
   AVER_CRITICAL(TraceSetIsMember(SegWhite(seg), trace));
 
-  (*pool->class->reclaim)(pool, trace, seg);
+  return (*pool->class->reclaim)(pool, trace, seg);
 }
 
 

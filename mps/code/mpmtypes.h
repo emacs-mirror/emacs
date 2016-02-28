@@ -218,7 +218,7 @@ typedef Res (*PoolFixMethod)(Pool pool, ScanState ss, Seg seg,
                              Ref *refIO);
 typedef Res (*PoolFixEmergencyMethod)(Pool pool, ScanState ss,
                                       Seg seg, Ref *refIO);
-typedef void (*PoolReclaimMethod)(Pool pool, Trace trace, Seg seg);
+typedef Bool (*PoolReclaimMethod)(Pool pool, Trace trace, Seg seg);
 typedef void (*PoolTraceEndMethod)(Pool pool, Trace trace);
 typedef void (*PoolRampBeginMethod)(Pool pool, Buffer buf, Bool collectAll);
 typedef void (*PoolRampEndMethod)(Pool pool, Buffer buf);
