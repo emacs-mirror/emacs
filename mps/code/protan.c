@@ -47,27 +47,36 @@ void ProtSet(Addr base, Addr limit, AccessSet pm)
  * See <design/protan/#fun.sync>.
  */
 
+typedef struct ProtSyncClosureStruct {
+  Arena arena;
+  Bool synced;
+} ProtSyncClosureStruct, *ProtSyncClosure;
+
+static Bool protSyncVisit(Seg seg, void *closureP, Size closureS)
+{
+  ProtSyncClosure psc = closureP;
+  AVER(closureS == sizeof(*psc));
+  
+  if (SegPM(seg) != AccessSetEMPTY) { /* <design/protan/#fun.sync.seg> */
+    Arena arena = psc->arena;
+    ShieldEnter(arena);
+    TraceSegAccess(arena, seg, SegPM(seg));
+    ShieldLeave(arena);
+    psc->synced = FALSE;
+  }
+}
+
 void ProtSync(Arena arena)
 {
-  Bool synced;
+  ProtSyncClosureStruct pscStruct;
 
   AVERT(Arena, arena);
 
+  pscStruct.arena = arena;
   do {
-    Seg seg;
-
-    synced = TRUE;
-    if (SegFirst(&seg, arena)) {
-      do {
-        if (SegPM(seg) != AccessSetEMPTY) { /* <design/protan/#fun.sync.seg> */
-          ShieldEnter(arena);
-          TraceSegAccess(arena, seg, SegPM(seg));
-          ShieldLeave(arena);
-          synced = FALSE;
-        }
-      } while(SegNext(&seg, arena, seg));
-    }
-  } while(!synced);
+    pscStruct.synced = TRUE;
+    SegTraverse(arena, protSyncVisit, &pscStruct, sizeof(pscStruct));
+  } while(!pscStruct.synced);
 }
 
 

@@ -410,12 +410,15 @@ failDefine:
  * TraceCondemnZones is passed a trace in state TraceINIT, and a set of
  * objects to condemn.
  *
- * @@@@ For efficiency, we ought to find the condemned set and the
- * foundation in one search of the segment ring.  This hasn't been done
- * because some pools still use TraceAddWhite for the condemned set.
+ * TODO: For efficiency, we ought to find the condemned set and the
+ * foundation in one search of the segment ring.  This hasn't been
+ * done because some pools still use TraceAddWhite for the condemned
+ * set.
  *
- * @@@@ This function would be more efficient if there were a cheaper
- * way to select the segments in a particular zone set.
+ * TODO: This function would be more efficient if there were a cheaper
+ * way to select the segments in a particular zone set.  Perhaps using
+ * a union ZoneSet on the segment splay tree.  See
+ * CBSZonedBlockStruct.
  */
 
 typedef struct TraceCondemnZonesClosureStruct {
