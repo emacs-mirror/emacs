@@ -310,7 +310,7 @@ static Res loSegCreate(LOSeg *loSegReturn, Pool pool, Size size,
  * Could consider implementing this using Walk.
  */
 
-static void loSegReclaim(LOSeg loseg, Trace trace)
+static Bool loSegReclaim(LOSeg loseg, Trace trace)
 {
   Addr p, base, limit;
   Bool marked;
@@ -390,12 +390,16 @@ static void loSegReclaim(LOSeg loseg, Trace trace)
 
   SegSetWhite(seg, TraceSetDel(SegWhite(seg), trace));
 
-  if (!marked)
+  if (!marked) {
     PoolGenFree(&lo->pgen, seg,
                 LOGrainsSize(lo, loseg->freeGrains),
                 LOGrainsSize(lo, loseg->oldGrains),
                 LOGrainsSize(lo, loseg->newGrains),
                 FALSE);
+    return TRUE;
+  }
+
+  return FALSE;
 }
 
 /* This walks over _all_ objects in the heap, whether they are */
@@ -777,7 +781,7 @@ static Res LOFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
 }
 
 
-static void LOReclaim(Pool pool, Trace trace, Seg seg)
+static Bool LOReclaim(Pool pool, Trace trace, Seg seg)
 {
   LO lo;
   LOSeg loseg;
@@ -791,7 +795,7 @@ static void LOReclaim(Pool pool, Trace trace, Seg seg)
   AVER(TraceSetIsMember(SegWhite(seg), trace));
 
   loseg = SegLOSeg(seg);
-  loSegReclaim(loseg, trace);
+  return loSegReclaim(loseg, trace);
 }
 
 

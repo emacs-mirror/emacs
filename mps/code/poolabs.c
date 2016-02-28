@@ -529,12 +529,13 @@ Res PoolNoFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   return ResUNIMPL;
 }
 
-void PoolNoReclaim(Pool pool, Trace trace, Seg seg)
+Bool PoolNoReclaim(Pool pool, Trace trace, Seg seg)
 {
   AVERT(Pool, pool);
   AVERT(Trace, trace);
   AVERT(Seg, seg);
   NOTREACHED;
+  return FALSE;
 }
 
 void PoolTrivTraceEnd(Pool pool, Trace trace)

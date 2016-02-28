@@ -465,6 +465,41 @@ Bool SegOfAddr(Seg *segReturn, Arena arena, Addr addr)
 }
 
 
+/* SegTraverse -- visit all segments in the arena in address order */
+
+typedef struct SegTraverseClosureStruct {
+  SegVisitor visit;
+  void *closure;
+} SegTraverseClosureStruct, *SegTraverseClosure;
+
+static Bool segTraverseVisit(Tree tree, void *closure)
+{
+  SegTraverseClosure stv = closure;
+  return stv->visit(segOfTree(tree), stv->closure);
+}
+
+Bool SegTraverse(Arena arena, SegVisitor visit, void *closure)
+{
+  SegTraverseClosureStruct stvStruct;
+  stvStruct.visit = visit;
+  stvStruct.closure = closure;
+  return TreeTraverse(SplayTreeRoot(ArenaSegSplay(arena)),
+                      SegCompare, SegKey,
+                      segTraverseVisit,
+                      &stvStruct);
+}
+
+void SegTraverseAndDelete(Arena arena, SegVisitor visit, void *closure)
+{
+  SegTraverseClosureStruct stvStruct;
+  stvStruct.visit = visit;
+  stvStruct.closure = closure;
+  TreeTraverseAndDelete(&SplayTreeRoot(ArenaSegSplay(arena)),
+                        segTraverseVisit,
+                        &stvStruct);
+}
+
+
 /* SegFirst -- return the first seg in the arena
  *
  * This is used to start an iteration over all segs in the arena.

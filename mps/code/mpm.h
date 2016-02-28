@@ -223,7 +223,7 @@ extern Res (PoolFix)(Pool pool, ScanState ss, Seg seg, Addr *refIO);
 #define PoolFix(pool, ss, seg, refIO) \
   ((*(pool)->fix)(pool, ss, seg, refIO))
 extern Res PoolFixEmergency(Pool pool, ScanState ss, Seg seg, Addr *refIO);
-extern void PoolReclaim(Pool pool, Trace trace, Seg seg);
+extern Bool PoolReclaim(Pool pool, Trace trace, Seg seg);
 extern void PoolTraceEnd(Pool pool, Trace trace);
 extern Res PoolAddrObject(Addr *pReturn, Pool pool, Seg seg, Addr addr);
 extern void PoolWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
@@ -267,7 +267,7 @@ extern void PoolNoBlacken(Pool pool, TraceSet traceSet, Seg seg);
 extern void PoolTrivBlacken(Pool pool, TraceSet traceSet, Seg seg);
 extern Res PoolNoScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg);
 extern Res PoolNoFix(Pool pool, ScanState ss, Seg seg, Ref *refIO);
-extern void PoolNoReclaim(Pool pool, Trace trace, Seg seg);
+extern Bool PoolNoReclaim(Pool pool, Trace trace, Seg seg);
 extern void PoolTrivTraceEnd(Pool pool, Trace trace);
 extern void PoolNoRampBegin(Pool pool, Buffer buf, Bool collectAll);
 extern void PoolTrivRampBegin(Pool pool, Buffer buf, Bool collectAll);
@@ -695,6 +695,9 @@ extern Res SegAlloc(Seg *segReturn, SegClass class, LocusPref pref,
                     ArgList args);
 extern void SegFree(Seg seg);
 extern Bool SegOfAddr(Seg *segReturn, Arena arena, Addr addr);
+typedef Bool (*SegVisitor)(Seg seg, void *closure);
+extern Bool SegTraverse(Arena arena, SegVisitor visit, void *closure);
+extern void SegTraverseAndDelete(Arena arena, SegVisitor visit, void *closure);
 extern Bool SegFirst(Seg *segReturn, Arena arena);
 extern Bool SegNext(Seg *segReturn, Arena arena, Seg seg);
 extern Bool SegNextOfRing(Seg *segReturn, Arena arena, Pool pool, Ring next);
