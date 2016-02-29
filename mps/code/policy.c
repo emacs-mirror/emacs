@@ -77,19 +77,29 @@ Res PolicyAlloc(Tract *tractReturn, Arena arena, LocusPref pref,
   /* Plan C: Extend the arena, then try A and B again. */
   if (moreZones != ZoneSetEMPTY) {
     res = arena->class->grow(arena, pref, size);
-    if (res != ResOK)
-      return res;
-    if (zones != ZoneSetEMPTY) {
-      res = ArenaFreeLandAlloc(&tract, arena, zones, pref->high, size, pool);
-      if (res == ResOK)
-        goto found;
+    /* If we can't extend because we hit the commit limit, try purging
+       some spare committed memory and try again.*/
+    /* TODO: This would be a good time to *remap* VM instead of
+       returning it to the OS. */
+    if (res == ResCOMMIT_LIMIT) {
+      if (arena->class->purgeSpare(arena, size) >= size)
+        res = arena->class->grow(arena, pref, size);
     }
-    if (moreZones != zones) {
-      res = ArenaFreeLandAlloc(&tract, arena, moreZones, pref->high,
-                               size, pool);
-      if (res == ResOK)
-        goto found;
+    if (res == ResOK) {
+      if (zones != ZoneSetEMPTY) {
+        res = ArenaFreeLandAlloc(&tract, arena, zones, pref->high, size, pool);
+        if (res == ResOK)
+          goto found;
+      }
+      if (moreZones != zones) {
+        res = ArenaFreeLandAlloc(&tract, arena, moreZones, pref->high,
+                                 size, pool);
+        if (res == ResOK)
+          goto found;
+      }
     }
+    /* TODO: Log an event here, since something went wrong, before
+       trying the next plan anyway. */
   }
 
   /* Plan D: add every zone that isn't blacklisted.  This might mix GC'd
