@@ -1739,7 +1739,12 @@ enough space based on your settings and frame size." prefix-keys)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; paging functions
 
-(defun which-key--reload-key-sequence (key-seq)
+;;;###autoload
+(defun which-key-reload-key-sequence (key-seq)
+  "Simulate entering the key sequence KEY-SEQ.
+KEY-SEQ should be a list of events as produced by
+`listify-key-sequence'. Any prefix arguments that were used are
+reapplied to the new key sequence."
   (let ((next-event (mapcar (lambda (ev) (cons t ev)) key-seq)))
     (setq prefix-arg current-prefix-arg
           unread-command-events next-event)))
@@ -1748,7 +1753,7 @@ enough space based on your settings and frame size." prefix-keys)
   "Show the next page of keys."
   (let ((next-page (if which-key--current-page-n
                        (+ which-key--current-page-n delta) 0)))
-    (which-key--reload-key-sequence (which-key--current-key-list))
+    (which-key-reload-key-sequence (which-key--current-key-list))
     (if which-key--last-try-2-loc
         (let ((which-key-side-window-location which-key--last-try-2-loc)
               (which-key--multiple-locations t))
@@ -1825,7 +1830,7 @@ after first page."
                  (which-key--show-keymap (car args) (cdr args)))
              (which-key--hide-popup)))
           (key-lst
-           (which-key--reload-key-sequence key-lst)
+           (which-key-reload-key-sequence key-lst)
            (which-key--create-buffer-and-show (apply #'vector key-lst)))
           (t (which-key-show-top-level)))))
 (defalias 'which-key-undo 'which-key-undo-key)
