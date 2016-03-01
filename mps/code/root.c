@@ -17,13 +17,8 @@ SRCID(root, "$Id$");
 
 #define RootSig         ((Sig)0x51960029) /* SIGnature ROOT */
 
-typedef struct ClosureStruct {
-  void *p;
-  size_t s;
-} ClosureStruct;
-
 typedef union AreaScanUnion {
-  ClosureStruct closure;
+  void *closure;
   mps_scan_tag_s tag;       /* tag for scanning */
 } AreaScanUnion;
 
@@ -44,7 +39,8 @@ typedef struct RootStruct {
   union RootUnion {
     struct {
       mps_root_scan_t scan;     /* the function which does the scanning */
-      ClosureStruct closure;    /* closure for scan function */
+      void *p;                  /* closure for scan function */
+      size_t s;                 /* closure for scan function */
     } fun;
     struct {
       Word *base;               /* beginning of area */
@@ -274,7 +270,7 @@ Res RootCreateArea(Root *rootReturn, Arena arena,
                    Rank rank, RootMode mode,
                    Word *base, Word *limit,
                    mps_area_scan_t scan_area,
-                   void *closure, size_t closure_size)
+                   void *closure)
 {
   Res res;
   union RootUnion theUnion;
@@ -292,8 +288,7 @@ Res RootCreateArea(Root *rootReturn, Arena arena,
   theUnion.area.base = base;
   theUnion.area.limit = limit;
   theUnion.area.scan_area = scan_area;
-  theUnion.area.the.closure.p = closure;
-  theUnion.area.the.closure.s = closure_size;
+  theUnion.area.the.closure = closure;
 
   res = rootCreateProtectable(rootReturn, arena, rank, mode,
                               RootAREA, (Addr)base, (Addr)limit, &theUnion);
@@ -327,7 +322,7 @@ Res RootCreateAreaTagged(Root *rootReturn, Arena arena,
 Res RootCreateThread(Root *rootReturn, Arena arena,
                      Rank rank, Thread thread,
                      mps_area_scan_t scan_area,
-                     void *closure, size_t closure_size,
+                     void *closure,
                      Word *stackCold)
 {
   union RootUnion theUnion;
@@ -342,8 +337,7 @@ Res RootCreateThread(Root *rootReturn, Arena arena,
 
   theUnion.thread.thread = thread;
   theUnion.thread.scan_area = scan_area;
-  theUnion.thread.the.closure.p = closure;
-  theUnion.thread.the.closure.s = closure_size;
+  theUnion.thread.the.closure = closure;
   theUnion.thread.stackCold = stackCold;
 
   return rootCreate(rootReturn, arena, rank, (RootMode)0, RootTHREAD,
@@ -416,8 +410,8 @@ Res RootCreateFun(Root *rootReturn, Arena arena, Rank rank,
   AVER(FUNCHECK(scan));
 
   theUnion.fun.scan = scan;
-  theUnion.fun.closure.p = p;
-  theUnion.fun.closure.s = s;
+  theUnion.fun.p = p;
+  theUnion.fun.s = s;
 
   return rootCreate(rootReturn, arena, rank, (RootMode)0, RootFUN, &theUnion);
 }
@@ -535,8 +529,7 @@ Res RootScan(ScanState ss, Root root)
                         root->the.area.base,
                         root->the.area.limit,
                         root->the.area.scan_area,
-                        root->the.area.the.closure.p,
-                        root->the.area.the.closure.s);
+                        root->the.area.the.closure);
     if (res != ResOK)
       goto failScan;
     break;
@@ -546,16 +539,15 @@ Res RootScan(ScanState ss, Root root)
                         root->the.area.base,
                         root->the.area.limit,
                         root->the.area.scan_area,
-                        &root->the.area.the.tag,
-                        sizeof(root->the.area.the.tag));
+                        &root->the.area.the.tag);
     if (res != ResOK)
       goto failScan;
     break;
 
   case RootFUN:
     res = root->the.fun.scan(&ss->ss_s,
-                             root->the.fun.closure.p,
-                             root->the.fun.closure.s);
+                             root->the.fun.p,
+                             root->the.fun.s);
     if (res != ResOK)
       goto failScan;
     break;
@@ -564,8 +556,7 @@ Res RootScan(ScanState ss, Root root)
     res = ThreadScan(ss, root->the.thread.thread,
                      root->the.thread.stackCold,
                      root->the.thread.scan_area,
-                     root->the.thread.the.closure.p,
-                     root->the.thread.the.closure.s);
+                     root->the.thread.the.closure);
     if (res != ResOK)
       goto failScan;
     break;
@@ -574,8 +565,7 @@ Res RootScan(ScanState ss, Root root)
     res = ThreadScan(ss, root->the.thread.thread,
                      root->the.thread.stackCold,
                      root->the.thread.scan_area,
-                     &root->the.thread.the.tag,
-                     sizeof(root->the.thread.the.tag));
+                     &root->the.thread.the.tag);
     if (res != ResOK)
       goto failScan;
     break;
@@ -706,11 +696,10 @@ Res RootDescribe(Root root, mps_lib_FILE *stream, Count depth)
   switch(root->var) {
   case RootAREA:
     res = WriteF(stream, depth + 2,
-                 "area base $A limit $A scan_area closure $P closure_size $U\n",
+                 "area base $A limit $A scan_area closure $P\n",
                  (WriteFA)root->the.area.base,
                  (WriteFA)root->the.area.limit,
-                 (WriteFP)root->the.area.the.closure.p,
-                 (WriteFP)root->the.area.the.closure.s,
+                 (WriteFP)root->the.area.the.closure,
                  NULL);
     if (res != ResOK)
       return res;
@@ -732,8 +721,8 @@ Res RootDescribe(Root root, mps_lib_FILE *stream, Count depth)
     res = WriteF(stream, depth + 2,
                  "scan function $F\n", (WriteFF)root->the.fun.scan,
                  "environment p $P s $W\n",
-                 (WriteFP)root->the.fun.closure.p,
-                 (WriteFW)root->the.fun.closure.s,
+                 (WriteFP)root->the.fun.p,
+                 (WriteFW)root->the.fun.s,
                  NULL);
     if (res != ResOK)
       return res;
@@ -742,9 +731,8 @@ Res RootDescribe(Root root, mps_lib_FILE *stream, Count depth)
   case RootTHREAD:
     res = WriteF(stream, depth + 2,
                  "thread $P\n", (WriteFP)root->the.thread.thread,
-                 "closure $P size $U\n",
-                 (WriteFP)root->the.thread.the.closure.p,
-                 (WriteFU)root->the.thread.the.closure.s,
+                 "closure $P\n",
+                 (WriteFP)root->the.thread.the.closure,
                  "stackCold $P\n", (WriteFP)root->the.thread.stackCold,
                  NULL);
     if (res != ResOK)
