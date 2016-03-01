@@ -109,7 +109,7 @@ typedef struct mps_scan_tag_s {
 } mps_scan_tag_s;
 
 typedef mps_res_t (*mps_root_scan_t)(mps_ss_t, void *, size_t);
-typedef mps_res_t (*mps_area_scan_t)(mps_ss_t, mps_word_t *, mps_word_t *,
+typedef mps_res_t (*mps_area_scan_t)(mps_ss_t, void *, void *,
                                      void *, size_t);
 typedef mps_res_t (*mps_fmt_scan_t)(mps_ss_t, mps_addr_t, mps_addr_t);
 typedef mps_res_t (*mps_reg_scan_t)(mps_ss_t, mps_thr_t,
@@ -681,11 +681,11 @@ extern mps_res_t mps_root_create_table_masked(mps_root_t *, mps_arena_t,
                                               mps_word_t);
 extern mps_res_t mps_root_create_area(mps_root_t *, mps_arena_t,
                                       mps_rank_t, mps_rm_t,
-                                      mps_word_t *, mps_word_t *,
+                                      void *, void *,
                                       mps_area_scan_t, void *, size_t);
 extern mps_res_t mps_root_create_area_tagged(mps_root_t *, mps_arena_t,
                                              mps_rank_t, mps_rm_t,
-                                             mps_word_t *, mps_word_t *,
+                                             void *, void *,
                                              mps_area_scan_t,
                                              mps_word_t, mps_word_t);
 extern mps_res_t mps_root_create_fmt(mps_root_t *, mps_arena_t,
@@ -821,16 +821,16 @@ extern void mps_pool_check_free_space(mps_pool_t);
 /* Scanner Support */
 
 extern mps_res_t mps_scan_area(mps_ss_t,
-                               mps_word_t *, mps_word_t *,
+                               void *, void *,
                                void *, size_t);
 extern mps_res_t mps_scan_area_masked(mps_ss_t,
-                                      mps_word_t *, mps_word_t *,
+                                      void *, void *,
                                       void *, size_t);
 extern mps_res_t mps_scan_area_tagged(mps_ss_t,
-                                      mps_word_t *, mps_word_t *,
+                                      void *, void *,
                                       void *, size_t);
 extern mps_res_t mps_scan_area_tagged_or_zero(mps_ss_t,
-                                              mps_word_t *, mps_word_t *,
+                                              void *, void *,
                                               void *, size_t);
 
 extern mps_res_t mps_fix(mps_ss_t, mps_addr_t *);

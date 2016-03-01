@@ -26,7 +26,7 @@
  */
 
 mps_res_t mps_scan_area(mps_ss_t ss,
-                        mps_word_t *base, mps_word_t *limit,
+                        void *base, void *limit,
                         void *closure, size_t closure_size)
 {
   (void)closure; /* unused */
@@ -34,7 +34,7 @@ mps_res_t mps_scan_area(mps_ss_t ss,
 
   MPS_SCAN_BEGIN(ss) {
     mps_word_t *p = base;
-    while (p < limit) {
+    while (p < (mps_word_t *)limit) {
       mps_word_t word = *p;
       mps_addr_t ref = (mps_addr_t)word;
       if (MPS_FIX1(ss, ref)) {
@@ -54,7 +54,7 @@ mps_res_t mps_scan_area(mps_ss_t ss,
 #define MPS_SCAN_AREA_TAGGED(test) \
   MPS_SCAN_BEGIN(ss) {                                  \
     mps_word_t *p = base;                               \
-    while (p < limit) {                                 \
+    while (p < (mps_word_t *)limit) {                   \
       mps_word_t word = *p;                             \
       mps_word_t tag_bits = word & mask;                \
       if (test) {                                       \
@@ -85,7 +85,7 @@ mps_res_t mps_scan_area(mps_ss_t ss,
  */
 
 mps_res_t mps_scan_area_masked(mps_ss_t ss,
-                               mps_word_t *base, mps_word_t *limit,
+                               void *base, void *limit,
                                void *closure, size_t closure_size)
 {
   mps_scan_tag_t tag = closure;
@@ -108,7 +108,7 @@ mps_res_t mps_scan_area_masked(mps_ss_t ss,
  */
 
 mps_res_t mps_scan_area_tagged(mps_ss_t ss,
-                               mps_word_t *base, mps_word_t *limit,
+                               void *base, void *limit,
                                void *closure, size_t closure_size)
 {
   mps_scan_tag_t tag = closure;
@@ -138,7 +138,7 @@ mps_res_t mps_scan_area_tagged(mps_ss_t ss,
  */
 
 mps_res_t mps_scan_area_tagged_or_zero(mps_ss_t ss,
-                                       mps_word_t *base, mps_word_t *limit,
+                                       void *base, void *limit,
                                        void *closure, size_t closure_size)
 {
   mps_scan_tag_t tag = closure;

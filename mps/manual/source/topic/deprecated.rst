@@ -170,7 +170,7 @@ Deprecated in version 1.115
         This function is equivalent to::
 
           mps_root_create_area(root_o, arena, rank, mode,
-                               (void *)base, (void *)(base + count),
+                               base, base + count,
                                mps_scan_area, NULL, 0)
 
     Register a :term:`root` that consists of a vector of
@@ -227,7 +227,7 @@ Deprecated in version 1.115
         This function is equivalent to::
 
             mps_root_create_area_tagged(root_o, arena, rank, mode,
-                                        (void *)base, (void *)(base + size),
+                                        base, base + size,
                                         scan_area, mask, pattern)
 
     Register a :term:`root` that consists of a vector of :term:`tagged
@@ -278,9 +278,9 @@ Deprecated in version 1.115
         This function is equivalent to::
 
             mps_root_create_area_tagged(root_o, arena, rank, rm,
-                                        (void *)base, (void *)(base + size),
-                                         mps_scan_area_tagged,
-                                         mask, 0)
+                                        base, base + size,
+                                        mps_scan_area_tagged,
+                                        mask, 0)
 					 
         Use :c:func:`mps_root_create_area_masked` instead, passing
         zero for the ``pattern`` argument.
