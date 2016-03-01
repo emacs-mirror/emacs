@@ -400,6 +400,13 @@ static void recordLabel(mps_pool_t pool, EventClock clock, char *p)
 
 static int hexWordWidth = (MPS_WORD_WIDTH+3)/4;
 
+/* printWord -- output a ulongest_t in hex */
+
+static void printWord(ulongest_t word, const char *ident)
+{
+  printf("%s:%0*" PRIXLONGEST " ", ident, hexWordWidth, word);
+}  
+
 /* printAddr -- output a ulongest_t in hex, with the interned string
  * if the value is in the label table */
 
@@ -433,7 +440,10 @@ static void printAddr(EventClock clock, ulongest_t addr, const char *ident)
         printAddr(clock, val_hex, #ident);
 
 #define processParamP processParamA
-#define processParamW processParamA
+
+#define processParamW(ident)          \
+        val_hex = parseHex(&p);       \
+        printWord(val_hex, #ident);
 
 #define processParamU(ident)          \
         val_hex = parseHex(&p);       \
