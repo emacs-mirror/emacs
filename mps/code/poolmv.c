@@ -4,9 +4,6 @@
  * Copyright (c) 2001-2015 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
- * **** RESTRICTION: This pool may not allocate from the arena control
- *                   pool, since it is used to implement that pool.
- *
  * An observation: Freeing memory introduces more information
  * into the system than allocating it.  This causes the problem
  * described in note 2.
@@ -32,6 +29,30 @@
 #include "mpm.h"
 
 SRCID(poolmv, "$Id$");
+
+
+/* MVStruct -- MV (Manual Variable) pool outer structure
+ *
+ * .mv: See <code/poolmv.c>, <design/poolmv/>.
+ *
+ * The signature is placed at the end, see
+ * <design/pool/#outer-structure.sig>
+ */
+
+#define MVSig           ((Sig)0x5193B999) /* SIGnature MV */
+
+typedef struct MVStruct {       /* MV pool outer structure */
+  PoolStruct poolStruct;        /* generic structure */
+  MFSStruct blockPoolStruct;    /* for managing block descriptors */
+  MFSStruct spanPoolStruct;     /* for managing span descriptors */
+  Size extendBy;                /* segment size to extend pool by */
+  Size avgSize;                 /* client estimate of allocation size */
+  Size maxSize;                 /* client estimate of maximum size */
+  Size free;                    /* free space in pool */
+  Size lost;                    /* <design/poolmv/#lost> */
+  RingStruct spans;             /* span chain */
+  Sig sig;                      /* <design/sig/> */
+} MVStruct;
 
 
 #define mvBlockPool(mv) MFSPool(&(mv)->blockPoolStruct)
