@@ -684,7 +684,6 @@ typedef struct FreelistStruct {
 
 #define MVFFSig           ((Sig)0x5193FFF9) /* SIGnature MVFF */
 
-typedef struct MVFFStruct *MVFF;
 typedef struct MVFFStruct {     /* MVFF pool outer structure */
   PoolStruct poolStruct;        /* generic structure */
   LocusPrefStruct locusPrefStruct; /* the preferences for allocation */
