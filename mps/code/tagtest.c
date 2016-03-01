@@ -170,7 +170,7 @@ static void test(int mode)
   case MODE_CONS:
     /* Scan words tagged "cons" -- everything will live. */
     die(mps_root_create_area_tagged(&root, arena, mps_rank_ambig(), 0,
-				    (void *)refs, (void *)&refs[OBJCOUNT],
+				    refs, refs + OBJCOUNT,
 				    mps_scan_area_tagged, TAG_MASK, tag_cons),
         "root");
     expected = 0;
@@ -178,7 +178,7 @@ static void test(int mode)
   case MODE_INVALID:
     /* Scan words tagged "invalid" -- everything will die. */
     die(mps_root_create_area_tagged(&root, arena, mps_rank_ambig(), 0,
-				    (void *)refs, (void *)&refs[OBJCOUNT],
+				    refs, refs + OBJCOUNT,
 				    mps_scan_area_tagged, TAG_MASK, tag_invalid),
         "root");
     expected = OBJCOUNT;

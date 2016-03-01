@@ -1315,7 +1315,7 @@ mps_res_t mps_root_create_table(mps_root_t *mps_root_o, mps_arena_t arena,
 mps_res_t mps_root_create_area(mps_root_t *mps_root_o,
                                mps_arena_t arena,
                                mps_rank_t mps_rank, mps_rm_t mps_rm,
-                               mps_word_t *base, mps_word_t *limit,
+                               void *base, void *limit,
                                mps_area_scan_t scan_area,
                                void *closure, size_t closure_size)
 {
@@ -1349,8 +1349,8 @@ mps_res_t mps_root_create_area_tagged(mps_root_t *mps_root_o,
                                       mps_arena_t arena,
                                       mps_rank_t mps_rank,
                                       mps_rm_t mps_rm,
-                                      mps_word_t *base,
-                                      mps_word_t *limit,
+                                      void *base,
+                                      void *limit,
                                       mps_area_scan_t scan_area,
                                       mps_word_t mask,
                                       mps_word_t pattern)
@@ -1390,7 +1390,7 @@ mps_res_t mps_root_create_table_masked(mps_root_t *mps_root_o,
                                        mps_word_t mask)
 {
   return mps_root_create_area_tagged(mps_root_o, arena, mps_rank, mps_rm,
-				     (void *)base, (void *)(base + size),
+				     base, base + size,
 				     mps_scan_area_tagged,
 				     mask, 0);
 }

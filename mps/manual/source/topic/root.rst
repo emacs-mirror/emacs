@@ -531,7 +531,7 @@ Root interface
     The registered root description persists until it is destroyed by
     calling :c:func:`mps_root_destroy`.
 
-.. c:function:: mps_res_t mps_root_create_area(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_word_t *base, mps_word_t *limit, mps_area_scan_t scan_area, void *closure, size_t closure_size)
+.. c:function:: mps_res_t mps_root_create_area(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, void *base, void *limit, mps_area_scan_t scan_area, void *closure, size_t closure_size)
 
     Register a :term:`root` that consists of an area of memory scanned
     by an area scanning function.
@@ -568,7 +568,7 @@ Root interface
     The registered root description persists until it is destroyed by
     calling :c:func:`mps_root_destroy`.
 
-.. c:function:: mps_res_t mps_root_create_area_tagged(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_word_t *base, mps_word_t *limit, mps_area_scan_t scan_area, mps_word_t mask, mps_word_t pattern)
+.. c:function:: mps_res_t mps_root_create_area_tagged(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, void *base, void *limit, mps_area_scan_t scan_area, mps_word_t mask, mps_word_t pattern)
 
     Register a :term:`root` that consists of an area of memory scanned by
     a tagged area scanning function.
@@ -624,7 +624,7 @@ Root interface
         res = mps_root_create_area_tagged(&root, arena,
                                           mps_rank_exact(),
 					  0,
-                                          (void *)symtab, (void *)&symtab[symtab_size],
+                                          symtab, symtab + symtab_size,
                                           mps_scan_area_tagged,
                                           TAG_MASK, TAG_PATTERN);
         if (res != MPS_RES_OK) error("can't create symtab root");
