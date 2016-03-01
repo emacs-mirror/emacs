@@ -507,10 +507,9 @@ void GlobalsPrepareToDestroy(Globals arenaGlobals)
    * 0. arena->freeCBSBlockPoolStruct
    * 1. arena->reservoirStruct
    * 2. arena->controlPoolStruct
-   * 3. arena->controlPoolStruct.blockPoolStruct
-   * 4. arena->controlPoolStruct.spanPoolStruct
+   * 3. arena->controlPoolStruct.cbsBlockPoolStruct
    */
-  AVER(RingLength(&arenaGlobals->poolRing) == 5);
+  AVER(RingLength(&arenaGlobals->poolRing) == 4);
 }
 
 
