@@ -163,24 +163,130 @@ Deprecated in version 1.115
         containing references to memory managed by the MPS). The ``s``
         argument is ignored.
 
+.. c:function:: mps_res_t mps_root_create_table(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_addr_t *base, size_t count)
+
+    .. deprecated::
+
+        This function is equivalent to::
+
+          mps_root_create_area(root_o, arena, rank, mode,
+                               (void *)base, (void *)(base + count),
+                               mps_scan_area, NULL, 0)
+
+    Register a :term:`root` that consists of a vector of
+    :term:`references`.
+
+    ``root_o`` points to a location that will hold the address of the
+    new root description.
+
+    ``arena`` is the arena.
+
+    ``rank`` is the :term:`rank` of references in the root.
+
+    ``rm`` is the :term:`root mode`.
+
+    ``base`` points to a vector of references.
+
+    ``count`` is the number of references in the vector.
+
+    Returns :c:macro:`MPS_RES_OK` if the root was registered
+    successfully, :c:macro:`MPS_RES_MEMORY` if the new root
+    description could not be allocated, or another :term:`result code`
+    if there was another error.
+
+    The registered root description persists until it is destroyed by
+    calling :c:func:`mps_root_destroy`.
+
+    .. _topic-root-type-pun:
+
+    .. warning::
+
+        The ``base`` argument has type ``mps_addr_t *`` (a typedef for
+        ``void **``) but the table of references most likely has some
+        other pointer type, ``my_object *`` say. It is tempting to
+        write::
+
+            mps_root_create_table(..., (mps_addr_t *)my_table, ...)
+
+        but this is :term:`type punning`, and its behaviour is not
+        defined in ANSI/ISO Standard C. (GCC and Clang have a warning
+        flag ``-Wstrict-aliasing`` which detects some errors of this
+        form.)
+
+        To ensure well-defined behaviour, the pointer must be
+        converted via ``void *`` (or via :c:type:`mps_addr_t`, which
+        is a typedef for ``void *``), like this::
+
+            mps_addr_t base = my_table;
+            mps_root_create_table(..., base, ...)
+
+.. c:function:: mps_res_t mps_root_create_table_tagged(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_addr_t *base, size_t count, mps_area_scan_t scan_area, mps_word_t mask, mps_word_t pattern)
+
+    .. deprecated::
+
+        This function is equivalent to::
+
+            mps_root_create_area_tagged(root_o, arena, rank, mode,
+                                        (void *)base, (void *)(base + size),
+                                        scan_area, mask, pattern)
+
+    Register a :term:`root` that consists of a vector of :term:`tagged
+    references`.
+
+    ``root_o`` points to a location that will hold the address of the
+    new root description.
+
+    ``arena`` is the arena.
+
+    ``rank`` is the :term:`rank` of references in the root.
+
+    ``rm`` is the :term:`root mode`.
+
+    ``base`` points to a vector of tagged references.
+
+    ``count`` is the number of tagged references in the vector.
+
+    ``scan_area`` is an tagged area scanning function that will be
+    used to scan the table, for example :c:func:`mps_scan_area_tagged`
+    or :c:func:`mps_scan_area_tagged_or_zero`.  See
+    :ref:`topic-scanning-area`.
+
+    ``mask`` is a :term:`bitmask` that is passed to ``scan_area`` to
+    be applied to the words in the vector to locate the :term:`tag`.
+
+    ``pattern`` is passed to ``scan_area`` to determine whether to
+    consider a word as a reference.  For example,
+    :c:func:`mps_scan_area_tagged` will not consider any word that is
+    unequal to this (after masking with ``mask``) to be a reference.
+
+    Returns :c:macro:`MPS_RES_OK` if the root was registered
+    successfully, :c:macro:`MPS_RES_MEMORY` if the new root
+    description could not be allocated, or another :term:`result code`
+    if there was another error.
+
+    The registered root description persists until it is destroyed by
+    calling :c:func:`mps_root_destroy`.
+
+    .. warning::
+
+        See the warning for :c:func:`mps_root_create_table` above.
 
 .. c:function:: mps_res_t mps_root_create_table_masked(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_addr_t *base, size_t count, mps_word_t mask)
 
     .. deprecated::
     
-        Use :c:func:`mps_root_create_table_masked` instead, passing
+        This function is equivalent to::
+
+            mps_root_create_area_tagged(root_o, arena, rank, rm,
+                                        (void *)base, (void *)(base + size),
+                                         mps_scan_area_tagged,
+                                         mask, 0)
+					 
+        Use :c:func:`mps_root_create_area_masked` instead, passing
         zero for the ``pattern`` argument.
 
     Register a :term:`root` that consists of a vector of :term:`tagged
     references` whose pattern is zero.
-    
-    This function is equivalent to::
-
-      mps_root_create_table_tagged(root_o, arena, rank, rm,
-                                   base, size,
-                                   mps_scan_area_tagged,
-                                   mask, 0)
-
 
 .. c:type:: mps_res_t (*mps_reg_scan_t)(mps_ss_t ss, mps_thr_t thr, void *p, size_t s)
 
