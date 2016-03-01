@@ -34,9 +34,6 @@
 SRCID(poolmvff, "$Id$");
 
 
-/* Would go in poolmvff.h if the class had any MPS-internal clients. */
-extern PoolClass PoolClassMVFF(void);
-
 /* Note: MVFFStruct is declared in mpmst.h rather than here because it
    is the control pool and is inlined in the arena globals. */
 
