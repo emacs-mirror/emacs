@@ -70,7 +70,7 @@ extern Arena ThreadArena(Thread thread);
 
 extern Res ThreadScan(ScanState ss, Thread thread, Word *stackCold,
                       mps_area_scan_t scan_area,
-                      void *closure, size_t closure_size);
+                      void *closure);
 
 
 #endif /* th_h */

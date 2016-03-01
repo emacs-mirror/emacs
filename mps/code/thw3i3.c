@@ -68,8 +68,7 @@ SRCID(thw3i3, "$Id$");
 
 
 Res ThreadScan(ScanState ss, Thread thread, Word *stackCold,
-               mps_area_scan_t scan_area,
-               void *closure, size_t closure_size)
+               mps_area_scan_t scan_area, void *closure)
 {
   DWORD id;
   Res res;
@@ -107,7 +106,7 @@ Res ThreadScan(ScanState ss, Thread thread, Word *stackCold,
      * stackCold (.stack.full-descend)
      */
     res = TraceScanArea(ss, stackBase, stackLimit,
-                        scan_area, closure, closure_size);
+                        scan_area, closure);
     if(res != ResOK)
       return res;
 
@@ -118,12 +117,12 @@ Res ThreadScan(ScanState ss, Thread thread, Word *stackCold,
      */
     res = TraceScanArea(ss, (Word *)&context,
                         (Word *)((char *)&context + sizeof(CONTEXT)),
-                        scan_area, closure, closure_size);
+                        scan_area, closure);
     if(res != ResOK)
       return res;
 
   } else { /* scan this thread's stack */
-    res = StackScan(ss, stackCold, scan_area, closure, closure_size);
+    res = StackScan(ss, stackCold, scan_area, closure);
     if(res != ResOK)
       return res;
   }

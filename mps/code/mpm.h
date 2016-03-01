@@ -475,7 +475,7 @@ extern double TraceWorkFactor;
 
 extern Res TraceScanArea(ScanState ss, Word *base, Word *limit,
                          mps_area_scan_t scan_area,
-                         void *closure, size_t closure_size);
+                         void *closure);
 extern void TraceScanSingleRef(TraceSet ts, Rank rank, Arena arena,
                                Seg seg, Ref *refIO);
 
@@ -966,7 +966,7 @@ extern Res RootCreateArea(Root *rootReturn, Arena arena,
                           Rank rank, RootMode mode,
                           Word *base, Word *limit,
                           mps_area_scan_t scan_area,
-                          void *closure, size_t closure_size);
+                          void *closure);
 extern Res RootCreateAreaTagged(Root *rootReturn, Arena arena,
                                 Rank rank, RootMode mode,
                                 Word *base, Word *limit,
@@ -975,7 +975,7 @@ extern Res RootCreateAreaTagged(Root *rootReturn, Arena arena,
 extern Res RootCreateThread(Root *rootReturn, Arena arena,
                             Rank rank, Thread thread,
                             mps_area_scan_t scan_area,
-                            void *closure, size_t closure_size,
+                            void *closure,
                             Word *stackCold);
 extern Res RootCreateThreadTagged(Root *rootReturn, Arena arena,
                                   Rank rank, Thread thread,

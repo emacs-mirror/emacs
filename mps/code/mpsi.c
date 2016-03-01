@@ -1302,7 +1302,7 @@ mps_res_t mps_root_create_table(mps_root_t *mps_root_o, mps_arena_t arena,
 
   res = RootCreateArea(&root, arena, rank, mode,
                        (void *)base, (void *)(base + size),
-                       mps_scan_area, NULL, 0);
+                       mps_scan_area, NULL);
 
   ArenaLeave(arena);
 
@@ -1317,7 +1317,7 @@ mps_res_t mps_root_create_area(mps_root_t *mps_root_o,
                                mps_rank_t mps_rank, mps_rm_t mps_rm,
                                void *base, void *limit,
                                mps_area_scan_t scan_area,
-                               void *closure, size_t closure_size)
+                               void *closure)
 {
   Rank rank = (Rank)mps_rank;
   Root root;
@@ -1335,7 +1335,7 @@ mps_res_t mps_root_create_area(mps_root_t *mps_root_o,
 
   res = RootCreateArea(&root, arena, rank, mode,
                        base, limit,
-                       scan_area, closure, closure_size);
+                       scan_area, closure);
 
   ArenaLeave(arena);
 
@@ -1478,7 +1478,6 @@ mps_res_t mps_root_create_thread_scanned(mps_root_t *mps_root_o,
                                          mps_thr_t thread,
                                          mps_area_scan_t scan_area,
                                          void *closure,
-                                         size_t closure_size,
                                          void *cold)
 {
   Rank rank = (Rank)mps_rank;
@@ -1497,7 +1496,7 @@ mps_res_t mps_root_create_thread_scanned(mps_root_t *mps_root_o,
 
   /* See .root-mode. */
   res = RootCreateThread(&root, arena, rank, thread,
-                         scan_area, closure, closure_size,
+                         scan_area, closure,
                          (Word *)cold);
 
   ArenaLeave(arena);

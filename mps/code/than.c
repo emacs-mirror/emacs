@@ -119,10 +119,10 @@ Arena ThreadArena(Thread thread)
 
 Res ThreadScan(ScanState ss, Thread thread, Word *stackCold,
                mps_area_scan_t scan_area,
-               void *closure, size_t closure_size)
+               void *closure)
 {
   UNUSED(thread);
-  return StackScan(ss, stackCold, scan_area, closure, closure_size);
+  return StackScan(ss, stackCold, scan_area, closure);
 }
 
 
