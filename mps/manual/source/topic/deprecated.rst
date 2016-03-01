@@ -186,7 +186,7 @@ Deprecated in version 1.115
 
     .. deprecated::
 
-        Use :c:func:`mps_root_create_stack` instead.
+        Use :c:func:`mps_root_create_thread` instead.
 
     The type of a root scanning function for roots created with
     :c:func:`mps_root_create_reg`.
@@ -228,7 +228,7 @@ Deprecated in version 1.115
 
     .. deprecated::
 
-        Use :c:func:`mps_root_create_stack` instead, passing
+        Use :c:func:`mps_root_create_thread` instead, passing
         ``sizeof(mps_word_t) - 1`` for the ``mask`` argument, and
         ``0`` for the ``pattern`` argument.
 

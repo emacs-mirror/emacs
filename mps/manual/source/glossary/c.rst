@@ -302,7 +302,7 @@ Memory Management Glossary: C
             program` must pass the location of the cold end of the
             stack (or the part of the stack that might contain
             references to memory managed by the MPS) to
-            :c:func:`mps_root_create_stack`.
+            :c:func:`mps_root_create_thread`.
 
     collect
 
