@@ -284,7 +284,6 @@ typedef struct SegStruct {      /* segment structure */
   RangeStruct rangeStruct;      /* address range of segment memory */
   Pool pool;                    /* pool that owns this segment */
   RingStruct poolRing;          /* link in list of segs in pool */
-  Addr limit;                   /* limit of segment */
   TreeStruct treeStruct;        /* tree of all segments by address */
   unsigned depth : ShieldDepthWIDTH; /* see <code/shield.c#def.depth> */
   AccessSet pm : AccessLIMIT;   /* protection mode, <code/shield.c> */
