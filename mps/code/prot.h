@@ -32,7 +32,7 @@ extern Res ProtStepInstruction(MutatorFaultContext context);
 extern Addr MutatorFaultContextSP(MutatorFaultContext mfc);
 extern Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext mfc,
                                    mps_area_scan_t scan,
-                                   void *closure, size_t closure_size);
+                                   void *closure);
 
 
 #endif /* prot_h */

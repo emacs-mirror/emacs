@@ -49,7 +49,7 @@ SRCID(ssixi6, "$Id$");
 
 Res StackScan(ScanState ss, Word *stackCold,
               mps_area_scan_t scan_area,
-              void *closure, size_t closure_size)
+              void *closure)
 {
   Word calleeSaveRegs[6];
   
@@ -65,7 +65,7 @@ Res StackScan(ScanState ss, Word *stackCold,
   ASMV("mov %%r15, %0" : "=m" (calleeSaveRegs[5]));
   
   return StackScanInner(ss, stackCold, calleeSaveRegs, NELEMS(calleeSaveRegs),
-                        scan_area, closure, closure_size);
+                        scan_area, closure);
 }
 
 

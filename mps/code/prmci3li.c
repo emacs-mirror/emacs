@@ -103,7 +103,7 @@ Addr MutatorFaultContextSP(MutatorFaultContext mfc)
 
 Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext mfc,
                             mps_area_scan_t scan_area,
-                            void *closure, size_t closure_size)
+                            void *closure)
 {
   mcontext_t *mc;
   Res res;
@@ -115,7 +115,7 @@ Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext mfc,
   res = TraceScanArea(ss,
                       (Word *)mc,
                       (Word *)((char *)mc + sizeof(*mc)),
-                      scan_area, closure, closure_size);
+                      scan_area, closure);
   return res;
 }
 

@@ -531,7 +531,7 @@ the scanners, found in ``scan.c`` in the MPS source code.
     
         mps_res_t scan(mps_ss_t ss,
                        void *base, void *limit,
-                       void *closure, size_t closure_size);
+                       void *closure);
     
     ``ss`` is the :term:`scan state`.
     
@@ -545,17 +545,11 @@ the scanners, found in ``scan.c`` in the MPS source code.
     :c:func:`mps_root_create_thread_tagged` then it is the value of
     the ``closure`` argument originally passed to that function.
 
-    ``closure_size`` is an arbitrary size, conventionally used for the
-    size of the :term:`closure` pointed to by ``closure``.  For example,
-    if the scanner was originally registered with
-    :c:func:`mps_root_create_thread_tagged` then it is the value of
-    the ``closure_size`` argument originally passed to that function.
-
-.. c:function:: mps_res_t mps_scan_area(mps_ss_t ss, void *base, void *limit, void *closure, size_t closure_size)
+.. c:function:: mps_res_t mps_scan_area(mps_ss_t ss, void *base, void *limit, void *closure)
 
     Scan an area of memory :term:`fixing <fix>` every word.
-    ``closure`` and ``closure_size`` are ignored.  Expects ``base``
-    and ``limit`` to be word-aligned.
+    ``closure`` is ignored.  Expects ``base`` and ``limit`` to be
+    word-aligned.
     
     This scanner is appropriate for use when all words in the area are
     simple untagged references.
@@ -586,7 +580,7 @@ the scanners, found in ``scan.c`` in the MPS source code.
     interpretation depends on which area scanner it is passed to.  See
     the documentation for the individual area scanners.
 
-.. c:function:: mps_res_t mps_scan_area_masked(mps_ss_t ss, void *base, void *limit, void *closure, size_t closure_size)
+.. c:function:: mps_res_t mps_scan_area_masked(mps_ss_t ss, void *base, void *limit, void *closure)
 
     Scan an area of memory :term:`fixing <fix>` every word, but remove
     tag bits before fixing references, and restore them afterwards.
@@ -603,7 +597,7 @@ the scanners, found in ``scan.c`` in the MPS source code.
     references no matter what tag they have.  This can be especially
     useful if you are debugging your tagging scheme.
 
-.. c:function:: mps_res_t mps_scan_area_tagged(mps_ss_t ss, void *base, void *limit, void *closure, size_t closure_size)
+.. c:function:: mps_res_t mps_scan_area_tagged(mps_ss_t ss, void *base, void *limit, void *closure)
 
     Scan an area of memory :term:`fixing <fix>` only words whose
     masked bits match a particular tag pattern.  ``closure`` should
@@ -626,7 +620,7 @@ the scanners, found in ``scan.c`` in the MPS source code.
         version of the pointer.  See
         :c:func:`mps_root_create_thread_tagged`.
 
-.. c:function:: mps_res_t mps_scan_area_tagged_or_zero(mps_ss_t ss, void *base, void *limit, void *closure, size_t closure_size)
+.. c:function:: mps_res_t mps_scan_area_tagged_or_zero(mps_ss_t ss, void *base, void *limit, void *closure)
 
     Scan an area of memory :term:`fixing <fix>` only words whose
     masked bits are zero or match a particular tag pattern.

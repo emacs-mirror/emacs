@@ -27,10 +27,9 @@
 
 mps_res_t mps_scan_area(mps_ss_t ss,
                         void *base, void *limit,
-                        void *closure, size_t closure_size)
+                        void *closure)
 {
   (void)closure; /* unused */
-  (void)closure_size; /* unused */
 
   MPS_SCAN_BEGIN(ss) {
     mps_word_t *p = base;
@@ -86,11 +85,10 @@ mps_res_t mps_scan_area(mps_ss_t ss,
 
 mps_res_t mps_scan_area_masked(mps_ss_t ss,
                                void *base, void *limit,
-                               void *closure, size_t closure_size)
+                               void *closure)
 {
   mps_scan_tag_t tag = closure;
   mps_word_t mask = tag->mask;
-  (void)closure_size; /* unused */
 
   MPS_SCAN_AREA_TAGGED(1);
 
@@ -109,12 +107,11 @@ mps_res_t mps_scan_area_masked(mps_ss_t ss,
 
 mps_res_t mps_scan_area_tagged(mps_ss_t ss,
                                void *base, void *limit,
-                               void *closure, size_t closure_size)
+                               void *closure)
 {
   mps_scan_tag_t tag = closure;
   mps_word_t mask = tag->mask;
   mps_word_t pattern = tag->pattern;
-  (void)closure_size; /* unused */
 
   MPS_SCAN_AREA_TAGGED(tag_bits == pattern);
 
@@ -139,12 +136,11 @@ mps_res_t mps_scan_area_tagged(mps_ss_t ss,
 
 mps_res_t mps_scan_area_tagged_or_zero(mps_ss_t ss,
                                        void *base, void *limit,
-                                       void *closure, size_t closure_size)
+                                       void *closure)
 {
   mps_scan_tag_t tag = closure;
   mps_word_t mask = tag->mask;
   mps_word_t pattern = tag->pattern;
-  (void)closure_size; /* unused */
 
   MPS_SCAN_AREA_TAGGED(tag_bits == 0 || tag_bits == pattern);
 

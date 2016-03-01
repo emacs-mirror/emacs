@@ -489,7 +489,7 @@ Root interface
         requires expertise with the platform's virtual memory
         interface.
 
-.. c:function:: mps_res_t mps_root_create_thread_scanned(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_thr_t thread, mps_area_scan_t scan_area, void *closure, size_t closure_size, void *cold)
+.. c:function:: mps_res_t mps_root_create_thread_scanned(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_thr_t thread, mps_area_scan_t scan_area, void *closure, void *cold)
 
     Register a :term:`root` that consists of the :term:`references` in
     a :term:`thread's <thread>` registers and stack, scanned by an
@@ -511,12 +511,8 @@ Root interface
     :c:func:`mps_scan_area`, or a similar user-defined function. See
     :ref:`topic-scanning-area`.
 
-    ``closure`` is an arbitrary pointer that is passed to ``scan_area``
+    ``closure`` is an arbitrary pointer that will be passed to ``scan_area``
     and intended to point to any parameters it needs.
-
-    ``closure_size`` is an arbitrary size that is passed to
-    ``scan_area`` but is conventionally the size of the parameter
-    object pointer to by ``closure``.
 
     ``cold`` is a pointer to the :term:`cold end` of stack to be
     scanned. On platforms where the stack grows downwards (currently,
@@ -531,7 +527,7 @@ Root interface
     The registered root description persists until it is destroyed by
     calling :c:func:`mps_root_destroy`.
 
-.. c:function:: mps_res_t mps_root_create_area(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, void *base, void *limit, mps_area_scan_t scan_area, void *closure, size_t closure_size)
+.. c:function:: mps_res_t mps_root_create_area(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, void *base, void *limit, mps_area_scan_t scan_area, void *closure)
 
     Register a :term:`root` that consists of an area of memory scanned
     by an area scanning function.
@@ -553,12 +549,8 @@ Root interface
     :c:func:`mps_scan_area`, or a similar user-defined function. See
     :ref:`topic-scanning-area`.
 
-    ``closure`` is an arbitrary pointer that is passed to ``scan_area``
-    and intended to point to any parameters it needs.
-
-    ``closure_size`` is an arbitrary size that is passed to
-    ``scan_area`` but is conventionally the size of the parameter
-    object pointer to by ``closure``.
+    ``closure`` is an arbitrary pointer that will be passed to
+    ``scan_area`` and intended to point to any parameters it needs.
 
     Returns :c:macro:`MPS_RES_OK` if the root was registered
     successfully, :c:macro:`MPS_RES_MEMORY` if the new root
