@@ -675,13 +675,6 @@ extern mps_res_t mps_root_create(mps_root_t *, mps_arena_t, mps_rank_t,
 extern mps_res_t mps_root_create_table(mps_root_t *, mps_arena_t,
                                        mps_rank_t, mps_rm_t,
                                        mps_addr_t *, size_t);
-extern mps_res_t mps_root_create_table_tagged(mps_root_t *,
-                                              mps_arena_t,
-                                              mps_rank_t, mps_rm_t,
-                                              mps_addr_t *, size_t,
-                                              mps_area_scan_t,
-                                              mps_word_t,
-                                              mps_word_t);
 extern mps_res_t mps_root_create_table_masked(mps_root_t *, mps_arena_t,
                                               mps_rank_t, mps_rm_t,
                                               mps_addr_t *, size_t,

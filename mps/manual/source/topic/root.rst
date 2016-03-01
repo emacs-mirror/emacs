@@ -83,7 +83,7 @@ Roots can be deregistered at any time by calling
 :c:func:`mps_root_destroy`. All roots registered in an :term:`arena`
 must be deregistered before the arena is destroyed.
 
-There are five ways to register a root, depending on how you need to
+There are four ways to register a root, depending on how you need to
 scan it for references:
 
 #. :c:func:`mps_root_create` if you need a custom root scanning
@@ -96,9 +96,6 @@ scan it for references:
 
 #. :c:func:`mps_root_create_area` if the root consists of an area
    of memory;
-
-#. :c:func:`mps_root_create_table` if the root consists of a table of
-   references;
 
 #. :c:func:`mps_root_create_thread` if the root consists of the
    :term:`registers` and :term:`control stack` of a thread. See
@@ -256,7 +253,7 @@ allowing the MPS to detect whether they have changed.
     the :term:`root` after it is registered: that is, scanning the
     root will produce the same set of :term:`references`
     every time. Furthermore, for roots registered by
-    :c:func:`mps_root_create_fmt` and :c:func:`mps_root_create_table`,
+    :c:func:`mps_root_create_fmt` and :c:func:`mps_root_create_area`,
     the client program will not write to the root at all.
 
 .. c:macro:: MPS_RM_PROT
@@ -590,7 +587,7 @@ Root interface
     ``count`` is the number of tagged references in the vector.
 
     ``scan_area`` is an tagged area scanning function that will be
-    used to scan the table, for example :c:func:`mps_scan_area_tagged`
+    used to scan the area, for example :c:func:`mps_scan_area_tagged`
     or :c:func:`mps_scan_area_tagged_or_zero`.  See
     :ref:`topic-scanning-area`.
 
@@ -609,106 +606,6 @@ Root interface
 
     The registered root description persists until it is destroyed by
     calling :c:func:`mps_root_destroy`.
-
-.. c:function:: mps_res_t mps_root_create_table(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_addr_t *base, size_t count)
-
-    Register a :term:`root` that consists of a vector of
-    :term:`references`.
-
-    ``root_o`` points to a location that will hold the address of the
-    new root description.
-
-    ``arena`` is the arena.
-
-    ``rank`` is the :term:`rank` of references in the root.
-
-    ``rm`` is the :term:`root mode`.
-
-    ``base`` points to a vector of references.
-
-    ``count`` is the number of references in the vector.
-
-    This function is equivalent to::
-
-        mps_root_create_area(root_o, arena, rank, mode,
-                             (void *)base, (void *)(base + count),
-                             mps_scan_area, NULL, 0)
-
-    Returns :c:macro:`MPS_RES_OK` if the root was registered
-    successfully, :c:macro:`MPS_RES_MEMORY` if the new root
-    description could not be allocated, or another :term:`result code`
-    if there was another error.
-
-    The registered root description persists until it is destroyed by
-    calling :c:func:`mps_root_destroy`.
-
-    .. _topic-root-type-pun:
-
-    .. warning::
-
-        The ``base`` argument has type ``mps_addr_t *`` (a typedef for
-        ``void **``) but the table of references most likely has some
-        other pointer type, ``my_object *`` say. It is tempting to
-        write::
-
-            mps_root_create_table(..., (mps_addr_t *)my_table, ...)
-
-        but this is :term:`type punning`, and its behaviour is not
-        defined in ANSI/ISO Standard C. (GCC and Clang have a warning
-        flag ``-Wstrict-aliasing`` which detects some errors of this
-        form.)
-
-        To ensure well-defined behaviour, the pointer must be
-        converted via ``void *`` (or via :c:type:`mps_addr_t`, which
-        is a typedef for ``void *``), like this::
-
-            mps_addr_t base = my_table;
-            mps_root_create_table(..., base, ...)
-
-.. c:function:: mps_res_t mps_root_create_table_tagged(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_addr_t *base, size_t count, mps_area_scan_t scan_area, mps_word_t mask, mps_word_t pattern)
-
-    Register a :term:`root` that consists of a vector of :term:`tagged
-    references`.
-
-    ``root_o`` points to a location that will hold the address of the
-    new root description.
-
-    ``arena`` is the arena.
-
-    ``rank`` is the :term:`rank` of references in the root.
-
-    ``rm`` is the :term:`root mode`.
-
-    ``base`` points to a vector of tagged references.
-
-    ``count`` is the number of tagged references in the vector.
-
-    ``scan_area`` is an tagged area scanning function that will be
-    used to scan the table, for example :c:func:`mps_scan_area_tagged`
-    or :c:func:`mps_scan_area_tagged_or_zero`.  See
-    :ref:`topic-scanning-area`.
-
-    ``mask`` is a :term:`bitmask` that is passed to ``scan_area`` to
-    be applied to the words in the vector to locate the :term:`tag`.
-
-    ``pattern`` is passed to ``scan_area`` to determine whether to
-    consider a word as a reference.  For example,
-    :c:func:`mps_scan_area_tagged` will not consider any word that is
-    unequal to this (after masking with ``mask``) to be a reference.
-
-    Returns :c:macro:`MPS_RES_OK` if the root was registered
-    successfully, :c:macro:`MPS_RES_MEMORY` if the new root
-    description could not be allocated, or another :term:`result code`
-    if there was another error.
-
-    The registered root description persists until it is destroyed by
-    calling :c:func:`mps_root_destroy`.
-
-    This function is equivalent to::
-
-        mps_root_create_area_tagged(root_o, arena, rank, mode,
-                                    (void *)base, (void *)(base + size),
-                                    scan_area, mask, pattern)
 
     For example::
 
@@ -724,19 +621,13 @@ Root interface
 
         mps_res_t res;
         mps_root_t root;
-        mps_addr_t base = symtab;
-        res = mps_root_create_table_tagged(&root, arena,
-                                           mps_rank_exact(),
-                                           (mps_rm_t)0,
-                                           base, symtab_size * 2,
-                                           mps_scan_area_tagged,
-                                           (mps_word_t)TAG_MASK,
-                                           (mps_word_t)TAG_PATTERN);
-        if (res != MPS_RES_OK) errror("can't create symtab root");
-
-    .. warning::
-
-        See the warning for :c:func:`mps_root_create_table` above.
+        res = mps_root_create_area_tagged(&root, arena,
+                                          mps_rank_exact(),
+					  0,
+                                          (void *)symtab, (void *)&symtab[symtab_size],
+                                          mps_scan_area_tagged,
+                                          TAG_MASK, TAG_PATTERN);
+        if (res != MPS_RES_OK) error("can't create symtab root");
 
 .. c:function:: void mps_root_destroy(mps_root_t root)
 
