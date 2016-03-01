@@ -153,6 +153,7 @@ static Res SegInit(Seg seg, Pool pool, Addr base, Size size,
   AVERT(SegClass, class);
   AVERT(Bool, withReservoirPermit);
 
+  /* IMPORTANT: Keep in sync with segTrivSplit. */
   limit = AddrAdd(base, size);
   RangeInit(SegRange(seg), base, limit);
   seg->pool = pool;
@@ -235,8 +236,10 @@ static void SegFinish(Seg seg)
   }
   AVER(addr == SegLimit(seg));
 
+  /* IMPORTANT: Keep in sync with segTrivMerge. */
   b = SplayTreeDelete(ArenaSegSplay(arena), SegTree(seg));
   AVER(b); /* seg should be in arena splay tree */
+  TreeFinish(SegTree(seg));
   RingRemove(SegPoolRing(seg));
   RingFinish(SegPoolRing(seg));
 
@@ -889,6 +892,7 @@ static Res segTrivMerge(Seg seg, Seg segHi,
   Arena arena;
   Tract tract;
   Addr addr;
+  Bool b;
 
   AVERT(Seg, seg);
   AVERT(Seg, segHi);
@@ -919,7 +923,6 @@ static Res segTrivMerge(Seg seg, Seg segHi,
 
   /* no need to update fields which match. See .similar */
 
-  RangeSetLimit(SegRange(seg), limit);
   TRACT_FOR(tract, addr, arena, mid, limit) {
     AVERT(Tract, tract);
     AVER(TractHasSeg(tract));
@@ -927,12 +930,20 @@ static Res segTrivMerge(Seg seg, Seg segHi,
     AVER(TractPool(tract) == pool);
     TRACT_SET_SEG(tract, seg);
   }
-  AVER(addr == SegLimit(seg));
+  AVER(addr == limit);
 
   /* Finish segHi. */
+  /* IMPORTANT: Keep in sync with SegFinish. */
+  b = SplayTreeDelete(ArenaSegSplay(arena), SegTree(segHi));
+  AVER(b); /* seg should be in arena splay tree */
+  TreeFinish(SegTree(segHi));
   RingRemove(SegPoolRing(segHi));
   RingFinish(SegPoolRing(segHi));
   segHi->sig = SigInvalid;
+
+  /* This does not affect seg's position in the segment tree, since it
+     is address ordered and no segments overlap. */
+  RangeSetLimit(SegRange(seg), limit);
 
   AVERT(Seg, seg);
   return ResOK;
@@ -968,6 +979,7 @@ static Res segTrivSplit(Seg seg, Seg segHi,
   Pool pool;
   Addr addr;
   Arena arena;
+  Bool b;
 
   AVERT(Seg, seg);
   AVER(segHi != NULL);  /* can't check fully, it's not initialized */
@@ -986,7 +998,10 @@ static Res segTrivSplit(Seg seg, Seg segHi,
   /* See <design/seg/#split-merge.shield> & <code/shield.c#def.depth> */
   AVER(seg->depth == 0);
  
-  /* Full initialization for segHi. Just modify seg. */
+  /* Full initialization for segHi. Just modify seg. Note that this
+     does not affect seg's position in the segment tree, since it is
+     address-ordered and no segments overlap. */
+  /* IMPORTANT: Keep in sync with SegInit. */
   RangeSetLimit(SegRange(seg), mid);
   RangeInit(SegRange(segHi), mid, limit);
   segHi->pool = pool;
@@ -998,6 +1013,8 @@ static Res segTrivSplit(Seg seg, Seg segHi,
   segHi->sm = seg->sm;
   segHi->depth = seg->depth;
   segHi->class = seg->class;
+  RingInit(SegPoolRing(segHi));
+  TreeInit(SegTree(segHi));
   segHi->sig = SegSig;
   RingInit(SegPoolRing(segHi));
 
@@ -1010,9 +1027,12 @@ static Res segTrivSplit(Seg seg, Seg segHi,
   }
   AVER(addr == SegLimit(segHi));
 
-  RingAppend(&pool->segRing, SegPoolRing(segHi));
   AVERT(Seg, seg);
   AVERT(Seg, segHi);
+
+  RingAppend(&pool->segRing, SegPoolRing(segHi));
+  b = SplayTreeInsert(ArenaSegSplay(arena), SegTree(segHi));
+  AVER(b); /* not already in tree */
   return ResOK;
 }
 
