@@ -751,23 +751,21 @@ static Res MVTBufferFill(Addr *baseReturn, Addr *limitReturn,
 
 
 /* MVTDeleteOverlapping -- ABQIterate callback used by MVTInsert and
- * MVTDelete. It receives a Range in its closureP argument, and sets
+ * MVTDelete. It receives a Range in its closure argument, and sets
  * *deleteReturn to TRUE for ranges in the ABQ that overlap with it,
  * and FALSE for ranges that do not.
  */
 static Bool MVTDeleteOverlapping(Bool *deleteReturn, void *element,
-                                 void *closureP, Size closureS)
+                                 void *closure)
 {
   Range oldRange, newRange;
 
   AVER(deleteReturn != NULL);
   AVER(element != NULL);
-  AVER(closureP != NULL);
-  AVER(closureS == UNUSED_SIZE);
-  UNUSED(closureS);
+  AVER(closure != NULL);
 
   oldRange = element;
-  newRange = closureP;
+  newRange = closure;
 
   *deleteReturn = RangesOverlap(oldRange, newRange);
   return TRUE;
@@ -830,7 +828,7 @@ static Res MVTInsert(MVT mvt, Addr base, Addr limit)
      * with ranges on the ABQ, so ensure that the corresponding ranges
      * are coalesced on the ABQ.
      */
-    ABQIterate(MVTABQ(mvt), MVTDeleteOverlapping, &newRange, UNUSED_SIZE);
+    ABQIterate(MVTABQ(mvt), MVTDeleteOverlapping, &newRange);
     (void)MVTReserve(mvt, &newRange);
   }
 
@@ -859,7 +857,7 @@ static Res MVTDelete(MVT mvt, Addr base, Addr limit)
    * might be on the ABQ, so ensure it is removed.
    */
   if (RangeSize(&rangeOld) >= mvt->reuseSize)
-    ABQIterate(MVTABQ(mvt), MVTDeleteOverlapping, &rangeOld, UNUSED_SIZE);
+    ABQIterate(MVTABQ(mvt), MVTDeleteOverlapping, &rangeOld);
 
   /* There might be fragments at the left or the right of the deleted
    * range, and either might be big enough to go back on the ABQ.
@@ -1210,15 +1208,13 @@ static Bool MVTReturnSegs(MVT mvt, Range range, Arena arena)
  */
 
 static Bool MVTRefillVisitor(Land land, Range range,
-                             void *closureP, Size closureS)
+                             void *closure)
 {
   MVT mvt;
 
   AVERT(Land, land);
-  mvt = closureP;
+  mvt = closure;
   AVERT(MVT, mvt);
-  AVER(closureS == UNUSED_SIZE);
-  UNUSED(closureS);
 
   if (RangeSize(range) < mvt->reuseSize)
     return TRUE;
@@ -1241,7 +1237,7 @@ static void MVTRefillABQIfEmpty(MVT mvt, Size size)
     mvt->abqOverflow = FALSE;
     METER_ACC(mvt->refills, size);
     /* The iteration stops if the ABQ overflows, so may finish or not. */
-    (void)LandIterate(MVTFreeLand(mvt), MVTRefillVisitor, mvt, UNUSED_SIZE);
+    (void)LandIterate(MVTFreeLand(mvt), MVTRefillVisitor, mvt);
   }
 }
  
@@ -1260,7 +1256,7 @@ typedef struct MVTContigencyClosureStruct
 } MVTContigencyClosureStruct,  *MVTContigencyClosure;
 
 static Bool MVTContingencyVisitor(Land land, Range range,
-                                  void *closureP, Size closureS)
+                                  void *closure)
 {
   MVT mvt;
   Size size;
@@ -1269,12 +1265,10 @@ static Bool MVTContingencyVisitor(Land land, Range range,
 
   AVERT(Land, land);
   AVERT(Range, range);
-  AVER(closureP != NULL);
-  cl = closureP;
+  AVER(closure != NULL);
+  cl = closure;
   mvt = cl->mvt;
   AVERT(MVT, mvt);
-  AVER(closureS == UNUSED_SIZE);
-  UNUSED(closureS);
 
   base = RangeBase(range);
   limit = RangeLimit(range);
@@ -1312,7 +1306,7 @@ static Bool MVTContingencySearch(Addr *baseReturn, Addr *limitReturn,
   cls.steps = 0;
   cls.hardSteps = 0;
 
-  if (LandIterate(MVTFreeLand(mvt), MVTContingencyVisitor, &cls, UNUSED_SIZE))
+  if (LandIterate(MVTFreeLand(mvt), MVTContingencyVisitor, &cls))
     return FALSE;
 
   AVER(RangeSize(&cls.range) >= min);
