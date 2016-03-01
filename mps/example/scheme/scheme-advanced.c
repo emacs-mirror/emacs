@@ -4331,7 +4331,7 @@ static int start(int argc, char *argv[])
     symtab = NULL;
     res = mps_root_create_area(&symtab_root, arena, mps_rank_exact(), 0,
 			       &symtab, &symtab + 1,
-			       mps_scan_area, NULL, 0);
+			       mps_scan_area, NULL);
     if(res != MPS_RES_OK) error("Couldn't register symtab root");
 
     /* The symbol table is strong-key weak-value. */

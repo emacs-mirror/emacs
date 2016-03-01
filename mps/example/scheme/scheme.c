@@ -777,7 +777,7 @@ static void rehash(void) {
      interpreter). */
   res = mps_root_create_area(&symtab_root, arena, mps_rank_exact(), 0,
 			     symtab, symtab + symtab_size,
-			     mps_scan_area, NULL, 0);
+			     mps_scan_area, NULL);
   if(res != MPS_RES_OK) error("Couldn't register new symtab root");
 
   for(i = 0; i < old_symtab_size; ++i)
@@ -4262,7 +4262,7 @@ static int start(int argc, char *argv[])
      assertion failures). See topic/root. */
   res = mps_root_create_area(&symtab_root, arena, mps_rank_exact(), 0,
                              symtab, symtab + symtab_size,
-			     mps_scan_area, NULL, 0);
+			     mps_scan_area, NULL);
   if(res != MPS_RES_OK) error("Couldn't register symtab root");
 
   error_handler = &jb;
