@@ -4311,7 +4311,6 @@ static int start(int argc, char *argv[])
   size_t i;
   volatile obj_t env, op_env, obj;
   jmp_buf jb;
-  mps_addr_t ref;
   mps_res_t res;
   mps_root_t globals_root;
   int exit_code = EXIT_SUCCESS;
@@ -4325,13 +4324,14 @@ static int start(int argc, char *argv[])
   
     /* We must register the global variable 'symtab' as a root before
        creating the symbol table, otherwise the symbol table might be
-       collected in the interval between creation and registration. But
-       we must also ensure that 'symtab' is valid before registration
-       (in this case, by setting it to NULL). See topic/root. */
+       collected in the interval between creation and
+       registration. But we must also ensure that 'symtab' is valid
+       before registration (in this case, by setting it to NULL). See
+       topic/root. */
     symtab = NULL;
-    ref = &symtab;
-    res = mps_root_create_table(&symtab_root, arena, mps_rank_exact(), 0,
-                                ref, 1);
+    res = mps_root_create_area(&symtab_root, arena, mps_rank_exact(), 0,
+			       &symtab, &symtab + 1,
+			       mps_scan_area, NULL, 0);
     if(res != MPS_RES_OK) error("Couldn't register symtab root");
 
     /* The symbol table is strong-key weak-value. */

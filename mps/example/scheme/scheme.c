@@ -759,7 +759,6 @@ static void rehash(void) {
   size_t old_symtab_size = symtab_size;
   mps_root_t old_symtab_root = symtab_root;
   unsigned i;
-  mps_addr_t ref;
   mps_res_t res;
 
   symtab_size *= 2;
@@ -770,14 +769,15 @@ static void rehash(void) {
   for(i = 0; i < symtab_size; ++i)
     symtab[i] = NULL;
 
-  /* Once the symbol table is initialized with scannable references (NULL
-     in this case) we must register it as a root before we copy objects
-     across from the old symbol table.  The MPS might be moving objects
-     in memory at any time, and will arrange that both copies are updated
-     atomically to the mutator (this interpreter). */
-  ref = symtab;
-  res = mps_root_create_table(&symtab_root, arena, mps_rank_exact(), 0,
-                              ref, symtab_size);
+  /* %%MPS: Once the symbol table is initialized with scannable
+     references (NULL in this case) we must register it as a root
+     before we copy objects across from the old symbol table.  The MPS
+     might be moving objects in memory at any time, and will arrange
+     that both copies are updated atomically to the mutator (this
+     interpreter). */
+  res = mps_root_create_area(&symtab_root, arena, mps_rank_exact(), 0,
+			     symtab, symtab + symtab_size,
+			     mps_scan_area, NULL, 0);
   if(res != MPS_RES_OK) error("Couldn't register new symtab root");
 
   for(i = 0; i < old_symtab_size; ++i)
@@ -4243,7 +4243,6 @@ static int start(int argc, char *argv[])
   size_t i;
   volatile obj_t env, op_env, obj;
   jmp_buf jb;
-  mps_addr_t ref;
   mps_res_t res;
   mps_root_t globals_root;
   int exit_code = EXIT_SUCCESS;
@@ -4261,9 +4260,9 @@ static int start(int argc, char *argv[])
      pointers -- NULL in this case.  Random values look like false
      references into MPS memory and cause undefined behaviour (most likely
      assertion failures). See topic/root. */
-  ref = symtab;
-  res = mps_root_create_table(&symtab_root, arena, mps_rank_exact(), 0,
-                              ref, symtab_size);
+  res = mps_root_create_area(&symtab_root, arena, mps_rank_exact(), 0,
+                             symtab, symtab + symtab_size,
+			     mps_scan_area, NULL, 0);
   if(res != MPS_RES_OK) error("Couldn't register symtab root");
 
   error_handler = &jb;
