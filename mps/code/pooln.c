@@ -235,7 +235,7 @@ static Res NFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
 
 /* NReclaim -- reclaim method for class N */
 
-static void NReclaim(Pool pool, Trace trace, Seg seg)
+static Bool NReclaim(Pool pool, Trace trace, Seg seg)
 {
   PoolN poolN;
 
@@ -246,6 +246,8 @@ static void NReclaim(Pool pool, Trace trace, Seg seg)
   AVERT(Trace, trace);
   AVERT(Seg, seg);
   /* all unmarked and white objects reclaimed */
+
+  return FALSE; /* segment wasn't deleted */
 }
 
 
