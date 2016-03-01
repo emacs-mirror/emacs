@@ -1383,29 +1383,16 @@ mps_res_t mps_root_create_area_tagged(mps_root_t *mps_root_o,
 }
   
 
-mps_res_t mps_root_create_table_tagged(mps_root_t *mps_root_o,
-                                       mps_arena_t arena,
-                                       mps_rank_t mps_rank, mps_rm_t mps_rm,
-                                       mps_addr_t *base, size_t size,
-                                       mps_area_scan_t scan_area,
-                                       mps_word_t mask,
-                                       mps_word_t pattern)
-{
-  return mps_root_create_area_tagged(mps_root_o, arena, mps_rank, mps_rm,
-                                     (void *)base, (void *)(base + size),
-                                     scan_area, mask, pattern);
-}
-
-
 mps_res_t mps_root_create_table_masked(mps_root_t *mps_root_o,
                                        mps_arena_t arena,
                                        mps_rank_t mps_rank, mps_rm_t mps_rm,
                                        mps_addr_t *base, size_t size,
                                        mps_word_t mask)
 {
-  return mps_root_create_table_tagged(mps_root_o, arena, mps_rank, mps_rm,
-                                      base, size, mps_scan_area_tagged,
-                                      mask, 0);
+  return mps_root_create_area_tagged(mps_root_o, arena, mps_rank, mps_rm,
+				     (void *)base, (void *)(base + size),
+				     mps_scan_area_tagged,
+				     mask, 0);
 }
 
 mps_res_t mps_root_create_fmt(mps_root_t *mps_root_o, mps_arena_t arena,
