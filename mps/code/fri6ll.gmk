@@ -7,8 +7,17 @@
 
 PFM = fri6ll
 
-MPMPF = lockix.c thix.c pthrdext.c vmix.c \
-        protix.c protsgix.c prmcan.c prmci6fr.c ssixi6.c span.c
+MPMPF = \
+    lockix.c \
+    prmcan.c \
+    prmci6fr.c \
+    protix.c \
+    protsgix.c \
+    pthrdext.c \
+    span.c \
+    ssan.c \
+    thix.c \
+    vmix.c
 
 LIBS = -lm -pthread
 
@@ -21,8 +30,6 @@ include ll.gmk
 # For SQLite3.
 LINKFLAGS += -L/usr/local/lib
 CFLAGSCOMPILER += -I/usr/local/include
-
-CC = cc
 
 include comm.gmk
 
