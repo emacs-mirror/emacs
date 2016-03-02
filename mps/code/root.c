@@ -43,8 +43,8 @@ typedef struct RootStruct {
       size_t s;                 /* closure for scan function */
     } fun;
     struct {
-      Word *base;               /* beginning of area */
-      Word *limit;              /* one off end of area */
+      Word *base;               /* base of area to be scanned */
+      Word *limit;              /* limit of area to be scanned */
       mps_area_scan_t scan_area;/* area scanning function */
       AreaScanUnion the;
     } area;
