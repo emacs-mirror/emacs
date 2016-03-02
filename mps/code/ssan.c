@@ -28,13 +28,6 @@ Res StackScan(ScanState ss, Word *stackCold,
   jmp_buf jb;
   Word *stackHot = (void *)&jb;
 
-  /* .assume.stack: This implementation assumes that the stack grows
-   * downwards, so that the address of the jmp_buf is the base of the
-   * part of the stack that needs to be scanned. (StackScanInner makes
-   * the same assumption.)
-   */
-  AVER(stackHot < stackCold);
-
   (void)setjmp(jb);
 
   return StackScanInner(ss, stackCold, stackHot, sizeof jb / sizeof(Word),

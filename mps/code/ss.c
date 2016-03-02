@@ -32,10 +32,15 @@ Res StackScanInner(ScanState ss, Word *stackCold, Word *stackHot,
   Res res;
 
   AVERT(ScanState, ss);
-  AVER(stackHot < stackCold);
-  AVER(AddrIsAligned((Addr)stackHot, sizeof(Addr)));  /* .assume.align */
   AVER(0 < nSavedRegs);
   AVER(nSavedRegs < 128);       /* sanity check */
+
+  /* .assume.stack: This implementation assumes that the stack grows
+   * downwards, so that the address of the jmp_buf is the base of the
+   * part of the stack that needs to be scanned. (StackScanInner makes
+   * the same assumption.)
+   */
+  AVER(stackHot < stackCold);
 
   arena = ss->arena;
 
@@ -46,8 +51,8 @@ Res StackScanInner(ScanState ss, Word *stackCold, Word *stackHot,
      (trans.c).  Otherwise, scan the whole stack. */
 
   if (arena->stackAtArenaEnter != NULL) {
-    AVER(stackHot < arena->stackAtArenaEnter);
-    AVER(arena->stackAtArenaEnter < stackCold);
+    AVER(stackHot < arena->stackAtArenaEnter); /* .assume.stack */
+    AVER(arena->stackAtArenaEnter < stackCold); /* .assume.stack */
     res = TraceScanArea(ss, stackHot, stackHot + nSavedRegs,
                         scan_area, closure);
     if (res != ResOK)
