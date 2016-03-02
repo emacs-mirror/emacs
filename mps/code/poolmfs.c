@@ -249,7 +249,8 @@ static Res MFSAlloc(Addr *pReturn, Pool pool, Size size,
   if(f == NULL)
   {
     Addr base;
-    
+
+    /* See design.mps.bootstrap.land.sol.pool. */
     if (!mfs->extendSelf)
       return ResLIMIT;
 

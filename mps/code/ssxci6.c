@@ -23,12 +23,15 @@ SRCID(ssxci6, "$Id$");
 #define JB_RSP 16
 
 
-/* StackContextStackTop -- return the "top" of the mutator's stack at
- * the point when the context was saved by STACK_CONTEXT_SAVE. */
+/* StackContextStackHot -- hot end of the mutator's stack
+ *
+ * Retrieve the stack pointer at the point when the context was saved
+ * by STACK_CONTEXT_SAVE.
+ */
 
-Addr *StackContextStackTop(StackContext sc)
+Word *StackContextStackHot(StackContext sc)
 {
-  Addr **p_rsp = PointerAdd(&(sc)->jumpBuffer, JB_RSP);
+  Word **p_rsp = PointerAdd(&(sc)->jumpBuffer, JB_RSP);
   return *p_rsp;
 }
 
@@ -44,10 +47,12 @@ Addr *StackContextStackTop(StackContext sc)
  * <http://www.opensource.apple.com/source/Libc/Libc-825.24/include/setjmp.h>
  */
 
-Res StackContextScan(ScanState ss, StackContext sc)
+Res StackContextScan(ScanState ss, StackContext sc,
+                     mps_area_scan_t scan_area, void *closure)
 {
-  return TraceScanAreaTagged(ss, (void *)sc,
-                             PointerAlignDown(sc + 1, sizeof(Addr)));
+  return TraceScanArea(ss, (void *)sc,
+                       PointerAlignDown(sc + 1, sizeof(Addr)),
+                       scan_area, closure);
 }
 
 

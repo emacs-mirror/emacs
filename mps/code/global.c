@@ -710,7 +710,6 @@ void (ArenaPoll)(Globals globals)
   Clock start;
   Count quanta;
   Size tracedSize;
-  double nextPollThreshold = 0.0;
 
   AVERT(Globals, globals);
 
@@ -718,91 +717,36 @@ void (ArenaPoll)(Globals globals)
     return;
   if (globals->insidePoll)
     return;
-  if(globals->fillMutatorSize < globals->pollThreshold)
+  arena = GlobalsArena(globals);
+  if (!PolicyPoll(arena))
     return;
 
   globals->insidePoll = TRUE;
 
   /* fillMutatorSize has advanced; call TracePoll enough to catch up. */
-  arena = GlobalsArena(globals);
   start = ClockNow();
   quanta = 0;
 
   EVENT3(ArenaPoll, arena, start, 0);
 
-  while(globals->pollThreshold <= globals->fillMutatorSize) {
+  do {
     tracedSize = TracePoll(globals);
-
-    if(tracedSize == 0) {
-      /* No work to do.  Sleep until NOW + a bit. */
-      nextPollThreshold = globals->fillMutatorSize + ArenaPollALLOCTIME;
-    } else {
-      /* We did one quantum of work; consume one unit of 'time'. */
+    if (tracedSize > 0) {
       quanta += 1;
       arena->tracedSize += tracedSize;
-      nextPollThreshold = globals->pollThreshold + ArenaPollALLOCTIME;
     }
-
-    /* Advance pollThreshold; check: enough precision? */
-    AVER(nextPollThreshold > globals->pollThreshold);
-    globals->pollThreshold = nextPollThreshold;
-  }
+  } while (PolicyPollAgain(arena, start, tracedSize));
 
   /* Don't count time spent checking for work, if there was no work to do. */
   if(quanta > 0) {
     arena->tracedTime += (ClockNow() - start) / (double) ClocksPerSec();
   }
 
-  AVER(globals->fillMutatorSize < globals->pollThreshold);
+  AVER(!PolicyPoll(arena));
 
   EVENT3(ArenaPoll, arena, start, quanta);
 
   globals->insidePoll = FALSE;
-}
-
-/* Work out whether we have enough time here to collect the world,
- * and whether much time has passed since the last time we did that
- * opportunistically. */
-static Bool arenaShouldCollectWorld(Arena arena,
-                                    double interval,
-                                    double multiplier,
-                                    Clock now,
-                                    Clock clocks_per_sec)
-{
-  double scanRate;
-  Size arenaSize;
-  double arenaScanTime;
-  double sinceLastWorldCollect;
-
-  /* don't collect the world if we're not given any time */
-  if ((interval > 0.0) && (multiplier > 0.0)) {
-    /* don't collect the world if we're already collecting. */
-    if (arena->busyTraces == TraceSetEMPTY) {
-      /* don't collect the world if it's very small */
-      arenaSize = ArenaCommitted(arena) - ArenaSpareCommitted(arena);
-      if (arenaSize > 1000000) {
-        /* how long would it take to collect the world? */
-        if ((arena->tracedSize > 1000000.0) &&
-            (arena->tracedTime > 1.0))
-          scanRate = arena->tracedSize / arena->tracedTime;
-        else
-          scanRate = 25000000.0; /* a reasonable default. */
-        arenaScanTime = arenaSize / scanRate;
-        arenaScanTime += 0.1;   /* for overheads. */
-
-        /* how long since we last collected the world? */
-        sinceLastWorldCollect = ((now - arena->lastWorldCollect) /
-                                 (double) clocks_per_sec);
-        /* have to be offered enough time, and it has to be a long time
-         * since we last did it. */
-        if ((interval * multiplier > arenaScanTime) &&
-            sinceLastWorldCollect > arenaScanTime * 10.0) {
-          return TRUE;
-        }
-      }
-    }
-  }
-  return FALSE;
 }
 
 Bool ArenaStep(Globals globals, double interval, double multiplier)
@@ -826,8 +770,8 @@ Bool ArenaStep(Globals globals, double interval, double multiplier)
 
   stepped = FALSE;
 
-  if (arenaShouldCollectWorld(arena, interval, multiplier,
-                              start, clocks_per_sec))
+  if (PolicyShouldCollectWorld(arena, interval, multiplier,
+                               start, clocks_per_sec))
   {
     Res res;
     Trace trace;

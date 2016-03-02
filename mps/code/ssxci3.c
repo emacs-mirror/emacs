@@ -23,21 +23,26 @@ SRCID(ssxci3, "$Id$");
 #define JB_ESP 36
 
 
-/* StackContextStackTop -- return the "top" of the mutator's stack at
- * the point when the context was saved by STACK_CONTEXT_SAVE. */
+/* StackContextStackHot -- hot end of the mutator's stack
+ *
+ * Retrieve the stack pointer at the point when the context was saved
+ * by STACK_CONTEXT_SAVE.
+ */
 
-Addr *StackContextStackTop(StackContext sc)
+Word *StackContextStackHot(StackContext sc)
 {
-  Addr **p_esp = PointerAdd(&sc->jumpBuffer, JB_ESP);
+  Word **p_esp = PointerAdd(&sc->jumpBuffer, JB_ESP);
   return *p_esp;
 }
 
 
 /* StackContextScan -- scan references in the stack context */
 
-Res StackContextScan(ScanState ss, StackContext sc)
+Res StackContextScan(ScanState ss, StackContext sc,
+                     mps_area_scan_t scan_area, void *closure)
 {
-  return TraceScanAreaTagged(ss, (void *)sc, (void *)(sc + 1));
+  return TraceScanArea(ss, (void *)sc, (void *)(sc + 1),
+                       scan_area, closure);
 }
 
 

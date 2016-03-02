@@ -72,10 +72,13 @@ typedef struct _JUMP_BUFFER {
 } _JUMP_BUFFER;
 
 
-/* StackContextStackTop -- return the "top" of the mutator's stack at
- * the point when the context was saved by STACK_CONTEXT_SAVE. */
+/* StackContextStackHot -- hot end of the mutator's stack
+ *
+ * Retrieves the stack pointer at the point when the context was saved
+ * by STACK_CONTEXT_SAVE.
+ */
 
-Addr *StackContextStackTop(StackContext sc)
+Word *StackContextStackHot(StackContext sc)
 {
   _JUMP_BUFFER *jb = (_JUMP_BUFFER *)&sc->jumpBuffer;
   Addr **p_rsp = (void *)&jb->Rsp;
@@ -85,7 +88,8 @@ Addr *StackContextStackTop(StackContext sc)
 
 /* StackContextScan -- scan references in the stack context */
 
-Res StackContextScan(ScanState ss, StackContext sc)
+Res StackContextScan(ScanState ss, StackContext sc,
+                     mps_area_scan_t scan_area, void *closure)
 {
   _JUMP_BUFFER *jb = (_JUMP_BUFFER *)&sc->jumpBuffer;
   Addr *p_rbx = (void *)&jb->Rbx;
@@ -93,13 +97,13 @@ Res StackContextScan(ScanState ss, StackContext sc)
   /* These checks will just serve to warn us at compile-time if the
      setjmp.h header changes to indicate that the registers we want aren't
      saved any more. */
-  AVER(sizeof jb->Rdi == sizeof(Addr));
-  AVER(sizeof jb->Rsi == sizeof(Addr));
-  AVER(sizeof jb->Rbp == sizeof(Addr));
-  AVER(sizeof jb->R12 == sizeof(Addr));
-  AVER(sizeof jb->R13 == sizeof(Addr));
-  AVER(sizeof jb->R14 == sizeof(Addr));
-  AVER(sizeof jb->R15 == sizeof(Addr));
+  AVER(sizeof jb->Rdi == sizeof(Word));
+  AVER(sizeof jb->Rsi == sizeof(Word));
+  AVER(sizeof jb->Rbp == sizeof(Word));
+  AVER(sizeof jb->R12 == sizeof(Word));
+  AVER(sizeof jb->R13 == sizeof(Word));
+  AVER(sizeof jb->R14 == sizeof(Word));
+  AVER(sizeof jb->R15 == sizeof(Word));
 
   /* The layout of the jmp_buf forces us to harmlessly scan Rsp as well. */
   AVER(offsetof(_JUMP_BUFFER, Rsp) == offsetof(_JUMP_BUFFER, Rbx) + 8);
@@ -111,7 +115,7 @@ Res StackContextScan(ScanState ss, StackContext sc)
   AVER(offsetof(_JUMP_BUFFER, R14) == offsetof(_JUMP_BUFFER, Rbx) + 56);
   AVER(offsetof(_JUMP_BUFFER, R15) == offsetof(_JUMP_BUFFER, Rbx) + 64);
 
-  return TraceScanAreaTagged(ss, p_rbx, p_rbx + 9);
+  return TraceScanArea(ss, p_rbx, p_rbx + 9, scan_area, closure);
 }
 
 

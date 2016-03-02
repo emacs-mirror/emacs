@@ -406,7 +406,7 @@ extern Size TracePoll(Globals globals);
 extern Rank TraceRankForAccess(Arena arena, Seg seg);
 extern void TraceSegAccess(Arena arena, Seg seg, AccessSet mode);
 
-extern void TraceQuantum(Trace trace);
+extern void TraceAdvance(Trace trace);
 extern Res TraceStartCollectAll(Trace *traceReturn, Arena arena, int why);
 extern Res TraceDescribe(Trace trace, mps_lib_FILE *stream, Count depth);
 
@@ -475,10 +475,9 @@ extern double TraceWorkFactor;
     } \
   END
 
-extern Res TraceScanArea(ScanState ss, Addr *base, Addr *limit);
-extern Res TraceScanAreaTagged(ScanState ss, Addr *base, Addr *limit);
-extern Res TraceScanAreaMasked(ScanState ss,
-                               Addr *base, Addr *limit, Word mask);
+extern Res TraceScanArea(ScanState ss, Word *base, Word *limit,
+                         mps_area_scan_t scan_area,
+                         void *closure);
 extern void TraceScanSingleRef(TraceSet ts, Rank rank, Arena arena,
                                Seg seg, Ref *refIO);
 
@@ -627,8 +626,8 @@ extern void ArenaSetSpareCommitLimit(Arena arena, Size limit);
 extern Size ArenaNoPurgeSpare(Arena arena, Size size);
 extern Res ArenaNoGrow(Arena arena, LocusPref pref, Size size);
 
-extern double ArenaMutatorAllocSize(Arena arena);
 extern Size ArenaAvail(Arena arena);
+extern Size ArenaCollectable(Arena arena);
 
 extern Res ArenaExtend(Arena, Addr base, Size size);
 
@@ -653,9 +652,23 @@ extern Res ReservoirWithdraw(Addr *baseReturn, Tract *baseTractReturn,
 
 extern Res ArenaAlloc(Addr *baseReturn, LocusPref pref,
                       Size size, Pool pool, Bool withReservoirPermit);
+extern Res ArenaFreeLandAlloc(Tract *tractReturn, Arena arena, ZoneSet zones,
+                              Bool high, Size size, Pool pool);
 extern void ArenaFree(Addr base, Size size, Pool pool);
 
 extern Res ArenaNoExtend(Arena arena, Addr base, Size size);
+
+
+/* Policy interface */
+
+extern Res PolicyAlloc(Tract *tractReturn, Arena arena, LocusPref pref,
+                       Size size, Pool pool);
+extern Bool PolicyShouldCollectWorld(Arena arena, double interval,
+                                     double multiplier, Clock now,
+                                     Clock clocks_per_sec);
+extern Bool PolicyStartTrace(Trace *traceReturn, Arena arena);
+extern Bool PolicyPoll(Arena arena);
+extern Bool PolicyPollAgain(Arena arena, Clock start, Size tracedSize);
 
 
 /* Locus interface */
@@ -848,6 +861,7 @@ extern Res FormatCreate(Format *formatReturn, Arena arena, ArgList args);
 extern void FormatDestroy(Format format);
 extern Arena FormatArena(Format format);
 extern Res FormatDescribe(Format format, mps_lib_FILE *stream, Count depth);
+extern Res FormatScan(Format format, ScanState ss, Addr base, Addr limit);
 
 
 /* Reference Interface -- see <code/ref.c> */
@@ -950,17 +964,26 @@ extern void LDMerge(mps_ld_t ld, Arena arena, mps_ld_t from);
 
 /* Root Interface -- see <code/root.c> */
 
-extern Res RootCreateTable(Root *rootReturn, Arena arena,
-                           Rank rank, RootMode mode,
-                           Addr *base, Addr *limit);
-extern Res RootCreateTableMasked(Root *rootReturn, Arena arena,
-                                 Rank rank, RootMode mode,
-                                 Addr *base, Addr *limit,
-                                 Word mask);
-extern Res RootCreateReg(Root *rootReturn, Arena arena,
-                           Rank rank, Thread thread,
-                           mps_reg_scan_t scan,
-                           void *p, size_t s);
+extern Res RootCreateArea(Root *rootReturn, Arena arena,
+                          Rank rank, RootMode mode,
+                          Word *base, Word *limit,
+                          mps_area_scan_t scan_area,
+                          void *closure);
+extern Res RootCreateAreaTagged(Root *rootReturn, Arena arena,
+                                Rank rank, RootMode mode,
+                                Word *base, Word *limit,
+                                mps_area_scan_t scan_area,
+                                Word mask, Word pattern);
+extern Res RootCreateThread(Root *rootReturn, Arena arena,
+                            Rank rank, Thread thread,
+                            mps_area_scan_t scan_area,
+                            void *closure,
+                            Word *stackCold);
+extern Res RootCreateThreadTagged(Root *rootReturn, Arena arena,
+                                  Rank rank, Thread thread,
+                                  mps_area_scan_t scan_area,
+                                  Word mask, Word pattern,
+                                  Word *stackCold);
 extern Res RootCreateFmt(Root *rootReturn, Arena arena,
                            Rank rank, RootMode mode,
                            mps_fmt_scan_t scan,

@@ -23,6 +23,23 @@ New features
    :c:macro:`MPS_KEY_SPARE_COMMIT_LIMIT` sets the :term:`spare
    commit limit` for the arena.
 
+#. New area scanning functions :c:func:`mps_scan_area`,
+   :c:func:`mps_scan_area_masked`, :c:func:`mps_scan_area_tagged`,
+   :c:func:`mps_scan_area_tagged_or_zero` for use when scanning,
+   especially when scanning threads and :term:`tagged references`.
+
+#. New thread root functions :c:func:`mps_root_create_thread`,
+   :c:func:`mps_root_create_thread_tagged`, and
+   :c:func:`mps_root_create_thread_scanned` allow flexible scanning of
+   thread stacks and registers in any format, with convenient
+   implementations provided for :term:`tagged references`.
+
+#. New function :c:func:`mps_root_create_table_tagged` for tables of roots
+   containing :term:`tagged references`.
+
+#. New area root functions :c:func:`mps_root_create_area` and
+   :c:func:`mps_root_create_area_tagged` for areas of memory
+   that can be scanned by area scanning functions.
 
 Interface changes
 .................
@@ -36,6 +53,12 @@ Interface changes
    :c:func:`mps_mvt_free_size` and :c:func:`mps_mvt_size` are now
    deprecated in favour of the generic functions
    :c:func:`mps_pool_free_size` and :c:func:`mps_pool_total_size`.
+
+#. The function :c:func:`mps_root_create_reg` is deprecated in favour
+   of :c:func:`mps_root_create_thread_tagged`.
+
+#. The function :c:func:`mps_root_create_table_masked` is deprecated in
+   favour of :c:func:`mps_root_create_table_tagged`.
 
 Other changes
 .............

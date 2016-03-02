@@ -25,10 +25,13 @@ SRCID(ssw3i3mv, "$Id$");
 #endif
 
 
-/* StackContextStackTop -- return the "top" of the mutator's stack at
- * the point when the context was saved by STACK_CONTEXT_SAVE. */
+/* StackContextStackHot -- hot end of the mutator's stack
+ *
+ * Retrieves the stack pointer at the point when the context was saved
+ * by STACK_CONTEXT_SAVE.
+ */
 
-Addr *StackContextStackTop(StackContext sc)
+Word *StackContextStackHot(StackContext sc)
 {
   _JUMP_BUFFER *jb = (_JUMP_BUFFER *)&sc->jumpBuffer;
   Addr **p_esp = (void *)&jb->Esp;
@@ -38,7 +41,8 @@ Addr *StackContextStackTop(StackContext sc)
 
 /* StackContextScan -- scan references in the stack context */
 
-Res StackContextScan(ScanState ss, StackContext sc)
+Res StackContextScan(ScanState ss, StackContext sc,
+                     mps_area_scan_t scan_area, void *closure)
 {
   _JUMP_BUFFER *jb = (_JUMP_BUFFER *)&sc->jumpBuffer;
   Addr *p_ebx = (void *)&jb->Ebx;
@@ -46,17 +50,17 @@ Res StackContextScan(ScanState ss, StackContext sc)
   /* These checks will just serve to warn us at compile-time if the
      setjmp.h header changes to indicate that the registers we want aren't
      saved any more. */
-  AVER(sizeof jb->Edi == sizeof(Addr));
-  AVER(sizeof jb->Esi == sizeof(Addr));
-  AVER(sizeof jb->Ebx == sizeof(Addr));
+  AVER(sizeof jb->Edi == sizeof(Word));
+  AVER(sizeof jb->Esi == sizeof(Word));
+  AVER(sizeof jb->Ebx == sizeof(Word));
 
   /* Ensure that the callee-save registers will be found by
-     TraceScanAreaTagged when it's passed the address of the Ebx
+     TraceScanArea when it's passed the address of the Ebx
      field. */
   AVER(offsetof(_JUMP_BUFFER, Edi) == offsetof(_JUMP_BUFFER, Ebx) + 4);
   AVER(offsetof(_JUMP_BUFFER, Esi) == offsetof(_JUMP_BUFFER, Ebx) + 8);
 
-  return TraceScanAreaTagged(ss, p_ebx, p_ebx + 3);
+  return TraceScanArea(ss, p_ebx, p_ebx + 3, scan_area, closure);
 }
 
 

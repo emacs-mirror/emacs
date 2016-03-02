@@ -1,80 +1,71 @@
-/* ss.c: STACK SCANNING
+/* ssixi6.c: UNIX/x64 STACK SCANNING
  *
  * $Id$
  * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
- * This scans the mutator's stack and fixes the registers that may
- * contain roots. See <design/ss/>.
+ *  This scans the stack and fixes the registers which may contain
+ *  roots.  See <design/thread-manager/>
  *
- * This is a generic implementation, but it makes assumptions that,
- * while true on all the platforms we currently (version 1.115)
- * support, may not be true on all platforms. See
- * <design/ss/#sol.platform>.
- * 
- * .assume.desc: The stack is descending (and so stackTop is a lower
- * address than stackBot).
+ *  This code was branched from ssixi3.c (32-bit Intel) initially for the
+ *  port to XCI6LL (Mac OS X on x86_64 with Clang).
  *
- * .assume.full: The stack convention is "full" (and so we must scan
- * the word pointed to by stackTop but not the word pointed to by
- * stackBot).
+ *  This code is common to more than one Unix implementation on
+ *  Intel hardware (but is not portable Unix code).  According to Wikipedia,
+ *  all the non-Windows platforms use the System V AMD64 ABI.  See
+ *  .sources.callees.saves.
  *
- * .assume.align: Addresses on the stack are aligned to sizeof(Addr).
+ * SOURCES
+ *
+ * .sources.callees.saves:
+ *  "Registers %rbp, %rbx and %r12 through %r15 "belong" to the calling
+ *   function and the called function is required to preserve their values.
+ *   In other words, a called function must preserve these registers’ values
+ *   for its caller." -- System V AMD64 ABI
+ *  <http://x86-64.org/documentation/abi.pdf>
+ *
+ * ASSUMPTIONS
+ *
+ * .assume.align: The stack pointer is assumed to be aligned on a word
+ * boundary.
+ *
+ * .assume.asm.stack: The compiler must not do wacky things with the
+ * stack pointer around a call since we need to ensure that the
+ * callee-save regs are visible during TraceScanArea.
+ *
+ * .assume.asm.order: The volatile modifier should prevent movement
+ * of code, which might break .assume.asm.stack.
+ *
  */
+
 
 #include "mpm.h"
 
-SRCID(ss, "$Id$");
+SRCID(ssixi6, "$Id$");
 
 
-/* StackScan -- scan the mutator's stack and registers */
+/* .assume.asm.order */
+#define ASMV(x) __asm__ volatile (x)
 
-static Res stackScanInner(ScanState ss, Word *stackCold,
-                          StackContext sc,
-                          mps_area_scan_t scan_area, void *closure)
-{
-  Word *stackHot;
-  Res res;
-
-  AVERT(ScanState, ss);
-
-  stackHot = StackContextStackHot(sc);
-  AVER(stackHot < stackCold);                         /* .assume.desc */
-  AVER(AddrIsAligned((Addr)stackHot, sizeof(Addr)));  /* .assume.align */
-
-  res = TraceScanArea(ss, stackHot, stackCold,
-                      scan_area, closure);            /* .assume.full */
-  if (res != ResOK)
-    return res;
-
-  res = StackContextScan(ss, sc, scan_area, closure);
-  if (res != ResOK)
-    return res;
-
-  return ResOK;
-}
 
 Res StackScan(ScanState ss, Word *stackCold,
-              mps_area_scan_t scan_area, void *closure)
+              mps_area_scan_t scan_area,
+              void *closure)
 {
-  Arena arena;
-  Res res;
-
-  AVERT(ScanState, ss);
-
-  arena = ss->arena;
-
-  AVER(arena->scAtArenaEnter != NULL);
-  if (arena->scAtArenaEnter) {
-    res = stackScanInner(ss, stackCold, arena->scAtArenaEnter,
-                         scan_area, closure);
-  } else {
-    /* Somehow missed saving the context at the entry point (see
-     * <design/ss/#sol.entry-points.fragile>): do it now. */
-    StackContextStruct sc;
-    STACK_CONTEXT_SAVE(&sc);
-    res = stackScanInner(ss, stackCold, &sc, scan_area, closure);
-  }
-  return res;
+  Word calleeSaveRegs[6];
+  
+  /* .assume.asm.stack */
+  /* Store the callee save registers on the stack so they get scanned
+   * as they may contain roots.
+   */
+  ASMV("mov %%rbp, %0" : "=m" (calleeSaveRegs[0]));
+  ASMV("mov %%rbx, %0" : "=m" (calleeSaveRegs[1]));
+  ASMV("mov %%r12, %0" : "=m" (calleeSaveRegs[2]));
+  ASMV("mov %%r13, %0" : "=m" (calleeSaveRegs[3]));
+  ASMV("mov %%r14, %0" : "=m" (calleeSaveRegs[4]));
+  ASMV("mov %%r15, %0" : "=m" (calleeSaveRegs[5]));
+  
+  return StackScanInner(ss, stackCold, calleeSaveRegs, NELEMS(calleeSaveRegs),
+                        scan_area, closure);
 }
 
 

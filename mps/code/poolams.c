@@ -1318,12 +1318,12 @@ static Res amsScanObject(Seg seg, Index i, Addr p, Addr next, void *clos)
 
   /* @@@@ This isn't quite right for multiple traces. */
   if (closure->scanAllObjects || AMS_IS_GREY(seg, i)) {
-    res = (*format->scan)(&closure->ss->ss_s,
-                          AddrAdd(p, format->headerSize),
-                          AddrAdd(next, format->headerSize));
+    res = FormatScan(format,
+                     closure->ss,
+                     AddrAdd(p, format->headerSize),
+                     AddrAdd(next, format->headerSize));
     if (res != ResOK)
       return res;
-    closure->ss->scannedSize += AddrOffset(p, next);
     if (!closure->scanAllObjects) {
       Index j = AMS_ADDR_INDEX(seg, next);
       AVER(!AMS_IS_INVALID_COLOUR(seg, i));
@@ -1412,7 +1412,7 @@ Res AMSScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
             next = AddrAdd(p, alignment);
           }
           j = AMS_ADDR_INDEX(seg, next);
-          res = (*format->scan)(&ss->ss_s, clientP, clientNext);
+          res = FormatScan(format, ss, clientP, clientNext);
           if (res != ResOK) {
             /* <design/poolams/#marked.scan.fail> */
             amsseg->marksChanged = TRUE;
@@ -1422,7 +1422,6 @@ Res AMSScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
           /* Check that there haven't been any ambiguous fixes during the */
           /* scan, because AMSFindGrey won't work otherwise. */
           AVER_CRITICAL(!amsseg->ambiguousFixes);
-          ss->scannedSize += AddrOffset(p, next);
           AMS_GREY_BLACKEN(seg, i);
           if (i+1 < j)
             AMS_RANGE_WHITE_BLACKEN(seg, i+1, j);

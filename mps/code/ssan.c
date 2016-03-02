@@ -13,8 +13,10 @@
 SRCID(ssan, "$Id$");
 
 
-/* StackContextStackTop -- return the "top" of the mutator's stack at
- * the point when the context was saved by STACK_CONTEXT_SAVE.
+/* StackContextStackHot -- top" of the mutator's stack
+ *
+ * Retrieves the stack pointer at the point when the context was
+ * saved by STACK_CONTEXT_SAVE.
  *
  * .assume: This assumes that the structure pointed to by sc is
  * stack-allocated "above" the mutator's stack, and so its address is
@@ -22,7 +24,7 @@ SRCID(ssan, "$Id$");
  * use of STACK_CONTEXT_SAVE in mpsi.c assures this.
  */
 
-Addr *StackContextStackTop(StackContext sc)
+Word *StackContextStackHot(StackContext sc)
 {
   return (void *)sc;
 }
@@ -32,13 +34,14 @@ Addr *StackContextStackTop(StackContext sc)
  *
  * This conservatively scans the whole of the StackContext. The
  * PointerAlignDown is necessary in case the size of the jump buffer
- * is not a multiple of sizeof(Addr).
+ * is not a multiple of sizeof(Word).
  */
 
-Res StackContextScan(ScanState ss, StackContext sc)
+Res StackContextScan(ScanState ss, StackContext sc,
+                     mps_area_scan_t scan_area, void *closure)
 {
-  return TraceScanAreaTagged(ss, (void *)sc,
-                             PointerAlignDown(sc + 1, sizeof(Addr)));
+  return TraceScanArea(ss, (void *)sc, PointerAlignDown(sc + 1, sizeof(Word)),
+                       scan_area, closure);
 }
 
 
