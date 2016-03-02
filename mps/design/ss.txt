@@ -66,21 +66,23 @@ been spilled onto the stack by the time the MPS is entered, so will be
 scanned by the stack scan. Floating-point registers and debugging
 registers do not, as far as we are aware, contain pointers.
 
-_`.sol.inner`: Having located the top of the stack (``stackTop``), and
-spilled the root registers into the next ``n`` words, implementations
-call the generic function ``StackScanInner(ss, stackBot, stackTop,
-n)`` to actually do the scanning.
+_`.sol.inner`: Having located the hot end of the stack (``stackHot``),
+and spilled the root registers into the next ``n`` words,
+implementations call the generic higher-order function
+``StackScanInner(ss, stackCold, stackHot, n, scan_area, closure)`` to actually do the scanning.
 
 
 Interface
 ---------
 
-``Res StackScan(ScanState ss, Addr *stackBot)``
+``Res StackScan(ScanState ss, Word *stackCold,
+                mps_area_scan_t scan_area,
+                void *closure)``
 
 _`.if.scan`: Scan the root registers of the current thread, and the
-control stack between ``stackBot`` and the top of the stack, in the
-context of the given scan state. Return ``ResOK`` if successful, or
-another result code if not.
+control stack between ``stackCold`` and the hot end of the stack, in
+the context of the given scan state, using ``scan_area``. Return
+``ResOK`` if successful, or another result code if not.
 
 
 Issue
