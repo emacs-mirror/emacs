@@ -291,6 +291,9 @@ $(PFM)\$(VARIETY)\segsmss.exe: $(PFM)\$(VARIETY)\segsmss.obj \
 $(PFM)\$(VARIETY)\steptest.exe: $(PFM)\$(VARIETY)\steptest.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
 
+$(PFM)\$(VARIETY)\tagtest.exe: $(PFM)\$(VARIETY)\tagtest.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
+
 $(PFM)\$(VARIETY)\teletest.exe: $(PFM)\$(VARIETY)\teletest.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
 

@@ -34,7 +34,7 @@ SRCID(ssw3i3mv, "$Id$");
 Word *StackContextStackHot(StackContext sc)
 {
   _JUMP_BUFFER *jb = (_JUMP_BUFFER *)&sc->jumpBuffer;
-  Addr **p_esp = (void *)&jb->Esp;
+  Word **p_esp = (void *)&jb->Esp;
   return *p_esp;
 }
 
@@ -45,7 +45,7 @@ Res StackContextScan(ScanState ss, StackContext sc,
                      mps_area_scan_t scan_area, void *closure)
 {
   _JUMP_BUFFER *jb = (_JUMP_BUFFER *)&sc->jumpBuffer;
-  Addr *p_ebx = (void *)&jb->Ebx;
+  Word *p_ebx = (void *)&jb->Ebx;
 
   /* These checks will just serve to warn us at compile-time if the
      setjmp.h header changes to indicate that the registers we want aren't
