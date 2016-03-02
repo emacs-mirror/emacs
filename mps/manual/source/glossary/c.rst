@@ -285,6 +285,25 @@ Memory Management Glossary: C
         fragmentation, and which coalescing strategies are effective
         under what circumstances.
 
+    cold end
+
+        .. opposite:: :term:`hot end`
+
+        A :term:`control stack` has two ends: the oldest items are at
+        the *cold end* and the newest items are at the *hot end*.
+        Sometimes the cold end is called the "bottom" of the stack,
+        but that is misleading when the stack grows downwards, as it
+        does on common computing platforms.
+
+        .. mps:specific::
+
+            In order for the MPS to be able to :term:`scan`
+            :term:`references` on the stack, the :term:`client
+            program` must pass the location of the cold end of the
+            stack (or the part of the stack that might contain
+            references to memory managed by the MPS) to
+            :c:func:`mps_root_create_thread`.
+
     collect
 
         An :term:`object` is collected when it is :term:`reclaimed` by
@@ -570,7 +589,7 @@ Memory Management Glossary: C
 
         .. similar:: :term:`stack`.
 
-        .. seealso:: :term:`data stack`.
+        .. seealso:: :term:`cold end`, :term:`data stack`, :term:`hot end`.
 
     cool
 
