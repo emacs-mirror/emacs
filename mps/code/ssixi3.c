@@ -1,79 +1,72 @@
-/* th.h: THREAD MANAGER
+/* ssixi3.c: UNIX/INTEL STACK SCANNING
  *
- *  $Id$
- *  Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * $Id$
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
- *  .purpose: Provides thread suspension facilities to the shield.
- *  See <design/thread-manager/>.  Each thread has to be
- *  individually registered and deregistered with an arena.
+ *  This scans the stack and fixes the registers which may contain
+ *  roots.  See <design/thread-manager/>
+ *
+ *  This code was originally developed and tested on Linux, and then
+ *  copied to the FreeBSD and Darwin (OS X) operating systems where it
+ *  also seems to work.  Note that on FreeBSD and Darwin it has not
+ *  been indepently verified with respect to any ABI documentation.
+ *
+ *  This code is common to more than one Unix implementation on
+ *  Intel hardware (but is not portable Unix code).
+ *
+ *  The registers edi, esi, ebx are the registers defined to be preserved
+ *  across function calls and therefore may contain roots.
+ *  These are pushed on the stack for scanning.
+ *
+ * SOURCES
+ *
+ * .source.callees.saves: Set of callee-saved registers taken from
+ * CALL_USED_REGISTERS in <gcc-sources>/config/i386/i386.h.
+ * ebp added to the list because gcc now doesn't always use it as
+ * a frame pointer so it could contain a root.
+ *
+ * ASSUMPTIONS
+ *
+ * .assume.align: The stack pointer is assumed to be aligned on a word
+ * boundary.
+ *
+ * .assume.asm.stack: The compiler must not do wacky things with the
+ * stack pointer around a call since we need to ensure that the
+ * callee-save regs are visible during TraceScanArea.
+ *
+ * .assume.asm.order: The volatile modifier should prevent movement
+ * of code, which might break .assume.asm.stack.
+ *
  */
 
-#ifndef th_h
-#define th_h
 
-#include "mpmtypes.h"
-#include "ring.h"
+#include "mpm.h"
 
-
-#define ThreadSig       ((Sig)0x519286ED) /* SIGnature THREaD */
-
-extern Bool ThreadCheck(Thread thread);
+SRCID(ssixi3, "$Id$");
 
 
-/*  ThreadCheckSimple
- *
- *  Simple thread-safe check of a thread object.
- */
-
-extern Bool ThreadCheckSimple(Thread thread);
+/* .assume.asm.order */
+#define ASMV(x) __asm__ volatile (x)
 
 
-extern Res ThreadDescribe(Thread thread, mps_lib_FILE *stream, Count depth);
+Res StackScan(ScanState ss, Word *stackCold,
+              mps_area_scan_t scan_area,
+              void *closure)
+{
+  Word calleeSaveRegs[4];
 
-
-/*  Register/Deregister
- *
- *  Explicitly register/deregister a thread on the arena threadRing.
- *  Register returns a "Thread" value which needs to be used
- *  for deregistration.
- *
- *  Threads must not be multiply registered in the same arena.
- */
-
-extern Res ThreadRegister(Thread *threadReturn, Arena arena);
-
-extern void ThreadDeregister(Thread thread, Arena arena);
-
-
-/*  ThreadRingSuspend/Resume
- *
- *  These functions suspend/resume the threads on the ring. If the
- *  current thread is among them, it is not suspended, nor is any
- *  attempt to resume it made. Threads that can't be suspended/resumed
- *  because they are dead are moved to deadRing.
- */
-
-extern void ThreadRingSuspend(Ring threadRing, Ring deadRing);
-extern void ThreadRingResume(Ring threadRing, Ring deadRing);
-
-
-/*  ThreadRingThread
- *
- *  Return the thread from an element of the Arena's
- *  thread ring.
- */
-
-extern Thread ThreadRingThread(Ring threadRing);
-
-
-extern Arena ThreadArena(Thread thread);
-
-extern Res ThreadScan(ScanState ss, Thread thread, Word *stackCold,
-                      mps_area_scan_t scan_area,
-                      void *closure);
-
-
-#endif /* th_h */
+  /* .assume.asm.stack */
+  /* Store the callee save registers on the stack so they get scanned 
+   * as they may contain roots.
+   */
+  ASMV("mov %%ebx, %0" : "=m" (calleeSaveRegs[0]));
+  ASMV("mov %%esi, %0" : "=m" (calleeSaveRegs[1]));
+  ASMV("mov %%edi, %0" : "=m" (calleeSaveRegs[2]));
+  ASMV("mov %%ebp, %0" : "=m" (calleeSaveRegs[3]));
+  
+  return StackScanInner(ss, stackCold, calleeSaveRegs, NELEMS(calleeSaveRegs),
+                        scan_area, closure);
+}
 
 
 /* C. COPYRIGHT AND LICENSE

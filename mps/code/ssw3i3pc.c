@@ -50,10 +50,13 @@ typedef struct __JUMP_BUFFER {
 } _JUMP_BUFFER;
 
 
-/* StackContextStackTop -- return the "top" of the mutator's stack at
- * the point when the context was saved by STACK_CONTEXT_SAVE. */
+/* StackContextStackHot -- tho end of the mutator's stack
+ *
+ * Retrieves the stack pointer at the point when the context was saved
+ * by STACK_CONTEXT_SAVE.
+ */
 
-Addr *StackContextStackTop(StackContext sc)
+Word *StackContextStackHot(StackContext sc)
 {
   _JUMP_BUFFER *jb = (_JUMP_BUFFER *)&sc->jumpBuffer;
   Addr **p_esp = (void *)&jb->Esp;
@@ -63,19 +66,27 @@ Addr *StackContextStackTop(StackContext sc)
 
 /* StackContextScan -- scan references in the stack context */
 
-Res StackContextScan(ScanState ss, StackContext sc)
+Res StackContextScan(ScanState ss, StackContext sc,
+                     mps_area_scan_t scan_area, void *closure)
 {
   /* .assume.ms-compat */
   _JUMP_BUFFER *jb = (_JUMP_BUFFER *)&sc->jumpBuffer;
   Addr *p_ebx = (void *)&jb->Ebx;
 
+  /* These checks, on the _JUMP_BUFFER defined above, are mainly here
+   * to maintain similarity to the matching code on the MPS_BUILD_MV
+   * version of this code. */
+  AVER(sizeof(((_JUMP_BUFFER *)jb)->Ebx) == sizeof(Word));
+  AVER(sizeof(((_JUMP_BUFFER *)jb)->Edi) == sizeof(Word));
+  AVER(sizeof(((_JUMP_BUFFER *)jb)->Esi) == sizeof(Word));
+
   /* Ensure that the callee-save registers will be found by
-     TraceScanAreaTagged when it's passed the address of the Ebx
+     TraceScanArea when it's passed the address of the Ebx
      field. */
   AVER(offsetof(_JUMP_BUFFER, Edi) == offsetof(_JUMP_BUFFER, Ebx) + 4);
   AVER(offsetof(_JUMP_BUFFER, Esi) == offsetof(_JUMP_BUFFER, Ebx) + 8);
 
-  return TraceScanAreaTagged(ss, p_ebx, p_ebx + 3);
+  return TraceScanArea(ss, p_ebx, p_ebx + 3, scan_area, closure);
 }
 
 

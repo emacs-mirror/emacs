@@ -53,17 +53,17 @@
 
 /* LANGUAGE EXTENSION */
 
-#define unless(c)	if(!(c))
-#define LENGTH(array)	(sizeof(array) / sizeof(array[0]))
+#define unless(c)       if(!(c))
+#define LENGTH(array)   (sizeof(array) / sizeof(array[0]))
 #define UNUSED(var)     ((void)var)
 
 
 /* CONFIGURATION PARAMETERS */
 
 
-#define SYMMAX		((size_t)255)	/* max length of a symbol */
-#define MSGMAX		((size_t)255)	/* max length of error message */
-#define STRMAX		((size_t)255)	/* max length of a string */
+#define SYMMAX          ((size_t)255)   /* max length of a symbol */
+#define MSGMAX          ((size_t)255)   /* max length of error message */
+#define STRMAX          ((size_t)255)   /* max length of a string */
 
 
 /* DATA TYPES */
@@ -116,54 +116,54 @@ typedef struct type_s {
 } type_s;
 
 typedef struct pair_s {
-  type_t type;			/* TYPE_PAIR */
-  obj_t car, cdr;		/* first and second projections */
+  type_t type;                  /* TYPE_PAIR */
+  obj_t car, cdr;               /* first and second projections */
 } pair_s;
 
 typedef struct symbol_s {
-  type_t type;			/* TYPE_SYMBOL */
+  type_t type;                  /* TYPE_SYMBOL */
   obj_t name;                   /* its name (a string) */
 } symbol_s;
 
 typedef struct integer_s {
-  type_t type;			/* TYPE_INTEGER */
-  long integer;			/* the integer */
+  type_t type;                  /* TYPE_INTEGER */
+  long integer;                 /* the integer */
 } integer_s;
 
 typedef struct special_s {
-  type_t type;			/* TYPE_SPECIAL */
-  const char *name;		/* printed representation, NUL terminated */
+  type_t type;                  /* TYPE_SPECIAL */
+  const char *name;             /* printed representation, NUL terminated */
 } special_s;
 
 typedef struct operator_s {
-  type_t type;			/* TYPE_OPERATOR */
-  const char *name;		/* printed name, NUL terminated */
-  entry_t entry;		/* entry point -- see eval() */
-  obj_t arguments, body;	/* function arguments and code */
-  obj_t env, op_env;		/* closure environments */
+  type_t type;                  /* TYPE_OPERATOR */
+  const char *name;             /* printed name, NUL terminated */
+  entry_t entry;                /* entry point -- see eval() */
+  obj_t arguments, body;        /* function arguments and code */
+  obj_t env, op_env;            /* closure environments */
 } operator_s;
 
 typedef struct string_s {
-  type_t type;			/* TYPE_STRING */
-  size_t length;		/* number of chars in string */
-  char string[1];		/* string, NUL terminated */
+  type_t type;                  /* TYPE_STRING */
+  size_t length;                /* number of chars in string */
+  char string[1];               /* string, NUL terminated */
 } string_s;
 
 typedef struct port_s {
-  type_t type;			/* TYPE_PORT */
-  obj_t name;			/* name of stream */
+  type_t type;                  /* TYPE_PORT */
+  obj_t name;                   /* name of stream */
   FILE *stream;
 } port_s;
 
 typedef struct character_s {
-  type_t type;			/* TYPE_CHARACTER */
-  char c;			/* the character */
+  type_t type;                  /* TYPE_CHARACTER */
+  char c;                       /* the character */
 } character_s;
 
 typedef struct vector_s {
-  type_t type;			/* TYPE_VECTOR */
-  size_t length;		/* number of elements */
-  obj_t vector[1];		/* vector elements */
+  type_t type;                  /* TYPE_VECTOR */
+  size_t length;                /* number of elements */
+  obj_t vector[1];              /* vector elements */
 } vector_s;
 
 /* %%MPS: Objects in AWL pools must be formatted so that aligned
@@ -241,7 +241,7 @@ typedef struct pad_s {
 
 
 typedef union obj_u {
-  type_s type;			/* one of TYPE_* */
+  type_s type;                  /* one of TYPE_* */
   pair_s pair;
   symbol_s symbol;
   integer_s integer;
@@ -260,17 +260,17 @@ typedef union obj_u {
 
 /* structure macros */
 
-#define TYPE(obj)	((obj)->type.type)
-#define CAR(obj)	((obj)->pair.car)
-#define CDR(obj)	((obj)->pair.cdr)
-#define CAAR(obj)	CAR(CAR(obj))
-#define CADR(obj)	CAR(CDR(obj))
-#define CDAR(obj)	CDR(CAR(obj))
-#define CDDR(obj)	CDR(CDR(obj))
-#define CADDR(obj)	CAR(CDDR(obj))
-#define CDDDR(obj)	CDR(CDDR(obj))
-#define CDDAR(obj)	CDR(CDAR(obj))
-#define CADAR(obj)	CAR(CDAR(obj))
+#define TYPE(obj)       ((obj)->type.type)
+#define CAR(obj)        ((obj)->pair.car)
+#define CDR(obj)        ((obj)->pair.cdr)
+#define CAAR(obj)       CAR(CAR(obj))
+#define CADR(obj)       CAR(CDR(obj))
+#define CDAR(obj)       CDR(CAR(obj))
+#define CDDR(obj)       CDR(CDR(obj))
+#define CADDR(obj)      CAR(CDDR(obj))
+#define CDDDR(obj)      CDR(CDDR(obj))
+#define CDDAR(obj)      CDR(CDAR(obj))
+#define CADAR(obj)      CAR(CDAR(obj))
 
 
 /* GLOBAL DATA */
@@ -305,12 +305,12 @@ static mps_root_t symtab_root;
  * See `globals_scan`.
  */
 
-static obj_t obj_empty;		/* (), the empty list */
-static obj_t obj_eof;		/* end of file */
-static obj_t obj_error;		/* error indicator */
-static obj_t obj_true;		/* #t, boolean true */
-static obj_t obj_false;		/* #f, boolean false */
-static obj_t obj_undefined;	/* undefined result indicator */
+static obj_t obj_empty;         /* (), the empty list */
+static obj_t obj_eof;           /* end of file */
+static obj_t obj_error;         /* error indicator */
+static obj_t obj_true;          /* #t, boolean true */
+static obj_t obj_false;         /* #f, boolean false */
+static obj_t obj_undefined;     /* undefined result indicator */
 static obj_t obj_tail;          /* tail recursion indicator */
 static obj_t obj_deleted;       /* deleted key in hashtable */
 static obj_t obj_unused;        /* unused entry in hashtable */
@@ -323,13 +323,13 @@ static obj_t obj_unused;        /* unused entry in hashtable */
  * Scheme language, and are used by the evaluator to parse code.
  */
 
-static obj_t obj_quote;		/* "quote" symbol */
-static obj_t obj_quasiquote;	/* "quasiquote" symbol */
-static obj_t obj_lambda;	/* "lambda" symbol */
-static obj_t obj_begin;		/* "begin" symbol */
-static obj_t obj_else;		/* "else" symbol */
-static obj_t obj_unquote;	/* "unquote" symbol */
-static obj_t obj_unquote_splic;	/* "unquote-splicing" symbol */
+static obj_t obj_quote;         /* "quote" symbol */
+static obj_t obj_quasiquote;    /* "quasiquote" symbol */
+static obj_t obj_lambda;        /* "lambda" symbol */
+static obj_t obj_begin;         /* "begin" symbol */
+static obj_t obj_else;          /* "else" symbol */
+static obj_t obj_unquote;       /* "unquote" symbol */
+static obj_t obj_unquote_splic; /* "unquote-splicing" symbol */
 
 
 /* error handler
@@ -1322,13 +1322,13 @@ static obj_t read_special(FILE *stream, int c)
   switch(tolower(c)) {
     case 't': return obj_true;
     case 'f': return obj_false;
-    case '\\': {		/* character (R4RS 6.6) */
+    case '\\': {                /* character (R4RS 6.6) */
       c = getc(stream);
       if(c == EOF)
         error("read: end of file reading character literal");
       return make_character((char)c);
     }
-    case '(': {			/* vector (R4RS 6.8) */
+    case '(': {                 /* vector (R4RS 6.8) */
       obj_t list = read_list(stream, c);
       obj_t vector = list_to_vector(list);
       if(vector == obj_error)
@@ -1429,7 +1429,7 @@ static obj_t lookup(obj_t env, obj_t symbol)
 static void define(obj_t env, obj_t symbol, obj_t value)
 {
   obj_t binding;
-  assert(TYPE(env) == TYPE_PAIR);	/* always at least one frame */
+  assert(TYPE(env) == TYPE_PAIR);       /* always at least one frame */
   binding = lookup_in_frame(CAR(env), symbol);
   if(binding != obj_undefined)
     CDR(binding) = value;
@@ -1848,7 +1848,7 @@ static obj_t entry_let(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
   unless(TYPE(operands) == TYPE_PAIR &&
          TYPE(CDR(operands)) == TYPE_PAIR)
     error("%s: illegal syntax", operator->operator.name);
-  inner_env = make_pair(obj_empty, env);	/* TODO: common with interpret */
+  inner_env = make_pair(obj_empty, env);        /* TODO: common with interpret */
   bindings = CAR(operands);
   while(TYPE(bindings) == TYPE_PAIR) {
     obj_t binding = CAR(bindings);
@@ -1875,7 +1875,7 @@ static obj_t entry_let_star(obj_t env, obj_t op_env, obj_t operator, obj_t opera
   unless(TYPE(operands) == TYPE_PAIR &&
          TYPE(CDR(operands)) == TYPE_PAIR)
     error("%s: illegal syntax", operator->operator.name);
-  inner_env = make_pair(obj_empty, env);	/* TODO: common with interpret */
+  inner_env = make_pair(obj_empty, env);        /* TODO: common with interpret */
   bindings = CAR(operands);
   while(TYPE(bindings) == TYPE_PAIR) {
     obj_t binding = CAR(bindings);
@@ -1902,7 +1902,7 @@ static obj_t entry_letrec(obj_t env, obj_t op_env, obj_t operator, obj_t operand
   unless(TYPE(operands) == TYPE_PAIR &&
          TYPE(CDR(operands)) == TYPE_PAIR)
     error("%s: illegal syntax", operator->operator.name);
-  inner_env = make_pair(obj_empty, env);	/* TODO: common with interpret */
+  inner_env = make_pair(obj_empty, env);        /* TODO: common with interpret */
   bindings = CAR(operands);
   while(TYPE(bindings) == TYPE_PAIR) {
     obj_t binding = CAR(bindings);
@@ -2626,7 +2626,7 @@ static obj_t entry_divide(obj_t env, obj_t op_env, obj_t operator, obj_t operand
   if(args == obj_empty) {
     if(result == 0)
       error("%s: reciprocal of zero", operator->operator.name);
-    result = 1/result;	/* TODO: pretty meaningless for integers */
+    result = 1/result;  /* TODO: pretty meaningless for integers */
   } else {
     while(TYPE(args) == TYPE_PAIR) {
       unless(TYPE(CAR(args)) == TYPE_INTEGER)
@@ -4311,7 +4311,6 @@ static int start(int argc, char *argv[])
   size_t i;
   volatile obj_t env, op_env, obj;
   jmp_buf jb;
-  mps_addr_t ref;
   mps_res_t res;
   mps_root_t globals_root;
   int exit_code = EXIT_SUCCESS;
@@ -4325,13 +4324,14 @@ static int start(int argc, char *argv[])
   
     /* We must register the global variable 'symtab' as a root before
        creating the symbol table, otherwise the symbol table might be
-       collected in the interval between creation and registration. But
-       we must also ensure that 'symtab' is valid before registration
-       (in this case, by setting it to NULL). See topic/root. */
+       collected in the interval between creation and
+       registration. But we must also ensure that 'symtab' is valid
+       before registration (in this case, by setting it to NULL). See
+       topic/root. */
     symtab = NULL;
-    ref = &symtab;
-    res = mps_root_create_table(&symtab_root, arena, mps_rank_exact(), 0,
-                                ref, 1);
+    res = mps_root_create_area(&symtab_root, arena, mps_rank_exact(), 0,
+			       &symtab, &symtab + 1,
+			       mps_scan_area, NULL);
     if(res != MPS_RES_OK) error("Couldn't register symtab root");
 
     /* The symbol table is strong-key weak-value. */
@@ -4582,14 +4582,7 @@ int main(int argc, char *argv[])
      need to be scanned by the MPS because we are passing references to
      objects around in C parameters, return values, and keeping them in
      automatic local variables. See topic/root. */
-  res = mps_root_create_reg(&reg_root,
-                            arena,
-                            mps_rank_ambig(),
-                            0,
-                            thread,
-                            mps_stack_scan_ambig,
-                            marker,
-                            0);
+  res = mps_root_create_thread(&reg_root, arena, thread, marker);
   if (res != MPS_RES_OK) error("Couldn't create root");
 
   /* Make sure we can pick up finalization messages. */

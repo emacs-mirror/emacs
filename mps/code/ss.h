@@ -44,15 +44,19 @@ typedef struct StackContextStruct {
   END
 
 
-/* StackContextStackTop -- return the "top" of the mutator's stack at
- * the point when the context was saved by STACK_CONTEXT_SAVE. */
+/* StackContextStackHot -- hot end of the mutator's stack
+ *
+ * Retrieves the stacl pointer at the point when the context was saved by
+ * STACK_CONTEXT_SAVE.
+ */
 
-extern Addr *StackContextStackTop(StackContext sc);
+extern Word *StackContextStackHot(StackContext sc);
 
 
 /* StackContextScan -- scan references in the stack context */
 
-extern Res StackContextScan(ScanState ss, StackContext sc);
+extern Res StackContextScan(ScanState ss, StackContext sc,
+                            mps_area_scan_t scan_area, void *closure);
 
 
 /* STACK_CONTEXT_SAVE -- save the callee-saves and stack pointer */
@@ -81,7 +85,8 @@ extern Res StackContextScan(ScanState ss, StackContext sc);
  * STACK_CONTEXT_END.
  */
 
-extern Res StackScan(ScanState ss, Addr *stackBot);
+extern Res StackScan(ScanState ss, Word *stackCold,
+                     mps_area_scan_t scan_area, void *closure);
 
 
 #endif /* ss_h */
