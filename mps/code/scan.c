@@ -15,42 +15,7 @@
 #include "mps.h"
 
 
-/* mps_scan_area -- scan contiguous area of references
- *
- * This is a convenience function for scanning the contiguous area
- * [base, limit).  I.e., it calls Fix on all words from base up to
- * limit, inclusive of base and exclusive of limit.
- *
- * This scanner is appropriate for use when all words in the area are
- * simple untagged references.
- */
-
-mps_res_t mps_scan_area(mps_ss_t ss,
-                        void *base, void *limit,
-                        void *closure)
-{
-  (void)closure; /* unused */
-
-  MPS_SCAN_BEGIN(ss) {
-    mps_word_t *p = base;
-    while (p < (mps_word_t *)limit) {
-      mps_word_t word = *p;
-      mps_addr_t ref = (mps_addr_t)word;
-      if (MPS_FIX1(ss, ref)) {
-        mps_res_t res = MPS_FIX2(ss, &ref);
-        if (res != MPS_RES_OK)
-          return res;
-        *p = (mps_word_t)ref;
-      }
-      ++p;
-    }
-  } MPS_SCAN_END(ss);
-
-  return MPS_RES_OK;
-}
-
-
-#define MPS_SCAN_AREA_TAGGED(test) \
+#define MPS_SCAN_AREA(test) \
   MPS_SCAN_BEGIN(ss) {                                  \
     mps_word_t *p = base;                               \
     while (p < (mps_word_t *)limit) {                   \
@@ -69,6 +34,29 @@ mps_res_t mps_scan_area(mps_ss_t ss,
     }                                                   \
   } MPS_SCAN_END(ss);
 
+
+/* mps_scan_area -- scan contiguous area of references
+ *
+ * This is a convenience function for scanning the contiguous area
+ * [base, limit).  I.e., it calls Fix on all words from base up to
+ * limit, inclusive of base and exclusive of limit.
+ *
+ * This scanner is appropriate for use when all words in the area are
+ * simple untagged references.
+ */
+
+mps_res_t mps_scan_area(mps_ss_t ss,
+                        void *base, void *limit,
+                        void *closure)
+{
+  mps_word_t mask = 0;
+  
+  (void)closure; /* unused */
+
+  MPS_SCAN_AREA(1);
+
+  return MPS_RES_OK;
+}
 
 
 /* mps_scan_area_masked -- scan area masking off tag bits
@@ -90,7 +78,7 @@ mps_res_t mps_scan_area_masked(mps_ss_t ss,
   mps_scan_tag_t tag = closure;
   mps_word_t mask = tag->mask;
 
-  MPS_SCAN_AREA_TAGGED(1);
+  MPS_SCAN_AREA(1);
 
   return MPS_RES_OK;
 }
@@ -113,7 +101,7 @@ mps_res_t mps_scan_area_tagged(mps_ss_t ss,
   mps_word_t mask = tag->mask;
   mps_word_t pattern = tag->pattern;
 
-  MPS_SCAN_AREA_TAGGED(tag_bits == pattern);
+  MPS_SCAN_AREA(tag_bits == pattern);
 
   return MPS_RES_OK;
 }
@@ -142,7 +130,7 @@ mps_res_t mps_scan_area_tagged_or_zero(mps_ss_t ss,
   mps_word_t mask = tag->mask;
   mps_word_t pattern = tag->pattern;
 
-  MPS_SCAN_AREA_TAGGED(tag_bits == 0 || tag_bits == pattern);
+  MPS_SCAN_AREA(tag_bits == 0 || tag_bits == pattern);
 
   return MPS_RES_OK;
 }  
