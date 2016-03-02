@@ -221,15 +221,17 @@ _`.if.sc`: A structure encapsulating the mutator context.
 
 ``Addr StackContextStackTop(StackContext sc)``
 
-_`.if.stack.top`: Return (a conservative approximation to) the address
-of the "top" of the mutator's stack at the point where ``sc`` was
+_`.if.stack.hot`: Return (a conservative approximation to) the address
+of the hot end of the mutator's stack at the point where ``sc`` was
 stored. In the common case, where the stack grows downwards, this is
 actually the lowest stack address.
 
-``Res StackScan(ScanState ss, Addr *stackBot)``
+``Res StackScan(ScanState ss, Addr *stackCold,
+                mps_area_scan_t scan_area,
+                void *closure)``
 
 _`.if.scan`: Scan the stack of the current thread, between
-``stackBot`` and the "top" of the mutator's stack that was recorded by
+``stackCold`` and the hot end of the mutator's stack that was recorded by
 ``STACK_CONTEXT_SAVE()`` when the arena was entered. Also scan any
 roots which were in the mutator's callee-save registers at that point.
 Return ``ResOK`` if successful, or another result code if not. See the
