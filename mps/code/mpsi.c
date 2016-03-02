@@ -1390,9 +1390,9 @@ mps_res_t mps_root_create_table_masked(mps_root_t *mps_root_o,
                                        mps_word_t mask)
 {
   return mps_root_create_area_tagged(mps_root_o, arena, mps_rank, mps_rm,
-				     base, base + size,
-				     mps_scan_area_tagged,
-				     mask, 0);
+                                     base, base + size,
+                                     mps_scan_area_tagged,
+                                     mask, 0);
 }
 
 mps_res_t mps_root_create_fmt(mps_root_t *mps_root_o, mps_arena_t arena,
