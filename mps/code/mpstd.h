@@ -278,6 +278,23 @@
 #define MPS_PF_ALIGN    8
 
 
+#elif defined(__FreeBSD__) && defined (__x86_64__) && defined (__GNUC__) \
+      && defined(__clang__)
+#if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_FRI6LL)
+#error "specified CONFIG_PF_... inconsistent with detected fri6ll"
+#endif
+#define MPS_PF_FRI6LL
+#define MPS_PF_STRING   "fri6ll"
+#define MPS_OS_FR
+#define MPS_ARCH_I6
+#define MPS_BUILD_LL
+#define MPS_T_WORD      unsigned long
+#define MPS_T_ULONGEST  unsigned long /* FIXME: Check this for Clang */
+#define MPS_WORD_WIDTH  64
+#define MPS_WORD_SHIFT  6
+#define MPS_PF_ALIGN    8
+
+
 #else
 #error "The MPS Kit does not have a configuration for this platform out of the box; see manual/build.txt"
 #endif

@@ -157,7 +157,7 @@
 
 /* FreeBSD on 64-bit Intel built with GCC */
 
-#elif defined(MPS_PF_FRI6GC)
+#elif defined(MPS_PF_FRI6GC) || defined(MPS_PF_FRI6LL)
 
 #include "lockix.c"     /* Posix locks */
 #include "thix.c"       /* Posix threading */
