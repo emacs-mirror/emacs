@@ -339,10 +339,10 @@ Memory Management Glossary: R
 
     register
 
-	A *register* is a small unit of :term:`memory (2)` that is
-	attached to a processor and accessible very quickly. Registers
-	typically form the highest level of a computer's
-	:term:`storage hierarchy`.
+        A *register* is a small unit of :term:`memory (2)` that is
+        attached to a processor and accessible very quickly. Registers
+        typically form the highest level of a computer's
+        :term:`storage hierarchy`.
 
         .. relevance::
 

@@ -45,6 +45,7 @@
 #include "poolabs.c"
 #include "trace.c"
 #include "traceanc.c"
+#include "scan.c"
 #include "root.c"
 #include "seg.c"
 #include "format.c"

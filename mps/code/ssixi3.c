@@ -49,9 +49,11 @@ SRCID(ssixi3, "$Id$");
 #define ASMV(x) __asm__ volatile (x)
 
 
-Res StackScan(ScanState ss, Addr *stackBot)
+Res StackScan(ScanState ss, Word *stackCold,
+              mps_area_scan_t scan_area,
+              void *closure)
 {
-  Addr calleeSaveRegs[4];
+  Word calleeSaveRegs[4];
 
   /* .assume.asm.stack */
   /* Store the callee save registers on the stack so they get scanned 
@@ -62,7 +64,8 @@ Res StackScan(ScanState ss, Addr *stackBot)
   ASMV("mov %%edi, %0" : "=m" (calleeSaveRegs[2]));
   ASMV("mov %%ebp, %0" : "=m" (calleeSaveRegs[3]));
   
-  return StackScanInner(ss, stackBot, calleeSaveRegs, NELEMS(calleeSaveRegs));
+  return StackScanInner(ss, stackCold, calleeSaveRegs, NELEMS(calleeSaveRegs),
+                        scan_area, closure);
 }
 
 

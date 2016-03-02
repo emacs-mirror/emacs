@@ -30,7 +30,9 @@
 SRCID(ssw3i6mv, "$Id$");
 
 
-Res StackScan(ScanState ss, Addr *stackBot)
+Res StackScan(ScanState ss, Word *stackCold,
+              mps_area_scan_t scan_area
+              void *closure)
 {
   jmp_buf jb;
 
@@ -41,13 +43,15 @@ Res StackScan(ScanState ss, Addr *stackBot)
   /* These checks will just serve to warn us at compile-time if the
      setjmp.h header changes to indicate that the registers we want aren't
      saved any more. */
-  AVER(sizeof(((_JUMP_BUFFER *)jb)->Rdi) == sizeof(Addr));
-  AVER(sizeof(((_JUMP_BUFFER *)jb)->Rsi) == sizeof(Addr));
-  AVER(sizeof(((_JUMP_BUFFER *)jb)->Rbp) == sizeof(Addr));
-  AVER(sizeof(((_JUMP_BUFFER *)jb)->R12) == sizeof(Addr));
-  AVER(sizeof(((_JUMP_BUFFER *)jb)->R13) == sizeof(Addr));
-  AVER(sizeof(((_JUMP_BUFFER *)jb)->R14) == sizeof(Addr));
-  AVER(sizeof(((_JUMP_BUFFER *)jb)->R15) == sizeof(Addr));
+  AVER(sizeof(((_JUMP_BUFFER *)jb)->Rbx) == sizeof(Word));
+  AVER(sizeof(((_JUMP_BUFFER *)jb)->Rsp) == sizeof(Word));
+  AVER(sizeof(((_JUMP_BUFFER *)jb)->Rbp) == sizeof(Word));
+  AVER(sizeof(((_JUMP_BUFFER *)jb)->Rsi) == sizeof(Word));
+  AVER(sizeof(((_JUMP_BUFFER *)jb)->Rdi) == sizeof(Word));
+  AVER(sizeof(((_JUMP_BUFFER *)jb)->R12) == sizeof(Word));
+  AVER(sizeof(((_JUMP_BUFFER *)jb)->R13) == sizeof(Word));
+  AVER(sizeof(((_JUMP_BUFFER *)jb)->R14) == sizeof(Word));
+  AVER(sizeof(((_JUMP_BUFFER *)jb)->R15) == sizeof(Word));
 
   /* The layout of the jmp_buf forces us to harmlessly scan Rsp as well. */
   AVER(offsetof(_JUMP_BUFFER, Rsp) == offsetof(_JUMP_BUFFER, Rbx) + 8);
@@ -59,7 +63,8 @@ Res StackScan(ScanState ss, Addr *stackBot)
   AVER(offsetof(_JUMP_BUFFER, R14) == offsetof(_JUMP_BUFFER, Rbx) + 56);
   AVER(offsetof(_JUMP_BUFFER, R15) == offsetof(_JUMP_BUFFER, Rbx) + 64);
 
-  return StackScanInner(ss, stackBot, (Addr *)&((_JUMP_BUFFER *)jb)->Rbx, 9);
+  return StackScanInner(ss, stackCold, (Word *)&((_JUMP_BUFFER *)jb)->Rbx, 9,
+                        scan_area, closure);
 }
 
 /* C. COPYRIGHT AND LICENSE

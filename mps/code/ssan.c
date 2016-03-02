@@ -21,21 +21,17 @@
 SRCID(ssan, "$Id$");
 
 
-Res StackScan(ScanState ss, Addr *stackBot)
+Res StackScan(ScanState ss, Word *stackCold,
+              mps_area_scan_t scan_area,
+              void *closure)
 {
   jmp_buf jb;
-  void *stackTop = &jb;
-
-  /* .assume.stack: This implementation assumes that the stack grows
-   * downwards, so that the address of the jmp_buf is the limit of the
-   * part of the stack that needs to be scanned. (StackScanInner makes
-   * the same assumption.)
-   */
-  AVER(stackTop < (void *)stackBot);
+  Word *stackHot = (void *)&jb;
 
   (void)setjmp(jb);
 
-  return StackScanInner(ss, stackBot, stackTop, sizeof jb / sizeof(Addr*));
+  return StackScanInner(ss, stackCold, stackHot, sizeof jb / sizeof(Word),
+                        scan_area, closure);
 }
 
 

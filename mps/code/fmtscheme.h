@@ -40,55 +40,55 @@ typedef struct type_s {
 } type_s;
 
 typedef struct pair_s {
-  type_t type;			/* TYPE_PAIR */
-  obj_t car, cdr;		/* first and second projections */
+  type_t type;                  /* TYPE_PAIR */
+  obj_t car, cdr;               /* first and second projections */
 } pair_s;
 
 typedef struct symbol_s {
-  type_t type;			/* TYPE_SYMBOL */
-  size_t length;		/* length of symbol string (excl. NUL) */
-  char string[1];		/* symbol string, NUL terminated */
+  type_t type;                  /* TYPE_SYMBOL */
+  size_t length;                /* length of symbol string (excl. NUL) */
+  char string[1];               /* symbol string, NUL terminated */
 } symbol_s;
 
 typedef struct integer_s {
-  type_t type;			/* TYPE_INTEGER */
-  long integer;			/* the integer */
+  type_t type;                  /* TYPE_INTEGER */
+  long integer;                 /* the integer */
 } integer_s;
 
 typedef struct special_s {
-  type_t type;			/* TYPE_SPECIAL */
-  char *name;			/* printed representation, NUL terminated */
+  type_t type;                  /* TYPE_SPECIAL */
+  char *name;                   /* printed representation, NUL terminated */
 } special_s;
 
 typedef struct operator_s {
-  type_t type;			/* TYPE_OPERATOR */
-  char *name;			/* printed name, NUL terminated */
-  entry_t entry;		/* entry point -- see eval() */
-  obj_t arguments, body;	/* function arguments and code */
-  obj_t env, op_env;		/* closure environments */
+  type_t type;                  /* TYPE_OPERATOR */
+  char *name;                   /* printed name, NUL terminated */
+  entry_t entry;                /* entry point -- see eval() */
+  obj_t arguments, body;        /* function arguments and code */
+  obj_t env, op_env;            /* closure environments */
 } operator_s;
 
 typedef struct string_s {
-  type_t type;			/* TYPE_STRING */
-  size_t length;		/* number of chars in string */
-  char string[1];		/* string, NUL terminated */
+  type_t type;                  /* TYPE_STRING */
+  size_t length;                /* number of chars in string */
+  char string[1];               /* string, NUL terminated */
 } string_s;
 
 typedef struct port_s {
-  type_t type;			/* TYPE_PORT */
-  obj_t name;			/* name of stream */
+  type_t type;                  /* TYPE_PORT */
+  obj_t name;                   /* name of stream */
   FILE *stream;
 } port_s;
 
 typedef struct character_s {
-  type_t type;			/* TYPE_CHARACTER */
-  char c;			/* the character */
+  type_t type;                  /* TYPE_CHARACTER */
+  char c;                       /* the character */
 } character_s;
 
 typedef struct vector_s {
-  type_t type;			/* TYPE_VECTOR */
-  size_t length;		/* number of elements */
-  obj_t vector[1];		/* vector elements */
+  type_t type;                  /* TYPE_VECTOR */
+  size_t length;                /* number of elements */
+  obj_t vector[1];              /* vector elements */
 } vector_s;
 
 typedef struct table_s {
@@ -134,7 +134,7 @@ typedef struct pad_s {
 
 
 typedef union obj_u {
-  type_s type;			/* one of TYPE_* */
+  type_s type;                  /* one of TYPE_* */
   pair_s pair;
   symbol_s symbol;
   integer_s integer;
@@ -154,17 +154,17 @@ typedef union obj_u {
 
 /* structure macros */
 
-#define TYPE(obj)	((obj)->type.type)
-#define CAR(obj)	((obj)->pair.car)
-#define CDR(obj)	((obj)->pair.cdr)
-#define CAAR(obj)	CAR(CAR(obj))
-#define CADR(obj)	CAR(CDR(obj))
-#define CDAR(obj)	CDR(CAR(obj))
-#define CDDR(obj)	CDR(CDR(obj))
-#define CADDR(obj)	CAR(CDDR(obj))
-#define CDDDR(obj)	CDR(CDDR(obj))
-#define CDDAR(obj)	CDR(CDAR(obj))
-#define CADAR(obj)	CAR(CDAR(obj))
+#define TYPE(obj)       ((obj)->type.type)
+#define CAR(obj)        ((obj)->pair.car)
+#define CDR(obj)        ((obj)->pair.cdr)
+#define CAAR(obj)       CAR(CAR(obj))
+#define CADR(obj)       CAR(CDR(obj))
+#define CDAR(obj)       CDR(CAR(obj))
+#define CDDR(obj)       CDR(CDR(obj))
+#define CADDR(obj)      CAR(CDDR(obj))
+#define CDDDR(obj)      CDR(CDDR(obj))
+#define CDDAR(obj)      CDR(CDAR(obj))
+#define CADAR(obj)      CAR(CDAR(obj))
 
 
 extern obj_t scheme_make_bool(int condition);

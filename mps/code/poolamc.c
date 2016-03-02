@@ -1252,7 +1252,7 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
  * limit have been scanned.  It is not touched otherwise.
  */
 static Res amcScanNailedRange(Bool *totalReturn, Bool *moreReturn,
-                              Size *bytesScanned, ScanState ss,
+                              ScanState ss,
                               AMC amc, Nailboard board,
                               Addr base, Addr limit)
 {
@@ -1268,14 +1268,12 @@ static Res amcScanNailedRange(Bool *totalReturn, Bool *moreReturn,
     Addr q;
     q = (*format->skip)(p);
     if ((*amc->pinned)(amc, board, p, q)) {
-      Res res;
-      res = (*format->scan)(&ss->ss_s, p, q);
+      Res res = FormatScan(format, ss, p, q);
       if(res != ResOK) {
         *totalReturn = FALSE;
         *moreReturn = TRUE;
         return res;
       }
-      *bytesScanned += AddrOffset(p, q);
     } else {
       *totalReturn = FALSE;
     }
@@ -1300,7 +1298,6 @@ static Res amcScanNailedOnce(Bool *totalReturn, Bool *moreReturn,
                              ScanState ss, Seg seg, AMC amc)
 {
   Addr p, limit;
-  Size bytesScanned = 0;
   Nailboard board;
   Res res;
 
@@ -1317,7 +1314,7 @@ static Res amcScanNailedOnce(Bool *totalReturn, Bool *moreReturn,
       AVER(p == limit);
       goto returnGood;
     }
-    res = amcScanNailedRange(totalReturn, moreReturn, &bytesScanned, 
+    res = amcScanNailedRange(totalReturn, moreReturn,
                              ss, amc, board, p, limit);
     if (res != ResOK)
       return res;
@@ -1326,7 +1323,7 @@ static Res amcScanNailedOnce(Bool *totalReturn, Bool *moreReturn,
 
   limit = SegLimit(seg);
   /* @@@@ Shouldn't p be set to BufferLimit here?! */
-  res = amcScanNailedRange(totalReturn, moreReturn, &bytesScanned,
+  res = amcScanNailedRange(totalReturn, moreReturn,
                            ss, amc, board, p, limit);
   if (res != ResOK)
     return res;
@@ -1334,8 +1331,6 @@ static Res amcScanNailedOnce(Bool *totalReturn, Bool *moreReturn,
 returnGood:
   EVENT3(AMCScanEnd, amc, seg, ss); /* TODO: consider using own event */
 
-  AVER(bytesScanned <= SegSize(seg));
-  ss->scannedSize += bytesScanned;
   *moreReturn = NailboardNewNails(board);
   return ResOK;
 }
@@ -1426,12 +1421,11 @@ static Res AMCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
       *totalReturn = TRUE;
       return ResOK;
     }
-    res = (*format->scan)(&ss->ss_s, base, limit);
+    res = FormatScan(format, ss, base, limit);
     if(res != ResOK) {
       *totalReturn = FALSE;
       return res;
     }
-    ss->scannedSize += AddrOffset(base, limit);
     base = limit;
   }
 
@@ -1440,14 +1434,13 @@ static Res AMCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
   AVER(SegBase(seg) <= base);
   AVER(base <= AddrAdd(SegLimit(seg), format->headerSize));
   if(base < limit) {
-    res = (*format->scan)(&ss->ss_s, base, limit);
+    res = FormatScan(format, ss, base, limit);
     if(res != ResOK) {
       *totalReturn = FALSE;
       return res;
     }
   }
 
-  ss->scannedSize += AddrOffset(base, limit);
   EVENT3(AMCScanEnd, amc, seg, ss);
 
   *totalReturn = TRUE;

@@ -596,11 +596,16 @@ int main(int argc, char *argv[])
       "arena_create");
   die(mps_thread_reg(&thread, arena), "thread_reg");
 
-  die(mps_root_create_reg(&reg_root, arena,
-                          mps_rank_ambig(), (mps_rm_t)0,
-                          thread, &mps_stack_scan_ambig,
-                          marker, (size_t)0),
-      "root_create_reg");
+  if (rnd() % 2) {
+    die(mps_root_create_reg(&reg_root, arena,
+                            mps_rank_ambig(), (mps_rm_t)0,
+                            thread, &mps_stack_scan_ambig,
+                            marker, (size_t)0),
+        "root_create_reg");
+  } else {
+    die(mps_root_create_thread(&reg_root, arena, thread, marker),
+        "root_create_thread");
+  }
 
   mps_tramp(&r, test, arena, 0);
   mps_root_destroy(reg_root);
