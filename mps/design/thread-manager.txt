@@ -153,7 +153,7 @@ threads are discovered to have terminated, move them to ``deadRing``.
 _`.if.ring.thread`: Return the thread that owns the given element of
 the thread ring.
 
-``Res ThreadScan(ScanState ss, Thread thread, Word *stackCold, mps_area_scan_t scan_area, void *closure, size_t closure_size)``
+``Res ThreadScan(ScanState ss, Thread thread, Word *stackCold, mps_area_scan_t scan_area, void *closure)``
 
 _`.if.scan`: Scan the stacks and root registers of ``thread``, using
 ``ss`` and ``scan_area``. ``stackCold`` points to the cold end of the
