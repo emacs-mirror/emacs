@@ -38,7 +38,7 @@
  * setjmp magic.
  */
  
-/* StackContextStackHot - return the stack hot end from the stack context.
+/* StackContextStackHot - return the hot end of the stack from the stack context
  * 
  * We assume the stack is full.  In other words the stack top points at
  * a word that contains a potential Ref.
