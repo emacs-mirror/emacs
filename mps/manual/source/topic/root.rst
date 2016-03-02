@@ -150,11 +150,11 @@ root by calling :c:func:`mps_root_create_thread`.
 
 The MPS's stack scanner needs to know how to find the :term:`cold end`
 of the part of the stack to scan. The :term:`cold end` of the relevant
-part of stack can be found by taking the address of a local variable
-in the function that calls the main work function of your thread. You
-should take care to ensure that the work function is not inlined so
-that the address is definitely in the stack frame below any potential
-roots.
+part of the stack can be found by taking the address of a local
+variable in the function that calls the main work function of your
+thread. You should take care to ensure that the work function is not
+inlined so that the address is definitely in the stack frame below any
+potential roots.
 
 .. index::
    single: Scheme; thread root

@@ -505,6 +505,7 @@ Fixing interface
 
 .. index::
    single: scanning; area scanners
+   single: area; scanning
 
 .. _topic-scanning-area:
 
@@ -512,8 +513,8 @@ Area scanners
 -------------
 
 An area scanner :term:`scans` an area of memory for
-:term:`references <reference>`. Various functions in the MPS interface,
-such as :c:func:`mps_root_create_thread_tagged`, accept area scanners as
+:term:`references`. Various functions in the MPS interface, such as
+:c:func:`mps_root_create_thread_tagged`, accept area scanners as
 arguments so that the :term:`client program` can specify how to scan
 special areas such as the :term:`control stack`.
 
@@ -584,7 +585,7 @@ the scanners, found in ``scan.c`` in the MPS source code.
 
     Scan an area of memory :term:`fixing <fix>` every word, but remove
     tag bits before fixing references, and restore them afterwards.
-    ``closure`` should point to an :c:type:`mps_scan_tag_s`.  Expects
+    ``closure`` must point to an :c:type:`mps_scan_tag_s`.  Expects
     ``base`` and ``limit`` to be word-aligned.
     
     For example, if ``mask`` is 0b111 (decimal 7), then this scanner
@@ -600,7 +601,7 @@ the scanners, found in ``scan.c`` in the MPS source code.
 .. c:function:: mps_res_t mps_scan_area_tagged(mps_ss_t ss, void *base, void *limit, void *closure)
 
     Scan an area of memory :term:`fixing <fix>` only words whose
-    masked bits match a particular tag pattern.  ``closure`` should
+    masked bits match a particular tag pattern.  ``closure`` must
     point to a :c:type:`mps_scan_tag_s`.  Expects ``base`` and
     ``limit`` to be word-aligned.
     
@@ -624,7 +625,7 @@ the scanners, found in ``scan.c`` in the MPS source code.
 
     Scan an area of memory :term:`fixing <fix>` only words whose
     masked bits are zero or match a particular tag pattern.
-    ``closure`` should point to a :c:type:`mps_scan_tag_s`.  Expects
+    ``closure`` must point to a :c:type:`mps_scan_tag_s`.  Expects
     ``base`` and ``limit`` to be word-aligned.
 
     For example, if ``mask`` is 7 and ``pattern`` is 3, then this
