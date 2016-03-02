@@ -615,7 +615,7 @@ Root interface
         mps_root_t root;
         res = mps_root_create_area_tagged(&root, arena,
                                           mps_rank_exact(),
-					  0,
+                                          0,
                                           symtab, symtab + symtab_size,
                                           mps_scan_area_tagged,
                                           TAG_MASK, TAG_PATTERN);
