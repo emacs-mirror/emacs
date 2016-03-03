@@ -11,14 +11,15 @@
  * support, may not be true on all platforms. See
  * <design/ss/#sol.platform>.
  * 
- * .assume.desc: The stack is descending (and so stackTop is a lower
- * address than stackBot).
+ * .assume.desc: The stack is descending (and so stackHot is a lower
+ * address than stackCold).
  *
  * .assume.full: The stack convention is "full" (and so we must scan
- * the word pointed to by stackTop but not the word pointed to by
- * stackBot).
+ * the word pointed to by stackHot but not the word pointed to by
+ * stackCold).
  *
- * .assume.align: Addresses on the stack are aligned to sizeof(Addr).
+ * .assume.align: Addresses on the stack are word-aligned.  TODO: It's
+ * not clear why we assume this, since it depends on the area scanner.
  */
 
 #include "mpm.h"
@@ -28,36 +29,13 @@ SRCID(ss, "$Id$");
 
 /* StackScan -- scan the mutator's stack and registers */
 
-static Res stackScanInner(ScanState ss, Word *stackCold,
-                          StackContext sc,
-                          mps_area_scan_t scan_area, void *closure)
-{
-  Word *stackHot;
-  Res res;
-
-  AVERT(ScanState, ss);
-
-  stackHot = StackContextStackHot(sc);
-  AVER(stackHot < stackCold);                         /* .assume.desc */
-  AVER(AddrIsAligned((Addr)stackHot, sizeof(Addr)));  /* .assume.align */
-
-  res = TraceScanArea(ss, stackHot, stackCold,
-                      scan_area, closure);            /* .assume.full */
-  if (res != ResOK)
-    return res;
-
-  res = StackContextScan(ss, sc, scan_area, closure);
-  if (res != ResOK)
-    return res;
-
-  return ResOK;
-}
-
 Res StackScan(ScanState ss, Word *stackCold,
               mps_area_scan_t scan_area, void *closure)
 {
+  StackContextStruct scStruct;
+  StackContext sc;
   Arena arena;
-  Res res;
+  Word *stackHot;
 
   AVERT(ScanState, ss);
 
@@ -65,16 +43,19 @@ Res StackScan(ScanState ss, Word *stackCold,
 
   AVER(arena->scAtArenaEnter != NULL);
   if (arena->scAtArenaEnter) {
-    res = stackScanInner(ss, stackCold, arena->scAtArenaEnter,
-                         scan_area, closure);
+    sc = arena->scAtArenaEnter;
   } else {
     /* Somehow missed saving the context at the entry point (see
-     * <design/ss/#sol.entry-points.fragile>): do it now. */
-    StackContextStruct sc;
-    STACK_CONTEXT_SAVE(&sc);
-    res = stackScanInner(ss, stackCold, &sc, scan_area, closure);
+       <design/ss/#sol.entry-points.fragile>): do it now. */
+    sc = &scStruct;
+    STACK_CONTEXT_SAVE(sc);
   }
-  return res;
+
+  stackHot = (void *)sc;
+  AVER(stackHot < stackCold);                         /* .assume.desc */
+  AVER(AddrIsAligned((Addr)stackHot, sizeof(Word)));  /* .assume.align */
+
+  return TraceScanArea(ss, stackHot, stackCold, scan_area, closure);
 }
 
 
