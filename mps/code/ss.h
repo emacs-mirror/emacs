@@ -44,21 +44,6 @@ typedef struct StackContextStruct {
   END
 
 
-/* StackContextStackHot -- hot end of the mutator's stack
- *
- * Retrieves the stacl pointer at the point when the context was saved by
- * STACK_CONTEXT_SAVE.
- */
-
-extern Word *StackContextStackHot(StackContext sc);
-
-
-/* StackContextScan -- scan references in the stack context */
-
-extern Res StackContextScan(ScanState ss, StackContext sc,
-                            mps_area_scan_t scan_area, void *closure);
-
-
 /* STACK_CONTEXT_SAVE -- save the callee-saves and stack pointer */
 
 #if defined(MPS_OS_XC)

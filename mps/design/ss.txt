@@ -22,7 +22,8 @@ _`.readership`: Any MPS developer; anyone porting the MPS to a new
 platform.
 
 _`.overview`: This module locates and scans references in the control
-stack and registers of the *current* thread.
+stack and registers of the *current* thread (the one that has called
+in to the MPS).
 
 _`.other`: The thread manager module is responsible for scanning the
 control stack and registers of *other* threads. See

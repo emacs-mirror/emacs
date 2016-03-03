@@ -20,7 +20,6 @@ MPMPF = \
     protix.c \
     protxc.c \
     span.c \
-    ssxci6.c \
     thxc.c \
     vmix.c
 
