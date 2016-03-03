@@ -27,35 +27,46 @@
 SRCID(ss, "$Id$");
 
 
+/* StackHot -- capture a hot stack pointer
+ *
+ * On all supported platforms, the arguments are pushed on to the
+ * stack by the caller below its other local data, so as long as
+ * it does not use something like alloca, the address of the argument
+ * is a hot stack pointer.
+ */
+
+void StackHot(void **stackOut)
+{
+  *stackOut = &stackOut;
+}
+
+
 /* StackScan -- scan the mutator's stack and registers */
 
-Res StackScan(ScanState ss, Word *stackCold,
+Res StackScan(ScanState ss, void *stackCold,
               mps_area_scan_t scan_area, void *closure)
 {
   StackContextStruct scStruct;
-  StackContext sc;
   Arena arena;
-  Word *stackHot;
+  void *warmest;
 
   AVERT(ScanState, ss);
 
   arena = ss->arena;
 
-  AVER(arena->scAtArenaEnter != NULL);
-  if (arena->scAtArenaEnter) {
-    sc = arena->scAtArenaEnter;
-  } else {
+  AVER(arena->stackWarm != NULL);
+  warmest = arena->stackWarm;
+  if (warmest == NULL) {
     /* Somehow missed saving the context at the entry point (see
        <design/ss/#sol.entry-points.fragile>): do it now. */
-    sc = &scStruct;
-    STACK_CONTEXT_SAVE(sc);
+    STACK_CONTEXT_SAVE(&scStruct);
+    warmest = &scStruct;
   }
 
-  stackHot = (void *)sc;
-  AVER(stackHot < stackCold);                         /* .assume.desc */
-  AVER(AddrIsAligned((Addr)stackHot, sizeof(Word)));  /* .assume.align */
+  AVER(warmest < stackCold);                            /* .assume.desc */
+  AVER(AddrIsAligned((Addr)warmest, sizeof(Word)));   /* .assume.align */
 
-  return TraceScanArea(ss, stackHot, stackCold, scan_area, closure);
+  return TraceScanArea(ss, warmest, stackCold, scan_area, closure);
 }
 
 

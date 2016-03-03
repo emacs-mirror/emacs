@@ -322,7 +322,7 @@ Res GlobalsInit(Globals arenaGlobals)
 
   arena->emergency = FALSE;
 
-  arena->scAtArenaEnter = NULL;
+  arena->stackWarm = NULL;
   
   arenaGlobals->defaultChain = NULL;
 

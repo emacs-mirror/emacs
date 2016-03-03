@@ -67,7 +67,7 @@
 SRCID(thw3i6, "$Id$");
 
 
-Res ThreadScan(ScanState ss, Thread thread, Word *stackCold,
+Res ThreadScan(ScanState ss, Thread thread, void *stackCold,
                mps_area_scan_t scan_area,
                void *closure)
 {

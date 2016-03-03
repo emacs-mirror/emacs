@@ -1551,7 +1551,7 @@ mps_res_t mps_root_create_thread_tagged(mps_root_t *mps_root_o,
   /* See .root-mode. */
   res = RootCreateThreadTagged(&root, arena, rank, thread,
                                scan_area, mask, pattern,
-                               (Word *)cold);
+                               cold);
 
   ArenaLeave(arena);
 
