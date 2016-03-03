@@ -14,8 +14,12 @@
 #include "mpm.h"
 
      
-/* StackContext -- structure containing the callee-save registers and
- * the stack pointer */
+/* StackContext -- some of the mutator's state
+ *
+ * The jumpBuffer is used to capture most of the mutator's state
+ * on entry to the MPS, but can't capture it all.  See design.mps.ss
+ * for detailed discussion.
+ */
 
 #include <setjmp.h>
 
@@ -24,14 +28,22 @@ typedef struct StackContextStruct {
 } StackContextStruct;
 
 
+/* StackHot -- capture a hot stack pointer
+ *
+ * Returns a stack pointer that includes the current frame.
+ */
+
+void StackHot(void **stackOut);
+
+
 /* STACK_CONTEXT_BEGIN -- save context */
 
 #define STACK_CONTEXT_BEGIN(arena) \
   BEGIN \
     StackContextStruct _sc; \
     STACK_CONTEXT_SAVE(&_sc); \
-    AVER(arena->scAtArenaEnter == NULL); \
-    arena->scAtArenaEnter = &_sc; \
+    AVER(arena->stackWarm == NULL); \
+    StackHot(&arena->stackWarm); \
     BEGIN
 
 
@@ -39,8 +51,8 @@ typedef struct StackContextStruct {
 
 #define STACK_CONTEXT_END(arena) \
     END; \
-    AVER(arena->scAtArenaEnter != NULL); \
-    arena->scAtArenaEnter = NULL; \
+    AVER(arena->stackWarm != NULL); \
+    arena->stackWarm = NULL; \
   END
 
 
@@ -70,8 +82,8 @@ typedef struct StackContextStruct {
  * STACK_CONTEXT_END.
  */
 
-extern Res StackScan(ScanState ss, Word *stackCold,
-                     mps_area_scan_t scan_area, void *closure);
+extern Res StackScan(ScanState ss, void *stackCold,
+                      mps_area_scan_t scan_area, void *closure);
 
 
 #endif /* ss_h */

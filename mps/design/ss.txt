@@ -228,7 +228,7 @@ Interface
 
 _`.if.sc`: A structure encapsulating the mutator context.
 
-``Res StackScan(ScanState ss, Addr *stackCold,
+``Res StackScan(ScanState ss, void *stackCold,
                 mps_area_scan_t scan_area,
                 void *closure)``
 
