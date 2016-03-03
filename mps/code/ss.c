@@ -29,7 +29,7 @@ SRCID(ss, "$Id$");
  * On all supported platforms, the arguments are pushed on to the
  * stack by the caller below its other local data, so as long as
  * it does not use something like alloca, the address of the argument
- * is a hot stack pointer.
+ * is a hot stack pointer.  See design.mps.ss.sol.stack.hot.
  */
 
 void StackHot(void **stackOut)
