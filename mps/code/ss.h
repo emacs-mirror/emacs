@@ -18,7 +18,7 @@
  *
  * The jumpBuffer is used to capture most of the mutator's state on
  * entry to the MPS, but can't capture it all.  See
- * design.mps.stack-scan for detailed discussion.
+ * design.mps.stack-scan.sol.setjmp.scan.
  */
 
 #include <setjmp.h>
