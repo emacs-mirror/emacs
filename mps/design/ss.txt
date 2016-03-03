@@ -106,15 +106,17 @@ callee-save registers that may contain pointers.
 
 _`.sol.registers.root.justify`: The caller-save registers will have
 been spilled onto the stack by the time the MPS is entered, so will be
-scanned by the stack scan. Floating-point registers and debugging
-registers do not, as far as we are aware, contain pointers.
+scanned by the stack scan.
 
 _`.sol.setjmp`: The values in callee-save registers can be found by
-calling ``setjmp`` and scanning the ``jmp_buf``.
+invoking ``setjmp``.  This forces any of the caller's callee-save
+registers into either the ``jmp_buf`` or the current stack frame.
 
-_`.sol.setjmp.scan`: An implementation can decode the jump buffer and
-scan just the root registers, or it can conservatively scan the whole
-of the jump buffer.
+_`.sol.setjmp.scan`: Although we might be able to decode the jump
+buffer in a platform-dependent way, it's hard to guarantee that an
+uncooperative compiler won't temporarily store a reference in any
+register or stack location.  We must conservatively scan the whole of
+both.
 
 _`.sol.setjmp.justify`: The C standard specifies that ``jmp_buf`` "is
 an array type suitable for holding the information needed to restore a
@@ -131,15 +133,17 @@ values.  A ``longjmp`` can come from anywhere, and so the function
 using ``setjmp`` can't rely on callee-save registers being saved by
 callees.
 
-_`.sol.setjmp.scramble`: However, we can't be sure *where* the
-mutator's callee-save registers will be stored, either in the
-``jmp_buf`` or the stack frame of the function that invokes it.
+_`.sol.stack.hot`: We could decode the frame of the function that
+invokes ``setjmp`` from the jump buffer in a platform-specific way,
+but we can do something simpler (if more hacky) by calling a stub
+function and taking the address of its argument.  On all supported
+platforms this will yield a pointer that is pretty much at the hot end
+of the frame.
 
-_`.sol.stack.hot`: Similarly, an implementation can decode the jump
-buffer and get the hot end of the mutator's stack from the stack
-pointer register, or it can conservatively use the address of a local
-variable in the entry point to the MPS.  (But see
-.sol.setjmp.scramble.)
+_`.sol.stack.nest`: We can take care of scanning the jump buffer
+itself by storing it in the same stack frame.  That way a scan from
+the hot end end determined by .sol.stack.hot to the cold end will
+contain all of the roots.
 
 _`.sol.stack.platform`: As of version 1.115, all supported platforms
 are *full* and *descending* so the implementation in ``StackScan``
@@ -233,10 +237,11 @@ _`.if.sc`: A structure encapsulating the mutator context.
                 void *closure)``
 
 _`.if.scan`: Scan the stack of the current thread, between
-``stackCold`` and the hot end of the mutator's stack that was recorded by
-``STACK_CONTEXT_SAVE()`` when the arena was entered. Also scan any
-roots which were in the mutator's callee-save registers at that point.
-Return ``ResOK`` if successful, or another result code if not.
+``stackCold`` and the hot end of the mutator's stack that was recorded
+by ``STACK_CONTEXT_SAVE()`` when the arena was entered. This will
+include any roots which were in the mutator's callee-save registers on
+entry to the MPS (see .sol.setjmp and .sol.stack.nest).  Return
+``ResOK`` if successful, or another result code if not.
 
 _`.if.scan.begin-end`: This function must be called between
 ``STACK_CONTEXT_BEGIN()`` and ``STACK_CONTEXT_END()``.
@@ -268,28 +273,25 @@ context (see .sol.entry-points). This macro must be used like this::
 That is, it must be paired with ``STACK_CONTEXT_END()``, and there
 must be no ``return`` between the two macro invocations.
 
-This macro takes the arena lock, stores the mutator context in a
-``StackContext`` structure allocated on the stack, and sets
-``arena->scAtArenaEnter`` to the address of this structure.
+This macro stores the mutator context in a ``StackContext`` structure
+allocated on the stack, and sets ``arena->stackWarm`` to the hot end
+of the current frame (using .sol.stack.hot).
 
 ``STACK_CONTEXT_END(Arena arena)``
 
 _`.if.end`: Finish the MPS operation that was started by
 ``STACK_CONTEXT_BEGIN()``.
 
-This macro sets ``arena->scAtArenaEnter`` to ``NULL`` and releases
-the arena lock.
+This macro sets ``arena->stackWarn`` to ``NULL``.
 
 
 Implementations
 ---------------
 
-_`.impl`: Generic implementation in ``ss.c``. We scan the whole
-jump buffer and use the address of the buffer as a marker of the hot
-end of the mutator's stack, since it is declared in the entry
-function.  A sufficiently perverse compiler might still store
-callee-save registers outside the scanned area (see
-.sol.setjmp.scramble).
+_`.impl`: Generic implementation of ``StackScan`` in ``ss.c`` scans
+the whole area between ``arena->stackWarm`` and the cold end of the
+mutator's stack, implementing .sol.stack.nest and also the backup
+strategy in .sol.entry-points.fragile.
 
 
 References
@@ -313,7 +315,8 @@ Document History
 
 - 2014-10-22 GDR_ Initial draft.
 
-- 2016-03-03 RB_ Simplified implementation due to .sol.setjmp.scramble.
+- 2016-03-03 RB_ Reorganised based mostly on the .sol.stack.hot and
+                 .sol.stack.nest.
 
 .. _GDR: http://www.ravenbrook.com/consultants/gdr/
 .. _RB: http://www.ravenbrook.com/consultants/rb/
