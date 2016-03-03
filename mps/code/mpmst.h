@@ -792,8 +792,8 @@ typedef struct mps_arena_s {
 
   Bool emergency;               /* garbage collect in emergency mode? */
 
-  StackContext scAtArenaEnter;  /* NULL or mutator context, in the thread */
-                                /* that then entered the MPS. */
+  void *stackWarm;               /* NULL or stack pointer warmer than
+                                 mutator state.  See design.mps.ss. */
 
   Sig sig;
 } ArenaStruct;

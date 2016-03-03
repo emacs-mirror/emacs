@@ -239,7 +239,7 @@ Arena ThreadArena(Thread thread)
 
 /* ThreadScan -- scan the state of a thread (stack and regs) */
 
-Res ThreadScan(ScanState ss, Thread thread, Word *stackCold,
+Res ThreadScan(ScanState ss, Thread thread, void *stackCold,
                mps_area_scan_t scan_area,
                void *closure)
 {
