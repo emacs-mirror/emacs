@@ -139,7 +139,7 @@ _`.sol.stack.hot`: Similarly, an implementation can decode the jump
 buffer and get the hot end of the mutator's stack from the stack
 pointer register, or it can conservatively use the address of a local
 variable in the entry point to the MPS.  (But see
-.sol.setjmp.sramble.)
+.sol.setjmp.scramble.)
 
 _`.sol.stack.platform`: As of version 1.115, all supported platforms
 are *full* and *descending* so the implementation in ``StackScan``
