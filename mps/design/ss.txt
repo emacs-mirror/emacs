@@ -40,7 +40,7 @@ mail.richard.2012-08-03.14-36_.
 Requirements
 ------------
 
-_`.req.stack.top`: Must locate the top of the mutator's stack. (This
+_`.req.stack.hot`: Must locate the hot end of the mutator's stack. (This
 is needed for conservative garbage collection of uncooperative code,
 where references might be stored by mutator on its stack.)
 
@@ -123,15 +123,23 @@ consists of information sufficient for a call to the ``longjmp``
 function to return execution to the correct block and invocation of
 that block, were it called recursively." We believe that any
 reasonable implementation of ``setjmp`` must copy the callee-save
-registers into the ``jmp_buf`` in order to work as described.
-Otherwise, once the callee-save registers have been overwritten by
-other function calls, a ``longjmp`` would result in the callee-save
-registers having the wrong values.
+registers either into the ``jmp_buf`` or into the stack frame that
+invokes it in order to work as described.  Otherwise, once the
+callee-save registers have been overwritten by other function calls, a
+``longjmp`` would result in the callee-save registers having the wrong
+values.  A ``longjmp`` can come from anywhere, and so the function
+using ``setjmp`` can't rely on callee-save registers being saved by
+callees.
 
-_`.sol.stack.top`: Similarly, an implementation can decode the jump
-buffer and get the top of the mutator's stack from the stack pointer
-register, or it can conservatively use the address of a local variable
-in the entry point to the MPS.
+_`.sol.setjmp.scramble`: However, we can't be sure *where* the
+mutator's callee-save registers will be stored, either in the
+``jmp_buf`` or the stack frame of the function that invokes it.
+
+_`.sol.stack.hot`: Similarly, an implementation can decode the jump
+buffer and get the hot end of the mutator's stack from the stack
+pointer register, or it can conservatively use the address of a local
+variable in the entry point to the MPS.  (But see
+.sol.setjmp.sramble.)
 
 _`.sol.stack.platform`: As of version 1.115, all supported platforms
 are *full* and *descending* so the implementation in ``StackScan``
@@ -220,13 +228,6 @@ Interface
 
 _`.if.sc`: A structure encapsulating the mutator context.
 
-``Addr StackContextStackTop(StackContext sc)``
-
-_`.if.stack.hot`: Return (a conservative approximation to) the address
-of the hot end of the mutator's stack at the point where ``sc`` was
-stored. In the common case, where the stack grows downwards, this is
-actually the lowest stack address.
-
 ``Res StackScan(ScanState ss, Addr *stackCold,
                 mps_area_scan_t scan_area,
                 void *closure)``
@@ -235,9 +236,7 @@ _`.if.scan`: Scan the stack of the current thread, between
 ``stackCold`` and the hot end of the mutator's stack that was recorded by
 ``STACK_CONTEXT_SAVE()`` when the arena was entered. Also scan any
 roots which were in the mutator's callee-save registers at that point.
-Return ``ResOK`` if successful, or another result code if not. See the
-platform-specific implementation of ``StackContextScan()`` for the
-exact registers which are scanned.
+Return ``ResOK`` if successful, or another result code if not.
 
 _`.if.scan.begin-end`: This function must be called between
 ``STACK_CONTEXT_BEGIN()`` and ``STACK_CONTEXT_END()``.
@@ -285,35 +284,12 @@ the arena lock.
 Implementations
 ---------------
 
-_`.impl.an`: Generic implementation in ``ssan.c``. Since the C
-standard does not specify where the callee-save registers appear in
-the jump buffer, the whole buffer must be scanned (see
-`.sol.setjmp.scan`_), and the top of the stack must be taken
-conservatively from a local variable.
-
-_`.impl.w3`: Windows implementation in ``ssw3i3mv.c`` and
-``ssw3i6mv.c``. We know the layout of the jump buffer used by the
-compiler, and so can scan exactly the subset of registers we need, and
-decode the stack pointer from ESP (on IA-32) or RSP (on x86-64).
-
-_`.impl.w3.i3`: On Windows on IA-32, the callee-save registers are
-EBX, ESI, EDI, and EBP. See [Fog]_.
-
-_`.impl.w3.i6`: On Windows on x86-64, the callee-save registers are
-RBX, RBP, RDI, RSI, R12, R13, R14, and R15. See
-[x86_64_registers]_. In theory the lowest 128 bits of the vector
-registers XMM6 to XMM15 are also callee-save, but we assume that
-references do not appear in these registers.
-
-_`.impl.xc`: OS X implementation in ``ssxci3.c`` and ``ssxci6.c``.
-Scans the jump buffer conservatively as for `.impl.an`_, but decodes
-the stack pointer from ESP (on IA-32) or RSP (on x86-64).
-
-_`.impl.xc.i3`: On OS X on IA-32, the callee-save registers are EBX,
-ESI, EDI and EBP. See [Fog]_.
-
-_`.impl.xc.i6`: On OS X on x86-64, the callee-save registers are RBX,
-RBP, R12, R13, R14, and R15. See [Fog]_.
+_`.impl`: Generic implementation in ``ss.c``. We scan the whole
+jump buffer and use the address of the buffer as a marker of the hot
+end of the mutator's stack, since it is declared in the entry
+function.  A sufficiently perverse compiler might still store
+callee-save registers outside the scanned area (see
+.sol.setjmp.scramble).
 
 
 References
@@ -337,13 +313,16 @@ Document History
 
 - 2014-10-22 GDR_ Initial draft.
 
+- 2016-03-03 RB_ Simplified implementation due to .sol.setjmp.scramble.
+
 .. _GDR: http://www.ravenbrook.com/consultants/gdr/
+.. _RB: http://www.ravenbrook.com/consultants/rb/
 
 
 Copyright and License
 ---------------------
 
-Copyright © 2014 Ravenbrook Limited. All rights reserved.
+Copyright © 2014-2016 Ravenbrook Limited. All rights reserved.
 <http://www.ravenbrook.com/>. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
