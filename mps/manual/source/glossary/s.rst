@@ -466,8 +466,8 @@ Memory Management Glossary: S
             The spare commit limit is a limit on the :term:`spare
             committed memory` that the MPS will obtain from the
             operating system. It can be retrieved by calling
-            :c:func:`mps_arena_spare_commit_limit` and changed by
-            calling :c:func:`mps_arena_spare_commit_limit_set`.
+            :c:func:`mps_arena_spare` and changed by
+            calling :c:func:`mps_arena_spare_set`.
 
     spare committed memory
 

@@ -34,6 +34,27 @@ Deprecated in version 1.115
         classes.
 
 
+.. c:function:: size_t mps_arena_spare_commit_limit(mps_arena_t arena)
+
+    .. deprecated::
+
+        Use :c:func:`mps_arena_spare` instead.
+
+    Return the current :term:`spare commit limit` for an :term:`arena`
+    in :term:`bytes (1)`.
+
+
+.. c:function:: void mps_arena_spare_commit_limit_set(mps_arena_t arena, size_t limit)
+
+    .. deprecated::
+
+        Use: :c:func:`mps_arena_spare_set` instead.
+
+    Change the :term:`spare commit limit` for an :term:`arena` in
+    terms of :term:`bytes (1)` relative to the current
+    :term:`committed <mapped>` memory.
+
+
 .. c:function:: size_t mps_mv_free_size(mps_pool_t pool)
 
     .. deprecated::

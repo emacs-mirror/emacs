@@ -20,8 +20,8 @@ New features
 #. The function :c:func:`mps_arena_create_k` accepts two new
    :term:`keyword arguments`. :c:macro:`MPS_KEY_COMMIT_LIMIT`
    sets the :term:`commit limit` for the arena, and
-   :c:macro:`MPS_KEY_SPARE_COMMIT_LIMIT` sets the :term:`spare
-   commit limit` for the arena.
+   :c:macro:`MPS_KEY_SPARE` sets the :term:`spare commit limit`
+   for the arena.
 
 #. New area scanning functions :c:func:`mps_scan_area`,
    :c:func:`mps_scan_area_masked`, :c:func:`mps_scan_area_tagged`,
