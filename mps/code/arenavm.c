@@ -1080,15 +1080,22 @@ static void VMFree(Addr base, Size size, Pool pool)
   /* TODO: Chunks are only destroyed when ArenaCompact is called, and
      that is only called from traceReclaim. Should consider destroying
      chunks here. See job003815. */
-  if (arena->spareCommitted > arena->spareCommitLimit) {
-    /* Purge half of the spare memory, not just the extra sliver, so
-       that we return a reasonable amount of memory in one go, and avoid
-       lots of small unmappings, each of which has an overhead. */
+  if (ArenaSpareFraction(arena) > ArenaSpare(arena)) {
+    Size toPurge = ArenaSpareCommitted(arena) - ArenaSpareCommitLimit(arena);
+    /* Purge at least half of the spare memory, not just the extra
+       sliver, so that we return a reasonable amount of memory in one
+       go, and avoid lots of small unmappings, each of which has an
+       overhead. */
     /* TODO: Consider making this time-based. */
     /* TODO: Consider making this smarter about the overheads tradeoff. */
-    Size toPurge = arena->spareCommitted - arena->spareCommitLimit / 2;
-    (void)VMPurgeSpare(arena, toPurge);
+    Size minPurge = ArenaSpareCommitted(arena) / 2;
+    Size purged;
+    if (toPurge < minPurge)
+      toPurge = minPurge;
+    purged = VMPurgeSpare(arena, toPurge);
+    AVER(purged >= toPurge);
   }
+  AVER(ArenaSpareFraction(arena) <= ArenaSpare(arena));
 }
 
 

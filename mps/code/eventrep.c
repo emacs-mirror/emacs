@@ -554,11 +554,10 @@ void EventReplay(Event event, Word etime)
     verifyMPS(((Bool)event->pwu.u2 == (eres == MPS_RES_OK))
                 ? MPS_RES_OK : MPS_RES_FAIL);
   } break;
-  case EventSpareCommitLimitSet: { /* arena, limit */
-    found = TableLookup(&entry, arenaTable, (TableKey)event->pw.p0);
+  case EventSetSpare: { /* arena, spare */
+    found = TableLookup(&entry, arenaTable, (TableKey)event->pd.p0);
     verify(found);
-    (void)mps_arena_spare_commit_limit_set((mps_arena_t)entry,
-                                           (size_t)event->pw.w1);
+    mps_arena_spare_set((mps_arena_t)entry, event->pd.d1);
   } break;
   case EventReservoirLimitSet: { /* arena, limit */
     found = TableLookup(&entry, arenaTable, (TableKey)event->pw.p0);

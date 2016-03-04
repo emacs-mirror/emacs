@@ -616,11 +616,14 @@ Ref ArenaRead(Arena arena, Ref *p);
 extern Size ArenaReserved(Arena arena);
 extern Size ArenaCommitted(Arena arena);
 extern Size ArenaSpareCommitted(Arena arena);
+extern double ArenaSpare(Arena arena);
+#define ArenaNotSpare(arena) (ArenaCommitted(arena) - ArenaSpareCommitted(arena))
+#define ArenaSpareCommitLimit(arena) ((Size)(ArenaNotSpare(arena) * ArenaSpare(arena)))
+#define ArenaSpareFraction(arena) ((double)ArenaSpareCommitted(arena) / ArenaNotSpare(arena))
 
 extern Size ArenaCommitLimit(Arena arena);
 extern Res ArenaSetCommitLimit(Arena arena, Size limit);
-extern Size ArenaSpareCommitLimit(Arena arena);
-extern void ArenaSetSpareCommitLimit(Arena arena, Size limit);
+extern void ArenaSetSpare(Arena arena, double spare);
 extern Size ArenaNoPurgeSpare(Arena arena, Size size);
 extern Res ArenaNoGrow(Arena arena, LocusPref pref, Size size);
 

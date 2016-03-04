@@ -406,10 +406,7 @@
 
 #define ARENA_DEFAULT_COMMIT_LIMIT ((Size)-1)
 
-/* TODO: This should be proportional to the memory usage of the MPS, not
- * a constant.  That will require design, and then some interface and
- * documenation changes. */
-#define ARENA_DEFAULT_SPARE_COMMIT_LIMIT   ((Size)10uL*1024uL*1024uL)
+#define ARENA_SPARE_DEFAULT     0.75
 
 #define ARENA_DEFAULT_ZONED     TRUE
 
