@@ -27,7 +27,7 @@ _`.readership`: Any MPS developer.
 _`.intro`: This is the design for Stack Scanner module that runs on
 Digital UNIX / Alpha systems (See os.o1 and arch.al). The design
 adheres to the general design and interface described (probably not
-described actually) in design.mps.ss.
+described actually) in design.mps.stack-scan.
 
 _`.source.alpha`: book.digital96 (Alpha Architecture Handbook)
 describes the Alpha Architecture independently of any particular

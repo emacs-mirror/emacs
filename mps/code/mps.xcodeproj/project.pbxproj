@@ -1530,7 +1530,7 @@
 		310EA61E1C889F4C004FE6B7 /* seg.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = seg.txt; path = ../design/seg.txt; sourceTree = "<group>"; };
 		310EA6201C889F4C004FE6B7 /* sig.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = sig.txt; path = ../design/sig.txt; sourceTree = "<group>"; };
 		310EA6211C889F4C004FE6B7 /* sp.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = sp.txt; path = ../design/sp.txt; sourceTree = "<group>"; };
-		310EA6231C889F4C004FE6B7 /* ss.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = ss.txt; path = ../design/ss.txt; sourceTree = "<group>"; };
+		310EA6231C889F4C004FE6B7 /* ss.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = stack-scan.txt; path = ../design/stack-scan.txt; sourceTree = "<group>"; };
 		310EA6241C889F4C004FE6B7 /* sso1al.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = sso1al.txt; path = ../design/sso1al.txt; sourceTree = "<group>"; };
 		310EA6261C889F4C004FE6B7 /* telemetry.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = telemetry.txt; path = ../design/telemetry.txt; sourceTree = "<group>"; };
 		310EA6281C889F4C004FE6B7 /* testthr.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = testthr.txt; path = ../design/testthr.txt; sourceTree = "<group>"; };

@@ -4,12 +4,12 @@
  * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * This scans the mutator's stack and fixes the registers that may
- * contain roots. See <design/ss/>.
+ * contain roots. See <design/stack-scan/>.
  *
  * This is a generic implementation, but it makes assumptions that,
  * while true on all the platforms we currently (version 1.115)
  * support, may not be true on all platforms. See
- * <design/ss/#sol.platform>.
+ * <design/stack-scan/#sol.platform>.
  * 
  * .assume.desc: The stack is descending (and so stackHot is a lower
  * address than stackCold).
@@ -55,7 +55,7 @@ Res StackScan(ScanState ss, void *stackCold,
   warmest = arena->stackWarm;
   if (warmest == NULL) {
     /* Somehow missed saving the context at the entry point (see
-       <design/ss/#sol.entry-points.fragile>): do it now. */
+       <design/stack-scan/#sol.entry-points.fragile>): do it now. */
     STACK_CONTEXT_SAVE(&scStruct);
     warmest = &scStruct;
   }
