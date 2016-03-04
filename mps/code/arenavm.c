@@ -1077,10 +1077,13 @@ static void VMFree(Addr base, Size size, Pool pool)
   BTResRange(chunk->allocTable, piBase, piLimit);
 
   /* Consider returning memory to the OS. */
-  /* TODO: Chunks are only destroyed when ArenaCompact is called, and
-     that is only called from traceReclaim. Should consider destroying
-     chunks here. See job003815. */
-  if (ArenaSpareFraction(arena) > ArenaSpare(arena)) {
+  /* Purging spare memory can cause page descriptors to be unmapped,
+     causing ArenaCommitted to fall, so we can't be sure to unmap
+     enough in one pass.  This somewhat contradicts the goal of having
+     spare committed memory, which is to reduce the amount of mapping
+     and unmapping, but if we don't do it now it'll just happen on
+     the next VMFree anyway. */
+  while (ArenaSpareCommitted(arena) > ArenaSpareCommitLimit(arena)) {
     Size toPurge = ArenaSpareCommitted(arena) - ArenaSpareCommitLimit(arena);
     /* Purge at least half of the spare memory, not just the extra
        sliver, so that we return a reasonable amount of memory in one
@@ -1093,9 +1096,12 @@ static void VMFree(Addr base, Size size, Pool pool)
     if (toPurge < minPurge)
       toPurge = minPurge;
     purged = VMPurgeSpare(arena, toPurge);
-    AVER(purged >= toPurge);
   }
-  AVER(ArenaSpareFraction(arena) <= ArenaSpare(arena));
+  AVER(ArenaCurrentSpare(arena) <= ArenaSpare(arena));
+
+  /* TODO: Chunks are only destroyed when ArenaCompact is called, and
+     that is only called from traceReclaim. Should consider destroying
+     chunks here. See job003815. */
 }
 
 
