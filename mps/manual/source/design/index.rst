@@ -31,7 +31,7 @@ Design
     sp
     sig
     splay
-    ss
+    stack-scan
     testthr
     thread-manager
     type
