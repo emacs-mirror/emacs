@@ -282,7 +282,7 @@ of the current frame (using .sol.stack.hot).
 _`.if.end`: Finish the MPS operation that was started by
 ``STACK_CONTEXT_BEGIN()``.
 
-This macro sets ``arena->stackWarn`` to ``NULL``.
+This macro sets ``arena->stackWarm`` to ``NULL``.
 
 
 Implementations
