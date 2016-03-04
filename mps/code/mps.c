@@ -140,9 +140,9 @@
 #include "span.c"       /* generic stack probe */
 #include "ssixi6.c"     /* Posix on 64-bit Intel stack scan */
 
-/* FreeBSD on 32-bit Intel built with GCC */
+/* FreeBSD on 32-bit Intel built with GCC or Clang */
 
-#elif defined(MPS_PF_FRI3GC)
+#elif defined(MPS_PF_FRI3GC) || defined(MPS_PF_FRI3LL)
 
 #include "lockix.c"     /* Posix locks */
 #include "thix.c"       /* Posix threading */
@@ -155,7 +155,7 @@
 #include "span.c"       /* generic stack probe */
 #include "ssixi3.c"     /* Posix on 32-bit Intel stack scan */
 
-/* FreeBSD on 64-bit Intel built with GCC */
+/* FreeBSD on 64-bit Intel built with GCC or Clang */
 
 #elif defined(MPS_PF_FRI6GC) || defined(MPS_PF_FRI6LL)
 
