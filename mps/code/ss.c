@@ -17,9 +17,6 @@
  * .assume.full: The stack convention is "full" (and so we must scan
  * the word pointed to by stackHot but not the word pointed to by
  * stackCold).
- *
- * .assume.align: Addresses on the stack are word-aligned.  TODO: It's
- * not clear why we assume this, since it depends on the area scanner.
  */
 
 #include "mpm.h"
@@ -64,7 +61,6 @@ Res StackScan(ScanState ss, void *stackCold,
   }
 
   AVER(warmest < stackCold);                            /* .assume.desc */
-  AVER(AddrIsAligned((Addr)warmest, sizeof(Word)));   /* .assume.align */
 
   return TraceScanArea(ss, warmest, stackCold, scan_area, closure);
 }
