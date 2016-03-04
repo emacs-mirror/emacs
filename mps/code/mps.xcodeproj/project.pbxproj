@@ -1531,7 +1531,6 @@
 		310EA6201C889F4C004FE6B7 /* sig.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = sig.txt; path = ../design/sig.txt; sourceTree = "<group>"; };
 		310EA6211C889F4C004FE6B7 /* sp.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = sp.txt; path = ../design/sp.txt; sourceTree = "<group>"; };
 		310EA6231C889F4C004FE6B7 /* ss.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = stack-scan.txt; path = ../design/stack-scan.txt; sourceTree = "<group>"; };
-		310EA6241C889F4C004FE6B7 /* sso1al.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = sso1al.txt; path = ../design/sso1al.txt; sourceTree = "<group>"; };
 		310EA6261C889F4C004FE6B7 /* telemetry.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = telemetry.txt; path = ../design/telemetry.txt; sourceTree = "<group>"; };
 		310EA6281C889F4C004FE6B7 /* testthr.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = testthr.txt; path = ../design/testthr.txt; sourceTree = "<group>"; };
 		310EA6291C889F4C004FE6B7 /* thread-manager.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = "thread-manager.txt"; path = "../design/thread-manager.txt"; sourceTree = "<group>"; };
@@ -1625,7 +1624,6 @@
 		31160DC41899540D0071EB17 /* shield.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = shield.txt; path = ../design/shield.txt; sourceTree = "<group>"; };
 		31160DC51899540D0071EB17 /* sig.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = sig.txt; path = ../design/sig.txt; sourceTree = "<group>"; };
 		31160DC61899540D0071EB17 /* splay.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = splay.txt; path = ../design/splay.txt; sourceTree = "<group>"; };
-		31160DC71899540D0071EB17 /* sso1al.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = sso1al.txt; path = ../design/sso1al.txt; sourceTree = "<group>"; };
 		31160DC81899540D0071EB17 /* strategy.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = strategy.txt; path = ../design/strategy.txt; sourceTree = "<group>"; };
 		31160DC91899540D0071EB17 /* telemetry.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = telemetry.txt; path = ../design/telemetry.txt; sourceTree = "<group>"; };
 		31160DCA1899540D0071EB17 /* tests.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = tests.txt; path = ../design/tests.txt; sourceTree = "<group>"; };
@@ -2266,7 +2264,6 @@
 				310EA6211C889F4C004FE6B7 /* sp.txt */,
 				31160DC61899540D0071EB17 /* splay.txt */,
 				310EA6231C889F4C004FE6B7 /* ss.txt */,
-				310EA6241C889F4C004FE6B7 /* sso1al.txt */,
 				31160DC81899540D0071EB17 /* strategy.txt */,
 				310EA6261C889F4C004FE6B7 /* telemetry.txt */,
 				31160DCA1899540D0071EB17 /* tests.txt */,
@@ -2335,7 +2332,6 @@
 				31160DC41899540D0071EB17 /* shield.txt */,
 				31160DC51899540D0071EB17 /* sig.txt */,
 				31160DC61899540D0071EB17 /* splay.txt */,
-				31160DC71899540D0071EB17 /* sso1al.txt */,
 				31160DC81899540D0071EB17 /* strategy.txt */,
 				31160DC91899540D0071EB17 /* telemetry.txt */,
 				31160DCA1899540D0071EB17 /* tests.txt */,
