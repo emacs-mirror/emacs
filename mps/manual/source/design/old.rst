@@ -50,7 +50,6 @@ Old design
     scan
     seg
     shield
-    sso1al
     strategy
     telemetry
     tests

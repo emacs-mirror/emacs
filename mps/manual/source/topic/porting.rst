@@ -91,8 +91,10 @@ usable.
    entered the MPS.
 
    See :ref:`design-stack-scan` for the design, ``ss.h`` for the
-   interface, and ``ss.c`` for the generic implementation that
-   makes assumptions about the platform described in the design.
+   interface, and ``ss.c`` for for a generic implementation that makes
+   assumptions about the platform (in particular, that the stack grows
+   downwards and setjmp reliably captures the registers; see the design
+   for details).
 
 #. The **thread manager** module suspends and resumes :term:`threads`,
    so that the MPS can gain exclusive access to :term:`memory (2)`,
