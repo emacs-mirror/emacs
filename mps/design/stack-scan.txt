@@ -3,7 +3,7 @@
 Stack and register scanning
 ===========================
 
-:Tag: design.mps.ss
+:Tag: design.mps.stack-scan
 :Author: Gareth Rees
 :Date: 2014-10-22
 :Status: complete design

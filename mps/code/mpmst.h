@@ -792,8 +792,9 @@ typedef struct mps_arena_s {
 
   Bool emergency;               /* garbage collect in emergency mode? */
 
+  /* Stack scanning -- see design.mps.stack-scan */
   void *stackWarm;               /* NULL or stack pointer warmer than
-                                 mutator state.  See design.mps.ss. */
+                                    mutator state. */
 
   Sig sig;
 } ArenaStruct;

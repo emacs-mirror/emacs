@@ -87,18 +87,12 @@ usable.
    call into the MPS from the handler.
 
 #. The **stack and register scanning** module :term:`scans` the
-   :term:`registers` and :term:`control stack` of a thread.
+   :term:`registers` and :term:`control stack` of the thread that
+   entered the MPS.
 
-   See :ref:`design-ss` for the design, and ``ss.h`` for the
-   interface. There are implementations for POSIX on IA-32 in
-   ``ssixi3.c`` and x86-64 in ``ssixi6.c``, and for Windows with
-   Microsoft Visual C/C++ on IA-32 in ``ssw3i3mv.c`` and x86-64 in
-   ``ssw3i6mv.c``.
-
-   There is a generic implementation in ``ssan.c``, which calls
-   :c:func:`setjmp` to spill the registers and scans the whole jump
-   buffer, thus overscanning compared to a platform-specific
-   implementation.
+   See :ref:`design-stack-scan` for the design, ``ss.h`` for the
+   interface, and ``ss.c`` for the generic implementation that
+   makes assumptions about the platform described in the design.
 
 #. The **thread manager** module suspends and resumes :term:`threads`,
    so that the MPS can gain exclusive access to :term:`memory (2)`,

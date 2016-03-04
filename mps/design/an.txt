@@ -144,7 +144,7 @@ stack overflow faults, or do not call into the MPS from the handler
 (see design.mps.sp.issue.an_).
 
 _`.lim.ss`: Overscans compared to a platform-specific implementation
-(see design.mps.ss.impl.an_).
+(see design.mps.stack-scan.impl.an_).
 
 _`.lim.th`: Requires a single-threaded mutator (see
 design.mps.thread-manager.impl.an.single_).
