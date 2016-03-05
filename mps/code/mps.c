@@ -137,9 +137,9 @@
 #include "prmci6xc.c"   /* 64-bit Intel for Mac OS X mutator context */
 #include "span.c"       /* generic stack probe */
 
-/* FreeBSD on 32-bit Intel built with GCC */
+/* FreeBSD on 32-bit Intel built with GCC or Clang */
 
-#elif defined(MPS_PF_FRI3GC)
+#elif defined(MPS_PF_FRI3GC) || defined(MPS_PF_FRI3LL)
 
 #include "lockix.c"     /* Posix locks */
 #include "thix.c"       /* Posix threading */
@@ -151,7 +151,7 @@
 #include "prmci3fr.c"   /* 32-bit Intel for FreeBSD mutator context */
 #include "span.c"       /* generic stack probe */
 
-/* FreeBSD on 64-bit Intel built with GCC */
+/* FreeBSD on 64-bit Intel built with GCC or Clang */
 
 #elif defined(MPS_PF_FRI6GC) || defined(MPS_PF_FRI6LL)
 

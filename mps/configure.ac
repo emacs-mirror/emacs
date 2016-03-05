@@ -117,6 +117,26 @@ case $host/$CLANG in
       CPP="$CC -I/usr/local/include -E"
       PFMCFLAGS="$CFLAGS_GC"
     ;;
+  i*86-*-freebsd*/yes)
+      AC_MSG_RESULT([FreeBSD x86])
+      MPS_OS_NAME=fr
+      MPS_ARCH_NAME=i3
+      MPS_BUILD_NAME=ll
+      # Need /usr/local/include in order to find sqlite3.h
+      CFLAGS="-I/usr/local/include"
+      CPP="$CC -I/usr/local/include -E"
+      PFMCFLAGS="$CFLAGS_LL"
+    ;;
+  amd64-*-freebsd*/no | x86_64-*-freebsd*/no)
+      AC_MSG_RESULT([FreeBSD x86_64])
+      MPS_OS_NAME=fr
+      MPS_ARCH_NAME=i6
+      MPS_BUILD_NAME=ll
+      # Need /usr/local/include in order to find sqlite3.h
+      CFLAGS="-I/usr/local/include"
+      CPP="$CC -I/usr/local/include -E"
+      PFMCFLAGS="$CFLAGS_LL"
+    ;;
   *)
     AC_MSG_ERROR([MPS does not support this platform out of the box.  See manual/build.txt])
 esac

@@ -13,7 +13,14 @@
  */
 
 #include "mps.h"
-#include "mpstd.h"
+#include "mpstd.h" /* for MPS_BUILD_MV */
+
+
+#ifdef MPS_BUILD_MV
+/* MSVC warning 4127 = conditional expression is constant */
+/* Objects to: MPS_SCAN_AREA(1). */
+#pragma warning( disable : 4127 )
+#endif
 
 
 #define MPS_SCAN_AREA(test) \
@@ -34,13 +41,6 @@
       ++p;                                              \
     }                                                   \
   } MPS_SCAN_END(ss);
-
-
-#ifdef MPS_BUILD_MV
-/* MSVC warning 4127 = conditional expression is constant */
-/* Objects to deliberate constant conditions in MPS_SCAN_AREA. */
-#pragma warning( disable : 4127 )
-#endif
 
 
 /* mps_scan_area -- scan contiguous area of references
