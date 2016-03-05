@@ -176,7 +176,8 @@ static Lisp_Object skip_syntaxes (bool, Lisp_Object, Lisp_Object);
 static Lisp_Object scan_lists (EMACS_INT, EMACS_INT, EMACS_INT, bool);
 static void scan_sexps_forward (struct lisp_parse_state *,
                                 ptrdiff_t, ptrdiff_t, ptrdiff_t, EMACS_INT,
-                                bool, Lisp_Object, int);
+                                bool, int, bool);
+static void internalize_parse_state (Lisp_Object, struct lisp_parse_state *);
 static bool in_classes (int, Lisp_Object);
 static void parse_sexp_propertize (ptrdiff_t charpos);
 
@@ -911,10 +912,11 @@ back_comment (ptrdiff_t from, ptrdiff_t from_byte, ptrdiff_t stop,
 	}
       do
 	{
+          internalize_parse_state (Qnil, &state);
 	  scan_sexps_forward (&state,
 			      defun_start, defun_start_byte,
 			      comment_end, TYPE_MINIMUM (EMACS_INT),
-			      0, Qnil, 0);
+			      0, 0, false);
 	  defun_start = comment_end;
 	  if (!adjusted)
 	    {
@@ -3124,13 +3126,16 @@ the prefix syntax flag (p).  */)
    If STOPBEFORE, stop at the start of an atom.
    If COMMENTSTOP is 1, stop at the start of a comment.
    If COMMENTSTOP is -1, stop at the start or end of a comment,
-   after the beginning of a string, or after the end of a string.  */
+   after the beginning of a string, or after the end of a string.
+   If PROPERTIZE is true, apply a `comment-depth' property to the region
+   just scanned over.  This should only be done when COMMENTSTOP is -1 and
+   TARGETDEPTH is ???? and STOPBEFORE is false.  */
 
 static void
 scan_sexps_forward (struct lisp_parse_state *stateptr,
 		    ptrdiff_t from, ptrdiff_t from_byte, ptrdiff_t end,
 		    EMACS_INT targetdepth, bool stopbefore,
-		    Lisp_Object oldstate, int commentstop)
+		    int commentstop, bool propertize)
 {
   struct lisp_parse_state state;
   enum syntaxcode code;
@@ -3153,6 +3158,8 @@ scan_sexps_forward (struct lisp_parse_state *stateptr,
   bool nofence;
   bool found;
   ptrdiff_t out_bytepos, out_charpos;
+  Lisp_Object comment_depth_value;
+  ptrdiff_t orig_from = from;
   int temp;
 
   prev_from = from;
@@ -3174,70 +3181,26 @@ do { prev_from = from;				\
   immediate_quit = 1;
   QUIT;
 
-  if (NILP (oldstate))
+  state = *stateptr;
+  depth = state.depth;
+  start_quoted = state.quoted;
+
+  tem = state.levelstarts;
+  while (!NILP (tem))		/* >= second enclosing sexps.  */
     {
-      depth = 0;
-      state.instring = -1;
-      state.incomment = 0;
-      state.comstyle = 0;	/* comment style a by default.  */
-      state.comstr_start = -1;	/* no comment/string seen.  */
+      Lisp_Object temhd = Fcar (tem);
+      if (RANGED_INTEGERP (PTRDIFF_MIN, temhd, PTRDIFF_MAX))
+        curlevel->last = XINT (temhd);
+      if (++curlevel == endlevel)
+        curlevel--; /* error ("Nesting too deep for parser"); */
+      curlevel->prev = -1;
+      curlevel->last = -1;
+      tem = Fcdr (tem);
     }
-  else
-    {
-      tem = Fcar (oldstate);
-      if (!NILP (tem))
-	depth = XINT (tem);
-      else
-	depth = 0;
 
-      oldstate = Fcdr (oldstate);
-      oldstate = Fcdr (oldstate);
-      oldstate = Fcdr (oldstate);
-      tem = Fcar (oldstate);
-      /* Check whether we are inside string_fence-style string: */
-      state.instring = (!NILP (tem)
-			? (CHARACTERP (tem) ? XFASTINT (tem) : ST_STRING_STYLE)
-			: -1);
-
-      oldstate = Fcdr (oldstate);
-      tem = Fcar (oldstate);
-      state.incomment = (!NILP (tem)
-			 ? (INTEGERP (tem) ? XINT (tem) : -1)
-			 : 0);
-
-      oldstate = Fcdr (oldstate);
-      tem = Fcar (oldstate);
-      start_quoted = !NILP (tem);
-
-      /* if the eighth element of the list is nil, we are in comment
-	 style a.  If it is non-nil, we are in comment style b */
-      oldstate = Fcdr (oldstate);
-      oldstate = Fcdr (oldstate);
-      tem = Fcar (oldstate);
-      state.comstyle = (NILP (tem)
-			? 0
-			: (RANGED_INTEGERP (0, tem, ST_COMMENT_STYLE)
-			   ? XINT (tem)
-			   : ST_COMMENT_STYLE));
-
-      oldstate = Fcdr (oldstate);
-      tem = Fcar (oldstate);
-      state.comstr_start =
-	RANGED_INTEGERP (PTRDIFF_MIN, tem, PTRDIFF_MAX) ? XINT (tem) : -1;
-      oldstate = Fcdr (oldstate);
-      tem = Fcar (oldstate);
-      while (!NILP (tem))		/* >= second enclosing sexps.  */
-	{
-	  Lisp_Object temhd = Fcar (tem);
-	  if (RANGED_INTEGERP (PTRDIFF_MIN, temhd, PTRDIFF_MAX))
-	    curlevel->last = XINT (temhd);
-	  if (++curlevel == endlevel)
-	    curlevel--; /* error ("Nesting too deep for parser"); */
-	  curlevel->prev = -1;
-	  curlevel->last = -1;
-	  tem = Fcdr (tem);
-	}
-    }
+  comment_depth_value = (state.instring != -1)
+    ? Qstring
+    : make_number (state.incomment);
   state.quoted = 0;
   mindepth = depth;
 
@@ -3477,9 +3440,76 @@ do { prev_from = from;				\
   while (curlevel > levelstart)
     state.levelstarts = Fcons (make_number ((--curlevel)->last),
 			       state.levelstarts);
+  if (propertize && commentstop == -1)
+      Fput_text_property (orig_from, from, Qcomment_depth,
+                          comment_depth_value, Qnil);
+
   immediate_quit = 0;
 
   *stateptr = state;
+}
+
+static void
+internalize_parse_state (Lisp_Object external, struct lisp_parse_state *state)
+{
+  Lisp_Object tem;
+
+  if (NILP (external))
+    {
+      state->depth = 0;
+      state->instring = -1;
+      state->incomment = 0;
+      state->quoted = 0;
+      state->comstyle = 0;	/* comment style a by default.  */
+      state->comstr_start = -1;	/* no comment/string seen.  */
+      state->levelstarts = Qnil;
+    }
+  else
+    {
+      tem = Fcar (external);
+      if (!NILP (tem))
+	state->depth = XINT (tem);
+      else
+	state->depth = 0;
+
+      external = Fcdr (external);
+      external = Fcdr (external);
+      external = Fcdr (external);
+      tem = Fcar (external);
+      /* Check whether we are inside string_fence-style string: */
+      state->instring = (!NILP (tem)
+                         ? (CHARACTERP (tem) ? XFASTINT (tem) : ST_STRING_STYLE)
+                         : -1);
+
+      external = Fcdr (external);
+      tem = Fcar (external);
+      state->incomment = (!NILP (tem)
+                          ? (INTEGERP (tem) ? XINT (tem) : -1)
+                          : 0);
+
+      external = Fcdr (external);
+      tem = Fcar (external);
+      state->quoted = !NILP (tem);
+
+      /* if the eighth element of the list is nil, we are in comment
+	 style a.  If it is non-nil, we are in comment style b */
+      external = Fcdr (external);
+      external = Fcdr (external);
+      tem = Fcar (external);
+      state->comstyle = (NILP (tem)
+                         ? 0
+                         : (RANGED_INTEGERP (0, tem, ST_COMMENT_STYLE)
+                            ? XINT (tem)
+                            : ST_COMMENT_STYLE));
+
+      external = Fcdr (external);
+      tem = Fcar (external);
+      state->comstr_start =
+	RANGED_INTEGERP (PTRDIFF_MIN, tem, PTRDIFF_MAX) ? XINT (tem) : -1;
+      external = Fcdr (external);
+      tem = Fcar (external);
+      state->levelstarts = tem;
+    }
 }
 
 DEFUN ("parse-partial-sexp", Fparse_partial_sexp, Sparse_partial_sexp, 2, 6, 0,
@@ -3527,11 +3557,13 @@ Sixth arg COMMENTSTOP non-nil means stop at the start of a comment.
     target = TYPE_MINIMUM (EMACS_INT);	/* We won't reach this depth.  */
 
   validate_region (&from, &to);
+  internalize_parse_state (oldstate, &state);
   scan_sexps_forward (&state, XINT (from), CHAR_TO_BYTE (XINT (from)),
 		      XINT (to),
-		      target, !NILP (stopbefore), oldstate,
+		      target, !NILP (stopbefore),
 		      (NILP (commentstop)
-		       ? 0 : (EQ (commentstop, Qsyntax_table) ? -1 : 1)));
+		       ? 0 : (EQ (commentstop, Qsyntax_table) ? -1 : 1)),
+                      false);
 
   SET_PT_BOTH (state.location, state.location_byte);
 
@@ -3663,6 +3695,15 @@ syms_of_syntax (void)
 	listn (CONSTYPE_PURE, 2, Qscan_error, Qerror));
   Fput (Qscan_error, Qerror_message,
 	build_pure_c_string ("Scan error"));
+
+  DEFSYM (Qcomment_depth, "comment-depth");
+  DEFVAR_BOOL ("comment-cacheing-flag", comment_cacheing_flag,
+               doc: /* Non-nil means use new style comment handling.  */);
+  comment_cacheing_flag = 0;
+  DEFVAR_LISP ("comment-depth-hwm", Vcomment_depth_hwm,
+               doc: /* Buffer position below which the `comment-depth' property is valid.  */);
+  Vcomment_depth_hwm = make_number (1);
+  Fmake_variable_buffer_local (intern ("comment-depth-hwm"));
 
   DEFVAR_BOOL ("parse-sexp-ignore-comments", parse_sexp_ignore_comments,
 	       doc: /* Non-nil means `forward-sexp', etc., should treat comments as whitespace.  */);
