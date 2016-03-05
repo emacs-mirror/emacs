@@ -13,6 +13,14 @@
  */
 
 #include "mps.h"
+#include "mpstd.h" /* for MPS_BUILD_MV */
+
+
+#ifdef MPS_BUILD_MV
+/* MSVC warning 4127 = conditional expression is constant */
+/* Objects to: MPS_SCAN_AREA(1). */
+#pragma warning( disable : 4127 )
+#endif
 
 
 #define MPS_SCAN_AREA(test) \
