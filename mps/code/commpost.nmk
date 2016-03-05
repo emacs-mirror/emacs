@@ -207,7 +207,7 @@ $(PFM)\$(VARIETY)\awlut.exe: $(PFM)\$(VARIETY)\awlut.obj \
 
 $(PFM)\$(VARIETY)\awluthe.exe:  $(PFM)\$(VARIETY)\awluthe.obj \
 	$(FMTTESTOBJ) \
-	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ) $(TESTTHROBJ)
 
 $(PFM)\$(VARIETY)\awlutth.exe:  $(PFM)\$(VARIETY)\awlutth.obj \
 	$(FMTTESTOBJ) \
