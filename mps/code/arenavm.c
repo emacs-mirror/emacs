@@ -1092,10 +1092,9 @@ static void VMFree(Addr base, Size size, Pool pool)
     /* TODO: Consider making this time-based. */
     /* TODO: Consider making this smarter about the overheads tradeoff. */
     Size minPurge = ArenaSpareCommitted(arena) / 2;
-    Size purged;
     if (toPurge < minPurge)
       toPurge = minPurge;
-    purged = VMPurgeSpare(arena, toPurge);
+    VMPurgeSpare(arena, toPurge);
   }
   AVER(ArenaCurrentSpare(arena) <= ArenaSpare(arena));
 
