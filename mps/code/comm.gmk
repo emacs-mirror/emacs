@@ -436,7 +436,7 @@ $(PFM)/$(VARIETY)/awlut: $(PFM)/$(VARIETY)/awlut.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(TESTTHROBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/awluthe: $(PFM)/$(VARIETY)/awluthe.o \
-        $(FMTHETSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+        $(FMTHETSTOBJ) $(TESTLIBOBJ) $(TESTTHROBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/awlutth: $(PFM)/$(VARIETY)/awlutth.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(TESTTHROBJ) $(PFM)/$(VARIETY)/mps.a
