@@ -674,10 +674,11 @@ prev_char_comend_first (ptrdiff_t pos, ptrdiff_t pos_byte)
    Global syntax data remains valid for backward search starting at
    the returned value (or at FROM, if the search was not successful).  */
 
+
 static bool
-back_comment (ptrdiff_t from, ptrdiff_t from_byte, ptrdiff_t stop,
-	      bool comnested, int comstyle, ptrdiff_t *charpos_ptr,
-	      ptrdiff_t *bytepos_ptr)
+old_back_comment (ptrdiff_t from, ptrdiff_t from_byte, ptrdiff_t stop,
+                  bool comnested, int comstyle, ptrdiff_t *charpos_ptr,
+                  ptrdiff_t *bytepos_ptr)
 {
   /* Look back, counting the parity of string-quotes,
      and recording the comment-starters seen.
@@ -955,6 +956,66 @@ back_comment (ptrdiff_t from, ptrdiff_t from_byte, ptrdiff_t stop,
   *bytepos_ptr = from_byte;
 
   return from != comment_end;
+}
+
+static bool
+back_comment (ptrdiff_t from, ptrdiff_t from_byte, ptrdiff_t stop,
+              bool comnested, int comstyle, ptrdiff_t *charpos_ptr,
+              ptrdiff_t *bytepos_ptr)
+{
+  ptrdiff_t hwm, hwm_byte;
+  struct lisp_parse_state state;
+  ptrdiff_t orig_begv = BEGV, orig_begv_byte = BEGV_BYTE;
+  Lisp_Object depth;
+
+  if (comment_cacheing_flag)
+    {
+      hwm = XINT (Vcomment_depth_hwm);
+      if (hwm < from)
+        {
+          hwm_byte = CHAR_TO_BYTE (hwm);
+          internalize_parse_state (Qnil, &state);
+          BEGV = BEG; BEGV_BYTE = BEG_BYTE;
+          if (hwm > BEG)
+            {
+              depth = Fget_text_property (make_number (hwm - 1),
+                                          Qcomment_depth, Qnil);
+              if (CONSP (depth))
+                {
+                  if (EQ (Fcar (depth), Qstring))
+                    {
+                      state.instring = XINT (Fcdr (depth));
+                      state.incomment = 0;
+                    }
+                  else if (EQ (Fcar (depth), make_number (0)))
+                    {
+                      state.instring = -1;
+                      state.incomment = 0;
+                    }
+                  else
+                    {
+                      state.instring = -1;
+                      state.incomment = XINT (Fcar (depth));
+                      state.comstyle = XINT (Fcdr (depth));
+                    }
+                }
+            }
+          while (hwm < from)
+            {
+              scan_sexps_forward (&state, hwm, hwm_byte, from,
+                                  -100, false,
+                                  -1, /* stop after literal boundary */
+                                  true);
+              hwm = state.location;
+              hwm_byte = state.location_byte;
+            }
+          Vcomment_depth_hwm = make_number (hwm);
+          BEGV = orig_begv; BEGV_BYTE = orig_begv_byte;
+        }
+    }
+
+  return old_back_comment (from, from_byte, stop, comnested, comstyle,
+                           charpos_ptr, bytepos_ptr);
 }
 
 DEFUN ("syntax-table-p", Fsyntax_table_p, Ssyntax_table_p, 1, 1, 0,
@@ -3199,8 +3260,11 @@ do { prev_from = from;				\
     }
 
   comment_depth_value = (state.instring != -1)
-    ? Qstring
-    : make_number (state.incomment);
+    ? Fcons (Qstring, make_number (state.instring))
+    : (state.incomment
+       ? Fcons (make_number (state.incomment),
+                make_number (state.comstyle))
+       : Fcons (make_number (0), make_number (0)));
   state.quoted = 0;
   mindepth = depth;
 
@@ -3441,8 +3505,9 @@ do { prev_from = from;				\
     state.levelstarts = Fcons (make_number ((--curlevel)->last),
 			       state.levelstarts);
   if (propertize && commentstop == -1)
-      Fput_text_property (orig_from, from, Qcomment_depth,
-                          comment_depth_value, Qnil);
+    Fput_text_property (make_number (orig_from), make_number (from),
+                        Qcomment_depth,
+                        comment_depth_value, Qnil);
 
   immediate_quit = 0;
 
