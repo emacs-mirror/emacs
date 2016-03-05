@@ -203,7 +203,7 @@ $(PFM)\$(VARIETY)\arenacv.exe:  $(PFM)\$(VARIETY)\arenacv.obj \
 
 $(PFM)\$(VARIETY)\awlut.exe: $(PFM)\$(VARIETY)\awlut.obj \
         $(FMTTESTOBJ) \
-	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ) $(TESTTHROBJ)
 
 $(PFM)\$(VARIETY)\awluthe.exe:  $(PFM)\$(VARIETY)\awluthe.obj \
 	$(FMTTESTOBJ) \

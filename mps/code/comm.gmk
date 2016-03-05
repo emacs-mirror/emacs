@@ -433,7 +433,7 @@ $(PFM)/$(VARIETY)/arenacv: $(PFM)/$(VARIETY)/arenacv.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/awlut: $(PFM)/$(VARIETY)/awlut.o \
-	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(TESTTHROBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/awluthe: $(PFM)/$(VARIETY)/awluthe.o \
         $(FMTHETSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
