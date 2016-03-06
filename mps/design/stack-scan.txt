@@ -185,37 +185,37 @@ And C99 adds:
     undefined.
 
 _`.anal.entry-points`: Here's a reverse call graph (in the master
-sources at changelevel 187410) showing which entry points might call
+sources at changelevel 189652) showing which entry points might call
 ``StackScan()`` and so need to record the stack context::
 
     StackScan
      └ThreadScan
-       └mps_stack_scan_ambig
-         └RootScan
-           └traceScanRootRes
-             └traceScanRoot
-               └rootFlip
-                 └traceFlip
-                   └TraceStart
-                     ├TracePoll
-                     │ ├ArenaStep
-                     │ │ └mps_arena_step
-                     │ └ArenaPoll
-                     │   ├mps_alloc
-                     │   ├mps_ap_fill
-                     │   ├mps_ap_fill_with_reservoir_permit
-                     │   ├mps_ap_alloc_pattern_end
-                     │   ├mps_ap_alloc_pattern_reset
-                     │   └ArenaRelease
-                     │     ├mps_arena_release
-                     │     └ArenaStartCollect
-                     │       ├mps_arena_start_collect
-                     │       └ArenaCollect
-                     │         └mps_arena_collect
-                     └TraceStartCollectAll
-                       ├ArenaStep [see above]
-                       ├ArenaStartCollect [see above]
-                       └TracePoll [see above]
+       └RootScan
+         └traceScanRootRes
+           └traceScanRoot
+             └rootFlip
+               └traceFlip
+                 └TraceStart
+                   ├PolicyStartTrace
+                   │ └TracePoll
+                   │   ├ArenaStep
+                   │   │ └mps_arena_step
+                   │   └ArenaPoll
+                   │     ├mps_alloc
+                   │     ├mps_ap_fill
+                   │     ├mps_ap_fill_with_reservoir_permit
+                   │     ├mps_ap_alloc_pattern_end
+                   │     ├mps_ap_alloc_pattern_reset
+                   │     └ArenaRelease
+                   │       ├mps_arena_release
+                   │       └ArenaStartCollect
+                   │         ├mps_arena_start_collect
+                   │         └ArenaCollect
+                   │           └mps_arena_collect
+                   └TraceStartCollectAll
+                     ├ArenaStep [see above]
+                     ├ArenaStartCollect [see above]
+                     └PolicyStartTrace [see above]
 
 So the entry points that need to save the stack context are
 ``mps_arena_step()``, ``mps_alloc()``, ``mps_ap_fill()``,
