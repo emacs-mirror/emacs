@@ -31,6 +31,17 @@ partially functional or non-functional, but can be used as a starting
 point for a new port if none of the existing implementations is
 usable.
 
+#. The **clock** module provides fast high-resolution clocks for use
+   by the :term:`telemetry system`.
+
+   See :ref:`design-clock` for the design, and ``clock.h`` for the
+   interface. The interface consists only of type declarations and
+   macro definitions, so there is no implementation.
+
+   The header falls back to the clock functions from the
+   :term:`plinth` if there is no platform-specific interface. See
+   :c:func:`mps_clock` and :c:func:`mps_clocks_per_sec`.
+
 #. The **lock** module provides binary locks that ensure that only a
    single :term:`thread` may be running with a lock held, and
    recursive locks, where the same thread may safely take the lock
@@ -268,7 +279,6 @@ this:
     !INCLUDE commpre.nmk
     !INCLUDE mv.nmk
     !INCLUDE commpost.nmk
-
 
 
 Porting strategy
