@@ -6,16 +6,16 @@ Telemetry
 =========
 
 In its :term:`cool` and :term:`hot` :term:`varieties`, the MPS is
-capable of outputting a configurable stream of events to assist with
-debugging and profiling.
+capable of outputting a configurable stream of events (the
+:term:`telemetry stream`) to assist with debugging and profiling.
 
 The selection of events that appear in the stream is controlled by the
 environment variable :envvar:`MPS_TELEMETRY_CONTROL` (by default
 none), and the stream is written to the file named by the environment
 variable :envvar:`MPS_TELEMETRY_FILENAME` (by default ``mpsio.log``).
 
-The telemetry system writes blocks of binary output, and is fast
-enough to be left turned on in production code (the :term:`hot`
+The :term:`telemetry system` writes blocks of binary output, and is
+fast enough to be left turned on in production code (the :term:`hot`
 variety avoids emitting events on the :term:`critical path`), which
 can be useful for diagnosing memory management problems in production
 environments.
