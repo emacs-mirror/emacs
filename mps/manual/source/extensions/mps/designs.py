@@ -121,6 +121,8 @@ def convert_file(name, source, dest):
     s = design_ref.sub(r'\1.html', s)
     s = design_frag_ref.sub(r'\1.html#design.mps.\2.\3', s)
     s = history.sub('', s)
+    # Don't try to format all the quoted code blocks as C.
+    s = '.. highlight:: none\n\n' + s
     try:
         os.makedirs(os.path.dirname(dest))
     except:
