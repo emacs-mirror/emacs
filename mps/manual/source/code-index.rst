@@ -230,7 +230,6 @@ available for :term:`client programs` only. See :ref:`pool`.
 ===========  ==================================================================
 File         Description
 ===========  ==================================================================
-lo.h         :ref:`pool-lo` internal interface.
 poolamc.c    :ref:`pool-amc` implementation.
 poolams.c    :ref:`pool-ams` implementation.
 poolams.h    :ref:`pool-ams` internal interface.
