@@ -7,7 +7,7 @@ TEST_HEADER
 OUTPUT_SPEC
  assert = true
  assertfile P= mpsi.c
- assertcond = AddrIsAligned(reg_scan_p, sizeof(Word))
+ assertcond = AddrIsAligned(cold, sizeof(Word))
 END_HEADER
 */
 
