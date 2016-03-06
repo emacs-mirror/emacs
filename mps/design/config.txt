@@ -75,7 +75,7 @@ _`.def.platform`: A *platform* is a combination of an architecture
 
 _`.def.arch`: An *architecture* is processor type with associated calling
 conventions and other binary interface stuff these days often called the
-`ABI <http://en.wikipedia.org/wiki/Application_binary_interface>`_. 
+`ABI <https://en.wikipedia.org/wiki/Application_binary_interface>`_. 
 Most importantly for the MPS it determines the layout of the register
 file, thread context, and thread stack.
 
@@ -610,7 +610,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited. All rights reserved.
+Copyright © 2013-2016 Ravenbrook Limited. All rights reserved.
 <http://www.ravenbrook.com/>. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
