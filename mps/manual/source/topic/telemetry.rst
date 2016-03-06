@@ -122,7 +122,7 @@ second column, and then addresses or other data related to the event
 in the remaining columns. The source of the timestamp depends on the
 platform; it may be a low-cost high-resolution processor timer, such
 as the `Time Stamp Counter
-<http://en.wikipedia.org/wiki/Time_Stamp_Counter>`_ on IA-32 and
+<https://en.wikipedia.org/wiki/Time_Stamp_Counter>`_ on IA-32 and
 x86-64, if one is available. All numbers are given in hexadecimal. ::
 
     000AE03973336E3C 002B VMCreate            vm:00000001003FC000 base:00000001003FD000 limit:00000001003FE000 
