@@ -148,7 +148,7 @@ ARFLAGS=rc$(ARFLAGSPFM)
 # platforms.
 
 AMC = poolamc.c
-AMS = poolams.c poolamsi.c
+AMS = poolams.c
 AWL = poolawl.c
 LO = poollo.c
 SNC = poolsnc.c
