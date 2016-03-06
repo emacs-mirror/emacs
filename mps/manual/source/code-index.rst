@@ -84,7 +84,6 @@ bt.h          Bit table interface. See design.mps.bt_.
 buffer.c      Buffer implementation. See design.mps.buffer_.
 cbs.c         Coalescing block implementation. See design.mps.cbs_.
 cbs.h         Coalescing block interface. See design.mps.cbs_.
-chain.h       Locus manager interface. See design.mps.locus_.
 check.h       Assertion interface. See design.mps.check_.
 dbgpool.c     :ref:`topic-debugging` implementation.
 dbgpool.h     :ref:`topic-debugging` interface.
@@ -102,6 +101,7 @@ global.c      Global arena implementation.
 land.c        Land implementation. See design.mps.land_.
 ld.c          :ref:`topic-location` implementation.
 locus.c       Locus manager implementation. See design.mps.locus_.
+locus.h       Locus manager interface. See design.mps.locus_.
 message.c     :ref:`topic-message` implementation.
 meter.c       Debugging accumulator implementation.
 meter.h       Debugging accumulator interface.
