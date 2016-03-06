@@ -233,7 +233,6 @@ File         Description
 poolamc.c    :ref:`pool-amc` implementation.
 poolams.c    :ref:`pool-ams` implementation.
 poolams.h    :ref:`pool-ams` internal interface.
-poolamsi.c   :ref:`pool-ams` external interface implementation.
 poolawl.c    :ref:`pool-awl` implementation.
 poollo.c     :ref:`pool-lo` implementation.
 poolmfs.c    :ref:`pool-mfs` implementation.
