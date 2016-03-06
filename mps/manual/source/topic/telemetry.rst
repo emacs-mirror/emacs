@@ -49,6 +49,8 @@ demonstration of :term:`Lisp` in an appendix to his paper
 .. index::
    single: telemetry; utilities
 
+.. _topic-telemetry-utilities:
+
 Telemetry utilities
 -------------------
 
