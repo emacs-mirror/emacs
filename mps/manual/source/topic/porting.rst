@@ -91,10 +91,10 @@ usable.
    entered the MPS.
 
    See :ref:`design-stack-scan` for the design, ``ss.h`` for the
-   interface, and ``ss.c`` for for a generic implementation that makes
+   interface, and ``ss.c`` for a generic implementation that makes
    assumptions about the platform (in particular, that the stack grows
-   downwards and setjmp reliably captures the registers; see the design
-   for details).
+   downwards and :c:func:`setjmp` reliably captures the registers; see
+   the design for details).
 
 #. The **thread manager** module suspends and resumes :term:`threads`,
    so that the MPS can gain exclusive access to :term:`memory (2)`,
@@ -190,7 +190,6 @@ For example::
     #include "proti6.c"     /* 64-bit Intel mutator context */
     #include "prmci6li.c"   /* 64-bit Intel for Linux mutator context */
     #include "span.c"       /* generic stack probe */
-    #include "ssixi6.c"     /* Posix on 64-bit Intel stack scan */
 
 
 Makefile
@@ -219,7 +218,6 @@ For example, ``lii6ll.gmk`` looks like this::
         protli.c \
         pthrdext.c \
         span.c \
-        ssixi6.c \
         thix.c \
         vmix.c
 
@@ -252,7 +250,6 @@ this::
         [proti6] \
         [protw3] \
         [spw3i6] \
-        [ssw3i6mv] \
         [thw3] \
         [thw3i6] \
         [vmw3]
