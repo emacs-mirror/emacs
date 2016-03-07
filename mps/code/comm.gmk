@@ -327,6 +327,7 @@ MMQA=perl test/qa -i ../code -l ../code/$(PFM)/$(VARIETY)/mps.o
 
 $(PFM)/$(VARIETY)/testmmqa:
 	$(MAKE) -f $(PFM).gmk VARIETY=$(VARIETY) TARGET=mps.o variety
+	(if [ "$(VARIETY)" = "cool" ]; then cd ../test && $(MMQA) runset testsets/coolonly; fi)
 	(cd ../test && $(MMQA) runset testsets/argerr)
 	(cd ../test && $(MMQA) runset testsets/conerr)
 	(cd ../test && $(MMQA) runset testsets/passing)
