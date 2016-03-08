@@ -85,7 +85,7 @@ that don't support this.)
 Design
 ------
 
-_`.sol.entry-points`: To meet `.req.stack.entry`_, the mutator's
+_`.sol.entry-points`: To meet `.req.entry`_, the mutator's
 registers and stack must be recorded when the mutator enters the MPS,
 if there is a possibility that the MPS might need to know the mutator
 context.
@@ -292,6 +292,10 @@ _`.impl`: Generic implementation of ``StackScan`` in ``ss.c`` scans
 the whole area between ``arena->stackWarm`` and the cold end of the
 mutator's stack, implementing .sol.stack.nest and also the backup
 strategy in .sol.entry-points.fragile.
+
+.. figure:: stack-scan-areas.svg
+    :align: center
+    :alt: Diagram: scanned areas of the stack.
 
 
 References
