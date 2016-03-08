@@ -40,13 +40,9 @@
  * present.  This is because the MPM doesn't ever try to protect them.
  * In future, it will.
  *
- * .reg-scan: (rule.universal.complete) At present, we only support
- * register scanning using our own ambiguous register and stack scanning
- * method, mps_stack_scan_ambig.  This may never change, but the way the
- * interface is designed allows for the possibility of change.
- *
  * .naming: (rule.impl.guide) The exported identifiers do not follow the
- * normal MPS naming conventions.  See <design/interface-c/#naming>.  */
+ * normal MPS naming conventions.  See <design/interface-c/#naming>.
+ */
 
 #include "mpm.h"
 #include "mps.h"
@@ -1299,12 +1295,14 @@ mps_res_t mps_root_create_table(mps_root_t *mps_root_o, mps_arena_t arena,
   AVER(base != NULL);
   AVER(size > 0);
 
-  /* .root.table-size: size is the length of the array at base, not */
-  /* the size in bytes.  However, RootCreateTable expects base and */
-  /* limit pointers.  Be careful. */
+  /* .root.table-size: size is the length of the array at base, not
+     the size in bytes.  However, RootCreateArea expects base and limit
+     pointers.  Be careful.  Avoid type punning by casting through
+     void *. */
 
-  res = RootCreateTable(&root, arena, rank, mode,
-                        (Addr *)base, (Addr *)base + size);
+  res = RootCreateArea(&root, arena, rank, mode,
+                       (void *)base, (void *)(base + size),
+                       mps_scan_area, NULL);
 
   ArenaLeave(arena);
 
@@ -1314,11 +1312,12 @@ mps_res_t mps_root_create_table(mps_root_t *mps_root_o, mps_arena_t arena,
   return MPS_RES_OK;
 }
 
-mps_res_t mps_root_create_table_masked(mps_root_t *mps_root_o,
-                                       mps_arena_t arena,
-                                       mps_rank_t mps_rank, mps_rm_t mps_rm,
-                                       mps_addr_t *base, size_t size,
-                                       mps_word_t mask)
+mps_res_t mps_root_create_area(mps_root_t *mps_root_o,
+                               mps_arena_t arena,
+                               mps_rank_t mps_rank, mps_rm_t mps_rm,
+                               void *base, void *limit,
+                               mps_area_scan_t scan_area,
+                               void *closure)
 {
   Rank rank = (Rank)mps_rank;
   Root root;
@@ -1329,14 +1328,14 @@ mps_res_t mps_root_create_table_masked(mps_root_t *mps_root_o,
 
   AVER(mps_root_o != NULL);
   AVER(base != NULL);
-  AVER(size > 0);
-  /* Can't check anything about mask */
+  AVER(limit != NULL);
+  AVER(base < limit);
+  AVER(FUNCHECK(scan_area));
+  /* Can't check anything about closure */
 
-  /* See .root.table-size. */
-
-  res = RootCreateTableMasked(&root, arena, rank, mode,
-                              (Addr *)base, (Addr *)base + size,
-                              mask);
+  res = RootCreateArea(&root, arena, rank, mode,
+                       base, limit,
+                       scan_area, closure);
 
   ArenaLeave(arena);
 
@@ -1344,6 +1343,56 @@ mps_res_t mps_root_create_table_masked(mps_root_t *mps_root_o,
     return (mps_res_t)res;
   *mps_root_o = (mps_root_t)root;
   return MPS_RES_OK;
+}
+
+mps_res_t mps_root_create_area_tagged(mps_root_t *mps_root_o,
+                                      mps_arena_t arena,
+                                      mps_rank_t mps_rank,
+                                      mps_rm_t mps_rm,
+                                      void *base,
+                                      void *limit,
+                                      mps_area_scan_t scan_area,
+                                      mps_word_t mask,
+                                      mps_word_t pattern)
+{
+  Rank rank = (Rank)mps_rank;
+  Root root;
+  RootMode mode = (RootMode)mps_rm;
+  Res res;
+
+  ArenaEnter(arena);
+
+  AVER(mps_root_o != NULL);
+  AVER(base != NULL);
+  AVER(limit != NULL);
+  AVER(base < limit);
+  AVER(FUNCHECK(scan_area));
+  /* Can't check anything about mask or pattern, as they could mean
+     anything to scan_area. */
+
+  res = RootCreateAreaTagged(&root, arena, rank, mode,
+                             base, limit,
+                             scan_area, mask, pattern);
+
+  ArenaLeave(arena);
+
+  if (res != ResOK)
+    return (mps_res_t)res;
+  *mps_root_o = (mps_root_t)root;
+  return MPS_RES_OK;
+}
+  
+
+mps_res_t mps_root_create_table_masked(mps_root_t *mps_root_o,
+                                       mps_arena_t arena,
+                                       mps_rank_t mps_rank, mps_rm_t mps_rm,
+                                       mps_addr_t *base, size_t size,
+                                       mps_word_t mask)
+{
+  return mps_root_create_area_tagged(mps_root_o, arena, mps_rank, mps_rm,
+                                     base, base + size,
+                                     mps_scan_area_tagged,
+                                     mask, 0);
 }
 
 mps_res_t mps_root_create_fmt(mps_root_t *mps_root_o, mps_arena_t arena,
@@ -1372,7 +1421,7 @@ mps_res_t mps_root_create_fmt(mps_root_t *mps_root_o, mps_arena_t arena,
 mps_res_t mps_root_create_reg(mps_root_t *mps_root_o, mps_arena_t arena,
                               mps_rank_t mps_rank, mps_rm_t mps_rm,
                               mps_thr_t thread, mps_reg_scan_t mps_reg_scan,
-                              void *reg_scan_p, size_t mps_size)
+                              void *cold, size_t mps_size)
 {
   Rank rank = (Rank)mps_rank;
   Root root;
@@ -1383,14 +1432,111 @@ mps_res_t mps_root_create_reg(mps_root_t *mps_root_o, mps_arena_t arena,
   AVER(mps_root_o != NULL);
   AVER(mps_reg_scan != NULL);
   AVER(mps_reg_scan == mps_stack_scan_ambig); /* .reg.scan */
-  AVER(reg_scan_p != NULL); /* stackBot */
-  AVER(AddrIsAligned(reg_scan_p, sizeof(Word)));
+  AVER(cold != NULL);
+  AVER(AddrIsAligned(cold, sizeof(Word)));
   AVER(rank == mps_rank_ambig());
   AVER(mps_rm == (mps_rm_t)0);
 
+  UNUSED(mps_size);
+
   /* See .root-mode. */
-  res = RootCreateReg(&root, arena, rank, thread,
-                      mps_reg_scan, reg_scan_p, mps_size);
+  res = RootCreateThreadTagged(&root, arena, rank, thread,
+                               mps_scan_area_tagged,
+                               sizeof(mps_word_t) - 1, 0,
+                               (Word *)cold);
+
+  ArenaLeave(arena);
+
+  if (res != ResOK)
+    return (mps_res_t)res;
+  *mps_root_o = (mps_root_t)root;
+  return MPS_RES_OK;
+}
+
+
+mps_res_t mps_root_create_thread(mps_root_t *mps_root_o,
+                                 mps_arena_t arena,
+                                 mps_thr_t thread,
+                                 void *stack)
+{
+  return mps_root_create_thread_tagged(mps_root_o,
+                                       arena,
+                                       mps_rank_ambig(),
+                                       (mps_rm_t)0,
+                                       thread,
+                                       mps_scan_area_tagged,
+                                       sizeof(mps_word_t) - 1,
+                                       0,
+                                       stack);
+}
+
+
+mps_res_t mps_root_create_thread_scanned(mps_root_t *mps_root_o,
+                                         mps_arena_t arena,
+                                         mps_rank_t mps_rank,
+                                         mps_rm_t mps_rm,
+                                         mps_thr_t thread,
+                                         mps_area_scan_t scan_area,
+                                         void *closure,
+                                         void *cold)
+{
+  Rank rank = (Rank)mps_rank;
+  Root root;
+  Res res;
+
+  ArenaEnter(arena);
+
+  AVER(mps_root_o != NULL);
+  AVER(cold != NULL);
+  AVER(AddrIsAligned(cold, sizeof(Word)));
+  AVER(rank == mps_rank_ambig());
+  AVER(mps_rm == (mps_rm_t)0);
+  AVER(FUNCHECK(scan_area));
+  /* Can't check anything about closure. */
+
+  /* See .root-mode. */
+  res = RootCreateThread(&root, arena, rank, thread,
+                         scan_area, closure,
+                         (Word *)cold);
+
+  ArenaLeave(arena);
+
+  if (res != ResOK)
+    return (mps_res_t)res;
+  *mps_root_o = (mps_root_t)root;
+  return MPS_RES_OK;
+}
+
+
+mps_res_t mps_root_create_thread_tagged(mps_root_t *mps_root_o,
+                                        mps_arena_t arena,
+                                        mps_rank_t mps_rank,
+                                        mps_rm_t mps_rm,
+                                        mps_thr_t thread,
+                                        mps_area_scan_t scan_area,
+                                        mps_word_t mask,
+                                        mps_word_t pattern,
+                                        void *cold)
+{
+  Rank rank = (Rank)mps_rank;
+  Root root;
+  Res res;
+
+  ArenaEnter(arena);
+
+  AVER(mps_root_o != NULL);
+  AVER(cold != NULL);
+  AVER(AddrIsAligned(cold, sizeof(Word)));
+  AVER(rank == mps_rank_ambig());
+  AVER(mps_rm == (mps_rm_t)0);
+  AVER(FUNCHECK(scan_area));
+  /* Can't check anything about mask or pattern, as they could mean
+     anything to scan_area. */
+
+  /* See .root-mode. */
+  res = RootCreateThreadTagged(&root, arena, rank, thread,
+                               scan_area, mask, pattern,
+                               (Word *)cold);
 
   ArenaLeave(arena);
 
@@ -1403,14 +1549,22 @@ mps_res_t mps_root_create_reg(mps_root_t *mps_root_o, mps_arena_t arena,
 
 /* mps_stack_scan_ambig -- scan the thread state ambiguously
  *
- * See .reg-scan.  */
+ * This is a helper function for the deprecated mps_root_create_reg
+ * and should no longer be reached since that has been reimplemented
+ * in terms of the more general RootCreateThreadTagged.
+ */
 
 mps_res_t mps_stack_scan_ambig(mps_ss_t mps_ss,
                                mps_thr_t thread, void *p, size_t s)
 {
-  ScanState ss = PARENT(ScanStateStruct, ss_s, mps_ss);
+  UNUSED(mps_ss);
+  UNUSED(thread);
+  UNUSED(p);
   UNUSED(s);
-  return ThreadScan(ss, thread, p);
+
+  NOTREACHED;
+
+  return ResUNIMPL;
 }
 
 

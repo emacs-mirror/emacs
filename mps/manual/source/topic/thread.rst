@@ -47,8 +47,8 @@ see :ref:`topic-root-thread`).
 For simplicity, we recommend that a thread must be registered with an
 :term:`arena` if:
 
-* its registers and control stack form a root (this is enforced by
-  :c:func:`mps_root_create_reg`); or
+* its :term:`control stack` and :term:`registers` form a root (this is
+  enforced by :c:func:`mps_root_create_thread`); or
 
 * it reads or writes from a location in an :term:`automatically managed
   <automatic memory management>` :term:`pool` in the arena.
@@ -117,8 +117,9 @@ Thread interface
     as necessary in order to have exclusive access to their state.
 
     Even in a single-threaded environment it may be necessary to
-    register a thread with the MPS so that its stack can be registered
-    as a :term:`root` by calling :c:func:`mps_root_create_reg`.
+    register a thread with the MPS so that its :term:`control stack`
+    and :term:`registers` can be registered as a :term:`root` by
+    calling :c:func:`mps_root_create_thread`.
 
 
 .. c:function:: mps_res_t mps_thread_reg(mps_thr_t *thr_o, mps_arena_t arena)

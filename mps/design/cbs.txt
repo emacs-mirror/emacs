@@ -9,6 +9,7 @@ Coalescing block structures
 :Status: complete design
 :Revision: $Id$
 :Copyright: See section `Copyright and License`_.
+:Index terms: pair: coalescing block structures; design
 
 
 Introduction
@@ -281,7 +282,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 1998-2014 Ravenbrook Limited. All rights reserved. 
+Copyright © 1998-2016 Ravenbrook Limited. All rights reserved. 
 <http://www.ravenbrook.com/>. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
