@@ -31,8 +31,7 @@ SRCID(ssw3i6mv, "$Id$");
 
 
 Res StackScan(ScanState ss, Word *stackCold,
-              mps_area_scan_t scan_area
-              void *closure)
+              mps_area_scan_t scan_area, void *closure)
 {
   jmp_buf jb;
 

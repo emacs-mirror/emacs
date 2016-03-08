@@ -123,6 +123,13 @@ Memory Management Glossary: T
             stream can be configured by setting the :term:`telemetry
             filter`. See :ref:`topic-telemetry`.
 
+    telemetry system
+
+        .. mps:specific::
+
+            The subsystem of the MPS that outputs the :term:`telemetry
+            stream`. See :ref:`topic-telemetry`.
+
     tenuring
 
         .. see:: :term:`promotion`.

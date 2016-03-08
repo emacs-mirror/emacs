@@ -1,7 +1,7 @@
 /* mps.h: RAVENBROOK MEMORY POOL SYSTEM C INTERFACE
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (c) 2002 Global Graphics Software.
  *
  * THIS HEADER IS NOT DOCUMENTATION.
@@ -500,7 +500,7 @@ extern size_t mps_pool_free_size(mps_pool_t);
 
 /* Chains */
 
-/* .gen-param: This structure must match <code/chain.h#gen-param>. */
+/* .gen-param: This structure must match <code/locus.h#gen-param>. */
 typedef struct mps_gen_param_s {
   size_t mps_capacity;
   double mps_mortality;
@@ -869,7 +869,7 @@ extern mps_res_t _mps_fix2(mps_ss_t, mps_addr_t *);
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
