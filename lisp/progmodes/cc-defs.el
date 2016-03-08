@@ -375,18 +375,19 @@ to it is returned.  This function does not modify the point or the mark."
   ;; Constant to decide at compilation time whether to use category
   ;; properties.  Currently (2010-03) they're available only on GNU Emacs.
   (defconst c-use-category
-    (with-temp-buffer
-      (let ((parse-sexp-lookup-properties t)
-	    (lookup-syntax-properties t))
-        (set-syntax-table (make-syntax-table))
-        (insert "<()>")
-        (put-text-property (point-min) (1+ (point-min))
-			   'category 'c-<-as-paren-syntax)
-        (put-text-property (+ 3 (point-min)) (+ 4 (point-min))
-			   'category 'c->-as-paren-syntax)
-        (goto-char (point-min))
-        (forward-sexp)
-        (= (point) (+ 4 (point-min)))))))
+    (and (not (boundp 'comment-depth-hwm))
+	 (with-temp-buffer
+	   (let ((parse-sexp-lookup-properties t)
+		 (lookup-syntax-properties t))
+	     (set-syntax-table (make-syntax-table))
+	     (insert "<()>")
+	     (put-text-property (point-min) (1+ (point-min))
+				'category 'c-<-as-paren-syntax)
+	     (put-text-property (+ 3 (point-min)) (+ 4 (point-min))
+				'category 'c->-as-paren-syntax)
+	     (goto-char (point-min))
+	     (forward-sexp)
+	     (= (point) (+ 4 (point-min))))))))
 
 (defvar c-use-extents)
 
@@ -498,6 +499,7 @@ The return value is the value of the last form in BODY."
       `(with-silent-modifications (let* ,varlist ,@body))
     `(let* ((modified (buffer-modified-p)) (buffer-undo-list t)
 	    (inhibit-read-only t) (inhibit-point-motion-hooks t)
+	    (inhibit-modification-hooks t)
 	    before-change-functions after-change-functions
 	    deactivate-mark
 	    buffer-file-name buffer-file-truename ; Prevent primitives checking
