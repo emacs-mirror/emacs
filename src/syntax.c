@@ -1259,7 +1259,7 @@ back_comment (ptrdiff_t from, ptrdiff_t from_byte, ptrdiff_t stop,
       c = FETCH_CHAR_AS_MULTIBYTE (from_byte);
       syntax = SYNTAX_WITH_FLAGS (c);
       code = SYNTAX (c);
-      if (code != Scomment)
+      if (code != Scomment && code != Scomment_fence)
         {
           if (from <= stop)
             return false;
@@ -3459,7 +3459,6 @@ scan_sexps_forward (struct lisp_parse_state *stateptr,
 		    EMACS_INT targetdepth, bool stopbefore,
 		    int commentstop)
 {
-  ptrdiff_t count = SPECPDL_INDEX ();
   struct lisp_parse_state state;
   enum syntaxcode code;
   int c1;
