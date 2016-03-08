@@ -20,9 +20,9 @@ TYPES = '''
 
     AccessSet Accumulation Addr Align AllocFrame AllocPattern AP Arg
     Arena Attr Bool BootBlock BT Buffer BufferMode Byte Chain Chunk
-    Clock Compare Count Epoch FindDelete Format FrameState Fun GenDesc
-    Globals Index Land LD Lock LocusPref LocusPrefKind Message
-    MessageType MutatorFaultContext Page Pointer Pool PoolGen
+    Clock Compare Count Epoch EventClock FindDelete Format FrameState
+    Fun GenDesc Globals Index Land LD Lock LocusPref LocusPrefKind
+    Message MessageType MutatorFaultContext Page Pointer Pool PoolGen
     PThreadext Range Rank RankSet ReadonlyAddr Ref RefSet Res
     Reservoir Ring Root RootMode RootVar ScanState Seg SegBuf Serial
     Shift Sig Size Space SplayNode SplayTree StackContext Thread Trace
@@ -121,6 +121,8 @@ def convert_file(name, source, dest):
     s = design_ref.sub(r'\1.html', s)
     s = design_frag_ref.sub(r'\1.html#design.mps.\2.\3', s)
     s = history.sub('', s)
+    # Don't try to format all the quoted code blocks as C.
+    s = '.. highlight:: none\n\n' + s
     try:
         os.makedirs(os.path.dirname(dest))
     except:

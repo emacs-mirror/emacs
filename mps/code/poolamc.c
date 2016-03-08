@@ -1,14 +1,14 @@
 /* poolamc.c: AUTOMATIC MOSTLY-COPYING MEMORY POOL CLASS
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .sources: <design/poolamc/>.
  */
 
 #include "mpscamc.h"
-#include "chain.h"
+#include "locus.h"
 #include "bt.h"
 #include "mpm.h"
 #include "nailboard.h"
@@ -2254,7 +2254,7 @@ static Bool AMCCheck(AMC amc)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

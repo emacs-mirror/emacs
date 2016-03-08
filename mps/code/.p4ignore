@@ -5,6 +5,7 @@ anangc
 ananll
 ananmv
 fri3gc
+fri3ll
 fri6gc
 fri6ll
 lii3gc
@@ -50,3 +51,5 @@ tags
 9
 # Mac OS X Finder turds
 .DS_Store
+# Emacs backups
+*~

@@ -3,7 +3,7 @@
 # comm.gmk: COMMON GNUMAKEFILE FRAGMENT
 #
 # $Id$
-# Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+# Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
 #
 # DESCRIPTION
 #
@@ -148,7 +148,7 @@ ARFLAGS=rc$(ARFLAGSPFM)
 # platforms.
 
 AMC = poolamc.c
-AMS = poolams.c poolamsi.c
+AMS = poolams.c
 AWL = poolawl.c
 LO = poollo.c
 SNC = poolsnc.c
@@ -319,10 +319,24 @@ $(addprefix $(PFM)/$(VARIETY)/,$(TEST_SUITES)): $(TEST_TARGETS)
 	../tool/testrun.sh -s "$(notdir $@)" "$(PFM)/$(VARIETY)"
 
 
+# == MMQA test suite ==
+#
+# See test/README for documentation on running the MMQA test suite.
+
+MMQA=perl test/qa -i ../code -l ../code/$(PFM)/$(VARIETY)/mps.o
+
+$(PFM)/$(VARIETY)/testmmqa:
+	$(MAKE) -f $(PFM).gmk VARIETY=$(VARIETY) TARGET=mps.o variety
+	(if [ "$(VARIETY)" = "cool" ]; then cd ../test && $(MMQA) runset testsets/coolonly; fi)
+	(cd ../test && $(MMQA) runset testsets/argerr)
+	(cd ../test && $(MMQA) runset testsets/conerr)
+	(cd ../test && $(MMQA) runset testsets/passing)
+
+
 # These convenience targets allow one to type "make foo" to build target
 # foo in selected varieties (or none, for the latter rule).
 
-$(ALL_TARGETS) $(TEST_SUITES): phony
+$(ALL_TARGETS) $(TEST_SUITES) testmmqa: phony
 ifdef VARIETY
 	$(MAKE) -f $(PFM).gmk TARGET=$@ variety
 else
@@ -667,7 +681,7 @@ find-puns: phony
 
 # C. COPYRIGHT AND LICENSE
 #
-# Copyright (c) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+# Copyright (c) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
 # All rights reserved.  This is an open source license.  Contact
 # Ravenbrook for commercial licensing options.
 # 
