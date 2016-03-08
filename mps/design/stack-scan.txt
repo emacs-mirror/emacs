@@ -232,9 +232,7 @@ Interface
 
 _`.if.sc`: A structure encapsulating the mutator context.
 
-``Res StackScan(ScanState ss, void *stackCold,
-                mps_area_scan_t scan_area,
-                void *closure)``
+``Res StackScan(ScanState ss, void *stackCold, mps_area_scan_t scan_area, void *closure)``
 
 _`.if.scan`: Scan the stack of the current thread, between
 ``stackCold`` and the hot end of the mutator's stack that was recorded
