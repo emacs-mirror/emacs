@@ -44,7 +44,7 @@ _`.req.stack.hot`: Must locate the hot end of the mutator's stack. (This
 is needed for conservative garbage collection of uncooperative code,
 where references might be stored by mutator on its stack.)
 
-_`.req.stack.bottom.not`: There is no requirement to locate the bottom
+_`.req.stack.cold.not`: There is no requirement to locate the cold end
 of the stack. (The mutator supplies this as an argument to
 ``mps_root_create_reg()``.)
 
@@ -57,9 +57,9 @@ last full location) or *empty* (the stack pointer points to the
 first empty location).
 
 _`.req.stack.platform.desc-asc`: The implementation must take into
-account whether the stack is *descending* (top of stack is at a lower
-address than bottom of stack) or *ascending* (top of stack is at a
-higher address than bottom of stack).
+account whether the stack is *descending* (the hot end of the stack is
+at a lower address than the cold end) or *ascending* (the hot end of
+the stack is at a higher address than the cold end).
 
 _`.req.registers`: Must locate and scan all references in the
 mutator's *root registers*, the subset of registers which might
