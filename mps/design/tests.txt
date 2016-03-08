@@ -9,6 +9,7 @@ Tests
 :Status: incomplete design
 :Revision: $Id$
 :Copyright: See `Copyright and License`_.
+:Index terms: pair: tests; design
 
 
 Introduction
@@ -75,7 +76,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited. All rights reserved.
+Copyright © 2013-2016 Ravenbrook Limited. All rights reserved.
 <http://www.ravenbrook.com/>. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
