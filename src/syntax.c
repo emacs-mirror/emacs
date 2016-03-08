@@ -176,7 +176,7 @@ static Lisp_Object skip_syntaxes (bool, Lisp_Object, Lisp_Object);
 static Lisp_Object scan_lists (EMACS_INT, EMACS_INT, EMACS_INT, bool);
 static void scan_sexps_forward (struct lisp_parse_state *,
                                 ptrdiff_t, ptrdiff_t, ptrdiff_t, EMACS_INT,
-                                bool, int, bool);
+                                bool, int);
 static void internalize_parse_state (Lisp_Object, struct lisp_parse_state *);
 static bool in_classes (int, Lisp_Object);
 static void parse_sexp_propertize (ptrdiff_t charpos);
@@ -917,7 +917,7 @@ old_back_comment (ptrdiff_t from, ptrdiff_t from_byte, ptrdiff_t stop,
 	  scan_sexps_forward (&state,
 			      defun_start, defun_start_byte,
 			      comment_end, TYPE_MINIMUM (EMACS_INT),
-			      0, 0, false);
+			      0, 0);
 	  defun_start = comment_end;
 	  if (!adjusted)
 	    {
@@ -958,64 +958,328 @@ old_back_comment (ptrdiff_t from, ptrdiff_t from_byte, ptrdiff_t stop,
   return from != comment_end;
 }
 
+/* `comment-depth' text properties
+   -------------------------------
+These are applied to all text between BOB and `comment-depth-hwm'.
+They are primarily to record whether or not the current character is
+inside a literal, and if so, what type.
+
+On a buffer change (when `inhibit-modification-hooks' is nil), any
+buffer change (including changing text-properties) will reduce
+`comment-depth-hwm' to the change position, if it is higher.  When
+`inhibit-modification-hooks' is non-nil, only changes to the
+`syntax-table' text property (possibly via a `category' text property)
+which affect the scanning of literals cause the setting of
+`comment-depth-hwm'.
+
+The `comment-depth' text property for a literal is applied on the text
+between just after its opening delimiter and just after its closing
+delimiter.
+
+The value of the `comment-depth' text property is a cons.  For a
+string, its car is the symbol `string' and its cdr is the expected
+closing delimiter (or ST_STRING_STYLE in the case of a string fence
+string).  For a comment, the car is -1 for a non-nestable comment, or
+the current nesting depth for a nestable comment.  When not in a
+literal, the value is '(0 . 0).  These values match the internal
+values used in `scan_sexps_forward.  */
+
+DEFUN ("trim-comment-cache", Ftrim_comment_cache, Strim_comment_cache, 0, 1, 0,
+       doc: /* Mark the selected buffer's "comment cache" as invalid from POS.
+By default, POS is the beginning of the buffer (position 1).  If the cache is
+already invalid from an earlier position than POS, this function has no
+effect.  The return value is the new bound.  */)
+  (Lisp_Object pos)
+{
+  ptrdiff_t position, cache_limit;
+
+  if (!NILP (pos))
+    {
+      CHECK_NUMBER (pos);
+      position = max (XINT (pos), 1);
+    }
+  else
+    position = 1;
+  cache_limit = XINT (BVAR (current_buffer, comment_depth_hwm));
+  BVAR (current_buffer, comment_depth_hwm)
+      = make_number (min (cache_limit, position));
+  return BVAR (current_buffer, comment_depth_hwm);
+}
+
+static
+bool syntax_table_value_is_interesting_for_literals (Lisp_Object val)
+{
+  ptrdiff_t syntax, code;
+  if (!CONSP (val)
+      || !INTEGERP (XCAR (val)))
+    return false;
+  syntax = XINT (XCAR (val));
+  code = syntax & 0xff;
+  return (code == Sstring
+          || code == Sescape
+          || code == Scharquote /* Check this!  2016-03-06. */
+          || code == Scomment
+          || code == Sendcomment
+          /* || (code == Sinherit && ....) This isn't implemented in syntax.c. */
+          || code == Scomment_fence
+          || code == Sstring_fence
+          || (syntax & 0xF0000) != 0); /* Flags `1', `2', `3', '4'. */
+}
+
+/* The text property PROP is having its value VAL at position POS in buffer BUF
+either set or cleared.  If this value is relevant to the syntax of literals,
+reduce the BUF's value of comment_depth_hwm to POS.  */
+void
+check_comment_depth_hwm_for_prop (ptrdiff_t pos, Lisp_Object prop,
+                                  Lisp_Object val, Lisp_Object buffer)
+{
+  struct buffer *b;
+  ptrdiff_t hwm;
+  Lisp_Object plist;
+
+  if (!BUFFERP (buffer))
+    return;
+  b = XBUFFER (buffer);
+  hwm  = XINT (BVAR (b, comment_depth_hwm));
+  if (pos >= hwm)
+    return;
+
+  if (EQ (prop, Qcategory)
+      && SYMBOLP (val))
+    {
+      plist = Fsymbol_plist (val);
+      while (CONSP (plist))
+        {
+          prop = XCAR (plist);
+          plist = XCDR (plist);
+          if (!CONSP (plist))
+            return;
+          val = XCAR (plist);
+          if (EQ (prop, Qsyntax_table))
+            break;
+          plist = XCDR (plist);
+        }
+    }
+  if (EQ (prop, Qsyntax_table)
+      && syntax_table_value_is_interesting_for_literals (val))
+    BVAR (b, comment_depth_hwm) = make_number (pos);
+}
+
+/* Scan forward over all text between comment-depth-hwm and TO,
+   marking literals (strings and comments) with the `comment-depth'
+   text property.  `comment-depth-hwm' is updated to TO. */
+static void
+scan_comments_forward_to (ptrdiff_t to, ptrdiff_t to_byte)
+{
+  ptrdiff_t count = SPECPDL_INDEX ();
+  ptrdiff_t hwm, hwm_byte;
+  struct lisp_parse_state state;
+  ptrdiff_t orig_begv = BEGV, orig_begv_byte = BEGV_BYTE;
+  ptrdiff_t tmp, tmp_byte;
+  int c, syntax;
+  enum syntaxcode code;
+  Lisp_Object depth;
+  Lisp_Object comment_depth_value;
+  Lisp_Object tem;
+
+  hwm = XINT (BVAR (current_buffer, comment_depth_hwm));
+
+  if (hwm < to)
+    {
+      record_unwind_protect (save_restriction_restore,
+                             save_restriction_save ());
+      BEGV = BEG; BEGV_BYTE = BEG_BYTE;
+
+      hwm_byte = CHAR_TO_BYTE (hwm);
+      /* We mustn't start scanning just after the first half of a
+         double character comment starter or ender. */
+      if (hwm > BEG)
+        {
+          tmp = hwm; tmp_byte = hwm_byte;
+          do
+            {
+              DEC_BOTH (tmp, tmp_byte);
+              UPDATE_SYNTAX_TABLE_BACKWARD (tmp);
+              c = FETCH_CHAR_AS_MULTIBYTE (tmp_byte);
+              syntax = SYNTAX_WITH_FLAGS (c);
+              code = SYNTAX (c);
+            }
+          while (tmp > BEG
+                 && (code == Sescape
+                     || (syntax & 0xF0000))); /* Flags `1', `2', `3', `4'. */
+          if (tmp > BEG)
+            INC_BOTH (tmp, tmp_byte);
+          hwm = tmp; hwm_byte = tmp_byte;
+        }
+
+      internalize_parse_state (Qnil, &state);
+      if (hwm > BEG)
+        /* Initialize STATE with the current value of the
+           `comment-depth' text property. */
+        {
+          depth = Fget_text_property (make_number (hwm - 1),
+                                      Qcomment_depth, Qnil);
+          if (CONSP (depth))
+            {
+              if (EQ (Fcar (depth), Qstring))
+                {
+                  state.instring = XINT (Fcdr (depth));
+                  state.incomment = 0;
+                }
+              else if (EQ (Fcar (depth), make_number (0)))
+                {
+                  state.instring = -1;
+                  state.incomment = 0;
+                }
+              else
+                {
+                  state.instring = -1;
+                  state.incomment = XINT (Fcar (depth));
+                  state.comstyle = XINT (Fcdr (depth));
+                }
+            }
+        }
+
+      {
+        /* Setup the buffer to write text properties discreetly.  */
+        Lisp_Object modified = Fbuffer_modified_p (Qnil);
+        ptrdiff_t count1 = SPECPDL_INDEX ();
+
+        specbind (Qinhibit_modification_hooks, Qt);
+        specbind (intern ("buffer-undo-list"), Qt);
+        specbind (Qinhibit_read_only, Qt);
+        specbind (Qdeactivate_mark, Qnil);
+        if (NILP (modified))
+          record_unwind_protect
+            ((void (*) (Lisp_Object))Frestore_buffer_modified_p, Qnil);
+
+        while (hwm < to)
+          {
+            /* For each literal we scan, we apply the `comment-depth'
+               property on its innards and closing delimiter.  Calculate
+               the value we will use first. */
+            comment_depth_value = (state.instring != -1)
+              ? Fcons (Qstring, make_number (state.instring))
+              : (state.incomment
+                 ? Fcons (make_number (state.incomment),
+                          make_number (state.comstyle))
+                 : Fcons (make_number (0), make_number (0)));
+            /* Ensure all `equal' values of comment-depth-value are also `eq'. */
+            tem = Fmember (comment_depth_value, Vcomment_depth_values);
+            if (CONSP (tem))
+              comment_depth_value = XCAR (tem);
+            else
+              Vcomment_depth_values = Fcons (comment_depth_value, Vcomment_depth_values);
+
+            scan_sexps_forward (&state, hwm, hwm_byte, to,
+                                TYPE_MINIMUM (EMACS_INT), false,
+                                -1); /* stop after literal boundary */
+
+            Fput_text_property (make_number (hwm), make_number (state.location),
+                                Qcomment_depth,
+                                comment_depth_value, Qnil);
+
+            hwm = state.location;
+            hwm_byte = state.location_byte;
+          }
+        unbind_to (count1, Qnil);
+        if (NILP (modified))
+            /* Frestore_buffer_modified_p overwrites gl_state, hence: */
+            SETUP_SYNTAX_TABLE (to, -1);
+      }
+      BVAR (current_buffer, comment_depth_hwm) = make_number (hwm);
+      unbind_to (count, Qnil);
+    }
+}
+
+/* Check whether charpos FROM is at the end of a comment.
+   FROM_BYTE is the bytepos corresponding to FROM.
+   Do not move back before STOP.
+
+   Return true if we find a comment ending at FROM/FROM_BYTE.
+
+   If successful, store the charpos of the comment's beginning
+   into *CHARPOS_PTR, and the bytepos into *BYTEPOS_PTR.
+
+   Global syntax data remains valid for backward search starting at
+   the returned value (or at FROM, if the search was not successful).  */
 static bool
 back_comment (ptrdiff_t from, ptrdiff_t from_byte, ptrdiff_t stop,
               bool comnested, int comstyle, ptrdiff_t *charpos_ptr,
               ptrdiff_t *bytepos_ptr)
 {
-  ptrdiff_t hwm, hwm_byte;
-  struct lisp_parse_state state;
-  ptrdiff_t orig_begv = BEGV, orig_begv_byte = BEGV_BYTE;
   Lisp_Object depth;
+  ptrdiff_t comment_depth, target_depth, comment_style;
+  Lisp_Object temp;
+  int c;
+  int syntax, code;
 
   if (comment_cacheing_flag)
     {
-      hwm = XINT (Vcomment_depth_hwm);
-      if (hwm < from)
+      scan_comments_forward_to (from, from_byte);
+      if (from <= stop)
+        return false;
+      depth = Fget_text_property (make_number (from - 1), Qcomment_depth, Qnil);
+      if (!CONSP (depth)
+          || !INTEGERP (XCAR (depth))) /* A string. */
+        return false;
+      comment_depth = XINT (XCAR (depth));
+      if (!comment_depth)       /* Not in a comment. */
+        return false;
+      comment_style = XINT (XCDR (depth));
+      if (comment_style != comstyle) /* Wrong sort of comment.  This
+                                        can happen with "*|" at the
+                                        end of a "||" line comment. */
+        return false;
+
+      /* comment_depth: -1 is a non-nested comment, otherwise it's
+         the depth of nesting of nested comments. */
+      target_depth = comment_depth < 0 ? 0 : comment_depth - 1;
+      do
         {
-          hwm_byte = CHAR_TO_BYTE (hwm);
-          internalize_parse_state (Qnil, &state);
-          BEGV = BEG; BEGV_BYTE = BEG_BYTE;
-          if (hwm > BEG)
-            {
-              depth = Fget_text_property (make_number (hwm - 1),
-                                          Qcomment_depth, Qnil);
-              if (CONSP (depth))
-                {
-                  if (EQ (Fcar (depth), Qstring))
-                    {
-                      state.instring = XINT (Fcdr (depth));
-                      state.incomment = 0;
-                    }
-                  else if (EQ (Fcar (depth), make_number (0)))
-                    {
-                      state.instring = -1;
-                      state.incomment = 0;
-                    }
-                  else
-                    {
-                      state.instring = -1;
-                      state.incomment = XINT (Fcar (depth));
-                      state.comstyle = XINT (Fcdr (depth));
-                    }
-                }
-            }
-          while (hwm < from)
-            {
-              scan_sexps_forward (&state, hwm, hwm_byte, from,
-                                  -100, false,
-                                  -1, /* stop after literal boundary */
-                                  true);
-              hwm = state.location;
-              hwm_byte = state.location_byte;
-            }
-          Vcomment_depth_hwm = make_number (hwm);
-          BEGV = orig_begv; BEGV_BYTE = orig_begv_byte;
+          temp = Fprevious_single_property_change (make_number (from),
+                                                   Qcomment_depth, Qnil, Qnil);
+          if (NILP (temp))
+            return false;
+          from = XINT (temp);
         }
+      while (from > stop
+             && (depth = Fget_text_property (make_number (from - 1),
+                                             Qcomment_depth, Qnil),
+                 XINT (XCAR (depth)) > target_depth));
+      if (from <= stop)
+        return false;
+      from_byte = CHAR_TO_BYTE (from);
+
+      /* Having passed back over the body of the comment, we should now find a
+         comment opener.  */
+      DEC_BOTH (from, from_byte);
+      UPDATE_SYNTAX_TABLE_BACKWARD (from);
+
+      c = FETCH_CHAR_AS_MULTIBYTE (from_byte);
+      syntax = SYNTAX_WITH_FLAGS (c);
+      code = SYNTAX (c);
+      if (code != Scomment)
+        {
+          if (from <= stop)
+            return false;
+          if (!SYNTAX_FLAGS_COMSTART_SECOND (syntax))
+            return false;
+          DEC_BOTH (from, from_byte);
+          UPDATE_SYNTAX_TABLE_BACKWARD (from);
+          c = FETCH_CHAR_AS_MULTIBYTE (from_byte);
+          syntax = SYNTAX_WITH_FLAGS (c);
+          if (!SYNTAX_FLAGS_COMSTART_FIRST (syntax))
+            return false;
+        }
+      *charpos_ptr = from;
+      *bytepos_ptr = from_byte;
+      return true;
     }
 
-  return old_back_comment (from, from_byte, stop, comnested, comstyle,
-                           charpos_ptr, bytepos_ptr);
+  else
+    return old_back_comment (from, from_byte, stop, comnested, comstyle,
+                             charpos_ptr, bytepos_ptr);
 }
 
 DEFUN ("syntax-table-p", Fsyntax_table_p, Ssyntax_table_p, 1, 1, 0,
@@ -3187,17 +3451,15 @@ the prefix syntax flag (p).  */)
    If STOPBEFORE, stop at the start of an atom.
    If COMMENTSTOP is 1, stop at the start of a comment.
    If COMMENTSTOP is -1, stop at the start or end of a comment,
-   after the beginning of a string, or after the end of a string.
-   If PROPERTIZE is true, apply a `comment-depth' property to the region
-   just scanned over.  This should only be done when COMMENTSTOP is -1 and
-   TARGETDEPTH is ???? and STOPBEFORE is false.  */
+   after the beginning of a string, or after the end of a string.  */
 
 static void
 scan_sexps_forward (struct lisp_parse_state *stateptr,
 		    ptrdiff_t from, ptrdiff_t from_byte, ptrdiff_t end,
 		    EMACS_INT targetdepth, bool stopbefore,
-		    int commentstop, bool propertize)
+		    int commentstop)
 {
+  ptrdiff_t count = SPECPDL_INDEX ();
   struct lisp_parse_state state;
   enum syntaxcode code;
   int c1;
@@ -3219,8 +3481,6 @@ scan_sexps_forward (struct lisp_parse_state *stateptr,
   bool nofence;
   bool found;
   ptrdiff_t out_bytepos, out_charpos;
-  Lisp_Object comment_depth_value;
-  ptrdiff_t orig_from = from;
   int temp;
 
   prev_from = from;
@@ -3259,12 +3519,6 @@ do { prev_from = from;				\
       tem = Fcdr (tem);
     }
 
-  comment_depth_value = (state.instring != -1)
-    ? Fcons (Qstring, make_number (state.instring))
-    : (state.incomment
-       ? Fcons (make_number (state.incomment),
-                make_number (state.comstyle))
-       : Fcons (make_number (0), make_number (0)));
   state.quoted = 0;
   mindepth = depth;
 
@@ -3504,16 +3758,13 @@ do { prev_from = from;				\
   while (curlevel > levelstart)
     state.levelstarts = Fcons (make_number ((--curlevel)->last),
 			       state.levelstarts);
-  if (propertize && commentstop == -1)
-    Fput_text_property (make_number (orig_from), make_number (from),
-                        Qcomment_depth,
-                        comment_depth_value, Qnil);
-
   immediate_quit = 0;
 
   *stateptr = state;
 }
 
+/* Convert a (lisp) parse state to the internal form used in
+   scan_sexps_forward.  */
 static void
 internalize_parse_state (Lisp_Object external, struct lisp_parse_state *state)
 {
@@ -3627,8 +3878,7 @@ Sixth arg COMMENTSTOP non-nil means stop at the start of a comment.
 		      XINT (to),
 		      target, !NILP (stopbefore),
 		      (NILP (commentstop)
-		       ? 0 : (EQ (commentstop, Qsyntax_table) ? -1 : 1)),
-                      false);
+		       ? 0 : (EQ (commentstop, Qsyntax_table) ? -1 : 1)));
 
   SET_PT_BOTH (state.location, state.location_byte);
 
@@ -3765,10 +4015,14 @@ syms_of_syntax (void)
   DEFVAR_BOOL ("comment-cacheing-flag", comment_cacheing_flag,
                doc: /* Non-nil means use new style comment handling.  */);
   comment_cacheing_flag = 0;
-  DEFVAR_LISP ("comment-depth-hwm", Vcomment_depth_hwm,
-               doc: /* Buffer position below which the `comment-depth' property is valid.  */);
-  Vcomment_depth_hwm = make_number (1);
-  Fmake_variable_buffer_local (intern ("comment-depth-hwm"));
+
+  DEFVAR_LISP ("comment-depth-values", Vcomment_depth_values,
+               doc: /* A list of values which the text property `comment-depth' can assume.
+This is to ensure that any values which are `equal' are also `eq', as required by the text
+property functions.  The list starts off empty, and any time a new value is needed, it is
+pushed onto the list.  The second time a value is needed, it is found by `member', and the
+canonical equivalent used.  */);
+  Vcomment_depth_values = Qnil;
 
   DEFVAR_BOOL ("parse-sexp-ignore-comments", parse_sexp_ignore_comments,
 	       doc: /* Non-nil means `forward-sexp', etc., should treat comments as whitespace.  */);
@@ -3823,6 +4077,7 @@ In both cases, LIMIT bounds the search. */);
   DEFSYM (Qcomment_end_can_be_escaped, "comment-end-can-be-escaped");
   Fmake_variable_buffer_local (Qcomment_end_can_be_escaped);
 
+  defsubr (&Strim_comment_cache);
   defsubr (&Ssyntax_table_p);
   defsubr (&Ssyntax_table);
   defsubr (&Sstandard_syntax_table);

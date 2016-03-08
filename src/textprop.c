@@ -23,6 +23,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "intervals.h"
 #include "buffer.h"
 #include "window.h"
+#include "syntax.h"
 
 /* Test for membership, allowing for t (actually any non-cons) to mean the
    universal set.  */
@@ -340,6 +341,12 @@ set_properties (Lisp_Object properties, INTERVAL interval, Lisp_Object object)
 	    record_property_change (interval->position, LENGTH (interval),
 				    XCAR (sym), XCAR (value),
 				    object);
+            check_comment_depth_hwm_for_prop
+              (interval->position, XCAR (sym), XCAR (value), object);
+            if (!EQ (property_value (properties, XCAR (sym)), Qunbound))
+              check_comment_depth_hwm_for_prop
+                (interval->position, XCAR (sym),
+                 property_value (properties, XCAR (sym)), object);
 	  }
 
       /* For each new property that has no value at all in the old plist,
@@ -352,6 +359,8 @@ set_properties (Lisp_Object properties, INTERVAL interval, Lisp_Object object)
 	    record_property_change (interval->position, LENGTH (interval),
 				    XCAR (sym), Qnil,
 				    object);
+            check_comment_depth_hwm_for_prop
+                (interval->position, XCAR (sym), XCAR (value), object);
 	  }
     }
 
@@ -406,6 +415,10 @@ add_properties (Lisp_Object plist, INTERVAL i, Lisp_Object object,
 	      {
 		record_property_change (i->position, LENGTH (i),
 					sym1, Fcar (this_cdr), object);
+                check_comment_depth_hwm_for_prop
+                    (i->position, sym1, Fcar (this_cdr), object);
+                check_comment_depth_hwm_for_prop
+                    (i->position, sym1, val1, object);
 	      }
 
 	    /* I's property has a different value -- change it */
@@ -442,6 +455,8 @@ add_properties (Lisp_Object plist, INTERVAL i, Lisp_Object object,
 	    {
 	      record_property_change (i->position, LENGTH (i),
 				      sym1, Qnil, object);
+              check_comment_depth_hwm_for_prop
+                (i->position, sym1, val1, object);
 	    }
 	  set_interval_plist (i, Fcons (sym1, Fcons (val1, i->plist)));
 	  changed = true;
@@ -475,11 +490,14 @@ remove_properties (Lisp_Object plist, Lisp_Object list, INTERVAL i, Lisp_Object 
       /* First, remove the symbol if it's at the head of the list */
       while (CONSP (current_plist) && EQ (sym, XCAR (current_plist)))
 	{
-	  if (BUFFERP (object))
-	    record_property_change (i->position, LENGTH (i),
-				    sym, XCAR (XCDR (current_plist)),
-				    object);
-
+          if (BUFFERP (object))
+            {
+              record_property_change (i->position, LENGTH (i),
+                                      sym, XCAR (XCDR (current_plist)),
+                                      object);
+              check_comment_depth_hwm_for_prop
+                (i->position, sym, XCAR (XCDR (current_plist)), object);
+            }
 	  current_plist = XCDR (XCDR (current_plist));
 	  changed = true;
 	}
@@ -492,8 +510,12 @@ remove_properties (Lisp_Object plist, Lisp_Object list, INTERVAL i, Lisp_Object 
 	  if (CONSP (this) && EQ (sym, XCAR (this)))
 	    {
 	      if (BUFFERP (object))
-		record_property_change (i->position, LENGTH (i),
-					sym, XCAR (XCDR (this)), object);
+                {
+                  record_property_change (i->position, LENGTH (i),
+                                          sym, XCAR (XCDR (this)), object);
+                  check_comment_depth_hwm_for_prop
+                    (i->position, sym, XCAR (XCDR (this)), object);
+                }
 
 	      Fsetcdr (XCDR (tail2), XCDR (XCDR (this)));
 	      changed = true;
