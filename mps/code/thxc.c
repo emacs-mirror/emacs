@@ -210,7 +210,8 @@ Arena ThreadArena(Thread thread)
 
 #include "prmcxc.h"
 
-Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
+Res ThreadScan(ScanState ss, Thread thread, Word *stackCold,
+               mps_area_scan_t scan_area, void *closure)
 {
   mach_port_t self;
   Res res;
@@ -221,13 +222,14 @@ Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
   if (thread->port == self) {
     /* scan this thread's stack */
     AVER(thread->alive);
-    res = StackScan(ss, stackBot);
+    res = StackScan(ss, stackCold, scan_area, closure);
     if(res != ResOK)
       return res;
   } else if (thread->alive) {
     MutatorFaultContextStruct mfcStruct;
     THREAD_STATE_S threadState;
-    Addr *stackBase, *stackLimit, stackPtr;
+    Word *stackBase, *stackLimit;
+    Addr stackPtr;
     mach_msg_type_number_t count;
     kern_return_t kern_return;
 
@@ -249,20 +251,21 @@ Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
 
     stackPtr = MutatorFaultContextSP(&mfcStruct);
     /* .stack.align */
-    stackBase  = (Addr *)AddrAlignUp(stackPtr, sizeof(Addr));
-    stackLimit = (Addr *)stackBot;
+    stackBase  = (Word *)AddrAlignUp(stackPtr, sizeof(Word));
+    stackLimit = stackCold;
     if (stackBase >= stackLimit)
       return ResOK;    /* .stack.below-bottom */
 
     /* scan stack inclusive of current sp and exclusive of
-     * stackBot (.stack.full-descend)
+     * stackCold (.stack.full-descend)
      */
-    res = TraceScanAreaTagged(ss, stackBase, stackLimit);
+    res = TraceScanArea(ss, stackBase, stackLimit,
+                        scan_area, closure);
     if(res != ResOK)
       return res;
 
     /* scan the registers in the mutator fault context */
-    res = MutatorFaultContextScan(ss, &mfcStruct);
+    res = MutatorFaultContextScan(ss, &mfcStruct, scan_area, closure);
     if(res != ResOK)
       return res;
   }

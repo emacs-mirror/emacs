@@ -31,6 +31,17 @@ partially functional or non-functional, but can be used as a starting
 point for a new port if none of the existing implementations is
 usable.
 
+#. The **clock** module provides fast high-resolution clocks for use
+   by the :term:`telemetry system`.
+
+   See :ref:`design-clock` for the design, and ``clock.h`` for the
+   interface. The interface consists only of type declarations and
+   macro definitions, so there is no implementation.
+
+   The header falls back to the clock functions from the
+   :term:`plinth` if there is no platform-specific interface. See
+   :c:func:`mps_clock` and :c:func:`mps_clocks_per_sec`.
+
 #. The **lock** module provides binary locks that ensure that only a
    single :term:`thread` may be running with a lock held, and
    recursive locks, where the same thread may safely take the lock
@@ -211,7 +222,9 @@ define ``PFM`` to be the platform code, ``MPMPF`` to be the list of
 platform modules (the same files included by ``mps.c``), and ``LIBS``
 to be the linker options for any libraries required by the test cases.
 Then it must include the compiler-specific makefile and ``comm.gmk``.
-For example, ``lii6ll.gmk`` looks like this::
+For example, ``lii6ll.gmk`` looks like this:
+
+.. code-block:: make
 
     PFM = lii6ll
 
@@ -245,7 +258,9 @@ On Windows, the makefile must be named ``osarct.nmk``, and must define
 platform modules (the same files included by ``mps.c``) in square
 brackets. Then it must include ``commpre.nmk``, the compiler-specific
 makefile and ``commpost.nmk``. For example, ``w3i6mv.nmk`` looks like
-this::
+this:
+
+.. code-block:: none
 
     PFM = w3i6mv
 
@@ -266,13 +281,14 @@ this::
     !INCLUDE commpost.nmk
 
 
-
 Porting strategy
 ----------------
 
 Start the port by selecting existing implementations of the functional
 modules, using the generic implementations where nothing else will do.
-Then check that the "smoke tests" pass, by running::
+Then check that the "smoke tests" pass, by running:
+
+.. code-block:: none
 
     make -f osarct.gmk testrun    # Unix
     nmake /f osarct.nmk testrun   # Windows

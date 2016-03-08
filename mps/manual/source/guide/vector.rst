@@ -64,8 +64,8 @@ solved:
 
    This can solved by storing the new array in a :term:`root` until
    the header has been updated. If the thread's stack has been
-   registered as a root by calling :c:func:`mps_root_create_reg` then
-   any local variable will do.
+   registered as a root by calling :c:func:`mps_root_create_thread`
+   then any local variable will do.
 
 2. References in the new array must not be scanned until they have been
    copied or cleared. (Otherwise they will be invalid.)

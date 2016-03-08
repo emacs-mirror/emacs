@@ -19,7 +19,6 @@ static void test(void)
 {
  mps_arena_t arena;
  mps_root_t root = (mps_root_t)1;
- mps_addr_t roottable[10];
 
  cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE), "create arena");
 

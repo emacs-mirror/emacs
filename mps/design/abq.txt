@@ -9,6 +9,7 @@ Fixed-length queues
 :Status: complete design
 :Revision: $Id$
 :Copyright: See section `Copyright and License`_.
+:Index terms: pair: fixed-length queues; design
 
 
 Introduction
@@ -119,7 +120,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited. All rights reserved.
+Copyright © 2013-2016 Ravenbrook Limited. All rights reserved.
 <http://www.ravenbrook.com/>. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

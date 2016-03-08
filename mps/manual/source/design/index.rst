@@ -10,6 +10,7 @@ Design
     an
     bootstrap
     cbs
+    clock
     config
     critical-path
     exec-env

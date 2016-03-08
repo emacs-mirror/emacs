@@ -41,6 +41,7 @@ static mps_gen_param_s testChain[genCOUNT] = {
 #define objNULL           ((mps_addr_t)MPS_WORD_CONST(0xDECEA5ED))
 
 
+static mps_arena_t arena;
 static mps_ap_t ap;
 static mps_addr_t exactRoots[exactRootsCOUNT];
 static mps_addr_t ambigRoots[ambigRootsCOUNT];
@@ -51,7 +52,7 @@ static unsigned long nCollsDone;
 
 /* report -- report statistics from any messages */
 
-static void report(mps_arena_t arena)
+static void report(void)
 {
   mps_message_type_t type;
     
@@ -103,8 +104,10 @@ static mps_addr_t make(size_t rootsCount)
 
   do {
     MPS_RESERVE_BLOCK(res, p, ap, size);
-    if (res)
+    if (res) {
+      ArenaDescribe(arena, mps_lib_get_stderr(), 4);
       die(res, "MPS_RESERVE_BLOCK");
+    }
     res = dylan_init(p, size, exactRoots, rootsCount);
     if (res)
       die(res, "dylan_init");
@@ -127,8 +130,7 @@ static void test_stepper(mps_addr_t object, mps_fmt_t fmt, mps_pool_t pool,
 
 /* test -- the body of the test */
 
-static void test(mps_arena_t arena, mps_pool_class_t pool_class,
-                 size_t roots_count)
+static void test(mps_pool_class_t pool_class, size_t roots_count)
 {
   mps_fmt_t format;
   mps_chain_t chain;
@@ -180,7 +182,7 @@ static void test(mps_arena_t arena, mps_pool_class_t pool_class,
   while (collections < collectionsCOUNT) {
     size_t r;
 
-    report(arena);
+    report();
     if (collections != nCollsStart) {
       if (!described) {
         die(ArenaDescribe(arena, mps_lib_get_stdout(), 0), "ArenaDescribe");
@@ -276,7 +278,7 @@ static void test(mps_arena_t arena, mps_pool_class_t pool_class,
       *(int*)busy_init = -1; /* check that the buffer is still there */
 
     if (objs % 1024 == 0) {
-      report(arena);
+      report();
       putchar('.');
       (void)fflush(stdout);
     }
@@ -299,7 +301,6 @@ static void test(mps_arena_t arena, mps_pool_class_t pool_class,
 int main(int argc, char *argv[])
 {
   size_t i, grainSize;
-  mps_arena_t arena;
   mps_thr_t thread;
 
   testlib_init(argc, argv);
@@ -312,16 +313,15 @@ int main(int argc, char *argv[])
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, scale * testArenaSIZE);
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_GRAIN_SIZE, grainSize);
-    MPS_ARGS_ADD(args, MPS_KEY_COMMIT_LIMIT, scale * testArenaSIZE);
     die(mps_arena_create_k(&arena, mps_arena_class_vm(), args), "arena_create");
   } MPS_ARGS_END(args);
   mps_message_type_enable(arena, mps_message_type_gc());
   mps_message_type_enable(arena, mps_message_type_gc_start());
   die(mps_thread_reg(&thread, arena), "thread_reg");
-  test(arena, mps_class_amc(), exactRootsCOUNT);
-  test(arena, mps_class_amcz(), 0);
+  test(mps_class_amc(), exactRootsCOUNT);
+  test(mps_class_amcz(), 0);
   mps_thread_dereg(thread);
-  report(arena);
+  report();
   mps_arena_destroy(arena);
 
   printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);

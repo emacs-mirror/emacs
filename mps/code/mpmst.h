@@ -1,7 +1,7 @@
 /* mpmst.h: MEMORY POOL MANAGER DATA STRUCTURES
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2001 Global Graphics Software.
  *
  * .design: This header file crosses module boundaries.  The relevant
@@ -26,7 +26,7 @@
 
 #include "protocol.h"
 #include "ring.h"
-#include "chain.h"
+#include "locus.h"
 #include "splay.h"
 #include "meter.h"
 
@@ -798,7 +798,7 @@ typedef struct mps_arena_s {
 
   Bool emergency;               /* garbage collect in emergency mode? */
 
-  Addr *stackAtArenaEnter;  /* NULL or top of client stack, in the thread */
+  Word *stackAtArenaEnter;  /* NULL or hot end of client stack, in the thread */
                             /* that then entered the MPS. */
 
   Sig sig;
@@ -815,7 +815,7 @@ typedef struct AllocPatternStruct {
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

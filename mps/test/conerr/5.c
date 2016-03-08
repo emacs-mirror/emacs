@@ -18,7 +18,6 @@ static void test(void)
 {
  mps_arena_t arena;
  mps_fmt_t format;
- mps_fmt_A_s fmtA;
 
  cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE), "create arena");
 

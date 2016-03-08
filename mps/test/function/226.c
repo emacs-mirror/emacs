@@ -58,6 +58,18 @@ static void mergelds(int merge) {
  }
 }
 
+static void blat(mps_ap_t apamc, int percent) {
+ int i;
+ for (i=0; i < MAXLDS; i++) {
+  if (ranint(100) < percent) {
+   obj_table[i] = allocone(apamc, ranint(1000), mps_rank_exact());
+   mps_ld_reset(lds[i], arena);
+   mps_ld_add(lds[i], arena, (mps_addr_t) obj_table[i]);
+   addr_table[i] = obj_table[i];
+  }
+ }
+}
+
 static void test(void) {
  mps_pool_t poolmv, poolawl, poolamc;
  mps_thr_t thread;
@@ -129,25 +141,12 @@ static void test(void) {
   ldm[i] = (mps_ld_t) p;
  }
 
- for (i=0; i < MAXLDS; i++) {
-  obj_table[i] = allocone(apamc, ranint(1000), mps_rank_exact());
-  mps_ld_reset(lds[i], arena);
-  mps_ld_add(lds[i], arena, (mps_addr_t) obj_table[i]);
-  addr_table[i] = obj_table[i];
- }
+ blat(apamc, 100);
 
  for (merge = 1; merge <= MAXMERGE; merge++) {
   comment("Merge %d", merge);
 
-  for (i=0; i < MAXLDS; i++) {
-   if (ranint(100) < BLATPERCENT) {
-    obj_table[i] = allocone(apamc, ranint(1000), mps_rank_exact());
-    mps_ld_reset(lds[i], arena);
-    mps_ld_add(lds[i], arena, (mps_addr_t) obj_table[i]);
-    addr_table[i] = obj_table[i];
-   }
-  }
-
+  blat(apamc, BLATPERCENT);
   mergelds(merge);
 
   stale = 0;

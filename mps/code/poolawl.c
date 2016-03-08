@@ -1,7 +1,7 @@
 /* poolawl.c: AUTOMATIC WEAK LINKED POOL CLASS
  *
  * $Id$
- * Copyright (c) 2001-2015 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  *
  * DESIGN
@@ -41,7 +41,7 @@
 
 #include "mpscawl.h"
 #include "mpm.h"
-#include "chain.h"
+#include "locus.h"
 
 SRCID(poolawl, "$Id$");
 
@@ -901,9 +901,7 @@ static Res awlScanObject(Arena arena, AWL awl, ScanState ss,
       SegSetSummary(dependentSeg, RefSetUNIV);
   }
 
-  res = (*format->scan)(&ss->ss_s, base, limit);
-  if (res == ResOK)
-    ss->scannedSize += AddrOffset(base, limit);
+  res = FormatScan(format, ss, base, limit);
 
   if (dependent)
     ShieldCover(arena, dependentSeg);
@@ -1376,7 +1374,7 @@ static Bool AWLCheck(AWL awl)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2015 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
