@@ -118,6 +118,16 @@ Memory Management Glossary: H
             Select it by defining :c:macro:`CONFIG_VAR_HOT`. Compare
             :term:`cool` and :term:`rash`.
 
+    hot end
+
+        .. opposite:: :term:`cold end`
+
+        A :term:`control stack` has two ends: the oldest items are at
+        the *cold end* and the newest items are at the *hot end*.
+        Sometimes the hot end is called the "top" of the stack, but
+        that is misleading when the stack grows downwards, as it does
+        on common computing platforms.
+
     huge page
 
         .. aka:: *large page*, *superpage*.

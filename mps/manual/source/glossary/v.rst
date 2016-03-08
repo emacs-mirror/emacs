@@ -54,7 +54,7 @@ Memory Management Glossary: V
 
     variety
 
-	.. mps:specific::
+        .. mps:specific::
 
             A behaviour of the MPS that must be selected at
             compilation time. There are three varieties: :term:`cool`,

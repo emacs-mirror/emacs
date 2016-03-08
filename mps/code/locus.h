@@ -1,11 +1,11 @@
-/* chain.h: GENERATION CHAINS
+/* locus.h: GENERATION CHAINS
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  */
 
-#ifndef chain_h
-#define chain_h
+#ifndef locus_h
+#define locus_h
 
 #include "mpmtypes.h"
 #include "ring.h"
@@ -108,12 +108,12 @@ extern void PoolGenAccountForSegSplit(PoolGen pgen);
 extern void PoolGenAccountForSegMerge(PoolGen pgen);
 extern Res PoolGenDescribe(PoolGen gen, mps_lib_FILE *stream, Count depth);
 
-#endif /* chain_h */
+#endif /* locus_h */
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
