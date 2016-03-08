@@ -219,16 +219,16 @@ the root of the splay tree. It is intended that the
 `.usage.client-tree`_ for an example). No convenience functions are
 provided for allocation or deallocation.
 
-``typedef Bool (*SplayTestNodeFunction)(SplayTree splay, Tree tree, void *closureP, Size closureS)``
+``typedef Bool (*SplayTestNodeFunction)(SplayTree splay, Tree tree, void *closure)``
 
 _`.type.splay.test.node.function`: A function of type
 ``SplayTestNodeFunction`` required to determine whether the node itself
 meets some client determined property (see `.prop`_ and
-`.usage.test.node`_ for an example). Parameters ``closureP`` and
-``closureS`` describe the environment for the function (see
+`.usage.test.node`_ for an example). Parameter ``closure``
+describes the environment for the function (see
 `.function.splay.find.first`_ and `.function.splay.find.last`_).
 
-``typedef Bool (*SplayTestTreeFunction)(SplayTree splay, Tree tree, void *closureP, Size closureS)``
+``typedef Bool (*SplayTestTreeFunction)(SplayTree splay, Tree tree, void *closure)``
 
 _`.type.splay.test.tree.function`: A function of type
 ``SplayTestTreeFunction`` is required to determine whether any of the
@@ -237,7 +237,7 @@ determined property (see `.prop`_ and `.usage.test.tree`_ for an
 example). In particular, it must be a precise (not conservative)
 indication of whether there are any nodes in the sub-tree for which
 the ``testNode`` function (see `.type.splay.test.node.function`_) would
-return ``TRUE``. Parameters ``closureP`` and ``closureS`` describe the
+return ``TRUE``. Parameter ``closure`` describes the
 environment for the function (see `.function.splay.find.first`_ and
 `.function.splay.find.last`_).
 
@@ -348,18 +348,17 @@ splay tree, using ``nodeDescribe`` to print client-oriented
 representations of the nodes (see `.req.debug`_). Provided for
 debugging only.
 
-``Bool SplayFindFirst(Tree *nodeReturn, SplayTree splay, SplayTestNodeFunction testNode, SplayTestTreeFunction testTree, void *closureP, Size closureS)``
+``Bool SplayFindFirst(Tree *nodeReturn, SplayTree splay, SplayTestNodeFunction testNode, SplayTestTreeFunction testTree, void *closure)``
 
 _`.function.splay.find.first`: Find the first node in the tree that
 satisfies some client property, as determined by the ``testNode`` and
-``testTree`` functions (see `.req.property.find`_). ``closureP`` and
-``closureS`` are arbitrary values, and are passed to the ``testNode``
-and ``testTree`` functions which may use the values as closure
-environments. If there is no satisfactory node, return ``FALSE``;
+``testTree`` functions (see `.req.property.find`_). ``closure``
+is an arbitrary value, and is passed to the ``testNode``
+and ``testTree`` functions. If there is no satisfactory node, return ``FALSE``;
 otherwise set ``*nodeReturn`` to the node and return ``TRUE``. See
 `.usage.delete`_ for an example.
 
-``Bool SplayFindLast(Tree *nodeReturn, SplayTree splay, SplayTestNodeFunction testNode, SplayTestTreeFunction testTree, void *closureP, Size closureS)``
+``Bool SplayFindLast(Tree *nodeReturn, SplayTree splay, SplayTestNodeFunction testNode, SplayTestTreeFunction testTree, void *closure)``
 
 _`.function.splay.find.last`: As ``SplayFindFirst()``, but find the
 last node in the tree that satisfies the client property.
@@ -521,12 +520,12 @@ _`.usage.test.tree`: Test tree function (see
 `.type.splay.test.tree.function`_)::
 
     Bool FreeBlockTestTree(SplayTree splay, Tree tree
-                           void *closureP, Size closureS) {
-      /* Closure environment has wanted size as value of closureS. */
+                           void *closure) {
+      /* Closure environment has wanted size as value of *closure. */
       /* Look at the cached value for the node to see if any */
       /* blocks in the subtree are big enough. */
 
-      Size size = closureS;
+      Size size = *(Size *)closure;
       FreeBlock freeNode = FreeBlockOfTree(tree);
       return freeNode->maxSize >= size;
     }
@@ -535,11 +534,11 @@ _`.usage.test.node`: Test node function (see
 `.type.splay.test.node.function`_)::
 
     Bool FreeBlockTestNode(SplayTree splay, Tree tree
-                           void *closureP, Size closureS) {
-      /* Closure environment has wanted size as value of closureS. */
+                           void *closure) {
+      /* Closure environment has wanted size as value of *closure. */
       /* Look at the size of the node to see if is big enough. */
 
-      Size size = closureS;
+      Size size = *(Size *)closure;
       FreeBlock freeNode = FreeBlockOfTree(tree);
       return freeNode->size >= size;
     }
