@@ -1,7 +1,7 @@
 # commpre.nmk: FIRST COMMON FRAGMENT FOR PLATFORMS USING NMAKE -*- makefile -*-1
 #
 # $Id$
-# Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+# Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
 #
 # DESCRIPTION
 #
@@ -146,6 +146,7 @@ MPMCOMMON=\
     [mpm] \
     [mpsi] \
     [nailboard] \
+    [policy] \
     [pool] \
     [poolabs] \
     [poolmfs] \
@@ -160,6 +161,7 @@ MPMCOMMON=\
     [root] \
     [sa] \
     [sac] \
+    [scan] \
     [seg] \
     [shield] \
     [splay] \
@@ -174,7 +176,7 @@ MPMCOMMON=\
     [walk]
 PLINTH = [mpsliban] [mpsioan]
 AMC = [poolamc]
-AMS = [poolams] [poolamsi]
+AMS = [poolams]
 AWL = [poolawl]
 LO = [poollo]
 MVFF = [poolmvff]
@@ -330,7 +332,7 @@ LIBFLAGSCOOL =
 
 # C. COPYRIGHT AND LICENSE
 #
-# Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+# Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
 # All rights reserved.  This is an open source license.  Contact
 # Ravenbrook for commercial licensing options.
 #

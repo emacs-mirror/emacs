@@ -9,7 +9,7 @@ Bootstrapping
 :Status: incomplete design
 :Revision: $Id$
 :Copyright: See section `Copyright and License`_.
-:Index terms: pair: bootsrap; design
+:Index terms: pair: bootstrap; design
 
 
 Introduction

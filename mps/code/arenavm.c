@@ -742,8 +742,8 @@ static Res VMArenaGrow(Arena arena, LocusPref pref, Size size)
 vmArenaGrow_Done:
   EVENT2(vmArenaExtendDone, chunkSize, ArenaReserved(VMArena2Arena(vmArena)));
   vmArena->extended(VMArena2Arena(vmArena),
-		    newChunk->base,
-		    AddrOffset(newChunk->base, newChunk->limit));
+                    newChunk->base,
+                    AddrOffset(newChunk->base, newChunk->limit));
       
   return res;
 }
