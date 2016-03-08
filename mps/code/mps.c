@@ -1,7 +1,7 @@
 /* mps.c: MEMORY POOL SYSTEM ALL-IN-ONE TRANSLATION UNIT
  *
  * $Id$
- * Copyright (C) 2012-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (C) 2012-2016 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: This file can be compiled to create the complete MPS library in
  * a single compilation, allowing the compiler to apply global optimizations
@@ -45,6 +45,7 @@
 #include "poolabs.c"
 #include "trace.c"
 #include "traceanc.c"
+#include "scan.c"
 #include "root.c"
 #include "seg.c"
 #include "format.c"
@@ -85,7 +86,6 @@
 
 #include "poolamc.c"
 #include "poolams.c"
-#include "poolamsi.c"
 #include "poolawl.c"
 #include "poollo.c"
 #include "poolsnc.c"
@@ -139,9 +139,9 @@
 #include "span.c"       /* generic stack probe */
 #include "ssixi6.c"     /* Posix on 64-bit Intel stack scan */
 
-/* FreeBSD on 32-bit Intel built with GCC */
+/* FreeBSD on 32-bit Intel built with GCC or Clang */
 
-#elif defined(MPS_PF_FRI3GC)
+#elif defined(MPS_PF_FRI3GC) || defined(MPS_PF_FRI3LL)
 
 #include "lockix.c"     /* Posix locks */
 #include "thix.c"       /* Posix threading */
@@ -154,9 +154,9 @@
 #include "span.c"       /* generic stack probe */
 #include "ssixi3.c"     /* Posix on 32-bit Intel stack scan */
 
-/* FreeBSD on 64-bit Intel built with GCC */
+/* FreeBSD on 64-bit Intel built with GCC or Clang */
 
-#elif defined(MPS_PF_FRI6GC)
+#elif defined(MPS_PF_FRI6GC) || defined(MPS_PF_FRI6LL)
 
 #include "lockix.c"     /* Posix locks */
 #include "thix.c"       /* Posix threading */
@@ -269,7 +269,7 @@
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2012-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2012-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

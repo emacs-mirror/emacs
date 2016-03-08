@@ -1,0 +1,34 @@
+% This testset contains all the test cases that pass only in the cool
+% variety, together with comments explaining why they fail in the hot
+% variety.
+
+% Assertion in different place in the hot variety.
+argerr/16.c
+
+% Rank is not a structure type, so AVERT(Rank) does nothing. 
+argerr/49.c
+argerr/50.c
+argerr/51.c
+argerr/94.c
+argerr/95.c
+argerr/96.c
+argerr/104.c
+argerr/105.c
+argerr/106.c
+argerr/119.c
+argerr/120.c
+argerr/121.c
+
+% RootMode is not a structure type, so AVERT(Rootmode) does nothing. 
+argerr/107.c
+argerr/108.c
+argerr/109.c
+argerr/122.c
+argerr/123.c
+argerr/124.c
+
+% Assertion is on the critical path.
+conerr/17.c
+conerr/22.c
+conerr/23.c
+function/72.c

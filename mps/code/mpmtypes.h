@@ -359,9 +359,10 @@ enum {
 
 enum {
   RootFUN,
-  RootTABLE,
-  RootTABLE_MASKED,
-  RootREG,
+  RootAREA,
+  RootAREA_TAGGED,
+  RootTHREAD,
+  RootTHREAD_TAGGED,
   RootFMT,
   RootLIMIT
 };

@@ -527,7 +527,7 @@ static Res SNCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
   }
  
   if (base < limit) {
-    res = (*format->scan)(&ss->ss_s, base, limit);
+    res = FormatScan(format, ss, base, limit);
     if (res != ResOK) {
       *totalReturn = FALSE;
       return res;
@@ -535,8 +535,6 @@ static Res SNCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
   } else {
     AVER(base == limit);
   }
-
-  ss->scannedSize += AddrOffset(base, limit);
 
   *totalReturn = TRUE;
   return ResOK;

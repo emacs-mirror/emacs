@@ -1,3 +1,7 @@
+% This testset contains all the "argerr" test cases that pass in
+% both the cool and hot varieties, together with comments explaining
+% why the other test cases fail.
+
 argerr/0.c
 argerr/1.c
 argerr/2.c
@@ -14,7 +18,7 @@ argerr/12.c
 argerr/13.c
 argerr/14.c
 argerr/15.c
-argerr/16.c
+% argerr/16.c -- assertion in different place in the hot variety
 argerr/17.c
 argerr/18.c
 argerr/19.c
@@ -47,9 +51,9 @@ argerr/45.c
 argerr/46.c
 argerr/47.c
 argerr/48.c
-argerr/49.c
-argerr/50.c
-argerr/51.c
+% argerr/49.c -- AVERT(Rank) does nothing in hot variety
+% argerr/50.c -- AVERT(Rank) does nothing in hot variety
+% argerr/51.c -- AVERT(Rank) does nothing in hot variety
 argerr/52.c
 argerr/53.c
 argerr/54.c
@@ -92,9 +96,9 @@ argerr/90.c
 argerr/91.c
 argerr/92.c
 argerr/93.c
-argerr/94.c
-argerr/95.c
-argerr/96.c
+% argerr/94.c -- AVERT(Rank) does nothing in hot variety
+% argerr/95.c -- AVERT(Rank) does nothing in hot variety
+% argerr/96.c -- AVERT(Rank) does nothing in hot variety
 argerr/97.c
 argerr/98.c
 argerr/99.c
@@ -102,12 +106,12 @@ argerr/100.c
 argerr/101.c
 argerr/102.c
 argerr/103.c
-argerr/104.c
-argerr/105.c
-argerr/106.c
-argerr/107.c
-argerr/108.c
-argerr/109.c
+% argerr/104.c -- AVERT(Rank) does nothing in hot variety
+% argerr/105.c -- AVERT(Rank) does nothing in hot variety
+% argerr/106.c -- AVERT(Rank) does nothing in hot variety
+% argerr/107.c -- AVERT(RootMode) does nothing in hot variety
+% argerr/108.c -- AVERT(RootMode) does nothing in hot variety
+% argerr/109.c -- AVERT(RootMode) does nothing in hot variety
 argerr/110.c
 argerr/111.c
 argerr/112.c
@@ -117,12 +121,12 @@ argerr/115.c
 argerr/116.c
 argerr/117.c
 argerr/118.c
-argerr/119.c
-argerr/120.c
-argerr/121.c
-argerr/122.c
-argerr/123.c
-argerr/124.c
+% argerr/119.c -- AVERT(Rank) does nothing in hot variety
+% argerr/120.c -- AVERT(Rank) does nothing in hot variety
+% argerr/121.c -- AVERT(Rank) does nothing in hot variety
+% argerr/122.c -- AVERT(RootMode) does nothing in hot variety
+% argerr/123.c -- AVERT(RootMode) does nothing in hot variety
+% argerr/124.c -- AVERT(RootMode) does nothing in hot variety
 argerr/125.c
 % argerr/126.c -- see <code/root.c#.fmt.no-align-check>
 argerr/127.c
