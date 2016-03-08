@@ -178,7 +178,7 @@ writef_                 The WriteF function
 .. _sig: sig
 .. _sp: sp
 .. _splay: splay
-.. _ss: ss
+.. _stack-scan: stack-scan
 .. _strategy: strategy
 .. _telemetry: telemetry
 .. _tests: tests
