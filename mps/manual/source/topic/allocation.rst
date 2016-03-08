@@ -79,6 +79,8 @@ Manual allocation
 .. index::
    single: allocation point
 
+.. _topic-allocation-point:
+
 Allocation points
 -----------------
 
