@@ -1065,6 +1065,72 @@ check_comment_depth_hwm_for_prop (ptrdiff_t pos, Lisp_Object prop,
     BVAR (b, comment_depth_hwm) = make_number (pos);
 }
 
+/* Scan forward over the innards of a containing comment, marking
+nested comments.  FROM/FROM_BYTE, TO delimit the region to be marked.
+COMMENT_DEPTH_VALUE is the value of the `comment-depth' property that
+was applied to the containing comment.  */
+static void
+scan_nested_comments_forward (ptrdiff_t from, ptrdiff_t from_byte,
+                              ptrdiff_t to,
+                              Lisp_Object comment_depth_value)
+{
+  Lisp_Object tem;
+  int comstyle = XINT (XCDR (comment_depth_value));
+  struct lisp_parse_state state;
+
+  /* Increment the nesting depth. */
+  comment_depth_value =
+    Fcons (make_number (XINT (XCAR (comment_depth_value)) + 1),
+           XCDR (comment_depth_value));
+  /* Make sure our text property value is `eq' to other values which
+     are `equal'. */
+  tem = Fmember (comment_depth_value, Vcomment_depth_values);
+  if (CONSP (tem))
+    comment_depth_value = XCAR (tem);
+  else
+    Vcomment_depth_values = Fcons (comment_depth_value,
+                                   Vcomment_depth_values);
+
+  UPDATE_SYNTAX_TABLE_BACKWARD (from);
+  internalize_parse_state (Qnil, &state);
+
+  while (from < to)
+    {
+      scan_sexps_forward (&state, from, from_byte, to,
+                          TYPE_MINIMUM (EMACS_INT), false,
+                          -1);  /* Stop after literal boundary. */
+      from = state.location;
+      from_byte = state.location_byte;
+
+      if (state.instring != -1)
+        state.instring = -1; /* Ignore string delim we've passed. */
+      else if (state.incomment <= 0
+               || state.comstyle != comstyle)
+        state.incomment = 0; /* Ignore a wrong type comment opener
+                                 we've passed. */
+      else if (from < to)
+        {
+          /* We're at the start of the innards of a nested comment
+             of the right type.  We know the next scan will stop at
+             the end of this comment. */
+          scan_sexps_forward (&state, from, from_byte, to,
+                              TYPE_MINIMUM (EMACS_INT), false,
+                              -1);
+          Fput_text_property (make_number (from),
+                              make_number (state.location),
+                              Qcomment_depth,
+                              comment_depth_value, Qnil);
+          scan_nested_comments_forward (from, from_byte,
+                                        state.location,
+                                        comment_depth_value);
+          from = state.location;
+          from_byte = state.location_byte;
+        }
+    }
+}
+
+
+
 /* Scan forward over all text between comment-depth-hwm and TO,
    marking literals (strings and comments) with the `comment-depth'
    text property.  `comment-depth-hwm' is updated to TO. */
@@ -1169,7 +1235,8 @@ scan_comments_forward_to (ptrdiff_t to, ptrdiff_t to_byte)
             if (CONSP (tem))
               comment_depth_value = XCAR (tem);
             else
-              Vcomment_depth_values = Fcons (comment_depth_value, Vcomment_depth_values);
+              Vcomment_depth_values = Fcons (comment_depth_value,
+                                             Vcomment_depth_values);
 
             scan_sexps_forward (&state, hwm, hwm_byte, to,
                                 TYPE_MINIMUM (EMACS_INT), false,
@@ -1178,6 +1245,11 @@ scan_comments_forward_to (ptrdiff_t to, ptrdiff_t to_byte)
             Fput_text_property (make_number (hwm), make_number (state.location),
                                 Qcomment_depth,
                                 comment_depth_value, Qnil);
+
+            if (NUMBERP (XCAR (comment_depth_value))
+                && XINT (XCAR (comment_depth_value)) > 0)
+              scan_nested_comments_forward
+                (hwm, hwm_byte, state.location, comment_depth_value);
 
             hwm = state.location;
             hwm_byte = state.location_byte;
