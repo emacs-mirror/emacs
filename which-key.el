@@ -41,8 +41,12 @@
 (require 'cl-lib)
 (require 'button)
 
-(eval-when-compile
-  (defvar golden-ratio-mode))
+;; For compiler
+(defvar evil-operator-shortcut-map)
+(defvar evil-operator-state-map)
+(defvar evil-motion-state-map)
+(defvar golden-ratio-mode)
+(declare-function evil-get-command-property "ext:evil-common.el")
 
 (defgroup which-key nil
   "Customization options for which-key-mode"
