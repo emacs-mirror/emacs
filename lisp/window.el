@@ -6721,6 +6721,71 @@ that frame."
 	(unless (cdr (assq 'inhibit-switch-frame alist))
 	  (window--maybe-raise-frame (window-frame window)))))))
 
+(defun display-buffer-reuse-mode-window (buffer alist)
+  "Return a window based on the mode of the buffer it displays.
+Display BUFFER in the returned window.  Return nil if no usable
+window is found.
+
+If ALIST contains a `mode' entry, its value is a major mode (a
+symbol) or a list of modes.  A window is a candidate if it
+displays a buffer that derives from one of the given modes.  When
+ALIST contains no `mode' entry, the current major mode of BUFFER
+is used.
+
+The behaviour is also controlled by entries for
+`inhibit-same-window', `reusable-frames' and
+`inhibit-switch-frame' as is done in the function
+`display-buffer-reuse-window'."
+  (let* ((alist-entry (assq 'reusable-frames alist))
+         (alist-mode-entry (assq 'mode alist))
+	 (frames (cond (alist-entry (cdr alist-entry))
+		       ((if (eq pop-up-frames 'graphic-only)
+			    (display-graphic-p)
+			  pop-up-frames)
+			0)
+		       (display-buffer-reuse-frames 0)
+		       (t (last-nonminibuffer-frame))))
+         (inhibit-same-window-p (cdr (assq 'inhibit-same-window alist)))
+	 (windows (window-list-1 nil 'nomini frames))
+         (buffer-mode (with-current-buffer buffer major-mode))
+         (allowed-modes (if alist-mode-entry
+                            (cdr alist-mode-entry)
+                          buffer-mode))
+         (curwin (selected-window))
+         (curframe (selected-frame)))
+    (unless (listp allowed-modes)
+      (setq allowed-modes (list allowed-modes)))
+    (let (same-mode-same-frame
+          same-mode-other-frame
+          derived-mode-same-frame
+          derived-mode-other-frame)
+      (dolist (window windows)
+        (let (mode? frame?)
+          (with-current-buffer (window-buffer window)
+            (setq mode?
+                  (cond ((memq major-mode allowed-modes)
+                         'same)
+                        ((derived-mode-p allowed-modes)
+                         'derived))))
+          (when (and mode?
+                     (not (and inhibit-same-window-p
+                               (eq window curwin))))
+            (if (eq curframe (window-frame window))
+                (if (eq mode? 'same)
+                    (push window same-mode-same-frame)
+                  (push window derived-mode-same-frame))
+              (if (eq mode? 'same)
+                  (push window same-mode-other-frame)
+                (push window derived-mode-other-frame))))))
+      (let ((window (car (nconc same-mode-same-frame
+                                same-mode-other-frame
+                                derived-mode-same-frame
+                                derived-mode-other-frame))))
+        (when (window-live-p window)
+          (prog1 (window--display-buffer buffer window 'reuse alist)
+            (unless (cdr (assq 'inhibit-switch-frame alist))
+              (window--maybe-raise-frame (window-frame window)))))))))
+
 (defun display-buffer--special-action (buffer)
   "Return special display action for BUFFER, if any.
 If `special-display-p' returns non-nil for BUFFER, return an

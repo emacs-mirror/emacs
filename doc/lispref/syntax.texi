@@ -331,10 +331,10 @@ alternative ``c'' comment style.  For a two-character comment
 delimiter, @samp{c} on either character makes it of style ``c''.
 
 @item
-@samp{n} on a comment delimiter character specifies
-that this kind of comment can be nested.  For a two-character
-comment delimiter, @samp{n} on either character makes it
-nestable.
+@samp{n} on a comment delimiter character specifies that this kind of
+comment can be nested.  Inside such a comment, only comments of the
+same style will be recognized.  For a two-character comment delimiter,
+@samp{n} on either character makes it nestable.
 
 @cindex comment style
 Emacs supports several comment styles simultaneously in any one syntax
@@ -899,9 +899,10 @@ The depth starts at 0, or at whatever is given in @var{state}.
 If the fourth argument @var{stop-before} is non-@code{nil}, parsing
 stops when it comes to any character that starts a sexp.  If
 @var{stop-comment} is non-@code{nil}, parsing stops when it comes to the
-start of a comment.  If @var{stop-comment} is the symbol
-@code{syntax-table}, parsing stops after the start of a comment or a
-string, or the end of a comment or a string, whichever comes first.
+start of an unnested comment.  If @var{stop-comment} is the symbol
+@code{syntax-table}, parsing stops after the start of an unnested
+comment or a string, or the end of an unnested comment or a string,
+whichever comes first.
 
 If @var{state} is @code{nil}, @var{start} is assumed to be at the top
 level of parenthesis structure, such as the beginning of a function

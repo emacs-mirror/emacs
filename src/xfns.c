@@ -5354,7 +5354,6 @@ x_create_tip_frame (struct x_display_info *dpyinfo, Lisp_Object parms)
   int width, height;
   ptrdiff_t count = SPECPDL_INDEX ();
   bool face_change_before = face_change;
-  Lisp_Object buffer;
   int x_width = 0, x_height = 0;
 
   if (!dpyinfo->terminal->name)
@@ -5873,6 +5872,7 @@ Text larger than the specified size is clipped.  */)
   ptrdiff_t count = SPECPDL_INDEX ();
   ptrdiff_t count_1;
   Lisp_Object window, size;
+  AUTO_STRING (tip, " *tip*");
 
   specbind (Qinhibit_redisplay, Qt);
 
@@ -6036,7 +6036,6 @@ Text larger than the specified size is clipped.  */)
 
   tip_f = XFRAME (tip_frame);
   window = FRAME_ROOT_WINDOW (tip_f);
-  AUTO_STRING (tip, " *tip*");
   set_window_buffer (window, Fget_buffer_create (tip), false, false);
   w = XWINDOW (window);
   w->pseudo_window_p = true;

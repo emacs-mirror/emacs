@@ -241,6 +241,7 @@ please report it with \\[report-emacs-bug].")
 (declare-function mail-dont-reply-to "mail-utils" (destinations))
 (declare-function rmail-update-summary "rmailsum" (&rest ignore))
 (declare-function rmail-mime-toggle-hidden "rmailmm" ())
+(declare-function rmail-mime-entity-truncated "rmailmm" (entity))
 
 (defun rmail-probe (prog)
   "Determine what flavor of movemail PROG is.
@@ -4583,6 +4584,7 @@ Argument MIME is non-nil if this is a mime message."
 ;; There doesn't really seem to be an appropriate menu.
 ;; Eg the edit command is not in a menu either.
 
+(defvar rmail-mime-render-html-function) ; defcustom in rmailmm
 (defun rmail-epa-decrypt ()
   "Decrypt GnuPG or OpenPGP armors in current message."
   (interactive)

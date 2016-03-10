@@ -2409,6 +2409,23 @@ visible and, unless @var{alist} contains an @code{inhibit-switch-frame}
 entry (@pxref{Choosing Window Options}), raises that frame if necessary.
 @end defun
 
+@defun display-buffer-reuse-mode-window buffer alist
+This function tries to display @var{buffer} by finding a window
+that is displaying a buffer in a given mode.
+
+If @var{alist} contains a @code{mode} entry, its value is a major mode
+(a symbol) or a list of major modes.  If @var{alist} contains no
+@code{mode} entry, the current major mode of @var{buffer} is used.  A
+window is a candidate if it displays a buffer that derives from one of
+the given modes.
+
+The behaviour is also controlled by entries for
+@code{inhibit-same-window}, @code{reusable-frames} and
+@code{inhibit-switch-frame} as is done in the function
+@code{display-buffer-reuse-window}.
+
+@end defun
+
 @defun display-buffer-pop-up-frame buffer alist
 This function creates a new frame, and displays the buffer in that
 frame's window.  It actually performs the frame creation by calling

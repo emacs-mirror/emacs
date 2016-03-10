@@ -845,23 +845,19 @@ nil, indicating the current buffer's process.  */)
 #ifdef HAVE_GETADDRINFO_A
   if (p->dns_request)
     {
-      int ret;
+      /* Cancel the request.  Unless shutting down, wait until
+	 completion.  Free the request if completely canceled. */
 
-      gai_cancel (p->dns_request);
-      ret = gai_error (p->dns_request);
-      if (ret == EAI_CANCELED || ret == 0)
-	free_dns_request (process);
-      else
+      bool canceled = gai_cancel (p->dns_request) != EAI_NOTCANCELED;
+      if (!canceled && !inhibit_sentinels)
 	{
-	  /* If we're called during shutdown, we don't really about
-	     freeing all the resources.  Otherwise wait until
-	     completion, and then free the request. */
-	  if (! inhibit_sentinels)
-	    {
-	      gai_suspend ((struct gaicb const **) &p->dns_request, 1, NULL);
-	      free_dns_request (process);
-	    }
+	  struct gaicb const *req = p->dns_request;
+	  while (gai_suspend (&req, 1, NULL) != 0)
+	    continue;
+	  canceled = true;
 	}
+      if (canceled)
+	free_dns_request (process);
     }
 #endif
 
@@ -3814,7 +3810,14 @@ usage: (make-network-process &rest ARGS)  */)
       ret = getaddrinfo (SSDATA (host), portstring, &hints, &res);
       if (ret)
 #ifdef HAVE_GAI_STRERROR
-	error ("%s/%s %s", SSDATA (host), portstring, gai_strerror (ret));
+	{
+	  synchronize_system_messages_locale ();
+	  char const *str = gai_strerror (ret);
+	  if (! NILP (Vlocale_coding_system))
+	    str = SSDATA (code_convert_string_norecord
+			  (build_string (str), Vlocale_coding_system, 0));
+	  error ("%s/%s %s", SSDATA (host), portstring, str);
+	}
 #else
 	error ("%s/%s getaddrinfo error %d", SSDATA (host), portstring, ret);
 #endif
@@ -3932,21 +3935,17 @@ usage: (make-network-process &rest ARGS)  */)
     }
 
 #ifdef HAVE_GETADDRINFO_A
-  /* If we're doing async address resolution, the list of addresses
-     here will be nil, so we postpone connecting to the server. */
+  /* With async address resolution, the list of addresses is empty, so
+     postpone connecting to the server. */
   if (!p->is_server && NILP (ip_addresses))
     {
       p->dns_request = dns_request;
       p->status = Qconnect;
+      return proc;
     }
-  else
-    {
-      connect_network_socket (proc, ip_addresses);
-    }
-#else /* HAVE_GETADDRINFO_A */
-  connect_network_socket (proc, ip_addresses);
 #endif
 
+  connect_network_socket (proc, ip_addresses);
   return proc;
 }
 
@@ -4657,13 +4656,12 @@ check_for_dns (Lisp_Object proc)
 {
   struct Lisp_Process *p = XPROCESS (proc);
   Lisp_Object ip_addresses = Qnil;
-  int ret = 0;
 
   /* Sanity check. */
   if (! p->dns_request)
     return Qnil;
 
-  ret = gai_error (p->dns_request);
+  int ret = gai_error (p->dns_request);
   if (ret == EAI_INPROGRESS)
     return Qt;
 
