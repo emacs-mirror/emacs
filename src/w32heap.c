@@ -73,12 +73,11 @@ typedef PVOID (WINAPI * RtlCreateHeap_Proc) (
 
 typedef LONG NTSTATUS;
 
-typedef NTSTATUS
-(NTAPI * PRTL_HEAP_COMMIT_ROUTINE)(
-                                   IN PVOID Base,
-                                   IN OUT PVOID *CommitAddress,
-                                   IN OUT PSIZE_T CommitSize
-                                   );
+typedef NTSTATUS (NTAPI *PRTL_HEAP_COMMIT_ROUTINE) (
+						    IN PVOID Base,
+						    IN OUT PVOID *CommitAddress,
+						    IN OUT PSIZE_T CommitSize
+						    );
 
 typedef struct _RTL_HEAP_PARAMETERS {
   ULONG Length;

@@ -3,15 +3,15 @@
 Copyright (C) 1988, 1993-1994, 1999, 2001-2016 Free Software Foundation,
 Inc.
 
-Author: Wolfgang Rupprecht
-(according to ack.texi)
+Author: Wolfgang Rupprecht (ac
+ording to ack.texi)
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -170,7 +170,7 @@ Cause an error if X1 or X2 is not a float.  */)
 DEFUN ("frexp", Ffrexp, Sfrexp, 1, 1, 0,
        doc: /* Get significand and exponent of a floating point number.
 Breaks the floating point number X into its binary significand SGNFCAND
-(a floating point value between 0.5 (included) and 1.0 (excluded))
+\(a floating point value between 0.5 (included) and 1.0 (excluded))
 and an integral exponent EXP for 2, such that:
 
   X = SGNFCAND * 2^EXP
@@ -491,7 +491,7 @@ fmod_float (Lisp_Object x, Lisp_Object y)
 
 DEFUN ("fceiling", Ffceiling, Sfceiling, 1, 1, 0,
        doc: /* Return the smallest integer no less than ARG, as a float.
-(Round toward +inf.)  */)
+\(Round toward +inf.)  */)
   (Lisp_Object arg)
 {
   double d = extract_float (arg);
@@ -501,7 +501,7 @@ DEFUN ("fceiling", Ffceiling, Sfceiling, 1, 1, 0,
 
 DEFUN ("ffloor", Fffloor, Sffloor, 1, 1, 0,
        doc: /* Return the largest integer no greater than ARG, as a float.
-(Round towards -inf.)  */)
+\(Round towards -inf.)  */)
   (Lisp_Object arg)
 {
   double d = extract_float (arg);

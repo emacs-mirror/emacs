@@ -6,8 +6,8 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -71,9 +71,8 @@ kqueue_directory_listing (Lisp_Object directory_files)
 
 /* Generate a file notification event.  */
 static void
-kqueue_generate_event
-(Lisp_Object watch_object, Lisp_Object actions,
- Lisp_Object file, Lisp_Object file1)
+kqueue_generate_event (Lisp_Object watch_object, Lisp_Object actions,
+		       Lisp_Object file, Lisp_Object file1)
 {
   Lisp_Object flags, action, entry;
   struct input_event event;
@@ -113,8 +112,7 @@ kqueue_generate_event
    replaced by the new directory listing at the end of this
    function.  */
 static void
-kqueue_compare_dir_list
-(Lisp_Object watch_object)
+kqueue_compare_dir_list (Lisp_Object watch_object)
 {
   Lisp_Object dir, pending_dl, deleted_dl;
   Lisp_Object old_directory_files, old_dl, new_directory_files, new_dl, dl;

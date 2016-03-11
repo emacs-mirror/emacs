@@ -305,8 +305,6 @@ BUFFER_OBJFWDP	c-src/emacs/src/lisp.h	/^BUFFER_OBJFWDP (union Lisp_Fwd *a)$/
 BYTE_MARK_STACK	c-src/emacs/src/lisp.h	3181
 Bar	lua-src/test.lua	/^function Square.something:Bar ()$/
 Bar	perl-src/kai-test.pl	/^package Bar;$/
-Bar::f4	perl-src/kai-test.pl	/^sub Bar::f4 {$/
-Bar::f5	perl-src/kai-test.pl	/^sub f5 {$/
 Barrier_Function_Pointer/t	ada-src/etags-test-for.ada	/^   type Barrier_Function_Pointer is access$/
 Bidule/b	ada-src/etags-test-for.ada	/^  protected body Bidule is$/
 Bidule/b	ada-src/waroquiers.ada	/^  protected body Bidule is$/
@@ -614,8 +612,6 @@ Finalize_TAS_Cell/p	ada-src/2ataspri.ads	/^   procedure Finalize_TAS_Cell   (Cel
 First100Chars	pas-src/common.pas	/^procedure First100Chars; (*($/
 Foo	perl-src/kai-test.pl	/^package Foo;$/
 Foo::Bar	perl-src/kai-test.pl	/^package Foo::Bar;$/
-Foo::Bar::f6	perl-src/kai-test.pl	/^sub f6 {$/
-Foo::f3	perl-src/kai-test.pl	/^sub f3 {$/
 Forth_help	c-src/etags.c	573
 Forth_suffixes	c-src/etags.c	571
 Forth_words	c-src/etags.c	/^Forth_words (FILE *inf)$/
@@ -2931,7 +2927,14 @@ f	cp-src/c.C	/^     void f() {}$/
 f	cp-src/fail.C	/^		int f() { return 5; }$/
 f	cp-src/fail.C	/^int A::B::f() { return 2; }$/
 f1	c.c	/^     f1 () { \/* Do something. *\/; }$/
+f1	perl-src/kai-test.pl	/^sub f1 {$/
 f2	c.c	/^void f2 () { \/* Do something. *\/; }$/
+f2	perl-src/kai-test.pl	/^sub main::f2 {$/
+f3	perl-src/kai-test.pl	/^sub f3 {$/
+f4	perl-src/kai-test.pl	/^sub Bar::f4 {$/
+f5	perl-src/kai-test.pl	/^sub f5 {$/
+f6	perl-src/kai-test.pl	/^sub f6 {$/
+f7	perl-src/kai-test.pl	/^sub f7 {$/
 fast_string_match_ignore_case	c-src/emacs/src/lisp.h	/^fast_string_match_ignore_case (Lisp_Object regexp,/
 fastctags	make-src/Makefile	/^fastctags:$/
 fastetags	make-src/Makefile	/^fastetags:$/
@@ -2952,6 +2955,7 @@ fignore	c-src/etags.c	2416
 file-of-tag	el-src/emacs/lisp/progmodes/etags.el	/^(defun file-of-tag (&optional relative)$/
 file-of-tag-function	el-src/emacs/lisp/progmodes/etags.el	/^(defvar file-of-tag-function nil$/
 fileJoin	php-src/lce_functions.php	/^  function fileJoin()$/
+file_end	perl-src/htlmify-cystic	/^sub file_end ()$/
 file_index	perl-src/htlmify-cystic	33
 file_tocs	perl-src/htlmify-cystic	30
 filename_is_absolute	c-src/etags.c	/^filename_is_absolute (char *fn)$/
@@ -2978,6 +2982,10 @@ find-tag-tag-order	el-src/emacs/lisp/progmodes/etags.el	/^(defvar find-tag-tag-o
 find_entries	c-src/etags.c	/^find_entries (FILE *inf)$/
 find_user_signal_name	c-src/emacs/src/keyboard.c	/^find_user_signal_name (int sig)$/
 findcats	prol-src/natded.prolog	/^findcats([],Left,Left).$/
+finish_appendices	perl-src/htlmify-cystic	/^sub finish_appendices ()$/
+finish_sections	perl-src/htlmify-cystic	/^sub finish_sections ()$/
+finish_subsections	perl-src/htlmify-cystic	/^sub finish_subsections ()$/
+finish_subsubsections	perl-src/htlmify-cystic	/^sub finish_subsubsections ()$/
 finlist	c-src/etags.c	2414
 first	c-src/emacs/src/gmalloc.c	151
 fitchtreelist	prol-src/natded.prolog	/^fitchtreelist([]).$/
@@ -3085,6 +3093,7 @@ get_layer_by_name	lua-src/allegro.lua	/^local function get_layer_by_name (sprite
 get_tag	c-src/etags.c	/^get_tag (register char *bp, char **namepp)$/
 get_word	c-src/tab.c	/^static char		*get_word(char **str, char delim)$/
 getcjmp	c-src/emacs/src/keyboard.c	147
+getopt	perl-src/yagrip.pl	/^sub getopt {$/
 getopt.o	make-src/Makefile	/^getopt.o: emacs\/lib-src\/getopt.c$/
 getopt1.o	make-src/Makefile	/^getopt1.o: emacs\/lib-src\/getopt1.c$/
 getptys	objc-src/Subprocess.m	/^getptys (int *master, int *slave)$/
@@ -3419,23 +3428,6 @@ mach_reply_port	c-src/machsyscalls.h	/^SYSCALL (mach_reply_port, -26,$/
 mach_task_self	c-src/machsyscalls.h	/^SYSCALL (mach_task_self, -28,$/
 mach_thread_self	c-src/machsyscalls.h	/^SYSCALL (mach_thread_self, -27,$/
 magic	c-src/emacs/src/gmalloc.c	1863
-main::f1	perl-src/kai-test.pl	/^sub f1 {$/
-main::f2	perl-src/kai-test.pl	/^sub main::f2 {$/
-main::f7	perl-src/kai-test.pl	/^sub f7 {$/
-main::file_end	perl-src/htlmify-cystic	/^sub file_end ()$/
-main::finish_appendices	perl-src/htlmify-cystic	/^sub finish_appendices ()$/
-main::finish_sections	perl-src/htlmify-cystic	/^sub finish_sections ()$/
-main::finish_subsections	perl-src/htlmify-cystic	/^sub finish_subsections ()$/
-main::finish_subsubsections	perl-src/htlmify-cystic	/^sub finish_subsubsections ()$/
-main::getopt	perl-src/yagrip.pl	/^sub getopt {$/
-main::read_toc	perl-src/htlmify-cystic	/^sub read_toc ()$/
-main::section_href	perl-src/htlmify-cystic	/^sub section_href ($)$/
-main::section_name	perl-src/htlmify-cystic	/^sub section_name ($)$/
-main::section_url	perl-src/htlmify-cystic	/^sub section_url ()$/
-main::section_url_base	perl-src/htlmify-cystic	/^sub section_url_base ()$/
-main::section_url_name	perl-src/htlmify-cystic	/^sub section_url_name ()$/
-main::toc_line	perl-src/htlmify-cystic	/^sub toc_line ($)$/
-main::usage	perl-src/yagrip.pl	/^sub usage {$/
 maintaining.info	make-src/Makefile	/^maintaining.info: maintaining.texi$/
 make-abbrev-table	c-src/abbrev.c	/^DEFUN ("make-abbrev-table", Fmake_abbrev_table, Sm/
 make_C_tag	c-src/etags.c	/^make_C_tag (bool isfun)$/
@@ -3922,6 +3914,7 @@ read_key_sequence_cmd	c-src/emacs/src/keyboard.c	232
 read_key_sequence_remapped	c-src/emacs/src/keyboard.c	233
 read_key_sequence_vs	c-src/emacs/src/keyboard.c	/^read_key_sequence_vs (Lisp_Object prompt, Lisp_Obj/
 read_menu_command	c-src/emacs/src/keyboard.c	/^read_menu_command (void)$/
+read_toc	perl-src/htlmify-cystic	/^sub read_toc ()$/
 readable_events	c-src/emacs/src/keyboard.c	/^readable_events (int flags)$/
 readline	c-src/etags.c	/^readline (linebuffer *lbp, FILE *stream)$/
 readline_internal	c-src/etags.c	/^readline_internal (linebuffer *lbp, register FILE /
@@ -4027,8 +4020,13 @@ scroll_bar_parts	c-src/emacs/src/keyboard.c	5189
 sec=\relax	tex-src/texinfo.tex	/^\\let\\appendixsec=\\relax$/
 section	perl-src/htlmify-cystic	25
 section=\relax	tex-src/texinfo.tex	/^\\let\\appendixsection=\\relax$/
+section_href	perl-src/htlmify-cystic	/^sub section_href ($)$/
 section_name	perl-src/htlmify-cystic	12
+section_name	perl-src/htlmify-cystic	/^sub section_name ($)$/
 section_toc	perl-src/htlmify-cystic	15
+section_url	perl-src/htlmify-cystic	/^sub section_url ()$/
+section_url_base	perl-src/htlmify-cystic	/^sub section_url_base ()$/
+section_url_name	perl-src/htlmify-cystic	/^sub section_url_name ()$/
 select	prol-src/natded.prolog	/^select(X,[X|Xs],Xs).$/
 select-tags-table	el-src/emacs/lisp/progmodes/etags.el	/^(defun select-tags-table ()$/
 select-tags-table-mode	el-src/emacs/lisp/progmodes/etags.el	/^(define-derived-mode select-tags-table-mode specia/
@@ -4324,6 +4322,7 @@ timers_run	c-src/emacs/src/keyboard.c	320
 tinbody	c-src/etags.c	2431
 tkeyseen	c-src/etags.c	2429
 tnone	c-src/etags.c	2428
+toc_line	perl-src/htlmify-cystic	/^sub toc_line ($)$/
 toggleDescription	objc-src/PackInsp.m	/^-toggleDescription$/
 tok	c-src/etags.c	2491
 token	c-src/etags.c	2508
@@ -4396,6 +4395,7 @@ unsignedp	cccp.y	113
 unsignedp	y-src/cccp.y	112
 uprintmax_t	c-src/emacs/src/lisp.h	149
 uprintmax_t	c-src/emacs/src/lisp.h	154
+usage	perl-src/yagrip.pl	/^sub usage {$/
 usecharno	c-src/etags.c	210
 used	c-src/emacs/src/regex.h	347
 used_syntax	c-src/emacs/src/regex.h	398

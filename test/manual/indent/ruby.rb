@@ -168,6 +168,15 @@ if x == :!=
   something
 end
 
+qux :+,
+    bar,
+    :[]=,
+    bar,
+    :a
+
+b = $:
+c = ??
+
 # Example from http://www.ruby-doc.org/docs/ProgrammingRuby/html/language.html
 d = 4 + 5 +      # no '\' needed
     6 + 7
@@ -193,6 +202,9 @@ class C
   def foo
     self.end
     D.new.class
+  end
+
+  def begin
   end
 end
 
@@ -222,6 +234,9 @@ z = {
 
 foo if
   bar
+
+fail "stuff" \
+  unless all_fine?
 
 if foo?
   bar

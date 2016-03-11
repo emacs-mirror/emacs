@@ -6,8 +6,8 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -1895,7 +1895,7 @@ DEFUN ("float-time", Ffloat_time, Sfloat_time, 0, 1, 0,
        doc: /* Return the current time, as a float number of seconds since the epoch.
 If SPECIFIED-TIME is given, it is the time to convert to float
 instead of the current time.  The argument should have the form
-(HIGH LOW) or (HIGH LOW USEC) or (HIGH LOW USEC PSEC).  Thus,
+\(HIGH LOW) or (HIGH LOW USEC) or (HIGH LOW USEC PSEC).  Thus,
 you can use times from `current-time' and from `file-attributes'.
 SPECIFIED-TIME can also have the form (HIGH . LOW), but this is
 considered obsolete.
@@ -2284,7 +2284,7 @@ OFFSET is an integer number of seconds ahead of UTC (east of Greenwich).
 NAME is a string giving the name of the time zone.
 If SPECIFIED-TIME is given, the time zone offset is determined from it
 instead of using the current time.  The argument should have the form
-(HIGH LOW . IGNORED).  Thus, you can use times obtained from
+\(HIGH LOW . IGNORED).  Thus, you can use times obtained from
 `current-time' and from `file-attributes'.  SPECIFIED-TIME can also
 have the form (HIGH . LOW), but this is considered obsolete.
 Optional second arg ZONE is omitted or nil for the local time zone, or
@@ -3627,7 +3627,7 @@ save_restriction_restore (Lisp_Object data)
 DEFUN ("save-restriction", Fsave_restriction, Ssave_restriction, 0, UNEVALLED, 0,
        doc: /* Execute BODY, saving and restoring current buffer's restrictions.
 The buffer's restrictions make parts of the beginning and end invisible.
-(They are set up with `narrow-to-region' and eliminated with `widen'.)
+\(They are set up with `narrow-to-region' and eliminated with `widen'.)
 This special form, `save-restriction', saves the current buffer's restrictions
 when it is entered, and restores them when it is exited.
 So any `narrow-to-region' within BODY lasts only until the end of the form.

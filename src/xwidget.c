@@ -6,8 +6,8 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -387,9 +387,12 @@ webkit_download_cb (WebKitWebView *webkitwebview,
 }
 
 static gboolean
-webkit_mime_type_policy_typedecision_requested_cb
-(WebKitWebView *webView, WebKitWebFrame *frame, WebKitNetworkRequest *request,
- gchar *mimetype, WebKitWebPolicyDecision *policy_decision, gpointer user_data)
+webkit_mime_type_policy_typedecision_requested_cb (WebKitWebView *webView,
+						   WebKitWebFrame *frame,
+						   WebKitNetworkRequest *request,
+						   gchar *mimetype,
+						   WebKitWebPolicyDecision *policy_decision,
+						   gpointer user_data)
 {
   /* This function makes webkit send a download signal for all unknown
      mime types.  TODO: Defer the decision to Lisp, so that it's
@@ -404,10 +407,12 @@ webkit_mime_type_policy_typedecision_requested_cb
 }
 
 static gboolean
-webkit_new_window_policy_decision_requested_cb
-(WebKitWebView *webView, WebKitWebFrame *frame, WebKitNetworkRequest *request,
- WebKitWebNavigationAction *navigation_action,
- WebKitWebPolicyDecision *policy_decision, gpointer user_data)
+webkit_new_window_policy_decision_requested_cb (WebKitWebView *webView,
+						WebKitWebFrame *frame,
+						WebKitNetworkRequest *request,
+						WebKitWebNavigationAction *navigation_action,
+						WebKitWebPolicyDecision *policy_decision,
+						gpointer user_data)
 {
   struct xwidget *xw = g_object_get_data (G_OBJECT (webView), XG_XWIDGET);
   webkit_web_navigation_action_get_original_uri (navigation_action);
@@ -419,10 +424,12 @@ webkit_new_window_policy_decision_requested_cb
 }
 
 static gboolean
-webkit_navigation_policy_decision_requested_cb
-(WebKitWebView *webView, WebKitWebFrame *frame, WebKitNetworkRequest *request,
- WebKitWebNavigationAction *navigation_action,
- WebKitWebPolicyDecision *policy_decision, gpointer user_data)
+webkit_navigation_policy_decision_requested_cb (WebKitWebView *webView,
+						WebKitWebFrame *frame,
+						WebKitNetworkRequest *request,
+						WebKitWebNavigationAction *navigation_action,
+						WebKitWebPolicyDecision *policy_decision,
+						gpointer user_data)
 {
   struct xwidget *xw = g_object_get_data (G_OBJECT (webView), XG_XWIDGET);
   store_xwidget_event_string (xw, "navigation-policy-decision-requested",

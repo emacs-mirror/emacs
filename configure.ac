@@ -3600,14 +3600,6 @@ if test "${HAVE_X11}" = "yes"; then
     fi
   fi
   if test $HAVE_XRANDR = yes; then
-    SAVE_CFLAGS="$CFLAGS"
-    SAVE_LIBS="$LIBS"
-    CFLAGS="$XRANDR_CFLAGS $CFLAGS"
-    LIBS="$XRANDR_LIBS $LIBS"
-    AC_CHECK_FUNCS(XRRGetOutputPrimary XRRGetScreenResourcesCurrent)
-    CFLAGS="$SAVE_CFLAGS"
-    LIBS="$SAVE_LIBS"
-
     AC_DEFINE(HAVE_XRANDR, 1, [Define to 1 if you have the XRandr extension.])
   fi
 fi
@@ -5116,8 +5108,8 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of

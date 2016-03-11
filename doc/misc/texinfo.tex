@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2016-02-16.15}
+\def\texinfoversion{2016-03-06.18}
 %
 % Copyright 1985, 1986, 1988, 1990, 1991, 1992, 1993, 1994, 1995,
 % 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
@@ -1525,7 +1525,7 @@ output) for that.)}
   \def\pdfmkdest#1{{%
     % We have to set dummies so commands such as @code, and characters
     % such as \, aren't expanded when present in a section title.
-    \indexnofonts
+    \indexnofonts  % For avoiding UTF-16 convert issue of xdvipdfmx 20150315.
     \makevalueexpandable
     % In the case of XeTeX, xdvipdfmx converts strings to UTF-16.
     % Therefore \txiescapepdf is not necessary.
@@ -1574,7 +1574,7 @@ output) for that.)}
       % In the case of XeTeX, xdvipdfmx converts strings to UTF-16.
       % Therefore, the encoding and the language may not be considered.
       %
-      \indexnofonts
+      \indexnofonts % For avoiding UTF-16 convert issue of xdvipdfmx 20150315.
       \setupdatafile
       % We can have normal brace characters in the PDF outlines, unlike
       % Texinfo index files.  So set that up.
@@ -1591,16 +1591,11 @@ output) for that.)}
   ]
 
   \special{pdf:docview << /PageMode /UseOutlines >> }
-  \openin 1 uptex.tex % upTeX has UTF8-UTF16 cmap
-  \ifeof 1
-    % upTeX does not exist. To use UTF8-UCS2 cmap.
-    % In this case, non-BMP characters (over U+FFFF) can not be used.
-    \special{pdf:tounicode UTF8-UCS2}
-  \else
-    % upTeX exists. To use UTF8-UTF16 cmap.
-    % Non-BMP characters (over U+FFFF) can be used.
-    \special{pdf:tounicode UTF8-UTF16}
-  \fi
+  % ``\special{pdf:tounicode ...}'' is not necessary
+  % because xdvipdfmx converts strings from UTF-8 to UTF-16 without it.
+  % However, due to UTF-16 convert issue of xdvipdfmx 20150315,
+  % ``\special{pdf:dest ...}'' can not handle non-ASCII strings.
+  % It fixed by xdvipdfmx 20160106 (TeX Live SVN r39753).
 \fi
 
 %
@@ -3477,13 +3472,16 @@ end
 \newif\ifseenauthor
 \newif\iffinishedtitlepage
 
-% Do an implicit @contents or @shortcontents after @end titlepage if the
-% user says @setcontentsaftertitlepage or @setshortcontentsaftertitlepage.
-%
-\newif\ifsetcontentsaftertitlepage
- \let\setcontentsaftertitlepage = \setcontentsaftertitlepagetrue
-\newif\ifsetshortcontentsaftertitlepage
- \let\setshortcontentsaftertitlepage = \setshortcontentsaftertitlepagetrue
+% @setcontentsaftertitlepage used to do an implicit @contents or
+% @shortcontents after @end titlepage, but it is now obsolete.
+\def\setcontentsaftertitlepage{%
+  \errmessage{@setcontentsaftertitlepage has been removed as a Texinfo
+              command; move your @contents command if you want the contents
+              after the title page.}}%
+\def\setshortcontentsaftertitlepage{%
+  \errmessage{@setshortcontentsaftertitlepage has been removed as a Texinfo
+              command; move your @shortcontents and @contents commands if you 
+              want the contents after the title page.}}%
 
 \parseargdef\shorttitlepage{%
   \begingroup \hbox{}\vskip 1.5in \chaprm \centerline{#1}%
@@ -3525,20 +3523,6 @@ end
   % Need this before the \...aftertitlepage checks so that if they are
   % in effect the toc pages will come out with page numbers.
   \HEADINGSon
-  %
-  % If they want short, they certainly want long too.
-  \ifsetshortcontentsaftertitlepage
-    \shortcontents
-    \contents
-    \global\let\shortcontents = \relax
-    \global\let\contents = \relax
-  \fi
-  %
-  \ifsetcontentsaftertitlepage
-    \contents
-    \global\let\contents = \relax
-    \global\let\shortcontents = \relax
-  \fi
 }
 
 \def\finishtitlepage{%
@@ -6371,30 +6355,6 @@ end
 }
 
 
-% I don't think this chapter style is supported any more, so I'm not
-% updating it with the new noderef stuff.  We'll see.  --karl, 11aug03.
-%
-\parseargdef\setchapterstyle{\csname CHAPF#1\endcsname}
-%
-\def\unnchfopen #1{%
-  \chapoddpage
-  \vbox{\chapfonts \raggedtitlesettings #1\par}%
-  \nobreak\bigskip\nobreak
-}
-\def\chfopen #1#2{\chapoddpage {\chapfonts
-\vbox to 3in{\vfil \hbox to\hsize{\hfil #2} \hbox to\hsize{\hfil #1} \vfil}}%
-\par\penalty 5000 %
-}
-\def\centerchfopen #1{%
-  \chapoddpage
-  \vbox{\chapfonts \raggedtitlesettings \hfill #1\hfill}%
-  \nobreak\bigskip \nobreak
-}
-\def\CHAPFopen{%
-  \global\let\chapmacro=\chfopen
-  \global\let\centerchapmacro=\centerchfopen}
-
-
 % Section titles.  These macros combine the section number parts and
 % call the generic \sectionheading to do the printing.
 %
@@ -7839,7 +7799,7 @@ end
 % Argument is macro body with arguments substituted
 \def\scanmacro#1{%
   \newlinechar`\^^M
-  \def\xprocessmacroarg{\eatspaces}%
+  \def\xeatspaces{\eatspaces}%
   %
   % Process the macro body under the current catcode regime.
   \scantokens{#1\texinfoc}\aftermacro%
@@ -7935,7 +7895,7 @@ end
   \catcode`\_=\other
   \catcode`\|=\other
   \catcode`\~=\other
-  \ifx\declaredencoding\ascii \else \setcharscatcodeothernonglobal \fi
+  \passthroughcharstrue
 }
 
 \def\scanargctxt{% used for copying and captions, not macros.
@@ -8069,7 +8029,7 @@ end
   \paramno=0\def\paramlist{}%
   \let\hash\relax
   % \hash is redefined to `#' later to get it into definitions
-  \let\processmacroarg\relax
+  \let\xeatspaces\relax
   \parsemargdefxxx#1,;,%
   \ifnum\paramno<10\relax\else
     \paramno0\relax
@@ -8081,7 +8041,7 @@ end
   \else \let\next=\parsemargdefxxx
     \advance\paramno by 1
     \expandafter\edef\csname macarg.\eatspaces{#1}\endcsname
-        {\processmacroarg{\hash\the\paramno}}%
+        {\xeatspaces{\hash\the\paramno}}%
     \edef\paramlist{\paramlist\hash\the\paramno,}%
   \fi\next}
 
@@ -8307,16 +8267,9 @@ end
 %%%%%%%%%%%%%% End of code for > 10 arguments %%%%%%%%%%%%%%%%%%
 
 
-
-% Remove following spaces at the expansion stage.
-% This works because spaces are discarded before each argument when TeX is 
-% getting the arguments for a macro.
-% This must not be immediately followed by a }.
-\long\def\gobblespaces#1{#1}
-
 % This defines a Texinfo @macro or @rmacro, called by \parsemacbody.
 %    \macrobody has the body of the macro in it, with placeholders for
-% its parameters, looking like "\processmacroarg{\hash 1}".
+% its parameters, looking like "\xeatspaces{\hash 1}".
 %    \paramno is the number of parameters
 %    \paramlist is a TeX parameter text, e.g. "#1,#2,#3,"
 % There are eight cases: recursive and nonrecursive macros of zero, one,
@@ -8327,14 +8280,13 @@ end
 \def\defmacro{%
   \let\hash=##% convert placeholders to macro parameter chars
   \ifnum\paramno=1
-    \def\processmacroarg{\gobblespaces}%
+    \def\xeatspaces##1{##1}%
     % This removes the pair of braces around the argument.  We don't
     % use \eatspaces, because this can cause ends of lines to be lost
     % when the argument to \eatspaces is read, leading to line-based
     % commands like "@itemize" not being read correctly.
   \else
-    \def\processmacroarg{\xprocessmacroarg}%
-    \let\xprocessmacroarg\relax
+    \let\xeatspaces\relax % suppress expansion
   \fi
   \ifrecursive   %%%%%%%%%%%%%% Recursive %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     \ifcase\paramno
@@ -8347,12 +8299,9 @@ end
          \noexpand\braceorline
          \expandafter\noexpand\csname\the\macname @@@\endcsname}%
       \expandafter\xdef\csname\the\macname @@@\endcsname##1{%
-         \expandafter\noexpand\csname\the\macname @@@@\endcsname{%
-           \noexpand\gobblespaces##1\empty}%
-           % The \empty is for \gobblespaces in case #1 is empty
-         }%
-      \expandafter\xdef\csname\the\macname @@@@\endcsname##1{%
-         \egroup\noexpand\scanmacro{\macrobody}}%
+        \egroup
+        \noexpand\scanmacro{\macrobody}%
+        }%
     \else
       \ifnum\paramno<10\relax % at most 9
         % See non-recursive section below for comments
@@ -8391,11 +8340,6 @@ end
          \noexpand\braceorline
          \expandafter\noexpand\csname\the\macname @@@\endcsname}%
       \expandafter\xdef\csname\the\macname @@@\endcsname##1{%
-         \expandafter\noexpand\csname\the\macname @@@@\endcsname{%
-           \noexpand\gobblespaces##1\empty}%
-           % The \empty is for \gobblespaces in case #1 is empty
-         }%
-      \expandafter\xdef\csname\the\macname @@@@\endcsname##1{%
         \egroup
         \noexpand\scanmacro{\macrobody}%
         }%
@@ -9048,9 +8992,6 @@ end
   % should not typeset properly.  But it works, so I'm moving on for
   % now.  --karl, 15jan04.
   \catcode`\\=\other
-  %
-  % Make the characters 128-255 be printing characters.
-  {\setcharscatcodeothernonglobal}%
   %
   % @ is our escape character in .aux files, and we need braces.
   \catcode`\{=1
@@ -9815,109 +9756,119 @@ directory should work if nowhere else does.}
 % macros containing the character definitions.
 \setnonasciicharscatcode\active
 %
+
+\def\gdefchar#1#2{%
+\gdef#1{%
+   \ifpassthroughchars
+     \string#1%
+   \else
+     #2%
+   \fi
+}}
+
 % Latin1 (ISO-8859-1) character definitions.
 \def\latonechardefs{%
-  \gdef^^a0{\tie}
-  \gdef^^a1{\exclamdown}
-  \gdef^^a2{{\tcfont \char162}} % cent
-  \gdef^^a3{\pounds}
-  \gdef^^a4{{\tcfont \char164}} % currency
-  \gdef^^a5{{\tcfont \char165}} % yen
-  \gdef^^a6{{\tcfont \char166}} % broken bar
-  \gdef^^a7{\S}
-  \gdef^^a8{\"{}}
-  \gdef^^a9{\copyright}
-  \gdef^^aa{\ordf}
-  \gdef^^ab{\guillemetleft}
-  \gdef^^ac{\ensuremath\lnot}
-  \gdef^^ad{\-}
-  \gdef^^ae{\registeredsymbol}
-  \gdef^^af{\={}}
+  \gdefchar^^a0{\tie}
+  \gdefchar^^a1{\exclamdown}
+  \gdefchar^^a2{{\tcfont \char162}} % cent
+  \gdefchar^^a3{\pounds}
+  \gdefchar^^a4{{\tcfont \char164}} % currency
+  \gdefchar^^a5{{\tcfont \char165}} % yen
+  \gdefchar^^a6{{\tcfont \char166}} % broken bar
+  \gdefchar^^a7{\S}
+  \gdefchar^^a8{\"{}}
+  \gdefchar^^a9{\copyright}
+  \gdefchar^^aa{\ordf}
+  \gdefchar^^ab{\guillemetleft}
+  \gdefchar^^ac{\ensuremath\lnot}
+  \gdefchar^^ad{\-}
+  \gdefchar^^ae{\registeredsymbol}
+  \gdefchar^^af{\={}}
   %
-  \gdef^^b0{\textdegree}
-  \gdef^^b1{$\pm$}
-  \gdef^^b2{$^2$}
-  \gdef^^b3{$^3$}
-  \gdef^^b4{\'{}}
-  \gdef^^b5{$\mu$}
-  \gdef^^b6{\P}
-  \gdef^^b7{\ensuremath\cdot}
-  \gdef^^b8{\cedilla\ }
-  \gdef^^b9{$^1$}
-  \gdef^^ba{\ordm}
-  \gdef^^bb{\guillemetright}
-  \gdef^^bc{$1\over4$}
-  \gdef^^bd{$1\over2$}
-  \gdef^^be{$3\over4$}
-  \gdef^^bf{\questiondown}
+  \gdefchar^^b0{\textdegree}
+  \gdefchar^^b1{$\pm$}
+  \gdefchar^^b2{$^2$}
+  \gdefchar^^b3{$^3$}
+  \gdefchar^^b4{\'{}}
+  \gdefchar^^b5{$\mu$}
+  \gdefchar^^b6{\P}
+  \gdefchar^^b7{\ensuremath\cdot}
+  \gdefchar^^b8{\cedilla\ }
+  \gdefchar^^b9{$^1$}
+  \gdefchar^^ba{\ordm}
+  \gdefchar^^bb{\guillemetright}
+  \gdefchar^^bc{$1\over4$}
+  \gdefchar^^bd{$1\over2$}
+  \gdefchar^^be{$3\over4$}
+  \gdefchar^^bf{\questiondown}
   %
-  \gdef^^c0{\`A}
-  \gdef^^c1{\'A}
-  \gdef^^c2{\^A}
-  \gdef^^c3{\~A}
-  \gdef^^c4{\"A}
-  \gdef^^c5{\ringaccent A}
-  \gdef^^c6{\AE}
-  \gdef^^c7{\cedilla C}
-  \gdef^^c8{\`E}
-  \gdef^^c9{\'E}
-  \gdef^^ca{\^E}
-  \gdef^^cb{\"E}
-  \gdef^^cc{\`I}
-  \gdef^^cd{\'I}
-  \gdef^^ce{\^I}
-  \gdef^^cf{\"I}
+  \gdefchar^^c0{\`A}
+  \gdefchar^^c1{\'A}
+  \gdefchar^^c2{\^A}
+  \gdefchar^^c3{\~A}
+  \gdefchar^^c4{\"A}
+  \gdefchar^^c5{\ringaccent A}
+  \gdefchar^^c6{\AE}
+  \gdefchar^^c7{\cedilla C}
+  \gdefchar^^c8{\`E}
+  \gdefchar^^c9{\'E}
+  \gdefchar^^ca{\^E}
+  \gdefchar^^cb{\"E}
+  \gdefchar^^cc{\`I}
+  \gdefchar^^cd{\'I}
+  \gdefchar^^ce{\^I}
+  \gdefchar^^cf{\"I}
   %
-  \gdef^^d0{\DH}
-  \gdef^^d1{\~N}
-  \gdef^^d2{\`O}
-  \gdef^^d3{\'O}
-  \gdef^^d4{\^O}
-  \gdef^^d5{\~O}
-  \gdef^^d6{\"O}
-  \gdef^^d7{$\times$}
-  \gdef^^d8{\O}
-  \gdef^^d9{\`U}
-  \gdef^^da{\'U}
-  \gdef^^db{\^U}
-  \gdef^^dc{\"U}
-  \gdef^^dd{\'Y}
-  \gdef^^de{\TH}
-  \gdef^^df{\ss}
+  \gdefchar^^d0{\DH}
+  \gdefchar^^d1{\~N}
+  \gdefchar^^d2{\`O}
+  \gdefchar^^d3{\'O}
+  \gdefchar^^d4{\^O}
+  \gdefchar^^d5{\~O}
+  \gdefchar^^d6{\"O}
+  \gdefchar^^d7{$\times$}
+  \gdefchar^^d8{\O}
+  \gdefchar^^d9{\`U}
+  \gdefchar^^da{\'U}
+  \gdefchar^^db{\^U}
+  \gdefchar^^dc{\"U}
+  \gdefchar^^dd{\'Y}
+  \gdefchar^^de{\TH}
+  \gdefchar^^df{\ss}
   %
-  \gdef^^e0{\`a}
-  \gdef^^e1{\'a}
-  \gdef^^e2{\^a}
-  \gdef^^e3{\~a}
-  \gdef^^e4{\"a}
-  \gdef^^e5{\ringaccent a}
-  \gdef^^e6{\ae}
-  \gdef^^e7{\cedilla c}
-  \gdef^^e8{\`e}
-  \gdef^^e9{\'e}
-  \gdef^^ea{\^e}
-  \gdef^^eb{\"e}
-  \gdef^^ec{\`{\dotless i}}
-  \gdef^^ed{\'{\dotless i}}
-  \gdef^^ee{\^{\dotless i}}
-  \gdef^^ef{\"{\dotless i}}
+  \gdefchar^^e0{\`a}
+  \gdefchar^^e1{\'a}
+  \gdefchar^^e2{\^a}
+  \gdefchar^^e3{\~a}
+  \gdefchar^^e4{\"a}
+  \gdefchar^^e5{\ringaccent a}
+  \gdefchar^^e6{\ae}
+  \gdefchar^^e7{\cedilla c}
+  \gdefchar^^e8{\`e}
+  \gdefchar^^e9{\'e}
+  \gdefchar^^ea{\^e}
+  \gdefchar^^eb{\"e}
+  \gdefchar^^ec{\`{\dotless i}}
+  \gdefchar^^ed{\'{\dotless i}}
+  \gdefchar^^ee{\^{\dotless i}}
+  \gdefchar^^ef{\"{\dotless i}}
   %
-  \gdef^^f0{\dh}
-  \gdef^^f1{\~n}
-  \gdef^^f2{\`o}
-  \gdef^^f3{\'o}
-  \gdef^^f4{\^o}
-  \gdef^^f5{\~o}
-  \gdef^^f6{\"o}
-  \gdef^^f7{$\div$}
-  \gdef^^f8{\o}
-  \gdef^^f9{\`u}
-  \gdef^^fa{\'u}
-  \gdef^^fb{\^u}
-  \gdef^^fc{\"u}
-  \gdef^^fd{\'y}
-  \gdef^^fe{\th}
-  \gdef^^ff{\"y}
+  \gdefchar^^f0{\dh}
+  \gdefchar^^f1{\~n}
+  \gdefchar^^f2{\`o}
+  \gdefchar^^f3{\'o}
+  \gdefchar^^f4{\^o}
+  \gdefchar^^f5{\~o}
+  \gdefchar^^f6{\"o}
+  \gdefchar^^f7{$\div$}
+  \gdefchar^^f8{\o}
+  \gdefchar^^f9{\`u}
+  \gdefchar^^fa{\'u}
+  \gdefchar^^fb{\^u}
+  \gdefchar^^fc{\"u}
+  \gdefchar^^fd{\'y}
+  \gdefchar^^fe{\th}
+  \gdefchar^^ff{\"y}
 }
 
 % Latin9 (ISO-8859-15) encoding character definitions.
@@ -9925,119 +9876,119 @@ directory should work if nowhere else does.}
   % Encoding is almost identical to Latin1.
   \latonechardefs
   %
-  \gdef^^a4{\euro}
-  \gdef^^a6{\v S}
-  \gdef^^a8{\v s}
-  \gdef^^b4{\v Z}
-  \gdef^^b8{\v z}
-  \gdef^^bc{\OE}
-  \gdef^^bd{\oe}
-  \gdef^^be{\"Y}
+  \gdefchar^^a4{\euro}
+  \gdefchar^^a6{\v S}
+  \gdefchar^^a8{\v s}
+  \gdefchar^^b4{\v Z}
+  \gdefchar^^b8{\v z}
+  \gdefchar^^bc{\OE}
+  \gdefchar^^bd{\oe}
+  \gdefchar^^be{\"Y}
 }
 
 % Latin2 (ISO-8859-2) character definitions.
 \def\lattwochardefs{%
-  \gdef^^a0{\tie}
-  \gdef^^a1{\ogonek{A}}
-  \gdef^^a2{\u{}}
-  \gdef^^a3{\L}
-  \gdef^^a4{\missingcharmsg{CURRENCY SIGN}}
-  \gdef^^a5{\v L}
-  \gdef^^a6{\'S}
-  \gdef^^a7{\S}
-  \gdef^^a8{\"{}}
-  \gdef^^a9{\v S}
-  \gdef^^aa{\cedilla S}
-  \gdef^^ab{\v T}
-  \gdef^^ac{\'Z}
-  \gdef^^ad{\-}
-  \gdef^^ae{\v Z}
-  \gdef^^af{\dotaccent Z}
+  \gdefchar^^a0{\tie}
+  \gdefchar^^a1{\ogonek{A}}
+  \gdefchar^^a2{\u{}}
+  \gdefchar^^a3{\L}
+  \gdefchar^^a4{\missingcharmsg{CURRENCY SIGN}}
+  \gdefchar^^a5{\v L}
+  \gdefchar^^a6{\'S}
+  \gdefchar^^a7{\S}
+  \gdefchar^^a8{\"{}}
+  \gdefchar^^a9{\v S}
+  \gdefchar^^aa{\cedilla S}
+  \gdefchar^^ab{\v T}
+  \gdefchar^^ac{\'Z}
+  \gdefchar^^ad{\-}
+  \gdefchar^^ae{\v Z}
+  \gdefchar^^af{\dotaccent Z}
   %
-  \gdef^^b0{\textdegree}
-  \gdef^^b1{\ogonek{a}}
-  \gdef^^b2{\ogonek{ }}
-  \gdef^^b3{\l}
-  \gdef^^b4{\'{}}
-  \gdef^^b5{\v l}
-  \gdef^^b6{\'s}
-  \gdef^^b7{\v{}}
-  \gdef^^b8{\cedilla\ }
-  \gdef^^b9{\v s}
-  \gdef^^ba{\cedilla s}
-  \gdef^^bb{\v t}
-  \gdef^^bc{\'z}
-  \gdef^^bd{\H{}}
-  \gdef^^be{\v z}
-  \gdef^^bf{\dotaccent z}
+  \gdefchar^^b0{\textdegree}
+  \gdefchar^^b1{\ogonek{a}}
+  \gdefchar^^b2{\ogonek{ }}
+  \gdefchar^^b3{\l}
+  \gdefchar^^b4{\'{}}
+  \gdefchar^^b5{\v l}
+  \gdefchar^^b6{\'s}
+  \gdefchar^^b7{\v{}}
+  \gdefchar^^b8{\cedilla\ }
+  \gdefchar^^b9{\v s}
+  \gdefchar^^ba{\cedilla s}
+  \gdefchar^^bb{\v t}
+  \gdefchar^^bc{\'z}
+  \gdefchar^^bd{\H{}}
+  \gdefchar^^be{\v z}
+  \gdefchar^^bf{\dotaccent z}
   %
-  \gdef^^c0{\'R}
-  \gdef^^c1{\'A}
-  \gdef^^c2{\^A}
-  \gdef^^c3{\u A}
-  \gdef^^c4{\"A}
-  \gdef^^c5{\'L}
-  \gdef^^c6{\'C}
-  \gdef^^c7{\cedilla C}
-  \gdef^^c8{\v C}
-  \gdef^^c9{\'E}
-  \gdef^^ca{\ogonek{E}}
-  \gdef^^cb{\"E}
-  \gdef^^cc{\v E}
-  \gdef^^cd{\'I}
-  \gdef^^ce{\^I}
-  \gdef^^cf{\v D}
+  \gdefchar^^c0{\'R}
+  \gdefchar^^c1{\'A}
+  \gdefchar^^c2{\^A}
+  \gdefchar^^c3{\u A}
+  \gdefchar^^c4{\"A}
+  \gdefchar^^c5{\'L}
+  \gdefchar^^c6{\'C}
+  \gdefchar^^c7{\cedilla C}
+  \gdefchar^^c8{\v C}
+  \gdefchar^^c9{\'E}
+  \gdefchar^^ca{\ogonek{E}}
+  \gdefchar^^cb{\"E}
+  \gdefchar^^cc{\v E}
+  \gdefchar^^cd{\'I}
+  \gdefchar^^ce{\^I}
+  \gdefchar^^cf{\v D}
   %
-  \gdef^^d0{\DH}
-  \gdef^^d1{\'N}
-  \gdef^^d2{\v N}
-  \gdef^^d3{\'O}
-  \gdef^^d4{\^O}
-  \gdef^^d5{\H O}
-  \gdef^^d6{\"O}
-  \gdef^^d7{$\times$}
-  \gdef^^d8{\v R}
-  \gdef^^d9{\ringaccent U}
-  \gdef^^da{\'U}
-  \gdef^^db{\H U}
-  \gdef^^dc{\"U}
-  \gdef^^dd{\'Y}
-  \gdef^^de{\cedilla T}
-  \gdef^^df{\ss}
+  \gdefchar^^d0{\DH}
+  \gdefchar^^d1{\'N}
+  \gdefchar^^d2{\v N}
+  \gdefchar^^d3{\'O}
+  \gdefchar^^d4{\^O}
+  \gdefchar^^d5{\H O}
+  \gdefchar^^d6{\"O}
+  \gdefchar^^d7{$\times$}
+  \gdefchar^^d8{\v R}
+  \gdefchar^^d9{\ringaccent U}
+  \gdefchar^^da{\'U}
+  \gdefchar^^db{\H U}
+  \gdefchar^^dc{\"U}
+  \gdefchar^^dd{\'Y}
+  \gdefchar^^de{\cedilla T}
+  \gdefchar^^df{\ss}
   %
-  \gdef^^e0{\'r}
-  \gdef^^e1{\'a}
-  \gdef^^e2{\^a}
-  \gdef^^e3{\u a}
-  \gdef^^e4{\"a}
-  \gdef^^e5{\'l}
-  \gdef^^e6{\'c}
-  \gdef^^e7{\cedilla c}
-  \gdef^^e8{\v c}
-  \gdef^^e9{\'e}
-  \gdef^^ea{\ogonek{e}}
-  \gdef^^eb{\"e}
-  \gdef^^ec{\v e}
-  \gdef^^ed{\'{\dotless{i}}}
-  \gdef^^ee{\^{\dotless{i}}}
-  \gdef^^ef{\v d}
+  \gdefchar^^e0{\'r}
+  \gdefchar^^e1{\'a}
+  \gdefchar^^e2{\^a}
+  \gdefchar^^e3{\u a}
+  \gdefchar^^e4{\"a}
+  \gdefchar^^e5{\'l}
+  \gdefchar^^e6{\'c}
+  \gdefchar^^e7{\cedilla c}
+  \gdefchar^^e8{\v c}
+  \gdefchar^^e9{\'e}
+  \gdefchar^^ea{\ogonek{e}}
+  \gdefchar^^eb{\"e}
+  \gdefchar^^ec{\v e}
+  \gdefchar^^ed{\'{\dotless{i}}}
+  \gdefchar^^ee{\^{\dotless{i}}}
+  \gdefchar^^ef{\v d}
   %
-  \gdef^^f0{\dh}
-  \gdef^^f1{\'n}
-  \gdef^^f2{\v n}
-  \gdef^^f3{\'o}
-  \gdef^^f4{\^o}
-  \gdef^^f5{\H o}
-  \gdef^^f6{\"o}
-  \gdef^^f7{$\div$}
-  \gdef^^f8{\v r}
-  \gdef^^f9{\ringaccent u}
-  \gdef^^fa{\'u}
-  \gdef^^fb{\H u}
-  \gdef^^fc{\"u}
-  \gdef^^fd{\'y}
-  \gdef^^fe{\cedilla t}
-  \gdef^^ff{\dotaccent{}}
+  \gdefchar^^f0{\dh}
+  \gdefchar^^f1{\'n}
+  \gdefchar^^f2{\v n}
+  \gdefchar^^f3{\'o}
+  \gdefchar^^f4{\^o}
+  \gdefchar^^f5{\H o}
+  \gdefchar^^f6{\"o}
+  \gdefchar^^f7{$\div$}
+  \gdefchar^^f8{\v r}
+  \gdefchar^^f9{\ringaccent u}
+  \gdefchar^^fa{\'u}
+  \gdefchar^^fb{\H u}
+  \gdefchar^^fc{\"u}
+  \gdefchar^^fd{\'y}
+  \gdefchar^^fe{\cedilla t}
+  \gdefchar^^ff{\dotaccent{}}
 }
 
 % UTF-8 character definitions.
@@ -10067,35 +10018,56 @@ directory should work if nowhere else does.}
   \fi
 }
 
+% Give non-ASCII bytes the active definitions for processing UTF-8 sequences
 \begingroup
   \catcode`\~13
+  \catcode`\$12
   \catcode`\"12
 
+  % Loop from \countUTFx to \countUTFy, performing \UTFviiiTmp
+  % substituting ~ and $ with a character token of that value.
   \def\UTFviiiLoop{%
     \global\catcode\countUTFx\active
     \uccode`\~\countUTFx
+    \uccode`\$\countUTFx
     \uppercase\expandafter{\UTFviiiTmp}%
     \advance\countUTFx by 1
     \ifnum\countUTFx < \countUTFy
       \expandafter\UTFviiiLoop
     \fi}
 
+  % For bytes other than the first in a UTF-8 sequence.  Not expected to
+  % be expanded except when writing to auxiliary files.
+  \countUTFx = "80
+  \countUTFy = "C2
+  \def\UTFviiiTmp{%
+    \gdef~{
+        \ifpassthroughchars $\fi}}%
+  \UTFviiiLoop
+
   \countUTFx = "C2
   \countUTFy = "E0
   \def\UTFviiiTmp{%
-    \xdef~{\noexpand\UTFviiiTwoOctets\string~}}
+    \gdef~{%
+        \ifpassthroughchars $%
+        \else\expandafter\UTFviiiTwoOctets\expandafter$\fi}}%
   \UTFviiiLoop
 
   \countUTFx = "E0
   \countUTFy = "F0
   \def\UTFviiiTmp{%
-    \xdef~{\noexpand\UTFviiiThreeOctets\string~}}
+    \gdef~{%
+        \ifpassthroughchars $%
+        \else\expandafter\UTFviiiThreeOctets\expandafter$\fi}}%
   \UTFviiiLoop
 
   \countUTFx = "F0
   \countUTFy = "F4
   \def\UTFviiiTmp{%
-    \xdef~{\noexpand\UTFviiiFourOctets\string~}}
+    \gdef~{%
+        \ifpassthroughchars $%
+        \else\expandafter\UTFviiiFourOctets\expandafter$\fi
+        }}%
   \UTFviiiLoop
 \endgroup
 
@@ -10134,9 +10106,10 @@ directory should work if nowhere else does.}
   \catcode`\~=13
   \gdef\DeclareUnicodeCharacterUTFviii#1#2{%
     \countUTFz = "#1\relax
-    %\wlog{\space\space defining Unicode char U+#1 (decimal \the\countUTFz)}%
     \begingroup
       \parseXMLCharref
+      %
+      % Access definitions of characters given UTF-8 sequences
       \def\UTFviiiTwoOctets##1##2{%
         \csname u8:##1\string ##2\endcsname}%
       \def\UTFviiiThreeOctets##1##2##3{%
@@ -10154,7 +10127,8 @@ directory should work if nowhere else does.}
       % define an additional control sequence for this code point.
       \expandafter\globallet\csname uni:#1\endcsname \UTFviiiTmp
     \endgroup}
-
+  %
+  % Given the value in \countUTFz as a Unicode code point, set \UTFviiiTmp.
   \gdef\parseXMLCharref{%
     \ifnum\countUTFz < "A0\relax
       \errhelp = \EMsimple
@@ -10184,6 +10158,7 @@ directory should work if nowhere else does.}
     \uccode `#1\countUTFx
     \countUTFz = \countUTFy}
 
+  % Used to set \UTFviiiTmp to a UTF-8 byte sequence
   \gdef\parseUTFviiiB#1#2#3#4{%
     \advance\countUTFz by "#10\relax
     \uccode `#3\countUTFz
@@ -10937,84 +10912,17 @@ directory should work if nowhere else does.}
   \unicodechardefs
 }
 
-% Native Unicode (XeTeX and LuaTeX) catcode other non global definitions
-\def\nativeunicodecharscatcodeothernonglobal{%
-  \let\DeclareUnicodeCharacter\DeclareUnicodeCharacterNativeOther
-  \unicodechardefs
-}
-
-% Catcode (non-ASCII or native Unicode) are set to \other (non-global
-% assignments).
-\def\setcharscatcodeothernonglobal{%
-  \iftxiusebytewiseio
-    \setnonasciicharscatcodenonglobal\other
-  \else
-    \nativeunicodecharscatcodeothernonglobal
-  \fi
-}
-
 % US-ASCII character definitions.
 \def\asciichardefs{% nothing need be done
    \relax
 }
 
-% Redefine the active definitions of non-ASCII characters to expand to
-% non-active tokens with the same character code.
-\def\nonasciistringdefs{%
-  \setnonasciicharscatcode\active
-  \def\defstringchar##1{\def##1{\string##1}}%
-  %
-  \defstringchar^^80\defstringchar^^81\defstringchar^^82\defstringchar^^83%
-  \defstringchar^^84\defstringchar^^85\defstringchar^^86\defstringchar^^87%
-  \defstringchar^^88\defstringchar^^89\defstringchar^^8a\defstringchar^^8b%
-  \defstringchar^^8c\defstringchar^^8d\defstringchar^^8e\defstringchar^^8f%
-  %
-  \defstringchar^^90\defstringchar^^91\defstringchar^^92\defstringchar^^93%
-  \defstringchar^^94\defstringchar^^95\defstringchar^^96\defstringchar^^97%
-  \defstringchar^^98\defstringchar^^99\defstringchar^^9a\defstringchar^^9b%
-  \defstringchar^^9c\defstringchar^^9d\defstringchar^^9e\defstringchar^^9f%
-  %
-  \defstringchar^^a0\defstringchar^^a1\defstringchar^^a2\defstringchar^^a3%
-  \defstringchar^^a4\defstringchar^^a5\defstringchar^^a6\defstringchar^^a7%
-  \defstringchar^^a8\defstringchar^^a9\defstringchar^^aa\defstringchar^^ab%
-  \defstringchar^^ac\defstringchar^^ad\defstringchar^^ae\defstringchar^^af%
-  %
-  \defstringchar^^b0\defstringchar^^b1\defstringchar^^b2\defstringchar^^b3%
-  \defstringchar^^b4\defstringchar^^b5\defstringchar^^b6\defstringchar^^b7%
-  \defstringchar^^b8\defstringchar^^b9\defstringchar^^ba\defstringchar^^bb%
-  \defstringchar^^bc\defstringchar^^bd\defstringchar^^be\defstringchar^^bf%
-  %
-  \defstringchar^^c0\defstringchar^^c1\defstringchar^^c2\defstringchar^^c3%
-  \defstringchar^^c4\defstringchar^^c5\defstringchar^^c6\defstringchar^^c7%
-  \defstringchar^^c8\defstringchar^^c9\defstringchar^^ca\defstringchar^^cb%
-  \defstringchar^^cc\defstringchar^^cd\defstringchar^^ce\defstringchar^^cf%
-  %
-  \defstringchar^^d0\defstringchar^^d1\defstringchar^^d2\defstringchar^^d3%
-  \defstringchar^^d4\defstringchar^^d5\defstringchar^^d6\defstringchar^^d7%
-  \defstringchar^^d8\defstringchar^^d9\defstringchar^^da\defstringchar^^db%
-  \defstringchar^^dc\defstringchar^^dd\defstringchar^^de\defstringchar^^df%
-  %
-  \defstringchar^^e0\defstringchar^^e1\defstringchar^^e2\defstringchar^^e3%
-  \defstringchar^^e4\defstringchar^^e5\defstringchar^^e6\defstringchar^^e7%
-  \defstringchar^^e8\defstringchar^^e9\defstringchar^^ea\defstringchar^^eb%
-  \defstringchar^^ec\defstringchar^^ed\defstringchar^^ee\defstringchar^^ef%
-  %
-  \defstringchar^^f0\defstringchar^^f1\defstringchar^^f2\defstringchar^^f3%
-  \defstringchar^^f4\defstringchar^^f5\defstringchar^^f6\defstringchar^^f7%
-  \defstringchar^^f8\defstringchar^^f9\defstringchar^^fa\defstringchar^^fb%
-  \defstringchar^^fc\defstringchar^^fd\defstringchar^^fe\defstringchar^^ff%
-}
-
-% Write characters literally, instead of using active definitions for
+% Whether the active definitions of non-ASCII characters expand to
+% non-active tokens with the same character code.  This is used to
+% write characters literally, instead of using active definitions for
 % printing the correct glyphs.
-\def\passthroughcharacters{%
-  \iftxiusebytewiseio
-    \nonasciistringdefs
-  \else
-    \passthroughcharstrue
-  \fi
-}
-
+\newif\ifpassthroughchars
+\passthroughcharsfalse
 
 % define all the unicode characters we know about, for the sake of @U.
 \iftxinativeunicodecapable
@@ -11370,7 +11278,7 @@ directory should work if nowhere else does.}
 %
 {@catcode`- = @active
  @gdef@normalturnoffactive{%
-   @passthroughcharacters
+   @passthroughcharstrue
    @let-=@normaldash
    @let"=@normaldoublequote
    @let$=@normaldollar %$ font-lock fix

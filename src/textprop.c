@@ -6,8 +6,8 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -1515,7 +1515,7 @@ DEFUN ("remove-text-properties", Fremove_text_properties,
        doc: /* Remove some properties from text from START to END.
 The third argument PROPERTIES is a property list
 whose property names specify the properties to remove.
-(The values stored in PROPERTIES are ignored.)
+\(The values stored in PROPERTIES are ignored.)
 If the optional fourth argument OBJECT is a buffer (or nil, which means
 the current buffer), START and END are buffer positions (integers or
 markers).  If OBJECT is a string, START and END are 0-based indices into it.

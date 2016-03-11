@@ -72,7 +72,12 @@
     ;; Invalid XML names
     "<0foo>abc</0foo>"
     "<‿foo>abc</‿foo>"
-    "<f¿>abc</f¿>")
+    "<f¿>abc</f¿>"
+    ;; Two root tags
+    "<a/><b></b>"
+    ;; Bug#16344
+    "<!----><x>< /x>"
+    "<a>< b/></a>")
   "List of XML strings that should signal an error in the parser")
 
 (defvar xml-parse-tests--qnames

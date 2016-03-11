@@ -91,6 +91,15 @@ VALUES-PLIST is a list with alternating index and value elements."
 (ert-deftest ruby-no-heredoc-inside-quotes ()
   (ruby-assert-state "\"<<\", \"\",\nfoo" 3 nil))
 
+(ert-deftest ruby-no-heredoc-left-shift ()
+  ;; We can't really detect the left shift operator (like in similar
+  ;; cases, it depends on the type of foo), so we just require for <<
+  ;; to be preceded by a character from a known set.
+  (ruby-assert-state "foo(a<<b)" 3 nil))
+
+(ert-deftest ruby-no-heredoc-class-self ()
+  (ruby-assert-state "class <<self\nend" 3 nil))
+
 (ert-deftest ruby-exit!-font-lock ()
   (ruby-assert-face "exit!" 5 font-lock-builtin-face))
 
@@ -460,6 +469,14 @@ VALUES-PLIST is a list with alternating index and value elements."
   ;; No folding of case.
   (ruby-assert-face "%S{foo}" 4 nil)
   (ruby-assert-face "%R{foo}" 4 nil))
+
+(ert-deftest ruby-no-nested-percent-literals ()
+  (ruby-with-temp-buffer "a = %w[b %()]"
+    (syntax-propertize (point))
+    (should (null (nth 8 (syntax-ppss))))
+    (should (eq t (nth 3 (syntax-ppss (1- (point-max))))))
+    (search-backward "[")
+    (should (eq t (nth 3 (syntax-ppss))))))
 
 (ert-deftest ruby-add-log-current-method-examples ()
   (let ((pairs '(("foo" . "#foo")

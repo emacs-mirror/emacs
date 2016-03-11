@@ -161,6 +161,16 @@ that negotiation should complete even on non-blocking sockets.
 `window-pixel-height-before-size-change' allow to detect which window
 changed size when `window-size-change-functions' are run.
 
++++
+** New function `display-buffer-reuse-mode-window' is an action function
+suitable for use in `display-buffer-alist'. For example, to avoid creating
+a new window when opening man pages when there's already one, use
+(add-to-list 'display-buffer-alist
+     '("\\`\\*Man .*\\*\\'" .
+       (display-buffer-reuse-mode-window
+        (inhibit-same-window . nil)
+        (mode . Man-mode))))
+
 
 * Changes in Emacs 25.2 on Non-Free Operating Systems
 
@@ -794,30 +804,30 @@ item as before.
 
 +++
 *** `isearch' and `query-replace' can now perform character folding in matches.
-Isearch does that by default, while `query-replace' will do that if
-the new variable `replace-character-fold' is customized to a non-nil
-value.  This is analogous to case folding, but instead of disregarding
-case variants, it disregards wider classes of distinctions between
-similar characters.  (Case folding is a special case of character
-folding.)  This means many characters in the search string will match
-entire groups of characters instead of just themselves.
+This is analogous to case folding, but instead of disregarding case
+variants, it disregards wider classes of distinctions between similar
+characters.  (Case folding is a special case of character folding.)
+This means many characters in the search string will match entire
+groups of characters instead of just themselves.
 
-For instance, the " will match all variants of double quotes (like “
-and ”), and the letter a will match all of its accented cousins, even
-those composed of multiple characters, as well as many other symbols
-like ℀, ℁, ⒜, and ⓐ.
+For instance, the ASCII double quote character " will match all
+variants of double quotes (like “ and ”), and the letter a will match
+all of its accented cousins, even those composed of multiple
+characters, as well as many other symbols like ℀, ℁, ⒜, and ⓐ.
 
 Character folding is enabled by customizing `search-default-mode' to
-the value `character-fold-to-regexp'.  If you want to turn character
-folding off, customize the value of `search-default-mode' to the `nil'
-value.  You can also toggle character folding in the middle of a
-search by typing `M-s ''.
+the value `character-fold-to-regexp'.  You can also toggle character
+folding in the middle of a search by typing `M-s ''.
+
+`query-replace' honors character folding if the new variable
+`replace-character-fold' is customized to a non-nil value.
 
 +++
 *** New user option `search-default-mode'.
 This option specifies the default mode for Isearch.  The default
-value, `character-fold-to-regexp' specifies that Isearch should fold
-characters when searching.
+value, nil specifies that Isearch does literal searches (however,
+`case-fold-search' and `isearch-lax-whitespace' may still be applied,
+as in previous Emacs versions).
 
 +++
 *** New function `character-fold-to-regexp' can be used
@@ -2186,7 +2196,7 @@ Those features have been deprecated in Gtk+ for a long time.
 +++
 *** etags no longer qualifies class members by default.
 
-By default, `etags' will not qualify class members for C-like
+By default, `etags' will not qualify class members for Perl and C-like
 object-oriented languages with their class names and namespaces, and
 will remove qualifications used explicitly in the code from the tag
 names it puts in TAGS files.  This is so the etags.el back-end for
@@ -2194,8 +2204,8 @@ names it puts in TAGS files.  This is so the etags.el back-end for
 positives.
 
 Use --class-qualify (-Q) if you want the old default behavior of
-qualifying class members in C++, Java, and Objective C.  Note that
-using -Q might make some class members become "unknown" to `M-.'
+qualifying class members in C++, Java, Objective C, and Perl.  Note
+that using -Q might make some class members become "unknown" to `M-.'
 (`xref-find-definitions'); if so, you can use `C-u M-.' to specify the
 qualified names by hand.
 

@@ -8,8 +8,8 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -798,6 +798,51 @@ mbx_write (char *line, int len, FILE *mbf)
     }
   return fwrite (line, 1, len, mbf) == len && 0 <= fputc ('\n', mbf);
 }
+
+#ifdef WINDOWSNT
+/* Work around MS-Windows lack of support for %e or %T with a
+   special-purpose strftime that assumes the exact format that
+   movemail uses.  */
+static size_t
+movemail_strftime (char *s, size_t size, char const *format,
+		   struct tm const *tm)
+{
+  char fmt[size + 6], *q;
+  const char *p;
+
+  for (p = format, q = &fmt[0]; *p; )
+    {
+      if (*p == '%' && p[1] == 'e')
+	{
+	  memcpy (q, "%d", 2);
+	  q += 2;
+	  p += 2;
+	}
+      else if (*p == '%' && p[1] == 'T')
+	{
+	  memcpy (q, "%H:%M:%S", 8);
+	  q += 8;
+	  p += 2;
+	}
+      else if (*p == '%' && p[1] == '%')
+	{
+	  memcpy (q, p, 2);
+	  q += 2;
+	  p += 2;
+	}
+      else
+	*q++ = *p++;
+    }
+
+  size_t n = strftime (s, size, fmt, tm);
+  char *mday = s + sizeof "From movemail Sun Jan " - 1;
+  if (*mday == '0')
+    *mday = ' ';
+  return n;
+}
+# undef strftime
+# define strftime movemail_strftime
+#endif
 
 static bool
 mbx_delimit_begin (FILE *mbf)

@@ -304,14 +304,15 @@ or \\[wdired-abort-changes] to abort changes")))
       (put-text-property b-protection (point-max) 'read-only t))))
 
 ;; This code is a copy of some dired-get-filename lines.
-(defsubst wdired-normalize-filename (file)
-  (setq file
-	;; FIXME: shouldn't we check for a `b' argument or somesuch before
-	;; doing such unquoting?  --Stef
-	(read (concat
-	       "\"" (replace-regexp-in-string
-		     "\\([^\\]\\|\\`\\)\"" "\\1\\\\\"" file)
-	       "\"")))
+(defsubst wdired-normalize-filename (file unquotep)
+  (when unquotep
+    (setq file
+          ;; FIXME: shouldn't we check for a `b' argument or somesuch before
+          ;; doing such unquoting?  --Stef
+          (read (concat
+                 "\"" (replace-regexp-in-string
+                       "\\([^\\]\\|\\`\\)\"" "\\1\\\\\"" file)
+                 "\""))))
   (and file buffer-file-coding-system
        (not file-name-coding-system)
        (not default-file-name-coding-system)
@@ -339,7 +340,8 @@ non-nil means return old filename."
 	  ;; deletion.
 	  (setq end (next-single-property-change beg 'end-name))
 	  (setq file (buffer-substring-no-properties (1+ beg) end)))
-	(and file (setq file (wdired-normalize-filename file))))
+	;; Don't unquote the old name, it wasn't quoted in the first place
+        (and file (setq file (wdired-normalize-filename file (not old)))))
       (if (or no-dir old)
 	  file
 	(and file (> (length file) 0)
@@ -644,7 +646,7 @@ If OLD, return the old target.  If MOVE, move point before it."
 	    (setq end (next-single-property-change beg 'end-link))
 	    (setq target (buffer-substring-no-properties (1+ beg) end)))
 	  (if move (goto-char (1- beg)))))
-    (and target (wdired-normalize-filename target))))
+    (and target (wdired-normalize-filename target t))))
 
 (declare-function make-symbolic-link "fileio.c")
 

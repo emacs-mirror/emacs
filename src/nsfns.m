@@ -7,8 +7,8 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -1684,7 +1684,7 @@ DEFUN ("x-server-max-request-size", Fx_server_max_request_size,
 
 DEFUN ("x-server-vendor", Fx_server_vendor, Sx_server_vendor, 0, 1, 0,
        doc: /* Return the "vendor ID" string of Nextstep display server TERMINAL.
-(Labeling every distributor as a "vendor" embodies the false assumption
+\(Labeling every distributor as a "vendor" embodies the false assumption
 that operating systems cannot be developed and distributed noncommercially.)
 The optional argument TERMINAL specifies which display to ask about.
 TERMINAL should be a terminal object, a frame or a display name (a string).
@@ -1730,7 +1730,7 @@ If omitted or nil, that stands for the selected frame's display.
 
 Note: "screen" here is not in Nextstep terminology but in X11's.  For
 the number of physical monitors, use `(length
-(display-monitor-attributes-list TERMINAL))' instead.  */)
+\(display-monitor-attributes-list TERMINAL))' instead.  */)
   (Lisp_Object terminal)
 {
   check_ns_display_info (terminal);
@@ -1861,7 +1861,7 @@ DISPLAY is the name of the display to connect to.
 Optional second arg XRM-STRING is a string of resources in xrdb format.
 If the optional third arg MUST-SUCCEED is non-nil,
 terminate Emacs if we can't open the connection.
-(In the Nextstep version, the last two arguments are currently ignored.)  */)
+\(In the Nextstep version, the last two arguments are currently ignored.)  */)
      (Lisp_Object display, Lisp_Object resource_string, Lisp_Object must_succeed)
 {
   struct ns_display_info *dpyinfo;
@@ -2301,7 +2301,7 @@ x_get_focus_frame (struct frame *frame)
 
 DEFUN ("xw-color-defined-p", Fxw_color_defined_p, Sxw_color_defined_p, 1, 2, 0,
        doc: /* Internal function called by `color-defined-p', which see.
-(Note that the Nextstep version of this function ignores FRAME.)  */)
+\(Note that the Nextstep version of this function ignores FRAME.)  */)
      (Lisp_Object color, Lisp_Object frame)
 {
   NSColor * col;

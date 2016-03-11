@@ -411,8 +411,8 @@ This will generate compile-time constants from BINDINGS."
          ;; Words inside \\[] tend to be for `substitute-command-keys'.
          (,(concat "\\\\\\\\\\[\\(" lisp-mode-symbol-regexp "\\)\\]")
           (1 font-lock-constant-face prepend))
-         ;; Words inside ‘’ and '' and `' tend to be symbol names.
-         (,(concat "['`‘]\\(\\(?:\\sw\\|\\s_\\|\\\\.\\)"
+         ;; Words inside ‘’ and `' tend to be symbol names.
+         (,(concat "[`‘]\\(\\(?:\\sw\\|\\s_\\|\\\\.\\)"
                    lisp-mode-symbol-regexp "\\)['’]")
           (1 font-lock-constant-face prepend))
          ;; Constant values.
@@ -463,8 +463,8 @@ This will generate compile-time constants from BINDINGS."
          ;; Erroneous structures.
          (,(concat "(" cl-errs-re "\\_>")
            (1 font-lock-warning-face))
-         ;; Words inside ‘’ and '' and `' tend to be symbol names.
-         (,(concat "['`‘]\\(\\(?:\\sw\\|\\s_\\|\\\\.\\)"
+         ;; Words inside ‘’ and `' tend to be symbol names.
+         (,(concat "[`‘]\\(\\(?:\\sw\\|\\s_\\|\\\\.\\)"
                    lisp-mode-symbol-regexp "\\)['’]")
           (1 font-lock-constant-face prepend))
          ;; Constant values.

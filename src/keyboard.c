@@ -7,8 +7,8 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -11383,7 +11383,7 @@ See Info node `(elisp)Multiple Terminals'.  */);
 
   DEFVAR_BOOL ("cannot-suspend", cannot_suspend,
 	       doc: /* Non-nil means to always spawn a subshell instead of suspending.
-(Even if the operating system has support for stopping a process.)  */);
+\(Even if the operating system has support for stopping a process.)  */);
   cannot_suspend = false;
 
   DEFVAR_BOOL ("menu-prompting", menu_prompting,
@@ -11597,7 +11597,7 @@ immediately after running `post-command-hook'.  */);
   DEFVAR_LISP ("input-method-function", Vinput_method_function,
 	       doc: /* If non-nil, the function that implements the current input method.
 It's called with one argument, a printing character that was just read.
-(That means a character with code 040...0176.)
+\(That means a character with code 040...0176.)
 Typically this function uses `read-event' to read additional events.
 When it does so, it should first bind `input-method-function' to nil
 so it will not be called recursively.

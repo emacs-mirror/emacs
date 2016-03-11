@@ -6,8 +6,8 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -106,7 +106,7 @@ right or to the left on the screen.  This is in contrast with
 DEFUN ("forward-line", Fforward_line, Sforward_line, 0, 1, "^p",
        doc: /* Move N lines forward (backward if N is negative).
 Precisely, if point is on line I, move to the start of line I + N
-("start of line" in the logical order).
+\("start of line" in the logical order).
 If there isn't room, go as far as possible (no error).
 
 Returns the count of lines left to move.  If moving forward,

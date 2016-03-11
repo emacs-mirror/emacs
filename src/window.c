@@ -7,8 +7,8 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -671,7 +671,7 @@ DEFUN ("set-window-combination-limit", Fset_window_combination_limit, Sset_windo
 WINDOW must be a valid window used in horizontal or vertical combination.
 If LIMIT is nil, child windows of WINDOW can be recombined with WINDOW's
 siblings.  LIMIT t means that child windows of WINDOW are never
-(re-)combined with WINDOW's siblings.  Other values are reserved for
+\(re-)combined with WINDOW's siblings.  Other values are reserved for
 future use.  */)
   (Lisp_Object window, Lisp_Object limit)
 {
@@ -1355,7 +1355,7 @@ DEFUN ("coordinates-in-window-p", Fcoordinates_in_window_p,
 WINDOW must be a live window and defaults to the selected one.
 COORDINATES is a cons of the form (X . Y), X and Y being distances
 measured in characters from the upper-left corner of the frame.
-(0 . 0) denotes the character in the upper left corner of the
+\(0 . 0) denotes the character in the upper left corner of the
 frame.
 If COORDINATES are in the text portion of WINDOW,
    the coordinates relative to the window are returned.
@@ -1741,7 +1741,7 @@ of the window.  The remaining elements are omitted if the character after
 POS is fully visible; otherwise, RTOP and RBOT are the number of pixels
 off-window at the top and bottom of the screen line ("row") containing
 POS, ROWH is the visible height of that row, and VPOS is the row number
-(zero-based).  */)
+\(zero-based).  */)
   (Lisp_Object pos, Lisp_Object window, Lisp_Object partially)
 {
   struct window *w;

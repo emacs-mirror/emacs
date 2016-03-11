@@ -579,7 +579,14 @@ Return one of:
 	(error "XML: (Well-Formed) Invalid character"))
       ;; However, if we're parsing incrementally, then we need to deal
       ;; with stray CDATA.
-      (xml-parse-string)))))
+      (let ((s (xml-parse-string)))
+        (when (string-empty-p s)
+          ;; We haven't consumed any input! We must throw an error in
+          ;; order to prevent looping forever.
+          (error "XML: (Not Well-Formed) Could not parse: %s"
+                 (buffer-substring-no-properties
+                  (point) (min (+ (point) 10) (point-max)))))
+        s)))))
 
 (defun xml-parse-string ()
   "Parse character data at point, and return it as a string.

@@ -6,8 +6,8 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -701,10 +701,10 @@ Optional THOROUGHLY non-nil means try to free unused fonts, too.  */)
 DEFUN ("bitmap-spec-p", Fbitmap_spec_p, Sbitmap_spec_p, 1, 1, 0,
        doc: /* Value is non-nil if OBJECT is a valid bitmap specification.
 A bitmap specification is either a string, a file name, or a list
-(WIDTH HEIGHT DATA) where WIDTH is the pixel width of the bitmap,
+\(WIDTH HEIGHT DATA) where WIDTH is the pixel width of the bitmap,
 HEIGHT is its height, and DATA is a string containing the bits of
 the pixmap.  Bits are stored row by row, each row occupies
-(WIDTH + 7)/8 bytes.  */)
+\(WIDTH + 7)/8 bytes.  */)
   (Lisp_Object object)
 {
   bool pixmap_p = false;
@@ -6536,7 +6536,7 @@ changing this variable for it to take effect.  */);
 Each element is a cons (FONT-PATTERN . RESCALE-RATIO), where
 FONT-PATTERN is a font-spec or a regular expression matching a font name, and
 RESCALE-RATIO is a floating point number to specify how much larger
-(or smaller) font we should use.  For instance, if a face requests
+\(or smaller) font we should use.  For instance, if a face requests
 a font of 10 point, we actually use a font of 10 * RESCALE-RATIO point.  */);
   Vface_font_rescale_alist = Qnil;
 

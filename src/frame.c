@@ -6,8 +6,8 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -5226,7 +5226,7 @@ keep it unchanged if this option is either t or a list containing
 `vertical-scroll-bars'.
 
 The default value is \\='(tool-bar-lines) on Lucid, Motif and Windows
-(which means that adding/removing a tool bar does not change the frame
+\(which means that adding/removing a tool bar does not change the frame
 height), nil on all other window systems including GTK+ (which means
 that changing any of the parameters listed above may change the size of
 the frame), and t otherwise (which means the frame size never changes

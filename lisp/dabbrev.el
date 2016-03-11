@@ -546,8 +546,8 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 		(copy-marker dabbrev--last-expansion-location)))
       ;; Success: stick it in and return.
       (setq buffer-undo-list (cons orig-point buffer-undo-list))
-      (dabbrev--substitute-expansion old abbrev expansion
-				     record-case-pattern)
+      (setq expansion (dabbrev--substitute-expansion old abbrev expansion
+                                                     record-case-pattern))
 
       ;; Save state for re-expand.
       (setq dabbrev--last-expansion expansion)
@@ -902,7 +902,9 @@ to record whether we upcased the expansion, downcased it, or did neither."
     ;; and (2) the replacement itself is all lower case.
     (dabbrev--safe-replace-match expansion
 				 (not use-case-replace)
-				 t)))
+				 t))
+  ;; Return the expansion actually used.
+  expansion)
 
 
 ;;;----------------------------------------------------------------

@@ -9,8 +9,8 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -4086,7 +4086,7 @@ DEFUN ("font-face-attributes", Ffont_face_attributes, Sfont_face_attributes, 1, 
 FONT is a font name, a font-spec, a font-entity, or a font-object.
 The return value is a list of the form
 
-(:family FAMILY :height HEIGHT :weight WEIGHT :slant SLANT :width WIDTH)
+\(:family FAMILY :height HEIGHT :weight WEIGHT :slant SLANT :width WIDTH)
 
 where FAMILY, HEIGHT, WEIGHT, SLANT, and WIDTH are face attribute values
 compatible with `set-face-attribute'.  Some of these key-attribute pairs
@@ -5378,7 +5378,7 @@ where ENCODING is a charset or a char-table,
 and REPERTORY is a charset, a char-table, or nil.
 
 If ENCODING and REPERTORY are the same, the element can have the form
-(REGEXP . ENCODING).
+\(REGEXP . ENCODING).
 
 ENCODING is for converting a character to a glyph code of the font.
 If ENCODING is a charset, encoding a character by the charset gives

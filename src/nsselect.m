@@ -6,8 +6,8 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -316,7 +316,7 @@ DEFUN ("ns-own-selection-internal", Fns_own_selection_internal,
        Sns_own_selection_internal, 2, 2, 0,
        doc: /* Assert an X selection of type SELECTION and value VALUE.
 SELECTION is a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.
-(Those are literal upper-case symbol names, since that's what X expects.)
+\(Those are literal upper-case symbol names, since that's what X expects.)
 VALUE is typically a string, or a cons of two markers, but may be
 anything that the functions on `selection-converter-alist' know about.  */)
      (Lisp_Object selection, Lisp_Object value)
@@ -414,7 +414,7 @@ DEFUN ("ns-selection-owner-p", Fns_selection_owner_p, Sns_selection_owner_p,
        doc: /* Whether the current Emacs process owns the given X Selection.
 The arg should be the name of the selection in question, typically one of
 the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.
-(Those are literal upper-case symbol names, since that's what X expects.)
+\(Those are literal upper-case symbol names, since that's what X expects.)
 For convenience, the symbol nil is the same as `PRIMARY',
 and t is the same as `SECONDARY'.  */)
      (Lisp_Object selection)
@@ -433,7 +433,7 @@ DEFUN ("ns-get-selection", Fns_get_selection,
        Sns_get_selection, 2, 2, 0,
        doc: /* Return text selected from some X window.
 SELECTION-SYMBOL is typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.
-(Those are literal upper-case symbol names, since that's what X expects.)
+\(Those are literal upper-case symbol names, since that's what X expects.)
 TARGET-TYPE is the type of data desired, typically `STRING'.  */)
      (Lisp_Object selection_name, Lisp_Object target_type)
 {

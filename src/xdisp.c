@@ -7,8 +7,8 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -31389,7 +31389,7 @@ This variable is not guaranteed to be accurate except while processing
 
   DEFVAR_LISP ("frame-title-format", Vframe_title_format,
     doc: /* Template for displaying the title bar of visible frames.
-(Assuming the window manager supports this feature.)
+\(Assuming the window manager supports this feature.)
 
 This variable has the same structure as `mode-line-format', except that
 the %c and %l constructs are ignored.  It is used only on frames for
@@ -31397,10 +31397,10 @@ which no explicit name has been set (see `modify-frame-parameters').  */);
 
   DEFVAR_LISP ("icon-title-format", Vicon_title_format,
     doc: /* Template for displaying the title bar of an iconified frame.
-(Assuming the window manager supports this feature.)
+\(Assuming the window manager supports this feature.)
 This variable has the same structure as `mode-line-format' (which see),
 and is used only on frames for which no explicit name has been set
-(see `modify-frame-parameters').  */);
+\(see `modify-frame-parameters').  */);
   Vicon_title_format
     = Vframe_title_format
     = listn (CONSTYPE_PURE, 3,

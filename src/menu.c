@@ -7,8 +7,8 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -1130,7 +1130,7 @@ If POSITION is t, it means to use the current mouse position.
 MENU is a specifier for a menu.  For the simplest case, MENU is a keymap.
 The menu items come from key bindings that have a menu string as well as
 a definition; actually, the "definition" in such a key binding looks like
-(STRING . REAL-DEFINITION).  To give the menu a title, put a string into
+\(STRING . REAL-DEFINITION).  To give the menu a title, put a string into
 the keymap as a top-level element.
 
 If REAL-DEFINITION is nil, that puts a nonselectable string in the menu.
@@ -1495,7 +1495,7 @@ The return value is VALUE from the chosen item.
 An ITEM may also be just a string--that makes a nonselectable item.
 An ITEM may also be nil--that means to put all preceding items
 on the left of the dialog box and all following items on the right.
-(By default, approximately half appear on each side.)
+\(By default, approximately half appear on each side.)
 
 If HEADER is non-nil, the frame title for the box is "Information",
 otherwise it is "Question".

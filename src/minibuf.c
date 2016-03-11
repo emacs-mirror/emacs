@@ -6,8 +6,8 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -986,7 +986,7 @@ DEFUN ("read-no-blanks-input", Fread_no_blanks_input, Sread_no_blanks_input, 1, 
 Prompt with PROMPT.  Whitespace terminates the input.  If INITIAL is
 non-nil, it should be a string, which is used as initial input, with
 point positioned at the end, so that SPACE will accept the input.
-(Actually, INITIAL can also be a cons of a string and an integer.
+\(Actually, INITIAL can also be a cons of a string and an integer.
 Such values are treated as in `read-from-minibuffer', but are normally
 not useful in this function.)
 Third arg INHERIT-INPUT-METHOD, if non-nil, means the minibuffer inherits

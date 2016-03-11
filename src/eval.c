@@ -7,8 +7,8 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -1191,7 +1191,7 @@ suppresses the debugger).
 When a handler handles an error, control returns to the `condition-case'
 and it executes the handler's BODY...
 with VAR bound to (ERROR-SYMBOL . SIGNAL-DATA) from the error.
-(If VAR is nil, the handler can't access that information.)
+\(If VAR is nil, the handler can't access that information.)
 Then the value of the last BODY form is returned from the `condition-case'
 expression.
 
@@ -2416,7 +2416,7 @@ may be nil, a function, or a list of functions.  Call each
 function in order with arguments ARGS, stopping at the first
 one that returns nil, and return nil.  Otherwise (if all functions
 return non-nil, or if there are no functions to call), return non-nil
-(do not rely on the precise return value in this case).
+\(do not rely on the precise return value in this case).
 
 Do not use `make-local-variable' to make a hook variable buffer-local.
 Instead, use `add-hook' and specify t for the LOCAL argument.

@@ -139,10 +139,10 @@ May be used (only once) in place of a file name on the command line.
 \fBetags\fP will read from standard input and mark the produced tags
 as belonging to the file \fBFILE\fP.
 .TP
-\fB\-\-class\-qualify\fP
-Qualify tag names with their class name in C++, ObjC, and Java.
+\fB \-Q, \-\-class\-qualify\fP
+Qualify tag names with their class name in C++, ObjC, Java, and Perl.
 This produces tag names of the form \fIclass\fP\fB::\fP\fImember\fP
-for C++,
+for C++ and Perl,
 \fIclass\fP\fB(\fP\fIcategory\fP\fB)\fP for Objective C, and \fIclass\fP\fB.\fP\fImember\fP for Java.
 For Objective C, this also produces class methods qualified with
 their arguments, as in \fIfoo\fP\fB:\fP\fIbar\fP\fB:\fP\fIbaz\fP\fB:\fP\fImore\fP.

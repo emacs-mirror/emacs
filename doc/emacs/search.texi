@@ -1265,14 +1265,14 @@ character sequences}.
 
 @kindex M-s ' @r{(Incremental Search)}
 @findex isearch-toggle-character-fold
-  Generally, search commands in Emacs by default perform character
-folding, thus matching equivalent character sequences.  You can
-disable this behavior by customizing the variable
-@code{search-default-mode} to @code{nil}.  @xref{Search
-Customizations}.  Within an incremental search, typing @kbd{M-s '}
-(@code{isearch-toggle-character-fold}) toggles character folding, but
-only for that search.  (Replace commands have a different default,
-controlled by a separate option; see @ref{Replacement and Lax
+  Generally, search commands in Emacs do not by default perform
+character folding in order to match equivalent character sequences.
+You can enable this behavior by customizing the variable
+@code{search-default-mode} to @code{character-fold-to-regexp}.
+@xref{Search Customizations}.  Within an incremental search, typing
+@kbd{M-s '} (@code{isearch-toggle-character-fold}) toggles character
+folding, but only for that search.  (Replace commands have a different
+default, controlled by a separate option; see @ref{Replacement and Lax
 Matches}.)
 
   Like with case folding, typing an explicit variant of a character,
@@ -1806,9 +1806,8 @@ do literal searches without character folding, but with case folding
 and lax-whitespace matches as determined by @code{case-fold-search}
 and @code{search-whitespace-regexp}, respectively (@pxref{Lax
 Search}).  If the value is @code{t}, incremental search defaults to
-regexp searches.  The default value specifies a function that causes
-the default search mode to perform character folding in addition to
-case folding and lax-whitespace matching.
+regexp searches.  The default value specifies a function that only
+performs case folding and lax-whitespace matching.
 
 @vindex search-highlight
   The current match of an on-going incremental search is highlighted

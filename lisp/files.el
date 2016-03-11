@@ -6843,8 +6843,8 @@ If CHAR is in [Xugo], the value is taken from FROM (or 0 if omitted)."
   (cond ((= char ?r) #o0444)
 	((= char ?w) #o0222)
 	((= char ?x) #o0111)
-	((= char ?s) #o1000)
-	((= char ?t) #o6000)
+	((= char ?s) #o6000)
+	((= char ?t) #o1000)
 	;; Rights relative to the previous file modes.
 	((= char ?X) (if (= (logand from #o111) 0) 0 #o0111))
 	((= char ?u) (let ((uright (logand #o4700 from)))
@@ -6900,7 +6900,7 @@ as in \"og+rX-w\"."
 				  (mapcar 'file-modes-char-to-who
 					  (match-string 1 modes)))))
 	      (when (= num-who 0)
-		(setq num-who (default-file-modes)))
+		(setq num-who (logior #o7000 (default-file-modes))))
 	      (setq num-modes
 		    (file-modes-rights-to-number (substring modes (match-end 1))
 						 num-who num-modes)

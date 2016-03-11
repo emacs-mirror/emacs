@@ -861,6 +861,7 @@ tools are used, and when."
   (let* ((ede-minor-mode nil)
          (default-directory dir)
          (semantic-symref-tool 'detect)
+         (case-fold-search nil)
          (res (semantic-symref-find-references-by-name symbol 'subdirs))
          (hits (and res (oref res hit-lines)))
          (orig-buffers (buffer-list)))

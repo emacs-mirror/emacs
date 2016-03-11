@@ -7,8 +7,8 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -352,9 +352,9 @@ extern void enlarge_buffer_text (struct buffer *, ptrdiff_t);
 /* Convert PTR, the address of a byte in the buffer, into a byte position.  */
 
 #define PTR_BYTE_POS(ptr) \
-((ptr) - (current_buffer)->text->beg					    \
- - (ptr - (current_buffer)->text->beg <= GPT_BYTE - BEG_BYTE ? 0 : GAP_SIZE) \
- + BEG_BYTE)
+  ((ptr) - (current_buffer)->text->beg					    \
+   - (ptr - (current_buffer)->text->beg <= GPT_BYTE - BEG_BYTE ? 0 : GAP_SIZE) \
+   + BEG_BYTE)
 
 /* Return character at byte position POS.  See the caveat WARNING for
    FETCH_MULTIBYTE_CHAR below.  */
@@ -386,24 +386,24 @@ extern void enlarge_buffer_text (struct buffer *, ptrdiff_t);
    Note that both arguments can be computed more than once.  */
 
 #define BUF_BYTE_ADDRESS(buf, pos) \
-((buf)->text->beg + (pos) - BEG_BYTE		\
- + ((pos) >= (buf)->text->gpt_byte ? (buf)->text->gap_size : 0))
+  ((buf)->text->beg + (pos) - BEG_BYTE \
+   + ((pos) >= (buf)->text->gpt_byte ? (buf)->text->gap_size : 0))
 
 /* Return the address of character at char position POS in buffer BUF.
    Note that both arguments can be computed more than once.  */
 
 #define BUF_CHAR_ADDRESS(buf, pos) \
-((buf)->text->beg + buf_charpos_to_bytepos ((buf), (pos)) - BEG_BYTE	\
- + ((pos) >= (buf)->text->gpt ? (buf)->text->gap_size : 0))
+  ((buf)->text->beg + buf_charpos_to_bytepos ((buf), (pos)) - BEG_BYTE	\
+   + ((pos) >= (buf)->text->gpt ? (buf)->text->gap_size : 0))
 
 /* Convert PTR, the address of a char in buffer BUF,
    into a character position.  */
 
 #define BUF_PTR_BYTE_POS(buf, ptr)				\
-((ptr) - (buf)->text->beg					\
- - (ptr - (buf)->text->beg <= BUF_GPT_BYTE (buf) - BEG_BYTE	\
-    ? 0 : BUF_GAP_SIZE ((buf)))					\
- + BEG_BYTE)
+  ((ptr) - (buf)->text->beg					\
+   - (ptr - (buf)->text->beg <= BUF_GPT_BYTE (buf) - BEG_BYTE	\
+      ? 0 : BUF_GAP_SIZE ((buf)))				\
+   + BEG_BYTE)
 
 /* Return the character at byte position POS in buffer BUF.   */
 

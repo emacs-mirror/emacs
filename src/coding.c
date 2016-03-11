@@ -12,8 +12,8 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -9790,7 +9790,7 @@ DEFUN ("find-operation-coding-system", Ffind_operation_coding_system,
        doc: /* Choose a coding system for an operation based on the target name.
 The value names a pair of coding systems: (DECODING-SYSTEM . ENCODING-SYSTEM).
 DECODING-SYSTEM is the coding system to use for decoding
-(in case OPERATION does decoding), and ENCODING-SYSTEM is the coding system
+\(in case OPERATION does decoding), and ENCODING-SYSTEM is the coding system
 for encoding (in case OPERATION does encoding).
 
 The first argument OPERATION specifies an I/O primitive:
@@ -11165,7 +11165,7 @@ the cdr part is used for encoding a text to be sent to a process.  */);
 Table of extra Latin codes in the range 128..159 (inclusive).
 This is a vector of length 256.
 If Nth element is non-nil, the existence of code N in a file
-(or output of subprocess) doesn't prevent it to be detected as
+\(or output of subprocess) doesn't prevent it to be detected as
 a coding system of ISO 2022 variant which has a flag
 `accept-latin-extra-code' t (e.g. iso-latin-1) on reading a file
 or reading output of a subprocess.

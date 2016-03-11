@@ -269,6 +269,7 @@ set_acls_from_mode (const char *name, int desc, mode_t mode, bool *must_chmod)
 	  }
 	return -1;
       }
+    return 0;
   }
 }
 

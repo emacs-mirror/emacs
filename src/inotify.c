@@ -6,8 +6,8 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -272,7 +272,7 @@ onlydir
 Watching a directory is not recursive.  CALLBACK is passed a single argument
 EVENT which contains an event structure of the format
 
-(WATCH-DESCRIPTOR ASPECTS NAME COOKIE)
+\(WATCH-DESCRIPTOR ASPECTS NAME COOKIE)
 
 WATCH-DESCRIPTOR is the same object that was returned by this function.  It can
 be tested for equality using `equal'.  ASPECTS describes the event.  It is a

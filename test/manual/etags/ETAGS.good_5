@@ -3746,7 +3746,7 @@ test 4,26
 	var $test12,176
 foo(16,200
 
-perl-src/htlmify-cystic,1443
+perl-src/htlmify-cystic,1197
 my @section_name;section_name12,236
 my @appendix_name;appendix_name13,254
 my @section_toc;section_toc15,274
@@ -3764,7 +3764,7 @@ my $output_file;output_file35,556
 my $line;line37,574
 my $subsection_marker;subsection_marker161,3883
 my $new;new163,3907
-sub read_toc main::read_toc165,3917
+sub read_toc 165,3917
 	  my $entry entry218,5621
 	  my $entry entry234,6077
 	      my $entry entry245,6351
@@ -3773,38 +3773,38 @@ sub read_toc main::read_toc165,3917
 	      my $entry entry276,7204
 	  my $entry entry281,7328
       my $entry entry296,7698
-sub finish_subsubsections main::finish_subsubsections302,7805
-sub finish_subsections main::finish_subsections309,7987
-sub finish_sections main::finish_sections320,8310
-sub finish_appendices main::finish_appendices331,8599
-sub section_url_base main::section_url_base337,8724
-sub section_url_name main::section_url_name342,8922
-sub section_url main::section_url355,9284
+sub finish_subsubsections 302,7805
+sub finish_subsections 309,7987
+sub finish_sections 320,8310
+sub finish_appendices 331,8599
+sub section_url_base 337,8724
+sub section_url_name 342,8922
+sub section_url 355,9284
   my $name name357,9336
-sub section_href main::section_href364,9452
-sub section_name main::section_name368,9551
-sub toc_line main::toc_line372,9655
-sub file_end main::file_end375,9750
+sub section_href 364,9452
+sub section_name 368,9551
+sub toc_line 372,9655
+sub file_end 375,9750
 
-perl-src/yagrip.pl,258
-sub getopt main::getopt7,156
+perl-src/yagrip.pl,233
+sub getopt 7,156
 	local($_,$flag,$opt,$f,$r,@temp)($_,$flag,$opt,$f,$r,@temp8,169
-sub usage main::usage38,856
+sub usage 38,856
 	local($prog,$_,@list)($prog,$_,@list39,868
 	local($string,$flag,@string,@temp,@last)($string,$flag,@string,@temp,@last40,897
 
-perl-src/kai-test.pl,244
-sub f1 main::f12,16
-sub main::f2 6,50
+perl-src/kai-test.pl,203
+sub f1 2,16
+sub main::f2 f26,50
 package Foo;10,90
-sub f3 Foo::f312,104
-sub Bar::f4 16,138
+sub f3 12,104
+sub Bar::f4 f416,138
 package Bar;20,177
-sub f5 Bar::f522,191
+sub f5 22,191
 package Foo::Bar;26,225
-sub f6 Foo::Bar::f628,244
+sub f6 28,244
 package main;32,278
-sub f7 main::f734,293
+sub f7 34,293
 
 ps-src/rfc1245.ps,2478
 /FMversion 12,311

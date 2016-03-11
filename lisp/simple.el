@@ -3195,6 +3195,8 @@ shell (with its need to quote arguments)."
   "Execute string COMMAND in inferior shell; display output, if any.
 With prefix argument, insert the COMMAND's output at point.
 
+Interactively, prompt for COMMAND in the minibuffer.
+
 If COMMAND ends in `&', execute it asynchronously.
 The output appears in the buffer `*Async Shell Command*'.
 That buffer is in shell mode.  You can also use

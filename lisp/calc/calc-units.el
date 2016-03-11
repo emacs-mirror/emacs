@@ -565,7 +565,12 @@ If COMP or STD is non-nil, put that in the units table instead."
 (defun calc-convert-temperature (&optional old-units new-units)
   (interactive)
   (calc-slow-wrapper
-   (let ((expr (calc-top-n 1))
+   (let ((tempunits (delq nil
+                          (mapcar
+                           (lambda (x)
+                             (if (nth 3 x) (car x)))
+                           math-standard-units)))
+         (expr (calc-top-n 1))
 	 (uold nil)
 	 (uoldname nil)
 	 unew
@@ -580,15 +585,16 @@ If COMP or STD is non-nil, put that in the units table instead."
 						     (car units)))))
 			    (error "Not a pure temperature expression"))
 			(math-read-expr
-			 (setq uoldname (read-string
-					 "Old temperature units: ")))))))
+			 (setq uoldname (completing-read
+					 "Old temperature units: "
+                                         tempunits)))))))
      (when (eq (car-safe uold) 'error)
        (error "Bad format in units expression: %s" (nth 2 uold)))
      (or (math-units-in-expr-p expr nil)
 	 (setq expr (math-mul expr uold)))
      (setq defunits (math-get-default-units expr))
      (setq unew (or new-units
-                    (read-string
+                    (completing-read
                      (concat
                       (if uoldname
                           (concat "Old temperature units: "
@@ -599,7 +605,8 @@ If COMP or STD is non-nil, put that in the units table instead."
                           (concat " (default "
                                   defunits
                                   "): ")
-                        ": ")))))
+                        ": "))
+                     tempunits)))
      (setq unew (math-read-expr (if (string= unew "") defunits unew)))
      (when (eq (car-safe unew) 'error)
        (error "Bad format in units expression: %s" (nth 2 unew)))

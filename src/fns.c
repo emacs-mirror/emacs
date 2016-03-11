@@ -7,8 +7,8 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -218,7 +218,7 @@ DEFUN ("compare-strings", Fcompare_strings, Scompare_strings, 6, 7, 0,
 The arguments START1, END1, START2, and END2, if non-nil, are
 positions specifying which parts of STR1 or STR2 to compare.  In
 string STR1, compare the part between START1 (inclusive) and END1
-(exclusive).  If START1 is nil, it defaults to 0, the beginning of
+\(exclusive).  If START1 is nil, it defaults to 0, the beginning of
 the string; if END1 is nil, it defaults to the length of the string.
 Likewise, in string STR2, compare the part between START2 and END2.
 Like in `substring', negative values are counted from the end.
@@ -385,7 +385,7 @@ This function obeys the conventions for collation order in your
 locale settings.  For example, punctuation and whitespace characters
 might be considered less significant for sorting:
 
-(sort \\='("11" "12" "1 1" "1 2" "1.1" "1.2") \\='string-collate-lessp)
+\(sort \\='("11" "12" "1 1" "1 2" "1.1" "1.2") \\='string-collate-lessp)
   => ("11" "1 1" "1.1" "12" "1 2" "1.2")
 
 The optional argument LOCALE, a string, overrides the setting of your
@@ -431,7 +431,7 @@ settings.  For example, characters with different coding points but
 the same meaning might be considered as equal, like different grave
 accent Unicode characters:
 
-(string-collate-equalp (string ?\\uFF40) (string ?\\u1FEF))
+\(string-collate-equalp (string ?\\uFF40) (string ?\\u1FEF))
   => t
 
 The optional argument LOCALE, a string, overrides the setting of your
@@ -1064,7 +1064,7 @@ to a multibyte character.  In this case, the returned string is a
 newly created string with no text properties.  If STRING is multibyte
 or entirely ASCII, it is returned unchanged.  In particular, when
 STRING is unibyte and entirely ASCII, the returned string is unibyte.
-(When the characters are all ASCII, Emacs primitives will treat the
+\(When the characters are all ASCII, Emacs primitives will treat the
 string the same way whether it is unibyte or multibyte.)  */)
   (Lisp_Object string)
 {
@@ -1263,14 +1263,14 @@ validate_subarray (Lisp_Object array, Lisp_Object from, Lisp_Object to,
 DEFUN ("substring", Fsubstring, Ssubstring, 1, 3, 0,
        doc: /* Return a new string whose contents are a substring of STRING.
 The returned string consists of the characters between index FROM
-(inclusive) and index TO (exclusive) of STRING.  FROM and TO are
+\(inclusive) and index TO (exclusive) of STRING.  FROM and TO are
 zero-indexed: 0 means the first character of STRING.  Negative values
 are counted from the end of STRING.  If TO is nil, the substring runs
 to the end of STRING.
 
 The STRING argument may also be a vector.  In that case, the return
 value is a new vector that contains the elements between index FROM
-(inclusive) and index TO (exclusive) of that vector argument.
+\(inclusive) and index TO (exclusive) of that vector argument.
 
 With one argument, just copy STRING (with properties, if any).  */)
   (Lisp_Object string, Lisp_Object from, Lisp_Object to)
@@ -2090,7 +2090,7 @@ merge (Lisp_Object org_l1, Lisp_Object org_l2, Lisp_Object pred)
 DEFUN ("plist-get", Fplist_get, Splist_get, 2, 2, 0,
        doc: /* Extract a value from a property list.
 PLIST is a property list, which is a list of the form
-(PROP1 VALUE1 PROP2 VALUE2...).  This function returns the value
+\(PROP1 VALUE1 PROP2 VALUE2...).  This function returns the value
 corresponding to the given PROP, or nil if PROP is not one of the
 properties on the list.  This function never signals an error.  */)
   (Lisp_Object plist, Lisp_Object prop)
@@ -2125,7 +2125,7 @@ This is the last value stored with `(put SYMBOL PROPNAME VALUE)'.  */)
 DEFUN ("plist-put", Fplist_put, Splist_put, 3, 3, 0,
        doc: /* Change value in PLIST of PROP to VAL.
 PLIST is a property list, which is a list of the form
-(PROP1 VALUE1 PROP2 VALUE2 ...).  PROP is a symbol and VAL is any object.
+\(PROP1 VALUE1 PROP2 VALUE2 ...).  PROP is a symbol and VAL is any object.
 If PROP is already a property on the list, its value is set to VAL,
 otherwise the new PROP VAL pair is added.  The new plist is returned;
 use `(setq x (plist-put x prop val))' to be sure to use the new value.
@@ -2169,7 +2169,7 @@ It can be retrieved with `(get SYMBOL PROPNAME)'.  */)
 DEFUN ("lax-plist-get", Flax_plist_get, Slax_plist_get, 2, 2, 0,
        doc: /* Extract a value from a property list, comparing with `equal'.
 PLIST is a property list, which is a list of the form
-(PROP1 VALUE1 PROP2 VALUE2...).  This function returns the value
+\(PROP1 VALUE1 PROP2 VALUE2...).  This function returns the value
 corresponding to the given PROP, or nil if PROP is not
 one of the properties on the list.  */)
   (Lisp_Object plist, Lisp_Object prop)
@@ -2194,7 +2194,7 @@ one of the properties on the list.  */)
 DEFUN ("lax-plist-put", Flax_plist_put, Slax_plist_put, 3, 3, 0,
        doc: /* Change value in PLIST of PROP to VAL, comparing with `equal'.
 PLIST is a property list, which is a list of the form
-(PROP1 VALUE1 PROP2 VALUE2 ...).  PROP and VAL are any objects.
+\(PROP1 VALUE1 PROP2 VALUE2 ...).  PROP and VAL are any objects.
 If PROP is already a property on the list, its value is set to VAL,
 otherwise the new PROP VAL pair is added.  The new plist is returned;
 use `(setq x (lax-plist-put x prop val))' to be sure to use the new value.
@@ -2907,7 +2907,7 @@ The normal messages at start and end of loading FILENAME are suppressed.  */)
 DEFUN ("plist-member", Fplist_member, Splist_member, 2, 2, 0,
        doc: /* Return non-nil if PLIST has the property PROP.
 PLIST is a property list, which is a list of the form
-(PROP1 VALUE1 PROP2 VALUE2 ...).  PROP is a symbol.
+\(PROP1 VALUE1 PROP2 VALUE2 ...).  PROP is a symbol.
 Unlike `plist-get', this allows you to distinguish between a missing
 property and a property with the value nil.
 The value is actually the tail of PLIST whose car is PROP.  */)

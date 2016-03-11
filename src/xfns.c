@@ -6,8 +6,8 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -3669,7 +3669,7 @@ x_focus_frame (struct frame *f)
 
 DEFUN ("xw-color-defined-p", Fxw_color_defined_p, Sxw_color_defined_p, 1, 2, 0,
        doc: /* Internal function called by `color-defined-p', which see.
-(Note that the Nextstep version of this function ignores FRAME.)  */)
+\(Note that the Nextstep version of this function ignores FRAME.)  */)
   (Lisp_Object color, Lisp_Object frame)
 {
   XColor foo;
@@ -3836,7 +3836,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 DEFUN ("x-server-vendor", Fx_server_vendor, Sx_server_vendor, 0, 1, 0,
        doc: /* Return the "vendor ID" string of the GUI software on TERMINAL.
 
-(Labeling every distributor as a "vendor" embodies the false assumption
+\(Labeling every distributor as a "vendor" embodies the false assumption
 that operating systems cannot be developed and distributed noncommercially.)
 The optional argument TERMINAL specifies which display to ask about.
 
@@ -4261,8 +4261,19 @@ x_get_monitor_attributes_xrandr (struct x_display_info *dpyinfo)
   RROutput pxid = None;
   struct MonitorInfo *monitors;
 
-#ifdef HAVE_XRRGETSCREENRESOURCESCURRENT
-  resources = XRRGetScreenResourcesCurrent (dpy, dpyinfo->root_window);
+#define RANDR13_LIBRARY \
+  (RANDR_MAJOR > 1 || (RANDR_MAJOR == 1 && RANDR_MINOR >= 3))
+
+#if RANDR13_LIBRARY
+  /* Check if the display supports 1.3 too.  */
+  bool randr13_avail = (dpyinfo->xrandr_major_version > 1
+			|| (dpyinfo->xrandr_major_version == 1
+			    && dpyinfo->xrandr_minor_version >= 3));
+
+  if (randr13_avail)
+    resources = XRRGetScreenResourcesCurrent (dpy, dpyinfo->root_window);
+  else
+    resources = XRRGetScreenResources (dpy, dpyinfo->root_window);
 #else
   resources = XRRGetScreenResources (dpy, dpyinfo->root_window);
 #endif
@@ -4275,8 +4286,9 @@ x_get_monitor_attributes_xrandr (struct x_display_info *dpyinfo)
   n_monitors = resources->noutput;
   monitors = xzalloc (n_monitors * sizeof *monitors);
 
-#ifdef HAVE_XRRGETOUTPUTPRIMARY
-  pxid = XRRGetOutputPrimary (dpy, dpyinfo->root_window);
+#ifdef RANDR13_LIBRARY
+  if (randr13_avail)
+    pxid = XRRGetOutputPrimary (dpy, dpyinfo->root_window);
 #endif
 
   for (i = 0; i < n_monitors; ++i)
@@ -4359,9 +4371,11 @@ x_get_monitor_attributes (struct x_display_info *dpyinfo)
   xrr_ok = XRRQueryExtension (dpy, &xrr_event_base, &xrr_error_base);
   if (xrr_ok)
     {
-      int xrr_major, xrr_minor;
-      XRRQueryVersion (dpy, &xrr_major, &xrr_minor);
-      xrr_ok = (xrr_major == 1 && xrr_minor >= 2) || xrr_major > 1;
+      XRRQueryVersion (dpy, &dpyinfo->xrandr_major_version,
+		       &dpyinfo->xrandr_minor_version);
+      xrr_ok = ((dpyinfo->xrandr_major_version == 1
+		 && dpyinfo->xrandr_minor_version >= 2)
+		|| dpyinfo->xrandr_major_version > 1);
     }
 
   if (xrr_ok)
@@ -4758,7 +4772,7 @@ DEFUN ("x-set-mouse-absolute-pixel-position", Fx_set_mouse_absolute_pixel_positi
        Sx_set_mouse_absolute_pixel_position, 2, 2, 0,
        doc: /* Move mouse pointer to absolute pixel position (X, Y).
 The coordinates X and Y are interpreted in pixels relative to a position
-(0, 0) of the selected frame's display.  */)
+\(0, 0) of the selected frame's display.  */)
   (Lisp_Object x, Lisp_Object y)
   {
   struct frame *f = SELECTED_FRAME ();
@@ -4934,7 +4948,7 @@ DISPLAY is the name of the display to connect to.
 Optional second arg XRM-STRING is a string of resources in xrdb format.
 If the optional third arg MUST-SUCCEED is non-nil,
 terminate Emacs if we can't open the connection.
-(In the Nextstep version, the last two arguments are currently ignored.)  */)
+\(In the Nextstep version, the last two arguments are currently ignored.)  */)
   (Lisp_Object display, Lisp_Object xrm_string, Lisp_Object must_succeed)
 {
   char *xrm_option;

@@ -7,8 +7,8 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -264,7 +264,7 @@ readchar (Lisp_Object readcharfun, bool *multibyte)
       return c;
     }
 
-  if (CONSP (readcharfun))
+  if (CONSP (readcharfun) && STRINGP (XCAR (readcharfun)))
     {
       /* This is the case that read_vector is reading from a unibyte
 	 string that contains a byte sequence previously skipped
@@ -406,7 +406,7 @@ unreadchar (Lisp_Object readcharfun, int c)
       read_from_string_index_byte
 	= string_char_to_byte (readcharfun, read_from_string_index);
     }
-  else if (CONSP (readcharfun))
+  else if (CONSP (readcharfun) && STRINGP (XCAR (readcharfun)))
     {
       unread_char = c;
     }
@@ -2059,7 +2059,7 @@ Returns a cons: (OBJECT-READ . FINAL-STRING-INDEX).
 FINAL-STRING-INDEX is an integer giving the position of the next
 remaining character in STRING.  START and END optionally delimit
 a substring of STRING from which to read;  they default to 0 and
-(length STRING) respectively.  Negative values are counted from
+\(length STRING) respectively.  Negative values are counted from
 the end of STRING.  */)
   (Lisp_Object string, Lisp_Object start, Lisp_Object end)
 {

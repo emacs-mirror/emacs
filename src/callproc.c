@@ -7,8 +7,8 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -1457,7 +1457,7 @@ This function searches `process-environment' for VARIABLE.
 
 If optional parameter ENV is a list, then search this list instead of
 `process-environment', and return t when encountering a negative entry
-(an entry for a variable with no value).  */)
+\(an entry for a variable with no value).  */)
   (Lisp_Object variable, Lisp_Object env)
 {
   char *value;
@@ -1668,7 +1668,7 @@ Each element is a string (directory name) or nil (try default directory).
 
 By default the last element of this list is `exec-directory'. The
 last element is not always used, for example in shell completion
-(`shell-dynamic-complete-command').  */);
+\(`shell-dynamic-complete-command').  */);
 
   DEFVAR_LISP ("exec-suffixes", Vexec_suffixes,
 	       doc: /* List of suffixes to try to find executable file names.

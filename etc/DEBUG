@@ -72,7 +72,7 @@ prompt, to unconditionally load the GDB init file.
 *** Use the Emacs GDB UI front-end
 
 We recommend using the GUI front-end for GDB provided by Emacs.  With
-it, you can start GDB by typing "M-x GDB RET".  This will suggest the
+it, you can start GDB by typing "M-x gdb RET".  This will suggest the
 default binary to debug; if you are going to start a new Emacs
 process, change it as needed to point to the correct binary.
 Alternatively, if you want to attach the debugger to an already

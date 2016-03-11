@@ -10,7 +10,9 @@ Emacs uses the following files from the Unicode Character Database
 (a.k.a. "UCD):
 
   . UnicodeData.txt
+  . Blocks.txt
   . BidiMirroring.txt
+  . BidiBrackets.txt
   . IVD_Sequences.txt
 
 First, these files need to be copied into admin/unidata/, and then
@@ -36,6 +38,11 @@ and see if any changes in admin/unidata/blocks.awk are required.
 Any new scripts added by UnicodeData.txt will also need updates to
 script-representative-chars defined in fontset.el.  Other databases in
 fontset.el might also need to be updated as needed.
+
+The function 'ucs-names', defined in lisp/international/mule-cmds.el,
+might need to be updated because it knows about used and unused ranges
+of Unicode codepoints, which a new release of the Unicode Standard
+could change.
 
 Problems, fixmes and other unicode-related issues
 -------------------------------------------------------------

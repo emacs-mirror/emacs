@@ -6,8 +6,8 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -1996,9 +1996,9 @@ syms_of_bytecode (void)
 
   DEFVAR_LISP ("byte-code-meter", Vbyte_code_meter,
 	       doc: /* A vector of vectors which holds a histogram of byte-code usage.
-(aref (aref byte-code-meter 0) CODE) indicates how many times the byte
+\(aref (aref byte-code-meter 0) CODE) indicates how many times the byte
 opcode CODE has been executed.
-(aref (aref byte-code-meter CODE1) CODE2), where CODE1 is not 0,
+\(aref (aref byte-code-meter CODE1) CODE2), where CODE1 is not 0,
 indicates how many times the byte opcodes CODE1 and CODE2 have been
 executed in succession.  */);
 

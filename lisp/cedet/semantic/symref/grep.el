@@ -48,6 +48,8 @@ and those hits returned.")
     (html-mode "*.s?html" "*.php")
     (ruby-mode "*.r[bu]" "*.rake" "*.gemspec" "*.erb" "*.haml"
                "Rakefile" "Thorfile" "Capfile" "Guardfile" "Vagrantfile")
+    (perl-mode "*.pl" "*.PL")
+    (cperl-mode "*.pl" "*.PL")
     )
   "List of major modes and file extension pattern.
 See find -name man page for format.")

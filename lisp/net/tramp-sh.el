@@ -4120,44 +4120,36 @@ process to set up.  VEC specifies the connection."
   ;; CCC this can't be the right way to do it.  Hm.
   (tramp-message vec 5 "Determining coding system")
   (with-current-buffer (process-buffer proc)
-    (if (featurep 'mule)
-	;; Use MULE to select the right EOL convention for communicating
-	;; with the process.
-	(let ((cs (or (and (memq 'utf-8 (coding-system-list))
-			   (string-match "utf-?8" (tramp-get-remote-locale vec))
-			   (cons 'utf-8 'utf-8))
-		      (process-coding-system proc)
-		      (cons 'undecided 'undecided)))
-	      cs-decode cs-encode)
-	  (when (symbolp cs) (setq cs (cons cs cs)))
-	  (setq cs-decode (or (car cs) 'undecided)
-                cs-encode (or (cdr cs) 'undecided))
-	  (setq cs-encode
-		(coding-system-change-eol-conversion
-		 cs-encode
-		 (if (string-match
-		      "^Darwin" (tramp-get-connection-property vec "uname" ""))
-		     'mac 'unix)))
-	  (tramp-send-command vec "echo foo ; echo bar" t)
-	  (goto-char (point-min))
-	  (when (search-forward "\r" nil t)
-	    (setq cs-decode (coding-system-change-eol-conversion
-			     cs-decode 'dos)))
-          ;; Special setting for Mac OS X.
-          (when (and (string-match
-                      "^Darwin" (tramp-get-connection-property vec "uname" ""))
-                     (memq 'utf-8-hfs (coding-system-list)))
-            (setq cs-decode 'utf-8-hfs
-                  cs-encode 'utf-8-hfs))
-	  (set-buffer-process-coding-system cs-decode cs-encode)
-	  (tramp-message
-	   vec 5 "Setting coding system to `%s' and `%s'" cs-decode cs-encode))
-      ;; Look for ^M and do something useful if found.
+    ;; Use MULE to select the right EOL convention for communicating
+    ;; with the process.
+    (let ((cs (or (and (memq 'utf-8 (coding-system-list))
+		       (string-match "utf-?8" (tramp-get-remote-locale vec))
+		       (cons 'utf-8 'utf-8))
+		  (process-coding-system proc)
+		  (cons 'undecided 'undecided)))
+	  cs-decode cs-encode)
+      (when (symbolp cs) (setq cs (cons cs cs)))
+      (setq cs-decode (or (car cs) 'undecided)
+	    cs-encode (or (cdr cs) 'undecided)
+	    cs-encode
+	    (coding-system-change-eol-conversion
+	     cs-encode
+	     (if (string-match
+		  "^Darwin" (tramp-get-connection-property vec "uname" ""))
+		 'mac 'unix)))
+      (tramp-send-command vec "echo foo ; echo bar" t)
+      (goto-char (point-min))
       (when (search-forward "\r" nil t)
-	;; We have found a ^M but cannot frob the process coding system
-	;; because we're running on a non-MULE Emacs.  Let's try
-	;; stty, instead.
-	(tramp-send-command vec "stty -onlcr" t))))
+	(setq cs-decode (coding-system-change-eol-conversion cs-decode 'dos)))
+      ;; Special setting for Mac OS X.
+      (when (and (string-match
+		  "^Darwin" (tramp-get-connection-property vec "uname" ""))
+		 (memq 'utf-8-hfs (coding-system-list)))
+	(setq cs-decode 'utf-8-hfs
+	      cs-encode 'utf-8-hfs))
+      (set-buffer-process-coding-system cs-decode cs-encode)
+      (tramp-message
+       vec 5 "Setting coding system to `%s' and `%s'" cs-decode cs-encode)))
 
   (tramp-send-command vec "set +o vi +o emacs" t)
 

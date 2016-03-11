@@ -13,8 +13,8 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -462,7 +462,7 @@ Emacs treats a sequence of word constituent characters as a single
 word (i.e. finds no word boundary between them) only if they belong to
 the same script.  But, exceptions are allowed in the following cases.
 
-(1) The case that characters are in different scripts is controlled
+\(1) The case that characters are in different scripts is controlled
 by the variable `word-combining-categories'.
 
 Emacs finds no word boundary between characters of different scripts
@@ -476,7 +476,7 @@ For instance, to tell that Han characters followed by Hiragana
 characters can form a single word, the element `(?C . ?H)' should be
 in this list.
 
-(2) The case that character are in the same script is controlled by
+\(2) The case that character are in the same script is controlled by
 the variable `word-separating-categories'.
 
 Emacs finds a word boundary between characters of the same script

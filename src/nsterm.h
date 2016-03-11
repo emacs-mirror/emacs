@@ -6,8 +6,8 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -1044,10 +1044,10 @@ struct x_output
 
 /* Difference btwn char-column-calculated and actual SB widths.
    This is only a concern for rendering when SB on left. */
-#define NS_SCROLL_BAR_ADJUST(w, f)		\
-(WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_LEFT (w) ?	\
-    (FRAME_SCROLL_BAR_COLS (f) * FRAME_COLUMN_WIDTH (f)	\
-        - NS_SCROLL_BAR_WIDTH (f)) : 0)
+#define NS_SCROLL_BAR_ADJUST(w, f)				\
+  (WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_LEFT (w) ?			\
+   (FRAME_SCROLL_BAR_COLS (f) * FRAME_COLUMN_WIDTH (f)		\
+    - NS_SCROLL_BAR_WIDTH (f)) : 0)
 
 /* Difference btwn char-line-calculated and actual SB heights.
    This is only a concern for rendering when SB on top. */

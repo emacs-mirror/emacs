@@ -2473,8 +2473,6 @@ windows."
   (when (window-right window)
     (window--resize-reset-1 (window-right window) horizontal)))
 
-;; The following routine is used to manually resize the minibuffer
-;; window and is currently used, for example, by ispell.el.
 (defun window--resize-mini-window (window delta)
   "Resize minibuffer window WINDOW by DELTA pixels.
 If WINDOW cannot be resized by DELTA pixels make it as large (or
@@ -3338,34 +3336,42 @@ negative, shrink selected window by -DELTA lines or columns."
     (cond
      ((zerop delta))
      ((window-size-fixed-p nil horizontal)
-      (error "Selected window has fixed size"))
+      (user-error "Selected window has fixed size"))
      ((window-minibuffer-p)
       (if horizontal
-	  (error "Cannot resize minibuffer window horizontally")
-	(window--resize-mini-window (selected-window) delta)))
+	  (user-error "Cannot resize minibuffer window horizontally")
+	(window--resize-mini-window
+         (selected-window) (* delta (frame-char-height)))))
      ((and (not horizontal)
 	   (window-full-height-p)
 	   (eq (window-frame minibuffer-window) (selected-frame))
 	   (not resize-mini-windows))
       ;; If the selected window is full height and `resize-mini-windows'
       ;; is nil, resize the minibuffer window.
-      (window--resize-mini-window minibuffer-window (- delta)))
+      (window--resize-mini-window
+       minibuffer-window (* (- delta) (frame-char-height))))
      ((window--resizable-p nil delta horizontal)
       (window-resize nil delta horizontal))
      ((window--resizable-p nil delta horizontal 'preserved)
       (window-resize nil delta horizontal 'preserved))
-     ((eq this-command 'enlarge-window)
+     ((eq this-command
+	  (if horizontal 'enlarge-window-horizontally 'enlarge-window))
+      ;; For backward compatibility don't signal an error unless this
+      ;; command is `enlarge-window(-horizontally)'.
       (user-error "Cannot enlarge selected window"))
      (t
-      (error "Cannot enlarge selected window")))))
+      (window-resize
+       nil (if (> delta 0)
+	       (window-max-delta nil horizontal)
+	     (- (window-min-delta nil horizontal)))
+       horizontal)))))
 
 (defun shrink-window (delta &optional horizontal)
   "Make the selected window DELTA lines smaller.
 Interactively, if no argument is given, make the selected window
 one line smaller.  If optional argument HORIZONTAL is non-nil,
 make selected window narrower by DELTA columns.  If DELTA is
-negative, enlarge selected window by -DELTA lines or columns.
-Also see the `window-min-height' variable."
+negative, enlarge selected window by -DELTA lines or columns."
   (interactive "p")
   (let ((minibuffer-window (minibuffer-window)))
     (when (window-preserved-size nil horizontal)
@@ -3373,26 +3379,35 @@ Also see the `window-min-height' variable."
     (cond
      ((zerop delta))
      ((window-size-fixed-p nil horizontal)
-      (error "Selected window has fixed size"))
+      (user-error "Selected window has fixed size"))
      ((window-minibuffer-p)
       (if horizontal
-	  (error "Cannot resize minibuffer window horizontally")
-	(window--resize-mini-window (selected-window) (- delta))))
+	  (user-error "Cannot resize minibuffer window horizontally")
+	(window--resize-mini-window
+         (selected-window) (* (- delta) (frame-char-height)))))
      ((and (not horizontal)
 	   (window-full-height-p)
 	   (eq (window-frame minibuffer-window) (selected-frame))
 	   (not resize-mini-windows))
       ;; If the selected window is full height and `resize-mini-windows'
       ;; is nil, resize the minibuffer window.
-      (window--resize-mini-window minibuffer-window delta))
+      (window--resize-mini-window
+       minibuffer-window (* delta (frame-char-height))))
      ((window--resizable-p nil (- delta) horizontal)
       (window-resize nil (- delta) horizontal))
      ((window--resizable-p nil (- delta) horizontal 'preserved)
       (window-resize nil (- delta) horizontal 'preserved))
-     ((eq this-command 'shrink-window)
+     ((eq this-command
+	  (if horizontal 'shrink-window-horizontally 'shrink-window))
+      ;; For backward compatibility don't signal an error unless this
+      ;; command is `shrink-window(-horizontally)'.
       (user-error "Cannot shrink selected window"))
      (t
-      (error "Cannot shrink selected window")))))
+      (window-resize
+       nil (if (> delta 0)
+	       (- (window-min-delta nil horizontal))
+	     (window-max-delta nil horizontal))
+       horizontal)))))
 
 (defun maximize-window (&optional window)
   "Maximize WINDOW.
