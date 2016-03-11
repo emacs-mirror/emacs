@@ -73,6 +73,7 @@
  */
 
 #include "mpm.h"
+#include "stdlib.h" /* For qsort, move */
 
 SRCID(shield, "$Id$");
 
@@ -147,6 +148,100 @@ static void shieldFlushEntry(Arena arena, Size i)
     shieldSync(arena, seg);
 
   arena->shCache[i] = NULL;
+}
+
+
+/* We sort NULLs to the end, and otherwise sort by base address */
+static int shieldCacheEntryCompare(const void *a, const void *b)
+{
+  Seg segA = *(SegStruct * const *)a, segB = *(SegStruct * const *)b;
+  Addr baseA, baseB;
+  if (segA != NULL)
+    AVERT(Seg, segA);
+  if (segB != NULL)
+    AVERT(Seg, segB);
+
+  if (segA == NULL) {
+    if (segB == NULL) return 0;
+    else return 1;
+  }
+  if (segB == NULL) {
+     AVER(segA != NULL);
+     return -1;
+  }
+  baseA = SegBase(segA);
+  baseB = SegBase(segB);
+  if (baseA < baseB)
+    return -1;
+  if (baseA > baseB)
+    return 1;
+  AVER(baseA == baseB);
+  return 0;
+}
+
+
+/* shieldFlushEntries -- flush cache coalescing protects
+ *
+ * base, limit and mode represent outstanding protection to be done.
+ */
+
+static void shieldFlushEntries(Arena arena)
+{
+  Addr base = 0, limit = 0;
+  AccessSet mode = 0;
+  Seg seg;
+  Size i;
+  qsort(arena->shCache, arena->shCacheLimit, sizeof(arena->shCache[0]),
+        shieldCacheEntryCompare);
+  seg = arena->shCache[0];
+  if (seg) {
+    AVERT(Seg, seg);
+    arena->shCache[0] = NULL;
+
+    AVER(arena->shDepth > 0);
+    AVER(SegDepth(seg) > 0);
+    --arena->shDepth;
+    SegSetDepth(seg, SegDepth(seg) - 1);
+
+    if (SegSM(seg) != SegPM(seg)) {
+      SegSetPM(seg, SegSM(seg));
+      base = SegBase(seg);
+      limit = SegLimit(seg);
+      mode = SegSM(seg);
+    }
+  }
+  for (i=1; i < arena->shCacheLimit; ++i) {
+    if (arena->shDepth == 0)
+      break;
+    seg = arena->shCache[i];
+    /* All the NULLs are sorted to the end */
+    if (seg == NULL)
+      break;
+    AVERT(Seg, seg);
+    arena->shCache[i] = NULL;
+
+    AVER(arena->shDepth > 0);
+    AVER(SegDepth(seg) > 0);
+    --arena->shDepth;
+    SegSetDepth(seg, SegDepth(seg) - 1);
+
+    if (SegSM(seg) != SegPM(seg)) {
+      SegSetPM(seg, SegSM(seg));
+      if (SegBase(seg) != limit || mode != SegSM(seg)) {
+        if (limit != 0) {
+          ProtSet(base, limit, mode);
+        }
+        base = SegBase(seg);
+        limit = SegLimit(seg);
+        mode = SegSM(seg);
+      } else {
+        limit = SegLimit(seg);
+      }
+    }
+  }
+  if (limit != 0) {
+    ProtSet(base, limit, mode);
+  }
 }
 
 
@@ -229,7 +324,7 @@ void (ShieldEnter)(Arena arena)
   AVER(!arena->suspended);
   AVER(arena->shCacheLimit <= ShieldCacheSIZE);
   AVER(arena->shCacheI < arena->shCacheLimit);
-  for(i = 0; i < arena->shCacheLimit; i++)
+  for (i = 0; i < arena->shCacheLimit; i++)
     AVER(arena->shCache[i] == NULL);
 
   arena->shCacheI = (Size)0;
@@ -252,7 +347,10 @@ void (ShieldFlush)(Arena arena)
 {
   Size i;
 
-  for(i = 0; i < arena->shCacheLimit; ++i) {
+  if(1)
+    shieldFlushEntries(arena);
+
+  for (i = 0; i < arena->shCacheLimit; ++i) {
     if (arena->shDepth == 0)
       break;
     shieldFlushEntry(arena, i);
