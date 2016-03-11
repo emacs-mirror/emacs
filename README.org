@@ -1,6 +1,8 @@
 * which-key 
 [[http://melpa.org/#/which-key][http://melpa.org/packages/which-key-badge.svg]] [[http://stable.melpa.org/#/which-key][file:http://stable.melpa.org/packages/which-key-badge.svg]]
-** What's New
+** Semi-Recent Changes
+- =which-key-special-keys= is now disabled by default. See the docstring for the
+  old setting.
 - =C-h= commands! Now =C-h= will prompt you will several options instead of
   going directly to the next page. You can (see =which-key-C-h-map=)
   - Cycle through the pages forward with =n= (or =C-n=)

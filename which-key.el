@@ -150,9 +150,12 @@ the element is a cons cell, it should take the form (regexp .
 face to apply)."
   :group 'which-key)
 
-(defcustom which-key-special-keys '("SPC" "TAB" "RET" "ESC" "DEL")
+(defcustom which-key-special-keys '()
   "These keys will automatically be truncated to one character
-and have `which-key-special-key-face' applied to them."
+and have `which-key-special-key-face' applied to them. This is
+disabled by default. Try this to see the effect.
+
+\(setq which-key-special-keys '(\"SPC\" \"TAB\" \"RET\" \"ESC\" \"DEL\")\)"
   :group 'which-key
   :type '(repeat string))
 
