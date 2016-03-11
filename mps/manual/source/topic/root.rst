@@ -79,7 +79,17 @@ reference>`, :term:`ambiguous <ambiguous reference>` or :term:`weak
     :term:`fix` references that point to memory not managed by the
     MPS. These will be ignored.
 
-Roots can be deregistered at any time by calling
+.. note::
+
+    Creating a root with a scanning function may require passing a
+    pointer to a :term:`closure` object.  That closure object must
+    still be alive when the scanning function is called.  If you
+    allocate it on the stack, make sure that the scanning function is
+    only going to be called while that stack frame is still active
+    (for example, by creating such a root from the function within
+    which your whole program runs).
+
+    Roots can be deregistered at any time by calling
 :c:func:`mps_root_destroy`. All roots registered in an :term:`arena`
 must be deregistered before the arena is destroyed.
 
@@ -580,8 +590,9 @@ Root interface
 
     ``scan_area`` is an tagged area scanning function that will be
     used to scan the area, for example :c:func:`mps_scan_area_tagged`
-    or :c:func:`mps_scan_area_tagged_or_zero`.  See
-    :ref:`topic-scanning-area`.
+    or :c:func:`mps_scan_area_tagged_or_zero`.  The ``closure``
+    argument to ``scan_area`` is a :c:type:`mps_scan_tag_t` cast to
+    ``void *`` See :ref:`topic-scanning-area`.
 
     ``mask`` is a :term:`bitmask` that is passed to ``scan_area`` to
     be applied to the words in the vector to locate the :term:`tag`.
