@@ -1,7 +1,7 @@
 /* segsmss.c: Segment splitting and merging stress test
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (c) 2002 Global Graphics Software.
  *
  * .design: Adapted from amsss.c (because AMS already supports
@@ -17,7 +17,7 @@
 #include "fmtdytst.h"
 #include "testlib.h"
 #include "mpslib.h"
-#include "chain.h"
+#include "locus.h"
 #include "mpscams.h"
 #include "mpsavm.h"
 #include "mpstd.h"
@@ -885,7 +885,7 @@ int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  *

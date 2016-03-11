@@ -9,6 +9,7 @@ Lands
 :Status: complete design
 :Revision: $Id$
 :Copyright: See section `Copyright and License`_.
+:Index terms: pair: lands; design
 
 
 Introduction
@@ -321,7 +322,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2014-2015 Ravenbrook Limited. All rights reserved. 
+Copyright © 2014-2016 Ravenbrook Limited. All rights reserved. 
 <http://www.ravenbrook.com/>. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
