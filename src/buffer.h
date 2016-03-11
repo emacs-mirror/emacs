@@ -748,8 +748,8 @@ struct buffer
      See `cursor-type' for other values.  */
   Lisp_Object cursor_in_non_selected_windows_;
 
-  /* Buffer position below which the `comment-depth' property is valid.  */
-  Lisp_Object comment_depth_hwm_;
+  /* Buffer position below which the `literal-cache' property is valid.  */
+  Lisp_Object literal_cache_hwm_;
 
   /* No more Lisp_Object beyond this point.  Except undo_list,
      which is handled specially in Fgarbage_collect.  */
@@ -1270,7 +1270,7 @@ extern int last_per_buffer_idx;
 
 #define FOR_EACH_PER_BUFFER_OBJECT_AT(offset)				 \
   for (offset = PER_BUFFER_VAR_OFFSET (name);				 \
-       offset <= PER_BUFFER_VAR_OFFSET (comment_depth_hwm); \
+       offset <= PER_BUFFER_VAR_OFFSET (literal_cache_hwm); \
        offset += word_size)
 
 /* Return the index of buffer-local variable VAR.  Each per-buffer

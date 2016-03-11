@@ -958,25 +958,25 @@ old_back_comment (ptrdiff_t from, ptrdiff_t from_byte, ptrdiff_t stop,
   return from != comment_end;
 }
 
-/* `comment-depth' text properties
+/* `literal-cache' text properties
    -------------------------------
-These are applied to all text between BOB and `comment-depth-hwm'.
+These are applied to all text between BOB and `literal-cache-hwm'.
 They are primarily to record whether or not the current character is
 inside a literal, and if so, what type.
 
 On a buffer change (when `inhibit-modification-hooks' is nil), any
 buffer change (including changing text-properties) will reduce
-`comment-depth-hwm' to the change position, if it is higher.  When
+`literal-cache-hwm' to the change position, if it is higher.  When
 `inhibit-modification-hooks' is non-nil, only changes to the
 `syntax-table' text property (possibly via a `category' text property)
 which affect the scanning of literals cause the setting of
-`comment-depth-hwm'.
+`literal-cache-hwm'.
 
-The `comment-depth' text property for a literal is applied on the text
+The `literal-cache' text property for a literal is applied on the text
 between just after its opening delimiter and just after its closing
 delimiter.
 
-The value of the `comment-depth' text property is a cons.  For a
+The value of the `literal-cache' text property is a cons.  For a
 string, its car is the symbol `string' and its cdr is the expected
 closing delimiter (or ST_STRING_STYLE in the case of a string fence
 string).  For a comment, the car is -1 for a non-nestable comment, or
@@ -984,7 +984,7 @@ the current nesting depth for a nestable comment.  When not in a
 literal, the value is '(0 . 0).  These values match the internal
 values used in `scan_sexps_forward.  */
 
-DEFUN ("trim-comment-cache", Ftrim_comment_cache, Strim_comment_cache, 0, 1, 0,
+DEFUN ("trim-literal-cache", Ftrim_literal_cache, Strim_literal_cache, 0, 1, 0,
        doc: /* Mark the selected buffer's "comment cache" as invalid from POS.
 By default, POS is the beginning of the buffer (position 1).  If the cache is
 already invalid from an earlier position than POS, this function has no
@@ -1000,10 +1000,10 @@ effect.  The return value is the new bound.  */)
     }
   else
     position = 1;
-  cache_limit = XINT (BVAR (current_buffer, comment_depth_hwm));
-  BVAR (current_buffer, comment_depth_hwm)
+  cache_limit = XINT (BVAR (current_buffer, literal_cache_hwm));
+  BVAR (current_buffer, literal_cache_hwm)
       = make_number (min (cache_limit, position));
-  return BVAR (current_buffer, comment_depth_hwm);
+  return BVAR (current_buffer, literal_cache_hwm);
 }
 
 static
@@ -1028,9 +1028,9 @@ bool syntax_table_value_is_interesting_for_literals (Lisp_Object val)
 
 /* The text property PROP is having its value VAL at position POS in buffer BUF
 either set or cleared.  If this value is relevant to the syntax of literals,
-reduce the BUF's value of comment_depth_hwm to POS.  */
+reduce the BUF's value of literal_cache_hwm to POS.  */
 void
-check_comment_depth_hwm_for_prop (ptrdiff_t pos, Lisp_Object prop,
+check_literal_cache_hwm_for_prop (ptrdiff_t pos, Lisp_Object prop,
                                   Lisp_Object val, Lisp_Object buffer)
 {
   struct buffer *b;
@@ -1040,7 +1040,7 @@ check_comment_depth_hwm_for_prop (ptrdiff_t pos, Lisp_Object prop,
   if (!BUFFERP (buffer))
     return;
   b = XBUFFER (buffer);
-  hwm  = XINT (BVAR (b, comment_depth_hwm));
+  hwm  = XINT (BVAR (b, literal_cache_hwm));
   if (pos >= hwm)
     return;
 
@@ -1062,34 +1062,34 @@ check_comment_depth_hwm_for_prop (ptrdiff_t pos, Lisp_Object prop,
     }
   if (EQ (prop, Qsyntax_table)
       && syntax_table_value_is_interesting_for_literals (val))
-    BVAR (b, comment_depth_hwm) = make_number (pos);
+    BVAR (b, literal_cache_hwm) = make_number (pos);
 }
 
 /* Scan forward over the innards of a containing comment, marking
 nested comments.  FROM/FROM_BYTE, TO delimit the region to be marked.
-COMMENT_DEPTH_VALUE is the value of the `comment-depth' property that
+LITERAL_CACHE_VALUE is the value of the `literal-cache' property that
 was applied to the containing comment.  */
 static void
 scan_nested_comments_forward (ptrdiff_t from, ptrdiff_t from_byte,
                               ptrdiff_t to,
-                              Lisp_Object comment_depth_value)
+                              Lisp_Object literal_cache_value)
 {
   Lisp_Object tem;
-  int comstyle = XINT (XCDR (comment_depth_value));
+  int comstyle = XINT (XCDR (literal_cache_value));
   struct lisp_parse_state state;
 
   /* Increment the nesting depth. */
-  comment_depth_value =
-    Fcons (make_number (XINT (XCAR (comment_depth_value)) + 1),
-           XCDR (comment_depth_value));
+  literal_cache_value =
+    Fcons (make_number (XINT (XCAR (literal_cache_value)) + 1),
+           XCDR (literal_cache_value));
   /* Make sure our text property value is `eq' to other values which
      are `equal'. */
-  tem = Fmember (comment_depth_value, Vcomment_depth_values);
+  tem = Fmember (literal_cache_value, Vliteral_cache_values);
   if (CONSP (tem))
-    comment_depth_value = XCAR (tem);
+    literal_cache_value = XCAR (tem);
   else
-    Vcomment_depth_values = Fcons (comment_depth_value,
-                                   Vcomment_depth_values);
+    Vliteral_cache_values = Fcons (literal_cache_value,
+                                   Vliteral_cache_values);
 
   UPDATE_SYNTAX_TABLE_BACKWARD (from);
   internalize_parse_state (Qnil, &state);
@@ -1118,11 +1118,11 @@ scan_nested_comments_forward (ptrdiff_t from, ptrdiff_t from_byte,
                               -1);
           Fput_text_property (make_number (from),
                               make_number (state.location),
-                              Qcomment_depth,
-                              comment_depth_value, Qnil);
+                              Qliteral_cache,
+                              literal_cache_value, Qnil);
           scan_nested_comments_forward (from, from_byte,
                                         state.location,
-                                        comment_depth_value);
+                                        literal_cache_value);
           from = state.location;
           from_byte = state.location_byte;
         }
@@ -1131,9 +1131,9 @@ scan_nested_comments_forward (ptrdiff_t from, ptrdiff_t from_byte,
 
 
 
-/* Scan forward over all text between comment-depth-hwm and TO,
-   marking literals (strings and comments) with the `comment-depth'
-   text property.  `comment-depth-hwm' is updated to TO. */
+/* Scan forward over all text between literal-cache-hwm and TO,
+   marking literals (strings and comments) with the `literal-cache'
+   text property.  `literal-cache-hwm' is updated to TO. */
 static void
 scan_comments_forward_to (ptrdiff_t to, ptrdiff_t to_byte)
 {
@@ -1145,10 +1145,10 @@ scan_comments_forward_to (ptrdiff_t to, ptrdiff_t to_byte)
   int c, syntax;
   enum syntaxcode code;
   Lisp_Object depth;
-  Lisp_Object comment_depth_value;
+  Lisp_Object literal_cache_value;
   Lisp_Object tem;
 
-  hwm = XINT (BVAR (current_buffer, comment_depth_hwm));
+  hwm = XINT (BVAR (current_buffer, literal_cache_hwm));
 
   if (hwm < to)
     {
@@ -1181,10 +1181,10 @@ scan_comments_forward_to (ptrdiff_t to, ptrdiff_t to_byte)
       internalize_parse_state (Qnil, &state);
       if (hwm > BEG)
         /* Initialize STATE with the current value of the
-           `comment-depth' text property. */
+           `literal-cache' text property. */
         {
           depth = Fget_text_property (make_number (hwm - 1),
-                                      Qcomment_depth, Qnil);
+                                      Qliteral_cache, Qnil);
           if (CONSP (depth))
             {
               if (EQ (Fcar (depth), Qstring))
@@ -1221,35 +1221,35 @@ scan_comments_forward_to (ptrdiff_t to, ptrdiff_t to_byte)
 
         while (hwm < to)
           {
-            /* For each literal we scan, we apply the `comment-depth'
+            /* For each literal we scan, we apply the `literal-cache'
                property on its innards and closing delimiter.  Calculate
                the value we will use first. */
-            comment_depth_value = (state.instring != -1)
+            literal_cache_value = (state.instring != -1)
               ? Fcons (Qstring, make_number (state.instring))
               : (state.incomment
                  ? Fcons (make_number (state.incomment),
                           make_number (state.comstyle))
                  : Fcons (make_number (0), make_number (0)));
-            /* Ensure all `equal' values of comment-depth-value are also `eq'. */
-            tem = Fmember (comment_depth_value, Vcomment_depth_values);
+            /* Ensure all `equal' values of literal-cache-value are also `eq'. */
+            tem = Fmember (literal_cache_value, Vliteral_cache_values);
             if (CONSP (tem))
-              comment_depth_value = XCAR (tem);
+              literal_cache_value = XCAR (tem);
             else
-              Vcomment_depth_values = Fcons (comment_depth_value,
-                                             Vcomment_depth_values);
+              Vliteral_cache_values = Fcons (literal_cache_value,
+                                             Vliteral_cache_values);
 
             scan_sexps_forward (&state, hwm, hwm_byte, to,
                                 TYPE_MINIMUM (EMACS_INT), false,
                                 -1); /* stop after literal boundary */
 
             Fput_text_property (make_number (hwm), make_number (state.location),
-                                Qcomment_depth,
-                                comment_depth_value, Qnil);
+                                Qliteral_cache,
+                                literal_cache_value, Qnil);
 
-            if (NUMBERP (XCAR (comment_depth_value))
-                && XINT (XCAR (comment_depth_value)) > 0)
+            if (NUMBERP (XCAR (literal_cache_value))
+                && XINT (XCAR (literal_cache_value)) > 0)
               scan_nested_comments_forward
-                (hwm, hwm_byte, state.location, comment_depth_value);
+                (hwm, hwm_byte, state.location, literal_cache_value);
 
             hwm = state.location;
             hwm_byte = state.location_byte;
@@ -1259,7 +1259,7 @@ scan_comments_forward_to (ptrdiff_t to, ptrdiff_t to_byte)
             /* Frestore_buffer_modified_p overwrites gl_state, hence: */
             SETUP_SYNTAX_TABLE (to, -1);
       }
-      BVAR (current_buffer, comment_depth_hwm) = make_number (hwm);
+      BVAR (current_buffer, literal_cache_hwm) = make_number (hwm);
       unbind_to (count, Qnil);
     }
 }
@@ -1281,22 +1281,22 @@ back_comment (ptrdiff_t from, ptrdiff_t from_byte, ptrdiff_t stop,
               ptrdiff_t *bytepos_ptr)
 {
   Lisp_Object depth;
-  ptrdiff_t comment_depth, target_depth, comment_style;
+  ptrdiff_t literal_cache, target_depth, comment_style;
   Lisp_Object temp;
   int c;
   int syntax, code;
 
-  if (comment_cacheing_flag)
+  if (literal_cacheing_flag)
     {
       scan_comments_forward_to (from, from_byte);
       if (from <= stop)
         return false;
-      depth = Fget_text_property (make_number (from - 1), Qcomment_depth, Qnil);
+      depth = Fget_text_property (make_number (from - 1), Qliteral_cache, Qnil);
       if (!CONSP (depth)
           || !INTEGERP (XCAR (depth))) /* A string. */
         return false;
-      comment_depth = XINT (XCAR (depth));
-      if (!comment_depth)       /* Not in a comment. */
+      literal_cache = XINT (XCAR (depth));
+      if (!literal_cache)       /* Not in a comment. */
         return false;
       comment_style = XINT (XCDR (depth));
       if (comment_style != comstyle) /* Wrong sort of comment.  This
@@ -1304,20 +1304,20 @@ back_comment (ptrdiff_t from, ptrdiff_t from_byte, ptrdiff_t stop,
                                         end of a "||" line comment. */
         return false;
 
-      /* comment_depth: -1 is a non-nested comment, otherwise it's
+      /* literal_cache: -1 is a non-nested comment, otherwise it's
          the depth of nesting of nested comments. */
-      target_depth = comment_depth < 0 ? 0 : comment_depth - 1;
+      target_depth = literal_cache < 0 ? 0 : literal_cache - 1;
       do
         {
           temp = Fprevious_single_property_change (make_number (from),
-                                                   Qcomment_depth, Qnil, Qnil);
+                                                   Qliteral_cache, Qnil, Qnil);
           if (NILP (temp))
             return false;
           from = XINT (temp);
         }
       while (from > stop
              && (depth = Fget_text_property (make_number (from - 1),
-                                             Qcomment_depth, Qnil),
+                                             Qliteral_cache, Qnil),
                  XINT (XCAR (depth)) > target_depth));
       if (from <= stop)
         return false;
@@ -4082,18 +4082,18 @@ syms_of_syntax (void)
   Fput (Qscan_error, Qerror_message,
 	build_pure_c_string ("Scan error"));
 
-  DEFSYM (Qcomment_depth, "comment-depth");
-  DEFVAR_BOOL ("comment-cacheing-flag", comment_cacheing_flag,
+  DEFSYM (Qliteral_cache, "literal-cache");
+  DEFVAR_BOOL ("literal-cacheing-flag", literal_cacheing_flag,
                doc: /* Non-nil means use new style comment handling.  */);
-  comment_cacheing_flag = 0;
+  literal_cacheing_flag = 1;
 
-  DEFVAR_LISP ("comment-depth-values", Vcomment_depth_values,
-               doc: /* A list of values which the text property `comment-depth' can assume.
+  DEFVAR_LISP ("literal-cache-values", Vliteral_cache_values,
+               doc: /* A list of values which the text property `literal-cache' can assume.
 This is to ensure that any values which are `equal' are also `eq', as required by the text
 property functions.  The list starts off empty, and any time a new value is needed, it is
 pushed onto the list.  The second time a value is needed, it is found by `member', and the
 canonical equivalent used.  */);
-  Vcomment_depth_values = Qnil;
+  Vliteral_cache_values = Qnil;
 
   DEFVAR_BOOL ("parse-sexp-ignore-comments", parse_sexp_ignore_comments,
 	       doc: /* Non-nil means `forward-sexp', etc., should treat comments as whitespace.  */);
@@ -4148,7 +4148,7 @@ In both cases, LIMIT bounds the search. */);
   DEFSYM (Qcomment_end_can_be_escaped, "comment-end-can-be-escaped");
   Fmake_variable_buffer_local (Qcomment_end_can_be_escaped);
 
-  defsubr (&Strim_comment_cache);
+  defsubr (&Strim_literal_cache);
   defsubr (&Ssyntax_table_p);
   defsubr (&Ssyntax_table);
   defsubr (&Sstandard_syntax_table);

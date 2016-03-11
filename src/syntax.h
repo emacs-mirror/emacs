@@ -28,7 +28,7 @@ INLINE_HEADER_BEGIN
 
 extern void update_syntax_table (ptrdiff_t, EMACS_INT, bool, Lisp_Object);
 extern void update_syntax_table_forward (ptrdiff_t, bool, Lisp_Object);
-extern void check_comment_depth_hwm_for_prop (ptrdiff_t, Lisp_Object,
+extern void check_literal_cache_hwm_for_prop (ptrdiff_t, Lisp_Object,
                                               Lisp_Object, Lisp_Object);
 
 /* The standard syntax table is stored where it will automatically

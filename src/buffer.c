@@ -359,9 +359,9 @@ bset_zv_marker (struct buffer *b, Lisp_Object val)
   b->zv_marker_ = val;
 }
 static void
-bset_comment_depth_hwm (struct buffer *b, Lisp_Object val)
+bset_literal_cache_hwm (struct buffer *b, Lisp_Object val)
 {
-  b->comment_depth_hwm_ = val;
+  b->literal_cache_hwm_ = val;
 }
 
 void
@@ -5103,7 +5103,7 @@ init_buffer_once (void)
   XSETFASTINT (BVAR (&buffer_local_flags, cursor_type), idx); ++idx;
   XSETFASTINT (BVAR (&buffer_local_flags, extra_line_spacing), idx); ++idx;
   XSETFASTINT (BVAR (&buffer_local_flags, cursor_in_non_selected_windows), idx); ++idx;
-  XSETFASTINT (BVAR (&buffer_local_flags, comment_depth_hwm), idx); ++idx;
+  XSETFASTINT (BVAR (&buffer_local_flags, literal_cache_hwm), idx); ++idx;
 
   /* Need more room? */
   if (idx >= MAX_PER_BUFFER_VARS)
@@ -5190,7 +5190,7 @@ init_buffer_once (void)
   bset_scroll_up_aggressively (&buffer_defaults, Qnil);
   bset_scroll_down_aggressively (&buffer_defaults, Qnil);
   bset_display_time (&buffer_defaults, Qnil);
-  bset_comment_depth_hwm (&buffer_defaults, make_number (1));
+  bset_literal_cache_hwm (&buffer_defaults, make_number (1));
 
   /* Assign the local-flags to the slots that have default values.
      The local flag is a bit that is used in the buffer
@@ -6261,9 +6261,9 @@ If t, displays a cursor related to the usual cursor type
 You can also specify the cursor type as in the `cursor-type' variable.
 Use Custom to set this variable and update the display.  */);
 
-  DEFVAR_PER_BUFFER ("comment-depth-hwm",
-                     &BVAR (current_buffer, comment_depth_hwm), Qintegerp,
-                     doc: /* Buffer position below which the `comment-depth' property is valid.  */);
+  DEFVAR_PER_BUFFER ("literal-cache-hwm",
+                     &BVAR (current_buffer, literal_cache_hwm), Qintegerp,
+                     doc: /* Buffer position below which the `literal-cache' property is valid.  */);
 
   DEFVAR_LISP ("kill-buffer-query-functions", Vkill_buffer_query_functions,
 	       doc: /* List of functions called with no args to query before killing a buffer.

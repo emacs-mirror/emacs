@@ -341,10 +341,10 @@ set_properties (Lisp_Object properties, INTERVAL interval, Lisp_Object object)
 	    record_property_change (interval->position, LENGTH (interval),
 				    XCAR (sym), XCAR (value),
 				    object);
-            check_comment_depth_hwm_for_prop
+            check_literal_cache_hwm_for_prop
               (interval->position, XCAR (sym), XCAR (value), object);
             if (!EQ (property_value (properties, XCAR (sym)), Qunbound))
-              check_comment_depth_hwm_for_prop
+              check_literal_cache_hwm_for_prop
                 (interval->position, XCAR (sym),
                  property_value (properties, XCAR (sym)), object);
 	  }
@@ -359,7 +359,7 @@ set_properties (Lisp_Object properties, INTERVAL interval, Lisp_Object object)
 	    record_property_change (interval->position, LENGTH (interval),
 				    XCAR (sym), Qnil,
 				    object);
-            check_comment_depth_hwm_for_prop
+            check_literal_cache_hwm_for_prop
                 (interval->position, XCAR (sym), XCAR (value), object);
 	  }
     }
@@ -415,9 +415,9 @@ add_properties (Lisp_Object plist, INTERVAL i, Lisp_Object object,
 	      {
 		record_property_change (i->position, LENGTH (i),
 					sym1, Fcar (this_cdr), object);
-                check_comment_depth_hwm_for_prop
+                check_literal_cache_hwm_for_prop
                     (i->position, sym1, Fcar (this_cdr), object);
-                check_comment_depth_hwm_for_prop
+                check_literal_cache_hwm_for_prop
                     (i->position, sym1, val1, object);
 	      }
 
@@ -455,7 +455,7 @@ add_properties (Lisp_Object plist, INTERVAL i, Lisp_Object object,
 	    {
 	      record_property_change (i->position, LENGTH (i),
 				      sym1, Qnil, object);
-              check_comment_depth_hwm_for_prop
+              check_literal_cache_hwm_for_prop
                 (i->position, sym1, val1, object);
 	    }
 	  set_interval_plist (i, Fcons (sym1, Fcons (val1, i->plist)));
@@ -495,7 +495,7 @@ remove_properties (Lisp_Object plist, Lisp_Object list, INTERVAL i, Lisp_Object 
               record_property_change (i->position, LENGTH (i),
                                       sym, XCAR (XCDR (current_plist)),
                                       object);
-              check_comment_depth_hwm_for_prop
+              check_literal_cache_hwm_for_prop
                 (i->position, sym, XCAR (XCDR (current_plist)), object);
             }
 	  current_plist = XCDR (XCDR (current_plist));
@@ -513,7 +513,7 @@ remove_properties (Lisp_Object plist, Lisp_Object list, INTERVAL i, Lisp_Object 
                 {
                   record_property_change (i->position, LENGTH (i),
                                           sym, XCAR (XCDR (this)), object);
-                  check_comment_depth_hwm_for_prop
+                  check_literal_cache_hwm_for_prop
                     (i->position, sym, XCAR (XCDR (this)), object);
                 }
 
