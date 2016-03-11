@@ -127,7 +127,7 @@ static void shieldSync(Arena arena, Seg seg)
 }
 
 
-static void flush(Arena arena, Size i)
+static void shieldFlushEntry(Arena arena, Size i)
 {
   Seg seg;
   AVERT(Arena, arena);
@@ -153,7 +153,7 @@ static void flush(Arena arena, Size i)
 /* If the segment is out of sync, either sync it, or ensure
  * depth > 0, and the arena is suspended.
  */
-static void cache(Arena arena, Seg seg)
+static void shieldCache(Arena arena, Seg seg)
 {
   /* <design/trace/#fix.noaver> */
   AVERT_CRITICAL(Arena, arena);
@@ -174,7 +174,7 @@ static void cache(Arena arena, Seg seg)
     AVER(SegDepth(seg) > 0);
     AVER(arena->shCacheLimit <= ShieldCacheSIZE);
     AVER(arena->shCacheI < arena->shCacheLimit);
-    flush(arena, arena->shCacheI);
+    shieldFlushEntry(arena, arena->shCacheI);
     arena->shCache[arena->shCacheI] = seg;
     ++arena->shCacheI;
     if (arena->shCacheI == ShieldCacheSIZE)
@@ -197,7 +197,7 @@ void (ShieldRaise) (Arena arena, Seg seg, AccessSet mode)
   SegSetSM(seg, SegSM(seg) | mode); /* inv.prot.shield preserved */
 
   /* ensure inv.unsynced.suspended & inv.unsynced.depth */
-  cache(arena, seg);
+  shieldCache(arena, seg);
   AVERT(Arena, arena);
   AVERT(Seg, seg);
 }
@@ -241,6 +241,12 @@ void (ShieldEnter)(Arena arena)
 /* .shield.flush: Flush empties the shield cache.
  * This needs to be called before segments are destroyed as there
  * may be references to them in the cache.
+ *
+ * The memory for the segment may become spare, and not released back to
+ * the operating system. Since we keep track of protection on segments
+ * and not grains we have no way of keeping track of the protection
+ * state of spare grains. We therefore flush the protection to get it
+ * back into the default state (unprotected).
  */
 void (ShieldFlush)(Arena arena)
 {
@@ -249,7 +255,7 @@ void (ShieldFlush)(Arena arena)
   for(i = 0; i < arena->shCacheLimit; ++i) {
     if (arena->shDepth == 0)
       break;
-    flush(arena, i);
+    shieldFlushEntry(arena, i);
   }
 }
 
@@ -333,7 +339,7 @@ void (ShieldCover)(Arena arena, Seg seg)
   --arena->shDepth;
 
   /* ensure inv.unsynced.depth */
-  cache(arena, seg);
+  shieldCache(arena, seg);
 }
 
 
