@@ -131,7 +131,7 @@ Memory Management Glossary: C
 
         A cactus stack is a :term:`stack` with branches. When
         diagrammed, its shape resembles that of a `saguaro cactus
-        <http://en.wikipedia.org/wiki/Saguaro>`_.
+        <https://en.wikipedia.org/wiki/Saguaro>`_.
 
         In languages that support :term:`continuations`,
         :term:`activation records` can have :term:`indefinite extent`.

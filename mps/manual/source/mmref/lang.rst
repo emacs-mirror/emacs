@@ -233,7 +233,7 @@ Memory management in various languages
 
         Dylan is a modern programming language invented by Apple
         around 1993 and developed by `Harlequin
-        <http://en.wikipedia.org/wiki/Harlequin_(software_company)>`_
+        <https://en.wikipedia.org/wiki/Harlequin_(software_company)>`_
         and other partners. The language is a distillation of the best
         ideas in dynamic and object-oriented programming. Its
         ancestors include :term:`Lisp`, :term:`Smalltalk`, and
@@ -583,7 +583,7 @@ Memory management in various languages
 
         .. link::
 
-            `Harlequin RIP <http://en.wikipedia.org/wiki/Harlequin_RIP>`_.
+            `Harlequin RIP <https://en.wikipedia.org/wiki/Harlequin_RIP>`_.
 
     Prolog
 

@@ -1,7 +1,7 @@
 /* root.c: ROOT IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001-2015 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: This is the implementation of the root datatype.
  *
@@ -181,6 +181,7 @@ static Res rootCreate(Root *rootReturn, Arena arena,
   AVER(rootReturn != NULL);
   AVERT(Arena, arena);
   AVERT(Rank, rank);
+  AVERT(RootMode, mode);
   AVERT(RootVar, type);
   globals = ArenaGlobals(arena);
 
@@ -278,6 +279,7 @@ Res RootCreateArea(Root *rootReturn, Arena arena,
   AVER(rootReturn != NULL);
   AVERT(Arena, arena);
   AVERT(Rank, rank);
+  AVERT(RootMode, mode);
   AVER(base != 0);
   AVER(AddrIsAligned(base, sizeof(Word)));
   AVER(base < limit);
@@ -304,6 +306,7 @@ Res RootCreateAreaTagged(Root *rootReturn, Arena arena,
   AVER(rootReturn != NULL);
   AVERT(Arena, arena);
   AVERT(Rank, rank);
+  AVERT(RootMode, mode);
   AVER(base != 0);
   AVER(base < limit);
   /* Can't check anything about mask or pattern, as they could mean
@@ -387,6 +390,7 @@ Res RootCreateFmt(Root *rootReturn, Arena arena,
   AVER(rootReturn != NULL);
   AVERT(Arena, arena);
   AVERT(Rank, rank);
+  AVERT(RootMode, mode);
   AVER(FUNCHECK(scan));
   AVER(base != 0);
   AVER(base < limit);
@@ -793,7 +797,7 @@ Res RootsDescribe(Globals arenaGlobals, mps_lib_FILE *stream, Count depth)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2015 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

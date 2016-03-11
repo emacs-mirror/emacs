@@ -50,6 +50,7 @@ buffer_                 Allocation buffers and allocation points
 cbs_                    Coalescing block structures
 check_                  Checking
 class-interface_        Pool class interface
+clock_                  Fast high-resolution clock
 collection_             Collection framework
 config_                 MPS configuration
 critical-path_          The critical path through the MPS
@@ -127,6 +128,7 @@ writef_                 The WriteF function
 .. _buffer: buffer
 .. _cbs: cbs
 .. _check: check
+.. _clock: clock
 .. _class-interface: class-interface
 .. _collection: collection
 .. _config: config
@@ -235,7 +237,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2002-2015 Ravenbrook Limited. All rights reserved.
+Copyright © 2002-2016 Ravenbrook Limited. All rights reserved.
 <http://www.ravenbrook.com/>. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
