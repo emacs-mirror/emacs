@@ -1,7 +1,7 @@
 /* locus.c: LOCUS MANAGER
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  * DESIGN
  *
@@ -10,7 +10,7 @@
  * collection strategy.
  */
 
-#include "chain.h"
+#include "locus.h"
 #include "ring.h"
 #include "mpm.h"
 #include "mpstd.h"
@@ -766,7 +766,7 @@ Bool LocusCheck(Arena arena)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
