@@ -149,6 +149,7 @@ Bool ArenaCheck(Arena arena)
    */
   CHECKL(arena->committed <= arena->commitLimit);
   CHECKL(arena->spareCommitted <= arena->committed);
+  CHECKL(0.0 <= arena->pauseTime);
 
   CHECKL(ShiftCheck(arena->zoneShift));
   CHECKL(ArenaGrainSizeCheck(arena->grainSize));
@@ -199,6 +200,7 @@ Res ArenaInit(Arena arena, ArenaClass class, Size grainSize, ArgList args)
   Bool zoned = ARENA_DEFAULT_ZONED;
   Size commitLimit = ARENA_DEFAULT_COMMIT_LIMIT;
   Size spareCommitLimit = ARENA_DEFAULT_SPARE_COMMIT_LIMIT;
+  double pauseTime = ARENA_DEFAULT_PAUSE_TIME;
   mps_arg_s arg;
 
   AVER(arena != NULL);
@@ -211,6 +213,8 @@ Res ArenaInit(Arena arena, ArenaClass class, Size grainSize, ArgList args)
     commitLimit = arg.val.size;
   if (ArgPick(&arg, args, MPS_KEY_SPARE_COMMIT_LIMIT))
     spareCommitLimit = arg.val.size;
+  if (ArgPick(&arg, args, MPS_KEY_PAUSE_TIME))
+    pauseTime = arg.val.d;
 
   arena->class = class;
 
@@ -219,6 +223,7 @@ Res ArenaInit(Arena arena, ArenaClass class, Size grainSize, ArgList args)
   arena->commitLimit = commitLimit;
   arena->spareCommitted = (Size)0;
   arena->spareCommitLimit = spareCommitLimit;
+  arena->pauseTime = pauseTime;
   arena->grainSize = grainSize;
   /* zoneShift is usually overridden by init */
   arena->zoneShift = ARENA_ZONESHIFT;
@@ -294,6 +299,7 @@ ARG_DEFINE_KEY(ARENA_SIZE, Size);
 ARG_DEFINE_KEY(ARENA_ZONED, Bool);
 ARG_DEFINE_KEY(COMMIT_LIMIT, Size);
 ARG_DEFINE_KEY(SPARE_COMMIT_LIMIT, Size);
+ARG_DEFINE_KEY(PAUSE_TIME, double);
 
 static Res arenaFreeLandInit(Arena arena)
 {
@@ -1240,6 +1246,20 @@ void ArenaSetSpareCommitLimit(Arena arena, Size limit)
   }
 
   EVENT2(SpareCommitLimitSet, arena, limit);
+}
+
+double ArenaPauseTime(Arena arena)
+{
+  AVERT(Arena, arena);
+  return arena->pauseTime;
+}
+
+void ArenaSetPauseTime(Arena arena, double pauseTime)
+{
+  AVERT(Arena, arena);
+  AVER(0.0 <= pauseTime);
+  arena->pauseTime = pauseTime;
+  EVENT2(PauseTimeSet, arena, pauseTime);
 }
 
 /* Used by arenas which don't use spare committed memory */
