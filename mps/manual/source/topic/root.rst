@@ -79,17 +79,7 @@ reference>`, :term:`ambiguous <ambiguous reference>` or :term:`weak
     :term:`fix` references that point to memory not managed by the
     MPS. These will be ignored.
 
-.. note::
-
-    Creating a root with a scanning function may require passing a
-    pointer to a :term:`closure` object.  That closure object must
-    still be alive when the scanning function is called.  If you
-    allocate it on the stack, make sure that the scanning function is
-    only going to be called while that stack frame is still active
-    (for example, by creating such a root from the function within
-    which your whole program runs).
-
-    Roots can be deregistered at any time by calling
+Roots can be deregistered at any time by calling
 :c:func:`mps_root_destroy`. All roots registered in an :term:`arena`
 must be deregistered before the arena is destroyed.
 
@@ -521,8 +511,9 @@ Root interface
     :c:func:`mps_scan_area`, or a similar user-defined function. See
     :ref:`topic-scanning-area`.
 
-    ``closure`` is an arbitrary pointer that will be passed to ``scan_area``
-    and intended to point to any parameters it needs.
+    ``closure`` is an arbitrary pointer that will be passed to
+    ``scan_area`` and is intended to point to any parameters it needs.
+    Ensure anything it points to exists as long as the root exists.
 
     ``cold`` is a pointer to the :term:`cold end` of stack to be
     scanned. On platforms where the stack grows downwards (currently,
@@ -561,6 +552,7 @@ Root interface
 
     ``closure`` is an arbitrary pointer that will be passed to
     ``scan_area`` and intended to point to any parameters it needs.
+    Ensure anything it points to exists as long as the root exists.
 
     Returns :c:macro:`MPS_RES_OK` if the root was registered
     successfully, :c:macro:`MPS_RES_MEMORY` if the new root
