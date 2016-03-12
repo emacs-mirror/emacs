@@ -4,6 +4,7 @@ TEST_HEADER
  summary = arena_collect when lots of APs are in mid-cycle
  language = c
  link = testlib.o newfmt.o
+ parameters = VERBOSE=0 NCELLS 100 NAPS=100 ITERATIONS=100
 END_HEADER
 */
 
@@ -17,11 +18,8 @@ END_HEADER
 #include "newfmt.h"
 
 
-#define NCELLS 100
-#define NAPS 100
 #define PNULL (ranint(100)<25)
 #define NUMREFS (ranint(80))
-#define BLAH 0
 
 
 #define genCOUNT (3)
@@ -64,8 +62,8 @@ static void test(void)
  int nextid = 0x1000000;
 
  /* turn on comments about copying and scanning */
- formatcomments = BLAH;
- fixcomments = BLAH;
+ formatcomments = VERBOSE;
+ fixcomments = VERBOSE;
 
  cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE),
       "create arena");
@@ -96,8 +94,8 @@ static void test(void)
   0 after commit
  */
 
- for(h=0; h<100; h++) {
-   comment("%i of 100", h);
+ for(h=0; h<ITERATIONS; h++) {
+   comment("%i of %i", h, ITERATIONS);
 
    for(j=0; j<1000; j++) {
      if (j == 500) {
@@ -125,11 +123,11 @@ static void test(void)
        p[i]->data.tag = 0xD033E2A6;
        p[i]->data.id = nextid;
        ap_state[i] = 1;
-       commentif(BLAH, "%i: reserve %li at %p", i, nextid, q);
+       commentif(VERBOSE, "%i: reserve %li at %p", i, nextid, q);
        nextid +=1;
        break;
      case 1:
-       commentif(BLAH, "%i: init %li", i, p[i]->data.id);
+       commentif(VERBOSE, "%i: init %li", i, p[i]->data.id);
        p[i]->data.tag = MCdata;
        p[i]->data.numrefs = nrefs[i];
        p[i]->data.size = s[i];
@@ -144,22 +142,22 @@ static void test(void)
            p[i]->data.ref[k].addr = pobj;
            p[i]->data.ref[k].id = (pobj==NULL ? 0 : pobj->data.id);
          }
-         commentif(BLAH, "    ref %i -> %li", k, p[i]->data.ref[k].id);
+         commentif(VERBOSE, "    ref %i -> %li", k, p[i]->data.ref[k].id);
        }
        break;
      case 2:
-       commentif(BLAH, "%i: begin commit %li", i, p[i]->data.id);
+       commentif(VERBOSE, "%i: begin commit %li", i, p[i]->data.id);
        ambig[i] = p[i];
        ap[i]->init = ap[i]->alloc;
        ap_state[i] = 3;
        break;
      case 3:
-       commentif(BLAH, "%i: end commit %li", i, p[i]->data.id);
+       commentif(VERBOSE, "%i: end commit %li", i, p[i]->data.id);
        q=p[i];
        if (ap[i]->limit != 0 || mps_ap_trip(ap[i], p[i], s[i])) {
          l = ranint(NCELLS);
          setref(cells, l, q);
-         commentif(BLAH, "%i -> %i", i, l);
+         commentif(VERBOSE, "%i -> %i", i, l);
        }
        ap_state[i] = 0;
        ambig[i] = NULL;
@@ -178,15 +176,15 @@ static void test(void)
  for (i=0; i<NAPS; i++) {
   switch (ap_state[i]) {
    case 1:
-    commentif(BLAH, "%i init", i);
+    commentif(VERBOSE, "%i init", i);
     p[i]->data.tag = MCdata;
     p[i]->data.numrefs = 0;
     p[i]->data.size = s[i];
    case 2:
-    commentif(BLAH, "%i begin commit", i);
+    commentif(VERBOSE, "%i begin commit", i);
     ap[i]->init = ap[i]->alloc;
    case 3:
-    commentif(BLAH, "% end commit", i);
+    commentif(VERBOSE, "% end commit", i);
     (void) (ap[i]->limit != 0 || mps_ap_trip(ap[i], p[i], s[i]));
   }
   mps_ap_destroy(ap[i]);
