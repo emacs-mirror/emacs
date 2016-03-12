@@ -182,7 +182,7 @@ static Res ClientChunkInit(Chunk chunk, BootBlock boot)
 
 /* clientChunkDestroy -- destroy a ClientChunk */
 
-static Bool clientChunkDestroy(Tree tree, void *closureP, Size closureS)
+static Bool clientChunkDestroy(Tree tree, void *closure)
 {
   Arena arena;
   Chunk chunk;
@@ -190,10 +190,8 @@ static Bool clientChunkDestroy(Tree tree, void *closureP, Size closureS)
   Size size;
 
   AVERT(Tree, tree);
-  AVER(closureP == UNUSED_POINTER);
-  UNUSED(closureP);
-  AVER(closureS == UNUSED_SIZE);
-  UNUSED(closureS);
+  AVER(closure == UNUSED_POINTER);
+  UNUSED(closure);
   
   chunk = ChunkOfTree(tree);
   AVERT(Chunk, chunk);
@@ -337,7 +335,7 @@ static void ClientArenaFinish(Arena arena)
    * <design/arena/#chunk.delete> */
   arena->primary = NULL;
   TreeTraverseAndDelete(&arena->chunkTree, clientChunkDestroy,
-                        UNUSED_POINTER, UNUSED_SIZE);
+                        UNUSED_POINTER);
 
   clientArena->sig = SigInvalid;
 
