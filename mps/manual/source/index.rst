@@ -19,6 +19,7 @@ Appendices
 
     bib
     glossary/index
+    code-index
     copyright
     contact
     contributing

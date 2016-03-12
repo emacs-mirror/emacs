@@ -271,10 +271,10 @@ typedef void (*LandFinishMethod)(Land land);
 typedef Size (*LandSizeMethod)(Land land);
 typedef Res (*LandInsertMethod)(Range rangeReturn, Land land, Range range);
 typedef Res (*LandDeleteMethod)(Range rangeReturn, Land land, Range range);
-typedef Bool (*LandVisitor)(Land land, Range range, void *closureP, Size closureS);
-typedef Bool (*LandDeleteVisitor)(Bool *deleteReturn, Land land, Range range, void *closureP, Size closureS);
-typedef Bool (*LandIterateMethod)(Land land, LandVisitor visitor, void *closureP, Size closureS);
-typedef Bool (*LandIterateAndDeleteMethod)(Land land, LandDeleteVisitor visitor, void *closureP, Size closureS);
+typedef Bool (*LandVisitor)(Land land, Range range, void *closure);
+typedef Bool (*LandDeleteVisitor)(Bool *deleteReturn, Land land, Range range, void *closure);
+typedef Bool (*LandIterateMethod)(Land land, LandVisitor visitor, void *closure);
+typedef Bool (*LandIterateAndDeleteMethod)(Land land, LandDeleteVisitor visitor, void *closure);
 typedef Bool (*LandFindMethod)(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete);
 typedef Res (*LandFindInZonesMethod)(Bool *foundReturn, Range rangeReturn, Range oldRangeReturn, Land land, Size size, ZoneSet zoneSet, Bool high);
 typedef Res (*LandDescribeMethod)(Land land, mps_lib_FILE *stream, Count depth);
@@ -360,9 +360,10 @@ enum {
 
 enum {
   RootFUN,
-  RootTABLE,
-  RootTABLE_MASKED,
-  RootREG,
+  RootAREA,
+  RootAREA_TAGGED,
+  RootTHREAD,
+  RootTHREAD_TAGGED,
   RootFMT,
   RootLIMIT
 };
