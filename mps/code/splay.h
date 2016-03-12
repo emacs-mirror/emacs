@@ -16,9 +16,9 @@
 typedef struct SplayTreeStruct *SplayTree;
 
 typedef Bool (*SplayTestNodeFunction)(SplayTree splay, Tree node,
-                                      void *closureP, Size closureS);
+                                      void *closure);
 typedef Bool (*SplayTestTreeFunction)(SplayTree splay, Tree node,
-                                      void *closureP, Size closureS);
+                                      void *closure);
 
 typedef void (*SplayUpdateNodeFunction)(SplayTree splay, Tree node);
 extern void SplayTrivUpdate(SplayTree splay, Tree node);
@@ -58,15 +58,15 @@ extern Tree SplayTreeNext(SplayTree splay, TreeKey oldKey);
 typedef Bool (*SplayFindFunction)(Tree *nodeReturn, SplayTree splay,
                                   SplayTestNodeFunction testNode,
                                   SplayTestTreeFunction testTree,
-                                  void *closureP, Size closureS);
+                                  void *closure);
 extern Bool SplayFindFirst(Tree *nodeReturn, SplayTree splay,
                            SplayTestNodeFunction testNode,
                            SplayTestTreeFunction testTree,
-                           void *closureP, Size closureS);
+                           void *closure);
 extern Bool SplayFindLast(Tree *nodeReturn, SplayTree splay,
                           SplayTestNodeFunction testNode,
                           SplayTestTreeFunction testTree,
-                          void *closureP, Size closureS);
+                          void *closure);
 
 extern void SplayNodeRefresh(SplayTree splay, Tree node);
 extern void SplayNodeInit(SplayTree splay, Tree node);
