@@ -511,8 +511,9 @@ Root interface
     :c:func:`mps_scan_area`, or a similar user-defined function. See
     :ref:`topic-scanning-area`.
 
-    ``closure`` is an arbitrary pointer that will be passed to ``scan_area``
-    and intended to point to any parameters it needs.
+    ``closure`` is an arbitrary pointer that will be passed to
+    ``scan_area`` and is intended to point to any parameters it needs.
+    Ensure anything it points to exists as long as the root exists.
 
     ``cold`` is a pointer to the :term:`cold end` of stack to be
     scanned. On platforms where the stack grows downwards (currently,
@@ -551,6 +552,7 @@ Root interface
 
     ``closure`` is an arbitrary pointer that will be passed to
     ``scan_area`` and intended to point to any parameters it needs.
+    Ensure anything it points to exists as long as the root exists.
 
     Returns :c:macro:`MPS_RES_OK` if the root was registered
     successfully, :c:macro:`MPS_RES_MEMORY` if the new root
@@ -580,8 +582,9 @@ Root interface
 
     ``scan_area`` is an tagged area scanning function that will be
     used to scan the area, for example :c:func:`mps_scan_area_tagged`
-    or :c:func:`mps_scan_area_tagged_or_zero`.  See
-    :ref:`topic-scanning-area`.
+    or :c:func:`mps_scan_area_tagged_or_zero`.  The ``closure``
+    argument to ``scan_area`` is a :c:type:`mps_scan_tag_t` cast to
+    ``void *`` See :ref:`topic-scanning-area`.
 
     ``mask`` is a :term:`bitmask` that is passed to ``scan_area`` to
     be applied to the words in the vector to locate the :term:`tag`.
