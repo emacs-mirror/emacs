@@ -374,7 +374,7 @@ Bool PolicyPollAgain(Arena arena, Clock start, Bool moreWork, Work tracedWork)
 
   /* Is there more work to do and more time to do it in? */
   if ((moreWork || ArenaEmergency(arena))
-      && ClockNow() < start + ArenaPauseTime(arena))
+      && (ClockNow() - start) < ArenaPauseTime(arena) * ClocksPerSec())
   {
     return TRUE;
   } else {
