@@ -735,14 +735,12 @@ void (ArenaPoll)(Globals globals)
     if (moreWork) {
       workWasDone = TRUE;
     }
-  } while (PolicyPollAgain(arena, moreWork, tracedWork));
+  } while (PolicyPollAgain(arena, start, moreWork, tracedWork));
 
   /* Don't count time spent checking for work, if there was no work to do. */
   if (workWasDone) {
     ArenaAccumulateTime(arena, start);
   }
-
-  AVER(!PolicyPoll(arena));
 
   EVENT3(ArenaPoll, arena, start, BOOLOF(workWasDone));
 

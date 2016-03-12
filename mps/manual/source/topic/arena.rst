@@ -155,7 +155,7 @@ Client arenas
       :term:`fragmentation` and :term:`retention`.
 
     * :c:macro:`MPS_KEY_PAUSE_TIME` (type :c:type:`double`, default
-      0.0) is the maximum time, in seconds, that operations within the
+      0.1) is the maximum time, in seconds, that operations within the
       arena may pause the :term:`client program` for. See
       :c:func:`mps_arena_pause_time_set` for details.
 
@@ -268,7 +268,7 @@ Virtual memory arenas
       for details.
 
     * :c:macro:`MPS_KEY_PAUSE_TIME` (type :c:type:`double`, default
-      0.0) is the maximum time, in seconds, that operations within the
+      0.1) is the maximum time, in seconds, that operations within the
       arena may pause the :term:`client program` for. See
       :c:func:`mps_arena_pause_time_set` for details.
 

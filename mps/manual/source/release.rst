@@ -20,6 +20,10 @@ New features
    current value can be retrieved by the new function
    :c:func:`mps_arena_pause_time`.
 
+   The maximum pause time defaults to 0.1 seconds. For the old
+   behaviour (whereby the MPS always returned to the :term:`client
+   program` as soon as possible), set it to zero.
+
 #. When creating an :ref:`pool-amc` pool, :c:func:`mps_pool_create_k`
    accepts the new keyword argument :c:macro:`MPS_KEY_EXTEND_BY`,
    specifying the minimum size of the memory segments that the pool
