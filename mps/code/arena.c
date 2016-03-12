@@ -1332,6 +1332,7 @@ Size ArenaAvail(Arena arena)
      this information from the operating system.  It also depends on the
      arena class, of course. */
 
+  AVER(sSwap >= arena->committed);
   return sSwap - arena->committed + arena->spareCommitted;
 }
 
@@ -1341,7 +1342,19 @@ Size ArenaAvail(Arena arena)
 Size ArenaCollectable(Arena arena)
 {
   /* Conservative estimate -- see job003929. */
-  return ArenaCommitted(arena) - ArenaSpareCommitted(arena);
+  return ArenaScannable(arena);
+}
+
+
+/* ArenaScannable -- return estimate of scannable memory in arena */
+
+Size ArenaScannable(Arena arena)
+{
+  /* Conservative estimate -- see job003929. */
+  Size committed = ArenaCommitted(arena);
+  Size spareCommitted = ArenaSpareCommitted(arena);
+  AVER(committed >= spareCommitted);
+  return committed - spareCommitted;
 }
 
 

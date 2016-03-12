@@ -109,7 +109,7 @@ void ScanStateInit(ScanState ss, TraceSet ts, Arena arena,
   STATISTIC(ss->preservedInPlaceCount = (Count)0);
   ss->preservedInPlaceSize = (Size)0; /* see .message.data */
   STATISTIC(ss->copiedSize = (Size)0);
-  ss->scannedSize = (Size)0; /* see .workclock */
+  ss->scannedSize = (Size)0; /* see .work */
   ss->sig = ScanStateSig;
 
   AVERT(ScanState, ss);
@@ -158,6 +158,7 @@ Bool TraceCheck(Trace trace)
   /* Use trace->state to check more invariants. */
   switch(trace->state) {
     case TraceINIT:
+      CHECKL(!TraceSetIsMember(trace->arena->flippedTraces, trace));
       /* @@@@ What can be checked here? */
       break;
 
@@ -276,7 +277,7 @@ static void traceUpdateCounts(Trace trace, ScanState ss,
       break;
     }
     case traceAccountingPhaseSegScan: {
-      trace->segScanSize += ss->scannedSize; /* see .workclock */
+      trace->segScanSize += ss->scannedSize; /* see .work */
       trace->segCopiedSize += ss->copiedSize;
       STATISTIC(++trace->segScanCount);
       break;
@@ -421,6 +422,9 @@ Res TraceCondemnZones(Trace trace, ZoneSet condemnedSet)
       }
     } while (SegNext(&seg, arena, seg));
   }
+
+  if (!haveWhiteSegs)
+    return ResFAIL;
 
   EVENT3(TraceCondemnZones, trace, condemnedSet, trace->white);
 
@@ -693,14 +697,14 @@ found:
   trace->condemned = (Size)0;   /* nothing condemned yet */
   trace->notCondemned = (Size)0;
   trace->foundation = (Size)0;  /* nothing grey yet */
-  trace->rate = (Size)0;        /* no scanning to be done yet */
+  trace->quantumWork = (Work)0; /* no work done yet */
   STATISTIC(trace->greySegCount = (Count)0);
   STATISTIC(trace->greySegMax = (Count)0);
   STATISTIC(trace->rootScanCount = (Count)0);
   trace->rootScanSize = (Size)0;
   trace->rootCopiedSize = (Size)0;
   STATISTIC(trace->segScanCount = (Count)0);
-  trace->segScanSize = (Size)0; /* see .workclock */
+  trace->segScanSize = (Size)0; /* see .work */
   trace->segCopiedSize = (Size)0;
   STATISTIC(trace->singleScanCount = (Count)0);
   STATISTIC(trace->singleScanSize = (Size)0);
@@ -755,7 +759,25 @@ found:
 }
 
 
-/* TraceDestroy -- destroy a trace object
+/* TraceDestroyInit -- destroy a trace object in state INIT */
+
+void TraceDestroyInit(Trace trace)
+{
+  AVERT(Trace, trace);
+  AVER(trace->state == TraceINIT);
+  AVER(trace->condemned == 0);
+
+  EVENT1(TraceDestroy, trace);
+
+  trace->sig = SigInvalid;
+  trace->arena->busyTraces = TraceSetDel(trace->arena->busyTraces, trace);
+
+  /* Clear the emergency flag so the next trace starts normally. */
+  ArenaSetEmergency(trace->arena, FALSE);
+}
+
+
+/* TraceDestroyFinished -- destroy a trace object in state FINISHED
  *
  * Finish and deallocate a Trace object, freeing up a TraceId.
  *
@@ -764,7 +786,7 @@ found:
  * etc. would need to be reset to black.  This also means the error
  * paths in this file don't work.  @@@@ */
 
-void TraceDestroy(Trace trace)
+void TraceDestroyFinished(Trace trace)
 {
   AVERT(Trace, trace);
   AVER(trace->state == TraceFINISHED);
@@ -809,6 +831,9 @@ void TraceDestroy(Trace trace)
   trace->sig = SigInvalid;
   trace->arena->busyTraces = TraceSetDel(trace->arena->busyTraces, trace);
   trace->arena->flippedTraces = TraceSetDel(trace->arena->flippedTraces, trace);
+
+  /* Hopefully the trace reclaimed some memory, so clear any emergency. */
+  ArenaSetEmergency(trace->arena, FALSE);
 }
 
 
@@ -1481,6 +1506,9 @@ static Res traceCondemnAll(Trace trace)
     }
   }
 
+  if (!haveWhiteSegs)
+    return ResFAIL;
+
   /* Notify all the chains. */
   RING_FOR(chainNode, &arena->chainRing, nextChainNode) {
     Chain chain = RING_ELT(Chain, chainRing, chainNode);
@@ -1556,6 +1584,7 @@ Res TraceStart(Trace trace, double mortality, double finishingTime)
   AVER(0.0 <= mortality);
   AVER(mortality <= 1.0);
   AVER(finishingTime >= 0.0);
+  AVER(trace->condemned > 0);
 
   arena = trace->arena;
   
@@ -1616,8 +1645,10 @@ Res TraceStart(Trace trace, double mortality, double finishingTime)
     /* integer, so try to make sure it fits. */
     if(nPolls >= (double)LONG_MAX)
       nPolls = (double)LONG_MAX;
-    /* rate equals scanning work per number of polls available */
-    trace->rate = (trace->foundation + sSurvivors) / (unsigned long)nPolls + 1;
+    /* One quantum of work equals scanning work divided by number of
+     * polls, plus one to ensure it's not zero. */
+    trace->quantumWork
+      = (trace->foundation + sSurvivors) / (unsigned long)nPolls + 1;
   }
 
   /* TODO: compute rate of scanning here. */
@@ -1625,11 +1656,11 @@ Res TraceStart(Trace trace, double mortality, double finishingTime)
   EVENT8(TraceStart, trace, mortality, finishingTime,
          trace->condemned, trace->notCondemned,
          trace->foundation, trace->white,
-         trace->rate);
+         trace->quantumWork);
 
   STATISTIC_STAT(EVENT7(TraceStatCondemn, trace,
                         trace->condemned, trace->notCondemned,
-                        trace->foundation, trace->rate,
+                        trace->foundation, trace->quantumWork,
                         mortality, finishingTime));
 
   trace->state = TraceUNFLIPPED;
@@ -1640,14 +1671,23 @@ Res TraceStart(Trace trace, double mortality, double finishingTime)
 }
 
 
+/* traceWork -- a measure of the work done for this trace
+ *
+ * .work: Segment and root scanning work is the measure.  */
+
+#define traceWork(trace) ((Work)((trace)->segScanSize + (trace)->rootScanSize))
+
+
 /* TraceAdvance -- progress a trace by one step */
 
 void TraceAdvance(Trace trace)
 {
   Arena arena;
+  Work oldWork, newWork;
 
   AVERT(Trace, trace);
   arena = trace->arena;
+  oldWork = traceWork(trace);
 
   switch (trace->state) {
   case TraceUNFLIPPED:
@@ -1676,6 +1716,10 @@ void TraceAdvance(Trace trace)
     NOTREACHED;
     break;
   }
+
+  newWork = traceWork(trace);
+  AVER(newWork >= oldWork);
+  arena->tracedWork += newWork - oldWork;
 }
 
 
@@ -1720,32 +1764,24 @@ failStart:
      if the assertion isn't hit, so drop through anyway. */
   NOTREACHED;
 failCondemn:
-  TraceDestroy(trace);
-  /* We don't know how long it'll be before another collection.  Make sure
-     the next one starts in normal mode. */
-  ArenaSetEmergency(arena, FALSE);
+  TraceDestroyInit(trace);
   return res;
 }
-
-
-/* traceWorkClock -- a measure of the work done for this trace
- *
- * .workclock: Segment and root scanning work is the regulator.  */
-
-#define traceWorkClock(trace) ((trace)->segScanSize + (trace)->rootScanSize)
 
 
 /* TracePoll -- Check if there's any tracing work to be done
  *
  * Consider starting a trace if none is running; advance the running
- * trace (if any) by one quantum. Return a measure of the work done.
+ * trace (if any) by one quantum. If there may be more work to do,
+ * update *workReturn with a measure of the work done and return TRUE.
+ * Otherwise return FALSE.
  */
 
-Size TracePoll(Globals globals)
+Bool TracePoll(Work *workReturn, Globals globals)
 {
   Trace trace;
   Arena arena;
-  Size oldScannedSize, scannedSize, pollEnd;
+  Work oldWork, newWork, work, endWork;
 
   AVERT(Globals, globals);
   arena = GlobalsArena(globals);
@@ -1755,24 +1791,22 @@ Size TracePoll(Globals globals)
   } else {
     /* No traces are running: consider starting one now. */
     if (!PolicyStartTrace(&trace, arena))
-      return (Size)0;
+      return FALSE;
   }
 
   AVER(arena->busyTraces == TraceSetSingle(trace));
-  oldScannedSize = traceWorkClock(trace);
-  pollEnd = oldScannedSize + trace->rate;
+  oldWork = traceWork(trace);
+  endWork = oldWork + trace->quantumWork;
   do {
     TraceAdvance(trace);
-  } while (trace->state != TraceFINISHED
-           && (ArenaEmergency(arena) || traceWorkClock(trace) < pollEnd));
-  scannedSize = traceWorkClock(trace) - oldScannedSize;
-  if (trace->state == TraceFINISHED) {
-    TraceDestroy(trace);
-    /* A trace finished, and hopefully reclaimed some memory, so clear any
-     * emergency. */
-    ArenaSetEmergency(arena, FALSE);
-  }
-  return scannedSize;
+  } while (trace->state != TraceFINISHED && traceWork(trace) < endWork);
+  newWork = traceWork(trace);
+  AVER(newWork >= oldWork);
+  work = newWork - oldWork;
+  if (trace->state == TraceFINISHED)
+    TraceDestroyFinished(trace);
+  *workReturn = work;
+  return TRUE;
 }
 
 
@@ -1810,7 +1844,7 @@ Res TraceDescribe(Trace trace, mps_lib_FILE *stream, Count depth)
                "  condemned $U\n", (WriteFU)trace->condemned,
                "  notCondemned $U\n", (WriteFU)trace->notCondemned,
                "  foundation $U\n", (WriteFU)trace->foundation,
-               "  rate $U\n", (WriteFU)trace->rate,
+               "  quantumWork $U\n", (WriteFU)trace->quantumWork,
                "  rootScanSize $U\n", (WriteFU)trace->rootScanSize,
                "  rootCopiedSize $U\n", (WriteFU)trace->rootCopiedSize,
                "  segScanSize $U\n", (WriteFU)trace->segScanSize,

@@ -572,25 +572,28 @@ void ArenaPark(Globals globals)
   TraceId ti;
   Trace trace;
   Arena arena;
+  Clock start;
 
   AVERT(Globals, globals);
   arena = GlobalsArena(globals);
 
   globals->clamped = TRUE;
+  start = ClockNow();
 
   while(arena->busyTraces != TraceSetEMPTY) {
     /* Advance all active traces. */
     TRACE_SET_ITER(ti, trace, arena->busyTraces, arena)
       TraceAdvance(trace);
       if(trace->state == TraceFINISHED) {
-        TraceDestroy(trace);
+        TraceDestroyFinished(trace);
       }
     TRACE_SET_ITER_END(ti, trace, arena->busyTraces, arena);
   }
-  
-  /* Clear any emergency flag so that the next collection starts normally.
-     Any traces that have been finished may have reclaimed memory. */
-  ArenaSetEmergency(arena, FALSE);
+
+  ArenaAccumulateTime(arena, start);
+
+  /* All traces have finished so there must not be an emergency. */
+  AVER(!ArenaEmergency(arena));
 }
 
 /* ArenaStartCollect -- start a collection of everything in the

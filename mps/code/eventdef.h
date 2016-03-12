@@ -448,7 +448,7 @@
   PARAM(X,  1, W, condemned) \
   PARAM(X,  2, W, notCondemned) \
   PARAM(X,  3, W, foundation) \
-  PARAM(X,  4, W, rate) \
+  PARAM(X,  4, W, quantumWork) \
   PARAM(X,  5, D, mortality) \
   PARAM(X,  6, D, finishingTime)
 
@@ -656,7 +656,7 @@
 #define EVENT_ArenaPoll_PARAMS(PARAM, X) \
   PARAM(X,  0, P, arena) \
   PARAM(X,  1, W, start) \
-  PARAM(X,  2, W, quanta)
+  PARAM(X,  2, B, workWasDone)
 
 #define EVENT_ArenaSetEmergency_PARAMS(PARAM, X) \
   PARAM(X,  0, P, arena) \
@@ -675,7 +675,7 @@
   PARAM(X,  4, W, notCondemned) /* collectible but not condemned bytes */ \
   PARAM(X,  5, W, foundation)   /* foundation size */ \
   PARAM(X,  6, W, white)        /* white reference set */ \
-  PARAM(X,  7, W, rate)         /* segs to scan per increment */
+  PARAM(X,  7, W, quantumWork)  /* work constituting a quantum */
 
 #define EVENT_VMCompact_PARAMS(PARAM, X) \
   PARAM(X,  0, W, vmem0)        /* pre-collection reserved size */ \

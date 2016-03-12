@@ -456,22 +456,21 @@ for example job003898_.
 Deciding whether to collect the world
 .....................................
 
-``Bool PolicyShouldCollectWorld(Arena arena, double interval, double multiplier, Clock now, Clock clocks_per_sec)``
+``Bool PolicyShouldCollectWorld(Arena arena, double availableTime, Clock now, Clock clocks_per_sec)``
 
 _`.policy.world`: Determine whether now is a good time for
 ``mps_arena_step()`` to start a collection of the world. Return
-``TRUE`` if so, ``FALSE`` if not. The ``interval`` and ``multiplier``
-arguments are the ones the client program passed to
-``mps_arena_step()``, ``now`` is the current time as returned by
-``ClockNow()``, and ``clocks_per_sec`` is the result of calling
-``ClocksPerSec()``.
+``TRUE`` if so, ``FALSE`` if not. The ``availableTime`` argument is an
+estimate of the time that's available for the collection, ``now`` is
+the current time as returned by ``ClockNow()``, and ``clocks_per_sec``
+is the result of calling ``ClocksPerSec()``.
 
-_`.policy.world.impl`: There are two conditions: the client program's
-estimate of the available time must be enough to complete the
-collection, and the last collection of the world must be long enough
-in the past that the ``mps_arena_step()`` won't be spending more than
-a certain fraction of runtime in collections. (This fraction is given
-by the ``ARENA_MAX_COLLECT_FRACTION`` configuration parameter.)
+_`.policy.world.impl`: There are two conditions: the estimate of the
+available time must be enough to complete the collection, and the last
+collection of the world must be long enough in the past that the
+``mps_arena_step()`` won't be spending more than a certain fraction of
+runtime in collections. (This fraction is given by the
+``ARENA_MAX_COLLECT_FRACTION`` configuration parameter.)
 
 
 

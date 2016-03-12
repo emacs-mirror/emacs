@@ -38,6 +38,7 @@ typedef Word Size;                      /* <design/type/#size> */
 typedef Word Count;                     /* <design/type/#count> */
 typedef Word Index;                     /* <design/type/#index> */
 typedef Word Align;                     /* <design/type/#align> */
+typedef Word Work;                      /* <design/type/#work> */
 typedef unsigned Shift;                 /* <design/type/#shift> */
 typedef unsigned Serial;                /* <design/type/#serial> */
 typedef Addr Ref;                       /* <design/type/#ref> */
