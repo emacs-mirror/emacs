@@ -212,6 +212,8 @@ static void testInArena(mps_arena_class_t arena_class, mps_arg_s *arena_args,
                mps_class_mfs(), args), "stress MFS");
   } MPS_ARGS_END(args);
 
+  /* Manual allocation should not cause any garbage collections. */
+  Insist(mps_collections(arena) == 0);
   mps_arena_destroy(arena);
 }
 
