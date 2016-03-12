@@ -585,18 +585,16 @@ failBlockPoolInit:
 /* MVFFFinish -- finish method for MVFF */
 
 static Bool mvffFinishVisitor(Bool *deleteReturn, Land land, Range range,
-                              void *closureP, Size closureS)
+                              void *closure)
 {
   Pool pool;
 
   AVER(deleteReturn != NULL);
   AVERT(Land, land);
   AVERT(Range, range);
-  AVER(closureP != NULL);
-  pool = closureP;
+  AVER(closure != NULL);
+  pool = closure;
   AVERT(Pool, pool);
-  AVER(closureS == UNUSED_SIZE);
-  UNUSED(closureS);
 
   ArenaFree(RangeBase(range), RangeSize(range), pool);
   *deleteReturn = TRUE;
@@ -613,8 +611,7 @@ static void MVFFFinish(Pool pool)
   AVERT(MVFF, mvff);
   mvff->sig = SigInvalid;
 
-  b = LandIterateAndDelete(MVFFTotalLand(mvff), mvffFinishVisitor, pool,
-                           UNUSED_SIZE);
+  b = LandIterateAndDelete(MVFFTotalLand(mvff), mvffFinishVisitor, pool);
   AVER(b);
   AVER(LandSize(MVFFTotalLand(mvff)) == 0);
 

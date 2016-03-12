@@ -204,7 +204,7 @@ set the ``AttrGC`` attribute.
 
 _`.method.walk`: The ``walk`` method is used by the heap walker. The
 ``walk`` method should apply the visitor function (along with its
-closure parameters and the object format) to all *black* objects in
+closure parameter and the object format) to all *black* objects in
 the segment. Padding objects may or may not be included in the walk at
 the classes discretion, in any case in will be the responsibility of
 the client to do something sensible with padding objects. Forwarding

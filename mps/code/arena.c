@@ -406,13 +406,11 @@ void ArenaFinish(Arena arena)
 /* ArenaDestroy -- destroy the arena */
 
 static void arenaMFSPageFreeVisitor(Pool pool, Addr base, Size size,
-                                    void *closureP, Size closureS)
+                                    void *closure)
 {
   AVERT(Pool, pool);
-  AVER(closureP == UNUSED_POINTER);
-  AVER(closureS == UNUSED_SIZE);
-  UNUSED(closureP);
-  UNUSED(closureS);
+  AVER(closure == UNUSED_POINTER);
+  UNUSED(closure);
   UNUSED(size);
   AVER(size == ArenaGrainSize(PoolArena(pool)));
   arenaFreePage(PoolArena(pool), base, pool);
@@ -431,7 +429,7 @@ static void arenaFreeLandFinish(Arena arena)
   /* The CBS block pool can't free its own memory via ArenaFree because
    * that would use the free land. */
   MFSFinishTracts(ArenaCBSBlockPool(arena), arenaMFSPageFreeVisitor,
-                  UNUSED_POINTER, UNUSED_SIZE);
+                  UNUSED_POINTER);
 
   arena->hasFreeLand = FALSE;
   LandFinish(ArenaFreeLand(arena));
