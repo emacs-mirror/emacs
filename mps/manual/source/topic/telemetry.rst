@@ -6,16 +6,16 @@ Telemetry
 =========
 
 In its :term:`cool` and :term:`hot` :term:`varieties`, the MPS is
-capable of outputting a configurable stream of events to assist with
-debugging and profiling.
+capable of outputting a configurable stream of events (the
+:term:`telemetry stream`) to assist with debugging and profiling.
 
 The selection of events that appear in the stream is controlled by the
 environment variable :envvar:`MPS_TELEMETRY_CONTROL` (by default
 none), and the stream is written to the file named by the environment
 variable :envvar:`MPS_TELEMETRY_FILENAME` (by default ``mpsio.log``).
 
-The telemetry system writes blocks of binary output, and is fast
-enough to be left turned on in production code (the :term:`hot`
+The :term:`telemetry system` writes blocks of binary output, and is
+fast enough to be left turned on in production code (the :term:`hot`
 variety avoids emitting events on the :term:`critical path`), which
 can be useful for diagnosing memory management problems in production
 environments.
@@ -48,6 +48,8 @@ demonstration of :term:`Lisp` in an appendix to his paper
 
 .. index::
    single: telemetry; utilities
+
+.. _topic-telemetry-utilities:
 
 Telemetry utilities
 -------------------
@@ -120,7 +122,7 @@ second column, and then addresses or other data related to the event
 in the remaining columns. The source of the timestamp depends on the
 platform; it may be a low-cost high-resolution processor timer, such
 as the `Time Stamp Counter
-<http://en.wikipedia.org/wiki/Time_Stamp_Counter>`_ on IA-32 and
+<https://en.wikipedia.org/wiki/Time_Stamp_Counter>`_ on IA-32 and
 x86-64, if one is available. All numbers are given in hexadecimal. ::
 
     000AE03973336E3C 002B VMCreate            vm:00000001003FC000 base:00000001003FD000 limit:00000001003FE000 

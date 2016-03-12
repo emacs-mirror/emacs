@@ -398,16 +398,16 @@ And here's how it shows up in the debugger:
     #3  0x00000001000014e3 in obj_skip (base=0x1003f9b88) at scheme.c:2940
     2940            assert(0);
     (gdb) list
-    2935	    break;
-    2936	  case TYPE_PAD1:
-    2937	    base = (char *)base + ALIGN_OBJ(sizeof(pad1_s));
-    2938	    break;
-    2939	  default:
-    2940	    assert(0);
-    2941	    fprintf(stderr, "Unexpected object on the heap\n");
-    2942	    abort();
-    2943	    return NULL;
-    2944	  }
+    2935            break;
+    2936          case TYPE_PAD1:
+    2937            base = (char *)base + ALIGN_OBJ(sizeof(pad1_s));
+    2938            break;
+    2939          default:
+    2940            assert(0);
+    2941            fprintf(stderr, "Unexpected object on the heap\n");
+    2942            abort();
+    2943            return NULL;
+    2944          }
 
 The object being skipped is corrupt::
 

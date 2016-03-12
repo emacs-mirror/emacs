@@ -90,7 +90,7 @@ Result codes
 .. c:macro:: MPS_RES_IO
 
     A :term:`result code` indicating that an input/output error
-    occurred in the :term:`telemetry` system.
+    occurred in the :term:`telemetry system`.
 
 
 .. c:macro:: MPS_RES_LIMIT
