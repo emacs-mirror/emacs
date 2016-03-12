@@ -104,8 +104,6 @@ _`.mod.prmc`: Protection mutator context. See design.mps.prmc_.
 
 _`.mod.prot`: Memory protection. See design.mps.prot_.
 
-_`.mod.ss`: Stack and register scanning. See design.mps.ss_.
-
 _`.mod.sp`: Stack probe. See design.mps.sp_.
 
 _`.mod.th`: Thread manager. See design.mps.thread-manager_.
@@ -116,7 +114,6 @@ _`.mod.vm`: Virtual mapping. See design.mps.vm_.
 .. _design.mps.prot: prot
 .. _design.mps.prmc: prmc
 .. _design.mps.sp: sp
-.. _design.mps.ss: ss
 .. _design.mps.thread-manager: thread-manager
 .. _design.mps.vm: vm
 
@@ -143,9 +140,6 @@ _`.lim.sp`: Only suitable for use with programs that do not handle
 stack overflow faults, or do not call into the MPS from the handler
 (see design.mps.sp.issue.an_).
 
-_`.lim.ss`: Overscans compared to a platform-specific implementation
-(see design.mps.stack-scan.impl.an_).
-
 _`.lim.th`: Requires a single-threaded mutator (see
 design.mps.thread-manager.impl.an.single_).
 
@@ -159,7 +153,6 @@ platform-specific implementation.
 .. _design.mps.prot.impl.an.sync: prot#impl.an.sync
 .. _design.mps.prot.impl.an.sync.issue: prot#impl.an.sync.issue
 .. _design.mps.sp.issue.an: sp#issue.an
-.. _design.mps.ss.impl.an: ss#impl.an
 .. _design.mps.thread-manager.impl.an.single: thread-manager#impl.an.single
 .. _design.mps.vm.impl.an.reserve: vm#impl.an.reserve
 
