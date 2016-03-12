@@ -1,13 +1,13 @@
 /* trace.c: GENERIC TRACER IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001-2015 Ravenbrook Limited.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.
  * See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .design: <design/trace/>.  */
 
-#include "chain.h"
+#include "locus.h"
 #include "mpm.h"
 #include <limits.h> /* for LONG_MAX */
 
@@ -1445,108 +1445,33 @@ void TraceScanSingleRef(TraceSet ts, Rank rank, Arena arena,
 }
 
 
-/* TraceScanArea -- scan contiguous area of references
+/* TraceScanArea -- scan an area of memory for references
  *
- * This is a convenience function for scanning the contiguous area
- * [base, limit).  I.e., it calls Fix on all words from base up to
- * limit, inclusive of base and exclusive of limit.  */
+ * This is a wrapper for area scanning functions, which should not
+ * otherwise be called directly from within the MPS.  This function
+ * checks arguments and takes care of accounting for the scanned
+ * memory.
+ *
+ * c.f. FormatScan()
+ */
 
-Res TraceScanArea(ScanState ss, Addr *base, Addr *limit)
+Res TraceScanArea(ScanState ss, Word *base, Word *limit,
+                  mps_area_scan_t scan_area,
+                  void *closure)
 {
-  Res res;
-  Addr *p;
-  Ref ref;
-
+  AVERT(ScanState, ss);
   AVER(base != NULL);
   AVER(limit != NULL);
   AVER(base < limit);
 
   EVENT3(TraceScanArea, ss, base, limit);
 
-  TRACE_SCAN_BEGIN(ss) {
-    p = base;
-  loop:
-    if (p >= limit)
-      goto out;
-    ref = *p++;
-    if(!TRACE_FIX1(ss, ref))
-      goto loop;
-    res = TRACE_FIX2(ss, p-1);
-    if(res == ResOK)
-      goto loop;
-    return res;
-  out:
-    AVER(p == limit);
-  } TRACE_SCAN_END(ss);
-
-  return ResOK;
-}
-
-
-/* TraceScanAreaTagged -- scan contiguous area of tagged references
- *
- * .tagging: This is as TraceScanArea except words are only fixed they are
- * tagged as zero according to the alignment of a Word.
- *
- * See also PoolSingleAccess <code/poolabs.c#.tagging>.
- *
- * TODO: Generalise the handling of tags so that pools can decide how
- * their objects are tagged. This may use the user defined format
- * to describe how tags are done */
-Res TraceScanAreaTagged(ScanState ss, Addr *base, Addr *limit)
-{
-  Word mask;
+  /* scannedSize is accumulated whether or not scan_area succeeds, so
+     it's safe to accumulate now so that we can tail-call
+     scan_area. */
+  ss->scannedSize += AddrOffset(base, limit);
   
-  /* NOTE: An optimisation that maybe worth considering is setting some of the
-   * top bits in the mask as an early catch of addresses outside the arena.
-   * This might help slightly on 64-bit windows. However these are picked up
-   * soon afterwards by later checks.  The bottom bits are more important
-   * to check as we ignore them in AMCFix, so the non-reference could
-   * otherwise end up pinning an object. */
-  mask = sizeof(Word) - 1;
-  AVER(WordIsP2(mask + 1));
-  return TraceScanAreaMasked(ss, base, limit, mask);
-}
-
-
-/* TraceScanAreaMasked -- scan contiguous area of filtered references
- *
- * This is as TraceScanArea except words are only fixed if they are zero
- * when masked with a mask.  */
-
-ATTRIBUTE_NO_SANITIZE_ADDRESS
-Res TraceScanAreaMasked(ScanState ss, Addr *base, Addr *limit, Word mask)
-{
-  Res res;
-  Addr *p;
-  Ref ref;
-
-  AVERT(ScanState, ss);
-  AVER(base != NULL);
-  AVER(limit != NULL);
-  AVER(base < limit);
-
-  EVENT3(TraceScanAreaTagged, ss, base, limit);
-
-  TRACE_SCAN_BEGIN(ss) {
-    p = base;
-  loop:
-    if (p >= limit)
-      goto out;
-    ref = *p++;
-    if (((Word)ref & mask)
-      != 0) goto loop;
-    if (!TRACE_FIX1(ss, ref))
-      goto loop;
-    res = TRACE_FIX2(ss, p-1);
-    if(res == ResOK)
-      goto loop;
-    return res;
-  out:
-    AVER(p == limit);
-  } TRACE_SCAN_END(ss);
-
-  return ResOK;
+  return scan_area(&ss->ss_s, base, limit, closure);
 }
 
 
@@ -1934,7 +1859,7 @@ Res TraceDescribe(Trace trace, mps_lib_FILE *stream, Count depth)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2015 Ravenbrook Limited
+ * Copyright (C) 2001-2016 Ravenbrook Limited
  * <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.

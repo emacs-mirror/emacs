@@ -474,10 +474,9 @@ extern double TraceWorkFactor;
     } \
   END
 
-extern Res TraceScanArea(ScanState ss, Addr *base, Addr *limit);
-extern Res TraceScanAreaTagged(ScanState ss, Addr *base, Addr *limit);
-extern Res TraceScanAreaMasked(ScanState ss,
-                               Addr *base, Addr *limit, Word mask);
+extern Res TraceScanArea(ScanState ss, Word *base, Word *limit,
+                         mps_area_scan_t scan_area,
+                         void *closure);
 extern void TraceScanSingleRef(TraceSet ts, Rank rank, Arena arena,
                                Seg seg, Ref *refIO);
 
@@ -862,6 +861,7 @@ extern Res FormatCreate(Format *formatReturn, Arena arena, ArgList args);
 extern void FormatDestroy(Format format);
 extern Arena FormatArena(Format format);
 extern Res FormatDescribe(Format format, mps_lib_FILE *stream, Count depth);
+extern Res FormatScan(Format format, ScanState ss, Addr base, Addr limit);
 
 
 /* Reference Interface -- see <code/ref.c> */
@@ -964,17 +964,26 @@ extern void LDMerge(mps_ld_t ld, Arena arena, mps_ld_t from);
 
 /* Root Interface -- see <code/root.c> */
 
-extern Res RootCreateTable(Root *rootReturn, Arena arena,
-                           Rank rank, RootMode mode,
-                           Addr *base, Addr *limit);
-extern Res RootCreateTableMasked(Root *rootReturn, Arena arena,
-                                 Rank rank, RootMode mode,
-                                 Addr *base, Addr *limit,
-                                 Word mask);
-extern Res RootCreateReg(Root *rootReturn, Arena arena,
-                           Rank rank, Thread thread,
-                           mps_reg_scan_t scan,
-                           void *p, size_t s);
+extern Res RootCreateArea(Root *rootReturn, Arena arena,
+                          Rank rank, RootMode mode,
+                          Word *base, Word *limit,
+                          mps_area_scan_t scan_area,
+                          void *closure);
+extern Res RootCreateAreaTagged(Root *rootReturn, Arena arena,
+                                Rank rank, RootMode mode,
+                                Word *base, Word *limit,
+                                mps_area_scan_t scan_area,
+                                Word mask, Word pattern);
+extern Res RootCreateThread(Root *rootReturn, Arena arena,
+                            Rank rank, Thread thread,
+                            mps_area_scan_t scan_area,
+                            void *closure,
+                            Word *stackCold);
+extern Res RootCreateThreadTagged(Root *rootReturn, Arena arena,
+                                  Rank rank, Thread thread,
+                                  mps_area_scan_t scan_area,
+                                  Word mask, Word pattern,
+                                  Word *stackCold);
 extern Res RootCreateFmt(Root *rootReturn, Arena arena,
                            Rank rank, RootMode mode,
                            mps_fmt_scan_t scan,
@@ -1011,8 +1020,8 @@ extern void LandDestroy(Land land);
 extern void LandFinish(Land land);
 extern Res LandInsert(Range rangeReturn, Land land, Range range);
 extern Res LandDelete(Range rangeReturn, Land land, Range range);
-extern Bool LandIterate(Land land, LandVisitor visitor, void *closureP, Size closureS);
-extern Bool LandIterateAndDelete(Land land, LandDeleteVisitor visitor, void *closureP, Size closureS);
+extern Bool LandIterate(Land land, LandVisitor visitor, void *closure);
+extern Bool LandIterateAndDelete(Land land, LandDeleteVisitor visitor, void *closure);
 extern Bool LandFindFirst(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete);
 extern Bool LandFindLast(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete);
 extern Bool LandFindLargest(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete);
