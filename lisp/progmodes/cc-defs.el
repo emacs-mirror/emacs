@@ -375,7 +375,7 @@ to it is returned.  This function does not modify the point or the mark."
   ;; Constant to decide at compilation time whether to use category
   ;; properties.  Currently (2010-03) they're available only on GNU Emacs.
   (defconst c-use-category
-    (and (not (boundp 'comment-depth-hwm))
+    (and (not (boundp 'literal-cache-hwm))
 	 (with-temp-buffer
 	   (let ((parse-sexp-lookup-properties t)
 		 (lookup-syntax-properties t))
