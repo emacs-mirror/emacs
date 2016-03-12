@@ -189,6 +189,9 @@ extern const struct mps_key_s _mps_key_COMMIT_LIMIT;
 extern const struct mps_key_s _mps_key_SPARE_COMMIT_LIMIT;
 #define MPS_KEY_SPARE_COMMIT_LIMIT (&_mps_key_SPARE_COMMIT_LIMIT)
 #define MPS_KEY_SPARE_COMMIT_LIMIT_FIELD size
+extern const struct mps_key_s _mps_key_PAUSE_TIME;
+#define MPS_KEY_PAUSE_TIME      (&_mps_key_PAUSE_TIME)
+#define MPS_KEY_PAUSE_TIME_FIELD d
 
 extern const struct mps_key_s _mps_key_EXTEND_BY;
 #define MPS_KEY_EXTEND_BY       (&_mps_key_EXTEND_BY)
@@ -456,6 +459,9 @@ extern size_t mps_arena_commit_limit(mps_arena_t);
 extern mps_res_t mps_arena_commit_limit_set(mps_arena_t, size_t);
 extern void mps_arena_spare_commit_limit_set(mps_arena_t, size_t);
 extern size_t mps_arena_spare_commit_limit(mps_arena_t);
+
+extern double mps_arena_pause_time(mps_arena_t);
+extern void mps_arena_pause_time_set(mps_arena_t, double);
 
 extern mps_bool_t mps_arena_has_addr(mps_arena_t, mps_addr_t);
 extern mps_bool_t mps_addr_pool(mps_pool_t *, mps_arena_t, mps_addr_t);

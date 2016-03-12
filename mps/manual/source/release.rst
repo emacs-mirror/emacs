@@ -12,6 +12,14 @@ Release 1.115.0
 New features
 ............
 
+#. The MPS now provides control over the maximum time that operations
+   within an arena may pause the :term:`client program` for. This can
+   be specified by the new function :c:func:`mps_arena_pause_time_set`
+   or by passing the new keyword argument
+   :c:macro:`MPS_KEY_PAUSE_TIME` to :c:func:`mps_arena_create_k`. The
+   current value can be retrieved by the new function
+   :c:func:`mps_arena_pause_time`.
+
 #. When creating an :ref:`pool-amc` pool, :c:func:`mps_pool_create_k`
    accepts the new keyword argument :c:macro:`MPS_KEY_EXTEND_BY`,
    specifying the minimum size of the memory segments that the pool
@@ -40,6 +48,7 @@ New features
 #. New area root functions :c:func:`mps_root_create_area` and
    :c:func:`mps_root_create_area_tagged` for areas of memory
    that can be scanned by area scanning functions.
+
 
 Interface changes
 .................
