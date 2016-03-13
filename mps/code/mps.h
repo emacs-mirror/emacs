@@ -609,7 +609,7 @@ extern void mps_sac_empty(mps_sac_t, mps_addr_t, size_t);
 #define MPS_SAC_FREE(sac, p, size) MPS_SAC_FREE_FAST(sac, p, size)
 
 
-/* Low memory reservoir */
+/* Low memory reservoir (deprecated) */
 
 extern void mps_reservoir_limit_set(mps_arena_t, size_t);
 extern size_t mps_reservoir_limit(mps_arena_t);
@@ -645,17 +645,7 @@ extern mps_res_t mps_reserve_with_reservoir_permit(mps_addr_t *,
   MPS_END
 
 
-#define MPS_RESERVE_WITH_RESERVOIR_PERMIT_BLOCK(_res_v, _p_v, _mps_ap, _size) \
-  MPS_BEGIN \
-    char *_alloc = (char *)(_mps_ap)->alloc; \
-    char *_next = _alloc + (_size); \
-    if(_next > _alloc && _next <= (char *)(_mps_ap)->limit) { \
-      (_mps_ap)->alloc = (mps_addr_t)_next; \
-      (_p_v) = (_mps_ap)->init; \
-      (_res_v) = MPS_RES_OK; \
-    } else \
-      (_res_v) = mps_ap_fill_with_reservoir_permit(&(_p_v), _mps_ap, _size); \
-  MPS_END
+#define MPS_RESERVE_WITH_RESERVOIR_PERMIT_BLOCK MPS_RESERVE_BLOCK
 
 
 /* Commit Macros */

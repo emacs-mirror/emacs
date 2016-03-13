@@ -106,7 +106,6 @@ typedef struct MutatorFaultContextStruct
 typedef struct PoolDebugMixinStruct *PoolDebugMixin;
 typedef struct AllocPatternStruct *AllocPattern;
 typedef struct AllocFrameStruct *AllocFrame; /* <design/alloc-frame/> */
-typedef struct ReservoirStruct *Reservoir;   /* <design/reservoir/> */
 typedef struct StackContextStruct *StackContext;
 typedef struct RangeStruct *Range;      /* <design/range/> */
 typedef struct LandStruct *Land;        /* <design/land/> */

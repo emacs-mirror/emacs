@@ -722,7 +722,6 @@ Res MRGRegister(Pool pool, Ref ref)
 
   /* <design/poolmrg/#alloc.grow> */
   if (RingIsSingle(&mrg->freeRing)) {
-    /* @@@@ Should the client be able to use the reservoir for this? */
     res = MRGSegPairCreate(&junk, mrg, /* withReservoirPermit */ FALSE);  
     if (res != ResOK)
       return res;
