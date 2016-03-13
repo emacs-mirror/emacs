@@ -28,6 +28,7 @@
 #include "arg.h"
 #include "mpmtypes.h"
 #include "mpmst.h"
+#include "range.h"
 
 
 /* MPMCheck -- check MPM assumptions */
@@ -730,9 +731,10 @@ extern void SegClassMixInNoSplitMerge(SegClass class);
 extern Size SegSize(Seg seg);
 extern Addr (SegBase)(Seg seg);
 extern Addr (SegLimit)(Seg seg);
-#define SegBase(seg)            (TractBase((seg)->firstTract))
-#define SegLimit(seg)           ((seg)->limit)
-#define SegPool(seg)            (TractPool((seg)->firstTract))
+#define SegRange(seg)           (&(seg)->rangeStruct)
+#define SegBase(seg)            RangeBase(SegRange(seg))
+#define SegLimit(seg)           RangeLimit(SegRange(seg))
+#define SegPool(seg)            ((seg)->pool)
 /* .bitfield.promote: The bit field accesses need to be cast to the */
 /* right type, otherwise they'll be promoted to signed int, see */
 /* standard.ansic.6.2.1.1. */
