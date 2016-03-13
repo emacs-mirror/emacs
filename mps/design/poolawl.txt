@@ -481,7 +481,7 @@ _`.fun.awlsegcreate.where`: The segment is allocated using a
 generation preference, using the generation number stored in the
 ``AWLStruct`` (the ``gen`` field), see `.poolstruct.gen`_ above.
 
-``Res awlSegInit(Seg seg, Pool pool, Addr base, Size size, Bool reservoirPermit, va_list args)``
+``Res awlSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)``
 
 _`.fun.awlseginit`: Init method for ``AWLSegClass``, called for
 ``SegAlloc()`` whenever an ``AWLSeg`` is created (see

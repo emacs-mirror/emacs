@@ -296,10 +296,6 @@ allocate the tag. We free the block allocated for the object and fail
 the allocation, so that the client gets a chance to do whatever
 low-memory actions they might want to do.
 
-.. note::
-
-    Should this depend on whether there is anything in the reservoir?
-
 This breaks the one-to-one relationship between tags and objects, so
 some checks cannot be made, but we do count the "lost" tags.
 
