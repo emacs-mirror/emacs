@@ -740,6 +740,7 @@ Bool SegCheck(Seg seg)
     /* write shielded. */
     /* CHECKL(seg->_summary == RefSetUNIV || (seg->_sm & AccessWRITE)); */
     /* @@@@ What can be checked about the read barrier? */
+    /* FIXME: Need gcSegCheck? CHECKL(seg->defer == 0 || seg->summary == RefSetUNIV); */
   }
   return TRUE;
 }
@@ -1345,7 +1346,6 @@ static void gcSegSetRankSet(Seg seg, RankSet rankSet)
 static void gcSegSetSummary(Seg seg, RefSet summary)
 {
   GCSeg gcseg;
-  RefSet oldSummary;
   Arena arena;
 
   AVERT_CRITICAL(Seg, seg);                 /* .seg.method.check */
@@ -1354,19 +1354,16 @@ static void gcSegSetSummary(Seg seg, RefSet summary)
   AVER_CRITICAL(&gcseg->segStruct == seg);
 
   arena = PoolArena(SegPool(seg));
-  oldSummary = gcseg->summary;
   gcseg->summary = summary;
 
   AVER(seg->rankSet != RankSetEMPTY);
 
   /* Note: !RefSetSuper is a test for a strict subset */
-  if (!RefSetSuper(summary, RefSetUNIV)) {
-    if (RefSetSuper(oldSummary, RefSetUNIV))
-      ShieldRaise(arena, seg, AccessWRITE);
-  } else {
-    if (!RefSetSuper(oldSummary, RefSetUNIV))
-      ShieldLower(arena, seg, AccessWRITE);
-  }
+  /* FIXME: Duplicate code with gcSegSetRankSummary. */
+  if (!RefSetSuper(summary, RefSetUNIV))
+    ShieldRaise(arena, seg, AccessWRITE);
+  else
+    ShieldLower(arena, seg, AccessWRITE);
 }
 
 
@@ -1375,7 +1372,6 @@ static void gcSegSetSummary(Seg seg, RefSet summary)
 static void gcSegSetRankSummary(Seg seg, RankSet rankSet, RefSet summary)
 {
   GCSeg gcseg;
-  Bool wasShielded, willbeShielded;
   Arena arena;
 
   AVERT_CRITICAL(Seg, seg);                    /* .seg.method.check */
@@ -1391,16 +1387,15 @@ static void gcSegSetRankSummary(Seg seg, RankSet rankSet, RefSet summary)
 
   arena = PoolArena(SegPool(seg));
 
-  wasShielded = (seg->rankSet != RankSetEMPTY && gcseg->summary != RefSetUNIV);
-  willbeShielded = (rankSet != RankSetEMPTY && summary != RefSetUNIV);
-
   seg->rankSet = BS_BITFIELD(Rank, rankSet);
   gcseg->summary = summary;
 
-  if (willbeShielded && !wasShielded) {
-    ShieldRaise(arena, seg, AccessWRITE);
-  } else if (wasShielded && !willbeShielded) {
-    ShieldLower(arena, seg, AccessWRITE);
+  if (rankSet != RankSetEMPTY) {
+    /* FIXME: Duplicate code with gcSegSetSummary. */
+    if (!RefSetSuper(summary, RefSetUNIV))
+      ShieldRaise(arena, seg, AccessWRITE);
+    else
+      ShieldLower(arena, seg, AccessWRITE);
   }
 }
 
