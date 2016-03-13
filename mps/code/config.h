@@ -659,6 +659,20 @@
     { 36 * 1024, 0.45 }  /* second gen, after which dynamic */ \
   }
 
+/* Experimental Scan Barrier threshold
+ *
+ */
+/* Number of bits needed to keep the seg scan count */
+#define SEG_SCANS_BITS 10
+/* The number of unecessary scans performed, before raising the write
+ * barrier to remember the refset summary. */
+#define SEG_SCANS_INIT 3
+/* The number of unecessary scans performed, before raising the write
+ * barrier to remember the refset summary, after a necessary scan */
+#define SEG_SCANS_AFTER_NEEDED_SCAN 3
+/* The number of unecessary scans performed, before raising the write
+ * barrier to remember the refset summary, after a barrier hit */
+#define SEG_SCANS_AFTER_HIT 1
 
 #endif /* config_h */
 

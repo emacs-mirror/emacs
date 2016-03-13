@@ -160,6 +160,7 @@ static Res SegInit(Seg seg, Pool pool, Addr base, Size size,
   seg->grey = TraceSetEMPTY;
   seg->pm = AccessSetEMPTY;
   seg->sm = AccessSetEMPTY;
+  seg->scans = SEG_SCANS_INIT;
   seg->depth = 0;
   seg->firstTract = NULL;
 
