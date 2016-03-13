@@ -182,7 +182,7 @@ static void test(void)
     commentif(VERBOSE, "%i begin commit", i);
     ap[i]->init = ap[i]->alloc;
    case 3:
-    commentif(VERBOSE, "% end commit", i);
+    commentif(VERBOSE, "%i end commit", i);
     (void) (ap[i]->limit != 0 || mps_ap_trip(ap[i], p[i], s[i]));
   }
   mps_ap_destroy(ap[i]);

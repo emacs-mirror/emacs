@@ -4,7 +4,7 @@ TEST_HEADER
  summary = new MVFF allocation test
  language = c
  link = testlib.o
- parameters = QUEUES=100 ITERATIONS=10000
+ parameters = QUEUES=100 ITERATIONS=1000
 END_HEADER
 */
 
@@ -75,7 +75,7 @@ static void dt(int kind,
  die(
   mps_pool_create(&pool, arena, mps_class_mvff(),
                   extendBy, avgSize, align, slotHigh, arenaHigh, firstFit),
-  "create EPDR pool");
+  "create MVFF pool");
 
  for(hd=0; hd<number; hd++)
  {
