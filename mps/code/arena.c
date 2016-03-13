@@ -138,7 +138,6 @@ Bool ArenaCheck(Arena arena)
   CHECKL(BoolCheck(arena->poolReady));
   if (arena->poolReady) { /* <design/arena/#pool.ready> */
     CHECKD(MV, &arena->controlPoolStruct);
-    CHECKD(Reservoir, &arena->reservoirStruct);
   }
 
   /* .reserved.check: Would like to check that arena->committed <=
@@ -259,16 +258,9 @@ Res ArenaInit(Arena arena, ArenaClass class, Size grainSize, ArgList args)
   if (res != ResOK)
     goto failMFSInit;
 
-  /* initialize the reservoir, <design/reservoir/> */
-  res = ReservoirInit(&arena->reservoirStruct, arena);
-  if (res != ResOK)
-    goto failReservoirInit;
-
   AVERT(Arena, arena);
   return ResOK;
 
-failReservoirInit:
-  PoolFinish(ArenaCBSBlockPool(arena));
 failMFSInit:
   GlobalsFinish(ArenaGlobals(arena));
 failGlobalsInit:
@@ -394,7 +386,6 @@ failInit:
 void ArenaFinish(Arena arena)
 {
   PoolFinish(ArenaCBSBlockPool(arena));
-  ReservoirFinish(ArenaReservoir(arena));
   arena->sig = SigInvalid;
   GlobalsFinish(ArenaGlobals(arena));
   LocusFinish(arena);
@@ -440,9 +431,6 @@ void ArenaDestroy(Arena arena)
   AVERT(Arena, arena);
 
   GlobalsPrepareToDestroy(ArenaGlobals(arena));
-
-  /* Empty the reservoir - see <code/reserv.c#reservoir.finish> */
-  ReservoirSetLimit(ArenaReservoir(arena), 0);
 
   ControlFinish(arena);
 
@@ -1095,7 +1083,6 @@ Res ArenaAlloc(Addr *baseReturn, LocusPref pref, Size size, Pool pool,
   Arena arena;
   Addr base;
   Tract tract;
-  Reservoir reservoir;
 
   AVER(baseReturn != NULL);
   AVERT(LocusPref, pref);
@@ -1106,27 +1093,10 @@ Res ArenaAlloc(Addr *baseReturn, LocusPref pref, Size size, Pool pool,
   arena = PoolArena(pool);
   AVERT(Arena, arena);
   AVER(SizeIsArenaGrains(size, arena));
-  reservoir = ArenaReservoir(arena);
-  AVERT(Reservoir, reservoir);
-
-  if (pool != ReservoirPool(reservoir)) {
-    res = ReservoirEnsureFull(reservoir);
-    if (res != ResOK) {
-      AVER(ResIsAllocFailure(res));
-      if (!withReservoirPermit)
-        return res;
-    }
-  }
 
   res = PolicyAlloc(&tract, arena, pref, size, pool);
-  if (res != ResOK) {
-    if (withReservoirPermit) {
-      Res resRes = ReservoirWithdraw(&base, &tract, reservoir, size, pool);
-      if (resRes != ResOK)
-        goto allocFail;
-    } else
-      goto allocFail;
-  }
+  if (res != ResOK)
+    goto allocFail;
   
   base = TractBase(tract);
 
@@ -1151,8 +1121,6 @@ void ArenaFree(Addr base, Size size, Pool pool)
 {
   Arena arena;
   Addr limit;
-  Reservoir reservoir;
-  Res res;
   Addr wholeBase;
   Size wholeSize;
   RangeStruct range, oldRange;
@@ -1162,8 +1130,6 @@ void ArenaFree(Addr base, Size size, Pool pool)
   AVER(size > (Size)0);
   arena = PoolArena(pool);
   AVERT(Arena, arena);
-  reservoir = ArenaReservoir(arena);
-  AVERT(Reservoir, reservoir);
   AVER(AddrIsArenaGrain(base, arena));
   AVER(SizeIsArenaGrains(size, arena));
 
@@ -1177,18 +1143,6 @@ void ArenaFree(Addr base, Size size, Pool pool)
   wholeBase = base;
   wholeSize = size;
 
-  if (pool != ReservoirPool(reservoir)) {
-    res = ReservoirEnsureFull(reservoir);
-    if (res != ResOK) {
-      AVER(ResIsAllocFailure(res));
-      if (!ReservoirDeposit(reservoir, &base, &size))
-        goto allDeposited;
-    }
-  }
-
-  /* Just in case the shenanigans with the reservoir mucked this up. */
-  AVER(limit == AddrAdd(base, size));
-
   RangeInit(&range, base, limit);
 
   arenaFreeLandInsertSteal(&oldRange, arena, &range); /* may update range */
@@ -1198,7 +1152,6 @@ void ArenaFree(Addr base, Size size, Pool pool)
   /* Freeing memory might create spare pages, but not more than this. */
   CHECKL(arena->spareCommitted <= arena->spareCommitLimit);
 
-allDeposited:
   EVENT3(ArenaFree, arena, wholeBase, wholeSize);
   return;
 }

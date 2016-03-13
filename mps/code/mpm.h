@@ -634,20 +634,6 @@ extern void ArenaCompact(Arena arena, Trace trace);
 extern Res ArenaFinalize(Arena arena, Ref obj);
 extern Res ArenaDefinalize(Arena arena, Ref obj);
 
-#define ArenaReservoir(arena) (&(arena)->reservoirStruct)
-#define ReservoirPool(reservoir) (&(reservoir)->poolStruct)
-
-extern Bool ReservoirCheck(Reservoir reservoir);
-extern Res ReservoirInit(Reservoir reservoir, Arena arena);
-extern void ReservoirFinish (Reservoir reservoir);
-extern Size ReservoirLimit(Reservoir reservoir);
-extern void ReservoirSetLimit(Reservoir reservoir, Size size);
-extern Size ReservoirAvailable(Reservoir reservoir);
-extern Res ReservoirEnsureFull(Reservoir reservoir);
-extern Bool ReservoirDeposit(Reservoir reservoir, Addr *baseIO, Size *sizeIO);
-extern Res ReservoirWithdraw(Addr *baseReturn, Tract *baseTractReturn,
-                             Reservoir reservoir, Size size, Pool pool);
-
 extern Res ArenaAlloc(Addr *baseReturn, LocusPref pref,
                       Size size, Pool pool, Bool withReservoirPermit);
 extern Res ArenaFreeLandAlloc(Tract *tractReturn, Arena arena, ZoneSet zones,

@@ -156,7 +156,6 @@ MPMCOMMON=\
     [protocol] \
     [range] \
     [ref] \
-    [reserv] \
     [ring] \
     [root] \
     [sa] \

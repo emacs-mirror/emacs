@@ -505,12 +505,11 @@ void GlobalsPrepareToDestroy(Globals arenaGlobals)
 
   /* At this point the following pools still exist:
    * 0. arena->freeCBSBlockPoolStruct
-   * 1. arena->reservoirStruct
-   * 2. arena->controlPoolStruct
-   * 3. arena->controlPoolStruct.blockPoolStruct
-   * 4. arena->controlPoolStruct.spanPoolStruct
+   * 1. arena->controlPoolStruct
+   * 2. arena->controlPoolStruct.blockPoolStruct
+   * 3. arena->controlPoolStruct.spanPoolStruct
    */
-  AVER(RingLength(&arenaGlobals->poolRing) == 5);
+  AVER(RingLength(&arenaGlobals->poolRing) == 4);
 }
 
 
