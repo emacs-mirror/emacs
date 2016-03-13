@@ -1134,15 +1134,25 @@ static Res traceScanSegRes(TraceSet ts, Rank rank, Arena arena, Seg seg)
      * scan, consistent with the recorded SegSummary?
      */
     AVER(RefSetSub(ScanStateUnfixedSummary(ss), SegSummary(seg)));
-
-    if(res != ResOK || !wasTotal) {
-      /* scan was partial, so... */
-      /* scanned summary should be ORed into segment summary. */
-      SegSetSummary(seg, RefSetUnion(SegSummary(seg), ScanStateSummary(ss)));
+    if (ZoneSetInter(ScanStateUnfixedSummary(ss), white) == ZoneSetEMPTY) {
+      /* a scan was not necessary */
+      if (seg->scans > 0)
+        seg->scans--;
     } else {
-      /* all objects on segment have been scanned, so... */
-      /* scanned summary should replace the segment summary. */
-      SegSetSummary(seg, ScanStateSummary(ss));
+      if (seg->scans < SEG_SCANS_AFTER_NEEDED_SCAN)
+        seg->scans = SEG_SCANS_AFTER_NEEDED_SCAN;
+    }
+    
+    if (seg->scans == 0) {
+      if(res != ResOK || !wasTotal) {
+        /* scan was partial, so... */
+        /* scanned summary should be ORed into segment summary. */
+        SegSetSummary(seg, RefSetUnion(SegSummary(seg), ScanStateSummary(ss)));
+      } else {
+        /* all objects on segment have been scanned, so... */
+        /* scanned summary should replace the segment summary. */
+        SegSetSummary(seg, ScanStateSummary(ss));
+      }
     }
 
     ScanStateFinish(ss);
@@ -1201,6 +1211,9 @@ void TraceSegAccess(Arena arena, Seg seg, AccessSet mode)
   AVER((mode & SegSM(seg) & AccessWRITE) == 0 || SegSummary(seg) != RefSetUNIV);
 
   EVENT3(TraceAccess, arena, seg, mode);
+
+  if ((mode & SegSM(seg) & AccessWRITE) != 0)     /* write barrier? */
+    seg->scans = SEG_SCANS_AFTER_HIT;
 
   if((mode & SegSM(seg) & AccessREAD) != 0) {   /* read barrier? */
     Trace trace;
@@ -1445,7 +1458,7 @@ Res TraceScanArea(ScanState ss, Word *base, Word *limit,
      it's safe to accumulate now so that we can tail-call
      scan_area. */
   ss->scannedSize += AddrOffset(base, limit);
-  
+
   return scan_area(&ss->ss_s, base, limit, closure);
 }
 
