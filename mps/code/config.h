@@ -659,20 +659,32 @@
     { 36 * 1024, 0.45 }  /* second gen, after which dynamic */ \
   }
 
-/* Experimental Scan Barrier threshold
+/* Write barrier deferral
  *
+ * Defer using the write barrier for the remembered set until a number
+ * of unnecessary scans have been performed on a segment.  Avoids
+ * memory protection costs when scanning might be cheaper.  See job003975.
+ *
+ * TODO: These settings were determined by trial and error, but should
+ * be based on measurement of the protection overhead on each
+ * platform.  We know it's extremely different between OS X and
+ * Windows, for example.
+ *
+ * TODO: Consider basing the count on the amount of time that has
+ * passed in the mutator rather than the number of scans.
  */
-/* Number of bits needed to keep the seg scan count */
-#define SEG_SCANS_BITS 10
+
+/* Number of bits needed to keep the write barrier deferral count */
+#define WB_DEFER_BITS 3
 /* The number of unecessary scans performed, before raising the write
- * barrier to remember the refset summary. */
-#define SEG_SCANS_INIT 3
+   barrier to maintian the remembered set. */
+#define WB_DEFER_INIT 3
 /* The number of unecessary scans performed, before raising the write
- * barrier to remember the refset summary, after a necessary scan */
-#define SEG_SCANS_AFTER_NEEDED_SCAN 3
+   barrier to remember the refset summary, after a necessary scan */
+#define WB_DEFER_DELAY WB_DEFER_INIT
 /* The number of unecessary scans performed, before raising the write
  * barrier to remember the refset summary, after a barrier hit */
-#define SEG_SCANS_AFTER_HIT 1
+#define WB_DEFER_AFTER_HIT 1
 
 #endif /* config_h */
 
