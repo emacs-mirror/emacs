@@ -1336,8 +1336,13 @@ mps_res_t _mps_fix2(mps_ss_t mps_ss, mps_addr_t *mps_ref_io)
   }
 
   tract = PageTract(&chunk->pageTable[i]);
-  if (TraceSetInter(TractWhite(tract), ss->traces) == TraceSetEMPTY) {
-    /* Reference points to a tract that is not white for any of the
+  if (!TRACT_SEG(&seg, tract)) {
+    /* Reference points to a tract but not a segment, so it can't be white. */
+    goto done;
+  }
+
+  if (TraceSetInter(SegWhite(seg), ss->traces) == TraceSetEMPTY) {
+    /* Reference points to a segment that is not white for any of the
      * active traces. See <design/trace/#fix.tractofaddr> */
     STATISTIC_STAT
       ({
