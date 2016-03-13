@@ -742,7 +742,7 @@ mps_res_t mps_alloc(mps_addr_t *p_o, mps_pool_t pool, size_t size)
 
   /* @@@@ There is currently no requirement for reservoirs to work */
   /* with unbuffered allocation. */
-  res = PoolAlloc(&p, pool, size, FALSE);
+  res = PoolAlloc(&p, pool, size);
 
   ArenaLeave(arena);
 
@@ -1035,7 +1035,7 @@ mps_res_t mps_ap_fill(mps_addr_t *p_o, mps_ap_t mps_ap, size_t size)
   AVER(size > 0);
   AVER(SizeIsAligned(size, BufferPool(buf)->alignment));
 
-  res = BufferFill(&p, buf, size, FALSE);
+  res = BufferFill(&p, buf, size);
 
   ArenaLeave(arena);
 
@@ -1158,10 +1158,11 @@ mps_res_t mps_sac_fill(mps_addr_t *p_o, mps_sac_t mps_sac, size_t size,
   AVER(p_o != NULL);
   AVER(TESTT(SAC, sac));
   arena = SACArena(sac);
+  UNUSED(has_reservoir_permit); /* FIXME */
 
   ArenaEnter(arena);
 
-  res = SACFill(&p, sac, size, (has_reservoir_permit != 0));
+  res = SACFill(&p, sac, size);
 
   ArenaLeave(arena);
 

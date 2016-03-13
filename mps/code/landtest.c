@@ -459,8 +459,7 @@ extern int main(int argc, char *argv[])
   die((mps_res_t)BTCreate(&state.allocTable, arena, state.size),
       "failed to create alloc table");
 
-  die((mps_res_t)ControlAlloc(&p, arena, (state.size + 1) * state.align,
-                              /* withReservoirPermit */ FALSE),
+  die((mps_res_t)ControlAlloc(&p, arena, (state.size + 1) * state.align),
       "failed to allocate block");
   state.block = AddrAlignUp(p, state.align);
 
