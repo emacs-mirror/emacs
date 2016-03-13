@@ -30,7 +30,6 @@ static void fillup(void)
 {
  size_t size;
  mps_addr_t a;
- char *b;
 
  die(mps_pool_create(&poolmv, arena, mps_class_mv(),
                      (size_t)64, (size_t)64, (size_t)64),
