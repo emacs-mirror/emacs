@@ -193,7 +193,6 @@ void (ShieldRaise) (Arena arena, Seg seg, AccessSet mode)
   /* segs in the cache. */
 
   AVERT(AccessSet, mode);
-  AVER((SegSM(seg) & mode) == AccessSetEMPTY);
   SegSetSM(seg, SegSM(seg) | mode); /* inv.prot.shield preserved */
 
   /* ensure inv.unsynced.suspended & inv.unsynced.depth */
@@ -207,7 +206,6 @@ void (ShieldLower)(Arena arena, Seg seg, AccessSet mode)
 {
   /* Don't check seg or arena, see .seg.broken */
   AVERT(AccessSet, mode);
-  AVER((SegSM(seg) & mode) == mode);
   /* synced(seg) is not changed by the following
    * preserving inv.unsynced.suspended
    * Also inv.prot.shield preserved
