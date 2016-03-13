@@ -116,8 +116,8 @@ static Res MFSInit(Pool pool, ArgList args)
 }
 
 
-void MFSFinishTracts(Pool pool, MFSTractVisitor visitor,
-                     void *closure)
+void MFSFinishExtents(Pool pool, MFSExtentVisitor visitor,
+                      void *closure)
 {
   MFS mfs;
   Ring ring, node, next;
@@ -136,8 +136,8 @@ void MFSFinishTracts(Pool pool, MFSTractVisitor visitor,
 }
 
 
-static void MFSTractFreeVisitor(Pool pool, Addr base, Size size,
-                                void *closure)
+static void MFSExtentFreeVisitor(Pool pool, Addr base, Size size,
+                                 void *closure)
 {
   AVER(closure == UNUSED_POINTER);
   UNUSED(closure);
@@ -153,7 +153,7 @@ static void MFSFinish(Pool pool)
   mfs = PoolPoolMFS(pool);
   AVERT(MFS, mfs);
 
-  MFSFinishTracts(pool, MFSTractFreeVisitor, UNUSED_POINTER);
+  MFSFinishExtents(pool, MFSExtentFreeVisitor, UNUSED_POINTER);
 
   mfs->sig = SigInvalid;
 }
