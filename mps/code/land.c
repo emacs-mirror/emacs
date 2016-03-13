@@ -117,8 +117,7 @@ Res LandCreate(Land *landReturn, Arena arena, LandClass class, Align alignment, 
   AVERT(Arena, arena);
   AVERT(LandClass, class);
 
-  res = ControlAlloc(&p, arena, class->size,
-                     /* withReservoirPermit */ FALSE);
+  res = ControlAlloc(&p, arena, class->size);
   if (res != ResOK)
     goto failAlloc;
   land = p;
