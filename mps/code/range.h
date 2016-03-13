@@ -16,8 +16,10 @@
 
 /* Prototypes */
 
-#define RangeBase(range) ((range)->base)
-#define RangeLimit(range) ((range)->limit)
+#define RangeBase(range) RVALUE((range)->base)
+#define RangeLimit(range) RVALUE((range)->limit)
+#define RangeSetBase(range, _base) BEGIN (range)->base = (_base); END
+#define RangeSetLimit(range, _limit) BEGIN (range)->limit = (_limit); END
 #define RangeSize(range) (AddrOffset(RangeBase(range), RangeLimit(range)))
 #define RangeContains(range, addr) ((range)->base <= (addr) && (addr) < (range)->limit)
 #define RangeIsEmpty(range) (RangeSize(range) == 0)
@@ -36,13 +38,6 @@ extern Addr (RangeLimit)(Range range);
 extern Size (RangeSize)(Range range);
 extern void RangeCopy(Range to, Range from);
 
-
-/* Types */
-
-typedef struct RangeStruct {
-  Addr base;
-  Addr limit;
-} RangeStruct;
 
 #endif /* range_h */
 
