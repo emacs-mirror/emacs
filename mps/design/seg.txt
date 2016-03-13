@@ -243,7 +243,9 @@ and initializing ``segHi`` so that on exit ``seg`` is a segment with
 region ``[base,mid)`` and ``segHi`` is a segment with region
 ``[mid,limit)``. Usually a method would only directly modify the
 fields defined for the segment subclass.  ``withReservoirPermit`` is
-ignored (see job003985).
+ignored (see job003985_).
+
+.. _job003985: http://www.ravenbrook.com/project/mps/issue/job003985/
 
 _`.method.split.next`: A split method should always call the next
 method, either before or after any class-specific code (see
@@ -261,7 +263,7 @@ destructively modifying ``seg`` and finishing ``segHi`` so that on
 exit ``seg`` is a segment with region ``[base,limit)`` and ``segHi``
 is garbage. Usually a method would only modify the fields defined for
 the segment subclass. ``withReservoirPermit`` is ignored (see
-job003985).
+job003985_).
 
 _`.method.merge.next`: A merge method should always call the next
 method, either before or after any class-specific code (see
