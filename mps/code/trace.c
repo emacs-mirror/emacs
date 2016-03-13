@@ -1153,6 +1153,8 @@ static Res traceScanSegRes(TraceSet ts, Rank rank, Arena arena, Seg seg)
         /* scanned summary should replace the segment summary. */
         SegSetSummary(seg, ScanStateSummary(ss));
       }
+    } else {
+      SegSetSummary(seg, RefSetUNIV);
     }
 
     ScanStateFinish(ss);
