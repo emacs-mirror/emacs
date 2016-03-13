@@ -1089,6 +1089,7 @@ static Res traceScanSegRes(TraceSet ts, Rank rank, Arena arena, Seg seg)
   Bool wasTotal;
   ZoneSet white;
   Res res;
+  RefSet summary;
 
   /* The reason for scanning a segment is that it's grey. */
   AVER(TraceSetInter(ts, SegGrey(seg)) != TraceSetEMPTY);
@@ -1134,28 +1135,33 @@ static Res traceScanSegRes(TraceSet ts, Rank rank, Arena arena, Seg seg)
      * scan, consistent with the recorded SegSummary?
      */
     AVER(RefSetSub(ScanStateUnfixedSummary(ss), SegSummary(seg)));
+
+    /* Remembered set and write barrier */
+    /* Was the scan necessary?  Did the segment refer to the white set */
     if (ZoneSetInter(ScanStateUnfixedSummary(ss), white) == ZoneSetEMPTY) {
-      /* a scan was not necessary */
-      if (seg->scans > 0)
-        seg->scans--;
+      if (seg->defer > 0)
+        --seg->defer;
     } else {
-      if (seg->scans < SEG_SCANS_AFTER_NEEDED_SCAN)
-        seg->scans = SEG_SCANS_AFTER_NEEDED_SCAN;
+      if (seg->defer < WB_DEFER_DELAY)
+        seg->defer = WB_DEFER_DELAY;
     }
-    
-    if (seg->scans == 0) {
-      if(res != ResOK || !wasTotal) {
-        /* scan was partial, so... */
-        /* scanned summary should be ORed into segment summary. */
-        SegSetSummary(seg, RefSetUnion(SegSummary(seg), ScanStateSummary(ss)));
-      } else {
-        /* all objects on segment have been scanned, so... */
-        /* scanned summary should replace the segment summary. */
-        SegSetSummary(seg, ScanStateSummary(ss));
-      }
+
+    /* Only apply the write barrier if it is not deferred. */
+    /* TODO: This discards information we collected during
+       scanning. Consider keeping the summary but changing the
+       invariant on shielding instead. */
+    if (seg->defer == 0) {
+      /* If we scanned every reference in the segment then we have a
+         complete summary we can set. Otherwise, we just have
+         information about more zones that the segment refers to. */
+      if (res == ResOK && wasTotal)
+        summary = ScanStateSummary(ss);
+      else
+        summary = RefSetUnion(SegSummary(seg), ScanStateSummary(ss));
     } else {
-      SegSetSummary(seg, RefSetUNIV);
+      summary = RefSetUNIV;
     }
+    SegSetSummary(seg, summary);
 
     ScanStateFinish(ss);
   }
@@ -1215,7 +1221,7 @@ void TraceSegAccess(Arena arena, Seg seg, AccessSet mode)
   EVENT3(TraceAccess, arena, seg, mode);
 
   if ((mode & SegSM(seg) & AccessWRITE) != 0)     /* write barrier? */
-    seg->scans = SEG_SCANS_AFTER_HIT;
+    seg->defer = WB_DEFER_AFTER_HIT;
 
   if((mode & SegSM(seg) & AccessREAD) != 0) {   /* read barrier? */
     Trace trace;
