@@ -281,7 +281,7 @@ typedef struct SegStruct {      /* segment structure */
   TraceSet white : TraceLIMIT;  /* traces for which seg is white */
   TraceSet nailed : TraceLIMIT; /* traces for which seg has nailed objects */
   RankSet rankSet : RankLIMIT;  /* ranks of references in this seg */
-  Count defer : WB_DEFER_BITS;  /* defer write barrier for this many scans */
+  unsigned defer : WB_DEFER_BITS; /* defer write barrier for this many scans */
 } SegStruct;
 
 
