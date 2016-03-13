@@ -143,7 +143,8 @@ Return a cons cell:
 	    ;; If it didn't change, then obviously this must be the top.
 	    t
 	  ;; If it is different, check updir for the file.
-	  (not (ede-auto-detect-in-dir ede--detect-nomatch-auto updir))))))
+	  (or (null updir)
+	      (not (ede-auto-detect-in-dir ede--detect-nomatch-auto updir)))))))
 
 (defun ede--detect-scan-directory-for-project-root (directory auto)
   "If DIRECTORY has already been detected with AUTO, find the root.
