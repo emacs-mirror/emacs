@@ -291,13 +291,10 @@ protocol.
     This will be improved, when we figure out formatted pools -- they
     don't need tags for fenceposting.
 
-_`.out-of-space`: If there's no room for tags, we will not dip into
-the reservoir, just fail to allocate the tag. If the alloc call had a
-reservoir permit, we let it succeed even without a tag, and just make
-sure the free method will not complain if it can't find a tag. If the
-call didn't have a reservoir permit, we free the block allocated for
-the object and fail the allocation, so that the client gets a chance
-to do whatever low-memory actions they might want to do.
+_`.out-of-space`: If there's no room for tags, we just fail to
+allocate the tag. We free the block allocated for the object and fail
+the allocation, so that the client gets a chance to do whatever
+low-memory actions they might want to do.
 
 .. note::
 

@@ -583,8 +583,7 @@
 
 #define EVENT_SegMerge_PARAMS(PARAM, X) \
   PARAM(X,  0, P, segLo) \
-  PARAM(X,  1, P, segHi) \
-  PARAM(X,  2, B, withReservoirPermit)
+  PARAM(X,  1, P, segHi)
 
 #define EVENT_SegSplit_PARAMS(PARAM, X) \
   PARAM(X,  0, P, seg) \

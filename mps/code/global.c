@@ -352,7 +352,7 @@ Res GlobalsCompleteCreate(Globals arenaGlobals)
   {
     void *v;
 
-    res = ControlAlloc(&v, arena, BTSize(MessageTypeLIMIT), FALSE);
+    res = ControlAlloc(&v, arena, BTSize(MessageTypeLIMIT));
     if (res != ResOK)
       return res;
     arena->enabledMessageTypes = v;
@@ -366,7 +366,7 @@ Res GlobalsCompleteCreate(Globals arenaGlobals)
       return res;
   TRACE_SET_ITER_END(ti, trace, TraceSetUNIV, arena);
 
-  res = ControlAlloc(&p, arena, LockSize(), FALSE);
+  res = ControlAlloc(&p, arena, LockSize());
   if (res != ResOK)
     return res;
   arenaGlobals->lock = (Lock)p;

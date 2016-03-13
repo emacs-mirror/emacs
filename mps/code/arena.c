@@ -632,8 +632,7 @@ Res ArenaDescribeTracts(Arena arena, mps_lib_FILE *stream, Count depth)
  * with void* (<design/type/#addr.use>), ControlAlloc must take care of
  * allocating so that the block can be addressed with a void*.  */
 
-Res ControlAlloc(void **baseReturn, Arena arena, size_t size,
-                 Bool withReservoirPermit)
+Res ControlAlloc(void **baseReturn, Arena arena, size_t size)
 {
   Addr base;
   Res res;
@@ -641,11 +640,9 @@ Res ControlAlloc(void **baseReturn, Arena arena, size_t size,
   AVERT(Arena, arena);
   AVER(baseReturn != NULL);
   AVER(size > 0);
-  AVERT(Bool, withReservoirPermit);
   AVER(arena->poolReady);
 
-  res = PoolAlloc(&base, ArenaControlPool(arena), (Size)size,
-                  withReservoirPermit);
+  res = PoolAlloc(&base, ArenaControlPool(arena), (Size)size);
   if (res != ResOK)
     return res;
 
@@ -1076,8 +1073,7 @@ failMark:
 
 /* ArenaAlloc -- allocate some tracts from the arena */
 
-Res ArenaAlloc(Addr *baseReturn, LocusPref pref, Size size, Pool pool,
-               Bool withReservoirPermit)
+Res ArenaAlloc(Addr *baseReturn, LocusPref pref, Size size, Pool pool)
 {
   Res res;
   Arena arena;
@@ -1088,7 +1084,6 @@ Res ArenaAlloc(Addr *baseReturn, LocusPref pref, Size size, Pool pool,
   AVERT(LocusPref, pref);
   AVER(size > (Size)0);
   AVERT(Pool, pool);
-  AVERT(Bool, withReservoirPermit);
 
   arena = PoolArena(pool);
   AVERT(Arena, arena);
