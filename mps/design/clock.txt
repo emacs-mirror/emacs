@@ -7,7 +7,7 @@ Fast high-resolution clock
 :Author: Gareth Rees
 :Date: 2016-03-06
 :Status: complete design
-:Revision: $Id: //info.ravenbrook.com/project/mps/master/design/abq.txt#5 $
+:Revision: $Id$
 :Copyright: See section `Copyright and License`_.
 :Index terms: pair: clock; design
 

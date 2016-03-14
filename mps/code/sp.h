@@ -1,7 +1,7 @@
 /* sp.h: STACK PROBE INTERFACE
  *
- * $Id: //info.ravenbrook.com/project/mps/master/code/sp.h#1 $
- * Copyright (c) 2014 Ravenbrook Limited.  See end of file for license.
+ * $Id$
+ * Copyright (c) 2014-2016 Ravenbrook Limited.  See end of file for license.
  */
 
 #ifndef sp_h
@@ -29,7 +29,7 @@ extern void StackProbe(Size depth);
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2014-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

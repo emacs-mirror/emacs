@@ -5,7 +5,7 @@ TEST_HEADER
  language = c
  link = testlib.o rankfmt.o
  harness = 3.0
- parameters = MAXLDS=1000 MAXMERGE=100 BLATPERCENT=90 JUNK=100 AMBIGHOLD=900
+ parameters = MAXLDS=1000 MAXMERGE=20 BLATPERCENT=90 JUNK=100 AMBIGHOLD=900
 END_HEADER
 */
 

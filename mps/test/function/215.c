@@ -4,7 +4,7 @@ TEST_HEADER
  summary = test of ramp allocation
  language = c
  link = testlib.o rankfmt.o
- parameters = ITERATIONS=100000
+ parameters = ITERATIONS=10000
 OUTPUT_SPEC
  result = pass
 END_HEADER

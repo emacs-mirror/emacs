@@ -71,7 +71,7 @@ function/66.c
 function/67.c
 % function/68.c -- infinite loop
 function/69.c
-function/70.c
+% function/70.c -- interactive test, no point in running unattended
 function/71.c
 % function/72.c -- fails in hot variety (assertion is on the critical path)
 function/73.c
