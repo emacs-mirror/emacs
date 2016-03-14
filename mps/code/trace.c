@@ -339,6 +339,15 @@ static ZoneSet traceSetWhiteUnion(TraceSet ts, Arena arena)
 }
 
 
+/* TraceIsEmpty -- return TRUE if trace has no condemned segments */
+
+Bool TraceIsEmpty(Trace trace)
+{
+  AVERT(Trace, trace);
+  return trace->condemned == 0;
+}
+
+
 /* TraceAddWhite -- add a segment to the white set of a trace */
 
 Res TraceAddWhite(Trace trace, Seg seg)
@@ -391,7 +400,6 @@ Res TraceCondemnZones(Trace trace, ZoneSet condemnedSet)
   Seg seg;
   Arena arena;
   Res res;
-  Bool haveWhiteSegs = FALSE;
 
   AVERT(Trace, trace);
   AVER(condemnedSet != ZoneSetEMPTY);
@@ -418,13 +426,9 @@ Res TraceCondemnZones(Trace trace, ZoneSet condemnedSet)
         res = TraceAddWhite(trace, seg);
         if(res != ResOK)
           goto failBegin;
-        haveWhiteSegs = TRUE;
       }
     } while (SegNext(&seg, arena, seg));
   }
-
-  if (!haveWhiteSegs)
-    return ResFAIL;
 
   EVENT3(TraceCondemnZones, trace, condemnedSet, trace->white);
 
@@ -434,7 +438,7 @@ Res TraceCondemnZones(Trace trace, ZoneSet condemnedSet)
   return ResOK;
 
 failBegin:
-  AVER(!haveWhiteSegs); /* See .whiten.fail. */
+  AVER(TraceIsEmpty(trace)); /* See .whiten.fail. */
   return res;
 }
 
@@ -697,7 +701,7 @@ found:
   trace->condemned = (Size)0;   /* nothing condemned yet */
   trace->notCondemned = (Size)0;
   trace->foundation = (Size)0;  /* nothing grey yet */
-  trace->quantumWork = (Work)0; /* no work done yet */
+  trace->quantumWork = (Work)0; /* computed in TraceStart */
   STATISTIC(trace->greySegCount = (Count)0);
   STATISTIC(trace->greySegMax = (Count)0);
   STATISTIC(trace->rootScanCount = (Count)0);
@@ -1482,7 +1486,6 @@ static Res traceCondemnAll(Trace trace)
   Res res;
   Arena arena;
   Ring poolNode, nextPoolNode, chainNode, nextChainNode;
-  Bool haveWhiteSegs = FALSE;
 
   arena = trace->arena;
   AVERT(Arena, arena);
@@ -1501,12 +1504,11 @@ static Res traceCondemnAll(Trace trace)
         res = TraceAddWhite(trace, seg);
         if (res != ResOK)
           goto failBegin;
-        haveWhiteSegs = TRUE;
       }
     }
   }
 
-  if (!haveWhiteSegs)
+  if (TraceIsEmpty(trace))
     return ResFAIL;
 
   /* Notify all the chains. */
@@ -1525,7 +1527,7 @@ failBegin:
    * pool class that fails to whiten a segment, then this assertion
    * will be triggered. In that case, we'll have to recover here by
    * blackening the segments again. */
-  AVER(!haveWhiteSegs);
+  AVER(TraceIsEmpty(trace));
   return res;
 }
 
@@ -1645,8 +1647,8 @@ Res TraceStart(Trace trace, double mortality, double finishingTime)
     /* integer, so try to make sure it fits. */
     if(nPolls >= (double)LONG_MAX)
       nPolls = (double)LONG_MAX;
-    /* One quantum of work equals scanning work divided by number of
-     * polls, plus one to ensure it's not zero. */
+    /* One quantum of work equals total tracing work divided by number
+     * of polls, plus one to ensure it's not zero. */
     trace->quantumWork
       = (trace->foundation + sSurvivors) / (unsigned long)nPolls + 1;
   }
@@ -1671,9 +1673,10 @@ Res TraceStart(Trace trace, double mortality, double finishingTime)
 }
 
 
-/* traceWork -- a measure of the work done for this trace
+/* traceWork -- a measure of the work done for this trace.
  *
- * .work: Segment and root scanning work is the measure.  */
+ * See design.mps.type.work.
+ */
 
 #define traceWork(trace) ((Work)((trace)->segScanSize + (trace)->rootScanSize))
 

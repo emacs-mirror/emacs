@@ -325,6 +325,8 @@ Bool PolicyStartTrace(Trace *traceReturn, Arena arena)
       res = policyCondemnChain(&mortality, firstChain, trace);
       if (res != ResOK) /* should try some other trace, really @@@@ */
         goto failCondemn;
+      if (TraceIsEmpty(trace))
+        goto nothingCondemned;
       trace->chain = firstChain;
       ChainStartGC(firstChain, trace);
       res = TraceStart(trace, mortality, trace->condemned * TraceWorkFactor);
@@ -336,6 +338,7 @@ Bool PolicyStartTrace(Trace *traceReturn, Arena arena)
   } /* (dynamicDeferral > 0.0) */
   return FALSE;
 
+nothingCondemned:
 failCondemn:
   TraceDestroyInit(trace);
 failStart:
