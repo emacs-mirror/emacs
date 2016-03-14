@@ -81,7 +81,7 @@ static void test(void)
 
  b = allocone(apamc, 1, 1);
 
- for (j=1; j<10; j++) {
+ for (j=1; j<=10; j++) {
   comment("%i of 10.", j);
   a = allocone(apawl, 5, 1);
   setref(b, 0, a);
@@ -91,14 +91,14 @@ static void test(void)
   e = a;
   f = a;
   g = a;
-  for (i=1; i<1000; i++) {
+  for (i=1; i<=1000; i++) {
    if (i%100 == 0) {
     comment("   %i", i);
    }
    if (ranint(2)) {
-    c = allocone(apamc, 1000, 1);
+    c = allocone(apamc, 100, 1);
    } else {
-    c = allocone(apawl, 1000, 1);
+    c = allocone(apawl, 100, 1);
    }
    if (ranint(8) == 0) d = c;
    if (ranint(8) == 0) e = c;
@@ -129,14 +129,14 @@ static void test(void)
   comment("clamping...");
   mps_arena_park(arena);
   RC;
-  for (i=1; i<1000; i++) {
+  for (i=1; i<=1000; i++) {
    if (i%100 == 0) {
     comment("   %i", i);
    }
    if (ranint(2)) {
-    c = allocone(apamc, 1000, 1);
+    c = allocone(apamc, 100, 1);
    } else {
-    c = allocone(apawl, 1000, 1);
+    c = allocone(apawl, 100, 1);
    }
    if (ranint(8) == 0) d = c;
    if (ranint(8) == 0) e = c;
