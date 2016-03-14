@@ -424,6 +424,11 @@ ignored."
   :group 'which-key
   :type 'function)
 
+(defcustom which-key-custom-lighter " WK"
+  "minor mode lighter to use in the mode-line."
+  :group 'which-key
+  :type 'string)
+
 (defvar which-key-inhibit nil
   "Prevent which-key from popping up momentarily by setting this
 to a non-nil value for the execution of a command. Like this
@@ -496,7 +501,7 @@ alongside the actual current key sequence when
 (define-minor-mode which-key-mode
   "Toggle which-key-mode."
   :global t
-  :lighter " WK"
+  :lighter which-key-custom-lighter
   :keymap (let ((map (make-sparse-keymap)))
             (mapc
              (lambda (prefix)
