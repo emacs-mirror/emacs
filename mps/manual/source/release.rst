@@ -12,6 +12,9 @@ Release 1.115.0
 New features
 ............
 
+#. New supported platforms ``fri3ll`` (FreeBSD, IA-32, Clang/LLVM)
+   and ``fri6ll`` (FreeBSD, x86-64, Clang/LLVM).
+
 #. When creating an :ref:`pool-amc` pool, :c:func:`mps_pool_create_k`
    accepts the new keyword argument :c:macro:`MPS_KEY_EXTEND_BY`,
    specifying the minimum size of the memory segments that the pool
@@ -104,6 +107,26 @@ Other changes
    :ref:`pool-mvff` pools. See job003866_.
 
    .. _job003866: https://www.ravenbrook.com/project/mps/issue/job003866/
+
+#. The MPS can now make use of :term:`spare committed memory` even if
+   it is :term:`mapped` at an unhelpful address, by unmapping it and
+   remapping at a better address. See job003898_.
+
+   .. _job003898: https://www.ravenbrook.com/project/mps/issue/job003898/
+
+#. :c:func:`mps_arena_step` now always considers starting a new
+   :term:`garbage collection` if the remaining idle time is long
+   enough to complete it. (Previously, if there was already a
+   collection in progress when :c:func:`mps_arena_step` was called, it
+   would finish the collection but not consider starting a new one.)
+   See job003934_.
+
+   .. _job003934: https://www.ravenbrook.com/project/mps/issue/job003934/
+
+#. The MPS no longer carries out :term:`garbage collections` when there
+   is no collection work to be done. See job003938_.
+
+   .. _job003938: https://www.ravenbrook.com/project/mps/issue/job003938/
 
 
 .. _release-notes-1.114:
