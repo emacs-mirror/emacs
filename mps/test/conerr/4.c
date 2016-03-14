@@ -7,7 +7,7 @@ TEST_HEADER
 OUTPUT_SPEC
  assert = true
  assertfile P= global.c
- assertcond = RingLength(&arenaGlobals->poolRing) == 5
+ assertcond =~ RingLength\(&arenaGlobals->poolRing\) == \d+
 END_HEADER
 */
 

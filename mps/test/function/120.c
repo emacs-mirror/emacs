@@ -34,7 +34,6 @@ static void test(void) {
  int i;
  mps_addr_t a;
  mps_res_t res;
- size_t committed;
  
  /* Create an arena with a commit limit that's too small for the
   * essential MPS internal data structures -- this must fail with
