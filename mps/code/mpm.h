@@ -397,6 +397,7 @@ extern Res TraceCreate(Trace *traceReturn, Arena arena, int why);
 extern void TraceDestroyInit(Trace trace);
 extern void TraceDestroyFinished(Trace trace);
 
+extern Bool TraceIsEmpty(Trace trace);
 extern Res TraceAddWhite(Trace trace, Seg seg);
 extern Res TraceCondemnZones(Trace trace, ZoneSet condemnedSet);
 extern Res TraceStart(Trace trace, double mortality, double finishingTime);
@@ -537,7 +538,6 @@ extern Bool ArenaGrainSizeCheck(Size size);
 #define AddrIsArenaGrain(addr, arena) AddrIsAligned(addr, ArenaGrainSize(arena))
 #define SizeArenaGrains(size, arena) SizeAlignUp(size, ArenaGrainSize(arena))
 #define SizeIsArenaGrains(size, arena) SizeIsAligned(size, ArenaGrainSize(arena))
-#define ArenaAccumulateTime(arena, start) ((arena)->tracedTime += (ClockNow() - (start)) / (double) ClocksPerSec())
 
 extern void ArenaEnterLock(Arena arena, Bool recursive);
 extern void ArenaLeaveLock(Arena arena, Bool recursive);
@@ -572,6 +572,7 @@ extern Bool ArenaHasAddr(Arena arena, Addr addr);
 extern Res ArenaAddrObject(Addr *pReturn, Arena arena, Addr addr);
 extern void ArenaChunkInsert(Arena arena, Chunk chunk);
 extern void ArenaChunkRemoved(Arena arena, Chunk chunk);
+extern void ArenaAccumulateTime(Arena arena, Clock start, Clock now);
 
 extern void ArenaSetEmergency(Arena arena, Bool emergency);
 extern Bool ArenaEmergency(Arena arean);
@@ -628,7 +629,6 @@ extern Res ArenaNoGrow(Arena arena, LocusPref pref, Size size);
 
 extern Size ArenaAvail(Arena arena);
 extern Size ArenaCollectable(Arena arena);
-extern Size ArenaScannable(Arena arena);
 
 extern Res ArenaExtend(Arena, Addr base, Size size);
 

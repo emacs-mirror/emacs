@@ -1322,19 +1322,20 @@ Size ArenaAvail(Arena arena)
 Size ArenaCollectable(Arena arena)
 {
   /* Conservative estimate -- see job003929. */
-  return ArenaScannable(arena);
-}
-
-
-/* ArenaScannable -- return estimate of scannable memory in arena */
-
-Size ArenaScannable(Arena arena)
-{
-  /* Conservative estimate -- see job003929. */
   Size committed = ArenaCommitted(arena);
   Size spareCommitted = ArenaSpareCommitted(arena);
   AVER(committed >= spareCommitted);
   return committed - spareCommitted;
+}
+
+
+/* ArenaAccumulateTime -- accumulate time spent tracing */
+
+void ArenaAccumulateTime(Arena arena, Clock start, Clock end)
+{
+  AVERT(Arena, arena);
+  AVER(start <= end);
+  arena->tracedTime += (end - start) / (double) ClocksPerSec();
 }
 
 

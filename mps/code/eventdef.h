@@ -674,7 +674,7 @@
   PARAM(X,  4, W, notCondemned) /* collectible but not condemned bytes */ \
   PARAM(X,  5, W, foundation)   /* foundation size */ \
   PARAM(X,  6, W, white)        /* white reference set */ \
-  PARAM(X,  7, W, quantumWork)  /* work constituting a quantum */
+  PARAM(X,  7, W, quantumWork)  /* tracing work to be done in each poll */
 
 #define EVENT_VMCompact_PARAMS(PARAM, X) \
   PARAM(X,  0, W, vmem0)        /* pre-collection reserved size */ \
