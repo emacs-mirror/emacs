@@ -590,7 +590,7 @@ void ArenaPark(Globals globals)
     TRACE_SET_ITER_END(ti, trace, arena->busyTraces, arena);
   }
 
-  ArenaAccumulateTime(arena, start);
+  ArenaAccumulateTime(arena, start, ClockNow());
 
   /* All traces have finished so there must not be an emergency. */
   AVER(!ArenaEmergency(arena));
