@@ -424,8 +424,8 @@ ignored."
   :group 'which-key
   :type 'function)
 
-(defcustom which-key-custom-lighter " WK"
-  "minor mode lighter to use in the mode-line."
+(defcustom which-key-lighter " WK"
+  "Minor mode lighter to use in the mode-line."
   :group 'which-key
   :type 'string)
 
@@ -501,7 +501,7 @@ alongside the actual current key sequence when
 (define-minor-mode which-key-mode
   "Toggle which-key-mode."
   :global t
-  :lighter which-key-custom-lighter
+  :lighter which-key-lighter
   :keymap (let ((map (make-sparse-keymap)))
             (mapc
              (lambda (prefix)
