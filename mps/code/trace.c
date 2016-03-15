@@ -722,7 +722,7 @@ static void *whiteTableAlloc(void *closure, Size size)
 {
   void *p;
   Arena arena = (Arena)closure;
-  Res res = ControlAlloc(&p, arena, size, FALSE);
+  Res res = ControlAlloc(&p, arena, size);
   if (res != ResOK)
     return NULL;
   return p;

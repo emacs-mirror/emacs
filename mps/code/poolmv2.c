@@ -35,15 +35,13 @@ static Res MVTInit(Pool pool, ArgList arg);
 static Bool MVTCheck(MVT mvt);
 static void MVTFinish(Pool pool);
 static Res MVTBufferFill(Addr *baseReturn, Addr *limitReturn,
-                         Pool pool, Buffer buffer, Size minSize,
-                         Bool withReservoirPermit);
+                         Pool pool, Buffer buffer, Size minSize);
 static void MVTBufferEmpty(Pool pool, Buffer buffer, Addr base, Addr limit);
 static void MVTFree(Pool pool, Addr base, Size size);
 static Res MVTDescribe(Pool pool, mps_lib_FILE *stream, Count depth);
 static Size MVTTotalSize(Pool pool);
 static Size MVTFreeSize(Pool pool);
-static Res MVTSegAlloc(Seg *segReturn, MVT mvt, Size size,
-                       Bool withReservoirPermit);
+static Res MVTSegAlloc(Seg *segReturn, MVT mvt, Size size);
 
 static void MVTSegFree(MVT mvt, Seg seg);
 static Bool MVTReturnSegs(MVT mvt, Range range, Arena arena);
@@ -491,8 +489,7 @@ static void MVTNoteFill(MVT mvt, Addr base, Addr limit, Size minSize) {
 static Res MVTOversizeFill(Addr *baseReturn,
                            Addr *limitReturn,
                            MVT mvt,
-                           Size minSize,
-                           Bool withReservoirPermit)
+                           Size minSize)
 {
   Res res;
   Seg seg;
@@ -501,7 +498,7 @@ static Res MVTOversizeFill(Addr *baseReturn,
 
   alignedSize = SizeArenaGrains(minSize, PoolArena(MVTPool(mvt)));
 
-  res = MVTSegAlloc(&seg, mvt, alignedSize, withReservoirPermit);
+  res = MVTSegAlloc(&seg, mvt, alignedSize);
   if (res != ResOK)
     return res;
 
@@ -660,14 +657,13 @@ static Bool MVTContingencyFill(Addr *baseReturn, Addr *limitReturn,
 
 static Res MVTSegFill(Addr *baseReturn, Addr *limitReturn,
                       MVT mvt, Size fillSize,
-                      Size minSize,
-                      Bool withReservoirPermit)
+                      Size minSize)
 {
   Res res;
   Seg seg;
   Addr base, limit;
 
-  res = MVTSegAlloc(&seg, mvt, fillSize, withReservoirPermit);
+  res = MVTSegAlloc(&seg, mvt, fillSize);
   if (res != ResOK)
     return res;
 
@@ -686,8 +682,7 @@ static Res MVTSegFill(Addr *baseReturn, Addr *limitReturn,
  * See <design/poolmvt/#impl.c.ap.fill>
  */
 static Res MVTBufferFill(Addr *baseReturn, Addr *limitReturn,
-                         Pool pool, Buffer buffer, Size minSize,
-                         Bool withReservoirPermit)
+                         Pool pool, Buffer buffer, Size minSize)
 {
   MVT mvt;
   Res res;
@@ -701,13 +696,12 @@ static Res MVTBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVER(BufferIsReset(buffer));
   AVER(minSize > 0);
   AVER(SizeIsAligned(minSize, pool->alignment));
-  AVERT(Bool, withReservoirPermit);
 
   /* Allocate oversize blocks exactly, directly from the arena.
      <design/poolmvt/#arch.ap.no-fit.oversize> */
   if (minSize > mvt->fillSize) {
     return MVTOversizeFill(baseReturn, limitReturn, mvt,
-                           minSize, withReservoirPermit);
+                           minSize);
   }
 
   /* Use any splinter, if available.
@@ -732,7 +726,7 @@ static Res MVTBufferFill(Addr *baseReturn, Addr *limitReturn,
   /* Attempt to request a block from the arena.
      <design/poolmvt/#impl.c.free.merge.segment> */
   res = MVTSegFill(baseReturn, limitReturn,
-                   mvt, mvt->fillSize, minSize, withReservoirPermit);
+                   mvt, mvt->fillSize, minSize);
   if (res == ResOK)
     return ResOK;
 
@@ -1133,11 +1127,10 @@ mps_pool_class_t mps_class_mvt(void)
 /* MVTSegAlloc -- encapsulates SegAlloc with associated accounting and
  * metering
  */
-static Res MVTSegAlloc(Seg *segReturn, MVT mvt, Size size,
-                       Bool withReservoirPermit)
+static Res MVTSegAlloc(Seg *segReturn, MVT mvt, Size size)
 {
   Res res = SegAlloc(segReturn, SegClassGet(), LocusPrefDefault(), size,
-                     MVTPool(mvt), withReservoirPermit, argsNone);
+                     MVTPool(mvt), argsNone);
 
   if (res == ResOK) {
     Size segSize = SegSize(*segReturn);

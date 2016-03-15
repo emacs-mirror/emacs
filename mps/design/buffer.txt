@@ -623,7 +623,7 @@ design.mps.thread-safety_).
 
 Returns the pool to which a buffer is attached.
 
-``Res BufferReserve(Addr *pReturn, Buffer buffer, Size size, Bool withReservoirPermit)``
+``Res BufferReserve(Addr *pReturn, Buffer buffer, Size size)``
 
 _`.method.reserve`: Reserves memory from an allocation buffer.
 
@@ -638,7 +638,7 @@ pool to which the buffer belongs) and then passed to the
 applied twice to a buffer without a ``BufferCommit()`` in-between. In
 other words, Reserve/Commit pairs do not nest.
 
-``Res BufferFill(Addr *pReturn, Buffer buffer, Size size, Bool withReservoirPermit)``
+``Res BufferFill(Addr *pReturn, Buffer buffer, Size size)``
 
 _`.method.fill`: Refills an empty buffer. If there is not enough space
 in a buffer to allocate in-line, ``BufferFill()`` must be called to

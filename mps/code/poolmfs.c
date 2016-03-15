@@ -221,8 +221,7 @@ void MFSExtend(Pool pool, Addr base, Size size)
  *  arena.
  */
 
-static Res MFSAlloc(Addr *pReturn, Pool pool, Size size,
-                    Bool withReservoirPermit)
+static Res MFSAlloc(Addr *pReturn, Pool pool, Size size)
 {
   Header f;
   Res res;
@@ -234,7 +233,6 @@ static Res MFSAlloc(Addr *pReturn, Pool pool, Size size,
 
   AVER(pReturn != NULL);
   AVER(size == mfs->unroundedUnitSize);
-  AVERT(Bool, withReservoirPermit);
 
   f = mfs->freeList;
 
@@ -249,8 +247,7 @@ static Res MFSAlloc(Addr *pReturn, Pool pool, Size size,
       return ResLIMIT;
 
     /* Create a new region and attach it to the pool. */
-    res = ArenaAlloc(&base, LocusPrefDefault(), mfs->extendBy, pool,
-                     withReservoirPermit);
+    res = ArenaAlloc(&base, LocusPrefDefault(), mfs->extendBy, pool);
     if(res != ResOK)
       return res;
 
