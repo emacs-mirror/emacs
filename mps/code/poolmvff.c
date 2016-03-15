@@ -189,13 +189,11 @@ static void MVFFReduce(MVFF mvff)
 
 /* MVFFExtend -- allocate a new range from the arena
  *
- * Allocate a new range from the arena (with the given
- * withReservoirPermit flag) of at least the specified size. The
- * specified size should be pool-aligned. Add it to the allocated and
- * free lists.
+ * Allocate a new range from the arena of at least the specified
+ * size. The specified size should be pool-aligned. Add it to the
+ * allocated and free lists.
  */
-static Res MVFFExtend(Range rangeReturn, MVFF mvff, Size size,
-                      Bool withReservoirPermit)
+static Res MVFFExtend(Range rangeReturn, MVFF mvff, Size size)
 {
   Pool pool;
   Arena arena;
@@ -206,7 +204,6 @@ static Res MVFFExtend(Range rangeReturn, MVFF mvff, Size size,
 
   AVERT(MVFF, mvff);
   AVER(size > 0);
-  AVERT(Bool, withReservoirPermit);
 
   pool = MVFFPool(mvff);
   arena = PoolArena(pool);
@@ -222,14 +219,12 @@ static Res MVFFExtend(Range rangeReturn, MVFF mvff, Size size,
 
   allocSize = SizeArenaGrains(allocSize, arena);
 
-  res = ArenaAlloc(&base, MVFFLocusPref(mvff), allocSize, pool,
-                   withReservoirPermit);
+  res = ArenaAlloc(&base, MVFFLocusPref(mvff), allocSize, pool);
   if (res != ResOK) {
     /* try again with a range just large enough for object */
     /* see <design/poolmvff/#design.seg-fail> */
     allocSize = SizeArenaGrains(size, arena);
-    res = ArenaAlloc(&base, MVFFLocusPref(mvff), allocSize, pool,
-                     withReservoirPermit);
+    res = ArenaAlloc(&base, MVFFLocusPref(mvff), allocSize, pool);
     if (res != ResOK)
       return res;
   }
@@ -262,8 +257,7 @@ static Res MVFFExtend(Range rangeReturn, MVFF mvff, Size size,
  * If there is no suitable free block, try extending the pool.
  */
 static Res mvffFindFree(Range rangeReturn, MVFF mvff, Size size,
-                        LandFindMethod findMethod, FindDelete findDelete,
-                        Bool withReservoirPermit)
+                        LandFindMethod findMethod, FindDelete findDelete)
 {
   Bool found;
   RangeStruct oldRange;
@@ -275,14 +269,13 @@ static Res mvffFindFree(Range rangeReturn, MVFF mvff, Size size,
   AVER(SizeIsAligned(size, PoolAlignment(MVFFPool(mvff))));
   AVER(FUNCHECK(findMethod));
   AVERT(FindDelete, findDelete);
-  AVERT(Bool, withReservoirPermit);
 
   land = MVFFFreeLand(mvff);
   found = (*findMethod)(rangeReturn, &oldRange, land, size, findDelete);
   if (!found) {
     RangeStruct newRange;
     Res res;
-    res = MVFFExtend(&newRange, mvff, size, withReservoirPermit);
+    res = MVFFExtend(&newRange, mvff, size);
     if (res != ResOK)
       return res;
     found = (*findMethod)(rangeReturn, &oldRange, land, size, findDelete);
@@ -300,8 +293,7 @@ static Res mvffFindFree(Range rangeReturn, MVFF mvff, Size size,
 
 /* MVFFAlloc -- Allocate a block */
 
-static Res MVFFAlloc(Addr *aReturn, Pool pool, Size size,
-                     Bool withReservoirPermit)
+static Res MVFFAlloc(Addr *aReturn, Pool pool, Size size)
 {
   Res res;
   MVFF mvff;
@@ -314,14 +306,12 @@ static Res MVFFAlloc(Addr *aReturn, Pool pool, Size size,
   mvff = PoolMVFF(pool);
   AVERT(MVFF, mvff);
   AVER(size > 0);
-  AVERT(Bool, withReservoirPermit);
 
   size = SizeAlignUp(size, PoolAlignment(pool));
   findMethod = mvff->firstFit ? LandFindFirst : LandFindLast;
   findDelete = mvff->slotHigh ? FindDeleteHIGH : FindDeleteLOW;
 
-  res = mvffFindFree(&range, mvff, size, findMethod, findDelete,
-                     withReservoirPermit);
+  res = mvffFindFree(&range, mvff, size, findMethod, findDelete);
   if (res != ResOK)
     return res;
 
@@ -361,8 +351,7 @@ static void MVFFFree(Pool pool, Addr old, Size size)
  * allocation policy; see <design/poolmvff/#over.buffer>.
  */
 static Res MVFFBufferFill(Addr *baseReturn, Addr *limitReturn,
-                          Pool pool, Buffer buffer, Size size,
-                          Bool withReservoirPermit)
+                          Pool pool, Buffer buffer, Size size)
 {
   Res res;
   MVFF mvff;
@@ -376,10 +365,8 @@ static Res MVFFBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVERT(Buffer, buffer);
   AVER(size > 0);
   AVER(SizeIsAligned(size, PoolAlignment(pool)));
-  AVERT(Bool, withReservoirPermit);
 
-  res = mvffFindFree(&range, mvff, size, LandFindLargest, FindDeleteENTIRE,
-                     withReservoirPermit);
+  res = mvffFindFree(&range, mvff, size, LandFindLargest, FindDeleteENTIRE);
   if (res != ResOK)
     return res;
   AVER(RangeSize(&range) >= size);

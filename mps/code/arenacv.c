@@ -161,7 +161,7 @@ static Res allocAsTract(AllocInfoStruct *aiReturn, LocusPref pref,
 {
   Res res;
   Addr base;
-  res = ArenaAlloc(&base, pref, size, pool, FALSE);
+  res = ArenaAlloc(&base, pref, size, pool);
   if (res == ResOK) {
     aiReturn->the.tractData.base = base;
     aiReturn->the.tractData.size = size;
@@ -249,7 +249,7 @@ static Res allocAsSeg(AllocInfoStruct *aiReturn, LocusPref pref,
 {
   Res res;
   Seg seg;
-  res = SegAlloc(&seg, SegClassGet(), pref, size, pool, FALSE, argsNone);
+  res = SegAlloc(&seg, SegClassGet(), pref, size, pool, argsNone);
   if (res == ResOK) {
     aiReturn->the.segData.seg = seg;
   }
