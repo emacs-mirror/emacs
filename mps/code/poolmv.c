@@ -4,9 +4,6 @@
  * Copyright (c) 2001-2015 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
- * **** RESTRICTION: This pool may not allocate from the arena control
- *                   pool, since it is used to implement that pool.
- *
  * An observation: Freeing memory introduces more information
  * into the system than allocating it.  This causes the problem
  * described in note 2.
@@ -27,17 +24,41 @@
 
 #include "mpscmv.h"
 #include "dbgpool.h"
-#include "poolmv.h"
 #include "poolmfs.h"
 #include "mpm.h"
 
 SRCID(poolmv, "$Id$");
 
 
+/* MVStruct -- MV (Manual Variable) pool outer structure
+ *
+ * .mv: See <code/poolmv.c>, <design/poolmv/>.
+ *
+ * The signature is placed at the end, see
+ * <design/pool/#outer-structure.sig>
+ */
+
+#define MVSig           ((Sig)0x5193B999) /* SIGnature MV */
+
+typedef struct MVStruct *MV;
+typedef struct MVStruct {       /* MV pool outer structure */
+  PoolStruct poolStruct;        /* generic structure */
+  MFSStruct blockPoolStruct;    /* for managing block descriptors */
+  MFSStruct spanPoolStruct;     /* for managing span descriptors */
+  Size extendBy;                /* segment size to extend pool by */
+  Size avgSize;                 /* client estimate of allocation size */
+  Size maxSize;                 /* client estimate of maximum size */
+  Size free;                    /* free space in pool */
+  Size lost;                    /* <design/poolmv/#lost> */
+  RingStruct spans;             /* span chain */
+  Sig sig;                      /* <design/sig/> */
+} MVStruct;
+
+
 #define mvBlockPool(mv) MFSPool(&(mv)->blockPoolStruct)
 #define mvSpanPool(mv) MFSPool(&(mv)->spanPoolStruct)
 
-
+#define MVPool(mv) (&(mv)->poolStruct)
 #define PoolMV(pool) PARENT(MVStruct, poolStruct, pool)
 
 
@@ -127,6 +148,9 @@ typedef struct MVSpanStruct {
   AddrOffset((span)->base.base, (span)->limit.limit)
 #define SpanInsideSentinels(span) \
   AddrOffset((span)->base.limit, (span)->limit.base)
+
+
+static Bool MVCheck(MV mv);
 
 
 /* MVSpanCheck -- check the consistency of a span structure */
@@ -863,12 +887,6 @@ DEFINE_POOL_CLASS(MVPoolClass, this)
 }
 
 
-MVPoolClass PoolClassMV(void)
-{
-  return EnsureMVPoolClass();
-}
-
-
 /* Pool class MVDebug */
 
 DEFINE_POOL_CLASS(MVDebugPoolClass, this)
@@ -901,7 +919,7 @@ mps_pool_class_t mps_class_mv_debug(void)
 
 /* MVCheck -- check the consistency of an MV structure */
 
-Bool MVCheck(MV mv)
+static Bool MVCheck(MV mv)
 {
   CHECKS(MV, mv);
   CHECKD(Pool, MVPool(mv));
