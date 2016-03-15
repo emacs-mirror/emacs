@@ -369,31 +369,38 @@ Bool PolicyPoll(Arena arena)
 
 Bool PolicyPollAgain(Arena arena, Clock start, Bool moreWork, Work tracedWork)
 {
+  Bool moreTime;
+  Globals globals;
+  double nextPollThreshold;
+
   AVERT(Arena, arena);
   UNUSED(tracedWork);
 
-  /* Is there more work to do and more time to do it in? */
-  if ((moreWork || ArenaEmergency(arena))
-      && (ClockNow() - start) < ArenaPauseTime(arena) * ClocksPerSec())
-  {
+  if (ArenaEmergency(arena))
     return TRUE;
+
+  /* Is there more work to do and more time to do it in? */
+  moreTime = (ClockNow() - start) < ArenaPauseTime(arena) * ClocksPerSec();
+  if (moreWork && moreTime)
+    return TRUE;
+
+  /* We're not going to do more work now, so calculate when to come back. */
+
+  globals = ArenaGlobals(arena);
+
+  if (moreWork) {
+    /* We did one quantum of work; consume one unit of 'time'. */
+    nextPollThreshold = globals->pollThreshold + ArenaPollALLOCTIME;
   } else {
-    Globals globals = ArenaGlobals(arena);
-    double nextPollThreshold;
-
-    if (moreWork) {
-      /* We did one quantum of work; consume one unit of 'time'. */
-      nextPollThreshold = globals->pollThreshold + ArenaPollALLOCTIME;
-    } else {
-      /* No more work to do.  Sleep until NOW + a bit. */
-      nextPollThreshold = globals->fillMutatorSize + ArenaPollALLOCTIME;
-    }
-
-    /* Advance pollThreshold; check: enough precision? */
-    AVER(nextPollThreshold > globals->pollThreshold);
-    globals->pollThreshold = nextPollThreshold;
-    return FALSE;
+    /* No more work to do.  Sleep until NOW + a bit. */
+    nextPollThreshold = globals->fillMutatorSize + ArenaPollALLOCTIME;
   }
+
+  /* Advance pollThreshold; check: enough precision? */
+  AVER(nextPollThreshold > globals->pollThreshold);
+  globals->pollThreshold = nextPollThreshold;
+
+  return FALSE;
 }
 
 
