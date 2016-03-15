@@ -12,6 +12,18 @@ Release 1.115.0
 New features
 ............
 
+#. The MPS now provides control over the maximum time that operations
+   within an arena may pause the :term:`client program` for. This can
+   be specified by the new function :c:func:`mps_arena_pause_time_set`
+   or by passing the new keyword argument
+   :c:macro:`MPS_KEY_PAUSE_TIME` to :c:func:`mps_arena_create_k`. The
+   current value can be retrieved by the new function
+   :c:func:`mps_arena_pause_time`.
+
+   The maximum pause time defaults to 0.1 seconds. For the old
+   behaviour (whereby the MPS always returned to the :term:`client
+   program` as soon as possible), set it to zero.
+
 #. New supported platforms ``fri3ll`` (FreeBSD, IA-32, Clang/LLVM)
    and ``fri6ll`` (FreeBSD, x86-64, Clang/LLVM).
 
@@ -43,6 +55,7 @@ New features
 #. New area root functions :c:func:`mps_root_create_area` and
    :c:func:`mps_root_create_area_tagged` for areas of memory
    that can be scanned by area scanning functions.
+
 
 Interface changes
 .................
