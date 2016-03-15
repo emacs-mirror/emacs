@@ -121,7 +121,7 @@ Bool PoolDebugOptionsCheck(PoolDebugOptions opt)
  * Someday, this could be split into fence and tag init methods.
  */
 
-ARG_DEFINE_KEY(pool_debug_options, PoolDebugOptions);
+ARG_DEFINE_KEY(POOL_DEBUG_OPTIONS, PoolDebugOptions);
 
 static PoolDebugOptionsStruct debugPoolOptionsDefault = {
   "POST", 4, "DEAD", 4,

@@ -1,11 +1,5 @@
 Contributing to the MPS
 =======================
-:author: Richard Brooksby
-:organization: Ravenbrook Limited
-:date: 2013-07-05
-:revision: $Id$
-:confidentiality: public
-
 We are very happy to receive contributions to the Memory Pool System so
 that we can improve it for everyone.
 

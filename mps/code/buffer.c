@@ -19,10 +19,8 @@
  *
  * TRANSGRESSIONS
  *
- * .trans.mod: There are several instances where pool structures are
- * directly accessed by this module because <code/pool.c> does not provide
- * an adequate (or adequately documented) interface.  They bear this
- * tag.
+ * .trans.mod: pool->bufferSerial is directly accessed by this module
+ * because <code/pool.c> does not provide an interface.
  */
 
 #include "mpm.h"
@@ -221,7 +219,7 @@ static Res BufferInit(Buffer buffer, BufferClass class,
   }
   buffer->fillSize = 0.0;
   buffer->emptySize = 0.0;
-  buffer->alignment = pool->alignment; /* .trans.mod */
+  buffer->alignment = PoolAlignment(pool);
   buffer->base = (Addr)0;
   buffer->initAtFlip = (Addr)0;
   /* In the next three assignments we really mean zero, not NULL, because
@@ -328,12 +326,10 @@ void BufferDetach(Buffer buffer, Pool pool)
     spare = AddrOffset(init, limit);
     buffer->emptySize += spare;
     if (buffer->isMutator) {
-      buffer->pool->emptyMutatorSize += spare;
       ArenaGlobals(buffer->arena)->emptyMutatorSize += spare;
       ArenaGlobals(buffer->arena)->allocMutatorSize +=
         AddrOffset(buffer->base, init);
     } else {
-      buffer->pool->emptyInternalSize += spare;
       ArenaGlobals(buffer->arena)->emptyInternalSize += spare;
     }
 
@@ -657,10 +653,8 @@ void BufferAttach(Buffer buffer, Addr base, Addr limit,
       Size prealloc = AddrOffset(base, init);
       ArenaGlobals(buffer->arena)->allocMutatorSize -= prealloc;
     }
-    buffer->pool->fillMutatorSize += filled;
     ArenaGlobals(buffer->arena)->fillMutatorSize += filled;
   } else {
-    buffer->pool->fillInternalSize += filled;
     ArenaGlobals(buffer->arena)->fillInternalSize += filled;
   }
 

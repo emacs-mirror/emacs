@@ -102,8 +102,8 @@ MVFF interface
     Return the :term:`pool class` for an MVFF (Manual Variable First
     Fit) :term:`pool`.
 
-    When creating an MVFF pool, :c:func:`mps_pool_create_k` may take
-    the following :term:`keyword arguments`:
+    When creating an MVFF pool, :c:func:`mps_pool_create_k` accepts
+    seven optional :term:`keyword arguments`:
 
     * :c:macro:`MPS_KEY_EXTEND_BY` (type :c:type:`size_t`, default
       65536) is the :term:`size` of block that the pool will request
@@ -132,15 +132,15 @@ MVFF interface
       default false) determines whether new blocks are acquired at high
       addresses (if true), or at low addresses (if false).
 
-    * :c:macro:`MPS_KEY_MVFF_SLOT_HIGH` [#not-ap]_ (type :c:type:`mps_bool_t`,
-      default false) determines whether to search for the highest
-      addressed free area (if true) or lowest (if false) when allocating
-      using :c:func:`mps_alloc`.
+    * :c:macro:`MPS_KEY_MVFF_SLOT_HIGH` [#not-ap]_ (type
+      :c:type:`mps_bool_t`, default false) determines whether to
+      search for the highest addressed free area (if true) or lowest
+      (if false) when allocating using :c:func:`mps_alloc`.
 
-    * :c:macro:`MPS_KEY_MVFF_FIRST_FIT` [#not-ap]_ (type :c:type:`mps_bool_t`, default
-      true) determines whether to allocate from the highest address in a
-      found free area (if true) or lowest (if false) when allocating
-      using :c:func:`mps_alloc`.
+    * :c:macro:`MPS_KEY_MVFF_FIRST_FIT` [#not-ap]_ (type
+      :c:type:`mps_bool_t`, default true) determines whether to
+      allocate from the highest address in a found free area (if true)
+      or lowest (if false) when allocating using :c:func:`mps_alloc`.
 
     .. [#not-ap]
     
@@ -150,12 +150,12 @@ MVFF interface
        They use a worst-fit policy in order to maximise the number of
        in-line allocations.
 
-    The defaults yield a a simple first-fit allocator.  Specify
+    The defaults yield a a simple first-fit allocator. Specify
     :c:macro:`MPS_KEY_MVFF_ARENA_HIGH` and
     :c:macro:`MPS_KEY_MVFF_SLOT_HIGH` true, and
     :c:macro:`MPS_KEY_MVFF_FIRST_FIT` false to get a first-fit
-    allocator that works from the top of memory downwards.
-    Other combinations may be useful in special circumstances.
+    allocator that works from the top of memory downwards. Other
+    combinations may be useful in special circumstances.
     
     For example::
 
@@ -169,20 +169,6 @@ MVFF interface
             res = mps_pool_create_k(&pool, arena, mps_class_mvff(), args);
         } MPS_ARGS_END(args);
 
-    .. deprecated:: starting with version 1.112.
-
-        When using :c:func:`mps_pool_create`, pass the arguments like
-        this::
-
-            mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
-                                      mps_pool_class_t mps_class_mvff(),
-                                      size_t extend_size,
-                                      size_t average_size,
-                                      mps_align_t alignment,
-                                      mps_bool_t slot_high,
-                                      mps_bool_t arena_high,
-                                      mps_bool_t first_fit)
-
 
 .. c:function:: mps_pool_class_t mps_class_mvff_debug(void)
 
@@ -190,55 +176,11 @@ MVFF interface
     class.
 
     When creating a debugging MVFF pool, :c:func:`mps_pool_create_k`
-    takes seven :term:`keyword arguments`.
-
-    * :c:macro:`MPS_KEY_EXTEND_BY`, :c:macro:`MPS_KEY_MEAN_SIZE`,
-      :c:macro:`MPS_KEY_ALIGN`, :c:macro:`MPS_KEY_MVFF_ARENA_HIGH`,
-      :c:macro:`MPS_KEY_MVFF_SLOT_HIGH`, and
-      :c:macro:`MPS_KEY_MVFF_FIRST_FIT` are as described above, and
-      :c:macro:`MPS_KEY_POOL_DEBUG_OPTIONS` specifies the debugging
-      options. See :c:type:`mps_pool_debug_option_s`.
-
-    .. deprecated:: starting with version 1.112.
-
-        When using :c:func:`mps_pool_create`, pass the arguments like
-        this::
-
-            mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
-                                      mps_pool_class_t mps_class_mvff_debug(),
-                                      mps_pool_debug_option_s debug_option,
-                                      size_t extend_size,
-                                      size_t average_size,
-                                      mps_align_t alignment,
-                                      mps_bool_t slot_high,
-                                      mps_bool_t arena_high,
-                                      mps_bool_t first_fit)
-
-
-.. index::
-   pair: MVFF; introspection
-
-MVFF introspection
-------------------
-
-::
-
-   #include "mpscmvff.h"
-
-.. c:function:: size_t mps_mvff_free_size(mps_pool_t pool)
-
-    Return the total amount of free space in an MVFF pool.
-
-    ``pool`` is the MVFF pool.
-
-    Returns the total free space in the pool, in :term:`bytes (1)`.
-
-
-.. c:function:: size_t mps_mvff_size(mps_pool_t pool)
-
-    Return the total size of an MVFF pool.
-
-    ``pool`` is the MVFF pool.
-
-    Returns the total size of the pool, in :term:`bytes (1)`. This
-    is the sum of allocated space and free space.
+    accepts eight optional :term:`keyword arguments`:
+    :c:macro:`MPS_KEY_EXTEND_BY`, :c:macro:`MPS_KEY_MEAN_SIZE`,
+    :c:macro:`MPS_KEY_ALIGN`, :c:macro:`MPS_KEY_SPARE`,
+    :c:macro:`MPS_KEY_MVFF_ARENA_HIGH`,
+    :c:macro:`MPS_KEY_MVFF_SLOT_HIGH`, and
+    :c:macro:`MPS_KEY_MVFF_FIRST_FIT` are as described above, and
+    :c:macro:`MPS_KEY_POOL_DEBUG_OPTIONS` specifies the debugging
+    options. See :c:type:`mps_pool_debug_option_s`.

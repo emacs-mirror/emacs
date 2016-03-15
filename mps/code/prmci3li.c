@@ -17,12 +17,12 @@
  *
  * ASSUMPTIONS
  *
- * .sp: The stack pointer in the context is uc_stack.ss_sp.
+ * .sp: The stack pointer in the context is ESP.
  *
  * .context.regroots: The root regs are assumed to be recorded in the context
  * at pointer-aligned boundaries.
  *
- * .assume.regref: The resisters in the context can be modified by
+ * .assume.regref: The registers in the context can be modified by
  * storing into an MRef pointer.
  */
 
@@ -30,6 +30,10 @@
 #include "prmci3.h"
 
 SRCID(prmci3li, "$Id$");
+
+#if !defined(MPS_OS_LI) || !defined(MPS_ARCH_I3)
+#error "prmci3li.c is specific to MPS_OS_LI and MPS_ARCH_I3"
+#endif
 
 
 /* Prmci3AddressHoldingReg -- return an address of a register in a context */
@@ -97,7 +101,9 @@ Addr MutatorFaultContextSP(MutatorFaultContext mfc)
 }
 
 
-Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext mfc)
+Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext mfc,
+                            mps_area_scan_t scan_area,
+                            void *closure)
 {
   mcontext_t *mc;
   Res res;
@@ -106,9 +112,10 @@ Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext mfc)
      unnecessarily scans the rest of the context.  The optimisation
      to scan only relevant parts would be machine dependent. */
   mc = &mfc->ucontext->uc_mcontext;
-  res = TraceScanAreaTagged(ss,
-                            (Addr *)mc,
-                            (Addr *)((char *)mc + sizeof(*mc)));
+  res = TraceScanArea(ss,
+                      (Word *)mc,
+                      (Word *)((char *)mc + sizeof(*mc)),
+                      scan_area, closure);
   return res;
 }
 

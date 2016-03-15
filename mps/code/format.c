@@ -88,14 +88,14 @@ static mps_addr_t FormatDefaultClass(mps_addr_t object)
 
 /* FormatCreate -- create a format */
 
-ARG_DEFINE_KEY(fmt_align, Align);
-ARG_DEFINE_KEY(fmt_scan, Fun);
-ARG_DEFINE_KEY(fmt_skip, Fun);
-ARG_DEFINE_KEY(fmt_fwd, Fun);
-ARG_DEFINE_KEY(fmt_isfwd, Fun);
-ARG_DEFINE_KEY(fmt_pad, Fun);
-ARG_DEFINE_KEY(fmt_header_size, Size);
-ARG_DEFINE_KEY(fmt_class, Fun);
+ARG_DEFINE_KEY(FMT_ALIGN, Align);
+ARG_DEFINE_KEY(FMT_SCAN, Fun);
+ARG_DEFINE_KEY(FMT_SKIP, Fun);
+ARG_DEFINE_KEY(FMT_FWD, Fun);
+ARG_DEFINE_KEY(FMT_ISFWD, Fun);
+ARG_DEFINE_KEY(FMT_PAD, Fun);
+ARG_DEFINE_KEY(FMT_HEADER_SIZE, Size);
+ARG_DEFINE_KEY(FMT_CLASS, Fun);
 
 Res FormatCreate(Format *formatReturn, Arena arena, ArgList args)
 {
@@ -183,13 +183,42 @@ void FormatDestroy(Format format)
 
 /* FormatArena -- find the arena of a format
  *
- * Must be thread-safe.  See <design/interface-c/#thread-safety>. */
+ * Must be thread-safe. See <design/interface-c/#check.testt>. */
 
 Arena FormatArena(Format format)
 {
-  /* Can't AVER format as that would not be thread-safe */
-  /* AVERT(Format, format); */
+  AVER(TESTT(Format, format));
   return format->arena;
+}
+
+
+/* FormatScan -- scan formatted objects for references
+ *
+ * This is a wrapper for formatted objects scanning functions, which
+ * should not otherwise be called directly from within the MPS.  This
+ * function checks arguments and takes care of accounting for the
+ * scanned memory.
+ *
+ * c.f. TraceScanArea()
+ */
+
+Res FormatScan(Format format, ScanState ss, Addr base, Addr limit)
+{
+  /* TODO: How critical are these? */
+  AVERT_CRITICAL(Format, format);
+  AVERT_CRITICAL(ScanState, ss);
+  AVER_CRITICAL(base != NULL);
+  AVER_CRITICAL(limit != NULL);
+  AVER_CRITICAL(base < limit);
+
+  /* TODO: EVENT here? */
+  
+  /* scannedSize is accumulated whether or not format->scan succeeds,
+     so it's safe to accumulate now so that we can tail-call
+     format->scan. */
+  ss->scannedSize += AddrOffset(base, limit);
+  
+  return format->scan(&ss->ss_s, base, limit);
 }
 
 

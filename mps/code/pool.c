@@ -1,7 +1,7 @@
 /* pool.c: POOL IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2015 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2001 Global Graphics Software.
  *
  * DESIGN
@@ -97,28 +97,24 @@ Bool PoolCheck(Pool pool)
   /* normally pool->format iff PoolHasAttr(pool, AttrFMT), but during
    * pool initialization pool->format may not yet be set. */
   CHECKL(pool->format == NULL || PoolHasAttr(pool, AttrFMT));
-  CHECKL(pool->fillMutatorSize >= 0.0);
-  CHECKL(pool->emptyMutatorSize >= 0.0);
-  CHECKL(pool->fillInternalSize >= 0.0);
-  CHECKL(pool->emptyInternalSize >= 0.0);
   return TRUE;
 }
 
 
 /* Common keywords to PoolInit */
 
-ARG_DEFINE_KEY(format, Format);
-ARG_DEFINE_KEY(chain, Chain);
-ARG_DEFINE_KEY(gen, Cant);
-ARG_DEFINE_KEY(rank, Rank);
-ARG_DEFINE_KEY(extend_by, Size);
-ARG_DEFINE_KEY(large_size, Size);
-ARG_DEFINE_KEY(min_size, Size);
-ARG_DEFINE_KEY(mean_size, Size);
-ARG_DEFINE_KEY(max_size, Size);
-ARG_DEFINE_KEY(align, Align);
-ARG_DEFINE_KEY(spare, double);
-ARG_DEFINE_KEY(interior, Bool);
+ARG_DEFINE_KEY(FORMAT, Format);
+ARG_DEFINE_KEY(CHAIN, Chain);
+ARG_DEFINE_KEY(GEN, Cant);
+ARG_DEFINE_KEY(RANK, Rank);
+ARG_DEFINE_KEY(EXTEND_BY, Size);
+ARG_DEFINE_KEY(LARGE_SIZE, Size);
+ARG_DEFINE_KEY(MIN_SIZE, Size);
+ARG_DEFINE_KEY(MEAN_SIZE, Size);
+ARG_DEFINE_KEY(MAX_SIZE, Size);
+ARG_DEFINE_KEY(ALIGN, Align);
+ARG_DEFINE_KEY(SPARE, double);
+ARG_DEFINE_KEY(INTERIOR, Bool);
 
 
 /* PoolInit -- initialize a pool
@@ -157,10 +153,6 @@ Res PoolInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   pool->alignment = MPS_PF_ALIGN;
   pool->format = NULL;
   pool->fix = class->fix;
-  pool->fillMutatorSize = 0.0;
-  pool->emptyMutatorSize = 0.0;
-  pool->fillInternalSize = 0.0;
-  pool->emptyInternalSize = 0.0;
 
   /* Initialise signature last; see <design/sig/> */
   pool->sig = PoolSig;
@@ -313,7 +305,6 @@ Res PoolAlloc(Addr *pReturn, Pool pool, Size size,
 
   /* All PoolAllocs should advance the allocation clock, so we count */
   /* it all in the fillMutatorSize field. */
-  pool->fillMutatorSize += size;
   ArenaGlobals(PoolArena(pool))->fillMutatorSize += size;
 
   EVENT3(PoolAlloc, pool, *pReturn, size);
@@ -330,6 +321,7 @@ void PoolFree(Pool pool, Addr old, Size size)
   AVER(old != NULL);
   /* The pool methods should check that old is in pool. */
   AVER(size > 0);
+  AVER(AddrIsAligned(old, pool->alignment));
   AVER(PoolHasRange(pool, old, AddrAdd(old, size)));
 
   (*pool->class->free)(pool, old, size);
@@ -345,7 +337,7 @@ Res PoolAccess(Pool pool, Seg seg, Addr addr,
   AVERT(Seg, seg);
   AVER(SegBase(seg) <= addr);
   AVER(addr < SegLimit(seg));
-  /* Can't check mode as there is no check method */
+  AVERT(AccessSet, mode);
   /* Can't check MutatorFaultContext as there is no check method */
 
   return (*pool->class->access)(pool, seg, addr, mode, context);
@@ -577,18 +569,6 @@ Res PoolDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
     if (res != ResOK)
       return res;
   }
-  res = WriteF(stream, depth + 2,
-               "fillMutatorSize $UKb\n",
-               (WriteFU)(pool->fillMutatorSize / 1024),
-               "emptyMutatorSize $UKb\n",
-               (WriteFU)(pool->emptyMutatorSize / 1024),
-               "fillInternalSize $UKb\n",
-               (WriteFU)(pool->fillInternalSize / 1024),
-               "emptyInternalSize $UKb\n",
-               (WriteFU)(pool->emptyInternalSize / 1024),
-               NULL);
-  if (res != ResOK)
-    return res;
 
   res = (*pool->class->describe)(pool, stream, depth + 2);
   if (res != ResOK)
@@ -723,7 +703,7 @@ Bool PoolHasRange(Pool pool, Addr base, Addr limit)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2015 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

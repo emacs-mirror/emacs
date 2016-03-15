@@ -5,11 +5,7 @@
  *
  *  This is a single-threaded implementation of the threads manager.
  *  Has stubs for thread suspension.
- *  See <design/thread-manager/>.
- *
- *  .single: We only expect at most one thread on the ring.
- *
- *  This supports the <code/th.h>
+ *  See <design/thread-manager/#impl.an>.
  */
 
 #include "mpm.h"
@@ -67,7 +63,6 @@ Res ThreadRegister(Thread *threadReturn, Arena arena)
   AVERT(Thread, thread);
 
   ring = ArenaThreadRing(arena);
-  AVER(RingCheckSingle(ring));  /* .single */
 
   RingAppend(ring, &thread->arenaRing);
 
@@ -91,16 +86,16 @@ void ThreadDeregister(Thread thread, Arena arena)
 }
 
 
-void ThreadRingSuspend(Ring threadRing)
+void ThreadRingSuspend(Ring threadRing, Ring deadRing)
 {
   AVERT(Ring, threadRing);
-  return;
+  AVERT(Ring, deadRing);
 }
 
-void ThreadRingResume(Ring threadRing)
+void ThreadRingResume(Ring threadRing, Ring deadRing)
 {
   AVERT(Ring, threadRing);
-  return;
+  AVERT(Ring, deadRing);
 }
 
 Thread ThreadRingThread(Ring threadRing)
@@ -113,19 +108,21 @@ Thread ThreadRingThread(Ring threadRing)
 }
 
 
-/* Must be thread-safe.  See <design/interface-c/#thread-safety>. */
+/* Must be thread-safe. See <design/interface-c/#check.testt>. */
+
 Arena ThreadArena(Thread thread)
 {
-  /* Can't AVER thread as that would not be thread-safe */
-  /* AVERT(Thread, thread); */
+  AVER(TESTT(Thread, thread));
   return thread->arena;
 }
 
 
-Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
+Res ThreadScan(ScanState ss, Thread thread, Word *stackCold,
+               mps_area_scan_t scan_area,
+               void *closure)
 {
   UNUSED(thread);
-  return StackScan(ss, stackBot);
+  return StackScan(ss, stackCold, scan_area, closure);
 }
 
 

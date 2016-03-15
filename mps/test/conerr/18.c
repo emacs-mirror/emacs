@@ -4,6 +4,10 @@ TEST_HEADER
  summary = create a pool with a format in the wrong arena
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= poollo.c
+ assertcond = FormatArena(pool->format) == arena
 END_HEADER
 */
 

@@ -69,7 +69,7 @@ static void test(void)
 
  b = allocone(apamc, 1, mps_rank_exact());
 
- for (j =1 ; j < 100; j++) {
+ for (j =1 ; j <= 100; j++) {
   comment("%i of 100.", j);
   a = allocone(apamc, 5, mps_rank_exact());
   b = a;
@@ -79,7 +79,7 @@ static void test(void)
   f = a;
   g = a;
 
-  for (i = 1; i < 5000; i++) {
+  for (i = 0; i < 5000; i++) {
    c = allocone(apamc, 20, mps_rank_exact());
    d = allocone(apamcz, 20, mps_rank_exact());
    if (ranint(8) == 0) e = c;

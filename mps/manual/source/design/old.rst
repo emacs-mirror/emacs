@@ -27,7 +27,6 @@ Old design
     fix
     io
     lib
-    lock
     locus
     message
     message-gc
@@ -42,8 +41,6 @@ Old design
     poolmv
     poolmvt
     poolmvff
-    prot
-    protan
     protli
     protsu
     protocol
@@ -57,13 +54,9 @@ Old design
     strategy
     telemetry
     tests
-    thread-manager
     thread-safety
     trace
     version-library
     version
-    vm
-    vman
     vmo1
     vmso
-    writef

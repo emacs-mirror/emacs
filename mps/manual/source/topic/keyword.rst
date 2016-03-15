@@ -82,43 +82,46 @@ now :c:macro:`MPS_KEY_ARGS_END`.
     The type of :term:`keyword argument` keys. Must take one of the
     following values:
 
-    ======================================== ====================================================== ==========================================================
-    Keyword                                  Type & field in ``arg.val``                            See
-    ======================================== ====================================================== ==========================================================
-    :c:macro:`MPS_KEY_ARGS_END`              *none*                                                 *see above*
-    :c:macro:`MPS_KEY_ALIGN`                 :c:type:`mps_align_t`           ``align``              :c:func:`mps_class_mv`, :c:func:`mps_class_mvff`, :c:func:`mps_class_mvt`
-    :c:macro:`MPS_KEY_AMS_SUPPORT_AMBIGUOUS` :c:type:`mps_bool_t`            ``b``                  :c:func:`mps_class_ams`
-    :c:macro:`MPS_KEY_ARENA_CL_BASE`         :c:type:`mps_addr_t`            ``addr``               :c:func:`mps_arena_class_cl`
-    :c:macro:`MPS_KEY_ARENA_SIZE`            :c:type:`size_t`                ``size``               :c:func:`mps_arena_class_vm`, :c:func:`mps_arena_class_cl`
-    :c:macro:`MPS_KEY_ARENA_GRAIN_SIZE`      :c:type:`size_t`                ``size``               :c:func:`mps_arena_class_vm`, :c:func:`mps_arena_class_cl`
-    :c:macro:`MPS_KEY_AWL_FIND_DEPENDENT`    ``void *(*)(void *)``           ``addr_method``        :c:func:`mps_class_awl`
-    :c:macro:`MPS_KEY_CHAIN`                 :c:type:`mps_chain_t`           ``chain``              :c:func:`mps_class_amc`, :c:func:`mps_class_amcz`, :c:func:`mps_class_ams`, :c:func:`mps_class_awl`, :c:func:`mps_class_lo`
-    :c:macro:`MPS_KEY_EXTEND_BY`             :c:type:`size_t`                ``size``               :c:func:`mps_class_amc`, :c:func:`mps_class_amcz`, :c:func:`mps_class_mfs`, :c:func:`mps_class_mv`, :c:func:`mps_class_mvff`
-    :c:macro:`MPS_KEY_FMT_ALIGN`             :c:type:`mps_align_t`           ``align``              :c:func:`mps_fmt_create_k`
-    :c:macro:`MPS_KEY_FMT_CLASS`             :c:type:`mps_fmt_class_t`       ``fmt_class``          :c:func:`mps_fmt_create_k`
-    :c:macro:`MPS_KEY_FMT_FWD`               :c:type:`mps_fmt_fwd_t`         ``fmt_fwd``            :c:func:`mps_fmt_create_k`
-    :c:macro:`MPS_KEY_FMT_HEADER_SIZE`       :c:type:`size_t`                ``size``               :c:func:`mps_fmt_create_k`
-    :c:macro:`MPS_KEY_FMT_ISFWD`             :c:type:`mps_fmt_isfwd_t`       ``fmt_isfwd``          :c:func:`mps_fmt_create_k`
-    :c:macro:`MPS_KEY_FMT_PAD`               :c:type:`mps_fmt_pad_t`         ``fmt_pad``            :c:func:`mps_fmt_create_k`
-    :c:macro:`MPS_KEY_FMT_SCAN`              :c:type:`mps_fmt_scan_t`        ``fmt_scan``           :c:func:`mps_fmt_create_k`
-    :c:macro:`MPS_KEY_FMT_SKIP`              :c:type:`mps_fmt_skip_t`        ``fmt_skip``           :c:func:`mps_fmt_create_k`
-    :c:macro:`MPS_KEY_FORMAT`                :c:type:`mps_fmt_t`             ``format``             :c:func:`mps_class_amc`, :c:func:`mps_class_amcz`, :c:func:`mps_class_ams`, :c:func:`mps_class_awl`, :c:func:`mps_class_lo` , :c:func:`mps_class_snc`
-    :c:macro:`MPS_KEY_GEN`                   :c:type:`unsigned`              ``u``                  :c:func:`mps_class_ams`, :c:func:`mps_class_awl`, :c:func:`mps_class_lo`
-    :c:macro:`MPS_KEY_INTERIOR`              :c:type:`mps_bool_t`            ``b``                  :c:func:`mps_class_amc`, :c:func:`mps_class_amcz`
-    :c:macro:`MPS_KEY_MAX_SIZE`              :c:type:`size_t`                ``size``               :c:func:`mps_class_mv`
-    :c:macro:`MPS_KEY_MEAN_SIZE`             :c:type:`size_t`                ``size``               :c:func:`mps_class_mv`, :c:func:`mps_class_mvt`, :c:func:`mps_class_mvff`
-    :c:macro:`MPS_KEY_MFS_UNIT_SIZE`         :c:type:`size_t`                ``size``               :c:func:`mps_class_mfs`
-    :c:macro:`MPS_KEY_MIN_SIZE`              :c:type:`size_t`                ``size``               :c:func:`mps_class_mvt`
-    :c:macro:`MPS_KEY_MVFF_ARENA_HIGH`       :c:type:`mps_bool_t`            ``b``                  :c:func:`mps_class_mvff`
-    :c:macro:`MPS_KEY_MVFF_FIRST_FIT`        :c:type:`mps_bool_t`            ``b``                  :c:func:`mps_class_mvff`
-    :c:macro:`MPS_KEY_MVFF_SLOT_HIGH`        :c:type:`mps_bool_t`            ``b``                  :c:func:`mps_class_mvff`
-    :c:macro:`MPS_KEY_MVT_FRAG_LIMIT`        :c:type:`mps_word_t`            ``count``              :c:func:`mps_class_mvt`
-    :c:macro:`MPS_KEY_MVT_RESERVE_DEPTH`     :c:type:`mps_word_t`            ``count``              :c:func:`mps_class_mvt`
-    :c:macro:`MPS_KEY_POOL_DEBUG_OPTIONS`    ``mps_pool_debug_options_s *``  ``pool_debug_options`` :c:func:`mps_class_ams_debug`, :c:func:`mps_class_mv_debug`, :c:func:`mps_class_mvff_debug`
-    :c:macro:`MPS_KEY_RANK`                  :c:type:`mps_rank_t`            ``rank``               :c:func:`mps_class_ams`, :c:func:`mps_class_awl`, :c:func:`mps_class_snc`
-    :c:macro:`MPS_KEY_SPARE`                 :c:type:`double`                ``d``                  :c:func:`mps_class_mvff`
-    :c:macro:`MPS_KEY_VMW3_TOP_DOWN`         :c:type:`mps_bool_t`            ``b``                  :c:func:`mps_arena_class_vm`
-    ======================================== ====================================================== ==========================================================
+    ======================================== ========================================================= ==========================================================
+    Keyword                                  Type & field in ``arg.val``                               See
+    ======================================== ========================================================= ==========================================================
+    :c:macro:`MPS_KEY_ARGS_END`              *none*                                                    *see above*
+    :c:macro:`MPS_KEY_ALIGN`                 :c:type:`mps_align_t`             ``align``               :c:func:`mps_class_mv`, :c:func:`mps_class_mvff`, :c:func:`mps_class_mvt`
+    :c:macro:`MPS_KEY_AMS_SUPPORT_AMBIGUOUS` :c:type:`mps_bool_t`              ``b``                   :c:func:`mps_class_ams`
+    :c:macro:`MPS_KEY_ARENA_CL_BASE`         :c:type:`mps_addr_t`              ``addr``                :c:func:`mps_arena_class_cl`
+    :c:macro:`MPS_KEY_ARENA_GRAIN_SIZE`      :c:type:`size_t`                  ``size``                :c:func:`mps_arena_class_vm`, :c:func:`mps_arena_class_cl`
+    :c:macro:`MPS_KEY_ARENA_SIZE`            :c:type:`size_t`                  ``size``                :c:func:`mps_arena_class_vm`, :c:func:`mps_arena_class_cl`
+    :c:macro:`MPS_KEY_AWL_FIND_DEPENDENT`    ``void *(*)(void *)``             ``addr_method``         :c:func:`mps_class_awl`
+    :c:macro:`MPS_KEY_CHAIN`                 :c:type:`mps_chain_t`             ``chain``               :c:func:`mps_class_amc`, :c:func:`mps_class_amcz`, :c:func:`mps_class_ams`, :c:func:`mps_class_awl`, :c:func:`mps_class_lo`
+    :c:macro:`MPS_KEY_COMMIT_LIMIT`          :c:type:`size_t`                  ``size``                :c:func:`mps_arena_class_vm`, :c:func:`mps_arena_class_cl`
+    :c:macro:`MPS_KEY_EXTEND_BY`             :c:type:`size_t`                  ``size``                :c:func:`mps_class_amc`, :c:func:`mps_class_amcz`, :c:func:`mps_class_mfs`, :c:func:`mps_class_mv`, :c:func:`mps_class_mvff`
+    :c:macro:`MPS_KEY_FMT_ALIGN`             :c:type:`mps_align_t`             ``align``               :c:func:`mps_fmt_create_k`
+    :c:macro:`MPS_KEY_FMT_CLASS`             :c:type:`mps_fmt_class_t`         ``fmt_class``           :c:func:`mps_fmt_create_k`
+    :c:macro:`MPS_KEY_FMT_FWD`               :c:type:`mps_fmt_fwd_t`           ``fmt_fwd``             :c:func:`mps_fmt_create_k`
+    :c:macro:`MPS_KEY_FMT_HEADER_SIZE`       :c:type:`size_t`                  ``size``                :c:func:`mps_fmt_create_k`
+    :c:macro:`MPS_KEY_FMT_ISFWD`             :c:type:`mps_fmt_isfwd_t`         ``fmt_isfwd``           :c:func:`mps_fmt_create_k`
+    :c:macro:`MPS_KEY_FMT_PAD`               :c:type:`mps_fmt_pad_t`           ``fmt_pad``             :c:func:`mps_fmt_create_k`
+    :c:macro:`MPS_KEY_FMT_SCAN`              :c:type:`mps_fmt_scan_t`          ``fmt_scan``            :c:func:`mps_fmt_create_k`
+    :c:macro:`MPS_KEY_FMT_SKIP`              :c:type:`mps_fmt_skip_t`          ``fmt_skip``            :c:func:`mps_fmt_create_k`
+    :c:macro:`MPS_KEY_FORMAT`                :c:type:`mps_fmt_t`               ``format``              :c:func:`mps_class_amc`, :c:func:`mps_class_amcz`, :c:func:`mps_class_ams`, :c:func:`mps_class_awl`, :c:func:`mps_class_lo` , :c:func:`mps_class_snc`
+    :c:macro:`MPS_KEY_GEN`                   :c:type:`unsigned`                ``u``                   :c:func:`mps_class_ams`, :c:func:`mps_class_awl`, :c:func:`mps_class_lo`
+    :c:macro:`MPS_KEY_INTERIOR`              :c:type:`mps_bool_t`              ``b``                   :c:func:`mps_class_amc`, :c:func:`mps_class_amcz`
+    :c:macro:`MPS_KEY_MAX_SIZE`              :c:type:`size_t`                  ``size``                :c:func:`mps_class_mv`
+    :c:macro:`MPS_KEY_MEAN_SIZE`             :c:type:`size_t`                  ``size``                :c:func:`mps_class_mv`, :c:func:`mps_class_mvt`, :c:func:`mps_class_mvff`
+    :c:macro:`MPS_KEY_MFS_UNIT_SIZE`         :c:type:`size_t`                  ``size``                :c:func:`mps_class_mfs`
+    :c:macro:`MPS_KEY_MIN_SIZE`              :c:type:`size_t`                  ``size``                :c:func:`mps_class_mvt`
+    :c:macro:`MPS_KEY_MVFF_ARENA_HIGH`       :c:type:`mps_bool_t`              ``b``                   :c:func:`mps_class_mvff`
+    :c:macro:`MPS_KEY_MVFF_FIRST_FIT`        :c:type:`mps_bool_t`              ``b``                   :c:func:`mps_class_mvff`
+    :c:macro:`MPS_KEY_MVFF_SLOT_HIGH`        :c:type:`mps_bool_t`              ``b``                   :c:func:`mps_class_mvff`
+    :c:macro:`MPS_KEY_MVT_FRAG_LIMIT`        :c:type:`mps_word_t`              ``count``               :c:func:`mps_class_mvt`
+    :c:macro:`MPS_KEY_MVT_RESERVE_DEPTH`     :c:type:`mps_word_t`              ``count``               :c:func:`mps_class_mvt`
+    :c:macro:`MPS_KEY_PAUSE_TIME`            :c:type:`double`                  ``d``                   :c:func:`mps_arena_class_vm`, :c:func:`mps_arena_class_cl`
+    :c:macro:`MPS_KEY_POOL_DEBUG_OPTIONS`    :c:type:`mps_pool_debug_option_s` ``*pool_debug_options`` :c:func:`mps_class_ams_debug`, :c:func:`mps_class_mv_debug`, :c:func:`mps_class_mvff_debug`
+    :c:macro:`MPS_KEY_RANK`                  :c:type:`mps_rank_t`              ``rank``                :c:func:`mps_class_ams`, :c:func:`mps_class_awl`, :c:func:`mps_class_snc`
+    :c:macro:`MPS_KEY_SPARE`                 :c:type:`double`                  ``d``                   :c:func:`mps_class_mvff`
+    :c:macro:`MPS_KEY_SPARE_COMMIT_LIMIT`    :c:type:`size_t`                  ``size``                :c:func:`mps_arena_class_vm`
+    :c:macro:`MPS_KEY_VMW3_TOP_DOWN`         :c:type:`mps_bool_t`              ``b``                   :c:func:`mps_arena_class_vm`
+    ======================================== ========================================================= ==========================================================
 
 
 .. c:function:: MPS_ARGS_BEGIN(args)
@@ -192,11 +195,3 @@ now :c:macro:`MPS_KEY_ARGS_END`.
     ``args`` is the name of array that contains the keyword arguments.
     It must match the argument to the preceding call to
     :c:func:`MPS_ARGS_BEGIN`.
-
-
-.. c:function:: MPS_ARGS_DONE(args)
-
-    .. deprecated:: starting with version 1.113.
-
-        Formerly this was used to finalize a list of keyword arguments
-        before passing it to a function. It is no longer needed.

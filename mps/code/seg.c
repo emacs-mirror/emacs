@@ -1,7 +1,7 @@
 /* seg.c: SEGMENTS
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2015 Ravenbrook Limited.  See end of file for license.
  *
  * .design: The design for this module is <design/seg/>.
  *
@@ -529,7 +529,7 @@ Bool SegNextOfRing(Seg *segReturn, Arena arena, Pool pool, Ring next)
   AVER_CRITICAL(segReturn != NULL); /* .seg.critical */
   AVERT_CRITICAL(Arena, arena);
   AVERT_CRITICAL(Pool, pool);
-  AVER_CRITICAL(RingCheck(next));
+  AVERT_CRITICAL(Ring, next);
   
   if (next == PoolSegRing(pool)) {
     if (!PoolNext(&pool, arena, pool) ||
@@ -1224,7 +1224,7 @@ static void gcSegSetGrey(Seg seg, TraceSet grey)
   Arena arena;
  
   AVERT_CRITICAL(Seg, seg);            /* .seg.method.check */
-  AVER_CRITICAL(TraceSetCheck(grey));  /* .seg.method.check */
+  AVERT_CRITICAL(TraceSet, grey);      /* .seg.method.check */
   AVER(seg->rankSet != RankSetEMPTY);
   gcseg = SegGCSeg(seg);
   AVERT_CRITICAL(GCSeg, gcseg);
@@ -1264,7 +1264,7 @@ static void gcSegSetWhite(Seg seg, TraceSet white)
   Addr addr, limit;
 
   AVERT_CRITICAL(Seg, seg);            /* .seg.method.check */
-  AVER_CRITICAL(TraceSetCheck(white)); /* .seg.method.check */
+  AVERT_CRITICAL(TraceSet, white);     /* .seg.method.check */
   gcseg = SegGCSeg(seg);
   AVERT_CRITICAL(GCSeg, gcseg);
   AVER_CRITICAL(&gcseg->segStruct == seg);
@@ -1307,7 +1307,7 @@ static void gcSegSetRankSet(Seg seg, RankSet rankSet)
   Arena arena;
 
   AVERT_CRITICAL(Seg, seg);                /* .seg.method.check */
-  AVER_CRITICAL(RankSetCheck(rankSet));    /* .seg.method.check */
+  AVERT_CRITICAL(RankSet, rankSet);        /* .seg.method.check */
   AVER_CRITICAL(rankSet == RankSetEMPTY
                 || RankSetIsSingle(rankSet)); /* .seg.method.check */
   gcseg = SegGCSeg(seg);
@@ -1378,7 +1378,7 @@ static void gcSegSetRankSummary(Seg seg, RankSet rankSet, RefSet summary)
   Arena arena;
 
   AVERT_CRITICAL(Seg, seg);                    /* .seg.method.check */
-  AVER_CRITICAL(RankSetCheck(rankSet));        /* .seg.method.check */
+  AVERT_CRITICAL(RankSet, rankSet);            /* .seg.method.check */
   AVER_CRITICAL(rankSet == RankSetEMPTY
                 || RankSetIsSingle(rankSet));  /* .seg.method.check */
   gcseg = SegGCSeg(seg);
@@ -1701,7 +1701,7 @@ void SegClassMixInNoSplitMerge(SegClass class)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2015 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

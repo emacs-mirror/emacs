@@ -49,7 +49,7 @@ static void inc(unsigned long i)
     tmp = shared;
     shared = tmp+1;
     i--;
-    LockReleaseMPM(lock);
+    LockRelease(lock);
   }
 }
 

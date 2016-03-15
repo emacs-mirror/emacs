@@ -19,7 +19,9 @@ END_HEADER
 #include "mpsavm.h"
 #include "newfmt.h"
 
-
+#define EXTEND_BY ((size_t)(1024*128))
+#define MEAN_SIZE ((size_t)(1024*64))
+#define MAX_SIZE ((size_t)(1024*1024))
 #define genCOUNT (3)
 
 static mps_gen_param_s testChain[genCOUNT] = {
@@ -66,7 +68,7 @@ static void test(void)
  comment("Sizes in megabytes:");
 
  die(mps_pool_create(&poolMV, arena, mps_class_mv(),
-                     1024*128, 1024*64, 1024*1024),
+                     EXTEND_BY, MEAN_SIZE, MAX_SIZE),
      "create MV pool");
  i = 0;
  while ((r=mps_alloc(&p, poolMV, 1024*1024)) == 0) i++;
@@ -76,7 +78,7 @@ static void test(void)
  mps_pool_destroy(poolMV);
 
  die(mps_pool_create(&poolMV, arena, mps_class_mv(),
-                     1024*128, 1024*64, 1024*1024),
+                     EXTEND_BY, MEAN_SIZE, MAX_SIZE),
      "create MV pool");
  i = 0;
  while ((r=mps_alloc(&p, poolMV, 1024*1024)) == 0) i++;
@@ -88,7 +90,7 @@ static void test(void)
  a = allocdumb(ap, 1024*1024*30); /* allocate 30 M object */
 
  die(mps_pool_create(&poolMV, arena, mps_class_mv(),
-                     1024*128, 1024*64, 1024*1024),
+                     EXTEND_BY, MEAN_SIZE, MAX_SIZE),
      "create MV pool");
  i=0;
  while ((r=mps_alloc(&p, poolMV, 1024*1024)) == 0) i++;

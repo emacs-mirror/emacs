@@ -1,12 +1,9 @@
-/* protli.c: PROTECTION FOR LINUX (INTEL 386)
+/* protli.c: PROTECTION FOR LINUX
  *
  *  $Id$
  *  Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * SOURCES
- *
- * .source.i486: Intel486 Microprocessor Family Programmer's
- * Reference Manual
  *
  * .source.linux.kernel: Linux kernel source files.
  */
@@ -25,6 +22,9 @@
 
 SRCID(protli, "$Id$");
 
+#if !defined(MPS_OS_LI)
+#error "protli.c is specific to MPS_OS_LI"
+#endif
 
 
 /* The previously-installed signal action, as returned by */

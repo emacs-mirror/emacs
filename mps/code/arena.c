@@ -41,6 +41,7 @@ Bool ArenaGrainSizeCheck(Size size)
 
 static void ArenaTrivCompact(Arena arena, Trace trace);
 static void arenaFreePage(Arena arena, Addr base, Pool pool);
+static void arenaFreeLandFinish(Arena arena);
 
 
 /* ArenaTrivDescribe -- produce trivial description of an arena */
@@ -85,7 +86,6 @@ DEFINE_CLASS(AbstractArenaClass, class)
   class->varargs = ArgTrivVarargs;
   class->init = NULL;
   class->finish = NULL;
-  class->reserved = NULL;
   class->purgeSpare = ArenaNoPurgeSpare;
   class->extend = ArenaNoExtend;
   class->grow = ArenaNoGrow;
@@ -113,7 +113,6 @@ Bool ArenaClassCheck(ArenaClass class)
   CHECKL(FUNCHECK(class->varargs));
   CHECKL(FUNCHECK(class->init));
   CHECKL(FUNCHECK(class->finish));
-  CHECKL(FUNCHECK(class->reserved));
   CHECKL(FUNCHECK(class->purgeSpare));
   CHECKL(FUNCHECK(class->extend));
   CHECKL(FUNCHECK(class->grow));
@@ -142,11 +141,15 @@ Bool ArenaCheck(Arena arena)
     CHECKD(Reservoir, &arena->reservoirStruct);
   }
 
-  /* Can't check that limit>=size because we may call ArenaCheck */
-  /* while the size is being adjusted. */
-
+  /* .reserved.check: Would like to check that arena->committed <=
+   * arena->reserved, but that isn't always true in the VM arena.
+   * Memory is committed early on when VMChunkCreate calls vmArenaMap
+   * (to provide a place for the chunk struct) but is not recorded as
+   * reserved until ChunkInit calls ArenaChunkInsert.
+   */
   CHECKL(arena->committed <= arena->commitLimit);
   CHECKL(arena->spareCommitted <= arena->committed);
+  CHECKL(0.0 <= arena->pauseTime);
 
   CHECKL(ShiftCheck(arena->zoneShift));
   CHECKL(ArenaGrainSizeCheck(arena->grainSize));
@@ -195,6 +198,9 @@ Res ArenaInit(Arena arena, ArenaClass class, Size grainSize, ArgList args)
 {
   Res res;
   Bool zoned = ARENA_DEFAULT_ZONED;
+  Size commitLimit = ARENA_DEFAULT_COMMIT_LIMIT;
+  Size spareCommitLimit = ARENA_DEFAULT_SPARE_COMMIT_LIMIT;
+  double pauseTime = ARENA_DEFAULT_PAUSE_TIME;
   mps_arg_s arg;
 
   AVER(arena != NULL);
@@ -203,15 +209,21 @@ Res ArenaInit(Arena arena, ArenaClass class, Size grainSize, ArgList args)
   
   if (ArgPick(&arg, args, MPS_KEY_ARENA_ZONED))
     zoned = arg.val.b;
+  if (ArgPick(&arg, args, MPS_KEY_COMMIT_LIMIT))
+    commitLimit = arg.val.size;
+  if (ArgPick(&arg, args, MPS_KEY_SPARE_COMMIT_LIMIT))
+    spareCommitLimit = arg.val.size;
+  if (ArgPick(&arg, args, MPS_KEY_PAUSE_TIME))
+    pauseTime = arg.val.d;
 
   arena->class = class;
 
+  arena->reserved = (Size)0;
   arena->committed = (Size)0;
-  /* commitLimit may be overridden by init (but probably not */
-  /* as there's not much point) */
-  arena->commitLimit = (Size)-1;
+  arena->commitLimit = commitLimit;
   arena->spareCommitted = (Size)0;
-  arena->spareCommitLimit = ARENA_INIT_SPARE_COMMIT_LIMIT;
+  arena->spareCommitLimit = spareCommitLimit;
+  arena->pauseTime = pauseTime;
   arena->grainSize = grainSize;
   /* zoneShift is usually overridden by init */
   arena->zoneShift = ARENA_ZONESHIFT;
@@ -236,10 +248,11 @@ Res ArenaInit(Arena arena, ArenaClass class, Size grainSize, ArgList args)
   arena->sig = ArenaSig;
   AVERT(Arena, arena);
   
-  /* Initialise a pool to hold the arena's CBS blocks.  This pool can't be
-     allowed to extend itself using ArenaAlloc because it is used during
-     ArenaAlloc, so MFSExtendSelf is set to FALSE.  Failures to extend are
-     handled where the Land is used. */
+  /* Initialise a pool to hold the CBS blocks for the arena's free
+   * land. This pool can't be allowed to extend itself using
+   * ArenaAlloc because it is used to implement ArenaAlloc, so
+   * MFSExtendSelf is set to FALSE. Failures to extend are handled
+   * where the free land is used: see arenaFreeLandInsertExtend. */
 
   MPS_ARGS_BEGIN(piArgs) {
     MPS_ARGS_ADD(piArgs, MPS_KEY_MFS_UNIT_SIZE, sizeof(CBSZonedBlockStruct));
@@ -251,18 +264,6 @@ Res ArenaInit(Arena arena, ArenaClass class, Size grainSize, ArgList args)
   if (res != ResOK)
     goto failMFSInit;
 
-  /* Initialise the freeLand. */
-  MPS_ARGS_BEGIN(liArgs) {
-    MPS_ARGS_ADD(liArgs, CBSBlockPool, ArenaCBSBlockPool(arena));
-    res = LandInit(ArenaFreeLand(arena), CBSZonedLandClassGet(), arena,
-                   ArenaGrainSize(arena), arena, liArgs);
-  } MPS_ARGS_END(liArgs);
-  AVER(res == ResOK); /* no allocation, no failure expected */
-  if (res != ResOK)
-    goto failLandInit;
-  /* Note that although freeLand is initialised, it doesn't have any memory
-     for its blocks, so hasFreeLand remains FALSE until later. */
-
   /* initialize the reservoir, <design/reservoir/> */
   res = ReservoirInit(&arena->reservoirStruct, arena);
   if (res != ResOK)
@@ -272,8 +273,6 @@ Res ArenaInit(Arena arena, ArenaClass class, Size grainSize, ArgList args)
   return ResOK;
 
 failReservoirInit:
-  LandFinish(ArenaFreeLand(arena));
-failLandInit:
   PoolFinish(ArenaCBSBlockPool(arena));
 failMFSInit:
   GlobalsFinish(ArenaGlobals(arena));
@@ -290,14 +289,54 @@ failGlobalsInit:
  * platforms, knowing that it has no effect.  To do that, the key must
  * exist on all platforms. */
 
-ARG_DEFINE_KEY(vmw3_top_down, Bool);
+ARG_DEFINE_KEY(VMW3_TOP_DOWN, Bool);
 
 
 /* ArenaCreate -- create the arena and call initializers */
 
-ARG_DEFINE_KEY(arena_size, Size);
-ARG_DEFINE_KEY(arena_grain_size, Size);
-ARG_DEFINE_KEY(arena_zoned, Bool);
+ARG_DEFINE_KEY(ARENA_GRAIN_SIZE, Size);
+ARG_DEFINE_KEY(ARENA_SIZE, Size);
+ARG_DEFINE_KEY(ARENA_ZONED, Bool);
+ARG_DEFINE_KEY(COMMIT_LIMIT, Size);
+ARG_DEFINE_KEY(SPARE_COMMIT_LIMIT, Size);
+ARG_DEFINE_KEY(PAUSE_TIME, double);
+
+static Res arenaFreeLandInit(Arena arena)
+{
+  Res res;
+
+  AVERT(Arena, arena);
+  AVER(!arena->hasFreeLand);
+  AVER(arena->primary != NULL);
+
+  /* Initialise the free land. */
+  MPS_ARGS_BEGIN(liArgs) {
+    MPS_ARGS_ADD(liArgs, CBSBlockPool, ArenaCBSBlockPool(arena));
+    res = LandInit(ArenaFreeLand(arena), CBSZonedLandClassGet(), arena,
+                   ArenaGrainSize(arena), arena, liArgs);
+  } MPS_ARGS_END(liArgs);
+  AVER(res == ResOK); /* no allocation, no failure expected */
+  if (res != ResOK)
+    goto failLandInit;
+
+  /* With the primary chunk initialised we can add page memory to the
+   * free land that describes the free address space in the primary
+   * chunk. */
+  res = ArenaFreeLandInsert(arena,
+                            PageIndexBase(arena->primary,
+                                          arena->primary->allocBase),
+                            arena->primary->limit);
+  if (res != ResOK)
+    goto failFreeLandInsert;
+
+  arena->hasFreeLand = TRUE;
+  return ResOK;
+
+failFreeLandInsert:
+  LandFinish(ArenaFreeLand(arena));
+failLandInit:
+  return res;
+}
 
 Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args)
 {
@@ -324,15 +363,9 @@ Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args)
     goto failStripeSize;
   }
 
-  /* With the primary chunk initialised we can add page memory to the freeLand
-     that describes the free address space in the primary chunk. */
-  res = ArenaFreeLandInsert(arena,
-                            PageIndexBase(arena->primary,
-                                          arena->primary->allocBase),
-                            arena->primary->limit);
+  res = arenaFreeLandInit(arena);
   if (res != ResOK)
-    goto failPrimaryLand;
-  arena->hasFreeLand = TRUE;
+    goto failFreeLandInit;
   
   res = ControlInit(arena);
   if (res != ResOK)
@@ -349,7 +382,8 @@ Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args)
 failGlobalsCompleteCreate:
   ControlFinish(arena);
 failControlInit:
-failPrimaryLand:
+  arenaFreeLandFinish(arena);
+failFreeLandInit:
 failStripeSize:
   (*class->finish)(arena);
 failInit:
@@ -378,16 +412,33 @@ void ArenaFinish(Arena arena)
 /* ArenaDestroy -- destroy the arena */
 
 static void arenaMFSPageFreeVisitor(Pool pool, Addr base, Size size,
-                                    void *closureP, Size closureS)
+                                    void *closure)
 {
   AVERT(Pool, pool);
-  AVER(closureP == UNUSED_POINTER);
-  AVER(closureS == UNUSED_SIZE);
-  UNUSED(closureP);
-  UNUSED(closureS);
+  AVER(closure == UNUSED_POINTER);
+  UNUSED(closure);
   UNUSED(size);
   AVER(size == ArenaGrainSize(PoolArena(pool)));
   arenaFreePage(PoolArena(pool), base, pool);
+}
+
+static void arenaFreeLandFinish(Arena arena)
+{
+  AVERT(Arena, arena);
+  AVER(arena->hasFreeLand);
+  
+  /* We're about to free the memory occupied by the free land, which
+     contains a CBS.  We want to make sure that LandFinish doesn't try
+     to check the CBS, so nuke it here.  TODO: LandReset? */
+  arena->freeLandStruct.splayTreeStruct.root = TreeEMPTY;
+
+  /* The CBS block pool can't free its own memory via ArenaFree because
+   * that would use the free land. */
+  MFSFinishTracts(ArenaCBSBlockPool(arena), arenaMFSPageFreeVisitor,
+                  UNUSED_POINTER);
+
+  arena->hasFreeLand = FALSE;
+  LandFinish(ArenaFreeLand(arena));
 }
 
 void ArenaDestroy(Arena arena)
@@ -399,19 +450,11 @@ void ArenaDestroy(Arena arena)
   /* Empty the reservoir - see <code/reserv.c#reservoir.finish> */
   ReservoirSetLimit(ArenaReservoir(arena), 0);
 
-  arena->poolReady = FALSE;
   ControlFinish(arena);
 
-  /* We must tear down the freeLand before the chunks, because pages
-     containing CBS blocks might be allocated in those chunks. */
-  AVER(arena->hasFreeLand);
-  arena->hasFreeLand = FALSE;
-  LandFinish(ArenaFreeLand(arena));
-
-  /* The CBS block pool can't free its own memory via ArenaFree because
-     that would use the freeLand. */
-  MFSFinishTracts(ArenaCBSBlockPool(arena), arenaMFSPageFreeVisitor,
-                  UNUSED_POINTER, UNUSED_SIZE);
+  /* We must tear down the free land before the chunks, because pages
+   * containing CBS blocks might be allocated in those chunks. */
+  arenaFreeLandFinish(arena);
 
   /* Call class-specific finishing.  This will call ArenaFinish. */
   (*arena->class->finish)(arena);
@@ -427,6 +470,7 @@ Res ControlInit(Arena arena)
   Res res;
 
   AVERT(Arena, arena);
+  AVER(!arena->poolReady);
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_EXTEND_BY, CONTROL_EXTEND_BY);
     res = PoolInit(MVPool(&arena->controlPoolStruct), arena,
@@ -444,6 +488,7 @@ Res ControlInit(Arena arena)
 void ControlFinish(Arena arena)
 {
   AVERT(Arena, arena);
+  AVER(arena->poolReady);
   arena->poolReady = FALSE;
   PoolFinish(MVPool(&arena->controlPoolStruct));
 }
@@ -454,7 +499,6 @@ void ControlFinish(Arena arena)
 Res ArenaDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
 {
   Res res;
-  Size reserved;
 
   if (!TESTT(Arena, arena))
     return ResFAIL;
@@ -476,20 +520,9 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
       return res;
   }
 
-  /* Note: this Describe clause calls a function */
-  reserved = ArenaReserved(arena);
   res = WriteF(stream, depth + 2,
-               "reserved         $W  <-- "
-               "total size of address-space reserved\n",
-               (WriteFW)reserved,
-               NULL);
-  if (res != ResOK)
-    return res;
-
-  res = WriteF(stream, depth + 2,
-               "committed        $W  <-- "
-               "total bytes currently stored (in RAM or swap)\n",
-               (WriteFW)arena->committed,
+               "reserved         $W\n", (WriteFW)arena->reserved,
+               "committed        $W\n", (WriteFW)arena->committed,
                "commitLimit      $W\n", (WriteFW)arena->commitLimit,
                "spareCommitted   $W\n", (WriteFW)arena->spareCommitted,
                "spareCommitLimit $W\n", (WriteFW)arena->spareCommitLimit,
@@ -669,7 +702,10 @@ Res ControlDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
 }
 
 
-/* ArenaChunkInsert -- insert chunk into arena's chunk tree and ring */
+/* ArenaChunkInsert -- insert chunk into arena's chunk tree and ring,
+ * update the total reserved address space, and set the primary chunk
+ * if not already set.
+ */
 
 void ArenaChunkInsert(Arena arena, Chunk chunk) {
   Bool inserted;
@@ -687,10 +723,37 @@ void ArenaChunkInsert(Arena arena, Chunk chunk) {
   arena->chunkTree = updatedTree;
   RingAppend(&arena->chunkRing, &chunk->arenaRing);
 
+  arena->reserved += ChunkReserved(chunk);
+
   /* As part of the bootstrap, the first created chunk becomes the primary
      chunk.  This step allows ArenaFreeLandInsert to allocate pages. */
   if (arena->primary == NULL)
     arena->primary = chunk;
+}
+
+
+/* ArenaChunkRemoved -- chunk was removed from the arena and is being
+ * finished, so update the total reserved address space, and unset the
+ * primary chunk if necessary.
+ */
+
+void ArenaChunkRemoved(Arena arena, Chunk chunk)
+{
+  Size size;
+
+  AVERT(Arena, arena);
+  AVERT(Chunk, chunk);
+
+  size = ChunkReserved(chunk);
+  AVER(arena->reserved >= size);
+  arena->reserved -= size;
+
+  if (chunk == arena->primary) {
+    /* The primary chunk must be the last chunk to be removed. */
+    AVER(RingIsSingle(&arena->chunkRing));
+    AVER(arena->reserved == 0);
+    arena->primary = NULL;
+  }
 }
 
 
@@ -699,7 +762,7 @@ void ArenaChunkInsert(Arena arena, Chunk chunk) {
  * This is a primitive allocator used to allocate pages for the arena
  * Land. It is called rarely and can use a simple search. It may not
  * use the Land or any pool, because it is used as part of the
- * bootstrap.
+ * bootstrap.  See design.mps.bootstrap.land.sol.alloc.
  */
 
 static Res arenaAllocPageInChunk(Addr *baseReturn, Chunk chunk, Pool pool)
@@ -781,7 +844,7 @@ static Res arenaExtendCBSBlockPool(Range pageRangeReturn, Arena arena)
     return res;
   MFSExtend(ArenaCBSBlockPool(arena), pageBase, ArenaGrainSize(arena));
 
-  RangeInit(pageRangeReturn, pageBase, AddrAdd(pageBase, ArenaGrainSize(arena)));
+  RangeInitSize(pageRangeReturn, pageBase, ArenaGrainSize(arena));
   return ResOK;
 }
 
@@ -801,15 +864,19 @@ static void arenaExcludePage(Arena arena, Range pageRange)
 }
 
 
-/* arenaLandInsert -- add range to arena's land, maybe extending block pool
+/* arenaFreeLandInsertExtend -- add range to arena's free land, maybe
+ * extending block pool
  *
- * The arena's land can't get memory in the usual way because it is
- * used in the basic allocator, so we allocate pages specially.
+ * The arena's free land can't get memory for its block pool in the
+ * usual way (via ArenaAlloc), because it is the mechanism behind
+ * ArenaAlloc! So we extend the block pool via a back door (see
+ * arenaExtendCBSBlockPool).  See design.mps.bootstrap.land.sol.pool.
  *
  * Only fails if it can't get a page for the block pool.
  */
 
-static Res arenaLandInsert(Range rangeReturn, Arena arena, Range range)
+static Res arenaFreeLandInsertExtend(Range rangeReturn, Arena arena,
+                                     Range range)
 {
   Res res;
   
@@ -835,16 +902,18 @@ static Res arenaLandInsert(Range rangeReturn, Arena arena, Range range)
 }
 
 
-/* ArenaFreeLandInsert -- add range to arena's land, maybe stealing memory
+/* arenaFreeLandInsertSteal -- add range to arena's free land, maybe
+ * stealing memory
  *
- * See arenaLandInsert. This function may only be applied to mapped
- * pages and may steal them to store Land nodes if it's unable to
- * allocate space for CBS blocks.
+ * See arenaFreeLandInsertExtend. This function may only be applied to
+ * mapped pages and may steal them to store Land nodes if it's unable
+ * to allocate space for CBS blocks.
  *
  * IMPORTANT: May update rangeIO.
  */
 
-static void arenaLandInsertSteal(Range rangeReturn, Arena arena, Range rangeIO)
+static void arenaFreeLandInsertSteal(Range rangeReturn, Arena arena,
+                                     Range rangeIO)
 {
   Res res;
   
@@ -852,7 +921,7 @@ static void arenaLandInsertSteal(Range rangeReturn, Arena arena, Range rangeIO)
   AVERT(Arena, arena);
   AVERT(Range, rangeIO);
 
-  res = arenaLandInsert(rangeReturn, arena, rangeIO);
+  res = arenaFreeLandInsertExtend(rangeReturn, arena, rangeIO);
   
   if (res != ResOK) {
     Addr pageBase;
@@ -881,7 +950,8 @@ static void arenaLandInsertSteal(Range rangeReturn, Arena arena, Range rangeIO)
 }
 
 
-/* ArenaFreeLandInsert -- add range to arena's land, maybe extending block pool
+/* ArenaFreeLandInsert -- add range to arena's free land, maybe extending
+ * block pool
  *
  * The inserted block of address space may not abut any existing block.
  * This restriction ensures that we don't coalesce chunks and allocate
@@ -896,7 +966,7 @@ Res ArenaFreeLandInsert(Arena arena, Addr base, Addr limit)
   AVERT(Arena, arena);
 
   RangeInit(&range, base, limit);
-  res = arenaLandInsert(&oldRange, arena, &range);
+  res = arenaFreeLandInsertExtend(&oldRange, arena, &range);
   if (res != ResOK)
     return res;
 
@@ -911,7 +981,8 @@ Res ArenaFreeLandInsert(Arena arena, Addr base, Addr limit)
 }
 
 
-/* ArenaFreeLandDelete -- remove range from arena's land, maybe extending block pool
+/* ArenaFreeLandDelete -- remove range from arena's free land, maybe
+ * extending block pool
  *
  * This is called from ChunkFinish in order to remove address space from
  * the arena.
@@ -937,22 +1008,32 @@ void ArenaFreeLandDelete(Arena arena, Addr base, Addr limit)
 }
 
 
-static Res arenaAllocFromLand(Tract *tractReturn, ZoneSet zones, Bool high,
-                             Size size, Pool pool)
+/* ArenaFreeLandAlloc -- allocate a continguous range of tracts of
+ * size bytes from the arena's free land.
+ *
+ * size, zones, and high are as for LandFindInZones.
+ *
+ * If successful, mark the allocated tracts as belonging to pool, set
+ * *tractReturn to point to the first tract in the range, and return
+ * ResOK.
+ */
+
+Res ArenaFreeLandAlloc(Tract *tractReturn, Arena arena, ZoneSet zones,
+                       Bool high, Size size, Pool pool)
 {
-  Arena arena;
   RangeStruct range, oldRange;
-  Chunk chunk;
+  Chunk chunk = NULL; /* suppress uninit warning */
   Bool found, b;
   Index baseIndex;
   Count pages;
   Res res;
   
   AVER(tractReturn != NULL);
+  AVERT(Arena, arena);
   /* ZoneSet is arbitrary */
   AVER(size > (Size)0);
   AVERT(Pool, pool);
-  arena = PoolArena(pool);
+  AVER(arena == PoolArena(pool));
   AVER(SizeIsArenaGrains(size, arena));
   
   if (!arena->zoned)
@@ -1003,110 +1084,11 @@ static Res arenaAllocFromLand(Tract *tractReturn, ZoneSet zones, Bool high,
 
 failMark:
    {
-     Res insertRes = arenaLandInsert(&oldRange, arena, &range);
+     Res insertRes = arenaFreeLandInsertExtend(&oldRange, arena, &range);
      AVER(insertRes == ResOK); /* We only just deleted it. */
      /* If the insert does fail, we lose some address space permanently. */
    }
    return res;
-}
-
-
-/* arenaAllocPolicy -- arena allocation policy implementation
- *
- * This is the code responsible for making decisions about where to allocate
- * memory.  Avoid distributing code for doing this elsewhere, so that policy
- * can be maintained and adjusted.
- *
- * TODO: This currently duplicates the policy from VMAllocPolicy in
- * //info.ravenbrook.com/project/mps/master/code/arenavm.c#36 in order
- * to avoid disruption to clients, but needs revision.
- */
-
-static Res arenaAllocPolicy(Tract *tractReturn, Arena arena, LocusPref pref,
-                            Size size, Pool pool)
-{
-  Res res;
-  Tract tract;
-  ZoneSet zones, moreZones, evenMoreZones;
-
-  AVER(tractReturn != NULL);
-  AVERT(LocusPref, pref);
-  AVER(size > (Size)0);
-  AVERT(Pool, pool);
-  
-  /* Don't attempt to allocate if doing so would definitely exceed the
-     commit limit. */
-  if (arena->spareCommitted < size) {
-    Size necessaryCommitIncrease = size - arena->spareCommitted;
-    if (arena->committed + necessaryCommitIncrease > arena->commitLimit
-        || arena->committed + necessaryCommitIncrease < arena->committed) {
-      return ResCOMMIT_LIMIT;
-    }
-  }
-
-  /* Plan A: allocate from the free Land in the requested zones */
-  zones = ZoneSetDiff(pref->zones, pref->avoid);
-  if (zones != ZoneSetEMPTY) {
-    res = arenaAllocFromLand(&tract, zones, pref->high, size, pool);
-    if (res == ResOK)
-      goto found;
-  }
-
-  /* Plan B: add free zones that aren't blacklisted */
-  /* TODO: Pools without ambiguous roots might not care about the blacklist. */
-  /* TODO: zones are precious and (currently) never deallocated, so we
-     should consider extending the arena first if address space is plentiful.
-     See also job003384. */
-  moreZones = ZoneSetUnion(pref->zones, ZoneSetDiff(arena->freeZones, pref->avoid));
-  if (moreZones != zones) {
-    res = arenaAllocFromLand(&tract, moreZones, pref->high, size, pool);
-    if (res == ResOK)
-      goto found;
-  }
-  
-  /* Plan C: Extend the arena, then try A and B again. */
-  if (moreZones != ZoneSetEMPTY) {
-    res = arena->class->grow(arena, pref, size);
-    if (res != ResOK)
-      return res;
-    if (zones != ZoneSetEMPTY) {
-      res = arenaAllocFromLand(&tract, zones, pref->high, size, pool);
-      if (res == ResOK)
-        goto found;
-    }
-    if (moreZones != zones) {
-      zones = ZoneSetUnion(zones, ZoneSetDiff(arena->freeZones, pref->avoid));
-      res = arenaAllocFromLand(&tract, moreZones, pref->high, size, pool);
-      if (res == ResOK)
-        goto found;
-    }
-  }
-
-  /* Plan D: add every zone that isn't blacklisted.  This might mix GC'd
-     objects with those from other generations, causing the zone check
-     to give false positives and slowing down the collector. */
-  /* TODO: log an event for this */
-  evenMoreZones = ZoneSetDiff(ZoneSetUNIV, pref->avoid);
-  if (evenMoreZones != moreZones) {
-    res = arenaAllocFromLand(&tract, evenMoreZones, pref->high, size, pool);
-    if (res == ResOK)
-      goto found;
-  }
-
-  /* Last resort: try anywhere.  This might put GC'd objects in zones where
-     common ambiguous bit patterns pin them down, causing the zone check
-     to give even more false positives permanently, and possibly retaining
-     garbage indefinitely. */
-  res = arenaAllocFromLand(&tract, ZoneSetUNIV, pref->high, size, pool);
-  if (res == ResOK)
-    goto found;
-
-  /* Uh oh. */
-  return res;
-
-found:
-  *tractReturn = tract;
-  return ResOK;
 }
 
 
@@ -1142,7 +1124,7 @@ Res ArenaAlloc(Addr *baseReturn, LocusPref pref, Size size, Pool pool,
     }
   }
 
-  res = arenaAllocPolicy(&tract, arena, pref, size, pool);
+  res = PolicyAlloc(&tract, arena, pref, size, pool);
   if (res != ResOK) {
     if (withReservoirPermit) {
       Res resRes = ReservoirWithdraw(&base, &tract, reservoir, size, pool);
@@ -1215,7 +1197,7 @@ void ArenaFree(Addr base, Size size, Pool pool)
 
   RangeInit(&range, base, limit);
 
-  arenaLandInsertSteal(&oldRange, arena, &range); /* may update range */
+  arenaFreeLandInsertSteal(&oldRange, arena, &range); /* may update range */
 
   (*arena->class->free)(RangeBase(&range), RangeSize(&range), pool);
 
@@ -1231,7 +1213,7 @@ allDeposited:
 Size ArenaReserved(Arena arena)
 {
   AVERT(Arena, arena);
-  return (*arena->class->reserved)(arena);
+  return arena->reserved;
 }
 
 Size ArenaCommitted(Arena arena)
@@ -1264,7 +1246,20 @@ void ArenaSetSpareCommitLimit(Arena arena, Size limit)
   }
 
   EVENT2(SpareCommitLimitSet, arena, limit);
-  return;
+}
+
+double ArenaPauseTime(Arena arena)
+{
+  AVERT(Arena, arena);
+  return arena->pauseTime;
+}
+
+void ArenaSetPauseTime(Arena arena, double pauseTime)
+{
+  AVERT(Arena, arena);
+  AVER(0.0 <= pauseTime);
+  arena->pauseTime = pauseTime;
+  EVENT2(PauseTimeSet, arena, pauseTime);
 }
 
 /* Used by arenas which don't use spare committed memory */
@@ -1337,7 +1332,30 @@ Size ArenaAvail(Arena arena)
      this information from the operating system.  It also depends on the
      arena class, of course. */
 
+  AVER(sSwap >= arena->committed);
   return sSwap - arena->committed + arena->spareCommitted;
+}
+
+
+/* ArenaCollectable -- return estimate of collectable memory in arena */
+
+Size ArenaCollectable(Arena arena)
+{
+  /* Conservative estimate -- see job003929. */
+  Size committed = ArenaCommitted(arena);
+  Size spareCommitted = ArenaSpareCommitted(arena);
+  AVER(committed >= spareCommitted);
+  return committed - spareCommitted;
+}
+
+
+/* ArenaAccumulateTime -- accumulate time spent tracing */
+
+void ArenaAccumulateTime(Arena arena, Clock start, Clock end)
+{
+  AVERT(Arena, arena);
+  AVER(start <= end);
+  arena->tracedTime += (end - start) / (double) ClocksPerSec();
 }
 
 
@@ -1394,10 +1412,10 @@ static void ArenaTrivCompact(Arena arena, Trace trace)
 
 Bool ArenaHasAddr(Arena arena, Addr addr)
 {
-  Seg seg;
+  Tract tract;
 
   AVERT(Arena, arena);
-  return SegOfAddr(&seg, arena, addr);
+  return TractOfAddr(&tract, arena, addr);
 }
 
 

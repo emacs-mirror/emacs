@@ -63,10 +63,13 @@ Requirements
     sources of requirements so that they are traceable to client
     requirements. Most of these come from the architectural design
     (design.mps.architecture) or the fix function design
-    (design.mps.fix). Richard Brooksby, 1995-08-28.
+    (design.mps.fix_). Richard Brooksby, 1995-08-28.
 
-    They were copied from design.mps.arena.vm(1) and edited slightly.
+    They were copied from design.mps.arena.vm_ and edited slightly.
     David Jones, 1999-06-23.
+
+    .. _design.mps.fix: fix
+    .. _design.mps.arena.vm: arenavm
 
 
 Block management
@@ -120,7 +123,7 @@ contiguous addresses at any time.
 _`.req.fun.trans.white`: If the address is managed by an automatic
 pool, the set of traces for which the address is white. This is
 required so that the second-stage fix protocol can reject non-white
-addresses quickly. See `design.mps.critical-path`_.
+addresses quickly. See design.mps.critical-path_.
 
 .. _design.mps.critical-path: critical-path
 
@@ -193,7 +196,7 @@ Arena classes
 ``typedef mps_arena_s *Arena``
 
 _`.class`: The ``Arena`` data structure is designed to be subclassable
-(see `design.mps.protocol`_). Clients can select what arena class
+(see design.mps.protocol_). Clients can select what arena class
 they'd like when instantiating one with ``mps_arena_create_k()``. The
 arguments to ``mps_arena_create_k()`` are class-dependent.
 
@@ -240,9 +243,7 @@ _`.chunk.tracts`: A chunk contains a table of tracts. See `.tract`_.
 
 _`.chunk.lookup`: Looking of the chunk of an address is the first
 step in the second-stage fix operation, and so on the critical path.
-See `design.mps.critical-path`_.
-
-.. _design.mps.critical-path: critical-path
+See design.mps.critical-path_.
 
 _`.chunk.tree`: For efficient lookup, chunks are stored in a balanced
 tree; ``arena->chunkTree`` points to the root of the tree. Operations
@@ -314,7 +315,7 @@ use it for any purpose.
 _`.tract.field.hasSeg`: The ``hasSeg`` bit-field is a Boolean which
 indicates whether the ``p`` field is being used by the segment module.
 If this field is ``TRUE``, then the value of ``p`` is a ``Seg``. See
-`design.mps.type.bool.bitfield`_ for why this is declared using the
+design.mps.type.bool.bitfield_ for why this is declared using the
 ``BOOLFIELD`` macro.
 
 .. _design.mps.type.bool.bitfield: type#bool.bitfield
@@ -325,7 +326,7 @@ memory represented by the tract.
 _`.tract.field.white`: The white bit-field indicates for which traces
 the tract is white (`.req.fun.trans.white`_). This information is also
 stored in the segment, but is duplicated here for efficiency during a
-call to ``TraceFix()`` (see `design.mps.trace.fix`_).
+call to ``TraceFix()`` (see design.mps.trace.fix_).
 
 .. _design.mps.trace.fix: trace#fix
 
@@ -431,19 +432,30 @@ bytes; ``spareCommitLimit`` records the limit (set by the user) on the
 amount of spare committed memory. ``spareCommitted`` is modified by
 the arena class but its value is used by the generic arena code. There
 are two uses: a getter function for this value is provided through the
-MPS interface (``mps_arena_spare_commit_limit_set()``), and by the
-``SetSpareCommitLimit()`` function to determine whether the amount of
-spare committed memory needs to be reduced. ``spareCommitLimit`` is
-manipulated by generic arena code, however the associated semantics
-are the responsibility of the class. It is the class's responsibility
-to ensure that it doesn't use more spare committed bytes than the
-value in ``spareCommitLimit``.
+MPS interface (``mps_arena_spare_commit_limit()``), and by the
+``ArenaSetSpareCommitLimit()`` function to determine whether the
+amount of spare committed memory needs to be reduced.
+``spareCommitLimit`` is manipulated by generic arena code, however the
+associated semantics are the responsibility of the class. It is the
+class's responsibility to ensure that it doesn't use more spare
+committed bytes than the value in ``spareCommitLimit``.
 
 _`.spare-commit-limit`: The function ``ArenaSetSpareCommitLimit()`` sets
 the ``spareCommitLimit`` field. If the limit is set to a value lower
 than the amount of spare committed memory (stored in
 ``spareCommitted``) then the class specific function
 ``spareCommitExceeded`` is called.
+
+
+Pause time control
+..................
+
+_`.pause-time`: The generic arena structure contains the field
+``pauseTime`` for the maximum time any operation in the arena may take
+before returning to the mutator. This value is used by
+``PolicyPollAgain()`` to decide whether to do another unit of tracing
+work. The MPS interface provides getter (``mps_arena_pause_time()``)
+and setter (``mps_arena_pause_time_set()``) functions.
 
 
 Locks
@@ -559,12 +571,12 @@ _`.ld.epoch`: ``arena->epoch`` is the "current epoch". This is the
 number of 'flips' of traces in the arena since the arena was created.
 From the mutator's point of view locations change atomically at flip.
 
-_`.ld.history`: ``arena->history`` is an array of ``ARENA_LD_LENGTH``
-elements of type ``RefSet``. These are the summaries of moved objects
-since the last ``ARENA_LD_LENGTH`` epochs. If ``e`` is one of these
-recent epochs, then ::
+_`.ld.history`: ``arena->history`` is a circular buffer of
+``LDHistoryLENGTH`` elements of type ``RefSet``. These are the
+summaries of moved objects since the last ``LDHistoryLENGTH`` epochs.
+If ``e`` is one of these recent epochs, then ::
 
-    arena->history[e % ARENA_LD_LENGTH]
+    arena->history[e % LDHistoryLENGTH]
 
 is a summary of (the original locations of) objects moved since epoch
 ``e``.

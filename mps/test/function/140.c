@@ -4,6 +4,7 @@ TEST_HEADER
  summary = MVFF low-memory test
  language = c
  link = testlib.o
+ parameters = QUEUES=1000 ITERATIONS=100000
 END_HEADER
 */
 
@@ -66,7 +67,7 @@ static void dt(int kind,
  int i, hd;
  clock_t time0, time1;
  size_t size;
- int secs;
+ double secs;
 
  asserts(number <= MAXNUMBER, "number too big");
 
@@ -113,11 +114,11 @@ static void dt(int kind,
    if (queue[hd].addr != NULL)
    {
     asserts(chkobj(queue[hd].addr, queue[hd].size, (unsigned char) (hd%256)),
-      "corrupt at %x (%s: %x, %x, %x, %x, %x, %i, %i, %i)",
+      "corrupt at %p (%s: %x, %x, %x, %c%c%c, %x, %x, %i, %i)",
       queue[hd].addr,
       tdesc[kind], (int) extendBy, (int) avgSize, (int) align,
-      (int) mins, (int) maxs, number, iter,
-      slotHigh*100+arenaHigh*10+firstFit);
+      slotHigh ? 'S' : 's', arenaHigh ? 'A' : 'a', firstFit ? 'F' : 'f',
+      (int) mins, (int) maxs, number, iter);
     commentif(comments, "Free %i at %x, size %x", hd,
      queue[hd].addr, queue[hd].size);
     mps_free(pool, queue[hd].addr, queue[hd].size);
@@ -144,12 +145,12 @@ static void dt(int kind,
  mps_pool_destroy(pool);
 
  time1=clock();
- secs=(int) 100*(time1-time0)/CLOCKS_PER_SEC;
+ secs=(time1-time0)/(double)CLOCKS_PER_SEC;
 
- comment("%s test (%x, %x, %x, %x, %x, %i, %i, %i) in %i centisecs",
+ comment("%s test (%x, %x, %x, %c%c%c, %x, %x, %i, %i) in %.2f s",
   tdesc[kind], (int) extendBy, (int) avgSize, (int) align,
-  (int) mins, (int) maxs, number, iter,
-  slotHigh*100+arenaHigh*10+firstFit, secs);
+  slotHigh ? 'S' : 's', arenaHigh ? 'A' : 'a', firstFit ? 'F' : 'f',
+  (int) mins, (int) maxs, number, iter, secs);
 }
 
 static void test(void)
@@ -162,8 +163,8 @@ static void test(void)
  cdie(mps_arena_create(&arena, mps_arena_class_vm(), (size_t) (1024*1024*50)), "create arena");
  cdie(mps_thread_reg(&thread, arena), "register thread");
 
- for (comlimit = 512*1024; comlimit > 0; comlimit -= 4*1024) {
-  mps_arena_commit_limit_set(arena, comlimit);
+ for (comlimit = 512*1024; comlimit > 0; comlimit /= 2) {
+  if (mps_arena_commit_limit_set(arena, comlimit) != MPS_RES_OK) break;
   report("limit", "%x", comlimit);
   symm = ranint(8);
   slotHigh = (symm >> 2) & 1;
@@ -172,7 +173,7 @@ static void test(void)
 
   mins = ranrange(1, 16);
 
-  dt(RANGAP, 64*1024, 32, 8, 4*mins, 4*ranrange(mins, mins*100), 1000, 100000);
+  dt(RANGAP, 64*1024, 32, 8, 4*mins, 4*ranrange(mins, mins*100), QUEUES, ITERATIONS);
  }
 
  mps_thread_dereg(thread);

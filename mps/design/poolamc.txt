@@ -481,8 +481,10 @@ which is how segments get allocated in that generation.
 
 _`.buffer.condemn`: We condemn buffered segments, but not the contents
 of the buffers themselves, because we can't reclaim uncommitted
-buffers (see design.mps.buffer for details). If the segment has a
+buffers (see design.mps.buffer_ for details). If the segment has a
 forwarding buffer on it, we detach it.
+
+.. _design.mps.buffer: buffer
 
 .. note::
 
@@ -696,15 +698,8 @@ memory block. See format documentation for details of the interface.
 _`.header.client`: The code mostly deals in client pointers, only
 computing the base and limit of a block when these are needed (such as
 when an object is copied). In several places, the code gets a block of
-some sort, a segment or a buffer, and creates a client pointer by
-adding the header length (``pool->format->headerLength``).
-
-_`.header.fix`: There are two versions of the fix method, due to its
-criticality, with (``AMCHeaderFix()``) and without (``AMCFix()``)
-headers. The correct one is selected in ``AMCInitComm()``, and placed
-in the pool's fix field. This is the main reason why fix methods
-dispatch through the instance, rather than the class like all other
-methods.
+some sort (a segment or a buffer) and creates a client pointer by
+adding the header size (``pool->format->headerSize``).
 
 
 Old and aging notes below here

@@ -22,7 +22,7 @@ static void test(void)
  size_t avgSize;
  size_t maxSize;
 
- mps_addr_t obj = (mps_addr_t)1;
+ mps_addr_t obj = (mps_addr_t)MPS_PF_ALIGN;
 
  extendBy = (size_t) 4096;
  avgSize  = (size_t) 32;

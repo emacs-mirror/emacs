@@ -25,7 +25,9 @@ _`.readership`: Any MPS developer.
 
 _`.intro`: This is the design of the VM Module for Digital UNIX (also
 known as OSF/1 and Tru64 Unix; see os.o1). In general aspects
-(including interface) the design is as for design.mps.vm.
+(including interface) the design is as for design.mps.vm_.
+
+.. _design.mps.vm: vm
 
 
 Functions

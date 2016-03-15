@@ -56,6 +56,8 @@ and compiler are supported.
 .. index::
    single: platform; interface
 
+.. _topic-platform-interface:
+
 Platform interface
 ------------------
 
@@ -145,6 +147,20 @@ Platform interface
     A :term:`C` preprocessor macro that indicates, if defined, that
     the :term:`platform` consists of the FreeBSD operating system, the
     x86-64 processor architecture, and the GCC compiler.
+
+
+.. c:macro:: MPS_PF_FRI3GC
+
+    A :term:`C` preprocessor macro that indicates, if defined, that
+    the :term:`platform` consists of the FreeBSD operating system, the
+    IA-32 processor architecture, and the Clang/LLVM compiler.
+
+
+.. c:macro:: MPS_PF_FRI6GC
+
+    A :term:`C` preprocessor macro that indicates, if defined, that
+    the :term:`platform` consists of the FreeBSD operating system, the
+    x86-64 processor architecture, and the Clang/LLVM compiler.
 
 
 .. c:macro:: MPS_PF_LII3GC
@@ -326,8 +342,10 @@ the Memory Pool System, with their current status.
 Platform    Status
 ==========  =======================
 ``fri3gc``  Supported
+``fri3ll``  Supported
 ``fri4gc``  Corrected to ``fri3gc``
 ``fri6gc``  Supported
+``fri6ll``  Supported
 ``i5m2cc``  *Not supported*
 ``iam4cc``  *Not supported*
 ``lii3eg``  *Not supported*

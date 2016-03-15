@@ -6,16 +6,16 @@ Telemetry
 =========
 
 In its :term:`cool` and :term:`hot` :term:`varieties`, the MPS is
-capable of outputting a configurable stream of events to assist with
-debugging and profiling.
+capable of outputting a configurable stream of events (the
+:term:`telemetry stream`) to assist with debugging and profiling.
 
 The selection of events that appear in the stream is controlled by the
 environment variable :envvar:`MPS_TELEMETRY_CONTROL` (by default
 none), and the stream is written to the file named by the environment
 variable :envvar:`MPS_TELEMETRY_FILENAME` (by default ``mpsio.log``).
 
-The telemetry system writes blocks of binary output, and is fast
-enough to be left turned on in production code (the :term:`hot`
+The :term:`telemetry system` writes blocks of binary output, and is
+fast enough to be left turned on in production code (the :term:`hot`
 variety avoids emitting events on the :term:`critical path`), which
 can be useful for diagnosing memory management problems in production
 environments.
@@ -49,6 +49,8 @@ demonstration of :term:`Lisp` in an appendix to his paper
 .. index::
    single: telemetry; utilities
 
+.. _topic-telemetry-utilities:
+
 Telemetry utilities
 -------------------
 
@@ -68,7 +70,7 @@ The telemetry system relies on three utility programs:
   SQLite database for further analysis.
 
 You must build and install these programs as described in
-:ref:`guide-build`. Thee programs are described in more detail below.
+:ref:`guide-build`. These programs are described in more detail below.
 
 
 .. index::
@@ -120,7 +122,7 @@ second column, and then addresses or other data related to the event
 in the remaining columns. The source of the timestamp depends on the
 platform; it may be a low-cost high-resolution processor timer, such
 as the `Time Stamp Counter
-<http://en.wikipedia.org/wiki/Time_Stamp_Counter>`_ on IA-32 and
+<https://en.wikipedia.org/wiki/Time_Stamp_Counter>`_ on IA-32 and
 x86-64, if one is available. All numbers are given in hexadecimal. ::
 
     000AE03973336E3C 002B VMCreate            vm:00000001003FC000 base:00000001003FD000 limit:00000001003FE000 
@@ -387,41 +389,6 @@ further analysis by running :program:`mpseventsql`.
 
 Telemetry interface
 -------------------
-
-.. c:function:: mps_word_t mps_telemetry_control(mps_word_t reset_mask, mps_word_t flip_mask)
-
-    .. deprecated:: starting with version 1.111.
-
-        Use :c:func:`mps_telemetry_get`, :c:func:`mps_telemetry_reset`,
-        and :c:func:`mps_telemetry_set` instead.
-
-    Update and return the :term:`telemetry filter`.
-
-    ``reset_mask`` is a :term:`bitmask` indicating the bits in the
-    telemetry filter that should be reset.
-
-    ``flip_mask`` is a bitmask indicating the bits in the telemetry
-    filter whose value should be flipped after the resetting.
-
-    Returns the previous value of the telemetry filter, prior to the
-    reset and the flip.
-
-    The parameters ``reset_mask`` and ``flip_mask`` allow the
-    specification of any binary operation on the filter control. For
-    typical operations, the parameters should be set as follows:
-
-    ============  ==============  =============
-    Operation     ``reset_mask``  ``flip_mask``
-    ============  ==============  =============
-    ``set(M)``    ``M``           ``M``        
-    ------------  --------------  -------------
-    ``reset(M)``  ``M``           ``0``        
-    ------------  --------------  -------------
-    ``flip(M)``   ``0``           ``M``        
-    ------------  --------------  -------------
-    ``read()``    ``0``           ``0``        
-    ============  ==============  =============
-
 
 .. c:function:: void mps_telemetry_flush(void)
 

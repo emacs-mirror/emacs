@@ -100,6 +100,7 @@ Bool ReservoirCheck(Reservoir reservoir)
   }
   CHECKL(SizeIsArenaGrains(reservoir->reservoirLimit, arena));
   CHECKL(SizeIsArenaGrains(reservoir->reservoirSize, arena));
+  CHECKL(reservoir->reservoirSize <= reservoir->reservoirLimit);
 
   return TRUE;
 }
