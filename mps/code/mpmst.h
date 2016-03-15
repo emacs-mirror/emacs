@@ -486,7 +486,7 @@ typedef struct TraceStruct {
   Size condemned;               /* condemned bytes */
   Size notCondemned;            /* collectable but not condemned */
   Size foundation;              /* initial grey set size */
-  Size rate;                    /* segs to scan per increment */
+  Work quantumWork;             /* tracing work to be done in each poll */
   STATISTIC_DECL(Count greySegCount); /* number of grey segs */
   STATISTIC_DECL(Count greySegMax); /* max number of grey segs */
   STATISTIC_DECL(Count rootScanCount); /* number of roots scanned */
@@ -719,6 +719,7 @@ typedef struct mps_arena_s {
 
   Size spareCommitted;          /* Amount of memory in hysteresis fund */
   Size spareCommitLimit;        /* Limit on spareCommitted */
+  double pauseTime;             /* Maximum pause time, in seconds. */
 
   Shift zoneShift;              /* see also <code/ref.c> */
   Size grainSize;               /* <design/arena/#grain> */
@@ -777,7 +778,7 @@ typedef struct mps_arena_s {
   TraceMessage tMessage[TraceLIMIT];  /* <design/message-gc/> */
 
   /* policy fields */
-  double tracedSize;
+  double tracedWork;
   double tracedTime;
   Clock lastWorldCollect;
 

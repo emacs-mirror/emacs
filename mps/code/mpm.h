@@ -396,12 +396,14 @@ extern Bool TraceIdCheck(TraceId id);
 extern Bool TraceSetCheck(TraceSet ts);
 extern Bool TraceCheck(Trace trace);
 extern Res TraceCreate(Trace *traceReturn, Arena arena, int why);
-extern void TraceDestroy(Trace trace);
+extern void TraceDestroyInit(Trace trace);
+extern void TraceDestroyFinished(Trace trace);
 
+extern Bool TraceIsEmpty(Trace trace);
 extern Res TraceAddWhite(Trace trace, Seg seg);
 extern Res TraceCondemnZones(Trace trace, ZoneSet condemnedSet);
 extern Res TraceStart(Trace trace, double mortality, double finishingTime);
-extern Size TracePoll(Globals globals);
+extern Bool TracePoll(Work *workReturn, Globals globals);
 
 extern Rank TraceRankForAccess(Arena arena, Seg seg);
 extern void TraceSegAccess(Arena arena, Seg seg, AccessSet mode);
@@ -572,6 +574,7 @@ extern Bool ArenaHasAddr(Arena arena, Addr addr);
 extern Res ArenaAddrObject(Addr *pReturn, Arena arena, Addr addr);
 extern void ArenaChunkInsert(Arena arena, Chunk chunk);
 extern void ArenaChunkRemoved(Arena arena, Chunk chunk);
+extern void ArenaAccumulateTime(Arena arena, Clock start, Clock now);
 
 extern void ArenaSetEmergency(Arena arena, Bool emergency);
 extern Bool ArenaEmergency(Arena arean);
@@ -623,6 +626,8 @@ extern Size ArenaCommitLimit(Arena arena);
 extern Res ArenaSetCommitLimit(Arena arena, Size limit);
 extern Size ArenaSpareCommitLimit(Arena arena);
 extern void ArenaSetSpareCommitLimit(Arena arena, Size limit);
+extern double ArenaPauseTime(Arena arena);
+extern void ArenaSetPauseTime(Arena arena, double pauseTime);
 extern Size ArenaNoPurgeSpare(Arena arena, Size size);
 extern Res ArenaNoGrow(Arena arena, LocusPref pref, Size size);
 
@@ -663,12 +668,11 @@ extern Res ArenaNoExtend(Arena arena, Addr base, Size size);
 
 extern Res PolicyAlloc(Tract *tractReturn, Arena arena, LocusPref pref,
                        Size size, Pool pool);
-extern Bool PolicyShouldCollectWorld(Arena arena, double interval,
-                                     double multiplier, Clock now,
-                                     Clock clocks_per_sec);
+extern Bool PolicyShouldCollectWorld(Arena arena, double availableTime,
+                                     Clock now, Clock clocks_per_sec);
 extern Bool PolicyStartTrace(Trace *traceReturn, Arena arena);
 extern Bool PolicyPoll(Arena arena);
-extern Bool PolicyPollAgain(Arena arena, Clock start, Size tracedSize);
+extern Bool PolicyPollAgain(Arena arena, Clock start, Bool moreWork, Work tracedWork);
 
 
 /* Locus interface */

@@ -66,9 +66,12 @@ static void test(void)
 
  /* allocate lots of little objects */
 
- while (mps_arena_committed(arena) < 1024ul*1024ul*20) {
+ for (;;) {
   comment("reserved %ld, committed %ld",
    mps_arena_reserved(arena), mps_arena_committed(arena));
+  if (mps_arena_committed(arena) > 1024ul*1024ul*10) {
+   break;
+  }
   for (j=0; j<10000; j++) {
    a = allocone(ap, 2, mps_rank_exact());
    setref(a, 0, b);
@@ -77,6 +80,7 @@ static void test(void)
    setref(b, 1, a);
   }
   mps_arena_collect(arena);
+  mps_arena_release(arena);
  }
 
  mps_arena_park(arena);
