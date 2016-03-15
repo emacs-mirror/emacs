@@ -576,8 +576,7 @@ extern int main(int argc, char *argv[])
 
   /* We're not going to use this block, but I feel unhappy just */
   /* inventing addresses. */
-  die((mps_res_t)ControlAlloc(&p, arena, ArraySize * align,
-                              /* withReservoirPermit */ FALSE),
+  die((mps_res_t)ControlAlloc(&p, arena, ArraySize * align);
       "failed to allocate block");
   dummyBlock = p; /* avoid pun */
 
