@@ -1156,7 +1156,7 @@ mps_res_t mps_sac_fill(mps_addr_t *p_o, mps_sac_t mps_sac, size_t size,
   AVER(p_o != NULL);
   AVER(TESTT(SAC, sac));
   arena = SACArena(sac);
-  UNUSED(has_reservoir_permit); /* FIXME */
+  UNUSED(has_reservoir_permit); /* deprecated */
 
   ArenaEnter(arena);
 
