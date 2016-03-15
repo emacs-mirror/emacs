@@ -161,7 +161,7 @@ _`.split-and-merge`: There is support for splitting and merging
 segments, to give pools the flexibility to rearrange their tracts
 among segments as they see fit.
 
-``Res SegSplit(Seg *segLoReturn, Seg *segHiReturn, Seg seg, Addr at, Bool withReservoirPermit, ...)``
+``Res SegSplit(Seg *segLoReturn, Seg *segHiReturn, Seg seg, Addr at)``
 
 _`.split`: If successful, segment ``seg`` is split at address ``at``,
 yielding two segments which are returned in segLoReturn and
@@ -190,7 +190,7 @@ _`.split.state`: Except as noted above, the segments returned have the
 same properties as ``seg``. That is, their colour, summary, rankset,
 nailedness etc. are set to the values of ``seg``.
 
-``Res SegMerge(Seg *mergedSegReturn, Seg segLo, Seg segHi, Bool withReservoirPermit, ...)``
+``Res SegMerge(Seg *mergedSegReturn, Seg segLo, Seg segHi)``
 
 _`.merge`: If successful, segments ``segLo`` and ``segHi`` are merged
 together, yielding a segment which is returned in mergedSegReturn.
