@@ -22,7 +22,9 @@
 SRCID(ssw3i3mv, "$Id$");
 
 
-Res StackScan(ScanState ss, Addr *stackBot)
+Res StackScan(ScanState ss, Word *stackCold,
+              mps_area_scan_t scan_area,
+              void *closure)
 {
   jmp_buf jb;
 
@@ -33,16 +35,17 @@ Res StackScan(ScanState ss, Addr *stackBot)
   /* These checks will just serve to warn us at compile-time if the
      setjmp.h header changes to indicate that the registers we want aren't
      saved any more. */
-  AVER(sizeof(((_JUMP_BUFFER *)jb)->Edi) == sizeof(Addr));
-  AVER(sizeof(((_JUMP_BUFFER *)jb)->Esi) == sizeof(Addr));
-  AVER(sizeof(((_JUMP_BUFFER *)jb)->Ebx) == sizeof(Addr));
+  AVER(sizeof(((_JUMP_BUFFER *)jb)->Ebx) == sizeof(Word));
+  AVER(sizeof(((_JUMP_BUFFER *)jb)->Edi) == sizeof(Word));
+  AVER(sizeof(((_JUMP_BUFFER *)jb)->Esi) == sizeof(Word));
 
   /* Ensure that the callee-save registers will be found by
      StackScanInner when it's passed the address of the Ebx field. */
   AVER(offsetof(_JUMP_BUFFER, Edi) == offsetof(_JUMP_BUFFER, Ebx) + 4);
   AVER(offsetof(_JUMP_BUFFER, Esi) == offsetof(_JUMP_BUFFER, Ebx) + 8);
 
-  return StackScanInner(ss, stackBot, (Addr *)&((_JUMP_BUFFER *)jb)->Ebx, 3);
+  return StackScanInner(ss, stackCold, (Word *)&((_JUMP_BUFFER *)jb)->Ebx, 3,
+                        scan_area, closure);
 }
 
 /* C. COPYRIGHT AND LICENSE

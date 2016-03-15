@@ -1,7 +1,7 @@
 /* mpm.h: MEMORY POOL MANAGER DEFINITIONS
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2015 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .trans.bufferinit: The Buffer data structure has an Init field and
@@ -18,6 +18,8 @@
 
 #include "event.h"
 #include "lock.h"
+#include "prot.h"
+#include "sp.h"
 #include "th.h"
 #include "ss.h"
 #include "mpslib.h"
@@ -44,6 +46,7 @@ extern Bool FunCheck(Fun f);
 extern Bool ShiftCheck(Shift shift);
 extern Bool AttrCheck(Attr attr);
 extern Bool RootVarCheck(RootVar rootVar);
+extern Bool AccessSetCheck(AccessSet mode);
 
 
 /* Address/Size Interface -- see <code/mpm.c> */
@@ -391,17 +394,19 @@ extern Bool TraceIdCheck(TraceId id);
 extern Bool TraceSetCheck(TraceSet ts);
 extern Bool TraceCheck(Trace trace);
 extern Res TraceCreate(Trace *traceReturn, Arena arena, int why);
-extern void TraceDestroy(Trace trace);
+extern void TraceDestroyInit(Trace trace);
+extern void TraceDestroyFinished(Trace trace);
 
+extern Bool TraceIsEmpty(Trace trace);
 extern Res TraceAddWhite(Trace trace, Seg seg);
 extern Res TraceCondemnZones(Trace trace, ZoneSet condemnedSet);
 extern Res TraceStart(Trace trace, double mortality, double finishingTime);
-extern Size TracePoll(Globals globals);
+extern Bool TracePoll(Work *workReturn, Globals globals);
 
 extern Rank TraceRankForAccess(Arena arena, Seg seg);
 extern void TraceSegAccess(Arena arena, Seg seg, AccessSet mode);
 
-extern void TraceQuantum(Trace trace);
+extern void TraceAdvance(Trace trace);
 extern Res TraceStartCollectAll(Trace *traceReturn, Arena arena, int why);
 extern Res TraceDescribe(Trace trace, mps_lib_FILE *stream, Count depth);
 
@@ -470,10 +475,9 @@ extern double TraceWorkFactor;
     } \
   END
 
-extern Res TraceScanArea(ScanState ss, Addr *base, Addr *limit);
-extern Res TraceScanAreaTagged(ScanState ss, Addr *base, Addr *limit);
-extern Res TraceScanAreaMasked(ScanState ss,
-                               Addr *base, Addr *limit, Word mask);
+extern Res TraceScanArea(ScanState ss, Word *base, Word *limit,
+                         mps_area_scan_t scan_area,
+                         void *closure);
 extern void TraceScanSingleRef(TraceSet ts, Rank rank, Arena arena,
                                Seg seg, Ref *refIO);
 
@@ -518,6 +522,7 @@ extern Ring GlobalsRememberedSummaryRing(Globals);
 #define GlobalsArena(glob) PARENT(ArenaStruct, globals, glob)
 
 #define ArenaThreadRing(arena)  (&(arena)->threadRing)
+#define ArenaDeadRing(arena)    (&(arena)->deadRing)
 #define ArenaEpoch(arena)       ((arena)->epoch) /* .epoch.ts */
 #define ArenaTrace(arena, ti)   (&(arena)->trace[ti])
 #define ArenaZoneShift(arena)   ((arena)->zoneShift)
@@ -559,13 +564,15 @@ extern Bool (ArenaStep)(Globals globals, double interval, double multiplier);
 extern void ArenaClamp(Globals globals);
 extern void ArenaRelease(Globals globals);
 extern void ArenaPark(Globals globals);
-extern void ArenaExposeRemember(Globals globals, int remember);
+extern void ArenaExposeRemember(Globals globals, Bool remember);
 extern void ArenaRestoreProtection(Globals globals);
 extern Res ArenaStartCollect(Globals globals, int why);
 extern Res ArenaCollect(Globals globals, int why);
 extern Bool ArenaHasAddr(Arena arena, Addr addr);
 extern Res ArenaAddrObject(Addr *pReturn, Arena arena, Addr addr);
 extern void ArenaChunkInsert(Arena arena, Chunk chunk);
+extern void ArenaChunkRemoved(Arena arena, Chunk chunk);
+extern void ArenaAccumulateTime(Arena arena, Clock start, Clock now);
 
 extern void ArenaSetEmergency(Arena arena, Bool emergency);
 extern Bool ArenaEmergency(Arena arean);
@@ -617,11 +624,13 @@ extern Size ArenaCommitLimit(Arena arena);
 extern Res ArenaSetCommitLimit(Arena arena, Size limit);
 extern Size ArenaSpareCommitLimit(Arena arena);
 extern void ArenaSetSpareCommitLimit(Arena arena, Size limit);
+extern double ArenaPauseTime(Arena arena);
+extern void ArenaSetPauseTime(Arena arena, double pauseTime);
 extern Size ArenaNoPurgeSpare(Arena arena, Size size);
 extern Res ArenaNoGrow(Arena arena, LocusPref pref, Size size);
 
-extern double ArenaMutatorAllocSize(Arena arena);
 extern Size ArenaAvail(Arena arena);
+extern Size ArenaCollectable(Arena arena);
 
 extern Res ArenaExtend(Arena, Addr base, Size size);
 
@@ -646,9 +655,22 @@ extern Res ReservoirWithdraw(Addr *baseReturn, Tract *baseTractReturn,
 
 extern Res ArenaAlloc(Addr *baseReturn, LocusPref pref,
                       Size size, Pool pool, Bool withReservoirPermit);
+extern Res ArenaFreeLandAlloc(Tract *tractReturn, Arena arena, ZoneSet zones,
+                              Bool high, Size size, Pool pool);
 extern void ArenaFree(Addr base, Size size, Pool pool);
 
 extern Res ArenaNoExtend(Arena arena, Addr base, Size size);
+
+
+/* Policy interface */
+
+extern Res PolicyAlloc(Tract *tractReturn, Arena arena, LocusPref pref,
+                       Size size, Pool pool);
+extern Bool PolicyShouldCollectWorld(Arena arena, double availableTime,
+                                     Clock now, Clock clocks_per_sec);
+extern Bool PolicyStartTrace(Trace *traceReturn, Arena arena);
+extern Bool PolicyPoll(Arena arena);
+extern Bool PolicyPollAgain(Arena arena, Clock start, Bool moreWork, Work tracedWork);
 
 
 /* Locus interface */
@@ -841,6 +863,7 @@ extern Res FormatCreate(Format *formatReturn, Arena arena, ArgList args);
 extern void FormatDestroy(Format format);
 extern Arena FormatArena(Format format);
 extern Res FormatDescribe(Format format, mps_lib_FILE *stream, Count depth);
+extern Res FormatScan(Format format, ScanState ss, Addr base, Addr limit);
 
 
 /* Reference Interface -- see <code/ref.c> */
@@ -931,30 +954,6 @@ extern void (ShieldFlush)(Arena arena);
 #endif  /* SHIELD */
 
 
-/* Protection Interface
- *
- * See <design/prot/> for the design of the generic interface including
- * the contracts for these functions.
- *
- * This interface has several different implementations, typically one
- * per platform, see <code/prot.c>* for the various implementations, and
- * <design/prot/>* for the corresponding designs. */
-
-extern void ProtSetup(void);
-
-extern Size ProtGranularity(void);
-extern void ProtSet(Addr base, Addr limit, AccessSet mode);
-extern void ProtSync(Arena arena);
-extern Bool ProtCanStepInstruction(MutatorFaultContext context);
-extern Res ProtStepInstruction(MutatorFaultContext context);
-
-
-/* Mutator Fault Context */
-
-extern Addr MutatorFaultContextSP(MutatorFaultContext mfc);
-extern Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext mfc);
-
-
 /* Location Dependency -- see <code/ld.c> */
 
 extern void LDReset(mps_ld_t ld, Arena arena);
@@ -967,17 +966,26 @@ extern void LDMerge(mps_ld_t ld, Arena arena, mps_ld_t from);
 
 /* Root Interface -- see <code/root.c> */
 
-extern Res RootCreateTable(Root *rootReturn, Arena arena,
-                           Rank rank, RootMode mode,
-                           Addr *base, Addr *limit);
-extern Res RootCreateTableMasked(Root *rootReturn, Arena arena,
-                                 Rank rank, RootMode mode,
-                                 Addr *base, Addr *limit,
-                                 Word mask);
-extern Res RootCreateReg(Root *rootReturn, Arena arena,
-                           Rank rank, Thread thread,
-                           mps_reg_scan_t scan,
-                           void *p, size_t s);
+extern Res RootCreateArea(Root *rootReturn, Arena arena,
+                          Rank rank, RootMode mode,
+                          Word *base, Word *limit,
+                          mps_area_scan_t scan_area,
+                          void *closure);
+extern Res RootCreateAreaTagged(Root *rootReturn, Arena arena,
+                                Rank rank, RootMode mode,
+                                Word *base, Word *limit,
+                                mps_area_scan_t scan_area,
+                                Word mask, Word pattern);
+extern Res RootCreateThread(Root *rootReturn, Arena arena,
+                            Rank rank, Thread thread,
+                            mps_area_scan_t scan_area,
+                            void *closure,
+                            Word *stackCold);
+extern Res RootCreateThreadTagged(Root *rootReturn, Arena arena,
+                                  Rank rank, Thread thread,
+                                  mps_area_scan_t scan_area,
+                                  Word mask, Word pattern,
+                                  Word *stackCold);
 extern Res RootCreateFmt(Root *rootReturn, Arena arena,
                            Rank rank, RootMode mode,
                            mps_fmt_scan_t scan,
@@ -1014,8 +1022,8 @@ extern void LandDestroy(Land land);
 extern void LandFinish(Land land);
 extern Res LandInsert(Range rangeReturn, Land land, Range range);
 extern Res LandDelete(Range rangeReturn, Land land, Range range);
-extern Bool LandIterate(Land land, LandVisitor visitor, void *closureP, Size closureS);
-extern Bool LandIterateAndDelete(Land land, LandDeleteVisitor visitor, void *closureP, Size closureS);
+extern Bool LandIterate(Land land, LandVisitor visitor, void *closure);
+extern Bool LandIterateAndDelete(Land land, LandDeleteVisitor visitor, void *closure);
 extern Bool LandFindFirst(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete);
 extern Bool LandFindLast(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete);
 extern Bool LandFindLargest(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete);
@@ -1031,11 +1039,6 @@ extern LandClass LandClassGet(void);
   DEFINE_ALIAS_CLASS(className, LandClass, var)
 #define IsLandSubclass(land, className) \
   IsSubclassPoly((land)->class, className ## Get())
-
-
-/* Stack Probe */
-
-extern void StackProbe(Size depth);
 
 
 /* STATISTIC -- gather statistics (in some varieties)
@@ -1078,7 +1081,7 @@ extern void StackProbe(Size depth);
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2015 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

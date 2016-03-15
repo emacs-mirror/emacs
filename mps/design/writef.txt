@@ -6,7 +6,7 @@ The WriteF function
 :Tag: design.mps.writef
 :Author: Richard Brooksby
 :Date: 1996-10-18
-:Status: incomplete design
+:Status: complete design
 :Revision: $Id$
 :Copyright: See `Copyright and License`_.
 :Index terms:    pair: WriteF function; design
@@ -16,23 +16,27 @@ Introduction
 ------------
 
 _`.intro`: This document describes the ``WriteF()`` function, which
-allows formatted output in a manner similar to ANSI C ``printf``, but
-allows the MPM to operate in a freestanding environment (see
-design.mps.exec-env).
+allows formatted output in a manner similar to ``printf()`` from the
+Standard C library, but allows the Memory Pool Manager (MPM) to
+operate in a freestanding environment (see design.mps.exec-env_).
 
-_`.background`: The documents design.mps.exec-env and design.mps.lib
+.. _design.mps.exec-env: exec-env
+
+_`.background`: The documents design.mps.exec-env_ and design.mps.lib_
 describe the design of the library interface and the reason that it
 exists.
+
+.. _design.mps.lib: lib
 
 
 Design
 ------
 
 _`.no-printf`: There is no dependency on ``printf()``. The MPM only
-depends on ``fputc()`` and ``fputs()``, via the Library Interface
-(design.mps.lib). This makes it much easier to deploy the MPS in a
-freestanding environment. This is achieved by implementing our own
-internal output routines in mpm.c.
+depends on ``mps_io_fputc()`` and ``mps_io_fputs()``, via the library
+interface (design.mps.lib_), part of the *plinth*. This makes it much
+easier to deploy the MPS in a freestanding environment. This is
+achieved by implementing our own output routines.
 
 _`.writef`: Our output requirements are few, so the code is short. The
 only output function which should be used in the rest of the MPM is
@@ -40,9 +44,9 @@ only output function which should be used in the rest of the MPM is
 
 ``Res WriteF(mps_lib_FILE *stream, Count depth, ...)``
 
-If ``depth`` is greater than zero, then the first format character,
-and each format character after a newline, is preceded by ``depth``
-spaces.
+If ``depth`` is greater than zero, then the first output character,
+and each output character after a newline in a format string, is
+preceded by ``depth`` spaces.
 
 ``WriteF()`` expects a format string followed by zero or more items to
 insert into the output, followed by another format string, more items,
@@ -52,7 +56,8 @@ and so on, and finally a ``NULL`` format string. For example::
                  "Hello: $A\n", (WriteFA)address,
                  "Spong: $U ($S)\n", (WriteFU)number, (WriteFS)string,
                  NULL);
-    if (res != ResOK) return res;
+    if (res != ResOK)
+      return res;
 
 This makes ``Describe()`` methods much easier to write. For example, ``BufferDescribe()`` contains the following code::
 
@@ -81,14 +86,15 @@ This makes ``Describe()`` methods much easier to write. For example, ``BufferDes
                  "  alignment $W\n",   (WriteFW)buffer->alignment,
                  "  rampCount $U\n",   (WriteFU)buffer->rampCount,
                  NULL);
-    if (res != ResOK) return res;
+    if (res != ResOK)
+      return res;
 
-_`.types`: For each format ``$X`` that ``WriteF()`` supports, there is a
-type defined in impl.h.mpmtypes ``WriteFX()`` which is the promoted
-version of that type. These are provided both to ensure promotion and
-to avoid any confusion about what type should be used in a cast. It is
-easy to check the casts against the formats to ensure that they
-correspond.
+_`.types`: For each format ``$X`` that ``WriteF()`` supports, there is
+a type ``WriteFX`` defined in mpmtypes.h, which is the promoted
+version of that type. These types are provided both to ensure
+promotion and to avoid any confusion about what type should be used in
+a cast. It is easy to check the casts against the formats to ensure
+that they correspond.
 
 _`.types.cast`: Every argument to ``WriteF()`` must be cast, because
 in variable-length argument lists the "default argument promotion"
@@ -152,7 +158,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited. All rights reserved.
+Copyright © 2013-2015 Ravenbrook Limited. All rights reserved.
 <http://www.ravenbrook.com/>. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

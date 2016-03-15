@@ -392,25 +392,68 @@
 #define MVT_FRAG_LIMIT_DEFAULT    30
 
 
-/* Arena Configuration -- see <code/arena.c>
- *
- * .client.seg-size: ARENA_CLIENT_GRAIN_SIZE is the minimum size, in
- * bytes, of a grain in the client arena. It's set at 8192 with no
- * particular justification.
- */
+/* Arena Configuration -- see <code/arena.c> */
 
 #define ArenaPollALLOCTIME (65536.0)
 
 #define ARENA_ZONESHIFT         ((Shift)20)
 
+/* .client.seg-size: ARENA_CLIENT_GRAIN_SIZE is the minimum size, in
+ * bytes, of a grain in the client arena. It's set at 8192 with no
+ * particular justification. */
+
 #define ARENA_CLIENT_GRAIN_SIZE          ((Size)8192)
+
+#define ARENA_DEFAULT_COMMIT_LIMIT ((Size)-1)
+
+/* TODO: This should be proportional to the memory usage of the MPS, not
+ * a constant.  That will require design, and then some interface and
+ * documentation changes. */
+#define ARENA_DEFAULT_SPARE_COMMIT_LIMIT   ((Size)10uL*1024uL*1024uL)
+
+/* ARENA_DEFAULT_PAUSE_TIME is the maximum time (in seconds) that
+ * operations within the arena may pause the mutator for.  The default
+ * is set for typical human interaction.  See mps_arena_pause_time_set
+ * in the manual. */
+
+#define ARENA_DEFAULT_PAUSE_TIME (0.1)
 
 #define ARENA_DEFAULT_ZONED     TRUE
 
+/* ARENA_MINIMUM_COLLECTABLE_SIZE is the minimum size (in bytes) of
+ * collectable memory that might be considered worthwhile to run a
+ * full garbage collection. */
+
+#define ARENA_MINIMUM_COLLECTABLE_SIZE ((Size)1000000)
+
+/* ARENA_DEFAULT_COLLECTION_RATE is an estimate of the MPS's
+ * collection rate (in work per second; see <design/type/#work>), for
+ * use in the case where there isn't enough data to use a measured
+ * value. */
+
+#define ARENA_DEFAULT_COLLECTION_RATE (25000000.0)
+
+/* ARENA_DEFAULT_COLLECTION_OVERHEAD is an estimate of the MPS's
+ * collection overhead (in seconds), for use in the case where there
+ * isn't enough data to use a measured value. */
+
+#define ARENA_DEFAULT_COLLECTION_OVERHEAD (0.1)
+
+/* ARENA_MAX_COLLECT_FRACTION is the maximum fraction of runtime that
+ * ArenaStep is prepared to spend in collections. */
+
+#define ARENA_MAX_COLLECT_FRACTION (0.1)
+
+/* ArenaDefaultZONESET is the zone set used by LocusPrefDEFAULT.
+ *
+ * TODO: This is left over from before branches 2014-01-29/mps-chain-zones
+ * and 2014-01-17/cbs-tract-alloc reformed allocation, and may now be
+ * doing more harm than good. Experiment with setting to ZoneSetUNIV. */
+
 #define ArenaDefaultZONESET (ZoneSetUNIV << (MPS_WORD_WIDTH / 2))
-/* TODO: This is left over from before the branch/2014-01-29/mps-chain-zones
-   and 2014-01-17/cbs-tract-alloc reformed allocation, and may now be doing
-   more harm than good.  Experiment with setting to ZoneSetUNIV. */
+
+/* LocusPrefDEFAULT is the allocation preference used by manual pool
+ * classes (these don't care where they allocate). */
 
 #define LocusPrefDEFAULT { \
   LocusPrefSig,        /* sig */ \
@@ -427,14 +470,11 @@
 #define VM_ARENA_SIZE_DEFAULT ((Size)1 << 28)
 
 
-/* Stack configuration */
+/* Stack configuration -- see <code/sp*.c> */
 
 /* Currently StackProbe has a useful implementation only on Windows. */
-#if defined(PLATFORM_ANSI)
-#define StackProbeDEPTH ((Size)0)
-#elif defined(MPS_OS_W3) && defined(MPS_ARCH_I3)
-#define StackProbeDEPTH ((Size)500)
-#elif defined(MPS_OS_W3) && defined(MPS_ARCH_I6)
+#if defined(MPS_OS_W3)
+/* See <design/sp/#sol.depth.analysis> for a justification of this value. */
 #define StackProbeDEPTH ((Size)500)
 #else
 #define StackProbeDEPTH ((Size)0)
@@ -613,11 +653,6 @@
 
 #define MPS_PROD_STRING         "mps"
 #define MPS_PROD_MPS
-
-/* TODO: This should be proportional to the memory usage of the MPS, not
-   a constant.  That will require design, and then some interface and
-   documenation changes. */
-#define ARENA_INIT_SPARE_COMMIT_LIMIT   ((Size)10uL*1024uL*1024uL)
 
 
 /* Default chain for GC pools

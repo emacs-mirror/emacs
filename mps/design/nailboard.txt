@@ -15,8 +15,7 @@ Nailboards for ambiguously referenced segments
 Introduction
 ------------
 
-_`.intro`: This document describes the nailboard design for the Memory
-Pool System.
+_`.intro`: This is the design of the nailboard module.
 
 _`.readership`: Any MPS developer.
 
@@ -28,7 +27,9 @@ will map to the same nail.
 
 _`.purpose`: Nailboards are used by the AMC pool class to record
 ambiguous references to grains within a segment. See
-design.mps.poolamc.nailboard.
+design.mps.poolamc.nailboard_.
+
+.. _design.mps.poolamc.nailboard: poolamc#nailboard
 
 
 Requirements
@@ -180,7 +181,7 @@ Future
 ------
 
 _`.future.tune`: The implementation makes heavy use of
-``BTIsResRange``, but this function is not well tuned for scanning
+``BTIsResRange()``, but this function is not well tuned for scanning
 small arrays (which we expect to be the common case for nailboards).
 Performance might be improved by special-casing the small levels.
 

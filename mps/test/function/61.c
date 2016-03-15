@@ -4,6 +4,7 @@ TEST_HEADER
  summary = loops between two AMC pools
  language = c
  link = testlib.o awlfmt.o
+ parameters = ITERATIONS=20
 END_HEADER
 */
 
@@ -64,8 +65,8 @@ static void test(void)
   mps_ap_create(&ap2, poolamc2, mps_rank_exact()),
   "create ap");
 
- for (j = 1; j < 100; j++) {
-  comment("%i of 100.", j);
+ for (j = 1; j <= ITERATIONS; j++) {
+  comment("%i of %i.", j, ITERATIONS);
 
   for (i = 1; i < 10000; i++) {
    UC;

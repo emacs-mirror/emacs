@@ -1,13 +1,13 @@
 /* trace.c: GENERIC TRACER IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.
  * See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .design: <design/trace/>.  */
 
-#include "chain.h"
+#include "locus.h"
 #include "mpm.h"
 #include <limits.h> /* for LONG_MAX */
 
@@ -109,7 +109,7 @@ void ScanStateInit(ScanState ss, TraceSet ts, Arena arena,
   STATISTIC(ss->preservedInPlaceCount = (Count)0);
   ss->preservedInPlaceSize = (Size)0; /* see .message.data */
   STATISTIC(ss->copiedSize = (Size)0);
-  ss->scannedSize = (Size)0; /* see .workclock */
+  ss->scannedSize = (Size)0; /* see .work */
   ss->sig = ScanStateSig;
 
   AVERT(ScanState, ss);
@@ -158,6 +158,7 @@ Bool TraceCheck(Trace trace)
   /* Use trace->state to check more invariants. */
   switch(trace->state) {
     case TraceINIT:
+      CHECKL(!TraceSetIsMember(trace->arena->flippedTraces, trace));
       /* @@@@ What can be checked here? */
       break;
 
@@ -276,7 +277,7 @@ static void traceUpdateCounts(Trace trace, ScanState ss,
       break;
     }
     case traceAccountingPhaseSegScan: {
-      trace->segScanSize += ss->scannedSize; /* see .workclock */
+      trace->segScanSize += ss->scannedSize; /* see .work */
       trace->segCopiedSize += ss->copiedSize;
       STATISTIC(++trace->segScanCount);
       break;
@@ -338,6 +339,15 @@ static ZoneSet traceSetWhiteUnion(TraceSet ts, Arena arena)
 }
 
 
+/* TraceIsEmpty -- return TRUE if trace has no condemned segments */
+
+Bool TraceIsEmpty(Trace trace)
+{
+  AVERT(Trace, trace);
+  return trace->condemned == 0;
+}
+
+
 /* TraceAddWhite -- add a segment to the white set of a trace */
 
 Res TraceAddWhite(Trace trace, Seg seg)
@@ -390,7 +400,6 @@ Res TraceCondemnZones(Trace trace, ZoneSet condemnedSet)
   Seg seg;
   Arena arena;
   Res res;
-  Bool haveWhiteSegs = FALSE;
 
   AVERT(Trace, trace);
   AVER(condemnedSet != ZoneSetEMPTY);
@@ -417,7 +426,6 @@ Res TraceCondemnZones(Trace trace, ZoneSet condemnedSet)
         res = TraceAddWhite(trace, seg);
         if(res != ResOK)
           goto failBegin;
-        haveWhiteSegs = TRUE;
       }
     } while (SegNext(&seg, arena, seg));
   }
@@ -430,7 +438,7 @@ Res TraceCondemnZones(Trace trace, ZoneSet condemnedSet)
   return ResOK;
 
 failBegin:
-  AVER(!haveWhiteSegs); /* See .whiten.fail. */
+  AVER(TraceIsEmpty(trace)); /* See .whiten.fail. */
   return res;
 }
 
@@ -693,14 +701,14 @@ found:
   trace->condemned = (Size)0;   /* nothing condemned yet */
   trace->notCondemned = (Size)0;
   trace->foundation = (Size)0;  /* nothing grey yet */
-  trace->rate = (Size)0;        /* no scanning to be done yet */
+  trace->quantumWork = (Work)0; /* computed in TraceStart */
   STATISTIC(trace->greySegCount = (Count)0);
   STATISTIC(trace->greySegMax = (Count)0);
   STATISTIC(trace->rootScanCount = (Count)0);
   trace->rootScanSize = (Size)0;
   trace->rootCopiedSize = (Size)0;
   STATISTIC(trace->segScanCount = (Count)0);
-  trace->segScanSize = (Size)0; /* see .workclock */
+  trace->segScanSize = (Size)0; /* see .work */
   trace->segCopiedSize = (Size)0;
   STATISTIC(trace->singleScanCount = (Count)0);
   STATISTIC(trace->singleScanSize = (Size)0);
@@ -755,7 +763,25 @@ found:
 }
 
 
-/* TraceDestroy -- destroy a trace object
+/* TraceDestroyInit -- destroy a trace object in state INIT */
+
+void TraceDestroyInit(Trace trace)
+{
+  AVERT(Trace, trace);
+  AVER(trace->state == TraceINIT);
+  AVER(trace->condemned == 0);
+
+  EVENT1(TraceDestroy, trace);
+
+  trace->sig = SigInvalid;
+  trace->arena->busyTraces = TraceSetDel(trace->arena->busyTraces, trace);
+
+  /* Clear the emergency flag so the next trace starts normally. */
+  ArenaSetEmergency(trace->arena, FALSE);
+}
+
+
+/* TraceDestroyFinished -- destroy a trace object in state FINISHED
  *
  * Finish and deallocate a Trace object, freeing up a TraceId.
  *
@@ -764,7 +790,7 @@ found:
  * etc. would need to be reset to black.  This also means the error
  * paths in this file don't work.  @@@@ */
 
-void TraceDestroy(Trace trace)
+void TraceDestroyFinished(Trace trace)
 {
   AVERT(Trace, trace);
   AVER(trace->state == TraceFINISHED);
@@ -809,6 +835,9 @@ void TraceDestroy(Trace trace)
   trace->sig = SigInvalid;
   trace->arena->busyTraces = TraceSetDel(trace->arena->busyTraces, trace);
   trace->arena->flippedTraces = TraceSetDel(trace->arena->flippedTraces, trace);
+
+  /* Hopefully the trace reclaimed some memory, so clear any emergency. */
+  ArenaSetEmergency(trace->arena, FALSE);
 }
 
 
@@ -1188,6 +1217,7 @@ void TraceSegAccess(Arena arena, Seg seg, AccessSet mode)
 
   AVERT(Arena, arena);
   AVERT(Seg, seg);
+  AVERT(AccessSet, mode);
 
   /* If it's a read access, then the segment must be grey for a trace */
   /* which is flipped. */
@@ -1419,108 +1449,33 @@ void TraceScanSingleRef(TraceSet ts, Rank rank, Arena arena,
 }
 
 
-/* TraceScanArea -- scan contiguous area of references
+/* TraceScanArea -- scan an area of memory for references
  *
- * This is a convenience function for scanning the contiguous area
- * [base, limit).  I.e., it calls Fix on all words from base up to
- * limit, inclusive of base and exclusive of limit.  */
+ * This is a wrapper for area scanning functions, which should not
+ * otherwise be called directly from within the MPS.  This function
+ * checks arguments and takes care of accounting for the scanned
+ * memory.
+ *
+ * c.f. FormatScan()
+ */
 
-Res TraceScanArea(ScanState ss, Addr *base, Addr *limit)
+Res TraceScanArea(ScanState ss, Word *base, Word *limit,
+                  mps_area_scan_t scan_area,
+                  void *closure)
 {
-  Res res;
-  Addr *p;
-  Ref ref;
-
+  AVERT(ScanState, ss);
   AVER(base != NULL);
   AVER(limit != NULL);
   AVER(base < limit);
 
   EVENT3(TraceScanArea, ss, base, limit);
 
-  TRACE_SCAN_BEGIN(ss) {
-    p = base;
-  loop:
-    if (p >= limit)
-      goto out;
-    ref = *p++;
-    if(!TRACE_FIX1(ss, ref))
-      goto loop;
-    res = TRACE_FIX2(ss, p-1);
-    if(res == ResOK)
-      goto loop;
-    return res;
-  out:
-    AVER(p == limit);
-  } TRACE_SCAN_END(ss);
-
-  return ResOK;
-}
-
-
-/* TraceScanAreaTagged -- scan contiguous area of tagged references
- *
- * .tagging: This is as TraceScanArea except words are only fixed they are
- * tagged as zero according to the alignment of a Word.
- *
- * See also PoolSingleAccess <code/poolabs.c#.tagging>.
- *
- * TODO: Generalise the handling of tags so that pools can decide how
- * their objects are tagged. This may use the user defined format
- * to describe how tags are done */
-Res TraceScanAreaTagged(ScanState ss, Addr *base, Addr *limit)
-{
-  Word mask;
+  /* scannedSize is accumulated whether or not scan_area succeeds, so
+     it's safe to accumulate now so that we can tail-call
+     scan_area. */
+  ss->scannedSize += AddrOffset(base, limit);
   
-  /* NOTE: An optimisation that maybe worth considering is setting some of the
-   * top bits in the mask as an early catch of addresses outside the arena.
-   * This might help slightly on 64-bit windows. However these are picked up
-   * soon afterwards by later checks.  The bottom bits are more important
-   * to check as we ignore them in AMCFix, so the non-reference could
-   * otherwise end up pinning an object. */
-  mask = sizeof(Word) - 1;
-  AVER(WordIsP2(mask + 1));
-  return TraceScanAreaMasked(ss, base, limit, mask);
-}
-
-
-/* TraceScanAreaMasked -- scan contiguous area of filtered references
- *
- * This is as TraceScanArea except words are only fixed if they are zero
- * when masked with a mask.  */
-
-ATTRIBUTE_NO_SANITIZE_ADDRESS
-Res TraceScanAreaMasked(ScanState ss, Addr *base, Addr *limit, Word mask)
-{
-  Res res;
-  Addr *p;
-  Ref ref;
-
-  AVERT(ScanState, ss);
-  AVER(base != NULL);
-  AVER(limit != NULL);
-  AVER(base < limit);
-
-  EVENT3(TraceScanAreaTagged, ss, base, limit);
-
-  TRACE_SCAN_BEGIN(ss) {
-    p = base;
-  loop:
-    if (p >= limit)
-      goto out;
-    ref = *p++;
-    if (((Word)ref & mask)
-      != 0) goto loop;
-    if (!TRACE_FIX1(ss, ref))
-      goto loop;
-    res = TRACE_FIX2(ss, p-1);
-    if(res == ResOK)
-      goto loop;
-    return res;
-  out:
-    AVER(p == limit);
-  } TRACE_SCAN_END(ss);
-
-  return ResOK;
+  return scan_area(&ss->ss_s, base, limit, closure);
 }
 
 
@@ -1531,7 +1486,6 @@ static Res traceCondemnAll(Trace trace)
   Res res;
   Arena arena;
   Ring poolNode, nextPoolNode, chainNode, nextChainNode;
-  Bool haveWhiteSegs = FALSE;
 
   arena = trace->arena;
   AVERT(Arena, arena);
@@ -1550,10 +1504,12 @@ static Res traceCondemnAll(Trace trace)
         res = TraceAddWhite(trace, seg);
         if (res != ResOK)
           goto failBegin;
-        haveWhiteSegs = TRUE;
       }
     }
   }
+
+  if (TraceIsEmpty(trace))
+    return ResFAIL;
 
   /* Notify all the chains. */
   RING_FOR(chainNode, &arena->chainRing, nextChainNode) {
@@ -1571,7 +1527,7 @@ failBegin:
    * pool class that fails to whiten a segment, then this assertion
    * will be triggered. In that case, we'll have to recover here by
    * blackening the segments again. */
-  AVER(!haveWhiteSegs);
+  AVER(TraceIsEmpty(trace));
   return res;
 }
 
@@ -1630,6 +1586,7 @@ Res TraceStart(Trace trace, double mortality, double finishingTime)
   AVER(0.0 <= mortality);
   AVER(mortality <= 1.0);
   AVER(finishingTime >= 0.0);
+  AVER(trace->condemned > 0);
 
   arena = trace->arena;
   
@@ -1690,8 +1647,10 @@ Res TraceStart(Trace trace, double mortality, double finishingTime)
     /* integer, so try to make sure it fits. */
     if(nPolls >= (double)LONG_MAX)
       nPolls = (double)LONG_MAX;
-    /* rate equals scanning work per number of polls available */
-    trace->rate = (trace->foundation + sSurvivors) / (unsigned long)nPolls + 1;
+    /* One quantum of work equals total tracing work divided by number
+     * of polls, plus one to ensure it's not zero. */
+    trace->quantumWork
+      = (trace->foundation + sSurvivors) / (unsigned long)nPolls + 1;
   }
 
   /* TODO: compute rate of scanning here. */
@@ -1699,11 +1658,11 @@ Res TraceStart(Trace trace, double mortality, double finishingTime)
   EVENT8(TraceStart, trace, mortality, finishingTime,
          trace->condemned, trace->notCondemned,
          trace->foundation, trace->white,
-         trace->rate);
+         trace->quantumWork);
 
   STATISTIC_STAT(EVENT7(TraceStatCondemn, trace,
                         trace->condemned, trace->notCondemned,
-                        trace->foundation, trace->rate,
+                        trace->foundation, trace->quantumWork,
                         mortality, finishingTime));
 
   trace->state = TraceUNFLIPPED;
@@ -1714,55 +1673,58 @@ Res TraceStart(Trace trace, double mortality, double finishingTime)
 }
 
 
-/* traceWorkClock -- a measure of the work done for this trace
+/* traceWork -- a measure of the work done for this trace.
  *
- * .workclock: Segment and root scanning work is the regulator.  */
+ * See design.mps.type.work.
+ */
 
-#define traceWorkClock(trace) ((trace)->segScanSize + (trace)->rootScanSize)
+#define traceWork(trace) ((Work)((trace)->segScanSize + (trace)->rootScanSize))
 
 
-/* TraceQuantum -- progresses a trace by one quantum */
+/* TraceAdvance -- progress a trace by one step */
 
-void TraceQuantum(Trace trace)
+void TraceAdvance(Trace trace)
 {
-  Size pollEnd;
   Arena arena;
+  Work oldWork, newWork;
 
   AVERT(Trace, trace);
   arena = trace->arena;
+  oldWork = traceWork(trace);
 
-  pollEnd = traceWorkClock(trace) + trace->rate;
-  do {
-    switch(trace->state) {
-      case TraceUNFLIPPED:
-        /* all traces are flipped in TraceStart at the moment */
-        NOTREACHED;
-        break;
-      case TraceFLIPPED: {
-        Seg seg;
-        Rank rank;
+  switch (trace->state) {
+  case TraceUNFLIPPED:
+    /* all traces are flipped in TraceStart at the moment */
+    NOTREACHED;
+    break;
+  case TraceFLIPPED: {
+    Seg seg;
+    Rank rank;
 
-        if(traceFindGrey(&seg, &rank, arena, trace->ti)) {
-          Res res;
-          res = traceScanSeg(TraceSetSingle(trace), rank, arena, seg);
-          /* Allocation failures should be handled by emergency mode, and we
-             don't expect any other error in a normal GC trace. */
-          AVER(res == ResOK);
-        } else {
-          trace->state = TraceRECLAIM;
-        }
-        break;
-      }
-      case TraceRECLAIM:
-        traceReclaim(trace);
-        break;
-      default:
-        NOTREACHED;
-        break;
+    if (traceFindGrey(&seg, &rank, arena, trace->ti)) {
+      Res res;
+      res = traceScanSeg(TraceSetSingle(trace), rank, arena, seg);
+      /* Allocation failures should be handled by emergency mode, and we
+       * don't expect any other error in a normal GC trace. */
+      AVER(res == ResOK);
+    } else {
+      trace->state = TraceRECLAIM;
     }
-  } while(trace->state != TraceFINISHED
-          && (ArenaEmergency(arena) || traceWorkClock(trace) < pollEnd));
+    break;
+  }
+  case TraceRECLAIM:
+    traceReclaim(trace);
+    break;
+  default:
+    NOTREACHED;
+    break;
+  }
+
+  newWork = traceWork(trace);
+  AVER(newWork >= oldWork);
+  arena->tracedWork += newWork - oldWork;
 }
+
 
 /* TraceStartCollectAll: start a trace which condemns everything in
  * the arena.
@@ -1805,111 +1767,49 @@ failStart:
      if the assertion isn't hit, so drop through anyway. */
   NOTREACHED;
 failCondemn:
-  TraceDestroy(trace);
-  /* We don't know how long it'll be before another collection.  Make sure
-     the next one starts in normal mode. */
-  ArenaSetEmergency(arena, FALSE);
+  TraceDestroyInit(trace);
   return res;
 }
 
 
-/* TracePoll -- Check if there's any tracing work to be done */
+/* TracePoll -- Check if there's any tracing work to be done
+ *
+ * Consider starting a trace if none is running; advance the running
+ * trace (if any) by one quantum. If there may be more work to do,
+ * update *workReturn with a measure of the work done and return TRUE.
+ * Otherwise return FALSE.
+ */
 
-Size TracePoll(Globals globals)
+Bool TracePoll(Work *workReturn, Globals globals)
 {
   Trace trace;
-  Res res;
   Arena arena;
-  Size scannedSize;
+  Work oldWork, newWork, work, endWork;
 
   AVERT(Globals, globals);
   arena = GlobalsArena(globals);
 
-  scannedSize = (Size)0;
-  if(arena->busyTraces == TraceSetEMPTY) {
-    /* If no traces are going on, see if we need to start one. */
-    Size sFoundation, sCondemned, sSurvivors, sConsTrace;
-    double tTracePerScan; /* tTrace/cScan */
-    double dynamicDeferral;
-
-    /* Compute dynamic criterion.  See strategy.lisp-machine. */
-    AVER(arena->topGen.mortality >= 0.0);
-    AVER(arena->topGen.mortality <= 1.0);
-    sFoundation = (Size)0; /* condemning everything, only roots @@@@ */
-    /* @@@@ sCondemned should be scannable only */
-    sCondemned = ArenaCommitted(arena) - ArenaSpareCommitted(arena);
-    sSurvivors = (Size)(sCondemned * (1 - arena->topGen.mortality));
-    tTracePerScan = sFoundation + (sSurvivors * (1 + TraceCopyScanRATIO));
-    AVER(TraceWorkFactor >= 0);
-    AVER(sSurvivors + tTracePerScan * TraceWorkFactor <= (double)SizeMAX);
-    sConsTrace = (Size)(sSurvivors + tTracePerScan * TraceWorkFactor);
-    dynamicDeferral = (double)ArenaAvail(arena) - (double)sConsTrace;
-
-    if(dynamicDeferral < 0.0) { /* start full GC */
-      res = TraceStartCollectAll(&trace, arena, TraceStartWhyDYNAMICCRITERION);
-      if(res != ResOK)
-        goto failStart;
-      scannedSize = traceWorkClock(trace);
-    } else { /* Find the nursery most over its capacity. */
-      Ring node, nextNode;
-      double firstTime = 0.0;
-      Chain firstChain = NULL;
-
-      RING_FOR(node, &arena->chainRing, nextNode) {
-        Chain chain = RING_ELT(Chain, chainRing, node);
-        double time;
-
-        AVERT(Chain, chain);
-        time = ChainDeferral(chain);
-        if(time < firstTime) {
-          firstTime = time; firstChain = chain;
-        }
-      }
-
-      /* If one was found, start collection on that chain. */
-      if(firstTime < 0) {
-        double mortality;
-
-        res = TraceCreate(&trace, arena, TraceStartWhyCHAIN_GEN0CAP);
-        AVER(res == ResOK);
-        res = ChainCondemnAuto(&mortality, firstChain, trace);
-        if(res != ResOK) /* should try some other trace, really @@@@ */
-          goto failCondemn;
-        trace->chain = firstChain;
-        ChainStartGC(firstChain, trace);
-        res = TraceStart(trace, mortality, trace->condemned * TraceWorkFactor);
-        /* We don't expect normal GC traces to fail to start. */
-        AVER(res == ResOK);
-        scannedSize = traceWorkClock(trace);
-      }
-    } /* (dynamicDeferral > 0.0) */
-  } /* (arena->busyTraces == TraceSetEMPTY) */
-
-  /* If there is a trace, do one quantum of work. */
-  if(arena->busyTraces != TraceSetEMPTY) {
-    Size oldScanned;
-
+  if (arena->busyTraces != TraceSetEMPTY) {
     trace = ArenaTrace(arena, (TraceId)0);
-    AVER(arena->busyTraces == TraceSetSingle(trace));
-    oldScanned = traceWorkClock(trace);
-    TraceQuantum(trace);
-    scannedSize = traceWorkClock(trace) - oldScanned;
-    if(trace->state == TraceFINISHED) {
-      TraceDestroy(trace);
-      /* A trace finished, and hopefully reclaimed some memory, so clear any
-         emergency. */
-      ArenaSetEmergency(arena, FALSE);
-    }
+  } else {
+    /* No traces are running: consider starting one now. */
+    if (!PolicyStartTrace(&trace, arena))
+      return FALSE;
   }
-  return scannedSize;
 
-failCondemn:
-  TraceDestroy(trace);
-  /* This is an unlikely case, but clear the emergency flag so the next attempt
-     starts normally. */
-  ArenaSetEmergency(arena, FALSE);
-failStart:
-  return (Size)0;
+  AVER(arena->busyTraces == TraceSetSingle(trace));
+  oldWork = traceWork(trace);
+  endWork = oldWork + trace->quantumWork;
+  do {
+    TraceAdvance(trace);
+  } while (trace->state != TraceFINISHED && traceWork(trace) < endWork);
+  newWork = traceWork(trace);
+  AVER(newWork >= oldWork);
+  work = newWork - oldWork;
+  if (trace->state == TraceFINISHED)
+    TraceDestroyFinished(trace);
+  *workReturn = work;
+  return TRUE;
 }
 
 
@@ -1947,7 +1847,7 @@ Res TraceDescribe(Trace trace, mps_lib_FILE *stream, Count depth)
                "  condemned $U\n", (WriteFU)trace->condemned,
                "  notCondemned $U\n", (WriteFU)trace->notCondemned,
                "  foundation $U\n", (WriteFU)trace->foundation,
-               "  rate $U\n", (WriteFU)trace->rate,
+               "  quantumWork $U\n", (WriteFU)trace->quantumWork,
                "  rootScanSize $U\n", (WriteFU)trace->rootScanSize,
                "  rootCopiedSize $U\n", (WriteFU)trace->rootCopiedSize,
                "  segScanSize $U\n", (WriteFU)trace->segScanSize,
@@ -1962,7 +1862,7 @@ Res TraceDescribe(Trace trace, mps_lib_FILE *stream, Count depth)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited
+ * Copyright (C) 2001-2016 Ravenbrook Limited
  * <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.

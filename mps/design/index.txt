@@ -40,37 +40,42 @@ Designs
 
 ======================  ================================================
 abq_                    Fixed-length queues
-alloc-frame_            Design of the MPS allocation frame protocol
-arena_                  The design of the MPS arena
+alloc-frame_            Allocation frame protocol
+an_                     Generic modules
+arena_                  Arena
 arenavm_                Virtual memory arena
+bootstrap_              Bootstrapping
 bt_                     Bit tables
 buffer_                 Allocation buffers and allocation points
-cbs_                    Coalescing Block Structure land implementation
-check_                  Design of checking in MPS
-class-interface_        Design of the pool class interface
-collection_             The collection framework
-config_                 The design of MPS configuration
+cbs_                    Coalescing block structures
+check_                  Checking
+class-interface_        Pool class interface
+clock_                  Fast high-resolution clock
+collection_             Collection framework
+config_                 MPS configuration
 critical-path_          The critical path through the MPS
-diag_                   The design of MPS diagnostic feedback
-failover_               Fail-over land implementation
+diag_                   Diagnostic feedback
+exec-env_               Execution environment
+failover_               Fail-over allocator
 finalize_               Finalization
-fix_                    The Design of the Generic Fix Function
-freelist_               Free list land implementation
-guide.hex.trans_        Guide to transliterating the alphabet into hexadecimal
+fix_                    The generic fix function
+freelist_               Free list allocator
+guide.hex.trans_        Transliterating the alphabet into hexadecimal
 guide.impl.c.format_    Coding standard: conventions for the general format of C source code in the MPS
 guide.impl.c.naming_    Coding standard: conventions for internal names
-interface-c_            The design of the Memory Pool System interface to C
-io_                     The design of the MPS I/O subsystem
-keyword-arguments_      The design of the MPS mechanism for passing arguments by keyword.
+guide.review_           Review checklist
+interface-c_            C interface
+io_                     I/O subsystem
+keyword-arguments_      Keyword arguments
 land_                   Lands (collections of address ranges)
-lib_                    The design of the Memory Pool System library interface
-lock_                   The design of the lock module
-locus_                  The design for the locus manager
-message_                MPS to client message protocol
-message-gc_             Messages sent when garbage collection begins or ends
+lib_                    Library interface
+lock_                   Lock module
+locus_                  Locus manager
+message_                Client message protocol
+message-gc_             GC messages
 nailboard_              Nailboards for ambiguously referenced segments
-object-debug_           Debugging Features for Client Objects
-pool_                   The design of the pool and pool class mechanisms
+object-debug_           Debugging features for client objects
+pool_                   Pool and pool class mechanisms
 poolamc_                Automatic Mostly-Copying pool class
 poolams_                Automatic Mark-and-Sweep pool class
 poolawl_                Automatic Weak Linked pool class
@@ -80,51 +85,57 @@ poolmrg_                Manual Rank Guardian pool class
 poolmv_                 Manual Variable pool class
 poolmvt_                Manual Variable Temporal pool class
 poolmvff_               Manual Variable First-Fit pool class
-prot_                   Generic design of the protection module
-protan_                 ANSI implementation of protection module
+prmc_                   Protection mutator context
+prot_                   Memory protection
 protli_                 Linux implementation of protection module
-protocol_               The design for protocol inheritance in MPS
+protocol_               Protocol inheritance
 protsu_                 SunOS 4 implementation of protection module
-pthreadext_             Design of the Posix thread extensions for MPS
+pthreadext_             POSIX thread extensions
 range_                  Ranges of addresses
-reservoir_              The design of the low-memory reservoir
-ring_                   The design of the ring data structure
-root_                   The design of the root manager
-scan_                   The design of the generic scanner
-seg_                    The design of the MPS segment data structure
-shield_                 Shield abstraction: separate control of collector access and mutator (client) access to memory
+reservoir_              The low-memory reservoir
+ring_                   Ring data structure
+root_                   Root manager
+scan_                   The generic scanner
+seg_                    Segment data structure
+shield_                 Shield
 sig_                    Signatures in the MPS
-splay_                  Design of splay trees
+sp_                     Stack probe
+splay_                  Splay trees
+ss_                     Stack and register scanning
 sso1al_                 Stack scanner for Digital Unix / Alpha systems
 strategy_               Collection strategy
-telemetry_              The design of the MPS telemetry mechanism
-tests_                  The design of MPS internal tests
-thread-manager_         The design of the MPS thread manager
-thread-safety_          Thread Safety in the MPS
+telemetry_              Telemetry
+tests_                  Tests
+testthr_                Multi-threaded testing
+thread-manager_         Thread manager
+thread-safety_          Thread safety in the MPS
 trace_                  Tracer
-type_                   The design of the general MPS types
-version-library_        Design of the MPS library version mechanism
-version_                Design of MPS software versions
-vm_                     The design of the virtual mapping interface
-vman_                   ANSI fake VM
+type_                   General MPS types
+version-library_        Library version mechanism
+version_                Software versions
+vm_                     Virtual mapping
 vmo1_                   VM Module on DEC Unix
 vmso_                   VM Design for Solaris
-writef_                 The design of the MPS writef function 
+writef_                 The WriteF function 
 ======================  ================================================
 
 .. _abq: abq
 .. _alloc-frame: alloc-frame
+.. _an: an
 .. _arena: arena
 .. _arenavm: arenavm
+.. _bootstrap: bootstrap
 .. _bt: bt
 .. _buffer: buffer
 .. _cbs: cbs
 .. _check: check
+.. _clock: clock
 .. _class-interface: class-interface
 .. _collection: collection
 .. _config: config
 .. _critical-path: critical-path
 .. _diag: diag
+.. _exec-env: exec-env
 .. _failover: failover
 .. _finalize: finalize
 .. _fix: fix
@@ -132,6 +143,7 @@ writef_                 The design of the MPS writef function
 .. _guide.hex.trans: guide.hex.trans
 .. _guide.impl.c.format: guide.impl.c.format
 .. _guide.impl.c.naming: guide.impl.c.naming
+.. _guide.review: guide.review
 .. _interface-c: interface-c
 .. _io: io
 .. _keyword-arguments: keyword-arguments
@@ -153,8 +165,8 @@ writef_                 The design of the MPS writef function
 .. _poolmv: poolmv
 .. _poolmvt: poolmvt
 .. _poolmvff: poolmvff
+.. _prmc: prmc
 .. _prot: prot
-.. _protan: protan
 .. _protli: protli
 .. _protocol: protocol
 .. _protsu: protsu
@@ -167,11 +179,14 @@ writef_                 The design of the MPS writef function
 .. _seg: seg
 .. _shield: shield
 .. _sig: sig
+.. _sp: sp
 .. _splay: splay
+.. _ss: ss
 .. _sso1al: sso1al
 .. _strategy: strategy
 .. _telemetry: telemetry
 .. _tests: tests
+.. _testthr: testthr
 .. _thread-manager: thread-manager
 .. _thread-safety: thread-safety
 .. _trace: trace
@@ -179,7 +194,6 @@ writef_                 The design of the MPS writef function
 .. _version-library: version-library
 .. _version: version
 .. _vm: vm
-.. _vman: vman
 .. _vmo1: vmo1
 .. _vmso: vmso
 .. _writef: writef
@@ -225,7 +239,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2002-2014 Ravenbrook Limited. All rights reserved.
+Copyright © 2002-2016 Ravenbrook Limited. All rights reserved.
 <http://www.ravenbrook.com/>. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

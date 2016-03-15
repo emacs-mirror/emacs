@@ -323,7 +323,8 @@ static Res VMChunkCreate(Chunk *chunkReturn, VMArena vmArena, Size size)
 
   /* Copy VM descriptor into its place in the chunk. */
   VMCopy(VMChunkVM(vmChunk), vm);
-  res = ChunkInit(VMChunk2Chunk(vmChunk), arena, base, limit, boot);
+  res = ChunkInit(VMChunk2Chunk(vmChunk), arena, base, limit,
+                  VMReserved(VMChunkVM(vmChunk)), boot);
   if (res != ResOK)
     goto failChunkInit;
 
@@ -408,16 +409,14 @@ failSaMapped:
 
 /* vmChunkDestroy -- destroy a VMChunk */
 
-static Bool vmChunkDestroy(Tree tree, void *closureP, Size closureS)
+static Bool vmChunkDestroy(Tree tree, void *closure)
 {
   Chunk chunk;
   VMChunk vmChunk;
 
   AVERT(Tree, tree);
-  AVER(closureP == UNUSED_POINTER);
-  UNUSED(closureP);
-  AVER(closureS == UNUSED_SIZE);
-  UNUSED(closureS);
+  AVER(closure == UNUSED_POINTER);
+  UNUSED(closure);
 
   chunk = ChunkOfTree(tree);
   AVERT(Chunk, chunk);
@@ -560,6 +559,7 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
   res = ArenaInit(arena, class, grainSize, args);
   if (res != ResOK)
     goto failArenaInit;
+  arena->reserved = VMReserved(vm);
   arena->committed = VMMapped(vm);
 
   /* Copy VM descriptor into its place in the arena. */
@@ -634,12 +634,13 @@ static void VMArenaFinish(Arena arena)
    * <design/arena/#chunk.delete> */
   arena->primary = NULL;
   TreeTraverseAndDelete(&arena->chunkTree, vmChunkDestroy,
-                        UNUSED_POINTER, UNUSED_SIZE);
+                        UNUSED_POINTER);
   
   /* Destroying the chunks should have purged and removed all spare pages. */
   RingFinish(&vmArena->spareRing);
 
   /* Destroying the chunks should leave only the arena's own VM. */
+  AVER(arena->reserved == VMReserved(VMArenaVM(vmArena)));
   AVER(arena->committed == VMMapped(VMArenaVM(vmArena)));
 
   vmArena->sig = SigInvalid;
@@ -651,25 +652,6 @@ static void VMArenaFinish(Arena arena)
   VMCopy(vm, VMArenaVM(vmArena));
   VMUnmap(vm, VMBase(vm), VMLimit(vm));
   VMFinish(vm);
-}
-
-
-/* VMArenaReserved -- return the amount of reserved address space
- *
- * Add up the reserved space from all the chunks.
- */
-
-static Size VMArenaReserved(Arena arena)
-{
-  Size reserved;
-  Ring node, next;
-
-  reserved = 0;
-  RING_FOR(node, &arena->chunkRing, next) {
-    VMChunk vmChunk = Chunk2VMChunk(RING_ELT(Chunk, arenaRing, node));
-    reserved += VMReserved(VMChunkVM(vmChunk));
-  }
-  return reserved;
 }
 
 
@@ -723,7 +705,7 @@ static Res VMArenaGrow(Arena arena, LocusPref pref, Size size)
   chunkSize = vmArenaChunkSize(vmArena, size);
 
   EVENT3(vmArenaExtendStart, size, chunkSize,
-         VMArenaReserved(VMArena2Arena(vmArena)));
+         ArenaReserved(VMArena2Arena(vmArena)));
 
   /* .chunk-create.fail: If we fail, try again with a smaller size */
   {
@@ -737,17 +719,17 @@ static Res VMArenaGrow(Arena arena, LocusPref pref, Size size)
     if (chunkSize < chunkMin)
       chunkSize = chunkMin;
     
+    res = ResRESOURCE;
     for(;; chunkSize = chunkHalf) {
       chunkHalf = chunkSize / 2;
       sliceSize = chunkHalf / fidelity;
       AVER(sliceSize > 0);
       
       /* remove slices, down to chunkHalf but no further */
-      res = ResRESOURCE;
       for(; chunkSize > chunkHalf; chunkSize -= sliceSize) {
         if(chunkSize < chunkMin) {
           EVENT2(vmArenaExtendFail, chunkMin,
-                 VMArenaReserved(VMArena2Arena(vmArena)));
+                 ArenaReserved(VMArena2Arena(vmArena)));
           return res;
         }
         res = VMChunkCreate(&newChunk, vmArena, chunkSize);
@@ -758,10 +740,10 @@ static Res VMArenaGrow(Arena arena, LocusPref pref, Size size)
   }
   
 vmArenaGrow_Done:
-  EVENT2(vmArenaExtendDone, chunkSize, VMArenaReserved(VMArena2Arena(vmArena)));
+  EVENT2(vmArenaExtendDone, chunkSize, ArenaReserved(VMArena2Arena(vmArena)));
   vmArena->extended(VMArena2Arena(vmArena),
-		    newChunk->base,
-		    AddrOffset(newChunk->base, newChunk->limit));
+                    newChunk->base,
+                    AddrOffset(newChunk->base, newChunk->limit));
       
   return res;
 }
@@ -806,16 +788,23 @@ static Res pageDescMap(VMChunk vmChunk, Index basePI, Index limitPI)
   Size before = VMMapped(VMChunkVM(vmChunk));
   Arena arena = VMArena2Arena(VMChunkVMArena(vmChunk));
   Res res = SparseArrayMap(&vmChunk->pages, basePI, limitPI);
-  arena->committed += VMMapped(VMChunkVM(vmChunk)) - before;
+  Size after = VMMapped(VMChunkVM(vmChunk));
+  AVER(before <= after);
+  arena->committed += after - before;
   return res;
 }
 
 static void pageDescUnmap(VMChunk vmChunk, Index basePI, Index limitPI)
 {
+  Size size, after;
   Size before = VMMapped(VMChunkVM(vmChunk));
   Arena arena = VMArena2Arena(VMChunkVMArena(vmChunk));
   SparseArrayUnmap(&vmChunk->pages, basePI, limitPI);
-  arena->committed += VMMapped(VMChunkVM(vmChunk)) - before;
+  after = VMMapped(VMChunkVM(vmChunk));
+  AVER(after <= before);
+  size = before - after;
+  AVER(arena->committed >= size);
+  arena->committed -= size;
 }
 
 
@@ -1001,7 +990,7 @@ static Size arenaUnmapSpare(Arena arena, Size size, Chunk filter)
   while (RingNext(node) != &vmArena->spareRing && purged < size) {
     Ring next = RingNext(node);
     Page page = PageOfSpareRing(next);
-    Chunk chunk;
+    Chunk chunk = NULL; /* suppress uninit warning */
     Bool b;
     /* Use the fact that the page table resides in the chunk to find the
        chunk that owns the page. */
@@ -1103,16 +1092,14 @@ static void VMFree(Addr base, Size size, Pool pool)
 
 /* vmChunkCompact -- delete chunk if empty and not primary */
 
-static Bool vmChunkCompact(Tree tree, void *closureP, Size closureS)
+static Bool vmChunkCompact(Tree tree, void *closure)
 {
   Chunk chunk;
-  Arena arena = closureP;
+  Arena arena = closure;
   VMArena vmArena;
 
   AVERT(Tree, tree);
   AVERT(Arena, arena);
-  AVER(closureS == UNUSED_SIZE);
-  UNUSED(closureS);
 
   vmArena = Arena2VMArena(arena);
   AVERT(VMArena, vmArena);
@@ -1123,8 +1110,10 @@ static Bool vmChunkCompact(Tree tree, void *closureP, Size closureS)
   {
     Addr base = chunk->base;
     Size size = ChunkSize(chunk);
-    vmChunkDestroy(tree, UNUSED_POINTER, UNUSED_SIZE);
-    vmArena->contracted(arena, base, size);
+    /* Callback before destroying the chunk, as the arena is (briefly)
+       invalid afterwards. See job003893. */
+    (*vmArena->contracted)(arena, base, size);
+    vmChunkDestroy(tree, UNUSED_POINTER);
     return TRUE;
   } else {
     /* Keep this chunk. */
@@ -1142,17 +1131,16 @@ static void VMCompact(Arena arena, Trace trace)
   AVERT(VMArena, vmArena);
   AVERT(Trace, trace);
 
-  vmem1 = VMArenaReserved(arena);
+  vmem1 = ArenaReserved(arena);
 
   /* Destroy chunks that are completely free, but not the primary
    * chunk. See <design/arena/#chunk.delete>
    * TODO: add hysteresis here. See job003815. */
-  TreeTraverseAndDelete(&arena->chunkTree, vmChunkCompact, arena,
-                        UNUSED_SIZE);
+  TreeTraverseAndDelete(&arena->chunkTree, vmChunkCompact, arena);
 
   {
     Size vmem0 = trace->preTraceArenaReserved;
-    Size vmem2 = VMArenaReserved(arena);
+    Size vmem2 = ArenaReserved(arena);
 
     /* VMCompact event: emit for all client-requested collections, */
     /* plus any others where chunks were gained or lost during the */
@@ -1202,7 +1190,6 @@ DEFINE_ARENA_CLASS(VMArenaClass, this)
   this->varargs = VMArenaVarargs;
   this->init = VMArenaInit;
   this->finish = VMArenaFinish;
-  this->reserved = VMArenaReserved;
   this->purgeSpare = VMPurgeSpare;
   this->grow = VMArenaGrow;
   this->free = VMFree;

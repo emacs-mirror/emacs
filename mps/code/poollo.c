@@ -504,8 +504,10 @@ static Res LOInit(Pool pool, ArgList args)
     gen = arg.val.u;
   
   AVERT(Format, pool->format);
+  AVER(FormatArena(pool->format) == arena);
   AVERT(Chain, chain);
   AVER(gen <= ChainGens(chain));
+  AVER(chain->arena == arena);
 
   pool->alignment = pool->format->alignment;
   lo->alignShift = SizeLog2((Size)PoolAlignment(pool));

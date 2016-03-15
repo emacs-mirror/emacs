@@ -7,84 +7,17 @@ PFM = ananmv
 
 PFMDEFS = /DCONFIG_PF_ANSI /DCONFIG_THREAD_SINGLE
 
-# MPM platform-specific sources.
 MPMPF = \
-    <lockan> \
-    <prmcan> \
-    <protan> \
-    <span> \
-    <ssan> \
-    <than> \
-    <vman>
+    [lockan] \
+    [prmcan] \
+    [protan] \
+    [span] \
+    [ssan] \
+    [than] \
+    [vman]
 
 !INCLUDE commpre.nmk
 !INCLUDE mv.nmk
-
-
-# Source to object file mappings and CFLAGS amalgamation
-#
-# %%VARIETY %%PART: When adding a new variety or part, add new macros which
-# expand to the files included in the part for each variety
-#
-# %%VARIETY: When adding a new variety, add a CFLAGS macro which expands to
-# the flags that that variety should use when compiling C.  And a LINKFLAGS
-# macro which expands to the flags that the variety should use when building
-# executables.  And a LIBFLAGS macro which expands to the flags that the
-# variety should use when building libraries
-
-!IF "$(VARIETY)" == "hot"
-CFLAGS=$(CFLAGSCOMMONPRE) $(CFHOT) $(CFLAGSCOMMONPOST)
-CFLAGSSQL=$(CFLAGSSQLPRE) $(CFHOT) $(CFLAGSSQLPOST)
-LINKFLAGS=$(LINKFLAGSCOMMON) $(LFHOT)
-LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSHOT)
-MPMOBJ0 = $(MPM:<=ananmv\hot\)
-FMTDYOBJ0 = $(FMTDY:<=ananmv\hot\)
-FMTTESTOBJ0 = $(FMTTEST:<=ananmv\hot\)
-FMTSCHEMEOBJ0 = $(FMTSCHEME:<=ananmv\hot\)
-POOLNOBJ0 = $(POOLN:<=ananmv\hot\)
-TESTLIBOBJ0 = $(TESTLIB:<=ananmv\hot\)
-TESTTHROBJ0 = $(TESTTHR:<=ananmv\hot\)
-
-!ELSEIF "$(VARIETY)" == "cool"
-CFLAGS=$(CFLAGSCOMMONPRE) $(CFCOOL) $(CFLAGSCOMMONPOST)
-CFLAGSSQL=$(CFLAGSSQLPRE) $(CFCOOL) $(CFLAGSSQLPOST)
-LINKFLAGS=$(LINKFLAGSCOMMON) $(LFCOOL)
-LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSCOOL)
-MPMOBJ0 = $(MPM:<=ananmv\cool\)
-FMTDYOBJ0 = $(FMTDY:<=ananmv\cool\)
-FMTTESTOBJ0 = $(FMTTEST:<=ananmv\cool\)
-FMTSCHEMEOBJ0 = $(FMTSCHEME:<=ananmv\cool\)
-POOLNOBJ0 = $(POOLN:<=ananmv\cool\)
-TESTLIBOBJ0 = $(TESTLIB:<=ananmv\cool\)
-TESTTHROBJ0 = $(TESTTHR:<=ananmv\cool\)
-
-!ELSEIF "$(VARIETY)" == "rash"
-CFLAGS=$(CFLAGSCOMMONPRE) $(CFRASH) $(CFLAGSCOMMONPOST)
-CFLAGSSQL=$(CFLAGSSQLPRE) $(CFRASH) $(CFLAGSSQLPOST)
-LINKFLAGS=$(LINKFLAGSCOMMON) $(LFRASH)
-LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSRASH)
-MPMOBJ0 = $(MPM:<=ananmv\rash\)
-FMTDYOBJ0 = $(FMTDY:<=ananmv\rash\)
-FMTTESTOBJ0 = $(FMTTEST:<=ananmv\rash\)
-FMTSCHEMEOBJ0 = $(FMTSCHEME:<=ananmv\rash\)
-POOLNOBJ0 = $(POOLN:<=ananmv\rash\)
-TESTLIBOBJ0 = $(TESTLIB:<=ananmv\rash\)
-TESTTHROBJ0 = $(TESTTHR:<=ananmv\rash\)
-
-!ENDIF
-
-# %%PART: When adding a new part, add new macros which expand to the object
-# files included in the part
-
-MPMOBJ = $(MPMOBJ0:>=.obj)
-FMTDYOBJ = $(FMTDYOBJ0:>=.obj)
-FMTTESTOBJ = $(FMTTESTOBJ0:>=.obj)
-FMTSCHEMEOBJ = $(FMTSCHEMEOBJ0:>=.obj)
-POOLNOBJ = $(POOLNOBJ0:>=.obj)
-TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
-TESTTHROBJ = $(TESTTHROBJ0:>=.obj)
-
-
 !INCLUDE commpost.nmk
 
 

@@ -9,6 +9,7 @@ Fail-over allocator
 :Status: complete design
 :Revision: $Id$
 :Copyright: See section `Copyright and License`_.
+:Index terms: pair: fail-over allocator; design
 
 
 Introduction
@@ -25,10 +26,10 @@ _`.overview`: The fail-over allocator combines two *land* instances.
 It stores address ranges in one of the lands (the *primary*) unless
 insertion fails, in which case it falls back to the other (the
 *secondary*). The purpose is to be able to combine two lands with
-different properties: with a CBS_ for the primary and a Freelist_ for
-the secondary, operations are fast so long as there is memory to
-allocate new nodes in the CBS, but operations can continue using the
-Freelist when memory is low.
+different properties: with a CBS_ for the primary and a
+Freelist_ for the secondary, operations are fast so long as there
+is memory to allocate new nodes in the CBS_, but operations can
+continue using the Freelist_ when memory is low.
 
 .. _CBS: cbs
 .. _Freelist: freelist
@@ -80,8 +81,8 @@ Implementation
 --------------
 
 _`.impl.assume`: The implementation assumes that the primary is fast
-but space-hungry (a CBS) and the secondary is slow but space-frugal (a
-Freelist). This assumption is used in the following places:
+but space-hungry (a CBS_) and the secondary is slow but space-frugal
+(a Freelist_). This assumption is used in the following places:
 
 _`.impl.assume.flush`: The fail-over allocator attempts to flush the
 secondary to the primary before any operation, in order to benefit
@@ -91,7 +92,7 @@ where the secondary is empty this is cheap.
 _`.impl.assume.delete`: When deletion of a range on the primary fails
 due to lack of memory, we assume that this can only happen when there
 are splinters on both sides of the deleted range, one of which needs
-to be allocated a new node (this is the case for CBS), and that
+to be allocated a new node (this is the case for CBS_), and that
 therefore the following procedure will be effective: first, delete the
 enclosing range from the primary (leaving no splinters and thus
 requiring no allocation), and re-insert the splinters (failing over to
@@ -110,7 +111,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2014 Ravenbrook Limited. All rights reserved. 
+Copyright © 2014-2016 Ravenbrook Limited. All rights reserved. 
 <http://www.ravenbrook.com/>. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

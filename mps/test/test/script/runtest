@@ -144,6 +144,10 @@ sub run_test {
 
   die "Don't know how to run tests in the $lang language.\n";
  }
+
+ if ($testconclusion eq "FAIL") {
+  $exitstatus = 1;
+ }
 }
 
 sub run_from_testset {
@@ -216,6 +220,10 @@ sub run_from_testset {
   close(LOG_VERBOSE);
   &mailfile("$LOG_DIR/last.log", "$MAIL_SUBJECT $testid $testconclusion");
  }
+
+ if ($testconclusion eq "FAIL") {
+  $exitstatus = 1;
+ }
 }
 
 sub run_testset {
@@ -241,7 +249,7 @@ sub run_testset {
  } else {
   while (<TESTSET>) {
    unless (/(^%)|(^\s*$)/) {
-    chop;
+    chomp;
     &run_from_testset($_);
    }
   }

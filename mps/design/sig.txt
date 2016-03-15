@@ -34,7 +34,7 @@ checking and dynamic scope checking. They are a simplified form of
 "Structure Marking", a technique used in the Multics filesystem
 [THVV_1995]_.
 
-.. _`magic numbers`: http://en.wikipedia.org/wiki/Magic_number_(programming)
+.. _`magic numbers`: https://en.wikipedia.org/wiki/Magic_number_(programming)
 
 
 Definitions
@@ -111,14 +111,14 @@ checks that ``val->sig`` is the correct signature for ``type``.
 _`.check.arg.locked`: A function that holds the arena lock should
 check the argument using the ``AVERT`` macro. This macro has different
 definitions depending on how the MPS is compiled (see
-`design.mps.config.def.var`_). It may simply check the signature, or
+design.mps.config.def.var_). It may simply check the signature, or
 call the full checking function for the structure.
 
 .. _design.mps.config.def.var: config#def-var
 
 _`.check.sig`: The checking function for the structure should also
 validate the signature as its first step using the ``CHECKS()`` macro
-(see `check.h`_). For example::
+(see check.h_). For example::
 
     Bool MessageCheck(Message message)
     {
@@ -149,7 +149,7 @@ Tools
 -----
 _`.test.uniq`: The Unix command::
 
-    grep -oh '^#define \w*Sig\b' code/*.[ch] | sort | uniq -c
+    sed -n '/^#define [a-zA-Z]*Sig/s/[^(]*(/(/p' code/*.[ch] | sort | uniq -c
 
 will display all signatures defined in the MPS along with a count of how
 many times they are defined.  If any counts are greater than 1, then the
@@ -177,7 +177,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited. All rights reserved.
+Copyright © 2013-2016 Ravenbrook Limited. All rights reserved.
 <http://www.ravenbrook.com/>. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

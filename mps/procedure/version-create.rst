@@ -145,8 +145,8 @@ the parent branch. A typical invocation looks like this::
 
         p4 client -i <<END
         Client: git-fusion-mps-version-$VERSION
-	Description: Git-fusion client for syncing MPS version $VERSION
-	Root: /home/git-fusion/.git-fusion/views/mps-version-$VERSION/p4
+        Description: Git-fusion client for syncing MPS version $VERSION
+        Root: /home/git-fusion/.git-fusion/views/mps-version-$VERSION/p4
         View: //info.ravenbrook.com/project/mps/version/$VERSION/... //git-fusion-mps-version-$VERSION/...
         END
 
@@ -154,7 +154,7 @@ the parent branch. A typical invocation looks like this::
 
         PUSHES=$(p4 have //info.ravenbrook.com/infosys/robots/git-fusion/etc/pushes | cut -d' ' -f3)
         p4 edit $PUSHES
-        printf "mps-version-$VERSION\tgit@github.com:Ravenbrook/mps-temporary.git\tversion/$VERSION" >> $PUSHES
+        printf "mps-version-$VERSION\tgit@github.com:Ravenbrook/mps.git\tversion/$VERSION" >> $PUSHES
         p4 submit -d "Arranging for MPS version $VERSION to be pushed to GitHub by Git Fusion" $PUSHES
 
 
@@ -178,6 +178,7 @@ B. Document History
 2014-01-13  GDR_   Make procedure less error-prone by giving exact sequence of commands (where possible) based on experience of version 1.112.
 2014-01-14  GDR_   Step for adding to Git Fusion.
 2014-03-19  GDR_   Describe automated procedure.
+2016-01-28  RB_    Git repository renamed from mps-temporary to mps.
 ==========  =====  ========================================================
 
 .. _GDR: mailto:gdr@ravenbrook.com

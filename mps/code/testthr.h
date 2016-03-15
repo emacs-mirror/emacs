@@ -1,12 +1,12 @@
 /* testthr.h: MULTI-THREADED TEST INTERFACE
  *
- * $Id: //info.ravenbrook.com/project/mps/master/code/testlib.h#30 $
- * Copyright (c) 2014 Ravenbrook Limited.  See end of file for license.
+ * $Id$
+ * Copyright (c) 2014-2016 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: Simple interface to threads that makes it possible to
  * write test cases that are portable between Windows (using the
  * implementation in testthrw3.c) and Unix (using the implementation
- * in testthrix.c).
+ * in testthrix.c). See <design/testthr/>.
  */
 
 #ifndef testthr_h
@@ -83,7 +83,7 @@ void testthr_join(testthr_t *thread, void **result_o);
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2014-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

@@ -36,7 +36,7 @@ There are two reasons that it is not an equality relation:
 
 The reason that ``ss.unfixedSummary`` is always a subset of the
 previous summary is due to an "optimization" which has not been made
-in ``TraceFix``. See `design.mps.trace.fix.fixed.all`_.
+in ``TraceFix``. See design.mps.trace.fix.fixed.all_.
 
 .. _design.mps.trace.fix.fixed.all: trace#fix.fixed.all
 

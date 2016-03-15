@@ -1,0 +1,172 @@
+.. mode: -*- rst -*-
+
+Stack and register scanning
+===========================
+
+:Tag: design.mps.ss
+:Author: Gareth Rees
+:Date: 2014-10-22
+:Status: complete design
+:Revision: $Id$
+:Copyright: See `Copyright and License`_.
+:Index terms: pair: stack and register scanning; design
+
+
+Introduction
+------------
+
+_`.intro`: This is the design of the stack and register scanning
+module.
+
+_`.readership`: Any MPS developer; anyone porting the MPS to a new
+platform.
+
+_`.overview`: This module locates and scans references in the control
+stack and registers of the *current* thread.
+
+_`.other`: The thread manager module is responsible for scanning the
+control stack and registers of *other* threads. See
+design.mps.thread-manager.if.scan_.
+
+.. _design.mps.thread-manager.if.scan: thread-manager#if.scan
+
+
+Requirements
+------------
+
+_`.req.stack.top`: Must locate the top of the mutator's stack. (This
+is needed to support conservative garbage collection of uncooperative
+code, where references might be stored by mutator on its stack.)
+
+_`.req.stack.bottom.not`: There is no requirement to locate the bottom
+of the stack. (The mutator supplies this as an argument to
+``mps_root_create_reg()``.)
+
+_`.req.registers`: Must locate and scan all references in the *root
+registers*, the subset of registers which might contain references
+that do not also appear on the stack. (This is needed to support
+conservative garbage collection of uncooperative code, where
+references might appear in registers.)
+
+
+Design
+------
+
+_`.sol.stack.top`: Implementations find the top of the stack by
+taking the address of a local variable.
+
+_`.sol.registers`: Implementations spill the root registers onto the
+stack so that they can be scanned there.
+
+_`.sol.registers.root`: The *root registers* are the subset of the
+callee-save registers that may contain pointers.
+
+_`.sol.registers.root.justify`: The caller-save registers will have
+been spilled onto the stack by the time the MPS is entered, so will be
+scanned by the stack scan. Floating-point registers and debugging
+registers do not, as far as we are aware, contain pointers.
+
+_`.sol.inner`: Having located the hot end of the stack (``stackHot``),
+and spilled the root registers into the next ``n`` words,
+implementations call the generic higher-order function
+``StackScanInner(ss, stackCold, stackHot, n, scan_area, closure)`` to actually do the scanning.
+
+
+Interface
+---------
+
+``Res StackScan(ScanState ss, Word *stackCold,
+                mps_area_scan_t scan_area,
+                void *closure)``
+
+_`.if.scan`: Scan the root registers of the current thread, and the
+control stack between ``stackCold`` and the hot end of the stack, in
+the context of the given scan state, using ``scan_area``. Return
+``ResOK`` if successful, or another result code if not.
+
+
+Issue
+-----
+
+_`.issue.overscan`: This design leads to over-scanning, because by the
+time ``StackScan()`` is called, there are several MPS functions on the
+stack. The scan thus ends up scanning references that belong the MPS,
+not to the mutator. See job003525_.
+
+.. _job003525: http://www.ravenbrook.com/project/mps/issue/job003525/
+
+
+Implementations
+---------------
+
+_`.impl.an`: Generic implementation in ``ssan.c``. This calls
+``setjmp()`` with a stack-allocated ``jmp_buf`` to spill the registers
+onto the stack. The C standard specifies that ``jmp_buf`` "is an array
+type suitable for holding the information needed to restore a calling
+environment. The environment of a call to the ``setjmp`` macro
+consists of information sufficient for a call to the ``longjmp``
+function to return execution to the correct block and invocation of
+that block, were it called recursively." Note that the C standard does
+not specify where the callee-save registers appear in the ``jmp_buf``,
+so the whole buffer must be scanned.
+
+_`.impl.ix`: Unix implementation in ``ssixi3.c`` and ``ssixi6.c``.
+Assembler instructions are used to spill exactly the callee-save
+registers. (Clang and GCC support a common assembler syntax.)
+
+_`.impl.w3`: Windows implementation in ``ssw3i3mv.c`` and
+``ssw3i6mv.c``. Like `.impl.an`_, this implementation uses
+``setjmp()`` with a stack-allocated ``jmp_buf`` to spill the registers
+onto the stack. However, we know the layout of the ``jmp_buf`` used by
+the compiler, and so can scan exactly the subset of registers we need.
+
+
+Document History
+----------------
+
+- 2014-10-22 GDR_ Initial draft.
+
+.. _GDR: http://www.ravenbrook.com/consultants/gdr/
+
+
+Copyright and License
+---------------------
+
+Copyright © 2014 Ravenbrook Limited. All rights reserved.
+<http://www.ravenbrook.com/>. This is an open source license. Contact
+Ravenbrook for commercial licensing options.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+#. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+#. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+#. Redistributions in any form must be accompanied by information on how
+   to obtain complete source code for this software and any
+   accompanying software that uses this software.  The source code must
+   either be included in the distribution or be available for no more than
+   the cost of distribution plus a nominal fee, and must be freely
+   redistributable under reasonable conditions.  For an executable file,
+   complete source code means the source code for all modules it contains.
+   It does not include source code for modules or files that typically
+   accompany the major components of the operating system on which the
+   executable file runs.
+
+**This software is provided by the copyright holders and contributors
+"as is" and any express or implied warranties, including, but not
+limited to, the implied warranties of merchantability, fitness for a
+particular purpose, or non-infringement, are disclaimed.  In no event
+shall the copyright holders and contributors be liable for any direct,
+indirect, incidental, special, exemplary, or consequential damages
+(including, but not limited to, procurement of substitute goods or
+services; loss of use, data, or profits; or business interruption)
+however caused and on any theory of liability, whether in contract,
+strict liability, or tort (including negligence or otherwise) arising in
+any way out of the use of this software, even if advised of the
+possibility of such damage.**

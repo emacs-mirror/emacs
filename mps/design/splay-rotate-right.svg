@@ -374,7 +374,7 @@
          id="tspan4371"
          x="388"
          y="96.362183"
-         style="font-size:24px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:125%;writing-mode:lr-tb;text-anchor:middle;font-family:Verdana;-inkscape-font-specification:Verdana">x</tspan></text>
+         style="font-size:24px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:125%;writing-mode:lr-tb;text-anchor:middle;font-family:Verdana;-inkscape-font-specification:Verdana">y</tspan></text>
     <text
        sodipodi:linespacing="125%"
        id="text4373"
@@ -386,6 +386,6 @@
          y="136.36218"
          x="426"
          id="tspan4375"
-         sodipodi:role="line">y</tspan></text>
+         sodipodi:role="line">x</tspan></text>
   </g>
 </svg>

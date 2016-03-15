@@ -9,7 +9,7 @@ The Memory Management Reference is maintained by `Ravenbrook Limited`_.
 
 Most of it was originally written by memory management experts in the
 Adaptive Memory Management Group at `Harlequin Limited
-<http://en.wikipedia.org/wiki/Harlequin_(software_company)>`_:
+<https://en.wikipedia.org/wiki/Harlequin_(software_company)>`_:
 
 * Nick Barnes
 * Richard Brooksby

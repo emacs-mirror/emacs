@@ -38,6 +38,7 @@ typedef Word Size;                      /* <design/type/#size> */
 typedef Word Count;                     /* <design/type/#count> */
 typedef Word Index;                     /* <design/type/#index> */
 typedef Word Align;                     /* <design/type/#align> */
+typedef Word Work;                      /* <design/type/#work> */
 typedef unsigned Shift;                 /* <design/type/#shift> */
 typedef unsigned Serial;                /* <design/type/#serial> */
 typedef Addr Ref;                       /* <design/type/#ref> */
@@ -120,7 +121,6 @@ typedef void (*ArenaVarargsMethod)(ArgStruct args[], va_list varargs);
 typedef Res (*ArenaInitMethod)(Arena *arenaReturn,
                                ArenaClass class, ArgList args);
 typedef void (*ArenaFinishMethod)(Arena arena);
-typedef Size (*ArenaReservedMethod)(Arena arena);
 typedef Size (*ArenaPurgeSpareMethod)(Arena arena, Size size);
 typedef Res (*ArenaExtendMethod)(Arena arena, Addr base, Size size);
 typedef Res (*ArenaGrowMethod)(Arena arena, LocusPref pref, Size size);
@@ -271,10 +271,10 @@ typedef void (*LandFinishMethod)(Land land);
 typedef Size (*LandSizeMethod)(Land land);
 typedef Res (*LandInsertMethod)(Range rangeReturn, Land land, Range range);
 typedef Res (*LandDeleteMethod)(Range rangeReturn, Land land, Range range);
-typedef Bool (*LandVisitor)(Land land, Range range, void *closureP, Size closureS);
-typedef Bool (*LandDeleteVisitor)(Bool *deleteReturn, Land land, Range range, void *closureP, Size closureS);
-typedef Bool (*LandIterateMethod)(Land land, LandVisitor visitor, void *closureP, Size closureS);
-typedef Bool (*LandIterateAndDeleteMethod)(Land land, LandDeleteVisitor visitor, void *closureP, Size closureS);
+typedef Bool (*LandVisitor)(Land land, Range range, void *closure);
+typedef Bool (*LandDeleteVisitor)(Bool *deleteReturn, Land land, Range range, void *closure);
+typedef Bool (*LandIterateMethod)(Land land, LandVisitor visitor, void *closure);
+typedef Bool (*LandIterateAndDeleteMethod)(Land land, LandDeleteVisitor visitor, void *closure);
 typedef Bool (*LandFindMethod)(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete);
 typedef Res (*LandFindInZonesMethod)(Bool *foundReturn, Range rangeReturn, Range oldRangeReturn, Land land, Size size, ZoneSet zoneSet, Bool high);
 typedef Res (*LandDescribeMethod)(Land land, mps_lib_FILE *stream, Count depth);
@@ -307,9 +307,9 @@ typedef Res (*LandDescribeMethod)(Land land, mps_lib_FILE *stream, Count depth);
 
 /* Locus preferences */
 enum {
-  LocusPrefHigh = 1,
-  LocusPrefLow, 
-  LocusPrefZoneSet,
+  LocusPrefHIGH = 1,
+  LocusPrefLOW, 
+  LocusPrefZONESET,
   LocusPrefLIMIT
 };
 
@@ -360,9 +360,10 @@ enum {
 
 enum {
   RootFUN,
-  RootTABLE,
-  RootTABLE_MASKED,
-  RootREG,
+  RootAREA,
+  RootAREA_TAGGED,
+  RootTHREAD,
+  RootTHREAD_TAGGED,
   RootFMT,
   RootLIMIT
 };

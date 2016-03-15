@@ -180,7 +180,7 @@ so that it cannot move.
 
 You could use this fact to optimize the scan by avoiding the need to
 reassemble and store the updated reference after calling
-:c:func:`MPS_FIX2`
+:c:func:`MPS_FIX2`.
 
 .. note::
 
@@ -361,16 +361,14 @@ Scanning interface
 
 .. c:function:: MPS_FIX_CALL(ss, call)
 
-    Call a function from within a :term:`scan method`, between
-    :c:func:`MPS_SCAN_BEGIN` and :c:func:`MPS_SCAN_END`, passing
-    the :term:`scan state` correctly.
+    Call a function to do some scanning, from within a :term:`scan
+    method`, between :c:func:`MPS_SCAN_BEGIN` and
+    :c:func:`MPS_SCAN_END`, passing the :term:`scan state` correctly.
 
     ``ss`` is the scan state that was passed to the scan method.
 
     ``call`` is an expression containing a function call where ``ss``
     is one of the arguments.
-
-    Returns the result of evaluating the expression ``call``.
 
     Between :c:func:`MPS_SCAN_BEGIN` and :c:func:`MPS_SCAN_END`, the
     scan state is in a special state, and must not be passed to a
@@ -378,6 +376,9 @@ Scanning interface
     have a structure shared between two :term:`object formats`, you
     must wrap the call with :c:func:`MPS_FIX_CALL` to ensure that the
     scan state is passed correctly.
+
+    The function being called must use :c:func:`MPS_SCAN_BEGIN` and
+    :c:func:`MPS_SCAN_END` appropriately.
 
     In example below, the scan method ``obj_scan`` fixes the object's
     ``left`` and ``right`` references, but delegates the scanning of
@@ -392,12 +393,14 @@ Scanning interface
             mps_res_t res;
             MPS_SCAN_BEGIN(ss) {
                 for (obj = base; obj < limit; obj++) {
-                    if (MPS_FIX12(ss, &obj->left) != MPS_RES_OK)
+                    res = MPS_FIX12(ss, &obj->left);
+                    if (res != MPS_RES_OK)
                         return res;
                     MPS_FIX_CALL(ss, res = data_scan(ss, &obj->data));
                     if (res != MPS_RES_OK)
                         return res;
-                    if (MPS_FIX12(ss, &obj->right) != MPS_RES_OK)
+                    res = MPS_FIX12(ss, &obj->right);
+                    if (res != MPS_RES_OK)
                         return res;
                 }
             } MPS_SCAN_END(ss);
@@ -406,9 +409,11 @@ Scanning interface
 
     .. warning::
 
-         Use of :c:func:`MPS_FIX_CALL` is best avoided, as it forces
-         values out of registers. The gains in simplicity of the code
-         need to be measured against the loss in performance.
+         Use of :c:func:`MPS_FIX_CALL` is best avoided, as it may
+         force values out of registers (depending on compiler
+         optimisations such as inlining). The gains in simplicity of
+         the code ought to be measured against the loss in
+         performance.
 
 
 .. index::
@@ -498,27 +503,136 @@ Fixing interface
         the convenience macro :c:func:`MPS_FIX12`.
 
 
-.. c:function:: mps_res_t mps_fix(mps_ss_t ss, mps_addr_t *ref_io)
+.. index::
+   single: scanning; area scanners
+   single: area; scanning
 
-    .. deprecated:: starting with version 1.111.
+.. _topic-scanning-area:
 
-        Use :c:func:`MPS_FIX1` and :c:func:`MPS_FIX2` instead.
+Area scanners
+-------------
 
-    :term:`Fix` a :term:`reference`.
+An area scanner :term:`scans` an area of memory for
+:term:`references`. Various functions in the MPS interface, such as
+:c:func:`mps_root_create_thread_tagged`, accept area scanners as
+arguments so that the :term:`client program` can specify how to scan
+special areas such as the :term:`control stack`.
 
-    This is a function equivalent to::
+The MPS provides some area scanners for common situations (such as an
+area which is a vector of words with references identified by
+:term:`tag bits <tag>`) but the :term:`client program` can provide
+its own.
 
-        MPS_SCAN_BEGIN(ss);
-        MPS_FIX12(ss, ref_io);
-        MPS_SCAN_END(ss);
+If you want to develop your own area scanner you can start by adapting
+the scanners, found in ``scan.c`` in the MPS source code.
 
-    Because :term:`scanning <scan>` is an operation on the
-    :term:`critical path`, we recommend that you use
-    :c:func:`MPS_FIX12` (or :c:func:`MPS_FIX1` and :c:func:`MPS_FIX2`)
-    to ensure that the "stage 1 fix" is inlined.
+.. c:type:: mps_area_scan_t
 
-    .. note::
+    The type of area scanning functions, which are all of the form::
+    
+        mps_res_t scan(mps_ss_t ss,
+                       void *base, void *limit,
+                       void *closure);
+    
+    ``ss`` is the :term:`scan state`.
+    
+    ``base`` points to the first location to be scanned.
+    
+    ``limit`` points to the location just beyond the end of the area to be scanned.
+    
+    ``closure`` is a pointer to an arbitrary :term:`closure` object that
+    contains parameters for the scan.  The object passed depends on the
+    context.  For example, if the scanner was originally registered with
+    :c:func:`mps_root_create_thread_tagged` then it is the value of
+    the ``closure`` argument originally passed to that function.
 
-        If you call this between :c:func:`MPS_SCAN_BEGIN` and
-        :c:func:`MPS_SCAN_END`, you must use :c:func:`MPS_FIX_CALL` to
-        ensure that the scan state is passed correctly.
+.. c:function:: mps_res_t mps_scan_area(mps_ss_t ss, void *base, void *limit, void *closure)
+
+    Scan an area of memory :term:`fixing <fix>` every word.
+    ``closure`` is ignored.  Expects ``base`` and ``limit`` to be
+    word-aligned.
+    
+    This scanner is appropriate for use when all words in the area are
+    simple untagged references.
+
+.. c:type:: mps_scan_tag_t
+
+    The type of a scan closure that is passed to the tagged area
+    scanners in order to specify the format of the :term:`tagged
+    references` in the area.
+    
+    It is a pointer to a :c:type:`mps_scan_tag_s` structure.
+
+.. c:type:: mps_scan_tag_s
+
+    The type of the structure used to represent :term:`tag bits <tag>` in :term:`tagged references` ::
+
+        typedef struct mps_scan_tag_s {
+            mps_word_t mask;
+            mps_word_t pattern;
+        } mps_scan_tag_s;
+
+    ``mask`` is bit mask that is applied to words in the area to find
+    the tag.  For example, a mask of 0b111 (decimal 7) specifies that
+    the tag is stored in the least-significant three bits of the word.
+
+    ``pattern`` is a bit pattern that is compared to the bits extracted
+    by the ``mask`` to determine if the word is a reference.  The exact
+    interpretation depends on which area scanner it is passed to.  See
+    the documentation for the individual area scanners.
+
+.. c:function:: mps_res_t mps_scan_area_masked(mps_ss_t ss, void *base, void *limit, void *closure)
+
+    Scan an area of memory :term:`fixing <fix>` every word, but remove
+    tag bits before fixing references, and restore them afterwards.
+    ``closure`` must point to an :c:type:`mps_scan_tag_s`.  Expects
+    ``base`` and ``limit`` to be word-aligned.
+    
+    For example, if ``mask`` is 0b111 (decimal 7), then this scanner
+    will clear the bottom three bits of each word before fixing.  A word
+    such as 0xC1374823 would be detagged to 0xC1374820 before fixing. 
+    If it were fixed to 0xC812BC88 then it would be tagged back to
+    0xC812BC8B before being stored.
+
+    This scanner is useful when all words in the area must be treated as
+    references no matter what tag they have.  This can be especially
+    useful if you are debugging your tagging scheme.
+
+.. c:function:: mps_res_t mps_scan_area_tagged(mps_ss_t ss, void *base, void *limit, void *closure)
+
+    Scan an area of memory :term:`fixing <fix>` only words whose
+    masked bits match a particular tag pattern.  ``closure`` must
+    point to a :c:type:`mps_scan_tag_s`.  Expects ``base`` and
+    ``limit`` to be word-aligned.
+    
+    For example, if ``mask`` is 7 and ``pattern`` is 5, then this
+    scanner will only fix words whose low order bits are 0b101.
+
+    Tags are masked off and restored as in :c:func:`mps_scan_area_masked`.
+
+    This scanner is useful when you have a single tag pattern that
+    distinguishes references, especially when that pattern is zero.
+
+    .. warning::
+
+        A risk of using tagged pointers in registers and on the stack is
+        that in some circumstances, an optimizing compiler might
+        optimize away the tagged pointer, keeping only the untagged
+        version of the pointer.  See
+        :c:func:`mps_root_create_thread_tagged`.
+
+.. c:function:: mps_res_t mps_scan_area_tagged_or_zero(mps_ss_t ss, void *base, void *limit, void *closure)
+
+    Scan an area of memory :term:`fixing <fix>` only words whose
+    masked bits are zero or match a particular tag pattern.
+    ``closure`` must point to a :c:type:`mps_scan_tag_s`.  Expects
+    ``base`` and ``limit`` to be word-aligned.
+
+    For example, if ``mask`` is 7 and ``pattern`` is 3, then this
+    scanner will fix words whose low order bits are 0b011 and words
+    whose low order bits are 0b000, but not any others.
+
+    This scanner is most useful for ambiguously scanning the stack and
+    registers when using an optimising C compiler and non-zero tags on
+    references, since the compiler is likely to leave untagged addresses
+    of objects around which must not be ignored.

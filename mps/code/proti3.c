@@ -1,7 +1,7 @@
 /* proti3.c: PROTECTION MUTATOR CONTEXT (INTEL 386)
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * .design: See <design/prot/> for the generic design of the interface
  * which is implemented in this module, including the contracts for the
@@ -53,6 +53,10 @@
 #include "prmci3.h"
 
 SRCID(proti3, "$Id$");
+
+#if !defined(MPS_ARCH_I3)
+#error "proti3.c is specific to MPS_ARCH_I3"
+#endif
 
 
 /* DecodeCB -- Decode an Intel x86 control byte into Hi, Medium & Low fields */
@@ -243,7 +247,7 @@ Res ProtStepInstruction(MutatorFaultContext context)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

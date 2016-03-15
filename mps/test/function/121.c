@@ -11,50 +11,56 @@ END_HEADER
 
 #include "testlib.h"
 #include "mpsavm.h"
-#include "mpscmv.h"
-
-
-void *stackpointer;
+#include "mpsacl.h"
 
 mps_arena_t arena;
-mps_thr_t thread;
-mps_pool_t pool;
-mps_pool_t pools[100];
 
+static char buffer[1024 * 1024];
 
 static void test(void)
 {
+  mps_res_t res, prev_res = MPS_RES_OK;
   int i;
-  for (i = 64; i >= 0; i--) {
-    mps_res_t res;
+  
+  /* VM arenas round up small sizes and so creation must succeed. */
+  for (i = 1024; i >= 0; i -= i/17 + 1) {
+    MPS_ARGS_BEGIN(args) {
+      MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, 1024 * i);
+      die(mps_arena_create_k(&arena, mps_arena_class_vm(), args),
+          "mps_arena_create");
+    } MPS_ARGS_END(args);
+    mps_arena_destroy(arena);
+  }
 
-    comment("Trying arena of %d kB.", i);
-    res = mps_arena_create(&arena, mps_arena_class_vm(), (size_t)(1024*i));
+  /* Client arenas have to work within the memory they are given and
+   * so must fail at some point. */
+  for (i = 1024; i >= 0; i -= i/17 + 1) {
+    MPS_ARGS_BEGIN(args) {
+      MPS_ARGS_ADD(args, MPS_KEY_ARENA_CL_BASE, buffer);
+      MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, 1024 * i);
+      res = mps_arena_create_k(&arena, mps_arena_class_cl(), args);
+    } MPS_ARGS_END(args);
     if (res == MPS_RES_OK) {
-      res = mps_thread_reg(&thread, arena);
-      if (res == MPS_RES_OK) {
-        mps_thread_dereg(thread);
-      } else {
-        if (res != MPS_RES_MEMORY) {
-          error("Wrong error code, %d, for mps_thread_reg.", res);
-        }
+      if (prev_res != MPS_RES_OK) {
+        error("Success with smaller size.");
       }
       mps_arena_destroy(arena);
     } else {
-      report_res("arena_create", res);
       if (res != MPS_RES_MEMORY) {
+        report_res("arena_create", res);
         error("Wrong error code.");
       }
     }
+    prev_res = res;
+  }
+  if (res != MPS_RES_MEMORY) {
+    error("Wrong error code.");
   }
 }
 
 
 int main(void)
 {
- void *m;
- stackpointer=&m; /* hack to get stack pointer */
-
  easy_tramp(test);
  pass();
  return 0;

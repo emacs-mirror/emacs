@@ -1,13 +1,13 @@
 /* ssixi6.c: UNIX/x64 STACK SCANNING
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  *  This scans the stack and fixes the registers which may contain
  *  roots.  See <design/thread-manager/>
  *
  *  This code was branched from ssixi3.c (32-bit Intel) initially for the
- *  port to W3I6LL (Mac OS X on x86_64 with Clang).
+ *  port to XCI6LL (Mac OS X on x86_64 with Clang).
  *
  *  This code is common to more than one Unix implementation on
  *  Intel hardware (but is not portable Unix code).  According to Wikipedia,
@@ -47,9 +47,11 @@ SRCID(ssixi6, "$Id$");
 #define ASMV(x) __asm__ volatile (x)
 
 
-Res StackScan(ScanState ss, Addr *stackBot)
+Res StackScan(ScanState ss, Word *stackCold,
+              mps_area_scan_t scan_area,
+              void *closure)
 {
-  Addr calleeSaveRegs[6];
+  Word calleeSaveRegs[6];
   
   /* .assume.asm.stack */
   /* Store the callee save registers on the stack so they get scanned
@@ -62,13 +64,14 @@ Res StackScan(ScanState ss, Addr *stackBot)
   ASMV("mov %%r14, %0" : "=m" (calleeSaveRegs[4]));
   ASMV("mov %%r15, %0" : "=m" (calleeSaveRegs[5]));
   
-  return StackScanInner(ss, stackBot, calleeSaveRegs, NELEMS(calleeSaveRegs));
+  return StackScanInner(ss, stackCold, calleeSaveRegs, NELEMS(calleeSaveRegs),
+                        scan_area, closure);
 }
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

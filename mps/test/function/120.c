@@ -5,6 +5,7 @@ TEST_HEADER
  language = c
  link = testlib.o
 OUTPUT_SPEC
+ create = COMMIT_LIMIT
  commit0 = FAIL
  commit10 = OK
  com_less = FAIL
@@ -27,14 +28,21 @@ void *stackpointer;
 mps_arena_t arena;
 mps_thr_t thread;
 mps_pool_t pool;
-mps_pool_t pools[100];
+mps_pool_t pools[1000];
 
 static void test(void) {
  int i;
  mps_addr_t a;
  mps_res_t res;
+ 
+ /* Create an arena with a commit limit that's too small for the
+  * essential MPS internal data structures -- this must fail with
+  * RES_COMMIT_LIMIT. */
 
-/* create an arena that can't grow beyond 20 M */
+ MPS_ARGS_BEGIN(args) {
+   MPS_ARGS_ADD(args, MPS_KEY_COMMIT_LIMIT, 16 * 1024);
+   report_res("create", mps_arena_create_k(&arena, mps_arena_class_vm(), args));
+ } MPS_ARGS_END(args);
 
  cdie(mps_arena_create(&arena, mps_arena_class_vm(), (size_t) (1024*1024*20)),
   "create arena");
@@ -100,13 +108,17 @@ static void test(void) {
 
  i = 0;
 
- while ((i < 100) && (res == MPS_RES_OK)) {
+ while (i < sizeof pools / sizeof pools[0]) {
   res = mps_pool_create(&pools[i], arena, mps_class_mv(), (size_t) 64, (size_t) 64, (size_t) 64);
-  i++;
+  if (res == MPS_RES_OK) {
+    i++;
+  } else {
+    break;
+  }
  }
  report_res("poolcr", res);
 
- for (i -= 2; i >= 0; i--) {
+ for (i--; i >= 0; i--) {
   mps_pool_destroy(pools[i]);
  }
 

@@ -36,7 +36,7 @@
  */
 
 #define EVENT_VERSION_MAJOR  ((unsigned)1)
-#define EVENT_VERSION_MEDIAN ((unsigned)4)
+#define EVENT_VERSION_MEDIAN ((unsigned)5)
 #define EVENT_VERSION_MINOR  ((unsigned)0)
 
 
@@ -67,7 +67,7 @@
  */
  
 #define EventNameMAX ((size_t)19)
-#define EventCodeMAX ((EventCode)0x0086)
+#define EventCodeMAX ((EventCode)0x0087)
 
 #define EVENT_LIST(EVENT, X) \
   /*       0123456789012345678 <- don't exceed without changing EventNameMAX */ \
@@ -192,7 +192,8 @@
   EVENT(X, TraceCondemnZones  , 0x0083,  TRUE, Trace) \
   EVENT(X, ArenaGenZoneAdd    , 0x0084,  TRUE, Arena) \
   EVENT(X, ArenaUseFreeZone   , 0x0085,  TRUE, Arena) \
-  /* EVENT(X, ArenaBlacklistZone , 0x0086,  TRUE, Arena) */
+  /* EVENT(X, ArenaBlacklistZone , 0x0086,  TRUE, Arena) */ \
+  EVENT(X, PauseTimeSet       , 0x0087,  TRUE, Arena)
 
 
 /* Remember to update EventNameMAX and EventCodeMAX above! 
@@ -447,7 +448,7 @@
   PARAM(X,  1, W, condemned) \
   PARAM(X,  2, W, notCondemned) \
   PARAM(X,  3, W, foundation) \
-  PARAM(X,  4, W, rate) \
+  PARAM(X,  4, W, quantumWork) \
   PARAM(X,  5, D, mortality) \
   PARAM(X,  6, D, finishingTime)
 
@@ -655,7 +656,7 @@
 #define EVENT_ArenaPoll_PARAMS(PARAM, X) \
   PARAM(X,  0, P, arena) \
   PARAM(X,  1, W, start) \
-  PARAM(X,  2, W, quanta)
+  PARAM(X,  2, B, workWasDone)
 
 #define EVENT_ArenaSetEmergency_PARAMS(PARAM, X) \
   PARAM(X,  0, P, arena) \
@@ -674,7 +675,7 @@
   PARAM(X,  4, W, notCondemned) /* collectible but not condemned bytes */ \
   PARAM(X,  5, W, foundation)   /* foundation size */ \
   PARAM(X,  6, W, white)        /* white reference set */ \
-  PARAM(X,  7, W, rate)         /* segs to scan per increment */
+  PARAM(X,  7, W, quantumWork)  /* tracing work to be done in each poll */
 
 #define EVENT_VMCompact_PARAMS(PARAM, X) \
   PARAM(X,  0, W, vmem0)        /* pre-collection reserved size */ \
@@ -739,6 +740,10 @@
 #define EVENT_ArenaUseFreeZone_PARAMS(PARAM, X) \
   PARAM(X,  0, P, arena)        /* the arena */ \
   PARAM(X,  1, W, zoneSet)      /* zones that aren't free any longer */
+
+#define EVENT_PauseTimeSet_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, arena)        /* the arena */ \
+  PARAM(X,  1, D, pauseTime)    /* the new maximum pause time, in seconds */
 
 
 #endif /* eventdef_h */

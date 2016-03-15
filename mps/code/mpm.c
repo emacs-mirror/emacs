@@ -1,7 +1,7 @@
 /* mpm.c: GENERAL MPM SUPPORT
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2015 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: Miscellaneous support for the implementation of the MPM
  * and pool classes.
@@ -84,7 +84,11 @@ Bool MPMCheck(void)
    * arena grain). */
   CHECKL(PageSize() % ProtGranularity() == 0);
 
-  return TRUE; 
+  /* StackProbe mustn't skip over the stack guard page. See
+   * <design/sp/#sol.depth.constraint>. */
+  CHECKL(StackProbeDEPTH * sizeof(Word) < PageSize());
+
+  return TRUE;
 }
 
 
@@ -129,6 +133,16 @@ Bool AlignCheck(Align align)
   /* .check.unused: Check methods for signatureless types don't use */
   /* their argument in hot varieties, so UNUSED is needed. */
   UNUSED(align);
+  return TRUE;
+}
+
+
+/* AccessSetCheck -- check that an access set is valid */
+
+Bool AccessSetCheck(AccessSet mode)
+{
+  CHECKL(mode < ((ULongest)1 << AccessLIMIT));
+  UNUSED(mode); /* see .check.unused */
   return TRUE;
 }
 
@@ -634,7 +648,7 @@ Bool StringEqual(const char *s1, const char *s2)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2015 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

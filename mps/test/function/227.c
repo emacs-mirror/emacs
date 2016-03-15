@@ -4,6 +4,7 @@ TEST_HEADER
  summary = allocate in 2 arenas
  language = c
  link = testlib.o rankfmt.o
+ parameters = ITERATIONS=10000
 OUTPUT_SPEC
  result = pass
 END_HEADER
@@ -20,15 +21,13 @@ END_HEADER
 
 #define ARENALIMIT (100)
 
-#define TABSIZE (50000)
-#define ENTERRAMP (30000)
-#define LEAVERAMP (100000)
+#define TABSIZE (ITERATIONS / 2)
+#define ENTERRAMP (ITERATIONS / 10)
+#define LEAVERAMP (ITERATIONS / 10)
 
 #define BACKSIZE (32)
 #define BACKITER (32)
 #define RAMPSIZE (128)
-
-#define ITERATIONS (1000000ul)
 
 #define RAMP_INTERFACE
 /*
@@ -96,12 +95,16 @@ static void test(void) {
   mps_fmt_create_A(&format2, arena2, &fmtA),
   "create format");
 
- cdie(
-  mps_pool_create(&poolamc1, arena1, mps_class_amc(), format1),
-  "create pool");
- cdie(
-  mps_pool_create(&poolamc2, arena2, mps_class_amc(), format2),
-  "create pool");
+ MPS_ARGS_BEGIN(args) {
+   MPS_ARGS_ADD(args, MPS_KEY_FORMAT, format1);
+   cdie(mps_pool_create_k(&poolamc1, arena1, mps_class_amc(), args),
+        "create pool");
+ } MPS_ARGS_END(args);
+ MPS_ARGS_BEGIN(args) {
+   MPS_ARGS_ADD(args, MPS_KEY_FORMAT, format2);
+   cdie(mps_pool_create_k(&poolamc2, arena2, mps_class_amc(), args),
+        "create pool");
+ } MPS_ARGS_END(args);
 
  cdie(
   mps_ap_create(&apamc1, poolamc1, mps_rank_exact()),
@@ -113,7 +116,7 @@ static void test(void) {
  inramp = 0;
 
  for (i = 0; i < ITERATIONS; i++) {
-  if (i % 10000 == 0) {
+  if (i * 10 % ITERATIONS == 0) {
    comment("%ld of %ld", i, ITERATIONS);
   }
   alloc_back();
@@ -164,7 +167,8 @@ static void test(void) {
   }
  }
 
- mps_arena_park(arena);
+ mps_arena_park(arena1);
+ mps_arena_park(arena2);
  mps_ap_destroy(apamc1);
  mps_ap_destroy(apamc2);
  comment("Destroyed ap.");

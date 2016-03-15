@@ -152,9 +152,11 @@ _`.loseg.sig`: The signature for a loseg is 0x519705E9 (SIGLOSEG).
 _`.loseg.lo`: The lo field points to the LO structure that owns this
 segment.
 
-_`.loseg.bit`: Bit Tables (see design.mps.bt) are used to record
+_`.loseg.bit`: Bit Tables (see design.mps.bt_) are used to record
 allocation and mark information. This is relatively straightforward,
 but might be inefficient in terms of space in some circumstances.
+
+.. _design.mps.bt: bt
 
 _`.loseg.mark`: This is a Bit Table that is used to mark objects
 during a trace. Each grain in the segment is associated with 1 bit in

@@ -188,10 +188,19 @@ See guide.impl.c.misc.prototype.parameters.
 Checking
 --------
 
-_`.check.avert`: Before any use of a function paramater ``FOO *foo``
-it is checked using ``AVERT(Foo, foo)``. The macro ``AVERT()`` in
-impl.h.check performs simple thread-safe checking of ``foo``, so it
-can be called outside of ``ArenaEnter()`` and ``ArenaLeave()``.
+_`.check.testt`: Before any use of a parameter ``foo`` belonging to a
+pointer type ``Foo``, it is checked using ``TESTT(Foo, foo)``. The
+macro ``TESTT()`` in impl.h.check performs simple thread-safe checking
+of ``foo``, so it can be called outside of ``ArenaEnter()`` and
+``ArenaLeave()``.
+
+_`.check.avert`: With the arena lock held, ``foo`` is checked using
+``AVERT(Foo, foo)``. This macro has different definitions depending on
+how the MPS is compiled (see design.mps.config.def.var_). It may
+expand to ``TESTT()``, or it may call the full checking function for
+the type.
+
+.. _design.mps.config.def.var: config#def-var
 
 _`.check.types`: We use definitions of types in both our external
 interface and our internal code, and we want to make sure that they
@@ -286,24 +295,30 @@ _`.cons`: The MPS C Interface constrains the MPS in order to provide
 useful memory management services to a C or C++ program.
 
 _`.cons.addr`: The interface constrains the MPS address type, Addr
-(design.mps.type.addr), to being the same as C's generic pointer type,
+(design.mps.type.addr_), to being the same as C's generic pointer type,
 ``void *``, so that the MPS can manage C objects in the natural way.
 
+.. _design.mps.type.addr: type#addr
+
 _`.pun.addr`: We pun the type of ``mps_addr_t`` (which is ``void *``)
-into ``Addr`` (an incomplete type, see design.mps.type.addr). This
+into ``Addr`` (an incomplete type, see design.mps.type.addr_). This
 happens in the call to the scan state's fix function, for example.
 
 _`.cons.size`: The interface constrains the MPS size type, ``Size``
-(design.mps.type.size), to being the same as C's size type,
+(design.mps.type.size_), to being the same as C's size type,
 ``size_t``, so that the MPS can manage C objects in the natural way.
+
+.. _design.mps.type.size: type#size
  
 _`.pun.size`: We pun the type of ``size_t`` in mps.h into ``Size`` in
 the MPM, as an argument to the format methods. We assume this works.
 
-_`.cons.word`: The MPS assumes that ``Word`` (design.mps.type.word)
-and ``Addr`` (design.mps.type.addr) are the same size, and the
+_`.cons.word`: The MPS assumes that ``Word`` (design.mps.type.word_)
+and ``Addr`` (design.mps.type.addr_) are the same size, and the
 interface constrains ``Word`` to being the same size as C's generic
 pointer type, ``void *``.
+
+.. _design.mps.type.word: type#word
 
 
 Implementation

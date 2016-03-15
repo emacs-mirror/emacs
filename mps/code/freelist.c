@@ -1,7 +1,7 @@
 /* freelist.c: FREE LIST ALLOCATOR IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2013-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2013-2015 Ravenbrook Limited.  See end of file for license.
  *
  * .sources: <design/freelist/>.
  */
@@ -18,11 +18,11 @@ SRCID(freelist, "$Id$");
 
 
 typedef union FreelistBlockUnion {
-  struct {
+  struct FreelistBlockSmall {
     FreelistBlock next;    /* tagged with low bit 1 */
     /* limit is (char *)this + freelistAlignment(fl) */
   } small;
-  struct {
+  struct FreelistBlockLarge {
     FreelistBlock next;    /* not tagged (low bit 0) */
     Addr limit;
   } large;
@@ -101,6 +101,9 @@ static Bool FreelistBlockCheck(FreelistBlock block)
   CHECKL(freelistBlockNext(block) == freelistEND
          || block < freelistBlockNext(block));
   CHECKL(freelistBlockIsSmall(block) || (Addr)block < block->large.limit);
+  /* Would like to CHECKL(!freelistBlockIsSmall(block) ||
+   * freelistBlockSize(fl, block) == freelistAlignment(fl)) but we
+   * don't have 'fl' here. This is checked in freelistBlockSetLimit. */
 
   return TRUE;
 }
@@ -139,6 +142,7 @@ static void freelistBlockSetLimit(Freelist fl, FreelistBlock block, Addr limit)
   } else {
     AVER(size >= sizeof(block->small));
     block->small.next = freelistTagSet(block->small.next);
+    AVER(freelistBlockSize(fl, block) == freelistAlignment(fl));
   }
   AVER(freelistBlockLimit(fl, block) == limit);
 }
@@ -170,6 +174,9 @@ Bool FreelistCheck(Freelist fl)
   CHECKS(Freelist, fl);
   land = FreelistLand(fl);
   CHECKD(Land, land);
+  CHECKL(AlignCheck(FreelistMinimumAlignment));
+  CHECKL(sizeof(struct FreelistBlockSmall) < sizeof(struct FreelistBlockLarge));
+  CHECKL(sizeof(struct FreelistBlockSmall) <= freelistAlignment(fl));
   /* See <design/freelist/#impl.grain.align> */
   CHECKL(AlignIsAligned(freelistAlignment(fl), FreelistMinimumAlignment));
   CHECKL((fl->list == freelistEND) == (fl->listSize == 0));
@@ -236,12 +243,14 @@ static Size freelistSize(Land land)
  * Otherwise, if next is freelistEND, make prev the last block in the list.
  * Otherwise, make next follow prev in the list.
  * Update the count of blocks by 'delta'.
-
+ *
  * It is tempting to try to simplify this code by putting a
  * FreelistBlockUnion into the FreelistStruct and so avoiding the
  * special case on prev. But the problem with that idea is that we
  * can't guarantee that such a sentinel would respect the isolated
- * range invariant, and so it would still have to be special-cases.
+ * range invariant (it would have to be at a lower address than the
+ * first block in the free list, which the MPS has no mechanism to
+ * enforce), and so it would still have to be special-cased.
  */
 
 static void freelistBlockSetPrevNext(Freelist fl, FreelistBlock prev,
@@ -435,7 +444,7 @@ static Res freelistDelete(Range rangeReturn, Land land, Range range)
 
 
 static Bool freelistIterate(Land land, LandVisitor visitor,
-                            void *closureP, Size closureS)
+                            void *closure)
 {
   Freelist fl;
   FreelistBlock cur, next;
@@ -444,7 +453,7 @@ static Bool freelistIterate(Land land, LandVisitor visitor,
   fl = freelistOfLand(land);
   AVERT(Freelist, fl);
   AVER(FUNCHECK(visitor));
-  /* closureP and closureS are arbitrary */
+  /* closure arbitrary */
 
   for (cur = fl->list; cur != freelistEND; cur = next) {
     RangeStruct range;
@@ -453,7 +462,7 @@ static Bool freelistIterate(Land land, LandVisitor visitor,
      * visitor touches the block. */
     next = freelistBlockNext(cur);
     RangeInit(&range, freelistBlockBase(cur), freelistBlockLimit(fl, cur));
-    cont = (*visitor)(land, &range, closureP, closureS);
+    cont = (*visitor)(land, &range, closure);
     if (!cont)
       return FALSE;
   }
@@ -462,7 +471,7 @@ static Bool freelistIterate(Land land, LandVisitor visitor,
 
 
 static Bool freelistIterateAndDelete(Land land, LandDeleteVisitor visitor,
-                                     void *closureP, Size closureS)
+                                     void *closure)
 {
   Freelist fl;
   FreelistBlock prev, cur, next;
@@ -471,7 +480,7 @@ static Bool freelistIterateAndDelete(Land land, LandDeleteVisitor visitor,
   fl = freelistOfLand(land);
   AVERT(Freelist, fl);
   AVER(FUNCHECK(visitor));
-  /* closureP and closureS are arbitrary */
+  /* closure arbitrary */
 
   prev = freelistEND;
   cur = fl->list;
@@ -483,7 +492,7 @@ static Bool freelistIterateAndDelete(Land land, LandDeleteVisitor visitor,
     next = freelistBlockNext(cur); /* See .next.first. */
     size = freelistBlockSize(fl, cur);
     RangeInit(&range, freelistBlockBase(cur), freelistBlockLimit(fl, cur));
-    cont = (*visitor)(&delete, land, &range, closureP, closureS);
+    cont = (*visitor)(&delete, land, &range, closure);
     if (delete) {
       freelistBlockSetPrevNext(fl, prev, next, -1);
       AVER(fl->size >= size);
@@ -737,24 +746,28 @@ fail:
 /* freelistDescribeVisitor -- visitor method for freelistDescribe
  *
  * Writes a decription of the range into the stream pointed to by
- * closureP.
+ * closure.
  */
 
+typedef struct FreelistDescribeClosureStruct {
+  mps_lib_FILE *stream;
+  Count depth;
+} FreelistDescribeClosureStruct, *FreelistDescribeClosure;
+
 static Bool freelistDescribeVisitor(Land land, Range range,
-                                    void *closureP, Size closureS)
+                                    void *closure)
 {
   Res res;
-  mps_lib_FILE *stream = closureP;
-  Count depth = closureS;
+  FreelistDescribeClosure my = closure;
 
   if (!TESTT(Land, land))
     return FALSE;
   if (!RangeCheck(range))
     return FALSE;
-  if (stream == NULL)
+  if (my->stream == NULL)
     return FALSE;
 
-  res = WriteF(stream, depth,
+  res = WriteF(my->stream, my->depth,
                "[$P,", (WriteFP)RangeBase(range),
                "$P)", (WriteFP)RangeLimit(range),
                " {$U}\n", (WriteFU)RangeSize(range),
@@ -769,6 +782,7 @@ static Res freelistDescribe(Land land, mps_lib_FILE *stream, Count depth)
   Freelist fl;
   Res res;
   Bool b;
+  FreelistDescribeClosureStruct closure;
 
   if (!TESTT(Land, land))
     return ResFAIL;
@@ -781,9 +795,12 @@ static Res freelistDescribe(Land land, mps_lib_FILE *stream, Count depth)
   res = WriteF(stream, depth,
                "Freelist $P {\n", (WriteFP)fl,
                "  listSize = $U\n", (WriteFU)fl->listSize,
+               "  size = $U\n", (WriteFU)fl->size,
                NULL);
 
-  b = LandIterate(land, freelistDescribeVisitor, stream, depth + 2);
+  closure.stream = stream;
+  closure.depth = depth + 2;
+  b = LandIterate(land, freelistDescribeVisitor, &closure);
   if (!b)
     return ResFAIL;
 
@@ -815,7 +832,7 @@ DEFINE_LAND_CLASS(FreelistLandClass, class)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2013-2015 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
