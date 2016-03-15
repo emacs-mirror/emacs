@@ -740,8 +740,6 @@ mps_res_t mps_alloc(mps_addr_t *p_o, mps_pool_t pool, size_t size)
   /* <design/class-interface/#alloc.size.align>. */
   /* Rest ignored, see .varargs. */
 
-  /* @@@@ There is currently no requirement for reservoirs to work */
-  /* with unbuffered allocation. */
   res = PoolAlloc(&p, pool, size);
 
   ArenaLeave(arena);
