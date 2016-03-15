@@ -59,8 +59,7 @@ typedef struct LOSegStruct {
 
 
 /* forward decls */
-static Res loSegInit(Seg seg, Pool pool, Addr base, Size size,
-                     Bool reservoirPermit, ArgList args);
+static Res loSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args);
 static void loSegFinish(Seg seg);
 static Count loSegGrains(LOSeg loseg);
 
@@ -98,8 +97,7 @@ static Bool LOSegCheck(LOSeg loseg)
 
 /* loSegInit -- Init method for LO segments */
 
-static Res loSegInit(Seg seg, Pool pool, Addr base, Size size,
-                     Bool reservoirPermit, ArgList args)
+static Res loSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 {
   SegClass super;
   LOSeg loseg;
@@ -116,13 +114,12 @@ static Res loSegInit(Seg seg, Pool pool, Addr base, Size size,
   AVERT(Pool, pool);
   arena = PoolArena(pool);
   /* no useful checks for base and size */
-  AVERT(Bool, reservoirPermit);
   lo = PoolPoolLO(pool);
   AVERT(LO, lo);
 
   /* Initialize the superclass fields first via next-method call */
   super = SEG_SUPERCLASS(LOSegClass);
-  res = super->init(seg, pool, base, size, reservoirPermit, args);
+  res = super->init(seg, pool, base, size, args);
   if(res != ResOK)
     return res;
 
@@ -130,11 +127,11 @@ static Res loSegInit(Seg seg, Pool pool, Addr base, Size size,
 
   grains = size >> lo->alignShift;
   tablebytes = BTSize(grains);
-  res = ControlAlloc(&p, arena, tablebytes, reservoirPermit);
+  res = ControlAlloc(&p, arena, tablebytes);
   if(res != ResOK)
     goto failMarkTable;
   loseg->mark = p;
-  res = ControlAlloc(&p, arena, tablebytes, reservoirPermit);
+  res = ControlAlloc(&p, arena, tablebytes);
   if(res != ResOK)
     goto failAllocTable;
   loseg->alloc = p;
@@ -280,8 +277,7 @@ static Bool loSegFindFree(Addr *bReturn, Addr *lReturn,
  * Segments will be multiples of ArenaGrainSize.
  */
 
-static Res loSegCreate(LOSeg *loSegReturn, Pool pool, Size size,
-                       Bool withReservoirPermit)
+static Res loSegCreate(LOSeg *loSegReturn, Pool pool, Size size)
 {
   LO lo;
   Seg seg;
@@ -290,13 +286,12 @@ static Res loSegCreate(LOSeg *loSegReturn, Pool pool, Size size,
   AVER(loSegReturn != NULL);
   AVERT(Pool, pool);
   AVER(size > 0);
-  AVERT(Bool, withReservoirPermit);
   lo = PoolPoolLO(pool);
   AVERT(LO, lo);
 
   res = PoolGenAlloc(&seg, &lo->pgen, EnsureLOSegClass(),
                      SizeArenaGrains(size, PoolArena(pool)),
-                     withReservoirPermit, argsNone);
+                     argsNone);
   if (res != ResOK)
     return res;
 
@@ -560,7 +555,7 @@ static void LOFinish(Pool pool)
 
 static Res LOBufferFill(Addr *baseReturn, Addr *limitReturn,
                         Pool pool, Buffer buffer,
-                        Size size, Bool withReservoirPermit)
+                        Size size)
 {
   Res res;
   Ring node, nextNode;
@@ -578,7 +573,6 @@ static Res LOBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVER(BufferRankSet(buffer) == RankSetEMPTY);
   AVER(size > 0);
   AVER(SizeIsAligned(size, PoolAlignment(pool)));
-  AVERT(Bool, withReservoirPermit);
 
   /* Try to find a segment with enough space already. */
   RING_FOR(node, &pool->segRing, nextNode) {
@@ -591,7 +585,7 @@ static Res LOBufferFill(Addr *baseReturn, Addr *limitReturn,
   }
 
   /* No segment had enough space, so make a new one. */
-  res = loSegCreate(&loseg, pool, size, withReservoirPermit);
+  res = loSegCreate(&loseg, pool, size);
   if(res != ResOK) {
     goto failCreate;
   }

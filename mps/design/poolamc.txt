@@ -729,7 +729,7 @@ _`.flush.cover`: The buffer needs covering whether it was being used
 for forwarding or not. See `.flush.expose`_.
 
 
-``Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn, Pool pool, Buffer buffer, Size size, Bool withReservoirPermit)``
+``Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn, Pool pool, Buffer buffer, Size size)``
 
 _`.fill`: Reserve was called on an allocation buffer which was reset,
 or there wasn't enough room left in the buffer. Allocate a group for
