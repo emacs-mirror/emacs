@@ -420,8 +420,9 @@
 #define ARENA_MINIMUM_COLLECTABLE_SIZE ((Size)1000000)
 
 /* ARENA_DEFAULT_COLLECTION_RATE is an estimate of the MPS's
- * collection rate (in bytes per second), for use in the case where
- * there isn't enough data to use a measured value. */
+ * collection rate (in work per second; see <design/type/#work>), for
+ * use in the case where there isn't enough data to use a measured
+ * value. */
 
 #define ARENA_DEFAULT_COLLECTION_RATE (25000000.0)
 

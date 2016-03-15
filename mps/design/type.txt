@@ -664,6 +664,17 @@ _`.word.ops`: ``WordIsAligned()``, ``WordAlignUp()``,
 ``WordAlignDown()`` and ``WordRoundUp()``.
 
 
+``typedef MPS_T_WORD Work``
+
+_`.work`: ``Work`` is an unsigned integral type representing
+accumulated work done by the collector.
+
+_`.work.impl`: Work is implemented as a count of the bytes scanned by
+the collector in segments and roots. This is a very crude measure,
+because it depends on the scanning functions supplied by the mutator,
+which we know very little about.
+
+
 ``typedef Word ZoneSet``
 
 _`.zoneset`: ``ZoneSet`` is a conservative approximation to a set of

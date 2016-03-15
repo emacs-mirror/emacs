@@ -144,9 +144,8 @@ static double policyCollectionTime(Arena arena)
   collectableSize = ArenaCollectable(arena);
   /* The condition arena->tracedTime >= 1.0 ensures that the division
    * can't overflow. */
-  if (arena->tracedSize >= ARENA_MINIMUM_COLLECTABLE_SIZE
-      && arena->tracedTime >= 1.0)
-    collectionRate = arena->tracedSize / arena->tracedTime;
+  if (arena->tracedTime >= 1.0)
+    collectionRate = arena->tracedWork / arena->tracedTime;
   else
     collectionRate = ARENA_DEFAULT_COLLECTION_RATE;
   collectionTime = collectableSize / collectionRate;
@@ -161,37 +160,41 @@ static double policyCollectionTime(Arena arena)
  * Return TRUE if we should try collecting the world now, FALSE if
  * not.
  *
- * This is the policy behind mps_arena_step, and so there the client
- * must have provided us with be enough time to collect the world, and
+ * This is the policy behind mps_arena_step, and so the client
+ * must have provided us with enough time to collect the world, and
  * enough time must have passed since the last time we did that
  * opportunistically.
  */
 
-Bool PolicyShouldCollectWorld(Arena arena, double interval, double multiplier,
+Bool PolicyShouldCollectWorld(Arena arena, double availableTime,
                               Clock now, Clock clocks_per_sec)
 {
-  /* don't collect the world if we're not given any time */
-  if ((interval > 0.0) && (multiplier > 0.0)) {
-    /* don't collect the world if we're already collecting. */
-    if (arena->busyTraces == TraceSetEMPTY) {
-      /* don't collect the world if it's very small */
-      Size collectableSize = ArenaCollectable(arena);
-      if (collectableSize > ARENA_MINIMUM_COLLECTABLE_SIZE) {
-        /* how long would it take to collect the world? */
-        double collectionTime = policyCollectionTime(arena);
+  Size collectableSize;
+  double collectionTime, sinceLastWorldCollect;
 
-        /* how long since we last collected the world? */
-        double sinceLastWorldCollect = ((now - arena->lastWorldCollect) /
-                                        (double) clocks_per_sec);
-        /* have to be offered enough time, and it has to be a long time
-         * since we last did it. */
-        if ((interval * multiplier > collectionTime) &&
-            sinceLastWorldCollect > collectionTime / ARENA_MAX_COLLECT_FRACTION)
-          return TRUE;
-      }
-    }
-  }
-  return FALSE;
+  AVERT(Arena, arena);
+  /* Can't collect the world if we're already collecting. */
+  AVER(arena->busyTraces == TraceSetEMPTY);
+
+  if (availableTime <= 0.0)
+    /* Can't collect the world if we're not given any time. */
+    return FALSE;
+
+  /* Don't collect the world if it's very small. */
+  collectableSize = ArenaCollectable(arena);
+  if (collectableSize < ARENA_MINIMUM_COLLECTABLE_SIZE)
+    return FALSE;
+
+  /* How long would it take to collect the world? */
+  collectionTime = policyCollectionTime(arena);
+
+  /* How long since we last collected the world? */
+  sinceLastWorldCollect = ((now - arena->lastWorldCollect) /
+                           (double) clocks_per_sec);
+
+  /* Offered enough time, and long enough since we last did it? */
+  return availableTime > collectionTime
+    && sinceLastWorldCollect > collectionTime / ARENA_MAX_COLLECT_FRACTION;
 }
 
 
@@ -322,6 +325,8 @@ Bool PolicyStartTrace(Trace *traceReturn, Arena arena)
       res = policyCondemnChain(&mortality, firstChain, trace);
       if (res != ResOK) /* should try some other trace, really @@@@ */
         goto failCondemn;
+      if (TraceIsEmpty(trace))
+        goto nothingCondemned;
       trace->chain = firstChain;
       ChainStartGC(firstChain, trace);
       res = TraceStart(trace, mortality, trace->condemned * TraceWorkFactor);
@@ -333,11 +338,9 @@ Bool PolicyStartTrace(Trace *traceReturn, Arena arena)
   } /* (dynamicDeferral > 0.0) */
   return FALSE;
 
+nothingCondemned:
 failCondemn:
-  TraceDestroy(trace);
-  /* This is an unlikely case, but clear the emergency flag so the next attempt
-     starts normally. */
-  ArenaSetEmergency(arena, FALSE);
+  TraceDestroyInit(trace);
 failStart:
   return FALSE;
 }
@@ -364,20 +367,20 @@ Bool PolicyPoll(Arena arena)
  * should return to the mutator.
  *
  * start is the clock time when the MPS was entered.
- * tracedSize is the amount of work done by the last call to TracePoll.
+ * moreWork and tracedWork are the results of the last call to TracePoll.
  */
 
-Bool PolicyPollAgain(Arena arena, Clock start, Size tracedSize)
+Bool PolicyPollAgain(Arena arena, Bool moreWork, Work tracedWork)
 {
   Globals globals;
   double nextPollThreshold;
 
   AVERT(Arena, arena);
   globals = ArenaGlobals(arena);
-  UNUSED(start);
+  UNUSED(tracedWork);
   
-  if (tracedSize == 0) {
-    /* No work was done.  Sleep until NOW + a bit. */
+  if (!moreWork) {
+    /* No more work to do.  Sleep until NOW + a bit. */
     nextPollThreshold = globals->fillMutatorSize + ArenaPollALLOCTIME;
   } else {
     /* We did one quantum of work; consume one unit of 'time'. */
@@ -388,7 +391,7 @@ Bool PolicyPollAgain(Arena arena, Clock start, Size tracedSize)
   AVER(nextPollThreshold > globals->pollThreshold);
   globals->pollThreshold = nextPollThreshold;
 
-  return PolicyPoll(arena);
+  return ArenaEmergency(arena) || PolicyPoll(arena);
 }
 
 
