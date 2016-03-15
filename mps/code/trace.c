@@ -367,23 +367,31 @@ Res TraceAddWhite(Trace trace, Seg seg)
   pool = SegPool(seg);
   AVERT(Pool, pool);
 
-  /* Add every arena grain in the segment to the whiteTable for fast
-     lookup in TraceFix.  TODO: Consider other alignments. */
-  base = SegBase(seg);
-  limit = SegLimit(seg);
-  align = ArenaGrainSize(PoolArena(pool));
-  for (addr = base; addr < limit; addr = AddrAdd(addr, align)) {
-    res = TableDefine(trace->whiteTable, (TableKey)addr, seg);
-    AVER(res == ResOK); /* FIXME: no error path to remove entries */
-    if (res != ResOK)
-      goto failDefine;
+  if (trace->whiteTable != NULL) {
+    /* Add every arena grain in the segment to the whiteTable for fast
+       lookup in TraceFix.  TODO: Consider other alignments. */
+    base = SegBase(seg);
+    limit = SegLimit(seg);
+    align = ArenaGrainSize(PoolArena(pool));
+    for (addr = base; addr < limit; addr = AddrAdd(addr, align)) {
+      res = TableDefine(trace->whiteTable, (TableKey)addr, seg);
+      AVER(res != ResFAIL); /* no duplicate keys */
+      if (res != ResOK) {
+	AVER(res == ResMEMORY);
+	/* Fall back on slower lookup at .fix.table. */
+	TableDestroy(trace->whiteTable);
+	trace->whiteTable = NULL;
+	goto failDefine;
+      }
+    }
   }
-
+failDefine: NOOP;
+ 
   /* Give the pool the opportunity to turn the segment white. */
   /* If it fails, unwind. */
   res = PoolWhiten(pool, trace, seg);
   if(res != ResOK)
-    goto failWhiten;
+    goto failWhiten; /* see .whiten.fail */
 
   /* Add the segment to the approximation of the white set if the */
   /* pool made it white. */
@@ -400,7 +408,6 @@ Res TraceAddWhite(Trace trace, Seg seg)
 
 failWhiten:
   /* TableRemove(trace->whiteTable, key); */
-failDefine:
   return res;
 }
 
@@ -753,10 +760,15 @@ found:
   trace = ArenaTrace(arena, ti);
   AVER(trace->sig == SigInvalid);       /* <design/arena/#trace.invalid> */
 
+  /* TODO: Estimate initial size of table from condemned set size.
+     This would increase table building efficiency and reduce the
+     probability of falling back at .fix.table. */
   res = TableCreate(&trace->whiteTable, 1024,
                     whiteTableAlloc, whiteTableFree,
                     arena, (Word)1, (Word)2);
-  if (res != ResOK)
+  if (res == ResMEMORY)
+    trace->whiteTable = NULL; /* fall back to slower lookup at .fix.table */
+  else if (res != ResOK)
     return res;
 
   trace->arena = arena;
@@ -847,7 +859,8 @@ void TraceDestroyInit(Trace trace)
 
   trace->sig = SigInvalid;
   trace->arena->busyTraces = TraceSetDel(trace->arena->busyTraces, trace);
-  TableDestroy(trace->whiteTable);
+  if (trace->whiteTable != NULL)
+    TableDestroy(trace->whiteTable);
 
   /* Clear the emergency flag so the next trace starts normally. */
   ArenaSetEmergency(trace->arena, FALSE);
@@ -908,7 +921,8 @@ void TraceDestroyFinished(Trace trace)
   trace->sig = SigInvalid;
   trace->arena->busyTraces = TraceSetDel(trace->arena->busyTraces, trace);
   trace->arena->flippedTraces = TraceSetDel(trace->arena->flippedTraces, trace);
-  TableDestroy(trace->whiteTable);
+  if (trace->whiteTable != NULL)
+    TableDestroy(trace->whiteTable);
 
   /* Hopefully the trace reclaimed some memory, so clear any emergency. */
   ArenaSetEmergency(trace->arena, FALSE);
@@ -1389,12 +1403,19 @@ mps_res_t _mps_fix2(mps_ss_t mps_ss, mps_addr_t *mps_ref_io)
   STATISTIC(++ss->fixRefCount);
   EVENT4(TraceFix, ss, mps_ref_io, ref, ss->rank);
 
-  key = (Word)AddrAlignDown(ref, ArenaGrainSize(ss->arena));
-  if (!TableLookup(&value, ss->whiteTable, key)) {
-    /* FIXME: Check for exact poitner to chunk but not segment. */
+  /* .fix.table: Fall back on SegOfAddr if the whiteTable is
+     unavailable due to lack of memory. */
+  if (ss->whiteTable != NULL) {
+    key = (Word)AddrAlignDown(ref, ArenaGrainSize(ss->arena));
+    if (!TableLookup(&value, ss->whiteTable, key)) {
+      /* FIXME: Check for exact pointer to chunk but not segment. */
+      goto done;
+    }
+    seg = (Seg)value;
+  } else if (!SegOfAddr(&seg, ss->arena, ref)) {
+    /* FIXME: Check for exact pointer to chunk but not segment. */
     goto done;
   }
-  seg = (Seg)value;
 
   if (TraceSetInter(SegWhite(seg), ss->traces) == TraceSetEMPTY) {
     /* Reference points to a segment that is not white for any of the
