@@ -39,7 +39,7 @@ Memory Management Glossary: R
         .. mps:specific::
 
             A value of :c:type:`mps_rank_t` indicating whether a
-            :term:`root` is :term:`ambiguous <ambiguous root>`
+            :term:`reference` is :term:`ambiguous <ambiguous root>`
             (:c:func:`mps_rank_ambig`), :term:`exact <exact root>`
             (:c:func:`mps_rank_exact`) or :term:`weak <weak root>`
             (:c:func:`mps_rank_weak`).
@@ -339,10 +339,10 @@ Memory Management Glossary: R
 
     register
 
-	A *register* is a small unit of :term:`memory (2)` that is
-	attached to a processor and accessible very quickly. Registers
-	typically form the highest level of a computer's
-	:term:`storage hierarchy`.
+        A *register* is a small unit of :term:`memory (2)` that is
+        attached to a processor and accessible very quickly. Registers
+        typically form the highest level of a computer's
+        :term:`storage hierarchy`.
 
         .. relevance::
 

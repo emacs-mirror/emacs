@@ -1,7 +1,7 @@
 /* mpmst.h: MEMORY POOL MANAGER DATA STRUCTURES
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2001 Global Graphics Software.
  *
  * .design: This header file crosses module boundaries.  The relevant
@@ -26,7 +26,7 @@
 
 #include "protocol.h"
 #include "ring.h"
-#include "chain.h"
+#include "locus.h"
 #include "splay.h"
 #include "meter.h"
 
@@ -111,10 +111,6 @@ typedef struct mps_pool_s {     /* generic structure */
   Align alignment;              /* alignment for units */
   Format format;                /* format only if class->attr&AttrFMT */
   PoolFixMethod fix;            /* fix method */
-  double fillMutatorSize;       /* bytes filled, mutator buffers */
-  double emptyMutatorSize;      /* bytes emptied, mutator buffers */
-  double fillInternalSize;      /* bytes filled, internal buffers */
-  double emptyInternalSize;     /* bytes emptied, internal buffers */
 } PoolStruct;
 
 
@@ -491,7 +487,7 @@ typedef struct TraceStruct {
   Size condemned;               /* condemned bytes */
   Size notCondemned;            /* collectable but not condemned */
   Size foundation;              /* initial grey set size */
-  Size rate;                    /* segs to scan per increment */
+  Work quantumWork;             /* tracing work to be done in each poll */
   STATISTIC_DECL(Count greySegCount); /* number of grey segs */
   STATISTIC_DECL(Count greySegMax); /* max number of grey segs */
   STATISTIC_DECL(Count rootScanCount); /* number of roots scanned */
@@ -531,7 +527,6 @@ typedef struct mps_arena_class_s {
   ArenaVarargsMethod varargs;
   ArenaInitMethod init;
   ArenaFinishMethod finish;
-  ArenaReservedMethod reserved;
   ArenaPurgeSpareMethod purgeSpare;
   ArenaExtendMethod extend;
   ArenaGrowMethod grow;
@@ -719,11 +714,13 @@ typedef struct mps_arena_s {
 
   ReservoirStruct reservoirStruct; /* <design/reservoir/> */
 
-  Size committed;               /* amount of committed RAM */
+  Size reserved;                /* total reserved address space */
+  Size committed;               /* total committed memory */
   Size commitLimit;             /* client-configurable commit limit */
 
   Size spareCommitted;          /* Amount of memory in hysteresis fund */
   Size spareCommitLimit;        /* Limit on spareCommitted */
+  double pauseTime;             /* Maximum pause time, in seconds. */
 
   Shift zoneShift;              /* see also <code/ref.c> */
   Size grainSize;               /* <design/arena/#grain> */
@@ -760,6 +757,7 @@ typedef struct mps_arena_s {
 
   /* thread fields (<code/thread.c>) */
   RingStruct threadRing;        /* ring of attached threads */
+  RingStruct deadRing;          /* ring of dead threads */
   Serial threadSerial;          /* serial of next thread */
  
   /* shield fields (<code/shield.c>) */
@@ -781,7 +779,7 @@ typedef struct mps_arena_s {
   TraceMessage tMessage[TraceLIMIT];  /* <design/message-gc/> */
 
   /* policy fields */
-  double tracedSize;
+  double tracedWork;
   double tracedTime;
   Clock lastWorldCollect;
 
@@ -796,7 +794,7 @@ typedef struct mps_arena_s {
 
   Bool emergency;               /* garbage collect in emergency mode? */
 
-  Addr *stackAtArenaEnter;  /* NULL or top of client stack, in the thread */
+  Word *stackAtArenaEnter;  /* NULL or hot end of client stack, in the thread */
                             /* that then entered the MPS. */
 
   Sig sig;
@@ -813,7 +811,7 @@ typedef struct AllocPatternStruct {
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

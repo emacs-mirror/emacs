@@ -327,27 +327,26 @@ fenceposts in a pool (``AVER()`` if a problem is found)
 _`.interface.fenceposting.format`: A function to wrap a format
 (class) to provide fenceposting.
 
-``void (*mps_fmt_adjust_fencepost_t)(size_t *size_io)``
+``typedef void (*mps_fmt_adjust_fencepost_t)(size_t *size_io)``
 
 _`.interface.fenceposting.adjust`: A format method to adjust size of a
 block about to be allocted to allow for fenceposts.
 
-``void (*mps_fmt_put_fencepost_t)(mps_addr_t * addr_io, size_t size)``
+``typedef void (*mps_fmt_put_fencepost_t)(mps_addr_t * addr_io, size_t size)``
 
 _`.interface.fenceposting.add`: A format method to add a fencepost
 around a block about to be allocated. The ``NULL`` method adds a tail
 fencepost.
 
-``mps_bool_t (*mps_fmt_check_fenceposts_t)(mps_addr_t)``
+``typedef mps_bool_t (*mps_fmt_check_fenceposts_t)(mps_addr_t)``
 
 _`.interface.fenceposting.checker`: A format method to check the
 fenceposts around an object. The ``NULL`` method checks tails.
 
-``mps_res_t mps_alloc(mps_addr_t *, mps_pool_t, size_t);``
-``mps_res_t mps_alloc_dbg(mps_addr_t *, mps_pool_t, size_t, ...);``
-``mps_res_t mps_alloc_dbg_v(mps_addr_t *, mps_pool_t, size_t, va_list);``
+``mps_res_t mps_alloc_dbg(mps_addr_t *, mps_pool_t, size_t, ...)``
+``mps_res_t mps_alloc_dbg_v(mps_addr_t *, mps_pool_t, size_t, va_list)``
 
-_`.interface.tags.alloc`: Three functions to replace existing
+_`.interface.tags.alloc`: Two functions to extend the existing
 ``mps_alloc()`` (request.???.??? proposes to remove the varargs)
 
 ``void (*mps_objects_step_t)(mps_addr_t addr, size_t size, mps_fmt_t format, mps_pool_t pool, void *tag_data, void *p)``

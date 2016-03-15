@@ -1,0 +1,189 @@
+.. mode: -*- rst -*-
+
+Execution environment
+=====================
+
+:Tag: design.mps.exec-env
+:Author: Richard Brooksby
+:Date: 1996-08-30
+:Status: incomplete design
+:Revision: $Id$
+:Copyright: See section `Copyright and License`_.
+:Index terms: pair: execution; environment
+
+              
+Introduction
+------------
+
+_`.intro`: This document describes how the MPS is designed to work in
+different execution environments (see standard.ansic section 5.1.2).
+
+
+Discussion
+----------
+
+_`.std`: These are the relevant statements from the International
+Standard ISO/IEC 9899:1990 "Programming languages — C", with tags
+added:
+
+    4. Compliance
+
+    […]
+
+    _`.std.com.hosted`: A "conforming hosted implementation" shall
+    accept any strictly conforming program. _`.std.com.free`: A
+    "conforming freestanding implementation" shall accept any strictly
+    conforming program in which the use of the features specified in
+    the library clause (clause 7) is confined to the contents of the
+    standard headers ``<float.h>``, ``<limits.h>``, ``<stdarg.h>``,
+    and ``<stddef.h>``. A conforming implementation may have
+    extensions (including additional library functions), provided they
+    do not alter the behaviour of any strictly conforming program.
+
+    […]
+
+    5.1.2 Execution environments
+
+    _`.std.def`: Two execution environments are defined:
+    "freestanding" and "hosted". […]
+
+    _`.std.init`: All objects in static storage shall be "initialized"
+    (set to their initial values) before program startup. The manner
+    and timing of such initialization are otherwise unspecified. […]
+
+    _`.std.term`: "Program termination" returns control to the execution
+    environment. […]
+
+    5.1.2.1 Freestanding environment
+
+    _`.std.free.lib`: Any library facilities available to a
+    freestanding environment are implementation-defined.
+
+    _`.std.free.term`: The effect of program termination in a
+    free-standing environment is implementation-defined.
+
+
+Interpretation
+--------------
+
+_`.int.free`: We interpret the "freestanding environment" as being the
+sort of environment you'd expect in an embedded system. The classic
+example is a washing machine. There are no library facilities
+available, only language facilities.
+
+_`.int.free.lib`: We assume that the headers ``<float.h>``,
+``<limits.h>``, ``<stdarg.h>`` and ``<stddef.h>`` are available in the
+freestanding environment, because they define only language features
+and not library calls. We assume that we may not make use of
+definitions in any other headers in freestanding parts of the system.
+
+_`.int.free.term`: We may not terminate the program in a freestanding
+environment, and therefore we may not call :c:func:`abort`. We can't
+call :c:func:`abort` anyway, because it's not defined in the headers
+listed above (`.int.free.lib`_).
+
+_`.int.free.term.own`: We can add an interface for asserting, that is,
+reporting an error and not returning, for use in debugging builds
+only. This is because the environment can implement this in a way that
+does not return to the MPS, but doesn't terminate, either. We need
+this if debugging builds are to run in a (possibly simulated or
+emulated) freestanding environment at all.
+
+
+Requirements
+------------
+
+_`.req`: It should be possible to make use of the MPS in a
+freestanding environment such as an embedded controller.
+
+_`.req.conf`: There can be configurations of the MPS that are not
+freestanding (such as using a VM arena).
+
+
+Architecture
+------------
+
+_`.arch`: Like Gaul, the MPS is divided into three parts: the *core*,
+the *platform*, and the *plinth*.
+
+_`.arch.core`: The *core* consists of the Memory Pool Manager (the
+core data structures and algorithms) and the built-in Pool Classes.
+The core must be freestanding.
+
+_`.arch.platform`: The *platform* provides the core with interfaces to
+features of the operating system and processor (locks, memory
+protection, protection mutator context, stack probing, stack and
+register scanning, thread management, and virtual memory). The
+platform is specialized to a particular environment and so can safely
+use whatever features are available in that environment.
+
+_`.arch.plinth`: The *plinth* provides the core with interfaces to
+features of the user environment (time, assertions, and logging). See
+design.mps.io_ and design.mps.lib_.
+
+.. _design.mps.io: io
+.. _design.mps.lib: lib
+
+_`.arch.distinction`: The distinction between *plinth* and *platform*
+is that end users will need to customize the features provided by the
+plinth for most programs that use the MPS (and so the interface needs
+to be simple, documented and supported), whereas implementing the
+platform interface is a specialized task that will typically be done
+once for each platform and then maintained alongside the core.
+
+
+Document History
+----------------
+
+- 1996-08-30 RB_ Created to clarify concepts needed for
+  design.mps.io_.
+
+- 2015-02-06 GDR_ Converted to reStructuredText; bring the
+  architecture description up to date by describing the platform
+  interface.
+
+.. _RB: http://www.ravenbrook.com/consultants/rb/
+.. _GDR: http://www.ravenbrook.com/consultants/gdr/
+
+
+Copyright and License
+---------------------
+
+Copyright © 1996-2016 Ravenbrook Limited. All rights reserved.
+<http://www.ravenbrook.com/>. This is an open source license. Contact
+Ravenbrook for commercial licensing options.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+#. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+#. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+#. Redistributions in any form must be accompanied by information on how
+   to obtain complete source code for this software and any
+   accompanying software that uses this software.  The source code must
+   either be included in the distribution or be available for no more than
+   the cost of distribution plus a nominal fee, and must be freely
+   redistributable under reasonable conditions.  For an executable file,
+   complete source code means the source code for all modules it contains.
+   It does not include source code for modules or files that typically
+   accompany the major components of the operating system on which the
+   executable file runs.
+
+**This software is provided by the copyright holders and contributors
+"as is" and any express or implied warranties, including, but not
+limited to, the implied warranties of merchantability, fitness for a
+particular purpose, or non-infringement, are disclaimed.  In no event
+shall the copyright holders and contributors be liable for any direct,
+indirect, incidental, special, exemplary, or consequential damages
+(including, but not limited to, procurement of substitute goods or
+services; loss of use, data, or profits; or business interruption)
+however caused and on any theory of liability, whether in contract,
+strict liability, or tort (including negligence or otherwise) arising in
+any way out of the use of this software, even if advised of the
+possibility of such damage.**

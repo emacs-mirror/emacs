@@ -445,9 +445,9 @@ static void MVFFDebugVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
 
 /* MVFFInit -- initialize method for MVFF */
 
-ARG_DEFINE_KEY(mvff_slot_high, Bool);
-ARG_DEFINE_KEY(mvff_arena_high, Bool);
-ARG_DEFINE_KEY(mvff_first_fit, Bool);
+ARG_DEFINE_KEY(MVFF_SLOT_HIGH, Bool);
+ARG_DEFINE_KEY(MVFF_ARENA_HIGH, Bool);
+ARG_DEFINE_KEY(MVFF_FIRST_FIT, Bool);
 
 static Res MVFFInit(Pool pool, ArgList args)
 {
@@ -520,7 +520,7 @@ static Res MVFFInit(Pool pool, ArgList args)
 
   LocusPrefInit(MVFFLocusPref(mvff));
   LocusPrefExpress(MVFFLocusPref(mvff),
-                   arenaHigh ? LocusPrefHigh : LocusPrefLow, NULL);
+                   arenaHigh ? LocusPrefHIGH : LocusPrefLOW, NULL);
 
   /* An MFS pool is explicitly initialised for the two CBSs partly to
    * share space, but mostly to avoid a call to PoolCreate, so that
@@ -585,18 +585,16 @@ failBlockPoolInit:
 /* MVFFFinish -- finish method for MVFF */
 
 static Bool mvffFinishVisitor(Bool *deleteReturn, Land land, Range range,
-                              void *closureP, Size closureS)
+                              void *closure)
 {
   Pool pool;
 
   AVER(deleteReturn != NULL);
   AVERT(Land, land);
   AVERT(Range, range);
-  AVER(closureP != NULL);
-  pool = closureP;
+  AVER(closure != NULL);
+  pool = closure;
   AVERT(Pool, pool);
-  AVER(closureS == UNUSED_SIZE);
-  UNUSED(closureS);
 
   ArenaFree(RangeBase(range), RangeSize(range), pool);
   *deleteReturn = TRUE;
@@ -613,8 +611,7 @@ static void MVFFFinish(Pool pool)
   AVERT(MVFF, mvff);
   mvff->sig = SigInvalid;
 
-  b = LandIterateAndDelete(MVFFTotalLand(mvff), mvffFinishVisitor, pool,
-                           UNUSED_SIZE);
+  b = LandIterateAndDelete(MVFFTotalLand(mvff), mvffFinishVisitor, pool);
   AVER(b);
   AVER(LandSize(MVFFTotalLand(mvff)) == 0);
 

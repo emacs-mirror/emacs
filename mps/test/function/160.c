@@ -29,10 +29,9 @@ static void test(void) {
   (size_t) (1024*1024*50)), "create arena");
  cdie(mps_thread_reg(&thread, arena), "register thread");
 
- die(
-  mps_pool_create(&pool, arena, mps_class_mv_debug(), &debugOpts,
-                  8192, 8, 65536),
-  "create MVFF pool");
+ die(mps_pool_create(&pool, arena, mps_class_mv_debug(), &debugOpts,
+                     (size_t)8192, (size_t)8, (size_t)65536),
+     "create MV pool");
 
  die(mps_alloc(&a, pool, 64), "alloc a");
  

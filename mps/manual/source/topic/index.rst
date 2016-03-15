@@ -28,3 +28,6 @@ Reference
     weak
     plinth
     platform
+    porting
+    deprecated
+    

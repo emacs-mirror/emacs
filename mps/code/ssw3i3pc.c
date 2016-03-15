@@ -46,19 +46,29 @@ typedef struct __JUMP_BUFFER {
 } _JUMP_BUFFER;
 
 
-Res StackScan(ScanState ss, Addr *stackBot)
+Res StackScan(ScanState ss, Word *stackCold,
+              mps_area_scan_t scan_area,
+              void *closure)
 {
   jmp_buf jb;
 
   /* .assume.ms-compat */
   (void)setjmp(jb);
 
+  /* These checks, on the _JUMP_BUFFER defined above, are mainly here
+   * to maintain similarity to the matching code on the MPS_BUILD_MV
+   * version of this code. */
+  AVER(sizeof(((_JUMP_BUFFER *)jb)->Ebx) == sizeof(Word));
+  AVER(sizeof(((_JUMP_BUFFER *)jb)->Edi) == sizeof(Word));
+  AVER(sizeof(((_JUMP_BUFFER *)jb)->Esi) == sizeof(Word));
+
   /* Ensure that the callee-save registers will be found by
      StackScanInner when it's passed the address of the Ebx field. */
   AVER(offsetof(_JUMP_BUFFER, Edi) == offsetof(_JUMP_BUFFER, Ebx) + 4);
   AVER(offsetof(_JUMP_BUFFER, Esi) == offsetof(_JUMP_BUFFER, Ebx) + 8);
 
-  return StackScanInner(ss, stackBot, (Addr *)&((_JUMP_BUFFER *)jb)->Ebx, 3);
+  return StackScanInner(ss, stackCold, (Word *)&((_JUMP_BUFFER *)jb)->Ebx, 3,
+                        scan_area, closure);
 }
 
 

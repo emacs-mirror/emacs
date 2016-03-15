@@ -123,13 +123,13 @@ extern Bool TreeFindNext(Tree *treeReturn, Tree root,
 extern Bool TreeInsert(Tree *treeReturn, Tree root, Tree node,
                        TreeKey key, TreeCompareFunction compare);
 
-typedef Bool TreeVisitor(Tree tree, void *closureP, Size closureS);
+typedef Bool TreeVisitor(Tree tree, void *closure);
 extern Bool TreeTraverse(Tree tree,
                          TreeCompareFunction compare,
                          TreeKeyFunction key,
-                         TreeVisitor visit, void *closureP, Size closureS);
+                         TreeVisitor visit, void *closure);
 extern Bool TreeTraverseMorris(Tree tree, TreeVisitor visit,
-                               void *closureP, Size closureS);
+                               void *closure);
 
 extern void TreeRotateLeft(Tree *nodeIO);
 extern void TreeRotateRight(Tree *nodeIO);
@@ -139,7 +139,7 @@ extern Count TreeToVine(Tree *treeIO);
 extern void TreeBalance(Tree *treeIO);
 
 extern void TreeTraverseAndDelete(Tree *treeIO, TreeVisitor visitor,
-                                  void *closureP, Size closureS);
+                                  void *closure);
 
 #endif /* tree_h */
 

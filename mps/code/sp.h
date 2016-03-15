@@ -1,49 +1,35 @@
-/*  lo.h: LEAF OBJECT POOL CLASS INTERFACE
+/* sp.h: STACK PROBE INTERFACE
  *
- *  $Id$
- *
- *  Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
- *
- *  The Leaf Object PoolClass is an automatically managed (ie garbage
- *  collected) pool for managing "leaf" objects.  Leaf objects are
- *  objects that have no references or no references that need tracing
- *  (ie the objects they refer too are non-moving and are manually
- *  managed).
- *
- *  This Class has the following features:
- *
- *  Approximately 6% (asymptotically) space overhead on managed objects.
- *
- *  Automatically reclaims memory used by objects no longer reachable
- *  from the roots.
- *
- *  Non-moving.  References to objects in this pool will never change
- *  due to "fixing".
- *
- *  Buffers will always "commit".  When allocating using a buffer,
- *  commit will never fail.
- *
- *  The following caveat applies:
- *
- *  Space and time performance will degrade when fragmentation
- *  increases.
+ * $Id$
+ * Copyright (c) 2014-2016 Ravenbrook Limited.  See end of file for license.
  */
 
-#ifndef lo_h
-#define lo_h
+#ifndef sp_h
+#define sp_h
 
-#include "mpm.h"
+#include "mpmtypes.h"
 
-typedef struct LOStruct *LO;
 
-extern PoolClass PoolClassLO(void);
+/* StackProbe -- probe above the stack to provoke early stack overflow
+ *
+ * This function should check that the stack has at least depth words
+ * available, and if not, then provoke a stack overflow exception or
+ * protection fault. The purpose is to ensure that the exception is
+ * generated before taking the arena lock where it can be handled
+ * safely, rather than at some later point where the arena lock is
+ * held and so handling the exception may cause the MPS to be entered
+ * recursively.
+ */
 
-#endif /* lo_h */
+extern void StackProbe(Size depth);
+
+
+#endif /* sp_h */
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2014-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

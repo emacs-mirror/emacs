@@ -21,21 +21,25 @@ _`.intro`: This is the design of the AMS pool class.
 
 _`.readership`: MM developers.
 
-_`.source`: design.mps.buffer, design.mps.trace, design.mps.scan,
-design.mps.action and design.mps.class-interface [none of these were
-actually used -- pekka 1998-04-21].  No requirements doc [we need a
+_`.source`: design.mps.buffer_, design.mps.trace_, design.mps.scan_,
+design.mps.action and design.mps.class-interface_ [none of these were
+actually used -- pekka 1998-04-21]. No requirements doc [we need a
 req.mps that captures the commonalities between the products -- pekka
 1998-01-27].
+
+.. _design.mps.class-interface: class-interface
+.. _design.mps.scan: scan
+.. _design.mps.trace: trace
+.. _design.mps.buffer: buffer
 
 
 Overview
 --------
 
-_`.overview`: This document describes the design of the AMS (Automatic
-Mark-and-Sweep) pool class. The AMS pool is a proof-of-concept design
-for a mark-sweep pool in the MPS. It's not meant to be efficient, but
-it could serve as a model for an implementation of a more advanced
-pool (such as EPVM).
+_`.overview`: This is the design of the AMS (Automatic Mark-and-Sweep)
+pool class. The AMS pool is a proof-of-concept design for a mark-sweep
+pool in the MPS. It's not meant to be efficient, but it could serve as
+a model for an implementation of a more advanced pool (such as EPVM).
 
 
 Requirements
@@ -101,7 +105,7 @@ new segment.
 
 _`.no-alloc`: Do not support ``PoolAlloc()``, because we can't support
 one-phase allocation for a scannable pool (unless we disallow
-incremental collection). For exact details, see design.mps.buffer.
+incremental collection). For exact details, see design.mps.buffer_.
 
 _`.no-free`: Do not support ``PoolFree()``, because automatic pools
 don't need explicit free and having it encourages clients to use it
@@ -183,7 +187,7 @@ buffer (see `.iteration.buffer`_), as usual.
 
 .. note::
 
-    design.mps.buffer should explain why this works, but doesn't.
+    design.mps.buffer_ should explain why this works, but doesn't.
     Pekka P. Pirinen, 1998-02-11.
 
 _`.fix.to-black`: When fixing a reference to a white object, if the
@@ -235,7 +239,7 @@ the appropriate action, if any, on it.
 .. note::
 
     ScanLimit is used for reasons which are not documented in
-    design.mps.buffer.
+    design.mps.buffer_.
 
 
 Scanning Algorithm
@@ -425,12 +429,14 @@ what segments may be split or merged:
 
 _`.split-merge.fail`: The split and merge methods are not proper
 anti-methods for each other (see
-design.mps.seg.split-merge.fail.anti.no). Methods will not reverse the
+design.mps.seg.split-merge.fail.anti.no_). Methods will not reverse the
 side-effects of their counterparts if the allocation of the colour and
 allocation bit tables should fail. Client methods which over-ride
 split and merge should not be written in such a way that they might
 detect failure after calling the next method, unless they have reason
 to know that the bit table allocations will not fail.
+
+.. _design.mps.seg.split-merge.fail.anti.no: seg#split-merge.fail.anti.no
 
 
 Testing

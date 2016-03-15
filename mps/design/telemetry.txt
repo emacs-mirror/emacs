@@ -432,8 +432,7 @@ Allocation replayer tool
 ........................
 
 _`.replayer`: A tool for replaying an allocation sequence from a log
-is available in impl.c.replay. For details, see
-design.mps.telemetry.replayer.
+is available in impl.c.replay.
 
 
 Document History

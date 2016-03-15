@@ -232,7 +232,7 @@ Count ABQDepth(ABQ abq)
 
 
 /* ABQIterate -- call 'visitor' for each element in an ABQ */
-void ABQIterate(ABQ abq, ABQVisitor visitor, void *closureP, Size closureS)
+void ABQIterate(ABQ abq, ABQVisitor visitor, void *closure)
 {
   Index copy, index, in;
 
@@ -247,7 +247,7 @@ void ABQIterate(ABQ abq, ABQVisitor visitor, void *closureP, Size closureS)
     void *element = ABQElement(abq, index);
     Bool delete = FALSE;
     Bool cont;
-    cont = (*visitor)(&delete, element, closureP, closureS);
+    cont = (*visitor)(&delete, element, closure);
     AVERT(Bool, cont);
     AVERT(Bool, delete);
     if (!delete) {

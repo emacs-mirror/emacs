@@ -1,7 +1,7 @@
 /* cbs.c: COALESCING BLOCK STRUCTURE IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2015 Ravenbrook Limited.  See end of file for license.
  *
  * .intro: This is a portable implementation of coalescing block
  * structures.
@@ -117,36 +117,37 @@ static TreeKey cbsKey(Tree tree)
 
 /* cbsTestNode, cbsTestTree -- test for nodes larger than the S parameter */
 
-static Bool cbsTestNode(SplayTree splay, Tree tree,
-                        void *closureP, Size size)
+static Bool cbsTestNode(SplayTree splay, Tree tree, void *closure)
 {
   CBSBlock block;
+  Size *sizeP = closure;
 
   AVERT(SplayTree, splay);
   AVERT(Tree, tree);
-  AVER(closureP == NULL);
-  AVER(size > 0);
+  AVER(sizeP != NULL);
+  AVER(*sizeP > 0);
   AVER(IsLandSubclass(CBSLand(cbsOfSplay(splay)), CBSFastLandClass));
 
   block = cbsBlockOfTree(tree);
 
-  return CBSBlockSize(block) >= size;
+  return CBSBlockSize(block) >= *sizeP;
 }
 
 static Bool cbsTestTree(SplayTree splay, Tree tree,
-                        void *closureP, Size size)
+                        void *closure)
 {
   CBSFastBlock block;
+  Size *sizeP = closure;
 
   AVERT(SplayTree, splay);
   AVERT(Tree, tree);
-  AVER(closureP == NULL);
-  AVER(size > 0);
+  AVER(sizeP != NULL);
+  AVER(*sizeP > 0);
   AVER(IsLandSubclass(CBSLand(cbsOfSplay(splay)), CBSFastLandClass));
 
   block = cbsFastBlockOfTree(tree);
 
-  return block->maxSize >= size;
+  return block->maxSize >= *sizeP;
 }
 
 
@@ -726,25 +727,24 @@ static Res cbsZonedSplayNodeDescribe(Tree tree, mps_lib_FILE *stream)
 typedef struct CBSIterateClosure {
   Land land;
   LandVisitor visitor;
-  void *closureP;
+  void *visitorClosure;
 } CBSIterateClosure;
 
-static Bool cbsIterateVisit(Tree tree, void *closureP, Size closureS)
+static Bool cbsIterateVisit(Tree tree, void *closure)
 {
-  CBSIterateClosure *closure = closureP;
-  Land land = closure->land;
+  CBSIterateClosure *my = closure;
+  Land land = my->land;
   CBSBlock cbsBlock = cbsBlockOfTree(tree);
   RangeStruct range;
   RangeInit(&range, CBSBlockBase(cbsBlock), CBSBlockLimit(cbsBlock));
-  return (*closure->visitor)(land, &range, closure->closureP, closureS);
+  return my->visitor(land, &range, my->visitorClosure);
 }
 
-static Bool cbsIterate(Land land, LandVisitor visitor,
-                       void *closureP, Size closureS)
+static Bool cbsIterate(Land land, LandVisitor visitor, void *visitorClosure)
 {
   CBS cbs;
   SplayTree splay;
-  CBSIterateClosure closure;
+  CBSIterateClosure iterateClosure;
 
   AVERT(Land, land);
   cbs = cbsOfLand(land);
@@ -756,11 +756,11 @@ static Bool cbsIterate(Land land, LandVisitor visitor,
   /* searches and meter it. */
   METER_ACC(cbs->treeSearch, cbs->treeSize);
 
-  closure.land = land;
-  closure.visitor = visitor;
-  closure.closureP = closureP;
+  iterateClosure.land = land;
+  iterateClosure.visitor = visitor;
+  iterateClosure.visitorClosure = visitorClosure;
   return TreeTraverse(SplayTreeRoot(splay), splay->compare, splay->nodeKey,
-                      cbsIterateVisit, &closure, closureS);
+                      cbsIterateVisit, &iterateClosure);
 }
 
 
@@ -773,33 +773,33 @@ typedef struct CBSIterateAndDeleteClosure {
   Land land;
   LandDeleteVisitor visitor;
   Bool cont;
-  void *closureP;
+  void *visitorClosure;
 } CBSIterateAndDeleteClosure;
 
-static Bool cbsIterateAndDeleteVisit(Tree tree, void *closureP, Size closureS)
+static Bool cbsIterateAndDeleteVisit(Tree tree, void *closure)
 {
-  CBSIterateAndDeleteClosure *closure = closureP;
-  Land land = closure->land;
+  CBSIterateAndDeleteClosure *my = closure;
+  Land land = my->land;
   CBS cbs = cbsOfLand(land);
   CBSBlock cbsBlock = cbsBlockOfTree(tree);
   Bool deleteNode = FALSE;
   RangeStruct range;
 
   RangeInit(&range, CBSBlockBase(cbsBlock), CBSBlockLimit(cbsBlock));
-  if (closure->cont)
-    closure->cont = (*closure->visitor)(&deleteNode, land, &range,
-                                        closure->closureP, closureS);
+  if (my->cont)
+    my->cont = my->visitor(&deleteNode, land, &range,
+                           my->visitorClosure);
   if (deleteNode)
     cbsBlockDestroy(cbs, cbsBlock);
   return deleteNode;
 }
 
 static Bool cbsIterateAndDelete(Land land, LandDeleteVisitor visitor,
-                                void *closureP, Size closureS)
+                                void *visitorClosure)
 {
   CBS cbs;
   SplayTree splay;
-  CBSIterateAndDeleteClosure closure;
+  CBSIterateAndDeleteClosure iterateClosure;
 
   AVERT(Land, land);
   cbs = cbsOfLand(land);
@@ -811,13 +811,13 @@ static Bool cbsIterateAndDelete(Land land, LandDeleteVisitor visitor,
   /* searches and meter it. */
   METER_ACC(cbs->treeSearch, cbs->treeSize);
 
-  closure.land = land;
-  closure.visitor = visitor;
-  closure.closureP = closureP;
-  closure.cont = TRUE;
+  iterateClosure.land = land;
+  iterateClosure.visitor = visitor;
+  iterateClosure.visitorClosure = visitorClosure;
+  iterateClosure.cont = TRUE;
   TreeTraverseAndDelete(&splay->root, cbsIterateAndDeleteVisit,
-                        &closure, closureS);
-  return closure.cont;
+                        &iterateClosure);
+  return iterateClosure.cont;
 }
 
 
@@ -904,7 +904,7 @@ static Bool cbsFindFirst(Range rangeReturn, Range oldRangeReturn,
 
   METER_ACC(cbs->treeSearch, cbs->treeSize);
   found = SplayFindFirst(&tree, cbsSplay(cbs), &cbsTestNode,
-                         &cbsTestTree, NULL, size);
+                         &cbsTestTree, &size);
   if (found) {
     CBSBlock block;
     RangeStruct range;
@@ -934,36 +934,32 @@ typedef struct cbsTestNodeInZonesClosureStruct {
 } cbsTestNodeInZonesClosureStruct, *cbsTestNodeInZonesClosure;
 
 static Bool cbsTestNodeInZones(SplayTree splay, Tree tree,
-                               void *closureP, Size closureS)
+                               void *closure)
 {
   CBSBlock block = cbsBlockOfTree(tree);
-  cbsTestNodeInZonesClosure closure = closureP;
+  cbsTestNodeInZonesClosure my = closure;
   RangeInZoneSet search;
   
   UNUSED(splay);
-  AVER(closureS == UNUSED_SIZE);
-  UNUSED(closureS);
 
-  search = closure->high ? RangeInZoneSetLast : RangeInZoneSetFirst;
+  search = my->high ? RangeInZoneSetLast : RangeInZoneSetFirst;
 
-  return search(&closure->base, &closure->limit,
+  return search(&my->base, &my->limit,
                 CBSBlockBase(block), CBSBlockLimit(block),
-                closure->arena, closure->zoneSet, closure->size);
+                my->arena, my->zoneSet, my->size);
 }
 
 static Bool cbsTestTreeInZones(SplayTree splay, Tree tree,
-                               void *closureP, Size closureS)
+                               void *closure)
 {
   CBSFastBlock fastBlock = cbsFastBlockOfTree(tree);
   CBSZonedBlock zonedBlock = cbsZonedBlockOfTree(tree);
-  cbsTestNodeInZonesClosure closure = closureP;
+  cbsTestNodeInZonesClosure my = closure;
   
   UNUSED(splay);
-  AVER(closureS == UNUSED_SIZE);
-  UNUSED(closureS);
   
-  return fastBlock->maxSize >= closure->size
-    && ZoneSetInter(zonedBlock->zones, closure->zoneSet) != ZoneSetEMPTY;
+  return fastBlock->maxSize >= my->size
+    && ZoneSetInter(zonedBlock->zones, my->zoneSet) != ZoneSetEMPTY;
 }
 
 
@@ -989,7 +985,7 @@ static Bool cbsFindLast(Range rangeReturn, Range oldRangeReturn,
 
   METER_ACC(cbs->treeSearch, cbs->treeSize);
   found = SplayFindLast(&tree, cbsSplay(cbs), &cbsTestNode,
-                        &cbsTestTree, NULL, size);
+                        &cbsTestTree, &size);
   if (found) {
     CBSBlock block;
     RangeStruct range;
@@ -1033,7 +1029,7 @@ static Bool cbsFindLargest(Range rangeReturn, Range oldRangeReturn,
       CBSBlock block;
       METER_ACC(cbs->treeSearch, cbs->treeSize);
       found = SplayFindFirst(&tree, cbsSplay(cbs), &cbsTestNode,
-                             &cbsTestTree, NULL, maxSize);
+                             &cbsTestTree, &maxSize);
       AVER(found); /* maxSize is exact, so we will find it. */
       block = cbsBlockOfTree(tree);
       AVER(CBSBlockSize(block) >= maxSize);
@@ -1069,7 +1065,7 @@ static Res cbsFindInZones(Bool *foundReturn, Range rangeReturn,
   AVERT(CBS, cbs);
   AVER(IsLandSubclass(CBSLand(cbs), CBSZonedLandClass));
   /* AVERT(ZoneSet, zoneSet); */
-  AVER(BoolCheck(high));
+  AVERT(Bool, high);
 
   landFind = high ? cbsFindLast : cbsFindFirst;
   splayFind = high ? SplayFindLast : SplayFindFirst;
@@ -1093,7 +1089,7 @@ static Res cbsFindInZones(Bool *foundReturn, Range rangeReturn,
   closure.high = high;
   if (!(*splayFind)(&tree, cbsSplay(cbs),
                     cbsTestNodeInZones, cbsTestTreeInZones,
-                    &closure, UNUSED_SIZE))
+                    &closure))
     goto fail;
 
   block = cbsBlockOfTree(tree);
@@ -1208,7 +1204,7 @@ DEFINE_LAND_CLASS(CBSZonedLandClass, class)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2015 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

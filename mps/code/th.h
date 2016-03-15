@@ -47,13 +47,14 @@ extern void ThreadDeregister(Thread thread, Arena arena);
 
 /*  ThreadRingSuspend/Resume
  *
- *  These functions suspend/resume the threads on the ring.
- *  If the current thread is among them, it is not suspended,
- *  nor is any attempt to resume it made.
+ *  These functions suspend/resume the threads on the ring. If the
+ *  current thread is among them, it is not suspended, nor is any
+ *  attempt to resume it made. Threads that can't be suspended/resumed
+ *  because they are dead are moved to deadRing.
  */
 
-extern void ThreadRingSuspend(Ring threadRing);
-extern void ThreadRingResume(Ring threadRing);
+extern void ThreadRingSuspend(Ring threadRing, Ring deadRing);
+extern void ThreadRingResume(Ring threadRing, Ring deadRing);
 
 
 /*  ThreadRingThread
@@ -67,7 +68,9 @@ extern Thread ThreadRingThread(Ring threadRing);
 
 extern Arena ThreadArena(Thread thread);
 
-extern Res ThreadScan(ScanState ss, Thread thread, void *stackBot);
+extern Res ThreadScan(ScanState ss, Thread thread, Word *stackCold,
+                      mps_area_scan_t scan_area,
+                      void *closure);
 
 
 #endif /* th_h */

@@ -1,7 +1,7 @@
 /* poolawl.c: AUTOMATIC WEAK LINKED POOL CLASS
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  *
  * DESIGN
@@ -41,7 +41,7 @@
 
 #include "mpscawl.h"
 #include "mpm.h"
-#include "chain.h"
+#include "locus.h"
 
 SRCID(poolawl, "$Id$");
 
@@ -544,7 +544,7 @@ static Addr awlNoDependent(Addr addr)
 
 /* AWLInit -- initialize an AWL pool */
 
-ARG_DEFINE_KEY(awl_find_dependent, Fun);
+ARG_DEFINE_KEY(AWL_FIND_DEPENDENT, Fun);
 
 static Res AWLInit(Pool pool, ArgList args)
 {
@@ -575,6 +575,7 @@ static Res AWLInit(Pool pool, ArgList args)
     gen = arg.val.u;
 
   AVERT(Format, format);
+  AVER(FormatArena(format) == PoolArena(pool));
   pool->format = format;
   pool->alignment = format->alignment;
 
@@ -583,6 +584,7 @@ static Res AWLInit(Pool pool, ArgList args)
 
   AVERT(Chain, chain);
   AVER(gen <= ChainGens(chain));
+  AVER(chain->arena == PoolArena(pool));
 
   res = PoolGenInit(&awl->pgen, ChainGen(chain, gen), pool);
   if (res != ResOK)
@@ -899,9 +901,7 @@ static Res awlScanObject(Arena arena, AWL awl, ScanState ss,
       SegSetSummary(dependentSeg, RefSetUNIV);
   }
 
-  res = (*format->scan)(&ss->ss_s, base, limit);
-  if (res == ResOK)
-    ss->scannedSize += AddrOffset(base, limit);
+  res = FormatScan(format, ss, base, limit);
 
   if (dependent)
     ShieldCover(arena, dependentSeg);
@@ -1204,6 +1204,7 @@ static Res AWLAccess(Pool pool, Seg seg, Addr addr,
   AVER(SegBase(seg) <= addr);
   AVER(addr < SegLimit(seg));
   AVER(SegPool(seg) == pool);
+  AVERT(AccessSet, mode);
   
   /* Attempt scanning a single reference if permitted */
   if(AWLCanTrySingleAccess(PoolArena(pool), awl, seg, addr)) {
@@ -1373,7 +1374,7 @@ static Bool AWLCheck(AWL awl)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

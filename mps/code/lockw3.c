@@ -1,7 +1,7 @@
 /* lockw3.c: RECURSIVE LOCKS IN WIN32
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * .design: These are implemented using critical sections.
  *  See the section titled "Synchronization functions" in the Groups
@@ -79,7 +79,7 @@ void (LockClaim)(Lock lock)
   lock->claims = 1;
 }
 
-void (LockReleaseMPM)(Lock lock)
+void (LockRelease)(Lock lock)
 {
   AVERT(Lock, lock);
   AVER(lock->claims == 1);  /* The lock should only be held once */
@@ -152,13 +152,13 @@ void (LockClaimGlobal)(void)
 void (LockReleaseGlobal)(void)
 {
   AVER(globalLockInit);
-  LockReleaseMPM(globalLock);
+  LockRelease(globalLock);
 }
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

@@ -9,6 +9,7 @@ MPS Strategy
 :Date: 2013-06-04
 :Revision: $Id$
 :Copyright: See section `Copyright and License`_.
+:Index terms: pair: strategy; design
 
 
 Introduction
@@ -145,23 +146,11 @@ Collections
 
 Collections in the MPS start in one of two ways:
 
-1. A collection of the world starts via ``traceCondemnAll()``. This
-   simply condemns all segments in all automatic pools.
+1. A collection of the world starts via ``TraceStartCollectAll()``.
+   This simply condemns all segments in all automatic pools.
 
-2. A collection of some set of generations starts via ``TracePoll()``.
-   This calls ``ChainDeferral()`` for each chain; this function
-   indicates if the chain needs collecting, and if so, how urgent it
-   is to collect that chain. The most urgent chain in need of
-   collection (if any) is then condemned by calling
-   ``ChainCondemnAuto()``.
-
-   This function chooses the set of generations to condemn, computes
-   the zoneset corresponding to the union those generations, and
-   condemns those zones by calling ``TraceCondemnZones()``.
-
-   Note that the condemnation is of every segment in an automatic pool
-   in any zone in the zoneset. It is not limited to the segments
-   actually associated with the condemned generations.
+2. A collection of some set of generations starts via
+   ``PolicyStartTrace()``. See `.policy.start`_.
  
 
 Zones
@@ -216,11 +205,11 @@ categories of data allocated in that generation for that pool. This
 accounting information is reported via the event system, but also used
 in two places:
 
-_`.accounting.poll`: ``ChainDeferral()`` uses the *new size* of each
-generation to determine which generations in the chain are over
-capacity and so might need to be collected via ``TracePoll()``.
+_`.accounting.poll`: ``ChainDeferral()`` uses the *new size* of
+each generation to determine which generations in the chain are over
+capacity and so might need to be collected by ``PolicyStartTrace()``.
 
-_`.accounting.condemn`: ``ChainCondemnAuto()`` uses the *new size* of
+_`.accounting.condemn`: ``PolicyStartTrace()`` uses the *new size* of
 each generation to determine which generations in the chain will be
 collected; it also uses the *total size* of the generation to compute
 the mortality.
@@ -430,14 +419,126 @@ other uses of that:
   from ``poolGen.newSize`` and new is set to FALSE.
 
 
-Starting a Trace
+Policy
+------
+
+_`.policy`: Functions that make decisions about what action to take
+are collected into the policy module (policy.c). The purpose of doing
+so is to make it easier to understand this set of decisions and how
+they interact, and to make it easier to maintain and update the policy.
+
+
+Assignment of zones
+...................
+
+``Res PolicyAlloc(Tract *tractReturn, Arena arena, LocusPref pref, Size size, Pool pool)``
+
+_`.policy.alloc`: Allocate ``size`` bytes of memory on behalf of
+``pool``, based on the preferences described by ``pref``. If
+successful, update ``*tractReturn`` to point to the first tract in the
+allocated memory and return ``ResOK``. Otherwise, return a result code
+describing the problem, for example ``ResCOMMIT_LIMIT``.
+
+_`.policy.alloc.impl`: This tries various methods in succession until
+one succeeds. First, it tries to allocate from the arena's free land
+in the requested zones. Second, it tries allocating from free zones.
+Third, it tries extending the arena and then trying the first two
+methods again. Fourth, it tries allocating from any zone that is not
+blacklisted. Fifth, it tries allocating from any zone at all.
+
+_`.policy.alloc.issue`: This plan performs poorly under stress. See
+for example job003898_.
+
+.. _job003898: http://www.ravenbrook.com/project/mps/issue/job003898/
+
+
+
+Deciding whether to collect the world
+.....................................
+
+``Bool PolicyShouldCollectWorld(Arena arena, double availableTime, Clock now, Clock clocks_per_sec)``
+
+_`.policy.world`: Determine whether now is a good time for
+``mps_arena_step()`` to start a collection of the world. Return
+``TRUE`` if so, ``FALSE`` if not. The ``availableTime`` argument is an
+estimate of the time that's available for the collection, ``now`` is
+the current time as returned by ``ClockNow()``, and ``clocks_per_sec``
+is the result of calling ``ClocksPerSec()``.
+
+_`.policy.world.impl`: There are two conditions: the estimate of the
+available time must be enough to complete the collection, and the last
+collection of the world must be long enough in the past that the
+``mps_arena_step()`` won't be spending more than a certain fraction of
+runtime in collections. (This fraction is given by the
+``ARENA_MAX_COLLECT_FRACTION`` configuration parameter.)
+
+
+
+Starting a trace
 ................
-TODO: Why do we start a trace?  How do we choose what to condemn?
+
+``Bool PolicyStartTrace(Trace *traceReturn, Arena arena)``
+
+_`.policy.start`: Consider starting a trace. If a trace was started,
+update ``*traceReturn`` to point to the trace and return TRUE.
+Otherwise, leave ``*traceReturn`` unchanged and return FALSE.
+
+_`.policy.start.impl`: This uses the "Lisp Machine" strategy, which
+tries to schedule collections of the world so that the collector just
+keeps pace with the mutator: that is, it starts a collection when the
+predicted completion time of the collection is around the time when
+the mutator is predicted to reach the current memory limit. See
+[Pirinen]_.
+
+_`.policy.start.chain`: If it is not yet time to schedule a collection
+of the world, ``PolicyStartTrace()`` considers collecting a set of
+zones corresponding to a set of generations on a chain.
+
+It picks these generations by calling ``ChainDeferral()`` for each
+chain; this function indicates if the chain needs collecting, and if
+so, how urgent it is to collect that chain. The most urgent chain in
+need of collection (if any) is then condemned by calling
+``policyCondemnChain()``, which chooses the set of generations to
+condemn, computes the zoneset corresponding to the union those
+generations, and condemns those zones by calling
+``TraceCondemnZones()``.
+
+Note that the resulting condemned set includes every segment in an
+automatic pool in any zone in the zoneset. It is not limited to the
+segments actually associated with the condemned generations.
 
 
-Trace Progress
+
+Trace progress
 ..............
-TODO: When do we do some tracing work?  How much tracing work do we do?
+
+``Bool PolicyPoll(Arena arena)``
+
+_`.policy.poll`: Return TRUE if the MPS should do some tracing work;
+FALSE if it should return to the mutator.
+
+``Bool PolicyPollAgain(Arena arena, Clock start, Bool moreWork, Work tracedWork)``
+
+_`.policy.poll.again`: Return TRUE if the MPS should do another unit
+of work; FALSE if it should return to the mutator. ``start`` is the
+clock time when the MPS was entered; ``moreWork`` and ``tracedWork``
+are the results of the last call to ``TracePoll()``.
+
+_`.policy.poll.impl`: The implementation keep doing work until either
+the maximum pause time is exceeded (see design.mps.arena.pause-time_),
+or there is no more work to do. Then it schedules the next collection
+so that there is approximately one call to ``TracePoll()`` for every
+``ArenaPollALLOCTIME`` bytes of allocation.
+
+
+References
+----------
+
+.. [Pirinen]
+   "The Lisp Machine Strategy";
+   Pekka Pirinin;
+   1998-04-27;
+   <https://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mminfo/strategy/lisp-machine/>
 
 
 Document History
@@ -456,7 +557,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited. All rights reserved.
+Copyright © 2013-2016 Ravenbrook Limited. All rights reserved.
 <http://www.ravenbrook.com/>. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
