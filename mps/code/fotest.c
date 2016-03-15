@@ -45,13 +45,11 @@ extern Land _mps_mvt_cbs(Pool);
 /* "OOM" pool class -- dummy alloc/free pool class whose alloc()
  * method always fails and whose free method does nothing. */
 
-static Res oomAlloc(Addr *pReturn, Pool pool, Size size,
-                    Bool withReservoirPermit)
+static Res oomAlloc(Addr *pReturn, Pool pool, Size size)
 {
   UNUSED(pReturn);
   UNUSED(pool);
   UNUSED(size);
-  UNUSED(withReservoirPermit);
   switch (rnd() % 3) {
   case 0:
     return ResRESOURCE;

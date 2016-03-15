@@ -133,8 +133,7 @@ Res FormatCreate(Format *formatReturn, Arena arena, ArgList args)
   if (ArgPick(&arg, args, MPS_KEY_FMT_CLASS))
     fmtClass = arg.val.fmt_class;
 
-  res = ControlAlloc(&p, arena, sizeof(FormatStruct),
-                     /* withReservoirPermit */ FALSE);
+  res = ControlAlloc(&p, arena, sizeof(FormatStruct));
   if(res != ResOK)
     return res;
   format = (Format)p; /* avoid pun */
