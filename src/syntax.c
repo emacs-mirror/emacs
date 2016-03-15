@@ -960,9 +960,9 @@ old_back_comment (ptrdiff_t from, ptrdiff_t from_byte, ptrdiff_t stop,
 
 /* `literal-cache' text properties
    -------------------------------
-These are applied to all text between BOB and `literal-cache-hwm'.
-They are primarily to record whether or not the current character is
-inside a literal, and if so, what type.
+These are applied to all text between BOB and `literal-cache-hwm'
+which is in literals.  They record what type of literal the current
+character is in.
 
 On a buffer change (when `inhibit-modification-hooks' is nil), any
 buffer change (including changing text-properties) will reduce
@@ -981,8 +981,8 @@ string, its car is the symbol `string' and its cdr is the expected
 closing delimiter (or ST_STRING_STYLE in the case of a string fence
 string).  For a comment, the car is -1 for a non-nestable comment, or
 the current nesting depth for a nestable comment.  When not in a
-literal, the value is '(0 . 0).  These values match the internal
-values used in `scan_sexps_forward.  */
+literal, no `literal-cache' text property exists at that place.  These
+values match the internal values used in `scan_sexps_forward.  */
 
 DEFUN ("trim-literal-cache", Ftrim_literal_cache, Strim_literal_cache, 0, 1, 0,
        doc: /* Mark the selected buffer's "comment cache" as invalid from POS.
@@ -1192,11 +1192,6 @@ scan_comments_forward_to (ptrdiff_t to, ptrdiff_t to_byte)
                   state.instring = XINT (Fcdr (depth));
                   state.incomment = 0;
                 }
-              else if (EQ (Fcar (depth), make_number (0)))
-                {
-                  state.instring = -1;
-                  state.incomment = 0;
-                }
               else
                 {
                   state.instring = -1;
@@ -1229,24 +1224,35 @@ scan_comments_forward_to (ptrdiff_t to, ptrdiff_t to_byte)
               : (state.incomment
                  ? Fcons (make_number (state.incomment),
                           make_number (state.comstyle))
-                 : Fcons (make_number (0), make_number (0)));
+                 : Qnil);
             /* Ensure all `equal' values of literal-cache-value are also `eq'. */
-            tem = Fmember (literal_cache_value, Vliteral_cache_values);
-            if (CONSP (tem))
-              literal_cache_value = XCAR (tem);
-            else
-              Vliteral_cache_values = Fcons (literal_cache_value,
-                                             Vliteral_cache_values);
+            if (!NILP (literal_cache_value))
+              {
+                tem = Fmember (literal_cache_value, Vliteral_cache_values);
+                if (CONSP (tem))
+                  literal_cache_value = XCAR (tem);
+                else
+                  Vliteral_cache_values = Fcons (literal_cache_value,
+                                                 Vliteral_cache_values);
+              }
 
             scan_sexps_forward (&state, hwm, hwm_byte, to,
                                 TYPE_MINIMUM (EMACS_INT), false,
                                 -1); /* stop after literal boundary */
 
-            Fput_text_property (make_number (hwm), make_number (state.location),
-                                Qliteral_cache,
-                                literal_cache_value, Qnil);
+            if (!NILP (literal_cache_value))
+              Fput_text_property (make_number (hwm),
+                                  make_number (state.location),
+                                  Qliteral_cache,
+                                  literal_cache_value, Qnil);
+            else
+              Fremove_list_of_text_properties
+                (make_number (hwm),
+                 make_number (state.location),
+                 Fcons (Qliteral_cache, Qnil), Qnil);
 
-            if (NUMBERP (XCAR (literal_cache_value))
+            if (!NILP (literal_cache_value)
+                && NUMBERP (XCAR (literal_cache_value))
                 && XINT (XCAR (literal_cache_value)) > 0)
               scan_nested_comments_forward
                 (hwm, hwm_byte, state.location, literal_cache_value);
@@ -1292,12 +1298,10 @@ back_comment (ptrdiff_t from, ptrdiff_t from_byte, ptrdiff_t stop,
       if (from <= stop)
         return false;
       depth = Fget_text_property (make_number (from - 1), Qliteral_cache, Qnil);
-      if (!CONSP (depth)
+      if (!CONSP (depth)               /* nil, not in a literal. */
           || !INTEGERP (XCAR (depth))) /* A string. */
         return false;
       literal_cache = XINT (XCAR (depth));
-      if (!literal_cache)       /* Not in a comment. */
-        return false;
       comment_style = XINT (XCDR (depth));
       if (comment_style != comstyle) /* Wrong sort of comment.  This
                                         can happen with "*|" at the
@@ -1318,7 +1322,8 @@ back_comment (ptrdiff_t from, ptrdiff_t from_byte, ptrdiff_t stop,
       while (from > stop
              && (depth = Fget_text_property (make_number (from - 1),
                                              Qliteral_cache, Qnil),
-                 XINT (XCAR (depth)) > target_depth));
+                 !NILP (depth))
+             && XINT (XCAR (depth)) > target_depth);
       if (from <= stop)
         return false;
       from_byte = CHAR_TO_BYTE (from);
