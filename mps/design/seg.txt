@@ -232,7 +232,7 @@ Extensibility
 Splitting and merging
 .....................
 
-``typedef Res (*SegSplitMethod)(Seg seg, Seg segHi, Addr base, Addr mid, Addr limit, Bool withReservoirPermit)``
+``typedef Res (*SegSplitMethod)(Seg seg, Seg segHi, Addr base, Addr mid, Addr limit)``
 
 _`.method.split`: Segment subclasses may extend the support for
 segment splitting by defining their own "split" method. On entry,
@@ -242,10 +242,7 @@ split. The method is responsible for destructively modifying ``seg``
 and initializing ``segHi`` so that on exit ``seg`` is a segment with
 region ``[base,mid)`` and ``segHi`` is a segment with region
 ``[mid,limit)``. Usually a method would only directly modify the
-fields defined for the segment subclass.  ``withReservoirPermit`` is
-ignored (see job003985_).
-
-.. _job003985: http://www.ravenbrook.com/project/mps/issue/job003985/
+fields defined for the segment subclass.
 
 _`.method.split.next`: A split method should always call the next
 method, either before or after any class-specific code (see
@@ -253,7 +250,7 @@ design.mps.protocol.overview.next-method_).
 
 .. _design.mps.protocol.overview.next-method: protocol#overview.next-method
 
-``typedef Res (*SegMergeMethod)(Seg seg, Seg segHi, Addr base, Addr mid, Addr limit, Bool withReservoirPermit)``
+``typedef Res (*SegMergeMethod)(Seg seg, Seg segHi, Addr base, Addr mid, Addr limit)``
 
 _`.method.merge`: Segment subclasses may extend the support for
 segment merging by defining their own ``merge`` method. On entry,
@@ -262,8 +259,7 @@ segment with region ``[mid,limit)``, The method is responsible for
 destructively modifying ``seg`` and finishing ``segHi`` so that on
 exit ``seg`` is a segment with region ``[base,limit)`` and ``segHi``
 is garbage. Usually a method would only modify the fields defined for
-the segment subclass. ``withReservoirPermit`` is ignored (see
-job003985_).
+the segment subclass.
 
 _`.method.merge.next`: A merge method should always call the next
 method, either before or after any class-specific code (see
