@@ -190,7 +190,7 @@ Bool GlobalsCheck(Globals arenaGlobals)
     CHECKD_NOSIG(Ring, &arena->greyRing[rank]);
   CHECKD_NOSIG(Ring, &arena->chainRing);
 
-  CHECKL(arena->tracedSize >= 0.0);
+  CHECKL(arena->tracedWork >= 0.0);
   CHECKL(arena->tracedTime >= 0.0);
   /* no check for arena->lastWorldCollect (Clock) */
 
@@ -215,6 +215,8 @@ Bool GlobalsCheck(Globals arenaGlobals)
   CHECKL(RingCheck(&arenaRing));
 
   CHECKL(BoolCheck(arena->emergency));
+  /* There can only be an emergency when a trace is busy. */
+  CHECKL(!arena->emergency || arena->busyTraces != TraceSetEMPTY);
   
   if (arenaGlobals->defaultChain != NULL)
     CHECKD(Chain, arenaGlobals->defaultChain);
@@ -289,7 +291,7 @@ Res GlobalsInit(Globals arenaGlobals)
   arena->finalPool = NULL;
   arena->busyTraces = TraceSetEMPTY;    /* <code/trace.c> */
   arena->flippedTraces = TraceSetEMPTY; /* <code/trace.c> */
-  arena->tracedSize = 0.0;
+  arena->tracedWork = 0.0;
   arena->tracedTime = 0.0;
   arena->lastWorldCollect = ClockNow();
   arena->insideShield = FALSE;          /* <code/shield.c> */
@@ -708,8 +710,8 @@ void (ArenaPoll)(Globals globals)
 {
   Arena arena;
   Clock start;
-  Count quanta;
-  Size tracedSize;
+  Bool moreWork, workWasDone = FALSE;
+  Work tracedWork;
 
   AVERT(Globals, globals);
 
@@ -725,35 +727,33 @@ void (ArenaPoll)(Globals globals)
 
   /* fillMutatorSize has advanced; call TracePoll enough to catch up. */
   start = ClockNow();
-  quanta = 0;
 
-  EVENT3(ArenaPoll, arena, start, 0);
+  EVENT3(ArenaPoll, arena, start, FALSE);
 
   do {
-    tracedSize = TracePoll(globals);
-    if (tracedSize > 0) {
-      quanta += 1;
-      arena->tracedSize += tracedSize;
+    moreWork = TracePoll(&tracedWork, globals);
+    if (moreWork) {
+      workWasDone = TRUE;
     }
-  } while (PolicyPollAgain(arena, start, tracedSize));
+  } while (PolicyPollAgain(arena, start, moreWork, tracedWork));
 
   /* Don't count time spent checking for work, if there was no work to do. */
-  if(quanta > 0) {
-    arena->tracedTime += (ClockNow() - start) / (double) ClocksPerSec();
+  if (workWasDone) {
+    ArenaAccumulateTime(arena, start, ClockNow());
   }
 
-  AVER(!PolicyPoll(arena));
-
-  EVENT3(ArenaPoll, arena, start, quanta);
+  EVENT3(ArenaPoll, arena, start, BOOLOF(workWasDone));
 
   globals->insidePoll = FALSE;
 }
 
+
+/* ArenaStep -- use idle time for collection work */
+
 Bool ArenaStep(Globals globals, double interval, double multiplier)
 {
-  Size scanned;
-  Bool stepped;
-  Clock start, end, now;
+  Bool workWasDone = FALSE;
+  Clock start, intervalEnd, availableEnd, now;
   Clock clocks_per_sec;
   Arena arena;
 
@@ -764,39 +764,45 @@ Bool ArenaStep(Globals globals, double interval, double multiplier)
   arena = GlobalsArena(globals);
   clocks_per_sec = ClocksPerSec();
 
-  start = ClockNow();
-  end = start + (Clock)(interval * clocks_per_sec);
-  AVER(end >= start);
-
-  stepped = FALSE;
-
-  if (PolicyShouldCollectWorld(arena, interval, multiplier,
-                               start, clocks_per_sec))
-  {
-    Res res;
-    Trace trace;
-    res = TraceStartCollectAll(&trace, arena, TraceStartWhyOPPORTUNISM);
-    if (res == ResOK) {
-      arena->lastWorldCollect = start;
-      stepped = TRUE;
-    }
-  }
+  start = now = ClockNow();
+  intervalEnd = start + (Clock)(interval * clocks_per_sec);
+  AVER(intervalEnd >= start);
+  availableEnd = start + (Clock)(interval * multiplier * clocks_per_sec);
+  AVER(availableEnd >= start);
 
   /* loop while there is work to do and time on the clock. */
   do {
-    scanned = TracePoll(globals);
-    now = ClockNow();
-    if (scanned > 0) {
-      stepped = TRUE;
-      arena->tracedSize += scanned;
+    Trace trace;
+    if (arena->busyTraces != TraceSetEMPTY) {
+      trace = ArenaTrace(arena, (TraceId)0);
+    } else {
+      /* No traces are running: consider collecting the world. */
+      if (PolicyShouldCollectWorld(arena, availableEnd - now, now,
+                                   clocks_per_sec))
+      {
+        Res res;
+        res = TraceStartCollectAll(&trace, arena, TraceStartWhyOPPORTUNISM);
+        if (res != ResOK)
+          break;
+        arena->lastWorldCollect = now;
+      } else {
+        /* Not worth collecting the world; consider starting a trace. */
+        if (!PolicyStartTrace(&trace, arena))
+          break;
+      }
     }
-  } while ((scanned > 0) && (now < end));
+    TraceAdvance(trace);
+    if (trace->state == TraceFINISHED)
+      TraceDestroyFinished(trace);
+    workWasDone = TRUE;
+    now = ClockNow();
+  } while (now < intervalEnd);
 
-  if (stepped) {
-    arena->tracedTime += (now - start) / (double) clocks_per_sec;
+  if (workWasDone) {
+    ArenaAccumulateTime(arena, start, now);
   }
 
-  return stepped;
+  return workWasDone;
 }
 
 /* ArenaFinalize -- registers an object for finalization
