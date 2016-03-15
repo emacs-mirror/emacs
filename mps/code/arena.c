@@ -1312,6 +1312,7 @@ Size ArenaAvail(Arena arena)
      this information from the operating system.  It also depends on the
      arena class, of course. */
 
+  AVER(sSwap >= arena->committed);
   return sSwap - arena->committed + arena->spareCommitted;
 }
 
@@ -1321,7 +1322,20 @@ Size ArenaAvail(Arena arena)
 Size ArenaCollectable(Arena arena)
 {
   /* Conservative estimate -- see job003929. */
-  return ArenaCommitted(arena) - ArenaSpareCommitted(arena);
+  Size committed = ArenaCommitted(arena);
+  Size spareCommitted = ArenaSpareCommitted(arena);
+  AVER(committed >= spareCommitted);
+  return committed - spareCommitted;
+}
+
+
+/* ArenaAccumulateTime -- accumulate time spent tracing */
+
+void ArenaAccumulateTime(Arena arena, Clock start, Clock end)
+{
+  AVERT(Arena, arena);
+  AVER(start <= end);
+  arena->tracedTime += (end - start) / (double) ClocksPerSec();
 }
 
 
