@@ -454,12 +454,24 @@ Arena properties
     ``pause_time`` is the new maximum pause time, in seconds. It must
     be non-negative.
 
+    The MPS makes more efficient use of processor time when it is
+    allowed longer pauses, up to the maximum time it takes to collect
+    the entire arena (see :c:func:`mps_arena_collect`).
+
+    When the pause time is short, the MPS needs to take more slices of
+    time in order to make :term:`garbage collection` progress, and
+    make more use of :term:`barriers (1)` to support
+    :term:`incremental collection`.  This increases time overheads,
+    and especially operating system overheads.
+
     The pause time may be set to zero, in which case the MPS returns
-    as soon as it can do so. The consequence is that the MPS will need
-    to take more slices of time in order to make :term:`garbage
-    collection` progress. This value is suitable for interactive
-    applications where latency needs to be minimized, but where there
-    is plenty of CPU time available.
+    as soon as it can, without regard for overall efficiency.  This
+    value is suitable for applications that require high
+    responsiveness, but where overall run time is unimportant.
+
+    For interactive applications, set this to the maximum pause that a
+    human being might notice.  The default setting of 100ms is
+    intended for this.
 
     The pause time may be set to infinity, in which case the MPS
     completes all outstanding :term:`garbage collection` work before
@@ -485,6 +497,8 @@ Arena properties
     3. none of the operating systems supported by the MPS provide
        real-time guarantees (for example, the process may have to wait
        for :term:`memory (2)` to be :term:`paged in`).
+
+    In other words, the MPS is a “soft” real-time system.
 
 
 .. c:function:: size_t mps_arena_reserved(mps_arena_t arena)
