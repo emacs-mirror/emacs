@@ -415,7 +415,7 @@ typedef struct ScanStateStruct {
   PoolFixMethod fix;            /* third stage fix function */
   void *fixClosure;             /* closure data for fix */
   TraceSet traces;              /* traces to scan for */
-  Table whiteTable;
+  Table whiteTable;             /* address to white segment map or NULL */
   Rank rank;                    /* reference rank of scanning */
   Bool wasMarked;               /* design.mps.fix.protocol.was-ready */
   RefSet fixedSummary;          /* accumulated summary of fixed references */
