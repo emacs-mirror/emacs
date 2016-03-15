@@ -408,8 +408,15 @@
 
 /* TODO: This should be proportional to the memory usage of the MPS, not
  * a constant.  That will require design, and then some interface and
- * documenation changes. */
+ * documentation changes. */
 #define ARENA_DEFAULT_SPARE_COMMIT_LIMIT   ((Size)10uL*1024uL*1024uL)
+
+/* ARENA_DEFAULT_PAUSE_TIME is the maximum time (in seconds) that
+ * operations within the arena may pause the mutator for.  The default
+ * is set for typical human interaction.  See mps_arena_pause_time_set
+ * in the manual. */
+
+#define ARENA_DEFAULT_PAUSE_TIME (0.1)
 
 #define ARENA_DEFAULT_ZONED     TRUE
 

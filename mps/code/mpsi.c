@@ -217,6 +217,25 @@ size_t mps_arena_spare_commit_limit(mps_arena_t arena)
   return limit;
 }
 
+double mps_arena_pause_time(mps_arena_t arena)
+{
+  double pause_time;
+
+  ArenaEnter(arena);
+  pause_time = ArenaPauseTime(arena);
+  ArenaLeave(arena);
+
+  return pause_time;
+}
+
+void mps_arena_pause_time_set(mps_arena_t arena, double pause_time)
+{
+  ArenaEnter(arena);
+  ArenaSetPauseTime(arena, pause_time);
+  ArenaLeave(arena);
+}
+
+
 void mps_arena_clamp(mps_arena_t arena)
 {
   ArenaEnter(arena);

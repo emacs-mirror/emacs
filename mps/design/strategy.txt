@@ -517,16 +517,18 @@ Trace progress
 _`.policy.poll`: Return TRUE if the MPS should do some tracing work;
 FALSE if it should return to the mutator.
 
-``Bool PolicyPollAgain(Arena arena, Clock start, Size tracedSize)``
+``Bool PolicyPollAgain(Arena arena, Clock start, Bool moreWork, Work tracedWork)``
 
 _`.policy.poll.again`: Return TRUE if the MPS should do another unit
 of work; FALSE if it should return to the mutator. ``start`` is the
-clock time when the MPS was entered; ``tracedSize`` is the amount of
-work done by the last call to ``TracePoll()``.
+clock time when the MPS was entered; ``moreWork`` and ``tracedWork``
+are the results of the last call to ``TracePoll()``.
 
-_`.policy.poll.impl`: The implementation balances collection work
-against mutator allocation so that there is approximately one call to
-``TracePoll()`` for every ``ArenaPollALLOCTIME`` bytes of allocation.
+_`.policy.poll.impl`: The implementation keep doing work until either
+the maximum pause time is exceeded (see design.mps.arena.pause-time_),
+or there is no more work to do. Then it schedules the next collection
+so that there is approximately one call to ``TracePoll()`` for every
+``ArenaPollALLOCTIME`` bytes of allocation.
 
 
 References
