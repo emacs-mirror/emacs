@@ -624,6 +624,8 @@ extern Size ArenaCommitLimit(Arena arena);
 extern Res ArenaSetCommitLimit(Arena arena, Size limit);
 extern Size ArenaSpareCommitLimit(Arena arena);
 extern void ArenaSetSpareCommitLimit(Arena arena, Size limit);
+extern double ArenaPauseTime(Arena arena);
+extern void ArenaSetPauseTime(Arena arena, double pauseTime);
 extern Size ArenaNoPurgeSpare(Arena arena, Size size);
 extern Res ArenaNoGrow(Arena arena, LocusPref pref, Size size);
 
@@ -668,7 +670,7 @@ extern Bool PolicyShouldCollectWorld(Arena arena, double availableTime,
                                      Clock now, Clock clocks_per_sec);
 extern Bool PolicyStartTrace(Trace *traceReturn, Arena arena);
 extern Bool PolicyPoll(Arena arena);
-extern Bool PolicyPollAgain(Arena arena, Bool moreWork, Work tracedWork);
+extern Bool PolicyPollAgain(Arena arena, Clock start, Bool moreWork, Work tracedWork);
 
 
 /* Locus interface */
