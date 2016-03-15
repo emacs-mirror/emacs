@@ -96,7 +96,7 @@ extern Bool PoolGenCheck(PoolGen pgen);
 extern Res PoolGenInit(PoolGen pgen, GenDesc gen, Pool pool);
 extern void PoolGenFinish(PoolGen pgen);
 extern Res PoolGenAlloc(Seg *segReturn, PoolGen pgen, SegClass class,
-                        Size size, Bool withReservoirPermit, ArgList args);
+                        Size size, ArgList args);
 extern void PoolGenFree(PoolGen pgen, Seg seg, Size freeSize, Size oldSize,
                         Size newSize, Bool deferred);
 extern void PoolGenAccountForFill(PoolGen pgen, Size size, Bool deferred);

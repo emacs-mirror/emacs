@@ -195,8 +195,7 @@ Res PoolCreate(Pool *poolReturn, Arena arena,
 
   /* .space.alloc: Allocate the pool instance structure with the size */
   /* requested  in the pool class.  See .space.free */
-  res = ControlAlloc(&base, arena, class->size,
-                     /* withReservoirPermit */ FALSE);
+  res = ControlAlloc(&base, arena, class->size);
   if (res != ResOK)
     goto failControlAlloc;
 
@@ -274,17 +273,15 @@ BufferClass PoolDefaultBufferClass(Pool pool)
 
 /* PoolAlloc -- allocate a block of memory from a pool */
 
-Res PoolAlloc(Addr *pReturn, Pool pool, Size size,
-              Bool withReservoirPermit)
+Res PoolAlloc(Addr *pReturn, Pool pool, Size size)
 {
   Res res;
 
   AVER(pReturn != NULL);
   AVERT(Pool, pool);
   AVER(size > 0);
-  AVERT(Bool, withReservoirPermit);
 
-  res = (*pool->class->alloc)(pReturn, pool, size, withReservoirPermit);
+  res = (*pool->class->alloc)(pReturn, pool, size);
   if (res != ResOK)
     return res;
   /* Make sure that the allocated address was in the pool's memory. */

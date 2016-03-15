@@ -46,7 +46,7 @@ SRCID(seg, "$Id$");
 static void SegFinish(Seg seg);
 
 static Res SegInit(Seg seg, Pool pool, Addr base, Size size,
-                   Bool withReservoirPermit, ArgList args);
+                   ArgList args);
 
 
 /* Generic interface support */
@@ -55,7 +55,7 @@ static Res SegInit(Seg seg, Pool pool, Addr base, Size size,
 /* SegAlloc -- allocate a segment from the arena */
 
 Res SegAlloc(Seg *segReturn, SegClass class, LocusPref pref,
-             Size size, Pool pool, Bool withReservoirPermit, ArgList args)
+             Size size, Pool pool, ArgList args)
 {
   Res res;
   Arena arena;
@@ -68,25 +68,24 @@ Res SegAlloc(Seg *segReturn, SegClass class, LocusPref pref,
   AVERT(LocusPref, pref);
   AVER(size > (Size)0);
   AVERT(Pool, pool);
-  AVERT(Bool, withReservoirPermit);
 
   arena = PoolArena(pool);
   AVERT(Arena, arena);
   AVER(SizeIsArenaGrains(size, arena));
 
   /* allocate the memory from the arena */
-  res = ArenaAlloc(&base, pref, size, pool, withReservoirPermit);
+  res = ArenaAlloc(&base, pref, size, pool);
   if (res != ResOK)
     goto failArena;
 
   /* allocate the segment object from the control pool */
-  res = ControlAlloc(&p, arena, class->size, withReservoirPermit);
+  res = ControlAlloc(&p, arena, class->size);
   if (res != ResOK)
     goto failControl;
   seg = p;
 
   seg->class = class;
-  res = SegInit(seg, pool, base, size, withReservoirPermit, args);
+  res = SegInit(seg, pool, base, size, args);
   if (res != ResOK)
     goto failInit;
 
@@ -134,8 +133,7 @@ void SegFree(Seg seg)
 
 /* SegInit -- initialize a segment */
 
-static Res SegInit(Seg seg, Pool pool, Addr base, Size size,
-                   Bool withReservoirPermit, ArgList args)
+static Res SegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 {
   Addr limit;
   Arena arena;
@@ -150,7 +148,6 @@ static Res SegInit(Seg seg, Pool pool, Addr base, Size size,
   AVER(SizeIsArenaGrains(size, arena));
   class = seg->class;
   AVERT(SegClass, class);
-  AVERT(Bool, withReservoirPermit);
 
   /* IMPORTANT: Keep in sync with segTrivSplit. */
   limit = AddrAdd(base, size);
@@ -168,7 +165,7 @@ static Res SegInit(Seg seg, Pool pool, Addr base, Size size,
   seg->sig = SegSig;  /* set sig now so tract checks will see it */
 
   /* Class specific initialization comes last */
-  res = class->init(seg, pool, base, size, withReservoirPermit, args);
+  res = class->init(seg, pool, base, size, args);
   if (res != ResOK)
     goto failInit;
    
@@ -596,8 +593,7 @@ Bool SegNext(Seg *segReturn, Arena arena, Seg seg)
  * See <design/seg/#merge>
  */
 
-Res SegMerge(Seg *mergedSegReturn, Seg segLo, Seg segHi,
-             Bool withReservoirPermit)
+Res SegMerge(Seg *mergedSegReturn, Seg segLo, Seg segHi)
 {
   SegClass class;
   Addr base, mid, limit;
@@ -614,18 +610,16 @@ Res SegMerge(Seg *mergedSegReturn, Seg segLo, Seg segHi,
   mid = SegLimit(segLo);
   limit = SegLimit(segHi);
   AVER(SegBase(segHi) == SegLimit(segLo));
-  AVERT(Bool, withReservoirPermit);
   arena = PoolArena(SegPool(segLo));
 
   ShieldFlush(arena);  /* see <design/seg/#split-merge.shield> */
 
   /* Invoke class-specific methods to do the merge */
-  res = class->merge(segLo, segHi, base, mid, limit,
-                     withReservoirPermit);
+  res = class->merge(segLo, segHi, base, mid, limit);
   if (ResOK != res)
     goto failMerge;
 
-  EVENT3(SegMerge, segLo, segHi, BOOLOF(withReservoirPermit));
+  EVENT2(SegMerge, segLo, segHi);
   /* Deallocate segHi object */
   ControlFree(arena, segHi, class->size);
   AVERT(Seg, segLo);
@@ -645,8 +639,7 @@ failMerge:
  * See <design/seg/#split>
  */
 
-Res SegSplit(Seg *segLoReturn, Seg *segHiReturn, Seg seg, Addr at,
-             Bool withReservoirPermit)
+Res SegSplit(Seg *segLoReturn, Seg *segHiReturn, Seg seg, Addr at)
 {
   Addr base, limit;
   SegClass class;
@@ -666,7 +659,6 @@ Res SegSplit(Seg *segLoReturn, Seg *segHiReturn, Seg seg, Addr at,
   AVER(AddrIsArenaGrain(at, arena));
   AVER(at > base);
   AVER(at < limit);
-  AVERT(Bool, withReservoirPermit);
 
   /* Can only split a buffered segment if the entire buffer is below
    * the split point. */
@@ -675,14 +667,13 @@ Res SegSplit(Seg *segLoReturn, Seg *segHiReturn, Seg seg, Addr at,
   ShieldFlush(arena);  /* see <design/seg/#split-merge.shield> */
 
   /* Allocate the new segment object from the control pool */
-  res = ControlAlloc(&p, arena, class->size, withReservoirPermit);
+  res = ControlAlloc(&p, arena, class->size);
   if (ResOK != res)
     goto failControl;
   segNew = p;
 
   /* Invoke class-specific methods to do the split */
-  res = class->split(seg, segNew, base, at, limit,
-                     withReservoirPermit);
+  res = class->split(seg, segNew, base, at, limit);
   if (ResOK != res)
     goto failSplit;
 
@@ -764,8 +755,7 @@ Bool SegCheck(Seg seg)
 
 /* segTrivInit -- method to initialize the base fields of a segment */
 
-static Res segTrivInit(Seg seg, Pool pool, Addr base, Size size,
-                       Bool reservoirPermit, ArgList args)
+static Res segTrivInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 {
   /* all the initialization happens in SegInit so checks are safe */
   Arena arena;
@@ -778,7 +768,6 @@ static Res segTrivInit(Seg seg, Pool pool, Addr base, Size size,
   AVER(SegBase(seg) == base);
   AVER(SegSize(seg) == size);
   AVER(SegPool(seg) == pool);
-  AVERT(Bool, reservoirPermit);
   AVERT(ArgList, args);
   UNUSED(args);
   return ResOK;
@@ -871,8 +860,7 @@ static void segNoSetBuffer(Seg seg, Buffer buffer)
 /* segNoMerge -- merge method for segs which don't support merge */
 
 static Res segNoMerge(Seg seg, Seg segHi,
-                      Addr base, Addr mid, Addr limit,
-                      Bool withReservoirPermit)
+                      Addr base, Addr mid, Addr limit)
 {
   AVERT(Seg, seg);
   AVERT(Seg, segHi);
@@ -880,7 +868,6 @@ static Res segNoMerge(Seg seg, Seg segHi,
   AVER(SegLimit(seg) == mid);
   AVER(SegBase(segHi) == mid);
   AVER(SegLimit(segHi) == limit);
-  AVERT(Bool, withReservoirPermit);
   NOTREACHED;
   return ResFAIL;
 }
@@ -893,8 +880,7 @@ static Res segNoMerge(Seg seg, Seg segHi,
  */
 
 static Res segTrivMerge(Seg seg, Seg segHi,
-                        Addr base, Addr mid, Addr limit,
-                        Bool withReservoirPermit)
+                        Addr base, Addr mid, Addr limit)
 {
   Pool pool;
   Arena arena;
@@ -913,7 +899,6 @@ static Res segTrivMerge(Seg seg, Seg segHi,
   AVER(SegLimit(seg) == mid);
   AVER(SegBase(segHi) == mid);
   AVER(SegLimit(segHi) == limit);
-  AVERT(Bool, withReservoirPermit);
 
   /* .similar.  */
   AVER(seg->rankSet == segHi->rankSet);
@@ -950,8 +935,7 @@ static Res segTrivMerge(Seg seg, Seg segHi,
 /* segNoSplit -- split method for segs which don't support splitting */
 
 static Res segNoSplit(Seg seg, Seg segHi,
-                      Addr base, Addr mid, Addr limit,
-                      Bool withReservoirPermit)
+                      Addr base, Addr mid, Addr limit)
 {
   AVERT(Seg, seg);
   AVER(segHi != NULL);  /* can't check fully, it's not initialized */
@@ -959,7 +943,6 @@ static Res segNoSplit(Seg seg, Seg segHi,
   AVER(mid < limit);
   AVER(SegBase(seg) == base);
   AVER(SegLimit(seg) == limit);
-  AVERT(Bool, withReservoirPermit);
   NOTREACHED;
   return ResFAIL;
 
@@ -969,8 +952,7 @@ static Res segNoSplit(Seg seg, Seg segHi,
 /* segTrivSplit -- Basic Seg split method */
 
 static Res segTrivSplit(Seg seg, Seg segHi,
-                        Addr base, Addr mid, Addr limit,
-                        Bool withReservoirPermit)
+                        Addr base, Addr mid, Addr limit)
 {
   Pool pool;
   Arena arena;
@@ -987,7 +969,6 @@ static Res segTrivSplit(Seg seg, Seg segHi,
   AVER(mid < limit);
   AVER(SegBase(seg) == base);
   AVER(SegLimit(seg) == limit);
-  AVERT(Bool, withReservoirPermit);
 
   /* Segment may not be exposed, or in the shield cache */
   /* See <design/seg/#split-merge.shield> & <code/shield.c#def.depth> */
@@ -1091,8 +1072,7 @@ Bool GCSegCheck(GCSeg gcseg)
 
 /* gcSegInit -- method to initialize a GC segment */
 
-static Res gcSegInit(Seg seg, Pool pool, Addr base, Size size,
-                     Bool withReservoirPermit, ArgList args)
+static Res gcSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 {
   SegClass super;
   GCSeg gcseg;
@@ -1106,11 +1086,10 @@ static Res gcSegInit(Seg seg, Pool pool, Addr base, Size size,
   AVER(SizeIsArenaGrains(size, arena));
   gcseg = SegGCSeg(seg);
   AVER(&gcseg->segStruct == seg);
-  AVERT(Bool, withReservoirPermit);
 
   /* Initialize the superclass fields first via next-method call */
   super = SEG_SUPERCLASS(GCSegClass);
-  res = super->init(seg, pool, base, size, withReservoirPermit, args);
+  res = super->init(seg, pool, base, size, args);
   if (ResOK != res)
     return res;
 
@@ -1433,8 +1412,7 @@ static void gcSegSetBuffer(Seg seg, Buffer buffer)
  */
 
 static Res gcSegMerge(Seg seg, Seg segHi,
-                      Addr base, Addr mid, Addr limit,
-                      Bool withReservoirPermit)
+                      Addr base, Addr mid, Addr limit)
 {
   SegClass super;
   GCSeg gcseg, gcsegHi;
@@ -1455,7 +1433,6 @@ static Res gcSegMerge(Seg seg, Seg segHi,
   AVER(SegLimit(seg) == mid);
   AVER(SegBase(segHi) == mid);
   AVER(SegLimit(segHi) == limit);
-  AVERT(Bool, withReservoirPermit);
 
   buf = gcsegHi->buffer;      /* any buffer on segHi must be reassigned */
   AVER(buf == NULL || gcseg->buffer == NULL); /* See .buffer */
@@ -1464,8 +1441,7 @@ static Res gcSegMerge(Seg seg, Seg segHi,
 
   /* Merge the superclass fields via next-method call */
   super = SEG_SUPERCLASS(GCSegClass);
-  res = super->merge(seg, segHi, base, mid, limit,
-                     withReservoirPermit);
+  res = super->merge(seg, segHi, base, mid, limit);
   if (res != ResOK)
     goto failSuper;
 
@@ -1503,8 +1479,7 @@ failSuper:
 /* gcSegSplit -- GCSeg split method */
 
 static Res gcSegSplit(Seg seg, Seg segHi,
-                      Addr base, Addr mid, Addr limit,
-                      Bool withReservoirPermit)
+                      Addr base, Addr mid, Addr limit)
 {
   SegClass super;
   GCSeg gcseg, gcsegHi;
@@ -1521,7 +1496,6 @@ static Res gcSegSplit(Seg seg, Seg segHi,
   AVER(mid < limit);
   AVER(SegBase(seg) == base);
   AVER(SegLimit(seg) == limit);
-  AVERT(Bool, withReservoirPermit);
  
   grey = SegGrey(seg);
   buf = gcseg->buffer; /* Look for buffer to reassign to segHi */
@@ -1536,8 +1510,7 @@ static Res gcSegSplit(Seg seg, Seg segHi,
 
   /* Split the superclass fields via next-method call */
   super = SEG_SUPERCLASS(GCSegClass);
-  res = super->split(seg, segHi, base, mid, limit,
-                     withReservoirPermit);
+  res = super->split(seg, segHi, base, mid, limit);
   if (res != ResOK)
     goto failSuper;
 

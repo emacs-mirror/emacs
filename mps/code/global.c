@@ -353,7 +353,7 @@ Res GlobalsCompleteCreate(Globals arenaGlobals)
   {
     void *v;
 
-    res = ControlAlloc(&v, arena, BTSize(MessageTypeLIMIT), FALSE);
+    res = ControlAlloc(&v, arena, BTSize(MessageTypeLIMIT));
     if (res != ResOK)
       return res;
     arena->enabledMessageTypes = v;
@@ -367,7 +367,7 @@ Res GlobalsCompleteCreate(Globals arenaGlobals)
       return res;
   TRACE_SET_ITER_END(ti, trace, TraceSetUNIV, arena);
 
-  res = ControlAlloc(&p, arena, LockSize(), FALSE);
+  res = ControlAlloc(&p, arena, LockSize());
   if (res != ResOK)
     return res;
   arenaGlobals->lock = (Lock)p;
@@ -506,11 +506,10 @@ void GlobalsPrepareToDestroy(Globals arenaGlobals)
 
   /* At this point the following pools still exist:
    * 0. arena->freeCBSBlockPoolStruct
-   * 1. arena->reservoirStruct
-   * 2. arena->controlPoolStruct
-   * 3. arena->controlPoolStruct.cbsBlockPoolStruct
+   * 1. arena->controlPoolStruct
+   * 2. arena->controlPoolStruct.cbsBlockPoolStruct
    */
-  AVER(RingLength(&arenaGlobals->poolRing) == 4);
+  AVER(RingLength(&arenaGlobals->poolRing) == 3);
 }
 
 

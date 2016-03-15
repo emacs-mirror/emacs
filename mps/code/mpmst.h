@@ -143,27 +143,6 @@ typedef struct MFSStruct {      /* MFS outer structure */
 } MFSStruct;
 
 
-/* ReservoirStruct -- Reservoir structure
- *
- * .reservoir: See <code/reserv.c>, <design/reservoir/>.
- *
- * The Reservoir structure is declared here because it is in-lined in
- * the arena for storing segments for the low-memory reservoir.  It is
- * implemented as a pool - but doesn't follow the normal pool naming
- * conventions because it's not intended for general use and the use of
- * a pool is an incidental detail.  */
-
-#define ReservoirSig ((Sig)0x5196e599) /* SIGnature REServoir */
-
-typedef struct ReservoirStruct {   /* Reservoir structure */
-  PoolStruct poolStruct;        /* generic pool structure */
-  Tract reserve;                /* linked list of reserve tracts */
-  Size reservoirLimit;          /* desired reservoir size */
-  Size reservoirSize;           /* actual reservoir size */
-  Sig sig;                      /* <design/sig/> */
-} ReservoirStruct;
-
-
 /* MessageClassStruct -- Message Class structure
  *
  * See <design/message/#class.struct> (and <design/message/#message>,
@@ -730,8 +709,6 @@ typedef struct mps_arena_s {
 
   Bool poolReady;               /* <design/arena/#pool.ready> */
   MVFFStruct controlPoolStruct; /* <design/arena/#pool> */
-
-  ReservoirStruct reservoirStruct; /* <design/reservoir/> */
 
   Size reserved;                /* total reserved address space */
   Size committed;               /* total committed memory */
