@@ -141,6 +141,7 @@ Res FormatCreate(Format *formatReturn, Arena arena, ArgList args)
 
   format->arena = arena;
   RingInit(&format->arenaRing);
+  format->poolCount = 0;
   format->alignment = fmtAlign;
   format->headerSize = fmtHeaderSize;
   format->scan = fmtScan;
@@ -168,6 +169,7 @@ Res FormatCreate(Format *formatReturn, Arena arena, ArgList args)
 void FormatDestroy(Format format)
 {
   AVERT(Format, format);
+  AVER(format->poolCount == 0);
 
   RingRemove(&format->arenaRing);
 
@@ -230,6 +232,7 @@ Res FormatDescribe(Format format, mps_lib_FILE *stream, Count depth)
                "Format $P ($U) {\n", (WriteFP)format, (WriteFU)format->serial,
                "  arena $P ($U)\n",
                (WriteFP)format->arena, (WriteFU)format->arena->serial,
+               "  poolCount $U\n", (WriteFU)format->poolCount,
                "  alignment $W\n", (WriteFW)format->alignment,
                "  scan $F\n", (WriteFF)format->scan,
                "  skip $F\n", (WriteFF)format->skip,
