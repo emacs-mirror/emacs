@@ -240,7 +240,7 @@ Res ArenaInit(Arena arena, ArenaClass class, Size grainSize, ArgList args)
   SplayTreeInit(ArenaSegSplay(arena),
                 SegCompare,
                 SegKey,
-                SplayTrivUpdate);
+                SegUpdate);
   
   LocusInit(arena);
   

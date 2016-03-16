@@ -484,7 +484,8 @@ Res TraceCondemnZones(Trace trace, ZoneSet condemnedSet)
   tczStruct.condemnedSet = condemnedSet;
   tczStruct.haveWhiteSegs = FALSE;
   tczStruct.res = ResOK;
-  if (!SegTraverse(trace->arena, traceCondemnZonesVisit, &tczStruct)) {
+  if (!SegTraverseInZones(trace->arena, condemnedSet,
+                          traceCondemnZonesVisit, &tczStruct)) {
     AVER(tczStruct.res != ResOK);
     AVER(TraceIsEmpty(trace)); /* See .whiten.fail. */
     return tczStruct.res;
@@ -975,6 +976,12 @@ static void traceReclaim(Trace trace)
 
   /* TODO: This isn't very nice, as it rebalances the segment splay
      tree and destroys any optimisation discovered by splaying. */
+  /* TODO: This isn't very nice, as it visits every segment,
+     regardless of colour or zone. */
+  /* TODO: Consider sort | uniq the white table? */
+  /* TODO: For multiple traces, the white table is shared, and so we
+     must delete the pages of reclaimed segments from it.  That means
+     visiting the table might work. */
   SegTraverseAndDelete(arena, traceReclaimVisit, trace);
 
   trace->state = TraceFINISHED;

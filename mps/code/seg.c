@@ -162,6 +162,7 @@ static Res SegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   seg->depth = 0;
   RingInit(SegPoolRing(seg));
   TreeInit(SegTree(seg));
+  seg->treeZones = ZoneSetEMPTY; /* set by SegUpdate */
   seg->sig = SegSig;  /* set sig now so tract checks will see it */
 
   /* Class specific initialization comes last */
@@ -251,6 +252,25 @@ Compare SegCompare(Tree tree, TreeKey key)
 TreeKey SegKey(Tree tree)
 {
   return (TreeKey)SegBase(segOfTree(tree)); /* FIXME: See cbsBlockKey in cbs.c */
+}
+
+void SegUpdate(SplayTree splay, Tree tree)
+{
+  Seg seg = segOfTree(tree);
+  ZoneSet zones;
+  
+  UNUSED(splay);
+  AVERT_CRITICAL(Seg, seg);
+
+  /* FIXME: Duplicate code with cbsUpdateZonedNode. */
+  zones = ZoneSetOfRange(PoolArena(SegPool(seg)),
+                         SegBase(seg), SegLimit(seg));
+  if (TreeHasLeft(tree))
+    zones = ZoneSetUnion(zones, segOfTree(TreeLeft(tree))->treeZones);
+  if (TreeHasRight(tree))
+    zones = ZoneSetUnion(zones, segOfTree(TreeRight(tree))->treeZones);
+
+  seg->treeZones = zones;
 }
 
 
@@ -466,6 +486,7 @@ Bool SegOfAddr(Seg *segReturn, Arena arena, Addr addr)
 
 typedef struct SegTraverseClosureStruct {
   SegVisitor visit;
+  ZoneSet zs;
   void *closure;
 } SegTraverseClosureStruct, *SegTraverseClosure;
 
@@ -475,15 +496,36 @@ static Bool segTraverseVisit(Tree tree, void *closure)
   return stv->visit(segOfTree(tree), stv->closure);
 }
 
+static Bool segTraverseFilter(Tree tree, void *closure)
+{
+  SegTraverseClosure stv = closure;
+  return ZoneSetInter(segOfTree(tree)->treeZones, stv->zs) != ZoneSetEMPTY;
+}
+
 Bool SegTraverse(Arena arena, SegVisitor visit, void *closure)
 {
   SegTraverseClosureStruct stvStruct;
   stvStruct.visit = visit;
   stvStruct.closure = closure;
+  stvStruct.zs = ZoneSetUNIV; /* not used */
   return TreeTraverse(SplayTreeRoot(ArenaSegSplay(arena)),
                       SegCompare, SegKey,
                       segTraverseVisit,
                       &stvStruct);
+}
+
+Bool SegTraverseInZones(Arena arena, ZoneSet zs, SegVisitor visit, void *closure)
+{
+  SegTraverseClosureStruct stvStruct;
+  stvStruct.visit = visit;
+  stvStruct.closure = closure;
+  stvStruct.zs = zs;
+  return TreeTraversePartial(SplayTreeRoot(ArenaSegSplay(arena)),
+                             SegCompare, SegKey,
+                             segTraverseFilter,
+                             TreeNoRange,
+                             segTraverseVisit,
+                             &stvStruct);
 }
 
 void SegTraverseAndDelete(Arena arena, SegVisitor visit, void *closure)
