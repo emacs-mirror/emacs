@@ -215,8 +215,7 @@ static void amsDestroyTables(AMS ams, BT allocTable,
 
 /* AMSSegInit -- Init method for AMS segments */
 
-static Res AMSSegInit(Seg seg, Pool pool, Addr base, Size size,
-                      Bool reservoirPermit, ArgList args)
+static Res AMSSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 {
   SegClass super;
   AMSSeg amsseg;
@@ -231,11 +230,10 @@ static Res AMSSegInit(Seg seg, Pool pool, Addr base, Size size,
   AVERT(AMS, ams);
   arena = PoolArena(pool);
   /* no useful checks for base and size */
-  AVERT(Bool, reservoirPermit);
 
   /* Initialize the superclass fields first via next-method call */
   super = SEG_SUPERCLASS(AMSSegClass);
-  res = super->init(seg, pool, base, size, reservoirPermit, args);
+  res = super->init(seg, pool, base, size, args);
   if (res != ResOK)
     goto failNextMethod;
 
@@ -328,8 +326,7 @@ static void AMSSegFinish(Seg seg)
  */
 
 static Res AMSSegMerge(Seg seg, Seg segHi,
-                       Addr base, Addr mid, Addr limit,
-                       Bool withReservoirPermit)
+                       Addr base, Addr mid, Addr limit)
 {
   SegClass super;
   Count loGrains, hiGrains, allGrains;
@@ -367,8 +364,7 @@ static Res AMSSegMerge(Seg seg, Seg segHi,
 
   /* Merge the superclass fields via next-method call */
   super = SEG_SUPERCLASS(AMSSegClass);
-  res = super->merge(seg, segHi, base, mid, limit,
-                     withReservoirPermit);
+  res = super->merge(seg, segHi, base, mid, limit);
   if (res != ResOK)
     goto failSuper;
 
@@ -414,8 +410,7 @@ failCreateTables:
 
 
 static Res AMSSegSplit(Seg seg, Seg segHi,
-                       Addr base, Addr mid, Addr limit,
-                       Bool withReservoirPermit)
+                       Addr base, Addr mid, Addr limit)
 {
   SegClass super;
   Count loGrains, hiGrains, allGrains;
@@ -462,7 +457,7 @@ static Res AMSSegSplit(Seg seg, Seg segHi,
 
   /* Split the superclass fields via next-method call */
   super = SEG_SUPERCLASS(AMSSegClass);
-  res = super->split(seg, segHi, base, mid, limit, withReservoirPermit);
+  res = super->split(seg, segHi, base, mid, limit);
   if (res != ResOK)
     goto failSuper;
 
@@ -682,7 +677,7 @@ static Res AMSSegSizePolicy(Size *sizeReturn,
 /* AMSSegCreate -- create a single AMSSeg */
 
 static Res AMSSegCreate(Seg *segReturn, Pool pool, Size size,
-                        RankSet rankSet, Bool withReservoirPermit)
+                        RankSet rankSet)
 {
   Seg seg;
   AMS ams;
@@ -694,7 +689,6 @@ static Res AMSSegCreate(Seg *segReturn, Pool pool, Size size,
   AVERT(Pool, pool);
   AVER(size > 0);
   AVERT(RankSet, rankSet);
-  AVERT(Bool, withReservoirPermit);
 
   ams = PoolAMS(pool);
   AVERT(AMS,ams);
@@ -705,13 +699,13 @@ static Res AMSSegCreate(Seg *segReturn, Pool pool, Size size,
     goto failSize;
 
   res = PoolGenAlloc(&seg, &ams->pgen, (*ams->segClass)(), prefSize,
-                     withReservoirPermit, argsNone);
+                     argsNone);
   if (res != ResOK) { /* try to allocate one that's just large enough */
     Size minSize = SizeArenaGrains(size, arena);
     if (minSize == prefSize)
       goto failSeg;
     res = PoolGenAlloc(&seg, &ams->pgen, (*ams->segClass)(), prefSize,
-                       withReservoirPermit, argsNone);
+                       argsNone);
     if (res != ResOK)
       goto failSeg;
   }
@@ -946,8 +940,7 @@ static Bool amsSegAlloc(Index *baseReturn, Index *limitReturn,
  * <design/poolams/#fill>.
  */
 static Res AMSBufferFill(Addr *baseReturn, Addr *limitReturn,
-                         Pool pool, Buffer buffer, Size size,
-                         Bool withReservoirPermit)
+                         Pool pool, Buffer buffer, Size size)
 {
   Res res;
   AMS ams;
@@ -967,7 +960,6 @@ static Res AMSBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVERT(Buffer, buffer);
   AVER(size > 0);
   AVER(SizeIsAligned(size, PoolAlignment(pool)));
-  AVERT(Bool, withReservoirPermit);
 
   /* Check that we're not in the grey mutator phase (see */
   /* <design/poolams/#fill.colour>). */
@@ -996,8 +988,7 @@ static Res AMSBufferFill(Addr *baseReturn, Addr *limitReturn,
   }
 
   /* No suitable segment found; make a new one. */
-  res = AMSSegCreate(&seg, pool, size, rankSet,
-                     withReservoirPermit);
+  res = AMSSegCreate(&seg, pool, size, rankSet);
   if (res != ResOK)
     return res;
   b = amsSegAlloc(&base, &limit, seg, size);

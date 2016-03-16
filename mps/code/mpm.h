@@ -210,8 +210,7 @@ extern Res PoolCreate(Pool *poolReturn, Arena arena, PoolClass class,
                       ArgList args);
 extern void PoolDestroy(Pool pool);
 extern BufferClass PoolDefaultBufferClass(Pool pool);
-extern Res PoolAlloc(Addr *pReturn, Pool pool, Size size,
-                     Bool withReservoirPermit);
+extern Res PoolAlloc(Addr *pReturn, Pool pool, Size size);
 extern void PoolFree(Pool pool, Addr old, Size size);
 extern Res PoolTraceBegin(Pool pool, Trace trace);
 extern Res PoolAccess(Pool pool, Seg seg, Addr addr,
@@ -235,18 +234,14 @@ extern Size PoolFreeSize(Pool pool);
 
 extern Res PoolTrivInit(Pool pool, ArgList arg);
 extern void PoolTrivFinish(Pool pool);
-extern Res PoolNoAlloc(Addr *pReturn, Pool pool, Size size,
-                       Bool withReservoirPermit);
-extern Res PoolTrivAlloc(Addr *pReturn, Pool pool, Size size,
-                         Bool withReservoirPermit);
+extern Res PoolNoAlloc(Addr *pReturn, Pool pool, Size size);
+extern Res PoolTrivAlloc(Addr *pReturn, Pool pool, Size size);
 extern void PoolNoFree(Pool pool, Addr old, Size size);
 extern void PoolTrivFree(Pool pool, Addr old, Size size);
 extern Res PoolNoBufferFill(Addr *baseReturn, Addr *limitReturn,
-                            Pool pool, Buffer buffer, Size size,
-                            Bool withReservoirPermit);
+                            Pool pool, Buffer buffer, Size size);
 extern Res PoolTrivBufferFill(Addr *baseReturn, Addr *limitReturn,
-                              Pool pool, Buffer buffer, Size size,
-                              Bool withReservoirPermit);
+                              Pool pool, Buffer buffer, Size size);
 extern void PoolNoBufferEmpty(Pool pool, Buffer buffer,
                               Addr init, Addr limit);
 extern void PoolTrivBufferEmpty(Pool pool, Buffer buffer,
@@ -581,8 +576,7 @@ extern Bool ArenaEmergency(Arena arean);
 
 extern Res ControlInit(Arena arena);
 extern void ControlFinish(Arena arena);
-extern Res ControlAlloc(void **baseReturn, Arena arena, size_t size,
-                        Bool withReservoirPermit);
+extern Res ControlAlloc(void **baseReturn, Arena arena, size_t size);
 extern void ControlFree(Arena arena, void *base, size_t size);
 extern Res ControlDescribe(Arena arena, mps_lib_FILE *stream, Count depth);
 
@@ -641,22 +635,8 @@ extern void ArenaCompact(Arena arena, Trace trace);
 extern Res ArenaFinalize(Arena arena, Ref obj);
 extern Res ArenaDefinalize(Arena arena, Ref obj);
 
-#define ArenaReservoir(arena) (&(arena)->reservoirStruct)
-#define ReservoirPool(reservoir) (&(reservoir)->poolStruct)
-
-extern Bool ReservoirCheck(Reservoir reservoir);
-extern Res ReservoirInit(Reservoir reservoir, Arena arena);
-extern void ReservoirFinish (Reservoir reservoir);
-extern Size ReservoirLimit(Reservoir reservoir);
-extern void ReservoirSetLimit(Reservoir reservoir, Size size);
-extern Size ReservoirAvailable(Reservoir reservoir);
-extern Res ReservoirEnsureFull(Reservoir reservoir);
-extern Bool ReservoirDeposit(Reservoir reservoir, Addr *baseIO, Size *sizeIO);
-extern Res ReservoirWithdraw(Addr *baseReturn, Tract *baseTractReturn,
-                             Reservoir reservoir, Size size, Pool pool);
-
 extern Res ArenaAlloc(Addr *baseReturn, LocusPref pref,
-                      Size size, Pool pool, Bool withReservoirPermit);
+                      Size size, Pool pool);
 extern Res ArenaFreeLandAlloc(Tract *tractReturn, Arena arena, ZoneSet zones,
                               Bool high, Size size, Pool pool);
 extern void ArenaFree(Addr base, Size size, Pool pool);
@@ -691,7 +671,7 @@ extern Bool LocusCheck(Arena arena);
 /* Segment interface */
 
 extern Res SegAlloc(Seg *segReturn, SegClass class, LocusPref pref,
-                    Size size, Pool pool, Bool withReservoirPermit,
+                    Size size, Pool pool,
                     ArgList args);
 extern void SegFree(Seg seg);
 extern Bool SegOfAddr(Seg *segReturn, Arena arena, Addr addr);
@@ -702,10 +682,8 @@ extern void SegSetWhite(Seg seg, TraceSet white);
 extern void SegSetGrey(Seg seg, TraceSet grey);
 extern void SegSetRankSet(Seg seg, RankSet rankSet);
 extern void SegSetRankAndSummary(Seg seg, RankSet rankSet, RefSet summary);
-extern Res SegMerge(Seg *mergedSegReturn, Seg segLo, Seg segHi,
-                    Bool withReservoirPermit);
-extern Res SegSplit(Seg *segLoReturn, Seg *segHiReturn, Seg seg, Addr at,
-                    Bool withReservoirPermit);
+extern Res SegMerge(Seg *mergedSegReturn, Seg segLo, Seg segHi);
+extern Res SegSplit(Seg *segLoReturn, Seg *segHiReturn, Seg seg, Addr at);
 extern Res SegDescribe(Seg seg, mps_lib_FILE *stream, Count depth);
 extern void SegSetSummary(Seg seg, RefSet summary);
 extern Buffer SegBuffer(Seg seg);
@@ -766,21 +744,19 @@ extern void BufferDestroy(Buffer buffer);
 extern Bool BufferCheck(Buffer buffer);
 extern Bool SegBufCheck(SegBuf segbuf);
 extern Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream, Count depth);
-extern Res BufferReserve(Addr *pReturn, Buffer buffer, Size size,
-                         Bool withReservoirPermit);
+extern Res BufferReserve(Addr *pReturn, Buffer buffer, Size size);
 /* macro equivalent for BufferReserve, keep in sync with <code/buffer.c> */
 /* TODO: Perhaps this isn't really necessary now that we build the MPS with
    more global optimisation and inlining. RB 2012-09-07 */
-#define BUFFER_RESERVE(pReturn, buffer, size, withReservoirPermit) \
+#define BUFFER_RESERVE(pReturn, buffer, size) \
   (AddrAdd(BufferAlloc(buffer), size) > BufferAlloc(buffer) && \
    AddrAdd(BufferAlloc(buffer), size) <= (Addr)BufferAP(buffer)->limit ? \
      (*(pReturn) = BufferAlloc(buffer), \
       BufferAP(buffer)->alloc = AddrAdd(BufferAlloc(buffer), size), \
       ResOK) : \
-   BufferFill(pReturn, buffer, size, withReservoirPermit))
+   BufferFill(pReturn, buffer, size))
 
-extern Res BufferFill(Addr *pReturn, Buffer buffer, Size size,
-                      Bool withReservoirPermit);
+extern Res BufferFill(Addr *pReturn, Buffer buffer, Size size);
 
 extern Bool BufferCommit(Buffer buffer, Addr p, Size size);
 /* macro equivalent for BufferCommit, keep in sync with <code/buffer.c> */

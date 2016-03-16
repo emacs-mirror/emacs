@@ -191,8 +191,7 @@ Res BTCreate(BT *btReturn, Arena arena, Count length)
   AVERT(Arena, arena);
   AVER(length > 0);
 
-  res = ControlAlloc(&p, arena, BTSize(length),
-                     /* withReservoirPermit */ FALSE);
+  res = ControlAlloc(&p, arena, BTSize(length));
   if (res != ResOK)
     return res;
   bt = (BT)p;
