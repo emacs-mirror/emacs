@@ -205,7 +205,7 @@ Res ChainCreate(Chain *chainReturn, Arena arena, size_t genCount,
     AVER(params[i].mortality < 1.0);
   }
 
-  res = ControlAlloc(&p, arena, genCount * sizeof(GenDescStruct), FALSE);
+  res = ControlAlloc(&p, arena, genCount * sizeof(GenDescStruct));
   if (res != ResOK)
     return res;
   gens = (GenDescStruct *)p;
@@ -219,7 +219,7 @@ Res ChainCreate(Chain *chainReturn, Arena arena, size_t genCount,
     AVERT(GenDesc, &gens[i]);
   }
 
-  res = ControlAlloc(&p, arena, sizeof(ChainStruct), FALSE);
+  res = ControlAlloc(&p, arena, sizeof(ChainStruct));
   if (res != ResOK)
     goto failChainAlloc;
   chain = (Chain)p;
@@ -313,7 +313,7 @@ GenDesc ChainGen(Chain chain, Index gen)
  */
 
 Res PoolGenAlloc(Seg *segReturn, PoolGen pgen, SegClass class, Size size,
-                 Bool withReservoirPermit, ArgList args)
+                 ArgList args)
 {
   LocusPrefStruct pref;
   Res res;
@@ -326,7 +326,6 @@ Res PoolGenAlloc(Seg *segReturn, PoolGen pgen, SegClass class, Size size,
   AVERT(PoolGen, pgen);
   AVERT(SegClass, class);
   AVER(size > 0);
-  AVERT(Bool, withReservoirPermit);
   AVERT(ArgList, args);
 
   arena = PoolArena(pgen->pool);
@@ -337,8 +336,7 @@ Res PoolGenAlloc(Seg *segReturn, PoolGen pgen, SegClass class, Size size,
   pref.high = FALSE;
   pref.zones = zones;
   pref.avoid = ZoneSetBlacklist(arena);
-  res = SegAlloc(&seg, class, &pref, size, pgen->pool, withReservoirPermit,
-                 args);
+  res = SegAlloc(&seg, class, &pref, size, pgen->pool, args);
   if (res != ResOK)
     return res;
 

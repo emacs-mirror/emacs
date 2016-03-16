@@ -692,7 +692,7 @@ pointers to structures. For example, ``Ring`` is a pointer to a
 ``Buffer``, ``Chain``, ``Chunk``, ``Format``, ``Globals``, ``Land``,
 ``LD``, ``Lock``, ``LocusPref``, ``MutatorFaultContext``,
 ``PoolClass``, ``Page``, ``Pool``, ``PoolDebugMixin``, ``Range``,
-``Reservoir``, ``Ring``, ``Root``, ``ScanState``, ``Seg``, ``SegBuf``,
+``Ring``, ``Root``, ``ScanState``, ``Seg``, ``SegBuf``,
 ``StackContext``, ``Thread``, ``Trace``, ``VM``.
 
 ``typedef void *Pointer``

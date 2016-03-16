@@ -215,7 +215,7 @@ static Bool MRGRefSegCheck(MRGRefSeg refseg)
 /* MRGLinkSegInit -- initialise a link segment */
 
 static Res MRGLinkSegInit(Seg seg, Pool pool, Addr base, Size size,
-                          Bool reservoirPermit, ArgList args)
+                          ArgList args)
 {
   SegClass super;
   MRGLinkSeg linkseg;
@@ -228,11 +228,10 @@ static Res MRGLinkSegInit(Seg seg, Pool pool, Addr base, Size size,
   mrg = PoolMRG(pool);
   AVERT(MRG, mrg);
   /* no useful checks for base and size */
-  AVERT(Bool, reservoirPermit);
 
   /* Initialize the superclass fields first via next-method call */
   super = SEG_SUPERCLASS(MRGLinkSegClass);
-  res = super->init(seg, pool, base, size, reservoirPermit, args);
+  res = super->init(seg, pool, base, size, args);
   if (res != ResOK)
     return res;
   linkseg->refSeg = NULL; /* .link.nullref */
@@ -248,8 +247,7 @@ static Res MRGLinkSegInit(Seg seg, Pool pool, Addr base, Size size,
 ARG_DEFINE_KEY(mrg_seg_link_seg, Pointer);
 #define mrgKeyLinkSeg (&_mps_key_mrg_seg_link_seg)
 
-static Res MRGRefSegInit(Seg seg, Pool pool, Addr base, Size size,
-                         Bool reservoirPermit, ArgList args)
+static Res MRGRefSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 {
   MRGLinkSeg linkseg;
   MRGRefSeg refseg;
@@ -271,12 +269,11 @@ static Res MRGRefSegInit(Seg seg, Pool pool, Addr base, Size size,
   mrg = PoolMRG(pool);
   AVERT(MRG, mrg);
   /* no useful checks for base and size */
-  AVERT(Bool, reservoirPermit);
   AVERT(MRGLinkSeg, linkseg);
 
   /* Initialize the superclass fields first via next-method call */
   super = SEG_SUPERCLASS(MRGRefSegClass);
-  res = super->init(seg, pool, base, size, reservoirPermit, args);
+  res = super->init(seg, pool, base, size, args);
   if (res != ResOK)
     return res;
 
@@ -499,8 +496,7 @@ static void MRGSegPairDestroy(MRGRefSeg refseg)
 
 /* MRGSegPairCreate -- create a pair of segments (link & ref) */
 
-static Res MRGSegPairCreate(MRGRefSeg *refSegReturn, MRG mrg,
-                            Bool withReservoirPermit)
+static Res MRGSegPairCreate(MRGRefSeg *refSegReturn, MRG mrg)
 {
   RefPart refPartBase;
   Count nGuardians;       /* guardians per seg */
@@ -525,7 +521,7 @@ static Res MRGSegPairCreate(MRGRefSeg *refSegReturn, MRG mrg,
 
   res = SegAlloc(&segLink, EnsureMRGLinkSegClass(),
                  LocusPrefDefault(), linkSegSize, pool,
-                 withReservoirPermit, argsNone);
+                 argsNone);
   if (res != ResOK)
     goto failLinkSegAlloc;
   linkseg = Seg2LinkSeg(segLink);
@@ -534,7 +530,7 @@ static Res MRGSegPairCreate(MRGRefSeg *refSegReturn, MRG mrg,
     MPS_ARGS_ADD_FIELD(args, mrgKeyLinkSeg, p, linkseg); /* .ref.initarg */
     res = SegAlloc(&segRefPart, EnsureMRGRefSegClass(),
                    LocusPrefDefault(), mrg->extendBy, pool,
-                   withReservoirPermit, args);
+                   args);
   } MPS_ARGS_END(args);
   if (res != ResOK)
     goto failRefPartSegAlloc;
@@ -723,8 +719,7 @@ Res MRGRegister(Pool pool, Ref ref)
 
   /* <design/poolmrg/#alloc.grow> */
   if (RingIsSingle(&mrg->freeRing)) {
-    /* @@@@ Should the client be able to use the reservoir for this? */
-    res = MRGSegPairCreate(&junk, mrg, /* withReservoirPermit */ FALSE);  
+    res = MRGSegPairCreate(&junk, mrg);  
     if (res != ResOK)
       return res;
   }

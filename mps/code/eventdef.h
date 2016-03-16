@@ -36,7 +36,7 @@
  */
 
 #define EVENT_VERSION_MAJOR  ((unsigned)1)
-#define EVENT_VERSION_MEDIAN ((unsigned)5)
+#define EVENT_VERSION_MEDIAN ((unsigned)6)
 #define EVENT_VERSION_MINOR  ((unsigned)0)
 
 
@@ -160,7 +160,7 @@
   /* PoolPush/Pop go under Object, because they're user ops. */ \
   /* EVENT(X, PoolPush           , 0x0060,  TRUE, Object) */ \
   /* EVENT(X, PoolPop            , 0x0061,  TRUE, Object) */ \
-  EVENT(X, ReservoirLimitSet  , 0x0062,  TRUE, Arena) \
+  /* EVENT(X, ReservoirLimitSet  , 0x0062,  TRUE, Arena) */ \
   EVENT(X, CommitLimitSet     , 0x0063,  TRUE, Arena) \
   EVENT(X, SpareCommitLimitSet, 0x0064,  TRUE, Arena) \
   EVENT(X, ArenaAlloc         , 0x0065,  TRUE, Arena) \
@@ -552,10 +552,6 @@
   PARAM(X,  2, B, isMutator) \
   PARAM(X,  3, U, rank)
 
-#define EVENT_ReservoirLimitSet_PARAMS(PARAM, X) \
-  PARAM(X,  0, P, arena) \
-  PARAM(X,  1, W, size)
-
 #define EVENT_CommitLimitSet_PARAMS(PARAM, X) \
   PARAM(X,  0, P, arena) \
   PARAM(X,  1, W, limit) \
@@ -584,8 +580,7 @@
 
 #define EVENT_SegMerge_PARAMS(PARAM, X) \
   PARAM(X,  0, P, segLo) \
-  PARAM(X,  1, P, segHi) \
-  PARAM(X,  2, B, withReservoirPermit)
+  PARAM(X,  1, P, segHi)
 
 #define EVENT_SegSplit_PARAMS(PARAM, X) \
   PARAM(X,  0, P, seg) \

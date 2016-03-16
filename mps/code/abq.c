@@ -41,8 +41,7 @@ Res ABQInit(Arena arena, ABQ abq, void *owner, Count elements, Size elementSize)
      "empty" from "full" */
   elements = elements + 1;
 
-  res = ControlAlloc(&p, arena, ABQQueueSize(elements, elementSize),
-                     /* withReservoirPermit */ FALSE);
+  res = ControlAlloc(&p, arena, ABQQueueSize(elements, elementSize));
   if (res != ResOK)
     return res;
 
