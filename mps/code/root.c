@@ -185,7 +185,7 @@ static Res rootCreate(Root *rootReturn, Arena arena,
   AVERT(RootVar, type);
   globals = ArenaGlobals(arena);
 
-  res = ControlAlloc(&p, arena, sizeof(RootStruct), FALSE);
+  res = ControlAlloc(&p, arena, sizeof(RootStruct));
   if (res != ResOK)
     return res;
   root = (Root)p; /* Avoid pun */

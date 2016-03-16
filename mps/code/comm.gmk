@@ -196,7 +196,6 @@ MPMCOMMON = \
     protocol.c \
     range.c \
     ref.c \
-    reserv.c \
     ring.c \
     root.c \
     sa.c \

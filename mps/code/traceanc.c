@@ -467,12 +467,12 @@ Res TraceIdMessagesCreate(Arena arena, TraceId ti)
   AVER(!arena->tsMessage[ti]);
   AVER(!arena->tMessage[ti]);
   
-  res = ControlAlloc(&p, arena, sizeof(TraceStartMessageStruct), FALSE);
+  res = ControlAlloc(&p, arena, sizeof(TraceStartMessageStruct));
   if(res != ResOK)
     goto failTraceStartMessage;
   tsMessage = p;
 
-  res = ControlAlloc(&p, arena, sizeof(TraceMessageStruct), FALSE);
+  res = ControlAlloc(&p, arena, sizeof(TraceMessageStruct));
   if(res != ResOK)
     goto failTraceMessage;
   tMessage = p;
@@ -677,7 +677,7 @@ static Res arenaRememberSummaryOne(Globals global, Addr base, RefSet summary)
     RememberedSummaryBlock newBlock;
     int res;
 
-    res = ControlAlloc(&p, arena, sizeof *newBlock, FALSE);
+    res = ControlAlloc(&p, arena, sizeof *newBlock);
     if(res != ResOK) {
       return res;
     }
