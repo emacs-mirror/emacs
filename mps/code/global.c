@@ -809,7 +809,7 @@ Bool ArenaStep(Globals globals, double interval, double multiplier)
 Res ArenaFinalize(Arena arena, Ref obj)
 {
   Res res;
-  Pool refpool;
+  Pool refpool = NULL; /* suppress gcc -O3 unused warning */
 
   AVERT(Arena, arena);
   AVER(PoolOfAddr(&refpool, arena, (Addr)obj));
