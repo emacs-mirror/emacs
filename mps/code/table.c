@@ -157,6 +157,7 @@ static Res tablePut(Table table, TableKey *keyIO, TableValue *valueIO)
 #endif
 
     tablePos(&pos, &skip, table, key);
+    last = pos;
     for (i = 0; i < table->maxChainLength; ++i) {
       tk = table->array[pos].key;
       if (tk == table->unusedKey || tk == table->deletedKey) {
