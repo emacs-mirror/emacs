@@ -128,6 +128,17 @@ extern Bool TreeTraverse(Tree tree,
                          TreeCompareFunction compare,
                          TreeKeyFunction key,
                          TreeVisitor visit, void *closure);
+typedef Bool TreeFilter(Tree tree, void *closure);
+typedef Compare TreeRange(Tree tree, void *closure);
+extern Bool TreeTraversePartial(Tree tree,
+                                TreeCompareFunction compare,
+                                TreeKeyFunction key,
+                                TreeFilter filter,
+                                TreeRange range,
+                                TreeVisitor visit,
+                                void *closure);
+extern Bool TreeNoFilter(Tree tree, void *closure);
+extern Compare TreeNoRange(Tree tree, void *closure);
 extern Bool TreeTraverseMorris(Tree tree, TreeVisitor visit,
                                void *closure);
 

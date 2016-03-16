@@ -278,8 +278,14 @@ Bool TreeTraverseMorris(Tree tree, TreeVisitor visit,
  * The tree may not be accessed or modified during the traversal, and
  * the traversal must complete in order to repair the tree.
  *
+ * The filter is used to limit the traversal to a single contiguous
+ * range of keys.  It should return CompareLESS if the node is less
+ * than the range, CompareEQUAL if it is in the range, and
+ * CompareGREATER if it is greater than the range.  Only nodes in the
+ * range will be visited.
+ *
  * The visitor should return FALSE to terminate the traversal early,
- * in which case FALSE is returned.
+ * in which case FALSE is returned and the tree is repaired.
  *
  * TreeTraverseMorris is an alternative when no cheap comparison is available.
  */
@@ -320,14 +326,22 @@ static Tree stepUpLeft(Tree node, Tree *parentIO)
   return parent;
 }
 
-Bool TreeTraverse(Tree tree,
-                  TreeCompareFunction compare,
-                  TreeKeyFunction key,
-                  TreeVisitor visit, void *closure)
+Bool TreeTraversePartial(Tree tree,
+                         TreeCompareFunction compare,
+                         TreeKeyFunction key,
+                         TreeFilter filter,
+                         TreeRange range,
+                         TreeVisitor visit,
+                         void *closure)
 {
   Tree parent, node;
+  Compare cmp;
   
   AVERT(Tree, tree);
+  AVER(FUNCHECK(compare));
+  AVER(FUNCHECK(key));
+  AVER(FUNCHECK(filter));
+  AVER(FUNCHECK(range));
   AVER(FUNCHECK(visit));
   /* closure arbitrary */
 
@@ -338,44 +352,86 @@ Bool TreeTraverse(Tree tree,
     return TRUE;
 
 down:
-  if (TreeHasLeft(node)) {
-    node = stepDownLeft(node, &parent);
-    AVER(compare(parent, key(node)) == CompareLESS);
-    goto down;
+  if (!filter(node, closure))
+    goto up;
+  cmp = range(node, closure);
+  if (CompareIsGE(cmp)) {
+    if (TreeHasLeft(node)) {
+      node = stepDownLeft(node, &parent);
+      AVER(CompareIsLess(compare(parent, key(node))));
+      goto down;
+    }
   }
-  if (!visit(node, closure))
-    goto abort;
-  if (TreeHasRight(node)) {
-    node = stepDownRight(node, &parent);
-    AVER(compare(parent, key(node)) != CompareLESS);
-    goto down;
+  if (CompareIsEqual(cmp)) {
+    if (!visit(node, closure))
+      goto abort;
+  }
+  if (CompareIsLE(cmp)) {
+    if (TreeHasRight(node)) {
+      node = stepDownRight(node, &parent);
+      AVER(CompareIsGE(compare(parent, key(node))));
+      goto down;
+    }
   }
 
 up:
   if (parent == TreeEMPTY)
     return TRUE;
-  if (compare(parent, key(node)) != CompareLESS) {
+  if (CompareIsGE(compare(parent, key(node)))) {
     node = stepUpLeft(node, &parent);
     goto up;
   }
   node = stepUpRight(node, &parent);
-  if (!visit(node, closure))
-    goto abort;
-  if (!TreeHasRight(node))
-    goto up;
-  node = stepDownRight(node, &parent);
-  goto down;
+  AVER(filter(node, closure));
+  cmp = range(node, closure);
+  if (CompareIsEqual(cmp)) {
+    if (!visit(node, closure))
+      goto abort;
+  }
+  if (CompareIsLE(cmp)) {
+    if (TreeHasRight(node)) {
+      node = stepDownRight(node, &parent);
+      goto down;
+    }
+  }
+  goto up;
 
 abort:
   if (parent == TreeEMPTY)
     return FALSE;
-  if (compare(parent, key(node)) != CompareLESS)
+  if (CompareIsGE(compare(parent, key(node))))
     node = stepUpLeft(node, &parent);
   else
     node = stepUpRight(node, &parent);
   goto abort;
 }
 
+Bool TreeNoFilter(Tree tree, void *closure)
+{
+  UNUSED(tree);
+  UNUSED(closure);
+  return TRUE;
+}
+
+Compare TreeNoRange(Tree tree, void *closure)
+{
+  UNUSED(tree);
+  UNUSED(closure);
+  return CompareEQUAL;
+}
+
+Bool TreeTraverse(Tree tree,
+                  TreeCompareFunction compare,
+                  TreeKeyFunction key,
+                  TreeVisitor visit, void *closure)
+{
+  /* Remarkably, Clang -O2 and GCC -O3 partially evaluate and inline
+     TreeTraversePartial here.  (Tested with Clang 3.6.2 and GCC
+     5.2.1.)  GCC -O2 5.2.1 does not */
+  return TreeTraversePartial(tree, compare, key,
+                             TreeNoFilter, TreeNoRange,
+                             visit, closure);
+}
 
 /* TreeRotateLeft -- Rotate right child edge of node
  *

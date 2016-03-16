@@ -28,6 +28,12 @@ enum CompareEnum {
   CompareGREATER = 1
 };
 
+#define CompareIsLess(cmp)    ((cmp) < 0)
+#define CompareIsGreater(cmp) ((cmp) > 0)
+#define CompareIsEqual(cmp)   ((cmp) == 0)
+#define CompareIsLE(cmp)      ((cmp) <= 0)
+#define CompareIsGE(cmp)      ((cmp) >= 0)
+
 
 /* SrcId -- source identification
  *
