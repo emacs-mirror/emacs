@@ -241,6 +241,7 @@ typedef struct SegStruct {      /* segment structure */
   Pool pool;                    /* pool that owns this segment */
   RingStruct poolRing;          /* link in list of segs in pool */
   TreeStruct treeStruct;        /* tree of all segments by address */
+  ZoneSet treeZones;            /* union of all zones in sub-tree */
   unsigned depth : ShieldDepthWIDTH; /* see <code/shield.c#def.depth> */
   AccessSet pm : AccessLIMIT;   /* protection mode, <code/shield.c> */
   AccessSet sm : AccessLIMIT;   /* shield mode, <code/shield.c> */

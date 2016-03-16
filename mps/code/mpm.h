@@ -678,6 +678,7 @@ extern Bool SegOfAddr(Seg *segReturn, Arena arena, Addr addr);
 typedef Bool (*SegVisitor)(Seg seg, void *closure);
 extern Bool SegTraverse(Arena arena, SegVisitor visit, void *closure);
 extern void SegTraverseAndDelete(Arena arena, SegVisitor visit, void *closure);
+extern Bool SegTraverseInZones(Arena arena, ZoneSet zs, SegVisitor visit, void *closure);
 extern Bool SegFirst(Seg *segReturn, Arena arena);
 extern Bool SegNext(Seg *segReturn, Arena arena, Seg seg);
 extern Bool SegNextOfRing(Seg *segReturn, Arena arena, Pool pool, Ring next);
@@ -699,6 +700,7 @@ extern SegClass GCSegClassGet(void);
 extern void SegClassMixInNoSplitMerge(SegClass class);
 extern Compare SegCompare(Tree tree, TreeKey key);
 extern TreeKey SegKey(Tree tree);
+extern void SegUpdate(SplayTree splay, Tree tree);
 
 
 /* DEFINE_SEG_CLASS -- define a segment class */
