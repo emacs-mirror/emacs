@@ -179,9 +179,8 @@ static void shieldFlushEntry(Arena arena, Size i)
 }
 
 
-static int shieldCacheEntryCompare(const void *a, const void *b)
+static int shieldCacheEntryCompare(Seg segA, Seg segB)
 {
-  Seg segA = *(SegStruct * const *)a, segB = *(SegStruct * const *)b;
   Addr baseA, baseB;
   
   AVERT(Seg, segA); /* FIXME: Might be critical? */
@@ -195,6 +194,48 @@ static int shieldCacheEntryCompare(const void *a, const void *b)
     return 1;
   AVER(baseA == baseB);
   return 0;
+}
+
+
+static void quicksort_iterative(Seg array[], Count len)
+{
+  static Index seed = 0x6A9D03;
+  Index left, right, stack[64], pos;
+  Seg pivot, temp;
+
+  left = 0;
+  pos = 0;
+  for (;;) {
+    while (left + 1 < len) {
+      if (pos >= sizeof stack / sizeof stack[0]) {
+	pos = 0;
+	len = stack[pos];  /* stack overflow, reset */
+      }
+      pivot = array[left + seed % (len - left)];
+      seed = seed * 69069 + 1;
+      stack[pos] = len;
+      ++pos;
+      right = left;
+      for (;;) {
+	while (shieldCacheEntryCompare(array[right],  pivot) < 0)
+	  ++right;
+	do
+	  --len;
+	while (shieldCacheEntryCompare(pivot, array[len]) < 0);
+	if (right >= len)
+	  break;
+	temp = array[right];
+	array[right] = array[len];
+	array[len] = temp;
+      }
+      ++len;
+    }
+    if (pos == 0)
+      break;
+    left = len;
+    --pos;
+    len = stack[pos];
+  } 
 }
 
 
@@ -222,11 +263,7 @@ static void shieldFlushEntries(Arena arena)
   AVER(arena->shCache != NULL);
   AVER(arena->shCacheLength > 0);
 
-  /* FIXME: This needs to go through the plinth. */
-  /* FIXME: We probably can't use libc's qsort because we can't bound
-     its use of stack space. */
-  qsort(arena->shCache, arena->shCacheLimit, sizeof arena->shCache[0],
-        shieldCacheEntryCompare);
+  quicksort_iterative(arena->shCache, arena->shCacheLimit);
 
   seg = arena->shCache[0]; /* lowest address segment */
   if (seg) {
