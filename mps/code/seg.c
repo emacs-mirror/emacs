@@ -190,8 +190,6 @@ static void SegFinish(Seg seg)
   Arena arena;
   SegClass class;
   Bool b;
-  TraceId ti;
-  Trace trace;
 
   AVERT(Seg, seg);
   class = seg->class;
@@ -202,20 +200,9 @@ static void SegFinish(Seg seg)
     ShieldLower(arena, seg, seg->sm);
   }
 
-  TRACE_SET_ITER(ti, trace, SegWhite(seg), arena) {
-    /* FIXME: Duplicate code with traceReclaimCommon */
-    if (trace->whiteTable != NULL) {
-      Addr base, addr, limit;
-      Align align;
-      base = SegBase(seg);
-      limit = SegLimit(seg);
-      align = ArenaGrainSize(arena);
-      for (addr = base; addr < limit; addr = AddrAdd(addr, align)) {
-        Res res = TableRemove(trace->whiteTable, (TableKey)addr);
-        AVER(res == ResOK);
-      }
-    }
-  } TRACE_SET_ITER_END(ti, trace, SegWhite(seg), arena);
+  /* Ensure segment is removed from the whiteTable. */
+  if (SegWhite(seg) != TraceSetEMPTY)
+    SegSetWhite(seg, TraceSetEMPTY);
 
   /* Class specific finishing cames first */
   class->finish(seg);
@@ -316,30 +303,46 @@ void SegSetGrey(Seg seg, TraceSet grey)
 
 void SegSetWhite(Seg seg, TraceSet white)
 {
-  TraceSet diff;
-  TraceId ti;
-  Trace trace;
   Arena arena;
 
   AVERT(Seg, seg);
   AVERT(TraceSet, white);
 
   arena = PoolArena(SegPool(seg));
-  diff = TraceSetDiff(SegWhite(seg), white);
-  TRACE_SET_ITER(ti, trace, diff, arena) {
-    /* FIXME: Duplicate code with traceReclaimCommon */
-    if (trace->whiteTable != NULL) {
-      Addr base, addr, limit;
-      Align align;
-      base = SegBase(seg);
-      limit = SegLimit(seg);
-      align = ArenaGrainSize(arena);
-      for (addr = base; addr < limit; addr = AddrAdd(addr, align)) {
-        Res res = TableRemove(trace->whiteTable, (TableKey)addr);
-        AVER(res == ResOK);
+  if (arena->whiteTable != NULL) {
+    TraceSet before = SegWhite(seg);
+    Addr base = SegBase(seg);
+    Addr limit = SegLimit(seg);
+    Addr addr;
+    Align align = ArenaGrainSize(arena);
+
+    if (before == TraceSetEMPTY) {
+      if (white != TraceSetEMPTY) {
+        /* Add every arena grain in the segment to the whiteTable for fast
+           lookup in TraceFix.  TODO: Consider other alignments. */
+        for (addr = base; addr < limit; addr = AddrAdd(addr, align)) {
+          Res res = TableDefine(arena->whiteTable, (TableKey)addr, seg);
+          AVER(res != ResFAIL); /* no duplicate keys */
+          if (res != ResOK) {
+            AVER(res == ResMEMORY);
+            /* Fall back on slower lookup at impl.c.trace.fix.table. */
+            TableDestroy(arena->whiteTable);
+            arena->whiteTable = NULL;
+            break;
+          }
+        }
+      }
+    } else {
+      if (white == TraceSetEMPTY) {
+        /* See also impl.c.trace.reclaim.uniq, which depends on
+           removing all entries promptly. */
+        for (addr = base; addr < limit; addr = AddrAdd(addr, align)) {
+          Res res = TableRemove(arena->whiteTable, (TableKey)addr);
+          AVER(res == ResOK); /* should be in table */
+        }
       }
     }
-  } TRACE_SET_ITER_END(ti, trace, SegWhite(seg), arena);
+  }
 
   seg->class->setWhite(seg, white);
 }
@@ -1535,6 +1538,10 @@ static Res gcSegMerge(Seg seg, Seg segHi,
   AVER(buf == NULL || gcseg->buffer == NULL); /* See .buffer */
   grey = SegGrey(segHi);      /* check greyness */
   AVER(SegGrey(seg) == grey);
+
+  /* It might be possible to lift this restriction, but care must be
+     taken to update the whiteTable. */
+  AVER(SegWhite(seg) == SegWhite(segHi));
 
   /* Merge the superclass fields via next-method call */
   super = SEG_SUPERCLASS(GCSegClass);
