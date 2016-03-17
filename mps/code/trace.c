@@ -81,7 +81,6 @@ void ScanStateInit(ScanState ss, TraceSet ts, Arena arena,
     if (ss->fix == NULL) {
       ss->fix = trace->fix;
       ss->fixClosure = trace->fixClosure;
-      ss->whiteTable = trace->whiteTable;
     } else {
       AVER(ss->fix == trace->fix);
       AVER(ss->fixClosure == trace->fixClosure);
@@ -357,8 +356,6 @@ Res TraceAddWhite(Trace trace, Seg seg)
 {
   Res res;
   Pool pool;
-  Addr base, addr, limit;
-  Align align;
 
   AVERT(Trace, trace);
   AVERT(Seg, seg);
@@ -385,26 +382,7 @@ Res TraceAddWhite(Trace trace, Seg seg)
     trace->mayMove = ZoneSetUnion(trace->mayMove,
                                   ZoneSetOfSeg(trace->arena, seg));
   }
-  
-  if (trace->whiteTable != NULL) {
-    /* Add every arena grain in the segment to the whiteTable for fast
-       lookup in TraceFix.  TODO: Consider other alignments. */
-    base = SegBase(seg);
-    limit = SegLimit(seg);
-    align = ArenaGrainSize(PoolArena(pool));
-    for (addr = base; addr < limit; addr = AddrAdd(addr, align)) {
-      res = TableDefine(trace->whiteTable, (TableKey)addr, seg);
-      AVER(res != ResFAIL); /* no duplicate keys */
-      if (res != ResOK) {
-	AVER(res == ResMEMORY);
-	/* Fall back on slower lookup at .fix.table. */
-	TableDestroy(trace->whiteTable);
-	trace->whiteTable = NULL;
-	break;
-      }
-    }
-  }
- 
+
   return ResOK;
 }
 
@@ -435,6 +413,19 @@ typedef struct TraceCondemnZonesClosureStruct {
   Bool haveWhiteSegs;
 } TraceCondemnZonesClosureStruct, *TraceCondemnZonesClosure;
 
+#ifdef TRACE_DEBUG
+static void checkWhite(void *closure, TableKey key, TableValue value)
+{
+  Trace trace = closure;
+  Seg seg = (Seg)value;
+  Addr addr = (Addr)key;
+  AVERT(Trace, trace);
+  AVERT(Seg, seg);
+  AVER(RangeContains(SegRange(seg), addr));
+  AVER(SegWhite(seg) != TraceSetEMPTY);
+}
+#endif
+
 static Bool traceCondemnZonesVisit(Seg seg, void *closure)
 {
   TraceCondemnZonesClosure tcz = closure;
@@ -464,18 +455,55 @@ static Bool traceCondemnZonesVisit(Seg seg, void *closure)
     haveWhiteSegs = TRUE;
   }
 
+#ifdef TRACE_DEBUG
+  if (trace->arena->whiteTable)
+    TableMap(trace->arena->whiteTable, checkWhite, trace);
+#endif
+
   tcz->haveWhiteSegs = haveWhiteSegs;
   return TRUE;
+}
+
+static void *whiteTableAlloc(void *closure, Size size)
+{
+  void *p;
+  Arena arena = (Arena)closure;
+  Res res = ControlAlloc(&p, arena, size);
+  if (res != ResOK)
+    return NULL;
+  return p;
+}
+
+static void whiteTableFree(void *closure, void *p, Size size)
+{
+  Arena arena = (Arena)closure;
+  ControlFree(arena, p, size);
 }
 
 Res TraceCondemnZones(Trace trace, ZoneSet condemnedSet)
 {
   TraceCondemnZonesClosureStruct tczStruct;
+  Arena arena;
 
   AVERT(Trace, trace);
   AVER(condemnedSet != ZoneSetEMPTY);
   AVER(trace->state == TraceINIT);
   AVER(trace->white == ZoneSetEMPTY);
+
+  /* TODO: Estimate initial size of table from condemned set size.
+     This would increase table building efficiency and reduce the
+     probability of falling back at .fix.table. */
+  arena = trace->arena;
+  if (arena->whiteTable == NULL) {
+    Res res = TableCreate(&arena->whiteTable, 1024,
+                          whiteTableAlloc, whiteTableFree,
+                          arena, (Word)1, (Word)2);
+    if (res != ResOK) {
+      if (res != ResMEMORY)
+        return res;
+      /* fall back to slower lookup at .fix.table */
+    }
+  }
 
   tczStruct.trace = trace;
   tczStruct.condemnedSet = condemnedSet;
@@ -723,27 +751,10 @@ static void TraceCreatePoolGen(GenDesc gen)
   }
 }
 
-static void *whiteTableAlloc(void *closure, Size size)
-{
-  void *p;
-  Arena arena = (Arena)closure;
-  Res res = ControlAlloc(&p, arena, size);
-  if (res != ResOK)
-    return NULL;
-  return p;
-}
-
-static void whiteTableFree(void *closure, void *p, Size size)
-{
-  Arena arena = (Arena)closure;
-  ControlFree(arena, p, size);
-}
-
 Res TraceCreate(Trace *traceReturn, Arena arena, int why)
 {
   TraceId ti;
   Trace trace;
-  Res res;
 
   AVER(traceReturn != NULL);
   AVERT(Arena, arena);
@@ -757,17 +768,6 @@ Res TraceCreate(Trace *traceReturn, Arena arena, int why)
 found:
   trace = ArenaTrace(arena, ti);
   AVER(trace->sig == SigInvalid);       /* <design/arena/#trace.invalid> */
-
-  /* TODO: Estimate initial size of table from condemned set size.
-     This would increase table building efficiency and reduce the
-     probability of falling back at .fix.table. */
-  res = TableCreate(&trace->whiteTable, 1024,
-                    whiteTableAlloc, whiteTableFree,
-                    arena, (Word)1, (Word)2);
-  if (res == ResMEMORY)
-    trace->whiteTable = NULL; /* fall back to slower lookup at .fix.table */
-  else if (res != ResOK)
-    return res;
 
   trace->arena = arena;
   trace->why = why;
@@ -857,10 +857,6 @@ void TraceDestroyInit(Trace trace)
 
   trace->sig = SigInvalid;
   trace->arena->busyTraces = TraceSetDel(trace->arena->busyTraces, trace);
-  if (trace->whiteTable != NULL) {
-    AVER(TableCount(trace->whiteTable) == 0);
-    TableDestroy(trace->whiteTable);
-  }
 
   /* Clear the emergency flag so the next trace starts normally. */
   ArenaSetEmergency(trace->arena, FALSE);
@@ -921,10 +917,6 @@ void TraceDestroyFinished(Trace trace)
   trace->sig = SigInvalid;
   trace->arena->busyTraces = TraceSetDel(trace->arena->busyTraces, trace);
   trace->arena->flippedTraces = TraceSetDel(trace->arena->flippedTraces, trace);
-  if (trace->whiteTable != NULL) {
-    AVER(TableCount(trace->whiteTable) == 0);
-    TableDestroy(trace->whiteTable);
-  }
 
   /* Hopefully the trace reclaimed some memory, so clear any emergency. */
   ArenaSetEmergency(trace->arena, FALSE);
@@ -937,9 +929,14 @@ static void traceReclaimCommon(Trace trace, Seg seg)
 {
   Pool pool;
 
-  AVERT(Trace, trace);
-  AVERT(Seg, seg);
-  AVER(TraceSetIsMember(SegWhite(seg), trace));
+  AVERT_CRITICAL(Trace, trace);
+  AVERT_CRITICAL(Seg, seg);
+
+  /* There shouldn't be any grey stuff left for this trace. */
+  AVER_CRITICAL(!TraceSetIsMember(SegGrey(seg), trace));
+
+  if (!TraceSetIsMember(SegWhite(seg), trace))
+    return;
 
   pool = SegPool(seg);
   AVER_CRITICAL(PoolHasAttr(pool, AttrGC));
@@ -964,48 +961,24 @@ static void traceReclaimCommon(Trace trace, Seg seg)
 static Bool traceReclaimTreeVisit(Seg seg, void *closure)
 {
   Trace trace = closure;
-
   AVERT_CRITICAL(Trace, trace);
   AVERT_CRITICAL(Seg, seg);
-
-  /* There shouldn't be any grey stuff left for this trace. */
-  AVER_CRITICAL(!TraceSetIsMember(SegGrey(seg), trace));
-
-  if (TraceSetIsMember(SegWhite(seg), trace))
-    (void)traceReclaimCommon(trace, seg);
-
+  traceReclaimCommon(trace, seg);
   return FALSE;
 }
-
-#ifdef TRACE_DEBUG
-static void checkWhite(void *closure, TableKey key, TableValue value)
-{
-  Trace trace = closure;
-  Seg seg = (Seg)value;
-  Addr addr = (Addr)key;
-  AVERT(Trace, trace);
-  AVERT(Seg, seg);
-  AVER(RangeContains(SegRange(seg), addr));
-  AVER(TraceSetIsMember(SegWhite(seg), trace));
-}
-#endif
 
 static void traceReclaimTableVisit(void *closure, TableKey key, TableValue value)
 {
   Trace trace = closure;
   Seg seg = (Seg)value;
-
-#ifdef TRACE_DEBUG
-  if (trace->whiteTable)
-    TableMap(trace->whiteTable, checkWhite, trace);
-#endif
-
-  AVERT(Trace, trace);
+  AVERT_CRITICAL(Trace, trace);
   UNUSED(key);
-  AVERT(Seg, seg);
-  AVER(TraceSetIsMember(SegWhite(seg), trace));
-
+  AVERT_CRITICAL(Seg, seg);
   (void)traceReclaimCommon(trace, seg);
+  /* .reclaim.uniq: We know the segment will not be visited again in
+     spite of being mapped from multiple addresses because SegSetWhite
+     removes all those mappings, and TableMap doesn't mind if mappings
+     are removed during traversal. */
 }
 
 static void traceReclaim(Trace trace)
@@ -1021,18 +994,17 @@ static void traceReclaim(Trace trace)
   EVENT1(TraceReclaim, trace);
 
 #ifdef TRACE_DEBUG
-  if (trace->whiteTable)
-    TableMap(trace->whiteTable, checkWhite, trace);
+  if (arena->whiteTable)
+    TableMap(arena->whiteTable, checkWhite, trace);
 #endif
 
-  if (trace->whiteTable != NULL) {
-    TableMap(trace->whiteTable, traceReclaimTableVisit, trace);
+  if (arena->whiteTable != NULL) {
+    TableMap(arena->whiteTable, traceReclaimTableVisit, trace);
   } else {
     SegTraverseAndDelete(arena, traceReclaimTreeVisit, trace);
   }
 
   trace->state = TraceFINISHED;
-  arena = trace->arena;
 
   /* Call each pool's TraceEnd method -- do end-of-trace work */
   RING_FOR(node, ArenaPoolRing(arena), nextNode) {
@@ -1441,6 +1413,7 @@ mps_res_t _mps_fix2(mps_ss_t mps_ss, mps_addr_t *mps_ref_io)
   Pool pool;
   void *value;
   Word key;
+  Arena arena;
 
   /* Special AVER macros are used on the critical path. */
   /* See <design/trace/#fix.noaver> */
@@ -1449,9 +1422,11 @@ mps_res_t _mps_fix2(mps_ss_t mps_ss, mps_addr_t *mps_ref_io)
 
   ref = (Ref)*mps_ref_io;
 
+  arena = ss->arena;
+
   /* The zone test should already have been passed by MPS_FIX1 in mps.h. */
   AVER_CRITICAL(ZoneSetInter(ScanStateWhite(ss),
-                             ZoneSetAddAddr(ss->arena, ZoneSetEMPTY, ref)) !=
+                             ZoneSetAddAddr(arena, ZoneSetEMPTY, ref)) !=
                 ZoneSetEMPTY);
 
   STATISTIC(++ss->fixRefCount);
@@ -1459,14 +1434,14 @@ mps_res_t _mps_fix2(mps_ss_t mps_ss, mps_addr_t *mps_ref_io)
 
   /* .fix.table: Fall back on SegOfAddr if the whiteTable is
      unavailable due to lack of memory. */
-  if (ss->whiteTable != NULL) {
-    key = (Word)AddrAlignDown(ref, ArenaGrainSize(ss->arena));
-    if (!TableLookup(&value, ss->whiteTable, key)) {
+  if (arena->whiteTable != NULL) {
+    key = (Word)AddrAlignDown(ref, ArenaGrainSize(arena));
+    if (!TableLookup(&value, arena->whiteTable, key)) {
       /* FIXME: Check for exact pointer to chunk but not segment. */
       goto done;
     }
     seg = (Seg)value;
-  } else if (!SegOfAddr(&seg, ss->arena, ref)) {
+  } else if (!SegOfAddr(&seg, arena, ref)) {
     /* FIXME: Check for exact pointer to chunk but not segment. */
     goto done;
   }
@@ -1504,7 +1479,7 @@ mps_res_t _mps_fix2(mps_ss_t mps_ss, mps_addr_t *mps_ref_io)
 
 done:
   /* See <design/trace/#fix.fixed.all> */
-  ss->fixedSummary = RefSetAdd(ss->arena, ss->fixedSummary, ref);
+  ss->fixedSummary = RefSetAdd(arena, ss->fixedSummary, ref);
   
   *mps_ref_io = (mps_addr_t)ref;
   return ResOK;
@@ -1616,6 +1591,8 @@ static Res traceCondemnAll(Trace trace)
 
   arena = trace->arena;
   AVERT(Arena, arena);
+
+  /* FIXME: Create white table. */
 
   /* Condemn all segments in pools with the GC attribute. */
   RING_FOR(poolNode, &ArenaGlobals(arena)->poolRing, nextPoolNode) {
@@ -1753,8 +1730,8 @@ Res TraceStart(Trace trace, double mortality, double finishingTime)
   /* From the already set up white set, derive a grey set. */
 
 #ifdef TRACE_DEBUG
-  if (trace->whiteTable)
-    TableMap(trace->whiteTable, checkWhite, trace);
+  if (arena->whiteTable)
+    TableMap(arena->whiteTable, checkWhite, trace);
 #endif
 
   /* TODO: This might be more efficient if we could select all the
