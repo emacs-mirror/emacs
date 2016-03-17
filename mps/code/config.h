@@ -483,8 +483,8 @@
 
 /* Shield Configuration -- see <code/shield.c> */
 
-#define ShieldCacheSIZE  512
-#define ShieldDepthWIDTH 10
+#define ShieldCacheLENGTH  512  /* initial length of shield cache */
+#define ShieldDepthWIDTH     4  /* log2(max nested exposes + 1) */
 
 
 /* VM Configuration -- see <code/vm*.c> */
