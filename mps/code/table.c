@@ -552,7 +552,11 @@ extern Res TableRemove(Table table, TableKey key)
 }
 
 
-/* TableMap -- apply a function to all the mappings */
+/* TableMap -- apply a function to all the mappings
+ *
+ * Entries may be deleted during traversal.  (This is depended on by
+ * impl.c.trace.reclaim.uniq.)
+ */
 
 extern void TableMap(Table table, TableVisitor visit, void *closure)
 {

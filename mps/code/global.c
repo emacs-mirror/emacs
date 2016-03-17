@@ -290,6 +290,7 @@ Res GlobalsInit(Globals arenaGlobals)
   arena->finalPool = NULL;
   arena->busyTraces = TraceSetEMPTY;    /* <code/trace.c> */
   arena->flippedTraces = TraceSetEMPTY; /* <code/trace.c> */
+  arena->whiteTable = NULL;
   arena->tracedWork = 0.0;
   arena->tracedTime = 0.0;
   arena->lastWorldCollect = ClockNow();
@@ -436,6 +437,10 @@ void GlobalsPrepareToDestroy(Globals arenaGlobals)
   ArenaPark(arenaGlobals);
 
   arena = GlobalsArena(arenaGlobals);
+
+  if (arena->whiteTable != NULL)
+    TableDestroy(arena->whiteTable);
+
   arenaDenounce(arena);
 
   defaultChain = arenaGlobals->defaultChain;

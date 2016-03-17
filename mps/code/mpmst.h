@@ -416,7 +416,6 @@ typedef struct ScanStateStruct {
   PoolFixMethod fix;            /* third stage fix function */
   void *fixClosure;             /* closure data for fix */
   TraceSet traces;              /* traces to scan for */
-  Table whiteTable;             /* address to white segment map or NULL */
   Rank rank;                    /* reference rank of scanning */
   Bool wasMarked;               /* design.mps.fix.protocol.was-ready */
   RefSet fixedSummary;          /* accumulated summary of fixed references */
@@ -444,7 +443,6 @@ typedef struct TraceStruct {
   Arena arena;                  /* owning arena */
   int why;                      /* why the trace began */
   ZoneSet white;                /* zones in the white set */
-  Table whiteTable;             /* table of white segments */
   ZoneSet mayMove;              /* zones containing possibly moving objs */
   TraceState state;             /* current state of trace */
   Rank band;                    /* current band */
@@ -768,10 +766,11 @@ typedef struct mps_arena_s {
   Bool suspended;                /* TRUE iff mutator suspended */
 
   /* trace fields (<code/trace.c>) */
-  TraceSet busyTraces;          /* set of running traces */
-  TraceSet flippedTraces;       /* set of running and flipped traces */
+  TraceSet busyTraces;           /* set of running traces */
+  TraceSet flippedTraces;        /* set of running and flipped traces */
   TraceStruct trace[TraceLIMIT]; /* trace structures.  See
                                    <design/trace/#intance.limit> */
+  Table whiteTable;              /* address to white segment map */
 
   /* trace ancillary fields (<code/traceanc.c>) */
   TraceStartMessage tsMessage[TraceLIMIT];  /* <design/message-gc/> */
