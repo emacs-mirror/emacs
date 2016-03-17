@@ -760,7 +760,8 @@ typedef struct mps_arena_s {
  
   /* shield fields (<code/shield.c>) */
   Bool insideShield;             /* TRUE if and only if inside shield */
-  Seg shCache[ShieldCacheSIZE];  /* Cache of unsynced segs */
+  Seg *shCache;                  /* Cache of unsynced segs */
+  Count shCacheLength;
   Size shCacheI;                 /* index into cache */
   Size shCacheLimit;             /* High water mark for cache usage */
   Size shDepth;                  /* sum of depths of all segs */
