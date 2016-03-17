@@ -533,6 +533,8 @@ extern mps_res_t (mps_reserve)(mps_addr_t *, mps_ap_t, size_t);
 extern mps_bool_t (mps_commit)(mps_ap_t, mps_addr_t, size_t);
 
 extern mps_res_t mps_ap_fill(mps_addr_t *, mps_ap_t, size_t);
+
+/* mps_ap_fill_with_reservoir_permit is deprecated */			      
 extern mps_res_t mps_ap_fill_with_reservoir_permit(mps_addr_t *,
                                                    mps_ap_t,
                                                    size_t);

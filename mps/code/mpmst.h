@@ -374,6 +374,7 @@ typedef struct mps_fmt_s {
   Serial serial;                /* from arena->formatSerial */
   Arena arena;                  /* owning arena */
   RingStruct arenaRing;         /* formats are attached to the arena */
+  Count poolCount;              /* number of pools using the format */
   Align alignment;              /* alignment of formatted objects */
   mps_fmt_scan_t scan;
   mps_fmt_skip_t skip;
