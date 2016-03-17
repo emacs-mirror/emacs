@@ -78,6 +78,43 @@
 SRCID(shield, "$Id$");
 
 
+/* shieldSegIsSynced -- is a segment synced?
+ *
+ * See .def.synced.
+ */
+
+static Bool shieldSegIsSynced(Seg seg)
+{
+  AVERT_CRITICAL(Seg, seg);
+  return SegSM(seg) == SegPM(seg);
+}
+
+
+/* shieldSync -- synchronize a segment's protection */
+
+static void shieldSync(Arena arena, Seg seg)
+{
+  AVERT(Arena, arena);
+  AVERT(Seg, seg);
+
+  if (!shieldSegIsSynced(seg)) {
+    ProtSet(SegBase(seg), SegLimit(seg), SegSM(seg));
+    SegSetPM(seg, SegSM(seg));
+    /* See .inv.prot.shield. */
+  }
+}
+
+
+/* ShieldSuspend -- suspend the mutator
+ *
+ * From outside impl.c.shield, this is used when we really need to
+ * lock everything against the mutator -- for example, during flip
+ * when we must scan all thread registers at once.
+ *
+ * It is called from inside impl.c.shield when any segment is not
+ * synced -- see .inv.unsynced.suspended.
+ */
+
 void (ShieldSuspend)(Arena arena)
 {
   AVERT(Arena, arena);
@@ -89,6 +126,12 @@ void (ShieldSuspend)(Arena arena)
   }
 }
 
+
+/* ShieldResume -- declare mutator could be resumed
+ *
+ * In practice, we don't resume the mutator until ShieldLeave, but
+ * this marks the earliest point at which we could resume.
+ */
 
 void (ShieldResume)(Arena arena)
 {
@@ -111,19 +154,6 @@ static void protLower(Arena arena, Seg seg, AccessSet mode)
   if (SegPM(seg) & mode) {
     SegSetPM(seg, SegPM(seg) & ~mode);
     ProtSet(SegBase(seg), SegLimit(seg), SegPM(seg));
-  }
-}
-
-
-static void shieldSync(Arena arena, Seg seg)
-{
-  AVERT(Arena, arena);
-  AVERT(Seg, seg);
-
-  if (SegPM(seg) != SegSM(seg)) {
-    ProtSet(SegBase(seg), SegLimit(seg), SegSM(seg));
-    SegSetPM(seg, SegSM(seg));
-    /* inv.prot.shield */
   }
 }
 
@@ -208,7 +238,7 @@ static void shieldFlushEntries(Arena arena)
     --arena->shDepth;
     SegSetDepth(seg, SegDepth(seg) - 1);
 
-    if (SegSM(seg) != SegPM(seg)) {
+    if (!shieldSegIsSynced(seg)) {
       SegSetPM(seg, SegSM(seg));
       base = SegBase(seg);
       limit = SegLimit(seg);
@@ -227,7 +257,7 @@ static void shieldFlushEntries(Arena arena)
     --arena->shDepth;
     SegSetDepth(seg, SegDepth(seg) - 1);
 
-    if (SegSM(seg) != SegPM(seg)) {
+    if (!shieldSegIsSynced(seg)) {
       SegSetPM(seg, SegSM(seg));
       if (SegBase(seg) != limit || mode != SegSM(seg)) {
         if (limit != 0) {
@@ -248,17 +278,21 @@ static void shieldFlushEntries(Arena arena)
 }
 
 
-/* If the segment is out of sync, either sync it, or ensure
- * depth > 0, and the arena is suspended.
+/* shieldCache -- consider adding a segment to the cache
+ *
+ * If the segment is out of sync, either sync it, or ensure depth > 0,
+ * and the arena is suspended.
  */
+
 static void shieldCache(Arena arena, Seg seg)
 {
   /* <design/trace/#fix.noaver> */
   AVERT_CRITICAL(Arena, arena);
   AVERT_CRITICAL(Seg, seg);
 
-  if (SegSM(seg) == SegPM(seg))
+  if (shieldSegIsSynced(seg))
     return;
+  
   if (SegDepth(seg) > 0) { /* already in the cache or exposed? */
     /* This can occur if the mutator isn't suspended, we expose a
        segment, then raise the shield on it.  In this case, the
@@ -269,18 +303,33 @@ static void shieldCache(Arena arena, Seg seg)
   }
 
   /* Allocate shield cache if necessary. */
-  if (arena->shCacheLength == 0) {
+  /* FIXME: This will try to extend the cache on every attempt, even
+     if it failed last time. That might be slow. */
+  if (arena->shCacheI >= arena->shCacheLength) {
     void *p;
     Res res;
-    
-    AVER(arena->shCache == NULL);
+    Count length;
 
-    res = ControlAlloc(&p, arena, ShieldCacheSIZE * sizeof arena->shCache[0]);
+    AVER(arena->shCacheI == arena->shCacheLength);
+
+    if (arena->shCacheLength == 0)
+      length = ShieldCacheSIZE;
+    else
+      length = arena->shCacheLength * 2;
+    
+    res = ControlAlloc(&p, arena, length * sizeof arena->shCache[0]);
     if (res != ResOK) {
       AVER(res == ResMEMORY);
+      /* Carry on with the existing cache. */
     } else {
+      if (arena->shCacheLength > 0) {
+        Size oldSize = arena->shCacheLength * sizeof arena->shCache[0];
+        AVER(arena->shCache != NULL);
+        mps_lib_memcpy(p, arena->shCache, oldSize);
+        ControlFree(arena, arena->shCache, oldSize);
+      }
       arena->shCache = p;
-      arena->shCacheLength = ShieldCacheSIZE;
+      arena->shCacheLength = length;
     }
   }
 
@@ -294,18 +343,18 @@ static void shieldCache(Arena arena, Seg seg)
   }
 
   SegSetDepth(seg, SegDepth(seg) + 1);
-  AVER(SegDepth(seg) > 0); /* overflow */
+  AVER_CRITICAL(SegDepth(seg) > 0); /* overflow */
   ++arena->shDepth;
-  AVER(arena->shDepth > 0); /* overflow */
+  AVER_CRITICAL(arena->shDepth > 0); /* overflow */
 
-  AVER(arena->shCacheLimit <= arena->shCacheLength);
-  AVER(arena->shCacheI <= arena->shCacheLimit);
+  AVER_CRITICAL(arena->shCacheLimit <= arena->shCacheLength);
+  AVER_CRITICAL(arena->shCacheI <= arena->shCacheLimit);
 
   if (arena->shCacheI >= arena->shCacheLength)
     arena->shCacheI = 0;
-  AVER(arena->shCacheI < arena->shCacheLength);
+  AVER_CRITICAL(arena->shCacheI < arena->shCacheLength);
 
-  AVER(arena->shCacheLength > 0);
+  AVER_CRITICAL(arena->shCacheLength > 0);
 
   /* If the limit is less than the length, then the cache array has
      yet to be filled, and shCacheI is an uninitialized entry.

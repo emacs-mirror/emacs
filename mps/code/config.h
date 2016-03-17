@@ -483,8 +483,8 @@
 
 /* Shield Configuration -- see <code/shield.c> */
 
-#define ShieldCacheSIZE ((size_t)1024)
-#define ShieldDepthWIDTH (10)
+#define ShieldCacheSIZE  512
+#define ShieldDepthWIDTH 10
 
 
 /* VM Configuration -- see <code/vm*.c> */
