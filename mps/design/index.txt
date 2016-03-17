@@ -92,7 +92,6 @@ protocol_               Protocol inheritance
 protsu_                 SunOS 4 implementation of protection module
 pthreadext_             POSIX thread extensions
 range_                  Ranges of addresses
-reservoir_              The low-memory reservoir
 ring_                   Ring data structure
 root_                   Root manager
 scan_                   The generic scanner
@@ -172,7 +171,6 @@ writef_                 The WriteF function
 .. _protsu: protsu
 .. _pthreadext: pthreadext
 .. _range: range
-.. _reservoir: reservoir
 .. _ring: ring
 .. _root: root
 .. _scan: scan

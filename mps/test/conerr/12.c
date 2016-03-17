@@ -4,6 +4,10 @@ TEST_HEADER
  summary = destroy a format though attached to a pool
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= format.c
+ assertcond = format->poolCount == 0
 END_HEADER
 */
 

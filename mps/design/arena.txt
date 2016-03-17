@@ -447,6 +447,17 @@ than the amount of spare committed memory (stored in
 ``spareCommitExceeded`` is called.
 
 
+Pause time control
+..................
+
+_`.pause-time`: The generic arena structure contains the field
+``pauseTime`` for the maximum time any operation in the arena may take
+before returning to the mutator. This value is used by
+``PolicyPollAgain()`` to decide whether to do another unit of tracing
+work. The MPS interface provides getter (``mps_arena_pause_time()``)
+and setter (``mps_arena_pause_time_set()``) functions.
+
+
 Locks
 .....
 
