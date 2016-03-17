@@ -161,7 +161,7 @@ _`.split-and-merge`: There is support for splitting and merging
 segments, to give pools the flexibility to rearrange their tracts
 among segments as they see fit.
 
-``Res SegSplit(Seg *segLoReturn, Seg *segHiReturn, Seg seg, Addr at, Bool withReservoirPermit, ...)``
+``Res SegSplit(Seg *segLoReturn, Seg *segHiReturn, Seg seg, Addr at)``
 
 _`.split`: If successful, segment ``seg`` is split at address ``at``,
 yielding two segments which are returned in segLoReturn and
@@ -190,7 +190,7 @@ _`.split.state`: Except as noted above, the segments returned have the
 same properties as ``seg``. That is, their colour, summary, rankset,
 nailedness etc. are set to the values of ``seg``.
 
-``Res SegMerge(Seg *mergedSegReturn, Seg segLo, Seg segHi, Bool withReservoirPermit, ...)``
+``Res SegMerge(Seg *mergedSegReturn, Seg segLo, Seg segHi)``
 
 _`.merge`: If successful, segments ``segLo`` and ``segHi`` are merged
 together, yielding a segment which is returned in mergedSegReturn.
@@ -232,7 +232,7 @@ Extensibility
 Splitting and merging
 .....................
 
-``typedef Res (*SegSplitMethod)(Seg seg, Seg segHi, Addr base, Addr mid, Addr limit, Bool withReservoirPermit)``
+``typedef Res (*SegSplitMethod)(Seg seg, Seg segHi, Addr base, Addr mid, Addr limit)``
 
 _`.method.split`: Segment subclasses may extend the support for
 segment splitting by defining their own "split" method. On entry,
@@ -242,9 +242,7 @@ split. The method is responsible for destructively modifying ``seg``
 and initializing ``segHi`` so that on exit ``seg`` is a segment with
 region ``[base,mid)`` and ``segHi`` is a segment with region
 ``[mid,limit)``. Usually a method would only directly modify the
-fields defined for the segment subclass. This might involve
-allocation, which may use the reservoir if ``withReservoirPermit`` is
-``TRUE``.
+fields defined for the segment subclass.
 
 _`.method.split.next`: A split method should always call the next
 method, either before or after any class-specific code (see
@@ -252,7 +250,7 @@ design.mps.protocol.overview.next-method_).
 
 .. _design.mps.protocol.overview.next-method: protocol#overview.next-method
 
-``typedef Res (*SegMergeMethod)(Seg seg, Seg segHi, Addr base, Addr mid, Addr limit, Bool withReservoirPermit)``
+``typedef Res (*SegMergeMethod)(Seg seg, Seg segHi, Addr base, Addr mid, Addr limit)``
 
 _`.method.merge`: Segment subclasses may extend the support for
 segment merging by defining their own ``merge`` method. On entry,
@@ -261,8 +259,7 @@ segment with region ``[mid,limit)``, The method is responsible for
 destructively modifying ``seg`` and finishing ``segHi`` so that on
 exit ``seg`` is a segment with region ``[base,limit)`` and ``segHi``
 is garbage. Usually a method would only modify the fields defined for
-the segment subclass. This might involve allocation, which may use the
-reservoir if ``withReservoirPermit`` is ``TRUE``.
+the segment subclass.
 
 _`.method.merge.next`: A merge method should always call the next
 method, either before or after any class-specific code (see

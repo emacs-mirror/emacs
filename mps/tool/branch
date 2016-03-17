@@ -4,7 +4,7 @@
 #             Gareth Rees, Ravenbrook Limited, 2014-03-18
 # 
 # $Id$
-# Copyright (c) 2014 Ravenbrook Limited. See end of file for license.
+# Copyright (c) 2014-2016 Ravenbrook Limited. See end of file for license.
 #
 #
 # 1. INTRODUCTION
@@ -276,7 +276,7 @@ def main(argv):
 
         # Invent a UUID to use as the section title for the branch in
         # the Git Fusion configuration files.
-        args.uuid = uuid.uuid5(uuid.NAMESPACE_URL, args.child.encode('utf7'))
+        args.uuid = uuid.uuid5(uuid.NAMESPACE_URL, str(args.child))
         print(fmt("uuid={uuid}"))
 
         for repo in GF_REPOS:

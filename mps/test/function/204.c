@@ -4,6 +4,7 @@ TEST_HEADER
  summary = new MVT allocation test, extra shallow
  language = c
  link = testlib.o
+ parameters = ITERATIONS=1000
 END_HEADER
 */
 
@@ -77,7 +78,7 @@ static void dt(int kind,
  int i, hd;
  clock_t time0, time1;
  size_t size;
- int secs;
+ double secs;
 
  asserts(number <= MAXNUMBER, "number too big");
 
@@ -142,9 +143,9 @@ static void dt(int kind,
  mps_pool_destroy(pool);
 
  time1=clock();
- secs=(int) 100*(time1-time0)/CLOCKS_PER_SEC;
+ secs=(time1-time0)/(double)CLOCKS_PER_SEC;
 
- comment("%s test (%x, %x, %x, %i, %i, %x, %x, %i, %i) in %i centisecs",
+ comment("%s test (%x, %x, %x, %i, %i, %x, %x, %i, %i) in %.2f s",
   tdesc[kind], (int) minSize, (int) avgSize, (int) maxSize,
   (int) depth, (int) fragLimit,
   (int) mins, (int) maxs, number, iter, secs);
@@ -167,34 +168,34 @@ static void test(void)
 
  comment("Frag: %i", frag);
 
- dt(SEQ, 8, 8, 9, dep, frag, 8, 9, 5, 100);
- dt(RANGAP, 64, 64, 64, dep, frag, 8, 128, 100, 10000);
+ dt(SEQ, 8, 8, 9, dep, frag, 8, 9, 5, ITERATIONS);
+ dt(RANGAP, 64, 64, 64, dep, frag, 8, 128, 100, ITERATIONS);
 
- dt(DUMMY, 8, 32, 64, dep, frag, 8, 64, 1000, 100000);
- dt(SEQ, 8, 32, 64, dep, frag, 8, 64, 1000, 100000);
- dt(RAN, 8, 32, 64, dep, frag, 8, 64, 1000, 100000);
- dt(SEQGAP, 8, 32, 64, dep, frag, 8, 64, 1000, 100000);
- dt(RANGAP, 8, 32, 64, dep, frag, 8, 64, 1000, 100000);
+ dt(DUMMY, 8, 32, 64, dep, frag, 8, 64, 1000, ITERATIONS);
+ dt(SEQ, 8, 32, 64, dep, frag, 8, 64, 1000, ITERATIONS);
+ dt(RAN, 8, 32, 64, dep, frag, 8, 64, 1000, ITERATIONS);
+ dt(SEQGAP, 8, 32, 64, dep, frag, 8, 64, 1000, ITERATIONS);
+ dt(RANGAP, 8, 32, 64, dep, frag, 8, 64, 1000, ITERATIONS);
 
- dt(DUMMY, 100, 116, 132, dep, frag, 100, 132, 1000, 100000);
- dt(SEQ, 100, 116, 132, dep, frag, 100, 132, 1000, 100000);
- dt(RAN, 100, 116, 132, dep, frag, 100, 132, 1000, 100000);
- dt(SEQGAP, 100, 116, 132, dep, frag, 100, 132, 1000, 100000);
- dt(RANGAP, 100, 116, 132, dep, frag, 100, 132, 1000, 100000);
+ dt(DUMMY, 100, 116, 132, dep, frag, 100, 132, 1000, ITERATIONS);
+ dt(SEQ, 100, 116, 132, dep, frag, 100, 132, 1000, ITERATIONS);
+ dt(RAN, 100, 116, 132, dep, frag, 100, 132, 1000, ITERATIONS);
+ dt(SEQGAP, 100, 116, 132, dep, frag, 100, 132, 1000, ITERATIONS);
+ dt(RANGAP, 100, 116, 132, dep, frag, 100, 132, 1000, ITERATIONS);
 
- dt(DUMMY, mins, 60*1024, 120*1024, dep, frag, mins, 128*1024, 100, 1000);
- dt(SEQ, mins, 60*1024, 120*1024, dep, frag, mins, 128*1024, 100, 1000);
- dt(RAN, mins, 60*1024, 120*1024, dep, frag, mins, 128*1024, 100, 1000);
- dt(SEQGAP, mins, 60*1024, 120*1024, dep, frag, mins, 128*1024, 100, 1000);
- dt(RANGAP, mins, 60*1024, 120*1024, dep, frag, mins, 128*1024, 100, 1000);
+ dt(DUMMY, mins, 60*1024, 120*1024, dep, frag, mins, 128*1024, 100, ITERATIONS);
+ dt(SEQ, mins, 60*1024, 120*1024, dep, frag, mins, 128*1024, 100, ITERATIONS);
+ dt(RAN, mins, 60*1024, 120*1024, dep, frag, mins, 128*1024, 100, ITERATIONS);
+ dt(SEQGAP, mins, 60*1024, 120*1024, dep, frag, mins, 128*1024, 100, ITERATIONS);
+ dt(RANGAP, mins, 60*1024, 120*1024, dep, frag, mins, 128*1024, 100, ITERATIONS);
 
 /* try again using exceptional obj for anything over 16K */
 
- dt(DUMMY, mins, 8*1024, 16*1024, dep, frag, mins, 128*1024, 100, 1000);
- dt(SEQ, mins, 8*1024, 16*1024, dep, frag, mins, 128*1024, 100, 1000);
- dt(RAN, mins, 8*1024, 16*1024, dep, frag, mins, 128*1024, 100, 1000);
- dt(SEQGAP, mins, 8*1024, 16*1024, dep, frag, mins, 128*1024, 100, 1000);
- dt(RANGAP, mins, 8*1024, 16*1024, dep, frag, mins, 128*1024, 100, 1000);
+ dt(DUMMY, mins, 8*1024, 16*1024, dep, frag, mins, 128*1024, 100, ITERATIONS);
+ dt(SEQ, mins, 8*1024, 16*1024, dep, frag, mins, 128*1024, 100, ITERATIONS);
+ dt(RAN, mins, 8*1024, 16*1024, dep, frag, mins, 128*1024, 100, ITERATIONS);
+ dt(SEQGAP, mins, 8*1024, 16*1024, dep, frag, mins, 128*1024, 100, ITERATIONS);
+ dt(RANGAP, mins, 8*1024, 16*1024, dep, frag, mins, 128*1024, 100, ITERATIONS);
 
  }
 

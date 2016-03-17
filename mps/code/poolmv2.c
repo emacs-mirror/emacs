@@ -35,15 +35,13 @@ static Res MVTInit(Pool pool, ArgList arg);
 static Bool MVTCheck(MVT mvt);
 static void MVTFinish(Pool pool);
 static Res MVTBufferFill(Addr *baseReturn, Addr *limitReturn,
-                         Pool pool, Buffer buffer, Size minSize,
-                         Bool withReservoirPermit);
+                         Pool pool, Buffer buffer, Size minSize);
 static void MVTBufferEmpty(Pool pool, Buffer buffer, Addr base, Addr limit);
 static void MVTFree(Pool pool, Addr base, Size size);
 static Res MVTDescribe(Pool pool, mps_lib_FILE *stream, Count depth);
 static Size MVTTotalSize(Pool pool);
 static Size MVTFreeSize(Pool pool);
-static Res MVTSegAlloc(Seg *segReturn, MVT mvt, Size size,
-                       Bool withReservoirPermit);
+static Res MVTSegAlloc(Seg *segReturn, MVT mvt, Size size);
 
 static void MVTSegFree(MVT mvt, Seg seg);
 static Bool MVTReturnSegs(MVT mvt, Range range, Arena arena);
@@ -491,8 +489,7 @@ static void MVTNoteFill(MVT mvt, Addr base, Addr limit, Size minSize) {
 static Res MVTOversizeFill(Addr *baseReturn,
                            Addr *limitReturn,
                            MVT mvt,
-                           Size minSize,
-                           Bool withReservoirPermit)
+                           Size minSize)
 {
   Res res;
   Seg seg;
@@ -501,7 +498,7 @@ static Res MVTOversizeFill(Addr *baseReturn,
 
   alignedSize = SizeArenaGrains(minSize, PoolArena(MVTPool(mvt)));
 
-  res = MVTSegAlloc(&seg, mvt, alignedSize, withReservoirPermit);
+  res = MVTSegAlloc(&seg, mvt, alignedSize);
   if (res != ResOK)
     return res;
 
@@ -660,14 +657,13 @@ static Bool MVTContingencyFill(Addr *baseReturn, Addr *limitReturn,
 
 static Res MVTSegFill(Addr *baseReturn, Addr *limitReturn,
                       MVT mvt, Size fillSize,
-                      Size minSize,
-                      Bool withReservoirPermit)
+                      Size minSize)
 {
   Res res;
   Seg seg;
   Addr base, limit;
 
-  res = MVTSegAlloc(&seg, mvt, fillSize, withReservoirPermit);
+  res = MVTSegAlloc(&seg, mvt, fillSize);
   if (res != ResOK)
     return res;
 
@@ -686,8 +682,7 @@ static Res MVTSegFill(Addr *baseReturn, Addr *limitReturn,
  * See <design/poolmvt/#impl.c.ap.fill>
  */
 static Res MVTBufferFill(Addr *baseReturn, Addr *limitReturn,
-                         Pool pool, Buffer buffer, Size minSize,
-                         Bool withReservoirPermit)
+                         Pool pool, Buffer buffer, Size minSize)
 {
   MVT mvt;
   Res res;
@@ -701,13 +696,12 @@ static Res MVTBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVER(BufferIsReset(buffer));
   AVER(minSize > 0);
   AVER(SizeIsAligned(minSize, pool->alignment));
-  AVERT(Bool, withReservoirPermit);
 
   /* Allocate oversize blocks exactly, directly from the arena.
      <design/poolmvt/#arch.ap.no-fit.oversize> */
   if (minSize > mvt->fillSize) {
     return MVTOversizeFill(baseReturn, limitReturn, mvt,
-                           minSize, withReservoirPermit);
+                           minSize);
   }
 
   /* Use any splinter, if available.
@@ -732,7 +726,7 @@ static Res MVTBufferFill(Addr *baseReturn, Addr *limitReturn,
   /* Attempt to request a block from the arena.
      <design/poolmvt/#impl.c.free.merge.segment> */
   res = MVTSegFill(baseReturn, limitReturn,
-                   mvt, mvt->fillSize, minSize, withReservoirPermit);
+                   mvt, mvt->fillSize, minSize);
   if (res == ResOK)
     return ResOK;
 
@@ -751,23 +745,21 @@ static Res MVTBufferFill(Addr *baseReturn, Addr *limitReturn,
 
 
 /* MVTDeleteOverlapping -- ABQIterate callback used by MVTInsert and
- * MVTDelete. It receives a Range in its closureP argument, and sets
+ * MVTDelete. It receives a Range in its closure argument, and sets
  * *deleteReturn to TRUE for ranges in the ABQ that overlap with it,
  * and FALSE for ranges that do not.
  */
 static Bool MVTDeleteOverlapping(Bool *deleteReturn, void *element,
-                                 void *closureP, Size closureS)
+                                 void *closure)
 {
   Range oldRange, newRange;
 
   AVER(deleteReturn != NULL);
   AVER(element != NULL);
-  AVER(closureP != NULL);
-  AVER(closureS == UNUSED_SIZE);
-  UNUSED(closureS);
+  AVER(closure != NULL);
 
   oldRange = element;
-  newRange = closureP;
+  newRange = closure;
 
   *deleteReturn = RangesOverlap(oldRange, newRange);
   return TRUE;
@@ -830,7 +822,7 @@ static Res MVTInsert(MVT mvt, Addr base, Addr limit)
      * with ranges on the ABQ, so ensure that the corresponding ranges
      * are coalesced on the ABQ.
      */
-    ABQIterate(MVTABQ(mvt), MVTDeleteOverlapping, &newRange, UNUSED_SIZE);
+    ABQIterate(MVTABQ(mvt), MVTDeleteOverlapping, &newRange);
     (void)MVTReserve(mvt, &newRange);
   }
 
@@ -859,7 +851,7 @@ static Res MVTDelete(MVT mvt, Addr base, Addr limit)
    * might be on the ABQ, so ensure it is removed.
    */
   if (RangeSize(&rangeOld) >= mvt->reuseSize)
-    ABQIterate(MVTABQ(mvt), MVTDeleteOverlapping, &rangeOld, UNUSED_SIZE);
+    ABQIterate(MVTABQ(mvt), MVTDeleteOverlapping, &rangeOld);
 
   /* There might be fragments at the left or the right of the deleted
    * range, and either might be big enough to go back on the ABQ.
@@ -1135,11 +1127,10 @@ mps_pool_class_t mps_class_mvt(void)
 /* MVTSegAlloc -- encapsulates SegAlloc with associated accounting and
  * metering
  */
-static Res MVTSegAlloc(Seg *segReturn, MVT mvt, Size size,
-                       Bool withReservoirPermit)
+static Res MVTSegAlloc(Seg *segReturn, MVT mvt, Size size)
 {
   Res res = SegAlloc(segReturn, SegClassGet(), LocusPrefDefault(), size,
-                     MVTPool(mvt), withReservoirPermit, argsNone);
+                     MVTPool(mvt), argsNone);
 
   if (res == ResOK) {
     Size segSize = SegSize(*segReturn);
@@ -1210,15 +1201,13 @@ static Bool MVTReturnSegs(MVT mvt, Range range, Arena arena)
  */
 
 static Bool MVTRefillVisitor(Land land, Range range,
-                             void *closureP, Size closureS)
+                             void *closure)
 {
   MVT mvt;
 
   AVERT(Land, land);
-  mvt = closureP;
+  mvt = closure;
   AVERT(MVT, mvt);
-  AVER(closureS == UNUSED_SIZE);
-  UNUSED(closureS);
 
   if (RangeSize(range) < mvt->reuseSize)
     return TRUE;
@@ -1241,7 +1230,7 @@ static void MVTRefillABQIfEmpty(MVT mvt, Size size)
     mvt->abqOverflow = FALSE;
     METER_ACC(mvt->refills, size);
     /* The iteration stops if the ABQ overflows, so may finish or not. */
-    (void)LandIterate(MVTFreeLand(mvt), MVTRefillVisitor, mvt, UNUSED_SIZE);
+    (void)LandIterate(MVTFreeLand(mvt), MVTRefillVisitor, mvt);
   }
 }
  
@@ -1260,7 +1249,7 @@ typedef struct MVTContigencyClosureStruct
 } MVTContigencyClosureStruct,  *MVTContigencyClosure;
 
 static Bool MVTContingencyVisitor(Land land, Range range,
-                                  void *closureP, Size closureS)
+                                  void *closure)
 {
   MVT mvt;
   Size size;
@@ -1269,12 +1258,10 @@ static Bool MVTContingencyVisitor(Land land, Range range,
 
   AVERT(Land, land);
   AVERT(Range, range);
-  AVER(closureP != NULL);
-  cl = closureP;
+  AVER(closure != NULL);
+  cl = closure;
   mvt = cl->mvt;
   AVERT(MVT, mvt);
-  AVER(closureS == UNUSED_SIZE);
-  UNUSED(closureS);
 
   base = RangeBase(range);
   limit = RangeLimit(range);
@@ -1312,7 +1299,7 @@ static Bool MVTContingencySearch(Addr *baseReturn, Addr *limitReturn,
   cls.steps = 0;
   cls.hardSteps = 0;
 
-  if (LandIterate(MVTFreeLand(mvt), MVTContingencyVisitor, &cls, UNUSED_SIZE))
+  if (LandIterate(MVTFreeLand(mvt), MVTContingencyVisitor, &cls))
     return FALSE;
 
   AVER(RangeSize(&cls.range) >= min);

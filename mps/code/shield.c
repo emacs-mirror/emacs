@@ -275,7 +275,7 @@ static void shieldCache(Arena arena, Seg seg)
     
     AVER(arena->shCache == NULL);
 
-    res = ControlAlloc(&p, arena, ShieldCacheSIZE * sizeof arena->shCache[0], FALSE);
+    res = ControlAlloc(&p, arena, ShieldCacheSIZE * sizeof arena->shCache[0]);
     if (res != ResOK) {
       AVER(res == ResMEMORY);
     } else {

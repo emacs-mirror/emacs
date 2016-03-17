@@ -1,7 +1,7 @@
 /* fmtscheme.h: SCHEME OBJECT FORMAT INTERFACE
  *
- * $Id: //info.ravenbrook.com/project/mps/branch/2014-01-15/nailboard/code/fmtdy.h#1 $
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * $Id$
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  */
 
 #ifndef fmtscheme_h
@@ -193,7 +193,7 @@ extern mps_ap_t obj_ap;
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
