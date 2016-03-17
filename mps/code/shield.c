@@ -135,8 +135,6 @@ static void shieldFlushEntry(Arena arena, Size i)
   AVER(i < arena->shCacheLimit);
 
   seg = arena->shCache[i];
-  if (seg == NULL)
-    return;
   AVERT(Seg, seg);
 
   AVER(arena->shDepth > 0);
@@ -147,28 +145,18 @@ static void shieldFlushEntry(Arena arena, Size i)
   if (SegDepth(seg) == 0)
     shieldSync(arena, seg);
 
-  arena->shCache[i] = NULL;
+  arena->shCache[i] = NULL; /* just to make sure it gets overwritten */
 }
 
 
-/* We sort NULLs to the end, and otherwise sort by base address */
 static int shieldCacheEntryCompare(const void *a, const void *b)
 {
   Seg segA = *(SegStruct * const *)a, segB = *(SegStruct * const *)b;
   Addr baseA, baseB;
-  if (segA != NULL)
-    AVERT(Seg, segA);
-  if (segB != NULL)
-    AVERT(Seg, segB);
+  
+  AVERT(Seg, segA); /* FIXME: Might be critical? */
+  AVERT(Seg, segB);
 
-  if (segA == NULL) {
-    if (segB == NULL) return 0;
-    else return 1;
-  }
-  if (segB == NULL) {
-     AVER(segA != NULL);
-     return -1;
-  }
   baseA = SegBase(segA);
   baseB = SegBase(segB);
   if (baseA < baseB)
@@ -177,6 +165,14 @@ static int shieldCacheEntryCompare(const void *a, const void *b)
     return 1;
   AVER(baseA == baseB);
   return 0;
+}
+
+
+static void shieldCacheReset(Arena arena)
+{
+  AVER(arena->shDepth == 0);
+  arena->shCacheI = 0;
+  arena->shCacheLimit = 0;
 }
 
 
@@ -191,12 +187,21 @@ static void shieldFlushEntries(Arena arena)
   AccessSet mode = 0;
   Seg seg;
   Size i;
-  qsort(arena->shCache, arena->shCacheLimit, sizeof(arena->shCache[0]),
+  if (arena->shDepth == 0)
+    return;
+  AVER(arena->shCache != NULL);
+  AVER(arena->shCacheLength > 0);
+
+  /* FIXME: This needs to go through the plinth. */
+  /* FIXME: We probably can't use libc's qsort because we can't bound
+     its use of stack space. */
+  qsort(arena->shCache, arena->shCacheLimit, sizeof arena->shCache[0],
         shieldCacheEntryCompare);
-  seg = arena->shCache[0];
+
+  seg = arena->shCache[0]; /* lowest address segment */
   if (seg) {
     AVERT(Seg, seg);
-    arena->shCache[0] = NULL;
+    arena->shCache[0] = NULL; /* just to make sure it isn't reused */
 
     AVER(arena->shDepth > 0);
     AVER(SegDepth(seg) > 0);
@@ -214,11 +219,8 @@ static void shieldFlushEntries(Arena arena)
     if (arena->shDepth == 0)
       break;
     seg = arena->shCache[i];
-    /* All the NULLs are sorted to the end */
-    if (seg == NULL)
-      break;
     AVERT(Seg, seg);
-    arena->shCache[i] = NULL;
+    arena->shCache[i] = NULL; /* just to make sure it isn't reused */
 
     AVER(arena->shDepth > 0);
     AVER(SegDepth(seg) > 0);
@@ -242,6 +244,7 @@ static void shieldFlushEntries(Arena arena)
   if (limit != 0) {
     ProtSet(base, limit, mode);
   }
+  shieldCacheReset(arena);
 }
 
 
@@ -254,29 +257,68 @@ static void shieldCache(Arena arena, Seg seg)
   AVERT_CRITICAL(Arena, arena);
   AVERT_CRITICAL(Seg, seg);
 
-  if (SegSM(seg)
-    == SegPM(seg)) return;
-  if (SegDepth(seg) > 0) {
+  if (SegSM(seg) == SegPM(seg))
+    return;
+  if (SegDepth(seg) > 0) { /* already in the cache or exposed? */
+    /* This can occur if the mutator isn't suspended, we expose a
+       segment, then raise the shield on it.  In this case, the
+       mutator isn't allowed to see the segment, but we don't need to
+       cache it until its covered. */
     ShieldSuspend(arena);
     return;
   }
-  if (ShieldCacheSIZE == 0 || !arena->suspended)
-    shieldSync(arena, seg);
-  else {
-    SegSetDepth(seg, SegDepth(seg) + 1);
-    ++arena->shDepth;
-    AVER(arena->shDepth > 0);
-    AVER(SegDepth(seg) > 0);
-    AVER(arena->shCacheLimit <= ShieldCacheSIZE);
-    AVER(arena->shCacheI < arena->shCacheLimit);
-    shieldFlushEntry(arena, arena->shCacheI);
-    arena->shCache[arena->shCacheI] = seg;
-    ++arena->shCacheI;
-    if (arena->shCacheI == ShieldCacheSIZE)
-      arena->shCacheI = 0;
-    if (arena->shCacheI == arena->shCacheLimit)
-      ++arena->shCacheLimit;
+
+  /* Allocate shield cache if necessary. */
+  if (arena->shCacheLength == 0) {
+    void *p;
+    Res res;
+    
+    AVER(arena->shCache == NULL);
+
+    res = ControlAlloc(&p, arena, ShieldCacheSIZE * sizeof arena->shCache[0], FALSE);
+    if (res != ResOK) {
+      AVER(res == ResMEMORY);
+    } else {
+      arena->shCache = p;
+      arena->shCacheLength = ShieldCacheSIZE;
+    }
   }
+
+  /* Cache unavailable, so synchronize now.  Or if the mutator is not
+     yet suspended and the code raises the shield on a covered
+     segment, protect it now, because that's probably better than
+     suspending the mutator. */
+  if (arena->shCacheLength == 0 || !arena->suspended) {
+    shieldSync(arena, seg);
+    return;
+  }
+
+  SegSetDepth(seg, SegDepth(seg) + 1);
+  AVER(SegDepth(seg) > 0); /* overflow */
+  ++arena->shDepth;
+  AVER(arena->shDepth > 0); /* overflow */
+
+  AVER(arena->shCacheLimit <= arena->shCacheLength);
+  AVER(arena->shCacheI <= arena->shCacheLimit);
+
+  if (arena->shCacheI >= arena->shCacheLength)
+    arena->shCacheI = 0;
+  AVER(arena->shCacheI < arena->shCacheLength);
+
+  AVER(arena->shCacheLength > 0);
+
+  /* If the limit is less than the length, then the cache array has
+     yet to be filled, and shCacheI is an uninitialized entry.
+     Otherwise it's the tail end from last time around, and needs to
+     be flushed. */
+  if (arena->shCacheLimit == arena->shCacheLength)
+    shieldFlushEntry(arena, arena->shCacheI);
+
+  arena->shCache[arena->shCacheI] = seg;
+  ++arena->shCacheI;
+
+  if (arena->shCacheI >= arena->shCacheLimit)
+    arena->shCacheLimit = arena->shCacheI;
 }
 
 
@@ -316,19 +358,15 @@ void (ShieldLower)(Arena arena, Seg seg, AccessSet mode)
 
 void (ShieldEnter)(Arena arena)
 {
-  Size i;
-
   AVERT(Arena, arena);
   AVER(!arena->insideShield);
   AVER(arena->shDepth == 0);
   AVER(!arena->suspended);
-  AVER(arena->shCacheLimit <= ShieldCacheSIZE);
-  AVER(arena->shCacheI < arena->shCacheLimit);
-  for (i = 0; i < arena->shCacheLimit; i++)
-    AVER(arena->shCache[i] == NULL);
+  AVER(arena->shCacheLimit <= arena->shCacheLength);
+  AVER(arena->shCacheI <= arena->shCacheLimit);
 
-  arena->shCacheI = (Size)0;
-  arena->shCacheLimit = (Size)1;
+  shieldCacheReset(arena);
+
   arena->insideShield = TRUE;
 }
 
