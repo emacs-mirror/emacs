@@ -645,6 +645,54 @@ Bool StringEqual(const char *s1, const char *s2)
 }
 
 
+/* QuickSort -- non-recursive bounded sort
+ *
+ * We can't rely on the standard library's qsort, which might have
+ * O(n) stack usage.  This version does not recurse.
+ */
+
+void QuickSort(void *array[], Count len,
+               QuickSortCompare compare, void *closure)
+{
+  static Index seed = 0x6A9D03;
+  Index left, right, stack[MPS_WORD_WIDTH], pos;
+  void *pivot, *temp;
+
+  left = 0;
+  pos = 0;
+  for (;;) {
+    while (left + 1 < len) {
+      if (pos >= sizeof stack / sizeof stack[0]) {
+	pos = 0;
+	len = stack[pos];  /* stack overflow, reset */
+      }
+      pivot = array[left + seed % (len - left)];
+      seed = seed * 69069 + 1;
+      stack[pos] = len;
+      ++pos;
+      right = left;
+      for (;;) {
+	while (compare(array[right],  pivot, closure) == CompareLESS)
+	  ++right;
+	do
+	  --len;
+	while (compare(pivot, array[len], closure) == CompareLESS);
+	if (right >= len)
+	  break;
+	temp = array[right];
+	array[right] = array[len];
+	array[len] = temp;
+      }
+      ++len;
+    }
+    if (pos == 0)
+      break;
+    left = len;
+    --pos;
+    len = stack[pos];
+  } 
+}
+
 
 /* C. COPYRIGHT AND LICENSE
  *
