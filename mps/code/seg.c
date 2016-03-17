@@ -580,6 +580,11 @@ Bool SegTraverseInZones(Arena arena, ZoneSet zs, SegVisitor visit, void *closure
  * use SplayFirst and SplayNext.
  *
  * visit should return FALSE if it has called SegFinish itself.
+ *
+ * NOTE: If this becomes a hot spot, it should be possible to
+ * implement SplayTreeFirstPartial and SplayTreeNextPartial that take
+ * a filter (on zones in this case).  This would also have the
+ * advantage of not unbalancing irrelevant parts of the tree.
  */
 
 void SegTraverseAndDelete(Arena arena, SegVisitor visit, void *closure)
