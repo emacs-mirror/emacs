@@ -169,6 +169,11 @@ Res PoolInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   /* Add initialized pool to list of pools in arena. */
   RingAppend(&globals->poolRing, &pool->arenaRing);
 
+  /* Add initialized pool to list of pools using format. */
+  if (pool->format) {
+    ++ pool->format->poolCount;
+  }
+
   return ResOK;
 
 failInit:
@@ -228,8 +233,12 @@ void PoolFinish(Pool pool)
   /* Do any class-specific finishing. */
   (*pool->class->finish)(pool);
 
-  /* Detach the pool from the arena, and unsig it. */
+  /* Detach the pool from the arena and format, and unsig it. */
   RingRemove(&pool->arenaRing);
+  if (pool->format) {
+    AVER(pool->format->poolCount > 0);
+    -- pool->format->poolCount;
+  }
   pool->sig = SigInvalid;
  
   RingFinish(&pool->segRing);
