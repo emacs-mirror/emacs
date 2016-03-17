@@ -480,20 +480,13 @@ static void whiteTableFree(void *closure, void *p, Size size)
   ControlFree(arena, p, size);
 }
 
-Res TraceCondemnZones(Trace trace, ZoneSet condemnedSet)
+static Res whiteTableCreate(Arena arena)
 {
-  TraceCondemnZonesClosureStruct tczStruct;
-  Arena arena;
-
-  AVERT(Trace, trace);
-  AVER(condemnedSet != ZoneSetEMPTY);
-  AVER(trace->state == TraceINIT);
-  AVER(trace->white == ZoneSetEMPTY);
+  AVERT(Arena, arena);
 
   /* TODO: Estimate initial size of table from condemned set size.
      This would increase table building efficiency and reduce the
      probability of falling back at .fix.table. */
-  arena = trace->arena;
   if (arena->whiteTable == NULL) {
     Res res = TableCreate(&arena->whiteTable, 1024,
                           whiteTableAlloc, whiteTableFree,
@@ -503,6 +496,25 @@ Res TraceCondemnZones(Trace trace, ZoneSet condemnedSet)
         return res;
       /* fall back to slower lookup at .fix.table */
     }
+  }
+
+  return ResOK;
+}
+
+Res TraceCondemnZones(Trace trace, ZoneSet condemnedSet)
+{
+  Res res;
+  TraceCondemnZonesClosureStruct tczStruct;
+
+  AVERT(Trace, trace);
+  AVER(condemnedSet != ZoneSetEMPTY);
+  AVER(trace->state == TraceINIT);
+  AVER(trace->white == ZoneSetEMPTY);
+
+  res = whiteTableCreate(trace->arena);
+  if (res != ResOK) {
+    AVER(res != ResMEMORY);
+    return res;
   }
 
   tczStruct.trace = trace;
@@ -1592,7 +1604,11 @@ static Res traceCondemnAll(Trace trace)
   arena = trace->arena;
   AVERT(Arena, arena);
 
-  /* FIXME: Create white table. */
+  res = whiteTableCreate(arena);
+  if (res != ResOK) {
+    AVER(res != ResMEMORY);
+    return res;
+  }
 
   /* Condemn all segments in pools with the GC attribute. */
   RING_FOR(poolNode, &ArenaGlobals(arena)->poolRing, nextPoolNode) {
