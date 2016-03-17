@@ -1780,7 +1780,13 @@ Usually this is `describe-prefix-bindings'."
   (interactive)
   (let ((which-key-inhibit t))
     (which-key--hide-popup-ignore-command)
-    (funcall which-key--prefix-help-cmd-backup)))
+    (cond ((eq which-key--prefix-help-cmd-backup
+               'describe-prefix-bindings)
+           ;; This is essentially what `describe-prefix-bindings' does
+           (describe-bindings
+            (kbd (which-key--current-key-string))))
+          ((functionp which-key--prefix-help-cmd-backup)
+           (funcall which-key--prefix-help-cmd-backup)))))
 
 ;;;###autoload
 (defun which-key-show-next-page-no-cycle ()
