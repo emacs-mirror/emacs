@@ -4,6 +4,7 @@ TEST_HEADER
  summary = test of ramp allocation
  language = c
  link = testlib.o rankfmt.o
+ parameters = ITERATIONS=50000
 OUTPUT_SPEC
  result = pass
 END_HEADER
@@ -22,15 +23,13 @@ static mps_gen_param_s testChain[genCOUNT] = {
 
 #define ARENALIMIT (200)
 
-#define TABSIZE (50000)
-#define ENTERRAMP (30000)
-#define LEAVERAMP (100000)
+#define TABSIZE (ITERATIONS / 2)
+#define ENTERRAMP (ITERATIONS / 10)
+#define LEAVERAMP (ITERATIONS / 10)
 
 #define BACKSIZE (128)
 #define BACKITER (32)
 #define RAMPSIZE (128)
-
-#define ITERATIONS (100000ul)
 
 #define RAMP_INTERFACE
 /*
@@ -99,7 +98,7 @@ static void test(void)
            /* the compiler doesn't know this. */
 
  for (i = 0; i < ITERATIONS; i++) {
-  if (i % 10000 == 0) {
+  if (i * 10 % ITERATIONS == 0) {
    comment("%ld of %ld", i, ITERATIONS);
   }
   alloc_back();

@@ -121,19 +121,19 @@ static void finalpoll(mycell **ref, int faction)
 
 static void test(void)
 {
- mps_pool_t poolamc, poolawl, poollo;
+ mps_pool_t poolamc, poolawl, poolamcz;
  mps_thr_t thread;
  mps_root_t root0, root1;
 
  mps_fmt_t format;
  mps_chain_t chain;
- mps_ap_t apamc, apawl, aplo;
+ mps_ap_t apamc, apawl, apamcz;
 
  mycell *a, *b, *c, *d, *z;
 
  long int j;
 
- cdie(mps_arena_create(&arena, mps_arena_class_vm(), (size_t)1024*1024*30),
+ cdie(mps_arena_create_k(&arena, mps_arena_class_vm(), mps_args_none),
       "create arena");
 
  cdie(mps_thread_reg(&thread, arena), "register thread");
@@ -157,7 +157,7 @@ static void test(void)
  cdie(mps_pool_create(&poolawl, arena, mps_class_awl(), format, getassociated),
       "create pool(awl)");
 
- cdie(mmqa_pool_create_chain(&poollo, arena, mps_class_amcz(), format, chain),
+ cdie(mmqa_pool_create_chain(&poolamcz, arena, mps_class_amcz(), format, chain),
      "create pool(amcz)");
 
  cdie(mps_ap_create(&apawl, poolawl, mps_rank_weak()),
@@ -166,7 +166,7 @@ static void test(void)
  cdie(mps_ap_create(&apamc, poolamc, mps_rank_exact()),
       "create ap(amc)");
  
- cdie(mps_ap_create(&aplo, poollo, mps_rank_exact()),
+ cdie(mps_ap_create(&apamcz, poolamcz, mps_rank_exact()),
       "create ap(amcz)");
 
  mps_message_type_enable(arena, mps_message_type_finalization());
@@ -179,7 +179,7 @@ static void test(void)
  for (j=0; j<1000; j++) {
   a = allocone(apamc, 2, mps_rank_exact());
   c = allocone(apawl, 2, mps_rank_weak());
-  d = allocone(aplo, 2, mps_rank_exact()); /* rank irrelevant here! */
+  d = allocone(apamcz, 2, mps_rank_exact()); /* rank irrelevant here! */
   mps_finalize(arena, (mps_addr_t*)&a);
   mps_finalize(arena, (mps_addr_t*)&c);
   mps_finalize(arena, (mps_addr_t*)&d);
@@ -211,7 +211,7 @@ static void test(void)
  /* now to test leaving messages open for a long time! */
 
  for (j=0; j<1000; j++) {
-  comment("%d of 1000", j);
+  comment("%d of 1000", j+1);
   a = allocone(apamc, 10000, mps_rank_exact());
   mps_finalize(arena, (mps_addr_t*)&a);
   final_count +=1;
@@ -222,7 +222,7 @@ static void test(void)
  comment("reregister");
 
  for (j=0; j<500; j++) {
-  comment("%d of 500", j);
+  comment("%d of 500", j+1);
   qpoll(&z, FINAL_REREGISTER);
  }
 
@@ -230,7 +230,7 @@ static void test(void)
  z = a;
 
  for (j=0; j<1000; j++) {
-  comment("%d of 1000", j);
+  comment("%d of 1000", j+1);
   finalpoll(&z, FINAL_QUEUE);
   qpoll(&z, FINAL_STORE);
   a = allocone(apamc, 2, mps_rank_exact());
@@ -270,12 +270,12 @@ static void test(void)
  mps_arena_park(arena);
  mps_ap_destroy(apawl);
  mps_ap_destroy(apamc);
- mps_ap_destroy(aplo);
+ mps_ap_destroy(apamcz);
  comment("Destroyed aps.");
 
  mps_pool_destroy(poolamc);
  mps_pool_destroy(poolawl);
- mps_pool_destroy(poollo);
+ mps_pool_destroy(poolamcz);
  comment("Destroyed pools.");
 
  mps_chain_destroy(chain);

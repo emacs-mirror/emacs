@@ -402,8 +402,7 @@ static Res cbsBlockAlloc(CBSBlock *blockReturn, CBS cbs, Range range)
   AVERT(CBS, cbs);
   AVERT(Range, range);
 
-  res = PoolAlloc(&p, cbsBlockPool(cbs), cbs->blockStructSize,
-                  /* withReservoirPermit */ FALSE);
+  res = PoolAlloc(&p, cbsBlockPool(cbs), cbs->blockStructSize);
   if (res != ResOK)
     goto failPoolAlloc;
   block = (CBSBlock)p;

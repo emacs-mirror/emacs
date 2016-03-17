@@ -45,7 +45,6 @@ Old design
     protsu
     protocol
     pthreadext
-    reservoir
     root
     scan
     seg

@@ -4,6 +4,7 @@ TEST_HEADER
  summary = test my format for checking the graph
  language = c
  link = testlib.o awlfmt.o
+ parameters = ITERATIONS=50
 END_HEADER
 */
 
@@ -48,8 +49,8 @@ static void test(void)
 
  cdie(mps_ap_create(&ap, pool, mps_rank_exact()), "create ap");
 
- for (j = 1; j < 100; j++) {
-  comment("%i of 100.", j);
+ for (j = 1; j <= ITERATIONS; j++) {
+  comment("%i of %i.", j, ITERATIONS);
   UC;
   a = allocone(ap, 5, 1);
   b = a;
@@ -59,7 +60,7 @@ static void test(void)
   f = a;
   g = a;
 
-  for (i = 1; i < 100; i++) {
+  for (i = 0; i < 100; i++) {
   UC;
    c = allocone(ap, 1000, 1);
    if (ranint(8) == 0) d = c;
