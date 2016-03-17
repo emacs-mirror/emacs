@@ -60,8 +60,7 @@ static void NFinish(Pool pool)
 
 /* NAlloc -- alloc method for class N */
 
-static Res NAlloc(Addr *pReturn, Pool pool, Size size,
-                  Bool withReservoirPermit)
+static Res NAlloc(Addr *pReturn, Pool pool, Size size)
 {
   PoolN poolN;
 
@@ -71,7 +70,6 @@ static Res NAlloc(Addr *pReturn, Pool pool, Size size,
 
   AVER(pReturn != NULL);
   AVER(size > 0);
-  AVERT(Bool, withReservoirPermit);
 
   return ResLIMIT;  /* limit of nil blocks exceeded */
 }
@@ -97,8 +95,7 @@ static void NFree(Pool pool, Addr old, Size size)
 /* NBufferFill -- buffer fill method for class N */
 
 static Res NBufferFill(Addr *baseReturn, Addr *limitReturn,
-                       Pool pool, Buffer buffer, Size size,
-                       Bool withReservoirPermit)
+                       Pool pool, Buffer buffer, Size size)
 {
   PoolN poolN;
 
@@ -110,7 +107,6 @@ static Res NBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVERT(Buffer, buffer);
   AVER(BufferIsReset(buffer));
   AVER(size > 0);
-  AVERT(Bool, withReservoirPermit);
 
   NOTREACHED;   /* can't create buffers, so shouldn't fill them */
   return ResUNIMPL;

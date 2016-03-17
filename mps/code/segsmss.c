@@ -111,8 +111,7 @@ static Bool AMSTSegCheck(AMSTSeg amstseg)
 
 /* amstSegInit -- initialise an amst segment */
 
-static Res amstSegInit(Seg seg, Pool pool, Addr base, Size size,
-                       Bool reservoirPermit, ArgList args)
+static Res amstSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 {
   SegClass super;
   AMSTSeg amstseg;
@@ -125,11 +124,10 @@ static Res amstSegInit(Seg seg, Pool pool, Addr base, Size size,
   amst = PoolAMST(pool);
   AVERT(AMST, amst);
   /* no useful checks for base and size */
-  AVERT(Bool, reservoirPermit);
 
   /* Initialize the superclass fields first via next-method call */
   super = SEG_SUPERCLASS(AMSTSegClass);
-  res = super->init(seg, pool, base, size, reservoirPermit, args);
+  res = super->init(seg, pool, base, size, args);
   if (res != ResOK)
     return res;
 
@@ -176,8 +174,7 @@ static void amstSegFinish(Seg seg)
  * anti-method.
  */
 static Res amstSegMerge(Seg seg, Seg segHi,
-                        Addr base, Addr mid, Addr limit,
-                        Bool withReservoirPermit)
+                        Addr base, Addr mid, Addr limit)
 {
   SegClass super;
   AMST amst;
@@ -194,8 +191,7 @@ static Res amstSegMerge(Seg seg, Seg segHi,
 
   /* Merge the superclass fields via direct next-method call */
   super = SEG_SUPERCLASS(AMSTSegClass);
-  res = super->merge(seg, segHi, base, mid, limit,
-                     withReservoirPermit);
+  res = super->merge(seg, segHi, base, mid, limit);
   if (res != ResOK)
     goto failSuper;
 
@@ -214,8 +210,7 @@ static Res amstSegMerge(Seg seg, Seg segHi,
 
 failDeliberate:
   /* Call the anti-method (see .fail) */
-  res = super->split(seg, segHi, base, mid, limit,
-                     withReservoirPermit);
+  res = super->split(seg, segHi, base, mid, limit);
   AVER(res == ResOK);
   res = ResFAIL;
 failSuper:
@@ -228,8 +223,7 @@ failSuper:
 /* amstSegSplit -- AMSTSeg split method */
 
 static Res amstSegSplit(Seg seg, Seg segHi,
-                        Addr base, Addr mid, Addr limit,
-                        Bool withReservoirPermit)
+                        Addr base, Addr mid, Addr limit)
 {
   SegClass super;
   AMST amst;
@@ -245,8 +239,7 @@ static Res amstSegSplit(Seg seg, Seg segHi,
 
   /* Split the superclass fields via direct next-method call */
   super = SEG_SUPERCLASS(AMSTSegClass);
-  res = super->split(seg, segHi, base, mid, limit,
-                     withReservoirPermit);
+  res = super->split(seg, segHi, base, mid, limit);
   if (res != ResOK)
     goto failSuper;
 
@@ -269,8 +262,7 @@ static Res amstSegSplit(Seg seg, Seg segHi,
 
 failDeliberate:
   /* Call the anti-method. (see .fail) */
-  res = super->merge(seg, segHi, base, mid, limit,
-                     withReservoirPermit);
+  res = super->merge(seg, segHi, base, mid, limit);
   AVER(res == ResOK);
   res = ResFAIL;
 failSuper:
@@ -526,8 +518,7 @@ static void AMSAllocateRange(AMS ams, Seg seg, Addr base, Addr limit)
  * meet the request.
  */
 static Res AMSTBufferFill(Addr *baseReturn, Addr *limitReturn,
-                          Pool pool, Buffer buffer, Size size,
-                          Bool withReservoirPermit)
+                          Pool pool, Buffer buffer, Size size)
 {
   PoolClass super;
   Addr base, limit;
@@ -549,8 +540,7 @@ static Res AMSTBufferFill(Addr *baseReturn, Addr *limitReturn,
 
   /* call next method */
   super = POOL_SUPERCLASS(AMSTPoolClass);
-  res = super->bufferFill(&base, &limit, pool, buffer, size,
-                          withReservoirPermit);
+  res = super->bufferFill(&base, &limit, pool, buffer, size);
   if (res != ResOK)
     return res;
 
@@ -567,7 +557,7 @@ static Res AMSTBufferFill(Addr *baseReturn, Addr *limitReturn,
         Res mres;
 
         AMSUnallocateRange(ams, seg, base, limit);
-        mres = SegMerge(&mergedSeg, segLo, seg, withReservoirPermit);
+        mres = SegMerge(&mergedSeg, segLo, seg);
         if (ResOK == mres) { /* successful merge */
           AMSAllocateRange(ams, mergedSeg, base, limit);
           /* leave range as-is */
@@ -585,7 +575,7 @@ static Res AMSTBufferFill(Addr *baseReturn, Addr *limitReturn,
         Seg segLo, segHi;
         Res sres;
         AMSUnallocateRange(ams, seg, mid, limit);
-        sres = SegSplit(&segLo, &segHi, seg, mid, withReservoirPermit);
+        sres = SegSplit(&segLo, &segHi, seg, mid);
         if (ResOK == sres) { /* successful split */
           limit = mid;  /* range is lower segment */
         } else {            /* failed to split */
@@ -639,7 +629,7 @@ static void AMSTStressBufferedSeg(Seg seg, Buffer buffer)
       /* .bmerge */
       Seg mergedSeg;
       Res res;
-      res = SegMerge(&mergedSeg, seg, segHi, FALSE);
+      res = SegMerge(&mergedSeg, seg, segHi);
       if (ResOK == res) {
         amst->bmerges++;
         printf("J");
@@ -656,7 +646,7 @@ static void AMSTStressBufferedSeg(Seg seg, Buffer buffer)
     /* .bsplit */
     Seg segLo, segHi;
     Res res;
-    res = SegSplit(&segLo, &segHi, seg, limit, FALSE);
+    res = SegSplit(&segLo, &segHi, seg, limit);
     if (ResOK == res) {
       amst->bsplits++;
       printf("C");

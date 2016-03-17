@@ -67,13 +67,12 @@ static void describe(TestState state) {
 }
 
 
-static Bool checkVisitor(Land land, Range range, void *closureP, Size closureS)
+static Bool checkVisitor(Land land, Range range, void *closure)
 {
   Addr base, limit;
-  CheckTestClosure cl = closureP;
+  CheckTestClosure cl = closure;
 
   testlib_unused(land);
-  Insist(closureS == UNUSED_SIZE);
   Insist(cl != NULL);
 
   base = RangeBase(range);
@@ -106,7 +105,7 @@ static void check(TestState state)
   closure.limit = addrOfIndex(state, state->size);
   closure.oldLimit = state->block;
 
-  b = LandIterate(state->land, checkVisitor, &closure, UNUSED_SIZE);
+  b = LandIterate(state->land, checkVisitor, &closure);
   Insist(b);
 
   if (closure.oldLimit == state->block)
@@ -460,8 +459,7 @@ extern int main(int argc, char *argv[])
   die((mps_res_t)BTCreate(&state.allocTable, arena, state.size),
       "failed to create alloc table");
 
-  die((mps_res_t)ControlAlloc(&p, arena, (state.size + 1) * state.align,
-                              /* withReservoirPermit */ FALSE),
+  die((mps_res_t)ControlAlloc(&p, arena, (state.size + 1) * state.align),
       "failed to allocate block");
   state.block = AddrAlignUp(p, state.align);
 
