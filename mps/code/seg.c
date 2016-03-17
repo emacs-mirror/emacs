@@ -190,6 +190,8 @@ static void SegFinish(Seg seg)
   Arena arena;
   SegClass class;
   Bool b;
+  TraceId ti;
+  Trace trace;
 
   AVERT(Seg, seg);
   class = seg->class;
@@ -199,6 +201,21 @@ static void SegFinish(Seg seg)
   if (seg->sm != AccessSetEMPTY) {
     ShieldLower(arena, seg, seg->sm);
   }
+
+  TRACE_SET_ITER(ti, trace, SegWhite(seg), arena) {
+    /* FIXME: Duplicate code with traceReclaimCommon */
+    if (trace->whiteTable != NULL) {
+      Addr base, addr, limit;
+      Align align;
+      base = SegBase(seg);
+      limit = SegLimit(seg);
+      align = ArenaGrainSize(arena);
+      for (addr = base; addr < limit; addr = AddrAdd(addr, align)) {
+        Res res = TableRemove(trace->whiteTable, (TableKey)addr);
+        AVER(res == ResOK);
+      }
+    }
+  } TRACE_SET_ITER_END(ti, trace, SegWhite(seg), arena);
 
   /* Class specific finishing cames first */
   class->finish(seg);
@@ -299,8 +316,31 @@ void SegSetGrey(Seg seg, TraceSet grey)
 
 void SegSetWhite(Seg seg, TraceSet white)
 {
+  TraceSet diff;
+  TraceId ti;
+  Trace trace;
+  Arena arena;
+
   AVERT(Seg, seg);
   AVERT(TraceSet, white);
+
+  arena = PoolArena(SegPool(seg));
+  diff = TraceSetDiff(SegWhite(seg), white);
+  TRACE_SET_ITER(ti, trace, diff, arena) {
+    /* FIXME: Duplicate code with traceReclaimCommon */
+    if (trace->whiteTable != NULL) {
+      Addr base, addr, limit;
+      Align align;
+      base = SegBase(seg);
+      limit = SegLimit(seg);
+      align = ArenaGrainSize(arena);
+      for (addr = base; addr < limit; addr = AddrAdd(addr, align)) {
+        Res res = TableRemove(trace->whiteTable, (TableKey)addr);
+        AVER(res == ResOK);
+      }
+    }
+  } TRACE_SET_ITER_END(ti, trace, SegWhite(seg), arena);
+
   seg->class->setWhite(seg, white);
 }
 
@@ -528,14 +568,29 @@ Bool SegTraverseInZones(Arena arena, ZoneSet zs, SegVisitor visit, void *closure
                              &stvStruct);
 }
 
+
+/* SegTraverseAndDelete -- traverse with optional deletion
+ *
+ * We can't use TreeTraverseAndDelete here because the visitor might
+ * call SegFinish, causing havoc in the pointer-reversed tree.
+ * TreeTraverseAndDelete unbalances the tree anyway, so we may as well
+ * use SplayFirst and SplayNext.
+ *
+ * visit should return FALSE if it has called SegFinish itself.
+ */
+
 void SegTraverseAndDelete(Arena arena, SegVisitor visit, void *closure)
 {
-  SegTraverseClosureStruct stvStruct;
-  stvStruct.visit = visit;
-  stvStruct.closure = closure;
-  TreeTraverseAndDelete(&SplayTreeRoot(ArenaSegSplay(arena)),
-                        segTraverseVisit,
-                        &stvStruct);
+  Tree tree;
+
+  tree = SplayTreeFirst(ArenaSegSplay(arena));
+  while (tree != TreeEMPTY) {
+    Seg seg = segOfTree(tree);
+    Addr base = SegBase(seg);
+    if (visit(seg, closure))
+      SegFree(seg);
+    tree = SplayTreeNext(ArenaSegSplay(arena), (TreeKey)base);
+  }
 }
 
 
