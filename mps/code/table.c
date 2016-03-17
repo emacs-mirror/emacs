@@ -560,7 +560,7 @@ extern void TableMap(Table table, TableVisitor visit, void *closure)
   for (i = 0; i < TableLength(table); i++) {
     TableKey tk = table->array[i].key;
     if (tk != table->unusedKey && tk != table->deletedKey)
-      visit(closure, table->array[i].key, table->array[i].value);
+      visit(closure, tk, table->array[i].value);
   }
 }
 

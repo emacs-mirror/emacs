@@ -367,6 +367,25 @@ Res TraceAddWhite(Trace trace, Seg seg)
   pool = SegPool(seg);
   AVERT(Pool, pool);
 
+  /* Give the pool the opportunity to turn the segment white. */
+  /* If it fails, unwind. */
+  res = PoolWhiten(pool, trace, seg);
+  if(res != ResOK)
+    return res; /* see .whiten.fail */
+
+  if (!TraceSetIsMember(SegWhite(seg), trace))
+    return ResOK;
+
+  /* Add the segment to the approximation of the white set if the */
+  /* pool made it white. */
+  trace->white = ZoneSetUnion(trace->white, ZoneSetOfSeg(trace->arena, seg));
+
+  /* if the pool is a moving GC, then condemned objects may move */
+  if(PoolHasAttr(pool, AttrMOVINGGC)) {
+    trace->mayMove = ZoneSetUnion(trace->mayMove,
+                                  ZoneSetOfSeg(trace->arena, seg));
+  }
+  
   if (trace->whiteTable != NULL) {
     /* Add every arena grain in the segment to the whiteTable for fast
        lookup in TraceFix.  TODO: Consider other alignments. */
@@ -381,34 +400,12 @@ Res TraceAddWhite(Trace trace, Seg seg)
 	/* Fall back on slower lookup at .fix.table. */
 	TableDestroy(trace->whiteTable);
 	trace->whiteTable = NULL;
-	goto failDefine;
+	break;
       }
     }
   }
-failDefine: NOOP;
  
-  /* Give the pool the opportunity to turn the segment white. */
-  /* If it fails, unwind. */
-  res = PoolWhiten(pool, trace, seg);
-  if(res != ResOK)
-    goto failWhiten; /* see .whiten.fail */
-
-  /* Add the segment to the approximation of the white set if the */
-  /* pool made it white. */
-  if(TraceSetIsMember(SegWhite(seg), trace)) {
-    trace->white = ZoneSetUnion(trace->white, ZoneSetOfSeg(trace->arena, seg));
-    /* if the pool is a moving GC, then condemned objects may move */
-    if(PoolHasAttr(pool, AttrMOVINGGC)) {
-      trace->mayMove = ZoneSetUnion(trace->mayMove,
-                                    ZoneSetOfSeg(trace->arena, seg));
-    }
-  }
-  
   return ResOK;
-
-failWhiten:
-  /* TableRemove(trace->whiteTable, key); */
-  return res;
 }
 
 
@@ -860,8 +857,10 @@ void TraceDestroyInit(Trace trace)
 
   trace->sig = SigInvalid;
   trace->arena->busyTraces = TraceSetDel(trace->arena->busyTraces, trace);
-  if (trace->whiteTable != NULL)
+  if (trace->whiteTable != NULL) {
+    AVER(TableCount(trace->whiteTable) == 0);
     TableDestroy(trace->whiteTable);
+  }
 
   /* Clear the emergency flag so the next trace starts normally. */
   ArenaSetEmergency(trace->arena, FALSE);
@@ -922,8 +921,10 @@ void TraceDestroyFinished(Trace trace)
   trace->sig = SigInvalid;
   trace->arena->busyTraces = TraceSetDel(trace->arena->busyTraces, trace);
   trace->arena->flippedTraces = TraceSetDel(trace->arena->flippedTraces, trace);
-  if (trace->whiteTable != NULL)
+  if (trace->whiteTable != NULL) {
+    AVER(TableCount(trace->whiteTable) == 0);
     TableDestroy(trace->whiteTable);
+  }
 
   /* Hopefully the trace reclaimed some memory, so clear any emergency. */
   ArenaSetEmergency(trace->arena, FALSE);
@@ -932,10 +933,37 @@ void TraceDestroyFinished(Trace trace)
 
 /* traceReclaim -- reclaim the remaining objects white for this trace */
 
-static Bool traceReclaimVisit(Seg seg, void *closure)
+static void traceReclaimCommon(Trace trace, Seg seg)
+{
+  Pool pool;
+
+  AVERT(Trace, trace);
+  AVERT(Seg, seg);
+  AVER(TraceSetIsMember(SegWhite(seg), trace));
+
+  pool = SegPool(seg);
+  AVER_CRITICAL(PoolHasAttr(pool, AttrGC));
+  STATISTIC(++trace->reclaimCount);
+
+  if (!PoolReclaim(pool, trace, seg)) {
+    TraceSet after = SegWhite(seg);
+
+    /* If the segment still exists, it should no longer be white. */
+    /* TODO: The code from the class-specific reclaim methods to
+       unwhiten the segment could in fact be moved here. */
+    AVERT_CRITICAL(Seg, seg);
+    AVER_CRITICAL(!TraceSetIsMember(after, trace));
+  }
+
+  /* Note that destroying the segment or setting it not white will
+     remove all mappings to the segment from the table, so that
+     TableMap won't visit the deleted segment again.  FIXME: Document
+     that this is OK in TableMap. */
+}
+
+static Bool traceReclaimTreeVisit(Seg seg, void *closure)
 {
   Trace trace = closure;
-  Pool pool;
 
   AVERT_CRITICAL(Trace, trace);
   AVERT_CRITICAL(Seg, seg);
@@ -943,23 +971,41 @@ static Bool traceReclaimVisit(Seg seg, void *closure)
   /* There shouldn't be any grey stuff left for this trace. */
   AVER_CRITICAL(!TraceSetIsMember(SegGrey(seg), trace));
 
-  if (!TraceSetIsMember(SegWhite(seg), trace))
-    return FALSE;
-
-  pool = SegPool(seg);
-  AVER_CRITICAL(PoolHasAttr(pool, AttrGC));
-  STATISTIC(++trace->reclaimCount);
-
-  if (PoolReclaim(pool, trace, seg))
-    return TRUE;
-
-  /* If the segment still exists, it should no longer be white. */
-  /* TODO: The code from the class-specific reclaim methods to
-     unwhiten the segment could in fact be moved here. */
-  AVERT_CRITICAL(Seg, seg);
-  AVER_CRITICAL(!TraceSetIsMember(SegWhite(seg), trace));
+  if (TraceSetIsMember(SegWhite(seg), trace))
+    (void)traceReclaimCommon(trace, seg);
 
   return FALSE;
+}
+
+#ifdef TRACE_DEBUG
+static void checkWhite(void *closure, TableKey key, TableValue value)
+{
+  Trace trace = closure;
+  Seg seg = (Seg)value;
+  Addr addr = (Addr)key;
+  AVERT(Trace, trace);
+  AVERT(Seg, seg);
+  AVER(RangeContains(SegRange(seg), addr));
+  AVER(TraceSetIsMember(SegWhite(seg), trace));
+}
+#endif
+
+static void traceReclaimTableVisit(void *closure, TableKey key, TableValue value)
+{
+  Trace trace = closure;
+  Seg seg = (Seg)value;
+
+#ifdef TRACE_DEBUG
+  if (trace->whiteTable)
+    TableMap(trace->whiteTable, checkWhite, trace);
+#endif
+
+  AVERT(Trace, trace);
+  UNUSED(key);
+  AVERT(Seg, seg);
+  AVER(TraceSetIsMember(SegWhite(seg), trace));
+
+  (void)traceReclaimCommon(trace, seg);
 }
 
 static void traceReclaim(Trace trace)
@@ -974,15 +1020,16 @@ static void traceReclaim(Trace trace)
 
   EVENT1(TraceReclaim, trace);
 
-  /* TODO: This isn't very nice, as it rebalances the segment splay
-     tree and destroys any optimisation discovered by splaying. */
-  /* TODO: This isn't very nice, as it visits every segment,
-     regardless of colour or zone. */
-  /* TODO: Consider sort | uniq the white table? */
-  /* TODO: For multiple traces, the white table is shared, and so we
-     must delete the pages of reclaimed segments from it.  That means
-     visiting the table might work. */
-  SegTraverseAndDelete(arena, traceReclaimVisit, trace);
+#ifdef TRACE_DEBUG
+  if (trace->whiteTable)
+    TableMap(trace->whiteTable, checkWhite, trace);
+#endif
+
+  if (trace->whiteTable != NULL) {
+    TableMap(trace->whiteTable, traceReclaimTableVisit, trace);
+  } else {
+    SegTraverseAndDelete(arena, traceReclaimTreeVisit, trace);
+  }
 
   trace->state = TraceFINISHED;
   arena = trace->arena;
@@ -1687,7 +1734,7 @@ static Bool traceStartVisit(Seg seg, void *closure)
   }
 
   return TRUE;
-}  
+}
 
 Res TraceStart(Trace trace, double mortality, double finishingTime)
 {
@@ -1704,6 +1751,11 @@ Res TraceStart(Trace trace, double mortality, double finishingTime)
   arena = trace->arena;
   
   /* From the already set up white set, derive a grey set. */
+
+#ifdef TRACE_DEBUG
+  if (trace->whiteTable)
+    TableMap(trace->whiteTable, checkWhite, trace);
+#endif
 
   /* TODO: This might be more efficient if we could select all the
      segments that are scannable (non-empty rank set). */
