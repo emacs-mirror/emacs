@@ -73,7 +73,6 @@
  */
 
 #include "mpm.h"
-#include "stdlib.h" /* For qsort, move */
 
 SRCID(shield, "$Id$");
 
@@ -179,63 +178,25 @@ static void shieldFlushEntry(Arena arena, Size i)
 }
 
 
-static int shieldCacheEntryCompare(Seg segA, Seg segB)
+static Compare shieldCacheEntryCompare(void *left, void *right, void *closure)
 {
+  Seg segA = left, segB = right;
   Addr baseA, baseB;
-  
-  AVERT(Seg, segA); /* FIXME: Might be critical? */
+
+  /* Making these CRITICAL had no effect on timings on LII6LL today.
+     RB 2016-03-17. */
+  AVERT(Seg, segA);
   AVERT(Seg, segB);
+  UNUSED(closure);
 
   baseA = SegBase(segA);
   baseB = SegBase(segB);
   if (baseA < baseB)
-    return -1;
+    return CompareLESS;
   if (baseA > baseB)
-    return 1;
+    return CompareGREATER;
   AVER(baseA == baseB);
-  return 0;
-}
-
-
-static void quicksort_iterative(Seg array[], Count len)
-{
-  static Index seed = 0x6A9D03;
-  Index left, right, stack[64], pos;
-  Seg pivot, temp;
-
-  left = 0;
-  pos = 0;
-  for (;;) {
-    while (left + 1 < len) {
-      if (pos >= sizeof stack / sizeof stack[0]) {
-	pos = 0;
-	len = stack[pos];  /* stack overflow, reset */
-      }
-      pivot = array[left + seed % (len - left)];
-      seed = seed * 69069 + 1;
-      stack[pos] = len;
-      ++pos;
-      right = left;
-      for (;;) {
-	while (shieldCacheEntryCompare(array[right],  pivot) < 0)
-	  ++right;
-	do
-	  --len;
-	while (shieldCacheEntryCompare(pivot, array[len]) < 0);
-	if (right >= len)
-	  break;
-	temp = array[right];
-	array[right] = array[len];
-	array[len] = temp;
-      }
-      ++len;
-    }
-    if (pos == 0)
-      break;
-    left = len;
-    --pos;
-    len = stack[pos];
-  } 
+  return CompareEQUAL;
 }
 
 
@@ -263,7 +224,8 @@ static void shieldFlushEntries(Arena arena)
   AVER(arena->shCache != NULL);
   AVER(arena->shCacheLength > 0);
 
-  quicksort_iterative(arena->shCache, arena->shCacheLimit);
+  QuickSort((void *)arena->shCache, arena->shCacheLimit,
+            shieldCacheEntryCompare, UNUSED_POINTER);
 
   seg = arena->shCache[0]; /* lowest address segment */
   if (seg) {
@@ -356,7 +318,7 @@ static void shieldCache(Arena arena, Seg seg)
     
     res = ControlAlloc(&p, arena, length * sizeof arena->shCache[0]);
     if (res != ResOK) {
-      AVER(res == ResMEMORY);
+      AVER(ResIsAllocFailure(res));
       /* Carry on with the existing cache. */
     } else {
       if (arena->shCacheLength > 0) {
