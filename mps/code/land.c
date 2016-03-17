@@ -117,8 +117,7 @@ Res LandCreate(Land *landReturn, Arena arena, LandClass class, Align alignment, 
   AVERT(Arena, arena);
   AVERT(LandClass, class);
 
-  res = ControlAlloc(&p, arena, class->size,
-                     /* withReservoirPermit */ FALSE);
+  res = ControlAlloc(&p, arena, class->size);
   if (res != ResOK)
     goto failAlloc;
   land = p;
@@ -235,14 +234,14 @@ Res LandDelete(Range rangeReturn, Land land, Range range)
  * See <design/land/#function.iterate>
  */
 
-Bool LandIterate(Land land, LandVisitor visitor, void *closureP, Size closureS)
+Bool LandIterate(Land land, LandVisitor visitor, void *closure)
 {
   Bool b;
   AVERT(Land, land);
   AVER(FUNCHECK(visitor));
   landEnter(land);
 
-  b = (*land->class->iterate)(land, visitor, closureP, closureS);
+  b = (*land->class->iterate)(land, visitor, closure);
 
   landLeave(land);
   return b;
@@ -255,14 +254,14 @@ Bool LandIterate(Land land, LandVisitor visitor, void *closureP, Size closureS)
  * See <design/land/#function.iterate.and.delete>
  */
 
-Bool LandIterateAndDelete(Land land, LandDeleteVisitor visitor, void *closureP, Size closureS)
+Bool LandIterateAndDelete(Land land, LandDeleteVisitor visitor, void *closure)
 {
   Bool b;
   AVERT(Land, land);
   AVER(FUNCHECK(visitor));
   landEnter(land);
 
-  b = (*land->class->iterateAndDelete)(land, visitor, closureP, closureS);
+  b = (*land->class->iterateAndDelete)(land, visitor, closure);
 
   landLeave(land);
   return b;
@@ -403,11 +402,11 @@ Res LandDescribe(Land land, mps_lib_FILE *stream, Count depth)
 
 /* landFlushVisitor -- visitor for LandFlush.
  *
- * closureP argument is the destination Land. Attempt to insert the
+ * closure argument is the destination Land. Attempt to insert the
  * range into the destination.
  */
 static Bool landFlushVisitor(Bool *deleteReturn, Land land, Range range,
-                             void *closureP, Size closureS)
+                             void *closure)
 {
   Res res;
   RangeStruct newRange;
@@ -416,11 +415,9 @@ static Bool landFlushVisitor(Bool *deleteReturn, Land land, Range range,
   AVER(deleteReturn != NULL);
   AVERT(Land, land);
   AVERT(Range, range);
-  AVER(closureP != NULL);
-  AVER(closureS == UNUSED_SIZE);
-  UNUSED(closureS);
+  AVER(closure != NULL);
 
-  dest = closureP;
+  dest = closure;
   res = LandInsert(&newRange, dest, range);
   if (res == ResOK) {
     *deleteReturn = TRUE;
@@ -442,7 +439,7 @@ Bool LandFlush(Land dest, Land src)
   AVERT(Land, dest);
   AVERT(Land, src);
 
-  return LandIterateAndDelete(src, landFlushVisitor, dest, UNUSED_SIZE);
+  return LandIterateAndDelete(src, landFlushVisitor, dest);
 }
 
 
@@ -491,17 +488,15 @@ static Size landNoSize(Land land)
 /* LandSlowSize -- generic size method but slow */
 
 static Bool landSizeVisitor(Land land, Range range,
-                            void *closureP, Size closureS)
+                            void *closure)
 {
   Size *size;
 
   AVERT(Land, land);
   AVERT(Range, range);
-  AVER(closureP != NULL);
-  AVER(closureS == UNUSED_SIZE);
-  UNUSED(closureS);
+  AVER(closure != NULL);
 
-  size = closureP;
+  size = closure;
   *size += RangeSize(range);
 
   return TRUE;
@@ -510,7 +505,7 @@ static Bool landSizeVisitor(Land land, Range range,
 Size LandSlowSize(Land land)
 {
   Size size = 0;
-  Bool b = LandIterate(land, landSizeVisitor, &size, UNUSED_SIZE);
+  Bool b = LandIterate(land, landSizeVisitor, &size);
   AVER(b);
   return size;
 }
@@ -531,21 +526,19 @@ static Res landNoDelete(Range rangeReturn, Land land, Range range)
   return ResUNIMPL;
 }
 
-static Bool landNoIterate(Land land, LandVisitor visitor, void *closureP, Size closureS)
+static Bool landNoIterate(Land land, LandVisitor visitor, void *closure)
 {
   AVERT(Land, land);
   AVER(visitor != NULL);
-  UNUSED(closureP);
-  UNUSED(closureS);
+  UNUSED(closure);
   return FALSE;
 }
 
-static Bool landNoIterateAndDelete(Land land, LandDeleteVisitor visitor, void *closureP, Size closureS)
+static Bool landNoIterateAndDelete(Land land, LandDeleteVisitor visitor, void *closure)
 {
   AVERT(Land, land);
   AVER(visitor != NULL);
-  UNUSED(closureP);
-  UNUSED(closureS);
+  UNUSED(closure);
   return FALSE;
 }
 

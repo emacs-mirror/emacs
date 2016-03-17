@@ -165,27 +165,6 @@ typedef struct MVStruct {       /* MV pool outer structure */
 } MVStruct;
 
 
-/* ReservoirStruct -- Reservoir structure
- *
- * .reservoir: See <code/reserv.c>, <design/reservoir/>.
- *
- * The Reservoir structure is declared here because it is in-lined in
- * the arena for storing segments for the low-memory reservoir.  It is
- * implemented as a pool - but doesn't follow the normal pool naming
- * conventions because it's not intended for general use and the use of
- * a pool is an incidental detail.  */
-
-#define ReservoirSig ((Sig)0x5196e599) /* SIGnature REServoir */
-
-typedef struct ReservoirStruct {   /* Reservoir structure */
-  PoolStruct poolStruct;        /* generic pool structure */
-  Tract reserve;                /* linked list of reserve tracts */
-  Size reservoirLimit;          /* desired reservoir size */
-  Size reservoirSize;           /* actual reservoir size */
-  Sig sig;                      /* <design/sig/> */
-} ReservoirStruct;
-
-
 /* MessageClassStruct -- Message Class structure
  *
  * See <design/message/#class.struct> (and <design/message/#message>,
@@ -406,6 +385,7 @@ typedef struct mps_fmt_s {
   Serial serial;                /* from arena->formatSerial */
   Arena arena;                  /* owning arena */
   RingStruct arenaRing;         /* formats are attached to the arena */
+  Count poolCount;              /* number of pools using the format */
   Align alignment;              /* alignment of formatted objects */
   mps_fmt_scan_t scan;
   mps_fmt_skip_t skip;
@@ -486,7 +466,7 @@ typedef struct TraceStruct {
   Size condemned;               /* condemned bytes */
   Size notCondemned;            /* collectable but not condemned */
   Size foundation;              /* initial grey set size */
-  Size rate;                    /* segs to scan per increment */
+  Work quantumWork;             /* tracing work to be done in each poll */
   STATISTIC_DECL(Count greySegCount); /* number of grey segs */
   STATISTIC_DECL(Count greySegMax); /* max number of grey segs */
   STATISTIC_DECL(Count rootScanCount); /* number of roots scanned */
@@ -711,14 +691,13 @@ typedef struct mps_arena_s {
   Bool poolReady;               /* <design/arena/#pool.ready> */
   MVStruct controlPoolStruct;   /* <design/arena/#pool> */
 
-  ReservoirStruct reservoirStruct; /* <design/reservoir/> */
-
   Size reserved;                /* total reserved address space */
   Size committed;               /* total committed memory */
   Size commitLimit;             /* client-configurable commit limit */
 
   Size spareCommitted;          /* Amount of memory in hysteresis fund */
   Size spareCommitLimit;        /* Limit on spareCommitted */
+  double pauseTime;             /* Maximum pause time, in seconds. */
 
   Shift zoneShift;              /* see also <code/ref.c> */
   Size grainSize;               /* <design/arena/#grain> */
@@ -778,7 +757,7 @@ typedef struct mps_arena_s {
   TraceMessage tMessage[TraceLIMIT];  /* <design/message-gc/> */
 
   /* policy fields */
-  double tracedSize;
+  double tracedWork;
   double tracedTime;
   Clock lastWorldCollect;
 

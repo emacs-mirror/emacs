@@ -94,13 +94,11 @@ static void describe(FBMState state) {
 }
 
 
-static Bool checkCallback(Range range, void *closureP, Size closureS)
+static Bool checkCallback(Range range, void *closure)
 {
   Addr base, limit;
-  CheckFBMClosure cl = (CheckFBMClosure)closureP;
+  CheckFBMClosure cl = (CheckFBMClosure)closure;
 
-  AVER(closureS == UNUSED_SIZE);
-  UNUSED(closureS);
   Insist(cl != NULL);
 
   base = RangeBase(range);
@@ -126,18 +124,18 @@ static Bool checkCallback(Range range, void *closureP, Size closureS)
 
 
 static Bool checkCBSCallback(CBS cbs, Range range,
-                             void *closureP, Size closureS)
+                             void *closure)
 {
   UNUSED(cbs);
-  return checkCallback(range, closureP, closureS);
+  return checkCallback(range, closure);
 }
 
 
 static Bool checkFLCallback(Bool *deleteReturn, Range range,
-                            void *closureP, Size closureS)
+                            void *closure)
 {
   *deleteReturn = FALSE;
-  return checkCallback(range, closureP, closureS);
+  return checkCallback(range, closure);
 }
 
 
@@ -151,10 +149,10 @@ static void check(FBMState state)
 
   switch (state->type) {
   case FBMTypeCBS:
-    CBSIterate(state->the.cbs, checkCBSCallback, &closure, UNUSED_SIZE);
+    CBSIterate(state->the.cbs, checkCBSCallback, &closure);
     break;
   case FBMTypeFreelist:
-    FreelistIterate(state->the.fl, checkFLCallback, &closure, UNUSED_SIZE);
+    FreelistIterate(state->the.fl, checkFLCallback, &closure);
     break;
   default:
     cdie(0, "invalid state->type");
@@ -578,8 +576,7 @@ extern int main(int argc, char *argv[])
 
   /* We're not going to use this block, but I feel unhappy just */
   /* inventing addresses. */
-  die((mps_res_t)ControlAlloc(&p, arena, ArraySize * align,
-                              /* withReservoirPermit */ FALSE),
+  die((mps_res_t)ControlAlloc(&p, arena, ArraySize * align);
       "failed to allocate block");
   dummyBlock = p; /* avoid pun */
 
