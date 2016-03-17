@@ -83,8 +83,7 @@ Res ThreadRegister(Thread *threadReturn, Arena arena)
   AVER(threadReturn != NULL);
   AVERT(Arena, arena);
 
-  res = ControlAlloc(&p, arena, sizeof(ThreadStruct),
-                     /* withReservoirPermit */ FALSE);
+  res = ControlAlloc(&p, arena, sizeof(ThreadStruct));
   if(res != ResOK)
     return res;
   thread = (Thread)p; /* avoid pun */

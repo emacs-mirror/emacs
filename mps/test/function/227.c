@@ -4,7 +4,7 @@ TEST_HEADER
  summary = allocate in 2 arenas
  language = c
  link = testlib.o rankfmt.o
- parameters = ITERATIONS=100000
+ parameters = ITERATIONS=10000
 OUTPUT_SPEC
  result = pass
 END_HEADER
@@ -21,8 +21,8 @@ END_HEADER
 
 #define ARENALIMIT (100)
 
-#define TABSIZE (ITERATIONS * 5 / 10)
-#define ENTERRAMP (ITERATIONS * 3 / 100)
+#define TABSIZE (ITERATIONS / 2)
+#define ENTERRAMP (ITERATIONS / 10)
 #define LEAVERAMP (ITERATIONS / 10)
 
 #define BACKSIZE (32)

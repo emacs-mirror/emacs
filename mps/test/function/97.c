@@ -4,6 +4,7 @@ TEST_HEADER
  summary = test of mps_arena_formatted_objects_walk
  language = c
  link = testlib.o rankfmt.o
+ parameters = VERBOSE=0
 END_HEADER
 
  some kinds of errors that could occur in the walker:
@@ -98,7 +99,7 @@ static void stepper(mps_addr_t addr, mps_fmt_t fmt, mps_pool_t pool,
   appcount += 1;
   asserts(a->data.checkedflag != newstamp,
           "III/IV. step on object again at %p", a);
-  commentif(a->data.checkedflag != oldstamp,
+  commentif(VERBOSE && a->data.checkedflag != oldstamp,
           "*. step on unreachable object at %p", a);
   a->data.checkedflag = newstamp;
  } else {
@@ -179,7 +180,7 @@ static void test(void)
 
   comment("%i of 100", j);
 
-  for (i=0; i<10000; i++) {
+  for (i=0; i<1000; i++) {
    k = ranint(4);
    addr = &a[k];
    die(allocrdumb(addr, aplo, 64, mps_rank_exact()), "alloc failed");
