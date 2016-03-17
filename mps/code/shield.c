@@ -300,7 +300,7 @@ static void shieldCache(Arena arena, Seg seg)
   }
 
   /* Allocate shield cache if necessary. */
-  /* FIXME: This will try to extend the cache on every attempt, even
+  /* TODO: This will try to extend the cache on every attempt, even
      if it failed last time. That might be slow. */
   if (arena->shCacheI >= arena->shCacheLength) {
     void *p;

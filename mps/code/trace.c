@@ -737,7 +737,7 @@ found:
   /* buffers under our feet. */
   /* @@@@ This is a short-term fix for request.dylan.160098_. */
   /* .. _request.dylan.160098: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/dylan/160098 */
-  /* FIXME: Where is the corresponding ShieldResume? */
+  /* TODO: Where is the corresponding ShieldResume? */
   ShieldSuspend(arena);
 
   STATISTIC_STAT ({
