@@ -210,69 +210,67 @@ static void shieldCacheReset(Arena arena)
 
 /* shieldFlushEntries -- flush cache coalescing protects
  *
+ * Sort the shield cache into address order, then iterate over it
+ * coalescing protection work, in order to reduce the number of system
+ * calls to a minimum.  This is very important on OS X, where
+ * protection calls are extremely inefficient, but has no net gain on
+ * Windows.
+ *
  * base, limit and mode represent outstanding protection to be done.
  */
 
 static void shieldFlushEntries(Arena arena)
 {
-  Addr base = 0, limit = 0;
-  AccessSet mode = 0;
+  Addr base = NULL, limit = NULL;
+  AccessSet mode;
   Seg seg;
   Size i;
-  if (arena->shDepth == 0)
+
+  if (arena->shDepth == 0) {
+    AVER(arena->shCacheLimit == 0);
     return;
+  }
+
   AVER(arena->shCache != NULL);
   AVER(arena->shCacheLength > 0);
 
   QuickSort((void *)arena->shCache, arena->shCacheLimit,
             shieldCacheEntryCompare, UNUSED_POINTER);
 
-  seg = arena->shCache[0]; /* lowest address segment */
-  if (seg) {
-    AVERT(Seg, seg);
-    arena->shCache[0] = NULL; /* just to make sure it isn't reused */
-
+  mode = AccessSetEMPTY;
+  for (i = 0; i < arena->shCacheLimit; ++i) {
     AVER(arena->shDepth > 0);
-    AVER(SegDepth(seg) > 0);
-    --arena->shDepth;
-    SegSetDepth(seg, SegDepth(seg) - 1);
 
-    if (!shieldSegIsSynced(seg)) {
-      SegSetPM(seg, SegSM(seg));
-      base = SegBase(seg);
-      limit = SegLimit(seg);
-      mode = SegSM(seg);
-    }
-  }
-  for (i=1; i < arena->shCacheLimit; ++i) {
-    if (arena->shDepth == 0)
-      break;
     seg = arena->shCache[i];
-    AVERT(Seg, seg);
-    arena->shCache[i] = NULL; /* just to make sure it isn't reused */
+    arena->shCache[i] = NULL; /* ensure it can't be reused */
 
-    AVER(arena->shDepth > 0);
+    AVERT(Seg, seg);
     AVER(SegDepth(seg) > 0);
+
     --arena->shDepth;
     SegSetDepth(seg, SegDepth(seg) - 1);
 
     if (!shieldSegIsSynced(seg)) {
+      AVER(SegSM(seg) != AccessSetEMPTY); /* can't match first iter */
       SegSetPM(seg, SegSM(seg));
-      if (SegBase(seg) != limit || mode != SegSM(seg)) {
-        if (limit != 0) {
+      if (SegSM(seg) != mode || SegBase(seg) != limit) {
+        if (mode != AccessSetEMPTY) {
+          AVER(base != NULL);
+          AVER(base < limit);
           ProtSet(base, limit, mode);
         }
         base = SegBase(seg);
-        limit = SegLimit(seg);
         mode = SegSM(seg);
-      } else {
-        limit = SegLimit(seg);
       }
+      limit = SegLimit(seg);
     }
   }
-  if (limit != 0) {
+  if (mode != AccessSetEMPTY) {
+    AVER(base != NULL);
+    AVER(limit != NULL);
     ProtSet(base, limit, mode);
   }
+
   shieldCacheReset(arena);
 }
 
@@ -312,7 +310,7 @@ static void shieldCache(Arena arena, Seg seg)
     AVER(arena->shCacheI == arena->shCacheLength);
 
     if (arena->shCacheLength == 0)
-      length = ShieldCacheSIZE;
+      length = ShieldCacheLENGTH;
     else
       length = arena->shCacheLength * 2;
     
@@ -359,8 +357,10 @@ static void shieldCache(Arena arena, Seg seg)
      yet to be filled, and shCacheI is an uninitialized entry.
      Otherwise it's the tail end from last time around, and needs to
      be flushed. */
-  if (arena->shCacheLimit == arena->shCacheLength)
+  if (arena->shCacheLimit >= arena->shCacheLength) {
+    AVER_CRITICAL(arena->shCacheLimit == arena->shCacheLength);
     shieldFlushEntry(arena, arena->shCacheI);
+  }
 
   arena->shCache[arena->shCacheI] = seg;
   ++arena->shCacheI;
@@ -379,10 +379,12 @@ void (ShieldRaise) (Arena arena, Seg seg, AccessSet mode)
 
   AVERT(AccessSet, mode);
   AVER((SegSM(seg) & mode) == AccessSetEMPTY);
-  SegSetSM(seg, SegSM(seg) | mode); /* inv.prot.shield preserved */
+  
+  SegSetSM(seg, SegSM(seg) | mode); /* .inv.prot.shield preserved */
 
-  /* ensure inv.unsynced.suspended & inv.unsynced.depth */
+  /* ensure .inv.unsynced.suspended and .inv.unsynced.depth */
   shieldCache(arena, seg);
+
   AVERT(Arena, arena);
   AVERT(Seg, seg);
 }
@@ -393,10 +395,8 @@ void (ShieldLower)(Arena arena, Seg seg, AccessSet mode)
   /* Don't check seg or arena, see .seg.broken */
   AVERT(AccessSet, mode);
   AVER((SegSM(seg) & mode) == mode);
-  /* synced(seg) is not changed by the following
-   * preserving inv.unsynced.suspended
-   * Also inv.prot.shield preserved
-   */
+  /* synced(seg) is not changed by the following preserving
+     inv.unsynced.suspended Also inv.prot.shield preserved */
   SegSetSM(seg, SegSM(seg) & ~mode);
   protLower(arena, seg, mode);
   AVERT(Arena, arena);
@@ -419,28 +419,22 @@ void (ShieldEnter)(Arena arena)
 }
 
 
-/* .shield.flush: Flush empties the shield cache.
- * This needs to be called before segments are destroyed as there
- * may be references to them in the cache.
+/* ShieldFlush -- empty the shield cache
  *
- * The memory for the segment may become spare, and not released back to
- * the operating system. Since we keep track of protection on segments
- * and not grains we have no way of keeping track of the protection
- * state of spare grains. We therefore flush the protection to get it
- * back into the default state (unprotected).
+ * .shield.flush: Flush empties the shield cache.  This needs to be
+ * called before segments are destroyed as there may be references to
+ * them in the cache.
+ *
+ * The memory for the segment may become spare, and not released back
+ * to the operating system. Since we keep track of protection on
+ * segments and not grains we have no way of keeping track of the
+ * protection state of spare grains. We therefore flush the protection
+ * to get it back into the default state (unprotected).
  */
+
 void (ShieldFlush)(Arena arena)
 {
-  Size i;
-
-  if(1)
-    shieldFlushEntries(arena);
-
-  for (i = 0; i < arena->shCacheLimit; ++i) {
-    if (arena->shDepth == 0)
-      break;
-    shieldFlushEntry(arena, i);
-  }
+  shieldFlushEntries(arena);
 }
 
 
@@ -450,11 +444,11 @@ void (ShieldLeave)(Arena arena)
   AVER(arena->insideShield);
 
   ShieldFlush(arena);
-  /* Cache is empty so inv.outside.depth holds */
+  /* Cache is empty so .inv.outside.depth holds */
   AVER(arena->shDepth == 0);
 
-  /* Ensuring the mutator is running at this point
-   * guarantees inv.outside.running */
+  /* Ensuring the mutator is running at this point guarantees
+     .inv.outside.running */
   if (arena->suspended) {
     ThreadRingResume(ArenaThreadRing(arena), ArenaDeadRing(arena));
     arena->suspended = FALSE;
