@@ -156,8 +156,9 @@ Bool GlobalsCheck(Globals arenaGlobals)
   CHECKD_NOSIG(Ring, &arena->deadRing);
 
   CHECKL(BoolCheck(arena->insideShield));
-  CHECKL(arena->shCacheLimit <= ShieldCacheSIZE);
-  CHECKL(arena->shCacheI < arena->shCacheLimit);
+  CHECKL(arena->shCache == NULL || arena->shCacheLength > 0);
+  CHECKL(arena->shCacheLimit <= arena->shCacheLength);
+  CHECKL(arena->shCacheI <= arena->shCacheLimit);
   CHECKL(BoolCheck(arena->suspended));
 
   depth = 0;
@@ -293,12 +294,12 @@ Res GlobalsInit(Globals arenaGlobals)
   arena->tracedTime = 0.0;
   arena->lastWorldCollect = ClockNow();
   arena->insideShield = FALSE;          /* <code/shield.c> */
+  arena->shCache = NULL;
+  arena->shCacheLength = 0;
   arena->shCacheI = (Size)0;
-  arena->shCacheLimit = (Size)1;
+  arena->shCacheLimit = (Size)0;
   arena->shDepth = (Size)0;
   arena->suspended = FALSE;
-  for(i = 0; i < ShieldCacheSIZE; i++)
-    arena->shCache[i] = NULL;
 
   for (ti = 0; ti < TraceLIMIT; ++ti) {
     /* <design/arena/#trace.invalid> */
@@ -435,6 +436,16 @@ void GlobalsPrepareToDestroy(Globals arenaGlobals)
   ArenaPark(arenaGlobals);
 
   arena = GlobalsArena(arenaGlobals);
+
+  /* Delete the shield cache, if it exists. */
+  if (arena->shCacheLength != 0) {
+    AVER(arena->shCache != NULL);
+    ControlFree(arena, arena->shCache,
+                arena->shCacheLength * sizeof arena->shCache[0]);
+    arena->shCache = NULL;
+    arena->shCacheLength = 0;
+  }
+
   arenaDenounce(arena);
 
   defaultChain = arenaGlobals->defaultChain;
@@ -1019,6 +1030,7 @@ Res GlobalsDescribe(Globals arenaGlobals, mps_lib_FILE *stream, Count depth)
                "suspended $S\n", WriteFYesNo(arena->suspended),
                "shDepth $U\n", (WriteFU)arena->shDepth,
                "shCacheI $U\n", (WriteFU)arena->shCacheI,
+               "shCacheLength $U\n", (WriteFU)arena->shCacheLength,
                /* @@@@ should SegDescribe the cached segs? */
                NULL);
   if (res != ResOK)
