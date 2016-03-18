@@ -651,46 +651,102 @@ Bool StringEqual(const char *s1, const char *s2)
  * O(n) stack usage.  This version does not recurse.
  */
 
-void QuickSort(void *array[], Count len,
+#ifdef QUICKSORT_DEBUG
+static Bool quickSorted(void *array[], Count length,
+                        QuickSortCompare compare, void *closure)
+{
+  Index i;
+  if (length > 0) {
+    for (i = 0; i < length - 1; ++i) {
+      if (compare(array[i], array[i+1], closure) == CompareGREATER)
+        return FALSE;
+    }
+  }
+  return TRUE;
+}
+#endif
+
+void QuickSort(void *array[], Count length,
                QuickSortCompare compare, void *closure)
 {
   static Index seed = 0x6A9D03;
-  Index left, right, stack[MPS_WORD_WIDTH], pos;
+  struct {
+    Index left, right;
+  } stack[MPS_WORD_WIDTH];
+  Index left, right, sp, lo, hi, leftLimit, rightBase;
   void *pivot, *temp;
 
+  sp = 0;
   left = 0;
-  pos = 0;
+  right = length;
+
   for (;;) {
-    while (left + 1 < len) {
-      if (pos >= sizeof stack / sizeof stack[0]) {
-	pos = 0;
-	len = stack[pos];  /* stack overflow, reset */
-      }
-      pivot = array[left + seed % (len - left)];
+    while (right - left > 1) { /* no need to sort */
+      /* Pick a random pivot. */
+      pivot = array[left + seed % (right - left)];
       seed = seed * 69069 + 1;
-      stack[pos] = len;
-      ++pos;
-      right = left;
+
+      /* Hoare partition: scan from lo to hi, dividing it into elements
+         less than the pivot and elements greater or equal. */
+      lo = left;
+      hi = right;
       for (;;) {
-	while (compare(array[right],  pivot, closure) == CompareLESS)
-	  ++right;
-	do
-	  --len;
-	while (compare(pivot, array[len], closure) == CompareLESS);
-	if (right >= len)
-	  break;
-	temp = array[right];
-	array[right] = array[len];
-	array[len] = temp;
+        while (compare(array[lo], pivot, closure) == CompareLESS)
+          ++lo;
+        do
+          --hi;
+        while (compare(pivot, array[hi], closure) == CompareLESS);
+        if (lo >= hi)
+          break;
+        temp = array[hi];
+        array[hi] = array[lo];
+        array[lo] = temp;
+        ++lo; /* step over what we just swapped */
       }
-      ++len;
+
+      /* If we ended up at a pivot, then it is in its final position
+         and we must skip it to ensure termination.  This handles the case
+         where the pivot is at the start of the array, and one of the
+         partitions is the whole array, for example. */
+      if (lo == hi) {
+        AVER_CRITICAL(array[hi] == pivot); /* and it's in place */
+        leftLimit = lo;
+        rightBase = lo + 1;
+      } else {
+        AVER_CRITICAL(lo == hi + 1);
+        leftLimit = lo;
+        rightBase = lo;
+      }
+
+      /* Sort the smaller part now, so that we're sure to use at most
+         log2 length stack levels.  Push the larger part on the stack
+         for later. */
+      AVER_CRITICAL(sp < sizeof stack / sizeof stack[0]);
+      if (leftLimit - left < right - rightBase) {
+	stack[sp].left = rightBase;
+	stack[sp].right = right;
+	++sp;
+	right = leftLimit;
+      } else {
+	stack[sp].left = left;
+	stack[sp].right = leftLimit;
+	++sp;
+	left = rightBase;
+      }
     }
-    if (pos == 0)
+
+    if (sp == 0)
       break;
-    left = len;
-    --pos;
-    len = stack[pos];
-  } 
+
+    --sp;
+    left = stack[sp].left;
+    right = stack[sp].right;
+    AVER_CRITICAL(left < right); /* we do the smaller side immediately */
+  }
+
+#ifdef QUICKSORT_DEBUG
+  AVER(quickSorted(array, length, compare, closure));
+#endif
 }
 
 
