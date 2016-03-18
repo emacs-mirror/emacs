@@ -774,10 +774,11 @@ The class returned from the scope calculation is variable
 Return nil if TAG has no position, or we cannot otherwise find a scope.
 Use this when pulling a datatype off TAG so when it is looked up
 it has the right context around it."
-   (save-current-buffer
-     (when (semantic-tag-with-position-p tag)
-       (semantic-go-to-tag tag)
-       (semantic-calculate-scope (point)))) )
+  (save-excursion
+    (save-current-buffer
+      (when (semantic-tag-with-position-p tag)
+	(semantic-go-to-tag tag)
+	(semantic-calculate-scope (point))))))
 
 (defun semantic-scope-find (name &optional class scope-in)
   "Find the tag with NAME, and optional CLASS in the current SCOPE-IN.
