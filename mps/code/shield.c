@@ -103,23 +103,27 @@ static void protLower(Arena arena, Seg seg, AccessSet mode)
 }
 
 
+static Seg shieldDecache(Arena arena, Index i)
+{
+  Seg seg;
+  AVER(i < arena->shCacheLimit);
+  seg = arena->shCache[i];
+  AVERT(Seg, seg);
+  AVER(seg->cached);
+  arena->shCache[i] = NULL;
+  seg->cached = FALSE;
+  return seg;
+}
+
+
 /* shieldFlushEntry -- flush a single entry from the cache */
 
 static void shieldFlushEntry(Arena arena, Index i)
 {
-  Seg seg;
-
-  AVERT(Arena, arena);
-  seg = arena->shCache[i];
-  AVERT(Seg, seg);
-
-  AVER(i < arena->shCacheLimit);
-  AVER(seg->cached);
+  Seg seg = shieldDecache(arena, i);
 
   if (!SegIsExposed(seg))
     shieldSync(arena, seg);
-
-  arena->shCache[i] = NULL; /* just to make sure it can't be reused */
 }
 
 
@@ -182,14 +186,7 @@ static void shieldFlushEntries(Arena arena)
 
   mode = AccessSetEMPTY;
   for (i = 0; i < arena->shCacheLimit; ++i) {
-    Seg seg = arena->shCache[i];
-
-    AVERT(Seg, seg);
-
-    AVER(seg->cached);
-    seg->cached = FALSE;
-    arena->shCache[i] = NULL; /* ensure it can't be reused */
-
+    Seg seg = shieldDecache(arena, i);
     if (!shieldSegIsSynced(seg)) {
       AVER(SegSM(seg) != AccessSetEMPTY); /* can't match first iter */
       SegSetPM(seg, SegSM(seg));
@@ -361,6 +358,34 @@ void (ShieldEnter)(Arena arena)
 }
 
 
+#if defined(SHIELD_DEBUG)
+static void shieldDebugCheck(Arena arena)
+{
+  Seg seg;
+  Count cached = 0;
+
+  AVERT(Arena, arena);
+  AVER(arena->insideShield || arena->shCacheLimit == 0);
+
+  if (SegFirst(&seg, arena))
+    do {
+      if (arena->shCacheLimit == 0) {
+        AVER(!seg->cached);
+        AVER(shieldSegIsSynced(seg));
+        /* You can directly set protections here to see if it makes a
+           difference. */
+        /* ProtSet(SegBase(seg), SegLimit(seg), SegPM(seg)); */
+      } else {
+        if (seg->cached)
+          ++cached;
+      }
+    } while(SegNext(&seg, arena, seg));
+
+  AVER(cached == arena->shCacheLimit);
+}
+#endif
+
+
 /* ShieldFlush -- empty the shield cache
  *
  * .shield.flush: Flush empties the shield cache.  This needs to be
@@ -376,7 +401,15 @@ void (ShieldEnter)(Arena arena)
 
 void (ShieldFlush)(Arena arena)
 {
+#ifdef SHIELD_DEBUG
+  shieldDebugCheck(arena);
+#endif
   shieldFlushEntries(arena);
+  /* Cache is empty so .inv.outside.depth holds */
+  AVER(arena->shDepth == 0);
+#ifdef SHIELD_DEBUG
+  shieldDebugCheck(arena);
+#endif
 }
 
 
@@ -387,31 +420,16 @@ void (ShieldLeave)(Arena arena)
 
   ShieldFlush(arena);
 
-  /* Cache is empty so .inv.outside.depth holds */
-  AVER(arena->shDepth == 0);
-
   /* Ensuring the mutator is running at this point guarantees
      .inv.outside.running */
   if (arena->suspended) {
     ThreadRingResume(ArenaThreadRing(arena), ArenaDeadRing(arena));
     arena->suspended = FALSE;
   }
-  arena->insideShield = FALSE;
 
-#ifdef SHIELD_DEBUG
-  {
-    Seg seg;
-    if (SegFirst(&seg, arena))
-      do {
-        AVER(!seg->cached);
-        AVER(shieldSegIsSynced(seg));
-        /* You can directly set protections here to see if it makes a
-           difference. */
-        ProtSet(SegBase(seg), SegLimit(seg), SegPM(seg));
-      } while(SegNext(&seg, arena, seg));
-  }
-#endif
+  arena->insideShield = FALSE;
 }
+
 
 
 /* ShieldExpose -- allow the MPS access to a segment while denying the mutator
