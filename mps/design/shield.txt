@@ -145,6 +145,9 @@ protection do not match.  This cache is flushed on leaving the shield.
 Definitions
 ...........
 
+.def.exposed: A seg is exposed if the prot mode is a subset of the
+shield mode, and covered otherwise.
+
 .def.synced: A seg is synced if the prot and shield modes are the
 same, and unsynced otherwise.
 
@@ -239,12 +242,56 @@ _`.ideas`: There never was an initial design document, but
 Improvement Ideas
 -----------------
 
+
+Mass exposure
+.............
+
 .improv.mass-expose: If protection calls have a high overhead it might
 be good to pre-emptively unprotect large ranges of memory when we
 expose one segment.  With the current design this would mean
 discovering adjacent shielded segments and adding them to the cache.
 The collector should take advantage of this by preferentially scanning
 exposed segments during a pause.
+
+
+Segment independence
+....................
+
+.improve.noseg: The shield is implemented in terms of segments, using
+fields in the segment structure to represent its state. This forces us
+to (for example) flush the shield cache when deleting a segment. The
+shield could keep track of protection and shielding independently,
+possibly allowing greater coalescing and more efficient and flexible
+use of system calls (see .improve.mass-expose).
+
+
+Concurrent collection
+.....................
+
+.improv.concurrent: The MPS currently does not collect concurrently,
+however the only thing that makes it not-concurrent is a critical
+point in the Shield abstraction where the MPS seeks to gain privileged
+access to memory (usually in order to scan it for GC). The critical
+point is where ShieldExpose in shield.c has to call ShieldSuspend to
+preserve the shield invariants. This is the only point in the MPS that
+prevents concurrency, and the rest of the MPS is designed to support
+it.
+
+The restriction could be removed if either:
+
+ * the MPS could use a different set of protections to the mutator
+   program
+
+ * the mutator program uses a software barrier
+
+The first one is tricky, and the second one just hasn't come up in any
+implementation we've been asked to make yet. Given a VM, it could
+happen, and the MPS would be concurrent.
+
+So, I believe there's nothing fundamentally non-concurrent about the
+MPS design. It's kind of waiting to happen.
+
+(Originally written at <http://news.ycombinator.com/item?id=4524036>.)
 
 
 References
@@ -274,6 +321,9 @@ Document History
 
 - 2016-03-17 RB_ Updated for dynamic cacheing and general code tidying
   that has removed complaints.
+
+- 2016-03-19 RB_ Updated for separate cache flag on segments, changes
+  of invariants, cross-references, and ideas for future improvement.
 
 .. _GDR: http://www.ravenbrook.com/consultants/gdr/
 
