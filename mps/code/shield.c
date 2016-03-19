@@ -5,8 +5,9 @@
  *
  * See: idea.shield, design.mps.shield.
  *
- * IMPORTANT: This code is subtle and critical. Ensure you have read
- * and understood design.mps.shield before you touch it.
+ * IMPORTANT: HERE BE DRAGONS! This code is subtle and
+ * critical. Ensure you have read and understood design.mps.shield
+ * before you touch it.
  */
 
 #include "mpm.h"
@@ -196,7 +197,9 @@ static Compare shieldCacheEntryCompare(void *left, void *right, void *closure)
  * protection calls are extremely inefficient, but has no net gain on
  * Windows.
  *
- * base, limit and mode represent outstanding protection to be done.
+ * TODO: Could we keep extending the outstanding area over memory
+ * that's *not* in the cache but has the same protection mode?  Might
+ * require design.mps.shield.improve.noseg.
  */
 
 static void shieldFlushEntries(Arena arena)
@@ -357,6 +360,8 @@ void (ShieldRaise)(Arena arena, Seg seg, AccessSet mode)
 }
 
 
+/* ShieldLower -- declare segment may be accessed by mutator */
+
 void (ShieldLower)(Arena arena, Seg seg, AccessSet mode)
 {
   AVERT(Arena, arena);
@@ -364,9 +369,13 @@ void (ShieldLower)(Arena arena, Seg seg, AccessSet mode)
   AVERT(AccessSet, mode);
   AVER(BS_INTER(SegSM(seg), mode) == mode);
   
-  /* synced(seg) is not changed by the following preserving
-     inv.unsynced.suspended Also inv.prot.shield preserved */
+  /* SegIsSynced(seg) is not changed by the following preserving
+     design.mps.shield.inv.unsynced.suspended and
+     design.mps.shield.inv.prot.shield. */
   SegSetSM(seg, BS_DIFF(SegSM(seg), mode));
+  /* TODO: Do we need to promptly call shieldProtLower here?  It
+     loses the opportunity to coalesce the protection call. It would
+     violate design.mps.shield.prop.inside.access. */
   shieldProtLower(arena, seg, mode);
 
   /* Check cache and segment consistency. */
@@ -374,6 +383,8 @@ void (ShieldLower)(Arena arena, Seg seg, AccessSet mode)
   AVERT(Seg, seg);
 }
 
+
+/* ShieldEnter -- enter the shield, allowing exposes */
 
 void (ShieldEnter)(Arena arena)
 {
@@ -387,6 +398,18 @@ void (ShieldEnter)(Arena arena)
   arena->insideShield = TRUE;
 }
 
+
+/* shieldDebugCheck -- expensive consistency check
+ *
+ * While developing the shield it is very easy to make a consistency
+ * mistake that causes random corruption of the heap, usually because
+ * all the attempts to avoid protection and suspension end up failing
+ * to enforce design.mps.shield.prop.mutator.access.  In these cases,
+ * try enabling SHIELD_DEBUG and extending this code as necessary.
+ *
+ * The basic idea is to iterate over *all* segments and check
+ * consistency with the arena and shield cache.
+ */
 
 #if defined(SHIELD_DEBUG)
 static void shieldDebugCheck(Arena arena)
@@ -419,14 +442,15 @@ static void shieldDebugCheck(Arena arena)
 /* ShieldFlush -- empty the shield cache
  *
  * .shield.flush: Flush empties the shield cache.  This needs to be
- * called before segments are destroyed as there may be references to
- * them in the cache.
+ * called before segments in the cache are destroyed, as there may be
+ * references to them in the cache.
  *
  * The memory for the segment may become spare, and not released back
  * to the operating system. Since we keep track of protection on
  * segments and not grains we have no way of keeping track of the
  * protection state of spare grains. We therefore flush the protection
- * to get it back into the default state (unprotected).
+ * to get it back into the default state (unprotected).  See also
+ * design.mps.shield.improv.noseg.
  */
 
 void (ShieldFlush)(Arena arena)
@@ -443,10 +467,13 @@ void (ShieldFlush)(Arena arena)
 }
 
 
+/* ShieldLeave -- leave the shield, protect segs from mutator */
+
 void (ShieldLeave)(Arena arena)
 {
   AVERT(Arena, arena);
   AVER(arena->insideShield);
+  AVER(arena->shDepth == 0); /* no pending covers */
 
   ShieldFlush(arena);
 
@@ -464,29 +491,8 @@ void (ShieldLeave)(Arena arena)
 
 /* ShieldExpose -- allow the MPS access to a segment while denying the mutator
  *
- * The MPS currently does not collect concurrently, however the only thing
- * that makes it not-concurrent is a critical point in the Shield
- * abstraction where the MPS seeks to gain privileged access to memory
- * (usually in order to scan it for GC). The critical point is where
- * ShieldExpose in shield.c has to call ShieldSuspend to preserve the
- * shield invariants. This is the only point in the MPS that prevents
- * concurrency, and the rest of the MPS is designed to support it.
- *
- * The restriction could be removed if either:
- * 
- *  * the MPS could use a different set of protections to the mutator
- *   program
- * 
- *  * the mutator program uses a software barrier
- * 
- * The first one is tricky, and the second one just hasn't come up in any
- * implementation we've been asked to make yet. Given a VM, it could
- * happen, and the MPS would be concurrent.
- * 
- * So, I believe there's nothing fundamentally non-concurrent about the
- * MPS design. It's kind of waiting to happen.
- *
- * (Originally written at <http://news.ycombinator.com/item?id=4524036>.)
+ * The first expose of a shielded segment suspends the mutator to
+ * ensure the MPS has exclusive access.
  */
 
 void (ShieldExpose)(Arena arena, Seg seg)
@@ -501,10 +507,12 @@ void (ShieldExpose)(Arena arena, Seg seg)
   ++arena->shDepth;
   AVER_CRITICAL(arena->shDepth > 0); /* overflow */
   
-  if (BS_INTER(SegPM(seg), mode))
+  if (BS_INTER(SegPM(seg), mode) != AccessSetEMPTY)
     ShieldSuspend(arena);
 
   /* Ensure design.mps.shield.inv.expose.prot. */
+  /* TODO: Mass exposure -- see
+     design.mps.shield.improv.mass-expose. */
   shieldProtLower(arena, seg, mode);
 }
 
