@@ -253,7 +253,8 @@ typedef struct SegStruct {      /* segment structure */
   Tract firstTract;             /* first tract of segment */
   RingStruct poolRing;          /* link in list of segs in pool */
   Addr limit;                   /* limit of segment */
-  unsigned depth : ShieldDepthWIDTH; /* see <code/shield.c#def.depth> */
+  unsigned depth : ShieldDepthWIDTH; /* see design.mps.shield.def.depth */
+  BOOLFIELD(cached);            /* in shield cache? */
   AccessSet pm : AccessLIMIT;   /* protection mode, <code/shield.c> */
   AccessSet sm : AccessLIMIT;   /* shield mode, <code/shield.c> */
   TraceSet grey : TraceLIMIT;   /* traces for which seg is grey */

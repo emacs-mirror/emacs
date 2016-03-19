@@ -175,15 +175,13 @@ Bool GlobalsCheck(Globals arenaGlobals)
   /* This is too expensive to check all the time since we have an
      expanding shield cache that often has 16K elements instead of
      16. */
-#ifdef AVER_AND_CHECK_ALL
+#if defined(AVER_AND_CHECK_ALL)
   {
     Count depth = 0;
     for (i = 0; i < arena->shCacheLimit; ++i) {
       Seg seg = arena->shCache[i];
-      if (seg != NULL) {
-        CHECKD(Seg, seg);
-        depth += SegDepth(seg);
-      }
+      CHECKD(Seg, seg);
+      depth += SegDepth(seg);
     }
     CHECKL(depth <= arena->shDepth);
   }
