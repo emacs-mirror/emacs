@@ -108,7 +108,6 @@ Bool GlobalsCheck(Globals arenaGlobals)
   TraceId ti;
   Trace trace;
   Index i;
-  Size depth;
   RefSet rs;
   Rank rank;
 
@@ -161,16 +160,35 @@ Bool GlobalsCheck(Globals arenaGlobals)
   CHECKL(arena->shCacheI <= arena->shCacheLimit);
   CHECKL(BoolCheck(arena->suspended));
 
-  depth = 0;
-  for (i = 0; i < arena->shCacheLimit; ++i) {
-    Seg seg = arena->shCache[i];
-    if (seg != NULL) {
-      CHECKD(Seg, seg);
-      depth += SegDepth(seg);
-    }
-  }
-  CHECKL(depth <= arena->shDepth);
+  /* The mutator is not suspended while outside the shield
+     (design.mps.shield.inv.outside.running). */
+  CHECKL(arena->insideShield || !arena->suspended);
 
+  /* If any segment is not synced, the mutator is suspended
+     (design.mps.shield.inv.unsynced.suspended). */
+  CHECKL(arena->shDepth == 0 || arena->suspended);
+
+  /* The total depth is zero while outside the shield
+     (design.mps.shield.inv.outside.depth). */
+  CHECKL(arena->insideShield || arena->shDepth == 0);
+
+  /* This is too expensive to check all the time since we have an
+     expanding shield cache that often has 16K elements instead of
+     16. */
+#ifdef AVER_AND_CHECK_ALL
+  {
+    Count depth = 0;
+    for (i = 0; i < arena->shCacheLimit; ++i) {
+      Seg seg = arena->shCache[i];
+      if (seg != NULL) {
+        CHECKD(Seg, seg);
+        depth += SegDepth(seg);
+      }
+    }
+    CHECKL(depth <= arena->shDepth);
+  }
+#endif
+  
   CHECKL(TraceSetCheck(arena->busyTraces));
   CHECKL(TraceSetCheck(arena->flippedTraces));
   CHECKL(TraceSetSuper(arena->busyTraces, arena->flippedTraces));

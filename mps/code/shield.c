@@ -5,71 +5,8 @@
  *
  * See: idea.shield, design.mps.shield.
  *
- * This implementation of the shield avoids suspending threads for
- * as long as possible.  When threads are suspended, it maintains a
- * cache of covered segments where the desired and actual protection
- * do not match.  This cache is flushed on leaving the shield.
- *
- *
- * Definitions
- *
- * .def.synced: a seg is synced if the prot and shield modes are the
- * same, and unsynced otherwise.
- * .def.depth: the depth of a segment is defined as
- *   depth == #exposes - #covers + #(in cache),  where
- *     #exposes = the total number of times the seg has been exposed
- *     #covers  = the total number of times the seg has been covered
- *     #(in cache) = the number of times the seg appears in the cache
- *   The cache is initially empty and Cover should not be called
- *   without a matching Expose, so this figure should always be
- *   non-negative.
- * .def.total.depth: The total depth is the sum of the depth over
- * all segments
- * .def.outside: being outside the shield is being between calls
- * to leave and enter, and similarly .def.inside: being inside the
- * shield is being between calls to enter and leave.
- * .def.suspended: suspended is true iff the mutator is suspended.
- * .def.shielded: a segment is shielded if the shield mode is non-zero.
- *
- *
- * Properties
- *
- * .prop.outside.running: The mutator may not be suspended while
- * outside the shield.
- * .prop.mutator.access: An attempt by the mutator to access
- * shielded memory must cause an ArenaAccess.
- * .prop.inside.access: Inside the shield it must be possible to access
- * all unshielded segments and all exposed segments.
- *
- *
- * Invariants
- *
- * These invariants are maintained by the code.
- *
- * .inv.outside.running: The mutator is not suspended while outside the
- * shield.
- * .inv.unsynced.suspended: If any segment is not synced,
- * the mutator is suspended.
- * .inv.unsynced.depth: All unsynced segments have positive depth.
- * .inv.outside.depth: The total depth is zero while outside the shield.
- * .inv.prot.shield: The prot mode is never more than the shield mode.
- * .inv.expose.prot: An exposed seg is not protected.
- *
- * Hints at proofs of properties from invariants
- *
- * inv.outside.running directly ensures prop.outside running.
- *
- * As the depth of a segment cannot be negative
- *   total depth == 0 => for all segments, depth == 0
- *                    => all segs are synced (by .inv.unsynced.depth)
- *
- * If the mutator is running then all segs must be synced
- * (.inv.unsynced.suspend).  Which means that the hardware protection
- * (prot mode) must reflect the software protection (shield mode).
- * Hence all shielded memory will be hardware protected while the
- * mutator is running.  This ensures .prop.mutator.access.
- *
- * inv.prot.shield and inv.expose.prot ensure prop.inside.access.
+ * IMPORTANT: This code is subtle and critical. Ensure you have read
+ * and understood design.mps.shield before you touch it.
  */
 
 #include "mpm.h"
@@ -79,27 +16,29 @@ SRCID(shield, "$Id$");
 
 /* shieldSegIsSynced -- is a segment synced?
  *
- * See .def.synced.
+ * See design.mps.shield.def.synced.
  */
 
 static Bool shieldSegIsSynced(Seg seg)
 {
-  AVERT_CRITICAL(Seg, seg);
+  AVER_CRITICAL(TESTT(Seg, seg));
   return SegSM(seg) == SegPM(seg);
 }
 
 
-/* shieldSync -- synchronize a segment's protection */
+/* shieldSync -- synchronize a segment's protection
+ *
+ * See design.mps.shield.inv.prot.shield.
+ */
 
 static void shieldSync(Arena arena, Seg seg)
 {
   AVERT(Arena, arena);
-  AVERT(Seg, seg);
+  AVER_CRITICAL(TESTT(Seg, seg));
 
   if (!shieldSegIsSynced(seg)) {
     ProtSet(SegBase(seg), SegLimit(seg), SegSM(seg));
     SegSetPM(seg, SegSM(seg));
-    /* See .inv.prot.shield. */
   }
 }
 
@@ -147,7 +86,7 @@ static void protLower(Arena arena, Seg seg, AccessSet mode)
   /* <design/trace/#fix.noaver> */
   AVERT_CRITICAL(Arena, arena);
   UNUSED(arena);
-  AVERT_CRITICAL(Seg, seg);
+  AVER_CRITICAL(TESTT(Seg, seg));
   AVERT_CRITICAL(AccessSet, mode);
 
   if (SegPM(seg) & mode) {
@@ -285,7 +224,8 @@ static void shieldCache(Arena arena, Seg seg)
 {
   /* <design/trace/#fix.noaver> */
   AVERT_CRITICAL(Arena, arena);
-  AVERT_CRITICAL(Seg, seg);
+  /* Can't fully check seg while we're enforcing its invariants. */
+  AVER_CRITICAL(TESTT(Seg, seg));
 
   if (shieldSegIsSynced(seg))
     return;
@@ -376,6 +316,8 @@ void (ShieldRaise) (Arena arena, Seg seg, AccessSet mode)
   /* this point (this function is called to enforce them) so we */
   /* can't check seg. Nor can we check arena as that checks the */
   /* segs in the cache. */
+  AVER(TESTT(Arena, arena));
+  AVER(TESTT(Seg, seg));
 
   AVERT(AccessSet, mode);
   AVER((SegSM(seg) & mode) == AccessSetEMPTY);
