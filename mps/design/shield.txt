@@ -115,13 +115,9 @@ segment should be unprotected, and the Shield could re-instate
 hardware protection.
 
 However, as a performance-improving hysteresis, the Shield defers
-re-protection, maintaining a cache reasons that a segment no longer
-had a reason to be collector-accessible.  Presence in the cache counts
-as a reason: segments in the cache have ``seg->depth`` increased by
-one. As segments get pushed out of the cache, or at ``ShieldLeave()``,
-this artificial reason is decremented from ``seg->depth``, and (if
-``seg->depth`` is now zero) the deferred reinstatement of hardware
-protection happens.
+re-protection, maintaining a cache of segments that no longer have a
+reason to be collector-accessible.  While a segment is in the cache,
+it has ``seg->cached`` set to TRUE.
 
 This hysteresis allows the MPS to proceed with garbage collection
 during a pause without actually setting hardware protection until it
@@ -154,20 +150,22 @@ same, and unsynced otherwise.
 
 .def.depth: The depth of a segment is defined as:
 
-  | depth ≔ #exposes − #covers + #(in cache),  where
+  | depth ≔ #exposes − #covers, where
   |    #exposes = the total number of times the seg has been exposed
   |    #covers  = the total number of times the seg has been covered
-  |    #(in cache) = the number of times the seg appears in the cache
 
-The cache is initially empty and Cover should not be called without a
-matching Expose, so this figure should always be non-negative.
+The cache is initially empty and ``ShieldCover`` should not be called
+without a matching ``ShieldExpose``, so this figure should always be
+non-negative.
 
-.def.total.depth: The total depth is the sum of the depth over
-all segments.
+.def.total.depth: The total depth is the sum of the depth over all
+segments.
 
-.def.outside: Being outside the shield is being between calls to leave
-and enter, and similarly .def.inside: being inside the shield is being
-between calls to enter and leave.
+.def.outside: Being outside the shield is being between calls to
+``ShieldLeave`` and ``ShieldEnter``, and similarly .def.inside: being
+inside the shield is being between calls to ``ShieldEnter`` and
+``ShieldLeave``.  [In a multi-threaded MPS this would be per-thread.
+RB 2016-03-18]
 
 .def.suspended: Suspended is true iff the mutator is suspended.
 
@@ -196,13 +194,15 @@ shield.
 .inv.unsynced.suspended: If any segment is not synced, the mutator is
 suspended.
 
-.inv.unsynced.depth: All unsynced segments have positive depth.
+.inv.unsynced.depth: All unsynced segments have positive depth or are
+in the cache.
 
 .inv.outside.depth: The total depth is zero while outside the shield.
 
 .inv.prot.shield: The prot mode is never more than the shield mode.
 
-.inv.expose.prot: An exposed seg is not protected.
+.inv.expose.prot: An exposed seg is not protected in the mode it was
+exposed with.
 
 
 Proof Hints
@@ -234,6 +234,17 @@ Initial ideas
 
 _`.ideas`: There never was an initial design document, but
 [RB_1995-11-29]_ and [RB_1995-11-30]_ contain some initial ideas.
+
+
+Improvement Ideas
+-----------------
+
+.improv.mass-expose: If protection calls have a high overhead it might
+be good to pre-emptively unprotect large ranges of memory when we
+expose one segment.  With the current design this would mean
+discovering adjacent shielded segments and adding them to the cache.
+The collector should take advantage of this by preferentially scanning
+exposed segments during a pause.
 
 
 References

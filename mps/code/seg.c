@@ -150,6 +150,7 @@ static Res SegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   seg->pm = AccessSetEMPTY;
   seg->sm = AccessSetEMPTY;
   seg->depth = 0;
+  seg->cached = FALSE;
   seg->firstTract = NULL;
 
   seg->sig = SegSig;  /* set sig now so tract checks will see it */
@@ -220,8 +221,10 @@ static void SegFinish(Seg seg)
   seg->rankSet = RankSetEMPTY;
 
   /* See <code/shield.c#shield.flush> */
-  if (seg->depth > 0)
+  AVER(seg->depth == 0);
+  if (seg->cached)
     ShieldFlush(PoolArena(SegPool(seg)));
+  AVER(seg->cached == FALSE);
 
   limit = SegLimit(seg);
   
@@ -713,17 +716,9 @@ Bool SegCheck(Seg seg)
      (design.mps.shield.inv.prot.shield). */
   CHECKL(BS_DIFF(seg->pm, seg->sm) == 0);
   
-  /* An exposed segment is not protected
-     (design.mps.shield.inv.expose.prot). FIXME: Discovered to be
-     FALSE when raising the read barrier on a write-protected
-     segment. RB 2016-03-19 */
-  /* CHECKL(seg->depth == 0 || seg->pm == 0); */
-  /* FIXME: Wouldn't it be better to have a flag for "in cache" so
-     that depth > 0 => exposed? */
-
-  /* All unsynced segments have positive depth
+  /* All unsynced segments have positive depth or are in the cache
      (design.mps.shield.inv.unsynced.depth). */
-  CHECKL(seg->sm == seg->pm || seg->depth > 0);
+  CHECKL(seg->sm == seg->pm || seg->depth > 0 || seg->cached);
   
   CHECKL(RankSetCheck(seg->rankSet));
   if (seg->rankSet == RankSetEMPTY) {
