@@ -675,7 +675,7 @@
  * TODO: These settings were determined by trial and error, but should
  * be based on measurement of the protection overhead on each
  * platform.  We know it's extremely different between OS X and
- * Windows, for example.
+ * Windows, for example.  See design.mps.write-barrier.improv.by-os.
  *
  * TODO: Consider basing the count on the amount of time that has
  * passed in the mutator rather than the number of scans.
