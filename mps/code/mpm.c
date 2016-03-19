@@ -645,6 +645,38 @@ Bool StringEqual(const char *s1, const char *s2)
 }
 
 
+/* Random -- a random number generator
+ *
+ * TODO: This is a copy of the generator from testlib.c, which has
+ * extensive notes and verification tests.  The notes need to go to a
+ * design document, and the tests to a test.
+ */
+
+static unsigned RandomSeed = 1;
+#define Random_m 2147483647UL
+#define Random_a 48271UL
+unsigned Random32(void)
+{
+  AVER(UINT_MAX >= 4294967295U);
+  /* requires m == 2^31-1, a < 2^16 */
+  unsigned bot = Random_a * (RandomSeed & 0x7FFF);
+  unsigned top = Random_a * (RandomSeed >> 15);
+  RandomSeed = bot + ((top & 0xFFFF) << 15) + (top >> 16);
+  if (RandomSeed > Random_m)
+    RandomSeed -= Random_m;
+  return RandomSeed;
+}
+
+Word RandomWord(void)
+{
+  Word word;
+  Index i;
+  for (i = 0; i < MPS_WORD_WIDTH; i += 31)
+    word = (word << 31) | Random32();
+  return word;
+}
+
+
 /* QuickSort -- non-recursive bounded sort
  *
  * We can't rely on the standard library's qsort, which might have
@@ -669,7 +701,6 @@ static Bool quickSorted(void *array[], Count length,
 void QuickSort(void *array[], Count length,
                QuickSortCompare compare, void *closure)
 {
-  static Index seed = 0x6A9D03;
   struct {
     Index left, right;
   } stack[MPS_WORD_WIDTH];
@@ -683,8 +714,7 @@ void QuickSort(void *array[], Count length,
   for (;;) {
     while (right - left > 1) { /* no need to sort */
       /* Pick a random pivot. */
-      pivot = array[left + seed % (right - left)];
-      seed = seed * 69069 + 1;
+      pivot = array[left + RandomWord() % (right - left)];
 
       /* Hoare partition: scan from lo to hi, dividing it into elements
          less than the pivot and elements greater or equal. */

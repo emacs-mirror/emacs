@@ -171,6 +171,9 @@ extern Res WriteF_firstformat_v(mps_lib_FILE *stream, Count depth,
 extern size_t StringLength(const char *s);
 extern Bool StringEqual(const char *s1, const char *s2);
 
+extern unsigned Random32(void);
+extern Word RandomWord(void);
+
 typedef Compare QuickSortCompare(void *left, void *right,
                                  void *closure);
 extern void QuickSort(void *array[], Count length,
