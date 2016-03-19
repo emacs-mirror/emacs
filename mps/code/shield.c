@@ -1,7 +1,7 @@
 /* shield.c: SHIELD IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001-2015 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  * See: idea.shield, design.mps.shield.
  *
@@ -14,20 +14,39 @@
 SRCID(shield, "$Id$");
 
 
-/* shieldSegIsSynced -- is a segment synced?
+/* SHIELD_AVER -- transgressive argument checking
+ *
+ * .trans.check: A number of shield functions cannot do normal
+ * argument checking with AVERT because (for example) SegCheck checks
+ * the shield invariants, and it is these functions that are enforcing
+ * them.  Instead, we AVER(TESTT(Seg, seg)) to check the type
+ * signature but not the contents.
+ */
+
+#define SHIELD_AVERT(type, exp) AVER(TESTT(type, exp))
+#define SHIELD_AVERT_CRITICAL(type, exp) AVER_CRITICAL(TESTT(type, exp))
+
+
+/* SegIsSynced -- is a segment synced?
  *
  * See design.mps.shield.def.synced.
  */
 
-static Bool shieldSegIsSynced(Seg seg)
+static Bool SegIsSynced(Seg seg)
 {
-  AVER_CRITICAL(TESTT(Seg, seg));
+  SHIELD_AVERT_CRITICAL(Seg, seg);
   return SegSM(seg) == SegPM(seg);
 }
 
+
+/* SegIsExposed -- is a segment exposed?
+ *
+ * See design.mps.shield.def.exposed.
+ */
+
 static Bool SegIsExposed(Seg seg)
 {
-  AVER_CRITICAL(TESTT(Seg, seg));
+  SHIELD_AVERT_CRITICAL(Seg, seg);
   return seg->depth > 0;
 }
 
@@ -40,9 +59,9 @@ static Bool SegIsExposed(Seg seg)
 static void shieldSync(Arena arena, Seg seg)
 {
   AVERT(Arena, arena);
-  AVER_CRITICAL(TESTT(Seg, seg));
+  SHIELD_AVERT_CRITICAL(Seg, seg);
 
-  if (!shieldSegIsSynced(seg)) {
+  if (!SegIsSynced(seg)) {
     ProtSet(SegBase(seg), SegLimit(seg), SegSM(seg));
     SegSetPM(seg, SegSM(seg));
   }
@@ -87,21 +106,27 @@ void (ShieldResume)(Arena arena)
 }
 
 
-/* This ensures actual prot mode does not include mode */
-static void protLower(Arena arena, Seg seg, AccessSet mode)
+/* shieldProtLower -- reduce protection on a segment
+ *
+ * This ensures actual prot mode does not include mode.
+ */
+
+static void shieldProtLower(Arena arena, Seg seg, AccessSet mode)
 {
   /* <design/trace/#fix.noaver> */
   AVERT_CRITICAL(Arena, arena);
   UNUSED(arena);
-  AVER_CRITICAL(TESTT(Seg, seg));
+  SHIELD_AVERT_CRITICAL(Seg, seg);
   AVERT_CRITICAL(AccessSet, mode);
 
-  if (BS_INTER(SegPM(seg), mode) != 0) {
+  if (BS_INTER(SegPM(seg), mode) != AccessSetEMPTY) {
     SegSetPM(seg, BS_DIFF(SegPM(seg), mode));
     ProtSet(SegBase(seg), SegLimit(seg), SegPM(seg));
   }
 }
 
+
+/* shieldDecache -- remove a segment from the shield cache */
 
 static Seg shieldDecache(Arena arena, Index i)
 {
@@ -127,35 +152,39 @@ static void shieldFlushEntry(Arena arena, Index i)
 }
 
 
+/* shieldCacheReset -- reset shield cache pointers */
+
+static void shieldCacheReset(Arena arena)
+{
+  AVER(arena->shDepth == 0); /* overkill: implies no segs are cached */
+  arena->shCacheI = 0;
+  arena->shCacheLimit = 0;
+}
+
+
 /* shieldCacheEntryCompare -- comparison for cache sorting */
+
+static Compare shieldAddrCompare(Addr left, Addr right)
+{
+  if (left < right)
+    return CompareLESS;
+  else if (left == right)
+    return CompareEQUAL;
+  else
+    return CompareGREATER;
+}
 
 static Compare shieldCacheEntryCompare(void *left, void *right, void *closure)
 {
   Seg segA = left, segB = right;
-  Addr baseA, baseB;
 
-  /* Making these CRITICAL had no effect on timings on LII6LL today.
-     RB 2016-03-17. */
-  AVERT(Seg, segA);
-  AVERT(Seg, segB);
+  /* These checks are not critical in a hot build, but slow down cool
+     builds quite a bit, so just check the signatures. */
+  AVER(TESTT(Seg, segA));
+  AVER(TESTT(Seg, segB));
   UNUSED(closure);
 
-  baseA = SegBase(segA);
-  baseB = SegBase(segB);
-  if (baseA < baseB)
-    return CompareLESS;
-  if (baseA > baseB)
-    return CompareGREATER;
-  AVER(baseA == baseB);
-  return CompareEQUAL;
-}
-
-
-static void shieldCacheReset(Arena arena)
-{
-  AVER(arena->shDepth == 0);
-  arena->shCacheI = 0;
-  arena->shCacheLimit = 0;
+  return shieldAddrCompare(SegBase(segA), SegBase(segB));
 }
 
 
@@ -187,7 +216,7 @@ static void shieldFlushEntries(Arena arena)
   mode = AccessSetEMPTY;
   for (i = 0; i < arena->shCacheLimit; ++i) {
     Seg seg = shieldDecache(arena, i);
-    if (!shieldSegIsSynced(seg)) {
+    if (!SegIsSynced(seg)) {
       AVER(SegSM(seg) != AccessSetEMPTY); /* can't match first iter */
       SegSetPM(seg, SegSM(seg));
       if (SegSM(seg) != mode || SegBase(seg) != limit) {
@@ -222,10 +251,9 @@ static void shieldCache(Arena arena, Seg seg)
 {
   /* <design/trace/#fix.noaver> */
   AVERT_CRITICAL(Arena, arena);
-  /* Can't fully check seg while we're enforcing its invariants. */
-  AVER_CRITICAL(TESTT(Seg, seg));
+  SHIELD_AVERT_CRITICAL(Seg, seg);
 
-  if (shieldSegIsSynced(seg) || seg->cached)
+  if (SegIsSynced(seg) || seg->cached)
     return;
 
   if (SegIsExposed(seg)) {
@@ -304,14 +332,16 @@ static void shieldCache(Arena arena, Seg seg)
 }
 
 
+/* ShieldRaise -- declare segment should be protected from mutator
+ *
+ * Does not immediately protect the segment, unless the segment is
+ * covered and the shield cache is unavailable.
+ */
+
 void (ShieldRaise)(Arena arena, Seg seg, AccessSet mode)
 {
-  /* .seg.broken: Seg's shield invariants may not be true at */
-  /* this point (this function is called to enforce them) so we */
-  /* can't check seg. Nor can we check arena as that checks the */
-  /* segs in the cache. */
-  AVER(TESTT(Arena, arena));
-  AVER(TESTT(Seg, seg));
+  SHIELD_AVERT(Arena, arena);
+  SHIELD_AVERT(Seg, seg);
 
   AVERT(AccessSet, mode);
   AVER((SegSM(seg) & mode) == AccessSetEMPTY);
@@ -330,14 +360,14 @@ void (ShieldRaise)(Arena arena, Seg seg, AccessSet mode)
 void (ShieldLower)(Arena arena, Seg seg, AccessSet mode)
 {
   AVERT(Arena, arena);
-  AVER(TESTT(Seg, seg));
+  SHIELD_AVERT(Seg, seg);
   AVERT(AccessSet, mode);
   AVER(BS_INTER(SegSM(seg), mode) == mode);
   
   /* synced(seg) is not changed by the following preserving
      inv.unsynced.suspended Also inv.prot.shield preserved */
   SegSetSM(seg, BS_DIFF(SegSM(seg), mode));
-  protLower(arena, seg, mode);
+  shieldProtLower(arena, seg, mode);
 
   /* Check cache and segment consistency. */
   AVERT(Arena, arena);
@@ -371,7 +401,7 @@ static void shieldDebugCheck(Arena arena)
     do {
       if (arena->shCacheLimit == 0) {
         AVER(!seg->cached);
-        AVER(shieldSegIsSynced(seg));
+        AVER(SegIsSynced(seg));
         /* You can directly set protections here to see if it makes a
            difference. */
         /* ProtSet(SegBase(seg), SegLimit(seg), SegPM(seg)); */
@@ -475,7 +505,7 @@ void (ShieldExpose)(Arena arena, Seg seg)
     ShieldSuspend(arena);
 
   /* Ensure design.mps.shield.inv.expose.prot. */
-  protLower(arena, seg, mode);
+  shieldProtLower(arena, seg, mode);
 }
 
 
@@ -500,7 +530,7 @@ void (ShieldCover)(Arena arena, Seg seg)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2015 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
