@@ -1,7 +1,7 @@
 /* seg.c: SEGMENTS
  *
  * $Id$
- * Copyright (c) 2001-2015 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  * .design: The design for this module is <design/seg/>.
  *
@@ -16,14 +16,6 @@
  * all current GC features, and providing full backwards compatibility
  * with "old-style" segments.  It may be subclassed by clients of the
  * module.
- *
- * TRANSGRESSIONS
- *
- * .check.shield: The "pm", "sm", and "depth" fields are not checked by
- * SegCheck, because I haven't spent time working out the invariants.
- * We should certainly work them out, by studying <code/shield.c>, and
- * assert things about shielding, protection, shield cache consistency,
- * etc.  richard 1997-04-03
  */
 
 #include "tract.h"
@@ -223,6 +215,8 @@ static void SegFinish(Seg seg)
   seg->rankSet = RankSetEMPTY;
 
   /* See <code/shield.c#shield.flush> */
+  /* FIXME: We can probably avoid doing this for segments not in the
+     cache by checking their depth.  Zero depth => not in cache. */
   ShieldFlush(PoolArena(SegPool(seg)));
 
   limit = SegLimit(seg);
@@ -711,7 +705,22 @@ Bool SegCheck(Seg seg)
 
   CHECKD_NOSIG(Ring, &seg->poolRing);
    
-  /* "pm", "sm", and "depth" not checked.  See .check.shield. */
+  /* The protection mode is never more than the shield mode
+     (design.mps.shield.inv.prot.shield). */
+  CHECKL(BS_DIFF(seg->pm, seg->sm) == 0);
+  
+  /* An exposed segment is not protected
+     (design.mps.shield.inv.expose.prot). FIXME: Discovered to be
+     FALSE when raising the read barrier on a write-protected
+     segment. RB 2016-03-19 */
+  /* CHECKL(seg->depth == 0 || seg->pm == 0); */
+  /* FIXME: Wouldn't it be better to have a flag for "in cache" so
+     that depth > 0 => exposed? */
+
+  /* All unsynced segments have positive depth
+     (design.mps.shield.inv.unsynced.depth). */
+  CHECKL(seg->sm == seg->pm || seg->depth > 0);
+  
   CHECKL(RankSetCheck(seg->rankSet));
   if (seg->rankSet == RankSetEMPTY) {
     /* <design/seg/#field.rankSet.empty>: If there are no refs */
@@ -1674,7 +1683,7 @@ void SegClassMixInNoSplitMerge(SegClass class)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2015 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
