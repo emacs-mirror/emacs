@@ -1166,7 +1166,7 @@ static Res traceScanSegRes(TraceSet ts, Rank rank, Arena arena, Seg seg)
     AVER(RefSetSub(ScanStateUnfixedSummary(ss), SegSummary(seg)));
 
     /* Remembered set and write barrier */
-    /* Was the scan necessary?  Did the segment refer to the white set */
+    /* Was the scan necessary?  Did the segment refer to the white set? */
     if (ZoneSetInter(ScanStateUnfixedSummary(ss), white) == ZoneSetEMPTY) {
       if (seg->defer > 0)
         --seg->defer;
@@ -1176,9 +1176,6 @@ static Res traceScanSegRes(TraceSet ts, Rank rank, Arena arena, Seg seg)
     }
 
     /* Only apply the write barrier if it is not deferred. */
-    /* TODO: This discards information we collected during
-       scanning. Consider keeping the summary but changing the
-       invariant on shielding instead. */
     if (seg->defer == 0) {
       /* If we scanned every reference in the segment then we have a
          complete summary we can set. Otherwise, we just have
