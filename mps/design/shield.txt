@@ -137,6 +137,98 @@ is re-established: the nurse is either the balancing ``ShieldCover()``
 call in collector code, or an entry in the shield cache.
 
 
+Implementation
+--------------
+
+.impl.delay: The implementation of the shield avoids suspending
+threads for as long as possible.  When threads are suspended, it
+maintains a cache of covered segments where the desired and actual
+protection do not match.  This cache is flushed on leaving the shield.
+
+
+Definitions
+...........
+
+.def.synced: A seg is synced if the prot and shield modes are the
+same, and unsynced otherwise.
+
+.def.depth: The depth of a segment is defined as:
+
+  | depth ≔ #exposes − #covers + #(in cache),  where
+  |    #exposes = the total number of times the seg has been exposed
+  |    #covers  = the total number of times the seg has been covered
+  |    #(in cache) = the number of times the seg appears in the cache
+
+The cache is initially empty and Cover should not be called without a
+matching Expose, so this figure should always be non-negative.
+
+.def.total.depth: The total depth is the sum of the depth over
+all segments.
+
+.def.outside: Being outside the shield is being between calls to leave
+and enter, and similarly .def.inside: being inside the shield is being
+between calls to enter and leave.
+
+.def.suspended: Suspended is true iff the mutator is suspended.
+
+.def.shielded: A segment is shielded if the shield mode is non-zero.
+
+
+Properties
+..........
+
+.prop.outside.running: The mutator may not be suspended while outside
+the shield.
+
+.prop.mutator.access: An attempt by the mutator to access shielded
+memory must cause an ArenaAccess.
+
+.prop.inside.access: Inside the shield it must be possible to access
+all unshielded segments and all exposed segments.
+
+
+Invariants
+..........
+
+.inv.outside.running: The mutator is not suspended while outside the
+shield.
+
+.inv.unsynced.suspended: If any segment is not synced, the mutator is
+suspended.
+
+.inv.unsynced.depth: All unsynced segments have positive depth.
+
+.inv.outside.depth: The total depth is zero while outside the shield.
+
+.inv.prot.shield: The prot mode is never more than the shield mode.
+
+.inv.expose.prot: An exposed seg is not protected.
+
+
+Proof Hints
+...........
+
+Hints at proofs of properties from invariants.
+
+.proof.outside: .inv.outside.running directly ensures .prop.outside
+running.
+
+.proof.sync: As the depth of a segment cannot be negative
+
+  | total depth = 0
+  |   ⇒ for all segments, depth = 0
+  |   ⇒ all segs are synced (by .inv.unsynced.depth)
+
+.proof.access: If the mutator is running then all segs must be synced
+(.inv.unsynced.suspend).  Which means that the hardware protection
+(.prot mode) must reflect the software protection (shield mode).
+Hence all shielded memory will be hardware protected while the mutator
+is running.  This ensures .prop.mutator.access.
+
+.proof.inside: .inv.prot.shield and .inv.expose.prot ensure
+.prop.inside.access.
+
+
 Initial ideas
 -------------
 
