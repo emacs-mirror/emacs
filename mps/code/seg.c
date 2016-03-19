@@ -205,6 +205,11 @@ static void SegFinish(Seg seg)
   AVERT(SegClass, class);
 
   arena = PoolArena(SegPool(seg));
+
+  /* TODO: It would be good to avoid deprotecting segments eagerly
+     when we free them, especially if they're going to be
+     unmapped. This would require tracking of protection independent
+     of the existence of a SegStruct. */
   if (seg->sm != AccessSetEMPTY) {
     ShieldLower(arena, seg, seg->sm);
   }
@@ -215,9 +220,8 @@ static void SegFinish(Seg seg)
   seg->rankSet = RankSetEMPTY;
 
   /* See <code/shield.c#shield.flush> */
-  /* FIXME: We can probably avoid doing this for segments not in the
-     cache by checking their depth.  Zero depth => not in cache. */
-  ShieldFlush(PoolArena(SegPool(seg)));
+  if (seg->depth > 0)
+    ShieldFlush(PoolArena(SegPool(seg)));
 
   limit = SegLimit(seg);
   
