@@ -1165,12 +1165,14 @@ static Res traceScanSegRes(TraceSet ts, Rank rank, Arena arena, Seg seg)
      */
     AVER(RefSetSub(ScanStateUnfixedSummary(ss), SegSummary(seg)));
 
-    /* Remembered set and write barrier */
-    /* Was the scan necessary?  Did the segment refer to the white set? */
+    /* Write barrier deferral -- see design.mps.write-barrier.deferral. */
+    /* Did the segment refer to the white set? */
     if (ZoneSetInter(ScanStateUnfixedSummary(ss), white) == ZoneSetEMPTY) {
+      /* Boring scan.  One step closer to raising the write barrier. */
       if (seg->defer > 0)
         --seg->defer;
     } else {
+      /* Interesting scan. Defer raising the write barrier. */
       if (seg->defer < WB_DEFER_DELAY)
         seg->defer = WB_DEFER_DELAY;
     }
@@ -1229,27 +1231,34 @@ static Res traceScanSeg(TraceSet ts, Rank rank, Arena arena, Seg seg)
 void TraceSegAccess(Arena arena, Seg seg, AccessSet mode)
 {
   Res res;
+  AccessSet shieldHit;
+  Bool readHit, writeHit;
 
   AVERT(Arena, arena);
   AVERT(Seg, seg);
   AVERT(AccessSet, mode);
 
+  shieldHit = BS_INTER(mode, SegSM(seg));
+  readHit = BS_INTER(shieldHit, AccessREAD) != AccessSetEMPTY;
+  writeHit = BS_INTER(shieldHit, AccessWRITE) != AccessSetEMPTY;
+
   /* If it's a read access, then the segment must be grey for a trace */
   /* which is flipped. */
-  AVER((mode & SegSM(seg) & AccessREAD) == 0
-       || TraceSetInter(SegGrey(seg), arena->flippedTraces) != TraceSetEMPTY);
+  AVER(!readHit ||
+       TraceSetInter(SegGrey(seg), arena->flippedTraces) != TraceSetEMPTY);
 
   /* If it's a write access, then the segment must have a summary that */
   /* is smaller than the mutator's summary (which is assumed to be */
   /* RefSetUNIV). */
-  AVER((mode & SegSM(seg) & AccessWRITE) == 0 || SegSummary(seg) != RefSetUNIV);
+  AVER(!writeHit || SegSummary(seg) != RefSetUNIV);
 
   EVENT3(TraceAccess, arena, seg, mode);
 
-  if ((mode & SegSM(seg) & AccessWRITE) != 0)     /* write barrier? */
-    seg->defer = WB_DEFER_AFTER_HIT;
+  /* Write barrier deferral -- see design.mps.write-barrier.deferral. */
+  if (writeHit)
+    seg->defer = WB_DEFER_HIT;
 
-  if((mode & SegSM(seg) & AccessREAD) != 0) {   /* read barrier? */
+  if (readHit) {
     Trace trace;
     TraceId ti;
     Rank rank;
@@ -1283,11 +1292,11 @@ void TraceSegAccess(Arena arena, Seg seg, AccessSet mode)
 
   /* The write barrier handling must come after the read barrier, */
   /* because the latter may set the summary and raise the write barrier. */
-  if((mode & SegSM(seg) & AccessWRITE) != 0)      /* write barrier? */
+  if (writeHit)
     SegSetSummary(seg, RefSetUNIV);
 
   /* The segment must now be accessible. */
-  AVER((mode & SegSM(seg)) == AccessSetEMPTY);
+  AVER(BS_INTER(mode, SegSM(seg)) == AccessSetEMPTY);
 }
 
 
