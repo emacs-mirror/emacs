@@ -573,7 +573,8 @@ Res SegMerge(Seg *mergedSegReturn, Seg segLo, Seg segHi)
   AVER(SegBase(segHi) == SegLimit(segLo));
   arena = PoolArena(SegPool(segLo));
 
-  ShieldFlush(arena);  /* see <design/seg/#split-merge.shield> */
+  if (segLo->queued || segHi->queued)
+    ShieldFlush(arena);  /* see <design/seg/#split-merge.shield> */
 
   /* Invoke class-specific methods to do the merge */
   res = class->merge(segLo, segHi, base, mid, limit);
@@ -625,7 +626,9 @@ Res SegSplit(Seg *segLoReturn, Seg *segHiReturn, Seg seg, Addr at)
    * the split point. */
   AVER(SegBuffer(seg) == NULL || BufferLimit(SegBuffer(seg)) <= at);
 
-  ShieldFlush(arena);  /* see <design/seg/#split-merge.shield> */
+  if (seg->queued)
+    ShieldFlush(arena);  /* see <design/seg/#split-merge.shield> */
+  AVER(SegSM(seg) == SegPM(seg));
 
   /* Allocate the new segment object from the control pool */
   res = ControlAlloc(&p, arena, class->size);
@@ -899,9 +902,11 @@ static Res segTrivMerge(Seg seg, Seg segHi,
   AVER(seg->pm == segHi->pm);
   AVER(seg->sm == segHi->sm);
   AVER(seg->depth == segHi->depth);
+  AVER(seg->queued == segHi->queued);
   /* Neither segment may be exposed, or in the shield cache */
   /* See <design/seg/#split-merge.shield> & <code/shield.c#def.depth> */
   AVER(seg->depth == 0);
+  AVER(!seg->queued);
 
   /* no need to update fields which match. See .similar */
 
@@ -938,7 +943,6 @@ static Res segNoSplit(Seg seg, Seg segHi,
   AVER(SegLimit(seg) == limit);
   NOTREACHED;
   return ResFAIL;
-
 }
 
 
@@ -964,9 +968,10 @@ static Res segTrivSplit(Seg seg, Seg segHi,
   AVER(SegBase(seg) == base);
   AVER(SegLimit(seg) == limit);
 
-  /* Segment may not be exposed, or in the shield cache */
+  /* Segment may not be exposed, or in the shield queue */
   /* See <design/seg/#split-merge.shield> & <code/shield.c#def.depth> */
   AVER(seg->depth == 0);
+  AVER(!seg->queued);
  
   /* Full initialization for segHi. Just modify seg. */
   seg->limit = mid;
@@ -978,6 +983,7 @@ static Res segTrivSplit(Seg seg, Seg segHi,
   segHi->pm = seg->pm;
   segHi->sm = seg->sm;
   segHi->depth = seg->depth;
+  segHi->queued = seg->queued;
   segHi->firstTract = NULL;
   segHi->class = seg->class;
   segHi->sig = SegSig;
