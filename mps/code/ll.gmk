@@ -32,7 +32,7 @@ CFLAGSCOMPILER := \
 	-Wstrict-prototypes \
 	-Wunreachable-code \
 	-Wwrite-strings
-CFLAGSCOMPILERSTRICT :=
+CFLAGSCOMPILERSTRICT := -ansi
 
 # A different set of compiler flags for less strict compilation, for
 # instance when we need to #include a third-party header file that
