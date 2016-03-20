@@ -30,7 +30,7 @@ void ShieldInit(Shield shield)
 
 void ShieldDestroyQueue(Shield shield, Arena arena)
 {
-  AVER(shield->limit == 0);
+  AVER(shield->limit == 0); /* queue must be empty */
   
   if (shield->length != 0) {
     AVER(shield->queue != NULL);
@@ -81,7 +81,7 @@ Bool ShieldCheck(Shield shield)
       CHECKD(Seg, seg);
       depth += SegDepth(seg);
     }
-    CHECKL(depth <= shield->depth);
+    CHECKL(depth == shield->depth);
   }
 #endif
 
@@ -201,7 +201,8 @@ void (ShieldResume)(Arena arena)
   AVER(shield->inside);
   AVER(shield->suspended);
 
-  /* It is only correct to actually resume the mutator here if shDepth is 0 */
+  /* It is only correct to actually resume the mutator here if
+     shield->depth is 0 and the queue is empty. */
   /* TODO: Consider actually doing that. */
 }
 
