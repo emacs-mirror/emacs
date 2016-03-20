@@ -28,10 +28,10 @@ void ShieldInit(Shield shield)
 }
 
 
-void ShieldFinish(Shield shield, Arena arena)
+void ShieldDestroyQueue(Shield shield, Arena arena)
 {
-  shield->sig = SigInvalid;
-  /* Delete the shield queue, if it exists. */
+  AVER(shield->limit == 0);
+  
   if (shield->length != 0) {
     AVER(shield->queue != NULL);
     ControlFree(arena, shield->queue,
@@ -39,6 +39,12 @@ void ShieldFinish(Shield shield, Arena arena)
     shield->queue = NULL;
     shield->length = 0;
   }
+}
+
+
+void ShieldFinish(Shield shield)
+{
+  shield->sig = SigInvalid;
 }
 
 
@@ -99,9 +105,6 @@ Res ShieldDescribe(Shield shield, mps_lib_FILE *stream, Count depth)
 
   return ResOK;
 }
-
-
-#define ArenaShield(arena) (&(arena)->shieldStruct)
 
 
 /* SHIELD_AVER -- transgressive argument checking

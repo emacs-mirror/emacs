@@ -154,7 +154,7 @@ Bool GlobalsCheck(Globals arenaGlobals)
   CHECKD_NOSIG(Ring, &arena->threadRing);
   CHECKD_NOSIG(Ring, &arena->deadRing);
 
-  CHECKD_NOSIG(Shield, &arena->shieldStruct); /* FIXME: Sig */
+  CHECKD(Shield, ArenaShield(arena));
 
   CHECKL(TraceSetCheck(arena->busyTraces));
   CHECKL(TraceSetCheck(arena->flippedTraces));
@@ -280,7 +280,7 @@ Res GlobalsInit(Globals arenaGlobals)
   arena->tracedWork = 0.0;
   arena->tracedTime = 0.0;
   arena->lastWorldCollect = ClockNow();
-  ShieldInit(&arena->shieldStruct);
+  ShieldInit(ArenaShield(arena));
 
   for (ti = 0; ti < TraceLIMIT; ++ti) {
     /* <design/arena/#trace.invalid> */
@@ -385,6 +385,7 @@ void GlobalsFinish(Globals arenaGlobals)
 
   arenaGlobals->sig = SigInvalid;
 
+  ShieldFinish(ArenaShield(arena));
   RingFinish(&arena->formatRing);
   RingFinish(&arena->chainRing);
   RingFinish(&arena->messageRing);
@@ -417,8 +418,6 @@ void GlobalsPrepareToDestroy(Globals arenaGlobals)
   ArenaPark(arenaGlobals);
 
   arena = GlobalsArena(arenaGlobals);
-
-  ShieldFinish(&arena->shieldStruct, arena);
 
   arenaDenounce(arena);
 
@@ -470,6 +469,8 @@ void GlobalsPrepareToDestroy(Globals arenaGlobals)
     arena->finalPool = NULL;
     PoolDestroy(pool);
   }
+
+  ShieldDestroyQueue(ArenaShield(arena), arena);
 
   /* Check that the tear-down is complete: that the client has
    * destroyed all data structures associated with the arena. We do
@@ -1001,7 +1002,7 @@ Res GlobalsDescribe(Globals arenaGlobals, mps_lib_FILE *stream, Count depth)
       return res;
   }
 
-  res = ShieldDescribe(&arena->shieldStruct, stream, depth);
+  res = ShieldDescribe(ArenaShield(arena), stream, depth);
   if (res != ResOK)
     return res;
 

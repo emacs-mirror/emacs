@@ -534,6 +534,7 @@ extern Ring GlobalsRememberedSummaryRing(Globals);
 #define ArenaGreyRing(arena, rank) (&(arena)->greyRing[rank])
 #define ArenaPoolRing(arena) (&ArenaGlobals(arena)->poolRing)
 #define ArenaChunkTree(arena) RVALUE((arena)->chunkTree)
+#define ArenaShield(arena)      (&(arena)->shieldStruct)
 
 extern Bool ArenaGrainSizeCheck(Size size);
 #define AddrArenaGrainUp(addr, arena) AddrAlignUp(addr, ArenaGrainSize(arena))
@@ -908,9 +909,10 @@ extern ZoneSet ZoneSetBlacklist(Arena arena);
 /* Shield Interface -- see <code/shield.c> */
 
 extern void ShieldInit(Shield shield);
-extern void ShieldFinish(Shield shield, Arena arena);
+extern void ShieldFinish(Shield shield);
 extern Bool ShieldCheck(Shield shield);
 extern Res ShieldDescribe(Shield shield, mps_lib_FILE *stream, Count depth);
+extern void ShieldDestroyQueue(Shield shield, Arena arena);
 extern void (ShieldRaise)(Arena arena, Seg seg, AccessSet mode);
 extern void (ShieldLower)(Arena arena, Seg seg, AccessSet mode);
 extern void (ShieldEnter)(Arena arena);
