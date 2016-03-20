@@ -907,6 +907,10 @@ extern ZoneSet ZoneSetBlacklist(Arena arena);
 
 /* Shield Interface -- see <code/shield.c> */
 
+extern void ShieldInit(Shield shield);
+extern void ShieldFinish(Shield shield, Arena arena);
+extern Bool ShieldCheck(Shield shield);
+extern Res ShieldDescribe(Shield shield, mps_lib_FILE *stream, Count depth);
 extern void (ShieldRaise)(Arena arena, Seg seg, AccessSet mode);
 extern void (ShieldLower)(Arena arena, Seg seg, AccessSet mode);
 extern void (ShieldEnter)(Arena arena);
