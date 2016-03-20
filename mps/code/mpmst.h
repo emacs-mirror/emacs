@@ -254,7 +254,7 @@ typedef struct SegStruct {      /* segment structure */
   RingStruct poolRing;          /* link in list of segs in pool */
   Addr limit;                   /* limit of segment */
   unsigned depth : ShieldDepthWIDTH; /* see design.mps.shield.def.depth */
-  BOOLFIELD(cached);            /* in shield cache? */
+  BOOLFIELD(queued);            /* in shield queue? */
   AccessSet pm : AccessLIMIT;   /* protection mode, <code/shield.c> */
   AccessSet sm : AccessLIMIT;   /* shield mode, <code/shield.c> */
   TraceSet grey : TraceLIMIT;   /* traces for which seg is grey */
@@ -686,13 +686,13 @@ typedef struct FreelistStruct {
 
 typedef struct ShieldStruct {
   Sig sig;
-  Bool inside;       /* TRUE if and only if inside shield */
-  Seg *cache;        /* Cache of unsynced segs */
-  Count length;      /* number of elements in shield cache */
-  Index i;           /* index into cache */
-  Index limit;       /* High water mark for cache usage */
+  Bool inside;       /* design.mps.shield.def.inside */
+  Seg *queue;        /* queue of unsynced segs */
+  Count length;      /* number of elements in shield queue */
+  Index next;        /* next free element in shield queue */
+  Index limit;       /* high water mark for cache usage */
   Count depth;       /* sum of depths of all segs */
-  Bool suspended;    /* TRUE iff mutator suspended */
+  Bool suspended;    /* mutator suspended? */
 } ShieldStruct;
 
 

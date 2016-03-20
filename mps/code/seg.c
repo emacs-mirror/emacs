@@ -150,7 +150,7 @@ static Res SegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   seg->pm = AccessSetEMPTY;
   seg->sm = AccessSetEMPTY;
   seg->depth = 0;
-  seg->cached = FALSE;
+  seg->queued = FALSE;
   seg->firstTract = NULL;
 
   seg->sig = SegSig;  /* set sig now so tract checks will see it */
@@ -222,9 +222,9 @@ static void SegFinish(Seg seg)
 
   /* See <code/shield.c#shield.flush> */
   AVER(seg->depth == 0);
-  if (seg->cached)
+  if (seg->queued)
     ShieldFlush(PoolArena(SegPool(seg)));
-  AVER(seg->cached == FALSE);
+  AVER(seg->queued == FALSE);
 
   limit = SegLimit(seg);
   
@@ -716,9 +716,9 @@ Bool SegCheck(Seg seg)
      (design.mps.shield.inv.prot.shield). */
   CHECKL(BS_DIFF(seg->pm, seg->sm) == 0);
   
-  /* All unsynced segments have positive depth or are in the cache
+  /* All unsynced segments have positive depth or are in the queue
      (design.mps.shield.inv.unsynced.depth). */
-  CHECKL(seg->sm == seg->pm || seg->depth > 0 || seg->cached);
+  CHECKL(seg->sm == seg->pm || seg->depth > 0 || seg->queued);
   
   CHECKL(RankSetCheck(seg->rankSet));
   if (seg->rankSet == RankSetEMPTY) {
