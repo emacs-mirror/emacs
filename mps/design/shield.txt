@@ -115,9 +115,9 @@ segment should be unprotected, and the Shield could re-instate
 hardware protection.
 
 However, as a performance-improving hysteresis, the Shield defers
-re-protection, maintaining a cache of segments that no longer have a
-reason to be collector-accessible.  While a segment is in the cache,
-it has ``seg->cached`` set to TRUE.
+re-protection, maintaining a queue of segments that no longer have a
+reason to be collector-accessible.  While a segment is in the queue,
+it has ``seg->queued`` set to TRUE.
 
 This hysteresis allows the MPS to proceed with garbage collection
 during a pause without actually setting hardware protection until it
@@ -130,7 +130,7 @@ implemented, such as OS X.
 So whenever hardware protection is temporarily removed to allow
 collector access, there is a *nurse* that will ensure this protection
 is re-established: the nurse is either the balancing ``ShieldCover()``
-call in collector code, or an entry in the shield cache.
+call in collector code, or an entry in the shield queue.
 
 
 Implementation
@@ -138,8 +138,8 @@ Implementation
 
 .impl.delay: The implementation of the shield avoids suspending
 threads for as long as possible.  When threads are suspended, it
-maintains a cache of covered segments where the desired and actual
-protection do not match.  This cache is flushed on leaving the shield.
+maintains a queue of covered segments where the desired and actual
+protection do not match.  This queue is flushed on leaving the shield.
 
 
 Definitions
@@ -157,7 +157,7 @@ same, and unsynced otherwise.
   |    #exposes = the total number of times the seg has been exposed
   |    #covers  = the total number of times the seg has been covered
 
-The cache is initially empty and ``ShieldCover`` should not be called
+The queue is initially empty and ``ShieldCover`` should not be called
 without a matching ``ShieldExpose``, so this figure should always be
 non-negative.
 
@@ -198,7 +198,7 @@ shield.
 suspended.
 
 .inv.unsynced.depth: All unsynced segments have positive depth or are
-in the cache.
+in the queue.
 
 .inv.outside.depth: The total depth is zero while outside the shield.
 
@@ -249,7 +249,7 @@ Mass exposure
 .improv.mass-expose: If protection calls have a high overhead it might
 be good to pre-emptively unprotect large ranges of memory when we
 expose one segment.  With the current design this would mean
-discovering adjacent shielded segments and adding them to the cache.
+discovering adjacent shielded segments and adding them to the queue.
 The collector should take advantage of this by preferentially scanning
 exposed segments during a pause.
 
@@ -259,7 +259,7 @@ Segment independence
 
 .improve.noseg: The shield is implemented in terms of segments, using
 fields in the segment structure to represent its state. This forces us
-to (for example) flush the shield cache when deleting a segment. The
+to (for example) flush the shield queue when deleting a segment. The
 shield could keep track of protection and shielding independently,
 possibly allowing greater coalescing and more efficient and flexible
 use of system calls (see .improve.mass-expose).
@@ -319,10 +319,10 @@ Document History
 
 - 2013-05-24 GDR_ Converted to reStructuredText.
 
-- 2016-03-17 RB_ Updated for dynamic cacheing and general code tidying
+- 2016-03-17 RB_ Updated for dynamic queueing and general code tidying
   that has removed complaints.
 
-- 2016-03-19 RB_ Updated for separate cache flag on segments, changes
+- 2016-03-19 RB_ Updated for separate queued flag on segments, changes
   of invariants, cross-references, and ideas for future improvement.
 
 .. _GDR: http://www.ravenbrook.com/consultants/gdr/
