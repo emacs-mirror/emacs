@@ -15,6 +15,95 @@
 SRCID(shield, "$Id$");
 
 
+void ShieldInit(Shield shield)
+{
+  shield->inside = FALSE;
+  shield->cache = NULL;
+  shield->length = 0;
+  shield->i = 0;
+  shield->limit = 0;
+  shield->depth = 0;
+  shield->suspended = FALSE;
+  shield->sig = ShieldSig;
+}
+
+
+void ShieldFinish(Shield shield, Arena arena)
+{
+  shield->sig = SigInvalid;
+  /* Delete the shield cache, if it exists. */
+  if (shield->length != 0) {
+    AVER(shield->cache != NULL);
+    ControlFree(arena, shield->cache,
+                shield->length * sizeof shield->cache[0]);
+    shield->cache = NULL;
+    shield->length = 0;
+  }
+}
+
+
+Bool ShieldCheck(Shield shield)
+{
+  CHECKS(Shield, shield);
+  CHECKL(BoolCheck(shield->inside));
+  CHECKL(shield->cache == NULL || shield->length > 0);
+  CHECKL(shield->limit <= shield->length);
+  CHECKL(shield->i <= shield->limit);
+  CHECKL(BoolCheck(shield->suspended));
+
+  /* The mutator is not suspended while outside the shield
+     (design.mps.shield.inv.outside.running). */
+  CHECKL(shield->inside || !shield->suspended);
+
+  /* If any segment is not synced, the mutator is suspended
+     (design.mps.shield.inv.unsynced.suspended). */
+  CHECKL(shield->depth == 0 || shield->suspended);
+
+  /* The total depth is zero while outside the shield
+     (design.mps.shield.inv.outside.depth). */
+  CHECKL(shield->inside || shield->depth == 0);
+
+  /* This is too expensive to check all the time since we have an
+     expanding shield cache that often has 16K elements instead of
+     16. */
+#if defined(AVER_AND_CHECK_ALL)
+  {
+    Count depth = 0;
+    Index i;
+    for (i = 0; i < shield->limit; ++i) {
+      Seg seg = shield->cache[i];
+      CHECKD(Seg, seg);
+      depth += SegDepth(seg);
+    }
+    CHECKL(depth <= shield->depth);
+  }
+#endif
+
+  return TRUE;
+}
+
+
+Res ShieldDescribe(Shield shield, mps_lib_FILE *stream, Count depth)
+{
+  Res res;
+  
+  res = WriteF(stream, depth,
+               shield->inside ? "inside" : "outside", " shield\n",
+               "suspended $S\n", WriteFYesNo(shield->suspended),
+               "shield depth $U\n", (WriteFU)shield->depth,
+               "shield i $U\n", (WriteFU)shield->i,
+               "shield length $U\n", (WriteFU)shield->length,
+               NULL);
+  if (res != ResOK)
+    return res;
+
+  return ResOK;
+}
+
+
+#define ArenaShield(arena) (&(arena)->shieldStruct)
+
+
 /* SHIELD_AVER -- transgressive argument checking
  *
  * .trans.check: A number of shield functions cannot do normal
@@ -57,9 +146,9 @@ static Bool SegIsExposed(Seg seg)
  * See design.mps.shield.inv.prot.shield.
  */
 
-static void shieldSync(Arena arena, Seg seg)
+static void shieldSync(Shield shield, Seg seg)
 {
-  AVERT(Arena, arena);
+  UNUSED(shield);
   SHIELD_AVERT_CRITICAL(Seg, seg);
 
   if (!SegIsSynced(seg)) {
@@ -81,12 +170,15 @@ static void shieldSync(Arena arena, Seg seg)
 
 void (ShieldSuspend)(Arena arena)
 {
+  Shield shield;
+  
   AVERT(Arena, arena);
-  AVER(arena->insideShield);
+  shield = ArenaShield(arena);
+  AVER(shield->inside);
 
-  if (!arena->suspended) {
+  if (!shield->suspended) {
     ThreadRingSuspend(ArenaThreadRing(arena), ArenaDeadRing(arena));
-    arena->suspended = TRUE;
+    shield->suspended = TRUE;
   }
 }
 
@@ -99,9 +191,13 @@ void (ShieldSuspend)(Arena arena)
 
 void (ShieldResume)(Arena arena)
 {
+  Shield shield;
+  
   AVERT(Arena, arena);
-  AVER(arena->insideShield);
-  AVER(arena->suspended);
+  shield = ArenaShield(arena);
+  AVER(shield->inside);
+  AVER(shield->suspended);
+
   /* It is only correct to actually resume the mutator here if shDepth is 0 */
   /* TODO: Consider actually doing that. */
 }
@@ -112,11 +208,9 @@ void (ShieldResume)(Arena arena)
  * This ensures actual prot mode does not include mode.
  */
 
-static void shieldProtLower(Arena arena, Seg seg, AccessSet mode)
+static void shieldProtLower(Seg seg, AccessSet mode)
 {
   /* <design/trace/#fix.noaver> */
-  AVERT_CRITICAL(Arena, arena);
-  UNUSED(arena);
   SHIELD_AVERT_CRITICAL(Seg, seg);
   AVERT_CRITICAL(AccessSet, mode);
 
@@ -129,14 +223,14 @@ static void shieldProtLower(Arena arena, Seg seg, AccessSet mode)
 
 /* shieldDecache -- remove a segment from the shield cache */
 
-static Seg shieldDecache(Arena arena, Index i)
+static Seg shieldDecache(Shield shield, Index i)
 {
   Seg seg;
-  AVER(i < arena->shCacheLimit);
-  seg = arena->shCache[i];
+  AVER(i < shield->limit);
+  seg = shield->cache[i];
   AVERT(Seg, seg);
   AVER(seg->cached);
-  arena->shCache[i] = NULL;
+  shield->cache[i] = NULL;
   seg->cached = FALSE;
   return seg;
 }
@@ -144,22 +238,22 @@ static Seg shieldDecache(Arena arena, Index i)
 
 /* shieldFlushEntry -- flush a single entry from the cache */
 
-static void shieldFlushEntry(Arena arena, Index i)
+static void shieldFlushEntry(Shield shield, Index i)
 {
-  Seg seg = shieldDecache(arena, i);
+  Seg seg = shieldDecache(shield, i);
 
   if (!SegIsExposed(seg))
-    shieldSync(arena, seg);
+    shieldSync(shield, seg);
 }
 
 
 /* shieldCacheReset -- reset shield cache pointers */
 
-static void shieldCacheReset(Arena arena)
+static void shieldCacheReset(Shield shield)
 {
-  AVER(arena->shDepth == 0); /* overkill: implies no segs are cached */
-  arena->shCacheI = 0;
-  arena->shCacheLimit = 0;
+  AVER(shield->depth == 0); /* overkill: implies no segs are cached */
+  shield->i = 0;
+  shield->limit = 0;
 }
 
 
@@ -202,23 +296,23 @@ static Compare shieldCacheEntryCompare(void *left, void *right, void *closure)
  * require design.mps.shield.improve.noseg.
  */
 
-static void shieldFlushEntries(Arena arena)
+static void shieldFlushEntries(Shield shield)
 {
   Addr base = NULL, limit = NULL;
   AccessSet mode;
   Index i;
 
-  if (arena->shCacheLength == 0) {
-    AVER(arena->shCache == NULL);
+  if (shield->length == 0) {
+    AVER(shield->cache == NULL);
     return;
   }
 
-  QuickSort((void *)arena->shCache, arena->shCacheLimit,
+  QuickSort((void *)shield->cache, shield->limit,
             shieldCacheEntryCompare, UNUSED_POINTER);
 
   mode = AccessSetEMPTY;
-  for (i = 0; i < arena->shCacheLimit; ++i) {
-    Seg seg = shieldDecache(arena, i);
+  for (i = 0; i < shield->limit; ++i) {
+    Seg seg = shieldDecache(shield, i);
     if (!SegIsSynced(seg)) {
       AVER(SegSM(seg) != AccessSetEMPTY); /* can't match first iter */
       SegSetPM(seg, SegSM(seg));
@@ -240,7 +334,7 @@ static void shieldFlushEntries(Arena arena)
     ProtSet(base, limit, mode);
   }
 
-  shieldCacheReset(arena);
+  shieldCacheReset(shield);
 }
 
 
@@ -252,8 +346,11 @@ static void shieldFlushEntries(Arena arena)
 
 static void shieldCache(Arena arena, Seg seg)
 {
+  Shield shield;
+  
   /* <design/trace/#fix.noaver> */
   AVERT_CRITICAL(Arena, arena);
+  shield = ArenaShield(arena);
   SHIELD_AVERT_CRITICAL(Seg, seg);
 
   if (SegIsSynced(seg) || seg->cached)
@@ -271,31 +368,31 @@ static void shieldCache(Arena arena, Seg seg)
   /* Allocate shield cache if necessary. */
   /* TODO: This will try to extend the cache on every attempt, even
      if it failed last time. That might be slow. */
-  if (arena->shCacheI >= arena->shCacheLength) {
+  if (shield->i >= shield->length) {
     void *p;
     Res res;
     Count length;
 
-    AVER(arena->shCacheI == arena->shCacheLength);
+    AVER(shield->i == shield->length);
 
-    if (arena->shCacheLength == 0)
+    if (shield->length == 0)
       length = ShieldCacheLENGTH;
     else
-      length = arena->shCacheLength * 2;
+      length = shield->length * 2;
     
-    res = ControlAlloc(&p, arena, length * sizeof arena->shCache[0]);
+    res = ControlAlloc(&p, arena, length * sizeof shield->cache[0]);
     if (res != ResOK) {
       AVER(ResIsAllocFailure(res));
       /* Carry on with the existing cache. */
     } else {
-      if (arena->shCacheLength > 0) {
-        Size oldSize = arena->shCacheLength * sizeof arena->shCache[0];
-        AVER(arena->shCache != NULL);
-        mps_lib_memcpy(p, arena->shCache, oldSize);
-        ControlFree(arena, arena->shCache, oldSize);
+      if (shield->length > 0) {
+        Size oldSize = shield->length * sizeof shield->cache[0];
+        AVER(shield->cache != NULL);
+        mps_lib_memcpy(p, shield->cache, oldSize);
+        ControlFree(arena, shield->cache, oldSize);
       }
-      arena->shCache = p;
-      arena->shCacheLength = length;
+      shield->cache = p;
+      shield->length = length;
     }
   }
 
@@ -303,35 +400,35 @@ static void shieldCache(Arena arena, Seg seg)
      yet suspended and the code raises the shield on a covered
      segment, protect it now, because that's probably better than
      suspending the mutator. */
-  if (arena->shCacheLength == 0 || !arena->suspended) {
-    shieldSync(arena, seg);
+  if (shield->length == 0 || !shield->suspended) {
+    shieldSync(shield, seg);
     return;
   }
 
-  AVER_CRITICAL(arena->shCacheLimit <= arena->shCacheLength);
-  AVER_CRITICAL(arena->shCacheI <= arena->shCacheLimit);
+  AVER_CRITICAL(shield->limit <= shield->length);
+  AVER_CRITICAL(shield->i <= shield->limit);
 
-  if (arena->shCacheI >= arena->shCacheLength)
-    arena->shCacheI = 0;
-  AVER_CRITICAL(arena->shCacheI < arena->shCacheLength);
+  if (shield->i >= shield->length)
+    shield->i = 0;
+  AVER_CRITICAL(shield->i < shield->length);
 
-  AVER_CRITICAL(arena->shCacheLength > 0);
+  AVER_CRITICAL(shield->length > 0);
 
   /* If the limit is less than the length, then the cache array has
      yet to be filled, and shCacheI is an uninitialized entry.
      Otherwise it's the tail end from last time around, and needs to
      be flushed. */
-  if (arena->shCacheLimit >= arena->shCacheLength) {
-    AVER_CRITICAL(arena->shCacheLimit == arena->shCacheLength);
-    shieldFlushEntry(arena, arena->shCacheI);
+  if (shield->limit >= shield->length) {
+    AVER_CRITICAL(shield->limit == shield->length);
+    shieldFlushEntry(shield, shield->i);
   }
 
-  arena->shCache[arena->shCacheI] = seg;
-  ++arena->shCacheI;
+  shield->cache[shield->i] = seg;
+  ++shield->i;
   seg->cached = TRUE;
 
-  if (arena->shCacheI >= arena->shCacheLimit)
-    arena->shCacheLimit = arena->shCacheI;
+  if (shield->i >= shield->limit)
+    shield->limit = shield->i;
 }
 
 
@@ -343,6 +440,7 @@ static void shieldCache(Arena arena, Seg seg)
 
 void (ShieldRaise)(Arena arena, Seg seg, AccessSet mode)
 {
+  
   SHIELD_AVERT(Arena, arena);
   SHIELD_AVERT(Seg, seg);
 
@@ -376,7 +474,7 @@ void (ShieldLower)(Arena arena, Seg seg, AccessSet mode)
   /* TODO: Do we need to promptly call shieldProtLower here?  It
      loses the opportunity to coalesce the protection call. It would
      violate design.mps.shield.prop.inside.access. */
-  shieldProtLower(arena, seg, mode);
+  shieldProtLower(seg, mode);
 
   /* Check cache and segment consistency. */
   AVERT(Arena, arena);
@@ -388,14 +486,17 @@ void (ShieldLower)(Arena arena, Seg seg, AccessSet mode)
 
 void (ShieldEnter)(Arena arena)
 {
+  Shield shield;
+  
   AVERT(Arena, arena);
-  AVER(!arena->insideShield);
-  AVER(arena->shDepth == 0);
-  AVER(!arena->suspended);
+  shield = ArenaShield(arena);
+  AVER(!shield->inside);
+  AVER(shield->depth == 0);
+  AVER(!shield->suspended);
 
-  shieldCacheReset(arena);
+  shieldCacheReset(shield);
 
-  arena->insideShield = TRUE;
+  shield->inside = TRUE;
 }
 
 
@@ -414,15 +515,17 @@ void (ShieldEnter)(Arena arena)
 #if defined(SHIELD_DEBUG)
 static void shieldDebugCheck(Arena arena)
 {
+  Shield shield;
   Seg seg;
   Count cached = 0;
 
   AVERT(Arena, arena);
-  AVER(arena->insideShield || arena->shCacheLimit == 0);
+  shield = ShieldArena(arena);
+  AVER(shield->inside || shield->limit == 0);
 
   if (SegFirst(&seg, arena))
     do {
-      if (arena->shCacheLimit == 0) {
+      if (shield->limit == 0) {
         AVER(!seg->cached);
         AVER(SegIsSynced(seg));
         /* You can directly set protections here to see if it makes a
@@ -434,7 +537,7 @@ static void shieldDebugCheck(Arena arena)
       }
     } while(SegNext(&seg, arena, seg));
 
-  AVER(cached == arena->shCacheLimit);
+  AVER(cached == shield->limit);
 }
 #endif
 
@@ -455,12 +558,16 @@ static void shieldDebugCheck(Arena arena)
 
 void (ShieldFlush)(Arena arena)
 {
+  Shield shield;
+  
+  AVERT(Arena, arena);
+  shield = ArenaShield(arena);
 #ifdef SHIELD_DEBUG
   shieldDebugCheck(arena);
 #endif
-  shieldFlushEntries(arena);
+  shieldFlushEntries(shield);
   /* Cache is empty so .inv.outside.depth holds */
-  AVER(arena->shDepth == 0);
+  AVER(shield->depth == 0);
 #ifdef SHIELD_DEBUG
   shieldDebugCheck(arena);
 #endif
@@ -471,20 +578,23 @@ void (ShieldFlush)(Arena arena)
 
 void (ShieldLeave)(Arena arena)
 {
+  Shield shield;
+  
   AVERT(Arena, arena);
-  AVER(arena->insideShield);
-  AVER(arena->shDepth == 0); /* no pending covers */
+  shield = ArenaShield(arena);
+  AVER(shield->inside);
+  AVER(shield->depth == 0); /* no pending covers */
 
   ShieldFlush(arena);
 
   /* Ensuring the mutator is running at this point guarantees
      .inv.outside.running */
-  if (arena->suspended) {
+  if (shield->suspended) {
     ThreadRingResume(ArenaThreadRing(arena), ArenaDeadRing(arena));
-    arena->suspended = FALSE;
+    shield->suspended = FALSE;
   }
 
-  arena->insideShield = FALSE;
+  shield->inside = FALSE;
 }
 
 
@@ -497,15 +607,18 @@ void (ShieldLeave)(Arena arena)
 
 void (ShieldExpose)(Arena arena, Seg seg)
 {
+  Shield shield;
   AccessSet mode = AccessREAD | AccessWRITE;
+
   /* <design/trace/#fix.noaver> */
   AVERT_CRITICAL(Arena, arena);
-  AVER_CRITICAL(arena->insideShield);
+  shield = ArenaShield(arena);
+  AVER_CRITICAL(shield->inside);
 
   SegSetDepth(seg, SegDepth(seg) + 1);
   AVER_CRITICAL(SegDepth(seg) > 0); /* overflow */
-  ++arena->shDepth;
-  AVER_CRITICAL(arena->shDepth > 0); /* overflow */
+  ++shield->depth;
+  AVER_CRITICAL(shield->depth > 0); /* overflow */
   
   if (BS_INTER(SegPM(seg), mode) != AccessSetEMPTY)
     ShieldSuspend(arena);
@@ -513,7 +626,7 @@ void (ShieldExpose)(Arena arena, Seg seg)
   /* Ensure design.mps.shield.inv.expose.prot. */
   /* TODO: Mass exposure -- see
      design.mps.shield.improv.mass-expose. */
-  shieldProtLower(arena, seg, mode);
+  shieldProtLower(seg, mode);
 }
 
 
@@ -521,15 +634,18 @@ void (ShieldExpose)(Arena arena, Seg seg)
 
 void (ShieldCover)(Arena arena, Seg seg)
 {
+  Shield shield;
+  
   /* <design/trace/#fix.noaver> */
   AVERT_CRITICAL(Arena, arena);
+  shield = ArenaShield(arena);
   AVERT_CRITICAL(Seg, seg);
   AVER_CRITICAL(SegPM(seg) == AccessSetEMPTY);
  
   AVER_CRITICAL(SegDepth(seg) > 0);
   SegSetDepth(seg, SegDepth(seg) - 1);
-  AVER_CRITICAL(arena->shDepth > 0);
-  --arena->shDepth;
+  AVER_CRITICAL(shield->depth > 0);
+  --shield->depth;
 
   /* Ensure design.mps.shield.inv.unsynced.depth. */
   shieldCache(arena, seg);
