@@ -234,7 +234,7 @@ static Seg shieldDequeue(Shield shield, Index i)
   seg = shield->queue[i];
   AVERT(Seg, seg);
   AVER(seg->queued);
-  shield->queue[i] = NULL;
+  shield->queue[i] = NULL; /* to ensure it can't get re-used */
   seg->queued = FALSE;
   return seg;
 }
