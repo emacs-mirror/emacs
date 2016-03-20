@@ -154,39 +154,8 @@ Bool GlobalsCheck(Globals arenaGlobals)
   CHECKD_NOSIG(Ring, &arena->threadRing);
   CHECKD_NOSIG(Ring, &arena->deadRing);
 
-  CHECKL(BoolCheck(arena->insideShield));
-  CHECKL(arena->shCache == NULL || arena->shCacheLength > 0);
-  CHECKL(arena->shCacheLimit <= arena->shCacheLength);
-  CHECKL(arena->shCacheI <= arena->shCacheLimit);
-  CHECKL(BoolCheck(arena->suspended));
+  CHECKD_NOSIG(Shield, &arena->shieldStruct); /* FIXME: Sig */
 
-  /* The mutator is not suspended while outside the shield
-     (design.mps.shield.inv.outside.running). */
-  CHECKL(arena->insideShield || !arena->suspended);
-
-  /* If any segment is not synced, the mutator is suspended
-     (design.mps.shield.inv.unsynced.suspended). */
-  CHECKL(arena->shDepth == 0 || arena->suspended);
-
-  /* The total depth is zero while outside the shield
-     (design.mps.shield.inv.outside.depth). */
-  CHECKL(arena->insideShield || arena->shDepth == 0);
-
-  /* This is too expensive to check all the time since we have an
-     expanding shield cache that often has 16K elements instead of
-     16. */
-#if defined(AVER_AND_CHECK_ALL)
-  {
-    Count depth = 0;
-    for (i = 0; i < arena->shCacheLimit; ++i) {
-      Seg seg = arena->shCache[i];
-      CHECKD(Seg, seg);
-      depth += SegDepth(seg);
-    }
-    CHECKL(depth <= arena->shDepth);
-  }
-#endif
-  
   CHECKL(TraceSetCheck(arena->busyTraces));
   CHECKL(TraceSetCheck(arena->flippedTraces));
   CHECKL(TraceSetSuper(arena->busyTraces, arena->flippedTraces));
@@ -311,13 +280,7 @@ Res GlobalsInit(Globals arenaGlobals)
   arena->tracedWork = 0.0;
   arena->tracedTime = 0.0;
   arena->lastWorldCollect = ClockNow();
-  arena->insideShield = FALSE;          /* <code/shield.c> */
-  arena->shCache = NULL;
-  arena->shCacheLength = 0;
-  arena->shCacheI = (Size)0;
-  arena->shCacheLimit = (Size)0;
-  arena->shDepth = (Size)0;
-  arena->suspended = FALSE;
+  ShieldInit(&arena->shieldStruct);
 
   for (ti = 0; ti < TraceLIMIT; ++ti) {
     /* <design/arena/#trace.invalid> */
@@ -455,14 +418,7 @@ void GlobalsPrepareToDestroy(Globals arenaGlobals)
 
   arena = GlobalsArena(arenaGlobals);
 
-  /* Delete the shield cache, if it exists. */
-  if (arena->shCacheLength != 0) {
-    AVER(arena->shCache != NULL);
-    ControlFree(arena, arena->shCache,
-                arena->shCacheLength * sizeof arena->shCache[0]);
-    arena->shCache = NULL;
-    arena->shCacheLength = 0;
-  }
+  ShieldFinish(&arena->shieldStruct, arena);
 
   arenaDenounce(arena);
 
@@ -1027,7 +983,6 @@ Res GlobalsDescribe(Globals arenaGlobals, mps_lib_FILE *stream, Count depth)
                "rootSerial $U\n", (WriteFU)arenaGlobals->rootSerial,
                "formatSerial $U\n", (WriteFU)arena->formatSerial,
                "threadSerial $U\n", (WriteFU)arena->threadSerial,
-               arena->insideShield ? "inside" : "outside", " shield\n",
                "busyTraces    $B\n", (WriteFB)arena->busyTraces,
                "flippedTraces $B\n", (WriteFB)arena->flippedTraces,
                "epoch $U\n", (WriteFU)arena->epoch,
@@ -1046,14 +1001,7 @@ Res GlobalsDescribe(Globals arenaGlobals, mps_lib_FILE *stream, Count depth)
       return res;
   }
 
-  res = WriteF(stream, depth,
-               "} history\n",
-               "suspended $S\n", WriteFYesNo(arena->suspended),
-               "shDepth $U\n", (WriteFU)arena->shDepth,
-               "shCacheI $U\n", (WriteFU)arena->shCacheI,
-               "shCacheLength $U\n", (WriteFU)arena->shCacheLength,
-               /* @@@@ should SegDescribe the cached segs? */
-               NULL);
+  res = ShieldDescribe(&arena->shieldStruct, stream, depth);
   if (res != ResOK)
     return res;
 

@@ -821,7 +821,7 @@ static Res MRGDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
   if (res != ResOK)
     return res;
   RING_FOR(node, &mrg->entryRing, nextNode) {
-    Bool outsideShield = !arena->insideShield;
+    Bool outsideShield = !arena->shieldStruct.inside;
     refPart = MRGRefPartOfLink(linkOfRing(node), arena);
     if (outsideShield) {
       ShieldEnter(arena);

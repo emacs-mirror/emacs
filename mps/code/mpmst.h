@@ -677,9 +677,29 @@ typedef struct FreelistStruct {
 } FreelistStruct;
 
 
+/* ShieldStruct -- per-arena part of the shield
+ *
+ * See design.mps.shield, impl.c.shield.
+ */
+
+#define ShieldSig      ((Sig)0x519581E1) /* SIGnature SHEILd */
+
+typedef struct ShieldStruct {
+  Sig sig;
+  Bool inside;       /* TRUE if and only if inside shield */
+  Seg *cache;        /* Cache of unsynced segs */
+  Count length;      /* number of elements in shield cache */
+  Index i;           /* index into cache */
+  Index limit;       /* High water mark for cache usage */
+  Count depth;       /* sum of depths of all segs */
+  Bool suspended;    /* TRUE iff mutator suspended */
+} ShieldStruct;
+
+
 /* ArenaStruct -- generic arena
  *
- * See <code/arena.c>.  */
+ * See <code/arena.c>.
+ */
 
 #define ArenaSig        ((Sig)0x519A6E4A) /* SIGnature ARENA */
 
@@ -737,16 +757,9 @@ typedef struct mps_arena_s {
   RingStruct threadRing;        /* ring of attached threads */
   RingStruct deadRing;          /* ring of dead threads */
   Serial threadSerial;          /* serial of next thread */
- 
-  /* shield fields (<code/shield.c>) */
-  Bool insideShield;             /* TRUE if and only if inside shield */
-  Seg *shCache;                  /* Cache of unsynced segs */
-  Count shCacheLength;
-  Size shCacheI;                 /* index into cache */
-  Size shCacheLimit;             /* High water mark for cache usage */
-  Size shDepth;                  /* sum of depths of all segs */
-  Bool suspended;                /* TRUE iff mutator suspended */
 
+  ShieldStruct shieldStruct;
+  
   /* trace fields (<code/trace.c>) */
   TraceSet busyTraces;          /* set of running traces */
   TraceSet flippedTraces;       /* set of running and flipped traces */
