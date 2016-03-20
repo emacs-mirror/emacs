@@ -5311,7 +5311,7 @@
 				SDKROOT = macosx;
 				SYMROOT = xc;
 				WARNING_CFLAGS = (
-					"-pedantic\n-Waggregate-return\n-Wall\n-Wcast-qual\n-Wconversion\n-Wduplicate-enum\n-Wextra\n-Winline\n-Wmissing-prototypes\n-Wmissing-variable-declarations\n-Wnested-externs\n-Wno-extended-offsetof\n-Wpointer-arith\n-Wshadow\n-Wstrict-aliasing=2\n-Wstrict-prototypes\n-Wunreachable-code\n-Wwrite-strings\n",
+					"-std=c89\n-pedantic\n-Waggregate-return\n-Wall\n-Wcast-qual\n-Wconversion\n-Wduplicate-enum\n-Wextra\n-Winline\n-Wmissing-prototypes\n-Wmissing-variable-declarations\n-Wnested-externs\n-Wno-extended-offsetof\n-Wpointer-arith\n-Wshadow\n-Wstrict-aliasing=2\n-Wstrict-prototypes\n-Wunreachable-code\n-Wwrite-strings\n",
 				);
 			};
 			name = RASH;
@@ -5734,7 +5734,7 @@
 				SDKROOT = macosx;
 				SYMROOT = xc;
 				WARNING_CFLAGS = (
-					"-pedantic\n-Waggregate-return\n-Wall\n-Wcast-qual\n-Wconversion\n-Wduplicate-enum\n-Wextra\n-Winline\n-Wmissing-prototypes\n-Wmissing-variable-declarations\n-Wnested-externs\n-Wno-extended-offsetof\n-Wpointer-arith\n-Wshadow\n-Wstrict-aliasing=2\n-Wstrict-prototypes\n-Wunreachable-code\n-Wwrite-strings\n",
+					"-std=c89\n-pedantic\n-Waggregate-return\n-Wall\n-Wcast-qual\n-Wconversion\n-Wduplicate-enum\n-Wextra\n-Winline\n-Wmissing-prototypes\n-Wmissing-variable-declarations\n-Wnested-externs\n-Wno-extended-offsetof\n-Wpointer-arith\n-Wshadow\n-Wstrict-aliasing=2\n-Wstrict-prototypes\n-Wunreachable-code\n-Wwrite-strings\n",
 				);
 			};
 			name = Debug;
@@ -5775,7 +5775,7 @@
 				SDKROOT = macosx;
 				SYMROOT = xc;
 				WARNING_CFLAGS = (
-					"-pedantic\n-Waggregate-return\n-Wall\n-Wcast-qual\n-Wconversion\n-Wduplicate-enum\n-Wextra\n-Winline\n-Wmissing-prototypes\n-Wmissing-variable-declarations\n-Wnested-externs\n-Wno-extended-offsetof\n-Wpointer-arith\n-Wshadow\n-Wstrict-aliasing=2\n-Wstrict-prototypes\n-Wunreachable-code\n-Wwrite-strings\n",
+					"-std=c89\n-pedantic\n-Waggregate-return\n-Wall\n-Wcast-qual\n-Wconversion\n-Wduplicate-enum\n-Wextra\n-Winline\n-Wmissing-prototypes\n-Wmissing-variable-declarations\n-Wnested-externs\n-Wno-extended-offsetof\n-Wpointer-arith\n-Wshadow\n-Wstrict-aliasing=2\n-Wstrict-prototypes\n-Wunreachable-code\n-Wwrite-strings\n",
 				);
 			};
 			name = Release;
