@@ -657,10 +657,10 @@ static unsigned RandomSeed = 1;
 #define Random_a 48271UL
 unsigned Random32(void)
 {
-  AVER(UINT_MAX >= 4294967295U);
   /* requires m == 2^31-1, a < 2^16 */
   unsigned bot = Random_a * (RandomSeed & 0x7FFF);
   unsigned top = Random_a * (RandomSeed >> 15);
+  AVER(UINT_MAX >= 4294967295U);
   RandomSeed = bot + ((top & 0xFFFF) << 15) + (top >> 16);
   if (RandomSeed > Random_m)
     RandomSeed -= Random_m;
@@ -669,7 +669,7 @@ unsigned Random32(void)
 
 Word RandomWord(void)
 {
-  Word word;
+  Word word = 0;
   Index i;
   for (i = 0; i < MPS_WORD_WIDTH; i += 31)
     word = (word << 31) | Random32();
