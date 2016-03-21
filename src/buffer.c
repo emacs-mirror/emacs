@@ -571,6 +571,9 @@ even if it is dead.  The return value is never nil.  */)
   bset_begv_marker (b, Qnil);
   bset_zv_marker (b, Qnil);
 
+  bset_begh_marker (b, Qnil);
+  bset_zh_marker (b, Qnil);
+
   name = Fcopy_sequence (buffer_or_name);
   set_string_intervals (name, NULL);
   bset_name (b, name);
@@ -835,6 +838,7 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
       bset_pt_marker (b, build_marker (b, b->pt, b->pt_byte));
       bset_begv_marker (b, build_marker (b, b->begv, b->begv_byte));
       bset_zv_marker (b, build_marker (b, b->zv, b->zv_byte));
+
       XMARKER (BVAR (b, zv_marker))->insertion_type = 1;
     }
   else
@@ -2165,9 +2169,9 @@ Any narrowing restriction in effect (see `narrow-to-region') is removed,
 so the buffer is truly empty after this.  */)
   (void)
 {
-  Fwiden ();
+  Fwiden (Qnil);
 
-  del_range (BEG, Z);
+  del_range (BEGV, ZV);
 
   current_buffer->last_window_start = 1;
   /* Prevent warnings, or suspension of auto saving, that would happen
@@ -2310,6 +2314,8 @@ DEFUN ("buffer-swap-text", Fbuffer_swap_text, Sbuffer_swap_text,
   swapfield_ (pt_marker, Lisp_Object);
   swapfield_ (begv_marker, Lisp_Object);
   swapfield_ (zv_marker, Lisp_Object);
+  swapfield_ (begh_marker, Lisp_Object);
+  swapfield_ (zh_marker, Lisp_Object);
   bset_point_before_scroll (current_buffer, Qnil);
   bset_point_before_scroll (other_buffer, Qnil);
 
@@ -2490,7 +2496,7 @@ current buffer is cleared.  */)
 	    }
 	}
       if (narrowed)
-	Fnarrow_to_region (make_number (begv), make_number (zv));
+	Fnarrow_to_region (make_number (begv), make_number (zv), Qnil);
     }
   else
     {
@@ -2571,7 +2577,7 @@ current buffer is cleared.  */)
 	TEMP_SET_PT (pt);
 
       if (narrowed)
-	Fnarrow_to_region (make_number (begv), make_number (zv));
+	Fnarrow_to_region (make_number (begv), make_number (zv), Qnil);
 
       /* Do this first, so that chars_in_text asks the right question.
 	 set_intervals_multibyte needs it too.  */
@@ -5053,6 +5059,8 @@ init_buffer_once (void)
   bset_pt_marker (&buffer_local_flags, make_number (0));
   bset_begv_marker (&buffer_local_flags, make_number (0));
   bset_zv_marker (&buffer_local_flags, make_number (0));
+  bset_begh_marker (&buffer_local_flags, make_number (0));
+  bset_zh_marker (&buffer_local_flags, make_number (0));
   bset_last_selected_window (&buffer_local_flags, make_number (0));
 
   idx = 1;

@@ -5514,7 +5514,7 @@ Otherwise it discards the output.  */)
       /* If the output marker is outside of the visible region, save
 	 the restriction and widen.  */
       if (! (BEGV <= PT && PT <= ZV))
-	Fwiden ();
+	Fwiden (Qnil);
 
       /* Adjust the multibyteness of TEXT to that of the buffer.  */
       if (NILP (BVAR (current_buffer, enable_multibyte_characters))
@@ -5558,7 +5558,7 @@ Otherwise it discards the output.  */)
 
       /* If the restriction isn't what it should be, set it.  */
       if (old_begv != BEGV || old_zv != ZV)
-	Fnarrow_to_region (make_number (old_begv), make_number (old_zv));
+	Fnarrow_to_region (make_number (old_begv), make_number (old_zv), Qnil);
 
       bset_read_only (current_buffer, old_read_only);
       SET_PT_BOTH (opoint, opoint_byte);

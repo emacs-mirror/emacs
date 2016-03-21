@@ -1850,7 +1850,7 @@ readevalloop (Lisp_Object readcharfun,
 	  /* Set point and ZV around stuff to be read.  */
 	  Fgoto_char (start);
 	  if (!NILP (end))
-	    Fnarrow_to_region (make_number (BEGV), end);
+	    Fnarrow_to_region (make_number (BEGV), end, Qnil);
 
 	  /* Just for cleanliness, convert END to a marker
 	     if it is an integer.  */

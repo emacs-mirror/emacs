@@ -416,6 +416,26 @@ extern void enlarge_buffer_text (struct buffer *, ptrdiff_t);
 
 #define BUF_FETCH_BYTE(buf, n) \
   *(BUF_BYTE_ADDRESS ((buf), (n)))
+
+
+/* Macros for setting and accessing hard-narrow markers */
+
+/* Position of beginning of hard-narrowed range of buffer. */
+#define BEGH (BUF_BEGH (current_buffer))
+#define BUF_BEGH(buf)                                   \
+  ((NILP (BVAR (buf, begh_marker))) ? BUF_BEG (buf)     \
+   : marker_position (BVAR (buf, begh_marker)))
+#define SET_BUF_BEGH(buf, charpos)                               \
+  (bset_begh_marker (buf, build_marker(buf, charpos, buf_charpos_to_bytepos(buf, charpos))))
+
+/* Position of end of hard-narrowed range of buffer. */
+#define ZH (BUF_ZH(current_buffer))
+#define BUF_ZH(buf)                                     \
+  ((NILP (BVAR (buf, zh_marker))) ? BUF_Z (buf)         \
+   : marker_position (BVAR (buf, zh_marker)))
+#define SET_BUF_ZH(buf, charpos)                                 \
+  (bset_zh_marker (buf, build_marker(buf, charpos, buf_charpos_to_bytepos(buf, charpos))))
+
 
 /* Define the actual buffer data structures.  */
 
@@ -665,6 +685,12 @@ struct buffer
      indirect buffer, this holds a marker that records
      ZV for this buffer when the buffer is not current.  */
   Lisp_Object zv_marker_;
+
+  /* Lower hard limit of the buffer.*/
+  Lisp_Object begh_marker_;
+
+  /* Upper hard limit of the buffer.*/
+  Lisp_Object zh_marker_;
 
   /* This holds the point value before the last scroll operation.
      Explicitly setting point sets this to nil.  */
@@ -983,6 +1009,16 @@ INLINE void
 bset_width_table (struct buffer *b, Lisp_Object val)
 {
   b->width_table_ = val;
+}
+INLINE void
+bset_begh_marker (struct buffer *b, Lisp_Object val)
+{
+  b->begh_marker_ = val;
+}
+INLINE void
+bset_zh_marker (struct buffer *b, Lisp_Object val)
+{
+  b->zh_marker_ = val;
 }
 
 /* Number of Lisp_Objects at the beginning of struct buffer.

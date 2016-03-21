@@ -4764,7 +4764,7 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
 	 This is useful in tar-mode.  --Stef
       XSETFASTINT (start, BEG);
       XSETFASTINT (end, Z); */
-      Fwiden ();
+      Fwiden (Qnil);
     }
 
   record_unwind_protect (build_annotations_unwind,

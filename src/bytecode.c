@@ -1682,17 +1682,18 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 
 	CASE (Bnarrow_to_region):
 	  {
-	    Lisp_Object v1;
+	    Lisp_Object v1, v2;
 	    BEFORE_POTENTIAL_GC ();
 	    v1 = POP;
-	    TOP = Fnarrow_to_region (TOP, v1);
+	    v2 = POP;
+	    TOP = Fnarrow_to_region (TOP, v2, v1);
 	    AFTER_POTENTIAL_GC ();
 	    NEXT;
 	  }
 
 	CASE (Bwiden):
 	  BEFORE_POTENTIAL_GC ();
-	  PUSH (Fwiden ());
+	  TOP = Fwiden (TOP);
 	  AFTER_POTENTIAL_GC ();
 	  NEXT;
 

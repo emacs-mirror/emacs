@@ -3480,33 +3480,54 @@ DEFUN ("delete-and-extract-region", Fdelete_and_extract_region,
     return empty_unibyte_string;
   return del_range_1 (XINT (start), XINT (end), 1, 1);
 }
+
 
-DEFUN ("widen", Fwiden, Swiden, 0, 0, "",
+DEFUN ("widen", Fwiden, Swiden, 0, 1, "",
        doc: /* Remove restrictions (narrowing) from current buffer.
-This allows the buffer's full text to be seen and edited.  */)
-  (void)
+If HARD is non-nil, remove the hard restriction imposed by a previous
+call to \\[narrow-to-region].  If HARD is nil, remove visual
+restriction up to the previously imposed hard limit (if any).  */)
+  (Lisp_Object hard)
 {
-  if (BEG != BEGV || Z != ZV)
-    current_buffer->clip_changed = 1;
-  BEGV = BEG;
-  BEGV_BYTE = BEG_BYTE;
-  SET_BUF_ZV_BOTH (current_buffer, Z, Z_BYTE);
-  /* Changing the buffer bounds invalidates any recorded current column.  */
-  invalidate_current_column ();
+
+  if(!NILP (hard))
+    {
+      bset_begh_marker(current_buffer, Qnil);
+      bset_zh_marker(current_buffer, Qnil);
+    }
+  else
+    {
+      if (BEG != BEGV || Z != ZV)
+        current_buffer->clip_changed = 1;
+      BEGV = BEG;
+      BEGV_BYTE = BEG_BYTE;
+      SET_BUF_ZV_BOTH (current_buffer, Z, Z_BYTE);
+      /* Changing the buffer bounds invalidates any recorded current column.  */
+      invalidate_current_column ();
+    }
+
   return Qnil;
 }
 
-DEFUN ("narrow-to-region", Fnarrow_to_region, Snarrow_to_region, 2, 2, "r",
-       doc: /* Restrict editing in this buffer to the current region.
-The rest of the text becomes temporarily invisible and untouchable
-but is not deleted; if you save the buffer in a file, the invisible
-text is included in the file.  \\[widen] makes all visible again.
-See also `save-restriction'.
+DEFUN ("narrow-to-region", Fnarrow_to_region, Snarrow_to_region, 2, 3, "r",
+       doc: /* Restrict editing in this buffer to the current
+region. START and END are positions (integers or markers) bounding the
+text that should restricted. There can be two types of restrictions,
+visual and hard. If HARD is nil, impose visual restriction, otherwise
+a hard one.
 
-When calling from a program, pass two arguments; positions (integers
-or markers) bounding the text that should remain visible.  */)
-  (register Lisp_Object start, Lisp_Object end)
+When visual restriction is in place, the rest of the text is invisible
+and untouchable but is not deleted; if you save the buffer in a file,
+the invisible text is included in the file. \\[widen] with nil
+optional argument makes it all visible again.
+
+When hard restriction is in place, invocations of (visual) \\[widen]
+with nil argument removes visual narrowing up to the hard
+restriction. In order to lift hard restriction,  call \\[widen] with
+non-nil HARD argument.  */)
+  (register Lisp_Object start, Lisp_Object end, Lisp_Object hard)
 {
+
   CHECK_NUMBER_COERCE_MARKER (start);
   CHECK_NUMBER_COERCE_MARKER (end);
 
@@ -3518,6 +3539,15 @@ or markers) bounding the text that should remain visible.  */)
 
   if (!(BEG <= XINT (start) && XINT (start) <= XINT (end) && XINT (end) <= Z))
     args_out_of_range (start, end);
+
+  if (!NILP (hard))
+    {
+      SET_BUF_BEGH (current_buffer, XFASTINT (start));
+      SET_BUF_ZH (current_buffer, XFASTINT (end));
+      if (BEGV >= XFASTINT (start) && ZV <= XFASTINT (end))
+        /* Visual narrowing within hard limits.  */
+        return Qnil;
+    }
 
   if (BEGV != XFASTINT (start) || ZV != XFASTINT (end))
     current_buffer->clip_changed = 1;
@@ -3532,6 +3562,7 @@ or markers) bounding the text that should remain visible.  */)
   invalidate_current_column ();
   return Qnil;
 }
+
 
 Lisp_Object
 save_restriction_save (void)
