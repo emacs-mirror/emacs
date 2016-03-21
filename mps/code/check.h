@@ -39,15 +39,6 @@
 #include "mpslib.h"
 
 
-/* FIXME: to config.h? */
-
-#if defined(MPS_BUILD_LL) || defined(MPS_BUILD_GC)
-#define UNEXPECTED(expr)  __builtin_expect((expr) != 0, TRUE)
-#else
-#define UNEXPECTED(expr)  (expr)
-#endif
-
-
 /* ASSERT -- basic assertion
  *
  * The ASSERT macro is equivalent to the ISO C assert() except that it is
@@ -60,7 +51,7 @@
 
 #define ASSERT(cond, condstring) \
   BEGIN \
-    if (UNEXPECTED(cond)) NOOP; else                           \
+    if (cond) NOOP; else \
       mps_lib_assert_fail(MPS_FILE, __LINE__, (condstring)); \
   END
 
