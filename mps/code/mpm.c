@@ -88,6 +88,11 @@ Bool MPMCheck(void)
    * <design/sp/#sol.depth.constraint>. */
   CHECKL(StackProbeDEPTH * sizeof(Word) < PageSize());
 
+  /* Check these values will fit in their bitfield. */
+  CHECKL(WB_DEFER_INIT  <= ((1ul << WB_DEFER_BITS) - 1));
+  CHECKL(WB_DEFER_DELAY <= ((1ul << WB_DEFER_BITS) - 1));
+  CHECKL(WB_DEFER_HIT   <= ((1ul << WB_DEFER_BITS) - 1));
+
   return TRUE;
 }
 
