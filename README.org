@@ -1,23 +1,5 @@
 * which-key 
 [[http://melpa.org/#/which-key][http://melpa.org/packages/which-key-badge.svg]] [[http://stable.melpa.org/#/which-key][file:http://stable.melpa.org/packages/which-key-badge.svg]]
-** Semi-Recent Changes
-- =which-key-special-keys= is now disabled by default. See the docstring for the
-  old setting.
-- =C-h= commands! Now =C-h= will prompt you will several options instead of
-  going directly to the next page. You can (see =which-key-C-h-map=)
-  - Cycle through the pages forward with =n= (or =C-n=)
-  - Cycle backwards with =p= (or =C-p=)
-  - Undo the last entered key (!) with =u= (or =C-u=)
-  - Call the default command bound to =C-h=, usually =describe-prefix-bindings=, with =h= (or =C-h=)
-  This is a fairly substantial change and might introduce a bug or two, so
-  please report anything you see that is strange and I will try to fix it.
-- Use your mouse to hover over commands and the docstring will be displayed in
-  the echo area or a tooltip, depending on whether or not you're using
-  =tooltip-mode=.
-- The function =which-key-show-top-level= was implemented by @iqbalansari
-  (thanks!) to show top-level key bindings (those not behind a prefix). You can
-  use =M-x which-key-show-top-level= to try it and bind it to a key if you like.
-  It should function just like any other which-key popup once it's called.
 
 ** Introduction
 =which-key= is a minor mode for Emacs that displays the key bindings following your currently
@@ -28,19 +10,6 @@ This includes prefixes like =C-x 8= which are shown in a different face. Screens
 the popup will look like are included below. =which-key= started as a rewrite of
 [[https://github.com/kai2nenobu/guide-key][guide-key-mode]], but the feature sets have diverged
 to a certain extent. 
-
-With respect to =guide-key=, the intention is to provide the
-following features:
-1. A different polling mechanism to make it lighter on resources than guide-key
-2. An improved display of keys with more keys being shown by default and a nicer
-   presentation
-3. Customization options that allow for the rewriting of command names on the
-   fly through easily modifiable alists
-4. Good default configurations that work well with most themes
-5. A well configured back-end for displaying keys (removing the popwin
-   dependency) that can be easily customized by writing new display functions
-
-Many of these have been implemented and are described below.
 
 ** Table of Contents                                                 :TOC@4:
  - [[#which-key-][which-key ]]
@@ -335,17 +304,22 @@ available options.
 *** Paging Options
 [Note: This section is out of date given the new =C-h= commands feature
 described in the What's New section. I will update it soon.].
+- =C-h= commands! Now =C-h= will prompt you will several options instead of
+  going directly to the next page. You can (see =which-key-C-h-map=)
+  This is a fairly substantial change and might introduce a bug or two, so
+  please report anything you see that is strange and I will try to fix it.
+
 There are at least several prefixes that have many keys bound to them, like
 =C-x=. which-key displays as many keys as it can given your settings, but for
 these prefixes this may not be enough. The paging feature gives you the ability
-to bind a key to the function =which-key-show-next-page= which will cycle
-through the pages without changing the key sequence you were in the middle of
-typing. There are two slightly different ways of doing this.
+to bind a key to the function =which-key-C-h-dispatch= which will allow you to
+cycle through the pages without changing the key sequence you were in the middle
+of typing. There are two slightly different ways of doing this.
 
 **** Method 1 (default): Using C-h (or =help-char=)
 This is the easiest way, and is turned on by default. Use
 #+BEGIN_SRC emacs-lisp
-(setq which-key-use-C-h-for-paging nil)
+(setq which-key-use-C-h-commands nil)
 #+END_SRC
 to disable the behavior (this will only take effect after toggling
 which-key-mode if it is already enabled). =C-h= can be used with any prefix to
@@ -354,23 +328,15 @@ behavior of Emacs which is to show a list of key bindings that apply to a prefix
 For example, if you were to type =C-x C-h= you would get a list of commands that
 follow =C-x=. This uses which-key instead to show those keys, and unlike the
 Emacs default saves the incomplete prefix that you just entered so that the next
-keystroke can complete the command. As a bonus you can type =C-x C-h= and the
-which-key buffer will pop up immediately (i.e., before =which-key-idle-delay=
-kicks in).
+keystroke can complete the command. 
 
-The option =which-key-prevent-C-h-from-cycling=, which is =t= by default
-allows one to take advantage of using =C-h= for paging as well as the default
-Emacs behavior of using =C-h= to describe the bindings for the current key
-sequence prefix.
+The commands are:
+  - Cycle through the pages forward with =n= (or =C-n=)
+  - Cycle backwards with =p= (or =C-p=)
+  - Undo the last entered key (!) with =u= (or =C-u=)
+  - Call the default command bound to =C-h=, usually =describe-prefix-bindings=,
+    with =h= (or =C-h=)
 
-The default configuration below will allow you to switch paging using =C-h=
-until you reach the last page of keys in the which-key buffer. The next press of
-=C-h= will close the which-key buffer and trigger the default Emacs behavior on
-=C-h=.
-#+BEGIN_SRC emacs-lisp
-(setq which-key-use-C-h-for-paging t
-      which-key-prevent-C-h-from-cycling t)
-#+END_SRC
 This is especially useful for those who like =helm-descbinds= but also want to
 use =C-h= as their which-key paging key.
 
@@ -382,7 +348,7 @@ Essentially, all you need to do for a prefix like =C-x= is the following which
 will bind =<f5>= to the relevant command.
 
 #+BEGIN_SRC emacs-lisp
-(define-key which-key-mode-map (kbd "C-x <f5>") 'which-key-show-next-page)
+(define-key which-key-mode-map (kbd "C-x <f5>") 'which-key-C-h-dispatch)
 #+END_SRC
 
 This is completely equivalent to 
@@ -455,9 +421,10 @@ shown.
   (setq which-key-prefix-prefix "+" )
 
   ;; Set the special keys. These are automatically truncated to one character and
-  ;; have which-key-special-key-face applied. Set this variable to nil to disable
-  ;; the feature
-  (setq which-key-special-keys '("SPC" "TAB" "RET" "ESC" "DEL"))
+  ;; have which-key-special-key-face applied. Disabled by default. An example
+  ;; setting is
+  ;; (setq which-key-special-keys '("SPC" "TAB" "RET" "ESC" "DEL"))
+  (setq which-key-special-keys nil)
 
   ;; Show the key prefix on the left, top, or bottom (nil means hide the prefix).
   ;; The prefix consists of the keys you have typed so far. which-key also shows
