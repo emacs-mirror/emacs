@@ -681,7 +681,7 @@
  * passed in the mutator rather than the number of scans.
  */
 
-#define WB_DEFER_BITS  3  /* bitfield width for deferral count */
+#define WB_DEFER_BITS  2  /* bitfield width for deferral count */
 #define WB_DEFER_INIT  3  /* boring scans after new segment */
 #define WB_DEFER_DELAY 3  /* boring scans after interesting scan */
 #define WB_DEFER_HIT   1  /* boring scans after barrier hit */
