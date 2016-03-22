@@ -731,7 +731,7 @@ Bool SegCheck(Seg seg)
     /* write shielded. */
     /* CHECKL(seg->_summary == RefSetUNIV || (seg->_sm & AccessWRITE)); */
     /* @@@@ What can be checked about the read barrier? */
-    /* FIXME: Need gcSegCheck? CHECKL(seg->defer == 0 || seg->summary == RefSetUNIV); */
+    /* TODO: Need gcSegCheck?  What does RankSet imply about being a gcSeg? */
   }
   return TRUE;
 }
@@ -1313,6 +1313,16 @@ static void gcSegSetRankSet(Seg seg, RankSet rankSet)
 }
 
 
+static void gcSegSyncWriteBarrier(Seg seg, Arena arena)
+{
+  /* Can't check seg -- this function enforces invariants tested by SegCheck. */
+  if (SegSummary(seg) == RefSetUNIV)
+    ShieldLower(arena, seg, AccessWRITE);
+  else
+    ShieldRaise(arena, seg, AccessWRITE);
+}
+
+
 /* gcSegSetSummary -- GCSeg method to change the summary on a segment
  *
  * In fact, we only need to raise the write barrier if the
@@ -1337,12 +1347,7 @@ static void gcSegSetSummary(Seg seg, RefSet summary)
 
   AVER(seg->rankSet != RankSetEMPTY);
 
-  /* Note: !RefSetSuper is a test for a strict subset */
-  /* FIXME: Duplicate code with gcSegSetRankSummary. */
-  if (!RefSetSuper(summary, RefSetUNIV))
-    ShieldRaise(arena, seg, AccessWRITE);
-  else
-    ShieldLower(arena, seg, AccessWRITE);
+  gcSegSyncWriteBarrier(seg, arena);
 }
 
 
@@ -1369,13 +1374,8 @@ static void gcSegSetRankSummary(Seg seg, RankSet rankSet, RefSet summary)
   seg->rankSet = BS_BITFIELD(Rank, rankSet);
   gcseg->summary = summary;
 
-  if (rankSet != RankSetEMPTY) {
-    /* FIXME: Duplicate code with gcSegSetSummary. */
-    if (!RefSetSuper(summary, RefSetUNIV))
-      ShieldRaise(arena, seg, AccessWRITE);
-    else
-      ShieldLower(arena, seg, AccessWRITE);
-  }
+  if (rankSet != RankSetEMPTY)
+    gcSegSyncWriteBarrier(seg, arena);
 }
 
 
