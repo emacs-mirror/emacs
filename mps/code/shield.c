@@ -442,7 +442,7 @@ static void shieldFlushEntries(Shield shield)
 /* shieldQueue -- consider adding a segment to the queue
  *
  * If the segment is out of sync, either sync it, or ensure it is
- * queued and the arena is suspended.
+ * queued and the mutator is suspended.
  */
 
 static void shieldQueue(Arena arena, Seg seg)
