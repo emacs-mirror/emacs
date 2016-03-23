@@ -402,7 +402,8 @@ static void shieldFlushEntries(Shield shield)
   }
 
   QuickSort((void *)shield->queue, shield->limit,
-            shieldQueueEntryCompare, UNUSED_POINTER);
+            shieldQueueEntryCompare, UNUSED_POINTER,
+	    &shield->sortStruct);
 
   mode = AccessSetEMPTY;
   for (i = 0; i < shield->limit; ++i) {

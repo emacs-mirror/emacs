@@ -9,6 +9,7 @@
  * .sources: <design/writef/> */
 
 #include "check.h"
+#include "misc.h"
 #include "mpm.h"
 #include "vm.h"
 
@@ -699,20 +700,24 @@ static Bool quickSorted(void *array[], Count length,
 #endif
 
 void QuickSort(void *array[], Count length,
-               QuickSortCompare compare, void *closure)
+               QuickSortCompare compare, void *closure,
+	       SortStruct *sortStruct)
 {
-  struct {
-    Index left, right;
-  } stack[MPS_WORD_WIDTH];
   Index left, right, sp, lo, hi, leftLimit, rightBase;
   void *pivot, *temp;
+
+  AVER(array != NULL);
+  /* can't check length */
+  AVER(FUNCHECK(compare));
+  /* can't check closure */
+  AVER(sortStruct != NULL);
 
   sp = 0;
   left = 0;
   right = length;
 
   for (;;) {
-    while (right - left > 1) { /* no need to sort */
+    while (right - left > 1) { /* only need to sort if two or more */
       /* Pick a random pivot. */
       pivot = array[left + RandomWord() % (right - left)];
 
@@ -751,15 +756,15 @@ void QuickSort(void *array[], Count length,
       /* Sort the smaller part now, so that we're sure to use at most
          log2 length stack levels.  Push the larger part on the stack
          for later. */
-      AVER_CRITICAL(sp < sizeof stack / sizeof stack[0]);
+      AVER_CRITICAL(sp < sizeof sortStruct->stack / sizeof sortStruct->stack[0]);
       if (leftLimit - left < right - rightBase) {
-	stack[sp].left = rightBase;
-	stack[sp].right = right;
+	sortStruct->stack[sp].left = rightBase;
+	sortStruct->stack[sp].right = right;
 	++sp;
 	right = leftLimit;
       } else {
-	stack[sp].left = left;
-	stack[sp].right = leftLimit;
+	sortStruct->stack[sp].left = left;
+	sortStruct->stack[sp].right = leftLimit;
 	++sp;
 	left = rightBase;
       }
@@ -769,9 +774,9 @@ void QuickSort(void *array[], Count length,
       break;
 
     --sp;
-    left = stack[sp].left;
-    right = stack[sp].right;
-    AVER_CRITICAL(left < right); /* we do the smaller side immediately */
+    left = sortStruct->stack[sp].left;
+    right = sortStruct->stack[sp].right;
+    AVER_CRITICAL(left < right); /* we did the smaller side earlier */
   }
 
 #ifdef QUICKSORT_DEBUG

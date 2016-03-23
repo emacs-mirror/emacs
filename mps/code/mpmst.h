@@ -677,6 +677,20 @@ typedef struct FreelistStruct {
 } FreelistStruct;
 
 
+/* SortStruct -- extra memory required by sorting
+ *
+ * See QuickSort in mpm.c.  This exists so that the caller can make
+ * the choice about where to allocate the memory, since the MPS has to
+ * operate in tight stack constraints -- see design.mps.sp.
+ */
+
+typedef struct SortStruct {
+  struct {
+    Index left, right;
+  } stack[MPS_WORD_WIDTH];
+} SortStruct;
+
+
 /* ShieldStruct -- per-arena part of the shield
  *
  * See design.mps.shield, impl.c.shield.
@@ -695,6 +709,7 @@ typedef struct ShieldStruct {
   Count unsynced;    /* number of unsynced segments */
   Count holds;       /* number of holds */
   Bool suspended;    /* mutator suspended? */
+  SortStruct sortStruct; /* workspace for queue sort */
 } ShieldStruct;
 
 

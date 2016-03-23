@@ -177,7 +177,8 @@ extern Word RandomWord(void);
 typedef Compare QuickSortCompare(void *left, void *right,
                                  void *closure);
 extern void QuickSort(void *array[], Count length,
-                      QuickSortCompare compare, void *closure);
+		      QuickSortCompare compare, void *closure,
+		      SortStruct *sortStruct);
 
 
 /* Version Determination
