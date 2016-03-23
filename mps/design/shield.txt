@@ -49,7 +49,7 @@ Mutator access
 
 The shield provides ``ShieldRaise`` and ``ShieldLower`` to forbid or
 permit the mutator access to object memory segments.  Between these
-two, a segment is said to have the shield "raised".
+two, a segment is said to have the shield "raised" (.def.raised).
 
 ``void ShieldRaise(Arena arena, Seg seg, AccessSet mode)``
 
@@ -66,15 +66,15 @@ an OS-specific hardware protection fault which reaches
 ``ArenaAccess``, does whatever work is necessary, then lowers the
 shield and returns to the mutator.
 
-``ShieldRaise`` and ``ShieldLower` do *not* nest.
+``ShieldRaise`` and ``ShieldLower`` do *not* nest.
 
 
 Entering the shield
 ...................
 
-The MPS can only gain exclusive access from "inside" the shield.  To
-enter the shield, the MPS must call ``ShieldEnter``, and to leave it,
-the MPS must call ``ShieldLeave``.
+The MPS can only gain exclusive access from "inside" the shield
+(.def.inside).  To enter the shield, the MPS must call
+``ShieldEnter``, and to leave it, the MPS must call ``ShieldLeave``.
 
 ``ShieldEnter`` and ``ShieldLeave`` are called by ``ArenaEnter`` and
 ``ArenaLeave`` so almost all of the MPS is is "inside" the shield.
@@ -85,8 +85,10 @@ Collector access to aegments
 
 When the MPS wants to access object memory segments from inside the
 shield, it must wrap any accesses with a ``ShieldExpose`` and
-``ShieldCover`` pair.  Between calls to ``ShieldExpose`` and
-``ShieldCover``, a segment is said to be "exposed".
+``ShieldCover`` pair.  These calls nest.  After a call to
+``ShieldExpose`` a segment is said to be "exposed" until the last
+nested call to ``ShieldCover``.  The shield arranges that the MPS can
+access the memory while it is exposed.
 
 A segment might for example be exposed during:
 
@@ -164,15 +166,19 @@ Implementation
 
 .impl.delay: The implementation of the shield avoids suspending
 threads for as long as possible.  When threads are suspended, it
-maintains a queue of covered segments where the desired and actual
-protection do not match.  This queue is flushed on leaving the shield.
+maintains a queue of segments where the desired and actual protection
+do not match.  This queue is flushed on leaving the shield.
 
 
 Definitions
 ...........
 
-.def.exposed: A seg is exposed if the prot mode is a subset of the
-shield mode, and covered otherwise.
+.def.raised: A segment has the shield "raised" for an access mode
+after a call to ``ShieldRaise`` and before a call to ``ShieldLower``
+with that mode.
+
+.def.exposed: A segment is "exposed" after a call to ``ShieldExpose``
+and before a call to ``ShieldLower``.
 
 .def.synced: A seg is synced if the prot and shield modes are the
 same, and unsynced otherwise.
@@ -180,8 +186,8 @@ same, and unsynced otherwise.
 .def.depth: The depth of a segment is defined as:
 
   | depth ≔ #exposes − #covers, where
-  |    #exposes = the total number of times the seg has been exposed
-  |    #covers  = the total number of times the seg has been covered
+  |    #exposes = the number of calls to ``ShieldExpose`` on the seg
+  |    #covers  = the number of calls to ``ShieldCover`` on the seg
 
 The queue is initially empty and ``ShieldCover`` should not be called
 without a matching ``ShieldExpose``, so this figure should always be
@@ -231,6 +237,8 @@ in the queue.
 .inv.outside.depth: The total depth is zero while outside the shield.
 
 .inv.prot.shield: The prot mode is never more than the shield mode.
+
+.inv.expose.depth: An exposed seg's depth is greater than zero.
 
 .inv.expose.prot: An exposed seg is not protected in the mode it was
 exposed with.
