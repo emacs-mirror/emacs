@@ -9,7 +9,7 @@ Shield
 :Status: incomplete guide
 :Revision: $Id$
 :Copyright: See `Copyright and License`_.
-:Index terms:    pair: shield; design
+:Index terms: pair: shield; design
 
 
 Introduction
@@ -25,8 +25,10 @@ _`.readership`: Any MPS developer. Not confidential.
 Overview
 --------
 
-_`.over`: For incremental collection, we need *separate control* of
-collector access and mutator (client) access to memory. The collector
+_`.overview`: The MPS implements incremental garbage collection using
+memory barriers implemented by a combination of hardware memory
+protection and thread control.  The MPS needs *separate control* of
+collector access and mutator (client) access to memory: the collector
 must be able to incrementally scan objects, without the mutator being
 able to see them yet.
 
@@ -38,99 +40,123 @@ limitation, and give the rest of the MPS the illusion that we can
 control collector and mutator access separately.
 
 
-Control of mutator access
--------------------------
+Interface
+---------
 
-The MPS uses ``ShieldRaise()`` and ``ShieldLower()`` to forbid or
-permit the mutator access to object memory (that is, memory allocated
-by MPS).
+
+Mutator access
+..............
+
+The shield provides ``ShieldRaise`` and ``ShieldLower`` to forbid or
+permit the mutator access to object memory segments.  Between these
+two, a segment is said to have the shield "raised".
 
 ``void ShieldRaise(Arena arena, Seg seg, AccessSet mode)``
 
-    Prevent the mutator accessing the memory in the specified mode
-    (``AccessREAD``, ``AccessWRITE``, or both).
+    Prevent the mutator accessing the memory segment in the specified
+    mode (``AccessREAD``, ``AccessWRITE``, or both).
 
 ``void ShieldLower(Arena arena, Seg seg, AccessSet mode)``
 
-    Allow the mutator to access the memory in the specified mode
-    (``AccessREAD``, ``AccessWRITE``, or both).
+    Allow the mutator to access the memory segment in the specified
+    mode (``AccessREAD``, ``AccessWRITE``, or both).
 
-If the mutator attempts an access that hits a shield, the MPS gets a
-barrier hit (in the form of a fault, interrupt, exception), quickly
-does some necessary work, and then makes the access succeed.
+If the mutator attempts an access that hits the shield, the MPS gets
+an OS-specific hardware protection fault which reaches
+``ArenaAccess``, does whatever work is necessary, then lowers the
+shield and returns to the mutator.
 
-Some objects (for example registers) cannot be hardware protected: the
-only way to prevent mutator access to them is to halt all mutator
-threads. The MPS uses ``ShieldSuspend()`` and ``ShieldResume()`` to do
-this.
-
-``void ShieldSuspend(Arena arena)``
-
-    Stop all registered mutator threads.
-
-``void ShieldResume(Arena arena)``
-
-    Resume all registered mutator threads.
+``ShieldRaise`` and ``ShieldLower` do *not* nest.
 
 
-Control of collector access
----------------------------
+Entering the shield
+...................
 
-When the collector wants to access object memory (that is, memory
-allocated by MPS), it must first call ``ShieldEnter()``, then wrap any
-accesses with a ``ShieldExpose()`` and ``ShieldCover()`` pair, and
-finally call ``ShieldLeave()``.
+The MPS can only gain exclusive access from "inside" the shield.  To
+enter the shield, the MPS must call ``ShieldEnter``, and to leave it,
+the MPS must call ``ShieldLeave``.
 
-``ShieldEnter()`` and ``ShieldLeave()`` are called by ``ArenaEnter()``
-and ``ArenaLeave()`` (approximately) -- so the shield is always
-entered when we are within MPS code (approximately).
+``ShieldEnter`` and ``ShieldLeave`` are called by ``ArenaEnter`` and
+``ArenaLeave`` so almost all of the MPS is is "inside" the shield.
 
-``ShieldExpose()`` might for example be called around:
 
-- format-scan (when scanning);
-- format-skip (when marking grains in a non-moving fix);
-- format-isMoved and ``AddrCopy()`` (during a copying fix);
-- format-pad (during reclaim).
+Collector access to aegments
+----------------------------
 
-Note that there is no need to call ``ShieldExpose()`` when accessing
-pool management memory such as bit tables. This is not object
-memory, is never (legally) accessed by the mutator, and so is never
-shielded.
+When the MPS wants to access object memory segments from inside the
+shield, it must wrap any accesses with a ``ShieldExpose`` and
+``ShieldCover`` pair.  Between calls to ``ShieldExpose`` and
+``ShieldCover``, a segment is said to be "exposed".
 
-On common operating systems, the only way to allow collector access is
-to allow access from the whole process, including the mutator. So if
-the Shield is asked to allow collector access but deny mutator access,
-it will halt all mutator threads to prevent any mutator access. The
-Shield performs suspension and restart; normal collector code does not
-need to worry about it.
+A segment might for example be exposed during:
 
-Collector code can make multiple sequential, overlapping, or nested
-calls to ``ShieldExpose()`` on the same segment, as long as each is
-balanced by a corresponding ``ShieldCover()`` before ``ShieldLeave()``
-is called). A usage count is maintained on each segment in
-``seg->depth``: a positive "depth" means a positive number of
-outstanding *reasons* why the segment must be exposed to the collector.
-When the usage count reaches zero, there is no longer any reason the
-segment should be unprotected, and the Shield could re-instate
-hardware protection.
+  - format-scan (when scanning);
+  - format-skip (when marking grains in a non-moving fix);
+  - format-isMoved and ``AddrCopy`` (during a copying fix);
+  - format-pad (during reclaim).
 
-However, as a performance-improving hysteresis, the Shield defers
-re-protection, maintaining a queue of segments that no longer have a
-reason to be collector-accessible.  While a segment is in the queue,
-it has ``seg->queued`` set to TRUE.
+Note that there is no need to call ``ShieldExpose`` when accessing
+pool management memory such as bit tables. This is not object memory,
+is never (legally) accessed by the mutator, and so is never shielded.
+
+Similarly, a pool class that never raises the shield on its segments
+need never expose them to gain access.
+
+
+Collector access to the unprotectable
+.....................................
+
+Then the MPS wants to access an unprotectable object from inside the
+shield, it must wrap any accesses with a ``ShieldHold`` and
+``ShieldRelease`` pair.  This allows access to objects which cannot be
+shielded by ``ShieldRaise``, such as:
+
+  - the stack and registers of mutator threads,
+  - lockless allocation point structures,
+  - areas of memory that can't be protected by operating system calls,
+  - unprotectable roots.
+
+``void ShieldHold(Arena arena)``
+
+    Get exclusive access to the unprotectable.
+
+``void ShieldRelease(Arena arena)``
+
+    Declare that exclusive access is no longer needed.
+
+
+Mechanism
+---------
+
+On common operating systems, the only way to allow the MPS access is
+to allow access from the whole process, including the mutator. So
+``ShieldExpose`` will suspend all mutator threads to prevent any mutator
+access, and so will ``ShieldRaise`` on an unexposed segment. The
+shield handles suspending and resuming threads, and the the rest of
+the MPS does not need to worry about it.
+
+The MPS can make multiple sequential, overlapping, or nested calls to
+``ShieldExpose`` on the same segment, as long as each is balanced by a
+corresponding ``ShieldCover`` before ``ShieldLeave`` is called. A
+usage count is maintained on each segment in ``seg->depth``.  When the
+usage count reaches zero, there is no longer any reason the segment
+should be unprotected, and the shield may reinstate hardware
+protection at any time.
+
+.impl.delay: However, as a performance-improving hysteresis, the
+shield defers re-protection, maintaining a queue of segments that
+require attention before mutator threads are resumed.  While a segment
+is in the queue, it has ``seg->queued`` set to TRUE.
 
 This hysteresis allows the MPS to proceed with garbage collection
 during a pause without actually setting hardware protection until it
-returns to the mutator.  If a complete collection cycle occurs during
-one pause (a non-incremental collection), no system calls will be
-needed for collection barriers.  This is particularly important on
-operating systems where the protection is expensive and poorly
-implemented, such as OS X.
+returns to the mutator. This is particularly important on operating
+systems where the protection is expensive and poorly implemented, such
+as OS X.
 
-So whenever hardware protection is temporarily removed to allow
-collector access, there is a *nurse* that will ensure this protection
-is re-established: the nurse is either the balancing ``ShieldCover()``
-call in collector code, or an entry in the shield queue.
+The queue also ensures that no memory protection system calls will be
+neededIf a complete collection cycle occurs during one pause, allowing
+the MPS to operate in a non-incremental mode.
 
 
 Implementation
@@ -170,9 +196,11 @@ inside the shield is being between calls to ``ShieldEnter`` and
 ``ShieldLeave``.  [In a multi-threaded MPS this would be per-thread.
 RB 2016-03-18]
 
-.def.suspended: Suspended is true iff the mutator is suspended.
+.def.suspended: Suspended is true iff the mutator is
+suspended. [Between calls to ThreadSuspend and ThreadResume?]
 
-.def.shielded: A segment is shielded if the shield mode is non-zero.
+.def.shielded: A segment is shielded if the shield mode is
+non-zero. [As set by ShieldRaise.]
 
 
 Properties
@@ -182,9 +210,9 @@ Properties
 the shield.
 
 .prop.mutator.access: An attempt by the mutator to access shielded
-memory must cause an ArenaAccess.
+memory be pre-empted by a call to ``ArenaAccess``.
 
-.prop.inside.access: Inside the shield it must be possible to access
+.prop.inside.access: Inside the shield the MPS must be able to access
 all unshielded segments and all exposed segments.
 
 
@@ -272,7 +300,7 @@ Concurrent collection
 however the only thing that makes it not-concurrent is a critical
 point in the Shield abstraction where the MPS seeks to gain privileged
 access to memory (usually in order to scan it for GC). The critical
-point is where ShieldExpose in shield.c has to call ShieldSuspend to
+point is where ShieldExpose in shield.c has to call ShieldHold to
 preserve the shield invariants. This is the only point in the MPS that
 prevents concurrency, and the rest of the MPS is designed to support
 it.

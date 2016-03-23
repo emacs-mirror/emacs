@@ -161,7 +161,7 @@ static void shieldSync(Shield shield, Seg seg)
 }
 
 
-/* ShieldSuspend -- suspend the mutator
+/* ShieldHold -- suspend mutator access to the unprotectable
  *
  * From outside impl.c.shield, this is used when we really need to
  * lock everything against the mutator -- for example, during flip
@@ -171,7 +171,7 @@ static void shieldSync(Shield shield, Seg seg)
  * synced -- see .inv.unsynced.suspended.
  */
 
-void (ShieldSuspend)(Arena arena)
+void (ShieldHold)(Arena arena)
 {
   Shield shield;
   
@@ -186,13 +186,13 @@ void (ShieldSuspend)(Arena arena)
 }
 
 
-/* ShieldResume -- declare mutator could be resumed
+/* ShieldRelease -- declare mutator could be resumed
  *
  * In practice, we don't resume the mutator until ShieldLeave, but
  * this marks the earliest point at which we could resume.
  */
 
-void (ShieldResume)(Arena arena)
+void (ShieldRelease)(Arena arena)
 {
   Shield shield;
   
@@ -365,7 +365,7 @@ static void shieldQueue(Arena arena, Seg seg)
        segment, then raise the shield on it.  In this case, the
        mutator isn't allowed to see the segment, but we don't need to
        queue it until its covered. */
-    ShieldSuspend(arena);
+    ShieldHold(arena);
     return;
   }
 
@@ -625,7 +625,7 @@ void (ShieldExpose)(Arena arena, Seg seg)
   AVER_CRITICAL(shield->depth > 0); /* overflow */
   
   if (BS_INTER(SegPM(seg), mode) != AccessSetEMPTY)
-    ShieldSuspend(arena);
+    ShieldHold(arena);
 
   /* Ensure design.mps.shield.inv.expose.prot. */
   /* TODO: Mass exposure -- see
