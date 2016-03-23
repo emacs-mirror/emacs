@@ -226,8 +226,8 @@ static void shieldSync(Shield shield, Seg seg)
   SHIELD_AVERT_CRITICAL(Seg, seg);
 
   if (!SegIsSynced(seg)) {
-    ProtSet(SegBase(seg), SegLimit(seg), SegSM(seg));
     shieldSetPM(shield, seg, SegSM(seg));
+    ProtSet(SegBase(seg), SegLimit(seg), SegPM(seg));
   }
 }
 
@@ -418,8 +418,7 @@ static void shieldFlushEntries(Shield shield)
     if (!SegIsSynced(seg)) {
       shieldSetPM(shield, seg, SegSM(seg));
       if (SegSM(seg) != mode || SegBase(seg) != limit) {
-        if (mode != AccessSetEMPTY) {
-          AVER(base != NULL);
+        if (base != NULL) {
           AVER(base < limit);
           ProtSet(base, limit, mode);
         }
@@ -429,9 +428,8 @@ static void shieldFlushEntries(Shield shield)
       limit = SegLimit(seg);
     }
   }
-  if (mode != AccessSetEMPTY) {
-    AVER(base != NULL);
-    AVER(limit != NULL);
+  if (base != NULL) {
+    AVER(base < limit);
     ProtSet(base, limit, mode);
   }
 
@@ -580,6 +578,7 @@ void (ShieldLower)(Arena arena, Seg seg, AccessSet mode)
   /* TODO: Do we need to promptly call shieldProtLower here?  It
      loses the opportunity to coalesce the protection call. It would
      violate design.mps.shield.prop.inside.access. */
+  /* shieldQueue(arena, seg); */
   shieldProtLower(shield, seg, mode);
 
   /* Check queue and segment consistency. */
