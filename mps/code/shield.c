@@ -398,7 +398,7 @@ static Compare shieldQueueEntryCompare(void *left, void *right, void *closure)
 
 static void shieldFlushEntries(Shield shield)
 {
-  Addr base = NULL, limit = NULL;
+  Addr base = NULL, limit;
   AccessSet mode;
   Index i;
 
@@ -412,10 +412,10 @@ static void shieldFlushEntries(Shield shield)
 	    &shield->sortStruct);
 
   mode = AccessSetEMPTY;
+  limit = NULL;
   for (i = 0; i < shield->limit; ++i) {
     Seg seg = shieldDequeue(shield, i);
     if (!SegIsSynced(seg)) {
-      AVER(SegSM(seg) != AccessSetEMPTY); /* can't match first iter */
       shieldSetPM(shield, seg, SegSM(seg));
       if (SegSM(seg) != mode || SegBase(seg) != limit) {
         if (mode != AccessSetEMPTY) {
@@ -651,8 +651,10 @@ static void shieldDebugCheck(Arena arena)
 /* ShieldFlush -- empty the shield queue
  *
  * .shield.flush: Flush empties the shield queue.  This needs to be
- * called before segments in the queue are destroyed, as there may be
- * references to them in the queue.
+ * called before queued segments are destroyed, to remove them from
+ * the queue.  We flush the whole queue because finding the entry is
+ * O(n) and we're very likely reclaiming and destroying loads of
+ * segments.  See also design.mps.shield.improv.resume.
  *
  * The memory for the segment may become spare, and not released back
  * to the operating system. Since we keep track of protection on

@@ -721,8 +721,9 @@ void QuickSort(void *array[], Count length,
       /* Pick a random pivot. */
       pivot = array[left + RandomWord() % (right - left)];
 
-      /* Hoare partition: scan from lo to hi, dividing it into elements
-         less than the pivot and elements greater or equal. */
+      /* Hoare partition: scan from left to right, dividing it into
+         elements less than the pivot and elements greater or
+         equal. */
       lo = left;
       hi = right;
       for (;;) {
@@ -739,10 +740,11 @@ void QuickSort(void *array[], Count length,
         ++lo; /* step over what we just swapped */
       }
 
-      /* If we ended up at a pivot, then it is in its final position
-         and we must skip it to ensure termination.  This handles the case
-         where the pivot is at the start of the array, and one of the
-         partitions is the whole array, for example. */
+      /* After partition, if we ended up at a pivot, then it is in its
+         final position and we must skip it to ensure termination.
+         This handles the case where the pivot is at the start of the
+         array, and one of the partitions is the whole array, for
+         example. */
       if (lo == hi) {
         AVER_CRITICAL(array[hi] == pivot); /* and it's in place */
         leftLimit = lo;
@@ -776,7 +778,7 @@ void QuickSort(void *array[], Count length,
     --sp;
     left = sortStruct->stack[sp].left;
     right = sortStruct->stack[sp].right;
-    AVER_CRITICAL(left < right); /* we did the smaller side earlier */
+    AVER_CRITICAL(left < right); /* we will have done a zero-length part first */
   }
 
 #ifdef QUICKSORT_DEBUG
