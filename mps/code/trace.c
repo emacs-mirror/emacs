@@ -732,14 +732,6 @@ found:
 
   EVENT3(TraceCreate, trace, arena, (EventFU)why);
 
-  /* We suspend the mutator threads so that the PoolWhiten methods */
-  /* can calculate white sets without the mutator allocating in */
-  /* buffers under our feet. */
-  /* @@@@ This is a short-term fix for request.dylan.160098_. */
-  /* .. _request.dylan.160098: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/dylan/160098 */
-  /* TODO: Where is the corresponding ShieldRelease? */
-  ShieldHold(arena);
-
   STATISTIC_STAT ({
     /* Iterate over all chains, all GenDescs within a chain, and all
      * PoolGens within a GenDesc. */
@@ -1491,6 +1483,14 @@ static Res traceCondemnAll(Trace trace)
   arena = trace->arena;
   AVERT(Arena, arena);
 
+  /* We suspend the mutator threads so that the PoolWhiten methods */
+  /* can calculate white sets without the mutator allocating in */
+  /* buffers under our feet. */
+  /* @@@@ This is a short-term fix for request.dylan.160098_. */
+  /* .. _request.dylan.160098: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/dylan/160098 */
+  /* TODO: Where is the corresponding ShieldRelease? */
+  ShieldHold(arena);
+
   /* Condemn all segments in pools with the GC attribute. */
   RING_FOR(poolNode, &ArenaGlobals(arena)->poolRing, nextPoolNode) {
     Pool pool = RING_ELT(Pool, arenaRing, poolNode);
@@ -1508,6 +1508,8 @@ static Res traceCondemnAll(Trace trace)
       }
     }
   }
+
+  ShieldRelease(arena);
 
   if (TraceIsEmpty(trace))
     return ResFAIL;
@@ -1529,6 +1531,7 @@ failBegin:
    * will be triggered. In that case, we'll have to recover here by
    * blackening the segments again. */
   AVER(TraceIsEmpty(trace));
+  ShieldRelease(arena);
   return res;
 }
 

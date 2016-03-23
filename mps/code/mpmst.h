@@ -692,6 +692,8 @@ typedef struct ShieldStruct {
   Index next;        /* next free element in shield queue */
   Index limit;       /* high water mark for cache usage */
   Count depth;       /* sum of depths of all segs */
+  Count unsynced;    /* number of unsynced segments */
+  Count holds;       /* number of holds */
   Bool suspended;    /* mutator suspended? */
 } ShieldStruct;
 
