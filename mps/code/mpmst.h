@@ -699,7 +699,7 @@ typedef struct SortStruct {
 #define ShieldSig      ((Sig)0x519581E1) /* SIGnature SHEILd */
 
 typedef struct ShieldStruct {
-  Sig sig;
+  Sig sig;           /* design.mps.sig */
   Bool inside;       /* design.mps.shield.def.inside */
   Seg *queue;        /* queue of unsynced segs */
   Count length;      /* number of elements in shield queue */
