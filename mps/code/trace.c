@@ -573,7 +573,7 @@ static Res traceFlip(Trace trace)
 
   arena = trace->arena;
   rfc.arena = arena;
-  ShieldSuspend(arena);
+  ShieldHold(arena);
 
   AVER(trace->state == TraceUNFLIPPED);
   AVER(!TraceSetIsMember(arena->flippedTraces, trace));
@@ -634,11 +634,11 @@ static Res traceFlip(Trace trace)
 
   EVENT2(TraceFlipEnd, trace, arena);
 
-  ShieldResume(arena);
+  ShieldRelease(arena);
   return ResOK;
 
 failRootFlip:
-  ShieldResume(arena);
+  ShieldRelease(arena);
   return res;
 }
 
@@ -737,8 +737,8 @@ found:
   /* buffers under our feet. */
   /* @@@@ This is a short-term fix for request.dylan.160098_. */
   /* .. _request.dylan.160098: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/dylan/160098 */
-  /* TODO: Where is the corresponding ShieldResume? */
-  ShieldSuspend(arena);
+  /* TODO: Where is the corresponding ShieldRelease? */
+  ShieldHold(arena);
 
   STATISTIC_STAT ({
     /* Iterate over all chains, all GenDescs within a chain, and all
