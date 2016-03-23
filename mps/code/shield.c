@@ -46,6 +46,12 @@ void ShieldDestroyQueue(Shield shield, Arena arena)
 
 void ShieldFinish(Shield shield)
 {
+  /* The queue should already have been destroyed by
+     GlobalsPrepareToDestroy calling ShieldDestroyQueue. */
+  AVER(shield->length == 0);
+  AVER(shield->limit == 0);
+  AVER(shield->queue == NULL);
+
   AVER(shield->depth == 0);
   AVER(shield->unsynced == 0);
   AVER(shield->holds == 0);
