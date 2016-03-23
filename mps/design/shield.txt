@@ -49,7 +49,7 @@ Mutator access
 
 The shield provides ``ShieldRaise`` and ``ShieldLower`` to forbid or
 permit the mutator access to object memory segments.  Between these
-two, a segment is said to have the shield "raised" (.def.raised).
+two, a segment is said to have the shield "raised" (`.def.raised`_).
 
 ``void ShieldRaise(Arena arena, Seg seg, AccessSet mode)``
 
@@ -73,7 +73,7 @@ Entering the shield
 ...................
 
 The MPS can only gain exclusive access from "inside" the shield
-(.def.inside).  To enter the shield, the MPS must call
+(`.def.inside`_).  To enter the shield, the MPS must call
 ``ShieldEnter``, and to leave it, the MPS must call ``ShieldLeave``.
 
 ``ShieldEnter`` and ``ShieldLeave`` are called by ``ArenaEnter`` and
@@ -145,10 +145,10 @@ usage count reaches zero, there is no longer any reason the segment
 should be unprotected, and the shield may reinstate hardware
 protection at any time.
 
-.impl.delay: However, as a performance-improving hysteresis, the
-shield defers re-protection, maintaining a queue of segments that
-require attention before mutator threads are resumed.  While a segment
-is in the queue, it has ``seg->queued`` set to TRUE.
+However, as a performance-improving hysteresis, the shield defers
+re-protection, maintaining a queue of segments that require attention
+before mutator threads are resumed (`.impl.delay`_).  While a segment is
+in the queue, it has ``seg->queued`` set to TRUE.
 
 This hysteresis allows the MPS to proceed with garbage collection
 during a pause without actually setting hardware protection until it
@@ -157,14 +157,14 @@ systems where the protection is expensive and poorly implemented, such
 as OS X.
 
 The queue also ensures that no memory protection system calls will be
-neededIf a complete collection cycle occurs during one pause, allowing
-the MPS to operate in a non-incremental mode.
+needed if a complete collection cycle occurs during one pause,
+allowing the MPS to operate in a non-incremental mode.
 
 
 Implementation
 --------------
 
-.impl.delay: The implementation of the shield avoids suspending
+_`.impl.delay`: The implementation of the shield avoids suspending
 threads for as long as possible.  When threads are suspended, it
 maintains a queue of segments where the desired and actual protection
 do not match.  This queue is flushed on leaving the shield.
@@ -173,17 +173,17 @@ do not match.  This queue is flushed on leaving the shield.
 Definitions
 ...........
 
-.def.raised: A segment has the shield "raised" for an access mode
+_`.def.raised`: A segment has the shield "raised" for an access mode
 after a call to ``ShieldRaise`` and before a call to ``ShieldLower``
 with that mode.
 
-.def.exposed: A segment is "exposed" after a call to ``ShieldExpose``
+_`.def.exposed`: A segment is "exposed" after a call to ``ShieldExpose``
 and before a call to ``ShieldLower``.
 
-.def.synced: A seg is synced if the prot and shield modes are the
+_`.def.synced`: A seg is synced if the prot and shield modes are the
 same, and unsynced otherwise.
 
-.def.depth: The depth of a segment is defined as:
+_`.def.depth`: The depth of a segment is defined as:
 
   | depth ≔ #exposes − #covers, where
   |    #exposes = the number of calls to ``ShieldExpose`` on the seg
@@ -192,54 +192,54 @@ same, and unsynced otherwise.
 ``ShieldCover`` should not be called without a matching
 ``ShieldExpose``, so this figure should always be non-negative.
 
-.def.total.depth: The total depth is the sum of the depth over all
+_`.def.total.depth`: The total depth is the sum of the depth over all
 segments.
 
-.def.outside: Being outside the shield is being between calls to
-``ShieldLeave`` and ``ShieldEnter``, and similarly .def.inside: being
+_`.def.outside`: Being outside the shield is being between calls to
+``ShieldLeave`` and ``ShieldEnter``, and similarly _`.def.inside`: being
 inside the shield is being between calls to ``ShieldEnter`` and
 ``ShieldLeave``.  [In a multi-threaded MPS this would be per-thread.
 RB 2016-03-18]
 
-.def.suspended: Suspended is true iff the mutator is
+_`.def.suspended`: Suspended is true iff the mutator is
 suspended. [Between calls to ThreadSuspend and ThreadResume?]
 
-.def.shielded: A segment is shielded if the shield mode is
+_`.def.shielded`: A segment is shielded if the shield mode is
 non-zero. [As set by ShieldRaise.]
 
 
 Properties
 ..........
 
-.prop.outside.running: The mutator may not be suspended while outside
+_`.prop.outside.running`: The mutator may not be suspended while outside
 the shield.
 
-.prop.mutator.access: An attempt by the mutator to access shielded
+_`.prop.mutator.access`: An attempt by the mutator to access shielded
 memory be pre-empted by a call to ``ArenaAccess``.
 
-.prop.inside.access: Inside the shield the MPS must be able to access
+_`.prop.inside.access`: Inside the shield the MPS must be able to access
 all unshielded segments and all exposed segments.
 
 
 Invariants
 ..........
 
-.inv.outside.running: The mutator is not suspended while outside the
+_`.inv.outside.running`: The mutator is not suspended while outside the
 shield.
 
-.inv.unsynced.suspended: If any segment is not synced, the mutator is
+_`.inv.unsynced.suspended`: If any segment is not synced, the mutator is
 suspended.
 
-.inv.unsynced.depth: All unsynced segments have positive depth or are
+_`.inv.unsynced.depth`: All unsynced segments have positive depth or are
 in the queue.
 
-.inv.outside.depth: The total depth is zero while outside the shield.
+_`.inv.outside.depth`: The total depth is zero while outside the shield.
 
-.inv.prot.shield: The prot mode is never more than the shield mode.
+_`.inv.prot.shield`: The prot mode is never more than the shield mode.
 
-.inv.expose.depth: An exposed seg's depth is greater than zero.
+_`.inv.expose.depth`: An exposed seg's depth is greater than zero.
 
-.inv.expose.prot: An exposed seg is not protected in the mode it was
+_`.inv.expose.prot`: An exposed seg is not protected in the mode it was
 exposed with.
 
 
@@ -248,22 +248,22 @@ Proof Hints
 
 Hints at proofs of properties from invariants.
 
-.proof.outside: .inv.outside.running directly ensures .prop.outside
+_`.proof.outside`: .inv.outside.running directly ensures .prop.outside
 running.
 
-.proof.sync: As the depth of a segment cannot be negative
+_`.proof.sync`: As the depth of a segment cannot be negative
 
   | total depth = 0
   |   ⇒ for all segments, depth = 0
   |   ⇒ all segs are synced (by .inv.unsynced.depth)
 
-.proof.access: If the mutator is running then all segs must be synced
+_`.proof.access`: If the mutator is running then all segs must be synced
 (.inv.unsynced.suspend).  Which means that the hardware protection
 (.prot mode) must reflect the software protection (shield mode).
 Hence all shielded memory will be hardware protected while the mutator
 is running.  This ensures .prop.mutator.access.
 
-.proof.inside: .inv.prot.shield and .inv.expose.prot ensure
+_`.proof.inside`: .inv.prot.shield and .inv.expose.prot ensure
 .prop.inside.access.
 
 
@@ -281,7 +281,7 @@ Improvement Ideas
 Mass exposure
 .............
 
-.improv.mass-expose: If protection calls have a high overhead it might
+_`.improv.mass-expose`: If protection calls have a high overhead it might
 be good to pre-emptively unprotect large ranges of memory when we
 expose one segment.  With the current design this would mean
 discovering adjacent shielded segments and adding them to the queue.
@@ -292,7 +292,7 @@ exposed segments during a pause.
 Segment independence
 ....................
 
-.improve.noseg: The shield is implemented in terms of segments, using
+_`.improve.noseg`: The shield is implemented in terms of segments, using
 fields in the segment structure to represent its state. This forces us
 to (for example) flush the shield queue when deleting a segment. The
 shield could keep track of protection and shielding independently,
@@ -303,7 +303,7 @@ use of system calls (see .improve.mass-expose).
 Concurrent collection
 .....................
 
-.improv.concurrent: The MPS currently does not collect concurrently,
+_`.improv.concurrent`: The MPS currently does not collect concurrently,
 however the only thing that makes it not-concurrent is a critical
 point in the Shield abstraction where the MPS seeks to gain privileged
 access to memory (usually in order to scan it for GC). The critical
@@ -332,7 +332,7 @@ MPS design. It's kind of waiting to happen.
 Early Resume
 ............
 
-.improv.resume: There is a tradeoff between delaying flushing the
+_`.improv.resume`: There is a tradeoff between delaying flushing the
 shield queue (preventing unnecessary protection and allowing us to
 coalesce) and resuming mutator threads.  We could resume threads
 earlier under some circumstances, such as before reclaim (which does
@@ -345,7 +345,7 @@ to suspend it again (no more calls to ``ShieldRaise`` or
 Expose modes
 ............
 
-.improv.expose-modes: Would it be a good idea for ShieldExpose() to
+_`.improv.expose-modes`: Would it be a good idea for ShieldExpose() to
 take an AccessSet? It might be good if we didn't have to raise a write
 barrier unless we want to write.  When scanning (for instance), we may
 not need to write, so when scanning a segment behind a write barrier
@@ -406,8 +406,8 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited. All rights reserved.
-<http://www.ravenbrook.com/>. This is an open source license. Contact
+Copyright © 2013-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
 Redistribution and use in source and binary forms, with or without
