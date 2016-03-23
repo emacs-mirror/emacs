@@ -919,8 +919,8 @@ extern void (ShieldEnter)(Arena arena);
 extern void (ShieldLeave)(Arena arena);
 extern void (ShieldExpose)(Arena arena, Seg seg);
 extern void (ShieldCover)(Arena arena, Seg seg);
-extern void (ShieldSuspend)(Arena arena);
-extern void (ShieldResume)(Arena arena);
+extern void (ShieldHold)(Arena arena);
+extern void (ShieldRelease)(Arena arena);
 extern void (ShieldFlush)(Arena arena);
 
 #if defined(SHIELD)
@@ -936,8 +936,8 @@ extern void (ShieldFlush)(Arena arena);
   BEGIN UNUSED(arena); UNUSED(seg); END
 #define ShieldCover(arena, seg) \
   BEGIN UNUSED(arena); UNUSED(seg); END
-#define ShieldSuspend(arena) BEGIN UNUSED(arena); END
-#define ShieldResume(arena) BEGIN UNUSED(arena); END
+#define ShieldHold(arena) BEGIN UNUSED(arena); END
+#define ShieldRelease(arena) BEGIN UNUSED(arena); END
 #define ShieldFlush(arena) BEGIN UNUSED(arena); END
 #else
 #error "No shield configuration."
