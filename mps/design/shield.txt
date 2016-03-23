@@ -342,6 +342,31 @@ to suspend it again (no more calls to ``ShieldRaise`` or
 ``ShieldExpose`` on shielded segments).
 
 
+Expose modes
+............
+
+.improv.expose-modes: Would it be a good idea for ShieldExpose() to
+take an AccessSet? It might be good if we didn't have to raise a write
+barrier unless we want to write.  When scanning (for instance), we may
+not need to write, so when scanning a segment behind a write barrier
+we shouldn't have to call mprotect().  That's a bit speculative: how
+often do we scan a segment and not write to it.  Alternatively, and
+more speculatively, we could keep the write barrier up, handle the
+(possibly nested) trap and *then* expose the shield.  I'm just
+scraping around for ways to reduce calls to mprotect().
+
+Theoretically we can do this, but:
+
+ 1. We're mostly a moving collector so we'll almost always want to
+    write to segments we scan.  That could change if we do more
+    non-moving collection.
+
+ 2. The main cost of protection is changing it at all, not whether we
+    change just read or write.  On OS X, the main cost seems to be the
+    TLB flush, which affects wall-clock time of everything on the
+    processor!
+
+
 References
 ----------
 

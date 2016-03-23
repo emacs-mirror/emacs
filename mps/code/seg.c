@@ -686,7 +686,8 @@ Bool SegCheck(Seg seg)
   CHECKL(AddrIsArenaGrain(TractBase(seg->firstTract), arena));
   CHECKL(AddrIsArenaGrain(seg->limit, arena));
   CHECKL(seg->limit > TractBase(seg->firstTract));
-  CHECKL(BoolCheck(seg->queued));
+  /* Can't BoolCheck seg->queued because compilers warn about that on
+     single-bit fields. */
 
   /* Each tract of the segment must agree about white traces. Note
    * that even if the CHECKs are compiled away there is still a
