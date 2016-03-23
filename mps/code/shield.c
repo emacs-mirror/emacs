@@ -466,9 +466,7 @@ static void shieldQueue(Arena arena, Seg seg)
     return;
   }
 
-  /* Allocate shield queue if necessary. */
-  /* TODO: This will try to extend the queue on every attempt, even
-     if it failed last time. That might be slow. */
+  /* Allocate or extend the shield queue if necessary. */
   if (shield->next >= shield->length) {
     void *p;
     Res res;
@@ -509,6 +507,8 @@ static void shieldQueue(Arena arena, Seg seg)
   AVER_CRITICAL(shield->limit <= shield->length);
   AVER_CRITICAL(shield->next <= shield->limit);
 
+  /* If we failed to extend the shield queue array, degrade to an LRU
+     circular buffer. */
   if (shield->next >= shield->length)
     shield->next = 0;
   AVER_CRITICAL(shield->next < shield->length);
