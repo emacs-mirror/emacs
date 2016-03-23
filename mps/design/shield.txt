@@ -189,9 +189,8 @@ same, and unsynced otherwise.
   |    #exposes = the number of calls to ``ShieldExpose`` on the seg
   |    #covers  = the number of calls to ``ShieldCover`` on the seg
 
-The queue is initially empty and ``ShieldCover`` should not be called
-without a matching ``ShieldExpose``, so this figure should always be
-non-negative.
+``ShieldCover`` should not be called without a matching
+``ShieldExpose``, so this figure should always be non-negative.
 
 .def.total.depth: The total depth is the sum of the depth over all
 segments.
@@ -328,6 +327,19 @@ So, I believe there's nothing fundamentally non-concurrent about the
 MPS design. It's kind of waiting to happen.
 
 (Originally written at <http://news.ycombinator.com/item?id=4524036>.)
+
+
+Early Resume
+............
+
+.improv.resume: There is a tradeoff between delaying flushing the
+shield queue (preventing unnecessary protection and allowing us to
+coalesce) and resuming mutator threads.  We could resume threads
+earlier under some circumstances, such as before reclaim (which does
+not need to interact with the mutator).  Basically, it might be worth
+resuming the mutator early in a pause if we know that we're unlikely
+to suspend it again (no more calls to ``ShieldRaise`` or
+``ShieldExpose`` on shielded segments).
 
 
 References
