@@ -224,7 +224,7 @@ static void SegFinish(Seg seg)
   AVER(seg->depth == 0);
   if (seg->queued)
     ShieldFlush(PoolArena(SegPool(seg)));
-  AVER(seg->queued == FALSE);
+  AVER(!seg->queued);
 
   limit = SegLimit(seg);
   
@@ -686,6 +686,7 @@ Bool SegCheck(Seg seg)
   CHECKL(AddrIsArenaGrain(TractBase(seg->firstTract), arena));
   CHECKL(AddrIsArenaGrain(seg->limit, arena));
   CHECKL(seg->limit > TractBase(seg->firstTract));
+  CHECKL(BoolCheck(seg->queued));
 
   /* Each tract of the segment must agree about white traces. Note
    * that even if the CHECKs are compiled away there is still a
