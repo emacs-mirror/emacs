@@ -80,8 +80,8 @@ The MPS can only gain exclusive access from "inside" the shield
 ``ArenaLeave`` so almost all of the MPS is is "inside" the shield.
 
 
-Collector access to aegments
-----------------------------
+Collector access to segments
+............................
 
 When the MPS wants to access object memory segments from inside the
 shield, it must wrap any accesses with a ``ShieldExpose`` and
