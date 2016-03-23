@@ -714,11 +714,13 @@ Bool SegCheck(Seg seg)
   /*  CHECKL(RingNext(&seg->poolRing) != &seg->poolRing); */
 
   CHECKD_NOSIG(Ring, &seg->poolRing);
+
+  /* Shield invariants -- see design.mps.shield. */
    
   /* The protection mode is never more than the shield mode
      (design.mps.shield.inv.prot.shield). */
   CHECKL(BS_DIFF(seg->pm, seg->sm) == 0);
-  
+
   /* All unsynced segments have positive depth or are in the queue
      (design.mps.shield.inv.unsynced.depth). */
   CHECKL(seg->sm == seg->pm || seg->depth > 0 || seg->queued);

@@ -284,7 +284,8 @@ void (ShieldRelease)(Arena arena)
   /* It is only correct to actually resume the mutator here if
      shield->depth is 0, shield->unsycned is 0, and the queue is
      empty. */
-  /* TODO: Consider actually doing that. */
+  /* See design.mps.shield.improv.resume for a discussion of when it
+     might be a good idea to resume the mutator early. */
 }
 
 
@@ -618,7 +619,7 @@ static void shieldDebugCheck(Arena arena)
   Count queued = 0;
 
   AVERT(Arena, arena);
-  shield = ShieldArena(arena);
+  shield = ArenaShield(arena);
   AVER(shield->inside || shield->limit == 0);
 
   if (SegFirst(&seg, arena))
@@ -664,8 +665,7 @@ void (ShieldFlush)(Arena arena)
   shieldDebugCheck(arena);
 #endif
   shieldFlushEntries(shield);
-  /* Queue is empty so .inv.outside.depth holds */
-  AVER(shield->depth == 0);
+  AVER(shield->unsynced == 0); /* everything back in sync */
 #ifdef SHIELD_DEBUG
   shieldDebugCheck(arena);
 #endif
