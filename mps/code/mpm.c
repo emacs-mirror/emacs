@@ -9,6 +9,7 @@
  * .sources: <design/writef/> */
 
 #include "check.h"
+#include "misc.h"
 #include "mpm.h"
 #include "vm.h"
 
@@ -644,6 +645,146 @@ Bool StringEqual(const char *s1, const char *s2)
   return TRUE;
 }
 
+
+/* Random -- a random number generator
+ *
+ * TODO: This is a copy of the generator from testlib.c, which has
+ * extensive notes and verification tests.  The notes need to go to a
+ * design document, and the tests to a test.
+ */
+
+static unsigned RandomSeed = 1;
+#define Random_m 2147483647UL
+#define Random_a 48271UL
+unsigned Random32(void)
+{
+  /* requires m == 2^31-1, a < 2^16 */
+  unsigned bot = Random_a * (RandomSeed & 0x7FFF);
+  unsigned top = Random_a * (RandomSeed >> 15);
+  AVER(UINT_MAX >= 4294967295U);
+  RandomSeed = bot + ((top & 0xFFFF) << 15) + (top >> 16);
+  if (RandomSeed > Random_m)
+    RandomSeed -= Random_m;
+  return RandomSeed;
+}
+
+Word RandomWord(void)
+{
+  Word word = 0;
+  Index i;
+  for (i = 0; i < MPS_WORD_WIDTH; i += 31)
+    word = (word << 31) | Random32();
+  return word;
+}
+
+
+/* QuickSort -- non-recursive bounded sort
+ *
+ * We can't rely on the standard library's qsort, which might have
+ * O(n) stack usage.  This version does not recurse.
+ */
+
+#ifdef QUICKSORT_DEBUG
+static Bool quickSorted(void *array[], Count length,
+                        QuickSortCompare compare, void *closure)
+{
+  Index i;
+  if (length > 0) {
+    for (i = 0; i < length - 1; ++i) {
+      if (compare(array[i], array[i+1], closure) == CompareGREATER)
+        return FALSE;
+    }
+  }
+  return TRUE;
+}
+#endif
+
+void QuickSort(void *array[], Count length,
+               QuickSortCompare compare, void *closure,
+	       SortStruct *sortStruct)
+{
+  Index left, right, sp, lo, hi, leftLimit, rightBase;
+  void *pivot, *temp;
+
+  AVER(array != NULL);
+  /* can't check length */
+  AVER(FUNCHECK(compare));
+  /* can't check closure */
+  AVER(sortStruct != NULL);
+
+  sp = 0;
+  left = 0;
+  right = length;
+
+  for (;;) {
+    while (right - left > 1) { /* only need to sort if two or more */
+      /* Pick a random pivot. */
+      pivot = array[left + RandomWord() % (right - left)];
+
+      /* Hoare partition: scan from left to right, dividing it into
+         elements less than the pivot and elements greater or
+         equal. */
+      lo = left;
+      hi = right;
+      for (;;) {
+        while (compare(array[lo], pivot, closure) == CompareLESS)
+          ++lo;
+        do
+          --hi;
+        while (compare(pivot, array[hi], closure) == CompareLESS);
+        if (lo >= hi)
+          break;
+        temp = array[hi];
+        array[hi] = array[lo];
+        array[lo] = temp;
+        ++lo; /* step over what we just swapped */
+      }
+
+      /* After partition, if we ended up at a pivot, then it is in its
+         final position and we must skip it to ensure termination.
+         This handles the case where the pivot is at the start of the
+         array, and one of the partitions is the whole array, for
+         example. */
+      if (lo == hi) {
+        AVER_CRITICAL(array[hi] == pivot); /* and it's in place */
+        leftLimit = lo;
+        rightBase = lo + 1;
+      } else {
+        AVER_CRITICAL(lo == hi + 1);
+        leftLimit = lo;
+        rightBase = lo;
+      }
+
+      /* Sort the smaller part now, so that we're sure to use at most
+         log2 length stack levels.  Push the larger part on the stack
+         for later. */
+      AVER_CRITICAL(sp < sizeof sortStruct->stack / sizeof sortStruct->stack[0]);
+      if (leftLimit - left < right - rightBase) {
+	sortStruct->stack[sp].left = rightBase;
+	sortStruct->stack[sp].right = right;
+	++sp;
+	right = leftLimit;
+      } else {
+	sortStruct->stack[sp].left = left;
+	sortStruct->stack[sp].right = leftLimit;
+	++sp;
+	left = rightBase;
+      }
+    }
+
+    if (sp == 0)
+      break;
+
+    --sp;
+    left = sortStruct->stack[sp].left;
+    right = sortStruct->stack[sp].right;
+    AVER_CRITICAL(left < right); /* we will have done a zero-length part first */
+  }
+
+#ifdef QUICKSORT_DEBUG
+  AVER(quickSorted(array, length, compare, closure));
+#endif
+}
 
 
 /* C. COPYRIGHT AND LICENSE
