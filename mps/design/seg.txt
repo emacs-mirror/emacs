@@ -268,14 +268,14 @@ design.mps.protocol.overview.next-method_).
 .. _design.mps.protocol.overview.next-method: protocol#overview.next-method
 
 _`.split-merge.shield`: Split and merge methods may assume that the
-segments they are manipulating are not in the shield cache.
+segments they are manipulating are not in the shield queue.
 
-_`.split-merge.shield.flush`: The shield cache is flushed before any
+_`.split-merge.shield.flush`: The shield queue is flushed before any
 split or merge methods are invoked.
 
 _`.split-merge.shield.re-flush`: If a split or merge method performs
-an operation on a segment which might cause the segment to be cached,
-the method must flush the shield cache before returning or calling
+an operation on a segment which might cause the segment to be queued,
+the method must flush the shield queue before returning or calling
 another split or merge method.
 
 _`.split-merge.fail`: Split and merge methods might fail, in which

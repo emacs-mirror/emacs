@@ -108,7 +108,6 @@ Bool GlobalsCheck(Globals arenaGlobals)
   TraceId ti;
   Trace trace;
   Index i;
-  Size depth;
   RefSet rs;
   Rank rank;
 
@@ -155,20 +154,7 @@ Bool GlobalsCheck(Globals arenaGlobals)
   CHECKD_NOSIG(Ring, &arena->threadRing);
   CHECKD_NOSIG(Ring, &arena->deadRing);
 
-  CHECKL(BoolCheck(arena->insideShield));
-  CHECKL(arena->shCacheLimit <= ShieldCacheSIZE);
-  CHECKL(arena->shCacheI < arena->shCacheLimit);
-  CHECKL(BoolCheck(arena->suspended));
-
-  depth = 0;
-  for (i = 0; i < arena->shCacheLimit; ++i) {
-    Seg seg = arena->shCache[i];
-    if (seg != NULL) {
-      CHECKD(Seg, seg);
-      depth += SegDepth(seg);
-    }
-  }
-  CHECKL(depth <= arena->shDepth);
+  CHECKD(Shield, ArenaShield(arena));
 
   CHECKL(TraceSetCheck(arena->busyTraces));
   CHECKL(TraceSetCheck(arena->flippedTraces));
@@ -294,13 +280,7 @@ Res GlobalsInit(Globals arenaGlobals)
   arena->tracedWork = 0.0;
   arena->tracedTime = 0.0;
   arena->lastWorldCollect = ClockNow();
-  arena->insideShield = FALSE;          /* <code/shield.c> */
-  arena->shCacheI = (Size)0;
-  arena->shCacheLimit = (Size)1;
-  arena->shDepth = (Size)0;
-  arena->suspended = FALSE;
-  for(i = 0; i < ShieldCacheSIZE; i++)
-    arena->shCache[i] = NULL;
+  ShieldInit(ArenaShield(arena));
 
   for (ti = 0; ti < TraceLIMIT; ++ti) {
     /* <design/arena/#trace.invalid> */
@@ -405,6 +385,7 @@ void GlobalsFinish(Globals arenaGlobals)
 
   arenaGlobals->sig = SigInvalid;
 
+  ShieldFinish(ArenaShield(arena));
   RingFinish(&arena->formatRing);
   RingFinish(&arena->chainRing);
   RingFinish(&arena->messageRing);
@@ -437,6 +418,7 @@ void GlobalsPrepareToDestroy(Globals arenaGlobals)
   ArenaPark(arenaGlobals);
 
   arena = GlobalsArena(arenaGlobals);
+
   arenaDenounce(arena);
 
   defaultChain = arenaGlobals->defaultChain;
@@ -487,6 +469,8 @@ void GlobalsPrepareToDestroy(Globals arenaGlobals)
     arena->finalPool = NULL;
     PoolDestroy(pool);
   }
+
+  ShieldDestroyQueue(ArenaShield(arena), arena);
 
   /* Check that the tear-down is complete: that the client has
    * destroyed all data structures associated with the arena. We do
@@ -1000,7 +984,6 @@ Res GlobalsDescribe(Globals arenaGlobals, mps_lib_FILE *stream, Count depth)
                "rootSerial $U\n", (WriteFU)arenaGlobals->rootSerial,
                "formatSerial $U\n", (WriteFU)arena->formatSerial,
                "threadSerial $U\n", (WriteFU)arena->threadSerial,
-               arena->insideShield ? "inside" : "outside", " shield\n",
                "busyTraces    $B\n", (WriteFB)arena->busyTraces,
                "flippedTraces $B\n", (WriteFB)arena->flippedTraces,
                "epoch $U\n", (WriteFU)arena->epoch,
@@ -1019,13 +1002,7 @@ Res GlobalsDescribe(Globals arenaGlobals, mps_lib_FILE *stream, Count depth)
       return res;
   }
 
-  res = WriteF(stream, depth,
-               "} history\n",
-               "suspended $S\n", WriteFYesNo(arena->suspended),
-               "shDepth $U\n", (WriteFU)arena->shDepth,
-               "shCacheI $U\n", (WriteFU)arena->shCacheI,
-               /* @@@@ should SegDescribe the cached segs? */
-               NULL);
+  res = ShieldDescribe(ArenaShield(arena), stream, depth);
   if (res != ResOK)
     return res;
 
