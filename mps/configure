@@ -3523,6 +3523,7 @@ $as_echo "FreeBSD x86_64" >&6; }
       CFLAGS="-I/usr/local/include"
       CPP="$CC -I/usr/local/include -E"
       PFMCFLAGS="$CFLAGS_GC"
+    ;;
   amd64-*-freebsd*/no | x86_64-*-freebsd*/no)
       { $as_echo "$as_me:${as_lineno-$LINENO}: result: FreeBSD x86_64" >&5
 $as_echo "FreeBSD x86_64" >&6; }

@@ -107,6 +107,7 @@ case $host/$CLANG in
       CFLAGS="-I/usr/local/include"
       CPP="$CC -I/usr/local/include -E"
       PFMCFLAGS="$CFLAGS_GC"
+    ;;
   amd64-*-freebsd*/no | x86_64-*-freebsd*/no)
       AC_MSG_RESULT([FreeBSD x86_64])
       MPS_OS_NAME=fr
