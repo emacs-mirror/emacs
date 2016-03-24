@@ -108,7 +108,7 @@ need never expose them to gain access.
 Collector access to the unprotectable
 .....................................
 
-Then the MPS wants to access an unprotectable object from inside the
+When the MPS wants to access an unprotectable object from inside the
 shield, it must wrap any accesses with a ``ShieldHold`` and
 ``ShieldRelease`` pair.  This allows access to objects which cannot be
 shielded by ``ShieldRaise``, such as:
@@ -134,7 +134,7 @@ On common operating systems, the only way to allow the MPS access is
 to allow access from the whole process, including the mutator. So
 ``ShieldExpose`` will suspend all mutator threads to prevent any mutator
 access, and so will ``ShieldRaise`` on an unexposed segment. The
-shield handles suspending and resuming threads, and the the rest of
+shield handles suspending and resuming threads, and so the rest of
 the MPS does not need to worry about it.
 
 The MPS can make multiple sequential, overlapping, or nested calls to
@@ -148,7 +148,7 @@ protection at any time.
 However, as a performance-improving hysteresis, the shield defers
 re-protection, maintaining a queue of segments that require attention
 before mutator threads are resumed (`.impl.delay`_).  While a segment is
-in the queue, it has ``seg->queued`` set to TRUE.
+in the queue, it has ``seg->queued`` set true.
 
 This hysteresis allows the MPS to proceed with garbage collection
 during a pause without actually setting hardware protection until it
@@ -157,8 +157,8 @@ systems where the protection is expensive and poorly implemented, such
 as OS X.
 
 The queue also ensures that no memory protection system calls will be
-needed if a complete collection cycle occurs during one pause,
-allowing the MPS to operate in a non-incremental mode.
+needed for incremental garbage collection if a complete collection
+cycle occurs during one pause.
 
 
 Implementation
@@ -200,9 +200,6 @@ _`.def.outside`: Being outside the shield is being between calls to
 inside the shield is being between calls to ``ShieldEnter`` and
 ``ShieldLeave``.  [In a multi-threaded MPS this would be per-thread.
 RB 2016-03-18]
-
-_`.def.suspended`: Suspended is true iff the mutator is
-suspended. [Between calls to ThreadSuspend and ThreadResume?]
 
 _`.def.shielded`: A segment is shielded if the shield mode is
 non-zero. [As set by ShieldRaise.]
@@ -248,8 +245,8 @@ Proof Hints
 
 Hints at proofs of properties from invariants.
 
-_`.proof.outside`: .inv.outside.running directly ensures .prop.outside
-running.
+_`.proof.outside`: `.inv.outside.running`_ directly ensures
+`.prop.outside.running`_.
 
 _`.proof.sync`: As the depth of a segment cannot be negative
 
@@ -257,14 +254,13 @@ _`.proof.sync`: As the depth of a segment cannot be negative
   |   ⇒ for all segments, depth = 0
   |   ⇒ all segs are synced (by .inv.unsynced.depth)
 
-_`.proof.access`: If the mutator is running then all segs must be synced
-(.inv.unsynced.suspend).  Which means that the hardware protection
-(.prot mode) must reflect the software protection (shield mode).
-Hence all shielded memory will be hardware protected while the mutator
-is running.  This ensures .prop.mutator.access.
-
-_`.proof.inside`: .inv.prot.shield and .inv.expose.prot ensure
-.prop.inside.access.
+_`.proof.access`: If the mutator is running then all segs must be
+synced (`.inv.unsynced.suspend`_).  Which means that the hardware
+protection (protection mode) must reflect the software protection
+(shield mode).  Hence all shielded memory will be hardware protected
+while the mutator is running.  This ensures `.prop.mutator.access`_.
+_`.proof.inside`: `.inv.prot.shield`_ and `.inv.expose.prot`_ ensure
+`.prop.inside.access`_.
 
 
 Initial ideas
