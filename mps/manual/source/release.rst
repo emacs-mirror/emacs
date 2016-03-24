@@ -141,6 +141,11 @@ Other changes
 
    .. _job003938: https://www.ravenbrook.com/project/mps/issue/job003938/
 
+#. The MPS is less aggressive in its use of hardware memory protection
+   to maintain :term:`write barrier` to speed up future collections.
+   This is particularly important for OS X, where memory protection is
+   poorly implemented.  See job003371_ and job003975_.
+
 #. The MPS coalesces memory protection, reducing the number of system
    calls. This drastically improves real run time on operating systems
    where memory protection is poorly implemented, such as OS X, but
@@ -149,6 +154,7 @@ Other changes
 
    .. _job003371: http://www.ravenbrook.com/project/mps/issue/job003371/
    .. _job003975: http://www.ravenbrook.com/project/mps/issue/job003975/
+
 
 .. _release-notes-1.114:
 

@@ -149,6 +149,7 @@ static Res SegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   seg->grey = TraceSetEMPTY;
   seg->pm = AccessSetEMPTY;
   seg->sm = AccessSetEMPTY;
+  seg->defer = WB_DEFER_INIT;
   seg->depth = 0;
   seg->queued = FALSE;
   seg->firstTract = NULL;
@@ -745,6 +746,7 @@ Bool SegCheck(Seg seg)
     /* write shielded. */
     /* CHECKL(seg->_summary == RefSetUNIV || (seg->_sm & AccessWRITE)); */
     /* @@@@ What can be checked about the read barrier? */
+    /* TODO: Need gcSegCheck?  What does RankSet imply about being a gcSeg? */
   }
   return TRUE;
 }
@@ -1329,6 +1331,16 @@ static void gcSegSetRankSet(Seg seg, RankSet rankSet)
 }
 
 
+static void gcSegSyncWriteBarrier(Seg seg, Arena arena)
+{
+  /* Can't check seg -- this function enforces invariants tested by SegCheck. */
+  if (SegSummary(seg) == RefSetUNIV)
+    ShieldLower(arena, seg, AccessWRITE);
+  else
+    ShieldRaise(arena, seg, AccessWRITE);
+}
+
+
 /* gcSegSetSummary -- GCSeg method to change the summary on a segment
  *
  * In fact, we only need to raise the write barrier if the
@@ -1341,7 +1353,6 @@ static void gcSegSetRankSet(Seg seg, RankSet rankSet)
 static void gcSegSetSummary(Seg seg, RefSet summary)
 {
   GCSeg gcseg;
-  RefSet oldSummary;
   Arena arena;
 
   AVERT_CRITICAL(Seg, seg);                 /* .seg.method.check */
@@ -1350,19 +1361,11 @@ static void gcSegSetSummary(Seg seg, RefSet summary)
   AVER_CRITICAL(&gcseg->segStruct == seg);
 
   arena = PoolArena(SegPool(seg));
-  oldSummary = gcseg->summary;
   gcseg->summary = summary;
 
   AVER(seg->rankSet != RankSetEMPTY);
 
-  /* Note: !RefSetSuper is a test for a strict subset */
-  if (!RefSetSuper(summary, RefSetUNIV)) {
-    if (RefSetSuper(oldSummary, RefSetUNIV))
-      ShieldRaise(arena, seg, AccessWRITE);
-  } else {
-    if (!RefSetSuper(oldSummary, RefSetUNIV))
-      ShieldLower(arena, seg, AccessWRITE);
-  }
+  gcSegSyncWriteBarrier(seg, arena);
 }
 
 
@@ -1371,7 +1374,6 @@ static void gcSegSetSummary(Seg seg, RefSet summary)
 static void gcSegSetRankSummary(Seg seg, RankSet rankSet, RefSet summary)
 {
   GCSeg gcseg;
-  Bool wasShielded, willbeShielded;
   Arena arena;
 
   AVERT_CRITICAL(Seg, seg);                    /* .seg.method.check */
@@ -1387,17 +1389,11 @@ static void gcSegSetRankSummary(Seg seg, RankSet rankSet, RefSet summary)
 
   arena = PoolArena(SegPool(seg));
 
-  wasShielded = (seg->rankSet != RankSetEMPTY && gcseg->summary != RefSetUNIV);
-  willbeShielded = (rankSet != RankSetEMPTY && summary != RefSetUNIV);
-
   seg->rankSet = BS_BITFIELD(Rank, rankSet);
   gcseg->summary = summary;
 
-  if (willbeShielded && !wasShielded) {
-    ShieldRaise(arena, seg, AccessWRITE);
-  } else if (wasShielded && !willbeShielded) {
-    ShieldLower(arena, seg, AccessWRITE);
-  }
+  if (rankSet != RankSetEMPTY)
+    gcSegSyncWriteBarrier(seg, arena);
 }
 
 
