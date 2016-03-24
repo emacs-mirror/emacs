@@ -38,4 +38,5 @@ Design
     thread-manager
     type
     vm
+    write-barrier
     writef

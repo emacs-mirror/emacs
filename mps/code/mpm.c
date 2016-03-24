@@ -89,6 +89,11 @@ Bool MPMCheck(void)
    * <design/sp/#sol.depth.constraint>. */
   CHECKL(StackProbeDEPTH * sizeof(Word) < PageSize());
 
+  /* Check these values will fit in their bitfield. */
+  CHECKL(WB_DEFER_INIT  <= ((1ul << WB_DEFER_BITS) - 1));
+  CHECKL(WB_DEFER_DELAY <= ((1ul << WB_DEFER_BITS) - 1));
+  CHECKL(WB_DEFER_HIT   <= ((1ul << WB_DEFER_BITS) - 1));
+
   return TRUE;
 }
 
@@ -615,15 +620,18 @@ Res WriteF_firstformat_v(mps_lib_FILE *stream, Count depth,
 
 size_t StringLength(const char *s)
 {
-  size_t i;
+  size_t i = 0;
 
   AVER(s != NULL);
 
-  for(i = 0; s[i] != '\0'; i++)
-    NOOP;
-  return(i);
+  while (s[i] != '\0')
+    ++i;
+  
+  return i;
 }
 
+
+#if 0 /* This code is currently not in use in the MPS */
 
 /* StringEqual -- slow substitute for (strcmp == 0) */
 
@@ -644,6 +652,8 @@ Bool StringEqual(const char *s1, const char *s2)
   }
   return TRUE;
 }
+
+#endif /* not currently in use */
 
 
 /* Random -- a random number generator

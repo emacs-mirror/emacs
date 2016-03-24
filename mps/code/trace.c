@@ -1116,6 +1116,7 @@ static Res traceScanSegRes(TraceSet ts, Rank rank, Arena arena, Seg seg)
   Bool wasTotal;
   ZoneSet white;
   Res res;
+  RefSet summary;
 
   /* The reason for scanning a segment is that it's grey. */
   AVER(TraceSetInter(ts, SegGrey(seg)) != TraceSetEMPTY);
@@ -1162,15 +1163,31 @@ static Res traceScanSegRes(TraceSet ts, Rank rank, Arena arena, Seg seg)
      */
     AVER(RefSetSub(ScanStateUnfixedSummary(ss), SegSummary(seg)));
 
-    if(res != ResOK || !wasTotal) {
-      /* scan was partial, so... */
-      /* scanned summary should be ORed into segment summary. */
-      SegSetSummary(seg, RefSetUnion(SegSummary(seg), ScanStateSummary(ss)));
+    /* Write barrier deferral -- see design.mps.write-barrier.deferral. */
+    /* Did the segment refer to the white set? */
+    if (ZoneSetInter(ScanStateUnfixedSummary(ss), white) == ZoneSetEMPTY) {
+      /* Boring scan.  One step closer to raising the write barrier. */
+      if (seg->defer > 0)
+        --seg->defer;
     } else {
-      /* all objects on segment have been scanned, so... */
-      /* scanned summary should replace the segment summary. */
-      SegSetSummary(seg, ScanStateSummary(ss));
+      /* Interesting scan. Defer raising the write barrier. */
+      if (seg->defer < WB_DEFER_DELAY)
+        seg->defer = WB_DEFER_DELAY;
     }
+
+    /* Only apply the write barrier if it is not deferred. */
+    if (seg->defer == 0) {
+      /* If we scanned every reference in the segment then we have a
+         complete summary we can set. Otherwise, we just have
+         information about more zones that the segment refers to. */
+      if (res == ResOK && wasTotal)
+        summary = ScanStateSummary(ss);
+      else
+        summary = RefSetUnion(SegSummary(seg), ScanStateSummary(ss));
+    } else {
+      summary = RefSetUNIV;
+    }
+    SegSetSummary(seg, summary);
 
     ScanStateFinish(ss);
   }
@@ -1212,24 +1229,34 @@ static Res traceScanSeg(TraceSet ts, Rank rank, Arena arena, Seg seg)
 void TraceSegAccess(Arena arena, Seg seg, AccessSet mode)
 {
   Res res;
+  AccessSet shieldHit;
+  Bool readHit, writeHit;
 
   AVERT(Arena, arena);
   AVERT(Seg, seg);
   AVERT(AccessSet, mode);
 
+  shieldHit = BS_INTER(mode, SegSM(seg));
+  readHit = BS_INTER(shieldHit, AccessREAD) != AccessSetEMPTY;
+  writeHit = BS_INTER(shieldHit, AccessWRITE) != AccessSetEMPTY;
+
   /* If it's a read access, then the segment must be grey for a trace */
   /* which is flipped. */
-  AVER((mode & SegSM(seg) & AccessREAD) == 0
-       || TraceSetInter(SegGrey(seg), arena->flippedTraces) != TraceSetEMPTY);
+  AVER(!readHit ||
+       TraceSetInter(SegGrey(seg), arena->flippedTraces) != TraceSetEMPTY);
 
   /* If it's a write access, then the segment must have a summary that */
   /* is smaller than the mutator's summary (which is assumed to be */
   /* RefSetUNIV). */
-  AVER((mode & SegSM(seg) & AccessWRITE) == 0 || SegSummary(seg) != RefSetUNIV);
+  AVER(!writeHit || SegSummary(seg) != RefSetUNIV);
 
   EVENT3(TraceAccess, arena, seg, mode);
 
-  if((mode & SegSM(seg) & AccessREAD) != 0) {   /* read barrier? */
+  /* Write barrier deferral -- see design.mps.write-barrier.deferral. */
+  if (writeHit)
+    seg->defer = WB_DEFER_HIT;
+
+  if (readHit) {
     Trace trace;
     TraceId ti;
     Rank rank;
@@ -1263,11 +1290,11 @@ void TraceSegAccess(Arena arena, Seg seg, AccessSet mode)
 
   /* The write barrier handling must come after the read barrier, */
   /* because the latter may set the summary and raise the write barrier. */
-  if((mode & SegSM(seg) & AccessWRITE) != 0)      /* write barrier? */
+  if (writeHit)
     SegSetSummary(seg, RefSetUNIV);
 
   /* The segment must now be accessible. */
-  AVER((mode & SegSM(seg)) == AccessSetEMPTY);
+  AVER(BS_INTER(mode, SegSM(seg)) == AccessSetEMPTY);
 }
 
 
@@ -1472,7 +1499,7 @@ Res TraceScanArea(ScanState ss, Word *base, Word *limit,
      it's safe to accumulate now so that we can tail-call
      scan_area. */
   ss->scannedSize += AddrOffset(base, limit);
-  
+
   return scan_area(&ss->ss_s, base, limit, closure);
 }
 

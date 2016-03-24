@@ -543,9 +543,6 @@ void (ShieldRaise)(Arena arena, Seg seg, AccessSet mode)
   SHIELD_AVERT(Seg, seg);
   AVERT(AccessSet, mode);
 
-  /* ShieldRaise does not nest. */
-  AVER(BS_INTER(SegSM(seg), mode) == AccessSetEMPTY);
-
   /* design.mps.shield.inv.prot.shield preserved */
   shieldSetSM(ArenaShield(arena), seg, BS_UNION(SegSM(seg), mode));
   
@@ -569,7 +566,6 @@ void (ShieldLower)(Arena arena, Seg seg, AccessSet mode)
   shield = ArenaShield(arena);
   SHIELD_AVERT(Seg, seg);
   AVERT(AccessSet, mode);
-  AVER(BS_INTER(SegSM(seg), mode) == mode);
 
   /* SegIsSynced(seg) is not changed by the following preserving
      design.mps.shield.inv.unsynced.suspended and
