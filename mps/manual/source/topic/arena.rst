@@ -150,9 +150,9 @@ Client arenas
 
     * :c:macro:`MPS_KEY_ARENA_GRAIN_SIZE` (type :c:type:`size_t`,
       default 8192) is the granularity with which the arena will
-      manage memory internally. It must be a power of 2. Larger
-      granularity reduces overheads, but increases
-      :term:`fragmentation` and :term:`retention`.
+      manage memory internally. It must be a power of 2, and at least
+      ``sizeof(void *)``. Larger granularity reduces overheads, but
+      increases :term:`fragmentation` and :term:`retention`.
 
     * :c:macro:`MPS_KEY_PAUSE_TIME` (type :c:type:`double`, default
       0.1) is the maximum time, in seconds, that operations within the
