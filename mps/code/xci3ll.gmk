@@ -1,54 +1,34 @@
 # -*- makefile -*-
 #
-# ll.gmk: GNUMAKEFILE FRAGMENT FOR CLANG/LLVM
+# xci3ll.gmk: BUILD FOR MAC OS X/i386/Clang PLATFORM
 #
 # $Id$
 # Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
 #
-# This file is included by platform makefiles that use the Clang/LLVM
-# compiler.  It defines the compiler-specific variables that the
-# common makefile fragment (<code/comm.gmk>) requires.
+# .prefer.xcode: The documented and preferred way to develop the MPS
+# for this platform is to use the Xcode project (mps.xcodeproj). This
+# makefile provides a way to compile the MPS one source file at a
+# time, rather than all at once via mps.c (which can hide errors due
+# to missing headers).
 
-CC = clang
-CFLAGSDEBUG = -O0 -g3
-CFLAGSOPT = -O2 -g3
-CFLAGSCOMPILER := \
-	-Waggregate-return \
-	-Wall \
-	-Wcast-qual \
-	-Wconversion \
-	-Wduplicate-enum \
-	-Werror \
-	-Wextra \
-	-Winline \
-	-Wmissing-prototypes \
-	-Wmissing-variable-declarations \
-	-Wnested-externs \
-	-Wno-extended-offsetof \
-	-Wpointer-arith \
-	-Wshadow \
-	-Wstrict-aliasing=2 \
-	-Wstrict-prototypes \
-	-Wunreachable-code \
-	-Wwrite-strings
-CFLAGSCOMPILERSTRICT := -std=c89 -pedantic
+PFM = xci3ll
 
-# A different set of compiler flags for less strict compilation, for
-# instance when we need to #include a third-party header file that
-# won't fly with -ansi -pedantic.  Use sparingly!
-CFLAGSCOMPILERLAX :=
+MPMPF = \
+    lockix.c \
+    prmci3xc.c \
+    proti3.c \
+    protix.c \
+    protxc.c \
+    span.c \
+    ssixi3.c \
+    thxc.c \
+    vmix.c
 
-# clang -MM generates a dependency line of the form:
-#   thing.o : thing.c ...
-# The sed line converts this into:
-#   <pfm>/<variety>/thing.o <pfm>/<variety>/thing.d : thing.c ...
-# If interrupted, this is liable to leave a zero-length file behind.
+include ll.gmk
 
-define gendep
-	$(SHELL) -ec "$(CC) $(CFLAGSSTRICT) -MM $< | \
-		sed '/:/s!$*.o!$(@D)/& $(@D)/$*.d!' > $@"
-	[ -s $@ ] || rm -f $@
-endef
+CC = clang -arch i386
+
+include comm.gmk
 
 
 # C. COPYRIGHT AND LICENSE

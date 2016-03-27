@@ -172,6 +172,15 @@ extern Res WriteF_firstformat_v(mps_lib_FILE *stream, Count depth,
 extern size_t StringLength(const char *s);
 extern Bool StringEqual(const char *s1, const char *s2);
 
+extern unsigned Random32(void);
+extern Word RandomWord(void);
+
+typedef Compare QuickSortCompare(void *left, void *right,
+                                 void *closure);
+extern void QuickSort(void *array[], Count length,
+		      QuickSortCompare compare, void *closure,
+		      SortStruct *sortStruct);
+
 
 /* Version Determination
  *
@@ -527,6 +536,7 @@ extern Ring GlobalsRememberedSummaryRing(Globals);
 #define ArenaGreyRing(arena, rank) (&(arena)->greyRing[rank])
 #define ArenaPoolRing(arena) (&ArenaGlobals(arena)->poolRing)
 #define ArenaChunkTree(arena) RVALUE((arena)->chunkTree)
+#define ArenaShield(arena)      (&(arena)->shieldStruct)
 #define ArenaSegSplay(arena)    (&(arena)->segSplayTreeStruct)
 
 extern Bool ArenaGrainSizeCheck(Size size);
@@ -910,14 +920,19 @@ extern ZoneSet ZoneSetBlacklist(Arena arena);
 
 /* Shield Interface -- see <code/shield.c> */
 
+extern void ShieldInit(Shield shield);
+extern void ShieldFinish(Shield shield);
+extern Bool ShieldCheck(Shield shield);
+extern Res ShieldDescribe(Shield shield, mps_lib_FILE *stream, Count depth);
+extern void ShieldDestroyQueue(Shield shield, Arena arena);
 extern void (ShieldRaise)(Arena arena, Seg seg, AccessSet mode);
 extern void (ShieldLower)(Arena arena, Seg seg, AccessSet mode);
 extern void (ShieldEnter)(Arena arena);
 extern void (ShieldLeave)(Arena arena);
 extern void (ShieldExpose)(Arena arena, Seg seg);
 extern void (ShieldCover)(Arena arena, Seg seg);
-extern void (ShieldSuspend)(Arena arena);
-extern void (ShieldResume)(Arena arena);
+extern void (ShieldHold)(Arena arena);
+extern void (ShieldRelease)(Arena arena);
 extern void (ShieldFlush)(Arena arena);
 
 #if defined(SHIELD)
@@ -933,8 +948,8 @@ extern void (ShieldFlush)(Arena arena);
   BEGIN UNUSED(arena); UNUSED(seg); END
 #define ShieldCover(arena, seg) \
   BEGIN UNUSED(arena); UNUSED(seg); END
-#define ShieldSuspend(arena) BEGIN UNUSED(arena); END
-#define ShieldResume(arena) BEGIN UNUSED(arena); END
+#define ShieldHold(arena) BEGIN UNUSED(arena); END
+#define ShieldRelease(arena) BEGIN UNUSED(arena); END
 #define ShieldFlush(arena) BEGIN UNUSED(arena); END
 #else
 #error "No shield configuration."

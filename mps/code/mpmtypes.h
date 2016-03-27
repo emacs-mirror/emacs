@@ -112,6 +112,7 @@ typedef struct RangeStruct *Range;      /* <design/range/> */
 typedef struct LandStruct *Land;        /* <design/land/> */
 typedef struct LandClassStruct *LandClass; /* <design/land/> */
 typedef unsigned FindDelete;            /* <design/land/> */
+typedef struct ShieldStruct *Shield; /* design.mps.shield */
 
 
 /* Arena*Method -- see <code/mpmst.h#ArenaClassStruct> */

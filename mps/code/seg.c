@@ -1,7 +1,7 @@
 /* seg.c: SEGMENTS
  *
  * $Id$
- * Copyright (c) 2001-2015 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  * .design: The design for this module is <design/seg/>.
  *
@@ -16,14 +16,6 @@
  * all current GC features, and providing full backwards compatibility
  * with "old-style" segments.  It may be subclassed by clients of the
  * module.
- *
- * TRANSGRESSIONS
- *
- * .check.shield: The "pm", "sm", and "depth" fields are not checked by
- * SegCheck, because I haven't spent time working out the invariants.
- * We should certainly work them out, by studying <code/shield.c>, and
- * assert things about shielding, protection, shield cache consistency,
- * etc.  richard 1997-04-03
  */
 
 #include "tract.h"
@@ -159,7 +151,9 @@ static Res SegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   seg->grey = TraceSetEMPTY;
   seg->pm = AccessSetEMPTY;
   seg->sm = AccessSetEMPTY;
+  seg->defer = WB_DEFER_INIT;
   seg->depth = 0;
+  seg->queued = FALSE;
   RingInit(SegPoolRing(seg));
   TreeInit(SegTree(seg));
   seg->treeZones = ZoneSetEMPTY; /* set by SegUpdate */
@@ -196,6 +190,11 @@ static void SegFinish(Seg seg)
   AVERT(SegClass, class);
 
   arena = PoolArena(SegPool(seg));
+
+  /* TODO: It would be good to avoid deprotecting segments eagerly
+     when we free them, especially if they're going to be
+     unmapped. This would require tracking of protection independent
+     of the existence of a SegStruct. */
   if (seg->sm != AccessSetEMPTY) {
     ShieldLower(arena, seg, seg->sm);
   }
@@ -210,7 +209,10 @@ static void SegFinish(Seg seg)
   seg->rankSet = RankSetEMPTY;
 
   /* See <code/shield.c#shield.flush> */
-  ShieldFlush(PoolArena(SegPool(seg)));
+  AVER(seg->depth == 0);
+  if (seg->queued)
+    ShieldFlush(PoolArena(SegPool(seg)));
+  AVER(!seg->queued);
 
   /* IMPORTANT: Keep in sync with segTrivMerge. */
   b = SplayTreeDelete(ArenaSegSplay(arena), SegTree(seg));
@@ -717,7 +719,8 @@ Res SegMerge(Seg *mergedSegReturn, Seg segLo, Seg segHi)
   AVER(SegBase(segHi) == SegLimit(segLo));
   arena = PoolArena(SegPool(segLo));
 
-  ShieldFlush(arena);  /* see <design/seg/#split-merge.shield> */
+  if (segLo->queued || segHi->queued)
+    ShieldFlush(arena);  /* see <design/seg/#split-merge.shield> */
 
   /* Invoke class-specific methods to do the merge */
   res = class->merge(segLo, segHi, base, mid, limit);
@@ -769,7 +772,9 @@ Res SegSplit(Seg *segLoReturn, Seg *segHiReturn, Seg seg, Addr at)
    * the split point. */
   AVER(SegBuffer(seg) == NULL || BufferLimit(SegBuffer(seg)) <= at);
 
-  ShieldFlush(arena);  /* see <design/seg/#split-merge.shield> */
+  if (seg->queued)
+    ShieldFlush(arena);  /* see <design/seg/#split-merge.shield> */
+  AVER(SegSM(seg) == SegPM(seg));
 
   /* Allocate the new segment object from the control pool */
   res = ControlAlloc(&p, arena, class->size);
@@ -824,8 +829,11 @@ Bool SegCheck(Seg seg)
   arena = PoolArena(pool);
   CHECKU(Arena, arena);
   CHECKD_NOSIG(Range, SegRange(seg));
+  /* FIXME: Use RangeIsAligned. */
   CHECKL(AddrIsArenaGrain(SegBase(seg), arena));
   CHECKL(AddrIsArenaGrain(SegLimit(seg), arena));
+  /* Can't BoolCheck seg->queued because compilers warn about that on
+     single-bit fields. */
 
   /* The segment must belong to some pool, so it should be on a */
   /* pool's segment ring.  (Actually, this isn't true just after */
@@ -834,7 +842,16 @@ Bool SegCheck(Seg seg)
 
   CHECKD_NOSIG(Ring, &seg->poolRing);
 
-  /* "pm", "sm", and "depth" not checked.  See .check.shield. */
+  /* Shield invariants -- see design.mps.shield. */
+   
+  /* The protection mode is never more than the shield mode
+     (design.mps.shield.inv.prot.shield). */
+  CHECKL(BS_DIFF(seg->pm, seg->sm) == 0);
+
+  /* All unsynced segments have positive depth or are in the queue
+     (design.mps.shield.inv.unsynced.depth). */
+  CHECKL(seg->sm == seg->pm || seg->depth > 0 || seg->queued);
+  
   CHECKL(RankSetCheck(seg->rankSet));
   if (seg->rankSet == RankSetEMPTY) {
     /* <design/seg/#field.rankSet.empty>: If there are no refs */
@@ -853,6 +870,7 @@ Bool SegCheck(Seg seg)
     /* write shielded. */
     /* CHECKL(seg->_summary == RefSetUNIV || (seg->_sm & AccessWRITE)); */
     /* @@@@ What can be checked about the read barrier? */
+    /* TODO: Need gcSegCheck?  What does RankSet imply about being a gcSeg? */
   }
   return TRUE;
 }
@@ -1013,9 +1031,11 @@ static Res segTrivMerge(Seg seg, Seg segHi,
   AVER(seg->pm == segHi->pm);
   AVER(seg->sm == segHi->sm);
   AVER(seg->depth == segHi->depth);
+  AVER(seg->queued == segHi->queued);
   /* Neither segment may be exposed, or in the shield cache */
   /* See <design/seg/#split-merge.shield> & <code/shield.c#def.depth> */
   AVER(seg->depth == 0);
+  AVER(!seg->queued);
 
   /* no need to update fields which match. See .similar */
 
@@ -1050,7 +1070,6 @@ static Res segNoSplit(Seg seg, Seg segHi,
   AVER(SegLimit(seg) == limit);
   NOTREACHED;
   return ResFAIL;
-
 }
 
 
@@ -1075,9 +1094,10 @@ static Res segTrivSplit(Seg seg, Seg segHi,
   AVER(SegBase(seg) == base);
   AVER(SegLimit(seg) == limit);
 
-  /* Segment may not be exposed, or in the shield cache */
+  /* Segment may not be exposed, or in the shield queue */
   /* See <design/seg/#split-merge.shield> & <code/shield.c#def.depth> */
   AVER(seg->depth == 0);
+  AVER(!seg->queued);
  
   /* Full initialization for segHi. Just modify seg. Note that this
      does not affect seg's position in the segment tree, since it is
@@ -1093,6 +1113,7 @@ static Res segTrivSplit(Seg seg, Seg segHi,
   segHi->pm = seg->pm;
   segHi->sm = seg->sm;
   segHi->depth = seg->depth;
+  segHi->queued = seg->queued;
   segHi->class = seg->class;
   RingInit(SegPoolRing(segHi));
   TreeInit(SegTree(segHi));
@@ -1406,6 +1427,16 @@ static void gcSegSetRankSet(Seg seg, RankSet rankSet)
 }
 
 
+static void gcSegSyncWriteBarrier(Seg seg, Arena arena)
+{
+  /* Can't check seg -- this function enforces invariants tested by SegCheck. */
+  if (SegSummary(seg) == RefSetUNIV)
+    ShieldLower(arena, seg, AccessWRITE);
+  else
+    ShieldRaise(arena, seg, AccessWRITE);
+}
+
+
 /* gcSegSetSummary -- GCSeg method to change the summary on a segment
  *
  * In fact, we only need to raise the write barrier if the
@@ -1418,7 +1449,6 @@ static void gcSegSetRankSet(Seg seg, RankSet rankSet)
 static void gcSegSetSummary(Seg seg, RefSet summary)
 {
   GCSeg gcseg;
-  RefSet oldSummary;
   Arena arena;
 
   AVERT_CRITICAL(Seg, seg);                 /* .seg.method.check */
@@ -1427,19 +1457,11 @@ static void gcSegSetSummary(Seg seg, RefSet summary)
   AVER_CRITICAL(&gcseg->segStruct == seg);
 
   arena = PoolArena(SegPool(seg));
-  oldSummary = gcseg->summary;
   gcseg->summary = summary;
 
   AVER(seg->rankSet != RankSetEMPTY);
 
-  /* Note: !RefSetSuper is a test for a strict subset */
-  if (!RefSetSuper(summary, RefSetUNIV)) {
-    if (RefSetSuper(oldSummary, RefSetUNIV))
-      ShieldRaise(arena, seg, AccessWRITE);
-  } else {
-    if (!RefSetSuper(oldSummary, RefSetUNIV))
-      ShieldLower(arena, seg, AccessWRITE);
-  }
+  gcSegSyncWriteBarrier(seg, arena);
 }
 
 
@@ -1448,7 +1470,6 @@ static void gcSegSetSummary(Seg seg, RefSet summary)
 static void gcSegSetRankSummary(Seg seg, RankSet rankSet, RefSet summary)
 {
   GCSeg gcseg;
-  Bool wasShielded, willbeShielded;
   Arena arena;
 
   AVERT_CRITICAL(Seg, seg);                    /* .seg.method.check */
@@ -1464,17 +1485,11 @@ static void gcSegSetRankSummary(Seg seg, RankSet rankSet, RefSet summary)
 
   arena = PoolArena(SegPool(seg));
 
-  wasShielded = (seg->rankSet != RankSetEMPTY && gcseg->summary != RefSetUNIV);
-  willbeShielded = (rankSet != RankSetEMPTY && summary != RefSetUNIV);
-
   seg->rankSet = BS_BITFIELD(Rank, rankSet);
   gcseg->summary = summary;
 
-  if (willbeShielded && !wasShielded) {
-    ShieldRaise(arena, seg, AccessWRITE);
-  } else if (wasShielded && !willbeShielded) {
-    ShieldLower(arena, seg, AccessWRITE);
-  }
+  if (rankSet != RankSetEMPTY)
+    gcSegSyncWriteBarrier(seg, arena);
 }
 
 
@@ -1773,7 +1788,7 @@ void SegClassMixInNoSplitMerge(SegClass class)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2015 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
