@@ -223,7 +223,7 @@ Pool classes
 ------------
 
 These files implement the supported :term:`pool classes`. Some of
-these (MFS, MV) are used internally by the MPS; the others are
+these (MFS, MVFF) are used internally by the MPS; the others are
 available for :term:`client programs` only. See :ref:`pool`.
 
 ===========  ==================================================================

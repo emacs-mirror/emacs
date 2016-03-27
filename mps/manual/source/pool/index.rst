@@ -14,7 +14,6 @@ Pool reference
    awl
    lo
    mfs
-   mv
    mvff
    mvt
    snc
