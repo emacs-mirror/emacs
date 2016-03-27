@@ -142,30 +142,41 @@ Splay tree
 
 _`.impl.splay`: The CBS is implemented using a splay tree (see
 design.mps.splay_). Each splay tree node is embedded in a block
-structure that represents a semi-open address range. The key passed
-for comparison is the base of another range.
+structure with a semi-open address range (design.mps.range_). The
+splay tree is ordered by the range base address.
 
 .. _design.mps.splay: splay
+.. _design.mps.range: range
 
 _`.impl.splay.fast-find`: In the ``CBSFastLandClass`` class,
 ``cbsFindFirst()`` and ``cbsFindLast()`` use the update/refresh
 facility of splay trees to store, in each block, an accurate summary
 of the maximum block size in the tree rooted at the corresponding
 splay node. This allows rapid location of the first or last suitable
-block, and very rapid failure if there is no suitable block.
+block, and very rapid failure if there is no suitable block.  For
+example, this is used in the implementation of allocation in the MVFF
+pool class (design.mps.poolmvff_).
+
+.. _design.mps.poolmvff: poolmvff
 
 _`.impl.find-largest`: ``cbsFindLargest()`` simply finds out the size
 of the largest block in the CBS from the root of the tree, using
 ``SplayRoot()``, and does ``SplayFindFirst()`` for a block of that
 size. This takes time proportional to the logarithm of the size of the
 free list, so it's about the best you can do without maintaining a
-separate priority queue, just to do ``cbsFindLargest()``.
+separate priority queue, just to do ``cbsFindLargest()``.  For
+example, this is used in the implementation of allocation buffers in
+the MVFF pool class (design.mps.poolmvff_).
 
 _`.impl.splay.zones`: In the ``CBSZonedLandClass`` class,
 ``cbsFindInZones()`` uses the update/refresh facility of splay trees
 to store, in each block, the union of the zones of the ranges in the
 tree rooted at the corresponding splay node. This allows rapid
-location of a block in a set of zones.
+location of a block in a set of zones.  For example, this is used to
+allocate segments in particular zones in the arena to optimised
+garbage collection (see design.mps.critical-path_).
+
+.. _design.mps.critical-path: critical-path
 
 
 Low memory behaviour
@@ -182,11 +193,11 @@ CBS or deleted from it, and the call to ``LandInsert()`` or
 The CBS block
 .............
 
-_`.impl.cbs.block`: The block contains a base-limit pair and a splay
+_`.impl.cbs.block`: The block contains a non-empty range and a splay
 tree node.
 
-_`.impl.cbs.block.special`: The base and limit may be equal if the
-block is halfway through being deleted.
+_`.impl.cbs.block.special`: The range may be empty if the block is
+halfway through being deleted.
 
 _`.impl.cbs.block.special.just`: This conflates values and status, but
 is justified because block size is very important.
@@ -226,9 +237,21 @@ this would make coalescence slightly less eager, by up to
 ``(word-width - 1)``.
 
 _`.future.iterate.and.delete`: It would be possible to provide an
-implementation for the ``LandIterateAndDelete()`` generic function by
-calling ``TreeToVine()`` first, and then iterating over the vine
-(where deletion is straightforward).
+implementation for the ``LandIterateAndDelete()`` generic function
+using ``TreeTraverseAndDelete``, which calls ``TreeToVine()`` first,
+iterates over the vine (where deletion is straightforward), and then
+rebalances the tree.  Note that this is little better than using
+``SplayFirst`` and ``SplayNext``.
+
+_`.future.lazy-coalesce`: It's long been observed that small blocks
+are often freed and then reallocated, so that coalescing them is a
+waste of time.  It might be worth considering how a splay tree could
+implement a lazy coalescing scheme, where blocks are coalesced with
+their adjacent neighbours during the search only if they aren't big
+enough.  This would break `.impl.find-largest`_ and so might be best
+done as a different kind of land.  On the other hand, since the MPS
+does not use client memory to store the tree, eager coalescing avoids
+allocation.
 
 
 Risks
@@ -275,6 +298,10 @@ Document History
 - 2014-04-01 GDR_ Moved generic material to design.mps.land_.
   Documented new keyword arguments.
 
+- 2016-03-27 RB_ Adding cross references to usage. Updating future
+  with reference to ``TreeTraverseAndDelete``. Adding future idea
+  about lazy coalescing.
+  
 .. _RB: http://www.ravenbrook.com/consultants/rb/
 .. _GDR: http://www.ravenbrook.com/consultants/gdr/
 
