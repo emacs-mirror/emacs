@@ -186,8 +186,9 @@ static void test(mps_arena_class_t arena_class, mps_arg_s arena_args[],
                mps_class_mvff(), args), "stress MVFF");
   } MPS_ARGS_END(args);
 
-  /* IWBN to test MVFFDebug, but the MPS doesn't support debugging APs, */
-  /* yet (MV Debug works here, because it fakes it through PoolAlloc). */
+  /* IWBN to test MVFFDebug, but the MPS doesn't support debugging
+     APs, yet (MV Debug works here, because it fakes it through
+     PoolAlloc).  See job003995. */
 
   MPS_ARGS_BEGIN(args) {
     mps_align_t align = rnd_align(sizeof(void *), arena_grain_size);
