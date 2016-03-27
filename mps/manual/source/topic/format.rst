@@ -368,6 +368,12 @@ Format methods
         object format has a non-zero
         :c:macro:`MPS_KEY_FMT_HEADER_SIZE`.
 
+   .. note::
+
+        The MPS will ask for padding objects of any size aligned to
+        the pool alignment, no matter what size objects the pool
+        holds.  For example, a pool holding only two-word objects may
+        still be asked to create padding objects 2048 bytes long.
 
 .. c:type:: mps_res_t (*mps_fmt_scan_t)(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
 

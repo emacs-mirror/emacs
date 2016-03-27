@@ -48,7 +48,6 @@ Old design
     root
     scan
     seg
-    shield
     strategy
     telemetry
     tests

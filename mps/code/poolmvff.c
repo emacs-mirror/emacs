@@ -486,10 +486,10 @@ static Res MVFFInit(Pool pool, ArgList args)
   AVER(spare <= 1.0);           /* .arg.check */
   AVERT(Align, align);
   /* This restriction on the alignment is necessary because of the use
-   * of a Freelist to store the free address ranges in low-memory
-   * situations. <design/freelist/#impl.grain.align>.
-   */
+     of a Freelist to store the free address ranges in low-memory
+     situations. <design/freelist/#impl.grain.align>. */
   AVER(AlignIsAligned(align, FreelistMinimumAlignment));
+  AVER(align <= ArenaGrainSize(arena));
   AVERT(Bool, slotHigh);
   AVERT(Bool, arenaHigh);
   AVERT(Bool, firstFit);
