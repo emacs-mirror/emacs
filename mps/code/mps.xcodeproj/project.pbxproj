@@ -5324,7 +5324,7 @@
 				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				GCC_C_LANGUAGE_STANDARD = ansi;
+				GCC_C_LANGUAGE_STANDARD = c89;
 				GCC_OPTIMIZATION_LEVEL = s;
 				GCC_PREPROCESSOR_DEFINITIONS = CONFIG_VAR_RASH;
 				GCC_TREAT_IMPLICIT_FUNCTION_DECLARATIONS_AS_ERRORS = YES;
@@ -5351,7 +5351,24 @@
 				SDKROOT = macosx;
 				SYMROOT = xc;
 				WARNING_CFLAGS = (
-					"-pedantic\n-Waggregate-return\n-Wall\n-Wcast-qual\n-Wconversion\n-Wduplicate-enum\n-Wextra\n-Winline\n-Wmissing-prototypes\n-Wmissing-variable-declarations\n-Wnested-externs\n-Wno-extended-offsetof\n-Wpointer-arith\n-Wshadow\n-Wstrict-aliasing=2\n-Wstrict-prototypes\n-Wunreachable-code\n-Wwrite-strings\n",
+					"-pedantic",
+					"-Waggregate-return",
+					"-Wall",
+					"-Wcast-qual",
+					"-Wconversion",
+					"-Wduplicate-enum",
+					"-Wextra",
+					"-Winline",
+					"-Wmissing-prototypes",
+					"-Wmissing-variable-declarations",
+					"-Wnested-externs",
+					"-Wno-extended-offsetof",
+					"-Wpointer-arith",
+					"-Wshadow",
+					"-Wstrict-aliasing=2",
+					"-Wstrict-prototypes",
+					"-Wunreachable-code",
+					"-Wwrite-strings",
 				);
 			};
 			name = RASH;
@@ -5746,7 +5763,7 @@
 				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				GCC_C_LANGUAGE_STANDARD = ansi;
+				GCC_C_LANGUAGE_STANDARD = c89;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = CONFIG_VAR_COOL;
 				GCC_TREAT_IMPLICIT_FUNCTION_DECLARATIONS_AS_ERRORS = YES;
@@ -5774,7 +5791,24 @@
 				SDKROOT = macosx;
 				SYMROOT = xc;
 				WARNING_CFLAGS = (
-					"-pedantic\n-Waggregate-return\n-Wall\n-Wcast-qual\n-Wconversion\n-Wduplicate-enum\n-Wextra\n-Winline\n-Wmissing-prototypes\n-Wmissing-variable-declarations\n-Wnested-externs\n-Wno-extended-offsetof\n-Wpointer-arith\n-Wshadow\n-Wstrict-aliasing=2\n-Wstrict-prototypes\n-Wunreachable-code\n-Wwrite-strings\n",
+					"-pedantic",
+					"-Waggregate-return",
+					"-Wall",
+					"-Wcast-qual",
+					"-Wconversion",
+					"-Wduplicate-enum",
+					"-Wextra",
+					"-Winline",
+					"-Wmissing-prototypes",
+					"-Wmissing-variable-declarations",
+					"-Wnested-externs",
+					"-Wno-extended-offsetof",
+					"-Wpointer-arith",
+					"-Wshadow",
+					"-Wstrict-aliasing=2",
+					"-Wstrict-prototypes",
+					"-Wunreachable-code",
+					"-Wwrite-strings",
 				);
 			};
 			name = Debug;
@@ -5788,7 +5822,7 @@
 				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				GCC_C_LANGUAGE_STANDARD = ansi;
+				GCC_C_LANGUAGE_STANDARD = c89;
 				GCC_OPTIMIZATION_LEVEL = s;
 				GCC_PREPROCESSOR_DEFINITIONS = CONFIG_VAR_HOT;
 				GCC_TREAT_IMPLICIT_FUNCTION_DECLARATIONS_AS_ERRORS = YES;
@@ -5815,7 +5849,24 @@
 				SDKROOT = macosx;
 				SYMROOT = xc;
 				WARNING_CFLAGS = (
-					"-pedantic\n-Waggregate-return\n-Wall\n-Wcast-qual\n-Wconversion\n-Wduplicate-enum\n-Wextra\n-Winline\n-Wmissing-prototypes\n-Wmissing-variable-declarations\n-Wnested-externs\n-Wno-extended-offsetof\n-Wpointer-arith\n-Wshadow\n-Wstrict-aliasing=2\n-Wstrict-prototypes\n-Wunreachable-code\n-Wwrite-strings\n",
+					"-pedantic",
+					"-Waggregate-return",
+					"-Wall",
+					"-Wcast-qual",
+					"-Wconversion",
+					"-Wduplicate-enum",
+					"-Wextra",
+					"-Winline",
+					"-Wmissing-prototypes",
+					"-Wmissing-variable-declarations",
+					"-Wnested-externs",
+					"-Wno-extended-offsetof",
+					"-Wpointer-arith",
+					"-Wshadow",
+					"-Wstrict-aliasing=2",
+					"-Wstrict-prototypes",
+					"-Wunreachable-code",
+					"-Wwrite-strings",
 				);
 			};
 			name = Release;

@@ -29,12 +29,14 @@ Design
     prot
     range
     ring
-    sp
+    shield
     sig
+    sp
     splay
     stack-scan
     testthr
     thread-manager
     type
     vm
+    write-barrier
     writef
