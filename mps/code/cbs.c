@@ -94,16 +94,16 @@ static Bool CBSBlockCheck(CBSBlock block)
 static Compare cbsCompare(Tree tree, TreeKey key)
 {
   Addr base1, base2, limit2;
-  CBSBlock cbsBlock;
+  CBSBlock block;
 
   AVERT_CRITICAL(Tree, tree);
   AVER_CRITICAL(tree != TreeEMPTY);
   AVER_CRITICAL(key != NULL);
 
   base1 = baseOfKey(key);
-  cbsBlock = cbsBlockOfTree(tree);
-  base2 = CBSBlockBase(cbsBlock);
-  limit2 = CBSBlockLimit(cbsBlock);
+  block = cbsBlockOfTree(tree);
+  base2 = CBSBlockBase(block);
+  limit2 = CBSBlockLimit(block);
 
   if (base1 < base2)
     return CompareLESS;
@@ -561,7 +561,7 @@ static Res cbsDelete(Range rangeReturn, Land land, Range range)
 {
   CBS cbs;
   Res res;
-  CBSBlock cbsBlock;
+  CBSBlock block;
   Tree tree;
   Addr base, limit, oldBase, oldLimit;
   Size oldSize;
@@ -580,33 +580,33 @@ static Res cbsDelete(Range rangeReturn, Land land, Range range)
     res = ResFAIL;
     goto failSplayTreeSearch;
   }
-  cbsBlock = cbsBlockOfTree(tree);
+  block = cbsBlockOfTree(tree);
 
-  if (limit > CBSBlockLimit(cbsBlock)) {
+  if (limit > CBSBlockLimit(block)) {
     res = ResFAIL;
     goto failLimitCheck;
   }
 
-  oldBase = CBSBlockBase(cbsBlock);
-  oldLimit = CBSBlockLimit(cbsBlock);
-  oldSize = CBSBlockSize(cbsBlock);
+  oldBase = CBSBlockBase(block);
+  oldLimit = CBSBlockLimit(block);
+  oldSize = CBSBlockSize(block);
   RangeInit(rangeReturn, oldBase, oldLimit);
 
   if (base == oldBase && limit == oldLimit) {
     /* entire block */
-    cbsBlockDelete(cbs, cbsBlock);
+    cbsBlockDelete(cbs, block);
 
   } else if (base == oldBase) {
     /* remaining fragment at right */
     AVER(limit < oldLimit);
-    CBSBlockSetBase(cbsBlock, limit);
-    cbsBlockShrunk(cbs, cbsBlock, oldSize);
+    CBSBlockSetBase(block, limit);
+    cbsBlockShrunk(cbs, block, oldSize);
 
   } else if (limit == oldLimit) {
     /* remaining fragment at left */
     AVER(base > oldBase);
-    CBSBlockSetLimit(cbsBlock, base);
-    cbsBlockShrunk(cbs, cbsBlock, oldSize);
+    CBSBlockSetLimit(block, base);
+    cbsBlockShrunk(cbs, block, oldSize);
 
   } else {
     /* two remaining fragments. shrink block to represent fragment at
@@ -620,8 +620,8 @@ static Res cbsDelete(Range rangeReturn, Land land, Range range)
     if (res != ResOK) {
       goto failAlloc;
     }
-    CBSBlockSetLimit(cbsBlock, base);
-    cbsBlockShrunk(cbs, cbsBlock, oldSize);
+    CBSBlockSetLimit(block, base);
+    cbsBlockShrunk(cbs, block, oldSize);
     cbsBlockInsert(cbs, newBlock);
   }
 
@@ -738,9 +738,9 @@ static Bool cbsIterateVisit(Tree tree, void *closure)
 {
   CBSIterateClosure *my = closure;
   Land land = my->land;
-  CBSBlock cbsBlock = cbsBlockOfTree(tree);
+  CBSBlock block = cbsBlockOfTree(tree);
   RangeStruct range;
-  RangeInit(&range, CBSBlockBase(cbsBlock), CBSBlockLimit(cbsBlock));
+  RangeInit(&range, CBSBlockBase(block), CBSBlockLimit(block));
   return my->visitor(land, &range, my->visitorClosure);
 }
 
@@ -785,16 +785,16 @@ static Bool cbsIterateAndDeleteVisit(Tree tree, void *closure)
   CBSIterateAndDeleteClosure *my = closure;
   Land land = my->land;
   CBS cbs = cbsOfLand(land);
-  CBSBlock cbsBlock = cbsBlockOfTree(tree);
+  CBSBlock block = cbsBlockOfTree(tree);
   Bool deleteNode = FALSE;
   RangeStruct range;
 
-  RangeInit(&range, CBSBlockBase(cbsBlock), CBSBlockLimit(cbsBlock));
+  RangeInit(&range, CBSBlockBase(block), CBSBlockLimit(block));
   if (my->cont)
     my->cont = my->visitor(&deleteNode, land, &range,
                            my->visitorClosure);
   if (deleteNode)
-    cbsBlockDestroy(cbs, cbsBlock);
+    cbsBlockDestroy(cbs, block);
   return deleteNode;
 }
 
