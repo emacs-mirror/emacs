@@ -18,6 +18,8 @@
 
 #define RangeBase(range) ((range)->base)
 #define RangeLimit(range) ((range)->limit)
+#define RangeSetBase(range, addr) BEGIN ((range)->base = (addr)); END
+#define RangeSetLimit(range, addr) BEGIN ((range)->limit = (addr)); END
 #define RangeSize(range) (AddrOffset(RangeBase(range), RangeLimit(range)))
 #define RangeContains(range, addr) ((range)->base <= (addr) && (addr) < (range)->limit)
 #define RangeIsEmpty(range) (RangeSize(range) == 0)
