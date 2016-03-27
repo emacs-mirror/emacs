@@ -253,13 +253,15 @@ typedef struct SegStruct {      /* segment structure */
   Tract firstTract;             /* first tract of segment */
   RingStruct poolRing;          /* link in list of segs in pool */
   Addr limit;                   /* limit of segment */
-  unsigned depth : ShieldDepthWIDTH; /* see <code/shield.c#def.depth> */
+  unsigned depth : ShieldDepthWIDTH; /* see design.mps.shield.def.depth */
+  BOOLFIELD(queued);            /* in shield queue? */
   AccessSet pm : AccessLIMIT;   /* protection mode, <code/shield.c> */
   AccessSet sm : AccessLIMIT;   /* shield mode, <code/shield.c> */
   TraceSet grey : TraceLIMIT;   /* traces for which seg is grey */
   TraceSet white : TraceLIMIT;  /* traces for which seg is white */
   TraceSet nailed : TraceLIMIT; /* traces for which seg has nailed objects */
   RankSet rankSet : RankLIMIT;  /* ranks of references in this seg */
+  unsigned defer : WB_DEFER_BITS; /* defer write barrier for this many scans */
 } SegStruct;
 
 
@@ -676,9 +678,46 @@ typedef struct FreelistStruct {
 } FreelistStruct;
 
 
+/* SortStruct -- extra memory required by sorting
+ *
+ * See QuickSort in mpm.c.  This exists so that the caller can make
+ * the choice about where to allocate the memory, since the MPS has to
+ * operate in tight stack constraints -- see design.mps.sp.
+ */
+
+typedef struct SortStruct {
+  struct {
+    Index left, right;
+  } stack[MPS_WORD_WIDTH];
+} SortStruct;
+
+
+/* ShieldStruct -- per-arena part of the shield
+ *
+ * See design.mps.shield, impl.c.shield.
+ */
+
+#define ShieldSig      ((Sig)0x519581E1) /* SIGnature SHEILd */
+
+typedef struct ShieldStruct {
+  Sig sig;           /* design.mps.sig */
+  Bool inside;       /* design.mps.shield.def.inside */
+  Seg *queue;        /* queue of unsynced segs */
+  Count length;      /* number of elements in shield queue */
+  Index next;        /* next free element in shield queue */
+  Index limit;       /* high water mark for cache usage */
+  Count depth;       /* sum of depths of all segs */
+  Count unsynced;    /* number of unsynced segments */
+  Count holds;       /* number of holds */
+  Bool suspended;    /* mutator suspended? */
+  SortStruct sortStruct; /* workspace for queue sort */
+} ShieldStruct;
+
+
 /* ArenaStruct -- generic arena
  *
- * See <code/arena.c>.  */
+ * See <code/arena.c>.
+ */
 
 #define ArenaSig        ((Sig)0x519A6E4A) /* SIGnature ARENA */
 
@@ -736,15 +775,9 @@ typedef struct mps_arena_s {
   RingStruct threadRing;        /* ring of attached threads */
   RingStruct deadRing;          /* ring of dead threads */
   Serial threadSerial;          /* serial of next thread */
- 
-  /* shield fields (<code/shield.c>) */
-  Bool insideShield;             /* TRUE if and only if inside shield */
-  Seg shCache[ShieldCacheSIZE];  /* Cache of unsynced segs */
-  Size shCacheI;                 /* index into cache */
-  Size shCacheLimit;             /* High water mark for cache usage */
-  Size shDepth;                  /* sum of depths of all segs */
-  Bool suspended;                /* TRUE iff mutator suspended */
 
+  ShieldStruct shieldStruct;
+  
   /* trace fields (<code/trace.c>) */
   TraceSet busyTraces;          /* set of running traces */
   TraceSet flippedTraces;       /* set of running and flipped traces */
