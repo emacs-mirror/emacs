@@ -75,12 +75,13 @@ static Bool CBSBlockCheck(CBSBlock block)
 {
   UNUSED(block); /* Required because there is no signature */
   CHECKL(block != NULL);
+
   /* Can't use CHECKD_NOSIG because TreeEMPTY is NULL. */
   CHECKL(TreeCheck(cbsBlockTree(block)));
 
-  /* If the block is in the middle of being deleted, */
-  /* the pointers will be equal. */
-  CHECKL(CBSBlockBase(block) <= CBSBlockLimit(block));
+  /* If the block is in the middle of being deleted, the range might be empty. */
+  CHECKD_NOSIG(Range, &block->rangeStruct);
+
   /* Can't check maxSize because it may be invalid at the time */
   return TRUE;
 }
