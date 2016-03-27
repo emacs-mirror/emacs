@@ -111,7 +111,7 @@ following optional keyword arguments:
   the block descriptor pool automatically extends itself when out of
   space; if ``FALSE``, the pool returns ``ResLIMIT`` in this case.
   (This feature is used by the arena to bootstrap its own CBS of free
-  memory.)
+  memory. See design.mps.bootstrap.land.sol.pool.)
 
 
 Limitations
