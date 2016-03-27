@@ -107,6 +107,20 @@ Addr (RangeLimit)(Range range)
   return RangeLimit(range);
 }
 
+void (RangeSetBase)(Range range, Addr addr)
+{
+  AVERT(Range, range);
+  AVER(addr >= RangeBase(range));
+  RangeSetBase(range, addr);
+}
+
+void (RangeSetLimit)(Range range, Addr addr)
+{
+  AVERT(Range, range);
+  AVER(addr <= RangeLimit(range));
+  RangeSetLimit(range, addr);
+}
+
 Size (RangeSize)(Range range)
 {
   AVERT(Range, range);
