@@ -25,6 +25,7 @@
 #include "mpscmv.h"
 #include "dbgpool.h"
 #include "poolmfs.h"
+#include "mpscmvff.h"
 #include "mpm.h"
 
 SRCID(poolmv, "$Id$");
@@ -260,7 +261,10 @@ static Res MVInit(Pool pool, ArgList args)
   if (ArgPick(&arg, args, MPS_KEY_MAX_SIZE))
     maxSize = arg.val.size;
 
+  arena = PoolArena(pool);
+
   AVERT(Align, align);
+  AVER(align <= ArenaGrainSize(arena));
   AVER(extendBy > 0);
   AVER(avgSize > 0);
   AVER(avgSize <= extendBy);
@@ -269,7 +273,6 @@ static Res MVInit(Pool pool, ArgList args)
 
   pool->alignment = align;
   mv = PoolMV(pool);
-  arena = PoolArena(pool);
 
   /* At 100% fragmentation we will need one block descriptor for every other */
   /* allocated block, or (extendBy/avgSize)/2 descriptors.  See note 1. */
