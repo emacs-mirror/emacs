@@ -35,6 +35,8 @@ extern Bool RangesNest(Range outer, Range inner);
 extern Bool RangesEqual(Range range1, Range range2);
 extern Addr (RangeBase)(Range range);
 extern Addr (RangeLimit)(Range range);
+extern void (RangeSetBase)(Range range, Addr addr);
+extern void (RangeSetLimit)(Range range, Addr addr);
 extern Size (RangeSize)(Range range);
 extern void RangeCopy(Range to, Range from);
 
