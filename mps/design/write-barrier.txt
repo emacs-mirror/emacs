@@ -1,0 +1,178 @@
+.. mode: -*- rst -*-
+
+Write barrier
+=============
+
+:Tag: design.mps.write-barrier
+:Author: Richard Brooksby
+:Date: 2016-03-18
+:Status: incomplete design
+:Revision: $Id$
+:Copyright: See `Copyright and License`_.
+:Index terms: pair: write barrier; design
+
+
+Introduction
+------------
+
+.intro: This document explains the design of the write barrer of the
+Memory Pool System (MPS).
+
+.readership: This document is intended for developers of the MPS.
+
+
+Overview
+--------
+
+.overview: The MPS uses a combination of hardware memory protection
+and BIBOP techniques to maintain an approximate remembered set.  The
+remembered set keeps track of areas of memory that refer to each
+other, so that the MPS can avoid scanning areas that are irrelevant
+during a garbage collection.  The MPS write barrier is implemented by
+a one-word "summary" of the zones referenced by a segment.  That
+summary can be compared with the "white set" of a trace by a simple
+logical AND operation.
+
+
+Write Barrier Processes
+-----------------------
+
+.scan.summary: As the MPS scans a segment during garbage collection,
+it accumulates a summary of references.  This summary is represented
+by single word ``ZoneSet``, derived from the bit patterns of the
+references.  After the scan the MPS can decide to store the summary
+with the segment, and use it in future garbage collections to avoid
+future scans.
+
+If the summary does not intersect any of the zones containing
+condemned objects, the MPS does not have to scan them in order to
+determine if those objects are live.
+
+The mutator could update the references in a segment and make the
+summary invalid.  To avoid this, when the MPS stores a summary, it
+raises a write barrier on the segment memory.  If the mutator does
+update the segment, the barrier is hit, and the MPS resets the
+summary, so that the segment will be scanned in future.
+
+
+[At this point I was interrupted by a man from Porlock.]
+
+
+Write barrier deferral
+----------------------
+
+.deferral: Both scanning and the write barrier cost CPU time, and
+these must be balanced.  There is no point spending 1000 CPU units
+raising a write barrier to avoid 10 CPU units of scanning cost.
+Therefore we do not raise the write barrier immediately.
+
+.deferral.heuristic: We apply a simple heuristic: A segment which was
+found to be "interesting" while scanning is likely to be interesting
+again, and so raising the write barrier is not worthwhile.  If we scan
+a segment several times and find it "boring" then we raise the barrier
+to avoid future boring scans.
+
+.def.boring: A scan is "boring" if it was unnecessary for a garbage
+collection because it found no references to condemned objects.
+
+.def.interesting: A scan is "interesting" if it was not boring
+(.def.boring).  Note that this does not mean it preserved comdemned
+objects, only that we would have scanned it even if we had had the
+scan summary beforehand.
+
+.deferral.count: We store a deferral count with the segment.  The
+count is decremented after each boring scan (.def.boring).  The write
+barrier is raised only when the count reaches zero.
+
+.deferral.reset: The count is reset after three events:
+
+  1. segment creation (``WB_DEFER_INIT``)
+
+  2. an interesting scan (``WB_DEFER_DELAY``)
+
+  3. a barrier hit (``WB_DEFER_HIT``)
+
+.deferral.dabble: The set of objects condemend by the garbage
+collector changes, and so does what is interesting or boring.  For
+example, a collection of a nursery space in zone 3 might be followed
+by a collection of a top generation in zone 7.  This will upset
+.deferral.heuristic somewhat.  We assume that the garbage collector
+will spend most of its time repeatedly collecting the same zones.
+
+
+Improvements
+------------
+
+.improv.by-os: The overheads hardware barriers varies widely between
+operating systems.  On Windows it is very cheap to change memory
+protection and to handle protecion faults.  On OS X it is very
+expensive.  The balance between barriers and scanning work is
+different.  We should measure the relative costs and tune the deferral
+for each separately.
+
+.improv.balance: Hardware costs of write barriers vary by OS, but
+scanning costs vary depending on many factors including client code.
+The MPS could dynamically measure these costs, perhaps using fast
+cycle counters such as RDTSC, and use this to dynamically balance the
+write barrier deferral.
+
+
+References
+----------
+
+.. [job003975] "Poor performance due to imbalance between protection
+               and scanning costs"; Richard Brooksby; Ravenbrook
+               Limited; 2016-03-11;
+               <http://www.ravenbrook.com/project/mps/issue/job003975>.
+
+               
+Document History
+----------------
+
+- 2016-03-19 RB_ Created during preparation of
+  branch/2016-03-13/defer-write-barrier for [job003975]_.
+
+.. _RB: http://www.ravenbrook.com/consultants/rb/
+
+
+Copyright and License
+---------------------
+
+Copyright © 2016 Ravenbrook Limited <http://www.ravenbrook.com/>. All
+rights reserved.  This is an open source license. Contact Ravenbrook
+for commercial licensing options.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+#. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+#. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+#. Redistributions in any form must be accompanied by information on how
+   to obtain complete source code for this software and any
+   accompanying software that uses this software.  The source code must
+   either be included in the distribution or be available for no more than
+   the cost of distribution plus a nominal fee, and must be freely
+   redistributable under reasonable conditions.  For an executable file,
+   complete source code means the source code for all modules it contains.
+   It does not include source code for modules or files that typically
+   accompany the major components of the operating system on which the
+   executable file runs.
+
+**This software is provided by the copyright holders and contributors
+"as is" and any express or implied warranties, including, but not
+limited to, the implied warranties of merchantability, fitness for a
+particular purpose, or non-infringement, are disclaimed.  In no event
+shall the copyright holders and contributors be liable for any direct,
+indirect, incidental, special, exemplary, or consequential damages
+(including, but not limited to, procurement of substitute goods or
+services; loss of use, data, or profits; or business interruption)
+however caused and on any theory of liability, whether in contract,
+strict liability, or tort (including negligence or otherwise) arising in
+any way out of the use of this software, even if advised of the
+possibility of such damage.**
