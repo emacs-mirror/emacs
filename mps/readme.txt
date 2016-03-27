@@ -77,7 +77,7 @@ The MPS is currently supported for deployment on:
 - Linux 2.4 or later, on IA-32 using GCC and on x86-64 using GCC or
   Clang/LLVM;
 
-- FreeBSD 7 or later, on IA-32 and x86-64, using GCC;
+- FreeBSD 7 or later, on IA-32 and x86-64, using GCC or Clang/LLVM;
 
 - OS X 10.4 or later, on IA-32 and x86-64, using Clang/LLVM.
 
@@ -132,6 +132,7 @@ Document History
                    brought to you in glorious reStructuredText.
 2014-01-13  GDR_   Updated supported platforms.
 2014-07-04  GDR_   Link to hotfix for WOW64 bug.
+2016-03-24  RB_    Adding support for FreeBSD with Clang/LLVM.
 ==========  =====  ======================================================
 
 .. _GDR: mailto:gdr@ravenbrook.com
@@ -143,7 +144,7 @@ Document History
 Copyright and Licence
 ---------------------
 
-Copyright (C) 2001-2014 Ravenbrook Limited. All rights reserved. 
+Copyright (C) 2001-2016 Ravenbrook Limited. All rights reserved. 
 <http://www.ravenbrook.com/>. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

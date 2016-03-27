@@ -483,8 +483,8 @@
 
 /* Shield Configuration -- see <code/shield.c> */
 
-#define ShieldCacheSIZE ((size_t)16)
-#define ShieldDepthWIDTH (4)
+#define ShieldQueueLENGTH  512  /* initial length of shield queue */
+#define ShieldDepthWIDTH     4  /* log2(max nested exposes + 1) */
 
 
 /* VM Configuration -- see <code/vm*.c> */
@@ -666,6 +666,25 @@
     {  8 * 1024, 0.85 }, /* nursery */ \
     { 36 * 1024, 0.45 }  /* second gen, after which dynamic */ \
   }
+
+
+/* Write barrier deferral
+ *
+ * See design.mps.write-barrier.deferral.
+ *
+ * TODO: These settings were determined by trial and error, but should
+ * be based on measurement of the protection overhead on each
+ * platform.  We know it's extremely different between OS X and
+ * Windows, for example.  See design.mps.write-barrier.improv.by-os.
+ *
+ * TODO: Consider basing the count on the amount of time that has
+ * passed in the mutator rather than the number of scans.
+ */
+
+#define WB_DEFER_BITS  2  /* bitfield width for deferral count */
+#define WB_DEFER_INIT  3  /* boring scans after new segment */
+#define WB_DEFER_DELAY 3  /* boring scans after interesting scan */
+#define WB_DEFER_HIT   1  /* boring scans after barrier hit */
 
 
 #endif /* config_h */
