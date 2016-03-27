@@ -18,8 +18,8 @@
 
 #define RangeBase(range) RVALUE((range)->base)
 #define RangeLimit(range) RVALUE((range)->limit)
-#define RangeSetBase(range, _base) BEGIN (range)->base = (_base); END
-#define RangeSetLimit(range, _limit) BEGIN (range)->limit = (_limit); END
+#define RangeSetBase(range, addr) BEGIN ((range)->base = (addr)); END
+#define RangeSetLimit(range, addr) BEGIN ((range)->limit = (addr)); END
 #define RangeSize(range) (AddrOffset(RangeBase(range), RangeLimit(range)))
 #define RangeContains(range, addr) ((range)->base <= (addr) && (addr) < (range)->limit)
 #define RangeIsEmpty(range) (RangeSize(range) == 0)
@@ -35,6 +35,8 @@ extern Bool RangesNest(Range outer, Range inner);
 extern Bool RangesEqual(Range range1, Range range2);
 extern Addr (RangeBase)(Range range);
 extern Addr (RangeLimit)(Range range);
+extern void (RangeSetBase)(Range range, Addr addr);
+extern void (RangeSetLimit)(Range range, Addr addr);
 extern Size (RangeSize)(Range range);
 extern void RangeCopy(Range to, Range from);
 
