@@ -259,10 +259,10 @@ static Res MVTInit(Pool pool, ArgList args)
 
   AVERT(Align, align);
   /* This restriction on the alignment is necessary because of the use
-   * of a Freelist to store the free address ranges in low-memory
-   * situations. See <design/freelist/#impl.grain.align>.
-   */
+     of a Freelist to store the free address ranges in low-memory
+     situations. See <design/freelist/#impl.grain.align>. */
   AVER(AlignIsAligned(align, FreelistMinimumAlignment));
+  AVER(align <= ArenaGrainSize(arena));
   AVER(0 < minSize);
   AVER(minSize <= meanSize);
   AVER(meanSize <= maxSize);

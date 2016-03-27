@@ -115,12 +115,11 @@ MVT interface
     optional :term:`keyword arguments`:
 
     * :c:macro:`MPS_KEY_ALIGN` (type :c:type:`mps_align_t`, default is
-      :c:macro:`MPS_PF_ALIGN`) is the
-      :term:`alignment` of addresses for allocation (and freeing) in
-      the pool. If an unaligned size is passed to :c:func:`mps_alloc` or
-      :c:func:`mps_free`, it will be rounded up to the pool's alignment.
-      The minimum alignment supported by pools of this class is
-      ``sizeof(void *)``.
+      :c:macro:`MPS_PF_ALIGN`) is the :term:`alignment` of the
+      addresses allocated (and freed) in the pool. The minimum
+      alignment supported by pools of this class is ``sizeof(void *)``
+      and the maximum is the arena grain size
+      (see :c:macro:`MPS_KEY_ARENA_GRAIN_SIZE`).
 
     * :c:macro:`MPS_KEY_MIN_SIZE` (type :c:type:`size_t`, default is
       :c:macro:`MPS_PF_ALIGN`) is the
