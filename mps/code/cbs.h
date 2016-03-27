@@ -18,8 +18,7 @@
 typedef struct CBSBlockStruct *CBSBlock;
 typedef struct CBSBlockStruct {
   TreeStruct treeStruct;
-  Addr base;
-  Addr limit;
+  RangeStruct rangeStruct;
 } CBSBlockStruct;
 
 typedef struct CBSFastBlockStruct *CBSFastBlock;

@@ -39,6 +39,9 @@ void RangeInitSize(Range range, Addr base, Size size)
 void RangeFinish(Range range)
 {
   AVERT(Range, range);
+  /* Make range invalid and recognisably so. */
+  range->limit = (Addr)0;
+  range->base = (Addr)0xF191583D;
 }
 
 Res RangeDescribe(Range range, mps_lib_FILE *stream, Count depth)
