@@ -147,6 +147,7 @@ MPMCOMMON=\
     [mpm] \
     [mpsi] \
     [nailboard] \
+    [node] \
     [policy] \
     [pool] \
     [poolabs] \
