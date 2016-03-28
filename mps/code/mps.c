@@ -65,6 +65,7 @@
 #include "boot.c"
 #include "meter.c"
 #include "tree.c"
+#include "node.c"
 #include "splay.c"
 #include "cbs.c"
 #include "ss.c"
