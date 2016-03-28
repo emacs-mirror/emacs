@@ -15,15 +15,9 @@
 #include "range.h"
 #include "splay.h"
 
-typedef struct CBSBlockStruct *CBSBlock;
-typedef struct CBSBlockStruct {
-  TreeStruct treeStruct;
-  RangeStruct rangeStruct;
-} CBSBlockStruct;
-
 typedef struct CBSFastBlockStruct *CBSFastBlock;
 typedef struct CBSFastBlockStruct {
-  struct CBSBlockStruct cbsBlockStruct;
+  struct NodeStruct nodeStruct;
   Size maxSize; /* accurate maximum block size of sub-tree */
 } CBSFastBlockStruct;
 
