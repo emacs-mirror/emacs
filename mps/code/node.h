@@ -14,6 +14,12 @@
 #define NodeOfTree(tree) PARENT(NodeStruct, treeStruct, tree)
 #define NodeOfRange(range) PARENT(NodeStruct, rangeStruct, range)
 
+#define NodeBase(block) RangeBase(NodeRange(block))
+#define NodeLimit(block) RangeLimit(NodeRange(block))
+#define NodeSetBase(block, addr) RangeSetBase(NodeRange(block), addr)
+#define NodeSetLimit(block, addr) RangeSetLimit(NodeRange(block), addr)
+#define NodeSize(block) RangeSize(NodeRange(block))
+
 extern void NodeInit(Node node, Addr base, Addr limit);
 extern Bool NodeCheck(Node node);
 extern void NodeFinish(Node node);

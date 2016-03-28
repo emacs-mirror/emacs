@@ -41,13 +41,6 @@ extern Size (RangeSize)(Range range);
 extern void RangeCopy(Range to, Range from);
 
 
-/* Types */
-
-typedef struct RangeStruct {
-  Addr base;
-  Addr limit;
-} RangeStruct;
-
 #endif /* range_h */
 
 
