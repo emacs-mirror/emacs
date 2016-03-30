@@ -153,7 +153,6 @@ MPMCOMMON=\
     [poolmfs] \
     [poolmrg] \
     [poolmv2] \
-    [poolmv] \
     [protocol] \
     [range] \
     [ref] \

@@ -38,7 +38,6 @@ Old design
     poollo
     poolmfs
     poolmrg
-    poolmv
     poolmvt
     poolmvff
     protli

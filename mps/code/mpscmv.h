@@ -2,6 +2,8 @@
  *
  * $Id$
  * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ *
+ * DEPRECATED: Suggested replacement is MVFF, but see the MPS manual.
  */
 
 #ifndef mpscmv_h

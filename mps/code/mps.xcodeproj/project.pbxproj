@@ -1565,7 +1565,6 @@
 		31160DB21899540D0071EB17 /* poollo.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = poollo.txt; path = ../design/poollo.txt; sourceTree = "<group>"; };
 		31160DB31899540D0071EB17 /* poolmfs.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = poolmfs.txt; path = ../design/poolmfs.txt; sourceTree = "<group>"; };
 		31160DB41899540D0071EB17 /* poolmrg.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = poolmrg.txt; path = ../design/poolmrg.txt; sourceTree = "<group>"; };
-		31160DB51899540D0071EB17 /* poolmv.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = poolmv.txt; path = ../design/poolmv.txt; sourceTree = "<group>"; };
 		31160DB61899540D0071EB17 /* poolmvff.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = poolmvff.txt; path = ../design/poolmvff.txt; sourceTree = "<group>"; };
 		31160DB71899540D0071EB17 /* poolmvt.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = poolmvt.txt; path = ../design/poolmvt.txt; sourceTree = "<group>"; };
 		31160DB81899540D0071EB17 /* prot.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = prot.txt; path = ../design/prot.txt; sourceTree = "<group>"; };
@@ -1638,7 +1637,6 @@
 		311F2F7817398B8E00C15B6A /* th.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = th.h; sourceTree = "<group>"; };
 		311F2F7917398B8E00C15B6A /* thw3.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = thw3.h; sourceTree = "<group>"; };
 		311F2F7A17398B8E00C15B6A /* tract.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = tract.h; sourceTree = "<group>"; };
-		311F2F7B17398E7600C15B6A /* poolmv.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = poolmv.h; sourceTree = "<group>"; };
 		311F2F7C17398E9A00C15B6A /* mpscmv.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mpscmv.h; sourceTree = "<group>"; };
 		3124CAB8156BE3EC00753214 /* awlut */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = awlut; sourceTree = BUILT_PRODUCTS_DIR; };
 		3124CAC2156BE40100753214 /* awlut.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = awlut.c; sourceTree = "<group>"; };
@@ -1722,7 +1720,6 @@
 		31EEAC2C156AB2F200714D05 /* message.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = message.c; sourceTree = "<group>"; };
 		31EEAC2D156AB2F200714D05 /* poolmfs.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = poolmfs.c; sourceTree = "<group>"; };
 		31EEAC2E156AB2F200714D05 /* poolmrg.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = poolmrg.c; sourceTree = "<group>"; };
-		31EEAC2F156AB2F200714D05 /* poolmv.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = poolmv.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
 		31EEAC30156AB2F200714D05 /* ring.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ring.c; sourceTree = "<group>"; };
 		31EEAC31156AB2F200714D05 /* sac.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = sac.c; sourceTree = "<group>"; };
 		31EEAC32156AB2F200714D05 /* shield.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = shield.c; sourceTree = "<group>"; };
@@ -2222,7 +2219,6 @@
 				31160DB21899540D0071EB17 /* poollo.txt */,
 				31160DB31899540D0071EB17 /* poolmfs.txt */,
 				31160DB41899540D0071EB17 /* poolmrg.txt */,
-				31160DB51899540D0071EB17 /* poolmv.txt */,
 				31160DB61899540D0071EB17 /* poolmvff.txt */,
 				31160DB71899540D0071EB17 /* poolmvt.txt */,
 				31942A9B1C8EC446001AAF32 /* prmc.txt */,
@@ -2476,8 +2472,6 @@
 				22FACEDC18880933000FDBC1 /* poolmfs.h */,
 				31EEAC2E156AB2F200714D05 /* poolmrg.c */,
 				22FACEDD18880933000FDBC1 /* poolmrg.h */,
-				31EEAC2F156AB2F200714D05 /* poolmv.c */,
-				311F2F7B17398E7600C15B6A /* poolmv.h */,
 				22FACEDE18880933000FDBC1 /* pooln.c */,
 				22FACEDF18880933000FDBC1 /* pooln.h */,
 				311F2F6D17398B6300C15B6A /* prmci3.h */,
