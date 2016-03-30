@@ -774,12 +774,14 @@ static void sparePageRelease(VMChunk vmChunk, Index pi)
   Chunk chunk = VMChunk2Chunk(vmChunk);
   Arena arena = ChunkArena(chunk);
   Page page = ChunkPage(chunk, pi);
+  Ring spareRing = (Ring)PageIndexBase(chunk, pi);
 
   AVER(PageState(page) == PageStateSPARE);
   AVER(arena->spareCommitted >= ChunkPageSize(chunk));
+  AVERT(Ring, spareRing);
 
   arena->spareCommitted -= ChunkPageSize(chunk);
-  RingRemove(PageSpareRing(page));
+  RingRemove(spareRing);
 }
 
 
@@ -989,14 +991,12 @@ static Size arenaUnmapSpare(Arena arena, Size size, Chunk filter)
   node = &vmArena->spareRing;
   while (RingNext(node) != &vmArena->spareRing && purged < size) {
     Ring next = RingNext(node);
-    Page page = PageOfSpareRing(next);
     Chunk chunk = NULL; /* suppress uninit warning */
-    Bool b;
-    /* Use the fact that the page table resides in the chunk to find the
-       chunk that owns the page. */
-    b = ChunkOfAddr(&chunk, arena, (Addr)page);
+    Bool b = ChunkOfAddr(&chunk, arena, (Addr)next);
     AVER(b);
     if (filter == NULL || chunk == filter) {
+      Index pi = IndexOfAddr(chunk, (Addr)next);
+      Page page = ChunkPage(chunk, pi);
       purged += chunkUnmapAroundPage(chunk, size - purged, page);
       /* chunkUnmapAroundPage must delete the page it's passed from the ring,
          or we can't make progress and there will be an infinite loop */
@@ -1061,15 +1061,16 @@ static void VMFree(Addr base, Size size, Pool pool)
   for(pi = piBase; pi < piLimit; ++pi) {
     Page page = ChunkPage(chunk, pi);
     Tract tract = PageTract(page);
+    Ring spareRing;
+    
     AVER(TractPool(tract) == pool);
-
     TractFinish(tract);
+
     PageSetPool(page, NULL);
     PageSetType(page, PageStateSPARE);
-    /* We must init the page's rings because it is a union with the
-       tract and will contain junk. */
-    RingInit(PageSpareRing(page));
-    RingAppend(&vmArena->spareRing, PageSpareRing(page));
+    spareRing = (Ring)PageIndexBase(chunk, pi);
+    RingInit(spareRing);
+    RingAppend(&vmArena->spareRing, spareRing);
   }
   arena->spareCommitted += ChunkPagesToSize(chunk, piLimit - piBase);
   BTResRange(chunk->allocTable, piBase, piLimit);
