@@ -141,27 +141,6 @@ typedef struct MFSStruct {      /* MFS outer structure */
 } MFSStruct;
 
 
-/* ReservoirStruct -- Reservoir structure
- *
- * .reservoir: See <code/reserv.c>, <design/reservoir/>.
- *
- * The Reservoir structure is declared here because it is in-lined in
- * the arena for storing segments for the low-memory reservoir.  It is
- * implemented as a pool - but doesn't follow the normal pool naming
- * conventions because it's not intended for general use and the use of
- * a pool is an incidental detail.  */
-
-#define ReservoirSig ((Sig)0x5196e599) /* SIGnature REServoir */
-
-typedef struct ReservoirStruct {   /* Reservoir structure */
-  PoolStruct poolStruct;        /* generic pool structure */
-  Tract reserve;                /* linked list of reserve tracts */
-  Size reservoirLimit;          /* desired reservoir size */
-  Size reservoirSize;           /* actual reservoir size */
-  Sig sig;                      /* <design/sig/> */
-} ReservoirStruct;
-
-
 /* MessageClassStruct -- Message Class structure
  *
  * See <design/message/#class.struct> (and <design/message/#message>,
@@ -250,13 +229,15 @@ typedef struct SegStruct {      /* segment structure */
   Tract firstTract;             /* first tract of segment */
   RingStruct poolRing;          /* link in list of segs in pool */
   Addr limit;                   /* limit of segment */
-  unsigned depth : ShieldDepthWIDTH; /* see <code/shield.c#def.depth> */
+  unsigned depth : ShieldDepthWIDTH; /* see design.mps.shield.def.depth */
+  BOOLFIELD(queued);            /* in shield queue? */
   AccessSet pm : AccessLIMIT;   /* protection mode, <code/shield.c> */
   AccessSet sm : AccessLIMIT;   /* shield mode, <code/shield.c> */
   TraceSet grey : TraceLIMIT;   /* traces for which seg is grey */
   TraceSet white : TraceLIMIT;  /* traces for which seg is white */
   TraceSet nailed : TraceLIMIT; /* traces for which seg has nailed objects */
   RankSet rankSet : RankLIMIT;  /* ranks of references in this seg */
+  unsigned defer : WB_DEFER_BITS; /* defer write barrier for this many scans */
 } SegStruct;
 
 
@@ -382,6 +363,7 @@ typedef struct mps_fmt_s {
   Serial serial;                /* from arena->formatSerial */
   Arena arena;                  /* owning arena */
   RingStruct arenaRing;         /* formats are attached to the arena */
+  Count poolCount;              /* number of pools using the format */
   Align alignment;              /* alignment of formatted objects */
   mps_fmt_scan_t scan;
   mps_fmt_skip_t skip;
@@ -462,7 +444,7 @@ typedef struct TraceStruct {
   Size condemned;               /* condemned bytes */
   Size notCondemned;            /* collectable but not condemned */
   Size foundation;              /* initial grey set size */
-  Size rate;                    /* segs to scan per increment */
+  Work quantumWork;             /* tracing work to be done in each poll */
   STATISTIC_DECL(Count greySegCount); /* number of grey segs */
   STATISTIC_DECL(Count greySegMax); /* max number of grey segs */
   STATISTIC_DECL(Count rootScanCount); /* number of roots scanned */
@@ -672,6 +654,42 @@ typedef struct FreelistStruct {
 } FreelistStruct;
 
 
+/* SortStruct -- extra memory required by sorting
+ *
+ * See QuickSort in mpm.c.  This exists so that the caller can make
+ * the choice about where to allocate the memory, since the MPS has to
+ * operate in tight stack constraints -- see design.mps.sp.
+ */
+
+typedef struct SortStruct {
+  struct {
+    Index left, right;
+  } stack[MPS_WORD_WIDTH];
+} SortStruct;
+
+
+/* ShieldStruct -- per-arena part of the shield
+ *
+ * See design.mps.shield, impl.c.shield.
+ */
+
+#define ShieldSig      ((Sig)0x519581E1) /* SIGnature SHEILd */
+
+typedef struct ShieldStruct {
+  Sig sig;           /* design.mps.sig */
+  Bool inside;       /* design.mps.shield.def.inside */
+  Seg *queue;        /* queue of unsynced segs */
+  Count length;      /* number of elements in shield queue */
+  Index next;        /* next free element in shield queue */
+  Index limit;       /* high water mark for cache usage */
+  Count depth;       /* sum of depths of all segs */
+  Count unsynced;    /* number of unsynced segments */
+  Count holds;       /* number of holds */
+  Bool suspended;    /* mutator suspended? */
+  SortStruct sortStruct; /* workspace for queue sort */
+} ShieldStruct;
+
+
 /* MVFFStruct -- MVFF (Manual Variable First Fit) pool outer structure
  *
  * The signature is placed at the end, see
@@ -717,14 +735,13 @@ typedef struct mps_arena_s {
   Bool poolReady;               /* <design/arena/#pool.ready> */
   MVFFStruct controlPoolStruct; /* <design/arena/#pool> */
 
-  ReservoirStruct reservoirStruct; /* <design/reservoir/> */
-
   Size reserved;                /* total reserved address space */
   Size committed;               /* total committed memory */
   Size commitLimit;             /* client-configurable commit limit */
 
   Size spareCommitted;          /* Amount of memory in hysteresis fund */
   Size spareCommitLimit;        /* Limit on spareCommitted */
+  double pauseTime;             /* Maximum pause time, in seconds. */
 
   Shift zoneShift;              /* see also <code/ref.c> */
   Size grainSize;               /* <design/arena/#grain> */
@@ -763,15 +780,9 @@ typedef struct mps_arena_s {
   RingStruct threadRing;        /* ring of attached threads */
   RingStruct deadRing;          /* ring of dead threads */
   Serial threadSerial;          /* serial of next thread */
- 
-  /* shield fields (<code/shield.c>) */
-  Bool insideShield;             /* TRUE if and only if inside shield */
-  Seg shCache[ShieldCacheSIZE];  /* Cache of unsynced segs */
-  Size shCacheI;                 /* index into cache */
-  Size shCacheLimit;             /* High water mark for cache usage */
-  Size shDepth;                  /* sum of depths of all segs */
-  Bool suspended;                /* TRUE iff mutator suspended */
 
+  ShieldStruct shieldStruct;
+  
   /* trace fields (<code/trace.c>) */
   TraceSet busyTraces;          /* set of running traces */
   TraceSet flippedTraces;       /* set of running and flipped traces */
@@ -783,7 +794,7 @@ typedef struct mps_arena_s {
   TraceMessage tMessage[TraceLIMIT];  /* <design/message-gc/> */
 
   /* policy fields */
-  double tracedSize;
+  double tracedWork;
   double tracedTime;
   Clock lastWorldCollect;
 

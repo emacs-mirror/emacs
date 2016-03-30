@@ -269,7 +269,7 @@ Allocation interface
     have to be one of the :term:`size classes` of the cache; nor does
     it have to be aligned.
 
-    ``has_reservoir_permit`` should be false.
+    ``has_reservoir_permit`` is obsolete.  Pass false.
 
     Returns :c:macro:`MPS_RES_OK` if successful: in this case the
     address of the allocated block is ``*p_o``. The allocated block
@@ -320,9 +320,7 @@ Allocation interface
     .. note::
 
         :c:func:`MPS_SAC_ALLOC_FAST` may evaluate its arguments
-        multiple times, except for ``has_reservoir_permit``, which it
-        evaluates at most once, and only if it decides to access the
-        pool.
+        multiple times.
 
 
 .. c:function:: void mps_sac_free(mps_sac_t sac, mps_addr_t p, size_t size)

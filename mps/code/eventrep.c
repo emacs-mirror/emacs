@@ -560,11 +560,6 @@ void EventReplay(Event event, Word etime)
     (void)mps_arena_spare_commit_limit_set((mps_arena_t)entry,
                                            (size_t)event->pw.w1);
   } break;
-  case EventReservoirLimitSet: { /* arena, limit */
-    found = TableLookup(&entry, arenaTable, (TableKey)event->pw.p0);
-    verify(found);
-    mps_reservoir_limit_set((mps_arena_t)entry, (size_t)event->pw.w1);
-  } break;
   case EventVMMap: case EventVMUnmap:
   case EventVMInit: case EventVMFinish:
   case EventArenaWriteFaults:

@@ -1,7 +1,7 @@
 /* prot.h: MEMORY PROTECTION INTERFACE
  *
- * $Id: //info.ravenbrook.com/project/mps/master/code/prot.h#1 $
- * Copyright (c) 2014 Ravenbrook Limited.  See end of file for license.
+ * $Id$
+ * Copyright (c) 2014-2016 Ravenbrook Limited.  See end of file for license.
  *
  * See <design/prot/> for the design of the generic interface including
  * the contracts for these functions.
@@ -40,7 +40,7 @@ extern Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext mfc,
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2014-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

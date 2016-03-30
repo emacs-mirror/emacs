@@ -39,7 +39,6 @@
 #include "locus.c"
 #include "tract.c"
 #include "walk.c"
-#include "reserv.c"
 #include "protocol.c"
 #include "pool.c"
 #include "poolabs.c"

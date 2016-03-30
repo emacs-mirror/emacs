@@ -444,7 +444,7 @@ static Res freelistDelete(Range rangeReturn, Land land, Range range)
 
 
 static Bool freelistIterate(Land land, LandVisitor visitor,
-                            void *closureP, Size closureS)
+                            void *closure)
 {
   Freelist fl;
   FreelistBlock cur, next;
@@ -453,7 +453,7 @@ static Bool freelistIterate(Land land, LandVisitor visitor,
   fl = freelistOfLand(land);
   AVERT(Freelist, fl);
   AVER(FUNCHECK(visitor));
-  /* closureP and closureS are arbitrary */
+  /* closure arbitrary */
 
   for (cur = fl->list; cur != freelistEND; cur = next) {
     RangeStruct range;
@@ -462,7 +462,7 @@ static Bool freelistIterate(Land land, LandVisitor visitor,
      * visitor touches the block. */
     next = freelistBlockNext(cur);
     RangeInit(&range, freelistBlockBase(cur), freelistBlockLimit(fl, cur));
-    cont = (*visitor)(land, &range, closureP, closureS);
+    cont = (*visitor)(land, &range, closure);
     if (!cont)
       return FALSE;
   }
@@ -471,7 +471,7 @@ static Bool freelistIterate(Land land, LandVisitor visitor,
 
 
 static Bool freelistIterateAndDelete(Land land, LandDeleteVisitor visitor,
-                                     void *closureP, Size closureS)
+                                     void *closure)
 {
   Freelist fl;
   FreelistBlock prev, cur, next;
@@ -480,7 +480,7 @@ static Bool freelistIterateAndDelete(Land land, LandDeleteVisitor visitor,
   fl = freelistOfLand(land);
   AVERT(Freelist, fl);
   AVER(FUNCHECK(visitor));
-  /* closureP and closureS are arbitrary */
+  /* closure arbitrary */
 
   prev = freelistEND;
   cur = fl->list;
@@ -492,7 +492,7 @@ static Bool freelistIterateAndDelete(Land land, LandDeleteVisitor visitor,
     next = freelistBlockNext(cur); /* See .next.first. */
     size = freelistBlockSize(fl, cur);
     RangeInit(&range, freelistBlockBase(cur), freelistBlockLimit(fl, cur));
-    cont = (*visitor)(&delete, land, &range, closureP, closureS);
+    cont = (*visitor)(&delete, land, &range, closure);
     if (delete) {
       freelistBlockSetPrevNext(fl, prev, next, -1);
       AVER(fl->size >= size);
@@ -746,24 +746,28 @@ fail:
 /* freelistDescribeVisitor -- visitor method for freelistDescribe
  *
  * Writes a decription of the range into the stream pointed to by
- * closureP.
+ * closure.
  */
 
+typedef struct FreelistDescribeClosureStruct {
+  mps_lib_FILE *stream;
+  Count depth;
+} FreelistDescribeClosureStruct, *FreelistDescribeClosure;
+
 static Bool freelistDescribeVisitor(Land land, Range range,
-                                    void *closureP, Size closureS)
+                                    void *closure)
 {
   Res res;
-  mps_lib_FILE *stream = closureP;
-  Count depth = closureS;
+  FreelistDescribeClosure my = closure;
 
   if (!TESTT(Land, land))
     return FALSE;
   if (!RangeCheck(range))
     return FALSE;
-  if (stream == NULL)
+  if (my->stream == NULL)
     return FALSE;
 
-  res = WriteF(stream, depth,
+  res = WriteF(my->stream, my->depth,
                "[$P,", (WriteFP)RangeBase(range),
                "$P)", (WriteFP)RangeLimit(range),
                " {$U}\n", (WriteFU)RangeSize(range),
@@ -778,6 +782,7 @@ static Res freelistDescribe(Land land, mps_lib_FILE *stream, Count depth)
   Freelist fl;
   Res res;
   Bool b;
+  FreelistDescribeClosureStruct closure;
 
   if (!TESTT(Land, land))
     return ResFAIL;
@@ -793,7 +798,9 @@ static Res freelistDescribe(Land land, mps_lib_FILE *stream, Count depth)
                "  size = $U\n", (WriteFU)fl->size,
                NULL);
 
-  b = LandIterate(land, freelistDescribeVisitor, stream, depth + 2);
+  closure.stream = stream;
+  closure.depth = depth + 2;
+  b = LandIterate(land, freelistDescribeVisitor, &closure);
   if (!b)
     return ResFAIL;
 

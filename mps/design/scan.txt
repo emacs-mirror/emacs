@@ -24,7 +24,7 @@ _`.summary.subset`: The summary of reference seens by scan
 
 There are two reasons that it is not an equality relation:
 
-#. If the segment has had objects forwarded onto it then its summary
+1. If the segment has had objects forwarded onto it then its summary
    will get unioned with the summary of the segment that the object
    was forwarded from. This may increase the summary. The forwarded
    object of course may have a smaller summary (if such a thing were
@@ -32,7 +32,7 @@ There are two reasons that it is not an equality relation:
    reduce the summary. (The forwarding process may erroneously
    introduce zones into the destination's summary).
 
-#. A write barrier hit will set the summary to ``RefSetUNIV``.
+2. A write barrier hit will set the summary to ``RefSetUNIV``.
 
 The reason that ``ss.unfixedSummary`` is always a subset of the
 previous summary is due to an "optimization" which has not been made
