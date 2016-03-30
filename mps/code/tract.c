@@ -480,7 +480,6 @@ void PageInit(Chunk chunk, Index pi)
   BTRes(chunk->allocTable, pi);
   PageSetPool(page, NULL);
   PageSetType(page, PageStateFREE);
-  RingInit(PageSpareRing(page));
 }
 
 
