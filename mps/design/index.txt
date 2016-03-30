@@ -82,7 +82,6 @@ poolawl_                Automatic Weak Linked pool class
 poollo_                 Leaf Object pool class
 poolmfs_                Manual Fixed Small pool class
 poolmrg_                Manual Rank Guardian pool class
-poolmv_                 Manual Variable pool class
 poolmvt_                Manual Variable Temporal pool class
 poolmvff_               Manual Variable First-Fit pool class
 prmc_                   Protection mutator context
@@ -162,7 +161,6 @@ writef_                 The WriteF function
 .. _poollo: poollo
 .. _poolmfs: poolmfs
 .. _poolmrg: poolmrg
-.. _poolmv: poolmv
 .. _poolmvt: poolmvt
 .. _poolmvff: poolmvff
 .. _prmc: prmc
@@ -230,7 +228,8 @@ Document History
 - 2014-01-29    RB_     The arena no longer manages generation zonesets.
 - 2014-01-17    GDR_    Add abq, nailboard, range.
 - 2016-03-22    RB_     Add write-barier.
-
+- 2016-03-27    RB_     Goodbye pool MV *sniff*.
+  
 .. _RB: http://www.ravenbrook.com/consultants/rb
 .. _NB: http://www.ravenbrook.com/consultants/nb
 .. _GDR: http://www.ravenbrook.com/consultants/gdr
