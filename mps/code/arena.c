@@ -138,7 +138,6 @@ Bool ArenaCheck(Arena arena)
   CHECKL(BoolCheck(arena->poolReady));
   if (arena->poolReady) { /* <design/arena/#pool.ready> */
     CHECKD(MVFF, &arena->controlPoolStruct);
-    CHECKD(Reservoir, &arena->reservoirStruct);
   }
 
   /* .reserved.check: Would like to check that arena->committed <=
@@ -149,6 +148,7 @@ Bool ArenaCheck(Arena arena)
    */
   CHECKL(arena->committed <= arena->commitLimit);
   CHECKL(arena->spareCommitted <= arena->committed);
+  CHECKL(0.0 <= arena->pauseTime);
 
   CHECKL(ShiftCheck(arena->zoneShift));
   CHECKL(ArenaGrainSizeCheck(arena->grainSize));
@@ -199,6 +199,7 @@ Res ArenaInit(Arena arena, ArenaClass class, Size grainSize, ArgList args)
   Bool zoned = ARENA_DEFAULT_ZONED;
   Size commitLimit = ARENA_DEFAULT_COMMIT_LIMIT;
   Size spareCommitLimit = ARENA_DEFAULT_SPARE_COMMIT_LIMIT;
+  double pauseTime = ARENA_DEFAULT_PAUSE_TIME;
   mps_arg_s arg;
 
   AVER(arena != NULL);
@@ -211,6 +212,8 @@ Res ArenaInit(Arena arena, ArenaClass class, Size grainSize, ArgList args)
     commitLimit = arg.val.size;
   if (ArgPick(&arg, args, MPS_KEY_SPARE_COMMIT_LIMIT))
     spareCommitLimit = arg.val.size;
+  if (ArgPick(&arg, args, MPS_KEY_PAUSE_TIME))
+    pauseTime = arg.val.d;
 
   arena->class = class;
 
@@ -219,6 +222,7 @@ Res ArenaInit(Arena arena, ArenaClass class, Size grainSize, ArgList args)
   arena->commitLimit = commitLimit;
   arena->spareCommitted = (Size)0;
   arena->spareCommitLimit = spareCommitLimit;
+  arena->pauseTime = pauseTime;
   arena->grainSize = grainSize;
   /* zoneShift is usually overridden by init */
   arena->zoneShift = ARENA_ZONESHIFT;
@@ -259,16 +263,9 @@ Res ArenaInit(Arena arena, ArenaClass class, Size grainSize, ArgList args)
   if (res != ResOK)
     goto failMFSInit;
 
-  /* initialize the reservoir, <design/reservoir/> */
-  res = ReservoirInit(&arena->reservoirStruct, arena);
-  if (res != ResOK)
-    goto failReservoirInit;
-
   AVERT(Arena, arena);
   return ResOK;
 
-failReservoirInit:
-  PoolFinish(ArenaCBSBlockPool(arena));
 failMFSInit:
   GlobalsFinish(ArenaGlobals(arena));
 failGlobalsInit:
@@ -294,6 +291,7 @@ ARG_DEFINE_KEY(ARENA_SIZE, Size);
 ARG_DEFINE_KEY(ARENA_ZONED, Bool);
 ARG_DEFINE_KEY(COMMIT_LIMIT, Size);
 ARG_DEFINE_KEY(SPARE_COMMIT_LIMIT, Size);
+ARG_DEFINE_KEY(PAUSE_TIME, double);
 
 static Res arenaFreeLandInit(Arena arena)
 {
@@ -394,7 +392,6 @@ failInit:
 void ArenaFinish(Arena arena)
 {
   PoolFinish(ArenaCBSBlockPool(arena));
-  ReservoirFinish(ArenaReservoir(arena));
   arena->sig = SigInvalid;
   GlobalsFinish(ArenaGlobals(arena));
   LocusFinish(arena);
@@ -406,13 +403,11 @@ void ArenaFinish(Arena arena)
 /* ArenaDestroy -- destroy the arena */
 
 static void arenaMFSPageFreeVisitor(Pool pool, Addr base, Size size,
-                                    void *closureP, Size closureS)
+                                    void *closure)
 {
   AVERT(Pool, pool);
-  AVER(closureP == UNUSED_POINTER);
-  AVER(closureS == UNUSED_SIZE);
-  UNUSED(closureP);
-  UNUSED(closureS);
+  AVER(closure == UNUSED_POINTER);
+  UNUSED(closure);
   UNUSED(size);
   AVER(size == ArenaGrainSize(PoolArena(pool)));
   arenaFreePage(PoolArena(pool), base, pool);
@@ -431,7 +426,7 @@ static void arenaFreeLandFinish(Arena arena)
   /* The CBS block pool can't free its own memory via ArenaFree because
    * that would use the free land. */
   MFSFinishTracts(ArenaCBSBlockPool(arena), arenaMFSPageFreeVisitor,
-                  UNUSED_POINTER, UNUSED_SIZE);
+                  UNUSED_POINTER);
 
   arena->hasFreeLand = FALSE;
   LandFinish(ArenaFreeLand(arena));
@@ -442,9 +437,6 @@ void ArenaDestroy(Arena arena)
   AVERT(Arena, arena);
 
   GlobalsPrepareToDestroy(ArenaGlobals(arena));
-
-  /* Empty the reservoir - see <code/reserv.c#reservoir.finish> */
-  ReservoirSetLimit(ArenaReservoir(arena), 0);
 
   ControlFinish(arena);
 
@@ -646,8 +638,7 @@ Res ArenaDescribeTracts(Arena arena, mps_lib_FILE *stream, Count depth)
  * with void* (<design/type/#addr.use>), ControlAlloc must take care of
  * allocating so that the block can be addressed with a void*.  */
 
-Res ControlAlloc(void **baseReturn, Arena arena, size_t size,
-                 Bool withReservoirPermit)
+Res ControlAlloc(void **baseReturn, Arena arena, size_t size)
 {
   Addr base;
   Res res;
@@ -655,11 +646,9 @@ Res ControlAlloc(void **baseReturn, Arena arena, size_t size,
   AVERT(Arena, arena);
   AVER(baseReturn != NULL);
   AVER(size > 0);
-  AVERT(Bool, withReservoirPermit);
   AVER(arena->poolReady);
 
-  res = PoolAlloc(&base, ArenaControlPool(arena), (Size)size,
-                  withReservoirPermit);
+  res = PoolAlloc(&base, ArenaControlPool(arena), (Size)size);
   if (res != ResOK)
     return res;
 
@@ -1090,45 +1079,25 @@ failMark:
 
 /* ArenaAlloc -- allocate some tracts from the arena */
 
-Res ArenaAlloc(Addr *baseReturn, LocusPref pref, Size size, Pool pool,
-               Bool withReservoirPermit)
+Res ArenaAlloc(Addr *baseReturn, LocusPref pref, Size size, Pool pool)
 {
   Res res;
   Arena arena;
   Addr base;
   Tract tract;
-  Reservoir reservoir;
 
   AVER(baseReturn != NULL);
   AVERT(LocusPref, pref);
   AVER(size > (Size)0);
   AVERT(Pool, pool);
-  AVERT(Bool, withReservoirPermit);
 
   arena = PoolArena(pool);
   AVERT(Arena, arena);
   AVER(SizeIsArenaGrains(size, arena));
-  reservoir = ArenaReservoir(arena);
-  AVERT(Reservoir, reservoir);
-
-  if (pool != ReservoirPool(reservoir)) {
-    res = ReservoirEnsureFull(reservoir);
-    if (res != ResOK) {
-      AVER(ResIsAllocFailure(res));
-      if (!withReservoirPermit)
-        return res;
-    }
-  }
 
   res = PolicyAlloc(&tract, arena, pref, size, pool);
-  if (res != ResOK) {
-    if (withReservoirPermit) {
-      Res resRes = ReservoirWithdraw(&base, &tract, reservoir, size, pool);
-      if (resRes != ResOK)
-        goto allocFail;
-    } else
-      goto allocFail;
-  }
+  if (res != ResOK)
+    goto allocFail;
   
   base = TractBase(tract);
 
@@ -1153,8 +1122,6 @@ void ArenaFree(Addr base, Size size, Pool pool)
 {
   Arena arena;
   Addr limit;
-  Reservoir reservoir;
-  Res res;
   Addr wholeBase;
   Size wholeSize;
   RangeStruct range, oldRange;
@@ -1164,8 +1131,6 @@ void ArenaFree(Addr base, Size size, Pool pool)
   AVER(size > (Size)0);
   arena = PoolArena(pool);
   AVERT(Arena, arena);
-  reservoir = ArenaReservoir(arena);
-  AVERT(Reservoir, reservoir);
   AVER(AddrIsArenaGrain(base, arena));
   AVER(SizeIsArenaGrains(size, arena));
 
@@ -1179,18 +1144,6 @@ void ArenaFree(Addr base, Size size, Pool pool)
   wholeBase = base;
   wholeSize = size;
 
-  if (pool != ReservoirPool(reservoir)) {
-    res = ReservoirEnsureFull(reservoir);
-    if (res != ResOK) {
-      AVER(ResIsAllocFailure(res));
-      if (!ReservoirDeposit(reservoir, &base, &size))
-        goto allDeposited;
-    }
-  }
-
-  /* Just in case the shenanigans with the reservoir mucked this up. */
-  AVER(limit == AddrAdd(base, size));
-
   RangeInit(&range, base, limit);
 
   arenaFreeLandInsertSteal(&oldRange, arena, &range); /* may update range */
@@ -1200,7 +1153,6 @@ void ArenaFree(Addr base, Size size, Pool pool)
   /* Freeing memory might create spare pages, but not more than this. */
   CHECKL(arena->spareCommitted <= arena->spareCommitLimit);
 
-allDeposited:
   EVENT3(ArenaFree, arena, wholeBase, wholeSize);
   return;
 }
@@ -1242,6 +1194,20 @@ void ArenaSetSpareCommitLimit(Arena arena, Size limit)
   }
 
   EVENT2(SpareCommitLimitSet, arena, limit);
+}
+
+double ArenaPauseTime(Arena arena)
+{
+  AVERT(Arena, arena);
+  return arena->pauseTime;
+}
+
+void ArenaSetPauseTime(Arena arena, double pauseTime)
+{
+  AVERT(Arena, arena);
+  AVER(0.0 <= pauseTime);
+  arena->pauseTime = pauseTime;
+  EVENT2(PauseTimeSet, arena, pauseTime);
 }
 
 /* Used by arenas which don't use spare committed memory */
@@ -1314,6 +1280,7 @@ Size ArenaAvail(Arena arena)
      this information from the operating system.  It also depends on the
      arena class, of course. */
 
+  AVER(sSwap >= arena->committed);
   return sSwap - arena->committed + arena->spareCommitted;
 }
 
@@ -1323,7 +1290,20 @@ Size ArenaAvail(Arena arena)
 Size ArenaCollectable(Arena arena)
 {
   /* Conservative estimate -- see job003929. */
-  return ArenaCommitted(arena) - ArenaSpareCommitted(arena);
+  Size committed = ArenaCommitted(arena);
+  Size spareCommitted = ArenaSpareCommitted(arena);
+  AVER(committed >= spareCommitted);
+  return committed - spareCommitted;
+}
+
+
+/* ArenaAccumulateTime -- accumulate time spent tracing */
+
+void ArenaAccumulateTime(Arena arena, Clock start, Clock end)
+{
+  AVERT(Arena, arena);
+  AVER(start <= end);
+  arena->tracedTime += (end - start) / (double) ClocksPerSec();
 }
 
 

@@ -1574,7 +1574,6 @@
 		31160DBC1899540D0071EB17 /* protsu.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = protsu.txt; path = ../design/protsu.txt; sourceTree = "<group>"; };
 		31160DBD1899540D0071EB17 /* pthreadext.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = pthreadext.txt; path = ../design/pthreadext.txt; sourceTree = "<group>"; };
 		31160DBE1899540D0071EB17 /* range.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = range.txt; path = ../design/range.txt; sourceTree = "<group>"; };
-		31160DBF1899540D0071EB17 /* reservoir.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = reservoir.txt; path = ../design/reservoir.txt; sourceTree = "<group>"; };
 		31160DC01899540D0071EB17 /* ring.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = ring.txt; path = ../design/ring.txt; sourceTree = "<group>"; };
 		31160DC11899540D0071EB17 /* root.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = root.txt; path = ../design/root.txt; sourceTree = "<group>"; };
 		31160DC21899540D0071EB17 /* scan.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = scan.txt; path = ../design/scan.txt; sourceTree = "<group>"; };
@@ -1660,55 +1659,21 @@
 		318DA8CD1892B0F30089718C /* djbench */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = djbench; sourceTree = BUILT_PRODUCTS_DIR; };
 		318DA8CE1892B1210089718C /* djbench.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = djbench.c; sourceTree = "<group>"; };
 		31942A671C8EC3FC001AAF32 /* locus.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = locus.h; sourceTree = "<group>"; };
-		31942A681C8EC445001AAF32 /* abq.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = abq.txt; path = ../design/abq.txt; sourceTree = "<group>"; };
 		31942A6A1C8EC445001AAF32 /* an.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = an.txt; path = ../design/an.txt; sourceTree = "<group>"; };
-		31942A6B1C8EC445001AAF32 /* arena.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = arena.txt; path = ../design/arena.txt; sourceTree = "<group>"; };
 		31942A6D1C8EC445001AAF32 /* boot.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = boot.txt; path = ../design/boot.txt; sourceTree = "<group>"; };
 		31942A6E1C8EC445001AAF32 /* bootstrap.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = bootstrap.txt; path = ../design/bootstrap.txt; sourceTree = "<group>"; };
-		31942A6F1C8EC445001AAF32 /* bt.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = bt.txt; path = ../design/bt.txt; sourceTree = "<group>"; };
-		31942A711C8EC445001AAF32 /* cbs.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = cbs.txt; path = ../design/cbs.txt; sourceTree = "<group>"; };
-		31942A731C8EC445001AAF32 /* class-interface.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = "class-interface.txt"; path = "../design/class-interface.txt"; sourceTree = "<group>"; };
 		31942A741C8EC445001AAF32 /* clock.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = clock.txt; path = ../design/clock.txt; sourceTree = "<group>"; };
-		31942A761C8EC445001AAF32 /* config.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = config.txt; path = ../design/config.txt; sourceTree = "<group>"; };
-		31942A781C8EC445001AAF32 /* diag.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = diag.txt; path = ../design/diag.txt; sourceTree = "<group>"; };
 		31942A791C8EC445001AAF32 /* exec-env.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = "exec-env.txt"; path = "../design/exec-env.txt"; sourceTree = "<group>"; };
-		31942A7B1C8EC445001AAF32 /* finalize.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = finalize.txt; path = ../design/finalize.txt; sourceTree = "<group>"; };
-		31942A7D1C8EC445001AAF32 /* freelist.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = freelist.txt; path = ../design/freelist.txt; sourceTree = "<group>"; };
-		31942A7F1C8EC445001AAF32 /* guide.impl.c.format.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = guide.impl.c.format.txt; path = ../design/guide.impl.c.format.txt; sourceTree = "<group>"; };
 		31942A801C8EC445001AAF32 /* guide.impl.c.naming.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = guide.impl.c.naming.txt; path = ../design/guide.impl.c.naming.txt; sourceTree = "<group>"; };
 		31942A811C8EC445001AAF32 /* guide.review.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = guide.review.txt; path = ../design/guide.review.txt; sourceTree = "<group>"; };
-		31942A831C8EC445001AAF32 /* interface-c.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = "interface-c.txt"; path = "../design/interface-c.txt"; sourceTree = "<group>"; };
-		31942A851C8EC445001AAF32 /* keyword-arguments.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = "keyword-arguments.txt"; path = "../design/keyword-arguments.txt"; sourceTree = "<group>"; };
-		31942A871C8EC445001AAF32 /* lib.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = lib.txt; path = ../design/lib.txt; sourceTree = "<group>"; };
-		31942A891C8EC445001AAF32 /* locus.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = locus.txt; path = ../design/locus.txt; sourceTree = "<group>"; };
-		31942A8B1C8EC446001AAF32 /* message.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = message.txt; path = ../design/message.txt; sourceTree = "<group>"; };
 		31942A8C1C8EC446001AAF32 /* nailboard-1.svg */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = "nailboard-1.svg"; path = "../design/nailboard-1.svg"; sourceTree = "<group>"; };
 		31942A8D1C8EC446001AAF32 /* nailboard-2.svg */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = "nailboard-2.svg"; path = "../design/nailboard-2.svg"; sourceTree = "<group>"; };
 		31942A8E1C8EC446001AAF32 /* nailboard-3.svg */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = "nailboard-3.svg"; path = "../design/nailboard-3.svg"; sourceTree = "<group>"; };
 		31942A8F1C8EC446001AAF32 /* nailboard.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = nailboard.txt; path = ../design/nailboard.txt; sourceTree = "<group>"; };
-		31942A911C8EC446001AAF32 /* pool.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = pool.txt; path = ../design/pool.txt; sourceTree = "<group>"; };
-		31942A931C8EC446001AAF32 /* poolams.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = poolams.txt; path = ../design/poolams.txt; sourceTree = "<group>"; };
-		31942A951C8EC446001AAF32 /* poollo.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = poollo.txt; path = ../design/poollo.txt; sourceTree = "<group>"; };
-		31942A971C8EC446001AAF32 /* poolmrg.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = poolmrg.txt; path = ../design/poolmrg.txt; sourceTree = "<group>"; };
-		31942A991C8EC446001AAF32 /* poolmvff.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = poolmvff.txt; path = ../design/poolmvff.txt; sourceTree = "<group>"; };
 		31942A9B1C8EC446001AAF32 /* prmc.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = prmc.txt; path = ../design/prmc.txt; sourceTree = "<group>"; };
-		31942A9C1C8EC446001AAF32 /* prot.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = prot.txt; path = ../design/prot.txt; sourceTree = "<group>"; };
-		31942A9E1C8EC446001AAF32 /* protocol.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = protocol.txt; path = ../design/protocol.txt; sourceTree = "<group>"; };
-		31942AA01C8EC446001AAF32 /* pthreadext.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = pthreadext.txt; path = ../design/pthreadext.txt; sourceTree = "<group>"; };
-		31942AA21C8EC446001AAF32 /* reservoir.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = reservoir.txt; path = ../design/reservoir.txt; sourceTree = "<group>"; };
-		31942AA41C8EC446001AAF32 /* root.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = root.txt; path = ../design/root.txt; sourceTree = "<group>"; };
-		31942AA61C8EC446001AAF32 /* seg.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = seg.txt; path = ../design/seg.txt; sourceTree = "<group>"; };
-		31942AA81C8EC446001AAF32 /* sig.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = sig.txt; path = ../design/sig.txt; sourceTree = "<group>"; };
 		31942AA91C8EC446001AAF32 /* sp.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = sp.txt; path = ../design/sp.txt; sourceTree = "<group>"; };
 		31942AAB1C8EC446001AAF32 /* ss.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = ss.txt; path = ../design/ss.txt; sourceTree = "<group>"; };
-		31942AAC1C8EC446001AAF32 /* sso1al.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = sso1al.txt; path = ../design/sso1al.txt; sourceTree = "<group>"; };
-		31942AAE1C8EC446001AAF32 /* telemetry.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = telemetry.txt; path = ../design/telemetry.txt; sourceTree = "<group>"; };
 		31942AB01C8EC446001AAF32 /* testthr.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = testthr.txt; path = ../design/testthr.txt; sourceTree = "<group>"; };
-		31942AB11C8EC446001AAF32 /* thread-manager.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = "thread-manager.txt"; path = "../design/thread-manager.txt"; sourceTree = "<group>"; };
-		31942AB31C8EC446001AAF32 /* trace.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = trace.txt; path = ../design/trace.txt; sourceTree = "<group>"; };
-		31942AB51C8EC446001AAF32 /* version-library.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = "version-library.txt"; path = "../design/version-library.txt"; sourceTree = "<group>"; };
-		31942AB71C8EC446001AAF32 /* vm.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = vm.txt; path = ../design/vm.txt; sourceTree = "<group>"; };
-		31942AB91C8EC446001AAF32 /* vmso.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = vmso.txt; path = ../design/vmso.txt; sourceTree = "<group>"; };
 		31A47BA3156C1E130039B1C2 /* mps.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mps.c; sourceTree = "<group>"; };
 		31A47BA5156C1E5E0039B1C2 /* ssixi3.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ssixi3.c; sourceTree = "<group>"; };
 		31C83ADD1786281C0031A0DB /* protxc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = protxc.h; sourceTree = "<group>"; };
@@ -1740,7 +1705,6 @@
 		31EEAC09156AB27B00714D05 /* pool.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pool.c; sourceTree = "<group>"; };
 		31EEAC0A156AB27B00714D05 /* poolabs.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = poolabs.c; sourceTree = "<group>"; };
 		31EEAC0B156AB27B00714D05 /* protocol.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = protocol.c; sourceTree = "<group>"; };
-		31EEAC0C156AB27B00714D05 /* reserv.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = reserv.c; sourceTree = "<group>"; };
 		31EEAC0D156AB27B00714D05 /* tract.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = tract.c; sourceTree = "<group>"; };
 		31EEAC0E156AB27B00714D05 /* walk.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = walk.c; sourceTree = "<group>"; };
 		31EEAC19156AB2B200714D05 /* buffer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = buffer.c; sourceTree = "<group>"; };
@@ -2210,108 +2174,32 @@
 		31160D90189953D50071EB17 /* Design */ = {
 			isa = PBXGroup;
 			children = (
-				31942A681C8EC445001AAF32 /* abq.txt */,
+				31160D921899540D0071EB17 /* abq.txt */,
 				31160D931899540D0071EB17 /* alloc-frame.txt */,
 				31942A6A1C8EC445001AAF32 /* an.txt */,
-				31942A6B1C8EC445001AAF32 /* arena.txt */,
+				31160D941899540D0071EB17 /* arena.txt */,
 				31160D951899540D0071EB17 /* arenavm.txt */,
 				31942A6D1C8EC445001AAF32 /* boot.txt */,
 				31942A6E1C8EC445001AAF32 /* bootstrap.txt */,
-				31942A6F1C8EC445001AAF32 /* bt.txt */,
-				31160D971899540D0071EB17 /* buffer.txt */,
-				31942A711C8EC445001AAF32 /* cbs.txt */,
-				31160D991899540D0071EB17 /* check.txt */,
-				31942A731C8EC445001AAF32 /* class-interface.txt */,
-				31942A741C8EC445001AAF32 /* clock.txt */,
-				31160D9B1899540D0071EB17 /* collection.txt */,
-				31942A761C8EC445001AAF32 /* config.txt */,
-				31160D9D1899540D0071EB17 /* critical-path.txt */,
-				31942A781C8EC445001AAF32 /* diag.txt */,
-				31942A791C8EC445001AAF32 /* exec-env.txt */,
-				22DD93E118ED815F00240DD2 /* failover.txt */,
-				31942A7B1C8EC445001AAF32 /* finalize.txt */,
-				31160DA01899540D0071EB17 /* fix.txt */,
-				31942A7D1C8EC445001AAF32 /* freelist.txt */,
-				31160DA21899540D0071EB17 /* guide.hex.trans.txt */,
-				31942A7F1C8EC445001AAF32 /* guide.impl.c.format.txt */,
-				31942A801C8EC445001AAF32 /* guide.impl.c.naming.txt */,
-				31942A811C8EC445001AAF32 /* guide.review.txt */,
-				31160DA41899540D0071EB17 /* index.txt */,
-				31942A831C8EC445001AAF32 /* interface-c.txt */,
-				31160DA61899540D0071EB17 /* io.txt */,
-				31942A851C8EC445001AAF32 /* keyword-arguments.txt */,
-				22DD93E218ED815F00240DD2 /* land.txt */,
-				31942A871C8EC445001AAF32 /* lib.txt */,
-				31160DA91899540D0071EB17 /* lock.txt */,
-				31942A891C8EC445001AAF32 /* locus.txt */,
-				31160DAB1899540D0071EB17 /* message-gc.txt */,
-				31942A8B1C8EC446001AAF32 /* message.txt */,
-				31942A8C1C8EC446001AAF32 /* nailboard-1.svg */,
-				31942A8D1C8EC446001AAF32 /* nailboard-2.svg */,
-				31942A8E1C8EC446001AAF32 /* nailboard-3.svg */,
-				31942A8F1C8EC446001AAF32 /* nailboard.txt */,
-				31160DAD1899540D0071EB17 /* object-debug.txt */,
-				31942A911C8EC446001AAF32 /* pool.txt */,
-				31160DAF1899540D0071EB17 /* poolamc.txt */,
-				31942A931C8EC446001AAF32 /* poolams.txt */,
-				31160DB11899540D0071EB17 /* poolawl.txt */,
-				31942A951C8EC446001AAF32 /* poollo.txt */,
-				31160DB31899540D0071EB17 /* poolmfs.txt */,
-				31942A971C8EC446001AAF32 /* poolmrg.txt */,
-				31160DB51899540D0071EB17 /* poolmv.txt */,
-				31942A991C8EC446001AAF32 /* poolmvff.txt */,
-				31160DB71899540D0071EB17 /* poolmvt.txt */,
-				31942A9B1C8EC446001AAF32 /* prmc.txt */,
-				31942A9C1C8EC446001AAF32 /* prot.txt */,
-				31160DBA1899540D0071EB17 /* protli.txt */,
-				31942A9E1C8EC446001AAF32 /* protocol.txt */,
-				31160DBC1899540D0071EB17 /* protsu.txt */,
-				31942AA01C8EC446001AAF32 /* pthreadext.txt */,
-				31160DBE1899540D0071EB17 /* range.txt */,
-				31942AA21C8EC446001AAF32 /* reservoir.txt */,
-				31160DC01899540D0071EB17 /* ring.txt */,
-				31942AA41C8EC446001AAF32 /* root.txt */,
-				31160DC21899540D0071EB17 /* scan.txt */,
-				31942AA61C8EC446001AAF32 /* seg.txt */,
-				31160DC41899540D0071EB17 /* shield.txt */,
-				31942AA81C8EC446001AAF32 /* sig.txt */,
-				31942AA91C8EC446001AAF32 /* sp.txt */,
-				31160DC61899540D0071EB17 /* splay.txt */,
-				31942AAB1C8EC446001AAF32 /* ss.txt */,
-				31942AAC1C8EC446001AAF32 /* sso1al.txt */,
-				31160DC81899540D0071EB17 /* strategy.txt */,
-				31942AAE1C8EC446001AAF32 /* telemetry.txt */,
-				31160DCA1899540D0071EB17 /* tests.txt */,
-				31942AB01C8EC446001AAF32 /* testthr.txt */,
-				31942AB11C8EC446001AAF32 /* thread-manager.txt */,
-				31160DCC1899540D0071EB17 /* thread-safety.txt */,
-				31942AB31C8EC446001AAF32 /* trace.txt */,
-				31160DCE1899540D0071EB17 /* type.txt */,
-				31942AB51C8EC446001AAF32 /* version-library.txt */,
-				31160DD01899540D0071EB17 /* version.txt */,
-				31942AB71C8EC446001AAF32 /* vm.txt */,
-				31160DD31899540D0071EB17 /* vmo1.txt */,
-				31942AB91C8EC446001AAF32 /* vmso.txt */,
-				31160D921899540D0071EB17 /* abq.txt */,
-				31160DD51899540D0071EB17 /* writef.txt */,
-				31160D931899540D0071EB17 /* alloc-frame.txt */,
-				31160D941899540D0071EB17 /* arena.txt */,
-				31160D951899540D0071EB17 /* arenavm.txt */,
 				31160D961899540D0071EB17 /* bt.txt */,
 				31160D971899540D0071EB17 /* buffer.txt */,
 				31160D981899540D0071EB17 /* cbs.txt */,
 				31160D991899540D0071EB17 /* check.txt */,
 				31160D9A1899540D0071EB17 /* class-interface.txt */,
+				31942A741C8EC445001AAF32 /* clock.txt */,
 				31160D9B1899540D0071EB17 /* collection.txt */,
 				31160D9C1899540D0071EB17 /* config.txt */,
 				31160D9D1899540D0071EB17 /* critical-path.txt */,
 				31160D9E1899540D0071EB17 /* diag.txt */,
+				31942A791C8EC445001AAF32 /* exec-env.txt */,
 				22DD93E118ED815F00240DD2 /* failover.txt */,
 				31160D9F1899540D0071EB17 /* finalize.txt */,
 				31160DA01899540D0071EB17 /* fix.txt */,
 				31160DA11899540D0071EB17 /* freelist.txt */,
 				31160DA21899540D0071EB17 /* guide.hex.trans.txt */,
 				31160DA31899540D0071EB17 /* guide.impl.c.format.txt */,
+				31942A801C8EC445001AAF32 /* guide.impl.c.naming.txt */,
+				31942A811C8EC445001AAF32 /* guide.review.txt */,
 				31160DA41899540D0071EB17 /* index.txt */,
 				31160DA51899540D0071EB17 /* interface-c.txt */,
 				31160DA61899540D0071EB17 /* io.txt */,
@@ -2322,6 +2210,10 @@
 				31160DAA1899540D0071EB17 /* locus.txt */,
 				31160DAB1899540D0071EB17 /* message-gc.txt */,
 				31160DAC1899540D0071EB17 /* message.txt */,
+				31942A8C1C8EC446001AAF32 /* nailboard-1.svg */,
+				31942A8D1C8EC446001AAF32 /* nailboard-2.svg */,
+				31942A8E1C8EC446001AAF32 /* nailboard-3.svg */,
+				31942A8F1C8EC446001AAF32 /* nailboard.txt */,
 				31160DAD1899540D0071EB17 /* object-debug.txt */,
 				31160DAE1899540D0071EB17 /* pool.txt */,
 				31160DAF1899540D0071EB17 /* poolamc.txt */,
@@ -2333,24 +2225,27 @@
 				31160DB51899540D0071EB17 /* poolmv.txt */,
 				31160DB61899540D0071EB17 /* poolmvff.txt */,
 				31160DB71899540D0071EB17 /* poolmvt.txt */,
+				31942A9B1C8EC446001AAF32 /* prmc.txt */,
 				31160DB81899540D0071EB17 /* prot.txt */,
 				31160DBA1899540D0071EB17 /* protli.txt */,
 				31160DBB1899540D0071EB17 /* protocol.txt */,
 				31160DBC1899540D0071EB17 /* protsu.txt */,
 				31160DBD1899540D0071EB17 /* pthreadext.txt */,
 				31160DBE1899540D0071EB17 /* range.txt */,
-				31160DBF1899540D0071EB17 /* reservoir.txt */,
 				31160DC01899540D0071EB17 /* ring.txt */,
 				31160DC11899540D0071EB17 /* root.txt */,
 				31160DC21899540D0071EB17 /* scan.txt */,
 				31160DC31899540D0071EB17 /* seg.txt */,
 				31160DC41899540D0071EB17 /* shield.txt */,
 				31160DC51899540D0071EB17 /* sig.txt */,
+				31942AA91C8EC446001AAF32 /* sp.txt */,
 				31160DC61899540D0071EB17 /* splay.txt */,
+				31942AAB1C8EC446001AAF32 /* ss.txt */,
 				31160DC71899540D0071EB17 /* sso1al.txt */,
 				31160DC81899540D0071EB17 /* strategy.txt */,
 				31160DC91899540D0071EB17 /* telemetry.txt */,
 				31160DCA1899540D0071EB17 /* tests.txt */,
+				31942AB01C8EC446001AAF32 /* testthr.txt */,
 				31160DCB1899540D0071EB17 /* thread-manager.txt */,
 				31160DCC1899540D0071EB17 /* thread-safety.txt */,
 				31160DCD1899540D0071EB17 /* trace.txt */,
@@ -2595,7 +2490,6 @@
 				2291A5EB175CB53E001D4920 /* range.c */,
 				2291A5EC175CB53E001D4920 /* range.h */,
 				31EEAC1B156AB2B200714D05 /* ref.c */,
-				31EEAC0C156AB27B00714D05 /* reserv.c */,
 				31EEAC30156AB2F200714D05 /* ring.c */,
 				311F2F7317398B7100C15B6A /* ring.h */,
 				31EEAC1C156AB2B200714D05 /* root.c */,
@@ -5390,7 +5284,7 @@
 				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				GCC_C_LANGUAGE_STANDARD = ansi;
+				GCC_C_LANGUAGE_STANDARD = c89;
 				GCC_OPTIMIZATION_LEVEL = s;
 				GCC_PREPROCESSOR_DEFINITIONS = CONFIG_VAR_RASH;
 				GCC_TREAT_IMPLICIT_FUNCTION_DECLARATIONS_AS_ERRORS = YES;
@@ -5417,7 +5311,24 @@
 				SDKROOT = macosx;
 				SYMROOT = xc;
 				WARNING_CFLAGS = (
-					"-pedantic\n-Waggregate-return\n-Wall\n-Wcast-qual\n-Wconversion\n-Wduplicate-enum\n-Wextra\n-Winline\n-Wmissing-prototypes\n-Wmissing-variable-declarations\n-Wnested-externs\n-Wno-extended-offsetof\n-Wpointer-arith\n-Wshadow\n-Wstrict-aliasing=2\n-Wstrict-prototypes\n-Wunreachable-code\n-Wwrite-strings\n",
+					"-pedantic",
+					"-Waggregate-return",
+					"-Wall",
+					"-Wcast-qual",
+					"-Wconversion",
+					"-Wduplicate-enum",
+					"-Wextra",
+					"-Winline",
+					"-Wmissing-prototypes",
+					"-Wmissing-variable-declarations",
+					"-Wnested-externs",
+					"-Wno-extended-offsetof",
+					"-Wpointer-arith",
+					"-Wshadow",
+					"-Wstrict-aliasing=2",
+					"-Wstrict-prototypes",
+					"-Wunreachable-code",
+					"-Wwrite-strings",
 				);
 			};
 			name = RASH;
@@ -5812,7 +5723,7 @@
 				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				GCC_C_LANGUAGE_STANDARD = ansi;
+				GCC_C_LANGUAGE_STANDARD = c89;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = CONFIG_VAR_COOL;
 				GCC_TREAT_IMPLICIT_FUNCTION_DECLARATIONS_AS_ERRORS = YES;
@@ -5840,7 +5751,24 @@
 				SDKROOT = macosx;
 				SYMROOT = xc;
 				WARNING_CFLAGS = (
-					"-pedantic\n-Waggregate-return\n-Wall\n-Wcast-qual\n-Wconversion\n-Wduplicate-enum\n-Wextra\n-Winline\n-Wmissing-prototypes\n-Wmissing-variable-declarations\n-Wnested-externs\n-Wno-extended-offsetof\n-Wpointer-arith\n-Wshadow\n-Wstrict-aliasing=2\n-Wstrict-prototypes\n-Wunreachable-code\n-Wwrite-strings\n",
+					"-pedantic",
+					"-Waggregate-return",
+					"-Wall",
+					"-Wcast-qual",
+					"-Wconversion",
+					"-Wduplicate-enum",
+					"-Wextra",
+					"-Winline",
+					"-Wmissing-prototypes",
+					"-Wmissing-variable-declarations",
+					"-Wnested-externs",
+					"-Wno-extended-offsetof",
+					"-Wpointer-arith",
+					"-Wshadow",
+					"-Wstrict-aliasing=2",
+					"-Wstrict-prototypes",
+					"-Wunreachable-code",
+					"-Wwrite-strings",
 				);
 			};
 			name = Debug;
@@ -5854,7 +5782,7 @@
 				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				GCC_C_LANGUAGE_STANDARD = ansi;
+				GCC_C_LANGUAGE_STANDARD = c89;
 				GCC_OPTIMIZATION_LEVEL = s;
 				GCC_PREPROCESSOR_DEFINITIONS = CONFIG_VAR_HOT;
 				GCC_TREAT_IMPLICIT_FUNCTION_DECLARATIONS_AS_ERRORS = YES;
@@ -5881,7 +5809,24 @@
 				SDKROOT = macosx;
 				SYMROOT = xc;
 				WARNING_CFLAGS = (
-					"-pedantic\n-Waggregate-return\n-Wall\n-Wcast-qual\n-Wconversion\n-Wduplicate-enum\n-Wextra\n-Winline\n-Wmissing-prototypes\n-Wmissing-variable-declarations\n-Wnested-externs\n-Wno-extended-offsetof\n-Wpointer-arith\n-Wshadow\n-Wstrict-aliasing=2\n-Wstrict-prototypes\n-Wunreachable-code\n-Wwrite-strings\n",
+					"-pedantic",
+					"-Waggregate-return",
+					"-Wall",
+					"-Wcast-qual",
+					"-Wconversion",
+					"-Wduplicate-enum",
+					"-Wextra",
+					"-Winline",
+					"-Wmissing-prototypes",
+					"-Wmissing-variable-declarations",
+					"-Wnested-externs",
+					"-Wno-extended-offsetof",
+					"-Wpointer-arith",
+					"-Wshadow",
+					"-Wstrict-aliasing=2",
+					"-Wstrict-prototypes",
+					"-Wunreachable-code",
+					"-Wwrite-strings",
 				);
 			};
 			name = Release;

@@ -196,24 +196,20 @@ Res PoolTrivInit(Pool pool, ArgList args)
   return ResOK;
 }
 
-Res PoolNoAlloc(Addr *pReturn, Pool pool, Size size,
-                Bool withReservoirPermit)
+Res PoolNoAlloc(Addr *pReturn, Pool pool, Size size)
 {
   AVER(pReturn != NULL);
   AVERT(Pool, pool);
   AVER(size > 0);
-  AVERT(Bool, withReservoirPermit);
   NOTREACHED;
   return ResUNIMPL;
 }
 
-Res PoolTrivAlloc(Addr *pReturn, Pool pool, Size size,
-                  Bool withReservoirPermit)
+Res PoolTrivAlloc(Addr *pReturn, Pool pool, Size size)
 {
   AVER(pReturn != NULL);
   AVERT(Pool, pool);
   AVER(size > 0);
-  AVERT(Bool, withReservoirPermit);
   return ResLIMIT;
 }
 
@@ -235,22 +231,19 @@ void PoolTrivFree(Pool pool, Addr old, Size size)
 
 
 Res PoolNoBufferFill(Addr *baseReturn, Addr *limitReturn,
-                     Pool pool, Buffer buffer, Size size,
-                     Bool withReservoirPermit)
+                     Pool pool, Buffer buffer, Size size)
 {
   AVER(baseReturn != NULL);
   AVER(limitReturn != NULL);
   AVERT(Pool, pool);
   AVERT(Buffer, buffer);
   AVER(size > 0);
-  AVERT(Bool, withReservoirPermit);
   NOTREACHED;
   return ResUNIMPL;
 }
 
 Res PoolTrivBufferFill(Addr *baseReturn, Addr *limitReturn,
-                       Pool pool, Buffer buffer, Size size,
-                       Bool withReservoirPermit)
+                       Pool pool, Buffer buffer, Size size)
 {
   Res res;
   Addr p;
@@ -260,9 +253,8 @@ Res PoolTrivBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVERT(Pool, pool);
   AVERT(Buffer, buffer);
   AVER(size > 0);
-  AVERT(Bool, withReservoirPermit);
 
-  res = PoolAlloc(&p, pool, size, withReservoirPermit);
+  res = PoolAlloc(&p, pool, size);
   if (res != ResOK)
     return res;
  

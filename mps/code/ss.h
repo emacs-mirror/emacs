@@ -36,7 +36,7 @@ extern Res StackScan(ScanState ss, Word *stackCold,
                      mps_area_scan_t scan_area, void *closure);
 extern Res StackScanInner(ScanState ss, Word *stackCold, Word *stackHot,
                           Count nSavedRegs,
-			  mps_area_scan_t scan_area, void *closure);
+                          mps_area_scan_t scan_area, void *closure);
 
 #endif /* ss_h */
 

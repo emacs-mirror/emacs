@@ -12,6 +12,21 @@ Release 1.115.0
 New features
 ............
 
+#. The MPS now provides control over the maximum time that operations
+   within an arena may pause the :term:`client program` for. This can
+   be specified by the new function :c:func:`mps_arena_pause_time_set`
+   or by passing the new keyword argument
+   :c:macro:`MPS_KEY_PAUSE_TIME` to :c:func:`mps_arena_create_k`. The
+   current value can be retrieved by the new function
+   :c:func:`mps_arena_pause_time`.
+
+   The maximum pause time defaults to 0.1 seconds. For the old
+   behaviour (whereby the MPS always returned to the :term:`client
+   program` as soon as possible), set it to zero.
+
+#. New supported platforms ``fri3ll`` (FreeBSD, IA-32, Clang/LLVM)
+   and ``fri6ll`` (FreeBSD, x86-64, Clang/LLVM).
+
 #. When creating an :ref:`pool-amc` pool, :c:func:`mps_pool_create_k`
    accepts the new keyword argument :c:macro:`MPS_KEY_EXTEND_BY`,
    specifying the minimum size of the memory segments that the pool
@@ -40,6 +55,7 @@ New features
 #. New area root functions :c:func:`mps_root_create_area` and
    :c:func:`mps_root_create_area_tagged` for areas of memory
    that can be scanned by area scanning functions.
+
 
 Interface changes
 .................
@@ -104,6 +120,40 @@ Other changes
    :ref:`pool-mvff` pools. See job003866_.
 
    .. _job003866: https://www.ravenbrook.com/project/mps/issue/job003866/
+
+#. The MPS can now make use of :term:`spare committed memory` even if
+   it is :term:`mapped` at an unhelpful address, by unmapping it and
+   remapping at a better address. See job003898_.
+
+   .. _job003898: https://www.ravenbrook.com/project/mps/issue/job003898/
+
+#. :c:func:`mps_arena_step` now always considers starting a new
+   :term:`garbage collection` if the remaining idle time is long
+   enough to complete it. (Previously, if there was already a
+   collection in progress when :c:func:`mps_arena_step` was called, it
+   would finish the collection but not consider starting a new one.)
+   See job003934_.
+
+   .. _job003934: https://www.ravenbrook.com/project/mps/issue/job003934/
+
+#. The MPS no longer carries out :term:`garbage collections` when there
+   is no collection work to be done. See job003938_.
+
+   .. _job003938: https://www.ravenbrook.com/project/mps/issue/job003938/
+
+#. The MPS is less aggressive in its use of hardware memory protection
+   to maintain :term:`write barrier` to speed up future collections.
+   This is particularly important for OS X, where memory protection is
+   poorly implemented.  See job003371_ and job003975_.
+
+#. The MPS coalesces memory protection, reducing the number of system
+   calls. This drastically improves real run time on operating systems
+   where memory protection is poorly implemented, such as OS X, but
+   also has a significant effect on Linux. See job003371_ and
+   job003975_.
+
+   .. _job003371: http://www.ravenbrook.com/project/mps/issue/job003371/
+   .. _job003975: http://www.ravenbrook.com/project/mps/issue/job003975/
 
 
 .. _release-notes-1.114:

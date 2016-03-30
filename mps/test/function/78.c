@@ -4,6 +4,7 @@ TEST_HEADER
  summary = AMC and LO performance
  language = c
  link = testlib.o fastfmt.o
+ parameters = ITERATIONS=10
 END_HEADER
 */
 
@@ -27,13 +28,13 @@ void *stackpointer;
 static void test(void)
 {
  mps_arena_t arena;
- mps_pool_t poolamc, poolawl;
+ mps_pool_t poolamc, poollo;
  mps_thr_t thread;
  mps_root_t root, root1;
 
  mps_fmt_t format;
  mps_chain_t chain;
- mps_ap_t apamc, apawl;
+ mps_ap_t apamc, aplo;
 
  mycell *a, *b, *c, *d, *e, *f, *g;
 
@@ -59,11 +60,11 @@ static void test(void)
      "create pool(amc)");
 
  cdie(
-  mps_pool_create(&poolawl, arena, mps_class_lo(), format),
+  mps_pool_create(&poollo, arena, mps_class_lo(), format),
   "create pool");
 
  cdie(
-  mps_ap_create(&apawl, poolawl, mps_rank_exact()),
+  mps_ap_create(&aplo, poollo, mps_rank_exact()),
   "create ap");
 
  cdie(
@@ -72,8 +73,8 @@ static void test(void)
 
  b = allocone(apamc, 1, mps_rank_exact());
 
- for (j = 1; j < 100; j++) {
-  comment("%i of 100.", j);
+ for (j = 1; j <= ITERATIONS; j++) {
+  comment("%i of %i.", j, ITERATIONS);
   a = allocone(apamc, 5, mps_rank_exact());
   b = a;
   c = a;
@@ -82,9 +83,9 @@ static void test(void)
   f = a;
   g = a;
 
-  for (i = 1; i < 5000; i++) {
+  for (i = 0; i < 5000; i++) {
    c = allocone(apamc, 20, mps_rank_exact());
-   d = allocone(apawl, 20, mps_rank_exact());
+   d = allocone(aplo, 20, mps_rank_exact());
    if (ranint(8) == 0) e = c;
    if (ranint(8) == 0) f = c;
    if (ranint(8) == 0) g = c;
@@ -98,10 +99,10 @@ static void test(void)
  }
 
  mps_arena_park(arena);
- mps_ap_destroy(apawl);
+ mps_ap_destroy(aplo);
  mps_ap_destroy(apamc);
  mps_pool_destroy(poolamc);
- mps_pool_destroy(poolawl);
+ mps_pool_destroy(poollo);
  mps_chain_destroy(chain);
  mps_fmt_destroy(format);
  mps_root_destroy(root);

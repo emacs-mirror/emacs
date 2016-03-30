@@ -169,6 +169,11 @@ Res PoolInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   /* Add initialized pool to list of pools in arena. */
   RingAppend(&globals->poolRing, &pool->arenaRing);
 
+  /* Add initialized pool to list of pools using format. */
+  if (pool->format) {
+    ++ pool->format->poolCount;
+  }
+
   return ResOK;
 
 failInit:
@@ -195,8 +200,7 @@ Res PoolCreate(Pool *poolReturn, Arena arena,
 
   /* .space.alloc: Allocate the pool instance structure with the size */
   /* requested  in the pool class.  See .space.free */
-  res = ControlAlloc(&base, arena, class->size,
-                     /* withReservoirPermit */ FALSE);
+  res = ControlAlloc(&base, arena, class->size);
   if (res != ResOK)
     goto failControlAlloc;
 
@@ -229,8 +233,12 @@ void PoolFinish(Pool pool)
   /* Do any class-specific finishing. */
   (*pool->class->finish)(pool);
 
-  /* Detach the pool from the arena, and unsig it. */
+  /* Detach the pool from the arena and format, and unsig it. */
   RingRemove(&pool->arenaRing);
+  if (pool->format) {
+    AVER(pool->format->poolCount > 0);
+    -- pool->format->poolCount;
+  }
   pool->sig = SigInvalid;
  
   RingFinish(&pool->segRing);
@@ -274,17 +282,15 @@ BufferClass PoolDefaultBufferClass(Pool pool)
 
 /* PoolAlloc -- allocate a block of memory from a pool */
 
-Res PoolAlloc(Addr *pReturn, Pool pool, Size size,
-              Bool withReservoirPermit)
+Res PoolAlloc(Addr *pReturn, Pool pool, Size size)
 {
   Res res;
 
   AVER(pReturn != NULL);
   AVERT(Pool, pool);
   AVER(size > 0);
-  AVERT(Bool, withReservoirPermit);
 
-  res = (*pool->class->alloc)(pReturn, pool, size, withReservoirPermit);
+  res = (*pool->class->alloc)(pReturn, pool, size);
   if (res != ResOK)
     return res;
   /* Make sure that the allocated address was in the pool's memory. */

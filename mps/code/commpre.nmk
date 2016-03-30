@@ -95,6 +95,7 @@ TEST_TARGETS=\
     sacss.exe \
     segsmss.exe \
     steptest.exe \
+    tagtest.exe \
     teletest.exe \
     walkt0.exe \
     zcoll.exe \
@@ -156,7 +157,6 @@ MPMCOMMON=\
     [protocol] \
     [range] \
     [ref] \
-    [reserv] \
     [ring] \
     [root] \
     [sa] \

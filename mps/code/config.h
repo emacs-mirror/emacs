@@ -408,8 +408,15 @@
 
 /* TODO: This should be proportional to the memory usage of the MPS, not
  * a constant.  That will require design, and then some interface and
- * documenation changes. */
+ * documentation changes. */
 #define ARENA_DEFAULT_SPARE_COMMIT_LIMIT   ((Size)10uL*1024uL*1024uL)
+
+/* ARENA_DEFAULT_PAUSE_TIME is the maximum time (in seconds) that
+ * operations within the arena may pause the mutator for.  The default
+ * is set for typical human interaction.  See mps_arena_pause_time_set
+ * in the manual. */
+
+#define ARENA_DEFAULT_PAUSE_TIME (0.1)
 
 #define ARENA_DEFAULT_ZONED     TRUE
 
@@ -420,8 +427,9 @@
 #define ARENA_MINIMUM_COLLECTABLE_SIZE ((Size)1000000)
 
 /* ARENA_DEFAULT_COLLECTION_RATE is an estimate of the MPS's
- * collection rate (in bytes per second), for use in the case where
- * there isn't enough data to use a measured value. */
+ * collection rate (in work per second; see <design/type/#work>), for
+ * use in the case where there isn't enough data to use a measured
+ * value. */
 
 #define ARENA_DEFAULT_COLLECTION_RATE (25000000.0)
 
@@ -475,8 +483,8 @@
 
 /* Shield Configuration -- see <code/shield.c> */
 
-#define ShieldCacheSIZE ((size_t)16)
-#define ShieldDepthWIDTH (4)
+#define ShieldQueueLENGTH  512  /* initial length of shield queue */
+#define ShieldDepthWIDTH     4  /* log2(max nested exposes + 1) */
 
 
 /* VM Configuration -- see <code/vm*.c> */
@@ -658,6 +666,25 @@
     {  8 * 1024, 0.85 }, /* nursery */ \
     { 36 * 1024, 0.45 }  /* second gen, after which dynamic */ \
   }
+
+
+/* Write barrier deferral
+ *
+ * See design.mps.write-barrier.deferral.
+ *
+ * TODO: These settings were determined by trial and error, but should
+ * be based on measurement of the protection overhead on each
+ * platform.  We know it's extremely different between OS X and
+ * Windows, for example.  See design.mps.write-barrier.improv.by-os.
+ *
+ * TODO: Consider basing the count on the amount of time that has
+ * passed in the mutator rather than the number of scans.
+ */
+
+#define WB_DEFER_BITS  2  /* bitfield width for deferral count */
+#define WB_DEFER_INIT  3  /* boring scans after new segment */
+#define WB_DEFER_DELAY 3  /* boring scans after interesting scan */
+#define WB_DEFER_HIT   1  /* boring scans after barrier hit */
 
 
 #endif /* config_h */
