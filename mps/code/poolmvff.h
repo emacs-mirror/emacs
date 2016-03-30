@@ -1,35 +1,33 @@
-/* poolmv.h: MANUAL VARIABLE POOL
+/* poolmvff.h: First Fit Manual Variable Pool
  *
  * $Id$
  * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
- * .purpose: This is the interface to the manual-variable pool class.
+ * .purpose: This is a pool class for manually managed objects of
+ * variable size where address-ordered first fit is an appropriate
+ * policy.  Provision is made to allocate in reverse.
  *
- * .mv: Manual-variable pools manage variably-sized blocks of memory
- * in a flexible manner. They have higher overheads than a fixed-size
- * pool.
- *
- * .design: See <design/poolmv/>
+ * .design: See <design/poolmvff/>
  */
 
-#ifndef poolmv_h
-#define poolmv_h
+#ifndef poolmvff_h
+#define poolmvff_h
 
 
 #include "mpmtypes.h"
-#include "mpscmv.h"
+#include "mpscmvff.h"
 
-typedef struct MVStruct *MV;
+typedef struct MVFFStruct *MVFF;
 
-extern PoolClass PoolClassMV(void);
+extern PoolClass PoolClassMVFF(void);
 
-extern Bool MVCheck(MV mv);
+extern Bool MVFFCheck(MVFF mvff);
 
-#define MVPool(mv) (&(mv)->poolStruct)
+#define MVFFPool(mvff) (&(mvff)->poolStruct)
 
 
-#endif /* poolmv_h */
+#endif /* poolmvff_h */
 
 
 /* C. COPYRIGHT AND LICENSE

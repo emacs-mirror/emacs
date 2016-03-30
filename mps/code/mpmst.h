@@ -141,30 +141,6 @@ typedef struct MFSStruct {      /* MFS outer structure */
 } MFSStruct;
 
 
-/* MVStruct -- MV (Manual Variable) pool outer structure
- *
- * .mv: See <code/poolmv.c>, <design/poolmv/>.
- *
- * The MV pool outer structure is declared here because it is the
- * control pool structure which is inlined in the arena.  Normally,
- * pool outer structures are declared with the pools.  */
-
-#define MVSig           ((Sig)0x5193B999) /* SIGnature MV */
-
-typedef struct MVStruct {       /* MV pool outer structure */
-  PoolStruct poolStruct;        /* generic structure */
-  MFSStruct blockPoolStruct;    /* for managing block descriptors */
-  MFSStruct spanPoolStruct;     /* for managing span descriptors */
-  Size extendBy;                /* segment size to extend pool by */
-  Size avgSize;                 /* client estimate of allocation size */
-  Size maxSize;                 /* client estimate of maximum size */
-  Size free;                    /* free space in pool */
-  Size lost;                    /* <design/poolmv/#lost> */
-  RingStruct spans;             /* span chain */
-  Sig sig;                      /* <design/sig/> */
-} MVStruct;
-
-
 /* MessageClassStruct -- Message Class structure
  *
  * See <design/message/#class.struct> (and <design/message/#message>,
@@ -714,6 +690,35 @@ typedef struct ShieldStruct {
 } ShieldStruct;
 
 
+/* MVFFStruct -- MVFF (Manual Variable First Fit) pool outer structure
+ *
+ * The signature is placed at the end, see
+ * <design/pool/#outer-structure.sig>
+ *
+ * The MVFF pool outer structure is declared here because it is the
+ * control pool structure which is inlined in the arena.  Normally,
+ * pool outer structures are declared with the pools.
+ */
+
+#define MVFFSig           ((Sig)0x5193FFF9) /* SIGnature MVFF */
+
+typedef struct MVFFStruct {     /* MVFF pool outer structure */
+  PoolStruct poolStruct;        /* generic structure */
+  LocusPrefStruct locusPrefStruct; /* the preferences for allocation */
+  Size extendBy;                /* size to extend pool by */
+  Size avgSize;                 /* client estimate of allocation size */
+  double spare;                 /* spare space fraction, see MVFFReduce */
+  MFSStruct cbsBlockPoolStruct; /* stores blocks for CBSs */
+  CBSStruct totalCBSStruct;     /* all memory allocated from the arena */
+  CBSStruct freeCBSStruct;      /* free memory (primary) */
+  FreelistStruct flStruct;      /* free memory (secondary, for emergencies) */
+  FailoverStruct foStruct;      /* free memory (fail-over mechanism) */
+  Bool firstFit;                /* as opposed to last fit */
+  Bool slotHigh;                /* prefers high part of large block */
+  Sig sig;                      /* <design/sig/> */
+} MVFFStruct;
+
+
 /* ArenaStruct -- generic arena
  *
  * See <code/arena.c>.
@@ -728,7 +733,7 @@ typedef struct mps_arena_s {
   ArenaClass class;             /* arena class structure */
 
   Bool poolReady;               /* <design/arena/#pool.ready> */
-  MVStruct controlPoolStruct;   /* <design/arena/#pool> */
+  MVFFStruct controlPoolStruct; /* <design/arena/#pool> */
 
   Size reserved;                /* total reserved address space */
   Size committed;               /* total committed memory */
