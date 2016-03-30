@@ -48,7 +48,7 @@ Bool TractCheck(Tract tract)
   }
   if (TractHasSeg(tract)) {
     CHECKL(TraceSetCheck(TractWhite(tract)));
-    CHECKU(Seg, (Seg)TractP(tract));
+    CHECKU(Seg, TractSeg(tract));
   } else {
     CHECKL(TractWhite(tract) == TraceSetEMPTY);
   }
@@ -65,9 +65,8 @@ void TractInit(Tract tract, Pool pool, Addr base)
 
   tract->pool.pool = pool;
   tract->base = base;
-  tract->p = NULL;
+  tract->seg = NULL;
   tract->white = TraceSetEMPTY;
-  tract->hasSeg = FALSE;
 
   AVERT(Tract, tract);
 
