@@ -24,7 +24,6 @@
 #include "bt.h"
 #include "poolmrg.h"
 #include "mps.h" /* finalization */
-#include "poolmv.h"
 #include "mpm.h"
 
 SRCID(global, "$Id$");
@@ -492,10 +491,9 @@ void GlobalsPrepareToDestroy(Globals arenaGlobals)
   /* At this point the following pools still exist:
    * 0. arena->freeCBSBlockPoolStruct
    * 1. arena->controlPoolStruct
-   * 2. arena->controlPoolStruct.blockPoolStruct
-   * 3. arena->controlPoolStruct.spanPoolStruct
+   * 2. arena->controlPoolStruct.cbsBlockPoolStruct
    */
-  AVER(RingLength(&arenaGlobals->poolRing) == 4);
+  AVER(RingLength(&arenaGlobals->poolRing) == 3);
 }
 
 
