@@ -123,8 +123,7 @@ static Bool amcSegCheck(amcSeg amcseg)
 ARG_DEFINE_KEY(amc_seg_gen, Pointer);
 #define amcKeySegGen (&_mps_key_amc_seg_gen)
 
-static Res AMCSegInit(Seg seg, Pool pool, Addr base, Size size,
-                      Bool reservoirPermit, ArgList args)
+static Res AMCSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 {
   amcGen amcgen;
   SegClass super;
@@ -138,11 +137,10 @@ static Res AMCSegInit(Seg seg, Pool pool, Addr base, Size size,
   AVERT(Seg, seg);
   amcseg = Seg2amcSeg(seg);
   /* no useful checks for base and size */
-  AVERT(Bool, reservoirPermit);
 
   /* Initialize the superclass fields first via next-method call */
   super = SEG_SUPERCLASS(amcSegClass);
-  res = super->init(seg, pool, base, size, reservoirPermit, args);
+  res = super->init(seg, pool, base, size, args);
   if(res != ResOK)
     return res;
 
@@ -592,7 +590,7 @@ static Res amcGenCreate(amcGen *genReturn, AMC amc, GenDesc gen)
   pool = AMCPool(amc);
   arena = pool->arena;
 
-  res = ControlAlloc(&p, arena, sizeof(amcGenStruct), FALSE);
+  res = ControlAlloc(&p, arena, sizeof(amcGenStruct));
   if(res != ResOK)
     goto failControlAlloc;
   amcgen = (amcGen)p;
@@ -807,7 +805,7 @@ static Res amcInitComm(Pool pool, RankSet rankSet, ArgList args)
 
     /* One gen for each one in the chain plus dynamic gen. */
     genArraySize = sizeof(amcGen) * (genCount + 1);
-    res = ControlAlloc(&p, arena, genArraySize, FALSE);
+    res = ControlAlloc(&p, arena, genArraySize);
     if(res != ResOK)
       goto failGensAlloc;
     amc->gen = p;
@@ -916,8 +914,7 @@ static void AMCFinish(Pool pool)
  * See <design/poolamc/#fill>.
  */
 static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
-                         Pool pool, Buffer buffer, Size size,
-                         Bool withReservoirPermit)
+                         Pool pool, Buffer buffer, Size size)
 {
   Seg seg;
   AMC amc;
@@ -938,7 +935,6 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVER(BufferIsReset(buffer));
   AVER(size > 0);
   AVER(SizeIsAligned(size, PoolAlignment(pool)));
-  AVERT(Bool, withReservoirPermit);
 
   arena = PoolArena(pool);
   gen = amcBufGen(buffer);
@@ -957,8 +953,7 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
   }
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD_FIELD(args, amcKeySegGen, p, gen);
-    res = PoolGenAlloc(&seg, pgen, amcSegClassGet(), grainsSize,
-                       withReservoirPermit, args);
+    res = PoolGenAlloc(&seg, pgen, amcSegClassGet(), grainsSize, args);
   } MPS_ARGS_END(args);
   if(res != ResOK)
     return res;
@@ -1642,7 +1637,7 @@ static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     STATISTIC_STAT(++ss->forwardedCount);
     ss->forwardedSize += length;
     do {
-      res = BUFFER_RESERVE(&newBase, buffer, length, FALSE);
+      res = BUFFER_RESERVE(&newBase, buffer, length);
       if (res != ResOK)
         goto returnRes;
       newRef = AddrAdd(newBase, headerSize);

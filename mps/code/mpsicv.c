@@ -143,31 +143,6 @@ static mps_addr_t make(void)
 }
 
 
-/* make_with_permit -- allocate an object, with reservoir permit */
-
-static mps_addr_t make_with_permit(void)
-{
-  size_t length = rnd() % 20;
-  size_t sizeCli = (length+2)*sizeof(mps_word_t);
-  size_t sizeMps = SizeCli2Mps(sizeCli);
-  mps_addr_t pMps, pCli;
-  mps_res_t res;
-
-  do {
-    MPS_RESERVE_WITH_RESERVOIR_PERMIT_BLOCK(res, pMps, ap, sizeMps);
-    if (res != MPS_RES_OK)
-      die(res, "MPS_RESERVE_WITH_RESERVOIR_PERMIT_BLOCK");
-    HeaderInit(pMps);
-    pCli = PtrMps2Cli(pMps);
-    res = dylan_init(pCli, sizeCli, exactRoots, exactRootsCOUNT);
-    if (res != MPS_RES_OK)
-      die(res, "dylan_init");
-  } while(!mps_commit(ap, pMps, sizeMps));
-
-  return pCli;
-}
-
-
 /* make_no_inline -- allocate an object, using non-inlined interface */
 
 static mps_addr_t make_no_inline(void)
@@ -358,30 +333,6 @@ static void arena_commit_test(mps_arena_t arena)
 }
 
 
-/* reservoir_test -- Test the reservoir interface
- *
- * This has not been tuned to actually dip into the reservoir.  See
- * QA test 132 for that.
- */
-
-#define reservoirSIZE ((size_t)128 * 1024)
-
-static void reservoir_test(mps_arena_t arena)
-{
-  (void)make_with_permit();
-  cdie(mps_reservoir_available(arena) == 0, "empty reservoir");
-  cdie(mps_reservoir_limit(arena) == 0, "no reservoir");
-  mps_reservoir_limit_set(arena, reservoirSIZE);
-  cdie(mps_reservoir_limit(arena) >= reservoirSIZE, "reservoir limit set");
-  cdie(mps_reservoir_available(arena) >= reservoirSIZE, "got reservoir");
-  (void)make_with_permit();
-  mps_reservoir_limit_set(arena, 0);
-  cdie(mps_reservoir_available(arena) == 0, "empty reservoir");
-  cdie(mps_reservoir_limit(arena) == 0, "no reservoir");
-  (void)make_with_permit();
-}
-
-
 static void *test(void *arg, size_t s)
 {
   mps_arena_t arena;
@@ -555,7 +506,6 @@ static void *test(void *arg, size_t s)
   }
 
   arena_commit_test(arena);
-  reservoir_test(arena);
   alignmentTest(arena);
 
   die(mps_arena_collect(arena), "collect");

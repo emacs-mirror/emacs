@@ -92,7 +92,6 @@ protocol_               Protocol inheritance
 protsu_                 SunOS 4 implementation of protection module
 pthreadext_             POSIX thread extensions
 range_                  Ranges of addresses
-reservoir_              The low-memory reservoir
 ring_                   Ring data structure
 root_                   Root manager
 scan_                   The generic scanner
@@ -116,6 +115,7 @@ version_                Software versions
 vm_                     Virtual mapping
 vmo1_                   VM Module on DEC Unix
 vmso_                   VM Design for Solaris
+write-barrier_          Write Barrier
 writef_                 The WriteF function 
 ======================  ================================================
 
@@ -172,7 +172,6 @@ writef_                 The WriteF function
 .. _protsu: protsu
 .. _pthreadext: pthreadext
 .. _range: range
-.. _reservoir: reservoir
 .. _ring: ring
 .. _root: root
 .. _scan: scan
@@ -196,6 +195,7 @@ writef_                 The WriteF function
 .. _vm: vm
 .. _vmo1: vmo1
 .. _vmso: vmso
+.. _write-barrier: write-barrier
 .. _writef: writef
 
 
@@ -229,6 +229,7 @@ Document History
 - 2013-06-07	RB_	Converting to reST_.  Linking to [RB_2002-06-18]_.
 - 2014-01-29    RB_     The arena no longer manages generation zonesets.
 - 2014-01-17    GDR_    Add abq, nailboard, range.
+- 2016-03-22    RB_     Add write-barier.
 
 .. _RB: http://www.ravenbrook.com/consultants/rb
 .. _NB: http://www.ravenbrook.com/consultants/nb
@@ -239,8 +240,8 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2002-2016 Ravenbrook Limited. All rights reserved.
-<http://www.ravenbrook.com/>. This is an open source license. Contact
+Copyright © 2002-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
 Redistribution and use in source and binary forms, with or without

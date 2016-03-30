@@ -172,8 +172,7 @@ static void awlStatTotalInit(AWL awl)
 ARG_DEFINE_KEY(awl_seg_rank_set, RankSet);
 #define awlKeySegRankSet (&_mps_key_awl_seg_rank_set)
 
-static Res AWLSegInit(Seg seg, Pool pool, Addr base, Size size,
-                      Bool reservoirPermit, ArgList args)
+static Res AWLSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 {
   SegClass super;
   AWLSeg awlseg;
@@ -191,7 +190,6 @@ static Res AWLSegInit(Seg seg, Pool pool, Addr base, Size size,
   AVERT(Pool, pool);
   arena = PoolArena(pool);
   /* no useful checks for base and size */
-  AVERT(Bool, reservoirPermit);
   ArgRequire(&arg, args, awlKeySegRankSet);
   rankSet = arg.val.u;
   AVERT(RankSet, rankSet);
@@ -204,21 +202,21 @@ static Res AWLSegInit(Seg seg, Pool pool, Addr base, Size size,
 
   /* Initialize the superclass fields first via next-method call */
   super = SEG_SUPERCLASS(AWLSegClass);
-  res = super->init(seg, pool, base, size, reservoirPermit, args);
+  res = super->init(seg, pool, base, size, args);
   if (res != ResOK)
     return res;
 
   bits = size >> awl->alignShift;
   tableSize = BTSize(bits);
-  res = ControlAlloc(&v, arena, tableSize, reservoirPermit);
+  res = ControlAlloc(&v, arena, tableSize);
   if (res != ResOK)
     goto failControlAllocMark;
   awlseg->mark = v;
-  res = ControlAlloc(&v, arena, tableSize, reservoirPermit);
+  res = ControlAlloc(&v, arena, tableSize);
   if (res != ResOK)
     goto failControlAllocScanned;
   awlseg->scanned = v;
-  res = ControlAlloc(&v, arena, tableSize, reservoirPermit);
+  res = ControlAlloc(&v, arena, tableSize);
   if (res != ResOK)
     goto failControlAllocAlloc;
   awlseg->alloc = v;
@@ -451,8 +449,7 @@ static void AWLNoteScan(AWL awl, Seg seg, ScanState ss)
 /* AWLSegCreate -- Create a new segment of at least given size */
 
 static Res AWLSegCreate(AWLSeg *awlsegReturn,
-                        RankSet rankSet, Pool pool, Size size,
-                        Bool reservoirPermit)
+                        RankSet rankSet, Pool pool, Size size)
 {
   AWL awl;
   Seg seg;
@@ -464,7 +461,6 @@ static Res AWLSegCreate(AWLSeg *awlsegReturn,
   AVERT(RankSet, rankSet);
   AVERT(Pool, pool);
   AVER(size > 0);
-  AVERT(Bool, reservoirPermit);
 
   awl = PoolAWL(pool);
   AVERT(AWL, awl);
@@ -478,8 +474,7 @@ static Res AWLSegCreate(AWLSeg *awlsegReturn,
     return ResMEMORY;
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD_FIELD(args, awlKeySegRankSet, u, rankSet);
-    res = PoolGenAlloc(&seg, &awl->pgen, AWLSegClassGet(), size,
-                       reservoirPermit, args);
+    res = PoolGenAlloc(&seg, &awl->pgen, AWLSegClassGet(), size, args);
   } MPS_ARGS_END(args);
   if (res != ResOK)
     return res;
@@ -636,8 +631,7 @@ static void AWLFinish(Pool pool)
 /* AWLBufferFill -- BufferFill method for AWL */
 
 static Res AWLBufferFill(Addr *baseReturn, Addr *limitReturn,
-                         Pool pool, Buffer buffer, Size size,
-                         Bool reservoirPermit)
+                         Pool pool, Buffer buffer, Size size)
 {
   Addr base, limit;
   AWLSeg awlseg;
@@ -650,7 +644,6 @@ static Res AWLBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVERT(Pool, pool);
   AVERT(Buffer, buffer);
   AVER(size > 0);
-  AVERT(Bool, reservoirPermit);
 
   awl = PoolAWL(pool);
   AVERT(AWL, awl);
@@ -674,8 +667,7 @@ static Res AWLBufferFill(Addr *baseReturn, Addr *limitReturn,
 
   /* No free space in existing awlsegs, so create new awlseg */
 
-  res = AWLSegCreate(&awlseg, BufferRankSet(buffer), pool, size,
-                     reservoirPermit);
+  res = AWLSegCreate(&awlseg, BufferRankSet(buffer), pool, size);
   if (res != ResOK)
     return res;
   base = SegBase(AWLSeg2Seg(awlseg));

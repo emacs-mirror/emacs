@@ -139,7 +139,7 @@ Client arenas
     * :c:macro:`MPS_KEY_ARENA_SIZE` (type :c:type:`size_t`) is its
       size.
 
-    It also accepts two optional keyword arguments:
+    It also accepts three optional keyword arguments:
 
     * :c:macro:`MPS_KEY_COMMIT_LIMIT` (type :c:type:`size_t`) is
       the maximum amount of memory, in :term:`bytes (1)`, that the MPS
@@ -150,9 +150,14 @@ Client arenas
 
     * :c:macro:`MPS_KEY_ARENA_GRAIN_SIZE` (type :c:type:`size_t`,
       default 8192) is the granularity with which the arena will
-      manage memory internally. It must be a power of 2. Larger
-      granularity reduces overheads, but increases
-      :term:`fragmentation` and :term:`retention`.
+      manage memory internally. It must be a power of 2, and at least
+      ``sizeof(void *)``. Larger granularity reduces overheads, but
+      increases :term:`fragmentation` and :term:`retention`.
+
+    * :c:macro:`MPS_KEY_PAUSE_TIME` (type :c:type:`double`, default
+      0.1) is the maximum time, in seconds, that operations within the
+      arena may pause the :term:`client program` for. See
+      :c:func:`mps_arena_pause_time_set` for details.
 
     For example::
 
@@ -213,7 +218,7 @@ Virtual memory arenas
     more efficient.
 
     When creating a virtual memory arena, :c:func:`mps_arena_create_k`
-    accepts four optional :term:`keyword arguments` on all platforms:
+    accepts five optional :term:`keyword arguments` on all platforms:
 
     * :c:macro:`MPS_KEY_ARENA_SIZE` (type :c:type:`size_t`, default
       256 :term:`megabytes`) is the initial amount of virtual address
@@ -262,7 +267,12 @@ Virtual memory arenas
       :term:`bytes (1)`. See :c:func:`mps_arena_spare_commit_limit`
       for details.
 
-    A fifth optional :term:`keyword argument` may be passed, but it
+    * :c:macro:`MPS_KEY_PAUSE_TIME` (type :c:type:`double`, default
+      0.1) is the maximum time, in seconds, that operations within the
+      arena may pause the :term:`client program` for. See
+      :c:func:`mps_arena_pause_time_set` for details.
+
+    A sixth optional :term:`keyword argument` may be passed, but it
     only has any effect on the Windows operating system:
 
     * :c:macro:`MPS_KEY_VMW3_TOP_DOWN` (type :c:type:`mps_bool_t`,
@@ -422,6 +432,73 @@ Arena properties
 
     The amount of committed memory can be limited with the function
     :c:func:`mps_arena_commit_limit`.
+
+
+.. c:function:: double mps_arena_pause_time(mps_arena_t arena)
+
+    Return the maximum time, in seconds, that operations within the
+    arena may pause the :term:`client program` for.
+
+    ``arena`` is the arena.
+
+    See :c:func:`mps_arena_pause_time_set` for details.
+
+
+.. c:function:: void mps_arena_pause_time_set(mps_arena_t arena, double pause_time)
+
+    Set the maximum time, in seconds, that operations within an arena
+    may pause the :term:`client program` for.
+
+    ``arena`` is the arena.
+
+    ``pause_time`` is the new maximum pause time, in seconds. It must
+    be non-negative.
+
+    The MPS makes more efficient use of processor time when it is
+    allowed longer pauses, up to the maximum time it takes to collect
+    the entire arena (see :c:func:`mps_arena_collect`).
+
+    When the pause time is short, the MPS needs to take more slices of
+    time in order to make :term:`garbage collection` progress, and
+    make more use of :term:`barriers (1)` to support
+    :term:`incremental collection`.  This increases time overheads,
+    and especially operating system overheads.
+
+    The pause time may be set to zero, in which case the MPS returns
+    as soon as it can, without regard for overall efficiency.  This
+    value is suitable for applications that require high
+    responsiveness, but where overall run time is unimportant.
+
+    For interactive applications, set this to the maximum pause that a
+    human being might notice.  The default setting of 100ms is
+    intended for this.
+
+    The pause time may be set to infinity, in which case the MPS
+    completes all outstanding :term:`garbage collection` work before
+    returning from an operation. The consequence is that the MPS will
+    be able to save on the overheads due to :term:`incremental
+    collection`, leading to lower total time spent in collection. This
+    value is suitable for non-interactive applications where total
+    time is important.
+
+    The MPS makes a best effort to return to the :term:`client
+    program` from any operation on the arena within the maximum pause
+    time, but does not guarantee to do so. This is for three reasons:
+
+    1. many operations in the MPS necessarily take some minimum amount
+       time that's logarithmic in the amount of :term:`memory (2)`
+       being managed (so if you set the maximum pause time to zero,
+       then every operation will exceed it);
+
+    2. some operations in the MPS call functions in the :term:`client
+       program` (for example, the :term:`format methods`), and the MPS
+       has no control over how long these functions take;
+
+    3. none of the operating systems supported by the MPS provide
+       real-time guarantees (for example, the process may have to wait
+       for :term:`memory (2)` to be :term:`paged in`).
+
+    In other words, the MPS is a “soft” real-time system.
 
 
 .. c:function:: size_t mps_arena_reserved(mps_arena_t arena)

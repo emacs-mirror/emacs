@@ -4,7 +4,7 @@ TEST_HEADER
  summary = test of ramp allocation with tiny arena
  language = c
  link = testlib.o rankfmt.o
- parameters = ARENA=1024*60
+ parameters = ARENA=1024*60 ITERATIONS=10000
 OUTPUT_SPEC
  result = pass
 END_HEADER
@@ -17,15 +17,13 @@ END_HEADER
 
 #define ARENALIMIT (ARENA)
 
-#define TABSIZE (50000)
-#define ENTERRAMP (3000)
-#define LEAVERAMP (10000)
+#define TABSIZE (ITERATIONS * 5 / 10)
+#define ENTERRAMP (ITERATIONS * 3 / 100)
+#define LEAVERAMP (ITERATIONS / 10)
 
 #define BACKSIZE (128)
 #define BACKITER (32)
 #define RAMPSIZE (128)
-
-#define ITERATIONS (100000ul)
 
 #define RAMP_INTERFACE
 /*
@@ -44,7 +42,7 @@ mps_pool_t poolamc;
 mps_thr_t thread;
 mps_root_t root, root1;
 
- mps_chain_t chain;
+mps_chain_t chain;
 mps_fmt_t format;
 mps_ap_t apamc;
 
@@ -100,7 +98,7 @@ static void test(void) {
  inramp = 0;
 
  for (i = 0; i < ITERATIONS; i++) {
-  if (i % 10000 == 0) {
+  if (i * 10 % ITERATIONS == 0) {
    comment("%ld of %ld", i, ITERATIONS);
   }
   alloc_back();

@@ -456,22 +456,21 @@ for example job003898_.
 Deciding whether to collect the world
 .....................................
 
-``Bool PolicyShouldCollectWorld(Arena arena, double interval, double multiplier, Clock now, Clock clocks_per_sec)``
+``Bool PolicyShouldCollectWorld(Arena arena, double availableTime, Clock now, Clock clocks_per_sec)``
 
 _`.policy.world`: Determine whether now is a good time for
 ``mps_arena_step()`` to start a collection of the world. Return
-``TRUE`` if so, ``FALSE`` if not. The ``interval`` and ``multiplier``
-arguments are the ones the client program passed to
-``mps_arena_step()``, ``now`` is the current time as returned by
-``ClockNow()``, and ``clocks_per_sec`` is the result of calling
-``ClocksPerSec()``.
+``TRUE`` if so, ``FALSE`` if not. The ``availableTime`` argument is an
+estimate of the time that's available for the collection, ``now`` is
+the current time as returned by ``ClockNow()``, and ``clocks_per_sec``
+is the result of calling ``ClocksPerSec()``.
 
-_`.policy.world.impl`: There are two conditions: the client program's
-estimate of the available time must be enough to complete the
-collection, and the last collection of the world must be long enough
-in the past that the ``mps_arena_step()`` won't be spending more than
-a certain fraction of runtime in collections. (This fraction is given
-by the ``ARENA_MAX_COLLECT_FRACTION`` configuration parameter.)
+_`.policy.world.impl`: There are two conditions: the estimate of the
+available time must be enough to complete the collection, and the last
+collection of the world must be long enough in the past that the
+``mps_arena_step()`` won't be spending more than a certain fraction of
+runtime in collections. (This fraction is given by the
+``ARENA_MAX_COLLECT_FRACTION`` configuration parameter.)
 
 
 
@@ -518,16 +517,18 @@ Trace progress
 _`.policy.poll`: Return TRUE if the MPS should do some tracing work;
 FALSE if it should return to the mutator.
 
-``Bool PolicyPollAgain(Arena arena, Clock start, Size tracedSize)``
+``Bool PolicyPollAgain(Arena arena, Clock start, Bool moreWork, Work tracedWork)``
 
 _`.policy.poll.again`: Return TRUE if the MPS should do another unit
 of work; FALSE if it should return to the mutator. ``start`` is the
-clock time when the MPS was entered; ``tracedSize`` is the amount of
-work done by the last call to ``TracePoll()``.
+clock time when the MPS was entered; ``moreWork`` and ``tracedWork``
+are the results of the last call to ``TracePoll()``.
 
-_`.policy.poll.impl`: The implementation balances collection work
-against mutator allocation so that there is approximately one call to
-``TracePoll()`` for every ``ArenaPollALLOCTIME`` bytes of allocation.
+_`.policy.poll.impl`: The implementation keep doing work until either
+the maximum pause time is exceeded (see design.mps.arena.pause-time_),
+or there is no more work to do. Then it schedules the next collection
+so that there is approximately one call to ``TracePoll()`` for every
+``ArenaPollALLOCTIME`` bytes of allocation.
 
 
 References
@@ -556,8 +557,8 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2016 Ravenbrook Limited. All rights reserved.
-<http://www.ravenbrook.com/>. This is an open source license. Contact
+Copyright © 2013-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
 Redistribution and use in source and binary forms, with or without

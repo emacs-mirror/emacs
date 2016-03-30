@@ -4,6 +4,7 @@ TEST_HEADER
  summary = new MV allocation test
  language = c
  link = testlib.o
+ parameters = ITERATIONS=10000
 END_HEADER
 */
 
@@ -62,7 +63,7 @@ static void dt(int kind,
  int i, hd;
  clock_t time0, time1;
  size_t size;
- int secs;
+ double secs;
 
  asserts(number <= MAXNUMBER, "number too big");
 
@@ -123,9 +124,9 @@ static void dt(int kind,
  mps_pool_destroy(pool);
 
  time1=clock();
- secs=(int) 100*(time1-time0)/CLOCKS_PER_SEC;
+ secs=(time1-time0)/(double)CLOCKS_PER_SEC;
 
- comment("%s test (%x, %x, %x, %x, %x, %i, %i) in %i centisecs",
+ comment("%s test (%x, %x, %x, %x, %x, %i, %i) in %.2f s",
   tdesc[kind], (int) extendBy, (int) avgSize, (int) maxSize,
   (int) mins, (int) maxs, number, iter, secs);
 }
@@ -140,26 +141,26 @@ static void test(void)
 
  mins = sizeof(int);
 
- dt(SEQ, 4096, 32, 64*1024, 8, 9, 5, 1000);
- dt(RANGAP, 64, 64, 64, 8, 128, 100, 100000);
+ dt(SEQ, 4096, 32, 64*1024, 8, 9, 5, ITERATIONS);
+ dt(RANGAP, 64, 64, 64, 8, 128, 100, ITERATIONS);
 
- dt(DUMMY, 4096, 32, 64*1024, 8, 64, 1000, 1000000);
- dt(SEQ, 4096, 32, 64*1024, 8, 64, 1000, 1000000);
- dt(RAN, 4096, 32, 64*1024, 8, 64, 1000, 1000000);
- dt(SEQGAP, 4096, 32, 64*1024, 8, 64, 1000, 1000000);
- dt(RANGAP, 4096, 32, 64*1024, 8, 64, 1000, 1000000);
+ dt(DUMMY, 4096, 32, 64*1024, 8, 64, 1000, ITERATIONS);
+ dt(SEQ, 4096, 32, 64*1024, 8, 64, 1000, ITERATIONS);
+ dt(RAN, 4096, 32, 64*1024, 8, 64, 1000, ITERATIONS);
+ dt(SEQGAP, 4096, 32, 64*1024, 8, 64, 1000, ITERATIONS);
+ dt(RANGAP, 4096, 32, 64*1024, 8, 64, 1000, ITERATIONS);
 
- dt(DUMMY, 4096, 1024, 64*1024, 100, 132, 1000, 1000000);
- dt(SEQ, 4096, 1024, 64*1024, 100, 132, 1000, 1000000);
- dt(RAN, 4096, 1024, 64*1024, 100, 132, 1000, 1000000);
- dt(SEQGAP, 4096, 1024, 64*1024, 100, 132, 1000, 1000000);
- dt(RANGAP, 4096, 1024, 64*1024, 100, 132, 1000, 1000000);
+ dt(DUMMY, 4096, 1024, 64*1024, 100, 132, 1000, ITERATIONS);
+ dt(SEQ, 4096, 1024, 64*1024, 100, 132, 1000, ITERATIONS);
+ dt(RAN, 4096, 1024, 64*1024, 100, 132, 1000, ITERATIONS);
+ dt(SEQGAP, 4096, 1024, 64*1024, 100, 132, 1000, ITERATIONS);
+ dt(RANGAP, 4096, 1024, 64*1024, 100, 132, 1000, ITERATIONS);
 
- dt(DUMMY, 128*1024, 64*1024, 6400*1024, mins, 128*1024, 100, 10000);
- dt(SEQ, 128*1024, 64*1024, 6400*1024, mins, 128*1024, 100, 10000);
- dt(RAN, 128*1024, 64*1024, 6400*1024, mins, 128*1024, 100, 10000);
- dt(SEQGAP, 128*1024, 64*1024, 6400*1024, mins, 128*1024, 100, 10000);
- dt(RANGAP, 128*1024, 64*1024, 6400*1024, mins, 128*1024, 100, 10000);
+ dt(DUMMY, 128*1024, 64*1024, 6400*1024, mins, 128*1024, 100, ITERATIONS);
+ dt(SEQ, 128*1024, 64*1024, 6400*1024, mins, 128*1024, 100, ITERATIONS);
+ dt(RAN, 128*1024, 64*1024, 6400*1024, mins, 128*1024, 100, ITERATIONS);
+ dt(SEQGAP, 128*1024, 64*1024, 6400*1024, mins, 128*1024, 100, ITERATIONS);
+ dt(RANGAP, 128*1024, 64*1024, 6400*1024, mins, 128*1024, 100, ITERATIONS);
 
  mps_thread_dereg(thread);
  mps_arena_destroy(arena);

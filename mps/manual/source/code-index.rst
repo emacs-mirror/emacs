@@ -125,7 +125,6 @@ protocol.h    Inheritance protocol interface. See design.mps.protocol_.
 range.c       Address ranges implementation. See design.mps.range_.
 range.h       Address ranges interface. See design.mps.range_.
 ref.c         Ranks and zones implementation.
-reserv.c      Reservoir pool implementation. See design.mps.reservoir_.
 ring.c        Ring implementation. See design.mps.ring_.
 ring.h        Ring interface. See design.mps.ring_.
 root.c        :ref:`topic-root` implementation.
@@ -431,7 +430,6 @@ xci6ll.gmk     GNU makefile for platform XCI6LL.
 .. _design.mps.protocol: design/protocol.html
 .. _design.mps.prot: design/prot.html
 .. _design.mps.range: design/range.html
-.. _design.mps.reservoir: design/reservoir.html
 .. _design.mps.ring: design/ring.html
 .. _design.mps.seg: design/seg.html
 .. _design.mps.shield: design/shield.html

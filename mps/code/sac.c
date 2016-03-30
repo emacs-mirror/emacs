@@ -149,8 +149,7 @@ Res SACCreate(SAC *sacReturn, Pool pool, Count classesCount,
     middleIndex = i + 1; /* there must exist another class at i+1 */
 
   /* Allocate SAC */
-  res = ControlAlloc(&p, PoolArena(pool), sacSize(middleIndex, classesCount),
-                     FALSE);
+  res = ControlAlloc(&p, PoolArena(pool), sacSize(middleIndex, classesCount));
   if(res != ResOK)
     goto failSACAlloc;
   sac = p;
@@ -245,7 +244,7 @@ static void sacFind(Index *iReturn, Size *blockSizeReturn,
 
 /* SACFill -- alloc an object, and perhaps fill the cache */
 
-Res SACFill(Addr *p_o, SAC sac, Size size, Bool hasReservoirPermit)
+Res SACFill(Addr *p_o, SAC sac, Size size)
 {
   Index i;
   Count blockCount, j;
@@ -257,7 +256,6 @@ Res SACFill(Addr *p_o, SAC sac, Size size, Bool hasReservoirPermit)
   AVER(p_o != NULL);
   AVERT(SAC, sac);
   AVER(size != 0);
-  AVERT(Bool, hasReservoirPermit);
   esac = ExternalSACOfSAC(sac);
 
   sacFind(&i, &blockSize, sac, size);
@@ -272,7 +270,7 @@ Res SACFill(Addr *p_o, SAC sac, Size size, Bool hasReservoirPermit)
     blockSize = SizeAlignUp(size, PoolAlignment(sac->pool));
   for (j = 0, fl = esac->_freelists[i]._blocks;
        j <= blockCount; ++j) {
-    res = PoolAlloc(&p, sac->pool, blockSize, hasReservoirPermit);
+    res = PoolAlloc(&p, sac->pool, blockSize);
     if (res != ResOK)
       break;
     /* @@@@ ignoring shields for now */

@@ -1,7 +1,7 @@
 /* tagtest.c: TAGGED POINTER TEST
  *
  * $Id$
- * Copyright (c) 2015 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2015-2016 Ravenbrook Limited.  See end of file for license.
  *
  * .overview: This test case checks that the MPS correctly handles
  * tagged pointers via the object format and tagged area scanning.
@@ -267,7 +267,7 @@ int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2015 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2015-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
