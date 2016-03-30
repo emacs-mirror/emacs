@@ -337,10 +337,14 @@ static void *go(void *p, size_t s)
   testlib_unused(p);
   testlib_unused(s);
 
-  die(mps_pool_create(&mpool, arena, mps_class_mv(),
-                      (size_t)65536, sizeof(QSCellStruct) * 1000,
-                      (size_t)65536),
-      "MVCreate");
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_EXTEND_BY, 65536);
+    MPS_ARGS_ADD(args, MPS_KEY_MEAN_SIZE, sizeof(QSCellStruct) * 1000);
+    MPS_ARGS_ADD(args, MPS_KEY_MAX_SIZE, 65536);
+    die(mps_pool_create_k(&mpool, arena, mps_class_mv(), args),
+        "MVCreate");
+  } MPS_ARGS_END(args);
+
   die(mps_fmt_create_A(&format, arena, &fmt_A_s), "FormatCreate");
   die(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
   die(mps_pool_create(&pool, arena, mps_class_amc(), format, chain),

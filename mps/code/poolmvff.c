@@ -29,6 +29,7 @@
 #include "mpscmvff.h"
 #include "poolmvff.h"
 #include "mpscmfs.h"
+#include "mpscmv.h"
 #include "poolmfs.h"
 
 SRCID(poolmvff, "$Id$");
@@ -730,6 +731,25 @@ mps_pool_class_t mps_class_mvff(void)
 mps_pool_class_t mps_class_mvff_debug(void)
 {
   return (mps_pool_class_t)(MVFFDebugPoolClassGet());
+}
+
+
+/* Replacement of the deprecated MV pool class.
+ *
+ * MVFF replaces MV, but these functions are provided for backward
+ * compatibility.  TODO: Remove these sometime after MPS 1.116.
+ */
+
+mps_pool_class_t mps_class_mv(void)
+{
+  /* return (mps_pool_class_t)(EnsureMVPoolClass()); */
+  return mps_class_mvff();
+}
+
+mps_pool_class_t mps_class_mv_debug(void)
+{
+  /* return (mps_pool_class_t)(EnsureMVDebugPoolClass()); */
+  return mps_class_mvff_debug();
 }
 
 
