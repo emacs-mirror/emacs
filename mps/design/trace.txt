@@ -138,15 +138,13 @@ whether it points to a tract) in order to check the `.exact.legal`_
 condition.
 
 _`.fix.whiteseg`: The reason for looking up the tract is to determine
-whether the segment is white. There is no need to examine the segment
-to perform this test, since whiteness information is duplicated in
-tracts, specifically to optimize this test.
+whether the refernce is to a white segment.
 
 .. note::
 
-    Nonetheless, it is likely to be more efficient to maintain a
-    separate lookup table from address to white segment, rather than
-    indirecting through the chunk and the tract. See job003796_.
+    It is likely to be more efficient to maintain a separate lookup
+    table from address to white segment, rather than indirecting
+    through the chunk and the tract. See job003796_.
 
 .. _job003796: http://www.ravenbrook.com/project/mps/issue/job003796/
 
