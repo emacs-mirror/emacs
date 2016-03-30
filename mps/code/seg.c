@@ -158,7 +158,6 @@ static Res SegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 
   TRACT_FOR(tract, addr, arena, base, limit) {
     AVERT(Tract, tract);
-    AVER(TractP(tract) == NULL);
     AVER(!TractHasSeg(tract));
     AVER(TractPool(tract) == pool);
     AVER(TractWhite(tract) == TraceSetEMPTY);
@@ -919,8 +918,7 @@ static Res segTrivMerge(Seg seg, Seg segHi,
   seg->limit = limit;
   TRACT_FOR(tract, addr, arena, mid, limit) {
     AVERT(Tract, tract);
-    AVER(TractHasSeg(tract));
-    AVER(segHi == TractP(tract));
+    AVER(segHi == TractSeg(tract));
     AVER(TractPool(tract) == pool);
     TRACT_SET_SEG(tract, seg);
   }
@@ -997,8 +995,7 @@ static Res segTrivSplit(Seg seg, Seg segHi,
 
   TRACT_FOR(tract, addr, arena, mid, limit) {
     AVERT(Tract, tract);
-    AVER(TractHasSeg(tract));
-    AVER(seg == TractP(tract));
+    AVER(seg == TractSeg(tract));
     AVER(TractPool(tract) == pool);
     TRACT_SET_SEG(tract, segHi);
     if (addr == mid) {
