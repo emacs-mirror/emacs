@@ -2028,8 +2028,13 @@ Finally, show the buffer."
             (condition-case nil
                 (let ((rkeys (recent-keys)))
                   (vector 'key-chord
-                          (aref rkeys (- (length rkeys) 2))
-                          (aref rkeys (- (length rkeys) 1))))
+                          ;; Take the two preceding the last one, because the
+                          ;; read-event call in key-chord seems to add a
+                          ;; spurious key press to this list. Note this is
+                          ;; different from guide-key's method which didn't work
+                          ;; for me.
+                          (aref rkeys (- (length rkeys) 3))
+                          (aref rkeys (- (length rkeys) 2))))
               (error (progn
                        (message "which-key error in key-chord handling")
                        [key-chord])))))
