@@ -4444,7 +4444,7 @@ static mps_gen_param_s obj_gen_params[] = {
 
 int main(int argc, char *argv[])
 {
-  size_t arenasize = 32ul * 1024 * 1024;
+  size_t arenasize = 1024ul * 1024 * 1024;
   mps_res_t res;
   mps_chain_t obj_chain;
   mps_fmt_t obj_fmt, buckets_fmt;
