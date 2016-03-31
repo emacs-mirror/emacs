@@ -1170,9 +1170,13 @@ static Res AMSWhiten(Pool pool, Trace trace, Seg seg)
   amsseg->newGrains = uncondemned;
   amsseg->marksChanged = FALSE; /* <design/poolams/#marked.condemn> */
   amsseg->ambiguousFixes = FALSE;
-  trace->condemned += AMSGrainsSize(ams, amsseg->oldGrains);
 
-  SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace));
+  if (amsseg->oldGrains > 0) {
+    trace->condemned += AMSGrainsSize(ams, amsseg->oldGrains);
+    SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace));
+  } else {
+    amsseg->colourTablesInUse = FALSE;
+  }
 
   return ResOK;
 }
