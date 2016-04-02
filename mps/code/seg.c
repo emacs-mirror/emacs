@@ -1463,6 +1463,21 @@ static Res gcSegMerge(Seg seg, Seg segHi,
   grey = SegGrey(segHi);      /* check greyness */
   AVER(SegGrey(seg) == grey);
 
+  /* Assume that the write barrier shield is being used to implement
+     the remembered set only, and so we can merge the shield and
+     protection modes by unioning the segment summaries.  See also
+     design.mps.seg.merge.inv.similar. */
+  summary = RefSetUnion(gcseg->summary, gcsegHi->summary);
+  SegSetSummary(seg, summary);
+  SegSetSummary(segHi, summary);
+  AVER(SegSM(seg) == SegSM(segHi));
+  if (SegPM(seg) != SegPM(segHi)) {
+    /* This shield won't cope with a partially-protected segment, so
+       flush the shield queue to bring both halves in sync.  See also
+       design.mps.seg.split-merge.shield.re-flush. */
+    ShieldFlush(PoolArena(SegPool(seg)));
+  }
+
   /* Merge the superclass fields via next-method call */
   super = SEG_SUPERCLASS(GCSegClass);
   res = super->merge(seg, segHi, base, mid, limit);
@@ -1470,13 +1485,6 @@ static Res gcSegMerge(Seg seg, Seg segHi,
     goto failSuper;
 
   /* Update fields of gcseg. Finish gcsegHi. */
-  summary = RefSetUnion(gcseg->summary, gcsegHi->summary);
-  if (summary != gcseg->summary) {
-    gcSegSetSummary(seg, summary);
-    /* <design/seg/#split-merge.shield.re-flush> */
-    ShieldFlush(PoolArena(SegPool(seg)));
-  }
-
   gcSegSetGreyInternal(segHi, grey, TraceSetEMPTY);
   gcsegHi->summary = RefSetEMPTY;
   gcsegHi->sig = SigInvalid;
