@@ -724,15 +724,15 @@ extern Addr (SegLimit)(Seg seg);
 /* .bitfield.promote: The bit field accesses need to be cast to the */
 /* right type, otherwise they'll be promoted to signed int, see */
 /* standard.ansic.6.2.1.1. */
-#define SegRankSet(seg)         ((RankSet)(seg)->rankSet)
-#define SegPM(seg)              ((AccessSet)(seg)->pm)
-#define SegSM(seg)              ((AccessSet)(seg)->sm)
-#define SegDepth(seg)           ((unsigned)(seg)->depth)
-#define SegGrey(seg)            ((TraceSet)(seg)->grey)
-#define SegWhite(seg)           ((TraceSet)(seg)->white)
-#define SegNailed(seg)          ((TraceSet)(seg)->nailed)
-#define SegPoolRing(seg)        (&(seg)->poolRing)
-#define SegOfPoolRing(node)     (RING_ELT(Seg, poolRing, (node)))
+#define SegRankSet(seg)         RVALUE((RankSet)(seg)->rankSet)
+#define SegPM(seg)              RVALUE((AccessSet)(seg)->pm)
+#define SegSM(seg)              RVALUE((AccessSet)(seg)->sm)
+#define SegDepth(seg)           RVALUE((unsigned)(seg)->depth)
+#define SegGrey(seg)            RVALUE((TraceSet)(seg)->grey)
+#define SegWhite(seg)           RVALUE((TraceSet)(seg)->white)
+#define SegNailed(seg)          RVALUE((TraceSet)(seg)->nailed)
+#define SegPoolRing(seg)        RVALUE(&(seg)->poolRing)
+#define SegOfPoolRing(node)     RING_ELT(Seg, poolRing, (node))
 #define SegOfGreyRing(node)     (&(RING_ELT(GCSeg, greyRing, (node)) \
                                    ->segStruct))
 
