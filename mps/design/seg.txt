@@ -213,12 +213,10 @@ before calling ``SegMerge()``:
 - _`.merge.inv.similar`: ``segLo`` and ``segHi`` must be sufficiently
   similar. Two segments are sufficiently similar if they have
   identical values for each of the following fields: ``class``,
-  ``sm``, ``grey``, ``white``, ``nailed``, ``rankSet``. Justification:
-  there is no single choice of behaviour for cases where these fields
-  are not identical. The pool class must make it's own choices about
-  this if it wishes to permit more flexible merging. If so, it should
-  be a simple matter for the pool to arrange for the segments to look
-  sufficiently similar before calling ``SegMerge()``.
+  ``grey``, ``white``, ``nailed``, ``rankSet``. Justification: There
+  has yet to be a need to implement default behaviour for these
+  cases. Pool classes should arrange for these values to be the same
+  before calling ``SegMerge()``.
 
 _`.merge.state`: The merged segment will share the same state as
 ``segLo`` and ``segHi`` for those fields which are identical (see

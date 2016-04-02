@@ -23,6 +23,7 @@
 #define testArenaSIZE   ((((size_t)3)<<24) - 4)
 #define testSetSIZE 200
 #define testLOOPS 10
+#define MAX_ALIGN 64 /* TODO: Make this test work up to arena_grain_size? */
 
 
 /* make -- allocate one object */
@@ -175,8 +176,10 @@ static void test(mps_arena_class_t arena_class, mps_arg_s arena_args[],
   mps_arena_t arena;
   die(mps_arena_create_k(&arena, arena_class, arena_args), "mps_arena_create");
 
+  (void)arena_grain_size; /* TODO: test larger alignments up to this */
+
   MPS_ARGS_BEGIN(args) {
-    mps_align_t align = rnd_align(sizeof(void *), arena_grain_size);
+    mps_align_t align = rnd_align(sizeof(void *), MAX_ALIGN);
     MPS_ARGS_ADD(args, MPS_KEY_ALIGN, align);
     MPS_ARGS_ADD(args, MPS_KEY_MVFF_ARENA_HIGH, TRUE);
     MPS_ARGS_ADD(args, MPS_KEY_MVFF_SLOT_HIGH, TRUE);
@@ -191,14 +194,14 @@ static void test(mps_arena_class_t arena_class, mps_arg_s arena_args[],
      PoolAlloc).  See job003995. */
 
   MPS_ARGS_BEGIN(args) {
-    mps_align_t align = rnd_align(sizeof(void *), arena_grain_size);
+    mps_align_t align = rnd_align(sizeof(void *), MAX_ALIGN);
     MPS_ARGS_ADD(args, MPS_KEY_ALIGN, align);
     die(stress(arena, NULL, align, randomSizeAligned, "MV",
                mps_class_mv(), args), "stress MV");
   } MPS_ARGS_END(args);
 
   MPS_ARGS_BEGIN(args) {
-    mps_align_t align = rnd_align(sizeof(void *), arena_grain_size);
+    mps_align_t align = rnd_align(sizeof(void *), MAX_ALIGN);
     MPS_ARGS_ADD(args, MPS_KEY_ALIGN, align);
     MPS_ARGS_ADD(args, MPS_KEY_POOL_DEBUG_OPTIONS, options);
     die(stress(arena, options, align, randomSizeAligned, "MV debug",
@@ -206,7 +209,7 @@ static void test(mps_arena_class_t arena_class, mps_arg_s arena_args[],
   } MPS_ARGS_END(args);
 
   MPS_ARGS_BEGIN(args) {
-    mps_align_t align = rnd_align(sizeof(void *), arena_grain_size);
+    mps_align_t align = rnd_align(sizeof(void *), MAX_ALIGN);
     MPS_ARGS_ADD(args, MPS_KEY_ALIGN, align);
     die(stress(arena, NULL, align, randomSizeAligned, "MVT",
                mps_class_mvt(), args), "stress MVT");
