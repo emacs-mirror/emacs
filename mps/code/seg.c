@@ -28,10 +28,6 @@ SRCID(seg, "$Id$");
 
 #define SegGCSeg(seg)             ((GCSeg)(seg))
 
-/* SegPoolRing -- Pool ring accessor */
-
-#define SegPoolRing(seg)          (&(seg)->poolRing)
-
 
 /* forward declarations */
 
