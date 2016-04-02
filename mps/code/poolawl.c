@@ -791,8 +791,12 @@ static Res AWLWhiten(Pool pool, Trace trace, Seg seg)
   PoolGenAccountForAge(&awl->pgen, AWLGrainsSize(awl, awlseg->newGrains - uncondemned), FALSE);
   awlseg->oldGrains += awlseg->newGrains - uncondemned;
   awlseg->newGrains = uncondemned;
-  trace->condemned += AWLGrainsSize(awl, awlseg->oldGrains);
-  SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace));
+
+  if (awlseg->oldGrains > 0) {
+    trace->condemned += AWLGrainsSize(awl, awlseg->oldGrains);
+    SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace));
+  }
+  
   return ResOK;
 }
 
