@@ -33,8 +33,8 @@ SRCID(seg, "$Id$");
 
 static void SegFinish(Seg seg);
 
-static Res SegInit(Seg seg, Pool pool, Addr base, Size size,
-                   ArgList args);
+static Res SegInit(Seg seg, SegClass class, Pool pool,
+                   Addr base, Size size, ArgList args);
 
 
 /* Generic interface support */
@@ -72,8 +72,7 @@ Res SegAlloc(Seg *segReturn, SegClass class, LocusPref pref,
     goto failControl;
   seg = p;
 
-  seg->class = class;
-  res = SegInit(seg, pool, base, size, args);
+  res = SegInit(seg, class, pool, base, size, args);
   if (res != ResOK)
     goto failInit;
 
@@ -121,12 +120,11 @@ void SegFree(Seg seg)
 
 /* SegInit -- initialize a segment */
 
-static Res SegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
+static Res SegInit(Seg seg, SegClass class, Pool pool, Addr base, Size size, ArgList args)
 {
   Tract tract;
   Addr addr, limit;
   Arena arena;
-  SegClass class;
   Res res;
 
   AVER(seg != NULL);
@@ -134,9 +132,9 @@ static Res SegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   arena = PoolArena(pool);
   AVER(AddrIsArenaGrain(base, arena));
   AVER(SizeIsArenaGrains(size, arena));
-  class = seg->class;
   AVERT(SegClass, class);
 
+  seg->class = class;
   limit = AddrAdd(base, size);
   seg->limit = limit;
   seg->rankSet = RankSetEMPTY;
