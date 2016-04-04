@@ -19,6 +19,15 @@ void NodeInit(Node node, Addr base, Addr limit)
 }
 
 
+void NodeInitFromRange(Node node, Range range)
+{
+  AVER(node != NULL);
+  TreeInit(NodeTree(node));
+  RangeCopy(NodeRange(node), range);
+  AVERT(Node, node);
+}
+
+
 Bool NodeCheck(Node node)
 {
   CHECKL(node != NULL);
