@@ -22,6 +22,7 @@
 #define NodeSize(block) RangeSize(NodeRange(block))
 
 extern void NodeInit(Node node, Addr base, Addr limit);
+extern void NodeInitFromRange(Node node, Range range);
 extern Bool NodeCheck(Node node);
 extern void NodeFinish(Node node);
 
