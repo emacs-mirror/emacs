@@ -260,6 +260,11 @@ extern double rnd_double(void);
 extern size_t rnd_grain(size_t arena_size);
 
 
+/* rnd_align -- random alignment */
+
+extern size_t rnd_align(size_t min, size_t max);
+
+
 /* randomize -- randomize the generator, or initialize to replay
  *
  * randomize(argc, argv) randomizes the rnd generator (using time(3))

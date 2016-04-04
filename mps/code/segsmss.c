@@ -508,10 +508,10 @@ static void AMSAllocateRange(AMS ams, Seg seg, Addr base, Addr limit)
  * Calls next method - but possibly splits or merges the chosen
  * segment.
  *
- * .merge: A merge is performed when the next method returns
- * the entire segment, this segment had previously been split
- * from the segment below, and the segment below is appropriately
- * similar (i.e. not already attached to a buffer and similarly grey)
+ * .merge: A merge is performed when the next method returns the
+ * entire segment, this segment had previously been split from the
+ * segment below, and the segment below is appropriately similar
+ * (i.e. not already attached to a buffer and similarly coloured)
  *
  * .split: If we're not merging, a split is performed if the next method
  * returns the entire segment, and yet lower half of the segment would
@@ -551,7 +551,9 @@ static Res AMSTBufferFill(Addr *baseReturn, Addr *limitReturn,
   if (SegLimit(seg) == limit && SegBase(seg) == base) {
     if (amstseg->prev != NULL) {
       Seg segLo = AMSTSeg2Seg(amstseg->prev);
-      if (SegBuffer(segLo) == NULL && SegGrey(segLo) == SegGrey(seg)) {
+      if (SegBuffer(segLo) == NULL &&
+	  SegGrey(segLo) == SegGrey(seg) &&
+	  SegWhite(segLo) == SegWhite(seg)) {
         /* .merge */
         Seg mergedSeg;
         Res mres;

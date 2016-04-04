@@ -339,7 +339,12 @@ static ZoneSet traceSetWhiteUnion(TraceSet ts, Arena arena)
 }
 
 
-/* TraceIsEmpty -- return TRUE if trace has no condemned segments */
+/* TraceIsEmpty -- return TRUE if trace has no condemned segments
+ *
+ * .empty.size: If the trace has a condemned size of zero, then it has
+ * no white segments, because we don't allow pools to whiten segments
+ * with no white objects in.
+ */
 
 Bool TraceIsEmpty(Trace trace)
 {
@@ -354,6 +359,7 @@ Res TraceAddWhite(Trace trace, Seg seg)
 {
   Res res;
   Pool pool;
+  Size condemnedBefore;
 
   AVERT(Trace, trace);
   AVERT(Seg, seg);
@@ -362,18 +368,25 @@ Res TraceAddWhite(Trace trace, Seg seg)
   pool = SegPool(seg);
   AVERT(Pool, pool);
 
+  condemnedBefore = trace->condemned;
+
   /* Give the pool the opportunity to turn the segment white. */
   /* If it fails, unwind. */
   res = PoolWhiten(pool, trace, seg);
   if(res != ResOK)
     return res;
 
-  /* Add the segment to the approximation of the white set if the */
-  /* pool made it white. */
-  if(TraceSetIsMember(SegWhite(seg), trace)) {
+  if (TraceSetIsMember(SegWhite(seg), trace)) {
+    /* Pools must not condemn empty segments, otherwise we can't tell
+       when a trace is empty and safe to destroy.  See .empty.size. */
+    AVER(trace->condemned > condemnedBefore);
+    
+    /* Add the segment to the approximation of the white set if the
+       pool made it white. */
     trace->white = ZoneSetUnion(trace->white, ZoneSetOfSeg(trace->arena, seg));
+
     /* if the pool is a moving GC, then condemned objects may move */
-    if(PoolHasAttr(pool, AttrMOVINGGC)) {
+    if (PoolHasAttr(pool, AttrMOVINGGC)) {
       trace->mayMove = ZoneSetUnion(trace->mayMove,
                                     ZoneSetOfSeg(trace->arena, seg));
     }
@@ -1532,11 +1545,13 @@ static Res traceCondemnAll(Trace trace)
       Ring segNode, nextSegNode;
       RING_FOR(segNode, PoolSegRing(pool), nextSegNode) {
         Seg seg = SegOfPoolRing(segNode);
+
         AVERT(Seg, seg);
 
         res = TraceAddWhite(trace, seg);
         if (res != ResOK)
           goto failBegin;
+
       }
     }
   }
