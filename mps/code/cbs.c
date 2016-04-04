@@ -34,14 +34,6 @@ SRCID(cbs, "$Id$");
 #define cbsZonedBlockNode(_block) cbsFastBlockNode(&(_block)->cbsFastBlockStruct)
 #define cbsBlockPool(cbs) RVALUE((cbs)->blockPool)
 
-/* We pass the block base directly as a TreeKey (void *) assuming that
-   Addr can be encoded, and possibly breaking <design/type/#addr.use>.
-   On an exotic platform where this isn't true, pass the address of base.
-   i.e. add an & */
-#define cbsBlockKey(block)  ((TreeKey)NodeBase(block))
-#define keyOfBaseVar(baseVar) ((TreeKey)(baseVar))
-#define baseOfKey(key)        ((Addr)(key))
-
 
 /* CBSCheck -- Check CBS */
 
@@ -60,39 +52,6 @@ Bool CBSCheck(CBS cbs)
   STATISTIC_STAT({CHECKL((cbs->size == 0) == (cbs->treeSize == 0));});
 
   return TRUE;
-}
-
-
-/* cbsCompare -- Compare key to [base,limit)
- *
- * See <design/splay/#type.splay.compare.method>
- */
-
-static Compare cbsCompare(Tree tree, TreeKey key)
-{
-  Addr base1, base2, limit2;
-  Node block;
-
-  AVERT_CRITICAL(Tree, tree);
-  AVER_CRITICAL(tree != TreeEMPTY);
-  AVER_CRITICAL(key != NULL);
-
-  base1 = baseOfKey(key);
-  block = NodeOfTree(tree);
-  base2 = NodeBase(block);
-  limit2 = NodeLimit(block);
-
-  if (base1 < base2)
-    return CompareLESS;
-  else if (base1 >= limit2)
-    return CompareGREATER;
-  else
-    return CompareEQUAL;
-}
-
-static TreeKey cbsKey(Tree tree)
-{
-  return cbsBlockKey(NodeOfTree(tree));
 }
 
 
@@ -216,7 +175,7 @@ static Res cbsInitComm(Land land, ArgList args, SplayUpdateNodeFunction update,
     blockPool = arg.val.pool;
 
   cbs = cbsOfLand(land);
-  SplayTreeInit(cbsSplay(cbs), cbsCompare, cbsKey, update);
+  SplayTreeInit(cbsSplay(cbs), NodeCompare, NodeKey, update);
 
   if (blockPool != NULL) {
     cbs->blockPool = blockPool;
@@ -448,7 +407,7 @@ static Res cbsInsert(Range rangeReturn, Land land, Range range)
 
   METER_ACC(cbs->treeSearch, cbs->treeSize);
   b = SplayTreeNeighbours(&leftSplay, &rightSplay,
-                          cbsSplay(cbs), keyOfBaseVar(base));
+                          cbsSplay(cbs), NodeKeyOfBaseVar(base));
   if (!b) {
     res = ResFAIL;
     goto fail;
@@ -457,7 +416,7 @@ static Res cbsInsert(Range rangeReturn, Land land, Range range)
   /* .insert.overlap: The two cases below are not quite symmetrical,
      because base was passed into the call to SplayTreeNeighbours(),
      but limit was not.  So we know that if there is a left neighbour,
-     then leftBlock's limit <= base (this is ensured by cbsCompare,
+     then leftBlock's limit <= base (this is ensured by NodeCompare,
      which is the comparison method on the tree).  But if there is a
      right neighbour, all we know is that base < rightBlock's
      base. But for the range to fit, we need limit <= rightBlock's
@@ -553,7 +512,7 @@ static Res cbsDelete(Range rangeReturn, Land land, Range range)
   limit = RangeLimit(range);
 
   METER_ACC(cbs->treeSearch, cbs->treeSize);
-  if (!SplayTreeFind(&tree, cbsSplay(cbs), keyOfBaseVar(base))) {
+  if (!SplayTreeFind(&tree, cbsSplay(cbs), NodeKeyOfBaseVar(base))) {
     res = ResFAIL;
     goto failSplayTreeSearch;
   }
