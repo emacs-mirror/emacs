@@ -274,7 +274,7 @@ static void cbsBlockDestroy(CBS cbs, Node block)
   AVER(cbs->size >= size);
   cbs->size -= size;
 
-  RangeFinish(NodeRange(block));
+  NodeFinish(block);
   PoolFree(cbsBlockPool(cbs), (Addr)block, cbs->blockStructSize);
 }
 
@@ -346,8 +346,7 @@ static Res cbsBlockAlloc(Node *blockReturn, CBS cbs, Range range)
     goto failPoolAlloc;
   block = (Node)p;
 
-  TreeInit(NodeTree(block));
-  RangeCopy(NodeRange(block), range);
+  NodeInitFromRange(block, range);
 
   SplayNodeInit(cbsSplay(cbs), NodeTree(block));
 
