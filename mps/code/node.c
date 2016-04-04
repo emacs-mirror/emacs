@@ -36,6 +36,39 @@ void NodeFinish(Node node)
 }
 
 
+/* NodeCompare -- Compare key to [base,limit)
+ *
+ * See <design/splay/#type.splay.compare.method>
+ */
+
+Compare NodeCompare(Tree tree, TreeKey key)
+{
+  Addr base1, base2, limit2;
+  Node block;
+
+  AVERT_CRITICAL(Tree, tree);
+  AVER_CRITICAL(tree != TreeEMPTY);
+  AVER_CRITICAL(key != NULL);
+
+  base1 = NodeBaseOfKey(key);
+  block = NodeOfTree(tree);
+  base2 = NodeBase(block);
+  limit2 = NodeLimit(block);
+
+  if (base1 < base2)
+    return CompareLESS;
+  else if (base1 >= limit2)
+    return CompareGREATER;
+  else
+    return CompareEQUAL;
+}
+
+TreeKey NodeKey(Tree tree)
+{
+  return NodeKeyOfBaseVar(NodeBase(NodeOfTree(tree)));
+}
+
+
 /* C. COPYRIGHT AND LICENSE
  *
  * Copyright (C) 2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
