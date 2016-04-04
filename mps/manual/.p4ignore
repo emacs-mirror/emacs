@@ -3,3 +3,6 @@ converted
 epub
 html
 mmref
+source/design/*.rst
+source/design/*.svg
+tool

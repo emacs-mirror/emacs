@@ -35,6 +35,7 @@ mpsio*.txt
 *.lib
 *.exe
 a.out
+core
 # Xcode junk
 xc
 mps.xcodeproj/xcuserdata
@@ -55,3 +56,5 @@ tags
 .DS_Store
 # Emacs backups
 *~
+# GNU make dependencies
+*/*/*.d
