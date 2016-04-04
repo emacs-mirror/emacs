@@ -8,6 +8,7 @@
 #define node_h
 
 #include "mpmtypes.h"
+#include "tree.h"
 
 #define NodeTree(node) (&(node)->treeStruct)
 #define NodeRange(node) (&(node)->rangeStruct)
@@ -23,6 +24,22 @@
 extern void NodeInit(Node node, Addr base, Addr limit);
 extern Bool NodeCheck(Node node);
 extern void NodeFinish(Node node);
+
+
+/* Functions for nodes in trees
+ *
+ * We pass the ndoe base directly as a TreeKey (void *) assuming that
+ * Addr can be encoded, and possibly breaking <design/type/#addr.use>.
+ * On an exotic platform where this isn't true, pass the address of
+ * base.  i.e. add an &
+ */
+
+#define NodeKeyOfBaseVar(baseVar) ((TreeKey)(baseVar))
+#define NodeBaseOfKey(key)        ((Addr)(key))
+
+extern Compare NodeCompare(Tree tree, TreeKey key);
+extern TreeKey NodeKey(Tree tree);
+
 
 #endif /* node_h */
 
