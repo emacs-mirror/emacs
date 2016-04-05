@@ -3,6 +3,7 @@ Memory Pool System Version Create Procedure
 :author: Richard Kistruck
 :organization: Ravenbrook Limited
 :date: 2008-10-29
+:Revision: $Id$
 :confidentiality: public
 :copyright: See `C. Copyright and License`_
 :readership: MPS developers
@@ -30,7 +31,7 @@ you what "a version" actually is.
 
 You might not need to create a new version. An alternative is to
 create a further "point release" on the existing version. Refer to
-[RB_1999-05-20] when deciding. (Summary: if changing the
+[RB_1999-05-20]_ when deciding. (Summary: if changing the
 specification, make a new version; if improving the product against an
 unchanged specification, make a point release.)
 
@@ -123,7 +124,6 @@ option.
 
         //info.ravenbrook.com/project/mps/version/$VERSION/...
         //info.ravenbrook.com/project/mps/branch/index.html
-        //info.ravenbrook.com/infosys/robots/git-fusion/etc/pushes
 
 #. Create the version branch specification by running::
 
@@ -153,21 +153,22 @@ option.
 
 #. Update the `table of versions <https://info.ravenbrook.com/project/mps/version/>`_.
 
-#. Make a client specification that can be used by the `git-fusion robot <https://info.ravenbrook.com/infosys/robots>`_ to sync the version::
+#. Add the version to the “mps” and “mps-public” repos published by
+   Git Fusion by editing ``//.git-fusion/repos/mps/p4gf_config`` and
+   ``//.git-fusion/repos/mps-public/p4gf_config`` with entries similar
+   to existing version branches.
 
-        p4 client -i <<END
-        Client: git-fusion-mps-version-$VERSION
-        Description: Git-fusion client for syncing MPS version $VERSION
-        Root: /home/git-fusion/.git-fusion/views/mps-version-$VERSION/p4
-        View: //info.ravenbrook.com/project/mps/version/$VERSION/... //git-fusion-mps-version-$VERSION/...
-        END
 
-#. Add an entry to the `list of repositories to push to GitHub <https://info.ravenbrook.com/infosys/robots/git-fusion/etc/pushes>`_::
+3.4. Post-branch checklist
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-        PUSHES=$(p4 have //info.ravenbrook.com/infosys/robots/git-fusion/etc/pushes | cut -d' ' -f3)
-        p4 edit $PUSHES
-        printf "mps-version-$VERSION\tgit@github.com:Ravenbrook/mps.git\tversion/$VERSION" >> $PUSHES
-        p4 submit -d "Arranging for MPS version $VERSION to be pushed to GitHub by Git Fusion" $PUSHES
+Ensure that the branch appears correctly at:
+
+#. the internal index at https://info.ravenbrook.com/project/mps/version
+
+#. the external index at http://www.ravenbrook.com/project/mps/version
+
+#. the GitHub mirror at https://github.com/Ravenbrook/mps/branches
 
 
 A. References
@@ -191,6 +192,7 @@ B. Document History
 2014-01-14  GDR_   Step for adding to Git Fusion.
 2014-03-19  GDR_   Describe automated procedure.
 2016-01-28  RB_    Git repository renamed from mps-temporary to mps.
+2016-04-05  RB_    Bringing up to date in preparation for version 1.115.
 ==========  =====  ========================================================
 
 .. _GDR: mailto:gdr@ravenbrook.com
@@ -200,7 +202,7 @@ B. Document History
 C. Copyright and License
 ------------------------
 
-Copyright © 2002-2014 Ravenbrook Limited. All rights reserved.
+Copyright © 2002-2016 Ravenbrook Limited. All rights reserved.
 <http://www.ravenbrook.com/>. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
