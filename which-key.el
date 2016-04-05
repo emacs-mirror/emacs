@@ -747,14 +747,14 @@ MORE allows you to specifcy additional KEY-SEQUENCE NAME pairs.
 All names are added to `which-key-prefix-names-alist' and titles
 to `which-key-prefix-title-alist'."
   (while key-sequence
-    (let ((-name (if (consp name) (car name) name))
-          (-title (if (consp name) (cdr name) name)))
+    (let ((name (if (consp name) (car name) name))
+          (title (if (consp name) (cdr name) name)))
         (setq which-key-prefix-name-alist
               (which-key--add-key-val-to-alist
-               which-key-prefix-name-alist key-sequence -name "prefix-name")
+               which-key-prefix-name-alist key-sequence name "prefix-name")
               which-key-prefix-title-alist
               (which-key--add-key-val-to-alist
-               which-key-prefix-title-alist key-sequence -title "prefix-title")))
+               which-key-prefix-title-alist key-sequence title "prefix-title")))
     (setq key-sequence (pop more) name (pop more))))
 (put 'which-key-declare-prefixes 'lisp-indent-function 'defun)
 
@@ -767,16 +767,16 @@ addition KEY-SEQUENCE NAME pairs) to apply."
   (when (not (symbolp mode))
     (error "MODE should be a symbol corresponding to a value of major-mode"))
   (let ((mode-name-alist (cdr (assq mode which-key-prefix-name-alist)))
-        (mode-title-alist (cdr (assq mode which-key-prefix-title-alist)))
-        (-name (if (consp name) (car name) name))
-        (-title (if (consp name) (cdr name) name)))
+        (mode-title-alist (cdr (assq mode which-key-prefix-title-alist))))
     (while key-sequence
-      (setq mode-name-alist (which-key--add-key-val-to-alist
-                             mode-name-alist key-sequence -name
-                             (format "prefix-name-%s" mode))
-            mode-title-alist (which-key--add-key-val-to-alist
-                              mode-title-alist key-sequence -title
-                              (format "prefix-name-%s" mode)))
+      (let ((name (if (consp name) (car name) name))
+            (title (if (consp name) (cdr name) name)))
+        (setq mode-name-alist (which-key--add-key-val-to-alist
+                               mode-name-alist key-sequence name
+                               (format "prefix-name-%s" mode))
+              mode-title-alist (which-key--add-key-val-to-alist
+                                mode-title-alist key-sequence title
+                                (format "prefix-name-%s" mode))))
       (setq key-sequence (pop more) name (pop more)))
     (if (assq mode which-key-prefix-name-alist)
         (setcdr (assq mode which-key-prefix-name-alist) mode-name-alist)
