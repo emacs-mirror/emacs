@@ -760,7 +760,7 @@ to `which-key-prefix-title-alist'."
 
 ;;;###autoload
 (defun which-key-declare-prefixes-for-mode (mode key-sequence name &rest more)
-  "Functions like `which-key-declare-prefix-names'.
+  "Functions like `which-key-declare-prefixes'.
 The difference is that MODE specifies the `major-mode' that must
 be active for KEY-SEQUENCE and NAME (MORE contains
 addition KEY-SEQUENCE NAME pairs) to apply."
