@@ -98,7 +98,6 @@ Run the script ``tool/branch``, passing the options:
 * ``-C CHANGELEVEL`` — changelevel at which to make the branch
 * ``-v`` — request a version branch
 * ``-d "DESCRIPTION"`` — description of the branch (see below)
-* ``-y`` — yes, really create the branch
 
 The branch description will be published in the version index and
 should be a short summary of the improvements detailed in the release
@@ -108,7 +107,11 @@ If omitted, the project and parent branch are deduced from the current
 directory, and the changelevel defaults to the most recent change on
 the parent branch. A typical invocation looks like this::
 
-    tool/branch -p master -v -d "Improved interface to generation chains." -y
+    tool/branch -p master -v -d "Improved interface to generation chains."
+
+Visually check the output of the script against `3.3. Manual
+procedure`_, and when satisfied, repeat the invocation with the ``-y``
+option.
 
 
 3.3. Manual procedure
