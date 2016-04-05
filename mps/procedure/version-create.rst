@@ -97,8 +97,12 @@ Run the script ``tool/branch``, passing the options:
 * ``-p master`` — parent branch
 * ``-C CHANGELEVEL`` — changelevel at which to make the branch
 * ``-v`` — request a version branch
-* ``-d "DESCRIPTION"`` — description of the branch
+* ``-d "DESCRIPTION"`` — description of the branch (see below)
 * ``-y`` — yes, really create the branch
+
+The branch description will be published in the version index and
+should be a short summary of the improvements detailed in the release
+notes.
 
 If omitted, the project and parent branch are deduced from the current
 directory, and the changelevel defaults to the most recent change on
