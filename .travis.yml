@@ -1,0 +1,26 @@
+language: generic
+sudo: false
+
+branches:
+  only:
+    - master
+
+before_install:
+  - curl -fsSkL https://gist.github.com/rejeep/ebcd57c3af83b049833b/raw > x.sh && source ./x.sh
+  - evm install $EVM_EMACS --use --skip
+  - cask
+
+env:
+  - EVM_EMACS=emacs-24.4-travis
+  - EVM_EMACS=emacs-24.5-travis
+  - EVM_EMACS=emacs-git-snapshot-travis
+
+matrix:
+  fast_finish: true
+  allow_failures:
+    env:
+      - EVM_EMACS=emacs-git-snapshot-travis
+
+script:
+  - emacs --version
+  - make test
