@@ -82,6 +82,11 @@ evolution. A version has these parts:
    first release from the version you are about to create. If it is
    wrong, correct and submit it.
 
+#. Does ``code/version.c`` in the master sources have the correct
+   copyright dates for the ``MPSCopyrightNotice`` string? It should
+   include the current year.  If it is wrong, correct and submit it.
+   
+
 
 3.2. Automated procedure
 ~~~~~~~~~~~~~~~~~~~~~~~~
