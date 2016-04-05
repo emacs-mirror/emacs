@@ -118,13 +118,6 @@ option.
 3.3. Manual procedure
 ~~~~~~~~~~~~~~~~~~~~~
 
-#. Make sure that the sources for the version you are about to create,
-   for the table of versions, and for the table of Git Fusion pushes,
-   are mapped in your Perforce client::
-
-        //info.ravenbrook.com/project/mps/version/$VERSION/...
-        //info.ravenbrook.com/project/mps/branch/index.html
-
 #. Create the version branch specification by running::
 
         VERSION=A.BBB
@@ -135,21 +128,15 @@ option.
         View: //info.ravenbrook.com/project/mps/master/... //info.ravenbrook.com/project/$BRANCH/...
         END
 
-#. Make sure you have no unsubmitted files::
+#. Create the branch itself by running::
 
-        $ p4 opened
-        File(s) not opened on this client.
-
-   and then::
-
-        p4 integrate -b $BRANCH
-        p4 submit -d "Branching master sources for version $VERSION."
+        p4 populate -b $BRANCH -d "Branching master sources for version $VERSION."
 
 #. Determine the origin of the new version::
 
         p4 changes -m 5 //info.ravenbrook.com/project/mps/master/...
 
-   Note the latest change that was in before the integrate.
+   Note the latest change that was in before the populate.
 
 #. Update the `table of versions <https://info.ravenbrook.com/project/mps/version/>`_.
 
