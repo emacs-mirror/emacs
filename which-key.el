@@ -780,7 +780,10 @@ addition KEY-SEQUENCE NAME pairs) to apply."
       (setq key-sequence (pop more) name (pop more)))
     (if (assq mode which-key-prefix-name-alist)
         (setcdr (assq mode which-key-prefix-name-alist) mode-name-alist)
-      (push (cons mode mode-name-alist) which-key-prefix-name-alist))))
+      (push (cons mode mode-name-alist) which-key-prefix-name-alist))
+    (if (assq mode which-key-prefix-title-alist)
+        (setcdr (assq mode which-key-prefix-title-alist) mode-title-alist)
+      (push (cons mode mode-title-alist) which-key-prefix-title-alist))))
 (put 'which-key-declare-prefixes-for-mode 'lisp-indent-function 'defun)
 
 (defun which-key-define-key-recursively (map key def &optional recursing)
