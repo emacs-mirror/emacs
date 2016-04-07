@@ -32,13 +32,19 @@
   (((ProtocolClass)(class))->superclass) = (ProtocolClass)(super)
 
 
+/* DECLARE_CLASS -- declare the existence of a protocol class */
+
+#define DECLARE_CLASS(classKind, className) \
+  extern classKind DERIVE_ENSURE(className)(void)
+
+
 /* DEFINE_CLASS -- the standard macro for defining a ProtocolClass */
 
 #define DEFINE_CLASS(className, var) \
+  DECLARE_CLASS(className, className); \
   static Bool DERIVE_GUARDIAN(className) = FALSE; \
   static DERIVE_STRUCT(className) DERIVE_STATIC_STORAGE(className); \
   static void DERIVE_ENSURE_INTERNAL(className)(className); \
-  extern className DERIVE_ENSURE(className)(void); \
   className DERIVE_ENSURE(className)(void) \
   { \
     if (DERIVE_GUARDIAN(className) == FALSE) { \
@@ -53,12 +59,6 @@
     return &DERIVE_STATIC_STORAGE(className); \
   } \
   static void DERIVE_ENSURE_INTERNAL(className) (className var)
-
-
-/* DECLARE_CLASS -- declare the existence of a protocol class */
-
-#define DECLARE_CLASS(classKind, className) \
-  extern classKind DERIVE_ENSURE(className)(void)
 
 
 /* CLASS -- expression for getting a class */
