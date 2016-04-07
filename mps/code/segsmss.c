@@ -28,8 +28,8 @@
 
 /* Forward declarations */
 
-extern SegClass AMSTSegClassGet(void);
-extern PoolClass AMSTPoolClassGet(void);
+DECLARE_CLASS(SegClass, AMSTSegClass);
+DECLARE_CLASS(PoolClass, AMSTPoolClass);
 
 
 /* Start by defining the AMST pool (AMS Test pool) */
@@ -696,7 +696,7 @@ static void mps_amst_ap_stress(mps_ap_t ap)
 
 static mps_pool_class_t mps_class_amst(void)
 {
-  return (mps_pool_class_t)AMSTPoolClassGet();
+  return (mps_pool_class_t)CLASS(AMSTPoolClass);
 }
 
 

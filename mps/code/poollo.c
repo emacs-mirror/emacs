@@ -289,7 +289,7 @@ static Res loSegCreate(LOSeg *loSegReturn, Pool pool, Size size)
   lo = PoolPoolLO(pool);
   AVERT(LO, lo);
 
-  res = PoolGenAlloc(&seg, &lo->pgen, LOSegClassGet(),
+  res = PoolGenAlloc(&seg, &lo->pgen, CLASS(LOSegClass),
                      SizeArenaGrains(size, PoolArena(pool)),
                      argsNone);
   if (res != ResOK)
@@ -847,7 +847,7 @@ DEFINE_POOL_CLASS(LOPoolClass, this)
 
 mps_pool_class_t mps_class_lo(void)
 {
-  return (mps_pool_class_t)LOPoolClassGet();
+  return (mps_pool_class_t)CLASS(LOPoolClass);
 }
 
 
@@ -858,7 +858,7 @@ static Bool LOCheck(LO lo)
 {
   CHECKS(LO, lo);
   CHECKD(Pool, LOPool(lo));
-  CHECKL(LOPool(lo)->class == LOPoolClassGet());
+  CHECKL(LOPool(lo)->class == CLASS(LOPoolClass));
   CHECKL(ShiftCheck(lo->alignShift));
   CHECKL(LOGrainsSize(lo, (Count)1) == PoolAlignment(LOPool(lo)));
   CHECKD(PoolGen, &lo->pgen);

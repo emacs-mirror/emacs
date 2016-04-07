@@ -90,7 +90,7 @@ typedef struct VMArenaStruct {  /* VM arena structure */
 
 static Size VMPurgeSpare(Arena arena, Size size);
 static void chunkUnmapSpare(Chunk chunk);
-extern ArenaClass VMArenaClassGet(void);
+DECLARE_CLASS(ArenaClass, VMArenaClass);
 static void VMCompact(Arena arena, Trace trace);
 
 
@@ -519,7 +519,7 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
   char vmParams[VMParamSize];
   
   AVER(arenaReturn != NULL);
-  AVER(class == VMArenaClassGet());
+  AVER(class == CLASS(VMArenaClass));
   AVERT(ArgList, args);
 
   if (ArgPick(&arg, args, MPS_KEY_ARENA_GRAIN_SIZE))
@@ -1206,7 +1206,7 @@ DEFINE_ARENA_CLASS(VMArenaClass, this)
 
 mps_arena_class_t mps_arena_class_vm(void)
 {
-  return (mps_arena_class_t)VMArenaClassGet();
+  return (mps_arena_class_t)CLASS(VMArenaClass);
 }
 
 

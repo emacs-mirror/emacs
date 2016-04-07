@@ -522,7 +522,7 @@ static Res MVFFInit(Pool pool, ArgList args)
 
   MPS_ARGS_BEGIN(liArgs) {
     MPS_ARGS_ADD(liArgs, CBSBlockPool, MVFFBlockPool(mvff));
-    res = LandInit(MVFFTotalLand(mvff), CBSFastLandClassGet(), arena, align,
+    res = LandInit(MVFFTotalLand(mvff), CLASS(CBSFastLandClass), arena, align,
                    mvff, liArgs);
   } MPS_ARGS_END(liArgs);
   if (res != ResOK)
@@ -530,13 +530,13 @@ static Res MVFFInit(Pool pool, ArgList args)
 
   MPS_ARGS_BEGIN(liArgs) {
     MPS_ARGS_ADD(liArgs, CBSBlockPool, MVFFBlockPool(mvff));
-    res = LandInit(MVFFFreePrimary(mvff), CBSFastLandClassGet(), arena, align,
+    res = LandInit(MVFFFreePrimary(mvff), CLASS(CBSFastLandClass), arena, align,
                    mvff, liArgs);
   } MPS_ARGS_END(liArgs);
   if (res != ResOK)
     goto failFreePrimaryInit;
 
-  res = LandInit(MVFFFreeSecondary(mvff), FreelistLandClassGet(), arena, align,
+  res = LandInit(MVFFFreeSecondary(mvff), CLASS(FreelistLandClass), arena, align,
                  mvff, mps_args_none);
   if (res != ResOK)
     goto failFreeSecondaryInit;
@@ -544,7 +544,7 @@ static Res MVFFInit(Pool pool, ArgList args)
   MPS_ARGS_BEGIN(foArgs) {
     MPS_ARGS_ADD(foArgs, FailoverPrimary, MVFFFreePrimary(mvff));
     MPS_ARGS_ADD(foArgs, FailoverSecondary, MVFFFreeSecondary(mvff));
-    res = LandInit(MVFFFreeLand(mvff), FailoverLandClassGet(), arena, align,
+    res = LandInit(MVFFFreeLand(mvff), CLASS(FailoverLandClass), arena, align,
                    mvff, foArgs);
   } MPS_ARGS_END(foArgs);
   if (res != ResOK)
@@ -727,7 +727,7 @@ DEFINE_POOL_CLASS(MVFFPoolClass, this)
 
 PoolClass PoolClassMVFF(void)
 {
-  return MVFFPoolClassGet();
+  return CLASS(MVFFPoolClass);
 }
 
 
@@ -750,12 +750,12 @@ DEFINE_POOL_CLASS(MVFFDebugPoolClass, this)
 
 mps_pool_class_t mps_class_mvff(void)
 {
-  return (mps_pool_class_t)(MVFFPoolClassGet());
+  return (mps_pool_class_t)(CLASS(MVFFPoolClass));
 }
 
 mps_pool_class_t mps_class_mvff_debug(void)
 {
-  return (mps_pool_class_t)(MVFFDebugPoolClassGet());
+  return (mps_pool_class_t)(CLASS(MVFFDebugPoolClass));
 }
 
 
@@ -766,7 +766,7 @@ static Bool MVFFCheck(MVFF mvff)
 {
   CHECKS(MVFF, mvff);
   CHECKD(Pool, MVFFPool(mvff));
-  CHECKL(IsSubclassPoly(MVFFPool(mvff)->class, MVFFPoolClassGet()));
+  CHECKL(IsSubclassPoly(MVFFPool(mvff)->class, CLASS(MVFFPoolClass)));
   CHECKD(LocusPref, MVFFLocusPref(mvff));
   CHECKL(mvff->extendBy >= ArenaGrainSize(PoolArena(MVFFPool(mvff))));
   CHECKL(mvff->avgSize > 0);                    /* see .arg.check */

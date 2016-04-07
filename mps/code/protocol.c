@@ -66,7 +66,7 @@ static Bool ProtocolCoerceClass(ProtocolClass *coerceResult,
                                 ProtocolClass super)
 {
   ProtocolClass p = proClass;
-  ProtocolClass root = ProtocolClassGet();
+  ProtocolClass root = CLASS(ProtocolClass);
 
   AVERT(ProtocolClass, proClass);
   AVERT(ProtocolClass, super);
@@ -93,7 +93,7 @@ static Bool ProtocolCoerceInst(ProtocolInst *coerceResult,
                                ProtocolClass super)
 {
   ProtocolClass p = proInst->class;
-  ProtocolClass root = ProtocolClassGet();
+  ProtocolClass root = CLASS(ProtocolClass);
 
   AVERT(ProtocolInst, proInst);
   AVERT(ProtocolClass, super);

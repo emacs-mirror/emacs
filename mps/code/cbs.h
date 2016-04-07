@@ -39,9 +39,9 @@ typedef struct CBSStruct *CBS;
 extern Bool CBSCheck(CBS cbs);
 #define CBSLand(cbs) (&(cbs)->landStruct)
 
-extern LandClass CBSLandClassGet(void);
-extern LandClass CBSFastLandClassGet(void);
-extern LandClass CBSZonedLandClassGet(void);
+DECLARE_CLASS(LandClass, CBSLandClass);
+DECLARE_CLASS(LandClass, CBSFastLandClass);
+DECLARE_CLASS(LandClass, CBSZonedLandClass);
 
 extern const struct mps_key_s _mps_key_cbs_block_pool;
 #define CBSBlockPool (&_mps_key_cbs_block_pool)

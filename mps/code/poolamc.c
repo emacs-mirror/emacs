@@ -31,9 +31,9 @@ static Bool amcSegHasNailboard(Seg seg);
 static Nailboard amcSegNailboard(Seg seg);
 static Bool AMCCheck(AMC amc);
 static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO);
-extern PoolClass AMCZPoolClassGet(void);
-extern BufferClass amcBufClassGet(void);
-extern SegClass amcSegClassGet(void);
+DECLARE_CLASS(PoolClass, AMCZPoolClass);
+DECLARE_CLASS(BufferClass, amcBufClass);
+DECLARE_CLASS(SegClass, amcSegClass);
 
 
 /* amcGenStruct -- pool AMC generation descriptor */
@@ -595,7 +595,7 @@ static Res amcGenCreate(amcGen *genReturn, AMC amc, GenDesc gen)
     goto failControlAlloc;
   amcgen = (amcGen)p;
 
-  res = BufferCreate(&buffer, amcBufClassGet(), pool, FALSE, argsNone);
+  res = BufferCreate(&buffer, CLASS(amcBufClass), pool, FALSE, argsNone);
   if(res != ResOK)
     goto failBufferCreate;
 
@@ -953,7 +953,7 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
   }
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD_FIELD(args, amcKeySegGen, p, gen);
-    res = PoolGenAlloc(&seg, pgen, amcSegClassGet(), grainsSize, args);
+    res = PoolGenAlloc(&seg, pgen, CLASS(amcSegClass), grainsSize, args);
   } MPS_ARGS_END(args);
   if(res != ResOK)
     return res;
@@ -1893,7 +1893,7 @@ static void amcWalkAll(Pool pool, FormattedObjectsVisitor f, void *p, size_t s)
   Arena arena;
   Ring ring, next, node;
 
-  AVER(IsSubclassPoly(pool->class, AMCZPoolClassGet()));
+  AVER(IsSubclassPoly(pool->class, CLASS(AMCZPoolClass)));
 
   arena = PoolArena(pool);
   ring = PoolSegRing(pool);
@@ -2151,14 +2151,14 @@ DEFINE_POOL_CLASS(AMCPoolClass, this)
 
 mps_pool_class_t mps_class_amc(void)
 {
-  return (mps_pool_class_t)AMCPoolClassGet();
+  return (mps_pool_class_t)CLASS(AMCPoolClass);
 }
 
 /* mps_class_amcz -- return the pool class descriptor to the client */
 
 mps_pool_class_t mps_class_amcz(void)
 {
-  return (mps_pool_class_t)AMCZPoolClassGet();
+  return (mps_pool_class_t)CLASS(AMCZPoolClass);
 }
 
 
@@ -2223,7 +2223,7 @@ static Bool AMCCheck(AMC amc)
 {
   CHECKS(AMC, amc);
   CHECKD(Pool, AMCPool(amc));
-  CHECKL(IsSubclassPoly(AMCPool(amc)->class, AMCZPoolClassGet()));
+  CHECKL(IsSubclassPoly(AMCPool(amc)->class, CLASS(AMCZPoolClass)));
   CHECKL(RankSetCheck(amc->rankSet));
   CHECKD_NOSIG(Ring, &amc->genRing);
   CHECKL(BoolCheck(amc->gensBooted));

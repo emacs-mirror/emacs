@@ -43,8 +43,8 @@ typedef struct SNCStruct {
 
 /* Forward declarations */
 
-extern SegClass SNCSegClassGet(void);
-extern BufferClass SNCBufClassGet(void);
+DECLARE_CLASS(SegClass, SNCSegClass);
+DECLARE_CLASS(BufferClass, SNCBufClass);
 static Bool SNCCheck(SNC snc);
 static void sncPopPartialSegChain(SNC snc, Buffer buf, Seg upTo);
 
@@ -443,7 +443,7 @@ static Res SNCBufferFill(Addr *baseReturn, Addr *limitReturn,
   /* No free seg, so create a new one */
   arena = PoolArena(pool);
   asize = SizeArenaGrains(size, arena);
-  res = SegAlloc(&seg, SNCSegClassGet(), LocusPrefDefault(),
+  res = SegAlloc(&seg, CLASS(SNCSegClass), LocusPrefDefault(),
                  asize, pool, argsNone);
   if (res != ResOK)
     return res;
@@ -732,7 +732,7 @@ DEFINE_POOL_CLASS(SNCPoolClass, this)
 
 mps_pool_class_t mps_class_snc(void)
 {
-  return (mps_pool_class_t)SNCPoolClassGet();
+  return (mps_pool_class_t)CLASS(SNCPoolClass);
 }
 
 
@@ -743,7 +743,7 @@ static Bool SNCCheck(SNC snc)
 {
   CHECKS(SNC, snc);
   CHECKD(Pool, SNCPool(snc));
-  CHECKL(SNCPool(snc)->class == SNCPoolClassGet());
+  CHECKL(SNCPool(snc)->class == CLASS(SNCPoolClass));
   if (snc->freeSegs != NULL) {
     CHECKD(Seg, snc->freeSegs);
   }

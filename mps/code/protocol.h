@@ -55,6 +55,17 @@
   static void DERIVE_ENSURE_INTERNAL(className) (className var)
 
 
+/* DECLARE_CLASS -- declare the existence of a protocol class */
+
+#define DECLARE_CLASS(classKind, className) \
+  extern classKind DERIVE_ENSURE(className)(void)
+
+
+/* CLASS -- expression for getting a class */
+
+#define CLASS(className) (DERIVE_ENSURE(className)())
+
+
 /* INHERIT_CLASS -- the standard macro for inheriting from a superclass */
 
 #define INHERIT_CLASS(this, parentName) \
@@ -135,7 +146,8 @@ typedef struct ProtocolInstStruct {
  * Function name conforms to standard conventions for
  * protocols.
  */
-extern ProtocolClass ProtocolClassGet(void);
+
+DECLARE_CLASS(ProtocolClass, ProtocolClass);
 
 
 /* Checking functions */

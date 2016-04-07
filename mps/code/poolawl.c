@@ -132,7 +132,7 @@ typedef struct AWLSegStruct {
 #define AWLSeg2Seg(awlseg)          ((Seg)(awlseg))
 
 
-extern SegClass AWLSegClassGet(void);
+DECLARE_CLASS(SegClass, AWLSegClass);
 
 
 ATTRIBUTE_UNUSED
@@ -474,7 +474,7 @@ static Res AWLSegCreate(AWLSeg *awlsegReturn,
     return ResMEMORY;
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD_FIELD(args, awlKeySegRankSet, u, rankSet);
-    res = PoolGenAlloc(&seg, &awl->pgen, AWLSegClassGet(), size, args);
+    res = PoolGenAlloc(&seg, &awl->pgen, CLASS(AWLSegClass), size, args);
   } MPS_ARGS_END(args);
   if (res != ResOK)
     return res;
@@ -1348,7 +1348,7 @@ DEFINE_POOL_CLASS(AWLPoolClass, this)
 
 mps_pool_class_t mps_class_awl(void)
 {
-  return (mps_pool_class_t)AWLPoolClassGet();
+  return (mps_pool_class_t)CLASS(AWLPoolClass);
 }
 
 
@@ -1359,7 +1359,7 @@ static Bool AWLCheck(AWL awl)
 {
   CHECKS(AWL, awl);
   CHECKD(Pool, AWLPool(awl));
-  CHECKL(AWLPool(awl)->class == AWLPoolClassGet());
+  CHECKL(AWLPool(awl)->class == CLASS(AWLPoolClass));
   CHECKL(AWLGrainsSize(awl, (Count)1) == PoolAlignment(AWLPool(awl)));
   /* Nothing to check about succAccesses. */
   CHECKL(FUNCHECK(awl->findDependent));

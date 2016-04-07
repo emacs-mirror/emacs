@@ -279,12 +279,12 @@ static Res MVTInit(Pool pool, ArgList args)
   if (abqDepth < 3)
     abqDepth = 3;
 
-  res = LandInit(MVTFreePrimary(mvt), CBSFastLandClassGet(), arena, align, mvt,
+  res = LandInit(MVTFreePrimary(mvt), CLASS(CBSFastLandClass), arena, align, mvt,
                  mps_args_none);
   if (res != ResOK)
     goto failFreePrimaryInit;
  
-  res = LandInit(MVTFreeSecondary(mvt), FreelistLandClassGet(), arena, align,
+  res = LandInit(MVTFreeSecondary(mvt), CLASS(FreelistLandClass), arena, align,
                  mvt, mps_args_none);
   if (res != ResOK)
     goto failFreeSecondaryInit;
@@ -292,7 +292,7 @@ static Res MVTInit(Pool pool, ArgList args)
   MPS_ARGS_BEGIN(foArgs) {
     MPS_ARGS_ADD(foArgs, FailoverPrimary, MVTFreePrimary(mvt));
     MPS_ARGS_ADD(foArgs, FailoverSecondary, MVTFreeSecondary(mvt));
-    res = LandInit(MVTFreeLand(mvt), FailoverLandClassGet(), arena, align, mvt,
+    res = LandInit(MVTFreeLand(mvt), CLASS(FailoverLandClass), arena, align, mvt,
                    foArgs);
   } MPS_ARGS_END(foArgs);
   if (res != ResOK)
@@ -383,7 +383,7 @@ static Bool MVTCheck(MVT mvt)
 {
   CHECKS(MVT, mvt);
   CHECKD(Pool, MVTPool(mvt));
-  CHECKL(MVTPool(mvt)->class == MVTPoolClassGet());
+  CHECKL(MVTPool(mvt)->class == CLASS(MVTPoolClass));
   CHECKD(CBS, &mvt->cbsStruct);
   CHECKD(ABQ, &mvt->abqStruct);
   CHECKD(Freelist, &mvt->flStruct);
@@ -1106,7 +1106,7 @@ static Res MVTDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 
 PoolClass PoolClassMVT(void)
 {
-  return MVTPoolClassGet();
+  return CLASS(MVTPoolClass);
 }
 
 
@@ -1129,7 +1129,7 @@ mps_pool_class_t mps_class_mvt(void)
  */
 static Res MVTSegAlloc(Seg *segReturn, MVT mvt, Size size)
 {
-  Res res = SegAlloc(segReturn, SegClassGet(), LocusPrefDefault(), size,
+  Res res = SegAlloc(segReturn, CLASS(SegClass), LocusPrefDefault(), size,
                      MVTPool(mvt), argsNone);
 
   if (res == ResOK) {
