@@ -11,6 +11,7 @@
 
 #include "config.h"
 #include "mpmtypes.h"
+#include "classdef.h"
 
 
 /* Name derivation macros. These are not intended to be used */
@@ -61,12 +62,24 @@
 
 /* INHERIT_CLASS -- the standard macro for inheriting from a superclass */
 
+extern unsigned ProtocolPrime[1000];
+
+#define CLASS_INDEX_ENUM(prefix, ident, kind, super) prefix ## ident ## Class,
+typedef enum ProtocolClassIndexEnum {
+  ProtocolClassIndexInvalid, /* index zero (prime 2) reserved for invalid classes */
+  CLASSES(CLASS_INDEX_ENUM, ProtocolClassIndex)
+  ProtocolClassIndexLIMIT
+} ProtocolClassIndexEnum;
+
 #define INHERIT_CLASS(this, _class, super) \
   BEGIN \
     ProtocolClass protocolClass = (ProtocolClass)(this); \
     DERIVE_INIT(super)(this); \
     protocolClass->superclass = (ProtocolClass)CLASS(super); \
     protocolClass->name = #_class; \
+    protocolClass->typeId = \
+      ProtocolPrime[ProtocolClassIndex ## _class] * \
+      protocolClass->superclass->typeId; \
   END
 
 
@@ -87,29 +100,28 @@
 #define ProtocolInstSig  ((Sig)0x519B6014) /* SIGnature PROtocol INst */
 
 
-/* ProtocolClass -- the class containing the support for the protocol */
-
-typedef struct ProtocolClassStruct *ProtocolClass;
-
-
 /* ProtocolInst -- the instance structure for support of the protocol */
 
 typedef struct ProtocolInstStruct *ProtocolInst;
-
-
-typedef const char *ProtocolClassName;
-
-typedef struct ProtocolClassStruct {
-  Sig sig;                      /* <design/sig/> */
-  ProtocolClassName name;
-  ProtocolClass superclass;
-} ProtocolClassStruct;
-
+typedef struct ProtocolClassStruct *ProtocolClass;
 
 typedef struct ProtocolInstStruct {
   Sig sig;                      /* <design/sig/> */
   ProtocolClass class;
 } ProtocolInstStruct;
+
+
+/* ProtocolClass -- the class containing the support for the protocol */
+
+typedef const char *ProtocolClassName;
+typedef unsigned long ProtocolTypeId;
+
+typedef struct ProtocolClassStruct {
+  Sig sig;                      /* <design/sig/> */
+  ProtocolClassName name;
+  ProtocolClass superclass;
+  ProtocolTypeId typeId;
+} ProtocolClassStruct;
 
 
 /* ProtocolClass -- the root of the protocol class hierarchy */
