@@ -1185,7 +1185,6 @@ DEFINE_ARENA_CLASS(VMArenaClass, this)
 {
   INHERIT_CLASS(this, VMArenaClass, AbstractArenaClass);
   this->size = sizeof(VMArenaStruct);
-  this->offset = offsetof(VMArenaStruct, arenaStruct);
   this->varargs = VMArenaVarargs;
   this->init = VMArenaInit;
   this->finish = VMArenaFinish;

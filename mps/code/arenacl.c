@@ -451,7 +451,6 @@ DEFINE_ARENA_CLASS(ClientArenaClass, this)
 {
   INHERIT_CLASS(this, ClientArenaClass, AbstractArenaClass);
   this->size = sizeof(ClientArenaStruct);
-  this->offset = offsetof(ClientArenaStruct, arenaStruct);
   this->varargs = ClientArenaVarargs;
   this->init = ClientArenaInit;
   this->finish = ClientArenaFinish;
