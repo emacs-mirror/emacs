@@ -82,11 +82,11 @@ subclasses). To use Dylan terminology, instances of its subclasses are
      --------------------              --------------------
      |     sig          |    |-------->|    sig           |
      --------------------    |         --------------------
-     |     class        |----|         |    superclass    |
+     |     class        |----|         |    name          |
      --------------------              --------------------
-     |     ...          |              |     ...          |
+     |     ...          |              |    superclass    |
      --------------------              --------------------
-     |     ...          |              |     ...          |
+     |     ...          |              |    typeId        |
      --------------------              --------------------
      |                  |              |     ...          |
 
@@ -507,9 +507,24 @@ provided by the lock module -- see design.mps.lock_.
 
 .. _design.mps.lock: lock
 
+_`.impl.subclass`: The subclass test `.int.subclass`_ is implemented
+using a simple version of the prime factor trick described in
+[Gibbs_2004]_.  Each class has a unique prime number, and a ``typeId``
+for the class is calculated by multiplying the superclass ``typeId``
+by that prime.  A class is a subclass of a superclass if and only if
+the superclass' ``typeId`` evenly divides the class' ``typeId``.
 
-Document History
-----------------
+
+A. References
+-------------
+
+.. [Gibbs_2004] "Fast Dynamic Casting"; Michael Gibbs, Bjarne
+   Stroustrup; 2004;
+   <http://www.stroustrup.com/fast_dynamic_casting.pdf>.
+
+
+B. Document History
+-------------------
 
 - 1998-10-12 Tony Mann. Initial draft.
 
@@ -523,8 +538,8 @@ Document History
 .. _GDR: http://www.ravenbrook.com/consultants/gdr/
 
 
-Copyright and License
----------------------
+C. Copyright and License
+------------------------
 
 Copyright © 2013-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
