@@ -1,7 +1,9 @@
 /* protocol.h: PROTOCOL INHERITANCE DEFINITIONS
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ *
+ * See design.mps.protocol.
  */
 
 #ifndef protocol_h
@@ -17,7 +19,6 @@
 #define DERIVE_LOCAL(name) protocol ## name
 #define DERIVE_STRUCT(name) name ## Struct
 #define DERIVE_ENSURE(name) name ## Get
-#define DERIVE_ENSURE_OLD(name) Ensure ## name
 #define DERIVE_ENSURE_INTERNAL(name) protocolGet ## name
 #define DERIVE_GUARDIAN(name) protocol ## name ## Guardian
 #define DERIVE_STATIC_STORAGE(name) protocol ## name ## Struct
@@ -50,12 +51,6 @@
       LockReleaseGlobalRecursive(); \
     } \
     return &DERIVE_STATIC_STORAGE(className); \
-  } \
-  /* old name for backward compatibility */ \
-  extern className DERIVE_ENSURE_OLD(className)(void); \
-  className DERIVE_ENSURE_OLD(className)(void) \
-  { \
-    return DERIVE_ENSURE(className)(); \
   } \
   static void DERIVE_ENSURE_INTERNAL(className) (className var)
 
@@ -188,7 +183,7 @@ extern Bool ProtocolIsSubclass(ProtocolClass sub, ProtocolClass super);
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

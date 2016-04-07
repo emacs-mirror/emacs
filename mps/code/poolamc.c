@@ -595,7 +595,7 @@ static Res amcGenCreate(amcGen *genReturn, AMC amc, GenDesc gen)
     goto failControlAlloc;
   amcgen = (amcGen)p;
 
-  res = BufferCreate(&buffer, EnsureamcBufClass(), pool, FALSE, argsNone);
+  res = BufferCreate(&buffer, amcBufClassGet(), pool, FALSE, argsNone);
   if(res != ResOK)
     goto failBufferCreate;
 
