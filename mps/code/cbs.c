@@ -1166,8 +1166,7 @@ static Res cbsDescribe(Land land, mps_lib_FILE *stream, Count depth)
 
 DEFINE_LAND_CLASS(CBSLandClass, class)
 {
-  INHERIT_CLASS(class, LandClass);
-  class->name = "CBS";
+  INHERIT_CLASS(class, CBSLandClass, LandClass);
   class->size = sizeof(CBSStruct);
   class->init = cbsInit;
   class->finish = cbsFinish;
@@ -1186,16 +1185,14 @@ DEFINE_LAND_CLASS(CBSLandClass, class)
 
 DEFINE_LAND_CLASS(CBSFastLandClass, class)
 {
-  INHERIT_CLASS(class, CBSLandClass);
-  class->name = "FASTCBS";
+  INHERIT_CLASS(class, CBSFastLandClass, CBSLandClass);
   class->init = cbsInitFast;
   AVERT(LandClass, class);
 }
 
 DEFINE_LAND_CLASS(CBSZonedLandClass, class)
 {
-  INHERIT_CLASS(class, CBSFastLandClass);
-  class->name = "ZONEDCBS";
+  INHERIT_CLASS(class, CBSZonedLandClass, CBSFastLandClass);
   class->init = cbsInitZoned;
   AVERT(LandClass, class);
 }

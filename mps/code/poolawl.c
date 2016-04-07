@@ -286,9 +286,8 @@ static void AWLSegFinish(Seg seg)
 
 DEFINE_SEG_CLASS(AWLSegClass, class)
 {
-  INHERIT_CLASS(class, GCSegClass);
+  INHERIT_CLASS(class, AWLSegClass, GCSegClass);
   SegClassMixInNoSplitMerge(class);  /* no support for this (yet) */
-  class->name = "AWLSEG";
   class->size = sizeof(AWLSegStruct);
   class->init = AWLSegInit;
   class->finish = AWLSegFinish;
@@ -1320,9 +1319,8 @@ static Size AWLFreeSize(Pool pool)
 
 DEFINE_POOL_CLASS(AWLPoolClass, this)
 {
-  INHERIT_CLASS(this, AbstractCollectPoolClass);
+  INHERIT_CLASS(this, AWLPoolClass, AbstractCollectPoolClass);
   PoolClassMixInFormat(this);
-  this->name = "AWL";
   this->size = sizeof(AWLStruct);
   this->offset = offsetof(AWLStruct, poolStruct);
   this->varargs = AWLVarargs;

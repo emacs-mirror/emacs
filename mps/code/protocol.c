@@ -16,6 +16,7 @@ SRCID(protocol, "$Id$");
 Bool ProtocolClassCheck(ProtocolClass class)
 {
   CHECKS(ProtocolClass, class);
+  CHECKL(class->name != NULL);
   CHECKU(ProtocolClass, class->superclass);
   return TRUE;
 }
@@ -58,6 +59,7 @@ Bool ProtocolIsSubclass(ProtocolClass sub, ProtocolClass super)
 DEFINE_CLASS(ProtocolClass, theClass)
 {
   theClass->sig = ProtocolClassSig;
+  theClass->name = "ProtocolInst";
   theClass->superclass = theClass;
   AVERT(ProtocolClass, theClass);
 }
