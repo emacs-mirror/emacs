@@ -68,9 +68,8 @@ static Count loSegGrains(LOSeg loseg);
 
 DEFINE_SEG_CLASS(LOSegClass, class)
 {
-  INHERIT_CLASS(class, GCSegClass);
+  INHERIT_CLASS(class, LOSegClass, GCSegClass);
   SegClassMixInNoSplitMerge(class);
-  class->name = "LOSEG";
   class->size = sizeof(LOSegStruct);
   class->init = loSegInit;
   class->finish = loSegFinish;
@@ -821,10 +820,9 @@ static Size LOFreeSize(Pool pool)
 
 DEFINE_POOL_CLASS(LOPoolClass, this)
 {
-  INHERIT_CLASS(this, AbstractSegBufPoolClass);
+  INHERIT_CLASS(this, LOPoolClass, AbstractSegBufPoolClass);
   PoolClassMixInFormat(this);
   PoolClassMixInCollect(this);
-  this->name = "LO";
   this->size = sizeof(LOStruct);
   this->offset = offsetof(LOStruct, poolStruct);
   this->varargs = LOVarargs;

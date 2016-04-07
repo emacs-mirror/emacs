@@ -135,8 +135,7 @@ typedef struct MVTStruct
 
 DEFINE_POOL_CLASS(MVTPoolClass, this)
 {
-  INHERIT_CLASS(this, AbstractBufferPoolClass);
-  this->name = "MVT";
+  INHERIT_CLASS(this, MVTPoolClass, AbstractBufferPoolClass);
   this->size = sizeof(MVTStruct);
   this->offset = offsetof(MVTStruct, poolStruct);
   this->varargs = MVTVarargs;

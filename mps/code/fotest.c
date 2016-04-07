@@ -63,7 +63,7 @@ static Res oomAlloc(Addr *pReturn, Pool pool, Size size)
 DECLARE_CLASS(PoolClass, OOMPoolClass);
 DEFINE_POOL_CLASS(OOMPoolClass, this)
 {
-  INHERIT_CLASS(this, AbstractPoolClass);
+  INHERIT_CLASS(this, OOMPoolClass, AbstractPoolClass);
   this->alloc = oomAlloc;
   this->free = PoolTrivFree;
   this->size = sizeof(PoolStruct);

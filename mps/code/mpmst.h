@@ -50,7 +50,6 @@
 
 typedef struct mps_pool_class_s {
   ProtocolClassStruct protocol;
-  const char *name;             /* class name string */
   size_t size;                  /* size of outer structure */
   size_t offset;                /* offset of generic struct in outer struct */
   Attr attr;                    /* attributes */
@@ -222,7 +221,6 @@ typedef struct mps_message_s {
 
 typedef struct SegClassStruct {
   ProtocolClassStruct protocol;
-  const char *name;             /* class name string */
   size_t size;                  /* size of outer structure */
   SegInitMethod init;           /* initialize the segment */
   SegFinishMethod finish;       /* finish the segment */
@@ -310,7 +308,6 @@ typedef struct LocusPrefStruct { /* locus placement preferences */
 
 typedef struct BufferClassStruct {
   ProtocolClassStruct protocol;
-  const char *name;             /* class name string */
   size_t size;                  /* size of outer structure */
   BufferVarargsMethod varargs;  /* parse obsolete varargs */
   BufferInitMethod init;        /* initialize the buffer */
@@ -502,7 +499,6 @@ typedef struct TraceStruct {
 
 typedef struct mps_arena_class_s {
   ProtocolClassStruct protocol;
-  const char *name;             /* class name string */
   size_t size;                  /* size of outer structure */
   size_t offset;                /* offset of generic struct in outer struct */
   ArenaVarargsMethod varargs;
@@ -581,7 +577,6 @@ typedef struct GlobalsStruct {
 
 typedef struct LandClassStruct {
   ProtocolClassStruct protocol;
-  const char *name;             /* class name string */
   size_t size;                  /* size of outer structure */
   LandSizeMethod sizeMethod;    /* total size of ranges in land */
   LandInitMethod init;          /* initialize the land */

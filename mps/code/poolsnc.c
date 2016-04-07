@@ -178,8 +178,7 @@ static void SNCBufFinish(Buffer buffer)
 
 DEFINE_BUFFER_CLASS(SNCBufClass, class)
 {
-  INHERIT_CLASS(class, RankBufClass);
-  class->name = "SNCBUF";
+  INHERIT_CLASS(class, SNCBufClass, RankBufClass);
   class->size = sizeof(SNCBufStruct);
   class->init = SNCBufInit;
   class->finish = SNCBufFinish;
@@ -254,9 +253,8 @@ static Res sncSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 
 DEFINE_SEG_CLASS(SNCSegClass, class)
 {
-  INHERIT_CLASS(class, GCSegClass);
+  INHERIT_CLASS(class, SNCSegClass, GCSegClass);
   SegClassMixInNoSplitMerge(class);  /* no support for this (yet) */
-  class->name = "SNCSEG";
   class->size = sizeof(SNCSegStruct);
   class->init = sncSegInit;
   AVERT(SegClass, class);
@@ -708,9 +706,8 @@ static Size SNCFreeSize(Pool pool)
 
 DEFINE_POOL_CLASS(SNCPoolClass, this)
 {
-  INHERIT_CLASS(this, AbstractScanPoolClass);
+  INHERIT_CLASS(this, SNCPoolClass, AbstractScanPoolClass);
   PoolClassMixInFormat(this);
-  this->name = "SNC";
   this->size = sizeof(SNCStruct);
   this->offset = offsetof(SNCStruct, poolStruct);
   this->varargs = SNCVarargs;

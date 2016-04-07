@@ -383,7 +383,7 @@ Res LandDescribe(Land land, mps_lib_FILE *stream, Count depth)
   res = WriteF(stream, depth,
                "Land $P {\n", (WriteFP)land,
                "  class $P", (WriteFP)land->class,
-               " (\"$S\")\n", (WriteFS)land->class->name,
+               " (\"$S\")\n", (WriteFS)land->class->protocol.name,
                "  arena $P\n", (WriteFP)land->arena,
                "  align $U\n", (WriteFU)land->alignment,
                "  inLand $S\n", WriteFYesNo(land->inLand),
@@ -448,7 +448,6 @@ Bool LandFlush(Land dest, Land src)
 Bool LandClassCheck(LandClass class)
 {
   CHECKL(ProtocolClassCheck(&class->protocol));
-  CHECKL(class->name != NULL); /* Should be <=6 char C identifier */
   CHECKL(class->size >= sizeof(LandStruct));
   CHECKL(FUNCHECK(class->init));
   CHECKL(FUNCHECK(class->finish));
@@ -577,8 +576,7 @@ static Res landTrivDescribe(Land land, mps_lib_FILE *stream, Count depth)
 
 DEFINE_CLASS(LandClass, class)
 {
-  INHERIT_CLASS(&class->protocol, ProtocolClass);
-  class->name = "LAND";
+  INHERIT_CLASS(&class->protocol, LandClass, ProtocolClass);
   class->size = sizeof(LandStruct);
   class->init = landTrivInit;
   class->sizeMethod = landNoSize;

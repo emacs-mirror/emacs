@@ -24,14 +24,6 @@
 #define DERIVE_STATIC_STORAGE(name) protocol ## name ## Struct
 
 
-/* Macro to set the superclass field. This is not intended */
-/* to be used outside this file. This is a polymorphic macro */
-/* named as a function. See <design/protocol/#introspect.c-lang> */
-
-#define ProtocolClassSetSuperclassPoly(class, super) \
-  (((ProtocolClass)(class))->superclass) = (ProtocolClass)(super)
-
-
 /* DECLARE_CLASS -- declare the existence of a protocol class */
 
 #define DECLARE_CLASS(classKind, className) \
@@ -69,10 +61,12 @@
 
 /* INHERIT_CLASS -- the standard macro for inheriting from a superclass */
 
-#define INHERIT_CLASS(this, super) \
+#define INHERIT_CLASS(this, _class, super) \
   BEGIN \
+    ProtocolClass protocolClass = (ProtocolClass)(this); \
     DERIVE_INIT(super)(this); \
-    ProtocolClassSetSuperclassPoly(this, CLASS(super)); \
+    protocolClass->superclass = (ProtocolClass)CLASS(super); \
+    protocolClass->name = #_class; \
   END
 
 
@@ -103,15 +97,18 @@ typedef struct ProtocolClassStruct *ProtocolClass;
 typedef struct ProtocolInstStruct *ProtocolInst;
 
 
+typedef const char *ProtocolClassName;
+
 typedef struct ProtocolClassStruct {
-  Sig sig;                               /* <design/sig/> */
-  ProtocolClass superclass;              /* the superclass */
+  Sig sig;                      /* <design/sig/> */
+  ProtocolClassName name;
+  ProtocolClass superclass;
 } ProtocolClassStruct;
 
 
 typedef struct ProtocolInstStruct {
   Sig sig;                      /* <design/sig/> */
-  ProtocolClass class;          /* the class  */
+  ProtocolClass class;
 } ProtocolInstStruct;
 
 
