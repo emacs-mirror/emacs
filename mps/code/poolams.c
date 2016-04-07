@@ -625,8 +625,7 @@ static Res AMSSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
 
 DEFINE_CLASS(AMSSegClass, class)
 {
-  INHERIT_CLASS(class, GCSegClass);
-  class->name = "AMSSEG";
+  INHERIT_CLASS(class, AMSSegClass, GCSegClass);
   class->size = sizeof(AMSSegStruct);
   class->init = AMSSegInit;
   class->finish = AMSSegFinish;
@@ -1749,9 +1748,8 @@ static Res AMSDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 
 DEFINE_CLASS(AMSPoolClass, this)
 {
-  INHERIT_CLASS(this, AbstractCollectPoolClass);
+  INHERIT_CLASS(this, AMSPoolClass, AbstractCollectPoolClass);
   PoolClassMixInFormat(this);
-  this->name = "AMS";
   this->size = sizeof(AMSStruct);
   this->offset = offsetof(AMSStruct, poolStruct);
   this->varargs = AMSVarargs;
@@ -1793,9 +1791,8 @@ static PoolDebugMixin AMSDebugMixin(Pool pool)
 
 DEFINE_POOL_CLASS(AMSDebugPoolClass, this)
 {
-  INHERIT_CLASS(this, AMSPoolClass);
+  INHERIT_CLASS(this, AMSDebugPoolClass, AMSPoolClass);
   PoolClassMixInDebug(this);
-  this->name = "AMSDBG";
   this->size = sizeof(AMSDebugStruct);
   this->varargs = AMSDebugVarargs;
   this->debugMixin = AMSDebugMixin;

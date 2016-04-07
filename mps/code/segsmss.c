@@ -275,8 +275,7 @@ failSuper:
 
 DEFINE_SEG_CLASS(AMSTSegClass, class)
 {
-  INHERIT_CLASS(class, AMSSegClass);
-  class->name = "AMSTSEG";
+  INHERIT_CLASS(class, AMSTSegClass, AMSSegClass);
   class->size = sizeof(AMSTSegStruct);
   class->init = amstSegInit;
   class->finish = amstSegFinish;
@@ -665,8 +664,7 @@ static void AMSTStressBufferedSeg(Seg seg, Buffer buffer)
 
 DEFINE_POOL_CLASS(AMSTPoolClass, this)
 {
-  INHERIT_CLASS(this, AMSPoolClass);
-  this->name = "AMST";
+  INHERIT_CLASS(this, AMSTPoolClass, AMSPoolClass);
   this->size = sizeof(AMSTStruct);
   this->offset = offsetof(AMSTStruct, amsStruct) + offsetof(AMSStruct, poolStruct);
   this->init = AMSTInit;

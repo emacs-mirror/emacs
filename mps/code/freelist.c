@@ -811,8 +811,7 @@ static Res freelistDescribe(Land land, mps_lib_FILE *stream, Count depth)
 
 DEFINE_LAND_CLASS(FreelistLandClass, class)
 {
-  INHERIT_CLASS(class, LandClass);
-  class->name = "FREELIST";
+  INHERIT_CLASS(class, FreelistLandClass, LandClass);
   class->size = sizeof(FreelistStruct);
   class->init = freelistInit;
   class->finish = freelistFinish;

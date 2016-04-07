@@ -79,8 +79,7 @@ typedef ArenaClassStruct AbstractArenaClassStruct;
 
 DEFINE_CLASS(AbstractArenaClass, class)
 {
-  INHERIT_CLASS(&class->protocol, ProtocolClass);
-  class->name = "ABSARENA";
+  INHERIT_CLASS(&class->protocol, AbstractArenaClass, ProtocolClass);
   class->size = 0;
   class->offset = 0;
   class->varargs = ArgTrivVarargs;
@@ -104,7 +103,6 @@ DEFINE_CLASS(AbstractArenaClass, class)
 Bool ArenaClassCheck(ArenaClass class)
 {
   CHECKD(ProtocolClass, &class->protocol);
-  CHECKL(class->name != NULL); /* Should be <=6 char C identifier */
   CHECKL(class->size >= sizeof(ArenaStruct));
   /* Offset of generic Pool within class-specific instance cannot be */
   /* greater than the size of the class-specific portion of the */
@@ -495,7 +493,7 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
 
   res = WriteF(stream, depth, "Arena $P {\n", (WriteFP)arena,
                "  class $P (\"$S\")\n",
-               (WriteFP)arena->class, (WriteFS)arena->class->name,
+               (WriteFP)arena->class, (WriteFS)arena->class->protocol.name,
                NULL);
   if (res != ResOK)
     return res;
@@ -588,7 +586,7 @@ static Res arenaDescribeTractsInChunk(Chunk chunk, mps_lib_FILE *stream, Count d
         res = WriteF(stream, 0, " $P $U ($S)",
                      (WriteFP)pool,
                      (WriteFU)(pool->serial),
-                     (WriteFS)(pool->class->name),
+                     (WriteFS)(pool->class->protocol.name),
                      NULL);
         if (res != ResOK)
           return res;

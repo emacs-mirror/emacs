@@ -292,9 +292,9 @@ static Res failoverDescribe(Land land, mps_lib_FILE *stream, Count depth)
   res = WriteF(stream, depth,
                "Failover $P {\n", (WriteFP)fo,
                "  primary = $P ($S)\n", (WriteFP)fo->primary,
-               (WriteFS)fo->primary->class->name,
+               (WriteFS)fo->primary->class->protocol.name,
                "  secondary = $P ($S)\n", (WriteFP)fo->secondary,
-               (WriteFS)fo->secondary->class->name,
+               (WriteFS)fo->secondary->class->protocol.name,
                "}\n", NULL);
 
   return res;
@@ -303,8 +303,7 @@ static Res failoverDescribe(Land land, mps_lib_FILE *stream, Count depth)
 
 DEFINE_LAND_CLASS(FailoverLandClass, class)
 {
-  INHERIT_CLASS(class, LandClass);
-  class->name = "FAILOVER";
+  INHERIT_CLASS(class, FailoverLandClass, LandClass);
   class->size = sizeof(FailoverStruct);
   class->init = failoverInit;
   class->finish = failoverFinish;

@@ -449,8 +449,7 @@ static void ClientArenaFree(Addr base, Size size, Pool pool)
 
 DEFINE_ARENA_CLASS(ClientArenaClass, this)
 {
-  INHERIT_CLASS(this, AbstractArenaClass);
-  this->name = "CL";
+  INHERIT_CLASS(this, ClientArenaClass, AbstractArenaClass);
   this->size = sizeof(ClientArenaStruct);
   this->offset = offsetof(ClientArenaStruct, arenaStruct);
   this->varargs = ClientArenaVarargs;

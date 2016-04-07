@@ -38,7 +38,6 @@ SRCID(pool, "$Id$");
 Bool PoolClassCheck(PoolClass class)
 {
   CHECKD(ProtocolClass, &class->protocol);
-  CHECKL(class->name != NULL); /* Should be <=6 char C identifier */
   CHECKL(class->size >= sizeof(PoolStruct));
   /* Offset of generic Pool within class-specific instance cannot be */
   /* greater than the size of the class-specific portion of the instance */
@@ -140,7 +139,7 @@ Res PoolInit(Pool pool, Arena arena, PoolClass class, ArgList args)
     /* the pool class get created simultaneously, but it's not worth */
     /* putting another lock in the code. */
     class->labelled = TRUE;
-    classId = EventInternString(class->name);
+    classId = EventInternString(class->protocol.name);
     /* NOTE: this breaks <design/type/#addr.use> */
     EventLabelAddr((Addr)class, classId);
   }
@@ -554,7 +553,7 @@ Res PoolDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
   res = WriteF(stream, depth,
                "Pool $P ($U) {\n", (WriteFP)pool, (WriteFU)pool->serial,
                "  class $P (\"$S\")\n",
-               (WriteFP)pool->class, (WriteFS)pool->class->name,
+               (WriteFP)pool->class, (WriteFS)pool->class->protocol.name,
                "  arena $P ($U)\n",
                (WriteFP)pool->arena, (WriteFU)pool->arena->serial,
                "  alignment $W\n", (WriteFW)pool->alignment,

@@ -366,7 +366,7 @@ Res SegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
                "Segment $P [$A,$A) {\n", (WriteFP)seg,
                (WriteFA)SegBase(seg), (WriteFA)SegLimit(seg),
                "  class $P (\"$S\")\n",
-               (WriteFP)seg->class, (WriteFS)seg->class->name,
+               (WriteFP)seg->class, (WriteFS)seg->class->protocol.name,
                "  pool $P ($U)\n",
                (WriteFP)pool, (WriteFU)pool->serial,
                "  depth $U\n", seg->depth,
@@ -1609,7 +1609,6 @@ static Res gcSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
 Bool SegClassCheck(SegClass class)
 {
   CHECKD(ProtocolClass, &class->protocol);
-  CHECKL(class->name != NULL); /* Should be <= 6 char C identifier */
   CHECKL(class->size >= sizeof(SegStruct));
   CHECKL(FUNCHECK(class->init));
   CHECKL(FUNCHECK(class->finish));
@@ -1629,8 +1628,7 @@ Bool SegClassCheck(SegClass class)
 
 DEFINE_CLASS(SegClass, class)
 {
-  INHERIT_CLASS(&class->protocol, ProtocolClass);
-  class->name = "SEG";
+  INHERIT_CLASS(&class->protocol, SegClass, ProtocolClass);
   class->size = sizeof(SegStruct);
   class->init = segTrivInit;
   class->finish = segTrivFinish;
@@ -1655,8 +1653,7 @@ typedef SegClassStruct GCSegClassStruct;
 
 DEFINE_CLASS(GCSegClass, class)
 {
-  INHERIT_CLASS(class, SegClass);
-  class->name = "GCSEG";
+  INHERIT_CLASS(class, GCSegClass, SegClass);
   class->size = sizeof(GCSegStruct);
   class->init = gcSegInit;
   class->finish = gcSegFinish;

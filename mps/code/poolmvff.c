@@ -706,9 +706,8 @@ static Res MVFFDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 
 DEFINE_POOL_CLASS(MVFFPoolClass, this)
 {
-  INHERIT_CLASS(this, AbstractPoolClass);
+  INHERIT_CLASS(this, MVFFPoolClass, AbstractPoolClass);
   PoolClassMixInBuffer(this);
-  this->name = "MVFF";
   this->size = sizeof(MVFFStruct);
   this->offset = offsetof(MVFFStruct, poolStruct);
   this->varargs = MVFFVarargs;
@@ -735,9 +734,8 @@ PoolClass PoolClassMVFF(void)
 
 DEFINE_POOL_CLASS(MVFFDebugPoolClass, this)
 {
-  INHERIT_CLASS(this, MVFFPoolClass);
+  INHERIT_CLASS(this, MVFFDebugPoolClass, MVFFPoolClass);
   PoolClassMixInDebug(this);
-  this->name = "MVFFDBG";
   this->size = sizeof(MVFFDebugStruct);
   this->varargs = MVFFDebugVarargs;
   this->debugMixin = MVFFDebugMixin;

@@ -157,7 +157,7 @@ Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream, Count depth)
                "Buffer $P ($U) {\n",
                (WriteFP)buffer, (WriteFU)buffer->serial,
                "  class $P (\"$S\")\n",
-               (WriteFP)buffer->class, (WriteFS)buffer->class->name,
+               (WriteFP)buffer->class, (WriteFS)buffer->class->protocol.name,
                "  Arena $P\n",       (WriteFP)buffer->arena,
                "  Pool $P\n",        (WriteFP)buffer->pool,
                "  ", buffer->isMutator ? "Mutator" : "Internal", " Buffer\n",
@@ -1172,7 +1172,6 @@ static Res bufferTrivDescribe(Buffer buffer, mps_lib_FILE *stream, Count depth)
 Bool BufferClassCheck(BufferClass class)
 {
   CHECKD(ProtocolClass, &class->protocol);
-  CHECKL(class->name != NULL); /* Should be <=6 char C identifier */
   CHECKL(class->size >= sizeof(BufferStruct));
   CHECKL(FUNCHECK(class->varargs));
   CHECKL(FUNCHECK(class->init));
@@ -1195,8 +1194,7 @@ Bool BufferClassCheck(BufferClass class)
 
 DEFINE_CLASS(BufferClass, class)
 {
-  INHERIT_CLASS(&class->protocol, ProtocolClass);
-  class->name = "BUFFER";
+  INHERIT_CLASS(&class->protocol, BufferClass, ProtocolClass);
   class->size = sizeof(BufferStruct);
   class->varargs = ArgTrivVarargs;
   class->init = bufferTrivInit;
@@ -1454,8 +1452,7 @@ typedef BufferClassStruct SegBufClassStruct;
 
 DEFINE_CLASS(SegBufClass, class)
 {
-  INHERIT_CLASS(class, BufferClass);
-  class->name = "SEGBUF";
+  INHERIT_CLASS(class, SegBufClass, BufferClass);
   class->size = sizeof(SegBufStruct);
   class->init = segBufInit;
   class->finish = segBufFinish;
@@ -1523,8 +1520,7 @@ typedef BufferClassStruct RankBufClassStruct;
 
 DEFINE_CLASS(RankBufClass, class)
 {
-  INHERIT_CLASS(class, SegBufClass);
-  class->name = "RANKBUF";
+  INHERIT_CLASS(class, RankBufClass, SegBufClass);
   class->varargs = rankBufVarargs;
   class->init = rankBufInit;
   AVERT(BufferClass, class);

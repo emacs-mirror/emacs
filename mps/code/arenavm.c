@@ -1183,8 +1183,7 @@ mps_res_t mps_arena_vm_growth(mps_arena_t mps_arena,
 
 DEFINE_ARENA_CLASS(VMArenaClass, this)
 {
-  INHERIT_CLASS(this, AbstractArenaClass);
-  this->name = "VM";
+  INHERIT_CLASS(this, VMArenaClass, AbstractArenaClass);
   this->size = sizeof(VMArenaStruct);
   this->offset = offsetof(VMArenaStruct, arenaStruct);
   this->varargs = VMArenaVarargs;
