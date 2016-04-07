@@ -723,7 +723,7 @@ void ArenaExposeRemember(Globals globals, Bool remember)
 
     do {
       base = SegBase(seg);
-      if(IsSubclassPoly(ClassOfSeg(seg), GCSegClassGet())) {
+      if(IsSubclassPoly(ClassOfSeg(seg), CLASS(GCSegClass))) {
         if(remember) {
           RefSet summary;
 
@@ -766,7 +766,7 @@ void ArenaRestoreProtection(Globals globals)
       }
       b = SegOfAddr(&seg, arena, block->the[i].base);
       if(b && SegBase(seg) == block->the[i].base) {
-        AVER(IsSubclassPoly(ClassOfSeg(seg), GCSegClassGet()));
+        AVER(IsSubclassPoly(ClassOfSeg(seg), CLASS(GCSegClass)));
         SegSetSummary(seg, block->the[i].summary);
       } else {
         /* Either seg has gone or moved, both of which are */

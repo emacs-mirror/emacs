@@ -300,11 +300,11 @@ extern void PoolClassMixInBuffer(PoolClass class);
 extern void PoolClassMixInScan(PoolClass class);
 extern void PoolClassMixInFormat(PoolClass class);
 extern void PoolClassMixInCollect(PoolClass class);
-extern AbstractPoolClass AbstractPoolClassGet(void);
-extern AbstractBufferPoolClass AbstractBufferPoolClassGet(void);
-extern AbstractBufferPoolClass AbstractSegBufPoolClassGet(void);
-extern AbstractScanPoolClass AbstractScanPoolClassGet(void);
-extern AbstractCollectPoolClass AbstractCollectPoolClassGet(void);
+DECLARE_CLASS(AbstractPoolClass, AbstractPoolClass);
+DECLARE_CLASS(AbstractBufferPoolClass, AbstractBufferPoolClass);
+DECLARE_CLASS(AbstractBufferPoolClass, AbstractSegBufPoolClass);
+DECLARE_CLASS(AbstractScanPoolClass, AbstractScanPoolClass);
+DECLARE_CLASS(AbstractCollectPoolClass, AbstractCollectPoolClass);
 
 /* DEFINE_POOL_CLASS
  *
@@ -498,7 +498,7 @@ extern void TraceScanSingleRef(TraceSet ts, Rank rank, Arena arena,
 #define ARENA_SUPERCLASS(className) \
   ((ArenaClass)SUPERCLASS(className))
 
-extern AbstractArenaClass AbstractArenaClassGet(void);
+DECLARE_CLASS(AbstractArenaClass, AbstractArenaClass);
 extern Bool ArenaClassCheck(ArenaClass class);
 
 extern Bool ArenaCheck(Arena arena);
@@ -699,8 +699,8 @@ extern void SegSetBuffer(Seg seg, Buffer buffer);
 extern Bool SegCheck(Seg seg);
 extern Bool GCSegCheck(GCSeg gcseg);
 extern Bool SegClassCheck(SegClass class);
-extern SegClass SegClassGet(void);
-extern SegClass GCSegClassGet(void);
+DECLARE_CLASS(SegClass, SegClass);
+DECLARE_CLASS(SegClass, GCSegClass);
 extern void SegClassMixInNoSplitMerge(SegClass class);
 
 
@@ -829,9 +829,9 @@ extern void BufferFrameSetState(Buffer buffer, FrameState state);
   ((BufferClass)SUPERCLASS(className))
 
 extern Bool BufferClassCheck(BufferClass class);
-extern BufferClass BufferClassGet(void);
-extern BufferClass SegBufClassGet(void);
-extern BufferClass RankBufClassGet(void);
+DECLARE_CLASS(BufferClass, BufferClass);
+DECLARE_CLASS(BufferClass, SegBufClass);
+DECLARE_CLASS(BufferClass, RankBufClass);
 
 extern AllocPattern AllocPatternRamp(void);
 extern AllocPattern AllocPatternRampCollectAll(void);
@@ -1024,7 +1024,7 @@ extern Bool LandFlush(Land dest, Land src);
 
 extern Size LandSlowSize(Land land);
 extern Bool LandClassCheck(LandClass class);
-extern LandClass LandClassGet(void);
+DECLARE_CLASS(LandClass, LandClass);
 #define LAND_SUPERCLASS(className) ((LandClass)SUPERCLASS(className))
 #define DEFINE_LAND_CLASS(className, var) \
   DEFINE_ALIAS_CLASS(className, LandClass, var)
