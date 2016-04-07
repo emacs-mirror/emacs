@@ -862,7 +862,7 @@ DEFINE_POOL_CLASS(MVPoolClass, this)
 
 MVPoolClass PoolClassMV(void)
 {
-  return EnsureMVPoolClass();
+  return MVPoolClassGet();
 }
 
 
@@ -887,12 +887,12 @@ DEFINE_POOL_CLASS(MVDebugPoolClass, this)
 
 mps_pool_class_t mps_class_mv(void)
 {
-  return (mps_pool_class_t)(EnsureMVPoolClass());
+  return (mps_pool_class_t)MVPoolClassGet();
 }
 
 mps_pool_class_t mps_class_mv_debug(void)
 {
-  return (mps_pool_class_t)(EnsureMVDebugPoolClass());
+  return (mps_pool_class_t)MVDebugPoolClassGet();
 }
 
 
@@ -902,7 +902,7 @@ Bool MVCheck(MV mv)
 {
   CHECKS(MV, mv);
   CHECKD(Pool, MVPool(mv));
-  CHECKL(IsSubclassPoly(MVPool(mv)->class, EnsureMVPoolClass()));
+  CHECKL(IsSubclassPoly(MVPool(mv)->class, MVPoolClassGet()));
   CHECKD(MFS, &mv->blockPoolStruct);
   CHECKD(MFS, &mv->spanPoolStruct);
   CHECKL(mv->extendBy > 0);
