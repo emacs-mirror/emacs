@@ -1322,7 +1322,6 @@ DEFINE_POOL_CLASS(AWLPoolClass, this)
   INHERIT_CLASS(this, AWLPoolClass, AbstractCollectPoolClass);
   PoolClassMixInFormat(this);
   this->size = sizeof(AWLStruct);
-  this->offset = offsetof(AWLStruct, poolStruct);
   this->varargs = AWLVarargs;
   this->init = AWLInit;
   this->finish = AWLFinish;

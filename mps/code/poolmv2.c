@@ -137,7 +137,6 @@ DEFINE_POOL_CLASS(MVTPoolClass, this)
 {
   INHERIT_CLASS(this, MVTPoolClass, AbstractBufferPoolClass);
   this->size = sizeof(MVTStruct);
-  this->offset = offsetof(MVTStruct, poolStruct);
   this->varargs = MVTVarargs;
   this->init = MVTInit;
   this->finish = MVTFinish;

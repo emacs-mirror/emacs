@@ -871,7 +871,6 @@ DEFINE_POOL_CLASS(MRGPoolClass, this)
 {
   INHERIT_CLASS(this, MRGPoolClass, AbstractPoolClass);
   this->size = sizeof(MRGStruct);
-  this->offset = offsetof(MRGStruct, poolStruct);
   this->init = MRGInit;
   this->finish = MRGFinish;
   this->grey = PoolTrivGrey;

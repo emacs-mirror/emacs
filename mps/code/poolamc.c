@@ -2108,7 +2108,6 @@ DEFINE_POOL_CLASS(AMCZPoolClass, this)
   PoolClassMixInFormat(this);
   PoolClassMixInCollect(this);
   this->size = sizeof(AMCStruct);
-  this->offset = offsetof(AMCStruct, poolStruct);
   this->attr |= AttrMOVINGGC;
   this->varargs = AMCVarargs;
   this->init = AMCZInit;

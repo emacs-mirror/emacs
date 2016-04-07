@@ -824,7 +824,6 @@ DEFINE_POOL_CLASS(LOPoolClass, this)
   PoolClassMixInFormat(this);
   PoolClassMixInCollect(this);
   this->size = sizeof(LOStruct);
-  this->offset = offsetof(LOStruct, poolStruct);
   this->varargs = LOVarargs;
   this->init = LOInit;
   this->finish = LOFinish;

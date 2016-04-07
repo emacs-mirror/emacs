@@ -265,7 +265,6 @@ DEFINE_POOL_CLASS(NPoolClass, this)
 {
   INHERIT_CLASS(this, NPoolClass, AbstractPoolClass);
   this->size = sizeof(PoolNStruct);
-  this->offset = offsetof(PoolNStruct, poolStruct);
   this->attr |= AttrGC;
   this->init = NInit;
   this->finish = NFinish;

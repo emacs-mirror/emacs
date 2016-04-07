@@ -360,7 +360,6 @@ DEFINE_POOL_CLASS(MFSPoolClass, this)
 {
   INHERIT_CLASS(this, MFSPoolClass, AbstractPoolClass);
   this->size = sizeof(MFSStruct);
-  this->offset = offsetof(MFSStruct, poolStruct);
   this->varargs = MFSVarargs;
   this->init = MFSInit;
   this->finish = MFSFinish;

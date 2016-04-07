@@ -709,7 +709,6 @@ DEFINE_POOL_CLASS(SNCPoolClass, this)
   INHERIT_CLASS(this, SNCPoolClass, AbstractScanPoolClass);
   PoolClassMixInFormat(this);
   this->size = sizeof(SNCStruct);
-  this->offset = offsetof(SNCStruct, poolStruct);
   this->varargs = SNCVarargs;
   this->init = SNCInit;
   this->finish = SNCFinish;

@@ -39,9 +39,6 @@ Bool PoolClassCheck(PoolClass class)
 {
   CHECKD(ProtocolClass, &class->protocol);
   CHECKL(class->size >= sizeof(PoolStruct));
-  /* Offset of generic Pool within class-specific instance cannot be */
-  /* greater than the size of the class-specific portion of the instance */
-  CHECKL(class->offset <= (size_t)(class->size - sizeof(PoolStruct)));
   CHECKL(AttrCheck(class->attr));
   CHECKL(!(class->attr & AttrMOVINGGC) || (class->attr & AttrGC));
   CHECKL(FUNCHECK(class->varargs));
@@ -202,11 +199,7 @@ Res PoolCreate(Pool *poolReturn, Arena arena,
   res = ControlAlloc(&base, arena, class->size);
   if (res != ResOK)
     goto failControlAlloc;
-
-  /* base is the address of the class-specific pool structure. */
-  /* We calculate the address of the generic pool structure within the */
-  /* instance by using the offset information from the class. */
-  pool = (Pool)PointerAdd(base, class->offset);
+  pool = (Pool)base;
 
   /* Initialize the pool. */ 
   res = PoolInit(pool, arena, class, args);
@@ -254,7 +247,6 @@ void PoolDestroy(Pool pool)
 {
   PoolClass class;
   Arena arena;
-  Addr base;
 
   AVERT(Pool, pool); 
  
@@ -265,8 +257,7 @@ void PoolDestroy(Pool pool)
   PoolFinish(pool);
 
   /* .space.free: Free the pool instance structure.  See .space.alloc */
-  base = AddrSub((Addr)pool, (Size)(class->offset));
-  ControlFree(arena, base, (Size)(class->size));
+  ControlFree(arena, (Addr)pool, (Size)(class->size));
 }
 
 

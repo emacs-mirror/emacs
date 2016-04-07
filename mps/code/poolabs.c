@@ -115,7 +115,6 @@ DEFINE_CLASS(AbstractPoolClass, class)
 {
   INHERIT_CLASS(&class->protocol, AbstractPoolClass, ProtocolClass);
   class->size = 0;
-  class->offset = 0;
   class->attr = 0;
   class->varargs = ArgTrivVarargs;
   class->init = PoolTrivInit;
