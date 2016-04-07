@@ -19,7 +19,7 @@
 #define DERIVE_LOCAL(name) protocol ## name
 #define DERIVE_STRUCT(name) name ## Struct
 #define DERIVE_ENSURE(name) name ## Get
-#define DERIVE_ENSURE_INTERNAL(name) protocolGet ## name
+#define DERIVE_INIT(name) name ## Init
 #define DERIVE_GUARDIAN(name) protocol ## name ## Guardian
 #define DERIVE_STATIC_STORAGE(name) protocol ## name ## Struct
 
@@ -35,7 +35,8 @@
 /* DECLARE_CLASS -- declare the existence of a protocol class */
 
 #define DECLARE_CLASS(classKind, className) \
-  extern classKind DERIVE_ENSURE(className)(void)
+  extern classKind DERIVE_ENSURE(className)(void); \
+  extern void DERIVE_INIT(className)(classKind var)
 
 
 /* DEFINE_CLASS -- the standard macro for defining a ProtocolClass */
@@ -44,13 +45,13 @@
   DECLARE_CLASS(className, className); \
   static Bool DERIVE_GUARDIAN(className) = FALSE; \
   static DERIVE_STRUCT(className) DERIVE_STATIC_STORAGE(className); \
-  static void DERIVE_ENSURE_INTERNAL(className)(className); \
+  void DERIVE_INIT(className)(className); \
   className DERIVE_ENSURE(className)(void) \
   { \
     if (DERIVE_GUARDIAN(className) == FALSE) { \
       LockClaimGlobalRecursive(); \
       if (DERIVE_GUARDIAN(className) == FALSE) { \
-        DERIVE_ENSURE_INTERNAL(className) \
+        DERIVE_INIT(className) \
           (&DERIVE_STATIC_STORAGE(className)); \
         DERIVE_GUARDIAN(className) = TRUE; \
       } \
@@ -58,7 +59,7 @@
     } \
     return &DERIVE_STATIC_STORAGE(className); \
   } \
-  static void DERIVE_ENSURE_INTERNAL(className) (className var)
+  void DERIVE_INIT(className)(className var)
 
 
 /* CLASS -- expression for getting a class */
@@ -68,11 +69,10 @@
 
 /* INHERIT_CLASS -- the standard macro for inheriting from a superclass */
 
-#define INHERIT_CLASS(this, parentName) \
+#define INHERIT_CLASS(this, super) \
   BEGIN \
-    parentName DERIVE_LOCAL(parentName) = DERIVE_ENSURE(parentName)(); \
-    *this = *(DERIVE_LOCAL(parentName)); \
-    ProtocolClassSetSuperclassPoly(this, DERIVE_LOCAL(parentName)); \
+    DERIVE_INIT(super)(this); \
+    ProtocolClassSetSuperclassPoly(this, CLASS(super)); \
   END
 
 
