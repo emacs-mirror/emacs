@@ -169,8 +169,8 @@ typedef struct MRGRefSegStruct {
 
 /* forward declarations */
 
-extern SegClass MRGLinkSegClassGet(void);
-extern SegClass MRGRefSegClassGet(void);
+DECLARE_CLASS(SegClass, MRGLinkSegClass);
+DECLARE_CLASS(SegClass, MRGRefSegClass);
 
 
 /* MRGLinkSegCheck -- check a link segment
@@ -519,7 +519,7 @@ static Res MRGSegPairCreate(MRGRefSeg *refSegReturn, MRG mrg)
   linkSegSize = nGuardians * sizeof(LinkStruct);
   linkSegSize = SizeArenaGrains(linkSegSize, arena);
 
-  res = SegAlloc(&segLink, MRGLinkSegClassGet(),
+  res = SegAlloc(&segLink, CLASS(MRGLinkSegClass),
                  LocusPrefDefault(), linkSegSize, pool,
                  argsNone);
   if (res != ResOK)
@@ -528,7 +528,7 @@ static Res MRGSegPairCreate(MRGRefSeg *refSegReturn, MRG mrg)
   
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD_FIELD(args, mrgKeyLinkSeg, p, linkseg); /* .ref.initarg */
-    res = SegAlloc(&segRefPart, MRGRefSegClassGet(),
+    res = SegAlloc(&segRefPart, CLASS(MRGRefSegClass),
                    LocusPrefDefault(), mrg->extendBy, pool,
                    args);
   } MPS_ARGS_END(args);
@@ -887,7 +887,7 @@ DEFINE_POOL_CLASS(MRGPoolClass, this)
 
 PoolClass PoolClassMRG(void)
 {
-  return MRGPoolClassGet();
+  return CLASS(MRGPoolClass);
 }
 
 

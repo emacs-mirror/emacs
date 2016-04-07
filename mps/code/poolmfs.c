@@ -376,7 +376,7 @@ DEFINE_POOL_CLASS(MFSPoolClass, this)
 
 PoolClass PoolClassMFS(void)
 {
-  return MFSPoolClassGet();
+  return CLASS(MFSPoolClass);
 }
 
 
@@ -392,7 +392,7 @@ Bool MFSCheck(MFS mfs)
 
   CHECKS(MFS, mfs);
   CHECKD(Pool, MFSPool(mfs));
-  CHECKL(MFSPool(mfs)->class == MFSPoolClassGet());
+  CHECKL(MFSPool(mfs)->class == CLASS(MFSPoolClass));
   CHECKL(mfs->unitSize >= UNIT_MIN);
   CHECKL(mfs->extendBy >= UNIT_MIN);
   CHECKL(BoolCheck(mfs->extendSelf));

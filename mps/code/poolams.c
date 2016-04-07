@@ -1807,7 +1807,7 @@ DEFINE_POOL_CLASS(AMSDebugPoolClass, this)
 
 mps_pool_class_t mps_class_ams(void)
 {
-  return (mps_pool_class_t)AMSPoolClassGet();
+  return (mps_pool_class_t)CLASS(AMSPoolClass);
 }
 
 
@@ -1815,7 +1815,7 @@ mps_pool_class_t mps_class_ams(void)
 
 mps_pool_class_t mps_class_ams_debug(void)
 {
-  return (mps_pool_class_t)AMSDebugPoolClassGet();
+  return (mps_pool_class_t)CLASS(AMSDebugPoolClass);
 }
 
 
@@ -1825,7 +1825,7 @@ Bool AMSCheck(AMS ams)
 {
   CHECKS(AMS, ams);
   CHECKD(Pool, AMSPool(ams));
-  CHECKL(IsSubclassPoly(AMSPool(ams)->class, AMSPoolClassGet()));
+  CHECKL(IsSubclassPoly(AMSPool(ams)->class, CLASS(AMSPoolClass)));
   CHECKL(PoolAlignment(AMSPool(ams)) == AMSGrainsSize(ams, (Size)1));
   CHECKL(PoolAlignment(AMSPool(ams)) == AMSPool(ams)->format->alignment);
   CHECKD(PoolGen, &ams->pgen);

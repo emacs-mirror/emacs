@@ -172,6 +172,7 @@ MPMCOMMON = \
     bt.c \
     buffer.c \
     cbs.c \
+    class.c \
     dbgpool.c \
     dbgpooli.c \
     event.c \

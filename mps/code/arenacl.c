@@ -469,7 +469,7 @@ DEFINE_ARENA_CLASS(ClientArenaClass, this)
 
 mps_arena_class_t mps_arena_class_cl(void)
 {
-  return (mps_arena_class_t)ClientArenaClassGet();
+  return (mps_arena_class_t)CLASS(ClientArenaClass);
 }
 
 
