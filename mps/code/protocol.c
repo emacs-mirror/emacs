@@ -1,11 +1,9 @@
 /* pool.c: PROTOCOL IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
- * DESIGN
- *
- * .design: See <design/protocol/>
+ * See design.mps.protocol.
  */
 
 #include "mpm.h"
@@ -19,8 +17,6 @@ Bool ProtocolClassCheck(ProtocolClass class)
 {
   CHECKS(ProtocolClass, class);
   CHECKU(ProtocolClass, class->superclass);
-  CHECKL(FUNCHECK(class->coerceInst));
-  CHECKL(FUNCHECK(class->coerceClass));
   return TRUE;
 }
 
@@ -37,75 +33,22 @@ Bool ProtocolInstCheck(ProtocolInst inst)
 
 /* ProtocolIsSubclass -- a predicate for testing subclass relationships
  *
- * A protocol class is always a subclass of itself.  This is implemented
- * via the coerceClass method provided by each class.
+ * A protocol class is always a subclass of itself.
  */
+
 Bool ProtocolIsSubclass(ProtocolClass sub, ProtocolClass super)
 {
-  ProtocolClass coerced;
+  ProtocolClass root = CLASS(ProtocolClass);
 
   AVERT(ProtocolClass, sub);
   AVERT(ProtocolClass, super);
 
-  if (sub->coerceClass(&coerced, sub, super)) {
-    AVERT(ProtocolClass, coerced);
-    return TRUE;
-  } else {
-    return FALSE;
-  }
-}
-
-
-/* ProtocolCoerceClass -- the default method for coerceClass
- *
- * This default method must be inherited by any subclass
- * which does not perform a multiple inheritance.
- */
-static Bool ProtocolCoerceClass(ProtocolClass *coerceResult,
-                                ProtocolClass proClass,
-                                ProtocolClass super)
-{
-  ProtocolClass p = proClass;
-  ProtocolClass root = CLASS(ProtocolClass);
-
-  AVERT(ProtocolClass, proClass);
-  AVERT(ProtocolClass, super);
-  AVERT(ProtocolClass, root);
-
-  while (p != super) {
-    AVERT(ProtocolClass, p);
-    if (p == root)
+  while (sub != super) {
+    AVERT(ProtocolClass, sub);
+    if (sub == root)
       return FALSE;
-    p = p->superclass;
+    sub = sub->superclass;
   }
-  *coerceResult = proClass;
-  return TRUE;
-}
-
-
-/* ProtocolCoerceInst -- the default method for coerceInst
- *
- * This default method must be inherited by any subclass
- * which does not perform a multiple inheritance.
- */
-static Bool ProtocolCoerceInst(ProtocolInst *coerceResult,
-                               ProtocolInst proInst,
-                               ProtocolClass super)
-{
-  ProtocolClass p = proInst->class;
-  ProtocolClass root = CLASS(ProtocolClass);
-
-  AVERT(ProtocolInst, proInst);
-  AVERT(ProtocolClass, super);
-  AVERT(ProtocolClass, root);
-
-  while (p != super) {
-    AVERT(ProtocolClass, p);
-    if (p == root)
-      return FALSE;
-    p = p->superclass;
-  }
-  *coerceResult = proInst;
   return TRUE;
 }
 
@@ -116,18 +59,13 @@ DEFINE_CLASS(ProtocolClass, theClass)
 {
   theClass->sig = ProtocolClassSig;
   theClass->superclass = theClass;
-  theClass->coerceInst = ProtocolCoerceInst;
-  theClass->coerceClass = ProtocolCoerceClass;
   AVERT(ProtocolClass, theClass);
 }
 
 
-
-
-
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
