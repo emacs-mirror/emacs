@@ -81,7 +81,6 @@ DEFINE_CLASS(AbstractArenaClass, class)
 {
   INHERIT_CLASS(&class->protocol, AbstractArenaClass, ProtocolClass);
   class->size = 0;
-  class->offset = 0;
   class->varargs = ArgTrivVarargs;
   class->init = NULL;
   class->finish = NULL;
@@ -104,10 +103,6 @@ Bool ArenaClassCheck(ArenaClass class)
 {
   CHECKD(ProtocolClass, &class->protocol);
   CHECKL(class->size >= sizeof(ArenaStruct));
-  /* Offset of generic Pool within class-specific instance cannot be */
-  /* greater than the size of the class-specific portion of the */
-  /* instance. */
-  CHECKL(class->offset <= (size_t)(class->size - sizeof(ArenaStruct)));
   CHECKL(FUNCHECK(class->varargs));
   CHECKL(FUNCHECK(class->init));
   CHECKL(FUNCHECK(class->finish));
