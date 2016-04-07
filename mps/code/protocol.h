@@ -103,35 +103,9 @@ typedef struct ProtocolClassStruct *ProtocolClass;
 typedef struct ProtocolInstStruct *ProtocolInst;
 
 
-/* ProtocolCoerceInstMethod -- coerce "pro" to an instance of "interface"
- *
- * If "pro" is an instance of "interface", then returns TRUE
- * and sets coerceResult to point directly to the part of "pro"
- * which contains the slots for "interface"
- * RHSK  2006-04-05  s/interface/interfaceIn/: job000605, suspect msvc bug.
- */
-typedef Bool (*ProtocolCoerceInstMethod)(ProtocolInst *coerceResult,
-                                         ProtocolInst pro,
-                                         ProtocolClass interfaceIn);
-
-/* ProtocolCoerceClassMethod -- coerce "proClass" to an "interface" class
- *
- * If "proClass" is a subclass of "interface", then returns TRUE
- * and sets coerceResult to point directly to the part of
- * "proClass" which contains the slots for "interface".
- * RHSK  2006-04-05  s/interface/interfaceIn/: job000605, suspect msvc bug.
- */
-typedef Bool (*ProtocolCoerceClassMethod)(ProtocolClass *coerceResult,
-                                          ProtocolClass proClass,
-                                          ProtocolClass interfaceIn);
-
-
-
 typedef struct ProtocolClassStruct {
   Sig sig;                               /* <design/sig/> */
   ProtocolClass superclass;              /* the superclass */
-  ProtocolCoerceInstMethod coerceInst;   /* coerce instance to super */
-  ProtocolCoerceClassMethod coerceClass; /* coerce class to superclass */
 } ProtocolClassStruct;
 
 
@@ -141,11 +115,7 @@ typedef struct ProtocolInstStruct {
 } ProtocolInstStruct;
 
 
-/* ProtocolClassGet -- Returns the root of the protocol class hierarchy
- *
- * Function name conforms to standard conventions for
- * protocols.
- */
+/* ProtocolClass -- the root of the protocol class hierarchy */
 
 DECLARE_CLASS(ProtocolClass, ProtocolClass);
 
@@ -158,9 +128,10 @@ extern Bool ProtocolInstCheck(ProtocolInst pro);
 
 /* ProtocolIsSubclass - use macro IsSubclass to access this.
  *
- * A predicate for testing subclass relationships.
- * A protocol class is always a subclass of itself.
+ * A predicate for testing subclass relationships.  A protocol class
+ * is always a subclass of itself.
  */
+
 extern Bool ProtocolIsSubclass(ProtocolClass sub, ProtocolClass super);
 
 

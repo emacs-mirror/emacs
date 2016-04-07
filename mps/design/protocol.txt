@@ -10,16 +10,14 @@ Protocol inheritance
 :Revision: $Id$
 :Copyright: See `Copyright and License`_.
 :Index terms: pair: protocol inheritance; design
+:Readership: MPS developers
 
 
 Introduction
 ------------
 
 _`.intro`: This document explains the design of the support for class
-inheritance in MPS. It is not yet complete. It describes support for
-single inheritance of classes. Future extensions will describe
-multiple inheritance and the relationship between instances and
-classes.
+inheritance in MPS.
 
 _`.readership`: This document is intended for any MPS developer.
 
@@ -86,9 +84,9 @@ subclasses). To use Dylan terminology, instances of its subclasses are
      --------------------    |         --------------------
      |     class        |----|         |    superclass    |
      --------------------              --------------------
-     |     ...          |              |    coerceInst    |
+     |     ...          |              |     ...          |
      --------------------              --------------------
-     |     ...          |              |    coerceClass   |
+     |     ...          |              |     ...          |
      --------------------              --------------------
      |                  |              |     ...          |
 
@@ -111,28 +109,13 @@ _`.overview.sig.extend`: If a class definition extends a protocol, it
 is normal policy for the class definition to include a new signature
 as the last field in the class object.
 
-_`.overview.coerce-class`: Each class contains a ``coerceClass``
-field. This contains a method which can find the part of the class
-object which implements the protocols of a supplied superclass
-argument (if, indeed, the argument *is* a superclass). This function
-may be used for testing subclass/superclass relationships, and it also
-provides support for multiple inheritance.
-
-_`.overview.coerce-inst`: Each class contains a ``coerceInst`` field.
-This contains a method which can find the part of an instance object
-which contains the instance slots of a supplied superclass argument
-(if, indeed, the argument *is* a superclass). This function may be
-used for testing whether an object is an instance of a given class,
-and it also provides support for multiple inheritance.
-
 _`.overview.superclass`: Each class contains a ``superclass`` field.
-This enables classes to call "next-method", as well as enabling the
-coercion functions.
+This enables classes to call "next-method".
 
 _`.overview.next-method`: A specialized method in a class can make use
 of an overridden method from a superclass by accessing the method from
 the appropriate field in the superclass object and calling it. The
-superclass may be accessed indirectly from the class's "Ensure"
+superclass may be accessed indirectly from the class's "ensure"
 function when it is statically known (see `.overview.access`_). This
 permits "next-method" calls, and is fully scalable in that it allows
 arbitrary length method chains. The ``SUPERCLASS()`` macro helps with
@@ -152,10 +135,15 @@ which use the method having any subclasses.
 
 _`.overview.access`: Classes must be initialized by calls to
 functions, since it is these function calls which copy properties from
-superclasses. Each class must provide an "Ensure" function, which
+superclasses. Each class must provide an "ensure" function, which
 returns the canonical copy of the class. The canonical copy may reside
 in static storage, but no MPS code may refer to that static storage by
 name.
+
+_`.overview.init`: In addition to the "ensure" function, each class
+must provide an "init" function, which initialises its argument as a
+fresh copy of the class.  This allows subclasses to derive their
+methods and other fields from superclasses.
 
 _`.overview.naming`: There are some strict naming conventions which
 must be followed when defining and using classes. The use is
@@ -178,7 +166,7 @@ we insist upon the following naming conventions:-
    class has extended the protocols of the superclass then it will be
    a type which contains the new class fields.
 
-* ``EnsureSomeClass()``
+* ``SomeClassGet()``
 
    names the function that returns the initialized class object.
 
@@ -186,6 +174,17 @@ we insist upon the following naming conventions:-
 
 Interface
 ---------
+
+
+Class declaration
+.................
+
+``DECLARE_CLASS(kindName, className)``
+
+_`.int.declare-class`: Class declaration is performed by the macro
+``DECLARE_CLASS``, which declares the existence of the class
+definition elsewhere.  It is intended for use in headers.
+
 
 Class definition
 ................
@@ -322,21 +321,6 @@ which ``inst`` is a direct instance.
 _`.int.subclass`: An introspection function which returns a ``Bool``
 indicating whether ``sub`` is a subclass of ``super``. That is, it is
 a predicate for testing subclass relationships.
-
-
-Multiple inheritance
-....................
-
-_`.int.mult-inherit`: Multiple inheritance involves an extension of
-the protocol (see `.int.extend`_) and also multiple uses of the single
-inheritance mechanism (see `.int.inheritance`_). It also requires
-specialized methods for ``coerceClass`` and ``coerceInst`` to be
-written (see `.overview.coerce-class`_ and `.overview.coerce-inst`_).
-Documentation on support for multiple inheritance is under
-construction. This facility is not currently used. The basic idea is
-described in `mail.tony.1998-10-06.11-03`_.
-
-.. _mail.tony.1998-10-06.11-03: https://info.ravenbrook.com/project/mps/mail/1998/10/06/11-03/0.txt
 
 
 Protocol guidelines
@@ -533,6 +517,8 @@ Document History
 
 - 2013-04-14 GDR_ Converted to reStructuredText.
 
+- 2016-04-07 RB_ Removing never-used multiple inheritance speculation.
+
 .. _RB: http://www.ravenbrook.com/consultants/rb/
 .. _GDR: http://www.ravenbrook.com/consultants/gdr/
 
@@ -540,7 +526,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2013-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
