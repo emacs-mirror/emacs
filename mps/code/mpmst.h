@@ -500,7 +500,6 @@ typedef struct TraceStruct {
 typedef struct mps_arena_class_s {
   ProtocolClassStruct protocol;
   size_t size;                  /* size of outer structure */
-  size_t offset;                /* offset of generic struct in outer struct */
   ArenaVarargsMethod varargs;
   ArenaInitMethod init;
   ArenaFinishMethod finish;
