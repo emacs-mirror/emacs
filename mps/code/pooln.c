@@ -291,7 +291,7 @@ DEFINE_POOL_CLASS(NPoolClass, this)
 
 PoolClass PoolClassN(void)
 {
-  return EnsureNPoolClass();
+  return NPoolClassGet();
 }
 
 
@@ -301,7 +301,7 @@ Bool PoolNCheck(PoolN poolN)
 {
   CHECKL(poolN != NULL);
   CHECKD(Pool, PoolNPool(poolN));
-  CHECKL(PoolNPool(poolN)->class == EnsureNPoolClass());
+  CHECKL(PoolNPool(poolN)->class == NPoolClassGet());
   UNUSED(poolN); /* <code/mpm.c#check.unused> */
 
   return TRUE;
