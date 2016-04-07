@@ -666,7 +666,6 @@ DEFINE_POOL_CLASS(AMSTPoolClass, this)
 {
   INHERIT_CLASS(this, AMSTPoolClass, AMSPoolClass);
   this->size = sizeof(AMSTStruct);
-  this->offset = offsetof(AMSTStruct, amsStruct) + offsetof(AMSStruct, poolStruct);
   this->init = AMSTInit;
   this->finish = AMSTFinish;
   this->bufferFill = AMSTBufferFill;

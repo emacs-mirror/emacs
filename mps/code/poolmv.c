@@ -846,7 +846,6 @@ DEFINE_POOL_CLASS(MVPoolClass, this)
 {
   INHERIT_CLASS(this, MVPoolClass, AbstractBufferPoolClass);
   this->size = sizeof(MVStruct);
-  this->offset = offsetof(MVStruct, poolStruct);
   this->varargs = MVVarargs;
   this->init = MVInit;
   this->finish = MVFinish;

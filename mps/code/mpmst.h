@@ -51,7 +51,6 @@
 typedef struct mps_pool_class_s {
   ProtocolClassStruct protocol;
   size_t size;                  /* size of outer structure */
-  size_t offset;                /* offset of generic struct in outer struct */
   Attr attr;                    /* attributes */
   PoolVarargsMethod varargs;    /* convert deprecated varargs into keywords */
   PoolInitMethod init;          /* initialize the pool descriptor */
