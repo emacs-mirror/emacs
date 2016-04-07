@@ -1751,7 +1751,6 @@ DEFINE_CLASS(AMSPoolClass, this)
   INHERIT_CLASS(this, AMSPoolClass, AbstractCollectPoolClass);
   PoolClassMixInFormat(this);
   this->size = sizeof(AMSStruct);
-  this->offset = offsetof(AMSStruct, poolStruct);
   this->varargs = AMSVarargs;
   this->init = AMSInit;
   this->finish = AMSFinish;

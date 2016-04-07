@@ -709,7 +709,6 @@ DEFINE_POOL_CLASS(MVFFPoolClass, this)
   INHERIT_CLASS(this, MVFFPoolClass, AbstractPoolClass);
   PoolClassMixInBuffer(this);
   this->size = sizeof(MVFFStruct);
-  this->offset = offsetof(MVFFStruct, poolStruct);
   this->varargs = MVFFVarargs;
   this->init = MVFFInit;
   this->finish = MVFFFinish;
