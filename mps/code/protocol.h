@@ -14,8 +14,11 @@
 #include "classdef.h"
 
 
-/* Name derivation macros. These are not intended to be used */
-/* outside of this file */
+/* DERIVE_* -- name derivation macros.
+ *
+ * These turn the base identifier of a class into other identifiers.
+ * These are not intended to be used outside of this file.
+ */
 
 #define DERIVE_LOCAL(name) protocol ## name
 #define DERIVE_STRUCT(name) name ## Struct
@@ -32,7 +35,7 @@
   extern void DERIVE_INIT(className)(classKind var)
 
 
-/* DEFINE_CLASS -- the standard macro for defining a ProtocolClass */
+/* DEFINE_CLASS -- the standard macro for defining a InstClass */
 
 #define DEFINE_CLASS(className, var) \
   DECLARE_CLASS(className, className); \
@@ -65,20 +68,20 @@
 extern unsigned ProtocolPrime[1000];
 
 #define CLASS_INDEX_ENUM(prefix, ident, kind, super) prefix ## ident ## Class,
-typedef enum ProtocolClassIndexEnum {
-  ProtocolClassIndexInvalid, /* index zero (prime 2) reserved for invalid classes */
-  CLASSES(CLASS_INDEX_ENUM, ProtocolClassIndex)
-  ProtocolClassIndexLIMIT
-} ProtocolClassIndexEnum;
+typedef enum InstClassIndexEnum {
+  InstClassIndexInvalid, /* index zero (prime 2) reserved for invalid classes */
+  CLASSES(CLASS_INDEX_ENUM, InstClassIndex)
+  InstClassIndexLIMIT
+} InstClassIndexEnum;
 
 #define INHERIT_CLASS(this, _class, super) \
   BEGIN \
-    ProtocolClass protocolClass = (ProtocolClass)(this); \
+    InstClass protocolClass = (InstClass)(this); \
     DERIVE_INIT(super)(this); \
-    protocolClass->superclass = (ProtocolClass)CLASS(super); \
+    protocolClass->superclass = (InstClass)CLASS(super); \
     protocolClass->name = #_class; \
     protocolClass->typeId = \
-      ProtocolPrime[ProtocolClassIndex ## _class] * \
+      ProtocolPrime[InstClassIndex ## _class] * \
       protocolClass->superclass->typeId; \
   END
 
@@ -96,43 +99,43 @@ typedef enum ProtocolClassIndexEnum {
 
 
 
-#define ProtocolClassSig ((Sig)0x519B60C7) /* SIGnature PROtocol CLass */
-#define ProtocolInstSig  ((Sig)0x519B6014) /* SIGnature PROtocol INst */
+#define InstClassSig ((Sig)0x519B60C7) /* SIGnature PROtocol CLass */
+#define InstSig  ((Sig)0x519B6014) /* SIGnature PROtocol INst */
 
 
-/* ProtocolInst -- the instance structure for support of the protocol */
+/* Inst -- the instance structure for support of the protocol */
 
-typedef struct ProtocolInstStruct *ProtocolInst;
-typedef struct ProtocolClassStruct *ProtocolClass;
+typedef struct InstStruct *Inst;
+typedef struct InstClassStruct *InstClass;
 
-typedef struct ProtocolInstStruct {
+typedef struct InstStruct {
   Sig sig;                      /* <design/sig/> */
-  ProtocolClass class;
-} ProtocolInstStruct;
+  InstClass class;
+} InstStruct;
 
 
-/* ProtocolClass -- the class containing the support for the protocol */
+/* InstClass -- the class containing the support for the protocol */
 
-typedef const char *ProtocolClassName;
+typedef const char *InstClassName;
 typedef unsigned long ProtocolTypeId;
 
-typedef struct ProtocolClassStruct {
+typedef struct InstClassStruct {
   Sig sig;                      /* <design/sig/> */
-  ProtocolClassName name;
-  ProtocolClass superclass;
+  InstClassName name;
+  InstClass superclass;
   ProtocolTypeId typeId;
-} ProtocolClassStruct;
+} InstClassStruct;
 
 
-/* ProtocolClass -- the root of the protocol class hierarchy */
+/* InstClass -- the root of the protocol class hierarchy */
 
-DECLARE_CLASS(ProtocolClass, ProtocolClass);
+DECLARE_CLASS(InstClass, InstClass);
 
 
 /* Checking functions */
 
-extern Bool ProtocolClassCheck(ProtocolClass class);
-extern Bool ProtocolInstCheck(ProtocolInst pro);
+extern Bool InstClassCheck(InstClass class);
+extern Bool InstCheck(Inst pro);
 
 
 /* ProtocolIsSubclass - use macro IsSubclass to access this.
@@ -141,33 +144,33 @@ extern Bool ProtocolInstCheck(ProtocolInst pro);
  * is always a subclass of itself.
  */
 
-extern Bool ProtocolIsSubclass(ProtocolClass sub, ProtocolClass super);
+extern Bool ProtocolIsSubclass(InstClass sub, InstClass super);
 
 
 /* Protocol introspection interface */
 
 /* The following are macros because of the need to cast */
-/* subtypes of ProtocolClass. Nevertheless they are named */
+/* subtypes of InstClass. Nevertheless they are named */
 /* as functions. See <design/protocol/#introspect.c-lang> */
 
 
-#define ProtocolClassSuperclassPoly(class) \
-  (((ProtocolClass)(class))->superclass)
+#define InstClassSuperclassPoly(class) \
+  (((InstClass)(class))->superclass)
 
-#define ClassOfPoly(inst) ((ProtocolInst)(inst)->class)
+#define ClassOfPoly(inst) ((Inst)(inst)->class)
 
 #define IsSubclassPoly(sub, super) \
-   ProtocolIsSubclass((ProtocolClass)(sub), (ProtocolClass)(super))
+   ProtocolIsSubclass((InstClass)(sub), (InstClass)(super))
 
 
 /* SUPERCLASS  - get the superclass object, given a class name
  *
- * Returns the superclass, with type ProtocolClass. Clients will
+ * Returns the superclass, with type InstClass. Clients will
  * probably wish to cast this. See
  * <design/protocol/#int.static-superclass>
  */
 #define SUPERCLASS(className)  \
-  ProtocolClassSuperclassPoly(DERIVE_ENSURE(className)())
+  InstClassSuperclassPoly(DERIVE_ENSURE(className)())
 
 
 #endif /* protocol_h */

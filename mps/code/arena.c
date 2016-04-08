@@ -79,7 +79,7 @@ typedef ArenaClassStruct AbstractArenaClassStruct;
 
 DEFINE_CLASS(AbstractArenaClass, class)
 {
-  INHERIT_CLASS(&class->protocol, AbstractArenaClass, ProtocolClass);
+  INHERIT_CLASS(&class->protocol, AbstractArenaClass, InstClass);
   class->size = 0;
   class->varargs = ArgTrivVarargs;
   class->init = NULL;
@@ -101,7 +101,7 @@ DEFINE_CLASS(AbstractArenaClass, class)
 
 Bool ArenaClassCheck(ArenaClass class)
 {
-  CHECKD(ProtocolClass, &class->protocol);
+  CHECKD(InstClass, &class->protocol);
   CHECKL(class->size >= sizeof(ArenaStruct));
   CHECKL(FUNCHECK(class->varargs));
   CHECKL(FUNCHECK(class->init));
