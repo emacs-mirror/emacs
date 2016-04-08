@@ -117,7 +117,7 @@ typedef struct MRGStruct {
   RingStruct refRing;       /* <design/poolmrg/#poolstruct.refring> */
   Size extendBy;            /* <design/poolmrg/#extend> */
   Sig sig;                  /* <code/mps.h#sig> */
-} MRGStruct;
+} MRGStruct, *MRGPool; /* FIXME: inconsistent naming of MRG and MRGPool */
 
 #define PoolMRG(pool) PARENT(MRGStruct, poolStruct, pool)
 #define MRGPool(mrg) (&(mrg)->poolStruct)
@@ -125,12 +125,14 @@ typedef struct MRGStruct {
 
 /* MRGCheck -- check an MRG pool */
 
+#define MRGPoolCheck MRGCheck /* FIXME: Inconsistent naming of pool class and instance */
+
 ATTRIBUTE_UNUSED
 static Bool MRGCheck(MRG mrg)
 {
   CHECKS(MRG, mrg);
   CHECKD(Pool, MRGPool(mrg));
-  CHECKL(ClassOfPool(MRGPool(mrg)) == PoolClassMRG()); /* FIXME: subclass? (similar check in other pool too) */
+  CHECKC(MRGPool, mrg);
   CHECKD_NOSIG(Ring, &mrg->entryRing);
   CHECKD_NOSIG(Ring, &mrg->freeRing);
   CHECKD_NOSIG(Ring, &mrg->refRing);
@@ -347,7 +349,7 @@ static RefPart MRGRefPartOfLink(Link link, Arena arena)
 
   b = SegOfAddr(&seg, arena, (Addr)link);
   AVER(b);
-  AVER(ClassOfPool(SegPool(seg)) == PoolClassMRG());
+  AVERC(MRGPool, SegPool(seg));
   linkseg = Seg2LinkSeg(seg);
   AVERT(MRGLinkSeg, linkseg);
   linkBase = (Link)SegBase(seg);
@@ -422,7 +424,7 @@ static void MRGMessageDelete(Message message)
   arena = MessageArena(message);
   b = PoolOfAddr(&pool, arena, (Addr)message);
   AVER(b);
-  AVER(ClassOfPool(pool) == PoolClassMRG());
+  AVERC(MRGPool, pool);
 
   link = linkOfMessage(message);
   AVER(link->state == MRGGuardianFINAL);
