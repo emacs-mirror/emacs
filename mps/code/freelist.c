@@ -199,7 +199,7 @@ static Res freelistInit(Land land, Arena arena, Align alignment, ArgList args)
   if (res != ResOK)
     return res;
 
-  land->class = CLASS(Freelist);
+  SetClassOfLand(land, CLASS(Freelist));
   fl = MustBeA(Freelist, land);
 
   /* See <design/freelist/#impl.grain> */

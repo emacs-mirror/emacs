@@ -736,7 +736,7 @@ static Bool SNCCheck(SNC snc)
 {
   CHECKS(SNC, snc);
   CHECKD(Pool, SNCPool(snc));
-  CHECKL(SNCPool(snc)->class == CLASS(SNCPool));
+  CHECKL(ClassOfPool(SNCPool(snc)) == CLASS(SNCPool));
   if (snc->freeSegs != NULL) {
     CHECKD(Seg, snc->freeSegs);
   }

@@ -80,9 +80,9 @@ subclasses). To use Dylan terminology, instances of its subclasses are
      Instance Object                    Class Object
 
      --------------------              --------------------
-     |     sig          |    .-------->|    sig           |
-     --------------------    |         --------------------
-     |     class        |----'         |    name          |
+     |     class        |------------->|    sig           |
+     --------------------              --------------------
+     |     ...          |              |    name          |
      --------------------              --------------------
      |     ...          |              |    superclass    |
      --------------------              --------------------
@@ -351,7 +351,7 @@ _`.example.fail`: The following example shows the implementation of
 failure-case code for an "init" method, making use of the "finish"
 anti-method::
 
-    static Res mySegInit(Seg seg, Pool pool, Addr base, Size size, 
+    static Res mySegInit(Seg seg, Pool pool, Addr base, Size size,
                          ArgList args)
     {
         SegClass super;
@@ -466,7 +466,7 @@ A. References
    Constant Time"; Norman H Cohen; IBM Thomas J Watson Research
    Center; ACM Transactions on Programming Languages and Systems,
    Vol. 13 No. 4, pp626-629; 1991-10.
-   
+
 .. [Gibbs_2004] "Fast Dynamic Casting"; Michael Gibbs, Bjarne
    Stroustrup; 2004;
    <http://www.stroustrup.com/fast_dynamic_casting.pdf>.
@@ -484,7 +484,7 @@ B. Document History
 - 2016-04-07 RB_ Removing never-used multiple inheritance speculation.
 
 - 2016-04-08 RB_ Substantial reorgnisation.
-    
+
 .. _RB: http://www.ravenbrook.com/consultants/rb/
 .. _GDR: http://www.ravenbrook.com/consultants/gdr/
 

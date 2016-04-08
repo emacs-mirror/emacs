@@ -114,7 +114,6 @@ typedef struct InstStruct *Inst;
 typedef struct InstClassStruct *InstClass;
 
 typedef struct InstStruct {
-  Sig sig;                      /* <design/sig/> */
   InstClass class;
 } InstStruct;
 

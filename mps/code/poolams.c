@@ -134,7 +134,7 @@ void AMSSegFreeCheck(AMSSeg amsseg)
   /* If it's not a debug class, don't bother walking. */
   pool = SegPool(AMSSeg2Seg(amsseg));
   AVERT(Pool, pool);
-  debug = ((pool)->class->debugMixin)(pool);
+  debug = (ClassOfPool(pool)->debugMixin)(pool);
   if (debug == NULL)
     return;
 
@@ -1594,7 +1594,7 @@ static void AMSReclaim(Pool pool, Trace trace, Seg seg)
   grains = amsseg->grains;
 
   /* Loop over all white blocks and splat them, if it's a debug class. */
-  debug = ((pool)->class->debugMixin)(pool);
+  debug = (ClassOfPool(pool)->debugMixin)(pool);
   if (debug != NULL) {
     Index i, j = 0;
 

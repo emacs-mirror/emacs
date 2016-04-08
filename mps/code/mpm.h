@@ -202,7 +202,7 @@ extern Res PoolDescribe(Pool pool, mps_lib_FILE *stream, Count depth);
 #define PoolSegRing(pool)       (&(pool)->segRing)
 #define PoolArenaRing(pool) (&(pool)->arenaRing)
 #define PoolOfArenaRing(node) RING_ELT(Pool, arenaRing, node)
-#define PoolHasAttr(pool, Attr) (((pool)->class->attr & (Attr)) != 0)
+#define PoolHasAttr(pool, Attr) ((ClassOfPool(pool)->attr & (Attr)) != 0)
 
 extern Bool PoolFormat(Format *formatReturn, Pool pool);
 
@@ -290,9 +290,10 @@ extern PoolDebugMixin PoolNoDebugMixin(Pool pool);
 extern BufferClass PoolNoBufferClass(void);
 extern Size PoolNoSize(Pool pool);
 
-#define ClassOfPool(pool) ((pool)->class)
+#define ClassOfPool(pool) ((PoolClass)(pool)->instStruct.class)
+#define SetClassOfPool(pool, _class) BEGIN (pool)->instStruct.class = (InstClass)(_class); END
 #define SuperclassOfPool(pool) \
-  ((PoolClass)InstClassSuperclassPoly((pool)->class))
+  ((PoolClass)InstClassSuperclassPoly(ClassOfPool(pool)))
 
 
 /* Abstract Pool Classes Interface -- see <code/poolabs.c> */
@@ -683,7 +684,8 @@ DECLARE_CLASS(Seg, Seg);
 DECLARE_CLASS(Seg, GCSeg);
 extern void SegClassMixInNoSplitMerge(SegClass class);
 
-#define ClassOfSeg(seg) ((seg)->class)
+#define ClassOfSeg(seg) ((SegClass)(seg)->instStruct.class)
+#define SetClassOfSeg(seg, _class) BEGIN (seg)->instStruct.class = (InstClass)(_class); END
 
 extern Size SegSize(Seg seg);
 extern Addr (SegBase)(Seg seg);
@@ -794,6 +796,9 @@ DECLARE_CLASS(Buffer, Buffer);
 DECLARE_CLASS(Buffer, SegBuf);
 DECLARE_CLASS(Buffer, RankBuf);
 
+#define ClassOfBuffer(buffer) ((BufferClass)(buffer)->instStruct.class)
+#define SetClassOfBuffer(buffer, class) BEGIN (buffer)->instStruct.class = (InstClass)(class); END
+ 
 extern AllocPattern AllocPatternRamp(void);
 extern AllocPattern AllocPatternRampCollectAll(void);
 
@@ -986,6 +991,8 @@ extern Bool LandFlush(Land dest, Land src);
 extern Size LandSlowSize(Land land);
 extern Bool LandClassCheck(LandClass class);
 DECLARE_CLASS(Land, Land);
+#define ClassOfLand(land) ((LandClass)(land)->instStruct.class)
+#define SetClassOfLand(land, _class) BEGIN (land)->instStruct.class = (InstClass)(_class); END
 
 
 /* STATISTIC -- gather statistics (in some varieties)

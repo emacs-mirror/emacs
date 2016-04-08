@@ -233,7 +233,7 @@ static Res cbsInitComm(Land land, LandClass class,
   if (res != ResOK)
     return res;
 
-  land->class = class;
+  SetClassOfLand(land, class);
   cbs = MustBeA(CBS, land);
 
   if (ArgPick(&arg, args, CBSBlockPool))

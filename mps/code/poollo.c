@@ -853,7 +853,7 @@ static Bool LOCheck(LO lo)
 {
   CHECKS(LO, lo);
   CHECKD(Pool, LOPool(lo));
-  CHECKL(LOPool(lo)->class == CLASS(LOPool));
+  CHECKL(ClassOfPool(LOPool(lo)) == CLASS(LOPool));
   CHECKL(ShiftCheck(lo->alignShift));
   CHECKL(LOGrainsSize(lo, (Count)1) == PoolAlignment(LOPool(lo)));
   CHECKD(PoolGen, &lo->pgen);
