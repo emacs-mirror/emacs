@@ -80,7 +80,12 @@ typedef enum ClassIdEnum {
   ClassIdLIMIT
 } ClassIdEnum;
 
-/* ClassLevelEnum -- depth of class in hierarchy */
+
+/* ClassLevelEnum -- depth of class in hierarchy
+ *
+ * This defines enum constants like ClassLevelLand equal to the
+ * distance from the root of the class hierarchy.
+ */
 
 #define CLASS_LEVEL_ENUM(prefix, ident, kind, super) prefix ## ident = prefix ## super + 1,
 typedef enum ClassLevelEnum {
@@ -90,7 +95,12 @@ typedef enum ClassLevelEnum {
 } ClassLevelEnum;
 
 
-/* INHERIT_CLASS -- the standard macro for inheriting from a superclass */
+/* INHERIT_CLASS -- inheriting from a superclass
+ *
+ * This macro is used at the start of a class definition to inherit
+ * the superclass and override the fields essential to the
+ * workings of the protocol.
+ */
 
 #define INHERIT_CLASS(this, _class, super) \
   BEGIN \
@@ -104,11 +114,13 @@ typedef enum ClassLevelEnum {
   END
 
 
-#define InstClassSig ((Sig)0x519B60C7) /* SIGnature PROtocol CLass */
-#define InstSig  ((Sig)0x519B6014) /* SIGnature PROtocol INst */
-
-
-/* Inst -- the instance structure for support of the protocol */
+/* Inst -- the instance structure for support of the protocol
+ *
+ * An InstStruct named instStruct must be the first field of any
+ * instance structure using the protocol, because the protocol uses
+ * casting between structures with common prefixes to implement
+ * polymorphism.
+ */
 
 typedef struct InstStruct *Inst;
 typedef struct InstClassStruct *InstClass;
@@ -120,15 +132,16 @@ typedef struct InstStruct {
 
 /* InstClass -- the class containing the support for the protocol */
 
-typedef const char *InstClassName;
-typedef unsigned long ProtocolTypeId;
+typedef const char *ClassName;
 typedef unsigned char ClassId;
 typedef unsigned char ClassLevel;
 #define ClassDEPTH 8            /* maximum depth of class hierarchy */
 
+#define InstClassSig ((Sig)0x519B60C7) /* SIGnature PROtocol CLass */
+
 typedef struct InstClassStruct {
   Sig sig;                      /* <design/sig/> */
-  InstClassName name;           /* human readable name such as "Land" */
+  ClassName name;               /* human readable name such as "Land" */
   InstClass superclass;         /* pointer to direct superclass */
   ClassLevel level;             /* distance from root of class hierarchy */
   ClassId display[ClassDEPTH];  /* ids of classes at this level and above */
@@ -156,7 +169,10 @@ extern Bool InstCheck(Inst pro);
 #define InstClassSuperclassPoly(class) \
   (((InstClass)(class))->superclass)
 
-#define ClassOfPoly(inst) (MustBeA(Inst, inst)->class)
+/* FIXME: Try MustBeA here. */
+#define ClassOfPoly(inst) (CouldBeA(Inst, inst)->class)
+#define SetClassOfPoly(inst, _class) \
+  BEGIN CouldBeA(Inst, inst)->class = (InstClass)(_class); END
 
 
 /* SUPERCLASS  - get the superclass object, given a class name
