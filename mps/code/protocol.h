@@ -23,6 +23,7 @@
 
 #define INST_TYPE(ident) ident
 #define INST_STRUCT(ident) ident ## Struct
+#define INST_CHECK(ident) ident ## Check
 #define CLASS_TYPE(ident) ident ## Class
 #define CLASS_STRUCT(ident) ident ## ClassStruct
 #define CLASS_ENSURE(ident) ident ## ClassGet
@@ -45,13 +46,13 @@
   void CLASS_INIT(ident)(CLASS_TYPE(kind)); \
   CLASS_TYPE(kind) CLASS_ENSURE(ident)(void) \
   { \
-    static guardian = FALSE; \
+    static Bool guardian = FALSE; \
     static CLASS_STRUCT(kind) classStruct; \
     if (guardian == FALSE) { \
       LockClaimGlobalRecursive(); \
       if (guardian == FALSE) { \
         CLASS_INIT(ident)(&classStruct); \
-        AVER(CLASS_CHECK(kind)); \
+        AVER(CLASS_CHECK(kind)(&classStruct)); \
         guardian = TRUE; \
       } \
       LockReleaseGlobalRecursive(); \
@@ -156,7 +157,7 @@ DECLARE_CLASS(Inst, Inst);
 /* Checking functions */
 
 extern Bool InstClassCheck(InstClass class);
-extern Bool InstCheck(Inst pro);
+extern Bool InstCheck(Inst inst);
 
 
 /* Protocol introspection interface */
@@ -215,6 +216,22 @@ CLASSES(CLASS_DECLARE_SUPER, UNUSED)
            mps_lib_assert_fail_expr(MPS_FILE, __LINE__, \
                                     "MustBeA " #_class ": " #inst, \
                                     inst))
+
+/* ClassOf* -- get the class of an instance */
+
+#define CLASS_DECLARE_CLASSOF(prefix, ident, kind, super) \
+  struct INST_STRUCT(ident); \
+  extern CLASS_TYPE(kind) (prefix ## ident)(struct INST_STRUCT(ident) *inst);
+
+CLASSES(CLASS_DECLARE_CLASSOF, ClassOf)
+
+
+/* SetClassOf -- set the class of an instance */
+
+#define CLASS_DECLARE_SETCLASSOF(prefix, ident, kind, super) \
+  void (prefix ## ident)(struct INST_STRUCT(ident) *inst, CLASS_TYPE(kind) class);
+
+CLASSES(CLASS_DECLARE_SETCLASSOF, SetClassOf)
 
 
 #endif /* protocol_h */

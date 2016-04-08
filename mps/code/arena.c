@@ -70,27 +70,76 @@ static Res ArenaTrivDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
 }
 
 
-/* AbstractArenaClass  -- The abstract arena class definition
- *
- * .null: Most abstract class methods are set to NULL.  See
- * <design/arena/#class.abstract.null>.  */
+static Res ArenaNoInit(Arena *arenaReturn, ArenaClass class, ArgList args)
+{
+  UNUSED(arenaReturn);
+  UNUSED(class);
+  UNUSED(args);
+  NOTREACHED;
+  return ResUNIMPL;
+}
+
+
+static void ArenaNoFinish(Arena arena)
+{
+  UNUSED(arena);
+  NOTREACHED;
+}
+
+static void ArenaNoFree(Addr base, Size size, Pool pool)
+{
+  UNUSED(base);
+  UNUSED(size);
+  UNUSED(pool);
+  NOTREACHED;
+}
+
+static Res ArenaNoChunkInit(Chunk chunk, BootBlock boot)
+{
+  UNUSED(chunk);
+  UNUSED(boot);
+  NOTREACHED;
+  return ResUNIMPL;
+}
+
+static void ArenaNoChunkFinish(Chunk chunk)
+{
+  UNUSED(chunk);
+  NOTREACHED;
+}
+
+static Res ArenaNoPagesMarkAllocated(Arena arena, Chunk chunk,
+                                     Index baseIndex, Count pages,
+                                     Pool pool)
+{
+  UNUSED(arena);
+  UNUSED(chunk);
+  UNUSED(baseIndex);
+  UNUSED(pages);
+  UNUSED(pool);
+  NOTREACHED;
+  return ResUNIMPL;
+}
+
+
+/* AbstractArenaClass  -- The abstract arena class definition */
 
 DEFINE_CLASS(Arena, AbstractArena, class)
 {
   INHERIT_CLASS(&class->protocol, AbstractArena, Inst);
-  class->size = 0;
+  class->size = sizeof(ArenaStruct);
   class->varargs = ArgTrivVarargs;
-  class->init = NULL;
-  class->finish = NULL;
+  class->init = ArenaNoInit;
+  class->finish = ArenaNoFinish;
   class->purgeSpare = ArenaNoPurgeSpare;
   class->extend = ArenaNoExtend;
   class->grow = ArenaNoGrow;
-  class->free = NULL;
-  class->chunkInit = NULL;
-  class->chunkFinish = NULL;
+  class->free = ArenaNoFree;
+  class->chunkInit = ArenaNoChunkInit;
+  class->chunkFinish = ArenaNoChunkFinish;
   class->compact = ArenaTrivCompact;
   class->describe = ArenaTrivDescribe;
-  class->pagesMarkAllocated = NULL;
+  class->pagesMarkAllocated = ArenaNoPagesMarkAllocated;
   class->sig = ArenaClassSig;
 }
 

@@ -81,7 +81,7 @@ typedef Addr (*FindDependentFunction)(Addr object);
  * See <design/poolawl/#poolstruct>
  */
 
-typedef struct AWLStruct {
+typedef struct AWLPoolStruct {
   PoolStruct poolStruct;
   Shift alignShift;
   PoolGenStruct pgen;       /* generation representing the pool */
@@ -89,9 +89,9 @@ typedef struct AWLStruct {
   FindDependentFunction findDependent; /*  to find a dependent object */
   awlStatTotalStruct stats;
   Sig sig;
-} AWLStruct, *AWL;
+} AWLPoolStruct, *AWL, *AWLPool; /* FIXME: pick one! */
 
-#define PoolAWL(pool) PARENT(AWLStruct, poolStruct, pool)
+#define PoolAWL(pool) PARENT(AWLPoolStruct, poolStruct, pool)
 #define AWLPool(awl) (&(awl)->poolStruct)
 #define AWLGrainsSize(awl, grains) ((grains) << (awl)->alignShift)
 
@@ -1320,7 +1320,7 @@ DEFINE_CLASS(Pool, AWLPool, this)
 {
   INHERIT_CLASS(this, AWLPool, AbstractCollectPool);
   PoolClassMixInFormat(this);
-  this->size = sizeof(AWLStruct);
+  this->size = sizeof(AWLPoolStruct);
   this->varargs = AWLVarargs;
   this->init = AWLInit;
   this->finish = AWLFinish;
@@ -1354,7 +1354,7 @@ static Bool AWLCheck(AWL awl)
 {
   CHECKS(AWL, awl);
   CHECKD(Pool, AWLPool(awl));
-  CHECKL(ClassOfPool(AWLPool(awl)) == CLASS(AWLPool));
+  CHECKC(AWLPool, awl);
   CHECKL(AWLGrainsSize(awl, (Count)1) == PoolAlignment(AWLPool(awl)));
   /* Nothing to check about succAccesses. */
   CHECKL(FUNCHECK(awl->findDependent));

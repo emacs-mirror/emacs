@@ -299,7 +299,7 @@ Bool PoolNCheck(PoolN poolN)
 {
   CHECKL(poolN != NULL);
   CHECKD(Pool, PoolNPool(poolN));
-  CHECKL(ClassOfPool(PoolNPool(poolN)) == CLASS(NPool));
+  CHECKC(NPool, poolN);
   UNUSED(poolN); /* <code/mpm.c#check.unused> */
 
   return TRUE;
