@@ -21,7 +21,7 @@ extern Bool FreelistCheck(Freelist freelist);
 /* See <design/freelist/#impl.grain.align> */
 #define FreelistMinimumAlignment ((Align)sizeof(FreelistBlock))
 
-DECLARE_CLASS(Land, FreelistLand);
+DECLARE_CLASS(Land, Freelist);
 
 #endif /* freelist.h */
 

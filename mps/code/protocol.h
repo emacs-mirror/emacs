@@ -146,7 +146,7 @@ extern Bool ProtocolIsSubclass(InstClass sub, InstClass super);
 #define InstClassSuperclassPoly(class) \
   (((InstClass)(class))->superclass)
 
-#define ClassOfPoly(inst) ((Inst)(inst)->class)
+#define ClassOfPoly(inst) (MustBeA(Inst, inst)->class)
 
 #define IsSubclassPoly(sub, super) \
    ProtocolIsSubclass((InstClass)(sub), (InstClass)(super))
@@ -158,8 +158,35 @@ extern Bool ProtocolIsSubclass(InstClass sub, InstClass super);
  * probably wish to cast this. See
  * <design/protocol/#int.static-superclass>
  */
-#define SUPERCLASS(className)  \
+
+#define SUPERCLASS(className) \
   InstClassSuperclassPoly(CLASS_ENSURE(className)())
+
+
+/* IsA, CouldBeA, MustBeA -- coerce instances safely
+ *
+ * FIXME: Enumerate TypeIds to avoid call to ensure method and
+ * subclass test.
+ *
+ * FIXME: Wrap mps_lib_assert_fail_expr in check.h so that it is
+ * elided from some varieties.
+ */
+
+#define CouldBeA(class, inst) ((INST_TYPE(class))inst)
+
+#define IsA(_class, inst) \
+  ProtocolIsSubclass(CouldBeA(Inst, inst)->class, \
+                     (InstClass)CLASS(_class))
+
+#define MustBeA(_class, inst) \
+  CouldBeA(_class, \
+           (inst) != NULL && \
+           CouldBeA(Inst, inst)->class != NULL && \
+           IsA(_class, inst) ? \
+           inst : \
+           mps_lib_assert_fail_expr(MPS_FILE, __LINE__, \
+                                    "MustBeA " #_class ": " #inst, \
+                                    inst))
 
 
 #endif /* protocol_h */

@@ -26,7 +26,7 @@ SRCID(cbs, "$Id$");
 #define CBSBlockSize(block) AddrOffset((block)->base, (block)->limit)
 
 
-#define cbsOfLand(land) PARENT(CBSStruct, landStruct, land)
+#define cbsOfLand(land) PARENT(CBSStruct, landStruct, land) /* FIXME: Use MustBeA */
 #define cbsSplay(cbs) (&((cbs)->splayTreeStruct))
 #define cbsOfSplay(_splay) PARENT(CBSStruct, splayTreeStruct, _splay)
 #define cbsBlockTree(block) (&((block)->treeStruct))
@@ -126,7 +126,7 @@ static Bool cbsTestNode(SplayTree splay, Tree tree, void *closure)
   AVERT(Tree, tree);
   AVER(sizeP != NULL);
   AVER(*sizeP > 0);
-  AVER(IsLandSubclass(CBSLand(cbsOfSplay(splay)), CBSFastLandClass));
+  AVER(IsLandSubclass(CBSLand(cbsOfSplay(splay)), CBSFast));
 
   block = cbsBlockOfTree(tree);
 
@@ -143,7 +143,7 @@ static Bool cbsTestTree(SplayTree splay, Tree tree,
   AVERT(Tree, tree);
   AVER(sizeP != NULL);
   AVER(*sizeP > 0);
-  AVER(IsLandSubclass(CBSLand(cbsOfSplay(splay)), CBSFastLandClass));
+  AVER(IsLandSubclass(CBSLand(cbsOfSplay(splay)), CBSFast));
 
   block = cbsFastBlockOfTree(tree);
 
@@ -159,7 +159,7 @@ static void cbsUpdateFastNode(SplayTree splay, Tree tree)
 
   AVERT_CRITICAL(SplayTree, splay);
   AVERT_CRITICAL(Tree, tree);
-  AVER_CRITICAL(IsLandSubclass(CBSLand(cbsOfSplay(splay)), CBSFastLandClass));
+  AVER_CRITICAL(IsLandSubclass(CBSLand(cbsOfSplay(splay)), CBSFast));
 
   maxSize = CBSBlockSize(cbsBlockOfTree(tree));
 
@@ -190,7 +190,7 @@ static void cbsUpdateZonedNode(SplayTree splay, Tree tree)
 
   AVERT_CRITICAL(SplayTree, splay);
   AVERT_CRITICAL(Tree, tree);
-  AVER_CRITICAL(IsLandSubclass(CBSLand(cbsOfSplay(splay)), CBSZonedLandClass));
+  AVER_CRITICAL(IsLandSubclass(CBSLand(cbsOfSplay(splay)), CBSZoned));
 
   cbsUpdateFastNode(splay, tree);
 
@@ -216,7 +216,9 @@ static void cbsUpdateZonedNode(SplayTree splay, Tree tree)
 
 ARG_DEFINE_KEY(cbs_block_pool, Pool);
 
-static Res cbsInitComm(Land land, ArgList args, SplayUpdateNodeFunction update,
+static Res cbsInitComm(Land land, LandClass class,
+                       Arena arena, Align alignment,
+                       ArgList args, SplayUpdateNodeFunction update,
                        Size blockStructSize)
 {
   CBS cbs;
@@ -225,16 +227,18 @@ static Res cbsInitComm(Land land, ArgList args, SplayUpdateNodeFunction update,
   Res res;
   Pool blockPool = NULL;
 
-  AVERT(Land, land);
-  super = LAND_SUPERCLASS(CBSLand);
-  res = (*super->init)(land, args);
+  AVER(land != NULL); /* FIXME: express intention */
+  super = LAND_SUPERCLASS(CBS);
+  res = (*super->init)(land, arena, alignment, args);
   if (res != ResOK)
     return res;
+
+  land->class = class;
+  cbs = MustBeA(CBS, land);
 
   if (ArgPick(&arg, args, CBSBlockPool))
     blockPool = arg.val.pool;
 
-  cbs = cbsOfLand(land);
   SplayTreeInit(cbsSplay(cbs), cbsCompare, cbsKey, update);
 
   if (blockPool != NULL) {
@@ -262,21 +266,24 @@ static Res cbsInitComm(Land land, ArgList args, SplayUpdateNodeFunction update,
   return ResOK;
 }
 
-static Res cbsInit(Land land, ArgList args)
+static Res cbsInit(Land land, Arena arena, Align alignment, ArgList args)
 {
-  return cbsInitComm(land, args, SplayTrivUpdate,
+  return cbsInitComm(land, CLASS(CBS), arena, alignment,
+                     args, SplayTrivUpdate,
                      sizeof(CBSBlockStruct));
 }
 
-static Res cbsInitFast(Land land, ArgList args)
+static Res cbsInitFast(Land land, Arena arena, Align alignment, ArgList args)
 {
-  return cbsInitComm(land, args, cbsUpdateFastNode,
+  return cbsInitComm(land, CLASS(CBSFast), arena, alignment,
+                     args, cbsUpdateFastNode,
                      sizeof(CBSFastBlockStruct));
 }
 
-static Res cbsInitZoned(Land land, ArgList args)
+static Res cbsInitZoned(Land land, Arena arena, Align alignment, ArgList args)
 {
-  return cbsInitComm(land, args, cbsUpdateZonedNode,
+  return cbsInitComm(land, CLASS(CBSZoned), arena, alignment,
+                     args, cbsUpdateZonedNode,
                      sizeof(CBSZonedBlockStruct));
 }
 
@@ -288,11 +295,7 @@ static Res cbsInitZoned(Land land, ArgList args)
 
 static void cbsFinish(Land land)
 {
-  CBS cbs;
-
-  AVERT(Land, land);
-  cbs = cbsOfLand(land);
-  AVERT(CBS, cbs);
+  CBS cbs = MustBeA(CBS, land);
 
   METER_EMIT(&cbs->treeSearch);
 
@@ -301,6 +304,8 @@ static void cbsFinish(Land land)
   SplayTreeFinish(cbsSplay(cbs));
   if (cbs->ownPool)
     PoolDestroy(cbsBlockPool(cbs));
+
+  LAND_SUPERCLASS(CBS)->finish(land); /* FIXME: Method call */
 }
 
 
@@ -893,7 +898,7 @@ static Bool cbsFindFirst(Range rangeReturn, Range oldRangeReturn,
   AVERT(Land, land);
   cbs = cbsOfLand(land);
   AVERT(CBS, cbs);
-  AVER(IsLandSubclass(CBSLand(cbs), CBSFastLandClass));
+  AVER(IsLandSubclass(CBSLand(cbs), CBSFast));
 
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
@@ -974,7 +979,7 @@ static Bool cbsFindLast(Range rangeReturn, Range oldRangeReturn,
   AVERT(Land, land);
   cbs = cbsOfLand(land);
   AVERT(CBS, cbs);
-  AVER(IsLandSubclass(CBSLand(cbs), CBSFastLandClass));
+  AVER(IsLandSubclass(CBSLand(cbs), CBSFast));
 
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
@@ -1011,7 +1016,7 @@ static Bool cbsFindLargest(Range rangeReturn, Range oldRangeReturn,
   AVERT(Land, land);
   cbs = cbsOfLand(land);
   AVERT(CBS, cbs);
-  AVER(IsLandSubclass(CBSLand(cbs), CBSFastLandClass));
+  AVER(IsLandSubclass(CBSLand(cbs), CBSFast));
 
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
@@ -1062,7 +1067,7 @@ static Res cbsFindInZones(Bool *foundReturn, Range rangeReturn,
   AVERT(Land, land);
   cbs = cbsOfLand(land);
   AVERT(CBS, cbs);
-  AVER(IsLandSubclass(CBSLand(cbs), CBSZonedLandClass));
+  AVER(IsLandSubclass(CBSLand(cbs), CBSZoned));
   /* AVERT(ZoneSet, zoneSet); */
   AVERT(Bool, high);
 
@@ -1124,32 +1129,34 @@ fail:
 
 static Res cbsDescribe(Land land, mps_lib_FILE *stream, Count depth)
 {
-  CBS cbs;
+  CBS cbs = CouldBeA(CBS, land);
   Res res;
   Res (*describe)(Tree, mps_lib_FILE *);
 
-  if (!TESTT(Land, land))
-    return ResFAIL;
-  cbs = cbsOfLand(land);
-  if (!TESTT(CBS, cbs))
-    return ResFAIL;
+  if (!TESTC(CBS, cbs))
+    return ResPARAM;
   if (stream == NULL)
-    return ResFAIL;
+    return ResPARAM;
 
-  res = WriteF(stream, depth,
-               "CBS $P {\n", (WriteFP)cbs,
-               "  blockPool: $P\n", (WriteFP)cbsBlockPool(cbs),
-               "  ownPool: $U\n", (WriteFU)cbs->ownPool,
-               "  treeSize: $U\n", (WriteFU)cbs->treeSize,
+  /* FIXME: Should use the class from the land itself. */
+  res = LAND_SUPERCLASS(CBS)->describe(land, stream, depth);
+  if (res != ResOK)
+    return res;
+
+  res = WriteF(stream, depth + 2,
+               "blockPool $P\n", (WriteFP)cbsBlockPool(cbs),
+               "ownPool   $U\n", (WriteFU)cbs->ownPool,
+               "treeSize  $U\n", (WriteFU)cbs->treeSize,
                NULL);
   if (res != ResOK)
     return res;
 
   METER_WRITE(cbs->treeSearch, stream, depth + 2);
 
-  if (IsLandSubclass(land, CBSZonedLandClass))
+  /* FIXME: Should be done by subclass specialization. */
+  if (IsLandSubclass(land, CBSZoned))
     describe = cbsZonedSplayNodeDescribe;
-  else if (IsLandSubclass(land, CBSFastLandClass))
+  else if (IsLandSubclass(land, CBSFast))
     describe = cbsFastSplayNodeDescribe;
   else
     describe = cbsSplayNodeDescribe;
@@ -1158,15 +1165,12 @@ static Res cbsDescribe(Land land, mps_lib_FILE *stream, Count depth)
   if (res != ResOK)
     return res;
 
-  res = WriteF(stream, depth, "} CBS $P\n", (WriteFP)cbs, NULL);
-
-  res = WriteF(stream, 0, "}\n", NULL);
   return res;
 }
 
-DEFINE_CLASS(Land, CBSLand, class)
+DEFINE_CLASS(Land, CBS, class)
 {
-  INHERIT_CLASS(class, CBSLand, Land);
+  INHERIT_CLASS(class, CBS, Land);
   class->size = sizeof(CBSStruct);
   class->init = cbsInit;
   class->finish = cbsFinish;
@@ -1182,15 +1186,15 @@ DEFINE_CLASS(Land, CBSLand, class)
   class->describe = cbsDescribe;
 }
 
-DEFINE_CLASS(Land, CBSFastLand, class)
+DEFINE_CLASS(Land, CBSFast, class)
 {
-  INHERIT_CLASS(class, CBSFastLand, CBSLand);
+  INHERIT_CLASS(class, CBSFast, CBS);
   class->init = cbsInitFast;
 }
 
-DEFINE_CLASS(Land, CBSZonedLand, class)
+DEFINE_CLASS(Land, CBSZoned, class)
 {
-  INHERIT_CLASS(class, CBSZonedLand, CBSFastLand);
+  INHERIT_CLASS(class, CBSZoned, CBSFast);
   class->init = cbsInitZoned;
 }
 

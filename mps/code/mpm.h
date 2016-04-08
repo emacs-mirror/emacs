@@ -1014,7 +1014,7 @@ extern Bool LandClassCheck(LandClass class);
 DECLARE_CLASS(Land, Land);
 #define LAND_SUPERCLASS(className) ((LandClass)SUPERCLASS(className))
 #define IsLandSubclass(land, className) \
-  IsSubclassPoly((land)->class, className ## Get())
+  IsSubclassPoly((land)->class, CLASS(className))
 
 
 /* STATISTIC -- gather statistics (in some varieties)

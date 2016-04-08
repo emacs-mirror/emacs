@@ -18,7 +18,7 @@ typedef struct FailoverStruct *Failover;
 
 extern Bool FailoverCheck(Failover failover);
 
-DECLARE_CLASS(Land, FailoverLand);
+DECLARE_CLASS(Land, Failover);
 
 extern const struct mps_key_s _mps_key_failover_primary;
 #define FailoverPrimary (&_mps_key_failover_primary)

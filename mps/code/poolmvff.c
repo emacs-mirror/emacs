@@ -522,7 +522,7 @@ static Res MVFFInit(Pool pool, ArgList args)
 
   MPS_ARGS_BEGIN(liArgs) {
     MPS_ARGS_ADD(liArgs, CBSBlockPool, MVFFBlockPool(mvff));
-    res = LandInit(MVFFTotalLand(mvff), CLASS(CBSFastLand), arena, align,
+    res = LandInit(MVFFTotalLand(mvff), CLASS(CBSFast), arena, align,
                    mvff, liArgs);
   } MPS_ARGS_END(liArgs);
   if (res != ResOK)
@@ -530,13 +530,13 @@ static Res MVFFInit(Pool pool, ArgList args)
 
   MPS_ARGS_BEGIN(liArgs) {
     MPS_ARGS_ADD(liArgs, CBSBlockPool, MVFFBlockPool(mvff));
-    res = LandInit(MVFFFreePrimary(mvff), CLASS(CBSFastLand), arena, align,
+    res = LandInit(MVFFFreePrimary(mvff), CLASS(CBSFast), arena, align,
                    mvff, liArgs);
   } MPS_ARGS_END(liArgs);
   if (res != ResOK)
     goto failFreePrimaryInit;
 
-  res = LandInit(MVFFFreeSecondary(mvff), CLASS(FreelistLand), arena, align,
+  res = LandInit(MVFFFreeSecondary(mvff), CLASS(Freelist), arena, align,
                  mvff, mps_args_none);
   if (res != ResOK)
     goto failFreeSecondaryInit;
@@ -544,7 +544,7 @@ static Res MVFFInit(Pool pool, ArgList args)
   MPS_ARGS_BEGIN(foArgs) {
     MPS_ARGS_ADD(foArgs, FailoverPrimary, MVFFFreePrimary(mvff));
     MPS_ARGS_ADD(foArgs, FailoverSecondary, MVFFFreeSecondary(mvff));
-    res = LandInit(MVFFFreeLand(mvff), CLASS(FailoverLand), arena, align,
+    res = LandInit(MVFFFreeLand(mvff), CLASS(Failover), arena, align,
                    mvff, foArgs);
   } MPS_ARGS_END(foArgs);
   if (res != ResOK)
