@@ -809,7 +809,7 @@ static Res freelistDescribe(Land land, mps_lib_FILE *stream, Count depth)
 }
 
 
-DEFINE_LAND_CLASS(FreelistLand, class)
+DEFINE_CLASS(Land, FreelistLand, class)
 {
   INHERIT_CLASS(class, FreelistLand, Land);
   class->size = sizeof(FreelistStruct);
@@ -825,7 +825,6 @@ DEFINE_LAND_CLASS(FreelistLand, class)
   class->findLargest = freelistFindLargest;
   class->findInZones = freelistFindInZones;
   class->describe = freelistDescribe;
-  AVERT(LandClass, class);
 }
 
 

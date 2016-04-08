@@ -341,14 +341,13 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
 
 /* amcSegClass -- Class definition for AMC segments */
 
-DEFINE_SEG_CLASS(amcSeg, class)
+DEFINE_CLASS(Seg, amcSeg, class)
 {
   INHERIT_CLASS(class, amcSeg, GCSeg);
   SegClassMixInNoSplitMerge(class);  /* no support for this (yet) */
   class->size = sizeof(amcSegStruct);
   class->init = AMCSegInit;
   class->describe = AMCSegDescribe;
-  AVERT(SegClass, class);
 }
 
 
@@ -564,13 +563,12 @@ static void AMCBufFinish(Buffer buffer)
 
 /* amcBufClass -- The class definition */
 
-DEFINE_BUFFER_CLASS(amcBuf, class)
+DEFINE_CLASS(Buffer, amcBuf, class)
 {
   INHERIT_CLASS(class, amcBuf, SegBuf);
   class->size = sizeof(amcBufStruct);
   class->init = AMCBufInit;
   class->finish = AMCBufFinish;
-  AVERT(BufferClass, class);
 }
 
 
@@ -2102,7 +2100,7 @@ static Res AMCDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 
 /* AMCZPoolClass -- the class definition */
 
-DEFINE_POOL_CLASS(AMCZPool, this)
+DEFINE_CLASS(Pool, AMCZPool, this)
 {
   INHERIT_CLASS(this, AMCZPool, AbstractSegBufPool);
   PoolClassMixInFormat(this);
@@ -2126,19 +2124,17 @@ DEFINE_POOL_CLASS(AMCZPool, this)
   this->totalSize = AMCTotalSize;
   this->freeSize = AMCFreeSize;  
   this->describe = AMCDescribe;
-  AVERT(PoolClass, this);
 }
 
 
 /* AMCPoolClass -- the class definition */
 
-DEFINE_POOL_CLASS(AMCPool, this)
+DEFINE_CLASS(Pool, AMCPool, this)
 {
   INHERIT_CLASS(this, AMCPool, AMCZPool);
   PoolClassMixInScan(this);
   this->init = AMCInit;
   this->scan = AMCScan;
-  AVERT(PoolClass, this);
 }
 
 

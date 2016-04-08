@@ -261,7 +261,7 @@ static void NTraceEnd(Pool pool, Trace trace)
 
 /* NPoolClass -- pool class definition for N */
 
-DEFINE_POOL_CLASS(NPool, this)
+DEFINE_CLASS(Pool, NPool, this)
 {
   INHERIT_CLASS(this, NPool, AbstractPool);
   this->size = sizeof(PoolNStruct);

@@ -133,7 +133,7 @@ typedef struct MVTStruct
 } MVTStruct;
 
 
-DEFINE_POOL_CLASS(MVTPool, this)
+DEFINE_CLASS(Pool, MVTPool, this)
 {
   INHERIT_CLASS(this, MVTPool, AbstractBufferPool);
   this->size = sizeof(MVTStruct);
@@ -146,7 +146,6 @@ DEFINE_POOL_CLASS(MVTPool, this)
   this->totalSize = MVTTotalSize;
   this->freeSize = MVTFreeSize;
   this->describe = MVTDescribe;
-  AVERT(PoolClass, this);
 }
 
 /* Macros */

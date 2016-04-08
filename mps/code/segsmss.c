@@ -273,7 +273,7 @@ failSuper:
 
 /* AMSTSegClass -- Class definition for AMST segments */
 
-DEFINE_SEG_CLASS(AMSTSeg, class)
+DEFINE_CLASS(Seg, AMSTSeg, class)
 {
   INHERIT_CLASS(class, AMSTSeg, AMSSeg);
   class->size = sizeof(AMSTSegStruct);
@@ -662,14 +662,13 @@ static void AMSTStressBufferedSeg(Seg seg, Buffer buffer)
 
 /* AMSTPoolClass -- the pool class definition */
 
-DEFINE_POOL_CLASS(AMSTPool, this)
+DEFINE_CLASS(Pool, AMSTPool, this)
 {
   INHERIT_CLASS(this, AMSTPool, AMSPool);
   this->size = sizeof(AMSTStruct);
   this->init = AMSTInit;
   this->finish = AMSTFinish;
   this->bufferFill = AMSTBufferFill;
-  AVERT(PoolClass, this);
 }
 
 

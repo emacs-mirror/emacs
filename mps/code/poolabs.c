@@ -111,7 +111,7 @@ void PoolClassMixInCollect(PoolClass class)
 /* Classes */
 
 
-DEFINE_CLASS(AbstractPool, class)
+DEFINE_CLASS(Pool, AbstractPool, class)
 {
   INHERIT_CLASS(&class->protocol, AbstractPool, Inst);
   class->size = 0;
@@ -149,25 +149,25 @@ DEFINE_CLASS(AbstractPool, class)
   class->sig = PoolClassSig;
 }
 
-DEFINE_CLASS(AbstractBufferPool, class)
+DEFINE_CLASS(Pool, AbstractBufferPool, class)
 {
   INHERIT_CLASS(class, AbstractBufferPool, AbstractPool);
   PoolClassMixInBuffer(class);
 }
 
-DEFINE_CLASS(AbstractSegBufPool, class)
+DEFINE_CLASS(Pool, AbstractSegBufPool, class)
 {
   INHERIT_CLASS(class, AbstractSegBufPool, AbstractBufferPool);
   class->bufferClass = SegBufClassGet;
 }
 
-DEFINE_CLASS(AbstractScanPool, class)
+DEFINE_CLASS(Pool, AbstractScanPool, class)
 {
   INHERIT_CLASS(class, AbstractScanPool, AbstractSegBufPool);
   PoolClassMixInScan(class);
 }
 
-DEFINE_CLASS(AbstractCollectPool, class)
+DEFINE_CLASS(Pool, AbstractCollectPool, class)
 {
   INHERIT_CLASS(class, AbstractCollectPool, AbstractScanPool);
   PoolClassMixInCollect(class);

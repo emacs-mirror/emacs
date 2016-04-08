@@ -53,7 +53,7 @@ Bool ProtocolIsSubclass(InstClass sub, InstClass super)
 
 /* The class definition for the root of the hierarchy */
 
-DEFINE_CLASS(Inst, theClass)
+DEFINE_CLASS(Inst, Inst, theClass)
 {
   theClass->sig = InstClassSig;
   theClass->name = "Inst";

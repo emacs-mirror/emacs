@@ -75,9 +75,7 @@ static Res ArenaTrivDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
  * .null: Most abstract class methods are set to NULL.  See
  * <design/arena/#class.abstract.null>.  */
 
-typedef ArenaClassStruct AbstractArenaClassStruct;
-
-DEFINE_CLASS(AbstractArena, class)
+DEFINE_CLASS(Arena, AbstractArena, class)
 {
   INHERIT_CLASS(&class->protocol, AbstractArena, Inst);
   class->size = 0;

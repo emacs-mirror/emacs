@@ -27,8 +27,7 @@
 #define CLASS_STRUCT(ident) ident ## ClassStruct
 #define CLASS_ENSURE(ident) ident ## ClassGet
 #define CLASS_INIT(ident) ident ## ClassInit
-#define CLASS_GUARDIAN(ident) ident ## ClassGuardian
-#define CLASS_STATIC(ident) static ## ident ## ClassStruct
+#define CLASS_CHECK(ident) ident ## ClassCheck
 
 
 /* DECLARE_CLASS -- declare the existence of a protocol class */
@@ -38,27 +37,27 @@
   extern void CLASS_INIT(ident)(CLASS_TYPE(kind) var)
 
 
-/* DEFINE_CLASS -- the standard macro for defining a InstClass */
+/* DEFINE_CLASS -- define a protocol class */
 
-#define DEFINE_CLASS(ident, var) \
-  DECLARE_CLASS(ident, ident); \
-  void CLASS_INIT(ident)(CLASS_TYPE(ident)); \
-  CLASS_TYPE(ident) CLASS_ENSURE(ident)(void)     \
+#define DEFINE_CLASS(kind, ident, var) \
+  DECLARE_CLASS(kind, ident); \
+  void CLASS_INIT(ident)(CLASS_TYPE(kind)); \
+  CLASS_TYPE(kind) CLASS_ENSURE(ident)(void) \
   { \
-    static Bool CLASS_GUARDIAN(ident) = FALSE; \
-    static CLASS_STRUCT(ident) CLASS_STATIC(ident); \
-    if (CLASS_GUARDIAN(ident) == FALSE) { \
+    static guardian = FALSE; \
+    static CLASS_STRUCT(kind) classStruct; \
+    if (guardian == FALSE) { \
       LockClaimGlobalRecursive(); \
-      if (CLASS_GUARDIAN(ident) == FALSE) { \
-        CLASS_INIT(ident) \
-          (&CLASS_STATIC(ident)); \
-        CLASS_GUARDIAN(ident) = TRUE; \
+      if (guardian == FALSE) { \
+        CLASS_INIT(ident)(&classStruct); \
+        AVER(CLASS_CHECK(kind)); \
+        guardian = TRUE; \
       } \
       LockReleaseGlobalRecursive(); \
     } \
-    return &CLASS_STATIC(ident); \
+    return &classStruct; \
   } \
-  void CLASS_INIT(ident)(CLASS_TYPE(ident) var)
+  void CLASS_INIT(ident)(CLASS_TYPE(kind) var)
 
 
 /* CLASS -- expression for getting a class */
@@ -79,26 +78,14 @@ typedef enum ProtocolClassIndexEnum {
 
 #define INHERIT_CLASS(this, _class, super) \
   BEGIN \
-    InstClass protocolClass = (InstClass)(this); \
+    InstClass instClass = (InstClass)(this); \
     CLASS_INIT(super)(this); \
-    protocolClass->superclass = (InstClass)CLASS(super); \
-    protocolClass->name = #_class; \
-    protocolClass->typeId = \
+    instClass->superclass = (InstClass)CLASS(super); \
+    instClass->name = #_class; \
+    instClass->typeId = \
       ProtocolPrime[ProtocolClassIndex ## _class] * \
-      protocolClass->superclass->typeId; \
+      instClass->superclass->typeId; \
   END
-
-
-/* DEFINE_ALIAS_CLASS -- define a new class for the same type
- *
- * A convenience macro. Aliases the structure and pointer types
- * for className to be the same as typeName, and then defines
- * the class className.
- */
-#define DEFINE_ALIAS_CLASS(ident, other, var) \
-  typedef CLASS_TYPE(other) CLASS_TYPE(ident); \
-  typedef CLASS_STRUCT(other) CLASS_STRUCT(ident); \
-  DEFINE_CLASS(ident, var)
 
 
 #define InstClassSig ((Sig)0x519B60C7) /* SIGnature PROtocol CLass */

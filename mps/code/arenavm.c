@@ -1181,7 +1181,7 @@ mps_res_t mps_arena_vm_growth(mps_arena_t mps_arena,
 
 /* VMArenaClass  -- The VM arena class definition */
 
-DEFINE_ARENA_CLASS(VMArena, this)
+DEFINE_CLASS(Arena, VMArena, this)
 {
   INHERIT_CLASS(this, VMArena, AbstractArena);
   this->size = sizeof(VMArenaStruct);
@@ -1196,7 +1196,6 @@ DEFINE_ARENA_CLASS(VMArena, this)
   this->compact = VMCompact;
   this->describe = VMArenaDescribe;
   this->pagesMarkAllocated = VMPagesMarkAllocated;
-  AVERT(ArenaClass, this);
 }
 
 

@@ -842,7 +842,7 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 /* Pool class MV */
 
 
-DEFINE_POOL_CLASS(MVPool, this)
+DEFINE_CLASS(Pool, MVPool, this)
 {
   INHERIT_CLASS(this, MVPool, AbstractBufferPool);
   this->size = sizeof(MVStruct);
@@ -854,11 +854,10 @@ DEFINE_POOL_CLASS(MVPool, this)
   this->totalSize = MVTotalSize;
   this->freeSize = MVFreeSize;
   this->describe = MVDescribe;
-  AVERT(PoolClass, this);
 }
 
 
-MVPoolClass PoolClassMV(void)
+PoolClass PoolClassMV(void)
 {
   return CLASS(MVPool);
 }
@@ -866,14 +865,13 @@ MVPoolClass PoolClassMV(void)
 
 /* Pool class MVDebug */
 
-DEFINE_POOL_CLASS(MVDebugPool, this)
+DEFINE_CLASS(Pool, MVDebugPool, this)
 {
   INHERIT_CLASS(this, MVDebugPool, MVPool);
   PoolClassMixInDebug(this);
   this->size = sizeof(MVDebugStruct);
   this->varargs = MVDebugVarargs;
   this->debugMixin = MVDebugMixin;
-  AVERT(PoolClass, this);
 }
 
 

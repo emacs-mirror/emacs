@@ -447,7 +447,7 @@ static void ClientArenaFree(Addr base, Size size, Pool pool)
 
 /* ClientArenaClass  -- The Client arena class definition */
 
-DEFINE_ARENA_CLASS(ClientArena, this)
+DEFINE_CLASS(Arena, ClientArena, this)
 {
   INHERIT_CLASS(this, ClientArena, AbstractArena);
   this->size = sizeof(ClientArenaStruct);
@@ -459,7 +459,6 @@ DEFINE_ARENA_CLASS(ClientArena, this)
   this->free = ClientArenaFree;
   this->chunkInit = ClientChunkInit;
   this->chunkFinish = ClientChunkFinish;
-  AVERT(ArenaClass, this);
 }
 
 
