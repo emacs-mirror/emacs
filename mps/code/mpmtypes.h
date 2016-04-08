@@ -262,7 +262,7 @@ typedef struct TraceMessageStruct *TraceMessage;  /* trace end */
 
 /* Land*Method -- see <design/land/> */
 
-typedef Res (*LandInitMethod)(Land land, ArgList args);
+typedef Res (*LandInitMethod)(Land land, Arena arena, Align alignment, ArgList args);
 typedef void (*LandFinishMethod)(Land land);
 typedef Size (*LandSizeMethod)(Land land);
 typedef Res (*LandInsertMethod)(Range rangeReturn, Land land, Range range);

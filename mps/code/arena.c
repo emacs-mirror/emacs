@@ -295,7 +295,7 @@ static Res arenaFreeLandInit(Arena arena)
   /* Initialise the free land. */
   MPS_ARGS_BEGIN(liArgs) {
     MPS_ARGS_ADD(liArgs, CBSBlockPool, ArenaCBSBlockPool(arena));
-    res = LandInit(ArenaFreeLand(arena), CLASS(CBSZonedLand), arena,
+    res = LandInit(ArenaFreeLand(arena), CLASS(CBSZoned), arena,
                    ArenaGrainSize(arena), arena, liArgs);
   } MPS_ARGS_END(liArgs);
   AVER(res == ResOK); /* no allocation, no failure expected */

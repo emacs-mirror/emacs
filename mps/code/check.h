@@ -60,7 +60,7 @@
 #define ASSERT_TYPECHECK(type, val) \
   ASSERT(ASSERT_ISTYPE(type, val), "TypeCheck " #type ": " #val)
 
-#define ASSERT_ISCLASS(class, val) (class ## Check(CouldBeA(Inst, val)))
+#define ASSERT_ISCLASS(class, val) (class ## Check(val))
 #define ASSERT_CLASSCHECK(class, val) \
   ASSERT(ASSERT_ISCLASS(class, val), "ClassCheck " #class ": " #val)
 
@@ -185,7 +185,7 @@ extern unsigned CheckLevel;
  * TODO: Does this need to be thread safe like TESTT?
  */
 
-#define TESTC(type, val)       ((val) != NULL && IsA(class, val))
+#define TESTC(class, val)       ((val) != NULL && IsA(class, val))
 
 
 /* CHECKS, CHECKC -- Check Signature, Check Class
