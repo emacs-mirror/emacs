@@ -315,7 +315,7 @@ void BufferDetach(Buffer buffer, Pool pool)
     limit = buffer->poolLimit;
     /* Ask the owning pool to do whatever it needs to before the */
     /* buffer is detached (e.g. copy buffer state into pool state). */
-    (*ClassOfPool(pool)->bufferEmpty)(pool, buffer, init, limit);
+    Method(Pool, pool, bufferEmpty)(pool, buffer, init, limit);
     /* Use of lightweight frames must have been disabled by now */
     AVER(BufferFrameState(buffer) == BufferFrameDISABLED);
 
@@ -387,7 +387,7 @@ void BufferFinish(Buffer buffer)
 
   /* Dispatch to the buffer class method to perform any  */
   /* class-specific finishing of the buffer. */
-  (*ClassOfBuffer(buffer)->finish)(buffer);
+  Method(Buffer, buffer, finish)(buffer);
 
   /* Detach the buffer from its owning pool and unsig it. */
   RingRemove(&buffer->poolRing);
@@ -534,7 +534,7 @@ static void BufferFrameNotifyPopPending(Buffer buffer)
     buffer->ap_s.limit = buffer->poolLimit;
   }
   pool = BufferPool(buffer);
-  (*ClassOfPool(pool)->framePopPending)(pool, buffer, frame);
+  Method(Pool, pool, framePopPending)(pool, buffer, frame);
 }
 
 
@@ -563,7 +563,7 @@ Res BufferFramePush(AllocFrame *frameReturn, Buffer buffer)
     }
   }
   pool = BufferPool(buffer);
-  return (*ClassOfPool(pool)->framePush)(frameReturn, pool, buffer);
+  return Method(Pool, pool, framePush)(frameReturn, pool, buffer);
 }
 
 
@@ -577,7 +577,7 @@ Res BufferFramePop(Buffer buffer, AllocFrame frame)
   AVERT(Buffer, buffer);
   /* frame is of an abstract type & can't be checked */
   pool = BufferPool(buffer);
-  return (*ClassOfPool(pool)->framePop)(pool, buffer, frame);
+  return Method(Pool, pool, framePop)(pool, buffer, frame);
  
 }
 
@@ -717,7 +717,7 @@ Res BufferFill(Addr *pReturn, Buffer buffer, Size size)
   BufferDetach(buffer, pool);
 
   /* Ask the pool for some memory. */
-  res = (*ClassOfPool(pool)->bufferFill)(&base, &limit, pool, buffer, size);
+  res = Method(Pool, pool, bufferFill)(&base, &limit, pool, buffer, size);
   if (res != ResOK)
     return res;
 
@@ -1006,7 +1006,7 @@ void BufferRampBegin(Buffer buffer, AllocPattern pattern)
 
   pool = BufferPool(buffer);
   AVERT(Pool, pool);
-  (*ClassOfPool(pool)->rampBegin)(pool, buffer,
+  Method(Pool, pool, rampBegin)(pool, buffer,
                             pattern == &AllocPatternRampCollectAllStruct);
 }
 
@@ -1025,7 +1025,7 @@ Res BufferRampEnd(Buffer buffer)
 
   pool = BufferPool(buffer);
   AVERT(Pool, pool);
-  (*ClassOfPool(pool)->rampEnd)(pool, buffer);
+  Method(Pool, pool, rampEnd)(pool, buffer);
   return ResOK;
 }
 
@@ -1044,7 +1044,7 @@ void BufferRampReset(Buffer buffer)
   pool = BufferPool(buffer);
   AVERT(Pool, pool);
   do
-    (*ClassOfPool(pool)->rampEnd)(pool, buffer);
+    Method(Pool, pool, rampEnd)(pool, buffer);
   while(--buffer->rampCount > 0);
 }
 
