@@ -43,8 +43,8 @@ typedef struct SNCStruct {
 
 /* Forward declarations */
 
-DECLARE_CLASS(SegClass, SNCSegClass);
-DECLARE_CLASS(BufferClass, SNCBufClass);
+DECLARE_CLASS(Seg, SNCSeg);
+DECLARE_CLASS(Buffer, SNCBuf);
 static Bool SNCCheck(SNC snc);
 static void sncPopPartialSegChain(SNC snc, Buffer buf, Seg upTo);
 
@@ -134,7 +134,7 @@ static Res SNCBufInit(Buffer buffer, Pool pool, ArgList args)
   AVERT(Pool, pool);
 
   /* call next method */
-  superclass = BUFFER_SUPERCLASS(SNCBufClass);
+  superclass = BUFFER_SUPERCLASS(SNCBuf);
   res = (*superclass->init)(buffer, pool, args);
   if (res != ResOK)
     return res;
@@ -169,16 +169,16 @@ static void SNCBufFinish(Buffer buffer)
   sncbuf->sig = SigInvalid;
 
   /* finish the superclass fields last */
-  super = BUFFER_SUPERCLASS(SNCBufClass);
+  super = BUFFER_SUPERCLASS(SNCBuf);
   super->finish(buffer);
 }
 
 
 /* SNCBufClass -- The class definition */
 
-DEFINE_BUFFER_CLASS(SNCBufClass, class)
+DEFINE_BUFFER_CLASS(SNCBuf, class)
 {
-  INHERIT_CLASS(class, SNCBufClass, RankBufClass);
+  INHERIT_CLASS(class, SNCBuf, RankBuf);
   class->size = sizeof(SNCBufStruct);
   class->init = SNCBufInit;
   class->finish = SNCBufFinish;
@@ -237,7 +237,7 @@ static Res sncSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   /* no useful checks for base and size */
 
   /* Initialize the superclass fields first via next-method call */
-  super = SEG_SUPERCLASS(SNCSegClass);
+  super = SEG_SUPERCLASS(SNCSeg);
   res = super->init(seg, pool, base, size, args);
   if (res != ResOK)
     return res;
@@ -251,9 +251,9 @@ static Res sncSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 
 /* SNCSegClass -- Class definition for SNC segments */
 
-DEFINE_SEG_CLASS(SNCSegClass, class)
+DEFINE_SEG_CLASS(SNCSeg, class)
 {
-  INHERIT_CLASS(class, SNCSegClass, GCSegClass);
+  INHERIT_CLASS(class, SNCSeg, GCSeg);
   SegClassMixInNoSplitMerge(class);  /* no support for this (yet) */
   class->size = sizeof(SNCSegStruct);
   class->init = sncSegInit;
@@ -441,7 +441,7 @@ static Res SNCBufferFill(Addr *baseReturn, Addr *limitReturn,
   /* No free seg, so create a new one */
   arena = PoolArena(pool);
   asize = SizeArenaGrains(size, arena);
-  res = SegAlloc(&seg, CLASS(SNCSegClass), LocusPrefDefault(),
+  res = SegAlloc(&seg, CLASS(SNCSeg), LocusPrefDefault(),
                  asize, pool, argsNone);
   if (res != ResOK)
     return res;
@@ -704,9 +704,9 @@ static Size SNCFreeSize(Pool pool)
 
 /* SNCPoolClass -- the class definition */
 
-DEFINE_POOL_CLASS(SNCPoolClass, this)
+DEFINE_POOL_CLASS(SNCPool, this)
 {
-  INHERIT_CLASS(this, SNCPoolClass, AbstractScanPoolClass);
+  INHERIT_CLASS(this, SNCPool, AbstractScanPool);
   PoolClassMixInFormat(this);
   this->size = sizeof(SNCStruct);
   this->varargs = SNCVarargs;
@@ -728,7 +728,7 @@ DEFINE_POOL_CLASS(SNCPoolClass, this)
 
 mps_pool_class_t mps_class_snc(void)
 {
-  return (mps_pool_class_t)CLASS(SNCPoolClass);
+  return (mps_pool_class_t)CLASS(SNCPool);
 }
 
 
@@ -739,7 +739,7 @@ static Bool SNCCheck(SNC snc)
 {
   CHECKS(SNC, snc);
   CHECKD(Pool, SNCPool(snc));
-  CHECKL(SNCPool(snc)->class == CLASS(SNCPoolClass));
+  CHECKL(SNCPool(snc)->class == CLASS(SNCPool));
   if (snc->freeSegs != NULL) {
     CHECKD(Seg, snc->freeSegs);
   }

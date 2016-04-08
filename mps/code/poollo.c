@@ -66,9 +66,9 @@ static Count loSegGrains(LOSeg loseg);
 
 /* LOSegClass -- Class definition for LO segments */
 
-DEFINE_SEG_CLASS(LOSegClass, class)
+DEFINE_SEG_CLASS(LOSeg, class)
 {
-  INHERIT_CLASS(class, LOSegClass, GCSegClass);
+  INHERIT_CLASS(class, LOSeg, GCSeg);
   SegClassMixInNoSplitMerge(class);
   class->size = sizeof(LOSegStruct);
   class->init = loSegInit;
@@ -117,7 +117,7 @@ static Res loSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   AVERT(LO, lo);
 
   /* Initialize the superclass fields first via next-method call */
-  super = SEG_SUPERCLASS(LOSegClass);
+  super = SEG_SUPERCLASS(LOSeg);
   res = super->init(seg, pool, base, size, args);
   if(res != ResOK)
     return res;
@@ -179,7 +179,7 @@ static void loSegFinish(Seg seg)
   loseg->sig = SigInvalid;
 
   /* finish the superclass fields last */
-  super = SEG_SUPERCLASS(LOSegClass);
+  super = SEG_SUPERCLASS(LOSeg);
   super->finish(seg);
 }
 
@@ -288,7 +288,7 @@ static Res loSegCreate(LOSeg *loSegReturn, Pool pool, Size size)
   lo = PoolPoolLO(pool);
   AVERT(LO, lo);
 
-  res = PoolGenAlloc(&seg, &lo->pgen, CLASS(LOSegClass),
+  res = PoolGenAlloc(&seg, &lo->pgen, CLASS(LOSeg),
                      SizeArenaGrains(size, PoolArena(pool)),
                      argsNone);
   if (res != ResOK)
@@ -818,9 +818,9 @@ static Size LOFreeSize(Pool pool)
 
 /* LOPoolClass -- the class definition */
 
-DEFINE_POOL_CLASS(LOPoolClass, this)
+DEFINE_POOL_CLASS(LOPool, this)
 {
-  INHERIT_CLASS(this, LOPoolClass, AbstractSegBufPoolClass);
+  INHERIT_CLASS(this, LOPool, AbstractSegBufPool);
   PoolClassMixInFormat(this);
   PoolClassMixInCollect(this);
   this->size = sizeof(LOStruct);
@@ -844,7 +844,7 @@ DEFINE_POOL_CLASS(LOPoolClass, this)
 
 mps_pool_class_t mps_class_lo(void)
 {
-  return (mps_pool_class_t)CLASS(LOPoolClass);
+  return (mps_pool_class_t)CLASS(LOPool);
 }
 
 
@@ -855,7 +855,7 @@ static Bool LOCheck(LO lo)
 {
   CHECKS(LO, lo);
   CHECKD(Pool, LOPool(lo));
-  CHECKL(LOPool(lo)->class == CLASS(LOPoolClass));
+  CHECKL(LOPool(lo)->class == CLASS(LOPool));
   CHECKL(ShiftCheck(lo->alignShift));
   CHECKL(LOGrainsSize(lo, (Count)1) == PoolAlignment(LOPool(lo)));
   CHECKD(PoolGen, &lo->pgen);
