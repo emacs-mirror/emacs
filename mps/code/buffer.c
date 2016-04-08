@@ -1171,7 +1171,7 @@ static Res bufferTrivDescribe(Buffer buffer, mps_lib_FILE *stream, Count depth)
 
 Bool BufferClassCheck(BufferClass class)
 {
-  CHECKD(ProtocolClass, &class->protocol);
+  CHECKD(InstClass, &class->protocol);
   CHECKL(class->size >= sizeof(BufferStruct));
   CHECKL(FUNCHECK(class->varargs));
   CHECKL(FUNCHECK(class->init));
@@ -1194,7 +1194,7 @@ Bool BufferClassCheck(BufferClass class)
 
 DEFINE_CLASS(BufferClass, class)
 {
-  INHERIT_CLASS(&class->protocol, BufferClass, ProtocolClass);
+  INHERIT_CLASS(&class->protocol, BufferClass, InstClass);
   class->size = sizeof(BufferStruct);
   class->varargs = ArgTrivVarargs;
   class->init = bufferTrivInit;

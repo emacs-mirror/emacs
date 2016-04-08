@@ -292,7 +292,7 @@ extern Size PoolNoSize(Pool pool);
 
 #define ClassOfPool(pool) ((pool)->class)
 #define SuperclassOfPool(pool) \
-  ((PoolClass)ProtocolClassSuperclassPoly((pool)->class))
+  ((PoolClass)InstClassSuperclassPoly((pool)->class))
 
 
 /* Abstract Pool Classes Interface -- see <code/poolabs.c> */

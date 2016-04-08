@@ -11,25 +11,25 @@
 SRCID(protocol, "$Id$");
 
 
-/* ProtocolClassCheck -- check a protocol class */
+/* InstClassCheck -- check a protocol class */
 
-Bool ProtocolClassCheck(ProtocolClass class)
+Bool InstClassCheck(InstClass class)
 {
-  CHECKS(ProtocolClass, class);
+  CHECKS(InstClass, class);
   CHECKL(class->name != NULL);
   CHECKL(class->typeId >= ProtocolPrime[0]);
   CHECKL(class->typeId % class->superclass->typeId == 0);
-  CHECKU(ProtocolClass, class->superclass);
+  CHECKU(InstClass, class->superclass);
   return TRUE;
 }
 
 
-/* ProtocolInstCheck -- check a protocol instance */
+/* InstCheck -- check a protocol instance */
 
-Bool ProtocolInstCheck(ProtocolInst inst)
+Bool InstCheck(Inst inst)
 {
-  CHECKS(ProtocolInst, inst);
-  CHECKD(ProtocolClass, inst->class);
+  CHECKS(Inst, inst);
+  CHECKD(InstClass, inst->class);
   return TRUE;
 }
 
@@ -45,7 +45,7 @@ Bool ProtocolInstCheck(ProtocolInst inst)
  *  <http://www.stroustrup.com/fast_dynamic_casting.pdf>.
  */
 
-Bool ProtocolIsSubclass(ProtocolClass sub, ProtocolClass super)
+Bool ProtocolIsSubclass(InstClass sub, InstClass super)
 {
   return sub == super || sub->typeId % super->typeId == 0;
 }
@@ -53,13 +53,13 @@ Bool ProtocolIsSubclass(ProtocolClass sub, ProtocolClass super)
 
 /* The class definition for the root of the hierarchy */
 
-DEFINE_CLASS(ProtocolClass, theClass)
+DEFINE_CLASS(InstClass, theClass)
 {
-  theClass->sig = ProtocolClassSig;
-  theClass->name = "ProtocolInst";
+  theClass->sig = InstClassSig;
+  theClass->name = "Inst";
   theClass->superclass = theClass;
-  theClass->typeId = ProtocolPrime[ProtocolClassIndexProtocolClass];
-  AVERT(ProtocolClass, theClass);
+  theClass->typeId = ProtocolPrime[InstClassIndexProtocolClass];
+  AVERT(InstClass, theClass);
 }
 
 

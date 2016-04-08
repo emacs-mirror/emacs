@@ -37,7 +37,7 @@ SRCID(pool, "$Id$");
 
 Bool PoolClassCheck(PoolClass class)
 {
-  CHECKD(ProtocolClass, &class->protocol);
+  CHECKD(InstClass, &class->protocol);
   CHECKL(class->size >= sizeof(PoolStruct));
   CHECKL(AttrCheck(class->attr));
   CHECKL(!(class->attr & AttrMOVINGGC) || (class->attr & AttrGC));

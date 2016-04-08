@@ -723,7 +723,7 @@ void ArenaExposeRemember(Globals globals, Bool remember)
 
     do {
       base = SegBase(seg);
-      if(IsSubclassPoly(ClassOfSeg(seg), CLASS(GCSegClass))) {
+      if (IsSubclassPoly(ClassOfSeg(seg), CLASS(GCSegClass))) {
         if(remember) {
           RefSet summary;
 
