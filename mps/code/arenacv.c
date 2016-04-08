@@ -249,7 +249,7 @@ static Res allocAsSeg(AllocInfoStruct *aiReturn, LocusPref pref,
 {
   Res res;
   Seg seg;
-  res = SegAlloc(&seg, CLASS(SegClass), pref, size, pool, argsNone);
+  res = SegAlloc(&seg, CLASS(Seg), pref, size, pool, argsNone);
   if (res == ResOK) {
     aiReturn->the.segData.seg = seg;
   }

@@ -53,12 +53,12 @@ Bool ProtocolIsSubclass(InstClass sub, InstClass super)
 
 /* The class definition for the root of the hierarchy */
 
-DEFINE_CLASS(InstClass, theClass)
+DEFINE_CLASS(Inst, theClass)
 {
   theClass->sig = InstClassSig;
   theClass->name = "Inst";
   theClass->superclass = theClass;
-  theClass->typeId = ProtocolPrime[InstClassIndexProtocolClass];
+  theClass->typeId = ProtocolPrime[ProtocolClassIndexInst];
   AVERT(InstClass, theClass);
 }
 

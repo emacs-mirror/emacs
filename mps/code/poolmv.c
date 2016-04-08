@@ -842,9 +842,9 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 /* Pool class MV */
 
 
-DEFINE_POOL_CLASS(MVPoolClass, this)
+DEFINE_POOL_CLASS(MVPool, this)
 {
-  INHERIT_CLASS(this, MVPoolClass, AbstractBufferPoolClass);
+  INHERIT_CLASS(this, MVPool, AbstractBufferPool);
   this->size = sizeof(MVStruct);
   this->varargs = MVVarargs;
   this->init = MVInit;
@@ -860,15 +860,15 @@ DEFINE_POOL_CLASS(MVPoolClass, this)
 
 MVPoolClass PoolClassMV(void)
 {
-  return CLASS(MVPoolClass);
+  return CLASS(MVPool);
 }
 
 
 /* Pool class MVDebug */
 
-DEFINE_POOL_CLASS(MVDebugPoolClass, this)
+DEFINE_POOL_CLASS(MVDebugPool, this)
 {
-  INHERIT_CLASS(this, MVDebugPoolClass, MVPoolClass);
+  INHERIT_CLASS(this, MVDebugPool, MVPool);
   PoolClassMixInDebug(this);
   this->size = sizeof(MVDebugStruct);
   this->varargs = MVDebugVarargs;
@@ -884,12 +884,12 @@ DEFINE_POOL_CLASS(MVDebugPoolClass, this)
 
 mps_pool_class_t mps_class_mv(void)
 {
-  return (mps_pool_class_t)CLASS(MVPoolClass);
+  return (mps_pool_class_t)CLASS(MVPool);
 }
 
 mps_pool_class_t mps_class_mv_debug(void)
 {
-  return (mps_pool_class_t)CLASS(MVDebugPoolClass);
+  return (mps_pool_class_t)CLASS(MVDebugPool);
 }
 
 
@@ -899,7 +899,7 @@ Bool MVCheck(MV mv)
 {
   CHECKS(MV, mv);
   CHECKD(Pool, MVPool(mv));
-  CHECKL(IsSubclassPoly(MVPool(mv)->class, CLASS(MVPoolClass)));
+  CHECKL(IsSubclassPoly(MVPool(mv)->class, CLASS(MVPool)));
   CHECKD(MFS, &mv->blockPoolStruct);
   CHECKD(MFS, &mv->spanPoolStruct);
   CHECKL(mv->extendBy > 0);

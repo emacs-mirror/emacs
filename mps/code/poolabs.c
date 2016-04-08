@@ -111,9 +111,9 @@ void PoolClassMixInCollect(PoolClass class)
 /* Classes */
 
 
-DEFINE_CLASS(AbstractPoolClass, class)
+DEFINE_CLASS(AbstractPool, class)
 {
-  INHERIT_CLASS(&class->protocol, AbstractPoolClass, InstClass);
+  INHERIT_CLASS(&class->protocol, AbstractPool, Inst);
   class->size = 0;
   class->attr = 0;
   class->varargs = ArgTrivVarargs;
@@ -149,27 +149,27 @@ DEFINE_CLASS(AbstractPoolClass, class)
   class->sig = PoolClassSig;
 }
 
-DEFINE_CLASS(AbstractBufferPoolClass, class)
+DEFINE_CLASS(AbstractBufferPool, class)
 {
-  INHERIT_CLASS(class, AbstractBufferPoolClass, AbstractPoolClass);
+  INHERIT_CLASS(class, AbstractBufferPool, AbstractPool);
   PoolClassMixInBuffer(class);
 }
 
-DEFINE_CLASS(AbstractSegBufPoolClass, class)
+DEFINE_CLASS(AbstractSegBufPool, class)
 {
-  INHERIT_CLASS(class, AbstractSegBufPoolClass, AbstractBufferPoolClass);
+  INHERIT_CLASS(class, AbstractSegBufPool, AbstractBufferPool);
   class->bufferClass = SegBufClassGet;
 }
 
-DEFINE_CLASS(AbstractScanPoolClass, class)
+DEFINE_CLASS(AbstractScanPool, class)
 {
-  INHERIT_CLASS(class, AbstractScanPoolClass, AbstractSegBufPoolClass);
+  INHERIT_CLASS(class, AbstractScanPool, AbstractSegBufPool);
   PoolClassMixInScan(class);
 }
 
-DEFINE_CLASS(AbstractCollectPoolClass, class)
+DEFINE_CLASS(AbstractCollectPool, class)
 {
-  INHERIT_CLASS(class, AbstractCollectPoolClass, AbstractScanPoolClass);
+  INHERIT_CLASS(class, AbstractCollectPool, AbstractScanPool);
   PoolClassMixInCollect(class);
 }
 

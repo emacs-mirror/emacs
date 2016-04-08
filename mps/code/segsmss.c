@@ -28,8 +28,8 @@
 
 /* Forward declarations */
 
-DECLARE_CLASS(SegClass, AMSTSegClass);
-DECLARE_CLASS(PoolClass, AMSTPoolClass);
+DECLARE_CLASS(Seg, AMSTSeg);
+DECLARE_CLASS(Pool, AMSTPool);
 
 
 /* Start by defining the AMST pool (AMS Test pool) */
@@ -126,7 +126,7 @@ static Res amstSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   /* no useful checks for base and size */
 
   /* Initialize the superclass fields first via next-method call */
-  super = SEG_SUPERCLASS(AMSTSegClass);
+  super = SEG_SUPERCLASS(AMSTSeg);
   res = super->init(seg, pool, base, size, args);
   if (res != ResOK)
     return res;
@@ -158,7 +158,7 @@ static void amstSegFinish(Seg seg)
 
   amstseg->sig = SigInvalid;
   /* finish the superclass fields last */
-  super = SEG_SUPERCLASS(AMSTSegClass);
+  super = SEG_SUPERCLASS(AMSTSeg);
   super->finish(seg);
 }
 
@@ -190,7 +190,7 @@ static Res amstSegMerge(Seg seg, Seg segHi,
   amst = PoolAMST(SegPool(seg));
 
   /* Merge the superclass fields via direct next-method call */
-  super = SEG_SUPERCLASS(AMSTSegClass);
+  super = SEG_SUPERCLASS(AMSTSeg);
   res = super->merge(seg, segHi, base, mid, limit);
   if (res != ResOK)
     goto failSuper;
@@ -238,7 +238,7 @@ static Res amstSegSplit(Seg seg, Seg segHi,
   amst = PoolAMST(SegPool(seg));
 
   /* Split the superclass fields via direct next-method call */
-  super = SEG_SUPERCLASS(AMSTSegClass);
+  super = SEG_SUPERCLASS(AMSTSeg);
   res = super->split(seg, segHi, base, mid, limit);
   if (res != ResOK)
     goto failSuper;
@@ -273,9 +273,9 @@ failSuper:
 
 /* AMSTSegClass -- Class definition for AMST segments */
 
-DEFINE_SEG_CLASS(AMSTSegClass, class)
+DEFINE_SEG_CLASS(AMSTSeg, class)
 {
-  INHERIT_CLASS(class, AMSTSegClass, AMSSegClass);
+  INHERIT_CLASS(class, AMSTSeg, AMSSeg);
   class->size = sizeof(AMSTSegStruct);
   class->init = amstSegInit;
   class->finish = amstSegFinish;
@@ -538,7 +538,7 @@ static Res AMSTBufferFill(Addr *baseReturn, Addr *limitReturn,
   amst = PoolAMST(pool);
 
   /* call next method */
-  super = POOL_SUPERCLASS(AMSTPoolClass);
+  super = POOL_SUPERCLASS(AMSTPool);
   res = super->bufferFill(&base, &limit, pool, buffer, size);
   if (res != ResOK)
     return res;
@@ -662,9 +662,9 @@ static void AMSTStressBufferedSeg(Seg seg, Buffer buffer)
 
 /* AMSTPoolClass -- the pool class definition */
 
-DEFINE_POOL_CLASS(AMSTPoolClass, this)
+DEFINE_POOL_CLASS(AMSTPool, this)
 {
-  INHERIT_CLASS(this, AMSTPoolClass, AMSPoolClass);
+  INHERIT_CLASS(this, AMSTPool, AMSPool);
   this->size = sizeof(AMSTStruct);
   this->init = AMSTInit;
   this->finish = AMSTFinish;
@@ -693,7 +693,7 @@ static void mps_amst_ap_stress(mps_ap_t ap)
 
 static mps_pool_class_t mps_class_amst(void)
 {
-  return (mps_pool_class_t)CLASS(AMSTPoolClass);
+  return (mps_pool_class_t)CLASS(AMSTPool);
 }
 
 

@@ -90,7 +90,7 @@ typedef struct VMArenaStruct {  /* VM arena structure */
 
 static Size VMPurgeSpare(Arena arena, Size size);
 static void chunkUnmapSpare(Chunk chunk);
-DECLARE_CLASS(ArenaClass, VMArenaClass);
+DECLARE_CLASS(Arena, VMArena);
 static void VMCompact(Arena arena, Trace trace);
 
 
@@ -206,7 +206,7 @@ static Res VMArenaDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
   /* ...but the next method is ArenaTrivDescribe, so don't call it;
    * see impl.c.arena#describe.triv.dont-upcall.
    *
-  super = ARENA_SUPERCLASS(VMArenaClass);
+  super = ARENA_SUPERCLASS(VMArena);
   res = super->describe(arena, stream);
   if (res != ResOK)
     return res;
@@ -519,7 +519,7 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
   char vmParams[VMParamSize];
   
   AVER(arenaReturn != NULL);
-  AVER(class == CLASS(VMArenaClass));
+  AVER(class == CLASS(VMArena));
   AVERT(ArgList, args);
 
   if (ArgPick(&arg, args, MPS_KEY_ARENA_GRAIN_SIZE))
@@ -1181,9 +1181,9 @@ mps_res_t mps_arena_vm_growth(mps_arena_t mps_arena,
 
 /* VMArenaClass  -- The VM arena class definition */
 
-DEFINE_ARENA_CLASS(VMArenaClass, this)
+DEFINE_ARENA_CLASS(VMArena, this)
 {
-  INHERIT_CLASS(this, VMArenaClass, AbstractArenaClass);
+  INHERIT_CLASS(this, VMArena, AbstractArena);
   this->size = sizeof(VMArenaStruct);
   this->varargs = VMArenaVarargs;
   this->init = VMArenaInit;
@@ -1204,7 +1204,7 @@ DEFINE_ARENA_CLASS(VMArenaClass, this)
 
 mps_arena_class_t mps_arena_class_vm(void)
 {
-  return (mps_arena_class_t)CLASS(VMArenaClass);
+  return (mps_arena_class_t)CLASS(VMArena);
 }
 
 

@@ -77,9 +77,9 @@ static Res ArenaTrivDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
 
 typedef ArenaClassStruct AbstractArenaClassStruct;
 
-DEFINE_CLASS(AbstractArenaClass, class)
+DEFINE_CLASS(AbstractArena, class)
 {
-  INHERIT_CLASS(&class->protocol, AbstractArenaClass, InstClass);
+  INHERIT_CLASS(&class->protocol, AbstractArena, Inst);
   class->size = 0;
   class->varargs = ArgTrivVarargs;
   class->init = NULL;
@@ -297,7 +297,7 @@ static Res arenaFreeLandInit(Arena arena)
   /* Initialise the free land. */
   MPS_ARGS_BEGIN(liArgs) {
     MPS_ARGS_ADD(liArgs, CBSBlockPool, ArenaCBSBlockPool(arena));
-    res = LandInit(ArenaFreeLand(arena), CLASS(CBSZonedLandClass), arena,
+    res = LandInit(ArenaFreeLand(arena), CLASS(CBSZonedLand), arena,
                    ArenaGrainSize(arena), arena, liArgs);
   } MPS_ARGS_END(liArgs);
   AVER(res == ResOK); /* no allocation, no failure expected */

@@ -39,7 +39,7 @@ static Res failoverInit(Land land, ArgList args)
   Res res;
 
   AVERT(Land, land);
-  super = LAND_SUPERCLASS(FailoverLandClass);
+  super = LAND_SUPERCLASS(FailoverLand);
   res = (*super->init)(land, args);
   if (res != ResOK)
     return res;
@@ -301,9 +301,9 @@ static Res failoverDescribe(Land land, mps_lib_FILE *stream, Count depth)
 }
 
 
-DEFINE_LAND_CLASS(FailoverLandClass, class)
+DEFINE_LAND_CLASS(FailoverLand, class)
 {
-  INHERIT_CLASS(class, FailoverLandClass, LandClass);
+  INHERIT_CLASS(class, FailoverLand, Land);
   class->size = sizeof(FailoverStruct);
   class->init = failoverInit;
   class->finish = failoverFinish;

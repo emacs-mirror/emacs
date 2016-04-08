@@ -300,18 +300,18 @@ extern void PoolClassMixInBuffer(PoolClass class);
 extern void PoolClassMixInScan(PoolClass class);
 extern void PoolClassMixInFormat(PoolClass class);
 extern void PoolClassMixInCollect(PoolClass class);
-DECLARE_CLASS(AbstractPoolClass, AbstractPoolClass);
-DECLARE_CLASS(AbstractBufferPoolClass, AbstractBufferPoolClass);
-DECLARE_CLASS(AbstractBufferPoolClass, AbstractSegBufPoolClass);
-DECLARE_CLASS(AbstractScanPoolClass, AbstractScanPoolClass);
-DECLARE_CLASS(AbstractCollectPoolClass, AbstractCollectPoolClass);
+DECLARE_CLASS(AbstractPool, AbstractPool);
+DECLARE_CLASS(AbstractBufferPool, AbstractBufferPool);
+DECLARE_CLASS(AbstractBufferPool, AbstractSegBufPool);
+DECLARE_CLASS(AbstractScanPool, AbstractScanPool);
+DECLARE_CLASS(AbstractCollectPool, AbstractCollectPool);
 
 /* DEFINE_POOL_CLASS
  *
  * Convenience macro -- see <design/protocol/#int.define-special>. */
 
 #define DEFINE_POOL_CLASS(className, var) \
-  DEFINE_ALIAS_CLASS(className, PoolClass, var)
+  DEFINE_ALIAS_CLASS(className, Pool, var)
 
 #define POOL_SUPERCLASS(className) \
   ((PoolClass)SUPERCLASS(className))
@@ -493,12 +493,12 @@ extern void TraceScanSingleRef(TraceSet ts, Rank rank, Arena arena,
  * Convenience macro -- see <design/protocol/#int.define-special>. */
 
 #define DEFINE_ARENA_CLASS(className, var) \
-  DEFINE_ALIAS_CLASS(className, ArenaClass, var)
+  DEFINE_ALIAS_CLASS(className, Arena, var)
 
 #define ARENA_SUPERCLASS(className) \
   ((ArenaClass)SUPERCLASS(className))
 
-DECLARE_CLASS(AbstractArenaClass, AbstractArenaClass);
+DECLARE_CLASS(AbstractArena, AbstractArena);
 extern Bool ArenaClassCheck(ArenaClass class);
 
 extern Bool ArenaCheck(Arena arena);
@@ -699,15 +699,15 @@ extern void SegSetBuffer(Seg seg, Buffer buffer);
 extern Bool SegCheck(Seg seg);
 extern Bool GCSegCheck(GCSeg gcseg);
 extern Bool SegClassCheck(SegClass class);
-DECLARE_CLASS(SegClass, SegClass);
-DECLARE_CLASS(SegClass, GCSegClass);
+DECLARE_CLASS(Seg, Seg);
+DECLARE_CLASS(Seg, GCSeg);
 extern void SegClassMixInNoSplitMerge(SegClass class);
 
 
 /* DEFINE_SEG_CLASS -- define a segment class */
 
 #define DEFINE_SEG_CLASS(className, var) \
-  DEFINE_ALIAS_CLASS(className, SegClass, var)
+  DEFINE_ALIAS_CLASS(className, Seg, var)
 
 
 #define SEG_SUPERCLASS(className) \
@@ -823,15 +823,15 @@ extern void BufferFrameSetState(Buffer buffer, FrameState state);
 /* DEFINE_BUFFER_CLASS -- define a buffer class */
 
 #define DEFINE_BUFFER_CLASS(className, var) \
-  DEFINE_ALIAS_CLASS(className, BufferClass, var)
+  DEFINE_ALIAS_CLASS(className, Buffer, var)
 
 #define BUFFER_SUPERCLASS(className) \
   ((BufferClass)SUPERCLASS(className))
 
 extern Bool BufferClassCheck(BufferClass class);
-DECLARE_CLASS(BufferClass, BufferClass);
-DECLARE_CLASS(BufferClass, SegBufClass);
-DECLARE_CLASS(BufferClass, RankBufClass);
+DECLARE_CLASS(Buffer, Buffer);
+DECLARE_CLASS(Buffer, SegBuf);
+DECLARE_CLASS(Buffer, RankBuf);
 
 extern AllocPattern AllocPatternRamp(void);
 extern AllocPattern AllocPatternRampCollectAll(void);
@@ -1024,10 +1024,10 @@ extern Bool LandFlush(Land dest, Land src);
 
 extern Size LandSlowSize(Land land);
 extern Bool LandClassCheck(LandClass class);
-DECLARE_CLASS(LandClass, LandClass);
+DECLARE_CLASS(Land, Land);
 #define LAND_SUPERCLASS(className) ((LandClass)SUPERCLASS(className))
 #define DEFINE_LAND_CLASS(className, var) \
-  DEFINE_ALIAS_CLASS(className, LandClass, var)
+  DEFINE_ALIAS_CLASS(className, Land, var)
 #define IsLandSubclass(land, className) \
   IsSubclassPoly((land)->class, className ## Get())
 

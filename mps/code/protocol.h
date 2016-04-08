@@ -14,74 +14,77 @@
 #include "classdef.h"
 
 
-/* DERIVE_* -- name derivation macros.
+/* CLASS_* -- identifier derivation macros.
  *
- * These turn the base identifier of a class into other identifiers.
- * These are not intended to be used outside of this file.
+ * These turn the base identifier of a class (e.g. "Inst") into other
+ * identifiers (e.g. "InstClassStruct").  These are not intended to be
+ * used outside of this file.
  */
 
-#define DERIVE_LOCAL(name) protocol ## name
-#define DERIVE_STRUCT(name) name ## Struct
-#define DERIVE_ENSURE(name) name ## Get
-#define DERIVE_INIT(name) name ## Init
-#define DERIVE_GUARDIAN(name) protocol ## name ## Guardian
-#define DERIVE_STATIC_STORAGE(name) protocol ## name ## Struct
+#define INST_TYPE(ident) ident
+#define INST_STRUCT(ident) ident ## Struct
+#define CLASS_TYPE(ident) ident ## Class
+#define CLASS_STRUCT(ident) ident ## ClassStruct
+#define CLASS_ENSURE(ident) ident ## ClassGet
+#define CLASS_INIT(ident) ident ## ClassInit
+#define CLASS_GUARDIAN(ident) ident ## ClassGuardian
+#define CLASS_STATIC(ident) static ## ident ## ClassStruct
 
 
 /* DECLARE_CLASS -- declare the existence of a protocol class */
 
-#define DECLARE_CLASS(classKind, className) \
-  extern classKind DERIVE_ENSURE(className)(void); \
-  extern void DERIVE_INIT(className)(classKind var)
+#define DECLARE_CLASS(kind, ident) \
+  extern CLASS_TYPE(kind) CLASS_ENSURE(ident)(void); \
+  extern void CLASS_INIT(ident)(CLASS_TYPE(kind) var)
 
 
 /* DEFINE_CLASS -- the standard macro for defining a InstClass */
 
-#define DEFINE_CLASS(className, var) \
-  DECLARE_CLASS(className, className); \
-  static Bool DERIVE_GUARDIAN(className) = FALSE; \
-  static DERIVE_STRUCT(className) DERIVE_STATIC_STORAGE(className); \
-  void DERIVE_INIT(className)(className); \
-  className DERIVE_ENSURE(className)(void) \
+#define DEFINE_CLASS(ident, var) \
+  DECLARE_CLASS(ident, ident); \
+  void CLASS_INIT(ident)(CLASS_TYPE(ident)); \
+  CLASS_TYPE(ident) CLASS_ENSURE(ident)(void)     \
   { \
-    if (DERIVE_GUARDIAN(className) == FALSE) { \
+    static Bool CLASS_GUARDIAN(ident) = FALSE; \
+    static CLASS_STRUCT(ident) CLASS_STATIC(ident); \
+    if (CLASS_GUARDIAN(ident) == FALSE) { \
       LockClaimGlobalRecursive(); \
-      if (DERIVE_GUARDIAN(className) == FALSE) { \
-        DERIVE_INIT(className) \
-          (&DERIVE_STATIC_STORAGE(className)); \
-        DERIVE_GUARDIAN(className) = TRUE; \
+      if (CLASS_GUARDIAN(ident) == FALSE) { \
+        CLASS_INIT(ident) \
+          (&CLASS_STATIC(ident)); \
+        CLASS_GUARDIAN(ident) = TRUE; \
       } \
       LockReleaseGlobalRecursive(); \
     } \
-    return &DERIVE_STATIC_STORAGE(className); \
+    return &CLASS_STATIC(ident); \
   } \
-  void DERIVE_INIT(className)(className var)
+  void CLASS_INIT(ident)(CLASS_TYPE(ident) var)
 
 
 /* CLASS -- expression for getting a class */
 
-#define CLASS(className) (DERIVE_ENSURE(className)())
+#define CLASS(ident) (CLASS_ENSURE(ident)())
 
 
 /* INHERIT_CLASS -- the standard macro for inheriting from a superclass */
 
 extern unsigned ProtocolPrime[1000];
 
-#define CLASS_INDEX_ENUM(prefix, ident, kind, super) prefix ## ident ## Class,
-typedef enum InstClassIndexEnum {
-  InstClassIndexInvalid, /* index zero (prime 2) reserved for invalid classes */
-  CLASSES(CLASS_INDEX_ENUM, InstClassIndex)
-  InstClassIndexLIMIT
-} InstClassIndexEnum;
+#define CLASS_INDEX_ENUM(prefix, ident, kind, super) prefix ## ident,
+typedef enum ProtocolClassIndexEnum {
+  ProtocolClassIndexInvalid, /* index zero (prime 2) reserved for invalid classes */
+  CLASSES(CLASS_INDEX_ENUM, ProtocolClassIndex)
+  ProtocolClassIndexLIMIT
+} ProtocolClassIndexEnum;
 
 #define INHERIT_CLASS(this, _class, super) \
   BEGIN \
     InstClass protocolClass = (InstClass)(this); \
-    DERIVE_INIT(super)(this); \
+    CLASS_INIT(super)(this); \
     protocolClass->superclass = (InstClass)CLASS(super); \
     protocolClass->name = #_class; \
     protocolClass->typeId = \
-      ProtocolPrime[InstClassIndex ## _class] * \
+      ProtocolPrime[ProtocolClassIndex ## _class] * \
       protocolClass->superclass->typeId; \
   END
 
@@ -92,11 +95,10 @@ typedef enum InstClassIndexEnum {
  * for className to be the same as typeName, and then defines
  * the class className.
  */
-#define DEFINE_ALIAS_CLASS(className, typeName, var) \
-  typedef typeName className; \
-  typedef DERIVE_STRUCT(typeName) DERIVE_STRUCT(className); \
-  DEFINE_CLASS(className, var)
-
+#define DEFINE_ALIAS_CLASS(ident, other, var) \
+  typedef CLASS_TYPE(other) CLASS_TYPE(ident); \
+  typedef CLASS_STRUCT(other) CLASS_STRUCT(ident); \
+  DEFINE_CLASS(ident, var)
 
 
 #define InstClassSig ((Sig)0x519B60C7) /* SIGnature PROtocol CLass */
@@ -129,7 +131,7 @@ typedef struct InstClassStruct {
 
 /* InstClass -- the root of the protocol class hierarchy */
 
-DECLARE_CLASS(InstClass, InstClass);
+DECLARE_CLASS(Inst, Inst);
 
 
 /* Checking functions */
@@ -170,7 +172,7 @@ extern Bool ProtocolIsSubclass(InstClass sub, InstClass super);
  * <design/protocol/#int.static-superclass>
  */
 #define SUPERCLASS(className)  \
-  InstClassSuperclassPoly(DERIVE_ENSURE(className)())
+  InstClassSuperclassPoly(CLASS_ENSURE(className)())
 
 
 #endif /* protocol_h */

@@ -447,9 +447,9 @@ static void ClientArenaFree(Addr base, Size size, Pool pool)
 
 /* ClientArenaClass  -- The Client arena class definition */
 
-DEFINE_ARENA_CLASS(ClientArenaClass, this)
+DEFINE_ARENA_CLASS(ClientArena, this)
 {
-  INHERIT_CLASS(this, ClientArenaClass, AbstractArenaClass);
+  INHERIT_CLASS(this, ClientArena, AbstractArena);
   this->size = sizeof(ClientArenaStruct);
   this->varargs = ClientArenaVarargs;
   this->init = ClientArenaInit;
@@ -467,7 +467,7 @@ DEFINE_ARENA_CLASS(ClientArenaClass, this)
 
 mps_arena_class_t mps_arena_class_cl(void)
 {
-  return (mps_arena_class_t)CLASS(ClientArenaClass);
+  return (mps_arena_class_t)CLASS(ClientArena);
 }
 
 
