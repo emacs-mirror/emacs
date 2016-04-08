@@ -36,7 +36,6 @@ Bool InstClassCheck(InstClass class)
 
 Bool InstCheck(Inst inst)
 {
-  CHECKS(Inst, inst);
   CHECKD(InstClass, inst->class);
   return TRUE;
 }

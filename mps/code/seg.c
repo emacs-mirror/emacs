@@ -107,7 +107,7 @@ void SegFree(Seg seg)
   AVERT(Arena, arena);
   base = SegBase(seg);
   size = SegSize(seg);
-  class = seg->class;
+  class = ClassOfSeg(seg);
 
   SegFinish(seg);
   ControlFree(arena, seg, class->size);
@@ -134,7 +134,7 @@ static Res SegInit(Seg seg, SegClass class, Pool pool, Addr base, Size size, Arg
   AVER(SizeIsArenaGrains(size, arena));
   AVERT(SegClass, class);
 
-  seg->class = class;
+  SetClassOfSeg(seg, class);
   limit = AddrAdd(base, size);
   seg->limit = limit;
   seg->rankSet = RankSetEMPTY;
@@ -197,7 +197,7 @@ static void SegFinish(Seg seg)
   SegClass class;
 
   AVERT(Seg, seg);
-  class = seg->class;
+  class = ClassOfSeg(seg);
   AVERT(SegClass, class);
 
   arena = PoolArena(SegPool(seg));
@@ -260,7 +260,7 @@ void SegSetGrey(Seg seg, TraceSet grey)
   /* Don't dispatch to the class method if there's no actual change in
      greyness, or if the segment doesn't contain any references. */
   if (grey != SegGrey(seg) && SegRankSet(seg) != RankSetEMPTY)
-    seg->class->setGrey(seg, grey);
+    ClassOfSeg(seg)->setGrey(seg, grey);
 }
 
 
@@ -273,7 +273,7 @@ void SegSetWhite(Seg seg, TraceSet white)
 {
   AVERT(Seg, seg);
   AVERT(TraceSet, white);
-  seg->class->setWhite(seg, white);
+  ClassOfSeg(seg)->setWhite(seg, white);
 }
 
 
@@ -289,7 +289,7 @@ void SegSetRankSet(Seg seg, RankSet rankSet)
   AVERT(Seg, seg);
   AVERT(RankSet, rankSet);
   AVER(rankSet != RankSetEMPTY || SegSummary(seg) == RefSetEMPTY);
-  seg->class->setRankSet(seg, rankSet);
+  ClassOfSeg(seg)->setRankSet(seg, rankSet);
 }
 
 
@@ -307,7 +307,7 @@ void SegSetSummary(Seg seg, RefSet summary)
 #endif
 
   if (summary != SegSummary(seg))
-    seg->class->setSummary(seg, summary);
+    ClassOfSeg(seg)->setSummary(seg, summary);
 }
 
 
@@ -324,7 +324,7 @@ void SegSetRankAndSummary(Seg seg, RankSet rankSet, RefSet summary)
   }
 #endif
 
-  seg->class->setRankSummary(seg, rankSet, summary);
+  ClassOfSeg(seg)->setRankSummary(seg, rankSet, summary);
 }
 
 
@@ -333,7 +333,7 @@ void SegSetRankAndSummary(Seg seg, RankSet rankSet, RefSet summary)
 Buffer SegBuffer(Seg seg)
 {
   AVERT_CRITICAL(Seg, seg);  /* .seg.critical */
-  return seg->class->buffer(seg);
+  return ClassOfSeg(seg)->buffer(seg);
 }
 
 
@@ -344,7 +344,7 @@ void SegSetBuffer(Seg seg, Buffer buffer)
   AVERT(Seg, seg);
   if (buffer != NULL)
     AVERT(Buffer, buffer);
-  seg->class->setBuffer(seg, buffer);
+  ClassOfSeg(seg)->setBuffer(seg, buffer);
 }
 
 
@@ -366,7 +366,7 @@ Res SegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
                "Segment $P [$A,$A) {\n", (WriteFP)seg,
                (WriteFA)SegBase(seg), (WriteFA)SegLimit(seg),
                "  class $P (\"$S\")\n",
-               (WriteFP)seg->class, (WriteFS)seg->class->protocol.name,
+               (WriteFP)ClassOfSeg(seg), (WriteFS)ClassOfSeg(seg)->protocol.name,
                "  pool $P ($U)\n",
                (WriteFP)pool, (WriteFU)pool->serial,
                "  depth $U\n", seg->depth,
@@ -393,7 +393,7 @@ Res SegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
   if (res != ResOK)
     return res;
 
-  res = seg->class->describe(seg, stream, depth + 2);
+  res = ClassOfSeg(seg)->describe(seg, stream, depth + 2);
   if (res != ResOK)
     return res;
 
@@ -559,8 +559,8 @@ Res SegMerge(Seg *mergedSegReturn, Seg segLo, Seg segHi)
   AVER(NULL != mergedSegReturn);
   AVERT(Seg, segLo);
   AVERT(Seg, segHi);
-  class = segLo->class;
-  AVER(segHi->class == class);
+  class = ClassOfSeg(segLo);
+  AVER(ClassOfSeg(segHi) == class);
   AVER(SegPool(segLo) == SegPool(segHi));
   base = SegBase(segLo);
   mid = SegLimit(segLo);
@@ -608,7 +608,7 @@ Res SegSplit(Seg *segLoReturn, Seg *segHiReturn, Seg seg, Addr at)
   AVER(NULL != segLoReturn);
   AVER(NULL != segHiReturn);
   AVERT(Seg, seg);
-  class = seg->class;
+  class = ClassOfSeg(seg);
   arena = PoolArena(SegPool(seg));
   base = SegBase(seg);
   limit = SegLimit(seg);
@@ -985,7 +985,7 @@ static Res segTrivSplit(Seg seg, Seg segHi,
   segHi->depth = seg->depth;
   segHi->queued = seg->queued;
   segHi->firstTract = NULL;
-  segHi->class = seg->class;
+  SetClassOfSeg(segHi, ClassOfSeg(seg));
   segHi->sig = SegSig;
   RingInit(SegPoolRing(segHi));
 

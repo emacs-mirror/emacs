@@ -579,7 +579,7 @@ static Res arenaDescribeTractsInChunk(Chunk chunk, mps_lib_FILE *stream, Count d
         res = WriteF(stream, 0, " $P $U ($S)",
                      (WriteFP)pool,
                      (WriteFU)(pool->serial),
-                     (WriteFS)(pool->class->protocol.name),
+                     (WriteFS)(ClassOfPool(pool)->protocol.name), /* FIXME: tidy up */
                      NULL);
         if (res != ResOK)
           return res;

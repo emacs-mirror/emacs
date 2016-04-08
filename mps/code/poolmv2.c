@@ -380,7 +380,7 @@ static Bool MVTCheck(MVT mvt)
 {
   CHECKS(MVT, mvt);
   CHECKD(Pool, MVTPool(mvt));
-  CHECKL(MVTPool(mvt)->class == CLASS(MVTPool));
+  CHECKL(ClassOfPool(MVTPool(mvt)) == CLASS(MVTPool));
   CHECKD(CBS, &mvt->cbsStruct);
   CHECKD(ABQ, &mvt->abqStruct);
   CHECKD(Freelist, &mvt->flStruct);

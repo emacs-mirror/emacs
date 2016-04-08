@@ -389,7 +389,7 @@ Bool MFSCheck(MFS mfs)
 
   CHECKS(MFS, mfs);
   CHECKD(Pool, MFSPool(mfs));
-  CHECKL(MFSPool(mfs)->class == CLASS(MFSPool));
+  CHECKL(ClassOfPool(MFSPool(mfs)) == CLASS(MFSPool));
   CHECKL(mfs->unitSize >= UNIT_MIN);
   CHECKL(mfs->extendBy >= UNIT_MIN);
   CHECKL(BoolCheck(mfs->extendSelf));

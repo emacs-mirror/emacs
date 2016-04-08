@@ -130,7 +130,7 @@ static Bool MRGCheck(MRG mrg)
 {
   CHECKS(MRG, mrg);
   CHECKD(Pool, MRGPool(mrg));
-  CHECKL(MRGPool(mrg)->class == PoolClassMRG());
+  CHECKL(ClassOfPool(MRGPool(mrg)) == PoolClassMRG()); /* FIXME: subclass? (similar check in other pool too) */
   CHECKD_NOSIG(Ring, &mrg->entryRing);
   CHECKD_NOSIG(Ring, &mrg->freeRing);
   CHECKD_NOSIG(Ring, &mrg->refRing);
@@ -347,7 +347,7 @@ static RefPart MRGRefPartOfLink(Link link, Arena arena)
 
   b = SegOfAddr(&seg, arena, (Addr)link);
   AVER(b);
-  AVER(SegPool(seg)->class == PoolClassMRG());
+  AVER(ClassOfPool(SegPool(seg)) == PoolClassMRG());
   linkseg = Seg2LinkSeg(seg);
   AVERT(MRGLinkSeg, linkseg);
   linkBase = (Link)SegBase(seg);
@@ -422,7 +422,7 @@ static void MRGMessageDelete(Message message)
   arena = MessageArena(message);
   b = PoolOfAddr(&pool, arena, (Addr)message);
   AVER(b);
-  AVER(pool->class == PoolClassMRG());
+  AVER(ClassOfPool(pool) == PoolClassMRG());
 
   link = linkOfMessage(message);
   AVER(link->state == MRGGuardianFINAL);
