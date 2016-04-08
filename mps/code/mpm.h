@@ -306,13 +306,6 @@ DECLARE_CLASS(AbstractBufferPool, AbstractSegBufPool);
 DECLARE_CLASS(AbstractScanPool, AbstractScanPool);
 DECLARE_CLASS(AbstractCollectPool, AbstractCollectPool);
 
-/* DEFINE_POOL_CLASS
- *
- * Convenience macro -- see <design/protocol/#int.define-special>. */
-
-#define POOL_SUPERCLASS(className) \
-  ((PoolClass)SUPERCLASS(className))
-
 
 /* Message Interface -- see <design/message/> */
 /* -- Internal (MPM) Interface -- functions for message originator */
@@ -484,13 +477,6 @@ extern void TraceScanSingleRef(TraceSet ts, Rank rank, Arena arena,
 
 
 /* Arena Interface -- see <code/arena.c> */
-
-/* DEFINE_ARENA_CLASS
- *
- * Convenience macro -- see <design/protocol/#int.define-special>. */
-
-#define ARENA_SUPERCLASS(className) \
-  ((ArenaClass)SUPERCLASS(className))
 
 DECLARE_CLASS(AbstractArena, AbstractArena);
 extern Bool ArenaClassCheck(ArenaClass class);
@@ -697,12 +683,6 @@ DECLARE_CLASS(Seg, Seg);
 DECLARE_CLASS(Seg, GCSeg);
 extern void SegClassMixInNoSplitMerge(SegClass class);
 
-
-/* DEFINE_SEG_CLASS -- define a segment class */
-
-#define SEG_SUPERCLASS(className) \
-  ((SegClass)SUPERCLASS(className))
-
 #define ClassOfSeg(seg) ((seg)->class)
 
 extern Size SegSize(Seg seg);
@@ -808,12 +788,6 @@ extern Res BufferFramePush(AllocFrame *frameReturn, Buffer buffer);
 extern Res BufferFramePop(Buffer buffer, AllocFrame frame);
 extern FrameState BufferFrameState(Buffer buffer);
 extern void BufferFrameSetState(Buffer buffer, FrameState state);
-
-
-/* DEFINE_BUFFER_CLASS -- define a buffer class */
-
-#define BUFFER_SUPERCLASS(className) \
-  ((BufferClass)SUPERCLASS(className))
 
 extern Bool BufferClassCheck(BufferClass class);
 DECLARE_CLASS(Buffer, Buffer);
@@ -1012,9 +986,6 @@ extern Bool LandFlush(Land dest, Land src);
 extern Size LandSlowSize(Land land);
 extern Bool LandClassCheck(LandClass class);
 DECLARE_CLASS(Land, Land);
-#define LAND_SUPERCLASS(className) ((LandClass)SUPERCLASS(className))
-#define IsLandSubclass(land, className) \
-  IsSubclassPoly((land)->class, CLASS(className))
 
 
 /* STATISTIC -- gather statistics (in some varieties)

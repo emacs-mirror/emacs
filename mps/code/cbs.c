@@ -126,7 +126,7 @@ static Bool cbsTestNode(SplayTree splay, Tree tree, void *closure)
   AVERT(Tree, tree);
   AVER(sizeP != NULL);
   AVER(*sizeP > 0);
-  AVER(IsLandSubclass(CBSLand(cbsOfSplay(splay)), CBSFast));
+  AVER(IsA(CBSFast, CBSLand(cbsOfSplay(splay))));
 
   block = cbsBlockOfTree(tree);
 
@@ -143,7 +143,7 @@ static Bool cbsTestTree(SplayTree splay, Tree tree,
   AVERT(Tree, tree);
   AVER(sizeP != NULL);
   AVER(*sizeP > 0);
-  AVER(IsLandSubclass(CBSLand(cbsOfSplay(splay)), CBSFast));
+  AVER(IsA(CBSFast, CBSLand(cbsOfSplay(splay))));
 
   block = cbsFastBlockOfTree(tree);
 
@@ -159,7 +159,7 @@ static void cbsUpdateFastNode(SplayTree splay, Tree tree)
 
   AVERT_CRITICAL(SplayTree, splay);
   AVERT_CRITICAL(Tree, tree);
-  AVER_CRITICAL(IsLandSubclass(CBSLand(cbsOfSplay(splay)), CBSFast));
+  AVER_CRITICAL(IsA(CBSFast, CBSLand(cbsOfSplay(splay))));
 
   maxSize = CBSBlockSize(cbsBlockOfTree(tree));
 
@@ -190,7 +190,7 @@ static void cbsUpdateZonedNode(SplayTree splay, Tree tree)
 
   AVERT_CRITICAL(SplayTree, splay);
   AVERT_CRITICAL(Tree, tree);
-  AVER_CRITICAL(IsLandSubclass(CBSLand(cbsOfSplay(splay)), CBSZoned));
+  AVER_CRITICAL(IsA(CBSZoned, CBSLand(cbsOfSplay(splay))));
 
   cbsUpdateFastNode(splay, tree);
 
@@ -228,7 +228,7 @@ static Res cbsInitComm(Land land, LandClass class,
   Pool blockPool = NULL;
 
   AVER(land != NULL); /* FIXME: express intention */
-  super = LAND_SUPERCLASS(CBS);
+  super = SUPERCLASS(CBS);
   res = (*super->init)(land, arena, alignment, args);
   if (res != ResOK)
     return res;
@@ -305,7 +305,7 @@ static void cbsFinish(Land land)
   if (cbs->ownPool)
     PoolDestroy(cbsBlockPool(cbs));
 
-  LAND_SUPERCLASS(CBS)->finish(land); /* FIXME: Method call */
+  SUPERCLASS(CBS)->finish(land); /* FIXME: Method call */
 }
 
 
@@ -891,14 +891,9 @@ static void cbsFindDeleteRange(Range rangeReturn, Range oldRangeReturn,
 static Bool cbsFindFirst(Range rangeReturn, Range oldRangeReturn,
                          Land land, Size size, FindDelete findDelete)
 {
-  CBS cbs;
+  CBS cbs = MustBeA(CBS, land);
   Bool found;
   Tree tree;
-
-  AVERT(Land, land);
-  cbs = cbsOfLand(land);
-  AVERT(CBS, cbs);
-  AVER(IsLandSubclass(CBSLand(cbs), CBSFast));
 
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
@@ -972,14 +967,9 @@ static Bool cbsTestTreeInZones(SplayTree splay, Tree tree,
 static Bool cbsFindLast(Range rangeReturn, Range oldRangeReturn,
                         Land land, Size size, FindDelete findDelete)
 {
-  CBS cbs;
+  CBS cbs = MustBeA(CBSFast, land);
   Bool found;
   Tree tree;
-
-  AVERT(Land, land);
-  cbs = cbsOfLand(land);
-  AVERT(CBS, cbs);
-  AVER(IsLandSubclass(CBSLand(cbs), CBSFast));
 
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
@@ -1010,13 +1000,8 @@ static Bool cbsFindLast(Range rangeReturn, Range oldRangeReturn,
 static Bool cbsFindLargest(Range rangeReturn, Range oldRangeReturn,
                            Land land, Size size, FindDelete findDelete)
 {
-  CBS cbs;
+  CBS cbs = MustBeA(CBSFast, land);
   Bool found = FALSE;
-
-  AVERT(Land, land);
-  cbs = cbsOfLand(land);
-  AVERT(CBS, cbs);
-  AVER(IsLandSubclass(CBSLand(cbs), CBSFast));
 
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
@@ -1052,7 +1037,7 @@ static Res cbsFindInZones(Bool *foundReturn, Range rangeReturn,
                           Range oldRangeReturn, Land land, Size size,
                           ZoneSet zoneSet, Bool high)
 {
-  CBS cbs;
+  CBS cbs = MustBeA(CBSZoned, land);
   CBSBlock block;
   Tree tree;
   cbsTestNodeInZonesClosureStruct closure;
@@ -1064,10 +1049,6 @@ static Res cbsFindInZones(Bool *foundReturn, Range rangeReturn,
   AVER(foundReturn != NULL);
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
-  AVERT(Land, land);
-  cbs = cbsOfLand(land);
-  AVERT(CBS, cbs);
-  AVER(IsLandSubclass(CBSLand(cbs), CBSZoned));
   /* AVERT(ZoneSet, zoneSet); */
   AVERT(Bool, high);
 
@@ -1139,7 +1120,7 @@ static Res cbsDescribe(Land land, mps_lib_FILE *stream, Count depth)
     return ResPARAM;
 
   /* FIXME: Should use the class from the land itself. */
-  res = LAND_SUPERCLASS(CBS)->describe(land, stream, depth);
+  res = SUPERCLASS(CBS)->describe(land, stream, depth);
   if (res != ResOK)
     return res;
 
@@ -1154,9 +1135,9 @@ static Res cbsDescribe(Land land, mps_lib_FILE *stream, Count depth)
   METER_WRITE(cbs->treeSearch, stream, depth + 2);
 
   /* FIXME: Should be done by subclass specialization. */
-  if (IsLandSubclass(land, CBSZoned))
+  if (IsA(CBSZoned, land))
     describe = cbsZonedSplayNodeDescribe;
-  else if (IsLandSubclass(land, CBSFast))
+  else if (IsA(CBSFast, land))
     describe = cbsFastSplayNodeDescribe;
   else
     describe = cbsSplayNodeDescribe;

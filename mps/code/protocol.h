@@ -28,6 +28,7 @@
 #define CLASS_ENSURE(ident) ident ## ClassGet
 #define CLASS_INIT(ident) ident ## ClassInit
 #define CLASS_CHECK(ident) ident ## ClassCheck
+#define CLASS_SUPER(ident) ident ## SuperClassGet
 
 
 /* DECLARE_CLASS -- declare the existence of a protocol class */
@@ -159,8 +160,11 @@ extern Bool ProtocolIsSubclass(InstClass sub, InstClass super);
  * <design/protocol/#int.static-superclass>
  */
 
-#define SUPERCLASS(className) \
-  InstClassSuperclassPoly(CLASS_ENSURE(className)())
+#define CLASS_DECLARE_SUPER(UNUSED, ident, kind, super) \
+  CLASS_TYPE(kind) CLASS_SUPER(ident)(void);
+CLASSES(CLASS_DECLARE_SUPER, UNUSED)
+
+#define SUPERCLASS(className) (CLASS_SUPER(className)())
 
 
 /* IsA, CouldBeA, MustBeA -- coerce instances safely
