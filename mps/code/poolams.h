@@ -182,15 +182,15 @@ extern void AMSSegFreeCheck(AMSSeg amsseg);
 
 typedef SegClass AMSSegClass;
 typedef SegClassStruct AMSSegClassStruct;
-DECLARE_CLASS(AMSSegClass, AMSSegClass);
+DECLARE_CLASS(AMSSeg, AMSSeg);
 extern Bool AMSSegCheck(AMSSeg seg);
 
 
 typedef PoolClass AMSPoolClass;
 typedef PoolClassStruct AMSPoolClassStruct;
 
-DECLARE_CLASS(AMSPoolClass, AMSPoolClass);
-DECLARE_CLASS(AMSPoolClass, AMSDebugPoolClass);
+DECLARE_CLASS(AMSPool, AMSPool);
+DECLARE_CLASS(AMSPool, AMSDebugPool);
 
 
 #endif /* poolams_h */

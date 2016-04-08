@@ -261,9 +261,9 @@ static void NTraceEnd(Pool pool, Trace trace)
 
 /* NPoolClass -- pool class definition for N */
 
-DEFINE_POOL_CLASS(NPoolClass, this)
+DEFINE_POOL_CLASS(NPool, this)
 {
-  INHERIT_CLASS(this, NPoolClass, AbstractPoolClass);
+  INHERIT_CLASS(this, NPool, AbstractPool);
   this->size = sizeof(PoolNStruct);
   this->attr |= AttrGC;
   this->init = NInit;
@@ -289,7 +289,7 @@ DEFINE_POOL_CLASS(NPoolClass, this)
 
 PoolClass PoolClassN(void)
 {
-  return CLASS(NPoolClass);
+  return CLASS(NPool);
 }
 
 
@@ -299,7 +299,7 @@ Bool PoolNCheck(PoolN poolN)
 {
   CHECKL(poolN != NULL);
   CHECKD(Pool, PoolNPool(poolN));
-  CHECKL(PoolNPool(poolN)->class == CLASS(NPoolClass));
+  CHECKL(PoolNPool(poolN)->class == CLASS(NPool));
   UNUSED(poolN); /* <code/mpm.c#check.unused> */
 
   return TRUE;

@@ -1192,9 +1192,9 @@ Bool BufferClassCheck(BufferClass class)
  *
  * See <design/buffer/#class.hierarchy.buffer>.  */
 
-DEFINE_CLASS(BufferClass, class)
+DEFINE_CLASS(Buffer, class)
 {
-  INHERIT_CLASS(&class->protocol, BufferClass, InstClass);
+  INHERIT_CLASS(&class->protocol, Buffer, Inst);
   class->size = sizeof(BufferStruct);
   class->varargs = ArgTrivVarargs;
   class->init = bufferTrivInit;
@@ -1265,7 +1265,7 @@ static Res segBufInit(Buffer buffer, Pool pool, ArgList args)
   segbuf = BufferSegBuf(buffer);
 
   /* Initialize the superclass fields first via next-method call */
-  super = BUFFER_SUPERCLASS(SegBufClass);
+  super = BUFFER_SUPERCLASS(SegBuf);
   res = super->init(buffer, pool, args);
   if (res != ResOK)
     return res;
@@ -1295,7 +1295,7 @@ static void segBufFinish (Buffer buffer)
   segbuf->sig = SigInvalid;
 
   /* finish the superclass fields last */
-  super = BUFFER_SUPERCLASS(SegBufClass);
+  super = BUFFER_SUPERCLASS(SegBuf);
   super->finish(buffer);
 }
 
@@ -1429,7 +1429,7 @@ static Res segBufDescribe(Buffer buffer, mps_lib_FILE *stream, Count depth)
     return ResFAIL;
 
   /* Describe the superclass fields first via next-method call */
-  super = BUFFER_SUPERCLASS(SegBufClass);
+  super = BUFFER_SUPERCLASS(SegBuf);
   res = super->describe(buffer, stream, depth);
   if (res != ResOK)
     return res;
@@ -1450,9 +1450,9 @@ static Res segBufDescribe(Buffer buffer, mps_lib_FILE *stream, Count depth)
 
 typedef BufferClassStruct SegBufClassStruct;
 
-DEFINE_CLASS(SegBufClass, class)
+DEFINE_CLASS(SegBuf, class)
 {
-  INHERIT_CLASS(class, SegBufClass, BufferClass);
+  INHERIT_CLASS(class, SegBuf, Buffer);
   class->size = sizeof(SegBufStruct);
   class->init = segBufInit;
   class->finish = segBufFinish;
@@ -1497,7 +1497,7 @@ static Res rankBufInit(Buffer buffer, Pool pool, ArgList args)
   AVERT(Rank, rank);
 
   /* Initialize the superclass fields first via next-method call */
-  super = BUFFER_SUPERCLASS(RankBufClass);
+  super = BUFFER_SUPERCLASS(RankBuf);
   res = super->init(buffer, pool, args);
   if (res != ResOK)
     return res;
@@ -1518,9 +1518,9 @@ static Res rankBufInit(Buffer buffer, Pool pool, ArgList args)
 
 typedef BufferClassStruct RankBufClassStruct;
 
-DEFINE_CLASS(RankBufClass, class)
+DEFINE_CLASS(RankBuf, class)
 {
-  INHERIT_CLASS(class, RankBufClass, SegBufClass);
+  INHERIT_CLASS(class, RankBuf, SegBuf);
   class->varargs = rankBufVarargs;
   class->init = rankBufInit;
   AVERT(BufferClass, class);

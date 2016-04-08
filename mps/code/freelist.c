@@ -194,7 +194,7 @@ static Res freelistInit(Land land, ArgList args)
   Res res;
 
   AVERT(Land, land);
-  super = LAND_SUPERCLASS(FreelistLandClass);
+  super = LAND_SUPERCLASS(FreelistLand);
   res = (*super->init)(land, args);
   if (res != ResOK)
     return res;
@@ -809,9 +809,9 @@ static Res freelistDescribe(Land land, mps_lib_FILE *stream, Count depth)
 }
 
 
-DEFINE_LAND_CLASS(FreelistLandClass, class)
+DEFINE_LAND_CLASS(FreelistLand, class)
 {
-  INHERIT_CLASS(class, FreelistLandClass, LandClass);
+  INHERIT_CLASS(class, FreelistLand, Land);
   class->size = sizeof(FreelistStruct);
   class->init = freelistInit;
   class->finish = freelistFinish;

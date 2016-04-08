@@ -226,7 +226,7 @@ static Res cbsInitComm(Land land, ArgList args, SplayUpdateNodeFunction update,
   Pool blockPool = NULL;
 
   AVERT(Land, land);
-  super = LAND_SUPERCLASS(CBSLandClass);
+  super = LAND_SUPERCLASS(CBSLand);
   res = (*super->init)(land, args);
   if (res != ResOK)
     return res;
@@ -1164,9 +1164,9 @@ static Res cbsDescribe(Land land, mps_lib_FILE *stream, Count depth)
   return res;
 }
 
-DEFINE_LAND_CLASS(CBSLandClass, class)
+DEFINE_LAND_CLASS(CBSLand, class)
 {
-  INHERIT_CLASS(class, CBSLandClass, LandClass);
+  INHERIT_CLASS(class, CBSLand, Land);
   class->size = sizeof(CBSStruct);
   class->init = cbsInit;
   class->finish = cbsFinish;
@@ -1183,16 +1183,16 @@ DEFINE_LAND_CLASS(CBSLandClass, class)
   AVERT(LandClass, class);
 }
 
-DEFINE_LAND_CLASS(CBSFastLandClass, class)
+DEFINE_LAND_CLASS(CBSFastLand, class)
 {
-  INHERIT_CLASS(class, CBSFastLandClass, CBSLandClass);
+  INHERIT_CLASS(class, CBSFastLand, CBSLand);
   class->init = cbsInitFast;
   AVERT(LandClass, class);
 }
 
-DEFINE_LAND_CLASS(CBSZonedLandClass, class)
+DEFINE_LAND_CLASS(CBSZonedLand, class)
 {
-  INHERIT_CLASS(class, CBSZonedLandClass, CBSFastLandClass);
+  INHERIT_CLASS(class, CBSZonedLand, CBSFastLand);
   class->init = cbsInitZoned;
   AVERT(LandClass, class);
 }

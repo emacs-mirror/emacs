@@ -232,7 +232,7 @@ static Res AMSSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   /* no useful checks for base and size */
 
   /* Initialize the superclass fields first via next-method call */
-  super = SEG_SUPERCLASS(AMSSegClass);
+  super = SEG_SUPERCLASS(AMSSeg);
   res = super->init(seg, pool, base, size, args);
   if (res != ResOK)
     goto failNextMethod;
@@ -299,7 +299,7 @@ static void AMSSegFinish(Seg seg)
   amsseg->sig = SigInvalid;
 
   /* finish the superclass fields last */
-  super = SEG_SUPERCLASS(AMSSegClass);
+  super = SEG_SUPERCLASS(AMSSeg);
   super->finish(seg);
 }
 
@@ -363,7 +363,7 @@ static Res AMSSegMerge(Seg seg, Seg segHi,
     goto failCreateTables;
 
   /* Merge the superclass fields via next-method call */
-  super = SEG_SUPERCLASS(AMSSegClass);
+  super = SEG_SUPERCLASS(AMSSeg);
   res = super->merge(seg, segHi, base, mid, limit);
   if (res != ResOK)
     goto failSuper;
@@ -456,7 +456,7 @@ static Res AMSSegSplit(Seg seg, Seg segHi,
 
 
   /* Split the superclass fields via next-method call */
-  super = SEG_SUPERCLASS(AMSSegClass);
+  super = SEG_SUPERCLASS(AMSSeg);
   res = super->split(seg, segHi, base, mid, limit);
   if (res != ResOK)
     goto failSuper;
@@ -544,7 +544,7 @@ static Res AMSSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
     return ResFAIL;
 
   /* Describe the superclass fields first via next-method call */
-  super = SEG_SUPERCLASS(AMSSegClass);
+  super = SEG_SUPERCLASS(AMSSeg);
   res = super->describe(seg, stream, depth);
   if (res != ResOK)
     return res;
@@ -623,9 +623,9 @@ static Res AMSSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
 
 /* AMSSegClass -- Class definition for AMS segments */
 
-DEFINE_CLASS(AMSSegClass, class)
+DEFINE_CLASS(AMSSeg, class)
 {
-  INHERIT_CLASS(class, AMSSegClass, GCSegClass);
+  INHERIT_CLASS(class, AMSSeg, GCSeg);
   class->size = sizeof(AMSSegStruct);
   class->init = AMSSegInit;
   class->finish = AMSSegFinish;
@@ -1746,9 +1746,9 @@ static Res AMSDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 /* <code/poolams.h> contains the type definition.  Hence the use */
 /* of DEFINE_CLASS rather than DEFINE_POOL_CLASS */
 
-DEFINE_CLASS(AMSPoolClass, this)
+DEFINE_CLASS(AMSPool, this)
 {
-  INHERIT_CLASS(this, AMSPoolClass, AbstractCollectPoolClass);
+  INHERIT_CLASS(this, AMSPool, AbstractCollectPool);
   PoolClassMixInFormat(this);
   this->size = sizeof(AMSStruct);
   this->varargs = AMSVarargs;
@@ -1788,9 +1788,9 @@ static PoolDebugMixin AMSDebugMixin(Pool pool)
 
 /* AMSDebugPoolClass -- the class definition for the debug version */
 
-DEFINE_POOL_CLASS(AMSDebugPoolClass, this)
+DEFINE_POOL_CLASS(AMSDebugPool, this)
 {
-  INHERIT_CLASS(this, AMSDebugPoolClass, AMSPoolClass);
+  INHERIT_CLASS(this, AMSDebugPool, AMSPool);
   PoolClassMixInDebug(this);
   this->size = sizeof(AMSDebugStruct);
   this->varargs = AMSDebugVarargs;
@@ -1803,7 +1803,7 @@ DEFINE_POOL_CLASS(AMSDebugPoolClass, this)
 
 mps_pool_class_t mps_class_ams(void)
 {
-  return (mps_pool_class_t)CLASS(AMSPoolClass);
+  return (mps_pool_class_t)CLASS(AMSPool);
 }
 
 
@@ -1811,7 +1811,7 @@ mps_pool_class_t mps_class_ams(void)
 
 mps_pool_class_t mps_class_ams_debug(void)
 {
-  return (mps_pool_class_t)CLASS(AMSDebugPoolClass);
+  return (mps_pool_class_t)CLASS(AMSDebugPool);
 }
 
 
@@ -1821,7 +1821,7 @@ Bool AMSCheck(AMS ams)
 {
   CHECKS(AMS, ams);
   CHECKD(Pool, AMSPool(ams));
-  CHECKL(IsSubclassPoly(AMSPool(ams)->class, CLASS(AMSPoolClass)));
+  CHECKL(IsSubclassPoly(AMSPool(ams)->class, CLASS(AMSPool)));
   CHECKL(PoolAlignment(AMSPool(ams)) == AMSGrainsSize(ams, (Size)1));
   CHECKL(PoolAlignment(AMSPool(ams)) == AMSPool(ams)->format->alignment);
   CHECKD(PoolGen, &ams->pgen);

@@ -132,7 +132,7 @@ typedef struct AWLSegStruct {
 #define AWLSeg2Seg(awlseg)          ((Seg)(awlseg))
 
 
-DECLARE_CLASS(SegClass, AWLSegClass);
+DECLARE_CLASS(Seg, AWLSeg);
 
 
 ATTRIBUTE_UNUSED
@@ -201,7 +201,7 @@ static Res AWLSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   AVERT(AWL, awl);
 
   /* Initialize the superclass fields first via next-method call */
-  super = SEG_SUPERCLASS(AWLSegClass);
+  super = SEG_SUPERCLASS(AWLSeg);
   res = super->init(seg, pool, base, size, args);
   if (res != ResOK)
     return res;
@@ -277,16 +277,16 @@ static void AWLSegFinish(Seg seg)
   awlseg->sig = SigInvalid;
 
   /* finish the superclass fields last */
-  super = SEG_SUPERCLASS(AWLSegClass);
+  super = SEG_SUPERCLASS(AWLSeg);
   super->finish(seg);
 }
 
 
 /* AWLSegClass -- Class definition for AWL segments */
 
-DEFINE_SEG_CLASS(AWLSegClass, class)
+DEFINE_SEG_CLASS(AWLSeg, class)
 {
-  INHERIT_CLASS(class, AWLSegClass, GCSegClass);
+  INHERIT_CLASS(class, AWLSeg, GCSeg);
   SegClassMixInNoSplitMerge(class);  /* no support for this (yet) */
   class->size = sizeof(AWLSegStruct);
   class->init = AWLSegInit;
@@ -473,7 +473,7 @@ static Res AWLSegCreate(AWLSeg *awlsegReturn,
     return ResMEMORY;
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD_FIELD(args, awlKeySegRankSet, u, rankSet);
-    res = PoolGenAlloc(&seg, &awl->pgen, CLASS(AWLSegClass), size, args);
+    res = PoolGenAlloc(&seg, &awl->pgen, CLASS(AWLSeg), size, args);
   } MPS_ARGS_END(args);
   if (res != ResOK)
     return res;
@@ -1317,9 +1317,9 @@ static Size AWLFreeSize(Pool pool)
 
 /* AWLPoolClass -- the class definition */
 
-DEFINE_POOL_CLASS(AWLPoolClass, this)
+DEFINE_POOL_CLASS(AWLPool, this)
 {
-  INHERIT_CLASS(this, AWLPoolClass, AbstractCollectPoolClass);
+  INHERIT_CLASS(this, AWLPool, AbstractCollectPool);
   PoolClassMixInFormat(this);
   this->size = sizeof(AWLStruct);
   this->varargs = AWLVarargs;
@@ -1345,7 +1345,7 @@ DEFINE_POOL_CLASS(AWLPoolClass, this)
 
 mps_pool_class_t mps_class_awl(void)
 {
-  return (mps_pool_class_t)CLASS(AWLPoolClass);
+  return (mps_pool_class_t)CLASS(AWLPool);
 }
 
 
@@ -1356,7 +1356,7 @@ static Bool AWLCheck(AWL awl)
 {
   CHECKS(AWL, awl);
   CHECKD(Pool, AWLPool(awl));
-  CHECKL(AWLPool(awl)->class == CLASS(AWLPoolClass));
+  CHECKL(AWLPool(awl)->class == CLASS(AWLPool));
   CHECKL(AWLGrainsSize(awl, (Count)1) == PoolAlignment(AWLPool(awl)));
   /* Nothing to check about succAccesses. */
   CHECKL(FUNCHECK(awl->findDependent));

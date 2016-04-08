@@ -169,8 +169,8 @@ typedef struct MRGRefSegStruct {
 
 /* forward declarations */
 
-DECLARE_CLASS(SegClass, MRGLinkSegClass);
-DECLARE_CLASS(SegClass, MRGRefSegClass);
+DECLARE_CLASS(Seg, MRGLinkSeg);
+DECLARE_CLASS(Seg, MRGRefSeg);
 
 
 /* MRGLinkSegCheck -- check a link segment
@@ -230,7 +230,7 @@ static Res MRGLinkSegInit(Seg seg, Pool pool, Addr base, Size size,
   /* no useful checks for base and size */
 
   /* Initialize the superclass fields first via next-method call */
-  super = SEG_SUPERCLASS(MRGLinkSegClass);
+  super = SEG_SUPERCLASS(MRGLinkSeg);
   res = super->init(seg, pool, base, size, args);
   if (res != ResOK)
     return res;
@@ -272,7 +272,7 @@ static Res MRGRefSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   AVERT(MRGLinkSeg, linkseg);
 
   /* Initialize the superclass fields first via next-method call */
-  super = SEG_SUPERCLASS(MRGRefSegClass);
+  super = SEG_SUPERCLASS(MRGRefSeg);
   res = super->init(seg, pool, base, size, args);
   if (res != ResOK)
     return res;
@@ -296,9 +296,9 @@ static Res MRGRefSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 
 /* MRGLinkSegClass -- Class definition */
 
-DEFINE_SEG_CLASS(MRGLinkSegClass, class)
+DEFINE_SEG_CLASS(MRGLinkSeg, class)
 {
-  INHERIT_CLASS(class, MRGLinkSegClass, SegClass);
+  INHERIT_CLASS(class, MRGLinkSeg, Seg);
   SegClassMixInNoSplitMerge(class);  /* no support for this */
   class->size = sizeof(MRGLinkSegStruct);
   class->init = MRGLinkSegInit;
@@ -308,9 +308,9 @@ DEFINE_SEG_CLASS(MRGLinkSegClass, class)
 
 /* MRGRefSegClass -- Class definition */
 
-DEFINE_SEG_CLASS(MRGRefSegClass, class)
+DEFINE_SEG_CLASS(MRGRefSeg, class)
 {
-  INHERIT_CLASS(class, MRGRefSegClass, GCSegClass);
+  INHERIT_CLASS(class, MRGRefSeg, GCSeg);
   SegClassMixInNoSplitMerge(class);  /* no support for this */
   class->size = sizeof(MRGRefSegStruct);
   class->init = MRGRefSegInit;
@@ -517,7 +517,7 @@ static Res MRGSegPairCreate(MRGRefSeg *refSegReturn, MRG mrg)
   linkSegSize = nGuardians * sizeof(LinkStruct);
   linkSegSize = SizeArenaGrains(linkSegSize, arena);
 
-  res = SegAlloc(&segLink, CLASS(MRGLinkSegClass),
+  res = SegAlloc(&segLink, CLASS(MRGLinkSeg),
                  LocusPrefDefault(), linkSegSize, pool,
                  argsNone);
   if (res != ResOK)
@@ -526,7 +526,7 @@ static Res MRGSegPairCreate(MRGRefSeg *refSegReturn, MRG mrg)
   
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD_FIELD(args, mrgKeyLinkSeg, p, linkseg); /* .ref.initarg */
-    res = SegAlloc(&segRefPart, CLASS(MRGRefSegClass),
+    res = SegAlloc(&segRefPart, CLASS(MRGRefSeg),
                    LocusPrefDefault(), mrg->extendBy, pool,
                    args);
   } MPS_ARGS_END(args);
@@ -867,9 +867,9 @@ static Res MRGScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 }
 
 
-DEFINE_POOL_CLASS(MRGPoolClass, this)
+DEFINE_POOL_CLASS(MRGPool, this)
 {
-  INHERIT_CLASS(this, MRGPoolClass, AbstractPoolClass);
+  INHERIT_CLASS(this, MRGPool, AbstractPool);
   this->size = sizeof(MRGStruct);
   this->init = MRGInit;
   this->finish = MRGFinish;
@@ -883,7 +883,7 @@ DEFINE_POOL_CLASS(MRGPoolClass, this)
 
 PoolClass PoolClassMRG(void)
 {
-  return CLASS(MRGPoolClass);
+  return CLASS(MRGPool);
 }
 
 

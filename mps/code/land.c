@@ -574,9 +574,9 @@ static Res landTrivDescribe(Land land, mps_lib_FILE *stream, Count depth)
   return ResOK;
 }
 
-DEFINE_CLASS(LandClass, class)
+DEFINE_CLASS(Land, class)
 {
-  INHERIT_CLASS(&class->protocol, LandClass, InstClass);
+  INHERIT_CLASS(&class->protocol, Land, Inst);
   class->size = sizeof(LandStruct);
   class->init = landTrivInit;
   class->sizeMethod = landNoSize;

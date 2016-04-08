@@ -60,10 +60,10 @@ static Res oomAlloc(Addr *pReturn, Pool pool, Size size)
   }
 }
 
-DECLARE_CLASS(PoolClass, OOMPoolClass);
-DEFINE_POOL_CLASS(OOMPoolClass, this)
+DECLARE_CLASS(Pool, OOMPool);
+DEFINE_POOL_CLASS(OOMPool, this)
 {
-  INHERIT_CLASS(this, OOMPoolClass, AbstractPoolClass);
+  INHERIT_CLASS(this, OOMPool, AbstractPool);
   this->alloc = oomAlloc;
   this->free = PoolTrivFree;
   this->size = sizeof(PoolStruct);
@@ -92,7 +92,7 @@ static mps_res_t make(mps_addr_t *p, mps_ap_t ap, size_t size)
 static void set_oom(Land land, int oom)
 {
   CBS cbs = PARENT(CBSStruct, landStruct, land);
-  cbs->blockPool->class = oom ? CLASS(OOMPoolClass) : PoolClassMFS();
+  cbs->blockPool->class = oom ? CLASS(OOMPool) : PoolClassMFS();
 }
 
 

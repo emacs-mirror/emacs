@@ -31,9 +31,9 @@ static Bool amcSegHasNailboard(Seg seg);
 static Nailboard amcSegNailboard(Seg seg);
 static Bool AMCCheck(AMC amc);
 static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO);
-DECLARE_CLASS(PoolClass, AMCZPoolClass);
-DECLARE_CLASS(BufferClass, amcBufClass);
-DECLARE_CLASS(SegClass, amcSegClass);
+DECLARE_CLASS(Pool, AMCZPool);
+DECLARE_CLASS(Buffer, amcBuf);
+DECLARE_CLASS(Seg, amcSeg);
 
 
 /* amcGenStruct -- pool AMC generation descriptor */
@@ -139,7 +139,7 @@ static Res AMCSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   /* no useful checks for base and size */
 
   /* Initialize the superclass fields first via next-method call */
-  super = SEG_SUPERCLASS(amcSegClass);
+  super = SEG_SUPERCLASS(amcSeg);
   res = super->init(seg, pool, base, size, args);
   if(res != ResOK)
     return res;
@@ -252,7 +252,7 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
     return ResFAIL;
 
   /* Describe the superclass fields first via next-method call */
-  super = SEG_SUPERCLASS(amcSegClass);
+  super = SEG_SUPERCLASS(amcSeg);
   res = super->describe(seg, stream, depth);
   if(res != ResOK)
     return res;
@@ -341,9 +341,9 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
 
 /* amcSegClass -- Class definition for AMC segments */
 
-DEFINE_SEG_CLASS(amcSegClass, class)
+DEFINE_SEG_CLASS(amcSeg, class)
 {
-  INHERIT_CLASS(class, amcSegClass, GCSegClass);
+  INHERIT_CLASS(class, amcSeg, GCSeg);
   SegClassMixInNoSplitMerge(class);  /* no support for this (yet) */
   class->size = sizeof(amcSegStruct);
   class->init = AMCSegInit;
@@ -520,7 +520,7 @@ static Res AMCBufInit(Buffer buffer, Pool pool, ArgList args)
     forHashArrays = arg.val.b;
 
   /* call next method */
-  superclass = BUFFER_SUPERCLASS(amcBufClass);
+  superclass = BUFFER_SUPERCLASS(amcBuf);
   res = (*superclass->init)(buffer, pool, args);
   if(res != ResOK)
     return res;
@@ -557,16 +557,16 @@ static void AMCBufFinish(Buffer buffer)
   amcbuf->sig = SigInvalid;
 
   /* Finish the superclass fields last. */
-  super = BUFFER_SUPERCLASS(amcBufClass);
+  super = BUFFER_SUPERCLASS(amcBuf);
   super->finish(buffer);
 }
 
 
 /* amcBufClass -- The class definition */
 
-DEFINE_BUFFER_CLASS(amcBufClass, class)
+DEFINE_BUFFER_CLASS(amcBuf, class)
 {
-  INHERIT_CLASS(class, amcBufClass, SegBufClass);
+  INHERIT_CLASS(class, amcBuf, SegBuf);
   class->size = sizeof(amcBufStruct);
   class->init = AMCBufInit;
   class->finish = AMCBufFinish;
@@ -593,7 +593,7 @@ static Res amcGenCreate(amcGen *genReturn, AMC amc, GenDesc gen)
     goto failControlAlloc;
   amcgen = (amcGen)p;
 
-  res = BufferCreate(&buffer, CLASS(amcBufClass), pool, FALSE, argsNone);
+  res = BufferCreate(&buffer, CLASS(amcBuf), pool, FALSE, argsNone);
   if(res != ResOK)
     goto failBufferCreate;
 
@@ -951,7 +951,7 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
   }
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD_FIELD(args, amcKeySegGen, p, gen);
-    res = PoolGenAlloc(&seg, pgen, CLASS(amcSegClass), grainsSize, args);
+    res = PoolGenAlloc(&seg, pgen, CLASS(amcSeg), grainsSize, args);
   } MPS_ARGS_END(args);
   if(res != ResOK)
     return res;
@@ -1891,7 +1891,7 @@ static void amcWalkAll(Pool pool, FormattedObjectsVisitor f, void *p, size_t s)
   Arena arena;
   Ring ring, next, node;
 
-  AVER(IsSubclassPoly(pool->class, CLASS(AMCZPoolClass)));
+  AVER(IsSubclassPoly(pool->class, CLASS(AMCZPool)));
 
   arena = PoolArena(pool);
   ring = PoolSegRing(pool);
@@ -2102,9 +2102,9 @@ static Res AMCDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 
 /* AMCZPoolClass -- the class definition */
 
-DEFINE_POOL_CLASS(AMCZPoolClass, this)
+DEFINE_POOL_CLASS(AMCZPool, this)
 {
-  INHERIT_CLASS(this, AMCZPoolClass, AbstractSegBufPoolClass);
+  INHERIT_CLASS(this, AMCZPool, AbstractSegBufPool);
   PoolClassMixInFormat(this);
   PoolClassMixInCollect(this);
   this->size = sizeof(AMCStruct);
@@ -2132,9 +2132,9 @@ DEFINE_POOL_CLASS(AMCZPoolClass, this)
 
 /* AMCPoolClass -- the class definition */
 
-DEFINE_POOL_CLASS(AMCPoolClass, this)
+DEFINE_POOL_CLASS(AMCPool, this)
 {
-  INHERIT_CLASS(this, AMCPoolClass, AMCZPoolClass);
+  INHERIT_CLASS(this, AMCPool, AMCZPool);
   PoolClassMixInScan(this);
   this->init = AMCInit;
   this->scan = AMCScan;
@@ -2146,14 +2146,14 @@ DEFINE_POOL_CLASS(AMCPoolClass, this)
 
 mps_pool_class_t mps_class_amc(void)
 {
-  return (mps_pool_class_t)CLASS(AMCPoolClass);
+  return (mps_pool_class_t)CLASS(AMCPool);
 }
 
 /* mps_class_amcz -- return the pool class descriptor to the client */
 
 mps_pool_class_t mps_class_amcz(void)
 {
-  return (mps_pool_class_t)CLASS(AMCZPoolClass);
+  return (mps_pool_class_t)CLASS(AMCZPool);
 }
 
 
@@ -2218,7 +2218,7 @@ static Bool AMCCheck(AMC amc)
 {
   CHECKS(AMC, amc);
   CHECKD(Pool, AMCPool(amc));
-  CHECKL(IsSubclassPoly(AMCPool(amc)->class, CLASS(AMCZPoolClass)));
+  CHECKL(IsSubclassPoly(AMCPool(amc)->class, CLASS(AMCZPool)));
   CHECKL(RankSetCheck(amc->rankSet));
   CHECKD_NOSIG(Ring, &amc->genRing);
   CHECKL(BoolCheck(amc->gensBooted));

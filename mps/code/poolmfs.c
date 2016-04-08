@@ -356,9 +356,9 @@ static Res MFSDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 }
 
 
-DEFINE_POOL_CLASS(MFSPoolClass, this)
+DEFINE_POOL_CLASS(MFSPool, this)
 {
-  INHERIT_CLASS(this, MFSPoolClass, AbstractPoolClass);
+  INHERIT_CLASS(this, MFSPool, AbstractPool);
   this->size = sizeof(MFSStruct);
   this->varargs = MFSVarargs;
   this->init = MFSInit;
@@ -374,7 +374,7 @@ DEFINE_POOL_CLASS(MFSPoolClass, this)
 
 PoolClass PoolClassMFS(void)
 {
-  return CLASS(MFSPoolClass);
+  return CLASS(MFSPool);
 }
 
 
@@ -390,7 +390,7 @@ Bool MFSCheck(MFS mfs)
 
   CHECKS(MFS, mfs);
   CHECKD(Pool, MFSPool(mfs));
-  CHECKL(MFSPool(mfs)->class == CLASS(MFSPoolClass));
+  CHECKL(MFSPool(mfs)->class == CLASS(MFSPool));
   CHECKL(mfs->unitSize >= UNIT_MIN);
   CHECKL(mfs->extendBy >= UNIT_MIN);
   CHECKL(BoolCheck(mfs->extendSelf));
