@@ -276,12 +276,12 @@ static Res MVTInit(Pool pool, ArgList args)
   if (abqDepth < 3)
     abqDepth = 3;
 
-  res = LandInit(MVTFreePrimary(mvt), CLASS(CBSFastLand), arena, align, mvt,
+  res = LandInit(MVTFreePrimary(mvt), CLASS(CBSFast), arena, align, mvt,
                  mps_args_none);
   if (res != ResOK)
     goto failFreePrimaryInit;
  
-  res = LandInit(MVTFreeSecondary(mvt), CLASS(FreelistLand), arena, align,
+  res = LandInit(MVTFreeSecondary(mvt), CLASS(Freelist), arena, align,
                  mvt, mps_args_none);
   if (res != ResOK)
     goto failFreeSecondaryInit;
@@ -289,7 +289,7 @@ static Res MVTInit(Pool pool, ArgList args)
   MPS_ARGS_BEGIN(foArgs) {
     MPS_ARGS_ADD(foArgs, FailoverPrimary, MVTFreePrimary(mvt));
     MPS_ARGS_ADD(foArgs, FailoverSecondary, MVTFreeSecondary(mvt));
-    res = LandInit(MVTFreeLand(mvt), CLASS(FailoverLand), arena, align, mvt,
+    res = LandInit(MVTFreeLand(mvt), CLASS(Failover), arena, align, mvt,
                    foArgs);
   } MPS_ARGS_END(foArgs);
   if (res != ResOK)

@@ -30,7 +30,7 @@ Bool FailoverCheck(Failover fo)
 }
 
 
-static Res failoverInit(Land land, ArgList args)
+static Res failoverInit(Land land, Arena arena, Align alignment, ArgList args)
 {
   Failover fo;
   LandClass super;
@@ -38,18 +38,20 @@ static Res failoverInit(Land land, ArgList args)
   ArgStruct arg;
   Res res;
 
-  AVERT(Land, land);
-  super = LAND_SUPERCLASS(FailoverLand);
-  res = (*super->init)(land, args);
+  AVER(land != NULL); /* FIXME: express intention */
+  super = LAND_SUPERCLASS(Failover);
+  res = (*super->init)(land, arena, alignment, args);
   if (res != ResOK)
     return res;
+
+  land->class = CLASS(Failover);
+  fo = MustBeA(Failover, land);
 
   ArgRequire(&arg, args, FailoverPrimary);
   primary = arg.val.p;
   ArgRequire(&arg, args, FailoverSecondary);
   secondary = arg.val.p;
 
-  fo = failoverOfLand(land);
   fo->primary = primary;
   fo->secondary = secondary;
   fo->sig = FailoverSig;
@@ -60,13 +62,9 @@ static Res failoverInit(Land land, ArgList args)
 
 static void failoverFinish(Land land)
 {
-  Failover fo;
-
-  AVERT(Land, land);
-  fo = failoverOfLand(land);
-  AVERT(Failover, fo);
-
+  Failover fo = MustBeA(Failover, land);
   fo->sig = SigInvalid;
+  LAND_SUPERCLASS(Failover)->finish(land); /* FIXME: Method call */
 }
 
 
@@ -278,32 +276,33 @@ static Bool failoverFindInZones(Bool *foundReturn, Range rangeReturn, Range oldR
 
 static Res failoverDescribe(Land land, mps_lib_FILE *stream, Count depth)
 {
-  Failover fo;
+  Failover fo = CouldBeA(Failover, land);
   Res res;
 
-  if (!TESTT(Land, land))
-    return ResFAIL;
-  fo = failoverOfLand(land);
-  if (!TESTT(Failover, fo))
-    return ResFAIL;
+  if (!TESTC(Failover, fo))
+    return ResPARAM;
   if (stream == NULL)
-    return ResFAIL;
+    return ResPARAM;
 
-  res = WriteF(stream, depth,
-               "Failover $P {\n", (WriteFP)fo,
-               "  primary = $P ($S)\n", (WriteFP)fo->primary,
-               (WriteFS)fo->primary->class->protocol.name,
-               "  secondary = $P ($S)\n", (WriteFP)fo->secondary,
-               (WriteFS)fo->secondary->class->protocol.name,
-               "}\n", NULL);
+  /* FIXME: Should use the class from the land itself. */
+  res = LAND_SUPERCLASS(Failover)->describe(land, stream, depth);
+  if (res != ResOK)
+    return res;
 
-  return res;
+  return WriteF(stream, depth + 2,
+                "primary = $P ($S)\n",
+                (WriteFP)fo->primary,
+                (WriteFS)fo->primary->class->protocol.name,
+                "secondary = $P ($S)\n",
+                (WriteFP)fo->secondary,
+                (WriteFS)fo->secondary->class->protocol.name,
+                NULL);
 }
 
 
-DEFINE_CLASS(Land, FailoverLand, class)
+DEFINE_CLASS(Land, Failover, class)
 {
-  INHERIT_CLASS(class, FailoverLand, Land);
+  INHERIT_CLASS(class, Failover, Land);
   class->size = sizeof(FailoverStruct);
   class->init = failoverInit;
   class->finish = failoverFinish;

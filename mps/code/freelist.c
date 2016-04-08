@@ -187,22 +187,24 @@ Bool FreelistCheck(Freelist fl)
 }
 
 
-static Res freelistInit(Land land, ArgList args)
+static Res freelistInit(Land land, Arena arena, Align alignment, ArgList args)
 {
   Freelist fl;
   LandClass super;
   Res res;
 
-  AVERT(Land, land);
-  super = LAND_SUPERCLASS(FreelistLand);
-  res = (*super->init)(land, args);
+  AVER(land != NULL); /* FIXME: express intention */
+  super = LAND_SUPERCLASS(Freelist);
+  res = (*super->init)(land, arena, alignment, args);
   if (res != ResOK)
     return res;
+
+  land->class = CLASS(Freelist);
+  fl = MustBeA(Freelist, land);
 
   /* See <design/freelist/#impl.grain> */
   AVER(AlignIsAligned(LandAlignment(land), FreelistMinimumAlignment));
 
-  fl = freelistOfLand(land);
   fl->list = freelistEND;
   fl->listSize = 0;
   fl->size = 0;
@@ -215,13 +217,10 @@ static Res freelistInit(Land land, ArgList args)
 
 static void freelistFinish(Land land)
 {
-  Freelist fl;
-
-  AVERT(Land, land);
-  fl = freelistOfLand(land);
-  AVERT(Freelist, fl);
+  Freelist fl = MustBeA(Freelist, land);
   fl->sig = SigInvalid;
   fl->list = freelistEND;
+  LAND_SUPERCLASS(Freelist)->finish(land); /* FIXME: Method call */
 }
 
 
@@ -779,23 +778,24 @@ static Bool freelistDescribeVisitor(Land land, Range range,
 
 static Res freelistDescribe(Land land, mps_lib_FILE *stream, Count depth)
 {
-  Freelist fl;
+  Freelist fl = CouldBeA(Freelist, land);
   Res res;
   Bool b;
   FreelistDescribeClosureStruct closure;
 
-  if (!TESTT(Land, land))
-    return ResFAIL;
-  fl = freelistOfLand(land);
-  if (!TESTT(Freelist, fl))
-    return ResFAIL;
+  if (!TESTC(Freelist, fl))
+    return ResPARAM;
   if (stream == NULL)
-    return ResFAIL;
+    return ResPARAM;
 
-  res = WriteF(stream, depth,
-               "Freelist $P {\n", (WriteFP)fl,
-               "  listSize = $U\n", (WriteFU)fl->listSize,
-               "  size = $U\n", (WriteFU)fl->size,
+  /* FIXME: Should use the class from the land itself. */
+  res = LAND_SUPERCLASS(Freelist)->describe(land, stream, depth);
+  if (res != ResOK)
+    return res;
+
+  res = WriteF(stream, depth + 2,
+               "listSize $U\n", (WriteFU)fl->listSize,
+               "size     $U\n", (WriteFU)fl->size,
                NULL);
 
   closure.stream = stream;
@@ -804,14 +804,13 @@ static Res freelistDescribe(Land land, mps_lib_FILE *stream, Count depth)
   if (!b)
     return ResFAIL;
 
-  res = WriteF(stream, depth, "} Freelist $P\n", (WriteFP)fl, NULL);
   return res;
 }
 
 
-DEFINE_CLASS(Land, FreelistLand, class)
+DEFINE_CLASS(Land, Freelist, class)
 {
-  INHERIT_CLASS(class, FreelistLand, Land);
+  INHERIT_CLASS(class, Freelist, Land);
   class->size = sizeof(FreelistStruct);
   class->init = freelistInit;
   class->finish = freelistFinish;

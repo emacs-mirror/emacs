@@ -34,14 +34,14 @@ typedef struct CBSZonedBlockStruct {
   ZoneSet zones; /* union zone set of all ranges in sub-tree */
 } CBSZonedBlockStruct;
 
-typedef struct CBSStruct *CBS;
+typedef struct CBSStruct *CBS, *CBSFast, *CBSZoned;
 
 extern Bool CBSCheck(CBS cbs);
 #define CBSLand(cbs) (&(cbs)->landStruct)
 
-DECLARE_CLASS(Land, CBSLand);
-DECLARE_CLASS(Land, CBSFastLand);
-DECLARE_CLASS(Land, CBSZonedLand);
+DECLARE_CLASS(Land, CBS);
+DECLARE_CLASS(Land, CBSFast);
+DECLARE_CLASS(Land, CBSZoned);
 
 extern const struct mps_key_s _mps_key_cbs_block_pool;
 #define CBSBlockPool (&_mps_key_cbs_block_pool)
