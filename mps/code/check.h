@@ -60,7 +60,7 @@
 #define ASSERT_TYPECHECK(type, val) \
   ASSERT(ASSERT_ISTYPE(type, val), "TypeCheck " #type ": " #val)
 
-#define ASSERT_ISCLASS(class, val) (class ## Check(CouldBeA(ProtocolInst, val)))
+#define ASSERT_ISCLASS(class, val) (class ## Check(CouldBeA(Inst, val)))
 #define ASSERT_CLASSCHECK(class, val) \
   ASSERT(ASSERT_ISCLASS(class, val), "ClassCheck " #class ": " #val)
 

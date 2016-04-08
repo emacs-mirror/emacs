@@ -447,7 +447,7 @@ Bool LandFlush(Land dest, Land src)
 
 Bool LandClassCheck(LandClass class)
 {
-  CHECKL(ProtocolClassCheck(&class->protocol));
+  CHECKL(InstClassCheck(&class->protocol));
   CHECKL(class->size >= sizeof(LandStruct));
   CHECKL(FUNCHECK(class->init));
   CHECKL(FUNCHECK(class->finish));
@@ -576,7 +576,7 @@ static Res landTrivDescribe(Land land, mps_lib_FILE *stream, Count depth)
 
 DEFINE_CLASS(LandClass, class)
 {
-  INHERIT_CLASS(&class->protocol, LandClass, ProtocolClass);
+  INHERIT_CLASS(&class->protocol, LandClass, InstClass);
   class->size = sizeof(LandStruct);
   class->init = landTrivInit;
   class->sizeMethod = landNoSize;

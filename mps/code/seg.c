@@ -1608,7 +1608,7 @@ static Res gcSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
 
 Bool SegClassCheck(SegClass class)
 {
-  CHECKD(ProtocolClass, &class->protocol);
+  CHECKD(InstClass, &class->protocol);
   CHECKL(class->size >= sizeof(SegStruct));
   CHECKL(FUNCHECK(class->init));
   CHECKL(FUNCHECK(class->finish));
@@ -1628,7 +1628,7 @@ Bool SegClassCheck(SegClass class)
 
 DEFINE_CLASS(SegClass, class)
 {
-  INHERIT_CLASS(&class->protocol, SegClass, ProtocolClass);
+  INHERIT_CLASS(&class->protocol, SegClass, InstClass);
   class->size = sizeof(SegStruct);
   class->init = segTrivInit;
   class->finish = segTrivFinish;
