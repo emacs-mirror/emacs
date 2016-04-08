@@ -232,7 +232,7 @@ static Res AMSSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   /* no useful checks for base and size */
 
   /* Initialize the superclass fields first via next-method call */
-  super = SEG_SUPERCLASS(AMSSeg);
+  super = SUPERCLASS(AMSSeg);
   res = super->init(seg, pool, base, size, args);
   if (res != ResOK)
     goto failNextMethod;
@@ -299,7 +299,7 @@ static void AMSSegFinish(Seg seg)
   amsseg->sig = SigInvalid;
 
   /* finish the superclass fields last */
-  super = SEG_SUPERCLASS(AMSSeg);
+  super = SUPERCLASS(AMSSeg);
   super->finish(seg);
 }
 
@@ -363,7 +363,7 @@ static Res AMSSegMerge(Seg seg, Seg segHi,
     goto failCreateTables;
 
   /* Merge the superclass fields via next-method call */
-  super = SEG_SUPERCLASS(AMSSeg);
+  super = SUPERCLASS(AMSSeg);
   res = super->merge(seg, segHi, base, mid, limit);
   if (res != ResOK)
     goto failSuper;
@@ -456,7 +456,7 @@ static Res AMSSegSplit(Seg seg, Seg segHi,
 
 
   /* Split the superclass fields via next-method call */
-  super = SEG_SUPERCLASS(AMSSeg);
+  super = SUPERCLASS(AMSSeg);
   res = super->split(seg, segHi, base, mid, limit);
   if (res != ResOK)
     goto failSuper;
@@ -544,7 +544,7 @@ static Res AMSSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
     return ResFAIL;
 
   /* Describe the superclass fields first via next-method call */
-  super = SEG_SUPERCLASS(AMSSeg);
+  super = SUPERCLASS(AMSSeg);
   res = super->describe(seg, stream, depth);
   if (res != ResOK)
     return res;

@@ -134,7 +134,7 @@ static Res SNCBufInit(Buffer buffer, Pool pool, ArgList args)
   AVERT(Pool, pool);
 
   /* call next method */
-  superclass = BUFFER_SUPERCLASS(SNCBuf);
+  superclass = SUPERCLASS(SNCBuf);
   res = (*superclass->init)(buffer, pool, args);
   if (res != ResOK)
     return res;
@@ -169,7 +169,7 @@ static void SNCBufFinish(Buffer buffer)
   sncbuf->sig = SigInvalid;
 
   /* finish the superclass fields last */
-  super = BUFFER_SUPERCLASS(SNCBuf);
+  super = SUPERCLASS(SNCBuf);
   super->finish(buffer);
 }
 
@@ -236,7 +236,7 @@ static Res sncSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   /* no useful checks for base and size */
 
   /* Initialize the superclass fields first via next-method call */
-  super = SEG_SUPERCLASS(SNCSeg);
+  super = SUPERCLASS(SNCSeg);
   res = super->init(seg, pool, base, size, args);
   if (res != ResOK)
     return res;

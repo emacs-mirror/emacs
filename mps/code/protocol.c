@@ -7,6 +7,8 @@
  */
 
 #include "mpm.h"
+#include "protocol.h"
+#include "classdef.h"
 
 SRCID(protocol, "$Id$");
 
@@ -61,6 +63,28 @@ DEFINE_CLASS(Inst, Inst, theClass)
   theClass->typeId = ProtocolPrime[ProtocolClassIndexInst];
   AVERT(InstClass, theClass);
 }
+
+
+/* Superclass getters
+ *
+ * Use the class table to define a getter function for each class that
+ * returns its superclass, in order to implement the SUPERCLASS macro
+ * efficiently.
+ */
+
+#define CLASS_DEFINE_SUPER(UNUSED, ident, kind, super) \
+  extern CLASS_TYPE(kind) CLASS_ENSURE(ident)(void); \
+  CLASS_TYPE(kind) CLASS_SUPER(ident)(void) \
+  { \
+    return CLASS(super); \
+  }
+
+static void *CLASS_ENSURE(NoSuper)(void)
+{
+  return NULL;
+}
+
+CLASSES(CLASS_DEFINE_SUPER, UNUSED)
 
 
 unsigned ProtocolPrime[1000] = {
