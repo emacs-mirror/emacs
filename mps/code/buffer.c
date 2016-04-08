@@ -1264,7 +1264,7 @@ static Res segBufInit(Buffer buffer, Pool pool, ArgList args)
   segbuf = BufferSegBuf(buffer);
 
   /* Initialize the superclass fields first via next-method call */
-  super = BUFFER_SUPERCLASS(SegBuf);
+  super = SUPERCLASS(SegBuf);
   res = super->init(buffer, pool, args);
   if (res != ResOK)
     return res;
@@ -1294,7 +1294,7 @@ static void segBufFinish (Buffer buffer)
   segbuf->sig = SigInvalid;
 
   /* finish the superclass fields last */
-  super = BUFFER_SUPERCLASS(SegBuf);
+  super = SUPERCLASS(SegBuf);
   super->finish(buffer);
 }
 
@@ -1428,7 +1428,7 @@ static Res segBufDescribe(Buffer buffer, mps_lib_FILE *stream, Count depth)
     return ResFAIL;
 
   /* Describe the superclass fields first via next-method call */
-  super = BUFFER_SUPERCLASS(SegBuf);
+  super = SUPERCLASS(SegBuf);
   res = super->describe(buffer, stream, depth);
   if (res != ResOK)
     return res;
@@ -1493,7 +1493,7 @@ static Res rankBufInit(Buffer buffer, Pool pool, ArgList args)
   AVERT(Rank, rank);
 
   /* Initialize the superclass fields first via next-method call */
-  super = BUFFER_SUPERCLASS(RankBuf);
+  super = SUPERCLASS(RankBuf);
   res = super->init(buffer, pool, args);
   if (res != ResOK)
     return res;
