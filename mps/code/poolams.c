@@ -623,7 +623,7 @@ static Res AMSSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
 
 /* AMSSegClass -- Class definition for AMS segments */
 
-DEFINE_CLASS(AMSSeg, class)
+DEFINE_CLASS(Seg, AMSSeg, class)
 {
   INHERIT_CLASS(class, AMSSeg, GCSeg);
   class->size = sizeof(AMSSegStruct);
@@ -1746,7 +1746,7 @@ static Res AMSDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 /* <code/poolams.h> contains the type definition.  Hence the use */
 /* of DEFINE_CLASS rather than DEFINE_POOL_CLASS */
 
-DEFINE_CLASS(AMSPool, this)
+DEFINE_CLASS(Pool, AMSPool, this)
 {
   INHERIT_CLASS(this, AMSPool, AbstractCollectPool);
   PoolClassMixInFormat(this);
@@ -1788,14 +1788,13 @@ static PoolDebugMixin AMSDebugMixin(Pool pool)
 
 /* AMSDebugPoolClass -- the class definition for the debug version */
 
-DEFINE_POOL_CLASS(AMSDebugPool, this)
+DEFINE_CLASS(Pool, AMSDebugPool, this)
 {
   INHERIT_CLASS(this, AMSDebugPool, AMSPool);
   PoolClassMixInDebug(this);
   this->size = sizeof(AMSDebugStruct);
   this->varargs = AMSDebugVarargs;
   this->debugMixin = AMSDebugMixin;
-  AVERT(PoolClass, this);
 }
 
 

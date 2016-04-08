@@ -356,7 +356,7 @@ static Res MFSDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 }
 
 
-DEFINE_POOL_CLASS(MFSPool, this)
+DEFINE_CLASS(Pool, MFSPool, this)
 {
   INHERIT_CLASS(this, MFSPool, AbstractPool);
   this->size = sizeof(MFSStruct);
@@ -368,7 +368,6 @@ DEFINE_POOL_CLASS(MFSPool, this)
   this->totalSize = MFSTotalSize;
   this->freeSize = MFSFreeSize;  
   this->describe = MFSDescribe;
-  AVERT(PoolClass, this);
 }
 
 

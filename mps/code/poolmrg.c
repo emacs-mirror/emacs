@@ -296,25 +296,23 @@ static Res MRGRefSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 
 /* MRGLinkSegClass -- Class definition */
 
-DEFINE_SEG_CLASS(MRGLinkSeg, class)
+DEFINE_CLASS(Seg, MRGLinkSeg, class)
 {
   INHERIT_CLASS(class, MRGLinkSeg, Seg);
   SegClassMixInNoSplitMerge(class);  /* no support for this */
   class->size = sizeof(MRGLinkSegStruct);
   class->init = MRGLinkSegInit;
-  AVERT(SegClass, class);
 }
 
 
 /* MRGRefSegClass -- Class definition */
 
-DEFINE_SEG_CLASS(MRGRefSeg, class)
+DEFINE_CLASS(Seg, MRGRefSeg, class)
 {
   INHERIT_CLASS(class, MRGRefSeg, GCSeg);
   SegClassMixInNoSplitMerge(class);  /* no support for this */
   class->size = sizeof(MRGRefSegStruct);
   class->init = MRGRefSegInit;
-  AVERT(SegClass, class);
 }
 
 
@@ -867,7 +865,7 @@ static Res MRGScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 }
 
 
-DEFINE_POOL_CLASS(MRGPool, this)
+DEFINE_CLASS(Pool, MRGPool, this)
 {
   INHERIT_CLASS(this, MRGPool, AbstractPool);
   this->size = sizeof(MRGStruct);
@@ -877,7 +875,6 @@ DEFINE_POOL_CLASS(MRGPool, this)
   this->blacken = PoolTrivBlacken;
   this->scan = MRGScan;
   this->describe = MRGDescribe;
-  AVERT(PoolClass, this);
 }
 
 

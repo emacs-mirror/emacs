@@ -284,14 +284,13 @@ static void AWLSegFinish(Seg seg)
 
 /* AWLSegClass -- Class definition for AWL segments */
 
-DEFINE_SEG_CLASS(AWLSeg, class)
+DEFINE_CLASS(Seg, AWLSeg, class)
 {
   INHERIT_CLASS(class, AWLSeg, GCSeg);
   SegClassMixInNoSplitMerge(class);  /* no support for this (yet) */
   class->size = sizeof(AWLSegStruct);
   class->init = AWLSegInit;
   class->finish = AWLSegFinish;
-  AVERT(SegClass, class);
 }
 
 
@@ -1317,7 +1316,7 @@ static Size AWLFreeSize(Pool pool)
 
 /* AWLPoolClass -- the class definition */
 
-DEFINE_POOL_CLASS(AWLPool, this)
+DEFINE_CLASS(Pool, AWLPool, this)
 {
   INHERIT_CLASS(this, AWLPool, AbstractCollectPool);
   PoolClassMixInFormat(this);
@@ -1339,7 +1338,6 @@ DEFINE_POOL_CLASS(AWLPool, this)
   this->walk = AWLWalk;
   this->totalSize = AWLTotalSize;
   this->freeSize = AWLFreeSize;
-  AVERT(PoolClass, this);
 }
 
 

@@ -1626,7 +1626,7 @@ Bool SegClassCheck(SegClass class)
 
 /* SegClass -- the vanilla segment class definition */
 
-DEFINE_CLASS(Seg, class)
+DEFINE_CLASS(Seg, Seg, class)
 {
   INHERIT_CLASS(&class->protocol, Seg, Inst);
   class->size = sizeof(SegStruct);
@@ -1651,7 +1651,7 @@ DEFINE_CLASS(Seg, class)
 
 typedef SegClassStruct GCSegClassStruct;
 
-DEFINE_CLASS(GCSeg, class)
+DEFINE_CLASS(Seg, GCSeg, class)
 {
   INHERIT_CLASS(class, GCSeg, Seg);
   class->size = sizeof(GCSegStruct);
