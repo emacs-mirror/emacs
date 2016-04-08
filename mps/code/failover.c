@@ -301,7 +301,7 @@ static Res failoverDescribe(Land land, mps_lib_FILE *stream, Count depth)
 }
 
 
-DEFINE_LAND_CLASS(FailoverLand, class)
+DEFINE_CLASS(Land, FailoverLand, class)
 {
   INHERIT_CLASS(class, FailoverLand, Land);
   class->size = sizeof(FailoverStruct);
@@ -316,7 +316,6 @@ DEFINE_LAND_CLASS(FailoverLand, class)
   class->findLargest = failoverFindLargest;
   class->findInZones = failoverFindInZones;
   class->describe = failoverDescribe;
-  AVERT(LandClass, class);
 }
 
 

@@ -1192,7 +1192,7 @@ Bool BufferClassCheck(BufferClass class)
  *
  * See <design/buffer/#class.hierarchy.buffer>.  */
 
-DEFINE_CLASS(Buffer, class)
+DEFINE_CLASS(Buffer, Buffer, class)
 {
   INHERIT_CLASS(&class->protocol, Buffer, Inst);
   class->size = sizeof(BufferStruct);
@@ -1207,7 +1207,6 @@ DEFINE_CLASS(Buffer, class)
   class->setRankSet = bufferNoSetRankSet;
   class->reassignSeg = bufferNoReassignSeg;
   class->sig = BufferClassSig;
-  AVERT(BufferClass, class);
 }
 
 
@@ -1448,9 +1447,7 @@ static Res segBufDescribe(Buffer buffer, mps_lib_FILE *stream, Count depth)
  * Supports an association with a single segment when attached.  See
  * <design/buffer/#class.hierarchy.segbuf>.  */
 
-typedef BufferClassStruct SegBufClassStruct;
-
-DEFINE_CLASS(SegBuf, class)
+DEFINE_CLASS(Buffer, SegBuf, class)
 {
   INHERIT_CLASS(class, SegBuf, Buffer);
   class->size = sizeof(SegBufStruct);
@@ -1463,7 +1460,6 @@ DEFINE_CLASS(SegBuf, class)
   class->rankSet = segBufRankSet;
   class->setRankSet = segBufSetRankSet;
   class->reassignSeg = segBufReassignSeg;
-  AVERT(BufferClass, class);
 }
 
 
@@ -1516,14 +1512,11 @@ static Res rankBufInit(Buffer buffer, Pool pool, ArgList args)
  *
  * Supports initialization to a rank supplied at creation time.  */
 
-typedef BufferClassStruct RankBufClassStruct;
-
-DEFINE_CLASS(RankBuf, class)
+DEFINE_CLASS(Buffer, RankBuf, class)
 {
   INHERIT_CLASS(class, RankBuf, SegBuf);
   class->varargs = rankBufVarargs;
   class->init = rankBufInit;
-  AVERT(BufferClass, class);
 }
 
 

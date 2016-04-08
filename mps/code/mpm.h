@@ -310,9 +310,6 @@ DECLARE_CLASS(AbstractCollectPool, AbstractCollectPool);
  *
  * Convenience macro -- see <design/protocol/#int.define-special>. */
 
-#define DEFINE_POOL_CLASS(className, var) \
-  DEFINE_ALIAS_CLASS(className, Pool, var)
-
 #define POOL_SUPERCLASS(className) \
   ((PoolClass)SUPERCLASS(className))
 
@@ -491,9 +488,6 @@ extern void TraceScanSingleRef(TraceSet ts, Rank rank, Arena arena,
 /* DEFINE_ARENA_CLASS
  *
  * Convenience macro -- see <design/protocol/#int.define-special>. */
-
-#define DEFINE_ARENA_CLASS(className, var) \
-  DEFINE_ALIAS_CLASS(className, Arena, var)
 
 #define ARENA_SUPERCLASS(className) \
   ((ArenaClass)SUPERCLASS(className))
@@ -706,10 +700,6 @@ extern void SegClassMixInNoSplitMerge(SegClass class);
 
 /* DEFINE_SEG_CLASS -- define a segment class */
 
-#define DEFINE_SEG_CLASS(className, var) \
-  DEFINE_ALIAS_CLASS(className, Seg, var)
-
-
 #define SEG_SUPERCLASS(className) \
   ((SegClass)SUPERCLASS(className))
 
@@ -821,9 +811,6 @@ extern void BufferFrameSetState(Buffer buffer, FrameState state);
 
 
 /* DEFINE_BUFFER_CLASS -- define a buffer class */
-
-#define DEFINE_BUFFER_CLASS(className, var) \
-  DEFINE_ALIAS_CLASS(className, Buffer, var)
 
 #define BUFFER_SUPERCLASS(className) \
   ((BufferClass)SUPERCLASS(className))
@@ -1026,8 +1013,6 @@ extern Size LandSlowSize(Land land);
 extern Bool LandClassCheck(LandClass class);
 DECLARE_CLASS(Land, Land);
 #define LAND_SUPERCLASS(className) ((LandClass)SUPERCLASS(className))
-#define DEFINE_LAND_CLASS(className, var) \
-  DEFINE_ALIAS_CLASS(className, Land, var)
 #define IsLandSubclass(land, className) \
   IsSubclassPoly((land)->class, className ## Get())
 
