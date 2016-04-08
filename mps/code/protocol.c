@@ -22,11 +22,11 @@ Bool InstClassCheck(InstClass class)
   CHECKL(class->name != NULL);
   CHECKL(class->level < ClassDEPTH);
   for (i = 0; i <= class->level; ++i) {
-    CHECKL(class->index[i] != 0);
-    CHECKL(class->index[i] < ClassIndexLIMIT);
+    CHECKL(class->display[i] != 0);
+    CHECKL(class->display[i] < ClassIdLIMIT);
   }
   for (i = class->level + 1; i < ClassDEPTH; ++i) {
-    CHECKL(class->index[i] == 0);
+    CHECKL(class->display[i] == 0);
   }
   return TRUE;
 }
@@ -42,23 +42,6 @@ Bool InstCheck(Inst inst)
 }
 
 
-/* ProtocolIsSubclass -- a predicate for testing subclass relationships
- *
- * A protocol class is always a subclass of itself.  This true of the
- * modulo test, so the direct equality test is just an optimisation
- * for a common case.
- *
- * "Fast Dynamic Casting"; Michael Gibbs, Bjarne
- *  Stroustrup; 2004;
- *  <http://www.stroustrup.com/fast_dynamic_casting.pdf>.
- */
-
-Bool ProtocolIsSubclass(InstClass sub, InstClass super)
-{
-  return sub->index[super->level] == super->index[super->level];
-}
-
-
 /* The class definition for the root of the hierarchy */
 
 DEFINE_CLASS(Inst, Inst, theClass)
@@ -68,9 +51,9 @@ DEFINE_CLASS(Inst, Inst, theClass)
   theClass->name = "Inst";
   theClass->superclass = theClass;
   for (i = 0; i < ClassDEPTH; ++i)
-    theClass->index[i] = 0;
+    theClass->display[i] = 0;
   theClass->level = 0;
-  theClass->index[theClass->level] = ClassIndexInst;
+  theClass->display[theClass->level] = ClassIdInst;
   AVERT(InstClass, theClass);
 }
 

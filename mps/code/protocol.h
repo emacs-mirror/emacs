@@ -66,18 +66,28 @@
 #define CLASS(ident) (CLASS_ENSURE(ident)())
 
 
-/* ClassIndexEnum -- unique index for each class
+/* ClassIdEnum -- unique identifier for each class
  *
- * This defines enum constants like ClassIndexLand with a unique small
- * number for each class.
+ * This defines enum constants like ClassIdLand with a unique small
+ * number for each class -- essentially the row number in the class
+ * table.
  */
 
-#define CLASS_INDEX_ENUM(prefix, ident, kind, super) prefix ## ident,
-typedef enum ClassIndexEnum {
-  ClassIndexInvalid, /* index zero reserved for invalid classes */
-  CLASSES(CLASS_INDEX_ENUM, ClassIndex)
-  ClassIndexLIMIT
-} ClassIndexEnum;
+#define CLASS_ID_ENUM(prefix, ident, kind, super) prefix ## ident,
+typedef enum ClassIdEnum {
+  ClassIdInvalid, /* index zero reserved for invalid classes */
+  CLASSES(CLASS_ID_ENUM, ClassId)
+  ClassIdLIMIT
+} ClassIdEnum;
+
+/* ClassLevelEnum -- depth of class in hierarchy */
+
+#define CLASS_LEVEL_ENUM(prefix, ident, kind, super) prefix ## ident = prefix ## super + 1,
+typedef enum ClassLevelEnum {
+  ClassLevelNoSuper = 0, /* because everything secretly inherits from Inst */
+  CLASSES(CLASS_LEVEL_ENUM, ClassLevel)
+  ClassLevelTerminalCommaNotAllowedInC89
+} ClassLevelEnum;
 
 
 /* INHERIT_CLASS -- the standard macro for inheriting from a superclass */
@@ -90,7 +100,7 @@ typedef enum ClassIndexEnum {
     instClass->name = #_class; \
     instClass->level = instClass->superclass->level + 1; \
     AVER(instClass->level < ClassDEPTH); \
-    instClass->index[instClass->level] = ClassIndex ## _class; \
+    instClass->display[instClass->level] = ClassId ## _class; \
   END
 
 
@@ -113,7 +123,7 @@ typedef struct InstStruct {
 
 typedef const char *InstClassName;
 typedef unsigned long ProtocolTypeId;
-typedef unsigned char ClassIndex;
+typedef unsigned char ClassId;
 typedef unsigned char ClassLevel;
 #define ClassDEPTH 8            /* maximum depth of class hierarchy */
 
@@ -122,7 +132,7 @@ typedef struct InstClassStruct {
   InstClassName name;           /* human readable name such as "Land" */
   InstClass superclass;         /* pointer to direct superclass */
   ClassLevel level;             /* distance from root of class hierarchy */
-  ClassIndex index[ClassDEPTH]; /* indexes of classes at this level and above */
+  ClassId display[ClassDEPTH];  /* ids of classes at this level and above */
 } InstClassStruct;
 
 
@@ -137,15 +147,6 @@ extern Bool InstClassCheck(InstClass class);
 extern Bool InstCheck(Inst pro);
 
 
-/* ProtocolIsSubclass - use macro IsSubclass to access this.
- *
- * A predicate for testing subclass relationships.  A protocol class
- * is always a subclass of itself.
- */
-
-extern Bool ProtocolIsSubclass(InstClass sub, InstClass super);
-
-
 /* Protocol introspection interface */
 
 /* The following are macros because of the need to cast */
@@ -157,9 +158,6 @@ extern Bool ProtocolIsSubclass(InstClass sub, InstClass super);
   (((InstClass)(class))->superclass)
 
 #define ClassOfPoly(inst) (MustBeA(Inst, inst)->class)
-
-#define IsSubclassPoly(sub, super) \
-   ProtocolIsSubclass((InstClass)(sub), (InstClass)(super))
 
 
 /* SUPERCLASS  - get the superclass object, given a class name
@@ -187,9 +185,11 @@ CLASSES(CLASS_DECLARE_SUPER, UNUSED)
 
 #define CouldBeA(class, inst) ((INST_TYPE(class))inst)
 
+#define IsSubclass(sub, super) \
+  (((InstClass)(sub))->display[ClassLevel ## super] == ClassId ## super)
+  
 #define IsA(_class, inst) \
-  ProtocolIsSubclass(CouldBeA(Inst, inst)->class, \
-                     (InstClass)CLASS(_class))
+  IsSubclass(CouldBeA(Inst, inst)->class, _class)
 
 #define MustBeA(_class, inst) \
   CouldBeA(_class, \

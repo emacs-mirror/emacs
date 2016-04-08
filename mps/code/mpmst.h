@@ -93,14 +93,15 @@ typedef struct mps_pool_class_s {
  * a "subclass" of the pool structure (the "outer structure") which
  * contains PoolStruct as a a field.  The outer structure holds the
  * class-specific part of the pool's state.  See <code/pool.c>,
- * <design/pool/>.  */
+ * <design/pool/>.
+ */
 
 #define PoolSig         ((Sig)0x519B0019) /* SIGnature POOL */
 
 typedef struct mps_pool_s {     /* generic structure */
   Sig sig;                      /* <design/sig/> */
-  Serial serial;                /* from arena->poolSerial */
   PoolClass class;              /* pool class structure */
+  Serial serial;                /* from arena->poolSerial */
   Arena arena;                  /* owning arena */
   RingStruct arenaRing;         /* link in list of pools in arena */
   RingStruct bufferRing;        /* allocation buffers are attached to pool */

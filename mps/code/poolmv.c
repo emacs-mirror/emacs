@@ -897,7 +897,7 @@ Bool MVCheck(MV mv)
 {
   CHECKS(MV, mv);
   CHECKD(Pool, MVPool(mv));
-  CHECKL(IsSubclassPoly(MVPool(mv)->class, CLASS(MVPool)));
+  CHECKL(IsA(MVPool, MVPool(mv)));
   CHECKD(MFS, &mv->blockPoolStruct);
   CHECKD(MFS, &mv->spanPoolStruct);
   CHECKL(mv->extendBy > 0);
