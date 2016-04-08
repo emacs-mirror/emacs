@@ -71,9 +71,8 @@ void PoolClassMixInScan(PoolClass class)
   class->blacken = PoolTrivBlacken;
   class->grey = PoolTrivGrey;
   /* scan is part of the scanning protocol, but there is no useful
-   * default method.
-   */
-  class->scan = NULL;
+     default method */
+  class->scan = PoolNoScan;
 }
 
 
@@ -84,9 +83,8 @@ void PoolClassMixInFormat(PoolClass class)
   /* Can't check class because it's not initialized yet */
   class->attr |= AttrFMT;
   /* walk is part of the format protocol, but there is no useful
-   * default method.
-   */
-  class->walk = NULL;
+     default method */
+  class->walk = PoolNoWalk;
 }
 
 
@@ -98,11 +96,10 @@ void PoolClassMixInCollect(PoolClass class)
   class->attr |= AttrGC;
   class->whiten = PoolTrivWhiten;
   /* fix, fixEmergency and reclaim are part of the collection
-   * protocol, but there are no useful default methods for them.
-   */
-  class->fix = NULL;
-  class->fixEmergency = NULL;
-  class->reclaim = NULL;
+     protocol, but there are no useful default methods for them */
+  class->fix = PoolNoFix;
+  class->fixEmergency = PoolNoFix;
+  class->reclaim = PoolNoReclaim;
   class->rampBegin = PoolTrivRampBegin;
   class->rampEnd = PoolTrivRampEnd;
 }
