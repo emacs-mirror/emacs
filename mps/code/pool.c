@@ -223,7 +223,7 @@ void PoolFinish(Pool pool)
   AVERT(Pool, pool); 
  
   /* Do any class-specific finishing. */
-  (*ClassOfPool(pool)->finish)(pool);
+  Method(Pool, pool, finish)(pool);
 
   /* Detach the pool from the arena and format, and unsig it. */
   RingRemove(&pool->arenaRing);
@@ -266,7 +266,7 @@ void PoolDestroy(Pool pool)
 BufferClass PoolDefaultBufferClass(Pool pool)
 {
   AVERT(Pool, pool);
-  return (*ClassOfPool(pool)->bufferClass)();
+  return Method(Pool, pool, bufferClass)();
 }
 
 
@@ -280,7 +280,7 @@ Res PoolAlloc(Addr *pReturn, Pool pool, Size size)
   AVERT(Pool, pool);
   AVER(size > 0);
 
-  res = (*ClassOfPool(pool)->alloc)(pReturn, pool, size);
+  res = Method(Pool, pool, alloc)(pReturn, pool, size);
   if (res != ResOK)
     return res;
   /* Make sure that the allocated address was in the pool's memory. */
@@ -311,7 +311,7 @@ void PoolFree(Pool pool, Addr old, Size size)
   AVER(AddrIsAligned(old, pool->alignment));
   AVER(PoolHasRange(pool, old, AddrAdd(old, size)));
 
-  (*ClassOfPool(pool)->free)(pool, old, size);
+  Method(Pool, pool, free)(pool, old, size);
  
   EVENT3(PoolFree, pool, old, size);
 }
@@ -327,7 +327,7 @@ Res PoolAccess(Pool pool, Seg seg, Addr addr,
   AVERT(AccessSet, mode);
   /* Can't check MutatorFaultContext as there is no check method */
 
-  return (*ClassOfPool(pool)->access)(pool, seg, addr, mode, context);
+  return Method(Pool, pool, access)(pool, seg, addr, mode, context);
 }
 
 
@@ -340,7 +340,7 @@ Res PoolWhiten(Pool pool, Trace trace, Seg seg)
   AVERT(Seg, seg);
   AVER(PoolArena(pool) == trace->arena);
   AVER(SegPool(seg) == pool);
-  return (*ClassOfPool(pool)->whiten)(pool, trace, seg);
+  return Method(Pool, pool, whiten)(pool, trace, seg);
 }
 
 void PoolGrey(Pool pool, Trace trace, Seg seg)
@@ -350,7 +350,7 @@ void PoolGrey(Pool pool, Trace trace, Seg seg)
   AVERT(Seg, seg);
   AVER(pool->arena == trace->arena);
   AVER(SegPool(seg) == pool);
-  (*ClassOfPool(pool)->grey)(pool, trace, seg);
+  Method(Pool, pool, grey)(pool, trace, seg);
 }
 
 void PoolBlacken(Pool pool, TraceSet traceSet, Seg seg)
@@ -359,7 +359,7 @@ void PoolBlacken(Pool pool, TraceSet traceSet, Seg seg)
   AVERT(TraceSet, traceSet);
   AVERT(Seg, seg);
   AVER(SegPool(seg) == pool);
-  (*ClassOfPool(pool)->blacken)(pool, traceSet, seg);
+  Method(Pool, pool, blacken)(pool, traceSet, seg);
 }
 
 
@@ -385,7 +385,7 @@ Res PoolScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
   /* Should only scan segments which contain grey objects. */
   AVER(TraceSetInter(SegGrey(seg), ss->traces) != TraceSetEMPTY);
 
-  return (*ClassOfPool(pool)->scan)(totalReturn, ss, pool, seg);
+  return Method(Pool, pool, scan)(totalReturn, ss, pool, seg);
 }
 
 
@@ -442,7 +442,7 @@ void PoolReclaim(Pool pool, Trace trace, Seg seg)
   /* Should only be reclaiming segments which are still white. */
   AVER_CRITICAL(TraceSetIsMember(SegWhite(seg), trace));
 
-  (*ClassOfPool(pool)->reclaim)(pool, trace, seg);
+  Method(Pool, pool, reclaim)(pool, trace, seg);
 }
 
 
@@ -459,7 +459,7 @@ void PoolTraceEnd(Pool pool, Trace trace)
   AVERT(Trace, trace);
   AVER(pool->arena == trace->arena);
 
-  (*ClassOfPool(pool)->traceEnd)(pool, trace);
+  Method(Pool, pool, traceEnd)(pool, trace);
 }
 
 
@@ -477,7 +477,7 @@ Res PoolAddrObject(Addr *pReturn, Pool pool, Seg seg, Addr addr)
   AVER(pool == SegPool(seg));
   AVER(SegBase(seg) <= addr);
   AVER(addr < SegLimit(seg));
-  return (*ClassOfPool(pool)->addrObject)(pReturn, pool, seg, addr);
+  return Method(Pool, pool, addrObject)(pReturn, pool, seg, addr);
 }
 
 
@@ -490,7 +490,7 @@ void PoolWalk(Pool pool, Seg seg, FormattedObjectsVisitor f, void *p, size_t s)
   AVER(FUNCHECK(f));
   /* p and s are arbitrary values, hence can't be checked. */
 
-  (*ClassOfPool(pool)->walk)(pool, seg, f, p, s);
+  Method(Pool, pool, walk)(pool, seg, f, p, s);
 }
 
 
@@ -505,7 +505,7 @@ void PoolFreeWalk(Pool pool, FreeBlockVisitor f, void *p)
   AVER(FUNCHECK(f));
   /* p is arbitrary, hence can't be checked. */
 
-  (*ClassOfPool(pool)->freewalk)(pool, f, p);
+  Method(Pool, pool, freewalk)(pool, f, p);
 }
 
 
@@ -515,7 +515,7 @@ Size PoolTotalSize(Pool pool)
 {
   AVERT(Pool, pool);
 
-  return (*ClassOfPool(pool)->totalSize)(pool);
+  return Method(Pool, pool, totalSize)(pool);
 }
 
 
@@ -525,7 +525,7 @@ Size PoolFreeSize(Pool pool)
 {
   AVERT(Pool, pool);
 
-  return (*ClassOfPool(pool)->freeSize)(pool);
+  return Method(Pool, pool, freeSize)(pool);
 }
 
 
@@ -557,7 +557,7 @@ Res PoolDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
       return res;
   }
 
-  res = (*ClassOfPool(pool)->describe)(pool, stream, depth + 2);
+  res = Method(Pool, pool, describe)(pool, stream, depth + 2);
   if (res != ResOK)
     return res;
 

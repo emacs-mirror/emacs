@@ -177,7 +177,7 @@ void LandFinish(Land land)
   AVERC(Land, land);
   landEnter(land);
 
-  (*ClassOfLand(land)->finish)(land);
+  Method(Land, land, finish)(land);
 }
 
 
@@ -191,7 +191,7 @@ Size LandSize(Land land)
   /* .enter-leave.simple */
   AVERC(Land, land);
 
-  return (*ClassOfLand(land)->sizeMethod)(land);
+  return Method(Land, land, sizeMethod)(land);
 }
 
 
@@ -210,7 +210,7 @@ Res LandInsert(Range rangeReturn, Land land, Range range)
   AVER(RangeIsAligned(range, land->alignment));
   landEnter(land);
 
-  res = (*ClassOfLand(land)->insert)(rangeReturn, land, range);
+  res = Method(Land, land, insert)(rangeReturn, land, range);
 
   landLeave(land);
   return res;
@@ -232,7 +232,7 @@ Res LandDelete(Range rangeReturn, Land land, Range range)
   AVER(RangeIsAligned(range, land->alignment));
   landEnter(land);
 
-  res = (*ClassOfLand(land)->delete)(rangeReturn, land, range);
+  res = Method(Land, land, delete)(rangeReturn, land, range);
 
   landLeave(land);
   return res;
@@ -251,7 +251,7 @@ Bool LandIterate(Land land, LandVisitor visitor, void *closure)
   AVER(FUNCHECK(visitor));
   landEnter(land);
 
-  b = (*ClassOfLand(land)->iterate)(land, visitor, closure);
+  b = Method(Land, land, iterate)(land, visitor, closure);
 
   landLeave(land);
   return b;
@@ -271,7 +271,7 @@ Bool LandIterateAndDelete(Land land, LandDeleteVisitor visitor, void *closure)
   AVER(FUNCHECK(visitor));
   landEnter(land);
 
-  b = (*ClassOfLand(land)->iterateAndDelete)(land, visitor, closure);
+  b = Method(Land, land, iterateAndDelete)(land, visitor, closure);
 
   landLeave(land);
   return b;
@@ -294,7 +294,7 @@ Bool LandFindFirst(Range rangeReturn, Range oldRangeReturn, Land land, Size size
   AVERT(FindDelete, findDelete);
   landEnter(land);
 
-  b = (*ClassOfLand(land)->findFirst)(rangeReturn, oldRangeReturn, land, size,
+  b = Method(Land, land, findFirst)(rangeReturn, oldRangeReturn, land, size,
                                 findDelete);
 
   landLeave(land);
@@ -318,7 +318,7 @@ Bool LandFindLast(Range rangeReturn, Range oldRangeReturn, Land land, Size size,
   AVERT(FindDelete, findDelete);
   landEnter(land);
 
-  b = (*ClassOfLand(land)->findLast)(rangeReturn, oldRangeReturn, land, size,
+  b = Method(Land, land, findLast)(rangeReturn, oldRangeReturn, land, size,
                                findDelete);
 
   landLeave(land);
@@ -342,7 +342,7 @@ Bool LandFindLargest(Range rangeReturn, Range oldRangeReturn, Land land, Size si
   AVERT(FindDelete, findDelete);
   landEnter(land);
 
-  b = (*ClassOfLand(land)->findLargest)(rangeReturn, oldRangeReturn, land, size,
+  b = Method(Land, land, findLargest)(rangeReturn, oldRangeReturn, land, size,
                                   findDelete);
 
   landLeave(land);
@@ -368,7 +368,7 @@ Res LandFindInZones(Bool *foundReturn, Range rangeReturn, Range oldRangeReturn, 
   AVERT(Bool, high);
   landEnter(land);
 
-  res = (*ClassOfLand(land)->findInZones)(foundReturn, rangeReturn, oldRangeReturn,
+  res = Method(Land, land, findInZones)(foundReturn, rangeReturn, oldRangeReturn,
                                     land, size, zoneSet, high);
 
   landLeave(land);
@@ -383,7 +383,7 @@ Res LandFindInZones(Bool *foundReturn, Range rangeReturn, Range oldRangeReturn, 
 
 Res LandDescribe(Land land, mps_lib_FILE *stream, Count depth)
 {
-  return (*ClassOfLand(land)->describe)(land, stream, depth);
+  return Method(Land, land, describe)(land, stream, depth);
 }
 
 

@@ -160,20 +160,19 @@ extern Bool InstClassCheck(InstClass class);
 extern Bool InstCheck(Inst inst);
 
 
-/* Protocol introspection interface */
-
-/* The following are macros because of the need to cast */
-/* subtypes of InstClass. Nevertheless they are named */
-/* as functions. See <design/protocol/#introspect.c-lang> */
-
+/* Protocol introspection interface
+ *
+ * The following are macros because of the need to cast subtypes of
+ * InstClass. Nevertheless they are named as functions. See
+ * <design/protocol/#introspect.c-lang>.
+ */
 
 #define InstClassSuperclassPoly(class) \
   (((InstClass)(class))->superclass)
 
-/* FIXME: Try MustBeA here. */
-#define ClassOfPoly(inst) (CouldBeA(Inst, inst)->class)
+#define ClassOfPoly(inst) (MustBeA(Inst, inst)->class)
 #define SetClassOfPoly(inst, _class) \
-  BEGIN CouldBeA(Inst, inst)->class = (InstClass)(_class); END
+  BEGIN MustBeA(Inst, inst)->class = (InstClass)(_class); END
 
 
 /* SUPERCLASS  - get the superclass object, given a class name
@@ -208,14 +207,13 @@ CLASSES(CLASS_DECLARE_SUPER, UNUSED)
   IsSubclass(CouldBeA(Inst, inst)->class, _class)
 
 #define MustBeA(_class, inst) \
-  CouldBeA(_class, \
-           (inst) != NULL && \
-           CouldBeA(Inst, inst)->class != NULL && \
-           IsA(_class, inst) ? \
-           inst : \
-           mps_lib_assert_fail_expr(MPS_FILE, __LINE__, \
-                                    "MustBeA " #_class ": " #inst, \
-                                    inst))
+  ((inst) != NULL && \
+   CouldBeA(Inst, inst)->class != NULL && \
+   IsA(_class, inst) ? \
+   CouldBeA(_class, inst) : \
+   CouldBeA(_class, mps_lib_assert_fail_expr(MPS_FILE, __LINE__, \
+                                             "MustBeA " #_class ": " #inst, \
+                                             inst)))
 
 /* ClassOf* -- get the class of an instance */
 
@@ -232,6 +230,19 @@ CLASSES(CLASS_DECLARE_CLASSOF, ClassOf)
   void (prefix ## ident)(struct INST_STRUCT(ident) *inst, CLASS_TYPE(kind) class);
 
 CLASSES(CLASS_DECLARE_SETCLASSOF, SetClassOf)
+
+
+/* Method -- method call
+ *
+ * FIXME: This isn't a very nice way to do this, but there's an
+ * inconsistency in the naming of the classes at the top of the kinds.
+ * The top of the Pool kind is called AbstractPool not Pool, making it
+ * hard to use MustBeA to get to the pool kind and its methods.  This
+ * isn't *wrong*, so there should be another way to safely get from
+ * class to kind.
+ */
+
+#define Method(class, inst, meth) (ClassOf ## class(inst)->meth)
 
 
 #endif /* protocol_h */
