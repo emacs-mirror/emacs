@@ -1820,7 +1820,7 @@ Bool AMSCheck(AMS ams)
 {
   CHECKS(AMS, ams);
   CHECKD(Pool, AMSPool(ams));
-  CHECKL(IsSubclassPoly(AMSPool(ams)->class, CLASS(AMSPool)));
+  CHECKL(IsA(AMSPool, AMSPool(ams)));
   CHECKL(PoolAlignment(AMSPool(ams)) == AMSGrainsSize(ams, (Size)1));
   CHECKL(PoolAlignment(AMSPool(ams)) == AMSPool(ams)->format->alignment);
   CHECKD(PoolGen, &ams->pgen);

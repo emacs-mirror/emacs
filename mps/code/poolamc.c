@@ -1889,7 +1889,7 @@ static void amcWalkAll(Pool pool, FormattedObjectsVisitor f, void *p, size_t s)
   Arena arena;
   Ring ring, next, node;
 
-  AVER(IsSubclassPoly(pool->class, CLASS(AMCZPool)));
+  AVER(IsA(AMCZPool, pool));
 
   arena = PoolArena(pool);
   ring = PoolSegRing(pool);
@@ -2214,7 +2214,7 @@ static Bool AMCCheck(AMC amc)
 {
   CHECKS(AMC, amc);
   CHECKD(Pool, AMCPool(amc));
-  CHECKL(IsSubclassPoly(AMCPool(amc)->class, CLASS(AMCZPool)));
+  CHECKL(IsA(AMCZPool, AMCPool(amc)));
   CHECKL(RankSetCheck(amc->rankSet));
   CHECKD_NOSIG(Ring, &amc->genRing);
   CHECKL(BoolCheck(amc->gensBooted));

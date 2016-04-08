@@ -761,7 +761,7 @@ static Bool MVFFCheck(MVFF mvff)
 {
   CHECKS(MVFF, mvff);
   CHECKD(Pool, MVFFPool(mvff));
-  CHECKL(IsSubclassPoly(MVFFPool(mvff)->class, CLASS(MVFFPool)));
+  CHECKL(IsA(MVFFPool, MVFFPool(mvff)));
   CHECKD(LocusPref, MVFFLocusPref(mvff));
   CHECKL(mvff->extendBy >= ArenaGrainSize(PoolArena(MVFFPool(mvff))));
   CHECKL(mvff->avgSize > 0);                    /* see .arg.check */
