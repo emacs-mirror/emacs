@@ -66,16 +66,21 @@
 #define CLASS(ident) (CLASS_ENSURE(ident)())
 
 
-/* INHERIT_CLASS -- the standard macro for inheriting from a superclass */
-
-extern unsigned ProtocolPrime[1000];
+/* ClassIndexEnum -- unique index for each class
+ *
+ * This defines enum constants like ClassIndexLand with a unique small
+ * number for each class.
+ */
 
 #define CLASS_INDEX_ENUM(prefix, ident, kind, super) prefix ## ident,
-typedef enum ProtocolClassIndexEnum {
-  ProtocolClassIndexInvalid, /* index zero (prime 2) reserved for invalid classes */
-  CLASSES(CLASS_INDEX_ENUM, ProtocolClassIndex)
-  ProtocolClassIndexLIMIT
-} ProtocolClassIndexEnum;
+typedef enum ClassIndexEnum {
+  ClassIndexInvalid, /* index zero reserved for invalid classes */
+  CLASSES(CLASS_INDEX_ENUM, ClassIndex)
+  ClassIndexLIMIT
+} ClassIndexEnum;
+
+
+/* INHERIT_CLASS -- the standard macro for inheriting from a superclass */
 
 #define INHERIT_CLASS(this, _class, super) \
   BEGIN \
@@ -83,9 +88,9 @@ typedef enum ProtocolClassIndexEnum {
     CLASS_INIT(super)(this); \
     instClass->superclass = (InstClass)CLASS(super); \
     instClass->name = #_class; \
-    instClass->typeId = \
-      ProtocolPrime[ProtocolClassIndex ## _class] * \
-      instClass->superclass->typeId; \
+    instClass->level = instClass->superclass->level + 1; \
+    AVER(instClass->level < ClassDEPTH); \
+    instClass->index[instClass->level] = ClassIndex ## _class; \
   END
 
 
@@ -108,12 +113,16 @@ typedef struct InstStruct {
 
 typedef const char *InstClassName;
 typedef unsigned long ProtocolTypeId;
+typedef unsigned char ClassIndex;
+typedef unsigned char ClassLevel;
+#define ClassDEPTH 8            /* maximum depth of class hierarchy */
 
 typedef struct InstClassStruct {
   Sig sig;                      /* <design/sig/> */
-  InstClassName name;
-  InstClass superclass;
-  ProtocolTypeId typeId;
+  InstClassName name;           /* human readable name such as "Land" */
+  InstClass superclass;         /* pointer to direct superclass */
+  ClassLevel level;             /* distance from root of class hierarchy */
+  ClassIndex index[ClassDEPTH]; /* indexes of classes at this level and above */
 } InstClassStruct;
 
 

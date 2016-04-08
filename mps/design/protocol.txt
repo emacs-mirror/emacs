@@ -453,16 +453,20 @@ provided by the lock module -- see design.mps.lock_.
 .. _design.mps.lock: lock
 
 _`.impl.subclass`: The subclass test `.int.subclass`_ is implemented
-using a simple version of the prime factor trick described in
-[Gibbs_2004]_.  Each class has a unique prime number, and a ``typeId``
-for the class is calculated by multiplying the superclass ``typeId``
-by that prime.  A class is a subclass of a superclass if and only if
-the superclass' ``typeId`` evenly divides the class' ``typeId``.
+using a compact array of superclasses [Cohen_1991]_ giving a fast
+constant-time test.  RB_ tried an approach using prime factors
+[Gibbs_2004]_ but found that they overflowed in 32-bits too easily to
+be useful.
 
 
 A. References
 -------------
 
+.. [Cohen_1991] "Type-Extension Type Tests Can Be Performed In
+   Constant Time"; Norman H Cohen; IBM Thomas J Watson Research
+   Center; ACM Transactions on Programming Languages and Systems,
+   Vol. 13 No. 4, pp626-629; 1991-10.
+   
 .. [Gibbs_2004] "Fast Dynamic Casting"; Michael Gibbs, Bjarne
    Stroustrup; 2004;
    <http://www.stroustrup.com/fast_dynamic_casting.pdf>.
