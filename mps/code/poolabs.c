@@ -114,7 +114,7 @@ void PoolClassMixInCollect(PoolClass class)
 DEFINE_CLASS(Pool, AbstractPool, class)
 {
   INHERIT_CLASS(&class->protocol, AbstractPool, Inst);
-  class->size = 0;
+  class->size = sizeof(PoolStruct);
   class->attr = 0;
   class->varargs = ArgTrivVarargs;
   class->init = PoolTrivInit;

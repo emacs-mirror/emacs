@@ -79,6 +79,31 @@ static void *CLASS_ENSURE(NoSuper)(void)
 CLASSES(CLASS_DEFINE_SUPER, UNUSED)
 
 
+/* ClassOf* -- get the class of an instance */
+
+#define CLASS_DEFINE_CLASSOF(prefix, ident, kind, super) \
+  CLASS_TYPE(kind) (prefix ## ident)(struct INST_STRUCT(ident) *inst) \
+  { \
+    /* extern Bool INST_CHECK(ident)(struct INST_STRUCT(ident) *inst); */ \
+    /* AVERC(ident, inst); */ \
+    return (CLASS_TYPE(kind))CouldBeA(Inst, inst)->class; \
+  }
+
+CLASSES(CLASS_DEFINE_CLASSOF, ClassOf)
+
+
+/* SetClassOf -- set the class of an instance */
+
+#define CLASS_DEFINE_SETCLASSOF(prefix, ident, kind, super) \
+  void (prefix ## ident)(struct INST_STRUCT(ident) *inst, CLASS_TYPE(kind) class) \
+  { \
+    AVERT(CLASS_TYPE(kind), class); \
+    CouldBeA(Inst, inst)->class = (InstClass)class; \
+  }
+
+CLASSES(CLASS_DEFINE_SETCLASSOF, SetClassOf)
+
+
 /* C. COPYRIGHT AND LICENSE
  *
  * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.

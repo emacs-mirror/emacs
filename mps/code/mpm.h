@@ -290,6 +290,8 @@ extern PoolDebugMixin PoolNoDebugMixin(Pool pool);
 extern BufferClass PoolNoBufferClass(void);
 extern Size PoolNoSize(Pool pool);
 
+/* FIXME: Would be nice to use generated functions here, but the
+   common superclass of pools is called AbstractPool, not Pool. */
 #define ClassOfPool(pool) ((PoolClass)ClassOfPoly(pool))
 #define SetClassOfPool SetClassOfPoly
 #define SuperclassOfPool(pool) \
@@ -684,9 +686,6 @@ DECLARE_CLASS(Seg, Seg);
 DECLARE_CLASS(Seg, GCSeg);
 extern void SegClassMixInNoSplitMerge(SegClass class);
 
-#define ClassOfSeg(seg) ((SegClass)ClassOfPoly(seg))
-#define SetClassOfSeg SetClassOfPoly
-
 extern Size SegSize(Seg seg);
 extern Addr (SegBase)(Seg seg);
 extern Addr (SegLimit)(Seg seg);
@@ -796,9 +795,6 @@ DECLARE_CLASS(Buffer, Buffer);
 DECLARE_CLASS(Buffer, SegBuf);
 DECLARE_CLASS(Buffer, RankBuf);
 
-#define ClassOfBuffer(buffer) ((BufferClass)ClassOfPoly(buffer))
-#define SetClassOfBuffer SetClassOfPoly
- 
 extern AllocPattern AllocPatternRamp(void);
 extern AllocPattern AllocPatternRampCollectAll(void);
 
@@ -991,8 +987,6 @@ extern Bool LandFlush(Land dest, Land src);
 extern Size LandSlowSize(Land land);
 extern Bool LandClassCheck(LandClass class);
 DECLARE_CLASS(Land, Land);
-#define ClassOfLand(land) ((LandClass)ClassOfPoly(land))
-#define SetClassOfLand SetClassOfPoly
 
 
 /* STATISTIC -- gather statistics (in some varieties)
