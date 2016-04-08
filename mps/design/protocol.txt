@@ -69,20 +69,20 @@ several classes which do not themselves support identical protocols.
 Overview
 --------
 
-``typedef struct ProtocolClassStruct *ProtocolClass``
+``typedef struct InstClassStruct *InstClass``
 
 _`.overview.root`: We start with the root of all conformant class
-hierarchies, which is called ``ProtocolClass``. This is an "abstract"
+hierarchies, which is called ``InstClass``. This is an "abstract"
 class (that is, it has no direct instances, but it is intended to have
 subclasses). To use Dylan terminology, instances of its subclasses are
-"general" instances of ProtocolClass. They look like this::
+"general" instances of InstClass. They look like this::
 
      Instance Object                    Class Object
 
      --------------------              --------------------
-     |     sig          |    |-------->|    sig           |
+     |     sig          |    .-------->|    sig           |
      --------------------    |         --------------------
-     |     class        |----|         |    name          |
+     |     class        |----'         |    name          |
      --------------------              --------------------
      |     ...          |              |    superclass    |
      --------------------              --------------------
@@ -148,10 +148,10 @@ methods and other fields from superclasses.
 _`.overview.naming`: There are some strict naming conventions which
 must be followed when defining and using classes. The use is
 obligatory because it is assumed by the macros which support the
-definition and inheritance mechanism. For every class ``SomeClass``,
+definition and inheritance mechanism. For every class ``Foo``,
 we insist upon the following naming conventions:-
 
-* ``SomeClassStruct``
+* ``FooClassStruct``
 
    names the type of the structure for the protocol class. This might
    be a ``typedef`` which aliases the type to the type of the
@@ -159,17 +159,12 @@ we insist upon the following naming conventions:-
    superclass the it will be a type which contains the new class
    fields.
 
-* ``SomeClass``
+* ``FooClass``
 
    names the type ``*SomeClassStruct``. This might be a ``typedef``
    which aliases the type to the type of the superclass, but if the
    class has extended the protocols of the superclass then it will be
    a type which contains the new class fields.
-
-* ``SomeClassGet()``
-
-   names the function that returns the initialized class object.
-
 
 
 Interface
@@ -179,7 +174,7 @@ Interface
 Class declaration
 .................
 
-``DECLARE_CLASS(kindName, className)``
+``DECLARE_CLASS(kind, class)``
 
 _`.int.declare-class`: Class declaration is performed by the macro
 ``DECLARE_CLASS``, which declares the existence of the class
@@ -195,15 +190,15 @@ _`.int.define-class`: Class definition is performed by the macro
 ``DEFINE_CLASS()``. A call to the macro must be followed by a body of
 initialization code in braces ``{}``. The parameter ``className`` is
 used to name the class being defined. The parameter ``var`` is used to
-name a local variable of type ``className``, which is defined by the
-macro; it refers to the canonical storage for the class being defined.
-This variable may be used in the initialization code. (The macro
-doesn't just pick a name implicitly because of the danger of a name
-clash with other names used by the programmer). A call to
-``DEFINE_CLASS(SomeClass, var)`` defines the ``EnsureSomeClass()``
-function, defines some static storage for the canonical class object,
-and defines some other things to ensure the class gets initialized
-exactly once.
+name a local variable of type ``classNameClass``, which is defined by
+the macro; it refers to the canonical storage for the class being
+defined.  This variable may be used in the initialization code. (The
+macro doesn't just pick a name implicitly because of the danger of a
+name clash with other names used by the programmer). A call to
+``DEFINE_CLASS(SomeClass, var)`` defines the ensure function for the
+class alond with some static storage for the canonical class object,
+and some other things to ensure the class gets initialized exactly
+once.
 
 ``DEFINE_ALIAS_CLASS(className, typeName, var)``
 
@@ -233,11 +228,11 @@ same time (see `.int.static-superclass.special`_).
 Single inheritance
 ..................
 
-``INHERIT_CLASS(thisClassCoerced, parentName)``
+``INHERIT_CLASS(thisClassCoerced, className, parentName)``
 
 _`.int.inheritance`: Class inheritance details must be provided in the
 class initialization code (see `.int.define-class`_). Inheritance is
-performed by the macro ``INHERIT_CLASS()``. A call to this macro will
+performed by the macro ``INHERIT_CLASS``. A call to this macro will
 make the class being defined a direct subclass of ``parentClassName``
 by ensuring that all the fields of the parent class are copied into
 ``thisClass``, and setting the superclass field of ``thisClass`` to be
