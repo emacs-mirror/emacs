@@ -99,8 +99,8 @@ typedef struct mps_pool_class_s {
 #define PoolSig         ((Sig)0x519B0019) /* SIGnature POOL */
 
 typedef struct mps_pool_s {     /* generic structure */
+  InstStruct instStruct;
   Sig sig;                      /* <design/sig/> */
-  PoolClass class;              /* pool class structure */
   Serial serial;                /* from arena->poolSerial */
   Arena arena;                  /* owning arena */
   RingStruct arenaRing;         /* link in list of pools in arena */
@@ -246,8 +246,8 @@ typedef struct SegClassStruct {
 #define SegSig      ((Sig)0x5195E999) /* SIGnature SEG  */
 
 typedef struct SegStruct {      /* segment structure */
+  InstStruct instStruct;
   Sig sig;                      /* <code/misc.h#sig> */
-  SegClass class;               /* segment class structure */
   Tract firstTract;             /* first tract of segment */
   RingStruct poolRing;          /* link in list of segs in pool */
   Addr limit;                   /* limit of segment */
@@ -336,8 +336,8 @@ typedef struct BufferClassStruct {
 #define BufferSig       ((Sig)0x519B0FFE) /* SIGnature BUFFEr */
 
 typedef struct BufferStruct {
+  InstStruct instStruct;
   Sig sig;                      /* <design/sig/> */
-  BufferClass class;            /* buffer class structure */
   Serial serial;                /* from pool->bufferSerial */
   Arena arena;                  /* owning arena */
   Pool pool;                    /* owning pool */
@@ -601,8 +601,8 @@ typedef struct LandClassStruct {
 #define LandSig ((Sig)0x5197A4D9) /* SIGnature LAND */
 
 typedef struct LandStruct {
+  InstStruct instStruct;
   Sig sig;                      /* <design/sig/> */
-  LandClass class;              /* land class structure */
   Arena arena;                  /* owning arena */
   Align alignment;              /* alignment of addresses */
   Bool inLand;                  /* prevent reentrance */

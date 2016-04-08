@@ -83,7 +83,7 @@ Bool PoolCheck(Pool pool)
   CHECKS(Pool, pool);
   /* Break modularity for checking efficiency */
   CHECKL(pool->serial < ArenaGlobals(pool->arena)->poolSerial);
-  CHECKD(PoolClass, pool->class);
+  CHECKD(PoolClass, ClassOfPool(pool));
   CHECKU(Arena, pool->arena);
   CHECKD_NOSIG(Ring, &pool->arenaRing);
   CHECKD_NOSIG(Ring, &pool->bufferRing);
@@ -129,7 +129,7 @@ Res PoolInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   AVERT(PoolClass, class);
   globals = ArenaGlobals(arena);
 
-  pool->class = class;
+  SetClassOfPool(pool, class);
   /* label the pool class with its name */
   if (!class->labelled) {
     /* We could still get multiple labelling if multiple instances of */
@@ -223,7 +223,7 @@ void PoolFinish(Pool pool)
   AVERT(Pool, pool); 
  
   /* Do any class-specific finishing. */
-  (*pool->class->finish)(pool);
+  (*ClassOfPool(pool)->finish)(pool);
 
   /* Detach the pool from the arena and format, and unsig it. */
   RingRemove(&pool->arenaRing);
@@ -250,7 +250,7 @@ void PoolDestroy(Pool pool)
 
   AVERT(Pool, pool); 
  
-  class = pool->class; /* } In case PoolFinish changes these */
+  class = ClassOfPool(pool); /* } In case PoolFinish changes these */
   arena = pool->arena; /* } */
 
   /* Finish the pool instance structure. */
@@ -266,7 +266,7 @@ void PoolDestroy(Pool pool)
 BufferClass PoolDefaultBufferClass(Pool pool)
 {
   AVERT(Pool, pool);
-  return (*pool->class->bufferClass)();
+  return (*ClassOfPool(pool)->bufferClass)();
 }
 
 
@@ -280,7 +280,7 @@ Res PoolAlloc(Addr *pReturn, Pool pool, Size size)
   AVERT(Pool, pool);
   AVER(size > 0);
 
-  res = (*pool->class->alloc)(pReturn, pool, size);
+  res = (*ClassOfPool(pool)->alloc)(pReturn, pool, size);
   if (res != ResOK)
     return res;
   /* Make sure that the allocated address was in the pool's memory. */
@@ -311,7 +311,7 @@ void PoolFree(Pool pool, Addr old, Size size)
   AVER(AddrIsAligned(old, pool->alignment));
   AVER(PoolHasRange(pool, old, AddrAdd(old, size)));
 
-  (*pool->class->free)(pool, old, size);
+  (*ClassOfPool(pool)->free)(pool, old, size);
  
   EVENT3(PoolFree, pool, old, size);
 }
@@ -327,7 +327,7 @@ Res PoolAccess(Pool pool, Seg seg, Addr addr,
   AVERT(AccessSet, mode);
   /* Can't check MutatorFaultContext as there is no check method */
 
-  return (*pool->class->access)(pool, seg, addr, mode, context);
+  return (*ClassOfPool(pool)->access)(pool, seg, addr, mode, context);
 }
 
 
@@ -340,7 +340,7 @@ Res PoolWhiten(Pool pool, Trace trace, Seg seg)
   AVERT(Seg, seg);
   AVER(PoolArena(pool) == trace->arena);
   AVER(SegPool(seg) == pool);
-  return (*pool->class->whiten)(pool, trace, seg);
+  return (*ClassOfPool(pool)->whiten)(pool, trace, seg);
 }
 
 void PoolGrey(Pool pool, Trace trace, Seg seg)
@@ -350,7 +350,7 @@ void PoolGrey(Pool pool, Trace trace, Seg seg)
   AVERT(Seg, seg);
   AVER(pool->arena == trace->arena);
   AVER(SegPool(seg) == pool);
-  (*pool->class->grey)(pool, trace, seg);
+  (*ClassOfPool(pool)->grey)(pool, trace, seg);
 }
 
 void PoolBlacken(Pool pool, TraceSet traceSet, Seg seg)
@@ -359,7 +359,7 @@ void PoolBlacken(Pool pool, TraceSet traceSet, Seg seg)
   AVERT(TraceSet, traceSet);
   AVERT(Seg, seg);
   AVER(SegPool(seg) == pool);
-  (*pool->class->blacken)(pool, traceSet, seg);
+  (*ClassOfPool(pool)->blacken)(pool, traceSet, seg);
 }
 
 
@@ -385,7 +385,7 @@ Res PoolScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
   /* Should only scan segments which contain grey objects. */
   AVER(TraceSetInter(SegGrey(seg), ss->traces) != TraceSetEMPTY);
 
-  return (*pool->class->scan)(totalReturn, ss, pool, seg);
+  return (*ClassOfPool(pool)->scan)(totalReturn, ss, pool, seg);
 }
 
 
@@ -421,7 +421,7 @@ Res PoolFixEmergency(Pool pool, ScanState ss, Seg seg, Addr *refIO)
   /* Should only be fixing references to white segments. */
   AVER_CRITICAL(TraceSetInter(SegWhite(seg), ss->traces) != TraceSetEMPTY);
 
-  res = (pool->class->fixEmergency)(pool, ss, seg, refIO);
+  res = (ClassOfPool(pool)->fixEmergency)(pool, ss, seg, refIO);
   AVER_CRITICAL(res == ResOK);
   return res;
 }
@@ -442,7 +442,7 @@ void PoolReclaim(Pool pool, Trace trace, Seg seg)
   /* Should only be reclaiming segments which are still white. */
   AVER_CRITICAL(TraceSetIsMember(SegWhite(seg), trace));
 
-  (*pool->class->reclaim)(pool, trace, seg);
+  (*ClassOfPool(pool)->reclaim)(pool, trace, seg);
 }
 
 
@@ -459,7 +459,7 @@ void PoolTraceEnd(Pool pool, Trace trace)
   AVERT(Trace, trace);
   AVER(pool->arena == trace->arena);
 
-  (*pool->class->traceEnd)(pool, trace);
+  (*ClassOfPool(pool)->traceEnd)(pool, trace);
 }
 
 
@@ -477,7 +477,7 @@ Res PoolAddrObject(Addr *pReturn, Pool pool, Seg seg, Addr addr)
   AVER(pool == SegPool(seg));
   AVER(SegBase(seg) <= addr);
   AVER(addr < SegLimit(seg));
-  return (*pool->class->addrObject)(pReturn, pool, seg, addr);
+  return (*ClassOfPool(pool)->addrObject)(pReturn, pool, seg, addr);
 }
 
 
@@ -490,7 +490,7 @@ void PoolWalk(Pool pool, Seg seg, FormattedObjectsVisitor f, void *p, size_t s)
   AVER(FUNCHECK(f));
   /* p and s are arbitrary values, hence can't be checked. */
 
-  (*pool->class->walk)(pool, seg, f, p, s);
+  (*ClassOfPool(pool)->walk)(pool, seg, f, p, s);
 }
 
 
@@ -505,7 +505,7 @@ void PoolFreeWalk(Pool pool, FreeBlockVisitor f, void *p)
   AVER(FUNCHECK(f));
   /* p is arbitrary, hence can't be checked. */
 
-  (*pool->class->freewalk)(pool, f, p);
+  (*ClassOfPool(pool)->freewalk)(pool, f, p);
 }
 
 
@@ -515,7 +515,7 @@ Size PoolTotalSize(Pool pool)
 {
   AVERT(Pool, pool);
 
-  return (*pool->class->totalSize)(pool);
+  return (*ClassOfPool(pool)->totalSize)(pool);
 }
 
 
@@ -525,7 +525,7 @@ Size PoolFreeSize(Pool pool)
 {
   AVERT(Pool, pool);
 
-  return (*pool->class->freeSize)(pool);
+  return (*ClassOfPool(pool)->freeSize)(pool);
 }
 
 
@@ -544,7 +544,7 @@ Res PoolDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
   res = WriteF(stream, depth,
                "Pool $P ($U) {\n", (WriteFP)pool, (WriteFU)pool->serial,
                "  class $P (\"$S\")\n",
-               (WriteFP)pool->class, (WriteFS)pool->class->protocol.name,
+               (WriteFP)ClassOfPool(pool), (WriteFS)ClassOfPool(pool)->protocol.name,
                "  arena $P ($U)\n",
                (WriteFP)pool->arena, (WriteFU)pool->arena->serial,
                "  alignment $W\n", (WriteFW)pool->alignment,
@@ -557,7 +557,7 @@ Res PoolDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
       return res;
   }
 
-  res = (*pool->class->describe)(pool, stream, depth + 2);
+  res = (*ClassOfPool(pool)->describe)(pool, stream, depth + 2);
   if (res != ResOK)
     return res;
 

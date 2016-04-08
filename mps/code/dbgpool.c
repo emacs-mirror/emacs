@@ -87,7 +87,7 @@ Bool PoolDebugMixinCheck(PoolDebugMixin debug)
 
 /* DebugPoolDebugMixin -- gets the debug mixin, if any */
 
-#define DebugPoolDebugMixin(pool) (((pool)->class->debugMixin)(pool))
+#define DebugPoolDebugMixin(pool) ((ClassOfPool(pool)->debugMixin)(pool))
 
 
 /* PoolNoDebugMixin -- debug mixin methods for pools with no mixin */
