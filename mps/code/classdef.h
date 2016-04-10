@@ -27,7 +27,6 @@
 #define CLASSES(CLASS, X) \
   /*       identifier      kind       super */ \
   CLASS(X, Inst,           Inst,      NoSuper) \
-  CLASS(X, InstClass,      InstClass, Inst) \
   CLASS(X, AbstractArena,  Arena,     Inst) \
   CLASS(X, ClientArena,    Arena,     AbstractArena) \
   CLASS(X, VMArena,        Arena,     AbstractArena) \
@@ -52,7 +51,6 @@
   CLASS(X, SNCSeg,         Seg,       GCSeg) \
   CLASS(X, AMSSeg,         Seg,       GCSeg) \
   CLASS(X, AMSTSeg,        Seg,       AMSSeg) \
-  CLASS(X, PoolClass,      InstClass, InstClass) \
   CLASS(X, AbstractPool,   Pool,      Inst) \
   CLASS(X, MFSPool,        Pool,      AbstractPool) \
   CLASS(X, MRGPool,        Pool,      AbstractPool) \
