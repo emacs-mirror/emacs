@@ -171,9 +171,8 @@ Bool ArenaClassCheck(ArenaClass class)
 
 Bool ArenaCheck(Arena arena)
 {
-  CHECKS(Arena, arena);
+  CHECKC(AbstractArena, arena);
   CHECKD(Globals, ArenaGlobals(arena));
-  CHECKD(ArenaClass, arena->class);
 
   CHECKL(BoolCheck(arena->poolReady));
   if (arena->poolReady) { /* <design/arena/#pool.ready> */
@@ -255,7 +254,7 @@ Res ArenaInit(Arena arena, ArenaClass class, Size grainSize, ArgList args)
   if (ArgPick(&arg, args, MPS_KEY_PAUSE_TIME))
     pauseTime = arg.val.d;
 
-  arena->class = class;
+  SetClassOfArena(arena, class); /* FIXME: Should call InstInit here? */
 
   arena->reserved = (Size)0;
   arena->committed = (Size)0;
@@ -385,7 +384,8 @@ Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args)
   EventInit();
 
   /* Do initialization.  This will call ArenaInit (see .init.caller). */
-  res = (*class->init)(&arena, class, args);
+  /* FIXME: Should call init which next-method calls ArenaAbsInit. */
+  res = class->init(&arena, class, args);
   if (res != ResOK)
     goto failInit;
 
@@ -417,7 +417,8 @@ failControlInit:
   arenaFreeLandFinish(arena);
 failFreeLandInit:
 failStripeSize:
-  (*class->finish)(arena);
+  /* FIXME: Should be taken care of by next-method calls. */
+  class->finish(arena);
 failInit:
   return res;
 }
@@ -485,7 +486,7 @@ void ArenaDestroy(Arena arena)
   arenaFreeLandFinish(arena);
 
   /* Call class-specific finishing.  This will call ArenaFinish. */
-  (*arena->class->finish)(arena);
+  Method(Arena, arena, finish)(arena);
 
   EventFinish();
 }
@@ -535,7 +536,7 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
 
   res = WriteF(stream, depth, "Arena $P {\n", (WriteFP)arena,
                "  class $P (\"$S\")\n",
-               (WriteFP)arena->class, (WriteFS)arena->class->protocol.name,
+               (WriteFP)ClassOfArena(arena), (WriteFS)ClassOfArena(arena)->protocol.name,
                NULL);
   if (res != ResOK)
     return res;
@@ -573,7 +574,7 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
   if (res != ResOK)
     return res;
 
-  res = (*arena->class->describe)(arena, stream, depth);
+  res = Method(Arena, arena, describe)(arena, stream, depth);
   if (res != ResOK)
     return res;
 
@@ -806,9 +807,9 @@ static Res arenaAllocPageInChunk(Addr *baseReturn, Chunk chunk, Pool pool)
                            chunk->allocBase, chunk->pages, 1))
     return ResRESOURCE;
   
-  res = (*arena->class->pagesMarkAllocated)(arena, chunk,
-                                            basePageIndex, 1,
-                                            pool);
+  res = Method(Arena, arena, pagesMarkAllocated)(arena, chunk,
+                                                 basePageIndex, 1,
+                                                 pool);
   if (res != ResOK)
     return res;
 
@@ -849,7 +850,7 @@ static void arenaFreePage(Arena arena, Addr base, Pool pool)
 {
   AVERT(Arena, arena);
   AVERT(Pool, pool);
-  (*arena->class->free)(base, ArenaGrainSize(arena), pool);
+  Method(Arena, arena, free)(base, ArenaGrainSize(arena), pool);
 }
 
 
@@ -1095,7 +1096,7 @@ Res ArenaFreeLandAlloc(Tract *tractReturn, Arena arena, ZoneSet zones,
   baseIndex = INDEX_OF_ADDR(chunk, RangeBase(&range));
   pages = ChunkSizeToPages(chunk, RangeSize(&range));
 
-  res = (*arena->class->pagesMarkAllocated)(arena, chunk, baseIndex, pages, pool);
+  res = Method(Arena, arena, pagesMarkAllocated)(arena, chunk, baseIndex, pages, pool);
   if (res != ResOK)
     goto failMark;
 
@@ -1188,7 +1189,7 @@ void ArenaFree(Addr base, Size size, Pool pool)
 
   arenaFreeLandInsertSteal(&oldRange, arena, &range); /* may update range */
 
-  (*arena->class->free)(RangeBase(&range), RangeSize(&range), pool);
+  Method(Arena, arena, free)(RangeBase(&range), RangeSize(&range), pool);
 
   /* Freeing memory might create spare pages, but not more than this. */
   CHECKL(arena->spareCommitted <= arena->spareCommitLimit);
@@ -1230,7 +1231,7 @@ void ArenaSetSpareCommitLimit(Arena arena, Size limit)
   arena->spareCommitLimit = limit;
   if (arena->spareCommitLimit < arena->spareCommitted) {
     Size excess = arena->spareCommitted - arena->spareCommitLimit;
-    (void)arena->class->purgeSpare(arena, excess);
+    (void)Method(Arena, arena, purgeSpare)(arena, excess);
   }
 
   EVENT2(SpareCommitLimitSet, arena, limit);
@@ -1287,7 +1288,7 @@ Res ArenaSetCommitLimit(Arena arena, Size limit)
     /* Attempt to set the limit below current committed */
     if (limit >= committed - arena->spareCommitted) {
       Size excess = committed - limit;
-      (void)arena->class->purgeSpare(arena, excess);
+      (void)Method(Arena, arena, purgeSpare)(arena, excess);
       AVER(limit >= ArenaCommitted(arena));
       arena->commitLimit = limit;
       res = ResOK;
@@ -1357,7 +1358,7 @@ Res ArenaExtend(Arena arena, Addr base, Size size)
   AVER(base != (Addr)0);
   AVER(size > 0);
 
-  res = (*arena->class->extend)(arena, base, size);
+  res = Method(Arena, arena, extend)(arena, base, size);
   if (res != ResOK)
     return res;
 
@@ -1385,7 +1386,7 @@ void ArenaCompact(Arena arena, Trace trace)
 {
   AVERT(Arena, arena);
   AVERT(Trace, trace);
-  (*arena->class->compact)(arena, trace);
+  Method(Arena, arena, compact)(arena, trace);
 }
 
 static void ArenaTrivCompact(Arena arena, Trace trace)

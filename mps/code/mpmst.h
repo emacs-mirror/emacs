@@ -716,10 +716,10 @@ typedef struct ShieldStruct {
 #define ArenaSig        ((Sig)0x519A6E4A) /* SIGnature ARENA */
 
 typedef struct mps_arena_s {
+  InstStruct instStruct;
+  
   GlobalsStruct globals; /* must be first, see <design/arena/#globals> */
   Serial serial;
-
-  ArenaClass class;             /* arena class structure */
 
   Bool poolReady;               /* <design/arena/#pool.ready> */
   MVStruct controlPoolStruct;   /* <design/arena/#pool> */

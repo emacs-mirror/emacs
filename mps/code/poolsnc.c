@@ -128,14 +128,12 @@ static Res SNCBufInit(Buffer buffer, Pool pool, ArgList args)
 {
   SNCBuf sncbuf;
   Res res;
-  BufferClass superclass;
 
   AVERT(Buffer, buffer);
   AVERT(Pool, pool);
 
   /* call next method */
-  superclass = SUPERCLASS(Buffer, SNCBuf);
-  res = (*superclass->init)(buffer, pool, args);
+  res = SUPERCLASS(Buffer, SNCBuf)->init(buffer, pool, args);
   if (res != ResOK)
     return res;
 

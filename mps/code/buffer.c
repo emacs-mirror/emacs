@@ -244,7 +244,8 @@ static Res BufferInit(Buffer buffer, BufferClass class,
 
   /* Dispatch to the buffer class method to perform any  */
   /* class-specific initialization of the buffer. */
-  res = (*class->init)(buffer, pool, args);
+  /* FIXME: Should call this first, which next-method calls BufferAbsInit. */
+  res = class->init(buffer, pool, args);
   if (res != ResOK)
     goto failInit;
 

@@ -158,7 +158,8 @@ Res PoolInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   AVERT(Pool, pool);
 
   /* Do class-specific initialization. */
-  res = (*class->init)(pool, args);
+  /* FIXME: Should be calling this first, which next-method calls PoolAbsInit. */
+  res = class->init(pool, args);
   if (res != ResOK)
     goto failInit;
 
