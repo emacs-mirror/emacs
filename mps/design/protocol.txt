@@ -247,16 +247,15 @@ functions.
 _`.int.superclass`: An introspection function which returns the direct
 superclass of class object ``class``.
 
-``SUPERCLASS(className)``
+``SUPERCLASS(kind, className)``
 
 _`.int.static-superclass`: An introspection macro which returns the
 direct superclass given a class name, which must (obviously) be
 statically known. The macro expands into a call to the ensure function
 for the class name, so this must be in scope (which may require a
 forward declaration). The macro is useful for next-method calls (see
-`.overview.next-method`_). The superclass is returned with type
-``ProtocolClass`` so it may be necessary to cast it to the type for
-the appropriate subclass.
+`.overview.next-method`_). The superclass is returned as a class of
+the kind, and this is not currently checked.
 
 _`.int.static-superclass.special`: Implementors of classes which are
 designed to be subclassed without extension may choose to provide a

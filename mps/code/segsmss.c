@@ -126,7 +126,7 @@ static Res amstSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   /* no useful checks for base and size */
 
   /* Initialize the superclass fields first via next-method call */
-  super = SUPERCLASS(AMSTSeg);
+  super = SUPERCLASS(Seg, AMSTSeg);
   res = super->init(seg, pool, base, size, args);
   if (res != ResOK)
     return res;
@@ -158,7 +158,7 @@ static void amstSegFinish(Seg seg)
 
   amstseg->sig = SigInvalid;
   /* finish the superclass fields last */
-  super = SUPERCLASS(AMSTSeg);
+  super = SUPERCLASS(Seg, AMSTSeg);
   super->finish(seg);
 }
 
@@ -190,7 +190,7 @@ static Res amstSegMerge(Seg seg, Seg segHi,
   amst = PoolAMST(SegPool(seg));
 
   /* Merge the superclass fields via direct next-method call */
-  super = SUPERCLASS(AMSTSeg);
+  super = SUPERCLASS(Seg, AMSTSeg);
   res = super->merge(seg, segHi, base, mid, limit);
   if (res != ResOK)
     goto failSuper;
@@ -238,7 +238,7 @@ static Res amstSegSplit(Seg seg, Seg segHi,
   amst = PoolAMST(SegPool(seg));
 
   /* Split the superclass fields via direct next-method call */
-  super = SUPERCLASS(AMSTSeg);
+  super = SUPERCLASS(Seg, AMSTSeg);
   res = super->split(seg, segHi, base, mid, limit);
   if (res != ResOK)
     goto failSuper;
@@ -538,7 +538,7 @@ static Res AMSTBufferFill(Addr *baseReturn, Addr *limitReturn,
   amst = PoolAMST(pool);
 
   /* call next method */
-  super = SUPERCLASS(AMSTPool);
+  super = SUPERCLASS(Pool, AMSTPool);
   res = super->bufferFill(&base, &limit, pool, buffer, size);
   if (res != ResOK)
     return res;

@@ -116,7 +116,7 @@ static Res loSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   AVERT(LO, lo);
 
   /* Initialize the superclass fields first via next-method call */
-  super = SUPERCLASS(LOSeg);
+  super = SUPERCLASS(Seg, LOSeg);
   res = super->init(seg, pool, base, size, args);
   if(res != ResOK)
     return res;
@@ -178,7 +178,7 @@ static void loSegFinish(Seg seg)
   loseg->sig = SigInvalid;
 
   /* finish the superclass fields last */
-  super = SUPERCLASS(LOSeg);
+  super = SUPERCLASS(Seg, LOSeg);
   super->finish(seg);
 }
 

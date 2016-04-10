@@ -201,7 +201,7 @@ static Res AWLSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   AVERT(AWL, awl);
 
   /* Initialize the superclass fields first via next-method call */
-  super = SUPERCLASS(AWLSeg);
+  super = SUPERCLASS(Seg, AWLSeg);
   res = super->init(seg, pool, base, size, args);
   if (res != ResOK)
     return res;
@@ -277,7 +277,7 @@ static void AWLSegFinish(Seg seg)
   awlseg->sig = SigInvalid;
 
   /* finish the superclass fields last */
-  super = SUPERCLASS(AWLSeg);
+  super = SUPERCLASS(Seg, AWLSeg);
   super->finish(seg);
 }
 

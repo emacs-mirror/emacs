@@ -57,28 +57,6 @@ DEFINE_CLASS(Inst, Inst, theClass)
 }
 
 
-/* Superclass getters
- *
- * Use the class table to define a getter function for each class that
- * returns its superclass, in order to implement the SUPERCLASS macro
- * efficiently.
- */
-
-#define CLASS_DEFINE_SUPER(UNUSED, ident, kind, super) \
-  extern CLASS_TYPE(kind) CLASS_ENSURE(ident)(void); \
-  CLASS_TYPE(kind) CLASS_SUPER(ident)(void) \
-  { \
-    return CLASS(super); \
-  }
-
-static void *CLASS_ENSURE(NoSuper)(void)
-{
-  return NULL;
-}
-
-CLASSES(CLASS_DEFINE_SUPER, UNUSED)
-
-
 /* ClassOf* -- get the class of an instance */
 
 #define CLASS_DEFINE_CLASSOF(prefix, ident, kind, super) \
