@@ -65,13 +65,10 @@ failAbsInit:
 
 static void NFinish(Pool pool)
 {
-  PoolN poolN;
-
-  AVERT(Pool, pool);
-  poolN = PoolPoolN(pool);
-  AVERT(PoolN, poolN);
+  PoolN poolN = MustBeA(NPool, pool);
 
   /* Finish pool-specific structures. */
+  UNUSED(poolN);
 
   PoolAbsFinish(pool);
 }
@@ -81,14 +78,11 @@ static void NFinish(Pool pool)
 
 static Res NAlloc(Addr *pReturn, Pool pool, Size size)
 {
-  PoolN poolN;
-
-  AVERT(Pool, pool);
-  poolN = PoolPoolN(pool);
-  AVERT(PoolN, poolN);
+  PoolN poolN = MustBeA(NPool, pool);
 
   AVER(pReturn != NULL);
   AVER(size > 0);
+  UNUSED(poolN);
 
   return ResLIMIT;  /* limit of nil blocks exceeded */
 }
@@ -98,14 +92,11 @@ static Res NAlloc(Addr *pReturn, Pool pool, Size size)
 
 static void NFree(Pool pool, Addr old, Size size)
 {
-  PoolN poolN;
-
-  AVERT(Pool, pool);
-  poolN = PoolPoolN(pool);
-  AVERT(PoolN, poolN);
+  PoolN poolN = MustBeA(NPool, pool);
 
   AVER(old != (Addr)0);
   AVER(size > 0);
+  UNUSED(poolN);
 
   NOTREACHED;  /* can't allocate, should never free */
 }
@@ -116,16 +107,14 @@ static void NFree(Pool pool, Addr old, Size size)
 static Res NBufferFill(Addr *baseReturn, Addr *limitReturn,
                        Pool pool, Buffer buffer, Size size)
 {
-  PoolN poolN;
+  PoolN poolN = MustBeA(NPool, pool);
 
-  AVERT(Pool, pool);
-  poolN = PoolPoolN(pool);
-  AVERT(PoolN, poolN);
   AVER(baseReturn != NULL);
   AVER(limitReturn != NULL);
   AVERT(Buffer, buffer);
   AVER(BufferIsReset(buffer));
   AVER(size > 0);
+  UNUSED(poolN);
 
   NOTREACHED;   /* can't create buffers, so shouldn't fill them */
   return ResUNIMPL;
@@ -150,14 +139,11 @@ static void NBufferEmpty(Pool pool, Buffer buffer,
 
 static Res NDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 {
-  PoolN poolN;
-
-  AVERT(Pool, pool);
-  poolN = PoolPoolN(pool);
-  AVERT(PoolN, poolN);
+  PoolN poolN = MustBeA(NPool, pool);
 
   UNUSED(stream); /* TODO: should output something here */
   UNUSED(depth);
+  UNUSED(poolN);
 
   return ResOK;
 }
@@ -167,14 +153,11 @@ static Res NDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 
 static Res NWhiten(Pool pool, Trace trace, Seg seg)
 {
-  PoolN poolN;
-
-  AVERT(Pool, pool);
-  poolN = PoolPoolN(pool);
-  AVERT(PoolN, poolN);
+  PoolN poolN = MustBeA(NPool, pool);
 
   AVERT(Trace, trace);
   AVERT(Seg, seg);
+  UNUSED(poolN);
  
   NOTREACHED; /* pool doesn't have any actions */
 
@@ -186,14 +169,11 @@ static Res NWhiten(Pool pool, Trace trace, Seg seg)
 
 static void NGrey(Pool pool, Trace trace, Seg seg)
 {
-  PoolN poolN;
-
-  AVERT(Pool, pool);
-  poolN = PoolPoolN(pool);
-  AVERT(PoolN, poolN);
+  PoolN poolN = MustBeA(NPool, pool);
 
   AVERT(Trace, trace);
   AVERT(Seg, seg);
+  UNUSED(poolN);
 }
 
 
@@ -201,14 +181,11 @@ static void NGrey(Pool pool, Trace trace, Seg seg)
 
 static void NBlacken(Pool pool, TraceSet traceSet, Seg seg)
 {
-  PoolN poolN;
-
-  AVERT(Pool, pool);
-  poolN = PoolPoolN(pool);
-  AVERT(PoolN, poolN);
+  PoolN poolN = MustBeA(NPool, pool);
 
   AVERT(TraceSet, traceSet);
   AVERT(Seg, seg);
+  UNUSED(poolN);
 }
 
 
@@ -216,14 +193,12 @@ static void NBlacken(Pool pool, TraceSet traceSet, Seg seg)
 
 static Res NScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 {
-  PoolN poolN;
+  PoolN poolN = MustBeA(NPool, pool);
 
   AVER(totalReturn != NULL);
   AVERT(ScanState, ss);
-  AVERT(Pool, pool);
-  poolN = PoolPoolN(pool);
-  AVERT(PoolN, poolN);
   AVERT(Seg, seg);
+  UNUSED(poolN);
 
   return ResOK;
 }
@@ -233,15 +208,12 @@ static Res NScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 
 static Res NFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
 {
-  PoolN poolN;
-
-  AVERT(Pool, pool);
-  poolN = PoolPoolN(pool);
-  AVERT(PoolN, poolN);
+  PoolN poolN = MustBeA(NPool, pool);
 
   AVERT(ScanState, ss);
   UNUSED(refIO);
   AVERT(Seg, seg);
+  UNUSED(poolN);
   NOTREACHED;  /* Since we don't allocate any objects, should never */
                /* be called upon to fix a reference. */
   return ResFAIL;
@@ -252,14 +224,11 @@ static Res NFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
 
 static void NReclaim(Pool pool, Trace trace, Seg seg)
 {
-  PoolN poolN;
-
-  AVERT(Pool, pool);
-  poolN = PoolPoolN(pool);
-  AVERT(PoolN, poolN);
+  PoolN poolN = MustBeA(NPool, pool);
 
   AVERT(Trace, trace);
   AVERT(Seg, seg);
+  UNUSED(poolN);
   /* all unmarked and white objects reclaimed */
 }
 
@@ -268,13 +237,10 @@ static void NReclaim(Pool pool, Trace trace, Seg seg)
 
 static void NTraceEnd(Pool pool, Trace trace)
 {
-  PoolN poolN;
-
-  AVERT(Pool, pool);
-  poolN = PoolPoolN(pool);
-  AVERT(PoolN, poolN);
+  PoolN poolN = MustBeA(NPool, pool);
 
   AVERT(Trace, trace);
+  UNUSED(poolN);
 }
 
 
