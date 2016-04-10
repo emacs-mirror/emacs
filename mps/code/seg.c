@@ -120,19 +120,18 @@ void SegFree(Seg seg)
 
 /* SegInit -- initialize a segment */
 
-static Res SegInit(Seg seg, SegClass class, Pool pool, Addr base, Size size, ArgList args)
+static Res SegAbsInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 {
-  Tract tract;
-  Addr addr, limit;
   Arena arena;
-  Res res;
-
+  Addr addr, limit;
+  Tract tract;
+  
   AVER(seg != NULL);
   AVERT(Pool, pool);
   arena = PoolArena(pool);
   AVER(AddrIsArenaGrain(base, arena));
   AVER(SizeIsArenaGrains(size, arena));
-  AVERT(SegClass, class);
+  AVERT(ArgList, args);
 
   /* Superclass init */
   InstInit(CouldBeA(Inst, seg));
@@ -149,10 +148,9 @@ static Res SegInit(Seg seg, SegClass class, Pool pool, Addr base, Size size, Arg
   seg->depth = 0;
   seg->queued = FALSE;
   seg->firstTract = NULL;
-
-  SetClassOfSeg(seg, class);
-  seg->sig = SegSig;  /* set sig now so tract checks will see it */
-
+  RingInit(SegPoolRing(seg));
+  SetClassOfSeg(seg, CLASS(Seg));
+  
   TRACT_FOR(tract, addr, arena, base, limit) {
     AVERT(Tract, tract);
     AVER(TractP(tract) == NULL);
@@ -168,33 +166,34 @@ static Res SegInit(Seg seg, SegClass class, Pool pool, Addr base, Size size, Arg
   }
   AVER(addr == seg->limit);
 
-  RingInit(SegPoolRing(seg));
+  seg->sig = SegSig;  /* set sig now so tract checks will see it */
+  AVERT(Seg, seg);
+
+  return ResOK;
+}
+
+static Res SegInit(Seg seg, SegClass class, Pool pool, Addr base, Size size, ArgList args)
+{
+  Res res;
+
+  AVERT(SegClass, class);
 
   /* Class specific initialization comes last */
   /* FIXME: Should call init which next-method calls SegAbsInit. */
   res = class->init(seg, pool, base, size, args);
   if (res != ResOK)
-    goto failInit;
+    return res;
    
   AVERT(Seg, seg);
+  /* FIXME: This should probably go in PoolAbsInit */
   RingAppend(&pool->segRing, SegPoolRing(seg));
   return ResOK;
-
-failInit:
-  seg->sig = SigInvalid;
-  InstFinish(CouldBeA(Inst, seg));
-  RingFinish(SegPoolRing(seg));
-  TRACT_FOR(tract, addr, arena, base, limit) {
-    AVERT(Tract, tract);
-    TRACT_UNSET_SEG(tract);
-  }
-  return res;
 }
 
 
 /* SegFinish -- finish a segment */
 
-static void SegFinish(Seg seg)
+static void SegAbsFinish(Seg seg)
 {
   Arena arena;
   Addr addr, limit;
@@ -214,10 +213,6 @@ static void SegFinish(Seg seg)
   if (seg->sm != AccessSetEMPTY) {
     ShieldLower(arena, seg, seg->sm);
   }
-
-  /* Class specific finishing cames first */
-  /* FIXME: Should call finish which next-method calls SegAbsFinish. */
-  class->finish(seg);
 
   seg->rankSet = RankSetEMPTY;
 
@@ -239,9 +234,6 @@ static void SegFinish(Seg seg)
   RingRemove(SegPoolRing(seg));
   RingFinish(SegPoolRing(seg));
 
-  seg->sig = SigInvalid;
-  InstFinish(CouldBeA(Inst, seg));
-
   /* Check that the segment is not exposed, or in the shield */
   /* cache (see <code/shield.c#def.depth>). */
   AVER(seg->depth == 0);
@@ -249,7 +241,15 @@ static void SegFinish(Seg seg)
   /* fund are not protected) */
   AVER(seg->sm == AccessSetEMPTY);
   AVER(seg->pm == AccessSetEMPTY);
- 
+
+  seg->sig = SigInvalid;
+  InstFinish(CouldBeA(Inst, seg));
+}
+
+static void SegFinish(Seg seg)
+{
+  AVERC(Seg, seg);
+  Method(Seg, seg, finish)(seg);
 }
 
 
@@ -754,36 +754,6 @@ Bool SegCheck(Seg seg)
 }
 
 
-/* segTrivInit -- method to initialize the base fields of a segment */
-
-static Res segTrivInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
-{
-  /* all the initialization happens in SegInit so checks are safe */
-  Arena arena;
-
-  AVERT(Seg, seg);
-  AVERT(Pool, pool);
-  arena = PoolArena(pool);
-  AVER(AddrIsArenaGrain(base, arena));
-  AVER(SizeIsArenaGrains(size, arena));
-  AVER(SegBase(seg) == base);
-  AVER(SegSize(seg) == size);
-  AVER(SegPool(seg) == pool);
-  AVERT(ArgList, args);
-  UNUSED(args);
-  return ResOK;
-}
-
-
-/* segTrivFinish -- finish the base fields of a segment */
-
-static void segTrivFinish(Seg seg)
-{
-  /* all the generic finishing happens in SegFinish  */
-  AVERT(Seg, seg);
-}
-
-
 /* segNoSetGrey -- non-method to change the greyness of a segment */
 
 static void segNoSetGrey(Seg seg, TraceSet grey)
@@ -1089,24 +1059,15 @@ Bool GCSegCheck(GCSeg gcseg)
 
 static Res gcSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 {
-  SegClass super;
   GCSeg gcseg;
-  Arena arena;
   Res res;
 
-  AVERT(Seg, seg);
-  AVERT(Pool, pool);
-  arena = PoolArena(pool);
-  AVER(AddrIsArenaGrain(base, arena));
-  AVER(SizeIsArenaGrains(size, arena));
-  gcseg = SegGCSeg(seg);
-  AVER(&gcseg->segStruct == seg);
-
   /* Initialize the superclass fields first via next-method call */
-  super = SUPERCLASS(Seg, GCSeg);
-  res = super->init(seg, pool, base, size, args);
+  res = SUPERCLASS(Seg, GCSeg)->init(seg, pool, base, size, args);
   if (ResOK != res)
     return res;
+  SetClassOfSeg(seg, CLASS(GCSeg));
+  gcseg = MustBeA(GCSeg, seg);
 
   gcseg->summary = RefSetEMPTY;
   gcseg->buffer = NULL;
@@ -1122,7 +1083,6 @@ static Res gcSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 
 static void gcSegFinish(Seg seg)
 {
-  SegClass super;
   GCSeg gcseg;
 
   AVERT(Seg, seg);
@@ -1144,8 +1104,7 @@ static void gcSegFinish(Seg seg)
   RingFinish(&gcseg->greyRing);
 
   /* finish the superclass fields last */
-  super = SUPERCLASS(Seg, GCSeg);
-  super->finish(seg);
+  SUPERCLASS(Seg, GCSeg)->finish(seg);
 }
 
 
@@ -1638,8 +1597,8 @@ DEFINE_CLASS(Seg, Seg, class)
 {
   INHERIT_CLASS(&class->protocol, Seg, Inst);
   class->size = sizeof(SegStruct);
-  class->init = segTrivInit;
-  class->finish = segTrivFinish;
+  class->init = SegAbsInit;
+  class->finish = SegAbsFinish;
   class->setSummary = segNoSetSummary; 
   class->buffer = segNoBuffer; 
   class->setBuffer = segNoSetBuffer; 

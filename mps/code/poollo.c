@@ -100,7 +100,6 @@ static Bool LOSegCheck(LOSeg loseg)
 
 static Res loSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 {
-  SegClass super;
   LOSeg loseg;
   LO lo;
   Res res;
@@ -110,19 +109,17 @@ static Res loSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   Count grains;
   void *p;
 
-  AVERT(Seg, seg);
-  loseg = SegLOSeg(seg);
-  AVERT(Pool, pool);
+  /* Initialize the superclass fields first via next-method call */
+  res = SUPERCLASS(Seg, LOSeg)->init(seg, pool, base, size, args);
+  if(res != ResOK)
+    goto failSuperInit;
+  SetClassOfSeg(seg, CLASS(LOSeg));
+  loseg = MustBeA(LOSeg, seg);
+
   arena = PoolArena(pool);
   /* no useful checks for base and size */
   lo = PoolPoolLO(pool);
   AVERT(LO, lo);
-
-  /* Initialize the superclass fields first via next-method call */
-  super = SUPERCLASS(Seg, LOSeg);
-  res = super->init(seg, pool, base, size, args);
-  if(res != ResOK)
-    return res;
 
   AVER(SegWhite(seg) == TraceSetEMPTY);
 
@@ -149,7 +146,9 @@ static Res loSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 failAllocTable:
   ControlFree(arena, loseg->mark, tablebytes);
 failMarkTable:
-  super->finish(seg);
+  SUPERCLASS(Seg, LOSeg)->finish(seg);
+failSuperInit:
+  AVER(res != ResOK);
   return res;
 }
 
@@ -160,7 +159,6 @@ static void loSegFinish(Seg seg)
 {
   LO lo;
   LOSeg loseg;
-  SegClass super;
   Pool pool;
   Arena arena;
   Size tablesize;
@@ -181,8 +179,7 @@ static void loSegFinish(Seg seg)
   loseg->sig = SigInvalid;
 
   /* finish the superclass fields last */
-  super = SUPERCLASS(Seg, LOSeg);
-  super->finish(seg);
+  SUPERCLASS(Seg, LOSeg)->finish(seg);
 }
 
 

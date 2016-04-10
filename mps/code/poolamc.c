@@ -128,7 +128,6 @@ ARG_DEFINE_KEY(amc_seg_gen, Pointer);
 static Res AMCSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 {
   amcGen amcgen;
-  SegClass super;
   amcSeg amcseg;
   Res res;
   ArgStruct arg;
@@ -136,20 +135,18 @@ static Res AMCSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   ArgRequire(&arg, args, amcKeySegGen);
   amcgen = arg.val.p;
 
-  AVERT(Seg, seg);
-  amcseg = Seg2amcSeg(seg);
-  /* no useful checks for base and size */
-
   /* Initialize the superclass fields first via next-method call */
-  super = SUPERCLASS(Seg, amcSeg);
-  res = super->init(seg, pool, base, size, args);
+  res = SUPERCLASS(Seg, amcSeg)->init(seg, pool, base, size, args);
   if(res != ResOK)
     return res;
+  SetClassOfSeg(seg, CLASS(amcSeg));
+  amcseg = MustBeA(amcSeg, seg);
 
   amcseg->gen = amcgen;
   amcseg->board = NULL;
   amcseg->old = FALSE;
   amcseg->deferred = FALSE;
+
   amcseg->sig = amcSegSig;
   AVERT(amcSeg, amcseg);
 

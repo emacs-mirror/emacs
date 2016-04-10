@@ -217,25 +217,23 @@ static void amsDestroyTables(AMS ams, BT allocTable,
 
 static Res AMSSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 {
-  SegClass super;
   AMSSeg amsseg;
   Res res;
   Arena arena;
   AMS ams;
 
-  AVERT(Seg, seg);
-  amsseg = Seg2AMSSeg(seg);
+  /* Initialize the superclass fields first via next-method call */
+  res = SUPERCLASS(Seg, AMSSeg)->init(seg, pool, base, size, args);
+  if (res != ResOK)
+    goto failNextMethod;
+  SetClassOfSeg(seg, CLASS(AMSSeg));
+  amsseg = MustBeA(AMSSeg, seg);
+
   AVERT(Pool, pool);
   ams = PoolAMS(pool);
   AVERT(AMS, ams);
   arena = PoolArena(pool);
   /* no useful checks for base and size */
-
-  /* Initialize the superclass fields first via next-method call */
-  super = SUPERCLASS(Seg, AMSSeg);
-  res = super->init(seg, pool, base, size, args);
-  if (res != ResOK)
-    goto failNextMethod;
 
   amsseg->grains = size >> ams->grainShift;
   amsseg->freeGrains = amsseg->grains;
@@ -266,8 +264,9 @@ static Res AMSSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   return ResOK;
 
 failCreateTables:
-  super->finish(seg);
+  SUPERCLASS(Seg, AMSSeg)->finish(seg);
 failNextMethod:
+  AVER(res != ResOK);
   return res;
 }
 
