@@ -32,6 +32,45 @@ Bool InstClassCheck(InstClass class)
 }
 
 
+/* InstInit -- initialize a protocol instance
+ *
+ * Initialisation makes the instance valid, so that it will pass
+ * InstCheck, and the instance can be specialized to be a member of a
+ * subclass.
+ */
+
+void InstInit(Inst inst)
+{
+  AVER(inst != NULL); /* FIXME: express intention here */
+  inst->class = CLASS(Inst);
+  AVERC(Inst, inst);
+}
+
+
+/* InstFinish -- finish a protocol instance
+ *
+ * Finishing makes the instance invalid, so that it will fail
+ * InstCheck and can't be used.
+ *
+ * FIXME: It would be nice if we could use a recognizable value here,
+ * such as a pointer to a static invalid class.
+ */
+
+static InstClassStruct invalidClassStruct = {
+  /* .sig = */        SigInvalid,
+  /* .name = */       "Invalid",
+  /* .superclass = */ &invalidClassStruct,
+  /* .level = */      ClassIdInvalid,
+  /* .display = */    {ClassIdInvalid}
+};
+  
+void InstFinish(Inst inst)
+{
+  AVERC(Inst, inst);
+  inst->class = &invalidClassStruct;
+}
+
+
 /* InstCheck -- check a protocol instance */
 
 Bool InstCheck(Inst inst)

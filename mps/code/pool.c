@@ -129,7 +129,9 @@ Res PoolInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   AVERT(PoolClass, class);
   globals = ArenaGlobals(arena);
 
-  SetClassOfPool(pool, class);
+  /* Superclass init */
+  InstInit(CouldBeA(Inst, pool));
+
   /* label the pool class with its name */
   if (!class->labelled) {
     /* We could still get multiple labelling if multiple instances of */
@@ -150,11 +152,12 @@ Res PoolInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   pool->format = NULL;
   pool->fix = class->fix;
 
-  /* Initialise signature last; see <design/sig/> */
-  pool->sig = PoolSig;
   pool->serial = globals->poolSerial;
   ++(globals->poolSerial);
 
+  /* Initialise signature last; see <design/sig/> */
+  SetClassOfPool(pool, class);
+  pool->sig = PoolSig;
   AVERT(Pool, pool);
 
   /* Do class-specific initialization. */
@@ -175,6 +178,7 @@ Res PoolInit(Pool pool, Arena arena, PoolClass class, ArgList args)
 
 failInit:
   pool->sig = SigInvalid;      /* Leave arena->poolSerial incremented */
+  InstFinish(CouldBeA(Inst, pool));
   RingFinish(&pool->segRing);
   RingFinish(&pool->bufferRing);
   RingFinish(&pool->arenaRing);
@@ -233,6 +237,7 @@ void PoolFinish(Pool pool)
     -- pool->format->poolCount;
   }
   pool->sig = SigInvalid;
+  InstFinish(CouldBeA(Inst, pool));
  
   RingFinish(&pool->segRing);
   RingFinish(&pool->bufferRing);

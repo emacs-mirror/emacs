@@ -205,10 +205,13 @@ static Res BufferInit(Buffer buffer, BufferClass class,
   AVERT(Pool, pool);
  
   arena = PoolArena(pool);
+
+  /* Superclass init */
+  InstInit(&buffer->instStruct);
+  
   /* Initialize the buffer.  See <code/mpmst.h> for a definition of */
   /* the structure.  sig and serial comes later .init.sig-serial */
   buffer->arena = arena;
-  SetClassOfBuffer(buffer, class);
   buffer->pool = pool;
   RingInit(&buffer->poolRing);
   buffer->isMutator = isMutator;
@@ -237,9 +240,10 @@ static Res BufferInit(Buffer buffer, BufferClass class,
   /* .init.sig-serial: Now the vanilla stuff is initialized, */
   /* sign the buffer and give it a serial number. It can */
   /* then be safely checked in subclass methods. */
-  buffer->sig = BufferSig;
   buffer->serial = pool->bufferSerial; /* .trans.mod */
   ++pool->bufferSerial;
+  SetClassOfBuffer(buffer, class);
+  buffer->sig = BufferSig;
   AVERT(Buffer, buffer);
 
   /* Dispatch to the buffer class method to perform any  */
@@ -256,6 +260,7 @@ static Res BufferInit(Buffer buffer, BufferClass class,
 
 failInit:
   RingFinish(&buffer->poolRing);
+  InstFinish(&buffer->instStruct);
   buffer->sig = SigInvalid;
   return res;
 }
