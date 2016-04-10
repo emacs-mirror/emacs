@@ -128,6 +128,7 @@ typedef struct InstClassStruct *InstClass;
 
 typedef struct InstStruct {
   InstClass class;
+  /* Do not add permanent fields here.  Introduce a subclass. */
 } InstStruct;
 
 
@@ -153,11 +154,10 @@ typedef struct InstClassStruct {
 
 DECLARE_CLASS(Inst, Inst);
 
-
-/* Checking functions */
-
 extern Bool InstClassCheck(InstClass class);
 extern Bool InstCheck(Inst inst);
+extern void InstInit(Inst inst);
+extern void InstFinish(Inst inst);
 
 
 /* Protocol introspection interface
@@ -172,10 +172,18 @@ extern Bool InstCheck(Inst inst);
 
 #define ClassOfPoly(inst) (MustBeA(Inst, inst)->class)
 
-/* FIXME: SetClassOfPoly should use MustBeA, but some classes are
-   intialized inside out at the moment. */
+
+/* SetClassOfPoly -- set the class of an object
+ *
+ * This should only be used when specialising an instance to be a
+ * member of a subclass.  Each Init function should call its
+ * superclass init, finally reaching InstInit, and then, once it has
+ * set up its fields, use SetClassOfPoly to set the class and check
+ * the instance with its check method.  Compare with design.mps.sig.
+ */
+
 #define SetClassOfPoly(inst, _class) \
-  BEGIN CouldBeA(Inst, inst)->class = (InstClass)(_class); END
+  BEGIN MustBeA(Inst, inst)->class = (InstClass)(_class); END
 
 
 /* SUPERCLASS  - get the superclass object, given a class name

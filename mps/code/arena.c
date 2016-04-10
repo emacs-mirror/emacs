@@ -254,7 +254,8 @@ Res ArenaInit(Arena arena, ArenaClass class, Size grainSize, ArgList args)
   if (ArgPick(&arg, args, MPS_KEY_PAUSE_TIME))
     pauseTime = arg.val.d;
 
-  SetClassOfArena(arena, class); /* FIXME: Should call InstInit here? */
+  /* Superclass init */
+  InstInit(&arena->instStruct);
 
   arena->reserved = (Size)0;
   arena->committed = (Size)0;
@@ -283,6 +284,7 @@ Res ArenaInit(Arena arena, ArenaClass class, Size grainSize, ArgList args)
   if (res != ResOK)
     goto failGlobalsInit;
 
+  SetClassOfArena(arena, class);
   arena->sig = ArenaSig;
   AVERT(Arena, arena);
   
@@ -308,6 +310,7 @@ Res ArenaInit(Arena arena, ArenaClass class, Size grainSize, ArgList args)
 failMFSInit:
   GlobalsFinish(ArenaGlobals(arena));
 failGlobalsInit:
+  InstFinish(&arena->instStruct);
   return res;
 }
 
@@ -434,6 +437,7 @@ void ArenaFinish(Arena arena)
 {
   PoolFinish(ArenaCBSBlockPool(arena));
   arena->sig = SigInvalid;
+  InstFinish(&arena->instStruct);
   GlobalsFinish(ArenaGlobals(arena));
   LocusFinish(arena);
   RingFinish(&arena->chunkRing);
