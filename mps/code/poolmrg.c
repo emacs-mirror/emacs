@@ -34,6 +34,8 @@
 
 SRCID(poolmrg, "$Id$");
 
+DECLARE_CLASS(Pool, MRGPool);
+
 
 /* Types */
 
@@ -131,6 +133,7 @@ ATTRIBUTE_UNUSED
 static Bool MRGCheck(MRG mrg)
 {
   CHECKS(MRG, mrg);
+  CHECKC(MRGPool, mrg);
   CHECKD(Pool, MRGPool(mrg));
   CHECKC(MRGPool, mrg);
   CHECKD_NOSIG(Ring, &mrg->entryRing);
@@ -625,16 +628,23 @@ static Res MRGRefSegScan(ScanState ss, MRGRefSeg refseg, MRG mrg)
 
 /* MRGInit -- init method for MRG */
 
-static Res MRGInit(Pool pool, ArgList args)
+static Res MRGInit(Pool pool, Arena arena, PoolClass class, ArgList args)
 {
   MRG mrg;
+  Res res;
  
-  AVER(pool != NULL); /* Can't check more; see pool contract @@@@ */
+  AVER(pool != NULL); /* FIXME: express intention */
   AVERT(ArgList, args);
   UNUSED(args);
- 
-  mrg = PoolMRG(pool);
+  UNUSED(class); /* used for debug pools only */
 
+  /* FIXME: These lines are often repeated */
+  res = PoolAbsInit(pool, arena, class, args);
+  if (res != ResOK)
+    return res;
+  SetClassOfPool(pool, CLASS(MRGPool));
+  mrg = MustBeA(MRGPool, pool);
+ 
   RingInit(&mrg->entryRing);
   RingInit(&mrg->freeRing);
   RingInit(&mrg->refRing);
@@ -642,7 +652,7 @@ static Res MRGInit(Pool pool, ArgList args)
   mrg->sig = MRGSig;
 
   AVERT(MRG, mrg);
-  EVENT3(PoolInit, pool, PoolArena(pool), ClassOfPool(pool));
+  EVENT3(PoolInit, pool, PoolArena(pool), ClassOfPool(pool)); /* FIXME: Out of place? */
   return ResOK;
 }
 
@@ -691,6 +701,8 @@ static void MRGFinish(Pool pool)
   mrg->sig = SigInvalid;
   RingFinish(&mrg->refRing);
   /* <design/poolmrg/#trans.no-finish> */
+
+  PoolAbsFinish(pool);
 }
 
 

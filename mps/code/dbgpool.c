@@ -127,7 +127,7 @@ static PoolDebugOptionsStruct debugPoolOptionsDefault = {
   "POST", 4, "DEAD", 4,
 };
 
-static Res DebugPoolInit(Pool pool, ArgList args)
+static Res DebugPoolInit(Pool pool, Arena arena, PoolClass class, ArgList args)
 {
   Res res;
   PoolDebugOptions options = &debugPoolOptionsDefault;
@@ -136,7 +136,10 @@ static Res DebugPoolInit(Pool pool, ArgList args)
   Size tagSize;
   ArgStruct arg;
 
-  AVERT(Pool, pool);
+  AVER(pool != NULL);
+  AVERT(Arena, arena);
+  AVERT(PoolClass, class);
+  AVERT(ArgList, args);
 
   if (ArgPick(&arg, args, MPS_KEY_POOL_DEBUG_OPTIONS))
     options = (PoolDebugOptions)arg.val.pool_debug_options;
@@ -147,10 +150,11 @@ static Res DebugPoolInit(Pool pool, ArgList args)
   /* not been published yet. */
   tagInit = NULL; tagSize = 0;
 
-  res = SuperclassOfPool(pool)->init(pool, args);
+  res = SuperclassPoly(Pool, class)->init(pool, arena, class, args);
   if (res != ResOK)
     return res;
 
+  SetClassOfPool(pool, class);
   debug = DebugPoolDebugMixin(pool);
   AVER(debug != NULL);
 
@@ -202,7 +206,7 @@ static Res DebugPoolInit(Pool pool, ArgList args)
   return ResOK;
 
 tagFail:
-  SuperclassOfPool(pool)->finish(pool);
+  SuperclassPoly(Pool, class)->finish(pool);
   AVER(res != ResOK);
   return res;
 }
@@ -223,7 +227,7 @@ static void DebugPoolFinish(Pool pool)
     SplayTreeFinish(&debug->index);
     PoolDestroy(debug->tagPool);
   }
-  SuperclassOfPool(pool)->finish(pool);
+  SuperclassPoly(Pool, ClassOfPool(pool))->finish(pool);
 }
 
 
@@ -404,7 +408,7 @@ static Res freeCheckAlloc(Addr *aReturn, PoolDebugMixin debug, Pool pool,
 
   AVER(aReturn != NULL);
 
-  res = SuperclassOfPool(pool)->alloc(&new, pool, size);
+  res = SuperclassPoly(Pool, ClassOfPool(pool))->alloc(&new, pool, size);
   if (res != ResOK)
     return res;
   if (debug->freeSize != 0)
@@ -423,7 +427,7 @@ static void freeCheckFree(PoolDebugMixin debug,
 {
   if (debug->freeSize != 0)
     freeSplat(debug, pool, old, AddrAdd(old, size));
-  SuperclassOfPool(pool)->free(pool, old, size);
+  SuperclassPoly(Pool, ClassOfPool(pool))->free(pool, old, size);
 }
 
 

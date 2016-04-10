@@ -9,6 +9,8 @@
 
 SRCID(pooln, "$Id$");
 
+DECLARE_CLASS(Pool, NPool);
+
 
 /* PoolNStruct -- the pool structure */
 
@@ -30,17 +32,32 @@ typedef struct PoolNStruct {
 
 /* NInit -- init method for class N */
 
-static Res NInit(Pool pool, ArgList args)
+static Res NInit(Pool pool, Arena arena, PoolClass class, ArgList args)
 {
-  PoolN poolN = PoolPoolN(pool);
+  PoolN poolN;
+  Res res;
 
-  UNUSED(args);
- 
+  AVER(pool != NULL);
+  AVERT(Arena, arena);
+  AVERT(ArgList, args);
+  UNUSED(class); /* used for debug pools only */
+
+  /* FIXME: Reduce this boilerplate. */
+  res = PoolAbsInit(pool, arena, class, args);
+  if (res != ResOK)
+    goto failAbsInit;
+  SetClassOfPool(pool, CLASS(NPool));
+  poolN = MustBeA(NPool, pool);
+  
   /* Initialize pool-specific structures. */
 
   AVERT(PoolN, poolN);
   EVENT3(PoolInit, pool, PoolArena(pool), ClassOfPool(pool));
   return ResOK;
+
+failAbsInit:
+  AVER(res != ResOK);
+  return res;
 }
 
 
@@ -55,6 +72,8 @@ static void NFinish(Pool pool)
   AVERT(PoolN, poolN);
 
   /* Finish pool-specific structures. */
+
+  PoolAbsFinish(pool);
 }
 
 

@@ -31,7 +31,8 @@
 #include "mpm.h"
 #include "mpscmfs.h"
 
-typedef struct MFSStruct *MFS;
+/* FIXME: Inconsistent naming of MFSPool class and MFS types. */
+typedef struct MFSStruct *MFS, *MFSPool;
 
 #define MFSPool(mfs) (&(mfs)->poolStruct)
 

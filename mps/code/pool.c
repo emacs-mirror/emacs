@@ -81,6 +81,7 @@ Bool PoolCheck(Pool pool)
 {
   /* Checks ordered as per struct decl in <code/mpmst.h#pool> */
   CHECKS(Pool, pool);
+  CHECKC(AbstractPool, pool);
   /* Break modularity for checking efficiency */
   CHECKL(pool->serial < ArenaGlobals(pool->arena)->poolSerial);
   CHECKD(PoolClass, ClassOfPool(pool));
@@ -116,73 +117,33 @@ ARG_DEFINE_KEY(INTERIOR, Bool);
 /* PoolInit -- initialize a pool
  *
  * Initialize the generic fields of the pool and calls class-specific
- * init.  See <design/pool/#align>.  */
+ * init.  See <design/pool/#align>.
+ */
 
 Res PoolInit(Pool pool, Arena arena, PoolClass class, ArgList args)
 {
   Res res;
-  Word classId;
-  Globals globals;
 
-  AVER(pool != NULL);
-  AVERT(Arena, arena);
   AVERT(PoolClass, class);
-  globals = ArenaGlobals(arena);
 
-  /* Superclass init */
-  InstInit(CouldBeA(Inst, pool));
-
-  /* label the pool class with its name */
-  if (!class->labelled) {
-    /* We could still get multiple labelling if multiple instances of */
-    /* the pool class get created simultaneously, but it's not worth */
-    /* putting another lock in the code. */
-    class->labelled = TRUE;
-    classId = EventInternString(class->protocol.name);
-    /* NOTE: this breaks <design/type/#addr.use> */
-    EventLabelAddr((Addr)class, classId);
-  }
-
-  pool->arena = arena;
-  RingInit(&pool->arenaRing);
-  RingInit(&pool->bufferRing);
-  RingInit(&pool->segRing);
-  pool->bufferSerial = (Serial)0;
-  pool->alignment = MPS_PF_ALIGN;
-  pool->format = NULL;
-  pool->fix = class->fix;
-
-  pool->serial = globals->poolSerial;
-  ++(globals->poolSerial);
-
-  /* Initialise signature last; see <design/sig/> */
-  SetClassOfPool(pool, class);
-  pool->sig = PoolSig;
-  AVERT(Pool, pool);
-
-  /* Do class-specific initialization. */
-  /* FIXME: Should be calling this first, which next-method calls PoolAbsInit. */
-  res = class->init(pool, args);
+  res = class->init(pool, arena, class, args);
   if (res != ResOK)
-    goto failInit;
+    return res;
+
+  /* FIXME: Where should this go? */
+  pool->fix = ClassOfPool(pool)->fix;
 
   /* Add initialized pool to list of pools in arena. */
-  RingAppend(&globals->poolRing, &pool->arenaRing);
+  /* FIXME: Should be in PoolAbsInit */
+  RingAppend(&ArenaGlobals(arena)->poolRing, &pool->arenaRing);
 
   /* Add initialized pool to list of pools using format. */
+  /* FIXME: Should be in inits of pools that use formats. */
   if (pool->format) {
-    ++ pool->format->poolCount;
+    ++pool->format->poolCount;
   }
 
   return ResOK;
-
-failInit:
-  pool->sig = SigInvalid;      /* Leave arena->poolSerial incremented */
-  InstFinish(CouldBeA(Inst, pool));
-  RingFinish(&pool->segRing);
-  RingFinish(&pool->bufferRing);
-  RingFinish(&pool->arenaRing);
-  return res;
 }
 
 
@@ -226,24 +187,7 @@ failControlAlloc:
 void PoolFinish(Pool pool)
 {
   AVERT(Pool, pool); 
- 
-  /* Do any class-specific finishing. */
   Method(Pool, pool, finish)(pool);
-
-  /* Detach the pool from the arena and format, and unsig it. */
-  RingRemove(&pool->arenaRing);
-  if (pool->format) {
-    AVER(pool->format->poolCount > 0);
-    -- pool->format->poolCount;
-  }
-  pool->sig = SigInvalid;
-  InstFinish(CouldBeA(Inst, pool));
- 
-  RingFinish(&pool->segRing);
-  RingFinish(&pool->bufferRing);
-  RingFinish(&pool->arenaRing);
- 
-  EVENT1(PoolFinish, pool);
 }
 
 

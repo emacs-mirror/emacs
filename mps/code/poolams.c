@@ -780,7 +780,7 @@ static void AMSDebugVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
 
 ARG_DEFINE_KEY(AMS_SUPPORT_AMBIGUOUS, Bool);
 
-static Res AMSInit(Pool pool, ArgList args)
+static Res AMSInit(Pool pool, Arena arena, PoolClass class, ArgList args)
 {
   Res res;
   Format format;
@@ -789,13 +789,15 @@ static Res AMSInit(Pool pool, ArgList args)
   unsigned gen = AMS_GEN_DEFAULT;
   ArgStruct arg;
 
-  AVERT(Pool, pool);
+  AVER(pool != NULL);
+  AVERT(Arena, arena);
   AVERT(ArgList, args);
+  UNUSED(class); /* used for debug pools only */
 
   if (ArgPick(&arg, args, MPS_KEY_CHAIN))
     chain = arg.val.chain;
   else {
-    chain = ArenaGlobals(PoolArena(pool))->defaultChain;
+    chain = ArenaGlobals(arena)->defaultChain;
     gen = 1; /* avoid the nursery of the default chain by default */
   }
   if (ArgPick(&arg, args, MPS_KEY_GEN))
@@ -807,7 +809,8 @@ static Res AMSInit(Pool pool, ArgList args)
 
   /* .ambiguous.noshare: If the pool is required to support ambiguous */
   /* references, the alloc and white tables cannot be shared. */
-  res = AMSInitInternal(PoolAMS(pool), format, chain, gen, !supportAmbiguous);
+  res = AMSInitInternal(PoolAMS(pool), arena, class,
+                        format, chain, gen, !supportAmbiguous, args);
   if (res == ResOK) {
     EVENT3(PoolInitAMS, pool, PoolArena(pool), format);
   }
@@ -817,15 +820,23 @@ static Res AMSInit(Pool pool, ArgList args)
 
 /* AMSInitInternal -- initialize an AMS pool, given the format and the chain */
 
-Res AMSInitInternal(AMS ams, Format format, Chain chain, unsigned gen,
-                    Bool shareAllocTable)
+Res AMSInitInternal(AMS ams, Arena arena, PoolClass class,
+                    Format format, Chain chain, unsigned gen,
+                    Bool shareAllocTable, ArgList args)
 {
   Pool pool;
   Res res;
 
   /* Can't check ams, it's not initialized. */
   pool = AMSPool(ams);
-  AVERT(Pool, pool);
+
+  AVERT(Arena, arena);
+  res = PoolAbsInit(pool, arena, class, args);
+  if (res != ResOK)
+    goto failAbsInit;
+  SetClassOfPool(pool, CLASS(AMSPool));
+  AVER(ams == MustBeA(AMSPool, pool));
+  
   AVERT(Format, format);
   AVER(FormatArena(format) == PoolArena(pool));
   pool->format = format;
@@ -838,7 +849,7 @@ Res AMSInitInternal(AMS ams, Format format, Chain chain, unsigned gen,
 
   res = PoolGenInit(&ams->pgen, ChainGen(chain, gen), pool);
   if (res != ResOK)
-    return res;
+    goto failGenInit;
 
   ams->shareAllocTable = shareAllocTable;
 
@@ -853,6 +864,11 @@ Res AMSInitInternal(AMS ams, Format format, Chain chain, unsigned gen,
   ams->sig = AMSSig;
   AVERT(AMS, ams);
   return ResOK;
+
+failGenInit:
+  PoolAbsFinish(pool);
+failAbsInit:
+  return res;
 }
 
 
@@ -869,11 +885,12 @@ void AMSFinish(Pool pool)
   ams = PoolAMS(pool);
   AVERT(AMS, ams);
 
-  (ams->segsDestroy)(ams);
+  ams->segsDestroy(ams);
   /* can't invalidate the AMS until we've destroyed all the segs */
   ams->sig = SigInvalid;
   RingFinish(&ams->segRing);
   PoolGenFinish(&ams->pgen);
+  PoolAbsFinish(pool);
 }
 
 
@@ -1819,6 +1836,7 @@ mps_pool_class_t mps_class_ams_debug(void)
 Bool AMSCheck(AMS ams)
 {
   CHECKS(AMS, ams);
+  CHECKC(AMSPool, ams);
   CHECKD(Pool, AMSPool(ams));
   CHECKL(IsA(AMSPool, AMSPool(ams)));
   CHECKL(PoolAlignment(AMSPool(ams)) == AMSGrainsSize(ams, (Size)1));

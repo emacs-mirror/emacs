@@ -17,7 +17,8 @@
 #include <stdarg.h>
 
 
-typedef struct AMSStruct *AMS;
+/* FIXME: Inconsistent naming of AMSPool class and AMS types. */
+typedef struct AMSStruct *AMS, *AMSPool;
 typedef struct AMSSegStruct *AMSSeg;
 
 
@@ -166,8 +167,9 @@ typedef struct AMSSegStruct {
 
 /* the rest */
 
-extern Res AMSInitInternal(AMS ams, Format format, Chain chain, unsigned gen,
-                           Bool shareAllocTable);
+extern Res AMSInitInternal(AMS ams, Arena arena, PoolClass class,
+                           Format format, Chain chain, unsigned gen,
+                           Bool shareAllocTable, ArgList args);
 extern void AMSFinish(Pool pool);
 extern Bool AMSCheck(AMS ams);
 
