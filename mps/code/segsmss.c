@@ -114,26 +114,25 @@ static Bool AMSTSegCheck(AMSTSeg amstseg)
 
 static Res amstSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 {
-  SegClass super;
   AMSTSeg amstseg;
   AMST amst;
   Res res;
 
-  AVERT(Seg, seg);
-  amstseg = Seg2AMSTSeg(seg);
+  /* Initialize the superclass fields first via next-method call */
+  res = SUPERCLASS(Seg, AMSTSeg)->init(seg, pool, base, size, args);
+  if (res != ResOK)
+    return res;
+  SetClassOfSeg(seg, CLASS(AMSTSeg));
+  amstseg = MustBeA(AMSTSeg, seg);
+
   AVERT(Pool, pool);
   amst = PoolAMST(pool);
   AVERT(AMST, amst);
   /* no useful checks for base and size */
 
-  /* Initialize the superclass fields first via next-method call */
-  super = SUPERCLASS(Seg, AMSTSeg);
-  res = super->init(seg, pool, base, size, args);
-  if (res != ResOK)
-    return res;
-
   amstseg->next = NULL;
   amstseg->prev = NULL;
+
   amstseg->sig = AMSTSegSig;
   AVERT(AMSTSeg, amstseg);
 

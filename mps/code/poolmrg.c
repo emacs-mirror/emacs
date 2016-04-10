@@ -222,23 +222,22 @@ static Bool MRGRefSegCheck(MRGRefSeg refseg)
 static Res MRGLinkSegInit(Seg seg, Pool pool, Addr base, Size size,
                           ArgList args)
 {
-  SegClass super;
   MRGLinkSeg linkseg;
   MRG mrg;
   Res res;
 
-  AVERT(Seg, seg);
-  linkseg = Seg2LinkSeg(seg);
+  /* Initialize the superclass fields first via next-method call */
+  res = SUPERCLASS(Seg, MRGLinkSeg)->init(seg, pool, base, size, args);
+  if (res != ResOK)
+    return res;
+  SetClassOfSeg(seg, CLASS(MRGLinkSeg));
+  linkseg = MustBeA(MRGLinkSeg, seg);
+
   AVERT(Pool, pool);
   mrg = PoolMRG(pool);
   AVERT(MRG, mrg);
   /* no useful checks for base and size */
 
-  /* Initialize the superclass fields first via next-method call */
-  super = SUPERCLASS(Seg, MRGLinkSeg);
-  res = super->init(seg, pool, base, size, args);
-  if (res != ResOK)
-    return res;
   linkseg->refSeg = NULL; /* .link.nullref */
   linkseg->sig = MRGLinkSegSig;
   AVERT(MRGLinkSeg, linkseg);
@@ -268,19 +267,19 @@ static Res MRGRefSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   ArgRequire(&arg, args, mrgKeyLinkSeg);
   linkseg = arg.val.p;
 
-  AVERT(Seg, seg);
-  refseg = Seg2RefSeg(seg);
-  AVERT(Pool, pool);
-  mrg = PoolMRG(pool);
-  AVERT(MRG, mrg);
-  /* no useful checks for base and size */
-  AVERT(MRGLinkSeg, linkseg);
-
   /* Initialize the superclass fields first via next-method call */
   super = SUPERCLASS(Seg, MRGRefSeg);
   res = super->init(seg, pool, base, size, args);
   if (res != ResOK)
     return res;
+  SetClassOfSeg(seg, CLASS(MRGRefSeg));
+  refseg = MustBeA(MRGRefSeg, seg);
+
+  AVERT(Pool, pool);
+  mrg = PoolMRG(pool);
+  AVERT(MRG, mrg);
+  /* no useful checks for base and size */
+  AVERT(MRGLinkSeg, linkseg);
 
   /* <design/seg/#field.rankset.start>, .improve.rank */
   SegSetRankSet(seg, RankSetSingle(RankFINAL));
