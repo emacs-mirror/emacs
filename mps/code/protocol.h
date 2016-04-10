@@ -90,7 +90,7 @@ typedef enum ClassIdEnum {
 
 #define CLASS_LEVEL_ENUM(prefix, ident, kind, super) prefix ## ident = prefix ## super + 1,
 typedef enum ClassLevelEnum {
-  ClassLevelNoSuper = 0, /* because everything secretly inherits from Inst */
+  ClassLevelNoSuper = -1, /* so that root classes (e.g. Inst) get level zero */
   CLASSES(CLASS_LEVEL_ENUM, ClassLevel)
   ClassLevelTerminalCommaNotAllowedInC89
 } ClassLevelEnum;
