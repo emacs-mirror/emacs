@@ -19,9 +19,6 @@
  * LandClassCheck.
  *
  * "super" is the superclass of the class.
- *
- * "prime" is the Nth prime number, starting at 3, for each row in the
- * table.
  */
 
 #define CLASSES(CLASS, X) \
