@@ -202,13 +202,16 @@ DEFINE_CLASS(Pool, AbstractPool, class)
   class->sig = PoolClassSig;
 
   /* FIXME: This was moved from PoolInit, but seems odd.  Should be
-     done for all classes? */
+     done for all classes?  Classes get called before MPMInit.  Should
+     they call MPMInit? */
   /* label the pool class with its name */
   /* We could still get multiple labelling if multiple instances of */
   /* the pool class get created simultaneously, but it's not worth */
   /* putting another lock in the code. */
   {
-    Word classId = EventInternString(class->protocol.name);
+    Word classId;
+    EventInit();
+    classId = EventInternString(class->protocol.name);
     /* NOTE: this breaks <design/type/#addr.use> */
     EventLabelAddr((Addr)class, classId);
   }
