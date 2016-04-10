@@ -4,7 +4,7 @@
 
 ;; Author: Justin Burkett <justin@burkett.cc>
 ;; URL: https://github.com/justbur/emacs-which-key
-;; Version: 1.1.3
+;; Version: 1.1.4
 ;; Keywords:
 ;; Package-Requires: ((emacs "24.3"))
 
