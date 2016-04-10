@@ -226,24 +226,24 @@ static Bool SNCSegCheck(SNCSeg sncseg)
 
 static Res sncSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 {
-  SegClass super;
   SNCSeg sncseg;
   Res res;
 
-  AVERT(Seg, seg);
-  sncseg = SegSNCSeg(seg);
+  /* Initialize the superclass fields first via next-method call */
+  res = SUPERCLASS(Seg, SNCSeg)->init(seg, pool, base, size, args);
+  if (res != ResOK)
+    return res;
+  SetClassOfSeg(seg, CLASS(SNCSeg));
+  sncseg = MustBeA(SNCSeg, seg);
+
   AVERT(Pool, pool);
   /* no useful checks for base and size */
 
-  /* Initialize the superclass fields first via next-method call */
-  super = SUPERCLASS(Seg, SNCSeg);
-  res = super->init(seg, pool, base, size, args);
-  if (res != ResOK)
-    return res;
-
   sncseg->next = NULL;
+
   sncseg->sig = SNCSegSig;
   AVERT(SNCSeg, sncseg);
+
   return ResOK;
 }
 

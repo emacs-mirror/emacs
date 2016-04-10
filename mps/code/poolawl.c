@@ -176,7 +176,6 @@ ARG_DEFINE_KEY(awl_seg_rank_set, RankSet);
 
 static Res AWLSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 {
-  SegClass super;
   AWLSeg awlseg;
   AWL awl;
   Arena arena;
@@ -187,11 +186,6 @@ static Res AWLSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   void *v;
   ArgStruct arg;
 
-  AVERT(Seg, seg);
-  awlseg = Seg2AWLSeg(seg);
-  AVERT(Pool, pool);
-  arena = PoolArena(pool);
-  /* no useful checks for base and size */
   ArgRequire(&arg, args, awlKeySegRankSet);
   rankSet = arg.val.u;
   AVERT(RankSet, rankSet);
@@ -199,14 +193,19 @@ static Res AWLSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   /* AWL only accepts two ranks */
   AVER(RankSetSingle(RankEXACT) == rankSet
        || RankSetSingle(RankWEAK) == rankSet);
-  awl = PoolAWL(pool);
-  AVERT(AWL, awl);
 
   /* Initialize the superclass fields first via next-method call */
-  super = SUPERCLASS(Seg, AWLSeg);
-  res = super->init(seg, pool, base, size, args);
+  res = SUPERCLASS(Seg, AWLSeg)->init(seg, pool, base, size, args);
   if (res != ResOK)
-    return res;
+    goto failSuperInit;
+  SetClassOfSeg(seg, CLASS(AWLSeg));
+  awlseg = MustBeA(AWLSeg, seg);
+
+  AVERT(Pool, pool);
+  arena = PoolArena(pool);
+  /* no useful checks for base and size */
+  awl = PoolAWL(pool);
+  AVERT(AWL, awl);
 
   bits = size >> awl->alignShift;
   tableSize = BTSize(bits);
@@ -241,7 +240,9 @@ failControlAllocAlloc:
 failControlAllocScanned:
   ControlFree(arena, awlseg->mark, tableSize);
 failControlAllocMark:
-  super->finish(seg);
+  SUPERCLASS(Seg, AWLSeg)->finish(seg);
+failSuperInit:
+  AVER(res != ResOK);
   return res;
 }
 
