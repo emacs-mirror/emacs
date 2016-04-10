@@ -34,6 +34,8 @@
 
 SRCID(poolmv, "$Id$");
 
+DECLARE_CLASS(Pool, MVPool);
+
 
 #define mvBlockPool(mv) MFSPool(&(mv)->blockPoolStruct)
 #define mvSpanPool(mv) MFSPool(&(mv)->spanPoolStruct)
@@ -216,7 +218,7 @@ static void MVDebugVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
 
 /* MVInit -- init method for class MV */
 
-static Res MVInit(Pool pool, ArgList args)
+static Res MVInit(Pool pool, Arena arena, PoolClass class, ArgList args)
 {
   Align align = MV_ALIGN_DEFAULT;
   Size extendBy = MV_EXTEND_BY_DEFAULT;
@@ -224,10 +226,14 @@ static Res MVInit(Pool pool, ArgList args)
   Size maxSize = MV_MAX_SIZE_DEFAULT;
   Size blockExtendBy, spanExtendBy;
   MV mv;
-  Arena arena;
   Res res;
   ArgStruct arg;
   
+  AVERT(Arena, arena);
+  AVER(pool != NULL); /* FIXME: express intention */
+  AVERT(ArgList, args);
+  UNUSED(class); /* used for debug pools only */
+
   if (ArgPick(&arg, args, MPS_KEY_ALIGN))
     align = arg.val.align;
   if (ArgPick(&arg, args, MPS_KEY_EXTEND_BY))
@@ -237,8 +243,6 @@ static Res MVInit(Pool pool, ArgList args)
   if (ArgPick(&arg, args, MPS_KEY_MAX_SIZE))
     maxSize = arg.val.size;
 
-  arena = PoolArena(pool);
-
   AVERT(Align, align);
   AVER(align <= ArenaGrainSize(arena));
   AVER(extendBy > 0);
@@ -247,8 +251,13 @@ static Res MVInit(Pool pool, ArgList args)
   AVER(maxSize > 0);
   AVER(extendBy <= maxSize);
 
+  res = PoolAbsInit(pool, arena, class, args);
+  if (res != ResOK)
+    return res;
+  SetClassOfPool(pool, CLASS(MVPool));
+  mv = MustBeA(MVPool, pool);
+
   pool->alignment = align;
-  mv = PoolMV(pool);
 
   /* At 100% fragmentation we will need one block descriptor for every other */
   /* allocated block, or (extendBy/avgSize)/2 descriptors.  See note 1. */
@@ -291,6 +300,7 @@ static Res MVInit(Pool pool, ArgList args)
 failSpanPoolInit:
   PoolFinish(mvBlockPool(mv));
 failBlockPoolInit:
+  PoolAbsFinish(pool);
   return res;
 }
 
@@ -319,6 +329,8 @@ static void MVFinish(Pool pool)
 
   PoolFinish(mvBlockPool(mv));
   PoolFinish(mvSpanPool(mv));
+
+  PoolAbsFinish(pool);
 }
 
 
@@ -896,6 +908,7 @@ mps_pool_class_t mps_class_mv_debug(void)
 Bool MVCheck(MV mv)
 {
   CHECKS(MV, mv);
+  CHECKC(MVPool, mv);
   CHECKD(Pool, MVPool(mv));
   CHECKL(IsA(MVPool, MVPool(mv)));
   CHECKD(MFS, &mv->blockPoolStruct);

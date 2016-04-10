@@ -39,6 +39,7 @@ static void BufferFrameNotifyPopPending(Buffer buffer);
 Bool BufferCheck(Buffer buffer)
 {
   CHECKS(Buffer, buffer);
+  CHECKC(Buffer, buffer);
   CHECKL(buffer->serial < buffer->pool->bufferSerial); /* .trans.mod */
   CHECKU(Arena, buffer->arena);
   CHECKU(Pool, buffer->pool);

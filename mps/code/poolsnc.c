@@ -23,6 +23,8 @@
 
 SRCID(poolsnc, "$Id$");
 
+DECLARE_CLASS(Pool, SNCPool);
+
 
 /* SNCStruct -- structure for an SNC pool
  *
@@ -35,7 +37,7 @@ typedef struct SNCStruct {
   PoolStruct poolStruct;
   Seg freeSegs;
   Sig sig;
-} SNCStruct, *SNC;
+} SNCStruct, *SNC, *SNCPool;
 
 #define PoolSNC(pool) PARENT(SNCStruct, poolStruct, (pool))
 #define SNCPool(snc) (&(snc)->poolStruct)
@@ -364,16 +366,23 @@ static void SNCVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
 
 /* SNCInit -- initialize an SNC pool */
 
-static Res SNCInit(Pool pool, ArgList args)
+static Res SNCInit(Pool pool, Arena arena, PoolClass class, ArgList args)
 {
   SNC snc;
   Format format;
   ArgStruct arg;
+  Res res;
 
-  /* weak check, as half-way through initialization */
   AVER(pool != NULL);
+  AVERT(Arena, arena);
+  AVERT(ArgList, args);
+  UNUSED(class); /* used for debug pools only */
 
-  snc = PoolSNC(pool);
+  res = PoolAbsInit(pool, arena, class, args);
+  if (res != ResOK)
+    return res;
+  SetClassOfPool(pool, CLASS(SNCPool));
+  snc = MustBeA(SNCPool, pool);
 
   ArgRequire(&arg, args, MPS_KEY_FORMAT);
   format = arg.val.format;
@@ -407,6 +416,8 @@ static void SNCFinish(Pool pool)
     AVERT(Seg, seg);
     SegFree(seg);
   }
+
+  PoolAbsFinish(pool);
 }
 
 
@@ -733,6 +744,7 @@ ATTRIBUTE_UNUSED
 static Bool SNCCheck(SNC snc)
 {
   CHECKS(SNC, snc);
+  CHECKC(SNCPool, snc);
   CHECKD(Pool, SNCPool(snc));
   CHECKL(ClassOfPool(SNCPool(snc)) == CLASS(SNCPool));
   if (snc->freeSegs != NULL) {

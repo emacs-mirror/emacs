@@ -29,9 +29,10 @@ SRCID(poolmv2, "$Id$");
 
 /* Private prototypes */
 
-typedef struct MVTStruct *MVT;
+/* FIXME: Inconstent naming of MVTPool class and MVT types. */
+typedef struct MVTStruct *MVT, *MVTPool;
 static void MVTVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs);
-static Res MVTInit(Pool pool, ArgList arg);
+static Res MVTInit(Pool pool, Arena arena, PoolClass class, ArgList arg);
 static Bool MVTCheck(MVT mvt);
 static void MVTFinish(Pool pool);
 static Res MVTBufferFill(Addr *baseReturn, Addr *limitReturn,
@@ -216,9 +217,8 @@ ARG_DEFINE_KEY(MVT_MAX_SIZE, Size);
 ARG_DEFINE_KEY(MVT_RESERVE_DEPTH, Count);
 ARG_DEFINE_KEY(MVT_FRAG_LIMIT, double);
 
-static Res MVTInit(Pool pool, ArgList args)
+static Res MVTInit(Pool pool, Arena arena, PoolClass class, ArgList args)
 {
-  Arena arena;
   Size align = MVT_ALIGN_DEFAULT;
   Size minSize = MVT_MIN_SIZE_DEFAULT;
   Size meanSize = MVT_MEAN_SIZE_DEFAULT;
@@ -231,12 +231,11 @@ static Res MVTInit(Pool pool, ArgList args)
   Res res;
   ArgStruct arg;
 
-  AVERT(Pool, pool);
-  mvt = PoolMVT(pool);
-  /* can't AVERT mvt, yet */
-  arena = PoolArena(pool);
+  AVER(pool != NULL);
   AVERT(Arena, arena);
-  
+  AVERT(ArgList, args);
+  UNUSED(class); /* used for debug pools only */
+
   if (ArgPick(&arg, args, MPS_KEY_ALIGN))
     align = arg.val.align;
   if (ArgPick(&arg, args, MPS_KEY_MIN_SIZE))
@@ -275,6 +274,12 @@ static Res MVTInit(Pool pool, ArgList args)
   /* keep the abq from being useless */
   if (abqDepth < 3)
     abqDepth = 3;
+
+  res = PoolAbsInit(pool, arena, class, args);
+  if (res != ResOK)
+    goto failAbsInit;
+  SetClassOfPool(pool, CLASS(MVTPool));
+  mvt = MustBeA(MVTPool, pool);
 
   res = LandInit(MVTFreePrimary(mvt), CLASS(CBSFast), arena, align, mvt,
                  mps_args_none);
@@ -368,6 +373,8 @@ failFreeLandInit:
 failFreeSecondaryInit:
   LandFinish(MVTFreePrimary(mvt));
 failFreePrimaryInit:
+  PoolAbsFinish(pool);
+failAbsInit:
   AVER(res != ResOK);
   return res;
 }
@@ -379,6 +386,7 @@ ATTRIBUTE_UNUSED
 static Bool MVTCheck(MVT mvt)
 {
   CHECKS(MVT, mvt);
+  CHECKC(MVTPool, mvt);
   CHECKD(Pool, MVTPool(mvt));
   CHECKC(MVTPool, mvt);
   CHECKD(CBS, &mvt->cbsStruct);
@@ -439,6 +447,7 @@ static void MVTFinish(Pool pool)
   LandFinish(MVTFreeLand(mvt));
   LandFinish(MVTFreeSecondary(mvt));
   LandFinish(MVTFreePrimary(mvt));
+  PoolAbsFinish(pool);
 }
 
 

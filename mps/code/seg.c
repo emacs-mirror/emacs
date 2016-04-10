@@ -675,6 +675,7 @@ Bool SegCheck(Seg seg)
   Pool pool;
  
   CHECKS(Seg, seg);
+  CHECKC(Seg, seg);
   CHECKL(TraceSetCheck(seg->white));
 
   /* can't assume nailed is subset of white - mightn't be during whiten */

@@ -50,7 +50,8 @@ typedef struct AMSTStruct {
   Sig sig;                  /* <design/pool/#outer-structure.sig> */
 } AMSTStruct;
 
-typedef struct AMSTStruct *AMST;
+/* FIXME: Inconsistent naming between AMSTPool class and AMST types. */
+typedef struct AMSTStruct *AMST, *AMSTPool;
 
 #define PoolAMST(pool) PARENT(AMSTStruct, amsStruct, PARENT(AMSStruct, poolStruct, (pool)))
 #define AMST2AMS(amst)  (&(amst)->amsStruct)
@@ -319,7 +320,7 @@ static Res AMSTSegSizePolicy(Size *sizeReturn,
 
 /* AMSTInit -- the pool class initialization method */
 
-static Res AMSTInit(Pool pool, ArgList args)
+static Res AMSTInit(Pool pool, Arena arena, PoolClass class, ArgList args)
 {
   AMST amst; AMS ams;
   Format format;
@@ -328,25 +329,30 @@ static Res AMSTInit(Pool pool, ArgList args)
   unsigned gen = AMS_GEN_DEFAULT;
   ArgStruct arg;
 
-  AVERT(Pool, pool);
+  AVER(pool != NULL);
+  AVERT(Arena, arena);
   AVERT(ArgList, args);
+  UNUSED(class); /* used for debug pools only */
 
   if (ArgPick(&arg, args, MPS_KEY_CHAIN))
     chain = arg.val.chain;
   else {
-    chain = ArenaGlobals(PoolArena(pool))->defaultChain;
+    chain = ArenaGlobals(arena)->defaultChain;
     gen = 1; /* avoid the nursery of the default chain by default */
   }
   if (ArgPick(&arg, args, MPS_KEY_GEN))
     gen = arg.val.u;
   ArgRequire(&arg, args, MPS_KEY_FORMAT);
   format = arg.val.format;
-  
-  res = AMSInitInternal(PoolAMS(pool), format, chain, gen, FALSE);
+
+  /* FIXME: Generalise to next-method call */
+  res = AMSInitInternal(PoolAMS(pool), arena, class,
+                        format, chain, gen, FALSE, args);
   if (res != ResOK)
     return res;
-  amst = PoolAMST(pool);
-  ams = PoolAMS(pool);
+  SetClassOfPool(pool, CLASS(AMSTPool));
+  amst = MustBeA(AMSTPool, pool);
+  ams = MustBeA(AMSPool, pool);
   ams->segSize = AMSTSegSizePolicy;
   ams->segClass = AMSTSegClassGet;
   amst->failSegs = TRUE;

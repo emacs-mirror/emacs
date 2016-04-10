@@ -239,8 +239,8 @@ extern void PoolFreeWalk(Pool pool, FreeBlockVisitor f, void *p);
 extern Size PoolTotalSize(Pool pool);
 extern Size PoolFreeSize(Pool pool);
 
-extern Res PoolTrivInit(Pool pool, ArgList arg);
-extern void PoolTrivFinish(Pool pool);
+extern Res PoolAbsInit(Pool pool, Arena arena, PoolClass class, ArgList arg);
+extern void PoolAbsFinish(Pool pool);
 extern Res PoolNoAlloc(Addr *pReturn, Pool pool, Size size);
 extern Res PoolTrivAlloc(Addr *pReturn, Pool pool, Size size);
 extern void PoolNoFree(Pool pool, Addr old, Size size);
@@ -294,8 +294,6 @@ extern Size PoolNoSize(Pool pool);
    common superclass of pools is called AbstractPool, not Pool. */
 #define ClassOfPool(pool) ((PoolClass)ClassOfPoly(pool))
 #define SetClassOfPool SetClassOfPoly
-#define SuperclassOfPool(pool) \
-  ((PoolClass)InstClassSuperclassPoly(ClassOfPool(pool)))
 
 
 /* Abstract Pool Classes Interface -- see <code/poolabs.c> */

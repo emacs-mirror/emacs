@@ -108,14 +108,71 @@ void PoolClassMixInCollect(PoolClass class)
 /* Classes */
 
 
+/* PoolAbsInit -- initialize an abstract pool instance */
+
+Res PoolAbsInit(Pool pool, Arena arena, PoolClass class, ArgList args)
+{
+  AVER(pool != NULL); /* FIXME: express intention */
+  AVERT(Arena, arena);
+  UNUSED(args);
+  UNUSED(class); /* used for debug pools only */
+  
+  /* Superclass init */
+  InstInit(CouldBeA(Inst, pool));
+
+  pool->arena = arena;
+  RingInit(&pool->arenaRing);
+  RingInit(&pool->bufferRing);
+  RingInit(&pool->segRing);
+  pool->bufferSerial = (Serial)0;
+  pool->alignment = MPS_PF_ALIGN;
+  pool->format = NULL;
+  pool->fix = PoolNoFix;
+
+  pool->serial = ArenaGlobals(arena)->poolSerial;
+  ++ArenaGlobals(arena)->poolSerial;
+
+  /* Initialise signature last; see <design/sig/> */
+  SetClassOfPool(pool, CLASS(AbstractPool));
+  pool->sig = PoolSig;
+  AVERT(Pool, pool);
+
+  return ResOK;
+}
+
+
+/* PoolAbsFinish -- finish an abstract pool instance */
+
+void PoolAbsFinish(Pool pool)
+{
+  /* Detach the pool from the arena and format, and unsig it. */
+  RingRemove(&pool->arenaRing);
+
+  /* FIXME: Should be done in finish of pools that use formats */
+  if (pool->format) {
+    AVER(pool->format->poolCount > 0);
+    --pool->format->poolCount;
+  }
+
+  pool->sig = SigInvalid;
+  InstFinish(CouldBeA(Inst, pool));
+ 
+  RingFinish(&pool->segRing);
+  RingFinish(&pool->bufferRing);
+  RingFinish(&pool->arenaRing);
+ 
+  EVENT1(PoolFinish, pool);
+}
+
+
 DEFINE_CLASS(Pool, AbstractPool, class)
 {
   INHERIT_CLASS(&class->protocol, AbstractPool, Inst);
   class->size = sizeof(PoolStruct);
   class->attr = 0;
   class->varargs = ArgTrivVarargs;
-  class->init = PoolTrivInit;
-  class->finish = PoolTrivFinish;
+  class->init = PoolAbsInit;
+  class->finish = PoolAbsFinish;
   class->alloc = PoolNoAlloc;
   class->free = PoolNoFree;
   class->bufferFill = PoolNoBufferFill;
@@ -142,8 +199,19 @@ DEFINE_CLASS(Pool, AbstractPool, class)
   class->debugMixin = PoolNoDebugMixin;
   class->totalSize = PoolNoSize;
   class->freeSize = PoolNoSize;
-  class->labelled = FALSE;
   class->sig = PoolClassSig;
+
+  /* FIXME: This was moved from PoolInit, but seems odd.  Should be
+     done for all classes? */
+  /* label the pool class with its name */
+  /* We could still get multiple labelling if multiple instances of */
+  /* the pool class get created simultaneously, but it's not worth */
+  /* putting another lock in the code. */
+  {
+    Word classId = EventInternString(class->protocol.name);
+    /* NOTE: this breaks <design/type/#addr.use> */
+    EventLabelAddr((Addr)class, classId);
+  }
 }
 
 DEFINE_CLASS(Pool, AbstractBufferPool, class)
@@ -175,21 +243,6 @@ DEFINE_CLASS(Pool, AbstractCollectPool, class)
  *
  * See <design/pool/#no> and <design/pool/#triv>
  */
-
-
-void PoolTrivFinish(Pool pool)
-{
-  AVERT(Pool, pool);
-  NOOP;
-}
-
-Res PoolTrivInit(Pool pool, ArgList args)
-{
-  AVERT(Pool, pool);
-  AVERT(ArgList, args);
-  UNUSED(args);
-  return ResOK;
-}
 
 Res PoolNoAlloc(Addr *pReturn, Pool pool, Size size)
 {
