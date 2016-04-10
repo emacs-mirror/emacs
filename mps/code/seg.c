@@ -134,7 +134,9 @@ static Res SegInit(Seg seg, SegClass class, Pool pool, Addr base, Size size, Arg
   AVER(SizeIsArenaGrains(size, arena));
   AVERT(SegClass, class);
 
-  SetClassOfSeg(seg, class);
+  /* Superclass init */
+  InstInit(CouldBeA(Inst, seg));
+
   limit = AddrAdd(base, size);
   seg->limit = limit;
   seg->rankSet = RankSetEMPTY;
@@ -148,6 +150,7 @@ static Res SegInit(Seg seg, SegClass class, Pool pool, Addr base, Size size, Arg
   seg->queued = FALSE;
   seg->firstTract = NULL;
 
+  SetClassOfSeg(seg, class);
   seg->sig = SegSig;  /* set sig now so tract checks will see it */
 
   TRACT_FOR(tract, addr, arena, base, limit) {
@@ -178,12 +181,13 @@ static Res SegInit(Seg seg, SegClass class, Pool pool, Addr base, Size size, Arg
   return ResOK;
 
 failInit:
+  seg->sig = SigInvalid;
+  InstFinish(CouldBeA(Inst, seg));
   RingFinish(SegPoolRing(seg));
   TRACT_FOR(tract, addr, arena, base, limit) {
     AVERT(Tract, tract);
     TRACT_UNSET_SEG(tract);
   }
-  seg->sig = SigInvalid;
   return res;
 }
 
@@ -236,6 +240,7 @@ static void SegFinish(Seg seg)
   RingFinish(SegPoolRing(seg));
 
   seg->sig = SigInvalid;
+  InstFinish(CouldBeA(Inst, seg));
 
   /* Check that the segment is not exposed, or in the shield */
   /* cache (see <code/shield.c#def.depth>). */

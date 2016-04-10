@@ -73,7 +73,9 @@ static Res LandAbsInit(Land land, Arena arena, Align alignment, ArgList args)
   AVERT(Align, alignment);
   UNUSED(args);
 
-  /* FIXME: Should call super init here? */
+  /* Superclass init */
+  InstInit(CouldBeA(Inst, land));
+
   land->inLand = TRUE;
   land->alignment = alignment;
   land->arena = arena;
@@ -88,6 +90,7 @@ static void LandAbsFinish(Land land)
 {
   AVERC(Land, land);
   land->sig = SigInvalid;
+  InstFinish(CouldBeA(Inst, land));
 }
 
 
