@@ -51,9 +51,6 @@ void InstInit(Inst inst)
  *
  * Finishing makes the instance invalid, so that it will fail
  * InstCheck and can't be used.
- *
- * FIXME: It would be nice if we could use a recognizable value here,
- * such as a pointer to a static invalid class.
  */
 
 static InstClassStruct invalidClassStruct = {
@@ -87,7 +84,7 @@ DEFINE_CLASS(Inst, Inst, theClass)
   ClassLevel i;
   theClass->sig = InstClassSig;
   theClass->name = "Inst";
-  theClass->superclass = theClass;
+  theClass->superclass = NULL;
   for (i = 0; i < ClassDEPTH; ++i)
     theClass->display[i] = 0;
   theClass->level = 0;
@@ -115,7 +112,7 @@ CLASSES(CLASS_DEFINE_CLASSOF, ClassOf)
   void (prefix ## ident)(struct INST_STRUCT(ident) *inst, CLASS_TYPE(kind) class) \
   { \
     AVERT(CLASS_TYPE(kind), class); \
-    CouldBeA(Inst, inst)->class = (InstClass)class; \
+    MustBeA(Inst, inst)->class = (InstClass)class; \
   }
 
 CLASSES(CLASS_DEFINE_SETCLASSOF, SetClassOf)
