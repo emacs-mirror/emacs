@@ -1420,6 +1420,15 @@ alists. Returns a list (key separator description)."
                          (string-match (format "^%s[ \t]\\([^ \t]+\\)[ \t]+$" key-str-qt) key))
                     (unless (assoc-string (match-string 1 key) bindings)
                       (push (cons (match-string 1 key) binding) bindings)))
+                   ((and which-key--current-prefix
+                         (string-match
+                          (format
+                           "^%s[ \t]\\([^ \t]+\\) \\.\\. %s[ \t]\\([^ \t]+\\)[ \t]+$"
+                           key-str-qt key-str-qt) key))
+                    (let ((stripped-key
+                           (concat (match-string 1 key) " \.\. " (match-string 2 key))))
+                      (unless (assoc-string stripped-key bindings)
+                        (push (cons stripped-key binding) bindings))))
                    ((string-match "^\\([^ \t]+\\|[^ \t]+ \\.\\. [^ \t]+\\)[ \t]+$" key)
                     (unless (assoc-string (match-string 1 key) bindings)
                       (push (cons (match-string 1 key) binding) bindings)))))))))
