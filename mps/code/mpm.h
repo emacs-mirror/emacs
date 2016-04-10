@@ -484,6 +484,11 @@ extern void TraceScanSingleRef(TraceSet ts, Rank rank, Arena arena,
 DECLARE_CLASS(AbstractArena, AbstractArena);
 extern Bool ArenaClassCheck(ArenaClass class);
 
+/* FIXME: Would be nice to use generated functions here, but the
+   common superclass of arenas is called AbstractArena, not Arena. */
+#define ClassOfArena(arena) ((ArenaClass)ClassOfPoly(arena))
+#define SetClassOfArena SetClassOfPoly
+
 extern Bool ArenaCheck(Arena arena);
 extern Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args);
 extern void ArenaDestroy(Arena arena);

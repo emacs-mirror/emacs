@@ -104,7 +104,7 @@ Res LandInit(Land land, LandClass class, Arena arena, Align alignment, void *own
   AVERT(LandClass, class);
   AVERT(Align, alignment);
 
-  res = (*class->init)(land, arena, alignment, args);
+  res = class->init(land, arena, alignment, args);
   if (res != ResOK)
     return res;
 
