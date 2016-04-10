@@ -59,6 +59,7 @@ Bool LandCheck(Land land)
 {
   /* .enter-leave.simple */
   CHECKS(Land, land);
+  CHECKC(Land, land);
   CHECKD(LandClass, ClassOfLand(land));
   CHECKU(Arena, land->arena);
   CHECKL(AlignCheck(land->alignment));

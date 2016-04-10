@@ -29,6 +29,8 @@
 
 SRCID(poolmvff, "$Id$");
 
+DECLARE_CLASS(Pool, MVFFPool);
+
 
 /* Would go in poolmvff.h if the class had any MPS-internal clients. */
 extern PoolClass PoolClassMVFF(void);
@@ -42,7 +44,8 @@ extern PoolClass PoolClassMVFF(void);
 
 #define MVFFSig           ((Sig)0x5193FFF9) /* SIGnature MVFF */
 
-typedef struct MVFFStruct *MVFF;
+/* FIXME: Inconsistent naming of MVFFPool class and MVFF types. */
+typedef struct MVFFStruct *MVFF, *MVFFPool;
 typedef struct MVFFStruct {     /* MVFF pool outer structure */
   PoolStruct poolStruct;        /* generic structure */
   LocusPrefStruct locusPrefStruct; /* the preferences for allocation */
@@ -436,7 +439,7 @@ ARG_DEFINE_KEY(MVFF_SLOT_HIGH, Bool);
 ARG_DEFINE_KEY(MVFF_ARENA_HIGH, Bool);
 ARG_DEFINE_KEY(MVFF_FIRST_FIT, Bool);
 
-static Res MVFFInit(Pool pool, ArgList args)
+static Res MVFFInit(Pool pool, Arena arena, PoolClass class, ArgList args)
 {
   Size extendBy = MVFF_EXTEND_BY_DEFAULT;
   Size avgSize = MVFF_AVG_SIZE_DEFAULT;
@@ -446,12 +449,13 @@ static Res MVFFInit(Pool pool, ArgList args)
   Bool firstFit = MVFF_FIRST_FIT_DEFAULT;
   double spare = MVFF_SPARE_DEFAULT;
   MVFF mvff;
-  Arena arena;
   Res res;
   ArgStruct arg;
 
-  AVERT(Pool, pool);
-  arena = PoolArena(pool);
+  AVER(pool != NULL);
+  AVERT(Arena, arena);
+  AVERT(ArgList, args);
+  UNUSED(class); /* used for debug pools only */
 
   /* .arg: class-specific additional arguments; see */
   /* <design/poolmvff/#method.init> */
@@ -494,7 +498,11 @@ static Res MVFFInit(Pool pool, ArgList args)
   AVERT(Bool, arenaHigh);
   AVERT(Bool, firstFit);
 
-  mvff = PoolMVFF(pool);
+  res = PoolAbsInit(pool, arena, class, args);
+  if (res != ResOK)
+    goto failAbsInit;
+  SetClassOfPool(pool, CLASS(MVFFPool));
+  mvff = MustBeA(MVFFPool, pool);
 
   mvff->extendBy = extendBy;
   if (extendBy < ArenaGrainSize(arena))
@@ -565,6 +573,9 @@ failFreePrimaryInit:
 failTotalLandInit:
   PoolFinish(MVFFBlockPool(mvff));
 failBlockPoolInit:
+  PoolAbsFinish(pool);
+failAbsInit:
+  AVER(res != ResOK);
   return res;
 }
 
@@ -607,6 +618,7 @@ static void MVFFFinish(Pool pool)
   LandFinish(MVFFFreePrimary(mvff));
   LandFinish(MVFFTotalLand(mvff));
   PoolFinish(MVFFBlockPool(mvff));
+  PoolAbsFinish(pool);
 }
 
 
@@ -760,6 +772,7 @@ ATTRIBUTE_UNUSED
 static Bool MVFFCheck(MVFF mvff)
 {
   CHECKS(MVFF, mvff);
+  CHECKC(MVFFPool, mvff);
   CHECKD(Pool, MVFFPool(mvff));
   CHECKL(IsA(MVFFPool, MVFFPool(mvff)));
   CHECKD(LocusPref, MVFFLocusPref(mvff));

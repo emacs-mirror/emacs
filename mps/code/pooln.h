@@ -20,7 +20,8 @@
 
 /* PoolN -- instance type  */
 
-typedef struct PoolNStruct *PoolN;
+/* FIXME: Inconsistent naming between NPool class and PoolN types. */
+typedef struct PoolNStruct *PoolN, *NPool;
 
 
 /* PoolClassN -- returns the PoolClass for the null pool class */

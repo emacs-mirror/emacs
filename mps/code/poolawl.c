@@ -45,6 +45,8 @@
 
 SRCID(poolawl, "$Id$");
 
+DECLARE_CLASS(Pool, AWLPool);
+
 
 #define AWLSig ((Sig)0x519B7A37) /* SIGnature PooL AWL */
 
@@ -539,7 +541,7 @@ static Addr awlNoDependent(Addr addr)
 
 ARG_DEFINE_KEY(AWL_FIND_DEPENDENT, Fun);
 
-static Res AWLInit(Pool pool, ArgList args)
+static Res AWLInit(Pool pool, Arena arena, PoolClass class, ArgList args)
 {
   AWL awl;
   Format format;
@@ -549,11 +551,11 @@ static Res AWLInit(Pool pool, ArgList args)
   ArgStruct arg;
   unsigned gen = AWL_GEN_DEFAULT;
 
-  /* Weak check, as half-way through initialization. */
   AVER(pool != NULL);
+  AVERT(Arena, arena);
+  AVERT(ArgList, args);
+  UNUSED(class); /* used for debug pools only */
 
-  awl = PoolAWL(pool);
-  
   ArgRequire(&arg, args, MPS_KEY_FORMAT);
   format = arg.val.format;
   if (ArgPick(&arg, args, MPS_KEY_AWL_FIND_DEPENDENT))
@@ -561,14 +563,21 @@ static Res AWLInit(Pool pool, ArgList args)
   if (ArgPick(&arg, args, MPS_KEY_CHAIN))
     chain = arg.val.chain;
   else {
-    chain = ArenaGlobals(PoolArena(pool))->defaultChain;
+    chain = ArenaGlobals(arena)->defaultChain;
     gen = 1; /* avoid the nursery of the default chain by default */
   }
   if (ArgPick(&arg, args, MPS_KEY_GEN))
     gen = arg.val.u;
 
   AVERT(Format, format);
-  AVER(FormatArena(format) == PoolArena(pool));
+  AVER(FormatArena(format) == arena);
+
+  res = PoolAbsInit(pool, arena, class, args);
+  if (res != ResOK)
+    goto failAbsInit;
+  SetClassOfPool(pool, CLASS(AWLPool));
+  awl = MustBeA(AWLPool, pool);
+  
   pool->format = format;
   pool->alignment = format->alignment;
 
@@ -593,6 +602,8 @@ static Res AWLInit(Pool pool, ArgList args)
   return ResOK;
 
 failGenInit:
+  PoolAbsFinish(pool);
+failAbsInit:
   AVER(res != ResOK);
   return res;
 }
@@ -623,6 +634,7 @@ static void AWLFinish(Pool pool)
   }
   awl->sig = SigInvalid;
   PoolGenFinish(&awl->pgen);
+  PoolAbsFinish(pool);
 }
 
 
@@ -1353,6 +1365,7 @@ ATTRIBUTE_UNUSED
 static Bool AWLCheck(AWL awl)
 {
   CHECKS(AWL, awl);
+  CHECKC(AWLPool, awl);
   CHECKD(Pool, AWLPool(awl));
   CHECKC(AWLPool, awl);
   CHECKL(AWLGrainsSize(awl, (Count)1) == PoolAlignment(AWLPool(awl)));

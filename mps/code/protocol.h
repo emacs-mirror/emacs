@@ -167,8 +167,9 @@ extern void InstFinish(Inst inst);
  * <design/protocol/#introspect.c-lang>.
  */
 
-#define InstClassSuperclassPoly(class) \
-  (((InstClass)(class))->superclass)
+/* FIXME: Would like to assert that the superclass has the right kind. */
+#define SuperclassPoly(kind, class) \
+  ((CLASS_TYPE(kind))((InstClass)(class))->superclass)
 
 #define ClassOfPoly(inst) (MustBeA(Inst, inst)->class)
 

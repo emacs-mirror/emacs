@@ -14,12 +14,15 @@
 
 SRCID(poollo, "$Id$");
 
+DECLARE_CLASS(Pool, LOPool);
+
 
 /* LOStruct -- leaf object pool instance structure */
 
 #define LOSig           ((Sig)0x51970B07) /* SIGnature LO POoL */
 
-typedef struct LOStruct *LO;
+/* FIXME: Inconsistent naming of LOPool class and LO types. */
+typedef struct LOStruct *LO, *LOPool;
 
 typedef struct LOStruct {
   PoolStruct poolStruct;        /* generic pool structure */
@@ -469,21 +472,24 @@ static void LOVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
 
 /* LOInit -- initialize an LO pool */
 
-static Res LOInit(Pool pool, ArgList args)
+static Res LOInit(Pool pool, Arena arena, PoolClass class, ArgList args)
 {
   LO lo;
-  Arena arena;
   Res res;
   ArgStruct arg;
   Chain chain;
   unsigned gen = LO_GEN_DEFAULT;
 
-  AVERT(Pool, pool);
+  AVER(pool != NULL);
+  AVERT(Arena, arena);
   AVERT(ArgList, args);
+  UNUSED(class); /* used for debug pools only */
 
-  arena = PoolArena(pool);
-  
-  lo = PoolPoolLO(pool);
+  res = PoolAbsInit(pool, arena, class, args);
+  if (res != ResOK)
+    goto failAbsInit;
+  SetClassOfPool(pool, CLASS(LOPool));
+  lo = MustBeA(LOPool, pool);
 
   ArgRequire(&arg, args, MPS_KEY_FORMAT);
   pool->format = arg.val.format;
@@ -515,6 +521,8 @@ static Res LOInit(Pool pool, ArgList args)
   return ResOK;
 
 failGenInit:
+  PoolAbsFinish(pool);
+failAbsInit:
   AVER(res != ResOK);
   return res;
 }
@@ -544,6 +552,7 @@ static void LOFinish(Pool pool)
   PoolGenFinish(&lo->pgen);
 
   lo->sig = SigInvalid;
+  PoolAbsFinish(pool);
 }
 
 
@@ -852,6 +861,7 @@ ATTRIBUTE_UNUSED
 static Bool LOCheck(LO lo)
 {
   CHECKS(LO, lo);
+  CHECKC(LOPool, lo);
   CHECKD(Pool, LOPool(lo));
   CHECKC(LOPool, lo);
   CHECKL(ShiftCheck(lo->alignShift));

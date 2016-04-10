@@ -38,6 +38,8 @@
 
 SRCID(poolmfs, "$Id$");
 
+DECLARE_CLASS(Pool, MFSPool);
+
 
 /* ROUND -- Round up
  *
@@ -75,17 +77,19 @@ static void MFSVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
 ARG_DEFINE_KEY(MFS_UNIT_SIZE, Size);
 ARG_DEFINE_KEY(MFSExtendSelf, Bool);
 
-static Res MFSInit(Pool pool, ArgList args)
+static Res MFSInit(Pool pool, Arena arena, PoolClass class, ArgList args)
 {
   Size extendBy = MFS_EXTEND_BY_DEFAULT;
   Bool extendSelf = TRUE;
   Size unitSize;
   MFS mfs;
-  Arena arena;
   ArgStruct arg;
+  Res res;
 
   AVER(pool != NULL);
+  AVERT(Arena, arena);
   AVERT(ArgList, args);
+  UNUSED(class); /* used for debug pools only */
   
   ArgRequire(&arg, args, MPS_KEY_MFS_UNIT_SIZE);
   unitSize = arg.val.size;
@@ -97,9 +101,12 @@ static Res MFSInit(Pool pool, ArgList args)
   AVER(unitSize > 0);
   AVER(extendBy > 0);
   AVERT(Bool, extendSelf);
- 
-  mfs = PoolPoolMFS(pool);
-  arena = PoolArena(pool);
+
+  res = PoolAbsInit(pool, arena, class, args);
+  if (res != ResOK)
+    return res;
+  SetClassOfPool(pool, CLASS(MFSPool));
+  mfs = MustBeA(MFSPool, pool);
 
   mfs->unroundedUnitSize = unitSize;
 
@@ -162,6 +169,7 @@ static void MFSFinish(Pool pool)
   MFSFinishTracts(pool, MFSTractFreeVisitor, UNUSED_POINTER);
 
   mfs->sig = SigInvalid;
+  PoolAbsFinish(pool);
 }
 
 
@@ -388,6 +396,7 @@ Bool MFSCheck(MFS mfs)
   Arena arena;
 
   CHECKS(MFS, mfs);
+  CHECKC(MFSPool, mfs);
   CHECKD(Pool, MFSPool(mfs));
   CHECKC(MFSPool, mfs);
   CHECKL(mfs->unitSize >= UNIT_MIN);

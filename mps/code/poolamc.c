@@ -16,7 +16,8 @@
 SRCID(poolamc, "$Id$");
 
 /* AMC typedef */
-typedef struct AMCStruct *AMC;
+/* FIXME: Inconsistent naming of AMCPool class and AMC types. */
+typedef struct AMCStruct *AMC, *AMCPool, *AMCZPool;
 
 /* amcGen typedef */
 typedef struct amcGenStruct *amcGen;
@@ -32,6 +33,7 @@ static Nailboard amcSegNailboard(Seg seg);
 static Bool AMCCheck(AMC amc);
 static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO);
 DECLARE_CLASS(Pool, AMCZPool);
+DECLARE_CLASS(Pool, AMCPool);
 DECLARE_CLASS(Buffer, amcBuf);
 DECLARE_CLASS(Seg, amcSeg);
 
@@ -721,11 +723,11 @@ static void AMCVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
  * See <design/poolamc/#init>.
  * Shared by AMCInit and AMCZinit.
  */
-static Res amcInitComm(Pool pool, RankSet rankSet, ArgList args)
+static Res amcInitComm(Pool pool, Arena arena, PoolClass class,
+                       RankSet rankSet, ArgList args)
 {
   AMC amc;
   Res res;
-  Arena arena;
   Index i;
   size_t genArraySize;
   size_t genCount;
@@ -734,14 +736,16 @@ static Res amcInitComm(Pool pool, RankSet rankSet, ArgList args)
   Size extendBy = AMC_EXTEND_BY_DEFAULT;
   Size largeSize = AMC_LARGE_SIZE_DEFAULT;
   ArgStruct arg;
+  Format format;
   
   AVER(pool != NULL);
-
-  amc = PoolAMC(pool);
-  arena = PoolArena(pool);
-
+  AVERT(Arena, arena);
+  AVERT(ArgList, args);
+  AVERT(PoolClass, class);
+  AVER(IsSubclass(class, AMCZPool));
+  
   ArgRequire(&arg, args, MPS_KEY_FORMAT);
-  pool->format = arg.val.format;
+  format = arg.val.format;
   if (ArgPick(&arg, args, MPS_KEY_CHAIN))
     chain = arg.val.chain;
   else
@@ -753,8 +757,8 @@ static Res amcInitComm(Pool pool, RankSet rankSet, ArgList args)
   if (ArgPick(&arg, args, MPS_KEY_LARGE_SIZE))
     largeSize = arg.val.size;
   
-  AVERT(Format, pool->format);
-  AVER(FormatArena(pool->format) == arena);
+  AVERT(Format, format);
+  AVER(FormatArena(format) == arena);
   AVERT(Chain, chain);
   AVER(chain->arena == arena);
   AVER(extendBy > 0);
@@ -764,6 +768,14 @@ static Res amcInitComm(Pool pool, RankSet rankSet, ArgList args)
    * unacceptable fragmentation due to the padding objects. This
    * assertion catches this bad case. */
   AVER(largeSize >= extendBy);
+
+  res = PoolAbsInit(pool, arena, class, args);
+  if (res != ResOK)
+    return res;
+  SetClassOfPool(pool, class);
+  amc = MustBeA(AMCZPool, pool);
+
+  pool->format = format;
   pool->alignment = pool->format->alignment;
   pool->fix = AMCFix;
   amc->rankSet = rankSet;
@@ -835,17 +847,20 @@ failGenAlloc:
   }
   ControlFree(arena, amc->gen, genArraySize);
 failGensAlloc:
+  PoolAbsFinish(pool);
   return res;
 }
 
-static Res AMCInit(Pool pool, ArgList args)
+static Res AMCInit(Pool pool, Arena arena, PoolClass class, ArgList args)
 {
-  return amcInitComm(pool, RankSetSingle(RankEXACT), args);
+  UNUSED(class); /* used for debug pools only */
+  return amcInitComm(pool, arena, CLASS(AMCPool), RankSetSingle(RankEXACT), args);
 }
 
-static Res AMCZInit(Pool pool, ArgList args)
+static Res AMCZInit(Pool pool, Arena arena, PoolClass class, ArgList args)
 {
-  return amcInitComm(pool, RankSetEMPTY, args);
+  UNUSED(class); /* used for debug pools only */
+  return amcInitComm(pool, arena, CLASS(AMCZPool), RankSetEMPTY, args);
 }
 
 
@@ -900,6 +915,7 @@ static void AMCFinish(Pool pool)
   }
 
   amc->sig = SigInvalid;
+  PoolAbsFinish(pool);
 }
 
 
@@ -2211,6 +2227,7 @@ ATTRIBUTE_UNUSED
 static Bool AMCCheck(AMC amc)
 {
   CHECKS(AMC, amc);
+  CHECKC(AMCZPool, amc);
   CHECKD(Pool, AMCPool(amc));
   CHECKL(IsA(AMCZPool, AMCPool(amc)));
   CHECKL(RankSetCheck(amc->rankSet));
