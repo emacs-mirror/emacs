@@ -171,22 +171,24 @@ extern Bool InstCheck(Inst inst);
   (((InstClass)(class))->superclass)
 
 #define ClassOfPoly(inst) (MustBeA(Inst, inst)->class)
+
+/* FIXME: SetClassOfPoly should use MustBeA, but some classes are
+   intialized inside out at the moment. */
 #define SetClassOfPoly(inst, _class) \
-  BEGIN MustBeA(Inst, inst)->class = (InstClass)(_class); END
+  BEGIN CouldBeA(Inst, inst)->class = (InstClass)(_class); END
 
 
 /* SUPERCLASS  - get the superclass object, given a class name
  *
- * Returns the superclass, with type InstClass. Clients will
- * probably wish to cast this. See
- * <design/protocol/#int.static-superclass>
+ * See design.mps.protocol.int.static-superclass.
+ *
+ * TODO: Several experiments with statically generating some kind of
+ * SUPERCLASS lookup have failed because the names of types, classes,
+ * and the hierarchy are inconsistent.  Revisit this later.
  */
 
-#define CLASS_DECLARE_SUPER(UNUSED, ident, kind, super) \
-  CLASS_TYPE(kind) CLASS_SUPER(ident)(void);
-CLASSES(CLASS_DECLARE_SUPER, UNUSED)
-
-#define SUPERCLASS(className) (CLASS_SUPER(className)())
+#define SUPERCLASS(kind, ident) \
+  ((CLASS_TYPE(kind))((InstClass)CLASS(ident))->superclass)
 
 
 /* IsA, CouldBeA, MustBeA -- coerce instances safely

@@ -232,7 +232,7 @@ static Res MRGLinkSegInit(Seg seg, Pool pool, Addr base, Size size,
   /* no useful checks for base and size */
 
   /* Initialize the superclass fields first via next-method call */
-  super = SUPERCLASS(MRGLinkSeg);
+  super = SUPERCLASS(Seg, MRGLinkSeg);
   res = super->init(seg, pool, base, size, args);
   if (res != ResOK)
     return res;
@@ -274,7 +274,7 @@ static Res MRGRefSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   AVERT(MRGLinkSeg, linkseg);
 
   /* Initialize the superclass fields first via next-method call */
-  super = SUPERCLASS(MRGRefSeg);
+  super = SUPERCLASS(Seg, MRGRefSeg);
   res = super->init(seg, pool, base, size, args);
   if (res != ResOK)
     return res;
