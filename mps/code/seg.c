@@ -168,6 +168,7 @@ static Res SegInit(Seg seg, SegClass class, Pool pool, Addr base, Size size, Arg
   RingInit(SegPoolRing(seg));
 
   /* Class specific initialization comes last */
+  /* FIXME: Should call init which next-method calls SegAbsInit. */
   res = class->init(seg, pool, base, size, args);
   if (res != ResOK)
     goto failInit;
@@ -211,6 +212,7 @@ static void SegFinish(Seg seg)
   }
 
   /* Class specific finishing cames first */
+  /* FIXME: Should call finish which next-method calls SegAbsFinish. */
   class->finish(seg);
 
   seg->rankSet = RankSetEMPTY;
@@ -572,7 +574,7 @@ Res SegMerge(Seg *mergedSegReturn, Seg segLo, Seg segHi)
     ShieldFlush(arena);  /* see <design/seg/#split-merge.shield> */
 
   /* Invoke class-specific methods to do the merge */
-  res = class->merge(segLo, segHi, base, mid, limit);
+  res = Method(Seg, segLo, merge)(segLo, segHi, base, mid, limit);
   if (ResOK != res)
     goto failMerge;
 
@@ -632,7 +634,7 @@ Res SegSplit(Seg *segLoReturn, Seg *segHiReturn, Seg seg, Addr at)
   segNew = p;
 
   /* Invoke class-specific methods to do the split */
-  res = class->split(seg, segNew, base, at, limit);
+  res = Method(Seg, seg, split)(seg, segNew, base, at, limit);
   if (ResOK != res)
     goto failSplit;
 

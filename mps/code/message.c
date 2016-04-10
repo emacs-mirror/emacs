@@ -314,6 +314,7 @@ static void MessageDelete(Message message)
 {
   AVERT(Message, message);
 
+  /* FIXME: Should be using protocol classes? */
   (*message->class->delete)(message);
 }
 

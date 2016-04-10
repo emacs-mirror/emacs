@@ -205,7 +205,7 @@ Res ChunkInit(Chunk chunk, Arena arena, Addr base, Addr limit, Size reserved,
   pageTableSize = SizeAlignUp(pages * sizeof(PageUnion), chunk->pageSize);
   chunk->pageTablePages = pageTableSize >> pageShift;
 
-  res = (arena->class->chunkInit)(chunk, boot);
+  res = Method(Arena, arena, chunkInit)(chunk, boot);
   if (res != ResOK)
     goto failClassInit;
 
@@ -239,7 +239,7 @@ Res ChunkInit(Chunk chunk, Arena arena, Addr base, Addr limit, Size reserved,
   return ResOK;
 
 failLandInsert:
-  (arena->class->chunkFinish)(chunk);
+  Method(Arena, arena, chunkFinish)(chunk);
   /* .no-clean: No clean-ups needed past this point for boot, as we will
      discard the chunk. */
 failClassInit:
@@ -273,7 +273,7 @@ void ChunkFinish(Chunk chunk)
 
   /* Finish all other fields before class finish, because they might be */
   /* unmapped there. */
-  (*arena->class->chunkFinish)(chunk);
+  Method(Arena, arena, chunkFinish)(chunk);
 }
 
 

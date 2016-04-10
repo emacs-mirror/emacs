@@ -505,7 +505,6 @@ static Res AMCBufInit(Buffer buffer, Pool pool, ArgList args)
 {
   AMC amc;
   amcBuf amcbuf;
-  BufferClass superclass;
   Res res;
   Bool forHashArrays = FALSE;
   ArgStruct arg;
@@ -519,8 +518,7 @@ static Res AMCBufInit(Buffer buffer, Pool pool, ArgList args)
     forHashArrays = arg.val.b;
 
   /* call next method */
-  superclass = SUPERCLASS(Buffer, amcBuf);
-  res = (*superclass->init)(buffer, pool, args);
+  res = SUPERCLASS(Buffer, amcBuf)->init(buffer, pool, args);
   if(res != ResOK)
     return res;
 
