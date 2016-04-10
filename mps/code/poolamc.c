@@ -851,6 +851,10 @@ failGensAlloc:
   return res;
 }
 
+/* FIXME: AMCInit should call AMCZInit (its superclass) then
+   specialize, but amcInitComm creates forwarding buffers that copy
+   the rank set from the pool, making this awkward. */
+
 static Res AMCInit(Pool pool, Arena arena, PoolClass class, ArgList args)
 {
   UNUSED(class); /* used for debug pools only */
