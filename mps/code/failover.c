@@ -30,14 +30,12 @@ Bool FailoverCheck(Failover fo)
 static Res failoverInit(Land land, Arena arena, Align alignment, ArgList args)
 {
   Failover fo;
-  LandClass super;
   Land primary, secondary;
   ArgStruct arg;
   Res res;
 
-  AVER(land != NULL); /* FIXME: express intention */
-  super = SUPERCLASS(Land, Failover);
-  res = (*super->init)(land, arena, alignment, args);
+  AVER(land != NULL);
+  res = SUPERCLASS(Land, Failover)->init(land, arena, alignment, args);
   if (res != ResOK)
     return res;
 

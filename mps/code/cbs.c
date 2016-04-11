@@ -221,14 +221,12 @@ static Res cbsInitComm(Land land, LandClass class,
                        Size blockStructSize)
 {
   CBS cbs;
-  LandClass super;
   ArgStruct arg;
   Res res;
   Pool blockPool = NULL;
 
-  AVER(land != NULL); /* FIXME: express intention */
-  super = SUPERCLASS(Land, CBS);
-  res = (*super->init)(land, arena, alignment, args);
+  AVER(land != NULL);
+  res = SUPERCLASS(Land, CBS)->init(land, arena, alignment, args);
   if (res != ResOK)
     return res;
 
@@ -1103,7 +1101,6 @@ static Res cbsDescribe(Land land, mps_lib_FILE *stream, Count depth)
   if (stream == NULL)
     return ResPARAM;
 
-  /* FIXME: Should use the class from the land itself. */
   res = SUPERCLASS(Land, CBS)->describe(land, stream, depth);
   if (res != ResOK)
     return res;
@@ -1118,7 +1115,8 @@ static Res cbsDescribe(Land land, mps_lib_FILE *stream, Count depth)
 
   METER_WRITE(cbs->treeSearch, stream, depth + 2);
 
-  /* FIXME: Should be done by subclass specialization. */
+  /* This could be done by specialised methods in subclasses, but it
+     doesn't really come out any neater. */
   if (IsA(CBSZoned, land))
     describe = cbsZonedSplayNodeDescribe;
   else if (IsA(CBSFast, land))

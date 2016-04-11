@@ -275,7 +275,6 @@ failNextMethod:
 
 static void AMSSegFinish(Seg seg)
 {
-  SegClass super;
   AMSSeg amsseg;
   AMS ams;
   Arena arena;
@@ -298,8 +297,7 @@ static void AMSSegFinish(Seg seg)
   amsseg->sig = SigInvalid;
 
   /* finish the superclass fields last */
-  super = SUPERCLASS(Seg, AMSSeg);
-  super->finish(seg);
+  SUPERCLASS(Seg, AMSSeg)->finish(seg);
 }
 
 
@@ -327,7 +325,6 @@ static void AMSSegFinish(Seg seg)
 static Res AMSSegMerge(Seg seg, Seg segHi,
                        Addr base, Addr mid, Addr limit)
 {
-  SegClass super;
   Count loGrains, hiGrains, allGrains;
   AMSSeg amsseg, amssegHi;
   Arena arena;
@@ -362,8 +359,7 @@ static Res AMSSegMerge(Seg seg, Seg segHi,
     goto failCreateTables;
 
   /* Merge the superclass fields via next-method call */
-  super = SUPERCLASS(Seg, AMSSeg);
-  res = super->merge(seg, segHi, base, mid, limit);
+  res = SUPERCLASS(Seg, AMSSeg)->merge(seg, segHi, base, mid, limit);
   if (res != ResOK)
     goto failSuper;
 
@@ -411,7 +407,6 @@ failCreateTables:
 static Res AMSSegSplit(Seg seg, Seg segHi,
                        Addr base, Addr mid, Addr limit)
 {
-  SegClass super;
   Count loGrains, hiGrains, allGrains;
   AMSSeg amsseg, amssegHi;
   Arena arena;
@@ -455,8 +450,7 @@ static Res AMSSegSplit(Seg seg, Seg segHi,
 
 
   /* Split the superclass fields via next-method call */
-  super = SUPERCLASS(Seg, AMSSeg);
-  res = super->split(seg, segHi, base, mid, limit);
+  res = SUPERCLASS(Seg, AMSSeg)->split(seg, segHi, base, mid, limit);
   if (res != ResOK)
     goto failSuper;
 
@@ -530,7 +524,6 @@ static Res AMSSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
 {
   Res res;
   AMSSeg amsseg;
-  SegClass super;
   Buffer buffer;               /* the segment's buffer, if it has one */
   Index i;
 
@@ -543,8 +536,7 @@ static Res AMSSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
     return ResFAIL;
 
   /* Describe the superclass fields first via next-method call */
-  super = SUPERCLASS(Seg, AMSSeg);
-  res = super->describe(seg, stream, depth);
+  res = SUPERCLASS(Seg, AMSSeg)->describe(seg, stream, depth);
   if (res != ResOK)
     return res;
 

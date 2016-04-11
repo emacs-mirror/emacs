@@ -1403,7 +1403,6 @@ static void gcSegSetBuffer(Seg seg, Buffer buffer)
 static Res gcSegMerge(Seg seg, Seg segHi,
                       Addr base, Addr mid, Addr limit)
 {
-  SegClass super;
   GCSeg gcseg, gcsegHi;
   TraceSet grey;
   RefSet summary;
@@ -1444,8 +1443,7 @@ static Res gcSegMerge(Seg seg, Seg segHi,
   }
 
   /* Merge the superclass fields via next-method call */
-  super = SUPERCLASS(Seg, GCSeg);
-  res = super->merge(seg, segHi, base, mid, limit);
+  res = SUPERCLASS(Seg, GCSeg)->merge(seg, segHi, base, mid, limit);
   if (res != ResOK)
     goto failSuper;
 
@@ -1478,7 +1476,6 @@ failSuper:
 static Res gcSegSplit(Seg seg, Seg segHi,
                       Addr base, Addr mid, Addr limit)
 {
-  SegClass super;
   GCSeg gcseg, gcsegHi;
   Buffer buf;
   TraceSet grey;
@@ -1506,8 +1503,7 @@ static Res gcSegSplit(Seg seg, Seg segHi,
   }   
 
   /* Split the superclass fields via next-method call */
-  super = SUPERCLASS(Seg, GCSeg);
-  res = super->split(seg, segHi, base, mid, limit);
+  res = SUPERCLASS(Seg, GCSeg)->split(seg, segHi, base, mid, limit);
   if (res != ResOK)
     goto failSuper;
 
@@ -1540,7 +1536,6 @@ failSuper:
 static Res gcSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
 {
   Res res;
-  SegClass super;
   GCSeg gcseg;
 
   if (!TESTT(Seg, seg))
@@ -1552,8 +1547,7 @@ static Res gcSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
     return ResFAIL;
 
   /* Describe the superclass fields first via next-method call */
-  super = SUPERCLASS(Seg, GCSeg);
-  res = super->describe(seg, stream, depth);
+  res = SUPERCLASS(Seg, GCSeg)->describe(seg, stream, depth);
   if (res != ResOK)
     return res;
 
