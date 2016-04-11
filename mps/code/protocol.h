@@ -30,7 +30,7 @@
 #define CLASS_INIT(ident) ident ## ClassInit
 #define CLASS_CHECK(ident) ident ## ClassCheck
 #define CLASS_SUPER(ident) ident ## SuperClassGet
-#define KIND_SIG(ident) ident ## ClassSig
+#define KIND_CLASS(ident) ident ## Class
 
 
 /* DECLARE_CLASS -- declare the existence of a protocol class */
@@ -49,16 +49,18 @@
   { \
     static Bool guardian = FALSE; \
     static CLASS_STRUCT(kind) classStruct; \
+    static CLASS_TYPE(kind) class = &classStruct; \
     if (guardian == FALSE) { \
       LockClaimGlobalRecursive(); \
       if (guardian == FALSE) { \
-        CLASS_INIT(ident)(&classStruct); \
-        AVER(CLASS_CHECK(kind)(&classStruct)); \
         guardian = TRUE; \
+        CLASS_INIT(ident)(class); \
+        SetClassOfPoly(class, CLASS(KIND_CLASS(kind))); \
+        AVER(CLASS_CHECK(kind)(class)); \
       } \
       LockReleaseGlobalRecursive(); \
     } \
-    return &classStruct; \
+    return class; \
   } \
   void CLASS_INIT(ident)(CLASS_TYPE(kind) var)
 
@@ -143,6 +145,7 @@ typedef unsigned char ClassLevel;
 #define InstClassSig ((Sig)0x519B60C7) /* SIGnature PROtocol CLass */
 
 typedef struct InstClassStruct {
+  InstStruct instStruct;        /* classes are instances of kinds */
   Sig sig;                      /* <design/sig/> */
   ClassName name;               /* human readable name such as "Land" */
   InstClass superclass;         /* pointer to direct superclass */
@@ -153,6 +156,7 @@ typedef struct InstClassStruct {
 
 /* InstClass -- the root of the protocol class hierarchy */
 
+DECLARE_CLASS(Inst, InstClass);
 DECLARE_CLASS(Inst, Inst);
 
 extern Bool InstClassCheck(InstClass class);
@@ -168,17 +172,14 @@ extern void InstFinish(Inst inst);
  * <design/protocol/#introspect.c-lang>.
  */
 
-#define MustBeKind(kind, class) \
-  ((CLASS_TYPE(kind))AVERPC((class) != NULL && \
-			    ((CLASS_TYPE(kind))class)->sig == KIND_SIG(kind), \
-			    "MustBeKind " #kind ": " #class, \
-			    class))
+#define SuperclassPoly(kind, class) \
+  MustBeA(KIND_CLASS(kind), MustBeA(InstClass, class)->superclass)
 
-#define SuperclassPoly(kind, class) MustBeKind(kind, MustBeKind(Inst, class)->superclass)
-
-#define ClassOfPoly(kind, inst) MustBeKind(kind, MustBeA(Inst, inst)->class)
+#define ClassOfPoly(kind, inst) \
+  MustBeA(KIND_CLASS(kind), MustBeA(Inst, inst)->class)
 
 #define ClassName(class) RVALUE(((InstClass)(class))->name)
+/* #define ClassName(class) RVALUE(MustBeA(InstClass, class)->name) */
 
 
 /* SetClassOfPoly -- set the class of an object
@@ -205,7 +206,7 @@ extern void InstFinish(Inst inst);
  */
 
 #define SUPERCLASS(kind, ident) \
-  ((CLASS_TYPE(kind))((InstClass)CLASS(ident))->superclass)
+  MustBeA(KIND_CLASS(kind), CouldBeA(InstClass, CLASS(ident))->superclass)
 
 #define NextMethod(kind, ident, meth) (SUPERCLASS(kind, ident)->meth)
 

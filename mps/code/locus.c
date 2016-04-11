@@ -696,17 +696,20 @@ void PoolGenFree(PoolGen pgen, Seg seg, Size freeSize, Size oldSize,
 Res PoolGenDescribe(PoolGen pgen, mps_lib_FILE *stream, Count depth)
 {
   Res res;
+  PoolClass poolClass;
 
   if (!TESTT(PoolGen, pgen))
-    return ResFAIL;
+    return ResPARAM;
   if (stream == NULL)
-    return ResFAIL;
+    return ResPARAM;
+
+  poolClass = ClassOfPoly(Pool, pgen->pool);
   
   res = WriteF(stream, depth,
                "PoolGen $P {\n", (WriteFP)pgen,
                "  pool $P ($U) \"$S\"\n",
                (WriteFP)pgen->pool, (WriteFU)pgen->pool->serial,
-               (WriteFS)ClassName(ClassOfPoly(Pool, pgen->pool)),
+               (WriteFS)ClassName(poolClass),
                "  segs $U\n", (WriteFU)pgen->segs,
                "  totalSize $U\n", (WriteFU)pgen->totalSize,
                "  freeSize $U\n", (WriteFU)pgen->freeSize,

@@ -356,19 +356,21 @@ Res SegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
 {
   Res res;
   Pool pool;
+  SegClass class;
 
-  if (!TESTT(Seg, seg))
-    return ResFAIL;
+  if (!TESTC(Seg, seg))
+    return ResPARAM;
   if (stream == NULL)
-    return ResFAIL;
+    return ResPARAM;
 
   pool = SegPool(seg);
+  class = ClassOfPoly(Seg, seg);
 
   res = WriteF(stream, depth,
                "Segment $P [$A,$A) {\n", (WriteFP)seg,
                (WriteFA)SegBase(seg), (WriteFA)SegLimit(seg),
                "  class $P (\"$S\")\n",
-               (WriteFP)ClassOfPoly(Seg, seg), (WriteFS)ClassName(ClassOfPoly(Seg, seg)),
+               (WriteFP)class, (WriteFS)ClassName(class),
                "  pool $P ($U)\n",
                (WriteFP)pool, (WriteFU)pool->serial,
                "  depth $U\n", seg->depth,
@@ -1585,6 +1587,11 @@ Bool SegClassCheck(SegClass class)
 
 
 /* SegClass -- the vanilla segment class definition */
+
+DEFINE_CLASS(Inst, SegClass, class)
+{
+  INHERIT_CLASS(class, SegClass, InstClass);
+}
 
 DEFINE_CLASS(Seg, Seg, class)
 {
