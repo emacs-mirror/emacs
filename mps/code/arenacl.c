@@ -284,7 +284,7 @@ static Res ClientArenaCreate(Arena *arenaReturn, ArgList args)
 
   arena = CouldBeA(AbstractArena, clientArena);
   /* <code/arena.c#init.caller> */
-  res = SUPERCLASS(Arena, ClientArena)->init(arena, grainSize, args);
+  res = NextMethod(Arena, ClientArena, init)(arena, grainSize, args);
   if (res != ResOK)
     goto failSuperInit;
   SetClassOfArena(arena, CLASS(ClientArena));
@@ -311,7 +311,7 @@ static Res ClientArenaCreate(Arena *arenaReturn, ArgList args)
   return ResOK;
 
 failChunkCreate:
-  SUPERCLASS(Arena, ClientArena)->finish(arena);
+  NextMethod(Arena, ClientArena, finish)(arena);
 failSuperInit:
   AVER(res != ResOK);
   return res;
@@ -336,7 +336,7 @@ static void ClientArenaDestroy(Arena arena)
   AVER(arena->reserved == 0);
   AVER(arena->committed == 0);
 
-  SUPERCLASS(Arena, ClientArena)->finish(arena); /* <code/arena.c#finish.caller> */
+  NextMethod(Arena, ClientArena, finish)(arena); /* <code/arena.c#finish.caller> */
 }
 
 

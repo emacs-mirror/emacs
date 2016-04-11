@@ -192,7 +192,7 @@ static Res freelistInit(Land land, Arena arena, Align alignment, ArgList args)
   Res res;
 
   AVER(land != NULL);
-  res = SUPERCLASS(Land, Freelist)->init(land, arena, alignment, args);
+  res = NextMethod(Land, Freelist, init)(land, arena, alignment, args);
   if (res != ResOK)
     return res;
 
@@ -217,7 +217,7 @@ static void freelistFinish(Land land)
   Freelist fl = MustBeA(Freelist, land);
   fl->sig = SigInvalid;
   fl->list = freelistEND;
-  SUPERCLASS(Land, Freelist)->finish(land); /* FIXME: Method call */
+  NextMethod(Land, Freelist, finish)(land); /* FIXME: Method call */
 }
 
 
@@ -758,7 +758,7 @@ static Res freelistDescribe(Land land, mps_lib_FILE *stream, Count depth)
     return ResPARAM;
 
   /* FIXME: Should use the class from the land itself. */
-  res = SUPERCLASS(Land, Freelist)->describe(land, stream, depth);
+  res = NextMethod(Land, Freelist, describe)(land, stream, depth);
   if (res != ResOK)
     return res;
 

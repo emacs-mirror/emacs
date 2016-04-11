@@ -223,7 +223,7 @@ static Res AMSSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   AMS ams;
 
   /* Initialize the superclass fields first via next-method call */
-  res = SUPERCLASS(Seg, AMSSeg)->init(seg, pool, base, size, args);
+  res = NextMethod(Seg, AMSSeg, init)(seg, pool, base, size, args);
   if (res != ResOK)
     goto failNextMethod;
   SetClassOfSeg(seg, CLASS(AMSSeg));
@@ -264,7 +264,7 @@ static Res AMSSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   return ResOK;
 
 failCreateTables:
-  SUPERCLASS(Seg, AMSSeg)->finish(seg);
+  NextMethod(Seg, AMSSeg, finish)(seg);
 failNextMethod:
   AVER(res != ResOK);
   return res;
@@ -297,7 +297,7 @@ static void AMSSegFinish(Seg seg)
   amsseg->sig = SigInvalid;
 
   /* finish the superclass fields last */
-  SUPERCLASS(Seg, AMSSeg)->finish(seg);
+  NextMethod(Seg, AMSSeg, finish)(seg);
 }
 
 
@@ -359,7 +359,7 @@ static Res AMSSegMerge(Seg seg, Seg segHi,
     goto failCreateTables;
 
   /* Merge the superclass fields via next-method call */
-  res = SUPERCLASS(Seg, AMSSeg)->merge(seg, segHi, base, mid, limit);
+  res = NextMethod(Seg, AMSSeg, merge)(seg, segHi, base, mid, limit);
   if (res != ResOK)
     goto failSuper;
 
@@ -450,7 +450,7 @@ static Res AMSSegSplit(Seg seg, Seg segHi,
 
 
   /* Split the superclass fields via next-method call */
-  res = SUPERCLASS(Seg, AMSSeg)->split(seg, segHi, base, mid, limit);
+  res = NextMethod(Seg, AMSSeg, split)(seg, segHi, base, mid, limit);
   if (res != ResOK)
     goto failSuper;
 
@@ -536,7 +536,7 @@ static Res AMSSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
     return ResFAIL;
 
   /* Describe the superclass fields first via next-method call */
-  res = SUPERCLASS(Seg, AMSSeg)->describe(seg, stream, depth);
+  res = NextMethod(Seg, AMSSeg, describe)(seg, stream, depth);
   if (res != ResOK)
     return res;
 

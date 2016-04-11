@@ -195,7 +195,7 @@ static Res AWLSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
        || RankSetSingle(RankWEAK) == rankSet);
 
   /* Initialize the superclass fields first via next-method call */
-  res = SUPERCLASS(Seg, AWLSeg)->init(seg, pool, base, size, args);
+  res = NextMethod(Seg, AWLSeg, init)(seg, pool, base, size, args);
   if (res != ResOK)
     goto failSuperInit;
   SetClassOfSeg(seg, CLASS(AWLSeg));
@@ -240,7 +240,7 @@ failControlAllocAlloc:
 failControlAllocScanned:
   ControlFree(arena, awlseg->mark, tableSize);
 failControlAllocMark:
-  SUPERCLASS(Seg, AWLSeg)->finish(seg);
+  NextMethod(Seg, AWLSeg, finish)(seg);
 failSuperInit:
   AVER(res != ResOK);
   return res;
@@ -279,7 +279,7 @@ static void AWLSegFinish(Seg seg)
   awlseg->sig = SigInvalid;
 
   /* finish the superclass fields last */
-  SUPERCLASS(Seg, AWLSeg)->finish(seg);
+  NextMethod(Seg, AWLSeg, finish)(seg);
 }
 
 
