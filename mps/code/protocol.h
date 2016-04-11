@@ -33,7 +33,11 @@
 #define KIND_CLASS(ident) ident ## Class
 
 
-/* DECLARE_CLASS -- declare the existence of a protocol class */
+/* DECLARE_CLASS -- declare the existence of a protocol class
+ *
+ * Declares a prototype for the class ensure function, which ensures
+ * that the class is initialized once and return it.
+ */
 
 #define DECLARE_CLASS(kind, ident) \
   extern CLASS_TYPE(kind) CLASS_ENSURE(ident)(void); \
@@ -44,7 +48,6 @@
 
 #define DEFINE_CLASS(kind, ident, var) \
   DECLARE_CLASS(kind, ident); \
-  void CLASS_INIT(ident)(CLASS_TYPE(kind)); \
   CLASS_TYPE(kind) CLASS_ENSURE(ident)(void) \
   { \
     static Bool guardian = FALSE; \
@@ -153,9 +156,6 @@ typedef struct InstClassStruct {
   ClassId display[ClassDEPTH];  /* ids of classes at this level and above */
 } InstClassStruct;
 
-
-/* InstClass -- the root of the protocol class hierarchy */
-
 DECLARE_CLASS(Inst, InstClass);
 DECLARE_CLASS(Inst, Inst);
 
@@ -163,6 +163,55 @@ extern Bool InstClassCheck(InstClass class);
 extern Bool InstCheck(Inst inst);
 extern void InstInit(Inst inst);
 extern void InstFinish(Inst inst);
+
+
+/* IsSubclass, IsA -- fast subclass test
+ *
+ * The InstClassStruct is arranged to make this test fast and simple,
+ * so that it can be used as a consistency check in the MPS.  Each
+ * class has an array of the ids of its superclasses, indexed by the
+ * level in the hierarchy of the class.  The level and id are
+ * statically known, so they can be tested by accessing just one
+ * class.
+ */
+
+#define IsSubclass(sub, super) \
+  (((InstClass)(sub))->display[ClassLevel ## super] == ClassId ## super)
+  
+#define IsA(_class, inst) \
+  IsSubclass(CouldBeA(Inst, inst)->class, _class)
+
+#define IsNonNullAndA(_class, inst) \
+  ((inst) != NULL && \
+   CouldBeA(Inst, inst)->class != NULL && \
+   IsA(_class, inst))
+
+
+/* CouldBeA, MustBeA -- coerce instances
+ *
+ * CouldBeA converts an instance to another class without checking.
+ * It is intended to be equivalent to the C++ "static_cast", although
+ * since this is C there is no actual static checking, so in fact it's
+ * more like "reinterpret_cast".
+ *
+ * MustBeA converts an instance to another class, but checks that the
+ * object is a subclass, causing an assertion if not (depending on
+ * build variety).  It is like C++ "dynamic_cast" with an assert.
+ */
+
+#define CouldBeA(class, inst) ((INST_TYPE(class))inst)
+
+#define MustBeA(_class, inst) \
+  CouldBeA(_class, \
+	   AVERPC(IsNonNullAndA(_class, inst), \
+		  "MustBeA " #_class ": " #inst, \
+		  inst))
+
+#define MustBeA_CRITICAL(_class, inst) \
+  CouldBeA(_class, \
+	   AVERPC_CRITICAL(IsNonNullAndA(_class, inst), \
+			   "MustBeA " #_class ": " #inst, \
+			   inst))
 
 
 /* Protocol introspection interface
@@ -192,7 +241,18 @@ extern void InstFinish(Inst inst);
  */
 
 #define SetClassOfPoly(inst, _class) \
-  BEGIN MustBeA(Inst, inst)->class = (InstClass)(_class); END
+  BEGIN MustBeA(Inst, inst)->class = MustBeA(InstClass, _class); END
+
+
+/* Method -- method call
+ *
+ * Use this macro to call a method on a class, rather than accessing
+ * the class directly.  For example:
+ *
+ *     res = Method(Land, land, insert)(land, range);
+ */
+
+#define Method(kind, inst, meth) (ClassOfPoly(kind, inst)->meth)
 
 
 /* NextMethod -- call a method in the superclass
@@ -209,57 +269,6 @@ extern void InstFinish(Inst inst);
   MustBeA(KIND_CLASS(kind), CouldBeA(InstClass, CLASS(ident))->superclass)
 
 #define NextMethod(kind, ident, meth) (SUPERCLASS(kind, ident)->meth)
-
-
-/* IsA, CouldBeA, MustBeA -- coerce instances
- *
- * CouldBeA converts an instance to another class without checking.
- * It is intended to be equivalent to the C++ "static_cast", although
- * since this is C there is no actual static checking, so in fact it's
- * more like "reinterpret_cast".
- *
- * MustBeA converts an instance to another class, but checks that the
- * object is a subclass, causing an assertion if not (depending on
- * build variety).  It is like C++ "dynamic_cast" with an assert.
- */
-
-#define CouldBeA(class, inst) ((INST_TYPE(class))inst)
-
-#define IsSubclass(sub, super) \
-  (((InstClass)(sub))->display[ClassLevel ## super] == ClassId ## super)
-  
-#define IsA(_class, inst) \
-  IsSubclass(CouldBeA(Inst, inst)->class, _class)
-
-#define IsNonNullAndA(_class, inst) \
-  ((inst) != NULL && \
-   CouldBeA(Inst, inst)->class != NULL && \
-   IsA(_class, inst))
-
-#define MustBeA(_class, inst) \
-  CouldBeA(_class, \
-	   AVERPC(IsNonNullAndA(_class, inst), \
-		  "MustBeA " #_class ": " #inst, \
-		  inst))
-
-#define MustBeA_CRITICAL(_class, inst) \
-  CouldBeA(_class, \
-	   AVERPC_CRITICAL(IsNonNullAndA(_class, inst), \
-			   "MustBeA " #_class ": " #inst, \
-			   inst))
-
-
-/* Method -- method call
- *
- * FIXME: This isn't a very nice way to do this, but there's an
- * inconsistency in the naming of the classes at the top of the kinds.
- * The top of the Pool kind is called AbstractPool not Pool, making it
- * hard to use MustBeA to get to the pool kind and its methods.  This
- * isn't *wrong*, so there should be another way to safely get from
- * class to kind.
- */
-
-#define Method(kind, inst, meth) (ClassOfPoly(kind, inst)->meth)
 
 
 #endif /* protocol_h */
