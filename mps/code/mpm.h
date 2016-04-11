@@ -292,7 +292,7 @@ extern Size PoolNoSize(Pool pool);
 
 /* FIXME: Would be nice to use generated functions here, but the
    common superclass of pools is called AbstractPool, not Pool. */
-#define ClassOfPool(pool) ((PoolClass)ClassOfPoly(pool))
+#define ClassOfPool(pool) ClassOfPoly(Pool, pool)
 #define SetClassOfPool SetClassOfPoly
 
 
@@ -484,7 +484,7 @@ extern Bool ArenaClassCheck(ArenaClass class);
 
 /* FIXME: Would be nice to use generated functions here, but the
    common superclass of arenas is called AbstractArena, not Arena. */
-#define ClassOfArena(arena) ((ArenaClass)ClassOfPoly(arena))
+#define ClassOfArena(arena) ClassOfPoly(Arena, arena)
 #define SetClassOfArena SetClassOfPoly
 
 extern Bool ArenaCheck(Arena arena);

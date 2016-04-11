@@ -79,12 +79,14 @@ Bool PoolClassCheck(PoolClass class)
 
 Bool PoolCheck(Pool pool)
 {
+  PoolClass class;
   /* Checks ordered as per struct decl in <code/mpmst.h#pool> */
   CHECKS(Pool, pool);
   CHECKC(AbstractPool, pool);
   /* Break modularity for checking efficiency */
   CHECKL(pool->serial < ArenaGlobals(pool->arena)->poolSerial);
-  CHECKD(PoolClass, ClassOfPool(pool));
+  class = ClassOfPool(pool);
+  CHECKD(PoolClass, class);
   CHECKU(Arena, pool->arena);
   CHECKD_NOSIG(Ring, &pool->arenaRing);
   CHECKD_NOSIG(Ring, &pool->bufferRing);

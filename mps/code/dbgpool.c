@@ -217,6 +217,7 @@ tagFail:
 static void DebugPoolFinish(Pool pool)
 {
   PoolDebugMixin debug;
+  PoolClass class;
 
   AVERT(Pool, pool);
 
@@ -227,7 +228,8 @@ static void DebugPoolFinish(Pool pool)
     SplayTreeFinish(&debug->index);
     PoolDestroy(debug->tagPool);
   }
-  SuperclassPoly(Pool, ClassOfPool(pool))->finish(pool);
+  class = ClassOfPool(pool);
+  SuperclassPoly(Pool, class)->finish(pool);
 }
 
 
@@ -405,10 +407,12 @@ static Res freeCheckAlloc(Addr *aReturn, PoolDebugMixin debug, Pool pool,
 {
   Res res;
   Addr new;
+  PoolClass class;
 
   AVER(aReturn != NULL);
 
-  res = SuperclassPoly(Pool, ClassOfPool(pool))->alloc(&new, pool, size);
+  class = ClassOfPool(pool);
+  res = SuperclassPoly(Pool, class)->alloc(&new, pool, size);
   if (res != ResOK)
     return res;
   if (debug->freeSize != 0)
@@ -425,9 +429,11 @@ static Res freeCheckAlloc(Addr *aReturn, PoolDebugMixin debug, Pool pool,
 static void freeCheckFree(PoolDebugMixin debug,
                           Pool pool, Addr old, Size size)
 {
+  PoolClass class;
   if (debug->freeSize != 0)
     freeSplat(debug, pool, old, AddrAdd(old, size));
-  SuperclassPoly(Pool, ClassOfPool(pool))->free(pool, old, size);
+  class = ClassOfPool(pool);
+  SuperclassPoly(Pool, class)->free(pool, old, size);
 }
 
 
