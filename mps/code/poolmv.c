@@ -230,7 +230,7 @@ static Res MVInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   ArgStruct arg;
   
   AVERT(Arena, arena);
-  AVER(pool != NULL); /* FIXME: express intention */
+  AVER(pool != NULL);
   AVERT(ArgList, args);
   UNUSED(class); /* used for debug pools only */
 

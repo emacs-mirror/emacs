@@ -630,7 +630,7 @@ static Res MRGInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   MRG mrg;
   Res res;
  
-  AVER(pool != NULL); /* FIXME: express intention */
+  AVER(pool != NULL);
   AVERT(ArgList, args);
   UNUSED(args);
   UNUSED(class); /* used for debug pools only */

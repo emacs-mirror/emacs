@@ -217,7 +217,7 @@ static void freelistFinish(Land land)
   Freelist fl = MustBeA(Freelist, land);
   fl->sig = SigInvalid;
   fl->list = freelistEND;
-  NextMethod(Land, Freelist, finish)(land); /* FIXME: Method call */
+  NextMethod(Land, Freelist, finish)(land);
 }
 
 
