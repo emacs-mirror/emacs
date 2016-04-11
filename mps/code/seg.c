@@ -1067,7 +1067,7 @@ static Res gcSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   Res res;
 
   /* Initialize the superclass fields first via next-method call */
-  res = SUPERCLASS(Seg, GCSeg)->init(seg, pool, base, size, args);
+  res = NextMethod(Seg, GCSeg, init)(seg, pool, base, size, args);
   if (ResOK != res)
     return res;
   SetClassOfSeg(seg, CLASS(GCSeg));
@@ -1108,7 +1108,7 @@ static void gcSegFinish(Seg seg)
   RingFinish(&gcseg->greyRing);
 
   /* finish the superclass fields last */
-  SUPERCLASS(Seg, GCSeg)->finish(seg);
+  NextMethod(Seg, GCSeg, finish)(seg);
 }
 
 
@@ -1443,7 +1443,7 @@ static Res gcSegMerge(Seg seg, Seg segHi,
   }
 
   /* Merge the superclass fields via next-method call */
-  res = SUPERCLASS(Seg, GCSeg)->merge(seg, segHi, base, mid, limit);
+  res = NextMethod(Seg, GCSeg, merge)(seg, segHi, base, mid, limit);
   if (res != ResOK)
     goto failSuper;
 
@@ -1503,7 +1503,7 @@ static Res gcSegSplit(Seg seg, Seg segHi,
   }   
 
   /* Split the superclass fields via next-method call */
-  res = SUPERCLASS(Seg, GCSeg)->split(seg, segHi, base, mid, limit);
+  res = NextMethod(Seg, GCSeg, split)(seg, segHi, base, mid, limit);
   if (res != ResOK)
     goto failSuper;
 
@@ -1547,7 +1547,7 @@ static Res gcSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
     return ResFAIL;
 
   /* Describe the superclass fields first via next-method call */
-  res = SUPERCLASS(Seg, GCSeg)->describe(seg, stream, depth);
+  res = NextMethod(Seg, GCSeg, describe)(seg, stream, depth);
   if (res != ResOK)
     return res;
 

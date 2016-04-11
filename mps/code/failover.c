@@ -35,7 +35,7 @@ static Res failoverInit(Land land, Arena arena, Align alignment, ArgList args)
   Res res;
 
   AVER(land != NULL);
-  res = SUPERCLASS(Land, Failover)->init(land, arena, alignment, args);
+  res = NextMethod(Land, Failover, init)(land, arena, alignment, args);
   if (res != ResOK)
     return res;
 
@@ -59,7 +59,7 @@ static void failoverFinish(Land land)
 {
   Failover fo = MustBeA(Failover, land);
   fo->sig = SigInvalid;
-  SUPERCLASS(Land, Failover)->finish(land); /* FIXME: Method call */
+  NextMethod(Land, Failover, finish)(land); /* FIXME: Method call */
 }
 
 
@@ -253,7 +253,7 @@ static Res failoverDescribe(Land land, mps_lib_FILE *stream, Count depth)
   if (stream == NULL)
     return ResPARAM;
 
-  res = SUPERCLASS(Land, Failover)->describe(land, stream, depth);
+  res = NextMethod(Land, Failover, describe)(land, stream, depth);
   if (res != ResOK)
     return res;
 

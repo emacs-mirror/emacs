@@ -1233,7 +1233,7 @@ static Res segBufInit(Buffer buffer, Pool pool, Bool isMutator, ArgList args)
   Res res;
 
   /* Initialize the superclass fields first via next-method call */
-  res = SUPERCLASS(Buffer, SegBuf)->init(buffer, pool, isMutator, args);
+  res = NextMethod(Buffer, SegBuf, init)(buffer, pool, isMutator, args);
   if (res != ResOK)
     return res;
   SetClassOfBuffer(buffer, CLASS(SegBuf));
@@ -1257,7 +1257,7 @@ static void segBufFinish(Buffer buffer)
   SegBuf segbuf = MustBeA(SegBuf, buffer);
   AVER(BufferIsReset(buffer));
   segbuf->sig = SigInvalid;
-  SUPERCLASS(Buffer, SegBuf)->finish(buffer);
+  NextMethod(Buffer, SegBuf, finish)(buffer);
 }
 
 
@@ -1365,7 +1365,7 @@ static Res segBufDescribe(Buffer buffer, mps_lib_FILE *stream, Count depth)
     return ResPARAM;
 
   /* Describe the superclass fields first via next-method call */
-  res = SUPERCLASS(Buffer, SegBuf)->describe(buffer, stream, depth);
+  res = NextMethod(Buffer, SegBuf, describe)(buffer, stream, depth);
   if (res != ResOK)
     return res;
 
@@ -1424,7 +1424,7 @@ static Res rankBufInit(Buffer buffer, Pool pool, Bool isMutator, ArgList args)
   AVERT(Rank, rank);
 
   /* Initialize the superclass fields first via next-method call */
-  res = SUPERCLASS(Buffer, RankBuf)->init(buffer, pool, isMutator, args);
+  res = NextMethod(Buffer, RankBuf, init)(buffer, pool, isMutator, args);
   if (res != ResOK)
     return res;
   SetClassOfBuffer(buffer, CLASS(RankBuf));

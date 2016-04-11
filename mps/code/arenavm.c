@@ -206,7 +206,7 @@ static Res VMArenaDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
   /* ...but the next method is ArenaTrivDescribe, so don't call it;
    * see impl.c.arena#describe.triv.dont-upcall.
    *
-  res = SUPERCLASS(Arena, VMArena)->describe(arena, stream);
+  res = NextMethod(Arena, VMArena, describe)(arena, stream);
   if (res != ResOK)
     return res;
    *
@@ -554,7 +554,7 @@ static Res VMArenaCreate(Arena *arenaReturn, ArgList args)
 
   arena = VMArena2Arena(vmArena);
   /* <code/arena.c#init.caller> */
-  res = SUPERCLASS(Arena, VMArena)->init(arena, grainSize, args);
+  res = NextMethod(Arena, VMArena, init)(arena, grainSize, args);
   if (res != ResOK)
     goto failArenaInit;
   SetClassOfArena(arena, CLASS(VMArena));
@@ -608,7 +608,7 @@ static Res VMArenaCreate(Arena *arenaReturn, ArgList args)
   return ResOK;
 
 failChunkCreate:
-  SUPERCLASS(Arena, VMArena)->finish(arena);
+  NextMethod(Arena, VMArena, finish)(arena);
 failArenaInit:
   VMUnmap(vm, VMBase(vm), VMLimit(vm));
 failVMMap:
@@ -646,7 +646,7 @@ static void VMArenaDestroy(Arena arena)
 
   vmArena->sig = SigInvalid;
 
-  SUPERCLASS(Arena, VMArena)->finish(arena); /* <code/global.c#finish.caller> */
+  NextMethod(Arena, VMArena, finish)(arena); /* <code/global.c#finish.caller> */
 
   /* Copy VM descriptor to stack-local storage so that we can continue
    * using the descriptor after the VM has been unmapped. */

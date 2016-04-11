@@ -137,7 +137,7 @@ static Res AMCSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   amcgen = arg.val.p;
 
   /* Initialize the superclass fields first via next-method call */
-  res = SUPERCLASS(Seg, amcSeg)->init(seg, pool, base, size, args);
+  res = NextMethod(Seg, amcSeg, init)(seg, pool, base, size, args);
   if(res != ResOK)
     return res;
   SetClassOfSeg(seg, CLASS(amcSeg));
@@ -251,7 +251,7 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
     return ResFAIL;
 
   /* Describe the superclass fields first via next-method call */
-  res = SUPERCLASS(Seg, amcSeg)->describe(seg, stream, depth);
+  res = NextMethod(Seg, amcSeg, describe)(seg, stream, depth);
   if(res != ResOK)
     return res;
 
@@ -494,7 +494,7 @@ static Res AMCBufInit(Buffer buffer, Pool pool, Bool isMutator, ArgList args)
     forHashArrays = arg.val.b;
 
   /* call next method */
-  res = SUPERCLASS(Buffer, amcBuf)->init(buffer, pool, isMutator, args);
+  res = NextMethod(Buffer, amcBuf, init)(buffer, pool, isMutator, args);
   if(res != ResOK)
     return res;
   SetClassOfBuffer(buffer, CLASS(amcBuf));
@@ -524,7 +524,7 @@ static void AMCBufFinish(Buffer buffer)
 {
   amcBuf amcbuf = MustBeA(amcBuf, buffer);
   amcbuf->sig = SigInvalid;
-  SUPERCLASS(Buffer, amcBuf)->finish(buffer);
+  NextMethod(Buffer, amcBuf, finish)(buffer);
 }
 
 

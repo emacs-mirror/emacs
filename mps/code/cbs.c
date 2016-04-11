@@ -226,7 +226,7 @@ static Res cbsInitComm(Land land, LandClass class,
   Pool blockPool = NULL;
 
   AVER(land != NULL);
-  res = SUPERCLASS(Land, CBS)->init(land, arena, alignment, args);
+  res = NextMethod(Land, CBS, init)(land, arena, alignment, args);
   if (res != ResOK)
     return res;
 
@@ -302,7 +302,7 @@ static void cbsFinish(Land land)
   if (cbs->ownPool)
     PoolDestroy(cbsBlockPool(cbs));
 
-  SUPERCLASS(Land, CBS)->finish(land); /* FIXME: Method call */
+  NextMethod(Land, CBS, finish)(land); /* FIXME: Method call */
 }
 
 
@@ -1101,7 +1101,7 @@ static Res cbsDescribe(Land land, mps_lib_FILE *stream, Count depth)
   if (stream == NULL)
     return ResPARAM;
 
-  res = SUPERCLASS(Land, CBS)->describe(land, stream, depth);
+  res = NextMethod(Land, CBS, describe)(land, stream, depth);
   if (res != ResOK)
     return res;
 

@@ -119,7 +119,7 @@ static Res amstSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   Res res;
 
   /* Initialize the superclass fields first via next-method call */
-  res = SUPERCLASS(Seg, AMSTSeg)->init(seg, pool, base, size, args);
+  res = NextMethod(Seg, AMSTSeg, init)(seg, pool, base, size, args);
   if (res != ResOK)
     return res;
   SetClassOfSeg(seg, CLASS(AMSTSeg));
@@ -157,7 +157,7 @@ static void amstSegFinish(Seg seg)
 
   amstseg->sig = SigInvalid;
   /* finish the superclass fields last */
-  SUPERCLASS(Seg, AMSTSeg)->finish(seg);
+  NextMethod(Seg, AMSTSeg, finish)(seg);
 }
 
 
@@ -187,7 +187,7 @@ static Res amstSegMerge(Seg seg, Seg segHi,
   amst = PoolAMST(SegPool(seg));
 
   /* Merge the superclass fields via direct next-method call */
-  res = SUPERCLASS(Seg, AMSTSeg)->merge(seg, segHi, base, mid, limit);
+  res = NextMethod(Seg, AMSTSeg, merge)(seg, segHi, base, mid, limit);
   if (res != ResOK)
     goto failSuper;
 
@@ -206,7 +206,7 @@ static Res amstSegMerge(Seg seg, Seg segHi,
 
 failDeliberate:
   /* Call the anti-method (see .fail) */
-  res = SUPERCLASS(Seg, AMSTSeg)->split(seg, segHi, base, mid, limit);
+  res = NextMethod(Seg, AMSTSeg, split)(seg, segHi, base, mid, limit);
   AVER(res == ResOK);
   res = ResFAIL;
 failSuper:
@@ -233,7 +233,7 @@ static Res amstSegSplit(Seg seg, Seg segHi,
   amst = PoolAMST(SegPool(seg));
 
   /* Split the superclass fields via direct next-method call */
-  res = SUPERCLASS(Seg, AMSTSeg)->split(seg, segHi, base, mid, limit);
+  res = NextMethod(Seg, AMSTSeg, split)(seg, segHi, base, mid, limit);
   if (res != ResOK)
     goto failSuper;
 
@@ -256,7 +256,7 @@ static Res amstSegSplit(Seg seg, Seg segHi,
 
 failDeliberate:
   /* Call the anti-method. (see .fail) */
-  res = SUPERCLASS(Seg, AMSTSeg)->merge(seg, segHi, base, mid, limit);
+  res = NextMethod(Seg, AMSTSeg, merge)(seg, segHi, base, mid, limit);
   AVER(res == ResOK);
   res = ResFAIL;
 failSuper:
@@ -536,7 +536,7 @@ static Res AMSTBufferFill(Addr *baseReturn, Addr *limitReturn,
   amst = PoolAMST(pool);
 
   /* call next method */
-  res = SUPERCLASS(Pool, AMSTPool)->bufferFill(&base, &limit, pool, buffer, size);
+  res = NextMethod(Pool, AMSTPool, bufferFill)(&base, &limit, pool, buffer, size);
   if (res != ResOK)
     return res;
 
