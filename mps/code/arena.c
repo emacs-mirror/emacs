@@ -422,8 +422,7 @@ failControlInit:
   arenaFreeLandFinish(arena);
 failFreeLandInit:
 failStripeSize:
-  /* FIXME: Should be taken care of by next-method calls. */
-  class->finish(arena);
+  class->destroy(arena);
 failInit:
   return res;
 }
@@ -544,7 +543,7 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
 
   res = WriteF(stream, depth, "Arena $P {\n", (WriteFP)arena,
                "  class $P (\"$S\")\n",
-               (WriteFP)ClassOfArena(arena), (WriteFS)ClassOfArena(arena)->protocol.name,
+               (WriteFP)ClassOfArena(arena), (WriteFS)ClassName(ClassOfArena(arena)),
                NULL);
   if (res != ResOK)
     return res;
@@ -637,7 +636,7 @@ static Res arenaDescribeTractsInChunk(Chunk chunk, mps_lib_FILE *stream, Count d
         res = WriteF(stream, 0, " $P $U ($S)",
                      (WriteFP)pool,
                      (WriteFU)(pool->serial),
-                     (WriteFS)(ClassOfPool(pool)->protocol.name), /* FIXME: tidy up */
+                     (WriteFS)ClassName(ClassOfPool(pool)),
                      NULL);
         if (res != ResOK)
           return res;

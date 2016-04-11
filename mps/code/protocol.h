@@ -173,6 +173,8 @@ extern void InstFinish(Inst inst);
 
 #define ClassOfPoly(inst) (MustBeA(Inst, inst)->class)
 
+#define ClassName(class) RVALUE(((InstClass)(class))->name)
+
 
 /* SetClassOfPoly -- set the class of an object
  *

@@ -26,7 +26,6 @@ SRCID(cbs, "$Id$");
 #define CBSBlockSize(block) AddrOffset((block)->base, (block)->limit)
 
 
-#define cbsOfLand(land) PARENT(CBSStruct, landStruct, land) /* FIXME: Use MustBeA */
 #define cbsSplay(cbs) (&((cbs)->splayTreeStruct))
 #define cbsOfSplay(_splay) PARENT(CBSStruct, splayTreeStruct, _splay)
 #define cbsBlockTree(block) (&((block)->treeStruct))
@@ -316,12 +315,7 @@ static void cbsFinish(Land land)
 
 static Size cbsSize(Land land)
 {
-  CBS cbs;
-
-  AVERT(Land, land);
-  cbs = cbsOfLand(land);
-  AVERT(CBS, cbs);
-
+  CBS cbs = MustBeA(CBS, land);
   return cbs->size;
 }
 
@@ -454,7 +448,7 @@ static void cbsBlockInsert(CBS cbs, CBSBlock block)
 
 static Res cbsInsert(Range rangeReturn, Land land, Range range)
 {
-  CBS cbs;
+  CBS cbs = MustBeA(CBS, land);
   Bool b;
   Res res;
   Addr base, limit, newBase, newLimit;
@@ -464,11 +458,9 @@ static Res cbsInsert(Range rangeReturn, Land land, Range range)
   Size oldSize;
 
   AVER(rangeReturn != NULL);
-  AVERT(Land, land);
   AVERT(Range, range);
   AVER(RangeIsAligned(range, LandAlignment(land)));
 
-  cbs = cbsOfLand(land);
   base = RangeBase(range);
   limit = RangeLimit(range);
 
@@ -559,15 +551,13 @@ fail:
 
 static Res cbsDelete(Range rangeReturn, Land land, Range range)
 {
-  CBS cbs;
+  CBS cbs = MustBeA(CBS, land);
   Res res;
   CBSBlock cbsBlock;
   Tree tree;
   Addr base, limit, oldBase, oldLimit;
   Size oldSize;
 
-  AVERT(Land, land);
-  cbs = cbsOfLand(land);
   AVER(rangeReturn != NULL);
   AVERT(Range, range);
   AVER(RangeIsAligned(range, LandAlignment(land)));
@@ -746,13 +736,10 @@ static Bool cbsIterateVisit(Tree tree, void *closure)
 
 static Bool cbsIterate(Land land, LandVisitor visitor, void *visitorClosure)
 {
-  CBS cbs;
+  CBS cbs = MustBeA(CBS, land);
   SplayTree splay;
   CBSIterateClosure iterateClosure;
 
-  AVERT(Land, land);
-  cbs = cbsOfLand(land);
-  AVERT(CBS, cbs);
   AVER(FUNCHECK(visitor));
 
   splay = cbsSplay(cbs);
@@ -784,7 +771,7 @@ static Bool cbsIterateAndDeleteVisit(Tree tree, void *closure)
 {
   CBSIterateAndDeleteClosure *my = closure;
   Land land = my->land;
-  CBS cbs = cbsOfLand(land);
+  CBS cbs = MustBeA(CBS, land);
   CBSBlock cbsBlock = cbsBlockOfTree(tree);
   Bool deleteNode = FALSE;
   RangeStruct range;
@@ -801,13 +788,10 @@ static Bool cbsIterateAndDeleteVisit(Tree tree, void *closure)
 static Bool cbsIterateAndDelete(Land land, LandDeleteVisitor visitor,
                                 void *visitorClosure)
 {
-  CBS cbs;
+  CBS cbs = MustBeA(CBS, land);
   SplayTree splay;
   CBSIterateAndDeleteClosure iterateClosure;
 
-  AVERT(Land, land);
-  cbs = cbsOfLand(land);
-  AVERT(CBS, cbs);
   AVER(FUNCHECK(visitor));
 
   splay = cbsSplay(cbs);
