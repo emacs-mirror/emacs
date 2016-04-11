@@ -205,7 +205,7 @@ static Res BufferAbsInit(Buffer buffer, Pool pool, Bool isMutator, ArgList args)
   AVERT(ArgList, args);
 
   /* Superclass init */
-  InstInit(&buffer->instStruct);
+  InstInit(CouldBeA(Inst, buffer));
   
   arena = PoolArena(pool);
 
@@ -1194,19 +1194,13 @@ DEFINE_CLASS(Buffer, Buffer, class)
 /* SegBufClass -- support for the SegBuf subclass */
 
 
-/* BufferSegBuf -- convert generic Buffer to a SegBuf */
-
-#define BufferSegBuf(buffer) ((SegBuf)(buffer))
-
-
 /* SegBufCheck -- check consistency of a SegBuf */
 
 Bool SegBufCheck(SegBuf segbuf)
 {
   Buffer buffer;
-
   CHECKS(SegBuf, segbuf);
-  buffer = &segbuf->bufferStruct;
+  buffer = MustBeA(Buffer, segbuf);
   CHECKD(Buffer, buffer);
   CHECKL(RankSetCheck(segbuf->rankSet));
 
@@ -1272,17 +1266,15 @@ static void segBufFinish(Buffer buffer)
 static void segBufAttach(Buffer buffer, Addr base, Addr limit,
                          Addr init, Size size)
 {
-  SegBuf segbuf;
+  SegBuf segbuf = MustBeA(SegBuf, buffer);
   Seg seg = NULL;       /* suppress "may be used uninitialized" */
   Arena arena;
   Bool found;
 
-  AVERT(Buffer, buffer);
   /* Other parameters are consistency checked in BufferAttach */
   UNUSED(init);
   UNUSED(size);
 
-  segbuf = BufferSegBuf(buffer);
   arena = BufferArena(buffer);
   found = SegOfAddr(&seg, arena, base);
   AVER(found);
@@ -1303,12 +1295,8 @@ static void segBufAttach(Buffer buffer, Addr base, Addr limit,
 
 static void segBufDetach(Buffer buffer)
 {
-  SegBuf segbuf;
+  SegBuf segbuf = MustBeA(SegBuf, buffer);
   Seg seg;
-
-  AVERT(Buffer, buffer);
-  segbuf = BufferSegBuf(buffer);
-  AVERT(SegBuf, segbuf);
 
   seg = segbuf->seg;
   AVER(seg != NULL);
@@ -1319,40 +1307,28 @@ static void segBufDetach(Buffer buffer)
 
 /* segBufSeg -- BufferSeg accessor method for SegBuf instances */
 
-static Seg segBufSeg (Buffer buffer)
+static Seg segBufSeg(Buffer buffer)
 {
-  SegBuf segbuf;
-
-  AVERT(Buffer, buffer);
-  segbuf = BufferSegBuf(buffer);
-  AVERT(SegBuf, segbuf);
+  SegBuf segbuf = MustBeA(SegBuf, buffer);
   return segbuf->seg;
 }
 
 
 /* segBufRankSet -- BufferRankSet accessor for SegBuf instances */
 
-static RankSet segBufRankSet (Buffer buffer)
+static RankSet segBufRankSet(Buffer buffer)
 {
-  SegBuf segbuf;
-
-  AVERT(Buffer, buffer);
-  segbuf = BufferSegBuf(buffer);
-  AVERT(SegBuf, segbuf);
+  SegBuf segbuf = MustBeA(SegBuf, buffer);
   return segbuf->rankSet;
 }
 
 
 /* segBufSetRankSet -- BufferSetRankSet setter method for SegBuf */
 
-static void segBufSetRankSet (Buffer buffer, RankSet rankset)
+static void segBufSetRankSet(Buffer buffer, RankSet rankset)
 {
-  SegBuf segbuf;
-
-  AVERT(Buffer, buffer);
+  SegBuf segbuf = MustBeA(SegBuf, buffer);
   AVERT(RankSet, rankset);
-  segbuf = BufferSegBuf(buffer);
-  AVERT(SegBuf, segbuf);
   segbuf->rankSet = rankset;
 }
 
@@ -1364,13 +1340,10 @@ static void segBufSetRankSet (Buffer buffer, RankSet rankset)
  * .invseg: On entry the buffer is attached to an invalid segment, which
  * can't be checked. The method is called to make the attachment valid.  */
 
-static void segBufReassignSeg (Buffer buffer, Seg seg)
+static void segBufReassignSeg(Buffer buffer, Seg seg)
 {
-  SegBuf segbuf;
-
-  AVERT(Buffer, buffer);
+  SegBuf segbuf = CouldBeA(SegBuf, buffer);
   AVERT(Seg, seg);
-  segbuf = BufferSegBuf(buffer);
   /* Can't check segbuf on entry. See .invseg */
   AVER(NULL != segbuf->seg);
   AVER(seg != segbuf->seg);
@@ -1383,30 +1356,23 @@ static void segBufReassignSeg (Buffer buffer, Seg seg)
 
 static Res segBufDescribe(Buffer buffer, mps_lib_FILE *stream, Count depth)
 {
-  SegBuf segbuf;
-  BufferClass super;
+  SegBuf segbuf = CouldBeA(SegBuf, buffer);
   Res res;
 
-  if (!TESTT(Buffer, buffer))
-    return ResFAIL;
+  if (!TESTC(SegBuf, segbuf))
+    return ResPARAM;
   if (stream == NULL)
-    return ResFAIL;
-  segbuf = BufferSegBuf(buffer);
-  if (!TESTT(SegBuf, segbuf))
-    return ResFAIL;
+    return ResPARAM;
 
   /* Describe the superclass fields first via next-method call */
-  super = SUPERCLASS(Buffer, SegBuf);
-  res = super->describe(buffer, stream, depth);
+  res = SUPERCLASS(Buffer, SegBuf)->describe(buffer, stream, depth);
   if (res != ResOK)
     return res;
 
-  res = WriteF(stream, depth,
-               "Seg $P\n",         (WriteFP)segbuf->seg,
-               "rankSet $U\n",     (WriteFU)segbuf->rankSet,
-               NULL);
-
-  return res;
+  return WriteF(stream, depth + 2,
+		"Seg     $P\n", (WriteFP)segbuf->seg,
+		"rankSet $U\n", (WriteFU)segbuf->rankSet,
+		NULL);
 }
 
 
