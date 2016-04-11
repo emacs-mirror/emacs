@@ -158,7 +158,7 @@ Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream, Count depth)
                "Buffer $P ($U) {\n",
                (WriteFP)buffer, (WriteFU)buffer->serial,
                "  class $P (\"$S\")\n",
-               (WriteFP)ClassOfBuffer(buffer), (WriteFS)ClassOfBuffer(buffer)->protocol.name,
+               (WriteFP)ClassOfBuffer(buffer), (WriteFS)ClassName(ClassOfBuffer(buffer)),
                "  Arena $P\n",       (WriteFP)buffer->arena,
                "  Pool $P\n",        (WriteFP)buffer->pool,
                "  ", buffer->isMutator ? "Mutator" : "Internal", " Buffer\n",

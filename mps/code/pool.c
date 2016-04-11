@@ -494,7 +494,7 @@ Res PoolDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
   res = WriteF(stream, depth,
                "Pool $P ($U) {\n", (WriteFP)pool, (WriteFU)pool->serial,
                "  class $P (\"$S\")\n",
-               (WriteFP)ClassOfPool(pool), (WriteFS)ClassOfPool(pool)->protocol.name,
+               (WriteFP)ClassOfPool(pool), (WriteFS)ClassName(ClassOfPool(pool)),
                "  arena $P ($U)\n",
                (WriteFP)pool->arena, (WriteFU)pool->arena->serial,
                "  alignment $W\n", (WriteFW)pool->alignment,

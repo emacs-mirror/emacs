@@ -114,7 +114,7 @@ static void test(mps_arena_t arena, mps_pool_class_t pool_class)
   size_t messages = 0;
   void *p;
 
-  printf("---- finalcv: pool class %s ----\n", pool_class->protocol.name);
+  printf("---- finalcv: pool class %s ----\n", ClassName(pool_class));
 
   die(mps_fmt_create_A(&fmt, arena, dylan_fmt_A()), "fmt_create\n");
   die(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");

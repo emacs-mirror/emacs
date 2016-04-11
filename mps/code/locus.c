@@ -706,7 +706,7 @@ Res PoolGenDescribe(PoolGen pgen, mps_lib_FILE *stream, Count depth)
                "PoolGen $P {\n", (WriteFP)pgen,
                "  pool $P ($U) \"$S\"\n",
                (WriteFP)pgen->pool, (WriteFU)pgen->pool->serial,
-               (WriteFS)ClassOfPool(pgen->pool)->protocol.name,
+               (WriteFS)ClassName(ClassOfPool(pgen->pool)),
                "  segs $U\n", (WriteFU)pgen->segs,
                "  totalSize $U\n", (WriteFU)pgen->totalSize,
                "  freeSize $U\n", (WriteFU)pgen->freeSize,

@@ -547,7 +547,7 @@ static Res LandAbsDescribe(Land land, mps_lib_FILE *stream, Count depth)
   if (stream == NULL)
     return ResPARAM;
   return WriteF(stream, depth,
-                "$S $P\n", (WriteFS)ClassOfLand(land)->protocol.name, land,
+                "$S $P\n", (WriteFS)ClassName(ClassOfLand(land)), land,
                 "  arena $P\n", (WriteFP)land->arena,
                 "  align $U\n", (WriteFU)land->alignment,
                 "  inLand $S\n", WriteFYesNo(land->inLand),
