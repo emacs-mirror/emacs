@@ -230,7 +230,7 @@ static Res MRGLinkSegInit(Seg seg, Pool pool, Addr base, Size size,
   res = NextMethod(Seg, MRGLinkSeg, init)(seg, pool, base, size, args);
   if (res != ResOK)
     return res;
-  SetClassOfSeg(seg, CLASS(MRGLinkSeg));
+  SetClassOfPoly(seg, CLASS(MRGLinkSeg));
   linkseg = MustBeA(MRGLinkSeg, seg);
 
   AVERT(Pool, pool);
@@ -270,7 +270,7 @@ static Res MRGRefSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   res = NextMethod(Seg, MRGRefSeg, init)(seg, pool, base, size, args);
   if (res != ResOK)
     return res;
-  SetClassOfSeg(seg, CLASS(MRGRefSeg));
+  SetClassOfPoly(seg, CLASS(MRGRefSeg));
   refseg = MustBeA(MRGRefSeg, seg);
 
   AVERT(Pool, pool);
@@ -639,7 +639,7 @@ static Res MRGInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   res = PoolAbsInit(pool, arena, class, args);
   if (res != ResOK)
     return res;
-  SetClassOfPool(pool, CLASS(MRGPool));
+  SetClassOfPoly(pool, CLASS(MRGPool));
   mrg = MustBeA(MRGPool, pool);
  
   RingInit(&mrg->entryRing);
@@ -649,7 +649,7 @@ static Res MRGInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   mrg->sig = MRGSig;
 
   AVERT(MRG, mrg);
-  EVENT3(PoolInit, pool, PoolArena(pool), ClassOfPool(pool)); /* FIXME: Out of place? */
+  EVENT3(PoolInit, pool, PoolArena(pool), ClassOfPoly(Pool, pool)); /* FIXME: Out of place? */
   return ResOK;
 }
 

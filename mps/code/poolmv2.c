@@ -278,7 +278,7 @@ static Res MVTInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   res = PoolAbsInit(pool, arena, class, args);
   if (res != ResOK)
     goto failAbsInit;
-  SetClassOfPool(pool, CLASS(MVTPool));
+  SetClassOfPoly(pool, CLASS(MVTPool));
   mvt = MustBeA(MVTPool, pool);
 
   res = LandInit(MVTFreePrimary(mvt), CLASS(CBSFast), arena, align, mvt,

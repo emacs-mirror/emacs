@@ -113,7 +113,7 @@ static Res loSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   res = NextMethod(Seg, LOSeg, init)(seg, pool, base, size, args);
   if(res != ResOK)
     goto failSuperInit;
-  SetClassOfSeg(seg, CLASS(LOSeg));
+  SetClassOfPoly(seg, CLASS(LOSeg));
   loseg = MustBeA(LOSeg, seg);
 
   arena = PoolArena(pool);
@@ -485,7 +485,7 @@ static Res LOInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   res = PoolAbsInit(pool, arena, class, args);
   if (res != ResOK)
     goto failAbsInit;
-  SetClassOfPool(pool, CLASS(LOPool));
+  SetClassOfPoly(pool, CLASS(LOPool));
   lo = MustBeA(LOPool, pool);
 
   ArgRequire(&arg, args, MPS_KEY_FORMAT);
