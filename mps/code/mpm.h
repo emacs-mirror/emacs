@@ -490,9 +490,6 @@ extern Bool ArenaClassCheck(ArenaClass class);
 extern Bool ArenaCheck(Arena arena);
 extern Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args);
 extern void ArenaDestroy(Arena arena);
-extern Res ArenaInit(Arena arena, ArenaClass class, Size grainSize,
-                     ArgList args);
-extern void ArenaFinish(Arena arena);
 extern Res ArenaDescribe(Arena arena, mps_lib_FILE *stream, Count depth);
 extern Res ArenaDescribeTracts(Arena arena, mps_lib_FILE *stream, Count depth);
 extern Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context);

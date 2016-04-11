@@ -21,6 +21,8 @@
 
 SRCID(arenacl, "$Id$");
 
+DECLARE_CLASS(Arena, ClientArena);
+
 
 /* ClientArenaStruct -- Client Arena Structure */
 
@@ -244,7 +246,7 @@ static void ClientArenaVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
 
 ARG_DEFINE_KEY(ARENA_CL_BASE, Addr);
 
-static Res ClientArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
+static Res ClientArenaCreate(Arena *arenaReturn, ArgList args)
 {
   Arena arena;
   ClientArena clientArena;
@@ -257,7 +259,6 @@ static Res ClientArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
   mps_arg_s arg;
   
   AVER(arenaReturn != NULL);
-  AVER((ArenaClass)mps_arena_class_cl() == class);
   AVERT(ArgList, args);
   
   ArgRequire(&arg, args, MPS_KEY_ARENA_SIZE);
@@ -291,9 +292,11 @@ static Res ClientArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
 
   arena = ClientArena2Arena(clientArena);
   /* <code/arena.c#init.caller> */
-  res = ArenaInit(arena, class, grainSize, args);
+  res = SUPERCLASS(Arena, ClientArena)->init(arena, grainSize, args);
   if (res != ResOK)
-    return res;
+    goto failSuperInit;
+  SetClassOfArena(arena, CLASS(ClientArena));
+  AVER(clientArena == MustBeA(ClientArena, arena));
 
   /* have to have a valid arena before calling ChunkCreate */
   clientArena->sig = ClientArenaSig;
@@ -316,15 +319,16 @@ static Res ClientArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
   return ResOK;
 
 failChunkCreate:
-  ArenaFinish(arena);
+  SUPERCLASS(Arena, ClientArena)->finish(arena);
+failSuperInit:
   AVER(res != ResOK);
   return res;
 }
 
 
-/* ClientArenaFinish -- finish the arena */
+/* ClientArenaDestroy -- destroy the arena */
 
-static void ClientArenaFinish(Arena arena)
+static void ClientArenaDestroy(Arena arena)
 {
   ClientArena clientArena;
 
@@ -343,7 +347,7 @@ static void ClientArenaFinish(Arena arena)
   AVER(arena->reserved == 0);
   AVER(arena->committed == 0);
 
-  ArenaFinish(arena); /* <code/arena.c#finish.caller> */
+  SUPERCLASS(Arena, ClientArena)->finish(arena); /* <code/arena.c#finish.caller> */
 }
 
 
@@ -452,8 +456,8 @@ DEFINE_CLASS(Arena, ClientArena, this)
   INHERIT_CLASS(this, ClientArena, AbstractArena);
   this->size = sizeof(ClientArenaStruct);
   this->varargs = ClientArenaVarargs;
-  this->init = ClientArenaInit;
-  this->finish = ClientArenaFinish;
+  this->create = ClientArenaCreate;
+  this->destroy = ClientArenaDestroy;
   this->extend = ClientArenaExtend;
   this->pagesMarkAllocated = ClientArenaPagesMarkAllocated;
   this->free = ClientArenaFree;
