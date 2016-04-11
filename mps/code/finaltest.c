@@ -154,7 +154,7 @@ static void test_trees(int mode, const char *name, mps_arena_t arena,
 
   printf("---- Mode %s, pool class %s, %s trees ----\n",
          mode == ModePARK ? "PARK" : "POLL",
-         ClassName(ClassOfPool(pool)), name);
+         ClassName(ClassOfPoly(Pool, pool)), name);
   mps_arena_park(arena);
 
   /* make some trees */
@@ -210,7 +210,7 @@ static void test_trees(int mode, const char *name, mps_arena_t arena,
   }
   if (finals != object_count)
     error("Not all objects were finalized for %s in mode %s.",
-          ClassName(ClassOfPool(BufferOfAP(ap)->pool)),
+          ClassName(ClassOfPoly(Pool, BufferOfAP(ap)->pool)),
           mode == ModePOLL ? "POLL" : "PARK");
 }
 

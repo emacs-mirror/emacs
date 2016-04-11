@@ -248,23 +248,6 @@ extern void InstFinish(Inst inst);
 			   inst))
 
 
-/* ClassOf* -- get the class of an instance */
-
-#define CLASS_DECLARE_CLASSOF(prefix, ident, kind, super) \
-  struct INST_STRUCT(ident); \
-  extern CLASS_TYPE(kind) (prefix ## ident)(struct INST_STRUCT(ident) *inst);
-
-CLASSES(CLASS_DECLARE_CLASSOF, ClassOf)
-
-
-/* SetClassOf -- set the class of an instance */
-
-#define CLASS_DECLARE_SETCLASSOF(prefix, ident, kind, super) \
-  void (prefix ## ident)(struct INST_STRUCT(ident) *inst, CLASS_TYPE(kind) class);
-
-CLASSES(CLASS_DECLARE_SETCLASSOF, SetClassOf)
-
-
 /* Method -- method call
  *
  * FIXME: This isn't a very nice way to do this, but there's an

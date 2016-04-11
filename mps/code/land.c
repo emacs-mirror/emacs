@@ -57,10 +57,12 @@ static void landLeave(Land land)
 
 Bool LandCheck(Land land)
 {
+  LandClass class;
   /* .enter-leave.simple */
   CHECKS(Land, land);
   CHECKC(Land, land);
-  CHECKD(LandClass, ClassOfLand(land));
+  class = ClassOfPoly(Land, land);
+  CHECKD(LandClass, class);
   CHECKU(Arena, land->arena);
   CHECKL(AlignCheck(land->alignment));
   CHECKL(BoolCheck(land->inLand));
@@ -81,7 +83,7 @@ static Res LandAbsInit(Land land, Arena arena, Align alignment, ArgList args)
   land->alignment = alignment;
   land->arena = arena;
 
-  SetClassOfLand(land, CLASS(Land));
+  SetClassOfPoly(land, CLASS(Land));
   land->sig = LandSig;
   AVERC(Land, land);
   return ResOK;
@@ -164,7 +166,7 @@ void LandDestroy(Land land)
 
   AVERC(Land, land);
   arena = land->arena;
-  size = ClassOfLand(land)->size;
+  size = ClassOfPoly(Land, land)->size;
   LandFinish(land);
   ControlFree(arena, land, size);
 }
@@ -546,7 +548,7 @@ static Res LandAbsDescribe(Land land, mps_lib_FILE *stream, Count depth)
   if (stream == NULL)
     return ResPARAM;
   return WriteF(stream, depth,
-                "$S $P\n", (WriteFS)ClassName(ClassOfLand(land)), land,
+                "$S $P\n", (WriteFS)ClassName(ClassOfPoly(Land, land)), land,
                 "  arena $P\n", (WriteFP)land->arena,
                 "  align $U\n", (WriteFU)land->alignment,
                 "  inLand $S\n", WriteFYesNo(land->inLand),

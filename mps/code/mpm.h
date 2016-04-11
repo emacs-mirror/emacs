@@ -202,7 +202,7 @@ extern Res PoolDescribe(Pool pool, mps_lib_FILE *stream, Count depth);
 #define PoolSegRing(pool)       (&(pool)->segRing)
 #define PoolArenaRing(pool) (&(pool)->arenaRing)
 #define PoolOfArenaRing(node) RING_ELT(Pool, arenaRing, node)
-#define PoolHasAttr(pool, Attr) ((ClassOfPool(pool)->attr & (Attr)) != 0)
+#define PoolHasAttr(pool, Attr) ((ClassOfPoly(Pool, pool)->attr & (Attr)) != 0)
 
 extern Bool PoolFormat(Format *formatReturn, Pool pool);
 
@@ -289,11 +289,6 @@ extern void PoolTrivFreeWalk(Pool pool, FreeBlockVisitor f, void *p);
 extern PoolDebugMixin PoolNoDebugMixin(Pool pool);
 extern BufferClass PoolNoBufferClass(void);
 extern Size PoolNoSize(Pool pool);
-
-/* FIXME: Would be nice to use generated functions here, but the
-   common superclass of pools is called AbstractPool, not Pool. */
-#define ClassOfPool(pool) ClassOfPoly(Pool, pool)
-#define SetClassOfPool SetClassOfPoly
 
 
 /* Abstract Pool Classes Interface -- see <code/poolabs.c> */
@@ -481,11 +476,6 @@ extern void TraceScanSingleRef(TraceSet ts, Rank rank, Arena arena,
 
 DECLARE_CLASS(Arena, AbstractArena);
 extern Bool ArenaClassCheck(ArenaClass class);
-
-/* FIXME: Would be nice to use generated functions here, but the
-   common superclass of arenas is called AbstractArena, not Arena. */
-#define ClassOfArena(arena) ClassOfPoly(Arena, arena)
-#define SetClassOfArena SetClassOfPoly
 
 extern Bool ArenaCheck(Arena arena);
 extern Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args);

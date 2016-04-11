@@ -154,7 +154,7 @@ static Res DebugPoolInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   if (res != ResOK)
     return res;
 
-  SetClassOfPool(pool, class);
+  SetClassOfPoly(pool, class);
   debug = DebugPoolDebugMixin(pool);
   AVER(debug != NULL);
 
@@ -228,7 +228,7 @@ static void DebugPoolFinish(Pool pool)
     SplayTreeFinish(&debug->index);
     PoolDestroy(debug->tagPool);
   }
-  class = ClassOfPool(pool);
+  class = ClassOfPoly(Pool, pool);
   SuperclassPoly(Pool, class)->finish(pool);
 }
 
@@ -411,7 +411,7 @@ static Res freeCheckAlloc(Addr *aReturn, PoolDebugMixin debug, Pool pool,
 
   AVER(aReturn != NULL);
 
-  class = ClassOfPool(pool);
+  class = ClassOfPoly(Pool, pool);
   res = SuperclassPoly(Pool, class)->alloc(&new, pool, size);
   if (res != ResOK)
     return res;
@@ -432,7 +432,7 @@ static void freeCheckFree(PoolDebugMixin debug,
   PoolClass class;
   if (debug->freeSize != 0)
     freeSplat(debug, pool, old, AddrAdd(old, size));
-  class = ClassOfPool(pool);
+  class = ClassOfPoly(Pool, pool);
   SuperclassPoly(Pool, class)->free(pool, old, size);
 }
 

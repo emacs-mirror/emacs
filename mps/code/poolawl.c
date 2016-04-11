@@ -198,7 +198,7 @@ static Res AWLSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   res = NextMethod(Seg, AWLSeg, init)(seg, pool, base, size, args);
   if (res != ResOK)
     goto failSuperInit;
-  SetClassOfSeg(seg, CLASS(AWLSeg));
+  SetClassOfPoly(seg, CLASS(AWLSeg));
   awlseg = MustBeA(AWLSeg, seg);
 
   AVERT(Pool, pool);
@@ -574,7 +574,7 @@ static Res AWLInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   res = PoolAbsInit(pool, arena, class, args);
   if (res != ResOK)
     goto failAbsInit;
-  SetClassOfPool(pool, CLASS(AWLPool));
+  SetClassOfPoly(pool, CLASS(AWLPool));
   awl = MustBeA(AWLPool, pool);
   
   pool->format = format;
