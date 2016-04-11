@@ -109,8 +109,9 @@ typedef struct ShieldStruct *Shield; /* design.mps.shield */
 /* Arena*Method -- see <code/mpmst.h#ArenaClassStruct> */
 
 typedef void (*ArenaVarargsMethod)(ArgStruct args[], va_list varargs);
-typedef Res (*ArenaInitMethod)(Arena *arenaReturn,
-                               ArenaClass class, ArgList args);
+typedef Res (*ArenaCreateMethod)(Arena *arenaReturn, ArgList args);
+typedef void (*ArenaDestroyMethod)(Arena arena);
+typedef Res (*ArenaInitMethod)(Arena arena, Size grainSize, ArgList args);
 typedef void (*ArenaFinishMethod)(Arena arena);
 typedef Size (*ArenaPurgeSpareMethod)(Arena arena, Size size);
 typedef Res (*ArenaExtendMethod)(Arena arena, Addr base, Size size);

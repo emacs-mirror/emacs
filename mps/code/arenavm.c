@@ -491,7 +491,7 @@ static void vmArenaTrivContracted(Arena arena, Addr base, Size size)
 }
 
 
-/* VMArenaInit -- create and initialize the VM arena
+/* VMArenaCreate -- create and initialize the VM arena
  *
  * .arena.init: Once the arena has been allocated, we call ArenaInit
  * to do the generic part of init.
@@ -502,7 +502,7 @@ ARG_DEFINE_KEY(arena_extended, Fun);
 ARG_DEFINE_KEY(arena_contracted, Fun);
 #define vmKeyArenaContracted (&_mps_key_arena_contracted)
 
-static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
+static Res VMArenaCreate(Arena *arenaReturn, ArgList args)
 {
   Size size = VM_ARENA_SIZE_DEFAULT; /* initial arena size */
   Align grainSize = MPS_PF_ALIGN; /* arena grain size */
@@ -519,7 +519,6 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
   char vmParams[VMParamSize];
   
   AVER(arenaReturn != NULL);
-  AVER(class == CLASS(VMArena));
   AVERT(ArgList, args);
 
   if (ArgPick(&arg, args, MPS_KEY_ARENA_GRAIN_SIZE))
@@ -556,9 +555,12 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
 
   arena = VMArena2Arena(vmArena);
   /* <code/arena.c#init.caller> */
-  res = ArenaInit(arena, class, grainSize, args);
+  res = SUPERCLASS(Arena, VMArena)->init(arena, grainSize, args);
   if (res != ResOK)
     goto failArenaInit;
+  SetClassOfArena(arena, CLASS(VMArena));
+  AVER(vmArena == MustBeA(VMArena, arena));
+  
   arena->reserved = VMReserved(vm);
   arena->committed = VMMapped(vm);
 
@@ -607,7 +609,7 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
   return ResOK;
 
 failChunkCreate:
-  ArenaFinish(arena);
+  SUPERCLASS(Arena, VMArena)->finish(arena);
 failArenaInit:
   VMUnmap(vm, VMBase(vm), VMLimit(vm));
 failVMMap:
@@ -617,9 +619,9 @@ failVMInit:
 }
 
 
-/* VMArenaFinish -- finish the arena */
+/* VMArenaFinish -- destroy the arena */
 
-static void VMArenaFinish(Arena arena)
+static void VMArenaDestroy(Arena arena)
 {
   VMStruct vmStruct;
   VM vm = &vmStruct;
@@ -645,7 +647,7 @@ static void VMArenaFinish(Arena arena)
 
   vmArena->sig = SigInvalid;
 
-  ArenaFinish(arena); /* <code/global.c#finish.caller> */
+  SUPERCLASS(Arena, VMArena)->finish(arena); /* <code/global.c#finish.caller> */
 
   /* Copy VM descriptor to stack-local storage so that we can continue
    * using the descriptor after the VM has been unmapped. */
@@ -1186,8 +1188,8 @@ DEFINE_CLASS(Arena, VMArena, this)
   INHERIT_CLASS(this, VMArena, AbstractArena);
   this->size = sizeof(VMArenaStruct);
   this->varargs = VMArenaVarargs;
-  this->init = VMArenaInit;
-  this->finish = VMArenaFinish;
+  this->create = VMArenaCreate;
+  this->destroy = VMArenaDestroy;
   this->purgeSpare = VMPurgeSpare;
   this->grow = VMArenaGrow;
   this->free = VMFree;

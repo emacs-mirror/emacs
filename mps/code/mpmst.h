@@ -502,6 +502,8 @@ typedef struct mps_arena_class_s {
   ArenaVarargsMethod varargs;
   ArenaInitMethod init;
   ArenaFinishMethod finish;
+  ArenaCreateMethod create;
+  ArenaDestroyMethod destroy;
   ArenaPurgeSpareMethod purgeSpare;
   ArenaExtendMethod extend;
   ArenaGrowMethod grow;

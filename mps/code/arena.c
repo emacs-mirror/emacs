@@ -42,6 +42,8 @@ Bool ArenaGrainSizeCheck(Size size)
 static void ArenaTrivCompact(Arena arena, Trace trace);
 static void arenaFreePage(Arena arena, Addr base, Pool pool);
 static void arenaFreeLandFinish(Arena arena);
+static Res ArenaAbsInit(Arena arena, Size grainSize, ArgList args);
+static void ArenaAbsFinish(Arena arena);
 
 
 /* ArenaTrivDescribe -- produce trivial description of an arena */
@@ -69,22 +71,6 @@ static Res ArenaTrivDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
                 "  No class-specific description available.\n", NULL);
 }
 
-
-static Res ArenaNoInit(Arena *arenaReturn, ArenaClass class, ArgList args)
-{
-  UNUSED(arenaReturn);
-  UNUSED(class);
-  UNUSED(args);
-  NOTREACHED;
-  return ResUNIMPL;
-}
-
-
-static void ArenaNoFinish(Arena arena)
-{
-  UNUSED(arena);
-  NOTREACHED;
-}
 
 static void ArenaNoFree(Addr base, Size size, Pool pool)
 {
@@ -121,6 +107,20 @@ static Res ArenaNoPagesMarkAllocated(Arena arena, Chunk chunk,
   return ResUNIMPL;
 }
 
+static Res ArenaNoCreate(Arena *arenaReturn, ArgList args)
+{
+  UNUSED(arenaReturn);
+  UNUSED(args);
+  NOTREACHED;
+  return ResUNIMPL;
+}
+
+static void ArenaNoDestroy(Arena arena)
+{
+  UNUSED(arena);
+  NOTREACHED;
+}
+
 
 /* AbstractArenaClass  -- The abstract arena class definition */
 
@@ -129,8 +129,10 @@ DEFINE_CLASS(Arena, AbstractArena, class)
   INHERIT_CLASS(&class->protocol, AbstractArena, Inst);
   class->size = sizeof(ArenaStruct);
   class->varargs = ArgTrivVarargs;
-  class->init = ArenaNoInit;
-  class->finish = ArenaNoFinish;
+  class->init = ArenaAbsInit;
+  class->finish = ArenaAbsFinish;
+  class->create = ArenaNoCreate;
+  class->destroy = ArenaNoDestroy;
   class->purgeSpare = ArenaNoPurgeSpare;
   class->extend = ArenaNoExtend;
   class->grow = ArenaNoGrow;
@@ -153,6 +155,8 @@ Bool ArenaClassCheck(ArenaClass class)
   CHECKL(FUNCHECK(class->varargs));
   CHECKL(FUNCHECK(class->init));
   CHECKL(FUNCHECK(class->finish));
+  CHECKL(FUNCHECK(class->create));
+  CHECKL(FUNCHECK(class->destroy));
   CHECKL(FUNCHECK(class->purgeSpare));
   CHECKL(FUNCHECK(class->extend));
   CHECKL(FUNCHECK(class->grow));
@@ -222,7 +226,7 @@ Bool ArenaCheck(Arena arena)
 }
 
 
-/* ArenaInit -- initialize the generic part of the arena
+/* ArenaAbsInit -- initialize the generic part of the arena
  *
  * .init.caller: ArenaInit is called by class->init (which is called
  * by ArenaCreate). The initialization must proceed in this order, as
@@ -232,7 +236,7 @@ Bool ArenaCheck(Arena arena)
  * it has been allocated by the arena class.
  */
 
-Res ArenaInit(Arena arena, ArenaClass class, Size grainSize, ArgList args)
+static Res ArenaAbsInit(Arena arena, Size grainSize, ArgList args)
 {
   Res res;
   Bool zoned = ARENA_DEFAULT_ZONED;
@@ -242,7 +246,6 @@ Res ArenaInit(Arena arena, ArenaClass class, Size grainSize, ArgList args)
   mps_arg_s arg;
 
   AVER(arena != NULL);
-  AVERT(ArenaClass, class);
   AVERT(ArenaGrainSize, grainSize);
   
   if (ArgPick(&arg, args, MPS_KEY_ARENA_ZONED))
@@ -284,9 +287,9 @@ Res ArenaInit(Arena arena, ArenaClass class, Size grainSize, ArgList args)
   if (res != ResOK)
     goto failGlobalsInit;
 
-  SetClassOfArena(arena, class);
+  SetClassOfArena(arena, CLASS(AbstractArena));
   arena->sig = ArenaSig;
-  AVERT(Arena, arena);
+  AVERC(Arena, arena);
   
   /* Initialise a pool to hold the CBS blocks for the arena's free
    * land. This pool can't be allowed to extend itself using
@@ -304,7 +307,6 @@ Res ArenaInit(Arena arena, ArenaClass class, Size grainSize, ArgList args)
   if (res != ResOK)
     goto failMFSInit;
 
-  AVERT(Arena, arena);
   return ResOK;
 
 failMFSInit:
@@ -386,11 +388,11 @@ Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args)
      to the EventLast pointers. */
   EventInit();
 
-  /* Do initialization.  This will call ArenaInit (see .init.caller). */
-  /* FIXME: Should call init which next-method calls ArenaAbsInit. */
-  res = class->init(&arena, class, args);
+  res = class->create(&arena, args);
   if (res != ResOK)
     goto failInit;
+
+  /* FIXME: Can the rest of this be moved into ArenaAbsInit? */
 
   /* Grain size must have been set up by *class->init() */
   if (ArenaGrainSize(arena) > ((Size)1 << arena->zoneShift)) {
@@ -427,14 +429,16 @@ failInit:
 }
 
 
-/* ArenaFinish -- finish the generic part of the arena
+/* ArenaAbsFinish -- finish the generic part of the arena
  *
  * .finish.caller: Unlike PoolFinish, this is called by the class finish
  * methods, not the generic Destroy.  This is because the class is
- * responsible for deallocating the descriptor.  */
+ * responsible for deallocating the descriptor.
+ */
 
-void ArenaFinish(Arena arena)
+static void ArenaAbsFinish(Arena arena)
 {
+  AVERC(Arena, arena);
   PoolFinish(ArenaCBSBlockPool(arena));
   arena->sig = SigInvalid;
   InstFinish(&arena->instStruct);
@@ -489,8 +493,8 @@ void ArenaDestroy(Arena arena)
    * containing CBS blocks might be allocated in those chunks. */
   arenaFreeLandFinish(arena);
 
-  /* Call class-specific finishing.  This will call ArenaFinish. */
-  Method(Arena, arena, finish)(arena);
+  /* Call class-specific destruction.  This will call ArenaAbsFinish. */
+  Method(Arena, arena, destroy)(arena);
 
   EventFinish();
 }
