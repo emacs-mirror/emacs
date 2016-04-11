@@ -237,7 +237,6 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
   Res res;
   Pool pool;
   amcSeg amcseg;
-  SegClass super;
   Addr i, p, base, limit, init;
   Align step;
   Size row;
@@ -252,8 +251,7 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
     return ResFAIL;
 
   /* Describe the superclass fields first via next-method call */
-  super = SUPERCLASS(Seg, amcSeg);
-  res = super->describe(seg, stream, depth);
+  res = SUPERCLASS(Seg, amcSeg)->describe(seg, stream, depth);
   if(res != ResOK)
     return res;
 

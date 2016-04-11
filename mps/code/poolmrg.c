@@ -256,7 +256,6 @@ static Res MRGRefSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   MRGLinkSeg linkseg;
   MRGRefSeg refseg;
   MRG mrg;
-  SegClass super;
   Res res;
   ArgStruct arg;
   
@@ -268,8 +267,7 @@ static Res MRGRefSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   linkseg = arg.val.p;
 
   /* Initialize the superclass fields first via next-method call */
-  super = SUPERCLASS(Seg, MRGRefSeg);
-  res = super->init(seg, pool, base, size, args);
+  res = SUPERCLASS(Seg, MRGRefSeg)->init(seg, pool, base, size, args);
   if (res != ResOK)
     return res;
   SetClassOfSeg(seg, CLASS(MRGRefSeg));

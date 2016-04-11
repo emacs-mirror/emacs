@@ -189,12 +189,10 @@ Bool FreelistCheck(Freelist fl)
 static Res freelistInit(Land land, Arena arena, Align alignment, ArgList args)
 {
   Freelist fl;
-  LandClass super;
   Res res;
 
-  AVER(land != NULL); /* FIXME: express intention */
-  super = SUPERCLASS(Land, Freelist);
-  res = (*super->init)(land, arena, alignment, args);
+  AVER(land != NULL);
+  res = SUPERCLASS(Land, Freelist)->init(land, arena, alignment, args);
   if (res != ResOK)
     return res;
 
