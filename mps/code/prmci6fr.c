@@ -32,17 +32,20 @@ Addr MutatorFaultContextSP(MutatorFaultContext mfc)
 }
 
 
-Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext mfc)
+Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext mfc,
+                            mps_area_scan_t scan_area,
+                            void *closure)
 {
   Res res;
 
   /* This scans the root registers (.context.regroots).  It also unnecessarily
      scans the rest of the context.  The optimisation to scan only relevant
      parts would be machine dependent. */
-  res = TraceScanAreaTagged(
+  res = TraceScanArea(
     ss,
-    (Addr *)mfc->ucontext,
-    (Addr *)((char *)mfc->ucontext + sizeof(*(mfc->ucontext)))
+    (Word *)mfc->ucontext,
+    (Word *)((char *)mfc->ucontext + sizeof(*(mfc->ucontext))),
+    scan_area, closure
   );
 
   return res;

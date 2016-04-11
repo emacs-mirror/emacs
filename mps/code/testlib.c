@@ -220,14 +220,30 @@ double rnd_double(void)
   return rnd() / R_m_float;
 }
 
+static unsigned sizelog2(size_t size)
+{
+  return (unsigned)(log((double)size) / log(2.0));
+}
+
 size_t rnd_grain(size_t arena_size)
 {
   /* The grain size must be small enough to allow for a complete set
-   * of zones in the initial chunk. */
-  size_t s = (size_t)(log((double)arena_size) / log(2.0));
-  size_t shift = MPS_WORD_SHIFT;
-  Insist(s > shift);
-  return (size_t)1 << (rnd() % (s - shift));
+     of zones in the initial chunk, but bigger than one word. */
+  Insist(arena_size >> MPS_WORD_SHIFT >= sizeof(void *));
+  return rnd_align(sizeof(void *), (size_t)1 << sizelog2(arena_size >> MPS_WORD_SHIFT));
+}
+
+size_t rnd_align(size_t min, size_t max)
+{
+  unsigned log2min = sizelog2(min);
+  unsigned log2max = sizelog2(max);
+  Insist(min <= max);
+  Insist(1uL << log2min == min);
+  Insist(1uL << log2max == max);
+  if (log2min < log2max)
+    return min << (rnd() % (log2max - log2min + 1));
+  else
+    return min;
 }
 
 rnd_state_t rnd_seed(void)

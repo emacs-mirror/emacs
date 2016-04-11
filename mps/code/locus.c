@@ -1,7 +1,7 @@
 /* locus.c: LOCUS MANAGER
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  * DESIGN
  *
@@ -10,7 +10,7 @@
  * collection strategy.
  */
 
-#include "chain.h"
+#include "locus.h"
 #include "ring.h"
 #include "mpm.h"
 #include "mpstd.h"
@@ -103,7 +103,7 @@ Res LocusPrefDescribe(LocusPref pref, mps_lib_FILE *stream, Count depth)
 /* GenDescCheck -- check a GenDesc */
 
 ATTRIBUTE_UNUSED
-static Bool GenDescCheck(GenDesc gen)
+Bool GenDescCheck(GenDesc gen)
 {
   CHECKS(GenDesc, gen);
   /* nothing to check for zones */
@@ -117,10 +117,12 @@ static Bool GenDescCheck(GenDesc gen)
 
 /* GenDescNewSize -- return effective size of generation */
 
-static Size GenDescNewSize(GenDesc gen)
+Size GenDescNewSize(GenDesc gen)
 {
   Size size = 0;
   Ring node, nextNode;
+
+  AVERT(GenDesc, gen);
 
   RING_FOR(node, &gen->locusRing, nextNode) {
     PoolGen pgen = RING_ELT(PoolGen, genRing, node);
@@ -133,10 +135,12 @@ static Size GenDescNewSize(GenDesc gen)
 
 /* GenDescTotalSize -- return total size of generation */
 
-static Size GenDescTotalSize(GenDesc gen)
+Size GenDescTotalSize(GenDesc gen)
 {
   Size size = 0;
   Ring node, nextNode;
+
+  AVERT(GenDesc, gen);
 
   RING_FOR(node, &gen->locusRing, nextNode) {
     PoolGen pgen = RING_ELT(PoolGen, genRing, node);
@@ -201,7 +205,7 @@ Res ChainCreate(Chain *chainReturn, Arena arena, size_t genCount,
     AVER(params[i].mortality < 1.0);
   }
 
-  res = ControlAlloc(&p, arena, genCount * sizeof(GenDescStruct), FALSE);
+  res = ControlAlloc(&p, arena, genCount * sizeof(GenDescStruct));
   if (res != ResOK)
     return res;
   gens = (GenDescStruct *)p;
@@ -215,7 +219,7 @@ Res ChainCreate(Chain *chainReturn, Arena arena, size_t genCount,
     AVERT(GenDesc, &gens[i]);
   }
 
-  res = ControlAlloc(&p, arena, sizeof(ChainStruct), FALSE);
+  res = ControlAlloc(&p, arena, sizeof(ChainStruct));
   if (res != ResOK)
     goto failChainAlloc;
   chain = (Chain)p;
@@ -309,7 +313,7 @@ GenDesc ChainGen(Chain chain, Index gen)
  */
 
 Res PoolGenAlloc(Seg *segReturn, PoolGen pgen, SegClass class, Size size,
-                 Bool withReservoirPermit, ArgList args)
+                 ArgList args)
 {
   LocusPrefStruct pref;
   Res res;
@@ -322,7 +326,6 @@ Res PoolGenAlloc(Seg *segReturn, PoolGen pgen, SegClass class, Size size,
   AVERT(PoolGen, pgen);
   AVERT(SegClass, class);
   AVER(size > 0);
-  AVERT(Bool, withReservoirPermit);
   AVERT(ArgList, args);
 
   arena = PoolArena(pgen->pool);
@@ -333,8 +336,7 @@ Res PoolGenAlloc(Seg *segReturn, PoolGen pgen, SegClass class, Size size,
   pref.high = FALSE;
   pref.zones = zones;
   pref.avoid = ZoneSetBlacklist(arena);
-  res = SegAlloc(&seg, class, &pref, size, pgen->pool, withReservoirPermit,
-                 args);
+  res = SegAlloc(&seg, class, &pref, size, pgen->pool, args);
   if (res != ResOK)
     return res;
 
@@ -378,69 +380,6 @@ double ChainDeferral(Chain chain)
   }
 
   return time;
-}
-
-
-/* ChainCondemnAuto -- condemn approriate parts of this chain
- *
- * This is only called if ChainDeferral returned a value sufficiently
- * low that the tracer decided to start the collection.  (Usually
- * such values are less than zero; see <design/trace/>)
- */
-Res ChainCondemnAuto(double *mortalityReturn, Chain chain, Trace trace)
-{
-  Res res;
-  size_t topCondemnedGen, i;
-  GenDesc gen;
-  ZoneSet condemnedSet = ZoneSetEMPTY;
-  Size condemnedSize = 0, survivorSize = 0, genNewSize, genTotalSize;
-
-  AVERT(Chain, chain);
-  AVERT(Trace, trace);
-
-  /* Find the highest generation that's over capacity. We will condemn
-   * this and all lower generations in the chain. */
-  topCondemnedGen = chain->genCount;
-  for (;;) {
-    /* It's an error to call this function unless some generation is
-     * over capacity as reported by ChainDeferral. */
-    AVER(topCondemnedGen > 0);
-    if (topCondemnedGen == 0)
-      return ResFAIL;
-    -- topCondemnedGen;
-    gen = &chain->gens[topCondemnedGen];
-    AVERT(GenDesc, gen);
-    genNewSize = GenDescNewSize(gen);
-    if (genNewSize >= gen->capacity * (Size)1024)
-      break;
-  }
-
-  /* At this point, we've decided to condemn topCondemnedGen and all
-   * lower generations. */
-  for (i = 0; i <= topCondemnedGen; ++i) {
-    gen = &chain->gens[i];
-    AVERT(GenDesc, gen);
-    condemnedSet = ZoneSetUnion(condemnedSet, gen->zones);
-    genTotalSize = GenDescTotalSize(gen);
-    genNewSize = GenDescNewSize(gen);
-    condemnedSize += genTotalSize;
-    survivorSize += (Size)(genNewSize * (1.0 - gen->mortality))
-                    /* predict survivors will survive again */
-                    + (genTotalSize - genNewSize);
-  }
-  
-  AVER(condemnedSet != ZoneSetEMPTY || condemnedSize == 0);
-  EVENT3(ChainCondemnAuto, chain, topCondemnedGen, chain->genCount);
-  
-  /* Condemn everything in these zones. */
-  if (condemnedSet != ZoneSetEMPTY) {
-    res = TraceCondemnZones(trace, condemnedSet);
-    if (res != ResOK)
-      return res;
-  }
-
-  *mortalityReturn = 1.0 - (double)survivorSize / condemnedSize;
-  return ResOK;
 }
 
 
@@ -825,7 +764,7 @@ Bool LocusCheck(Arena arena)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

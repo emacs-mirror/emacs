@@ -1,21 +1,13 @@
 /* amcssth.c: POOL CLASS AMC STRESS TEST WITH TWO THREADS
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (c) 2002 Global Graphics Software.
  *
- * .mode: This test case has two modes:
- *
- * .mode.walk: In this mode, the main thread parks the arena half way
- * through the test case and runs mps_arena_formatted_objects_walk().
- * This checks that walking works while the other threads continue to
- * allocate in the background.
- *
- * .mode.commit: In this mode, the arena's commit limit is set. This
- * checks that the MPS can make progress inside a tight limit in the
- * presence of allocation on multiple threads. But this is
- * incompatible with .mode.walk: if the arena is parked, then the
- * arena has no chance to make progress.
+ * The main thread parks the arena half way through the test case and
+ * runs mps_arena_formatted_objects_walk(). This checks that walking
+ * works while the other threads continue to allocate in the
+ * background.
  */
 
 #include "fmtdy.h"
@@ -27,11 +19,6 @@
 #include "mpsavm.h"
 
 #include <stdio.h> /* fflush, printf, putchar */
-
-enum {
-  ModeWALK = 0,                 /* .mode.walk */
-  ModeCOMMIT = 1                /* .mode.commit */
-};
 
 
 /* These values have been tuned in the hope of getting one dynamic collection. */
@@ -139,8 +126,8 @@ static void *kid_thread(void *arg)
   closure_t cl = arg;
 
   die(mps_thread_reg(&thread, (mps_arena_t)arena), "thread_reg");
-  die(mps_root_create_reg(&reg_root, arena, mps_rank_ambig(), 0, thread,
-                          mps_stack_scan_ambig, marker, 0), "root_create");
+  die(mps_root_create_thread(&reg_root, arena, thread, marker),
+      "root_create");
 
   die(mps_ap_create(&ap, cl->pool, mps_rank_exact()), "BufferCreate(fooey)");
   while(mps_collections(arena) < collectionsCOUNT) {
@@ -157,8 +144,7 @@ static void *kid_thread(void *arg)
 
 /* test -- the body of the test */
 
-static void test_pool(const char *name, mps_pool_t pool, size_t roots_count,
-                      int mode)
+static void test_pool(const char *name, mps_pool_t pool, size_t roots_count)
 {
   size_t i;
   mps_word_t rampSwitch;
@@ -170,8 +156,7 @@ static void test_pool(const char *name, mps_pool_t pool, size_t roots_count,
   closure_s cl;
   int walked = FALSE, ramped = FALSE;
 
-  printf("\n------ mode: %s pool: %s-------\n",
-         mode == ModeWALK ? "WALK" : "COMMIT", name);
+  printf("\n------ pool: %s-------\n", name);
 
   cl.pool = pool;
   cl.roots_count = roots_count;
@@ -217,7 +202,7 @@ static void test_pool(const char *name, mps_pool_t pool, size_t roots_count,
           cdie(exactRoots[i] == objNULL || dylan_check(exactRoots[i]),
                "all roots check");
 
-        if (mode == ModeWALK && collections >= collectionsCOUNT / 2 && !walked)
+        if (collections >= collectionsCOUNT / 2 && !walked)
         {
           unsigned long count = 0;
           mps_arena_park(arena);
@@ -278,7 +263,7 @@ static void test_pool(const char *name, mps_pool_t pool, size_t roots_count,
     testthr_join(&kids[i], NULL);
 }
 
-static void test_arena(int mode)
+static void test_arena(void)
 {
   size_t i;
   mps_fmt_t format;
@@ -293,8 +278,6 @@ static void test_arena(int mode)
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_GRAIN_SIZE, rnd_grain(testArenaSIZE));
     die(mps_arena_create_k(&arena, mps_arena_class_vm(), args), "arena_create");
   } MPS_ARGS_END(args);
-  if (mode == ModeCOMMIT)
-    die(mps_arena_commit_limit_set(arena, 2 * testArenaSIZE), "set limit");
   mps_message_type_enable(arena, mps_message_type_gc());
   mps_message_type_enable(arena, mps_message_type_gc_start());
 
@@ -316,16 +299,16 @@ static void test_arena(int mode)
                             &ambigRoots[0], ambigRootsCOUNT),
       "root_create_table(ambig)");
   die(mps_thread_reg(&thread, arena), "thread_reg");
-  die(mps_root_create_reg(&reg_root, arena, mps_rank_ambig(), 0, thread,
-                          mps_stack_scan_ambig, marker, 0), "root_create");
+  die(mps_root_create_thread(&reg_root, arena, thread, marker),
+      "root_create");
 
   die(mps_pool_create(&amc_pool, arena, mps_class_amc(), format, chain),
       "pool_create(amc)");
   die(mps_pool_create(&amcz_pool, arena, mps_class_amcz(), format, chain),
       "pool_create(amcz)");
 
-  test_pool("AMC", amc_pool, exactRootsCOUNT, mode);
-  test_pool("AMCZ", amcz_pool, 0, mode);
+  test_pool("AMC", amc_pool, exactRootsCOUNT);
+  test_pool("AMCZ", amcz_pool, 0);
 
   mps_arena_park(arena);
   mps_pool_destroy(amc_pool);
@@ -342,8 +325,7 @@ static void test_arena(int mode)
 int main(int argc, char *argv[])
 {
   testlib_init(argc, argv);
-  test_arena(ModeWALK);
-  test_arena(ModeCOMMIT);
+  test_arena();
 
   printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
   return 0;
@@ -352,7 +334,7 @@ int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  *

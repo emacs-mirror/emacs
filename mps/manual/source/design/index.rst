@@ -10,6 +10,7 @@ Design
     an
     bootstrap
     cbs
+    clock
     config
     critical-path
     exec-env
@@ -28,12 +29,14 @@ Design
     prot
     range
     ring
-    sp
+    shield
     sig
+    sp
     splay
     ss
     testthr
     thread-manager
     type
     vm
+    write-barrier
     writef

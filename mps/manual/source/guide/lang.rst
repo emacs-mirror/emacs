@@ -971,29 +971,21 @@ You register a thread with an :term:`arena` by calling
     res = mps_thread_reg(&thread, arena);
     if (res != MPS_RES_OK) error("Couldn't register thread");
 
-You register the thread's registers and control stack as a root by
-calling :c:func:`mps_root_create_reg` and passing
-:c:func:`mps_stack_scan_ambig`::
+You register the thread's :term:`registers` and :term:`control stack`
+as a root by calling :c:func:`mps_root_create_thread`::
 
     void *marker = &marker;
-    mps_root_t reg_root;
-    res = mps_root_create_reg(&reg_root,
-                              arena,
-                              mps_rank_ambig(),
-                              0,
-                              thread,
-                              mps_stack_scan_ambig,
-                              marker,
-                              0);
+    mps_root_t stack_root;
+    res = mps_root_create_thread(&reg_root, arena, thread, marker);
     if (res != MPS_RES_OK) error("Couldn't create root");
 
 In order to scan the control stack, the MPS needs to know where the
-bottom of the stack is, and that's the role of the ``marker``
-variable: the compiler places it on the stack, so its address is a
-position within the stack. As long as you don't exit from this
-function while the MPS is running, your program's active local
-variables will always be higher up on the stack than ``marker``, and
-so will be scanned for references by the MPS.
+:term:`cold end` of the stack is, and that's the role of the
+``marker`` variable: the compiler places it on the stack, so its
+address is a position within the stack. As long as you don't exit from
+this function while the MPS is running, your program's active local
+variables will always be placed on the stack after ``marker``, and so
+will be scanned for references by the MPS.
 
 .. topics::
 

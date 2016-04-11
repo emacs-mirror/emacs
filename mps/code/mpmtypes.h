@@ -38,6 +38,7 @@ typedef Word Size;                      /* <design/type/#size> */
 typedef Word Count;                     /* <design/type/#count> */
 typedef Word Index;                     /* <design/type/#index> */
 typedef Word Align;                     /* <design/type/#align> */
+typedef Word Work;                      /* <design/type/#work> */
 typedef unsigned Shift;                 /* <design/type/#shift> */
 typedef unsigned Serial;                /* <design/type/#serial> */
 typedef Addr Ref;                       /* <design/type/#ref> */
@@ -106,12 +107,12 @@ typedef struct MutatorFaultContextStruct
 typedef struct PoolDebugMixinStruct *PoolDebugMixin;
 typedef struct AllocPatternStruct *AllocPattern;
 typedef struct AllocFrameStruct *AllocFrame; /* <design/alloc-frame/> */
-typedef struct ReservoirStruct *Reservoir;   /* <design/reservoir/> */
 typedef struct StackContextStruct *StackContext;
 typedef struct RangeStruct *Range;      /* <design/range/> */
 typedef struct LandStruct *Land;        /* <design/land/> */
 typedef struct LandClassStruct *LandClass; /* <design/land/> */
 typedef unsigned FindDelete;            /* <design/land/> */
+typedef struct ShieldStruct *Shield; /* design.mps.shield */
 
 
 /* Arena*Method -- see <code/mpmst.h#ArenaClassStruct> */
@@ -157,7 +158,7 @@ typedef void (*FreeBlockVisitor)(Addr base, Addr limit, Pool pool, void *p);
 /* Seg*Method -- see <design/seg/> */
 
 typedef Res (*SegInitMethod)(Seg seg, Pool pool, Addr base, Size size,
-                             Bool withReservoirPermit, ArgList args);
+                             ArgList args);
 typedef void (*SegFinishMethod)(Seg seg);
 typedef void (*SegSetGreyMethod)(Seg seg, TraceSet grey);
 typedef void (*SegSetWhiteMethod)(Seg seg, TraceSet white);
@@ -169,11 +170,9 @@ typedef Buffer (*SegBufferMethod)(Seg seg);
 typedef void (*SegSetBufferMethod)(Seg seg, Buffer buffer);
 typedef Res (*SegDescribeMethod)(Seg seg, mps_lib_FILE *stream, Count depth);
 typedef Res (*SegMergeMethod)(Seg seg, Seg segHi,
-                              Addr base, Addr mid, Addr limit,
-                              Bool withReservoirPermit);
+                              Addr base, Addr mid, Addr limit);
 typedef Res (*SegSplitMethod)(Seg seg, Seg segHi,
-                              Addr base, Addr mid, Addr limit,
-                              Bool withReservoirPermit);
+                              Addr base, Addr mid, Addr limit);
 
 /* Buffer*Method -- see <design/buffer/> */
 
@@ -197,12 +196,10 @@ typedef Res (*BufferDescribeMethod)(Buffer buffer, mps_lib_FILE *stream, Count d
 typedef void (*PoolVarargsMethod)(ArgStruct args[], va_list varargs);
 typedef Res (*PoolInitMethod)(Pool pool, ArgList args);
 typedef void (*PoolFinishMethod)(Pool pool);
-typedef Res (*PoolAllocMethod)(Addr *pReturn, Pool pool, Size size,
-                               Bool withReservoirPermit);
+typedef Res (*PoolAllocMethod)(Addr *pReturn, Pool pool, Size size);
 typedef void (*PoolFreeMethod)(Pool pool, Addr old, Size size);
 typedef Res (*PoolBufferFillMethod)(Addr *baseReturn, Addr *limitReturn,
-                                    Pool pool, Buffer buffer, Size size,
-                                    Bool withReservoirPermit);
+                                    Pool pool, Buffer buffer, Size size);
 typedef void (*PoolBufferEmptyMethod)(Pool pool, Buffer buffer,
                                       Addr init, Addr limit);
 typedef Res (*PoolTraceBeginMethod)(Pool pool, Trace trace);
@@ -270,10 +267,10 @@ typedef void (*LandFinishMethod)(Land land);
 typedef Size (*LandSizeMethod)(Land land);
 typedef Res (*LandInsertMethod)(Range rangeReturn, Land land, Range range);
 typedef Res (*LandDeleteMethod)(Range rangeReturn, Land land, Range range);
-typedef Bool (*LandVisitor)(Land land, Range range, void *closureP, Size closureS);
-typedef Bool (*LandDeleteVisitor)(Bool *deleteReturn, Land land, Range range, void *closureP, Size closureS);
-typedef Bool (*LandIterateMethod)(Land land, LandVisitor visitor, void *closureP, Size closureS);
-typedef Bool (*LandIterateAndDeleteMethod)(Land land, LandDeleteVisitor visitor, void *closureP, Size closureS);
+typedef Bool (*LandVisitor)(Land land, Range range, void *closure);
+typedef Bool (*LandDeleteVisitor)(Bool *deleteReturn, Land land, Range range, void *closure);
+typedef Bool (*LandIterateMethod)(Land land, LandVisitor visitor, void *closure);
+typedef Bool (*LandIterateAndDeleteMethod)(Land land, LandDeleteVisitor visitor, void *closure);
 typedef Bool (*LandFindMethod)(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete);
 typedef Res (*LandFindInZonesMethod)(Bool *foundReturn, Range rangeReturn, Range oldRangeReturn, Land land, Size size, ZoneSet zoneSet, Bool high);
 typedef Res (*LandDescribeMethod)(Land land, mps_lib_FILE *stream, Count depth);
@@ -359,9 +356,10 @@ enum {
 
 enum {
   RootFUN,
-  RootTABLE,
-  RootTABLE_MASKED,
-  RootREG,
+  RootAREA,
+  RootAREA_TAGGED,
+  RootTHREAD,
+  RootTHREAD_TAGGED,
   RootFMT,
   RootLIMIT
 };

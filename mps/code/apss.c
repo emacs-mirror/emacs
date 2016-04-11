@@ -23,6 +23,7 @@
 #define testArenaSIZE   ((((size_t)3)<<24) - 4)
 #define testSetSIZE 200
 #define testLOOPS 10
+#define MAX_ALIGN 64 /* TODO: Make this test work up to arena_grain_size? */
 
 
 /* make -- allocate one object */
@@ -85,6 +86,14 @@ static mps_res_t stress(mps_arena_t arena, mps_pool_debug_option_s *options,
     if (ss[i] >= sizeof(ps[i]))
       *ps[i] = 1; /* Write something, so it gets swap. */
     check_allocated_size(pool, ap, allocated);
+  }
+
+  /* Check introspection functions */
+  for (i = 0; i < NELEMS(ps); ++i) {
+    mps_pool_t addr_pool = NULL;
+    Insist(mps_arena_has_addr(arena, ps[i]));
+    Insist(mps_addr_pool(&addr_pool, arena, ps[i]));
+    Insist(addr_pool == pool);
   }
 
   mps_pool_check_fenceposts(pool);
@@ -156,12 +165,21 @@ static mps_pool_debug_option_s fenceOptions = {
 };
 
 
-/* testInArena -- test all the pool classes in the given arena */
+/* test -- create arena using given class and arguments; test all the
+ * pool classes in this arena
+ */
 
-static void testInArena(mps_arena_t arena, mps_pool_debug_option_s *options)
+static void test(mps_arena_class_t arena_class, mps_arg_s arena_args[],
+                 size_t arena_grain_size,
+                 mps_pool_debug_option_s *options)
 {
+  mps_arena_t arena;
+  die(mps_arena_create_k(&arena, arena_class, arena_args), "mps_arena_create");
+
+  (void)arena_grain_size; /* TODO: test larger alignments up to this */
+
   MPS_ARGS_BEGIN(args) {
-    mps_align_t align = sizeof(void *) << (rnd() % 4);
+    mps_align_t align = rnd_align(sizeof(void *), MAX_ALIGN);
     MPS_ARGS_ADD(args, MPS_KEY_ALIGN, align);
     MPS_ARGS_ADD(args, MPS_KEY_MVFF_ARENA_HIGH, TRUE);
     MPS_ARGS_ADD(args, MPS_KEY_MVFF_SLOT_HIGH, TRUE);
@@ -171,18 +189,19 @@ static void testInArena(mps_arena_t arena, mps_pool_debug_option_s *options)
                mps_class_mvff(), args), "stress MVFF");
   } MPS_ARGS_END(args);
 
-  /* IWBN to test MVFFDebug, but the MPS doesn't support debugging APs, */
-  /* yet (MV Debug works here, because it fakes it through PoolAlloc). */
+  /* IWBN to test MVFFDebug, but the MPS doesn't support debugging
+     APs, yet (MV Debug works here, because it fakes it through
+     PoolAlloc).  See job003995. */
 
   MPS_ARGS_BEGIN(args) {
-    mps_align_t align = (mps_align_t)1 << (rnd() % 6);
+    mps_align_t align = rnd_align(sizeof(void *), MAX_ALIGN);
     MPS_ARGS_ADD(args, MPS_KEY_ALIGN, align);
     die(stress(arena, NULL, align, randomSizeAligned, "MV",
                mps_class_mv(), args), "stress MV");
   } MPS_ARGS_END(args);
 
   MPS_ARGS_BEGIN(args) {
-    mps_align_t align = (mps_align_t)1 << (rnd() % 6);
+    mps_align_t align = rnd_align(sizeof(void *), MAX_ALIGN);
     MPS_ARGS_ADD(args, MPS_KEY_ALIGN, align);
     MPS_ARGS_ADD(args, MPS_KEY_POOL_DEBUG_OPTIONS, options);
     die(stress(arena, options, align, randomSizeAligned, "MV debug",
@@ -190,50 +209,48 @@ static void testInArena(mps_arena_t arena, mps_pool_debug_option_s *options)
   } MPS_ARGS_END(args);
 
   MPS_ARGS_BEGIN(args) {
-    mps_align_t align = sizeof(void *) << (rnd() % 4);
+    mps_align_t align = rnd_align(sizeof(void *), MAX_ALIGN);
     MPS_ARGS_ADD(args, MPS_KEY_ALIGN, align);
     die(stress(arena, NULL, align, randomSizeAligned, "MVT",
                mps_class_mvt(), args), "stress MVT");
   } MPS_ARGS_END(args);
+
+  /* Manual allocation should not cause any garbage collections. */
+  Insist(mps_collections(arena) == 0);
+  mps_arena_destroy(arena);
 }
 
 
 int main(int argc, char *argv[])
 {
-  mps_arena_t arena;
-
+  size_t arena_grain_size;
+  
   testlib_init(argc, argv);
 
+  arena_grain_size = rnd_grain(2 * testArenaSIZE);
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, 2 * testArenaSIZE);
-    MPS_ARGS_ADD(args, MPS_KEY_ARENA_GRAIN_SIZE, rnd_grain(2*testArenaSIZE));
-    die(mps_arena_create_k(&arena, mps_arena_class_vm(), args),
-        "mps_arena_create");
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_GRAIN_SIZE, arena_grain_size);
+    MPS_ARGS_ADD(args, MPS_KEY_COMMIT_LIMIT, testArenaSIZE);
+    test(mps_arena_class_vm(), args, arena_grain_size, &fenceOptions);
   } MPS_ARGS_END(args);
-  die(mps_arena_commit_limit_set(arena, testArenaSIZE), "commit limit");
-  testInArena(arena, &fenceOptions);
-  mps_arena_destroy(arena);
 
+  arena_grain_size = rnd_grain(2 * testArenaSIZE);
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, 2 * testArenaSIZE);
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_ZONED, FALSE);
-    MPS_ARGS_ADD(args, MPS_KEY_ARENA_GRAIN_SIZE, rnd_grain(2*testArenaSIZE));
-    die(mps_arena_create_k(&arena, mps_arena_class_vm(), args),
-        "mps_arena_create");
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_GRAIN_SIZE, arena_grain_size);
+    test(mps_arena_class_vm(), args, arena_grain_size, &bothOptions);
   } MPS_ARGS_END(args);
-  testInArena(arena, &bothOptions);
-  mps_arena_destroy(arena);
 
+  arena_grain_size = rnd_grain(testArenaSIZE);
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, testArenaSIZE);
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_ZONED, FALSE);
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_CL_BASE, malloc(testArenaSIZE));
-    MPS_ARGS_ADD(args, MPS_KEY_ARENA_GRAIN_SIZE, rnd_grain(testArenaSIZE));
-    die(mps_arena_create_k(&arena, mps_arena_class_cl(), args),
-        "mps_arena_create");
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_GRAIN_SIZE, arena_grain_size);
+    test(mps_arena_class_cl(), args, arena_grain_size, &bothOptions);
   } MPS_ARGS_END(args);
-  testInArena(arena, &bothOptions);
-  mps_arena_destroy(arena);
 
   printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
   return 0;

@@ -143,31 +143,6 @@ static mps_addr_t make(void)
 }
 
 
-/* make_with_permit -- allocate an object, with reservoir permit */
-
-static mps_addr_t make_with_permit(void)
-{
-  size_t length = rnd() % 20;
-  size_t sizeCli = (length+2)*sizeof(mps_word_t);
-  size_t sizeMps = SizeCli2Mps(sizeCli);
-  mps_addr_t pMps, pCli;
-  mps_res_t res;
-
-  do {
-    MPS_RESERVE_WITH_RESERVOIR_PERMIT_BLOCK(res, pMps, ap, sizeMps);
-    if (res != MPS_RES_OK)
-      die(res, "MPS_RESERVE_WITH_RESERVOIR_PERMIT_BLOCK");
-    HeaderInit(pMps);
-    pCli = PtrMps2Cli(pMps);
-    res = dylan_init(pCli, sizeCli, exactRoots, exactRootsCOUNT);
-    if (res != MPS_RES_OK)
-      die(res, "dylan_init");
-  } while(!mps_commit(ap, pMps, sizeMps));
-
-  return pCli;
-}
-
-
 /* make_no_inline -- allocate an object, using non-inlined interface */
 
 static mps_addr_t make_no_inline(void)
@@ -233,6 +208,7 @@ static void ap_create_v_test(mps_pool_t pool, ...)
 /* addr_pool_test
  *
  * intended to test:
+ *   mps_arena_has_addr
  *   mps_addr_pool
  *   mps_addr_fmt
  */
@@ -270,6 +246,7 @@ static void addr_pool_test(mps_arena_t arena,
   addr = obj1;
   pool = poolDistinguished;
   fmt = fmtDistinguished;
+  cdie(mps_arena_has_addr(arena, addr), "mps_arena_has_addr 0a");
   b = mps_addr_pool(&pool, arena, addr);
   /* printf("b %d; pool %p; sig %lx\n", b, (void *)pool,
             b ? ((mps_word_t*)pool)[0] : (mps_word_t)0); */
@@ -283,6 +260,7 @@ static void addr_pool_test(mps_arena_t arena,
   addr = obj2;
   pool = poolDistinguished;
   fmt = fmtDistinguished;
+  cdie(mps_arena_has_addr(arena, addr), "mps_arena_has_addr 0b");
   b = mps_addr_pool(&pool, arena, addr);
   /* printf("b %d; pool %p; sig %lx\n", b, (void *)pool,
             b ? ((mps_word_t*)pool)[0] : (mps_word_t)0); */
@@ -296,6 +274,7 @@ static void addr_pool_test(mps_arena_t arena,
   addr = &pool;  /* point at stack, not in any chunk */
   pool = poolDistinguished;
   fmt = fmtDistinguished;
+  cdie(mps_arena_has_addr(arena, addr) == FALSE, "mps_arena_has_addr 5");
   b = mps_addr_pool(&pool, arena, addr);
   cdie(b == FALSE && pool == poolDistinguished, "mps_addr_pool 5");
   b = mps_addr_fmt(&fmt, arena, addr);
@@ -320,6 +299,7 @@ static mps_res_t root_single(mps_ss_t ss, void *p, size_t s)
  *   mps_arena_reserved
  * incidentally tests:
  *   mps_alloc
+ *   mps_arena_commit_limit_set
  *   mps_class_mv
  *   mps_pool_create
  *   mps_pool_destroy
@@ -350,30 +330,6 @@ static void arena_commit_test(mps_arena_t arena)
   res = mps_alloc(&p, pool, FILLER_OBJECT_SIZE);
   die_expect(res, MPS_RES_OK, "Allocation failed after raising commit_limit");
   mps_pool_destroy(pool);
-}
-
-
-/* reservoir_test -- Test the reservoir interface
- *
- * This has not been tuned to actually dip into the reservoir.  See
- * QA test 132 for that.
- */
-
-#define reservoirSIZE ((size_t)128 * 1024)
-
-static void reservoir_test(mps_arena_t arena)
-{
-  (void)make_with_permit();
-  cdie(mps_reservoir_available(arena) == 0, "empty reservoir");
-  cdie(mps_reservoir_limit(arena) == 0, "no reservoir");
-  mps_reservoir_limit_set(arena, reservoirSIZE);
-  cdie(mps_reservoir_limit(arena) >= reservoirSIZE, "reservoir limit set");
-  cdie(mps_reservoir_available(arena) >= reservoirSIZE, "got reservoir");
-  (void)make_with_permit();
-  mps_reservoir_limit_set(arena, 0);
-  cdie(mps_reservoir_available(arena) == 0, "empty reservoir");
-  cdie(mps_reservoir_limit(arena) == 0, "no reservoir");
-  (void)make_with_permit();
 }
 
 
@@ -550,7 +506,6 @@ static void *test(void *arg, size_t s)
   }
 
   arena_commit_test(arena);
-  reservoir_test(arena);
   alignmentTest(arena);
 
   die(mps_arena_collect(arena), "collect");
@@ -591,11 +546,16 @@ int main(int argc, char *argv[])
       "arena_create");
   die(mps_thread_reg(&thread, arena), "thread_reg");
 
-  die(mps_root_create_reg(&reg_root, arena,
-                          mps_rank_ambig(), (mps_rm_t)0,
-                          thread, &mps_stack_scan_ambig,
-                          marker, (size_t)0),
-      "root_create_reg");
+  if (rnd() % 2) {
+    die(mps_root_create_reg(&reg_root, arena,
+                            mps_rank_ambig(), (mps_rm_t)0,
+                            thread, &mps_stack_scan_ambig,
+                            marker, (size_t)0),
+        "root_create_reg");
+  } else {
+    die(mps_root_create_thread(&reg_root, arena, thread, marker),
+        "root_create_thread");
+  }
 
   mps_tramp(&r, test, arena, 0);
   mps_root_destroy(reg_root);

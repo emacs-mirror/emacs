@@ -54,6 +54,15 @@ which might provoke a collection. See request.dylan.160252_.)
 
 .. _request.dylan.160252: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/dylan/160252/
 
+_`.req.thread.die`: It would be nice if the MPS coped with threads
+that die while registered. (This makes it easier for a client program
+to interface with foreign code that terminates threads without the
+client program being given an opportunity to deregister them. See
+request.dylan.160022_ and request.mps.160093_.)
+
+.. _request.dylan.160022: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/dylan/160022
+.. _request.mps.160093: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/mps/160093/
+
 
 Design
 ------
@@ -69,6 +78,22 @@ _`.sol.exclusive.assumption`: This relies on the assumption that any
 thread that might refer to, read from, or write to memory in
 automatically managed pool classes is registered with the MPS. This is
 documented in the manual under ``mps_thread_reg()``.
+
+_`.sol.thread.term`: The thread manager cannot reliably detect that a
+thread has terminated. The reason is that threading systems do not
+guarantee behaviour in this case. For example, POSIX_ says, "A
+conforming implementation is free to reuse a thread ID after its
+lifetime has ended. If an application attempts to use a thread ID
+whose lifetime has ended, the behavior is undefined." For this reason,
+the documentation for ``mps_thread_dereg()`` specifies that it is an
+error if a thread dies while registered.
+
+.. _POSIX: http://pubs.opengroup.org/onlinepubs/9699919799/functions/V2_chap02.html#tag_15_09_02
+
+_`.sol.thread.term.attempt`: Nonetheless, the thread manager makes a
+"best effort" to continue running after detecting a terminated thread,
+by moving the thread to a ring of dead threads, and avoiding scanning
+it. This might allow a malfunctioning client program to limp along.
 
 
 Interface
@@ -112,29 +137,31 @@ Otherwise, return a result code indicating the cause of the error.
 _`.if.deregister`: Remove ``thread`` from the list of threads managed
 by the arena and free it.
 
-``void ThreadRingSuspend(Ring threadRing)``
+``void ThreadRingSuspend(Ring threadRing, Ring deadRing)``
 
 _`.if.ring.suspend`: Suspend all the threads on ``threadRing``, except
-for the current thread.
+for the current thread. If any threads are discovered to have
+terminated, move them to ``deadRing``.
 
-``void ThreadRingResume(Ring threadRing)``
+``void ThreadRingResume(Ring threadRing, Ring deadRing)``
 
-_`.if.ring.resume`: Resume all the threads on ``threadRing``.
+_`.if.ring.resume`: Resume all the threads on ``threadRing``. If any
+threads are discovered to have terminated, move them to ``deadRing``.
 
 ``Thread ThreadRingThread(Ring threadRing)``
 
 _`.if.ring.thread`: Return the thread that owns the given element of
 the thread ring.
 
-``Res ThreadScan(ScanState ss, Thread thread, void *stackBot)``
+``Res ThreadScan(ScanState ss, Thread thread, Word *stackCold, mps_area_scan_t scan_area, void *closure)``
 
-_`.if.scan`: Scan the stacks and root registers of ``thread``,
-treating each value found as an ambiguous reference. ``stackBot``
-points to the "bottom" of the thread's stack---this is the value that
-was supplied by the client program when it called
-``mps_root_create_reg()``. In the common case, where the stack grows
-downwards, ``stackBot`` is actually the highest stack address. Return
-``ResOK`` if successful, another result code otherwise.
+_`.if.scan`: Scan the stacks and root registers of ``thread``, using
+``ss`` and ``scan_area``. ``stackCold`` points to the cold end of the
+thread's stack---this is the value that was supplied by the client
+program when it called ``mps_root_create_thread()``. In the common
+case, where the stack grows downwards, ``stackCold`` is the highest
+stack address. Return ``ResOK`` if successful, another result code
+otherwise.
 
 
 Implementations
@@ -308,8 +335,8 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited. All rights reserved.
-<http://www.ravenbrook.com/>. This is an open source license. Contact
+Copyright © 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
 Redistribution and use in source and binary forms, with or without

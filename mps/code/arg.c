@@ -93,8 +93,8 @@ Bool ArgCheckRank(Arg arg) {
 }
 
 Bool ArgCheckdouble(Arg arg) {
-  /* It would be nice if we could check doubles with C89, but
-     it doesn't have isfinite() etc. which are in C99. */
+  /* Don't call isfinite() here because it's not in C89, and because
+     infinity is a valid value for MPS_KEY_PAUSE_TIME. */
   UNUSED(arg);
   return TRUE;
 }
