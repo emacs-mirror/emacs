@@ -301,11 +301,11 @@ extern void PoolClassMixInBuffer(PoolClass class);
 extern void PoolClassMixInScan(PoolClass class);
 extern void PoolClassMixInFormat(PoolClass class);
 extern void PoolClassMixInCollect(PoolClass class);
-DECLARE_CLASS(AbstractPool, AbstractPool);
-DECLARE_CLASS(AbstractBufferPool, AbstractBufferPool);
-DECLARE_CLASS(AbstractBufferPool, AbstractSegBufPool);
-DECLARE_CLASS(AbstractScanPool, AbstractScanPool);
-DECLARE_CLASS(AbstractCollectPool, AbstractCollectPool);
+DECLARE_CLASS(Pool, AbstractPool);
+DECLARE_CLASS(Pool, AbstractBufferPool);
+DECLARE_CLASS(Pool, AbstractSegBufPool);
+DECLARE_CLASS(Pool, AbstractScanPool);
+DECLARE_CLASS(Pool, AbstractCollectPool);
 
 
 /* Message Interface -- see <design/message/> */
@@ -479,7 +479,7 @@ extern void TraceScanSingleRef(TraceSet ts, Rank rank, Arena arena,
 
 /* Arena Interface -- see <code/arena.c> */
 
-DECLARE_CLASS(AbstractArena, AbstractArena);
+DECLARE_CLASS(Arena, AbstractArena);
 extern Bool ArenaClassCheck(ArenaClass class);
 
 /* FIXME: Would be nice to use generated functions here, but the
