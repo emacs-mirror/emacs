@@ -189,26 +189,32 @@ extern void InstFinish(Inst inst);
   BEGIN MustBeA(Inst, inst)->class = (InstClass)(_class); END
 
 
-/* SUPERCLASS  - get the superclass object, given a class name
+/* NextMethod -- call a method in the superclass
  *
  * See design.mps.protocol.int.static-superclass.
  *
- * TODO: Several experiments with statically generating some kind of
- * SUPERCLASS lookup have failed because the names of types, classes,
- * and the hierarchy are inconsistent.  Revisit this later.
- *
- * FIXME: Most uses of SUPERCLASS compile to constant expressions, but
- * not that the compiler can tell.
+ * TODO: All uses of NextMethod are statically known, but several
+ * experiments with statically generating some kind of SUPERCLASS
+ * lookup have failed because the names of types, classes, and the
+ * hierarchy are inconsistent.  Revisit this later.
  */
 
 #define SUPERCLASS(kind, ident) \
   ((CLASS_TYPE(kind))((InstClass)CLASS(ident))->superclass)
 
+#define NextMethod(kind, ident, meth) (SUPERCLASS(kind, ident)->meth)
 
-/* IsA, CouldBeA, MustBeA -- coerce instances safely
+
+/* IsA, CouldBeA, MustBeA -- coerce instances
  *
- * FIXME: Wrap mps_lib_assert_fail_expr in check.h so that it is
- * elided from some varieties.
+ * CouldBeA converts an instance to another class without checking.
+ * It is intended to be equivalent to the C++ "static_cast", although
+ * since this is C there is no actual static checking, so in fact it's
+ * more like "reinterpret_cast".
+ *
+ * MustBeA converts an instance to another class, but checks that the
+ * object is a subclass, causing an assertion if not (depending on
+ * build variety).  It is like C++ "dynamic_cast" with an assert.
  */
 
 #define CouldBeA(class, inst) ((INST_TYPE(class))inst)
@@ -229,6 +235,7 @@ extern void InstFinish(Inst inst);
 
 #define MustBeA_CRITICAL(_class, inst) \
   CouldBeA(_class, AVERP_CRITICAL(IsNonNullAndA(_class, inst), inst))
+
 
 /* ClassOf* -- get the class of an instance */
 

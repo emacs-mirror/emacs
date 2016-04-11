@@ -110,7 +110,7 @@ static Res loSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   void *p;
 
   /* Initialize the superclass fields first via next-method call */
-  res = SUPERCLASS(Seg, LOSeg)->init(seg, pool, base, size, args);
+  res = NextMethod(Seg, LOSeg, init)(seg, pool, base, size, args);
   if(res != ResOK)
     goto failSuperInit;
   SetClassOfSeg(seg, CLASS(LOSeg));
@@ -146,7 +146,7 @@ static Res loSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 failAllocTable:
   ControlFree(arena, loseg->mark, tablebytes);
 failMarkTable:
-  SUPERCLASS(Seg, LOSeg)->finish(seg);
+  NextMethod(Seg, LOSeg, finish)(seg);
 failSuperInit:
   AVER(res != ResOK);
   return res;
@@ -179,7 +179,7 @@ static void loSegFinish(Seg seg)
   loseg->sig = SigInvalid;
 
   /* finish the superclass fields last */
-  SUPERCLASS(Seg, LOSeg)->finish(seg);
+  NextMethod(Seg, LOSeg, finish)(seg);
 }
 
 
