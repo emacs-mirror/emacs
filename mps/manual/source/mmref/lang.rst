@@ -147,8 +147,8 @@ Memory management in various languages
         is reclaimed by the memory manager), and :term:`weak
         references (1)` (via the ``WeakReference`` class).
 
-	The :term:`garbage collector` in the .NET Framework is
-	configurable to run in soft real time, or in batch mode.
+        The :term:`garbage collector` in the .NET Framework is
+        configurable to run in soft real time, or in batch mode.
 
         The Mono runtime comes with two collectors: the
         Boehm–Demers–Weiser :term:`conservative collector
@@ -233,7 +233,7 @@ Memory management in various languages
 
         Dylan is a modern programming language invented by Apple
         around 1993 and developed by `Harlequin
-        <http://en.wikipedia.org/wiki/Harlequin_(software_company)>`_
+        <https://en.wikipedia.org/wiki/Harlequin_(software_company)>`_
         and other partners. The language is a distillation of the best
         ideas in dynamic and object-oriented programming. Its
         ancestors include :term:`Lisp`, :term:`Smalltalk`, and
@@ -583,7 +583,7 @@ Memory management in various languages
 
         .. link::
 
-            `Harlequin RIP <http://en.wikipedia.org/wiki/Harlequin_RIP>`_.
+            `Harlequin RIP <https://en.wikipedia.org/wiki/Harlequin_RIP>`_.
 
     Prolog
 
@@ -607,10 +607,10 @@ Memory management in various languages
         Python is a "duck-typed" object-oriented language created in
         the early 1990s by Guido van Rossum.
 
-	There are several implementations running on a variety of
-	virtual machines: the original "CPython" implementation runs
-	on its own virtual machine; IronPython runs on the Common
-	Language Runtime; Jython on the Java Virtual Machine.
+        There are several implementations running on a variety of
+        virtual machines: the original "CPython" implementation runs
+        on its own virtual machine; IronPython runs on the Common
+        Language Runtime; Jython on the Java Virtual Machine.
 
         CPython manages memory using a mixture of :term:`reference
         counting` and :term:`non-moving <non-moving memory manager>`

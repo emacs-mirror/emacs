@@ -729,7 +729,7 @@ _`.flush.cover`: The buffer needs covering whether it was being used
 for forwarding or not. See `.flush.expose`_.
 
 
-``Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn, Pool pool, Buffer buffer, Size size, Bool withReservoirPermit)``
+``Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn, Pool pool, Buffer buffer, Size size)``
 
 _`.fill`: Reserve was called on an allocation buffer which was reset,
 or there wasn't enough room left in the buffer. Allocate a group for
@@ -813,8 +813,8 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited. All rights reserved.
-<http://www.ravenbrook.com/>. This is an open source license. Contact
+Copyright © 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
 Redistribution and use in source and binary forms, with or without

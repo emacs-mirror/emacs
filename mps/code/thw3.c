@@ -83,8 +83,7 @@ Res ThreadRegister(Thread *threadReturn, Arena arena)
   AVER(threadReturn != NULL);
   AVERT(Arena, arena);
 
-  res = ControlAlloc(&p, arena, sizeof(ThreadStruct),
-                     /* withReservoirPermit */ FALSE);
+  res = ControlAlloc(&p, arena, sizeof(ThreadStruct));
   if(res != ResOK)
     return res;
   thread = (Thread)p; /* avoid pun */
@@ -109,6 +108,7 @@ Res ThreadRegister(Thread *threadReturn, Arena arena)
   thread->serial = arena->threadSerial;
   ++arena->threadSerial;
   thread->arena = arena;
+  thread->alive = TRUE;
 
   AVERT(Thread, thread);
 
@@ -138,60 +138,66 @@ void ThreadDeregister(Thread thread, Arena arena)
 }
 
 
-/*  Map over threads on ring calling f on each one except the
- *  current thread.
+/* mapThreadRing -- map over threads on ring calling a function on
+ * each one except the current thread.
+ *
+ * Threads that are found to be dead (that is, if func returns FALSE)
+ * are moved to deadRing.
  */
-static void mapThreadRing(Ring ring, void (*f)(Thread thread))
+
+static void mapThreadRing(Ring threadRing, Ring deadRing, Bool (*func)(Thread))
 {
-  Ring node;
+  Ring node, next;
   DWORD id;
 
+  AVERT(Ring, threadRing);
+  AVERT(Ring, deadRing);
+  AVER(FUNCHECK(func));
+
   id = GetCurrentThreadId();
-  node = RingNext(ring);
-  while(node != ring) {
-    Ring next = RingNext(node);
-    Thread thread;
-
-    thread = RING_ELT(Thread, arenaRing, node);
+  RING_FOR(node, threadRing, next) {
+    Thread thread = RING_ELT(Thread, arenaRing, node);
     AVERT(Thread, thread);
-    if(id != thread->id) /* .thread.id */
-      (*f)(thread);
-
-    node = next;
+    AVER(thread->alive);
+    if (id != thread->id /* .thread.id */
+        && !(*func)(thread)) 
+    {
+      thread->alive = FALSE;
+      RingRemove(&thread->arenaRing);
+      RingAppend(deadRing, &thread->arenaRing);
+    }
   }
 }
 
-static void suspend(Thread thread)
+static Bool suspendThread(Thread thread)
 {
   /* .thread.handle.susp-res */
   /* .error.suspend */
-  /* In the error case (SuspendThread returning 0xFFFFFFFF), we */
-  /* assume the thread has been destroyed (as part of process shutdown). */
-  /* In which case we simply continue. */
+  /* In the error case (SuspendThread returning -1), we */
+  /* assume the thread has been terminated. */
   /* [GetLastError appears to return 5 when SuspendThread is called */
-  /* on a destroyed thread, but I'm not sufficiently confident of this */
+  /* on a terminated thread, but I'm not sufficiently confident of this */
   /* to check -- drj 1998-04-09] */
-  (void)SuspendThread(thread->handle);
+  return SuspendThread(thread->handle) != (DWORD)-1;
 }
 
-void ThreadRingSuspend(Ring ring)
+void ThreadRingSuspend(Ring threadRing, Ring deadRing)
 {
-  mapThreadRing(ring, suspend);
+  mapThreadRing(threadRing, deadRing, suspendThread);
 }
 
-static void resume(Thread thread)
+static Bool resumeThread(Thread thread)
 {
   /* .thread.handle.susp-res */
   /* .error.resume */
-  /* In the error case (ResumeThread returning 0xFFFFFFFF), we */
-  /* assume the thread has been destroyed (as part of process shutdown). */
-  /* In which case we simply continue. */
-  (void)ResumeThread(thread->handle);
+  /* In the error case (ResumeThread returning -1), we */
+  /* assume the thread has been terminated. */
+  return ResumeThread(thread->handle) != (DWORD)-1;
 }
 
-void ThreadRingResume(Ring ring)
+void ThreadRingResume(Ring threadRing, Ring deadRing)
 {
-  mapThreadRing(ring, resume);
+  mapThreadRing(threadRing, deadRing, resumeThread);
 }
 
 
@@ -220,6 +226,7 @@ Res ThreadDescribe(Thread thread, mps_lib_FILE *stream, Count depth)
                "Thread $P ($U) {\n", (WriteFP)thread, (WriteFU)thread->serial,
                "  arena $P ($U)\n", 
                (WriteFP)thread->arena, (WriteFU)thread->arena->serial,
+               "  alive $S\n", WriteFYesNo(thread->alive),
                "  handle $W\n",      (WriteFW)thread->handle,
                "  id $U\n",          (WriteFU)thread->id,
                "} Thread $P ($U)\n", (WriteFP)thread, (WriteFU)thread->serial,

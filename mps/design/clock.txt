@@ -1,0 +1,133 @@
+.. mode: -*- rst -*-
+
+Fast high-resolution clock
+==========================
+
+:Tag: design.mps.clock
+:Author: Gareth Rees
+:Date: 2016-03-06
+:Status: complete design
+:Revision: $Id$
+:Copyright: See section `Copyright and License`_.
+:Index terms: pair: clock; design
+
+
+Introduction
+------------
+
+_`.intro`: This is the design of the clock module, which implements a
+fast high-resolution clock for use by the telemetry system.
+
+_`.readership`: This document is intended for any MPS developer.
+
+
+Requirements
+------------
+
+_`.req.monotonic`: Successive calls to ``EVENT_CLOCK()`` must yield
+values that are monotonically increasing. (So that comparing the
+timestamp on two events never gives false positives.)
+
+_`.req.fast`: ``EVENT_CLOCK()`` should take very little time; it
+should not require a system call. (So that programs that use the MPS
+remain usable when telemetry is turned on.)
+
+_`.req.high-resolution`: Successive calls to ``EVENT_CLOCK()`` should
+yield values that are strictly monotonically increasing (so that
+sorting the telemetry stream puts the events in the order they
+happened).
+
+
+Interface
+---------
+
+``EventClock``
+
+_`.if.type`: The type of timestamps. It must be an unsigned 64-bit
+integral type, for example a ``typedef`` for ``uint64_t`` or
+``unsigned __int64``.
+
+``EVENT_CLOCK_MAKE(lvalue, low, high)``
+
+_`.if.make`: Construct an ``EventClock`` timestamp from its two
+halves. The first parameter is an lvalue with type ``EventClock``, and
+the second and third parameters are 32-bit unsigned integers. The
+macro must assign a timestamp to ``lvalue`` with the value ``(high
+<< 32) + low``.
+
+``EVENT_CLOCK(lvalue)``
+
+_`.if.get`: Assign an ``EventClock`` timestamp for the current time to
+``lvalue``, which is an lvalue with type ``EventClock``.
+
+``EVENT_CLOCK_PRINT(FILE *stream, EventClock clock)``
+
+_`.if.print`: Write the value of ``clock`` to the standard C output
+file handle ``stream`` as 16 hexadecimal digits (with leading zeros,
+and capital letters A to F).
+
+``EVENT_CLOCK_WRITE(mps_lib_FILE *stream, EventClock clock)``
+
+_`.if.write`: Write the value of ``clock`` to the output stream
+``stream`` as 16 hexadecimal digits (with leading zeros, and capital
+letters A to F). The macro should be implemented using ``WriteF()``.
+
+
+Implementation
+--------------
+
+_`.impl.tsc`: On IA-32 and x86-64, the `Time Stamp Counter
+<https://en.wikipedia.org/wiki/Time_Stamp_Counter>`_ returned by the
+RDTSC instruction is a suitable clock for single-core CPUs, but on
+multiple-core CPUs, different cores may have different values or tick at different speeds, and so it may fail to meet `.req.monotonic`_.
+
+
+Document History
+----------------
+
+- 2016-03-06 GDR_ Created.
+
+.. _GDR: http://www.ravenbrook.com/consultants/gdr/
+
+
+Copyright and License
+---------------------
+
+Copyright © 2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+All rights reserved. This is an open source license. Contact
+Ravenbrook for commercial licensing options.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+#. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+#. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+#. Redistributions in any form must be accompanied by information on how
+   to obtain complete source code for this software and any
+   accompanying software that uses this software.  The source code must
+   either be included in the distribution or be available for no more than
+   the cost of distribution plus a nominal fee, and must be freely
+   redistributable under reasonable conditions.  For an executable file,
+   complete source code means the source code for all modules it contains.
+   It does not include source code for modules or files that typically
+   accompany the major components of the operating system on which the
+   executable file runs.
+
+**This software is provided by the copyright holders and contributors
+"as is" and any express or implied warranties, including, but not
+limited to, the implied warranties of merchantability, fitness for a
+particular purpose, or non-infringement, are disclaimed.  In no event
+shall the copyright holders and contributors be liable for any direct,
+indirect, incidental, special, exemplary, or consequential damages
+(including, but not limited to, procurement of substitute goods or
+services; loss of use, data, or profits; or business interruption)
+however caused and on any theory of liability, whether in contract,
+strict liability, or tort (including negligence or otherwise) arising in
+any way out of the use of this software, even if advised of the
+possibility of such damage.**

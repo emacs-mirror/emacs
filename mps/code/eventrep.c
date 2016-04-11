@@ -189,11 +189,11 @@ static void objDefine(objectTable table,
   if (table != NULL) {
     Res ires;
 
-    ires = TableDefine(table->startTable, (Word)logObj, obj);
+    ires = TableDefine(table->startTable, (TableKey)logObj, obj);
     verify(ires == ResOK);
     if (table->endTable != NULL) {
       ires = TableDefine(table->endTable,
-                         (Word)PointerAdd(logObj, size),
+                         (TableKey)PointerAdd(logObj, size),
                          PointerAdd(obj, size));
       verify(ires == ResOK);
     }
@@ -212,13 +212,13 @@ static void objRemove(void **objReturn, objectTable table,
   void *end;
   void *logEnd;
 
-  found = TableLookup(&obj, table->startTable, (Word)logObj);
+  found = TableLookup(&obj, table->startTable, (TableKey)logObj);
   if (found) {
-    ires = TableRemove(table->startTable, (Word)logObj);
+    ires = TableRemove(table->startTable, (TableKey)logObj);
     verify(ires == ResOK);
     if (table->endTable != NULL) {
       ires = TableRemove(table->endTable,
-                         (Word)PointerAdd(logObj, size));
+                         (TableKey)PointerAdd(logObj, size));
       verify(ires == ResOK);
     }
     *objReturn = obj;
@@ -227,13 +227,13 @@ static void objRemove(void **objReturn, objectTable table,
   /* Must be a truncation. */
   verify(table->endTable != NULL);
   logEnd = PointerAdd(logObj, size);
-  found = TableLookup(&end, table->endTable, (Word)logEnd);
+  found = TableLookup(&end, table->endTable, (TableKey)logEnd);
   verify(found);
   obj = PointerSub(end, size);
   /* Remove the old end and insert the new one. */
-  ires = TableRemove(table->endTable, (Word)logEnd);
+  ires = TableRemove(table->endTable, (TableKey)logEnd);
   verify(ires == ResOK);
-  ires = TableDefine(table->endTable, (Word)logObj, obj);
+  ires = TableDefine(table->endTable, (TableKey)logObj, obj);
   verify(ires == ResOK);
   *objReturn = obj;
   return;
@@ -254,7 +254,7 @@ static void poolRecreate(void *logPool, void *logArena,
   void *entry;
   Bool found;
 
-  found = TableLookup(&entry, arenaTable, (Word)logArena);
+  found = TableLookup(&entry, arenaTable, (TableKey)logArena);
   verify(found);
   va_start(args, bufferClassLevel);
   eres = mps_pool_create_v(&pool, (mps_arena_t)entry, class, args);
@@ -265,7 +265,7 @@ static void poolRecreate(void *logPool, void *logArena,
   rep->pool = pool;
   rep->objects = objectTableCreate(support);
   rep->bufferClassLevel = bufferClassLevel;
-  ires = TableDefine(poolTable, (Word)logPool, (void *)rep);
+  ires = TableDefine(poolTable, (TableKey)logPool, (void *)rep);
   verify(ires == ResOK);
 }
 
@@ -279,11 +279,11 @@ static void poolRedestroy(void *logPool)
   Bool found;
   poolRep rep;
 
-  found = TableLookup(&entry, poolTable, (Word)logPool);
+  found = TableLookup(&entry, poolTable, (TableKey)logPool);
   verify(found);
   rep = (poolRep)entry;
   mps_pool_destroy(rep->pool);
-  ires = TableRemove(poolTable, (Word)logPool);
+  ires = TableRemove(poolTable, (TableKey)logPool);
   verify(ires == ResOK);
   objectTableDestroy(rep->objects);
   free(rep);
@@ -303,7 +303,7 @@ static void apRecreate(void *logAp, void *logPool, ...)
   void *entry;
   Bool found;
 
-  found = TableLookup(&entry, poolTable, (Word)logPool);
+  found = TableLookup(&entry, poolTable, (TableKey)logPool);
   verify(found);
   pRep = (poolRep)entry;
   va_start(args, logPool);
@@ -314,7 +314,7 @@ static void apRecreate(void *logAp, void *logPool, ...)
   verify(aRep != NULL);
   aRep->ap = ap;
   aRep->objects = pRep->objects;
-  ires = TableDefine(apTable, (Word)logAp, (void *)aRep);
+  ires = TableDefine(apTable, (TableKey)logAp, (void *)aRep);
   verify(ires == ResOK);
 }
 
@@ -328,11 +328,11 @@ static void apRedestroy(void *logAp)
   Bool found;
   apRep rep;
 
-  found = TableLookup(&entry, apTable, (Word)logAp);
+  found = TableLookup(&entry, apTable, (TableKey)logAp);
   verify(found);
   rep = (apRep)entry;
   mps_ap_destroy(rep->ap);
-  ires = TableRemove(apTable, (Word)logAp);
+  ires = TableRemove(apTable, (TableKey)logAp);
   verify(ires == ResOK);
   free(rep);
 }
@@ -358,7 +358,7 @@ void EventReplay(Event event, Word etime)
     eres = mps_arena_create(&arena, mps_arena_class_vm(),
                             event->pww.w1);
     verifyMPS(eres);
-    ires = TableDefine(arenaTable, (Word)event->pww.p0, (void *)arena);
+    ires = TableDefine(arenaTable, (TableKey)event->pww.p0, (void *)arena);
     verify(ires == ResOK);
     arenaJustCreated = TRUE;
   } break;
@@ -368,7 +368,7 @@ void EventReplay(Event event, Word etime)
     eres = mps_arena_create(&arena, mps_arena_class_vmnz(),
                             event->pww.w1);
     verifyMPS(eres);
-    ires = TableDefine(arenaTable, (Word)event->pww.p0, (void *)arena);
+    ires = TableDefine(arenaTable, (TableKey)event->pww.p0, (void *)arena);
     verify(ires == ResOK);
     arenaJustCreated = TRUE;
   } break;
@@ -381,15 +381,15 @@ void EventReplay(Event event, Word etime)
     eres = mps_arena_create(&arena, mps_arena_class_cl(),
                             (Size)event->pwa.w1, base);
     verifyMPS(eres);
-    ires = TableDefine(arenaTable, (Word)event->pw.p0, (void *)arena);
+    ires = TableDefine(arenaTable, (TableKey)event->pw.p0, (void *)arena);
     verify(ires == ResOK);
     arenaJustCreated = TRUE;
   } break;
   case EventArenaDestroy: { /* arena */
-    found = TableLookup(&entry, arenaTable, (Word)event->p.p0);
+    found = TableLookup(&entry, arenaTable, (TableKey)event->p.p0);
     verify(found);
     mps_arena_destroy((mps_arena_t)entry);
-    ires = TableRemove(arenaTable, (Word)event->pw.p0);
+    ires = TableRemove(arenaTable, (TableKey)event->pw.p0);
     verify(ires == ResOK);
   } break;
   case EventPoolInitMVFF: {
@@ -423,7 +423,7 @@ void EventReplay(Event event, Word etime)
     ++discardedEvents;
   } break;
   case EventPoolFinish: { /* pool */
-    found = TableLookup(&entry, poolTable, (Word)event->p.p0);
+    found = TableLookup(&entry, poolTable, (TableKey)event->p.p0);
     if (found) {
       poolRedestroy(event->p.p0);
     } else {
@@ -432,7 +432,7 @@ void EventReplay(Event event, Word etime)
   } break;
   case EventBufferInit: { /* buffer, pool, isMutator */
     if ((Bool)event->ppu.u2) {
-      found = TableLookup(&entry, poolTable, (Word)event->ppu.p1);
+      found = TableLookup(&entry, poolTable, (TableKey)event->ppu.p1);
       if (found) {
         poolRep rep = (poolRep)entry;
 
@@ -450,7 +450,7 @@ void EventReplay(Event event, Word etime)
   } break;
   case EventBufferInitSeg: { /* buffer, pool, isMutator */
     if ((Bool)event->ppu.u2) {
-      found = TableLookup(&entry, poolTable, (Word)event->ppu.p1);
+      found = TableLookup(&entry, poolTable, (TableKey)event->ppu.p1);
       if (found) {
         poolRep rep = (poolRep)entry;
 
@@ -468,7 +468,7 @@ void EventReplay(Event event, Word etime)
   } break;
   case EventBufferInitRank: { /* buffer, pool, isMutator, rank */
     if ((Bool)event->ppuu.u2) {
-      found = TableLookup(&entry, poolTable, (Word)event->ppuu.p1);
+      found = TableLookup(&entry, poolTable, (TableKey)event->ppuu.p1);
       if (found) {
         poolRep rep = (poolRep)entry;
 
@@ -485,7 +485,7 @@ void EventReplay(Event event, Word etime)
     }
   } break;
   case EventBufferFinish: { /* buffer */
-    found = TableLookup(&entry, apTable, (Word)event->p.p0);
+    found = TableLookup(&entry, apTable, (TableKey)event->p.p0);
     if (found) {
       apRedestroy(event->p.p0);
     } else {
@@ -493,7 +493,7 @@ void EventReplay(Event event, Word etime)
     }
   } break;
   case EventBufferReserve: { /* buffer, init, size */
-    found = TableLookup(&entry, apTable, (Word)event->paw.p0);
+    found = TableLookup(&entry, apTable, (TableKey)event->paw.p0);
     if (found) {
       apRep rep = (apRep)entry;
       mps_addr_t p;
@@ -505,7 +505,7 @@ void EventReplay(Event event, Word etime)
     }
   } break;
   case EventBufferCommit: { /* buffer, p, size, clientClass */
-    found = TableLookup(&entry, apTable, (Word)event->pawa.p0);
+    found = TableLookup(&entry, apTable, (TableKey)event->pawa.p0);
     if (found) {
       apRep rep = (apRep)entry;
       mps_addr_t obj = rep->ap->init;
@@ -520,7 +520,7 @@ void EventReplay(Event event, Word etime)
     }
   } break;
   case EventPoolAlloc: { /* pool, obj, size */
-    found = TableLookup(&entry, poolTable, (Word)event->paw.p0);
+    found = TableLookup(&entry, poolTable, (TableKey)event->paw.p0);
     if (found) {
       poolRep rep = (poolRep)entry;
       void *obj;
@@ -534,7 +534,7 @@ void EventReplay(Event event, Word etime)
     }
   } break;
   case EventPoolFree: { /* pool, obj, size */
-    found = TableLookup(&entry, poolTable, (Word)event->paw.p0);
+    found = TableLookup(&entry, poolTable, (TableKey)event->paw.p0);
     if (found) {
       poolRep rep = (poolRep)entry;
       void *obj;
@@ -547,7 +547,7 @@ void EventReplay(Event event, Word etime)
     }
   } break;
   case EventCommitLimitSet: { /* arena, limit, succeeded */
-    found = TableLookup(&entry, arenaTable, (Word)event->pwu.p0);
+    found = TableLookup(&entry, arenaTable, (TableKey)event->pwu.p0);
     verify(found);
     eres = mps_arena_commit_limit_set((mps_arena_t)entry,
                                       (size_t)event->pwu.w1);
@@ -555,15 +555,10 @@ void EventReplay(Event event, Word etime)
                 ? MPS_RES_OK : MPS_RES_FAIL);
   } break;
   case EventSpareCommitLimitSet: { /* arena, limit */
-    found = TableLookup(&entry, arenaTable, (Word)event->pw.p0);
+    found = TableLookup(&entry, arenaTable, (TableKey)event->pw.p0);
     verify(found);
     (void)mps_arena_spare_commit_limit_set((mps_arena_t)entry,
                                            (size_t)event->pw.w1);
-  } break;
-  case EventReservoirLimitSet: { /* arena, limit */
-    found = TableLookup(&entry, arenaTable, (Word)event->pw.p0);
-    verify(found);
-    mps_reservoir_limit_set((mps_arena_t)entry, (size_t)event->pw.w1);
   } break;
   case EventVMMap: case EventVMUnmap:
   case EventVMInit: case EventVMFinish:

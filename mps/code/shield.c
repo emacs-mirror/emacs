@@ -1,75 +1,13 @@
 /* shield.c: SHIELD IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001-2015 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  * See: idea.shield, design.mps.shield.
  *
- * This implementation of the shield avoids suspending threads for
- * as long as possible.  When threads are suspended, it maintains a
- * cache of covered segments where the desired and actual protection
- * do not match.  This cache is flushed on leaving the shield.
- *
- *
- * Definitions
- *
- * .def.synced: a seg is synced if the prot and shield modes are the
- * same, and unsynced otherwise.
- * .def.depth: the depth of a segment is defined as
- *   depth == #exposes - #covers + #(in cache),  where
- *     #exposes = the total number of times the seg has been exposed
- *     #covers  = the total number of times the seg has been covered
- *     #(in cache) = the number of times the seg appears in the cache
- *   The cache is initially empty and Cover should not be called
- *   without a matching Expose, so this figure should always be
- *   non-negative.
- * .def.total.depth: The total depth is the sum of the depth over
- * all segments
- * .def.outside: being outside the shield is being between calls
- * to leave and enter, and similarly .def.inside: being inside the
- * shield is being between calls to enter and leave.
- * .def.suspended: suspended is true iff the mutator is suspended.
- * .def.shielded: a segment is shielded if the shield mode is non-zero.
- *
- *
- * Properties
- *
- * .prop.outside.running: The mutator may not be suspended while
- * outside the shield.
- * .prop.mutator.access: An attempt by the mutator to access
- * shielded memory must cause an ArenaAccess.
- * .prop.inside.access: Inside the shield it must be possible to access
- * all unshielded segments and all exposed segments.
- *
- *
- * Invariants
- *
- * These invariants are maintained by the code.
- *
- * .inv.outside.running: The mutator is not suspended while outside the
- * shield.
- * .inv.unsynced.suspended: If any segment is not synced,
- * the mutator is suspended.
- * .inv.unsynced.depth: All unsynced segments have positive depth.
- * .inv.outside.depth: The total depth is zero while outside the shield.
- * .inv.prot.shield: The prot mode is never more than the shield mode.
- * .inv.expose.prot: An exposed seg is not protected.
- *
- * Hints at proofs of properties from invariants
- *
- * inv.outside.running directly ensures prop.outside running.
- *
- * As the depth of a segment cannot be negative
- *   total depth == 0 => for all segments, depth == 0
- *                    => all segs are synced (by .inv.unsynced.depth)
- *
- * If the mutator is running then all segs must be synced
- * (.inv.unsynced.suspend).  Which means that the hardware protection
- * (prot mode) must reflect the software protection (shield mode).
- * Hence all shielded memory will be hardware protected while the
- * mutator is running.  This ensures .prop.mutator.access.
- *
- * inv.prot.shield and inv.expose.prot ensure prop.inside.access.
+ * IMPORTANT: HERE BE DRAGONS! This code is subtle and
+ * critical. Ensure you have read and understood design.mps.shield
+ * before you touch it.
  */
 
 #include "mpm.h"
@@ -77,269 +15,751 @@
 SRCID(shield, "$Id$");
 
 
-void (ShieldSuspend)(Arena arena)
+void ShieldInit(Shield shield)
 {
-  AVERT(Arena, arena);
-  AVER(arena->insideShield);
+  shield->inside = FALSE;
+  shield->queue = NULL;
+  shield->length = 0;
+  shield->next = 0;
+  shield->limit = 0;
+  shield->depth = 0;
+  shield->unsynced = 0;
+  shield->holds = 0;
+  shield->suspended = FALSE;
+  shield->sig = ShieldSig;
+}
 
-  if (!arena->suspended) {
-    ThreadRingSuspend(ArenaThreadRing(arena));
-    arena->suspended = TRUE;
+
+void ShieldDestroyQueue(Shield shield, Arena arena)
+{
+  AVER(shield->limit == 0); /* queue must be empty */
+  
+  if (shield->length != 0) {
+    AVER(shield->queue != NULL);
+    ControlFree(arena, shield->queue,
+                shield->length * sizeof shield->queue[0]);
+    shield->queue = NULL;
+    shield->length = 0;
   }
 }
 
 
-void (ShieldResume)(Arena arena)
+void ShieldFinish(Shield shield)
 {
-  AVERT(Arena, arena);
-  AVER(arena->insideShield);
-  AVER(arena->suspended);
-  /* It is only correct to actually resume the mutator here if shDepth is 0 */
+  /* The queue should already have been destroyed by
+     GlobalsPrepareToDestroy calling ShieldDestroyQueue. */
+  AVER(shield->length == 0);
+  AVER(shield->limit == 0);
+  AVER(shield->queue == NULL);
+
+  AVER(shield->depth == 0);
+  AVER(shield->unsynced == 0);
+  AVER(shield->holds == 0);
+  shield->sig = SigInvalid;
 }
 
 
-/* This ensures actual prot mode does not include mode */
-static void protLower(Arena arena, Seg seg, AccessSet mode)
-{
-  /* <design/trace/#fix.noaver> */
-  AVERT_CRITICAL(Arena, arena);
-  UNUSED(arena);
-  AVERT_CRITICAL(Seg, seg);
-  AVERT_CRITICAL(AccessSet, mode);
+static Bool SegIsSynced(Seg seg);
 
-  if (SegPM(seg) & mode) {
-    SegSetPM(seg, SegPM(seg) & ~mode);
+Bool ShieldCheck(Shield shield)
+{
+  CHECKS(Shield, shield);
+  CHECKL(BoolCheck(shield->inside));
+  CHECKL(shield->queue == NULL || shield->length > 0);
+  CHECKL(shield->limit <= shield->length);
+  CHECKL(shield->next <= shield->limit);
+  CHECKL(BoolCheck(shield->suspended));
+
+  /* The mutator is not suspended while outside the shield
+     (design.mps.shield.inv.outside.running). */
+  CHECKL(shield->inside || !shield->suspended);
+
+  /* If any segment is not synced, the mutator is suspended
+     (design.mps.shield.inv.unsynced.suspended). */
+  CHECKL(shield->unsynced == 0 || shield->suspended);
+
+  /* If any segment is exposed, the mutator is suspended. */
+  CHECKL(shield->depth == 0 || shield->suspended);
+
+  /* The total depth is zero while outside the shield
+     (design.mps.shield.inv.outside.depth). */
+  CHECKL(shield->inside || shield->depth == 0);
+
+  /* There are no unsynced segments when we're outside the shield. */
+  CHECKL(shield->inside || shield->unsynced == 0);
+
+  /* Every unsynced segment should be on the queue, because we have to
+     remember to sync it before we return to the mutator. */
+  CHECKL(shield->limit >= shield->unsynced);
+
+  /* The mutator is suspeneded if there are any holds. */
+  CHECKL(shield->holds == 0 || shield->suspended);
+
+  /* This is too expensive to check all the time since we have an
+     expanding shield queue that often has 16K elements instead of
+     16. */
+#if defined(AVER_AND_CHECK_ALL)
+  {
+    Count depth = 0;
+    Count unsynced = 0;
+    Index i;
+    for (i = 0; i < shield->limit; ++i) {
+      Seg seg = shield->queue[i];
+      CHECKD(Seg, seg);
+      depth += SegDepth(seg);
+      if (!SegIsSynced(seg))
+        ++unsynced;
+    }
+    CHECKL(depth == shield->depth);
+    CHECKL(unsynced == shield->unsynced);
+  }
+#endif
+
+  return TRUE;
+}
+
+
+Res ShieldDescribe(Shield shield, mps_lib_FILE *stream, Count depth)
+{
+  Res res;
+  
+  res = WriteF(stream, depth,
+               "Shield $P {\n",    (WriteFP)shield,
+               "  ", shield->inside ? "inside" : "outside", " shield\n",
+               "  suspended $S\n", WriteFYesNo(shield->suspended),
+               "  depth     $U\n", (WriteFU)shield->depth,
+               "  next      $U\n", (WriteFU)shield->next,
+               "  length    $U\n", (WriteFU)shield->length,
+               "  unsynced  $U\n", (WriteFU)shield->unsynced,
+               "  holds     $U\n", (WriteFU)shield->holds,
+               "} Shield $P\n",    (WriteFP)shield,
+               NULL);
+  if (res != ResOK)
+    return res;
+
+  return ResOK;
+}
+
+
+/* SHIELD_AVER -- transgressive argument checking
+ *
+ * .trans.check: A number of shield functions cannot do normal
+ * argument checking with AVERT because (for example) SegCheck checks
+ * the shield invariants, and it is these functions that are enforcing
+ * them.  Instead, we AVER(TESTT(Seg, seg)) to check the type
+ * signature but not the contents.
+ */
+
+#define SHIELD_AVERT(type, exp) AVER(TESTT(type, exp))
+#define SHIELD_AVERT_CRITICAL(type, exp) AVER_CRITICAL(TESTT(type, exp))
+
+
+/* SegIsSynced -- is a segment synced?
+ *
+ * See design.mps.shield.def.synced.
+ */
+
+static Bool SegIsSynced(Seg seg)
+{
+  SHIELD_AVERT_CRITICAL(Seg, seg);
+  return SegSM(seg) == SegPM(seg);
+}
+
+
+/* shieldSetSM -- set shield mode, maintaining sync count */
+
+static void shieldSetSM(Shield shield, Seg seg, AccessSet mode)
+{
+  if (SegSM(seg) != mode) {
+    if (SegIsSynced(seg)) {
+      SegSetSM(seg, mode);
+      ++shield->unsynced;
+    } else {
+      SegSetSM(seg, mode);
+      if (SegIsSynced(seg)) {
+        AVER(shield->unsynced > 0);
+        --shield->unsynced;
+      }
+    }
+  }
+}
+
+
+/* shieldSetPM -- set protection mode, maintaining sync count */
+
+static void shieldSetPM(Shield shield, Seg seg, AccessSet mode)
+{
+  if (SegPM(seg) != mode) {
+    if (SegIsSynced(seg)) {
+      SegSetPM(seg, mode);
+      ++shield->unsynced;
+    } else {
+      SegSetPM(seg, mode);
+      if (SegIsSynced(seg)) {
+        AVER(shield->unsynced > 0);
+        --shield->unsynced;
+      }
+    }
+  }
+}  
+
+
+/* SegIsExposed -- is a segment exposed?
+ *
+ * See design.mps.shield.def.exposed.
+ */
+
+static Bool SegIsExposed(Seg seg)
+{
+  SHIELD_AVERT_CRITICAL(Seg, seg);
+  return seg->depth > 0;
+}
+
+
+/* shieldSync -- synchronize a segment's protection
+ *
+ * See design.mps.shield.inv.prot.shield.
+ */
+
+static void shieldSync(Shield shield, Seg seg)
+{
+  SHIELD_AVERT_CRITICAL(Seg, seg);
+
+  if (!SegIsSynced(seg)) {
+    shieldSetPM(shield, seg, SegSM(seg));
     ProtSet(SegBase(seg), SegLimit(seg), SegPM(seg));
   }
 }
 
 
-static void shieldSync(Arena arena, Seg seg)
-{
-  AVERT(Arena, arena);
-  AVERT(Seg, seg);
+/* shieldSUspend -- suspend the mutator
+ *
+ * Called from inside impl.c.shield when any segment is not synced, in
+ * order to provide exclusive access to the segment by the MPS.  See
+ * .inv.unsynced.suspended.
+ */
 
-  if (SegPM(seg) != SegSM(seg)) {
-    ProtSet(SegBase(seg), SegLimit(seg), SegSM(seg));
-    SegSetPM(seg, SegSM(seg));
-    /* inv.prot.shield */
+static void shieldSuspend(Arena arena)
+{
+  Shield shield;
+  
+  AVERT(Arena, arena);
+  shield = ArenaShield(arena);
+  AVER(shield->inside);
+
+  if (!shield->suspended) {
+    ThreadRingSuspend(ArenaThreadRing(arena), ArenaDeadRing(arena));
+    shield->suspended = TRUE;
   }
 }
 
 
-static void flush(Arena arena, Size i)
+/* ShieldHold -- suspend mutator access to the unprotectable
+ *
+ * From outside impl.c.shield, this is used when we really need to
+ * lock everything against the mutator -- for example, during flip
+ * when we must scan all thread registers at once.
+ */
+
+void (ShieldHold)(Arena arena)
 {
-  Seg seg;
   AVERT(Arena, arena);
-  AVER(i < arena->shCacheLimit);
-
-  seg = arena->shCache[i];
-  if (seg == NULL)
-    return;
-  AVERT(Seg, seg);
-
-  AVER(arena->shDepth > 0);
-  AVER(SegDepth(seg) > 0);
-  --arena->shDepth;
-  SegSetDepth(seg, SegDepth(seg) - 1);
-
-  if (SegDepth(seg) == 0)
-    shieldSync(arena, seg);
-
-  arena->shCache[i] = NULL;
+  shieldSuspend(arena);
+  ++ArenaShield(arena)->holds;
 }
 
 
-/* If the segment is out of sync, either sync it, or ensure
- * depth > 0, and the arena is suspended.
+/* ShieldRelease -- declare mutator could be resumed
+ *
+ * In practice, we don't resume the mutator until ShieldLeave, but
+ * this marks the earliest point at which we could resume.
  */
-static void cache(Arena arena, Seg seg)
+
+void (ShieldRelease)(Arena arena)
+{
+  Shield shield;
+  
+  AVERT(Arena, arena);
+  shield = ArenaShield(arena);
+  AVER(shield->inside);
+  AVER(shield->suspended);
+
+  AVER(shield->holds > 0);
+  --shield->holds;
+
+  /* It is only correct to actually resume the mutator here if
+     shield->depth is 0, shield->unsycned is 0, and the queue is
+     empty. */
+  /* See design.mps.shield.improv.resume for a discussion of when it
+     might be a good idea to resume the mutator early. */
+}
+
+
+/* shieldProtLower -- reduce protection on a segment
+ *
+ * This ensures actual prot mode does not include mode.
+ */
+
+static void shieldProtLower(Shield shield, Seg seg, AccessSet mode)
 {
   /* <design/trace/#fix.noaver> */
-  AVERT_CRITICAL(Arena, arena);
-  AVERT_CRITICAL(Seg, seg);
+  SHIELD_AVERT_CRITICAL(Seg, seg);
+  AVERT_CRITICAL(AccessSet, mode);
 
-  if (SegSM(seg)
-    == SegPM(seg)) return;
-  if (SegDepth(seg) > 0) {
-    ShieldSuspend(arena);
-    return;
-  }
-  if (ShieldCacheSIZE == 0 || !arena->suspended)
-    shieldSync(arena, seg);
-  else {
-    SegSetDepth(seg, SegDepth(seg) + 1);
-    ++arena->shDepth;
-    AVER(arena->shDepth > 0);
-    AVER(SegDepth(seg) > 0);
-    AVER(arena->shCacheLimit <= ShieldCacheSIZE);
-    AVER(arena->shCacheI < arena->shCacheLimit);
-    flush(arena, arena->shCacheI);
-    arena->shCache[arena->shCacheI] = seg;
-    ++arena->shCacheI;
-    if (arena->shCacheI == ShieldCacheSIZE)
-      arena->shCacheI = 0;
-    if (arena->shCacheI == arena->shCacheLimit)
-      ++arena->shCacheLimit;
+  if (BS_INTER(SegPM(seg), mode) != AccessSetEMPTY) {
+    shieldSetPM(shield, seg, BS_DIFF(SegPM(seg), mode));
+    ProtSet(SegBase(seg), SegLimit(seg), SegPM(seg));
   }
 }
 
 
-void (ShieldRaise) (Arena arena, Seg seg, AccessSet mode)
+/* shieldDequeue -- remove a segment from the shield queue */
+
+static Seg shieldDequeue(Shield shield, Index i)
 {
-  /* .seg.broken: Seg's shield invariants may not be true at */
-  /* this point (this function is called to enforce them) so we */
-  /* can't check seg. Nor can we check arena as that checks the */
-  /* segs in the cache. */
+  Seg seg;
+  AVER(i < shield->limit);
+  seg = shield->queue[i];
+  AVERT(Seg, seg);
+  AVER(seg->queued);
+  shield->queue[i] = NULL; /* to ensure it can't get re-used */
+  seg->queued = FALSE;
+  return seg;
+}
 
+
+/* shieldFlushEntry -- flush a single entry from the queue
+ *
+ * If the segment is exposed we can simply dequeue it, because later
+ * there will be a call to ShieldCover that will put it back on the
+ * queue.  If the segment is not exposed, we can sync its protection.
+ * (And if it does not have the shield raised any more, that will do
+ * nothing.)
+ */
+
+static void shieldFlushEntry(Shield shield, Index i)
+{
+  Seg seg = shieldDequeue(shield, i);
+
+  if (!SegIsExposed(seg))
+    shieldSync(shield, seg);
+}
+
+
+/* shieldQueueReset -- reset shield queue pointers */
+
+static void shieldQueueReset(Shield shield)
+{
+  AVER(shield->depth == 0); /* overkill: implies no segs are queued */
+  AVER(shield->unsynced == 0);
+  shield->next = 0;
+  shield->limit = 0;
+}
+
+
+/* shieldQueueEntryCompare -- comparison for queue sorting */
+
+static Compare shieldAddrCompare(Addr left, Addr right)
+{
+  if (left < right)
+    return CompareLESS;
+  else if (left == right)
+    return CompareEQUAL;
+  else
+    return CompareGREATER;
+}
+
+static Compare shieldQueueEntryCompare(void *left, void *right, void *closure)
+{
+  Seg segA = left, segB = right;
+
+  /* These checks are not critical in a hot build, but slow down cool
+     builds quite a bit, so just check the signatures. */
+  AVER(TESTT(Seg, segA));
+  AVER(TESTT(Seg, segB));
+  UNUSED(closure);
+
+  return shieldAddrCompare(SegBase(segA), SegBase(segB));
+}
+
+
+/* shieldFlushEntries -- flush queue coalescing protects
+ *
+ * Sort the shield queue into address order, then iterate over it
+ * coalescing protection work, in order to reduce the number of system
+ * calls to a minimum.  This is very important on OS X, where
+ * protection calls are extremely inefficient, but has no net gain on
+ * Windows.
+ *
+ * TODO: Could we keep extending the outstanding area over memory
+ * that's *not* in the queue but has the same protection mode?  Might
+ * require design.mps.shield.improve.noseg.
+ */
+
+static void shieldFlushEntries(Shield shield)
+{
+  Addr base = NULL, limit;
+  AccessSet mode;
+  Index i;
+
+  if (shield->length == 0) {
+    AVER(shield->queue == NULL);
+    return;
+  }
+
+  QuickSort((void *)shield->queue, shield->limit,
+            shieldQueueEntryCompare, UNUSED_POINTER,
+	    &shield->sortStruct);
+
+  mode = AccessSetEMPTY;
+  limit = NULL;
+  for (i = 0; i < shield->limit; ++i) {
+    Seg seg = shieldDequeue(shield, i);
+    if (!SegIsSynced(seg)) {
+      shieldSetPM(shield, seg, SegSM(seg));
+      if (SegSM(seg) != mode || SegBase(seg) != limit) {
+        if (base != NULL) {
+          AVER(base < limit);
+          ProtSet(base, limit, mode);
+        }
+        base = SegBase(seg);
+        mode = SegSM(seg);
+      }
+      limit = SegLimit(seg);
+    }
+  }
+  if (base != NULL) {
+    AVER(base < limit);
+    ProtSet(base, limit, mode);
+  }
+
+  shieldQueueReset(shield);
+}
+
+
+/* shieldQueue -- consider adding a segment to the queue
+ *
+ * If the segment is out of sync, either sync it, or ensure it is
+ * queued and the mutator is suspended.
+ */
+
+static void shieldQueue(Arena arena, Seg seg)
+{
+  Shield shield;
+  
+  /* <design/trace/#fix.noaver> */
+  AVERT_CRITICAL(Arena, arena);
+  shield = ArenaShield(arena);
+  SHIELD_AVERT_CRITICAL(Seg, seg);
+
+  if (SegIsSynced(seg) || seg->queued)
+    return;
+
+  if (SegIsExposed(seg)) {
+    /* This can occur if the mutator isn't suspended, we expose a
+       segment, then raise the shield on it.  In this case, the
+       mutator isn't allowed to see the segment, but we don't need to
+       queue it until its covered. */
+    shieldSuspend(arena);
+    return;
+  }
+
+  /* Allocate or extend the shield queue if necessary. */
+  if (shield->next >= shield->length) {
+    void *p;
+    Res res;
+    Count length;
+
+    AVER(shield->next == shield->length);
+
+    if (shield->length == 0)
+      length = ShieldQueueLENGTH;
+    else
+      length = shield->length * 2;
+    
+    res = ControlAlloc(&p, arena, length * sizeof shield->queue[0]);
+    if (res != ResOK) {
+      AVER(ResIsAllocFailure(res));
+      /* Carry on with the existing queue. */
+    } else {
+      if (shield->length > 0) {
+        Size oldSize = shield->length * sizeof shield->queue[0];
+        AVER(shield->queue != NULL);
+        mps_lib_memcpy(p, shield->queue, oldSize);
+        ControlFree(arena, shield->queue, oldSize);
+      }
+      shield->queue = p;
+      shield->length = length;
+    }
+  }
+
+  /* Queue unavailable, so synchronize now.  Or if the mutator is not
+     yet suspended and the code raises the shield on a covered
+     segment, protect it now, because that's probably better than
+     suspending the mutator. */
+  if (shield->length == 0 || !shield->suspended) {
+    shieldSync(shield, seg);
+    return;
+  }
+
+  AVER_CRITICAL(shield->limit <= shield->length);
+  AVER_CRITICAL(shield->next <= shield->limit);
+
+  /* If we failed to extend the shield queue array, degrade to an LRU
+     circular buffer. */
+  if (shield->next >= shield->length)
+    shield->next = 0;
+  AVER_CRITICAL(shield->next < shield->length);
+
+  AVER_CRITICAL(shield->length > 0);
+
+  /* If the limit is less than the length, then the queue array has
+     yet to be filled, and next is an uninitialized entry.
+     Otherwise it's the tail end from last time around, and needs to
+     be flushed. */
+  if (shield->limit >= shield->length) {
+    AVER_CRITICAL(shield->limit == shield->length);
+    shieldFlushEntry(shield, shield->next);
+  }
+
+  shield->queue[shield->next] = seg;
+  ++shield->next;
+  seg->queued = TRUE;
+
+  if (shield->next >= shield->limit)
+    shield->limit = shield->next;
+}
+
+
+/* ShieldRaise -- declare segment should be protected from mutator
+ *
+ * Does not immediately protect the segment, unless the segment is
+ * covered and the shield queue is unavailable.
+ */
+
+void (ShieldRaise)(Arena arena, Seg seg, AccessSet mode)
+{
+  SHIELD_AVERT(Arena, arena);
+  SHIELD_AVERT(Seg, seg);
   AVERT(AccessSet, mode);
-  AVER((SegSM(seg) & mode) == AccessSetEMPTY);
-  SegSetSM(seg, SegSM(seg) | mode); /* inv.prot.shield preserved */
 
-  /* ensure inv.unsynced.suspended & inv.unsynced.depth */
-  cache(arena, seg);
+  /* design.mps.shield.inv.prot.shield preserved */
+  shieldSetSM(ArenaShield(arena), seg, BS_UNION(SegSM(seg), mode));
+  
+  /* Ensure design.mps.shield.inv.unsynced.suspended and
+     design.mps.shield.inv.unsynced.depth */
+  shieldQueue(arena, seg);
+
+  /* Check queue and segment consistency. */
   AVERT(Arena, arena);
   AVERT(Seg, seg);
 }
 
+
+/* ShieldLower -- declare segment may be accessed by mutator */
 
 void (ShieldLower)(Arena arena, Seg seg, AccessSet mode)
 {
-  /* Don't check seg or arena, see .seg.broken */
+  Shield shield;
+  
+  AVERT(Arena, arena);
+  shield = ArenaShield(arena);
+  SHIELD_AVERT(Seg, seg);
   AVERT(AccessSet, mode);
-  AVER((SegSM(seg) & mode) == mode);
-  /* synced(seg) is not changed by the following
-   * preserving inv.unsynced.suspended
-   * Also inv.prot.shield preserved
-   */
-  SegSetSM(seg, SegSM(seg) & ~mode);
-  protLower(arena, seg, mode);
+
+  /* SegIsSynced(seg) is not changed by the following preserving
+     design.mps.shield.inv.unsynced.suspended and
+     design.mps.shield.inv.prot.shield. */
+  shieldSetSM(shield, seg, BS_DIFF(SegSM(seg), mode));
+  /* TODO: Do we need to promptly call shieldProtLower here?  It
+     loses the opportunity to coalesce the protection call. It would
+     violate design.mps.shield.prop.inside.access. */
+  /* shieldQueue(arena, seg); */
+  shieldProtLower(shield, seg, mode);
+
+  /* Check queue and segment consistency. */
   AVERT(Arena, arena);
   AVERT(Seg, seg);
 }
 
 
+/* ShieldEnter -- enter the shield, allowing exposes */
+
 void (ShieldEnter)(Arena arena)
 {
-  Size i;
+  Shield shield;
+  
+  AVERT(Arena, arena);
+  shield = ArenaShield(arena);
+  AVER(!shield->inside);
+  AVER(shield->depth == 0);
+  AVER(!shield->suspended);
+
+  shieldQueueReset(shield);
+
+  shield->inside = TRUE;
+}
+
+
+/* shieldDebugCheck -- expensive consistency check
+ *
+ * While developing the shield it is very easy to make a consistency
+ * mistake that causes random corruption of the heap, usually because
+ * all the attempts to avoid protection and suspension end up failing
+ * to enforce design.mps.shield.prop.mutator.access.  In these cases,
+ * try enabling SHIELD_DEBUG and extending this code as necessary.
+ *
+ * The basic idea is to iterate over *all* segments and check
+ * consistency with the arena and shield queue.
+ */
+
+#if defined(SHIELD_DEBUG)
+static void shieldDebugCheck(Arena arena)
+{
+  Shield shield;
+  Seg seg;
+  Count queued = 0;
 
   AVERT(Arena, arena);
-  AVER(!arena->insideShield);
-  AVER(arena->shDepth == 0);
-  AVER(!arena->suspended);
-  AVER(arena->shCacheLimit <= ShieldCacheSIZE);
-  AVER(arena->shCacheI < arena->shCacheLimit);
-  for(i = 0; i < arena->shCacheLimit; i++)
-    AVER(arena->shCache[i] == NULL);
+  shield = ArenaShield(arena);
+  AVER(shield->inside || shield->limit == 0);
 
-  arena->shCacheI = (Size)0;
-  arena->shCacheLimit = (Size)1;
-  arena->insideShield = TRUE;
+  if (SegFirst(&seg, arena))
+    do {
+      if (shield->limit == 0) {
+        AVER(!seg->queued);
+        AVER(SegIsSynced(seg));
+        /* You can directly set protections here to see if it makes a
+           difference. */
+        /* ProtSet(SegBase(seg), SegLimit(seg), SegPM(seg)); */
+      } else {
+        if (seg->queued)
+          ++queued;
+      }
+    } while(SegNext(&seg, arena, seg));
+
+  AVER(queued == shield->limit);
 }
+#endif
 
 
-/* .shield.flush: Flush empties the shield cache.
- * This needs to be called before segments are destroyed as there
- * may be references to them in the cache.
+/* ShieldFlush -- empty the shield queue
+ *
+ * .shield.flush: Flush empties the shield queue.  This needs to be
+ * called before queued segments are destroyed, to remove them from
+ * the queue.  We flush the whole queue because finding the entry is
+ * O(n) and we're very likely reclaiming and destroying loads of
+ * segments.  See also design.mps.shield.improv.resume.
+ *
+ * The memory for the segment may become spare, and not released back
+ * to the operating system. Since we keep track of protection on
+ * segments and not grains we have no way of keeping track of the
+ * protection state of spare grains. We therefore flush the protection
+ * to get it back into the default state (unprotected).  See also
+ * design.mps.shield.improv.noseg.
  */
+
 void (ShieldFlush)(Arena arena)
 {
-  Size i;
-
-  for(i = 0; i < arena->shCacheLimit; ++i) {
-    if (arena->shDepth == 0)
-      break;
-    flush(arena, i);
-  }
+  Shield shield;
+  
+  AVERT(Arena, arena);
+  shield = ArenaShield(arena);
+#ifdef SHIELD_DEBUG
+  shieldDebugCheck(arena);
+#endif
+  shieldFlushEntries(shield);
+  AVER(shield->unsynced == 0); /* everything back in sync */
+#ifdef SHIELD_DEBUG
+  shieldDebugCheck(arena);
+#endif
 }
 
+
+/* ShieldLeave -- leave the shield, protect segs from mutator */
 
 void (ShieldLeave)(Arena arena)
 {
+  Shield shield;
+  
   AVERT(Arena, arena);
-  AVER(arena->insideShield);
+  shield = ArenaShield(arena);
+  AVER(shield->inside);
+  AVER(shield->depth == 0); /* no pending covers */
+  AVER(shield->holds == 0);
 
   ShieldFlush(arena);
-  /* Cache is empty so inv.outside.depth holds */
-  AVER(arena->shDepth == 0);
 
-  /* Ensuring the mutator is running at this point
-   * guarantees inv.outside.running */
-  if (arena->suspended) {
-    ThreadRingResume(ArenaThreadRing(arena));
-    arena->suspended = FALSE;
+  AVER(shield->unsynced == 0); /* everything back in sync */
+
+  /* Ensuring the mutator is running at this point guarantees
+     .inv.outside.running */
+  if (shield->suspended) {
+    ThreadRingResume(ArenaThreadRing(arena), ArenaDeadRing(arena));
+    shield->suspended = FALSE;
   }
-  arena->insideShield = FALSE;
+
+  shield->inside = FALSE;
 }
+
 
 
 /* ShieldExpose -- allow the MPS access to a segment while denying the mutator
  *
- * The MPS currently does not collect concurrently, however the only thing
- * that makes it not-concurrent is a critical point in the Shield
- * abstraction where the MPS seeks to gain privileged access to memory
- * (usually in order to scan it for GC). The critical point is where
- * ShieldExpose in shield.c has to call ShieldSuspend to preserve the
- * shield invariants. This is the only point in the MPS that prevents
- * concurrency, and the rest of the MPS is designed to support it.
- *
- * The restriction could be removed if either:
- * 
- *  * the MPS could use a different set of protections to the mutator
- *   program
- * 
- *  * the mutator program uses a software barrier
- * 
- * The first one is tricky, and the second one just hasn't come up in any
- * implementation we've been asked to make yet. Given a VM, it could
- * happen, and the MPS would be concurrent.
- * 
- * So, I believe there's nothing fundamentally non-concurrent about the
- * MPS design. It's kind of waiting to happen.
- *
- * (Originally written at <http://news.ycombinator.com/item?id=4524036>.)
+ * The first expose of a shielded segment suspends the mutator to
+ * ensure the MPS has exclusive access.
  */
 
 void (ShieldExpose)(Arena arena, Seg seg)
 {
+  Shield shield;
   AccessSet mode = AccessREAD | AccessWRITE;
+
   /* <design/trace/#fix.noaver> */
   AVERT_CRITICAL(Arena, arena);
-  AVER_CRITICAL(arena->insideShield);
+  shield = ArenaShield(arena);
+  AVER_CRITICAL(shield->inside);
 
   SegSetDepth(seg, SegDepth(seg) + 1);
-  ++arena->shDepth;
-  /* <design/trace/#fix.noaver> */
-  AVER_CRITICAL(arena->shDepth > 0);
-  AVER_CRITICAL(SegDepth(seg) > 0);
-  if (SegPM(seg) & mode)
-    ShieldSuspend(arena);
+  AVER_CRITICAL(SegDepth(seg) > 0); /* overflow */
+  ++shield->depth;
+  AVER_CRITICAL(shield->depth > 0); /* overflow */
+  
+  if (BS_INTER(SegPM(seg), mode) != AccessSetEMPTY)
+    shieldSuspend(arena);
 
-  /* This ensures inv.expose.prot */
-  protLower(arena, seg, mode);
+  /* Ensure design.mps.shield.inv.expose.prot. */
+  /* TODO: Mass exposure -- see
+     design.mps.shield.improv.mass-expose. */
+  shieldProtLower(shield, seg, mode);
 }
 
 
+/* ShieldCover -- declare MPS no longer needs access to seg */
+
 void (ShieldCover)(Arena arena, Seg seg)
 {
+  Shield shield;
+  
   /* <design/trace/#fix.noaver> */
   AVERT_CRITICAL(Arena, arena);
+  shield = ArenaShield(arena);
   AVERT_CRITICAL(Seg, seg);
   AVER_CRITICAL(SegPM(seg) == AccessSetEMPTY);
-
-  AVER_CRITICAL(arena->shDepth > 0);
+ 
   AVER_CRITICAL(SegDepth(seg) > 0);
   SegSetDepth(seg, SegDepth(seg) - 1);
-  --arena->shDepth;
+  AVER_CRITICAL(shield->depth > 0);
+  --shield->depth;
 
-  /* ensure inv.unsynced.depth */
-  cache(arena, seg);
+  /* Ensure design.mps.shield.inv.unsynced.depth. */
+  shieldQueue(arena, seg);
 }
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2015 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

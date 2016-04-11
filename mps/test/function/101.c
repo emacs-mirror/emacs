@@ -61,7 +61,7 @@ static void dt(int kind,
  int i, hd;
  clock_t time0, time1;
  size_t size;
- int secs;
+ double secs;
 
  asserts(number <= MAXNUMBER, "number too big");
 
@@ -122,9 +122,9 @@ static void dt(int kind,
  mps_pool_destroy(pool);
 
  time1=clock();
- secs=(int) 100*(time1-time0)/CLOCKS_PER_SEC;
+ secs=(time1-time0)/(double)CLOCKS_PER_SEC;
 
- comment("%s test (%x, %x, %x, %x, %x, %i, %i) in %i centisecs",
+ comment("%s test (%x, %x, %x, %x, %x, %i, %i) in %.2f s",
   tdesc[kind], (int) extendBy, (int) avgSize, (int) maxSize,
   (int) mins, (int) maxs, number, iter, secs);
 }

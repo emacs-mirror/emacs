@@ -177,7 +177,7 @@ static Res failoverDelete(Range rangeReturn, Land land, Range range)
 }
 
 
-static Bool failoverIterate(Land land, LandVisitor visitor, void *closureP, Size closureS)
+static Bool failoverIterate(Land land, LandVisitor visitor, void *closure)
 {
   Failover fo;
 
@@ -186,8 +186,8 @@ static Bool failoverIterate(Land land, LandVisitor visitor, void *closureP, Size
   AVERT(Failover, fo);
   AVER(visitor != NULL);
 
-  return LandIterate(fo->primary, visitor, closureP, closureS)
-    && LandIterate(fo->secondary, visitor, closureP, closureS);
+  return LandIterate(fo->primary, visitor, closure)
+    && LandIterate(fo->secondary, visitor, closure);
 }
 
 

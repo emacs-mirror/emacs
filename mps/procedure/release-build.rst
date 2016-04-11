@@ -33,7 +33,7 @@ All relative paths are relative to
 
    .. _version-create: version-create
 
-#. Make sure that you have rights to push to the ``mps-temporary``
+#. Make sure that you have rights to push to the ``mps``
    repository on GitHub. If not, follow the `Becoming a Ravenbrook
    team member procedure <git-fusion>`_ first.
 
@@ -147,7 +147,7 @@ On a Unix (including OS X) machine:
         View:
                 //info.ravenbrook.com/project/mps/version/$VERSION/... //$CLIENT/mps-kit-$RELEASE/...
                 //info.ravenbrook.com/project/mps/release/$RELEASE/... //$CLIENT/release/$RELEASE/...
-	END
+        END
 
 #. Sync this client to *CHANGELEVEL*::
 
@@ -169,7 +169,7 @@ On a Unix (including OS X) machine:
 #. Sync the version sources again::
 
         rm -rf /tmp/$CLIENT/version/$VERSION
-	p4 -c $CLIENT sync -f @$CHANGELEVEL
+        p4 -c $CLIENT sync -f @$CHANGELEVEL
 
 #. Create a zip file containing the MPS sources, and open it for add::
 
@@ -218,10 +218,10 @@ On a Unix (including OS X) machine:
         Memory Pool System Kit release $RELEASE.
         See <http://www.ravenbrook.com/project/mps/release/>.
         END
-        git push --tags git@github.com:Ravenbrook/mps-temporary.git
+        git push --tags git@github.com:Ravenbrook/mps.git
 
 #. Go to the `list of releases on Github
-   <https://github.com/Ravenbrook/mps-temporary/releases>`__ and
+   <https://github.com/Ravenbrook/mps/releases>`__ and
    select "Draft a new release". Select the tag you just pushed, and
    set the title and description to match the other releases.
 
@@ -259,6 +259,7 @@ B. Document History
 2012‑09‑24  RB_    Make sure ZIP files contain files with Windows line endings. Use a fresh Perforce client to avoid any possibility of a clash with working files. Different archive name for custom variants.
 2013-03-20  GDR_   Ensure that manual HTML is up to date before making a release.
 2014-01-13  GDR_   Make procedure less error-prone by giving exact sequence of commands (where possible) based on experience of release 1.112.0.
+2016-01-28  RB_    Git repository renamed from mps-temporary to mps.
 ==========  =====  ==========================================================
 
 .. _RB: mailto:rb@ravenbrook.com

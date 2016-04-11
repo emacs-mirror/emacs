@@ -279,8 +279,7 @@ Res BufferCreate(Buffer *bufferReturn, BufferClass class,
   arena = PoolArena(pool);
 
   /* Allocate memory for the buffer descriptor structure. */
-  res = ControlAlloc(&p, arena, class->size,
-                     /* withReservoirPermit */ FALSE);
+  res = ControlAlloc(&p, arena, class->size);
   if (res != ResOK)
     goto failAlloc;
   buffer = p;
@@ -588,8 +587,7 @@ Res BufferFramePop(Buffer buffer, AllocFrame frame)
  *
  * .reserve: Keep in sync with <code/mps.h#reserve>.  */
 
-Res BufferReserve(Addr *pReturn, Buffer buffer, Size size,
-                  Bool withReservoirPermit)
+Res BufferReserve(Addr *pReturn, Buffer buffer, Size size)
 {
   Addr next;
 
@@ -598,7 +596,6 @@ Res BufferReserve(Addr *pReturn, Buffer buffer, Size size,
   AVER(size > 0);
   AVER(SizeIsAligned(size, BufferPool(buffer)->alignment));
   AVER(BufferIsReady(buffer));
-  AVERT(Bool, withReservoirPermit);
 
   /* Is there enough room in the unallocated portion of the buffer to */
   /* satisfy the request?  If so, just increase the alloc marker and */
@@ -612,7 +609,7 @@ Res BufferReserve(Addr *pReturn, Buffer buffer, Size size,
   }
 
   /* If the buffer can't accommodate the request, call "fill". */
-  return BufferFill(pReturn, buffer, size, withReservoirPermit);
+  return BufferFill(pReturn, buffer, size);
 }
 
 
@@ -673,8 +670,7 @@ void BufferAttach(Buffer buffer, Addr base, Addr limit,
  * allocation request.  This might be because the buffer has been
  * trapped and "limit" has been set to zero.  */
 
-Res BufferFill(Addr *pReturn, Buffer buffer, Size size,
-               Bool withReservoirPermit)
+Res BufferFill(Addr *pReturn, Buffer buffer, Size size)
 {
   Res res;
   Pool pool;
@@ -721,9 +717,7 @@ Res BufferFill(Addr *pReturn, Buffer buffer, Size size,
   BufferDetach(buffer, pool);
 
   /* Ask the pool for some memory. */
-  res = (*pool->class->bufferFill)(&base, &limit,
-                                   pool, buffer, size,
-                                   withReservoirPermit);
+  res = (*pool->class->bufferFill)(&base, &limit, pool, buffer, size);
   if (res != ResOK)
     return res;
 

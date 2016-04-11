@@ -1,7 +1,9 @@
 /* table.h: Interface for a dictionary
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * $Id$
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ *
+ * A table is a hashed mapping from keys to values.
  */
 
 #ifndef table_h
@@ -13,15 +15,18 @@
 
 typedef struct TableStruct *Table;
 
-#define TableSig        ((Sig)0x5192AB13) /* SIGnature TABLE */
+typedef Word TableKey;
+typedef void *TableValue;
+
+typedef struct TableEntryStruct {
+  TableKey key;
+  TableValue value;
+} TableEntryStruct, *TableEntry;
 
 typedef void *(*TableAllocFunction)(void *closure, size_t size);
 typedef void (*TableFreeFunction)(void *closure, void *p, size_t size);
 
-typedef struct TableEntryStruct {
-  Word key;
-  void *value;
-} TableEntryStruct, *TableEntry;
+#define TableSig        ((Sig)0x5192AB13) /* SIGnature TABLE */
 
 typedef struct TableStruct {
   Sig sig;                      /* <design/sig/> */
@@ -31,8 +36,8 @@ typedef struct TableStruct {
   TableAllocFunction alloc;
   TableFreeFunction free;
   void *allocClosure;
-  Word unusedKey;               /* key marking unused (undefined) entries */
-  Word deletedKey;              /* key marking deleted entries */
+  TableKey unusedKey;           /* key marking unused (undefined) entries */
+  TableKey deletedKey;          /* key marking deleted entries */
 } TableStruct;
 
 extern Res TableCreate(Table *tableReturn,
@@ -40,17 +45,17 @@ extern Res TableCreate(Table *tableReturn,
                        TableAllocFunction tableAlloc,
                        TableFreeFunction tableFree,
                        void *allocClosure,
-                       Word unusedKey,
-                       Word deletedKey);
+                       TableKey unusedKey,
+                       TableKey deletedKey);
 extern void TableDestroy(Table table);
 extern Bool TableCheck(Table table);
-extern Res TableDefine(Table table, Word key, void *value);
-extern Res TableRedefine(Table table, Word key, void *value);
-extern Bool TableLookup(void **valueReturn, Table table, Word key);
-extern Res TableRemove(Table table, Word key);
+extern Res TableDefine(Table table, TableKey key, TableValue value);
+extern Res TableRedefine(Table table, TableKey key, TableValue value);
+extern Bool TableLookup(TableValue *valueReturn, Table table, TableKey key);
+extern Res TableRemove(Table table, TableKey key);
 extern Count TableCount(Table table);
 extern void TableMap(Table table,
-                     void(*fun)(void *closure, Word key, void *value),
+                     void(*fun)(void *closure, TableKey key, TableValue value),
                      void *closure);
 extern Res TableGrow(Table table, Count extraCapacity);
 

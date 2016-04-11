@@ -3,6 +3,7 @@ Memory Pool System Version Create Procedure
 :author: Richard Kistruck
 :organization: Ravenbrook Limited
 :date: 2008-10-29
+:Revision: $Id$
 :confidentiality: public
 :copyright: See `C. Copyright and License`_
 :readership: MPS developers
@@ -30,7 +31,7 @@ you what "a version" actually is.
 
 You might not need to create a new version. An alternative is to
 create a further "point release" on the existing version. Refer to
-[RB_1999-05-20] when deciding. (Summary: if changing the
+[RB_1999-05-20]_ when deciding. (Summary: if changing the
 specification, make a new version; if improving the product against an
 unchanged specification, make a point release.)
 
@@ -82,6 +83,11 @@ evolution. A version has these parts:
    first release from the version you are about to create. If it is
    wrong, correct and submit it.
 
+#. Does ``code/version.c`` in the master sources have the correct
+   copyright dates for the ``MPSCopyrightNotice`` string? It should
+   include the current year.  If it is wrong, correct and submit it.
+   
+
 
 3.2. Automated procedure
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -92,26 +98,25 @@ Run the script ``tool/branch``, passing the options:
 * ``-p master`` — parent branch
 * ``-C CHANGELEVEL`` — changelevel at which to make the branch
 * ``-v`` — request a version branch
-* ``-d "DESCRIPTION"`` — description of the branch
-* ``-y`` — yes, really create the branch
+* ``-d "DESCRIPTION"`` — description of the branch (see below)
+
+The branch description will be published in the version index and
+should be a short summary of the improvements detailed in the release
+notes.
 
 If omitted, the project and parent branch are deduced from the current
 directory, and the changelevel defaults to the most recent change on
 the parent branch. A typical invocation looks like this::
 
-    tool/branch -p master -v -d "Improved interface to generation chains." -y
+    tool/branch -p master -v -d "Improved interface to generation chains."
+
+Visually check the output of the script against `3.3. Manual
+procedure`_, and when satisfied, repeat the invocation with the ``-y``
+option.
 
 
 3.3. Manual procedure
 ~~~~~~~~~~~~~~~~~~~~~
-
-#. Make sure that the sources for the version you are about to create,
-   for the table of versions, and for the table of Git Fusion pushes,
-   are mapped in your Perforce client::
-
-        //info.ravenbrook.com/project/mps/version/$VERSION/...
-        //info.ravenbrook.com/project/mps/branch/index.html
-        //info.ravenbrook.com/infosys/robots/git-fusion/etc/pushes
 
 #. Create the version branch specification by running::
 
@@ -123,39 +128,34 @@ the parent branch. A typical invocation looks like this::
         View: //info.ravenbrook.com/project/mps/master/... //info.ravenbrook.com/project/$BRANCH/...
         END
 
-#. Make sure you have no unsubmitted files::
+#. Create the branch itself by running::
 
-        $ p4 opened
-        File(s) not opened on this client.
-
-   and then::
-
-        p4 integrate -b $BRANCH
-        p4 submit -d "Branching master sources for version $VERSION."
+        p4 populate -b $BRANCH -d "Branching master sources for version $VERSION."
 
 #. Determine the origin of the new version::
 
         p4 changes -m 5 //info.ravenbrook.com/project/mps/master/...
 
-   Note the latest change that was in before the integrate.
+   Note the latest change that was in before the populate.
 
 #. Update the `table of versions <https://info.ravenbrook.com/project/mps/version/>`_.
 
-#. Make a client specification that can be used by the `git-fusion robot <https://info.ravenbrook.com/infosys/robots>`_ to sync the version::
+#. Add the version to the “mps” and “mps-public” repos published by
+   Git Fusion by editing ``//.git-fusion/repos/mps/p4gf_config`` and
+   ``//.git-fusion/repos/mps-public/p4gf_config`` with entries similar
+   to existing version branches.
 
-        p4 client -i <<END
-        Client: git-fusion-mps-version-$VERSION
-	Description: Git-fusion client for syncing MPS version $VERSION
-	Root: /home/git-fusion/.git-fusion/views/mps-version-$VERSION/p4
-        View: //info.ravenbrook.com/project/mps/version/$VERSION/... //git-fusion-mps-version-$VERSION/...
-        END
 
-#. Add an entry to the `list of repositories to push to GitHub <https://info.ravenbrook.com/infosys/robots/git-fusion/etc/pushes>`_::
+3.4. Post-branch checklist
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-        PUSHES=$(p4 have //info.ravenbrook.com/infosys/robots/git-fusion/etc/pushes | cut -d' ' -f3)
-        p4 edit $PUSHES
-        printf "mps-version-$VERSION\tgit@github.com:Ravenbrook/mps-temporary.git\tversion/$VERSION" >> $PUSHES
-        p4 submit -d "Arranging for MPS version $VERSION to be pushed to GitHub by Git Fusion" $PUSHES
+Ensure that the branch appears correctly at:
+
+#. the internal index at https://info.ravenbrook.com/project/mps/version
+
+#. the external index at http://www.ravenbrook.com/project/mps/version
+
+#. the GitHub mirror at https://github.com/Ravenbrook/mps/branches
 
 
 A. References
@@ -178,6 +178,8 @@ B. Document History
 2014-01-13  GDR_   Make procedure less error-prone by giving exact sequence of commands (where possible) based on experience of version 1.112.
 2014-01-14  GDR_   Step for adding to Git Fusion.
 2014-03-19  GDR_   Describe automated procedure.
+2016-01-28  RB_    Git repository renamed from mps-temporary to mps.
+2016-04-05  RB_    Bringing up to date in preparation for version 1.115.
 ==========  =====  ========================================================
 
 .. _GDR: mailto:gdr@ravenbrook.com
@@ -187,7 +189,7 @@ B. Document History
 C. Copyright and License
 ------------------------
 
-Copyright © 2002-2014 Ravenbrook Limited. All rights reserved.
+Copyright © 2002-2016 Ravenbrook Limited. All rights reserved.
 <http://www.ravenbrook.com/>. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

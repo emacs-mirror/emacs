@@ -7,7 +7,7 @@ TEST_HEADER
 OUTPUT_SPEC
  assert = true
  assertfile P= mpsi.c
- assertcond = reg_scan_p != NULL
+ assertcond = cold != NULL
 END_HEADER
 */
 

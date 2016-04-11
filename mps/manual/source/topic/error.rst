@@ -90,7 +90,7 @@ Result codes
 .. c:macro:: MPS_RES_IO
 
     A :term:`result code` indicating that an input/output error
-    occurred in the :term:`telemetry` system.
+    occurred in the :term:`telemetry system`.
 
 
 .. c:macro:: MPS_RES_LIMIT
@@ -298,6 +298,13 @@ this documentation.
     The client program called :c:func:`mps_arena_destroy` without
     destroying all the :term:`pools` belonging to the arena.
     It is necessary to call :c:func:`mps_pool_destroy` first.
+
+
+``global.c: PoolHasAttr(pool, AttrGC)``
+
+    The client program called :c:func:`mps_finalize` on a reference
+    that does not belong to an :term:`automatically managed <automatic
+    memory management>` :term:`pool`.
 
 
 ``lockix.c: res == 0``
