@@ -195,23 +195,22 @@ Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream, Count depth)
 
 /* BufferInit -- initialize an allocation buffer */
 
-static Res BufferInit(Buffer buffer, BufferClass class,
-                      Pool pool, Bool isMutator, ArgList args)
+static Res BufferAbsInit(Buffer buffer, Pool pool, Bool isMutator, ArgList args)
 {
   Arena arena;
-  Res res;
 
   AVER(buffer != NULL);
-  AVERT(BufferClass, class);
   AVERT(Pool, pool);
- 
-  arena = PoolArena(pool);
+  AVER(BoolCheck(isMutator));
+  AVERT(ArgList, args);
 
   /* Superclass init */
   InstInit(&buffer->instStruct);
   
-  /* Initialize the buffer.  See <code/mpmst.h> for a definition of */
-  /* the structure.  sig and serial comes later .init.sig-serial */
+  arena = PoolArena(pool);
+
+  /* Initialize the buffer.  See <code/mpmst.h> for a definition of
+     the structure.  sig and serial comes later .init.sig-serial */
   buffer->arena = arena;
   buffer->pool = pool;
   RingInit(&buffer->poolRing);
@@ -238,38 +237,35 @@ static Res BufferInit(Buffer buffer, BufferClass class,
   buffer->poolLimit = (Addr)0;
   buffer->rampCount = 0;
 
-  /* .init.sig-serial: Now the vanilla stuff is initialized, */
-  /* sign the buffer and give it a serial number. It can */
-  /* then be safely checked in subclass methods. */
+  /* .init.sig-serial: Now the vanilla stuff is initialized, sign the
+     buffer and give it a serial number. It can then be safely checked
+     in subclass methods. */
   buffer->serial = pool->bufferSerial; /* .trans.mod */
   ++pool->bufferSerial;
-  SetClassOfBuffer(buffer, class);
+  SetClassOfBuffer(buffer, CLASS(Buffer));
   buffer->sig = BufferSig;
   AVERT(Buffer, buffer);
-
-  /* Dispatch to the buffer class method to perform any  */
-  /* class-specific initialization of the buffer. */
-  /* FIXME: Should call this first, which next-method calls BufferAbsInit. */
-  res = class->init(buffer, pool, args);
-  if (res != ResOK)
-    goto failInit;
 
   /* Attach the initialized buffer to the pool. */
   RingAppend(&pool->bufferRing, &buffer->poolRing);
 
-  return ResOK;
+  EVENT3(BufferInit, buffer, pool, BOOLOF(buffer->isMutator));
 
-failInit:
-  RingFinish(&buffer->poolRing);
-  InstFinish(&buffer->instStruct);
-  buffer->sig = SigInvalid;
-  return res;
+  return ResOK;
+}
+
+static Res BufferInit(Buffer buffer, BufferClass class,
+                      Pool pool, Bool isMutator, ArgList args)
+{
+  AVERT(BufferClass, class);
+  return class->init(buffer, pool, isMutator, args);
 }
 
 
 /* BufferCreate -- create an allocation buffer
  *
- * See <design/buffer/#method.create>.  */
+ * See <design/buffer/#method.create>.
+ */
 
 Res BufferCreate(Buffer *bufferReturn, BufferClass class,
                  Pool pool, Bool isMutator, ArgList args)
@@ -375,35 +371,36 @@ void BufferDestroy(Buffer buffer)
 
 /* BufferFinish -- finish an allocation buffer */
 
-void BufferFinish(Buffer buffer)
+static void BufferAbsFinish(Buffer buffer)
 {
-  Pool pool;
-
   AVERT(Buffer, buffer);
-
-  pool = BufferPool(buffer);
-
-  AVER(BufferIsReady(buffer));
-
-  /* <design/alloc-frame/#lw-frame.sync.trip> */
-  if (BufferIsTrappedByMutator(buffer)) {
-    BufferFrameNotifyPopPending(buffer);
-  }
-
-  BufferDetach(buffer, pool);
-
-  /* Dispatch to the buffer class method to perform any  */
-  /* class-specific finishing of the buffer. */
-  Method(Buffer, buffer, finish)(buffer);
+  AVER(BufferIsReset(buffer));
 
   /* Detach the buffer from its owning pool and unsig it. */
   RingRemove(&buffer->poolRing);
+  InstFinish(MustBeA(Inst, buffer));
   buffer->sig = SigInvalid;
  
   /* Finish off the generic buffer fields. */
   RingFinish(&buffer->poolRing);
 
   EVENT1(BufferFinish, buffer);
+}
+
+void BufferFinish(Buffer buffer)
+{
+  AVERT(Buffer, buffer);
+  AVER(BufferIsReady(buffer));
+
+  /* FIXME: Can this go in BufferAbsFinish? */
+  /* <design/alloc-frame/#lw-frame.sync.trip> */
+  if (BufferIsTrappedByMutator(buffer)) {
+    BufferFrameNotifyPopPending(buffer);
+  }
+
+  BufferDetach(buffer, BufferPool(buffer));
+
+  Method(Buffer, buffer, finish)(buffer);
 }
 
 
@@ -1060,30 +1057,6 @@ void BufferRampReset(Buffer buffer)
 /* BufferClass -- support for the basic Buffer class */
 
 
-/* bufferTrivInit -- basic buffer init method */
-
-static Res bufferTrivInit(Buffer buffer, Pool pool, ArgList args)
-{
-  /* initialization happens in BufferInit so checks are safe */
-  AVERT(Buffer, buffer);
-  AVERT(Pool, pool);
-  UNUSED(args);
-  EVENT3(BufferInit, buffer, pool, BOOLOF(buffer->isMutator));
-  return ResOK;
-}
-
-
-/* bufferTrivFinish -- basic buffer finish method */
-
-static void bufferTrivFinish(Buffer buffer)
-{
-  /* No special finish for simple buffers */
-  AVERT(Buffer, buffer);
-  AVER(BufferIsReset(buffer));
-  NOOP;
-}
-
-
 /* bufferTrivAttach -- basic buffer attach method */
 
 static void bufferTrivAttach(Buffer buffer, Addr base, Addr limit,
@@ -1204,8 +1177,8 @@ DEFINE_CLASS(Buffer, Buffer, class)
   INHERIT_CLASS(&class->protocol, Buffer, Inst);
   class->size = sizeof(BufferStruct);
   class->varargs = ArgTrivVarargs;
-  class->init = bufferTrivInit;
-  class->finish = bufferTrivFinish;
+  class->init = BufferAbsInit;
+  class->finish = BufferAbsFinish;
   class->attach = bufferTrivAttach;
   class->detach = bufferTrivDetach;
   class->describe = bufferTrivDescribe;
@@ -1260,27 +1233,24 @@ Bool SegBufCheck(SegBuf segbuf)
 
 /* segBufInit -- SegBuf init method */
 
-static Res segBufInit(Buffer buffer, Pool pool, ArgList args)
+static Res segBufInit(Buffer buffer, Pool pool, Bool isMutator, ArgList args)
 {
-  BufferClass super;
   SegBuf segbuf;
   Res res;
 
-  AVERT(Buffer, buffer);
-  AVERT(Pool, pool);
-  segbuf = BufferSegBuf(buffer);
-
   /* Initialize the superclass fields first via next-method call */
-  super = SUPERCLASS(Buffer, SegBuf);
-  res = super->init(buffer, pool, args);
+  res = SUPERCLASS(Buffer, SegBuf)->init(buffer, pool, isMutator, args);
   if (res != ResOK)
     return res;
+  SetClassOfBuffer(buffer, CLASS(SegBuf));
+  segbuf = MustBeA(SegBuf, buffer);
 
   segbuf->seg = NULL;
-  segbuf->sig = SegBufSig;
   segbuf->rankSet = RankSetEMPTY;
-  
+
+  segbuf->sig = SegBufSig;
   AVERT(SegBuf, segbuf);
+
   EVENT3(BufferInitSeg, buffer, pool, BOOLOF(buffer->isMutator));
   return ResOK;
 }
@@ -1288,21 +1258,12 @@ static Res segBufInit(Buffer buffer, Pool pool, ArgList args)
 
 /* segBufFinish -- SegBuf finish method */
 
-static void segBufFinish (Buffer buffer)
+static void segBufFinish(Buffer buffer)
 {
-  BufferClass super;
-  SegBuf segbuf;
-
-  AVERT(Buffer, buffer);
+  SegBuf segbuf = MustBeA(SegBuf, buffer);
   AVER(BufferIsReset(buffer));
-  segbuf = BufferSegBuf(buffer);
-  AVERT(SegBuf, segbuf);
-
   segbuf->sig = SigInvalid;
-
-  /* finish the superclass fields last */
-  super = SUPERCLASS(Buffer, SegBuf);
-  super->finish(buffer);
+  SUPERCLASS(Buffer, SegBuf)->finish(buffer);
 }
 
 
@@ -1485,25 +1446,22 @@ static void rankBufVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
 
 /* rankBufInit -- RankBufClass init method */
 
-static Res rankBufInit(Buffer buffer, Pool pool, ArgList args)
+static Res rankBufInit(Buffer buffer, Pool pool, Bool isMutator, ArgList args)
 {
   Rank rank = BUFFER_RANK_DEFAULT;
-  BufferClass super;
   Res res;
   ArgStruct arg;
 
-  AVERT(Buffer, buffer);
-  AVERT(Pool, pool);
   AVERT(ArgList, args);
   if (ArgPick(&arg, args, MPS_KEY_RANK))
     rank = arg.val.rank;
   AVERT(Rank, rank);
 
   /* Initialize the superclass fields first via next-method call */
-  super = SUPERCLASS(Buffer, RankBuf);
-  res = super->init(buffer, pool, args);
+  res = SUPERCLASS(Buffer, RankBuf)->init(buffer, pool, isMutator, args);
   if (res != ResOK)
     return res;
+  SetClassOfBuffer(buffer, CLASS(RankBuf));
 
   BufferSetRankSet(buffer, RankSetSingle(rank));
 

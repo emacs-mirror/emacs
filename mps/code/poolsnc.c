@@ -126,20 +126,18 @@ static void sncBufferSetTopSeg(Buffer buffer, Seg seg)
 
 /* SNCBufInit -- Initialize an SNCBuf */
 
-static Res SNCBufInit(Buffer buffer, Pool pool, ArgList args)
+static Res SNCBufInit(Buffer buffer, Pool pool, Bool isMutator, ArgList args)
 {
   SNCBuf sncbuf;
   Res res;
 
-  AVERT(Buffer, buffer);
-  AVERT(Pool, pool);
-
   /* call next method */
-  res = SUPERCLASS(Buffer, SNCBuf)->init(buffer, pool, args);
+  res = SUPERCLASS(Buffer, SNCBuf)->init(buffer, pool, isMutator, args);
   if (res != ResOK)
     return res;
+  SetClassOfBuffer(buffer, CLASS(SNCBuf));
+  sncbuf = MustBeA(SNCBuf, buffer);
 
-  sncbuf = BufferSNCBuf(buffer);
   sncbuf->topseg = NULL;
   sncbuf->sig = SNCBufSig;
 
@@ -152,25 +150,15 @@ static Res SNCBufInit(Buffer buffer, Pool pool, ArgList args)
 
 static void SNCBufFinish(Buffer buffer)
 {
-  BufferClass super;
-  SNCBuf sncbuf;
-  SNC snc;
-  Pool pool;
+  SNCBuf sncbuf = MustBeA(SNCBuf, buffer);
+  SNC snc = MustBeA(SNCPool, BufferPool(buffer));
 
-  AVERT(Buffer, buffer);
-  sncbuf = BufferSNCBuf(buffer);
-  AVERT(SNCBuf, sncbuf);
-  pool = BufferPool(buffer);
-
-  snc = PoolSNC(pool);
-  /* Put any segments which haven't bee popped onto the free list */
+  /* Put any segments which haven't been popped onto the free list */
   sncPopPartialSegChain(snc, buffer, NULL);
 
   sncbuf->sig = SigInvalid;
 
-  /* finish the superclass fields last */
-  super = SUPERCLASS(Buffer, SNCBuf);
-  super->finish(buffer);
+  SUPERCLASS(Buffer, SNCBuf)->finish(buffer);
 }
 
 
