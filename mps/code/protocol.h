@@ -199,7 +199,7 @@ extern void InstFinish(Inst inst);
  * build variety).  It is like C++ "dynamic_cast" with an assert.
  */
 
-#define CouldBeA(class, inst) ((INST_TYPE(class))inst)
+#define CouldBeA(class, inst) ((INST_TYPE(class))(inst))
 
 #define MustBeA(_class, inst) \
   CouldBeA(_class, \

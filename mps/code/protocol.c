@@ -25,10 +25,6 @@ DEFINE_CLASS(Inst, Inst, class)
 {
   ClassLevel i;
 
-  /* We can't call InstInit here because it causes a loop back to
-     here, so we have to tie this knot specially. */
-  class->instStruct.class = class;
-
   class->name = "Inst";
   class->superclass = NULL;
   for (i = 0; i < ClassDEPTH; ++i)
@@ -36,7 +32,10 @@ DEFINE_CLASS(Inst, Inst, class)
   class->level = 0;
   class->display[class->level] = ClassIdInst;
 
-  SetClassOfPoly(class, CLASS(Inst));
+  /* We can't call InstInit here because it causes a loop back to
+     here, so we have to tie this knot specially. */
+  class->instStruct.class = class;
+
   class->sig = InstClassSig;
   AVERT(InstClass, class);
 }
