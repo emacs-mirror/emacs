@@ -121,6 +121,11 @@ static void ArenaNoDestroy(Arena arena)
   NOTREACHED;
 }
 
+DEFINE_CLASS(Inst, ArenaClass, class)
+{
+  INHERIT_CLASS(class, ArenaClass, InstClass);
+}
+
 
 /* AbstractArenaClass  -- The abstract arena class definition */
 
@@ -535,15 +540,17 @@ void ControlFinish(Arena arena)
 Res ArenaDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
 {
   Res res;
+  ArenaClass class;
 
-  if (!TESTT(Arena, arena))
-    return ResFAIL;
+  if (!TESTC(AbstractArena, arena))
+    return ResPARAM;
   if (stream == NULL)
-    return ResFAIL;
+    return ResPARAM;
 
+  class = ClassOfPoly(Arena, arena);
   res = WriteF(stream, depth, "Arena $P {\n", (WriteFP)arena,
                "  class $P (\"$S\")\n",
-               (WriteFP)ClassOfPoly(Arena, arena), (WriteFS)ClassName(ClassOfPoly(Arena, arena)),
+               (WriteFP)class, (WriteFS)ClassName(class),
                NULL);
   if (res != ResOK)
     return res;
@@ -633,10 +640,11 @@ static Res arenaDescribeTractsInChunk(Chunk chunk, mps_lib_FILE *stream, Count d
         return res;
       if (TractHasPool(tract)) {
         Pool pool = TractPool(tract);
+        PoolClass poolClass = ClassOfPoly(Pool, pool);
         res = WriteF(stream, 0, " $P $U ($S)",
                      (WriteFP)pool,
                      (WriteFU)(pool->serial),
-                     (WriteFS)ClassName(ClassOfPoly(Pool, pool)),
+                     (WriteFS)ClassName(poolClass),
                      NULL);
         if (res != ResOK)
           return res;

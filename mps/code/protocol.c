@@ -13,6 +13,34 @@
 SRCID(protocol, "$Id$");
 
 
+DEFINE_CLASS(Inst, InstClass, class)
+{
+  INHERIT_CLASS(class, InstClass, Inst);
+}
+
+
+/* The class definition for the root of the hierarchy */
+
+DEFINE_CLASS(Inst, Inst, class)
+{
+  ClassLevel i;
+
+  /* We can't call InstInit here because it causes a loop back to
+     here, so we have to tie this knot specially. */
+  class->instStruct.class = class;
+
+  class->name = "Inst";
+  class->superclass = NULL;
+  for (i = 0; i < ClassDEPTH; ++i)
+    class->display[i] = 0;
+  class->level = 0;
+  class->display[class->level] = ClassIdInst;
+
+  SetClassOfPoly(class, CLASS(Inst));
+  class->sig = InstClassSig;
+  AVERT(InstClass, class);
+}
+
 /* InstClassCheck -- check a protocol class */
 
 Bool InstClassCheck(InstClass class)
@@ -54,6 +82,7 @@ void InstInit(Inst inst)
  */
 
 static InstClassStruct invalidClassStruct = {
+  /* .instStruct = */ {&invalidClassStruct},
   /* .sig = */        SigInvalid,
   /* .name = */       "Invalid",
   /* .superclass = */ &invalidClassStruct,
@@ -74,22 +103,6 @@ Bool InstCheck(Inst inst)
 {
   CHECKD(InstClass, inst->class);
   return TRUE;
-}
-
-
-/* The class definition for the root of the hierarchy */
-
-DEFINE_CLASS(Inst, Inst, theClass)
-{
-  ClassLevel i;
-  theClass->sig = InstClassSig;
-  theClass->name = "Inst";
-  theClass->superclass = NULL;
-  for (i = 0; i < ClassDEPTH; ++i)
-    theClass->display[i] = 0;
-  theClass->level = 0;
-  theClass->display[theClass->level] = ClassIdInst;
-  AVERT(InstClass, theClass);
 }
 
 

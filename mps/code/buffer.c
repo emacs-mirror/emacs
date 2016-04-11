@@ -148,17 +148,20 @@ Bool BufferCheck(Buffer buffer)
 Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream, Count depth)
 {
   Res res;
+  BufferClass class;
 
-  if (!TESTT(Buffer, buffer))
-    return ResFAIL;
+  if (!TESTC(Buffer, buffer))
+    return ResPARAM;
   if (stream == NULL)
-    return ResFAIL;
+    return ResPARAM;
+
+  class = ClassOfPoly(Buffer, buffer);
 
   res = WriteF(stream, depth,
                "Buffer $P ($U) {\n",
                (WriteFP)buffer, (WriteFU)buffer->serial,
                "  class $P (\"$S\")\n",
-               (WriteFP)ClassOfPoly(Buffer, buffer), (WriteFS)ClassName(ClassOfPoly(Buffer, buffer)),
+               (WriteFP)class, (WriteFS)ClassName(class),
                "  Arena $P\n",       (WriteFP)buffer->arena,
                "  Pool $P\n",        (WriteFP)buffer->pool,
                "  ", buffer->isMutator ? "Mutator" : "Internal", " Buffer\n",
@@ -1169,6 +1172,11 @@ Bool BufferClassCheck(BufferClass class)
 /* BufferClass -- the vanilla buffer class definition
  *
  * See <design/buffer/#class.hierarchy.buffer>.  */
+
+DEFINE_CLASS(Inst, BufferClass, class)
+{
+  INHERIT_CLASS(class, BufferClass, InstClass);
+}
 
 DEFINE_CLASS(Buffer, Buffer, class)
 {

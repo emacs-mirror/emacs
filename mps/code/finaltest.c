@@ -149,12 +149,13 @@ static void test_trees(int mode, const char *name, mps_arena_t arena,
   size_t finals = 0;
   size_t i;
   int object_alloc;
+  PoolClass class = ClassOfPoly(Pool, pool);
 
   object_count = 0;
 
   printf("---- Mode %s, pool class %s, %s trees ----\n",
          mode == ModePARK ? "PARK" : "POLL",
-         ClassName(ClassOfPoly(Pool, pool)), name);
+         ClassName(class), name);
   mps_arena_park(arena);
 
   /* make some trees */
@@ -208,10 +209,11 @@ static void test_trees(int mode, const char *name, mps_arena_t arena,
            " of %"PRIuLONGEST"\n", (ulongest_t)final_this_time,
            (ulongest_t)finals, (ulongest_t)object_count);
   }
-  if (finals != object_count)
+  if (finals != object_count) {
+    PoolClass poolClass = ClassOfPoly(Pool, BufferOfAP(ap)->pool);
     error("Not all objects were finalized for %s in mode %s.",
-          ClassName(ClassOfPoly(Pool, BufferOfAP(ap)->pool)),
-          mode == ModePOLL ? "POLL" : "PARK");
+          ClassName(poolClass), mode == ModePOLL ? "POLL" : "PARK");
+  }
 }
 
 static void test_pool(int mode, mps_arena_t arena, mps_chain_t chain,
