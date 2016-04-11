@@ -194,6 +194,9 @@ extern void InstFinish(Inst inst);
  * TODO: Several experiments with statically generating some kind of
  * SUPERCLASS lookup have failed because the names of types, classes,
  * and the hierarchy are inconsistent.  Revisit this later.
+ *
+ * FIXME: Most uses of SUPERCLASS compile to constant expressions, but
+ * not that the compiler can tell.
  */
 
 #define SUPERCLASS(kind, ident) \
