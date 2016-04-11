@@ -164,6 +164,10 @@ void PoolAbsFinish(Pool pool)
   EVENT1(PoolFinish, pool);
 }
 
+DEFINE_CLASS(Inst, PoolClass, class)
+{
+  INHERIT_CLASS(class, PoolClass, InstClass);
+}
 
 DEFINE_CLASS(Pool, AbstractPool, class)
 {

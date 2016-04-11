@@ -246,6 +246,7 @@ static Bool failoverFindInZones(Bool *foundReturn, Range rangeReturn, Range oldR
 static Res failoverDescribe(Land land, mps_lib_FILE *stream, Count depth)
 {
   Failover fo = CouldBeA(Failover, land);
+  LandClass primaryClass, secondaryClass;
   Res res;
 
   if (!TESTC(Failover, fo))
@@ -257,13 +258,16 @@ static Res failoverDescribe(Land land, mps_lib_FILE *stream, Count depth)
   if (res != ResOK)
     return res;
 
+  primaryClass = ClassOfPoly(Land, fo->primary);
+  secondaryClass = ClassOfPoly(Land, fo->secondary);
+
   return WriteF(stream, depth + 2,
                 "primary = $P ($S)\n",
                 (WriteFP)fo->primary,
-                (WriteFS)ClassName(ClassOfPoly(Land, fo->primary)),
+                (WriteFS)ClassName(primaryClass),
                 "secondary = $P ($S)\n",
                 (WriteFP)fo->secondary,
-                (WriteFS)ClassName(ClassOfPoly(Land, fo->secondary)),
+                (WriteFS)ClassName(secondaryClass),
                 NULL);
 }
 

@@ -296,6 +296,7 @@ extern void PoolClassMixInBuffer(PoolClass class);
 extern void PoolClassMixInScan(PoolClass class);
 extern void PoolClassMixInFormat(PoolClass class);
 extern void PoolClassMixInCollect(PoolClass class);
+DECLARE_CLASS(Inst, PoolClass);
 DECLARE_CLASS(Pool, AbstractPool);
 DECLARE_CLASS(Pool, AbstractBufferPool);
 DECLARE_CLASS(Pool, AbstractSegBufPool);
@@ -474,6 +475,7 @@ extern void TraceScanSingleRef(TraceSet ts, Rank rank, Arena arena,
 
 /* Arena Interface -- see <code/arena.c> */
 
+DECLARE_CLASS(Inst, ArenaClass);
 DECLARE_CLASS(Arena, AbstractArena);
 extern Bool ArenaClassCheck(ArenaClass class);
 
@@ -672,6 +674,7 @@ extern void SegSetBuffer(Seg seg, Buffer buffer);
 extern Bool SegCheck(Seg seg);
 extern Bool GCSegCheck(GCSeg gcseg);
 extern Bool SegClassCheck(SegClass class);
+DECLARE_CLASS(Inst, SegClass);
 DECLARE_CLASS(Seg, Seg);
 DECLARE_CLASS(Seg, GCSeg);
 extern void SegClassMixInNoSplitMerge(SegClass class);
@@ -781,6 +784,7 @@ extern FrameState BufferFrameState(Buffer buffer);
 extern void BufferFrameSetState(Buffer buffer, FrameState state);
 
 extern Bool BufferClassCheck(BufferClass class);
+DECLARE_CLASS(Inst, BufferClass);
 DECLARE_CLASS(Buffer, Buffer);
 DECLARE_CLASS(Buffer, SegBuf);
 DECLARE_CLASS(Buffer, RankBuf);
@@ -976,6 +980,7 @@ extern Bool LandFlush(Land dest, Land src);
 
 extern Size LandSlowSize(Land land);
 extern Bool LandClassCheck(LandClass class);
+DECLARE_CLASS(Inst, LandClass);
 DECLARE_CLASS(Land, Land);
 
 

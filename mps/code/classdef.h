@@ -15,8 +15,8 @@
  * structures.
  *
  * "kind" determines the class object.  For example, the class of
- * CBSLand is stored in a LandClassStruct and can be checked by
- * LandClassCheck.
+ * CBSLand is Land, which is stored in a LandClassStruct and can be
+ * checked by LandClassCheck.
  *
  * "super" is the superclass of the class.
  */
@@ -24,20 +24,25 @@
 #define CLASSES(CLASS, X) \
   /*       identifier      kind       super */ \
   CLASS(X, Inst,           Inst,      NoSuper) \
+  CLASS(X, InstClass,      Inst,      Inst) \
+  CLASS(X, ArenaClass,     Inst,      InstClass) \
   CLASS(X, AbstractArena,  Arena,     Inst) \
   CLASS(X, ClientArena,    Arena,     AbstractArena) \
   CLASS(X, VMArena,        Arena,     AbstractArena) \
+  CLASS(X, BufferClass,    Inst,      InstClass) \
   CLASS(X, Buffer,         Buffer,    Inst) \
   CLASS(X, SegBuf,         Buffer,    Buffer) \
   CLASS(X, amcBuf,         Buffer,    SegBuf) \
   CLASS(X, RankBuf,        Buffer,    SegBuf) \
   CLASS(X, SNCBuf,         Buffer,    RankBuf) \
+  CLASS(X, LandClass,      Inst,      InstClass) \
   CLASS(X, Land,           Land,      Inst) \
   CLASS(X, Failover,       Land,      Land) \
   CLASS(X, Freelist,       Land,      Land) \
   CLASS(X, CBS,            Land,      Land) \
   CLASS(X, CBSFast,        Land,      CBS) \
   CLASS(X, CBSZoned,       Land,      CBSFast) \
+  CLASS(X, SegClass,       Inst,      InstClass) \
   CLASS(X, Seg,            Seg,       Inst) \
   CLASS(X, MRGLinkSeg,     Seg,       Seg) \
   CLASS(X, GCSeg,          Seg,       Seg) \
@@ -48,6 +53,7 @@
   CLASS(X, SNCSeg,         Seg,       GCSeg) \
   CLASS(X, AMSSeg,         Seg,       GCSeg) \
   CLASS(X, AMSTSeg,        Seg,       AMSSeg) \
+  CLASS(X, PoolClass,      Inst,      InstClass) \
   CLASS(X, AbstractPool,   Pool,      Inst) \
   CLASS(X, MFSPool,        Pool,      AbstractPool) \
   CLASS(X, MRGPool,        Pool,      AbstractPool) \

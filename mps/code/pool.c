@@ -484,16 +484,19 @@ Res PoolDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 {
   Res res;
   Ring node, nextNode;
+  PoolClass class;
 
-  if (!TESTT(Pool, pool))
-    return ResFAIL;
+  if (!TESTC(AbstractPool, pool))
+    return ResPARAM;
   if (stream == NULL)
-    return ResFAIL;
+    return ResPARAM;
+
+  class = ClassOfPoly(Pool, pool);
  
   res = WriteF(stream, depth,
                "Pool $P ($U) {\n", (WriteFP)pool, (WriteFU)pool->serial,
                "  class $P (\"$S\")\n",
-               (WriteFP)ClassOfPoly(Pool, pool), (WriteFS)ClassName(ClassOfPoly(Pool, pool)),
+               (WriteFP)class, (WriteFS)ClassName(class),
                "  arena $P ($U)\n",
                (WriteFP)pool->arena, (WriteFU)pool->arena->serial,
                "  alignment $W\n", (WriteFW)pool->alignment,

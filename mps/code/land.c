@@ -543,16 +543,25 @@ static Res landNoFindInZones(Bool *foundReturn, Range rangeReturn, Range oldRang
 
 static Res LandAbsDescribe(Land land, mps_lib_FILE *stream, Count depth)
 {
-  if (!TESTT(Land, land))
+  LandClass class;
+  
+  if (!TESTC(Land, land))
     return ResPARAM;
   if (stream == NULL)
     return ResPARAM;
+
+  class = ClassOfPoly(Land, land);
   return WriteF(stream, depth,
-                "$S $P\n", (WriteFS)ClassName(ClassOfPoly(Land, land)), land,
+                "$S $P\n", (WriteFS)ClassName(class), land,
                 "  arena $P\n", (WriteFP)land->arena,
                 "  align $U\n", (WriteFU)land->alignment,
                 "  inLand $S\n", WriteFYesNo(land->inLand),
                 NULL);
+}
+
+DEFINE_CLASS(Inst, LandClass, class)
+{
+  INHERIT_CLASS(class, LandClass, InstClass);
 }
 
 DEFINE_CLASS(Land, Land, class)
