@@ -953,6 +953,9 @@ static Res segTrivSplit(Seg seg, Seg segHi,
  
   /* Full initialization for segHi. Just modify seg. */
   seg->limit = mid;
+  AVERT(Seg, seg);
+
+  InstInit(CouldBeA(Inst, segHi));
   segHi->limit = limit;
   segHi->rankSet = seg->rankSet;
   segHi->white = seg->white;
@@ -963,8 +966,6 @@ static Res segTrivSplit(Seg seg, Seg segHi,
   segHi->depth = seg->depth;
   segHi->queued = seg->queued;
   segHi->firstTract = NULL;
-  SetClassOfSeg(segHi, ClassOfSeg(seg));
-  segHi->sig = SegSig;
   RingInit(SegPoolRing(segHi));
 
   TRACT_FOR(tract, addr, arena, mid, limit) {
@@ -981,9 +982,12 @@ static Res segTrivSplit(Seg seg, Seg segHi,
   }
   AVER(addr == segHi->limit);
 
-  RingAppend(&pool->segRing, SegPoolRing(segHi));
-  AVERT(Seg, seg);
+  SetClassOfSeg(segHi, ClassOfSeg(seg));
+  segHi->sig = SegSig;
   AVERT(Seg, segHi);
+
+  RingAppend(&pool->segRing, SegPoolRing(segHi));
+
   return ResOK;
 }
 
