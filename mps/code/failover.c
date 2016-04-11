@@ -13,9 +13,6 @@
 SRCID(failover, "$Id$");
 
 
-#define failoverOfLand(land) PARENT(FailoverStruct, landStruct, land)
-
-
 ARG_DEFINE_KEY(failover_primary, Pointer);
 ARG_DEFINE_KEY(failover_secondary, Pointer);
 
@@ -70,25 +67,17 @@ static void failoverFinish(Land land)
 
 static Size failoverSize(Land land)
 {
-  Failover fo;
-
-  AVERT(Land, land);
-  fo = failoverOfLand(land);
-  AVERT(Failover, fo);
-
+  Failover fo = MustBeA(Failover, land);
   return LandSize(fo->primary) + LandSize(fo->secondary);
 }
 
 
 static Res failoverInsert(Range rangeReturn, Land land, Range range)
 {
-  Failover fo;
+  Failover fo = MustBeA(Failover, land);
   Res res;
 
   AVER(rangeReturn != NULL);
-  AVERT(Land, land);
-  fo = failoverOfLand(land);
-  AVERT(Failover, fo);
   AVERT(Range, range);
 
   /* Provide more opportunities for coalescence. See
@@ -106,14 +95,11 @@ static Res failoverInsert(Range rangeReturn, Land land, Range range)
 
 static Res failoverDelete(Range rangeReturn, Land land, Range range)
 {
-  Failover fo;
+  Failover fo = MustBeA(Failover, land);
   Res res;
   RangeStruct oldRange, dummyRange, left, right;
 
   AVER(rangeReturn != NULL);
-  AVERT(Land, land);
-  fo = failoverOfLand(land);
-  AVERT(Failover, fo);
   AVERT(Range, range);
 
   /* Prefer efficient search in the primary. See
@@ -177,11 +163,8 @@ static Res failoverDelete(Range rangeReturn, Land land, Range range)
 
 static Bool failoverIterate(Land land, LandVisitor visitor, void *closure)
 {
-  Failover fo;
+  Failover fo = MustBeA(Failover, land);
 
-  AVERT(Land, land);
-  fo = failoverOfLand(land);
-  AVERT(Failover, fo);
   AVER(visitor != NULL);
 
   return LandIterate(fo->primary, visitor, closure)
@@ -191,13 +174,10 @@ static Bool failoverIterate(Land land, LandVisitor visitor, void *closure)
 
 static Bool failoverFindFirst(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete)
 {
-  Failover fo;
+  Failover fo = MustBeA(Failover, land);
 
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
-  AVERT(Land, land);
-  fo = failoverOfLand(land);
-  AVERT(Failover, fo);
   AVERT(FindDelete, findDelete);
 
   /* See <design/failover/#impl.assume.flush>. */
@@ -210,13 +190,10 @@ static Bool failoverFindFirst(Range rangeReturn, Range oldRangeReturn, Land land
 
 static Bool failoverFindLast(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete)
 {
-  Failover fo;
+  Failover fo = MustBeA(Failover, land);
 
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
-  AVERT(Land, land);
-  fo = failoverOfLand(land);
-  AVERT(Failover, fo);
   AVERT(FindDelete, findDelete);
 
   /* See <design/failover/#impl.assume.flush>. */
@@ -229,13 +206,10 @@ static Bool failoverFindLast(Range rangeReturn, Range oldRangeReturn, Land land,
 
 static Bool failoverFindLargest(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete)
 {
-  Failover fo;
+  Failover fo = MustBeA(Failover, land);
 
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
-  AVERT(Land, land);
-  fo = failoverOfLand(land);
-  AVERT(Failover, fo);
   AVERT(FindDelete, findDelete);
 
   /* See <design/failover/#impl.assume.flush>. */
@@ -248,7 +222,7 @@ static Bool failoverFindLargest(Range rangeReturn, Range oldRangeReturn, Land la
 
 static Bool failoverFindInZones(Bool *foundReturn, Range rangeReturn, Range oldRangeReturn, Land land, Size size, ZoneSet zoneSet, Bool high)
 {
-  Failover fo;
+  Failover fo = MustBeA(Failover, land);
   Bool found = FALSE;
   Res res;
 
@@ -256,9 +230,6 @@ static Bool failoverFindInZones(Bool *foundReturn, Range rangeReturn, Range oldR
   AVER(foundReturn != NULL);
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
-  AVERT(Land, land);
-  fo = failoverOfLand(land);
-  AVERT(Failover, fo);
   /* AVERT(ZoneSet, zoneSet); */
   AVERT(Bool, high);
 
@@ -284,7 +255,6 @@ static Res failoverDescribe(Land land, mps_lib_FILE *stream, Count depth)
   if (stream == NULL)
     return ResPARAM;
 
-  /* FIXME: Should use the class from the land itself. */
   res = SUPERCLASS(Land, Failover)->describe(land, stream, depth);
   if (res != ResOK)
     return res;
@@ -292,10 +262,10 @@ static Res failoverDescribe(Land land, mps_lib_FILE *stream, Count depth)
   return WriteF(stream, depth + 2,
                 "primary = $P ($S)\n",
                 (WriteFP)fo->primary,
-                (WriteFS)ClassOfLand(fo->primary)->protocol.name,
+                (WriteFS)ClassName(ClassOfLand(fo->primary)),
                 "secondary = $P ($S)\n",
                 (WriteFP)fo->secondary,
-                (WriteFS)ClassOfLand(fo->secondary)->protocol.name,
+                (WriteFS)ClassName(ClassOfLand(fo->secondary)),
                 NULL);
 }
 

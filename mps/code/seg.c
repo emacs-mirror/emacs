@@ -373,7 +373,7 @@ Res SegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
                "Segment $P [$A,$A) {\n", (WriteFP)seg,
                (WriteFA)SegBase(seg), (WriteFA)SegLimit(seg),
                "  class $P (\"$S\")\n",
-               (WriteFP)ClassOfSeg(seg), (WriteFS)ClassOfSeg(seg)->protocol.name,
+               (WriteFP)ClassOfSeg(seg), (WriteFS)ClassName(ClassOfSeg(seg)),
                "  pool $P ($U)\n",
                (WriteFP)pool, (WriteFU)pool->serial,
                "  depth $U\n", seg->depth,

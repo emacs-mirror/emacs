@@ -211,7 +211,7 @@ DEFINE_CLASS(Pool, AbstractPool, class)
   {
     Word classId;
     EventInit();
-    classId = EventInternString(class->protocol.name);
+    classId = EventInternString(ClassName(class));
     /* NOTE: this breaks <design/type/#addr.use> */
     EventLabelAddr((Addr)class, classId);
   }
