@@ -112,7 +112,7 @@ void PoolClassMixInCollect(PoolClass class)
 
 Res PoolAbsInit(Pool pool, Arena arena, PoolClass class, ArgList args)
 {
-  AVER(pool != NULL); /* FIXME: express intention */
+  AVER(pool != NULL);
   AVERT(Arena, arena);
   UNUSED(args);
   UNUSED(class); /* used for debug pools only */

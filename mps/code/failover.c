@@ -59,7 +59,7 @@ static void failoverFinish(Land land)
 {
   Failover fo = MustBeA(Failover, land);
   fo->sig = SigInvalid;
-  NextMethod(Land, Failover, finish)(land); /* FIXME: Method call */
+  NextMethod(Land, Failover, finish)(land);
 }
 
 

@@ -302,7 +302,7 @@ static void cbsFinish(Land land)
   if (cbs->ownPool)
     PoolDestroy(cbsBlockPool(cbs));
 
-  NextMethod(Land, CBS, finish)(land); /* FIXME: Method call */
+  NextMethod(Land, CBS, finish)(land);
 }
 
 

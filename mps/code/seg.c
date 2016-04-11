@@ -178,7 +178,6 @@ static Res SegInit(Seg seg, SegClass class, Pool pool, Addr base, Size size, Arg
   AVERT(SegClass, class);
 
   /* Class specific initialization comes last */
-  /* FIXME: Should call init which next-method calls SegAbsInit. */
   res = class->init(seg, pool, base, size, args);
   if (res != ResOK)
     return res;

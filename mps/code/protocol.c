@@ -41,7 +41,7 @@ Bool InstClassCheck(InstClass class)
 
 void InstInit(Inst inst)
 {
-  AVER(inst != NULL); /* FIXME: express intention here */
+  AVER(inst != NULL);
   inst->class = CLASS(Inst);
   AVERC(Inst, inst);
 }
