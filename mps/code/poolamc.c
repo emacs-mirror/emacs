@@ -500,29 +500,25 @@ ARG_DEFINE_KEY(ap_hash_arrays, Bool);
 
 /* AMCBufInit -- Initialize an amcBuf */
 
-static Res AMCBufInit(Buffer buffer, Pool pool, ArgList args)
+static Res AMCBufInit(Buffer buffer, Pool pool, Bool isMutator, ArgList args)
 {
-  AMC amc;
+  AMC amc = MustBeA(AMCZPool, pool);
   amcBuf amcbuf;
   Res res;
   Bool forHashArrays = FALSE;
   ArgStruct arg;
 
-  AVERT(Buffer, buffer);
-  AVERT(Pool, pool);
-  amc = PoolAMC(pool);
-  AVERT(AMC, amc);
-
   if (ArgPick(&arg, args, amcKeyAPHashArrays))
     forHashArrays = arg.val.b;
 
   /* call next method */
-  res = SUPERCLASS(Buffer, amcBuf)->init(buffer, pool, args);
+  res = SUPERCLASS(Buffer, amcBuf)->init(buffer, pool, isMutator, args);
   if(res != ResOK)
     return res;
+  SetClassOfBuffer(buffer, CLASS(amcBuf));
+  amcbuf = MustBeA(amcBuf, buffer);
 
-  amcbuf = Buffer2amcBuf(buffer);
-  if(BufferIsMutator(buffer)) {
+  if (BufferIsMutator(buffer)) {
     /* Set up the buffer to be allocating in the nursery. */
     amcbuf->gen = amc->nursery;
   } else {
@@ -530,6 +526,7 @@ static Res AMCBufInit(Buffer buffer, Pool pool, ArgList args)
     amcbuf->gen = NULL;
   }
   amcbuf->forHashArrays = forHashArrays;
+
   amcbuf->sig = amcBufSig;
   AVERT(amcBuf, amcbuf);
 
@@ -543,18 +540,9 @@ static Res AMCBufInit(Buffer buffer, Pool pool, ArgList args)
 
 static void AMCBufFinish(Buffer buffer)
 {
-  BufferClass super;
-  amcBuf amcbuf;
-
-  AVERT(Buffer, buffer);
-  amcbuf = Buffer2amcBuf(buffer);
-  AVERT(amcBuf, amcbuf);
-
+  amcBuf amcbuf = MustBeA(amcBuf, buffer);
   amcbuf->sig = SigInvalid;
-
-  /* Finish the superclass fields last. */
-  super = SUPERCLASS(Buffer, amcBuf);
-  super->finish(buffer);
+  SUPERCLASS(Buffer, amcBuf)->finish(buffer);
 }
 
 
