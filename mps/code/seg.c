@@ -926,15 +926,13 @@ static Res segNoSplit(Seg seg, Seg segHi,
 static Res segTrivSplit(Seg seg, Seg segHi,
                         Addr base, Addr mid, Addr limit)
 {
+  Pool pool = SegPool(MustBeA(Seg, seg));
+  Arena arena = PoolArena(pool);
+  SegClass class;
   Tract tract;
-  Pool pool;
   Addr addr;
-  Arena arena;
 
-  AVERT(Seg, seg);
   AVER(segHi != NULL);  /* can't check fully, it's not initialized */
-  pool = SegPool(seg);
-  arena = PoolArena(pool);
   AVER(AddrIsArenaGrain(base, arena));
   AVER(AddrIsArenaGrain(mid, arena));
   AVER(AddrIsArenaGrain(limit, arena));
@@ -979,7 +977,8 @@ static Res segTrivSplit(Seg seg, Seg segHi,
   }
   AVER(addr == segHi->limit);
 
-  SetClassOfPoly(segHi, ClassOfPoly(Seg, seg));
+  class = ClassOfPoly(Seg, seg);
+  SetClassOfPoly(segHi, class);
   segHi->sig = SegSig;
   AVERT(Seg, segHi);
 
