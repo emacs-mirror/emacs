@@ -253,7 +253,6 @@ static void AWLSegFinish(Seg seg)
 {
   AWL awl;
   AWLSeg awlseg;
-  SegClass super;
   Pool pool;
   Size tableSize;
   Arena arena;
@@ -280,8 +279,7 @@ static void AWLSegFinish(Seg seg)
   awlseg->sig = SigInvalid;
 
   /* finish the superclass fields last */
-  super = SUPERCLASS(Seg, AWLSeg);
-  super->finish(seg);
+  SUPERCLASS(Seg, AWLSeg)->finish(seg);
 }
 
 

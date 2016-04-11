@@ -144,7 +144,6 @@ static Res amstSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 
 static void amstSegFinish(Seg seg)
 {
-  SegClass super;
   AMSTSeg amstseg;
 
   AVERT(Seg, seg);
@@ -158,8 +157,7 @@ static void amstSegFinish(Seg seg)
 
   amstseg->sig = SigInvalid;
   /* finish the superclass fields last */
-  super = SUPERCLASS(Seg, AMSTSeg);
-  super->finish(seg);
+  SUPERCLASS(Seg, AMSTSeg)->finish(seg);
 }
 
 
@@ -176,7 +174,6 @@ static void amstSegFinish(Seg seg)
 static Res amstSegMerge(Seg seg, Seg segHi,
                         Addr base, Addr mid, Addr limit)
 {
-  SegClass super;
   AMST amst;
   AMSTSeg amstseg, amstsegHi;
   Res res;
@@ -190,8 +187,7 @@ static Res amstSegMerge(Seg seg, Seg segHi,
   amst = PoolAMST(SegPool(seg));
 
   /* Merge the superclass fields via direct next-method call */
-  super = SUPERCLASS(Seg, AMSTSeg);
-  res = super->merge(seg, segHi, base, mid, limit);
+  res = SUPERCLASS(Seg, AMSTSeg)->merge(seg, segHi, base, mid, limit);
   if (res != ResOK)
     goto failSuper;
 
@@ -210,7 +206,7 @@ static Res amstSegMerge(Seg seg, Seg segHi,
 
 failDeliberate:
   /* Call the anti-method (see .fail) */
-  res = super->split(seg, segHi, base, mid, limit);
+  res = SUPERCLASS(Seg, AMSTSeg)->split(seg, segHi, base, mid, limit);
   AVER(res == ResOK);
   res = ResFAIL;
 failSuper:
@@ -225,7 +221,6 @@ failSuper:
 static Res amstSegSplit(Seg seg, Seg segHi,
                         Addr base, Addr mid, Addr limit)
 {
-  SegClass super;
   AMST amst;
   AMSTSeg amstseg, amstsegHi;
   Res res;
@@ -238,8 +233,7 @@ static Res amstSegSplit(Seg seg, Seg segHi,
   amst = PoolAMST(SegPool(seg));
 
   /* Split the superclass fields via direct next-method call */
-  super = SUPERCLASS(Seg, AMSTSeg);
-  res = super->split(seg, segHi, base, mid, limit);
+  res = SUPERCLASS(Seg, AMSTSeg)->split(seg, segHi, base, mid, limit);
   if (res != ResOK)
     goto failSuper;
 
@@ -262,7 +256,7 @@ static Res amstSegSplit(Seg seg, Seg segHi,
 
 failDeliberate:
   /* Call the anti-method. (see .fail) */
-  res = super->merge(seg, segHi, base, mid, limit);
+  res = SUPERCLASS(Seg, AMSTSeg)->merge(seg, segHi, base, mid, limit);
   AVER(res == ResOK);
   res = ResFAIL;
 failSuper:
@@ -524,7 +518,6 @@ static void AMSAllocateRange(AMS ams, Seg seg, Addr base, Addr limit)
 static Res AMSTBufferFill(Addr *baseReturn, Addr *limitReturn,
                           Pool pool, Buffer buffer, Size size)
 {
-  PoolClass super;
   Addr base, limit;
   Arena arena;
   AMS ams;
@@ -543,8 +536,7 @@ static Res AMSTBufferFill(Addr *baseReturn, Addr *limitReturn,
   amst = PoolAMST(pool);
 
   /* call next method */
-  super = SUPERCLASS(Pool, AMSTPool);
-  res = super->bufferFill(&base, &limit, pool, buffer, size);
+  res = SUPERCLASS(Pool, AMSTPool)->bufferFill(&base, &limit, pool, buffer, size);
   if (res != ResOK)
     return res;
 
