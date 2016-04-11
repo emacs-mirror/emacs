@@ -197,6 +197,7 @@ Res ChunkInit(Chunk chunk, Arena arena, Addr base, Addr limit, Size reserved,
   chunk->reserved = reserved;
   size = ChunkSize(chunk);
 
+  /* .overhead.pages */
   chunk->pages = pages = size >> pageShift;
   res = BootAlloc(&p, boot, (size_t)BTSize(pages), MPS_PF_ALIGN);
   if (res != ResOK)
