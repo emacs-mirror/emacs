@@ -182,7 +182,7 @@ Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream, Count depth)
   if (res != ResOK)
     return res;
 
-  res = ClassOfBuffer(buffer)->describe(buffer, stream, depth + 2);
+  res = Method(Buffer, buffer, describe)(buffer, stream, depth + 2);
   if (res != ResOK)
     return res;
 
@@ -323,7 +323,7 @@ void BufferDetach(Buffer buffer, Pool pool)
     AVER(BufferFrameState(buffer) == BufferFrameDISABLED);
 
     /* run any class-specific detachment method */
-    ClassOfBuffer(buffer)->detach(buffer);
+    Method(Buffer, buffer, detach)(buffer);
 
     spare = AddrOffset(init, limit);
     buffer->emptySize += spare;
@@ -358,14 +358,12 @@ void BufferDetach(Buffer buffer, Pool pool)
 void BufferDestroy(Buffer buffer)
 {
   Arena arena;
-  BufferClass class;
-
+  Size size;
   AVERT(Buffer, buffer);
   arena = buffer->arena;
-  class = ClassOfBuffer(buffer);
-  AVERT(BufferClass, class);
+  size = ClassOfBuffer(buffer)->size;
   BufferFinish(buffer);
-  ControlFree(arena, buffer, class->size);
+  ControlFree(arena, buffer, size);
 }
 
 
@@ -660,7 +658,7 @@ void BufferAttach(Buffer buffer, Addr base, Addr limit,
   }
 
   /* run any class-specific attachment method */
-  ClassOfBuffer(buffer)->attach(buffer, base, limit, init, size);
+  Method(Buffer, buffer, attach)(buffer, base, limit, init, size);
 
   AVERT(Buffer, buffer);
   EVENT4(BufferFill, buffer, size, base, filled);
@@ -905,21 +903,21 @@ Addr BufferScanLimit(Buffer buffer)
 Seg BufferSeg(Buffer buffer)
 {
   AVERT(Buffer, buffer);
-  return ClassOfBuffer(buffer)->seg(buffer);
+  return Method(Buffer, buffer, seg)(buffer);
 }
 
 
 RankSet BufferRankSet(Buffer buffer)
 {
   AVERT(Buffer, buffer);
-  return ClassOfBuffer(buffer)->rankSet(buffer);
+  return Method(Buffer, buffer, rankSet)(buffer);
 }
 
 void BufferSetRankSet(Buffer buffer, RankSet rankset)
 {
   AVERT(Buffer, buffer);
   AVERT(RankSet, rankset);
-  ClassOfBuffer(buffer)->setRankSet(buffer, rankset);
+  Method(Buffer, buffer, setRankSet)(buffer, rankset);
 }
 
 
@@ -935,7 +933,7 @@ void BufferReassignSeg(Buffer buffer, Seg seg)
   AVER(BufferBase(buffer) >= SegBase(seg));
   AVER(BufferLimit(buffer) <= SegLimit(seg));
   AVER(BufferPool(buffer) == SegPool(seg));
-  ClassOfBuffer(buffer)->reassignSeg(buffer, seg);
+  Method(Buffer, buffer, reassignSeg)(buffer, seg);
 }
 
 

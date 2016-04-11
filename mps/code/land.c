@@ -160,14 +160,13 @@ failAlloc:
 void LandDestroy(Land land)
 {
   Arena arena;
-  LandClass class;
+  Size size;
 
   AVERC(Land, land);
   arena = land->arena;
-  class = ClassOfLand(land);
-  AVERT(LandClass, class);
+  size = ClassOfLand(land)->size;
   LandFinish(land);
-  ControlFree(arena, land, class->size);
+  ControlFree(arena, land, size);
 }
 
 
