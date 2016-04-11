@@ -56,6 +56,10 @@
       mps_lib_assert_fail(MPS_FILE, __LINE__, (condstring)); \
   END
 
+#define ASSERTP(cond, condstring, dflt) \
+  ((cond) ? (dflt) : \
+   mps_lib_assert_fail_expr(MPS_FILE, __LINE__, condstring, dflt))
+
 #define ASSERT_ISTYPE(type, val) (type ## Check(val))
 #define ASSERT_TYPECHECK(type, val) \
   ASSERT(ASSERT_ISTYPE(type, val), "TypeCheck " #type ": " #val)
@@ -109,17 +113,27 @@ extern unsigned CheckLevel;
 #endif
 
 
-/* AVER, AVERT -- MPM assertions
+/* AVER, AVERT, AVERC, AVERP -- MPM assertions
  *
- * AVER and AVERT are used to assert conditions in the code.  AVER checks
- * an expression.  AVERT checks that a value is of the correct type and
- * may perform consistency checks on the value.
+ * AVER and friends are used to assert conditions in the code.
  *
- * AVER and AVERT are on by default, and check conditions even in "hot"
- * varieties intended to work in production.  To avoid the cost of a check
- * in critical parts of the code, use AVER_CRITICAL and AVERT_CRITICAL,
- * but only when you've *proved* that this makes a difference to performance
- * that affects requirements.
+ * AVER checks an expression.
+ *
+ * AVERT checks that a value is of the correct type and may perform
+ * consistency checks on the value by calling a check function.
+ *
+ * AVERC checks that a value is of the correct class (including
+ * subclasses) and may perform consistency checks on the value by
+ * calling a check function.
+ *
+ * AVERP checks an expression but is itself a void * expression, and
+ * so can be used in expression macros.
+ *
+ * AVER etc. are on by default, and check conditions even in "hot"
+ * varieties intended to work in production.  To avoid the cost of a
+ * check in critical parts of the code, use AVER_CRITICAL etc., but
+ * only when you've *proved* that this makes a difference to
+ * performance that affects requirements.
  */
 
 #if defined(AVER_AND_CHECK_NONE)
@@ -127,12 +141,14 @@ extern unsigned CheckLevel;
 #define AVER(cond)                  DISCARD(cond)
 #define AVERT(type, val)            DISCARD(ASSERT_ISTYPE(type, val))
 #define AVERC(class, val)           DISCARD(ASSERT_ISCLASS(class, val))
+#define AVERP(cond, dflt)           (DISCARD_EXP(cond), dflt)
 
 #else
 
 #define AVER(cond)                  ASSERT(cond, #cond)
 #define AVERT                       ASSERT_TYPECHECK
 #define AVERC                       ASSERT_CLASSCHECK
+#define AVERP(cond, dflt)           ASSERTP(cond, #cond, dflt)
 
 #endif
 
@@ -141,12 +157,14 @@ extern unsigned CheckLevel;
 #define AVER_CRITICAL(cond)         ASSERT(cond, #cond)
 #define AVERT_CRITICAL              ASSERT_TYPECHECK
 #define AVERC_CRITICAL              ASSERT_CLASSCHECK
+#define AVERP_CRITICAL(cond, dflt)  ASSERTP(cond, #cond, dflt)
 
 #else
 
 #define AVER_CRITICAL               DISCARD
 #define AVERT_CRITICAL(type, val)   DISCARD(ASSERT_ISTYPE(type, val))
 #define AVERC_CRITICAL(class, val)  DISCARD(ASSERT_ISCLASS(class, val))
+#define AVERP_CRITICAL(cond, dflt)  (DISCARD_EXP(cond), dflt)
 
 #endif
 
