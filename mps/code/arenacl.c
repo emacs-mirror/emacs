@@ -34,9 +34,6 @@ typedef struct ClientArenaStruct {
 } ClientArenaStruct;
 typedef struct ClientArenaStruct *ClientArena;
 
-#define Arena2ClientArena(arena) PARENT(ClientArenaStruct, arenaStruct, arena)
-#define ClientArena2Arena(clArena) (&(clArena)->arenaStruct)
-
 
 /* CLChunk -- chunk structure */
 
@@ -83,11 +80,8 @@ static Bool ClientChunkCheck(ClientChunk clChunk)
 ATTRIBUTE_UNUSED
 static Bool ClientArenaCheck(ClientArena clientArena)
 {
-  Arena arena;
+  Arena arena = MustBeA(AbstractArena, clientArena);
 
-  CHECKS(ClientArena, clientArena);
-  arena = ClientArena2Arena(clientArena);
-  CHECKD(Arena, arena);
   /* See <code/arena.c#.reserved.check> */
   CHECKL(arena->committed <= arena->reserved);
   CHECKL(arena->spareCommitted == 0);
@@ -101,7 +95,7 @@ static Bool ClientArenaCheck(ClientArena clientArena)
 static Res clientChunkCreate(Chunk *chunkReturn, ClientArena clientArena,
                              Addr base, Addr limit)
 {
-  Arena arena;
+  Arena arena = MustBeA(AbstractArena, clientArena);
   ClientChunk clChunk;
   Chunk chunk;
   Addr alignedBase;
@@ -111,8 +105,6 @@ static Res clientChunkCreate(Chunk *chunkReturn, ClientArena clientArena,
   void *p;
 
   AVER(chunkReturn != NULL);
-  AVERT(ClientArena, clientArena);
-  arena = ClientArena2Arena(clientArena);
   AVER(base != (Addr)0);
   AVER(limit != (Addr)0);
   AVER(limit > base);
@@ -290,7 +282,7 @@ static Res ClientArenaCreate(Arena *arenaReturn, ArgList args)
   if (chunkBase > limit)
     return ResMEMORY;
 
-  arena = ClientArena2Arena(clientArena);
+  arena = CouldBeA(AbstractArena, clientArena);
   /* <code/arena.c#init.caller> */
   res = SUPERCLASS(Arena, ClientArena)->init(arena, grainSize, args);
   if (res != ResOK)
@@ -330,10 +322,7 @@ failSuperInit:
 
 static void ClientArenaDestroy(Arena arena)
 {
-  ClientArena clientArena;
-
-  clientArena = Arena2ClientArena(arena);
-  AVERT(ClientArena, clientArena);
+  ClientArena clientArena = MustBeA(ClientArena, arena);
 
   /* Destroy all chunks, including the primary. See
    * <design/arena/#chunk.delete> */
@@ -355,19 +344,13 @@ static void ClientArenaDestroy(Arena arena)
 
 static Res ClientArenaExtend(Arena arena, Addr base, Size size)
 {
-  ClientArena clientArena;
+  ClientArena clientArena = MustBeA(ClientArena, arena);
   Chunk chunk;
-  Res res;
-  Addr limit;
 
-  AVERT(Arena, arena);
   AVER(base != (Addr)0);
   AVER(size > 0);
-  limit = AddrAdd(base, size);
  
-  clientArena = Arena2ClientArena(arena);
-  res = clientChunkCreate(&chunk, clientArena, base, limit);
-  return res;
+  return clientChunkCreate(&chunk, clientArena, base, AddrAdd(base, size));
 }
 
 
@@ -407,7 +390,6 @@ static void ClientArenaFree(Addr base, Size size, Pool pool)
   Arena arena;
   Chunk chunk = NULL;           /* suppress "may be used uninitialized" */
   Size pages;
-  ClientArena clientArena;
   Index pi, baseIndex, limitIndex;
   Bool foundChunk;
   ClientChunk clChunk;
@@ -416,9 +398,7 @@ static void ClientArenaFree(Addr base, Size size, Pool pool)
   AVER(size > (Size)0);
   AVERT(Pool, pool);
   arena = PoolArena(pool);
-  AVERT(Arena, arena);
-  clientArena = Arena2ClientArena(arena);
-  AVERT(ClientArena, clientArena);
+  AVERC(ClientArena, arena);
   AVER(SizeIsAligned(size, ChunkPageSize(arena->primary)));
   AVER(AddrIsAligned(base, ChunkPageSize(arena->primary)));
 

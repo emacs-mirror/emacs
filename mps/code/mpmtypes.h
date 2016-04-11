@@ -74,6 +74,7 @@ typedef unsigned FrameState;            /* <design/alloc-frame/> */
 typedef struct mps_fmt_s *Format;       /* design.mps.format */
 typedef struct LockStruct *Lock;        /* <code/lock.c>* */
 typedef struct mps_pool_s *Pool;        /* <design/pool/> */
+typedef Pool AbstractPool;
 typedef struct mps_pool_class_s *PoolClass;  /* <code/poolclas.c> */
 typedef struct TraceStruct *Trace;      /* <design/trace/> */
 typedef struct ScanStateStruct *ScanState; /* <design/trace/> */
@@ -89,6 +90,7 @@ typedef struct LocusPrefStruct *LocusPref; /* <design/locus/>, <code/locus.c> */
 typedef int LocusPrefKind;              /* <design/locus/>, <code/locus.c> */
 typedef struct mps_arena_class_s *ArenaClass; /* <design/arena/> */
 typedef struct mps_arena_s *Arena;      /* <design/arena/> */
+typedef Arena AbstractArena;
 typedef struct GlobalsStruct *Globals;  /* <design/arena/> */
 typedef struct VMStruct *VM;            /* <code/vm.c>* */
 typedef struct RootStruct *Root;        /* <code/root.c> */
