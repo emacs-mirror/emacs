@@ -785,7 +785,7 @@ void TraceDestroyInit(Trace trace)
   /* Ensure that address space is returned to the operating system for
    * traces that don't have any condemned objects (there might be
    * manually allocated objects that were freed). See job003999. */
-  ArenaCompact(arena, trace);
+  ArenaCompact(trace->arena, trace);
 
   EVENT1(TraceDestroy, trace);
 
