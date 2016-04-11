@@ -69,30 +69,41 @@ several classes which do not themselves support identical protocols.
 Overview
 --------
 
-``typedef struct InstClassStruct *InstClass``
+_`.overview.inst`: The key concept in the design is the relationship
+between an "instance" and its "class".  Every structure that
+participates in the protocol system begins with an ``InstStruct``
+structure that contains a pointer to an ``InstClassStruct`` that
+describes it, like this::
 
-_`.overview.root`: We start with the root of all conformant class
-hierarchies, which is called ``InstClass``. This is an "abstract"
-class (that is, it has no direct instances, but it is intended to have
-subclasses). To use Dylan terminology, instances of its subclasses are
-"general" instances of InstClass. They look like this::
+      instance          class      
+                                   
+     .----------.      .----------.
+     |  class   |----->|  class   |
+     ------------      ------------
+     |  ...     |      |  sig     |
+     ------------      ------------
+     |  ...     |      |  name    |
+     ------------      ------------
+     |  ...     |      |superclass|
+     ------------      ------------
+     |          |      |   ...    |
 
-     Instance Object                    Class Object
 
-     --------------------              --------------------
-     |     class        |------------->|    sig           |
-     --------------------              --------------------
-     |     ...          |              |    name          |
-     --------------------              --------------------
-     |     ...          |              |    superclass    |
-     --------------------              --------------------
-     |     ...          |              |    typeId        |
-     --------------------              --------------------
-     |                  |              |     ...          |
+_`.overview.method`: The ``InstClassStruct`` it itself at the start of
+a class structure contains pointers to functions that can be called to
+manipulate the instance as an abstract data type.  We refer to these
+functions as "methods" to distinguish them from functions not involved
+in the object-oriented protocol.
 
-_`.overview.inherit`: Classes inherit the protocols supported by their
+_`.overview.subclass`: An instance structure can be extended by using
+it as the first field of another structure, and by overriding its
+class pointer with a pointer to a "subclass" that provides different
+behavior.
+
+_`.overview.inherit`: Classes inherit the methods from their
 superclasses. By default they have the same methods as the class(es)
-from which they inherit.
+from which they inherit.  Methods on the superclass can be re-used,
+providing polymorphism.
 
 _`.overview.inherit.specialize`: Classes may specialize the behaviour
 of their superclass. They do this by by overriding methods or other
@@ -100,26 +111,30 @@ fields in the class object.
 
 _`.overview.extend`: Classes may extend the protocols supported by
 their superclasses by adding new fields for methods or other data.
+Extending a class creates a new kind of class.
 
-_`.overview.sig.inherit`: Classes will contain (possibly several)
-signatures. Classes must not specialize (override) the signatures they
-inherit from their superclasses.
+_`.overview.kind`: Classes are themselves instance objects, and have
+classes of their own.  A class of a class is referred to as a "kind",
+but is not otherwise special.  Classes which share the same set of
+methods (or other class fields) are instances of the same kind.  If a
+class is extended, it becomes a member of a different kind.  Kinds
+allow subtype checking to be applied to classes as well as instances,
+to determine whether methods are available.
 
-_`.overview.sig.extend`: If a class definition extends a protocol, it
-is normal policy for the class definition to include a new signature
-as the last field in the class object.
+_`.overview.sig.inherit`: Instances (and therefore classes) will
+contain (possibly several) signatures. Classes must not specialize
+(override) the signatures they inherit from their superclasses.
+
+_`.overview.sig.extend`: When extending an instance or class, it is
+normal policy for the new structure to include a new signature as the
+last field.
 
 _`.overview.superclass`: Each class contains a ``superclass`` field.
 This enables classes to call "next-method".
 
 _`.overview.next-method`: A specialized method in a class can make use
 of an overridden method from a superclass by accessing the method from
-the appropriate field in the superclass object and calling it. The
-superclass may be accessed indirectly from the class's "ensure"
-function when it is statically known (see `.overview.access`_). This
-permits "next-method" calls, and is fully scalable in that it allows
-arbitrary length method chains. The ``SUPERCLASS()`` macro helps with
-this (see `.int.static-superclass`_).
+the appropriate field in the superclass object and calling it.
 
 _`.overview.next-method.naive`: In some cases it is necessary to write
 a method which is designed to specialize an inherited method, needs to
@@ -151,9 +166,16 @@ obligatory because it is assumed by the macros which support the
 definition and inheritance mechanism. For every kind ``Foo``,
 we insist upon the following naming conventions:-
 
-* ``FooClass`` names the type that points to a ``FooClassStruct``
+* ``Foo`` names a type that points to a ``FooStruct``.
 
-* ``FooClassStruct`` names the structure for the protocol class.
+* ``FooStruct`` is the type of the instance structure, the first field
+  of which is the structure it inherits from (ultimately an
+  ``InstStruct``).
+
+* ``FooClass`` names the type that points to a ``FooClassStruct``.
+
+* ``FooClassStruct`` names the structure for the class pointed to by
+  ``FooStruct``, containing the methods that operate on ``Foo``.
 
 
 Interface
@@ -167,7 +189,7 @@ Class declaration
 
 _`.int.declare-class`: Class declaration is performed by the macro
 ``DECLARE_CLASS``, which declares the existence of the class
-definition elsewhere.  It is intended for use in headers.
+definition elsewhere.  It is intended for use where in headers.
 
 
 Class definition
