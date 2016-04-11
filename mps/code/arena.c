@@ -949,6 +949,7 @@ Res ArenaFreeLandInsert(Arena arena, Addr base, Addr limit)
   Res res;
 
   AVERT(Arena, arena);
+  AVER(base < limit);
 
   RangeInit(&range, base, limit);
   res = arenaFreeLandInsertExtend(&oldRange, arena, &range);
