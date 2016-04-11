@@ -30,20 +30,13 @@ static void fillup(void)
 {
  size_t size;
  mps_addr_t a;
- char *b;
 
  die(mps_pool_create(&poolmv, arena, mps_class_mv(),
                      (size_t)64, (size_t)64, (size_t)64),
      "create MV pool");
- size=1024ul*1024ul;
- while (size) {
-  while (mps_alloc(&a, poolmv, size)==MPS_RES_OK) {
-   for(b=a; b<(char *)a+size; b++) {
-    *b = 97;
-   }
-  }
-  size = size / 2;
- }
+ for (size=1024ul*1024ul; size >= 4096ul; size /= 2)
+  while (mps_alloc(&a, poolmv, size)==MPS_RES_OK)
+   ;
 }
 
 
@@ -115,10 +108,10 @@ static void test(void)
  
  empty();
 
- for (j=0; j<1000*1024; j++) {
-  res=allocrdumb(&a, ap, 1024, mps_rank_exact());
+ for (j=0; j<1000; j++) {
+  res=allocrdumb(&a, ap, 1024*1024, mps_rank_exact());
   if (res == MPS_RES_OK) {
-   if (j % 100000 == 0) {
+   if (j % 100 == 0) {
     comment("%i ok", j);
    }
   } else {

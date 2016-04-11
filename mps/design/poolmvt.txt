@@ -10,6 +10,9 @@ Manual Variable Temporal (MVT) pool design
 :Status: incomplete design
 :Revision: $Id$
 :Copyright: See section `C. Copyright and License`_.
+:Index terms:
+   pair: MVT pool class; design
+   single: pool class; MVT design
 
 
 Introduction
@@ -1021,7 +1024,7 @@ B. Document History
 C. Copyright and License
 ------------------------
 
-Copyright (C) 2002-2014 Ravenbrook Limited. All rights reserved.
+Copyright (C) 2002-2016 Ravenbrook Limited. All rights reserved.
 <http://www.ravenbrook.com/>. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

@@ -481,7 +481,7 @@ _`.fun.awlsegcreate.where`: The segment is allocated using a
 generation preference, using the generation number stored in the
 ``AWLStruct`` (the ``gen`` field), see `.poolstruct.gen`_ above.
 
-``Res awlSegInit(Seg seg, Pool pool, Addr base, Size size, Bool reservoirPermit, va_list args)``
+``Res awlSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)``
 
 _`.fun.awlseginit`: Init method for ``AWLSegClass``, called for
 ``SegAlloc()`` whenever an ``AWLSeg`` is created (see
@@ -565,8 +565,8 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited. All rights reserved.
-<http://www.ravenbrook.com/>. This is an open source license. Contact
+Copyright © 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
 Redistribution and use in source and binary forms, with or without

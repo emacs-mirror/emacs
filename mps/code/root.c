@@ -1,7 +1,7 @@
 /* root.c: ROOT IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001-2015 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: This is the implementation of the root datatype.
  *
@@ -16,6 +16,11 @@ SRCID(root, "$Id$");
 /* RootStruct -- tracing root structure */
 
 #define RootSig         ((Sig)0x51960029) /* SIGnature ROOT */
+
+typedef union AreaScanUnion {
+  void *closure;
+  mps_scan_tag_s tag;       /* tag for scanning */
+} AreaScanUnion;
 
 typedef struct RootStruct {
   Sig sig;
@@ -34,24 +39,21 @@ typedef struct RootStruct {
   union RootUnion {
     struct {
       mps_root_scan_t scan;     /* the function which does the scanning */
-      void *p;                  /* environment for scan */
-      size_t s;                 /* environment for scan */
+      void *p;                  /* closure for scan function */
+      size_t s;                 /* closure for scan function */
     } fun;
     struct {
-      Addr *base;               /* beginning of table */
-      Addr *limit;              /* one off end of table */
-    } table;
+      Word *base;               /* base of area to be scanned */
+      Word *limit;              /* limit of area to be scanned */
+      mps_area_scan_t scan_area;/* area scanning function */
+      AreaScanUnion the;
+    } area;
     struct {
-      Addr *base;               /* beginning of table */
-      Addr *limit;              /* one off end of table */
-      Word mask;                /* tag mask for scanning */
-    } tableMasked;
-    struct {
-      mps_reg_scan_t scan;      /* function for scanning registers */
       Thread thread;            /* passed to scan */
-      void *p;                  /* passed to scan */
-      size_t s;                 /* passed to scan */
-    } reg;
+      mps_area_scan_t scan_area;/* area scanner for stack and registers */
+      AreaScanUnion the;
+      Word *stackCold;          /* cold end of stack */
+    } thread;
     struct {
       mps_fmt_scan_t scan;      /* format-like scanner */
       Addr base, limit;         /* passed to scan */
@@ -66,8 +68,10 @@ typedef struct RootStruct {
 
 Bool RootVarCheck(RootVar rootVar)
 {
-  CHECKL(rootVar == RootTABLE || rootVar == RootTABLE_MASKED
-         || rootVar == RootFUN || rootVar == RootFMT || rootVar == RootREG);
+  CHECKL(rootVar == RootAREA || rootVar == RootAREA_TAGGED
+         || rootVar == RootFUN || rootVar == RootFMT
+         || rootVar == RootTHREAD
+         || rootVar == RootTHREAD_TAGGED);
   UNUSED(rootVar);
   return TRUE;
 }
@@ -104,33 +108,42 @@ Bool RootCheck(Root root)
   /* Don't need to check var here, because of the switch below */
   switch(root->var)
   {
-    case RootTABLE:
-    CHECKL(root->the.table.base != 0);
-    CHECKL(root->the.table.base < root->the.table.limit);
+  case RootAREA:
+    CHECKL(root->the.area.base != 0);
+    CHECKL(root->the.area.base < root->the.area.limit);
+    CHECKL(FUNCHECK(root->the.area.scan_area));
+    /* Can't check anything about closure */
     break;
 
-    case RootTABLE_MASKED:
-    CHECKL(root->the.tableMasked.base != 0);
-    CHECKL(root->the.tableMasked.base < root->the.tableMasked.limit);
-    /* Can't check anything about the mask. */
+  case RootAREA_TAGGED:
+    CHECKL(root->the.area.base != 0);
+    CHECKL(root->the.area.base < root->the.area.limit);
+    CHECKL(FUNCHECK(root->the.area.scan_area));
+    /* Can't check anything about tag as it could mean anything to
+       scan_area. */
     break;
 
-    case RootFUN:
+  case RootFUN:
     CHECKL(root->the.fun.scan != NULL);
+    /* Can't check anything about closure as it could mean anything to
+       scan. */
     break;
 
-    case RootREG:
-    CHECKL(root->the.reg.scan != NULL);
-    CHECKD_NOSIG(Thread, root->the.reg.thread); /* <design/check/#hidden-type> */
+  case RootTHREAD_TAGGED:
+    CHECKD_NOSIG(Thread, root->the.thread.thread); /* <design/check/#hidden-type> */
+    CHECKL(FUNCHECK(root->the.thread.scan_area));
+    /* Can't check anything about tag as it could mean anything to
+       scan_area. */
+    /* Can't check anything about stackCold. */
     break;
 
-    case RootFMT:
+  case RootFMT:
     CHECKL(root->the.fmt.scan != NULL);
     CHECKL(root->the.fmt.base != 0);
     CHECKL(root->the.fmt.base < root->the.fmt.limit);
     break;
 
-    default:
+  default:
     NOTREACHED;
   }
   CHECKL(RootModeCheck(root->mode));
@@ -149,7 +162,7 @@ Bool RootCheck(Root root)
 }
 
 
-/* rootCreate, RootCreateTable, RootCreateReg, RootCreateFmt, RootCreateFun
+/* rootCreate, RootCreateArea, RootCreateThread, RootCreateFmt, RootCreateFun
  *
  * RootCreate* set up the appropriate union member, and call the generic
  * create function to do the actual creation
@@ -168,10 +181,11 @@ static Res rootCreate(Root *rootReturn, Arena arena,
   AVER(rootReturn != NULL);
   AVERT(Arena, arena);
   AVERT(Rank, rank);
+  AVERT(RootMode, mode);
   AVERT(RootVar, type);
   globals = ArenaGlobals(arena);
 
-  res = ControlAlloc(&p, arena, sizeof(RootStruct), FALSE);
+  res = ControlAlloc(&p, arena, sizeof(RootStruct));
   if (res != ResOK)
     return res;
   root = (Root)p; /* Avoid pun */
@@ -253,8 +267,11 @@ static Res rootCreateProtectable(Root *rootReturn, Arena arena,
   return ResOK;
 }
 
-Res RootCreateTable(Root *rootReturn, Arena arena,
-                    Rank rank, RootMode mode, Addr *base, Addr *limit)
+Res RootCreateArea(Root *rootReturn, Arena arena,
+                   Rank rank, RootMode mode,
+                   Word *base, Word *limit,
+                   mps_area_scan_t scan_area,
+                   void *closure)
 {
   Res res;
   union RootUnion theUnion;
@@ -262,43 +279,54 @@ Res RootCreateTable(Root *rootReturn, Arena arena,
   AVER(rootReturn != NULL);
   AVERT(Arena, arena);
   AVERT(Rank, rank);
+  AVERT(RootMode, mode);
   AVER(base != 0);
   AVER(AddrIsAligned(base, sizeof(Word)));
   AVER(base < limit);
   AVER(AddrIsAligned(limit, sizeof(Word)));
+  AVER(FUNCHECK(scan_area));
+  /* Can't check anything about closure */
 
-  theUnion.table.base = base;
-  theUnion.table.limit = limit;
+  theUnion.area.base = base;
+  theUnion.area.limit = limit;
+  theUnion.area.scan_area = scan_area;
+  theUnion.area.the.closure = closure;
 
   res = rootCreateProtectable(rootReturn, arena, rank, mode,
-                              RootTABLE, (Addr)base, (Addr)limit, &theUnion);
+                              RootAREA, (Addr)base, (Addr)limit, &theUnion);
   return res;
 }
 
-Res RootCreateTableMasked(Root *rootReturn, Arena arena,
-                          Rank rank, RootMode mode, Addr *base, Addr *limit,
-                          Word mask)
+Res RootCreateAreaTagged(Root *rootReturn, Arena arena,
+                         Rank rank, RootMode mode, Word *base, Word *limit,
+                         mps_area_scan_t scan_area, Word mask, Word pattern)
 {
   union RootUnion theUnion;
 
   AVER(rootReturn != NULL);
   AVERT(Arena, arena);
   AVERT(Rank, rank);
+  AVERT(RootMode, mode);
   AVER(base != 0);
   AVER(base < limit);
-  /* Can't check anything about mask. */
+  /* Can't check anything about mask or pattern, as they could mean
+     anything to scan_area. */
 
-  theUnion.tableMasked.base = base;
-  theUnion.tableMasked.limit = limit;
-  theUnion.tableMasked.mask = mask;
+  theUnion.area.base = base;
+  theUnion.area.limit = limit;
+  theUnion.area.scan_area = scan_area;
+  theUnion.area.the.tag.mask = mask;
+  theUnion.area.the.tag.pattern = pattern;
 
-  return rootCreateProtectable(rootReturn, arena, rank, mode, RootTABLE_MASKED,
+  return rootCreateProtectable(rootReturn, arena, rank, mode, RootAREA_TAGGED,
                                (Addr)base, (Addr)limit, &theUnion);
 }
 
-Res RootCreateReg(Root *rootReturn, Arena arena,
-                  Rank rank, Thread thread,
-                  mps_reg_scan_t scan, void *p, size_t s)
+Res RootCreateThread(Root *rootReturn, Arena arena,
+                     Rank rank, Thread thread,
+                     mps_area_scan_t scan_area,
+                     void *closure,
+                     Word *stackCold)
 {
   union RootUnion theUnion;
 
@@ -307,14 +335,43 @@ Res RootCreateReg(Root *rootReturn, Arena arena,
   AVERT(Rank, rank);
   AVERT(Thread, thread);
   AVER(ThreadArena(thread) == arena);
-  AVER(scan != NULL);
+  AVER(FUNCHECK(scan_area));
+  /* Can't check anything about closure. */
 
-  theUnion.reg.scan = scan;
-  theUnion.reg.thread = thread;
-  theUnion.reg.p = p;
-  theUnion.reg.s = s;
+  theUnion.thread.thread = thread;
+  theUnion.thread.scan_area = scan_area;
+  theUnion.thread.the.closure = closure;
+  theUnion.thread.stackCold = stackCold;
 
-  return rootCreate(rootReturn, arena, rank, (RootMode)0, RootREG, &theUnion);
+  return rootCreate(rootReturn, arena, rank, (RootMode)0, RootTHREAD,
+                    &theUnion);
+}
+
+Res RootCreateThreadTagged(Root *rootReturn, Arena arena,
+                           Rank rank, Thread thread,
+                           mps_area_scan_t scan_area,
+                           Word mask, Word pattern,
+                           Word *stackCold)
+{
+  union RootUnion theUnion;
+
+  AVER(rootReturn != NULL);
+  AVERT(Arena, arena);
+  AVERT(Rank, rank);
+  AVERT(Thread, thread);
+  AVER(ThreadArena(thread) == arena);
+  AVER(FUNCHECK(scan_area));
+  /* Can't check anything about mask or pattern, as they could mean
+     anything to scan_area. */
+
+  theUnion.thread.thread = thread;
+  theUnion.thread.scan_area = scan_area;
+  theUnion.thread.the.tag.mask = mask;
+  theUnion.thread.the.tag.pattern = pattern;
+  theUnion.thread.stackCold = stackCold;
+
+  return rootCreate(rootReturn, arena, rank, (RootMode)0, RootTHREAD_TAGGED,
+                    &theUnion);
 }
 
 /* RootCreateFmt -- create root from block of formatted objects
@@ -333,6 +390,7 @@ Res RootCreateFmt(Root *rootReturn, Arena arena,
   AVER(rootReturn != NULL);
   AVERT(Arena, arena);
   AVERT(Rank, rank);
+  AVERT(RootMode, mode);
   AVER(FUNCHECK(scan));
   AVER(base != 0);
   AVER(base < limit);
@@ -470,44 +528,60 @@ Res RootScan(ScanState ss, Root root)
   }
 
   switch(root->var) {
-    case RootTABLE:
-    res = TraceScanArea(ss, root->the.table.base, root->the.table.limit);
-    ss->scannedSize += AddrOffset(root->the.table.base, root->the.table.limit);
+  case RootAREA:
+    res = TraceScanArea(ss,
+                        root->the.area.base,
+                        root->the.area.limit,
+                        root->the.area.scan_area,
+                        root->the.area.the.closure);
     if (res != ResOK)
       goto failScan;
     break;
 
-    case RootTABLE_MASKED:
-    res = TraceScanAreaMasked(ss,
-                              root->the.tableMasked.base,
-                              root->the.tableMasked.limit,
-                              root->the.tableMasked.mask);
-    ss->scannedSize += AddrOffset(root->the.table.base, root->the.table.limit);
+  case RootAREA_TAGGED:
+    res = TraceScanArea(ss,
+                        root->the.area.base,
+                        root->the.area.limit,
+                        root->the.area.scan_area,
+                        &root->the.area.the.tag);
     if (res != ResOK)
       goto failScan;
     break;
 
-    case RootFUN:
-    res = (*root->the.fun.scan)(&ss->ss_s, root->the.fun.p, root->the.fun.s);
+  case RootFUN:
+    res = root->the.fun.scan(&ss->ss_s,
+                             root->the.fun.p,
+                             root->the.fun.s);
     if (res != ResOK)
       goto failScan;
     break;
 
-    case RootREG:
-    res = (*root->the.reg.scan)(&ss->ss_s, root->the.reg.thread,
-                                root->the.reg.p, root->the.reg.s);
+  case RootTHREAD:
+    res = ThreadScan(ss, root->the.thread.thread,
+                     root->the.thread.stackCold,
+                     root->the.thread.scan_area,
+                     root->the.thread.the.closure);
     if (res != ResOK)
       goto failScan;
     break;
 
-    case RootFMT:
+  case RootTHREAD_TAGGED:
+    res = ThreadScan(ss, root->the.thread.thread,
+                     root->the.thread.stackCold,
+                     root->the.thread.scan_area,
+                     &root->the.thread.the.tag);
+    if (res != ResOK)
+      goto failScan;
+    break;
+    
+  case RootFMT:
     res = (*root->the.fmt.scan)(&ss->ss_s, root->the.fmt.base, root->the.fmt.limit);
     ss->scannedSize += AddrOffset(root->the.fmt.base, root->the.fmt.limit);
     if (res != ResOK)
       goto failScan;
     break;
 
-    default:
+  default:
     NOTREACHED;
     res = ResUNIMPL;
     goto failScan;
@@ -624,47 +698,63 @@ Res RootDescribe(Root root, mps_lib_FILE *stream, Count depth)
     return res;
 
   switch(root->var) {
-    case RootTABLE:
+  case RootAREA:
     res = WriteF(stream, depth + 2,
-                 "table base $A limit $A\n",
-                 (WriteFA)root->the.table.base,
-                 (WriteFA)root->the.table.limit,
+                 "area base $A limit $A scan_area closure $P\n",
+                 (WriteFA)root->the.area.base,
+                 (WriteFA)root->the.area.limit,
+                 (WriteFP)root->the.area.the.closure,
                  NULL);
     if (res != ResOK)
       return res;
     break;
 
-    case RootTABLE_MASKED:
+  case RootAREA_TAGGED:
     res = WriteF(stream, depth + 2,
-                 "table base $A limit $A mask $B\n",
-                 (WriteFA)root->the.tableMasked.base,
-                 (WriteFA)root->the.tableMasked.limit,
-                 (WriteFB)root->the.tableMasked.mask,
+                 "area base $A limit $A scan_area mask $B pattern $B\n",
+                 (WriteFA)root->the.area.base,
+                 (WriteFA)root->the.area.limit,
+                 (WriteFB)root->the.area.the.tag.mask,
+                 (WriteFB)root->the.area.the.tag.pattern,
                  NULL);
     if (res != ResOK)
       return res;
     break;
 
-    case RootFUN:
+  case RootFUN:
     res = WriteF(stream, depth + 2,
                  "scan function $F\n", (WriteFF)root->the.fun.scan,
                  "environment p $P s $W\n",
-                 (WriteFP)root->the.fun.p, (WriteFW)root->the.fun.s,
+                 (WriteFP)root->the.fun.p,
+                 (WriteFW)root->the.fun.s,
                  NULL);
     if (res != ResOK)
       return res;
     break;
 
-    case RootREG:
+  case RootTHREAD:
     res = WriteF(stream, depth + 2,
-                 "thread $P\n", (WriteFP)root->the.reg.thread,
-                 "environment p $P", (WriteFP)root->the.reg.p,
+                 "thread $P\n", (WriteFP)root->the.thread.thread,
+                 "closure $P\n",
+                 (WriteFP)root->the.thread.the.closure,
+                 "stackCold $P\n", (WriteFP)root->the.thread.stackCold,
                  NULL);
     if (res != ResOK)
       return res;
     break;
 
-    case RootFMT:
+  case RootTHREAD_TAGGED:
+    res = WriteF(stream, depth + 2,
+                 "thread $P\n", (WriteFP)root->the.thread.thread,
+                 "mask $B\n", (WriteFB)root->the.thread.the.tag.mask,
+                 "pattern $B\n", (WriteFB)root->the.thread.the.tag.pattern,
+                 "stackCold $P\n", (WriteFP)root->the.thread.stackCold,
+                 NULL);
+    if (res != ResOK)
+      return res;
+    break;
+
+  case RootFMT:
     res = WriteF(stream, depth + 2,
                  "scan function $F\n", (WriteFF)root->the.fmt.scan,
                  "format base $A limit $A\n",
@@ -674,7 +764,7 @@ Res RootDescribe(Root root, mps_lib_FILE *stream, Count depth)
       return res;
     break;
           
-    default:
+  default:
     NOTREACHED;
   }
 
@@ -707,7 +797,7 @@ Res RootsDescribe(Globals arenaGlobals, mps_lib_FILE *stream, Count depth)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2015 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

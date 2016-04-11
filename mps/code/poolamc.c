@@ -1,14 +1,14 @@
 /* poolamc.c: AUTOMATIC MOSTLY-COPYING MEMORY POOL CLASS
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .sources: <design/poolamc/>.
  */
 
 #include "mpscamc.h"
-#include "chain.h"
+#include "locus.h"
 #include "bt.h"
 #include "mpm.h"
 #include "nailboard.h"
@@ -123,8 +123,7 @@ static Bool amcSegCheck(amcSeg amcseg)
 ARG_DEFINE_KEY(amc_seg_gen, Pointer);
 #define amcKeySegGen (&_mps_key_amc_seg_gen)
 
-static Res AMCSegInit(Seg seg, Pool pool, Addr base, Size size,
-                      Bool reservoirPermit, ArgList args)
+static Res AMCSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 {
   amcGen amcgen;
   SegClass super;
@@ -138,11 +137,10 @@ static Res AMCSegInit(Seg seg, Pool pool, Addr base, Size size,
   AVERT(Seg, seg);
   amcseg = Seg2amcSeg(seg);
   /* no useful checks for base and size */
-  AVERT(Bool, reservoirPermit);
 
   /* Initialize the superclass fields first via next-method call */
   super = SEG_SUPERCLASS(amcSegClass);
-  res = super->init(seg, pool, base, size, reservoirPermit, args);
+  res = super->init(seg, pool, base, size, args);
   if(res != ResOK)
     return res;
 
@@ -592,7 +590,7 @@ static Res amcGenCreate(amcGen *genReturn, AMC amc, GenDesc gen)
   pool = AMCPool(amc);
   arena = pool->arena;
 
-  res = ControlAlloc(&p, arena, sizeof(amcGenStruct), FALSE);
+  res = ControlAlloc(&p, arena, sizeof(amcGenStruct));
   if(res != ResOK)
     goto failControlAlloc;
   amcgen = (amcGen)p;
@@ -807,7 +805,7 @@ static Res amcInitComm(Pool pool, RankSet rankSet, ArgList args)
 
     /* One gen for each one in the chain plus dynamic gen. */
     genArraySize = sizeof(amcGen) * (genCount + 1);
-    res = ControlAlloc(&p, arena, genArraySize, FALSE);
+    res = ControlAlloc(&p, arena, genArraySize);
     if(res != ResOK)
       goto failGensAlloc;
     amc->gen = p;
@@ -916,8 +914,7 @@ static void AMCFinish(Pool pool)
  * See <design/poolamc/#fill>.
  */
 static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
-                         Pool pool, Buffer buffer, Size size,
-                         Bool withReservoirPermit)
+                         Pool pool, Buffer buffer, Size size)
 {
   Seg seg;
   AMC amc;
@@ -938,7 +935,6 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVER(BufferIsReset(buffer));
   AVER(size > 0);
   AVER(SizeIsAligned(size, PoolAlignment(pool)));
-  AVERT(Bool, withReservoirPermit);
 
   arena = PoolArena(pool);
   gen = amcBufGen(buffer);
@@ -957,8 +953,7 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
   }
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD_FIELD(args, amcKeySegGen, p, gen);
-    res = PoolGenAlloc(&seg, pgen, amcSegClassGet(), grainsSize,
-                       withReservoirPermit, args);
+    res = PoolGenAlloc(&seg, pgen, amcSegClassGet(), grainsSize, args);
   } MPS_ARGS_END(args);
   if(res != ResOK)
     return res;
@@ -1247,9 +1242,12 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
 
 /* amcScanNailedRange -- make one scanning pass over a range of
  * addresses in a nailed segment.
+ *
+ * *totalReturn is set to FALSE if not all the objects between base and
+ * limit have been scanned.  It is not touched otherwise.
  */
 static Res amcScanNailedRange(Bool *totalReturn, Bool *moreReturn,
-                              Size *bytesScanned, ScanState ss,
+                              ScanState ss,
                               AMC amc, Nailboard board,
                               Addr base, Addr limit)
 {
@@ -1265,14 +1263,12 @@ static Res amcScanNailedRange(Bool *totalReturn, Bool *moreReturn,
     Addr q;
     q = (*format->skip)(p);
     if ((*amc->pinned)(amc, board, p, q)) {
-      Res res;
-      res = (*format->scan)(&ss->ss_s, p, q);
+      Res res = FormatScan(format, ss, p, q);
       if(res != ResOK) {
         *totalReturn = FALSE;
         *moreReturn = TRUE;
         return res;
       }
-      *bytesScanned += AddrOffset(p, q);
     } else {
       *totalReturn = FALSE;
     }
@@ -1297,7 +1293,6 @@ static Res amcScanNailedOnce(Bool *totalReturn, Bool *moreReturn,
                              ScanState ss, Seg seg, AMC amc)
 {
   Addr p, limit;
-  Size bytesScanned = 0;
   Nailboard board;
   Res res;
 
@@ -1314,7 +1309,7 @@ static Res amcScanNailedOnce(Bool *totalReturn, Bool *moreReturn,
       AVER(p == limit);
       goto returnGood;
     }
-    res = amcScanNailedRange(totalReturn, moreReturn, &bytesScanned, 
+    res = amcScanNailedRange(totalReturn, moreReturn,
                              ss, amc, board, p, limit);
     if (res != ResOK)
       return res;
@@ -1323,7 +1318,7 @@ static Res amcScanNailedOnce(Bool *totalReturn, Bool *moreReturn,
 
   limit = SegLimit(seg);
   /* @@@@ Shouldn't p be set to BufferLimit here?! */
-  res = amcScanNailedRange(totalReturn, moreReturn, &bytesScanned,
+  res = amcScanNailedRange(totalReturn, moreReturn,
                            ss, amc, board, p, limit);
   if (res != ResOK)
     return res;
@@ -1331,8 +1326,6 @@ static Res amcScanNailedOnce(Bool *totalReturn, Bool *moreReturn,
 returnGood:
   EVENT3(AMCScanEnd, amc, seg, ss); /* TODO: consider using own event */
 
-  AVER(bytesScanned <= SegSize(seg));
-  ss->scannedSize += bytesScanned;
   *moreReturn = NailboardNewNails(board);
   return ResOK;
 }
@@ -1423,12 +1416,11 @@ static Res AMCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
       *totalReturn = TRUE;
       return ResOK;
     }
-    res = (*format->scan)(&ss->ss_s, base, limit);
+    res = FormatScan(format, ss, base, limit);
     if(res != ResOK) {
       *totalReturn = FALSE;
       return res;
     }
-    ss->scannedSize += AddrOffset(base, limit);
     base = limit;
   }
 
@@ -1437,14 +1429,13 @@ static Res AMCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
   AVER(SegBase(seg) <= base);
   AVER(base <= AddrAdd(SegLimit(seg), format->headerSize));
   if(base < limit) {
-    res = (*format->scan)(&ss->ss_s, base, limit);
+    res = FormatScan(format, ss, base, limit);
     if(res != ResOK) {
       *totalReturn = FALSE;
       return res;
     }
   }
 
-  ss->scannedSize += AddrOffset(base, limit);
   EVENT3(AMCScanEnd, amc, seg, ss);
 
   *totalReturn = TRUE;
@@ -1646,7 +1637,7 @@ static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     STATISTIC_STAT(++ss->forwardedCount);
     ss->forwardedSize += length;
     do {
-      res = BUFFER_RESERVE(&newBase, buffer, length, FALSE);
+      res = BUFFER_RESERVE(&newBase, buffer, length);
       if (res != ResOK)
         goto returnRes;
       newRef = AddrAdd(newBase, headerSize);
@@ -2258,7 +2249,7 @@ static Bool AMCCheck(AMC amc)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

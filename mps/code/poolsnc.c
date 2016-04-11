@@ -226,8 +226,7 @@ static Bool SNCSegCheck(SNCSeg sncseg)
 
 /* sncSegInit -- Init method for SNC segments */
 
-static Res sncSegInit(Seg seg, Pool pool, Addr base, Size size,
-                      Bool reservoirPermit, ArgList args)
+static Res sncSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 {
   SegClass super;
   SNCSeg sncseg;
@@ -237,11 +236,10 @@ static Res sncSegInit(Seg seg, Pool pool, Addr base, Size size,
   sncseg = SegSNCSeg(seg);
   AVERT(Pool, pool);
   /* no useful checks for base and size */
-  AVERT(Bool, reservoirPermit);
 
   /* Initialize the superclass fields first via next-method call */
   super = SEG_SUPERCLASS(SNCSegClass);
-  res = super->init(seg, pool, base, size, reservoirPermit, args);
+  res = super->init(seg, pool, base, size, args);
   if (res != ResOK)
     return res;
 
@@ -419,8 +417,7 @@ static void SNCFinish(Pool pool)
 
 
 static Res SNCBufferFill(Addr *baseReturn, Addr *limitReturn,
-                         Pool pool, Buffer buffer, Size size,
-                         Bool withReservoirPermit)
+                         Pool pool, Buffer buffer, Size size)
 {
   SNC snc;
   Arena arena;
@@ -433,7 +430,6 @@ static Res SNCBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVERT(Pool, pool);
   AVERT(Buffer, buffer);
   AVER(size > 0);
-  AVERT(Bool, withReservoirPermit);
   AVER(BufferIsReset(buffer));
 
   snc = PoolSNC(pool);
@@ -448,7 +444,7 @@ static Res SNCBufferFill(Addr *baseReturn, Addr *limitReturn,
   arena = PoolArena(pool);
   asize = SizeArenaGrains(size, arena);
   res = SegAlloc(&seg, SNCSegClassGet(), LocusPrefDefault(),
-                 asize, pool, withReservoirPermit, argsNone);
+                 asize, pool, argsNone);
   if (res != ResOK)
     return res;
 
@@ -527,7 +523,7 @@ static Res SNCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
   }
  
   if (base < limit) {
-    res = (*format->scan)(&ss->ss_s, base, limit);
+    res = FormatScan(format, ss, base, limit);
     if (res != ResOK) {
       *totalReturn = FALSE;
       return res;
@@ -535,8 +531,6 @@ static Res SNCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
   } else {
     AVER(base == limit);
   }
-
-  ss->scannedSize += AddrOffset(base, limit);
 
   *totalReturn = TRUE;
   return ResOK;
@@ -664,6 +658,52 @@ static void SNCWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
 }
 
 
+/* SNCTotalSize -- total memory allocated from the arena */
+
+static Size SNCTotalSize(Pool pool)
+{
+  SNC snc;
+  Ring ring, node, nextNode;
+  Size total = 0;
+
+  AVERT(Pool, pool);
+  snc = PoolSNC(pool);
+  AVERT(SNC, snc);
+
+  ring = &pool->segRing;
+  RING_FOR(node, ring, nextNode) {
+    Seg seg = SegOfPoolRing(node);
+    AVERT(Seg, seg);
+    total += SegSize(seg);
+  }
+
+  return total;
+}
+
+
+/* SNCFreeSize -- free memory (unused by client program) */
+
+static Size SNCFreeSize(Pool pool)
+{
+  SNC snc;
+  Seg seg;
+  Size free = 0;
+
+  AVERT(Pool, pool);
+  snc = PoolSNC(pool);
+  AVERT(SNC, snc);
+
+  seg = snc->freeSegs;
+  while (seg != NULL) {
+    AVERT(Seg, seg);
+    free += SegSize(seg);
+    seg = sncSegNext(seg);
+  }
+
+  return free;
+}
+
+
 /* SNCPoolClass -- the class definition */
 
 DEFINE_POOL_CLASS(SNCPoolClass, this)
@@ -684,6 +724,8 @@ DEFINE_POOL_CLASS(SNCPoolClass, this)
   this->framePopPending = SNCFramePopPending;
   this->walk = SNCWalk;
   this->bufferClass = SNCBufClassGet;
+  this->totalSize = SNCTotalSize;
+  this->freeSize = SNCFreeSize;
   AVERT(PoolClass, this);
 }
 

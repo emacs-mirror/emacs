@@ -1,7 +1,7 @@
 /* nailboardtest.c: NAILBOARD TEST
  *
- * $Id: //info.ravenbrook.com/project/mps/branch/2014-01-15/nailboard/code/fotest.c#1 $
- * Copyright (c) 2014 Ravenbrook Limited.  See end of file for license.
+ * $Id$
+ * Copyright (c) 2014-2016 Ravenbrook Limited.  See end of file for license.
  *
  */
 
@@ -73,7 +73,7 @@ int main(int argc, char **argv)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2014-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

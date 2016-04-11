@@ -142,41 +142,8 @@ struct mps_fmt_A_s fmtA =
    the allocated object to have
 */
 
-mycell *allocdumb(mps_ap_t ap, size_t size)
-{
- mps_addr_t p;
- mycell *q;
- size_t bytes;
- size_t alignment;
 
- bytes = offsetof(struct data, ref) + size;
-
- alignment = MPS_PF_ALIGN; /* needed to make it as wide as size_t */
-
-/* twiddle the value of size to make it aligned */
- bytes = (bytes+alignment-1) & ~(alignment-1);
-
- do
- {
-  die(mps_reserve(&p, ap, bytes), "Reserve: ");
-  INCCOUNT(RESERVE_COUNT);
-  q=p;
-  q->data.tag = MCdata;
-  q->data.id = nextid;
-  q->data.copycount = 0;
-  q->data.numrefs = 0;
-  q->data.checkedflag = 0;
-  q->data.size = bytes;
- }
- while (!mps_commit(ap, p, bytes));
- INCCOUNT(ALLOC_COUNT);
- commentif(alloccomments, "allocated id %li at %p.", nextid, q);
- nextid += 1;
-
- return q;
-}
-
-mycell *allocone(mps_ap_t ap, int size)
+static mycell *allocone(mps_ap_t ap, int size)
 {
  mps_addr_t p;
  mycell *q;
@@ -222,7 +189,6 @@ static mps_res_t myscan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
  int i;
 
  INCCOUNT(SCANCALL_COUNT);
- MPS_SCAN_BEGIN(ss)
  {
   while (base < limit)
   {
@@ -273,7 +239,6 @@ static mps_res_t myscan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
    }
   }
  }
- MPS_SCAN_END(ss);
  return MPS_RES_OK;
 }
 
@@ -390,7 +355,7 @@ static void myfwd(mps_addr_t object, mps_addr_t to)
 
 /* set the nth reference of obj to to (n from 0 to size-1) */
 
-void setref(mycell *obj, int n, mycell *to)
+static void setref(mycell *obj, int n, mycell *to)
 {
  asserts(obj->tag = MCdata, "setref: from non-data object.");
  asserts(to->tag = MCdata, "setref: to non-data object.");
@@ -398,36 +363,6 @@ void setref(mycell *obj, int n, mycell *to)
 
  obj->data.ref[n].addr = to;
  obj->data.ref[n].id = to->data.id;
-}
-
-mycell *getref(mycell *obj, int n)
-{
- asserts(obj->tag = MCdata, "getref: from non-data object.");
- asserts(obj->data.numrefs > n, "getref: access beyond object size.");
- return obj->data.ref[n].addr;
-}
-
-mps_addr_t getdata(mycell *obj)
-{
- return (mps_addr_t) &(obj->data.ref[0]);
-}
-
-long int getid(mycell *obj)
-{
- asserts(obj->tag = MCdata, "getid: non-data object.");
- return obj->data.id;
-}
-
-long int getcopycount(mycell *obj)
-{
- asserts(obj->tag = MCdata, "getcopycount: non-data object.");
- return obj->data.copycount;
-}
-
-long int getsize(mycell *obj)
-{
- asserts(obj->tag = MCdata, "getsize: non-data object.");
- return obj->data.numrefs;
 }
 
 /* ---- Now the test itself! ---- */

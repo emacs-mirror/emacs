@@ -630,10 +630,6 @@ All objects from the MRG pool will then be freed (thus dropping all
 references to the AMC objects). This will test `.promise.faithful`_
 and `.promise.live`_.
 
-_`.test.promise.ut.not`: The following part of the test has not
-implemented. This is because the messaging system has not yet been
-implemented.
-
 _`.test.promise.ut.alloc`: A number of objects will be allocated in
 the AMC pool.
 
@@ -689,8 +685,8 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited. All rights reserved.
-<http://www.ravenbrook.com/>. This is an open source license. Contact
+Copyright © 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
 Redistribution and use in source and binary forms, with or without

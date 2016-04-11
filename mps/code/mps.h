@@ -1,7 +1,7 @@
 /* mps.h: RAVENBROOK MEMORY POOL SYSTEM C INTERFACE
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (c) 2002 Global Graphics Software.
  *
  * THIS HEADER IS NOT DOCUMENTATION.
@@ -102,7 +102,14 @@ _mps_ENUM_DEF(_mps_RES_ENUM, MPS_RES_)
 /* see design.mps.root-interface */
 /* see design.mps.format-interface */
 
+typedef struct mps_scan_tag_s *mps_scan_tag_t;
+typedef struct mps_scan_tag_s {
+  mps_word_t mask;
+  mps_word_t pattern;
+} mps_scan_tag_s;
+
 typedef mps_res_t (*mps_root_scan_t)(mps_ss_t, void *, size_t);
+typedef mps_res_t (*mps_area_scan_t)(mps_ss_t, void *, void *, void *);
 typedef mps_res_t (*mps_fmt_scan_t)(mps_ss_t, mps_addr_t, mps_addr_t);
 typedef mps_res_t (*mps_reg_scan_t)(mps_ss_t, mps_thr_t,
                                     void *, size_t);
@@ -155,12 +162,12 @@ extern const struct mps_key_s _mps_key_ARGS_END;
 #define MPS_KEY_ARGS_END        (&_mps_key_ARGS_END)
 extern mps_arg_s mps_args_none[];
 
-extern const struct mps_key_s _mps_key_ARENA_SIZE;
-#define MPS_KEY_ARENA_SIZE      (&_mps_key_ARENA_SIZE)
-#define MPS_KEY_ARENA_SIZE_FIELD size
 extern const struct mps_key_s _mps_key_ARENA_GRAIN_SIZE;
 #define MPS_KEY_ARENA_GRAIN_SIZE (&_mps_key_ARENA_GRAIN_SIZE)
 #define MPS_KEY_ARENA_GRAIN_SIZE_FIELD size
+extern const struct mps_key_s _mps_key_ARENA_SIZE;
+#define MPS_KEY_ARENA_SIZE      (&_mps_key_ARENA_SIZE)
+#define MPS_KEY_ARENA_SIZE_FIELD size
 extern const struct mps_key_s _mps_key_ARENA_ZONED;
 #define MPS_KEY_ARENA_ZONED     (&_mps_key_ARENA_ZONED)
 #define MPS_KEY_ARENA_ZONED_FIELD b
@@ -176,6 +183,15 @@ extern const struct mps_key_s _mps_key_GEN;
 extern const struct mps_key_s _mps_key_RANK;
 #define MPS_KEY_RANK            (&_mps_key_RANK)
 #define MPS_KEY_RANK_FIELD      rank
+extern const struct mps_key_s _mps_key_COMMIT_LIMIT;
+#define MPS_KEY_COMMIT_LIMIT (&_mps_key_COMMIT_LIMIT)
+#define MPS_KEY_COMMIT_LIMIT_FIELD size
+extern const struct mps_key_s _mps_key_SPARE_COMMIT_LIMIT;
+#define MPS_KEY_SPARE_COMMIT_LIMIT (&_mps_key_SPARE_COMMIT_LIMIT)
+#define MPS_KEY_SPARE_COMMIT_LIMIT_FIELD size
+extern const struct mps_key_s _mps_key_PAUSE_TIME;
+#define MPS_KEY_PAUSE_TIME      (&_mps_key_PAUSE_TIME)
+#define MPS_KEY_PAUSE_TIME_FIELD d
 
 extern const struct mps_key_s _mps_key_EXTEND_BY;
 #define MPS_KEY_EXTEND_BY       (&_mps_key_EXTEND_BY)
@@ -444,6 +460,9 @@ extern mps_res_t mps_arena_commit_limit_set(mps_arena_t, size_t);
 extern void mps_arena_spare_commit_limit_set(mps_arena_t, size_t);
 extern size_t mps_arena_spare_commit_limit(mps_arena_t);
 
+extern double mps_arena_pause_time(mps_arena_t);
+extern void mps_arena_pause_time_set(mps_arena_t, double);
+
 extern mps_bool_t mps_arena_has_addr(mps_arena_t, mps_addr_t);
 extern mps_bool_t mps_addr_pool(mps_pool_t *, mps_arena_t, mps_addr_t);
 extern mps_bool_t mps_addr_fmt(mps_fmt_t *, mps_arena_t, mps_addr_t);
@@ -485,7 +504,7 @@ extern size_t mps_pool_free_size(mps_pool_t);
 
 /* Chains */
 
-/* .gen-param: This structure must match <code/chain.h#gen-param>. */
+/* .gen-param: This structure must match <code/locus.h#gen-param>. */
 typedef struct mps_gen_param_s {
   size_t mps_capacity;
   double mps_mortality;
@@ -514,6 +533,8 @@ extern mps_res_t (mps_reserve)(mps_addr_t *, mps_ap_t, size_t);
 extern mps_bool_t (mps_commit)(mps_ap_t, mps_addr_t, size_t);
 
 extern mps_res_t mps_ap_fill(mps_addr_t *, mps_ap_t, size_t);
+
+/* mps_ap_fill_with_reservoir_permit is deprecated */			      
 extern mps_res_t mps_ap_fill_with_reservoir_permit(mps_addr_t *,
                                                    mps_ap_t,
                                                    size_t);
@@ -596,7 +617,7 @@ extern void mps_sac_empty(mps_sac_t, mps_addr_t, size_t);
 #define MPS_SAC_FREE(sac, p, size) MPS_SAC_FREE_FAST(sac, p, size)
 
 
-/* Low memory reservoir */
+/* Low memory reservoir (deprecated) */
 
 extern void mps_reservoir_limit_set(mps_arena_t, size_t);
 extern size_t mps_reservoir_limit(mps_arena_t);
@@ -632,17 +653,7 @@ extern mps_res_t mps_reserve_with_reservoir_permit(mps_addr_t *,
   MPS_END
 
 
-#define MPS_RESERVE_WITH_RESERVOIR_PERMIT_BLOCK(_res_v, _p_v, _mps_ap, _size) \
-  MPS_BEGIN \
-    char *_alloc = (char *)(_mps_ap)->alloc; \
-    char *_next = _alloc + (_size); \
-    if(_next > _alloc && _next <= (char *)(_mps_ap)->limit) { \
-      (_mps_ap)->alloc = (mps_addr_t)_next; \
-      (_p_v) = (_mps_ap)->init; \
-      (_res_v) = MPS_RES_OK; \
-    } else \
-      (_res_v) = mps_ap_fill_with_reservoir_permit(&(_p_v), _mps_ap, _size); \
-  MPS_END
+#define MPS_RESERVE_WITH_RESERVOIR_PERMIT_BLOCK MPS_RESERVE_BLOCK
 
 
 /* Commit Macros */
@@ -665,6 +676,15 @@ extern mps_res_t mps_root_create_table_masked(mps_root_t *, mps_arena_t,
                                               mps_rank_t, mps_rm_t,
                                               mps_addr_t *, size_t,
                                               mps_word_t);
+extern mps_res_t mps_root_create_area(mps_root_t *, mps_arena_t,
+                                      mps_rank_t, mps_rm_t,
+                                      void *, void *,
+                                      mps_area_scan_t, void *);
+extern mps_res_t mps_root_create_area_tagged(mps_root_t *, mps_arena_t,
+                                             mps_rank_t, mps_rm_t,
+                                             void *, void *,
+                                             mps_area_scan_t,
+                                             mps_word_t, mps_word_t);
 extern mps_res_t mps_root_create_fmt(mps_root_t *, mps_arena_t,
                                      mps_rank_t, mps_rm_t,
                                      mps_fmt_scan_t, mps_addr_t,
@@ -672,6 +692,18 @@ extern mps_res_t mps_root_create_fmt(mps_root_t *, mps_arena_t,
 extern mps_res_t mps_root_create_reg(mps_root_t *, mps_arena_t,
                                      mps_rank_t, mps_rm_t, mps_thr_t,
                                      mps_reg_scan_t, void *, size_t);
+extern mps_res_t mps_root_create_thread(mps_root_t *, mps_arena_t,
+                                        mps_thr_t, void *);
+extern mps_res_t mps_root_create_thread_scanned(mps_root_t *, mps_arena_t,
+                                                mps_rank_t, mps_rm_t, mps_thr_t,
+                                                mps_area_scan_t,
+                                                void *,
+                                                void *);
+extern mps_res_t mps_root_create_thread_tagged(mps_root_t *, mps_arena_t,
+                                               mps_rank_t, mps_rm_t, mps_thr_t,
+                                               mps_area_scan_t,
+                                               mps_word_t, mps_word_t,
+                                               void *);
 extern void mps_root_destroy(mps_root_t);
 
 extern mps_res_t mps_stack_scan_ambig(mps_ss_t, mps_thr_t,
@@ -785,6 +817,11 @@ extern void mps_pool_check_free_space(mps_pool_t);
 
 /* Scanner Support */
 
+extern mps_res_t mps_scan_area(mps_ss_t, void *, void *, void *);
+extern mps_res_t mps_scan_area_masked(mps_ss_t, void *, void *, void *);
+extern mps_res_t mps_scan_area_tagged(mps_ss_t, void *, void *, void *);
+extern mps_res_t mps_scan_area_tagged_or_zero(mps_ss_t, void *, void *, void *);
+
 extern mps_res_t mps_fix(mps_ss_t, mps_addr_t *);
 
 #define MPS_SCAN_BEGIN(ss) \
@@ -828,7 +865,7 @@ extern mps_res_t _mps_fix2(mps_ss_t, mps_addr_t *);
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

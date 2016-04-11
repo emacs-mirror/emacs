@@ -1,7 +1,9 @@
 /* clock.h -- Fast clocks and timers
  *
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  * $Id$
+ *
+ * .design: <design/clock/>.
  */
 
 #ifndef clock_h
@@ -176,7 +178,7 @@ typedef mps_clock_t EventClock;
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

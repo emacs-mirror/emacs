@@ -27,7 +27,7 @@ CFLAGSCOMPILER := \
 	-Wstrict-prototypes \
 	-Wswitch-default \
 	-Wwrite-strings
-CFLAGSCOMPILERSTRICT := -ansi -pedantic
+CFLAGSCOMPILERSTRICT := -std=c89 -pedantic
 
 # A different set of compiler flags for less strict compilation, for
 # instance when we need to #include a third-party header file that

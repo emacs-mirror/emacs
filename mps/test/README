@@ -6,15 +6,16 @@ to see what version of the harness you have (or look at the
 file "test/version").
 
 
-Testing on unix
+Testing on Unix
 ---------------
 
 From the test directory::
 
     PLATFORM=lii6ll # substitute your platform
+    VARIETY=cool # or hot
     CODE=../code # code directory of the branch you are testing
-    make -B -C $CODE -f $PLATFORM.gmk VARIETY=cool $PLATFORM/cool/mps.o
-    alias qa="perl test/qa -i $CODE -l $CODE/$PLATFORM/cool/mps.o"
+    make -B -C $CODE -f $PLATFORM.gmk VARIETY=$VARIETY $PLATFORM/$VARIETY/mps.o
+    alias qa="perl test/qa -i $CODE -l $CODE/$PLATFORM/$VARIETY/mps.o"
     qa clib
     qa run function/5.c
     qa runset testsets/passing

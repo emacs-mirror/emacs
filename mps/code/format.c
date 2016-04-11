@@ -133,14 +133,14 @@ Res FormatCreate(Format *formatReturn, Arena arena, ArgList args)
   if (ArgPick(&arg, args, MPS_KEY_FMT_CLASS))
     fmtClass = arg.val.fmt_class;
 
-  res = ControlAlloc(&p, arena, sizeof(FormatStruct),
-                     /* withReservoirPermit */ FALSE);
+  res = ControlAlloc(&p, arena, sizeof(FormatStruct));
   if(res != ResOK)
     return res;
   format = (Format)p; /* avoid pun */
 
   format->arena = arena;
   RingInit(&format->arenaRing);
+  format->poolCount = 0;
   format->alignment = fmtAlign;
   format->headerSize = fmtHeaderSize;
   format->scan = fmtScan;
@@ -168,6 +168,7 @@ Res FormatCreate(Format *formatReturn, Arena arena, ArgList args)
 void FormatDestroy(Format format)
 {
   AVERT(Format, format);
+  AVER(format->poolCount == 0);
 
   RingRemove(&format->arenaRing);
 
@@ -190,6 +191,36 @@ Arena FormatArena(Format format)
 }
 
 
+/* FormatScan -- scan formatted objects for references
+ *
+ * This is a wrapper for formatted objects scanning functions, which
+ * should not otherwise be called directly from within the MPS.  This
+ * function checks arguments and takes care of accounting for the
+ * scanned memory.
+ *
+ * c.f. TraceScanArea()
+ */
+
+Res FormatScan(Format format, ScanState ss, Addr base, Addr limit)
+{
+  /* TODO: How critical are these? */
+  AVERT_CRITICAL(Format, format);
+  AVERT_CRITICAL(ScanState, ss);
+  AVER_CRITICAL(base != NULL);
+  AVER_CRITICAL(limit != NULL);
+  AVER_CRITICAL(base < limit);
+
+  /* TODO: EVENT here? */
+  
+  /* scannedSize is accumulated whether or not format->scan succeeds,
+     so it's safe to accumulate now so that we can tail-call
+     format->scan. */
+  ss->scannedSize += AddrOffset(base, limit);
+  
+  return format->scan(&ss->ss_s, base, limit);
+}
+
+
 /* FormatDescribe -- describe a format */
 
 Res FormatDescribe(Format format, mps_lib_FILE *stream, Count depth)
@@ -200,6 +231,7 @@ Res FormatDescribe(Format format, mps_lib_FILE *stream, Count depth)
                "Format $P ($U) {\n", (WriteFP)format, (WriteFU)format->serial,
                "  arena $P ($U)\n",
                (WriteFP)format->arena, (WriteFU)format->arena->serial,
+               "  poolCount $U\n", (WriteFU)format->poolCount,
                "  alignment $W\n", (WriteFW)format->alignment,
                "  scan $F\n", (WriteFF)format->scan,
                "  skip $F\n", (WriteFF)format->skip,

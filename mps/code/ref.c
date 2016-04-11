@@ -1,7 +1,7 @@
 /* ref.c: REFERENCES
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: Implement operations on Ref, RefSet, ZoneSet, and Rank.
  *
@@ -35,7 +35,7 @@ Bool RankSetCheck(RankSet rankSet)
 
 /* ZoneSetOfRange -- calculate the zone set of a range of addresses */
 
-RefSet ZoneSetOfRange(Arena arena, Addr base, Addr limit)
+ZoneSet ZoneSetOfRange(Arena arena, Addr base, Addr limit)
 {
   Word zbase, zlimit;
 
@@ -292,13 +292,9 @@ ZoneSet ZoneSetBlacklist(Arena arena)
 }
 
 
-
-
-
-
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

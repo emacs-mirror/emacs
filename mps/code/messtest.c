@@ -77,7 +77,7 @@ static void postDummyMessage(Arena arena, MessageClass class,
   void *p;
   Message message;
 
-  die((mps_res_t)ControlAlloc(&p, arena, sizeof(MessageStruct), FALSE),
+  die((mps_res_t)ControlAlloc(&p, arena, sizeof(MessageStruct)),
       "AllocMessage");
   message = (Message)p;
   MessageInit(arena, message, class, type);

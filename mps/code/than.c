@@ -47,8 +47,7 @@ Res ThreadRegister(Thread *threadReturn, Arena arena)
 
   AVER(threadReturn != NULL);
 
-  res = ControlAlloc(&p, arena, sizeof(ThreadStruct),
-                     /* withReservoirPermit */ FALSE);
+  res = ControlAlloc(&p, arena, sizeof(ThreadStruct));
   if (res != ResOK)
     return res;
   thread = (Thread)p;
@@ -86,14 +85,16 @@ void ThreadDeregister(Thread thread, Arena arena)
 }
 
 
-void ThreadRingSuspend(Ring threadRing)
+void ThreadRingSuspend(Ring threadRing, Ring deadRing)
 {
   AVERT(Ring, threadRing);
+  AVERT(Ring, deadRing);
 }
 
-void ThreadRingResume(Ring threadRing)
+void ThreadRingResume(Ring threadRing, Ring deadRing)
 {
   AVERT(Ring, threadRing);
+  AVERT(Ring, deadRing);
 }
 
 Thread ThreadRingThread(Ring threadRing)
@@ -115,10 +116,12 @@ Arena ThreadArena(Thread thread)
 }
 
 
-Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
+Res ThreadScan(ScanState ss, Thread thread, Word *stackCold,
+               mps_area_scan_t scan_area,
+               void *closure)
 {
   UNUSED(thread);
-  return StackScan(ss, stackBot);
+  return StackScan(ss, stackCold, scan_area, closure);
 }
 
 
