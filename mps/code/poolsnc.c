@@ -76,20 +76,13 @@ typedef struct SNCBufStruct {
 } SNCBufStruct;
 
 
-/* BufferSNCBuf -- convert generic Buffer to an SNCBuf */
-
-#define BufferSNCBuf(buffer) ((SNCBuf)(buffer))
-
-
 /* SNCBufCheck -- check consistency of an SNCBuf */
 
 ATTRIBUTE_UNUSED
 static Bool SNCBufCheck(SNCBuf sncbuf)
 {
-  SegBuf segbuf;
-
+  SegBuf segbuf = MustBeA(SegBuf, sncbuf);
   CHECKS(SNCBuf, sncbuf);
-  segbuf = &sncbuf->segBufStruct;
   CHECKD(SegBuf, segbuf);
   if (sncbuf->topseg != NULL) {
     CHECKD(Seg, sncbuf->topseg);
@@ -102,10 +95,7 @@ static Bool SNCBufCheck(SNCBuf sncbuf)
 
 static Seg sncBufferTopSeg(Buffer buffer)
 {
-  SNCBuf sncbuf;
-  AVERT(Buffer, buffer);
-  sncbuf = BufferSNCBuf(buffer);
-  AVERT(SNCBuf, sncbuf);
+  SNCBuf sncbuf = MustBeA(SNCBuf, buffer);
   return sncbuf->topseg;
 }
 
@@ -114,12 +104,9 @@ static Seg sncBufferTopSeg(Buffer buffer)
 
 static void sncBufferSetTopSeg(Buffer buffer, Seg seg)
 {
-  SNCBuf sncbuf;
-  AVERT(Buffer, buffer);
+  SNCBuf sncbuf = MustBeA(SNCBuf, buffer);
   if (NULL != seg)
     AVERT(Seg, seg);
-  sncbuf = BufferSNCBuf(buffer);
-  AVERT(SNCBuf, sncbuf);
   sncbuf->topseg = seg;
 }
 
