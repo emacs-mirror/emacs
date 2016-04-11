@@ -43,7 +43,7 @@ static void test(void)
 
   for (i = ITERATIONS; i > 0; --i) {
     mps_free(pool, block[i - 1], SIZE);
-    mps_arena_collect(arena); /* ensure ArenaCompact called via TraceReclaim */
+    mps_arena_collect(arena); /* ensure ArenaCompact is called */
     check_chunks(arena, i);
   }
 
