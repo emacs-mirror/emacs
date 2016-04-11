@@ -158,7 +158,7 @@ Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream, Count depth)
                "Buffer $P ($U) {\n",
                (WriteFP)buffer, (WriteFU)buffer->serial,
                "  class $P (\"$S\")\n",
-               (WriteFP)ClassOfBuffer(buffer), (WriteFS)ClassName(ClassOfBuffer(buffer)),
+               (WriteFP)ClassOfPoly(Buffer, buffer), (WriteFS)ClassName(ClassOfPoly(Buffer, buffer)),
                "  Arena $P\n",       (WriteFP)buffer->arena,
                "  Pool $P\n",        (WriteFP)buffer->pool,
                "  ", buffer->isMutator ? "Mutator" : "Internal", " Buffer\n",
@@ -242,7 +242,7 @@ static Res BufferAbsInit(Buffer buffer, Pool pool, Bool isMutator, ArgList args)
      in subclass methods. */
   buffer->serial = pool->bufferSerial; /* .trans.mod */
   ++pool->bufferSerial;
-  SetClassOfBuffer(buffer, CLASS(Buffer));
+  SetClassOfPoly(buffer, CLASS(Buffer));
   buffer->sig = BufferSig;
   AVERT(Buffer, buffer);
 
@@ -361,7 +361,7 @@ void BufferDestroy(Buffer buffer)
   Size size;
   AVERT(Buffer, buffer);
   arena = buffer->arena;
-  size = ClassOfBuffer(buffer)->size;
+  size = ClassOfPoly(Buffer, buffer)->size;
   BufferFinish(buffer);
   ControlFree(arena, buffer, size);
 }
@@ -1234,7 +1234,7 @@ static Res segBufInit(Buffer buffer, Pool pool, Bool isMutator, ArgList args)
   res = NextMethod(Buffer, SegBuf, init)(buffer, pool, isMutator, args);
   if (res != ResOK)
     return res;
-  SetClassOfBuffer(buffer, CLASS(SegBuf));
+  SetClassOfPoly(buffer, CLASS(SegBuf));
   segbuf = MustBeA(SegBuf, buffer);
 
   segbuf->seg = NULL;
@@ -1425,7 +1425,7 @@ static Res rankBufInit(Buffer buffer, Pool pool, Bool isMutator, ArgList args)
   res = NextMethod(Buffer, RankBuf, init)(buffer, pool, isMutator, args);
   if (res != ResOK)
     return res;
-  SetClassOfBuffer(buffer, CLASS(RankBuf));
+  SetClassOfPoly(buffer, CLASS(RankBuf));
 
   BufferSetRankSet(buffer, RankSetSingle(rank));
 

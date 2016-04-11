@@ -254,7 +254,7 @@ static Res MVInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   res = PoolAbsInit(pool, arena, class, args);
   if (res != ResOK)
     return res;
-  SetClassOfPool(pool, CLASS(MVPool));
+  SetClassOfPoly(pool, CLASS(MVPool));
   mv = MustBeA(MVPool, pool);
 
   pool->alignment = align;

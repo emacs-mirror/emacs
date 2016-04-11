@@ -46,13 +46,13 @@ static Res NInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   res = PoolAbsInit(pool, arena, class, args);
   if (res != ResOK)
     goto failAbsInit;
-  SetClassOfPool(pool, CLASS(NPool));
+  SetClassOfPoly(pool, CLASS(NPool));
   poolN = MustBeA(NPool, pool);
   
   /* Initialize pool-specific structures. */
 
   AVERT(PoolN, poolN);
-  EVENT3(PoolInit, pool, PoolArena(pool), ClassOfPool(pool));
+  EVENT3(PoolInit, pool, PoolArena(pool), ClassOfPoly(Pool, pool));
   return ResOK;
 
 failAbsInit:

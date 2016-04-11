@@ -133,7 +133,7 @@ Res PoolAbsInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   ++ArenaGlobals(arena)->poolSerial;
 
   /* Initialise signature last; see <design/sig/> */
-  SetClassOfPool(pool, CLASS(AbstractPool));
+  SetClassOfPoly(pool, CLASS(AbstractPool));
   pool->sig = PoolSig;
   AVERT(Pool, pool);
 

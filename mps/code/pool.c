@@ -85,7 +85,7 @@ Bool PoolCheck(Pool pool)
   CHECKC(AbstractPool, pool);
   /* Break modularity for checking efficiency */
   CHECKL(pool->serial < ArenaGlobals(pool->arena)->poolSerial);
-  class = ClassOfPool(pool);
+  class = ClassOfPoly(Pool, pool);
   CHECKD(PoolClass, class);
   CHECKU(Arena, pool->arena);
   CHECKD_NOSIG(Ring, &pool->arenaRing);
@@ -133,7 +133,7 @@ Res PoolInit(Pool pool, Arena arena, PoolClass class, ArgList args)
     return res;
 
   /* FIXME: Where should this go? */
-  pool->fix = ClassOfPool(pool)->fix;
+  pool->fix = ClassOfPoly(Pool, pool)->fix;
 
   /* Add initialized pool to list of pools in arena. */
   /* FIXME: Should be in PoolAbsInit */
@@ -202,7 +202,7 @@ void PoolDestroy(Pool pool)
 
   AVERT(Pool, pool); 
   arena = pool->arena;
-  size = ClassOfPool(pool)->size;
+  size = ClassOfPoly(Pool, pool)->size;
   PoolFinish(pool);
 
   /* .space.free: Free the pool instance structure.  See .space.alloc */
@@ -493,7 +493,7 @@ Res PoolDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
   res = WriteF(stream, depth,
                "Pool $P ($U) {\n", (WriteFP)pool, (WriteFU)pool->serial,
                "  class $P (\"$S\")\n",
-               (WriteFP)ClassOfPool(pool), (WriteFS)ClassName(ClassOfPool(pool)),
+               (WriteFP)ClassOfPoly(Pool, pool), (WriteFS)ClassName(ClassOfPoly(Pool, pool)),
                "  arena $P ($U)\n",
                (WriteFP)pool->arena, (WriteFU)pool->arena->serial,
                "  alignment $W\n", (WriteFW)pool->alignment,

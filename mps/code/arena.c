@@ -287,7 +287,7 @@ static Res ArenaAbsInit(Arena arena, Size grainSize, ArgList args)
   if (res != ResOK)
     goto failGlobalsInit;
 
-  SetClassOfArena(arena, CLASS(AbstractArena));
+  SetClassOfPoly(arena, CLASS(AbstractArena));
   arena->sig = ArenaSig;
   AVERC(Arena, arena);
   
@@ -636,7 +636,7 @@ static Res arenaDescribeTractsInChunk(Chunk chunk, mps_lib_FILE *stream, Count d
         res = WriteF(stream, 0, " $P $U ($S)",
                      (WriteFP)pool,
                      (WriteFU)(pool->serial),
-                     (WriteFS)ClassName(ClassOfPool(pool)),
+                     (WriteFS)ClassName(ClassOfPoly(Pool, pool)),
                      NULL);
         if (res != ResOK)
           return res;

@@ -557,7 +557,7 @@ static Res VMArenaCreate(Arena *arenaReturn, ArgList args)
   res = NextMethod(Arena, VMArena, init)(arena, grainSize, args);
   if (res != ResOK)
     goto failArenaInit;
-  SetClassOfArena(arena, CLASS(VMArena));
+  SetClassOfPoly(arena, CLASS(VMArena));
   AVER(vmArena == MustBeA(VMArena, arena));
   
   arena->reserved = VMReserved(vm);

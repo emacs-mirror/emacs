@@ -106,7 +106,7 @@ void SegFree(Seg seg)
   AVERT(Arena, arena);
   base = SegBase(seg);
   size = SegSize(seg);
-  structSize = ClassOfSeg(seg)->size;
+  structSize = ClassOfPoly(Seg, seg)->size;
 
   SegFinish(seg);
   ControlFree(arena, seg, structSize);
@@ -148,7 +148,7 @@ static Res SegAbsInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   seg->queued = FALSE;
   seg->firstTract = NULL;
   RingInit(SegPoolRing(seg));
-  SetClassOfSeg(seg, CLASS(Seg));
+  SetClassOfPoly(seg, CLASS(Seg));
   
   TRACT_FOR(tract, addr, arena, base, limit) {
     AVERT(Tract, tract);
@@ -369,7 +369,7 @@ Res SegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
                "Segment $P [$A,$A) {\n", (WriteFP)seg,
                (WriteFA)SegBase(seg), (WriteFA)SegLimit(seg),
                "  class $P (\"$S\")\n",
-               (WriteFP)ClassOfSeg(seg), (WriteFS)ClassName(ClassOfSeg(seg)),
+               (WriteFP)ClassOfPoly(Seg, seg), (WriteFS)ClassName(ClassOfPoly(Seg, seg)),
                "  pool $P ($U)\n",
                (WriteFP)pool, (WriteFU)pool->serial,
                "  depth $U\n", seg->depth,
@@ -562,8 +562,8 @@ Res SegMerge(Seg *mergedSegReturn, Seg segLo, Seg segHi)
   AVER(NULL != mergedSegReturn);
   AVERT(Seg, segLo);
   AVERT(Seg, segHi);
-  class = ClassOfSeg(segLo);
-  AVER(ClassOfSeg(segHi) == class);
+  class = ClassOfPoly(Seg, segLo);
+  AVER(ClassOfPoly(Seg, segHi) == class);
   AVER(SegPool(segLo) == SegPool(segHi));
   base = SegBase(segLo);
   mid = SegLimit(segLo);
@@ -611,7 +611,7 @@ Res SegSplit(Seg *segLoReturn, Seg *segHiReturn, Seg seg, Addr at)
   AVER(NULL != segLoReturn);
   AVER(NULL != segHiReturn);
   AVERT(Seg, seg);
-  class = ClassOfSeg(seg);
+  class = ClassOfPoly(Seg, seg);
   arena = PoolArena(SegPool(seg));
   base = SegBase(seg);
   limit = SegLimit(seg);
@@ -978,7 +978,7 @@ static Res segTrivSplit(Seg seg, Seg segHi,
   }
   AVER(addr == segHi->limit);
 
-  SetClassOfSeg(segHi, ClassOfSeg(seg));
+  SetClassOfPoly(segHi, ClassOfPoly(Seg, seg));
   segHi->sig = SegSig;
   AVERT(Seg, segHi);
 
@@ -1066,7 +1066,7 @@ static Res gcSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   res = NextMethod(Seg, GCSeg, init)(seg, pool, base, size, args);
   if (ResOK != res)
     return res;
-  SetClassOfSeg(seg, CLASS(GCSeg));
+  SetClassOfPoly(seg, CLASS(GCSeg));
   gcseg = MustBeA(GCSeg, seg);
 
   gcseg->summary = RefSetEMPTY;

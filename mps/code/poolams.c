@@ -226,7 +226,7 @@ static Res AMSSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   res = NextMethod(Seg, AMSSeg, init)(seg, pool, base, size, args);
   if (res != ResOK)
     goto failNextMethod;
-  SetClassOfSeg(seg, CLASS(AMSSeg));
+  SetClassOfPoly(seg, CLASS(AMSSeg));
   amsseg = MustBeA(AMSSeg, seg);
 
   AVERT(Pool, pool);
@@ -825,7 +825,7 @@ Res AMSInitInternal(AMS ams, Arena arena, PoolClass class,
   res = PoolAbsInit(pool, arena, class, args);
   if (res != ResOK)
     goto failAbsInit;
-  SetClassOfPool(pool, CLASS(AMSPool));
+  SetClassOfPoly(pool, CLASS(AMSPool));
   AVER(ams == MustBeA(AMSPool, pool));
   
   AVERT(Format, format);

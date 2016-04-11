@@ -105,7 +105,7 @@ static Res MFSInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   res = PoolAbsInit(pool, arena, class, args);
   if (res != ResOK)
     return res;
-  SetClassOfPool(pool, CLASS(MFSPool));
+  SetClassOfPoly(pool, CLASS(MFSPool));
   mfs = MustBeA(MFSPool, pool);
 
   mfs->unroundedUnitSize = unitSize;

@@ -287,7 +287,7 @@ static Res ClientArenaCreate(Arena *arenaReturn, ArgList args)
   res = NextMethod(Arena, ClientArena, init)(arena, grainSize, args);
   if (res != ResOK)
     goto failSuperInit;
-  SetClassOfArena(arena, CLASS(ClientArena));
+  SetClassOfPoly(arena, CLASS(ClientArena));
   AVER(clientArena == MustBeA(ClientArena, arena));
 
   /* have to have a valid arena before calling ChunkCreate */

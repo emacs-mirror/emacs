@@ -39,7 +39,7 @@ static Res failoverInit(Land land, Arena arena, Align alignment, ArgList args)
   if (res != ResOK)
     return res;
 
-  SetClassOfLand(land, CLASS(Failover));
+  SetClassOfPoly(land, CLASS(Failover));
   fo = MustBeA(Failover, land);
 
   ArgRequire(&arg, args, FailoverPrimary);
@@ -260,10 +260,10 @@ static Res failoverDescribe(Land land, mps_lib_FILE *stream, Count depth)
   return WriteF(stream, depth + 2,
                 "primary = $P ($S)\n",
                 (WriteFP)fo->primary,
-                (WriteFS)ClassName(ClassOfLand(fo->primary)),
+                (WriteFS)ClassName(ClassOfPoly(Land, fo->primary)),
                 "secondary = $P ($S)\n",
                 (WriteFP)fo->secondary,
-                (WriteFS)ClassName(ClassOfLand(fo->secondary)),
+                (WriteFS)ClassName(ClassOfPoly(Land, fo->secondary)),
                 NULL);
 }
 

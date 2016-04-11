@@ -501,7 +501,7 @@ static Res MVFFInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   res = PoolAbsInit(pool, arena, class, args);
   if (res != ResOK)
     goto failAbsInit;
-  SetClassOfPool(pool, CLASS(MVFFPool));
+  SetClassOfPoly(pool, CLASS(MVFFPool));
   mvff = MustBeA(MVFFPool, pool);
 
   mvff->extendBy = extendBy;

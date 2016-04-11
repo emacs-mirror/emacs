@@ -122,7 +122,7 @@ static Res amstSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   res = NextMethod(Seg, AMSTSeg, init)(seg, pool, base, size, args);
   if (res != ResOK)
     return res;
-  SetClassOfSeg(seg, CLASS(AMSTSeg));
+  SetClassOfPoly(seg, CLASS(AMSTSeg));
   amstseg = MustBeA(AMSTSeg, seg);
 
   AVERT(Pool, pool);
@@ -343,7 +343,7 @@ static Res AMSTInit(Pool pool, Arena arena, PoolClass class, ArgList args)
                         format, chain, gen, FALSE, args);
   if (res != ResOK)
     return res;
-  SetClassOfPool(pool, CLASS(AMSTPool));
+  SetClassOfPoly(pool, CLASS(AMSTPool));
   amst = MustBeA(AMSTPool, pool);
   ams = MustBeA(AMSPool, pool);
   ams->segSize = AMSTSegSizePolicy;

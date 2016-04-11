@@ -140,7 +140,7 @@ static Res AMCSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   res = NextMethod(Seg, amcSeg, init)(seg, pool, base, size, args);
   if(res != ResOK)
     return res;
-  SetClassOfSeg(seg, CLASS(amcSeg));
+  SetClassOfPoly(seg, CLASS(amcSeg));
   amcseg = MustBeA(amcSeg, seg);
 
   amcseg->gen = amcgen;
@@ -497,7 +497,7 @@ static Res AMCBufInit(Buffer buffer, Pool pool, Bool isMutator, ArgList args)
   res = NextMethod(Buffer, amcBuf, init)(buffer, pool, isMutator, args);
   if(res != ResOK)
     return res;
-  SetClassOfBuffer(buffer, CLASS(amcBuf));
+  SetClassOfPoly(buffer, CLASS(amcBuf));
   amcbuf = MustBeA(amcBuf, buffer);
 
   if (BufferIsMutator(buffer)) {
@@ -738,7 +738,7 @@ static Res amcInitComm(Pool pool, Arena arena, PoolClass class,
   res = PoolAbsInit(pool, arena, class, args);
   if (res != ResOK)
     return res;
-  SetClassOfPool(pool, class);
+  SetClassOfPoly(pool, class);
   amc = MustBeA(AMCZPool, pool);
 
   pool->format = format;

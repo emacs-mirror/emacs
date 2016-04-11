@@ -122,7 +122,7 @@ static Res SNCBufInit(Buffer buffer, Pool pool, Bool isMutator, ArgList args)
   res = NextMethod(Buffer, SNCBuf, init)(buffer, pool, isMutator, args);
   if (res != ResOK)
     return res;
-  SetClassOfBuffer(buffer, CLASS(SNCBuf));
+  SetClassOfPoly(buffer, CLASS(SNCBuf));
   sncbuf = MustBeA(SNCBuf, buffer);
 
   sncbuf->topseg = NULL;
@@ -208,7 +208,7 @@ static Res sncSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   res = NextMethod(Seg, SNCSeg, init)(seg, pool, base, size, args);
   if (res != ResOK)
     return res;
-  SetClassOfSeg(seg, CLASS(SNCSeg));
+  SetClassOfPoly(seg, CLASS(SNCSeg));
   sncseg = MustBeA(SNCSeg, seg);
 
   AVERT(Pool, pool);
@@ -356,7 +356,7 @@ static Res SNCInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   res = PoolAbsInit(pool, arena, class, args);
   if (res != ResOK)
     return res;
-  SetClassOfPool(pool, CLASS(SNCPool));
+  SetClassOfPoly(pool, CLASS(SNCPool));
   snc = MustBeA(SNCPool, pool);
 
   ArgRequire(&arg, args, MPS_KEY_FORMAT);
@@ -721,7 +721,7 @@ static Bool SNCCheck(SNC snc)
   CHECKS(SNC, snc);
   CHECKC(SNCPool, snc);
   CHECKD(Pool, SNCPool(snc));
-  CHECKL(ClassOfPool(SNCPool(snc)) == CLASS(SNCPool));
+  CHECKL(ClassOfPoly(Pool, SNCPool(snc)) == CLASS(SNCPool));
   if (snc->freeSegs != NULL) {
     CHECKD(Seg, snc->freeSegs);
   }
