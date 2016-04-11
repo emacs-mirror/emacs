@@ -445,18 +445,6 @@ typedef struct amcBufStruct {
 } amcBufStruct;
 
 
-/* Buffer2amcBuf -- convert generic Buffer to an amcBuf */
-
-#define Buffer2amcBuf(buffer) \
-  PARENT(amcBufStruct, segbufStruct, \
-         PARENT(SegBufStruct, bufferStruct, buffer))
-
-/* amcBuf2Buffer -- convert amcBuf to generic Buffer */
-
-#define amcBuf2Buffer(amcbuf) (&(amcbuf)->segbufStruct.bufferStruct)
-
-
-
 /* amcBufCheck -- check consistency of an amcBuf */
 
 ATTRIBUTE_UNUSED
@@ -468,7 +456,7 @@ static Bool amcBufCheck(amcBuf amcbuf)
     CHECKD(amcGen, amcbuf->gen);
   CHECKL(BoolCheck(amcbuf->forHashArrays));
   /* hash array buffers only created by mutator */
-  CHECKL(BufferIsMutator(amcBuf2Buffer(amcbuf)) || !amcbuf->forHashArrays);
+  CHECKL(BufferIsMutator(MustBeA(Buffer, amcbuf)) || !amcbuf->forHashArrays);
   return TRUE;
 }
 
@@ -477,7 +465,7 @@ static Bool amcBufCheck(amcBuf amcbuf)
 
 static amcGen amcBufGen(Buffer buffer)
 {
-  return Buffer2amcBuf(buffer)->gen;
+  return MustBeA(amcBuf, buffer)->gen;
 }
 
 
@@ -485,11 +473,9 @@ static amcGen amcBufGen(Buffer buffer)
 
 static void amcBufSetGen(Buffer buffer, amcGen gen)
 {
-  amcBuf amcbuf;
-
-  if(gen != NULL)
+  amcBuf amcbuf = MustBeA(amcBuf, buffer);
+  if (gen != NULL)
     AVERT(amcGen, gen);
-  amcbuf = Buffer2amcBuf(buffer);
   amcbuf->gen = gen;
 }
 
@@ -923,7 +909,7 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
   Size grainsSize;
   amcGen gen;
   PoolGen pgen;
-  amcBuf amcbuf;
+  amcBuf amcbuf = MustBeA(amcBuf, buffer);
 
   AVERT(Pool, pool);
   amc = PoolAMC(pool);
@@ -938,8 +924,6 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
   arena = PoolArena(pool);
   gen = amcBufGen(buffer);
   AVERT(amcGen, gen);
-  amcbuf = Buffer2amcBuf(buffer);
-  AVERT(amcBuf, amcbuf);
   pgen = &gen->pgen;
 
   /* Create and attach segment.  The location of this segment is */
