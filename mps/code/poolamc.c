@@ -1534,7 +1534,7 @@ static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     return ResOK;
   }
 
-  amc = MustBeA(AMCZPool, pool); /* FIXME: CRITICAL */
+  amc = MustBeA_CRITICAL(AMCZPool, pool);
   AVERT_CRITICAL(AMC, amc);
   format = pool->format;
   headerSize = format->headerSize;
@@ -1745,7 +1745,7 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
  */
 static void AMCReclaim(Pool pool, Trace trace, Seg seg)
 {
-  AMC amc = MustBeA(AMCZPool, pool); /* FIXME: CRITICAL */
+  AMC amc = MustBeA_CRITICAL(AMCZPool, pool);
   amcGen gen;
 
   AVERT_CRITICAL(Trace, trace);

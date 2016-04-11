@@ -207,9 +207,6 @@ extern void InstFinish(Inst inst);
 
 /* IsA, CouldBeA, MustBeA -- coerce instances safely
  *
- * FIXME: Enumerate TypeIds to avoid call to ensure method and
- * subclass test.
- *
  * FIXME: Wrap mps_lib_assert_fail_expr in check.h so that it is
  * elided from some varieties.
  */
@@ -222,14 +219,16 @@ extern void InstFinish(Inst inst);
 #define IsA(_class, inst) \
   IsSubclass(CouldBeA(Inst, inst)->class, _class)
 
-#define MustBeA(_class, inst) \
+#define IsNonNullAndA(_class, inst) \
   ((inst) != NULL && \
    CouldBeA(Inst, inst)->class != NULL && \
-   IsA(_class, inst) ? \
-   CouldBeA(_class, inst) : \
-   CouldBeA(_class, mps_lib_assert_fail_expr(MPS_FILE, __LINE__, \
-                                             "MustBeA " #_class ": " #inst, \
-                                             inst)))
+   IsA(_class, inst))
+
+#define MustBeA(_class, inst) \
+  CouldBeA(_class, AVERP(IsNonNullAndA(_class, inst), inst))
+
+#define MustBeA_CRITICAL(_class, inst) \
+  CouldBeA(_class, AVERP_CRITICAL(IsNonNullAndA(_class, inst), inst))
 
 /* ClassOf* -- get the class of an instance */
 
