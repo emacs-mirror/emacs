@@ -174,6 +174,7 @@ Res ChunkInit(Chunk chunk, Arena arena, Addr base, Addr limit, Size reserved,
   Count pages;
   Shift pageShift;
   Size pageTableSize;
+  Addr allocBase;
   void *p;
   Res res;
 
@@ -219,12 +220,14 @@ Res ChunkInit(Chunk chunk, Arena arena, Addr base, Addr limit, Size reserved,
   /* Init allocTable after class init, because it might be mapped there. */
   BTResRange(chunk->allocTable, 0, pages);
 
+  /* Check that there is some usable address space remaining in the chunk. */
+  allocBase = PageIndexBase(chunk, chunk->allocBase);
+  AVER(allocBase < chunk->limit);
+
   /* Add the chunk's free address space to the arena's freeLand, so that
      we can allocate from it. */
   if (arena->hasFreeLand) {
-    res = ArenaFreeLandInsert(arena,
-                              PageIndexBase(chunk, chunk->allocBase),
-                              chunk->limit);
+    res = ArenaFreeLandInsert(arena, allocBase, chunk->limit);
     if (res != ResOK)
       goto failLandInsert;
   }
