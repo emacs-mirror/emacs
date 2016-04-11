@@ -197,19 +197,16 @@ void PoolFinish(Pool pool)
 
 void PoolDestroy(Pool pool)
 {
-  PoolClass class;
   Arena arena;
+  Size size;
 
   AVERT(Pool, pool); 
- 
-  class = ClassOfPool(pool); /* } In case PoolFinish changes these */
-  arena = pool->arena; /* } */
-
-  /* Finish the pool instance structure. */
+  arena = pool->arena;
+  size = ClassOfPool(pool)->size;
   PoolFinish(pool);
 
   /* .space.free: Free the pool instance structure.  See .space.alloc */
-  ControlFree(arena, (Addr)pool, (Size)(class->size));
+  ControlFree(arena, pool, size);
 }
 
 
@@ -373,7 +370,7 @@ Res PoolFixEmergency(Pool pool, ScanState ss, Seg seg, Addr *refIO)
   /* Should only be fixing references to white segments. */
   AVER_CRITICAL(TraceSetInter(SegWhite(seg), ss->traces) != TraceSetEMPTY);
 
-  res = (ClassOfPool(pool)->fixEmergency)(pool, ss, seg, refIO);
+  res = Method(Pool, pool, fixEmergency)(pool, ss, seg, refIO);
   AVER_CRITICAL(res == ResOK);
   return res;
 }

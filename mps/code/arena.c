@@ -543,7 +543,7 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
 
   res = WriteF(stream, depth, "Arena $P {\n", (WriteFP)arena,
                "  class $P (\"$S\")\n",
-               (WriteFP)ClassOfArena(arena), (WriteFS)ClassName(ClassOfArena(arena)),
+               (WriteFP)ClassOfPoly(Arena, arena), (WriteFS)ClassName(ClassOfPoly(Arena, arena)),
                NULL);
   if (res != ResOK)
     return res;

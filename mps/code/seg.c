@@ -97,8 +97,7 @@ void SegFree(Seg seg)
   Arena arena;
   Pool pool;
   Addr base;
-  Size size;
-  SegClass class;
+  Size size, structSize;
 
   AVERT(Seg, seg);
   pool = SegPool(seg);
@@ -107,10 +106,10 @@ void SegFree(Seg seg)
   AVERT(Arena, arena);
   base = SegBase(seg);
   size = SegSize(seg);
-  class = ClassOfSeg(seg);
+  structSize = ClassOfSeg(seg)->size;
 
   SegFinish(seg);
-  ControlFree(arena, seg, class->size);
+  ControlFree(arena, seg, structSize);
   ArenaFree(base, size, pool);
 
   EVENT2(SegFree, arena, seg);
@@ -198,11 +197,8 @@ static void SegAbsFinish(Seg seg)
   Arena arena;
   Addr addr, limit;
   Tract tract;
-  SegClass class;
 
   AVERT(Seg, seg);
-  class = ClassOfSeg(seg);
-  AVERT(SegClass, class);
 
   arena = PoolArena(SegPool(seg));
 
@@ -267,7 +263,7 @@ void SegSetGrey(Seg seg, TraceSet grey)
   /* Don't dispatch to the class method if there's no actual change in
      greyness, or if the segment doesn't contain any references. */
   if (grey != SegGrey(seg) && SegRankSet(seg) != RankSetEMPTY)
-    ClassOfSeg(seg)->setGrey(seg, grey);
+    Method(Seg, seg, setGrey)(seg, grey);
 }
 
 
@@ -280,7 +276,7 @@ void SegSetWhite(Seg seg, TraceSet white)
 {
   AVERT(Seg, seg);
   AVERT(TraceSet, white);
-  ClassOfSeg(seg)->setWhite(seg, white);
+  Method(Seg, seg, setWhite)(seg, white);
 }
 
 
@@ -296,7 +292,7 @@ void SegSetRankSet(Seg seg, RankSet rankSet)
   AVERT(Seg, seg);
   AVERT(RankSet, rankSet);
   AVER(rankSet != RankSetEMPTY || SegSummary(seg) == RefSetEMPTY);
-  ClassOfSeg(seg)->setRankSet(seg, rankSet);
+  Method(Seg, seg, setRankSet)(seg, rankSet);
 }
 
 
@@ -314,7 +310,7 @@ void SegSetSummary(Seg seg, RefSet summary)
 #endif
 
   if (summary != SegSummary(seg))
-    ClassOfSeg(seg)->setSummary(seg, summary);
+    Method(Seg, seg, setSummary)(seg, summary);
 }
 
 
@@ -331,7 +327,7 @@ void SegSetRankAndSummary(Seg seg, RankSet rankSet, RefSet summary)
   }
 #endif
 
-  ClassOfSeg(seg)->setRankSummary(seg, rankSet, summary);
+  Method(Seg, seg, setRankSummary)(seg, rankSet, summary);
 }
 
 
@@ -340,7 +336,7 @@ void SegSetRankAndSummary(Seg seg, RankSet rankSet, RefSet summary)
 Buffer SegBuffer(Seg seg)
 {
   AVERT_CRITICAL(Seg, seg);  /* .seg.critical */
-  return ClassOfSeg(seg)->buffer(seg);
+  return Method(Seg, seg, buffer)(seg);
 }
 
 
@@ -351,7 +347,7 @@ void SegSetBuffer(Seg seg, Buffer buffer)
   AVERT(Seg, seg);
   if (buffer != NULL)
     AVERT(Buffer, buffer);
-  ClassOfSeg(seg)->setBuffer(seg, buffer);
+  Method(Seg, seg, setBuffer)(seg, buffer);
 }
 
 
@@ -400,7 +396,7 @@ Res SegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
   if (res != ResOK)
     return res;
 
-  res = ClassOfSeg(seg)->describe(seg, stream, depth + 2);
+  res = Method(Seg, seg, describe)(seg, stream, depth + 2);
   if (res != ResOK)
     return res;
 
