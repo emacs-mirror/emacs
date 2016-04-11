@@ -757,7 +757,6 @@ static Res freelistDescribe(Land land, mps_lib_FILE *stream, Count depth)
   if (stream == NULL)
     return ResPARAM;
 
-  /* FIXME: Should use the class from the land itself. */
   res = NextMethod(Land, Freelist, describe)(land, stream, depth);
   if (res != ResOK)
     return res;
