@@ -30,6 +30,7 @@
 #define CLASS_INIT(ident) ident ## ClassInit
 #define CLASS_CHECK(ident) ident ## ClassCheck
 #define CLASS_SUPER(ident) ident ## SuperClassGet
+#define KIND_SIG(ident) ident ## ClassSig
 
 
 /* DECLARE_CLASS -- declare the existence of a protocol class */
@@ -167,11 +168,15 @@ extern void InstFinish(Inst inst);
  * <design/protocol/#introspect.c-lang>.
  */
 
-/* FIXME: Would like to assert that the superclass has the right kind. */
-#define SuperclassPoly(kind, class) \
-  ((CLASS_TYPE(kind))((InstClass)(class))->superclass)
+#define MustBeKind(kind, class) \
+  ((CLASS_TYPE(kind))AVERPC((class) != NULL && \
+			    ((CLASS_TYPE(kind))class)->sig == KIND_SIG(kind), \
+			    "MustBeKind " #kind ": " #class, \
+			    class))
 
-#define ClassOfPoly(inst) (MustBeA(Inst, inst)->class)
+#define SuperclassPoly(kind, class) MustBeKind(kind, MustBeKind(Inst, class)->superclass)
+
+#define ClassOfPoly(kind, inst) MustBeKind(kind, MustBeA(Inst, inst)->class)
 
 #define ClassName(class) RVALUE(((InstClass)(class))->name)
 
@@ -231,10 +236,16 @@ extern void InstFinish(Inst inst);
    IsA(_class, inst))
 
 #define MustBeA(_class, inst) \
-  CouldBeA(_class, AVERP(IsNonNullAndA(_class, inst), inst))
+  CouldBeA(_class, \
+	   AVERPC(IsNonNullAndA(_class, inst), \
+		  "MustBeA " #_class ": " #inst, \
+		  inst))
 
 #define MustBeA_CRITICAL(_class, inst) \
-  CouldBeA(_class, AVERP_CRITICAL(IsNonNullAndA(_class, inst), inst))
+  CouldBeA(_class, \
+	   AVERPC_CRITICAL(IsNonNullAndA(_class, inst), \
+			   "MustBeA " #_class ": " #inst, \
+			   inst))
 
 
 /* ClassOf* -- get the class of an instance */
@@ -264,7 +275,7 @@ CLASSES(CLASS_DECLARE_SETCLASSOF, SetClassOf)
  * class to kind.
  */
 
-#define Method(class, inst, meth) (ClassOf ## class(inst)->meth)
+#define Method(kind, inst, meth) (ClassOfPoly(kind, inst)->meth)
 
 
 #endif /* protocol_h */

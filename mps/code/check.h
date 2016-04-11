@@ -142,6 +142,7 @@ extern unsigned CheckLevel;
 #define AVERT(type, val)            DISCARD(ASSERT_ISTYPE(type, val))
 #define AVERC(class, val)           DISCARD(ASSERT_ISCLASS(class, val))
 #define AVERP(cond, dflt)           (DISCARD_EXP(cond), dflt)
+#define AVERPC(cond, condstring, dflt) (DISCARD_EXP(cond), dflt)
 
 #else
 
@@ -149,6 +150,7 @@ extern unsigned CheckLevel;
 #define AVERT                       ASSERT_TYPECHECK
 #define AVERC                       ASSERT_CLASSCHECK
 #define AVERP(cond, dflt)           ASSERTP(cond, #cond, dflt)
+#define AVERPC                      ASSERTP
 
 #endif
 
@@ -158,6 +160,7 @@ extern unsigned CheckLevel;
 #define AVERT_CRITICAL              ASSERT_TYPECHECK
 #define AVERC_CRITICAL              ASSERT_CLASSCHECK
 #define AVERP_CRITICAL(cond, dflt)  ASSERTP(cond, #cond, dflt)
+#define AVERPC_CRITICAL             ASSERTP
 
 #else
 
@@ -165,6 +168,7 @@ extern unsigned CheckLevel;
 #define AVERT_CRITICAL(type, val)   DISCARD(ASSERT_ISTYPE(type, val))
 #define AVERC_CRITICAL(class, val)  DISCARD(ASSERT_ISCLASS(class, val))
 #define AVERP_CRITICAL(cond, dflt)  (DISCARD_EXP(cond), dflt)
+#define AVERPC_CRITICAL(cond, condstring, dflt) (DISCARD_EXP(cond), dflt)
 
 #endif
 
