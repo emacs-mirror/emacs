@@ -258,7 +258,7 @@ static Res ArenaAbsInit(Arena arena, Size grainSize, ArgList args)
     pauseTime = arg.val.d;
 
   /* Superclass init */
-  InstInit(&arena->instStruct);
+  InstInit(CouldBeA(Inst, arena));
 
   arena->reserved = (Size)0;
   arena->committed = (Size)0;
@@ -312,7 +312,7 @@ static Res ArenaAbsInit(Arena arena, Size grainSize, ArgList args)
 failMFSInit:
   GlobalsFinish(ArenaGlobals(arena));
 failGlobalsInit:
-  InstFinish(&arena->instStruct);
+  InstFinish(MustBeA(Inst, arena));
   return res;
 }
 
@@ -440,7 +440,7 @@ static void ArenaAbsFinish(Arena arena)
   AVERC(Arena, arena);
   PoolFinish(ArenaCBSBlockPool(arena));
   arena->sig = SigInvalid;
-  InstFinish(&arena->instStruct);
+  InstFinish(MustBeA(Inst, arena));
   GlobalsFinish(ArenaGlobals(arena));
   LocusFinish(arena);
   RingFinish(&arena->chunkRing);
