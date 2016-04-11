@@ -18,6 +18,7 @@ SRCID(poolamc, "$Id$");
 /* AMC typedef */
 /* FIXME: Inconsistent naming of AMCPool class and AMC types. */
 typedef struct AMCStruct *AMC, *AMCPool, *AMCZPool;
+#define AMCZPoolCheck AMCCheck
 
 /* amcGen typedef */
 typedef struct amcGenStruct *amcGen;
@@ -49,7 +50,7 @@ typedef struct amcGenStruct {
   Sig sig;                      /* <code/misc.h#sig> */
 } amcGenStruct;
 
-#define amcGenAMC(amcgen) PoolAMC((amcgen)->pgen.pool)
+#define amcGenAMC(amcgen) MustBeA(AMCZPool, (amcgen)->pgen.pool)
 #define amcGenPool(amcgen) ((amcgen)->pgen.pool)
 
 #define amcGenNr(amcgen) ((amcgen)->pgen.nr)
@@ -406,9 +407,6 @@ typedef struct AMCStruct { /* <design/poolamc/#struct> */
   Sig sig;                 /* <design/pool/#outer-structure.sig> */
 } AMCStruct;
 
-#define PoolAMC(pool) PARENT(AMCStruct, poolStruct, (pool))
-#define AMCPool(amc) (&(amc)->poolStruct)
-
 
 /* amcGenCheck -- check consistency of a generation structure */
 
@@ -547,14 +545,13 @@ DEFINE_CLASS(Buffer, amcBuf, class)
 
 static Res amcGenCreate(amcGen *genReturn, AMC amc, GenDesc gen)
 {
+  Pool pool = MustBeA(AbstractPool, amc);
   Arena arena;
   Buffer buffer;
-  Pool pool;
   amcGen amcgen;
   Res res;
   void *p;
 
-  pool = AMCPool(amc);
   arena = pool->arena;
 
   res = ControlAlloc(&p, arena, sizeof(amcGenStruct));
@@ -660,7 +657,7 @@ static Res amcSegCreateNailboard(Seg seg, Pool pool)
 
 static Bool amcPinnedInterior(AMC amc, Nailboard board, Addr base, Addr limit)
 {
-  Size headerSize = AMCPool(amc)->format->headerSize;
+  Size headerSize = MustBeA(AbstractPool, amc)->format->headerSize;
   return !NailboardIsResRange(board, AddrSub(base, headerSize),
                               AddrSub(limit, headerSize));
 }
@@ -845,13 +842,9 @@ static Res AMCZInit(Pool pool, Arena arena, PoolClass class, ArgList args)
  */
 static void AMCFinish(Pool pool)
 {
-  AMC amc;
+  AMC amc = MustBeA(AMCZPool, pool);
   Ring ring;
   Ring node, nextNode;
-
-  AVERT(Pool, pool);
-  amc = PoolAMC(pool);
-  AVERT(AMC, amc);
 
   EVENT1(AMCFinish, amc);
 
@@ -902,7 +895,7 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
                          Pool pool, Buffer buffer, Size size)
 {
   Seg seg;
-  AMC amc;
+  AMC amc = MustBeA(AMCZPool, pool);
   Res res;
   Addr base, limit;
   Arena arena;
@@ -911,9 +904,6 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
   PoolGen pgen;
   amcBuf amcbuf = MustBeA(amcBuf, buffer);
 
-  AVERT(Pool, pool);
-  amc = PoolAMC(pool);
-  AVERT(AMC, amc);
   AVER(baseReturn != NULL);
   AVER(limitReturn != NULL);
   AVERT(Buffer, buffer);
@@ -995,14 +985,11 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
 static void AMCBufferEmpty(Pool pool, Buffer buffer,
                            Addr init, Addr limit)
 {
-  AMC amc;
+  AMC amc = MustBeA(AMCZPool, pool);
   Size size;
   Arena arena;
   Seg seg;
 
-  AVERT(Pool, pool);
-  amc = PoolAMC(pool);
-  AVERT(AMC, amc);
   AVERT(Buffer, buffer);
   AVER(BufferIsReady(buffer));
   seg = BufferSeg(buffer);
@@ -1037,11 +1024,8 @@ static void AMCBufferEmpty(Pool pool, Buffer buffer,
 
 static void AMCRampBegin(Pool pool, Buffer buf, Bool collectAll)
 {
-  AMC amc;
+  AMC amc = MustBeA(AMCZPool, pool);
 
-  AVERT(Pool, pool);
-  amc = PoolAMC(pool);
-  AVERT(AMC, amc);
   AVERT(Buffer, buf);
   AVERT(Bool, collectAll);
   UNUSED(collectAll); /* obsolete */
@@ -1059,11 +1043,8 @@ static void AMCRampBegin(Pool pool, Buffer buf, Bool collectAll)
 
 static void AMCRampEnd(Pool pool, Buffer buf)
 {
-  AMC amc;
+  AMC amc = MustBeA(AMCZPool, pool);
 
-  AVERT(Pool, pool);
-  amc = PoolAMC(pool);
-  AVERT(AMC, amc);
   AVERT(Buffer, buf);
 
   AVER(amc->rampCount > 0);
@@ -1121,15 +1102,12 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
 {
   Size condemned = 0;
   amcGen gen;
-  AMC amc;
+  AMC amc = MustBeA(AMCZPool, pool);
   Buffer buffer;
-  amcSeg amcseg;
+  amcSeg amcseg = MustBeA(amcSeg, seg);
   Res res;
 
-  AVERT(Pool, pool);
   AVERT(Trace, trace);
-  AVERT(Seg, seg);
-  amcseg = Seg2amcSeg(seg);
 
   buffer = SegBuffer(seg);
   if(buffer != NULL) {
@@ -1194,9 +1172,6 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
   condemned += SegSize(seg);
   trace->condemned += condemned;
 
-  amc = PoolAMC(pool);
-  AVERT(AMC, amc);
-
   gen = amcSegGen(seg);
   AVERT(amcGen, gen);
   if (!amcseg->old) {
@@ -1237,7 +1212,7 @@ static Res amcScanNailedRange(Bool *totalReturn, Bool *moreReturn,
   Format format;
   Size headerSize;
   Addr p, clientLimit;
-  Pool pool = AMCPool(amc);
+  Pool pool = MustBeA(AbstractPool, amc);
   format = pool->format;
   headerSize = format->headerSize;
   p = AddrAdd(base, headerSize);
@@ -1368,15 +1343,12 @@ static Res AMCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 {
   Addr base, limit;
   Format format;
-  AMC amc;
+  AMC amc = MustBeA(AMCZPool, pool);
   Res res;
 
   AVER(totalReturn != NULL);
   AVERT(ScanState, ss);
   AVERT(Seg, seg);
-  AVERT(Pool, pool);
-  amc = PoolAMC(pool);
-  AVERT(AMC, amc);
 
 
   format = pool->format;
@@ -1475,18 +1447,14 @@ static Res AMCFixEmergency(Pool pool, ScanState ss, Seg seg,
                            Ref *refIO)
 {
   Arena arena;
-  AMC amc;
   Addr newRef;
 
-  AVERT(Pool, pool);
+  AVERC(AMCZPool, pool);
   AVERT(ScanState, ss);
   AVERT(Seg, seg);
   AVER(refIO != NULL);
 
   arena = PoolArena(pool);
-  AVERT(Arena, arena);
-  amc = PoolAMC(pool);
-  AVERT(AMC, amc);
 
   ss->wasMarked = TRUE;
 
@@ -1566,7 +1534,7 @@ static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     return ResOK;
   }
 
-  amc = PoolAMC(pool);
+  amc = MustBeA(AMCZPool, pool); /* FIXME: CRITICAL */
   AVERT_CRITICAL(AMC, amc);
   format = pool->format;
   headerSize = format->headerSize;
@@ -1677,15 +1645,13 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
   Size bytesReclaimed = (Size)0;
   Count preservedInPlaceCount = (Count)0;
   Size preservedInPlaceSize = (Size)0;
-  AMC amc;
+  AMC amc = MustBeA(AMCZPool, pool);
   Size headerSize;
   Addr padBase;          /* base of next padding object */
   Size padLength;        /* length of next padding object */
 
   /* All arguments AVERed by AMCReclaim */
 
-  amc = PoolAMC(pool);
-  AVERT(AMC, amc);
   format = pool->format;
 
   arena = PoolArena(pool);
@@ -1779,12 +1745,9 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
  */
 static void AMCReclaim(Pool pool, Trace trace, Seg seg)
 {
-  AMC amc;
+  AMC amc = MustBeA(AMCZPool, pool); /* FIXME: CRITICAL */
   amcGen gen;
 
-  AVERT_CRITICAL(Pool, pool);
-  amc = PoolAMC(pool);
-  AVERT_CRITICAL(AMC, amc);
   AVERT_CRITICAL(Trace, trace);
   AVERT_CRITICAL(Seg, seg);
 
@@ -1825,10 +1788,9 @@ static void AMCWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
                     void *p, size_t s)
 {
   Addr object, nextObject, limit;
-  AMC amc;
   Format format;
 
-  AVERT(Pool, pool);
+  AVERC(AMCZPool, pool);
   AVERT(Seg, seg);
   AVER(FUNCHECK(f));
   /* p and s are arbitrary closures so can't be checked */
@@ -1843,8 +1805,6 @@ static void AMCWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
   if(SegWhite(seg) == TraceSetEMPTY && SegGrey(seg) == TraceSetEMPTY
      && SegNailed(seg) == TraceSetEMPTY)
   {
-    amc = PoolAMC(pool);
-    AVERT(AMC, amc);
     format = pool->format;
 
     /* If the segment is buffered, only walk as far as the end */
@@ -1976,13 +1936,9 @@ static Res AMCAddrObject(Addr *pReturn, Pool pool, Seg seg, Addr addr)
 
 static Size AMCTotalSize(Pool pool)
 {
-  AMC amc;
+  AMC amc = MustBeA(AMCZPool, pool);
   Size size = 0;
   Ring node, nextNode;
-
-  AVERT(Pool, pool);
-  amc = PoolAMC(pool);
-  AVERT(AMC, amc);
 
   RING_FOR(node, &amc->genRing, nextNode) {
     amcGen gen = RING_ELT(amcGen, amcRing, node);
@@ -1998,13 +1954,9 @@ static Size AMCTotalSize(Pool pool)
 
 static Size AMCFreeSize(Pool pool)
 {
-  AMC amc;
+  AMC amc = MustBeA(AMCZPool, pool);
   Size size = 0;
   Ring node, nextNode;
-
-  AVERT(Pool, pool);
-  amc = PoolAMC(pool);
-  AVERT(AMC, amc);
 
   RING_FOR(node, &amc->genRing, nextNode) {
     amcGen gen = RING_ELT(amcGen, amcRing, node);
@@ -2023,22 +1975,19 @@ static Size AMCFreeSize(Pool pool)
 static Res AMCDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 {
   Res res;
-  AMC amc;
+  AMC amc = CouldBeA(AMCZPool, pool);
   Ring node, nextNode;
   const char *rampmode;
 
-  if(!TESTT(Pool, pool))
-    return ResFAIL;
-  amc = PoolAMC(pool);
-  if(!TESTT(AMC, amc))
-    return ResFAIL;
+  if(!TESTC(AMCZPool, amc))
+    return ResPARAM;
   if(stream == NULL)
-    return ResFAIL;
+    return ResPARAM;
 
   res = WriteF(stream, depth,
                (amc->rankSet == RankSetEMPTY) ? "AMCZ" : "AMC",
                " $P {\n", (WriteFP)amc, "  pool $P ($U)\n",
-               (WriteFP)AMCPool(amc), (WriteFU)AMCPool(amc)->serial,
+               (WriteFP)pool, (WriteFU)pool->serial,
                NULL);
   if(res != ResOK)
     return res;
@@ -2069,7 +2018,7 @@ static Res AMCDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 
   if(0) {
     /* SegDescribes */
-    RING_FOR(node, &AMCPool(amc)->segRing, nextNode) {
+    RING_FOR(node, &pool->segRing, nextNode) {
       Seg seg = RING_ELT(Seg, poolRing, node);
       res = AMCSegDescribe(seg, stream, depth + 2);
       if(res != ResOK)
@@ -2201,8 +2150,7 @@ static Bool AMCCheck(AMC amc)
 {
   CHECKS(AMC, amc);
   CHECKC(AMCZPool, amc);
-  CHECKD(Pool, AMCPool(amc));
-  CHECKL(IsA(AMCZPool, AMCPool(amc)));
+  CHECKD(Pool, MustBeA(AbstractPool, amc));
   CHECKL(RankSetCheck(amc->rankSet));
   CHECKD_NOSIG(Ring, &amc->genRing);
   CHECKL(BoolCheck(amc->gensBooted));
