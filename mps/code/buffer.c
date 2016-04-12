@@ -393,7 +393,9 @@ void BufferFinish(Buffer buffer)
   AVERT(Buffer, buffer);
   AVER(BufferIsReady(buffer));
 
-  /* FIXME: Can this go in BufferAbsFinish? */
+  /* TODO: This could potentially go in BufferAbsFinish but
+     branch/2014-10-11/snc will make this disappear, solving the
+     problem anyway. */
   /* <design/alloc-frame/#lw-frame.sync.trip> */
   if (BufferIsTrappedByMutator(buffer)) {
     BufferFrameNotifyPopPending(buffer);
