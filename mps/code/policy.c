@@ -245,7 +245,8 @@ static Res policyCondemnChain(double *mortalityReturn, Chain chain, Trace trace)
     RING_FOR(node, &gen->segRing, next) {
       GCSeg gcseg = RING_ELT(GCSeg, genRing, node);
       res = TraceAddWhite(trace, &gcseg->segStruct);
-      AVER(res == ResOK); /* FIXME: handle failure */
+      if (res != ResOK)
+        goto failBegin;
     }
     genTotalSize = GenDescTotalSize(gen);
     genNewSize = GenDescNewSize(gen);
@@ -260,6 +261,11 @@ static Res policyCondemnChain(double *mortalityReturn, Chain chain, Trace trace)
   
   *mortalityReturn = 1.0 - (double)survivorSize / condemnedSize;
   return ResOK;
+
+failBegin:
+  AVER(TraceIsEmpty(trace));    /* See <code/trace.c#whiten.fail> */
+  TraceCondemnEnd(trace);
+  return res;
 }
 
 

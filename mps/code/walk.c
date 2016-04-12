@@ -325,7 +325,8 @@ static Res ArenaRootsWalk(Globals arenaGlobals, mps_roots_stepper_t f,
     do {
       if (PoolHasAttr(SegPool(seg), AttrGC)) {
         res = TraceAddWhite(trace, seg);
-        AVER(res == ResOK);
+        if (res != ResOK)
+          goto failBegin;
       }
     } while (SegNext(&seg, arena, seg));
   }
@@ -346,6 +347,7 @@ static Res ArenaRootsWalk(Globals arenaGlobals, mps_roots_stepper_t f,
       break;
   }
 
+failBegin:
   /* Turn segments black again. */
   if (SegFirst(&seg, arena)) {
     do {
