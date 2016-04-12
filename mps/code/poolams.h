@@ -41,7 +41,8 @@ typedef Res (*AMSSegSizePolicyFunction)(Size *sizeReturn,
 typedef struct AMSStruct {
   PoolStruct poolStruct;       /* generic pool structure */
   Shift grainShift;            /* log2 of grain size */
-  PoolGenStruct pgen;          /* generation representing the pool */
+  PoolGenStruct pgenStruct;    /* generation representing the pool */
+  PoolGen pgen;                /* NULL or pointer to pgenStruct field */
   Size size;                   /* total segment size of the pool */
   AMSSegSizePolicyFunction segSize; /* SegSize policy */
   RingStruct segRing;          /* ring of segments in the pool */
