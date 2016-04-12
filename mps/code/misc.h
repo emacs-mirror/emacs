@@ -125,15 +125,6 @@ typedef const struct SrcIdStruct {
   END
 
 
-/* DISCARD_EXP -- discard an expression, as an expression
- *
- * Like DISCARD, except that it is itself an expression yielding zero
- * (the most ambiguous expression).
- */
-
-#define DISCARD_EXP(expr) (sizeof((expr)!=0), 0)
-
-
 /* DISCARD_STAT -- discards a statement, but checks syntax
  *
  * The argument is a statement; the expansion followed by a semicolon
