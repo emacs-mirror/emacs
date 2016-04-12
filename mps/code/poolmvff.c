@@ -29,8 +29,6 @@
 
 SRCID(poolmvff, "$Id$");
 
-DECLARE_CLASS(Pool, MVFFPool);
-
 
 /* Would go in poolmvff.h if the class had any MPS-internal clients. */
 extern PoolClass PoolClassMVFF(void);
@@ -44,8 +42,7 @@ extern PoolClass PoolClassMVFF(void);
 
 #define MVFFSig           ((Sig)0x5193FFF9) /* SIGnature MVFF */
 
-/* FIXME: Inconsistent naming of MVFFPool class and MVFF types. */
-typedef struct MVFFStruct *MVFF, *MVFFPool;
+typedef struct MVFFStruct *MVFF;
 typedef struct MVFFStruct {     /* MVFF pool outer structure */
   PoolStruct poolStruct;        /* generic structure */
   LocusPrefStruct locusPrefStruct; /* the preferences for allocation */
@@ -61,6 +58,10 @@ typedef struct MVFFStruct {     /* MVFF pool outer structure */
   Bool slotHigh;                /* prefers high part of large block */
   Sig sig;                      /* <design/sig/> */
 } MVFFStruct;
+
+
+typedef MVFF MVFFPool;
+DECLARE_CLASS(Pool, MVFFPool);
 
 
 #define PoolMVFF(pool)     PARENT(MVFFStruct, poolStruct, pool)

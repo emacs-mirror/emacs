@@ -12,6 +12,8 @@
  * .purpose: Provide the generic part of the MPS / Client message
  * interface.  Messages are instances of Message Classes; much of the
  * "real work" goes on in the modules that provide the actual messages.
+ *
+ * TODO: Consider using protocol classes for messages.
  */
 
 #include "bt.h"
@@ -314,7 +316,6 @@ static void MessageDelete(Message message)
 {
   AVERT(Message, message);
 
-  /* FIXME: Should be using protocol classes? */
   (*message->class->delete)(message);
 }
 

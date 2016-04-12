@@ -15,17 +15,11 @@
 
 SRCID(poolamc, "$Id$");
 
-/* AMC typedef */
-/* FIXME: Inconsistent naming of AMCPool class and AMC types. */
-typedef struct AMCStruct *AMC, *AMCPool, *AMCZPool;
-#define AMCZPoolCheck AMCCheck
-
-/* amcGen typedef */
+typedef struct AMCStruct *AMC;
 typedef struct amcGenStruct *amcGen;
 
 /* Function returning TRUE if block in nailboarded segment is pinned. */
 typedef Bool (*amcPinnedFunction)(AMC amc, Nailboard board, Addr base, Addr limit);
-
 
 /* forward declarations */
 
@@ -33,8 +27,16 @@ static Bool amcSegHasNailboard(Seg seg);
 static Nailboard amcSegNailboard(Seg seg);
 static Bool AMCCheck(AMC amc);
 static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO);
+
+/* local class declations */
+
+typedef AMC AMCZPool;
+#define AMCZPoolCheck AMCCheck
 DECLARE_CLASS(Pool, AMCZPool);
+
+typedef AMC AMCPool;
 DECLARE_CLASS(Pool, AMCPool);
+
 DECLARE_CLASS(Buffer, amcBuf);
 DECLARE_CLASS(Seg, amcSeg);
 
@@ -817,7 +819,7 @@ failGensAlloc:
   return res;
 }
 
-/* FIXME: AMCInit should call AMCZInit (its superclass) then
+/* TODO: AMCInit should call AMCZInit (its superclass) then
    specialize, but amcInitComm creates forwarding buffers that copy
    the rank set from the pool, making this awkward. */
 

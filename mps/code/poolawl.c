@@ -45,8 +45,6 @@
 
 SRCID(poolawl, "$Id$");
 
-DECLARE_CLASS(Pool, AWLPool);
-
 
 #define AWLSig ((Sig)0x519B7A37) /* SIGnature PooL AWL */
 
@@ -91,12 +89,16 @@ typedef struct AWLPoolStruct {
   FindDependentFunction findDependent; /*  to find a dependent object */
   awlStatTotalStruct stats;
   Sig sig;
-} AWLPoolStruct, *AWL, *AWLPool; /* FIXME: pick one! */
+} AWLPoolStruct, *AWL;
 
 #define AWLGrainsSize(awl, grains) ((grains) << (awl)->alignShift)
 
 
 static Bool AWLCheck(AWL awl);
+
+
+typedef AWL AWLPool;
+DECLARE_CLASS(Pool, AWLPool);
 
 
 /* Conversion between indexes and Addrs */

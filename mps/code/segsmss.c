@@ -26,12 +26,6 @@
 #include <stdio.h> /* fflush, printf, puts, stdout */
 
 
-/* Forward declarations */
-
-DECLARE_CLASS(Seg, AMSTSeg);
-DECLARE_CLASS(Pool, AMSTPool);
-
-
 /* Start by defining the AMST pool (AMS Test pool) */
 
 #define AMSTSig         ((Sig)0x519A3529) /* SIGnature AMST */
@@ -50,11 +44,15 @@ typedef struct AMSTStruct {
   Sig sig;                  /* <design/pool/#outer-structure.sig> */
 } AMSTStruct;
 
-/* FIXME: Inconsistent naming between AMSTPool class and AMST types. */
-typedef struct AMSTStruct *AMST, *AMSTPool;
+typedef struct AMSTStruct *AMST;
 
 #define PoolAMST(pool) PARENT(AMSTStruct, amsStruct, PARENT(AMSStruct, poolStruct, (pool)))
 #define AMST2AMS(amst)  (&(amst)->amsStruct)
+
+
+typedef AMST AMSTPool;
+DECLARE_CLASS(Pool, AMSTPool);
+DECLARE_CLASS(Seg, AMSTSeg);
 
 
 /* AMSTCheck -- the check method for an AMST */

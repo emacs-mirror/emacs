@@ -137,6 +137,9 @@ Res PoolAbsInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   pool->sig = PoolSig;
   AVERT(Pool, pool);
 
+  /* Add initialized pool to list of pools in arena. */
+  RingAppend(ArenaPoolRing(arena), PoolArenaRing(pool));
+
   return ResOK;
 }
 
@@ -146,7 +149,7 @@ Res PoolAbsInit(Pool pool, Arena arena, PoolClass class, ArgList args)
 void PoolAbsFinish(Pool pool)
 {
   /* Detach the pool from the arena and format, and unsig it. */
-  RingRemove(&pool->arenaRing);
+  RingRemove(PoolArenaRing(pool));
 
   /* FIXME: Should be done in finish of pools that use formats */
   if (pool->format) {

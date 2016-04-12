@@ -306,7 +306,7 @@
 #define MPS_ARCH_I6
 #define MPS_BUILD_LL
 #define MPS_T_WORD      unsigned long
-#define MPS_T_ULONGEST  unsigned long /* FIXME: Check this for Clang */
+#define MPS_T_ULONGEST  unsigned long
 #define MPS_WORD_WIDTH  64
 #define MPS_WORD_SHIFT  6
 #define MPS_PF_ALIGN    8

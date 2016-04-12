@@ -132,18 +132,22 @@ Res PoolInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   if (res != ResOK)
     return res;
 
-  /* FIXME: Where should this go? */
+  /* TODO: Eliminate these extra steps so that PoolInit is just a
+     wrapper for class->init.  See notes on each item. */
+
+  /* TODO: This could be a step when setting up the pool to
+     participate in a GC.  It could go in Whiten, for example. */
   pool->fix = ClassOfPoly(Pool, pool)->fix;
 
-  /* Add initialized pool to list of pools in arena. */
-  /* FIXME: Should be in PoolAbsInit */
-  RingAppend(&ArenaGlobals(arena)->poolRing, &pool->arenaRing);
-
   /* Add initialized pool to list of pools using format. */
-  /* FIXME: Should be in inits of pools that use formats. */
+  /* FIXME: This should be changed by pools that use formats, perhaps
+     by having methods like addFormat and removeFormat that are called
+     on init and finish. */
   if (pool->format) {
     ++pool->format->poolCount;
   }
+
+  EVENT3(PoolInit, pool, PoolArena(pool), ClassOfPoly(Pool, pool));
 
   return ResOK;
 }
