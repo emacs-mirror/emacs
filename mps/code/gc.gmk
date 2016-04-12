@@ -9,7 +9,7 @@
 # compiler.  It defines the compiler-specific variables that the
 # common makefile fragment (<code/comm.gmk>) requires.
 
-CC = gcc-mp-4.9
+CC = gcc
 CFLAGSDEBUG = -O -g3
 CFLAGSOPT = -O2 -g3
 CFLAGSCOMPILER := \
