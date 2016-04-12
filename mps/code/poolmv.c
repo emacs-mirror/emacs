@@ -35,6 +35,7 @@
 SRCID(poolmv, "$Id$");
 
 typedef MV MVPool;
+#define MVPoolCheck MVCheck
 DECLARE_CLASS(Pool, MVPool);
 
 
@@ -255,8 +256,7 @@ static Res MVInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   res = PoolAbsInit(pool, arena, class, args);
   if (res != ResOK)
     return res;
-  SetClassOfPoly(pool, CLASS(MVPool));
-  mv = MustBeA(MVPool, pool);
+  mv = CouldBeA(MVPool, pool);
 
   pool->alignment = align;
 
@@ -293,9 +293,12 @@ static Res MVInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   mv->free = 0;
   mv->lost = 0;
 
+  SetClassOfPoly(pool, CLASS(MVPool));
   mv->sig = MVSig;
-  AVERT(MV, mv);
+  AVERC(MVPool, mv);
+  
   EVENT5(PoolInitMV, pool, arena, extendBy, avgSize, maxSize);
+
   return ResOK;
 
 failSpanPoolInit:

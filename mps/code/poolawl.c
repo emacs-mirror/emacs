@@ -84,7 +84,8 @@ typedef Addr (*FindDependentFunction)(Addr object);
 typedef struct AWLPoolStruct {
   PoolStruct poolStruct;
   Shift alignShift;
-  PoolGenStruct pgen;       /* generation representing the pool */
+  PoolGenStruct pgenStruct; /* generation representing the pool */
+  PoolGen pgen;             /* NULL or pointer to pgenStruct */
   Count succAccesses;       /* number of successive single accesses */
   FindDependentFunction findDependent; /*  to find a dependent object */
   awlStatTotalStruct stats;
@@ -98,6 +99,7 @@ static Bool AWLCheck(AWL awl);
 
 
 typedef AWL AWLPool;
+#define AWLPoolCheck AWLCheck
 DECLARE_CLASS(Pool, AWLPool);
 
 
@@ -193,8 +195,7 @@ static Res AWLSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   res = NextMethod(Seg, AWLSeg, init)(seg, pool, base, size, args);
   if (res != ResOK)
     goto failSuperInit;
-  SetClassOfPoly(seg, CLASS(AWLSeg));
-  awlseg = MustBeA(AWLSeg, seg);
+  awlseg = CouldBeA(AWLSeg, seg);
 
   AVERT(Pool, pool);
   arena = PoolArena(pool);
@@ -224,8 +225,11 @@ static Res AWLSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   awlseg->newGrains = (Count)0;
   awlseg->singleAccesses = 0;
   awlStatSegInit(awlseg);
+
+  SetClassOfPoly(seg, CLASS(AWLSeg));
   awlseg->sig = AWLSegSig;
-  AVERT(AWLSeg, awlseg);
+  AVERC(AWLSeg, awlseg);
+
   return ResOK;
 
 failControlAllocAlloc:
@@ -441,7 +445,7 @@ static Res AWLSegCreate(AWLSeg *awlsegReturn,
     return ResMEMORY;
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD_FIELD(args, awlKeySegRankSet, u, rankSet);
-    res = PoolGenAlloc(&seg, &awl->pgen, CLASS(AWLSeg), size, args);
+    res = PoolGenAlloc(&seg, awl->pgen, CLASS(AWLSeg), size, args);
   } MPS_ARGS_END(args);
   if (res != ResOK)
     return res;
@@ -537,8 +541,7 @@ static Res AWLInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   res = PoolAbsInit(pool, arena, class, args);
   if (res != ResOK)
     goto failAbsInit;
-  SetClassOfPoly(pool, CLASS(AWLPool));
-  awl = MustBeA(AWLPool, pool);
+  awl = CouldBeA(AWLPool, pool);
   
   pool->format = format;
   pool->alignment = format->alignment;
@@ -550,17 +553,23 @@ static Res AWLInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   AVER(gen <= ChainGens(chain));
   AVER(chain->arena == PoolArena(pool));
 
-  res = PoolGenInit(&awl->pgen, ChainGen(chain, gen), pool);
-  if (res != ResOK)
-    goto failGenInit;
+  awl->pgen = NULL;
 
   awl->alignShift = SizeLog2(PoolAlignment(pool));
   awl->succAccesses = 0;
   awlStatTotalInit(awl);
-  awl->sig = AWLSig;
 
-  AVERT(AWL, awl);
+  SetClassOfPoly(pool, CLASS(AWLPool));
+  awl->sig = AWLSig;
+  AVERC(AWLPool, awl);
+
+  res = PoolGenInit(&awl->pgenStruct, ChainGen(chain, gen), pool);
+  if (res != ResOK)
+    goto failGenInit;
+  awl->pgen = &awl->pgenStruct;
+
   EVENT2(PoolInitAWL, pool, format);
+
   return ResOK;
 
 failGenInit:
@@ -583,14 +592,14 @@ static void AWLFinish(Pool pool)
     Seg seg = SegOfPoolRing(node);
     AWLSeg awlseg = MustBeA(AWLSeg, seg);
 
-    PoolGenFree(&awl->pgen, seg,
+    PoolGenFree(awl->pgen, seg,
                 AWLGrainsSize(awl, awlseg->freeGrains),
                 AWLGrainsSize(awl, awlseg->oldGrains),
                 AWLGrainsSize(awl, awlseg->newGrains),
                 FALSE);
   }
   awl->sig = SigInvalid;
-  PoolGenFinish(&awl->pgen);
+  PoolGenFinish(awl->pgen);
   PoolAbsFinish(pool);
 }
 
@@ -648,7 +657,7 @@ found:
     AVER(awlseg->freeGrains >= j - i);
     awlseg->freeGrains -= j - i;
     awlseg->newGrains += j - i;
-    PoolGenAccountForFill(&awl->pgen, AddrOffset(base, limit), FALSE);
+    PoolGenAccountForFill(awl->pgen, AddrOffset(base, limit), FALSE);
   }
   *baseReturn = base;
   *limitReturn = limit;
@@ -676,7 +685,7 @@ static void AWLBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
     AVER(awlseg->newGrains >= j - i);
     awlseg->newGrains -= j - i;
     awlseg->freeGrains += j - i;
-    PoolGenAccountForEmpty(&awl->pgen, AddrOffset(init, limit), FALSE);
+    PoolGenAccountForEmpty(awl->pgen, AddrOffset(init, limit), FALSE);
   }
 }
 
@@ -731,7 +740,7 @@ static Res AWLWhiten(Pool pool, Trace trace, Seg seg)
     }
   }
 
-  PoolGenAccountForAge(&awl->pgen, AWLGrainsSize(awl, awlseg->newGrains - uncondemned), FALSE);
+  PoolGenAccountForAge(awl->pgen, AWLGrainsSize(awl, awlseg->newGrains - uncondemned), FALSE);
   awlseg->oldGrains += awlseg->newGrains - uncondemned;
   awlseg->newGrains = uncondemned;
 
@@ -1059,7 +1068,7 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
   AVER(awlseg->oldGrains >= reclaimedGrains);
   awlseg->oldGrains -= reclaimedGrains;
   awlseg->freeGrains += reclaimedGrains;
-  PoolGenAccountForReclaim(&awl->pgen, AWLGrainsSize(awl, reclaimedGrains), FALSE);
+  PoolGenAccountForReclaim(awl->pgen, AWLGrainsSize(awl, reclaimedGrains), FALSE);
 
   trace->reclaimSize += AWLGrainsSize(awl, reclaimedGrains);
   trace->preservedInPlaceCount += preservedInPlaceCount;
@@ -1068,7 +1077,7 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
 
   if (awlseg->freeGrains == awlseg->grains && buffer == NULL)
     /* No survivors */
-    PoolGenFree(&awl->pgen, seg,
+    PoolGenFree(awl->pgen, seg,
                 AWLGrainsSize(awl, awlseg->freeGrains),
                 AWLGrainsSize(awl, awlseg->oldGrains),
                 AWLGrainsSize(awl, awlseg->newGrains),
@@ -1168,20 +1177,22 @@ static void AWLWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
 
 
 /* AWLTotalSize -- total memory allocated from the arena */
+/* TODO: This code is repeated in AMS */
 
 static Size AWLTotalSize(Pool pool)
 {
   AWL awl = MustBeA(AWLPool, pool);
-  return awl->pgen.totalSize;
+  return awl->pgen->totalSize;
 }
 
 
 /* AWLFreeSize -- free memory (unused by client program) */
+/* TODO: This code is repeated in AMS */
 
 static Size AWLFreeSize(Pool pool)
 {
   AWL awl = MustBeA(AWLPool, pool);
-  return awl->pgen.freeSize;
+  return awl->pgen->freeSize;
 }
 
 
