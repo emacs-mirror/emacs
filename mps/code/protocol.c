@@ -1,3 +1,5 @@
+/* The class definition for the root of the hierarchy */
+
 /* pool.c: PROTOCOL IMPLEMENTATION
  *
  * $Id$
@@ -13,15 +15,29 @@
 SRCID(protocol, "$Id$");
 
 
-DEFINE_CLASS(Inst, InstClass, class)
-{
-  INHERIT_CLASS(class, InstClass, Inst);
-}
+/* The class definitions for the root of the hierarchy */
 
-
-/* The class definition for the root of the hierarchy */
+static void InstClassInitInternal(InstClass class);
 
 DEFINE_CLASS(Inst, Inst, class)
+{
+  InstClassInitInternal(class);
+  class->instStruct.class = CLASS(InstClass);
+}
+
+DEFINE_CLASS(Inst, InstClass, class)
+{
+  /* Can't use INHERIT_CLASS(class, InstClass, Inst) here because it
+     causes infinite regression, so we have to set this one up by
+     hand. */
+  InstClassInitInternal(class);
+  class->superclass = &CLASS_STATIC(Inst);
+  class->name = "InstClass";
+  class->level = ClassLevelInstClass;
+  class->display[ClassLevelInstClass] = ClassIdInstClass;
+}
+
+static void InstClassInitInternal(InstClass class)
 {
   ClassLevel i;
 
@@ -32,13 +48,14 @@ DEFINE_CLASS(Inst, Inst, class)
   class->level = 0;
   class->display[class->level] = ClassIdInst;
 
-  /* We can't call InstInit here because it causes a loop back to
-     here, so we have to tie this knot specially. */
-  class->instStruct.class = class;
+  /* We can't call CLASS(InstClass) here because it causes a loop back
+     to here, so we have to tie this knot specially. */
+  class->instStruct.class = &CLASS_STATIC(InstClass);
 
   class->sig = InstClassSig;
   AVERT(InstClass, class);
 }
+
 
 /* InstClassCheck -- check a protocol class */
 
@@ -102,6 +119,18 @@ Bool InstCheck(Inst inst)
 {
   CHECKD(InstClass, inst->class);
   return TRUE;
+}
+
+
+void ClassRegister(InstClass class)
+{
+  Word classId;
+
+  /* label the pool class with its name */
+  EventInit();
+  classId = EventInternString(ClassName(class));
+  /* NOTE: this breaks <design/type/#addr.use> */
+  EventLabelAddr((Addr)class, classId);
 }
 
 
