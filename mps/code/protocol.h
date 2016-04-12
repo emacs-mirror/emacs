@@ -30,6 +30,8 @@
 #define CLASS_INIT(ident) ident ## ClassInit
 #define CLASS_CHECK(ident) ident ## ClassCheck
 #define CLASS_SUPER(ident) ident ## SuperClassGet
+#define CLASS_GUARDIAN(ident) ClassGuardian ## ident
+#define CLASS_STATIC(ident) ClassStatic ## ident
 #define KIND_CLASS(ident) ident ## Class
 
 
@@ -48,18 +50,21 @@
 
 #define DEFINE_CLASS(kind, ident, var) \
   DECLARE_CLASS(kind, ident); \
+  static Bool CLASS_GUARDIAN(ident) = FALSE; \
+  static CLASS_STRUCT(kind) CLASS_STATIC(ident); \
   CLASS_TYPE(kind) CLASS_ENSURE(ident)(void) \
   { \
-    static Bool guardian = FALSE; \
-    static CLASS_STRUCT(kind) classStruct; \
-    static CLASS_TYPE(kind) class = &classStruct; \
-    if (guardian == FALSE) { \
+    CLASS_TYPE(kind) class = &CLASS_STATIC(ident); \
+    if (CLASS_GUARDIAN(ident) == FALSE) { \
       LockClaimGlobalRecursive(); \
-      if (guardian == FALSE) { \
-        guardian = TRUE; \
+      if (CLASS_GUARDIAN(ident) == FALSE) { \
         CLASS_INIT(ident)(class); \
-        SetClassOfPoly(class, CLASS(KIND_CLASS(kind))); \
+	/* Prevent infinite regress. */ \
+	if (ClassId ## ident != ClassIdInstClass && \
+	    ClassId ## ident != ClassIdInst) \
+          SetClassOfPoly(class, CLASS(KIND_CLASS(kind))); \
         AVER(CLASS_CHECK(kind)(class)); \
+        CLASS_GUARDIAN(ident) = TRUE; \
       } \
       LockReleaseGlobalRecursive(); \
     } \
@@ -227,8 +232,14 @@ extern void InstFinish(Inst inst);
 #define ClassOfPoly(kind, inst) \
   MustBeA(KIND_CLASS(kind), MustBeA(Inst, inst)->class)
 
-#define ClassName(class) RVALUE(((InstClass)(class))->name)
-/* #define ClassName(class) RVALUE(MustBeA(InstClass, class)->name) */
+
+/* ClassName -- get the human readable name of a class
+ *
+ * ClassName is used in describe methods and other unsafe places, so
+ * we don't use MustBeA.
+ */
+
+#define ClassName(class) RVALUE(CouldBeA(InstClass, class)->name)
 
 
 /* SetClassOfPoly -- set the class of an object
