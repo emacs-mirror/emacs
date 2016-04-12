@@ -226,8 +226,7 @@ static Res AMSSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   res = NextMethod(Seg, AMSSeg, init)(seg, pool, base, size, args);
   if (res != ResOK)
     goto failNextMethod;
-  SetClassOfPoly(seg, CLASS(AMSSeg));
-  amsseg = MustBeA(AMSSeg, seg);
+  amsseg = CouldBeA(AMSSeg, seg);
 
   AVERT(Pool, pool);
   ams = PoolAMS(pool);
@@ -258,8 +257,9 @@ static Res AMSSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   RingAppend((ams->allocRing)(ams, SegRankSet(seg), size),
              &amsseg->segRing);
 
+  SetClassOfPoly(seg, CLASS(AMSSeg));
   amsseg->sig = AMSSegSig;
-  AVERT(AMSSeg, amsseg);
+  AVERC(AMSSeg, amsseg);
 
   return ResOK;
 
@@ -391,7 +391,7 @@ static Res AMSSegMerge(Seg seg, Seg segHi,
   amssegHi->sig = SigInvalid;
 
   AVERT(AMSSeg, amsseg);
-  PoolGenAccountForSegMerge(&ams->pgen);
+  PoolGenAccountForSegMerge(ams->pgen);
   return ResOK;
 
 failSuper:
@@ -494,7 +494,7 @@ static Res AMSSegSplit(Seg seg, Seg segHi,
   amssegHi->sig = AMSSegSig;
   AVERT(AMSSeg, amsseg);
   AVERT(AMSSeg, amssegHi);
-  PoolGenAccountForSegSplit(&ams->pgen);
+  PoolGenAccountForSegSplit(ams->pgen);
   return ResOK;
 
 failSuper:
@@ -688,13 +688,13 @@ static Res AMSSegCreate(Seg *segReturn, Pool pool, Size size,
   if (res != ResOK)
     goto failSize;
 
-  res = PoolGenAlloc(&seg, &ams->pgen, (*ams->segClass)(), prefSize,
+  res = PoolGenAlloc(&seg, ams->pgen, (*ams->segClass)(), prefSize,
                      argsNone);
   if (res != ResOK) { /* try to allocate one that's just large enough */
     Size minSize = SizeArenaGrains(size, arena);
     if (minSize == prefSize)
       goto failSeg;
-    res = PoolGenAlloc(&seg, &ams->pgen, (*ams->segClass)(), prefSize,
+    res = PoolGenAlloc(&seg, ams->pgen, (*ams->segClass)(), prefSize,
                        argsNone);
     if (res != ResOK)
       goto failSeg;
@@ -732,7 +732,7 @@ static void AMSSegsDestroy(AMS ams)
     AVERT(AMSSeg, amsseg);
     AVER(amsseg->ams == ams);
     AMSSegFreeCheck(amsseg);
-    PoolGenFree(&ams->pgen, seg,
+    PoolGenFree(ams->pgen, seg,
                 AMSGrainsSize(ams, amsseg->freeGrains),
                 AMSGrainsSize(ams, amsseg->oldGrains),
                 AMSGrainsSize(ams, amsseg->newGrains),
@@ -825,24 +825,19 @@ Res AMSInitInternal(AMS ams, Arena arena, PoolClass class,
   res = PoolAbsInit(pool, arena, class, args);
   if (res != ResOK)
     goto failAbsInit;
-  SetClassOfPoly(pool, CLASS(AMSPool));
-  AVER(ams == MustBeA(AMSPool, pool));
+  AVER(ams == CouldBeA(AMSPool, pool));
   
   AVERT(Format, format);
   AVER(FormatArena(format) == PoolArena(pool));
-  pool->format = format;
   AVERT(Chain, chain);
   AVER(gen <= ChainGens(chain));
   AVER(chain->arena == PoolArena(pool));
 
-  pool->alignment = pool->format->alignment;
+  pool->format = format;
+  pool->alignment = format->alignment;
   ams->grainShift = SizeLog2(PoolAlignment(pool));
-
-  res = PoolGenInit(&ams->pgen, ChainGen(chain, gen), pool);
-  if (res != ResOK)
-    goto failGenInit;
-
   ams->shareAllocTable = shareAllocTable;
+  ams->pgen = NULL;
 
   RingInit(&ams->segRing);
 
@@ -852,8 +847,15 @@ Res AMSInitInternal(AMS ams, Arena arena, PoolClass class,
   ams->segsDestroy = AMSSegsDestroy;
   ams->segClass = AMSSegClassGet;
 
+  SetClassOfPoly(pool, CLASS(AMSPool));
   ams->sig = AMSSig;
-  AVERT(AMS, ams);
+  AVERC(AMS, ams);
+  
+  res = PoolGenInit(&ams->pgenStruct, ChainGen(chain, gen), pool);
+  if (res != ResOK)
+    goto failGenInit;
+  ams->pgen = &ams->pgenStruct;
+
   return ResOK;
 
 failGenInit:
@@ -880,7 +882,8 @@ void AMSFinish(Pool pool)
   /* can't invalidate the AMS until we've destroyed all the segs */
   ams->sig = SigInvalid;
   RingFinish(&ams->segRing);
-  PoolGenFinish(&ams->pgen);
+  PoolGenFinish(ams->pgen);
+  ams->pgen = NULL;
   PoolAbsFinish(pool);
 }
 
@@ -1006,7 +1009,7 @@ found:
   DebugPoolFreeCheck(pool, baseAddr, limitAddr);
   allocatedSize = AddrOffset(baseAddr, limitAddr);
 
-  PoolGenAccountForFill(&ams->pgen, allocatedSize, FALSE);
+  PoolGenAccountForFill(ams->pgen, allocatedSize, FALSE);
   *baseReturn = baseAddr;
   *limitReturn = limitAddr;
   return ResOK;
@@ -1088,7 +1091,7 @@ static void AMSBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
   AVER(amsseg->newGrains >= limitIndex - initIndex);
   amsseg->newGrains -= limitIndex - initIndex;
   size = AddrOffset(init, limit);
-  PoolGenAccountForEmpty(&ams->pgen, size, FALSE);
+  PoolGenAccountForEmpty(ams->pgen, size, FALSE);
 }
 
 
@@ -1172,7 +1175,7 @@ static Res AMSWhiten(Pool pool, Trace trace, Seg seg)
   }
 
   /* The unused part of the buffer remains new: the rest becomes old. */
-  PoolGenAccountForAge(&ams->pgen, AMSGrainsSize(ams, amsseg->newGrains - uncondemned), FALSE);
+  PoolGenAccountForAge(ams->pgen, AMSGrainsSize(ams, amsseg->newGrains - uncondemned), FALSE);
   amsseg->oldGrains += amsseg->newGrains - uncondemned;
   amsseg->newGrains = uncondemned;
   amsseg->marksChanged = FALSE; /* <design/poolams/#marked.condemn> */
@@ -1635,7 +1638,7 @@ static void AMSReclaim(Pool pool, Trace trace, Seg seg)
   AVER(amsseg->oldGrains >= reclaimedGrains);
   amsseg->oldGrains -= reclaimedGrains;
   amsseg->freeGrains += reclaimedGrains;
-  PoolGenAccountForReclaim(&ams->pgen, AMSGrainsSize(ams, reclaimedGrains), FALSE);
+  PoolGenAccountForReclaim(ams->pgen, AMSGrainsSize(ams, reclaimedGrains), FALSE);
   trace->reclaimSize += AMSGrainsSize(ams, reclaimedGrains);
   /* preservedInPlaceCount is updated on fix */
   trace->preservedInPlaceSize += AMSGrainsSize(ams, amsseg->oldGrains);
@@ -1646,7 +1649,7 @@ static void AMSReclaim(Pool pool, Trace trace, Seg seg)
 
   if (amsseg->freeGrains == grains && SegBuffer(seg) == NULL)
     /* No survivors */
-    PoolGenFree(&ams->pgen, seg,
+    PoolGenFree(ams->pgen, seg,
                 AMSGrainsSize(ams, amsseg->freeGrains),
                 AMSGrainsSize(ams, amsseg->oldGrains),
                 AMSGrainsSize(ams, amsseg->newGrains),
@@ -1682,7 +1685,7 @@ static Size AMSTotalSize(Pool pool)
   ams = PoolAMS(pool);
   AVERT(AMS, ams);
 
-  return ams->pgen.totalSize;
+  return ams->pgen->totalSize;
 }
 
 
@@ -1696,7 +1699,7 @@ static Size AMSFreeSize(Pool pool)
   ams = PoolAMS(pool);
   AVERT(AMS, ams);
 
-  return ams->pgen.freeSize;
+  return ams->pgen->freeSize;
 }
 
 
@@ -1832,7 +1835,10 @@ Bool AMSCheck(AMS ams)
   CHECKL(IsA(AMSPool, AMSPool(ams)));
   CHECKL(PoolAlignment(AMSPool(ams)) == AMSGrainsSize(ams, (Size)1));
   CHECKL(PoolAlignment(AMSPool(ams)) == AMSPool(ams)->format->alignment);
-  CHECKD(PoolGen, &ams->pgen);
+  if (ams->pgen != NULL) {
+    CHECKL(ams->pgen == &ams->pgenStruct);
+    CHECKD(PoolGen, ams->pgen);
+  }
   CHECKL(FUNCHECK(ams->segSize));
   CHECKD_NOSIG(Ring, &ams->segRing);
   CHECKL(FUNCHECK(ams->allocRing));
