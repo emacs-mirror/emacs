@@ -44,8 +44,6 @@ typedef struct AMSStruct {
   PoolGenStruct pgen;          /* generation representing the pool */
   Size size;                   /* total segment size of the pool */
   AMSSegSizePolicyFunction segSize; /* SegSize policy */
-  RingStruct segRing;          /* ring of segments in the pool */
-  AMSRingFunction allocRing;   /* fn to get the ring to allocate from */
   AMSSegsDestroyFunction segsDestroy;
   AMSSegClassFunction segClass;/* fn to get the class for segments */
   Bool shareAllocTable;        /* the alloc table is also used as white table */
@@ -56,7 +54,6 @@ typedef struct AMSStruct {
 typedef struct AMSSegStruct {
   GCSegStruct gcSegStruct;  /* superclass fields must come first */
   AMS ams;               /* owning ams */
-  RingStruct segRing;    /* ring that this seg belongs to */
   Count grains;          /* total grains */
   Count freeGrains;      /* free grains */
   Count oldGrains;       /* grains allocated prior to last collection */
