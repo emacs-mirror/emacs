@@ -277,6 +277,7 @@ typedef struct GCSegStruct {    /* GC segment structure */
   RingStruct greyRing;          /* link in list of grey segs */
   RefSet summary;               /* summary of references out of seg */
   Buffer buffer;                /* non-NULL if seg is buffered */
+  RingStruct genRing;           /* link in list of segs in gen */
   Sig sig;                      /* <design/sig/> */
 } GCSegStruct;
 
