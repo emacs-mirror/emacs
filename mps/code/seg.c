@@ -168,6 +168,8 @@ static Res SegAbsInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   seg->sig = SegSig;
   AVERC(Seg, seg);
 
+  RingAppend(&pool->segRing, SegPoolRing(seg));
+
   return ResOK;
 }
 
@@ -183,8 +185,7 @@ static Res SegInit(Seg seg, SegClass class, Pool pool, Addr base, Size size, Arg
     return res;
    
   AVERT(Seg, seg);
-  /* FIXME: This should probably go in PoolAbsInit */
-  RingAppend(&pool->segRing, SegPoolRing(seg));
+
   return ResOK;
 }
 
@@ -198,6 +199,8 @@ static void SegAbsFinish(Seg seg)
   Tract tract;
 
   AVERT(Seg, seg);
+
+  RingRemove(SegPoolRing(seg));
 
   arena = PoolArena(SegPool(seg));
 
@@ -226,7 +229,6 @@ static void SegAbsFinish(Seg seg)
   }
   AVER(addr == seg->limit);
 
-  RingRemove(SegPoolRing(seg));
   RingFinish(SegPoolRing(seg));
 
   /* Check that the segment is not exposed, or in the shield */
