@@ -9,8 +9,6 @@
 
 SRCID(pooln, "$Id$");
 
-DECLARE_CLASS(Pool, NPool);
-
 
 /* PoolNStruct -- the pool structure */
 
@@ -18,6 +16,10 @@ typedef struct PoolNStruct {
   PoolStruct poolStruct;                /* generic pool structure */
   /* and that's it */
 } PoolNStruct;
+
+
+typedef PoolN NPool;
+DECLARE_CLASS(Pool, NPool);
 
 
 /* PoolPoolN -- get the PoolN structure from generic Pool */
@@ -52,7 +54,7 @@ static Res NInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   /* Initialize pool-specific structures. */
 
   AVERT(PoolN, poolN);
-  EVENT3(PoolInit, pool, PoolArena(pool), ClassOfPoly(Pool, pool));
+
   return ResOK;
 
 failAbsInit:
