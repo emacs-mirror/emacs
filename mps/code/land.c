@@ -86,6 +86,7 @@ static Res LandAbsInit(Land land, Arena arena, Align alignment, ArgList args)
   SetClassOfPoly(land, CLASS(Land));
   land->sig = LandSig;
   AVERC(Land, land);
+
   return ResOK;
 }
 

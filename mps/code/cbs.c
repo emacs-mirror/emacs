@@ -229,9 +229,7 @@ static Res cbsInitComm(Land land, LandClass class,
   res = NextMethod(Land, CBS, init)(land, arena, alignment, args);
   if (res != ResOK)
     return res;
-
-  SetClassOfPoly(land, class);
-  cbs = MustBeA(CBS, land);
+  cbs = CouldBeA(CBS, land);
 
   if (ArgPick(&arg, args, CBSBlockPool))
     blockPool = arg.val.pool;
@@ -257,9 +255,10 @@ static Res cbsInitComm(Land land, LandClass class,
 
   METER_INIT(cbs->treeSearch, "size of tree", (void *)cbs);
 
+  SetClassOfPoly(land, class);
   cbs->sig = CBSSig;
+  AVERC(CBS, cbs);
 
-  AVERT(CBS, cbs);
   return ResOK;
 }
 
