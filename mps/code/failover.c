@@ -30,7 +30,6 @@ Bool FailoverCheck(Failover fo)
 static Res failoverInit(Land land, Arena arena, Align alignment, ArgList args)
 {
   Failover fo;
-  Land primary, secondary;
   ArgStruct arg;
   Res res;
 
@@ -38,19 +37,17 @@ static Res failoverInit(Land land, Arena arena, Align alignment, ArgList args)
   res = NextMethod(Land, Failover, init)(land, arena, alignment, args);
   if (res != ResOK)
     return res;
-
-  SetClassOfPoly(land, CLASS(Failover));
-  fo = MustBeA(Failover, land);
+  fo = CouldBeA(Failover, land);
 
   ArgRequire(&arg, args, FailoverPrimary);
-  primary = arg.val.p;
+  fo->primary = arg.val.p;
   ArgRequire(&arg, args, FailoverSecondary);
-  secondary = arg.val.p;
+  fo->secondary = arg.val.p;
 
-  fo->primary = primary;
-  fo->secondary = secondary;
+  SetClassOfPoly(land, CLASS(Failover));
   fo->sig = FailoverSig;
-  AVERT(Failover, fo);
+  AVERC(Failover, fo);
+
   return ResOK;
 }
 
