@@ -1539,7 +1539,7 @@ failBegin:
    * will be triggered. In that case, we'll have to recover here by
    * blackening the segments again. */
   AVER(TraceIsEmpty(trace));
-  ShieldRelease(arena);
+  TraceCondemnEnd(trace);
   return res;
 }
 
