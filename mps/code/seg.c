@@ -1482,8 +1482,8 @@ static Res gcSegMerge(Seg seg, Seg segHi,
   gcsegHi->summary = RefSetEMPTY;
   gcsegHi->sig = SigInvalid;
   RingFinish(&gcsegHi->greyRing);
-  /* FIXME: What happens to segs from different gens? */
   RingRemove(&gcsegHi->genRing);
+  RingFinish(&gcsegHi->genRing);
 
   /* Reassign any buffer that was connected to segHi  */
   if (NULL != buf) {
