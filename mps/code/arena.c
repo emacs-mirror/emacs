@@ -397,9 +397,10 @@ Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args)
   if (res != ResOK)
     goto failInit;
 
-  /* FIXME: Can the rest of this be moved into ArenaAbsInit? */
+  /* TODO: Consider how each of the stages below could be incorporated
+     into arena initialization, rather than tacked on here. */
 
-  /* Grain size must have been set up by *class->init() */
+  /* Grain size must have been set up by class->create() */
   if (ArenaGrainSize(arena) > ((Size)1 << arena->zoneShift)) {
     res = ResMEMORY; /* size was too small */
     goto failStripeSize;
