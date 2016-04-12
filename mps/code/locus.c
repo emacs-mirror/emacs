@@ -118,6 +118,7 @@ Bool GenDescCheck(GenDesc gen)
 
 /* GenParamCheck -- check consistency of generation parameters */
 
+ATTRIBUTE_UNUSED
 static Bool GenParamCheck(GenParamStruct *params)
 {
   CHECKL(params != NULL);
