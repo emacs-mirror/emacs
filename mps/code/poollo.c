@@ -14,15 +14,12 @@
 
 SRCID(poollo, "$Id$");
 
-DECLARE_CLASS(Pool, LOPool);
-
 
 /* LOStruct -- leaf object pool instance structure */
 
 #define LOSig           ((Sig)0x51970B07) /* SIGnature LO POoL */
 
-/* FIXME: Inconsistent naming of LOPool class and LO types. */
-typedef struct LOStruct *LO, *LOPool;
+typedef struct LOStruct *LO;
 
 typedef struct LOStruct {
   PoolStruct poolStruct;        /* generic pool structure */
@@ -34,6 +31,9 @@ typedef struct LOStruct {
 #define PoolPoolLO(pool) PARENT(LOStruct, poolStruct, pool)
 #define LOPool(lo) (&(lo)->poolStruct)
 #define LOGrainsSize(lo, grains) ((grains) << (lo)->alignShift)
+
+typedef LO LOPool;
+DECLARE_CLASS(Pool, LOPool);
 
 
 /* forward declaration */

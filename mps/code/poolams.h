@@ -17,8 +17,7 @@
 #include <stdarg.h>
 
 
-/* FIXME: Inconsistent naming of AMSPool class and AMS types. */
-typedef struct AMSStruct *AMS, *AMSPool;
+typedef struct AMSStruct *AMS;
 typedef struct AMSSegStruct *AMSSeg;
 
 
@@ -181,13 +180,18 @@ extern void AMSSegFreeWalk(AMSSeg amsseg, FreeBlockVisitor f, void *p);
 
 extern void AMSSegFreeCheck(AMSSeg amsseg);
 
-
-DECLARE_CLASS(Seg, AMSSeg);
 extern Bool AMSSegCheck(AMSSeg seg);
 
 
+/* class declarations */
+
+typedef AMS AMSPool;
 DECLARE_CLASS(Pool, AMSPool);
+
+typedef AMS AMSDebugPool;
 DECLARE_CLASS(Pool, AMSDebugPool);
+
+DECLARE_CLASS(Seg, AMSSeg);
 
 
 #endif /* poolams_h */

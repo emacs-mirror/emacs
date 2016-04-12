@@ -34,8 +34,6 @@
 
 SRCID(poolmrg, "$Id$");
 
-DECLARE_CLASS(Pool, MRGPool);
-
 
 /* Types */
 
@@ -119,15 +117,18 @@ typedef struct MRGStruct {
   RingStruct refRing;       /* <design/poolmrg/#poolstruct.refring> */
   Size extendBy;            /* <design/poolmrg/#extend> */
   Sig sig;                  /* <code/mps.h#sig> */
-} MRGStruct, *MRGPool; /* FIXME: inconsistent naming of MRG and MRGPool */
+} MRGStruct;
 
 #define PoolMRG(pool) PARENT(MRGStruct, poolStruct, pool)
 #define MRGPool(mrg) (&(mrg)->poolStruct)
 
+typedef MRG MRGPool;
+#define MRGPoolCheck MRGCheck
+DECLARE_CLASS(Pool, MRGPool);
+
 
 /* MRGCheck -- check an MRG pool */
 
-#define MRGPoolCheck MRGCheck /* FIXME: Inconsistent naming of pool class and instance */
 
 ATTRIBUTE_UNUSED
 static Bool MRGCheck(MRG mrg)
@@ -649,7 +650,7 @@ static Res MRGInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   mrg->sig = MRGSig;
 
   AVERT(MRG, mrg);
-  EVENT3(PoolInit, pool, PoolArena(pool), ClassOfPoly(Pool, pool)); /* FIXME: Out of place? */
+
   return ResOK;
 }
 

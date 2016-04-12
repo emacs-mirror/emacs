@@ -29,8 +29,7 @@ SRCID(poolmv2, "$Id$");
 
 /* Private prototypes */
 
-/* FIXME: Inconstent naming of MVTPool class and MVT types. */
-typedef struct MVTStruct *MVT, *MVTPool;
+typedef struct MVTStruct *MVT;
 static void MVTVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs);
 static Res MVTInit(Pool pool, Arena arena, PoolClass class, ArgList arg);
 static Bool MVTCheck(MVT mvt);
@@ -56,6 +55,9 @@ static ABQ MVTABQ(MVT mvt);
 static Land MVTFreePrimary(MVT mvt);
 static Land MVTFreeSecondary(MVT mvt);
 static Land MVTFreeLand(MVT mvt);
+
+typedef MVT MVTPool;
+DECLARE_CLASS(Pool, MVTPool);
 
 
 /* Types */

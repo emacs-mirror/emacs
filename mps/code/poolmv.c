@@ -34,6 +34,7 @@
 
 SRCID(poolmv, "$Id$");
 
+typedef MV MVPool;
 DECLARE_CLASS(Pool, MVPool);
 
 

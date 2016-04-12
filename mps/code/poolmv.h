@@ -20,8 +20,7 @@
 #include "mpmtypes.h"
 #include "mpscmv.h"
 
-/* FIXME: Inconsistent naming of class MVPool and MV types. */
-typedef struct MVStruct *MV, *MVPool;
+typedef struct MVStruct *MV;
 
 extern PoolClass PoolClassMV(void);
 
