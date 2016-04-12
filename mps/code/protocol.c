@@ -134,6 +134,22 @@ void ClassRegister(InstClass class)
 }
 
 
+Res InstDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
+{
+  InstClass class;
+  
+  if (!TESTC(Inst, inst))
+    return ResPARAM;
+  if (stream == NULL)
+    return ResPARAM;
+
+  class = ClassOfPoly(Inst, inst);
+  return WriteF(stream, depth,
+		"$S $P\n", (WriteFS)ClassName(class), inst,
+		NULL);
+}
+
+
 /* C. COPYRIGHT AND LICENSE
  *
  * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.

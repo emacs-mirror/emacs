@@ -169,6 +169,7 @@ extern Bool InstClassCheck(InstClass class);
 extern Bool InstCheck(Inst inst);
 extern void InstInit(Inst inst);
 extern void InstFinish(Inst inst);
+extern Res InstDescribe(Inst inst, mps_lib_FILE *stream, Count depth);
 
 
 /* ClassRegister -- class registration
