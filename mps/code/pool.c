@@ -93,9 +93,9 @@ Bool PoolCheck(Pool pool)
   /* Cannot check pool->bufferSerial */
   CHECKD_NOSIG(Ring, &pool->segRing);
   CHECKL(AlignCheck(pool->alignment));
-  /* normally pool->format iff PoolHasAttr(pool, AttrFMT), but during
-   * pool initialization pool->format may not yet be set. */
-  CHECKL(pool->format == NULL || PoolHasAttr(pool, AttrFMT));
+  /* Normally pool->format iff PoolHasAttr(pool, AttrFMT), but during
+     pool initialization the class may not yet be set. */
+  CHECKL(!PoolHasAttr(pool, AttrFMT) || pool->format != NULL);
   return TRUE;
 }
 
@@ -131,17 +131,6 @@ Res PoolInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   res = class->init(pool, arena, class, args);
   if (res != ResOK)
     return res;
-
-  /* TODO: Eliminate these extra steps so that PoolInit is just a
-     wrapper for class->init.  See notes on each item. */
-
-  /* Add initialized pool to list of pools using format. */
-  /* FIXME: This should be changed by pools that use formats, perhaps
-     by having methods like addFormat and removeFormat that are called
-     on init and finish. */
-  if (pool->format) {
-    ++pool->format->poolCount;
-  }
 
   EVENT3(PoolInit, pool, PoolArena(pool), ClassOfPoly(Pool, pool));
 
@@ -530,13 +519,14 @@ Res PoolDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 }
 
 
-/* PoolFormat
+/* PoolFormat -- get the format of a pool, if any
  *
  * Returns the format of the pool (the format of objects in the pool).
  * If the pool is unformatted or doesn't declare a format then this
  * function returns FALSE and does not update *formatReturn.  Otherwise
  * this function returns TRUE and *formatReturn is updated to be the
- * pool's format.  */
+ * pool's format.
+ */
 
 Bool PoolFormat(Format *formatReturn, Pool pool)
 {

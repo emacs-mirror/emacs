@@ -107,6 +107,8 @@ static Res PoolAutoSetFix(Pool pool, ScanState ss, Seg seg, Ref *refIO);
 
 Res PoolAbsInit(Pool pool, Arena arena, PoolClass class, ArgList args)
 {
+  ArgStruct arg;
+  
   AVER(pool != NULL);
   AVERT(Arena, arena);
   UNUSED(args);
@@ -123,6 +125,18 @@ Res PoolAbsInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   pool->alignment = MPS_PF_ALIGN;
   pool->format = NULL;
   pool->fix = PoolAutoSetFix;
+
+  if (ArgPick(&arg, args, MPS_KEY_FORMAT)) {
+    Format format = arg.val.format;
+    AVERT(Format, format);
+    AVER(FormatArena(format) == arena);
+    pool->format = format;
+    /* .init.format: Increment reference count on the format for
+       consistency checking.  See .finish.format. */
+    ++pool->format->poolCount;
+  } else {
+    pool->format = NULL;
+  }
 
   pool->serial = ArenaGlobals(arena)->poolSerial;
   ++ArenaGlobals(arena)->poolSerial;
@@ -146,10 +160,12 @@ void PoolAbsFinish(Pool pool)
   /* Detach the pool from the arena and format, and unsig it. */
   RingRemove(PoolArenaRing(pool));
 
-  /* FIXME: Should be done in finish of pools that use formats */
+  /* .finish.format: Decrement the reference count on the format for
+     consistency checking.  See .format.init. */
   if (pool->format) {
     AVER(pool->format->poolCount > 0);
     --pool->format->poolCount;
+    pool->format = NULL;
   }
 
   pool->sig = SigInvalid;
