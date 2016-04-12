@@ -29,13 +29,6 @@
 SRCID(poolabs, "$Id$");
 
 
-typedef PoolClassStruct AbstractPoolClassStruct;
-typedef PoolClassStruct AbstractBufferPoolClassStruct;
-typedef PoolClassStruct AbstractSegBufPoolClassStruct;
-typedef PoolClassStruct AbstractScanPoolClassStruct;
-typedef PoolClassStruct AbstractCollectPoolClassStruct;
-
-
 /* Mixins:
  *
  * For now (at least) we're avoiding multiple inheritance.
@@ -110,6 +103,8 @@ void PoolClassMixInCollect(PoolClass class)
 
 /* PoolAbsInit -- initialize an abstract pool instance */
 
+static Res PoolAutoSetFix(Pool pool, ScanState ss, Seg seg, Ref *refIO);
+
 Res PoolAbsInit(Pool pool, Arena arena, PoolClass class, ArgList args)
 {
   AVER(pool != NULL);
@@ -127,7 +122,7 @@ Res PoolAbsInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   pool->bufferSerial = (Serial)0;
   pool->alignment = MPS_PF_ALIGN;
   pool->format = NULL;
-  pool->fix = PoolNoFix;
+  pool->fix = PoolAutoSetFix;
 
   pool->serial = ArenaGlobals(arena)->poolSerial;
   ++ArenaGlobals(arena)->poolSerial;
@@ -246,6 +241,22 @@ DEFINE_CLASS(Pool, AbstractCollectPool, class)
 {
   INHERIT_CLASS(class, AbstractCollectPool, AbstractScanPool);
   PoolClassMixInCollect(class);
+}
+
+
+/* PoolAutoSetFix -- set fix method on first call
+ *
+ * The pool structure has a shortcut to the class fix method to avoid
+ * an indirection on the critical path.  This is the default value of
+ * that shortcut, which replaces itself on the first call.  This
+ * avoids some tricky initialization.
+ */
+
+static Res PoolAutoSetFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
+{
+  AVERC(AbstractCollectPool, pool);
+  pool->fix = ClassOfPoly(Pool, pool)->fix;
+  return pool->fix(pool, ss, seg, refIO);
 }
 
 

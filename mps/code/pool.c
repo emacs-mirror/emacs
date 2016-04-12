@@ -135,10 +135,6 @@ Res PoolInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   /* TODO: Eliminate these extra steps so that PoolInit is just a
      wrapper for class->init.  See notes on each item. */
 
-  /* TODO: This could be a step when setting up the pool to
-     participate in a GC.  It could go in Whiten, for example. */
-  pool->fix = ClassOfPoly(Pool, pool)->fix;
-
   /* Add initialized pool to list of pools using format. */
   /* FIXME: This should be changed by pools that use formats, perhaps
      by having methods like addFormat and removeFormat that are called
