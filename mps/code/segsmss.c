@@ -315,7 +315,6 @@ static Res AMSTSegSizePolicy(Size *sizeReturn,
 static Res AMSTInit(Pool pool, Arena arena, PoolClass class, ArgList args)
 {
   AMST amst; AMS ams;
-  Format format;
   Chain chain;
   Res res;
   unsigned gen = AMS_GEN_DEFAULT;
@@ -334,12 +333,10 @@ static Res AMSTInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   }
   if (ArgPick(&arg, args, MPS_KEY_GEN))
     gen = arg.val.u;
-  ArgRequire(&arg, args, MPS_KEY_FORMAT);
-  format = arg.val.format;
 
   /* FIXME: Generalise to next-method call */
   res = AMSInitInternal(PoolAMS(pool), arena, class,
-                        format, chain, gen, FALSE, args);
+                        chain, gen, FALSE, args);
   if (res != ResOK)
     return res;
   amst = CouldBeA(AMSTPool, pool);

@@ -491,8 +491,9 @@ static Res LOInit(Pool pool, Arena arena, PoolClass class, ArgList args)
     goto failAbsInit;
   lo = CouldBeA(LOPool, pool);
 
-  ArgRequire(&arg, args, MPS_KEY_FORMAT);
-  pool->format = arg.val.format;
+  /* Ensure a format was supplied in the argument list. */
+  AVER(pool->format != NULL);
+
   if (ArgPick(&arg, args, MPS_KEY_CHAIN))
     chain = arg.val.chain;
   else {

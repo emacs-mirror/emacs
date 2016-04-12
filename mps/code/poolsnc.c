@@ -347,8 +347,6 @@ static void SNCVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
 static Res SNCInit(Pool pool, Arena arena, PoolClass class, ArgList args)
 {
   SNC snc;
-  Format format;
-  ArgStruct arg;
   Res res;
 
   AVER(pool != NULL);
@@ -361,19 +359,16 @@ static Res SNCInit(Pool pool, Arena arena, PoolClass class, ArgList args)
     return res;
   snc = CouldBeA(SNCPool, pool);
 
-  ArgRequire(&arg, args, MPS_KEY_FORMAT);
-  format = arg.val.format;
+  /* Ensure a format was supplied in the argument list. */
+  AVER(pool->format != NULL);
 
-  AVERT(Format, format);
-  AVER(FormatArena(format) == PoolArena(pool));
-  pool->format = format;
   snc->freeSegs = NULL;
 
   SetClassOfPoly(pool, CLASS(SNCPool));
   snc->sig = SNCSig;
   AVERC(SNCPool, snc);
 
-  EVENT2(PoolInitSNC, pool, format);
+  EVENT2(PoolInitSNC, pool, pool->format);
 
   return ResOK;
 }

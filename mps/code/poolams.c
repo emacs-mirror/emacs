@@ -774,7 +774,6 @@ ARG_DEFINE_KEY(AMS_SUPPORT_AMBIGUOUS, Bool);
 static Res AMSInit(Pool pool, Arena arena, PoolClass class, ArgList args)
 {
   Res res;
-  Format format;
   Chain chain;
   Bool supportAmbiguous = AMS_SUPPORT_AMBIGUOUS_DEFAULT;
   unsigned gen = AMS_GEN_DEFAULT;
@@ -793,17 +792,15 @@ static Res AMSInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   }
   if (ArgPick(&arg, args, MPS_KEY_GEN))
     gen = arg.val.u;
-  ArgRequire(&arg, args, MPS_KEY_FORMAT);
-  format = arg.val.format;
   if (ArgPick(&arg, args, MPS_KEY_AMS_SUPPORT_AMBIGUOUS))
     supportAmbiguous = arg.val.b;
 
   /* .ambiguous.noshare: If the pool is required to support ambiguous */
   /* references, the alloc and white tables cannot be shared. */
   res = AMSInitInternal(PoolAMS(pool), arena, class,
-                        format, chain, gen, !supportAmbiguous, args);
+                        chain, gen, !supportAmbiguous, args);
   if (res == ResOK) {
-    EVENT3(PoolInitAMS, pool, PoolArena(pool), format);
+    EVENT3(PoolInitAMS, pool, PoolArena(pool), pool->format);
   }
   return res;
 }
@@ -812,7 +809,7 @@ static Res AMSInit(Pool pool, Arena arena, PoolClass class, ArgList args)
 /* AMSInitInternal -- initialize an AMS pool, given the format and the chain */
 
 Res AMSInitInternal(AMS ams, Arena arena, PoolClass class,
-                    Format format, Chain chain, unsigned gen,
+                    Chain chain, unsigned gen,
                     Bool shareAllocTable, ArgList args)
 {
   Pool pool;
@@ -826,15 +823,15 @@ Res AMSInitInternal(AMS ams, Arena arena, PoolClass class,
   if (res != ResOK)
     goto failAbsInit;
   AVER(ams == CouldBeA(AMSPool, pool));
-  
-  AVERT(Format, format);
-  AVER(FormatArena(format) == PoolArena(pool));
+
+
   AVERT(Chain, chain);
   AVER(gen <= ChainGens(chain));
   AVER(chain->arena == PoolArena(pool));
 
-  pool->format = format;
-  pool->alignment = format->alignment;
+  /* Ensure a format was supplied in the argument list. */
+  AVER(pool->format != NULL);
+  pool->alignment = pool->format->alignment;
   ams->grainShift = SizeLog2(PoolAlignment(pool));
   ams->shareAllocTable = shareAllocTable;
   ams->pgen = NULL;
