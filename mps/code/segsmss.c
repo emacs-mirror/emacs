@@ -51,6 +51,7 @@ typedef struct AMSTStruct *AMST;
 
 
 typedef AMST AMSTPool;
+#define AMSTPoolCheck AMSTCheck
 DECLARE_CLASS(Pool, AMSTPool);
 DECLARE_CLASS(Seg, AMSTSeg);
 
@@ -120,8 +121,7 @@ static Res amstSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   res = NextMethod(Seg, AMSTSeg, init)(seg, pool, base, size, args);
   if (res != ResOK)
     return res;
-  SetClassOfPoly(seg, CLASS(AMSTSeg));
-  amstseg = MustBeA(AMSTSeg, seg);
+  amstseg = CouldBeA(AMSTSeg, seg);
 
   AVERT(Pool, pool);
   amst = PoolAMST(pool);
@@ -131,8 +131,9 @@ static Res amstSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   amstseg->next = NULL;
   amstseg->prev = NULL;
 
+  SetClassOfPoly(seg, CLASS(AMSTSeg));
   amstseg->sig = AMSTSegSig;
-  AVERT(AMSTSeg, amstseg);
+  AVERC(AMSTSeg, amstseg);
 
   return ResOK;
 }
@@ -341,9 +342,9 @@ static Res AMSTInit(Pool pool, Arena arena, PoolClass class, ArgList args)
                         format, chain, gen, FALSE, args);
   if (res != ResOK)
     return res;
-  SetClassOfPoly(pool, CLASS(AMSTPool));
-  amst = MustBeA(AMSTPool, pool);
+  amst = CouldBeA(AMSTPool, pool);
   ams = MustBeA(AMSPool, pool);
+
   ams->segSize = AMSTSegSizePolicy;
   ams->segClass = AMSTSegClassGet;
   amst->failSegs = TRUE;
@@ -353,8 +354,11 @@ static Res AMSTInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   amst->badMerges = 0;
   amst->bsplits = 0;
   amst->bmerges = 0;
+
+  SetClassOfPoly(pool, CLASS(AMSTPool));
   amst->sig = AMSTSig;
-  AVERT(AMST, amst);
+  AVERC(AMSTPool, amst);
+
   return ResOK;
 }
 
@@ -455,7 +459,7 @@ static void AMSUnallocateRange(AMS ams, Seg seg, Addr base, Addr limit)
   amsseg->freeGrains += limitIndex - baseIndex;
   AVER(amsseg->newGrains >= limitIndex - baseIndex);
   amsseg->newGrains -= limitIndex - baseIndex;
-  PoolGenAccountForEmpty(&ams->pgen, AddrOffset(base, limit), FALSE);
+  PoolGenAccountForEmpty(ams->pgen, AddrOffset(base, limit), FALSE);
 }
 
 
@@ -495,7 +499,7 @@ static void AMSAllocateRange(AMS ams, Seg seg, Addr base, Addr limit)
   AVER(amsseg->freeGrains >= limitIndex - baseIndex);
   amsseg->freeGrains -= limitIndex - baseIndex;
   amsseg->newGrains += limitIndex - baseIndex;
-  PoolGenAccountForFill(&ams->pgen, AddrOffset(base, limit), FALSE);
+  PoolGenAccountForFill(ams->pgen, AddrOffset(base, limit), FALSE);
 }
 
 

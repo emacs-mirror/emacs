@@ -148,7 +148,6 @@ static Res SegAbsInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   seg->queued = FALSE;
   seg->firstTract = NULL;
   RingInit(SegPoolRing(seg));
-  SetClassOfPoly(seg, CLASS(Seg));
   
   TRACT_FOR(tract, addr, arena, base, limit) {
     AVERT(Tract, tract);
@@ -165,8 +164,9 @@ static Res SegAbsInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   }
   AVER(addr == seg->limit);
 
-  seg->sig = SegSig;  /* set sig now so tract checks will see it */
-  AVERT(Seg, seg);
+  SetClassOfPoly(seg, CLASS(Seg));
+  seg->sig = SegSig;
+  AVERC(Seg, seg);
 
   return ResOK;
 }
@@ -980,7 +980,7 @@ static Res segTrivSplit(Seg seg, Seg segHi,
   class = ClassOfPoly(Seg, seg);
   SetClassOfPoly(segHi, class);
   segHi->sig = SegSig;
-  AVERT(Seg, segHi);
+  AVERC(Seg, segHi);
 
   RingAppend(&pool->segRing, SegPoolRing(segHi));
 
@@ -1066,15 +1066,16 @@ static Res gcSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   res = NextMethod(Seg, GCSeg, init)(seg, pool, base, size, args);
   if (ResOK != res)
     return res;
-  SetClassOfPoly(seg, CLASS(GCSeg));
-  gcseg = MustBeA(GCSeg, seg);
+  gcseg = CouldBeA(GCSeg, seg);
 
   gcseg->summary = RefSetEMPTY;
   gcseg->buffer = NULL;
   RingInit(&gcseg->greyRing);
-  gcseg->sig = GCSegSig;
 
-  AVERT(GCSeg, gcseg);
+  SetClassOfPoly(seg, CLASS(GCSeg));
+  gcseg->sig = GCSegSig;
+  AVERC(GCSeg, gcseg);
+
   return ResOK;
 }
 
