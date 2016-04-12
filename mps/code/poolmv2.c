@@ -280,8 +280,7 @@ static Res MVTInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   res = PoolAbsInit(pool, arena, class, args);
   if (res != ResOK)
     goto failAbsInit;
-  SetClassOfPoly(pool, CLASS(MVTPool));
-  mvt = MustBeA(MVTPool, pool);
+  mvt = CouldBeA(MVTPool, pool);
 
   res = LandInit(MVTFreePrimary(mvt), CLASS(CBSFast), arena, align, mvt,
                  mps_args_none);
@@ -361,11 +360,13 @@ static Res MVTInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   METER_INIT(mvt->exceptionSplinters, "exception splinters", (void *)mvt);
   METER_INIT(mvt->exceptionReturns, "exception returns", (void *)mvt);
 
+  SetClassOfPoly(pool, CLASS(MVTPool));
   mvt->sig = MVTSig;
-
-  AVERT(MVT, mvt);
+  AVERC(MVT, mvt);
+  
   EVENT6(PoolInitMVT, pool, minSize, meanSize, maxSize,
                reserveDepth, fragLimit);
+
   return ResOK;
 
 failABQInit:

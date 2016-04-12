@@ -24,7 +24,8 @@ typedef struct LOStruct *LO;
 typedef struct LOStruct {
   PoolStruct poolStruct;        /* generic pool structure */
   Shift alignShift;             /* log_2 of pool alignment */
-  PoolGenStruct pgen;           /* generation representing the pool */
+  PoolGenStruct pgenStruct;     /* generation representing the pool */
+  PoolGen pgen;                 /* NULL or pointer to pgenStruct */
   Sig sig;
 } LOStruct;
 
@@ -33,6 +34,7 @@ typedef struct LOStruct {
 #define LOGrainsSize(lo, grains) ((grains) << (lo)->alignShift)
 
 typedef LO LOPool;
+#define LOPoolCheck LOCheck
 DECLARE_CLASS(Pool, LOPool);
 
 
@@ -113,8 +115,7 @@ static Res loSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   res = NextMethod(Seg, LOSeg, init)(seg, pool, base, size, args);
   if(res != ResOK)
     goto failSuperInit;
-  SetClassOfPoly(seg, CLASS(LOSeg));
-  loseg = MustBeA(LOSeg, seg);
+  loseg = CouldBeA(LOSeg, seg);
 
   arena = PoolArena(pool);
   /* no useful checks for base and size */
@@ -139,8 +140,11 @@ static Res loSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   loseg->freeGrains = grains;
   loseg->oldGrains = (Count)0;
   loseg->newGrains = (Count)0;
+
+  SetClassOfPoly(seg, CLASS(LOSeg));
   loseg->sig = LOSegSig;
-  AVERT(LOSeg, loseg);
+  AVERC(LOSeg, loseg);
+
   return ResOK;
 
 failAllocTable:
@@ -287,7 +291,7 @@ static Res loSegCreate(LOSeg *loSegReturn, Pool pool, Size size)
   lo = PoolPoolLO(pool);
   AVERT(LO, lo);
 
-  res = PoolGenAlloc(&seg, &lo->pgen, CLASS(LOSeg),
+  res = PoolGenAlloc(&seg, lo->pgen, CLASS(LOSeg),
                      SizeArenaGrains(size, PoolArena(pool)),
                      argsNone);
   if (res != ResOK)
@@ -375,7 +379,7 @@ static void loSegReclaim(LOSeg loseg, Trace trace)
   AVER(loseg->oldGrains >= reclaimedGrains);
   loseg->oldGrains -= reclaimedGrains;
   loseg->freeGrains += reclaimedGrains;
-  PoolGenAccountForReclaim(&lo->pgen, LOGrainsSize(lo, reclaimedGrains), FALSE);
+  PoolGenAccountForReclaim(lo->pgen, LOGrainsSize(lo, reclaimedGrains), FALSE);
 
   trace->reclaimSize += LOGrainsSize(lo, reclaimedGrains);
   trace->preservedInPlaceCount += preservedInPlaceCount;
@@ -384,7 +388,7 @@ static void loSegReclaim(LOSeg loseg, Trace trace)
   SegSetWhite(seg, TraceSetDel(SegWhite(seg), trace));
 
   if (!marked)
-    PoolGenFree(&lo->pgen, seg,
+    PoolGenFree(lo->pgen, seg,
                 LOGrainsSize(lo, loseg->freeGrains),
                 LOGrainsSize(lo, loseg->oldGrains),
                 LOGrainsSize(lo, loseg->newGrains),
@@ -485,8 +489,7 @@ static Res LOInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   res = PoolAbsInit(pool, arena, class, args);
   if (res != ResOK)
     goto failAbsInit;
-  SetClassOfPoly(pool, CLASS(LOPool));
-  lo = MustBeA(LOPool, pool);
+  lo = CouldBeA(LOPool, pool);
 
   ArgRequire(&arg, args, MPS_KEY_FORMAT);
   pool->format = arg.val.format;
@@ -508,13 +511,19 @@ static Res LOInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   pool->alignment = pool->format->alignment;
   lo->alignShift = SizeLog2((Size)PoolAlignment(pool));
 
-  res = PoolGenInit(&lo->pgen, ChainGen(chain, gen), pool);
+  lo->pgen = NULL;
+
+  SetClassOfPoly(pool, CLASS(LOPool));
+  lo->sig = LOSig;
+  AVERC(LOPool, lo);
+  
+  res = PoolGenInit(&lo->pgenStruct, ChainGen(chain, gen), pool);
   if (res != ResOK)
     goto failGenInit;
+  lo->pgen = &lo->pgenStruct;
 
-  lo->sig = LOSig;
-  AVERT(LO, lo);
   EVENT2(PoolInitLO, pool, pool->format);
+
   return ResOK;
 
 failGenInit:
@@ -540,13 +549,13 @@ static void LOFinish(Pool pool)
     Seg seg = SegOfPoolRing(node);
     LOSeg loseg = SegLOSeg(seg);
     AVERT(LOSeg, loseg);
-    PoolGenFree(&lo->pgen, seg,
+    PoolGenFree(lo->pgen, seg,
                 LOGrainsSize(lo, loseg->freeGrains),
                 LOGrainsSize(lo, loseg->oldGrains),
                 LOGrainsSize(lo, loseg->newGrains),
                 FALSE);
   }
-  PoolGenFinish(&lo->pgen);
+  PoolGenFinish(lo->pgen);
 
   lo->sig = SigInvalid;
   PoolAbsFinish(pool);
@@ -609,7 +618,7 @@ found:
     loseg->newGrains += limitIndex - baseIndex;
   }
 
-  PoolGenAccountForFill(&lo->pgen, AddrOffset(base, limit), FALSE);
+  PoolGenAccountForFill(lo->pgen, AddrOffset(base, limit), FALSE);
 
   *baseReturn = base;
   *limitReturn = limit;
@@ -663,7 +672,7 @@ static void LOBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
     AVER(loseg->newGrains >= limitIndex - initIndex);
     loseg->newGrains -= limitIndex - initIndex;
     loseg->freeGrains += limitIndex - initIndex;
-    PoolGenAccountForEmpty(&lo->pgen, AddrOffset(init, limit), FALSE);
+    PoolGenAccountForEmpty(lo->pgen, AddrOffset(init, limit), FALSE);
   }
 }
 
@@ -705,7 +714,7 @@ static Res LOWhiten(Pool pool, Trace trace, Seg seg)
     BTCopyInvertRange(loseg->alloc, loseg->mark, 0, grains);
   }
 
-  PoolGenAccountForAge(&lo->pgen, LOGrainsSize(lo, loseg->newGrains - uncondemned), FALSE);
+  PoolGenAccountForAge(lo->pgen, LOGrainsSize(lo, loseg->newGrains - uncondemned), FALSE);
   loseg->oldGrains += loseg->newGrains - uncondemned;
   loseg->newGrains = uncondemned;
   trace->condemned += LOGrainsSize(lo, loseg->oldGrains);
@@ -794,6 +803,7 @@ static void LOReclaim(Pool pool, Trace trace, Seg seg)
 
 
 /* LOTotalSize -- total memory allocated from the arena */
+/* TODO: This code is repeated in AMS */
 
 static Size LOTotalSize(Pool pool)
 {
@@ -803,11 +813,12 @@ static Size LOTotalSize(Pool pool)
   lo = PoolPoolLO(pool);
   AVERT(LO, lo);
 
-  return lo->pgen.totalSize;
+  return lo->pgen->totalSize;
 }
 
 
 /* LOFreeSize -- free memory (unused by client program) */
+/* TODO: This code is repeated in AMS */
 
 static Size LOFreeSize(Pool pool)
 {
@@ -817,7 +828,7 @@ static Size LOFreeSize(Pool pool)
   lo = PoolPoolLO(pool);
   AVERT(LO, lo);
 
-  return lo->pgen.freeSize;
+  return lo->pgen->freeSize;
 }
 
 
@@ -863,7 +874,10 @@ static Bool LOCheck(LO lo)
   CHECKC(LOPool, lo);
   CHECKL(ShiftCheck(lo->alignShift));
   CHECKL(LOGrainsSize(lo, (Count)1) == PoolAlignment(LOPool(lo)));
-  CHECKD(PoolGen, &lo->pgen);
+  if (lo->pgen != NULL) {
+    CHECKL(lo->pgen == &lo->pgenStruct);
+    CHECKD(PoolGen, lo->pgen);
+  }
   return TRUE;
 }
 

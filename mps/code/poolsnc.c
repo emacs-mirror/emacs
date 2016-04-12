@@ -23,8 +23,6 @@
 
 SRCID(poolsnc, "$Id$");
 
-DECLARE_CLASS(Pool, SNCPool);
-
 
 /* SNCStruct -- structure for an SNC pool
  *
@@ -37,13 +35,17 @@ typedef struct SNCStruct {
   PoolStruct poolStruct;
   Seg freeSegs;
   Sig sig;
-} SNCStruct, *SNC, *SNCPool;
+} SNCStruct, *SNC;
 
 #define PoolSNC(pool) PARENT(SNCStruct, poolStruct, (pool))
 #define SNCPool(snc) (&(snc)->poolStruct)
 
 
 /* Forward declarations */
+
+typedef SNC SNCPool;
+#define SNCPoolCheck SNCCheck
+DECLARE_CLASS(Pool, SNCPool);
 
 DECLARE_CLASS(Seg, SNCSeg);
 DECLARE_CLASS(Buffer, SNCBuf);
@@ -122,13 +124,14 @@ static Res SNCBufInit(Buffer buffer, Pool pool, Bool isMutator, ArgList args)
   res = NextMethod(Buffer, SNCBuf, init)(buffer, pool, isMutator, args);
   if (res != ResOK)
     return res;
-  SetClassOfPoly(buffer, CLASS(SNCBuf));
-  sncbuf = MustBeA(SNCBuf, buffer);
+  sncbuf = CouldBeA(SNCBuf, buffer);
 
   sncbuf->topseg = NULL;
-  sncbuf->sig = SNCBufSig;
 
-  AVERT(SNCBuf, sncbuf);
+  SetClassOfPoly(buffer, CLASS(SNCBuf));
+  sncbuf->sig = SNCBufSig;
+  AVERC(SNCBuf, sncbuf);
+
   return ResOK;
 }
 
@@ -208,16 +211,16 @@ static Res sncSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   res = NextMethod(Seg, SNCSeg, init)(seg, pool, base, size, args);
   if (res != ResOK)
     return res;
-  SetClassOfPoly(seg, CLASS(SNCSeg));
-  sncseg = MustBeA(SNCSeg, seg);
+  sncseg = CouldBeA(SNCSeg, seg);
 
   AVERT(Pool, pool);
   /* no useful checks for base and size */
 
   sncseg->next = NULL;
 
+  SetClassOfPoly(seg, CLASS(SNCSeg));
   sncseg->sig = SNCSegSig;
-  AVERT(SNCSeg, sncseg);
+  AVERC(SNCSeg, sncseg);
 
   return ResOK;
 }
@@ -356,8 +359,7 @@ static Res SNCInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   res = PoolAbsInit(pool, arena, class, args);
   if (res != ResOK)
     return res;
-  SetClassOfPoly(pool, CLASS(SNCPool));
-  snc = MustBeA(SNCPool, pool);
+  snc = CouldBeA(SNCPool, pool);
 
   ArgRequire(&arg, args, MPS_KEY_FORMAT);
   format = arg.val.format;
@@ -366,10 +368,13 @@ static Res SNCInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   AVER(FormatArena(format) == PoolArena(pool));
   pool->format = format;
   snc->freeSegs = NULL;
-  snc->sig = SNCSig;
 
-  AVERT(SNC, snc);
+  SetClassOfPoly(pool, CLASS(SNCPool));
+  snc->sig = SNCSig;
+  AVERC(SNCPool, snc);
+
   EVENT2(PoolInitSNC, pool, format);
+
   return ResOK;
 }
 

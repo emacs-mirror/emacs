@@ -61,6 +61,7 @@ typedef struct MVFFStruct {     /* MVFF pool outer structure */
 
 
 typedef MVFF MVFFPool;
+#define MVFFPoolCheck MVFFCheck
 DECLARE_CLASS(Pool, MVFFPool);
 
 
@@ -502,8 +503,7 @@ static Res MVFFInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   res = PoolAbsInit(pool, arena, class, args);
   if (res != ResOK)
     goto failAbsInit;
-  SetClassOfPoly(pool, CLASS(MVFFPool));
-  mvff = MustBeA(MVFFPool, pool);
+  mvff = CouldBeA(MVFFPool, pool);
 
   mvff->extendBy = extendBy;
   if (extendBy < ArenaGrainSize(arena))
@@ -559,10 +559,13 @@ static Res MVFFInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   if (res != ResOK)
     goto failFreeLandInit;
 
+  SetClassOfPoly(pool, CLASS(MVFFPool));
   mvff->sig = MVFFSig;
-  AVERT(MVFF, mvff);
+  AVERC(MVFFPool, mvff);
+  
   EVENT8(PoolInitMVFF, pool, arena, extendBy, avgSize, align,
          BOOLOF(slotHigh), BOOLOF(arenaHigh), BOOLOF(firstFit));
+
   return ResOK;
 
 failFreeLandInit:

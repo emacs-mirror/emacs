@@ -231,8 +231,7 @@ static Res MRGLinkSegInit(Seg seg, Pool pool, Addr base, Size size,
   res = NextMethod(Seg, MRGLinkSeg, init)(seg, pool, base, size, args);
   if (res != ResOK)
     return res;
-  SetClassOfPoly(seg, CLASS(MRGLinkSeg));
-  linkseg = MustBeA(MRGLinkSeg, seg);
+  linkseg = CouldBeA(MRGLinkSeg, seg);
 
   AVERT(Pool, pool);
   mrg = PoolMRG(pool);
@@ -240,8 +239,10 @@ static Res MRGLinkSegInit(Seg seg, Pool pool, Addr base, Size size,
   /* no useful checks for base and size */
 
   linkseg->refSeg = NULL; /* .link.nullref */
+
+  SetClassOfPoly(seg, CLASS(MRGLinkSeg));
   linkseg->sig = MRGLinkSegSig;
-  AVERT(MRGLinkSeg, linkseg);
+  AVERC(MRGLinkSeg, linkseg);
 
   return ResOK;
 }
@@ -256,7 +257,7 @@ static Res MRGRefSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 {
   MRGLinkSeg linkseg;
   MRGRefSeg refseg;
-  MRG mrg;
+  MRG mrg = MustBeA(MRGPool, pool);
   Res res;
   ArgStruct arg;
   
@@ -271,12 +272,8 @@ static Res MRGRefSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   res = NextMethod(Seg, MRGRefSeg, init)(seg, pool, base, size, args);
   if (res != ResOK)
     return res;
-  SetClassOfPoly(seg, CLASS(MRGRefSeg));
-  refseg = MustBeA(MRGRefSeg, seg);
+  refseg = CouldBeA(MRGRefSeg, seg);
 
-  AVERT(Pool, pool);
-  mrg = PoolMRG(pool);
-  AVERT(MRG, mrg);
   /* no useful checks for base and size */
   AVERT(MRGLinkSeg, linkseg);
 
@@ -287,10 +284,12 @@ static Res MRGRefSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   RingAppend(&mrg->refRing, &refseg->mrgRing);
   refseg->linkSeg = linkseg;
   AVER(NULL == linkseg->refSeg); /* .link.nullref */
+
+  SetClassOfPoly(seg, CLASS(MRGRefSeg));
   refseg->sig = MRGRefSegSig;
   linkseg->refSeg = refseg;      /* .ref.initarg */
 
-  AVERT(MRGRefSeg, refseg);
+  AVERC(MRGRefSeg, refseg);
   AVERT(MRGLinkSeg, linkseg);
 
   return ResOK;
@@ -640,16 +639,16 @@ static Res MRGInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   res = PoolAbsInit(pool, arena, class, args);
   if (res != ResOK)
     return res;
-  SetClassOfPoly(pool, CLASS(MRGPool));
-  mrg = MustBeA(MRGPool, pool);
+  mrg = CouldBeA(MRGPool, pool);
  
   RingInit(&mrg->entryRing);
   RingInit(&mrg->freeRing);
   RingInit(&mrg->refRing);
   mrg->extendBy = ArenaGrainSize(PoolArena(pool));
-  mrg->sig = MRGSig;
 
-  AVERT(MRG, mrg);
+  SetClassOfPoly(pool, CLASS(MRGPool));
+  mrg->sig = MRGSig;
+  AVERC(MRGPool, mrg);
 
   return ResOK;
 }
