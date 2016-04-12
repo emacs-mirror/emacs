@@ -510,7 +510,6 @@ ARG_DEFINE_KEY(AWL_FIND_DEPENDENT, Fun);
 static Res AWLInit(Pool pool, Arena arena, PoolClass class, ArgList args)
 {
   AWL awl;
-  Format format;
   FindDependentFunction findDependent = awlNoDependent;
   Chain chain;
   Res res;
@@ -522,8 +521,6 @@ static Res AWLInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   AVERT(ArgList, args);
   UNUSED(class); /* used for debug pools only */
 
-  ArgRequire(&arg, args, MPS_KEY_FORMAT);
-  format = arg.val.format;
   if (ArgPick(&arg, args, MPS_KEY_AWL_FIND_DEPENDENT))
     findDependent = (FindDependentFunction)arg.val.addr_method;
   if (ArgPick(&arg, args, MPS_KEY_CHAIN))
@@ -535,16 +532,14 @@ static Res AWLInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   if (ArgPick(&arg, args, MPS_KEY_GEN))
     gen = arg.val.u;
 
-  AVERT(Format, format);
-  AVER(FormatArena(format) == arena);
-
   res = PoolAbsInit(pool, arena, class, args);
   if (res != ResOK)
     goto failAbsInit;
   awl = CouldBeA(AWLPool, pool);
-  
-  pool->format = format;
-  pool->alignment = format->alignment;
+
+  /* Ensure a format was supplied in the argument list. */
+  AVER(pool->format != NULL);
+  pool->alignment = pool->format->alignment;
 
   AVER(FUNCHECK(findDependent));
   awl->findDependent = findDependent;
@@ -568,7 +563,7 @@ static Res AWLInit(Pool pool, Arena arena, PoolClass class, ArgList args)
     goto failGenInit;
   awl->pgen = &awl->pgenStruct;
 
-  EVENT2(PoolInitAWL, pool, format);
+  EVENT2(PoolInitAWL, pool, pool->format);
 
   return ResOK;
 

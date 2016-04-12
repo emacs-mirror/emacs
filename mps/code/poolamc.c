@@ -704,7 +704,6 @@ static Res amcInitComm(Pool pool, Arena arena, PoolClass class,
   Size extendBy = AMC_EXTEND_BY_DEFAULT;
   Size largeSize = AMC_LARGE_SIZE_DEFAULT;
   ArgStruct arg;
-  Format format;
   
   AVER(pool != NULL);
   AVERT(Arena, arena);
@@ -712,8 +711,6 @@ static Res amcInitComm(Pool pool, Arena arena, PoolClass class,
   AVERT(PoolClass, class);
   AVER(IsSubclass(class, AMCZPool));
   
-  ArgRequire(&arg, args, MPS_KEY_FORMAT);
-  format = arg.val.format;
   if (ArgPick(&arg, args, MPS_KEY_CHAIN))
     chain = arg.val.chain;
   else
@@ -725,8 +722,6 @@ static Res amcInitComm(Pool pool, Arena arena, PoolClass class,
   if (ArgPick(&arg, args, MPS_KEY_LARGE_SIZE))
     largeSize = arg.val.size;
   
-  AVERT(Format, format);
-  AVER(FormatArena(format) == arena);
   AVERT(Chain, chain);
   AVER(chain->arena == arena);
   AVER(extendBy > 0);
@@ -742,7 +737,9 @@ static Res amcInitComm(Pool pool, Arena arena, PoolClass class,
     return res;
   amc = CouldBeA(AMCZPool, pool);
 
-  pool->format = format;
+  /* Ensure a format was supplied in the argument list. */
+  AVER(pool->format != NULL);
+
   pool->alignment = pool->format->alignment;
   amc->rankSet = rankSet;
 
