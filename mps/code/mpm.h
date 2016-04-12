@@ -301,6 +301,8 @@ DECLARE_CLASS(Pool, AbstractPool);
 DECLARE_CLASS(Pool, AbstractBufferPool);
 DECLARE_CLASS(Pool, AbstractSegBufPool);
 DECLARE_CLASS(Pool, AbstractScanPool);
+typedef Pool AbstractCollectPool;
+#define AbstractCollectPoolCheck PoolCheck
 DECLARE_CLASS(Pool, AbstractCollectPool);
 
 

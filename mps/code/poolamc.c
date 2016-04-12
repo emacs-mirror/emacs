@@ -745,7 +745,6 @@ static Res amcInitComm(Pool pool, Arena arena, PoolClass class,
 
   pool->format = format;
   pool->alignment = pool->format->alignment;
-  pool->fix = AMCFix;
   amc->rankSet = rankSet;
 
   RingInit(&amc->genRing);
