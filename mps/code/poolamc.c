@@ -142,16 +142,16 @@ static Res AMCSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   res = NextMethod(Seg, amcSeg, init)(seg, pool, base, size, args);
   if(res != ResOK)
     return res;
-  SetClassOfPoly(seg, CLASS(amcSeg));
-  amcseg = MustBeA(amcSeg, seg);
+  amcseg = CouldBeA(amcSeg, seg);
 
   amcseg->gen = amcgen;
   amcseg->board = NULL;
   amcseg->old = FALSE;
   amcseg->deferred = FALSE;
 
+  SetClassOfPoly(seg, CLASS(amcSeg));
   amcseg->sig = amcSegSig;
-  AVERT(amcSeg, amcseg);
+  AVERC(amcSeg, amcseg);
 
   return ResOK;
 }
@@ -499,8 +499,7 @@ static Res AMCBufInit(Buffer buffer, Pool pool, Bool isMutator, ArgList args)
   res = NextMethod(Buffer, amcBuf, init)(buffer, pool, isMutator, args);
   if(res != ResOK)
     return res;
-  SetClassOfPoly(buffer, CLASS(amcBuf));
-  amcbuf = MustBeA(amcBuf, buffer);
+  amcbuf = CouldBeA(amcBuf, buffer);
 
   if (BufferIsMutator(buffer)) {
     /* Set up the buffer to be allocating in the nursery. */
@@ -511,8 +510,9 @@ static Res AMCBufInit(Buffer buffer, Pool pool, Bool isMutator, ArgList args)
   }
   amcbuf->forHashArrays = forHashArrays;
 
+  SetClassOfPoly(buffer, CLASS(amcBuf));
   amcbuf->sig = amcBufSig;
-  AVERT(amcBuf, amcbuf);
+  AVERC(amcBuf, amcbuf);
 
   BufferSetRankSet(buffer, amc->rankSet);
 
@@ -740,8 +740,7 @@ static Res amcInitComm(Pool pool, Arena arena, PoolClass class,
   res = PoolAbsInit(pool, arena, class, args);
   if (res != ResOK)
     return res;
-  SetClassOfPoly(pool, class);
-  amc = MustBeA(AMCZPool, pool);
+  amc = CouldBeA(AMCZPool, pool);
 
   pool->format = format;
   pool->alignment = pool->format->alignment;
@@ -768,8 +767,9 @@ static Res amcInitComm(Pool pool, Arena arena, PoolClass class,
   amc->extendBy = SizeArenaGrains(extendBy, arena);
   amc->largeSize = largeSize;
 
+  SetClassOfPoly(pool, class);
   amc->sig = AMCSig;
-  AVERT(AMC, amc);
+  AVERC(AMCZPool, amc);
 
   /* Init generations. */
   genCount = ChainGens(chain);

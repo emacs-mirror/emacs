@@ -1242,14 +1242,14 @@ static Res segBufInit(Buffer buffer, Pool pool, Bool isMutator, ArgList args)
   res = NextMethod(Buffer, SegBuf, init)(buffer, pool, isMutator, args);
   if (res != ResOK)
     return res;
-  SetClassOfPoly(buffer, CLASS(SegBuf));
-  segbuf = MustBeA(SegBuf, buffer);
+  segbuf = CouldBeA(SegBuf, buffer);
 
   segbuf->seg = NULL;
   segbuf->rankSet = RankSetEMPTY;
 
+  SetClassOfPoly(buffer, CLASS(SegBuf));
   segbuf->sig = SegBufSig;
-  AVERT(SegBuf, segbuf);
+  AVERC(SegBuf, segbuf);
 
   EVENT3(BufferInitSeg, buffer, pool, BOOLOF(buffer->isMutator));
   return ResOK;
@@ -1433,12 +1433,14 @@ static Res rankBufInit(Buffer buffer, Pool pool, Bool isMutator, ArgList args)
   res = NextMethod(Buffer, RankBuf, init)(buffer, pool, isMutator, args);
   if (res != ResOK)
     return res;
-  SetClassOfPoly(buffer, CLASS(RankBuf));
 
   BufferSetRankSet(buffer, RankSetSingle(rank));
 
-  /* There's nothing to check that the superclass doesn't, so no AVERT. */
+  SetClassOfPoly(buffer, CLASS(RankBuf));
+  AVERC(RankBuf, buffer);
+  
   EVENT4(BufferInitRank, buffer, pool, BOOLOF(buffer->isMutator), rank);
+
   return ResOK;
 }
 

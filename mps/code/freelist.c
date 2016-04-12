@@ -195,9 +195,7 @@ static Res freelistInit(Land land, Arena arena, Align alignment, ArgList args)
   res = NextMethod(Land, Freelist, init)(land, arena, alignment, args);
   if (res != ResOK)
     return res;
-
-  SetClassOfPoly(land, CLASS(Freelist));
-  fl = MustBeA(Freelist, land);
+  fl = CouldBeA(Freelist, land);
 
   /* See <design/freelist/#impl.grain> */
   AVER(AlignIsAligned(LandAlignment(land), FreelistMinimumAlignment));
@@ -206,8 +204,10 @@ static Res freelistInit(Land land, Arena arena, Align alignment, ArgList args)
   fl->listSize = 0;
   fl->size = 0;
 
+  SetClassOfPoly(land, CLASS(Freelist));
   fl->sig = FreelistSig;
-  AVERT(Freelist, fl);
+  AVERC(Freelist, fl);
+  
   return ResOK;
 }
 

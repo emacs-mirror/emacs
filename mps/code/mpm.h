@@ -789,6 +789,8 @@ extern Bool BufferClassCheck(BufferClass class);
 DECLARE_CLASS(Inst, BufferClass);
 DECLARE_CLASS(Buffer, Buffer);
 DECLARE_CLASS(Buffer, SegBuf);
+typedef Buffer RankBuf;
+#define RankBufCheck BufferCheck
 DECLARE_CLASS(Buffer, RankBuf);
 
 extern AllocPattern AllocPatternRamp(void);
