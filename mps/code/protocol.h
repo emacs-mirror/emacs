@@ -65,6 +65,7 @@
           SetClassOfPoly(class, CLASS(KIND_CLASS(kind))); \
         AVER(CLASS_CHECK(kind)(class)); \
         CLASS_GUARDIAN(ident) = TRUE; \
+	ClassRegister(MustBeA(InstClass, class)); \
       } \
       LockReleaseGlobalRecursive(); \
     } \
@@ -168,6 +169,15 @@ extern Bool InstClassCheck(InstClass class);
 extern Bool InstCheck(Inst inst);
 extern void InstInit(Inst inst);
 extern void InstFinish(Inst inst);
+
+
+/* ClassRegister -- class registration
+ *
+ * This is called once for each class initialised by DEFINE_CLASS and
+ * is not intended for use outside this file.
+ */
+
+extern void ClassRegister(InstClass class);
 
 
 /* IsSubclass, IsA -- fast subclass test
