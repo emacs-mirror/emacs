@@ -22,7 +22,10 @@ dead (in the case of :term:`automatic <automatic memory management>`
 pools).
 
 Allocation frames can be used by the :term:`client program` to
-efficiently implement stack-like patterns of allocation.
+efficiently implement stack-like patterns of allocation, for example
+in implementations of stack languages like Forth and PostScript, where
+some objects are allocated in stack frames and die when the stack is
+popped.
 
 .. note::
 
