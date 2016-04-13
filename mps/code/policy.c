@@ -326,13 +326,13 @@ Bool PolicyStartTrace(Trace *traceReturn, Arena arena)
 
       res = TraceCreate(&trace, arena, TraceStartWhyCHAIN_GEN0CAP);
       AVER(res == ResOK);
+      trace->chain = firstChain;
+      ChainStartTrace(firstChain, trace);
       res = policyCondemnChain(&mortality, firstChain, trace);
       if (res != ResOK) /* should try some other trace, really @@@@ */
         goto failCondemn;
       if (TraceIsEmpty(trace))
         goto nothingCondemned;
-      trace->chain = firstChain;
-      ChainStartGC(firstChain, trace);
       res = TraceStart(trace, mortality, trace->condemned * TraceWorkFactor);
       /* We don't expect normal GC traces to fail to start. */
       AVER(res == ResOK);

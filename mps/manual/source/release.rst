@@ -4,6 +4,22 @@ Release notes
 =============
 
 
+.. _release-notes-1.116:
+
+Release 1.116.0
+---------------
+
+
+New features
+............
+
+#. The MPS now measures the mortality of a :term:`generation` each
+   time it is collected, and maintains a moving average. This means
+   that it is no longer important to provide an accurate estimate of
+   the mortality when creating a :term:`generation chain` by calling
+   :c:func:`mps_chain_create`..
+
+
 .. _release-notes-1.115:
 
 Release 1.115.0

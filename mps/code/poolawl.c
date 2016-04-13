@@ -753,7 +753,7 @@ static Res AWLWhiten(Pool pool, Trace trace, Seg seg)
   AWL awl;
   AWLSeg awlseg;
   Buffer buffer;
-  Count uncondemned;
+  Count uncondemnedGrains, condemnedGrains;
 
   /* All parameters checked by generic PoolWhiten. */
 
@@ -769,13 +769,13 @@ static Res AWLWhiten(Pool pool, Trace trace, Seg seg)
 
   if(buffer == NULL) {
     awlRangeWhiten(awlseg, 0, awlseg->grains);
-    uncondemned = (Count)0;
+    uncondemnedGrains = (Count)0;
   } else {
     /* Whiten everything except the buffer. */
     Addr base = SegBase(seg);
     Index scanLimitIndex = awlIndexOfAddr(base, awl, BufferScanLimit(buffer));
     Index limitIndex = awlIndexOfAddr(base, awl, BufferLimit(buffer));
-    uncondemned = limitIndex - scanLimitIndex;
+    uncondemnedGrains = limitIndex - scanLimitIndex;
     awlRangeWhiten(awlseg, 0, scanLimitIndex);
     awlRangeWhiten(awlseg, limitIndex, awlseg->grains);
 
@@ -788,12 +788,14 @@ static Res AWLWhiten(Pool pool, Trace trace, Seg seg)
     }
   }
 
-  PoolGenAccountForAge(&awl->pgen, AWLGrainsSize(awl, awlseg->newGrains - uncondemned), FALSE);
-  awlseg->oldGrains += awlseg->newGrains - uncondemned;
-  awlseg->newGrains = uncondemned;
+  condemnedGrains = awlseg->newGrains - uncondemnedGrains;
+  PoolGenAccountForAge(&awl->pgen, AWLGrainsSize(awl, condemnedGrains), FALSE);
+  awlseg->oldGrains += condemnedGrains;
+  awlseg->newGrains = uncondemnedGrains;
 
   if (awlseg->oldGrains > 0) {
-    trace->condemned += AWLGrainsSize(awl, awlseg->oldGrains);
+    GenDescCondemned(awl->pgen.gen, trace,
+                     AWLGrainsSize(awl, awlseg->oldGrains));
     SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace));
   }
   
@@ -1172,7 +1174,7 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
 
   trace->reclaimSize += AWLGrainsSize(awl, reclaimedGrains);
   trace->preservedInPlaceCount += preservedInPlaceCount;
-  trace->preservedInPlaceSize += preservedInPlaceSize;
+  GenDescSurvived(awl->pgen.gen, trace, 0, preservedInPlaceSize);
   SegSetWhite(seg, TraceSetDel(SegWhite(seg), trace));
 
   if (awlseg->freeGrains == awlseg->grains && buffer == NULL)

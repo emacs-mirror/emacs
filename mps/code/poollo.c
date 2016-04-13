@@ -381,8 +381,7 @@ static void loSegReclaim(LOSeg loseg, Trace trace)
 
   trace->reclaimSize += LOGrainsSize(lo, reclaimedGrains);
   trace->preservedInPlaceCount += preservedInPlaceCount;
-  trace->preservedInPlaceSize += preservedInPlaceSize;
-
+  GenDescSurvived(lo->pgen.gen, trace, 0, preservedInPlaceSize);
   SegSetWhite(seg, TraceSetDel(SegWhite(seg), trace));
 
   if (!marked)
@@ -671,7 +670,7 @@ static Res LOWhiten(Pool pool, Trace trace, Seg seg)
   LO lo;
   LOSeg loseg;
   Buffer buffer;
-  Count grains, uncondemned;
+  Count grains, uncondemnedGrains, condemnedGrains;
 
   AVERT(Pool, pool);
   lo = PoolPoolLO(pool);
@@ -691,21 +690,25 @@ static Res LOWhiten(Pool pool, Trace trace, Seg seg)
     Addr base = SegBase(seg);
     Index scanLimitIndex = loIndexOfAddr(base, lo, BufferScanLimit(buffer));
     Index limitIndex = loIndexOfAddr(base, lo, BufferLimit(buffer));
-    uncondemned = limitIndex - scanLimitIndex;
+    uncondemnedGrains = limitIndex - scanLimitIndex;
     if (0 < scanLimitIndex)
       BTCopyInvertRange(loseg->alloc, loseg->mark, 0, scanLimitIndex);
     if (limitIndex < grains)
       BTCopyInvertRange(loseg->alloc, loseg->mark, limitIndex, grains);
   } else {
-    uncondemned = (Count)0;
+    uncondemnedGrains = (Count)0;
     BTCopyInvertRange(loseg->alloc, loseg->mark, 0, grains);
   }
 
-  PoolGenAccountForAge(&lo->pgen, LOGrainsSize(lo, loseg->newGrains - uncondemned), FALSE);
-  loseg->oldGrains += loseg->newGrains - uncondemned;
-  loseg->newGrains = uncondemned;
-  trace->condemned += LOGrainsSize(lo, loseg->oldGrains);
-  SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace));
+  condemnedGrains = loseg->newGrains - uncondemnedGrains;
+  PoolGenAccountForAge(&lo->pgen, LOGrainsSize(lo, condemnedGrains), FALSE);
+  loseg->oldGrains += condemnedGrains;
+  loseg->newGrains = uncondemnedGrains;
+
+  if (loseg->oldGrains > 0) {
+    GenDescCondemned(lo->pgen.gen, trace, LOGrainsSize(lo, loseg->oldGrains));
+    SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace));
+  }
 
   return ResOK;
 }

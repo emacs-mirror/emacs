@@ -470,7 +470,14 @@
 #define VM_ARENA_SIZE_DEFAULT ((Size)1 << 28)
 
 
-/* Stack configuration -- see <code/sp*.c> */
+/* Locus configuration -- see <code/locus.c> */
+
+/* Weighting for the current observation, in the exponential moving
+ * average computation of the mortality of a generation. */
+#define LocusMortalityALPHA (0.4)
+
+
+/* Stack probe configuration -- see <code/sp*.c> */
 
 /* Currently StackProbe has a useful implementation only on Windows. */
 #if defined(MPS_OS_W3)

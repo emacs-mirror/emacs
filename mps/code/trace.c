@@ -105,9 +105,7 @@ void ScanStateInit(ScanState ss, TraceSet ts, Arena arena,
   STATISTIC(ss->nailCount = (Count)0);
   STATISTIC(ss->snapCount = (Count)0);
   STATISTIC(ss->forwardedCount = (Count)0);
-  ss->forwardedSize = (Size)0; /* see .message.data */
   STATISTIC(ss->preservedInPlaceCount = (Count)0);
-  ss->preservedInPlaceSize = (Size)0; /* see .message.data */
   STATISTIC(ss->copiedSize = (Size)0);
   ss->scannedSize = (Size)0; /* see .work */
   ss->sig = ScanStateSig;
@@ -296,11 +294,7 @@ static void traceUpdateCounts(Trace trace, ScanState ss,
   STATISTIC(trace->nailCount += ss->nailCount);
   STATISTIC(trace->snapCount += ss->snapCount);
   STATISTIC(trace->forwardedCount += ss->forwardedCount);
-  trace->forwardedSize += ss->forwardedSize;  /* see .message.data */
   STATISTIC(trace->preservedInPlaceCount += ss->preservedInPlaceCount);
-  trace->preservedInPlaceSize += ss->preservedInPlaceSize;
-
-  return;
 }
 
 
@@ -741,6 +735,33 @@ found:
 }
 
 
+/* traceDestroyCommon -- common functionality for TraceDestroy*  */
+
+static void traceDestroyCommon(Trace trace)
+{
+  Ring chainNode, nextChainNode;
+
+  if (trace->chain != NULL) {
+    ChainEndTrace(trace->chain, trace);
+  } else {
+    /* Notify all the chains. */
+    RING_FOR(chainNode, &trace->arena->chainRing, nextChainNode) {
+      Chain chain = RING_ELT(Chain, chainRing, chainNode);
+      ChainEndTrace(chain, trace);
+    }
+  }
+
+  EVENT1(TraceDestroy, trace);
+
+  trace->sig = SigInvalid;
+  trace->arena->busyTraces = TraceSetDel(trace->arena->busyTraces, trace);
+  trace->arena->flippedTraces = TraceSetDel(trace->arena->flippedTraces, trace);
+
+  /* Hopefully the trace reclaimed some memory, so clear any emergency. */
+  ArenaSetEmergency(trace->arena, FALSE);
+}
+
+
 /* TraceDestroyInit -- destroy a trace object in state INIT */
 
 void TraceDestroyInit(Trace trace)
@@ -748,14 +769,9 @@ void TraceDestroyInit(Trace trace)
   AVERT(Trace, trace);
   AVER(trace->state == TraceINIT);
   AVER(trace->condemned == 0);
+  AVER(!TraceSetIsMember(trace->arena->flippedTraces, trace));
 
-  EVENT1(TraceDestroy, trace);
-
-  trace->sig = SigInvalid;
-  trace->arena->busyTraces = TraceSetDel(trace->arena->busyTraces, trace);
-
-  /* Clear the emergency flag so the next trace starts normally. */
-  ArenaSetEmergency(trace->arena, FALSE);
+  traceDestroyCommon(trace);
 }
 
 
@@ -772,19 +788,6 @@ void TraceDestroyFinished(Trace trace)
 {
   AVERT(Trace, trace);
   AVER(trace->state == TraceFINISHED);
-
-  if(trace->chain == NULL) {
-    Ring chainNode, nextChainNode;
-
-    /* Notify all the chains. */
-    RING_FOR(chainNode, &trace->arena->chainRing, nextChainNode) {
-      Chain chain = RING_ELT(Chain, chainRing, chainNode);
-
-      ChainEndGC(chain, trace);
-    }
-  } else {
-    ChainEndGC(trace->chain, trace);
-  }
 
   STATISTIC_STAT(EVENT13
                   (TraceStatScan, trace,
@@ -808,14 +811,7 @@ void TraceDestroyFinished(Trace trace)
                   (TraceStatReclaim, trace,
                    trace->reclaimCount, trace->reclaimSize));
 
-  EVENT1(TraceDestroy, trace);
-
-  trace->sig = SigInvalid;
-  trace->arena->busyTraces = TraceSetDel(trace->arena->busyTraces, trace);
-  trace->arena->flippedTraces = TraceSetDel(trace->arena->flippedTraces, trace);
-
-  /* Hopefully the trace reclaimed some memory, so clear any emergency. */
-  ArenaSetEmergency(trace->arena, FALSE);
+  traceDestroyCommon(trace);
 }
 
 
@@ -1490,7 +1486,7 @@ static Res traceCondemnAll(Trace trace)
 {
   Res res;
   Arena arena;
-  Ring poolNode, nextPoolNode, chainNode, nextChainNode;
+  Ring poolNode, nextPoolNode;
 
   arena = trace->arena;
   AVERT(Arena, arena);
@@ -1522,12 +1518,6 @@ static Res traceCondemnAll(Trace trace)
   if (TraceIsEmpty(trace))
     return ResFAIL;
 
-  /* Notify all the chains. */
-  RING_FOR(chainNode, &arena->chainRing, nextChainNode) {
-    Chain chain = RING_ELT(Chain, chainRing, chainNode);
-
-    ChainStartGC(chain, trace);
-  }
   return ResOK;
 
 failBegin:
@@ -1749,12 +1739,20 @@ Res TraceStartCollectAll(Trace *traceReturn, Arena arena, int why)
   Trace trace = NULL;
   Res res;
   double finishingTime;
+  Ring chainNode, nextChainNode;
 
   AVERT(Arena, arena);
   AVER(arena->busyTraces == TraceSetEMPTY);
 
   res = TraceCreate(&trace, arena, why);
   AVER(res == ResOK); /* succeeds because no other trace is busy */
+
+  /* Notify all the chains. */
+  RING_FOR(chainNode, &arena->chainRing, nextChainNode) {
+    Chain chain = RING_ELT(Chain, chainRing, chainNode);
+    ChainStartTrace(chain, trace);
+  }
+
   res = traceCondemnAll(trace);
   if(res != ResOK) /* should try some other trace, really @@@@ */
     goto failCondemn;
