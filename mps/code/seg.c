@@ -348,6 +348,27 @@ void SegSetBuffer(Seg seg, Buffer buffer)
 }
 
 
+/* SegBufferScanLimit -- limit of scannable objects in segment */
+
+Addr SegBufferScanLimit(Seg seg)
+{
+  Addr limit;
+  Buffer buf;
+
+  AVERT(Seg, seg);
+
+  buf = SegBuffer(seg);
+  if (buf == NULL) {
+    /* Segment is unbuffered: entire segment scannable */
+    limit = SegLimit(seg);
+  } else {
+    /* Segment is buffered: scannable up to limit of initialized objects. */
+    limit = BufferScanLimit(buf);
+  }
+  return limit;
+}
+
+
 /* SegDescribe -- describe a segment */
 
 Res SegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)

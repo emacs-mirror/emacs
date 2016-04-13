@@ -169,7 +169,6 @@ All
 :term:`deferred reference counting`
 :term:`dependent object`
 :term:`derived pointer <interior pointer>`
-:term:`derived type`
 :term:`destructor (1)`
 :term:`destructor (2)`
 :term:`DGC <distributed garbage collection>`

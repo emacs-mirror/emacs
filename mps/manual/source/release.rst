@@ -3,6 +3,28 @@
 Release notes
 =============
 
+.. _release-notes-1.116:
+
+Release 1.116.0
+---------------
+
+Interface changes
+.................
+
+#. The pool class :ref:`pool-snc` is no longer deprecated.
+
+#. Allocation frames are no longer deprecated. See :ref:`topic-frame`.
+
+
+Other changes
+.............
+
+#. Objects in :ref:`pool-snc` pools are no longer scanned after their
+   :term:`allocation frame` is popped, and so do not keep objects in
+   automatically managed pools alive. See job003883_.
+
+   .. _job003883: https://www.ravenbrook.com/project/mps/issue/job003883/
+
 
 .. _release-notes-1.115:
 
@@ -76,6 +98,10 @@ Interface changes
 #. The function :c:func:`mps_root_create_table_masked` is deprecated in
    favour of :c:func:`mps_root_create_table_tagged`.
 
+#. The :ref:`pool-snc` pool class now implements
+   :c:func:`mps_pool_total_size` and :c:func:`mps_pool_free_size`.
+
+
 Other changes
 .............
 
@@ -101,6 +127,12 @@ Other changes
    works. See job003870_.
    
    .. _job003870: https://www.ravenbrook.com/project/mps/issue/job003870/
+
+#. In the :term:`hot` (production) variety,
+   :c:func:`mps_pool_free_size` now returns the correct result for
+   :ref:`pool-awl` and :ref:`pool-lo` pools. See job003884_.
+
+   .. _job003884: https://www.ravenbrook.com/project/mps/issue/job003884/
 
 #. When the arena is out of memory and cannot be extended without
    hitting the :term:`commit limit`, the MPS now returns
