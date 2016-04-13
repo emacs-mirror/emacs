@@ -1078,7 +1078,7 @@ static Res AMSWhiten(Pool pool, Trace trace, Seg seg)
   AMS ams;
   AMSSeg amsseg;
   Buffer buffer;                /* the seg's buffer, if it has one */
-  Count uncondemned;
+  Count uncondemnedGrains, condemnedGrains;
 
   AVERT(Pool, pool);
   ams = PoolAMS(pool);
@@ -1128,21 +1128,23 @@ static Res AMSWhiten(Pool pool, Trace trace, Seg seg)
       AMS_RANGE_BLACKEN(seg, scanLimitIndex, limitIndex);
     amsRangeWhiten(seg, limitIndex, amsseg->grains);
     /* We didn't condemn the buffer, subtract it from the count. */
-    uncondemned = limitIndex - scanLimitIndex;
+    uncondemnedGrains = limitIndex - scanLimitIndex;
   } else { /* condemn whole seg */
     amsRangeWhiten(seg, 0, amsseg->grains);
-    uncondemned = (Count)0;
+    uncondemnedGrains = (Count)0;
   }
 
   /* The unused part of the buffer remains new: the rest becomes old. */
-  PoolGenAccountForAge(&ams->pgen, AMSGrainsSize(ams, amsseg->newGrains - uncondemned), FALSE);
-  amsseg->oldGrains += amsseg->newGrains - uncondemned;
-  amsseg->newGrains = uncondemned;
+  condemnedGrains = amsseg->newGrains - uncondemnedGrains;
+  PoolGenAccountForAge(&ams->pgen, AMSGrainsSize(ams, condemnedGrains), FALSE);
+  amsseg->oldGrains += condemnedGrains;
+  amsseg->newGrains = uncondemnedGrains;
   amsseg->marksChanged = FALSE; /* <design/poolams/#marked.condemn> */
   amsseg->ambiguousFixes = FALSE;
 
   if (amsseg->oldGrains > 0) {
-    trace->condemned += AMSGrainsSize(ams, amsseg->oldGrains);
+    GenDescCondemned(ams->pgen.gen, trace,
+                     AMSGrainsSize(ams, amsseg->oldGrains));
     SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace));
   } else {
     amsseg->colourTablesInUse = FALSE;
@@ -1550,6 +1552,7 @@ static void AMSReclaim(Pool pool, Trace trace, Seg seg)
   AMS ams;
   AMSSeg amsseg;
   Count nowFree, grains, reclaimedGrains;
+  Size preservedInPlaceSize;
   PoolDebugMixin debug;
 
   AVERT(Pool, pool);
@@ -1601,7 +1604,8 @@ static void AMSReclaim(Pool pool, Trace trace, Seg seg)
   PoolGenAccountForReclaim(&ams->pgen, AMSGrainsSize(ams, reclaimedGrains), FALSE);
   trace->reclaimSize += AMSGrainsSize(ams, reclaimedGrains);
   /* preservedInPlaceCount is updated on fix */
-  trace->preservedInPlaceSize += AMSGrainsSize(ams, amsseg->oldGrains);
+  preservedInPlaceSize = AMSGrainsSize(ams, amsseg->oldGrains);
+  GenDescSurvived(ams->pgen.gen, trace, 0, preservedInPlaceSize);
 
   /* Ensure consistency of segment even if are just about to free it */
   amsseg->colourTablesInUse = FALSE;
