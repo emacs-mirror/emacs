@@ -191,8 +191,10 @@ static void test_trees(int mode, const char *name, mps_arena_t arena,
     ++ collections;
     {
       size_t live_size = (object_count - finals) * sizeof(void *) * 3;
-      size_t alloc_size = mps_pool_total_size(pool) - mps_pool_free_size(pool);
-      Insist(live_size <= alloc_size);
+      size_t total_size = mps_pool_total_size(pool);
+      size_t free_size = mps_pool_free_size(pool);
+      Insist(free_size <= total_size);
+      Insist(free_size + live_size <= total_size);
     }
     while (mps_message_poll(arena)) {
       mps_message_t message;
