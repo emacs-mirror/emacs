@@ -123,8 +123,8 @@ static Bool GenParamCheck(GenParamStruct *params)
 {
   CHECKL(params != NULL);
   CHECKL(params->capacity > 0);
-  CHECKL(params->mortality > 0.0);
-  CHECKL(params->mortality < 1.0);
+  CHECKL(params->mortality >= 0.0);
+  CHECKL(params->mortality <= 1.0);
   return TRUE;
 }
 
@@ -174,6 +174,79 @@ Size GenDescNewSize(GenDesc gen)
 }
 
 
+/* genDescTraceStart -- notify generation of start of a trace */
+
+static void genDescStartTrace(GenDesc gen, Trace trace)
+{
+  GenTraceStats stats;
+
+  AVERT(GenDesc, gen);
+  AVERT(Trace, trace);
+
+  stats = &gen->trace[trace->ti];
+  stats->condemned = 0;
+  stats->forwarded = 0;
+  stats->preservedInPlace = 0;
+}
+
+
+/* genDescEndTrace -- notify generation of end of a trace */
+
+static void genDescEndTrace(GenDesc gen, Trace trace)
+{
+  GenTraceStats stats;
+  Size survived;
+
+  AVERT(GenDesc, gen);
+  AVERT(Trace, trace);
+
+  stats = &gen->trace[trace->ti];
+  survived = stats->forwarded + stats->preservedInPlace;
+  AVER(survived <= stats->condemned);
+
+  if (stats->condemned > 0) {
+    double mortality = 1.0 - survived / (double)stats->condemned;
+    double alpha = LocusMortalityALPHA;
+    gen->mortality = gen->mortality * (1 - alpha) + mortality * alpha;
+    EVENT6(TraceEndGen, trace, gen, stats->condemned, stats->forwarded,
+           stats->preservedInPlace, gen->mortality);
+  }
+}
+
+
+/* GenDescCondemned -- memory in a generation was condemned for a trace */
+
+void GenDescCondemned(GenDesc gen, Trace trace, Size size)
+{
+  GenTraceStats stats;
+
+  AVERT(GenDesc, gen);
+  AVERT(Trace, trace);
+
+  stats = &gen->trace[trace->ti];
+  stats->condemned += size;
+  trace->condemned += size;
+}
+
+
+/* GenDescSurvived -- memory in a generation survived a trace */
+
+void GenDescSurvived(GenDesc gen, Trace trace, Size forwarded,
+                     Size preservedInPlace)
+{
+  GenTraceStats stats;
+
+  AVERT(GenDesc, gen);
+  AVERT(Trace, trace);
+
+  stats = &gen->trace[trace->ti];
+  stats->forwarded += forwarded;
+  stats->preservedInPlace += preservedInPlace;
+  trace->forwardedSize += forwarded;
+  trace->preservedInPlaceSize += preservedInPlace;
+}
+
+
 /* GenDescTotalSize -- return total size of generation */
 
 Size GenDescTotalSize(GenDesc gen)
@@ -196,6 +269,7 @@ Size GenDescTotalSize(GenDesc gen)
 
 Res GenDescDescribe(GenDesc gen, mps_lib_FILE *stream, Count depth)
 {
+  Index i;
   Res res;
   Ring node, nextNode;
 
@@ -212,6 +286,18 @@ Res GenDescDescribe(GenDesc gen, mps_lib_FILE *stream, Count depth)
                NULL);
   if (res != ResOK)
     return res;
+
+  for (i = 0; i < NELEMS(gen->trace); ++i) {
+    GenTraceStats stats = &gen->trace[i];
+    res = WriteF(stream, depth + 2,
+                 "trace $W {\n", (WriteFW)i,
+                 "  condemned $W\n", (WriteFW)stats->condemned,
+                 "  forwarded $W\n", (WriteFW)stats->forwarded,
+                 "  preservedInPlace $W\n", (WriteFW)stats->preservedInPlace,
+                 "}\n", NULL);
+    if (res != ResOK)
+      return res;
+  }
 
   RING_FOR(node, &gen->locusRing, nextNode) {
     PoolGen pgen = RING_ELT(PoolGen, genRing, node);
@@ -376,25 +462,35 @@ double ChainDeferral(Chain chain)
 }
 
 
-/* ChainStartGC -- called to notify start of GC for this chain */
+/* ChainStartTrace -- called to notify start of GC for this chain */
 
-void ChainStartGC(Chain chain, Trace trace)
+void ChainStartTrace(Chain chain, Trace trace)
 {
+  Index i;
+
   AVERT(Chain, chain);
   AVERT(Trace, trace);
 
   chain->activeTraces = TraceSetAdd(chain->activeTraces, trace);
+
+  for (i = 0; i < chain->genCount; ++i)
+    genDescStartTrace(&chain->gens[i], trace);
 }
 
 
-/* ChainEndGC -- called to notify end of GC for this chain */
+/* ChainEndTrace -- called to notify end of GC for this chain */
 
-void ChainEndGC(Chain chain, Trace trace)
+void ChainEndTrace(Chain chain, Trace trace)
 {
+  Index i;
+
   AVERT(Chain, chain);
   AVERT(Trace, trace);
 
   chain->activeTraces = TraceSetDel(chain->activeTraces, trace);
+
+  for (i = 0; i < chain->genCount; ++i)
+    genDescEndTrace(&chain->gens[i], trace);
 }
 
 
@@ -617,9 +713,10 @@ void PoolGenAccountForEmpty(PoolGen pgen, Size unused, Bool deferred)
 
 /* PoolGenAccountForAge -- accounting for condemning
  *
- * Call this when memory is condemned via PoolWhiten. The size
- * parameter should be the amount of memory that is being condemned
- * for the first time. The deferred flag is as for PoolGenAccountForFill.
+ * Call this when memory is condemned via PoolWhiten, or when
+ * artificially ageing memory in PoolGenFree. The size parameter
+ * should be the amount of memory that is being condemned for the
+ * first time. The deferred flag is as for PoolGenAccountForFill.
  *
  * See <design/strategy/#accounting.op.age>
  */
@@ -627,7 +724,8 @@ void PoolGenAccountForEmpty(PoolGen pgen, Size unused, Bool deferred)
 void PoolGenAccountForAge(PoolGen pgen, Size size, Bool deferred)
 {
   AVERT(PoolGen, pgen);
-  
+  AVERT(Bool, deferred);
+
   if (deferred) {
     AVER(pgen->newDeferredSize >= size);
     pgen->newDeferredSize -= size;
