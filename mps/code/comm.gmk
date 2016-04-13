@@ -530,11 +530,11 @@ $(PFM)/$(VARIETY)/segsmss: $(PFM)/$(VARIETY)/segsmss.o \
 $(PFM)/$(VARIETY)/sncss: $(PFM)/$(VARIETY)/sncss.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/tagtest: $(PFM)/$(VARIETY)/tagtest.o \
-	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
-
 $(PFM)/$(VARIETY)/steptest: $(PFM)/$(VARIETY)/steptest.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/tagtest: $(PFM)/$(VARIETY)/tagtest.o \
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/teletest: $(PFM)/$(VARIETY)/teletest.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
