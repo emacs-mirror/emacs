@@ -18,10 +18,15 @@ points`. See :ref:`topic-frame`.
 
 If :c:func:`mps_ap_frame_pop` is used on an allocation point in an SNC
 pool (after a corresponding call to :c:func:`mps_ap_frame_push`), then
-the objects affected by the pop are effectively declared dead, and may
-be reclaimed by the collector. Extant references to such objects from
-reachable or *de facto* alive objects are safe, but such other objects
-should be dead; that is, such references must never be used.
+the objects affected by the pop are assumed to be dead, and are
+reclaimed by the collector without checking whether there are any
+references to them.
+
+This pool class is intended to be used to implement stack languages
+like Forth and PostScript, where some objects are allocated in stack
+frames and are known to be dead when the stack is popped, because the
+language can ensure that objects that are kept alive when the stack is
+popped are copied to the heap.
 
 
 .. index::
