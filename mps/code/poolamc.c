@@ -1017,6 +1017,8 @@ static void AMCBufferEmpty(Pool pool, Buffer buffer,
   Size size;
   Arena arena;
   Seg seg;
+  TraceId ti;
+  Trace trace;
 
   AVERT(Pool, pool);
   amc = PoolAMC(pool);
@@ -1043,6 +1045,11 @@ static void AMCBufferEmpty(Pool pool, Buffer buffer,
     (*pool->format->pad)(init, size);
     ShieldCover(arena, seg);
   }
+
+  /* The padding object is white, so needs to be accounted as condemned. */
+  TRACE_SET_ITER(ti, trace, seg->white, arena)
+    GenDescCondemned(amcSegGen(seg)->pgen.gen, trace, size);
+  TRACE_SET_ITER_END(ti, trace, seg->white, arena);
 
   /* The unused part of the buffer is not reused by AMC, so we pass 0
    * for the unused argument. This call therefore has no effect on the
