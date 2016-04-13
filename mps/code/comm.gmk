@@ -3,7 +3,7 @@
 # comm.gmk: COMMON GNUMAKEFILE FRAGMENT
 #
 # $Id$
-# Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+# Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
 #
 # DESCRIPTION
 #
@@ -36,7 +36,6 @@
 # NOISY   if defined and non-empty, causes commands to be emitted
 # MPMPF   platform-dependent C sources for the "mpm" part
 # MPMS    assembler sources for the "mpm" part (.s files)
-# MPMPS   pre-processor assembler sources for the "mpm" part (.S files)
 #
 # %%PART: When adding a new part, add a new parameter above for the
 # files included in the part.
@@ -149,7 +148,7 @@ ARFLAGS=rc$(ARFLAGSPFM)
 # platforms.
 
 AMC = poolamc.c
-AMS = poolams.c poolamsi.c
+AMS = poolams.c
 AWL = poolawl.c
 LO = poollo.c
 SNC = poolsnc.c
@@ -188,6 +187,7 @@ MPMCOMMON = \
     mpm.c \
     mpsi.c \
     nailboard.c \
+    policy.c \
     pool.c \
     poolabs.c \
     poolmfs.c \
@@ -196,11 +196,11 @@ MPMCOMMON = \
     protocol.c \
     range.c \
     ref.c \
-    reserv.c \
     ring.c \
     root.c \
     sa.c \
     sac.c \
+    scan.c \
     seg.c \
     shield.c \
     splay.c \
@@ -285,6 +285,7 @@ TEST_TARGETS=\
     segsmss \
     sncss \
     steptest \
+    tagtest \
     teletest \
     walkt0 \
     zcoll \
@@ -310,18 +311,32 @@ all: $(ALL_TARGETS)
 # testci = continuous integration tests, must be known good
 # testall = all test cases, for ensuring quality of a release
 # testansi = tests that run on the generic ("ANSI") platform
-# testpoll = tests that run on the generic platform with CONFIG_POLL_NONE
+# testpollnone = tests that run on the generic platform with CONFIG_POLL_NONE
 
-TEST_SUITES=testrun testci testall testansi testpoll
+TEST_SUITES=testrun testci testall testansi testpollnone
 
 $(addprefix $(PFM)/$(VARIETY)/,$(TEST_SUITES)): $(TEST_TARGETS)
-	../tool/testrun.sh "$(PFM)/$(VARIETY)" "$(notdir $@)"
+	../tool/testrun.sh -s "$(notdir $@)" "$(PFM)/$(VARIETY)"
+
+
+# == MMQA test suite ==
+#
+# See test/README for documentation on running the MMQA test suite.
+
+MMQA=perl test/qa -i ../code -l ../code/$(PFM)/$(VARIETY)/mps.o
+
+$(PFM)/$(VARIETY)/testmmqa:
+	$(MAKE) -f $(PFM).gmk VARIETY=$(VARIETY) TARGET=mps.o variety
+	(if [ "$(VARIETY)" = "cool" ]; then cd ../test && $(MMQA) runset testsets/coolonly; fi)
+	(cd ../test && $(MMQA) runset testsets/argerr)
+	(cd ../test && $(MMQA) runset testsets/conerr)
+	(cd ../test && $(MMQA) runset testsets/passing)
 
 
 # These convenience targets allow one to type "make foo" to build target
 # foo in selected varieties (or none, for the latter rule).
 
-$(ALL_TARGETS) $(TEST_SUITES): phony
+$(ALL_TARGETS) $(TEST_SUITES) testmmqa: phony
 ifdef VARIETY
 	$(MAKE) -f $(PFM).gmk TARGET=$@ variety
 else
@@ -515,6 +530,9 @@ $(PFM)/$(VARIETY)/segsmss: $(PFM)/$(VARIETY)/segsmss.o \
 $(PFM)/$(VARIETY)/sncss: $(PFM)/$(VARIETY)/sncss.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
+$(PFM)/$(VARIETY)/tagtest: $(PFM)/$(VARIETY)/tagtest.o \
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
 $(PFM)/$(VARIETY)/steptest: $(PFM)/$(VARIETY)/steptest.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
@@ -666,7 +684,7 @@ find-puns: phony
 
 # C. COPYRIGHT AND LICENSE
 #
-# Copyright (c) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+# Copyright (c) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
 # All rights reserved.  This is an open source license.  Contact
 # Ravenbrook for commercial licensing options.
 # 

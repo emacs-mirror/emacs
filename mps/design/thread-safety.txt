@@ -26,9 +26,11 @@ threads calling into the MPS. The initial approach is very simple.
 Some of the code is known to operate with exclusive access to the data
 it manipulates, so this code is safe. For the rest of the code, shared
 data structures are locked by the use of a single binary lock
-(design.mps.lock(0)) per arena. This lock is claimed on entry to the
+(design.mps.lock_) per arena. This lock is claimed on entry to the
 MPS and released on exit from it. So there is at most a single thread
 (per arena) running "inside" the MPS at a time.
+
+.. _design.mps.lock: lock
 
 
 Requirements
@@ -47,11 +49,15 @@ _`.arch.arena`: Arena Lock: no shared data between arenas.
 
 _`.arch.global.binary`: Global binary lock: protects mutable data
 shared between arenas -- that is, the arena ring, see
-design.mps.arena.static.ring.lock.
+design.mps.arena.static.ring.lock_.
+
+.. _design.mps.arena.static.ring.lock: arena#static.ring.lock
 
 _`.arch.global.recursive`: Global recursive lock: protects static data
 which must be initialized once -- for example, pool classes, see
-design.mps.protocol.impl.init-lock.
+design.mps.protocol.impl.init-lock_.
+
+.. _design.mps.protocol.impl.init-lock: protocol#impl.init-lock
 
 _`.arch.other`: Other: data not shared.
 
@@ -118,11 +124,13 @@ running on genuine multiprocessor `.lock-cost.wait`_ is irrelevant.
 
 _`.anal.perf.alloc`: During typical use we expect that it is
 allocation that is the most frequent activity. Allocation buffers
-(design.mps.buffer) are designed to allow allocation in concurrent
+(design.mps.buffer_) are designed to allow allocation in concurrent
 threads without needing a lock. So the most significant time a thread
 spends in the MPS will be on a buffer-fill or during a collection. The
 next most significant use is likely to be buffer create and deletion,
 as a separate buffer will be required for each thread.
+
+.. _design.mps.buffer: buffer
 
 _`.anal.perf.lock`: So overall the performance cost of locking is, I
 estimate, most significantly the overhead of calling the locking
@@ -184,7 +192,7 @@ would avoid deadlock.
 Implementation
 --------------
 
-Use MPS locks (design.mps.lock) to do locking.
+Use MPS locks (design.mps.lock_) to do locking.
 
 Locking Functions
 .................
@@ -341,8 +349,8 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited. All rights reserved.
-<http://www.ravenbrook.com/>. This is an open source license. Contact
+Copyright © 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
 Redistribution and use in source and binary forms, with or without

@@ -35,6 +35,10 @@ Support policy
     a version in which the symbol (or reliance on some of its
     behaviour) is deprecated.
 
+    Symbols may be deprecated in their old place in the reference
+    manual, or they may be moved to the :ref:`topic-deprecated`
+    chapter.
+
     .. note::
 
         If you are relying on a feature and you see that it's
@@ -197,7 +201,8 @@ Instead, we recommend this approach::
     mps_addr_t p;
     struct foo *fp;
     res = mps_alloc(&p, pool, sizeof(struct foo));
-    if(res) /* handle error case */;
+    if (res != MPS_RES_OK)
+        /* handle error case */;
     fp = p;
 
 This has defined behaviour because conversion from ``void *`` to any

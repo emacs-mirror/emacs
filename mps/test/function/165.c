@@ -1,7 +1,7 @@
 /* 
 TEST_HEADER
  id = $Id$
- summary = simple spare_commit_limit test
+ summary = simple spare commit limit test
  language = c
  link = testlib.o rankfmt.o
  harness = 2.0
@@ -32,14 +32,15 @@ static void test(void)
 
  unsigned long com0, com1, com2;
 
-/* create a VM arena of 40MB */
+/* create a VM arena of 40MB with commit limit of 100MB, i.e. let the
+   arena do the limiting. */
 
- cdie(mps_arena_create(&arena, mps_arena_class_vm(), (size_t)(1024*1024*40)),
-  "create arena");
-
-/* set the commit limit to 100MB, i.e. let the arena do the limiting */
-
- mps_arena_commit_limit_set(arena, (size_t) (1024ul*1024ul*100ul));
+ MPS_ARGS_BEGIN(args) {
+   MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, 1024*1024*40);
+   MPS_ARGS_ADD(args, MPS_KEY_COMMIT_LIMIT, 1024ul*1024ul*100ul);
+   cdie(mps_arena_create_k(&arena, mps_arena_class_vm(), args),
+        "create arena");
+ } MPS_ARGS_END(args);
 
  cdie(mps_thread_reg(&thread, arena), "register thread");
 

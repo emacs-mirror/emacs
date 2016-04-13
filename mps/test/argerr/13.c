@@ -4,6 +4,8 @@ TEST_HEADER
  summary = UNALIGNED 2nd arg to pool_create
  language = c
  link = testlib.o newfmt.o
+OUTPUT_SPEC
+ abort = true
 END_HEADER
 */
 

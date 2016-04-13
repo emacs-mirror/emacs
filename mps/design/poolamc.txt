@@ -481,8 +481,10 @@ which is how segments get allocated in that generation.
 
 _`.buffer.condemn`: We condemn buffered segments, but not the contents
 of the buffers themselves, because we can't reclaim uncommitted
-buffers (see design.mps.buffer for details). If the segment has a
+buffers (see design.mps.buffer_ for details). If the segment has a
 forwarding buffer on it, we detach it.
+
+.. _design.mps.buffer: buffer
 
 .. note::
 
@@ -696,15 +698,8 @@ memory block. See format documentation for details of the interface.
 _`.header.client`: The code mostly deals in client pointers, only
 computing the base and limit of a block when these are needed (such as
 when an object is copied). In several places, the code gets a block of
-some sort, a segment or a buffer, and creates a client pointer by
-adding the header length (``pool->format->headerLength``).
-
-_`.header.fix`: There are two versions of the fix method, due to its
-criticality, with (``AMCHeaderFix()``) and without (``AMCFix()``)
-headers. The correct one is selected in ``AMCInitComm()``, and placed
-in the pool's fix field. This is the main reason why fix methods
-dispatch through the instance, rather than the class like all other
-methods.
+some sort (a segment or a buffer) and creates a client pointer by
+adding the header size (``pool->format->headerSize``).
 
 
 Old and aging notes below here
@@ -734,7 +729,7 @@ _`.flush.cover`: The buffer needs covering whether it was being used
 for forwarding or not. See `.flush.expose`_.
 
 
-``Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn, Pool pool, Buffer buffer, Size size, Bool withReservoirPermit)``
+``Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn, Pool pool, Buffer buffer, Size size)``
 
 _`.fill`: Reserve was called on an allocation buffer which was reset,
 or there wasn't enough room left in the buffer. Allocate a group for
@@ -818,8 +813,8 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited. All rights reserved.
-<http://www.ravenbrook.com/>. This is an open source license. Contact
+Copyright © 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
 Redistribution and use in source and binary forms, with or without

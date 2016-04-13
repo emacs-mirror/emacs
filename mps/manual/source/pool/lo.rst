@@ -136,12 +136,3 @@ LO interface
             MPS_ARGS_ADD(args, MPS_KEY_FORMAT, fmt);
             res = mps_pool_create_k(&pool, arena, mps_class_lo(), args);
         } MPS_ARGS_END(args);
-
-    .. deprecated:: starting with version 1.112.
-
-        When using :c:func:`mps_pool_create`, pass the format like
-        this::
-
-            mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
-                                      mps_pool_class_t mps_class_lo(),
-                                      mps_fmt_t fmt)

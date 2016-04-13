@@ -79,6 +79,8 @@ Manual allocation
 .. index::
    single: allocation point
 
+.. _topic-allocation-point:
+
 Allocation points
 -----------------
 
@@ -119,37 +121,6 @@ many small objects. They must be used according to the
         :term:`thread`: each thread must create its own allocation
         point or points.
 
-    .. note::
-
-        There's an alternative function :c:func:`mps_ap_create_v` that
-        takes its extra arguments using the standard :term:`C`
-        ``va_list`` mechanism.
-
-
-.. c:function:: mps_res_t mps_ap_create(mps_ap_t *ap_o, mps_pool_t pool, ...)
-
-    .. deprecated:: starting with version 1.112.
-
-        Use :c:func:`mps_ap_create_k` instead: the :term:`keyword
-        arguments` interface is more reliable and produces better
-        error messages.
-
-    An alternative to :c:func:`mps_ap_create_k` that takes its extra
-    arguments using the standard :term:`C` variable argument list
-    mechanism.
-
-
-.. c:function:: mps_res_t mps_ap_create_v(mps_ap_t *ap_o, mps_pool_t pool, va_list args)
-
-    .. deprecated:: starting with version 1.112.
-
-        Use :c:func:`mps_ap_create_k` instead: the :term:`keyword
-        arguments` interface is more reliable and produces better
-        error messages.
-
-    An alternative to :c:func:`mps_ap_create_k` that takes its extra
-    arguments using the standard :term:`C` ``va_list`` mechanism.
-
 
 .. c:function:: void mps_ap_destroy(mps_ap_t ap)
 
@@ -182,11 +153,11 @@ least) two steps, a *reserve* followed by a *commit*.
 
     The description of the protocol assumes that you have declared
     your threads' :term:`control stacks` and :term:`registers` to be
-    :term:`ambiguous roots`, by passing :c:func:`mps_stack_scan_ambig`
-    to :c:func:`mps_root_create_reg`. This is the simplest way to
-    write a client, but other scenarios are possible. Please
-    :ref:`contact us <contact>` if your use case is not covered here
-    (for example, if you need an exact collector).
+    :term:`ambiguous roots`, by calling
+    :c:func:`mps_root_create_thread`. This is the simplest way to write
+    a client, but other scenarios are possible. Please :ref:`contact
+    us <contact>` if your use case is not covered here (for example,
+    if you need an exact collector).
 
 When the client program is initializing a newly allocated object, you
 can think of it as being "in a race" with the MPS. Until the object is
@@ -246,7 +217,8 @@ is thus::
     size_t aligned_size = ALIGN(size); /* see note 1 */
     do {
         mps_res_t res = mps_reserve(&p, ap, aligned_size);
-        if (res != MPS_RES_OK) /* handle the error */;
+        if (res != MPS_RES_OK)
+            /* handle the error */;
         /* p is now an ambiguous reference to the reserved block */
         obj = p;
         /* initialize obj */
@@ -595,8 +567,9 @@ The *reserve* operation thus looks like this::
         }
     }
 
-The critical path consists of an add, a store, and a branch (and
-branch prediction should work well since the test usually succeeds).
+The critical path consists of three loads, an add, two stores, and a
+branch (and branch prediction should work well since the test usually
+succeeds).
 
 .. note::
 
@@ -629,8 +602,9 @@ The *commit* operation thus looks like this::
         /* p is valid */
     }
 
-The critical path here consists of a store and a branch (and again,
-branch prediction should work well since the test almost never fails).
+The critical path here consists of three loads, a store and a branch
+(and again, branch prediction should work well since the test almost
+never fails).
 
 .. note::
 

@@ -20,6 +20,9 @@ _`.intro`: This document describes how the `Memory Pool System
 that it can target different architectures, operating systems, build
 environments, varieties, and products.
 
+_`.readership`: Any MPS developer; anyone porting the MPS to a new
+platform.
+
 
 
 Requirements
@@ -72,7 +75,7 @@ _`.def.platform`: A *platform* is a combination of an architecture
 
 _`.def.arch`: An *architecture* is processor type with associated calling
 conventions and other binary interface stuff these days often called the
-`ABI <http://en.wikipedia.org/wiki/Application_binary_interface>`_. 
+`ABI <https://en.wikipedia.org/wiki/Application_binary_interface>`_. 
 Most importantly for the MPS it determines the layout of the register
 file, thread context, and thread stack.
 
@@ -184,7 +187,7 @@ _`.var.rash`: ``RASH``
     bugs tend to be extremely expensive to deal with.
 
 _`.default.hot`: If no ``CONFIG_VAR`` is present, ``HOT`` is assumed in
-`config.h`_.
+config.h_.
 
 _`.build.srcs`: The "srcs" are the set of sources that must be
 compiled in order to build the target. The set of sources may vary
@@ -194,7 +197,7 @@ may be required to build different architectures.
 .. note::
 
     This is a dependency between the makefile (or whatever) and the
-    module configuration in `config.h`_.
+    module configuration in config.h_.
 
 _`.build.libs`: The "libs" are the set of libraries to which the
 compiled sources must be linked in order to build the target. For
@@ -288,7 +291,7 @@ Publishing division of Harlequin.
 Implementation
 --------------
 
-_`.impl`: The two implementation files `config.h`_ and `mpstd.h`_ can be
+_`.impl`: The two implementation files config.h_ and mpstd.h_ can be
 seen as preprocessor programs which "accept" build parameters and "emit"
 configuration parameters (`.fig.impl`_).  The build parameters are
 defined either by the builder (in the case of target detection) or by
@@ -303,8 +306,8 @@ Build parameters            Source file    Configuration parameters
 ``_WIN32``                  ⟶ ``mpstd.h``  ⟶ ``MPS_OS_W3``, etc.
 =========================== ============== ===========================================
 
-_`.impl.dep`: No source code, other than the directives in `config.h`_
-and `mpstd.h`_, should depend on any build parameters.  That is,
+_`.impl.dep`: No source code, other than the directives in config.h_
+and mpstd.h_, should depend on any build parameters.  That is,
 identifers beginning "CONFIG\_" should only appear in impl.h.config. 
 Code may depend on configuration parameters in certain, limited ways, as
 defined below (`.conf`_).
@@ -317,7 +320,7 @@ Target platform detection
 .........................
 
 _`.pf`: The target platform is "detected" by the preprocessor directives in 
-`mpstd.h`_.
+mpstd.h_.
 
 _`.pf.form`: This file consists of sets of directives of the form::
 
@@ -357,11 +360,13 @@ the the target detected (`.pf.detect`_).  For example::
 _`.pf.word`: The declaration of ``MPS_T_WORD`` defines the unsigned
 integral type which corresponds, on the detected target, to the
 machine word. It is used to defined the MPS Word type
-(design.mps.type.word). For example::
+(design.mps.type.word_). For example::
 
     #define MPS_T_WORD      unsigned long
 
-We avoid using ``typedef`` here because `mpstd.h`_ could potentially
+.. _design.mps.type.word: type#word
+
+We avoid using ``typedef`` here because mpstd.h_ could potentially
 be included in assembly language source code.
 
 _`.pf.word-width`: The declaration of ``MPS_WORD_WIDTH`` defines the
@@ -605,8 +610,8 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited. All rights reserved.
-<http://www.ravenbrook.com/>. This is an open source license. Contact
+Copyright © 2013-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
 Redistribution and use in source and binary forms, with or without

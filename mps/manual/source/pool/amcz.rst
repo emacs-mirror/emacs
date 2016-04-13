@@ -87,12 +87,11 @@ AMCZ interface
             res = mps_pool_create_k(&pool, arena, mps_class_amcz(), args);
         } MPS_ARGS_END(args);
 
-    .. deprecated:: starting with version 1.112.
+        
+.. index::
+   pair: AMCZ; introspection
 
-        When using :c:func:`mps_pool_create`, pass the format and
-        chain like this::
+AMCZ introspection
+------------------
 
-            mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
-                                      mps_pool_class_t mps_class_amcz(),
-                                      mps_fmt_t fmt,
-                                      mps_chain_t chain)
+See :ref:`pool-amc-introspection`.

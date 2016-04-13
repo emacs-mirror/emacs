@@ -1,9 +1,13 @@
 /* 
 TEST_HEADER
  id = $Id$
- summary = reserve and commit with different address
+ summary = reserve and commit (functions) with different address
  language = c
  link = myfmt.o testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= mpsi.c
+ assertcond = p == mps_ap->init
 END_HEADER
 */
 
@@ -13,6 +17,11 @@ END_HEADER
 
 #undef mps_reserve
 #undef mps_commit
+
+#define genCOUNT (3)
+
+static mps_gen_param_s testChain[genCOUNT] = {
+  { 6000, 0.90 }, { 8000, 0.65 }, { 16000, 0.50 } };
 
 void *stackpointer;
 

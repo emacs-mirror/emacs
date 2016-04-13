@@ -115,7 +115,7 @@ AMC interface
       method`, a :term:`forward method`, an :term:`is-forwarded
       method` and a :term:`padding method`.
 
-    It accepts four optional keyword arguments:
+    It accepts three optional keyword arguments:
 
     * :c:macro:`MPS_KEY_CHAIN` (type :c:type:`mps_chain_t`) specifies
       the :term:`generation chain` for the pool. If not specified, the
@@ -128,8 +128,10 @@ AMC interface
       pointers` keep objects alive.
 
     * :c:macro:`MPS_KEY_EXTEND_BY` (type :c:type:`size_t`,
-      default 4096) is the default :term:`size` of block that the pool
-      will request from the :term:`arena`.
+      default 4096) is the minimum :term:`size` of the memory segments
+      that the pool requests from the :term:`arena`. Larger segments
+      reduce the per-segment overhead, but increase
+      :term:`fragmentation` and :term:`retention`.
 
     For example::
 
@@ -138,19 +140,11 @@ AMC interface
             res = mps_pool_create_k(&pool, arena, mps_class_amc(), args);
         } MPS_ARGS_END(args);
 
-    .. deprecated:: starting with version 1.112.
-
-        When using :c:func:`mps_pool_create`, pass the format and
-        chain like this::
-
-            mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
-                                      mps_pool_class_t mps_class_amc(),
-                                      mps_fmt_t fmt,
-                                      mps_chain_t chain)
-
 
 .. index::
    pair: AMC; introspection
+
+.. _pool-amc-introspection:
 
 AMC introspection
 -----------------

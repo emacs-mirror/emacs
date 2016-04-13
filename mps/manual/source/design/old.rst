@@ -27,7 +27,6 @@ Old design
     fix
     io
     lib
-    lock
     locus
     message
     message-gc
@@ -42,28 +41,20 @@ Old design
     poolmv
     poolmvt
     poolmvff
-    prot
-    protan
     protli
     protsu
     protocol
     pthreadext
-    reservoir
     root
     scan
     seg
-    shield
     sso1al
     strategy
     telemetry
     tests
-    thread-manager
     thread-safety
     trace
     version-library
     version
-    vm
-    vman
     vmo1
     vmso
-    writef

@@ -76,31 +76,28 @@ Result codes
     A :term:`result code` indicating that an operation could not be
     completed as requested without exceeding the :term:`commit limit`.
 
-    You need to deallocate something to make more space, or increase
+    You need to deallocate something or allow the :term:`garbage
+    collector` to reclaim something to make more space, or increase
     the commit limit by calling :c:func:`mps_arena_commit_limit_set`.
 
 
 .. c:macro:: MPS_RES_FAIL
 
     A :term:`result code` indicating that something went wrong that
-    does not fall under the description of any other result code. The
-    exact meaning depends on the function that returned this result
-    code.
+    does not fall under the description of any other result code.
 
 
 .. c:macro:: MPS_RES_IO
 
     A :term:`result code` indicating that an input/output error
-    occurred. The exact meaning depends on the function that returned
-    this result code.
+    occurred in the :term:`telemetry system`.
 
 
 .. c:macro:: MPS_RES_LIMIT
 
     A :term:`result code` indicating that an operation could not be
     completed as requested because of an internal limitation of the
-    MPS. The exact meaning depends on the function that returned this
-    result code.
+    MPS.
 
 
 .. c:macro:: MPS_RES_MEMORY
@@ -109,7 +106,7 @@ Result codes
     completed because there wasn't enough memory available.
 
     You need to deallocate something or allow the :term:`garbage
-    collector` to reclaim something to free enough memory, or expand
+    collector` to reclaim something to free enough memory, or extend
     the :term:`arena` (if you're using an arena for which that does
     not happen automatically).
 
@@ -140,26 +137,22 @@ Result codes
 
     A :term:`result code` indicating that an operation could not be
     completed as requested because an invalid parameter was passed to
-    the operation. The exact meaning depends on the function that
-    returned this result code.
+    the operation.
 
 
 .. c:macro:: MPS_RES_RESOURCE
 
     A :term:`result code` indicating that an operation could not be
     completed as requested because the MPS could not obtain a needed
-    resource. The resource in question depends on the operation.
+    resource. It can be returned when the MPS runs out of
+    :term:`address space`. If this happens, you need to reclaim memory
+    within your process (as for the result code
+    :c:macro:`MPS_RES_MEMORY`).
 
     Two special cases have their own result codes: when the MPS runs
     out of committed memory, it returns :c:macro:`MPS_RES_MEMORY`, and
     when it cannot proceed without exceeding the :term:`commit limit`,
     it returns :c:macro:`MPS_RES_COMMIT_LIMIT`.
-
-    This result code can be returned when the MPS runs out of
-    :term:`virtual memory`. If this happens, you need to reclaim
-    memory within your process (as for the result code
-    :c:macro:`MPS_RES_MEMORY`), or terminate other processes running
-    on the same machine.
 
 
 .. c:macro:: MPS_RES_UNIMPL
@@ -238,6 +231,12 @@ assertion that is listed here but for which you discovered a different
 cause), please :ref:`let us know <contact>` so that we can improve
 this documentation.
 
+``arg.c: MPS_KEY_...``
+
+    A required :term:`keyword argument` was omitted from a call to
+    :c:func:`mps_ap_create_k`, :c:func:`mps_arena_create_k`,
+    :c:func:`mps_fmt_create_k`, or :c:func:`mps_pool_create_k`.
+
 
 ``buffer.c: BufferIsReady(buffer)``
 
@@ -266,22 +265,63 @@ this documentation.
     :c:type:`mps_fmt_t` for this argument.
 
 
+``global.c: RingIsSingle(&arena->chainRing)``
+
+    The client program called :c:func:`mps_arena_destroy` without
+    destroying all the :term:`generation chains` belonging to the
+    arena. It is necessary to call :c:func:`mps_chain_destroy` first.
+
+
+``global.c: RingIsSingle(&arena->formatRing)``
+
+    The client program called :c:func:`mps_arena_destroy` without
+    destroying all the :term:`object formats` belonging to the arena.
+    It is necessary to call :c:func:`mps_fmt_destroy` first.
+
+
+``global.c: RingIsSingle(&arena->rootRing)``
+
+    The client program called :c:func:`mps_arena_destroy` without
+    destroying all the :term:`roots` belonging to the arena.
+    It is necessary to call :c:func:`mps_root_destroy` first.
+
+
+``global.c: RingIsSingle(&arena->threadRing)``
+
+    The client program called :c:func:`mps_arena_destroy` without
+    deregistering all the :term:`threads` belonging to the arena.
+    It is necessary to call :c:func:`mps_thread_dereg` first.
+
+
+``global.c: RingLength(&arenaGlobals->poolRing) == 5``
+
+    The client program called :c:func:`mps_arena_destroy` without
+    destroying all the :term:`pools` belonging to the arena.
+    It is necessary to call :c:func:`mps_pool_destroy` first.
+
+
+``global.c: PoolHasAttr(pool, AttrGC)``
+
+    The client program called :c:func:`mps_finalize` on a reference
+    that does not belong to an :term:`automatically managed <automatic
+    memory management>` :term:`pool`.
+
+
 ``lockix.c: res == 0``
 
 ``lockw3.c: lock->claims == 0``
 
     The client program has made a re-entrant call into the MPS. Look
-    at the backtrace to see what it was. Common culprits are
-    :term:`format methods` and :term:`stepper functions`.
+    at the backtrace to see what it was. Common culprits are signal
+    handlers, assertion handlers, :term:`format methods`, and
+    :term:`stepper functions`.
 
 
-``locus.c: chain->activeTraces == TraceSetEMPTY)``
+``locus.c: chain->activeTraces == TraceSetEMPTY``
 
     The client program called :c:func:`mps_chain_destroy`, but there
-    was a garbage collection in progress on that chain.
-
-    Park the arena before destroying the chain by calling
-    :c:func:`mps_arena_park`.
+    was a garbage collection in progress on that chain. Park the arena
+    before destroying the chain, by calling :c:func:`mps_arena_park`.
 
 
 ``mpsi.c: SizeIsAligned(size, BufferPool(buf)->alignment)``
@@ -289,13 +329,6 @@ this documentation.
     The client program reserved a block by calling
     :c:func:`mps_reserve` but neglected to round the size up to the
     alignment required by the pool's :term:`object format`.
-
-
-``pool.c: PoolHasAttr(pool, AttrALLOC)``
-
-    The client program called :c:func:`mps_alloc` on a pool that does
-    not support this form of allocation. Use an :term:`allocation
-    point` instead.
 
 
 ``poolams.c: AMS_ALLOCED(seg, i)``
@@ -308,13 +341,19 @@ this documentation.
     condition?
 
 
-``ring.c: ring->next == ring``
+``poolsnc.c: foundSeg``
 
-    The client program destroyed an object without having destroyed
-    all the objects that it owns first. For example, it destroyed an
-    arena without first destroying all pools in that arena, or it
-    destroyed a pool without first destroying all allocation points
-    created on that pool.
+    The client program passed an incorrect ``frame`` argument to
+    :c:func:`mps_ap_frame_pop`. This argument must be the result from
+    a previous call to :c:func:`mps_ap_frame_push` on the same
+    allocation point.
+
+
+``seg.c: gcseg->buffer == NULL``
+
+    The client program destroyed pool without first destroying all the
+    allocation points created on that pool. The allocation points must
+    be destroyed first.
 
 
 ``trace.c: ss->rank < RankEXACT``
@@ -323,7 +362,7 @@ this documentation.
     for finalization, and then continued to run the garbage collector.
     See :ref:`topic-finalization-cautions` under
     :ref:`topic-finalization`, which says, "You must destroy these
-    pools by following the “safe tear-down” procedure described under
+    pools by following the ‘safe tear-down’ procedure described under
     :c:func:`mps_pool_destroy`."
 
 
@@ -333,22 +372,24 @@ this documentation.
     reference to an object that moved. See
     :ref:`topic-scanning-protocol`, which says, "If :c:func:`MPS_FIX2`
     returns :c:macro:`MPS_RES_OK`, it may have updated the reference.
-    If necessary, make sure that the updated reference is stored back
-    to the region being scanned."
+    Make sure that the updated reference is stored back to the region
+    being scanned."
 
 
 .. index::
    single: error handling; varieties
    single: variety
 
+.. _topic-error-variety:
+   
 Varieties
 ---------
 
-The MPS has three behaviours with respect to internal checking and
-:ref:`telemetry <topic-telemetry>`, which need to be selected at
-compile time, by defining one of the following preprocessor
-constants. If none is specified then :c:macro:`CONFIG_VAR_HOT` is the
-default.
+The MPS has three *varieties* which have different levels of internal
+checking and :ref:`telemetry <topic-telemetry>`. The variety can be
+selected at compile time, by defining one of the following
+preprocessor constants. If none is specified then
+:c:macro:`CONFIG_VAR_HOT` is the default.
 
 
 .. index::
@@ -357,7 +398,7 @@ default.
 
 .. c:macro:: CONFIG_VAR_COOL
 
-    The cool variety is intended for development and testing.
+    The *cool variety* is intended for development and testing.
 
     All functions check the consistency of their data structures and may
     assert, including functions on the :term:`critical path`.
@@ -375,7 +416,7 @@ default.
 
 .. c:macro:: CONFIG_VAR_HOT
 
-    The hot variety is intended for production and deployment.
+    The *hot variety* is intended for production and deployment.
 
     Some functions check the consistency of their data structures and
     may assert, namely those not on the :term:`critical path`.  However,
@@ -392,7 +433,7 @@ default.
 
 .. c:macro:: CONFIG_VAR_RASH
 
-    The rash variety is intended for mature integrations, or for
+    The *rash variety* is intended for mature integrations, or for
     developers who like living dangerously.
 
     No functions check the consistency of their data structures and

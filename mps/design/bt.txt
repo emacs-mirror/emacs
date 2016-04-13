@@ -15,14 +15,14 @@ Bit tables
 Introduction
 ------------
 
-_`.intro`: This is the design of the Bit Tables module. A Bit Table is a
-linear array of bits. A Bit Table of length *n* is indexed using an
+_`.intro`: This is the design of the Bit Tables module. A Bit Table is
+a linear array of bits. A Bit Table of length *n* is indexed using an
 integer from 0 up to (but not including) *n*. Each bit in a Bit Table
-can hold either the value 0 (aka ``FALSE``) or 1 (aka ``TRUE``). A
-variety of operations are provided including: set, reset, and
-retrieve, individual bits; set and reset a contiguous range of bits;
-search for a contiguous range of reset bits; making a "negative image"
-copy of a range.
+can hold either the value 0 (``FALSE``) or 1 (``TRUE``). A variety of
+operations are provided including: get, set, and reset individual
+bits; set and reset a contiguous range of bits; search for a
+contiguous range of reset bits; making a "negative image" copy of a
+range.
 
 _`.readership`: MPS developers.
 
@@ -34,15 +34,13 @@ _`.def.set`: **Set**
 
     Used as a verb meaning to assign the value 1 or ``TRUE`` to a bit.
     Used descriptively to denote a bit containing the value 1. Note 1
-    and ``TRUE`` are synonyms in MPS C code (see
-    design.mps.type(0).bool.value).
+    and ``TRUE`` are synonyms in MPS C code (see ``Bool``).
 
 _`.def.reset`: **Reset**
 
     Used as a verb meaning to assign the value 0 or ``FALSE`` to a
     bit. Used descriptively to denote a bit containing the value 0.
-    Note 0 and ``FALSE`` are synonyms in MPS C code (see
-    design.mps.type(0).bool.value).
+    Note 0 and ``FALSE`` are synonyms in MPS C code (see ``Bool``).
 
 .. note::
 
@@ -55,7 +53,7 @@ _`.def.bt`: **Bit Table**
     A Bit Table is a mapping from [0, *n*) to {0,1} for some *n*,
     represented as a linear array of bits.
 
-    _`..def.bt.justify`: They are called *bit tables* because a single
+    _`.def.bt.justify`: They are called *Bit Tables* because a single
     bit is used to encode whether the image of a particular integer
     under the map is 0 or 1.
 
@@ -68,22 +66,22 @@ _`.def.range`: **Range**
     [*base*, *limit*), is used.
 
 
-
 Requirements
 ------------
 
-_`.req.bit`: The storage for a Bit Table of *n* bits shall take no more
-than a small constant addition to the storage required for *n* bits.
-_`..req.bit.why`: This is so that clients can make some predictions
-about how much storage their algorithms use. A small constant is
-allowed over the minimal for two reasons: inevitable implementation
-overheads (such as only being able to allocate storage in multiples of
-32 bits), extra storage for robustness or speed (such as signature and
-length fields).
+_`.req.bit`: The storage for a Bit Table of *n* bits shall take no
+more than a small constant addition to the storage required for *n*
+bits. _`.req.bit.why`: This is so that clients can make some
+predictions about how much storage their algorithms use. A small
+constant is allowed over the minimal for two reasons: inevitable
+implementation overheads (such as only being able to allocate storage
+in multiples of 32 bits), extra storage for robustness or speed (such
+as signature and length fields).
 
-_`.req.create`: A means to create Bit Tables. _`.req.create.why`: Obvious.
+_`.req.create`: A means to create Bit Tables. _`.req.create.why`:
+Obvious.
 
-_`.req.destroy`: A means to destroy Bit Tables. _`.req.destroy.why`
+_`.req.destroy`: A means to destroy Bit Tables. _`.req.destroy.why`:
 Obvious.
 
 _`.req.ops`: The following operations shall be supported:
@@ -118,7 +116,7 @@ operations.
   range of bits are all reset. _`.req.ops.test.range.reset.why`
   As for IsSetRange, see `.req.ops.test.range.set.why`_.
 
-* _`.req.ops.find`: Find a range (which we'll denote [*i*, *j*)) of at
+* _`.req.ops.find`: Find a range, which we'll denote [*i*, *j*), of at
   least *L* reset bits that lies in a specified subrange of the entire
   Bit Table. Various find operations are required according to the
   (additional) properties of the required range:
@@ -176,8 +174,8 @@ operations.
     manipulation code in ``PoolClassAMS`` and ``PoolClassLO``.
 
 _`.req.speed`: Operations shall take no more than a few memory
-operations per bit manipulated. _`.req.speed.why`: Any slower
-would be gratuitous.
+operations per bit manipulated. _`.req.speed.why`: Any slower would be
+gratuitous.
 
 _`.req.speed.fast`: The following operations shall be very fast:
 
@@ -188,7 +186,7 @@ _`.req.speed.fast`: The following operations shall be very fast:
 
   _`.req.speed.fast.find.short.why`: These two are used by the client
   arena (design.mps.arena.client) and the VM arena
-  (design.mps.arena.vm) for finding segments in page tables. The
+  (design.mps.arena.vm_) for finding segments in page tables. The
   operation will be used sufficiently often that its speed will
   noticeably affect the overall speed of the MPS. They will be called
   with a length equal to the number of pages in a segment. Typical
@@ -198,19 +196,23 @@ _`.req.speed.fast`: The following operations shall be very fast:
   it is populated at all, that is set bits will tend to be clustered
   together in subranges.
 
+  .. _design.mps.arena.vm: arenavm
+
 * _`.req.speed.fast.find.long`: FindLongResRange (the operation
   used to meet `.req.ops.find.long.low`_)
 
   _`.req.speed.fast.find.long.why`: Used in the allocator for
-  ``PoolClassAWL`` (design.mps.poolawl(1)), ``PoolClassAMS``
-  (design.mps.poolams(2)), ``PoolClassEPVM`` (design.mps.poolepvm(0)).
+  ``PoolClassAWL`` (design.mps.poolawl_), ``PoolClassAMS``
+  (design.mps.poolams_), ``PoolClassEPVM`` (design.mps.poolepvm(0)).
   Of these AWL and EPVM have speed requirements. For AWL the length of
   range to be found will be the length of a Dylan table in words.
-  According to `mail.tony.1999-05-05.11-36`_, only <entry-vector>
-  objects are allocated in AWL (though not all <entry-vector> objects
-  are allocated in AWL), and the mean length of an <entry-vector>
-  object is 486 Words. No data for EPVM alas.
+  According to `mail.tony.1999-05-05.11-36`_, only ``<entry-vector>``
+  objects are allocated in AWL (though not all ``<entry-vector>``
+  objects are allocated in AWL), and the mean length of an
+  ``<entry-vector>`` object is 486 Words. No data for EPVM alas.
 
+  .. _design.mps.poolawl: poolawl
+  .. _design.mps.poolams: poolams
   .. _mail.tony.1999-05-05.11-36: https://info.ravenbrook.com/project/mps/mail/1999/05/05/11-36/0.txt 
 
 _`.req.speed.fast.other.why`: We might expect mark and sweep pools to
@@ -244,10 +246,14 @@ Background
 ----------
 
 _`.background`: Originally Bit Tables were used and implemented
-by ``PoolClassLO`` (design.mps.poollo). It was
+by ``PoolClassLO`` (design.mps.poollo_). It was
 decided to lift them out into a separate module when designing the
 Pool to manage Dylan Weak Tables which is also a mark and sweep pool
-and will make use of Bit Tables (see design.mps.poolawl).
+and will make use of Bit Tables (see design.mps.poolawl_).
+
+.. _design.mps.poollo: poollo
+.. _design.mps.poolawl: poolawl
+
 _`.background.analysis`: analysis.mps.bt(0) contains
 some of the analysis of the design decisions that were and were not
 made in this document.
@@ -258,7 +264,7 @@ Clients
 
 _`.clients`: Bit Tables are used throughout the MPS but the important
 uses are in the client and VM arenas (design.mps.arena.client(0) and
-design.mps.arena.vm(1)) a bit table is used to record whether each
+design.mps.arena.vm_) a bit table is used to record whether each
 page is free or not; several pool classes (``PoolClassLO``,
 ``PoolClassEPVM``, ``PoolClassAMS``) use bit tables to record which
 locations are free and also to store colour.
@@ -368,7 +374,7 @@ _`.if.test.range.reset`: Returns ``TRUE`` if all the bits in the range
 [``base``, ``limit``) are reset, ``FALSE`` otherwise. Meets
 `.req.ops.test.range.reset`_.
 
-``Bool BTRangesSame(BT BTx, BT BTy, Index base, Index limit);``
+``Bool BTRangesSame(BT BTx, BT BTy, Index base, Index limit)``
 
 _`.if.test.range.same`: returns ``TRUE`` if ``BTGet(BTx,i)`` equals
 ``BTGet(BTy,i)`` for ``i`` in [``base``, ``limit``), and ``FALSE``
@@ -695,10 +701,12 @@ _`.test.btcv`: ``btcv.c``. This is supposed to be a coverage test,
 intended to execute all of the module's code in at least some minimal
 way.
 
-_`.test.cbstest`: ``cbstest.c``. This was written as a test of the
-``CBS`` module (design.mps.cbs(2)). It compares the functional
-operation of a ``CBS`` with that of a ``BT`` so is a good functional
-test of either module.
+_`.test.landtest`: ``landtest.c``. This is a test of the ``Land``
+module (design.mps.land_) and its concrete implementations. It
+compares the functional operation of a ``Land`` with that of a ``BT``
+so is a good functional test of either module.
+
+.. _design.mps.land: land
 
 _`.test.mmqa.120`: MMQA_test_function!210.c. This is used because it has
 a fair amount of segment allocation and freeing so exercises the arena
@@ -743,8 +751,8 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited. All rights reserved.
-<http://www.ravenbrook.com/>. This is an open source license. Contact
+Copyright © 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
 Redistribution and use in source and binary forms, with or without

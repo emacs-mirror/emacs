@@ -96,8 +96,7 @@ Building the MPS for development
 
 If you're making modifications to the MPS itself, want to build MPS
 libraries for linking, or want to build MPS tests and tools, you should
-use the MPS build.  This uses makefiles or Xcode projects.  [Coming
-soon, Microsoft Visual Studio solutions.]
+use the MPS build.  This uses makefiles or Xcode projects.
 
 
 Prerequisites
@@ -138,6 +137,8 @@ Platform     OS          Architecture    Compiler      Makefile
 ==========   =========   =============   ============  =================
 ``fri3gc``   FreeBSD     IA-32           GCC           ``fri3gc.gmk``
 ``fri6gc``   FreeBSD     x86_64          GCC           ``fri6gc.gmk``
+``fri3ll``   FreeBSD     IA-32           Clang         ``fri3ll.gmk``
+``fri6ll``   FreeBSD     x86_64          Clang         ``fri6ll.gmk``
 ``lii3gc``   Linux       IA-32           GCC           ``lii3gc.gmk``
 ``lii6gc``   Linux       x86_64          GCC           ``lii6gc.gmk``
 ``lii6ll``   Linux       x86_64          Clang         ``lii6ll.gmk``
@@ -176,9 +177,9 @@ To build a restricted set of targets for just one variety, run::
     make -f <makefile> 'VARIETY=<variety>' <target>
 
 For example, to build just the "cool" variety of the ``amcss`` test on
-FreeBSD::
+64-bit Linux with Clang::
 
-    gmake -f fri3gc.gmk VARIETY=cool amcss
+    gmake -f lii6ll.gmk VARIETY=cool amcss
 
 On Windows platforms you need to run the "Visual Studio Command Prompt"
 from the Start menu.  Then run one of these commands::
@@ -200,7 +201,7 @@ On Mac OS X, you can build from the command line with::
     xcodebuild
 
 On most platforms, the output of the build goes to a directory named
-after the platform (e.g. ``fri3gc``) so that you can share the source
+after the platform (e.g. ``lii6ll``) so that you can share the source
 tree across platforms.  On Mac OS X the output goes in a directory
 called ``xc``.  Building generates ``mps.a`` or ``mps.lib`` or
 equivalent, a library of object code which you can link with your

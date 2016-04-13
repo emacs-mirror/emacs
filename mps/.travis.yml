@@ -2,9 +2,16 @@
 # $Id$
 # See <http://about.travis-ci.org/docs/user/languages/c/>.
 language: c
+os:
+  - linux
+  - osx
 compiler:
   - clang
   - gcc
+matrix:
+  exclude:
+    - os: osx
+      compiler: gcc
 notifications:
   email:
     - mps-travis@ravenbrook.com

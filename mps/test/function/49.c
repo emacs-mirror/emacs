@@ -135,7 +135,7 @@ static void test(void)
 
  long int j;
 
- cdie(mps_arena_create(&arena, mps_arena_class_vm(), (size_t)1024*1024*30),
+ cdie(mps_arena_create_k(&arena, mps_arena_class_vm(), mps_args_none),
       "create arena");
 
  cdie(mps_thread_reg(&thread, arena), "register thread");
@@ -217,7 +217,7 @@ static void test(void)
 
  for (j=0; j<1000; j++) {
   if (j % 50 == 0)
-   comment("%d of 1000", j);
+   comment("%d of 1000", j+1);
   a = allocone(apamc, 10000, mps_rank_exact());
   mps_finalize(arena, (mps_addr_t*)&a);
   final_count +=1;
@@ -228,7 +228,7 @@ static void test(void)
  comment("reregister");
 
  for (j=0; j<500; j++) {
-  comment("%d of 500", j);
+  comment("%d of 500", j+1);
   qpoll(&z, FINAL_REREGISTER);
  }
 
@@ -236,7 +236,7 @@ static void test(void)
  z = a;
 
  for (j=0; j<1000; j++) {
-  comment("%d of 1000", j);
+  comment("%d of 1000", j+1);
   finalpoll(&z, FINAL_QUEUE);
   qpoll(&z, FINAL_STORE);
   a = allocone(apamc, 2, mps_rank_exact());

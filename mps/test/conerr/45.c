@@ -4,6 +4,8 @@ TEST_HEADER
  summary = register thread in uncreated arena
  language = c
  link = myfmt.o testlib.o
+OUTPUT_SPEC
+ abort = true
 END_HEADER
 */
 
@@ -15,7 +17,7 @@ void *stackpointer;
 
 static void test(void)
 {
- mps_arena_t arena;
+ mps_arena_t arena = (mps_arena_t)1;
  mps_thr_t thread;
 
 /*

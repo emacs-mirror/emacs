@@ -1,7 +1,7 @@
 /* ld.c: LOCATION DEPENDENCY IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2015 Ravenbrook Limited.  See end of file for license.
  *
  * .def: A location dependency records the fact that the bit-patterns
  * of some references will be used directly (most likely for
@@ -92,11 +92,21 @@ void LDReset(mps_ld_t ld, Arena arena)
  * occured since the epoch recorded in the dependency.  If the location
  * were used first only the new location of the reference would end up
  * in the set.
+ *
+ * .add.no-arena-check: Add does not check that the address belongs to
+ * the arena because this would require taking the arena lock. We
+ * would rather that this function be lock-free even if some errors
+ * are not detected.
+ *
+ * .add.no-align-check: Add does not check that the address is
+ * aligned, for the same reason as .add.check: it can't find out which
+ * pool the address belongs to without taking the lock.
  */
 void LDAdd(mps_ld_t ld, Arena arena, Addr addr)
 {
+  AVER(ld != NULL);
+  AVER(TESTT(Arena, arena)); /* see .add.lock-free */
   AVER(ld->_epoch <= arena->epoch);
-  /* AVERT(Arena, arena) -- see .add.lock-free */
 
   ld->_rs = RefSetAdd(arena, ld->_rs, addr);
 }
@@ -126,8 +136,9 @@ Bool LDIsStaleAny(mps_ld_t ld, Arena arena)
 {
   RefSet rs;
 
+  AVER(ld != NULL);
+  AVER(TESTT(Arena, arena)); /* .stale.thread-safe */
   AVER(ld->_epoch <= arena->epoch);
-  /* AVERT(Arena, arena) -- .stale.thread-safe */
 
   if (arena->epoch == ld->_epoch) /* .stale.current */
     return FALSE;
@@ -151,6 +162,10 @@ Bool LDIsStaleAny(mps_ld_t ld, Arena arena)
  * .stale.conservative: In fact we just ignore the address and test if
  * any dependency is stale. This is conservatively correct (no false
  * negatives) but provides a hook for future improvement.
+ *
+ * .stale.no-arena-check: See .add.no-arena-check.
+ *
+ * .stale.no-align-check: See .add.no-align-check.
  */
 Bool LDIsStale(mps_ld_t ld, Arena arena, Addr addr)
 {
@@ -204,8 +219,8 @@ void LDAge(Arena arena, RefSet rs)
  */
 void LDMerge(mps_ld_t ld, Arena arena, mps_ld_t from)
 {
-  /* AVERT(Arena, arena); -- .merge.lock-free */
   AVER(ld != NULL);
+  AVER(TESTT(Arena, arena)); /* .merge.lock-free */
   AVER(ld->_epoch <= arena->epoch);
   AVER(from != NULL);
   AVER(from->_epoch <= arena->epoch);
@@ -223,7 +238,7 @@ void LDMerge(mps_ld_t ld, Arena arena, mps_ld_t from)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2015 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

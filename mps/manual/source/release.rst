@@ -3,21 +3,13 @@
 Release notes
 =============
 
+.. _release-notes-1.116:
 
-.. _release-notes-1.115:
-
-Release 1.115.0
+Release 1.116.0
 ---------------
 
 Interface changes
 .................
-
-#. The type of pool classes is now :c:type:`mps_pool_class_t`. The old
-   name :c:type:`mps_class_t` is still available via a ``typedef``,
-   but is deprecated.
-
-#. The :ref:`pool-snc` pool class now implements
-   :c:func:`mps_pool_total_size` and :c:func:`mps_pool_free_size`.
 
 #. The pool class :ref:`pool-snc` is no longer deprecated.
 
@@ -33,11 +25,167 @@ Other changes
 
    .. _job003883: https://www.ravenbrook.com/project/mps/issue/job003883/
 
+
+.. _release-notes-1.115:
+
+Release 1.115.0
+---------------
+
+New features
+............
+
+#. The MPS now provides control over the maximum time that operations
+   within an arena may pause the :term:`client program` for. This can
+   be specified by the new function :c:func:`mps_arena_pause_time_set`
+   or by passing the new keyword argument
+   :c:macro:`MPS_KEY_PAUSE_TIME` to :c:func:`mps_arena_create_k`. The
+   current value can be retrieved by the new function
+   :c:func:`mps_arena_pause_time`.
+
+   The maximum pause time defaults to 0.1 seconds. For the old
+   behaviour (whereby the MPS always returned to the :term:`client
+   program` as soon as possible), set it to zero.
+
+#. New supported platforms ``fri3ll`` (FreeBSD, IA-32, Clang/LLVM)
+   and ``fri6ll`` (FreeBSD, x86-64, Clang/LLVM).
+
+#. When creating an :ref:`pool-amc` pool, :c:func:`mps_pool_create_k`
+   accepts the new keyword argument :c:macro:`MPS_KEY_EXTEND_BY`,
+   specifying the minimum size of the memory segments that the pool
+   requests from the :term:`arena`.
+
+#. The function :c:func:`mps_arena_create_k` accepts two new
+   :term:`keyword arguments`. :c:macro:`MPS_KEY_COMMIT_LIMIT`
+   sets the :term:`commit limit` for the arena, and
+   :c:macro:`MPS_KEY_SPARE_COMMIT_LIMIT` sets the :term:`spare
+   commit limit` for the arena.
+
+#. New area scanning functions :c:func:`mps_scan_area`,
+   :c:func:`mps_scan_area_masked`, :c:func:`mps_scan_area_tagged`,
+   :c:func:`mps_scan_area_tagged_or_zero` for use when scanning,
+   especially when scanning threads and :term:`tagged references`.
+
+#. New thread root functions :c:func:`mps_root_create_thread`,
+   :c:func:`mps_root_create_thread_tagged`, and
+   :c:func:`mps_root_create_thread_scanned` allow flexible scanning of
+   thread stacks and registers in any format, with convenient
+   implementations provided for :term:`tagged references`.
+
+#. New function :c:func:`mps_root_create_table_tagged` for tables of roots
+   containing :term:`tagged references`.
+
+#. New area root functions :c:func:`mps_root_create_area` and
+   :c:func:`mps_root_create_area_tagged` for areas of memory
+   that can be scanned by area scanning functions.
+
+
+Interface changes
+.................
+
+#. The type of pool classes is now :c:type:`mps_pool_class_t`. The old
+   name :c:type:`mps_class_t` is still available via a ``typedef``,
+   but is deprecated.
+
+#. The functions :c:func:`mps_mv_free_size`, :c:func:`mps_mv_size`,
+   :c:func:`mps_mvff_free_size`, :c:func:`mps_mvff_size`,
+   :c:func:`mps_mvt_free_size` and :c:func:`mps_mvt_size` are now
+   deprecated in favour of the generic functions
+   :c:func:`mps_pool_free_size` and :c:func:`mps_pool_total_size`.
+
+#. The function :c:func:`mps_root_create_reg` is deprecated in favour
+   of :c:func:`mps_root_create_thread_tagged`.
+
+#. The function :c:func:`mps_root_create_table_masked` is deprecated in
+   favour of :c:func:`mps_root_create_table_tagged`.
+
+#. The :ref:`pool-snc` pool class now implements
+   :c:func:`mps_pool_total_size` and :c:func:`mps_pool_free_size`.
+
+
+Other changes
+.............
+
+#. :c:func:`mps_arena_committed` now returns a meaningful value (the
+   amount of memory marked as in use in the page tables) for
+   :term:`client arenas`. See job001887_.
+
+   .. _job001887: https://www.ravenbrook.com/project/mps/issue/job001887/
+
+#. :ref:`pool-amc` pools now assert that exact references into the
+   pool are aligned to the pool's alignment. See job002175_.
+
+   .. _job002175: https://www.ravenbrook.com/project/mps/issue/job002175/
+
+#. Internal calculation of the address space available to the MPS no
+   longer takes time proportional to the number of times the arena has
+   been extended, speeding up allocation when memory is tight. See
+   job003814_.
+
+   .. _job003814: https://www.ravenbrook.com/project/mps/issue/job003814/
+
+#. Setting :c:macro:`MPS_KEY_SPARE` for a :ref:`pool-mvff` pool now
+   works. See job003870_.
+   
+   .. _job003870: https://www.ravenbrook.com/project/mps/issue/job003870/
+
 #. In the :term:`hot` (production) variety,
    :c:func:`mps_pool_free_size` now returns the correct result for
    :ref:`pool-awl` and :ref:`pool-lo` pools. See job003884_.
 
    .. _job003884: https://www.ravenbrook.com/project/mps/issue/job003884/
+
+#. When the arena is out of memory and cannot be extended without
+   hitting the :term:`commit limit`, the MPS now returns
+   :c:macro:`MPS_RES_COMMIT_LIMIT` rather than substituting
+   :c:macro:`MPS_RES_RESOURCE`. See job003899_.
+   
+   .. _job003899: https://www.ravenbrook.com/project/mps/issue/job003899/
+
+#. Unfinalizable objects can no longer be registered for finalization.
+   Previously the objects would be registered but never finalized. See
+   job003865_.
+
+   .. _job003865: https://www.ravenbrook.com/project/mps/issue/job003865/
+
+#. :c:func:`mps_arena_has_addr` now returns the correct result for
+   objects allocated from the :ref:`pool-mfs`, :ref:`pool-mv`, and
+   :ref:`pool-mvff` pools. See job003866_.
+
+   .. _job003866: https://www.ravenbrook.com/project/mps/issue/job003866/
+
+#. The MPS can now make use of :term:`spare committed memory` even if
+   it is :term:`mapped` at an unhelpful address, by unmapping it and
+   remapping at a better address. See job003898_.
+
+   .. _job003898: https://www.ravenbrook.com/project/mps/issue/job003898/
+
+#. :c:func:`mps_arena_step` now always considers starting a new
+   :term:`garbage collection` if the remaining idle time is long
+   enough to complete it. (Previously, if there was already a
+   collection in progress when :c:func:`mps_arena_step` was called, it
+   would finish the collection but not consider starting a new one.)
+   See job003934_.
+
+   .. _job003934: https://www.ravenbrook.com/project/mps/issue/job003934/
+
+#. The MPS no longer carries out :term:`garbage collections` when there
+   is no collection work to be done. See job003938_.
+
+   .. _job003938: https://www.ravenbrook.com/project/mps/issue/job003938/
+
+#. The MPS is less aggressive in its use of hardware memory protection
+   to maintain :term:`write barrier` to speed up future collections.
+   This is particularly important for OS X, where memory protection
+   operations are very expensive.  See job003371_ and job003975_.
+
+#. The MPS coalesces memory protection, reducing the number of system
+   calls. This markedly improves real run time on operating systems
+   where memory protection operations are very expensive, such as OS
+   X, but also has a significant effect on Linux. See job003371_ and
+   job003975_.
+
+   .. _job003371: http://www.ravenbrook.com/project/mps/issue/job003371/
+   .. _job003975: http://www.ravenbrook.com/project/mps/issue/job003975/
 
 
 .. _release-notes-1.114:
@@ -80,8 +228,8 @@ New features
    generation sizes. (This is not necessary, but may improve
    performance.)
 
-#. New pool introspection functions :c:func:`mps_pool_total_size` and
-   :c:func:`mps_pool_free_size`.
+#. New pool introspection functions :c:func:`mps_pool_free_size` and
+   :c:func:`mps_pool_total_size`.
 
 
 Interface changes
@@ -170,8 +318,8 @@ Other changes
 
 #. Allocation into :ref:`pool-awl` pools again reliably provokes
    garbage collections of the generation that the pool belongs to. (In
-   release 1.113.0, the generation would only be collected if a pool
-   of some other class allocated into it.) See job003772_.
+   version 1.113, the generation would only be collected if a pool of
+   some other class allocated into it.) See job003772_.
 
    .. _job003772: https://www.ravenbrook.com/project/mps/issue/job003772/
 
@@ -183,12 +331,20 @@ Other changes
    .. _job003773: https://www.ravenbrook.com/project/mps/issue/job003773/
 
 #. The :ref:`pool-mvt` and :ref:`pool-mvff` pool classes are now
-   around 25% faster (in our benchmarks) than they were in release
-   1.113.0.
+   around 25% faster (in our benchmarks) than they were in version
+   1.113.
 
-#. The default assertion handler in the ANSI plinth now flushes the
-   telemetry stream before aborting. See
+#. The default assertion handler in the default :term:`plinth` now
+   flushes the telemetry stream before aborting. See
    :c:func:`mps_lib_assert_fail`.
+
+#. Garbage collection performance is substantially improved in the
+   situation where the arena has been extended many times. Critical
+   operations now take time logarithmic in the number of times the
+   arena has been extended (rather than linear, as in version 1.113
+   and earlier). See job003554_.
+
+   .. _job003554: https://www.ravenbrook.com/project/mps/issue/job003554/
 
 
 .. _release-notes-1.113:
@@ -301,8 +457,8 @@ Interface changes
    along indefinitely.  See :ref:`topic-error-assertion-handling`.
 
 #. The behaviour when an assertion is triggered is now configurable in
-   the standard ANSI :term:`plinth` by installing an assertion
-   handler. See :c:func:`mps_lib_assert_fail_install`.
+   the default :term:`plinth` by installing an assertion handler. See
+   :c:func:`mps_lib_assert_fail_install`.
 
 #. Functions that take a variable number of arguments
    (:c:func:`mps_arena_create`, :c:func:`mps_pool_create`,
@@ -460,3 +616,74 @@ Other changes
    later. See job003473_.
 
    .. _job003473: https://www.ravenbrook.com/project/mps/issue/job003473/
+
+
+.. _release-notes-1.110:
+
+Release 1.110.0
+---------------
+
+New features
+............
+
+#. New supported platforms:
+
+   * ``fri6gc`` (FreeBSD, x86-64, GCC)
+   * ``lii6gc`` (Linux, x86-64, GCC)
+   * ``w3i6mv`` (Windows, x86-64, Microsoft Visual C)
+   * ``xci3ll`` (OS X, IA-32, Clang/LLVM)
+   * ``xci6gc`` (OS X, x86-64, GCC)
+   * ``xci6ll`` (OS X, x86-64, Clang/LLVM)
+
+#. Support removed for platforms:
+
+   * ``iam4cc`` (Irix 6, MIPS R4000, MIPSpro C)
+   * ``lii3eg`` (Linux, IA-32, EGCS)
+   * ``lippgc`` (Linux, PowerPC, GCC)
+   * ``o1alcc`` (OSF/1, Alpha, Digital C)
+   * ``o1algc`` (OSF/1, Alpha, GCC)
+   * ``s7ppmw`` (System 7, PowerPC, MetroWerks C)
+   * ``sos8gc`` (Solaris, SPARC 8, GCC)
+   * ``sos9sc`` (Solaris, SPARC 9, SunPro C)
+   * ``sus8gc`` (SunOS, SPARC 8, GCC)
+   * ``xcppgc`` (OS X, PowerPC, GCC)
+
+#. On Unix platforms, the MPS can now be built and installed by
+   running ``./configure && make install``. See :ref:`guide-build`.
+
+#. The MPS can be compiled in a single step via the new source file
+   ``mps.c``. This also allows you to compile the MPS in the same
+   compilation unit as your object format, allowing the compiler to
+   perform global optimizations between the two. See
+   :ref:`guide-build`.
+
+#. The set of build varieties has been reduced to three: the
+   :term:`cool` variety for development and debugging, the :term:`hot`
+   variety for production, and the :term:`rash` variety for people who
+   like to live dangerously. See :ref:`topic-error-variety`.
+
+#. The environment variable :envvar:`MPS_TELEMETRY_CONTROL` can now be
+   set to a space-separated list of event kinds. See
+   :ref:`topic-telemetry`.
+
+#. Telemetry output is now emitted to the file named by the
+   environment variable :envvar:`MPS_TELEMETRY_FILENAME`, if it is
+   set. See :ref:`topic-telemetry`.
+
+
+Interface changes
+.................
+
+#. Deprecated constants ``MPS_MESSAGE_TYPE_FINALIZATION``,
+   ``MPS_MESSAGE_TYPE_GC`` and ``MPS_MESSAGE_TYPE_GC_START`` have been
+   removed. Use :c:func:`mps_message_type_finalization`,
+   :c:func:`mps_message_type_gc` and
+   :c:func:`mps_message_type_gc_start` instead.
+
+#. Deprecated constants ``MPS_RANK_AMBIG``, ``MPS_RANK_EXACT`` and
+   ``MPS_RANK_WEAK`` have been removed. Use :c:func:`mps_rank_ambig`,
+   :c:func:`mps_rank_exact` and :c:func:`mps_rank_weak` instead.
+
+#. Deprecated functions with names starting ``mps_space_`` have been
+   removed. Use the functions with names starting ``mps_arena_``
+   instead.

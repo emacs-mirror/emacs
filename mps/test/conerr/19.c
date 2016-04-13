@@ -4,6 +4,8 @@ TEST_HEADER
  summary = alloc in an uncreated pool
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ abort = true
 END_HEADER
 */
 
@@ -13,16 +15,9 @@ END_HEADER
 static void test(void)
 {
  mps_arena_t arena;
- mps_pool_t pool;
- size_t extendBy;
- size_t avgSize;
- size_t maxSize;
+ mps_pool_t pool = (mps_pool_t)1;
 
  mps_addr_t obj;
-
- extendBy = (size_t) 4096;
- avgSize  = (size_t) 32;
- maxSize  = (size_t) 65536;
 
  cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE), "create arena");
 

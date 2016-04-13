@@ -22,9 +22,10 @@ pool class. This pool implements a first (or last) fit policy for
 variable-sized manually-managed objects, with control over first/last,
 segment preference high/low, and slot fit low/high.
 
-The pool was created in a response to a belief that the ScriptWorks
-EPDL/EPDR's first fit policy is beneficial for some classes of client
-behaviour, but the performance of a linear free list was unacceptable.
+_`.background`: The pool was created in a response to a belief that
+the ScriptWorks EPDL/EPDR's first fit policy is beneficial for some
+classes of client behaviour, but the performance of a linear free list
+was unacceptable.
 
 
 Overview
@@ -115,8 +116,8 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited. All rights reserved.
-<http://www.ravenbrook.com/>. This is an open source license. Contact
+Copyright © 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
 Redistribution and use in source and binary forms, with or without

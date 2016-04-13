@@ -34,7 +34,9 @@ Requirements
 ------------
 
 _`.req.general`: Required to implement the general protection
-interface defined in design.mps.prot.if.*.
+interface defined in design.mps.prot.if_.
+
+.. _design.mps.prot.if: prot#if
 
 
 Overview
@@ -93,7 +95,7 @@ necessary to chain the handler, so we don't.
 _`.fun.set`: ``ProtSet()``
 
 _`.fun.set.convert`: The requested protection (which is expressed in
-the mode parameter, see design.mps.prot.if.set) is translated into an
+the mode parameter, see design.mps.prot.if.set_) is translated into an
 operating system protection. If read accesses are to be forbidden then
 all accesses are forbidden, this is done by setting the protection of
 the page to ``PROT_NONE``. If write access are to be forbidden (and
@@ -101,6 +103,8 @@ not read accesses) then write accesses are forbidden and read accesses
 are allowed, this is done by setting the protection of the page to
 ``PROT_READ | PROT_EXEC``. Otherwise (all access are okay), the
 protection is set to ``PROT_READ | PROT_WRITE | PROT_EXEC``.
+
+.. _design.mps.prot.if.set: prot#if.set
 
 _`.fun.set.assume.mprotect`: We assume that the call to ``mprotect()``
 always succeeds. This is because we should always call the function
@@ -127,8 +131,8 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited. All rights reserved.
-<http://www.ravenbrook.com/>. This is an open source license. Contact
+Copyright © 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
 Redistribution and use in source and binary forms, with or without

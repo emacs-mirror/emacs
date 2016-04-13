@@ -1,7 +1,7 @@
 /* lockli.c: RECURSIVE LOCKS FOR POSIX SYSTEMS
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * .linux: This implementation currently just supports LinuxThreads
  * (platform MPS_OS_LI), Single Unix i/f.
@@ -145,9 +145,9 @@ void (LockClaim)(Lock lock)
 }
 
 
-/* LockReleaseMPM -- release a lock (non-recursive) */
+/* LockRelease -- release a lock (non-recursive) */
 
-void (LockReleaseMPM)(Lock lock)
+void (LockRelease)(Lock lock)
 {
   int res;
 
@@ -253,13 +253,13 @@ void (LockClaimGlobal)(void)
 
 void (LockReleaseGlobal)(void)
 {
-  LockReleaseMPM(globalLock);
+  LockRelease(globalLock);
 }
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

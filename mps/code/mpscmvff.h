@@ -9,14 +9,14 @@
 
 #include "mps.h"
 
-extern const struct mps_key_s _mps_key_mvff_slot_high;
-#define MPS_KEY_MVFF_SLOT_HIGH (&_mps_key_mvff_slot_high)
+extern const struct mps_key_s _mps_key_MVFF_SLOT_HIGH;
+#define MPS_KEY_MVFF_SLOT_HIGH (&_mps_key_MVFF_SLOT_HIGH)
 #define MPS_KEY_MVFF_SLOT_HIGH_FIELD b
-extern const struct mps_key_s _mps_key_mvff_arena_high;
-#define MPS_KEY_MVFF_ARENA_HIGH (&_mps_key_mvff_arena_high)
+extern const struct mps_key_s _mps_key_MVFF_ARENA_HIGH;
+#define MPS_KEY_MVFF_ARENA_HIGH (&_mps_key_MVFF_ARENA_HIGH)
 #define MPS_KEY_MVFF_ARENA_HIGH_FIELD b
-extern const struct mps_key_s _mps_key_mvff_first_fit;
-#define MPS_KEY_MVFF_FIRST_FIT (&_mps_key_mvff_first_fit)
+extern const struct mps_key_s _mps_key_MVFF_FIRST_FIT;
+#define MPS_KEY_MVFF_FIRST_FIT (&_mps_key_MVFF_FIRST_FIT)
 #define MPS_KEY_MVFF_FIRST_FIT_FIELD b
 
 #define mps_mvff_free_size mps_pool_free_size

@@ -24,8 +24,6 @@ MPMPF = \
     thxc.c \
     vmix.c
 
-LIBS = -lm
-
 include ll.gmk
 include comm.gmk
 

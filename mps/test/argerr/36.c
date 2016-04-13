@@ -4,6 +4,10 @@ TEST_HEADER
  summary = wrong size_t to free (MV)
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= dbgpool.c
+ assertcond = tag->size == size
 END_HEADER
 */
 
@@ -25,11 +29,8 @@ static void test(void)
 
  cdie(mps_thread_reg(&thread, arena), "register thread");
 
- cdie(
-  mps_pool_create(
-     &pool, arena, mps_class_mv(),
-     (size_t) 4096, (size_t) 32, (size_t) 64*1024),
-  "create pool");
+ cdie(mps_pool_create_k(&pool, arena, mps_class_mv_debug(), mps_args_none),
+      "create pool");
 
  die(mps_alloc(&a, pool, 8),
      "alloc a");

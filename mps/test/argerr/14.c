@@ -4,6 +4,10 @@ TEST_HEADER
  summary = NULL 3rd arg to pool_create
  language = c
  link = testlib.o newfmt.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= mpsi.c
+ assertcond = TESTT(PoolClass, pool_class)
 END_HEADER
 */
 
