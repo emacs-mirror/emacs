@@ -75,8 +75,8 @@ participates in the protocol system begins with an ``InstStruct``
 structure that contains a pointer to an ``InstClassStruct`` that
 describes it, like this::
 
-      instance          class      
-                                   
+      instance          class
+
      .----------.      .----------.
      |  class   |----->|  class   |
      ------------      ------------
@@ -88,12 +88,17 @@ describes it, like this::
      ------------      ------------
      |          |      |   ...    |
 
+_`.overview.prefix`: We make use of the fact that we can cast between
+structures with common prefixes, or between structures and their first
+members, to provide dynamic typing and subtyping (see [K&R_1998]_,
+A.8.3).
 
 _`.overview.method`: The ``InstClassStruct`` it itself at the start of
 a class structure contains pointers to functions that can be called to
 manipulate the instance as an abstract data type.  We refer to these
 functions as "methods" to distinguish them from functions not involved
-in the object-oriented protocol.
+in the object-oriented protocol.  The macro ``Method`` is provided for
+calling methods.
 
 _`.overview.subclass`: An instance structure can be extended by using
 it as the first field of another structure, and by overriding its
@@ -101,13 +106,16 @@ class pointer with a pointer to a "subclass" that provides different
 behavior.
 
 _`.overview.inherit`: Classes inherit the methods from their
-superclasses. By default they have the same methods as the class(es)
-from which they inherit.  Methods on the superclass can be re-used,
-providing polymorphism.
+superclasses when they are initialized, so by default they have the
+same methods as the class from which they inherit.  Methods on the
+superclass can be re-used, providing polymorphism.
 
 _`.overview.inherit.specialize`: Classes may specialize the behaviour
 of their superclass. They do this by by overriding methods or other
 fields in the class object.
+
+_`.overview.mixin`: Groups of related overrides are provided by
+"mixins", and this provides a limited form of multiple inheritance.
 
 _`.overview.extend`: Classes may extend the protocols supported by
 their superclasses by adding new fields for methods or other data.
@@ -119,11 +127,30 @@ but is not otherwise special.  Classes which share the same set of
 methods (or other class fields) are instances of the same kind.  If a
 class is extended, it becomes a member of a different kind.  Kinds
 allow subtype checking to be applied to classes as well as instances,
-to determine whether methods are available.
+to determine whether methods are available. ::
+
+      instance          class      	  kind
+      (e.g. CBS)        (e.g. CBSClass)   (e.g. LandClassClass)
+     .----------.      .----------.	 .----------.
+     |  class   |----->|  class   |----->|  class   |-->InstClassClass
+     ------------      ------------	 ------------
+     |  ...     |      |  sig     |	 |  sig     |
+     ------------      ------------	 ------------
+     |  ...     |      |  name    |	 |  name    |
+     ------------      ------------    	 ------------
+     |  ...     |      |superclass|-.  	 |superclass|-->InstClassClass
+     ------------      ------------ |	 ------------
+     |          |      |   ...    | |	 |   ...    |
+				    |
+				    |
+       	       	       	 LandClass<-'
+
 
 _`.overview.sig.inherit`: Instances (and therefore classes) will
-contain (possibly several) signatures. Classes must not specialize
-(override) the signatures they inherit from their superclasses.
+contain signatures. Classes must not specialize (override) the
+signatures they inherit from their superclasses, as they are used to
+check the actual type (not sub- or supertype) of the object they're
+in.
 
 _`.overview.sig.extend`: When extending an instance or class, it is
 normal policy for the new structure to include a new signature as the
@@ -134,7 +161,8 @@ This enables classes to call "next-method".
 
 _`.overview.next-method`: A specialized method in a class can make use
 of an overridden method from a superclass by accessing the method from
-the appropriate field in the superclass object and calling it.
+the appropriate field in the superclass object and calling it.  The
+macro ``NextMethod`` is provided for calling next methods.
 
 _`.overview.next-method.naive`: In some cases it is necessary to write
 a method which is designed to specialize an inherited method, needs to
@@ -185,7 +213,7 @@ Interface
 Class declaration
 .................
 
-``DECLARE_CLASS(kind, class)``
+``DECLARE_CLASS(kind, className)``
 
 _`.int.declare-class`: Class declaration is performed by the macro
 ``DECLARE_CLASS``, which declares the existence of the class
@@ -198,15 +226,15 @@ Class definition
 ``DEFINE_CLASS(kind, className, var)``
 
 _`.int.define-class`: Class definition is performed by the macro
-``DEFINE_CLASS()``. A call to the macro must be followed by a body of
-initialization code in braces ``{}``. The parameter ``className`` is
-used to name the class being defined. The parameter ``var`` is used to
-name a local variable of type ``kindClass``, which is defined by the
-macro; it refers to the canonical storage for the class being defined.
-This variable may be used in the initialization code. (The macro
-doesn't just pick a name implicitly because of the danger of a name
-clash with other names used by the programmer). A call to the macro
-defines the ensure function for the class alond with some static
+``DEFINE_CLASS``. A call to the macro must be followed by a function
+body of initialization code. The parameter ``className`` is used to
+name the class being defined. The parameter ``var`` is used to name a
+local variable of type of classes of kind ``kind``, which is defined
+by the macro; it refers to the canonical storage for the class being
+defined.  This variable may be used in the initialization code. (The
+macro doesn't just pick a name implicitly because of the danger of a
+name clash with other names used by the programmer). A call to the
+macro defines the ensure function for the class along with some static
 storage for the canonical class object, and some other things to
 ensure the class gets initialized exactly once.
 
@@ -245,6 +273,76 @@ structure. Class extension details must be given explicitly in the
 class initialization code (see `.int.define-class`_). This must happen
 *after* the inheritance details are given (see `.int.inheritance`_).
 
+_`.int.extend.kind`: In addition, a class must be define for the new
+kind of class.  This is just an unspecialized subclass of the kind of
+the class being specialized by the extension.  For example::
+
+    DEFINE_CLASS(Inst, LandClass, class)
+    {
+      INHERIT_CLASS(class, LandClass, InstClass);
+    }
+
+
+Methods
+.......
+
+``Method(kind, inst, meth)``
+
+_`.int.method`: To call a method on an instance of a class, use the
+``Method`` macro to retrieve the method.  This macro may assert if the
+class is not of the kind requested.  For example, to call the
+``insert`` method on ``land``::
+
+    res = Method(Land, land, insert)(rangeReturn, land, range);
+
+
+``NextMethod(kind, className, meth)``
+
+_`.int.next-method`: To call a method from a superclass of a class,
+use the ``NextMethod`` macro to retrieve the method.  This macro may
+assert if the superclass is not of the kind requested.  For example,
+the function to split AMS segments wants to split the segments they
+are based on, so does::
+
+    res = NextMethod(Seg, AMSSeg, split)(seg, segHi, base, mid, limit);
+
+
+Conversion
+..........
+
+``MustBeA(className, inst)``
+
+_`.int.must-be-a`: To convert the C type of an instance to that of a
+compatible class (the class of the actual object or any superclass),
+use the ``MustBeA`` macro.  In hot varieties this macro performs a
+fast dynamic type check and will assert if the class is not
+compatible.  In cool varieties, the class check method is called on
+the object.  For example, in a specialized Land method in the CBS
+class::
+
+    static Res cbsInsert(Range rangeReturn, Land land, Range range)
+    {
+      CBS cbs = MustBeA(CBS, land);
+      ...
+
+
+``MustBeA_CRITICAL(className, inst)``
+
+_`.int.must-be-a.critical`: For use when the cost of a type check is
+too expensive in hot varieties, use ``MustBeA_CRITICAL`` in place of
+``MustBeA``.  This only performs the check in cool varieties.  Compare
+with ``AVER_CRITICAL``.
+
+
+``CouldBeA(className, inst)``
+
+_`.int.could-be-a`: To make an unsafe conversion equivalent to
+``MustBeA``, use the ``CouldBeA`` macro.  This is in effect a simple
+pointer cast, but it expresses the intention of class compatibility in
+the source code.  It is mainly intended for use when initializing an
+object, when a class compatibility check would fail, or in debugging
+code such as describe methods, where asserting is inappropriate.
+
 
 Introspection
 .............
@@ -255,7 +353,7 @@ functions are polymorphic and accept arbitrary subclasses of
 ``InstClass``. C doesn't support such polymorphism. So although these
 have the semantics of functions (and could be implemented as functions
 in another language with compatible calling conventions) they are
-actually implemented as macros. The macros are named as method-style
+actually implemented as macros. The macros are named as function-style
 macros despite the fact that this arguably contravenes
 guide.impl.c.macro.method. The justification for this is that this
 design is intended to promote the use of polymorphism, and it breaks
@@ -264,34 +362,29 @@ can't be expressed directly in C function syntax. These functions all
 have names ending in ``Poly`` to identify them as polymorphic
 functions.
 
-``ProtocolClassSuperclassPoly(class)``
+
+``SuperclassPoly(kind, class)``
 
 _`.int.superclass`: An introspection function which returns the direct
-superclass of class object ``class``.
+superclass of class object ``class`` as a class of kind ``kind``.
+This may assert if the superclass is not (a subtype of) the kind
+requested.
 
-``SUPERCLASS(kind, className)``
 
-_`.int.static-superclass`: An introspection macro which returns the
-direct superclass given a class name, which must (obviously) be
-statically known. The macro expands into a call to the ensure function
-for the class name, so this must be in scope (which may require a
-forward declaration). The macro is useful for next-method calls (see
-`.overview.next-method`_). The superclass is returned as a class of
-the kind, and this is not currently checked.
-
-_`.int.static-superclass.special`: Implementors of classes which are
-designed to be subclassed without extension may choose to provide a
-convenience macro which expands into a call to ``SUPERCLASS`` along
-with a type cast. For example, there might be a macro for finding pool
-superclasses such that the macro call ``POOL_SUPERCLASS(className)``
-is exactly equivalent to ``(PoolClass)SUPERCLASS(className)``. It's
-convenient to define these macros alongside the convenience class
-definition macro (see `.int.define-special`_).
-
-``ClassOfPoly(inst)``
+``ClassOfPoly(kind, inst)``
 
 _`.int.class`: An introspection function which returns the class of
-which ``inst`` is a direct instance.
+which ``inst`` is a direct instance, as a classes of kind ``kind``.
+This may assert if the class is not (a subtype of) the kind requested.
+
+
+``SetClassOfPoly(inst, class)``
+
+_`int.set-class`: An initialization function that sets the class of
+``inst`` to be ``class``.  This is intended only for use in
+initialization functions, to specialize the instance once its fields
+have been initialized.
+
 
 ``IsSubclassPoly(sub, super)``
 
@@ -353,19 +446,23 @@ from ``EPDLPool`` of kind ``Pool``, but also implements a method for
 checking properties of the pool. ::
 
     typedef struct EPDLDebugPoolClassStruct {
-        EPDLPoolClassStruct epdl;
-        DebugPoolCheckMethod check;
-        Sig sig;
+      EPDLPoolClassStruct epdl;
+      DebugPoolCheckMethod check;
+      Sig sig;
     } EPDLDebugPoolClassStruct;
 
     typedef EPDLDebugPoolClassStruct *EPDLDebugPoolClass;
 
-    DEFINE_CLASS(EPDLDebugPool, EPDLDebugPool, this)
+    DEFINE_CLASS(Inst, EPDLDebugPoolClass, class)
     {
-        EPDLPoolClass epdl = &this->epdl;
-        INHERIT_CLASS(epdl, EPDLDebugPool, EPDLPoolClass);
-        this->check = EPDLDebugCheck;
-        this->sig = EPDLDebugSig;
+      INHERIT_CLASS(class, EPDLPoolClass, InstClass);
+    }
+
+    DEFINE_CLASS(EPDLDebugPool, EPDLDebugPool, class)
+    {
+      INHERIT_CLASS(&class->epdl, EPDLDebugPool, EPDLPoolClass);
+      class->check = EPDLDebugCheck;
+      class->sig = EPDLDebugSig;
     }
 
 _`.example.fail`: The following example shows the implementation of
@@ -375,27 +472,24 @@ anti-method::
     static Res mySegInit(Seg seg, Pool pool, Addr base, Size size,
                          ArgList args)
     {
-        SegClass super;
         MYSeg myseg;
         OBJ1 obj1;
         Res res;
         Arena arena;
 
-        AVERT(Seg, seg);
-        myseg = SegMYSeg(seg);
         AVERT(Pool, pool);
         arena = PoolArena(pool);
 
         /* Ensure the pool is ready for the segment */
-        res = myNoteSeg(pool, seg);
+        res = myNoteSeg(pool, base);
         if(res != ResOK)
           goto failNoteSeg;
 
         /* Initialize the superclass fields first via next-method call */
-        super = (SegClass)SUPERCLASS(MYSegClass);
-        res = super->init(seg, pool, base, size, args);
+	res = NextMethod(Seg, MySeg, init)(seg, pool, base, size, args);
         if(res != ResOK)
-          goto failNextMethods;
+          goto failSuperInit;
+	myseg = CouldBeA(MySeg, seg);
 
         /* Create an object after the next-method call */
         res = ControlAlloc(&obj1, arena, sizeof(OBJ1Struct));
@@ -403,14 +497,17 @@ anti-method::
           goto failObj1;
 
         myseg->obj1 = obj1
+
+	/* Finished initialization, so specialize the segment. */
+	SetClassOfPoly(seg, CLASS(MySeg));
         return ResOK;
 
     failObj1:
         /* call the anti-method for the superclass */
-        super->finish(seg);
-    failNextMethods:
+	NextMethod(Seg, MySeg, finish)(seg);
+    failSuperInit:
         /* reverse the effect of myNoteSeg */
-        myUnnoteSeg(pool, seg);
+        myUnnoteSeg(pool, base);
     failNoteSeg:
         return res;
     }
@@ -492,6 +589,9 @@ A. References
    Stroustrup; 2004;
    <http://www.stroustrup.com/fast_dynamic_casting.pdf>.
 
+.. [K&R_1988] "The C Programming language 2nd Edition";
+   Brian W. Kernighan, Dennis M. Ritchie; 1998.
+
 
 B. Document History
 -------------------
@@ -505,6 +605,8 @@ B. Document History
 - 2016-04-07 RB_ Removing never-used multiple inheritance speculation.
 
 - 2016-04-08 RB_ Substantial reorgnisation.
+
+- 2016-04-13 RB_ Writing up overview of kinds, with explanation of class extension.  Writing up ``Method``, ``NextMethod``, ``SetClassOfPoly``, ``MustBeA``, etc. and updating the descriptions of some older interface.  Updating the example.
 
 .. _RB: http://www.ravenbrook.com/consultants/rb/
 .. _GDR: http://www.ravenbrook.com/consultants/gdr/
