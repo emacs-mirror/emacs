@@ -283,9 +283,10 @@ Bool PolicyStartTrace(Trace *traceReturn, Arena arena)
   double tTracePerScan; /* tTrace/cScan */
   double dynamicDeferral;
 
+  AVER(traceReturn != NULL);
+  AVERT(Arena, arena);
+
   /* Compute dynamic criterion.  See strategy.lisp-machine. */
-  AVER(arena->topGen.mortality >= 0.0);
-  AVER(arena->topGen.mortality <= 1.0);
   sFoundation = (Size)0; /* condemning everything, only roots @@@@ */
   /* @@@@ sCondemned should be scannable only */
   sCondemned = ArenaCommitted(arena) - ArenaSpareCommitted(arena);
