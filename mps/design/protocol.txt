@@ -8,7 +8,7 @@ Protocol inheritance
 :Date: 1998-10-12
 :Status: incomplete design
 :Revision: $Id$
-:Copyright: See `Copyright and License`_.
+:Copyright: See `C. Copyright and License`_.
 :Index terms: pair: protocol inheritance; design
 :Readership: MPS developers
 
