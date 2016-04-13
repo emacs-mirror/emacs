@@ -403,7 +403,8 @@ extern void TraceDestroyFinished(Trace trace);
 
 extern Bool TraceIsEmpty(Trace trace);
 extern Res TraceAddWhite(Trace trace, Seg seg);
-extern Res TraceCondemnZones(Trace trace, ZoneSet condemnedSet);
+extern void TraceCondemnStart(Trace trace);
+extern void TraceCondemnEnd(Trace trace);
 extern Res TraceStart(Trace trace, double mortality, double finishingTime);
 extern Bool TracePoll(Work *workReturn, Globals globals);
 
@@ -702,6 +703,8 @@ extern Bool SegClassCheck(SegClass class);
 extern SegClass SegClassGet(void);
 extern SegClass GCSegClassGet(void);
 extern void SegClassMixInNoSplitMerge(SegClass class);
+#define SegIsGC(seg) IsSubclassPoly(ClassOfSeg(seg), GCSegClassGet())
+#define SegGCSeg(seg) PARENT(GCSegStruct, segStruct, seg)
 
 
 /* DEFINE_SEG_CLASS -- define a segment class */
