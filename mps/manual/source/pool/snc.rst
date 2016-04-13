@@ -34,7 +34,7 @@ SNC properties
 
 * Supports allocation via :term:`allocation points` only. If an
   allocation point is created in an SNC pool, the call to
-  :c:func:`mps_ap_create_k` requires one keyword argument,
+  :c:func:`mps_ap_create_k` accepts one optional keyword argument,
   :c:macro:`MPS_KEY_RANK`.
 
 * Does not support deallocation via :c:func:`mps_free`.
@@ -78,8 +78,8 @@ SNC properties
 .. index::
    single: SNC; interface
 
-SNC introspection
------------------
+SNC interface
+-------------
 
 ::
 
@@ -106,21 +106,12 @@ SNC introspection
             res = mps_pool_create_k(&pool, arena, mps_class_snc(), args);
         } MPS_ARGS_END(args);
 
-    .. deprecated:: starting with version 1.112.
-
-        When using :c:func:`mps_pool_create`, pass the format like
-        this::
-
-            mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena,
-                                      mps_pool_class_t mps_class_snc(),
-                                      mps_fmt_t fmt)
-
     When creating an :term:`allocation point` on an SNC pool,
-    :c:func:`mps_ap_create_k` requires one keyword argument:
+    :c:func:`mps_ap_create_k` accepts one optional keyword argument:
 
-    * :c:macro:`MPS_KEY_RANK` (type :c:type:`mps_rank_t`) specifies
-      the :term:`rank` of references in objects allocated on this
-      allocation point. It must be :c:func:`mps_rank_exact`.
+    * :c:macro:`MPS_KEY_RANK` (type :c:type:`mps_rank_t`, default
+      :c:func:`mps_rank_exact`) specifies the :term:`rank` of references
+      in objects allocated on this allocation point.
 
     For example::
 
@@ -128,10 +119,3 @@ SNC introspection
             MPS_ARGS_ADD(args, MPS_KEY_RANK, mps_rank_exact());
             res = mps_ap_create_k(&ap, awl_pool, args);
         } MPS_ARGS_END(args);
-
-    .. deprecated:: starting with version 1.112.
-
-        When using :c:func:`mps_ap_create`, pass the rank like this::
-
-            mps_res_t mps_ap_create(mps_ap_t *ap_o, mps_pool_t pool,
-                                    mps_rank_t rank)

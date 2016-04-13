@@ -4,6 +4,10 @@ TEST_HEADER
  summary = destroy root twice
  language = c
  link = myfmt.o testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= root.c
+ assertcond = TESTT(Root, root)
 END_HEADER
 */
 

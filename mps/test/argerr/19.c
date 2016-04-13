@@ -4,6 +4,8 @@ TEST_HEADER
  summary = UNALIGNED arg to pool_destroy
  language = c
  link = testlib.o newfmt.o
+OUTPUT_SPEC
+ abort = true
 END_HEADER
 */
 
@@ -25,7 +27,6 @@ static void test(void)
  mps_pool_t pool;
  mps_thr_t thread;
  mps_root_t root;
-
  mps_chain_t chain;
  mps_fmt_t format;
 
@@ -46,7 +47,7 @@ static void test(void)
 
  cdie(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
 
- ddie(
+ cdie(
   mps_pool_create(&pool, arena, mps_class_amc(), format, chain),
   "create pool");
 

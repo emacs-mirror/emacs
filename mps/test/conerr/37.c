@@ -1,9 +1,13 @@
 /* 
 TEST_HEADER
  id = $Id$
- summary = reserve and commit with different address
+ summary = reserve and commit (macros) with different address
  language = c
  link = myfmt.o testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= mpsi.c
+ assertcond = p == mps_ap->init
 END_HEADER
 */
 

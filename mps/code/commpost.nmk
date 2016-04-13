@@ -56,16 +56,79 @@ variety: $(PFM)\$(VARIETY)\$(TARGET)
 !ENDIF
 !ENDIF
 
-# testrun testci testall testansi testpoll
+# testrun testci testall testansi testpollnone
 # Runs automated test cases.
 
-testrun testci testall testansi testpoll: $(TEST_TARGETS)
+testrun testci testall testansi testpollnone: $(TEST_TARGETS)
 !IFDEF VARIETY
 	..\tool\testrun.bat $(PFM) $(VARIETY) $@
 !ELSE
 	$(MAKE) /nologo /f $(PFM).nmk VARIETY=cool $@
 	$(MAKE) /nologo /f $(PFM).nmk VARIETY=hot $@
 !ENDIF
+
+
+# FLAGS AMALGAMATION
+#
+# %%VARIETY: When adding a new variety, add the following macros that
+# expand to sets of flags that the variety should use:
+#
+# CFLAGS --  when compiling C;
+# CFLAGSSQL -- when compiling mpseventsql;
+# LINKFLAGS -- when building executables;
+# LIBFLAGS -- when building libraries.
+
+!IF "$(VARIETY)" == "hot"
+CFLAGS=$(CFLAGSCOMMONPRE) $(CFHOT) $(CFLAGSCOMMONPOST)
+CFLAGSSQL=$(CFLAGSSQLPRE) $(CFHOT) $(CFLAGSSQLPOST)
+LINKFLAGS=$(LINKFLAGSCOMMON) $(LFHOT)
+LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSHOT)
+
+!ELSEIF "$(VARIETY)" == "cool"
+CFLAGS=$(CFLAGSCOMMONPRE) $(CFCOOL) $(CFLAGSCOMMONPOST)
+CFLAGSSQL=$(CFLAGSSQLPRE) $(CFCOOL) $(CFLAGSSQLPOST)
+LINKFLAGS=$(LINKFLAGSCOMMON) $(LFCOOL)
+LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSCOOL)
+
+!ELSEIF "$(VARIETY)" == "rash"
+CFLAGS=$(CFLAGSCOMMONPRE) $(CFRASH) $(CFLAGSCOMMONPOST)
+CFLAGSSQL=$(CFLAGSSQLPRE) $(CFRASH) $(CFLAGSSQLPOST)
+LINKFLAGS=$(LINKFLAGSCOMMON) $(LFRASH)
+LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSRASH)
+
+!ENDIF
+
+
+# SOURCE TO OBJECT FILE MAPPINGS
+#
+# %%PART: When adding a new part, add new macros which expand to the object
+# files included in the part
+#
+# Note: nmake doesn't expand variables within a string replacement
+# operation. We work around this by writing out a temporary makefile
+# and including it.
+
+TEMPMAKE=$(TEMP)\mps.nmk
+!IF [echo MPMOBJ0 = $$(MPM:[=$(PFM)\$(VARIETY)\) > $(TEMPMAKE)] == 0 \
+ && [echo FMTDYOBJ0 = $$(FMTDY:[=$(PFM)\$(VARIETY)\) >> $(TEMPMAKE)] == 0 \
+ && [echo FMTTESTOBJ0 = $$(FMTTEST:[=$(PFM)\$(VARIETY)\) >> $(TEMPMAKE)] == 0 \
+ && [echo FMTSCHEMEOBJ0 = $$(FMTSCHEME:[=$(PFM)\$(VARIETY)\) >> $(TEMPMAKE)] == 0 \
+ && [echo POOLNOBJ0 = $$(POOLN:[=$(PFM)\$(VARIETY)\) >> $(TEMPMAKE)] == 0 \
+ && [echo TESTLIBOBJ0 = $$(TESTLIB:[=$(PFM)\$(VARIETY)\) >> $(TEMPMAKE)] == 0 \
+ && [echo TESTTHROBJ0 = $$(TESTTHR:[=$(PFM)\$(VARIETY)\) >> $(TEMPMAKE)] == 0
+!INCLUDE $(TEMPMAKE)
+!IF [del $(TEMPMAKE)] != 0
+!ERROR Failed to delete $(TEMPMAKE)
+!ENDIF
+!ENDIF
+
+MPMOBJ = $(MPMOBJ0:]=.obj)
+FMTDYOBJ = $(FMTDYOBJ0:]=.obj)
+FMTTESTOBJ = $(FMTTESTOBJ0:]=.obj)
+FMTSCHEMEOBJ = $(FMTSCHEMEOBJ0:]=.obj)
+POOLNOBJ = $(POOLNOBJ0:]=.obj)
+TESTLIBOBJ = $(TESTLIBOBJ0:]=.obj)
+TESTTHROBJ = $(TESTTHROBJ0:]=.obj)
 
 
 # THE MPS LIBRARY
@@ -230,6 +293,9 @@ $(PFM)\$(VARIETY)\sncss.exe: $(PFM)\$(VARIETY)\sncss.obj \
 
 $(PFM)\$(VARIETY)\steptest.exe: $(PFM)\$(VARIETY)\steptest.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\tagtest.exe: $(PFM)\$(VARIETY)\tagtest.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\teletest.exe: $(PFM)\$(VARIETY)\teletest.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)

@@ -4,6 +4,10 @@ TEST_HEADER
  summary = null arena for mps_root_create
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= global.c
+ assertcond = TESTT(Arena, arena)
 END_HEADER
 */
 

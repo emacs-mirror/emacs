@@ -108,7 +108,7 @@ Attribute            Description
 ===================  ===================================================
 
 There is an attribute field in the pool class (``PoolClassStruct``)
-which declares the attributes of that class. See `design.mps.class-interface.field.attr`_.
+which declares the attributes of that class. See design.mps.class-interface.field.attr_.
 
 .. _design.mps.class-interface.field.attr: class-interface
 
@@ -180,8 +180,8 @@ Mode                      Description
 ========================  ==============================================
 ``BufferModeATTACHED``    Buffer is attached to a region of memory.
 ``BufferModeFLIPPED``     Buffer has been flipped.
-``BufferModeLOGGED``      Buffer emits the events ``BufferReserve`` and 
-                          ``BufferCommit``.
+``BufferModeLOGGED``      Buffer remains permanently trapped, so that
+                          all reserve and commit events can be logged.
 ``BufferModeTRANSITION``  Buffer is in the process of being detached.
 ========================  ==============================================
 
@@ -300,6 +300,21 @@ determined then the smallest unsigned integer with a large enough
 range may be used instead.
 
 
+``typedef int LocusPrefKind``
+
+_`.segprefkind`: The type ``LocusPrefKind`` expresses a preference for
+addresses within an address space. It takes one of the following
+values:
+
+====================  ====================================
+Kind                  Description
+====================  ====================================
+``LocusPrefHIGH``     Prefer high addresses.
+``LocusPrefLOW``      Prefer low addresses.
+``LocusPrefZONESET``  Prefer addresses in specified zones.
+====================  ====================================
+
+
 ``typedef unsigned MessageType``
 
 _`.messagetype`: ``MessageType`` is the type of a message. See
@@ -377,9 +392,7 @@ intended.
 ``typedef Word RefSet``
 
 _`.refset`: ``RefSet`` is a conservative approximation to a set of
-references. See design.mps.refset_.
-
-.. _design.mps.refset: refset
+references. See design.mps.refset.
 
 
 ``typedef int Res``
@@ -470,21 +483,6 @@ _`.rootvar`: The type ``RootVar`` is the type of the discriminator for
 the union within ``RootStruct``.
 
 
-``typedef int LocusPrefKind``
-
-_`.segprefkind`: The type ``LocusPrefKind`` expresses a preference for
-addresses within an address space. It takes one of the following
-values:
-
-====================  ====================================
-Kind                  Description
-====================  ====================================
-``LocusPrefHigh``     Prefer high addresses.
-``LocusPrefLow``      Prefer low addresses.
-``LocusPrefZoneSet``  Prefer addresses in specified zones.
-====================  ====================================
-
-
 ``typedef unsigned Serial``
 
 _`.serial`: A ``Serial`` is a number which is assigned to a structure
@@ -553,7 +551,7 @@ space as the client data.
 _`.traceid`: A ``TraceId`` is an unsigned integer which is less than
 ``TraceLIMIT``. Each running trace has a different ``TraceId`` which
 is used to index into the tables and bitfields that record the state
-of that trace. See `design.mps.trace.instance.limit`_.
+of that trace. See design.mps.trace.instance.limit_.
 
 .. _design.mps.trace.instance.limit: trace#instance.limit
 
@@ -632,7 +630,9 @@ required that might range as large as the machine word.
 
 _`.word.source`: ``Word`` is derived from the macro ``MPS_T_WORD``
 which is declared in impl.h.mpstd according to the target platform
-(design.mps.config.pf.word).
+(design.mps.config.pf.word_).
+
+.. _design.mps.config.pf.word: config#pf.word
 
 _`.word.conv.c`: ``Word`` is converted to ``mps_word_t`` in the MPS C
 Interface.
@@ -641,10 +641,21 @@ _`.word.ops`: ``WordIsAligned()``, ``WordAlignUp()``,
 ``WordAlignDown()`` and ``WordRoundUp()``.
 
 
+``typedef MPS_T_WORD Work``
+
+_`.work`: ``Work`` is an unsigned integral type representing
+accumulated work done by the collector.
+
+_`.work.impl`: Work is implemented as a count of the bytes scanned by
+the collector in segments and roots. This is a very crude measure,
+because it depends on the scanning functions supplied by the mutator,
+which we know very little about.
+
+
 ``typedef Word ZoneSet``
 
 _`.zoneset`: ``ZoneSet`` is a conservative approximation to a set of
-zones. See design.mps.refset_.
+zones. See design.mps.refset.
 
 
 Abstract types
@@ -658,7 +669,7 @@ pointers to structures. For example, ``Ring`` is a pointer to a
 ``Buffer``, ``Chain``, ``Chunk``, ``Format``, ``Globals``, ``Land``,
 ``LD``, ``Lock``, ``LocusPref``, ``MutatorFaultContext``,
 ``PoolClass``, ``Page``, ``Pool``, ``PoolDebugMixin``, ``Range``,
-``Reservoir``, ``Ring``, ``Root``, ``ScanState``, ``Seg``, ``SegBuf``,
+``Ring``, ``Root``, ``ScanState``, ``Seg``, ``SegBuf``,
 ``StackContext``, ``Thread``, ``Trace``, ``VM``.
 
 ``typedef void *Pointer``
@@ -683,8 +694,8 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited. All rights reserved.
-<http://www.ravenbrook.com/>. This is an open source license. Contact
+Copyright © 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
 Redistribution and use in source and binary forms, with or without

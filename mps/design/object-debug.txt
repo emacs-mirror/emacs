@@ -291,17 +291,10 @@ protocol.
     This will be improved, when we figure out formatted pools -- they
     don't need tags for fenceposting.
 
-_`.out-of-space`: If there's no room for tags, we will not dip into
-the reservoir, just fail to allocate the tag. If the alloc call had a
-reservoir permit, we let it succeed even without a tag, and just make
-sure the free method will not complain if it can't find a tag. If the
-call didn't have a reservoir permit, we free the block allocated for
-the object and fail the allocation, so that the client gets a chance
-to do whatever low-memory actions they might want to do.
-
-.. note::
-
-    Should this depend on whether there is anything in the reservoir?
+_`.out-of-space`: If there's no room for tags, we just fail to
+allocate the tag. We free the block allocated for the object and fail
+the allocation, so that the client gets a chance to do whatever
+low-memory actions they might want to do.
 
 This breaks the one-to-one relationship between tags and objects, so
 some checks cannot be made, but we do count the "lost" tags.
@@ -327,27 +320,26 @@ fenceposts in a pool (``AVER()`` if a problem is found)
 _`.interface.fenceposting.format`: A function to wrap a format
 (class) to provide fenceposting.
 
-``void (*mps_fmt_adjust_fencepost_t)(size_t *size_io)``
+``typedef void (*mps_fmt_adjust_fencepost_t)(size_t *size_io)``
 
 _`.interface.fenceposting.adjust`: A format method to adjust size of a
 block about to be allocted to allow for fenceposts.
 
-``void (*mps_fmt_put_fencepost_t)(mps_addr_t * addr_io, size_t size)``
+``typedef void (*mps_fmt_put_fencepost_t)(mps_addr_t * addr_io, size_t size)``
 
 _`.interface.fenceposting.add`: A format method to add a fencepost
 around a block about to be allocated. The ``NULL`` method adds a tail
 fencepost.
 
-``mps_bool_t (*mps_fmt_check_fenceposts_t)(mps_addr_t)``
+``typedef mps_bool_t (*mps_fmt_check_fenceposts_t)(mps_addr_t)``
 
 _`.interface.fenceposting.checker`: A format method to check the
 fenceposts around an object. The ``NULL`` method checks tails.
 
-``mps_res_t mps_alloc(mps_addr_t *, mps_pool_t, size_t);``
-``mps_res_t mps_alloc_dbg(mps_addr_t *, mps_pool_t, size_t, ...);``
-``mps_res_t mps_alloc_dbg_v(mps_addr_t *, mps_pool_t, size_t, va_list);``
+``mps_res_t mps_alloc_dbg(mps_addr_t *, mps_pool_t, size_t, ...)``
+``mps_res_t mps_alloc_dbg_v(mps_addr_t *, mps_pool_t, size_t, va_list)``
 
-_`.interface.tags.alloc`: Three functions to replace existing
+_`.interface.tags.alloc`: Two functions to extend the existing
 ``mps_alloc()`` (request.???.??? proposes to remove the varargs)
 
 ``void (*mps_objects_step_t)(mps_addr_t addr, size_t size, mps_fmt_t format, mps_pool_t pool, void *tag_data, void *p)``
@@ -435,8 +427,8 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited. All rights reserved.
-<http://www.ravenbrook.com/>. This is an open source license. Contact
+Copyright © 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
 Redistribution and use in source and binary forms, with or without

@@ -3,28 +3,31 @@
 # lii6gc.gmk: BUILD FOR LINUX/x64/GCC PLATFORM
 #
 # $Id$
-# Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+# Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
 
 PFM = lii6gc
 
-THREADSRC = lockli.c thix.c pthrdext.c
-THREADLIB = -lpthread
+MPMPF = \
+    lockli.c \
+    prmci6li.c \
+    proti6.c \
+    protix.c \
+    protli.c \
+    pthrdext.c \
+    span.c \
+    ssixi6.c \
+    thix.c \
+    vmix.c
 
-MPMPF = ${THREADSRC} vmix.c \
-        protix.c protli.c proti6.c prmci6li.c ssixi6.c span.c
-
-LIBS = -lm ${THREADLIB}
+LIBS = -lm -lpthread
 
 include gc.gmk
-
-CC = cc
-
 include comm.gmk
 
 
 # C. COPYRIGHT AND LICENSE
 #
-# Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+# Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
 # All rights reserved.  This is an open source license.  Contact
 # Ravenbrook for commercial licensing options.
 # 

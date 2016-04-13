@@ -1,9 +1,13 @@
 /* 
 TEST_HEADER
  id = $Id$
- summary = commit without reserving
+ summary = commit (function) without reserving
  language = c
  link = myfmt.o testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= mpsi.c
+ assertcond = p == mps_ap->init
 END_HEADER
 */
 
@@ -13,6 +17,11 @@ END_HEADER
 
 #undef mps_reserve
 #undef mps_commit
+
+#define genCOUNT (3)
+
+static mps_gen_param_s testChain[genCOUNT] = {
+  { 6000, 0.90 }, { 8000, 0.65 }, { 16000, 0.50 } };
 
 void *stackpointer;
 
@@ -26,7 +35,7 @@ static void test(void)
  mps_chain_t chain;
  mps_fmt_t format;
  mps_ap_t ap;
- mps_addr_t p;
+ mps_addr_t p = (mps_addr_t)1;
 
  cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE), "create arena");
 
@@ -51,7 +60,7 @@ static void test(void)
   mps_ap_create(&ap, pool, mps_rank_exact()),
   "create ap");
 
- allocone(ap, 0, NULL, NULL, 0x20);
+ allocone(ap, 0, NULL, NULL, 0x100);
 
  do
  {

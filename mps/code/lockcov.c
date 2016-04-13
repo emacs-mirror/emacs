@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
   LockClaimGlobalRecursive();
   LockReleaseGlobal();
   LockClaimGlobal();
-  LockReleaseMPM(a);
+  LockRelease(a);
   LockClaimGlobalRecursive();
   LockReleaseGlobal();
   LockClaimRecursive(b);
@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
   LockClaimRecursive(a);
   LockReleaseGlobalRecursive();
   LockReleaseRecursive(a);
-  LockReleaseMPM(a);
+  LockRelease(a);
   LockFinish(a);
   LockReleaseGlobalRecursive();
 

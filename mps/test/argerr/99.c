@@ -4,6 +4,10 @@ TEST_HEADER
  summary = highbit set root mode for mps_root_create
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= mpsi.c
+ assertcond = mps_rm == (mps_rm_t)0
 END_HEADER
 */
 

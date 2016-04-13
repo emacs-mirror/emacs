@@ -1,7 +1,7 @@
 /* tree.c: BINARY TREE IMPLEMENTATION
  *
  * $Id$
- * Copyright (C) 2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (C) 2014-2015 Ravenbrook Limited.  See end of file for license.
  *
  * Simple binary trees with utilities, for use as building blocks.
  * Keep it simple, like Rings (see ring.h).
@@ -9,10 +9,9 @@
  * The performance requirements on tree implementation will depend on
  * how each individual function is applied in the MPS.
  *
- * .note.stack: It's important that the MPS have a bounded stack
- * size, and this is a problem for tree algorithms.  Basically,
- * we have to avoid recursion.  TODO: Design documentation for this
- * requirement, meanwhile see job003651 and job003640.
+ * .note.stack: It's important that the MPS have a bounded stack size,
+ * and this is a problem for tree algorithms. Basically, we have to
+ * avoid recursion. See design.mps.sp.sol.depth.no-recursion.
  */
 
 #include "tree.h"
@@ -231,20 +230,20 @@ Bool TreeInsert(Tree *treeReturn, Tree root, Tree node,
  */
 
 Bool TreeTraverseMorris(Tree tree, TreeVisitor visit,
-                        void *closureP, Size closureS)
+                        void *closure)
 {
   Tree node;
   Bool visiting = TRUE;
   
   AVERT(Tree, tree);
   AVER(FUNCHECK(visit));
-  /* closureP, closureS arbitrary */
+  /* closure arbitrary */
   
   node = tree;
   while (node != TreeEMPTY) {
     if (node->left == TreeEMPTY) {
       if (visiting)
-        visiting = visit(node, closureP, closureS);
+        visiting = visit(node, closure);
       node = node->right;
     } else {
       Tree pre = node->left;
@@ -257,7 +256,7 @@ Bool TreeTraverseMorris(Tree tree, TreeVisitor visit,
         if (pre->right == node) {
           pre->right = TreeEMPTY;
           if (visiting)
-            visiting = visit(node, closureP, closureS);
+            visiting = visit(node, closure);
           else if (node == tree)
             return FALSE;
           node = node->right;
@@ -324,13 +323,13 @@ static Tree stepUpLeft(Tree node, Tree *parentIO)
 Bool TreeTraverse(Tree tree,
                   TreeCompareFunction compare,
                   TreeKeyFunction key,
-                  TreeVisitor visit, void *closureP, Size closureS)
+                  TreeVisitor visit, void *closure)
 {
   Tree parent, node;
   
   AVERT(Tree, tree);
   AVER(FUNCHECK(visit));
-  /* closureP, closureS arbitrary */
+  /* closure arbitrary */
 
   parent = TreeEMPTY;
   node = tree;
@@ -344,7 +343,7 @@ down:
     AVER(compare(parent, key(node)) == CompareLESS);
     goto down;
   }
-  if (!visit(node, closureP, closureS))
+  if (!visit(node, closure))
     goto abort;
   if (TreeHasRight(node)) {
     node = stepDownRight(node, &parent);
@@ -360,7 +359,7 @@ up:
     goto up;
   }
   node = stepUpRight(node, &parent);
-  if (!visit(node, closureP, closureS))
+  if (!visit(node, closure))
     goto abort;
   if (!TreeHasRight(node))
     goto up;
@@ -540,14 +539,14 @@ void TreeBalance(Tree *treeIO)
  * See <design/arena/#chunk.delete.tricky>.
  */
 void TreeTraverseAndDelete(Tree *treeIO, TreeVisitor visitor,
-                           void *closureP, Size closureS)
+                           void *closure)
 {
   Tree *treeref = treeIO;
 
   AVER(treeIO != NULL);
   AVERT(Tree, *treeIO);
   AVER(FUNCHECK(visitor));
-  /* closureP and closureS are arbitrary */
+  /* closure arbitrary */
 
   TreeToVine(treeIO);
 
@@ -555,7 +554,7 @@ void TreeTraverseAndDelete(Tree *treeIO, TreeVisitor visitor,
     Tree tree = *treeref;         /* Current node. */
     Tree *nextref = &tree->right; /* Location of pointer to next node. */
     Tree next = *nextref;         /* Next node. */
-    if ((*visitor)(tree, closureP, closureS)) {
+    if ((*visitor)(tree, closure)) {
       /* Delete current node. */
       *treeref = next;
     } else {
@@ -569,7 +568,7 @@ void TreeTraverseAndDelete(Tree *treeIO, TreeVisitor visitor,
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2014-2015 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

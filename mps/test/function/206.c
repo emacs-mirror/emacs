@@ -4,6 +4,7 @@ TEST_HEADER
  summary = new MVFF allocation test
  language = c
  link = testlib.o
+ parameters = QUEUES=100 ITERATIONS=1000
 END_HEADER
 */
 
@@ -64,7 +65,7 @@ static void dt(int kind,
  int i, hd;
  clock_t time0, time1;
  size_t size;
- int secs;
+ double secs;
 
  asserts(number <= MAXNUMBER, "number too big");
 
@@ -74,7 +75,7 @@ static void dt(int kind,
  die(
   mps_pool_create(&pool, arena, mps_class_mvff(),
                   extendBy, avgSize, align, slotHigh, arenaHigh, firstFit),
-  "create EPDR pool");
+  "create MVFF pool");
 
  for(hd=0; hd<number; hd++)
  {
@@ -102,11 +103,11 @@ static void dt(int kind,
    if (queue[hd].addr != NULL)
    {
     asserts(chkobj(queue[hd].addr, queue[hd].size, (unsigned char) (hd%256)),
-      "corrupt at %x (%s: %x, %x, %x, %x, %x, %i, %i, %i)",
+      "corrupt at %p (%s: %x, %x, %x, %c%c%c, %x, %x, %i, %i)",
       queue[hd].addr,
       tdesc[kind], (int) extendBy, (int) avgSize, (int) align,
-      (int) mins, (int) maxs, number, iter,
-      slotHigh*100+arenaHigh*10+firstFit);
+      slotHigh ? 'S' : 's', arenaHigh ? 'A' : 'a', firstFit ? 'F' : 'f',
+      (int) mins, (int) maxs, number, iter);
     mps_free(pool, queue[hd].addr, queue[hd].size);
    }
    size = ranrange(mins, maxs);
@@ -126,52 +127,36 @@ static void dt(int kind,
  mps_pool_destroy(pool);
 
  time1=clock();
- secs=(int) 100*(time1-time0)/CLOCKS_PER_SEC;
+ secs=(time1-time0)/(double)CLOCKS_PER_SEC;
 
- comment("%s test (%x, %x, %x, %x, %x, %i, %i, %i) in %i centisecs",
+ comment("%s test (%x, %x, %x, %c%c%c, %x, %x, %i, %i) in %.2f s",
   tdesc[kind], (int) extendBy, (int) avgSize, (int) align,
-  (int) mins, (int) maxs, number, iter,
-  slotHigh*100+arenaHigh*10+firstFit, secs);
+  slotHigh ? 'S' : 's', arenaHigh ? 'A' : 'a', firstFit ? 'F' : 'f',
+  (int) mins, (int) maxs, number, iter, secs);
 }
 
 static void test(void)
 {
  mps_thr_t thread;
- size_t mins;
- int symm;
+ size_t extendBy, avgSize, maxSize;
+ size_t align = sizeof(void*);
+ size_t minSize = sizeof(int);
+ int i, j, kind;
 
  cdie(mps_arena_create(&arena, mps_arena_class_vm(), (size_t) (1024*1024*50)), "create arena");
  cdie(mps_thread_reg(&thread, arena), "register thread");
 
- mins = sizeof(int);
+ for (i = 0; i < 5 * 2 * 2 * 2 * 2 * 2; ++i) {
+  j = i;
+  slotHigh = j % 2; j /= 2;
+  arenaHigh = j % 2; j /= 2;
+  firstFit = j % 2; j /= 2;
+  extendBy = j % 2 ? 4096 : 65536; j /= 2;
+  avgSize = j % 2 ? 32 : extendBy / 2;
+  maxSize = j % 2 ? 64 : extendBy; j /= 2;
+  kind = j % 5; j /= 5;
 
- for (symm = 0; symm < 8; symm++) {
-
- slotHigh = (symm >> 2) & 1;
- arenaHigh = (symm >> 1) & 1;
- firstFit = (symm & 1);
-
- dt(SEQ, 4096, 32, 8, 8, 9, 5, 1000);
- dt(RANGAP, 64, 64, 8, 8, 128, 100, 100000);
-
- dt(DUMMY, 4096, 32, 8, 8, 64, 1000, 1000000);
- dt(SEQ, 4096, 32, 8, 8, 64, 1000, 1000000);
- dt(RAN, 4096, 32, 8, 8, 64, 1000, 1000000);
- dt(SEQGAP, 4096, 32, 8, 8, 64, 1000, 1000000);
- dt(RANGAP, 4096, 32, 8, 8, 64, 1000, 1000000);
-
- dt(DUMMY, 4096, 1024, 8, 100, 132, 1000, 1000000);
- dt(SEQ, 4096, 1024, 8, 100, 132, 1000, 1000000);
- dt(RAN, 4096, 1024, 8, 100, 132, 1000, 1000000);
- dt(SEQGAP, 4096, 1024, 8, 100, 132, 1000, 1000000);
- dt(RANGAP, 4096, 1024, 8, 100, 132, 1000, 1000000);
-
- dt(DUMMY, 128*1024, 64*1024, 8, mins, 128*1024, 100, 10000);
- dt(SEQ, 128*1024, 64*1024, 8, mins, 128*1024, 100, 10000);
- dt(RAN, 128*1024, 64*1024, 8, mins, 128*1024, 100, 10000);
- dt(SEQGAP, 128*1024, 64*1024, 8, mins, 128*1024, 100, 10000);
- dt(RANGAP, 128*1024, 64*1024, 8, mins, 128*1024, 100, 10000);
-
+  dt(kind, extendBy, avgSize, align, minSize, maxSize, QUEUES, ITERATIONS);
  }
 
  mps_thread_dereg(thread);

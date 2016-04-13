@@ -29,7 +29,10 @@ Generation-Based Garbage Collector") were used in this design. Some
 analysis of this design (including various improvements and some more
 in-depth justification) is in analysis.mps.poolmrg. That document
 should be understood before changing this document. It is also helpful
-to look at design.mps.finalize and design.mps.message.
+to look at design.mps.finalize_ and design.mps.message_.
+
+.. _design.mps.message: message
+.. _design.mps.finalize: finalize
 
 
 Goals
@@ -98,7 +101,9 @@ intended to provide the functionality of "finalization".
 _`.over.internal`: The MRG pool class is internal to the MPM: it
 is not intended to have a client interface. Clients are expected to
 access the functionality provided by this pool (finalization) using a
-separate MPS finalization interface (design.mps.finalize).
+separate MPS finalization interface (design.mps.finalize_).
+
+.. _design.mps.finalize: finalize
 
 _`.over.one-size`: The MRG pool class manages objects of a single
 size, each object containing a single reference of rank final.
@@ -142,10 +147,12 @@ necessary for implementing finalization. It is the means by which the
 MPS detects that objects are finalizable.
 
 _`.over.message`: ``PoolClassMRG`` implements a ``MessageClass`` (see
-design.mps.message). All the messages are of one ``MessageType``. This
+design.mps.message_). All the messages are of one ``MessageType``. This
 type is ``MessageTypeFinalization``. Messages are created when objects
 are discovered to be finalizable and destroyed when the MPS client has
 received the message.
+
+.. _design.mps.message: message
 
 _`.over.message.justify`: Messages provide a means for the MPS to
 communicate with its client. Notification of finalization is just such
@@ -174,7 +181,9 @@ Object Registration
 _`.protocol.register`: There is a protocol by which objects can be
 registered for finalization. This protocol is handled by the arena
 module on behalf of finalization. see
-design.mps.finalize.int.finalize.
+design.mps.finalize.int.finalize_.
+
+.. _design.mps.finalize.int.finalize: finalize#int.finalize
 
 
 Finalizer execution
@@ -193,7 +202,9 @@ Setup / destroy
 
 _`.protocol.life`: An instance of PoolClassMRG is needed in order to
 support finalization, it is called the "final" pool and is attached to
-the arena (see design.mps.finalize.int.arena.struct).
+the arena (see design.mps.finalize.int.arena.struct_).
+
+.. _design.mps.finalize.int.arena.struct: finalize#int.arena.struct
 
 _`.protocol.life.birth`: The final pool is created lazily by
 ``ArenaFinalize()``.
@@ -619,10 +630,6 @@ All objects from the MRG pool will then be freed (thus dropping all
 references to the AMC objects). This will test `.promise.faithful`_
 and `.promise.live`_.
 
-_`.test.promise.ut.not`: The following part of the test has not
-implemented. This is because the messaging system has not yet been
-implemented.
-
 _`.test.promise.ut.alloc`: A number of objects will be allocated in
 the AMC pool.
 
@@ -678,8 +685,8 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited. All rights reserved.
-<http://www.ravenbrook.com/>. This is an open source license. Contact
+Copyright © 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
 Redistribution and use in source and binary forms, with or without

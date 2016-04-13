@@ -22,10 +22,11 @@ hexadecimal digits.
 _`.readership`: This document is intended for anyone devising
 arbitrary constants which may appear in hex-dumps.
 
-_`.sources`: This transliteration was supplied by RHSK in
-`mail.richardk.1997-04-07.13-44`_.
-
-.. _mail.richardk.1997-04-07.13-44: https://info.ravenbrook.com/project/mps/mail/1997/04/07/13-44/0.txt 
+_`.sources`: This transliteration was supplied by Richard Kistruck
+[RHSK-1997-04-07]_ based on magic number encodings for object signatures
+used by Richard Brooksby [RB-1996-02-12]_, the existence of which was
+inspired by the structure marking used in the Multics operating system
+[THVV-1995]_.
 
 
 Transliteration
@@ -78,12 +79,14 @@ _`.trans.t`: T is an exception to `.numbers`_, but is such a common
 letter that it deserves it.
 
 
-4. Notes
---------
+Notes
+-----
 
 _`.change`: This transliteration differs from the old transliteration
-used for signatures (see design.mps.sig(0)), as follows: J:6->1;
+used for signatures (see design.mps.sig_), as follows: J:6->1;
 L:1->7; N:9->4; R:4->6; W:8->3; X:5->8; Y:E->I.
+
+.. _design.mps.sig: sig
 
 _`.problem.mw`: There is a known problem that M and W are both common,
 map to the same digit (3), and are hard to distinguish in context.
@@ -104,6 +107,33 @@ selected (by capitalisation), e.g.::
     #define SpaceSig        ((Sig)0x5195BACE) /* SIGnature SPACE */
 
 
+References
+----------
+
+.. [RB-1996-02-12]
+   "Signature magic numbers" (e-mail message);
+   `Richard Brooksby`_;
+   Harlequin;
+   1996-12-02 12:05:30Z.
+
+.. _`Richard Brooksby`: mailto:rb@ravenbrook.com
+
+.. [RHSK-1997-04-07]
+   "Alpha-to-Hex v1.0 beta";
+   Richard Kistruck;
+   Ravenbrook;
+   1997-04-07 14:42:02+0100;
+   <https://info.ravenbrook.com/project/mps/mail/1997/04/07/13-44/0.txt>.
+
+.. [THVV-1995]
+   "Structure Marking";
+   Tom Van Vleck;
+   multicians.org_;
+   <http://www.multicians.org/thvv/marking.html>.
+
+.. _multicians.org: http://www.multicians.org/
+
+
 Document History
 ----------------
 2013-05-10  RB_  Converted to reStructuredText and imported to MPS design.
@@ -114,8 +144,8 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited. All rights reserved.
-<http://www.ravenbrook.com/>. This is an open source license. Contact
+Copyright © 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
 Redistribution and use in source and binary forms, with or without

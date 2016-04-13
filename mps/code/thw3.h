@@ -26,6 +26,7 @@ typedef struct mps_thr_s {      /* Win32 thread structure */
   Serial serial;                /* from arena->threadSerial */
   Arena arena;                  /* owning arena */
   RingStruct arenaRing;         /* threads attached to arena */
+  Bool alive;                   /* thread believed to be alive? */
   HANDLE handle;                /* Handle of thread, see
                                  * <code/thw3.c#thread.handle> */
   DWORD id;                     /* Thread id of thread */

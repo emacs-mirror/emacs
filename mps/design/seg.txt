@@ -15,7 +15,7 @@ Segment data structure
 Introduction
 ------------
 
-_`.intro`: This document describes the MPS Segment data structure.
+_`.intro`: This is the design of the segment data structure.
 
 
 Overview
@@ -43,11 +43,13 @@ methods SegBase, SegLimit, and SegSize which map a segment onto the
 addresses of the memory block it represents.
 
 _`.over.hierarchy`: The Segment datastructure is designed to be
-subclassable (see design.mps.protocol). The basic segment class
+subclassable (see design.mps.protocol_). The basic segment class
 (``Seg``) supports colour and protection for use by the tracer, as
 well as support for a pool ring, and all generic segment functions.
 Clients may use ``Seg`` directly, but will most probably want to use a
 subclass with additional properties.
+
+.. _design.mps.protocol: protocol
 
 _`.over.hierarchy.gcseg`: The segment module provides ``GCSeg`` - a
 subclass of ``Seg`` which has full support for GC including buffering
@@ -159,7 +161,7 @@ _`.split-and-merge`: There is support for splitting and merging
 segments, to give pools the flexibility to rearrange their tracts
 among segments as they see fit.
 
-``Res SegSplit(Seg *segLoReturn, Seg *segHiReturn, Seg seg, Addr at, Bool withReservoirPermit, ...)``
+``Res SegSplit(Seg *segLoReturn, Seg *segHiReturn, Seg seg, Addr at)``
 
 _`.split`: If successful, segment ``seg`` is split at address ``at``,
 yielding two segments which are returned in segLoReturn and
@@ -188,7 +190,7 @@ _`.split.state`: Except as noted above, the segments returned have the
 same properties as ``seg``. That is, their colour, summary, rankset,
 nailedness etc. are set to the values of ``seg``.
 
-``Res SegMerge(Seg *mergedSegReturn, Seg segLo, Seg segHi, Bool withReservoirPermit, ...)``
+``Res SegMerge(Seg *mergedSegReturn, Seg segLo, Seg segHi)``
 
 _`.merge`: If successful, segments ``segLo`` and ``segHi`` are merged
 together, yielding a segment which is returned in mergedSegReturn.
@@ -211,12 +213,10 @@ before calling ``SegMerge()``:
 - _`.merge.inv.similar`: ``segLo`` and ``segHi`` must be sufficiently
   similar. Two segments are sufficiently similar if they have
   identical values for each of the following fields: ``class``,
-  ``sm``, ``grey``, ``white``, ``nailed``, ``rankSet``. Justification:
-  there is no single choice of behaviour for cases where these fields
-  are not identical. The pool class must make it's own choices about
-  this if it wishes to permit more flexible merging. If so, it should
-  be a simple matter for the pool to arrange for the segments to look
-  sufficiently similar before calling ``SegMerge()``.
+  ``grey``, ``white``, ``nailed``, ``rankSet``. Justification: There
+  has yet to be a need to implement default behaviour for these
+  cases. Pool classes should arrange for these values to be the same
+  before calling ``SegMerge()``.
 
 _`.merge.state`: The merged segment will share the same state as
 ``segLo`` and ``segHi`` for those fields which are identical (see
@@ -230,7 +230,7 @@ Extensibility
 Splitting and merging
 .....................
 
-``typedef Res (*SegSplitMethod)(Seg seg, Seg segHi, Addr base, Addr mid, Addr limit, Bool withReservoirPermit)``
+``typedef Res (*SegSplitMethod)(Seg seg, Seg segHi, Addr base, Addr mid, Addr limit)``
 
 _`.method.split`: Segment subclasses may extend the support for
 segment splitting by defining their own "split" method. On entry,
@@ -240,15 +240,15 @@ split. The method is responsible for destructively modifying ``seg``
 and initializing ``segHi`` so that on exit ``seg`` is a segment with
 region ``[base,mid)`` and ``segHi`` is a segment with region
 ``[mid,limit)``. Usually a method would only directly modify the
-fields defined for the segment subclass. This might involve
-allocation, which may use the reservoir if ``withReservoirPermit`` is
-``TRUE``.
+fields defined for the segment subclass.
 
 _`.method.split.next`: A split method should always call the next
 method, either before or after any class-specific code (see
-design.mps.protocol.overview.next-method).
+design.mps.protocol.overview.next-method_).
 
-``typedef Res (*SegMergeMethod)(Seg seg, Seg segHi, Addr base, Addr mid, Addr limit, Bool withReservoirPermit)``
+.. _design.mps.protocol.overview.next-method: protocol#overview.next-method
+
+``typedef Res (*SegMergeMethod)(Seg seg, Seg segHi, Addr base, Addr mid, Addr limit)``
 
 _`.method.merge`: Segment subclasses may extend the support for
 segment merging by defining their own ``merge`` method. On entry,
@@ -257,22 +257,23 @@ segment with region ``[mid,limit)``, The method is responsible for
 destructively modifying ``seg`` and finishing ``segHi`` so that on
 exit ``seg`` is a segment with region ``[base,limit)`` and ``segHi``
 is garbage. Usually a method would only modify the fields defined for
-the segment subclass. This might involve allocation, which may use the
-reservoir if ``withReservoirPermit`` is ``TRUE``.
+the segment subclass.
 
 _`.method.merge.next`: A merge method should always call the next
 method, either before or after any class-specific code (see
-design.mps.protocol.overview.next-method).
+design.mps.protocol.overview.next-method_).
+
+.. _design.mps.protocol.overview.next-method: protocol#overview.next-method
 
 _`.split-merge.shield`: Split and merge methods may assume that the
-segments they are manipulating are not in the shield cache.
+segments they are manipulating are not in the shield queue.
 
-_`.split-merge.shield.flush`: The shield cache is flushed before any
+_`.split-merge.shield.flush`: The shield queue is flushed before any
 split or merge methods are invoked.
 
 _`.split-merge.shield.re-flush`: If a split or merge method performs
-an operation on a segment which might cause the segment to be cached,
-the method must flush the shield cache before returning or calling
+an operation on a segment which might cause the segment to be queued,
+the method must flush the shield queue before returning or calling
 another split or merge method.
 
 _`.split-merge.fail`: Split and merge methods might fail, in which
@@ -283,8 +284,10 @@ method (for example, by allocating any objects early in the method).
 
 _`.split-merge.fail.anti`: If it's not possible to detect failure
 before calling the next method, the appropriate anti-method must be
-used (see design.mps.protocol.guide.fail.after-next). Split methods
+used (see design.mps.protocol.guide.fail.after-next_). Split methods
 are anti-methods for merge methods, and vice-versa.
+
+.. _design.mps.protocol.guide.fail.after-next: protocol#guide.fail.after-next
 
 _`.split-merge.fail.anti.constrain`: In general, care should be taken
 when writing split and merge methods to ensure that they really are

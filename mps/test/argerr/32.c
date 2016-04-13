@@ -1,9 +1,13 @@
 /* 
 TEST_HEADER
  id = $Id$
- summary = wrong 3rd arg to mps_free
+ summary = wrong 3rd arg to mps_free (MFS)
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= poolmfs.c
+ assertcond = size == mfs->unroundedUnitSize
 END_HEADER
 */
 

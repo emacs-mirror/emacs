@@ -28,7 +28,7 @@ design, with reference to more detailed documents.
 
 What makes the critical path critical
 -------------------------------------
-In order to determine which object can be recycled, the garbage
+In order to determine which objects can be recycled, the garbage
 collector has to frequently examine a very large number of pointers in
 the program's objects.  It does this by scanning_ memory, both
 allocated objects and roots (such as the thread stacks).
@@ -55,7 +55,7 @@ unnecessary scanning and fixing.
 Firstly, the MPS must occasionally decide which objects to try to
 recycle.  It does this using various facts it knows about the objects,
 primarily their age and whether they've survived previous attempts at
-recycling them.  It then `"condemns"`_ a large number of objects
+recycling them.  It then "`condemns`_" a large number of objects
 at once, and each of these objects must be "preserved" by fixing
 references to them.
 
@@ -67,16 +67,17 @@ the object or any other data structure.
 The MPS arranges that objects which will probably die at the same time
 are in the same zones.
 
-The MPS allocates in "segments".  Each segment is of the order of one
+The MPS allocates in "segments". Each segment is of the order of one
 "tract" of memory (generally the same as the operating system page
-size, usually 4KiB or 8KiB) but may be larger if there are large
-objects inside.  The MPS maintains a "summary" of the zones pointed to
+size, usually 4 KiB or 8 KiB) but may be larger if there are large
+objects inside. The MPS maintains a "summary" of the zones pointed to
 by all the pointers in a segment from previous scans.
 
 So, once the MPS has decided what to condemn, it can quickly eliminate
-all segments which definitely do not point to anything in those zones. 
-This avoids a large amount of scanning.  It is an implementation of a
-`remembered set`_, though it is unlike that in most other GCs.
+all segments which definitely do not point to anything in those zones.
+This avoids a large amount of scanning. It is an implementation of a
+`remembered set`_, though it is unlike that in most other garbage
+collectors.
 
 In addition, the fix operation can quickly ignore pointers to the wrong
 zones.  This is called the "zone check" and is a BIBOP_ technique.
@@ -104,10 +105,10 @@ Where to find the critical path
 -------------------------------
 Very briefly, the critical path consists of five stages:
 
-#. The scanner, which iterates over pointers in objects.  The MPS has
-   several internal scanners, but the most important ones will be format
-   scanners in client code registered through ``mps_format_create()``
-   functions.
+#. The scanner, which iterates over pointers in objects. The MPS has
+   several internal scanners, but the most important ones will be
+   format scanners in client code registered through
+   ``mps_fmt_create_k()``.
 
    .. note::
 
@@ -118,17 +119,18 @@ Very briefly, the critical path consists of five stages:
    scanner.  This is implemented in ``MPS_FIX()`` macros in
    mps.h_.
 
-.. _mps.h: ../code/mps.h
+   .. _mps.h: ../code/mps.h
 
 #. The second-stage fix, which filters out pointers using general
-   information about segments.  This is ``_mps_fix2`` in
-   `trace.c <../code/trace.c>`_.
+   information about segments. This is ``_mps_fix2()`` in trace.c_.
+
+   .. _trace.c: ../code/trace.c
 
 #. The third-stage fix, which filters out pointers using pool-specific
-   information.  Implemented in pool class functions called ``AMCFix()``,
-   ``LOFix()``, etc. in pool*.c.
+   information. Implemented in pool class functions called
+   ``AMCFix()``, ``LOFix()``, etc. in pool*.c.
    
-#. Preserving the object, which might entail
+#. Preserving the object, which might entail:
 
    - marking_ it to prevent it being recycled; and/or
 
@@ -139,17 +141,15 @@ Very briefly, the critical path consists of five stages:
    - adding it to a queue of objects to be scanned later, if it
      contains pointers.
 
-   Found in or near the pool class fix functions.
-
 
 The format scanner
 ------------------
-The critical path starts when a format scan method is called.  That is a
-call from the MPS to a client function of type ``mps_fmt_scan_t``
-registered with one of the ``mps_format_create()`` functions in mps.h_.
+The critical path starts when a format scan method is called. That is
+a call from the MPS to a client function of type ``mps_fmt_scan_t``
+registered with ``mps_fmt_create_k()``.
 
 Here is an example of part of a format scanner for scanning contiguous
-runs of pointers, from `fmtdy.c <../code/fmtdy.c>`_, the scanner for the `Open Dylan`_
+runs of pointers, from fmtdy.c_, the scanner for the `Open Dylan`_
 runtime::
 
     static mps_res_t dylan_scan_contig(mps_ss_t mps_ss,
@@ -175,6 +175,8 @@ runtime::
       return MPS_RES_OK;
     }
 
+.. _fmtdy.c: ../code/fmtdy.c
+
 (To help with understanding optimisation of this code, it's written in
 a pseudo-assembler style, with one line roughly corresponding to each
 instruction of an idealized intermediate code.)
@@ -188,7 +190,7 @@ remembered set.
 The macros ``MPS_SCAN_BEGIN()`` and ``MPS_SCAN_END()`` load key data
 from the scan state into local variables, and hopefully into processor
 registers. This avoids aliasing values that we know won't change when
-calls are made to ``_mps_fix2`` later, and so allows the compiler to
+calls are made to ``_mps_fix2()`` later, and so allows the compiler to
 keep the scan loop small and avoid unnecessary memory references.
 
 This scanner knows that words not ending in 0b00 aren't pointers to
@@ -213,12 +215,12 @@ away from the tight loop with the zone check.
 to as "fix stage 1" or "the first stage fix" in other documents and
 comments.
 
-If these inline checks pass, ``_mps_fix2`` is called. If the MPS has
+If these inline checks pass, ``_mps_fix2()`` is called. If the MPS has
 been built as a separate object file or library, this is where the
 function call out of the scan loop happens. Since version 1.110 of the
 MPS, we encourage clients to compile the MPS in the same translation
 unit as their format code, so that the compiler can be intelligent
-about inlining parts of ``_mps_fix2`` in the format scanner. The
+about inlining parts of ``_mps_fix2()`` in the format scanner. The
 instructions for doing this are in `Building the Memory Pool System
 <../manual/build.txt>`_, part of the manual.
 
@@ -226,14 +228,15 @@ instructions for doing this are in `Building the Memory Pool System
 The second stage fix in the MPM
 -------------------------------
 If a pointer gets past the first-stage fix filters, it is passed to
-``_mps_fix2``, the "second stage fix".  The second stage can filter out
-yet more pointers using information about segments before it has to
-consult the pool class.
+``_mps_fix2()``, the "second stage fix". The second stage can filter
+out yet more pointers using information about segments before it has
+to consult the pool class.
 
 The first test is to determine if the address points to a *chunk* (a
-contiguous regions of address space managed by the arena). Addresses
+contiguous region of address space managed by the arena). Addresses
 that do not point to any chunk (for example, ambiguous references that
-are not in fact pointers) are rejected immediately.
+are not in fact pointers) are rejected immediately. See
+``ChunkOfAddr()``.
 
 When there are many chunks (that is, when the arena has been extended
 many times), this test can consume the majority of the garbage
@@ -243,16 +246,16 @@ objects when you initialize the arena.
 
 The second test applied is the "tract test". The MPS looks up the
 tract containing the address in the tract table, which is a simple
-linear table indexed by the address shifted -- a kind of flat page
-table.
+linear table indexed by the address shifted---a kind of flat page
+table. See ``TractOfAddr()``.
 
 If the pointer is in an allocated tract, then the table also contains
-a cache of the "white set" -- the set of garbage collection traces for
+a cache of the "white set"---the set of garbage collection traces for
 which the tract is "interesting". If a tract isn't interesting, then
 we know that it contains no condemned objects, and we can filter out
 the pointer.
 
-If the tract is interesting them it's part of a segment containing
+If the tract is interesting, then it's part of a segment containing
 objects that have been condemned. The MPM can't know anything about
 the internal layout of the segment, so at this point we dispatch to
 the third stage fix.
@@ -273,9 +276,8 @@ table entry, and that should be in the cache.
 dispatch to a pool class would indirect through the pool class object.
 That would be a double indirection from the tract, so instead we have
 a cache of the pool's fix method in the pool object. This also allows
-a pool class to vary its fix method per pool instance, a fact that is
-exploited to optimize fixing in the AMC Pool depending on what kind of
-object format it is managing.
+a pool class to vary its fix method per pool instance if that would
+improve performance.
 
 
 The third stage fix in the pool class
@@ -302,16 +304,17 @@ according to its policy, and possibly ensure that the object gets
 scanned at some point in the future, if it contains more pointers.
 
 If the object is moved to preserve it (for instance, if the pool class
-implements a copying GC), or was already moved when fixing a previous
-reference to it, the reference being fixed must be updated (this is
-the origin of the term "fix").
+implements a copying collector), or was already moved when fixing a
+previous reference to it, the reference being fixed must be updated
+(this is the origin of the term "fix").
 
-As a simple example, ``LOFix()`` is the pool fix method for the Leaf
-Only pool class. It implements a marking garbage collector, and does
-not have to worry about scanning preserved objects because it is used
-to store objects that don't contain pointers. (It is used in compiler
-run-time systems to store binary data such as character strings, thus
-avoiding any scanning, decoding, or remembered set overhead for them.)
+As a simple example, ``LOFix()`` is the pool fix method for the LO
+(Leaf Object) pool class. It implements a marking garbage collector,
+and does not have to worry about scanning preserved objects because it
+is used to store objects that don't contain pointers. (It is used in
+compiler run-time systems to store binary data such as character
+strings, thus avoiding any scanning, decoding, or remembered set
+overhead for them.)
 
 ``LOFix()`` filters any ambiguous pointers that aren't aligned, since
 they can't point to objects it allocated. Otherwise it subtracts the
@@ -319,8 +322,9 @@ segment base address and shifts the result to get an index into a mark
 bit table. If the object wasn't marked and the pointer is weak, then
 it sets the pointer to zero, since the object is about to be recycled.
 Otherwise, the mark bit is set, which preserves the object from
-recycling when `LOReclaim` is called later on. `LOFix` illustrates
-about the minimum and most efficient thing a pool fix method can do.
+recycling when ``LOReclaim()`` is called later on. ``LOFix()``
+illustrates about the minimum and most efficient thing a pool fix
+method can do.
 
 
 Other considerations
@@ -355,11 +359,11 @@ References
 .. _scanning: http://www.memorymanagement.org/glossary/s.html#scan
 .. _marking: http://www.memorymanagement.org/glossary/m.html#marking
 .. _copying: http://www.memorymanagement.org/glossary/c.html#copying.garbage.collection
-.. _`"condemns"`: http://www.memorymanagement.org/glossary/c.html#condemned.set
+.. _condemns: http://www.memorymanagement.org/glossary/c.html#condemned.set
 .. _BIBOP: http://www.memorymanagement.org/glossary/b.html#bibop
-.. _`remembered set`: http://www.memorymanagement.org/glossary/r.html#remembered.set
-.. _`reference tag`: http://www.memorymanagement.org/glossary/t.html#tag
-.. _`Open Dylan`: http://opendylan.org/
+.. _remembered set: http://www.memorymanagement.org/glossary/r.html#remembered.set
+.. _reference tag: http://www.memorymanagement.org/glossary/t.html#tag
+.. _Open Dylan: http://opendylan.org/
 
 
 Document History

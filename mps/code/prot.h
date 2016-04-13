@@ -1,35 +1,46 @@
-/* poolamsi.c: AUTOMATIC MARK & SWEEP POOL CLASS C INTERFACE
+/* prot.h: MEMORY PROTECTION INTERFACE
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2014-2016 Ravenbrook Limited.  See end of file for license.
+ *
+ * See <design/prot/> for the design of the generic interface including
+ * the contracts for these functions.
+ *
+ * This interface has several different implementations, typically one
+ * per platform, see <code/prot*.c> for the various implementations,
+ * and <design/prot*> for the corresponding designs.
  */
 
-#include "mpscams.h"
-#include "mps.h"
-#include "poolams.h"
+#ifndef prot_h
+#define prot_h
 
-SRCID(poolamsi, "$Id$");
-
-
-/* mps_class_ams -- return the AMS pool class descriptor */
-
-mps_pool_class_t mps_class_ams(void)
-{
-  return (mps_pool_class_t)AMSPoolClassGet();
-}
+#include "mpmtypes.h"
 
 
-/* mps_class_ams_debug -- return the AMS (debug) pool class descriptor */
+/* Protection Interface */
 
-mps_pool_class_t mps_class_ams_debug(void)
-{
-  return (mps_pool_class_t)AMSDebugPoolClassGet();
-}
+extern void ProtSetup(void);
+extern Size ProtGranularity(void);
+extern void ProtSet(Addr base, Addr limit, AccessSet mode);
+extern void ProtSync(Arena arena);
+
+
+/* Mutator Fault Context */
+
+extern Bool ProtCanStepInstruction(MutatorFaultContext context);
+extern Res ProtStepInstruction(MutatorFaultContext context);
+extern Addr MutatorFaultContextSP(MutatorFaultContext mfc);
+extern Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext mfc,
+                                   mps_area_scan_t scan,
+                                   void *closure);
+
+
+#endif /* prot_h */
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2014-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

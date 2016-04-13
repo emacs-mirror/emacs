@@ -55,7 +55,9 @@ for the big picture.
 
 Other notable components that the MPM manages to integrate into a
 single framework are manually-managed memory and finalization services
-(see design.mps.finalize).
+(see design.mps.finalize_).
+
+.. _design.mps.finalize: finalize
 
 .. note::
 
@@ -154,7 +156,9 @@ _`.refsets.scan`: The refset information is collected during scanning.
 The scan state protocol provides a way for the pool and the format
 scan methods to cooperate in this, and to pass this information to the
 tracer module which checks it and updates the segment (see
-design.mps.scan).
+design.mps.scan_).
+
+.. _design.mps.scan: scan
 
 .. note::
 
@@ -197,7 +201,9 @@ _`.tracer`: The tracer is an engine for implementing multiple garbage
 collection processes. Each process (called a "trace") proceeds
 independently of the others through five phases as described in
 analysis.tracer. The following sections describe how the action of
-each phase fits into the framework. See design.mps.trace for details
+each phase fits into the framework. See design.mps.trace_ for details
+
+.. _design.mps.trace: trace
 
 .. note::
 
@@ -226,9 +232,11 @@ on a given trace.
 
 In each slice, it selects a small amount of work to do, based on the
 state of the trace, and does it, using facilities provided by the
-pools. .trace.scan: A typical unit of work is to scan a single
-segment. The tracer can choose to do this for multiple traces at once,
-provided the segment is grey for more than one trace.
+pools.
+
+_`.trace.scan`: A typical unit of work is to scan a single segment.
+The tracer can choose to do this for multiple traces at once, provided
+the segment is grey for more than one trace.
 
 _`.trace.barrier`: Barrier hits might also cause a need to scan :mps:a
 segment (see `.hw-barriers.hit`_). Again, the tracer can
@@ -258,7 +266,9 @@ is much like allocation)
 
 .. note::
 
-    Soon, this will be handled by segment loci, see design.mps.locus.
+    Soon, this will be handled by segment loci, see design.mps.locus_.
+
+    .. _design.mps.locus: locus
 
 _`.phase.condemn.mutator`: At this point, the mutator might reference
 any objects, that is, it is grey. Allocation can be in any colour,
@@ -299,9 +309,11 @@ flip and because it doesn't cause any copying.
 The flip phase
 ..............
 
-_`.phase.flip`: The roots (see design.mps.root) are scanned. This has
+_`.phase.flip`: The roots (see design.mps.root_) are scanned. This has
 to be an atomic action as far as the mutator is concerned, so all
 threads are suspended for the duration.
+
+.. _design.mps.root: root
 
 _`.phase.flip.mutator`: After this, the mutator is black: if we use a
 strong barrier (analysis.async-gc.strong), this means it cannot refer
@@ -407,8 +419,8 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited. All rights reserved.
-<http://www.ravenbrook.com/>. This is an open source license. Contact
+Copyright © 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
 Redistribution and use in source and binary forms, with or without

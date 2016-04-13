@@ -266,6 +266,25 @@ code for creating the object format for the toy Scheme interpreter::
     } MPS_ARGS_END(args);
     if (res != MPS_RES_OK) error("Couldn't create obj format");
 
+The keyword arguments specify the :term:`alignment` and the
+:term:`format methods` required by the AMC pool class. These are
+described in the following sections.
+
+.. topics::
+
+    :ref:`topic-format`.
+
+
+.. index::
+   single: alignment
+   single: alignment; object
+   single: Scheme; object alignment
+
+.. _guide-lang-alignment:
+
+Alignment
+^^^^^^^^^
+
 The argument for the keyword :c:macro:`MPS_KEY_FMT_ALIGN` is the
 :term:`alignment` of objects belonging to this format. Determining the
 alignment is hard to do portably, because it depends on the target
@@ -294,13 +313,19 @@ memory. Here are some things you might try:
 
         #define ALIGNMENT sizeof(mps_word_t)
 
-The other keyword arguments specify the :term:`format methods`
-required by the AMC pool class, which are described in the following
-sections.
+#. The MPS interface provides the type :c:type:`MPS_PF_ALIGN`, which
+   is the :term:`natural alignment` of the platform: the largest
+   alignment that might be required. So as a last resort, you can
+   use::
 
-.. topics::
+        #define ALIGNMENT MPS_PF_ALIGN
 
-    :ref:`topic-format`.
+   But this may be larger than necessary and so waste space. For
+   example, on Windows on x86-64, :c:type:`MPS_PF_ALIGN` is 16 bytes,
+   but this is only necessary for SSE_ types; ordinary types on this
+   platform require no more than 8-byte alignment.
+
+   .. _SSE: http://msdn.microsoft.com/en-us/library/t467de55.aspx
 
 
 .. index::
@@ -946,29 +971,21 @@ You register a thread with an :term:`arena` by calling
     res = mps_thread_reg(&thread, arena);
     if (res != MPS_RES_OK) error("Couldn't register thread");
 
-You register the thread's registers and control stack as a root by
-calling :c:func:`mps_root_create_reg` and passing
-:c:func:`mps_stack_scan_ambig`::
+You register the thread's :term:`registers` and :term:`control stack`
+as a root by calling :c:func:`mps_root_create_thread`::
 
     void *marker = &marker;
-    mps_root_t reg_root;
-    res = mps_root_create_reg(&reg_root,
-                              arena,
-                              mps_rank_ambig(),
-                              0,
-                              thread,
-                              mps_stack_scan_ambig,
-                              marker,
-                              0);
+    mps_root_t stack_root;
+    res = mps_root_create_thread(&reg_root, arena, thread, marker);
     if (res != MPS_RES_OK) error("Couldn't create root");
 
 In order to scan the control stack, the MPS needs to know where the
-bottom of the stack is, and that's the role of the ``marker``
-variable: the compiler places it on the stack, so its address is a
-position within the stack. As long as you don't exit from this
-function while the MPS is running, your program's active local
-variables will always be higher up on the stack than ``marker``, and
-so will be scanned for references by the MPS.
+:term:`cold end` of the stack is, and that's the role of the
+``marker`` variable: the compiler places it on the stack, so its
+address is a position within the stack. As long as you don't exit from
+this function while the MPS is running, your program's active local
+variables will always be placed on the stack after ``marker``, and so
+will be scanned for references by the MPS.
 
 .. topics::
 

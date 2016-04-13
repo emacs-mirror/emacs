@@ -15,8 +15,7 @@ Free list allocator
 Introduction
 ------------
 
-_`.intro`: This document describes the free list allocator for the
-Memory Pool System.
+_`.intro`: This is the design of the free list allocator.
 
 _`.readership`: Any MPS developer.
 
@@ -133,7 +132,9 @@ Testing
 _`.test`: The following testing will be performed on this module:
 
 _`.test.land`: A generic test for land implementations. See
-design.mps.land.test.
+design.mps.land.test_.
+
+.. _design.mps.land.test: land#design.mps.land.test
 
 _`.test.pool`: Two pools (MVT_ and MVFF_) use free lists as a fallback
 when low on memory. These are subject to testing in development, QA,
@@ -171,8 +172,8 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited. All rights reserved.
-<http://www.ravenbrook.com/>. This is an open source license. Contact
+Copyright © 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
 Redistribution and use in source and binary forms, with or without

@@ -75,10 +75,13 @@ be extra content that is only meaningful to MPS staff, to help us
 diagnose client problems.
 
 While there is some overlap with the Diagnostic Feedback system
-(design.mps.diag) and the Telemetry system (design.mps.telemetry), the
+(design.mps.diag_) and the Telemetry system (design.mps.telemetry_), the
 main contrasts are that these GC messages are present in release
 builds, are stable from release to release, and are designed to be
 parsed by the client program.
+
+.. _design.mps.telemetry: telemetry
+.. _design.mps.diag: diag
 
 
 Names and parts
@@ -314,8 +317,8 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited. All rights reserved.
-<http://www.ravenbrook.com/>. This is an open source license. Contact
+Copyright © 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
 Redistribution and use in source and binary forms, with or without

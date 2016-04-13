@@ -330,9 +330,8 @@ static void *testscriptB(void *arg, size_t s)
   die(mps_ap_create(&ap, amc, mps_rank_exact()), "ap_create");
   
   /* root_stackreg: stack & registers are ambiguous roots = mutator's workspace */
-  die(mps_root_create_reg(&root_stackreg, arena,
-                          mps_rank_ambig(), (mps_rm_t)0, thr,
-                          mps_stack_scan_ambig, &stack_starts_here, 0),
+  die(mps_root_create_thread(&root_stackreg, arena,
+                             thr, &stack_starts_here),
       "root_stackreg");
 
   /* Make myrootCOUNT registered-for-finalization objects. */

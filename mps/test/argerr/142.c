@@ -4,6 +4,10 @@ TEST_HEADER
  summary = null stackpointer for mps_root_create_reg
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= mpsi.c
+ assertcond = cold != NULL
 END_HEADER
 */
 

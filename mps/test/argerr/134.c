@@ -4,6 +4,10 @@ TEST_HEADER
  summary = < AMBIG rank for mps_root_create_reg (with stack scan ambig)
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= mpsi.c
+ assertcond = rank == mps_rank_ambig()
 END_HEADER
 */
 

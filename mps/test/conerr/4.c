@@ -4,6 +4,10 @@ TEST_HEADER
  summary = destroy an arena which contains a pool
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= global.c
+ assertcond =~ RingLength\(&arenaGlobals->poolRing\) == \d+
 END_HEADER
 */
 

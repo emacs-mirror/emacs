@@ -41,18 +41,19 @@ static mps_gen_param_s testChain[genCOUNT] = {
 #define objNULL           ((mps_addr_t)MPS_WORD_CONST(0xDECEA5ED))
 
 
+static mps_arena_t arena;
 static mps_ap_t ap;
 static mps_addr_t exactRoots[exactRootsCOUNT];
 static mps_addr_t ambigRoots[ambigRootsCOUNT];
 static size_t scale;            /* Overall scale factor. */
+static unsigned long nCollsStart;
+static unsigned long nCollsDone;
 
 
 /* report -- report statistics from any messages */
 
-static void report(mps_arena_t arena)
+static void report(void)
 {
-  static int nCollsStart = 0;
-  static int nCollsDone = 0;
   mps_message_type_t type;
     
   while(mps_message_queue_type(&type, arena)) {
@@ -62,7 +63,7 @@ static void report(mps_arena_t arena)
 
     if (type == mps_message_type_gc_start()) {
       nCollsStart += 1;
-      printf("\n{\n  Collection %d started.  Because:\n", nCollsStart);
+      printf("\n{\n  Collection %lu started.  Because:\n", nCollsStart);
       printf("    %s\n", mps_message_gc_start_why(arena, message));
       printf("    clock: %"PRIuLONGEST"\n", (ulongest_t)mps_message_clock(arena, message));
 
@@ -74,7 +75,7 @@ static void report(mps_arena_t arena)
       condemned = mps_message_gc_condemned_size(arena, message);
       not_condemned = mps_message_gc_not_condemned_size(arena, message);
 
-      printf("\n  Collection %d finished:\n", nCollsDone);
+      printf("\n  Collection %lu finished:\n", nCollsDone);
       printf("    live %"PRIuLONGEST"\n", (ulongest_t)live);
       printf("    condemned %"PRIuLONGEST"\n", (ulongest_t)condemned);
       printf("    not_condemned %"PRIuLONGEST"\n", (ulongest_t)not_condemned);
@@ -94,15 +95,19 @@ static void report(mps_arena_t arena)
 
 static mps_addr_t make(size_t rootsCount)
 {
+  static unsigned long calls = 0;
   size_t length = rnd() % (scale * avLEN);
   size_t size = (length+2) * sizeof(mps_word_t);
   mps_addr_t p;
   mps_res_t res;
+  ++ calls;
 
   do {
     MPS_RESERVE_BLOCK(res, p, ap, size);
-    if (res)
+    if (res) {
+      ArenaDescribe(arena, mps_lib_get_stderr(), 4);
       die(res, "MPS_RESERVE_BLOCK");
+    }
     res = dylan_init(p, size, exactRoots, rootsCount);
     if (res)
       die(res, "dylan_init");
@@ -125,8 +130,7 @@ static void test_stepper(mps_addr_t object, mps_fmt_t fmt, mps_pool_t pool,
 
 /* test -- the body of the test */
 
-static void test(mps_arena_t arena, mps_pool_class_t pool_class,
-                 size_t roots_count)
+static void test(mps_pool_class_t pool_class, size_t roots_count)
 {
   mps_fmt_t format;
   mps_chain_t chain;
@@ -167,6 +171,8 @@ static void test(mps_arena_t arena, mps_pool_class_t pool_class,
   /* create an ap, and leave it busy */
   die(mps_reserve(&busy_init, busy_ap, 64), "mps_reserve busy");
 
+  nCollsStart = 0;
+  nCollsDone = 0;
   collections = 0;
   rampSwitch = rampSIZE;
   die(mps_ap_alloc_pattern_begin(ap, ramp), "pattern begin (ap)");
@@ -174,20 +180,18 @@ static void test(mps_arena_t arena, mps_pool_class_t pool_class,
   ramping = 1;
   objs = 0;
   while (collections < collectionsCOUNT) {
-    mps_word_t c;
     size_t r;
 
-    c = mps_collections(arena);
-    if (collections != c) {
+    report();
+    if (collections != nCollsStart) {
       if (!described) {
         die(ArenaDescribe(arena, mps_lib_get_stdout(), 0), "ArenaDescribe");
         described = TRUE;
       }
-      collections = c;
-      report(arena);
+      collections = nCollsStart;
 
-      printf("%lu objects (mps_collections says: %"PRIuLONGEST")\n", objs,
-             (ulongest_t)c);
+      printf("%lu objects (nCollsStart=%"PRIuLONGEST")\n", objs,
+             (ulongest_t)collections);
 
       /* test mps_arena_has_addr */
       {
@@ -274,7 +278,7 @@ static void test(mps_arena_t arena, mps_pool_class_t pool_class,
       *(int*)busy_init = -1; /* check that the buffer is still there */
 
     if (objs % 1024 == 0) {
-      report(arena);
+      report();
       putchar('.');
       (void)fflush(stdout);
     }
@@ -297,7 +301,6 @@ static void test(mps_arena_t arena, mps_pool_class_t pool_class,
 int main(int argc, char *argv[])
 {
   size_t i, grainSize;
-  mps_arena_t arena;
   mps_thr_t thread;
 
   testlib_init(argc, argv);
@@ -314,12 +317,11 @@ int main(int argc, char *argv[])
   } MPS_ARGS_END(args);
   mps_message_type_enable(arena, mps_message_type_gc());
   mps_message_type_enable(arena, mps_message_type_gc_start());
-  die(mps_arena_commit_limit_set(arena, scale * testArenaSIZE), "set limit");
   die(mps_thread_reg(&thread, arena), "thread_reg");
-  test(arena, mps_class_amc(), exactRootsCOUNT);
-  test(arena, mps_class_amcz(), 0);
+  test(mps_class_amc(), exactRootsCOUNT);
+  test(mps_class_amcz(), 0);
   mps_thread_dereg(thread);
-  report(arena);
+  report();
   mps_arena_destroy(arena);
 
   printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
