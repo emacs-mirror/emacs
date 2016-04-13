@@ -549,7 +549,7 @@ static Res SNCFramePush(AllocFrame *frameReturn, Pool pool, Buffer buf)
     Res res;
     Addr base, limit;
     BufferDetach(buf, pool);
-    res = SNCBufferFill(&base, &limit, pool, buf, PoolAlignment(pool), FALSE);
+    res = SNCBufferFill(&base, &limit, pool, buf, PoolAlignment(pool));
     if (res != ResOK)
       return res;
     BufferAttach(buf, base, limit, base, 0);
