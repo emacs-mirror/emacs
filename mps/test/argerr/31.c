@@ -1,9 +1,13 @@
 /* 
 TEST_HEADER
  id = $Id$
- summary = zero 3rd arg to mps_free
+ summary = zero 3rd arg to mps_free (MFS)
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= mpsi.c
+ assertcond = size > 0
 END_HEADER
 */
 

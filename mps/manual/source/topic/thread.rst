@@ -47,8 +47,8 @@ see :ref:`topic-root-thread`).
 For simplicity, we recommend that a thread must be registered with an
 :term:`arena` if:
 
-* its registers and control stack form a root (this is enforced by
-  :c:func:`mps_root_create_reg`); or
+* its :term:`control stack` and :term:`registers` form a root (this is
+  enforced by :c:func:`mps_root_create_thread`); or
 
 * it reads or writes from a location in an :term:`automatically managed
   <automatic memory management>` :term:`pool` in the arena.
@@ -100,6 +100,7 @@ Signal and exception handling issues
     for co-operating: if you are in this situation, please :ref:`contact
     us <contact>`.
 
+
 .. index::
    single: thread; interface
 
@@ -116,8 +117,9 @@ Thread interface
     as necessary in order to have exclusive access to their state.
 
     Even in a single-threaded environment it may be necessary to
-    register a thread with the MPS so that its stack can be registered
-    as a :term:`root` by calling :c:func:`mps_root_create_reg`.
+    register a thread with the MPS so that its :term:`control stack`
+    and :term:`registers` can be registered as a :term:`root` by
+    calling :c:func:`mps_root_create_thread`.
 
 
 .. c:function:: mps_res_t mps_thread_reg(mps_thr_t *thr_o, mps_arena_t arena)
@@ -142,6 +144,9 @@ Thread interface
         It is recommended that all threads be registered with all
         arenas.
 
+    It is an error if a thread terminates while it is registered. The
+    client program must call :c:func:`mps_thread_dereg` first.
+
 
 .. c:function:: void mps_thread_dereg(mps_thr_t thr)
 
@@ -164,47 +169,3 @@ Thread interface
 
         It is recommended that threads be deregistered only when they
         are just about to exit.
-
-
-.. c:function:: void mps_tramp(void **r_o, mps_tramp_t f, void *p, size_t s)
-
-    .. deprecated:: starting with version 1.111.
-
-    Call a function via the MPS trampoline.
-
-    ``r_o`` points to a location that will store the result of calling
-    ``f``.
-
-    ``f`` is the function to call.
-
-    ``p`` and ``s`` are arguments that will be passed to ``f`` each
-    time it is called. This is intended to make it easy to pass, for
-    example, an array and its size as parameters.
-
-    The MPS relies on :term:`barriers (1)` to protect memory
-    that is in an inconsistent state. On some operating systems,
-    barrier hits generate exceptions that have to be caught by a
-    handler that is on the stack. On these operating systems, any code
-    that uses memory managed by the MPS must be called from inside
-    such an exception handler, that is, inside a call to
-    :c:func:`mps_tramp`.
-
-    If you have multiple threads that run code that uses memory
-    managed by the MPS, each thread must execute such code inside a
-    call to :c:func:`mps_tramp`.
-    
-    Starting with version 1.111, this is not required on any operating
-    system supported by the MPS.
-
-
-.. index::
-   single: trampoline
-
-.. c:type:: void *(*mps_tramp_t)(void *p, size_t s)
-
-    .. deprecated:: starting with version 1.111.
-
-    The type of a function called by :c:func:`mps_tramp`.
-
-    ``p`` and ``s`` are the corresponding arguments that were passed
-    to :c:func:`mps_tramp`.

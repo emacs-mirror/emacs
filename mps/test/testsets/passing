@@ -1,5 +1,6 @@
-% Test status on OS X
-% $Id$
+% This testset contains all the "function" test cases that pass in
+% both the cool and hot varieties, together with comments explaining
+% why the other test cases fail.
 
 function/0.c
 function/1.c
@@ -70,9 +71,9 @@ function/66.c
 function/67.c
 % function/68.c -- infinite loop
 function/69.c
-function/70.c
+% function/70.c -- interactive test, no point in running unattended
 function/71.c
-function/72.c
+% function/72.c -- fails in hot variety (assertion is on the critical path)
 function/73.c
 function/74.c
 function/75.c
@@ -120,8 +121,7 @@ function/128.c
 function/129.c
 % function/130.c -- job003789
 % function/131.c -- job003789
-% function/132.c -- job003869
-function/133.c
+% 132-133 -- no such test
 function/134.c
 function/135.c
 function/136.c
@@ -134,7 +134,7 @@ function/144.c
 % 145-146 -- no such test
 function/147.c
 % function/148.c -- failed on inc4: wanted = 1, was 0 @@@@
-function/149.c
+% 149 -- no such test
 function/150.c
 function/151.c
 function/152.c
@@ -167,3 +167,7 @@ function/223.c
 function/224.c
 % 225 -- no such test
 function/226.c
+function/227.c
+function/228.c
+function/229.c
+function/231.c

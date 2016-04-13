@@ -111,9 +111,6 @@ int (mps_lib_memcmp)(const void *s1, const void *s2, size_t n)
 }
 
 
-/* @@@@ Platform specific conversion? */
-/* See http://devworld.apple.com/dev/techsupport/insidemac/OSUtilities/OSUtilities-94.html#MARKER-9-32 */
-
 /* If your platform has a low-resolution clock(), and there are
  * higher-resolution clocks readily available, then using one of those
  * will improve MPS scheduling decisions and the quality of telemetry

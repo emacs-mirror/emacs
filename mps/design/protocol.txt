@@ -417,7 +417,7 @@ failure-case code for an "init" method, making use of the "finish"
 anti-method::
 
     static Res mySegInit(Seg seg, Pool pool, Addr base, Size size, 
-                         Bool reservoirPermit, va_list args)
+                         ArgList args)
     {
         SegClass super;
         MYSeg myseg;
@@ -437,12 +437,12 @@ anti-method::
 
         /* Initialize the superclass fields first via next-method call */
         super = (SegClass)SUPERCLASS(MYSegClass);
-        res = super->init(seg, pool, base, size, reservoirPermit, args);
+        res = super->init(seg, pool, base, size, args);
         if(res != ResOK)
           goto failNextMethods;
 
         /* Create an object after the next-method call */
-        res = ControlAlloc(&obj1, arena, sizeof(OBJ1Struct), reservoirPermit);
+        res = ControlAlloc(&obj1, arena, sizeof(OBJ1Struct));
         if(res != ResOK)
           goto failObj1;
 
@@ -519,7 +519,9 @@ macro uses a global recursive lock instead. The lock is only claimed
 after an initial unlocked access of the guard variable shows that the
 class is not initialized. This avoids any locking overhead for the
 common case where the class is already initialized. This lock is
-provided by the lock module -- see design.mps.lock(0).
+provided by the lock module -- see design.mps.lock_.
+
+.. _design.mps.lock: lock
 
 
 Document History
@@ -538,8 +540,8 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited. All rights reserved.
-<http://www.ravenbrook.com/>. This is an open source license. Contact
+Copyright © 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
 Redistribution and use in source and binary forms, with or without

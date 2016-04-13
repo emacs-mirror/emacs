@@ -58,8 +58,10 @@ diagnostics compiled-in. Currently, that means variety.cool. See
 
 There are two mechanism for getting diagnostic output:
 
-#. Automatically via the telemetry system. See design.mps.telemetry,
+#. Automatically via the telemetry system. See design.mps.telemetry_,
    and the "Telemetry" chapter in the manual.
+
+   .. _design.mps.telemetry: telemetry
 
 #. Manually via the debugger. In the debugger, set break points at the
    places where you want to inspect data structures (or wait for the
@@ -147,13 +149,15 @@ systems:
   additional events containing diagnostic information. Additionally,
   the telemetry-log-events stream might in future be available as a
   channel for emitting human-readable text diagnostics. See also
-  design.mps.telemetry.
-       
+  design.mps.telemetry_.
+
 - The MPS message system. This is present in all varieties, and
   manages asynchronous communication from the MPS to the client
   program). However, the MPS message system might in future also be
   available as a channel for emitting diagnostics. See also
-  design.mps.message.
+  design.mps.message_.
+
+  .. _design.mps.message: message
 
 
 
@@ -189,8 +193,8 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited. All rights reserved.
-<http://www.ravenbrook.com/>. This is an open source license. Contact
+Copyright © 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
 Redistribution and use in source and binary forms, with or without

@@ -4,6 +4,8 @@ TEST_HEADER
  summary = allocate in uncreated AP
  language = c
  link = myfmt.o testlib.o
+OUTPUT_SPEC
+ abort = true
 END_HEADER
 */
 
@@ -27,7 +29,7 @@ static void test(void)
 
  mps_chain_t chain;
  mps_fmt_t format;
- mps_ap_t ap;
+ mps_ap_t ap = (mps_ap_t)1;
 
  cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE), "create arena");
 

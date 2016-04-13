@@ -1,30 +1,33 @@
 # -*- makefile -*-
 #
-# lii3gc.gmk: BUILD FOR LINUX/INTEL/GCC PLATFORM
+# lii3gc.gmk: BUILD FOR LINUX/x86/GCC PLATFORM
 #
 # $Id$
-# Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+# Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
 
 PFM = lii3gc
 
-THREADSRC = lockli.c thix.c pthrdext.c
-THREADLIB = -lpthread
+MPMPF = \
+    lockli.c \
+    prmci3li.c \
+    proti3.c \
+    protix.c \
+    protli.c \
+    pthrdext.c \
+    span.c \
+    ssixi3.c \
+    thix.c \
+    vmix.c
 
-MPMPF = ${THREADSRC} vmix.c \
-        protix.c protli.c proti3.c prmci3li.c ssixi3.c span.c
-
-LIBS = -lm ${THREADLIB}
+LIBS = -lm -lpthread
 
 include gc.gmk
-
-CC = cc
-
 include comm.gmk
 
 
 # C. COPYRIGHT AND LICENSE
 #
-# Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+# Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
 # All rights reserved.  This is an open source license.  Contact
 # Ravenbrook for commercial licensing options.
 # 

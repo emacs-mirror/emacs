@@ -108,7 +108,6 @@ Bool GlobalsCheck(Globals arenaGlobals)
   TraceId ti;
   Trace trace;
   Index i;
-  Size depth;
   RefSet rs;
   Rank rank;
 
@@ -153,21 +152,9 @@ Bool GlobalsCheck(Globals arenaGlobals)
   }
 
   CHECKD_NOSIG(Ring, &arena->threadRing);
+  CHECKD_NOSIG(Ring, &arena->deadRing);
 
-  CHECKL(BoolCheck(arena->insideShield));
-  CHECKL(arena->shCacheLimit <= ShieldCacheSIZE);
-  CHECKL(arena->shCacheI < arena->shCacheLimit);
-  CHECKL(BoolCheck(arena->suspended));
-
-  depth = 0;
-  for (i = 0; i < arena->shCacheLimit; ++i) {
-    Seg seg = arena->shCache[i];
-    if (seg != NULL) {
-      CHECKD(Seg, seg);
-      depth += SegDepth(seg);
-    }
-  }
-  CHECKL(depth <= arena->shDepth);
+  CHECKD(Shield, ArenaShield(arena));
 
   CHECKL(TraceSetCheck(arena->busyTraces));
   CHECKL(TraceSetCheck(arena->flippedTraces));
@@ -189,7 +176,7 @@ Bool GlobalsCheck(Globals arenaGlobals)
     CHECKD_NOSIG(Ring, &arena->greyRing[rank]);
   CHECKD_NOSIG(Ring, &arena->chainRing);
 
-  CHECKL(arena->tracedSize >= 0.0);
+  CHECKL(arena->tracedWork >= 0.0);
   CHECKL(arena->tracedTime >= 0.0);
   /* no check for arena->lastWorldCollect (Clock) */
 
@@ -214,6 +201,8 @@ Bool GlobalsCheck(Globals arenaGlobals)
   CHECKL(RingCheck(&arenaRing));
 
   CHECKL(BoolCheck(arena->emergency));
+  /* There can only be an emergency when a trace is busy. */
+  CHECKL(!arena->emergency || arena->busyTraces != TraceSetEMPTY);
   
   if (arenaGlobals->defaultChain != NULL)
     CHECKD(Chain, arenaGlobals->defaultChain);
@@ -277,6 +266,7 @@ Res GlobalsInit(Globals arenaGlobals)
   arenaGlobals->rememberedSummaryIndex = 0;
 
   RingInit(&arena->threadRing);
+  RingInit(&arena->deadRing);
   arena->threadSerial = (Serial)0;
   RingInit(&arena->formatRing);
   arena->formatSerial = (Serial)0;
@@ -287,16 +277,10 @@ Res GlobalsInit(Globals arenaGlobals)
   arena->finalPool = NULL;
   arena->busyTraces = TraceSetEMPTY;    /* <code/trace.c> */
   arena->flippedTraces = TraceSetEMPTY; /* <code/trace.c> */
-  arena->tracedSize = 0.0;
+  arena->tracedWork = 0.0;
   arena->tracedTime = 0.0;
   arena->lastWorldCollect = ClockNow();
-  arena->insideShield = FALSE;          /* <code/shield.c> */
-  arena->shCacheI = (Size)0;
-  arena->shCacheLimit = (Size)1;
-  arena->shDepth = (Size)0;
-  arena->suspended = FALSE;
-  for(i = 0; i < ShieldCacheSIZE; i++)
-    arena->shCache[i] = NULL;
+  ShieldInit(ArenaShield(arena));
 
   for (ti = 0; ti < TraceLIMIT; ++ti) {
     /* <design/arena/#trace.invalid> */
@@ -350,7 +334,7 @@ Res GlobalsCompleteCreate(Globals arenaGlobals)
   {
     void *v;
 
-    res = ControlAlloc(&v, arena, BTSize(MessageTypeLIMIT), FALSE);
+    res = ControlAlloc(&v, arena, BTSize(MessageTypeLIMIT));
     if (res != ResOK)
       return res;
     arena->enabledMessageTypes = v;
@@ -364,7 +348,7 @@ Res GlobalsCompleteCreate(Globals arenaGlobals)
       return res;
   TRACE_SET_ITER_END(ti, trace, TraceSetUNIV, arena);
 
-  res = ControlAlloc(&p, arena, LockSize(), FALSE);
+  res = ControlAlloc(&p, arena, LockSize());
   if (res != ResOK)
     return res;
   arenaGlobals->lock = (Lock)p;
@@ -401,10 +385,12 @@ void GlobalsFinish(Globals arenaGlobals)
 
   arenaGlobals->sig = SigInvalid;
 
+  ShieldFinish(ArenaShield(arena));
   RingFinish(&arena->formatRing);
   RingFinish(&arena->chainRing);
   RingFinish(&arena->messageRing);
   RingFinish(&arena->threadRing);
+  RingFinish(&arena->deadRing);
   for(rank = RankMIN; rank < RankLIMIT; ++rank)
     RingFinish(&arena->greyRing[rank]);
   RingFinish(&arenaGlobals->rootRing);
@@ -432,13 +418,14 @@ void GlobalsPrepareToDestroy(Globals arenaGlobals)
   ArenaPark(arenaGlobals);
 
   arena = GlobalsArena(arenaGlobals);
+
   arenaDenounce(arena);
 
   defaultChain = arenaGlobals->defaultChain;
   arenaGlobals->defaultChain = NULL;
   ChainDestroy(defaultChain);
 
-  LockReleaseMPM(arenaGlobals->lock);
+  LockRelease(arenaGlobals->lock);
   /* Theoretically, another thread could grab the lock here, but it's */
   /* not worth worrying about, since an attempt after the lock has been */
   /* destroyed would lead to a crash just the same. */
@@ -483,6 +470,8 @@ void GlobalsPrepareToDestroy(Globals arenaGlobals)
     PoolDestroy(pool);
   }
 
+  ShieldDestroyQueue(ArenaShield(arena), arena);
+
   /* Check that the tear-down is complete: that the client has
    * destroyed all data structures associated with the arena. We do
    * this here rather than in GlobalsFinish because by the time that
@@ -495,18 +484,18 @@ void GlobalsPrepareToDestroy(Globals arenaGlobals)
   AVER(RingIsSingle(&arena->chainRing));
   AVER(RingIsSingle(&arena->messageRing));
   AVER(RingIsSingle(&arena->threadRing));
+  AVER(RingIsSingle(&arena->deadRing));
   AVER(RingIsSingle(&arenaGlobals->rootRing));
   for(rank = RankMIN; rank < RankLIMIT; ++rank)
     AVER(RingIsSingle(&arena->greyRing[rank]));
 
   /* At this point the following pools still exist:
    * 0. arena->freeCBSBlockPoolStruct
-   * 1. arena->reservoirStruct
-   * 2. arena->controlPoolStruct
-   * 3. arena->controlPoolStruct.blockPoolStruct
-   * 4. arena->controlPoolStruct.spanPoolStruct
+   * 1. arena->controlPoolStruct
+   * 2. arena->controlPoolStruct.blockPoolStruct
+   * 3. arena->controlPoolStruct.spanPoolStruct
    */
-  AVER(RingLength(&arenaGlobals->poolRing) == 5);
+  AVER(RingLength(&arenaGlobals->poolRing) == 4);
 }
 
 
@@ -548,7 +537,7 @@ void ArenaEnterLock(Arena arena, Bool recursive)
   } else {
     LockClaim(lock);
   }
-  AVERT(Arena, arena); /* can't AVER it until we've got the lock */
+  AVERT(Arena, arena); /* can't AVERT it until we've got the lock */
   if(recursive) {
     /* already in shield */
   } else {
@@ -591,7 +580,7 @@ void ArenaLeaveLock(Arena arena, Bool recursive)
   if(recursive) {
     LockReleaseRecursive(lock);
   } else {
-    LockReleaseMPM(lock);
+    LockRelease(lock);
   }
   return;
 }
@@ -653,7 +642,8 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
         res = PoolAccess(SegPool(seg), seg, addr, mode, context);
         AVER(res == ResOK); /* Mutator can't continue unless this succeeds */
       } else {
-        /* Protection was already cleared: nothing to do now. */
+        /* Protection was already cleared, for example by another thread
+           or a fault in a nested exception handler: nothing to do now. */
       }
       EVENT4(ArenaAccess, arena, count, addr, mode);
       ArenaLeave(arena);
@@ -703,9 +693,8 @@ void (ArenaPoll)(Globals globals)
 {
   Arena arena;
   Clock start;
-  Count quanta;
-  Size tracedSize;
-  double nextPollThreshold = 0.0;
+  Bool moreWork, workWasDone = FALSE;
+  Work tracedWork;
 
   AVERT(Globals, globals);
 
@@ -713,98 +702,41 @@ void (ArenaPoll)(Globals globals)
     return;
   if (globals->insidePoll)
     return;
-  if(globals->fillMutatorSize < globals->pollThreshold)
+  arena = GlobalsArena(globals);
+  if (!PolicyPoll(arena))
     return;
 
   globals->insidePoll = TRUE;
 
   /* fillMutatorSize has advanced; call TracePoll enough to catch up. */
-  arena = GlobalsArena(globals);
   start = ClockNow();
-  quanta = 0;
 
-  EVENT3(ArenaPoll, arena, start, 0);
+  EVENT3(ArenaPoll, arena, start, FALSE);
 
-  while(globals->pollThreshold <= globals->fillMutatorSize) {
-    tracedSize = TracePoll(globals);
-
-    if(tracedSize == 0) {
-      /* No work to do.  Sleep until NOW + a bit. */
-      nextPollThreshold = globals->fillMutatorSize + ArenaPollALLOCTIME;
-    } else {
-      /* We did one quantum of work; consume one unit of 'time'. */
-      quanta += 1;
-      arena->tracedSize += tracedSize;
-      nextPollThreshold = globals->pollThreshold + ArenaPollALLOCTIME;
+  do {
+    moreWork = TracePoll(&tracedWork, globals);
+    if (moreWork) {
+      workWasDone = TRUE;
     }
-
-    /* Advance pollThreshold; check: enough precision? */
-    AVER(nextPollThreshold > globals->pollThreshold);
-    globals->pollThreshold = nextPollThreshold;
-  }
+  } while (PolicyPollAgain(arena, start, moreWork, tracedWork));
 
   /* Don't count time spent checking for work, if there was no work to do. */
-  if(quanta > 0) {
-    arena->tracedTime += (ClockNow() - start) / (double) ClocksPerSec();
+  if (workWasDone) {
+    ArenaAccumulateTime(arena, start, ClockNow());
   }
 
-  AVER(globals->fillMutatorSize < globals->pollThreshold);
-
-  EVENT3(ArenaPoll, arena, start, quanta);
+  EVENT3(ArenaPoll, arena, start, BOOLOF(workWasDone));
 
   globals->insidePoll = FALSE;
 }
 
-/* Work out whether we have enough time here to collect the world,
- * and whether much time has passed since the last time we did that
- * opportunistically. */
-static Bool arenaShouldCollectWorld(Arena arena,
-                                    double interval,
-                                    double multiplier,
-                                    Clock now,
-                                    Clock clocks_per_sec)
-{
-  double scanRate;
-  Size arenaSize;
-  double arenaScanTime;
-  double sinceLastWorldCollect;
 
-  /* don't collect the world if we're not given any time */
-  if ((interval > 0.0) && (multiplier > 0.0)) {
-    /* don't collect the world if we're already collecting. */
-    if (arena->busyTraces == TraceSetEMPTY) {
-      /* don't collect the world if it's very small */
-      arenaSize = ArenaCommitted(arena) - ArenaSpareCommitted(arena);
-      if (arenaSize > 1000000) {
-        /* how long would it take to collect the world? */
-        if ((arena->tracedSize > 1000000.0) &&
-            (arena->tracedTime > 1.0))
-          scanRate = arena->tracedSize / arena->tracedTime;
-        else
-          scanRate = 25000000.0; /* a reasonable default. */
-        arenaScanTime = arenaSize / scanRate;
-        arenaScanTime += 0.1;   /* for overheads. */
-
-        /* how long since we last collected the world? */
-        sinceLastWorldCollect = ((now - arena->lastWorldCollect) /
-                                 (double) clocks_per_sec);
-        /* have to be offered enough time, and it has to be a long time
-         * since we last did it. */
-        if ((interval * multiplier > arenaScanTime) &&
-            sinceLastWorldCollect > arenaScanTime * 10.0) {
-          return TRUE;
-        }
-      }
-    }
-  }
-  return FALSE;
-}
+/* ArenaStep -- use idle time for collection work */
 
 Bool ArenaStep(Globals globals, double interval, double multiplier)
 {
-  Size scanned;
-  Bool stepped;
-  Clock start, end, now;
+  Bool workWasDone = FALSE;
+  Clock start, intervalEnd, availableEnd, now;
   Clock clocks_per_sec;
   Arena arena;
 
@@ -815,39 +747,45 @@ Bool ArenaStep(Globals globals, double interval, double multiplier)
   arena = GlobalsArena(globals);
   clocks_per_sec = ClocksPerSec();
 
-  start = ClockNow();
-  end = start + (Clock)(interval * clocks_per_sec);
-  AVER(end >= start);
-
-  stepped = FALSE;
-
-  if (arenaShouldCollectWorld(arena, interval, multiplier,
-                              start, clocks_per_sec))
-  {
-    Res res;
-    Trace trace;
-    res = TraceStartCollectAll(&trace, arena, TraceStartWhyOPPORTUNISM);
-    if (res == ResOK) {
-      arena->lastWorldCollect = start;
-      stepped = TRUE;
-    }
-  }
+  start = now = ClockNow();
+  intervalEnd = start + (Clock)(interval * clocks_per_sec);
+  AVER(intervalEnd >= start);
+  availableEnd = start + (Clock)(interval * multiplier * clocks_per_sec);
+  AVER(availableEnd >= start);
 
   /* loop while there is work to do and time on the clock. */
   do {
-    scanned = TracePoll(globals);
-    now = ClockNow();
-    if (scanned > 0) {
-      stepped = TRUE;
-      arena->tracedSize += scanned;
+    Trace trace;
+    if (arena->busyTraces != TraceSetEMPTY) {
+      trace = ArenaTrace(arena, (TraceId)0);
+    } else {
+      /* No traces are running: consider collecting the world. */
+      if (PolicyShouldCollectWorld(arena, (double)(availableEnd - now), now,
+                                   clocks_per_sec))
+      {
+        Res res;
+        res = TraceStartCollectAll(&trace, arena, TraceStartWhyOPPORTUNISM);
+        if (res != ResOK)
+          break;
+        arena->lastWorldCollect = now;
+      } else {
+        /* Not worth collecting the world; consider starting a trace. */
+        if (!PolicyStartTrace(&trace, arena))
+          break;
+      }
     }
-  } while ((scanned > 0) && (now < end));
+    TraceAdvance(trace);
+    if (trace->state == TraceFINISHED)
+      TraceDestroyFinished(trace);
+    workWasDone = TRUE;
+    now = ClockNow();
+  } while (now < intervalEnd);
 
-  if (stepped) {
-    arena->tracedTime += (now - start) / (double) clocks_per_sec;
+  if (workWasDone) {
+    ArenaAccumulateTime(arena, start, now);
   }
 
-  return stepped;
+  return workWasDone;
 }
 
 /* ArenaFinalize -- registers an object for finalization
@@ -857,17 +795,19 @@ Bool ArenaStep(Globals globals, double interval, double multiplier)
 Res ArenaFinalize(Arena arena, Ref obj)
 {
   Res res;
+  Pool refpool;
 
   AVERT(Arena, arena);
-  AVER(ArenaHasAddr(arena, (Addr)obj));
+  AVER(PoolOfAddr(&refpool, arena, (Addr)obj));
+  AVER(PoolHasAttr(refpool, AttrGC));
 
   if (!arena->isFinalPool) {
-    Pool pool;
+    Pool finalpool;
 
-    res = PoolCreate(&pool, arena, PoolClassMRG(), argsNone);
+    res = PoolCreate(&finalpool, arena, PoolClassMRG(), argsNone);
     if (res != ResOK)
       return res;
-    arena->finalPool = pool;
+    arena->finalPool = finalpool;
     arena->isFinalPool = TRUE;
   }
 
@@ -1044,7 +984,6 @@ Res GlobalsDescribe(Globals arenaGlobals, mps_lib_FILE *stream, Count depth)
                "rootSerial $U\n", (WriteFU)arenaGlobals->rootSerial,
                "formatSerial $U\n", (WriteFU)arena->formatSerial,
                "threadSerial $U\n", (WriteFU)arena->threadSerial,
-               arena->insideShield ? "inside" : "outside", " shield\n",
                "busyTraces    $B\n", (WriteFB)arena->busyTraces,
                "flippedTraces $B\n", (WriteFB)arena->flippedTraces,
                "epoch $U\n", (WriteFU)arena->epoch,
@@ -1063,13 +1002,7 @@ Res GlobalsDescribe(Globals arenaGlobals, mps_lib_FILE *stream, Count depth)
       return res;
   }
 
-  res = WriteF(stream, depth,
-               "} history\n",
-               "suspended $S\n", WriteFYesNo(arena->suspended),
-               "shDepth $U\n", (WriteFU)arena->shDepth,
-               "shCacheI $U\n", (WriteFU)arena->shCacheI,
-               /* @@@@ should SegDescribe the cached segs? */
-               NULL);
+  res = ShieldDescribe(ArenaShield(arena), stream, depth);
   if (res != ResOK)
     return res;
 

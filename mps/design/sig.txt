@@ -34,7 +34,7 @@ checking and dynamic scope checking. They are a simplified form of
 "Structure Marking", a technique used in the Multics filesystem
 [THVV_1995]_.
 
-.. _`magic numbers`: http://en.wikipedia.org/wiki/Magic_number_(programming)
+.. _`magic numbers`: https://en.wikipedia.org/wiki/Magic_number_(programming)
 
 
 Definitions
@@ -101,18 +101,24 @@ Do not do anything else with signatures.  See `.rule.purpose`_.
 
 Checking
 --------
-The signature is checked in various ways.  Every function that takes a
-(pointer to) a signed structure should check its argument using the
-``AVERT`` macro.  This macro has different definitions depending on how
-the MPS is compiled (see design.mps.config.def.var_).  It may simply check
-the signature directly, or call the full checking function for the
-structure.
+_`.check.arg`: Every function that takes a pointer to a signed
+structure should check its argument.
+
+_`.check.arg.unlocked`: A function that does not hold the arena lock
+should check the argument using ``AVER(TESTT(type, val))``, which
+checks that ``val->sig`` is the correct signature for ``type``.
+
+_`.check.arg.locked`: A function that holds the arena lock should
+check the argument using the ``AVERT`` macro. This macro has different
+definitions depending on how the MPS is compiled (see
+design.mps.config.def.var_). It may simply check the signature, or
+call the full checking function for the structure.
 
 .. _design.mps.config.def.var: config#def-var
 
-The checking function for the structure should also validate the
-signature as its first step using the ``CHECKS()`` macro (see
-check.h_). For example::
+_`.check.sig`: The checking function for the structure should also
+validate the signature as its first step using the ``CHECKS()`` macro
+(see check.h_). For example::
 
     Bool MessageCheck(Message message)
     {
@@ -126,6 +132,7 @@ wrong type, an uninitialized object, or a dead object, or a random
 pointer into a function.
 
 .. _check.h: ../code/check.h
+
 
 Rules
 -----
@@ -170,8 +177,8 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited. All rights reserved.
-<http://www.ravenbrook.com/>. This is an open source license. Contact
+Copyright © 2013-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
 Redistribution and use in source and binary forms, with or without

@@ -35,11 +35,11 @@ mkdir %LOGDIR%
 
 @rem Determine which tests to run.
 set EXCLUDE=
-if "%TESTSUITE%"=="testrun"  set EXCLUDE=LNX
-if "%TESTSUITE%"=="testci"   set EXCLUDE=BNX
-if "%TESTSUITE%"=="testall"  set EXCLUDE=NX
-if "%TESTSUITE%"=="testansi" set EXCLUDE=LNTX
-if "%TESTSUITE%"=="testpoll" set EXCLUDE=LNPTX
+if "%TESTSUITE%"=="testrun"      set EXCLUDE=LNX
+if "%TESTSUITE%"=="testci"       set EXCLUDE=BNX
+if "%TESTSUITE%"=="testall"      set EXCLUDE=NX
+if "%TESTSUITE%"=="testansi"     set EXCLUDE=LNTX
+if "%TESTSUITE%"=="testpollnone" set EXCLUDE=LNPTX
 
 @rem Ensure that test cases don't pop up dialog box on abort()
 set MPS_TESTLIB_NOABORT=true

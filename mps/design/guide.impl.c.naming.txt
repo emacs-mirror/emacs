@@ -19,7 +19,7 @@ Introduction
 ------------
 
 _`.scope`: This document describes the conventions for naming in C
-source code that's internal in the MPS. See `design.mps.interface-c`_
+source code that's internal in the MPS. See design.mps.interface-c_
 for the corresponding conventions for the public interface.
 
 .. _design.mps.interface-c: interface-c
@@ -72,11 +72,11 @@ _`.suffix.struct`: The type of a structure must be the same as the
 structure tag, and must consist of the type of the pointer to the
 structure concatenated with ``Struct``. For example, ``ArenaStruct``.
 
-_`.suffix.union`: The type of a structure must be the same as the
-structure tag, and must consist of the type of the pointer to the
-structure concatenated with ``Union``. For example, ``PageUnion``.
+_`.suffix.union`: The type of a union must be the same as the union
+tag, and must consist of the type of the pointer to the union
+concatenated with ``Union``. For example, ``PageUnion``.
 
-_`.suffix.class`: The type of a class (see `design.mps.protocol`_)
+_`.suffix.class`: The type of a class (see design.mps.protocol_)
 must end with ``Class``. For example, ``ArenaClass``.
 
 .. _design.mps.protocol: protocol
@@ -91,8 +91,8 @@ _`.suffix.function`: The type of other functions must end with
 ``Function``. For example, ``TreeKeyFunction``.
 
 
-History
--------
+Document History
+----------------
 
 - 2014-10-07  GDR_  Created based on job003693_.
 

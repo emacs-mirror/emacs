@@ -1,26 +1,73 @@
 .. mode: -*- rst -*-
 
-The protection module
-=====================
+Memory protection
+=================
 
 :Tag: design.mps.prot
 :Author: David Jones
 :Date: 1997-04-02
-:Status: incomplete document
+:Status: complete design
 :Revision: $Id$
 :Copyright: See `Copyright and License`_.
-:Index terms: pair: protection interface; design
+:Index terms: pair: memory protection; design
 
 
 Introduction
 ------------
 
-_`.intro`: This is the generic design of the Protection Module. The
-protection module provides protection services to other parts of the
-MPS. It is expected that different operating systems will have
-different implementations of this module.
+_`.intro`: This is the design of the memory protection module.
 
-_`.readership`: Any MPS developer.
+_`.readership`: Any MPS developer; anyone porting the MPS to a new
+platform.
+
+_`.overview`: The memory protection module ensures that the mutator
+sees a consistent view of memory during incremental collection, by
+applying protection to areas of memory, ensuring that attempts to read
+or write from those areas cause protection faults, and implementing
+the means for the MPS to handle these faults.
+
+
+Requirements
+------------
+
+_`.req.consistent`: Must ensure that the mutator sees a consistent
+view of memory during incremental collection: in particular, the
+mutator must never see objects in oldspace. (Otherwise there's no way
+for the MPS to interface with uncooperative code.)
+
+_`.req.prot.read`: Should allow collections to proceed incrementally,
+by read-protecting pages that are not consistent from the mutator's
+point of view. (This is the only way for the MPS to meet real-time
+requirements on pause times.)
+
+_`.req.prot.write`: Should allow the MPS to maintain remembered sets
+for segments that it has scanned, by write-protecting pages in these
+segments. (This improves performance by allowing the MPS to avoid
+scanning these segments again.)
+
+_`.req.fault.handle`: If the module implements protection, it must
+also provide a mechanism for handling protection faults. (Otherwise
+the MPS cannot take the correct action: that is, fixing references in
+a read-protected segment, and discarding the remembered set from a
+write-protected segment. See ``TraceSegAccess()``.)
+
+
+Design
+------
+
+_`.sol.sync`: If memory protection is not available, only way to meet
+`.req.consistent`_, is ensure that no protection is required,
+essentially by running the collector until it has no more incremental
+work to do. (This makes it impossible to meet real-time requirements
+on pause times, but may be the best that can be done.)
+
+_`.sol.fault.handle`: The protection module handles protection faults
+by decoding the context of the fault (see
+design.mps.prmc.req.fault.addr_ and design.mps.prmc.req.fault.access_)
+and calling ``ArenaAccess()``.
+
+.. _design.mps.prmc.req.fault.addr: prmc#req.fault.addr
+.. _design.mps.prmc.req.fault.access: prmc#req.fault.access
 
 
 Interface
@@ -28,58 +75,73 @@ Interface
 
 ``void ProtSetup(void)``
 
-_`.if.setup`: ``ProtSetup()`` will be called exactly once (per
-process). It will be called as part of the initialization of the first
-space that is created. It should arrange for the setup and
-initialization of any datastructures or services that are necessary in
-order to implement the protection module. (On UNIX it expected that it
-will install a signal handler, on Windows it will do nothing)
+_`.if.setup`: Called exactly once (per process) as part of the
+initialization of the first arena that is created. It must arrange for
+the setup and initialization of any data structures or services that
+are necessary in order to implement the memory protection module.
+
+``Size ProtGranularity(void)``
+
+_`.if.granularity`: Return the granularity of protection. The ``base``
+and ``limit`` arguments to ``ProtSet()`` must be multiples of the
+protection granularity.
 
 ``void ProtSet(Addr base, Addr limit, AccessSet mode)``
 
-_`.if.set`: ``ProtSet()`` should set the protection of the memory
-between base and limit, including base, but not including limit (ie
-the half-open interval [base,limit)) to that specified by mode. The
-mode parameter should have the ``AccessWRITE`` bit set if write
-accesses to the page are to be forbidden, and should have the
-``AccessREAD`` bit set if read accesses to the page are to be
-forbidden. A request to forbid read accesses (that is, ``AccessREAD``
-is set) may also forbid write accesses, but read accesses will not be
-forbidden unless ``AccessREAD`` is set.
+_`.if.set`: Set the protection of the range of memory between ``base``
+(inclusive) and ``limit`` (exclusive) to *forbid* the specified modes.
+The addresses ``base`` and ``limit`` are multiples of the protection
+granularity. The ``mode`` parameter contains the ``AccessWRITE`` bit
+if write accesses to the range are to be forbidden, and contains the
+``AccessREAD`` bit if read accesses to the range are to be forbidden.
 
-``void ProtSync(Space space)``
+_`.if.set.read`: If the request is to forbid read accesses (that is,
+``AccessREAD`` is set) then the implemntation may also forbid write
+accesses, but read accesses must not be forbidden unless
+``AccessREAD`` is set.
 
-_`.if.sync`: ``ProtSync()`` is called to ensure that the actual
-protection of each segment (as determined by the OS) is in accordance
-with the segments's ``pm`` field.
+_`.if.set.noop`: ``ProtSet()`` is permitted to be a no-op if
+``ProtSync()`` is implemented.
 
-``typedef struct MutatorFaultContextStruct *MutatorFaultContext``
+``void ProtSync(Arena arena)``
 
-_`.if.context-type`: This abstract type is implemented by the
-protection module (impl.c.prot*). It represents the continuation of
-the mutator which is restored after a mutator fault has been handled.
-The functions ``ProtCanStepInstruction()`` (`.if.canstep`_ below) and
-``ProtStepInstruction()`` (`.if.step`_ below) inspect and manipulate
-the context.
+_`.if.sync`: Ensure that the actual protection (as determined by the
+operating system) of every segment in the arena matches the segment's
+protection mode (``seg->pm``).
 
-``Bool ProtCanStepInstruction(MutatorFaultContext context)``
+_`.if.sync.noop`: ``ProtSync()`` is permitted to be a no-op if
+``ProtSet()`` is implemented.
 
-_`.if.canstep`: Examines the context to determine whether the
-protection module can single-step the instruction which is causing the
-fault. Should return ``TRUE`` if and only if the instruction can be
-single-stepped (that is, ``ProtStepInstruction()`` can be called).
 
-``Bool Res ProtStepInstruction(MutatorFaultContext context)``
+Implementations
+---------------
 
-_`.if.step`: Single-steps the instruction which is causing the fault.
-This function should only be called if ``ProtCanStepInstruction()``
-applied to the context returned ``TRUE``. It should return
-``ResUNIMPL`` if the instruction cannot be single-stepped. It should
-return ``ResOK`` if the instruction is single-stepped.
+_`.impl.an`: Generic implementation in ``protan.c``.
 
-The mutator context will be updated by the emulation/execution of the
-instruction such that resuming the mutator will not cause the
-instruction which was causing the fault to be executed.
+_`.impl.an.set`: ``ProtSet()`` does nothing.
+
+_`.impl.an.sync`: ``ProtSync()`` has no way of changing the protection
+of a segment, so it simulates faults on all segments that are supposed
+to be protected, by calling ``TraceSegAccess()``, until it determines
+that no segments require protection any more. This forces the trace to
+proceed until it is completed, preventing incremental collection.
+
+_`.impl.an.sync.issue`: This relies on the pool actually removing the
+protection, otherwise there is an infinite loop here. This is
+therefore not compatible with implementations of the protection
+mutator context module that support single-stepping of accesses (see design.mps.prmc.req.fault.step_).
+
+.. _design.mps.prmc.req.fault.step: prmc#req.fault.step
+
+_`.impl.ix`: POSIX implementation.
+
+_`.impl.li`: Linux implementation. See design.mps.protli_.
+
+.. _design.mps.protli: protli
+
+_`.impl.w3`: Windows implementation.
+
+_`.impl.xc`: OS X implementation.
 
 
 Document History
@@ -91,6 +153,11 @@ Document History
 
 - 2013-05-23 GDR_ Converted to reStructuredText.
 
+- 2014-10-23 GDR_ Move protection mutator context interface to
+  design.mps.prmc_. Bring design up to date.
+
+  .. _design.mps.prmc: prmc
+
 .. _RB: http://www.ravenbrook.com/consultants/rb/
 .. _GDR: http://www.ravenbrook.com/consultants/gdr/
 
@@ -98,8 +165,8 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited. All rights reserved.
-<http://www.ravenbrook.com/>. This is an open source license. Contact
+Copyright © 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
 Redistribution and use in source and binary forms, with or without

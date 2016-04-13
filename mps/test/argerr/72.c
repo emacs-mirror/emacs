@@ -4,6 +4,9 @@ TEST_HEADER
  summary = null thr_t to thread_dereg
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertcond = SigCheck Thread: thread
 END_HEADER
 */
 

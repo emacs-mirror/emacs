@@ -24,19 +24,23 @@ SRCID(ss, "$Id$");
  * scanning.
  */
 
-Res StackScanInner(ScanState ss,
-                   Addr *stackBot,
-                   Addr *stackTop,
-                   Count nSavedRegs)
+Res StackScanInner(ScanState ss, Word *stackCold, Word *stackHot,
+                   Count nSavedRegs,
+                   mps_area_scan_t scan_area, void *closure)
 {
   Arena arena;
   Res res;
 
   AVERT(ScanState, ss);
-  AVER(stackTop < stackBot);
-  AVER(AddrIsAligned((Addr)stackTop, sizeof(Addr)));  /* .assume.align */
   AVER(0 < nSavedRegs);
   AVER(nSavedRegs < 128);       /* sanity check */
+
+  /* .assume.stack: This implementation assumes that the stack grows
+   * downwards, so that the address of the jmp_buf is the base of the
+   * part of the stack that needs to be scanned. (StackScanInner makes
+   * the same assumption.)
+   */
+  AVER(stackHot < stackCold);
 
   arena = ss->arena;
 
@@ -47,16 +51,19 @@ Res StackScanInner(ScanState ss,
      (trans.c).  Otherwise, scan the whole stack. */
 
   if (arena->stackAtArenaEnter != NULL) {
-    AVER(stackTop < arena->stackAtArenaEnter);
-    AVER(arena->stackAtArenaEnter < stackBot);
-    res = TraceScanAreaTagged(ss, stackTop, stackTop + nSavedRegs);
+    AVER(stackHot < arena->stackAtArenaEnter); /* .assume.stack */
+    AVER(arena->stackAtArenaEnter < stackCold); /* .assume.stack */
+    res = TraceScanArea(ss, stackHot, stackHot + nSavedRegs,
+                        scan_area, closure);
     if (res != ResOK)
       return res;
-    res = TraceScanAreaTagged(ss, arena->stackAtArenaEnter, stackBot);
+    res = TraceScanArea(ss, arena->stackAtArenaEnter, stackCold,
+                        scan_area, closure);
     if (res != ResOK)
       return res;
   } else {
-    res = TraceScanAreaTagged(ss, stackTop, stackBot);
+    res = TraceScanArea(ss, stackHot, stackCold,
+                        scan_area, closure);
     if (res != ResOK)
       return res;
   }

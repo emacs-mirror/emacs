@@ -138,11 +138,8 @@ sub settings_macosx {
     $cc_command = "cc";
     $cc_link = "$obj_dir/platform.o";
     $cc_link_opts =~ s/-z muldefs//;
-    # See comments in impl.gmk.xcppgc and impl.h.osxc
     $cc_opts =~ s/-Wstrict-prototypes//;
-    $cc_opts =~ s/-ggdb3//;
-    $cc_opts .= " -fprofile-arcs -ftest-coverage";
-    $cc_opts .= " -Wno-unused -Wno-long-long -D__inline__=";
+    $cc_opts .= " -Wno-unused -Wno-missing-prototypes";
     $stdboth_red = ">&%s";
     $preprocommand = "$cc_command $cc_preonly";
 }

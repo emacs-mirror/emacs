@@ -1,7 +1,7 @@
 /* prmci6li.c: PROTECTION MUTATOR CONTEXT x64 (FREEBSD)
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: This module implements the part of the protection module
  * that decodes the MutatorFaultContext.
@@ -9,10 +9,10 @@
  *
  * ASSUMPTIONS
  *
- * .sp: The stack pointer in the context is ESP (x86) or RSP (x86_64).
+ * .sp: The stack pointer in the context is RSP.
  *
- * .context.regroots: The root regs are EDI, ESI, EBX, EDX, ECX, EAX (or
- * their x86_64 equivalents) are assumed to be recorded in the context at
+ * .context.regroots: The root regs are RDI, RSI, RBX, RDX, RCX, RAX,
+ * and they are assumed to be recorded in the context at
  * pointer-aligned boundaries.
  */
 
@@ -21,6 +21,10 @@
 
 SRCID(prmci6fr, "$Id$");
 
+#if !defined(MPS_OS_FR) || !defined(MPS_ARCH_I6)
+#error "prmci6fr.c is specific to MPS_OS_FR and MPS_ARCH_I6"
+#endif
+
 
 Addr MutatorFaultContextSP(MutatorFaultContext mfc)
 {
@@ -28,17 +32,20 @@ Addr MutatorFaultContextSP(MutatorFaultContext mfc)
 }
 
 
-Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext mfc)
+Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext mfc,
+                            mps_area_scan_t scan_area,
+                            void *closure)
 {
   Res res;
 
   /* This scans the root registers (.context.regroots).  It also unnecessarily
      scans the rest of the context.  The optimisation to scan only relevant
      parts would be machine dependent. */
-  res = TraceScanAreaTagged(
+  res = TraceScanArea(
     ss,
-    (Addr *)mfc->ucontext,
-    (Addr *)((char *)mfc->ucontext + sizeof(*(mfc->ucontext)))
+    (Word *)mfc->ucontext,
+    (Word *)((char *)mfc->ucontext + sizeof(*(mfc->ucontext))),
+    scan_area, closure
   );
 
   return res;
@@ -47,7 +54,7 @@ Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext mfc)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

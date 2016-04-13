@@ -49,7 +49,7 @@ SRCID(version, "$Id$");
 
 extern char MPSCopyrightNotice[];
 char MPSCopyrightNotice[] =
-  "Portions copyright (c) 2010-2014 Ravenbrook Limited and Global Graphics Software.";
+  "Portions copyright (c) 2010-2016 Ravenbrook Limited and Global Graphics Software.";
 
 
 /* MPSVersion -- return version string

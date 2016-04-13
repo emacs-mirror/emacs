@@ -23,23 +23,27 @@ Introduction
 _`.intro`: This is the design for the VM implementation on Solaris 2.x
 (see os.so for OS details). The implementation is in MMsrc!vmso.c
 (impl.c.vm). The design follows the design for and implements the
-contract of the generic VM interface (design.mps.vm). To summarize:
+contract of the generic VM interface (design.mps.vm_). To summarize:
 The VM module provides a mechanism to reserve large (relative to the
 amount of RAM) amounts of address space, and functions to map (back
 with RAM) and unmap portions of this address space.
+
+.. _design.mps.vm: vm
 
 _`.source`: Much of the implementation (and hence the design) was
 inherited from the SunOS4 implementation. Not that there's any design
 for that. You'll find the ``mmap(2)`` (for the system call ``mmap()``)
 and the ``zero(7d)`` (for the device ``/dev/zero``) man pages useful
 as well. The generic interface and some generic design is in
-design.mps.vm.
+design.mps.vm_.
 
 
 Definitions
 -----------
 
-_`.def`: See design.mps.vm.def.* for definitions common to all VMs.
+_`.def`: See design.mps.vm.def_ for definitions common to all VMs.
+
+.. _design.mps.vm.def: vm#def
 
 
 Overview
@@ -155,8 +159,8 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited. All rights reserved.
-<http://www.ravenbrook.com/>. This is an open source license. Contact
+Copyright © 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
 Redistribution and use in source and binary forms, with or without

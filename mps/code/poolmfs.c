@@ -72,7 +72,7 @@ static void MFSVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
   AVERT(ArgList, args);
 }
 
-ARG_DEFINE_KEY(mfs_unit_size, Size);
+ARG_DEFINE_KEY(MFS_UNIT_SIZE, Size);
 ARG_DEFINE_KEY(MFSExtendSelf, Bool);
 
 static Res MFSInit(Pool pool, ArgList args)
@@ -94,6 +94,8 @@ static Res MFSInit(Pool pool, ArgList args)
   if (ArgPick(&arg, args, MFSExtendSelf))
     extendSelf = arg.val.b;
 
+  AVER(unitSize > 0);
+  AVER(extendBy > 0);
   AVERT(Bool, extendSelf);
  
   mfs = PoolPoolMFS(pool);
@@ -124,7 +126,7 @@ static Res MFSInit(Pool pool, ArgList args)
 
 
 void MFSFinishTracts(Pool pool, MFSTractVisitor visitor,
-                     void *closureP, Size closureS)
+                     void *closure)
 {
   MFS mfs;
 
@@ -134,19 +136,17 @@ void MFSFinishTracts(Pool pool, MFSTractVisitor visitor,
   
   while (mfs->tractList != NULL) {
     Tract nextTract = (Tract)TractP(mfs->tractList);   /* .tract.chain */
-    visitor(pool, TractBase(mfs->tractList), mfs->extendBy, closureP, closureS);
+    visitor(pool, TractBase(mfs->tractList), mfs->extendBy, closure);
     mfs->tractList = nextTract;
   }
 }
 
 
 static void MFSTractFreeVisitor(Pool pool, Addr base, Size size,
-                                void *closureP, Size closureS)
+                                void *closure)
 {
-  AVER(closureP == UNUSED_POINTER);
-  AVER(closureS == UNUSED_SIZE);
-  UNUSED(closureP);
-  UNUSED(closureS);
+  AVER(closure == UNUSED_POINTER);
+  UNUSED(closure);
   ArenaFree(base, size, pool);
 }
 
@@ -159,7 +159,7 @@ static void MFSFinish(Pool pool)
   mfs = PoolPoolMFS(pool);
   AVERT(MFS, mfs);
 
-  MFSFinishTracts(pool, MFSTractFreeVisitor, UNUSED_POINTER, UNUSED_SIZE);
+  MFSFinishTracts(pool, MFSTractFreeVisitor, UNUSED_POINTER);
 
   mfs->sig = SigInvalid;
 }
@@ -225,8 +225,7 @@ void MFSExtend(Pool pool, Addr base, Size size)
  *  arena.
  */
 
-static Res MFSAlloc(Addr *pReturn, Pool pool, Size size,
-                    Bool withReservoirPermit)
+static Res MFSAlloc(Addr *pReturn, Pool pool, Size size)
 {
   Header f;
   Res res;
@@ -238,7 +237,6 @@ static Res MFSAlloc(Addr *pReturn, Pool pool, Size size,
 
   AVER(pReturn != NULL);
   AVER(size == mfs->unroundedUnitSize);
-  AVERT(Bool, withReservoirPermit);
 
   f = mfs->freeList;
 
@@ -247,13 +245,13 @@ static Res MFSAlloc(Addr *pReturn, Pool pool, Size size,
   if(f == NULL)
   {
     Addr base;
-    
+
+    /* See design.mps.bootstrap.land.sol.pool. */
     if (!mfs->extendSelf)
       return ResLIMIT;
 
     /* Create a new region and attach it to the pool. */
-    res = ArenaAlloc(&base, LocusPrefDefault(), mfs->extendBy, pool,
-                     withReservoirPermit);
+    res = ArenaAlloc(&base, LocusPrefDefault(), mfs->extendBy, pool);
     if(res != ResOK)
       return res;
 

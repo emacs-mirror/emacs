@@ -52,7 +52,7 @@ the parent branch. So a typical invocation looks like this::
 
    The specification should look like this::
 
-        Branch:	mps/branch/2013-08-21/lii6ll
+        Branch: mps/branch/2013-08-21/lii6ll
 
         Description:
                 Adding new supported platform lii6ll (job003596).

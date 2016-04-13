@@ -1,9 +1,13 @@
 /* 
 TEST_HEADER
  id = $Id$
- summary = NULL 2nd arg to mps_alloc
+ summary = NULL 2nd arg to mps_alloc (MFS)
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= mpsi.c
+ assertcond = TESTT(Pool, pool)
 END_HEADER
 */
 

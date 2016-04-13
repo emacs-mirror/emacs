@@ -1,7 +1,7 @@
 /* poolawl.c: AUTOMATIC WEAK LINKED POOL CLASS
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  *
  * DESIGN
@@ -41,7 +41,7 @@
 
 #include "mpscawl.h"
 #include "mpm.h"
-#include "chain.h"
+#include "locus.h"
 
 SRCID(poolawl, "$Id$");
 
@@ -172,8 +172,7 @@ static void awlStatTotalInit(AWL awl)
 ARG_DEFINE_KEY(awl_seg_rank_set, RankSet);
 #define awlKeySegRankSet (&_mps_key_awl_seg_rank_set)
 
-static Res AWLSegInit(Seg seg, Pool pool, Addr base, Size size,
-                      Bool reservoirPermit, ArgList args)
+static Res AWLSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 {
   SegClass super;
   AWLSeg awlseg;
@@ -191,7 +190,6 @@ static Res AWLSegInit(Seg seg, Pool pool, Addr base, Size size,
   AVERT(Pool, pool);
   arena = PoolArena(pool);
   /* no useful checks for base and size */
-  AVERT(Bool, reservoirPermit);
   ArgRequire(&arg, args, awlKeySegRankSet);
   rankSet = arg.val.u;
   AVERT(RankSet, rankSet);
@@ -204,21 +202,21 @@ static Res AWLSegInit(Seg seg, Pool pool, Addr base, Size size,
 
   /* Initialize the superclass fields first via next-method call */
   super = SEG_SUPERCLASS(AWLSegClass);
-  res = super->init(seg, pool, base, size, reservoirPermit, args);
+  res = super->init(seg, pool, base, size, args);
   if (res != ResOK)
     return res;
 
   bits = size >> awl->alignShift;
   tableSize = BTSize(bits);
-  res = ControlAlloc(&v, arena, tableSize, reservoirPermit);
+  res = ControlAlloc(&v, arena, tableSize);
   if (res != ResOK)
     goto failControlAllocMark;
   awlseg->mark = v;
-  res = ControlAlloc(&v, arena, tableSize, reservoirPermit);
+  res = ControlAlloc(&v, arena, tableSize);
   if (res != ResOK)
     goto failControlAllocScanned;
   awlseg->scanned = v;
-  res = ControlAlloc(&v, arena, tableSize, reservoirPermit);
+  res = ControlAlloc(&v, arena, tableSize);
   if (res != ResOK)
     goto failControlAllocAlloc;
   awlseg->alloc = v;
@@ -451,8 +449,7 @@ static void AWLNoteScan(AWL awl, Seg seg, ScanState ss)
 /* AWLSegCreate -- Create a new segment of at least given size */
 
 static Res AWLSegCreate(AWLSeg *awlsegReturn,
-                        RankSet rankSet, Pool pool, Size size,
-                        Bool reservoirPermit)
+                        RankSet rankSet, Pool pool, Size size)
 {
   AWL awl;
   Seg seg;
@@ -464,7 +461,6 @@ static Res AWLSegCreate(AWLSeg *awlsegReturn,
   AVERT(RankSet, rankSet);
   AVERT(Pool, pool);
   AVER(size > 0);
-  AVERT(Bool, reservoirPermit);
 
   awl = PoolAWL(pool);
   AVERT(AWL, awl);
@@ -478,8 +474,7 @@ static Res AWLSegCreate(AWLSeg *awlsegReturn,
     return ResMEMORY;
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD_FIELD(args, awlKeySegRankSet, u, rankSet);
-    res = PoolGenAlloc(&seg, &awl->pgen, AWLSegClassGet(), size,
-                       reservoirPermit, args);
+    res = PoolGenAlloc(&seg, &awl->pgen, AWLSegClassGet(), size, args);
   } MPS_ARGS_END(args);
   if (res != ResOK)
     return res;
@@ -544,7 +539,7 @@ static Addr awlNoDependent(Addr addr)
 
 /* AWLInit -- initialize an AWL pool */
 
-ARG_DEFINE_KEY(awl_find_dependent, Fun);
+ARG_DEFINE_KEY(AWL_FIND_DEPENDENT, Fun);
 
 static Res AWLInit(Pool pool, ArgList args)
 {
@@ -575,6 +570,7 @@ static Res AWLInit(Pool pool, ArgList args)
     gen = arg.val.u;
 
   AVERT(Format, format);
+  AVER(FormatArena(format) == PoolArena(pool));
   pool->format = format;
   pool->alignment = format->alignment;
 
@@ -583,6 +579,7 @@ static Res AWLInit(Pool pool, ArgList args)
 
   AVERT(Chain, chain);
   AVER(gen <= ChainGens(chain));
+  AVER(chain->arena == PoolArena(pool));
 
   res = PoolGenInit(&awl->pgen, ChainGen(chain, gen), pool);
   if (res != ResOK)
@@ -634,8 +631,7 @@ static void AWLFinish(Pool pool)
 /* AWLBufferFill -- BufferFill method for AWL */
 
 static Res AWLBufferFill(Addr *baseReturn, Addr *limitReturn,
-                         Pool pool, Buffer buffer, Size size,
-                         Bool reservoirPermit)
+                         Pool pool, Buffer buffer, Size size)
 {
   Addr base, limit;
   AWLSeg awlseg;
@@ -648,7 +644,6 @@ static Res AWLBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVERT(Pool, pool);
   AVERT(Buffer, buffer);
   AVER(size > 0);
-  AVERT(Bool, reservoirPermit);
 
   awl = PoolAWL(pool);
   AVERT(AWL, awl);
@@ -672,8 +667,7 @@ static Res AWLBufferFill(Addr *baseReturn, Addr *limitReturn,
 
   /* No free space in existing awlsegs, so create new awlseg */
 
-  res = AWLSegCreate(&awlseg, BufferRankSet(buffer), pool, size,
-                     reservoirPermit);
+  res = AWLSegCreate(&awlseg, BufferRankSet(buffer), pool, size);
   if (res != ResOK)
     return res;
   base = SegBase(AWLSeg2Seg(awlseg));
@@ -797,8 +791,12 @@ static Res AWLWhiten(Pool pool, Trace trace, Seg seg)
   PoolGenAccountForAge(&awl->pgen, AWLGrainsSize(awl, awlseg->newGrains - uncondemned), FALSE);
   awlseg->oldGrains += awlseg->newGrains - uncondemned;
   awlseg->newGrains = uncondemned;
-  trace->condemned += AWLGrainsSize(awl, awlseg->oldGrains);
-  SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace));
+
+  if (awlseg->oldGrains > 0) {
+    trace->condemned += AWLGrainsSize(awl, awlseg->oldGrains);
+    SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace));
+  }
+  
   return ResOK;
 }
 
@@ -899,9 +897,7 @@ static Res awlScanObject(Arena arena, AWL awl, ScanState ss,
       SegSetSummary(dependentSeg, RefSetUNIV);
   }
 
-  res = (*format->scan)(&ss->ss_s, base, limit);
-  if (res == ResOK)
-    ss->scannedSize += AddrOffset(base, limit);
+  res = FormatScan(format, ss, base, limit);
 
   if (dependent)
     ShieldCover(arena, dependentSeg);
@@ -1204,6 +1200,7 @@ static Res AWLAccess(Pool pool, Seg seg, Addr addr,
   AVER(SegBase(seg) <= addr);
   AVER(addr < SegLimit(seg));
   AVER(SegPool(seg) == pool);
+  AVERT(AccessSet, mode);
   
   /* Attempt scanning a single reference if permitted */
   if(AWLCanTrySingleAccess(PoolArena(pool), awl, seg, addr)) {
@@ -1373,7 +1370,7 @@ static Bool AWLCheck(AWL awl)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

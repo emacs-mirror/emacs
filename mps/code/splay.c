@@ -1,7 +1,7 @@
 /* splay.c: SPLAY TREE IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2015 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: Splay trees are used to manage potentially unbounded
  * collections of ordered things.  In the MPS these are usually
@@ -9,10 +9,9 @@
  *
  * .source: <design/splay>
  *
- * .note.stack: It's important that the MPS have a bounded stack
- * size, and this is a problem for tree algorithms.  Basically,
- * we have to avoid recursion.  TODO: Design documentation for this
- * requirement, meanwhile see job003651 and job003640.
+ * .note.stack: It's important that the MPS have a bounded stack size,
+ * and this is a problem for tree algorithms. Basically, we have to
+ * avoid recursion. See design.mps.sp.sol.depth.no-recursion.
  */
 
 
@@ -1089,19 +1088,17 @@ static Res SplayNodeDescribe(Tree node, mps_lib_FILE *stream,
 typedef struct SplayFindClosureStruct {
   SplayTestNodeFunction testNode;
   SplayTestTreeFunction testTree;
-  void *p;
-  Size s;
+  void *testClosure;
   SplayTree splay;
   Bool found;
 } SplayFindClosureStruct, *SplayFindClosure;
 
 static Compare SplayFindFirstCompare(Tree node, TreeKey key)
 {
-  SplayFindClosure closure;
-  void *closureP;
-  Size closureS;
+  SplayFindClosure my;
   SplayTestNodeFunction testNode;
   SplayTestTreeFunction testTree;
+  void *testClosure;
   SplayTree splay;
 
   AVERT(Tree, node);
@@ -1109,18 +1106,17 @@ static Compare SplayFindFirstCompare(Tree node, TreeKey key)
 
   /* Lift closure values into variables so that they aren't aliased by
      calls to the test functions. */
-  closure = (SplayFindClosure)key;
-  closureP = closure->p;
-  closureS = closure->s;
-  testNode = closure->testNode;
-  testTree = closure->testTree;
-  splay = closure->splay;
+  my = (SplayFindClosure)key;
+  testClosure = my->testClosure;
+  testNode = my->testNode;
+  testTree = my->testTree;
+  splay = my->splay;
   
   if (TreeHasLeft(node) &&
-     (*testTree)(splay, TreeLeft(node), closureP, closureS)) {
+      (*testTree)(splay, TreeLeft(node), testClosure)) {
     return CompareLESS;
-  } else if ((*testNode)(splay, node, closureP, closureS)) {
-    closure->found = TRUE;
+  } else if ((*testNode)(splay, node, testClosure)) {
+    my->found = TRUE;
     return CompareEQUAL;
   } else {
     /* If there's a right subtree but it doesn't satisfy the tree test
@@ -1128,8 +1124,8 @@ static Compare SplayFindFirstCompare(Tree node, TreeKey key)
        return TRUE, so the caller must check closure->found to find out
        whether the result node actually satisfies testNode. */
     if (TreeHasRight(node) &&
-        !(*testTree)(splay, TreeRight(node), closureP, closureS)) {
-      closure->found = FALSE;
+        !(*testTree)(splay, TreeRight(node), testClosure)) {
+      my->found = FALSE;
       return CompareEQUAL;
     }
     return CompareGREATER;
@@ -1138,11 +1134,10 @@ static Compare SplayFindFirstCompare(Tree node, TreeKey key)
 
 static Compare SplayFindLastCompare(Tree node, TreeKey key)
 {
-  SplayFindClosure closure;
-  void *closureP;
-  Size closureS;
+  SplayFindClosure my;
   SplayTestNodeFunction testNode;
   SplayTestTreeFunction testTree;
+  void *testClosure;
   SplayTree splay;
 
   AVERT(Tree, node);
@@ -1150,24 +1145,23 @@ static Compare SplayFindLastCompare(Tree node, TreeKey key)
 
   /* Lift closure values into variables so that they aren't aliased by
      calls to the test functions. */
-  closure = (SplayFindClosure)key;
-  closureP = closure->p;
-  closureS = closure->s;
-  testNode = closure->testNode;
-  testTree = closure->testTree;
-  splay = closure->splay;
+  my = (SplayFindClosure)key;
+  testClosure = my->testClosure;
+  testNode = my->testNode;
+  testTree = my->testTree;
+  splay = my->splay;
 
   if (TreeHasRight(node) &&
-     (*testTree)(splay, TreeRight(node), closureP, closureS)) {
-     return CompareGREATER;
-  } else if ((*testNode)(splay, node, closureP, closureS)) {
-    closure->found = TRUE;
+      (*testTree)(splay, TreeRight(node), testClosure)) {
+    return CompareGREATER;
+  } else if ((*testNode)(splay, node, testClosure)) {
+    my->found = TRUE;
     return CompareEQUAL;
   } else {
     /* See SplayFindFirstCompare. */
     if (TreeHasLeft(node) &&
-        !(*testTree)(splay, TreeLeft(node), closureP, closureS)) {
-      closure->found = FALSE;
+        !(*testTree)(splay, TreeLeft(node), testClosure)) {
+      my->found = FALSE;
       return CompareEQUAL;
     }
     return CompareLESS;
@@ -1185,8 +1179,8 @@ static Compare SplayFindLastCompare(Tree node, TreeKey key)
  * ``*nodeReturn`` is set to the node.
  *
  * The given callbacks testNode and testTree detect this property in
- * a single node or a sub-tree rooted at a node, and both receive the
- * arbitrary closures closureP and closureS.
+ * a single node or a sub-tree rooted at a node, and both receive an 
+ * arbitrary closure.
  *
  * TODO: This repeatedly splays failed matches to the root and rotates
  * them, so it could have quite an unbalancing effect if size is small.
@@ -1196,7 +1190,7 @@ static Compare SplayFindLastCompare(Tree node, TreeKey key)
 Bool SplayFindFirst(Tree *nodeReturn, SplayTree splay,
                     SplayTestNodeFunction testNode,
                     SplayTestTreeFunction testTree,
-                    void *closureP, Size closureS)
+                    void *testClosure)
 {
   SplayFindClosureStruct closureStruct;
   Bool found;
@@ -1207,11 +1201,10 @@ Bool SplayFindFirst(Tree *nodeReturn, SplayTree splay,
   AVER(FUNCHECK(testTree));
 
   if (SplayTreeIsEmpty(splay) ||
-      !testTree(splay, SplayTreeRoot(splay), closureP, closureS))
+      !testTree(splay, SplayTreeRoot(splay), testClosure))
     return FALSE; /* no suitable nodes in tree */
 
-  closureStruct.p = closureP;
-  closureStruct.s = closureS;
+  closureStruct.testClosure = testClosure;
   closureStruct.testNode = testNode;
   closureStruct.testTree = testTree;
   closureStruct.splay = splay;
@@ -1228,7 +1221,7 @@ Bool SplayFindFirst(Tree *nodeReturn, SplayTree splay,
     oldRoot = SplayTreeRoot(splay);
     newRoot = TreeRight(oldRoot);
 
-    if (newRoot == TreeEMPTY || !(*testTree)(splay, newRoot, closureP, closureS))
+    if (newRoot == TreeEMPTY || !(*testTree)(splay, newRoot, testClosure))
       return FALSE; /* no suitable nodes in the rest of the tree */
   
     /* Temporarily chop off the left half-tree, inclusive of root,
@@ -1260,7 +1253,7 @@ Bool SplayFindFirst(Tree *nodeReturn, SplayTree splay,
 Bool SplayFindLast(Tree *nodeReturn, SplayTree splay,
                    SplayTestNodeFunction testNode,
                    SplayTestTreeFunction testTree,
-                   void *closureP, Size closureS)
+                   void *testClosure)
 {
   SplayFindClosureStruct closureStruct;
   Bool found;
@@ -1271,11 +1264,10 @@ Bool SplayFindLast(Tree *nodeReturn, SplayTree splay,
   AVER(FUNCHECK(testTree));
 
   if (SplayTreeIsEmpty(splay) ||
-      !testTree(splay, SplayTreeRoot(splay), closureP, closureS))
+      !testTree(splay, SplayTreeRoot(splay), testClosure))
     return FALSE; /* no suitable nodes in tree */
 
-  closureStruct.p = closureP;
-  closureStruct.s = closureS;
+  closureStruct.testClosure = testClosure;
   closureStruct.testNode = testNode;
   closureStruct.testTree = testTree;
   closureStruct.splay = splay;
@@ -1290,7 +1282,7 @@ Bool SplayFindLast(Tree *nodeReturn, SplayTree splay,
     oldRoot = SplayTreeRoot(splay);
     newRoot = TreeLeft(oldRoot);
 
-    if (newRoot == TreeEMPTY || !(*testTree)(splay, newRoot, closureP, closureS))
+    if (newRoot == TreeEMPTY || !(*testTree)(splay, newRoot, testClosure))
       return FALSE; /* no suitable nodes in the rest of the tree */
   
     /* Temporarily chop off the right half-tree, inclusive of root,
@@ -1402,7 +1394,7 @@ Res SplayTreeDescribe(SplayTree splay, mps_lib_FILE *stream, Count depth,
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2015 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

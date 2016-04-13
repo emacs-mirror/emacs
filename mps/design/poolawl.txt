@@ -159,7 +159,7 @@ AWL pools to be 1.
 
 _`.awlseg`: The pool defines a segment class ``AWLSegClass``, which is
 a subclass of ``GCSegClass`` (see
-design.mps.seg.over.hierarchy.gcseg). All segments allocated by the
+design.mps.seg.over.hierarchy.gcseg_). All segments allocated by the
 pool are instances of this class, and are of type ``AWLSeg``, for
 which the structure is::
 
@@ -175,9 +175,13 @@ which the structure is::
       Sig sig;
     }
 
+.. _design.mps.seg.over.hierarchy.gcseg: seg#over.hierarchy.gcseg
+
 _`.awlseg.bt`: The mark, alloc, and scanned fields are bit-tables (see
-design.mps.bt). Each bit in the table corresponds to a a single
+design.mps.bt_). Each bit in the table corresponds to a a single
 alignment grain in the pool.
+
+.. _design.mps.bt: bt
 
 _`.awlseg.mark`: The mark bit table is used to record mark bits during
 a trace. ``AWLCondemn()`` (see `.fun.condemn`_ below) sets all the
@@ -411,7 +415,9 @@ perform another pass (see `.fun.scan.pass`_ above).
 ``Res AWLFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)``
 
 _`.fun.fix`: ``ss->wasMarked`` is set to ``TRUE`` (clear compliance
-with design.mps.fix.protocol.was-marked.conservative).
+with design.mps.fix.protocol.was-marked.conservative_).
+
+.. _design.mps.fix.protocol.was-marked.conservative: fix#protocol.was-marked.conservative
 
 If the rank (``ss->rank``) is ``RankAMBIG`` then fix returns
 immediately unless the reference is aligned to the pool alignment.
@@ -475,7 +481,7 @@ _`.fun.awlsegcreate.where`: The segment is allocated using a
 generation preference, using the generation number stored in the
 ``AWLStruct`` (the ``gen`` field), see `.poolstruct.gen`_ above.
 
-``Res awlSegInit(Seg seg, Pool pool, Addr base, Size size, Bool reservoirPermit, va_list args)``
+``Res awlSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)``
 
 _`.fun.awlseginit`: Init method for ``AWLSegClass``, called for
 ``SegAlloc()`` whenever an ``AWLSeg`` is created (see
@@ -559,8 +565,8 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited. All rights reserved.
-<http://www.ravenbrook.com/>. This is an open source license. Contact
+Copyright © 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
 Redistribution and use in source and binary forms, with or without

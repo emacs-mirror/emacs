@@ -26,9 +26,10 @@ Implementation
 
 _`.level`: There are three levels of checking:
 
-#. _`.level.sig`: The lowest level checks only that the
-   structure has a valid ``Signature`` (see
-   design.mps.sig).
+#. _`.level.sig`: The lowest level checks only that the structure has
+   a valid ``Signature`` (see design.mps.sig_).
+
+   .. _design.mps.sig: sig
 
 #. _`.level.shallow`: Shallow checking checks all local fields
    (including signature) and also checks the signatures of any parent
@@ -137,8 +138,8 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited. All rights reserved.
-<http://www.ravenbrook.com/>. This is an open source license. Contact
+Copyright © 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
 Redistribution and use in source and binary forms, with or without

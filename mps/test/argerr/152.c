@@ -35,7 +35,6 @@ static void test(void)
 
  cdie(mps_alloc(&a, pool, mysize), "alloc");
  mps_free(pool, (mps_addr_t) ((char *)a+8), mysize);
- error("free");
  mps_pool_destroy(pool);
 
 }

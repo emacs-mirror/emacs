@@ -224,8 +224,7 @@ static Bool SNCSegCheck(SNCSeg sncseg)
 
 /* sncSegInit -- Init method for SNC segments */
 
-static Res sncSegInit(Seg seg, Pool pool, Addr base, Size size,
-                      Bool reservoirPermit, ArgList args)
+static Res sncSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 {
   SegClass super;
   SNCSeg sncseg;
@@ -235,11 +234,10 @@ static Res sncSegInit(Seg seg, Pool pool, Addr base, Size size,
   sncseg = SegSNCSeg(seg);
   AVERT(Pool, pool);
   /* no useful checks for base and size */
-  AVERT(Bool, reservoirPermit);
 
   /* Initialize the superclass fields first via next-method call */
   super = SEG_SUPERCLASS(SNCSegClass);
-  res = super->init(seg, pool, base, size, reservoirPermit, args);
+  res = super->init(seg, pool, base, size, args);
   if (res != ResOK)
     return res;
 
@@ -390,6 +388,7 @@ static Res SNCInit(Pool pool, ArgList args)
   format = arg.val.format;
 
   AVERT(Format, format);
+  AVER(FormatArena(format) == PoolArena(pool));
   pool->format = format;
   snc->freeSegs = NULL;
   snc->sig = SNCSig;
@@ -421,8 +420,7 @@ static void SNCFinish(Pool pool)
 
 
 static Res SNCBufferFill(Addr *baseReturn, Addr *limitReturn,
-                         Pool pool, Buffer buffer, Size size,
-                         Bool withReservoirPermit)
+                         Pool pool, Buffer buffer, Size size)
 {
   SNC snc;
   Arena arena;
@@ -435,7 +433,6 @@ static Res SNCBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVERT(Pool, pool);
   AVERT(Buffer, buffer);
   AVER(size > 0);
-  AVERT(Bool, withReservoirPermit);
   AVER(BufferIsReset(buffer));
 
   snc = PoolSNC(pool);
@@ -450,7 +447,7 @@ static Res SNCBufferFill(Addr *baseReturn, Addr *limitReturn,
   arena = PoolArena(pool);
   asize = SizeArenaGrains(size, arena);
   res = SegAlloc(&seg, SNCSegClassGet(), LocusPrefDefault(),
-                 asize, pool, withReservoirPermit, argsNone);
+                 asize, pool, argsNone);
   if (res != ResOK)
     return res;
 
@@ -517,7 +514,7 @@ static Res SNCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
   limit = SegBufferScanLimit(seg);
  
   if (base < limit) {
-    res = (*format->scan)(&ss->ss_s, base, limit);
+    res = FormatScan(format, ss, base, limit);
     if (res != ResOK) {
       *totalReturn = FALSE;
       return res;
@@ -525,8 +522,6 @@ static Res SNCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
   } else {
     AVER(base == limit);
   }
-
-  ss->scannedSize += AddrOffset(base, limit);
 
   *totalReturn = TRUE;
   return ResOK;

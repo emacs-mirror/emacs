@@ -4,6 +4,10 @@ TEST_HEADER
  summary = highbit set root mode for mps_root_create_fmt
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= root.c
+ assertcond = (mode & (RootModeCONSTANT | RootModePROTECTABLE | RootModePROTECTABLE_INNER)) == mode
 END_HEADER
 */
 

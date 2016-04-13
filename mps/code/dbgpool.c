@@ -121,7 +121,7 @@ Bool PoolDebugOptionsCheck(PoolDebugOptions opt)
  * Someday, this could be split into fence and tag init methods.
  */
 
-ARG_DEFINE_KEY(pool_debug_options, PoolDebugOptions);
+ARG_DEFINE_KEY(POOL_DEBUG_OPTIONS, PoolDebugOptions);
 
 static PoolDebugOptionsStruct debugPoolOptionsDefault = {
   "POST", 4, "DEAD", 4,
@@ -397,14 +397,14 @@ static Bool freeCheck(PoolDebugMixin debug, Pool pool, Addr base, Addr limit)
 /* freeCheckAlloc -- allocation wrapper for free-checking */
 
 static Res freeCheckAlloc(Addr *aReturn, PoolDebugMixin debug, Pool pool,
-                          Size size, Bool withReservoir)
+                          Size size)
 {
   Res res;
   Addr new;
 
   AVER(aReturn != NULL);
 
-  res = SuperclassOfPool(pool)->alloc(&new, pool, size, withReservoir);
+  res = SuperclassOfPool(pool)->alloc(&new, pool, size);
   if (res != ResOK)
     return res;
   if (debug->freeSize != 0)
@@ -445,7 +445,7 @@ static void freeCheckFree(PoolDebugMixin debug,
  */
 
 static Res fenceAlloc(Addr *aReturn, PoolDebugMixin debug, Pool pool,
-                      Size size, Bool withReservoir)
+                      Size size)
 {
   Res res;
   Addr obj, startFence, clientNew, clientLimit, limit;
@@ -458,8 +458,7 @@ static Res fenceAlloc(Addr *aReturn, PoolDebugMixin debug, Pool pool,
   alignedFenceSize = SizeAlignUp(debug->fenceSize, PoolAlignment(pool));
   alignedSize = SizeAlignUp(size, PoolAlignment(pool));
   res = freeCheckAlloc(&obj, debug, pool,
-                       alignedSize + 2 * alignedFenceSize,
-                       withReservoir);
+                       alignedSize + 2 * alignedFenceSize);
   if (res != ResOK)
     return res;
 
@@ -526,7 +525,7 @@ static void fenceFree(PoolDebugMixin debug,
 /* tagAlloc -- allocation wrapper for tagged pools */
 
 static Res tagAlloc(PoolDebugMixin debug,
-                    Pool pool, Addr new, Size size, Bool withReservoir)
+                    Pool pool, Addr new, Size size)
 {
   Tag tag;
   Res res;
@@ -534,15 +533,9 @@ static Res tagAlloc(PoolDebugMixin debug,
   Addr addr;
 
   UNUSED(pool);
-  res = PoolAlloc(&addr, debug->tagPool, debug->tagSize, FALSE);
-  if (res != ResOK) {
-    if (withReservoir) { /* <design/object-debug/#out-of-space */
-      debug->missingTags++;
-      return ResOK;
-    } else {
-      return res;
-    }
-  }
+  res = PoolAlloc(&addr, debug->tagPool, debug->tagSize);
+  if (res != ResOK)
+    return res;
   tag = (Tag)addr;
   tag->addr = new; tag->size = size;
   TreeInit(TagTree(tag));
@@ -585,8 +578,7 @@ static void tagFree(PoolDebugMixin debug, Pool pool, Addr old, Size size)
  * Eventually, tag init args will need to be handled somewhere here.
  */
 
-static Res DebugPoolAlloc(Addr *aReturn,
-                          Pool pool, Size size, Bool withReservoir)
+static Res DebugPoolAlloc(Addr *aReturn, Pool pool, Size size)
 {
   Res res;
   Addr new = NULL; /* suppress "may be used uninitialized" warning */
@@ -595,20 +587,19 @@ static Res DebugPoolAlloc(Addr *aReturn,
   AVER(aReturn != NULL);
   AVERT(Pool, pool);
   AVER(size > 0);
-  AVERT(Bool, withReservoir);
 
   debug = DebugPoolDebugMixin(pool);
   AVER(debug != NULL);
   AVERT(PoolDebugMixin, debug);
   if (debug->fenceSize != 0)
-    res = fenceAlloc(&new, debug, pool, size, withReservoir);
+    res = fenceAlloc(&new, debug, pool, size);
   else
-    res = freeCheckAlloc(&new, debug, pool, size, withReservoir);
+    res = freeCheckAlloc(&new, debug, pool, size);
   if (res != ResOK)
     return res;
   /* Allocate object first, so it fits even when the tag doesn't. */
   if (debug->tagInit != NULL) {
-    res = tagAlloc(debug, pool, new, size, withReservoir);
+    res = tagAlloc(debug, pool, new, size);
     if (res != ResOK)
       goto tagFail;
   }

@@ -4,8 +4,14 @@ TEST_HEADER
  summary = is_stale without resetting
  language = c
  link = myfmt.o testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= ld.c
+ assertcond = ld->_epoch <= arena->epoch
 END_HEADER
 */
+
+#include <string.h>
 
 #include "testlib.h"
 #include "mpscamc.h"
@@ -15,6 +21,9 @@ static void test(void)
 {
  mps_arena_t arena;
  mps_ld_s ld;
+
+ /* overwrite ld with junk */
+ memset(&ld, 0xff, sizeof ld);
 
  cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE), "create arena");
 

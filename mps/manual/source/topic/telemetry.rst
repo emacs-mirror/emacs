@@ -6,16 +6,16 @@ Telemetry
 =========
 
 In its :term:`cool` and :term:`hot` :term:`varieties`, the MPS is
-capable of outputting a configurable stream of events to assist with
-debugging and profiling.
+capable of outputting a configurable stream of events (the
+:term:`telemetry stream`) to assist with debugging and profiling.
 
 The selection of events that appear in the stream is controlled by the
 environment variable :envvar:`MPS_TELEMETRY_CONTROL` (by default
 none), and the stream is written to the file named by the environment
 variable :envvar:`MPS_TELEMETRY_FILENAME` (by default ``mpsio.log``).
 
-The telemetry system writes blocks of binary output, and is fast
-enough to be left turned on in production code (the :term:`hot`
+The :term:`telemetry system` writes blocks of binary output, and is
+fast enough to be left turned on in production code (the :term:`hot`
 variety avoids emitting events on the :term:`critical path`), which
 can be useful for diagnosing memory management problems in production
 environments.
@@ -49,6 +49,8 @@ demonstration of :term:`Lisp` in an appendix to his paper
 .. index::
    single: telemetry; utilities
 
+.. _topic-telemetry-utilities:
+
 Telemetry utilities
 -------------------
 
@@ -68,7 +70,7 @@ The telemetry system relies on three utility programs:
   SQLite database for further analysis.
 
 You must build and install these programs as described in
-:ref:`guide-build`. Thee programs are described in more detail below.
+:ref:`guide-build`. These programs are described in more detail below.
 
 
 .. index::
@@ -120,17 +122,17 @@ second column, and then addresses or other data related to the event
 in the remaining columns. The source of the timestamp depends on the
 platform; it may be a low-cost high-resolution processor timer, such
 as the `Time Stamp Counter
-<http://en.wikipedia.org/wiki/Time_Stamp_Counter>`_ on IA-32 and
+<https://en.wikipedia.org/wiki/Time_Stamp_Counter>`_ on IA-32 and
 x86-64, if one is available. All numbers are given in hexadecimal. ::
 
-    000AE03973336E3C 002B VMCreate            vm:00000001003FC000 base:00000001003FD000 limit:00000001003FE000 
-    000AE0397333BC6D 002D VMMap               vm:00000001003FC000 base:00000001003FD000 limit:00000001003FE000 
-    000AE0397334DF9F 001A Intern              stringId:0000000000000002 string:"Reservoir" 
-    000AE0397334E0A0 001B Label               address:00000001078C85B8["Reservoir"] stringId:0000000000000002 
-    000AE03973352375 0015 PoolInit            pool:00000001003FD328 arena:00000001003FD000 poolClass:00000001078C85B8["Reservoir"] 
-    000AE039733592F9 002B VMCreate            vm:00000001003FE000 base:00000001003FF000 limit:000000010992F000 
-    000AE0397335C8B5 002D VMMap               vm:00000001003FE000 base:00000001003FF000 limit:0000000107930000 
-    000AE03973361D5A 0005 ArenaCreateVM       arena:00000001003FD000 userSize:0000000002000000 chunkSize:0000000002000000 
+    000021C9DB3812C7 0075 EventClockSync      clock:0000000000001EE3 
+    000021C9DB39E2FB 002B VMInit              vm:00007FFF5429C4B8 base:000000010BA4A000 limit:000000010BA4B000 
+    000021C9DB3A5630 002D VMMap               vm:00007FFF5429C4B8 base:000000010BA4A000 limit:000000010BA4B000 
+    000021C9DB3E6BAA 001A Intern              stringId:0000000000000002 string:"MFS" 
+    000021C9DB3E6E17 001B Label               address:000000010BA0C5D8["MFS"] stringId:0000000000000002 
+    000021C9DB3EB6F8 0044 PoolInitMFS         pool:000000010BA4A360 arena:000000010BA4A000 extendBy:0000000000001000 extendSelf:False unitSize:0000000000000030 
+    000021C9DB3EFE3B 002B VMInit              vm:00007FFF5429C3D0 base:000000010BC84000 limit:000000010CC24000 
+    000021C9DB3F33F3 002D VMMap               vm:00007FFF5429C3D0 base:000000010BC84000 limit:000000010BC85000 
 
 You can search through the telemetry for events related to particular
 addresses of interest.
@@ -267,14 +269,14 @@ Here's some example output. The first column contains the timestamp of
 the event, the second column contains the event type, and remaining
 columns contain parameters related to the event. ::
 
-    000AE03973336E3C 2B 1003FC000 1003FD000 1003FE000
-    000AE0397333BC6D 2D 1003FC000 1003FD000 1003FE000
-    000AE0397334DF9F 1A 2 "Reservoir"
-    000AE0397334E0A0 1B 1078C85B8 2
-    000AE03973352375 15 1003FD328 1003FD000 1078C85B8
-    000AE039733592F9 2B 1003FE000 1003FF000 10992F000
-    000AE0397335C8B5 2D 1003FE000 1003FF000 107930000
-    000AE03973361D5A 5 1003FD000 2000000 2000000
+    000021C9DB3812C7   75 1EE3
+    000021C9DB39E2FB   2B 7FFF5429C4B8 10BA4A000 10BA4B000
+    000021C9DB3A5630   2D 7FFF5429C4B8 10BA4A000 10BA4B000
+    000021C9DB3E6BAA   1A 2 "MFS"
+    000021C9DB3E6E17   1B 10BA0C5D8 2
+    000021C9DB3EB6F8   44 10BA4A360 10BA4A000 1000 0 30
+    000021C9DB3EFE3B   2B 7FFF5429C3D0 10BC84000 10CC24000
+    000021C9DB3F33F3   2D 7FFF5429C3D0 10BC84000 10BC85000
 
 
 .. index::
@@ -304,14 +306,14 @@ takes the following options:
 For example, here's the result of passing the output shown above
 through :program:`mpseventtxt`::
 
-    000AE03973336E3C 002B VMCreate            vm:00000001003FC000 base:00000001003FD000 limit:00000001003FE000 
-    000AE0397333BC6D 002D VMMap               vm:00000001003FC000 base:00000001003FD000 limit:00000001003FE000 
-    000AE0397334DF9F 001A Intern              stringId:0000000000000002 string:"Reservoir" 
-    000AE0397334E0A0 001B Label               address:00000001078C85B8["Reservoir"] stringId:0000000000000002 
-    000AE03973352375 0015 PoolInit            pool:00000001003FD328 arena:00000001003FD000 poolClass:00000001078C85B8["Reservoir"] 
-    000AE039733592F9 002B VMCreate            vm:00000001003FE000 base:00000001003FF000 limit:000000010992F000 
-    000AE0397335C8B5 002D VMMap               vm:00000001003FE000 base:00000001003FF000 limit:0000000107930000 
-    000AE03973361D5A 0005 ArenaCreateVM       arena:00000001003FD000 userSize:0000000002000000 chunkSize:0000000002000000 
+    000021C9DB3812C7 0075 EventClockSync      clock:0000000000001EE3 
+    000021C9DB39E2FB 002B VMInit              vm:00007FFF5429C4B8 base:000000010BA4A000 limit:000000010BA4B000 
+    000021C9DB3A5630 002D VMMap               vm:00007FFF5429C4B8 base:000000010BA4A000 limit:000000010BA4B000 
+    000021C9DB3E6BAA 001A Intern              stringId:0000000000000002 string:"MFS" 
+    000021C9DB3E6E17 001B Label               address:000000010BA0C5D8["MFS"] stringId:0000000000000002 
+    000021C9DB3EB6F8 0044 PoolInitMFS         pool:000000010BA4A360 arena:000000010BA4A000 extendBy:0000000000001000 extendSelf:False unitSize:0000000000000030 
+    000021C9DB3EFE3B 002B VMInit              vm:00007FFF5429C3D0 base:000000010BC84000 limit:000000010CC24000 
+    000021C9DB3F33F3 002D VMMap               vm:00007FFF5429C3D0 base:000000010BC84000 limit:000000010BC85000 
 
 
 .. index::
@@ -387,41 +389,6 @@ further analysis by running :program:`mpseventsql`.
 
 Telemetry interface
 -------------------
-
-.. c:function:: mps_word_t mps_telemetry_control(mps_word_t reset_mask, mps_word_t flip_mask)
-
-    .. deprecated:: starting with version 1.111.
-
-        Use :c:func:`mps_telemetry_get`, :c:func:`mps_telemetry_reset`,
-        and :c:func:`mps_telemetry_set` instead.
-
-    Update and return the :term:`telemetry filter`.
-
-    ``reset_mask`` is a :term:`bitmask` indicating the bits in the
-    telemetry filter that should be reset.
-
-    ``flip_mask`` is a bitmask indicating the bits in the telemetry
-    filter whose value should be flipped after the resetting.
-
-    Returns the previous value of the telemetry filter, prior to the
-    reset and the flip.
-
-    The parameters ``reset_mask`` and ``flip_mask`` allow the
-    specification of any binary operation on the filter control. For
-    typical operations, the parameters should be set as follows:
-
-    ============  ==============  =============
-    Operation     ``reset_mask``  ``flip_mask``
-    ============  ==============  =============
-    ``set(M)``    ``M``           ``M``        
-    ------------  --------------  -------------
-    ``reset(M)``  ``M``           ``0``        
-    ------------  --------------  -------------
-    ``flip(M)``   ``0``           ``M``        
-    ------------  --------------  -------------
-    ``read()``    ``0``           ``0``        
-    ============  ==============  =============
-
 
 .. c:function:: void mps_telemetry_flush(void)
 

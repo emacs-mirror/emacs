@@ -19,10 +19,8 @@
  *
  * TRANSGRESSIONS
  *
- * .trans.mod: There are several instances where pool structures are
- * directly accessed by this module because <code/pool.c> does not provide
- * an adequate (or adequately documented) interface.  They bear this
- * tag.
+ * .trans.mod: pool->bufferSerial is directly accessed by this module
+ * because <code/pool.c> does not provide an interface.
  */
 
 #include "mpm.h"
@@ -195,7 +193,7 @@ static Res BufferInit(Buffer buffer, BufferClass class,
   }
   buffer->fillSize = 0.0;
   buffer->emptySize = 0.0;
-  buffer->alignment = pool->alignment; /* .trans.mod */
+  buffer->alignment = PoolAlignment(pool);
   buffer->base = (Addr)0;
   buffer->initAtFlip = (Addr)0;
   /* In the next three assignments we really mean zero, not NULL, because
@@ -252,8 +250,7 @@ Res BufferCreate(Buffer *bufferReturn, BufferClass class,
   arena = PoolArena(pool);
 
   /* Allocate memory for the buffer descriptor structure. */
-  res = ControlAlloc(&p, arena, class->size,
-                     /* withReservoirPermit */ FALSE);
+  res = ControlAlloc(&p, arena, class->size);
   if (res != ResOK)
     goto failAlloc;
   buffer = p;
@@ -297,12 +294,10 @@ void BufferDetach(Buffer buffer, Pool pool)
     spare = AddrOffset(init, limit);
     buffer->emptySize += spare;
     if (buffer->isMutator) {
-      buffer->pool->emptyMutatorSize += spare;
       ArenaGlobals(buffer->arena)->emptyMutatorSize += spare;
       ArenaGlobals(buffer->arena)->allocMutatorSize +=
         AddrOffset(buffer->base, init);
     } else {
-      buffer->pool->emptyInternalSize += spare;
       ArenaGlobals(buffer->arena)->emptyInternalSize += spare;
     }
 
@@ -486,8 +481,7 @@ Res BufferFramePop(Buffer buffer, AllocFrame frame)
  *
  * .reserve: Keep in sync with <code/mps.h#reserve>.  */
 
-Res BufferReserve(Addr *pReturn, Buffer buffer, Size size,
-                  Bool withReservoirPermit)
+Res BufferReserve(Addr *pReturn, Buffer buffer, Size size)
 {
   Addr next;
 
@@ -496,7 +490,6 @@ Res BufferReserve(Addr *pReturn, Buffer buffer, Size size,
   AVER(size > 0);
   AVER(SizeIsAligned(size, BufferPool(buffer)->alignment));
   AVER(BufferIsReady(buffer));
-  AVERT(Bool, withReservoirPermit);
 
   /* Is there enough room in the unallocated portion of the buffer to */
   /* satisfy the request?  If so, just increase the alloc marker and */
@@ -510,7 +503,7 @@ Res BufferReserve(Addr *pReturn, Buffer buffer, Size size,
   }
 
   /* If the buffer can't accommodate the request, call "fill". */
-  return BufferFill(pReturn, buffer, size, withReservoirPermit);
+  return BufferFill(pReturn, buffer, size);
 }
 
 
@@ -551,10 +544,8 @@ void BufferAttach(Buffer buffer, Addr base, Addr limit,
       Size prealloc = AddrOffset(base, init);
       ArenaGlobals(buffer->arena)->allocMutatorSize -= prealloc;
     }
-    buffer->pool->fillMutatorSize += filled;
     ArenaGlobals(buffer->arena)->fillMutatorSize += filled;
   } else {
-    buffer->pool->fillInternalSize += filled;
     ArenaGlobals(buffer->arena)->fillInternalSize += filled;
   }
 
@@ -573,8 +564,7 @@ void BufferAttach(Buffer buffer, Addr base, Addr limit,
  * allocation request.  This might be because the buffer has been
  * trapped and "limit" has been set to zero.  */
 
-Res BufferFill(Addr *pReturn, Buffer buffer, Size size,
-               Bool withReservoirPermit)
+Res BufferFill(Addr *pReturn, Buffer buffer, Size size)
 {
   Res res;
   Pool pool;
@@ -616,9 +606,7 @@ Res BufferFill(Addr *pReturn, Buffer buffer, Size size,
   BufferDetach(buffer, pool);
 
   /* Ask the pool for some memory. */
-  res = (*pool->class->bufferFill)(&base, &limit,
-                                   pool, buffer, size,
-                                   withReservoirPermit);
+  res = (*pool->class->bufferFill)(&base, &limit, pool, buffer, size);
   if (res != ResOK)
     return res;
 

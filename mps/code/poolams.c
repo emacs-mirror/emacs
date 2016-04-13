@@ -1,7 +1,7 @@
 /* poolams.c: AUTOMATIC MARK & SWEEP POOL CLASS
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (c) 2002 Global Graphics Software.
  *
  *
@@ -215,8 +215,7 @@ static void amsDestroyTables(AMS ams, BT allocTable,
 
 /* AMSSegInit -- Init method for AMS segments */
 
-static Res AMSSegInit(Seg seg, Pool pool, Addr base, Size size,
-                      Bool reservoirPermit, ArgList args)
+static Res AMSSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 {
   SegClass super;
   AMSSeg amsseg;
@@ -231,11 +230,10 @@ static Res AMSSegInit(Seg seg, Pool pool, Addr base, Size size,
   AVERT(AMS, ams);
   arena = PoolArena(pool);
   /* no useful checks for base and size */
-  AVERT(Bool, reservoirPermit);
 
   /* Initialize the superclass fields first via next-method call */
   super = SEG_SUPERCLASS(AMSSegClass);
-  res = super->init(seg, pool, base, size, reservoirPermit, args);
+  res = super->init(seg, pool, base, size, args);
   if (res != ResOK)
     goto failNextMethod;
 
@@ -328,8 +326,7 @@ static void AMSSegFinish(Seg seg)
  */
 
 static Res AMSSegMerge(Seg seg, Seg segHi,
-                       Addr base, Addr mid, Addr limit,
-                       Bool withReservoirPermit)
+                       Addr base, Addr mid, Addr limit)
 {
   SegClass super;
   Count loGrains, hiGrains, allGrains;
@@ -367,8 +364,7 @@ static Res AMSSegMerge(Seg seg, Seg segHi,
 
   /* Merge the superclass fields via next-method call */
   super = SEG_SUPERCLASS(AMSSegClass);
-  res = super->merge(seg, segHi, base, mid, limit,
-                     withReservoirPermit);
+  res = super->merge(seg, segHi, base, mid, limit);
   if (res != ResOK)
     goto failSuper;
 
@@ -414,8 +410,7 @@ failCreateTables:
 
 
 static Res AMSSegSplit(Seg seg, Seg segHi,
-                       Addr base, Addr mid, Addr limit,
-                       Bool withReservoirPermit)
+                       Addr base, Addr mid, Addr limit)
 {
   SegClass super;
   Count loGrains, hiGrains, allGrains;
@@ -462,7 +457,7 @@ static Res AMSSegSplit(Seg seg, Seg segHi,
 
   /* Split the superclass fields via next-method call */
   super = SEG_SUPERCLASS(AMSSegClass);
-  res = super->split(seg, segHi, base, mid, limit, withReservoirPermit);
+  res = super->split(seg, segHi, base, mid, limit);
   if (res != ResOK)
     goto failSuper;
 
@@ -682,7 +677,7 @@ static Res AMSSegSizePolicy(Size *sizeReturn,
 /* AMSSegCreate -- create a single AMSSeg */
 
 static Res AMSSegCreate(Seg *segReturn, Pool pool, Size size,
-                        RankSet rankSet, Bool withReservoirPermit)
+                        RankSet rankSet)
 {
   Seg seg;
   AMS ams;
@@ -694,7 +689,6 @@ static Res AMSSegCreate(Seg *segReturn, Pool pool, Size size,
   AVERT(Pool, pool);
   AVER(size > 0);
   AVERT(RankSet, rankSet);
-  AVERT(Bool, withReservoirPermit);
 
   ams = PoolAMS(pool);
   AVERT(AMS,ams);
@@ -705,13 +699,13 @@ static Res AMSSegCreate(Seg *segReturn, Pool pool, Size size,
     goto failSize;
 
   res = PoolGenAlloc(&seg, &ams->pgen, (*ams->segClass)(), prefSize,
-                     withReservoirPermit, argsNone);
+                     argsNone);
   if (res != ResOK) { /* try to allocate one that's just large enough */
     Size minSize = SizeArenaGrains(size, arena);
     if (minSize == prefSize)
       goto failSeg;
     res = PoolGenAlloc(&seg, &ams->pgen, (*ams->segClass)(), prefSize,
-                       withReservoirPermit, argsNone);
+                       argsNone);
     if (res != ResOK)
       goto failSeg;
   }
@@ -785,7 +779,7 @@ static void AMSDebugVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
  *  allocated in the pool.  See <design/poolams/#init>.
  */
 
-ARG_DEFINE_KEY(ams_support_ambiguous, Bool);
+ARG_DEFINE_KEY(AMS_SUPPORT_AMBIGUOUS, Bool);
 
 static Res AMSInit(Pool pool, ArgList args)
 {
@@ -831,13 +825,15 @@ Res AMSInitInternal(AMS ams, Format format, Chain chain, unsigned gen,
   Res res;
 
   /* Can't check ams, it's not initialized. */
-  AVERT(Format, format);
-  AVERT(Chain, chain);
-  AVER(gen <= ChainGens(chain));
-
   pool = AMSPool(ams);
   AVERT(Pool, pool);
+  AVERT(Format, format);
+  AVER(FormatArena(format) == PoolArena(pool));
   pool->format = format;
+  AVERT(Chain, chain);
+  AVER(gen <= ChainGens(chain));
+  AVER(chain->arena == PoolArena(pool));
+
   pool->alignment = pool->format->alignment;
   ams->grainShift = SizeLog2(PoolAlignment(pool));
 
@@ -944,8 +940,7 @@ static Bool amsSegAlloc(Index *baseReturn, Index *limitReturn,
  * <design/poolams/#fill>.
  */
 static Res AMSBufferFill(Addr *baseReturn, Addr *limitReturn,
-                         Pool pool, Buffer buffer, Size size,
-                         Bool withReservoirPermit)
+                         Pool pool, Buffer buffer, Size size)
 {
   Res res;
   AMS ams;
@@ -965,7 +960,6 @@ static Res AMSBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVERT(Buffer, buffer);
   AVER(size > 0);
   AVER(SizeIsAligned(size, PoolAlignment(pool)));
-  AVERT(Bool, withReservoirPermit);
 
   /* Check that we're not in the grey mutator phase (see */
   /* <design/poolams/#fill.colour>). */
@@ -994,8 +988,7 @@ static Res AMSBufferFill(Addr *baseReturn, Addr *limitReturn,
   }
 
   /* No suitable segment found; make a new one. */
-  res = AMSSegCreate(&seg, pool, size, rankSet,
-                     withReservoirPermit);
+  res = AMSSegCreate(&seg, pool, size, rankSet);
   if (res != ResOK)
     return res;
   b = amsSegAlloc(&base, &limit, seg, size);
@@ -1177,9 +1170,13 @@ static Res AMSWhiten(Pool pool, Trace trace, Seg seg)
   amsseg->newGrains = uncondemned;
   amsseg->marksChanged = FALSE; /* <design/poolams/#marked.condemn> */
   amsseg->ambiguousFixes = FALSE;
-  trace->condemned += AMSGrainsSize(ams, amsseg->oldGrains);
 
-  SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace));
+  if (amsseg->oldGrains > 0) {
+    trace->condemned += AMSGrainsSize(ams, amsseg->oldGrains);
+    SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace));
+  } else {
+    amsseg->colourTablesInUse = FALSE;
+  }
 
   return ResOK;
 }
@@ -1316,12 +1313,12 @@ static Res amsScanObject(Seg seg, Index i, Addr p, Addr next, void *clos)
 
   /* @@@@ This isn't quite right for multiple traces. */
   if (closure->scanAllObjects || AMS_IS_GREY(seg, i)) {
-    res = (*format->scan)(&closure->ss->ss_s,
-                          AddrAdd(p, format->headerSize),
-                          AddrAdd(next, format->headerSize));
+    res = FormatScan(format,
+                     closure->ss,
+                     AddrAdd(p, format->headerSize),
+                     AddrAdd(next, format->headerSize));
     if (res != ResOK)
       return res;
-    closure->ss->scannedSize += AddrOffset(p, next);
     if (!closure->scanAllObjects) {
       Index j = AMS_ADDR_INDEX(seg, next);
       AVER(!AMS_IS_INVALID_COLOUR(seg, i));
@@ -1410,7 +1407,7 @@ Res AMSScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
             next = AddrAdd(p, alignment);
           }
           j = AMS_ADDR_INDEX(seg, next);
-          res = (*format->scan)(&ss->ss_s, clientP, clientNext);
+          res = FormatScan(format, ss, clientP, clientNext);
           if (res != ResOK) {
             /* <design/poolams/#marked.scan.fail> */
             amsseg->marksChanged = TRUE;
@@ -1420,7 +1417,6 @@ Res AMSScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
           /* Check that there haven't been any ambiguous fixes during the */
           /* scan, because AMSFindGrey won't work otherwise. */
           AVER_CRITICAL(!amsseg->ambiguousFixes);
-          ss->scannedSize += AddrOffset(p, next);
           AMS_GREY_BLACKEN(seg, i);
           if (i+1 < j)
             AMS_RANGE_WHITE_BLACKEN(seg, i+1, j);
@@ -1807,6 +1803,22 @@ DEFINE_POOL_CLASS(AMSDebugPoolClass, this)
 }
 
 
+/* mps_class_ams -- return the AMS pool class descriptor */
+
+mps_pool_class_t mps_class_ams(void)
+{
+  return (mps_pool_class_t)AMSPoolClassGet();
+}
+
+
+/* mps_class_ams_debug -- return the AMS (debug) pool class descriptor */
+
+mps_pool_class_t mps_class_ams_debug(void)
+{
+  return (mps_pool_class_t)AMSDebugPoolClassGet();
+}
+
+
 /* AMSCheck -- the check method for an AMS */
 
 Bool AMSCheck(AMS ams)
@@ -1829,7 +1841,7 @@ Bool AMSCheck(AMS ams)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  *

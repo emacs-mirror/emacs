@@ -4,7 +4,7 @@
 #             Gareth Rees, Ravenbrook Limited, 2014-03-18
 # 
 # $Id$
-# Copyright (c) 2014 Ravenbrook Limited. See end of file for license.
+# Copyright (c) 2014-2016 Ravenbrook Limited. See end of file for license.
 #
 #
 # 1. INTRODUCTION
@@ -24,6 +24,7 @@ import re
 import subprocess
 import sys
 import p4
+import uuid
 
 if sys.version_info < (3,):
     from codecs import open
@@ -32,7 +33,7 @@ class Error(Exception): pass
 
 DEPOT = '//info.ravenbrook.com'
 PROJECT_RE = r'[a-z][a-z0-9.-]*'
-PROJECT_FILESPEC_RE = r'{}/project/({})/'.format(re.escape(DEPOT), PROJECT_RE)
+PROJECT_FILESPEC_RE = r'{}/project/({})/?'.format(re.escape(DEPOT), PROJECT_RE)
 CUSTOMER_RE = r'[a-z][a-z0-9.-]*'
 PARENT_RE = r'master|custom/({})/main'.format(CUSTOMER_RE)
 PARENT_FILESPEC_RE = r'{}({})(?:/|$)'.format(PROJECT_FILESPEC_RE, PARENT_RE)
@@ -68,6 +69,22 @@ VERSION_BRANCH_ENTRY = '''
   </tr>
 
 '''
+
+# Git Fusion repos in which to register new branches.
+GF_REPOS = ['mps', 'mps-public']
+
+# Regular expression matching the view of the master codeline in Git Fusion
+# configuration files.
+GF_VIEW_RE = r'git-branch-name\s*=\s*master\s*view\s*=\s*(.*?)\n\n'
+
+# Template for the new entry in the Git Fusion configuration file
+GF_ENTRY = '''
+
+[{uuid}]
+git-branch-name = {child}
+view = {gf_view}
+'''
+
 
 def main(argv):
     parser = argparse.ArgumentParser()
@@ -233,6 +250,10 @@ def main(argv):
             else:
                 print(fmt("--yes omitted: skipping submit of {filespec}"))
 
+    def p4read(filespec):
+        return ''.join([d['data'] for d in p4.run('print', filespec)
+                                  if d['code'] == 'text'])
+
     if not args.version:
         # Task branch
         register('{depot}/project/{project}/branch/index.html',
@@ -252,32 +273,22 @@ def main(argv):
     if args.github and not args.git_name:
         print(fmt("Don't know how to push {child} to GitHub: skipping."))
     elif args.github:
-        # Create git-fusion client spec
-        have_git_branch = False
-        args.git_client = fmt('git-fusion-{git_name}')
-        if any(p4.run('clients', '-E', args.git_client)):
-            print(fmt("client {git_client} already exists: skipping."))
-            have_git_branch = True
-        elif args.yes:
-            client_spec = dict(
-                Client=args.git_client,
-                Description=fmt("Git-fusion client for syncing {project} "
-                                "version {version}"),
-                Root=fmt('/home/git-fusion/.git-fusion/views/{git_name}/p4'),
-                View0=fmt('{depot}/project/{project}/{child}/... '
-                          '//{git_client}/...'))
-            print(fmt("Creating client spec {git_client}"))
-            p4.run('client', '-i').send(client_spec).done()
-            have_git_branch = True
-        else:
-            print(fmt("--yes omitted: skipping {git_client}"))
 
-        # Update table of pushes
-        register('{depot}/infosys/robots/git-fusion/etc/pushes',
-                 r"\n*\Z",
-                 '\n{git_name}\t'
-                 'git@github.com:Ravenbrook/mps-temporary.git\t'
-                 '{git_branch}\n')
+        # Invent a UUID to use as the section title for the branch in
+        # the Git Fusion configuration files.
+        args.uuid = uuid.uuid5(uuid.NAMESPACE_URL, str(args.child))
+        print(fmt("uuid={uuid}"))
+
+        for repo in GF_REPOS:
+            config = '//.git-fusion/repos/{}/p4gf_config'.format(repo)
+            text = p4read(config)
+            if re.search(str(args.uuid), text):
+                print('Already registered in Git Fusion repo "{}": skipping.'.format(repo))
+            else:
+                view = re.search(GF_VIEW_RE, text, re.MULTILINE | re.DOTALL).group(1)
+                args.gf_view = view.replace('/master/', fmt('/{child}/'))
+                print('Registering in Git Fusion repo "{}".'.format(repo))
+                register(config, r"\n*\Z", GF_ENTRY)
 
 
 if __name__ == '__main__':
@@ -298,6 +309,8 @@ if __name__ == '__main__':
 # B. DOCUMENT HISTORY
 #
 # 2014-03-18 GDR Created based on [BRANCH-MERGE] and [VERSION-CREATE].
+#
+# 2016-02-13 RB  Adapting to Git Fusion 2.
 #
 #
 # C. COPYRIGHT AND LICENCE

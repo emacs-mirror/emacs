@@ -10,6 +10,9 @@ Manual Variable Temporal (MVT) pool design
 :Status: incomplete design
 :Revision: $Id$
 :Copyright: See section `C. Copyright and License`_.
+:Index terms:
+   pair: MVT pool class; design
+   single: pool class; MVT design
 
 
 Introduction
@@ -25,9 +28,11 @@ _`.readership`: MM developers
 
 _`.source`: req.dylan(6), req.epcore(16), req.product(2)
 
-_`.background`: design.mps.poolmv(0), design.mps.poolepdl(0),
+_`.background`: design.mps.poolmv_, design.mps.poolepdl(0),
 design.product.soft.drop(0), paper.wil95(1), paper.vo96(0),
 paper.grun92(1), paper.beck82(0), `mail.ptw.1998-02-25.22-18`_.
+
+.. _design.mps.poolmv: poolmv
 
 .. _mail.ptw.1998-02-25.22-18: https://info.ravenbrook.com/project/mps/mail/1998/02/25/22-18/0.txt
 
@@ -78,8 +83,10 @@ object (see also, glossary.reference.count ).
 
 _`.def.segment`: A segment is a contiguous extent of memory. In this
 document, segment is used to mean a contiguous extent of memory
-managed by the MPS arena (design.mps.arena(1)) and subdivided by the
+managed by the MPS arena (design.mps.arena_) and subdivided by the
 pool to provide blocks (see `.def.block`_) to its clients.
+
+.. _design.mps.arena: arena
 
 _`.def.splay-tree`: A splay tree is a self-adjusting binary tree
 (paper.st85(0), paper.sleator96(0)).
@@ -476,7 +483,7 @@ and space.
 
 _`.anal.strategy.risk`: The current MPS segment substrate can cause
 internal fragmentation which an individual pool can do nothing about.
-We expect that `request.epcore.170193.sugg.loci`_ will be implemented to
+We expect that request.epcore.170193.sugg.loci_ will be implemented to
 remove this risk.
 
 .. _`request.epcore.170193.sugg.loci`: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/epcore/170193/
@@ -777,8 +784,8 @@ Fail-over to address-ordered free list
 ......................................
 
 _`.impl.c.freelist`: Because the CBS uses out-of-band storage, it may
-be unable to handle insert (design.mps.cbs.function.cbs.insert.fail)
-and delete (design.mps.cbs.function.cbs.delete.fail) operations. When
+be unable to handle insert (design.mps.cbs.function.cbs.insert.fail_)
+and delete (design.mps.cbs.function.cbs.delete.fail_) operations. When
 this happen MVT fails over to an address-ordered singly linked free
 list. This uses in-band storage and so cannot run out of memory, but
 it has much worse performance than the CBS. Therefore MVT eagerly
@@ -786,7 +793,9 @@ attempts to flush blocks from the free list back to the CBS. See
 design.mps.freelist_ for the design and implementation of the free
 list.
 
-.. _design.mps.freelist: freelist.txt
+.. _design.mps.cbs.function.cbs.delete.fail: cbs#function.cbs.delete.fail
+.. _design.mps.cbs.function.cbs.insert.fail: cbs#function.cbs.insert.fail
+.. _design.mps.freelist: freelist
 
 
 Available Block Queue
@@ -947,10 +956,11 @@ _`.test.component`: Components `.impl.c.splay`_, `.impl.c.cbs`_, and
 `.impl.c.abq`_ will be subjected to individual component tests to
 verify their functionality.
 
-_`.test.regression`: All tests applied to poolmv
-(design.mps.poolmv(0)) and poolepdl (design.mps.poolepdl(0)) will be
-applied to poolmvt to ensure that mvt is at least as functional as the
-pools it is replacing.
+_`.test.regression`: All tests applied to MV (design.mps.poolmv_) and
+EPDL (design.mps.poolepdl(0)) will be applied to poolmvt to ensure
+that mvt is at least as functional as the pools it is replacing.
+
+.. _design.mps.poolmv: poolmv
 
 _`.test.qa`: Once poolmvt is integrated into the MPS, the standard MPS
 QA tests will be applied to poolmvt prior to each release.
@@ -999,7 +1009,9 @@ B. Document History
   .. _mail.ptw.1998-04-13.21-40: https://info.ravenbrook.com/project/mps/mail/1998/04/13/21-40/0.txt
 
 - 1998-05-06 PTW Revised in response to review
-  review.design.mps.poolmv2.2(0).
+  review.design.mps.poolmv2.2_(0).
+
+.. _design.mps.poolmv2.2: poolmv2#2
 
 - 2002-06-07 RB_ Converted from MMInfo database design document.
 
@@ -1012,7 +1024,7 @@ B. Document History
 C. Copyright and License
 ------------------------
 
-Copyright (C) 2002-2014 Ravenbrook Limited. All rights reserved.
+Copyright (C) 2002-2016 Ravenbrook Limited. All rights reserved.
 <http://www.ravenbrook.com/>. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

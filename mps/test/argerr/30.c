@@ -1,9 +1,13 @@
 /* 
 TEST_HEADER
  id = $Id$
- summary = NULL 2nd arg to mps_free
+ summary = NULL 2nd arg to mps_free (MFS)
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= pool.c
+ assertcond = old != NULL
 END_HEADER
 */
 

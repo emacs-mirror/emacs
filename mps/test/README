@@ -6,23 +6,25 @@ to see what version of the harness you have (or look at the
 file "test/version").
 
 
-Testing on unix
+Testing on Unix
 ---------------
 
 From the test directory::
 
-    $ PLATFORM=lii6ll # substitute your platform
-    $ CODE=../code # code directory of the branch you are testing
-    $ make -C $CODE -f $PLATFORM.gmk VARIETY=cool $PLATFORM/cool/mps.o
-    $ alias qa="perl test/qa -i $CODE -l $CODE/$PLATFORM/cool/mps.o"
-    $ qa clib
-    $ qa run function/5.c
-    $ qa runset testsets/passing
+    PLATFORM=lii6ll # substitute your platform
+    VARIETY=cool # or hot
+    CODE=../code # code directory of the branch you are testing
+    make -B -C $CODE -f $PLATFORM.gmk VARIETY=$VARIETY $PLATFORM/$VARIETY/mps.o
+    alias qa="perl test/qa -i $CODE -l $CODE/$PLATFORM/$VARIETY/mps.o"
+    qa clib
+    qa run function/5.c
+    qa runset testsets/passing
 
 Each test case is compiled in its turn to the file
 ``test/obj/$(uname -s)_$(uname -r)_$(uname -p)__unix/tmp_test``
 so you can debug it with::
 
-    $ lldb test/obj/$(uname -s)_$(uname -r)_$(uname -p)__unix/tmp_test
+    lldb test/obj/$(uname -s)_$(uname -r)_$(uname -p)__unix/tmp_test
 
-(Or ``gdb`` instead of ``lldb``.)
+Or ``gdb`` instead of ``lldb``. MMQA sets its own assertion handler,
+so you'll probably want to set a breakpoint on mmqa_assert_handler.

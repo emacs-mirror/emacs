@@ -1,0 +1,141 @@
+.. mode: -*- rst -*-
+
+Bootstrapping
+=============
+
+:Tag: design.mps.bootstrap
+:Author: Gareth Rees
+:Date: 2015-09-01
+:Status: incomplete design
+:Revision: $Id$
+:Copyright: See section `Copyright and License`_.
+:Index terms: pair: bootstrap; design
+
+
+Introduction
+------------
+
+_`.intro`: This explains how the MPS gets started.
+
+_`.readership`: Any MPS developer.
+
+_`.overview`: The job of the MPS is to allocate memory to a program.
+Before it can allocate memory, the MPS needs to create data structures
+to represent its internal state. But before it can create those data
+structures, it needs to allocate memory to store them in. This
+bootstrapping problem affects the MPS at several points, which are
+listed here, together with their solutions.
+
+
+Bootstrapping problems
+----------------------
+
+Virtual memory descriptor
+.........................
+
+_`.vm`: Before address space can be mapped into main memory, the
+virtual memory descriptor must be initialized. But before the virtual
+memory descriptor can be initialized, some address space must be
+mapped into main memory in order to store it. See
+`design.vm.req.bootstrap`_.
+
+_`.vm.sol`: The virtual memory descriptor is allocated initially on
+the stack, and then copied into its place in the chunk after the
+memory for it has been mapped. See `design.vm.sol.bootstrap`_.
+
+.. _design.vm.req.bootstrap: vm#req.bootstrap
+.. _design.vm.sol.bootstrap: vm#sol.bootstrap
+
+
+Arena descriptor
+................
+
+_`.arena`: Before chunks of address space can be reserved and mapped,
+the virtual memory arena descriptor must be initialized (so that the
+chunks can be added to the arena's chunk tree). But before a virtual
+memory arena descriptor can be initialized, address space must be
+reserved and mapped in order to store it.
+
+_`.arena.sol`: A small amount of address space is reserved and mapped
+directly via ``VMInit()`` and ``VMMap()`` (not via the chunk system)
+in order to provide enough memory for the arena descriptor.
+
+
+Arena's free land
+.................
+
+_`.land`: Before the arena can allocate memory, a range of addresses
+must be inserted into the arena's free land (so that the free land can
+hand out memory from this range). But before addresses can be inserted
+into the arena's free land, the free land's block pool must have
+memory from the arena to store the nodes in the tree representing
+those addresses.
+
+_`.land.sol`: The arena has two "back door" mechanisms and uses them
+in combination.
+
+_`.land.sol.alloc`: First, there is a mechanism for allocating a
+page of memory directly from a chunk, bypassing the free land.
+
+_`.land.sol.pool`: Second, the free land's block pool has an option to
+prevent it extending itself by allocating memory from the arena.
+Instead, it fails allocations with ``ResLIMIT``.  The free land's
+block pool also has a mechanism, ``MFSExtend`` to extend it with a
+block of memory.  When the free land fails with ``ResLIMIT`` the arena
+uses `.land.sol.alloc`_ to provide it with memory.
+
+
+
+Document History
+----------------
+
+- 2015-09-01 GDR_ Initial draft.
+
+- 2016-02-25 RB_ Improving description of arena free land bootstrap
+  and cross-referencing from source code.
+
+.. _GDR: http://www.ravenbrook.com/consultants/gdr/
+.. _RB: http://www.ravenbrook.com/consultants/rb/
+
+
+Copyright and License
+---------------------
+
+Copyright © 2015-2016 Ravenbrook Limited
+<http://www.ravenbrook.com/>. All rights reserved. This is an open
+source license. Contact Ravenbrook for commercial licensing options.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+#. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+#. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+#. Redistributions in any form must be accompanied by information on how
+   to obtain complete source code for this software and any
+   accompanying software that uses this software.  The source code must
+   either be included in the distribution or be available for no more than
+   the cost of distribution plus a nominal fee, and must be freely
+   redistributable under reasonable conditions.  For an executable file,
+   complete source code means the source code for all modules it contains.
+   It does not include source code for modules or files that typically
+   accompany the major components of the operating system on which the
+   executable file runs.
+
+**This software is provided by the copyright holders and contributors
+"as is" and any express or implied warranties, including, but not
+limited to, the implied warranties of merchantability, fitness for a
+particular purpose, or non-infringement, are disclaimed.  In no event
+shall the copyright holders and contributors be liable for any direct,
+indirect, incidental, special, exemplary, or consequential damages
+(including, but not limited to, procurement of substitute goods or
+services; loss of use, data, or profits; or business interruption)
+however caused and on any theory of liability, whether in contract,
+strict liability, or tort (including negligence or otherwise) arising in
+any way out of the use of this software, even if advised of the
+possibility of such damage.**

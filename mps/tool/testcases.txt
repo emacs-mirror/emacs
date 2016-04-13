@@ -39,6 +39,7 @@ sacss
 segsmss
 sncss
 steptest       =P
+tagtest
 teletest       =N                interactive
 walkt0
 zcoll          =L

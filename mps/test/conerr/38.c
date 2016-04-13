@@ -1,9 +1,13 @@
 /* 
 TEST_HEADER
  id = $Id$
- summary = reserve and commit with different sizes
+ summary = reserve and commit (macros) with different sizes
  language = c
  link = myfmt.o testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertfile P= mpsi.c
+ assertcond = PointerAdd(mps_ap->init, size) == mps_ap->alloc
 END_HEADER
 */
 

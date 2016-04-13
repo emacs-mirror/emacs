@@ -1,7 +1,7 @@
 /* poolabs.c: ABSTRACT POOL CLASSES
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2015 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * PURPOSE
@@ -194,24 +194,20 @@ Res PoolTrivInit(Pool pool, ArgList args)
   return ResOK;
 }
 
-Res PoolNoAlloc(Addr *pReturn, Pool pool, Size size,
-                Bool withReservoirPermit)
+Res PoolNoAlloc(Addr *pReturn, Pool pool, Size size)
 {
   AVER(pReturn != NULL);
   AVERT(Pool, pool);
   AVER(size > 0);
-  AVERT(Bool, withReservoirPermit);
   NOTREACHED;
   return ResUNIMPL;
 }
 
-Res PoolTrivAlloc(Addr *pReturn, Pool pool, Size size,
-                  Bool withReservoirPermit)
+Res PoolTrivAlloc(Addr *pReturn, Pool pool, Size size)
 {
   AVER(pReturn != NULL);
   AVERT(Pool, pool);
   AVER(size > 0);
-  AVERT(Bool, withReservoirPermit);
   return ResLIMIT;
 }
 
@@ -233,22 +229,19 @@ void PoolTrivFree(Pool pool, Addr old, Size size)
 
 
 Res PoolNoBufferFill(Addr *baseReturn, Addr *limitReturn,
-                     Pool pool, Buffer buffer, Size size,
-                     Bool withReservoirPermit)
+                     Pool pool, Buffer buffer, Size size)
 {
   AVER(baseReturn != NULL);
   AVER(limitReturn != NULL);
   AVERT(Pool, pool);
   AVERT(Buffer, buffer);
   AVER(size > 0);
-  AVERT(Bool, withReservoirPermit);
   NOTREACHED;
   return ResUNIMPL;
 }
 
 Res PoolTrivBufferFill(Addr *baseReturn, Addr *limitReturn,
-                       Pool pool, Buffer buffer, Size size,
-                       Bool withReservoirPermit)
+                       Pool pool, Buffer buffer, Size size)
 {
   Res res;
   Addr p;
@@ -258,9 +251,8 @@ Res PoolTrivBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVERT(Pool, pool);
   AVERT(Buffer, buffer);
   AVER(size > 0);
-  AVERT(Bool, withReservoirPermit);
 
-  res = PoolAlloc(&p, pool, size, withReservoirPermit);
+  res = PoolAlloc(&p, pool, size);
   if (res != ResOK)
     return res;
  
@@ -332,7 +324,7 @@ Res PoolNoAccess(Pool pool, Seg seg, Addr addr,
   AVERT(Seg, seg);
   AVER(SegBase(seg) <= addr);
   AVER(addr < SegLimit(seg));
-  /* can't check AccessSet as there is no Check method */
+  AVERT(AccessSet, mode);
   /* can't check context as there is no Check method */
   UNUSED(mode);
   UNUSED(context);
@@ -358,7 +350,7 @@ Res PoolSegAccess(Pool pool, Seg seg, Addr addr,
   AVER(SegBase(seg) <= addr);
   AVER(addr < SegLimit(seg));
   AVER(SegPool(seg) == pool);
-  /* can't check AccessSet as there is no Check method */
+  AVERT(AccessSet, mode);
   /* can't check context as there is no Check method */
 
   UNUSED(addr);
@@ -394,7 +386,7 @@ Res PoolSingleAccess(Pool pool, Seg seg, Addr addr,
   AVER(SegBase(seg) <= addr);
   AVER(addr < SegLimit(seg));
   AVER(SegPool(seg) == pool);
-  /* can't check AccessSet as there is no Check method */
+  AVERT(AccessSet, mode);
   /* can't check context as there is no Check method */
 
   arena = PoolArena(pool);
@@ -669,7 +661,7 @@ Size PoolNoSize(Pool pool)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2015 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
