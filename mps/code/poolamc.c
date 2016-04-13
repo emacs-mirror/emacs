@@ -1712,11 +1712,7 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
   headerSize = format->headerSize;
   ShieldExpose(arena, seg);
   p = SegBase(seg);
-  if(SegBuffer(seg) != NULL) {
-    limit = BufferScanLimit(SegBuffer(seg));
-  } else {
-    limit = SegLimit(seg);
-  }
+  limit = SegBufferScanLimit(seg);
   padBase = p;
   padLength = 0;
   while(p < limit) {
@@ -1864,14 +1860,7 @@ static void AMCWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
     AVERT(AMC, amc);
     format = pool->format;
 
-    /* If the segment is buffered, only walk as far as the end */
-    /* of the initialized objects.  cf. AMCScan */
-    if(SegBuffer(seg) != NULL)
-      limit = BufferScanLimit(SegBuffer(seg));
-    else
-      limit = SegLimit(seg);
-    limit = AddrAdd(limit, format->headerSize);
-
+    limit = AddrAdd(SegBufferScanLimit(seg), format->headerSize);
     object = AddrAdd(SegBase(seg), format->headerSize);
     while(object < limit) {
       /* Check not a broken heart. */
