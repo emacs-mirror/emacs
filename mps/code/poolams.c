@@ -448,7 +448,6 @@ static Res AMSSegSplit(Seg seg, Seg segHi,
   if (res != ResOK)
     goto failCreateTablesHi;
 
-
   /* Split the superclass fields via next-method call */
   res = NextMethod(Seg, AMSSeg, split)(seg, segHi, base, mid, limit);
   if (res != ResOK)
