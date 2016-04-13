@@ -1549,6 +1549,8 @@ static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   amcGen gen;          /* generation of old copy of object */
   TraceSet grey;       /* greyness of object being relocated */
   Seg toSeg;           /* segment to which object is being relocated */
+  TraceId ti;
+  Trace trace;
 
   /* <design/trace/#fix.noaver> */
   AVERT_CRITICAL(Pool, pool);
@@ -1661,7 +1663,11 @@ static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
 
       ShieldCover(arena, toSeg);
     } while (!BUFFER_COMMIT(buffer, newBase, length));
+
     ss->copiedSize += length;
+    TRACE_SET_ITER(ti, trace, ss->traces, ss->arena)
+      Seg2amcSeg(seg)->forwarded[ti] += length;
+    TRACE_SET_ITER_END(ti, trace, ss->traces, ss->arena);
 
     (*format->move)(ref, newRef);  /* .exposed.seg */
 
