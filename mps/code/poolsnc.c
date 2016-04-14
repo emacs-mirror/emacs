@@ -1,7 +1,7 @@
 /* poolsnc.c: STACK NO CHECKING POOL CLASS
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  * DESIGN
  *
@@ -390,6 +390,7 @@ static Res SNCInit(Pool pool, ArgList args)
   AVERT(Format, format);
   AVER(FormatArena(format) == PoolArena(pool));
   pool->format = format;
+  pool->alignment = pool->format->alignment;
   snc->freeSegs = NULL;
   snc->sig = SNCSig;
 
@@ -729,7 +730,7 @@ static Bool SNCCheck(SNC snc)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
