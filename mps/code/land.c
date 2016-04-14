@@ -558,6 +558,8 @@ static Res LandAbsDescribe(Land land, mps_lib_FILE *stream, Count depth)
 
   class = ClassOfPoly(Land, land);
   return WriteF(stream, depth + 2,
+                "class $P (\"$S\")\n",
+                (WriteFP)class, (WriteFS)ClassName(class),
                 "arena  $P\n", (WriteFP)land->arena,
                 "align  $U\n", (WriteFU)land->alignment,
                 "inLand $S\n", WriteFYesNo(land->inLand),
