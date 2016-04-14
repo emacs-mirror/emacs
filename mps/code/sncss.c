@@ -1,7 +1,7 @@
 /* sncss.c: SNC STRESS TEST
  *
  * $Id$
- * Copyright (c) 2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2014-2016 Ravenbrook Limited.  See end of file for license.
  */
 
 #include "mpm.h"
@@ -111,6 +111,7 @@ static void test(mps_pool_class_t pool_class)
       "mps_arena_create");
 
   MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_ALIGN, align);
     MPS_ARGS_ADD(args, MPS_KEY_FMT_SCAN, fmtScan);
     MPS_ARGS_ADD(args, MPS_KEY_FMT_SKIP, fmtSkip);
     MPS_ARGS_ADD(args, MPS_KEY_FMT_PAD, fmtPad);
@@ -118,7 +119,6 @@ static void test(mps_pool_class_t pool_class)
   } MPS_ARGS_END(args);
 
   MPS_ARGS_BEGIN(args) {
-    MPS_ARGS_ADD(args, MPS_KEY_ALIGN, align);
     MPS_ARGS_ADD(args, MPS_KEY_FORMAT, fmt);
     die(mps_pool_create_k(&pool, arena, pool_class, args), "pool_create");
   } MPS_ARGS_END(args);
@@ -198,7 +198,7 @@ int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
