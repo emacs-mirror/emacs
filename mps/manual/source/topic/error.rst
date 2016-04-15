@@ -265,6 +265,13 @@ this documentation.
     :c:type:`mps_fmt_t` for this argument.
 
 
+``format.c: format->poolCount == 0``
+
+    The client program called :c:func:`mps_fmt_destroy` on a format
+    that was still being used by a pool. It is necessary to call
+    :c:func:`mps_pool_destroy` first.
+
+
 ``global.c: RingIsSingle(&arena->chainRing)``
 
     The client program called :c:func:`mps_arena_destroy` without
