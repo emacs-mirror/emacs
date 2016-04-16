@@ -135,6 +135,46 @@ diagnostic system:
 - the ``METER`` macros and meter subsystem.
 
 
+Statistics
+..........
+
+_`.stat`: The statistic system collects information about the
+behaviour and performance of the MPS that may be useful for MPS
+developers and customers, but which is not needed by the MPS itself
+for internal decision-making.
+
+_`.stat.remove`: The space needed for these statistics, and the code
+for maintaining them, can therefore be removed (compiled out) in some
+varieties.
+
+_`.stat.config`: Statistics are compiled in if ``CONFIG_STATS`` is
+defined (in the cool variety) and compiled out if
+``CONFIG_STATS_NONE`` is defined (in the hot and rash varieties).
+
+``STATISTIC_DECL(decl)``
+
+_`.stat.decl`: The ``STATISTIC_DECL`` macro is used to wrap a
+declaration of storage for a statistic. Note that the expansion
+supplies the terminating semi-colin and so it must not be following by
+a semi-colon in use. This is so that it can be used in structure
+definitions.
+
+``STATISTIC(gather)``
+
+_`.stat.gather`: The ``STATISTIC`` macro is used to gather statistics.
+The argument is a statement and the expansion followed by a semicolon
+is syntactically a statement. The macro expends to ``NOOP`` in
+non-statistical varieties. (Note that it can't use ``DISCARD_STAT`` to
+check the syntax of the statement because it is expected to use fields
+that have been compiled away by ``STATISTIC_DECL``, and these will
+cause compilation errors.)
+
+``STATISTIC_WRITE(format, arg)``
+
+_`.stat.write`: The ``STATISTIC_WRITE`` macro is used in ``WriteF()``
+argument lists to output the values of statistics.
+
+
 Related systems
 ...............
 
