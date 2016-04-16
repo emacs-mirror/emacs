@@ -1125,13 +1125,13 @@ static Bool vmChunkCompact(Tree tree, void *closure)
 static void VMCompact(Arena arena, Trace trace)
 {
   VMArena vmArena;
-  Size vmem1;
+  STATISTIC_DECL(Size vmem1)
 
   vmArena = Arena2VMArena(arena);
   AVERT(VMArena, vmArena);
   AVERT(Trace, trace);
 
-  vmem1 = ArenaReserved(arena);
+  STATISTIC(vmem1 = ArenaReserved(arena));
 
   /* Destroy chunks that are completely free, but not the primary
    * chunk. See <design/arena/#chunk.delete>
@@ -1142,13 +1142,9 @@ static void VMCompact(Arena arena, Trace trace)
     Size vmem0 = trace->preTraceArenaReserved;
     Size vmem2 = ArenaReserved(arena);
 
-    /* VMCompact event: emit for all client-requested collections, */
-    /* plus any others where chunks were gained or lost during the */
-    /* collection.  */
-    if(trace->why == TraceStartWhyCLIENTFULL_INCREMENTAL
-       || trace->why == TraceStartWhyCLIENTFULL_BLOCK
-       || vmem0 != vmem1
-       || vmem1 != vmem2)
+    /* VMCompact event: emit for collections where chunks were gained
+     * or lost during the collection. */
+    if (vmem0 != vmem1 || vmem1 != vmem2)
       EVENT3(VMCompact, vmem0, vmem1, vmem2);
   });
 }
