@@ -105,9 +105,7 @@ void ScanStateInit(ScanState ss, TraceSet ts, Arena arena,
   STATISTIC(ss->nailCount = (Count)0);
   STATISTIC(ss->snapCount = (Count)0);
   STATISTIC(ss->forwardedCount = (Count)0);
-  ss->forwardedSize = (Size)0; /* see .message.data */
   STATISTIC(ss->preservedInPlaceCount = (Count)0);
-  ss->preservedInPlaceSize = (Size)0; /* see .message.data */
   STATISTIC(ss->copiedSize = (Size)0);
   ss->scannedSize = (Size)0; /* see .work */
   ss->sig = ScanStateSig;
@@ -296,11 +294,7 @@ static void traceUpdateCounts(Trace trace, ScanState ss,
   STATISTIC(trace->nailCount += ss->nailCount);
   STATISTIC(trace->snapCount += ss->snapCount);
   STATISTIC(trace->forwardedCount += ss->forwardedCount);
-  trace->forwardedSize += ss->forwardedSize;  /* see .message.data */
   STATISTIC(trace->preservedInPlaceCount += ss->preservedInPlaceCount);
-  trace->preservedInPlaceSize += ss->preservedInPlaceSize;
-
-  return;
 }
 
 
@@ -396,68 +390,35 @@ Res TraceAddWhite(Trace trace, Seg seg)
 }
 
 
-/* TraceCondemnZones -- condemn all objects in the given zones
+/* TraceCondemnStart -- start condemning objects for a trace
  *
- * TraceCondemnZones is passed a trace in state TraceINIT, and a set of
- * objects to condemn.
+ * We suspend the mutator threads so that the PoolWhiten methods can
+ * calculate white sets without the mutator allocating in buffers
+ * under our feet. See request.dylan.160098
+ * <https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/dylan/160098>.
  *
- * @@@@ For efficiency, we ought to find the condemned set and the
- * foundation in one search of the segment ring.  This hasn't been done
- * because some pools still use TraceAddWhite for the condemned set.
- *
- * @@@@ This function would be more efficient if there were a cheaper
- * way to select the segments in a particular zone set.  */
+ * TODO: Consider how to avoid this suspend in order to implement
+ * incremental condemn.
+ */
 
-Res TraceCondemnZones(Trace trace, ZoneSet condemnedSet)
+void TraceCondemnStart(Trace trace)
 {
-  Seg seg;
-  Arena arena;
-  Res res;
-
   AVERT(Trace, trace);
-  AVER(condemnedSet != ZoneSetEMPTY);
   AVER(trace->state == TraceINIT);
   AVER(trace->white == ZoneSetEMPTY);
 
-  arena = trace->arena;
+  ShieldHold(trace->arena);
+}
 
-  ShieldHold(arena); /* .whiten.hold */
 
-  if(SegFirst(&seg, arena)) {
-    do {
-      /* Segment should be black now. */
-      AVER(!TraceSetIsMember(SegGrey(seg), trace));
-      AVER(!TraceSetIsMember(SegWhite(seg), trace));
+/* TraceCondemnEnd -- stop condemning objects for a trace */
 
-      /* A segment can only be white if it is GC-able. */
-      /* This is indicated by the pool having the GC attribute */
-      /* We only condemn segments that fall entirely within */
-      /* the requested zone set.  Otherwise, we would bloat the */
-      /* foundation to no gain.  Note that this doesn't exclude */
-      /* any segments from which the condemned set was derived, */
-      if(PoolHasAttr(SegPool(seg), AttrGC)
-         && ZoneSetSuper(condemnedSet, ZoneSetOfSeg(arena, seg)))
-      {
-        res = TraceAddWhite(trace, seg);
-        if(res != ResOK)
-          goto failBegin;
-      }
-    } while (SegNext(&seg, arena, seg));
-  }
+void TraceCondemnEnd(Trace trace)
+{
+  AVERT(Trace, trace);
+  AVER(trace->state == TraceINIT);
 
-  ShieldRelease(arena);
-
-  EVENT3(TraceCondemnZones, trace, condemnedSet, trace->white);
-
-  /* The trace's white set must be a subset of the condemned set */
-  AVER(ZoneSetSuper(condemnedSet, trace->white));
-
-  return ResOK;
-
-failBegin:
-  ShieldRelease(arena);
-  AVER(TraceIsEmpty(trace)); /* See .whiten.fail. */
-  return res;
+  ShieldRelease(trace->arena);
 }
 
 
@@ -774,13 +735,21 @@ found:
 }
 
 
-/* TraceDestroyInit -- destroy a trace object in state INIT */
+/* traceDestroyCommon -- common functionality for TraceDestroy*  */
 
-void TraceDestroyInit(Trace trace)
+static void traceDestroyCommon(Trace trace)
 {
-  AVERT(Trace, trace);
-  AVER(trace->state == TraceINIT);
-  AVER(trace->condemned == 0);
+  Ring chainNode, nextChainNode;
+
+  if (trace->chain != NULL) {
+    ChainEndTrace(trace->chain, trace);
+  } else {
+    /* Notify all the chains. */
+    RING_FOR(chainNode, &trace->arena->chainRing, nextChainNode) {
+      Chain chain = RING_ELT(Chain, chainRing, chainNode);
+      ChainEndTrace(chain, trace);
+    }
+  }
 
   /* Ensure that address space is returned to the operating system for
    * traces that don't have any condemned objects (there might be
@@ -791,9 +760,23 @@ void TraceDestroyInit(Trace trace)
 
   trace->sig = SigInvalid;
   trace->arena->busyTraces = TraceSetDel(trace->arena->busyTraces, trace);
+  trace->arena->flippedTraces = TraceSetDel(trace->arena->flippedTraces, trace);
 
-  /* Clear the emergency flag so the next trace starts normally. */
+  /* Hopefully the trace reclaimed some memory, so clear any emergency. */
   ArenaSetEmergency(trace->arena, FALSE);
+}
+
+
+/* TraceDestroyInit -- destroy a trace object in state INIT */
+
+void TraceDestroyInit(Trace trace)
+{
+  AVERT(Trace, trace);
+  AVER(trace->state == TraceINIT);
+  AVER(trace->condemned == 0);
+  AVER(!TraceSetIsMember(trace->arena->flippedTraces, trace));
+
+  traceDestroyCommon(trace);
 }
 
 
@@ -810,19 +793,6 @@ void TraceDestroyFinished(Trace trace)
 {
   AVERT(Trace, trace);
   AVER(trace->state == TraceFINISHED);
-
-  if(trace->chain == NULL) {
-    Ring chainNode, nextChainNode;
-
-    /* Notify all the chains. */
-    RING_FOR(chainNode, &trace->arena->chainRing, nextChainNode) {
-      Chain chain = RING_ELT(Chain, chainRing, chainNode);
-
-      ChainEndGC(chain, trace);
-    }
-  } else {
-    ChainEndGC(trace->chain, trace);
-  }
 
   STATISTIC_STAT(EVENT13
                   (TraceStatScan, trace,
@@ -846,14 +816,7 @@ void TraceDestroyFinished(Trace trace)
                   (TraceStatReclaim, trace,
                    trace->reclaimCount, trace->reclaimSize));
 
-  EVENT1(TraceDestroy, trace);
-
-  trace->sig = SigInvalid;
-  trace->arena->busyTraces = TraceSetDel(trace->arena->busyTraces, trace);
-  trace->arena->flippedTraces = TraceSetDel(trace->arena->flippedTraces, trace);
-
-  /* Hopefully the trace reclaimed some memory, so clear any emergency. */
-  ArenaSetEmergency(trace->arena, FALSE);
+  traceDestroyCommon(trace);
 }
 
 
@@ -1528,18 +1491,12 @@ static Res traceCondemnAll(Trace trace)
 {
   Res res;
   Arena arena;
-  Ring poolNode, nextPoolNode, chainNode, nextChainNode;
+  Ring poolNode, nextPoolNode;
 
   arena = trace->arena;
   AVERT(Arena, arena);
 
-  /* .whiten.hold: We suspend the mutator threads so that the
-     PoolWhiten methods can calculate white sets without the mutator
-     allocating in buffers under our feet. See request.dylan.160098
-     <https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/dylan/160098>. */
-  /* TODO: Consider how to avoid this suspend in order to implement
-     incremental condemn. */
-  ShieldHold(arena);
+  TraceCondemnStart(trace);
 
   /* Condemn all segments in pools with the GC attribute. */
   RING_FOR(poolNode, &ArenaGlobals(arena)->poolRing, nextPoolNode) {
@@ -1561,17 +1518,11 @@ static Res traceCondemnAll(Trace trace)
     }
   }
 
-  ShieldRelease(arena);
+  TraceCondemnEnd(trace);
 
   if (TraceIsEmpty(trace))
     return ResFAIL;
 
-  /* Notify all the chains. */
-  RING_FOR(chainNode, &arena->chainRing, nextChainNode) {
-    Chain chain = RING_ELT(Chain, chainRing, chainNode);
-
-    ChainStartGC(chain, trace);
-  }
   return ResOK;
 
 failBegin:
@@ -1583,7 +1534,7 @@ failBegin:
    * will be triggered. In that case, we'll have to recover here by
    * blackening the segments again. */
   AVER(TraceIsEmpty(trace));
-  ShieldRelease(arena);
+  TraceCondemnEnd(trace);
   return res;
 }
 
@@ -1793,12 +1744,20 @@ Res TraceStartCollectAll(Trace *traceReturn, Arena arena, int why)
   Trace trace = NULL;
   Res res;
   double finishingTime;
+  Ring chainNode, nextChainNode;
 
   AVERT(Arena, arena);
   AVER(arena->busyTraces == TraceSetEMPTY);
 
   res = TraceCreate(&trace, arena, why);
   AVER(res == ResOK); /* succeeds because no other trace is busy */
+
+  /* Notify all the chains. */
+  RING_FOR(chainNode, &arena->chainRing, nextChainNode) {
+    Chain chain = RING_ELT(Chain, chainRing, chainNode);
+    ChainStartTrace(chain, trace);
+  }
+
   res = traceCondemnAll(trace);
   if(res != ResOK) /* should try some other trace, really @@@@ */
     goto failCondemn;
