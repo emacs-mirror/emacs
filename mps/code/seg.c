@@ -24,11 +24,6 @@
 SRCID(seg, "$Id$");
 
 
-/* SegGCSeg -- convert generic Seg to GCSeg */
-
-#define SegGCSeg(seg)             ((GCSeg)(seg))
-
-
 /* forward declarations */
 
 static void SegFinish(Seg seg);
@@ -1094,6 +1089,8 @@ Bool GCSegCheck(GCSeg gcseg)
     CHECKL(gcseg->summary == RefSetEMPTY);
   }
 
+  CHECKD_NOSIG(Ring, &gcseg->genRing);
+
   return TRUE;
 }
 
@@ -1124,6 +1121,7 @@ static Res gcSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   gcseg->summary = RefSetEMPTY;
   gcseg->buffer = NULL;
   RingInit(&gcseg->greyRing);
+  RingInit(&gcseg->genRing);
   gcseg->sig = GCSegSig;
 
   AVERT(GCSeg, gcseg);
@@ -1155,6 +1153,7 @@ static void gcSegFinish(Seg seg)
   AVER(gcseg->buffer == NULL);
 
   RingFinish(&gcseg->greyRing);
+  RingFinish(&gcseg->genRing);
 
   /* finish the superclass fields last */
   super = SEG_SUPERCLASS(GCSegClass);
@@ -1504,6 +1503,8 @@ static Res gcSegMerge(Seg seg, Seg segHi,
   gcsegHi->summary = RefSetEMPTY;
   gcsegHi->sig = SigInvalid;
   RingFinish(&gcsegHi->greyRing);
+  RingRemove(&gcsegHi->genRing);
+  RingFinish(&gcsegHi->genRing);
 
   /* Reassign any buffer that was connected to segHi  */
   if (NULL != buf) {
@@ -1565,6 +1566,8 @@ static Res gcSegSplit(Seg seg, Seg segHi,
   gcsegHi->summary = gcseg->summary;
   gcsegHi->buffer = NULL;
   RingInit(&gcsegHi->greyRing);
+  RingInit(&gcsegHi->genRing);
+  RingInsert(&gcseg->genRing, &gcsegHi->genRing);
   gcsegHi->sig = GCSegSig;
   gcSegSetGreyInternal(segHi, TraceSetEMPTY, grey);
 

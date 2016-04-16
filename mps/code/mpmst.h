@@ -276,6 +276,7 @@ typedef struct GCSegStruct {    /* GC segment structure */
   RingStruct greyRing;          /* link in list of grey segs */
   RefSet summary;               /* summary of references out of seg */
   Buffer buffer;                /* non-NULL if seg is buffered */
+  RingStruct genRing;           /* link in list of segs in gen */
   Sig sig;                      /* <design/sig/> */
 } GCSegStruct;
 
@@ -438,9 +439,7 @@ typedef struct ScanStateStruct {
   STATISTIC_DECL(Count nailCount); /* segments nailed by ambig refs */
   STATISTIC_DECL(Count snapCount); /* refs snapped to forwarded objs */
   STATISTIC_DECL(Count forwardedCount); /* objects preserved by moving */
-  Size forwardedSize;           /* bytes preserved by moving */
   STATISTIC_DECL(Count preservedInPlaceCount); /* objects preserved in place */
-  Size preservedInPlaceSize;    /* bytes preserved in place */
   STATISTIC_DECL(Size copiedSize); /* bytes copied */
   STATISTIC_DECL(Size scannedSize); /* bytes scanned */
 } ScanStateStruct;

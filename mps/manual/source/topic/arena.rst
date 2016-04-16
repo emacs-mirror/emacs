@@ -461,8 +461,8 @@ Arena properties
     When the pause time is short, the MPS needs to take more slices of
     time in order to make :term:`garbage collection` progress, and
     make more use of :term:`barriers (1)` to support
-    :term:`incremental collection`.  This increases time overheads,
-    and especially operating system overheads.
+    :term:`incremental garbage collection`. This increases time
+    overheads, and especially operating system overheads.
 
     The pause time may be set to zero, in which case the MPS returns
     as soon as it can, without regard for overall efficiency.  This
@@ -476,7 +476,7 @@ Arena properties
     The pause time may be set to infinity, in which case the MPS
     completes all outstanding :term:`garbage collection` work before
     returning from an operation. The consequence is that the MPS will
-    be able to save on the overheads due to :term:`incremental
+    be able to save on the overheads due to :term:`incremental garbage
     collection`, leading to lower total time spent in collection. This
     value is suitable for non-interactive applications where total
     time is important.
