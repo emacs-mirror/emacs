@@ -380,8 +380,7 @@ void GlobalsFinish(Globals arenaGlobals)
   arena = GlobalsArena(arenaGlobals);
   AVERT(Globals, arenaGlobals);
 
-  STATISTIC_STAT(EVENT2(ArenaWriteFaults, arena,
-                        arena->writeBarrierHitCount));
+  STATISTIC(EVENT2(ArenaWriteFaults, arena, arena->writeBarrierHitCount));
 
   arenaGlobals->sig = SigInvalid;
 

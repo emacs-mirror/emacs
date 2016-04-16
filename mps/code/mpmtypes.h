@@ -429,14 +429,13 @@ typedef double WriteFD;
 /* STATISTIC_DECL -- declare a field to accumulate statistics in
  *
  * The argument is a field declaration (a struct-declaration minus the
- * semicolon) for a single field (no commas).  Currently, we always
- * leave them in, see design.mps.metrics.
+ * semicolon) for a single field (no commas).
  */
 
 #if defined(STATISTICS)
-#define STATISTIC_DECL(field) field
+#define STATISTIC_DECL(field) field;
 #elif defined(STATISTICS_NONE)
-#define STATISTIC_DECL(field) field
+#define STATISTIC_DECL(field)
 #else
 #error "No statistics configured."
 #endif

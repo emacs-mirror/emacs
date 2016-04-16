@@ -1182,7 +1182,7 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
                                 BufferScanLimit(buffer),
                                 BufferLimit(buffer));
             }
-            ++trace->nailCount;
+            STATISTIC(++trace->nailCount);
             SegSetNailed(seg, TraceSetSingle(trace));
           } else {
             /* Segment is nailed already, cannot create a nailboard */
@@ -1576,7 +1576,7 @@ static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
       res = amcSegCreateNailboard(seg, pool);
       if(res != ResOK)
         return res;
-      ++ss->nailCount;
+      STATISTIC(++ss->nailCount);
       SegSetNailed(seg, TraceSetUnion(SegNailed(seg), ss->traces));
     }
     amcFixInPlace(pool, seg, ss, refIO);
@@ -1634,7 +1634,7 @@ static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     AVER_CRITICAL(buffer != NULL);
 
     length = AddrOffset(ref, clientQ);  /* .exposed.seg */
-    STATISTIC_STAT(++ss->forwardedCount);
+    STATISTIC(++ss->forwardedCount);
     ss->forwardedSize += length;
     do {
       res = BUFFER_RESERVE(&newBase, buffer, length);
@@ -1661,7 +1661,7 @@ static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
 
       ShieldCover(arena, toSeg);
     } while (!BUFFER_COMMIT(buffer, newBase, length));
-    ss->copiedSize += length;
+    STATISTIC(ss->copiedSize += length);
 
     (*format->move)(ref, newRef);  /* .exposed.seg */
 
@@ -1669,7 +1669,7 @@ static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   } else {
     /* reference to broken heart (which should be snapped out -- */
     /* consider adding to (non-existent) snap-out cache here) */
-    STATISTIC_STAT(++ss->snapCount);
+    STATISTIC(++ss->snapCount);
   }
 
   /* .fix.update: update the reference to whatever the above code */
@@ -1691,7 +1691,7 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
   Addr p, limit;
   Arena arena;
   Format format;
-  Size bytesReclaimed = (Size)0;
+  STATISTIC_DECL(Size bytesReclaimed = (Size)0)
   Count preservedInPlaceCount = (Count)0;
   Size preservedInPlaceSize = (Size)0;
   AMC amc;
@@ -1738,7 +1738,7 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
         /* Replace run of forwarding pointers and unreachable objects
          * with a padding object. */
         (*format->pad)(padBase, padLength);
-        bytesReclaimed += padLength;
+        STATISTIC(bytesReclaimed += padLength);
         padLength = 0;
       }
       padBase = q;
@@ -1755,7 +1755,7 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
     /* Replace final run of forwarding pointers and unreachable
      * objects with a padding object. */
     (*format->pad)(padBase, padLength);
-    bytesReclaimed += padLength;
+    STATISTIC(bytesReclaimed += padLength);
   }
   ShieldCover(arena, seg);
 
@@ -1766,9 +1766,9 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
     Seg2amcSeg(seg)->board = NULL;
   }
 
-  AVER(bytesReclaimed <= SegSize(seg));
-  trace->reclaimSize += bytesReclaimed;
-  trace->preservedInPlaceCount += preservedInPlaceCount;
+  STATISTIC(AVER(bytesReclaimed <= SegSize(seg)));
+  STATISTIC(trace->reclaimSize += bytesReclaimed);
+  STATISTIC(trace->preservedInPlaceCount += preservedInPlaceCount);
   trace->preservedInPlaceSize += preservedInPlaceSize;
 
   /* Free the seg if we can; fixes .nailboard.limitations.middle. */
@@ -1826,7 +1826,7 @@ static void AMCReclaim(Pool pool, Trace trace, Seg seg)
   /* segs should have been nailed anyway). */
   AVER(SegBuffer(seg) == NULL);
 
-  trace->reclaimSize += SegSize(seg);
+  STATISTIC(trace->reclaimSize += SegSize(seg));
 
   PoolGenFree(&gen->pgen, seg, 0, SegSize(seg), 0, Seg2amcSeg(seg)->deferred);
 }
