@@ -1712,11 +1712,6 @@ Res TraceStart(Trace trace, double mortality, double finishingTime)
          trace->foundation, trace->white,
          trace->quantumWork);
 
-  STATISTIC(EVENT7(TraceStatCondemn, trace,
-                   trace->condemned, trace->notCondemned,
-                   trace->foundation, trace->quantumWork,
-                   mortality, finishingTime));
-
   trace->state = TraceUNFLIPPED;
   TracePostStartMessage(trace);
 
