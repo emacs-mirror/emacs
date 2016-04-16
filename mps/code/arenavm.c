@@ -1138,7 +1138,7 @@ static void VMCompact(Arena arena, Trace trace)
    * TODO: add hysteresis here. See job003815. */
   TreeTraverseAndDelete(&arena->chunkTree, vmChunkCompact, arena);
 
-  {
+  STATISTIC({
     Size vmem0 = trace->preTraceArenaReserved;
     Size vmem2 = ArenaReserved(arena);
 
@@ -1150,7 +1150,7 @@ static void VMCompact(Arena arena, Trace trace)
        || vmem0 != vmem1
        || vmem1 != vmem2)
       EVENT3(VMCompact, vmem0, vmem1, vmem2);
-  }
+  });
 }
 
 mps_res_t mps_arena_vm_growth(mps_arena_t mps_arena,
