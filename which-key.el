@@ -46,6 +46,7 @@
 (defvar evil-operator-state-map)
 (defvar evil-motion-state-map)
 (defvar golden-ratio-mode)
+(defvar variable-name-history)
 (declare-function evil-get-command-property "ext:evil-common.el")
 
 (defgroup which-key nil
