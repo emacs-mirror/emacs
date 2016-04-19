@@ -43,7 +43,7 @@
 #include "fmtdytst.h"
 #include "mpstd.h"
 
-#include <math.h> /* INFINITY */
+#include <math.h> /* HUGE_VAL */
 #include <stdio.h> /* fflush, printf, stdout */
 
 enum {
@@ -287,7 +287,7 @@ int main(int argc, char *argv[])
     /* Randomize pause time as a regression test for job004007. */
     double t = rnd_double();
     if (t == 0.0)
-      t = INFINITY;
+      t = HUGE_VAL; /* Would prefer to use INFINITY but it's not in C89. */
     else
       t = 1 / t - 1;
     MPS_ARGS_ADD(args, MPS_KEY_PAUSE_TIME, t);
