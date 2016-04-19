@@ -231,15 +231,7 @@ Bool ArenaCheck(Arena arena)
 }
 
 
-/* ArenaAbsInit -- initialize the generic part of the arena
- *
- * .init.caller: ArenaInit is called by class->init (which is called
- * by ArenaCreate). The initialization must proceed in this order, as
- * opposed to class->init being called by ArenaInit, which would
- * correspond to the initialization order for pools and other objects,
- * because the memory for the arena structure is not available until
- * it has been allocated by the arena class.
- */
+/* ArenaAbsInit -- initialize the generic part of the arena */
 
 static Res ArenaAbsInit(Arena arena, Size grainSize, ArgList args)
 {
