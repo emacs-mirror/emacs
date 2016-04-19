@@ -61,7 +61,6 @@ Bool PoolClassCheck(PoolClass class)
   CHECKL(FUNCHECK(class->rampEnd));
   CHECKL(FUNCHECK(class->framePush));
   CHECKL(FUNCHECK(class->framePop));
-  CHECKL(FUNCHECK(class->framePopPending));
   CHECKL(FUNCHECK(class->addrObject));
   CHECKL(FUNCHECK(class->walk));
   CHECKL(FUNCHECK(class->freewalk));

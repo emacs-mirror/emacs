@@ -280,8 +280,6 @@ extern Res PoolNoFramePush(AllocFrame *frameReturn, Pool pool, Buffer buf);
 extern Res PoolTrivFramePush(AllocFrame *frameReturn, Pool pool, Buffer buf);
 extern Res PoolNoFramePop(Pool pool, Buffer buf, AllocFrame frame);
 extern Res PoolTrivFramePop(Pool pool, Buffer buf, AllocFrame frame);
-extern void PoolNoFramePopPending(Pool pool, Buffer buf, AllocFrame frame);
-extern void PoolTrivFramePopPending(Pool pool, Buffer buf, AllocFrame frame);
 extern Res PoolNoAddrObject(Addr *pReturn, Pool pool, Seg seg, Addr addr);
 extern void PoolNoWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
                        void *p, size_t s);
@@ -512,6 +510,7 @@ extern Ring GlobalsRememberedSummaryRing(Globals);
 #define ArenaGreyRing(arena, rank) (&(arena)->greyRing[rank])
 #define ArenaPoolRing(arena) (&ArenaGlobals(arena)->poolRing)
 #define ArenaChunkTree(arena) RVALUE((arena)->chunkTree)
+#define ArenaChunkRing(arena) RVALUE(&(arena)->chunkRing)
 #define ArenaShield(arena)      (&(arena)->shieldStruct)
 
 extern Bool ArenaGrainSizeCheck(Size size);
@@ -673,6 +672,7 @@ extern Res SegDescribe(Seg seg, mps_lib_FILE *stream, Count depth);
 extern void SegSetSummary(Seg seg, RefSet summary);
 extern Buffer SegBuffer(Seg seg);
 extern void SegSetBuffer(Seg seg, Buffer buffer);
+extern Addr SegBufferScanLimit(Seg seg);
 extern Bool SegCheck(Seg seg);
 extern Bool GCSegCheck(GCSeg gcseg);
 extern Bool SegClassCheck(SegClass class);
@@ -774,7 +774,6 @@ extern Addr BufferScanLimit(Buffer buffer);
 extern void BufferReassignSeg(Buffer buffer, Seg seg);
 
 extern Bool BufferIsTrapped(Buffer buffer);
-extern Bool BufferIsTrappedByMutator(Buffer buffer);
 
 extern void BufferRampBegin(Buffer buffer, AllocPattern pattern);
 extern Res BufferRampEnd(Buffer buffer);
@@ -782,8 +781,6 @@ extern void BufferRampReset(Buffer buffer);
 
 extern Res BufferFramePush(AllocFrame *frameReturn, Buffer buffer);
 extern Res BufferFramePop(Buffer buffer, AllocFrame frame);
-extern FrameState BufferFrameState(Buffer buffer);
-extern void BufferFrameSetState(Buffer buffer, FrameState state);
 
 extern Bool BufferClassCheck(BufferClass class);
 DECLARE_CLASS(Inst, BufferClass, InstClass);
