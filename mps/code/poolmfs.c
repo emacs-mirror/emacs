@@ -51,9 +51,6 @@ DECLARE_CLASS(Pool, MFSPool, AbstractPool);
 #define ROUND(unit, n)  ((n)+(unit)-1 - ((n)+(unit)-1)%(unit))
 
 
-#define PoolPoolMFS(pool)       PARENT(MFSStruct, poolStruct, pool)
-
-
 /* HeaderStruct -- Freelist structure */
 
 typedef struct MFSHeaderStruct {
@@ -137,12 +134,8 @@ static Res MFSInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
 void MFSFinishTracts(Pool pool, MFSTractVisitor visitor,
                      void *closure)
 {
-  MFS mfs;
+  MFS mfs = MustBeA(MFSPool, pool);
 
-  AVERT(Pool, pool);
-  mfs = PoolPoolMFS(pool);
-  AVERT(MFS, mfs);
-  
   while (mfs->tractList != NULL) {
     Tract nextTract = (Tract)TractP(mfs->tractList);   /* .tract.chain */
     visitor(pool, TractBase(mfs->tractList), mfs->extendBy, closure);
@@ -162,11 +155,7 @@ static void MFSTractFreeVisitor(Pool pool, Addr base, Size size,
 
 static void MFSFinish(Pool pool)
 {
-  MFS mfs;
-
-  AVERT(Pool, pool);
-  mfs = PoolPoolMFS(pool);
-  AVERT(MFS, mfs);
+  MFS mfs = MustBeA(MFSPool, pool);
 
   MFSFinishTracts(pool, MFSTractFreeVisitor, UNUSED_POINTER);
 
@@ -177,15 +166,12 @@ static void MFSFinish(Pool pool)
 
 void MFSExtend(Pool pool, Addr base, Size size)
 {
-  MFS mfs;
+  MFS mfs = MustBeA(MFSPool, pool);
   Tract tract;
   Word i, unitsPerExtent;
   Size unitSize;
   Header header = NULL;
 
-  AVERT(Pool, pool);
-  mfs = PoolPoolMFS(pool);
-  AVERT(MFS, mfs);
   AVER(size == mfs->extendBy);
 
   /* Ensure that the memory we're adding belongs to this pool.  This is
@@ -237,13 +223,9 @@ void MFSExtend(Pool pool, Addr base, Size size)
 
 static Res MFSAlloc(Addr *pReturn, Pool pool, Size size)
 {
+  MFS mfs = MustBeA(MFSPool, pool);
   Header f;
   Res res;
-  MFS mfs;
-
-  AVERT(Pool, pool);
-  mfs = PoolPoolMFS(pool);
-  AVERT(MFS, mfs);
 
   AVER(pReturn != NULL);
   AVER(size == mfs->unroundedUnitSize);
@@ -292,12 +274,8 @@ static Res MFSAlloc(Addr *pReturn, Pool pool, Size size)
 
 static void MFSFree(Pool pool, Addr old, Size size)
 {
+  MFS mfs = MustBeA(MFSPool, pool);
   Header h;
-  MFS mfs;
-
-  AVERT(Pool, pool);
-  mfs = PoolPoolMFS(pool);
-  AVERT(MFS, mfs);
 
   AVER(old != (Addr)0);
   AVER(size == mfs->unroundedUnitSize);
@@ -314,12 +292,7 @@ static void MFSFree(Pool pool, Addr old, Size size)
 
 static Size MFSTotalSize(Pool pool)
 {
-  MFS mfs;
-
-  AVERT(Pool, pool);
-  mfs = PoolPoolMFS(pool);
-  AVERT(MFS, mfs);
-
+  MFS mfs = MustBeA(MFSPool, pool);
   return mfs->total;
 }
 
@@ -328,26 +301,20 @@ static Size MFSTotalSize(Pool pool)
 
 static Size MFSFreeSize(Pool pool)
 {
-  MFS mfs;
-
-  AVERT(Pool, pool);
-  mfs = PoolPoolMFS(pool);
-  AVERT(MFS, mfs);
-
+  MFS mfs = MustBeA(MFSPool, pool);
   return mfs->free;
 }
 
 
 static Res MFSDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 {
-  MFS mfs;
+  MFS mfs = CouldBeA(MFSPool, pool);
   Res res;
 
-  AVERT(Pool, pool);
-  mfs = PoolPoolMFS(pool);
-  AVERT(MFS, mfs);
-
-  AVER(stream != NULL);
+  if (!TESTC(MFSPool, mfs))
+    return ResPARAM;
+  if (stream == NULL)
+    return ResPARAM;
 
   res = WriteF(stream, depth,
                "unroundedUnitSize $W\n", (WriteFW)mfs->unroundedUnitSize,
