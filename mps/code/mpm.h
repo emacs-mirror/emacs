@@ -226,9 +226,7 @@ extern Res PoolWhiten(Pool pool, Trace trace, Seg seg);
 extern void PoolGrey(Pool pool, Trace trace, Seg seg);
 extern void PoolBlacken(Pool pool, TraceSet traceSet, Seg seg);
 extern Res PoolScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg);
-extern Res (PoolFix)(Pool pool, ScanState ss, Seg seg, Addr *refIO);
-#define PoolFix(pool, ss, seg, refIO) \
-  ((*(pool)->fix)(pool, ss, seg, refIO))
+extern Res PoolFix(Pool pool, ScanState ss, Seg seg, Addr *refIO);
 extern Res PoolFixEmergency(Pool pool, ScanState ss, Seg seg, Addr *refIO);
 extern void PoolReclaim(Pool pool, Trace trace, Seg seg);
 extern void PoolTraceEnd(Pool pool, Trace trace);
