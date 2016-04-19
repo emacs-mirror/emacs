@@ -553,7 +553,7 @@ static Res VMArenaCreate(Arena *arenaReturn, ArgList args)
   vmArena = (VMArena)VMBase(vm);
 
   arena = VMArena2Arena(vmArena);
-  /* <code/arena.c#init.caller> */
+
   res = NextMethod(Arena, VMArena, init)(arena, grainSize, args);
   if (res != ResOK)
     goto failArenaInit;
