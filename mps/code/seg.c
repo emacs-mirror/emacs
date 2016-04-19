@@ -1204,24 +1204,22 @@ static void gcSegSetGreyInternal(Seg seg, TraceSet oldGrey, TraceSet grey)
       RingRemove(&gcseg->greyRing);
   }
 
-  STATISTIC_STAT
-    ({
-       TraceId ti; Trace trace;
-       TraceSet diff;
+  STATISTIC({
+    TraceId ti; Trace trace;
+    TraceSet diff;
 
-       diff = TraceSetDiff(grey, oldGrey);
-       TRACE_SET_ITER(ti, trace, diff, arena)
-         ++trace->greySegCount;
-         if (trace->greySegCount > trace->greySegMax)
-           trace->greySegMax = trace->greySegCount;
-       TRACE_SET_ITER_END(ti, trace, diff, arena);
+    diff = TraceSetDiff(grey, oldGrey);
+    TRACE_SET_ITER(ti, trace, diff, arena)
+      ++trace->greySegCount;
+      if (trace->greySegCount > trace->greySegMax)
+        trace->greySegMax = trace->greySegCount;
+    TRACE_SET_ITER_END(ti, trace, diff, arena);
 
-       diff = TraceSetDiff(oldGrey, grey);
-       TRACE_SET_ITER(ti, trace, diff, arena)
-         --trace->greySegCount;
-       TRACE_SET_ITER_END(ti, trace, diff, arena);
-     });
-
+    diff = TraceSetDiff(oldGrey, grey);
+    TRACE_SET_ITER(ti, trace, diff, arena)
+      --trace->greySegCount;
+    TRACE_SET_ITER_END(ti, trace, diff, arena);
+  });
 }
 
 

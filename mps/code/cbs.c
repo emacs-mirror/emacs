@@ -60,7 +60,7 @@ Bool CBSCheck(CBS cbs)
   CHECKL(cbs->blockStructSize > 0);
   CHECKL(BoolCheck(cbs->ownPool));
   CHECKL(SizeIsAligned(cbs->size, LandAlignment(land)));
-  STATISTIC_STAT({CHECKL((cbs->size == 0) == (cbs->treeSize == 0));});
+  STATISTIC(CHECKL((cbs->size == 0) == (cbs->treeSize == 0)));
 
   return TRUE;
 }
@@ -249,7 +249,7 @@ static Res cbsInitComm(Land land, ArgList args, SplayUpdateNodeFunction update,
       return res;
     cbs->ownPool = TRUE;
   }
-  cbs->treeSize = 0;
+  STATISTIC(cbs->treeSize = 0);
   cbs->size = 0;
 
   cbs->blockStructSize = blockStructSize;
@@ -1140,7 +1140,7 @@ static Res cbsDescribe(Land land, mps_lib_FILE *stream, Count depth)
                "CBS $P {\n", (WriteFP)cbs,
                "  blockPool: $P\n", (WriteFP)cbsBlockPool(cbs),
                "  ownPool: $U\n", (WriteFU)cbs->ownPool,
-               "  treeSize: $U\n", (WriteFU)cbs->treeSize,
+               STATISTIC_WRITE("  treeSize: $U\n", (WriteFU)cbs->treeSize)
                NULL);
   if (res != ResOK)
     return res;

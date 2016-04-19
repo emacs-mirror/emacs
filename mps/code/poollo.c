@@ -379,8 +379,8 @@ static void loSegReclaim(LOSeg loseg, Trace trace)
   loseg->freeGrains += reclaimedGrains;
   PoolGenAccountForReclaim(&lo->pgen, LOGrainsSize(lo, reclaimedGrains), FALSE);
 
-  trace->reclaimSize += LOGrainsSize(lo, reclaimedGrains);
-  trace->preservedInPlaceCount += preservedInPlaceCount;
+  STATISTIC(trace->reclaimSize += LOGrainsSize(lo, reclaimedGrains));
+  STATISTIC(trace->preservedInPlaceCount += preservedInPlaceCount);
   trace->preservedInPlaceSize += preservedInPlaceSize;
 
   SegSetWhite(seg, TraceSetDel(SegWhite(seg), trace));
