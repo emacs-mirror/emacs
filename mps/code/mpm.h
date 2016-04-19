@@ -403,7 +403,8 @@ extern Bool TraceIsEmpty(Trace trace);
 extern Res TraceAddWhite(Trace trace, Seg seg);
 extern Res TraceCondemnZones(Trace trace, ZoneSet condemnedSet);
 extern Res TraceStart(Trace trace, double mortality, double finishingTime);
-extern Bool TracePoll(Work *workReturn, Globals globals);
+extern Bool TracePoll(Work *workReturn, Bool *collectWorldReturn,
+                      Globals globals, Bool collectWorldAllowed);
 
 extern Rank TraceRankForAccess(Arena arena, Seg seg);
 extern void TraceSegAccess(Arena arena, Seg seg, AccessSet mode);
@@ -657,7 +658,8 @@ extern Res PolicyAlloc(Tract *tractReturn, Arena arena, LocusPref pref,
                        Size size, Pool pool);
 extern Bool PolicyShouldCollectWorld(Arena arena, double availableTime,
                                      Clock now, Clock clocks_per_sec);
-extern Bool PolicyStartTrace(Trace *traceReturn, Arena arena);
+extern Bool PolicyStartTrace(Trace *traceReturn, Bool *collectWorldReturn,
+                             Arena arena, Bool collectWorldAllowed);
 extern Bool PolicyPoll(Arena arena);
 extern Bool PolicyPollAgain(Arena arena, Clock start, Bool moreWork, Work tracedWork);
 
