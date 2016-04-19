@@ -187,7 +187,7 @@ typedef Res (*BufferDescribeMethod)(Buffer buffer, mps_lib_FILE *stream, Count d
 /* Order of types corresponds to PoolClassStruct in <code/mpmst.h> */
 
 typedef void (*PoolVarargsMethod)(ArgStruct args[], va_list varargs);
-typedef Res (*PoolInitMethod)(Pool pool, Arena arena, PoolClass class, ArgList args);
+typedef Res (*PoolInitMethod)(Pool pool, Arena arena, PoolClass klass, ArgList args);
 typedef void (*PoolFinishMethod)(Pool pool);
 typedef Res (*PoolAllocMethod)(Addr *pReturn, Pool pool, Size size);
 typedef void (*PoolFreeMethod)(Pool pool, Addr old, Size size);

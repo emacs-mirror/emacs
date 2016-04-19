@@ -42,58 +42,58 @@ SRCID(poolabs, "$Id$");
 
 /* PoolClassMixInBuffer -- mix in the protocol for buffer reserve / commit */
 
-void PoolClassMixInBuffer(PoolClass class)
+void PoolClassMixInBuffer(PoolClass klass)
 {
-  /* Can't check class because it's not initialized yet */
-  class->bufferFill = PoolTrivBufferFill;
-  class->bufferEmpty = PoolTrivBufferEmpty;
+  /* Can't check klass because it's not initialized yet */
+  klass->bufferFill = PoolTrivBufferFill;
+  klass->bufferEmpty = PoolTrivBufferEmpty;
   /* By default, buffered pools treat frame operations as NOOPs */
-  class->framePush = PoolTrivFramePush;
-  class->framePop = PoolTrivFramePop;
-  class->bufferClass = BufferClassGet;
+  klass->framePush = PoolTrivFramePush;
+  klass->framePop = PoolTrivFramePop;
+  klass->bufferClass = BufferClassGet;
 }
 
 
 /* PoolClassMixInScan -- mix in the protocol for scanning */
 
-void PoolClassMixInScan(PoolClass class)
+void PoolClassMixInScan(PoolClass klass)
 {
-  /* Can't check class because it's not initialized yet */
-  class->access = PoolSegAccess;
-  class->blacken = PoolTrivBlacken;
-  class->grey = PoolTrivGrey;
+  /* Can't check klass because it's not initialized yet */
+  klass->access = PoolSegAccess;
+  klass->blacken = PoolTrivBlacken;
+  klass->grey = PoolTrivGrey;
   /* scan is part of the scanning protocol, but there is no useful
      default method */
-  class->scan = PoolNoScan;
+  klass->scan = PoolNoScan;
 }
 
 
 /* PoolClassMixInFormat -- mix in the protocol for formatted pools */
 
-void PoolClassMixInFormat(PoolClass class)
+void PoolClassMixInFormat(PoolClass klass)
 {
-  /* Can't check class because it's not initialized yet */
-  class->attr |= AttrFMT;
+  /* Can't check klass because it's not initialized yet */
+  klass->attr |= AttrFMT;
   /* walk is part of the format protocol, but there is no useful
      default method */
-  class->walk = PoolNoWalk;
+  klass->walk = PoolNoWalk;
 }
 
 
 /* PoolClassMixInCollect -- mix in the protocol for GC */
 
-void PoolClassMixInCollect(PoolClass class)
+void PoolClassMixInCollect(PoolClass klass)
 {
-  /* Can't check class because it's not initialized yet */
-  class->attr |= AttrGC;
-  class->whiten = PoolTrivWhiten;
+  /* Can't check klass because it's not initialized yet */
+  klass->attr |= AttrGC;
+  klass->whiten = PoolTrivWhiten;
   /* fix, fixEmergency and reclaim are part of the collection
      protocol, but there are no useful default methods for them */
-  class->fix = PoolNoFix;
-  class->fixEmergency = PoolNoFix;
-  class->reclaim = PoolNoReclaim;
-  class->rampBegin = PoolTrivRampBegin;
-  class->rampEnd = PoolTrivRampEnd;
+  klass->fix = PoolNoFix;
+  klass->fixEmergency = PoolNoFix;
+  klass->reclaim = PoolNoReclaim;
+  klass->rampBegin = PoolTrivRampBegin;
+  klass->rampEnd = PoolTrivRampEnd;
 }
 
 
@@ -104,14 +104,14 @@ void PoolClassMixInCollect(PoolClass class)
 
 static Res PoolAutoSetFix(Pool pool, ScanState ss, Seg seg, Ref *refIO);
 
-Res PoolAbsInit(Pool pool, Arena arena, PoolClass class, ArgList args)
+Res PoolAbsInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
 {
   ArgStruct arg;
   
   AVER(pool != NULL);
   AVERT(Arena, arena);
   UNUSED(args);
-  UNUSED(class); /* used for debug pools only */
+  UNUSED(klass); /* used for debug pools only */
   
   /* Superclass init */
   InstInit(CouldBeA(Inst, pool));
@@ -177,69 +177,69 @@ void PoolAbsFinish(Pool pool)
   EVENT1(PoolFinish, pool);
 }
 
-DEFINE_CLASS(Inst, PoolClass, class)
+DEFINE_CLASS(Inst, PoolClass, klass)
 {
-  INHERIT_CLASS(class, PoolClass, InstClass);
+  INHERIT_CLASS(klass, PoolClass, InstClass);
 }
 
-DEFINE_CLASS(Pool, AbstractPool, class)
+DEFINE_CLASS(Pool, AbstractPool, klass)
 {
-  INHERIT_CLASS(&class->protocol, AbstractPool, Inst);
-  class->size = sizeof(PoolStruct);
-  class->attr = 0;
-  class->varargs = ArgTrivVarargs;
-  class->init = PoolAbsInit;
-  class->finish = PoolAbsFinish;
-  class->alloc = PoolNoAlloc;
-  class->free = PoolNoFree;
-  class->bufferFill = PoolNoBufferFill;
-  class->bufferEmpty = PoolNoBufferEmpty;
-  class->access = PoolNoAccess;
-  class->whiten = PoolNoWhiten;
-  class->grey = PoolNoGrey;
-  class->blacken = PoolNoBlacken;
-  class->scan = PoolNoScan;
-  class->fix = PoolNoFix;
-  class->fixEmergency = PoolNoFix;
-  class->reclaim = PoolNoReclaim;
-  class->traceEnd = PoolTrivTraceEnd;
-  class->rampBegin = PoolNoRampBegin;
-  class->rampEnd = PoolNoRampEnd;
-  class->framePush = PoolNoFramePush;
-  class->framePop = PoolNoFramePop;
-  class->addrObject = PoolNoAddrObject;
-  class->walk = PoolNoWalk;
-  class->freewalk = PoolTrivFreeWalk;
-  class->bufferClass = PoolNoBufferClass;
-  class->describe = PoolTrivDescribe;
-  class->debugMixin = PoolNoDebugMixin;
-  class->totalSize = PoolNoSize;
-  class->freeSize = PoolNoSize;
-  class->sig = PoolClassSig;
+  INHERIT_CLASS(&klass->protocol, AbstractPool, Inst);
+  klass->size = sizeof(PoolStruct);
+  klass->attr = 0;
+  klass->varargs = ArgTrivVarargs;
+  klass->init = PoolAbsInit;
+  klass->finish = PoolAbsFinish;
+  klass->alloc = PoolNoAlloc;
+  klass->free = PoolNoFree;
+  klass->bufferFill = PoolNoBufferFill;
+  klass->bufferEmpty = PoolNoBufferEmpty;
+  klass->access = PoolNoAccess;
+  klass->whiten = PoolNoWhiten;
+  klass->grey = PoolNoGrey;
+  klass->blacken = PoolNoBlacken;
+  klass->scan = PoolNoScan;
+  klass->fix = PoolNoFix;
+  klass->fixEmergency = PoolNoFix;
+  klass->reclaim = PoolNoReclaim;
+  klass->traceEnd = PoolTrivTraceEnd;
+  klass->rampBegin = PoolNoRampBegin;
+  klass->rampEnd = PoolNoRampEnd;
+  klass->framePush = PoolNoFramePush;
+  klass->framePop = PoolNoFramePop;
+  klass->addrObject = PoolNoAddrObject;
+  klass->walk = PoolNoWalk;
+  klass->freewalk = PoolTrivFreeWalk;
+  klass->bufferClass = PoolNoBufferClass;
+  klass->describe = PoolTrivDescribe;
+  klass->debugMixin = PoolNoDebugMixin;
+  klass->totalSize = PoolNoSize;
+  klass->freeSize = PoolNoSize;
+  klass->sig = PoolClassSig;
 }
 
-DEFINE_CLASS(Pool, AbstractBufferPool, class)
+DEFINE_CLASS(Pool, AbstractBufferPool, klass)
 {
-  INHERIT_CLASS(class, AbstractBufferPool, AbstractPool);
-  PoolClassMixInBuffer(class);
+  INHERIT_CLASS(klass, AbstractBufferPool, AbstractPool);
+  PoolClassMixInBuffer(klass);
 }
 
-DEFINE_CLASS(Pool, AbstractSegBufPool, class)
+DEFINE_CLASS(Pool, AbstractSegBufPool, klass)
 {
-  INHERIT_CLASS(class, AbstractSegBufPool, AbstractBufferPool);
-  class->bufferClass = SegBufClassGet;
+  INHERIT_CLASS(klass, AbstractSegBufPool, AbstractBufferPool);
+  klass->bufferClass = SegBufClassGet;
 }
 
-DEFINE_CLASS(Pool, AbstractScanPool, class)
+DEFINE_CLASS(Pool, AbstractScanPool, klass)
 {
-  INHERIT_CLASS(class, AbstractScanPool, AbstractSegBufPool);
-  PoolClassMixInScan(class);
+  INHERIT_CLASS(klass, AbstractScanPool, AbstractSegBufPool);
+  PoolClassMixInScan(klass);
 }
 
-DEFINE_CLASS(Pool, AbstractCollectPool, class)
+DEFINE_CLASS(Pool, AbstractCollectPool, klass)
 {
-  INHERIT_CLASS(class, AbstractCollectPool, AbstractScanPool);
-  PoolClassMixInCollect(class);
+  INHERIT_CLASS(klass, AbstractCollectPool, AbstractScanPool);
+  PoolClassMixInCollect(klass);
 }
 
 

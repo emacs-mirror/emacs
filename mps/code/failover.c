@@ -269,21 +269,21 @@ static Res failoverDescribe(Land land, mps_lib_FILE *stream, Count depth)
 }
 
 
-DEFINE_CLASS(Land, Failover, class)
+DEFINE_CLASS(Land, Failover, klass)
 {
-  INHERIT_CLASS(class, Failover, Land);
-  class->size = sizeof(FailoverStruct);
-  class->init = failoverInit;
-  class->finish = failoverFinish;
-  class->sizeMethod = failoverSize;
-  class->insert = failoverInsert;
-  class->delete = failoverDelete;
-  class->iterate = failoverIterate;
-  class->findFirst = failoverFindFirst;
-  class->findLast = failoverFindLast;
-  class->findLargest = failoverFindLargest;
-  class->findInZones = failoverFindInZones;
-  class->describe = failoverDescribe;
+  INHERIT_CLASS(klass, Failover, Land);
+  klass->size = sizeof(FailoverStruct);
+  klass->init = failoverInit;
+  klass->finish = failoverFinish;
+  klass->sizeMethod = failoverSize;
+  klass->insert = failoverInsert;
+  klass->delete = failoverDelete;
+  klass->iterate = failoverIterate;
+  klass->findFirst = failoverFindFirst;
+  klass->findLast = failoverFindLast;
+  klass->findLargest = failoverFindLargest;
+  klass->findInZones = failoverFindInZones;
+  klass->describe = failoverDescribe;
 }
 
 

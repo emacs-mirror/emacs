@@ -442,7 +442,7 @@ ARG_DEFINE_KEY(MVFF_SLOT_HIGH, Bool);
 ARG_DEFINE_KEY(MVFF_ARENA_HIGH, Bool);
 ARG_DEFINE_KEY(MVFF_FIRST_FIT, Bool);
 
-static Res MVFFInit(Pool pool, Arena arena, PoolClass class, ArgList args)
+static Res MVFFInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
 {
   Size extendBy = MVFF_EXTEND_BY_DEFAULT;
   Size avgSize = MVFF_AVG_SIZE_DEFAULT;
@@ -458,7 +458,7 @@ static Res MVFFInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   AVER(pool != NULL);
   AVERT(Arena, arena);
   AVERT(ArgList, args);
-  UNUSED(class); /* used for debug pools only */
+  UNUSED(klass); /* used for debug pools only */
 
   /* .arg: class-specific additional arguments; see */
   /* <design/poolmvff/#method.init> */
@@ -501,7 +501,7 @@ static Res MVFFInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   AVERT(Bool, arenaHigh);
   AVERT(Bool, firstFit);
 
-  res = PoolAbsInit(pool, arena, class, args);
+  res = PoolAbsInit(pool, arena, klass, args);
   if (res != ResOK)
     goto failAbsInit;
   mvff = CouldBeA(MVFFPool, pool);
@@ -721,21 +721,21 @@ static Res MVFFDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 }
 
 
-DEFINE_CLASS(Pool, MVFFPool, this)
+DEFINE_CLASS(Pool, MVFFPool, klass)
 {
-  INHERIT_CLASS(this, MVFFPool, AbstractPool);
-  PoolClassMixInBuffer(this);
-  this->size = sizeof(MVFFStruct);
-  this->varargs = MVFFVarargs;
-  this->init = MVFFInit;
-  this->finish = MVFFFinish;
-  this->alloc = MVFFAlloc;
-  this->free = MVFFFree;
-  this->bufferFill = MVFFBufferFill;
-  this->bufferEmpty = MVFFBufferEmpty;
-  this->totalSize = MVFFTotalSize;
-  this->freeSize = MVFFFreeSize;
-  this->describe = MVFFDescribe;
+  INHERIT_CLASS(klass, MVFFPool, AbstractPool);
+  PoolClassMixInBuffer(klass);
+  klass->size = sizeof(MVFFStruct);
+  klass->varargs = MVFFVarargs;
+  klass->init = MVFFInit;
+  klass->finish = MVFFFinish;
+  klass->alloc = MVFFAlloc;
+  klass->free = MVFFFree;
+  klass->bufferFill = MVFFBufferFill;
+  klass->bufferEmpty = MVFFBufferEmpty;
+  klass->totalSize = MVFFTotalSize;
+  klass->freeSize = MVFFFreeSize;
+  klass->describe = MVFFDescribe;
 }
 
 
@@ -747,13 +747,13 @@ PoolClass PoolClassMVFF(void)
 
 /* Pool class MVFFDebug */
 
-DEFINE_CLASS(Pool, MVFFDebugPool, this)
+DEFINE_CLASS(Pool, MVFFDebugPool, klass)
 {
-  INHERIT_CLASS(this, MVFFDebugPool, MVFFPool);
-  PoolClassMixInDebug(this);
-  this->size = sizeof(MVFFDebugStruct);
-  this->varargs = MVFFDebugVarargs;
-  this->debugMixin = MVFFDebugMixin;
+  INHERIT_CLASS(klass, MVFFDebugPool, MVFFPool);
+  PoolClassMixInDebug(klass);
+  klass->size = sizeof(MVFFDebugStruct);
+  klass->varargs = MVFFDebugVarargs;
+  klass->debugMixin = MVFFDebugMixin;
 }
 
 

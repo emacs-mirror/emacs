@@ -298,23 +298,23 @@ static Res MRGRefSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 
 /* MRGLinkSegClass -- Class definition */
 
-DEFINE_CLASS(Seg, MRGLinkSeg, class)
+DEFINE_CLASS(Seg, MRGLinkSeg, klass)
 {
-  INHERIT_CLASS(class, MRGLinkSeg, Seg);
-  SegClassMixInNoSplitMerge(class);  /* no support for this */
-  class->size = sizeof(MRGLinkSegStruct);
-  class->init = MRGLinkSegInit;
+  INHERIT_CLASS(klass, MRGLinkSeg, Seg);
+  SegClassMixInNoSplitMerge(klass);  /* no support for this */
+  klass->size = sizeof(MRGLinkSegStruct);
+  klass->init = MRGLinkSegInit;
 }
 
 
 /* MRGRefSegClass -- Class definition */
 
-DEFINE_CLASS(Seg, MRGRefSeg, class)
+DEFINE_CLASS(Seg, MRGRefSeg, klass)
 {
-  INHERIT_CLASS(class, MRGRefSeg, GCSeg);
-  SegClassMixInNoSplitMerge(class);  /* no support for this */
-  class->size = sizeof(MRGRefSegStruct);
-  class->init = MRGRefSegInit;
+  INHERIT_CLASS(klass, MRGRefSeg, GCSeg);
+  SegClassMixInNoSplitMerge(klass);  /* no support for this */
+  klass->size = sizeof(MRGRefSegStruct);
+  klass->init = MRGRefSegInit;
 }
 
 
@@ -378,7 +378,7 @@ static Link MRGLinkOfRefPart(RefPart refPart, Arena arena)
 
   b = SegOfAddr(&seg, arena, (Addr)refPart);
   AVER(b);
-  AVER(SegPool(seg)->class == PoolClassMRG());
+  AVER(SegPool(seg)->klass == PoolClassMRG());
   refseg = Seg2RefSeg(seg);
   AVERT(MRGRefSeg, refseg);
   refPartBase = (RefPart)SegBase(seg);
@@ -625,7 +625,7 @@ static Res MRGRefSegScan(ScanState ss, MRGRefSeg refseg, MRG mrg)
 
 /* MRGInit -- init method for MRG */
 
-static Res MRGInit(Pool pool, Arena arena, PoolClass class, ArgList args)
+static Res MRGInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
 {
   MRG mrg;
   Res res;
@@ -633,10 +633,10 @@ static Res MRGInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   AVER(pool != NULL);
   AVERT(ArgList, args);
   UNUSED(args);
-  UNUSED(class); /* used for debug pools only */
+  UNUSED(klass); /* used for debug pools only */
 
   /* FIXME: These lines are often repeated */
-  res = PoolAbsInit(pool, arena, class, args);
+  res = PoolAbsInit(pool, arena, klass, args);
   if (res != ResOK)
     return res;
   mrg = CouldBeA(MRGPool, pool);
@@ -876,16 +876,16 @@ static Res MRGScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 }
 
 
-DEFINE_CLASS(Pool, MRGPool, this)
+DEFINE_CLASS(Pool, MRGPool, klass)
 {
-  INHERIT_CLASS(this, MRGPool, AbstractPool);
-  this->size = sizeof(MRGStruct);
-  this->init = MRGInit;
-  this->finish = MRGFinish;
-  this->grey = PoolTrivGrey;
-  this->blacken = PoolTrivBlacken;
-  this->scan = MRGScan;
-  this->describe = MRGDescribe;
+  INHERIT_CLASS(klass, MRGPool, AbstractPool);
+  klass->size = sizeof(MRGStruct);
+  klass->init = MRGInit;
+  klass->finish = MRGFinish;
+  klass->grey = PoolTrivGrey;
+  klass->blacken = PoolTrivBlacken;
+  klass->scan = MRGScan;
+  klass->describe = MRGDescribe;
 }
 
 

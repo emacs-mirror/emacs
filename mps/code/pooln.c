@@ -34,7 +34,7 @@ DECLARE_CLASS(Pool, NPool, AbstractPool);
 
 /* NInit -- init method for class N */
 
-static Res NInit(Pool pool, Arena arena, PoolClass class, ArgList args)
+static Res NInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
 {
   PoolN poolN;
   Res res;
@@ -42,10 +42,10 @@ static Res NInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   AVER(pool != NULL);
   AVERT(Arena, arena);
   AVERT(ArgList, args);
-  UNUSED(class); /* used for debug pools only */
+  UNUSED(klass); /* used for debug pools only */
 
   /* FIXME: Reduce this boilerplate. */
-  res = PoolAbsInit(pool, arena, class, args);
+  res = PoolAbsInit(pool, arena, klass, args);
   if (res != ResOK)
     goto failAbsInit;
   poolN = CouldBeA(NPool, pool);
@@ -248,27 +248,27 @@ static void NTraceEnd(Pool pool, Trace trace)
 
 /* NPoolClass -- pool class definition for N */
 
-DEFINE_CLASS(Pool, NPool, this)
+DEFINE_CLASS(Pool, NPool, klass)
 {
-  INHERIT_CLASS(this, NPool, AbstractPool);
-  this->size = sizeof(PoolNStruct);
-  this->attr |= AttrGC;
-  this->init = NInit;
-  this->finish = NFinish;
-  this->alloc = NAlloc;
-  this->free = NFree;
-  this->bufferFill = NBufferFill;
-  this->bufferEmpty = NBufferEmpty;
-  this->whiten = NWhiten;
-  this->grey = NGrey;
-  this->blacken = NBlacken;
-  this->scan = NScan;
-  this->fix = NFix;
-  this->fixEmergency = NFix;
-  this->reclaim = NReclaim;
-  this->traceEnd = NTraceEnd;
-  this->describe = NDescribe;
-  AVERT(PoolClass, this);
+  INHERIT_CLASS(klass, NPool, AbstractPool);
+  klass->size = sizeof(PoolNStruct);
+  klass->attr |= AttrGC;
+  klass->init = NInit;
+  klass->finish = NFinish;
+  klass->alloc = NAlloc;
+  klass->free = NFree;
+  klass->bufferFill = NBufferFill;
+  klass->bufferEmpty = NBufferEmpty;
+  klass->whiten = NWhiten;
+  klass->grey = NGrey;
+  klass->blacken = NBlacken;
+  klass->scan = NScan;
+  klass->fix = NFix;
+  klass->fixEmergency = NFix;
+  klass->reclaim = NReclaim;
+  klass->traceEnd = NTraceEnd;
+  klass->describe = NDescribe;
+  AVERT(PoolClass, klass);
 }
 
 

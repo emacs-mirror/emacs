@@ -121,57 +121,57 @@ static void ArenaNoDestroy(Arena arena)
   NOTREACHED;
 }
 
-DEFINE_CLASS(Inst, ArenaClass, class)
+DEFINE_CLASS(Inst, ArenaClass, klass)
 {
-  INHERIT_CLASS(class, ArenaClass, InstClass);
+  INHERIT_CLASS(klass, ArenaClass, InstClass);
 }
 
 
 /* AbstractArenaClass  -- The abstract arena class definition */
 
-DEFINE_CLASS(Arena, AbstractArena, class)
+DEFINE_CLASS(Arena, AbstractArena, klass)
 {
-  INHERIT_CLASS(&class->protocol, AbstractArena, Inst);
-  class->size = sizeof(ArenaStruct);
-  class->varargs = ArgTrivVarargs;
-  class->init = ArenaAbsInit;
-  class->finish = ArenaAbsFinish;
-  class->create = ArenaNoCreate;
-  class->destroy = ArenaNoDestroy;
-  class->purgeSpare = ArenaNoPurgeSpare;
-  class->extend = ArenaNoExtend;
-  class->grow = ArenaNoGrow;
-  class->free = ArenaNoFree;
-  class->chunkInit = ArenaNoChunkInit;
-  class->chunkFinish = ArenaNoChunkFinish;
-  class->compact = ArenaTrivCompact;
-  class->describe = ArenaTrivDescribe;
-  class->pagesMarkAllocated = ArenaNoPagesMarkAllocated;
-  class->sig = ArenaClassSig;
+  INHERIT_CLASS(&klass->protocol, AbstractArena, Inst);
+  klass->size = sizeof(ArenaStruct);
+  klass->varargs = ArgTrivVarargs;
+  klass->init = ArenaAbsInit;
+  klass->finish = ArenaAbsFinish;
+  klass->create = ArenaNoCreate;
+  klass->destroy = ArenaNoDestroy;
+  klass->purgeSpare = ArenaNoPurgeSpare;
+  klass->extend = ArenaNoExtend;
+  klass->grow = ArenaNoGrow;
+  klass->free = ArenaNoFree;
+  klass->chunkInit = ArenaNoChunkInit;
+  klass->chunkFinish = ArenaNoChunkFinish;
+  klass->compact = ArenaTrivCompact;
+  klass->describe = ArenaTrivDescribe;
+  klass->pagesMarkAllocated = ArenaNoPagesMarkAllocated;
+  klass->sig = ArenaClassSig;
 }
 
 
 /* ArenaClassCheck -- check the consistency of an arena class */
 
-Bool ArenaClassCheck(ArenaClass class)
+Bool ArenaClassCheck(ArenaClass klass)
 {
-  CHECKD(InstClass, &class->protocol);
-  CHECKL(class->size >= sizeof(ArenaStruct));
-  CHECKL(FUNCHECK(class->varargs));
-  CHECKL(FUNCHECK(class->init));
-  CHECKL(FUNCHECK(class->finish));
-  CHECKL(FUNCHECK(class->create));
-  CHECKL(FUNCHECK(class->destroy));
-  CHECKL(FUNCHECK(class->purgeSpare));
-  CHECKL(FUNCHECK(class->extend));
-  CHECKL(FUNCHECK(class->grow));
-  CHECKL(FUNCHECK(class->free));
-  CHECKL(FUNCHECK(class->chunkInit));
-  CHECKL(FUNCHECK(class->chunkFinish));
-  CHECKL(FUNCHECK(class->compact));
-  CHECKL(FUNCHECK(class->describe));
-  CHECKL(FUNCHECK(class->pagesMarkAllocated));
-  CHECKS(ArenaClass, class);
+  CHECKD(InstClass, &klass->protocol);
+  CHECKL(klass->size >= sizeof(ArenaStruct));
+  CHECKL(FUNCHECK(klass->varargs));
+  CHECKL(FUNCHECK(klass->init));
+  CHECKL(FUNCHECK(klass->finish));
+  CHECKL(FUNCHECK(klass->create));
+  CHECKL(FUNCHECK(klass->destroy));
+  CHECKL(FUNCHECK(klass->purgeSpare));
+  CHECKL(FUNCHECK(klass->extend));
+  CHECKL(FUNCHECK(klass->grow));
+  CHECKL(FUNCHECK(klass->free));
+  CHECKL(FUNCHECK(klass->chunkInit));
+  CHECKL(FUNCHECK(klass->chunkFinish));
+  CHECKL(FUNCHECK(klass->compact));
+  CHECKL(FUNCHECK(klass->describe));
+  CHECKL(FUNCHECK(klass->pagesMarkAllocated));
+  CHECKS(ArenaClass, klass);
   return TRUE;
 }
 
@@ -379,13 +379,13 @@ failLandInit:
   return res;
 }
 
-Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args)
+Res ArenaCreate(Arena *arenaReturn, ArenaClass klass, ArgList args)
 {
   Arena arena;
   Res res;
 
   AVER(arenaReturn != NULL);
-  AVERT(ArenaClass, class);
+  AVERT(ArenaClass, klass);
   AVERT(ArgList, args);
 
   /* We must initialise the event subsystem very early, because event logging
@@ -393,14 +393,14 @@ Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args)
      to the EventLast pointers. */
   EventInit();
 
-  res = class->create(&arena, args);
+  res = klass->create(&arena, args);
   if (res != ResOK)
     goto failInit;
 
   /* TODO: Consider how each of the stages below could be incorporated
      into arena initialization, rather than tacked on here. */
 
-  /* Grain size must have been set up by class->create() */
+  /* Grain size must have been set up by klass->create() */
   if (ArenaGrainSize(arena) > ((Size)1 << arena->zoneShift)) {
     res = ResMEMORY; /* size was too small */
     goto failStripeSize;
@@ -428,7 +428,7 @@ failControlInit:
   arenaFreeLandFinish(arena);
 failFreeLandInit:
 failStripeSize:
-  class->destroy(arena);
+  klass->destroy(arena);
 failInit:
   return res;
 }
@@ -541,17 +541,17 @@ void ControlFinish(Arena arena)
 Res ArenaDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
 {
   Res res;
-  ArenaClass class;
+  ArenaClass klass;
 
   if (!TESTC(AbstractArena, arena))
     return ResPARAM;
   if (stream == NULL)
     return ResPARAM;
 
-  class = ClassOfPoly(Arena, arena);
+  klass = ClassOfPoly(Arena, arena);
   res = WriteF(stream, depth, "Arena $P {\n", (WriteFP)arena,
                "  class $P (\"$S\")\n",
-               (WriteFP)class, (WriteFS)ClassName(class),
+               (WriteFP)klass, (WriteFS)ClassName(klass),
                NULL);
   if (res != ResOK)
     return res;
