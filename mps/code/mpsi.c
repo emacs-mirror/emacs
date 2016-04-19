@@ -958,7 +958,7 @@ mps_res_t (mps_ap_frame_push)(mps_frame_t *frame_o, mps_ap_t mps_ap)
     return MPS_RES_FAIL;
   }
 
-  if (!mps_ap->_lwpoppending) {
+  if (mps_ap->init < mps_ap->limit) {
     /* Valid state for a lightweight push */
     *frame_o = (mps_frame_t)mps_ap->init;
     return MPS_RES_OK;
@@ -991,6 +991,9 @@ mps_res_t (mps_ap_frame_push)(mps_frame_t *frame_o, mps_ap_t mps_ap)
 
 mps_res_t (mps_ap_frame_pop)(mps_ap_t mps_ap, mps_frame_t frame)
 {
+  Buffer buf;
+  Pool pool;
+
   AVER(mps_ap != NULL);
   /* Can't check frame because it's an arbitrary value */
 
@@ -999,20 +1002,27 @@ mps_res_t (mps_ap_frame_pop)(mps_ap_t mps_ap, mps_frame_t frame)
     return MPS_RES_FAIL;
   }
 
-  if (mps_ap->_enabled) {
-    /* Valid state for a lightweight pop */
-    mps_ap->_frameptr = (mps_addr_t)frame; /* record pending pop */
-    mps_ap->_lwpoppending = TRUE;
-    mps_ap->limit = (mps_addr_t)0; /* trap the buffer */
+  buf = BufferOfAP(mps_ap);
+  AVER(TESTT(Buffer, buf));
+  pool = buf->pool;
+  AVER(TESTT(Pool, pool));
+
+  /* It's not thread-safe to read BufferBase here in an automatically
+   * managed pool (see job003947), so test AttrGC first. */
+  if (!PoolHasAttr(pool, AttrGC)
+      && BufferBase(buf) <= (Addr)frame
+      && (mps_addr_t)frame < mps_ap->init)
+  {
+    /* Lightweight pop to earlier address in same buffer in a manually
+     * managed pool. */
+    mps_ap->init = mps_ap->alloc = (mps_addr_t)frame;
     return MPS_RES_OK;
 
   } else {
     /* Need a heavyweight pop */
-    Buffer buf = BufferOfAP(mps_ap);
     Arena arena;
     Res res;
 
-    AVER(TESTT(Buffer, buf));
     arena = BufferArena(buf);
 
     ArenaEnter(arena);

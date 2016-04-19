@@ -115,8 +115,8 @@ Identifiers
 Types
 -----
 
-There are three kinds of types declared in the MPS interface:
-*transparent types*, *opaque types*, and *derived types*.
+There are two kinds of types declared in the MPS interface:
+*transparent types* and *opaque types*.
 
 #.  A *transparent type* is an alias defined using ``typedef``, and this
     is documented so that the :term:`client program` can rely on that
@@ -137,13 +137,6 @@ There are three kinds of types declared in the MPS interface:
     :term:`scan state` structure ``mps_ss_s``, which is accessed by
     scanning macros such as :c:func:`MPS_SCAN_BEGIN` and
     :c:func:`MPS_FIX12`.
-
-#.  A *derived type* is a structure or function type based on
-    transparent and opaque types and on built-in C types. The degree
-    to which you may or must depend upon the implementation of a
-    derived type is covered by the documentation for the type. For
-    example, the structure type :c:type:`mps_ap_s` has a mixture of
-    public and private members.
 
 
 .. index::

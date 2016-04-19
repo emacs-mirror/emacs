@@ -72,7 +72,6 @@ typedef struct mps_pool_class_s {
   PoolRampEndMethod rampEnd;    /* end a ramp pattern */
   PoolFramePushMethod framePush; /* push an allocation frame */
   PoolFramePopMethod framePop;  /* pop an allocation frame */
-  PoolFramePopPendingMethod framePopPending;  /* notify pending pop */
   PoolAddrObjectMethod addrObject; /* find client pointer to object */
   PoolWalkMethod walk;          /* walk over a segment */
   PoolFreeWalkMethod freewalk;  /* walk over free blocks */
