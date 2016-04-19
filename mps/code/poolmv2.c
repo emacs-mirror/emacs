@@ -57,7 +57,7 @@ static Land MVTFreeSecondary(MVT mvt);
 static Land MVTFreeLand(MVT mvt);
 
 typedef MVT MVTPool;
-DECLARE_CLASS(Pool, MVTPool);
+DECLARE_CLASS(Pool, MVTPool, AbstractBufferPool);
 
 
 /* Types */

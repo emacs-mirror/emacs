@@ -11,7 +11,6 @@
 
 #include "config.h"
 #include "mpmtypes.h"
-#include "classdef.h"
 
 
 /* Identifier derivation macros.
@@ -90,10 +89,11 @@ typedef struct ClassIdStruct *ClassId;
  * design.mps.protocol.if.declare-class.
  */
 
-#define DECLARE_CLASS(kind, ident) \
+#define DECLARE_CLASS(kind, ident, super) \
   extern CLASS_TYPE(kind) CLASS_ENSURE(ident)(void); \
   extern void CLASS_INIT(ident)(CLASS_TYPE(kind) var); \
-  extern CLASS_STRUCT(kind) CLASS_STATIC(ident)
+  extern CLASS_STRUCT(kind) CLASS_STATIC(ident); \
+  enum { ClassLevel ## ident = ClassLevel ## super + 1 }
 
 
 /* DEFINE_CLASS -- define a protocol class
@@ -106,7 +106,6 @@ typedef struct ClassIdStruct *ClassId;
  */
 
 #define DEFINE_CLASS(kind, ident, var) \
-  DECLARE_CLASS(kind, ident); \
   static Bool CLASS_GUARDIAN(ident) = FALSE; \
   CLASS_STRUCT(kind) CLASS_STATIC(ident); \
   CLASS_TYPE(kind) CLASS_ENSURE(ident)(void) \
@@ -138,22 +137,6 @@ typedef struct ClassIdStruct *ClassId;
  */
 
 #define CLASS(ident) (CLASS_ENSURE(ident)())
-
-
-/* ClassLevelEnum -- depth of class in hierarchy
- *
- * This defines enum constants like ClassLevelLand equal to the
- * distance from the root of the class hierarchy.  Used to implement
- * design.mps.protocol.impl.subclass.
- */
-
-#define CLASS_LEVEL_ENUM(prefix, ident, kind, super) \
-  prefix ## ident = prefix ## super + 1,
-typedef enum ClassLevelEnum {
-  ClassLevelNoSuper = -1, /* so that root classes (e.g. Inst) get level zero */
-  CLASSES(CLASS_LEVEL_ENUM, ClassLevel)
-  ClassLevelTerminalCommaNotAllowedInC89
-} ClassLevelEnum;
 
 
 /* INHERIT_CLASS -- inheriting from a superclass
@@ -205,8 +188,9 @@ typedef struct InstClassStruct {
   ClassId display[ClassDEPTH];  /* classes at this level and above */
 } InstClassStruct;
 
-DECLARE_CLASS(Inst, InstClass);
-DECLARE_CLASS(Inst, Inst);
+enum {ClassLevelNoSuper = -1};
+DECLARE_CLASS(Inst, Inst, NoSuper);
+DECLARE_CLASS(Inst, InstClass, Inst);
 
 extern Bool InstClassCheck(InstClass class);
 extern Bool InstCheck(Inst inst);

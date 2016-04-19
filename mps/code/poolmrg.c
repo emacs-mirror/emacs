@@ -124,7 +124,7 @@ typedef struct MRGStruct {
 
 typedef MRG MRGPool;
 #define MRGPoolCheck MRGCheck
-DECLARE_CLASS(Pool, MRGPool);
+DECLARE_CLASS(Pool, MRGPool, AbstractPool);
 
 
 /* MRGCheck -- check an MRG pool */
@@ -175,8 +175,8 @@ typedef struct MRGRefSegStruct {
 
 /* forward declarations */
 
-DECLARE_CLASS(Seg, MRGLinkSeg);
-DECLARE_CLASS(Seg, MRGRefSeg);
+DECLARE_CLASS(Seg, MRGLinkSeg, Seg);
+DECLARE_CLASS(Seg, MRGRefSeg, GCSeg);
 
 
 /* MRGLinkSegCheck -- check a link segment

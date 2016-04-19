@@ -11,6 +11,7 @@
 
 #include "arg.h"
 #include "mpmtypes.h"
+#include "mpm.h"
 #include "mpmst.h"
 #include "range.h"
 #include "splay.h"
@@ -39,9 +40,9 @@ typedef struct CBSStruct *CBS, *CBSFast, *CBSZoned;
 extern Bool CBSCheck(CBS cbs);
 #define CBSLand(cbs) (&(cbs)->landStruct)
 
-DECLARE_CLASS(Land, CBS);
-DECLARE_CLASS(Land, CBSFast);
-DECLARE_CLASS(Land, CBSZoned);
+DECLARE_CLASS(Land, CBS, Land);
+DECLARE_CLASS(Land, CBSFast, CBS);
+DECLARE_CLASS(Land, CBSZoned, CBSFast);
 
 extern const struct mps_key_s _mps_key_cbs_block_pool;
 #define CBSBlockPool (&_mps_key_cbs_block_pool)

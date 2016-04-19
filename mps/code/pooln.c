@@ -19,7 +19,7 @@ typedef struct PoolNStruct {
 
 
 typedef PoolN NPool;
-DECLARE_CLASS(Pool, NPool);
+DECLARE_CLASS(Pool, NPool, AbstractPool);
 
 
 /* PoolPoolN -- get the PoolN structure from generic Pool */

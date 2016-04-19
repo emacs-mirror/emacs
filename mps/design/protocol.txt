@@ -563,16 +563,17 @@ following:
   initialization code is actually in this function.
 
 _`.impl.subclass`: The subclass test `.if.subclass`_ is implemented
-using a compact array of superclasses [Cohen_1991]_ giving a fast
+using an array of superclasses [Cohen_1991]_ giving a fast
 constant-time test.  (RB_ tried an approach using prime factors
 [Gibbs_2004]_ but found that they overflowed in 32-bits too easily to
-be useful.)  Each class is assigned a small integer id, and a "level"
-which is the distance from the root of the class hierarchy.  The
-``InstClass`` structure contains an array of these ids indexed by
-level, representing the inheritance of this class.  A class is a
-subclass of another if and only if the superclass id is present in the
-array at the superclass level.  The level and the id are statically
-defined using enum constants, so the test is fast and simple.
+be useful.)  Each class is assigned a "level" which is the distance
+from the root of the class hierarchy.  The ``InstClass`` structure
+contains an array of class ids indexed by level, representing the
+inheritance of this class.  A class is a subclass of another if and
+only if the superclass id is present in the array at the superclass
+level.  The level is statically defined using enum constants, and the
+id is the address of the canonical class object, so the test is fast
+and simple.
 
 
 A. References
