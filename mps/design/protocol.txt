@@ -160,28 +160,23 @@ _`.overview.superclass`: Each class contains a ``superclass`` field.
 This enables classes to call "next-method".
 
 _`.overview.next-method`: A specialized method in a class can make use
-of an overridden method from a superclass by accessing the method from
-the appropriate field in the superclass object and calling it.  The
-macro ``NextMethod`` is provided for calling next methods.
+of an overridden method from a superclass using the ``NextMethod``
+macro, statically naming the superclass.
 
-_`.overview.next-method.naive`: In some cases it is necessary to write
-a method which is designed to specialize an inherited method, needs to
-call the next-method, and yet the implementation doesn't have static
-knowledge of the superclass. This might happen because the specialized
-method is designed to be reusable by many class definitions. The
-specialized method can usually locate the class object from one of the
-parameters passed to the method. It can then access the superclass
-through the ``superclass`` field of the class, and hence call the next
-method. This technique has some limitations and doesn't support longer
-method chains. It is also dependent on none of the class definitions
-which use the method having any subclasses.
+_`.overview.next-method.dynamic`: It is possible to write a method
+which does not statically know its superclass, and call the next
+method by extracting a class from one of its arguments using
+``ClassOfPoly`` and finding the superclass using ``SuperclassPoly``.
+Debug pool mixins do this.  However, this is not fully general, and
+combining such methods is likely to cause infinite recursion.  Take
+care!
 
 _`.overview.access`: Classes must be initialized by calls to
-functions, since it is these function calls which copy properties from
-superclasses. Each class must provide an "ensure" function, which
-returns the canonical copy of the class. The canonical copy may reside
-in static storage, but no MPS code may refer to that static storage by
-name.
+functions, since there is no way to express overrides statically in
+C89.  ``DEFINE_CLASS`` defines an "ensure" function that initializes
+and returns the canonical copy of the class. The canonical copy may
+reside in static storage, but no MPS code may refer to that static
+storage by name.
 
 _`.overview.init`: In addition to the "ensure" function, each class
 must provide an "init" function, which initialises its argument as a
@@ -192,7 +187,7 @@ _`.overview.naming`: There are some strict naming conventions which
 must be followed when defining and using classes. The use is
 obligatory because it is assumed by the macros which support the
 definition and inheritance mechanism. For every kind ``Foo``,
-we insist upon the following naming conventions:-
+we insist upon the following naming conventions:
 
 * ``Foo`` names a type that points to a ``FooStruct``.
 
@@ -215,9 +210,9 @@ Class declaration
 
 ``DECLARE_CLASS(kind, className)``
 
-_`.int.declare-class`: Class declaration is performed by the macro
+_`.if.declare-class`: Class declaration is performed by the macro
 ``DECLARE_CLASS``, which declares the existence of the class
-definition elsewhere.  It is intended for use where in headers.
+definition elsewhere.  It is intended for use in headers.
 
 
 Class definition
@@ -225,7 +220,7 @@ Class definition
 
 ``DEFINE_CLASS(kind, className, var)``
 
-_`.int.define-class`: Class definition is performed by the macro
+_`.if.define-class`: Class definition is performed by the macro
 ``DEFINE_CLASS``. A call to the macro must be followed by a function
 body of initialization code. The parameter ``className`` is used to
 name the class being defined. The parameter ``var`` is used to name a
@@ -239,47 +234,72 @@ storage for the canonical class object, and some other things to
 ensure the class gets initialized exactly once.
 
 
+Class access
+............
+
+``CLASS(className)``
+
+_`.if.class`: To get the canonical class object, use the ``CLASS``
+macro, e.g. ``CLASS(Land)``.
+
+
 Single inheritance
 ..................
 
 ``INHERIT_CLASS(this, className, parentName)``
 
-_`.int.inheritance`: Class inheritance details must be provided in the
-class initialization code (see `.int.define-class`_). Inheritance is
+_`.if.inheritance`: Class inheritance details must be provided in the
+class initialization code (see `.if.define-class`_). Inheritance is
 performed by the macro ``INHERIT_CLASS``. A call to this macro will
 make the class being defined a direct subclass of ``parentClassName``
-by ensuring that all the fields of the parent class are initialized by
-the parent class, and setting the superclass field of ``this`` to be
-the canonical parent class object. The parameter ``this`` must be the
-the same kind as ``parentClassName``.
+by ensuring that all the fields of the embedded parent class (pointed
+to by the ``this`` argument) are initialized as the parent class, and
+setting the superclass field of ``this`` to be the canonical parent
+class object. The parameter ``this`` must be the the same kind as
+``parentClassName``.
 
 
 Specialization
 ..............
 
-_`.int.specialize`: Class specialization details must be given
+_`.if.specialize`: Fields in the class structure must be assigned
 explicitly in the class initialization code (see
-`.int.define-class`_). This must happen *after* the inheritance
-details are given (see `.int.inheritance`_).
+`.if.define-class`_). This must happen *after* inheritance details
+are given (see `.if.inheritance`_), so that overrrides work.
 
 
 Extension
 .........
 
-_`.int.extend`: To extend the protocol when defining a new class, a
+_`.if.extend`: To extend the protocol when defining a new class, a
 new type must be defined for the class structure. This must embed the
 structure for the primarily inherited class as the first field of the
-structure. Class extension details must be given explicitly in the
-class initialization code (see `.int.define-class`_). This must happen
-*after* the inheritance details are given (see `.int.inheritance`_).
+structure. Extension fields in the class structure must be assigned
+explicitly in the class initialization code (see
+`.if.define-class`_).  This should be done *after* the inheritance
+details are given for consistency with `.if.inheritance`_.  This is,
+in fact, how all the useful classes extend ``Inst``.
 
-_`.int.extend.kind`: In addition, a class must be define for the new
+_`.if.extend.kind`: In addition, a class must be defined for the new
 kind of class.  This is just an unspecialized subclass of the kind of
 the class being specialized by the extension.  For example::
+
+    typedef struct LandClassStruct {
+      InstClassStruct instClass;  /* inherited class */
+      LandInsertMethod insert;
+      ...
+    } LandClassStruct;
 
     DEFINE_CLASS(Inst, LandClass, class)
     {
       INHERIT_CLASS(class, LandClass, InstClass);
+    }
+
+    DEFINE_CLASS(Land, Land, class)
+    {
+      INHERIT_CLASS(&class->instClass, Land, Inst);
+      class->insert = landInsert;
+      ...
     }
 
 
@@ -288,7 +308,7 @@ Methods
 
 ``Method(kind, inst, meth)``
 
-_`.int.method`: To call a method on an instance of a class, use the
+_`.if.method`: To call a method on an instance of a class, use the
 ``Method`` macro to retrieve the method.  This macro may assert if the
 class is not of the kind requested.  For example, to call the
 ``insert`` method on ``land``::
@@ -298,7 +318,7 @@ class is not of the kind requested.  For example, to call the
 
 ``NextMethod(kind, className, meth)``
 
-_`.int.next-method`: To call a method from a superclass of a class,
+_`.if.next-method`: To call a method from a superclass of a class,
 use the ``NextMethod`` macro to retrieve the method.  This macro may
 assert if the superclass is not of the kind requested.  For example,
 the function to split AMS segments wants to split the segments they
@@ -310,15 +330,22 @@ are based on, so does::
 Conversion
 ..........
 
+
+``IsA(className, inst)``
+
+_`if.isa`: Returns non-zero iff the class of ``inst`` is a member of
+the class or any of its subclasses.
+
+
 ``MustBeA(className, inst)``
 
-_`.int.must-be-a`: To convert the C type of an instance to that of a
+_`.if.must-be-a`: To convert the C type of an instance to that of a
 compatible class (the class of the actual object or any superclass),
 use the ``MustBeA`` macro.  In hot varieties this macro performs a
 fast dynamic type check and will assert if the class is not
-compatible.  In cool varieties, the class check method is called on
-the object.  For example, in a specialized Land method in the CBS
-class::
+compatible.  It is like C++ "dynamic_cast" with an assert.  In cool
+varieties, the class check method is called on the object.  For
+example, in a specialized Land method in the CBS class::
 
     static Res cbsInsert(Range rangeReturn, Land land, Range range)
     {
@@ -328,20 +355,23 @@ class::
 
 ``MustBeA_CRITICAL(className, inst)``
 
-_`.int.must-be-a.critical`: For use when the cost of a type check is
-too expensive in hot varieties, use ``MustBeA_CRITICAL`` in place of
+_`.if.must-be-a.critical`: When the cost of a type check is too
+expensive in hot varieties, use ``MustBeA_CRITICAL`` in place of
 ``MustBeA``.  This only performs the check in cool varieties.  Compare
 with ``AVER_CRITICAL``.
 
 
 ``CouldBeA(className, inst)``
 
-_`.int.could-be-a`: To make an unsafe conversion equivalent to
+_`.if.could-be-a`: To make an unsafe conversion equivalent to
 ``MustBeA``, use the ``CouldBeA`` macro.  This is in effect a simple
 pointer cast, but it expresses the intention of class compatibility in
 the source code.  It is mainly intended for use when initializing an
-object, when a class compatibility check would fail, or in debugging
-code such as describe methods, where asserting is inappropriate.
+object, when a class compatibility check would fail, when checking an
+object, or in debugging code such as describe methods, where asserting
+is inappropriate.  It is intended to be equivalent to the C++
+``static_cast``, although since this is C there is no actual static
+checking, so in fact it's more like ``reinterpret_cast``.
 
 
 Introspection
@@ -365,7 +395,7 @@ functions.
 
 ``SuperclassPoly(kind, class)``
 
-_`.int.superclass`: An introspection function which returns the direct
+_`.if.superclass`: An introspection function which returns the direct
 superclass of class object ``class`` as a class of kind ``kind``.
 This may assert if the superclass is not (a subtype of) the kind
 requested.
@@ -373,22 +403,26 @@ requested.
 
 ``ClassOfPoly(kind, inst)``
 
-_`.int.class`: An introspection function which returns the class of
-which ``inst`` is a direct instance, as a classes of kind ``kind``.
+_`.if.class`: An introspection function which returns the class of
+which ``inst`` is a direct instance, as a class of kind ``kind``.
 This may assert if the class is not (a subtype of) the kind requested.
 
 
 ``SetClassOfPoly(inst, class)``
 
-_`int.set-class`: An initialization function that sets the class of
+_`.if.set-class`: An initialization function that sets the class of
 ``inst`` to be ``class``.  This is intended only for use in
 initialization functions, to specialize the instance once its fields
-have been initialized.
+have been initialized.  Each Init function should call its superclass
+init, finally reaching InstInit, and then, once it has set up its
+fields, use SetClassOfPoly to set the class and check the instance
+with its check method.  Compare with `design.mps.sig`_.
 
+.. _`design.mps.sig`: sig
 
-``IsSubclassPoly(sub, super)``
+``IsSubclass(sub, super)``
 
-_`.int.subclass`: An introspection function which returns a ``Bool``
+_`.if.subclass`: An introspection function which returns a ``Bool``
 indicating whether ``sub`` is a subclass of ``super``. That is, it is
 a predicate for testing subclass relationships.
 
@@ -396,31 +430,17 @@ a predicate for testing subclass relationships.
 Protocol guidelines
 ...................
 
-_`.guide.fail`: When designing an extensible function which might
-fail, the design must permit the correct implementation of the
-failure-case code. Typically, a failure might occur in any method in
-the chain. Each method is responsible for correctly propagating
-failure information supplied by superclass methods and for managing
-it's own failures.
-
-_`.guide.fail.before-next`: Dealing with a failure which is detected
-before any next-method call is made is similar to a fail case in any
-non-extensible function. See `.example.fail`_ below.
-
-_`.guide.fail.during-next`: Dealing with a failure returned from a
-next-method call is also similar to a fail case in any non-extensible
-function. See `.example.fail`_ below.
-
-_`.guide.fail.after-next`: Dealing with a failure which is detected
-after the next methods have been successfully invoked is more complex.
-If this scenario is possible, the design must include an
-"anti-function", and each class must ensure that it provides a method
-for the anti-method which will clean up any resources which are
-claimed after a successful invocation of the main method for that
-class. Typically the anti-function would exist anyway for clients of
-the protocol (for example, "finish" is an anti-function for "init").
-The effect of the next-method call can then be cleaned up by calling
-the anti-method for the superclass. See `.example.fail`_ below.
+_`.guide.fail`: When designing an extensible method which might fail,
+the design must permit the correct implementation of the failure-case
+code.  Typically, a failure might occur in any method in the chain.
+Each method is responsible for correctly propagating failure
+information supplied by superclass methods and for managing it's own
+failures.  This is not really different from the general MPS
+convention for unwinding on error paths.  It implies that the design
+of a class must include an anti-method for each method that changes
+the state of an instance (e.g. by allocating memory) to allow the
+state to be reverted in case of a failure.  See `.example.fail`_
+below.
 
 
 Example
@@ -428,15 +448,14 @@ Example
 
 _`.example.inheritance`: The following example class definition shows
 both inheritance and specialization. It shows the definition of the
-class ``EPDRPool``, which inherits from ``EPDLPool`` of kind ``Pool``
-and has specialized values of the ``name``, ``init``, and ``alloc``
-fields. ::
+class ``RankBuf``, which inherits from ``SegBuf`` of kind ``Seg``
+and has specialized ``varargs`` and ``init`` method. ::
 
-    DEFINE_CLASS(Pool, EPDRPool, this)
+    DEFINE_CLASS(Buffer, RankBuf, class)
     {
-        INHERIT_CLASS(this, EPDRPool, EPDLPool);
-        this->init = EPDRInit;
-        this->alloc = EPDRAlloc;
+      INHERIT_CLASS(class, RankBuf, SegBuf);
+      class->varargs = rankBufVarargs;
+      class->init = rankBufInit;
     }
 
 _`.example.extension`: The following (hypothetical) example class
@@ -467,49 +486,57 @@ checking properties of the pool. ::
 
 _`.example.fail`: The following example shows the implementation of
 failure-case code for an "init" method, making use of the "finish"
-anti-method::
+anti-method to clean-up a subsequent failure. ::
 
-    static Res mySegInit(Seg seg, Pool pool, Addr base, Size size,
-                         ArgList args)
+    static Res AMSSegInit(Seg seg, Pool pool,
+                          Addr base, Size size,
+			  ArgList args)
     {
-        MYSeg myseg;
-        OBJ1 obj1;
-        Res res;
-        Arena arena;
+      AMS ams = MustBeA(AMSPool, pool);
+      Arena arena = PoolArena(pool);
+      AMSSeg amsseg;
+      Res res;
 
-        AVERT(Pool, pool);
-        arena = PoolArena(pool);
+      /* Initialize the superclass fields first via next-method call */
+      res = NextMethod(Seg, AMSSeg, init)(seg, pool, base, size, args);
+      if (res != ResOK)
+	goto failNextMethod;
+      amsseg = CouldBeA(AMSSeg, seg);
 
-        /* Ensure the pool is ready for the segment */
-        res = myNoteSeg(pool, base);
-        if(res != ResOK)
-          goto failNoteSeg;
+      amsseg->grains = size >> ams->grainShift;
+      amsseg->freeGrains = amsseg->grains;
+      amsseg->oldGrains = (Count)0;
+      amsseg->newGrains = (Count)0;
+      amsseg->marksChanged = FALSE; /* <design/poolams/#marked.unused> */
+      amsseg->ambiguousFixes = FALSE;
 
-        /* Initialize the superclass fields first via next-method call */
-	res = NextMethod(Seg, MySeg, init)(seg, pool, base, size, args);
-        if(res != ResOK)
-          goto failSuperInit;
-	myseg = CouldBeA(MySeg, seg);
+      res = amsCreateTables(ams, &amsseg->allocTable,
+			    &amsseg->nongreyTable, &amsseg->nonwhiteTable,
+			    arena, amsseg->grains);
+      if (res != ResOK)
+	goto failCreateTables;
 
-        /* Create an object after the next-method call */
-        res = ControlAlloc(&obj1, arena, sizeof(OBJ1Struct));
-        if(res != ResOK)
-          goto failObj1;
+      /* start off using firstFree, see <design/poolams/#no-bit> */
+      amsseg->allocTableInUse = FALSE;
+      amsseg->firstFree = 0;
+      amsseg->colourTablesInUse = FALSE;
 
-        myseg->obj1 = obj1
+      amsseg->ams = ams;
+      RingInit(&amsseg->segRing);
+      RingAppend((ams->allocRing)(ams, SegRankSet(seg), size),
+		 &amsseg->segRing);
 
-	/* Finished initialization, so specialize the segment. */
-	SetClassOfPoly(seg, CLASS(MySeg));
-        return ResOK;
+      SetClassOfPoly(seg, CLASS(AMSSeg));
+      amsseg->sig = AMSSegSig;
+      AVERC(AMSSeg, amsseg);
 
-    failObj1:
-        /* call the anti-method for the superclass */
-	NextMethod(Seg, MySeg, finish)(seg);
-    failSuperInit:
-        /* reverse the effect of myNoteSeg */
-        myUnnoteSeg(pool, base);
-    failNoteSeg:
-        return res;
+      return ResOK;
+
+    failCreateTables:
+      NextMethod(Seg, AMSSeg, finish)(seg);
+    failNextMethod:
+      AVER(res != ResOK);
+      return res;
     }
 
 
@@ -518,63 +545,34 @@ Implementation
 
 _`.impl.derived-names`: The ``DEFINE_CLASS()`` macro derives some
 additional names from the class name as part of it's implementation.
-These should not appear in the source code - but it may be useful to
+These should not appear in the source code, but it may be useful to
 know about this for debugging purposes. For each class definition for
 class ``SomeClass`` of kind ``SomeKind``, the macro defines the
 following:
 
 * ``extern SomeKind SomeClassGet(void);``
 
-  The class accessor function. See `.overview.naming`_.  This function
-  contains local static storage and a guardian to ensure the storage
-  is initialized exactly once.
+  The class ensure function. See `.overview.naming`_.  This function
+  handles local static storage for the canonical class object and a
+  guardian to ensure the storage is initialized exactly once.  This
+  function is invoked by the ``CLASS`` macro (`.if.class`_).
 
 * ``static void SomeClassInit(SomeKind);``
 
   A function called by ``SomeClassGet()``. All the class
   initialization code is actually in this function.
 
-_`.impl.init-once`: Class objects only behave according to their
-definition after they have been initialized, and class protocols may
-not be used before initialization has happened. The only code which is
-allowed to see a class object in a partially initialized state is the
-initialization code itself -- and this must take care not to pass the
-object to any other code which might assume it is initialized. Once a
-class has been initialized, the class might have a client. The class
-must not be initialized again when this has happened, because the
-state is not necessarily consistent in the middle of an initialization
-function. The initialization state for each class is stored in a
-Boolean "guardian" variable local to the accessor function. This
-ensures the initialization happens only once. The path through the
-``SomeClassGet`` function should be very fast for the common case when
-this variable is ``TRUE``, and the class has already been initialized,
-as the canonical static storage can simply be returned in that
-case. However, when the value of the guardian is ``FALSE``, the class
-is not initialized. In this case, a call to ``SomeClassGet`` must
-first execute ``SomeClassInit`` and then set the guardian to
-``TRUE``. However, this must happen atomically (see
-`.impl.init-lock`_).
-
-_`.impl.init-lock`: There would be the possibility of a race condition
-if ``SomeClassGet`` were called concurrently on separate threads
-before ``SomeClass`` has been initialized. The class must not be
-initialized more than once, so the sequence test-guard, init-class,
-set-guard must be run as a critical region. It's not sufficient to use
-the arena lock to protect the critical region, because the class
-object might be shared between multiple arenas. The ``DEFINE_CLASS()``
-macro uses a global recursive lock instead. The lock is only claimed
-after an initial unlocked access of the guard variable shows that the
-class is not initialized. This avoids any locking overhead for the
-common case where the class is already initialized. This lock is
-provided by the lock module -- see design.mps.lock_.
-
-.. _design.mps.lock: lock
-
-_`.impl.subclass`: The subclass test `.int.subclass`_ is implemented
+_`.impl.subclass`: The subclass test `.if.subclass`_ is implemented
 using a compact array of superclasses [Cohen_1991]_ giving a fast
-constant-time test.  RB_ tried an approach using prime factors
+constant-time test.  (RB_ tried an approach using prime factors
 [Gibbs_2004]_ but found that they overflowed in 32-bits too easily to
-be useful.
+be useful.)  Each class is assigned a small integer id, and a "level"
+which is the distance from the root of the class hierarchy.  The
+``InstClass`` structure contains an array of these ids indexed by
+level, representing the inheritance of this class.  A class is a
+subclass of another if and only if the superclass id is present in the
+array at the superclass level.  The level and the id are statically
+defined using enum constants, so the test is fast and simple.
 
 
 A. References
@@ -606,7 +604,12 @@ B. Document History
 
 - 2016-04-08 RB_ Substantial reorgnisation.
 
-- 2016-04-13 RB_ Writing up overview of kinds, with explanation of class extension.  Writing up ``Method``, ``NextMethod``, ``SetClassOfPoly``, ``MustBeA``, etc. and updating the descriptions of some older interface.  Updating the example.
+- 2016-04-13 RB_ Writing up overview of kinds, with explanation of
+  class extension.  Writing up ``Method``, ``NextMethod``,
+  ``SetClassOfPoly``, ``MustBeA``, etc. and updating the descriptions
+  of some older interface.  Updating the example.
+
+- 2016-04-19 RB_ Miscellaneous clean-up in response to review by GDR_.
 
 .. _RB: http://www.ravenbrook.com/consultants/rb/
 .. _GDR: http://www.ravenbrook.com/consultants/gdr/
