@@ -14,11 +14,48 @@
 #include "classdef.h"
 
 
-/* CLASS_* -- identifier derivation macros.
+/* Identifier derivation macros.
  *
  * These turn the base identifier of a class (e.g. "Inst") into other
  * identifiers (e.g. "InstClassStruct").  These are not intended to be
- * used outside of this file.
+ * used outside of this file.  These macros implement
+ * design.mps.protocol.overview.naming and
+ * design.mps.impl.derived-names.
+ *
+ * INST_TYPE derives the type of an instance of the class,
+ * e.g. "Land", which will be a pointer to an INST_STRUCT.
+ *
+ * INST_STRUCT derives the type of a structure of an instance,
+ * e.g. "LandStruct".
+ *
+ * INST_CHECK derives the name of the checking function for the
+ * instance, e.g. "LandCheck".
+ *
+ * CLASS_TYPE derives the type of the class, e.g. "LandClass", which
+ * will be a pointer to a CLASS_STRUCT.
+ *
+ * CLASS_STRUCT derives the type of the structure of the class,
+ * e.g. "LandClassStruct".
+ *
+ * CLASS_ENSURE derives the name of the ensure function that returns
+ * the canonical class object, e.g. "LandClassGet".
+ *
+ * CLASS_INIT derives the name of the init function that initializes a
+ * CLASS_STRUCT, e.g. "LandClassInit".
+ *
+ * CLASS_CHECK derives the name of the checking function for the
+ * class, e.g. "LandClassCheck".
+ *
+ * CLASS_GUARDIAN derives the name of a boolean that indicates whether
+ * the canonical class object has been initialized yet,
+ * e.g. "ClassGuardianLand".
+ *
+ * CLASS_STATIC derives the name of a static global variable that
+ * contains the canonical class object, e.g. "ClassStaticLand".
+ *
+ * KIND_CLASS derives the class name of a kind, which is used in
+ * contexts like CLASS_TYPE(KIND_CLASS(kind)), so that the kind "Land"
+ * is implemented by the canonical "LandClassClass".
  */
 
 #define INST_TYPE(ident) ident
@@ -29,7 +66,6 @@
 #define CLASS_ENSURE(ident) ident ## ClassGet
 #define CLASS_INIT(ident) ident ## ClassInit
 #define CLASS_CHECK(ident) ident ## ClassCheck
-#define CLASS_SUPER(ident) ident ## SuperClassGet
 #define CLASS_GUARDIAN(ident) ClassGuardian ## ident
 #define CLASS_STATIC(ident) ClassStatic ## ident
 #define KIND_CLASS(ident) ident ## Class
@@ -38,7 +74,8 @@
 /* DECLARE_CLASS -- declare the existence of a protocol class
  *
  * Declares a prototype for the class ensure function, which ensures
- * that the class is initialized once and return it.
+ * that the class is initialized once and return it.  See
+ * design.mps.protocol.if.declare-class.
  */
 
 #define DECLARE_CLASS(kind, ident) \
@@ -46,7 +83,14 @@
   extern void CLASS_INIT(ident)(CLASS_TYPE(kind) var)
 
 
-/* DEFINE_CLASS -- define a protocol class */
+/* DEFINE_CLASS -- define a protocol class
+ *
+ * Defines the static storage and functions for the canonical class
+ * object for a class.  Takes care to avoid initializing the class
+ * twice, even when called asynchronously from multiple threads, since
+ * this code can be reached without first entering an arena. See
+ * design.mps.protocol.if.define-class.
+ */
 
 #define DEFINE_CLASS(kind, ident, var) \
   DECLARE_CLASS(kind, ident); \
@@ -74,7 +118,11 @@
   void CLASS_INIT(ident)(CLASS_TYPE(kind) var)
 
 
-/* CLASS -- expression for getting a class */
+/* CLASS -- expression for getting a class
+ *
+ * Use this to get a class, rather than calling anything defined by
+ * DEFINE_CLASS directly.  See design.mps.protocol.if.class.
+ */
 
 #define CLASS(ident) (CLASS_ENSURE(ident)())
 
@@ -83,7 +131,7 @@
  *
  * This defines enum constants like ClassIdLand with a unique small
  * number for each class -- essentially the row number in the class
- * table.
+ * table.  Used to implement design.mps.protocol.impl.subclass.
  */
 
 #define CLASS_ID_ENUM(prefix, ident, kind, super) prefix ## ident,
@@ -97,10 +145,12 @@ typedef enum ClassIdEnum {
 /* ClassLevelEnum -- depth of class in hierarchy
  *
  * This defines enum constants like ClassLevelLand equal to the
- * distance from the root of the class hierarchy.
+ * distance from the root of the class hierarchy.  Used to implement
+ * design.mps.protocol.impl.subclass.
  */
 
-#define CLASS_LEVEL_ENUM(prefix, ident, kind, super) prefix ## ident = prefix ## super + 1,
+#define CLASS_LEVEL_ENUM(prefix, ident, kind, super) \
+  prefix ## ident = prefix ## super + 1,
 typedef enum ClassLevelEnum {
   ClassLevelNoSuper = -1, /* so that root classes (e.g. Inst) get level zero */
   CLASSES(CLASS_LEVEL_ENUM, ClassLevel)
@@ -111,8 +161,8 @@ typedef enum ClassLevelEnum {
 /* INHERIT_CLASS -- inheriting from a superclass
  *
  * This macro is used at the start of a class definition to inherit
- * the superclass and override the fields essential to the
- * workings of the protocol.
+ * the superclass and override the fields essential to the workings of
+ * the protocol.  See design.mps.protocol.if.inheritance.
  */
 
 #define INHERIT_CLASS(this, _class, super) \
@@ -127,12 +177,11 @@ typedef enum ClassLevelEnum {
   END
 
 
-/* Inst -- the instance structure for support of the protocol
+/* Inst -- the base class of the hierarchy
  *
  * An InstStruct named instStruct must be the first field of any
- * instance structure using the protocol, because the protocol uses
- * casting between structures with common prefixes to implement
- * polymorphism.
+ * instance structure using the protocol
+ * (design.mps.protocol.overview.prefix).
  */
 
 typedef struct InstStruct *Inst;
@@ -143,15 +192,12 @@ typedef struct InstStruct {
   /* Do not add permanent fields here.  Introduce a subclass. */
 } InstStruct;
 
-
-/* InstClass -- the class containing the support for the protocol */
-
 typedef const char *ClassName;
 typedef unsigned char ClassId;
 typedef unsigned char ClassLevel;
 #define ClassDEPTH 8            /* maximum depth of class hierarchy */
 
-#define InstClassSig ((Sig)0x519B60C7) /* SIGnature PROtocol CLass */
+#define InstClassSig ((Sig)0x519B1452) /* SIGnature Protocol INST */
 
 typedef struct InstClassStruct {
   InstStruct instStruct;        /* classes are instances of kinds */
@@ -183,12 +229,9 @@ extern void ClassRegister(InstClass class);
 
 /* IsSubclass, IsA -- fast subclass test
  *
- * The InstClassStruct is arranged to make this test fast and simple,
- * so that it can be used as a consistency check in the MPS.  Each
- * class has an array of the ids of its superclasses, indexed by the
- * level in the hierarchy of the class.  The level and id are
- * statically known, so they can be tested by accessing just one
- * class.
+ * The InstClassStruct is arranged to make these tests fast and
+ * simple, so that it can be used as a consistency check in the MPS.
+ * See design.mps.protocol.impl.subclass.
  */
 
 #define IsSubclass(sub, super) \
@@ -205,14 +248,17 @@ extern void ClassRegister(InstClass class);
 
 /* CouldBeA, MustBeA -- coerce instances
  *
- * CouldBeA converts an instance to another class without checking.
- * It is intended to be equivalent to the C++ "static_cast", although
- * since this is C there is no actual static checking, so in fact it's
- * more like "reinterpret_cast".
+ * CouldBeA converts an instance to another class without checking,
+ * like C++ ``static_cast``.  See design.mps.protocol.if.could-be-a.
  *
  * MustBeA converts an instance to another class, but checks that the
  * object is a subclass, causing an assertion if not (depending on
- * build variety).  It is like C++ "dynamic_cast" with an assert.
+ * build variety).  See design.mps.protocol.if.must-be-a.  It is like
+ * C++ "dynamic_cast" with an assert.
+ *
+ * MustBeA_CRITICAL is like MustBeA for use on the critical path,
+ * where it does no checking at all in production builds.  See
+ * design.mps.protocol.if.must-be-a.critical.
  */
 
 #define CouldBeA(class, inst) ((INST_TYPE(class))(inst))
@@ -234,7 +280,7 @@ extern void ClassRegister(InstClass class);
  *
  * The following are macros because of the need to cast subtypes of
  * InstClass. Nevertheless they are named as functions. See
- * <design/protocol/#introspect.c-lang>.
+ * design.mps.protocol.introspect.
  */
 
 #define SuperclassPoly(kind, class) \
@@ -256,10 +302,8 @@ extern void ClassRegister(InstClass class);
 /* SetClassOfPoly -- set the class of an object
  *
  * This should only be used when specialising an instance to be a
- * member of a subclass.  Each Init function should call its
- * superclass init, finally reaching InstInit, and then, once it has
- * set up its fields, use SetClassOfPoly to set the class and check
- * the instance with its check method.  Compare with design.mps.sig.
+ * member of a subclass, once the instance has been initialized.  See
+ * design.mps.protocol.if.set-class.
  */
 
 #define SetClassOfPoly(inst, _class) \
@@ -269,7 +313,8 @@ extern void ClassRegister(InstClass class);
 /* Method -- method call
  *
  * Use this macro to call a method on a class, rather than accessing
- * the class directly.  For example:
+ * the class directly.  See design.mps.protocol.if.method.  For
+ * example:
  *
  *     res = Method(Land, land, insert)(land, range);
  */

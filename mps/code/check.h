@@ -167,8 +167,8 @@ extern unsigned CheckLevel;
 #define AVER_CRITICAL               DISCARD
 #define AVERT_CRITICAL(type, val)   DISCARD(ASSERT_ISTYPE(type, val))
 #define AVERC_CRITICAL(class, val)  DISCARD(ASSERT_ISCLASS(class, val))
-#define AVERP_CRITICAL(cond, dflt)  (dflt)
-#define AVERPC_CRITICAL(cond, condstring, dflt) (dflt)
+#define AVERP_CRITICAL(cond, dflt)  (DISCARD_EXP(cond), dflt)
+#define AVERPC_CRITICAL(cond, condstring, dflt) (DISCARD_EXP(cond), dflt)
 
 #endif
 
