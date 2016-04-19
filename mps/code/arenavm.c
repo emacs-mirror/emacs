@@ -90,7 +90,7 @@ typedef struct VMArenaStruct {  /* VM arena structure */
 
 static Size VMPurgeSpare(Arena arena, Size size);
 static void chunkUnmapSpare(Chunk chunk);
-DECLARE_CLASS(Arena, VMArena);
+DECLARE_CLASS(Arena, VMArena, AbstractArena);
 static void VMCompact(Arena arena, Trace trace);
 
 

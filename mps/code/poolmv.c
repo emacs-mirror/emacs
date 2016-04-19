@@ -36,7 +36,8 @@ SRCID(poolmv, "$Id$");
 
 typedef MV MVPool;
 #define MVPoolCheck MVCheck
-DECLARE_CLASS(Pool, MVPool);
+DECLARE_CLASS(Pool, MVPool, AbstractBufferPool);
+DECLARE_CLASS(Pool, MVDebugPool, MVPool);
 
 
 #define mvBlockPool(mv) MFSPool(&(mv)->blockPoolStruct)

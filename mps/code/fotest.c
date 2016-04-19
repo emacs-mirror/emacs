@@ -60,7 +60,7 @@ static Res oomAlloc(Addr *pReturn, Pool pool, Size size)
   }
 }
 
-DECLARE_CLASS(Pool, OOMPool);
+DECLARE_CLASS(Pool, OOMPool, AbstractPool);
 DEFINE_CLASS(Pool, OOMPool, this)
 {
   INHERIT_CLASS(this, OOMPool, AbstractPool);

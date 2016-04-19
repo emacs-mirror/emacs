@@ -10,7 +10,6 @@
 
 #include "mpm.h"
 #include "protocol.h"
-#include "classdef.h"
 
 SRCID(protocol, "$Id$");
 

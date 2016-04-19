@@ -100,7 +100,7 @@ static Bool AWLCheck(AWL awl);
 
 typedef AWL AWLPool;
 #define AWLPoolCheck AWLCheck
-DECLARE_CLASS(Pool, AWLPool);
+DECLARE_CLASS(Pool, AWLPool, AbstractCollectPool);
 
 
 /* Conversion between indexes and Addrs */
@@ -132,7 +132,7 @@ typedef struct AWLSegStruct {
   Sig sig;
 } AWLSegStruct, *AWLSeg;
 
-DECLARE_CLASS(Seg, AWLSeg);
+DECLARE_CLASS(Seg, AWLSeg, GCSeg);
 
 ATTRIBUTE_UNUSED
 static Bool AWLSegCheck(AWLSeg awlseg)

@@ -296,14 +296,14 @@ extern void PoolClassMixInBuffer(PoolClass class);
 extern void PoolClassMixInScan(PoolClass class);
 extern void PoolClassMixInFormat(PoolClass class);
 extern void PoolClassMixInCollect(PoolClass class);
-DECLARE_CLASS(Inst, PoolClass);
-DECLARE_CLASS(Pool, AbstractPool);
-DECLARE_CLASS(Pool, AbstractBufferPool);
-DECLARE_CLASS(Pool, AbstractSegBufPool);
-DECLARE_CLASS(Pool, AbstractScanPool);
+DECLARE_CLASS(Inst, PoolClass, InstClass);
+DECLARE_CLASS(Pool, AbstractPool, Inst);
+DECLARE_CLASS(Pool, AbstractBufferPool, AbstractPool);
+DECLARE_CLASS(Pool, AbstractSegBufPool, AbstractBufferPool);
+DECLARE_CLASS(Pool, AbstractScanPool, AbstractSegBufPool);
 typedef Pool AbstractCollectPool;
 #define AbstractCollectPoolCheck PoolCheck
-DECLARE_CLASS(Pool, AbstractCollectPool);
+DECLARE_CLASS(Pool, AbstractCollectPool, AbstractScanPool);
 
 
 /* Message Interface -- see <design/message/> */
@@ -477,8 +477,8 @@ extern void TraceScanSingleRef(TraceSet ts, Rank rank, Arena arena,
 
 /* Arena Interface -- see <code/arena.c> */
 
-DECLARE_CLASS(Inst, ArenaClass);
-DECLARE_CLASS(Arena, AbstractArena);
+DECLARE_CLASS(Inst, ArenaClass, InstClass);
+DECLARE_CLASS(Arena, AbstractArena, Inst);
 extern Bool ArenaClassCheck(ArenaClass class);
 
 extern Bool ArenaCheck(Arena arena);
@@ -676,9 +676,9 @@ extern void SegSetBuffer(Seg seg, Buffer buffer);
 extern Bool SegCheck(Seg seg);
 extern Bool GCSegCheck(GCSeg gcseg);
 extern Bool SegClassCheck(SegClass class);
-DECLARE_CLASS(Inst, SegClass);
-DECLARE_CLASS(Seg, Seg);
-DECLARE_CLASS(Seg, GCSeg);
+DECLARE_CLASS(Inst, SegClass, InstClass);
+DECLARE_CLASS(Seg, Seg, Inst);
+DECLARE_CLASS(Seg, GCSeg, Seg);
 extern void SegClassMixInNoSplitMerge(SegClass class);
 
 extern Size SegSize(Seg seg);
@@ -786,12 +786,12 @@ extern FrameState BufferFrameState(Buffer buffer);
 extern void BufferFrameSetState(Buffer buffer, FrameState state);
 
 extern Bool BufferClassCheck(BufferClass class);
-DECLARE_CLASS(Inst, BufferClass);
-DECLARE_CLASS(Buffer, Buffer);
-DECLARE_CLASS(Buffer, SegBuf);
+DECLARE_CLASS(Inst, BufferClass, InstClass);
+DECLARE_CLASS(Buffer, Buffer, Inst);
+DECLARE_CLASS(Buffer, SegBuf, Buffer);
 typedef Buffer RankBuf;
 #define RankBufCheck BufferCheck
-DECLARE_CLASS(Buffer, RankBuf);
+DECLARE_CLASS(Buffer, RankBuf, SegBuf);
 
 extern AllocPattern AllocPatternRamp(void);
 extern AllocPattern AllocPatternRampCollectAll(void);
@@ -984,8 +984,8 @@ extern Bool LandFlush(Land dest, Land src);
 
 extern Size LandSlowSize(Land land);
 extern Bool LandClassCheck(LandClass class);
-DECLARE_CLASS(Inst, LandClass);
-DECLARE_CLASS(Land, Land);
+DECLARE_CLASS(Inst, LandClass, InstClass);
+DECLARE_CLASS(Land, Land, Inst);
 
 
 /* STATISTIC -- gather statistics (in some varieties)

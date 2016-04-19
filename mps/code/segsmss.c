@@ -52,8 +52,8 @@ typedef struct AMSTStruct *AMST;
 
 typedef AMST AMSTPool;
 #define AMSTPoolCheck AMSTCheck
-DECLARE_CLASS(Pool, AMSTPool);
-DECLARE_CLASS(Seg, AMSTSeg);
+DECLARE_CLASS(Pool, AMSTPool, AMSPool);
+DECLARE_CLASS(Seg, AMSTSeg, AMSSeg);
 
 
 /* AMSTCheck -- the check method for an AMST */

@@ -10,6 +10,7 @@
 #define freelist_h
 
 #include "mpmtypes.h"
+#include "mpm.h"
 #include "protocol.h"
 
 typedef struct FreelistStruct *Freelist;
@@ -21,7 +22,7 @@ extern Bool FreelistCheck(Freelist freelist);
 /* See <design/freelist/#impl.grain.align> */
 #define FreelistMinimumAlignment ((Align)sizeof(FreelistBlock))
 
-DECLARE_CLASS(Land, Freelist);
+DECLARE_CLASS(Land, Freelist, Land);
 
 #endif /* freelist.h */
 

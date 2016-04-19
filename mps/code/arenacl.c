@@ -21,7 +21,7 @@
 
 SRCID(arenacl, "$Id$");
 
-DECLARE_CLASS(Arena, ClientArena);
+DECLARE_CLASS(Arena, ClientArena, AbstractArena);
 
 
 /* ClientArenaStruct -- Client Arena Structure */

@@ -10,6 +10,7 @@
 #define failover_h
 
 #include "mpmtypes.h"
+#include "mpm.h"
 #include "protocol.h"
 
 typedef struct FailoverStruct *Failover;
@@ -18,7 +19,7 @@ typedef struct FailoverStruct *Failover;
 
 extern Bool FailoverCheck(Failover failover);
 
-DECLARE_CLASS(Land, Failover);
+DECLARE_CLASS(Land, Failover, Land);
 
 extern const struct mps_key_s _mps_key_failover_primary;
 #define FailoverPrimary (&_mps_key_failover_primary)

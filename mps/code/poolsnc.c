@@ -45,10 +45,10 @@ typedef struct SNCStruct {
 
 typedef SNC SNCPool;
 #define SNCPoolCheck SNCCheck
-DECLARE_CLASS(Pool, SNCPool);
+DECLARE_CLASS(Pool, SNCPool, AbstractScanPool);
 
-DECLARE_CLASS(Seg, SNCSeg);
-DECLARE_CLASS(Buffer, SNCBuf);
+DECLARE_CLASS(Seg, SNCSeg, GCSeg);
+DECLARE_CLASS(Buffer, SNCBuf, RankBuf);
 static Bool SNCCheck(SNC snc);
 static void sncPopPartialSegChain(SNC snc, Buffer buf, Seg upTo);
 
