@@ -360,13 +360,13 @@ static Res VMChunkInit(Chunk chunk, BootBlock boot)
   vmChunk = Chunk2VMChunk(chunk);
   AVERT(BootBlock, boot);
   
-  /* .overhead.sa-mapped */
+  /* .overhead.sa-mapped: Chunk overhead for sparse array 'mapped' table. */
   res = BootAlloc(&p, boot, BTSize(chunk->pages), MPS_PF_ALIGN);
   if (res != ResOK)
     goto failSaMapped;
   saMapped = p;
   
-  /* .overhead.sa-pages */
+  /* .overhead.sa-pages: Chunk overhead for sparse array 'pages' table. */
   res = BootAlloc(&p, boot, BTSize(chunk->pageTablePages), MPS_PF_ALIGN);
   if (res != ResOK)
     goto failSaPages;
@@ -522,22 +522,22 @@ static Res vmArenaChunkSize(Size *chunkSizeReturn, VMArena vmArena, Size size)
   do {
     chunkSize = size + overhead;
 
-    /* .overhead.chunk-struct */
+    /* See .overhead.chunk-struct. */
     overhead = SizeAlignUp(sizeof(VMChunkStruct), MPS_PF_ALIGN);
 
-    /* .overhead.pages */
+    /* See <code/tract.c#overhead.pages>, */
     pages = chunkSize >> grainShift;
     overhead += SizeAlignUp(BTSize(pages), MPS_PF_ALIGN);
 
-    /* .overhead.sa-mapped */
+    /* See .overhead.sa-mapped. */
     overhead += SizeAlignUp(BTSize(pages), MPS_PF_ALIGN);
 
-    /* .overhead.sa-pages */
+    /* See .overhead.sa-pages. */
     pageTableSize = SizeAlignUp(pages * sizeof(PageUnion), grainSize);
     pageTablePages = pageTableSize >> grainShift;
     overhead += SizeAlignUp(BTSize(pageTablePages), MPS_PF_ALIGN);
 
-    /* .overhead.page-table */
+    /* See .overhead.page-table. */
     overhead = SizeAlignUp(overhead, grainSize);
     overhead += SizeAlignUp(pageTableSize, grainSize);
 
