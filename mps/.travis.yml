@@ -16,5 +16,8 @@ notifications:
   email:
     - mps-travis@ravenbrook.com
   irc: "irc.freenode.net#memorypoolsystem"
+before_install:
+  - test "$TRAVIS_OS_NAME" = "linux" && sudo apt-get -qq update
+  - test "$TRAVIS_OS_NAME" = "linux" && sudo apt-get install -y gcc-4.7
 script:
   - ./configure --prefix=$PWD/prefix && make install && make test
