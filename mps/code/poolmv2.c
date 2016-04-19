@@ -31,7 +31,7 @@ SRCID(poolmv2, "$Id$");
 
 typedef struct MVTStruct *MVT;
 static void MVTVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs);
-static Res MVTInit(Pool pool, Arena arena, PoolClass class, ArgList arg);
+static Res MVTInit(Pool pool, Arena arena, PoolClass klass, ArgList arg);
 static Bool MVTCheck(MVT mvt);
 static void MVTFinish(Pool pool);
 static Res MVTBufferFill(Addr *baseReturn, Addr *limitReturn,
@@ -136,19 +136,19 @@ typedef struct MVTStruct
 } MVTStruct;
 
 
-DEFINE_CLASS(Pool, MVTPool, this)
+DEFINE_CLASS(Pool, MVTPool, klass)
 {
-  INHERIT_CLASS(this, MVTPool, AbstractBufferPool);
-  this->size = sizeof(MVTStruct);
-  this->varargs = MVTVarargs;
-  this->init = MVTInit;
-  this->finish = MVTFinish;
-  this->free = MVTFree;
-  this->bufferFill = MVTBufferFill;
-  this->bufferEmpty = MVTBufferEmpty;
-  this->totalSize = MVTTotalSize;
-  this->freeSize = MVTFreeSize;
-  this->describe = MVTDescribe;
+  INHERIT_CLASS(klass, MVTPool, AbstractBufferPool);
+  klass->size = sizeof(MVTStruct);
+  klass->varargs = MVTVarargs;
+  klass->init = MVTInit;
+  klass->finish = MVTFinish;
+  klass->free = MVTFree;
+  klass->bufferFill = MVTBufferFill;
+  klass->bufferEmpty = MVTBufferEmpty;
+  klass->totalSize = MVTTotalSize;
+  klass->freeSize = MVTFreeSize;
+  klass->describe = MVTDescribe;
 }
 
 /* Macros */
@@ -219,7 +219,7 @@ ARG_DEFINE_KEY(MVT_MAX_SIZE, Size);
 ARG_DEFINE_KEY(MVT_RESERVE_DEPTH, Count);
 ARG_DEFINE_KEY(MVT_FRAG_LIMIT, double);
 
-static Res MVTInit(Pool pool, Arena arena, PoolClass class, ArgList args)
+static Res MVTInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
 {
   Size align = MVT_ALIGN_DEFAULT;
   Size minSize = MVT_MIN_SIZE_DEFAULT;
@@ -236,7 +236,7 @@ static Res MVTInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   AVER(pool != NULL);
   AVERT(Arena, arena);
   AVERT(ArgList, args);
-  UNUSED(class); /* used for debug pools only */
+  UNUSED(klass); /* used for debug pools only */
 
   if (ArgPick(&arg, args, MPS_KEY_ALIGN))
     align = arg.val.align;
@@ -277,7 +277,7 @@ static Res MVTInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   if (abqDepth < 3)
     abqDepth = 3;
 
-  res = PoolAbsInit(pool, arena, class, args);
+  res = PoolAbsInit(pool, arena, klass, args);
   if (res != ResOK)
     goto failAbsInit;
   mvt = CouldBeA(MVTPool, pool);

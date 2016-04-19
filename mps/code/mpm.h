@@ -190,9 +190,9 @@ extern char *MPSVersion(void);
 
 /* Pool Interface -- see impl.c.pool */
 
-extern Res PoolInit(Pool pool, Arena arena, PoolClass class, ArgList args);
+extern Res PoolInit(Pool pool, Arena arena, PoolClass klass, ArgList args);
 extern void PoolFinish(Pool pool);
-extern Bool PoolClassCheck(PoolClass class);
+extern Bool PoolClassCheck(PoolClass klass);
 extern Bool PoolCheck(Pool pool);
 extern Res PoolDescribe(Pool pool, mps_lib_FILE *stream, Count depth);
 
@@ -213,7 +213,7 @@ extern Bool PoolOfRange(Pool *poolReturn, Arena arena, Addr base, Addr limit);
 extern Bool PoolHasAddr(Pool pool, Addr addr);
 extern Bool PoolHasRange(Pool pool, Addr base, Addr limit);
 
-extern Res PoolCreate(Pool *poolReturn, Arena arena, PoolClass class,
+extern Res PoolCreate(Pool *poolReturn, Arena arena, PoolClass klass,
                       ArgList args);
 extern void PoolDestroy(Pool pool);
 extern BufferClass PoolDefaultBufferClass(Pool pool);
@@ -239,7 +239,7 @@ extern void PoolFreeWalk(Pool pool, FreeBlockVisitor f, void *p);
 extern Size PoolTotalSize(Pool pool);
 extern Size PoolFreeSize(Pool pool);
 
-extern Res PoolAbsInit(Pool pool, Arena arena, PoolClass class, ArgList arg);
+extern Res PoolAbsInit(Pool pool, Arena arena, PoolClass klass, ArgList arg);
 extern void PoolAbsFinish(Pool pool);
 extern Res PoolNoAlloc(Addr *pReturn, Pool pool, Size size);
 extern Res PoolTrivAlloc(Addr *pReturn, Pool pool, Size size);
@@ -290,10 +290,10 @@ extern Size PoolNoSize(Pool pool);
 
 
 /* Abstract Pool Classes Interface -- see <code/poolabs.c> */
-extern void PoolClassMixInBuffer(PoolClass class);
-extern void PoolClassMixInScan(PoolClass class);
-extern void PoolClassMixInFormat(PoolClass class);
-extern void PoolClassMixInCollect(PoolClass class);
+extern void PoolClassMixInBuffer(PoolClass klass);
+extern void PoolClassMixInScan(PoolClass klass);
+extern void PoolClassMixInFormat(PoolClass klass);
+extern void PoolClassMixInCollect(PoolClass klass);
 DECLARE_CLASS(Inst, PoolClass, InstClass);
 DECLARE_CLASS(Pool, AbstractPool, Inst);
 DECLARE_CLASS(Pool, AbstractBufferPool, AbstractPool);
@@ -307,10 +307,10 @@ DECLARE_CLASS(Pool, AbstractCollectPool, AbstractScanPool);
 /* Message Interface -- see <design/message/> */
 /* -- Internal (MPM) Interface -- functions for message originator */
 extern Bool MessageCheck(Message message);
-extern Bool MessageClassCheck(MessageClass class);
+extern Bool MessageClassCheck(MessageClass klass);
 extern Bool MessageTypeCheck(MessageType type);
 extern void MessageInit(Arena arena, Message message,
-                        MessageClass class, MessageType type);
+                        MessageClass klass, MessageType type);
 extern void MessageFinish(Message message);
 extern Arena MessageArena(Message message);
 extern Bool MessageOnQueue(Message message);
@@ -477,10 +477,10 @@ extern void TraceScanSingleRef(TraceSet ts, Rank rank, Arena arena,
 
 DECLARE_CLASS(Inst, ArenaClass, InstClass);
 DECLARE_CLASS(Arena, AbstractArena, Inst);
-extern Bool ArenaClassCheck(ArenaClass class);
+extern Bool ArenaClassCheck(ArenaClass klass);
 
 extern Bool ArenaCheck(Arena arena);
-extern Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args);
+extern Res ArenaCreate(Arena *arenaReturn, ArenaClass klass, ArgList args);
 extern void ArenaDestroy(Arena arena);
 extern Res ArenaDescribe(Arena arena, mps_lib_FILE *stream, Count depth);
 extern Res ArenaDescribeTracts(Arena arena, mps_lib_FILE *stream, Count depth);
@@ -654,7 +654,7 @@ extern Bool LocusCheck(Arena arena);
 
 /* Segment interface */
 
-extern Res SegAlloc(Seg *segReturn, SegClass class, LocusPref pref,
+extern Res SegAlloc(Seg *segReturn, SegClass klass, LocusPref pref,
                     Size size, Pool pool,
                     ArgList args);
 extern void SegFree(Seg seg);
@@ -675,11 +675,11 @@ extern void SegSetBuffer(Seg seg, Buffer buffer);
 extern Addr SegBufferScanLimit(Seg seg);
 extern Bool SegCheck(Seg seg);
 extern Bool GCSegCheck(GCSeg gcseg);
-extern Bool SegClassCheck(SegClass class);
+extern Bool SegClassCheck(SegClass klass);
 DECLARE_CLASS(Inst, SegClass, InstClass);
 DECLARE_CLASS(Seg, Seg, Inst);
 DECLARE_CLASS(Seg, GCSeg, Seg);
-extern void SegClassMixInNoSplitMerge(SegClass class);
+extern void SegClassMixInNoSplitMerge(SegClass klass);
 
 extern Size SegSize(Seg seg);
 extern Addr (SegBase)(Seg seg);
@@ -712,7 +712,7 @@ extern Addr (SegLimit)(Seg seg);
 
 /* Buffer Interface -- see <code/buffer.c> */
 
-extern Res BufferCreate(Buffer *bufferReturn, BufferClass class,
+extern Res BufferCreate(Buffer *bufferReturn, BufferClass klass,
                         Pool pool, Bool isMutator, ArgList args);
 extern void BufferDestroy(Buffer buffer);
 extern Bool BufferCheck(Buffer buffer);
@@ -782,7 +782,7 @@ extern void BufferRampReset(Buffer buffer);
 extern Res BufferFramePush(AllocFrame *frameReturn, Buffer buffer);
 extern Res BufferFramePop(Buffer buffer, AllocFrame frame);
 
-extern Bool BufferClassCheck(BufferClass class);
+extern Bool BufferClassCheck(BufferClass klass);
 DECLARE_CLASS(Inst, BufferClass, InstClass);
 DECLARE_CLASS(Buffer, Buffer, Inst);
 DECLARE_CLASS(Buffer, SegBuf, Buffer);
@@ -964,8 +964,8 @@ extern Bool LandCheck(Land land);
 #define LandArena(land) ((land)->arena)
 #define LandAlignment(land) ((land)->alignment)
 extern Size LandSize(Land land);
-extern Res LandInit(Land land, LandClass class, Arena arena, Align alignment, void *owner, ArgList args);
-extern Res LandCreate(Land *landReturn, Arena arena, LandClass class, Align alignment, void *owner, ArgList args);
+extern Res LandInit(Land land, LandClass klass, Arena arena, Align alignment, void *owner, ArgList args);
+extern Res LandCreate(Land *landReturn, Arena arena, LandClass klass, Align alignment, void *owner, ArgList args);
 extern void LandDestroy(Land land);
 extern void LandFinish(Land land);
 extern Res LandInsert(Range rangeReturn, Land land, Range range);
@@ -980,7 +980,7 @@ extern Res LandDescribe(Land land, mps_lib_FILE *stream, Count depth);
 extern Bool LandFlush(Land dest, Land src);
 
 extern Size LandSlowSize(Land land);
-extern Bool LandClassCheck(LandClass class);
+extern Bool LandClassCheck(LandClass klass);
 DECLARE_CLASS(Inst, LandClass, InstClass);
 DECLARE_CLASS(Land, Land, Inst);
 

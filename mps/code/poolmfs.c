@@ -79,7 +79,7 @@ static void MFSVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
 ARG_DEFINE_KEY(MFS_UNIT_SIZE, Size);
 ARG_DEFINE_KEY(MFSExtendSelf, Bool);
 
-static Res MFSInit(Pool pool, Arena arena, PoolClass class, ArgList args)
+static Res MFSInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
 {
   Size extendBy = MFS_EXTEND_BY_DEFAULT;
   Bool extendSelf = TRUE;
@@ -91,7 +91,7 @@ static Res MFSInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   AVER(pool != NULL);
   AVERT(Arena, arena);
   AVERT(ArgList, args);
-  UNUSED(class); /* used for debug pools only */
+  UNUSED(klass); /* used for debug pools only */
   
   ArgRequire(&arg, args, MPS_KEY_MFS_UNIT_SIZE);
   unitSize = arg.val.size;
@@ -104,7 +104,7 @@ static Res MFSInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   AVER(extendBy > 0);
   AVERT(Bool, extendSelf);
 
-  res = PoolAbsInit(pool, arena, class, args);
+  res = PoolAbsInit(pool, arena, klass, args);
   if (res != ResOK)
     return res;
   SetClassOfPoly(pool, CLASS(MFSPool));
@@ -366,18 +366,18 @@ static Res MFSDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 }
 
 
-DEFINE_CLASS(Pool, MFSPool, this)
+DEFINE_CLASS(Pool, MFSPool, klass)
 {
-  INHERIT_CLASS(this, MFSPool, AbstractPool);
-  this->size = sizeof(MFSStruct);
-  this->varargs = MFSVarargs;
-  this->init = MFSInit;
-  this->finish = MFSFinish;
-  this->alloc = MFSAlloc;
-  this->free = MFSFree;
-  this->totalSize = MFSTotalSize;
-  this->freeSize = MFSFreeSize;  
-  this->describe = MFSDescribe;
+  INHERIT_CLASS(klass, MFSPool, AbstractPool);
+  klass->size = sizeof(MFSStruct);
+  klass->varargs = MFSVarargs;
+  klass->init = MFSInit;
+  klass->finish = MFSFinish;
+  klass->alloc = MFSAlloc;
+  klass->free = MFSFree;
+  klass->totalSize = MFSTotalSize;
+  klass->freeSize = MFSFreeSize;  
+  klass->describe = MFSDescribe;
 }
 
 

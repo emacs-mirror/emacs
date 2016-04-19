@@ -613,16 +613,16 @@ static Res AMSSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
 
 /* AMSSegClass -- Class definition for AMS segments */
 
-DEFINE_CLASS(Seg, AMSSeg, class)
+DEFINE_CLASS(Seg, AMSSeg, klass)
 {
-  INHERIT_CLASS(class, AMSSeg, GCSeg);
-  class->size = sizeof(AMSSegStruct);
-  class->init = AMSSegInit;
-  class->finish = AMSSegFinish;
-  class->merge = AMSSegMerge;
-  class->split = AMSSegSplit;
-  class->describe = AMSSegDescribe;
-  AVERT(SegClass, class);
+  INHERIT_CLASS(klass, AMSSeg, GCSeg);
+  klass->size = sizeof(AMSSegStruct);
+  klass->init = AMSSegInit;
+  klass->finish = AMSSegFinish;
+  klass->merge = AMSSegMerge;
+  klass->split = AMSSegSplit;
+  klass->describe = AMSSegDescribe;
+  AVERT(SegClass, klass);
 }
 
 
@@ -770,7 +770,7 @@ static void AMSDebugVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
 
 ARG_DEFINE_KEY(AMS_SUPPORT_AMBIGUOUS, Bool);
 
-static Res AMSInit(Pool pool, Arena arena, PoolClass class, ArgList args)
+static Res AMSInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
 {
   Res res;
   Chain chain;
@@ -781,7 +781,7 @@ static Res AMSInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   AVER(pool != NULL);
   AVERT(Arena, arena);
   AVERT(ArgList, args);
-  UNUSED(class); /* used for debug pools only */
+  UNUSED(klass); /* used for debug pools only */
 
   if (ArgPick(&arg, args, MPS_KEY_CHAIN))
     chain = arg.val.chain;
@@ -796,7 +796,7 @@ static Res AMSInit(Pool pool, Arena arena, PoolClass class, ArgList args)
 
   /* .ambiguous.noshare: If the pool is required to support ambiguous */
   /* references, the alloc and white tables cannot be shared. */
-  res = AMSInitInternal(PoolAMS(pool), arena, class,
+  res = AMSInitInternal(PoolAMS(pool), arena, klass,
                         chain, gen, !supportAmbiguous, args);
   if (res == ResOK) {
     EVENT3(PoolInitAMS, pool, PoolArena(pool), pool->format);
@@ -807,7 +807,7 @@ static Res AMSInit(Pool pool, Arena arena, PoolClass class, ArgList args)
 
 /* AMSInitInternal -- initialize an AMS pool, given the format and the chain */
 
-Res AMSInitInternal(AMS ams, Arena arena, PoolClass class,
+Res AMSInitInternal(AMS ams, Arena arena, PoolClass klass,
                     Chain chain, unsigned gen,
                     Bool shareAllocTable, ArgList args)
 {
@@ -818,7 +818,7 @@ Res AMSInitInternal(AMS ams, Arena arena, PoolClass class,
   pool = AMSPool(ams);
 
   AVERT(Arena, arena);
-  res = PoolAbsInit(pool, arena, class, args);
+  res = PoolAbsInit(pool, arena, klass, args);
   if (res != ResOK)
     goto failAbsInit;
   AVER(ams == CouldBeA(AMSPool, pool));
@@ -1753,29 +1753,29 @@ static Res AMSDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 /* <code/poolams.h> contains the type definition.  Hence the use */
 /* of DEFINE_CLASS rather than DEFINE_POOL_CLASS */
 
-DEFINE_CLASS(Pool, AMSPool, this)
+DEFINE_CLASS(Pool, AMSPool, klass)
 {
-  INHERIT_CLASS(this, AMSPool, AbstractCollectPool);
-  PoolClassMixInFormat(this);
-  this->size = sizeof(AMSStruct);
-  this->varargs = AMSVarargs;
-  this->init = AMSInit;
-  this->finish = AMSFinish;
-  this->bufferClass = RankBufClassGet;
-  this->bufferFill = AMSBufferFill;
-  this->bufferEmpty = AMSBufferEmpty;
-  this->whiten = AMSWhiten;
-  this->blacken = AMSBlacken;
-  this->scan = AMSScan;
-  this->fix = AMSFix;
-  this->fixEmergency = AMSFix;
-  this->reclaim = AMSReclaim;
-  this->walk = PoolNoWalk; /* TODO: job003738 */
-  this->freewalk = AMSFreeWalk;
-  this->totalSize = AMSTotalSize;
-  this->freeSize = AMSFreeSize;
-  this->describe = AMSDescribe;
-  AVERT(PoolClass, this);
+  INHERIT_CLASS(klass, AMSPool, AbstractCollectPool);
+  PoolClassMixInFormat(klass);
+  klass->size = sizeof(AMSStruct);
+  klass->varargs = AMSVarargs;
+  klass->init = AMSInit;
+  klass->finish = AMSFinish;
+  klass->bufferClass = RankBufClassGet;
+  klass->bufferFill = AMSBufferFill;
+  klass->bufferEmpty = AMSBufferEmpty;
+  klass->whiten = AMSWhiten;
+  klass->blacken = AMSBlacken;
+  klass->scan = AMSScan;
+  klass->fix = AMSFix;
+  klass->fixEmergency = AMSFix;
+  klass->reclaim = AMSReclaim;
+  klass->walk = PoolNoWalk; /* TODO: job003738 */
+  klass->freewalk = AMSFreeWalk;
+  klass->totalSize = AMSTotalSize;
+  klass->freeSize = AMSFreeSize;
+  klass->describe = AMSDescribe;
+  AVERT(PoolClass, klass);
 }
 
 
@@ -1795,13 +1795,13 @@ static PoolDebugMixin AMSDebugMixin(Pool pool)
 
 /* AMSDebugPoolClass -- the class definition for the debug version */
 
-DEFINE_CLASS(Pool, AMSDebugPool, this)
+DEFINE_CLASS(Pool, AMSDebugPool, klass)
 {
-  INHERIT_CLASS(this, AMSDebugPool, AMSPool);
-  PoolClassMixInDebug(this);
-  this->size = sizeof(AMSDebugStruct);
-  this->varargs = AMSDebugVarargs;
-  this->debugMixin = AMSDebugMixin;
+  INHERIT_CLASS(klass, AMSDebugPool, AMSPool);
+  PoolClassMixInDebug(klass);
+  klass->size = sizeof(AMSDebugStruct);
+  klass->varargs = AMSDebugVarargs;
+  klass->debugMixin = AMSDebugMixin;
 }
 
 

@@ -215,7 +215,7 @@ static void cbsUpdateZonedNode(SplayTree splay, Tree tree)
 
 ARG_DEFINE_KEY(cbs_block_pool, Pool);
 
-static Res cbsInitComm(Land land, LandClass class,
+static Res cbsInitComm(Land land, LandClass klass,
                        Arena arena, Align alignment,
                        ArgList args, SplayUpdateNodeFunction update,
                        Size blockStructSize)
@@ -255,7 +255,7 @@ static Res cbsInitComm(Land land, LandClass class,
 
   METER_INIT(cbs->treeSearch, "size of tree", (void *)cbs);
 
-  SetClassOfPoly(land, class);
+  SetClassOfPoly(land, klass);
   cbs->sig = CBSSig;
   AVERC(CBS, cbs);
 
@@ -1130,34 +1130,34 @@ static Res cbsDescribe(Land land, mps_lib_FILE *stream, Count depth)
   return res;
 }
 
-DEFINE_CLASS(Land, CBS, class)
+DEFINE_CLASS(Land, CBS, klass)
 {
-  INHERIT_CLASS(class, CBS, Land);
-  class->size = sizeof(CBSStruct);
-  class->init = cbsInit;
-  class->finish = cbsFinish;
-  class->sizeMethod = cbsSize;
-  class->insert = cbsInsert;
-  class->delete = cbsDelete;
-  class->iterate = cbsIterate;
-  class->iterateAndDelete = cbsIterateAndDelete;
-  class->findFirst = cbsFindFirst;
-  class->findLast = cbsFindLast;
-  class->findLargest = cbsFindLargest;
-  class->findInZones = cbsFindInZones;
-  class->describe = cbsDescribe;
+  INHERIT_CLASS(klass, CBS, Land);
+  klass->size = sizeof(CBSStruct);
+  klass->init = cbsInit;
+  klass->finish = cbsFinish;
+  klass->sizeMethod = cbsSize;
+  klass->insert = cbsInsert;
+  klass->delete = cbsDelete;
+  klass->iterate = cbsIterate;
+  klass->iterateAndDelete = cbsIterateAndDelete;
+  klass->findFirst = cbsFindFirst;
+  klass->findLast = cbsFindLast;
+  klass->findLargest = cbsFindLargest;
+  klass->findInZones = cbsFindInZones;
+  klass->describe = cbsDescribe;
 }
 
-DEFINE_CLASS(Land, CBSFast, class)
+DEFINE_CLASS(Land, CBSFast, klass)
 {
-  INHERIT_CLASS(class, CBSFast, CBS);
-  class->init = cbsInitFast;
+  INHERIT_CLASS(klass, CBSFast, CBS);
+  klass->init = cbsInitFast;
 }
 
-DEFINE_CLASS(Land, CBSZoned, class)
+DEFINE_CLASS(Land, CBSZoned, klass)
 {
-  INHERIT_CLASS(class, CBSZoned, CBSFast);
-  class->init = cbsInitZoned;
+  INHERIT_CLASS(klass, CBSZoned, CBSFast);
+  klass->init = cbsInitZoned;
 }
 
 

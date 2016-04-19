@@ -1182,21 +1182,21 @@ mps_res_t mps_arena_vm_growth(mps_arena_t mps_arena,
 
 /* VMArenaClass  -- The VM arena class definition */
 
-DEFINE_CLASS(Arena, VMArena, this)
+DEFINE_CLASS(Arena, VMArena, klass)
 {
-  INHERIT_CLASS(this, VMArena, AbstractArena);
-  this->size = sizeof(VMArenaStruct);
-  this->varargs = VMArenaVarargs;
-  this->create = VMArenaCreate;
-  this->destroy = VMArenaDestroy;
-  this->purgeSpare = VMPurgeSpare;
-  this->grow = VMArenaGrow;
-  this->free = VMFree;
-  this->chunkInit = VMChunkInit;
-  this->chunkFinish = VMChunkFinish;
-  this->compact = VMCompact;
-  this->describe = VMArenaDescribe;
-  this->pagesMarkAllocated = VMPagesMarkAllocated;
+  INHERIT_CLASS(klass, VMArena, AbstractArena);
+  klass->size = sizeof(VMArenaStruct);
+  klass->varargs = VMArenaVarargs;
+  klass->create = VMArenaCreate;
+  klass->destroy = VMArenaDestroy;
+  klass->purgeSpare = VMPurgeSpare;
+  klass->grow = VMArenaGrow;
+  klass->free = VMFree;
+  klass->chunkInit = VMChunkInit;
+  klass->chunkFinish = VMChunkFinish;
+  klass->compact = VMCompact;
+  klass->describe = VMArenaDescribe;
+  klass->pagesMarkAllocated = VMPagesMarkAllocated;
 }
 
 

@@ -122,20 +122,20 @@ Bool BufferCheck(Buffer buffer)
 Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream, Count depth)
 {
   Res res;
-  BufferClass class;
+  BufferClass klass;
 
   if (!TESTC(Buffer, buffer))
     return ResPARAM;
   if (stream == NULL)
     return ResPARAM;
 
-  class = ClassOfPoly(Buffer, buffer);
+  klass = ClassOfPoly(Buffer, buffer);
 
   res = WriteF(stream, depth,
                "Buffer $P ($U) {\n",
                (WriteFP)buffer, (WriteFU)buffer->serial,
                "  class $P (\"$S\")\n",
-               (WriteFP)class, (WriteFS)ClassName(class),
+               (WriteFP)klass, (WriteFS)ClassName(klass),
                "  Arena $P\n",       (WriteFP)buffer->arena,
                "  Pool $P\n",        (WriteFP)buffer->pool,
                "  ", buffer->isMutator ? "Mutator" : "Internal", " Buffer\n",
@@ -228,11 +228,11 @@ static Res BufferAbsInit(Buffer buffer, Pool pool, Bool isMutator, ArgList args)
   return ResOK;
 }
 
-static Res BufferInit(Buffer buffer, BufferClass class,
+static Res BufferInit(Buffer buffer, BufferClass klass,
                       Pool pool, Bool isMutator, ArgList args)
 {
-  AVERT(BufferClass, class);
-  return class->init(buffer, pool, isMutator, args);
+  AVERT(BufferClass, klass);
+  return klass->init(buffer, pool, isMutator, args);
 }
 
 
@@ -241,7 +241,7 @@ static Res BufferInit(Buffer buffer, BufferClass class,
  * See <design/buffer/#method.create>.
  */
 
-Res BufferCreate(Buffer *bufferReturn, BufferClass class,
+Res BufferCreate(Buffer *bufferReturn, BufferClass klass,
                  Pool pool, Bool isMutator, ArgList args)
 {
   Res res;
@@ -250,19 +250,19 @@ Res BufferCreate(Buffer *bufferReturn, BufferClass class,
   void *p;
 
   AVER(bufferReturn != NULL);
-  AVERT(BufferClass, class);
+  AVERT(BufferClass, klass);
   AVERT(Pool, pool);
 
   arena = PoolArena(pool);
 
   /* Allocate memory for the buffer descriptor structure. */
-  res = ControlAlloc(&p, arena, class->size);
+  res = ControlAlloc(&p, arena, klass->size);
   if (res != ResOK)
     goto failAlloc;
   buffer = p;
 
   /* Initialize the buffer descriptor structure. */
-  res = BufferInit(buffer, class, pool, isMutator, args);
+  res = BufferInit(buffer, klass, pool, isMutator, args);
   if (res != ResOK)
     goto failInit;
 
@@ -270,7 +270,7 @@ Res BufferCreate(Buffer *bufferReturn, BufferClass class,
   return ResOK;
 
 failInit:
-  ControlFree(arena, buffer, class->size);
+  ControlFree(arena, buffer, klass->size);
 failAlloc:
   return res;
 }
@@ -731,7 +731,7 @@ Bool BufferTrip(Buffer buffer, Addr p, Size size)
 
     b = PoolFormat(&format, buffer->pool);
     if (b) {
-      clientClass = format->class(p);
+      clientClass = format->klass(p);
     } else {
       clientClass = (Addr)0;
     }
@@ -1022,21 +1022,21 @@ static Res bufferTrivDescribe(Buffer buffer, mps_lib_FILE *stream, Count depth)
 
 /* BufferClassCheck -- check the consistency of a BufferClass */
 
-Bool BufferClassCheck(BufferClass class)
+Bool BufferClassCheck(BufferClass klass)
 {
-  CHECKD(InstClass, &class->protocol);
-  CHECKL(class->size >= sizeof(BufferStruct));
-  CHECKL(FUNCHECK(class->varargs));
-  CHECKL(FUNCHECK(class->init));
-  CHECKL(FUNCHECK(class->finish));
-  CHECKL(FUNCHECK(class->attach));
-  CHECKL(FUNCHECK(class->detach));
-  CHECKL(FUNCHECK(class->seg));
-  CHECKL(FUNCHECK(class->rankSet));
-  CHECKL(FUNCHECK(class->setRankSet));
-  CHECKL(FUNCHECK(class->reassignSeg));
-  CHECKL(FUNCHECK(class->describe));
-  CHECKS(BufferClass, class);
+  CHECKD(InstClass, &klass->protocol);
+  CHECKL(klass->size >= sizeof(BufferStruct));
+  CHECKL(FUNCHECK(klass->varargs));
+  CHECKL(FUNCHECK(klass->init));
+  CHECKL(FUNCHECK(klass->finish));
+  CHECKL(FUNCHECK(klass->attach));
+  CHECKL(FUNCHECK(klass->detach));
+  CHECKL(FUNCHECK(klass->seg));
+  CHECKL(FUNCHECK(klass->rankSet));
+  CHECKL(FUNCHECK(klass->setRankSet));
+  CHECKL(FUNCHECK(klass->reassignSeg));
+  CHECKL(FUNCHECK(klass->describe));
+  CHECKS(BufferClass, klass);
   return TRUE;
 }
 
@@ -1045,26 +1045,26 @@ Bool BufferClassCheck(BufferClass class)
  *
  * See <design/buffer/#class.hierarchy.buffer>.  */
 
-DEFINE_CLASS(Inst, BufferClass, class)
+DEFINE_CLASS(Inst, BufferClass, klass)
 {
-  INHERIT_CLASS(class, BufferClass, InstClass);
+  INHERIT_CLASS(klass, BufferClass, InstClass);
 }
 
-DEFINE_CLASS(Buffer, Buffer, class)
+DEFINE_CLASS(Buffer, Buffer, klass)
 {
-  INHERIT_CLASS(&class->protocol, Buffer, Inst);
-  class->size = sizeof(BufferStruct);
-  class->varargs = ArgTrivVarargs;
-  class->init = BufferAbsInit;
-  class->finish = BufferAbsFinish;
-  class->attach = bufferTrivAttach;
-  class->detach = bufferTrivDetach;
-  class->describe = bufferTrivDescribe;
-  class->seg = bufferNoSeg;
-  class->rankSet = bufferTrivRankSet;
-  class->setRankSet = bufferNoSetRankSet;
-  class->reassignSeg = bufferNoReassignSeg;
-  class->sig = BufferClassSig;
+  INHERIT_CLASS(&klass->protocol, Buffer, Inst);
+  klass->size = sizeof(BufferStruct);
+  klass->varargs = ArgTrivVarargs;
+  klass->init = BufferAbsInit;
+  klass->finish = BufferAbsFinish;
+  klass->attach = bufferTrivAttach;
+  klass->detach = bufferTrivDetach;
+  klass->describe = bufferTrivDescribe;
+  klass->seg = bufferNoSeg;
+  klass->rankSet = bufferTrivRankSet;
+  klass->setRankSet = bufferNoSetRankSet;
+  klass->reassignSeg = bufferNoReassignSeg;
+  klass->sig = BufferClassSig;
 }
 
 
@@ -1259,19 +1259,19 @@ static Res segBufDescribe(Buffer buffer, mps_lib_FILE *stream, Count depth)
  * Supports an association with a single segment when attached.  See
  * <design/buffer/#class.hierarchy.segbuf>.  */
 
-DEFINE_CLASS(Buffer, SegBuf, class)
+DEFINE_CLASS(Buffer, SegBuf, klass)
 {
-  INHERIT_CLASS(class, SegBuf, Buffer);
-  class->size = sizeof(SegBufStruct);
-  class->init = segBufInit;
-  class->finish = segBufFinish;
-  class->attach = segBufAttach;
-  class->detach = segBufDetach;
-  class->describe = segBufDescribe;
-  class->seg = segBufSeg;
-  class->rankSet = segBufRankSet;
-  class->setRankSet = segBufSetRankSet;
-  class->reassignSeg = segBufReassignSeg;
+  INHERIT_CLASS(klass, SegBuf, Buffer);
+  klass->size = sizeof(SegBufStruct);
+  klass->init = segBufInit;
+  klass->finish = segBufFinish;
+  klass->attach = segBufAttach;
+  klass->detach = segBufDetach;
+  klass->describe = segBufDescribe;
+  klass->seg = segBufSeg;
+  klass->rankSet = segBufRankSet;
+  klass->setRankSet = segBufSetRankSet;
+  klass->reassignSeg = segBufReassignSeg;
 }
 
 
@@ -1323,11 +1323,11 @@ static Res rankBufInit(Buffer buffer, Pool pool, Bool isMutator, ArgList args)
  *
  * Supports initialization to a rank supplied at creation time.  */
 
-DEFINE_CLASS(Buffer, RankBuf, class)
+DEFINE_CLASS(Buffer, RankBuf, klass)
 {
-  INHERIT_CLASS(class, RankBuf, SegBuf);
-  class->varargs = rankBufVarargs;
-  class->init = rankBufInit;
+  INHERIT_CLASS(klass, RankBuf, SegBuf);
+  klass->varargs = rankBufVarargs;
+  klass->init = rankBufInit;
 }
 
 

@@ -312,7 +312,7 @@ GenDesc ChainGen(Chain chain, Index gen)
  * accounting
  */
 
-Res PoolGenAlloc(Seg *segReturn, PoolGen pgen, SegClass class, Size size,
+Res PoolGenAlloc(Seg *segReturn, PoolGen pgen, SegClass klass, Size size,
                  ArgList args)
 {
   LocusPrefStruct pref;
@@ -324,7 +324,7 @@ Res PoolGenAlloc(Seg *segReturn, PoolGen pgen, SegClass class, Size size,
 
   AVER(segReturn != NULL);
   AVERT(PoolGen, pgen);
-  AVERT(SegClass, class);
+  AVERT(SegClass, klass);
   AVER(size > 0);
   AVERT(ArgList, args);
 
@@ -336,7 +336,7 @@ Res PoolGenAlloc(Seg *segReturn, PoolGen pgen, SegClass class, Size size,
   pref.high = FALSE;
   pref.zones = zones;
   pref.avoid = ZoneSetBlacklist(arena);
-  res = SegAlloc(&seg, class, &pref, size, pgen->pool, args);
+  res = SegAlloc(&seg, klass, &pref, size, pgen->pool, args);
   if (res != ResOK)
     return res;
 

@@ -127,7 +127,7 @@ static PoolDebugOptionsStruct debugPoolOptionsDefault = {
   "POST", 4, "DEAD", 4,
 };
 
-static Res DebugPoolInit(Pool pool, Arena arena, PoolClass class, ArgList args)
+static Res DebugPoolInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
 {
   Res res;
   PoolDebugOptions options = &debugPoolOptionsDefault;
@@ -138,7 +138,7 @@ static Res DebugPoolInit(Pool pool, Arena arena, PoolClass class, ArgList args)
 
   AVER(pool != NULL);
   AVERT(Arena, arena);
-  AVERT(PoolClass, class);
+  AVERT(PoolClass, klass);
   AVERT(ArgList, args);
 
   if (ArgPick(&arg, args, MPS_KEY_POOL_DEBUG_OPTIONS))
@@ -150,11 +150,11 @@ static Res DebugPoolInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   /* not been published yet. */
   tagInit = NULL; tagSize = 0;
 
-  res = SuperclassPoly(Pool, class)->init(pool, arena, class, args);
+  res = SuperclassPoly(Pool, klass)->init(pool, arena, klass, args);
   if (res != ResOK)
     return res;
 
-  SetClassOfPoly(pool, class);
+  SetClassOfPoly(pool, klass);
   debug = DebugPoolDebugMixin(pool);
   AVER(debug != NULL);
 
@@ -206,7 +206,7 @@ static Res DebugPoolInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   return ResOK;
 
 tagFail:
-  SuperclassPoly(Pool, class)->finish(pool);
+  SuperclassPoly(Pool, klass)->finish(pool);
   AVER(res != ResOK);
   return res;
 }
@@ -217,7 +217,7 @@ tagFail:
 static void DebugPoolFinish(Pool pool)
 {
   PoolDebugMixin debug;
-  PoolClass class;
+  PoolClass klass;
 
   AVERT(Pool, pool);
 
@@ -228,8 +228,8 @@ static void DebugPoolFinish(Pool pool)
     SplayTreeFinish(&debug->index);
     PoolDestroy(debug->tagPool);
   }
-  class = ClassOfPoly(Pool, pool);
-  SuperclassPoly(Pool, class)->finish(pool);
+  klass = ClassOfPoly(Pool, pool);
+  SuperclassPoly(Pool, klass)->finish(pool);
 }
 
 
@@ -407,12 +407,12 @@ static Res freeCheckAlloc(Addr *aReturn, PoolDebugMixin debug, Pool pool,
 {
   Res res;
   Addr new;
-  PoolClass class;
+  PoolClass klass;
 
   AVER(aReturn != NULL);
 
-  class = ClassOfPoly(Pool, pool);
-  res = SuperclassPoly(Pool, class)->alloc(&new, pool, size);
+  klass = ClassOfPoly(Pool, pool);
+  res = SuperclassPoly(Pool, klass)->alloc(&new, pool, size);
   if (res != ResOK)
     return res;
   if (debug->freeSize != 0)
@@ -429,11 +429,11 @@ static Res freeCheckAlloc(Addr *aReturn, PoolDebugMixin debug, Pool pool,
 static void freeCheckFree(PoolDebugMixin debug,
                           Pool pool, Addr old, Size size)
 {
-  PoolClass class;
+  PoolClass klass;
   if (debug->freeSize != 0)
     freeSplat(debug, pool, old, AddrAdd(old, size));
-  class = ClassOfPoly(Pool, pool);
-  SuperclassPoly(Pool, class)->free(pool, old, size);
+  klass = ClassOfPoly(Pool, pool);
+  SuperclassPoly(Pool, klass)->free(pool, old, size);
 }
 
 
@@ -772,13 +772,13 @@ void DebugPoolCheckFreeSpace(Pool pool)
 
 /* PoolClassMixInDebug -- mix in the debug support for class init */
 
-void PoolClassMixInDebug(PoolClass class)
+void PoolClassMixInDebug(PoolClass klass)
 {
-  /* Can't check class because it's not initialized yet */
-  class->init = DebugPoolInit;
-  class->finish = DebugPoolFinish;
-  class->alloc = DebugPoolAlloc;
-  class->free = DebugPoolFree;
+  /* Can't check klass because it's not initialized yet */
+  klass->init = DebugPoolInit;
+  klass->finish = DebugPoolFinish;
+  klass->alloc = DebugPoolAlloc;
+  klass->free = DebugPoolFree;
 }
 
 

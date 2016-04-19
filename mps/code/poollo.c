@@ -66,13 +66,13 @@ static Count loSegGrains(LOSeg loseg);
 
 /* LOSegClass -- Class definition for LO segments */
 
-DEFINE_CLASS(Seg, LOSeg, class)
+DEFINE_CLASS(Seg, LOSeg, klass)
 {
-  INHERIT_CLASS(class, LOSeg, GCSeg);
-  SegClassMixInNoSplitMerge(class);
-  class->size = sizeof(LOSegStruct);
-  class->init = loSegInit;
-  class->finish = loSegFinish;
+  INHERIT_CLASS(klass, LOSeg, GCSeg);
+  SegClassMixInNoSplitMerge(klass);
+  klass->size = sizeof(LOSegStruct);
+  klass->init = loSegInit;
+  klass->finish = loSegFinish;
 }
 
 
@@ -441,7 +441,7 @@ static void LOVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
 
 /* LOInit -- initialize an LO pool */
 
-static Res LOInit(Pool pool, Arena arena, PoolClass class, ArgList args)
+static Res LOInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
 {
   LO lo;
   Res res;
@@ -452,9 +452,9 @@ static Res LOInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   AVER(pool != NULL);
   AVERT(Arena, arena);
   AVERT(ArgList, args);
-  UNUSED(class); /* used for debug pools only */
+  UNUSED(klass); /* used for debug pools only */
 
-  res = PoolAbsInit(pool, arena, class, args);
+  res = PoolAbsInit(pool, arena, klass, args);
   if (res != ResOK)
     goto failAbsInit;
   lo = CouldBeA(LOPool, pool);
@@ -760,24 +760,24 @@ static Size LOFreeSize(Pool pool)
 
 /* LOPoolClass -- the class definition */
 
-DEFINE_CLASS(Pool, LOPool, this)
+DEFINE_CLASS(Pool, LOPool, klass)
 {
-  INHERIT_CLASS(this, LOPool, AbstractSegBufPool);
-  PoolClassMixInFormat(this);
-  PoolClassMixInCollect(this);
-  this->size = sizeof(LOStruct);
-  this->varargs = LOVarargs;
-  this->init = LOInit;
-  this->finish = LOFinish;
-  this->bufferFill = LOBufferFill;
-  this->bufferEmpty = LOBufferEmpty;
-  this->whiten = LOWhiten;
-  this->fix = LOFix;
-  this->fixEmergency = LOFix;
-  this->reclaim = LOReclaim;
-  this->walk = LOWalk;
-  this->totalSize = LOTotalSize;
-  this->freeSize = LOFreeSize;
+  INHERIT_CLASS(klass, LOPool, AbstractSegBufPool);
+  PoolClassMixInFormat(klass);
+  PoolClassMixInCollect(klass);
+  klass->size = sizeof(LOStruct);
+  klass->varargs = LOVarargs;
+  klass->init = LOInit;
+  klass->finish = LOFinish;
+  klass->bufferFill = LOBufferFill;
+  klass->bufferEmpty = LOBufferEmpty;
+  klass->whiten = LOWhiten;
+  klass->fix = LOFix;
+  klass->fixEmergency = LOFix;
+  klass->reclaim = LOReclaim;
+  klass->walk = LOWalk;
+  klass->totalSize = LOTotalSize;
+  klass->freeSize = LOFreeSize;
 }
 
 

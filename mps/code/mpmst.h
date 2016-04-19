@@ -201,7 +201,7 @@ typedef struct MessageClassStruct {
 typedef struct mps_message_s {
   Sig sig;                      /* <design/sig/> */
   Arena arena;                  /* owning arena */
-  MessageClass class;           /* Message Class Structure */
+  MessageClass klass;           /* Message Class Structure */
   Clock postedClock;            /* mps_clock() at post time, or 0 */
   RingStruct queueRing;         /* Message queue ring */
 } MessageStruct;
@@ -389,7 +389,7 @@ typedef struct mps_fmt_s {
   mps_fmt_fwd_t move;
   mps_fmt_isfwd_t isMoved;
   mps_fmt_pad_t pad;
-  mps_fmt_class_t class;        /* pointer indicating class */
+  mps_fmt_class_t klass;        /* pointer indicating class */
   Size headerSize;              /* size of header */
 } FormatStruct;
 

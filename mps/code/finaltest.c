@@ -149,13 +149,13 @@ static void test_trees(int mode, const char *name, mps_arena_t arena,
   size_t finals = 0;
   size_t i;
   int object_alloc;
-  PoolClass class = ClassOfPoly(Pool, pool);
+  PoolClass klass = ClassOfPoly(Pool, pool);
 
   object_count = 0;
 
   printf("---- Mode %s, pool class %s, %s trees ----\n",
          mode == ModePARK ? "PARK" : "POLL",
-         ClassName(class), name);
+         ClassName(klass), name);
   mps_arena_park(arena);
 
   /* make some trees */

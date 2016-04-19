@@ -431,18 +431,18 @@ static void ClientArenaFree(Addr base, Size size, Pool pool)
 
 /* ClientArenaClass  -- The Client arena class definition */
 
-DEFINE_CLASS(Arena, ClientArena, this)
+DEFINE_CLASS(Arena, ClientArena, klass)
 {
-  INHERIT_CLASS(this, ClientArena, AbstractArena);
-  this->size = sizeof(ClientArenaStruct);
-  this->varargs = ClientArenaVarargs;
-  this->create = ClientArenaCreate;
-  this->destroy = ClientArenaDestroy;
-  this->extend = ClientArenaExtend;
-  this->pagesMarkAllocated = ClientArenaPagesMarkAllocated;
-  this->free = ClientArenaFree;
-  this->chunkInit = ClientChunkInit;
-  this->chunkFinish = ClientChunkFinish;
+  INHERIT_CLASS(klass, ClientArena, AbstractArena);
+  klass->size = sizeof(ClientArenaStruct);
+  klass->varargs = ClientArenaVarargs;
+  klass->create = ClientArenaCreate;
+  klass->destroy = ClientArenaDestroy;
+  klass->extend = ClientArenaExtend;
+  klass->pagesMarkAllocated = ClientArenaPagesMarkAllocated;
+  klass->free = ClientArenaFree;
+  klass->chunkInit = ClientChunkInit;
+  klass->chunkFinish = ClientChunkFinish;
 }
 
 

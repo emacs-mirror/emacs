@@ -272,13 +272,13 @@ static void AWLSegFinish(Seg seg)
 
 /* AWLSegClass -- Class definition for AWL segments */
 
-DEFINE_CLASS(Seg, AWLSeg, class)
+DEFINE_CLASS(Seg, AWLSeg, klass)
 {
-  INHERIT_CLASS(class, AWLSeg, GCSeg);
-  SegClassMixInNoSplitMerge(class);  /* no support for this (yet) */
-  class->size = sizeof(AWLSegStruct);
-  class->init = AWLSegInit;
-  class->finish = AWLSegFinish;
+  INHERIT_CLASS(klass, AWLSeg, GCSeg);
+  SegClassMixInNoSplitMerge(klass);  /* no support for this (yet) */
+  klass->size = sizeof(AWLSegStruct);
+  klass->init = AWLSegInit;
+  klass->finish = AWLSegFinish;
 }
 
 
@@ -507,7 +507,7 @@ static Addr awlNoDependent(Addr addr)
 
 ARG_DEFINE_KEY(AWL_FIND_DEPENDENT, Fun);
 
-static Res AWLInit(Pool pool, Arena arena, PoolClass class, ArgList args)
+static Res AWLInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
 {
   AWL awl;
   FindDependentFunction findDependent = awlNoDependent;
@@ -519,7 +519,7 @@ static Res AWLInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   AVER(pool != NULL);
   AVERT(Arena, arena);
   AVERT(ArgList, args);
-  UNUSED(class); /* used for debug pools only */
+  UNUSED(klass); /* used for debug pools only */
 
   if (ArgPick(&arg, args, MPS_KEY_AWL_FIND_DEPENDENT))
     findDependent = (FindDependentFunction)arg.val.addr_method;
@@ -532,7 +532,7 @@ static Res AWLInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   if (ArgPick(&arg, args, MPS_KEY_GEN))
     gen = arg.val.u;
 
-  res = PoolAbsInit(pool, arena, class, args);
+  res = PoolAbsInit(pool, arena, klass, args);
   if (res != ResOK)
     goto failAbsInit;
   awl = CouldBeA(AWLPool, pool);
@@ -1193,28 +1193,28 @@ static Size AWLFreeSize(Pool pool)
 
 /* AWLPoolClass -- the class definition */
 
-DEFINE_CLASS(Pool, AWLPool, this)
+DEFINE_CLASS(Pool, AWLPool, klass)
 {
-  INHERIT_CLASS(this, AWLPool, AbstractCollectPool);
-  PoolClassMixInFormat(this);
-  this->size = sizeof(AWLPoolStruct);
-  this->varargs = AWLVarargs;
-  this->init = AWLInit;
-  this->finish = AWLFinish;
-  this->bufferClass = RankBufClassGet;
-  this->bufferFill = AWLBufferFill;
-  this->bufferEmpty = AWLBufferEmpty;
-  this->access = AWLAccess;
-  this->whiten = AWLWhiten;
-  this->grey = AWLGrey;
-  this->blacken = AWLBlacken;
-  this->scan = AWLScan;
-  this->fix = AWLFix;
-  this->fixEmergency = AWLFix;
-  this->reclaim = AWLReclaim;
-  this->walk = AWLWalk;
-  this->totalSize = AWLTotalSize;
-  this->freeSize = AWLFreeSize;
+  INHERIT_CLASS(klass, AWLPool, AbstractCollectPool);
+  PoolClassMixInFormat(klass);
+  klass->size = sizeof(AWLPoolStruct);
+  klass->varargs = AWLVarargs;
+  klass->init = AWLInit;
+  klass->finish = AWLFinish;
+  klass->bufferClass = RankBufClassGet;
+  klass->bufferFill = AWLBufferFill;
+  klass->bufferEmpty = AWLBufferEmpty;
+  klass->access = AWLAccess;
+  klass->whiten = AWLWhiten;
+  klass->grey = AWLGrey;
+  klass->blacken = AWLBlacken;
+  klass->scan = AWLScan;
+  klass->fix = AWLFix;
+  klass->fixEmergency = AWLFix;
+  klass->reclaim = AWLReclaim;
+  klass->walk = AWLWalk;
+  klass->totalSize = AWLTotalSize;
+  klass->freeSize = AWLFreeSize;
 }
 
 

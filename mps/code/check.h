@@ -64,9 +64,9 @@
 #define ASSERT_TYPECHECK(type, val) \
   ASSERT(ASSERT_ISTYPE(type, val), "TypeCheck " #type ": " #val)
 
-#define ASSERT_ISCLASS(class, val) (class ## Check(CouldBeA(class, val)))
-#define ASSERT_CLASSCHECK(class, val) \
-  ASSERT(ASSERT_ISCLASS(class, val), "ClassCheck " #class ": " #val)
+#define ASSERT_ISCLASS(klass, val) (klass ## Check(CouldBeA(klass, val)))
+#define ASSERT_CLASSCHECK(klass, val) \
+  ASSERT(ASSERT_ISCLASS(klass, val), "ClassCheck " #klass ": " #val)
 
 #define ASSERT_NULLCHECK(type, val) \
   ASSERT((val) != NULL, "NullCheck " #type ": " #val)
@@ -140,7 +140,7 @@ extern unsigned CheckLevel;
 
 #define AVER(cond)                  DISCARD(cond)
 #define AVERT(type, val)            DISCARD(ASSERT_ISTYPE(type, val))
-#define AVERC(class, val)           DISCARD(ASSERT_ISCLASS(class, val))
+#define AVERC(klass, val)           DISCARD(ASSERT_ISCLASS(klass, val))
 #define AVERP(cond, dflt)           (DISCARD_EXP(cond), dflt)
 #define AVERPC(cond, condstring, dflt) (DISCARD_EXP(cond), dflt)
 
@@ -166,7 +166,7 @@ extern unsigned CheckLevel;
 
 #define AVER_CRITICAL               DISCARD
 #define AVERT_CRITICAL(type, val)   DISCARD(ASSERT_ISTYPE(type, val))
-#define AVERC_CRITICAL(class, val)  DISCARD(ASSERT_ISCLASS(class, val))
+#define AVERC_CRITICAL(klass, val)  DISCARD(ASSERT_ISCLASS(klass, val))
 #define AVERP_CRITICAL(cond, dflt)  (DISCARD_EXP(cond), dflt)
 #define AVERPC_CRITICAL(cond, condstring, dflt) (DISCARD_EXP(cond), dflt)
 
@@ -207,7 +207,7 @@ extern unsigned CheckLevel;
  * TODO: Does this need to be thread safe like TESTT?
  */
 
-#define TESTC(class, val)       ((val) != NULL && IsA(class, val))
+#define TESTC(klass, val)       ((val) != NULL && IsA(klass, val))
 
 
 /* CHECKS, CHECKC -- Check Signature, Check Class
@@ -217,12 +217,12 @@ extern unsigned CheckLevel;
 
 #if defined(AVER_AND_CHECK_NONE)
 #define CHECKS(type, val)       DISCARD(TESTT(type, val))
-#define CHECKC(class, val)      DISCARD(MustBeA(class, val))
+#define CHECKC(klass, val)      DISCARD(MustBeA(klass, val))
 #else
 #define CHECKS(type, val) \
   ASSERT(TESTT(type, val), "SigCheck " #type ": " #val)
-#define CHECKC(class, val) \
-  ASSERT(TESTC(class, val), "ClassCheck " #class ": " #val)
+#define CHECKC(klass, val) \
+  ASSERT(TESTC(klass, val), "ClassCheck " #klass ": " #val)
 #endif
 
 
@@ -296,10 +296,10 @@ extern unsigned CheckLevel;
                  ASSERT_NULLCHECK(type, val), \
                  ASSERT_TYPECHECK(type, val))
 
-#define CHECKD_CLASS(class, val) \
+#define CHECKD_CLASS(klass, val) \
   CHECK_BY_LEVEL(NOOP, \
-                 CHECKC(class, val) \
-                 ASSERT_CLASSCHECK(class, val))
+                 CHECKC(klass, val) \
+                 ASSERT_CLASSCHECK(klass, val))
 
 #define CHECKU(type, val) \
   CHECK_BY_LEVEL(NOOP, \
@@ -320,7 +320,7 @@ extern unsigned CheckLevel;
 #define CHECKL(cond)             DISCARD(cond)
 #define CHECKD(type, val)        DISCARD(TESTT(type, val))
 #define CHECKD_NOSIG(type, val)  DISCARD((val) != NULL)
-#define CHECKD_CLASS(class, val) DISCARD((val) != NULL)
+#define CHECKD_CLASS(klass, val) DISCARD((val) != NULL)
 #define CHECKU(type, val)        DISCARD(TESTT(type, val))
 #define CHECKU_NOSIG(type, val)  DISCARD((val) != NULL)
 

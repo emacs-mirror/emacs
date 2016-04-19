@@ -331,13 +331,13 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
 
 /* amcSegClass -- Class definition for AMC segments */
 
-DEFINE_CLASS(Seg, amcSeg, class)
+DEFINE_CLASS(Seg, amcSeg, klass)
 {
-  INHERIT_CLASS(class, amcSeg, GCSeg);
-  SegClassMixInNoSplitMerge(class);  /* no support for this (yet) */
-  class->size = sizeof(amcSegStruct);
-  class->init = AMCSegInit;
-  class->describe = AMCSegDescribe;
+  INHERIT_CLASS(klass, amcSeg, GCSeg);
+  SegClassMixInNoSplitMerge(klass);  /* no support for this (yet) */
+  klass->size = sizeof(amcSegStruct);
+  klass->init = AMCSegInit;
+  klass->describe = AMCSegDescribe;
 }
 
 
@@ -522,12 +522,12 @@ static void AMCBufFinish(Buffer buffer)
 
 /* amcBufClass -- The class definition */
 
-DEFINE_CLASS(Buffer, amcBuf, class)
+DEFINE_CLASS(Buffer, amcBuf, klass)
 {
-  INHERIT_CLASS(class, amcBuf, SegBuf);
-  class->size = sizeof(amcBufStruct);
-  class->init = AMCBufInit;
-  class->finish = AMCBufFinish;
+  INHERIT_CLASS(klass, amcBuf, SegBuf);
+  klass->size = sizeof(amcBufStruct);
+  klass->init = AMCBufInit;
+  klass->finish = AMCBufFinish;
 }
 
 
@@ -682,7 +682,7 @@ static void AMCVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
  * See <design/poolamc/#init>.
  * Shared by AMCInit and AMCZinit.
  */
-static Res amcInitComm(Pool pool, Arena arena, PoolClass class,
+static Res amcInitComm(Pool pool, Arena arena, PoolClass klass,
                        RankSet rankSet, ArgList args)
 {
   AMC amc;
@@ -699,8 +699,8 @@ static Res amcInitComm(Pool pool, Arena arena, PoolClass class,
   AVER(pool != NULL);
   AVERT(Arena, arena);
   AVERT(ArgList, args);
-  AVERT(PoolClass, class);
-  AVER(IsSubclass(class, AMCZPool));
+  AVERT(PoolClass, klass);
+  AVER(IsSubclass(klass, AMCZPool));
   
   if (ArgPick(&arg, args, MPS_KEY_CHAIN))
     chain = arg.val.chain;
@@ -723,7 +723,7 @@ static Res amcInitComm(Pool pool, Arena arena, PoolClass class,
    * assertion catches this bad case. */
   AVER(largeSize >= extendBy);
 
-  res = PoolAbsInit(pool, arena, class, args);
+  res = PoolAbsInit(pool, arena, klass, args);
   if (res != ResOK)
     return res;
   amc = CouldBeA(AMCZPool, pool);
@@ -755,7 +755,7 @@ static Res amcInitComm(Pool pool, Arena arena, PoolClass class,
   amc->extendBy = SizeArenaGrains(extendBy, arena);
   amc->largeSize = largeSize;
 
-  SetClassOfPoly(pool, class);
+  SetClassOfPoly(pool, klass);
   amc->sig = AMCSig;
   AVERC(AMCZPool, amc);
 
@@ -810,15 +810,15 @@ failGensAlloc:
    specialize, but amcInitComm creates forwarding buffers that copy
    the rank set from the pool, making this awkward. */
 
-static Res AMCInit(Pool pool, Arena arena, PoolClass class, ArgList args)
+static Res AMCInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
 {
-  UNUSED(class); /* used for debug pools only */
+  UNUSED(klass); /* used for debug pools only */
   return amcInitComm(pool, arena, CLASS(AMCPool), RankSetSingle(RankEXACT), args);
 }
 
-static Res AMCZInit(Pool pool, Arena arena, PoolClass class, ArgList args)
+static Res AMCZInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
 {
-  UNUSED(class); /* used for debug pools only */
+  UNUSED(klass); /* used for debug pools only */
   return amcInitComm(pool, arena, CLASS(AMCZPool), RankSetEMPTY, args);
 }
 
@@ -2011,41 +2011,41 @@ static Res AMCDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 
 /* AMCZPoolClass -- the class definition */
 
-DEFINE_CLASS(Pool, AMCZPool, this)
+DEFINE_CLASS(Pool, AMCZPool, klass)
 {
-  INHERIT_CLASS(this, AMCZPool, AbstractSegBufPool);
-  PoolClassMixInFormat(this);
-  PoolClassMixInCollect(this);
-  this->size = sizeof(AMCStruct);
-  this->attr |= AttrMOVINGGC;
-  this->varargs = AMCVarargs;
-  this->init = AMCZInit;
-  this->finish = AMCFinish;
-  this->bufferFill = AMCBufferFill;
-  this->bufferEmpty = AMCBufferEmpty;
-  this->whiten = AMCWhiten;
-  this->fix = AMCFix;
-  this->fixEmergency = AMCFixEmergency;
-  this->reclaim = AMCReclaim;
-  this->rampBegin = AMCRampBegin;
-  this->rampEnd = AMCRampEnd;
-  this->addrObject = AMCAddrObject;
-  this->walk = AMCWalk;
-  this->bufferClass = amcBufClassGet;
-  this->totalSize = AMCTotalSize;
-  this->freeSize = AMCFreeSize;  
-  this->describe = AMCDescribe;
+  INHERIT_CLASS(klass, AMCZPool, AbstractSegBufPool);
+  PoolClassMixInFormat(klass);
+  PoolClassMixInCollect(klass);
+  klass->size = sizeof(AMCStruct);
+  klass->attr |= AttrMOVINGGC;
+  klass->varargs = AMCVarargs;
+  klass->init = AMCZInit;
+  klass->finish = AMCFinish;
+  klass->bufferFill = AMCBufferFill;
+  klass->bufferEmpty = AMCBufferEmpty;
+  klass->whiten = AMCWhiten;
+  klass->fix = AMCFix;
+  klass->fixEmergency = AMCFixEmergency;
+  klass->reclaim = AMCReclaim;
+  klass->rampBegin = AMCRampBegin;
+  klass->rampEnd = AMCRampEnd;
+  klass->addrObject = AMCAddrObject;
+  klass->walk = AMCWalk;
+  klass->bufferClass = amcBufClassGet;
+  klass->totalSize = AMCTotalSize;
+  klass->freeSize = AMCFreeSize;  
+  klass->describe = AMCDescribe;
 }
 
 
 /* AMCPoolClass -- the class definition */
 
-DEFINE_CLASS(Pool, AMCPool, this)
+DEFINE_CLASS(Pool, AMCPool, klass)
 {
-  INHERIT_CLASS(this, AMCPool, AMCZPool);
-  PoolClassMixInScan(this);
-  this->init = AMCInit;
-  this->scan = AMCScan;
+  INHERIT_CLASS(klass, AMCPool, AMCZPool);
+  PoolClassMixInScan(klass);
+  klass->init = AMCInit;
+  klass->scan = AMCScan;
 }
 
 

@@ -35,41 +35,41 @@ SRCID(pool, "$Id$");
 
 /* PoolClassCheck -- check a pool class */
 
-Bool PoolClassCheck(PoolClass class)
+Bool PoolClassCheck(PoolClass klass)
 {
-  CHECKD(InstClass, &class->protocol);
-  CHECKL(class->size >= sizeof(PoolStruct));
-  CHECKL(AttrCheck(class->attr));
-  CHECKL(!(class->attr & AttrMOVINGGC) || (class->attr & AttrGC));
-  CHECKL(FUNCHECK(class->varargs));
-  CHECKL(FUNCHECK(class->init));
-  CHECKL(FUNCHECK(class->finish));
-  CHECKL(FUNCHECK(class->alloc));
-  CHECKL(FUNCHECK(class->free));
-  CHECKL(FUNCHECK(class->bufferFill));
-  CHECKL(FUNCHECK(class->bufferEmpty));
-  CHECKL(FUNCHECK(class->access));
-  CHECKL(FUNCHECK(class->whiten));
-  CHECKL(FUNCHECK(class->grey));
-  CHECKL(FUNCHECK(class->blacken));
-  CHECKL(FUNCHECK(class->scan));
-  CHECKL(FUNCHECK(class->fix));
-  CHECKL(FUNCHECK(class->fixEmergency));
-  CHECKL(FUNCHECK(class->reclaim));
-  CHECKL(FUNCHECK(class->traceEnd));
-  CHECKL(FUNCHECK(class->rampBegin));
-  CHECKL(FUNCHECK(class->rampEnd));
-  CHECKL(FUNCHECK(class->framePush));
-  CHECKL(FUNCHECK(class->framePop));
-  CHECKL(FUNCHECK(class->addrObject));
-  CHECKL(FUNCHECK(class->walk));
-  CHECKL(FUNCHECK(class->freewalk));
-  CHECKL(FUNCHECK(class->bufferClass));
-  CHECKL(FUNCHECK(class->describe));
-  CHECKL(FUNCHECK(class->debugMixin));
-  CHECKL(FUNCHECK(class->totalSize));
-  CHECKL(FUNCHECK(class->freeSize));
-  CHECKS(PoolClass, class);
+  CHECKD(InstClass, &klass->protocol);
+  CHECKL(klass->size >= sizeof(PoolStruct));
+  CHECKL(AttrCheck(klass->attr));
+  CHECKL(!(klass->attr & AttrMOVINGGC) || (klass->attr & AttrGC));
+  CHECKL(FUNCHECK(klass->varargs));
+  CHECKL(FUNCHECK(klass->init));
+  CHECKL(FUNCHECK(klass->finish));
+  CHECKL(FUNCHECK(klass->alloc));
+  CHECKL(FUNCHECK(klass->free));
+  CHECKL(FUNCHECK(klass->bufferFill));
+  CHECKL(FUNCHECK(klass->bufferEmpty));
+  CHECKL(FUNCHECK(klass->access));
+  CHECKL(FUNCHECK(klass->whiten));
+  CHECKL(FUNCHECK(klass->grey));
+  CHECKL(FUNCHECK(klass->blacken));
+  CHECKL(FUNCHECK(klass->scan));
+  CHECKL(FUNCHECK(klass->fix));
+  CHECKL(FUNCHECK(klass->fixEmergency));
+  CHECKL(FUNCHECK(klass->reclaim));
+  CHECKL(FUNCHECK(klass->traceEnd));
+  CHECKL(FUNCHECK(klass->rampBegin));
+  CHECKL(FUNCHECK(klass->rampEnd));
+  CHECKL(FUNCHECK(klass->framePush));
+  CHECKL(FUNCHECK(klass->framePop));
+  CHECKL(FUNCHECK(klass->addrObject));
+  CHECKL(FUNCHECK(klass->walk));
+  CHECKL(FUNCHECK(klass->freewalk));
+  CHECKL(FUNCHECK(klass->bufferClass));
+  CHECKL(FUNCHECK(klass->describe));
+  CHECKL(FUNCHECK(klass->debugMixin));
+  CHECKL(FUNCHECK(klass->totalSize));
+  CHECKL(FUNCHECK(klass->freeSize));
+  CHECKS(PoolClass, klass);
   return TRUE;
 }
 
@@ -78,14 +78,14 @@ Bool PoolClassCheck(PoolClass class)
 
 Bool PoolCheck(Pool pool)
 {
-  PoolClass class;
+  PoolClass klass;
   /* Checks ordered as per struct decl in <code/mpmst.h#pool> */
   CHECKS(Pool, pool);
   CHECKC(AbstractPool, pool);
   /* Break modularity for checking efficiency */
   CHECKL(pool->serial < ArenaGlobals(pool->arena)->poolSerial);
-  class = ClassOfPoly(Pool, pool);
-  CHECKD(PoolClass, class);
+  klass = ClassOfPoly(Pool, pool);
+  CHECKD(PoolClass, klass);
   CHECKU(Arena, pool->arena);
   CHECKD_NOSIG(Ring, &pool->arenaRing);
   CHECKD_NOSIG(Ring, &pool->bufferRing);
@@ -121,13 +121,13 @@ ARG_DEFINE_KEY(INTERIOR, Bool);
  * init.  See <design/pool/#align>.
  */
 
-Res PoolInit(Pool pool, Arena arena, PoolClass class, ArgList args)
+Res PoolInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
 {
   Res res;
 
-  AVERT(PoolClass, class);
+  AVERT(PoolClass, klass);
 
-  res = class->init(pool, arena, class, args);
+  res = klass->init(pool, arena, klass, args);
   if (res != ResOK)
     return res;
 
@@ -140,7 +140,7 @@ Res PoolInit(Pool pool, Arena arena, PoolClass class, ArgList args)
 /* PoolCreate: Allocate and initialise pool */
 
 Res PoolCreate(Pool *poolReturn, Arena arena,
-               PoolClass class, ArgList args)
+               PoolClass klass, ArgList args)
 {
   Res res;
   Pool pool;
@@ -148,17 +148,17 @@ Res PoolCreate(Pool *poolReturn, Arena arena,
 
   AVER(poolReturn != NULL);
   AVERT(Arena, arena);
-  AVERT(PoolClass, class);
+  AVERT(PoolClass, klass);
 
   /* .space.alloc: Allocate the pool instance structure with the size */
   /* requested  in the pool class.  See .space.free */
-  res = ControlAlloc(&base, arena, class->size);
+  res = ControlAlloc(&base, arena, klass->size);
   if (res != ResOK)
     goto failControlAlloc;
   pool = (Pool)base;
 
   /* Initialize the pool. */ 
-  res = PoolInit(pool, arena, class, args);
+  res = PoolInit(pool, arena, klass, args);
   if (res != ResOK)
     goto failPoolInit;
  
@@ -166,7 +166,7 @@ Res PoolCreate(Pool *poolReturn, Arena arena,
   return ResOK;
 
 failPoolInit:
-  ControlFree(arena, base, class->size);
+  ControlFree(arena, base, klass->size);
 failControlAlloc:
   return res;
 }
@@ -472,19 +472,19 @@ Res PoolDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 {
   Res res;
   Ring node, nextNode;
-  PoolClass class;
+  PoolClass klass;
 
   if (!TESTC(AbstractPool, pool))
     return ResPARAM;
   if (stream == NULL)
     return ResPARAM;
 
-  class = ClassOfPoly(Pool, pool);
+  klass = ClassOfPoly(Pool, pool);
  
   res = WriteF(stream, depth,
                "Pool $P ($U) {\n", (WriteFP)pool, (WriteFU)pool->serial,
                "  class $P (\"$S\")\n",
-               (WriteFP)class, (WriteFS)ClassName(class),
+               (WriteFP)klass, (WriteFS)ClassName(klass),
                "  arena $P ($U)\n",
                (WriteFP)pool->arena, (WriteFU)pool->arena->serial,
                "  alignment $W\n", (WriteFW)pool->alignment,

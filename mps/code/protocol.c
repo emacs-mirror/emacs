@@ -16,59 +16,59 @@ SRCID(protocol, "$Id$");
 
 /* The class definitions for the root of the hierarchy */
 
-static void InstClassInitInternal(InstClass class);
+static void InstClassInitInternal(InstClass klass);
 
-DEFINE_CLASS(Inst, Inst, class)
+DEFINE_CLASS(Inst, Inst, klass)
 {
-  InstClassInitInternal(class);
-  class->instStruct.class = CLASS(InstClass);
+  InstClassInitInternal(klass);
+  klass->instStruct.klass = CLASS(InstClass);
 }
 
-DEFINE_CLASS(Inst, InstClass, class)
+DEFINE_CLASS(Inst, InstClass, klass)
 {
-  /* Can't use INHERIT_CLASS(class, InstClass, Inst) here because it
+  /* Can't use INHERIT_CLASS(klass, InstClass, Inst) here because it
      causes infinite regression, so we have to set this one up by
      hand. */
-  InstClassInitInternal(class);
-  class->superclass = &CLASS_STATIC(Inst);
-  class->name = "InstClass";
-  class->level = ClassLevelInstClass;
-  class->display[ClassLevelInstClass] = CLASS_ID(InstClass);
+  InstClassInitInternal(klass);
+  klass->superclass = &CLASS_STATIC(Inst);
+  klass->name = "InstClass";
+  klass->level = ClassLevelInstClass;
+  klass->display[ClassLevelInstClass] = CLASS_ID(InstClass);
 }
 
-static void InstClassInitInternal(InstClass class)
+static void InstClassInitInternal(InstClass klass)
 {
   ClassLevel i;
 
-  class->name = "Inst";
-  class->superclass = NULL;
+  klass->name = "Inst";
+  klass->superclass = NULL;
   for (i = 0; i < ClassDEPTH; ++i)
-    class->display[i] = NULL;
-  class->level = 0;
-  class->display[class->level] = CLASS_ID(Inst);
+    klass->display[i] = NULL;
+  klass->level = 0;
+  klass->display[klass->level] = CLASS_ID(Inst);
 
   /* We can't call CLASS(InstClass) here because it causes a loop back
      to here, so we have to tie this knot specially. */
-  class->instStruct.class = &CLASS_STATIC(InstClass);
+  klass->instStruct.klass = &CLASS_STATIC(InstClass);
 
-  class->sig = InstClassSig;
-  AVERT(InstClass, class);
+  klass->sig = InstClassSig;
+  AVERT(InstClass, klass);
 }
 
 
 /* InstClassCheck -- check a protocol class */
 
-Bool InstClassCheck(InstClass class)
+Bool InstClassCheck(InstClass klass)
 {
   ClassLevel i;
-  CHECKS(InstClass, class);
-  CHECKL(class->name != NULL);
-  CHECKL(class->level < ClassDEPTH);
-  for (i = 0; i <= class->level; ++i) {
-    CHECKL(class->display[i] != NULL);
+  CHECKS(InstClass, klass);
+  CHECKL(klass->name != NULL);
+  CHECKL(klass->level < ClassDEPTH);
+  for (i = 0; i <= klass->level; ++i) {
+    CHECKL(klass->display[i] != NULL);
   }
-  for (i = class->level + 1; i < ClassDEPTH; ++i) {
-    CHECKL(class->display[i] == NULL);
+  for (i = klass->level + 1; i < ClassDEPTH; ++i) {
+    CHECKL(klass->display[i] == NULL);
   }
   return TRUE;
 }
@@ -84,7 +84,7 @@ Bool InstClassCheck(InstClass class)
 void InstInit(Inst inst)
 {
   AVER(inst != NULL);
-  inst->class = CLASS(Inst);
+  inst->klass = CLASS(Inst);
   AVERC(Inst, inst);
 }
 
@@ -107,7 +107,7 @@ static InstClassStruct invalidClassStruct = {
 void InstFinish(Inst inst)
 {
   AVERC(Inst, inst);
-  inst->class = &invalidClassStruct;
+  inst->klass = &invalidClassStruct;
 }
 
 
@@ -115,35 +115,35 @@ void InstFinish(Inst inst)
 
 Bool InstCheck(Inst inst)
 {
-  CHECKD(InstClass, inst->class);
+  CHECKD(InstClass, inst->klass);
   return TRUE;
 }
 
 
-void ClassRegister(InstClass class)
+void ClassRegister(InstClass klass)
 {
   Word classId;
 
   /* label the pool class with its name */
   EventInit();
-  classId = EventInternString(ClassName(class));
+  classId = EventInternString(ClassName(klass));
   /* NOTE: this breaks <design/type/#addr.use> */
-  EventLabelAddr((Addr)class, classId);
+  EventLabelAddr((Addr)klass, classId);
 }
 
 
 Res InstDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 {
-  InstClass class;
+  InstClass klass;
   
   if (!TESTC(Inst, inst))
     return ResPARAM;
   if (stream == NULL)
     return ResPARAM;
 
-  class = ClassOfPoly(Inst, inst);
+  klass = ClassOfPoly(Inst, inst);
   return WriteF(stream, depth,
-		"$S $P\n", (WriteFS)ClassName(class), inst,
+		"$S $P\n", (WriteFS)ClassName(klass), inst,
 		NULL);
 }
 

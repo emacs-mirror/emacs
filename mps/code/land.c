@@ -57,12 +57,12 @@ static void landLeave(Land land)
 
 Bool LandCheck(Land land)
 {
-  LandClass class;
+  LandClass klass;
   /* .enter-leave.simple */
   CHECKS(Land, land);
   CHECKC(Land, land);
-  class = ClassOfPoly(Land, land);
-  CHECKD(LandClass, class);
+  klass = ClassOfPoly(Land, land);
+  CHECKD(LandClass, klass);
   CHECKU(Arena, land->arena);
   CHECKL(AlignCheck(land->alignment));
   CHECKL(BoolCheck(land->inLand));
@@ -103,15 +103,15 @@ static void LandAbsFinish(Land land)
  * See <design/land/#function.init>
  */
 
-Res LandInit(Land land, LandClass class, Arena arena, Align alignment, void *owner, ArgList args)
+Res LandInit(Land land, LandClass klass, Arena arena, Align alignment, void *owner, ArgList args)
 {
   Res res;
 
   AVER(land != NULL);
-  AVERT(LandClass, class);
+  AVERT(LandClass, klass);
   AVERT(Align, alignment);
 
-  res = class->init(land, arena, alignment, args);
+  res = klass->init(land, arena, alignment, args);
   if (res != ResOK)
     return res;
 
@@ -126,7 +126,7 @@ Res LandInit(Land land, LandClass class, Arena arena, Align alignment, void *own
  * See <design/land/#function.create>
  */
 
-Res LandCreate(Land *landReturn, Arena arena, LandClass class, Align alignment, void *owner, ArgList args)
+Res LandCreate(Land *landReturn, Arena arena, LandClass klass, Align alignment, void *owner, ArgList args)
 {
   Res res;
   Land land;
@@ -134,14 +134,14 @@ Res LandCreate(Land *landReturn, Arena arena, LandClass class, Align alignment, 
 
   AVER(landReturn != NULL);
   AVERT(Arena, arena);
-  AVERT(LandClass, class);
+  AVERT(LandClass, klass);
 
-  res = ControlAlloc(&p, arena, class->size);
+  res = ControlAlloc(&p, arena, klass->size);
   if (res != ResOK)
     goto failAlloc;
   land = p;
 
-  res = LandInit(land, class, arena, alignment, owner, args);
+  res = LandInit(land, klass, arena, alignment, owner, args);
   if (res != ResOK)
     goto failInit;
 
@@ -149,7 +149,7 @@ Res LandCreate(Land *landReturn, Arena arena, LandClass class, Align alignment, 
   return ResOK;
 
 failInit:
-  ControlFree(arena, land, class->size);
+  ControlFree(arena, land, klass->size);
 failAlloc:
   return res;
 }
@@ -438,20 +438,20 @@ Bool LandFlush(Land dest, Land src)
 
 /* LandClassCheck -- check land class */
 
-Bool LandClassCheck(LandClass class)
+Bool LandClassCheck(LandClass klass)
 {
-  CHECKL(InstClassCheck(&class->protocol));
-  CHECKL(class->size >= sizeof(LandStruct));
-  CHECKL(FUNCHECK(class->init));
-  CHECKL(FUNCHECK(class->finish));
-  CHECKL(FUNCHECK(class->insert));
-  CHECKL(FUNCHECK(class->delete));
-  CHECKL(FUNCHECK(class->findFirst));
-  CHECKL(FUNCHECK(class->findLast));
-  CHECKL(FUNCHECK(class->findLargest));
-  CHECKL(FUNCHECK(class->findInZones));
-  CHECKL(FUNCHECK(class->describe));
-  CHECKS(LandClass, class);
+  CHECKL(InstClassCheck(&klass->protocol));
+  CHECKL(klass->size >= sizeof(LandStruct));
+  CHECKL(FUNCHECK(klass->init));
+  CHECKL(FUNCHECK(klass->finish));
+  CHECKL(FUNCHECK(klass->insert));
+  CHECKL(FUNCHECK(klass->delete));
+  CHECKL(FUNCHECK(klass->findFirst));
+  CHECKL(FUNCHECK(klass->findLast));
+  CHECKL(FUNCHECK(klass->findLargest));
+  CHECKL(FUNCHECK(klass->findInZones));
+  CHECKL(FUNCHECK(klass->describe));
+  CHECKS(LandClass, klass);
   return TRUE;
 }
 
@@ -544,7 +544,7 @@ static Res landNoFindInZones(Bool *foundReturn, Range rangeReturn, Range oldRang
 
 static Res LandAbsDescribe(Land land, mps_lib_FILE *stream, Count depth)
 {
-  LandClass class;
+  LandClass klass;
   Res res;
   
   if (!TESTC(Land, land))
@@ -556,38 +556,38 @@ static Res LandAbsDescribe(Land land, mps_lib_FILE *stream, Count depth)
   if (res != ResOK)
     return res;
 
-  class = ClassOfPoly(Land, land);
+  klass = ClassOfPoly(Land, land);
   return WriteF(stream, depth + 2,
                 "class $P (\"$S\")\n",
-                (WriteFP)class, (WriteFS)ClassName(class),
+                (WriteFP)klass, (WriteFS)ClassName(klass),
                 "arena  $P\n", (WriteFP)land->arena,
                 "align  $U\n", (WriteFU)land->alignment,
                 "inLand $S\n", WriteFYesNo(land->inLand),
                 NULL);
 }
 
-DEFINE_CLASS(Inst, LandClass, class)
+DEFINE_CLASS(Inst, LandClass, klass)
 {
-  INHERIT_CLASS(class, LandClass, InstClass);
+  INHERIT_CLASS(klass, LandClass, InstClass);
 }
 
-DEFINE_CLASS(Land, Land, class)
+DEFINE_CLASS(Land, Land, klass)
 {
-  INHERIT_CLASS(&class->protocol, Land, Inst);
-  class->size = sizeof(LandStruct);
-  class->init = LandAbsInit;
-  class->sizeMethod = landNoSize;
-  class->finish = LandAbsFinish;
-  class->insert = landNoInsert;
-  class->delete = landNoDelete;
-  class->iterate = landNoIterate;
-  class->iterateAndDelete = landNoIterateAndDelete;
-  class->findFirst = landNoFind;
-  class->findLast = landNoFind;
-  class->findLargest = landNoFind;
-  class->findInZones = landNoFindInZones;
-  class->describe = LandAbsDescribe;
-  class->sig = LandClassSig;
+  INHERIT_CLASS(&klass->protocol, Land, Inst);
+  klass->size = sizeof(LandStruct);
+  klass->init = LandAbsInit;
+  klass->sizeMethod = landNoSize;
+  klass->finish = LandAbsFinish;
+  klass->insert = landNoInsert;
+  klass->delete = landNoDelete;
+  klass->iterate = landNoIterate;
+  klass->iterateAndDelete = landNoIterateAndDelete;
+  klass->findFirst = landNoFind;
+  klass->findLast = landNoFind;
+  klass->findLargest = landNoFind;
+  klass->findInZones = landNoFindInZones;
+  klass->describe = LandAbsDescribe;
+  klass->sig = LandClassSig;
 }
 
 

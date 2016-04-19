@@ -776,22 +776,22 @@ static Res freelistDescribe(Land land, mps_lib_FILE *stream, Count depth)
 }
 
 
-DEFINE_CLASS(Land, Freelist, class)
+DEFINE_CLASS(Land, Freelist, klass)
 {
-  INHERIT_CLASS(class, Freelist, Land);
-  class->size = sizeof(FreelistStruct);
-  class->init = freelistInit;
-  class->finish = freelistFinish;
-  class->sizeMethod = freelistSize;
-  class->insert = freelistInsert;
-  class->delete = freelistDelete;
-  class->iterate = freelistIterate;
-  class->iterateAndDelete = freelistIterateAndDelete;
-  class->findFirst = freelistFindFirst;
-  class->findLast = freelistFindLast;
-  class->findLargest = freelistFindLargest;
-  class->findInZones = freelistFindInZones;
-  class->describe = freelistDescribe;
+  INHERIT_CLASS(klass, Freelist, Land);
+  klass->size = sizeof(FreelistStruct);
+  klass->init = freelistInit;
+  klass->finish = freelistFinish;
+  klass->sizeMethod = freelistSize;
+  klass->insert = freelistInsert;
+  klass->delete = freelistDelete;
+  klass->iterate = freelistIterate;
+  klass->iterateAndDelete = freelistIterateAndDelete;
+  klass->findFirst = freelistFindFirst;
+  klass->findLast = freelistFindLast;
+  klass->findLargest = freelistFindLargest;
+  klass->findInZones = freelistFindInZones;
+  klass->describe = freelistDescribe;
 }
 
 
