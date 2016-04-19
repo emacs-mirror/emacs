@@ -1031,31 +1031,17 @@ extern LandClass LandClassGet(void);
 
 /* STATISTIC -- gather statistics (in some varieties)
  *
- * The argument of STATISTIC is an expression; the expansion followed by
- * a semicolon is syntactically a statement.
- *
- * The argument of STATISTIC_STAT is a statement; the expansion followed by
- * a semicolon is syntactically a statement.
- *
- * STATISTIC_WRITE is inserted in WriteF arguments to output the values
- * of statistic fields.
- *
- * .statistic.whitehot: The implementation of STATISTIC for
- * non-statistical varieties passes the parameter to DISCARD to ensure
- * the parameter is syntactically an expression.  The parameter is
- * passed as part of a comma-expression so that its type is not
- * important.  This permits an expression of type void.  */
+ * See <design/diag/#stat>.
+ */
 
 #if defined(STATISTICS)
 
-#define STATISTIC(gather) BEGIN (gather); END
-#define STATISTIC_STAT(gather) BEGIN gather; END
+#define STATISTIC(gather) BEGIN gather; END
 #define STATISTIC_WRITE(format, arg) (format), (arg),
 
 #elif defined(STATISTICS_NONE)
 
-#define STATISTIC(gather) DISCARD(((gather), 0))
-#define STATISTIC_STAT DISCARD_STAT
+#define STATISTIC(gather) NOOP
 #define STATISTIC_WRITE(format, arg)
 
 #else /* !defined(STATISTICS) && !defined(STATISTICS_NONE) */

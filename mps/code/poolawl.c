@@ -1170,8 +1170,8 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
   awlseg->freeGrains += reclaimedGrains;
   PoolGenAccountForReclaim(&awl->pgen, AWLGrainsSize(awl, reclaimedGrains), FALSE);
 
-  trace->reclaimSize += AWLGrainsSize(awl, reclaimedGrains);
-  trace->preservedInPlaceCount += preservedInPlaceCount;
+  STATISTIC(trace->reclaimSize += AWLGrainsSize(awl, reclaimedGrains));
+  STATISTIC(trace->preservedInPlaceCount += preservedInPlaceCount);
   trace->preservedInPlaceSize += preservedInPlaceSize;
   SegSetWhite(seg, TraceSetDel(SegWhite(seg), trace));
 

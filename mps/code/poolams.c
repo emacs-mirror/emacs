@@ -1500,7 +1500,7 @@ static Res AMSFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
       if (ss->rank == RankWEAK) { /* then splat the reference */
         *refIO = (Ref)0;
       } else {
-        ++ss->preservedInPlaceCount; /* Size updated on reclaim */
+        STATISTIC(++ss->preservedInPlaceCount); /* Size updated on reclaim */
         if (SegRankSet(seg) == RankSetEMPTY && ss->rank != RankAMBIG) {
           /* <design/poolams/#fix.to-black> */
           Addr clientNext, next;
@@ -1629,7 +1629,7 @@ static void AMSReclaim(Pool pool, Trace trace, Seg seg)
   amsseg->oldGrains -= reclaimedGrains;
   amsseg->freeGrains += reclaimedGrains;
   PoolGenAccountForReclaim(&ams->pgen, AMSGrainsSize(ams, reclaimedGrains), FALSE);
-  trace->reclaimSize += AMSGrainsSize(ams, reclaimedGrains);
+  STATISTIC(trace->reclaimSize += AMSGrainsSize(ams, reclaimedGrains));
   /* preservedInPlaceCount is updated on fix */
   trace->preservedInPlaceSize += AMSGrainsSize(ams, amsseg->oldGrains);
 
