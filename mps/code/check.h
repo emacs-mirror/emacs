@@ -52,12 +52,12 @@
 
 #define ASSERT(cond, condstring) \
   BEGIN \
-    if (cond) NOOP; else \
+    if (LIKELY(cond)) NOOP; else \
       mps_lib_assert_fail(MPS_FILE, __LINE__, (condstring)); \
   END
 
 #define ASSERTP(cond, condstring, dflt) \
-  ((cond) ? (dflt) : \
+  (LIKELY(cond) ? (dflt) : \
    mps_lib_assert_fail_expr(MPS_FILE, __LINE__, condstring, dflt))
 
 #define ASSERT_ISTYPE(type, val) (type ## Check(val))

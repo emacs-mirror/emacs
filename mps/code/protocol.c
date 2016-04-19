@@ -34,7 +34,7 @@ DEFINE_CLASS(Inst, InstClass, class)
   class->superclass = &CLASS_STATIC(Inst);
   class->name = "InstClass";
   class->level = ClassLevelInstClass;
-  class->display[ClassLevelInstClass] = ClassIdInstClass;
+  class->display[ClassLevelInstClass] = CLASS_ID(InstClass);
 }
 
 static void InstClassInitInternal(InstClass class)
@@ -44,9 +44,9 @@ static void InstClassInitInternal(InstClass class)
   class->name = "Inst";
   class->superclass = NULL;
   for (i = 0; i < ClassDEPTH; ++i)
-    class->display[i] = 0;
+    class->display[i] = NULL;
   class->level = 0;
-  class->display[class->level] = ClassIdInst;
+  class->display[class->level] = CLASS_ID(Inst);
 
   /* We can't call CLASS(InstClass) here because it causes a loop back
      to here, so we have to tie this knot specially. */
@@ -66,11 +66,10 @@ Bool InstClassCheck(InstClass class)
   CHECKL(class->name != NULL);
   CHECKL(class->level < ClassDEPTH);
   for (i = 0; i <= class->level; ++i) {
-    CHECKL(class->display[i] != 0);
-    CHECKL(class->display[i] < ClassIdLIMIT);
+    CHECKL(class->display[i] != NULL);
   }
   for (i = class->level + 1; i < ClassDEPTH; ++i) {
-    CHECKL(class->display[i] == 0);
+    CHECKL(class->display[i] == NULL);
   }
   return TRUE;
 }
@@ -102,8 +101,8 @@ static InstClassStruct invalidClassStruct = {
   /* .sig = */        SigInvalid,
   /* .name = */       "Invalid",
   /* .superclass = */ &invalidClassStruct,
-  /* .level = */      ClassIdInvalid,
-  /* .display = */    {ClassIdInvalid}
+  /* .level = */      0,
+  /* .display = */    {(ClassId)&invalidClassStruct}
 };
   
 void InstFinish(Inst inst)

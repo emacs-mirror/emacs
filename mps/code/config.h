@@ -304,6 +304,22 @@
 #endif
 
 
+/* Compiler extensions */
+
+/* LIKELY -- likely conditions
+ *
+ * Use to annotate conditions that are likely to be true, such as
+ * assertions, to help move unlikely code out-of-line.  See
+ * <https://gcc.gnu.org/onlinedocs/gcc/Other-Builtins.html>.
+ */
+
+#if defined(MPS_BUILD_GC) || defined(MPS_BUILD_LL)
+#define LIKELY(exp) __builtin_expect((exp) != 0, 1)
+#else
+#define LIKELY(exp) ((exp) != 0)
+#endif
+
+
 /* EPVMDefaultSubsequentSegSIZE is a default for the alignment of
  * subsequent segments (non-initial at each save level) in EPVM.  See
  * design.mps.poolepvm.arch.segment.size.
