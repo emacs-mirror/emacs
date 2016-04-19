@@ -16,8 +16,9 @@ notifications:
   email:
     - mps-travis@ravenbrook.com
   irc: "irc.freenode.net#memorypoolsystem"
-before_install:
-  - if test "$TRAVIS_OS_NAME" = "linux"; then sudo apt-get -qq update; fi
-  - if test "$TRAVIS_OS_NAME" = "linux"; then sudo apt-get install -y gcc-4.8; fi
+# This shows how you can ask Travis to install or update packages.
+#before_install:
+#  - if test "$TRAVIS_OS_NAME" = "linux"; then sudo apt-get -qq update; fi
+#  - if test "$TRAVIS_OS_NAME" = "linux"; then sudo apt-get install -y gcc-4.7; fi
 script:
   - ./configure --prefix=$PWD/prefix && make install && make test
