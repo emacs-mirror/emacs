@@ -239,8 +239,9 @@ would complain.
 _`.account.free`: Memory that is not in use (free or lost to
 fragmentation).
 
-_`.account.buffered`: Memory in use by the client program, in a
-buffer.
+_`.account.buffered`: Memory in a buffer that was handed out to the
+client program via ``BufferFill()``, and which has not yet been
+condemned.
 
 _`.account.new`: Memory in use by the client program, allocated
 since the last time the generation was condemned.
@@ -277,8 +278,13 @@ _`.accounting.op.empty`: Empty a buffer. Debit *buffered*, credit
 *new* or *newDeferred* with the allocated part of the buffer, credit
 *free* with the unused part of the buffer.
 
-_`.accounting.op.age`: Condemn memory. Debit *buffered* and either
-*new* or *newDeferred*, credit *old* or *oldDeferred*.
+_`.accounting.op.age`: Condemn memory. Debit *buffered* (if part or
+all of a buffer was condemned) and either *new* or *newDeferred*,
+credit *old* or *oldDeferred*. Note that the condemned part of the
+buffer remains part of the buffer until the buffer is emptied, but is
+now accounted as *old* or *oldDeferred*. The uncondemned part of the
+buffer, if any, remains accounted as *buffered* until it is either
+emptied or condemned in its turn.
 
 _`.accounting.op.reclaim`: Reclaim dead memory. Debit *old* or
 *oldDeferred*, credit *free*.
