@@ -1,7 +1,7 @@
 /* testlib.c: TEST LIBRARY
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .purpose: A library of functions that may be of use to unit tests.
@@ -238,8 +238,8 @@ size_t rnd_align(size_t min, size_t max)
   unsigned log2min = sizelog2(min);
   unsigned log2max = sizelog2(max);
   Insist(min <= max);
-  Insist(1uL << log2min == min);
-  Insist(1uL << log2max == max);
+  Insist((size_t)1 << log2min == min);
+  Insist((size_t)1 << log2max == max);
   if (log2min < log2max)
     return min << (rnd() % (log2max - log2min + 1));
   else
@@ -433,7 +433,7 @@ void testlib_init(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

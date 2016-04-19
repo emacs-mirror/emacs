@@ -1,7 +1,7 @@
 /* poolsnc.c: STACK NO CHECKING POOL CLASS
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  * DESIGN
  *
@@ -182,9 +182,7 @@ typedef struct SNCSegStruct {
 #define SegSNCSeg(seg)             ((SNCSeg)(seg))
 #define SNCSegSeg(sncseg)          ((Seg)(sncseg))
 
-#define sncSegNext(seg) \
-  (SNCSegSeg(SegSNCSeg(seg)->next))
-
+#define sncSegNext(seg) RVALUE(SNCSegSeg(SegSNCSeg(seg)->next))
 #define sncSegSetNext(seg, nextseg) \
   ((void)(SegSNCSeg(seg)->next = SegSNCSeg(nextseg)))
 
@@ -252,7 +250,7 @@ static void sncRecordAllocatedSeg(Buffer buffer, Seg seg)
 
 /* sncRecordFreeSeg  - stores a segment on the freelist */
 
-static void sncRecordFreeSeg(SNC snc, Seg seg)
+static void sncRecordFreeSeg(Arena arena, SNC snc, Seg seg)
 {
   AVERT(SNC, snc);
   AVERT(Seg, seg);
@@ -262,6 +260,11 @@ static void sncRecordFreeSeg(SNC snc, Seg seg)
   /* This means it won't be scanned */
   SegSetGrey(seg, TraceSetEMPTY);
   SegSetRankAndSummary(seg, RankSetEMPTY, RefSetEMPTY);
+
+  /* Pad the whole segment so we don't try to walk it. */
+  ShieldExpose(arena, seg);
+  (*SNCPool(snc)->format->pad)(SegBase(seg), SegSize(seg));
+  ShieldCover(arena, seg);
 
   sncSegSetNext(seg, snc->freeSegs);
   snc->freeSegs = seg;
@@ -289,7 +292,7 @@ static void sncPopPartialSegChain(SNC snc, Buffer buf, Seg upTo)
     AVER(free != NULL);
     next = sncSegNext(free);
     sncSegSetNext(free, NULL);
-    sncRecordFreeSeg(snc, free);
+    sncRecordFreeSeg(BufferArena(buf), snc, free);
     free = next;
   }
   /* Make upTo the head of the buffer chain */
@@ -362,6 +365,7 @@ static Res SNCInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   /* Ensure a format was supplied in the argument list. */
   AVER(pool->format != NULL);
 
+  pool->alignment = pool->format->alignment;
   snc->freeSegs = NULL;
 
   SetClassOfPoly(pool, CLASS(SNCPool));
@@ -438,8 +442,6 @@ found:
   AVERT(Seg, seg);
   /* put the segment on the buffer chain */
   sncRecordAllocatedSeg(buffer, seg);
-  /* Permit the use of lightweight frames - .lw-frame-state */
-  BufferFrameSetState(buffer, BufferFrameVALID);
   *baseReturn = SegBase(seg);
   *limitReturn = SegLimit(seg);
   return ResOK;
@@ -461,13 +463,10 @@ static void SNCBufferEmpty(Pool pool, Buffer buffer,
   AVER(SegLimit(seg) == limit);
   snc = PoolSNC(pool);
   AVERT(SNC, snc);
-  AVER(BufferFrameState(buffer) == BufferFrameVALID);
-  /* .lw-frame-state */
-  BufferFrameSetState(buffer, BufferFrameDISABLED);
 
   arena = BufferArena(buffer);
 
-  /* Pad the end unused space at the end of the segment */
+  /* Pad the unused space at the end of the segment */
   size = AddrOffset(init, limit);
   if (size > 0) {
     ShieldExpose(arena, seg);
@@ -493,14 +492,7 @@ static Res SNCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 
   format = pool->format;
   base = SegBase(seg);
-   
-  /* If the segment is buffered, only walk as far as the end */
-  /* of the initialized objects.  */
-  if (SegBuffer(seg) != NULL) {
-    limit = BufferScanLimit(SegBuffer(seg));
-  } else {
-    limit = SegLimit(seg);
-  }
+  limit = SegBufferScanLimit(seg);
  
   if (base < limit) {
     res = FormatScan(format, ss, base, limit);
@@ -520,43 +512,36 @@ static Res SNCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 
 static Res SNCFramePush(AllocFrame *frameReturn, Pool pool, Buffer buf)
 {
-  FrameState state;
   AVER(frameReturn != NULL);
   AVERT(Pool, pool);
   AVERT(Buffer, buf);
 
-  state = BufferFrameState(buf);
-  /* Sould have been notified of pending pops before this */
-  AVER(state == BufferFrameVALID || state == BufferFrameDISABLED);
-  if (state == BufferFrameDISABLED) {
-    AVER(BufferIsReset(buf));  /* The buffer must be reset */
+  if (BufferIsReset(buf)) {
     AVER(sncBufferTopSeg(buf) == NULL);  /* The stack must be empty  */
     /* Use NULL to indicate an empty stack. .lw-frame-null */
     *frameReturn = NULL;
+  } else if (BufferGetInit(buf) < SegLimit(BufferSeg(buf))) {
+    /* Frame pointer is limit of initialized objects in buffer. */
+    *frameReturn = (AllocFrame)BufferGetInit(buf);
   } else {
-    /* Use the scan limit as the lightweight frame pointer */
-    *frameReturn = (AllocFrame)BufferScanLimit(buf);
+    /* Can't use the limit of initialized objects as the frame pointer
+     * because it's not in the segment (see job003882). Instead, refill
+     * the buffer and put the frame pointer at the beginning. */
+    Res res;
+    Addr base, limit;
+    BufferDetach(buf, pool);
+    res = SNCBufferFill(&base, &limit, pool, buf, PoolAlignment(pool));
+    if (res != ResOK)
+      return res;
+    BufferAttach(buf, base, limit, base, 0);
+    AVER(BufferGetInit(buf) < SegLimit(BufferSeg(buf)));    
+    *frameReturn = (AllocFrame)BufferGetInit(buf);
   }
   return ResOK;
 }
 
 
-
 static Res SNCFramePop(Pool pool, Buffer buf, AllocFrame frame)
-{
-  AVERT(Pool, pool);
-  AVERT(Buffer, buf);
-  /* Normally the Pop would be handled as a lightweight pop */
-  /* The only reason that might not happen is if the stack is empty */
-  AVER(sncBufferTopSeg(buf) == NULL);
-  /* The only valid frame must also be NULL - .lw-frame-null  */
-  AVER(frame == NULL);
-  /* Popping an empty frame is a NOOP */
-  return ResOK;
-}
-
-
-static void SNCFramePopPending(Pool pool, Buffer buf, AllocFrame frame)
 {
   Addr addr;
   SNC snc;
@@ -565,8 +550,6 @@ static void SNCFramePopPending(Pool pool, Buffer buf, AllocFrame frame)
   /* frame is an Addr and can't be directly checked */
   snc = PoolSNC(pool);
   AVERT(SNC, snc);
-
-  AVER(BufferFrameState(buf) == BufferFrameVALID);
  
   if (frame == NULL) {
     /* corresponds to a pop to bottom of stack. .lw-frame-null */
@@ -582,6 +565,7 @@ static void SNCFramePopPending(Pool pool, Buffer buf, AllocFrame frame)
     addr = (Addr)frame;
     foundSeg = SegOfAddr(&seg, arena, addr);
     AVER(foundSeg);
+    AVER(SegPool(seg) == pool);
 
     if (SegBuffer(seg) == buf) {
       /* don't need to change the segment - just the alloc pointers */
@@ -592,10 +576,10 @@ static void SNCFramePopPending(Pool pool, Buffer buf, AllocFrame frame)
       BufferDetach(buf, pool);
       sncPopPartialSegChain(snc, buf, seg);
       BufferAttach(buf, SegBase(seg), SegLimit(seg), addr, (Size)0);
-      /* Permit the use of lightweight frames - .lw-frame-state */
-      BufferFrameSetState(buf, BufferFrameVALID);
     }
   }
+
+  return ResOK;
 }
 
 
@@ -619,13 +603,7 @@ static void SNCWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
     snc = PoolSNC(pool);
     AVERT(SNC, snc);
     format = pool->format;
-
-    /* If the segment is buffered, only walk as far as the end */
-    /* of the initialized objects.  Cf. SNCScan. */
-    if (SegBuffer(seg) != NULL)
-      limit = BufferScanLimit(SegBuffer(seg));
-    else
-      limit = SegLimit(seg);
+    limit = SegBufferScanLimit(seg);
 
     while(object < limit) {
       (*f)(object, format, pool, p, s);
@@ -699,7 +677,6 @@ DEFINE_CLASS(Pool, SNCPool, this)
   this->scan = SNCScan;
   this->framePush = SNCFramePush;
   this->framePop = SNCFramePop;
-  this->framePopPending = SNCFramePopPending;
   this->walk = SNCWalk;
   this->bufferClass = SNCBufClassGet;
   this->totalSize = SNCTotalSize;
@@ -731,7 +708,7 @@ static Bool SNCCheck(SNC snc)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

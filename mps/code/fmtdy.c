@@ -628,7 +628,7 @@ static mps_res_t dylan_scan_weak(mps_ss_t mps_ss,
   return MPS_RES_OK;
 }
 
-static mps_addr_t dylan_skip(mps_addr_t object)
+mps_addr_t dylan_skip(mps_addr_t object)
 {
   mps_addr_t *p;        /* cursor in object */
   mps_word_t *w;        /* wrapper cursor */
@@ -744,6 +744,14 @@ void dylan_pad(mps_addr_t addr, size_t size)
     p[0] = 2;
     p[1] = (mps_word_t)((char *)addr + size);
   }
+}
+
+mps_bool_t dylan_ispad(mps_addr_t addr)
+{
+  mps_word_t *p;
+
+  p = (mps_word_t *)addr;
+  return p[0] == 1 || p[0] == 2;
 }
 
 
