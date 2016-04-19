@@ -32,13 +32,13 @@ static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO);
 
 typedef AMC AMCZPool;
 #define AMCZPoolCheck AMCCheck
-DECLARE_CLASS(Pool, AMCZPool);
+DECLARE_CLASS(Pool, AMCZPool, AbstractSegBufPool);
 
 typedef AMC AMCPool;
-DECLARE_CLASS(Pool, AMCPool);
+DECLARE_CLASS(Pool, AMCPool, AMCZPool);
 
-DECLARE_CLASS(Buffer, amcBuf);
-DECLARE_CLASS(Seg, amcSeg);
+DECLARE_CLASS(Buffer, amcBuf, SegBuf);
+DECLARE_CLASS(Seg, amcSeg, GCSeg);
 
 
 /* amcGenStruct -- pool AMC generation descriptor */

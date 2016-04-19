@@ -40,7 +40,7 @@ SRCID(poolmfs, "$Id$");
 
 
 typedef MFS MFSPool;
-DECLARE_CLASS(Pool, MFSPool);
+DECLARE_CLASS(Pool, MFSPool, AbstractPool);
 
 
 /* ROUND -- Round up

@@ -10,6 +10,7 @@
 #define poolams_h
 
 #include "mpmtypes.h"
+#include "mpm.h"
 #include "mpmst.h"
 #include "ring.h"
 #include "bt.h"
@@ -187,12 +188,12 @@ extern Bool AMSSegCheck(AMSSeg seg);
 /* class declarations */
 
 typedef AMS AMSPool;
-DECLARE_CLASS(Pool, AMSPool);
+DECLARE_CLASS(Pool, AMSPool, AbstractCollectPool);
 
 typedef AMS AMSDebugPool;
-DECLARE_CLASS(Pool, AMSDebugPool);
+DECLARE_CLASS(Pool, AMSDebugPool, AMSPool);
 
-DECLARE_CLASS(Seg, AMSSeg);
+DECLARE_CLASS(Seg, AMSSeg, GCSeg);
 
 
 #endif /* poolams_h */

@@ -33,7 +33,8 @@ typedef struct LOStruct {
 
 typedef LO LOPool;
 #define LOPoolCheck LOCheck
-DECLARE_CLASS(Pool, LOPool);
+DECLARE_CLASS(Pool, LOPool, AbstractSegBufPool);
+DECLARE_CLASS(Seg, LOSeg, GCSeg);
 
 
 /* forward declaration */

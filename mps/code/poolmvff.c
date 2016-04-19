@@ -62,7 +62,8 @@ typedef struct MVFFStruct {     /* MVFF pool outer structure */
 
 typedef MVFF MVFFPool;
 #define MVFFPoolCheck MVFFCheck
-DECLARE_CLASS(Pool, MVFFPool);
+DECLARE_CLASS(Pool, MVFFPool, AbstractPool);
+DECLARE_CLASS(Pool, MVFFDebugPool, MVFFPool);
 
 
 #define PoolMVFF(pool)     PARENT(MVFFStruct, poolStruct, pool)
