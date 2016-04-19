@@ -71,6 +71,18 @@
 #define KIND_CLASS(ident) ident ## Class
 
 
+/* ClassId -- static identity of a class
+ *
+ * We use the address of the static storage for the canonical class
+ * object as the class id, suitable for fast comparison.  This is not
+ * intended to be dereferences, so it's defined as a pointer to an
+ * incomplete structure.
+ */
+
+typedef struct ClassIdStruct *ClassId;
+#define CLASS_ID(ident) ((ClassId)&CLASS_STATIC(ident))
+
+
 /* DECLARE_CLASS -- declare the existence of a protocol class
  *
  * Declares a prototype for the class ensure function, which ensures
@@ -80,7 +92,8 @@
 
 #define DECLARE_CLASS(kind, ident) \
   extern CLASS_TYPE(kind) CLASS_ENSURE(ident)(void); \
-  extern void CLASS_INIT(ident)(CLASS_TYPE(kind) var)
+  extern void CLASS_INIT(ident)(CLASS_TYPE(kind) var); \
+  extern CLASS_STRUCT(kind) CLASS_STATIC(ident)
 
 
 /* DEFINE_CLASS -- define a protocol class
@@ -95,7 +108,7 @@
 #define DEFINE_CLASS(kind, ident, var) \
   DECLARE_CLASS(kind, ident); \
   static Bool CLASS_GUARDIAN(ident) = FALSE; \
-  static CLASS_STRUCT(kind) CLASS_STATIC(ident); \
+  CLASS_STRUCT(kind) CLASS_STATIC(ident); \
   CLASS_TYPE(kind) CLASS_ENSURE(ident)(void) \
   { \
     CLASS_TYPE(kind) class = &CLASS_STATIC(ident); \
@@ -104,8 +117,8 @@
       if (CLASS_GUARDIAN(ident) == FALSE) { \
         CLASS_INIT(ident)(class); \
 	/* Prevent infinite regress. */ \
-	if (ClassId ## ident != ClassIdInstClass && \
-	    ClassId ## ident != ClassIdInst) \
+	if (CLASS_ID(ident) != CLASS_ID(InstClass) && \
+	    CLASS_ID(ident) != CLASS_ID(Inst)) \
           SetClassOfPoly(class, CLASS(KIND_CLASS(kind))); \
         AVER(CLASS_CHECK(kind)(class)); \
         CLASS_GUARDIAN(ident) = TRUE; \
@@ -125,21 +138,6 @@
  */
 
 #define CLASS(ident) (CLASS_ENSURE(ident)())
-
-
-/* ClassIdEnum -- unique identifier for each class
- *
- * This defines enum constants like ClassIdLand with a unique small
- * number for each class -- essentially the row number in the class
- * table.  Used to implement design.mps.protocol.impl.subclass.
- */
-
-#define CLASS_ID_ENUM(prefix, ident, kind, super) prefix ## ident,
-typedef enum ClassIdEnum {
-  ClassIdInvalid, /* index zero reserved for invalid classes */
-  CLASSES(CLASS_ID_ENUM, ClassId)
-  ClassIdLIMIT
-} ClassIdEnum;
 
 
 /* ClassLevelEnum -- depth of class in hierarchy
@@ -173,7 +171,7 @@ typedef enum ClassLevelEnum {
     instClass->name = #_class; \
     instClass->level = instClass->superclass->level + 1; \
     AVER(instClass->level < ClassDEPTH); \
-    instClass->display[instClass->level] = ClassId ## _class; \
+    instClass->display[instClass->level] = CLASS_ID(_class); \
   END
 
 
@@ -193,7 +191,6 @@ typedef struct InstStruct {
 } InstStruct;
 
 typedef const char *ClassName;
-typedef unsigned char ClassId;
 typedef unsigned char ClassLevel;
 #define ClassDEPTH 8            /* maximum depth of class hierarchy */
 
@@ -205,7 +202,7 @@ typedef struct InstClassStruct {
   ClassName name;               /* human readable name such as "Land" */
   InstClass superclass;         /* pointer to direct superclass */
   ClassLevel level;             /* distance from root of class hierarchy */
-  ClassId display[ClassDEPTH];  /* ids of classes at this level and above */
+  ClassId display[ClassDEPTH];  /* classes at this level and above */
 } InstClassStruct;
 
 DECLARE_CLASS(Inst, InstClass);
@@ -235,7 +232,7 @@ extern void ClassRegister(InstClass class);
  */
 
 #define IsSubclass(sub, super) \
-  (((InstClass)(sub))->display[ClassLevel ## super] == ClassId ## super)
+  (((InstClass)(sub))->display[ClassLevel ## super] == CLASS_ID(super))
   
 #define IsA(_class, inst) \
   IsSubclass(CouldBeA(Inst, inst)->class, _class)
