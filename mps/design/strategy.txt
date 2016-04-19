@@ -477,22 +477,27 @@ runtime in collections. (This fraction is given by the
 Starting a trace
 ................
 
-``Bool PolicyStartTrace(Trace *traceReturn, Arena arena)``
+``Bool PolicyStartTrace(Trace *traceReturn, Bool *collectWorldReturn, Arena arena, Bool collectWorldAllowed)``
 
 _`.policy.start`: Consider starting a trace. If a trace was started,
 update ``*traceReturn`` to point to the trace and return TRUE.
 Otherwise, leave ``*traceReturn`` unchanged and return FALSE.
 
-_`.policy.start.impl`: This uses the "Lisp Machine" strategy, which
-tries to schedule collections of the world so that the collector just
-keeps pace with the mutator: that is, it starts a collection when the
+_`.policy.start.world`: If ``collectWorldAllowed`` is TRUE, consider
+starting a collection of the whole world, and if such a collection is
+started, set ``*collectWorldReturn`` to TRUE.
+
+This decision uses the "Lisp Machine" strategy, which tries to
+schedule collections of the world so that the collector just keeps
+pace with the mutator: that is, it starts a collection when the
 predicted completion time of the collection is around the time when
 the mutator is predicted to reach the current memory limit. See
 [Pirinen]_.
 
-_`.policy.start.chain`: If it is not yet time to schedule a collection
-of the world, ``PolicyStartTrace()`` considers collecting a set of
-zones corresponding to a set of generations on a chain.
+_`.policy.start.chain`: If ``collectWorldAllowed`` is FALSE, or if it
+is not yet time to schedule a collection of the world,
+``PolicyStartTrace()`` considers collecting a set of zones
+corresponding to a set of generations on a chain.
 
 It picks these generations by calling ``ChainDeferral()`` for each
 chain; this function indicates if the chain needs collecting, and if
