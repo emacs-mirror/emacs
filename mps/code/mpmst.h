@@ -432,17 +432,17 @@ typedef struct ScanStateStruct {
   Rank rank;                    /* reference rank of scanning */
   Bool wasMarked;               /* design.mps.fix.protocol.was-ready */
   RefSet fixedSummary;          /* accumulated summary of fixed references */
-  STATISTIC_DECL(Count fixRefCount); /* refs which pass zone check */
-  STATISTIC_DECL(Count segRefCount); /* refs which refer to segs */
-  STATISTIC_DECL(Count whiteSegRefCount); /* refs which refer to white segs */
-  STATISTIC_DECL(Count nailCount); /* segments nailed by ambig refs */
-  STATISTIC_DECL(Count snapCount); /* refs snapped to forwarded objs */
-  STATISTIC_DECL(Count forwardedCount); /* objects preserved by moving */
+  STATISTIC_DECL(Count fixRefCount) /* refs which pass zone check */
+  STATISTIC_DECL(Count segRefCount) /* refs which refer to segs */
+  STATISTIC_DECL(Count whiteSegRefCount) /* refs which refer to white segs */
+  STATISTIC_DECL(Count nailCount) /* segments nailed by ambig refs */
+  STATISTIC_DECL(Count snapCount) /* refs snapped to forwarded objs */
+  STATISTIC_DECL(Count forwardedCount) /* objects preserved by moving */
   Size forwardedSize;           /* bytes preserved by moving */
-  STATISTIC_DECL(Count preservedInPlaceCount); /* objects preserved in place */
+  STATISTIC_DECL(Count preservedInPlaceCount) /* objects preserved in place */
   Size preservedInPlaceSize;    /* bytes preserved in place */
-  STATISTIC_DECL(Size copiedSize); /* bytes copied */
-  STATISTIC_DECL(Size scannedSize); /* bytes scanned */
+  STATISTIC_DECL(Size copiedSize) /* bytes copied */
+  Size scannedSize;             /* bytes scanned */
 } ScanStateStruct;
 
 
@@ -463,35 +463,35 @@ typedef struct TraceStruct {
   PoolFixMethod fix;            /* fix method to apply to references */
   void *fixClosure;             /* closure information for fix method */
   Chain chain;                  /* chain being incrementally collected */
-  STATISTIC_DECL(Size preTraceArenaReserved); /* ArenaReserved before this trace */
+  STATISTIC_DECL(Size preTraceArenaReserved) /* ArenaReserved before this trace */
   Size condemned;               /* condemned bytes */
   Size notCondemned;            /* collectable but not condemned */
   Size foundation;              /* initial grey set size */
   Work quantumWork;             /* tracing work to be done in each poll */
-  STATISTIC_DECL(Count greySegCount); /* number of grey segs */
-  STATISTIC_DECL(Count greySegMax); /* max number of grey segs */
-  STATISTIC_DECL(Count rootScanCount); /* number of roots scanned */
+  STATISTIC_DECL(Count greySegCount) /* number of grey segs */
+  STATISTIC_DECL(Count greySegMax) /* max number of grey segs */
+  STATISTIC_DECL(Count rootScanCount) /* number of roots scanned */
   Count rootScanSize;           /* total size of scanned roots */
-  Size rootCopiedSize;          /* bytes copied by scanning roots */
-  STATISTIC_DECL(Count segScanCount); /* number of segs scanned */
+  STATISTIC_DECL(Size rootCopiedSize) /* bytes copied by scanning roots */
+  STATISTIC_DECL(Count segScanCount) /* number of segs scanned */
   Count segScanSize;            /* total size of scanned segments */
-  Size segCopiedSize;           /* bytes copied by scanning segments */
-  STATISTIC_DECL(Count singleScanCount); /* number of single refs scanned */
-  STATISTIC_DECL(Count singleScanSize); /* total size of single refs scanned */
-  STATISTIC_DECL(Size singleCopiedSize); /* bytes copied by scanning single refs */
-  STATISTIC_DECL(Count fixRefCount); /* refs which pass zone check */
-  STATISTIC_DECL(Count segRefCount); /* refs which refer to segs */
-  STATISTIC_DECL(Count whiteSegRefCount); /* refs which refer to white segs */
-  STATISTIC_DECL(Count nailCount); /* segments nailed by ambig refs */
-  STATISTIC_DECL(Count snapCount); /* refs snapped to forwarded objs */
-  STATISTIC_DECL(Count readBarrierHitCount); /* read barrier faults */
-  STATISTIC_DECL(Count pointlessScanCount); /* pointless seg scans */
-  STATISTIC_DECL(Count forwardedCount); /* objects preserved by moving */
+  STATISTIC_DECL(Size segCopiedSize) /* bytes copied by scanning segments */
+  STATISTIC_DECL(Count singleScanCount) /* number of single refs scanned */
+  STATISTIC_DECL(Count singleScanSize) /* total size of single refs scanned */
+  STATISTIC_DECL(Size singleCopiedSize) /* bytes copied by scanning single refs */
+  STATISTIC_DECL(Count fixRefCount) /* refs which pass zone check */
+  STATISTIC_DECL(Count segRefCount) /* refs which refer to segs */
+  STATISTIC_DECL(Count whiteSegRefCount) /* refs which refer to white segs */
+  STATISTIC_DECL(Count nailCount) /* segments nailed by ambig refs */
+  STATISTIC_DECL(Count snapCount) /* refs snapped to forwarded objs */
+  STATISTIC_DECL(Count readBarrierHitCount) /* read barrier faults */
+  STATISTIC_DECL(Count pointlessScanCount) /* pointless seg scans */
+  STATISTIC_DECL(Count forwardedCount) /* objects preserved by moving */
   Size forwardedSize;           /* bytes preserved by moving */
-  STATISTIC_DECL(Count preservedInPlaceCount); /* objects preserved in place */
+  STATISTIC_DECL(Count preservedInPlaceCount) /* objects preserved in place */
   Size preservedInPlaceSize;    /* bytes preserved in place */
-  STATISTIC_DECL(Count reclaimCount); /* segments reclaimed */
-  STATISTIC_DECL(Count reclaimSize); /* bytes reclaimed */
+  STATISTIC_DECL(Count reclaimCount) /* segments reclaimed */
+  STATISTIC_DECL(Count reclaimSize) /* bytes reclaimed */
 } TraceStruct;
 
 
@@ -627,13 +627,13 @@ typedef struct LandStruct {
 typedef struct CBSStruct {
   LandStruct landStruct;        /* superclass fields come first */
   SplayTreeStruct splayTreeStruct;
-  STATISTIC_DECL(Count treeSize);
+  STATISTIC_DECL(Count treeSize)
   Pool blockPool;               /* pool that manages blocks */
   Size blockStructSize;         /* size of block structure */
   Bool ownPool;                 /* did we create blockPool? */
   Size size;                    /* total size of ranges in CBS */
   /* meters for sizes of search structures at each op */
-  METER_DECL(treeSearch);
+  METER_DECL(treeSearch)
   Sig sig;                      /* .class.end-sig */
 } CBSStruct;
 
@@ -793,7 +793,7 @@ typedef struct mps_arena_s {
   Clock lastWorldCollect;
 
   RingStruct greyRing[RankLIMIT]; /* ring of grey segments at each rank */
-  STATISTIC_DECL(Count writeBarrierHitCount); /* write barrier hits */
+  STATISTIC_DECL(Count writeBarrierHitCount) /* write barrier hits */
   RingStruct chainRing;         /* ring of chains */
 
   /* location dependency fields (<code/ld.c>) */

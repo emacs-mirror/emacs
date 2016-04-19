@@ -51,13 +51,13 @@ typedef struct PoolGenStruct {
   RingStruct genRing;
 
   /* Accounting of memory in this generation for this pool */  
-  STATISTIC_DECL(Size segs);     /* number of segments */
-  Size totalSize;                /* total (sum of segment sizes) */
-  STATISTIC_DECL(Size freeSize); /* unused (free or lost to fragmentation) */
-  Size newSize;                  /* allocated since last collection */
-  STATISTIC_DECL(Size oldSize);  /* allocated prior to last collection */
-  Size newDeferredSize;          /* new (but deferred) */
-  STATISTIC_DECL(Size oldDeferredSize); /* old (but deferred) */
+  Size segs;              /* number of segments */
+  Size totalSize;         /* total (sum of segment sizes) */
+  Size freeSize;          /* unused (free or lost to fragmentation) */
+  Size newSize;           /* allocated since last collection */
+  Size oldSize;           /* allocated prior to last collection */
+  Size newDeferredSize;   /* new (but deferred) */
+  Size oldDeferredSize;   /* old (but deferred) */
 } PoolGenStruct;
 
 

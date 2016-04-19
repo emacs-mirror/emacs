@@ -106,8 +106,6 @@
 
 #if defined(CONFIG_STATS)
 /* CONFIG_STATS = STATISTICS = METERs */
-/* WARNING: this may change the size and fields of MPS structs */
-/* (...but see STATISTIC_DECL, which is invariant) */
 #define STATISTICS
 #define MPS_STATS_STRING "stats"
 #else
