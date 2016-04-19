@@ -57,17 +57,17 @@
  * is implemented by the canonical "LandClassClass".
  */
 
-#define INST_TYPE(ident) ident
-#define INST_STRUCT(ident) ident ## Struct
-#define INST_CHECK(ident) ident ## Check
-#define CLASS_TYPE(ident) ident ## Class
-#define CLASS_STRUCT(ident) ident ## ClassStruct
-#define CLASS_ENSURE(ident) ident ## ClassGet
-#define CLASS_INIT(ident) ident ## ClassInit
-#define CLASS_CHECK(ident) ident ## ClassCheck
-#define CLASS_GUARDIAN(ident) ClassGuardian ## ident
-#define CLASS_STATIC(ident) ClassStatic ## ident
-#define KIND_CLASS(ident) ident ## Class
+#define INST_TYPE(klass) klass
+#define INST_STRUCT(klass) klass ## Struct
+#define INST_CHECK(klass) klass ## Check
+#define CLASS_TYPE(klass) klass ## Class
+#define CLASS_STRUCT(klass) klass ## ClassStruct
+#define CLASS_ENSURE(klass) klass ## ClassGet
+#define CLASS_INIT(klass) klass ## ClassInit
+#define CLASS_CHECK(klass) klass ## ClassCheck
+#define CLASS_GUARDIAN(klass) ClassGuardian ## klass
+#define CLASS_STATIC(klass) ClassStatic ## klass
+#define KIND_CLASS(klass) klass ## Class
 
 
 /* ClassId -- static identity of a class
@@ -79,7 +79,7 @@
  */
 
 typedef struct ClassIdStruct *ClassId;
-#define CLASS_ID(ident) ((ClassId)&CLASS_STATIC(ident))
+#define CLASS_ID(klass) ((ClassId)&CLASS_STATIC(klass))
 
 
 /* DECLARE_CLASS -- declare the existence of a protocol class
@@ -89,11 +89,11 @@ typedef struct ClassIdStruct *ClassId;
  * design.mps.protocol.if.declare-class.
  */
 
-#define DECLARE_CLASS(kind, ident, super) \
-  extern CLASS_TYPE(kind) CLASS_ENSURE(ident)(void); \
-  extern void CLASS_INIT(ident)(CLASS_TYPE(kind) var); \
-  extern CLASS_STRUCT(kind) CLASS_STATIC(ident); \
-  enum { ClassLevel ## ident = ClassLevel ## super + 1 }
+#define DECLARE_CLASS(kind, klass, super) \
+  extern CLASS_TYPE(kind) CLASS_ENSURE(klass)(void); \
+  extern void CLASS_INIT(klass)(CLASS_TYPE(kind) var); \
+  extern CLASS_STRUCT(kind) CLASS_STATIC(klass); \
+  enum { ClassLevel ## klass = ClassLevel ## super + 1 }
 
 
 /* DEFINE_CLASS -- define a protocol class
@@ -105,29 +105,29 @@ typedef struct ClassIdStruct *ClassId;
  * design.mps.protocol.if.define-class.
  */
 
-#define DEFINE_CLASS(kind, ident, var) \
-  static Bool CLASS_GUARDIAN(ident) = FALSE; \
-  CLASS_STRUCT(kind) CLASS_STATIC(ident); \
-  CLASS_TYPE(kind) CLASS_ENSURE(ident)(void) \
+#define DEFINE_CLASS(kind, className, var) \
+  static Bool CLASS_GUARDIAN(className) = FALSE; \
+  CLASS_STRUCT(kind) CLASS_STATIC(className); \
+  CLASS_TYPE(kind) CLASS_ENSURE(className)(void) \
   { \
-    CLASS_TYPE(kind) class = &CLASS_STATIC(ident); \
-    if (CLASS_GUARDIAN(ident) == FALSE) { \
+    CLASS_TYPE(kind) klass = &CLASS_STATIC(className); \
+    if (CLASS_GUARDIAN(className) == FALSE) { \
       LockClaimGlobalRecursive(); \
-      if (CLASS_GUARDIAN(ident) == FALSE) { \
-        CLASS_INIT(ident)(class); \
+      if (CLASS_GUARDIAN(className) == FALSE) { \
+        CLASS_INIT(className)(klass); \
 	/* Prevent infinite regress. */ \
-	if (CLASS_ID(ident) != CLASS_ID(InstClass) && \
-	    CLASS_ID(ident) != CLASS_ID(Inst)) \
-          SetClassOfPoly(class, CLASS(KIND_CLASS(kind))); \
-        AVER(CLASS_CHECK(kind)(class)); \
-        CLASS_GUARDIAN(ident) = TRUE; \
-	ClassRegister(MustBeA(InstClass, class)); \
+	if (CLASS_ID(className) != CLASS_ID(InstClass) && \
+	    CLASS_ID(className) != CLASS_ID(Inst)) \
+          SetClassOfPoly(klass, CLASS(KIND_CLASS(kind))); \
+        AVER(CLASS_CHECK(kind)(klass)); \
+        CLASS_GUARDIAN(className) = TRUE; \
+	ClassRegister(MustBeA(InstClass, klass)); \
       } \
       LockReleaseGlobalRecursive(); \
     } \
-    return class; \
+    return klass; \
   } \
-  void CLASS_INIT(ident)(CLASS_TYPE(kind) var)
+  void CLASS_INIT(className)(CLASS_TYPE(kind) var)
 
 
 /* CLASS -- expression for getting a class
@@ -136,7 +136,7 @@ typedef struct ClassIdStruct *ClassId;
  * DEFINE_CLASS directly.  See design.mps.protocol.if.class.
  */
 
-#define CLASS(ident) (CLASS_ENSURE(ident)())
+#define CLASS(klass) (CLASS_ENSURE(klass)())
 
 
 /* INHERIT_CLASS -- inheriting from a superclass
@@ -169,7 +169,7 @@ typedef struct InstStruct *Inst;
 typedef struct InstClassStruct *InstClass;
 
 typedef struct InstStruct {
-  InstClass class;
+  InstClass klass;
   /* Do not add permanent fields here.  Introduce a subclass. */
 } InstStruct;
 
@@ -192,7 +192,7 @@ enum {ClassLevelNoSuper = -1};
 DECLARE_CLASS(Inst, Inst, NoSuper);
 DECLARE_CLASS(Inst, InstClass, Inst);
 
-extern Bool InstClassCheck(InstClass class);
+extern Bool InstClassCheck(InstClass klass);
 extern Bool InstCheck(Inst inst);
 extern void InstInit(Inst inst);
 extern void InstFinish(Inst inst);
@@ -205,7 +205,7 @@ extern Res InstDescribe(Inst inst, mps_lib_FILE *stream, Count depth);
  * is not intended for use outside this file.
  */
 
-extern void ClassRegister(InstClass class);
+extern void ClassRegister(InstClass klass);
 
 
 /* IsSubclass, IsA -- fast subclass test
@@ -219,11 +219,11 @@ extern void ClassRegister(InstClass class);
   (((InstClass)(sub))->display[ClassLevel ## super] == CLASS_ID(super))
   
 #define IsA(_class, inst) \
-  IsSubclass(CouldBeA(Inst, inst)->class, _class)
+  IsSubclass(CouldBeA(Inst, inst)->klass, _class)
 
 #define IsNonNullAndA(_class, inst) \
   ((inst) != NULL && \
-   CouldBeA(Inst, inst)->class != NULL && \
+   CouldBeA(Inst, inst)->klass != NULL && \
    IsA(_class, inst))
 
 
@@ -242,7 +242,7 @@ extern void ClassRegister(InstClass class);
  * design.mps.protocol.if.must-be-a.critical.
  */
 
-#define CouldBeA(class, inst) ((INST_TYPE(class))(inst))
+#define CouldBeA(klass, inst) ((INST_TYPE(klass))(inst))
 
 #define MustBeA(_class, inst) \
   CouldBeA(_class, \
@@ -264,11 +264,11 @@ extern void ClassRegister(InstClass class);
  * design.mps.protocol.introspect.
  */
 
-#define SuperclassPoly(kind, class) \
-  MustBeA(KIND_CLASS(kind), MustBeA(InstClass, class)->superclass)
+#define SuperclassPoly(kind, klass) \
+  MustBeA(KIND_CLASS(kind), MustBeA(InstClass, klass)->superclass)
 
 #define ClassOfPoly(kind, inst) \
-  MustBeA(KIND_CLASS(kind), MustBeA(Inst, inst)->class)
+  MustBeA(KIND_CLASS(kind), MustBeA(Inst, inst)->klass)
 
 
 /* ClassName -- get the human readable name of a class
@@ -277,7 +277,7 @@ extern void ClassRegister(InstClass class);
  * we don't use MustBeA.
  */
 
-#define ClassName(class) RVALUE(CouldBeA(InstClass, class)->name)
+#define ClassName(klass) RVALUE(CouldBeA(InstClass, klass)->name)
 
 
 /* SetClassOfPoly -- set the class of an object
@@ -288,7 +288,7 @@ extern void ClassRegister(InstClass class);
  */
 
 #define SetClassOfPoly(inst, _class) \
-  BEGIN MustBeA(Inst, inst)->class = MustBeA(InstClass, _class); END
+  BEGIN MustBeA(Inst, inst)->klass = MustBeA(InstClass, _class); END
 
 
 /* Method -- method call
@@ -313,10 +313,10 @@ extern void ClassRegister(InstClass class);
  * hierarchy are inconsistent.  Revisit this later.
  */
 
-#define SUPERCLASS(kind, ident) \
-  MustBeA(KIND_CLASS(kind), CouldBeA(InstClass, CLASS(ident))->superclass)
+#define SUPERCLASS(kind, klass) \
+  MustBeA(KIND_CLASS(kind), CouldBeA(InstClass, CLASS(klass))->superclass)
 
-#define NextMethod(kind, ident, meth) (SUPERCLASS(kind, ident)->meth)
+#define NextMethod(kind, klass, meth) (SUPERCLASS(kind, klass)->meth)
 
 
 #endif /* protocol_h */

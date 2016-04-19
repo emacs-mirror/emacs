@@ -221,7 +221,7 @@ static void MVDebugVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
 
 /* MVInit -- init method for class MV */
 
-static Res MVInit(Pool pool, Arena arena, PoolClass class, ArgList args)
+static Res MVInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
 {
   Align align = MV_ALIGN_DEFAULT;
   Size extendBy = MV_EXTEND_BY_DEFAULT;
@@ -235,7 +235,7 @@ static Res MVInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   AVERT(Arena, arena);
   AVER(pool != NULL);
   AVERT(ArgList, args);
-  UNUSED(class); /* used for debug pools only */
+  UNUSED(klass); /* used for debug pools only */
 
   if (ArgPick(&arg, args, MPS_KEY_ALIGN))
     align = arg.val.align;
@@ -254,7 +254,7 @@ static Res MVInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   AVER(maxSize > 0);
   AVER(extendBy <= maxSize);
 
-  res = PoolAbsInit(pool, arena, class, args);
+  res = PoolAbsInit(pool, arena, klass, args);
   if (res != ResOK)
     return res;
   mv = CouldBeA(MVPool, pool);
@@ -859,18 +859,18 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 /* Pool class MV */
 
 
-DEFINE_CLASS(Pool, MVPool, this)
+DEFINE_CLASS(Pool, MVPool, klass)
 {
-  INHERIT_CLASS(this, MVPool, AbstractBufferPool);
-  this->size = sizeof(MVStruct);
-  this->varargs = MVVarargs;
-  this->init = MVInit;
-  this->finish = MVFinish;
-  this->alloc = MVAlloc;
-  this->free = MVFree;
-  this->totalSize = MVTotalSize;
-  this->freeSize = MVFreeSize;
-  this->describe = MVDescribe;
+  INHERIT_CLASS(klass, MVPool, AbstractBufferPool);
+  klass->size = sizeof(MVStruct);
+  klass->varargs = MVVarargs;
+  klass->init = MVInit;
+  klass->finish = MVFinish;
+  klass->alloc = MVAlloc;
+  klass->free = MVFree;
+  klass->totalSize = MVTotalSize;
+  klass->freeSize = MVFreeSize;
+  klass->describe = MVDescribe;
 }
 
 
@@ -882,13 +882,13 @@ PoolClass PoolClassMV(void)
 
 /* Pool class MVDebug */
 
-DEFINE_CLASS(Pool, MVDebugPool, this)
+DEFINE_CLASS(Pool, MVDebugPool, klass)
 {
-  INHERIT_CLASS(this, MVDebugPool, MVPool);
-  PoolClassMixInDebug(this);
-  this->size = sizeof(MVDebugStruct);
-  this->varargs = MVDebugVarargs;
-  this->debugMixin = MVDebugMixin;
+  INHERIT_CLASS(klass, MVDebugPool, MVPool);
+  PoolClassMixInDebug(klass);
+  klass->size = sizeof(MVDebugStruct);
+  klass->varargs = MVDebugVarargs;
+  klass->debugMixin = MVDebugMixin;
 }
 
 

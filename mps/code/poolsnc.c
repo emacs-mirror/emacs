@@ -154,12 +154,12 @@ static void SNCBufFinish(Buffer buffer)
 
 /* SNCBufClass -- The class definition */
 
-DEFINE_CLASS(Buffer, SNCBuf, class)
+DEFINE_CLASS(Buffer, SNCBuf, klass)
 {
-  INHERIT_CLASS(class, SNCBuf, RankBuf);
-  class->size = sizeof(SNCBufStruct);
-  class->init = SNCBufInit;
-  class->finish = SNCBufFinish;
+  INHERIT_CLASS(klass, SNCBuf, RankBuf);
+  klass->size = sizeof(SNCBufStruct);
+  klass->init = SNCBufInit;
+  klass->finish = SNCBufFinish;
 }
 
 
@@ -226,12 +226,12 @@ static Res sncSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 
 /* SNCSegClass -- Class definition for SNC segments */
 
-DEFINE_CLASS(Seg, SNCSeg, class)
+DEFINE_CLASS(Seg, SNCSeg, klass)
 {
-  INHERIT_CLASS(class, SNCSeg, GCSeg);
-  SegClassMixInNoSplitMerge(class);  /* no support for this (yet) */
-  class->size = sizeof(SNCSegStruct);
-  class->init = sncSegInit;
+  INHERIT_CLASS(klass, SNCSeg, GCSeg);
+  SegClassMixInNoSplitMerge(klass);  /* no support for this (yet) */
+  klass->size = sizeof(SNCSegStruct);
+  klass->init = sncSegInit;
 }
 
 
@@ -347,7 +347,7 @@ static void SNCVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
 
 /* SNCInit -- initialize an SNC pool */
 
-static Res SNCInit(Pool pool, Arena arena, PoolClass class, ArgList args)
+static Res SNCInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
 {
   SNC snc;
   Res res;
@@ -355,9 +355,9 @@ static Res SNCInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   AVER(pool != NULL);
   AVERT(Arena, arena);
   AVERT(ArgList, args);
-  UNUSED(class); /* used for debug pools only */
+  UNUSED(klass); /* used for debug pools only */
 
-  res = PoolAbsInit(pool, arena, class, args);
+  res = PoolAbsInit(pool, arena, klass, args);
   if (res != ResOK)
     return res;
   snc = CouldBeA(SNCPool, pool);
@@ -664,23 +664,23 @@ static Size SNCFreeSize(Pool pool)
 
 /* SNCPoolClass -- the class definition */
 
-DEFINE_CLASS(Pool, SNCPool, this)
+DEFINE_CLASS(Pool, SNCPool, klass)
 {
-  INHERIT_CLASS(this, SNCPool, AbstractScanPool);
-  PoolClassMixInFormat(this);
-  this->size = sizeof(SNCStruct);
-  this->varargs = SNCVarargs;
-  this->init = SNCInit;
-  this->finish = SNCFinish;
-  this->bufferFill = SNCBufferFill;
-  this->bufferEmpty = SNCBufferEmpty;
-  this->scan = SNCScan;
-  this->framePush = SNCFramePush;
-  this->framePop = SNCFramePop;
-  this->walk = SNCWalk;
-  this->bufferClass = SNCBufClassGet;
-  this->totalSize = SNCTotalSize;
-  this->freeSize = SNCFreeSize;
+  INHERIT_CLASS(klass, SNCPool, AbstractScanPool);
+  PoolClassMixInFormat(klass);
+  klass->size = sizeof(SNCStruct);
+  klass->varargs = SNCVarargs;
+  klass->init = SNCInit;
+  klass->finish = SNCFinish;
+  klass->bufferFill = SNCBufferFill;
+  klass->bufferEmpty = SNCBufferEmpty;
+  klass->scan = SNCScan;
+  klass->framePush = SNCFramePush;
+  klass->framePop = SNCFramePop;
+  klass->walk = SNCWalk;
+  klass->bufferClass = SNCBufClassGet;
+  klass->totalSize = SNCTotalSize;
+  klass->freeSize = SNCFreeSize;
 }
 
 

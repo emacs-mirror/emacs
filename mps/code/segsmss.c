@@ -266,15 +266,15 @@ failSuper:
 
 /* AMSTSegClass -- Class definition for AMST segments */
 
-DEFINE_CLASS(Seg, AMSTSeg, class)
+DEFINE_CLASS(Seg, AMSTSeg, klass)
 {
-  INHERIT_CLASS(class, AMSTSeg, AMSSeg);
-  class->size = sizeof(AMSTSegStruct);
-  class->init = amstSegInit;
-  class->finish = amstSegFinish;
-  class->split = amstSegSplit;
-  class->merge = amstSegMerge;
-  AVERT(SegClass, class);
+  INHERIT_CLASS(klass, AMSTSeg, AMSSeg);
+  klass->size = sizeof(AMSTSegStruct);
+  klass->init = amstSegInit;
+  klass->finish = amstSegFinish;
+  klass->split = amstSegSplit;
+  klass->merge = amstSegMerge;
+  AVERT(SegClass, klass);
 }
 
 
@@ -312,7 +312,7 @@ static Res AMSTSegSizePolicy(Size *sizeReturn,
 
 /* AMSTInit -- the pool class initialization method */
 
-static Res AMSTInit(Pool pool, Arena arena, PoolClass class, ArgList args)
+static Res AMSTInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
 {
   AMST amst; AMS ams;
   Chain chain;
@@ -323,7 +323,7 @@ static Res AMSTInit(Pool pool, Arena arena, PoolClass class, ArgList args)
   AVER(pool != NULL);
   AVERT(Arena, arena);
   AVERT(ArgList, args);
-  UNUSED(class); /* used for debug pools only */
+  UNUSED(klass); /* used for debug pools only */
 
   if (ArgPick(&arg, args, MPS_KEY_CHAIN))
     chain = arg.val.chain;
@@ -335,7 +335,7 @@ static Res AMSTInit(Pool pool, Arena arena, PoolClass class, ArgList args)
     gen = arg.val.u;
 
   /* FIXME: Generalise to next-method call */
-  res = AMSInitInternal(PoolAMS(pool), arena, class,
+  res = AMSInitInternal(PoolAMS(pool), arena, klass,
                         chain, gen, FALSE, args);
   if (res != ResOK)
     return res;
@@ -658,13 +658,13 @@ static void AMSTStressBufferedSeg(Seg seg, Buffer buffer)
 
 /* AMSTPoolClass -- the pool class definition */
 
-DEFINE_CLASS(Pool, AMSTPool, this)
+DEFINE_CLASS(Pool, AMSTPool, klass)
 {
-  INHERIT_CLASS(this, AMSTPool, AMSPool);
-  this->size = sizeof(AMSTStruct);
-  this->init = AMSTInit;
-  this->finish = AMSTFinish;
-  this->bufferFill = AMSTBufferFill;
+  INHERIT_CLASS(klass, AMSTPool, AMSPool);
+  klass->size = sizeof(AMSTStruct);
+  klass->init = AMSTInit;
+  klass->finish = AMSTFinish;
+  klass->bufferFill = AMSTBufferFill;
 }
 
 
