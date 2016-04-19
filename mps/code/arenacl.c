@@ -283,7 +283,7 @@ static Res ClientArenaCreate(Arena *arenaReturn, ArgList args)
     return ResMEMORY;
 
   arena = CouldBeA(AbstractArena, clientArena);
-  /* <code/arena.c#init.caller> */
+
   res = NextMethod(Arena, ClientArena, init)(arena, grainSize, args);
   if (res != ResOK)
     goto failSuperInit;
