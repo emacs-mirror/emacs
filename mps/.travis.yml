@@ -18,3 +18,7 @@ notifications:
   irc: "irc.freenode.net#memorypoolsystem"
 script:
   - ./configure --prefix=$PWD/prefix && make install && make test
+before_install:
+  - if test "$TRAVIS_OS_NAME" = "linux"; then sudo apt-get -qq update; fi
+  # dc is used by testratio to compute performance ratios.
+  - if test "$TRAVIS_OS_NAME" = "linux"; then sudo apt-get install -y dc; fi
