@@ -204,12 +204,13 @@ static void test_trees(int mode, const char *name, mps_arena_t arena,
       if (type == mps_message_type_finalization()) {
         mps_addr_t objaddr;
         mps_message_finalization_ref(&objaddr, arena, message);
-        mps_message_discard(arena, message);
         ++ final_this_time;
       } else if (type == mps_message_type_gc()) {
         ++ collections;
-      } else
+      } else {
         error("Unexpected message type %lu.", (unsigned long)type);
+      }
+      mps_message_discard(arena, message);
     }
     finals += final_this_time;
     printf("%"PRIuLONGEST" objects finalized: total %"PRIuLONGEST
