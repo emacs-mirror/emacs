@@ -915,7 +915,6 @@ Bool MVCheck(MV mv)
   CHECKS(MV, mv);
   CHECKC(MVPool, mv);
   CHECKD(Pool, MVPool(mv));
-  CHECKL(IsA(MVPool, MVPool(mv)));
   CHECKD(MFS, &mv->blockPoolStruct);
   CHECKD(MFS, &mv->spanPoolStruct);
   CHECKL(mv->extendBy > 0);
