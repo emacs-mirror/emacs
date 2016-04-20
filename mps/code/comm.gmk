@@ -328,8 +328,8 @@ TARGET_RATIO_AMC = 110
 TARGET_RATIO_MVFF = 150
 
 define ratio
-TIME_HOT=$$(/usr/bin/time $(PFM)/hot/$(1) -x $(TESTRATIO_SEED) $(2) 2>&1 | tail -1 | awk '{print $$3+$$5}'); \
-TIME_RASH=$$(/usr/bin/time $(PFM)/rash/$(1) -x $(TESTRATIO_SEED) $(2) 2>&1 | tail -1 | awk '{print $$3+$$5}'); \
+TIME_HOT=$$(/usr/bin/time -p $(PFM)/hot/$(1) -x $(TESTRATIO_SEED) $(2) 2>&1 | tail -2 | awk '{T += $$2} END {print T}'); \
+TIME_RASH=$$(/usr/bin/time -p $(PFM)/rash/$(1) -x $(TESTRATIO_SEED) $(2) 2>&1 | tail -2 | awk '{T += $$2} END {print T}'); \
 RATIO=$$(awk "BEGIN{print int(100 * $$TIME_HOT / $$TIME_RASH)}"); \
 printf "Performance ratio (hot/rash) for $(2): %d%%\n" $$RATIO; \
 test $$RATIO -lt $(3)
