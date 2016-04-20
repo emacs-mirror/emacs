@@ -325,12 +325,12 @@ $(addprefix $(PFM)/$(VARIETY)/,$(TEST_SUITES)): $(TEST_TARGETS)
 
 TESTRATIO_SEED = 1564912146
 TARGET_RATIO_AMC = 110
-TARGET_RATIO_MVFF = 140
+TARGET_RATIO_MVFF = 150
 
 define ratio
-TIME_HOT=$$($(PFM)/hot/$(1) -x $(TESTRATIO_SEED) $(2)); \
-TIME_RASH=$$($(PFM)/rash/$(1) -x $(TESTRATIO_SEED) $(2)); \
-RATIO=$$(echo "100 $${TIME_HOT#*:} * $${TIME_RASH#*:} / p" | dc); \
+TIME_HOT=$$(/usr/bin/time $(PFM)/hot/$(1) -x $(TESTRATIO_SEED) $(2) 2>&1 | tail -1 | awk '{print $$3+$$5}'); \
+TIME_RASH=$$(/usr/bin/time $(PFM)/rash/$(1) -x $(TESTRATIO_SEED) $(2) 2>&1 | tail -1 | awk '{print $$3+$$5}'); \
+RATIO=$$(awk "BEGIN{print int(100 * $$TIME_HOT / $$TIME_RASH)}"); \
 printf "Performance ratio (hot/rash) for $(2): %d%%\n" $$RATIO; \
 test $$RATIO -lt $(3)
 endef
