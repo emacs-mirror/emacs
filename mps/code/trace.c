@@ -1822,12 +1822,17 @@ failCondemn:
 /* TracePoll -- Check if there's any tracing work to be done
  *
  * Consider starting a trace if none is running; advance the running
- * trace (if any) by one quantum. If there may be more work to do,
- * update *workReturn with a measure of the work done and return TRUE.
- * Otherwise return FALSE.
+ * trace (if any) by one quantum.
+ *
+ * The collectWorldReturn and collectWorldAllowed arguments are as for
+ * PolicyStartTrace.
+ *
+ * If there may be more work to do, update *workReturn with a measure
+ * of the work done and return TRUE. Otherwise return FALSE.
  */
 
-Bool TracePoll(Work *workReturn, Globals globals)
+Bool TracePoll(Work *workReturn, Bool *collectWorldReturn, Globals globals,
+               Bool collectWorldAllowed)
 {
   Trace trace;
   Arena arena;
@@ -1840,7 +1845,8 @@ Bool TracePoll(Work *workReturn, Globals globals)
     trace = ArenaTrace(arena, (TraceId)0);
   } else {
     /* No traces are running: consider starting one now. */
-    if (!PolicyStartTrace(&trace, arena))
+    if (!PolicyStartTrace(&trace, collectWorldReturn, arena,
+                          collectWorldAllowed))
       return FALSE;
   }
 
