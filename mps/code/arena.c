@@ -1,7 +1,7 @@
 /* arena.c: ARENA ALLOCATION FEATURES
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  * .sources: <design/arena/> is the main design document.  */
 
@@ -150,11 +150,13 @@ Bool ArenaCheck(Arena arena)
   CHECKL(arena->spareCommitted <= arena->committed);
   CHECKL(0.0 <= arena->pauseTime);
 
-  CHECKL(ShiftCheck(arena->zoneShift));
+  CHECKL(arena->zoneShift == ZoneShiftUNSET
+         || ShiftCheck(arena->zoneShift));
   CHECKL(ArenaGrainSizeCheck(arena->grainSize));
 
   /* Stripes can't be smaller than grains. */
-  CHECKL(((Size)1 << arena->zoneShift) >= arena->grainSize);
+  CHECKL(arena->zoneShift == ZoneShiftUNSET
+         || ((Size)1 << arena->zoneShift) >= arena->grainSize);
 
   if (arena->lastTract == NULL) {
     CHECKL(arena->lastTractBase == (Addr)0);
@@ -224,8 +226,8 @@ Res ArenaInit(Arena arena, ArenaClass class, Size grainSize, ArgList args)
   arena->spareCommitLimit = spareCommitLimit;
   arena->pauseTime = pauseTime;
   arena->grainSize = grainSize;
-  /* zoneShift is usually overridden by init */
-  arena->zoneShift = ARENA_ZONESHIFT;
+  /* zoneShift must be overridden by arena class init */
+  arena->zoneShift = ZoneShiftUNSET;
   arena->poolReady = FALSE;     /* <design/arena/#pool.ready> */
   arena->lastTract = NULL;
   arena->lastTractBase = NULL;
@@ -348,6 +350,9 @@ Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args)
   res = (*class->init)(&arena, class, args);
   if (res != ResOK)
     goto failInit;
+
+  /* Zone shift must have been set up by *class->init() */
+  AVER(ShiftCheck(arena->zoneShift));
 
   /* Grain size must have been set up by *class->init() */
   if (ArenaGrainSize(arena) > ((Size)1 << arena->zoneShift)) {
@@ -1389,7 +1394,7 @@ Res ArenaAddrObject(Addr *pReturn, Arena arena, Addr addr)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
