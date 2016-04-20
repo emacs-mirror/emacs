@@ -494,6 +494,16 @@ predicted completion time of the collection is around the time when
 the mutator is predicted to reach the current memory limit. See
 [Pirinen]_.
 
+_`.policy.start.world.hack`: The ``collectWorldAllowed`` flag was
+added to fix job004011_ by ensuring that the MPS starts at most one
+collection of the world in each call to ``ArenaPoll()``. But this is
+is fragile and inelegant. Ideally the MPS would be able to deduce that
+a collection of a set of generations can't possibly make progress
+(because nothing that refers to this set of generations has changed),
+and so not start such a collection.
+
+.. _job004011: http://www.ravenbrook.com/project/mps/issue/job004011/
+
 _`.policy.start.chain`: If ``collectWorldAllowed`` is FALSE, or if it
 is not yet time to schedule a collection of the world,
 ``PolicyStartTrace()`` considers collecting a set of zones
