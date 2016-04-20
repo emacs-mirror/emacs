@@ -142,6 +142,29 @@
 #define MPS_PF_ALIGN    4       /* I'm just guessing. */
 
 
+/* gcc-mp-4.7 (MacPorts gcc47 4.7.4_5) 4.7.4
+ * gcc -E -dM
+ * Note that Clang also defines __GNUC__ since it's generally GCC compatible,
+ * but that doesn't fit our system so we exclude Clang here.
+ */
+
+#elif defined(__APPLE__) && defined(__x86_64__) && defined(__MACH__) \
+      && defined(__GNUC__) && !defined(__clang__)
+#if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_XCI6GC)
+#error "specified CONFIG_PF_... inconsistent with detected xci6gc"
+#endif
+#define MPS_PF_XCI6GC
+#define MPS_PF_STRING   "xci6gc"
+#define MPS_OS_XC
+#define MPS_ARCH_I6
+#define MPS_BUILD_GC
+#define MPS_T_WORD      unsigned long
+#define MPS_T_ULONGEST  unsigned long
+#define MPS_WORD_WIDTH  64
+#define MPS_WORD_SHIFT  6
+#define MPS_PF_ALIGN    8
+
+
 /* Apple clang version 3.1, clang -E -dM */
 
 #elif defined(__APPLE__) && defined(__i386__) && defined(__MACH__) \

@@ -1828,7 +1828,7 @@ Bool AMSCheck(AMS ams)
   CHECKS(AMS, ams);
   CHECKC(AMSPool, ams);
   CHECKD(Pool, AMSPool(ams));
-  CHECKL(IsA(AMSPool, AMSPool(ams)));
+  CHECKL(IsA(AMSPool, ams));
   CHECKL(PoolAlignment(AMSPool(ams)) == AMSGrainsSize(ams, (Size)1));
   CHECKL(PoolAlignment(AMSPool(ams)) == AMSPool(ams)->format->alignment);
   if (ams->pgen != NULL) {

@@ -125,7 +125,7 @@ static Bool cbsTestNode(SplayTree splay, Tree tree, void *closure)
   AVERT(Tree, tree);
   AVER(sizeP != NULL);
   AVER(*sizeP > 0);
-  AVER(IsA(CBSFast, CBSLand(cbsOfSplay(splay))));
+  AVER(IsA(CBSFast, cbsOfSplay(splay)));
 
   block = cbsBlockOfTree(tree);
 
@@ -142,7 +142,7 @@ static Bool cbsTestTree(SplayTree splay, Tree tree,
   AVERT(Tree, tree);
   AVER(sizeP != NULL);
   AVER(*sizeP > 0);
-  AVER(IsA(CBSFast, CBSLand(cbsOfSplay(splay))));
+  AVER(IsA(CBSFast, cbsOfSplay(splay)));
 
   block = cbsFastBlockOfTree(tree);
 
@@ -158,7 +158,7 @@ static void cbsUpdateFastNode(SplayTree splay, Tree tree)
 
   AVERT_CRITICAL(SplayTree, splay);
   AVERT_CRITICAL(Tree, tree);
-  AVER_CRITICAL(IsA(CBSFast, CBSLand(cbsOfSplay(splay))));
+  AVER_CRITICAL(IsA(CBSFast, cbsOfSplay(splay)));
 
   maxSize = CBSBlockSize(cbsBlockOfTree(tree));
 
@@ -189,7 +189,7 @@ static void cbsUpdateZonedNode(SplayTree splay, Tree tree)
 
   AVERT_CRITICAL(SplayTree, splay);
   AVERT_CRITICAL(Tree, tree);
-  AVER_CRITICAL(IsA(CBSZoned, CBSLand(cbsOfSplay(splay))));
+  AVER_CRITICAL(IsA(CBSZoned, cbsOfSplay(splay)));
 
   cbsUpdateFastNode(splay, tree);
 

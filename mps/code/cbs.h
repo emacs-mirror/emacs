@@ -38,7 +38,18 @@ typedef struct CBSZonedBlockStruct {
 typedef struct CBSStruct *CBS, *CBSFast, *CBSZoned;
 
 extern Bool CBSCheck(CBS cbs);
+
+
+/* CBSLand -- convert CBS to Land
+ *
+ * We would like to use MustBeA(Land, cbs) for this, but it produces
+ * bogus warnings about strict aliasing from GCC 4.7 (and probably
+ * 4.8).  We can abolish this macro when those are no longer in use in
+ * MPS development.
+ */
+
 #define CBSLand(cbs) (&(cbs)->landStruct)
+
 
 DECLARE_CLASS(Land, CBS, Land);
 DECLARE_CLASS(Land, CBSFast, CBS);

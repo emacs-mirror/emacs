@@ -68,8 +68,8 @@ DECLARE_CLASS(Pool, MVFFDebugPool, MVFFPool);
 
 #define PoolMVFF(pool)     PARENT(MVFFStruct, poolStruct, pool)
 #define MVFFPool(mvff)     (&(mvff)->poolStruct)
-#define MVFFTotalLand(mvff)  CBSLand(&(mvff)->totalCBSStruct)
-#define MVFFFreePrimary(mvff)   CBSLand(&(mvff)->freeCBSStruct)
+#define MVFFTotalLand(mvff)  (&(mvff)->totalCBSStruct.landStruct)
+#define MVFFFreePrimary(mvff)   (&(mvff)->freeCBSStruct.landStruct)
 #define MVFFFreeSecondary(mvff)  FreelistLand(&(mvff)->flStruct)
 #define MVFFFreeLand(mvff)  FailoverLand(&(mvff)->foStruct)
 #define MVFFLocusPref(mvff) (&(mvff)->locusPrefStruct)
@@ -779,7 +779,6 @@ static Bool MVFFCheck(MVFF mvff)
   CHECKS(MVFF, mvff);
   CHECKC(MVFFPool, mvff);
   CHECKD(Pool, MVFFPool(mvff));
-  CHECKL(IsA(MVFFPool, MVFFPool(mvff)));
   CHECKD(LocusPref, MVFFLocusPref(mvff));
   CHECKL(mvff->extendBy >= ArenaGrainSize(PoolArena(MVFFPool(mvff))));
   CHECKL(mvff->avgSize > 0);                    /* see .arg.check */
