@@ -1,7 +1,7 @@
 /* mpmtypes.h: MEMORY POOL MANAGER TYPES
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (c) 2001 Global Graphics Software.
  *
  * .design: <design/type/>
@@ -288,6 +288,7 @@ typedef Res (*LandDescribeMethod)(Land land, mps_lib_FILE *stream, Count depth);
 #define RefSetUNIV      BS_UNIV(RefSet)
 #define ZoneSetEMPTY    BS_EMPTY(ZoneSet)
 #define ZoneSetUNIV     BS_UNIV(ZoneSet)
+#define ZoneShiftUNSET  ((Shift)-1)  
 #define TraceSetEMPTY   BS_EMPTY(TraceSet)
 #define TraceSetUNIV    ((TraceSet)((1u << TraceLIMIT) - 1))
 #define RankSetEMPTY    BS_EMPTY(RankSet)
@@ -446,7 +447,7 @@ typedef double WriteFD;
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
