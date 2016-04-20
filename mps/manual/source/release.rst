@@ -25,6 +25,11 @@ Other changes
 
    .. _job003883: https://www.ravenbrook.com/project/mps/issue/job003883/
 
+#. The MPS no longer considers collecting the world again, without
+   allowing the :term:`client program` to run first. See job004011_.
+
+   .. _job004011: https://www.ravenbrook.com/project/mps/issue/job004011/
+
 
 .. _release-notes-1.115:
 
