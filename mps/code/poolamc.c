@@ -70,9 +70,13 @@ enum {
 
 /* amcSegStruct -- AMC-specific fields appended to GCSegStruct
  *
- * .seg.old: The "old" flag is FALSE if the segment has never been
- * collected, and so its size is accounted against the pool
- * generation's newSize; it is TRUE if the segment has been collected
+ * .seg.accounted-as-buffered: The "accountedAsBuffered" flag is TRUE
+ * if the segment has an atached buffer and is accounted against the
+ * pool generation's bufferedSize. But note that if this is FALSE, the
+ * segment might still have an attached buffer -- this happens if the
+ * segment was condemned while the buffer was attached.
+ *
+ * .seg.old: The "old" flag is TRUE if the segment has been collected
  * at least once, and so its size is accounted against the pool
  * generation's oldSize.
  *
@@ -93,6 +97,7 @@ typedef struct amcSegStruct {
   GCSegStruct gcSegStruct;  /* superclass fields must come first */
   amcGen gen;               /* generation this segment belongs to */
   Nailboard board;          /* nailboard for this segment or NULL if none */
+  BOOLFIELD(accountedAsBuffered); /* .seg.accounted-as-buffered */
   BOOLFIELD(old);           /* .seg.old */
   BOOLFIELD(deferred);      /* .seg.deferred */
   Sig sig;                  /* <code/misc.h#sig> */
@@ -112,6 +117,7 @@ static Bool amcSegCheck(amcSeg amcseg)
     CHECKD(Nailboard, amcseg->board);
     CHECKL(SegNailed(amcSeg2Seg(amcseg)) != TraceSetEMPTY);
   }
+  /* CHECKL(BoolCheck(amcseg->accountedAsBuffered)); <design/type/#bool.bitfield.check> */
   /* CHECKL(BoolCheck(amcseg->old)); <design/type/#bool.bitfield.check> */
   /* CHECKL(BoolCheck(amcseg->deferred)); <design/type/#bool.bitfield.check> */
   return TRUE;
@@ -146,6 +152,7 @@ static Res AMCSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 
   amcseg->gen = amcgen;
   amcseg->board = NULL;
+  amcseg->accountedAsBuffered = FALSE;
   amcseg->old = FALSE;
   amcseg->deferred = FALSE;
   amcseg->sig = amcSegSig;
@@ -886,6 +893,7 @@ static void AMCFinish(Pool pool)
     amcGen gen = amcSegGen(seg);
     amcSeg amcseg = Seg2amcSeg(seg);
     AVERT(amcSeg, amcseg);
+    AVER(!amcseg->accountedAsBuffered);
     PoolGenFree(&gen->pgen, seg,
                 0,
                 amcseg->old ? SegSize(seg) : 0,
@@ -998,7 +1006,8 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
     }
   }
 
-  PoolGenAccountForFill(pgen, SegSize(seg), Seg2amcSeg(seg)->deferred);
+  PoolGenAccountForFill(pgen, SegSize(seg));
+  Seg2amcSeg(seg)->accountedAsBuffered = TRUE;
   *baseReturn = base;
   *limitReturn = limit;
   return ResOK;
@@ -1016,6 +1025,7 @@ static void AMCBufferEmpty(Pool pool, Buffer buffer,
   Size size;
   Arena arena;
   Seg seg;
+  amcSeg amcseg;
 
   AVERT(Pool, pool);
   amc = PoolAMC(pool);
@@ -1043,10 +1053,13 @@ static void AMCBufferEmpty(Pool pool, Buffer buffer,
     ShieldCover(arena, seg);
   }
 
-  /* The unused part of the buffer is not reused by AMC, so we pass 0
-   * for the unused argument. This call therefore has no effect on the
-   * accounting, but we call it anyway for consistency. */
-  PoolGenAccountForEmpty(&amcSegGen(seg)->pgen, 0, Seg2amcSeg(seg)->deferred);
+  amcseg = Seg2amcSeg(seg);
+  if (amcseg->accountedAsBuffered) {
+    /* Account the entire buffer (including the padding object) as used. */
+    PoolGenAccountForEmpty(&amcSegGen(seg)->pgen, SegSize(seg), 0,
+                           amcseg->deferred);
+    amcseg->accountedAsBuffered = FALSE;
+  }
 }
 
 
@@ -1119,9 +1132,10 @@ static void AMCRampEnd(Pool pool, Buffer buf)
          && amcseg->deferred
          && SegWhite(seg) == TraceSetEMPTY)
       {
-        PoolGenUndefer(pgen,
-                       amcseg->old ? SegSize(seg) : 0,
-                       amcseg->old ? 0 : SegSize(seg));
+        if (!amcseg->accountedAsBuffered)
+          PoolGenUndefer(pgen,
+                         amcseg->old ? SegSize(seg) : 0,
+                         amcseg->old ? 0 : SegSize(seg));
         amcseg->deferred = FALSE;
       }
     }
@@ -1217,8 +1231,14 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
   gen = amcSegGen(seg);
   AVERT(amcGen, gen);
   if (!amcseg->old) {
-    PoolGenAccountForAge(&gen->pgen, SegSize(seg), amcseg->deferred);
     amcseg->old = TRUE;
+    if (amcseg->accountedAsBuffered) {
+      /* Note that the segment remains buffered but the buffer contents
+       * are accounted as old. See .seg.accounted-as-buffered. */
+      amcseg->accountedAsBuffered = FALSE;
+      PoolGenAccountForAge(&gen->pgen, SegSize(seg), 0, amcseg->deferred);
+    } else
+      PoolGenAccountForAge(&gen->pgen, 0, SegSize(seg), amcseg->deferred);
   }
 
   /* Ensure we are forwarding into the right generation. */
