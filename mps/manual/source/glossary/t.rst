@@ -264,7 +264,7 @@ Memory Management Glossary: T
             example, :c:type:`mps_addr_t` is a transparent alias for
             ``void *``. See :ref:`topic-interface`.
 
-        .. opposite:: :term:`derived type`, :term:`opaque type`.
+        .. opposite:: :term:`opaque type`.
 
     transport
 

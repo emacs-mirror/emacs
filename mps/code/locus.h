@@ -64,13 +64,14 @@ typedef struct PoolGenStruct {
   RingStruct genRing;
 
   /* Accounting of memory in this generation for this pool */  
-  STATISTIC_DECL(Size segs);     /* number of segments */
-  Size totalSize;                /* total (sum of segment sizes) */
-  STATISTIC_DECL(Size freeSize); /* unused (free or lost to fragmentation) */
-  Size newSize;                  /* allocated since last collection */
-  STATISTIC_DECL(Size oldSize);  /* allocated prior to last collection */
-  Size newDeferredSize;          /* new (but deferred) */
-  STATISTIC_DECL(Size oldDeferredSize); /* old (but deferred) */
+  Size segs;              /* number of segments */
+  Size totalSize;         /* total (sum of segment sizes) */
+  Size freeSize;          /* unused (free or lost to fragmentation) */
+  Size bufferedSize;      /* held in buffers but not condemned yet */
+  Size newSize;           /* allocated since last collection */
+  Size oldSize;           /* allocated prior to last collection */
+  Size newDeferredSize;   /* new (but deferred) */
+  Size oldDeferredSize;   /* old (but deferred) */
 } PoolGenStruct;
 
 
@@ -110,13 +111,13 @@ extern Res ChainDescribe(Chain chain, mps_lib_FILE *stream, Count depth);
 extern Bool PoolGenCheck(PoolGen pgen);
 extern Res PoolGenInit(PoolGen pgen, GenDesc gen, Pool pool);
 extern void PoolGenFinish(PoolGen pgen);
-extern Res PoolGenAlloc(Seg *segReturn, PoolGen pgen, SegClass class,
+extern Res PoolGenAlloc(Seg *segReturn, PoolGen pgen, SegClass klass,
                         Size size, ArgList args);
 extern void PoolGenFree(PoolGen pgen, Seg seg, Size freeSize, Size oldSize,
                         Size newSize, Bool deferred);
-extern void PoolGenAccountForFill(PoolGen pgen, Size size, Bool deferred);
-extern void PoolGenAccountForEmpty(PoolGen pgen, Size unused, Bool deferred);
-extern void PoolGenAccountForAge(PoolGen pgen, Size aged, Bool deferred);
+extern void PoolGenAccountForFill(PoolGen pgen, Size size);
+extern void PoolGenAccountForEmpty(PoolGen pgen, Size used, Size unused, Bool deferred);
+extern void PoolGenAccountForAge(PoolGen pgen, Size wasBuffered, Size wasNew, Bool deferred);
 extern void PoolGenAccountForReclaim(PoolGen pgen, Size reclaimed, Bool deferred);
 extern void PoolGenUndefer(PoolGen pgen, Size oldSize, Size newSize);
 extern void PoolGenAccountForSegSplit(PoolGen pgen);

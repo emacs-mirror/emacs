@@ -96,7 +96,7 @@ int dylan_wrapper_check(mps_word_t *w)
   mps_word_t vh;
   mps_word_t version;
   mps_word_t reserved;
-  mps_word_t class;
+  mps_word_t klass;
   mps_word_t fh, fl, ff;
   mps_word_t vb, es, vf;
   mps_word_t vt, t;
@@ -129,8 +129,8 @@ int dylan_wrapper_check(mps_word_t *w)
   
   /* Unpack the wrapper. */
 
-  class = w[WC];         /* class */
-  unused(class);
+  klass = w[WC];         /* class */
+  unused(klass);
   fh = w[WF];            /* fixed part header word */
   fl = fh >> 2;         /* fixed part length */
   ff = fh & 3;          /* fixed part format code */
@@ -152,8 +152,8 @@ int dylan_wrapper_check(mps_word_t *w)
   /* The second word is the class of the wrapped object. */
   /* It would be good to check which pool this is in. */
 
-  assert(class != 0);                   /* class exists */
-  assert((class & 3) == 0);             /* class is aligned */
+  assert(klass != 0);                   /* class exists */
+  assert((klass & 3) == 0);             /* class is aligned */
 
   /* The third word contains the fixed part format and length. */
   /* The only illegal format is 3.  Anything else is possible, although */
@@ -628,7 +628,7 @@ static mps_res_t dylan_scan_weak(mps_ss_t mps_ss,
   return MPS_RES_OK;
 }
 
-static mps_addr_t dylan_skip(mps_addr_t object)
+mps_addr_t dylan_skip(mps_addr_t object)
 {
   mps_addr_t *p;        /* cursor in object */
   mps_word_t *w;        /* wrapper cursor */
@@ -744,6 +744,14 @@ void dylan_pad(mps_addr_t addr, size_t size)
     p[0] = 2;
     p[1] = (mps_word_t)((char *)addr + size);
   }
+}
+
+mps_bool_t dylan_ispad(mps_addr_t addr)
+{
+  mps_word_t *p;
+
+  p = (mps_word_t *)addr;
+  return p[0] == 1 || p[0] == 2;
 }
 
 

@@ -314,10 +314,19 @@ Arena properties
 
 .. c:function:: mps_word_t mps_collections(mps_arena_t arena)
 
-    Return the number of :term:`flips` that have taken place in an
-    :term:`arena` since it was created.
+    Return the number of garbage collections (technically, the number
+    of :term:`flips`) in which objects might have moved, that have
+    taken place in an :term:`arena` since it was created.
 
     ``arena`` is the arena.
+
+    .. note::
+
+        If you are only using non-moving pool classes like
+        :ref:`pool-ams`, then :c:func:`mps_collections` will always
+        return 0. To find out about these collections, consider
+        enabling garbage collection messages: see
+        :c:func:`mps_message_type_gc`.
 
 
 .. c:function:: size_t mps_arena_commit_limit(mps_arena_t arena)
