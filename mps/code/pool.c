@@ -1,7 +1,7 @@
 /* pool.c: POOL IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001-2015 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2001 Global Graphics Software.
  *
  * DESIGN
@@ -73,16 +73,15 @@ Bool PoolClassCheck(PoolClass klass)
   /* Check that pool classes overide sets of related methods. */
   CHECKL((klass->init == PoolAbsInit) == (klass->finish == PoolAbsFinish));
   CHECKL((klass->bufferFill == PoolNoBufferFill) ==
-	 (klass->bufferEmpty == PoolNoBufferEmpty));
+         (klass->bufferEmpty == PoolNoBufferEmpty));
   CHECKL((klass->framePush == PoolNoFramePush) ==
-	 (klass->framePop == PoolNoFramePop));
+         (klass->framePop == PoolNoFramePop));
   CHECKL((klass->rampBegin == PoolNoRampBegin) ==
-	 (klass->rampEnd == PoolNoRampEnd));
+         (klass->rampEnd == PoolNoRampEnd));
 
   /* Check that pool classes that set attributes also override the
      methods they imply. */
-  /* .check.ams.walk: Can't enforce this one until job003738 is resolved. */
-  /* CHECKL(((klass->attr & AttrFMT) == 0) == (klass->walk == PoolNoWalk)); */
+  CHECKL(((klass->attr & AttrFMT) == 0) == (klass->walk == PoolNoWalk));
   if (klass != &CLASS_STATIC(AbstractCollectPool)) {
     CHECKL(((klass->attr & AttrGC) == 0) == (klass->fix == PoolNoFix));
     CHECKL(((klass->attr & AttrGC) == 0) == (klass->fixEmergency == PoolNoFix));
@@ -651,7 +650,7 @@ Bool PoolHasRange(Pool pool, Addr base, Addr limit)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2015 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
