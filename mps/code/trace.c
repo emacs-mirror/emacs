@@ -270,13 +270,13 @@ static void traceUpdateCounts(Trace trace, ScanState ss,
   switch(phase) {
     case traceAccountingPhaseRootScan: {
       trace->rootScanSize += ss->scannedSize;
-      trace->rootCopiedSize += ss->copiedSize;
+      STATISTIC(trace->rootCopiedSize += ss->copiedSize);
       STATISTIC(++trace->rootScanCount);
       break;
     }
     case traceAccountingPhaseSegScan: {
       trace->segScanSize += ss->scannedSize; /* see .work */
-      trace->segCopiedSize += ss->copiedSize;
+      STATISTIC(trace->segCopiedSize += ss->copiedSize);
       STATISTIC(++trace->segScanCount);
       break;
     }
@@ -637,7 +637,8 @@ failRootFlip:
  * This code is written to be adaptable to allocating Trace objects
  * dynamically.  */
 
-static void TraceCreatePoolGen(GenDesc gen)
+ATTRIBUTE_UNUSED
+static void traceCreatePoolGen(GenDesc gen)
 {
   Ring n, nn;
   RING_FOR(n, &gen->locusRing, nn) {
@@ -685,10 +686,10 @@ found:
   STATISTIC(trace->greySegMax = (Count)0);
   STATISTIC(trace->rootScanCount = (Count)0);
   trace->rootScanSize = (Size)0;
-  trace->rootCopiedSize = (Size)0;
+  STATISTIC(trace->rootCopiedSize = (Size)0);
   STATISTIC(trace->segScanCount = (Count)0);
   trace->segScanSize = (Size)0; /* see .work */
-  trace->segCopiedSize = (Size)0;
+  STATISTIC(trace->segCopiedSize = (Size)0);
   STATISTIC(trace->singleScanCount = (Count)0);
   STATISTIC(trace->singleScanSize = (Size)0);
   STATISTIC(trace->singleCopiedSize = (Size)0);
@@ -711,7 +712,7 @@ found:
 
   EVENT3(TraceCreate, trace, arena, (EventFU)why);
 
-  STATISTIC_STAT ({
+  STATISTIC({
     /* Iterate over all chains, all GenDescs within a chain, and all
      * PoolGens within a GenDesc. */
     Ring node;
@@ -722,12 +723,12 @@ found:
       Index i;
       for (i = 0; i < chain->genCount; ++i) {
         GenDesc gen = &chain->gens[i];
-        TraceCreatePoolGen(gen);
+        traceCreatePoolGen(gen);
       }
     }
 
     /* Now do topgen GenDesc, and all PoolGens within it. */
-    TraceCreatePoolGen(&arena->topGen);
+    traceCreatePoolGen(&arena->topGen);
   });
 
   *traceReturn = trace;
@@ -750,6 +751,11 @@ static void traceDestroyCommon(Trace trace)
       ChainEndTrace(chain, trace);
     }
   }
+
+  /* Ensure that address space is returned to the operating system for
+   * traces that don't have any condemned objects (there might be
+   * manually allocated objects that were freed). See job003999. */
+  ArenaCompact(trace->arena, trace);
 
   EVENT1(TraceDestroy, trace);
 
@@ -789,26 +795,23 @@ void TraceDestroyFinished(Trace trace)
   AVERT(Trace, trace);
   AVER(trace->state == TraceFINISHED);
 
-  STATISTIC_STAT(EVENT13
-                  (TraceStatScan, trace,
-                   trace->rootScanCount, trace->rootScanSize,
-                   trace->rootCopiedSize,
-                   trace->segScanCount, trace->segScanSize,
-                   trace->segCopiedSize,
-                   trace->singleScanCount, trace->singleScanSize,
-                   trace->singleCopiedSize,
-                   trace->readBarrierHitCount, trace->greySegMax,
-                   trace->pointlessScanCount));
-  STATISTIC_STAT(EVENT10
-                  (TraceStatFix, trace,
-                   trace->fixRefCount, trace->segRefCount,
-                   trace->whiteSegRefCount,
-                   trace->nailCount, trace->snapCount,
-                   trace->forwardedCount, trace->forwardedSize,
-                   trace->preservedInPlaceCount,
-                   trace->preservedInPlaceSize));
-  STATISTIC_STAT(EVENT3
-                  (TraceStatReclaim, trace,
+  STATISTIC(EVENT13(TraceStatScan, trace,
+                    trace->rootScanCount, trace->rootScanSize,
+                    trace->rootCopiedSize,
+                    trace->segScanCount, trace->segScanSize,
+                    trace->segCopiedSize,
+                    trace->singleScanCount, trace->singleScanSize,
+                    trace->singleCopiedSize,
+                    trace->readBarrierHitCount, trace->greySegMax,
+                    trace->pointlessScanCount));
+  STATISTIC(EVENT10(TraceStatFix, trace,
+                    trace->fixRefCount, trace->segRefCount,
+                    trace->whiteSegRefCount,
+                    trace->nailCount, trace->snapCount,
+                    trace->forwardedCount, trace->forwardedSize,
+                    trace->preservedInPlaceCount,
+                    trace->preservedInPlaceSize));
+  STATISTIC(EVENT3(TraceStatReclaim, trace,
                    trace->reclaimCount, trace->reclaimSize));
 
   traceDestroyCommon(trace);
@@ -1118,19 +1121,18 @@ static Res traceScanSegRes(TraceSet ts, Rank rank, Arena arena, Seg seg)
 
     traceSetUpdateCounts(ts, arena, ss, traceAccountingPhaseSegScan);
     /* Count segments scanned pointlessly */
-    STATISTIC_STAT
-      ({
-         TraceId ti; Trace trace;
-         Count whiteSegRefCount = 0;
+    STATISTIC({
+      TraceId ti; Trace trace;
+      Count whiteSegRefCount = 0;
 
-         TRACE_SET_ITER(ti, trace, ts, arena)
-           whiteSegRefCount += trace->whiteSegRefCount;
-         TRACE_SET_ITER_END(ti, trace, ts, arena);
-         if(whiteSegRefCount == 0)
-           TRACE_SET_ITER(ti, trace, ts, arena)
-             ++trace->pointlessScanCount;
-           TRACE_SET_ITER_END(ti, trace, ts, arena);
-      });
+      TRACE_SET_ITER(ti, trace, ts, arena)
+        whiteSegRefCount += trace->whiteSegRefCount;
+      TRACE_SET_ITER_END(ti, trace, ts, arena);
+      if(whiteSegRefCount == 0)
+        TRACE_SET_ITER(ti, trace, ts, arena)
+          ++trace->pointlessScanCount;
+        TRACE_SET_ITER_END(ti, trace, ts, arena);
+    });
 
     /* Following is true whether or not scan was total. */
     /* See <design/scan/#summary.subset>. */
@@ -1233,8 +1235,6 @@ void TraceSegAccess(Arena arena, Seg seg, AccessSet mode)
     seg->defer = WB_DEFER_HIT;
 
   if (readHit) {
-    Trace trace;
-    TraceId ti;
     Rank rank;
     TraceSet traces;
 
@@ -1255,7 +1255,9 @@ void TraceSegAccess(Arena arena, Seg seg, AccessSet mode)
     /* can go ahead and access it. */
     AVER(TraceSetInter(SegGrey(seg), traces) == TraceSetEMPTY);
 
-    STATISTIC_STAT({
+    STATISTIC({
+      Trace trace;
+      TraceId ti;
       TRACE_SET_ITER(ti, trace, traces, arena)
         ++trace->readBarrierHitCount;
       TRACE_SET_ITER_END(ti, trace, traces, arena);
@@ -1340,13 +1342,12 @@ mps_res_t _mps_fix2(mps_ss_t mps_ss, mps_addr_t *mps_ref_io)
   if (TraceSetInter(TractWhite(tract), ss->traces) == TraceSetEMPTY) {
     /* Reference points to a tract that is not white for any of the
      * active traces. See <design/trace/#fix.tractofaddr> */
-    STATISTIC_STAT
-      ({
-        if(TRACT_SEG(&seg, tract)) {
-          ++ss->segRefCount;
-          EVENT1(TraceFixSeg, seg);
-        }
-      });
+    STATISTIC({
+      if (TRACT_SEG(&seg, tract)) {
+        ++ss->segRefCount;
+        EVENT1(TraceFixSeg, seg);
+      }
+    });
     goto done;
   }
 
@@ -1635,7 +1636,7 @@ Res TraceStart(Trace trace, double mortality, double finishingTime)
   res = RootsIterate(ArenaGlobals(arena), rootGrey, (void *)trace);
   AVER(res == ResOK);
 
-  STATISTIC_STAT(EVENT2(ArenaWriteFaults, arena, arena->writeBarrierHitCount));
+  STATISTIC(EVENT2(ArenaWriteFaults, arena, arena->writeBarrierHitCount));
 
   /* Calculate the rate of scanning. */
   {
@@ -1661,11 +1662,6 @@ Res TraceStart(Trace trace, double mortality, double finishingTime)
          trace->condemned, trace->notCondemned,
          trace->foundation, trace->white,
          trace->quantumWork);
-
-  STATISTIC_STAT(EVENT7(TraceStatCondemn, trace,
-                        trace->condemned, trace->notCondemned,
-                        trace->foundation, trace->quantumWork,
-                        mortality, finishingTime));
 
   trace->state = TraceUNFLIPPED;
   TracePostStartMessage(trace);
@@ -1785,12 +1781,17 @@ failCondemn:
 /* TracePoll -- Check if there's any tracing work to be done
  *
  * Consider starting a trace if none is running; advance the running
- * trace (if any) by one quantum. If there may be more work to do,
- * update *workReturn with a measure of the work done and return TRUE.
- * Otherwise return FALSE.
+ * trace (if any) by one quantum.
+ *
+ * The collectWorldReturn and collectWorldAllowed arguments are as for
+ * PolicyStartTrace.
+ *
+ * If there may be more work to do, update *workReturn with a measure
+ * of the work done and return TRUE. Otherwise return FALSE.
  */
 
-Bool TracePoll(Work *workReturn, Globals globals)
+Bool TracePoll(Work *workReturn, Bool *collectWorldReturn, Globals globals,
+               Bool collectWorldAllowed)
 {
   Trace trace;
   Arena arena;
@@ -1803,7 +1804,8 @@ Bool TracePoll(Work *workReturn, Globals globals)
     trace = ArenaTrace(arena, (TraceId)0);
   } else {
     /* No traces are running: consider starting one now. */
-    if (!PolicyStartTrace(&trace, arena))
+    if (!PolicyStartTrace(&trace, collectWorldReturn, arena,
+                          collectWorldAllowed))
       return FALSE;
   }
 
@@ -1859,9 +1861,11 @@ Res TraceDescribe(Trace trace, mps_lib_FILE *stream, Count depth)
                "  foundation $U\n", (WriteFU)trace->foundation,
                "  quantumWork $U\n", (WriteFU)trace->quantumWork,
                "  rootScanSize $U\n", (WriteFU)trace->rootScanSize,
-               "  rootCopiedSize $U\n", (WriteFU)trace->rootCopiedSize,
+               STATISTIC_WRITE("  rootCopiedSize $U\n",
+                               (WriteFU)trace->rootCopiedSize)
                "  segScanSize $U\n", (WriteFU)trace->segScanSize,
-               "  segCopiedSize $U\n", (WriteFU)trace->segCopiedSize,
+               STATISTIC_WRITE("  segCopiedSize $U\n",
+                               (WriteFU)trace->segCopiedSize)
                "  forwardedSize $U\n", (WriteFU)trace->forwardedSize,
                "  preservedInPlaceSize $U\n", (WriteFU)trace->preservedInPlaceSize,
                "} Trace $P\n", (WriteFP)trace,

@@ -138,7 +138,7 @@
   EVENT(X, TraceScanSeg       , 0x003C,  TRUE, Seg) \
   /* TraceScanSingleRef abuses kind, see .kind.abuse */ \
   EVENT(X, TraceScanSingleRef , 0x003D,  TRUE, Seg) \
-  EVENT(X, TraceStatCondemn   , 0x003E,  TRUE, Trace) \
+  /* EVENT(X, TraceStatCondemn   , 0x003E,  TRUE, Trace) */ \
   EVENT(X, TraceStatScan      , 0x003F,  TRUE, Trace) \
   EVENT(X, TraceStatFix       , 0x0040,  TRUE, Trace) \
   EVENT(X, TraceStatReclaim   , 0x0041,  TRUE, Trace) \
@@ -443,15 +443,6 @@
   PARAM(X,  1, U, rank) \
   PARAM(X,  2, P, arena) \
   PARAM(X,  3, A, refIO)
-
-#define EVENT_TraceStatCondemn_PARAMS(PARAM, X) \
-  PARAM(X,  0, P, trace) \
-  PARAM(X,  1, W, condemned) \
-  PARAM(X,  2, W, notCondemned) \
-  PARAM(X,  3, W, foundation) \
-  PARAM(X,  4, W, quantumWork) \
-  PARAM(X,  5, D, mortality) \
-  PARAM(X,  6, D, finishingTime)
 
 #define EVENT_TraceStatScan_PARAMS(PARAM, X) \
   PARAM(X,  0, P, trace) \

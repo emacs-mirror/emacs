@@ -49,10 +49,8 @@
 #define PoolClassSig    ((Sig)0x519C7A55) /* SIGnature pool CLASS */
 
 typedef struct mps_pool_class_s {
-  ProtocolClassStruct protocol;
-  const char *name;             /* class name string */
+  InstClassStruct protocol;
   size_t size;                  /* size of outer structure */
-  size_t offset;                /* offset of generic struct in outer struct */
   Attr attr;                    /* attributes */
   PoolVarargsMethod varargs;    /* convert deprecated varargs into keywords */
   PoolInitMethod init;          /* initialize the pool descriptor */
@@ -74,7 +72,6 @@ typedef struct mps_pool_class_s {
   PoolRampEndMethod rampEnd;    /* end a ramp pattern */
   PoolFramePushMethod framePush; /* push an allocation frame */
   PoolFramePopMethod framePop;  /* pop an allocation frame */
-  PoolFramePopPendingMethod framePopPending;  /* notify pending pop */
   PoolAddrObjectMethod addrObject; /* find client pointer to object */
   PoolWalkMethod walk;          /* walk over a segment */
   PoolFreeWalkMethod freewalk;  /* walk over free blocks */
@@ -83,7 +80,6 @@ typedef struct mps_pool_class_s {
   PoolDebugMixinMethod debugMixin; /* find the debug mixin, if any */
   PoolSizeMethod totalSize;     /* total memory allocated from arena */
   PoolSizeMethod freeSize;      /* free memory (unused by client program) */
-  Bool labelled;                /* whether it has been EventLabelled */
   Sig sig;                      /* .class.end-sig */
 } PoolClassStruct;
 
@@ -95,14 +91,15 @@ typedef struct mps_pool_class_s {
  * a "subclass" of the pool structure (the "outer structure") which
  * contains PoolStruct as a a field.  The outer structure holds the
  * class-specific part of the pool's state.  See <code/pool.c>,
- * <design/pool/>.  */
+ * <design/pool/>.
+ */
 
 #define PoolSig         ((Sig)0x519B0019) /* SIGnature POOL */
 
 typedef struct mps_pool_s {     /* generic structure */
+  InstStruct instStruct;
   Sig sig;                      /* <design/sig/> */
   Serial serial;                /* from arena->poolSerial */
-  PoolClass class;              /* pool class structure */
   Arena arena;                  /* owning arena */
   RingStruct arenaRing;         /* link in list of pools in arena */
   RingStruct bufferRing;        /* allocation buffers are attached to pool */
@@ -204,7 +201,7 @@ typedef struct MessageClassStruct {
 typedef struct mps_message_s {
   Sig sig;                      /* <design/sig/> */
   Arena arena;                  /* owning arena */
-  MessageClass class;           /* Message Class Structure */
+  MessageClass klass;           /* Message Class Structure */
   Clock postedClock;            /* mps_clock() at post time, or 0 */
   RingStruct queueRing;         /* Message queue ring */
 } MessageStruct;
@@ -221,8 +218,7 @@ typedef struct mps_message_s {
 #define SegClassSig    ((Sig)0x5195E9C7) /* SIGnature SEG CLass */
 
 typedef struct SegClassStruct {
-  ProtocolClassStruct protocol;
-  const char *name;             /* class name string */
+  InstClassStruct protocol;
   size_t size;                  /* size of outer structure */
   SegInitMethod init;           /* initialize the segment */
   SegFinishMethod finish;       /* finish the segment */
@@ -248,8 +244,8 @@ typedef struct SegClassStruct {
 #define SegSig      ((Sig)0x5195E999) /* SIGnature SEG  */
 
 typedef struct SegStruct {      /* segment structure */
+  InstStruct instStruct;
   Sig sig;                      /* <code/misc.h#sig> */
-  SegClass class;               /* segment class structure */
   Tract firstTract;             /* first tract of segment */
   RingStruct poolRing;          /* link in list of segs in pool */
   Addr limit;                   /* limit of segment */
@@ -310,8 +306,7 @@ typedef struct LocusPrefStruct { /* locus placement preferences */
 #define BufferClassSig    ((Sig)0x519B0FC7) /* SIGnature BUFfer CLass */
 
 typedef struct BufferClassStruct {
-  ProtocolClassStruct protocol;
-  const char *name;             /* class name string */
+  InstClassStruct protocol;
   size_t size;                  /* size of outer structure */
   BufferVarargsMethod varargs;  /* parse obsolete varargs */
   BufferInitMethod init;        /* initialize the buffer */
@@ -340,8 +335,8 @@ typedef struct BufferClassStruct {
 #define BufferSig       ((Sig)0x519B0FFE) /* SIGnature BUFFEr */
 
 typedef struct BufferStruct {
+  InstStruct instStruct;
   Sig sig;                      /* <design/sig/> */
-  BufferClass class;            /* buffer class structure */
   Serial serial;                /* from pool->bufferSerial */
   Arena arena;                  /* owning arena */
   Pool pool;                    /* owning pool */
@@ -395,7 +390,7 @@ typedef struct mps_fmt_s {
   mps_fmt_fwd_t move;
   mps_fmt_isfwd_t isMoved;
   mps_fmt_pad_t pad;
-  mps_fmt_class_t class;        /* pointer indicating class */
+  mps_fmt_class_t klass;        /* pointer indicating class */
   Size headerSize;              /* size of header */
 } FormatStruct;
 
@@ -434,15 +429,15 @@ typedef struct ScanStateStruct {
   Rank rank;                    /* reference rank of scanning */
   Bool wasMarked;               /* design.mps.fix.protocol.was-ready */
   RefSet fixedSummary;          /* accumulated summary of fixed references */
-  STATISTIC_DECL(Count fixRefCount); /* refs which pass zone check */
-  STATISTIC_DECL(Count segRefCount); /* refs which refer to segs */
-  STATISTIC_DECL(Count whiteSegRefCount); /* refs which refer to white segs */
-  STATISTIC_DECL(Count nailCount); /* segments nailed by ambig refs */
-  STATISTIC_DECL(Count snapCount); /* refs snapped to forwarded objs */
-  STATISTIC_DECL(Count forwardedCount); /* objects preserved by moving */
-  STATISTIC_DECL(Count preservedInPlaceCount); /* objects preserved in place */
-  STATISTIC_DECL(Size copiedSize); /* bytes copied */
-  STATISTIC_DECL(Size scannedSize); /* bytes scanned */
+  STATISTIC_DECL(Count fixRefCount) /* refs which pass zone check */
+  STATISTIC_DECL(Count segRefCount) /* refs which refer to segs */
+  STATISTIC_DECL(Count whiteSegRefCount) /* refs which refer to white segs */
+  STATISTIC_DECL(Count nailCount) /* segments nailed by ambig refs */
+  STATISTIC_DECL(Count snapCount) /* refs snapped to forwarded objs */
+  STATISTIC_DECL(Count forwardedCount) /* objects preserved by moving */
+  STATISTIC_DECL(Count preservedInPlaceCount) /* objects preserved in place */
+  STATISTIC_DECL(Size copiedSize) /* bytes copied */
+  Size scannedSize;             /* bytes scanned */
 } ScanStateStruct;
 
 
@@ -463,35 +458,35 @@ typedef struct TraceStruct {
   PoolFixMethod fix;            /* fix method to apply to references */
   void *fixClosure;             /* closure information for fix method */
   Chain chain;                  /* chain being incrementally collected */
-  STATISTIC_DECL(Size preTraceArenaReserved); /* ArenaReserved before this trace */
+  STATISTIC_DECL(Size preTraceArenaReserved) /* ArenaReserved before this trace */
   Size condemned;               /* condemned bytes */
   Size notCondemned;            /* collectable but not condemned */
   Size foundation;              /* initial grey set size */
   Work quantumWork;             /* tracing work to be done in each poll */
-  STATISTIC_DECL(Count greySegCount); /* number of grey segs */
-  STATISTIC_DECL(Count greySegMax); /* max number of grey segs */
-  STATISTIC_DECL(Count rootScanCount); /* number of roots scanned */
+  STATISTIC_DECL(Count greySegCount) /* number of grey segs */
+  STATISTIC_DECL(Count greySegMax) /* max number of grey segs */
+  STATISTIC_DECL(Count rootScanCount) /* number of roots scanned */
   Count rootScanSize;           /* total size of scanned roots */
-  Size rootCopiedSize;          /* bytes copied by scanning roots */
-  STATISTIC_DECL(Count segScanCount); /* number of segs scanned */
+  STATISTIC_DECL(Size rootCopiedSize) /* bytes copied by scanning roots */
+  STATISTIC_DECL(Count segScanCount) /* number of segs scanned */
   Count segScanSize;            /* total size of scanned segments */
-  Size segCopiedSize;           /* bytes copied by scanning segments */
-  STATISTIC_DECL(Count singleScanCount); /* number of single refs scanned */
-  STATISTIC_DECL(Count singleScanSize); /* total size of single refs scanned */
-  STATISTIC_DECL(Size singleCopiedSize); /* bytes copied by scanning single refs */
-  STATISTIC_DECL(Count fixRefCount); /* refs which pass zone check */
-  STATISTIC_DECL(Count segRefCount); /* refs which refer to segs */
-  STATISTIC_DECL(Count whiteSegRefCount); /* refs which refer to white segs */
-  STATISTIC_DECL(Count nailCount); /* segments nailed by ambig refs */
-  STATISTIC_DECL(Count snapCount); /* refs snapped to forwarded objs */
-  STATISTIC_DECL(Count readBarrierHitCount); /* read barrier faults */
-  STATISTIC_DECL(Count pointlessScanCount); /* pointless seg scans */
-  STATISTIC_DECL(Count forwardedCount); /* objects preserved by moving */
+  STATISTIC_DECL(Size segCopiedSize) /* bytes copied by scanning segments */
+  STATISTIC_DECL(Count singleScanCount) /* number of single refs scanned */
+  STATISTIC_DECL(Count singleScanSize) /* total size of single refs scanned */
+  STATISTIC_DECL(Size singleCopiedSize) /* bytes copied by scanning single refs */
+  STATISTIC_DECL(Count fixRefCount) /* refs which pass zone check */
+  STATISTIC_DECL(Count segRefCount) /* refs which refer to segs */
+  STATISTIC_DECL(Count whiteSegRefCount) /* refs which refer to white segs */
+  STATISTIC_DECL(Count nailCount) /* segments nailed by ambig refs */
+  STATISTIC_DECL(Count snapCount) /* refs snapped to forwarded objs */
+  STATISTIC_DECL(Count readBarrierHitCount) /* read barrier faults */
+  STATISTIC_DECL(Count pointlessScanCount) /* pointless seg scans */
+  STATISTIC_DECL(Count forwardedCount) /* objects preserved by moving */
   Size forwardedSize;           /* bytes preserved by moving */
-  STATISTIC_DECL(Count preservedInPlaceCount); /* objects preserved in place */
+  STATISTIC_DECL(Count preservedInPlaceCount) /* objects preserved in place */
   Size preservedInPlaceSize;    /* bytes preserved in place */
-  STATISTIC_DECL(Count reclaimCount); /* segments reclaimed */
-  STATISTIC_DECL(Count reclaimSize); /* bytes reclaimed */
+  STATISTIC_DECL(Count reclaimCount) /* segments reclaimed */
+  STATISTIC_DECL(Count reclaimSize) /* bytes reclaimed */
 } TraceStruct;
 
 
@@ -500,13 +495,13 @@ typedef struct TraceStruct {
 #define ArenaClassSig   ((Sig)0x519A6C1A) /* SIGnature ARena CLAss */
 
 typedef struct mps_arena_class_s {
-  ProtocolClassStruct protocol;
-  const char *name;             /* class name string */
+  InstClassStruct protocol;
   size_t size;                  /* size of outer structure */
-  size_t offset;                /* offset of generic struct in outer struct */
   ArenaVarargsMethod varargs;
   ArenaInitMethod init;
   ArenaFinishMethod finish;
+  ArenaCreateMethod create;
+  ArenaDestroyMethod destroy;
   ArenaPurgeSpareMethod purgeSpare;
   ArenaExtendMethod extend;
   ArenaGrowMethod grow;
@@ -579,8 +574,7 @@ typedef struct GlobalsStruct {
 #define LandClassSig    ((Sig)0x5197A4DC) /* SIGnature LAND Class */
 
 typedef struct LandClassStruct {
-  ProtocolClassStruct protocol;
-  const char *name;             /* class name string */
+  InstClassStruct protocol;
   size_t size;                  /* size of outer structure */
   LandSizeMethod sizeMethod;    /* total size of ranges in land */
   LandInitMethod init;          /* initialize the land */
@@ -606,8 +600,8 @@ typedef struct LandClassStruct {
 #define LandSig ((Sig)0x5197A4D9) /* SIGnature LAND */
 
 typedef struct LandStruct {
+  InstStruct instStruct;
   Sig sig;                      /* <design/sig/> */
-  LandClass class;              /* land class structure */
   Arena arena;                  /* owning arena */
   Align alignment;              /* alignment of addresses */
   Bool inLand;                  /* prevent reentrance */
@@ -627,13 +621,13 @@ typedef struct LandStruct {
 typedef struct CBSStruct {
   LandStruct landStruct;        /* superclass fields come first */
   SplayTreeStruct splayTreeStruct;
-  STATISTIC_DECL(Count treeSize);
+  STATISTIC_DECL(Count treeSize)
   Pool blockPool;               /* pool that manages blocks */
   Size blockStructSize;         /* size of block structure */
   Bool ownPool;                 /* did we create blockPool? */
   Size size;                    /* total size of ranges in CBS */
   /* meters for sizes of search structures at each op */
-  METER_DECL(treeSearch);
+  METER_DECL(treeSearch)
   Sig sig;                      /* .class.end-sig */
 } CBSStruct;
 
@@ -713,6 +707,21 @@ typedef struct ShieldStruct {
 } ShieldStruct;
 
 
+/* History -- location dependency history
+ *
+ * See design.mps.arena.ld.
+ */
+
+#define HistorySig     ((Sig)0x51981520) /* SIGnature HISTOry */
+
+typedef struct HistoryStruct {
+  Sig sig;                         /* design.mps.sig */
+  Epoch epoch;                     /* <design/arena/#ld.epoch> */
+  RefSet prehistory;               /* <design/arena/#ld.prehistory> */
+  RefSet history[LDHistoryLENGTH]; /* <design/arena/#ld.history> */
+} HistoryStruct;  
+
+
 /* ArenaStruct -- generic arena
  *
  * See <code/arena.c>.
@@ -721,10 +730,10 @@ typedef struct ShieldStruct {
 #define ArenaSig        ((Sig)0x519A6E4A) /* SIGnature ARENA */
 
 typedef struct mps_arena_s {
+  InstStruct instStruct;
+  
   GlobalsStruct globals; /* must be first, see <design/arena/#globals> */
   Serial serial;
-
-  ArenaClass class;             /* arena class structure */
 
   Bool poolReady;               /* <design/arena/#pool.ready> */
   MVStruct controlPoolStruct;   /* <design/arena/#pool> */
@@ -793,14 +802,11 @@ typedef struct mps_arena_s {
   Clock lastWorldCollect;
 
   RingStruct greyRing[RankLIMIT]; /* ring of grey segments at each rank */
-  STATISTIC_DECL(Count writeBarrierHitCount); /* write barrier hits */
+  STATISTIC_DECL(Count writeBarrierHitCount) /* write barrier hits */
   RingStruct chainRing;         /* ring of chains */
 
-  /* location dependency fields (<code/ld.c>) */
-  Epoch epoch;                     /* <design/arena/#ld.epoch> */
-  RefSet prehistory;               /* <design/arena/#ld.prehistory> */
-  RefSet history[LDHistoryLENGTH]; /* <design/arena/#ld.history> */
-
+  struct HistoryStruct historyStruct;
+  
   Bool emergency;               /* garbage collect in emergency mode? */
 
   Word *stackAtArenaEnter;  /* NULL or hot end of client stack, in the thread */

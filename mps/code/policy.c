@@ -76,14 +76,14 @@ Res PolicyAlloc(Tract *tractReturn, Arena arena, LocusPref pref,
 
   /* Plan C: Extend the arena, then try A and B again. */
   if (moreZones != ZoneSetEMPTY) {
-    res = arena->class->grow(arena, pref, size);
+    res = Method(Arena, arena, grow)(arena, pref, size);
     /* If we can't extend because we hit the commit limit, try purging
        some spare committed memory and try again.*/
     /* TODO: This would be a good time to *remap* VM instead of
        returning it to the OS. */
     if (res == ResCOMMIT_LIMIT) {
-      if (arena->class->purgeSpare(arena, size) >= size)
-        res = arena->class->grow(arena, pref, size);
+      if (Method(Arena, arena, purgeSpare)(arena, size) >= size)
+        res = Method(Arena, arena, grow)(arena, pref, size);
     }
     if (res == ResOK) {
       if (zones != ZoneSetEMPTY) {
@@ -271,40 +271,53 @@ failBegin:
 
 /* PolicyStartTrace -- consider starting a trace
  *
+ * If collectWorldAllowed is TRUE, consider starting a collection of
+ * the world. Otherwise, consider only starting collections of individual
+ * chains or generations.
+ *
+ * If a collection of the world was started, set *collectWorldReturn
+ * to TRUE. Otherwise leave it unchanged.
+ *
  * If a trace was started, update *traceReturn and return TRUE.
  * Otherwise, leave *traceReturn unchanged and return FALSE.
  */
 
-Bool PolicyStartTrace(Trace *traceReturn, Arena arena)
+Bool PolicyStartTrace(Trace *traceReturn, Bool *collectWorldReturn,
+                      Arena arena, Bool collectWorldAllowed)
 {
   Res res;
   Trace trace;
-  Size sFoundation, sCondemned, sSurvivors, sConsTrace;
-  double tTracePerScan; /* tTrace/cScan */
-  double dynamicDeferral;
 
   AVER(traceReturn != NULL);
   AVERT(Arena, arena);
 
-  /* Compute dynamic criterion.  See strategy.lisp-machine. */
-  sFoundation = (Size)0; /* condemning everything, only roots @@@@ */
-  /* @@@@ sCondemned should be scannable only */
-  sCondemned = ArenaCommitted(arena) - ArenaSpareCommitted(arena);
-  sSurvivors = (Size)(sCondemned * (1 - arena->topGen.mortality));
-  tTracePerScan = sFoundation + (sSurvivors * (1 + TraceCopyScanRATIO));
-  AVER(TraceWorkFactor >= 0);
-  AVER(sSurvivors + tTracePerScan * TraceWorkFactor <= (double)SizeMAX);
-  sConsTrace = (Size)(sSurvivors + tTracePerScan * TraceWorkFactor);
-  dynamicDeferral = (double)ArenaAvail(arena) - (double)sConsTrace;
+  if (collectWorldAllowed) {
+    Size sFoundation, sCondemned, sSurvivors, sConsTrace;
+    double tTracePerScan; /* tTrace/cScan */
+    double dynamicDeferral;
 
-  if (dynamicDeferral < 0.0) {
-    /* Start full collection. */
-    res = TraceStartCollectAll(&trace, arena, TraceStartWhyDYNAMICCRITERION);
-    if (res != ResOK)
-      goto failStart;
-    *traceReturn = trace;
-    return TRUE;
-  } else {
+    /* Compute dynamic criterion.  See strategy.lisp-machine. */
+    sFoundation = (Size)0; /* condemning everything, only roots @@@@ */
+    /* @@@@ sCondemned should be scannable only */
+    sCondemned = ArenaCommitted(arena) - ArenaSpareCommitted(arena);
+    sSurvivors = (Size)(sCondemned * (1 - arena->topGen.mortality));
+    tTracePerScan = sFoundation + (sSurvivors * (1 + TraceCopyScanRATIO));
+    AVER(TraceWorkFactor >= 0);
+    AVER(sSurvivors + tTracePerScan * TraceWorkFactor <= (double)SizeMAX);
+    sConsTrace = (Size)(sSurvivors + tTracePerScan * TraceWorkFactor);
+    dynamicDeferral = (double)ArenaAvail(arena) - (double)sConsTrace;
+
+    if (dynamicDeferral < 0.0) {
+      /* Start full collection. */
+      res = TraceStartCollectAll(&trace, arena, TraceStartWhyDYNAMICCRITERION);
+      if (res != ResOK)
+        goto failStart;
+      *collectWorldReturn = TRUE;
+      *traceReturn = trace;
+      return TRUE;
+    }
+  }
+  {
     /* Find the chain most over its capacity. */
     Ring node, nextNode;
     double firstTime = 0.0;

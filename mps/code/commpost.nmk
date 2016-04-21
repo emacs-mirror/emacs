@@ -288,6 +288,9 @@ $(PFM)\$(VARIETY)\sacss.exe: $(PFM)\$(VARIETY)\sacss.obj \
 $(PFM)\$(VARIETY)\segsmss.exe: $(PFM)\$(VARIETY)\segsmss.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
 
+$(PFM)\$(VARIETY)\sncss.exe: $(PFM)\$(VARIETY)\sncss.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
+
 $(PFM)\$(VARIETY)\steptest.exe: $(PFM)\$(VARIETY)\steptest.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
 
