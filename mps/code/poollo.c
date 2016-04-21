@@ -52,8 +52,9 @@ typedef struct LOSegStruct {
   BT mark;                  /* mark bit table */
   BT alloc;                 /* alloc bit table */
   Count freeGrains;         /* free grains */
-  Count oldGrains;          /* grains allocated prior to last collection */
+  Count bufferedGrains;     /* grains in buffers */
   Count newGrains;          /* grains allocated since last collection */
+  Count oldGrains;          /* grains allocated prior to last collection */
   Sig sig;                  /* <code/misc.h#sig> */
 } LOSegStruct;
 
@@ -88,7 +89,8 @@ static Bool LOSegCheck(LOSeg loseg)
   CHECKL(loseg->mark != NULL);
   CHECKL(loseg->alloc != NULL);
   /* Could check exactly how many bits are set in the alloc table. */
-  CHECKL(loseg->freeGrains + loseg->oldGrains + loseg->newGrains
+  CHECKL(loseg->freeGrains + loseg->bufferedGrains + loseg->newGrains
+         + loseg->oldGrains
          == SegSize(seg) >> lo->alignShift);
   return TRUE;
 }
@@ -128,8 +130,9 @@ static Res loSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   BTResRange(loseg->alloc, 0, grains);
   BTSetRange(loseg->mark, 0, grains);
   loseg->freeGrains = grains;
-  loseg->oldGrains = (Count)0;
+  loseg->bufferedGrains = (Count)0;
   loseg->newGrains = (Count)0;
+  loseg->oldGrains = (Count)0;
 
   SetClassOfPoly(seg, CLASS(LOSeg));
   loseg->sig = LOSegSig;
@@ -353,18 +356,20 @@ static void loSegReclaim(LOSeg loseg, Trace trace)
   loseg->freeGrains += reclaimedGrains;
   PoolGenAccountForReclaim(lo->pgen, LOGrainsSize(lo, reclaimedGrains), FALSE);
 
-  trace->reclaimSize += LOGrainsSize(lo, reclaimedGrains);
-  trace->preservedInPlaceCount += preservedInPlaceCount;
+  STATISTIC(trace->reclaimSize += LOGrainsSize(lo, reclaimedGrains));
+  STATISTIC(trace->preservedInPlaceCount += preservedInPlaceCount);
   trace->preservedInPlaceSize += preservedInPlaceSize;
 
   SegSetWhite(seg, TraceSetDel(SegWhite(seg), trace));
 
-  if (!marked)
+  if (!marked) {
+    AVER(loseg->bufferedGrains == 0);
     PoolGenFree(lo->pgen, seg,
                 LOGrainsSize(lo, loseg->freeGrains),
                 LOGrainsSize(lo, loseg->oldGrains),
                 LOGrainsSize(lo, loseg->newGrains),
                 FALSE);
+  }
 }
 
 /* This walks over _all_ objects in the heap, whether they are */
@@ -513,7 +518,9 @@ static void LOFinish(Pool pool)
   RING_FOR(node, &pool->segRing, nextNode) {
     Seg seg = SegOfPoolRing(node);
     LOSeg loseg = MustBeA(LOSeg, seg);
+    AVER(SegBuffer(seg) == NULL);
     AVERT(LOSeg, loseg);
+    AVER(loseg->bufferedGrains == 0);
     PoolGenFree(lo->pgen, seg,
                 LOGrainsSize(lo, loseg->freeGrains),
                 LOGrainsSize(lo, loseg->oldGrains),
@@ -578,10 +585,10 @@ found:
     BTSetRange(loseg->alloc, baseIndex, limitIndex);
     AVER(loseg->freeGrains >= limitIndex - baseIndex);
     loseg->freeGrains -= limitIndex - baseIndex;
-    loseg->newGrains += limitIndex - baseIndex;
+    loseg->bufferedGrains += limitIndex - baseIndex;
   }
 
-  PoolGenAccountForFill(lo->pgen, AddrOffset(base, limit), FALSE);
+  PoolGenAccountForFill(lo->pgen, AddrOffset(base, limit));
 
   *baseReturn = base;
   *limitReturn = limit;
@@ -598,6 +605,7 @@ static void LOBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
   Seg seg;
   LOSeg loseg;
   Index initIndex, limitIndex;
+  Count usedGrains, unusedGrains;
 
   AVERT(Buffer, buffer);
   AVER(BufferIsReady(buffer));
@@ -620,15 +628,18 @@ static void LOBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
   initIndex = loIndexOfAddr(segBase, lo, init);
   limitIndex = loIndexOfAddr(segBase, lo, limit);
 
-  if(initIndex != limitIndex) {
-    /* Free the unused portion of the buffer (this must be "new", since
-     * it's not condemned). */
+  AVER(initIndex <= limitIndex);
+  if (initIndex < limitIndex)
     loSegFree(loseg, initIndex, limitIndex);
-    AVER(loseg->newGrains >= limitIndex - initIndex);
-    loseg->newGrains -= limitIndex - initIndex;
-    loseg->freeGrains += limitIndex - initIndex;
-    PoolGenAccountForEmpty(lo->pgen, AddrOffset(init, limit), FALSE);
-  }
+
+  unusedGrains = limitIndex - initIndex;
+  AVER(loseg->bufferedGrains >= unusedGrains);
+  usedGrains = loseg->bufferedGrains - unusedGrains;
+  loseg->freeGrains += unusedGrains;
+  loseg->bufferedGrains = 0;
+  loseg->newGrains += usedGrains;
+  PoolGenAccountForEmpty(lo->pgen, LOGrainsSize(lo, usedGrains),
+                         LOGrainsSize(lo, unusedGrains), FALSE);
 }
 
 
@@ -639,7 +650,7 @@ static Res LOWhiten(Pool pool, Trace trace, Seg seg)
   LO lo = MustBeA(LOPool, pool);
   LOSeg loseg = MustBeA(LOSeg, seg);
   Buffer buffer;
-  Count grains, uncondemned;
+  Count grains, agedGrains, uncondemnedGrains;
 
   AVERT(Trace, trace);
   AVER(SegWhite(seg) == TraceSetEMPTY);
@@ -652,19 +663,26 @@ static Res LOWhiten(Pool pool, Trace trace, Seg seg)
     Addr base = SegBase(seg);
     Index scanLimitIndex = loIndexOfAddr(base, lo, BufferScanLimit(buffer));
     Index limitIndex = loIndexOfAddr(base, lo, BufferLimit(buffer));
-    uncondemned = limitIndex - scanLimitIndex;
+    uncondemnedGrains = limitIndex - scanLimitIndex;
     if (0 < scanLimitIndex)
       BTCopyInvertRange(loseg->alloc, loseg->mark, 0, scanLimitIndex);
     if (limitIndex < grains)
       BTCopyInvertRange(loseg->alloc, loseg->mark, limitIndex, grains);
   } else {
-    uncondemned = (Count)0;
+    uncondemnedGrains = (Count)0;
     BTCopyInvertRange(loseg->alloc, loseg->mark, 0, grains);
   }
 
-  PoolGenAccountForAge(lo->pgen, LOGrainsSize(lo, loseg->newGrains - uncondemned), FALSE);
-  loseg->oldGrains += loseg->newGrains - uncondemned;
-  loseg->newGrains = uncondemned;
+
+  /* The unused part of the buffer remains buffered: the rest becomes old. */
+  AVER(loseg->bufferedGrains >= uncondemnedGrains);
+  agedGrains = loseg->bufferedGrains - uncondemnedGrains;
+  PoolGenAccountForAge(lo->pgen, LOGrainsSize(lo, agedGrains),
+                       LOGrainsSize(lo, loseg->newGrains), FALSE);
+  loseg->oldGrains += agedGrains + loseg->newGrains;
+  loseg->bufferedGrains = uncondemnedGrains;
+  loseg->newGrains = 0;
+
   trace->condemned += LOGrainsSize(lo, loseg->oldGrains);
   SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace));
 

@@ -452,6 +452,7 @@ Res PoolGenInit(PoolGen pgen, GenDesc gen, Pool pool)
   pgen->segs = 0;
   pgen->totalSize = 0;
   pgen->freeSize = 0;
+  pgen->bufferedSize = 0;
   pgen->newSize = 0;
   pgen->oldSize = 0;
   pgen->newDeferredSize = 0;
@@ -469,11 +470,12 @@ Res PoolGenInit(PoolGen pgen, GenDesc gen, Pool pool)
 void PoolGenFinish(PoolGen pgen)
 {
   AVERT(PoolGen, pgen);
+  AVER(pgen->segs == 0);
   AVER(pgen->totalSize == 0);
+  AVER(pgen->freeSize == 0);
+  AVER(pgen->bufferedSize == 0);
   AVER(pgen->newSize == 0);
   AVER(pgen->newDeferredSize == 0);
-  AVER(pgen->segs == 0);
-  AVER(pgen->freeSize == 0);
   AVER(pgen->oldSize == 0);
   AVER(pgen->oldDeferredSize == 0);
 
@@ -493,7 +495,8 @@ Bool PoolGenCheck(PoolGen pgen)
   CHECKD_NOSIG(Ring, &pgen->genRing);
   CHECKL((pgen->totalSize == 0) == (pgen->segs == 0));
   CHECKL(pgen->totalSize >= pgen->segs * ArenaGrainSize(PoolArena(pgen->pool)));
-  CHECKL(pgen->totalSize == pgen->freeSize + pgen->newSize + pgen->oldSize
+  CHECKL(pgen->totalSize == pgen->freeSize + pgen->bufferedSize
+         + pgen->newSize + pgen->oldSize
          + pgen->newDeferredSize + pgen->oldDeferredSize);
   return TRUE;
 }
@@ -502,47 +505,42 @@ Bool PoolGenCheck(PoolGen pgen)
 /* PoolGenAccountForFill -- accounting for allocation
  *
  * Call this when the pool allocates memory to the client program via
- * BufferFill. The deferred flag indicates whether the accounting of
- * this memory (for the purpose of scheduling collections) should be
- * deferred until later.
+ * BufferFill.
  *
  * See <design/strategy/#accounting.op.fill>
  */
 
-void PoolGenAccountForFill(PoolGen pgen, Size size, Bool deferred)
+void PoolGenAccountForFill(PoolGen pgen, Size size)
 {
   AVERT(PoolGen, pgen);
-  AVERT(Bool, deferred);
 
   AVER(pgen->freeSize >= size);
   pgen->freeSize -= size;
-  if (deferred)
-    pgen->newDeferredSize += size;
-  else
-    pgen->newSize += size;
+  pgen->bufferedSize += size;
 }
 
 
 /* PoolGenAccountForEmpty -- accounting for emptying a buffer
  *
- * Call this when the client program returns memory (that was never
- * condemned) to the pool via BufferEmpty. The deferred flag is as for
- * PoolGenAccountForFill.
+ * Call this when the client program returns memory to the pool via
+ * BufferEmpty. The deferred flag indicates whether the accounting of
+ * the used memory (for the purpose of scheduling collections) should
+ * be deferred until later.
  *
  * See <design/strategy/#accounting.op.empty>
  */
 
-void PoolGenAccountForEmpty(PoolGen pgen, Size unused, Bool deferred)
+void PoolGenAccountForEmpty(PoolGen pgen, Size used, Size unused, Bool deferred)
 {
   AVERT(PoolGen, pgen);
   AVERT(Bool, deferred);
 
+  AVER(pgen->bufferedSize >= used + unused);
+  pgen->bufferedSize -= used + unused;
   if (deferred) {
-    AVER(pgen->newDeferredSize >= unused);
-    pgen->newDeferredSize -= unused;
+    pgen->newDeferredSize += used;
   } else {
-    AVER(pgen->newSize >= unused);
-    pgen->newSize -= unused;
+    pgen->newSize += used;
   }
   pgen->freeSize += unused;
 }
@@ -550,25 +548,30 @@ void PoolGenAccountForEmpty(PoolGen pgen, Size unused, Bool deferred)
 
 /* PoolGenAccountForAge -- accounting for condemning
  *
- * Call this when memory is condemned via PoolWhiten. The size
- * parameter should be the amount of memory that is being condemned
- * for the first time. The deferred flag is as for PoolGenAccountForFill.
+ * Call this when memory is condemned via PoolWhiten. The parameters
+ * specify the amount of memory that was buffered/new and is now being
+ * condemned for the first time. The deferred flag is as for
+ * PoolGenAccountForEmpty.
  *
  * See <design/strategy/#accounting.op.age>
  */
 
-void PoolGenAccountForAge(PoolGen pgen, Size size, Bool deferred)
+void PoolGenAccountForAge(PoolGen pgen, Size wasBuffered, Size wasNew,
+                          Bool deferred)
 {
   AVERT(PoolGen, pgen);
-  
+  AVERT(Bool, deferred);
+
+  AVER(pgen->bufferedSize >= wasBuffered);
+  pgen->bufferedSize -= wasBuffered;
   if (deferred) {
-    AVER(pgen->newDeferredSize >= size);
-    pgen->newDeferredSize -= size;
-    pgen->oldDeferredSize += size;
+    AVER(pgen->newDeferredSize >= wasNew);
+    pgen->newDeferredSize -= wasNew;
+    pgen->oldDeferredSize += wasBuffered + wasNew;
   } else {
-    AVER(pgen->newSize >= size);
-    pgen->newSize -= size;
-    pgen->oldSize += size;
+    AVER(pgen->newSize >= wasNew);
+    pgen->newSize -= wasNew;
+    pgen->oldSize += wasBuffered + wasNew;
   }
 }
 
@@ -576,7 +579,7 @@ void PoolGenAccountForAge(PoolGen pgen, Size size, Bool deferred)
 /* PoolGenAccountForReclaim -- accounting for reclaiming
  *
  * Call this when reclaiming memory, passing the amount of memory that
- * was reclaimed. The deferred flag is as for PoolGenAccountForFill.
+ * was reclaimed. The deferred flag is as for PoolGenAccountForEmpty.
  *
  * See <design/strategy/#accounting.op.reclaim>
  */
@@ -642,7 +645,7 @@ void PoolGenAccountForSegMerge(PoolGen pgen)
  *
  * Pass the amount of memory in the segment that is accounted as free,
  * old, or new, respectively. The deferred flag is as for
- * PoolGenAccountForFill.
+ * PoolGenAccountForEmpty.
  *
  * See <design/strategy/#accounting.op.free>
  */
@@ -660,7 +663,7 @@ void PoolGenFree(PoolGen pgen, Seg seg, Size freeSize, Size oldSize,
 
   /* Pretend to age and reclaim the contents of the segment to ensure
    * that the entire segment is accounted as free. */
-  PoolGenAccountForAge(pgen, newSize, deferred);
+  PoolGenAccountForAge(pgen, 0, newSize, deferred);
   PoolGenAccountForReclaim(pgen, oldSize + newSize, deferred);
 
   AVER(pgen->totalSize >= size);
@@ -695,6 +698,7 @@ Res PoolGenDescribe(PoolGen pgen, mps_lib_FILE *stream, Count depth)
                "  segs $U\n", (WriteFU)pgen->segs,
                "  totalSize $U\n", (WriteFU)pgen->totalSize,
                "  freeSize $U\n", (WriteFU)pgen->freeSize,
+               "  bufferedSize $U\n", (WriteFU)pgen->bufferedSize,
                "  oldSize $U\n", (WriteFU)pgen->oldSize,
                "  oldDeferredSize $U\n", (WriteFU)pgen->oldDeferredSize,
                "  newSize $U\n", (WriteFU)pgen->newSize,

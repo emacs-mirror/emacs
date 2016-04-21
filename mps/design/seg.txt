@@ -207,7 +207,7 @@ before calling ``SegMerge()``:
   represented if this is not so.
 
 - _`.merge.inv.buffer`: One or other of ``segLo`` and ``segHi`` may
-  attached to a buffer, but not both. Justification: the segment
+  be attached to a buffer, but not both. Justification: the segment
   module does not support attachment of a single seg to 2 buffers.
 
 - _`.merge.inv.similar`: ``segLo`` and ``segHi`` must be sufficiently

@@ -50,10 +50,10 @@ typedef struct ABQStruct
   void *queue;
 
   /* Meter queue depth at each operation */
-  METER_DECL(push);
-  METER_DECL(pop);
-  METER_DECL(peek);
-  METER_DECL(delete);
+  METER_DECL(push)
+  METER_DECL(pop)
+  METER_DECL(peek)
+  METER_DECL(delete)
  
   Sig sig;
 } ABQStruct;

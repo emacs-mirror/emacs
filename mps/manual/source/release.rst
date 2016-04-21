@@ -25,6 +25,17 @@ Other changes
 
    .. _job003883: https://www.ravenbrook.com/project/mps/issue/job003883/
 
+#. Memory in :term:`allocation points` no longer contributes to the
+   decision to start a collection, avoid wasted work repeatedly
+   collecting generations with very small capacities. See job004007_.
+
+   .. _job004007: https://www.ravenbrook.com/project/mps/issue/job004007/
+
+#. The MPS no longer considers collecting the world again, without
+   allowing the :term:`client program` to run first. See job004011_.
+
+   .. _job004011: https://www.ravenbrook.com/project/mps/issue/job004011/
+
 
 .. _release-notes-1.115:
 

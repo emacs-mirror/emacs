@@ -295,8 +295,7 @@ static Res VMChunkCreate(Chunk *chunkReturn, VMArena vmArena, Size size)
   if (res != ResOK)
     goto failBootInit;
 
-  /* Allocate and map the descriptor. */
-  /* See <design/arena/>.@@@@ */
+  /* .overhead.chunk-struct: Allocate and map the chunk structure. */
   res = BootAlloc(&p, boot, sizeof(VMChunkStruct), MPS_PF_ALIGN);
   if (res != ResOK)
     goto failChunkAlloc;
@@ -348,11 +347,13 @@ static Res VMChunkInit(Chunk chunk, BootBlock boot)
   vmChunk = Chunk2VMChunk(chunk);
   AVERT(BootBlock, boot);
   
+  /* .overhead.sa-mapped: Chunk overhead for sparse array 'mapped' table. */
   res = BootAlloc(&p, boot, BTSize(chunk->pages), MPS_PF_ALIGN);
   if (res != ResOK)
     goto failSaMapped;
   saMapped = p;
   
+  /* .overhead.sa-pages: Chunk overhead for sparse array 'pages' table. */
   res = BootAlloc(&p, boot, BTSize(chunk->pageTablePages), MPS_PF_ALIGN);
   if (res != ResOK)
     goto failSaPages;
@@ -360,8 +361,8 @@ static Res VMChunkInit(Chunk chunk, BootBlock boot)
   
   overheadLimit = AddrAdd(chunk->base, (Size)BootAllocated(boot));
 
-  /* Put the page table as late as possible, as in VM systems we don't want */
-  /* to map it. */
+  /* .overhead.page-table: Put the page table as late as possible, as
+   * in VM systems we don't want to map it. */
   res = BootAlloc(&p, boot, chunk->pageTablePages << chunk->pageShift, chunk->pageSize);
   if (res != ResOK)
     goto failAllocPageTable;
@@ -478,6 +479,64 @@ static void vmArenaTrivContracted(Arena arena, Addr base, Size size)
 }
 
 
+/* vmArenaChunkSize -- compute chunk size
+ *
+ * Compute the size of the smallest chunk that has size bytes of usable
+ * address space (that is, after all overheads are accounted for).
+ *
+ * If successful, update *chunkSizeReturn with the computed chunk size
+ * and return ResOK. If size is too large for a chunk, leave
+ * *chunkSizeReturn unchanged and return ResRESOURCE.
+ */
+static Res vmArenaChunkSize(Size *chunkSizeReturn, VMArena vmArena, Size size)
+{
+  Size grainSize;               /* Arena grain size. */
+  Shift grainShift;             /* The corresponding Shift. */
+  Count pages;                  /* Number of usable pages in chunk. */
+  Size pageTableSize;           /* Size of the page table. */
+  Count pageTablePages;         /* Number of pages in the page table. */
+  Size chunkSize;               /* Size of the chunk. */
+  Size overhead;                /* Total overheads for the chunk. */
+
+  AVER(chunkSizeReturn != NULL);
+  AVERT(VMArena, vmArena);
+  AVER(size > 0);
+
+  grainSize = ArenaGrainSize(MustBeA(AbstractArena, vmArena));
+  grainShift = SizeLog2(grainSize);
+
+  overhead = 0;
+  do {
+    chunkSize = size + overhead;
+
+    /* See .overhead.chunk-struct. */
+    overhead = SizeAlignUp(sizeof(VMChunkStruct), MPS_PF_ALIGN);
+
+    /* See <code/tract.c#overhead.pages>, */
+    pages = chunkSize >> grainShift;
+    overhead += SizeAlignUp(BTSize(pages), MPS_PF_ALIGN);
+
+    /* See .overhead.sa-mapped. */
+    overhead += SizeAlignUp(BTSize(pages), MPS_PF_ALIGN);
+
+    /* See .overhead.sa-pages. */
+    pageTableSize = SizeAlignUp(pages * sizeof(PageUnion), grainSize);
+    pageTablePages = pageTableSize >> grainShift;
+    overhead += SizeAlignUp(BTSize(pageTablePages), MPS_PF_ALIGN);
+
+    /* See .overhead.page-table. */
+    overhead = SizeAlignUp(overhead, grainSize);
+    overhead += SizeAlignUp(pageTableSize, grainSize);
+
+    if (SizeMAX - overhead < size)
+      return ResRESOURCE;
+  } while (chunkSize < size + overhead);
+
+  *chunkSizeReturn = chunkSize;
+  return ResOK;
+}
+
+
 /* VMArenaCreate -- create and initialize the VM arena
  *
  * .arena.init: Once the arena has been allocated, we call ArenaInit
@@ -578,6 +637,19 @@ static Res VMArenaCreate(Arena *arenaReturn, ArgList args)
   if (res != ResOK)
     goto failChunkCreate;
 
+#if defined(AVER_AND_CHECK_ALL)
+  /* Check that the computation of the chunk size in vmArenaChunkSize
+   * was correct, now that we have the actual chunk for comparison. */
+  {
+    Size usableSize, computedChunkSize;
+    usableSize = AddrOffset(PageIndexBase(chunk, chunk->allocBase),
+                            chunk->limit);
+    res = vmArenaChunkSize(&computedChunkSize, vmArena, usableSize);
+    AVER(res == ResOK);
+    AVER(computedChunkSize == ChunkSize(chunk));
+  }
+#endif
+
   /* .zoneshift: Set the zone shift to divide the chunk into the same */
   /* number of stripes as will fit into a reference set (the number of */
   /* bits in a word).  Fail if the chunk is so small stripes are smaller */
@@ -641,50 +713,27 @@ static void VMArenaDestroy(Arena arena)
 }
 
 
-/* vmArenaChunkSize -- choose chunk size for arena extension
- *
- * .vmchunk.overhead: This code still lacks a proper estimate of
- * the overhead required by a vmChunk for chunkStruct, page tables
- * etc.  For now, estimate it as 10%.  RHSK 2007-12-21
- */
-static Size vmArenaChunkSize(VMArena vmArena, Size size)
-{
-  Size fraction = 10;  /* 10% -- see .vmchunk.overhead */
-  Size chunkSize;
-  Size chunkOverhead;
-
-  /* 1: use extendBy, if it is big enough for size + overhead */
-  chunkSize = vmArena->extendBy;
-  chunkOverhead = chunkSize / fraction;
-  if(chunkSize > size && (chunkSize - size) >= chunkOverhead)
-    return chunkSize;
-
-  /* 2: use size + overhead (unless it overflows SizeMAX) */
-  chunkOverhead = size / (fraction - 1);
-  if((SizeMAX - size) >= chunkOverhead)
-    return size + chunkOverhead;
-
-  /* 3: use SizeMAX */
-  return SizeMAX;
-}
-
-
 /* VMArenaGrow -- Extend the arena by making a new chunk
  *
- * The size arg specifies how much we wish to allocate after the extension.
+ * size specifies how much we wish to allocate after the extension.
+ * pref specifies the preference for the location of the allocation.
  */
 static Res VMArenaGrow(Arena arena, LocusPref pref, Size size)
 {
   VMArena vmArena = MustBeA(VMArena, arena);
   Chunk newChunk;
   Size chunkSize;
+  Size chunkMin;
   Res res;
   
   /* TODO: Ensure that extended arena will be able to satisfy pref. */
   AVERT(LocusPref, pref);
   UNUSED(pref);
 
-  chunkSize = vmArenaChunkSize(vmArena, size);
+  res = vmArenaChunkSize(&chunkMin, vmArena, size);
+  if (res != ResOK)
+    return res;
+  chunkSize = vmArena->extendBy;
 
   EVENT3(vmArenaExtendStart, size, chunkSize, ArenaReserved(arena));
 
@@ -692,7 +741,6 @@ static Res VMArenaGrow(Arena arena, LocusPref pref, Size size)
   {
     unsigned fidelity = 8;  /* max fraction of addr-space we may 'waste' */
     Size chunkHalf;
-    Size chunkMin = 4 * 1024;  /* typical single page */
     Size sliceSize;
     
     if (vmArena->extendMin > chunkMin)
@@ -1097,30 +1145,26 @@ static Bool vmChunkCompact(Tree tree, void *closure)
 
 static void VMCompact(Arena arena, Trace trace)
 {
-  Size vmem1;
+  STATISTIC_DECL(Size vmem1)
 
   AVERT(Trace, trace);
 
-  vmem1 = ArenaReserved(arena);
+  STATISTIC(vmem1 = ArenaReserved(arena));
 
   /* Destroy chunks that are completely free, but not the primary
    * chunk. See <design/arena/#chunk.delete>
    * TODO: add hysteresis here. See job003815. */
   TreeTraverseAndDelete(&arena->chunkTree, vmChunkCompact, arena);
 
-  {
+  STATISTIC({
     Size vmem0 = trace->preTraceArenaReserved;
     Size vmem2 = ArenaReserved(arena);
 
-    /* VMCompact event: emit for all client-requested collections, */
-    /* plus any others where chunks were gained or lost during the */
-    /* collection.  */
-    if(trace->why == TraceStartWhyCLIENTFULL_INCREMENTAL
-       || trace->why == TraceStartWhyCLIENTFULL_BLOCK
-       || vmem0 != vmem1
-       || vmem1 != vmem2)
+    /* VMCompact event: emit for collections where chunks were gained
+     * or lost during the collection. */
+    if (vmem0 != vmem1 || vmem1 != vmem2)
       EVENT3(VMCompact, vmem0, vmem1, vmem2);
-  }
+  });
 }
 
 mps_res_t mps_arena_vm_growth(mps_arena_t mps_arena,
