@@ -784,6 +784,7 @@ static Res AMSInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
   Bool supportAmbiguous = AMS_SUPPORT_AMBIGUOUS_DEFAULT;
   unsigned gen = AMS_GEN_DEFAULT;
   ArgStruct arg;
+  AMS ams;
 
   AVER(pool != NULL);
   AVERT(Arena, arena);
@@ -801,45 +802,22 @@ static Res AMSInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
   if (ArgPick(&arg, args, MPS_KEY_AMS_SUPPORT_AMBIGUOUS))
     supportAmbiguous = arg.val.b;
 
-  /* .ambiguous.noshare: If the pool is required to support ambiguous */
-  /* references, the alloc and white tables cannot be shared. */
-  res = AMSInitInternal(PoolAMS(pool), arena, klass,
-                        chain, gen, !supportAmbiguous, args);
-  if (res == ResOK) {
-    EVENT3(PoolInitAMS, pool, PoolArena(pool), pool->format);
-  }
-  return res;
-}
+  AVERT(Chain, chain);
+  AVER(gen <= ChainGens(chain));
+  AVER(chain->arena == arena);
 
-
-/* AMSInitInternal -- initialize an AMS pool, given the format and the chain */
-
-Res AMSInitInternal(AMS ams, Arena arena, PoolClass klass,
-                    Chain chain, unsigned gen,
-                    Bool shareAllocTable, ArgList args)
-{
-  Pool pool;
-  Res res;
-
-  /* Can't check ams, it's not initialized. */
-  pool = AMSPool(ams);
-
-  AVERT(Arena, arena);
   res = PoolAbsInit(pool, arena, klass, args);
   if (res != ResOK)
     goto failAbsInit;
-  AVER(ams == CouldBeA(AMSPool, pool));
-
-
-  AVERT(Chain, chain);
-  AVER(gen <= ChainGens(chain));
-  AVER(chain->arena == PoolArena(pool));
+  ams = CouldBeA(AMSPool, pool);
 
   /* Ensure a format was supplied in the argument list. */
   AVER(pool->format != NULL);
   pool->alignment = pool->format->alignment;
   ams->grainShift = SizeLog2(PoolAlignment(pool));
-  ams->shareAllocTable = shareAllocTable;
+  /* .ambiguous.noshare: If the pool is required to support ambiguous */
+  /* references, the alloc and white tables cannot be shared. */
+  ams->shareAllocTable = !supportAmbiguous;
   ams->pgen = NULL;
 
   RingInit(&ams->segRing);
@@ -858,6 +836,8 @@ Res AMSInitInternal(AMS ams, Arena arena, PoolClass klass,
   if (res != ResOK)
     goto failGenInit;
   ams->pgen = &ams->pgenStruct;
+
+  EVENT3(PoolInitAMS, pool, PoolArena(pool), pool->format);
 
   return ResOK;
 
