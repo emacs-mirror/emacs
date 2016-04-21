@@ -1715,7 +1715,7 @@ static void AMSWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
     next = format->skip(object);
     next = AddrSub(next, format->headerSize);
     AVER(AddrIsAligned(next, PoolAlignment(pool)));
-    if (!AMS_IS_WHITE(seg, i))
+    if (!amsseg->colourTablesInUse || !AMS_IS_WHITE(seg, i))
       (*f)(object, pool->format, pool, p, s);
     object = next;
   }
