@@ -109,19 +109,26 @@ typedef const struct SrcIdStruct {
 #define NELEMS(a) (sizeof(a)/sizeof((a)[0]))
 
 
-/* DISCARD -- discards an expression, but checks syntax
+/* DISCARD_EXP -- discard an expression, but check syntax
+ *
+ * .discard: DISCARD_EXP uses sizeof so that the expression is not
+ * evaluated and yet the compiler will check that it is a valid
+ * expression. The conditional is compared with zero so it can
+ * designate a bitfield object.
+ */
+
+#define DISCARD_EXP(expr) ((void)sizeof((expr)!=0))
+
+
+/* DISCARD -- discards an expression in statement context, but checks syntax
  *
  * The argument is an expression; the expansion followed by a semicolon
  * is syntactically a statement (to avoid it being used in computation).
- *
- * .discard: DISCARD uses sizeof so that the expression is not evaluated
- * and yet the compiler will check that it is a valid expression. The
- * conditional is compared with zero so it can designate a bitfield object.
  */
 
 #define DISCARD(expr) \
   BEGIN \
-    (void)sizeof((expr)!=0); \
+    DISCARD_EXP(expr); \
   END
 
 

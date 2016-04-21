@@ -42,87 +42,111 @@ Bool ArenaGrainSizeCheck(Size size)
 static void ArenaTrivCompact(Arena arena, Trace trace);
 static void arenaFreePage(Arena arena, Addr base, Pool pool);
 static void arenaFreeLandFinish(Arena arena);
+static Res ArenaAbsInit(Arena arena, Size grainSize, ArgList args);
+static void ArenaAbsFinish(Arena arena);
+static Res ArenaAbsDescribe(Arena arena, mps_lib_FILE *stream, Count depth);
 
 
-/* ArenaTrivDescribe -- produce trivial description of an arena */
-
-static Res ArenaTrivDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
+static void ArenaNoFree(Addr base, Size size, Pool pool)
 {
-  if (!TESTT(Arena, arena))
-    return ResFAIL;
-  if (stream == NULL)
-    return ResFAIL;
+  UNUSED(base);
+  UNUSED(size);
+  UNUSED(pool);
+  NOTREACHED;
+}
 
-  /* .describe.triv.never-called-from-subclass-method:
-   * This Triv method seems to assume that it will never get called
-   * from a subclass-method invoking ARENA_SUPERCLASS()->describe.
-   * It assumes that it only gets called if the describe method has
-   * not been subclassed.  (That's the only reason for printing the
-   * "No class-specific description available" message).
-   * This is bogus, but that's the status quo.  RHSK 2007-04-27.
-   */
-  /* .describe.triv.dont-upcall: Therefore (for now) the last 
-   * subclass describe method should avoid invoking 
-   * ARENA_SUPERCLASS()->describe.  RHSK 2007-04-27.
-   */
-  return WriteF(stream, depth,
-                "  No class-specific description available.\n", NULL);
+static Res ArenaNoChunkInit(Chunk chunk, BootBlock boot)
+{
+  UNUSED(chunk);
+  UNUSED(boot);
+  NOTREACHED;
+  return ResUNIMPL;
+}
+
+static void ArenaNoChunkFinish(Chunk chunk)
+{
+  UNUSED(chunk);
+  NOTREACHED;
+}
+
+static Res ArenaNoPagesMarkAllocated(Arena arena, Chunk chunk,
+                                     Index baseIndex, Count pages,
+                                     Pool pool)
+{
+  UNUSED(arena);
+  UNUSED(chunk);
+  UNUSED(baseIndex);
+  UNUSED(pages);
+  UNUSED(pool);
+  NOTREACHED;
+  return ResUNIMPL;
+}
+
+static Res ArenaNoCreate(Arena *arenaReturn, ArgList args)
+{
+  UNUSED(arenaReturn);
+  UNUSED(args);
+  NOTREACHED;
+  return ResUNIMPL;
+}
+
+static void ArenaNoDestroy(Arena arena)
+{
+  UNUSED(arena);
+  NOTREACHED;
+}
+
+DEFINE_CLASS(Inst, ArenaClass, klass)
+{
+  INHERIT_CLASS(klass, ArenaClass, InstClass);
 }
 
 
-/* AbstractArenaClass  -- The abstract arena class definition
- *
- * .null: Most abstract class methods are set to NULL.  See
- * <design/arena/#class.abstract.null>.  */
+/* AbstractArenaClass  -- The abstract arena class definition */
 
-typedef ArenaClassStruct AbstractArenaClassStruct;
-
-DEFINE_CLASS(AbstractArenaClass, class)
+DEFINE_CLASS(Arena, AbstractArena, klass)
 {
-  INHERIT_CLASS(&class->protocol, ProtocolClass);
-  class->name = "ABSARENA";
-  class->size = 0;
-  class->offset = 0;
-  class->varargs = ArgTrivVarargs;
-  class->init = NULL;
-  class->finish = NULL;
-  class->purgeSpare = ArenaNoPurgeSpare;
-  class->extend = ArenaNoExtend;
-  class->grow = ArenaNoGrow;
-  class->free = NULL;
-  class->chunkInit = NULL;
-  class->chunkFinish = NULL;
-  class->compact = ArenaTrivCompact;
-  class->describe = ArenaTrivDescribe;
-  class->pagesMarkAllocated = NULL;
-  class->sig = ArenaClassSig;
+  INHERIT_CLASS(&klass->protocol, AbstractArena, Inst);
+  klass->size = sizeof(ArenaStruct);
+  klass->varargs = ArgTrivVarargs;
+  klass->init = ArenaAbsInit;
+  klass->finish = ArenaAbsFinish;
+  klass->create = ArenaNoCreate;
+  klass->destroy = ArenaNoDestroy;
+  klass->purgeSpare = ArenaNoPurgeSpare;
+  klass->extend = ArenaNoExtend;
+  klass->grow = ArenaNoGrow;
+  klass->free = ArenaNoFree;
+  klass->chunkInit = ArenaNoChunkInit;
+  klass->chunkFinish = ArenaNoChunkFinish;
+  klass->compact = ArenaTrivCompact;
+  klass->describe = ArenaAbsDescribe;
+  klass->pagesMarkAllocated = ArenaNoPagesMarkAllocated;
+  klass->sig = ArenaClassSig;
 }
 
 
 /* ArenaClassCheck -- check the consistency of an arena class */
 
-Bool ArenaClassCheck(ArenaClass class)
+Bool ArenaClassCheck(ArenaClass klass)
 {
-  CHECKD(ProtocolClass, &class->protocol);
-  CHECKL(class->name != NULL); /* Should be <=6 char C identifier */
-  CHECKL(class->size >= sizeof(ArenaStruct));
-  /* Offset of generic Pool within class-specific instance cannot be */
-  /* greater than the size of the class-specific portion of the */
-  /* instance. */
-  CHECKL(class->offset <= (size_t)(class->size - sizeof(ArenaStruct)));
-  CHECKL(FUNCHECK(class->varargs));
-  CHECKL(FUNCHECK(class->init));
-  CHECKL(FUNCHECK(class->finish));
-  CHECKL(FUNCHECK(class->purgeSpare));
-  CHECKL(FUNCHECK(class->extend));
-  CHECKL(FUNCHECK(class->grow));
-  CHECKL(FUNCHECK(class->free));
-  CHECKL(FUNCHECK(class->chunkInit));
-  CHECKL(FUNCHECK(class->chunkFinish));
-  CHECKL(FUNCHECK(class->compact));
-  CHECKL(FUNCHECK(class->describe));
-  CHECKL(FUNCHECK(class->pagesMarkAllocated));
-  CHECKS(ArenaClass, class);
+  CHECKD(InstClass, &klass->protocol);
+  CHECKL(klass->size >= sizeof(ArenaStruct));
+  CHECKL(FUNCHECK(klass->varargs));
+  CHECKL(FUNCHECK(klass->init));
+  CHECKL(FUNCHECK(klass->finish));
+  CHECKL(FUNCHECK(klass->create));
+  CHECKL(FUNCHECK(klass->destroy));
+  CHECKL(FUNCHECK(klass->purgeSpare));
+  CHECKL(FUNCHECK(klass->extend));
+  CHECKL(FUNCHECK(klass->grow));
+  CHECKL(FUNCHECK(klass->free));
+  CHECKL(FUNCHECK(klass->chunkInit));
+  CHECKL(FUNCHECK(klass->chunkFinish));
+  CHECKL(FUNCHECK(klass->compact));
+  CHECKL(FUNCHECK(klass->describe));
+  CHECKL(FUNCHECK(klass->pagesMarkAllocated));
+  CHECKS(ArenaClass, klass);
   return TRUE;
 }
 
@@ -131,9 +155,8 @@ Bool ArenaClassCheck(ArenaClass class)
 
 Bool ArenaCheck(Arena arena)
 {
-  CHECKS(Arena, arena);
+  CHECKC(AbstractArena, arena);
   CHECKD(Globals, ArenaGlobals(arena));
-  CHECKD(ArenaClass, arena->class);
 
   CHECKL(BoolCheck(arena->poolReady));
   if (arena->poolReady) { /* <design/arena/#pool.ready> */
@@ -185,17 +208,9 @@ Bool ArenaCheck(Arena arena)
 }
 
 
-/* ArenaInit -- initialize the generic part of the arena
- *
- * .init.caller: ArenaInit is called by class->init (which is called
- * by ArenaCreate). The initialization must proceed in this order, as
- * opposed to class->init being called by ArenaInit, which would
- * correspond to the initialization order for pools and other objects,
- * because the memory for the arena structure is not available until
- * it has been allocated by the arena class.
- */
+/* ArenaAbsInit -- initialize the generic part of the arena */
 
-Res ArenaInit(Arena arena, ArenaClass class, Size grainSize, ArgList args)
+static Res ArenaAbsInit(Arena arena, Size grainSize, ArgList args)
 {
   Res res;
   Bool zoned = ARENA_DEFAULT_ZONED;
@@ -205,7 +220,6 @@ Res ArenaInit(Arena arena, ArenaClass class, Size grainSize, ArgList args)
   mps_arg_s arg;
 
   AVER(arena != NULL);
-  AVERT(ArenaClass, class);
   AVERT(ArenaGrainSize, grainSize);
   
   if (ArgPick(&arg, args, MPS_KEY_ARENA_ZONED))
@@ -217,7 +231,8 @@ Res ArenaInit(Arena arena, ArenaClass class, Size grainSize, ArgList args)
   if (ArgPick(&arg, args, MPS_KEY_PAUSE_TIME))
     pauseTime = arg.val.d;
 
-  arena->class = class;
+  /* Superclass init */
+  InstInit(CouldBeA(Inst, arena));
 
   arena->reserved = (Size)0;
   arena->committed = (Size)0;
@@ -246,8 +261,9 @@ Res ArenaInit(Arena arena, ArenaClass class, Size grainSize, ArgList args)
   if (res != ResOK)
     goto failGlobalsInit;
 
+  SetClassOfPoly(arena, CLASS(AbstractArena));
   arena->sig = ArenaSig;
-  AVERT(Arena, arena);
+  AVERC(Arena, arena);
   
   /* Initialise a pool to hold the CBS blocks for the arena's free
    * land. This pool can't be allowed to extend itself using
@@ -265,12 +281,12 @@ Res ArenaInit(Arena arena, ArenaClass class, Size grainSize, ArgList args)
   if (res != ResOK)
     goto failMFSInit;
 
-  AVERT(Arena, arena);
   return ResOK;
 
 failMFSInit:
   GlobalsFinish(ArenaGlobals(arena));
 failGlobalsInit:
+  InstFinish(MustBeA(Inst, arena));
   return res;
 }
 
@@ -306,7 +322,7 @@ static Res arenaFreeLandInit(Arena arena)
   /* Initialise the free land. */
   MPS_ARGS_BEGIN(liArgs) {
     MPS_ARGS_ADD(liArgs, CBSBlockPool, ArenaCBSBlockPool(arena));
-    res = LandInit(ArenaFreeLand(arena), CBSZonedLandClassGet(), arena,
+    res = LandInit(ArenaFreeLand(arena), CLASS(CBSZoned), arena,
                    ArenaGrainSize(arena), arena, liArgs);
   } MPS_ARGS_END(liArgs);
   AVER(res == ResOK); /* no allocation, no failure expected */
@@ -332,13 +348,13 @@ failLandInit:
   return res;
 }
 
-Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args)
+Res ArenaCreate(Arena *arenaReturn, ArenaClass klass, ArgList args)
 {
   Arena arena;
   Res res;
 
   AVER(arenaReturn != NULL);
-  AVERT(ArenaClass, class);
+  AVERT(ArenaClass, klass);
   AVERT(ArgList, args);
 
   /* We must initialise the event subsystem very early, because event logging
@@ -346,15 +362,17 @@ Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args)
      to the EventLast pointers. */
   EventInit();
 
-  /* Do initialization.  This will call ArenaInit (see .init.caller). */
-  res = (*class->init)(&arena, class, args);
+  res = klass->create(&arena, args);
   if (res != ResOK)
     goto failInit;
 
-  /* Zone shift must have been set up by *class->init() */
+  /* Zone shift must have been set up by klass->create() */
   AVER(ShiftCheck(arena->zoneShift));
 
-  /* Grain size must have been set up by *class->init() */
+  /* TODO: Consider how each of the stages below could be incorporated
+     into arena initialization, rather than tacked on here. */
+
+  /* Grain size must have been set up by klass->create() */
   if (ArenaGrainSize(arena) > ((Size)1 << arena->zoneShift)) {
     res = ResMEMORY; /* size was too small */
     goto failStripeSize;
@@ -382,22 +400,25 @@ failControlInit:
   arenaFreeLandFinish(arena);
 failFreeLandInit:
 failStripeSize:
-  (*class->finish)(arena);
+  klass->destroy(arena);
 failInit:
   return res;
 }
 
 
-/* ArenaFinish -- finish the generic part of the arena
+/* ArenaAbsFinish -- finish the generic part of the arena
  *
  * .finish.caller: Unlike PoolFinish, this is called by the class finish
  * methods, not the generic Destroy.  This is because the class is
- * responsible for deallocating the descriptor.  */
+ * responsible for deallocating the descriptor.
+ */
 
-void ArenaFinish(Arena arena)
+static void ArenaAbsFinish(Arena arena)
 {
+  AVERC(Arena, arena);
   PoolFinish(ArenaCBSBlockPool(arena));
   arena->sig = SigInvalid;
+  InstFinish(MustBeA(Inst, arena));
   GlobalsFinish(ArenaGlobals(arena));
   LocusFinish(arena);
   RingFinish(ArenaChunkRing(arena));
@@ -449,8 +470,8 @@ void ArenaDestroy(Arena arena)
    * containing CBS blocks might be allocated in those chunks. */
   arenaFreeLandFinish(arena);
 
-  /* Call class-specific finishing.  This will call ArenaFinish. */
-  (*arena->class->finish)(arena);
+  /* Call class-specific destruction.  This will call ArenaAbsFinish. */
+  Method(Arena, arena, destroy)(arena);
 
   EventFinish();
 }
@@ -489,19 +510,16 @@ void ControlFinish(Arena arena)
 
 /* ArenaDescribe -- describe the arena */
 
-Res ArenaDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
+static Res ArenaAbsDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
 {
   Res res;
 
-  if (!TESTT(Arena, arena))
-    return ResFAIL;
+  if (!TESTC(AbstractArena, arena))
+    return ResPARAM;
   if (stream == NULL)
-    return ResFAIL;
+    return ResPARAM;
 
-  res = WriteF(stream, depth, "Arena $P {\n", (WriteFP)arena,
-               "  class $P (\"$S\")\n",
-               (WriteFP)arena->class, (WriteFS)arena->class->name,
-               NULL);
+  res = InstDescribe(CouldBeA(Inst, arena), stream, depth);
   if (res != ResOK)
     return res;
 
@@ -538,25 +556,16 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
   if (res != ResOK)
     return res;
 
-  res = (*arena->class->describe)(arena, stream, depth);
+  res = GlobalsDescribe(ArenaGlobals(arena), stream, depth + 2);
   if (res != ResOK)
     return res;
 
-  res = WriteF(stream, depth + 2, "Globals {\n", NULL);
-  if (res != ResOK)
-    return res;  
-  res = GlobalsDescribe(ArenaGlobals(arena), stream, depth + 4);
-  if (res != ResOK)
-    return res;
-  res = WriteF(stream, depth + 2, "} Globals\n", NULL);
-  if (res != ResOK)
-    return res;  
-
-  res = WriteF(stream, depth,
-               "} Arena $P ($U)\n", (WriteFP)arena,
-               (WriteFU)arena->serial,
-               NULL);
   return res;
+}
+
+Res ArenaDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
+{
+  return Method(Arena, arena, describe)(arena, stream, depth);
 }
 
 
@@ -590,10 +599,11 @@ static Res arenaDescribeTractsInChunk(Chunk chunk, mps_lib_FILE *stream, Count d
         return res;
       if (TractHasPool(tract)) {
         Pool pool = TractPool(tract);
+        PoolClass poolClass = ClassOfPoly(Pool, pool);
         res = WriteF(stream, 0, " $P $U ($S)",
                      (WriteFP)pool,
                      (WriteFU)(pool->serial),
-                     (WriteFS)(pool->class->name),
+                     (WriteFS)ClassName(poolClass),
                      NULL);
         if (res != ResOK)
           return res;
@@ -771,9 +781,9 @@ static Res arenaAllocPageInChunk(Addr *baseReturn, Chunk chunk, Pool pool)
                            chunk->allocBase, chunk->pages, 1))
     return ResRESOURCE;
   
-  res = (*arena->class->pagesMarkAllocated)(arena, chunk,
-                                            basePageIndex, 1,
-                                            pool);
+  res = Method(Arena, arena, pagesMarkAllocated)(arena, chunk,
+                                                 basePageIndex, 1,
+                                                 pool);
   if (res != ResOK)
     return res;
 
@@ -814,7 +824,7 @@ static void arenaFreePage(Arena arena, Addr base, Pool pool)
 {
   AVERT(Arena, arena);
   AVERT(Pool, pool);
-  (*arena->class->free)(base, ArenaGrainSize(arena), pool);
+  Method(Arena, arena, free)(base, ArenaGrainSize(arena), pool);
 }
 
 
@@ -1061,7 +1071,7 @@ Res ArenaFreeLandAlloc(Tract *tractReturn, Arena arena, ZoneSet zones,
   baseIndex = INDEX_OF_ADDR(chunk, RangeBase(&range));
   pages = ChunkSizeToPages(chunk, RangeSize(&range));
 
-  res = (*arena->class->pagesMarkAllocated)(arena, chunk, baseIndex, pages, pool);
+  res = Method(Arena, arena, pagesMarkAllocated)(arena, chunk, baseIndex, pages, pool);
   if (res != ResOK)
     goto failMark;
 
@@ -1154,7 +1164,7 @@ void ArenaFree(Addr base, Size size, Pool pool)
 
   arenaFreeLandInsertSteal(&oldRange, arena, &range); /* may update range */
 
-  (*arena->class->free)(RangeBase(&range), RangeSize(&range), pool);
+  Method(Arena, arena, free)(RangeBase(&range), RangeSize(&range), pool);
 
   /* Freeing memory might create spare pages, but not more than this. */
   CHECKL(arena->spareCommitted <= arena->spareCommitLimit);
@@ -1196,7 +1206,7 @@ void ArenaSetSpareCommitLimit(Arena arena, Size limit)
   arena->spareCommitLimit = limit;
   if (arena->spareCommitLimit < arena->spareCommitted) {
     Size excess = arena->spareCommitted - arena->spareCommitLimit;
-    (void)arena->class->purgeSpare(arena, excess);
+    (void)Method(Arena, arena, purgeSpare)(arena, excess);
   }
 
   EVENT2(SpareCommitLimitSet, arena, limit);
@@ -1253,7 +1263,7 @@ Res ArenaSetCommitLimit(Arena arena, Size limit)
     /* Attempt to set the limit below current committed */
     if (limit >= committed - arena->spareCommitted) {
       Size excess = committed - limit;
-      (void)arena->class->purgeSpare(arena, excess);
+      (void)Method(Arena, arena, purgeSpare)(arena, excess);
       AVER(limit >= ArenaCommitted(arena));
       arena->commitLimit = limit;
       res = ResOK;
@@ -1323,7 +1333,7 @@ Res ArenaExtend(Arena arena, Addr base, Size size)
   AVER(base != (Addr)0);
   AVER(size > 0);
 
-  res = (*arena->class->extend)(arena, base, size);
+  res = Method(Arena, arena, extend)(arena, base, size);
   if (res != ResOK)
     return res;
 
@@ -1351,7 +1361,7 @@ void ArenaCompact(Arena arena, Trace trace)
 {
   AVERT(Arena, arena);
   AVERT(Trace, trace);
-  (*arena->class->compact)(arena, trace);
+  Method(Arena, arena, compact)(arena, trace);
 }
 
 static void ArenaTrivCompact(Arena arena, Trace trace)
