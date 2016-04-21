@@ -44,32 +44,7 @@ static void arenaFreePage(Arena arena, Addr base, Pool pool);
 static void arenaFreeLandFinish(Arena arena);
 static Res ArenaAbsInit(Arena arena, Size grainSize, ArgList args);
 static void ArenaAbsFinish(Arena arena);
-
-
-/* ArenaTrivDescribe -- produce trivial description of an arena */
-
-static Res ArenaTrivDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
-{
-  if (!TESTT(Arena, arena))
-    return ResFAIL;
-  if (stream == NULL)
-    return ResFAIL;
-
-  /* .describe.triv.never-called-from-subclass-method:
-   * This Triv method seems to assume that it will never get called
-   * from a subclass-method invoking ARENA_SUPERCLASS()->describe.
-   * It assumes that it only gets called if the describe method has
-   * not been subclassed.  (That's the only reason for printing the
-   * "No class-specific description available" message).
-   * This is bogus, but that's the status quo.  RHSK 2007-04-27.
-   */
-  /* .describe.triv.dont-upcall: Therefore (for now) the last 
-   * subclass describe method should avoid invoking 
-   * ARENA_SUPERCLASS()->describe.  RHSK 2007-04-27.
-   */
-  return WriteF(stream, depth,
-                "  No class-specific description available.\n", NULL);
-}
+static Res ArenaAbsDescribe(Arena arena, mps_lib_FILE *stream, Count depth);
 
 
 static void ArenaNoFree(Addr base, Size size, Pool pool)
@@ -145,7 +120,7 @@ DEFINE_CLASS(Arena, AbstractArena, klass)
   klass->chunkInit = ArenaNoChunkInit;
   klass->chunkFinish = ArenaNoChunkFinish;
   klass->compact = ArenaTrivCompact;
-  klass->describe = ArenaTrivDescribe;
+  klass->describe = ArenaAbsDescribe;
   klass->pagesMarkAllocated = ArenaNoPagesMarkAllocated;
   klass->sig = ArenaClassSig;
 }
@@ -535,21 +510,16 @@ void ControlFinish(Arena arena)
 
 /* ArenaDescribe -- describe the arena */
 
-Res ArenaDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
+static Res ArenaAbsDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
 {
   Res res;
-  ArenaClass klass;
 
   if (!TESTC(AbstractArena, arena))
     return ResPARAM;
   if (stream == NULL)
     return ResPARAM;
 
-  klass = ClassOfPoly(Arena, arena);
-  res = WriteF(stream, depth, "Arena $P {\n", (WriteFP)arena,
-               "  class $P (\"$S\")\n",
-               (WriteFP)klass, (WriteFS)ClassName(klass),
-               NULL);
+  res = InstDescribe(CouldBeA(Inst, arena), stream, depth);
   if (res != ResOK)
     return res;
 
@@ -586,25 +556,16 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
   if (res != ResOK)
     return res;
 
-  res = Method(Arena, arena, describe)(arena, stream, depth);
+  res = GlobalsDescribe(ArenaGlobals(arena), stream, depth + 2);
   if (res != ResOK)
     return res;
 
-  res = WriteF(stream, depth + 2, "Globals {\n", NULL);
-  if (res != ResOK)
-    return res;  
-  res = GlobalsDescribe(ArenaGlobals(arena), stream, depth + 4);
-  if (res != ResOK)
-    return res;
-  res = WriteF(stream, depth + 2, "} Globals\n", NULL);
-  if (res != ResOK)
-    return res;  
-
-  res = WriteF(stream, depth,
-               "} Arena $P ($U)\n", (WriteFP)arena,
-               (WriteFU)arena->serial,
-               NULL);
   return res;
+}
+
+Res ArenaDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
+{
+  return Method(Arena, arena, describe)(arena, stream, depth);
 }
 
 

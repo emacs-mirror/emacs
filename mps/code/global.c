@@ -947,8 +947,12 @@ Res GlobalsDescribe(Globals arenaGlobals, mps_lib_FILE *stream, Count depth)
   if (stream == NULL)
     return ResFAIL;
 
+  res = WriteF(stream, depth, "Globals\n", NULL);
+  if (res != ResOK)
+    return res;  
+
   arena = GlobalsArena(arenaGlobals);
-  res = WriteF(stream, depth,
+  res = WriteF(stream, depth + 2,
                "mpsVersion $S\n", (WriteFS)arenaGlobals->mpsVersionString,
                "lock $P\n", (WriteFP)arenaGlobals->lock,
                "pollThreshold $U kB\n",
@@ -979,45 +983,45 @@ Res GlobalsDescribe(Globals arenaGlobals, mps_lib_FILE *stream, Count depth)
   if (res != ResOK)
     return res;
 
-  res = ShieldDescribe(ArenaShield(arena), stream, depth);
+  res = ShieldDescribe(ArenaShield(arena), stream, depth + 2);
   if (res != ResOK)
     return res;
 
-  res = RootsDescribe(arenaGlobals, stream, depth);
+  res = RootsDescribe(arenaGlobals, stream, depth + 2);
   if (res != ResOK)
     return res;
 
   RING_FOR(node, &arenaGlobals->poolRing, nextNode) {
     Pool pool = RING_ELT(Pool, arenaRing, node);
-    res = PoolDescribe(pool, stream, depth);
+    res = PoolDescribe(pool, stream, depth + 2);
     if (res != ResOK)
       return res;
   }
 
   RING_FOR(node, &arena->formatRing, nextNode) {
     Format format = RING_ELT(Format, arenaRing, node);
-    res = FormatDescribe(format, stream, depth);
+    res = FormatDescribe(format, stream, depth + 2);
     if (res != ResOK)
       return res;
   }
 
   RING_FOR(node, &arena->threadRing, nextNode) {
     Thread thread = ThreadRingThread(node);
-    res = ThreadDescribe(thread, stream, depth);
+    res = ThreadDescribe(thread, stream, depth + 2);
     if (res != ResOK)
       return res;
   }
 
   RING_FOR(node, &arena->chainRing, nextNode) {
     Chain chain = RING_ELT(Chain, chainRing, node);
-    res = ChainDescribe(chain, stream, depth);
+    res = ChainDescribe(chain, stream, depth + 2);
     if (res != ResOK)
       return res;
   }
 
   TRACE_SET_ITER(ti, trace, TraceSetUNIV, arena)
     if (TraceSetIsMember(arena->busyTraces, trace)) {
-      res = TraceDescribe(trace, stream, depth);
+      res = TraceDescribe(trace, stream, depth + 2);
       if (res != ResOK)
         return res;
     }

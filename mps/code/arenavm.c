@@ -197,15 +197,9 @@ static Res VMArenaDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
   if (stream == NULL)
     return ResPARAM;
 
-  /* Describe the superclass fields first via next-method call */
-  /* ...but the next method is ArenaTrivDescribe, so don't call it;
-   * see impl.c.arena#describe.triv.dont-upcall.
-   *
-  res = NextMethod(Arena, VMArena, describe)(arena, stream);
+  res = NextMethod(Arena, VMArena, describe)(arena, stream, depth);
   if (res != ResOK)
     return res;
-   *
-  */
 
   res = WriteF(stream, depth,
                "  spareSize:     $U\n", (WriteFU)vmArena->spareSize,
@@ -213,7 +207,7 @@ static Res VMArenaDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
   if(res != ResOK)
     return res;
 
-  /* (incomplete: some fields are not Described) */
+  /* TODO: incomplete -- some fields are not Described */
 
   return ResOK;
 }
