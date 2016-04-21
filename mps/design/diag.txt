@@ -78,7 +78,7 @@ There are two mechanism for getting diagnostic output:
         0x00007fff83e42d46 in __kill ()
         (gdb) frame 12
         #12 0x000000010000b1fc in MVTFree (pool=0x103ffe160, base=0x101dfd000, size=5024) at poolmv2.c:711
-        711	    Res res = CBSInsert(MVTCBS(mvt), base, limit);
+        711         Res res = CBSInsert(MVTCBS(mvt), base, limit);
         (gdb) p MVTDescribe(mvt, mps_lib_get_stdout(), 0)
         MVT 0000000103FFE160 {
           minSize: 8
@@ -238,7 +238,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2013-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
