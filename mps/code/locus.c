@@ -312,7 +312,7 @@ GenDesc ChainGen(Chain chain, Index gen)
  * accounting
  */
 
-Res PoolGenAlloc(Seg *segReturn, PoolGen pgen, SegClass class, Size size,
+Res PoolGenAlloc(Seg *segReturn, PoolGen pgen, SegClass klass, Size size,
                  ArgList args)
 {
   LocusPrefStruct pref;
@@ -324,7 +324,7 @@ Res PoolGenAlloc(Seg *segReturn, PoolGen pgen, SegClass class, Size size,
 
   AVER(segReturn != NULL);
   AVERT(PoolGen, pgen);
-  AVERT(SegClass, class);
+  AVERT(SegClass, klass);
   AVER(size > 0);
   AVERT(ArgList, args);
 
@@ -336,7 +336,7 @@ Res PoolGenAlloc(Seg *segReturn, PoolGen pgen, SegClass class, Size size,
   pref.high = FALSE;
   pref.zones = zones;
   pref.avoid = ZoneSetBlacklist(arena);
-  res = SegAlloc(&seg, class, &pref, size, pgen->pool, args);
+  res = SegAlloc(&seg, klass, &pref, size, pgen->pool, args);
   if (res != ResOK)
     return res;
 
@@ -681,17 +681,20 @@ void PoolGenFree(PoolGen pgen, Seg seg, Size freeSize, Size oldSize,
 Res PoolGenDescribe(PoolGen pgen, mps_lib_FILE *stream, Count depth)
 {
   Res res;
+  PoolClass poolClass;
 
   if (!TESTT(PoolGen, pgen))
-    return ResFAIL;
+    return ResPARAM;
   if (stream == NULL)
-    return ResFAIL;
+    return ResPARAM;
+
+  poolClass = ClassOfPoly(Pool, pgen->pool);
   
   res = WriteF(stream, depth,
                "PoolGen $P {\n", (WriteFP)pgen,
                "  pool $P ($U) \"$S\"\n",
                (WriteFP)pgen->pool, (WriteFU)pgen->pool->serial,
-               (WriteFS)pgen->pool->class->name,
+               (WriteFS)ClassName(poolClass),
                "  segs $U\n", (WriteFU)pgen->segs,
                "  totalSize $U\n", (WriteFU)pgen->totalSize,
                "  freeSize $U\n", (WriteFU)pgen->freeSize,

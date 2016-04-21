@@ -150,12 +150,13 @@ static void test_trees(int mode, const char *name, mps_arena_t arena,
   size_t finals = 0;
   size_t i;
   int object_alloc;
+  PoolClass klass = ClassOfPoly(Pool, pool);
 
   object_count = 0;
 
   printf("---- Mode %s, pool class %s, %s trees ----\n",
          mode == ModePARK ? "PARK" : "POLL",
-         pool->class->name, name);
+         ClassName(klass), name);
   mps_arena_park(arena);
   mps_message_type_enable(arena, mps_message_type_gc());
 
@@ -218,10 +219,12 @@ static void test_trees(int mode, const char *name, mps_arena_t arena,
            (ulongest_t)finals, (ulongest_t)object_count);
   }
   
-  if (finals != object_count)
+  if (finals != object_count) {
+    PoolClass poolClass = ClassOfPoly(Pool, BufferOfAP(ap)->pool);
     error("Not all objects were finalized for %s in mode %s.",
-          BufferOfAP(ap)->pool->class->name,
+          ClassName(poolClass),
           mode == ModePOLL ? "POLL" : "PARK");
+  }
 
   if (collections > collectionCOUNT)
     error("Expected no more than %lu collections but got %lu.",

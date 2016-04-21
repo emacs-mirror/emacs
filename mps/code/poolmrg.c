@@ -119,22 +119,26 @@ typedef struct MRGStruct {
   Sig sig;                  /* <code/mps.h#sig> */
 } MRGStruct;
 
-#define PoolMRG(pool) PARENT(MRGStruct, poolStruct, pool)
-#define MRGPool(mrg) (&(mrg)->poolStruct)
+typedef MRG MRGPool;
+#define MRGPoolCheck MRGCheck
+DECLARE_CLASS(Pool, MRGPool, AbstractPool);
 
 
 /* MRGCheck -- check an MRG pool */
 
+
 ATTRIBUTE_UNUSED
 static Bool MRGCheck(MRG mrg)
 {
+  Pool pool = CouldBeA(AbstractPool, mrg);
   CHECKS(MRG, mrg);
-  CHECKD(Pool, MRGPool(mrg));
-  CHECKL(MRGPool(mrg)->class == PoolClassMRG());
+  CHECKC(MRGPool, mrg);
+  CHECKD(Pool, pool);
+  CHECKC(MRGPool, mrg);
   CHECKD_NOSIG(Ring, &mrg->entryRing);
   CHECKD_NOSIG(Ring, &mrg->freeRing);
   CHECKD_NOSIG(Ring, &mrg->refRing);
-  CHECKL(mrg->extendBy == ArenaGrainSize(PoolArena(MRGPool(mrg))));
+  CHECKL(mrg->extendBy == ArenaGrainSize(PoolArena(pool)));
   return TRUE;
 }
 
@@ -158,19 +162,11 @@ typedef struct MRGRefSegStruct {
   Sig sig;                  /* <code/misc.h#sig> */
 } MRGRefSegStruct;
 
-/* macros to get between child and parent seg structures */
-
-#define Seg2LinkSeg(seg)     ((MRGLinkSeg)(seg))
-#define LinkSeg2Seg(linkseg) ((Seg)(linkseg))
-                            
-#define Seg2RefSeg(seg)      ((MRGRefSeg)(seg))
-#define RefSeg2Seg(refseg)   ((Seg)(refseg))
-
 
 /* forward declarations */
 
-extern SegClass MRGLinkSegClassGet(void);
-extern SegClass MRGRefSegClassGet(void);
+DECLARE_CLASS(Seg, MRGLinkSeg, Seg);
+DECLARE_CLASS(Seg, MRGRefSeg, GCSeg);
 
 
 /* MRGLinkSegCheck -- check a link segment
@@ -183,14 +179,13 @@ extern SegClass MRGRefSegClassGet(void);
 ATTRIBUTE_UNUSED
 static Bool MRGLinkSegCheck(MRGLinkSeg linkseg)
 {
-  Seg seg;
+  Seg seg = CouldBeA(Seg, linkseg);
 
   CHECKS(MRGLinkSeg, linkseg);
-  CHECKD(Seg, &linkseg->segStruct);
-  seg = LinkSeg2Seg(linkseg);
+  CHECKD(Seg, seg);
   if (NULL != linkseg->refSeg) { /* see .link.nullref */
-    CHECKL(SegPool(seg) == SegPool(RefSeg2Seg(linkseg->refSeg)));
     CHECKU(MRGRefSeg, linkseg->refSeg);
+    CHECKL(SegPool(seg) == SegPool(CouldBeA(Seg, linkseg->refSeg)));
     CHECKL(linkseg->refSeg->linkSeg == linkseg);
   }
   return TRUE;
@@ -199,12 +194,12 @@ static Bool MRGLinkSegCheck(MRGLinkSeg linkseg)
 ATTRIBUTE_UNUSED
 static Bool MRGRefSegCheck(MRGRefSeg refseg)
 {
-  Seg seg;
+  GCSeg gcseg = CouldBeA(GCSeg, refseg);
+  Seg seg = CouldBeA(Seg, gcseg);
 
   CHECKS(MRGRefSeg, refseg);
-  CHECKD(GCSeg, &refseg->gcSegStruct);
-  seg = RefSeg2Seg(refseg);
-  CHECKL(SegPool(seg) == SegPool(LinkSeg2Seg(refseg->linkSeg)));
+  CHECKD(GCSeg, gcseg);
+  CHECKL(SegPool(seg) == SegPool(CouldBeA(Seg, refseg->linkSeg)));
   CHECKD_NOSIG(Ring, &refseg->mrgRing);
   CHECKD(MRGLinkSeg, refseg->linkSeg);
   CHECKL(refseg->linkSeg->refSeg == refseg);
@@ -217,26 +212,22 @@ static Bool MRGRefSegCheck(MRGRefSeg refseg)
 static Res MRGLinkSegInit(Seg seg, Pool pool, Addr base, Size size,
                           ArgList args)
 {
-  SegClass super;
   MRGLinkSeg linkseg;
-  MRG mrg;
   Res res;
 
-  AVERT(Seg, seg);
-  linkseg = Seg2LinkSeg(seg);
-  AVERT(Pool, pool);
-  mrg = PoolMRG(pool);
-  AVERT(MRG, mrg);
-  /* no useful checks for base and size */
-
   /* Initialize the superclass fields first via next-method call */
-  super = SEG_SUPERCLASS(MRGLinkSegClass);
-  res = super->init(seg, pool, base, size, args);
+  res = NextMethod(Seg, MRGLinkSeg, init)(seg, pool, base, size, args);
   if (res != ResOK)
     return res;
+  linkseg = CouldBeA(MRGLinkSeg, seg);
+
+  /* no useful checks for base and size */
+
   linkseg->refSeg = NULL; /* .link.nullref */
+
+  SetClassOfPoly(seg, CLASS(MRGLinkSeg));
   linkseg->sig = MRGLinkSegSig;
-  AVERT(MRGLinkSeg, linkseg);
+  AVERC(MRGLinkSeg, linkseg);
 
   return ResOK;
 }
@@ -251,8 +242,7 @@ static Res MRGRefSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 {
   MRGLinkSeg linkseg;
   MRGRefSeg refseg;
-  MRG mrg;
-  SegClass super;
+  MRG mrg = MustBeA(MRGPool, pool);
   Res res;
   ArgStruct arg;
   
@@ -263,19 +253,14 @@ static Res MRGRefSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   ArgRequire(&arg, args, mrgKeyLinkSeg);
   linkseg = arg.val.p;
 
-  AVERT(Seg, seg);
-  refseg = Seg2RefSeg(seg);
-  AVERT(Pool, pool);
-  mrg = PoolMRG(pool);
-  AVERT(MRG, mrg);
-  /* no useful checks for base and size */
-  AVERT(MRGLinkSeg, linkseg);
-
   /* Initialize the superclass fields first via next-method call */
-  super = SEG_SUPERCLASS(MRGRefSegClass);
-  res = super->init(seg, pool, base, size, args);
+  res = NextMethod(Seg, MRGRefSeg, init)(seg, pool, base, size, args);
   if (res != ResOK)
     return res;
+  refseg = CouldBeA(MRGRefSeg, seg);
+
+  /* no useful checks for base and size */
+  AVERT(MRGLinkSeg, linkseg);
 
   /* <design/seg/#field.rankset.start>, .improve.rank */
   SegSetRankSet(seg, RankSetSingle(RankFINAL));
@@ -284,10 +269,12 @@ static Res MRGRefSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   RingAppend(&mrg->refRing, &refseg->mrgRing);
   refseg->linkSeg = linkseg;
   AVER(NULL == linkseg->refSeg); /* .link.nullref */
+
+  SetClassOfPoly(seg, CLASS(MRGRefSeg));
   refseg->sig = MRGRefSegSig;
   linkseg->refSeg = refseg;      /* .ref.initarg */
 
-  AVERT(MRGRefSeg, refseg);
+  AVERC(MRGRefSeg, refseg);
   AVERT(MRGLinkSeg, linkseg);
 
   return ResOK;
@@ -296,27 +283,23 @@ static Res MRGRefSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 
 /* MRGLinkSegClass -- Class definition */
 
-DEFINE_SEG_CLASS(MRGLinkSegClass, class)
+DEFINE_CLASS(Seg, MRGLinkSeg, klass)
 {
-  INHERIT_CLASS(class, SegClass);
-  SegClassMixInNoSplitMerge(class);  /* no support for this */
-  class->name = "MRGLSEG";
-  class->size = sizeof(MRGLinkSegStruct);
-  class->init = MRGLinkSegInit;
-  AVERT(SegClass, class);
+  INHERIT_CLASS(klass, MRGLinkSeg, Seg);
+  SegClassMixInNoSplitMerge(klass);  /* no support for this */
+  klass->size = sizeof(MRGLinkSegStruct);
+  klass->init = MRGLinkSegInit;
 }
 
 
 /* MRGRefSegClass -- Class definition */
 
-DEFINE_SEG_CLASS(MRGRefSegClass, class)
+DEFINE_CLASS(Seg, MRGRefSeg, klass)
 {
-  INHERIT_CLASS(class, GCSegClass);
-  SegClassMixInNoSplitMerge(class);  /* no support for this */
-  class->name = "MRGRSEG";
-  class->size = sizeof(MRGRefSegStruct);
-  class->init = MRGRefSegInit;
-  AVERT(SegClass, class);
+  INHERIT_CLASS(klass, MRGRefSeg, GCSeg);
+  SegClassMixInNoSplitMerge(klass);  /* no support for this */
+  klass->size = sizeof(MRGRefSegStruct);
+  klass->init = MRGRefSegInit;
 }
 
 
@@ -336,7 +319,7 @@ static Count MRGGuardiansPerSeg(MRG mrg)
 
 
 #define refPartOfIndex(refseg, index) \
-  ((RefPart)SegBase(RefSeg2Seg(refseg)) + (index))
+  ((RefPart)SegBase(MustBeA(Seg, refseg)) + (index))
 
 
 static RefPart MRGRefPartOfLink(Link link, Arena arena)
@@ -351,20 +334,19 @@ static RefPart MRGRefPartOfLink(Link link, Arena arena)
 
   b = SegOfAddr(&seg, arena, (Addr)link);
   AVER(b);
-  AVER(SegPool(seg)->class == PoolClassMRG());
-  linkseg = Seg2LinkSeg(seg);
-  AVERT(MRGLinkSeg, linkseg);
+  AVERC(MRGPool, SegPool(seg));
+  linkseg = MustBeA(MRGLinkSeg, seg);
   linkBase = (Link)SegBase(seg);
   AVER(link >= linkBase);
   indx = (Index)(link - linkBase);
-  AVER(indx < MRGGuardiansPerSeg(PoolMRG(SegPool(seg))));
+  AVER(indx < MRGGuardiansPerSeg(MustBeA(MRGPool, SegPool(seg))));
 
   return refPartOfIndex(linkseg->refSeg, indx);
 }
 
 
 #define linkOfIndex(linkseg, index) \
-  ((Link)SegBase(LinkSeg2Seg(linkseg)) + (index))
+  ((Link)SegBase(MustBeA(Seg, linkseg)) + (index))
 
 
 #if 0
@@ -380,7 +362,7 @@ static Link MRGLinkOfRefPart(RefPart refPart, Arena arena)
 
   b = SegOfAddr(&seg, arena, (Addr)refPart);
   AVER(b);
-  AVER(SegPool(seg)->class == PoolClassMRG());
+  AVER(SegPool(seg)->klass == PoolClassMRG());
   refseg = Seg2RefSeg(seg);
   AVERT(MRGRefSeg, refseg);
   refPartBase = (RefPart)SegBase(seg);
@@ -405,7 +387,7 @@ static void MRGGuardianInit(MRG mrg, Link link, RefPart refPart)
   link->state = MRGGuardianFREE;
   RingAppend(&mrg->freeRing, &link->the.linkRing);
   /* <design/poolmrg/#free.overwrite> */
-  MRGRefPartSetRef(PoolArena(MRGPool(mrg)), refPart, 0);
+  MRGRefPartSetRef(PoolArena(MustBeA(AbstractPool, mrg)), refPart, 0);
 }
 
 
@@ -426,12 +408,12 @@ static void MRGMessageDelete(Message message)
   arena = MessageArena(message);
   b = PoolOfAddr(&pool, arena, (Addr)message);
   AVER(b);
-  AVER(pool->class == PoolClassMRG());
+  AVERC(MRGPool, pool);
 
   link = linkOfMessage(message);
   AVER(link->state == MRGGuardianFINAL);
   MessageFinish(message);
-  MRGGuardianInit(PoolMRG(pool), link, MRGRefPartOfLink(link, arena));
+  MRGGuardianInit(MustBeA(MRGPool, pool), link, MRGRefPartOfLink(link, arena));
 }
 
 
@@ -489,8 +471,8 @@ static void MRGSegPairDestroy(MRGRefSeg refseg)
   RingRemove(&refseg->mrgRing);
   RingFinish(&refseg->mrgRing);
   refseg->sig = SigInvalid;
-  SegFree(LinkSeg2Seg(refseg->linkSeg));
-  SegFree(RefSeg2Seg(refseg));
+  SegFree(MustBeA(Seg, refseg->linkSeg));
+  SegFree(MustBeA(Seg, refseg));
 }
 
 
@@ -498,43 +480,40 @@ static void MRGSegPairDestroy(MRGRefSeg refseg)
 
 static Res MRGSegPairCreate(MRGRefSeg *refSegReturn, MRG mrg)
 {
+  Pool pool = MustBeA(AbstractPool, mrg);
+  Arena arena = PoolArena(pool);
   RefPart refPartBase;
   Count nGuardians;       /* guardians per seg */
   Index i;
   Link linkBase;
-  Pool pool;
   Res res;
   Seg segLink, segRefPart;
   MRGLinkSeg linkseg;
   MRGRefSeg refseg;
   Size linkSegSize;
-  Arena arena;
 
   AVER(refSegReturn != NULL);
-
-  pool = MRGPool(mrg);
-  arena = PoolArena(pool);
 
   nGuardians = MRGGuardiansPerSeg(mrg);
   linkSegSize = nGuardians * sizeof(LinkStruct);
   linkSegSize = SizeArenaGrains(linkSegSize, arena);
 
-  res = SegAlloc(&segLink, EnsureMRGLinkSegClass(),
+  res = SegAlloc(&segLink, CLASS(MRGLinkSeg),
                  LocusPrefDefault(), linkSegSize, pool,
                  argsNone);
   if (res != ResOK)
     goto failLinkSegAlloc;
-  linkseg = Seg2LinkSeg(segLink);
+  linkseg = MustBeA(MRGLinkSeg, segLink);
   
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD_FIELD(args, mrgKeyLinkSeg, p, linkseg); /* .ref.initarg */
-    res = SegAlloc(&segRefPart, EnsureMRGRefSegClass(),
+    res = SegAlloc(&segRefPart, CLASS(MRGRefSeg),
                    LocusPrefDefault(), mrg->extendBy, pool,
                    args);
   } MPS_ARGS_END(args);
   if (res != ResOK)
     goto failRefPartSegAlloc;
-  refseg = Seg2RefSeg(segRefPart);
+  refseg = MustBeA(MRGRefSeg, segRefPart);
 
   linkBase = (Link)SegBase(segLink);
   refPartBase = (RefPart)SegBase(segRefPart);
@@ -562,7 +541,7 @@ static void MRGFinalize(Arena arena, MRGLinkSeg linkseg, Index indx)
   Link link;
   Message message;
 
-  AVER(indx < MRGGuardiansPerSeg(PoolMRG(SegPool(LinkSeg2Seg(linkseg)))));
+  AVER(indx < MRGGuardiansPerSeg(MustBeA(MRGPool, SegPool(MustBeA(Seg, linkseg)))));
 
   link = linkOfIndex(linkseg, indx);
 
@@ -593,7 +572,7 @@ static Res MRGRefSegScan(ScanState ss, MRGRefSeg refseg, MRG mrg)
   AVERT(MRGRefSeg, refseg);
   AVERT(MRG, mrg);
 
-  arena = PoolArena(MRGPool(mrg));
+  arena = PoolArena(MustBeA(AbstractPool, mrg));
   linkseg = refseg->linkSeg;
 
   nGuardians = MRGGuardiansPerSeg(mrg);
@@ -627,24 +606,31 @@ static Res MRGRefSegScan(ScanState ss, MRGRefSeg refseg, MRG mrg)
 
 /* MRGInit -- init method for MRG */
 
-static Res MRGInit(Pool pool, ArgList args)
+static Res MRGInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
 {
   MRG mrg;
+  Res res;
  
-  AVER(pool != NULL); /* Can't check more; see pool contract @@@@ */
+  AVER(pool != NULL);
   AVERT(ArgList, args);
   UNUSED(args);
- 
-  mrg = PoolMRG(pool);
+  UNUSED(klass); /* used for debug pools only */
 
+  /* FIXME: These lines are often repeated */
+  res = PoolAbsInit(pool, arena, klass, args);
+  if (res != ResOK)
+    return res;
+  mrg = CouldBeA(MRGPool, pool);
+ 
   RingInit(&mrg->entryRing);
   RingInit(&mrg->freeRing);
   RingInit(&mrg->refRing);
   mrg->extendBy = ArenaGrainSize(PoolArena(pool));
-  mrg->sig = MRGSig;
 
-  AVERT(MRG, mrg);
-  EVENT3(PoolInit, pool, PoolArena(pool), ClassOfPool(pool));
+  SetClassOfPoly(pool, CLASS(MRGPool));
+  mrg->sig = MRGSig;
+  AVERC(MRGPool, mrg);
+
   return ResOK;
 }
 
@@ -653,12 +639,8 @@ static Res MRGInit(Pool pool, ArgList args)
 
 static void MRGFinish(Pool pool)
 {
-  MRG mrg;
+  MRG mrg = MustBeA(MRGPool, pool);
   Ring node, nextNode;
-
-  AVERT(Pool, pool);
-  mrg = PoolMRG(pool);
-  AVERT(MRG, mrg);
 
   /* .finish.ring: Before destroying the segments, we isolate the */
   /* rings in the pool structure.  The problem we are avoiding here */
@@ -693,6 +675,8 @@ static void MRGFinish(Pool pool)
   mrg->sig = SigInvalid;
   RingFinish(&mrg->refRing);
   /* <design/poolmrg/#trans.no-finish> */
+
+  PoolAbsFinish(pool);
 }
 
 
@@ -700,22 +684,15 @@ static void MRGFinish(Pool pool)
 
 Res MRGRegister(Pool pool, Ref ref)
 {
+  MRG mrg = MustBeA(MRGPool, pool);
+  Arena arena = PoolArena(pool);
   Ring freeNode;
-  Arena arena;
   Link link;
   RefPart refPart;
-  MRG mrg;
   Res res;
   MRGRefSeg junk; /* unused */
 
-  AVERT(Pool, pool);
   AVER(ref != 0);
-
-  mrg = PoolMRG(pool);
-  AVERT(MRG, mrg);
-
-  arena = PoolArena(pool);
-  AVERT(Arena, arena);
 
   /* <design/poolmrg/#alloc.grow> */
   if (RingIsSingle(&mrg->freeRing)) {
@@ -750,18 +727,14 @@ Res MRGRegister(Pool pool, Ref ref)
 
 Res MRGDeregister(Pool pool, Ref obj)
 {
+  MRG mrg = MustBeA(MRGPool, pool);
+  Arena arena = PoolArena(pool);
   Ring node, nextNode;
   Count nGuardians;       /* guardians per seg */
-  Arena arena;
-  MRG mrg;
 
-  AVERT(Pool, pool);
   /* Can't check obj */
 
-  mrg = PoolMRG(pool);
-  AVERT(MRG, mrg);
   nGuardians = MRGGuardiansPerSeg(mrg);
-  arena = PoolArena(pool);
 
   /* map over the segments */
   RING_FOR(node, &mrg->refRing, nextNode) {
@@ -774,8 +747,8 @@ Res MRGDeregister(Pool pool, Ref obj)
     AVERT(MRGRefSeg, refSeg);
     linkSeg = refSeg->linkSeg;
     /* map over each guardian in the segment */
-    for(i = 0, link = (Link)SegBase(LinkSeg2Seg(linkSeg)),
-          refPart = (RefPart)SegBase(RefSeg2Seg(refSeg));
+    for(i = 0, link = (Link)SegBase(MustBeA(Seg, linkSeg)),
+          refPart = (RefPart)SegBase(MustBeA(Seg, refSeg));
         i < nGuardians;
         ++i, ++link, ++refPart) {
       /* check if it's allocated and points to obj */
@@ -799,19 +772,16 @@ Res MRGDeregister(Pool pool, Ref obj)
  */
 static Res MRGDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 {
-  MRG mrg;
+  MRG mrg = CouldBeA(MRGPool, pool);
   Arena arena;
   Ring node, nextNode;
   RefPart refPart;
   Res res;
 
-  if (!TESTT(Pool, pool))
-    return ResFAIL;
-  mrg = PoolMRG(pool);
-  if (!TESTT(MRG, mrg))
-    return ResFAIL;
+  if (!TESTC(MRGPool, mrg))
+    return ResPARAM;
   if (stream == NULL)
-    return ResFAIL;
+    return ResPARAM;
 
   arena = PoolArena(pool);
   res = WriteF(stream, depth, "extendBy $W\n", (WriteFW)mrg->extendBy, NULL);
@@ -842,21 +812,13 @@ static Res MRGDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 
 static Res MRGScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 {
-  MRG mrg;
+  MRG mrg = MustBeA(MRGPool, pool);
+  MRGRefSeg refseg = MustBeA(MRGRefSeg, seg);
   Res res;
-  MRGRefSeg refseg;
 
   AVERT(ScanState, ss);
-  AVERT(Pool, pool);
-  AVERT(Seg, seg);
-
-  mrg = PoolMRG(pool);
-  AVERT(MRG, mrg);
-
   AVER(SegRankSet(seg) == RankSetSingle(RankFINAL)); /* .improve.rank */
   AVER(TraceSetInter(SegGrey(seg), ss->traces) != TraceSetEMPTY);
-  refseg = Seg2RefSeg(seg);
-  AVERT(MRGRefSeg, refseg);
 
   res = MRGRefSegScan(ss, refseg, mrg);
   if (res != ResOK)  {
@@ -869,25 +831,22 @@ static Res MRGScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 }
 
 
-DEFINE_POOL_CLASS(MRGPoolClass, this)
+DEFINE_CLASS(Pool, MRGPool, klass)
 {
-  INHERIT_CLASS(this, AbstractPoolClass);
-  this->name = "MRG";
-  this->size = sizeof(MRGStruct);
-  this->offset = offsetof(MRGStruct, poolStruct);
-  this->init = MRGInit;
-  this->finish = MRGFinish;
-  this->grey = PoolTrivGrey;
-  this->blacken = PoolTrivBlacken;
-  this->scan = MRGScan;
-  this->describe = MRGDescribe;
-  AVERT(PoolClass, this);
+  INHERIT_CLASS(klass, MRGPool, AbstractPool);
+  klass->size = sizeof(MRGStruct);
+  klass->init = MRGInit;
+  klass->finish = MRGFinish;
+  klass->grey = PoolTrivGrey;
+  klass->blacken = PoolTrivBlacken;
+  klass->scan = MRGScan;
+  klass->describe = MRGDescribe;
 }
 
 
 PoolClass PoolClassMRG(void)
 {
-  return MRGPoolClassGet();
+  return CLASS(MRGPool);
 }
 
 

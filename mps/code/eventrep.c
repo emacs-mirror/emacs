@@ -257,7 +257,7 @@ static void poolRecreate(void *logPool, void *logArena,
   found = TableLookup(&entry, arenaTable, (TableKey)logArena);
   verify(found);
   va_start(args, bufferClassLevel);
-  eres = mps_pool_create_v(&pool, (mps_arena_t)entry, class, args);
+  eres = mps_pool_create_v(&pool, (mps_arena_t)entry, klass, args);
   verifyMPS(eres);
   va_end(args);
   rep = malloc(sizeof(poolRepStruct));

@@ -43,8 +43,12 @@ typedef struct SNCStruct {
 
 /* Forward declarations */
 
-extern SegClass SNCSegClassGet(void);
-extern BufferClass SNCBufClassGet(void);
+typedef SNC SNCPool;
+#define SNCPoolCheck SNCCheck
+DECLARE_CLASS(Pool, SNCPool, AbstractScanPool);
+
+DECLARE_CLASS(Seg, SNCSeg, GCSeg);
+DECLARE_CLASS(Buffer, SNCBuf, RankBuf);
 static Bool SNCCheck(SNC snc);
 static void sncPopPartialSegChain(SNC snc, Buffer buf, Seg upTo);
 
@@ -74,20 +78,13 @@ typedef struct SNCBufStruct {
 } SNCBufStruct;
 
 
-/* BufferSNCBuf -- convert generic Buffer to an SNCBuf */
-
-#define BufferSNCBuf(buffer) ((SNCBuf)(buffer))
-
-
 /* SNCBufCheck -- check consistency of an SNCBuf */
 
 ATTRIBUTE_UNUSED
 static Bool SNCBufCheck(SNCBuf sncbuf)
 {
-  SegBuf segbuf;
-
+  SegBuf segbuf = MustBeA(SegBuf, sncbuf);
   CHECKS(SNCBuf, sncbuf);
-  segbuf = &sncbuf->segBufStruct;
   CHECKD(SegBuf, segbuf);
   if (sncbuf->topseg != NULL) {
     CHECKD(Seg, sncbuf->topseg);
@@ -100,10 +97,7 @@ static Bool SNCBufCheck(SNCBuf sncbuf)
 
 static Seg sncBufferTopSeg(Buffer buffer)
 {
-  SNCBuf sncbuf;
-  AVERT(Buffer, buffer);
-  sncbuf = BufferSNCBuf(buffer);
-  AVERT(SNCBuf, sncbuf);
+  SNCBuf sncbuf = MustBeA(SNCBuf, buffer);
   return sncbuf->topseg;
 }
 
@@ -112,38 +106,32 @@ static Seg sncBufferTopSeg(Buffer buffer)
 
 static void sncBufferSetTopSeg(Buffer buffer, Seg seg)
 {
-  SNCBuf sncbuf;
-  AVERT(Buffer, buffer);
+  SNCBuf sncbuf = MustBeA(SNCBuf, buffer);
   if (NULL != seg)
     AVERT(Seg, seg);
-  sncbuf = BufferSNCBuf(buffer);
-  AVERT(SNCBuf, sncbuf);
   sncbuf->topseg = seg;
 }
 
 
 /* SNCBufInit -- Initialize an SNCBuf */
 
-static Res SNCBufInit(Buffer buffer, Pool pool, ArgList args)
+static Res SNCBufInit(Buffer buffer, Pool pool, Bool isMutator, ArgList args)
 {
   SNCBuf sncbuf;
   Res res;
-  BufferClass superclass;
-
-  AVERT(Buffer, buffer);
-  AVERT(Pool, pool);
 
   /* call next method */
-  superclass = BUFFER_SUPERCLASS(SNCBufClass);
-  res = (*superclass->init)(buffer, pool, args);
+  res = NextMethod(Buffer, SNCBuf, init)(buffer, pool, isMutator, args);
   if (res != ResOK)
     return res;
+  sncbuf = CouldBeA(SNCBuf, buffer);
 
-  sncbuf = BufferSNCBuf(buffer);
   sncbuf->topseg = NULL;
-  sncbuf->sig = SNCBufSig;
 
-  AVERT(SNCBuf, sncbuf);
+  SetClassOfPoly(buffer, CLASS(SNCBuf));
+  sncbuf->sig = SNCBufSig;
+  AVERC(SNCBuf, sncbuf);
+
   return ResOK;
 }
 
@@ -152,38 +140,26 @@ static Res SNCBufInit(Buffer buffer, Pool pool, ArgList args)
 
 static void SNCBufFinish(Buffer buffer)
 {
-  BufferClass super;
-  SNCBuf sncbuf;
-  SNC snc;
-  Pool pool;
+  SNCBuf sncbuf = MustBeA(SNCBuf, buffer);
+  SNC snc = MustBeA(SNCPool, BufferPool(buffer));
 
-  AVERT(Buffer, buffer);
-  sncbuf = BufferSNCBuf(buffer);
-  AVERT(SNCBuf, sncbuf);
-  pool = BufferPool(buffer);
-
-  snc = PoolSNC(pool);
   /* Put any segments which haven't been popped onto the free list */
   sncPopPartialSegChain(snc, buffer, NULL);
 
   sncbuf->sig = SigInvalid;
 
-  /* finish the superclass fields last */
-  super = BUFFER_SUPERCLASS(SNCBufClass);
-  super->finish(buffer);
+  NextMethod(Buffer, SNCBuf, finish)(buffer);
 }
 
 
 /* SNCBufClass -- The class definition */
 
-DEFINE_BUFFER_CLASS(SNCBufClass, class)
+DEFINE_CLASS(Buffer, SNCBuf, klass)
 {
-  INHERIT_CLASS(class, RankBufClass);
-  class->name = "SNCBUF";
-  class->size = sizeof(SNCBufStruct);
-  class->init = SNCBufInit;
-  class->finish = SNCBufFinish;
-  AVERT(BufferClass, class);
+  INHERIT_CLASS(klass, SNCBuf, RankBuf);
+  klass->size = sizeof(SNCBufStruct);
+  klass->init = SNCBufInit;
+  klass->finish = SNCBufFinish;
 }
 
 
@@ -226,38 +202,36 @@ static Bool SNCSegCheck(SNCSeg sncseg)
 
 static Res sncSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 {
-  SegClass super;
   SNCSeg sncseg;
   Res res;
 
-  AVERT(Seg, seg);
-  sncseg = SegSNCSeg(seg);
+  /* Initialize the superclass fields first via next-method call */
+  res = NextMethod(Seg, SNCSeg, init)(seg, pool, base, size, args);
+  if (res != ResOK)
+    return res;
+  sncseg = CouldBeA(SNCSeg, seg);
+
   AVERT(Pool, pool);
   /* no useful checks for base and size */
 
-  /* Initialize the superclass fields first via next-method call */
-  super = SEG_SUPERCLASS(SNCSegClass);
-  res = super->init(seg, pool, base, size, args);
-  if (res != ResOK)
-    return res;
-
   sncseg->next = NULL;
+
+  SetClassOfPoly(seg, CLASS(SNCSeg));
   sncseg->sig = SNCSegSig;
-  AVERT(SNCSeg, sncseg);
+  AVERC(SNCSeg, sncseg);
+
   return ResOK;
 }
 
 
 /* SNCSegClass -- Class definition for SNC segments */
 
-DEFINE_SEG_CLASS(SNCSegClass, class)
+DEFINE_CLASS(Seg, SNCSeg, klass)
 {
-  INHERIT_CLASS(class, GCSegClass);
-  SegClassMixInNoSplitMerge(class);  /* no support for this (yet) */
-  class->name = "SNCSEG";
-  class->size = sizeof(SNCSegStruct);
-  class->init = sncSegInit;
-  AVERT(SegClass, class);
+  INHERIT_CLASS(klass, SNCSeg, GCSeg);
+  SegClassMixInNoSplitMerge(klass);  /* no support for this (yet) */
+  klass->size = sizeof(SNCSegStruct);
+  klass->init = sncSegInit;
 }
 
 
@@ -373,29 +347,33 @@ static void SNCVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
 
 /* SNCInit -- initialize an SNC pool */
 
-static Res SNCInit(Pool pool, ArgList args)
+static Res SNCInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
 {
   SNC snc;
-  Format format;
-  ArgStruct arg;
+  Res res;
 
-  /* weak check, as half-way through initialization */
   AVER(pool != NULL);
+  AVERT(Arena, arena);
+  AVERT(ArgList, args);
+  UNUSED(klass); /* used for debug pools only */
 
-  snc = PoolSNC(pool);
+  res = PoolAbsInit(pool, arena, klass, args);
+  if (res != ResOK)
+    return res;
+  snc = CouldBeA(SNCPool, pool);
 
-  ArgRequire(&arg, args, MPS_KEY_FORMAT);
-  format = arg.val.format;
+  /* Ensure a format was supplied in the argument list. */
+  AVER(pool->format != NULL);
 
-  AVERT(Format, format);
-  AVER(FormatArena(format) == PoolArena(pool));
-  pool->format = format;
   pool->alignment = pool->format->alignment;
   snc->freeSegs = NULL;
-  snc->sig = SNCSig;
 
-  AVERT(SNC, snc);
-  EVENT2(PoolInitSNC, pool, format);
+  SetClassOfPoly(pool, CLASS(SNCPool));
+  snc->sig = SNCSig;
+  AVERC(SNCPool, snc);
+
+  EVENT2(PoolInitSNC, pool, pool->format);
+
   return ResOK;
 }
 
@@ -417,6 +395,8 @@ static void SNCFinish(Pool pool)
     AVERT(Seg, seg);
     SegFree(seg);
   }
+
+  PoolAbsFinish(pool);
 }
 
 
@@ -447,7 +427,7 @@ static Res SNCBufferFill(Addr *baseReturn, Addr *limitReturn,
   /* No free seg, so create a new one */
   arena = PoolArena(pool);
   asize = SizeArenaGrains(size, arena);
-  res = SegAlloc(&seg, SNCSegClassGet(), LocusPrefDefault(),
+  res = SegAlloc(&seg, CLASS(SNCSeg), LocusPrefDefault(),
                  asize, pool, argsNone);
   if (res != ResOK)
     return res;
@@ -684,32 +664,29 @@ static Size SNCFreeSize(Pool pool)
 
 /* SNCPoolClass -- the class definition */
 
-DEFINE_POOL_CLASS(SNCPoolClass, this)
+DEFINE_CLASS(Pool, SNCPool, klass)
 {
-  INHERIT_CLASS(this, AbstractScanPoolClass);
-  PoolClassMixInFormat(this);
-  this->name = "SNC";
-  this->size = sizeof(SNCStruct);
-  this->offset = offsetof(SNCStruct, poolStruct);
-  this->varargs = SNCVarargs;
-  this->init = SNCInit;
-  this->finish = SNCFinish;
-  this->bufferFill = SNCBufferFill;
-  this->bufferEmpty = SNCBufferEmpty;
-  this->scan = SNCScan;
-  this->framePush = SNCFramePush;
-  this->framePop = SNCFramePop;
-  this->walk = SNCWalk;
-  this->bufferClass = SNCBufClassGet;
-  this->totalSize = SNCTotalSize;
-  this->freeSize = SNCFreeSize;
-  AVERT(PoolClass, this);
+  INHERIT_CLASS(klass, SNCPool, AbstractScanPool);
+  PoolClassMixInFormat(klass);
+  klass->size = sizeof(SNCStruct);
+  klass->varargs = SNCVarargs;
+  klass->init = SNCInit;
+  klass->finish = SNCFinish;
+  klass->bufferFill = SNCBufferFill;
+  klass->bufferEmpty = SNCBufferEmpty;
+  klass->scan = SNCScan;
+  klass->framePush = SNCFramePush;
+  klass->framePop = SNCFramePop;
+  klass->walk = SNCWalk;
+  klass->bufferClass = SNCBufClassGet;
+  klass->totalSize = SNCTotalSize;
+  klass->freeSize = SNCFreeSize;
 }
 
 
 mps_pool_class_t mps_class_snc(void)
 {
-  return (mps_pool_class_t)SNCPoolClassGet();
+  return (mps_pool_class_t)CLASS(SNCPool);
 }
 
 
@@ -719,8 +696,8 @@ ATTRIBUTE_UNUSED
 static Bool SNCCheck(SNC snc)
 {
   CHECKS(SNC, snc);
+  CHECKC(SNCPool, snc);
   CHECKD(Pool, SNCPool(snc));
-  CHECKL(SNCPool(snc)->class == SNCPoolClassGet());
   if (snc->freeSegs != NULL) {
     CHECKD(Seg, snc->freeSegs);
   }

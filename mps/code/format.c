@@ -32,7 +32,7 @@ Bool FormatCheck(Format format)
   CHECKL(FUNCHECK(format->move));
   CHECKL(FUNCHECK(format->isMoved));
   CHECKL(FUNCHECK(format->pad));
-  CHECKL(FUNCHECK(format->class));
+  CHECKL(FUNCHECK(format->klass));
 
   return TRUE;
 }
@@ -148,7 +148,7 @@ Res FormatCreate(Format *formatReturn, Arena arena, ArgList args)
   format->move = fmtFwd;
   format->isMoved = fmtIsfwd;
   format->pad = fmtPad;
-  format->class = fmtClass;
+  format->klass = fmtClass;
 
   format->sig = FormatSig;
   format->serial = arena->formatSerial;

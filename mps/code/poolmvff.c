@@ -60,10 +60,16 @@ typedef struct MVFFStruct {     /* MVFF pool outer structure */
 } MVFFStruct;
 
 
+typedef MVFF MVFFPool;
+#define MVFFPoolCheck MVFFCheck
+DECLARE_CLASS(Pool, MVFFPool, AbstractPool);
+DECLARE_CLASS(Pool, MVFFDebugPool, MVFFPool);
+
+
 #define PoolMVFF(pool)     PARENT(MVFFStruct, poolStruct, pool)
 #define MVFFPool(mvff)     (&(mvff)->poolStruct)
-#define MVFFTotalLand(mvff)  CBSLand(&(mvff)->totalCBSStruct)
-#define MVFFFreePrimary(mvff)   CBSLand(&(mvff)->freeCBSStruct)
+#define MVFFTotalLand(mvff)  (&(mvff)->totalCBSStruct.landStruct)
+#define MVFFFreePrimary(mvff)   (&(mvff)->freeCBSStruct.landStruct)
 #define MVFFFreeSecondary(mvff)  FreelistLand(&(mvff)->flStruct)
 #define MVFFFreeLand(mvff)  FailoverLand(&(mvff)->foStruct)
 #define MVFFLocusPref(mvff) (&(mvff)->locusPrefStruct)
@@ -436,7 +442,7 @@ ARG_DEFINE_KEY(MVFF_SLOT_HIGH, Bool);
 ARG_DEFINE_KEY(MVFF_ARENA_HIGH, Bool);
 ARG_DEFINE_KEY(MVFF_FIRST_FIT, Bool);
 
-static Res MVFFInit(Pool pool, ArgList args)
+static Res MVFFInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
 {
   Size extendBy = MVFF_EXTEND_BY_DEFAULT;
   Size avgSize = MVFF_AVG_SIZE_DEFAULT;
@@ -446,12 +452,13 @@ static Res MVFFInit(Pool pool, ArgList args)
   Bool firstFit = MVFF_FIRST_FIT_DEFAULT;
   double spare = MVFF_SPARE_DEFAULT;
   MVFF mvff;
-  Arena arena;
   Res res;
   ArgStruct arg;
 
-  AVERT(Pool, pool);
-  arena = PoolArena(pool);
+  AVER(pool != NULL);
+  AVERT(Arena, arena);
+  AVERT(ArgList, args);
+  UNUSED(klass); /* used for debug pools only */
 
   /* .arg: class-specific additional arguments; see */
   /* <design/poolmvff/#method.init> */
@@ -494,7 +501,10 @@ static Res MVFFInit(Pool pool, ArgList args)
   AVERT(Bool, arenaHigh);
   AVERT(Bool, firstFit);
 
-  mvff = PoolMVFF(pool);
+  res = PoolAbsInit(pool, arena, klass, args);
+  if (res != ResOK)
+    goto failAbsInit;
+  mvff = CouldBeA(MVFFPool, pool);
 
   mvff->extendBy = extendBy;
   if (extendBy < ArenaGrainSize(arena))
@@ -522,7 +532,7 @@ static Res MVFFInit(Pool pool, ArgList args)
 
   MPS_ARGS_BEGIN(liArgs) {
     MPS_ARGS_ADD(liArgs, CBSBlockPool, MVFFBlockPool(mvff));
-    res = LandInit(MVFFTotalLand(mvff), CBSFastLandClassGet(), arena, align,
+    res = LandInit(MVFFTotalLand(mvff), CLASS(CBSFast), arena, align,
                    mvff, liArgs);
   } MPS_ARGS_END(liArgs);
   if (res != ResOK)
@@ -530,13 +540,13 @@ static Res MVFFInit(Pool pool, ArgList args)
 
   MPS_ARGS_BEGIN(liArgs) {
     MPS_ARGS_ADD(liArgs, CBSBlockPool, MVFFBlockPool(mvff));
-    res = LandInit(MVFFFreePrimary(mvff), CBSFastLandClassGet(), arena, align,
+    res = LandInit(MVFFFreePrimary(mvff), CLASS(CBSFast), arena, align,
                    mvff, liArgs);
   } MPS_ARGS_END(liArgs);
   if (res != ResOK)
     goto failFreePrimaryInit;
 
-  res = LandInit(MVFFFreeSecondary(mvff), FreelistLandClassGet(), arena, align,
+  res = LandInit(MVFFFreeSecondary(mvff), CLASS(Freelist), arena, align,
                  mvff, mps_args_none);
   if (res != ResOK)
     goto failFreeSecondaryInit;
@@ -544,16 +554,19 @@ static Res MVFFInit(Pool pool, ArgList args)
   MPS_ARGS_BEGIN(foArgs) {
     MPS_ARGS_ADD(foArgs, FailoverPrimary, MVFFFreePrimary(mvff));
     MPS_ARGS_ADD(foArgs, FailoverSecondary, MVFFFreeSecondary(mvff));
-    res = LandInit(MVFFFreeLand(mvff), FailoverLandClassGet(), arena, align,
+    res = LandInit(MVFFFreeLand(mvff), CLASS(Failover), arena, align,
                    mvff, foArgs);
   } MPS_ARGS_END(foArgs);
   if (res != ResOK)
     goto failFreeLandInit;
 
+  SetClassOfPoly(pool, CLASS(MVFFPool));
   mvff->sig = MVFFSig;
-  AVERT(MVFF, mvff);
+  AVERC(MVFFPool, mvff);
+  
   EVENT8(PoolInitMVFF, pool, arena, extendBy, avgSize, align,
          BOOLOF(slotHigh), BOOLOF(arenaHigh), BOOLOF(firstFit));
+
   return ResOK;
 
 failFreeLandInit:
@@ -565,6 +578,9 @@ failFreePrimaryInit:
 failTotalLandInit:
   PoolFinish(MVFFBlockPool(mvff));
 failBlockPoolInit:
+  PoolAbsFinish(pool);
+failAbsInit:
+  AVER(res != ResOK);
   return res;
 }
 
@@ -607,6 +623,7 @@ static void MVFFFinish(Pool pool)
   LandFinish(MVFFFreePrimary(mvff));
   LandFinish(MVFFTotalLand(mvff));
   PoolFinish(MVFFBlockPool(mvff));
+  PoolAbsFinish(pool);
 }
 
 
@@ -704,44 +721,39 @@ static Res MVFFDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 }
 
 
-DEFINE_POOL_CLASS(MVFFPoolClass, this)
+DEFINE_CLASS(Pool, MVFFPool, klass)
 {
-  INHERIT_CLASS(this, AbstractPoolClass);
-  PoolClassMixInBuffer(this);
-  this->name = "MVFF";
-  this->size = sizeof(MVFFStruct);
-  this->offset = offsetof(MVFFStruct, poolStruct);
-  this->varargs = MVFFVarargs;
-  this->init = MVFFInit;
-  this->finish = MVFFFinish;
-  this->alloc = MVFFAlloc;
-  this->free = MVFFFree;
-  this->bufferFill = MVFFBufferFill;
-  this->bufferEmpty = MVFFBufferEmpty;
-  this->totalSize = MVFFTotalSize;
-  this->freeSize = MVFFFreeSize;
-  this->describe = MVFFDescribe;
-  AVERT(PoolClass, this);
+  INHERIT_CLASS(klass, MVFFPool, AbstractPool);
+  PoolClassMixInBuffer(klass);
+  klass->size = sizeof(MVFFStruct);
+  klass->varargs = MVFFVarargs;
+  klass->init = MVFFInit;
+  klass->finish = MVFFFinish;
+  klass->alloc = MVFFAlloc;
+  klass->free = MVFFFree;
+  klass->bufferFill = MVFFBufferFill;
+  klass->bufferEmpty = MVFFBufferEmpty;
+  klass->totalSize = MVFFTotalSize;
+  klass->freeSize = MVFFFreeSize;
+  klass->describe = MVFFDescribe;
 }
 
 
 PoolClass PoolClassMVFF(void)
 {
-  return MVFFPoolClassGet();
+  return CLASS(MVFFPool);
 }
 
 
 /* Pool class MVFFDebug */
 
-DEFINE_POOL_CLASS(MVFFDebugPoolClass, this)
+DEFINE_CLASS(Pool, MVFFDebugPool, klass)
 {
-  INHERIT_CLASS(this, MVFFPoolClass);
-  PoolClassMixInDebug(this);
-  this->name = "MVFFDBG";
-  this->size = sizeof(MVFFDebugStruct);
-  this->varargs = MVFFDebugVarargs;
-  this->debugMixin = MVFFDebugMixin;
-  AVERT(PoolClass, this);
+  INHERIT_CLASS(klass, MVFFDebugPool, MVFFPool);
+  PoolClassMixInDebug(klass);
+  klass->size = sizeof(MVFFDebugStruct);
+  klass->varargs = MVFFDebugVarargs;
+  klass->debugMixin = MVFFDebugMixin;
 }
 
 
@@ -750,12 +762,12 @@ DEFINE_POOL_CLASS(MVFFDebugPoolClass, this)
 
 mps_pool_class_t mps_class_mvff(void)
 {
-  return (mps_pool_class_t)(MVFFPoolClassGet());
+  return (mps_pool_class_t)(CLASS(MVFFPool));
 }
 
 mps_pool_class_t mps_class_mvff_debug(void)
 {
-  return (mps_pool_class_t)(MVFFDebugPoolClassGet());
+  return (mps_pool_class_t)(CLASS(MVFFDebugPool));
 }
 
 
@@ -765,8 +777,8 @@ ATTRIBUTE_UNUSED
 static Bool MVFFCheck(MVFF mvff)
 {
   CHECKS(MVFF, mvff);
+  CHECKC(MVFFPool, mvff);
   CHECKD(Pool, MVFFPool(mvff));
-  CHECKL(IsSubclassPoly(MVFFPool(mvff)->class, MVFFPoolClassGet()));
   CHECKD(LocusPref, MVFFLocusPref(mvff));
   CHECKL(mvff->extendBy >= ArenaGrainSize(PoolArena(MVFFPool(mvff))));
   CHECKL(mvff->avgSize > 0);                    /* see .arg.check */
