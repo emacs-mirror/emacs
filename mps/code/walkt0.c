@@ -236,7 +236,7 @@ int main(int argc, char *argv[])
 
     test(arena, mps_class_amc());
     test(arena, mps_class_amcz());
-    /* TODO: test(arena, mps_class_ams()); -- see job003738 */
+    test(arena, mps_class_ams());
     test(arena, mps_class_awl());
     test(arena, mps_class_lo());
     test(arena, mps_class_snc());
