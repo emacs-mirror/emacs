@@ -99,6 +99,11 @@ Res HistoryDescribe(History history, mps_lib_FILE *stream, Count depth)
   Res res;
   Index i;
 
+  if (!TESTT(History, history))
+    return ResPARAM;
+  if (stream == NULL)
+    return ResPARAM;
+
   res = WriteF(stream, depth,
                "History $P {\n",      (WriteFP)history,
                "  epoch      = $U\n", (WriteFU)history->epoch,
