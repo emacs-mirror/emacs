@@ -228,10 +228,6 @@ implementation) and the ``extend``, ``retract`` and
 ``spareCommitExceeded`` methods which have non-callable methods for
 the benefit of arena classes which don't implement these features.
 
-_`.class.abstract.null`: The abstract class does not provide dummy
-implementations of those methods which must be overridden. Instead
-each abstract method is initialized to ``NULL``.
-
 
 Chunks
 ......
@@ -613,6 +609,9 @@ Document History
 
 - 2014-02-17 RB_ Updated first field of tract structure.
 
+- 2016-04-08 RB_ All methods in the abstract arena class now have
+  dummy implementations, so that the class passes its own check.
+    
 .. _RB: http://www.ravenbrook.com/consultants/rb/
 .. _GDR: http://www.ravenbrook.com/consultants/gdr/
 

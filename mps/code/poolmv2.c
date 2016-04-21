@@ -31,7 +31,7 @@ SRCID(poolmv2, "$Id$");
 
 typedef struct MVTStruct *MVT;
 static void MVTVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs);
-static Res MVTInit(Pool pool, ArgList arg);
+static Res MVTInit(Pool pool, Arena arena, PoolClass klass, ArgList arg);
 static Bool MVTCheck(MVT mvt);
 static void MVTFinish(Pool pool);
 static Res MVTBufferFill(Addr *baseReturn, Addr *limitReturn,
@@ -55,6 +55,9 @@ static ABQ MVTABQ(MVT mvt);
 static Land MVTFreePrimary(MVT mvt);
 static Land MVTFreeSecondary(MVT mvt);
 static Land MVTFreeLand(MVT mvt);
+
+typedef MVT MVTPool;
+DECLARE_CLASS(Pool, MVTPool, AbstractBufferPool);
 
 
 /* Types */
@@ -133,22 +136,19 @@ typedef struct MVTStruct
 } MVTStruct;
 
 
-DEFINE_POOL_CLASS(MVTPoolClass, this)
+DEFINE_CLASS(Pool, MVTPool, klass)
 {
-  INHERIT_CLASS(this, AbstractBufferPoolClass);
-  this->name = "MVT";
-  this->size = sizeof(MVTStruct);
-  this->offset = offsetof(MVTStruct, poolStruct);
-  this->varargs = MVTVarargs;
-  this->init = MVTInit;
-  this->finish = MVTFinish;
-  this->free = MVTFree;
-  this->bufferFill = MVTBufferFill;
-  this->bufferEmpty = MVTBufferEmpty;
-  this->totalSize = MVTTotalSize;
-  this->freeSize = MVTFreeSize;
-  this->describe = MVTDescribe;
-  AVERT(PoolClass, this);
+  INHERIT_CLASS(klass, MVTPool, AbstractBufferPool);
+  klass->size = sizeof(MVTStruct);
+  klass->varargs = MVTVarargs;
+  klass->init = MVTInit;
+  klass->finish = MVTFinish;
+  klass->free = MVTFree;
+  klass->bufferFill = MVTBufferFill;
+  klass->bufferEmpty = MVTBufferEmpty;
+  klass->totalSize = MVTTotalSize;
+  klass->freeSize = MVTFreeSize;
+  klass->describe = MVTDescribe;
 }
 
 /* Macros */
@@ -219,9 +219,8 @@ ARG_DEFINE_KEY(MVT_MAX_SIZE, Size);
 ARG_DEFINE_KEY(MVT_RESERVE_DEPTH, Count);
 ARG_DEFINE_KEY(MVT_FRAG_LIMIT, double);
 
-static Res MVTInit(Pool pool, ArgList args)
+static Res MVTInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
 {
-  Arena arena;
   Size align = MVT_ALIGN_DEFAULT;
   Size minSize = MVT_MIN_SIZE_DEFAULT;
   Size meanSize = MVT_MEAN_SIZE_DEFAULT;
@@ -234,12 +233,11 @@ static Res MVTInit(Pool pool, ArgList args)
   Res res;
   ArgStruct arg;
 
-  AVERT(Pool, pool);
-  mvt = PoolMVT(pool);
-  /* can't AVERT mvt, yet */
-  arena = PoolArena(pool);
+  AVER(pool != NULL);
   AVERT(Arena, arena);
-  
+  AVERT(ArgList, args);
+  UNUSED(klass); /* used for debug pools only */
+
   if (ArgPick(&arg, args, MPS_KEY_ALIGN))
     align = arg.val.align;
   if (ArgPick(&arg, args, MPS_KEY_MIN_SIZE))
@@ -279,12 +277,17 @@ static Res MVTInit(Pool pool, ArgList args)
   if (abqDepth < 3)
     abqDepth = 3;
 
-  res = LandInit(MVTFreePrimary(mvt), CBSFastLandClassGet(), arena, align, mvt,
+  res = PoolAbsInit(pool, arena, klass, args);
+  if (res != ResOK)
+    goto failAbsInit;
+  mvt = CouldBeA(MVTPool, pool);
+
+  res = LandInit(MVTFreePrimary(mvt), CLASS(CBSFast), arena, align, mvt,
                  mps_args_none);
   if (res != ResOK)
     goto failFreePrimaryInit;
  
-  res = LandInit(MVTFreeSecondary(mvt), FreelistLandClassGet(), arena, align,
+  res = LandInit(MVTFreeSecondary(mvt), CLASS(Freelist), arena, align,
                  mvt, mps_args_none);
   if (res != ResOK)
     goto failFreeSecondaryInit;
@@ -292,7 +295,7 @@ static Res MVTInit(Pool pool, ArgList args)
   MPS_ARGS_BEGIN(foArgs) {
     MPS_ARGS_ADD(foArgs, FailoverPrimary, MVTFreePrimary(mvt));
     MPS_ARGS_ADD(foArgs, FailoverSecondary, MVTFreeSecondary(mvt));
-    res = LandInit(MVTFreeLand(mvt), FailoverLandClassGet(), arena, align, mvt,
+    res = LandInit(MVTFreeLand(mvt), CLASS(Failover), arena, align, mvt,
                    foArgs);
   } MPS_ARGS_END(foArgs);
   if (res != ResOK)
@@ -357,11 +360,13 @@ static Res MVTInit(Pool pool, ArgList args)
   METER_INIT(mvt->exceptionSplinters, "exception splinters", (void *)mvt);
   METER_INIT(mvt->exceptionReturns, "exception returns", (void *)mvt);
 
+  SetClassOfPoly(pool, CLASS(MVTPool));
   mvt->sig = MVTSig;
-
-  AVERT(MVT, mvt);
+  AVERC(MVT, mvt);
+  
   EVENT6(PoolInitMVT, pool, minSize, meanSize, maxSize,
                reserveDepth, fragLimit);
+
   return ResOK;
 
 failABQInit:
@@ -371,6 +376,8 @@ failFreeLandInit:
 failFreeSecondaryInit:
   LandFinish(MVTFreePrimary(mvt));
 failFreePrimaryInit:
+  PoolAbsFinish(pool);
+failAbsInit:
   AVER(res != ResOK);
   return res;
 }
@@ -382,8 +389,9 @@ ATTRIBUTE_UNUSED
 static Bool MVTCheck(MVT mvt)
 {
   CHECKS(MVT, mvt);
+  CHECKC(MVTPool, mvt);
   CHECKD(Pool, MVTPool(mvt));
-  CHECKL(MVTPool(mvt)->class == MVTPoolClassGet());
+  CHECKC(MVTPool, mvt);
   CHECKD(CBS, &mvt->cbsStruct);
   CHECKD(ABQ, &mvt->abqStruct);
   CHECKD(Freelist, &mvt->flStruct);
@@ -442,6 +450,7 @@ static void MVTFinish(Pool pool)
   LandFinish(MVTFreeLand(mvt));
   LandFinish(MVTFreeSecondary(mvt));
   LandFinish(MVTFreePrimary(mvt));
+  PoolAbsFinish(pool);
 }
 
 
@@ -1106,7 +1115,7 @@ static Res MVTDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 
 PoolClass PoolClassMVT(void)
 {
-  return MVTPoolClassGet();
+  return CLASS(MVTPool);
 }
 
 
@@ -1129,7 +1138,7 @@ mps_pool_class_t mps_class_mvt(void)
  */
 static Res MVTSegAlloc(Seg *segReturn, MVT mvt, Size size)
 {
-  Res res = SegAlloc(segReturn, SegClassGet(), LocusPrefDefault(), size,
+  Res res = SegAlloc(segReturn, CLASS(Seg), LocusPrefDefault(), size,
                      MVTPool(mvt), argsNone);
 
   if (res == ResOK) {
