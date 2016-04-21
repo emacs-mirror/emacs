@@ -226,9 +226,7 @@ extern Res PoolWhiten(Pool pool, Trace trace, Seg seg);
 extern void PoolGrey(Pool pool, Trace trace, Seg seg);
 extern void PoolBlacken(Pool pool, TraceSet traceSet, Seg seg);
 extern Res PoolScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg);
-extern Res (PoolFix)(Pool pool, ScanState ss, Seg seg, Addr *refIO);
-#define PoolFix(pool, ss, seg, refIO) \
-  ((*(pool)->fix)(pool, ss, seg, refIO))
+extern Res PoolFix(Pool pool, ScanState ss, Seg seg, Addr *refIO);
 extern Res PoolFixEmergency(Pool pool, ScanState ss, Seg seg, Addr *refIO);
 extern void PoolReclaim(Pool pool, Trace trace, Seg seg);
 extern void PoolTraceEnd(Pool pool, Trace trace);
@@ -280,8 +278,6 @@ extern Res PoolNoFramePush(AllocFrame *frameReturn, Pool pool, Buffer buf);
 extern Res PoolTrivFramePush(AllocFrame *frameReturn, Pool pool, Buffer buf);
 extern Res PoolNoFramePop(Pool pool, Buffer buf, AllocFrame frame);
 extern Res PoolTrivFramePop(Pool pool, Buffer buf, AllocFrame frame);
-extern void PoolNoFramePopPending(Pool pool, Buffer buf, AllocFrame frame);
-extern void PoolTrivFramePopPending(Pool pool, Buffer buf, AllocFrame frame);
 extern Res PoolNoAddrObject(Addr *pReturn, Pool pool, Seg seg, Addr addr);
 extern void PoolNoWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
                        void *p, size_t s);
@@ -406,7 +402,8 @@ extern Res TraceAddWhite(Trace trace, Seg seg);
 extern void TraceCondemnStart(Trace trace);
 extern void TraceCondemnEnd(Trace trace);
 extern Res TraceStart(Trace trace, double mortality, double finishingTime);
-extern Bool TracePoll(Work *workReturn, Globals globals);
+extern Bool TracePoll(Work *workReturn, Bool *collectWorldReturn,
+                      Globals globals, Bool collectWorldAllowed);
 
 extern Rank TraceRankForAccess(Arena arena, Seg seg);
 extern void TraceSegAccess(Arena arena, Seg seg, AccessSet mode);
@@ -536,6 +533,7 @@ extern Ring GlobalsRememberedSummaryRing(Globals);
 #define ArenaGreyRing(arena, rank) (&(arena)->greyRing[rank])
 #define ArenaPoolRing(arena) (&ArenaGlobals(arena)->poolRing)
 #define ArenaChunkTree(arena) RVALUE((arena)->chunkTree)
+#define ArenaChunkRing(arena) RVALUE(&(arena)->chunkRing)
 #define ArenaShield(arena)      (&(arena)->shieldStruct)
 
 extern Bool ArenaGrainSizeCheck(Size size);
@@ -659,7 +657,8 @@ extern Res PolicyAlloc(Tract *tractReturn, Arena arena, LocusPref pref,
                        Size size, Pool pool);
 extern Bool PolicyShouldCollectWorld(Arena arena, double availableTime,
                                      Clock now, Clock clocks_per_sec);
-extern Bool PolicyStartTrace(Trace *traceReturn, Arena arena);
+extern Bool PolicyStartTrace(Trace *traceReturn, Bool *collectWorldReturn,
+                             Arena arena, Bool collectWorldAllowed);
 extern Bool PolicyPoll(Arena arena);
 extern Bool PolicyPollAgain(Arena arena, Clock start, Bool moreWork, Work tracedWork);
 
@@ -697,6 +696,7 @@ extern Res SegDescribe(Seg seg, mps_lib_FILE *stream, Count depth);
 extern void SegSetSummary(Seg seg, RefSet summary);
 extern Buffer SegBuffer(Seg seg);
 extern void SegSetBuffer(Seg seg, Buffer buffer);
+extern Addr SegBufferScanLimit(Seg seg);
 extern Bool SegCheck(Seg seg);
 extern Bool GCSegCheck(GCSeg gcseg);
 extern Bool SegClassCheck(SegClass class);
@@ -811,7 +811,6 @@ extern Addr BufferScanLimit(Buffer buffer);
 extern void BufferReassignSeg(Buffer buffer, Seg seg);
 
 extern Bool BufferIsTrapped(Buffer buffer);
-extern Bool BufferIsTrappedByMutator(Buffer buffer);
 
 extern void BufferRampBegin(Buffer buffer, AllocPattern pattern);
 extern Res BufferRampEnd(Buffer buffer);
@@ -819,8 +818,6 @@ extern void BufferRampReset(Buffer buffer);
 
 extern Res BufferFramePush(AllocFrame *frameReturn, Buffer buffer);
 extern Res BufferFramePop(Buffer buffer, AllocFrame frame);
-extern FrameState BufferFrameState(Buffer buffer);
-extern void BufferFrameSetState(Buffer buffer, FrameState state);
 
 
 /* DEFINE_BUFFER_CLASS -- define a buffer class */
@@ -1037,31 +1034,17 @@ extern LandClass LandClassGet(void);
 
 /* STATISTIC -- gather statistics (in some varieties)
  *
- * The argument of STATISTIC is an expression; the expansion followed by
- * a semicolon is syntactically a statement.
- *
- * The argument of STATISTIC_STAT is a statement; the expansion followed by
- * a semicolon is syntactically a statement.
- *
- * STATISTIC_WRITE is inserted in WriteF arguments to output the values
- * of statistic fields.
- *
- * .statistic.whitehot: The implementation of STATISTIC for
- * non-statistical varieties passes the parameter to DISCARD to ensure
- * the parameter is syntactically an expression.  The parameter is
- * passed as part of a comma-expression so that its type is not
- * important.  This permits an expression of type void.  */
+ * See <design/diag/#stat>.
+ */
 
 #if defined(STATISTICS)
 
-#define STATISTIC(gather) BEGIN (gather); END
-#define STATISTIC_STAT(gather) BEGIN gather; END
+#define STATISTIC(gather) BEGIN gather; END
 #define STATISTIC_WRITE(format, arg) (format), (arg),
 
 #elif defined(STATISTICS_NONE)
 
-#define STATISTIC(gather) DISCARD(((gather), 0))
-#define STATISTIC_STAT DISCARD_STAT
+#define STATISTIC(gather) NOOP
 #define STATISTIC_WRITE(format, arg)
 
 #else /* !defined(STATISTICS) && !defined(STATISTICS_NONE) */

@@ -380,8 +380,7 @@ void GlobalsFinish(Globals arenaGlobals)
   arena = GlobalsArena(arenaGlobals);
   AVERT(Globals, arenaGlobals);
 
-  STATISTIC_STAT(EVENT2(ArenaWriteFaults, arena,
-                        arena->writeBarrierHitCount));
+  STATISTIC(EVENT2(ArenaWriteFaults, arena, arena->writeBarrierHitCount));
 
   arenaGlobals->sig = SigInvalid;
 
@@ -693,6 +692,7 @@ void (ArenaPoll)(Globals globals)
 {
   Arena arena;
   Clock start;
+  Bool worldCollected = FALSE;
   Bool moreWork, workWasDone = FALSE;
   Work tracedWork;
 
@@ -714,7 +714,8 @@ void (ArenaPoll)(Globals globals)
   EVENT3(ArenaPoll, arena, start, FALSE);
 
   do {
-    moreWork = TracePoll(&tracedWork, globals);
+    moreWork = TracePoll(&tracedWork, &worldCollected, globals,
+                         !worldCollected);
     if (moreWork) {
       workWasDone = TRUE;
     }
@@ -770,7 +771,8 @@ Bool ArenaStep(Globals globals, double interval, double multiplier)
         arena->lastWorldCollect = now;
       } else {
         /* Not worth collecting the world; consider starting a trace. */
-        if (!PolicyStartTrace(&trace, arena))
+        Bool worldCollected;
+        if (!PolicyStartTrace(&trace, &worldCollected, arena, FALSE))
           break;
       }
     }

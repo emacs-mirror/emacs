@@ -1,7 +1,7 @@
 /* arena.c: ARENA ALLOCATION FEATURES
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  * .sources: <design/arena/> is the main design document.  */
 
@@ -150,11 +150,13 @@ Bool ArenaCheck(Arena arena)
   CHECKL(arena->spareCommitted <= arena->committed);
   CHECKL(0.0 <= arena->pauseTime);
 
-  CHECKL(ShiftCheck(arena->zoneShift));
+  CHECKL(arena->zoneShift == ZoneShiftUNSET
+         || ShiftCheck(arena->zoneShift));
   CHECKL(ArenaGrainSizeCheck(arena->grainSize));
 
   /* Stripes can't be smaller than grains. */
-  CHECKL(((Size)1 << arena->zoneShift) >= arena->grainSize);
+  CHECKL(arena->zoneShift == ZoneShiftUNSET
+         || ((Size)1 << arena->zoneShift) >= arena->grainSize);
 
   if (arena->lastTract == NULL) {
     CHECKL(arena->lastTractBase == (Addr)0);
@@ -165,7 +167,7 @@ Bool ArenaCheck(Arena arena)
   if (arena->primary != NULL) {
     CHECKD(Chunk, arena->primary);
   }
-  CHECKD_NOSIG(Ring, &arena->chunkRing);
+  CHECKD_NOSIG(Ring, ArenaChunkRing(arena));
   /* Can't use CHECKD_NOSIG because TreeEMPTY is NULL. */
   CHECKL(TreeCheck(ArenaChunkTree(arena)));
   /* TODO: check that the chunkRing and chunkTree have identical members */
@@ -224,8 +226,8 @@ Res ArenaInit(Arena arena, ArenaClass class, Size grainSize, ArgList args)
   arena->spareCommitLimit = spareCommitLimit;
   arena->pauseTime = pauseTime;
   arena->grainSize = grainSize;
-  /* zoneShift is usually overridden by init */
-  arena->zoneShift = ARENA_ZONESHIFT;
+  /* zoneShift must be overridden by arena class init */
+  arena->zoneShift = ZoneShiftUNSET;
   arena->poolReady = FALSE;     /* <design/arena/#pool.ready> */
   arena->lastTract = NULL;
   arena->lastTractBase = NULL;
@@ -234,7 +236,7 @@ Res ArenaInit(Arena arena, ArenaClass class, Size grainSize, ArgList args)
   arena->zoned = zoned;
 
   arena->primary = NULL;
-  RingInit(&arena->chunkRing);
+  RingInit(ArenaChunkRing(arena));
   arena->chunkTree = TreeEMPTY;
   arena->chunkSerial = (Serial)0;
   
@@ -349,6 +351,9 @@ Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args)
   if (res != ResOK)
     goto failInit;
 
+  /* Zone shift must have been set up by *class->init() */
+  AVER(ShiftCheck(arena->zoneShift));
+
   /* Grain size must have been set up by *class->init() */
   if (ArenaGrainSize(arena) > ((Size)1 << arena->zoneShift)) {
     res = ResMEMORY; /* size was too small */
@@ -395,7 +400,7 @@ void ArenaFinish(Arena arena)
   arena->sig = SigInvalid;
   GlobalsFinish(ArenaGlobals(arena));
   LocusFinish(arena);
-  RingFinish(&arena->chunkRing);
+  RingFinish(ArenaChunkRing(arena));
   AVER(ArenaChunkTree(arena) == TreeEMPTY);
 }
 
@@ -618,7 +623,7 @@ Res ArenaDescribeTracts(Arena arena, mps_lib_FILE *stream, Count depth)
   if (stream == NULL)
     return ResFAIL;
 
-  RING_FOR(node, &arena->chunkRing, next) {
+  RING_FOR(node, ArenaChunkRing(arena), next) {
     Chunk chunk = RING_ELT(Chunk, arenaRing, node);
     res = arenaDescribeTractsInChunk(chunk, stream, depth);
     if (res != ResOK)
@@ -706,7 +711,7 @@ void ArenaChunkInsert(Arena arena, Chunk chunk) {
   AVER(updatedTree);
   TreeBalance(&updatedTree);
   arena->chunkTree = updatedTree;
-  RingAppend(&arena->chunkRing, &chunk->arenaRing);
+  RingAppend(ArenaChunkRing(arena), &chunk->arenaRing);
 
   arena->reserved += ChunkReserved(chunk);
 
@@ -735,7 +740,7 @@ void ArenaChunkRemoved(Arena arena, Chunk chunk)
 
   if (chunk == arena->primary) {
     /* The primary chunk must be the last chunk to be removed. */
-    AVER(RingIsSingle(&arena->chunkRing));
+    AVER(RingIsSingle(ArenaChunkRing(arena)));
     AVER(arena->reserved == 0);
     arena->primary = NULL;
   }
@@ -790,7 +795,7 @@ static Res arenaAllocPage(Addr *baseReturn, Arena arena, Pool pool)
   res = arenaAllocPageInChunk(baseReturn, arena->primary, pool);
   if (res != ResOK) {
     Ring node, next;
-    RING_FOR(node, &arena->chunkRing, next) {
+    RING_FOR(node, ArenaChunkRing(arena), next) {
       Chunk chunk = RING_ELT(Chunk, arenaRing, node);
       if (chunk != arena->primary) {
         res = arenaAllocPageInChunk(baseReturn, chunk, pool);
@@ -949,6 +954,7 @@ Res ArenaFreeLandInsert(Arena arena, Addr base, Addr limit)
   Res res;
 
   AVERT(Arena, arena);
+  AVER(base < limit);
 
   RangeInit(&range, base, limit);
   res = arenaFreeLandInsertExtend(&oldRange, arena, &range);
@@ -1389,7 +1395,7 @@ Res ArenaAddrObject(Addr *pReturn, Arena arena, Addr addr)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

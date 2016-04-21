@@ -92,42 +92,42 @@ typedef struct MVTStruct
   Size unavailable;             /* bytes lost to fragmentation */
  
   /* pool meters*/
-  METER_DECL(segAllocs);
-  METER_DECL(segFrees);
-  METER_DECL(bufferFills);
-  METER_DECL(bufferEmpties);
-  METER_DECL(poolFrees);
-  METER_DECL(poolSize);
-  METER_DECL(poolAllocated);
-  METER_DECL(poolAvailable);
-  METER_DECL(poolUnavailable);
-  METER_DECL(poolUtilization);
+  METER_DECL(segAllocs)
+  METER_DECL(segFrees)
+  METER_DECL(bufferFills)
+  METER_DECL(bufferEmpties)
+  METER_DECL(poolFrees)
+  METER_DECL(poolSize)
+  METER_DECL(poolAllocated)
+  METER_DECL(poolAvailable)
+  METER_DECL(poolUnavailable)
+  METER_DECL(poolUtilization)
   /* abq meters */
-  METER_DECL(finds);
-  METER_DECL(overflows);
-  METER_DECL(underflows);
-  METER_DECL(refills);
-  METER_DECL(refillPushes);
-  METER_DECL(returns);
+  METER_DECL(finds)
+  METER_DECL(overflows)
+  METER_DECL(underflows)
+  METER_DECL(refills)
+  METER_DECL(refillPushes)
+  METER_DECL(returns)
   /* fragmentation meters */
-  METER_DECL(perfectFits);
-  METER_DECL(firstFits);
-  METER_DECL(secondFits);
-  METER_DECL(failures);
+  METER_DECL(perfectFits)
+  METER_DECL(firstFits)
+  METER_DECL(secondFits)
+  METER_DECL(failures)
   /* contingency meters */
-  METER_DECL(emergencyContingencies);
-  METER_DECL(fragLimitContingencies);
-  METER_DECL(contingencySearches);
-  METER_DECL(contingencyHardSearches);
+  METER_DECL(emergencyContingencies)
+  METER_DECL(fragLimitContingencies)
+  METER_DECL(contingencySearches)
+  METER_DECL(contingencyHardSearches)
   /* splinter meters */
-  METER_DECL(splinters);
-  METER_DECL(splintersUsed);
-  METER_DECL(splintersDropped);
-  METER_DECL(sawdust);
+  METER_DECL(splinters)
+  METER_DECL(splintersUsed)
+  METER_DECL(splintersDropped)
+  METER_DECL(sawdust)
   /* exception meters */
-  METER_DECL(exceptions);
-  METER_DECL(exceptionSplinters);
-  METER_DECL(exceptionReturns);
+  METER_DECL(exceptions)
+  METER_DECL(exceptionSplinters)
+  METER_DECL(exceptionReturns)
  
   Sig sig;
 } MVTStruct;

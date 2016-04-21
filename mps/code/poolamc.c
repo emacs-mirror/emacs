@@ -70,9 +70,13 @@ enum {
 
 /* amcSegStruct -- AMC-specific fields appended to GCSegStruct
  *
- * .seg.old: The "old" flag is FALSE if the segment has never been
- * collected, and so its size is accounted against the pool
- * generation's newSize; it is TRUE if the segment has been collected
+ * .seg.accounted-as-buffered: The "accountedAsBuffered" flag is TRUE
+ * if the segment has an atached buffer and is accounted against the
+ * pool generation's bufferedSize. But note that if this is FALSE, the
+ * segment might still have an attached buffer -- this happens if the
+ * segment was condemned while the buffer was attached.
+ *
+ * .seg.old: The "old" flag is TRUE if the segment has been collected
  * at least once, and so its size is accounted against the pool
  * generation's oldSize.
  *
@@ -93,6 +97,7 @@ typedef struct amcSegStruct {
   GCSegStruct gcSegStruct;  /* superclass fields must come first */
   amcGen gen;               /* generation this segment belongs to */
   Nailboard board;          /* nailboard for this segment or NULL if none */
+  BOOLFIELD(accountedAsBuffered); /* .seg.accounted-as-buffered */
   BOOLFIELD(old);           /* .seg.old */
   BOOLFIELD(deferred);      /* .seg.deferred */
   Sig sig;                  /* <code/misc.h#sig> */
@@ -112,6 +117,7 @@ static Bool amcSegCheck(amcSeg amcseg)
     CHECKD(Nailboard, amcseg->board);
     CHECKL(SegNailed(amcSeg2Seg(amcseg)) != TraceSetEMPTY);
   }
+  /* CHECKL(BoolCheck(amcseg->accountedAsBuffered)); <design/type/#bool.bitfield.check> */
   /* CHECKL(BoolCheck(amcseg->old)); <design/type/#bool.bitfield.check> */
   /* CHECKL(BoolCheck(amcseg->deferred)); <design/type/#bool.bitfield.check> */
   return TRUE;
@@ -146,6 +152,7 @@ static Res AMCSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 
   amcseg->gen = amcgen;
   amcseg->board = NULL;
+  amcseg->accountedAsBuffered = FALSE;
   amcseg->old = FALSE;
   amcseg->deferred = FALSE;
   amcseg->sig = amcSegSig;
@@ -886,6 +893,7 @@ static void AMCFinish(Pool pool)
     amcGen gen = amcSegGen(seg);
     amcSeg amcseg = Seg2amcSeg(seg);
     AVERT(amcSeg, amcseg);
+    AVER(!amcseg->accountedAsBuffered);
     PoolGenFree(&gen->pgen, seg,
                 0,
                 amcseg->old ? SegSize(seg) : 0,
@@ -998,7 +1006,8 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
     }
   }
 
-  PoolGenAccountForFill(pgen, SegSize(seg), Seg2amcSeg(seg)->deferred);
+  PoolGenAccountForFill(pgen, SegSize(seg));
+  Seg2amcSeg(seg)->accountedAsBuffered = TRUE;
   *baseReturn = base;
   *limitReturn = limit;
   return ResOK;
@@ -1016,6 +1025,7 @@ static void AMCBufferEmpty(Pool pool, Buffer buffer,
   Size size;
   Arena arena;
   Seg seg;
+  amcSeg amcseg;
 
   AVERT(Pool, pool);
   amc = PoolAMC(pool);
@@ -1043,10 +1053,13 @@ static void AMCBufferEmpty(Pool pool, Buffer buffer,
     ShieldCover(arena, seg);
   }
 
-  /* The unused part of the buffer is not reused by AMC, so we pass 0
-   * for the unused argument. This call therefore has no effect on the
-   * accounting, but we call it anyway for consistency. */
-  PoolGenAccountForEmpty(&amcSegGen(seg)->pgen, 0, Seg2amcSeg(seg)->deferred);
+  amcseg = Seg2amcSeg(seg);
+  if (amcseg->accountedAsBuffered) {
+    /* Account the entire buffer (including the padding object) as used. */
+    PoolGenAccountForEmpty(&amcSegGen(seg)->pgen, SegSize(seg), 0,
+                           amcseg->deferred);
+    amcseg->accountedAsBuffered = FALSE;
+  }
 }
 
 
@@ -1119,9 +1132,10 @@ static void AMCRampEnd(Pool pool, Buffer buf)
          && amcseg->deferred
          && SegWhite(seg) == TraceSetEMPTY)
       {
-        PoolGenUndefer(pgen,
-                       amcseg->old ? SegSize(seg) : 0,
-                       amcseg->old ? 0 : SegSize(seg));
+        if (!amcseg->accountedAsBuffered)
+          PoolGenUndefer(pgen,
+                         amcseg->old ? SegSize(seg) : 0,
+                         amcseg->old ? 0 : SegSize(seg));
         amcseg->deferred = FALSE;
       }
     }
@@ -1182,7 +1196,7 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
                                 BufferScanLimit(buffer),
                                 BufferLimit(buffer));
             }
-            ++trace->nailCount;
+            STATISTIC(++trace->nailCount);
             SegSetNailed(seg, TraceSetSingle(trace));
           } else {
             /* Segment is nailed already, cannot create a nailboard */
@@ -1217,8 +1231,14 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
   gen = amcSegGen(seg);
   AVERT(amcGen, gen);
   if (!amcseg->old) {
-    PoolGenAccountForAge(&gen->pgen, SegSize(seg), amcseg->deferred);
     amcseg->old = TRUE;
+    if (amcseg->accountedAsBuffered) {
+      /* Note that the segment remains buffered but the buffer contents
+       * are accounted as old. See .seg.accounted-as-buffered. */
+      amcseg->accountedAsBuffered = FALSE;
+      PoolGenAccountForAge(&gen->pgen, SegSize(seg), 0, amcseg->deferred);
+    } else
+      PoolGenAccountForAge(&gen->pgen, 0, SegSize(seg), amcseg->deferred);
   }
 
   /* Ensure we are forwarding into the right generation. */
@@ -1576,7 +1596,7 @@ static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
       res = amcSegCreateNailboard(seg, pool);
       if(res != ResOK)
         return res;
-      ++ss->nailCount;
+      STATISTIC(++ss->nailCount);
       SegSetNailed(seg, TraceSetUnion(SegNailed(seg), ss->traces));
     }
     amcFixInPlace(pool, seg, ss, refIO);
@@ -1634,7 +1654,7 @@ static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     AVER_CRITICAL(buffer != NULL);
 
     length = AddrOffset(ref, clientQ);  /* .exposed.seg */
-    STATISTIC_STAT(++ss->forwardedCount);
+    STATISTIC(++ss->forwardedCount);
     ss->forwardedSize += length;
     do {
       res = BUFFER_RESERVE(&newBase, buffer, length);
@@ -1661,7 +1681,7 @@ static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
 
       ShieldCover(arena, toSeg);
     } while (!BUFFER_COMMIT(buffer, newBase, length));
-    ss->copiedSize += length;
+    STATISTIC(ss->copiedSize += length);
 
     (*format->move)(ref, newRef);  /* .exposed.seg */
 
@@ -1669,7 +1689,7 @@ static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   } else {
     /* reference to broken heart (which should be snapped out -- */
     /* consider adding to (non-existent) snap-out cache here) */
-    STATISTIC_STAT(++ss->snapCount);
+    STATISTIC(++ss->snapCount);
   }
 
   /* .fix.update: update the reference to whatever the above code */
@@ -1691,7 +1711,7 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
   Addr p, limit;
   Arena arena;
   Format format;
-  Size bytesReclaimed = (Size)0;
+  STATISTIC_DECL(Size bytesReclaimed = (Size)0)
   Count preservedInPlaceCount = (Count)0;
   Size preservedInPlaceSize = (Size)0;
   AMC amc;
@@ -1712,11 +1732,7 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
   headerSize = format->headerSize;
   ShieldExpose(arena, seg);
   p = SegBase(seg);
-  if(SegBuffer(seg) != NULL) {
-    limit = BufferScanLimit(SegBuffer(seg));
-  } else {
-    limit = SegLimit(seg);
-  }
+  limit = SegBufferScanLimit(seg);
   padBase = p;
   padLength = 0;
   while(p < limit) {
@@ -1742,7 +1758,7 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
         /* Replace run of forwarding pointers and unreachable objects
          * with a padding object. */
         (*format->pad)(padBase, padLength);
-        bytesReclaimed += padLength;
+        STATISTIC(bytesReclaimed += padLength);
         padLength = 0;
       }
       padBase = q;
@@ -1759,7 +1775,7 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
     /* Replace final run of forwarding pointers and unreachable
      * objects with a padding object. */
     (*format->pad)(padBase, padLength);
-    bytesReclaimed += padLength;
+    STATISTIC(bytesReclaimed += padLength);
   }
   ShieldCover(arena, seg);
 
@@ -1770,9 +1786,9 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
     Seg2amcSeg(seg)->board = NULL;
   }
 
-  AVER(bytesReclaimed <= SegSize(seg));
-  trace->reclaimSize += bytesReclaimed;
-  trace->preservedInPlaceCount += preservedInPlaceCount;
+  STATISTIC(AVER(bytesReclaimed <= SegSize(seg)));
+  STATISTIC(trace->reclaimSize += bytesReclaimed);
+  STATISTIC(trace->preservedInPlaceCount += preservedInPlaceCount);
   trace->preservedInPlaceSize += preservedInPlaceSize;
 
   /* Free the seg if we can; fixes .nailboard.limitations.middle. */
@@ -1830,7 +1846,7 @@ static void AMCReclaim(Pool pool, Trace trace, Seg seg)
   /* segs should have been nailed anyway). */
   AVER(SegBuffer(seg) == NULL);
 
-  trace->reclaimSize += SegSize(seg);
+  STATISTIC(trace->reclaimSize += SegSize(seg));
 
   PoolGenFree(&gen->pgen, seg, 0, SegSize(seg), 0, Seg2amcSeg(seg)->deferred);
 }
@@ -1864,14 +1880,7 @@ static void AMCWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
     AVERT(AMC, amc);
     format = pool->format;
 
-    /* If the segment is buffered, only walk as far as the end */
-    /* of the initialized objects.  cf. AMCScan */
-    if(SegBuffer(seg) != NULL)
-      limit = BufferScanLimit(SegBuffer(seg));
-    else
-      limit = SegLimit(seg);
-    limit = AddrAdd(limit, format->headerSize);
-
+    limit = AddrAdd(SegBufferScanLimit(seg), format->headerSize);
     object = AddrAdd(SegBase(seg), format->headerSize);
     while(object < limit) {
       /* Check not a broken heart. */

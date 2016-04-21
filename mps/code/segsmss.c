@@ -432,6 +432,7 @@ static void AMSUnallocateRange(AMS ams, Seg seg, Addr base, Addr limit)
 {
   AMSSeg amsseg;
   Index baseIndex, limitIndex;
+  Count unallocatedGrains;
   /* parameters checked by caller */
 
   amsseg = Seg2AMSSeg(seg);
@@ -456,10 +457,13 @@ static void AMSUnallocateRange(AMS ams, Seg seg, Addr base, Addr limit)
       BTResRange(amsseg->allocTable, baseIndex, limitIndex);
     }
   }
-  amsseg->freeGrains += limitIndex - baseIndex;
-  AVER(amsseg->newGrains >= limitIndex - baseIndex);
-  amsseg->newGrains -= limitIndex - baseIndex;
-  PoolGenAccountForEmpty(&ams->pgen, AddrOffset(base, limit), FALSE);
+
+  unallocatedGrains = limitIndex - baseIndex;
+  AVER(amsseg->bufferedGrains >= unallocatedGrains);
+  amsseg->freeGrains += unallocatedGrains;
+  amsseg->bufferedGrains -= unallocatedGrains;
+  PoolGenAccountForEmpty(&ams->pgen, 0, AMSGrainsSize(ams, unallocatedGrains),
+                         FALSE);
 }
 
 
@@ -472,6 +476,7 @@ static void AMSAllocateRange(AMS ams, Seg seg, Addr base, Addr limit)
 {
   AMSSeg amsseg;
   Index baseIndex, limitIndex;
+  Count allocatedGrains;
   /* parameters checked by caller */
 
   amsseg = Seg2AMSSeg(seg);
@@ -496,10 +501,12 @@ static void AMSAllocateRange(AMS ams, Seg seg, Addr base, Addr limit)
       BTSetRange(amsseg->allocTable, baseIndex, limitIndex);
     }
   }
-  AVER(amsseg->freeGrains >= limitIndex - baseIndex);
-  amsseg->freeGrains -= limitIndex - baseIndex;
-  amsseg->newGrains += limitIndex - baseIndex;
-  PoolGenAccountForFill(&ams->pgen, AddrOffset(base, limit), FALSE);
+
+  allocatedGrains = limitIndex - baseIndex;
+  AVER(amsseg->freeGrains >= allocatedGrains);
+  amsseg->freeGrains -= allocatedGrains;
+  amsseg->bufferedGrains += allocatedGrains;
+  PoolGenAccountForFill(&ams->pgen, AddrOffset(base, limit));
 }
 
 
