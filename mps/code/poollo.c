@@ -290,7 +290,7 @@ static void loSegReclaim(LOSeg loseg, Trace trace)
   Seg seg = MustBeA(Seg, loseg);
   Pool pool = SegPool(seg);
   LO lo = MustBeA(LOPool, pool);
-  Format format;
+  Format format = NULL; /* supress "may be used uninitialized" warning */
   Count preservedInPlaceCount = (Count)0;
   Size preservedInPlaceSize = (Size)0;
   Bool b;
@@ -382,7 +382,7 @@ static void LOWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
   LO lo = MustBeA(LOPool, pool);
   LOSeg loseg = MustBeA(LOSeg, seg);
   Index i, grains;
-  Format format;
+  Format format = NULL; /* suppress "may be used uninitialized" warning */
   Bool b;
 
   AVERT(Pool, pool);
