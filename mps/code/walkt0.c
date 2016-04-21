@@ -149,6 +149,7 @@ static void test(mps_arena_t arena, mps_pool_class_t pool_class)
     size_t totalSize, freeSize, allocSize, bufferSize;
     unsigned long objs;
     struct stepper_data sdStruct, *sd;
+    PoolClass class;
 
     die(dylan_fmt(&format, arena), "fmt_create");
     die(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
@@ -204,8 +205,9 @@ static void test(mps_arena_t arena, mps_pool_class_t pool_class)
     freeSize = mps_pool_free_size(pool);
     allocSize = totalSize - freeSize;
     bufferSize = AddrOffset(ap->init, ap->limit);
+    class = ClassOfPoly(Pool, pool);
     printf("%s: obj=%lu pad=%lu total=%lu free=%lu alloc=%lu buffer=%lu\n",
-           ((Pool)pool)->class->name,
+           ClassName(class),
            (unsigned long)sd->objSize,
            (unsigned long)sd->padSize,
            (unsigned long)totalSize,
