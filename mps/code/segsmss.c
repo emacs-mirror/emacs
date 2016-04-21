@@ -314,31 +314,14 @@ static Res AMSTSegSizePolicy(Size *sizeReturn,
 
 static Res AMSTInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
 {
-  AMST amst; AMS ams;
-  Chain chain;
+  AMST amst;
+  AMS ams;
   Res res;
-  unsigned gen = AMS_GEN_DEFAULT;
-  ArgStruct arg;
 
-  AVER(pool != NULL);
-  AVERT(Arena, arena);
-  AVERT(ArgList, args);
-  UNUSED(klass); /* used for debug pools only */
-
-  if (ArgPick(&arg, args, MPS_KEY_CHAIN))
-    chain = arg.val.chain;
-  else {
-    chain = ArenaGlobals(arena)->defaultChain;
-    gen = 1; /* avoid the nursery of the default chain by default */
-  }
-  if (ArgPick(&arg, args, MPS_KEY_GEN))
-    gen = arg.val.u;
-
-  /* FIXME: Generalise to next-method call */
-  res = AMSInitInternal(PoolAMS(pool), arena, klass,
-                        chain, gen, FALSE, args);
+  res = NextMethod(Pool, AMSTPool, init)(pool, arena, klass, args);
   if (res != ResOK)
     return res;
+
   amst = CouldBeA(AMSTPool, pool);
   ams = MustBeA(AMSPool, pool);
 
