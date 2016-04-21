@@ -74,7 +74,7 @@
  *
  * We use the address of the static storage for the canonical class
  * object as the class id, suitable for fast comparison.  This is not
- * intended to be dereferences.  We would like to define it as a
+ * intended to be dereferenced.  We would like to define it as a
  * pointer to an incomplete structure, but GCC 4.7 buggily complains
  * about punning if we do that, so use void *, even though that's a
  * bit more error prone.
