@@ -524,7 +524,7 @@ extern Ring GlobalsRememberedSummaryRing(Globals);
 
 #define ArenaThreadRing(arena)  (&(arena)->threadRing)
 #define ArenaDeadRing(arena)    (&(arena)->deadRing)
-#define ArenaEpoch(arena)       ((arena)->epoch) /* .epoch.ts */
+#define ArenaEpoch(arena)       (ArenaHistory(arena)->epoch) /* .epoch.ts */
 #define ArenaTrace(arena, ti)   (&(arena)->trace[ti])
 #define ArenaZoneShift(arena)   ((arena)->zoneShift)
 #define ArenaStripeSize(arena)  ((Size)1 << ArenaZoneShift(arena))
@@ -534,6 +534,7 @@ extern Ring GlobalsRememberedSummaryRing(Globals);
 #define ArenaChunkTree(arena) RVALUE((arena)->chunkTree)
 #define ArenaChunkRing(arena) RVALUE(&(arena)->chunkRing)
 #define ArenaShield(arena)      (&(arena)->shieldStruct)
+#define ArenaHistory(arena)     (&(arena)->historyStruct)
 
 extern Bool ArenaGrainSizeCheck(Size size);
 #define AddrArenaGrainUp(addr, arena) AddrAlignUp(addr, ArenaGrainSize(arena))
@@ -944,6 +945,10 @@ extern void (ShieldFlush)(Arena arena);
 
 /* Location Dependency -- see <code/ld.c> */
 
+extern void HistoryInit(History history);
+extern void HistoryFinish(History);
+extern Res HistoryDescribe(History history, mps_lib_FILE *stream, Count depth);
+extern Bool HistoryCheck(History history);
 extern void LDReset(mps_ld_t ld, Arena arena);
 extern void LDAdd(mps_ld_t ld, Arena arena, Addr addr);
 extern Bool LDIsStaleAny(mps_ld_t ld, Arena arena);

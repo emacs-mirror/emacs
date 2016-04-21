@@ -713,6 +713,21 @@ typedef struct ShieldStruct {
 } ShieldStruct;
 
 
+/* History -- location dependency history
+ *
+ * See design.mps.arena.ld.
+ */
+
+#define HistorySig     ((Sig)0x51981520) /* SIGnature HISTOry */
+
+typedef struct HistoryStruct {
+  Sig sig;                         /* design.mps.sig */
+  Epoch epoch;                     /* <design/arena/#ld.epoch> */
+  RefSet prehistory;               /* <design/arena/#ld.prehistory> */
+  RefSet history[LDHistoryLENGTH]; /* <design/arena/#ld.history> */
+} HistoryStruct;  
+
+
 /* ArenaStruct -- generic arena
  *
  * See <code/arena.c>.
@@ -796,11 +811,8 @@ typedef struct mps_arena_s {
   STATISTIC_DECL(Count writeBarrierHitCount) /* write barrier hits */
   RingStruct chainRing;         /* ring of chains */
 
-  /* location dependency fields (<code/ld.c>) */
-  Epoch epoch;                     /* <design/arena/#ld.epoch> */
-  RefSet prehistory;               /* <design/arena/#ld.prehistory> */
-  RefSet history[LDHistoryLENGTH]; /* <design/arena/#ld.history> */
-
+  struct HistoryStruct historyStruct;
+  
   Bool emergency;               /* garbage collect in emergency mode? */
 
   Word *stackAtArenaEnter;  /* NULL or hot end of client stack, in the thread */
