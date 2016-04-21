@@ -129,21 +129,21 @@ class is extended, it becomes a member of a different kind.  Kinds
 allow subtype checking to be applied to classes as well as instances,
 to determine whether methods are available. ::
 
-      instance          class      	  kind
+      instance          class             kind
       (e.g. CBS)        (e.g. CBSClass)   (e.g. LandClassClass)
-     .----------.      .----------.	 .----------.
+     .----------.      .----------.      .----------.
      |  class   |----->|  class   |----->|  class   |-->InstClassClass
-     ------------      ------------	 ------------
-     |  ...     |      |  sig     |	 |  sig     |
-     ------------      ------------	 ------------
-     |  ...     |      |  name    |	 |  name    |
-     ------------      ------------    	 ------------
-     |  ...     |      |superclass|-.  	 |superclass|-->InstClassClass
-     ------------      ------------ |	 ------------
-     |          |      |   ...    | |	 |   ...    |
-				    |
-				    |
-       	       	       	 LandClass<-'
+     ------------      ------------      ------------
+     |  ...     |      |  sig     |      |  sig     |
+     ------------      ------------      ------------
+     |  ...     |      |  name    |      |  name    |
+     ------------      ------------      ------------
+     |  ...     |      |superclass|-.    |superclass|-->InstClassClass
+     ------------      ------------ |    ------------
+     |          |      |   ...    | |    |   ...    |
+                                    |
+                                    |
+                         LandClass<-'
 
 
 _`.overview.sig.inherit`: Instances (and therefore classes) will
@@ -490,7 +490,7 @@ anti-method to clean-up a subsequent failure. ::
 
     static Res AMSSegInit(Seg seg, Pool pool,
                           Addr base, Size size,
-			  ArgList args)
+                          ArgList args)
     {
       AMS ams = MustBeA(AMSPool, pool);
       Arena arena = PoolArena(pool);
@@ -500,7 +500,7 @@ anti-method to clean-up a subsequent failure. ::
       /* Initialize the superclass fields first via next-method call */
       res = NextMethod(Seg, AMSSeg, init)(seg, pool, base, size, args);
       if (res != ResOK)
-	goto failNextMethod;
+        goto failNextMethod;
       amsseg = CouldBeA(AMSSeg, seg);
 
       amsseg->grains = size >> ams->grainShift;
@@ -511,10 +511,10 @@ anti-method to clean-up a subsequent failure. ::
       amsseg->ambiguousFixes = FALSE;
 
       res = amsCreateTables(ams, &amsseg->allocTable,
-			    &amsseg->nongreyTable, &amsseg->nonwhiteTable,
-			    arena, amsseg->grains);
+                            &amsseg->nongreyTable, &amsseg->nonwhiteTable,
+                            arena, amsseg->grains);
       if (res != ResOK)
-	goto failCreateTables;
+        goto failCreateTables;
 
       /* start off using firstFree, see <design/poolams/#no-bit> */
       amsseg->allocTableInUse = FALSE;
@@ -524,7 +524,7 @@ anti-method to clean-up a subsequent failure. ::
       amsseg->ams = ams;
       RingInit(&amsseg->segRing);
       RingAppend((ams->allocRing)(ams, SegRankSet(seg), size),
-		 &amsseg->segRing);
+                 &amsseg->segRing);
 
       SetClassOfPoly(seg, CLASS(AMSSeg));
       amsseg->sig = AMSSegSig;
