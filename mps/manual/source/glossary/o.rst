@@ -127,7 +127,7 @@ Memory Management Glossary: O
             mps_arena_s *``, but the implementation of ``struct
             mps_arena_s`` is not public. See :ref:`topic-interface`.
 
-        .. opposite:: :term:`derived type`, :term:`transparent type`.
+        .. opposite:: :term:`transparent type`.
 
     out parameter
 

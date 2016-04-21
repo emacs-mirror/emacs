@@ -56,6 +56,26 @@ _`.test.zcoll`: Collection scheduling, and collection feedback.
 _`.test.zmess`: Message lifecycle and finalization messages.
 
 
+Performance test
+----------------
+
+_`.test.ratio`: The ``testratio`` target checks that the hot variety
+is not too much slower than the rash variety. A failure of this test
+usually is expected to indicate that there are assertions on the
+critical path using ``AVER`` instead of ``AVER_CRITICAL`` (and so on).
+This works by running gcbench for the AMC pool class and djbench for
+the MVFF pool class, in the hot variety and the rash variety,
+computing the ratio of CPU time taken in the two varieties, and
+testing that this falls under an acceptable limit.
+
+Note that we don't use the elapsed time (as reported by the benchmark)
+because we want to be able to run this test on continuous integration
+machines that might be heavily loaded.
+
+This target is currently supported only on Unix platforms using GNU
+Makefiles.
+
+
 Document History
 ----------------
 
