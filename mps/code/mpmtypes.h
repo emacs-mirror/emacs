@@ -1,7 +1,7 @@
 /* mpmtypes.h: MEMORY POOL MANAGER TYPES
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (c) 2001 Global Graphics Software.
  *
  * .design: <design/type/>
@@ -72,7 +72,6 @@ typedef struct BufferClassStruct *BufferClass; /* <design/buffer/> */
 typedef BufferClass SegBufClass;        /* <design/buffer/> */
 typedef BufferClass RankBufClass;       /* <design/buffer/> */
 typedef unsigned BufferMode;            /* <design/buffer/> */
-typedef unsigned FrameState;            /* <design/alloc-frame/> */
 typedef struct mps_fmt_s *Format;       /* design.mps.format */
 typedef struct LockStruct *Lock;        /* <code/lock.c>* */
 typedef struct mps_pool_s *Pool;        /* <design/pool/> */
@@ -222,8 +221,6 @@ typedef Res (*PoolFramePushMethod)(AllocFrame *frameReturn,
                                    Pool pool, Buffer buf);
 typedef Res (*PoolFramePopMethod)(Pool pool, Buffer buf,
                                   AllocFrame frame);
-typedef void (*PoolFramePopPendingMethod)(Pool pool, Buffer buf,
-                                          AllocFrame frame);
 typedef Res (*PoolAddrObjectMethod)(Addr *pReturn,
                                     Pool pool, Seg seg, Addr addr);
 typedef void (*PoolWalkMethod)(Pool pool, Seg seg, FormattedObjectsVisitor f,
@@ -291,6 +288,7 @@ typedef Res (*LandDescribeMethod)(Land land, mps_lib_FILE *stream, Count depth);
 #define RefSetUNIV      BS_UNIV(RefSet)
 #define ZoneSetEMPTY    BS_EMPTY(ZoneSet)
 #define ZoneSetUNIV     BS_UNIV(ZoneSet)
+#define ZoneShiftUNSET  ((Shift)-1)  
 #define TraceSetEMPTY   BS_EMPTY(TraceSet)
 #define TraceSetUNIV    ((TraceSet)((1u << TraceLIMIT) - 1))
 #define RankSetEMPTY    BS_EMPTY(RankSet)
@@ -315,14 +313,6 @@ enum {
 #define BufferModeFLIPPED       ((BufferMode)(1<<1))
 #define BufferModeLOGGED        ((BufferMode)(1<<2))
 #define BufferModeTRANSITION    ((BufferMode)(1<<3))
-
-
-/* Buffer frame states. See <design/alloc-frame/#lw-frame.states> */
-enum {
-  BufferFrameVALID = 1,
-  BufferFramePOP_PENDING,
-  BufferFrameDISABLED
-};
 
 
 /* Rank constants -- see <design/type/#rank> */
@@ -440,14 +430,13 @@ typedef double WriteFD;
 /* STATISTIC_DECL -- declare a field to accumulate statistics in
  *
  * The argument is a field declaration (a struct-declaration minus the
- * semicolon) for a single field (no commas).  Currently, we always
- * leave them in, see design.mps.metrics.
+ * semicolon) for a single field (no commas).
  */
 
 #if defined(STATISTICS)
-#define STATISTIC_DECL(field) field
+#define STATISTIC_DECL(field) field;
 #elif defined(STATISTICS_NONE)
-#define STATISTIC_DECL(field) field
+#define STATISTIC_DECL(field)
 #else
 #error "No statistics configured."
 #endif
@@ -458,7 +447,7 @@ typedef double WriteFD;
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

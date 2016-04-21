@@ -343,6 +343,27 @@ void SegSetBuffer(Seg seg, Buffer buffer)
 }
 
 
+/* SegBufferScanLimit -- limit of scannable objects in segment */
+
+Addr SegBufferScanLimit(Seg seg)
+{
+  Addr limit;
+  Buffer buf;
+
+  AVERT(Seg, seg);
+
+  buf = SegBuffer(seg);
+  if (buf == NULL) {
+    /* Segment is unbuffered: entire segment scannable */
+    limit = SegLimit(seg);
+  } else {
+    /* Segment is buffered: scannable up to limit of initialized objects. */
+    limit = BufferScanLimit(buf);
+  }
+  return limit;
+}
+
+
 /* SegDescribe -- describe a segment */
 
 Res SegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
@@ -1182,24 +1203,22 @@ static void gcSegSetGreyInternal(Seg seg, TraceSet oldGrey, TraceSet grey)
       RingRemove(&gcseg->greyRing);
   }
 
-  STATISTIC_STAT
-    ({
-       TraceId ti; Trace trace;
-       TraceSet diff;
+  STATISTIC({
+    TraceId ti; Trace trace;
+    TraceSet diff;
 
-       diff = TraceSetDiff(grey, oldGrey);
-       TRACE_SET_ITER(ti, trace, diff, arena)
-         ++trace->greySegCount;
-         if (trace->greySegCount > trace->greySegMax)
-           trace->greySegMax = trace->greySegCount;
-       TRACE_SET_ITER_END(ti, trace, diff, arena);
+    diff = TraceSetDiff(grey, oldGrey);
+    TRACE_SET_ITER(ti, trace, diff, arena)
+      ++trace->greySegCount;
+      if (trace->greySegCount > trace->greySegMax)
+        trace->greySegMax = trace->greySegCount;
+    TRACE_SET_ITER_END(ti, trace, diff, arena);
 
-       diff = TraceSetDiff(oldGrey, grey);
-       TRACE_SET_ITER(ti, trace, diff, arena)
-         --trace->greySegCount;
-       TRACE_SET_ITER_END(ti, trace, diff, arena);
-     });
-
+    diff = TraceSetDiff(oldGrey, grey);
+    TRACE_SET_ITER(ti, trace, diff, arena)
+      --trace->greySegCount;
+    TRACE_SET_ITER_END(ti, trace, diff, arena);
+  });
 }
 
 

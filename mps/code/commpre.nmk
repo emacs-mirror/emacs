@@ -94,6 +94,7 @@ TEST_TARGETS=\
     qs.exe \
     sacss.exe \
     segsmss.exe \
+    sncss.exe \
     steptest.exe \
     tagtest.exe \
     teletest.exe \

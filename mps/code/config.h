@@ -1,7 +1,7 @@
 /* config.h: MPS CONFIGURATION
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (c) 2002 Global Graphics Software.
  *
  * PURPOSE
@@ -106,8 +106,6 @@
 
 #if defined(CONFIG_STATS)
 /* CONFIG_STATS = STATISTICS = METERs */
-/* WARNING: this may change the size and fields of MPS structs */
-/* (...but see STATISTIC_DECL, which is invariant) */
 #define STATISTICS
 #define MPS_STATS_STRING "stats"
 #else
@@ -395,8 +393,6 @@
 /* Arena Configuration -- see <code/arena.c> */
 
 #define ArenaPollALLOCTIME (65536.0)
-
-#define ARENA_ZONESHIFT         ((Shift)20)
 
 /* .client.seg-size: ARENA_CLIENT_GRAIN_SIZE is the minimum size, in
  * bytes, of a grain in the client arena. It's set at 8192 with no
@@ -692,7 +688,7 @@
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  *

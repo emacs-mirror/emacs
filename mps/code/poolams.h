@@ -56,8 +56,9 @@ typedef struct AMSSegStruct {
   AMS ams;               /* owning ams */
   Count grains;          /* total grains */
   Count freeGrains;      /* free grains */
-  Count oldGrains;       /* grains allocated prior to last collection */
+  Count bufferedGrains;  /* grains in buffers */
   Count newGrains;       /* grains allocated since last collection */
+  Count oldGrains;       /* grains allocated prior to last collection */
   Bool allocTableInUse;  /* allocTable is used */
   Index firstFree;       /* 1st free grain, if allocTable is not used */
   BT allocTable;         /* set if grain is allocated */
