@@ -713,7 +713,10 @@ typedef struct ShieldStruct {
 } ShieldStruct;
 
 
-/* History -- location dependency history */
+/* History -- location dependency history
+ *
+ * See design.mps.arena.ld.
+ */
 
 #define HistorySig     ((Sig)0x51981520) /* SIGnature HISTOry */
 

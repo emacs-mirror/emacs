@@ -567,11 +567,15 @@ end of ``ArenaPoll()`` to the current polling time plus
 Location dependencies
 .....................
 
-_`.ld.epoch`: ``arena->epoch`` is the "current epoch". This is the
+_`.ld`: The ``historyStruct`` contains fields used to maintain a
+history of garbage collection and in particular object motion in order
+to implement location dependency.
+
+_`.ld.epoch`: The ``epoch`` is the "current epoch". This is the
 number of 'flips' of traces in the arena since the arena was created.
 From the mutator's point of view locations change atomically at flip.
 
-_`.ld.history`: ``arena->history`` is a circular buffer of
+_`.ld.history`: The ``history`` is a circular buffer of
 ``LDHistoryLENGTH`` elements of type ``RefSet``. These are the
 summaries of moved objects since the last ``LDHistoryLENGTH`` epochs.
 If ``e`` is one of these recent epochs, then ::
@@ -581,7 +585,7 @@ If ``e`` is one of these recent epochs, then ::
 is a summary of (the original locations of) objects moved since epoch
 ``e``.
 
-_`.ld.prehistory`: ``arena->prehistory`` is a ``RefSet`` summarizing
+_`.ld.prehistory`: The ``prehistory`` is a ``RefSet`` summarizing
 the original locations of all objects ever moved. When considering
 whether a really old location dependency is stale, it is compared with
 this summary.
