@@ -324,7 +324,10 @@ $(addprefix $(PFM)/$(VARIETY)/,$(TEST_SUITES)): $(TEST_TARGETS)
 # testratio = measure performance ratio of hot variety versus rash
 
 TESTRATIO_SEED = 1564912146
-TARGET_RATIO_AMC = 110
+
+# These targets are set quite high to reduce false positives due to
+# the usual vagaries of performance measurement.
+TARGET_RATIO_AMC = 120
 TARGET_RATIO_MVFF = 150
 
 define ratio
