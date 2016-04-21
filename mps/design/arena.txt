@@ -580,7 +580,7 @@ _`.ld.history`: The ``history`` is a circular buffer of
 summaries of moved objects since the last ``LDHistoryLENGTH`` epochs.
 If ``e`` is one of these recent epochs, then ::
 
-    arena->history[e % LDHistoryLENGTH]
+    history->history[e % LDHistoryLENGTH]
 
 is a summary of (the original locations of) objects moved since epoch
 ``e``.
