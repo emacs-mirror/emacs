@@ -117,13 +117,13 @@ typedef void *ClassId;
       LockClaimGlobalRecursive(); \
       if (CLASS_GUARDIAN(className) == FALSE) { \
         CLASS_INIT(className)(klass); \
-	/* Prevent infinite regress. */ \
-	if (CLASS_ID(className) != CLASS_ID(InstClass) && \
-	    CLASS_ID(className) != CLASS_ID(Inst)) \
+        /* Prevent infinite regress. */ \
+        if (CLASS_ID(className) != CLASS_ID(InstClass) && \
+            CLASS_ID(className) != CLASS_ID(Inst)) \
           SetClassOfPoly(klass, CLASS(KIND_CLASS(kind))); \
         AVER(CLASS_CHECK(kind)(klass)); \
         CLASS_GUARDIAN(className) = TRUE; \
-	ClassRegister(MustBeA(InstClass, klass)); \
+        ClassRegister(MustBeA(InstClass, klass)); \
       } \
       LockReleaseGlobalRecursive(); \
     } \
@@ -248,15 +248,15 @@ extern void ClassRegister(InstClass klass);
 
 #define MustBeA(_class, inst) \
   CouldBeA(_class, \
-	   AVERPC(IsNonNullAndA(_class, inst), \
-		  "MustBeA " #_class ": " #inst, \
-		  inst))
+           AVERPC(IsNonNullAndA(_class, inst), \
+                  "MustBeA " #_class ": " #inst, \
+                  inst))
 
 #define MustBeA_CRITICAL(_class, inst) \
   CouldBeA(_class, \
-	   AVERPC_CRITICAL(IsNonNullAndA(_class, inst), \
-			   "MustBeA " #_class ": " #inst, \
-			   inst))
+           AVERPC_CRITICAL(IsNonNullAndA(_class, inst), \
+                           "MustBeA " #_class ": " #inst, \
+                           inst))
 
 
 /* Protocol introspection interface

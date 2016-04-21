@@ -537,8 +537,8 @@ static Res AMSTBufferFill(Addr *baseReturn, Addr *limitReturn,
     if (amstseg->prev != NULL) {
       Seg segLo = AMSTSeg2Seg(amstseg->prev);
       if (SegBuffer(segLo) == NULL &&
-	  SegGrey(segLo) == SegGrey(seg) &&
-	  SegWhite(segLo) == SegWhite(seg)) {
+          SegGrey(segLo) == SegGrey(seg) &&
+          SegWhite(segLo) == SegWhite(seg)) {
         /* .merge */
         Seg mergedSeg;
         Res mres;

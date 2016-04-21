@@ -1,7 +1,7 @@
 /* buffer.c: ALLOCATION BUFFER IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: This is (part of) the implementation of allocation buffers.
  * Several macros which also form part of the implementation are in
@@ -1248,9 +1248,9 @@ static Res segBufDescribe(Buffer buffer, mps_lib_FILE *stream, Count depth)
     return res;
 
   return WriteF(stream, depth + 2,
-		"Seg     $P\n", (WriteFP)segbuf->seg,
-		"rankSet $U\n", (WriteFU)segbuf->rankSet,
-		NULL);
+                "Seg     $P\n", (WriteFP)segbuf->seg,
+                "rankSet $U\n", (WriteFU)segbuf->rankSet,
+                NULL);
 }
 
 
@@ -1333,7 +1333,7 @@ DEFINE_CLASS(Buffer, RankBuf, klass)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
