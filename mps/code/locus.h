@@ -97,7 +97,7 @@ extern Res ChainDescribe(Chain chain, mps_lib_FILE *stream, Count depth);
 extern Bool PoolGenCheck(PoolGen pgen);
 extern Res PoolGenInit(PoolGen pgen, GenDesc gen, Pool pool);
 extern void PoolGenFinish(PoolGen pgen);
-extern Res PoolGenAlloc(Seg *segReturn, PoolGen pgen, SegClass class,
+extern Res PoolGenAlloc(Seg *segReturn, PoolGen pgen, SegClass klass,
                         Size size, ArgList args);
 extern void PoolGenFree(PoolGen pgen, Seg seg, Size freeSize, Size oldSize,
                         Size newSize, Bool deferred);
