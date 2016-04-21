@@ -1662,6 +1662,66 @@ static void AMSReclaim(Pool pool, Trace trace, Seg seg)
 }
 
 
+/* AMSWalk -- walk formatted objects in AMC pool */
+
+static void AMSWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
+                    void *p, size_t s)
+{
+  AMS ams;
+  AMSSeg amsseg;
+  Addr object, base, limit;
+  Format format;
+
+  AVERT(Pool, pool);
+  AVERT(Seg, seg);
+  AVER(FUNCHECK(f));
+  /* p and s are arbitrary closures and can't be checked */
+
+  ams = PoolAMS(pool);
+  AVERT(AMS, ams);
+  amsseg = Seg2AMSSeg(seg);
+  AVERT(AMSSeg, amsseg);
+
+  format = pool->format;
+
+  base = SegBase(seg);
+  object = base;
+  limit = SegLimit(seg);
+
+  while (object < limit) {
+    /* object is a slight misnomer because it might point to a free grain */
+    Addr next;
+    Index i;
+
+    if (SegBuffer(seg) != NULL) {
+      Buffer buffer = SegBuffer(seg);
+      if (object == BufferScanLimit(buffer)
+          && BufferScanLimit(buffer) != BufferLimit(buffer)) {
+        /* skip over buffered area */
+        object = BufferLimit(buffer);
+        continue;
+      }
+      /* since we skip over the buffered area we are always */
+      /* either before the buffer, or after it, never in it */
+      AVER(object < BufferGetInit(buffer) || BufferLimit(buffer) <= object);
+    }
+    i = AMS_ADDR_INDEX(seg, object);
+    if (!AMS_ALLOCED(seg, i)) {
+      /* This grain is free */
+      object = AddrAdd(object, PoolAlignment(pool));
+      continue;
+    }
+    object = AddrAdd(object, format->headerSize);
+    next = format->skip(object);
+    next = AddrSub(next, format->headerSize);
+    AVER(AddrIsAligned(next, PoolAlignment(pool)));
+    if (!AMS_IS_WHITE(seg, i))
+      (*f)(object, pool->format, pool, p, s);
+    object = next;
+  }
+}
+
+
 /* AMSFreeWalk -- free block walking method of the pool class */
 
 static void AMSFreeWalk(Pool pool, FreeBlockVisitor f, void *p)
@@ -1781,7 +1841,7 @@ DEFINE_CLASS(AMSPoolClass, this)
   this->fix = AMSFix;
   this->fixEmergency = AMSFix;
   this->reclaim = AMSReclaim;
-  this->walk = PoolNoWalk; /* TODO: job003738 */
+  this->walk = AMSWalk;
   this->freewalk = AMSFreeWalk;
   this->totalSize = AMSTotalSize;
   this->freeSize = AMSFreeSize;
