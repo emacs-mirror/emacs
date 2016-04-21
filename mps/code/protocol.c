@@ -143,8 +143,8 @@ Res InstDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 
   klass = ClassOfPoly(Inst, inst);
   return WriteF(stream, depth,
-		"$S $P\n", (WriteFS)ClassName(klass), inst,
-		NULL);
+                "$S $P\n", (WriteFS)ClassName(klass), inst,
+                NULL);
 }
 
 

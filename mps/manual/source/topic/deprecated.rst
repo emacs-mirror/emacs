@@ -274,14 +274,14 @@ Deprecated in version 1.115
 .. c:function:: mps_res_t mps_root_create_table_masked(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_addr_t *base, size_t count, mps_word_t mask)
 
     .. deprecated::
-    
+
         This function is equivalent to::
 
             mps_root_create_area_tagged(root_o, arena, rank, rm,
                                         base, base + size,
                                         mps_scan_area_tagged,
                                         mask, 0)
-					 
+
         Use :c:func:`mps_root_create_area_masked` instead, passing
         zero for the ``pattern`` argument.
 

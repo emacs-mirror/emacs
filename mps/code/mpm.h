@@ -1,7 +1,7 @@
 /* mpm.h: MEMORY POOL MANAGER DEFINITIONS
  *
  * $Id$
- * Copyright (c) 2001-2015 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .trans.bufferinit: The Buffer data structure has an Init field and
@@ -177,8 +177,8 @@ extern Word RandomWord(void);
 typedef Compare QuickSortCompare(void *left, void *right,
                                  void *closure);
 extern void QuickSort(void *array[], Count length,
-		      QuickSortCompare compare, void *closure,
-		      SortStruct *sortStruct);
+                      QuickSortCompare compare, void *closure,
+                      SortStruct *sortStruct);
 
 
 /* Version Determination
@@ -1016,7 +1016,7 @@ DECLARE_CLASS(Land, Land, Inst);
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2015 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
