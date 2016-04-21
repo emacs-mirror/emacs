@@ -107,8 +107,6 @@ Bool GlobalsCheck(Globals arenaGlobals)
   Arena arena;
   TraceId ti;
   Trace trace;
-  Index i;
-  RefSet rs;
   Rank rank;
 
   CHECKS(Globals, arenaGlobals);
@@ -181,18 +179,7 @@ Bool GlobalsCheck(Globals arenaGlobals)
   /* no check for arena->lastWorldCollect (Clock) */
 
   /* can't write a check for arena->epoch */
-
-  /* check that each history entry is a subset of the next oldest */
-  rs = RefSetEMPTY;
-  /* note this loop starts from 1; there is no history age 0 */
-  for (i=1; i <= LDHistoryLENGTH; ++ i) {
-    /* check history age 'i'; 'j' is the history index. */
-    Index j = (arena->epoch + LDHistoryLENGTH - i) % LDHistoryLENGTH;
-    CHECKL(RefSetSub(rs, arena->history[j]));
-    rs = arena->history[j];
-  }
-  /* the oldest history entry must be a subset of the prehistory */
-  CHECKL(RefSetSub(rs, arena->prehistory));
+  CHECKD(History, ArenaHistory(arena));
 
   /* we also check the statics now. <design/arena/#static.check> */
   CHECKL(BoolCheck(arenaRingInit));
@@ -218,7 +205,6 @@ Bool GlobalsCheck(Globals arenaGlobals)
 Res GlobalsInit(Globals arenaGlobals)
 {
   Arena arena;
-  Index i;
   Rank rank;
   TraceId ti;
 
@@ -297,11 +283,8 @@ Res GlobalsInit(Globals arenaGlobals)
   STATISTIC(arena->writeBarrierHitCount = 0);
   RingInit(&arena->chainRing);
 
-  arena->epoch = (Epoch)0;              /* <code/ld.c> */
-  arena->prehistory = RefSetEMPTY;
-  for(i = 0; i < LDHistoryLENGTH; ++i)
-    arena->history[i] = RefSetEMPTY;
-
+  HistoryInit(ArenaHistory(arena));
+  
   arena->emergency = FALSE;
 
   arena->stackAtArenaEnter = NULL;
@@ -385,6 +368,7 @@ void GlobalsFinish(Globals arenaGlobals)
   arenaGlobals->sig = SigInvalid;
 
   ShieldFinish(ArenaShield(arena));
+  HistoryFinish(ArenaHistory(arena));
   RingFinish(&arena->formatRing);
   RingFinish(&arena->chainRing);
   RingFinish(&arena->messageRing);
@@ -955,7 +939,6 @@ Res GlobalsDescribe(Globals arenaGlobals, mps_lib_FILE *stream, Count depth)
   Res res;
   Arena arena;
   Ring node, nextNode;
-  Index i;
   TraceId ti;
   Trace trace;
 
@@ -964,8 +947,12 @@ Res GlobalsDescribe(Globals arenaGlobals, mps_lib_FILE *stream, Count depth)
   if (stream == NULL)
     return ResFAIL;
 
+  res = WriteF(stream, depth, "Globals\n", NULL);
+  if (res != ResOK)
+    return res;  
+
   arena = GlobalsArena(arenaGlobals);
-  res = WriteF(stream, depth,
+  res = WriteF(stream, depth + 2,
                "mpsVersion $S\n", (WriteFS)arenaGlobals->mpsVersionString,
                "lock $P\n", (WriteFP)arenaGlobals->lock,
                "pollThreshold $U kB\n",
@@ -988,61 +975,53 @@ Res GlobalsDescribe(Globals arenaGlobals, mps_lib_FILE *stream, Count depth)
                "threadSerial $U\n", (WriteFU)arena->threadSerial,
                "busyTraces    $B\n", (WriteFB)arena->busyTraces,
                "flippedTraces $B\n", (WriteFB)arena->flippedTraces,
-               "epoch $U\n", (WriteFU)arena->epoch,
-               "prehistory = $B\n", (WriteFB)arena->prehistory,
-               "history {\n",
-               "  [note: indices are raw, not rotated]\n",
                NULL);
   if (res != ResOK)
     return res;
 
-  for(i=0; i < LDHistoryLENGTH; ++ i) {
-    res = WriteF(stream, depth + 2,
-                 "[$U] = $B\n", (WriteFU)i, (WriteFB)arena->history[i],
-                 NULL);
-    if (res != ResOK)
-      return res;
-  }
-
-  res = ShieldDescribe(ArenaShield(arena), stream, depth);
+  res = HistoryDescribe(ArenaHistory(arena), stream, depth);
   if (res != ResOK)
     return res;
 
-  res = RootsDescribe(arenaGlobals, stream, depth);
+  res = ShieldDescribe(ArenaShield(arena), stream, depth + 2);
+  if (res != ResOK)
+    return res;
+
+  res = RootsDescribe(arenaGlobals, stream, depth + 2);
   if (res != ResOK)
     return res;
 
   RING_FOR(node, &arenaGlobals->poolRing, nextNode) {
     Pool pool = RING_ELT(Pool, arenaRing, node);
-    res = PoolDescribe(pool, stream, depth);
+    res = PoolDescribe(pool, stream, depth + 2);
     if (res != ResOK)
       return res;
   }
 
   RING_FOR(node, &arena->formatRing, nextNode) {
     Format format = RING_ELT(Format, arenaRing, node);
-    res = FormatDescribe(format, stream, depth);
+    res = FormatDescribe(format, stream, depth + 2);
     if (res != ResOK)
       return res;
   }
 
   RING_FOR(node, &arena->threadRing, nextNode) {
     Thread thread = ThreadRingThread(node);
-    res = ThreadDescribe(thread, stream, depth);
+    res = ThreadDescribe(thread, stream, depth + 2);
     if (res != ResOK)
       return res;
   }
 
   RING_FOR(node, &arena->chainRing, nextNode) {
     Chain chain = RING_ELT(Chain, chainRing, node);
-    res = ChainDescribe(chain, stream, depth);
+    res = ChainDescribe(chain, stream, depth + 2);
     if (res != ResOK)
       return res;
   }
 
   TRACE_SET_ITER(ti, trace, TraceSetUNIV, arena)
     if (TraceSetIsMember(arena->busyTraces, trace)) {
-      res = TraceDescribe(trace, stream, depth);
+      res = TraceDescribe(trace, stream, depth + 2);
       if (res != ResOK)
         return res;
     }
