@@ -69,6 +69,26 @@ Bool PoolClassCheck(PoolClass klass)
   CHECKL(FUNCHECK(klass->debugMixin));
   CHECKL(FUNCHECK(klass->totalSize));
   CHECKL(FUNCHECK(klass->freeSize));
+
+  /* Check that pool classes overide sets of related methods. */
+  CHECKL((klass->init == PoolAbsInit) == (klass->finish == PoolAbsFinish));
+  CHECKL((klass->bufferFill == PoolNoBufferFill) ==
+	 (klass->bufferEmpty == PoolNoBufferEmpty));
+  CHECKL((klass->framePush == PoolNoFramePush) ==
+	 (klass->framePop == PoolNoFramePop));
+  CHECKL((klass->rampBegin == PoolNoRampBegin) ==
+	 (klass->rampEnd == PoolNoRampEnd));
+
+  /* Check that pool classes that set attributes also override the
+     methods they imply. */
+  /* .check.ams.walk: Can't enforce this one until job003738 is resolved. */
+  /* CHECKL(((klass->attr & AttrFMT) == 0) == (klass->walk == PoolNoWalk)); */
+  if (klass != &CLASS_STATIC(AbstractCollectPool)) {
+    CHECKL(((klass->attr & AttrGC) == 0) == (klass->fix == PoolNoFix));
+    CHECKL(((klass->attr & AttrGC) == 0) == (klass->fixEmergency == PoolNoFix));
+    CHECKL(((klass->attr & AttrGC) == 0) == (klass->reclaim == PoolNoReclaim));
+  }
+  
   CHECKS(PoolClass, klass);
   return TRUE;
 }

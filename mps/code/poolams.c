@@ -1770,7 +1770,8 @@ DEFINE_CLASS(Pool, AMSPool, klass)
   klass->fix = AMSFix;
   klass->fixEmergency = AMSFix;
   klass->reclaim = AMSReclaim;
-  klass->walk = PoolNoWalk; /* TODO: job003738 */
+  /* TODO: job003738. See also impl.c.pool.check.ams.walk. */
+  klass->walk = PoolNoWalk;
   klass->freewalk = AMSFreeWalk;
   klass->totalSize = AMSTotalSize;
   klass->freeSize = AMSFreeSize;
