@@ -672,7 +672,7 @@ failVMInit:
 }
 
 
-/* VMArenaFinish -- destroy the arena */
+/* VMArenaDestroy -- destroy the arena */
 
 static void VMArenaDestroy(Arena arena)
 {
