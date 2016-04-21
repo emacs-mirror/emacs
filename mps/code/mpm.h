@@ -226,9 +226,7 @@ extern Res PoolWhiten(Pool pool, Trace trace, Seg seg);
 extern void PoolGrey(Pool pool, Trace trace, Seg seg);
 extern void PoolBlacken(Pool pool, TraceSet traceSet, Seg seg);
 extern Res PoolScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg);
-extern Res (PoolFix)(Pool pool, ScanState ss, Seg seg, Addr *refIO);
-#define PoolFix(pool, ss, seg, refIO) \
-  ((*(pool)->fix)(pool, ss, seg, refIO))
+extern Res PoolFix(Pool pool, ScanState ss, Seg seg, Addr *refIO);
 extern Res PoolFixEmergency(Pool pool, ScanState ss, Seg seg, Addr *refIO);
 extern void PoolReclaim(Pool pool, Trace trace, Seg seg);
 extern void PoolTraceEnd(Pool pool, Trace trace);
@@ -392,7 +390,8 @@ extern Bool TraceIsEmpty(Trace trace);
 extern Res TraceAddWhite(Trace trace, Seg seg);
 extern Res TraceCondemnZones(Trace trace, ZoneSet condemnedSet);
 extern Res TraceStart(Trace trace, double mortality, double finishingTime);
-extern Bool TracePoll(Work *workReturn, Globals globals);
+extern Bool TracePoll(Work *workReturn, Bool *collectWorldReturn,
+                      Globals globals, Bool collectWorldAllowed);
 
 extern Rank TraceRankForAccess(Arena arena, Seg seg);
 extern void TraceSegAccess(Arena arena, Seg seg, AccessSet mode);
@@ -502,7 +501,7 @@ extern Ring GlobalsRememberedSummaryRing(Globals);
 
 #define ArenaThreadRing(arena)  (&(arena)->threadRing)
 #define ArenaDeadRing(arena)    (&(arena)->deadRing)
-#define ArenaEpoch(arena)       ((arena)->epoch) /* .epoch.ts */
+#define ArenaEpoch(arena)       (ArenaHistory(arena)->epoch) /* .epoch.ts */
 #define ArenaTrace(arena, ti)   (&(arena)->trace[ti])
 #define ArenaZoneShift(arena)   ((arena)->zoneShift)
 #define ArenaStripeSize(arena)  ((Size)1 << ArenaZoneShift(arena))
@@ -512,6 +511,7 @@ extern Ring GlobalsRememberedSummaryRing(Globals);
 #define ArenaChunkTree(arena) RVALUE((arena)->chunkTree)
 #define ArenaChunkRing(arena) RVALUE(&(arena)->chunkRing)
 #define ArenaShield(arena)      (&(arena)->shieldStruct)
+#define ArenaHistory(arena)     (&(arena)->historyStruct)
 
 extern Bool ArenaGrainSizeCheck(Size size);
 #define AddrArenaGrainUp(addr, arena) AddrAlignUp(addr, ArenaGrainSize(arena))
@@ -634,7 +634,8 @@ extern Res PolicyAlloc(Tract *tractReturn, Arena arena, LocusPref pref,
                        Size size, Pool pool);
 extern Bool PolicyShouldCollectWorld(Arena arena, double availableTime,
                                      Clock now, Clock clocks_per_sec);
-extern Bool PolicyStartTrace(Trace *traceReturn, Arena arena);
+extern Bool PolicyStartTrace(Trace *traceReturn, Bool *collectWorldReturn,
+                             Arena arena, Bool collectWorldAllowed);
 extern Bool PolicyPoll(Arena arena);
 extern Bool PolicyPollAgain(Arena arena, Clock start, Bool moreWork, Work tracedWork);
 
@@ -904,6 +905,10 @@ extern void (ShieldFlush)(Arena arena);
 
 /* Location Dependency -- see <code/ld.c> */
 
+extern void HistoryInit(History history);
+extern void HistoryFinish(History);
+extern Res HistoryDescribe(History history, mps_lib_FILE *stream, Count depth);
+extern Bool HistoryCheck(History history);
 extern void LDReset(mps_ld_t ld, Arena arena);
 extern void LDAdd(mps_ld_t ld, Arena arena, Addr addr);
 extern Bool LDIsStaleAny(mps_ld_t ld, Arena arena);
@@ -987,31 +992,17 @@ DECLARE_CLASS(Land, Land, Inst);
 
 /* STATISTIC -- gather statistics (in some varieties)
  *
- * The argument of STATISTIC is an expression; the expansion followed by
- * a semicolon is syntactically a statement.
- *
- * The argument of STATISTIC_STAT is a statement; the expansion followed by
- * a semicolon is syntactically a statement.
- *
- * STATISTIC_WRITE is inserted in WriteF arguments to output the values
- * of statistic fields.
- *
- * .statistic.whitehot: The implementation of STATISTIC for
- * non-statistical varieties passes the parameter to DISCARD to ensure
- * the parameter is syntactically an expression.  The parameter is
- * passed as part of a comma-expression so that its type is not
- * important.  This permits an expression of type void.  */
+ * See <design/diag/#stat>.
+ */
 
 #if defined(STATISTICS)
 
-#define STATISTIC(gather) BEGIN (gather); END
-#define STATISTIC_STAT(gather) BEGIN gather; END
+#define STATISTIC(gather) BEGIN gather; END
 #define STATISTIC_WRITE(format, arg) (format), (arg),
 
 #elif defined(STATISTICS_NONE)
 
-#define STATISTIC(gather) DISCARD(((gather), 0))
-#define STATISTIC_STAT DISCARD_STAT
+#define STATISTIC(gather) NOOP
 #define STATISTIC_WRITE(format, arg)
 
 #else /* !defined(STATISTICS) && !defined(STATISTICS_NONE) */

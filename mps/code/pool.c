@@ -348,10 +348,10 @@ Res PoolScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 
 /* PoolFix* -- fix a reference to an object in this pool
  *
- * See <code/mpm.h> for macro version; see <design/pool/#req.fix>.
+ * See <design/pool/#req.fix>.
  */
 
-Res (PoolFix)(Pool pool, ScanState ss, Seg seg, Addr *refIO)
+Res PoolFix(Pool pool, ScanState ss, Seg seg, Addr *refIO)
 {
   AVERT_CRITICAL(Pool, pool);
   AVERT_CRITICAL(ScanState, ss);
@@ -362,7 +362,7 @@ Res (PoolFix)(Pool pool, ScanState ss, Seg seg, Addr *refIO)
   /* Should only be fixing references to white segments. */
   AVER_CRITICAL(TraceSetInter(SegWhite(seg), ss->traces) != TraceSetEMPTY);
 
-  return PoolFix(pool, ss, seg, refIO);
+  return pool->fix(pool, ss, seg, refIO);
 }
 
 Res PoolFixEmergency(Pool pool, ScanState ss, Seg seg, Addr *refIO)

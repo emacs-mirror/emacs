@@ -214,6 +214,7 @@ Res LandInsert(Range rangeReturn, Land land, Range range)
   AVERC(Land, land);
   AVERT(Range, range);
   AVER(RangeIsAligned(range, land->alignment));
+  AVER(!RangeIsEmpty(range));
   landEnter(land);
 
   res = Method(Land, land, insert)(rangeReturn, land, range);
