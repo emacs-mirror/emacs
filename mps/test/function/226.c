@@ -58,7 +58,7 @@ static void mergelds(int merge) {
  }
 }
 
-static void blat(mps_ap_t apamc, int percent) {
+static void blat(mps_ap_t apamc, unsigned percent) {
  int i;
  for (i=0; i < MAXLDS; i++) {
   if (ranint(100) < percent) {

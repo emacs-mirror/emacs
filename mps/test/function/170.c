@@ -5,7 +5,7 @@ TEST_HEADER
  language = c
  link = testlib.o rankfmt.o
  harness = 2.1
- parameters = EXTEND=65536 AVGSIZE=32 BIGSIZE=(5*1024*1024);
+ parameters = EXTEND=65536 AVGSIZE=32 BIGSIZE=5*1024*1024
 OUTPUT_SPEC
  completed = yes
  failed = no

@@ -55,7 +55,7 @@ static void do_test(size_t extendBy, size_t avgSize, size_t align,
   mps_addr_t p;
   unsigned int i;
   unsigned long nLargeObjects = 0, nSmallObjects = 0;
-  unsigned long largeObjectSize, smallObjectSize;
+  size_t largeObjectSize, smallObjectSize;
 
   largeObjectSize = extendBy;
   smallObjectSize = align;

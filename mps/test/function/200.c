@@ -57,7 +57,7 @@ static int chkobj(mps_addr_t a, size_t size, unsigned char val)
 
 static void dt(int kind,
    size_t extendBy, size_t avgSize, size_t maxSize,
-   size_t mins, size_t maxs, int number, int iter)
+   unsigned long mins, unsigned long maxs, int number, int iter)
 {
  mps_pool_t pool;
  int i, hd;
@@ -101,10 +101,10 @@ static void dt(int kind,
    if (queue[hd].addr != NULL)
    {
     asserts(chkobj(queue[hd].addr, queue[hd].size, (unsigned char) (hd%256)),
-      "corrupt at %x (%s: %x, %x, %x, %x, %x, %i, %i)",
+      "corrupt at %x (%s: %x, %x, %x, %lx, %lx, %i, %i)",
       queue[hd].addr,
       tdesc[kind], (int) extendBy, (int) avgSize, (int) maxSize,
-      (int) mins, (int) maxs, number, iter);
+      mins, maxs, number, iter);
     mps_free(pool, queue[hd].addr, queue[hd].size);
    }
    size = ranrange(mins, maxs);
@@ -126,15 +126,15 @@ static void dt(int kind,
  time1=clock();
  secs=(time1-time0)/(double)CLOCKS_PER_SEC;
 
- comment("%s test (%x, %x, %x, %x, %x, %i, %i) in %.2f s",
+ comment("%s test (%x, %x, %x, %lx, %lx, %i, %i) in %.2f s",
   tdesc[kind], (int) extendBy, (int) avgSize, (int) maxSize,
-  (int) mins, (int) maxs, number, iter, secs);
+  mins, maxs, number, iter, secs);
 }
 
 static void test(void)
 {
  mps_thr_t thread;
- size_t mins;
+ unsigned long mins;
 
  cdie(mps_arena_create(&arena, mps_arena_class_vm(), (size_t) (1024*1024*50)), "create arena");
  cdie(mps_thread_reg(&thread, arena), "register thread");
