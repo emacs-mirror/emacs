@@ -119,54 +119,46 @@ Bool BufferCheck(Buffer buffer)
  *
  * See <code/mpmst.h> for structure definitions.  */
 
-Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream, Count depth)
+static Res BufferAbsDescribe(Buffer buffer, mps_lib_FILE *stream, Count depth)
 {
   Res res;
-  BufferClass klass;
 
   if (!TESTC(Buffer, buffer))
     return ResPARAM;
   if (stream == NULL)
     return ResPARAM;
 
-  klass = ClassOfPoly(Buffer, buffer);
-
-  res = WriteF(stream, depth,
-               "Buffer $P ($U) {\n",
-               (WriteFP)buffer, (WriteFU)buffer->serial,
-               "  class $P (\"$S\")\n",
-               (WriteFP)klass, (WriteFS)ClassName(klass),
-               "  Arena $P\n",       (WriteFP)buffer->arena,
-               "  Pool $P\n",        (WriteFP)buffer->pool,
-               "  ", buffer->isMutator ? "Mutator" : "Internal", " Buffer\n",
-               "  mode $C$C$C$C (TRANSITION, LOGGED, FLIPPED, ATTACHED)\n",
-               (WriteFC)((buffer->mode & BufferModeTRANSITION) ? 't' : '_'),
-               (WriteFC)((buffer->mode & BufferModeLOGGED)     ? 'l' : '_'),
-               (WriteFC)((buffer->mode & BufferModeFLIPPED)    ? 'f' : '_'),
-               (WriteFC)((buffer->mode & BufferModeATTACHED)   ? 'a' : '_'),
-               "  fillSize $UKb\n",  (WriteFU)(buffer->fillSize / 1024),
-               "  emptySize $UKb\n", (WriteFU)(buffer->emptySize / 1024),
-               "  alignment $W\n",   (WriteFW)buffer->alignment,
-               "  base $A\n",        (WriteFA)buffer->base,
-               "  initAtFlip $A\n",  (WriteFA)buffer->initAtFlip,
-               "  init $A\n",        (WriteFA)buffer->ap_s.init,
-               "  alloc $A\n",       (WriteFA)buffer->ap_s.alloc,
-               "  limit $A\n",       (WriteFA)buffer->ap_s.limit,
-               "  poolLimit $A\n",   (WriteFA)buffer->poolLimit,
-               "  alignment $W\n",   (WriteFW)buffer->alignment,
-               "  rampCount $U\n",   (WriteFU)buffer->rampCount,
-               NULL);
+  res = InstDescribe(CouldBeA(Inst, buffer), stream, depth);
   if (res != ResOK)
     return res;
 
-  res = Method(Buffer, buffer, describe)(buffer, stream, depth + 2);
-  if (res != ResOK)
-    return res;
+  return WriteF(stream, depth + 2,
+                "serial $U\n", (WriteFU)buffer->serial,
+                "Arena $P\n",       (WriteFP)buffer->arena,
+                "Pool $P\n",        (WriteFP)buffer->pool,
+                buffer->isMutator ? "Mutator" : "Internal", " Buffer\n",
+                "mode $C$C$C$C (TRANSITION, LOGGED, FLIPPED, ATTACHED)\n",
+                (WriteFC)((buffer->mode & BufferModeTRANSITION) ? 't' : '_'),
+                (WriteFC)((buffer->mode & BufferModeLOGGED)     ? 'l' : '_'),
+                (WriteFC)((buffer->mode & BufferModeFLIPPED)    ? 'f' : '_'),
+                (WriteFC)((buffer->mode & BufferModeATTACHED)   ? 'a' : '_'),
+                "fillSize $UKb\n",  (WriteFU)(buffer->fillSize / 1024),
+                "emptySize $UKb\n", (WriteFU)(buffer->emptySize / 1024),
+                "alignment $W\n",   (WriteFW)buffer->alignment,
+                "base $A\n",        (WriteFA)buffer->base,
+                "initAtFlip $A\n",  (WriteFA)buffer->initAtFlip,
+                "init $A\n",        (WriteFA)buffer->ap_s.init,
+                "alloc $A\n",       (WriteFA)buffer->ap_s.alloc,
+                "limit $A\n",       (WriteFA)buffer->ap_s.limit,
+                "poolLimit $A\n",   (WriteFA)buffer->poolLimit,
+                "alignment $W\n",   (WriteFW)buffer->alignment,
+                "rampCount $U\n",   (WriteFU)buffer->rampCount,
+                NULL);
+}
 
-  res = WriteF(stream, depth, "} Buffer $P ($U)\n",
-               (WriteFP)buffer, (WriteFU)buffer->serial,
-               NULL);
-  return res;
+Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream, Count depth)
+{
+  return Method(Buffer, buffer, describe)(buffer, stream, depth);
 }
 
 
@@ -1006,20 +998,6 @@ static void bufferNoReassignSeg(Buffer buffer, Seg seg)
 }
 
 
-/* bufferTrivDescribe -- basic Buffer describe method */
-
-static Res bufferTrivDescribe(Buffer buffer, mps_lib_FILE *stream, Count depth)
-{
-  if (!TESTT(Buffer, buffer))
-    return ResFAIL;
-  if (stream == NULL)
-    return ResFAIL;
-  UNUSED(depth);
-  /* dispatching function does it all */
-  return ResOK;
-}
-
-
 /* BufferClassCheck -- check the consistency of a BufferClass */
 
 Bool BufferClassCheck(BufferClass klass)
@@ -1059,7 +1037,7 @@ DEFINE_CLASS(Buffer, Buffer, klass)
   klass->finish = BufferAbsFinish;
   klass->attach = bufferTrivAttach;
   klass->detach = bufferTrivDetach;
-  klass->describe = bufferTrivDescribe;
+  klass->describe = BufferAbsDescribe;
   klass->seg = bufferNoSeg;
   klass->rankSet = bufferTrivRankSet;
   klass->setRankSet = bufferNoSetRankSet;
