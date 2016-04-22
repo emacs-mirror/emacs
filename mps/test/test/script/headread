@@ -149,7 +149,7 @@ sub read_results {
   &debug($_);
   if (/^!/) {
 # result variable
-   if  (/^!(\w+)\s*=\s*(.+)\s*/) {
+   if  (/^!(\w+)\s*=\s*(.+?)\s*$/) {
     $real_output{$1} = $2
    } else {
     die "Badly formatted result line in output:\n$_\n";

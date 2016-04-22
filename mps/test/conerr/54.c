@@ -7,7 +7,7 @@ TEST_HEADER
 OUTPUT_SPEC
  assert = true
  assertfile P= ld.c
- assertcond = ld->_epoch <= arena->epoch
+ assertcond = ld->_epoch <= history->epoch
 END_HEADER
 */
 

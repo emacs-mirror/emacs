@@ -8,6 +8,7 @@ arg.h
 
 #include "testlib.h"
 
+#undef UNALIGNED
 #define UNALIGNED ((mps_addr_t) (((char *) NULL) + 1))
 
 #define MPS_RANK_MIN 0

@@ -46,12 +46,12 @@ sub platform_settings {
 
 
 sub settings_nt {
- $dirsep = "\\";
+ $dirsep = "/";
  $cc_command = "cl";
 # following line used to include /DMMQA_VERS_$MPS_INTERFACE_VERSION
- $cc_opts = "/nologo /DWIN32 /D_WINDOWS /W3 /Zi /Oy- /MD /DMMQA_PROD_$MPS_PRODUCT";
+ $cc_opts = "/nologo /DWIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /W3 /Zi /Oy- /MD /DMMQA_PROD_$MPS_PRODUCT";
  $cc_link = "$obj_dir/platform.obj";
- $cc_link_opts = "/link /NODEFAULTLIB:LIBCMT /NODEFAULTLIB:LIBCMTD /NODEFAULTLIB:LIBC /NODEFAULTLIB:LIBCD /NODEFAULTLIB:MSVCRTD /DEFAULTLIB:MSVCRT /debugtype:both /pdb:none /debug:full";
+ $cc_link_opts = "/link /NODEFAULTLIB:LIBCMT /NODEFAULTLIB:LIBCMTD /NODEFAULTLIB:LIBC /NODEFAULTLIB:LIBCD /NODEFAULTLIB:MSVCRTD /DEFAULTLIB:MSVCRT /debug";
  $cc_include = "/I$testlib_dir /I$MPS_INCLUDE_DIR /I$obj_dir";
  $cc_def = "/D";
  $cc_defeq = "=";
@@ -62,16 +62,16 @@ sub settings_nt {
  $cc_objandexe = 1;
  $obj_suffix = ".obj";
  $try_command = "";
- $catcommand = "$script_dir/ntx86bin/cat.exe";
+ $catcommand = "cat";
  $comwrap = "\"";
  $comwrapend = "\"";
  $stdout_red = ">";
- $stdout_dup = "| $script_dir/ntx86bin/tee.exe";
+ $stdout_dup = "| tee";
  $stdin_red = "<";
  $stdboth_red = ">%s 2>&1";
  $quotestring = \&nt_quotestring;
  $platmailfile = \&nt_mailfile;
- $stringscommand = "$script_dir/ntx86bin/strings.exe -20 -c";
+ $stringscommand = "strings";
  $preprocommand = "$cc_command /nologo $cc_preonly";
  $exesuff = ".exe";
  %ignored_headers = ();
@@ -80,11 +80,11 @@ sub settings_nt {
 sub settings_nt_cap {
  $cc_opts = "$cc_opts /Gh";
  $cc_link = "$cc_link CAP.lib";
- $cc_link_opts = "/link /NODEFAULTLIB:LIBCMT /NODEFAULTLIB:LIBCMTD /NODEFAULTLIB:LIBC /NODEFAULTLIB:LIBCD /NODEFAULTLIB:MSVCRTD /DEFAULTLIB:MSVCRT /debug:full /debugtype:both /pdb:none";
+ $cc_link_opts = "/link /NODEFAULTLIB:LIBCMT /NODEFAULTLIB:LIBCMTD /NODEFAULTLIB:LIBC /NODEFAULTLIB:LIBCD /NODEFAULTLIB:MSVCRTD /DEFAULTLIB:MSVCRT /debug";
 }
 
 sub settings_nt_coff {
- $cc_link_opts = "/link /NODEFAULTLIB:LIBCMT /NODEFAULTLIB:LIBCMTD /NODEFAULTLIB:LIBC /NODEFAULTLIB:LIBCD /NODEFAULTLIB:MSVCRTD /DEFAULTLIB:MSVCRT /debugtype:coff /debug:full";
+ $cc_link_opts = "/link /NODEFAULTLIB:LIBCMT /NODEFAULTLIB:LIBCMTD /NODEFAULTLIB:LIBC /NODEFAULTLIB:LIBCD /NODEFAULTLIB:MSVCRTD /DEFAULTLIB:MSVCRT /debug";
 }
 
 

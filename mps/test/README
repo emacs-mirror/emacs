@@ -43,3 +43,41 @@ From the test directory, build mpslib.a using the Xcode project::
     perl test/qa -i ../code -l ../code/xc/Debug/libmps.a run function/232.c
 
 etc.  See "Testing on Unix" above.
+
+
+Testing on Windows
+------------------
+
+In a Cygwin shell, from the test directory::
+
+    PLATFORM=w3i6mv # substitute your platform
+    VARIETY=cool # or hot
+    CODE=../code # code directory of the branch you are testing
+    pushd $CODE
+    nmake /f $PLATFORM.nmk VARIETY=$VARIETY $PLATFORM/$VARIETY/mps.obj
+    popd
+    export LANG=C # avoid locale warnings from Perl.
+    alias qa="perl test/qa -i $CODE -l $CODE/$PLATFORM/$VARIETY/mps.obj"
+    qa clib
+    qa run function/5.c
+    qa runset testsets/passing
+
+The runset command can result in this error::
+
+    LINK : fatal error LNK1168: cannot open test/obj/nt_AMD64__pc/tmp_test.exe for writing
+
+You may be able to avoid this by running "View Local Services" from
+the Windows Control Panel, double-clicking the "Application
+Experience" service, and switching "Startup type" to "Automatic". See
+the documentation for LNK1168_.
+
+.. _LNK1168: https://msdn.microsoft.com/en-us/library/hhbdtt6d.aspx
+
+At present, the easiest way to debug a test case is to edit
+test/test/script/platform and set::
+
+    $comwrap = "vsjitdebugger \"";
+
+But see job004020_.
+
+.. _job004020: https://www.ravenbrook.com/project/mps/issue/job004020/
