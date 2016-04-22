@@ -1969,6 +1969,7 @@ static Size AMCFreeSize(Pool pool)
  *
  * See <design/poolamc/#describe>.
  */
+
 static Res AMCDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 {
   Res res;
@@ -1976,17 +1977,13 @@ static Res AMCDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
   Ring node, nextNode;
   const char *rampmode;
 
-  if(!TESTC(AMCZPool, amc))
+  if (!TESTC(AMCZPool, amc))
     return ResPARAM;
-  if(stream == NULL)
+  if (stream == NULL)
     return ResPARAM;
 
-  res = WriteF(stream, depth,
-               (amc->rankSet == RankSetEMPTY) ? "AMCZ" : "AMC",
-               " $P {\n", (WriteFP)amc, "  pool $P ($U)\n",
-               (WriteFP)pool, (WriteFU)pool->serial,
-               NULL);
-  if(res != ResOK)
+  res = NextMethod(Pool, AMCZPool, describe)(pool, stream, depth);
+  if (res != ResOK)
     return res;
 
   switch(amc->rampMode) {
@@ -2013,7 +2010,7 @@ static Res AMCDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
       return res;
   }
 
-  if(0) {
+  if (0) {
     /* SegDescribes */
     RING_FOR(node, &pool->segRing, nextNode) {
       Seg seg = RING_ELT(Seg, poolRing, node);
@@ -2022,10 +2019,6 @@ static Res AMCDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
         return res;
     }
   }
-
-  res = WriteF(stream, depth, "} AMC $P\n", (WriteFP)amc, NULL);
-  if(res != ResOK)
-    return res;
 
   return ResOK;
 }

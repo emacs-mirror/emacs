@@ -754,23 +754,24 @@ static Size MVFreeSize(Pool pool)
 
 static Res MVDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 {
+  MV mv = CouldBeA(MVPool, pool);
   Res res;
-  MV mv;
   MVSpan span;
   Align step;
   Size length;
   char c;
   Ring spans, node = NULL, nextNode; /* gcc whinge stop */
 
-  if (!TESTT(Pool, pool))
-    return ResFAIL;
-  mv = PoolMV(pool);
-  if (!TESTT(MV, mv))
-    return ResFAIL;
+  if (!TESTC(MVPool, mv))
+    return ResPARAM;
   if (stream == NULL)
-    return ResFAIL;
+    return ResPARAM;
 
-  res = WriteF(stream, depth,
+  res = NextMethod(Pool, MVPool, describe)(pool, stream, depth);
+  if (res != ResOK)
+    return res;
+
+  res = WriteF(stream, depth + 2,
                "blockPool $P ($U)\n",
                (WriteFP)mvBlockPool(mv), (WriteFU)mvBlockPool(mv)->serial,
                "spanPool  $P ($U)\n",
@@ -781,7 +782,8 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
                "free      $W\n",  (WriteFP)mv->free,
                "lost      $W\n",  (WriteFP)mv->lost,
                NULL);
-  if(res != ResOK) return res;              
+  if(res != ResOK)
+    return res;
 
   step = pool->alignment;
   length = 0x40 * step;
@@ -791,11 +793,11 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
     Addr i, j;
     MVBlock block;
     span = RING_ELT(MVSpan, spans, node);
-    res = WriteF(stream, depth, "MVSpan $P {\n", (WriteFP)span, NULL);
+    res = WriteF(stream, depth + 2, "MVSpan $P {\n", (WriteFP)span, NULL);
     if (res != ResOK)
       return res;
 
-    res = WriteF(stream, depth + 2,
+    res = WriteF(stream, depth + 4,
                  "span    $P\n", (WriteFP)span,
                  "tract   $P\n", (WriteFP)span->tract,
                  "free    $W\n", (WriteFW)span->free,
@@ -815,7 +817,7 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
     block = span->blocks;
 
     for(i = span->base.base; i < span->limit.limit; i = AddrAdd(i, length)) {
-      res = WriteF(stream, depth + 2, "$A ", (WriteFA)i, NULL);
+      res = WriteF(stream, depth + 4, "$A ", (WriteFA)i, NULL);
       if (res != ResOK)
         return res;
 
@@ -847,7 +849,7 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
       if (res != ResOK)
         return res;
     }
-    res = WriteF(stream, depth, "} MVSpan $P\n", (WriteFP)span, NULL);
+    res = WriteF(stream, depth + 2, "} MVSpan $P\n", (WriteFP)span, NULL);
     if (res != ResOK)
       return res;
   }

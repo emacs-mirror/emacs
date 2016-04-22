@@ -490,51 +490,7 @@ Size PoolFreeSize(Pool pool)
 
 Res PoolDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 {
-  Res res;
-  Ring node, nextNode;
-  PoolClass klass;
-
-  if (!TESTC(AbstractPool, pool))
-    return ResPARAM;
-  if (stream == NULL)
-    return ResPARAM;
-
-  klass = ClassOfPoly(Pool, pool);
- 
-  res = WriteF(stream, depth,
-               "Pool $P ($U) {\n", (WriteFP)pool, (WriteFU)pool->serial,
-               "  class $P (\"$S\")\n",
-               (WriteFP)klass, (WriteFS)ClassName(klass),
-               "  arena $P ($U)\n",
-               (WriteFP)pool->arena, (WriteFU)pool->arena->serial,
-               "  alignment $W\n", (WriteFW)pool->alignment,
-               NULL);
-  if (res != ResOK)
-    return res;
-  if (NULL != pool->format) {
-    res = FormatDescribe(pool->format, stream, depth + 2);
-    if (res != ResOK)
-      return res;
-  }
-
-  res = Method(Pool, pool, describe)(pool, stream, depth + 2);
-  if (res != ResOK)
-    return res;
-
-  RING_FOR(node, &pool->bufferRing, nextNode) {
-    Buffer buffer = RING_ELT(Buffer, poolRing, node);
-    res = BufferDescribe(buffer, stream, depth + 2);
-    if (res != ResOK)
-      return res;
-  }
-
-  res = WriteF(stream, depth,
-               "} Pool $P ($U)\n", (WriteFP)pool, (WriteFU)pool->serial,
-               NULL);
-  if (res != ResOK)
-    return res;
-
-  return ResOK;
+  return Method(Pool, pool, describe)(pool, stream, depth);
 }
 
 
