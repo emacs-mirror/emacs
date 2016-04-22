@@ -12,6 +12,8 @@
  * .purpose: Provide the generic part of the MPS / Client message
  * interface.  Messages are instances of Message Classes; much of the
  * "real work" goes on in the modules that provide the actual messages.
+ *
+ * TODO: Consider using protocol classes for messages.
  */
 
 #include "bt.h"
@@ -45,14 +47,14 @@ Bool MessageTypeCheck(MessageType type)
 
 /* See .message.clocked.  Currently finalization messages are the */
 /* only ones that can be numerous. */
-#define MessageIsClocked(message) ((message)->class->type \
-                                 != MessageTypeFINALIZATION)
+#define MessageIsClocked(message) \
+  ((message)->klass->type != MessageTypeFINALIZATION)
 
 Bool MessageCheck(Message message)
 {
   CHECKS(Message, message);
   CHECKU(Arena, message->arena);
-  CHECKD(MessageClass, message->class);
+  CHECKD(MessageClass, message->klass);
   CHECKD_NOSIG(Ring, &message->queueRing);
   /* postedClock is uncheckable for clocked message types, */
   /* but must be 0 for unclocked message types: */
@@ -61,32 +63,32 @@ Bool MessageCheck(Message message)
   return TRUE;
 }
 
-Bool MessageClassCheck(MessageClass class)
+Bool MessageClassCheck(MessageClass klass)
 {
-  CHECKS(MessageClass, class);
-  CHECKL(class->name != NULL);
-  CHECKL(MessageTypeCheck(class->type));
-  CHECKL(FUNCHECK(class->delete));
-  CHECKL(FUNCHECK(class->finalizationRef));
-  CHECKL(FUNCHECK(class->gcLiveSize));
-  CHECKL(FUNCHECK(class->gcCondemnedSize));
-  CHECKL(FUNCHECK(class->gcNotCondemnedSize));
-  CHECKL(FUNCHECK(class->gcStartWhy));
-  CHECKL(class->endSig == MessageClassSig);
+  CHECKS(MessageClass, klass);
+  CHECKL(klass->name != NULL);
+  CHECKL(MessageTypeCheck(klass->type));
+  CHECKL(FUNCHECK(klass->delete));
+  CHECKL(FUNCHECK(klass->finalizationRef));
+  CHECKL(FUNCHECK(klass->gcLiveSize));
+  CHECKL(FUNCHECK(klass->gcCondemnedSize));
+  CHECKL(FUNCHECK(klass->gcNotCondemnedSize));
+  CHECKL(FUNCHECK(klass->gcStartWhy));
+  CHECKL(klass->endSig == MessageClassSig);
 
   return TRUE;
 }
 
-void MessageInit(Arena arena, Message message, MessageClass class,
+void MessageInit(Arena arena, Message message, MessageClass klass,
                  MessageType type)
 {
   AVERT(Arena, arena);
   AVER(message != NULL);
-  AVERT(MessageClass, class);
+  AVERT(MessageClass, klass);
   AVERT(MessageType, type);
 
   message->arena = arena;
-  message->class = class;
+  message->klass = klass;
   RingInit(&message->queueRing);
   message->postedClock = 0;
   message->sig = MessageSig;
@@ -279,20 +281,20 @@ void MessageDiscard(Arena arena, Message message)
 
 /* Message Methods, Generic
  *
- * (Some of these dispatch on message->class).
+ * (Some of these dispatch on message->klass).
  */
 
 
 /* Return the type of a message */
 MessageType MessageGetType(Message message)
 {
-  MessageClass class;
+  MessageClass klass;
   AVERT(Message, message);
   
-  class = message->class;
-  AVERT(MessageClass, class);
+  klass = message->klass;
+  AVERT(MessageClass, klass);
 
-  return class->type;
+  return klass->type;
 }
 
 /* Return the class of a message */
@@ -300,7 +302,7 @@ MessageClass MessageGetClass(Message message)
 {
   AVERT(Message, message);
 
-  return message->class;
+  return message->klass;
 }
 
 Clock MessageGetClock(Message message)
@@ -314,7 +316,7 @@ static void MessageDelete(Message message)
 {
   AVERT(Message, message);
 
-  (*message->class->delete)(message);
+  (*message->klass->delete)(message);
 }
 
 
@@ -331,7 +333,7 @@ void MessageFinalizationRef(Ref *refReturn, Arena arena,
   AVERT(Message, message);
   AVER(MessageGetType(message) == MessageTypeFINALIZATION);
 
-  (*message->class->finalizationRef)(refReturn, arena, message);
+  (*message->klass->finalizationRef)(refReturn, arena, message);
 
   return;
 }
@@ -341,7 +343,7 @@ Size MessageGCLiveSize(Message message)
   AVERT(Message, message);
   AVER(MessageGetType(message) == MessageTypeGC);
 
-  return (*message->class->gcLiveSize)(message);
+  return (*message->klass->gcLiveSize)(message);
 }
 
 Size MessageGCCondemnedSize(Message message)
@@ -349,7 +351,7 @@ Size MessageGCCondemnedSize(Message message)
   AVERT(Message, message);
   AVER(MessageGetType(message) == MessageTypeGC);
 
-  return (*message->class->gcCondemnedSize)(message);
+  return (*message->klass->gcCondemnedSize)(message);
 }
 
 Size MessageGCNotCondemnedSize(Message message)
@@ -357,7 +359,7 @@ Size MessageGCNotCondemnedSize(Message message)
   AVERT(Message, message);
   AVER(MessageGetType(message) == MessageTypeGC);
 
-  return (*message->class->gcNotCondemnedSize)(message);
+  return (*message->klass->gcNotCondemnedSize)(message);
 }
 
 const char *MessageGCStartWhy(Message message)
@@ -365,7 +367,7 @@ const char *MessageGCStartWhy(Message message)
   AVERT(Message, message);
   AVER(MessageGetType(message) == MessageTypeGCSTART);
 
-  return (*message->class->gcStartWhy)(message);
+  return (*message->klass->gcStartWhy)(message);
 }
 
 

@@ -1,7 +1,7 @@
 /* mpmtypes.h: MEMORY POOL MANAGER TYPES
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (c) 2001 Global Graphics Software.
  *
  * .design: <design/type/>
@@ -69,18 +69,12 @@ typedef struct BootBlockStruct *BootBlock; /* <code/boot.c> */
 typedef struct BufferStruct *Buffer;    /* <design/buffer/> */
 typedef struct SegBufStruct *SegBuf;    /* <design/buffer/> */
 typedef struct BufferClassStruct *BufferClass; /* <design/buffer/> */
-typedef BufferClass SegBufClass;        /* <design/buffer/> */
-typedef BufferClass RankBufClass;       /* <design/buffer/> */
 typedef unsigned BufferMode;            /* <design/buffer/> */
 typedef struct mps_fmt_s *Format;       /* design.mps.format */
 typedef struct LockStruct *Lock;        /* <code/lock.c>* */
 typedef struct mps_pool_s *Pool;        /* <design/pool/> */
+typedef Pool AbstractPool;
 typedef struct mps_pool_class_s *PoolClass;  /* <code/poolclas.c> */
-typedef PoolClass AbstractPoolClass;    /* <code/poolabs.c> */
-typedef PoolClass AbstractBufferPoolClass; /* <code/poolabs.c> */
-typedef PoolClass AbstractSegBufPoolClass; /* <code/poolabs.c> */
-typedef PoolClass AbstractScanPoolClass; /* <code/poolabs.c> */
-typedef PoolClass AbstractCollectPoolClass; /* <code/poolabs.c> */
 typedef struct TraceStruct *Trace;      /* <design/trace/> */
 typedef struct ScanStateStruct *ScanState; /* <design/trace/> */
 typedef struct mps_chain_s *Chain;      /* <design/trace/> */
@@ -91,12 +85,11 @@ typedef union PageUnion *Page;          /* <code/tract.c> */
 typedef struct SegStruct *Seg;          /* <code/seg.c> */
 typedef struct GCSegStruct *GCSeg;      /* <code/seg.c> */
 typedef struct SegClassStruct *SegClass; /* <code/seg.c> */
-typedef SegClass GCSegClass;            /* <code/seg.c> */
 typedef struct LocusPrefStruct *LocusPref; /* <design/locus/>, <code/locus.c> */
 typedef int LocusPrefKind;              /* <design/locus/>, <code/locus.c> */
 typedef struct mps_arena_class_s *ArenaClass; /* <design/arena/> */
-typedef ArenaClass AbstractArenaClass;  /* <code/arena.c> */
 typedef struct mps_arena_s *Arena;      /* <design/arena/> */
+typedef Arena AbstractArena;
 typedef struct GlobalsStruct *Globals;  /* <design/arena/> */
 typedef struct VMStruct *VM;            /* <code/vm.c>* */
 typedef struct RootStruct *Root;        /* <code/root.c> */
@@ -112,13 +105,15 @@ typedef struct LandStruct *Land;        /* <design/land/> */
 typedef struct LandClassStruct *LandClass; /* <design/land/> */
 typedef unsigned FindDelete;            /* <design/land/> */
 typedef struct ShieldStruct *Shield; /* design.mps.shield */
+typedef struct HistoryStruct *History;  /* design.mps.arena.ld */
 
 
 /* Arena*Method -- see <code/mpmst.h#ArenaClassStruct> */
 
 typedef void (*ArenaVarargsMethod)(ArgStruct args[], va_list varargs);
-typedef Res (*ArenaInitMethod)(Arena *arenaReturn,
-                               ArenaClass class, ArgList args);
+typedef Res (*ArenaCreateMethod)(Arena *arenaReturn, ArgList args);
+typedef void (*ArenaDestroyMethod)(Arena arena);
+typedef Res (*ArenaInitMethod)(Arena arena, Size grainSize, ArgList args);
 typedef void (*ArenaFinishMethod)(Arena arena);
 typedef Size (*ArenaPurgeSpareMethod)(Arena arena, Size size);
 typedef Res (*ArenaExtendMethod)(Arena arena, Addr base, Size size);
@@ -176,7 +171,7 @@ typedef Res (*SegSplitMethod)(Seg seg, Seg segHi,
 /* Buffer*Method -- see <design/buffer/> */
 
 typedef void (*BufferVarargsMethod)(ArgStruct args[], va_list varargs);
-typedef Res (*BufferInitMethod)(Buffer buffer, Pool pool, ArgList args);
+typedef Res (*BufferInitMethod)(Buffer buffer, Pool pool, Bool isMutator, ArgList args);
 typedef void (*BufferFinishMethod)(Buffer buffer);
 typedef void (*BufferAttachMethod)(Buffer buffer, Addr base, Addr limit,
                                    Addr init, Size size);
@@ -193,7 +188,7 @@ typedef Res (*BufferDescribeMethod)(Buffer buffer, mps_lib_FILE *stream, Count d
 /* Order of types corresponds to PoolClassStruct in <code/mpmst.h> */
 
 typedef void (*PoolVarargsMethod)(ArgStruct args[], va_list varargs);
-typedef Res (*PoolInitMethod)(Pool pool, ArgList args);
+typedef Res (*PoolInitMethod)(Pool pool, Arena arena, PoolClass klass, ArgList args);
 typedef void (*PoolFinishMethod)(Pool pool);
 typedef Res (*PoolAllocMethod)(Addr *pReturn, Pool pool, Size size);
 typedef void (*PoolFreeMethod)(Pool pool, Addr old, Size size);
@@ -259,7 +254,7 @@ typedef struct TraceMessageStruct *TraceMessage;  /* trace end */
 
 /* Land*Method -- see <design/land/> */
 
-typedef Res (*LandInitMethod)(Land land, ArgList args);
+typedef Res (*LandInitMethod)(Land land, Arena arena, Align alignment, ArgList args);
 typedef void (*LandFinishMethod)(Land land);
 typedef Size (*LandSizeMethod)(Land land);
 typedef Res (*LandInsertMethod)(Range rangeReturn, Land land, Range range);
@@ -288,6 +283,7 @@ typedef Res (*LandDescribeMethod)(Land land, mps_lib_FILE *stream, Count depth);
 #define RefSetUNIV      BS_UNIV(RefSet)
 #define ZoneSetEMPTY    BS_EMPTY(ZoneSet)
 #define ZoneSetUNIV     BS_UNIV(ZoneSet)
+#define ZoneShiftUNSET  ((Shift)-1)  
 #define TraceSetEMPTY   BS_EMPTY(TraceSet)
 #define TraceSetUNIV    ((TraceSet)((1u << TraceLIMIT) - 1))
 #define RankSetEMPTY    BS_EMPTY(RankSet)
@@ -446,7 +442,7 @@ typedef double WriteFD;
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

@@ -265,6 +265,11 @@ extern size_t rnd_grain(size_t arena_size);
 extern size_t rnd_align(size_t min, size_t max);
 
 
+/* rnd_pause_time -- random pause time */
+
+extern double rnd_pause_time(void);
+
+
 /* randomize -- randomize the generator, or initialize to replay
  *
  * randomize(argc, argv) randomizes the rnd generator (using time(3))
