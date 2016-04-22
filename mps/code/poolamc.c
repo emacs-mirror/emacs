@@ -287,7 +287,7 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
   if(res != ResOK)
     return res;
 
-  if(SegBuffer(seg) != NULL)
+  if(SegHasBuffer(seg))
     init = BufferGetInit(SegBuffer(seg));
   else
     init = limit;
@@ -1303,7 +1303,7 @@ static Res amcScanNailedOnce(Bool *totalReturn, Bool *moreReturn,
   NailboardClearNewNails(board);
 
   p = SegBase(seg);
-  while(SegBuffer(seg) != NULL) {
+  while (SegHasBuffer(seg)) {
     limit = BufferScanLimit(SegBuffer(seg));
     if(p >= limit) {
       AVER(p == limit);
@@ -1406,7 +1406,7 @@ static Res AMCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 
   base = AddrAdd(SegBase(seg), format->headerSize);
   /* <design/poolamc/#seg-scan.loop> */
-  while(SegBuffer(seg) != NULL) {
+  while (SegHasBuffer(seg)) {
     limit = AddrAdd(BufferScanLimit(SegBuffer(seg)),
                     format->headerSize);
     if(base >= limit) {
@@ -1773,13 +1773,13 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
 
   /* Free the seg if we can; fixes .nailboard.limitations.middle. */
   if(preservedInPlaceCount == 0
-     && (SegBuffer(seg) == NULL)
+     && (!SegHasBuffer(seg))
      && (SegNailed(seg) == TraceSetEMPTY)) {
 
     amcGen gen = amcSegGen(seg);
 
     /* We may not free a buffered seg. */
-    AVER(SegBuffer(seg) == NULL);
+    AVER(!SegHasBuffer(seg));
 
     PoolGenFree(&gen->pgen, seg, 0, SegSize(seg), 0, Seg2amcSeg(seg)->deferred);
   }
@@ -1824,7 +1824,7 @@ static void AMCReclaim(Pool pool, Trace trace, Seg seg)
 
   /* We may not free a buffered seg.  (But all buffered + condemned */
   /* segs should have been nailed anyway). */
-  AVER(SegBuffer(seg) == NULL);
+  AVER(!SegHasBuffer(seg));
 
   STATISTIC(trace->reclaimSize += SegSize(seg));
 
@@ -1954,7 +1954,7 @@ static Res AMCAddrObject(Addr *pReturn, Pool pool, Seg seg, Addr addr)
 
   arena = PoolArena(pool);
   base = SegBase(seg);
-  if (SegBuffer(seg) != NULL) {
+  if (SegHasBuffer(seg)) {
     /* We use BufferGetInit here (and not BufferScanLimit) because we
      * want to be able to find objects that have been allocated and
      * committed since the last flip. These objects lie between the

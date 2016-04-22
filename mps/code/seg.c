@@ -328,6 +328,14 @@ void SegSetRankAndSummary(Seg seg, RankSet rankSet, RefSet summary)
 }
 
 
+/* SegHasBuffer -- segment has a buffer? */
+
+Bool SegHasBuffer(Seg seg)
+{
+  return SegBuffer(seg) != NULL;
+}
+
+
 /* SegBuffer -- return the buffer of a segment */
 
 Buffer SegBuffer(Seg seg)
@@ -640,7 +648,7 @@ Res SegSplit(Seg *segLoReturn, Seg *segHiReturn, Seg seg, Addr at)
 
   /* Can only split a buffered segment if the entire buffer is below
    * the split point. */
-  AVER(SegBuffer(seg) == NULL || BufferLimit(SegBuffer(seg)) <= at);
+  AVER(!SegHasBuffer(seg) || BufferLimit(SegBuffer(seg)) <= at);
 
   if (seg->queued)
     ShieldFlush(arena);  /* see <design/seg/#split-merge.shield> */
