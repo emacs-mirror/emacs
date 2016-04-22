@@ -1,7 +1,7 @@
 /* mpm.h: MEMORY POOL MANAGER DEFINITIONS
  *
  * $Id$
- * Copyright (c) 2001-2015 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .trans.bufferinit: The Buffer data structure has an Init field and
@@ -177,8 +177,8 @@ extern Word RandomWord(void);
 typedef Compare QuickSortCompare(void *left, void *right,
                                  void *closure);
 extern void QuickSort(void *array[], Count length,
-		      QuickSortCompare compare, void *closure,
-		      SortStruct *sortStruct);
+                      QuickSortCompare compare, void *closure,
+                      SortStruct *sortStruct);
 
 
 /* Version Determination
@@ -190,9 +190,9 @@ extern char *MPSVersion(void);
 
 /* Pool Interface -- see impl.c.pool */
 
-extern Res PoolInit(Pool pool, Arena arena, PoolClass class, ArgList args);
+extern Res PoolInit(Pool pool, Arena arena, PoolClass klass, ArgList args);
 extern void PoolFinish(Pool pool);
-extern Bool PoolClassCheck(PoolClass class);
+extern Bool PoolClassCheck(PoolClass klass);
 extern Bool PoolCheck(Pool pool);
 extern Res PoolDescribe(Pool pool, mps_lib_FILE *stream, Count depth);
 
@@ -202,7 +202,7 @@ extern Res PoolDescribe(Pool pool, mps_lib_FILE *stream, Count depth);
 #define PoolSegRing(pool)       (&(pool)->segRing)
 #define PoolArenaRing(pool) (&(pool)->arenaRing)
 #define PoolOfArenaRing(node) RING_ELT(Pool, arenaRing, node)
-#define PoolHasAttr(pool, Attr) (((pool)->class->attr & (Attr)) != 0)
+#define PoolHasAttr(pool, Attr) ((ClassOfPoly(Pool, pool)->attr & (Attr)) != 0)
 
 extern Bool PoolFormat(Format *formatReturn, Pool pool);
 
@@ -213,7 +213,7 @@ extern Bool PoolOfRange(Pool *poolReturn, Arena arena, Addr base, Addr limit);
 extern Bool PoolHasAddr(Pool pool, Addr addr);
 extern Bool PoolHasRange(Pool pool, Addr base, Addr limit);
 
-extern Res PoolCreate(Pool *poolReturn, Arena arena, PoolClass class,
+extern Res PoolCreate(Pool *poolReturn, Arena arena, PoolClass klass,
                       ArgList args);
 extern void PoolDestroy(Pool pool);
 extern BufferClass PoolDefaultBufferClass(Pool pool);
@@ -226,9 +226,7 @@ extern Res PoolWhiten(Pool pool, Trace trace, Seg seg);
 extern void PoolGrey(Pool pool, Trace trace, Seg seg);
 extern void PoolBlacken(Pool pool, TraceSet traceSet, Seg seg);
 extern Res PoolScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg);
-extern Res (PoolFix)(Pool pool, ScanState ss, Seg seg, Addr *refIO);
-#define PoolFix(pool, ss, seg, refIO) \
-  ((*(pool)->fix)(pool, ss, seg, refIO))
+extern Res PoolFix(Pool pool, ScanState ss, Seg seg, Addr *refIO);
 extern Res PoolFixEmergency(Pool pool, ScanState ss, Seg seg, Addr *refIO);
 extern void PoolReclaim(Pool pool, Trace trace, Seg seg);
 extern void PoolTraceEnd(Pool pool, Trace trace);
@@ -239,8 +237,8 @@ extern void PoolFreeWalk(Pool pool, FreeBlockVisitor f, void *p);
 extern Size PoolTotalSize(Pool pool);
 extern Size PoolFreeSize(Pool pool);
 
-extern Res PoolTrivInit(Pool pool, ArgList arg);
-extern void PoolTrivFinish(Pool pool);
+extern Res PoolAbsInit(Pool pool, Arena arena, PoolClass klass, ArgList arg);
+extern void PoolAbsFinish(Pool pool);
 extern Res PoolNoAlloc(Addr *pReturn, Pool pool, Size size);
 extern Res PoolTrivAlloc(Addr *pReturn, Pool pool, Size size);
 extern void PoolNoFree(Pool pool, Addr old, Size size);
@@ -288,40 +286,29 @@ extern PoolDebugMixin PoolNoDebugMixin(Pool pool);
 extern BufferClass PoolNoBufferClass(void);
 extern Size PoolNoSize(Pool pool);
 
-#define ClassOfPool(pool) ((pool)->class)
-#define SuperclassOfPool(pool) \
-  ((PoolClass)ProtocolClassSuperclassPoly((pool)->class))
-
 
 /* Abstract Pool Classes Interface -- see <code/poolabs.c> */
-extern void PoolClassMixInBuffer(PoolClass class);
-extern void PoolClassMixInScan(PoolClass class);
-extern void PoolClassMixInFormat(PoolClass class);
-extern void PoolClassMixInCollect(PoolClass class);
-extern AbstractPoolClass AbstractPoolClassGet(void);
-extern AbstractBufferPoolClass AbstractBufferPoolClassGet(void);
-extern AbstractBufferPoolClass AbstractSegBufPoolClassGet(void);
-extern AbstractScanPoolClass AbstractScanPoolClassGet(void);
-extern AbstractCollectPoolClass AbstractCollectPoolClassGet(void);
-
-/* DEFINE_POOL_CLASS
- *
- * Convenience macro -- see <design/protocol/#int.define-special>. */
-
-#define DEFINE_POOL_CLASS(className, var) \
-  DEFINE_ALIAS_CLASS(className, PoolClass, var)
-
-#define POOL_SUPERCLASS(className) \
-  ((PoolClass)SUPERCLASS(className))
+extern void PoolClassMixInBuffer(PoolClass klass);
+extern void PoolClassMixInScan(PoolClass klass);
+extern void PoolClassMixInFormat(PoolClass klass);
+extern void PoolClassMixInCollect(PoolClass klass);
+DECLARE_CLASS(Inst, PoolClass, InstClass);
+DECLARE_CLASS(Pool, AbstractPool, Inst);
+DECLARE_CLASS(Pool, AbstractBufferPool, AbstractPool);
+DECLARE_CLASS(Pool, AbstractSegBufPool, AbstractBufferPool);
+DECLARE_CLASS(Pool, AbstractScanPool, AbstractSegBufPool);
+typedef Pool AbstractCollectPool;
+#define AbstractCollectPoolCheck PoolCheck
+DECLARE_CLASS(Pool, AbstractCollectPool, AbstractScanPool);
 
 
 /* Message Interface -- see <design/message/> */
 /* -- Internal (MPM) Interface -- functions for message originator */
 extern Bool MessageCheck(Message message);
-extern Bool MessageClassCheck(MessageClass class);
+extern Bool MessageClassCheck(MessageClass klass);
 extern Bool MessageTypeCheck(MessageType type);
 extern void MessageInit(Arena arena, Message message,
-                        MessageClass class, MessageType type);
+                        MessageClass klass, MessageType type);
 extern void MessageFinish(Message message);
 extern Arena MessageArena(Message message);
 extern Bool MessageOnQueue(Message message);
@@ -403,7 +390,8 @@ extern Bool TraceIsEmpty(Trace trace);
 extern Res TraceAddWhite(Trace trace, Seg seg);
 extern Res TraceCondemnZones(Trace trace, ZoneSet condemnedSet);
 extern Res TraceStart(Trace trace, double mortality, double finishingTime);
-extern Bool TracePoll(Work *workReturn, Globals globals);
+extern Bool TracePoll(Work *workReturn, Bool *collectWorldReturn,
+                      Globals globals, Bool collectWorldAllowed);
 
 extern Rank TraceRankForAccess(Arena arena, Seg seg);
 extern void TraceSegAccess(Arena arena, Seg seg, AccessSet mode);
@@ -486,25 +474,13 @@ extern void TraceScanSingleRef(TraceSet ts, Rank rank, Arena arena,
 
 /* Arena Interface -- see <code/arena.c> */
 
-/* DEFINE_ARENA_CLASS
- *
- * Convenience macro -- see <design/protocol/#int.define-special>. */
-
-#define DEFINE_ARENA_CLASS(className, var) \
-  DEFINE_ALIAS_CLASS(className, ArenaClass, var)
-
-#define ARENA_SUPERCLASS(className) \
-  ((ArenaClass)SUPERCLASS(className))
-
-extern AbstractArenaClass AbstractArenaClassGet(void);
-extern Bool ArenaClassCheck(ArenaClass class);
+DECLARE_CLASS(Inst, ArenaClass, InstClass);
+DECLARE_CLASS(Arena, AbstractArena, Inst);
+extern Bool ArenaClassCheck(ArenaClass klass);
 
 extern Bool ArenaCheck(Arena arena);
-extern Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args);
+extern Res ArenaCreate(Arena *arenaReturn, ArenaClass klass, ArgList args);
 extern void ArenaDestroy(Arena arena);
-extern Res ArenaInit(Arena arena, ArenaClass class, Size grainSize,
-                     ArgList args);
-extern void ArenaFinish(Arena arena);
 extern Res ArenaDescribe(Arena arena, mps_lib_FILE *stream, Count depth);
 extern Res ArenaDescribeTracts(Arena arena, mps_lib_FILE *stream, Count depth);
 extern Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context);
@@ -525,7 +501,7 @@ extern Ring GlobalsRememberedSummaryRing(Globals);
 
 #define ArenaThreadRing(arena)  (&(arena)->threadRing)
 #define ArenaDeadRing(arena)    (&(arena)->deadRing)
-#define ArenaEpoch(arena)       ((arena)->epoch) /* .epoch.ts */
+#define ArenaEpoch(arena)       (ArenaHistory(arena)->epoch) /* .epoch.ts */
 #define ArenaTrace(arena, ti)   (&(arena)->trace[ti])
 #define ArenaZoneShift(arena)   ((arena)->zoneShift)
 #define ArenaStripeSize(arena)  ((Size)1 << ArenaZoneShift(arena))
@@ -535,6 +511,7 @@ extern Ring GlobalsRememberedSummaryRing(Globals);
 #define ArenaChunkTree(arena) RVALUE((arena)->chunkTree)
 #define ArenaChunkRing(arena) RVALUE(&(arena)->chunkRing)
 #define ArenaShield(arena)      (&(arena)->shieldStruct)
+#define ArenaHistory(arena)     (&(arena)->historyStruct)
 
 extern Bool ArenaGrainSizeCheck(Size size);
 #define AddrArenaGrainUp(addr, arena) AddrAlignUp(addr, ArenaGrainSize(arena))
@@ -657,7 +634,8 @@ extern Res PolicyAlloc(Tract *tractReturn, Arena arena, LocusPref pref,
                        Size size, Pool pool);
 extern Bool PolicyShouldCollectWorld(Arena arena, double availableTime,
                                      Clock now, Clock clocks_per_sec);
-extern Bool PolicyStartTrace(Trace *traceReturn, Arena arena);
+extern Bool PolicyStartTrace(Trace *traceReturn, Bool *collectWorldReturn,
+                             Arena arena, Bool collectWorldAllowed);
 extern Bool PolicyPoll(Arena arena);
 extern Bool PolicyPollAgain(Arena arena, Clock start, Bool moreWork, Work tracedWork);
 
@@ -677,7 +655,7 @@ extern Bool LocusCheck(Arena arena);
 
 /* Segment interface */
 
-extern Res SegAlloc(Seg *segReturn, SegClass class, LocusPref pref,
+extern Res SegAlloc(Seg *segReturn, SegClass klass, LocusPref pref,
                     Size size, Pool pool,
                     ArgList args);
 extern void SegFree(Seg seg);
@@ -699,22 +677,11 @@ extern void SegSetBuffer(Seg seg, Buffer buffer);
 extern Addr SegBufferScanLimit(Seg seg);
 extern Bool SegCheck(Seg seg);
 extern Bool GCSegCheck(GCSeg gcseg);
-extern Bool SegClassCheck(SegClass class);
-extern SegClass SegClassGet(void);
-extern SegClass GCSegClassGet(void);
-extern void SegClassMixInNoSplitMerge(SegClass class);
-
-
-/* DEFINE_SEG_CLASS -- define a segment class */
-
-#define DEFINE_SEG_CLASS(className, var) \
-  DEFINE_ALIAS_CLASS(className, SegClass, var)
-
-
-#define SEG_SUPERCLASS(className) \
-  ((SegClass)SUPERCLASS(className))
-
-#define ClassOfSeg(seg) ((seg)->class)
+extern Bool SegClassCheck(SegClass klass);
+DECLARE_CLASS(Inst, SegClass, InstClass);
+DECLARE_CLASS(Seg, Seg, Inst);
+DECLARE_CLASS(Seg, GCSeg, Seg);
+extern void SegClassMixInNoSplitMerge(SegClass klass);
 
 extern Size SegSize(Seg seg);
 extern Addr (SegBase)(Seg seg);
@@ -747,7 +714,7 @@ extern Addr (SegLimit)(Seg seg);
 
 /* Buffer Interface -- see <code/buffer.c> */
 
-extern Res BufferCreate(Buffer *bufferReturn, BufferClass class,
+extern Res BufferCreate(Buffer *bufferReturn, BufferClass klass,
                         Pool pool, Bool isMutator, ArgList args);
 extern void BufferDestroy(Buffer buffer);
 extern Bool BufferCheck(Buffer buffer);
@@ -817,19 +784,13 @@ extern void BufferRampReset(Buffer buffer);
 extern Res BufferFramePush(AllocFrame *frameReturn, Buffer buffer);
 extern Res BufferFramePop(Buffer buffer, AllocFrame frame);
 
-
-/* DEFINE_BUFFER_CLASS -- define a buffer class */
-
-#define DEFINE_BUFFER_CLASS(className, var) \
-  DEFINE_ALIAS_CLASS(className, BufferClass, var)
-
-#define BUFFER_SUPERCLASS(className) \
-  ((BufferClass)SUPERCLASS(className))
-
-extern Bool BufferClassCheck(BufferClass class);
-extern BufferClass BufferClassGet(void);
-extern BufferClass SegBufClassGet(void);
-extern BufferClass RankBufClassGet(void);
+extern Bool BufferClassCheck(BufferClass klass);
+DECLARE_CLASS(Inst, BufferClass, InstClass);
+DECLARE_CLASS(Buffer, Buffer, Inst);
+DECLARE_CLASS(Buffer, SegBuf, Buffer);
+typedef Buffer RankBuf;
+#define RankBufCheck BufferCheck
+DECLARE_CLASS(Buffer, RankBuf, SegBuf);
 
 extern AllocPattern AllocPatternRamp(void);
 extern AllocPattern AllocPatternRampCollectAll(void);
@@ -945,6 +906,10 @@ extern void (ShieldFlush)(Arena arena);
 
 /* Location Dependency -- see <code/ld.c> */
 
+extern void HistoryInit(History history);
+extern void HistoryFinish(History);
+extern Res HistoryDescribe(History history, mps_lib_FILE *stream, Count depth);
+extern Bool HistoryCheck(History history);
 extern void LDReset(mps_ld_t ld, Arena arena);
 extern void LDAdd(mps_ld_t ld, Arena arena, Addr addr);
 extern Bool LDIsStaleAny(mps_ld_t ld, Arena arena);
@@ -1005,8 +970,8 @@ extern Bool LandCheck(Land land);
 #define LandArena(land) ((land)->arena)
 #define LandAlignment(land) ((land)->alignment)
 extern Size LandSize(Land land);
-extern Res LandInit(Land land, LandClass class, Arena arena, Align alignment, void *owner, ArgList args);
-extern Res LandCreate(Land *landReturn, Arena arena, LandClass class, Align alignment, void *owner, ArgList args);
+extern Res LandInit(Land land, LandClass klass, Arena arena, Align alignment, void *owner, ArgList args);
+extern Res LandCreate(Land *landReturn, Arena arena, LandClass klass, Align alignment, void *owner, ArgList args);
 extern void LandDestroy(Land land);
 extern void LandFinish(Land land);
 extern Res LandInsert(Range rangeReturn, Land land, Range range);
@@ -1021,13 +986,9 @@ extern Res LandDescribe(Land land, mps_lib_FILE *stream, Count depth);
 extern Bool LandFlush(Land dest, Land src);
 
 extern Size LandSlowSize(Land land);
-extern Bool LandClassCheck(LandClass class);
-extern LandClass LandClassGet(void);
-#define LAND_SUPERCLASS(className) ((LandClass)SUPERCLASS(className))
-#define DEFINE_LAND_CLASS(className, var) \
-  DEFINE_ALIAS_CLASS(className, LandClass, var)
-#define IsLandSubclass(land, className) \
-  IsSubclassPoly((land)->class, className ## Get())
+extern Bool LandClassCheck(LandClass klass);
+DECLARE_CLASS(Inst, LandClass, InstClass);
+DECLARE_CLASS(Land, Land, Inst);
 
 
 /* STATISTIC -- gather statistics (in some varieties)
@@ -1056,7 +1017,7 @@ extern LandClass LandClassGet(void);
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2015 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

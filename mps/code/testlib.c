@@ -12,7 +12,7 @@
 #include "mps.h"
 #include "misc.h" /* for NOOP */
 
-#include <math.h> /* fmod, log */
+#include <math.h> /* fmod, log, HUGE_VAL */
 #include <stdio.h> /* fflush, printf, stderr, sscanf, vfprintf */
 #include <stdlib.h> /* abort, exit, getenv */
 #include <time.h> /* time */
@@ -244,6 +244,15 @@ size_t rnd_align(size_t min, size_t max)
     return min << (rnd() % (log2max - log2min + 1));
   else
     return min;
+}
+
+double rnd_pause_time(void)
+{
+  double t = rnd_double();
+  if (t == 0.0)
+    return HUGE_VAL; /* Would prefer to use INFINITY but it's not in C89. */
+  else
+    return 1 / t - 1;
 }
 
 rnd_state_t rnd_seed(void)
