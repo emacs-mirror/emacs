@@ -375,61 +375,57 @@ Addr SegBufferScanLimit(Seg seg)
 
 /* SegDescribe -- describe a segment */
 
-Res SegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
+Res SegAbsDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
 {
   Res res;
   Pool pool;
-  SegClass klass;
 
   if (!TESTC(Seg, seg))
     return ResPARAM;
   if (stream == NULL)
     return ResPARAM;
 
-  pool = SegPool(seg);
-  klass = ClassOfPoly(Seg, seg);
+  res = InstDescribe(CouldBeA(Inst, seg), stream, depth);
+  if (res != ResOK)
+    return res;
 
-  res = WriteF(stream, depth,
-               "Segment $P [$A,$A) {\n", (WriteFP)seg,
-               (WriteFA)SegBase(seg), (WriteFA)SegLimit(seg),
-               "  class $P (\"$S\")\n",
-               (WriteFP)klass, (WriteFS)ClassName(klass),
-               "  pool $P ($U)\n",
-               (WriteFP)pool, (WriteFU)pool->serial,
-               "  depth $U\n", seg->depth,
-               "  pm",
+  pool = SegPool(seg);
+
+  res = WriteF(stream, depth + 2,
+               "base  $A\n", (WriteFA)SegBase(seg),
+               "limit $A\n", (WriteFA)SegLimit(seg),
+               "pool  $P ($U)\n", (WriteFP)pool, (WriteFU)pool->serial,
+               "depth $U\n", seg->depth,
+               "pm",
                seg->pm == AccessSetEMPTY ? " EMPTY" : "",
                seg->pm & AccessREAD ? " READ" : "",
                seg->pm & AccessWRITE ? " WRITE" : "",
                "\n",
-               "  sm",
+               "sm",
                seg->sm == AccessSetEMPTY ? " EMPTY" : "",
                seg->sm & AccessREAD ? " READ" : "",
                seg->sm & AccessWRITE ? " WRITE" : "",
                "\n",
-               "  grey $B\n", (WriteFB)seg->grey,
-               "  white $B\n", (WriteFB)seg->white,
-               "  nailed $B\n", (WriteFB)seg->nailed,
-               "  rankSet",
+               "grey $B\n", (WriteFB)seg->grey,
+               "white $B\n", (WriteFB)seg->white,
+               "nailed $B\n", (WriteFB)seg->nailed,
+               "rankSet",
                seg->rankSet == RankSetEMPTY ? " EMPTY" : "",
                BS_IS_MEMBER(seg->rankSet, RankAMBIG) ? " AMBIG" : "",
                BS_IS_MEMBER(seg->rankSet, RankEXACT) ? " EXACT" : "",
                BS_IS_MEMBER(seg->rankSet, RankFINAL) ? " FINAL" : "",
                BS_IS_MEMBER(seg->rankSet, RankWEAK)  ? " WEAK"  : "",
+               "\n",
                NULL);
   if (res != ResOK)
     return res;
 
-  res = Method(Seg, seg, describe)(seg, stream, depth + 2);
-  if (res != ResOK)
-    return res;
+  return ResOK;
+}
 
-  res = WriteF(stream, 0, "\n", NULL);
-  if (res != ResOK)
-    return res;
-
-  res = WriteF(stream, depth, "} Segment $P\n", (WriteFP)seg, NULL);
-  return res;
+Res SegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
+{
+  return Method(Seg, seg, describe)(seg, stream, depth);
 }
 
 
@@ -1011,39 +1007,6 @@ static Res segTrivSplit(Seg seg, Seg segHi,
 }
 
 
-/* segTrivDescribe -- Basic Seg description method */
-
-static Res segTrivDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
-{
-  Res res;
-
-  if (!TESTT(Seg, seg))
-    return ResFAIL;
-  if (stream == NULL)
-    return ResFAIL;
-
-  res = WriteF(stream, depth,
-               "shield depth $U\n", (WriteFU)seg->depth,
-               "protection mode: ",
-               (SegPM(seg) & AccessREAD) ? "" : "!", "READ", " ",
-               (SegPM(seg) & AccessWRITE) ? "" : "!", "WRITE", "\n",
-               "shield mode: ",
-               (SegSM(seg) & AccessREAD) ? "" : "!", "READ", " ",
-               (SegSM(seg) & AccessWRITE) ? "" : "!", "WRITE", "\n",
-               "ranks:",
-               RankSetIsMember(seg->rankSet, RankAMBIG) ? " ambiguous" : "",
-               RankSetIsMember(seg->rankSet, RankEXACT) ? " exact" : "",
-               RankSetIsMember(seg->rankSet, RankFINAL) ? " final" : "",
-               RankSetIsMember(seg->rankSet, RankWEAK) ? " weak" : "",
-               "\n",
-               "white  $B\n", (WriteFB)seg->white,
-               "grey   $B\n", (WriteFB)seg->grey,
-               "nailed $B\n", (WriteFB)seg->nailed,
-               NULL);
-  return res;
-}
-
-
 /* Class GCSeg -- Segment class with GC support
  */
 
@@ -1553,32 +1516,29 @@ failSuper:
 
 static Res gcSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
 {
+  GCSeg gcseg = CouldBeA(GCSeg, seg);
   Res res;
-  GCSeg gcseg;
 
-  if (!TESTT(Seg, seg))
-    return ResFAIL;
+  if (!TESTC(GCSeg, gcseg))
+    return ResPARAM;
   if (stream == NULL)
-    return ResFAIL;
-  gcseg = SegGCSeg(seg);
-  if (!TESTT(GCSeg, gcseg))
-    return ResFAIL;
+    return ResPARAM;
 
   /* Describe the superclass fields first via next-method call */
   res = NextMethod(Seg, GCSeg, describe)(seg, stream, depth);
   if (res != ResOK)
     return res;
 
-  res = WriteF(stream, depth,
+  res = WriteF(stream, depth + 2,
                "summary $W\n", (WriteFW)gcseg->summary,
                NULL);
   if (res != ResOK)
     return res;
 
   if (gcseg->buffer == NULL) {
-    res = WriteF(stream, depth, "buffer: NULL\n", NULL);
+    res = WriteF(stream, depth + 2, "buffer: NULL\n", NULL);
   } else {
-    res = BufferDescribe(gcseg->buffer, stream, depth);
+    res = BufferDescribe(gcseg->buffer, stream, depth + 2);
   }
   if (res != ResOK)
     return res;
@@ -1629,7 +1589,7 @@ DEFINE_CLASS(Seg, Seg, klass)
   klass->setRankSummary = segNoSetRankSummary;
   klass->merge = segTrivMerge;
   klass->split = segTrivSplit;
-  klass->describe = segTrivDescribe;
+  klass->describe = SegAbsDescribe;
   klass->sig = SegClassSig;
   AVERT(SegClass, klass);
 }
