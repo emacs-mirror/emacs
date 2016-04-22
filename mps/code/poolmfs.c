@@ -316,20 +316,20 @@ static Res MFSDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
   if (stream == NULL)
     return ResPARAM;
 
-  res = WriteF(stream, depth,
-               "unroundedUnitSize $W\n", (WriteFW)mfs->unroundedUnitSize,
-               "extendBy $W\n", (WriteFW)mfs->extendBy,
-               "extendSelf $S\n", WriteFYesNo(mfs->extendSelf),
-               "unitSize $W\n", (WriteFW)mfs->unitSize,
-               "freeList $P\n", (WriteFP)mfs->freeList,
-               "total $W\n", (WriteFW)mfs->total,
-               "free $W\n", (WriteFW)mfs->free,
-               "tractList $P\n", (WriteFP)mfs->tractList,
-               NULL);
+  res = NextMethod(Pool, MFSPool, describe)(pool, stream, depth);
   if (res != ResOK)
     return res;
 
-  return ResOK;
+  return WriteF(stream, depth + 2,
+                "unroundedUnitSize $W\n", (WriteFW)mfs->unroundedUnitSize,
+                "extendBy $W\n", (WriteFW)mfs->extendBy,
+                "extendSelf $S\n", WriteFYesNo(mfs->extendSelf),
+                "unitSize $W\n", (WriteFW)mfs->unitSize,
+                "freeList $P\n", (WriteFP)mfs->freeList,
+                "total $W\n", (WriteFW)mfs->total,
+                "free $W\n", (WriteFW)mfs->free,
+                "tractList $P\n", (WriteFP)mfs->tractList,
+                NULL);
 }
 
 
