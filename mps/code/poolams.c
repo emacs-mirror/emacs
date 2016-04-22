@@ -1699,25 +1699,24 @@ static Size AMSFreeSize(Pool pool)
  *
  * Iterates over the segments, describing all of them.
  */
+
 static Res AMSDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 {
-  AMS ams;
+  AMS ams = CouldBeA(AMSPool, pool);
   Ring node, nextNode;
   Res res;
 
-  if (!TESTT(Pool, pool))
-    return ResFAIL;
-  ams = PoolAMS(pool);
-  if (!TESTT(AMS, ams))
-    return ResFAIL;
+  if (!TESTC(AMSPool, ams))
+    return ResPARAM;
   if (stream == NULL)
-    return ResFAIL;
+    return ResPARAM;
 
-  res = WriteF(stream, depth,
-               "AMS $P {\n", (WriteFP)ams,
-               "  pool $P ($U)\n",
-               (WriteFP)pool, (WriteFU)pool->serial,
-               "  grain shift $U\n", (WriteFU)ams->grainShift,
+  res = NextMethod(Pool, AMSPool, describe)(pool, stream, depth);
+  if (res != ResOK)
+    return res;
+
+  res = WriteF(stream, depth + 2,
+               "grain shift $U\n", (WriteFU)ams->grainShift,
                NULL);
   if (res != ResOK)
     return res;
@@ -1735,10 +1734,6 @@ static Res AMSDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
     if (res != ResOK)
       return res;
   }
-
-  res = WriteF(stream, depth, "} AMS $P\n",(WriteFP)ams, NULL);
-  if (res != ResOK)
-    return res;
 
   return ResOK;
 }
