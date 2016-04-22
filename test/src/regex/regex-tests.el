@@ -583,10 +583,198 @@ differences in behavior.")
        (error "Error parsing TESTS file line: '%s'" (buffer-string))))
     failures))
 
-(ert-deftest regex-tests ()
+(ert-deftest regex-tests-glibc ()
   "Tests of the regular expression engine.  This evaluates the
 BOOST, PCRE, PTESTS and TESTS test cases from glibc."
   (should-not (regex-tests-BOOST))
   (should-not (regex-tests-PCRE))
   (should-not (regex-tests-PTESTS))
   (should-not (regex-tests-TESTS)))
+
+(defun regex-tests--should-match (case-fold dir re str)
+  "Does the given RE match the STR?  Returns boolean value.
+CASE-FOLD indicates whether a global case-fold-search should be
+enabled (acceptable values are 'no-case-fold and 'yes-case-fold).
+DIR indicates the direction of search (acceptable values are
+'forward and 'backward).  "
+  (let ((case-fold-search
+         (cond ((eq case-fold 'no-case-fold)  nil)
+               ((eq case-fold 'yes-case-fold) t)
+               (t (error (format "Unknown case-fold value: %s" case-fold))))))
+
+    (with-temp-buffer
+      (insert str)
+      (cond ((eq dir 'forward)
+             (progn (goto-char (point-min))
+                    (re-search-forward re nil t)))
+            ((eq dir 'backward)
+             (progn (goto-char (point-max))
+                    (re-search-backward re nil t)))
+            (t (error (format "Unknown dir value: %s" dir)))))))
+
+(defun regex-tests--check-match (case-fold re str should-match &rest should-begend)
+  "Checks to make sure a regex match did/did not match as it was
+supposed to, and that all the start/end points were correct.
+These bounds are given in SHOULD-BEGEND, and are 1-based.  "
+
+  (dolist (dir (list 'forward 'backward))
+    (if should-match
+        (should (regex-tests--should-match case-fold dir re str))
+      (should-not (regex-tests--should-match case-fold dir re str)))
+
+    (let ((idx 0))
+      (while should-begend
+        (should (= (match-beginning idx) (car  should-begend)))
+        (should (= (match-end       idx) (cadr should-begend)))
+
+        (setq should-begend (cddr should-begend)
+              idx           (1+ idx))))))
+
+(defun regex-tests-should-match (case-fold re str &rest should-begend)
+  "Checks to make sure a regex match did match, and that all the
+start/end points were correct.  These bounds are given in
+SHOULD-BEGEND, and are 1-based.  "
+  (apply 'regex-tests--check-match case-fold re str t should-begend))
+
+(defun regex-tests-should-not-match (case-fold re str)
+  "Checks to make sure a regex match did not match."
+  (funcall 'regex-tests--check-match case-fold re str nil))
+
+
+
+(ert-deftest regex-tests-case-fold ()
+  "Tests of the case-fold embedded modifier."
+
+  (let ((str "abcABC"))
+    (regex-tests-should-match     'no-case-fold  "\\(?i\\)Bc"  str 2 4)
+    (regex-tests-should-match     'no-case-fold  "\\(?i\\)bC"  str 2 4)
+    (regex-tests-should-match     'yes-case-fold "\\(?i\\)Bc"  str 2 4)
+    (regex-tests-should-match     'yes-case-fold "\\(?i\\)bC"  str 2 4)
+    (regex-tests-should-not-match 'no-case-fold  "\\(?-i\\)Bc" str)
+    (regex-tests-should-not-match 'no-case-fold  "\\(?-i\\)bC" str)
+    (regex-tests-should-not-match 'yes-case-fold "\\(?-i\\)Bc" str)
+    (regex-tests-should-not-match 'yes-case-fold "\\(?-i\\)bC" str)
+    (regex-tests-should-match     'no-case-fold  "B\\(?i\\)c"  str 5 7)
+    (regex-tests-should-match     'no-case-fold  "b\\(?i\\)C"  str 2 4)
+    (regex-tests-should-match     'yes-case-fold "B\\(?i\\)c"  str 2 4)
+    (regex-tests-should-match     'yes-case-fold "b\\(?i\\)C"  str 2 4)
+    (regex-tests-should-not-match 'no-case-fold  "B\\(?-i\\)c" str)
+    (regex-tests-should-not-match 'no-case-fold  "b\\(?-i\\)C" str)
+    (regex-tests-should-match     'yes-case-fold "B\\(?-i\\)c" str 2 4)
+    (regex-tests-should-match     'yes-case-fold "b\\(?-i\\)C" str 5 7)
+
+    (regex-tests-should-match     'no-case-fold  "\\(?i\\)x\\|\\(?i\\)Bc"  str 2 4)
+    (regex-tests-should-match     'no-case-fold  "\\(?i\\)x\\|\\(?i\\)bC"  str 2 4)
+    (regex-tests-should-match     'yes-case-fold "\\(?i\\)x\\|\\(?i\\)Bc"  str 2 4)
+    (regex-tests-should-match     'yes-case-fold "\\(?i\\)x\\|\\(?i\\)bC"  str 2 4)
+    (regex-tests-should-not-match 'no-case-fold  "\\(?i\\)x\\|\\(?-i\\)Bc" str)
+    (regex-tests-should-not-match 'no-case-fold  "\\(?i\\)x\\|\\(?-i\\)bC" str)
+    (regex-tests-should-not-match 'yes-case-fold "\\(?i\\)x\\|\\(?-i\\)Bc" str)
+    (regex-tests-should-not-match 'yes-case-fold "\\(?i\\)x\\|\\(?-i\\)bC" str)
+    (regex-tests-should-match     'no-case-fold  "\\(?i\\)x\\|B\\(?i\\)c"  str 2 4)
+    (regex-tests-should-match     'no-case-fold  "\\(?i\\)x\\|b\\(?i\\)C"  str 2 4)
+    (regex-tests-should-match     'yes-case-fold "\\(?i\\)x\\|B\\(?i\\)c"  str 2 4)
+    (regex-tests-should-match     'yes-case-fold "\\(?i\\)x\\|b\\(?i\\)C"  str 2 4)
+    (regex-tests-should-match     'no-case-fold  "\\(?i\\)x\\|B\\(?-i\\)c" str 2 4)
+    (regex-tests-should-match     'no-case-fold  "\\(?i\\)x\\|b\\(?-i\\)C" str 5 7)
+    (regex-tests-should-match     'yes-case-fold "\\(?i\\)x\\|B\\(?-i\\)c" str 2 4)
+    (regex-tests-should-match     'yes-case-fold "\\(?i\\)x\\|b\\(?-i\\)C" str 5 7)
+
+
+    (regex-tests-should-match     'no-case-fold  "\\(\\(?i\\)x\\|\\(?-i\\)a\\|\\(?i\\)B\\)C" str 5 7 5 6)
+    (regex-tests-should-not-match 'no-case-fold  "\\(\\(?i\\)x\\|\\(?-i\\)a\\|\\(?i\\)B\\)B" str)
+    (regex-tests-should-match     'no-case-fold  "\\(\\(?i\\)x\\|\\(?-i\\)a\\|\\(?i\\)B\\)c" str 2 4 2 3)
+    (regex-tests-should-match     'no-case-fold  "\\(\\(?i\\)x\\|\\(?-i\\)a\\|\\(?i\\)B\\)b" str 1 3 1 2)
+    (regex-tests-should-match     'yes-case-fold "\\(\\(?i\\)x\\|\\(?-i\\)a\\|\\(?i\\)B\\)C" str 2 4 2 3)
+    (regex-tests-should-match     'yes-case-fold "\\(\\(?i\\)x\\|\\(?-i\\)a\\|\\(?i\\)B\\)B" str 1 3 1 2)
+    (regex-tests-should-match     'yes-case-fold "\\(\\(?i\\)x\\|\\(?-i\\)a\\|\\(?i\\)B\\)c" str 2 4 2 3)
+    (regex-tests-should-match     'yes-case-fold "\\(\\(?i\\)x\\|\\(?-i\\)a\\|\\(?i\\)B\\)b" str 1 3 1 2))
+
+
+
+  (let ((str "ABCabc"))
+    (regex-tests-should-match     'no-case-fold  "\\(?i\\)Bc"  str 2 4)
+    (regex-tests-should-match     'no-case-fold  "\\(?i\\)bC"  str 2 4)
+    (regex-tests-should-match     'yes-case-fold "\\(?i\\)Bc"  str 2 4)
+    (regex-tests-should-match     'yes-case-fold "\\(?i\\)bC"  str 2 4)
+    (regex-tests-should-not-match 'no-case-fold  "\\(?-i\\)Bc" str)
+    (regex-tests-should-not-match 'no-case-fold  "\\(?-i\\)bC" str)
+    (regex-tests-should-not-match 'yes-case-fold "\\(?-i\\)Bc" str)
+    (regex-tests-should-not-match 'yes-case-fold "\\(?-i\\)bC" str)
+    (regex-tests-should-match     'no-case-fold  "B\\(?i\\)c"  str 2 4)
+    (regex-tests-should-match     'no-case-fold  "b\\(?i\\)C"  str 5 7)
+    (regex-tests-should-match     'yes-case-fold "B\\(?i\\)c"  str 2 4)
+    (regex-tests-should-match     'yes-case-fold "b\\(?i\\)C"  str 2 4)
+    (regex-tests-should-not-match 'no-case-fold  "B\\(?-i\\)c" str)
+    (regex-tests-should-not-match 'no-case-fold  "b\\(?-i\\)C" str)
+    (regex-tests-should-match     'yes-case-fold "B\\(?-i\\)c" str 5 7)
+    (regex-tests-should-match     'yes-case-fold "b\\(?-i\\)C" str 2 4))
+
+  (let ((str "12abcdef"))
+    (regex-tests-should-match     'no-case-fold "abc" str 3 6)
+    (regex-tests-should-not-match 'no-case-fold "aBc" str)
+    (regex-tests-should-not-match 'no-case-fold "a\\(?-i\\)Bc" str)
+    (regex-tests-should-match     'no-case-fold "a\\(?i\\)B\\(?-i\\)c" str 3 6)
+    (regex-tests-should-not-match 'no-case-fold "a\\(?i\\)B\\(?-i\\)C" str)
+    (regex-tests-should-match     'no-case-fold "a\\(?:\\(?i\\)B\\)c" str 3 6)
+    (regex-tests-should-not-match 'no-case-fold "a\\(?:\\(?i\\)B\\)C" str)
+    (regex-tests-should-match     'no-case-fold "a\\(\\(?i\\)B\\)c" str 3 6 4 5)
+    (regex-tests-should-not-match 'no-case-fold "a\\(\\(?i\\)B\\)C" str)
+
+    (regex-tests-should-not-match 'no-case-fold "A\\(?:\\(?i\\)B\\)c" str)
+    (regex-tests-should-match     'no-case-fold "\\(?i\\)A\\(?:\\(?i\\)B\\)C" str 3 6)
+    (regex-tests-should-not-match 'no-case-fold "\\(?i\\)A\\(?:\\(?-i\\)B\\)C" str)
+    (regex-tests-should-match     'no-case-fold "\\(?i\\)A\\(?:\\(?-i\\)b\\)C" str 3 6)
+    (regex-tests-should-not-match 'no-case-fold "\\(?-i\\)A\\(?:\\(?i\\)B\\)C" str)
+    (regex-tests-should-not-match 'no-case-fold "\\(?-i\\)a\\(?:\\(?i\\)B\\)C" str)
+    (regex-tests-should-match     'no-case-fold "\\(?-i\\)a\\(?:\\(?i\\)B\\)c" str 3 6)
+
+    (regex-tests-should-not-match 'no-case-fold "A\\(?:\\(?i\\)[B-B]\\)c" str)
+    (regex-tests-should-match     'no-case-fold "\\(?i\\)A\\(?:\\(?i\\)[B-B]\\)C" str 3 6)
+    (regex-tests-should-not-match 'no-case-fold "\\(?i\\)A\\(?:\\(?-i\\)[B-B]\\)C" str)
+    (regex-tests-should-match     'no-case-fold "\\(?i\\)A\\(?:\\(?-i\\)[b-b]\\)C" str 3 6)
+    (regex-tests-should-not-match 'no-case-fold "\\(?-i\\)A\\(?:\\(?i\\)[B-B]\\)C" str)
+    (regex-tests-should-not-match 'no-case-fold "\\(?-i\\)a\\(?:\\(?i\\)[B-B]\\)C" str)
+    (regex-tests-should-match     'no-case-fold "\\(?-i\\)a\\(?:\\(?i\\)[B-B]\\)c" str 3 6)
+
+    (regex-tests-should-not-match 'no-case-fold "\\(?-i\\)\\(?:\\(?i\\)B\\)C" str)
+    (regex-tests-should-match     'no-case-fold "\\(?-i\\)\\(?:\\(?i\\)B\\)c" str 4 6)
+    (regex-tests-should-match     'no-case-fold "\\(?-i\\)\\(\\(?i\\)B\\)c" str 4 6 4 5))
+
+  (let ((str "12axxxabcdef"))
+    (regex-tests-should-not-match 'no-case-fold "\\(?-i\\)\\(?:\\(?i\\)B\\)C" str)
+    (regex-tests-should-match     'no-case-fold "\\(?-i\\)\\(?:\\(?i\\)B\\)c" str 8 10)
+    (regex-tests-should-match     'no-case-fold "\\(?-i\\)\\(\\(?i\\)B\\)c" str 8 10 8 9))
+
+  (let ((str "12aBcxxxABCabcdef"))
+
+    ;; These required changes in analyze_first() and re_search_2() to
+    ;; track case-fold inside fastmap[]
+    (regex-tests-should-match     'no-case-fold  "\\(?i\\)B\\(?-i\\)C" str 10 12)
+    (regex-tests-should-match     'yes-case-fold "B\\(?-i\\)C" str 10 12)
+
+    (regex-tests-should-match     'no-case-fold "\\(?-i\\)\\(\\(?i\\)B\\)C" str 10 12 10 11)
+    (regex-tests-should-match     'no-case-fold "\\(?-i\\)\\(\\(?i\\)B\\)c" str 4 6 4 5)
+    (regex-tests-should-not-match 'no-case-fold "\\(?-i\\)\\(\\(?-i\\)b\\)C" str)
+    (regex-tests-should-match     'no-case-fold "\\(\\(?i\\)B\\)C" str 10 12 10 11)
+    (regex-tests-should-match     'no-case-fold "\\(\\(?i\\)B\\)c" str 4 6 4 5)
+    (regex-tests-should-not-match 'no-case-fold "\\(\\(?-i\\)b\\)C" str)
+
+    (regex-tests-should-match     'no-case-fold "\\(?i\\)[B-B]\\(?-i\\)C" str 10 12)
+    (regex-tests-should-match     'no-case-fold "\\(?-i\\)\\(\\(?i\\)[B-B]\\)C" str 10 12 10 11)
+    (regex-tests-should-match     'no-case-fold "\\(?-i\\)\\(\\(?i\\)[B-B]\\)c" str 4 6 4 5)
+    (regex-tests-should-not-match 'no-case-fold "\\(?-i\\)\\(\\(?-i\\)[b-b]\\)C" str)
+
+    (regex-tests-should-not-match 'no-case-fold "\\(?i\\)[^B-B]\\(?-i\\)C" str)
+    (regex-tests-should-not-match 'no-case-fold "\\(?-i\\)\\(\\(?i\\)[^B-B]\\)C" str)
+    (regex-tests-should-not-match 'no-case-fold "\\(?-i\\)\\(\\(?i\\)[^B-B]\\)c" str)
+    (regex-tests-should-match     'no-case-fold "\\(?-i\\)\\(\\(?-i\\)[^b-b]\\)C" str 10 12 10 11)
+
+    (regex-tests-should-match     'no-case-fold "\\(\\(?i\\)B\\)C" str 10 12 10 11)
+    (regex-tests-should-match     'no-case-fold "\\(\\(?i\\)B\\)c" str 4 6 4 5))
+
+  (let ((str "abc"))
+    (regex-tests-should-match     'no-case-fold  "^\\(?i\\)abc" str 1 4)
+    (regex-tests-should-match     'no-case-fold  "\\(?i\\)^abc" str 1 4)
+    (regex-tests-should-match     'no-case-fold  "abc\\(?i\\)$" str 1 4)
+    (regex-tests-should-match     'no-case-fold  "abc$\\(?i\\)" str 1 4)))
