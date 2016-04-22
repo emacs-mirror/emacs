@@ -251,7 +251,7 @@ static Bool loSegFindFree(Addr *bReturn, Addr *lReturn,
   AVER(agrains <= loseg->freeGrains);
   AVER(size <= SegSize(seg));
 
-  if(SegBuffer(seg) != NULL)
+  if (SegHasBuffer(seg))
     /* Don't bother trying to allocate from a buffered segment */
     return FALSE;
 
@@ -429,7 +429,7 @@ static void LOWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
     Addr next;
     Index j;
 
-    if(SegBuffer(seg) != NULL) {
+    if (SegHasBuffer(seg)) {
       Buffer buffer = SegBuffer(seg);
       if(object == BufferScanLimit(buffer) &&
          BufferScanLimit(buffer) != BufferLimit(buffer)) {

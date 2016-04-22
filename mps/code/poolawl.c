@@ -658,7 +658,7 @@ static Res AWLBufferFill(Addr *baseReturn, Addr *limitReturn,
 
     /* Only try to allocate in the segment if it is not already */
     /* buffered, and has the same ranks as the buffer. */
-    if (SegBuffer(seg) == NULL
+    if (!SegHasBuffer(seg)
         && SegRankSet(seg) == BufferRankSet(buffer)
         && AWLGrainsSize(awl, awlseg->freeGrains) >= size
         && AWLSegAlloc(&base, &limit, awlseg, awl, size))
@@ -833,7 +833,7 @@ static void AWLGrey(Pool pool, Trace trace, Seg seg)
     AVERT(AWLSeg, awlseg);
 
     SegSetGrey(seg, TraceSetAdd(SegGrey(seg), trace));
-    if (SegBuffer(seg) != NULL) {
+    if (SegHasBuffer(seg)) {
       Addr base = SegBase(seg);
       Buffer buffer = SegBuffer(seg);
 
@@ -1259,7 +1259,7 @@ static void AWLWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
     Addr next;
     Index i;
 
-    if (SegBuffer(seg) != NULL) {
+    if (SegHasBuffer(seg)) {
       Buffer buffer = SegBuffer(seg);
       if (object == BufferScanLimit(buffer)
           && BufferScanLimit(buffer) != BufferLimit(buffer)) {

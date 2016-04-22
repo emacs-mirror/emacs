@@ -287,7 +287,7 @@ static void AMSSegFinish(Seg seg)
   ams = amsseg->ams;
   AVERT(AMS, ams);
   arena = PoolArena(AMSPool(ams));
-  AVER(SegBuffer(seg) == NULL);
+  AVER(!SegHasBuffer(seg));
 
   /* keep the destructions in step with AMSSegInit failure cases */
   amsDestroyTables(ams, amsseg->allocTable, amsseg->nongreyTable,
@@ -975,7 +975,7 @@ static Res AMSBufferFill(Addr *baseReturn, Addr *limitReturn,
       seg = AMSSeg2Seg(amsseg);
 
       if (SegRankSet(seg) == rankSet
-          && SegBuffer(seg) == NULL
+          && !SegHasBuffer(seg)
           /* Can't use a white or grey segment, see d.m.p.fill.colour. */
           && SegWhite(seg) == TraceSetEMPTY
           && SegGrey(seg) == TraceSetEMPTY)
@@ -1637,7 +1637,7 @@ static void AMSReclaim(Pool pool, Trace trace, Seg seg)
   amsseg->colourTablesInUse = FALSE;
   SegSetWhite(seg, TraceSetDel(SegWhite(seg), trace));
 
-  if (amsseg->freeGrains == grains && SegBuffer(seg) == NULL)
+  if (amsseg->freeGrains == grains && !SegHasBuffer(seg))
     /* No survivors */
     PoolGenFree(&ams->pgen, seg,
                 AMSGrainsSize(ams, amsseg->freeGrains),

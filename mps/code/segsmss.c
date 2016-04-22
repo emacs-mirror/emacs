@@ -551,7 +551,7 @@ static Res AMSTBufferFill(Addr *baseReturn, Addr *limitReturn,
   if (SegLimit(seg) == limit && SegBase(seg) == base) {
     if (amstseg->prev != NULL) {
       Seg segLo = AMSTSeg2Seg(amstseg->prev);
-      if (SegBuffer(segLo) == NULL &&
+      if (!SegHasBuffer(segLo) &&
 	  SegGrey(segLo) == SegGrey(seg) &&
 	  SegWhite(segLo) == SegWhite(seg)) {
         /* .merge */
