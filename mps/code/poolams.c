@@ -525,18 +525,15 @@ failCreateTablesLo:
 
 static Res AMSSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
 {
+  AMSSeg amsseg = CouldBeA(AMSSeg, seg);
   Res res;
-  AMSSeg amsseg;
   Buffer buffer;               /* the segment's buffer, if it has one */
   Index i;
 
-  if (!TESTT(Seg, seg))
-    return ResFAIL;
+  if (!TESTC(AMSSeg, amsseg))
+    return ResPARAM;
   if (stream == NULL)
-    return ResFAIL;
-  amsseg = Seg2AMSSeg(seg);
-  if (!TESTT(AMSSeg, amsseg))
-    return ResFAIL;
+    return ResPARAM;
 
   /* Describe the superclass fields first via next-method call */
   res = NextMethod(Seg, AMSSeg, describe)(seg, stream, depth);
@@ -545,13 +542,13 @@ static Res AMSSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
 
   buffer = SegBuffer(seg);
 
-  res = WriteF(stream, depth,
-               "  AMS $P\n", (WriteFP)amsseg->ams,
-               "  grains $W\n", (WriteFW)amsseg->grains,
-               "  freeGrains $W\n", (WriteFW)amsseg->freeGrains,
-               "  buffferedGrains $W\n", (WriteFW)amsseg->bufferedGrains,
-               "  newGrains $W\n", (WriteFW)amsseg->newGrains,
-               "  oldGrains $W\n", (WriteFW)amsseg->oldGrains,
+  res = WriteF(stream, depth + 2,
+               "AMS $P\n", (WriteFP)amsseg->ams,
+               "grains $W\n", (WriteFW)amsseg->grains,
+               "freeGrains $W\n", (WriteFW)amsseg->freeGrains,
+               "buffferedGrains $W\n", (WriteFW)amsseg->bufferedGrains,
+               "newGrains $W\n", (WriteFW)amsseg->newGrains,
+               "oldGrains $W\n", (WriteFW)amsseg->oldGrains,
                NULL);
   if (res != ResOK)
     return res;
