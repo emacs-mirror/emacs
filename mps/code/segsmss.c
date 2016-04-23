@@ -344,13 +344,14 @@ static Res AMSTInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
 
 /* AMSTFinish -- the pool class finish method */
 
-static void AMSTFinish(Pool pool)
+static void AMSTFinish(Inst inst)
 {
-  AMST amst;
+  Pool pool = MustBeA(AbstractPool, inst);
+  AMST amst = MustBeA(AMSTPool, pool);
 
-  AVERT(Pool, pool);
-  amst = PoolAMST(pool);
   AVERT(AMST, amst);
+
+  amst->sig = SigInvalid;
 
   printf("\nDestroying pool, having performed:\n");
   printf("    %"PRIuLONGEST" splits          (S)\n", (ulongest_t)amst->splits);
@@ -361,8 +362,7 @@ static void AMSTFinish(Pool pool)
   printf("    %"PRIuLONGEST" buffered splits (C)\n", (ulongest_t)amst->bsplits);
   printf("    %"PRIuLONGEST" buffered merges (J)\n", (ulongest_t)amst->bmerges);
 
-  AMSFinish(pool);
-  amst->sig = SigInvalid;
+  NextMethod(Inst, AMSTPool, finish)(inst);
 }
 
 
@@ -650,9 +650,9 @@ static void AMSTStressBufferedSeg(Seg seg, Buffer buffer)
 DEFINE_CLASS(Pool, AMSTPool, klass)
 {
   INHERIT_CLASS(klass, AMSTPool, AMSPool);
+  klass->protocol.finish = AMSTFinish;
   klass->size = sizeof(AMSTStruct);
   klass->init = AMSTInit;
-  klass->finish = AMSTFinish;
   klass->bufferFill = AMSTBufferFill;
 }
 

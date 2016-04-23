@@ -578,7 +578,7 @@ failFreePrimaryInit:
 failTotalLandInit:
   PoolFinish(MVFFBlockPool(mvff));
 failBlockPoolInit:
-  PoolAbsFinish(pool);
+  NextMethod(Inst, MVFFPool, finish)(MustBeA(Inst, pool));
 failAbsInit:
   AVER(res != ResOK);
   return res;
@@ -604,13 +604,12 @@ static Bool mvffFinishVisitor(Bool *deleteReturn, Land land, Range range,
   return TRUE;
 }
 
-static void MVFFFinish(Pool pool)
+static void MVFFFinish(Inst inst)
 {
-  MVFF mvff;
+  Pool pool = MustBeA(AbstractPool, inst);
+  MVFF mvff = MustBeA(MVFFPool, pool);
   Bool b;
 
-  AVERT(Pool, pool);
-  mvff = PoolMVFF(pool);
   AVERT(MVFF, mvff);
   mvff->sig = SigInvalid;
 
@@ -623,7 +622,7 @@ static void MVFFFinish(Pool pool)
   LandFinish(MVFFFreePrimary(mvff));
   LandFinish(MVFFTotalLand(mvff));
   PoolFinish(MVFFBlockPool(mvff));
-  PoolAbsFinish(pool);
+  NextMethod(Inst, MVFFPool, finish)(inst);
 }
 
 
@@ -724,10 +723,10 @@ DEFINE_CLASS(Pool, MVFFPool, klass)
   INHERIT_CLASS(klass, MVFFPool, AbstractPool);
   PoolClassMixInBuffer(klass);
   klass->protocol.describe = MVFFDescribe;
+  klass->protocol.finish = MVFFFinish;
   klass->size = sizeof(MVFFStruct);
   klass->varargs = MVFFVarargs;
   klass->init = MVFFInit;
-  klass->finish = MVFFFinish;
   klass->alloc = MVFFAlloc;
   klass->free = MVFFFree;
   klass->bufferFill = MVFFBufferFill;

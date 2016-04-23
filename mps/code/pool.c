@@ -43,7 +43,6 @@ Bool PoolClassCheck(PoolClass klass)
   CHECKL(!(klass->attr & AttrMOVINGGC) || (klass->attr & AttrGC));
   CHECKL(FUNCHECK(klass->varargs));
   CHECKL(FUNCHECK(klass->init));
-  CHECKL(FUNCHECK(klass->finish));
   CHECKL(FUNCHECK(klass->alloc));
   CHECKL(FUNCHECK(klass->free));
   CHECKL(FUNCHECK(klass->bufferFill));
@@ -70,7 +69,8 @@ Bool PoolClassCheck(PoolClass klass)
   CHECKL(FUNCHECK(klass->freeSize));
 
   /* Check that pool classes overide sets of related methods. */
-  CHECKL((klass->init == PoolAbsInit) == (klass->finish == PoolAbsFinish));
+  CHECKL((klass->init == PoolAbsInit) ==
+         (klass->protocol.finish == PoolAbsFinish));
   CHECKL((klass->bufferFill == PoolNoBufferFill) ==
          (klass->bufferEmpty == PoolNoBufferEmpty));
   CHECKL((klass->framePush == PoolNoFramePush) ==
@@ -196,7 +196,7 @@ failControlAlloc:
 void PoolFinish(Pool pool)
 {
   AVERT(Pool, pool); 
-  Method(Pool, pool, finish)(pool);
+  Method(Inst, pool, finish)(MustBeA(Inst, pool));
 }
 
 

@@ -54,7 +54,6 @@ typedef struct mps_pool_class_s {
   Attr attr;                    /* attributes */
   PoolVarargsMethod varargs;    /* convert deprecated varargs into keywords */
   PoolInitMethod init;          /* initialize the pool descriptor */
-  PoolFinishMethod finish;      /* finish the pool descriptor */
   PoolAllocMethod alloc;        /* allocate memory from pool */
   PoolFreeMethod free;          /* free memory to pool */
   PoolBufferFillMethod bufferFill;      /* out-of-line reserve */

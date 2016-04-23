@@ -154,8 +154,10 @@ Res PoolAbsInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
 
 /* PoolAbsFinish -- finish an abstract pool instance */
 
-void PoolAbsFinish(Pool pool)
+void PoolAbsFinish(Inst inst)
 {
+  Pool pool = MustBeA(AbstractPool, inst);
+  
   /* Detach the pool from the arena and format, and unsig it. */
   RingRemove(PoolArenaRing(pool));
 
@@ -186,11 +188,11 @@ DEFINE_CLASS(Pool, AbstractPool, klass)
 {
   INHERIT_CLASS(&klass->protocol, AbstractPool, Inst);
   klass->protocol.describe = PoolAbsDescribe;
+  klass->protocol.finish = PoolAbsFinish;
   klass->size = sizeof(PoolStruct);
   klass->attr = 0;
   klass->varargs = ArgTrivVarargs;
   klass->init = PoolAbsInit;
-  klass->finish = PoolAbsFinish;
   klass->alloc = PoolNoAlloc;
   klass->free = PoolNoFree;
   klass->bufferFill = PoolNoBufferFill;

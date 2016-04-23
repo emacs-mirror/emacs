@@ -305,21 +305,20 @@ static Res MVInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
 failSpanPoolInit:
   PoolFinish(mvBlockPool(mv));
 failBlockPoolInit:
-  PoolAbsFinish(pool);
+  NextMethod(Inst, MVPool, finish)(MustBeA(Inst, pool));
   return res;
 }
 
 
 /* MVFinish -- finish method for class MV */
 
-static void MVFinish(Pool pool)
+static void MVFinish(Inst inst)
 {
-  MV mv;
+  Pool pool = MustBeA(AbstractPool, inst);
+  MV mv = MustBeA(MVPool, pool);
   Ring spans, node = NULL, nextNode; /* gcc whinge stop */
   MVSpan span;
 
-  AVERT(Pool, pool);
-  mv = PoolMV(pool);
   AVERT(MV, mv);
 
   /* Destroy all the spans attached to the pool. */
@@ -335,7 +334,7 @@ static void MVFinish(Pool pool)
   PoolFinish(mvBlockPool(mv));
   PoolFinish(mvSpanPool(mv));
 
-  PoolAbsFinish(pool);
+  NextMethod(Inst, MVPool, finish)(inst);
 }
 
 
@@ -866,10 +865,10 @@ DEFINE_CLASS(Pool, MVPool, klass)
 {
   INHERIT_CLASS(klass, MVPool, AbstractBufferPool);
   klass->protocol.describe = MVDescribe;
+  klass->protocol.finish = MVFinish;
   klass->size = sizeof(MVStruct);
   klass->varargs = MVVarargs;
   klass->init = MVInit;
-  klass->finish = MVFinish;
   klass->alloc = MVAlloc;
   klass->free = MVFree;
   klass->totalSize = MVTotalSize;

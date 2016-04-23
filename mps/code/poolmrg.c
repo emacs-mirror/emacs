@@ -637,8 +637,9 @@ static Res MRGInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
 
 /* MRGFinish -- finish a MRG pool */
 
-static void MRGFinish(Pool pool)
+static void MRGFinish(Inst inst)
 {
+  Pool pool = MustBeA(AbstractPool, inst);
   MRG mrg = MustBeA(MRGPool, pool);
   Ring node, nextNode;
 
@@ -676,7 +677,7 @@ static void MRGFinish(Pool pool)
   RingFinish(&mrg->refRing);
   /* <design/poolmrg/#trans.no-finish> */
 
-  PoolAbsFinish(pool);
+  NextMethod(Inst, MRGPool, finish)(inst);
 }
 
 
@@ -842,9 +843,9 @@ DEFINE_CLASS(Pool, MRGPool, klass)
 {
   INHERIT_CLASS(klass, MRGPool, AbstractPool);
   klass->protocol.describe = MRGDescribe;
+  klass->protocol.finish = MRGFinish;
   klass->size = sizeof(MRGStruct);
   klass->init = MRGInit;
-  klass->finish = MRGFinish;
   klass->grey = PoolTrivGrey;
   klass->blacken = PoolTrivBlacken;
   klass->scan = MRGScan;
