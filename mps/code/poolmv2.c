@@ -33,7 +33,7 @@ typedef struct MVTStruct *MVT;
 static void MVTVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs);
 static Res MVTInit(Pool pool, Arena arena, PoolClass klass, ArgList arg);
 static Bool MVTCheck(MVT mvt);
-static void MVTFinish(Pool pool);
+static void MVTFinish(Inst inst);
 static Res MVTBufferFill(Addr *baseReturn, Addr *limitReturn,
                          Pool pool, Buffer buffer, Size minSize);
 static void MVTBufferEmpty(Pool pool, Buffer buffer, Addr base, Addr limit);
@@ -140,10 +140,10 @@ DEFINE_CLASS(Pool, MVTPool, klass)
 {
   INHERIT_CLASS(klass, MVTPool, AbstractBufferPool);
   klass->protocol.describe = MVTDescribe;
+  klass->protocol.finish = MVTFinish;
   klass->size = sizeof(MVTStruct);
   klass->varargs = MVTVarargs;
   klass->init = MVTInit;
-  klass->finish = MVTFinish;
   klass->free = MVTFree;
   klass->bufferFill = MVTBufferFill;
   klass->bufferEmpty = MVTBufferEmpty;
@@ -376,7 +376,7 @@ failFreeLandInit:
 failFreeSecondaryInit:
   LandFinish(MVTFreePrimary(mvt));
 failFreePrimaryInit:
-  PoolAbsFinish(pool);
+  NextMethod(Inst, MVTPool, finish)(MustBeA(Inst, pool));
 failAbsInit:
   AVER(res != ResOK);
   return res;
@@ -421,18 +421,15 @@ static Bool MVTCheck(MVT mvt)
 
 /* MVTFinish -- finish an MVT pool
  */
-static void MVTFinish(Pool pool)
+static void MVTFinish(Inst inst)
 {
-  MVT mvt;
-  Arena arena;
+  Pool pool = MustBeA(AbstractPool, inst);
+  MVT mvt = MustBeA(MVTPool, pool);
+  Arena arena = PoolArena(pool);
   Ring ring;
   Ring node, nextNode;
  
-  AVERT(Pool, pool);
-  mvt = PoolMVT(pool);
   AVERT(MVT, mvt);
-  arena = PoolArena(pool);
-  AVERT(Arena, arena);
 
   mvt->sig = SigInvalid;
 
@@ -450,7 +447,8 @@ static void MVTFinish(Pool pool)
   LandFinish(MVTFreeLand(mvt));
   LandFinish(MVTFreeSecondary(mvt));
   LandFinish(MVTFreePrimary(mvt));
-  PoolAbsFinish(pool);
+
+  NextMethod(Inst, MVTPool, finish)(inst);
 }
 
 

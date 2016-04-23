@@ -65,14 +65,15 @@ failAbsInit:
 
 /* NFinish -- finish method for class N */
 
-static void NFinish(Pool pool)
+static void NFinish(Inst inst)
 {
+  Pool pool = MustBeA(AbstractPool, inst);
   PoolN poolN = MustBeA(NPool, pool);
 
   /* Finish pool-specific structures. */
   UNUSED(poolN);
 
-  PoolAbsFinish(pool);
+  NextMethod(Inst, NPool, finish)(inst);
 }
 
 
@@ -257,10 +258,10 @@ DEFINE_CLASS(Pool, NPool, klass)
 {
   INHERIT_CLASS(klass, NPool, AbstractPool);
   klass->protocol.describe = NDescribe;
+  klass->protocol.finish = NFinish;
   klass->size = sizeof(PoolNStruct);
   klass->attr |= AttrGC;
   klass->init = NInit;
-  klass->finish = NFinish;
   klass->alloc = NAlloc;
   klass->free = NFree;
   klass->bufferFill = NBufferFill;
