@@ -375,8 +375,9 @@ Addr SegBufferScanLimit(Seg seg)
 
 /* SegDescribe -- describe a segment */
 
-Res SegAbsDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
+Res SegAbsDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 {
+  Seg seg = CouldBeA(Seg, inst);
   Res res;
   Pool pool;
 
@@ -385,7 +386,7 @@ Res SegAbsDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
   if (stream == NULL)
     return ResPARAM;
 
-  res = InstDescribe(CouldBeA(Inst, seg), stream, depth);
+  res = NextMethod(Inst, Seg, describe)(inst, stream, depth);
   if (res != ResOK)
     return res;
 
@@ -425,7 +426,7 @@ Res SegAbsDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
 
 Res SegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
 {
-  return Method(Seg, seg, describe)(seg, stream, depth);
+  return Method(Inst, seg, describe)(MustBeA(Inst, seg), stream, depth);
 }
 
 
@@ -1514,9 +1515,9 @@ failSuper:
 
 /* gcSegDescribe -- GCSeg  description method */
 
-static Res gcSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
+static Res gcSegDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 {
-  GCSeg gcseg = CouldBeA(GCSeg, seg);
+  GCSeg gcseg = CouldBeA(GCSeg, inst);
   Res res;
 
   if (!TESTC(GCSeg, gcseg))
@@ -1525,7 +1526,7 @@ static Res gcSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
     return ResPARAM;
 
   /* Describe the superclass fields first via next-method call */
-  res = NextMethod(Seg, GCSeg, describe)(seg, stream, depth);
+  res = NextMethod(Inst, GCSeg, describe)(inst, stream, depth);
   if (res != ResOK)
     return res;
 
@@ -1551,7 +1552,7 @@ static Res gcSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
 
 Bool SegClassCheck(SegClass klass)
 {
-  CHECKD(InstClass, &klass->protocol);
+  CHECKD(InstClass, &klass->instClassStruct);
   CHECKL(klass->size >= sizeof(SegStruct));
   CHECKL(FUNCHECK(klass->init));
   CHECKL(FUNCHECK(klass->finish));
@@ -1561,7 +1562,6 @@ Bool SegClassCheck(SegClass klass)
   CHECKL(FUNCHECK(klass->setRankSummary));
   CHECKL(FUNCHECK(klass->merge));
   CHECKL(FUNCHECK(klass->split));
-  CHECKL(FUNCHECK(klass->describe));
   CHECKS(SegClass, klass);
   return TRUE;
 }
@@ -1576,7 +1576,8 @@ DEFINE_CLASS(Inst, SegClass, klass)
 
 DEFINE_CLASS(Seg, Seg, klass)
 {
-  INHERIT_CLASS(&klass->protocol, Seg, Inst);
+  INHERIT_CLASS(&klass->instClassStruct, Seg, Inst);
+  klass->instClassStruct.describe = SegAbsDescribe;
   klass->size = sizeof(SegStruct);
   klass->init = SegAbsInit;
   klass->finish = SegAbsFinish;
@@ -1589,7 +1590,6 @@ DEFINE_CLASS(Seg, Seg, klass)
   klass->setRankSummary = segNoSetRankSummary;
   klass->merge = segTrivMerge;
   klass->split = segTrivSplit;
-  klass->describe = SegAbsDescribe;
   klass->sig = SegClassSig;
   AVERT(SegClass, klass);
 }
@@ -1602,6 +1602,7 @@ typedef SegClassStruct GCSegClassStruct;
 DEFINE_CLASS(Seg, GCSeg, klass)
 {
   INHERIT_CLASS(klass, GCSeg, Seg);
+  klass->instClassStruct.describe = gcSegDescribe;
   klass->size = sizeof(GCSegStruct);
   klass->init = gcSegInit;
   klass->finish = gcSegFinish;
@@ -1614,7 +1615,6 @@ DEFINE_CLASS(Seg, GCSeg, klass)
   klass->setRankSummary = gcSegSetRankSummary;
   klass->merge = gcSegMerge;
   klass->split = gcSegSplit;
-  klass->describe = gcSegDescribe;
   AVERT(SegClass, klass);
 }
 

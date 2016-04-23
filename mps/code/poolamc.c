@@ -234,9 +234,10 @@ static void AMCSegSketch(Seg seg, char *pbSketch, size_t cbSketch)
  *
  * See <design/poolamc/#seg-describe>.
  */
-static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
+static Res AMCSegDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 {
-  amcSeg amcseg = CouldBeA(amcSeg, seg);
+  amcSeg amcseg = CouldBeA(amcSeg, inst);
+  Seg seg = CouldBeA(Seg, amcseg);
   Res res;
   Pool pool;
   Addr i, p, base, limit, init;
@@ -250,7 +251,7 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
     return ResPARAM;
 
   /* Describe the superclass fields first via next-method call */
-  res = NextMethod(Seg, amcSeg, describe)(seg, stream, depth);
+  res = NextMethod(Inst, amcSeg, describe)(inst, stream, depth);
   if (res != ResOK)
     return res;
 
@@ -331,9 +332,9 @@ DEFINE_CLASS(Seg, amcSeg, klass)
 {
   INHERIT_CLASS(klass, amcSeg, GCSeg);
   SegClassMixInNoSplitMerge(klass);  /* no support for this (yet) */
+  klass->instClassStruct.describe = AMCSegDescribe;
   klass->size = sizeof(amcSegStruct);
   klass->init = AMCSegInit;
-  klass->describe = AMCSegDescribe;
 }
 
 
@@ -2003,7 +2004,7 @@ static Res AMCDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
     /* SegDescribes */
     RING_FOR(node, &pool->segRing, nextNode) {
       Seg seg = RING_ELT(Seg, poolRing, node);
-      res = AMCSegDescribe(seg, stream, depth + 2);
+      res = SegDescribe(seg, stream, depth + 2);
       if(res != ResOK)
         return res;
     }
