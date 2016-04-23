@@ -746,8 +746,9 @@ static Bool freelistDescribeVisitor(Land land, Range range,
 }
 
 
-static Res freelistDescribe(Land land, mps_lib_FILE *stream, Count depth)
+static Res freelistDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 {
+  Land land = CouldBeA(Land, inst);
   Freelist fl = CouldBeA(Freelist, land);
   Res res;
   Bool b;
@@ -758,7 +759,7 @@ static Res freelistDescribe(Land land, mps_lib_FILE *stream, Count depth)
   if (stream == NULL)
     return ResPARAM;
 
-  res = NextMethod(Land, Freelist, describe)(land, stream, depth);
+  res = NextMethod(Inst, Freelist, describe)(inst, stream, depth);
   if (res != ResOK)
     return res;
 
@@ -780,6 +781,7 @@ static Res freelistDescribe(Land land, mps_lib_FILE *stream, Count depth)
 DEFINE_CLASS(Land, Freelist, klass)
 {
   INHERIT_CLASS(klass, Freelist, Land);
+  klass->protocol.describe = freelistDescribe;
   klass->protocol.finish = freelistFinish;
   klass->size = sizeof(FreelistStruct);
   klass->init = freelistInit;
@@ -792,7 +794,6 @@ DEFINE_CLASS(Land, Freelist, klass)
   klass->findLast = freelistFindLast;
   klass->findLargest = freelistFindLargest;
   klass->findInZones = freelistFindInZones;
-  klass->describe = freelistDescribe;
 }
 
 
