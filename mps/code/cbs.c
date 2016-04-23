@@ -289,8 +289,9 @@ static Res cbsInitZoned(Land land, Arena arena, Align alignment, ArgList args)
  * See <design/land/#function.finish>.
  */
 
-static void cbsFinish(Land land)
+static void cbsFinish(Inst inst)
 {
+  Land land = MustBeA(Land, inst);
   CBS cbs = MustBeA(CBS, land);
 
   METER_EMIT(&cbs->treeSearch);
@@ -301,7 +302,7 @@ static void cbsFinish(Land land)
   if (cbs->ownPool)
     PoolDestroy(cbsBlockPool(cbs));
 
-  NextMethod(Land, CBS, finish)(land);
+  NextMethod(Inst, CBS, finish)(inst);
 }
 
 
@@ -1133,9 +1134,9 @@ static Res cbsDescribe(Land land, mps_lib_FILE *stream, Count depth)
 DEFINE_CLASS(Land, CBS, klass)
 {
   INHERIT_CLASS(klass, CBS, Land);
+  klass->protocol.finish = cbsFinish;
   klass->size = sizeof(CBSStruct);
   klass->init = cbsInit;
-  klass->finish = cbsFinish;
   klass->sizeMethod = cbsSize;
   klass->insert = cbsInsert;
   klass->delete = cbsDelete;

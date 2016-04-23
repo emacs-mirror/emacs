@@ -575,7 +575,6 @@ typedef struct LandClassStruct {
   size_t size;                  /* size of outer structure */
   LandSizeMethod sizeMethod;    /* total size of ranges in land */
   LandInitMethod init;          /* initialize the land */
-  LandFinishMethod finish;      /* finish the land */
   LandInsertMethod insert;      /* insert a range into the land */
   LandDeleteMethod delete;      /* delete a range from the land */
   LandIterateMethod iterate;    /* iterate over ranges in the land */
