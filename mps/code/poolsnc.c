@@ -138,8 +138,9 @@ static Res SNCBufInit(Buffer buffer, Pool pool, Bool isMutator, ArgList args)
 
 /* SNCBufFinish -- Finish an SNCBuf */
 
-static void SNCBufFinish(Buffer buffer)
+static void SNCBufFinish(Inst inst)
 {
+  Buffer buffer = MustBeA(Buffer, inst);
   SNCBuf sncbuf = MustBeA(SNCBuf, buffer);
   SNC snc = MustBeA(SNCPool, BufferPool(buffer));
 
@@ -148,7 +149,7 @@ static void SNCBufFinish(Buffer buffer)
 
   sncbuf->sig = SigInvalid;
 
-  NextMethod(Buffer, SNCBuf, finish)(buffer);
+  NextMethod(Inst, SNCBuf, finish)(inst);
 }
 
 
@@ -157,9 +158,9 @@ static void SNCBufFinish(Buffer buffer)
 DEFINE_CLASS(Buffer, SNCBuf, klass)
 {
   INHERIT_CLASS(klass, SNCBuf, RankBuf);
+  klass->protocol.finish = SNCBufFinish;
   klass->size = sizeof(SNCBufStruct);
   klass->init = SNCBufInit;
-  klass->finish = SNCBufFinish;
 }
 
 

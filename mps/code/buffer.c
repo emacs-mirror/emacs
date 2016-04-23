@@ -119,8 +119,9 @@ Bool BufferCheck(Buffer buffer)
  *
  * See <code/mpmst.h> for structure definitions.  */
 
-static Res BufferAbsDescribe(Buffer buffer, mps_lib_FILE *stream, Count depth)
+static Res BufferAbsDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 {
+  Buffer buffer = CouldBeA(Buffer, inst);
   Res res;
 
   if (!TESTC(Buffer, buffer))
@@ -128,7 +129,7 @@ static Res BufferAbsDescribe(Buffer buffer, mps_lib_FILE *stream, Count depth)
   if (stream == NULL)
     return ResPARAM;
 
-  res = InstDescribe(CouldBeA(Inst, buffer), stream, depth);
+  res = NextMethod(Inst, Buffer, describe)(inst, stream, depth);
   if (res != ResOK)
     return res;
 
@@ -158,7 +159,7 @@ static Res BufferAbsDescribe(Buffer buffer, mps_lib_FILE *stream, Count depth)
 
 Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream, Count depth)
 {
-  return Method(Buffer, buffer, describe)(buffer, stream, depth);
+  return Method(Inst, buffer, describe)(MustBeA(Inst, buffer), stream, depth);
 }
 
 
@@ -332,8 +333,9 @@ void BufferDestroy(Buffer buffer)
 
 /* BufferFinish -- finish an allocation buffer */
 
-static void BufferAbsFinish(Buffer buffer)
+static void BufferAbsFinish(Inst inst)
 {
+  Buffer buffer = MustBeA(Buffer, inst);
   AVERT(Buffer, buffer);
   AVER(BufferIsReset(buffer));
 
@@ -353,9 +355,9 @@ void BufferFinish(Buffer buffer)
   AVERT(Buffer, buffer);
   AVER(BufferIsReady(buffer));
 
-  BufferDetach(buffer, BufferPool(buffer));
+  BufferDetach(buffer, BufferPool(buffer)); /* FIXME: Should be in BufferAbsFinish? */
 
-  Method(Buffer, buffer, finish)(buffer);
+  Method(Inst, buffer, finish)(MustBeA(Inst, buffer));
 }
 
 
@@ -1006,14 +1008,12 @@ Bool BufferClassCheck(BufferClass klass)
   CHECKL(klass->size >= sizeof(BufferStruct));
   CHECKL(FUNCHECK(klass->varargs));
   CHECKL(FUNCHECK(klass->init));
-  CHECKL(FUNCHECK(klass->finish));
   CHECKL(FUNCHECK(klass->attach));
   CHECKL(FUNCHECK(klass->detach));
   CHECKL(FUNCHECK(klass->seg));
   CHECKL(FUNCHECK(klass->rankSet));
   CHECKL(FUNCHECK(klass->setRankSet));
   CHECKL(FUNCHECK(klass->reassignSeg));
-  CHECKL(FUNCHECK(klass->describe));
   CHECKS(BufferClass, klass);
   return TRUE;
 }
@@ -1031,13 +1031,13 @@ DEFINE_CLASS(Inst, BufferClass, klass)
 DEFINE_CLASS(Buffer, Buffer, klass)
 {
   INHERIT_CLASS(&klass->protocol, Buffer, Inst);
+  klass->protocol.finish = BufferAbsFinish;
+  klass->protocol.describe = BufferAbsDescribe;
   klass->size = sizeof(BufferStruct);
   klass->varargs = ArgTrivVarargs;
   klass->init = BufferAbsInit;
-  klass->finish = BufferAbsFinish;
   klass->attach = bufferTrivAttach;
   klass->detach = bufferTrivDetach;
-  klass->describe = BufferAbsDescribe;
   klass->seg = bufferNoSeg;
   klass->rankSet = bufferTrivRankSet;
   klass->setRankSet = bufferNoSetRankSet;
@@ -1108,12 +1108,13 @@ static Res segBufInit(Buffer buffer, Pool pool, Bool isMutator, ArgList args)
 
 /* segBufFinish -- SegBuf finish method */
 
-static void segBufFinish(Buffer buffer)
+static void segBufFinish(Inst inst)
 {
+  Buffer buffer = MustBeA(Buffer, inst);
   SegBuf segbuf = MustBeA(SegBuf, buffer);
   AVER(BufferIsReset(buffer));
   segbuf->sig = SigInvalid;
-  NextMethod(Buffer, SegBuf, finish)(buffer);
+  NextMethod(Inst, SegBuf, finish)(inst);
 }
 
 
@@ -1210,8 +1211,9 @@ static void segBufReassignSeg(Buffer buffer, Seg seg)
 
 /* segBufDescribe --  describe method for SegBuf */
 
-static Res segBufDescribe(Buffer buffer, mps_lib_FILE *stream, Count depth)
+static Res segBufDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 {
+  Buffer buffer = CouldBeA(Buffer, inst);
   SegBuf segbuf = CouldBeA(SegBuf, buffer);
   Res res;
 
@@ -1220,8 +1222,7 @@ static Res segBufDescribe(Buffer buffer, mps_lib_FILE *stream, Count depth)
   if (stream == NULL)
     return ResPARAM;
 
-  /* Describe the superclass fields first via next-method call */
-  res = NextMethod(Buffer, SegBuf, describe)(buffer, stream, depth);
+  res = NextMethod(Inst, SegBuf, describe)(inst, stream, depth);
   if (res != ResOK)
     return res;
 
@@ -1240,12 +1241,12 @@ static Res segBufDescribe(Buffer buffer, mps_lib_FILE *stream, Count depth)
 DEFINE_CLASS(Buffer, SegBuf, klass)
 {
   INHERIT_CLASS(klass, SegBuf, Buffer);
+  klass->protocol.finish = segBufFinish;
+  klass->protocol.describe = segBufDescribe;
   klass->size = sizeof(SegBufStruct);
   klass->init = segBufInit;
-  klass->finish = segBufFinish;
   klass->attach = segBufAttach;
   klass->detach = segBufDetach;
-  klass->describe = segBufDescribe;
   klass->seg = segBufSeg;
   klass->rankSet = segBufRankSet;
   klass->setRankSet = segBufSetRankSet;

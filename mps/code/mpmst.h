@@ -305,10 +305,8 @@ typedef struct BufferClassStruct {
   size_t size;                  /* size of outer structure */
   BufferVarargsMethod varargs;  /* parse obsolete varargs */
   BufferInitMethod init;        /* initialize the buffer */
-  BufferFinishMethod finish;    /* finish the buffer */
   BufferAttachMethod attach;    /* attach the buffer */
   BufferDetachMethod detach;    /* detach the buffer */
-  BufferDescribeMethod describe;/* describe the contents of the buffer */
   BufferSegMethod seg;          /* seg of buffer */
   BufferRankSetMethod rankSet;  /* rank set of buffer */
   BufferSetRankSetMethod setRankSet; /* change rank set of buffer */

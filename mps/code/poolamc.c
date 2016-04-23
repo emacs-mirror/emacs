@@ -509,11 +509,12 @@ static Res AMCBufInit(Buffer buffer, Pool pool, Bool isMutator, ArgList args)
 
 /* AMCBufFinish -- Finish an amcBuf */
 
-static void AMCBufFinish(Buffer buffer)
+static void AMCBufFinish(Inst inst)
 {
+  Buffer buffer = MustBeA(Buffer, inst);
   amcBuf amcbuf = MustBeA(amcBuf, buffer);
   amcbuf->sig = SigInvalid;
-  NextMethod(Buffer, amcBuf, finish)(buffer);
+  NextMethod(Inst, amcBuf, finish)(inst);
 }
 
 
@@ -522,9 +523,9 @@ static void AMCBufFinish(Buffer buffer)
 DEFINE_CLASS(Buffer, amcBuf, klass)
 {
   INHERIT_CLASS(klass, amcBuf, SegBuf);
+  klass->protocol.finish = AMCBufFinish;
   klass->size = sizeof(amcBufStruct);
   klass->init = AMCBufInit;
-  klass->finish = AMCBufFinish;
 }
 
 
