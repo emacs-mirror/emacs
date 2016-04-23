@@ -162,7 +162,6 @@ typedef void (*SegSetRankSummaryMethod)(Seg seg, RankSet rankSet,
 typedef void (*SegSetSummaryMethod)(Seg seg, RefSet summary);
 typedef Buffer (*SegBufferMethod)(Seg seg);
 typedef void (*SegSetBufferMethod)(Seg seg, Buffer buffer);
-typedef Res (*SegDescribeMethod)(Seg seg, mps_lib_FILE *stream, Count depth);
 typedef Res (*SegMergeMethod)(Seg seg, Seg segHi,
                               Addr base, Addr mid, Addr limit);
 typedef Res (*SegSplitMethod)(Seg seg, Seg segHi,

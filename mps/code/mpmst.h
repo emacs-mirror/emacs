@@ -218,7 +218,7 @@ typedef struct mps_message_s {
 #define SegClassSig    ((Sig)0x5195E9C7) /* SIGnature SEG CLass */
 
 typedef struct SegClassStruct {
-  InstClassStruct protocol;
+  InstClassStruct instClassStruct;
   size_t size;                  /* size of outer structure */
   SegInitMethod init;           /* initialize the segment */
   SegFinishMethod finish;       /* finish the segment */
@@ -229,7 +229,6 @@ typedef struct SegClassStruct {
   SegSetWhiteMethod setWhite;   /* change whiteness of segment */
   SegSetRankSetMethod setRankSet; /* change rank set of segment */
   SegSetRankSummaryMethod setRankSummary; /* change rank set & summary */
-  SegDescribeMethod describe;   /* describe the contents of the seg */
   SegMergeMethod merge;         /* merge two adjacent segments */
   SegSplitMethod split;         /* split a segment into two */
   Sig sig;                      /* .class.end-sig */

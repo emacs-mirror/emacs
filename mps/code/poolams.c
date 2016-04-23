@@ -523,9 +523,10 @@ failCreateTablesLo:
     } \
   END
 
-static Res AMSSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
+static Res AMSSegDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 {
-  AMSSeg amsseg = CouldBeA(AMSSeg, seg);
+  AMSSeg amsseg = CouldBeA(AMSSeg, inst);
+  Seg seg = CouldBeA(Seg, amsseg);
   Res res;
   Buffer buffer;               /* the segment's buffer, if it has one */
   Index i;
@@ -536,7 +537,7 @@ static Res AMSSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
     return ResPARAM;
 
   /* Describe the superclass fields first via next-method call */
-  res = NextMethod(Seg, AMSSeg, describe)(seg, stream, depth);
+  res = NextMethod(Inst, AMSSeg, describe)(inst, stream, depth);
   if (res != ResOK)
     return res;
 
@@ -618,12 +619,12 @@ static Res AMSSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
 DEFINE_CLASS(Seg, AMSSeg, klass)
 {
   INHERIT_CLASS(klass, AMSSeg, GCSeg);
+  klass->instClassStruct.describe = AMSSegDescribe;
   klass->size = sizeof(AMSSegStruct);
   klass->init = AMSSegInit;
   klass->finish = AMSSegFinish;
   klass->merge = AMSSegMerge;
   klass->split = AMSSegSplit;
-  klass->describe = AMSSegDescribe;
   AVERT(SegClass, klass);
 }
 
