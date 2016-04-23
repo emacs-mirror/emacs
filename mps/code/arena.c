@@ -43,8 +43,8 @@ static void ArenaTrivCompact(Arena arena, Trace trace);
 static void arenaFreePage(Arena arena, Addr base, Pool pool);
 static void arenaFreeLandFinish(Arena arena);
 static Res ArenaAbsInit(Arena arena, Size grainSize, ArgList args);
-static void ArenaAbsFinish(Arena arena);
-static Res ArenaAbsDescribe(Arena arena, mps_lib_FILE *stream, Count depth);
+static void ArenaAbsFinish(Inst inst);
+static Res ArenaAbsDescribe(Inst inst, mps_lib_FILE *stream, Count depth);
 
 
 static void ArenaNoFree(Addr base, Size size, Pool pool)
@@ -107,10 +107,11 @@ DEFINE_CLASS(Inst, ArenaClass, klass)
 DEFINE_CLASS(Arena, AbstractArena, klass)
 {
   INHERIT_CLASS(&klass->protocol, AbstractArena, Inst);
+  klass->protocol.finish = ArenaAbsFinish;
+  klass->protocol.describe = ArenaAbsDescribe;
   klass->size = sizeof(ArenaStruct);
   klass->varargs = ArgTrivVarargs;
   klass->init = ArenaAbsInit;
-  klass->finish = ArenaAbsFinish;
   klass->create = ArenaNoCreate;
   klass->destroy = ArenaNoDestroy;
   klass->purgeSpare = ArenaNoPurgeSpare;
@@ -120,7 +121,6 @@ DEFINE_CLASS(Arena, AbstractArena, klass)
   klass->chunkInit = ArenaNoChunkInit;
   klass->chunkFinish = ArenaNoChunkFinish;
   klass->compact = ArenaTrivCompact;
-  klass->describe = ArenaAbsDescribe;
   klass->pagesMarkAllocated = ArenaNoPagesMarkAllocated;
   klass->sig = ArenaClassSig;
 }
@@ -134,7 +134,6 @@ Bool ArenaClassCheck(ArenaClass klass)
   CHECKL(klass->size >= sizeof(ArenaStruct));
   CHECKL(FUNCHECK(klass->varargs));
   CHECKL(FUNCHECK(klass->init));
-  CHECKL(FUNCHECK(klass->finish));
   CHECKL(FUNCHECK(klass->create));
   CHECKL(FUNCHECK(klass->destroy));
   CHECKL(FUNCHECK(klass->purgeSpare));
@@ -144,7 +143,6 @@ Bool ArenaClassCheck(ArenaClass klass)
   CHECKL(FUNCHECK(klass->chunkInit));
   CHECKL(FUNCHECK(klass->chunkFinish));
   CHECKL(FUNCHECK(klass->compact));
-  CHECKL(FUNCHECK(klass->describe));
   CHECKL(FUNCHECK(klass->pagesMarkAllocated));
   CHECKS(ArenaClass, klass);
   return TRUE;
@@ -406,19 +404,15 @@ failInit:
 }
 
 
-/* ArenaAbsFinish -- finish the generic part of the arena
- *
- * .finish.caller: Unlike PoolFinish, this is called by the class finish
- * methods, not the generic Destroy.  This is because the class is
- * responsible for deallocating the descriptor.
- */
+/* ArenaAbsFinish -- finish the generic part of the arena */
 
-static void ArenaAbsFinish(Arena arena)
+static void ArenaAbsFinish(Inst inst)
 {
+  Arena arena = MustBeA(AbstractArena, inst);
   AVERC(Arena, arena);
   PoolFinish(ArenaCBSBlockPool(arena));
   arena->sig = SigInvalid;
-  InstFinish(MustBeA(Inst, arena));
+  NextMethod(Inst, AbstractArena, finish)(inst);
   GlobalsFinish(ArenaGlobals(arena));
   LocusFinish(arena);
   RingFinish(ArenaChunkRing(arena));
@@ -510,8 +504,9 @@ void ControlFinish(Arena arena)
 
 /* ArenaDescribe -- describe the arena */
 
-static Res ArenaAbsDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
+static Res ArenaAbsDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 {
+  Arena arena = CouldBeA(AbstractArena, inst);
   Res res;
 
   if (!TESTC(AbstractArena, arena))
@@ -565,7 +560,7 @@ static Res ArenaAbsDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
 
 Res ArenaDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
 {
-  return Method(Arena, arena, describe)(arena, stream, depth);
+  return Method(Inst, arena, describe)(MustBeA(Inst, arena), stream, depth);
 }
 
 

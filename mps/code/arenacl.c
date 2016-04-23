@@ -311,7 +311,7 @@ static Res ClientArenaCreate(Arena *arenaReturn, ArgList args)
   return ResOK;
 
 failChunkCreate:
-  NextMethod(Arena, ClientArena, finish)(arena);
+  NextMethod(Inst, ClientArena, finish)(MustBeA(Inst, arena));
 failSuperInit:
   AVER(res != ResOK);
   return res;
@@ -336,7 +336,7 @@ static void ClientArenaDestroy(Arena arena)
   AVER(arena->reserved == 0);
   AVER(arena->committed == 0);
 
-  NextMethod(Arena, ClientArena, finish)(arena); /* <code/arena.c#finish.caller> */
+  NextMethod(Inst, ClientArena, finish)(MustBeA(Inst, arena));
 }
 
 
