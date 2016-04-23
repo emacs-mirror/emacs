@@ -306,8 +306,9 @@ static Size MFSFreeSize(Pool pool)
 }
 
 
-static Res MFSDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
+static Res MFSDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 {
+  Pool pool = CouldBeA(AbstractPool, inst);
   MFS mfs = CouldBeA(MFSPool, pool);
   Res res;
 
@@ -316,7 +317,7 @@ static Res MFSDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
   if (stream == NULL)
     return ResPARAM;
 
-  res = NextMethod(Pool, MFSPool, describe)(pool, stream, depth);
+  res = NextMethod(Inst, MFSPool, describe)(inst, stream, depth);
   if (res != ResOK)
     return res;
 
@@ -336,6 +337,7 @@ static Res MFSDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 DEFINE_CLASS(Pool, MFSPool, klass)
 {
   INHERIT_CLASS(klass, MFSPool, AbstractPool);
+  klass->protocol.describe = MFSDescribe;
   klass->size = sizeof(MFSStruct);
   klass->varargs = MFSVarargs;
   klass->init = MFSInit;
@@ -344,7 +346,6 @@ DEFINE_CLASS(Pool, MFSPool, klass)
   klass->free = MFSFree;
   klass->totalSize = MFSTotalSize;
   klass->freeSize = MFSFreeSize;  
-  klass->describe = MFSDescribe;
 }
 
 

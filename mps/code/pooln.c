@@ -139,12 +139,17 @@ static void NBufferEmpty(Pool pool, Buffer buffer,
 
 /* NDescribe -- describe method for class N */
 
-static Res NDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
+static Res NDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 {
-  PoolN poolN = MustBeA(NPool, pool);
+  Pool pool = CouldBeA(AbstractPool, inst);
+  PoolN poolN = CouldBeA(NPool, pool);
+  Res res;
 
-  UNUSED(stream); /* TODO: should output something here */
-  UNUSED(depth);
+  res = NextMethod(Inst, NPool, describe)(inst, stream, depth);
+  if (res != ResOK)
+    return res;
+
+  /* This is where you'd output some information about pool fields. */
   UNUSED(poolN);
 
   return ResOK;
@@ -251,6 +256,7 @@ static void NTraceEnd(Pool pool, Trace trace)
 DEFINE_CLASS(Pool, NPool, klass)
 {
   INHERIT_CLASS(klass, NPool, AbstractPool);
+  klass->protocol.describe = NDescribe;
   klass->size = sizeof(PoolNStruct);
   klass->attr |= AttrGC;
   klass->init = NInit;
@@ -267,7 +273,6 @@ DEFINE_CLASS(Pool, NPool, klass)
   klass->fixEmergency = NFix;
   klass->reclaim = NReclaim;
   klass->traceEnd = NTraceEnd;
-  klass->describe = NDescribe;
   AVERT(PoolClass, klass);
 }
 
