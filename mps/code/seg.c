@@ -132,8 +132,7 @@ static Res SegAbsInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   AVER(SizeIsArenaGrains(size, arena));
   AVERT(ArgList, args);
 
-  /* Superclass init */
-  InstInit(CouldBeA(Inst, seg));
+  NextMethod(Inst, Seg, init)(CouldBeA(Inst, seg));
 
   limit = AddrAdd(base, size);
   seg->limit = limit;
