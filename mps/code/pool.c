@@ -65,7 +65,6 @@ Bool PoolClassCheck(PoolClass klass)
   CHECKL(FUNCHECK(klass->walk));
   CHECKL(FUNCHECK(klass->freewalk));
   CHECKL(FUNCHECK(klass->bufferClass));
-  CHECKL(FUNCHECK(klass->describe));
   CHECKL(FUNCHECK(klass->debugMixin));
   CHECKL(FUNCHECK(klass->totalSize));
   CHECKL(FUNCHECK(klass->freeSize));
@@ -490,7 +489,7 @@ Size PoolFreeSize(Pool pool)
 
 Res PoolDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 {
-  return Method(Pool, pool, describe)(pool, stream, depth);
+  return Method(Inst, pool, describe)(MustBeA(Inst, pool), stream, depth);
 }
 
 

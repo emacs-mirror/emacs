@@ -671,8 +671,9 @@ static Size MVFFFreeSize(Pool pool)
 
 /* MVFFDescribe -- describe an MVFF pool */
 
-static Res MVFFDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
+static Res MVFFDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 {
+  Pool pool = CouldBeA(AbstractPool, inst);
   MVFF mvff = CouldBeA(MVFFPool, pool);
   Res res;
 
@@ -681,7 +682,7 @@ static Res MVFFDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
   if (stream == NULL)
     return ResPARAM;
 
-  res = NextMethod(Pool, MVFFPool, describe)(pool, stream, depth);
+  res = NextMethod(Inst, MVFFPool, describe)(inst, stream, depth);
   if (res != ResOK)
     return res;
 
@@ -722,6 +723,7 @@ DEFINE_CLASS(Pool, MVFFPool, klass)
 {
   INHERIT_CLASS(klass, MVFFPool, AbstractPool);
   PoolClassMixInBuffer(klass);
+  klass->protocol.describe = MVFFDescribe;
   klass->size = sizeof(MVFFStruct);
   klass->varargs = MVFFVarargs;
   klass->init = MVFFInit;
@@ -732,7 +734,6 @@ DEFINE_CLASS(Pool, MVFFPool, klass)
   klass->bufferEmpty = MVFFBufferEmpty;
   klass->totalSize = MVFFTotalSize;
   klass->freeSize = MVFFFreeSize;
-  klass->describe = MVFFDescribe;
 }
 
 
