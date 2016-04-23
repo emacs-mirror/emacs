@@ -241,8 +241,9 @@ static Bool failoverFindInZones(Bool *foundReturn, Range rangeReturn, Range oldR
 }
 
 
-static Res failoverDescribe(Land land, mps_lib_FILE *stream, Count depth)
+static Res failoverDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 {
+  Land land = CouldBeA(Land, inst);
   Failover fo = CouldBeA(Failover, land);
   LandClass primaryClass, secondaryClass;
   Res res;
@@ -252,7 +253,7 @@ static Res failoverDescribe(Land land, mps_lib_FILE *stream, Count depth)
   if (stream == NULL)
     return ResPARAM;
 
-  res = NextMethod(Land, Failover, describe)(land, stream, depth);
+  res = NextMethod(Inst, Failover, describe)(inst, stream, depth);
   if (res != ResOK)
     return res;
 
@@ -273,6 +274,7 @@ static Res failoverDescribe(Land land, mps_lib_FILE *stream, Count depth)
 DEFINE_CLASS(Land, Failover, klass)
 {
   INHERIT_CLASS(klass, Failover, Land);
+  klass->protocol.describe = failoverDescribe;
   klass->protocol.finish = failoverFinish;
   klass->size = sizeof(FailoverStruct);
   klass->init = failoverInit;
@@ -284,7 +286,6 @@ DEFINE_CLASS(Land, Failover, klass)
   klass->findLast = failoverFindLast;
   klass->findLargest = failoverFindLargest;
   klass->findInZones = failoverFindInZones;
-  klass->describe = failoverDescribe;
 }
 
 
