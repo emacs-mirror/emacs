@@ -61,7 +61,7 @@ typedef struct LOSegStruct {
 
 /* forward decls */
 static Res loSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args);
-static void loSegFinish(Seg seg);
+static void loSegFinish(Inst inst);
 static Count loSegGrains(LOSeg loseg);
 
 
@@ -71,9 +71,9 @@ DEFINE_CLASS(Seg, LOSeg, klass)
 {
   INHERIT_CLASS(klass, LOSeg, GCSeg);
   SegClassMixInNoSplitMerge(klass);
+  klass->instClassStruct.finish = loSegFinish;
   klass->size = sizeof(LOSegStruct);
   klass->init = loSegInit;
-  klass->finish = loSegFinish;
 }
 
 
@@ -143,7 +143,7 @@ static Res loSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 failAllocTable:
   ControlFree(arena, loseg->mark, tablebytes);
 failMarkTable:
-  NextMethod(Seg, LOSeg, finish)(seg);
+  NextMethod(Inst, LOSeg, finish)(MustBeA(Inst, seg));
 failSuperInit:
   AVER(res != ResOK);
   return res;
@@ -152,8 +152,9 @@ failSuperInit:
 
 /* loSegFinish -- Finish method for LO segments */
 
-static void loSegFinish(Seg seg)
+static void loSegFinish(Inst inst)
 {
+  Seg seg = MustBeA(Seg, inst);
   LOSeg loseg = MustBeA(LOSeg, seg);
   Pool pool = SegPool(seg);
   Arena arena = PoolArena(pool);
@@ -167,7 +168,7 @@ static void loSegFinish(Seg seg)
   ControlFree(arena, loseg->alloc, tablesize);
   ControlFree(arena, loseg->mark, tablesize);
 
-  NextMethod(Seg, LOSeg, finish)(seg);
+  NextMethod(Inst, LOSeg, finish)(inst);
 }
 
 

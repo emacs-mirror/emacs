@@ -240,7 +240,7 @@ failControlAllocAlloc:
 failControlAllocScanned:
   ControlFree(arena, awlseg->mark, tableSize);
 failControlAllocMark:
-  NextMethod(Seg, AWLSeg, finish)(seg);
+  NextMethod(Inst, AWLSeg, finish)(MustBeA(Inst, seg));
 failSuperInit:
   AVER(res != ResOK);
   return res;
@@ -249,8 +249,9 @@ failSuperInit:
 
 /* AWLSegFinish -- Finish method for AWL segments */
 
-static void AWLSegFinish(Seg seg)
+static void AWLSegFinish(Inst inst)
 {
+  Seg seg = MustBeA(Seg, inst);
   AWLSeg awlseg = MustBeA(AWLSeg, seg);
   Pool pool = SegPool(seg);
   AWL awl = MustBeA(AWLPool, pool);
@@ -269,7 +270,7 @@ static void AWLSegFinish(Seg seg)
   awlseg->sig = SigInvalid;
 
   /* finish the superclass fields last */
-  NextMethod(Seg, AWLSeg, finish)(seg);
+  NextMethod(Inst, AWLSeg, finish)(inst);
 }
 
 
@@ -279,9 +280,9 @@ DEFINE_CLASS(Seg, AWLSeg, klass)
 {
   INHERIT_CLASS(klass, AWLSeg, GCSeg);
   SegClassMixInNoSplitMerge(klass);  /* no support for this (yet) */
+  klass->instClassStruct.finish = AWLSegFinish;
   klass->size = sizeof(AWLSegStruct);
   klass->init = AWLSegInit;
-  klass->finish = AWLSegFinish;
 }
 
 

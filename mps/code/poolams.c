@@ -266,7 +266,7 @@ static Res AMSSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   return ResOK;
 
 failCreateTables:
-  NextMethod(Seg, AMSSeg, finish)(seg);
+  NextMethod(Inst, AMSSeg, finish)(MustBeA(Inst, seg));
 failNextMethod:
   AVER(res != ResOK);
   return res;
@@ -275,18 +275,14 @@ failNextMethod:
 
 /* AMSSegFinish -- Finish method for AMS segments */
 
-static void AMSSegFinish(Seg seg)
+static void AMSSegFinish(Inst inst)
 {
-  AMSSeg amsseg;
-  AMS ams;
-  Arena arena;
+  Seg seg = MustBeA(Seg, inst);
+  AMSSeg amsseg = MustBeA(AMSSeg, seg);
+  AMS ams = amsseg->ams;
+  Arena arena = PoolArena(AMSPool(ams));
 
-  AVERT(Seg, seg);
-  amsseg = Seg2AMSSeg(seg);
   AVERT(AMSSeg, amsseg);
-  ams = amsseg->ams;
-  AVERT(AMS, ams);
-  arena = PoolArena(AMSPool(ams));
   AVER(SegBuffer(seg) == NULL);
 
   /* keep the destructions in step with AMSSegInit failure cases */
@@ -299,7 +295,7 @@ static void AMSSegFinish(Seg seg)
   amsseg->sig = SigInvalid;
 
   /* finish the superclass fields last */
-  NextMethod(Seg, AMSSeg, finish)(seg);
+  NextMethod(Inst, AMSSeg, finish)(inst);
 }
 
 
@@ -620,9 +616,9 @@ DEFINE_CLASS(Seg, AMSSeg, klass)
 {
   INHERIT_CLASS(klass, AMSSeg, GCSeg);
   klass->instClassStruct.describe = AMSSegDescribe;
+  klass->instClassStruct.finish = AMSSegFinish;
   klass->size = sizeof(AMSSegStruct);
   klass->init = AMSSegInit;
-  klass->finish = AMSSegFinish;
   klass->merge = AMSSegMerge;
   klass->split = AMSSegSplit;
   AVERT(SegClass, klass);

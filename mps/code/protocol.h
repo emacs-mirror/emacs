@@ -178,6 +178,7 @@ typedef struct InstStruct {
 typedef const char *ClassName;
 typedef unsigned char ClassLevel;
 typedef Res (*DescribeMethod)(Inst inst, mps_lib_FILE *stream, Count depth);
+typedef void (*FinishMethod)(Inst inst);
 #define ClassDEPTH 8            /* maximum depth of class hierarchy */
 
 #define InstClassSig ((Sig)0x519B1452) /* SIGnature Protocol INST */
@@ -190,6 +191,7 @@ typedef struct InstClassStruct {
   ClassLevel level;             /* distance from root of class hierarchy */
   ClassId display[ClassDEPTH];  /* classes at this level and above */
   DescribeMethod describe;      /* write a debugging description */
+  FinishMethod finish;          /* finish instance */
 } InstClassStruct;
 
 enum {ClassLevelNoSuper = -1};
