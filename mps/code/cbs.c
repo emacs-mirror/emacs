@@ -1090,8 +1090,9 @@ fail:
  * See <design/land/#function.describe>.
  */
 
-static Res cbsDescribe(Land land, mps_lib_FILE *stream, Count depth)
+static Res cbsDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 {
+  Land land = CouldBeA(Land, inst);
   CBS cbs = CouldBeA(CBS, land);
   Res res;
   Res (*describe)(Tree, mps_lib_FILE *);
@@ -1101,7 +1102,7 @@ static Res cbsDescribe(Land land, mps_lib_FILE *stream, Count depth)
   if (stream == NULL)
     return ResPARAM;
 
-  res = NextMethod(Land, CBS, describe)(land, stream, depth);
+  res = NextMethod(Inst, CBS, describe)(inst, stream, depth);
   if (res != ResOK)
     return res;
 
@@ -1134,6 +1135,7 @@ static Res cbsDescribe(Land land, mps_lib_FILE *stream, Count depth)
 DEFINE_CLASS(Land, CBS, klass)
 {
   INHERIT_CLASS(klass, CBS, Land);
+  klass->protocol.describe = cbsDescribe;
   klass->protocol.finish = cbsFinish;
   klass->size = sizeof(CBSStruct);
   klass->init = cbsInit;
@@ -1146,7 +1148,6 @@ DEFINE_CLASS(Land, CBS, klass)
   klass->findLast = cbsFindLast;
   klass->findLargest = cbsFindLargest;
   klass->findInZones = cbsFindInZones;
-  klass->describe = cbsDescribe;
 }
 
 DEFINE_CLASS(Land, CBSFast, klass)

@@ -391,7 +391,7 @@ Res LandFindInZones(Bool *foundReturn, Range rangeReturn, Range oldRangeReturn, 
 
 Res LandDescribe(Land land, mps_lib_FILE *stream, Count depth)
 {
-  return Method(Land, land, describe)(land, stream, depth);
+  return Method(Inst, land, describe)(MustBeA(Inst, land), stream, depth);
 }
 
 
@@ -451,7 +451,6 @@ Bool LandClassCheck(LandClass klass)
   CHECKL(FUNCHECK(klass->findLast));
   CHECKL(FUNCHECK(klass->findLargest));
   CHECKL(FUNCHECK(klass->findInZones));
-  CHECKL(FUNCHECK(klass->describe));
   CHECKS(LandClass, klass);
   return TRUE;
 }
@@ -543,8 +542,9 @@ static Res landNoFindInZones(Bool *foundReturn, Range rangeReturn, Range oldRang
   return ResUNIMPL;
 }
 
-static Res LandAbsDescribe(Land land, mps_lib_FILE *stream, Count depth)
+static Res LandAbsDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 {
+  Land land = CouldBeA(Land, inst);
   LandClass klass;
   Res res;
   
@@ -553,7 +553,7 @@ static Res LandAbsDescribe(Land land, mps_lib_FILE *stream, Count depth)
   if (stream == NULL)
     return ResPARAM;
 
-  res = InstDescribe(CouldBeA(Inst, land), stream, depth);
+  res = NextMethod(Inst, Land, describe)(inst, stream, depth);
   if (res != ResOK)
     return res;
 
@@ -575,6 +575,7 @@ DEFINE_CLASS(Inst, LandClass, klass)
 DEFINE_CLASS(Land, Land, klass)
 {
   INHERIT_CLASS(&klass->protocol, Land, Inst);
+  klass->protocol.describe = LandAbsDescribe;
   klass->protocol.finish = LandAbsFinish;
   klass->size = sizeof(LandStruct);
   klass->init = LandAbsInit;
@@ -587,7 +588,6 @@ DEFINE_CLASS(Land, Land, klass)
   klass->findLast = landNoFind;
   klass->findLargest = landNoFind;
   klass->findInZones = landNoFindInZones;
-  klass->describe = LandAbsDescribe;
   klass->sig = LandClassSig;
 }
 

@@ -583,7 +583,6 @@ typedef struct LandClassStruct {
   LandFindMethod findLast;      /* find last range of given size */
   LandFindMethod findLargest;   /* find largest range */
   LandFindInZonesMethod findInZones; /* find first range of given size in zone set */
-  LandDescribeMethod describe;  /* describe the land */
   Sig sig;                      /* .class.end-sig */
 } LandClassStruct;
 
