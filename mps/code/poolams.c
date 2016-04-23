@@ -836,7 +836,7 @@ static Res AMSInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
   return ResOK;
 
 failGenInit:
-  PoolAbsFinish(pool);
+  NextMethod(Inst, AMSPool, finish)(MustBeA(Inst, pool));
 failAbsInit:
   return res;
 }
@@ -847,12 +847,11 @@ failAbsInit:
  * Destroys all the segs in the pool.  Can't invalidate the AMS until
  * we've destroyed all the segments, as it may be checked.
  */
-void AMSFinish(Pool pool)
+void AMSFinish(Inst inst)
 {
-  AMS ams;
+  Pool pool = MustBeA(AbstractPool, inst);
+  AMS ams = MustBeA(AMSPool, pool);
 
-  AVERT(Pool, pool);
-  ams = PoolAMS(pool);
   AVERT(AMS, ams);
 
   ams->segsDestroy(ams);
@@ -861,7 +860,8 @@ void AMSFinish(Pool pool)
   RingFinish(&ams->segRing);
   PoolGenFinish(ams->pgen);
   ams->pgen = NULL;
-  PoolAbsFinish(pool);
+
+  NextMethod(Inst, AMSPool, finish)(inst);
 }
 
 
@@ -1744,10 +1744,10 @@ DEFINE_CLASS(Pool, AMSPool, klass)
   INHERIT_CLASS(klass, AMSPool, AbstractCollectPool);
   PoolClassMixInFormat(klass);
   klass->protocol.describe = AMSDescribe;
+  klass->protocol.finish = AMSFinish;
   klass->size = sizeof(AMSStruct);
   klass->varargs = AMSVarargs;
   klass->init = AMSInit;
-  klass->finish = AMSFinish;
   klass->bufferClass = RankBufClassGet;
   klass->bufferFill = AMSBufferFill;
   klass->bufferEmpty = AMSBufferEmpty;

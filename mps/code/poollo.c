@@ -502,7 +502,7 @@ static Res LOInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
   return ResOK;
 
 failGenInit:
-  PoolAbsFinish(pool);
+  NextMethod(Inst, LOPool, finish)(MustBeA(Inst, pool));
 failAbsInit:
   AVER(res != ResOK);
   return res;
@@ -511,8 +511,9 @@ failAbsInit:
 
 /* LOFinish -- finish an LO pool */
 
-static void LOFinish(Pool pool)
+static void LOFinish(Inst inst)
 {
+  Pool pool = MustBeA(AbstractPool, inst);
   LO lo = MustBeA(LOPool, pool);
   Ring node, nextNode;
 
@@ -531,7 +532,8 @@ static void LOFinish(Pool pool)
   PoolGenFinish(lo->pgen);
 
   lo->sig = SigInvalid;
-  PoolAbsFinish(pool);
+
+  NextMethod(Inst, LOPool, finish)(inst);
 }
 
 
@@ -784,10 +786,10 @@ DEFINE_CLASS(Pool, LOPool, klass)
   INHERIT_CLASS(klass, LOPool, AbstractSegBufPool);
   PoolClassMixInFormat(klass);
   PoolClassMixInCollect(klass);
+  klass->protocol.finish = LOFinish;
   klass->size = sizeof(LOStruct);
   klass->varargs = LOVarargs;
   klass->init = LOInit;
-  klass->finish = LOFinish;
   klass->bufferFill = LOBufferFill;
   klass->bufferEmpty = LOBufferEmpty;
   klass->whiten = LOWhiten;

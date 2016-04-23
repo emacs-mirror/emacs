@@ -238,7 +238,7 @@ extern Size PoolTotalSize(Pool pool);
 extern Size PoolFreeSize(Pool pool);
 
 extern Res PoolAbsInit(Pool pool, Arena arena, PoolClass klass, ArgList arg);
-extern void PoolAbsFinish(Pool pool);
+extern void PoolAbsFinish(Inst inst);
 extern Res PoolNoAlloc(Addr *pReturn, Pool pool, Size size);
 extern Res PoolTrivAlloc(Addr *pReturn, Pool pool, Size size);
 extern void PoolNoFree(Pool pool, Addr old, Size size);

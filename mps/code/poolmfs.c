@@ -153,14 +153,16 @@ static void MFSTractFreeVisitor(Pool pool, Addr base, Size size,
 }
 
 
-static void MFSFinish(Pool pool)
+static void MFSFinish(Inst inst)
 {
+  Pool pool = MustBeA(AbstractPool, inst);
   MFS mfs = MustBeA(MFSPool, pool);
 
   MFSFinishTracts(pool, MFSTractFreeVisitor, UNUSED_POINTER);
 
   mfs->sig = SigInvalid;
-  PoolAbsFinish(pool);
+
+  NextMethod(Inst, MFSPool, finish)(inst);
 }
 
 
@@ -338,10 +340,10 @@ DEFINE_CLASS(Pool, MFSPool, klass)
 {
   INHERIT_CLASS(klass, MFSPool, AbstractPool);
   klass->protocol.describe = MFSDescribe;
+  klass->protocol.finish = MFSFinish;
   klass->size = sizeof(MFSStruct);
   klass->varargs = MFSVarargs;
   klass->init = MFSInit;
-  klass->finish = MFSFinish;
   klass->alloc = MFSAlloc;
   klass->free = MFSFree;
   klass->totalSize = MFSTotalSize;

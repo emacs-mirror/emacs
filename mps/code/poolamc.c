@@ -799,7 +799,7 @@ failGenAlloc:
   }
   ControlFree(arena, amc->gen, genArraySize);
 failGensAlloc:
-  PoolAbsFinish(pool);
+  NextMethod(Inst, AMCZPool, finish)(MustBeA(Inst, pool));
   return res;
 }
 
@@ -824,8 +824,9 @@ static Res AMCZInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
  *
  * See <design/poolamc/#finish>.
  */
-static void AMCFinish(Pool pool)
+static void AMCFinish(Inst inst)
 {
+  Pool pool = MustBeA(AbstractPool, inst);
   AMC amc = MustBeA(AMCZPool, pool);
   Ring ring;
   Ring node, nextNode;
@@ -868,7 +869,8 @@ static void AMCFinish(Pool pool)
   }
 
   amc->sig = SigInvalid;
-  PoolAbsFinish(pool);
+
+  NextMethod(Inst, AMCZPool, finish)(inst);
 }
 
 
@@ -2023,11 +2025,11 @@ DEFINE_CLASS(Pool, AMCZPool, klass)
   PoolClassMixInFormat(klass);
   PoolClassMixInCollect(klass);
   klass->protocol.describe = AMCDescribe;
+  klass->protocol.finish = AMCFinish;
   klass->size = sizeof(AMCStruct);
   klass->attr |= AttrMOVINGGC;
   klass->varargs = AMCVarargs;
   klass->init = AMCZInit;
-  klass->finish = AMCFinish;
   klass->bufferFill = AMCBufferFill;
   klass->bufferEmpty = AMCBufferEmpty;
   klass->whiten = AMCWhiten;
