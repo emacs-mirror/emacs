@@ -212,12 +212,13 @@ static Res freelistInit(Land land, Arena arena, Align alignment, ArgList args)
 }
 
 
-static void freelistFinish(Land land)
+static void freelistFinish(Inst inst)
 {
+  Land land = MustBeA(Land, inst);
   Freelist fl = MustBeA(Freelist, land);
   fl->sig = SigInvalid;
   fl->list = freelistEND;
-  NextMethod(Land, Freelist, finish)(land);
+  NextMethod(Inst, Freelist, finish)(inst);
 }
 
 
@@ -779,9 +780,9 @@ static Res freelistDescribe(Land land, mps_lib_FILE *stream, Count depth)
 DEFINE_CLASS(Land, Freelist, klass)
 {
   INHERIT_CLASS(klass, Freelist, Land);
+  klass->protocol.finish = freelistFinish;
   klass->size = sizeof(FreelistStruct);
   klass->init = freelistInit;
-  klass->finish = freelistFinish;
   klass->sizeMethod = freelistSize;
   klass->insert = freelistInsert;
   klass->delete = freelistDelete;

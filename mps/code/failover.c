@@ -52,11 +52,12 @@ static Res failoverInit(Land land, Arena arena, Align alignment, ArgList args)
 }
 
 
-static void failoverFinish(Land land)
+static void failoverFinish(Inst inst)
 {
+  Land land = MustBeA(Land, inst);
   Failover fo = MustBeA(Failover, land);
   fo->sig = SigInvalid;
-  NextMethod(Land, Failover, finish)(land);
+  NextMethod(Inst, Failover, finish)(inst);
 }
 
 
@@ -272,9 +273,9 @@ static Res failoverDescribe(Land land, mps_lib_FILE *stream, Count depth)
 DEFINE_CLASS(Land, Failover, klass)
 {
   INHERIT_CLASS(klass, Failover, Land);
+  klass->protocol.finish = failoverFinish;
   klass->size = sizeof(FailoverStruct);
   klass->init = failoverInit;
-  klass->finish = failoverFinish;
   klass->sizeMethod = failoverSize;
   klass->insert = failoverInsert;
   klass->delete = failoverDelete;

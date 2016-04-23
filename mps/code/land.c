@@ -90,11 +90,12 @@ static Res LandAbsInit(Land land, Arena arena, Align alignment, ArgList args)
   return ResOK;
 }
 
-static void LandAbsFinish(Land land)
+static void LandAbsFinish(Inst inst)
 {
+  Land land = MustBeA(Land, inst);
   AVERC(Land, land);
   land->sig = SigInvalid;
-  InstFinish(CouldBeA(Inst, land));
+  NextMethod(Inst, Land, finish)(inst);
 }
 
 
@@ -183,7 +184,7 @@ void LandFinish(Land land)
   AVERC(Land, land);
   landEnter(land);
 
-  Method(Land, land, finish)(land);
+  Method(Inst, land, finish)(MustBeA(Inst, land));
 }
 
 
@@ -444,7 +445,6 @@ Bool LandClassCheck(LandClass klass)
   CHECKL(InstClassCheck(&klass->protocol));
   CHECKL(klass->size >= sizeof(LandStruct));
   CHECKL(FUNCHECK(klass->init));
-  CHECKL(FUNCHECK(klass->finish));
   CHECKL(FUNCHECK(klass->insert));
   CHECKL(FUNCHECK(klass->delete));
   CHECKL(FUNCHECK(klass->findFirst));
@@ -575,10 +575,10 @@ DEFINE_CLASS(Inst, LandClass, klass)
 DEFINE_CLASS(Land, Land, klass)
 {
   INHERIT_CLASS(&klass->protocol, Land, Inst);
+  klass->protocol.finish = LandAbsFinish;
   klass->size = sizeof(LandStruct);
   klass->init = LandAbsInit;
   klass->sizeMethod = landNoSize;
-  klass->finish = LandAbsFinish;
   klass->insert = landNoInsert;
   klass->delete = landNoDelete;
   klass->iterate = landNoIterate;
