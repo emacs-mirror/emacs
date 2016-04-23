@@ -494,7 +494,6 @@ typedef struct mps_arena_class_s {
   size_t size;                  /* size of outer structure */
   ArenaVarargsMethod varargs;
   ArenaInitMethod init;
-  ArenaFinishMethod finish;
   ArenaCreateMethod create;
   ArenaDestroyMethod destroy;
   ArenaPurgeSpareMethod purgeSpare;
@@ -504,7 +503,6 @@ typedef struct mps_arena_class_s {
   ArenaChunkInitMethod chunkInit;
   ArenaChunkFinishMethod chunkFinish;
   ArenaCompactMethod compact;
-  ArenaDescribeMethod describe;
   ArenaPagesMarkAllocatedMethod pagesMarkAllocated;
   Sig sig;
 } ArenaClassStruct;
