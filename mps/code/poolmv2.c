@@ -38,7 +38,7 @@ static Res MVTBufferFill(Addr *baseReturn, Addr *limitReturn,
                          Pool pool, Buffer buffer, Size minSize);
 static void MVTBufferEmpty(Pool pool, Buffer buffer, Addr base, Addr limit);
 static void MVTFree(Pool pool, Addr base, Size size);
-static Res MVTDescribe(Pool pool, mps_lib_FILE *stream, Count depth);
+static Res MVTDescribe(Inst inst, mps_lib_FILE *stream, Count depth);
 static Size MVTTotalSize(Pool pool);
 static Size MVTFreeSize(Pool pool);
 static Res MVTSegAlloc(Seg *segReturn, MVT mvt, Size size);
@@ -139,6 +139,7 @@ typedef struct MVTStruct
 DEFINE_CLASS(Pool, MVTPool, klass)
 {
   INHERIT_CLASS(klass, MVTPool, AbstractBufferPool);
+  klass->protocol.describe = MVTDescribe;
   klass->size = sizeof(MVTStruct);
   klass->varargs = MVTVarargs;
   klass->init = MVTInit;
@@ -148,7 +149,6 @@ DEFINE_CLASS(Pool, MVTPool, klass)
   klass->bufferEmpty = MVTBufferEmpty;
   klass->totalSize = MVTTotalSize;
   klass->freeSize = MVTFreeSize;
-  klass->describe = MVTDescribe;
 }
 
 /* Macros */
@@ -1023,8 +1023,9 @@ static Size MVTFreeSize(Pool pool)
 
 /* MVTDescribe -- describe an MVT pool */
 
-static Res MVTDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
+static Res MVTDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 {
+  Pool pool = CouldBeA(AbstractPool, inst);
   MVT mvt = CouldBeA(MVTPool, pool);
   Res res;
 
@@ -1033,7 +1034,7 @@ static Res MVTDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
   if (stream == NULL)
     return ResFAIL;
 
-  res = NextMethod(Pool, MVTPool, describe)(pool, stream, depth);
+  res = NextMethod(Inst, MVTPool, describe)(inst, stream, depth);
   if (res != ResOK)
     return res;
 

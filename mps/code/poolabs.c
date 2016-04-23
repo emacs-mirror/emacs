@@ -185,6 +185,7 @@ DEFINE_CLASS(Inst, PoolClass, klass)
 DEFINE_CLASS(Pool, AbstractPool, klass)
 {
   INHERIT_CLASS(&klass->protocol, AbstractPool, Inst);
+  klass->protocol.describe = PoolAbsDescribe;
   klass->size = sizeof(PoolStruct);
   klass->attr = 0;
   klass->varargs = ArgTrivVarargs;
@@ -211,7 +212,6 @@ DEFINE_CLASS(Pool, AbstractPool, klass)
   klass->walk = PoolNoWalk;
   klass->freewalk = PoolTrivFreeWalk;
   klass->bufferClass = PoolNoBufferClass;
-  klass->describe = PoolAbsDescribe;
   klass->debugMixin = PoolNoDebugMixin;
   klass->totalSize = PoolNoSize;
   klass->freeSize = PoolNoSize;
@@ -353,8 +353,9 @@ void PoolTrivBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
 }
 
 
-Res PoolAbsDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
+Res PoolAbsDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 {
+  Pool pool = CouldBeA(AbstractPool, inst);
   Res res;
   Ring node, nextNode;
 

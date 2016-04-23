@@ -1960,10 +1960,11 @@ static Size AMCFreeSize(Pool pool)
  * See <design/poolamc/#describe>.
  */
 
-static Res AMCDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
+static Res AMCDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 {
-  Res res;
+  Pool pool = CouldBeA(AbstractPool, inst);
   AMC amc = CouldBeA(AMCZPool, pool);
+  Res res;
   Ring node, nextNode;
   const char *rampmode;
 
@@ -1972,7 +1973,7 @@ static Res AMCDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
   if (stream == NULL)
     return ResPARAM;
 
-  res = NextMethod(Pool, AMCZPool, describe)(pool, stream, depth);
+  res = NextMethod(Inst, AMCZPool, describe)(inst, stream, depth);
   if (res != ResOK)
     return res;
 
@@ -2021,6 +2022,7 @@ DEFINE_CLASS(Pool, AMCZPool, klass)
   INHERIT_CLASS(klass, AMCZPool, AbstractSegBufPool);
   PoolClassMixInFormat(klass);
   PoolClassMixInCollect(klass);
+  klass->protocol.describe = AMCDescribe;
   klass->size = sizeof(AMCStruct);
   klass->attr |= AttrMOVINGGC;
   klass->varargs = AMCVarargs;
@@ -2039,7 +2041,6 @@ DEFINE_CLASS(Pool, AMCZPool, klass)
   klass->bufferClass = amcBufClassGet;
   klass->totalSize = AMCTotalSize;
   klass->freeSize = AMCFreeSize;  
-  klass->describe = AMCDescribe;
 }
 
 

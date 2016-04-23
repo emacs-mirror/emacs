@@ -752,8 +752,9 @@ static Size MVFreeSize(Pool pool)
 }
 
 
-static Res MVDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
+static Res MVDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 {
+  Pool pool = CouldBeA(AbstractPool, inst);
   MV mv = CouldBeA(MVPool, pool);
   Res res;
   MVSpan span;
@@ -767,7 +768,7 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
   if (stream == NULL)
     return ResPARAM;
 
-  res = NextMethod(Pool, MVPool, describe)(pool, stream, depth);
+  res = NextMethod(Inst, MVPool, describe)(inst, stream, depth);
   if (res != ResOK)
     return res;
 
@@ -864,6 +865,7 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 DEFINE_CLASS(Pool, MVPool, klass)
 {
   INHERIT_CLASS(klass, MVPool, AbstractBufferPool);
+  klass->protocol.describe = MVDescribe;
   klass->size = sizeof(MVStruct);
   klass->varargs = MVVarargs;
   klass->init = MVInit;
@@ -872,7 +874,6 @@ DEFINE_CLASS(Pool, MVPool, klass)
   klass->free = MVFree;
   klass->totalSize = MVTotalSize;
   klass->freeSize = MVFreeSize;
-  klass->describe = MVDescribe;
 }
 
 

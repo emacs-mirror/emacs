@@ -1694,8 +1694,9 @@ static Size AMSFreeSize(Pool pool)
  * Iterates over the segments, describing all of them.
  */
 
-static Res AMSDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
+static Res AMSDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 {
+  Pool pool = CouldBeA(AbstractPool, inst);
   AMS ams = CouldBeA(AMSPool, pool);
   Ring node, nextNode;
   Res res;
@@ -1705,7 +1706,7 @@ static Res AMSDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
   if (stream == NULL)
     return ResPARAM;
 
-  res = NextMethod(Pool, AMSPool, describe)(pool, stream, depth);
+  res = NextMethod(Inst, AMSPool, describe)(inst, stream, depth);
   if (res != ResOK)
     return res;
 
@@ -1742,6 +1743,7 @@ DEFINE_CLASS(Pool, AMSPool, klass)
 {
   INHERIT_CLASS(klass, AMSPool, AbstractCollectPool);
   PoolClassMixInFormat(klass);
+  klass->protocol.describe = AMSDescribe;
   klass->size = sizeof(AMSStruct);
   klass->varargs = AMSVarargs;
   klass->init = AMSInit;
@@ -1760,7 +1762,6 @@ DEFINE_CLASS(Pool, AMSPool, klass)
   klass->freewalk = AMSFreeWalk;
   klass->totalSize = AMSTotalSize;
   klass->freeSize = AMSFreeSize;
-  klass->describe = AMSDescribe;
   AVERT(PoolClass, klass);
 }
 

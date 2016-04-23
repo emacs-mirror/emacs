@@ -251,7 +251,7 @@ extern void PoolNoBufferEmpty(Pool pool, Buffer buffer,
                               Addr init, Addr limit);
 extern void PoolTrivBufferEmpty(Pool pool, Buffer buffer,
                                 Addr init, Addr limit);
-extern Res PoolAbsDescribe(Pool pool, mps_lib_FILE *stream, Count depth);
+extern Res PoolAbsDescribe(Inst inst, mps_lib_FILE *stream, Count depth);
 extern Res PoolNoTraceBegin(Pool pool, Trace trace);
 extern Res PoolTrivTraceBegin(Pool pool, Trace trace);
 extern Res PoolNoAccess(Pool pool, Seg seg, Addr addr,

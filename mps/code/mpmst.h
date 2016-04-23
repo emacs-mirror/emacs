@@ -76,7 +76,6 @@ typedef struct mps_pool_class_s {
   PoolWalkMethod walk;          /* walk over a segment */
   PoolFreeWalkMethod freewalk;  /* walk over free blocks */
   PoolBufferClassMethod bufferClass; /* default BufferClass of pool */
-  PoolDescribeMethod describe;  /* describe the contents of the pool */
   PoolDebugMixinMethod debugMixin; /* find the debug mixin, if any */
   PoolSizeMethod totalSize;     /* total memory allocated from arena */
   PoolSizeMethod freeSize;      /* free memory (unused by client program) */
