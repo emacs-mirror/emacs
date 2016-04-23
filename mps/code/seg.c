@@ -192,8 +192,9 @@ static Res SegInit(Seg seg, SegClass klass, Pool pool, Addr base, Size size, Arg
 
 /* SegFinish -- finish a segment */
 
-static void SegAbsFinish(Seg seg)
+static void SegAbsFinish(Inst inst)
 {
+  Seg seg = MustBeA(Seg, inst);
   Arena arena;
   Addr addr, limit;
   Tract tract;
@@ -246,7 +247,7 @@ static void SegAbsFinish(Seg seg)
 static void SegFinish(Seg seg)
 {
   AVERC(Seg, seg);
-  Method(Seg, seg, finish)(seg);
+  Method(Inst, seg, finish)(MustBeA(Inst, seg));
 }
 
 
@@ -1069,14 +1070,10 @@ static Res gcSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 
 /* gcSegFinish -- finish a GC segment */
 
-static void gcSegFinish(Seg seg)
+static void gcSegFinish(Inst inst)
 {
-  GCSeg gcseg;
-
-  AVERT(Seg, seg);
-  gcseg = SegGCSeg(seg);
-  AVERT(GCSeg, gcseg);
-  AVER(&gcseg->segStruct == seg);
+  Seg seg = MustBeA(Seg, inst);
+  GCSeg gcseg = MustBeA(GCSeg, seg);
 
   if (SegGrey(seg) != TraceSetEMPTY) {
     RingRemove(&gcseg->greyRing);
@@ -1092,7 +1089,7 @@ static void gcSegFinish(Seg seg)
   RingFinish(&gcseg->greyRing);
 
   /* finish the superclass fields last */
-  NextMethod(Seg, GCSeg, finish)(seg);
+  NextMethod(Inst, GCSeg, finish)(inst);
 }
 
 
@@ -1555,7 +1552,6 @@ Bool SegClassCheck(SegClass klass)
   CHECKD(InstClass, &klass->instClassStruct);
   CHECKL(klass->size >= sizeof(SegStruct));
   CHECKL(FUNCHECK(klass->init));
-  CHECKL(FUNCHECK(klass->finish));
   CHECKL(FUNCHECK(klass->setGrey));
   CHECKL(FUNCHECK(klass->setWhite));
   CHECKL(FUNCHECK(klass->setRankSet));
@@ -1578,9 +1574,9 @@ DEFINE_CLASS(Seg, Seg, klass)
 {
   INHERIT_CLASS(&klass->instClassStruct, Seg, Inst);
   klass->instClassStruct.describe = SegAbsDescribe;
+  klass->instClassStruct.finish = SegAbsFinish;
   klass->size = sizeof(SegStruct);
   klass->init = SegAbsInit;
-  klass->finish = SegAbsFinish;
   klass->setSummary = segNoSetSummary; 
   klass->buffer = segNoBuffer; 
   klass->setBuffer = segNoSetBuffer; 
@@ -1603,9 +1599,9 @@ DEFINE_CLASS(Seg, GCSeg, klass)
 {
   INHERIT_CLASS(klass, GCSeg, Seg);
   klass->instClassStruct.describe = gcSegDescribe;
+  klass->instClassStruct.finish = gcSegFinish;
   klass->size = sizeof(GCSegStruct);
   klass->init = gcSegInit;
-  klass->finish = gcSegFinish;
   klass->setSummary = gcSegSetSummary; 
   klass->buffer = gcSegBuffer; 
   klass->setBuffer = gcSegSetBuffer; 

@@ -141,12 +141,11 @@ static Res amstSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 
 /* amstSegFinish -- Finish method for AMST segments */
 
-static void amstSegFinish(Seg seg)
+static void amstSegFinish(Inst inst)
 {
-  AMSTSeg amstseg;
+  Seg seg = MustBeA(Seg, inst);
+  AMSTSeg amstseg = MustBeA(AMSTSeg, seg);
 
-  AVERT(Seg, seg);
-  amstseg = Seg2AMSTSeg(seg);
   AVERT(AMSTSeg, amstseg);
 
   if (amstseg->next != NULL)
@@ -156,7 +155,7 @@ static void amstSegFinish(Seg seg)
 
   amstseg->sig = SigInvalid;
   /* finish the superclass fields last */
-  NextMethod(Seg, AMSTSeg, finish)(seg);
+  NextMethod(Inst, AMSTSeg, finish)(inst);
 }
 
 
@@ -269,9 +268,9 @@ failSuper:
 DEFINE_CLASS(Seg, AMSTSeg, klass)
 {
   INHERIT_CLASS(klass, AMSTSeg, AMSSeg);
+  klass->instClassStruct.finish = amstSegFinish;
   klass->size = sizeof(AMSTSegStruct);
   klass->init = amstSegInit;
-  klass->finish = amstSegFinish;
   klass->split = amstSegSplit;
   klass->merge = amstSegMerge;
   AVERT(SegClass, klass);

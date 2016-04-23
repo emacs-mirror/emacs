@@ -221,7 +221,6 @@ typedef struct SegClassStruct {
   InstClassStruct instClassStruct;
   size_t size;                  /* size of outer structure */
   SegInitMethod init;           /* initialize the segment */
-  SegFinishMethod finish;       /* finish the segment */
   SegSetSummaryMethod setSummary; /* set the segment summary  */
   SegBufferMethod buffer;       /* get the segment buffer  */
   SegSetBufferMethod setBuffer; /* set the segment buffer  */
