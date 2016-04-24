@@ -1167,7 +1167,7 @@ this file.  Usage:
       (let ((body
              (macroexp-progn
               (use-package-process-keywords name args*
-                (and use-package-always-defer '(:deferred t))))))
+                (and use-package-always-defer (list :deferred t))))))
         (if use-package-debug
             (display-buffer
              (save-current-buffer
