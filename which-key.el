@@ -330,21 +330,6 @@ prefixes in `which-key-paging-prefixes'"
                         "No longer applies. See `which-key-C-h-dispatch'"
                         "2015-12-2")
 
-(defcustom which-key-allow-evil-operators (boundp 'evil-this-operator)
-  "Allow popup to show for evil operators. The popup is normally
-  inhibited in the middle of commands, but setting this to
-  non-nil will override this behavior for evil operators."
-  :group 'which-key
-  :type 'boolean)
-
-(defcustom which-key-show-operator-state-maps nil
-  "Experimental: Try to show the right keys following an evil
-command that reads a motion, such as \"y\", \"d\" and \"c\" from
-normal state. This is experimental, because there might be some
-valid keys missing and it might be showing some invalid keys."
-  :group 'which-key
-  :type 'boolean)
-
 (defcustom which-key-hide-alt-key-translations t
   "Hide key translations using Alt key if non nil.
 These translations are not relevant most of the times since a lot
@@ -504,6 +489,65 @@ key-sequence is a sequence of the sort produced by applying
 sequence. prefix-title is a string. The title is displayed
 alongside the actual current key sequence when
 `which-key-show-prefix' is set to either top or echo.")
+
+
+;; Third-party library support
+
+;; Evil
+(defcustom which-key-allow-evil-operators (boundp 'evil-this-operator)
+  "Allow popup to show for evil operators. The popup is normally
+  inhibited in the middle of commands, but setting this to
+  non-nil will override this behavior for evil operators."
+  :group 'which-key
+  :type 'boolean)
+
+(defcustom which-key-show-operator-state-maps nil
+  "Experimental: Try to show the right keys following an evil
+command that reads a motion, such as \"y\", \"d\" and \"c\" from
+normal state. This is experimental, because there might be some
+valid keys missing and it might be showing some invalid keys."
+  :group 'which-key
+  :type 'boolean)
+
+;; God-mode
+(defvar which-key--god-mode-support-enabled nil
+  "Support god-mode if non-nil. This is experimental,
+so you need to explicitly opt-in for now. Please report any
+problems at github.")
+
+(defvar which-key--god-mode-key-string nil
+  "Holds key string to use for god-mode support.")
+
+(defadvice god-mode-lookup-command
+    (before which-key--god-mode-lookup-command-advice disable)
+  (setq which-key--god-mode-key-string (ad-get-arg 0)))
+
+(defadvice god-mode-self-insert
+    (after which-key--god-mode-self-insert-advice disable)
+  (which-key--hide-popup))
+
+(defun which-key-enable-god-mode-support (&optional disable)
+  "Enable support for god-mode if non-nil. This is experimental,
+so you need to explicitly opt-in for now. Please report any
+problems at github. If DISABLE is non-nil disable support."
+  (interactive "P")
+  (setq which-key--god-mode-support-enabled (null disable))
+  (if disable
+      (progn
+        (ad-disable-advice
+         'god-mode-lookup-command
+         'before 'which-key--god-mode-lookup-command-advice)
+        (ad-disable-advice
+         'god-mode-self-insert
+         'after 'which-key--god-mode-self-insert-advice))
+    (ad-enable-advice
+     'god-mode-lookup-command
+     'before 'which-key--god-mode-lookup-command-advice)
+    (ad-enable-advice
+     'god-mode-self-insert
+     'after 'which-key--god-mode-self-insert-advice))
+  (ad-activate 'god-mode-lookup-command)
+  (ad-activate 'god-mode-self-insert))
 
 ;;;###autoload
 (define-minor-mode which-key-mode
@@ -2058,6 +2102,11 @@ Finally, show the buffer."
               (error (progn
                        (message "which-key error in key-chord handling")
                        [key-chord])))))
+    (when (and which-key--god-mode-support-enabled
+               (bound-and-true-p god-local-mode)
+               (eq this-command 'god-mode-self-insert))
+      (setq prefix-keys (when which-key--god-mode-key-string
+                          (kbd which-key--god-mode-key-string))))
     (cond ((and (> (length prefix-keys) 0)
                 (or (keymapp (key-binding prefix-keys))
                     ;; Some keymaps are stored here like iso-transl-ctl-x-8-map
@@ -2071,6 +2120,9 @@ Finally, show the buffer."
                 ;; executed
                 (or (and which-key-allow-evil-operators
                          (bound-and-true-p evil-this-operator))
+                    (and which-key--god-mode-support-enabled
+                         (bound-and-true-p god-local-mode)
+                         (eq this-command 'god-mode-self-insert))
                     (null this-command)))
            (which-key--create-buffer-and-show prefix-keys)
            (when which-key-idle-secondary-delay
