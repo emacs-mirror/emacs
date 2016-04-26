@@ -67,7 +67,11 @@ this behavior."
   :group 'which-key
   :type 'float)
 
-(defcustom which-key-echo-keystrokes 0
+(defcustom which-key-echo-keystrokes (if (and echo-keystrokes
+                                              (> echo-keystrokes
+                                                 which-key-idle-delay))
+                                         (/ (float which-key-idle-delay) 4)
+                                       echo-keystrokes)
   "Value to use for `echo-keystrokes'.
 This only applies if `which-key-popup-type' is minibuffer or
 `which-key-show-prefix' is echo. It needs to be less than
@@ -556,7 +560,7 @@ alongside the actual current key sequence when
 
 (defun which-key--setup ()
   "Initial setup for which-key.
-Reduce `echo-keystrokes' if necessary (it will interfer if it's
+Reduce `echo-keystrokes' if necessary (it will interfere if it's
 set too high) and setup which-key buffer."
   (when (or (eq which-key-show-prefix 'echo)
             (eq which-key-popup-type 'minibuffer))
@@ -567,7 +571,7 @@ set too high) and setup which-key buffer."
   (setq which-key--is-setup t))
 
 (defun which-key--setup-echo-keystrokes ()
-  "Reduce `echo-keystrokes' if necessary (it will interfer if
+  "Reduce `echo-keystrokes' if necessary (it will interfere if
 it's set too high)."
   (let (;(previous echo-keystrokes)
         )
