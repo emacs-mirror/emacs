@@ -523,11 +523,13 @@ so you need to explicitly opt-in for now. Please report any
 problems at github. If DISABLE is non-nil disable support."
   (interactive "P")
   (setq which-key--god-mode-support-enabled (null disable))
+  (ad-deactivate 'god-mode-lookup-command)
   (if disable
       (ad-disable-advice 'god-mode-lookup-command
                          'before 'which-key--god-mode-advice)
     (ad-enable-advice 'god-mode-lookup-command
-                      'before 'which-key--god-mode-advice)))
+                      'before 'which-key--god-mode-advice))
+  (ad-activate 'god-mode-lookup-command))
 
 ;;;###autoload
 (define-minor-mode which-key-mode
@@ -2085,7 +2087,8 @@ Finally, show the buffer."
     (when (and which-key--god-mode-support-enabled
                (bound-and-true-p god-local-mode)
                (eq this-command 'god-mode-self-insert))
-      (setq prefix-keys (kbd which-key--god-mode-key-string)))
+      (setq prefix-keys (when which-key--god-mode-key-string
+                          (kbd which-key--god-mode-key-string))))
     (cond ((and (> (length prefix-keys) 0)
                 (or (keymapp (key-binding prefix-keys))
                     ;; Some keymaps are stored here like iso-transl-ctl-x-8-map
