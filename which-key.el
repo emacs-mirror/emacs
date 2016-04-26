@@ -501,6 +501,30 @@ sequence. prefix-title is a string. The title is displayed
 alongside the actual current key sequence when
 `which-key-show-prefix' is set to either top or echo.")
 
+;; God-mode
+(defvar which-key--god-mode-support-enabled nil
+  "Support god-mode if non-nil. This is experimental,
+so you need to explicitly opt-in for now. Please report any
+problems at github.")
+
+(defvar which-key--god-mode-key-string nil
+  "Holds key string to use for god-mode support.")
+
+(defadvice god-mode-lookup-command (before which-key--god-mode-advice disable)
+  (setq which-key--god-mode-key-string (ad-get-arg 0)))
+
+(defun which-key-enable-god-mode-support (&optional disable)
+  "Enable support for god-mode if non-nil. This is experimental,
+so you need to explicitly opt-in for now. Please report any
+problems at github. If DISABLE is non-nil disable support."
+  (interactive "P")
+  (setq which-key--god-mode-support-enabled (null disable))
+  (if disable
+      (ad-disable-advice 'god-mode-lookup-command
+                         'before 'which-key--god-mode-advice)
+    (ad-enable-advice 'god-mode-lookup-command
+                      'before 'which-key--god-mode-advice)))
+
 ;;;###autoload
 (define-minor-mode which-key-mode
   "Toggle which-key-mode."
@@ -2054,6 +2078,10 @@ Finally, show the buffer."
               (error (progn
                        (message "which-key error in key-chord handling")
                        [key-chord])))))
+    (when (and which-key--god-mode-support-enabled
+               (bound-and-true-p god-local-mode)
+               (eq this-command 'god-mode-self-insert))
+      (setq prefix-keys (kbd which-key--god-mode-key-string)))
     (cond ((and (> (length prefix-keys) 0)
                 (or (keymapp (key-binding prefix-keys))
                     ;; Some keymaps are stored here like iso-transl-ctl-x-8-map
@@ -2067,6 +2095,9 @@ Finally, show the buffer."
                 ;; executed
                 (or (and which-key-allow-evil-operators
                          (bound-and-true-p evil-this-operator))
+                    (and which-key--god-mode-support-enabled
+                         (bound-and-true-p god-local-mode)
+                         (eq this-command 'god-mode-self-insert))
                     (null this-command)))
            (which-key--create-buffer-and-show prefix-keys)
            (when which-key-idle-secondary-delay
