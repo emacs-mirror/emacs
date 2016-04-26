@@ -514,8 +514,13 @@ problems at github.")
 (defvar which-key--god-mode-key-string nil
   "Holds key string to use for god-mode support.")
 
-(defadvice god-mode-lookup-command (before which-key--god-mode-advice disable)
+(defadvice god-mode-lookup-command
+    (before which-key--god-mode-lookup-command-advice disable)
   (setq which-key--god-mode-key-string (ad-get-arg 0)))
+
+(defadvice god-mode-self-insert
+    (after which-key--god-mode-self-insert-advice disable)
+  (which-key--hide-popup))
 
 (defun which-key-enable-god-mode-support (&optional disable)
   "Enable support for god-mode if non-nil. This is experimental,
@@ -523,13 +528,22 @@ so you need to explicitly opt-in for now. Please report any
 problems at github. If DISABLE is non-nil disable support."
   (interactive "P")
   (setq which-key--god-mode-support-enabled (null disable))
-  (ad-deactivate 'god-mode-lookup-command)
   (if disable
-      (ad-disable-advice 'god-mode-lookup-command
-                         'before 'which-key--god-mode-advice)
-    (ad-enable-advice 'god-mode-lookup-command
-                      'before 'which-key--god-mode-advice))
-  (ad-activate 'god-mode-lookup-command))
+      (progn
+        (ad-disable-advice
+         'god-mode-lookup-command
+         'before 'which-key--god-mode-lookup-command-advice)
+        (ad-disable-advice
+         'god-mode-self-insert
+         'after 'which-key--god-mode-self-insert-advice))
+    (ad-enable-advice
+     'god-mode-lookup-command
+     'before 'which-key--god-mode-lookup-command-advice)
+    (ad-enable-advice
+     'god-mode-self-insert
+     'after 'which-key--god-mode-self-insert-advice))
+  (ad-activate 'god-mode-lookup-command)
+  (ad-activate 'god-mode-self-insert))
 
 ;;;###autoload
 (define-minor-mode which-key-mode
