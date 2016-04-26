@@ -326,21 +326,6 @@ prefixes in `which-key-paging-prefixes'"
                         "No longer applies. See `which-key-C-h-dispatch'"
                         "2015-12-2")
 
-(defcustom which-key-allow-evil-operators (boundp 'evil-this-operator)
-  "Allow popup to show for evil operators. The popup is normally
-  inhibited in the middle of commands, but setting this to
-  non-nil will override this behavior for evil operators."
-  :group 'which-key
-  :type 'boolean)
-
-(defcustom which-key-show-operator-state-maps nil
-  "Experimental: Try to show the right keys following an evil
-command that reads a motion, such as \"y\", \"d\" and \"c\" from
-normal state. This is experimental, because there might be some
-valid keys missing and it might be showing some invalid keys."
-  :group 'which-key
-  :type 'boolean)
-
 (defcustom which-key-hide-alt-key-translations t
   "Hide key translations using Alt key if non nil.
 These translations are not relevant most of the times since a lot
@@ -500,6 +485,25 @@ key-sequence is a sequence of the sort produced by applying
 sequence. prefix-title is a string. The title is displayed
 alongside the actual current key sequence when
 `which-key-show-prefix' is set to either top or echo.")
+
+
+;; Third-party library support
+
+;; Evil
+(defcustom which-key-allow-evil-operators (boundp 'evil-this-operator)
+  "Allow popup to show for evil operators. The popup is normally
+  inhibited in the middle of commands, but setting this to
+  non-nil will override this behavior for evil operators."
+  :group 'which-key
+  :type 'boolean)
+
+(defcustom which-key-show-operator-state-maps nil
+  "Experimental: Try to show the right keys following an evil
+command that reads a motion, such as \"y\", \"d\" and \"c\" from
+normal state. This is experimental, because there might be some
+valid keys missing and it might be showing some invalid keys."
+  :group 'which-key
+  :type 'boolean)
 
 ;; God-mode
 (defvar which-key--god-mode-support-enabled nil
