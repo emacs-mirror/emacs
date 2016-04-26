@@ -13,7 +13,6 @@ to a certain extent.
 
 ** Table of Contents                                                 :TOC@4:
  - [[#which-key-][which-key ]]
-   - [[#whats-new][What's New]]
    - [[#introduction][Introduction]]
    - [[#install][Install]]
      - [[#melpa][MELPA]]
@@ -39,6 +38,10 @@ to a certain extent.
        - [[#method-2-bind-your-own-keys][Method 2: Bind your own keys]]
      - [[#face-customization-options][Face Customization Options]]
      - [[#other-options][Other Options]]
+   - [[#support-for-third-party-libraries][Support for Third-Party Libraries]]
+     - [[#key-chord][Key-chord]]
+     - [[#evil-operators][Evil operators]]
+     - [[#god-mode][God-mode]]
    - [[#more-examples][More Examples]]
      - [[#nice-display-with-split-frame][Nice Display with Split Frame]]
    - [[#status][Status]]
@@ -52,7 +55,6 @@ minor mode of course.
 
 *** Manually
 Add which-key.el to your =load-path= and require. Something like 
-
 #+BEGIN_SRC emacs-lisp
 (add-to-list 'load-path "path/to/which-key.el")
 (require 'which-key)
@@ -434,6 +436,24 @@ shown.
   ;; Set to t to show the count of keys shown vs. total keys in the mode line.
   (setq which-key-show-remaining-keys nil)
 #+END_SRC
+** Support for Third-Party Libraries
+   Some support is provided for third-party libraries which don't use standard
+   methods of looking up commands. Some of these need to be enabled
+   explicitly. This code includes some hacks, so please report any problems.
+*** Key-chord
+    Enabled by default.
+*** Evil operators
+    Evil motions and text objects following an operator like =d= are not all
+    looked up in a standard way. Support is controlled through
+    =which-key-allow-evil-operators= which should be non-nil if evil is loaded
+    before which-key and through =which-key-show-operator-state-maps= which
+    needs to be enabled explicitly because it is more of a hack. The former
+    allows for the inner and outer text object maps to show, while the latter
+    shows motions as well. 
+*** God-mode
+    Call =(which-key-enable-god-mode-support)= after loading god-mode to enable
+    support for god-mode key sequences. This is new and experimental, so please
+    report any issues.
 ** More Examples
 *** Nice Display with Split Frame
 Unlike guide-key, which-key looks good even if the frame is split into several
