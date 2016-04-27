@@ -197,7 +197,7 @@ static void AMCSegSketch(Seg seg, char *pbSketch, size_t cbSketch)
     pbSketch[2] = 'W';  /* White */
   }
 
-  if (!SegGetBuffer(&buffer, seg)) {
+  if (!SegBuffer(&buffer, seg)) {
     pbSketch[3] = '_';
   } else {
     Bool mut = BufferIsMutator(buffer);
@@ -284,7 +284,7 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
   if(res != ResOK)
     return res;
 
-  if (SegGetBuffer(&buffer, seg))
+  if (SegBuffer(&buffer, seg))
     init = BufferGetInit(buffer);
   else
     init = limit;
@@ -1111,7 +1111,7 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
 
   AVERT(Trace, trace);
 
-  if (SegGetBuffer(&buffer, seg)) {
+  if (SegBuffer(&buffer, seg)) {
     AVERT(Buffer, buffer);
 
     if(!BufferIsMutator(buffer)) {      /* forwarding buffer */
@@ -1269,7 +1269,7 @@ static Res amcScanNailedOnce(Bool *totalReturn, Bool *moreReturn,
   NailboardClearNewNails(board);
 
   p = SegBase(seg);
-  while (SegGetBuffer(&buffer, seg)) {
+  while (SegBuffer(&buffer, seg)) {
     limit = BufferScanLimit(buffer);
     if(p >= limit) {
       AVER(p == limit);
@@ -1370,7 +1370,7 @@ static Res AMCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 
   base = AddrAdd(SegBase(seg), format->headerSize);
   /* <design/poolamc/#seg-scan.loop> */
-  while (SegGetBuffer(&buffer, seg)) {
+  while (SegBuffer(&buffer, seg)) {
     limit = AddrAdd(BufferScanLimit(buffer),
                     format->headerSize);
     if(base >= limit) {
@@ -1907,7 +1907,7 @@ static Res AMCAddrObject(Addr *pReturn, Pool pool, Seg seg, Addr addr)
 
   arena = PoolArena(pool);
   base = SegBase(seg);
-  if (SegGetBuffer(&buffer, seg)) {
+  if (SegBuffer(&buffer, seg)) {
     /* We use BufferGetInit here (and not BufferScanLimit) because we
      * want to be able to find objects that have been allocated and
      * committed since the last flip. These objects lie between the

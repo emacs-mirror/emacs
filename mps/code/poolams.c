@@ -543,7 +543,7 @@ static Res AMSSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
   if (res != ResOK)
     return res;
 
-  hasBuffer = SegGetBuffer(&buffer, seg);
+  hasBuffer = SegBuffer(&buffer, seg);
 
   res = WriteF(stream, depth,
                "  AMS $P\n", (WriteFP)amsseg->ams,
@@ -1143,7 +1143,7 @@ static Res AMSWhiten(Pool pool, Trace trace, Seg seg)
     amsseg->allocTableInUse = TRUE;
   }
 
-  if (SegGetBuffer(&buffer, seg)) { /* <design/poolams/#condemn.buffer> */
+  if (SegBuffer(&buffer, seg)) { /* <design/poolams/#condemn.buffer> */
     Index scanLimitIndex, limitIndex;
     scanLimitIndex = AMS_ADDR_INDEX(seg, BufferScanLimit(buffer));
     limitIndex = AMS_ADDR_INDEX(seg, BufferLimit(buffer));
@@ -1230,7 +1230,7 @@ static Res amsIterate(Seg seg, AMSObjectFunction f, void *closure)
 
   p = SegBase(seg);
   limit = SegLimit(seg);
-  hasBuffer = SegGetBuffer(&buffer, seg);
+  hasBuffer = SegBuffer(&buffer, seg);
 
   while (p < limit) { /* loop over the objects in the segment */
     if (hasBuffer && p == BufferScanLimit(buffer) && p != BufferLimit(buffer)) {
