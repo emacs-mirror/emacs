@@ -616,8 +616,11 @@ line.  If a function returns a non-@code{nil} value, Emacs will not
 break the line there.  Functions you can use there include:
 @code{fill-single-word-nobreak-p} (don't break after the first word of
 a sentence or before the last); @code{fill-single-char-nobreak-p}
-(don't break after a one-letter word); and @code{fill-french-nobreak-p}
-(don't break after @samp{(} or before @samp{)}, @samp{:} or @samp{?}).
+(don't break after a one-letter word preceded by a whitespace
+character); @code{fill-french-nobreak-p} (don't break after @samp{(}
+or before @samp{)}, @samp{:} or @samp{?}); and
+@code{fill-polish-nobreak-p} (don't break after a one letter word,
+even if preceded by a non-whitespace character).
 
 @node Fill Prefix
 @subsection The Fill Prefix

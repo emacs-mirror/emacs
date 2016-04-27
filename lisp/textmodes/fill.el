@@ -338,6 +338,18 @@ places."
 	      (and (memq (preceding-char) '(?\t ?\s))
 		   (eq (char-syntax (following-char)) ?w)))))))
 
+(defun fill-polish-nobreak-p ()
+  "Return nil if Polish style allows breaking the line at point.
+This function may be used in the `fill-nobreak-predicate' hook.
+It is almost the same as `fill-single-char-nobreak-p', with the
+exception that it does not require the one-letter word to be
+preceded by a space.  This blocks line-breaking in cases like
+\"(a jednak)\"."
+  (save-excursion
+    (skip-chars-backward " \t")
+    (backward-char 2)
+    (looking-at "[^[:alpha:]]\\cl")))
+
 (defun fill-single-char-nobreak-p ()
   "Return non-nil if a one-letter word is before point.
 This function is suitable for adding to the hook `fill-nobreak-predicate',

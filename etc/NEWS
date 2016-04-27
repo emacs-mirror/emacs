@@ -468,6 +468,11 @@ current buffer with the contents of the accessible portion of a
 different buffer while keeping point, mark, markers, and text
 properties as intact as possible.
 
++++
+** New function 'fill-polish-nobreak-p', to be used in 'fill-nobreak-predicate'.
+It blocks line breaking after a one-letter word, also in the case when
+this word is preceded by a non-space, but non-alphanumeric character.
+
 
 * Changes in Specialized Modes and Packages in Emacs 26.1
 
