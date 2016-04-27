@@ -568,7 +568,7 @@ static Res SNCFramePop(Pool pool, Buffer buf, AllocFrame frame)
     AVER(foundSeg);
     AVER(SegPool(seg) == pool);
 
-    if (SegGetBuffer(&segBuf, seg) && segBuf == buf) {
+    if (SegBuffer(&segBuf, seg) && segBuf == buf) {
       /* don't need to change the segment - just the alloc pointers */
       AVER(addr <= BufferScanLimit(buf));  /* check direction of pop */
       BufferSetAllocAddr(buf, addr);
