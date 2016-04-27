@@ -514,10 +514,9 @@ failCreateTablesLo:
 
 /* AMSSegDescribe -- describe an AMS segment */
 
-#define WRITE_BUFFER_LIMIT(stream, seg, i, buffer, accessor, code) \
+#define WRITE_BUFFER_LIMIT(i, accessor, code) \
   BEGIN \
-    if ((buffer) != NULL \
-       && (i) == AMS_ADDR_INDEX(seg, accessor(buffer))) { \
+  if (hasBuffer && (i) == AMS_ADDR_INDEX(seg, accessor(buffer))) { \
       Res _res = WriteF(stream, 0, code, NULL); \
       if (_res != ResOK) return _res; \
     } \
@@ -527,7 +526,8 @@ static Res AMSSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
 {
   Res res;
   AMSSeg amsseg;
-  Buffer buffer;               /* the segment's buffer, if it has one */
+  Buffer buffer;
+  Bool hasBuffer;
   Index i;
 
   if (!TESTT(Seg, seg))
@@ -543,7 +543,7 @@ static Res AMSSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
   if (res != ResOK)
     return res;
 
-  buffer = SegBuffer(seg);
+  hasBuffer = SegGetBuffer(&buffer, seg);
 
   res = WriteF(stream, depth,
                "  AMS $P\n", (WriteFP)amsseg->ams,
@@ -586,9 +586,9 @@ static Res AMSSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
         return res;
     }
 
-    WRITE_BUFFER_LIMIT(stream, seg, i, buffer, BufferBase, "[");
-    WRITE_BUFFER_LIMIT(stream, seg, i, buffer, BufferGetInit, "|");
-    WRITE_BUFFER_LIMIT(stream, seg, i, buffer, BufferAlloc, ">");
+    WRITE_BUFFER_LIMIT(i, BufferBase,    "[");
+    WRITE_BUFFER_LIMIT(i, BufferGetInit, "|");
+    WRITE_BUFFER_LIMIT(i, BufferAlloc,   ">");
 
     if (AMS_ALLOCED(seg, i)) {
       if (amsseg->colourTablesInUse) {
@@ -608,8 +608,8 @@ static Res AMSSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
     if (res != ResOK)
       return res;
 
-    WRITE_BUFFER_LIMIT(stream, seg, i+1, buffer, BufferScanLimit, "<");
-    WRITE_BUFFER_LIMIT(stream, seg, i+1, buffer, BufferLimit, "]");
+    WRITE_BUFFER_LIMIT(i+1, BufferScanLimit, "<");
+    WRITE_BUFFER_LIMIT(i+1, BufferLimit,     "]");
   }
 
   return ResOK;
@@ -733,7 +733,7 @@ static void AMSSegsDestroy(AMS ams)
   RING_FOR(node, ring, next) {
     Seg seg = SegOfPoolRing(node);
     AMSSeg amsseg = Seg2AMSSeg(seg);
-    AVER(SegBuffer(seg) == NULL);
+    AVER(!SegHasBuffer(seg));
     AVERT(AMSSeg, amsseg);
     AVER(amsseg->ams == ams);
     AVER(amsseg->bufferedGrains == 0);
@@ -1143,8 +1143,7 @@ static Res AMSWhiten(Pool pool, Trace trace, Seg seg)
     amsseg->allocTableInUse = TRUE;
   }
 
-  buffer = SegBuffer(seg);
-  if (buffer != NULL) { /* <design/poolams/#condemn.buffer> */
+  if (SegGetBuffer(&buffer, seg)) { /* <design/poolams/#condemn.buffer> */
     Index scanLimitIndex, limitIndex;
     scanLimitIndex = AMS_ADDR_INDEX(seg, BufferScanLimit(buffer));
     limitIndex = AMS_ADDR_INDEX(seg, BufferLimit(buffer));
@@ -1211,6 +1210,7 @@ static Res amsIterate(Seg seg, AMSObjectFunction f, void *closure)
   Index i;
   Addr p, next, limit;
   Buffer buffer;
+  Bool hasBuffer;
 
   AVERT(Seg, seg);
   AVERT(AMSObjectFunction, f);
@@ -1230,16 +1230,15 @@ static Res amsIterate(Seg seg, AMSObjectFunction f, void *closure)
 
   p = SegBase(seg);
   limit = SegLimit(seg);
-  buffer = SegBuffer(seg);
+  hasBuffer = SegGetBuffer(&buffer, seg);
 
   while (p < limit) { /* loop over the objects in the segment */
-    if (buffer != NULL
-        && p == BufferScanLimit(buffer) && p != BufferLimit(buffer)) {
+    if (hasBuffer && p == BufferScanLimit(buffer) && p != BufferLimit(buffer)) {
       /* skip buffer */
       next = BufferLimit(buffer);
       AVER(AddrIsAligned(next, alignment));
     } else {
-      AVER((buffer == NULL)
+      AVER(!hasBuffer
            || (p < BufferScanLimit(buffer))
            || (p >= BufferLimit(buffer)));  /* not in the buffer */
 

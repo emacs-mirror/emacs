@@ -672,6 +672,7 @@ extern Res SegSplit(Seg *segLoReturn, Seg *segHiReturn, Seg seg, Addr at);
 extern Res SegDescribe(Seg seg, mps_lib_FILE *stream, Count depth);
 extern void SegSetSummary(Seg seg, RefSet summary);
 extern Bool SegHasBuffer(Seg seg);
+extern Bool SegGetBuffer(Buffer *bufferReturn, Seg seg);
 extern Buffer SegBuffer(Seg seg);
 extern void SegSetBuffer(Seg seg, Buffer buffer);
 extern Addr SegBufferScanLimit(Seg seg);
