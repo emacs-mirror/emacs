@@ -722,8 +722,8 @@ DEFINE_CLASS(Pool, MVFFPool, klass)
 {
   INHERIT_CLASS(klass, MVFFPool, AbstractPool);
   PoolClassMixInBuffer(klass);
-  klass->protocol.describe = MVFFDescribe;
-  klass->protocol.finish = MVFFFinish;
+  klass->instClassStruct.describe = MVFFDescribe;
+  klass->instClassStruct.finish = MVFFFinish;
   klass->size = sizeof(MVFFStruct);
   klass->varargs = MVFFVarargs;
   klass->init = MVFFInit;

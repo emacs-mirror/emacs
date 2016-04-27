@@ -650,7 +650,7 @@ static void AMSTStressBufferedSeg(Seg seg, Buffer buffer)
 DEFINE_CLASS(Pool, AMSTPool, klass)
 {
   INHERIT_CLASS(klass, AMSTPool, AMSPool);
-  klass->protocol.finish = AMSTFinish;
+  klass->instClassStruct.finish = AMSTFinish;
   klass->size = sizeof(AMSTStruct);
   klass->init = AMSTInit;
   klass->bufferFill = AMSTBufferFill;

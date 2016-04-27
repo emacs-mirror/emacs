@@ -1135,8 +1135,8 @@ static Res cbsDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 DEFINE_CLASS(Land, CBS, klass)
 {
   INHERIT_CLASS(klass, CBS, Land);
-  klass->protocol.describe = cbsDescribe;
-  klass->protocol.finish = cbsFinish;
+  klass->instClassStruct.describe = cbsDescribe;
+  klass->instClassStruct.finish = cbsFinish;
   klass->size = sizeof(CBSStruct);
   klass->init = cbsInit;
   klass->sizeMethod = cbsSize;

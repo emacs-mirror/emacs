@@ -1196,7 +1196,7 @@ mps_res_t mps_arena_vm_growth(mps_arena_t mps_arena,
 DEFINE_CLASS(Arena, VMArena, klass)
 {
   INHERIT_CLASS(klass, VMArena, AbstractArena);
-  klass->protocol.describe = VMArenaDescribe;
+  klass->instClassStruct.describe = VMArenaDescribe;
   klass->size = sizeof(VMArenaStruct);
   klass->varargs = VMArenaVarargs;
   klass->create = VMArenaCreate;
