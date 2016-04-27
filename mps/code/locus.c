@@ -270,7 +270,7 @@ Res ChainCreate(Chain *chainReturn, Arena arena, size_t genCount,
   gens = (GenDescStruct *)p;
 
   for (i = 0; i < genCount; ++i)
-    GenDescInit(&gens[i], params);
+    GenDescInit(&gens[i], &params[i]);
 
   res = ControlAlloc(&p, arena, sizeof(ChainStruct));
   if (res != ResOK)
