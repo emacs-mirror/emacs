@@ -523,7 +523,7 @@ static void AMCBufFinish(Inst inst)
 DEFINE_CLASS(Buffer, amcBuf, klass)
 {
   INHERIT_CLASS(klass, amcBuf, SegBuf);
-  klass->protocol.finish = AMCBufFinish;
+  klass->instClassStruct.finish = AMCBufFinish;
   klass->size = sizeof(amcBufStruct);
   klass->init = AMCBufInit;
 }
@@ -2025,8 +2025,8 @@ DEFINE_CLASS(Pool, AMCZPool, klass)
   INHERIT_CLASS(klass, AMCZPool, AbstractSegBufPool);
   PoolClassMixInFormat(klass);
   PoolClassMixInCollect(klass);
-  klass->protocol.describe = AMCDescribe;
-  klass->protocol.finish = AMCFinish;
+  klass->instClassStruct.describe = AMCDescribe;
+  klass->instClassStruct.finish = AMCFinish;
   klass->size = sizeof(AMCStruct);
   klass->attr |= AttrMOVINGGC;
   klass->varargs = AMCVarargs;

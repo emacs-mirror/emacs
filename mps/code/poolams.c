@@ -1743,8 +1743,8 @@ DEFINE_CLASS(Pool, AMSPool, klass)
 {
   INHERIT_CLASS(klass, AMSPool, AbstractCollectPool);
   PoolClassMixInFormat(klass);
-  klass->protocol.describe = AMSDescribe;
-  klass->protocol.finish = AMSFinish;
+  klass->instClassStruct.describe = AMSDescribe;
+  klass->instClassStruct.finish = AMSFinish;
   klass->size = sizeof(AMSStruct);
   klass->varargs = AMSVarargs;
   klass->init = AMSInit;

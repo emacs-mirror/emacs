@@ -442,7 +442,7 @@ Bool LandFlush(Land dest, Land src)
 
 Bool LandClassCheck(LandClass klass)
 {
-  CHECKL(InstClassCheck(&klass->protocol));
+  CHECKL(InstClassCheck(&klass->instClassStruct));
   CHECKL(klass->size >= sizeof(LandStruct));
   CHECKL(FUNCHECK(klass->init));
   CHECKL(FUNCHECK(klass->insert));
@@ -574,9 +574,9 @@ DEFINE_CLASS(Inst, LandClass, klass)
 
 DEFINE_CLASS(Land, Land, klass)
 {
-  INHERIT_CLASS(&klass->protocol, Land, Inst);
-  klass->protocol.describe = LandAbsDescribe;
-  klass->protocol.finish = LandAbsFinish;
+  INHERIT_CLASS(&klass->instClassStruct, Land, Inst);
+  klass->instClassStruct.describe = LandAbsDescribe;
+  klass->instClassStruct.finish = LandAbsFinish;
   klass->size = sizeof(LandStruct);
   klass->init = LandAbsInit;
   klass->sizeMethod = landNoSize;

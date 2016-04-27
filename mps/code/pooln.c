@@ -257,8 +257,8 @@ static void NTraceEnd(Pool pool, Trace trace)
 DEFINE_CLASS(Pool, NPool, klass)
 {
   INHERIT_CLASS(klass, NPool, AbstractPool);
-  klass->protocol.describe = NDescribe;
-  klass->protocol.finish = NFinish;
+  klass->instClassStruct.describe = NDescribe;
+  klass->instClassStruct.finish = NFinish;
   klass->size = sizeof(PoolNStruct);
   klass->attr |= AttrGC;
   klass->init = NInit;

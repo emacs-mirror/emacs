@@ -158,7 +158,7 @@ static void SNCBufFinish(Inst inst)
 DEFINE_CLASS(Buffer, SNCBuf, klass)
 {
   INHERIT_CLASS(klass, SNCBuf, RankBuf);
-  klass->protocol.finish = SNCBufFinish;
+  klass->instClassStruct.finish = SNCBufFinish;
   klass->size = sizeof(SNCBufStruct);
   klass->init = SNCBufInit;
 }
@@ -668,7 +668,7 @@ DEFINE_CLASS(Pool, SNCPool, klass)
 {
   INHERIT_CLASS(klass, SNCPool, AbstractScanPool);
   PoolClassMixInFormat(klass);
-  klass->protocol.finish = SNCFinish;
+  klass->instClassStruct.finish = SNCFinish;
   klass->size = sizeof(SNCStruct);
   klass->varargs = SNCVarargs;
   klass->init = SNCInit;
