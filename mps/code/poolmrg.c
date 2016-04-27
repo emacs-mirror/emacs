@@ -842,8 +842,8 @@ static Res MRGScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 DEFINE_CLASS(Pool, MRGPool, klass)
 {
   INHERIT_CLASS(klass, MRGPool, AbstractPool);
-  klass->protocol.describe = MRGDescribe;
-  klass->protocol.finish = MRGFinish;
+  klass->instClassStruct.describe = MRGDescribe;
+  klass->instClassStruct.finish = MRGFinish;
   klass->size = sizeof(MRGStruct);
   klass->init = MRGInit;
   klass->grey = PoolTrivGrey;

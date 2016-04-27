@@ -49,7 +49,7 @@
 #define PoolClassSig    ((Sig)0x519C7A55) /* SIGnature pool CLASS */
 
 typedef struct mps_pool_class_s {
-  InstClassStruct protocol;
+  InstClassStruct instClassStruct;
   size_t size;                  /* size of outer structure */
   Attr attr;                    /* attributes */
   PoolVarargsMethod varargs;    /* convert deprecated varargs into keywords */
@@ -301,7 +301,7 @@ typedef struct LocusPrefStruct { /* locus placement preferences */
 #define BufferClassSig    ((Sig)0x519B0FC7) /* SIGnature BUFfer CLass */
 
 typedef struct BufferClassStruct {
-  InstClassStruct protocol;
+  InstClassStruct instClassStruct;
   size_t size;                  /* size of outer structure */
   BufferVarargsMethod varargs;  /* parse obsolete varargs */
   BufferInitMethod init;        /* initialize the buffer */
@@ -490,7 +490,7 @@ typedef struct TraceStruct {
 #define ArenaClassSig   ((Sig)0x519A6C1A) /* SIGnature ARena CLAss */
 
 typedef struct mps_arena_class_s {
-  InstClassStruct protocol;
+  InstClassStruct instClassStruct;
   size_t size;                  /* size of outer structure */
   ArenaVarargsMethod varargs;
   ArenaInitMethod init;
@@ -567,7 +567,7 @@ typedef struct GlobalsStruct {
 #define LandClassSig    ((Sig)0x5197A4DC) /* SIGnature LAND Class */
 
 typedef struct LandClassStruct {
-  InstClassStruct protocol;
+  InstClassStruct instClassStruct;
   size_t size;                  /* size of outer structure */
   LandSizeMethod sizeMethod;    /* total size of ranges in land */
   LandInitMethod init;          /* initialize the land */

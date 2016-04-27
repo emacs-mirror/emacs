@@ -339,8 +339,8 @@ static Res MFSDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 DEFINE_CLASS(Pool, MFSPool, klass)
 {
   INHERIT_CLASS(klass, MFSPool, AbstractPool);
-  klass->protocol.describe = MFSDescribe;
-  klass->protocol.finish = MFSFinish;
+  klass->instClassStruct.describe = MFSDescribe;
+  klass->instClassStruct.finish = MFSFinish;
   klass->size = sizeof(MFSStruct);
   klass->varargs = MFSVarargs;
   klass->init = MFSInit;

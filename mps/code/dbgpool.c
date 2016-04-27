@@ -776,7 +776,7 @@ void DebugPoolCheckFreeSpace(Pool pool)
 void PoolClassMixInDebug(PoolClass klass)
 {
   /* Can't check klass because it's not initialized yet */
-  klass->protocol.finish = DebugPoolFinish;
+  klass->instClassStruct.finish = DebugPoolFinish;
   klass->init = DebugPoolInit;
   klass->alloc = DebugPoolAlloc;
   klass->free = DebugPoolFree;

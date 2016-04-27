@@ -864,8 +864,8 @@ static Res MVDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 DEFINE_CLASS(Pool, MVPool, klass)
 {
   INHERIT_CLASS(klass, MVPool, AbstractBufferPool);
-  klass->protocol.describe = MVDescribe;
-  klass->protocol.finish = MVFinish;
+  klass->instClassStruct.describe = MVDescribe;
+  klass->instClassStruct.finish = MVFinish;
   klass->size = sizeof(MVStruct);
   klass->varargs = MVVarargs;
   klass->init = MVInit;

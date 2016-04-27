@@ -186,9 +186,9 @@ DEFINE_CLASS(Inst, PoolClass, klass)
 
 DEFINE_CLASS(Pool, AbstractPool, klass)
 {
-  INHERIT_CLASS(&klass->protocol, AbstractPool, Inst);
-  klass->protocol.describe = PoolAbsDescribe;
-  klass->protocol.finish = PoolAbsFinish;
+  INHERIT_CLASS(&klass->instClassStruct, AbstractPool, Inst);
+  klass->instClassStruct.describe = PoolAbsDescribe;
+  klass->instClassStruct.finish = PoolAbsFinish;
   klass->size = sizeof(PoolStruct);
   klass->attr = 0;
   klass->varargs = ArgTrivVarargs;

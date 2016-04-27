@@ -1217,7 +1217,7 @@ DEFINE_CLASS(Pool, AWLPool, klass)
 {
   INHERIT_CLASS(klass, AWLPool, AbstractCollectPool);
   PoolClassMixInFormat(klass);
-  klass->protocol.finish = AWLFinish;
+  klass->instClassStruct.finish = AWLFinish;
   klass->size = sizeof(AWLPoolStruct);
   klass->varargs = AWLVarargs;
   klass->init = AWLInit;

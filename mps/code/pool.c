@@ -37,7 +37,7 @@ SRCID(pool, "$Id$");
 
 Bool PoolClassCheck(PoolClass klass)
 {
-  CHECKD(InstClass, &klass->protocol);
+  CHECKD(InstClass, &klass->instClassStruct);
   CHECKL(klass->size >= sizeof(PoolStruct));
   CHECKL(AttrCheck(klass->attr));
   CHECKL(!(klass->attr & AttrMOVINGGC) || (klass->attr & AttrGC));
@@ -70,7 +70,7 @@ Bool PoolClassCheck(PoolClass klass)
 
   /* Check that pool classes overide sets of related methods. */
   CHECKL((klass->init == PoolAbsInit) ==
-         (klass->protocol.finish == PoolAbsFinish));
+         (klass->instClassStruct.finish == PoolAbsFinish));
   CHECKL((klass->bufferFill == PoolNoBufferFill) ==
          (klass->bufferEmpty == PoolNoBufferEmpty));
   CHECKL((klass->framePush == PoolNoFramePush) ==

@@ -139,8 +139,8 @@ typedef struct MVTStruct
 DEFINE_CLASS(Pool, MVTPool, klass)
 {
   INHERIT_CLASS(klass, MVTPool, AbstractBufferPool);
-  klass->protocol.describe = MVTDescribe;
-  klass->protocol.finish = MVTFinish;
+  klass->instClassStruct.describe = MVTDescribe;
+  klass->instClassStruct.finish = MVTFinish;
   klass->size = sizeof(MVTStruct);
   klass->varargs = MVTVarargs;
   klass->init = MVTInit;

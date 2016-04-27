@@ -1004,7 +1004,7 @@ static void bufferNoReassignSeg(Buffer buffer, Seg seg)
 
 Bool BufferClassCheck(BufferClass klass)
 {
-  CHECKD(InstClass, &klass->protocol);
+  CHECKD(InstClass, &klass->instClassStruct);
   CHECKL(klass->size >= sizeof(BufferStruct));
   CHECKL(FUNCHECK(klass->varargs));
   CHECKL(FUNCHECK(klass->init));
@@ -1030,9 +1030,9 @@ DEFINE_CLASS(Inst, BufferClass, klass)
 
 DEFINE_CLASS(Buffer, Buffer, klass)
 {
-  INHERIT_CLASS(&klass->protocol, Buffer, Inst);
-  klass->protocol.finish = BufferAbsFinish;
-  klass->protocol.describe = BufferAbsDescribe;
+  INHERIT_CLASS(&klass->instClassStruct, Buffer, Inst);
+  klass->instClassStruct.finish = BufferAbsFinish;
+  klass->instClassStruct.describe = BufferAbsDescribe;
   klass->size = sizeof(BufferStruct);
   klass->varargs = ArgTrivVarargs;
   klass->init = BufferAbsInit;
@@ -1241,8 +1241,8 @@ static Res segBufDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 DEFINE_CLASS(Buffer, SegBuf, klass)
 {
   INHERIT_CLASS(klass, SegBuf, Buffer);
-  klass->protocol.finish = segBufFinish;
-  klass->protocol.describe = segBufDescribe;
+  klass->instClassStruct.finish = segBufFinish;
+  klass->instClassStruct.describe = segBufDescribe;
   klass->size = sizeof(SegBufStruct);
   klass->init = segBufInit;
   klass->attach = segBufAttach;

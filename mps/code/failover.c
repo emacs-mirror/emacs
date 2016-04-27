@@ -274,8 +274,8 @@ static Res failoverDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 DEFINE_CLASS(Land, Failover, klass)
 {
   INHERIT_CLASS(klass, Failover, Land);
-  klass->protocol.describe = failoverDescribe;
-  klass->protocol.finish = failoverFinish;
+  klass->instClassStruct.describe = failoverDescribe;
+  klass->instClassStruct.finish = failoverFinish;
   klass->size = sizeof(FailoverStruct);
   klass->init = failoverInit;
   klass->sizeMethod = failoverSize;

@@ -786,7 +786,7 @@ DEFINE_CLASS(Pool, LOPool, klass)
   INHERIT_CLASS(klass, LOPool, AbstractSegBufPool);
   PoolClassMixInFormat(klass);
   PoolClassMixInCollect(klass);
-  klass->protocol.finish = LOFinish;
+  klass->instClassStruct.finish = LOFinish;
   klass->size = sizeof(LOStruct);
   klass->varargs = LOVarargs;
   klass->init = LOInit;

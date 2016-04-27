@@ -781,8 +781,8 @@ static Res freelistDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 DEFINE_CLASS(Land, Freelist, klass)
 {
   INHERIT_CLASS(klass, Freelist, Land);
-  klass->protocol.describe = freelistDescribe;
-  klass->protocol.finish = freelistFinish;
+  klass->instClassStruct.describe = freelistDescribe;
+  klass->instClassStruct.finish = freelistFinish;
   klass->size = sizeof(FreelistStruct);
   klass->init = freelistInit;
   klass->sizeMethod = freelistSize;

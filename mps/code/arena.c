@@ -106,9 +106,9 @@ DEFINE_CLASS(Inst, ArenaClass, klass)
 
 DEFINE_CLASS(Arena, AbstractArena, klass)
 {
-  INHERIT_CLASS(&klass->protocol, AbstractArena, Inst);
-  klass->protocol.finish = ArenaAbsFinish;
-  klass->protocol.describe = ArenaAbsDescribe;
+  INHERIT_CLASS(&klass->instClassStruct, AbstractArena, Inst);
+  klass->instClassStruct.finish = ArenaAbsFinish;
+  klass->instClassStruct.describe = ArenaAbsDescribe;
   klass->size = sizeof(ArenaStruct);
   klass->varargs = ArgTrivVarargs;
   klass->init = ArenaAbsInit;
@@ -130,7 +130,7 @@ DEFINE_CLASS(Arena, AbstractArena, klass)
 
 Bool ArenaClassCheck(ArenaClass klass)
 {
-  CHECKD(InstClass, &klass->protocol);
+  CHECKD(InstClass, &klass->instClassStruct);
   CHECKL(klass->size >= sizeof(ArenaStruct));
   CHECKL(FUNCHECK(klass->varargs));
   CHECKL(FUNCHECK(klass->init));
