@@ -599,10 +599,11 @@ static void AMSTStressBufferedSeg(Seg seg, Buffer buffer)
   AMST amst;
   Arena arena;
   Addr limit;
+  Buffer segBuf;
 
   AVERT(Seg, seg);
   AVERT(Buffer, buffer);
-  AVER(SegBuffer(seg) == buffer);
+  AVER(SegGetBuffer(&segBuf, seg) && segBuf == buffer);
   amstseg = Seg2AMSTSeg(seg);
   AVERT(AMSTSeg, amstseg);
   limit = BufferLimit(buffer);

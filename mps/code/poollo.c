@@ -312,11 +312,12 @@ static void loSegReclaim(LOSeg loseg, Trace trace)
    */
   p = base;
   while(p < limit) {
-    Buffer buffer = SegBuffer(seg);
+    Buffer buffer;
+    Bool hasBuffer = SegGetBuffer(&buffer, seg);
     Addr q;
     Index i;
 
-    if(buffer != NULL) {
+    if (hasBuffer) {
       marked = TRUE;
       if (p == BufferScanLimit(buffer)
           && BufferScanLimit(buffer) != BufferLimit(buffer)) {
@@ -403,9 +404,9 @@ static void LOWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
     Addr object = loAddrOfIndex(base, lo, i);
     Addr next;
     Index j;
+    Buffer buffer;
 
-    if (SegHasBuffer(seg)) {
-      Buffer buffer = SegBuffer(seg);
+    if (SegGetBuffer(&buffer, seg)) {
       if(object == BufferScanLimit(buffer) &&
          BufferScanLimit(buffer) != BufferLimit(buffer)) {
         /* skip over buffered area */
@@ -518,7 +519,7 @@ static void LOFinish(Pool pool)
   RING_FOR(node, &pool->segRing, nextNode) {
     Seg seg = SegOfPoolRing(node);
     LOSeg loseg = MustBeA(LOSeg, seg);
-    AVER(SegBuffer(seg) == NULL);
+    AVER(!SegHasBuffer(seg));
     AVERT(LOSeg, loseg);
     AVER(loseg->bufferedGrains == 0);
     PoolGenFree(lo->pgen, seg,
@@ -658,8 +659,7 @@ static Res LOWhiten(Pool pool, Trace trace, Seg seg)
   grains = loSegGrains(loseg);
 
   /* Whiten allocated objects; leave free areas black. */
-  buffer = SegBuffer(seg);
-  if (buffer != NULL) {
+  if (SegGetBuffer(&buffer, seg)) {
     Addr base = SegBase(seg);
     Index scanLimitIndex = loIndexOfAddr(base, lo, BufferScanLimit(buffer));
     Index limitIndex = loIndexOfAddr(base, lo, BufferLimit(buffer));
