@@ -603,7 +603,7 @@ static void AMSTStressBufferedSeg(Seg seg, Buffer buffer)
 
   AVERT(Seg, seg);
   AVERT(Buffer, buffer);
-  AVER(SegGetBuffer(&segBuf, seg) && segBuf == buffer);
+  AVER(SegBuffer(&segBuf, seg) && segBuf == buffer);
   amstseg = Seg2AMSTSeg(seg);
   AVERT(AMSTSeg, amstseg);
   limit = BufferLimit(buffer);

@@ -225,6 +225,7 @@ typedef struct SegClassStruct {
   SegSetSummaryMethod setSummary; /* set the segment summary  */
   SegBufferMethod buffer;       /* get the segment buffer  */
   SegSetBufferMethod setBuffer; /* set the segment buffer  */
+  SegUnsetBufferMethod unsetBuffer; /* unset the segment buffer */
   SegSetGreyMethod setGrey;     /* change greyness of segment */
   SegSetWhiteMethod setWhite;   /* change whiteness of segment */
   SegSetRankSetMethod setRankSet; /* change rank set of segment */

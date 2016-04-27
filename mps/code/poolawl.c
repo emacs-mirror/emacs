@@ -724,7 +724,7 @@ static Res AWLWhiten(Pool pool, Trace trace, Seg seg)
   /* see <design/poolawl/#fun.condemn> */
   AVER(SegWhite(seg) == TraceSetEMPTY);
 
-  if (!SegGetBuffer(&buffer, seg)) {
+  if (!SegBuffer(&buffer, seg)) {
     awlRangeWhiten(awlseg, 0, awlseg->grains);
     uncondemnedGrains = (Count)0;
   } else {
@@ -792,7 +792,7 @@ static void AWLGrey(Pool pool, Trace trace, Seg seg)
     AWLSeg awlseg = MustBeA(AWLSeg, seg);
 
     SegSetGrey(seg, TraceSetAdd(SegGrey(seg), trace));
-    if (SegGetBuffer(&buffer, seg)) {
+    if (SegBuffer(&buffer, seg)) {
       Addr base = SegBase(seg);
 
       AWLRangeGrey(awlseg,
@@ -880,7 +880,7 @@ static Res awlScanSinglePass(Bool *anyScannedReturn,
 
   *anyScannedReturn = FALSE;
   p = base;
-  if (SegGetBuffer(&buffer, seg) && BufferScanLimit(buffer) != BufferLimit(buffer))
+  if (SegBuffer(&buffer, seg) && BufferScanLimit(buffer) != BufferLimit(buffer))
     bufferScanLimit = BufferScanLimit(buffer);
   else
     bufferScanLimit = limit;
@@ -1029,7 +1029,7 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
   AWLSeg awlseg = MustBeA(AWLSeg, seg);
   Addr base = SegBase(seg);
   Buffer buffer;
-  Bool hasBuffer = SegGetBuffer(&buffer, seg);
+  Bool hasBuffer = SegBuffer(&buffer, seg);
   Format format = pool->format;
   Count reclaimedGrains = (Count)0;
   Count preservedInPlaceCount = (Count)0;
@@ -1162,7 +1162,7 @@ static void AWLWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
     Index i;
     Buffer buffer;
 
-    if (SegGetBuffer(&buffer, seg)) {
+    if (SegBuffer(&buffer, seg)) {
       if (object == BufferScanLimit(buffer)
           && BufferScanLimit(buffer) != BufferLimit(buffer)) {
         /* skip over buffered area */

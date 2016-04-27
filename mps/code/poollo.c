@@ -313,7 +313,7 @@ static void loSegReclaim(LOSeg loseg, Trace trace)
   p = base;
   while(p < limit) {
     Buffer buffer;
-    Bool hasBuffer = SegGetBuffer(&buffer, seg);
+    Bool hasBuffer = SegBuffer(&buffer, seg);
     Addr q;
     Index i;
 
@@ -406,7 +406,7 @@ static void LOWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
     Index j;
     Buffer buffer;
 
-    if (SegGetBuffer(&buffer, seg)) {
+    if (SegBuffer(&buffer, seg)) {
       if(object == BufferScanLimit(buffer) &&
          BufferScanLimit(buffer) != BufferLimit(buffer)) {
         /* skip over buffered area */
@@ -659,7 +659,7 @@ static Res LOWhiten(Pool pool, Trace trace, Seg seg)
   grains = loSegGrains(loseg);
 
   /* Whiten allocated objects; leave free areas black. */
-  if (SegGetBuffer(&buffer, seg)) {
+  if (SegBuffer(&buffer, seg)) {
     Addr base = SegBase(seg);
     Index scanLimitIndex = loIndexOfAddr(base, lo, BufferScanLimit(buffer));
     Index limitIndex = loIndexOfAddr(base, lo, BufferLimit(buffer));
