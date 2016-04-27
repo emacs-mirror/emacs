@@ -349,6 +349,17 @@ Buffer SegBuffer(Seg seg)
 }
 
 
+Bool SegGetBuffer(Buffer *bufferReturn, Seg seg)
+{
+  Buffer buffer = SegBuffer(seg);
+  if (buffer != NULL) {
+    *bufferReturn = buffer;
+    return TRUE;
+  }
+  return FALSE;
+}
+
+
 /* SegSetBuffer -- change the buffer on a segment */
 
 void SegSetBuffer(Seg seg, Buffer buffer)
@@ -369,8 +380,7 @@ Addr SegBufferScanLimit(Seg seg)
 
   AVERT(Seg, seg);
 
-  buf = SegBuffer(seg);
-  if (buf == NULL) {
+  if (!SegGetBuffer(&buf, seg)) {
     /* Segment is unbuffered: entire segment scannable */
     limit = SegLimit(seg);
   } else {
@@ -639,6 +649,7 @@ Res SegSplit(Seg *segLoReturn, Seg *segHiReturn, Seg seg, Addr at)
   Arena arena;
   Res res;
   void *p;
+  Buffer buffer;
 
   AVER(NULL != segLoReturn);
   AVER(NULL != segHiReturn);
@@ -654,7 +665,7 @@ Res SegSplit(Seg *segLoReturn, Seg *segHiReturn, Seg seg, Addr at)
 
   /* Can only split a buffered segment if the entire buffer is below
    * the split point. */
-  AVER(!SegHasBuffer(seg) || BufferLimit(SegBuffer(seg)) <= at);
+  AVER(!SegGetBuffer(&buffer, seg) || BufferLimit(buffer) <= at);
 
   if (seg->queued)
     ShieldFlush(arena);  /* see <design/seg/#split-merge.shield> */
