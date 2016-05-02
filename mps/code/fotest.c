@@ -1,7 +1,7 @@
 /* fotest.c: FAIL-OVER TEST
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * This tests fail-over behaviour in low memory situations. The MVFF
@@ -10,9 +10,8 @@
  * request due to running out of memory, they fall back to a Freelist
  * (which has zero memory overhead, at some cost in performance).
  *
- * This is a white box test: it patches the class of the CBS's
- * internal block pool (MFS) with a pointer to a dummy class whose
- * alloc() method always returns ResMEMORY.
+ * This is a white box test: it monkey-patches the MFS pool's alloc
+ * method with a method that always returns a memory error code.
  */
 
 
@@ -36,40 +35,6 @@
 #define testLOOPS 10
 
 
-/* Accessors for the CBS used to implement a pool. */
-
-extern Land _mps_mvff_cbs(Pool);
-extern Land _mps_mvt_cbs(Pool);
-
-
-/* "OOM" pool class -- dummy alloc/free pool class whose alloc()
- * method always fails and whose free method does nothing. */
-
-static Res oomAlloc(Addr *pReturn, Pool pool, Size size)
-{
-  UNUSED(pReturn);
-  UNUSED(pool);
-  UNUSED(size);
-  switch (rnd() % 3) {
-  case 0:
-    return ResRESOURCE;
-  case 1:
-    return ResMEMORY;
-  default:
-    return ResCOMMIT_LIMIT;
-  }
-}
-
-DECLARE_CLASS(Pool, OOMPool, AbstractPool);
-DEFINE_CLASS(Pool, OOMPool, klass)
-{
-  INHERIT_CLASS(klass, OOMPool, AbstractPool);
-  klass->alloc = oomAlloc;
-  klass->free = PoolTrivFree;
-  klass->size = sizeof(PoolStruct);
-}
-
-
 /* make -- allocate one object */
 
 static mps_res_t make(mps_addr_t *p, mps_ap_t ap, size_t size)
@@ -86,20 +51,33 @@ static mps_res_t make(mps_addr_t *p, mps_ap_t ap, size_t size)
 }
 
 
-/* set_oom -- set blockPool of CBS to OOM or MFS according to argument. */
+/* oomAlloc -- allocation function that always fails
+ *
+ * Returns a randomly chosen memory error code.
+ */
 
-static void set_oom(Land land, int oom)
+static Res oomAlloc(Addr *pReturn, Pool pool, Size size)
 {
-  CBS cbs = MustBeA(CBS, land);
-  SetClassOfPoly(cbs->blockPool, oom ? CLASS(OOMPool) : PoolClassMFS());
+  UNUSED(pReturn);
+  UNUSED(pool);
+  UNUSED(size);
+  switch (rnd() % 3) {
+  case 0:
+    return ResRESOURCE;
+  case 1:
+    return ResMEMORY;
+  default:
+    return ResCOMMIT_LIMIT;
+  }
 }
 
 
 /* stress -- create an allocation point and allocate in it */
 
 static mps_res_t stress(size_t (*size)(unsigned long, mps_align_t),
-                        mps_align_t alignment, mps_pool_t pool, Land cbs)
+                        mps_align_t alignment, mps_pool_t pool)
 {
+  PoolAllocMethod mfs_alloc = CLASS_STATIC(MFSPool).alloc;
   mps_res_t res = MPS_RES_OK;
   mps_ap_t ap;
   unsigned long i, k;
@@ -146,9 +124,9 @@ static mps_res_t stress(size_t (*size)(unsigned long, mps_align_t),
         goto allocFail;
     }
 
-    set_oom(cbs, rnd() % 2);
+    CLASS_STATIC(MFSPool).alloc = rnd() % 2 ? mfs_alloc : oomAlloc;
   }
-  set_oom(cbs, 0);
+  CLASS_STATIC(MFSPool).alloc = mfs_alloc;
 
 allocFail:
   mps_ap_destroy(ap);
@@ -187,10 +165,7 @@ int main(int argc, char *argv[])
     MPS_ARGS_ADD(args, MPS_KEY_MVFF_FIRST_FIT, rnd() % 2);
     die(mps_pool_create_k(&pool, arena, mps_class_mvff(), args), "create MVFF");
   } MPS_ARGS_END(args);
-  {
-    die(stress(randomSizeAligned, alignment, pool, _mps_mvff_cbs(pool)),
-        "stress MVFF");
-  }
+  die(stress(randomSizeAligned, alignment, pool), "stress MVFF");
   mps_pool_destroy(pool);
   mps_arena_destroy(arena);
 
@@ -206,10 +181,7 @@ int main(int argc, char *argv[])
     MPS_ARGS_ADD(args, MPS_KEY_MVT_FRAG_LIMIT, (rnd() % 101) / 100.0);
     die(mps_pool_create_k(&pool, arena, mps_class_mvt(), args), "create MVFF");
   } MPS_ARGS_END(args);
-  {
-    die(stress(randomSizeAligned, alignment, pool, _mps_mvt_cbs(pool)),
-        "stress MVT");
-  }
+  die(stress(randomSizeAligned, alignment, pool), "stress MVT");
   mps_pool_destroy(pool);
   mps_arena_destroy(arena);
 
@@ -220,7 +192,7 @@ int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
