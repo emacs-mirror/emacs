@@ -846,12 +846,14 @@ void TraceDestroyFinished(Trace trace)
 
   EVENT1(TraceDestroy, trace);
 
+  /* Hopefully the trace reclaimed some memory, so clear any emergency.
+   * Do this before removing the trace from busyTraces, to avoid
+   * violating <code/global.c#emergency.invariant>. */
+  ArenaSetEmergency(trace->arena, FALSE);
+
   trace->sig = SigInvalid;
   trace->arena->busyTraces = TraceSetDel(trace->arena->busyTraces, trace);
   trace->arena->flippedTraces = TraceSetDel(trace->arena->flippedTraces, trace);
-
-  /* Hopefully the trace reclaimed some memory, so clear any emergency. */
-  ArenaSetEmergency(trace->arena, FALSE);
 }
 
 
