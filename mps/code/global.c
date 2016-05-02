@@ -1,7 +1,7 @@
 /* global.c: ARENA-GLOBAL INTERFACES
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .sources: See <design/arena/>.  design.mps.thread-safety is relevant
@@ -188,7 +188,8 @@ Bool GlobalsCheck(Globals arenaGlobals)
   CHECKL(RingCheck(&arenaRing));
 
   CHECKL(BoolCheck(arena->emergency));
-  /* There can only be an emergency when a trace is busy. */
+  /* .emergency.invariant: There can only be an emergency when a trace
+   * is busy. */
   CHECKL(!arena->emergency || arena->busyTraces != TraceSetEMPTY);
   
   if (arenaGlobals->defaultChain != NULL)
@@ -1066,7 +1067,7 @@ Bool ArenaEmergency(Arena arena)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
