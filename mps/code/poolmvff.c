@@ -1,7 +1,7 @@
 /* poolmvff.c: First Fit Manual Variable Pool
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .purpose: This is a pool class for manually managed objects of
@@ -796,23 +796,9 @@ static Bool MVFFCheck(MVFF mvff)
 }
 
 
-/* Return the CBS of an MVFF pool for the benefit of fotest.c. */
-
-extern Land _mps_mvff_cbs(Pool);
-Land _mps_mvff_cbs(Pool pool) {
-  MVFF mvff;
-
-  AVERT(Pool, pool);
-  mvff = PoolMVFF(pool);
-  AVERT(MVFF, mvff);
-
-  return MVFFFreePrimary(mvff);
-}
-
-
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
