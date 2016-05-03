@@ -18,6 +18,8 @@ SRCID(shield, "$Id$");
 void ShieldInit(Shield shield)
 {
   shield->inside = FALSE;
+  shield->suspended = FALSE;
+  shield->queuePending = FALSE;
   shield->queue = NULL;
   shield->length = 0;
   shield->next = 0;
@@ -25,7 +27,6 @@ void ShieldInit(Shield shield)
   shield->depth = 0;
   shield->unsynced = 0;
   shield->holds = 0;
-  shield->suspended = FALSE;
   shield->sig = ShieldSig;
 }
 
@@ -64,11 +65,10 @@ static Bool SegIsSynced(Seg seg);
 Bool ShieldCheck(Shield shield)
 {
   CHECKS(Shield, shield);
-  CHECKL(BoolCheck(shield->inside));
+  /* Can't check Boolean bitfields <design/type/#bool.bitfield.check> */
   CHECKL(shield->queue == NULL || shield->length > 0);
   CHECKL(shield->limit <= shield->length);
   CHECKL(shield->next <= shield->limit);
-  CHECKL(BoolCheck(shield->suspended));
 
   /* The mutator is not suspended while outside the shield
      (design.mps.shield.inv.outside.running). */
@@ -77,9 +77,6 @@ Bool ShieldCheck(Shield shield)
   /* If any segment is not synced, the mutator is suspended
      (design.mps.shield.inv.unsynced.suspended). */
   CHECKL(shield->unsynced == 0 || shield->suspended);
-
-  /* If any segment is exposed, the mutator is suspended. */
-  CHECKL(shield->depth == 0 || shield->suspended);
 
   /* The total depth is zero while outside the shield
      (design.mps.shield.inv.outside.depth). */
@@ -90,7 +87,7 @@ Bool ShieldCheck(Shield shield)
 
   /* Every unsynced segment should be on the queue, because we have to
      remember to sync it before we return to the mutator. */
-  CHECKL(shield->limit >= shield->unsynced);
+  CHECKL(shield->limit + shield->queuePending >= shield->unsynced);
 
   /* The mutator is suspeneded if there are any holds. */
   CHECKL(shield->holds == 0 || shield->suspended);
@@ -100,18 +97,15 @@ Bool ShieldCheck(Shield shield)
      16. */
 #if defined(AVER_AND_CHECK_ALL)
   {
-    Count depth = 0;
     Count unsynced = 0;
     Index i;
     for (i = 0; i < shield->limit; ++i) {
       Seg seg = shield->queue[i];
       CHECKD(Seg, seg);
-      depth += SegDepth(seg);
       if (!SegIsSynced(seg))
         ++unsynced;
     }
-    CHECKL(depth == shield->depth);
-    CHECKL(unsynced == shield->unsynced);
+    CHECKL(unsynced + shield->queuePending == shield->unsynced);
   }
 #endif
 
@@ -539,9 +533,14 @@ static void shieldQueue(Arena arena, Seg seg)
 
 void (ShieldRaise)(Arena arena, Seg seg, AccessSet mode)
 {
+  Shield shield;
+
   SHIELD_AVERT(Arena, arena);
   SHIELD_AVERT(Seg, seg);
   AVERT(AccessSet, mode);
+  shield = ArenaShield(arena);
+  AVER(!shield->queuePending);
+  shield->queuePending = TRUE;
 
   /* design.mps.shield.inv.prot.shield preserved */
   shieldSetSM(ArenaShield(arena), seg, BS_UNION(SegSM(seg), mode));
@@ -549,6 +548,7 @@ void (ShieldRaise)(Arena arena, Seg seg, AccessSet mode)
   /* Ensure design.mps.shield.inv.unsynced.suspended and
      design.mps.shield.inv.unsynced.depth */
   shieldQueue(arena, seg);
+  shield->queuePending = FALSE;
 
   /* Check queue and segment consistency. */
   AVERT(Arena, arena);
@@ -619,6 +619,7 @@ static void shieldDebugCheck(Arena arena)
   Shield shield;
   Seg seg;
   Count queued = 0;
+  Count depth = 0;
 
   AVERT(Arena, arena);
   shield = ArenaShield(arena);
@@ -626,6 +627,7 @@ static void shieldDebugCheck(Arena arena)
 
   if (SegFirst(&seg, arena))
     do {
+      depth += SegDepth(seg);
       if (shield->limit == 0) {
         AVER(!seg->queued);
         AVER(SegIsSynced(seg));
@@ -638,6 +640,7 @@ static void shieldDebugCheck(Arena arena)
       }
     } while(SegNext(&seg, arena, seg));
 
+  AVER(depth == shield->depth);
   AVER(queued == shield->limit);
 }
 #endif
