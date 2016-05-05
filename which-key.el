@@ -2161,5 +2161,24 @@ Finally, show the buffer."
                    (cancel-timer which-key--paging-timer)
                    (which-key--start-timer))))))
 
+;; backport some functions for 24.3
+
+;; found at https://github.com/Lindydancer/andersl-old-emacs-support/blob/master/andersl-old-emacs-support.el
+(unless (fboundp 'frame-fringe-width)
+  (defun frame-fringe-width (&optional frame)
+    "Return fringe width of FRAME in pixels."
+    (let ((left-pair (assq 'left-fringe (frame-parameters frame)))
+          (right-pair (assq 'right-fringe (frame-parameters frame))))
+      (+ (if left-pair (cdr left-pair) 0)
+         (if right-pair (cdr right-pair) 0)))))
+
+(unless (fboundp 'frame-scroll-bar-width)
+  (defun frame-scroll-bar-width (&optional frame)
+    "Return scroll bar width of FRAME in pixels."
+    (let ((pair (assq 'scroll-bar-width (frame-parameters frame))))
+      (if pair
+          (cdr pair)
+        0))))
+
 (provide 'which-key)
 ;;; which-key.el ends here
