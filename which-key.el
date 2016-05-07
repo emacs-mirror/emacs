@@ -1354,11 +1354,14 @@ ORIGINAL-DESCRIPTION is the description given by
                   (local 'which-key-local-map-description-face)
                   (t 'which-key-command-description-face))
       'help-echo (cond
-                  ((and (fboundp (intern original-description))
+                  ((and original-description
+                        (fboundp (intern original-description))
                         (documentation (intern original-description))
-                        tooltip-mode)
+                        ;; tooltip-mode doesn't exist in emacs-nox
+                        (boundp 'tooltip-mode) tooltip-mode)
                    (documentation (intern original-description)))
-                  ((and (fboundp (intern original-description))
+                  ((and original-description
+                        (fboundp (intern original-description))
                         (documentation (intern original-description))
                         (let* ((doc (documentation (intern original-description)))
                                (str (replace-regexp-in-string "\n" " " doc))
