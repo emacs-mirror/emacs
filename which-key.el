@@ -68,7 +68,7 @@ this behavior."
   :type 'float)
 
 (defcustom which-key-echo-keystrokes (if (and echo-keystrokes
-                                              (> echo-keystrokes
+                                              (> (+ echo-keystrokes 0.01)
                                                  which-key-idle-delay))
                                          (/ (float which-key-idle-delay) 4)
                                        echo-keystrokes)
