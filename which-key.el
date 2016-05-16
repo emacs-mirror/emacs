@@ -1196,6 +1196,21 @@ coming before a prefix. Within these categories order using
         (and (not apref?) bpref?)
       (which-key-key-order acons bcons))))
 
+(defun which-key--local-binding-p (keydesc)
+  (eq (which-key--safe-lookup-key
+       (current-local-map) (kbd (which-key--current-key-string (car keydesc))))
+      (intern (cdr keydesc))))
+
+(defun which-key-local-then-key-order (acons bcons)
+  "Order first by whether A and/or B is a local binding with
+local bindings coming first. Within these categories order using
+`which-key-key-order'."
+  (let ((aloc? (which-key--local-binding-p acons))
+        (bloc? (which-key--local-binding-p bcons)))
+    (if (not (eq aloc? bloc?))
+        (and aloc? (not bloc?))
+      (which-key-key-order acons bcons))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Functions for retrieving and formatting keys
 
