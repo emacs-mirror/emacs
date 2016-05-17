@@ -44,7 +44,6 @@ to a certain extent.
      - [[#god-mode][God-mode]]
    - [[#more-examples][More Examples]]
      - [[#nice-display-with-split-frame][Nice Display with Split Frame]]
-   - [[#status][Status]]
    - [[#thanks][Thanks]]
 
 ** Install
@@ -298,12 +297,6 @@ available options.
 #+END_SRC
 
 *** Paging Options
-[Note: This section is out of date given the new =C-h= commands feature
-described in the What's New section. I will update it soon.].
-- =C-h= commands! Now =C-h= will prompt you will several options instead of
-  going directly to the next page. You can (see =which-key-C-h-map=)
-  This is a fairly substantial change and might introduce a bug or two, so
-  please report anything you see that is strange and I will try to fix it.
 
 There are at least several prefixes that have many keys bound to them, like
 =C-x=. which-key displays as many keys as it can given your settings, but for
@@ -458,10 +451,6 @@ windows.
 #+CAPTION: which-key in a frame with 2 vertical splits
 [[./img/which-key-bottom-split.png]]
 
-** Status
-It requires testing on different platforms with different configurations, which
-is beyond my capabilities. The default configuration has been reasonably stable
-for me. 
 ** Thanks
 Special thanks to
 - @bmag for helping with the initial development and finding many
