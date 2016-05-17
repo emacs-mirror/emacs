@@ -245,8 +245,10 @@ a percentage out of the frame's height."
 are
 
 1. `which-key-key-order': by key (default)
-2. `which-key-description-order': by description
-3. `which-key-prefix-then-key-order': prefix (no prefix first) then key
+2. `which-key-key-order-alpha': by key using alphabetical order
+3. `which-key-description-order': by description
+4. `which-key-prefix-then-key-order': prefix (no prefix first) then key
+5. `which-key-local-then-key-order': local binding then key
 
 See the README and the docstrings for those functions for more
 information."
