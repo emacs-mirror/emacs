@@ -832,10 +832,10 @@ addition KEY-SEQUENCE NAME pairs) to apply."
       (push (cons mode mode-title-alist) which-key-prefix-title-alist))))
 (put 'which-key-declare-prefixes-for-mode 'lisp-indent-function 'defun)
 
-(defun which-key-define-key-recursively (map key def &optional recursing)
+(defun which-key-define-key-recursively (map key def &optional at-root)
   "Recursively bind KEY in MAP to DEF on every level of MAP except the first.
-RECURSING is for internal use."
-  (when recursing (define-key map key def))
+If AT-ROOT is non-nil the binding is also placed at the root of MAP."
+  (when at-root (define-key map key def))
   (map-keymap
    (lambda (_ev df)
      (when (keymapp df)
