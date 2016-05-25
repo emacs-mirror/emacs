@@ -434,8 +434,6 @@ to a non-nil value for the execution of a command. Like this
 ;; Internal Vars
 (defvar which-key--buffer nil
   "Internal: Holds reference to which-key buffer.")
-;; (defvar which-key--window nil
-;;   "Internal: Holds reference to which-key window.")
 (defvar which-key--timer nil
   "Internal: Holds reference to open window timer.")
 (defvar which-key--paging-timer nil
@@ -603,7 +601,6 @@ set too high) and setup which-key buffer."
   (when (or (eq which-key-show-prefix 'echo)
             (eq which-key-popup-type 'minibuffer))
     (which-key--setup-echo-keystrokes))
-  ;; (which-key--check-key-based-alist)
   ;; (which-key--setup-undo-key)
   (which-key--init-buffer)
   (setq which-key--is-setup t))
@@ -611,17 +608,12 @@ set too high) and setup which-key buffer."
 (defun which-key--setup-echo-keystrokes ()
   "Reduce `echo-keystrokes' if necessary (it will interfere if
 it's set too high)."
-  (let (;(previous echo-keystrokes)
-        )
-    (when (and echo-keystrokes
-               (> (abs (- echo-keystrokes which-key-echo-keystrokes)) 0.000001))
-      (if (> which-key-idle-delay which-key-echo-keystrokes)
-          (setq echo-keystrokes which-key-echo-keystrokes)
-        (setq which-key-echo-keystrokes (/ (float which-key-idle-delay) 4)
-              echo-keystrokes which-key-echo-keystrokes))
-      ;; (message "which-key: echo-keystrokes changed from %s to %s"
-      ;;          previous echo-keystrokes)
-      )))
+  (when (and echo-keystrokes
+             (> (abs (- echo-keystrokes which-key-echo-keystrokes)) 0.000001))
+    (if (> which-key-idle-delay which-key-echo-keystrokes)
+        (setq echo-keystrokes which-key-echo-keystrokes)
+      (setq which-key-echo-keystrokes (/ (float which-key-idle-delay) 4)
+            echo-keystrokes which-key-echo-keystrokes))))
 
 (defun which-key-remove-default-unicode-chars ()
   "Use of `which-key-dont-use-unicode' is preferred to this
@@ -634,36 +626,6 @@ starter kit for example."
         (delete '("left" . "←") which-key-key-replacement-alist))
   (setq which-key-key-replacement-alist
         (delete '("right" . "→") which-key-key-replacement-alist)))
-
-;; (defun which-key--check-key-based-alist ()
-;;   "Check (and fix if necessary) `which-key-key-based-description-replacement-alist'"
-;;   (let ((alist which-key-key-based-description-replacement-alist)
-;;         old-style res)
-;;     (dolist (cns alist)
-;;       (cond ((listp (car cns))
-;;              (push cns res))
-;;             ((stringp (car cns))
-;;              (setq old-style t)
-;;              (push (cons (listify-key-sequence (kbd (car cns))) (cdr cns)) res))
-;;             ((symbolp (car cns))
-;;              (let (new-mode-alist)
-;;                (dolist (cns2 (cdr cns))
-;;                  (cond ((listp (car cns2))
-;;                         (push cns2 new-mode-alist))
-;;                        ((stringp (car cns2))
-;;                         (setq old-style t)
-;;                         (push (cons (listify-key-sequence (kbd (car cns2))) (cdr cns2))
-;;                               new-mode-alist))))
-;;                (push (cons (car cns) new-mode-alist) res)))
-;;             (t (message "which-key: there's a problem with the \
-;; entry %s in which-key-key-based-replacement-alist" cns))))
-;;     (setq which-key-key-based-description-replacement-alist res)
-;;     (when old-style
-;;       (message "which-key: \
-;;  `which-key-key-based-description-replacement-alist' has changed format and you\
-;;  seem to be using the old format. Please use the functions \
-;; `which-key-add-key-based-replacements' and \
-;; `which-key-add-major-mode-key-based-replacements' instead."))))
 
 ;; Default configuration functions for use by users. Should be the "best"
 ;; configurations
