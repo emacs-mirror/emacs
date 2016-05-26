@@ -25,6 +25,27 @@
 (require 'ert)
 (require 'use-package)
 
+(ert-deftest use-package-normalize-binder ()
+  (let ((good-values '(:map map-sym
+                       ("str" . sym) ("str" . "str")
+                       ([vec] . sym) ([vec] . "str"))))
+    (should (equal (use-package-normalize-binder
+                    'foopkg :bind good-values)
+                   good-values)))
+  (should-error (use-package-normalize-binder
+                 'foopkg :bind '("foo" . 99)))
+  (should-error (use-package-normalize-binder
+                 'foopkg :bind '(99 . sym))))
+
+(ert-deftest use-package-normalize-mode ()
+  (should (equal (use-package-normalize-mode 'foopkg :mode '(".foo"))
+                 '((".foo" . foopkg))))
+  (should (equal (use-package-normalize-mode 'foopkg :mode '(".foo" ".bar"))
+                 '((".foo" . foopkg) (".bar" . foopkg))))
+  (should (equal (use-package-normalize-mode 'foopkg :mode '((".foo" ".bar")))
+                 '((".foo" . foopkg) (".bar" . foopkg))))
+  (should (equal (use-package-normalize-mode 'foopkg :mode '((".foo" . foo) (".bar" . bar)))
+                 '((".foo" . foo) (".bar" . bar)))))
 
 ;; Local Variables:
 ;; indent-tabs-mode: nil
