@@ -1619,7 +1619,9 @@ is the width of the live window."
 Slight delay gets around evil functions that clear the echo
 area."
   (let* ((minibuffer (eq which-key-popup-type 'minibuffer))
-         (delay (if minibuffer 0.2 (+ echo-keystrokes 0.001)))
+         (delay (if minibuffer
+                    0.2
+                  (+ (or echo-keystrokes 0) 0.001)))
          message-log-max)
     (unless minibuffer (message "%s" text))
     (run-with-idle-timer
