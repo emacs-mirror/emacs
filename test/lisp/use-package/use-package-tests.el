@@ -25,24 +25,6 @@
 (require 'ert)
 (require 'use-package)
 
-(ert-deftest use-package-mplist-get ()
-  (let ((mplist '(:foo bar baz bal :blob plap plup :blam))
-        (tests '((:foo . (bar baz bal))
-                 (:blob . (plap plup))
-                 (:blam . t)
-                 (:blow . nil))))
-    (mapc (lambda (test)
-            (should
-             (equal
-              (use-package-mplist-get mplist
-                                      (car test))
-              (cdr test))))
-          tests)))
-
-(ert-deftest use-package-mplist-keys ()
-  (should (equal (use-package-mplist-keys
-                  '(:foo bar baz bal :blob plap plup :blam))
-                 '(:foo :blob :blam))))
 
 ;; Local Variables:
 ;; indent-tabs-mode: nil
