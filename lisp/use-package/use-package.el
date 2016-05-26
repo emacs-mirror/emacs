@@ -803,7 +803,7 @@ deferred until the prefix key sequence is pressed."
 (defun use-package-normalize-mode (name keyword args)
   (use-package-as-one (symbol-name keyword) args
     (apply-partially #'use-package-normalize-pairs
-                     #'stringp #'symbolp
+                     #'stringp (lambda (m) (and (not (null m)) (symbolp m)))
                      name)))
 
 (defalias 'use-package-normalize/:interpreter 'use-package-normalize-mode)
