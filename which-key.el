@@ -436,6 +436,8 @@ to a non-nil value for the execution of a command. Like this
   "Internal: Holds reference to which-key buffer.")
 (defvar which-key--timer nil
   "Internal: Holds reference to open window timer.")
+(defvar which-key--secondary-timer-active nil
+  "Internal: Non-nil if the secondary timer is active.")
 (defvar which-key--paging-timer nil
   "Internal: Holds reference to timer for paging.")
 (defvar which-key--is-setup nil
@@ -882,7 +884,8 @@ total height."
           which-key--current-show-keymap-name nil
           which-key--prior-show-keymap-args nil
           which-key--on-last-page nil)
-    (when which-key-idle-secondary-delay
+    (when (and which-key-idle-secondary-delay
+               which-key--secondary-timer-active)
       (which-key--start-timer))
     (cl-case which-key-popup-type
       ;; Not necessary to hide minibuffer
@@ -2101,8 +2104,9 @@ Finally, show the buffer."
                          (eq this-command 'god-mode-self-insert))
                     (null this-command)))
            (which-key--create-buffer-and-show prefix-keys)
-           (when which-key-idle-secondary-delay
-             (which-key--start-timer which-key-idle-secondary-delay)))
+           (when (and which-key-idle-secondary-delay
+                      (not which-key--secondary-timer-active))
+             (which-key--start-timer which-key-idle-secondary-delay t)))
           ((and which-key-show-operator-state-maps
                 (bound-and-true-p evil-state)
                 (eq evil-state 'operator)
@@ -2116,9 +2120,10 @@ Finally, show the buffer."
 
 ;; Timers
 
-(defun which-key--start-timer (&optional delay)
+(defun which-key--start-timer (&optional delay secondary)
   "Activate idle timer to trigger `which-key--update'."
   (which-key--stop-timer)
+  (setq which-key--secondary-timer-active secondary)
   (setq which-key--timer
         (run-with-idle-timer
          (if delay
