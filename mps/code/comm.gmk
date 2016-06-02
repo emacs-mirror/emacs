@@ -73,9 +73,9 @@ endif
 # EXTRA TARGETS
 #
 # Don't build mpseventsql by default (might not have sqlite3 installed),
-# but do build mpseventcnv and mpseventtxt.
+# but do build mpseventcnv, mpseventpy and mpseventtxt.
 
-EXTRA_TARGETS ?= mpseventcnv mpseventtxt
+EXTRA_TARGETS ?= mpseventcnv mpseventpy mpseventtxt
 
 
 #
@@ -570,6 +570,9 @@ $(PFM)/$(VARIETY)/zmess: $(PFM)/$(VARIETY)/zmess.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/mpseventcnv: $(PFM)/$(VARIETY)/eventcnv.o \
+  $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/mpseventpy: $(PFM)/$(VARIETY)/eventpy.o \
   $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/mpseventtxt: $(PFM)/$(VARIETY)/eventtxt.o \
