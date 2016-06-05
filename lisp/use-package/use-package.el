@@ -909,7 +909,7 @@ deferred until the prefix key sequence is pressed."
         (lambda (feat)
           `(eval-after-load
                (quote ,feat)
-             (quote (require (quote ,name)))))
+             (quote (require (quote ,name) nil t))))
         features)))
 
 (defun use-package-handler/:after (name keyword arg rest state)
