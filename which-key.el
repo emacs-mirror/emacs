@@ -899,7 +899,8 @@ total height."
           which-key--current-show-keymap-name nil
           which-key--prior-show-keymap-args nil
           which-key--on-last-page nil)
-    (cancel-timer which-key--delayed-timer)
+    (when (timerp which-key--delayed-timer)
+      (cancel-timer which-key--delayed-timer))
     (when (and which-key-idle-secondary-delay
                which-key--secondary-timer-active)
       (which-key--start-timer))
