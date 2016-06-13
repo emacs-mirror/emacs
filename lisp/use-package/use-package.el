@@ -44,6 +44,7 @@
 (require 'diminish nil t)
 (require 'bytecomp)
 (eval-when-compile (require 'cl))
+(eval-when-compile (require 'regexp-opt))
 
 (declare-function package-installed-p 'package)
 
@@ -166,6 +167,26 @@ The only advantage is that, if you know your configuration works,
 then your byte-compiled init file is as minimal as possible."
   :type 'boolean
   :group 'use-package)
+
+(defcustom use-package-enable-imenu-support nil
+  "If non-nil, adjust `lisp-imenu-generic-expression' to include
+support for finding `use-package' and `require' forms.
+
+Must be set before loading use-package."
+  :type 'boolean
+  :group 'use-package)
+
+(when use-package-enable-imenu-support
+  (add-to-list
+   'lisp-imenu-generic-expression
+   (list "Package"
+         (purecopy (concat "^\\s-*("
+                           (eval-when-compile
+                             (regexp-opt
+                              '("use-package" "require")
+                              t))
+                           "\\s-+\\(" lisp-mode-symbol-regexp "\\)"))
+         2)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
