@@ -2109,7 +2109,8 @@ Finally, show the buffer."
                (> (length prefix-keys) 0)
                (not delayed)
                (setq skip (run-hook-with-args-until-success
-                           'which-key-delay-functions prefix-keys)))
+                           'which-key-delay-functions
+                           (key-description prefix-keys))))
       (setq which-key--delayed-timer
             (run-with-idle-timer skip nil #'which-key--update t)))
     (cond ((and (> (length prefix-keys) 0)
