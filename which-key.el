@@ -341,19 +341,20 @@ See http://www.gnu.org/software/emacs/manual/html_node/emacs/Modifier-Keys.html"
   :group 'which-key
   :type 'boolean)
 
-(defcustom which-key-delayed-prefixes nil
-  "A list of key sequences (in the form of vectors of events)
-that should not pop up the which-key buffer after
-`which-key-idle-delay' but after `which-key-idle-delay' +
-`which-key-delayed-prefixes-delay'."
+(defcustom which-key-delay-functions nil
+  "A list of functions that may decide whether to delay the
+which-key popup based on the current incomplete key
+sequence. Each function in the list is run with a single argument
+which is the current key sequence as produced by
+`key-description'. If the popup should be delayed based on that
+key sequence, the function should return the delay time in
+seconds. Returning nil means no delay. The first function in this
+list to return a value is the value that is used.
+
+The delay time is effectively added to the normal
+`which-key-idle-delay'."
   :group 'which-key
   :type '(repeat (vector integer)))
-
-(defcustom which-key-delayed-prefixes-delay 1
-  "When `which-key-delayed-prefixes' is non-nil delay which-key
-popup by this many seconds after `which-key-idle-delay'."
-  :group 'which-key
-  :type 'integer)
 
 ;; Hooks
 (defvar which-key-init-buffer-hook '()
@@ -2104,15 +2105,13 @@ Finally, show the buffer."
                (eq this-command 'god-mode-self-insert))
       (setq prefix-keys (when which-key--god-mode-key-string
                           (kbd which-key--god-mode-key-string))))
-    (when (and which-key-delayed-prefixes
-               which-key-delayed-prefixes-delay
+    (when (and which-key-delay-functions
                (> (length prefix-keys) 0)
                (not delayed)
-               (member prefix-keys which-key-delayed-prefixes))
+               (setq skip (run-hook-with-args-until-success
+                           'which-key-delay-functions prefix-keys)))
       (setq which-key--delayed-timer
-            (run-with-idle-timer which-key-delayed-prefixes-delay nil
-                                 #'which-key--update t))
-      (setq skip t))
+            (run-with-idle-timer skip nil #'which-key--update t)))
     (cond ((and (> (length prefix-keys) 0)
                 (or (keymapp (key-binding prefix-keys))
                     ;; Some keymaps are stored here like iso-transl-ctl-x-8-map
@@ -2138,12 +2137,14 @@ Finally, show the buffer."
           ((and which-key-show-operator-state-maps
                 (bound-and-true-p evil-state)
                 (eq evil-state 'operator)
-                (not which-key--using-show-operator-keymap))
+                (not which-key--using-show-operator-keymap)
+                (not skip))
            (which-key--show-evil-operator-keymap))
           ((and which-key--current-page-n
                 (not which-key--using-top-level)
                 (not which-key--using-show-operator-keymap)
-                (not which-key--using-show-keymap))
+                (not which-key--using-show-keymap)
+                (not skip))
            (which-key--hide-popup)))))
 
 ;; Timers
