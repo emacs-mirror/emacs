@@ -893,6 +893,7 @@ total height."
   "This function is called to hide the which-key buffer."
   (unless (member real-this-command which-key--paging-functions)
     (setq which-key--current-page-n nil
+          which-key--current-prefix nil
           which-key--using-top-level nil
           which-key--using-show-keymap nil
           which-key--using-show-operator-keymap nil
