@@ -344,17 +344,17 @@ See http://www.gnu.org/software/emacs/manual/html_node/emacs/Modifier-Keys.html"
 (defcustom which-key-delay-functions nil
   "A list of functions that may decide whether to delay the
 which-key popup based on the current incomplete key
-sequence. Each function in the list is run with a single argument
-which is the current key sequence as produced by
-`key-description'. If the popup should be delayed based on that
-key sequence, the function should return the delay time in
-seconds. Returning nil means no delay. The first function in this
-list to return a value is the value that is used.
+sequence. Each function in the list is run with two arguments,
+the current key sequence as produced by `key-description' and the
+length of the key sequence. If the popup should be delayed based
+on that key sequence, the function should return the delay time
+in seconds. Returning nil means no delay. The first function in
+this list to return a value is the value that is used.
 
 The delay time is effectively added to the normal
 `which-key-idle-delay'."
   :group 'which-key
-  :type '(repeat (vector integer)))
+  :type '(repeat function))
 
 ;; Hooks
 (defvar which-key-init-buffer-hook '()
@@ -485,7 +485,6 @@ used.")
 (defvar which-key--inhibit-next-operator-popup nil)
 (defvar which-key--current-show-keymap-name nil)
 (defvar which-key--prior-show-keymap-args nil)
-(defvar which-key--delayed-timer nil)
 
 (defvar which-key-key-based-description-replacement-alist '()
   "New version of
@@ -900,8 +899,6 @@ total height."
           which-key--current-show-keymap-name nil
           which-key--prior-show-keymap-args nil
           which-key--on-last-page nil)
-    (when (timerp which-key--delayed-timer)
-      (cancel-timer which-key--delayed-timer))
     (when (and which-key-idle-secondary-delay
                which-key--secondary-timer-active)
       (which-key--start-timer))
@@ -2075,10 +2072,10 @@ Finally, show the buffer."
                    (which-key--create-pages formatted-keys))
              (which-key--show-page 0)))))
 
-(defun which-key--update (&optional delayed)
+(defun which-key--update ()
   "Function run by timer to possibly trigger `which-key--create-buffer-and-show'."
   (let ((prefix-keys (this-single-command-keys))
-        skip)
+        delay-time)
     ;; (when (> (length prefix-keys) 0)
     ;;  (message "key: %s" (key-description prefix-keys)))
     ;; (when (> (length prefix-keys) 0)
@@ -2105,14 +2102,6 @@ Finally, show the buffer."
                (eq this-command 'god-mode-self-insert))
       (setq prefix-keys (when which-key--god-mode-key-string
                           (kbd which-key--god-mode-key-string))))
-    (when (and which-key-delay-functions
-               (> (length prefix-keys) 0)
-               (not delayed)
-               (setq skip (run-hook-with-args-until-success
-                           'which-key-delay-functions
-                           (key-description prefix-keys))))
-      (setq which-key--delayed-timer
-            (run-with-idle-timer skip nil #'which-key--update t)))
     (cond ((and (> (length prefix-keys) 0)
                 (or (keymapp (key-binding prefix-keys))
                     ;; Some keymaps are stored here like iso-transl-ctl-x-8-map
@@ -2122,7 +2111,6 @@ Finally, show the buffer."
                     (keymapp (which-key--safe-lookup-key
                               function-key-map prefix-keys)))
                 (not which-key-inhibit)
-                (not skip)
                 ;; Do not display the popup if a command is currently being
                 ;; executed
                 (or (and which-key-allow-evil-operators
@@ -2131,21 +2119,25 @@ Finally, show the buffer."
                          (bound-and-true-p god-local-mode)
                          (eq this-command 'god-mode-self-insert))
                     (null this-command)))
-           (which-key--create-buffer-and-show prefix-keys)
-           (when (and which-key-idle-secondary-delay
-                      (not which-key--secondary-timer-active))
-             (which-key--start-timer which-key-idle-secondary-delay t)))
+           (when (or (null which-key-delay-functions)
+                     (null (setq delay-time (run-hook-with-args-until-success
+                                             'which-key-delay-functions
+                                             (key-description prefix-keys)
+                                             (length prefix-keys))))
+                     (sit-for delay-time t))
+             (which-key--create-buffer-and-show prefix-keys)
+             (when (and which-key-idle-secondary-delay
+                        (not which-key--secondary-timer-active))
+               (which-key--start-timer which-key-idle-secondary-delay t))))
           ((and which-key-show-operator-state-maps
                 (bound-and-true-p evil-state)
                 (eq evil-state 'operator)
-                (not which-key--using-show-operator-keymap)
-                (not skip))
+                (not which-key--using-show-operator-keymap))
            (which-key--show-evil-operator-keymap))
           ((and which-key--current-page-n
                 (not which-key--using-top-level)
                 (not which-key--using-show-operator-keymap)
-                (not which-key--using-show-keymap)
-                (not skip))
+                (not which-key--using-show-keymap))
            (which-key--hide-popup)))))
 
 ;; Timers
