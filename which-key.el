@@ -455,8 +455,6 @@ to a non-nil value for the execution of a command. Like this
   "Internal: Non-nil if the secondary timer is active.")
 (defvar which-key--paging-timer nil
   "Internal: Holds reference to timer for paging.")
-(defvar which-key--is-setup nil
-  "Internal: Non-nil if which-key buffer has been setup.")
 (defvar which-key--frame nil
   "Internal: Holds reference to which-key frame.
 Used when `which-key-popup-type' is frame.")
@@ -574,7 +572,9 @@ problems at github. If DISABLE is non-nil disable support."
   (if which-key-mode
       (progn
         (setq which-key--echo-keystrokes-backup echo-keystrokes)
-        (unless which-key--is-setup (which-key--setup))
+        (when (or (eq which-key-show-prefix 'echo)
+                  (eq which-key-popup-type 'minibuffer))
+          (which-key--setup-echo-keystrokes))
         (unless (member prefix-help-command which-key--paging-functions)
           (setq which-key--prefix-help-cmd-backup prefix-help-command))
         (when which-key-use-C-h-commands
@@ -610,17 +610,6 @@ problems at github. If DISABLE is non-nil disable support."
       (setq-local word-wrap nil)
       (setq-local show-trailing-whitespace nil)
       (run-hooks 'which-key-init-buffer-hook))))
-
-(defun which-key--setup ()
-  "Initial setup for which-key.
-Reduce `echo-keystrokes' if necessary (it will interfere if it's
-set too high) and setup which-key buffer."
-  (when (or (eq which-key-show-prefix 'echo)
-            (eq which-key-popup-type 'minibuffer))
-    (which-key--setup-echo-keystrokes))
-  ;; (which-key--setup-undo-key)
-  (which-key--init-buffer)
-  (setq which-key--is-setup t))
 
 (defun which-key--setup-echo-keystrokes ()
   "Reduce `echo-keystrokes' if necessary (it will interfere if
@@ -2125,7 +2114,7 @@ Finally, show the buffer."
                                              'which-key-delay-functions
                                              (key-description prefix-keys)
                                              (length prefix-keys))))
-                     (sit-for delay-time t))
+                     (sit-for delay-time))
              (which-key--create-buffer-and-show prefix-keys)
              (when (and which-key-idle-secondary-delay
                         (not which-key--secondary-timer-active))
