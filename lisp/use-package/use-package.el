@@ -144,9 +144,9 @@ the user specified."
     :defines
     :functions
     :defer
+    :init
     :after
     :demand
-    :init
     :config
     :diminish
     :delight)
