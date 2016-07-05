@@ -356,6 +356,23 @@ The delay time is effectively added to the normal
   :group 'which-key
   :type '(repeat function))
 
+(defcustom which-key-allow-regexps nil
+  "A list of regexp strings to use to filter key sequences. When
+non-nil, for a key sequence to trigger the which-key popup it
+must match one of the regexps in this list. The format of the key
+sequences is what is produced by `key-description'."
+  :group 'which-key
+  :type '(repeat regexp))
+
+(defcustom which-key-inhibit-regexps nil
+  "Similar to `which-key-allow-regexps', a list of regexp strings
+to use to filter key sequences. When non-nil, for a key sequence
+to trigger the which-key popup it cannot match one of the regexps
+in this list. The format of the key sequences is what is produced
+by `key-description'."
+  :group 'which-key
+  :type '(repeat regexp))
+
 ;; Hooks
 (defvar which-key-init-buffer-hook '()
   "Hook run when which-key buffer is initialized.")
@@ -1926,6 +1943,14 @@ prefix) if `which-key-use-C-h-commands' is non nil."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Update
 
+(defun which-key--any-match-p (regexps string)
+  "Non-nil if any of REGEXPS match STRING."
+  (let (match)
+    (dolist (regexp regexps)
+      (when (string-match-p regexp string)
+        (setq match t)))
+    match))
+
 (defun which-key--try-2-side-windows (keys page-n loc1 loc2 &rest _ignore)
   "Try to show KEYS (PAGE-N) in LOC1 first. Only if no keys fit fallback to LOC2."
   (let (pages1)
@@ -2101,6 +2126,13 @@ Finally, show the buffer."
                     (keymapp (which-key--safe-lookup-key
                               function-key-map prefix-keys)))
                 (not which-key-inhibit)
+                (or (null which-key-allow-regexps)
+                    (which-key--any-match-p
+                     which-key-allow-regexps (key-description prefix-keys)))
+                (or (null which-key-inhibit-regexps)
+                    (not
+                     (which-key--any-match-p
+                      which-key-allow-regexps (key-description prefix-keys))))
                 ;; Do not display the popup if a command is currently being
                 ;; executed
                 (or (and which-key-allow-evil-operators
