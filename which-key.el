@@ -2132,7 +2132,7 @@ Finally, show the buffer."
                 (or (null which-key-inhibit-regexps)
                     (not
                      (which-key--any-match-p
-                      which-key-allow-regexps (key-description prefix-keys))))
+                      which-key-inhibit-regexps (key-description prefix-keys))))
                 ;; Do not display the popup if a command is currently being
                 ;; executed
                 (or (and which-key-allow-evil-operators
