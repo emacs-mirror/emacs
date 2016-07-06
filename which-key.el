@@ -1429,8 +1429,9 @@ alists. Returns a list (key separator description)."
         (ignore-keys-regexp "mouse-\\|wheel-\\|remap\\|drag-\\|scroll-bar\\|select-window\\|switch-frame\\|-state")
         (ignore-sections-regexp "\\(Key translations\\|Function key map translations\\|Input decoding map translations\\)"))
     (with-temp-buffer
-      (let ((indent-tabs-mode t))
-        (describe-buffer-bindings buffer which-key--current-prefix))
+      (setq-local indent-tabs-mode t)
+      (setq-local tab-width 8)
+      (describe-buffer-bindings buffer which-key--current-prefix)
       (goto-char (point-min))
       (let ((header-p (not (= (char-after) ?\f)))
             bindings header)
