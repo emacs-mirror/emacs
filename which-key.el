@@ -233,6 +233,15 @@ a percentage out of the frame's height."
   :group 'which-key
   :type 'integer)
 
+(defcustom which-key-allow-imprecise-window-fit nil
+  "If non-nil allow which-key to use a less intensive method of
+fitting the popup window to the buffer. If you are noticing lag
+when the which-key popup displays turning this on may help.
+
+See https://github.com/justbur/emacs-which-key/issues/130"
+  :group 'which-key
+  :type 'boolean)
+
 (defcustom which-key-show-remaining-keys nil
   "Show remaining keys in last slot, when keys are hidden."
   :group 'which-key
@@ -959,11 +968,17 @@ call signature in different emacs versions"
   (let ((fit-window-to-buffer-horizontally t))
     (apply #'fit-window-to-buffer window params)))
 
-(defun which-key--show-buffer-side-window (_act-popup-dim)
+(defun which-key--show-buffer-side-window (act-popup-dim)
   "Show which-key buffer when popup type is side-window."
-  (let* ((side which-key-side-window-location)
-         (alist '((window-width . which-key--fit-buffer-to-window-horizontally)
-                  (window-height . (lambda (w) (fit-window-to-buffer w nil 1))))))
+  (let* ((height (car act-popup-dim))
+         (width (cdr act-popup-dim))
+         (side which-key-side-window-location)
+         (alist
+          (if which-key-allow-imprecise-window-fit
+              `((window-width .  ,(which-key--text-width-to-total width))
+                (window-height . ,height))
+            '((window-width . which-key--fit-buffer-to-window-horizontally)
+              (window-height . (lambda (w) (fit-window-to-buffer w nil 1)))))))
     ;; Note: `display-buffer-in-side-window' and `display-buffer-in-major-side-window'
     ;; were added in Emacs 24.3
 
