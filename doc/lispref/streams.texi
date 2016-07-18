@@ -142,7 +142,7 @@ A symbol as input stream is equivalent to the symbol's function
 definition (if any).
 @end table
 
-  Here is an example of reading from a stream that is a buffer, showing
+Here is an example of reading from a stream that is a buffer, showing
 where point is located before and after:
 
 @example
@@ -264,6 +264,20 @@ Note that the open and close parentheses remain in the list.  The Lisp
 reader encountered the open parenthesis, decided that it ended the
 input, and unread it.  Another attempt to read from the stream at this
 point would read @samp{()} and return @code{nil}.
+
+One function that is specifically designed for use as an input stream
+is:
+
+@cindex @code{external-standard-input}
+@defun external-standard-input &optional char
+This function reads a single character from the system standard input
+(as opposed to @var{standard-input}) and functions as a stream. Note,
+however, that if Emacs is running in a terminal its use can be
+unpredictable.
+@end defun
+
+As with @code{external-standard-output}, this function is
+predominately useful for debugging.
 
 @node Input Functions
 @section Input Functions
@@ -529,6 +543,28 @@ Now we can put the output in the proper order by reversing the list:
 @noindent
 Calling @code{concat} converts the list to a string so you can see its
 contents more clearly.
+
+Two functions which are specifically designed for use as output
+streams:
+
+@defun external-standard-output
+@cindex @code{external-standard-output} output stream
+Prints to the system standard output (as opposed to the
+@var{standard-output}), regardless of whether Emacs is running
+interactively or not.
+@end defun
+
+@defun external-standard-error
+@cindex @code{external-standard-error} output stream
+Prints to the system standard error, regardless of whether Emacs is
+running interactively or not.
+@end defun
+
+These functions are predominately useful for debugging, as they are a
+mechanism for producing output that does not change any buffer. Note,
+however, that if Emacs is running in a terminal their use can affect
+the display unpredictably.
+
 
 @node Output Functions
 @section Output Functions

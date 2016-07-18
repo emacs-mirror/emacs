@@ -5082,6 +5082,65 @@ If nil, use the current buffer." */ )
   return make_digest_string (digest, SHA1_DIGEST_SIZE);
 }
 
+DEFUN ("external-standard-input-read-char",Fexternal_standard_input_read_char, Sexternal_standard_input_read_char, 0, 0, 0,
+       doc: /* Read a single character from the system standard input.
+
+Returns -1 if standard input is at the end.*/)
+     (void)
+{
+  int c;
+  Lisp_Object val;
+
+  c = getchar();
+  XSETINT(val,c);
+
+  return val;
+}
+
+DEFUN ("external-standard-input-read-line", Fexternal_standard_input_read_line, Sexternal_standard_input_read_line, 0, 0, 0,
+      doc: /* Read a line from the system standard input.*/)
+  (void)
+{
+  ptrdiff_t size, len;
+  char *line;
+  Lisp_Object val;
+  int c;
+
+  val = Qnil;
+  size = 100;
+  len = 0;
+  line = xmalloc (size);
+
+  while ((c = getchar ()) != '\n' && c != '\r')
+    {
+      if (c == EOF)
+        {
+          if (errno != 0)
+            break;
+        }
+      else
+        {
+          if (len == size)
+            line = xpalloc (line, &size, 1, -1, sizeof *line);
+          line[len++] = c;
+        }
+    }
+
+  if (len || c == '\n' || c == '\r')
+    {
+      val = make_string (line, len);
+      xfree (line);
+    }
+  else
+    {
+      xfree (line);
+      error ("Error reading from stdin");
+    }
+
+  return val;
+}
+
+
 
 void
 syms_of_fns (void)
@@ -5249,4 +5308,7 @@ this variable.  */);
   defsubr (&Ssecure_hash);
   defsubr (&Sbuffer_hash);
   defsubr (&Slocale_info);
+  defsubr (&Sexternal_standard_input_read_char);
+  defsubr (&Sexternal_standard_input_read_line);
+
 }

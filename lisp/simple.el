@@ -8718,6 +8718,21 @@ to capitalize ARG words."
       (capitalize-region (region-beginning) (region-end))
     (capitalize-word arg)))
 
+(defvar external-standard-input-pushback nil
+  "Pushback character for `external-standard-input'.")
+
+(defun external-standard-input (&optional char)
+  "Read a character from the system standard input.
+
+If CHAR is non-nil, then do not read but return CHAR
+on the next invocation."
+  (if char
+      (setq external-standard-input-pushback char)
+    (if (eq nil external-standard-input-pushback)
+        (external-standard-input-read-char)
+      (let ((rtn external-standard-input-pushback))
+        (setq external-standard-input-pushback nil)
+        rtn))))
 
 
 (provide 'simple)

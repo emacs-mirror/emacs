@@ -769,6 +769,22 @@ to make it write to the debugging output.  */)
   return character;
 }
 
+DEFUN ("external-standard-output", Fexternal_standard_output, Sexternal_standard_output, 1, 1, 0,
+       doc: /* Output character CHARACTER to system standard output. */)
+     (Lisp_Object character)
+{
+  CHECK_NUMBER (character);
+  printchar_to_stream (XINT(character), stdout);
+  return character;
+}
+
+DEFUN ("external-standard-error", Fexternal_standard_error, Sexternal_standard_error, 1, 1, 0,
+       doc: /* Output character CHARACTER to system standard error. */)
+     (Lisp_Object character)
+{
+  return Fexternal_debugging_output (character);
+}
+
 /* This function is never called.  Its purpose is to prevent
    print_output_debug_flag from being optimized away.  */
 
@@ -2307,7 +2323,10 @@ priorities.  */);
   defsubr (&Sprinc);
   defsubr (&Sprint);
   defsubr (&Sterpri);
+  defsubr (&Sexternal_standard_output);
+  defsubr (&Sexternal_standard_error);
   defsubr (&Swrite_char);
+
   defsubr (&Sredirect_debugging_output);
 
   DEFSYM (Qprint_escape_newlines, "print-escape-newlines");
