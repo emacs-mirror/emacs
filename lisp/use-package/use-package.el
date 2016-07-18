@@ -46,7 +46,7 @@
 (eval-when-compile (require 'cl))
 (eval-when-compile (require 'regexp-opt))
 
-(declare-function package-installed-p 'package)
+(declare-function package-installed-p "package")
 
 (defgroup use-package nil
   "A use-package declaration for simplifying your `.emacs'."
@@ -212,8 +212,8 @@ convert it to a string and return that."
   "Return a form which will load or require NAME depending on
 whether it's a string or symbol."
   (if (stringp name)
-      `(load ,name 'noerror)
-    `(require ',name nil 'noerror)))
+      `(load ,name ',noerror)
+    `(require ',name nil ',noerror)))
 
 (defun use-package-expand (name label form)
   "FORM is a list of forms, so `((foo))' if only `foo' is being called."
@@ -1167,7 +1167,7 @@ this file.  Usage:
       (let ((body
              (macroexp-progn
               (use-package-process-keywords name args*
-                (and use-package-always-defer '(:deferred t))))))
+                (and use-package-always-defer (list :deferred t))))))
         (if use-package-debug
             (display-buffer
              (save-current-buffer
