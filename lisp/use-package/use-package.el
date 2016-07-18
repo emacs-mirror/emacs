@@ -46,7 +46,7 @@
 (eval-when-compile (require 'cl))
 (eval-when-compile (require 'regexp-opt))
 
-(declare-function package-installed-p 'package)
+(declare-function package-installed-p "package")
 
 (defgroup use-package nil
   "A use-package declaration for simplifying your `.emacs'."
