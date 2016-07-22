@@ -298,7 +298,7 @@ This is in contrast to merely setting it to 0."
   (let (p)
     (while plist
       (if (not (eq property (car plist)))
-	  (setq p (plist-put p (car plist) (nth 1 plist))))
+          (setq p (plist-put p (car plist) (nth 1 plist))))
       (setq plist (cddr plist)))
     p))
 
