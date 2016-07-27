@@ -15,4 +15,5 @@ test: elpa
 elpa: $(ELPA_DIR)
 $(ELPA_DIR): Cask
 	$(CASK) install
+	mkdir -p $(ELPA_DIR)
 	touch $@
