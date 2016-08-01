@@ -1,0 +1,72 @@
+INSTALLmac.txt - Installation of Vim on Macintosh
+
+This file contains instructions for compiling Vim. If you already have an
+executable version of Vim, you don't need this.
+
+First, make sure you've installed Xcode or CommandLineToots.  If not, open a
+terminal and do
+
+	$ make --version
+
+A window pops up instructing you to install the developer tools.
+
+
+----------------------------------------------------------------------------
+Summary
+----------------------------------------------------------------------------
+
+1 MacOS X
+ 1.1. Carbon interface
+ 1.2. X (Athena, GTK, Motif) or plain text.
+
+MacOS Classic is no longer supported.  If you really want it use Vim 6.4.
+
+----------------------------------------------------------------------------
+1 MacOS X
+----------------------------------------------------------------------------
+
+1.0 Considerations
+
+ Only '/' supported as path separator.
+
+1.1 Carbon interface (default)
+
+ You can compile vim with the standard Unix routine:
+   cd .../src
+   make
+   make test
+   sudo make install
+
+ "make" will create a working Vim.app application bundle in the src
+ directory.  You can move this bundle (the Vim.app directory) anywhere
+ you want.  Or use "make install" to move it to /Applications.
+
+ You need at least Xcode 1.5 to compile Vim 7.0.
+
+ Configure will create a universal binary if possible.  This requires
+ installing the universal SDK (currently for 10.4).
+
+ To overrule the architecture do this before running make:
+
+	./configure --with-mac-arch=intel
+ or
+	./configure --with-mac-arch=ppc
+
+
+1.2 X-Windows or Plain Text
+
+ If you do not want the Carbon interface, you must explicitly tell
+ configure to use a different GUI.
+
+  cd .../src
+  ./configure --disable-darwin --enable-gui=gtk2
+  make; make install
+
+ NOTE: The following GUI options are supported:
+	no (for text), motif, athena, nextaw
+	gtk, gtk2, gnome, gnome2,
+
+ NOTE: You need to first install XFree86 and XDarwin.
+       Please visit http://www.XDarwin.org
+
+------------------------------------------------------

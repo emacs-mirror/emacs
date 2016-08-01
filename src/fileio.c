@@ -1,6107 +1,10430 @@
-/* File IO for GNU Emacs.
+/* vi:set ts=8 sts=4 sw=4:
+ *
+ * VIM - Vi IMproved	by Bram Moolenaar
+ *
+ * Do ":help uganda"  in Vim to read copying and usage conditions.
+ * Do ":help credits" in Vim to see a list of people who contributed.
+ * See README.txt for an overview of the Vim source code.
+ */
 
-Copyright (C) 1985-1988, 1993-2016 Free Software Foundation, Inc.
+/*
+ * fileio.c: read from and write to a file
+ */
 
-This file is part of GNU Emacs.
+#include "vim.h"
 
-GNU Emacs is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or (at
-your option) any later version.
-
-GNU Emacs is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
-
-#include <config.h>
-#include <limits.h>
-#include <fcntl.h>
-#include "sysstdio.h"
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-
-#ifdef HAVE_PWD_H
-#include <pwd.h>
+#if defined(__TANDEM) || defined(__MINT__)
+# include <limits.h>		/* for SSIZE_MAX */
 #endif
 
-#include <errno.h>
-
-#ifdef HAVE_LIBSELINUX
-#include <selinux/selinux.h>
-#include <selinux/context.h>
+#if defined(HAVE_UTIME) && defined(HAVE_UTIME_H)
+# include <utime.h>		/* for struct utimbuf */
 #endif
 
-#if USE_ACL && defined HAVE_ACL_SET_FILE
-#include <sys/acl.h>
+#define BUFSIZE		8192	/* size of normal write buffer */
+#define SMBUFSIZE	256	/* size of emergency write buffer */
+
+/* Is there any system that doesn't have access()? */
+#define USE_MCH_ACCESS
+
+#if (defined(sun) || defined(__FreeBSD__)) && defined(S_ISCHR)
+# define OPEN_CHR_FILES
+static int is_dev_fd_file(char_u *fname);
+#endif
+#ifdef FEAT_MBYTE
+static char_u *next_fenc(char_u **pp);
+# ifdef FEAT_EVAL
+static char_u *readfile_charconvert(char_u *fname, char_u *fenc, int *fdp);
+# endif
+#endif
+#ifdef FEAT_VIMINFO
+static void check_marks_read(void);
+#endif
+#ifdef FEAT_CRYPT
+static char_u *check_for_cryptkey(char_u *cryptkey, char_u *ptr, long *sizep, off_T *filesizep, int newfile, char_u *fname, int *did_ask);
+#endif
+#ifdef UNIX
+static void set_file_time(char_u *fname, time_t atime, time_t mtime);
+#endif
+static int set_rw_fname(char_u *fname, char_u *sfname);
+static int msg_add_fileformat(int eol_type);
+static void msg_add_eol(void);
+static int check_mtime(buf_T *buf, stat_T *s);
+static int time_differs(long t1, long t2);
+#ifdef FEAT_AUTOCMD
+static int apply_autocmds_exarg(event_T event, char_u *fname, char_u *fname_io, int force, buf_T *buf, exarg_T *eap);
+static int au_find_group(char_u *name);
+
+# define AUGROUP_DEFAULT    -1	    /* default autocmd group */
+# define AUGROUP_ERROR	    -2	    /* erroneous autocmd group */
+# define AUGROUP_ALL	    -3	    /* all autocmd groups */
 #endif
 
-#include <c-ctype.h>
-
-#include "lisp.h"
-#include "composite.h"
-#include "character.h"
-#include "buffer.h"
-#include "coding.h"
-#include "window.h"
-#include "blockinput.h"
-#include "region-cache.h"
-#include "frame.h"
-
-#ifdef WINDOWSNT
-#define NOMINMAX 1
-#include <windows.h>
-#include <sys/file.h>
-#include "w32.h"
-#endif /* not WINDOWSNT */
-
-#ifdef MSDOS
-#include "msdos.h"
-#include <sys/param.h>
+#if defined(FEAT_CRYPT) || defined(FEAT_MBYTE)
+# define HAS_BW_FLAGS
+# define FIO_LATIN1	0x01	/* convert Latin1 */
+# define FIO_UTF8	0x02	/* convert UTF-8 */
+# define FIO_UCS2	0x04	/* convert UCS-2 */
+# define FIO_UCS4	0x08	/* convert UCS-4 */
+# define FIO_UTF16	0x10	/* convert UTF-16 */
+# ifdef WIN3264
+#  define FIO_CODEPAGE	0x20	/* convert MS-Windows codepage */
+#  define FIO_PUT_CP(x) (((x) & 0xffff) << 16)	/* put codepage in top word */
+#  define FIO_GET_CP(x)	(((x)>>16) & 0xffff)	/* get codepage from top word */
+# endif
+# ifdef MACOS_X
+#  define FIO_MACROMAN	0x20	/* convert MacRoman */
+# endif
+# define FIO_ENDIAN_L	0x80	/* little endian */
+# define FIO_ENCRYPTED	0x1000	/* encrypt written bytes */
+# define FIO_NOCONVERT	0x2000	/* skip encoding conversion */
+# define FIO_UCSBOM	0x4000	/* check for BOM at start of file */
+# define FIO_ALL	-1	/* allow all formats */
 #endif
 
-#ifdef DOS_NT
-/* On Windows, drive letters must be alphabetic - on DOS, the Netware
-   redirector allows the six letters between 'Z' and 'a' as well.  */
-#ifdef MSDOS
-#define IS_DRIVE(x) ((x) >= 'A' && (x) <= 'z')
+/* When converting, a read() or write() may leave some bytes to be converted
+ * for the next call.  The value is guessed... */
+#define CONV_RESTLEN 30
+
+/* We have to guess how much a sequence of bytes may expand when converting
+ * with iconv() to be able to allocate a buffer. */
+#define ICONV_MULT 8
+
+/*
+ * Structure to pass arguments from buf_write() to buf_write_bytes().
+ */
+struct bw_info
+{
+    int		bw_fd;		/* file descriptor */
+    char_u	*bw_buf;	/* buffer with data to be written */
+    int		bw_len;		/* length of data */
+#ifdef HAS_BW_FLAGS
+    int		bw_flags;	/* FIO_ flags */
 #endif
-#ifdef WINDOWSNT
-#define IS_DRIVE(x) c_isalpha (x)
+#ifdef FEAT_CRYPT
+    buf_T	*bw_buffer;	/* buffer being written */
 #endif
-/* Need to lower-case the drive letter, or else expanded
-   filenames will sometimes compare unequal, because
-   `expand-file-name' doesn't always down-case the drive letter.  */
-#define DRIVE_LETTER(x) c_tolower (x)
+#ifdef FEAT_MBYTE
+    char_u	bw_rest[CONV_RESTLEN]; /* not converted bytes */
+    int		bw_restlen;	/* nr of bytes in bw_rest[] */
+    int		bw_first;	/* first write call */
+    char_u	*bw_conv_buf;	/* buffer for writing converted chars */
+    int		bw_conv_buflen; /* size of bw_conv_buf */
+    int		bw_conv_error;	/* set for conversion error */
+    linenr_T	bw_conv_error_lnum;  /* first line with error or zero */
+    linenr_T	bw_start_lnum;  /* line number at start of buffer */
+# ifdef USE_ICONV
+    iconv_t	bw_iconv_fd;	/* descriptor for iconv() or -1 */
+# endif
 #endif
-
-#include "systime.h"
-#include <acl.h>
-#include <allocator.h>
-#include <careadlinkat.h>
-#include <stat-time.h>
-
-#include <binary-io.h>
-
-#ifdef HPUX
-#include <netio.h>
-#endif
-
-#include "commands.h"
-
-/* True during writing of auto-save files.  */
-static bool auto_saving;
-
-/* Emacs's real umask.  */
-static mode_t realmask;
-
-/* Nonzero umask during creation of auto-save directories.  */
-static mode_t auto_saving_dir_umask;
-
-/* Set by auto_save_1 to mode of original file so Fwrite_region will create
-   a new file with the same mode as the original.  */
-static mode_t auto_save_mode_bits;
-
-/* Set by auto_save_1 if an error occurred during the last auto-save.  */
-static bool auto_save_error_occurred;
-
-/* If VALID_TIMESTAMP_FILE_SYSTEM, then TIMESTAMP_FILE_SYSTEM is the device
-   number of a file system where time stamps were observed to to work.  */
-static bool valid_timestamp_file_system;
-static dev_t timestamp_file_system;
-
-/* Each time an annotation function changes the buffer, the new buffer
-   is added here.  */
-static Lisp_Object Vwrite_region_annotation_buffers;
-
-static bool a_write (int, Lisp_Object, ptrdiff_t, ptrdiff_t,
-		     Lisp_Object *, struct coding_system *);
-static bool e_write (int, Lisp_Object, ptrdiff_t, ptrdiff_t,
-		     struct coding_system *);
-
-
-/* Return true if FILENAME exists.  */
-
-static bool
-check_existing (const char *filename)
-{
-  return faccessat (AT_FDCWD, filename, F_OK, AT_EACCESS) == 0;
-}
-
-/* Return true if file FILENAME exists and can be executed.  */
-
-static bool
-check_executable (char *filename)
-{
-  return faccessat (AT_FDCWD, filename, X_OK, AT_EACCESS) == 0;
-}
-
-/* Return true if file FILENAME exists and can be accessed
-   according to AMODE, which should include W_OK.
-   On failure, return false and set errno.  */
-
-static bool
-check_writable (const char *filename, int amode)
-{
-#ifdef MSDOS
-  /* FIXME: an faccessat implementation should be added to the
-     DOS/Windows ports and this #ifdef branch should be removed.  */
-  struct stat st;
-  if (stat (filename, &st) < 0)
-    return 0;
-  errno = EPERM;
-  return (st.st_mode & S_IWRITE || S_ISDIR (st.st_mode));
-#else /* not MSDOS */
-  bool res = faccessat (AT_FDCWD, filename, amode, AT_EACCESS) == 0;
-#ifdef CYGWIN
-  /* faccessat may have returned failure because Cygwin couldn't
-     determine the file's UID or GID; if so, we return success.  */
-  if (!res)
-    {
-      int faccessat_errno = errno;
-      struct stat st;
-      if (stat (filename, &st) < 0)
-        return 0;
-      res = (st.st_uid == -1 || st.st_gid == -1);
-      errno = faccessat_errno;
-    }
-#endif /* CYGWIN */
-  return res;
-#endif /* not MSDOS */
-}
-
-/* Signal a file-access failure.  STRING describes the failure,
-   NAME the file involved, and ERRORNO the errno value.
-
-   If NAME is neither null nor a pair, package it up as a singleton
-   list before reporting it; this saves report_file_errno's caller the
-   trouble of preserving errno before calling list1.  */
-
-void
-report_file_errno (char const *string, Lisp_Object name, int errorno)
-{
-  Lisp_Object data = CONSP (name) || NILP (name) ? name : list1 (name);
-  synchronize_system_messages_locale ();
-  char *str = strerror (errorno);
-  AUTO_STRING (unibyte_str, str);
-  Lisp_Object errstring
-    = code_convert_string_norecord (unibyte_str, Vlocale_coding_system, 0);
-  Lisp_Object errdata = Fcons (errstring, data);
-
-  if (errorno == EEXIST)
-    xsignal (Qfile_already_exists, errdata);
-  else
-    xsignal (Qfile_error, Fcons (build_string (string), errdata));
-}
-
-/* Signal a file-access failure that set errno.  STRING describes the
-   failure, NAME the file involved.  When invoking this function, take
-   care to not use arguments such as build_string ("foo") that involve
-   side effects that may set errno.  */
-
-void
-report_file_error (char const *string, Lisp_Object name)
-{
-  report_file_errno (string, name, errno);
-}
-
-/* Like report_file_error, but reports a file-notify-error instead.  */
-
-void
-report_file_notify_error (const char *string, Lisp_Object name)
-{
-  Lisp_Object data = CONSP (name) || NILP (name) ? name : list1 (name);
-  synchronize_system_messages_locale ();
-  char *str = strerror (errno);
-  AUTO_STRING (unibyte_str, str);
-  Lisp_Object errstring
-    = code_convert_string_norecord (unibyte_str, Vlocale_coding_system, 0);
-  Lisp_Object errdata = Fcons (errstring, data);
-
-  xsignal (Qfile_notify_error, Fcons (build_string (string), errdata));
-}
-
-void
-close_file_unwind (int fd)
-{
-  emacs_close (fd);
-}
-
-void
-fclose_unwind (void *arg)
-{
-  FILE *stream = arg;
-  fclose (stream);
-}
-
-/* Restore point, having saved it as a marker.  */
-
-void
-restore_point_unwind (Lisp_Object location)
-{
-  Fgoto_char (location);
-  unchain_marker (XMARKER (location));
-}
-
-
-DEFUN ("find-file-name-handler", Ffind_file_name_handler,
-       Sfind_file_name_handler, 2, 2, 0,
-       doc: /* Return FILENAME's handler function for OPERATION, if it has one.
-Otherwise, return nil.
-A file name is handled if one of the regular expressions in
-`file-name-handler-alist' matches it.
-
-If OPERATION equals `inhibit-file-name-operation', then we ignore
-any handlers that are members of `inhibit-file-name-handlers',
-but we still do run any other handlers.  This lets handlers
-use the standard functions without calling themselves recursively.  */)
-  (Lisp_Object filename, Lisp_Object operation)
-{
-  /* This function must not munge the match data.  */
-  Lisp_Object chain, inhibited_handlers, result;
-  ptrdiff_t pos = -1;
-
-  result = Qnil;
-  CHECK_STRING (filename);
-
-  if (EQ (operation, Vinhibit_file_name_operation))
-    inhibited_handlers = Vinhibit_file_name_handlers;
-  else
-    inhibited_handlers = Qnil;
-
-  for (chain = Vfile_name_handler_alist; CONSP (chain);
-       chain = XCDR (chain))
-    {
-      Lisp_Object elt;
-      elt = XCAR (chain);
-      if (CONSP (elt))
-	{
-	  Lisp_Object string = XCAR (elt);
-	  ptrdiff_t match_pos;
-	  Lisp_Object handler = XCDR (elt);
-	  Lisp_Object operations = Qnil;
-
-	  if (SYMBOLP (handler))
-	    operations = Fget (handler, Qoperations);
-
-	  if (STRINGP (string)
-	      && (match_pos = fast_string_match (string, filename)) > pos
-	      && (NILP (operations) || ! NILP (Fmemq (operation, operations))))
-	    {
-	      Lisp_Object tem;
-
-	      handler = XCDR (elt);
-	      tem = Fmemq (handler, inhibited_handlers);
-	      if (NILP (tem))
-		{
-		  result = handler;
-		  pos = match_pos;
-		}
-	    }
-	}
-
-      QUIT;
-    }
-  return result;
-}
-
-DEFUN ("file-name-directory", Ffile_name_directory, Sfile_name_directory,
-       1, 1, 0,
-       doc: /* Return the directory component in file name FILENAME.
-Return nil if FILENAME does not include a directory.
-Otherwise return a directory name.
-Given a Unix syntax file name, returns a string ending in slash.  */)
-  (Lisp_Object filename)
-{
-  Lisp_Object handler;
-
-  CHECK_STRING (filename);
-
-  /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (filename, Qfile_name_directory);
-  if (!NILP (handler))
-    {
-      Lisp_Object handled_name = call2 (handler, Qfile_name_directory,
-					filename);
-      return STRINGP (handled_name) ? handled_name : Qnil;
-    }
-
-  char *beg = SSDATA (filename);
-  char const *p = beg + SBYTES (filename);
-
-  while (p != beg && !IS_DIRECTORY_SEP (p[-1])
-#ifdef DOS_NT
-	 /* only recognize drive specifier at the beginning */
-	 && !(p[-1] == ':'
-	      /* handle the "/:d:foo" and "/:foo" cases correctly  */
-	      && ((p == beg + 2 && !IS_DIRECTORY_SEP (*beg))
-		  || (p == beg + 4 && IS_DIRECTORY_SEP (*beg))))
-#endif
-	 ) p--;
-
-  if (p == beg)
-    return Qnil;
-#ifdef DOS_NT
-  /* Expansion of "c:" to drive and default directory.  */
-  Lisp_Object tem_fn;
-  USE_SAFE_ALLOCA;
-  SAFE_ALLOCA_STRING (beg, filename);
-  p = beg + (p - SSDATA (filename));
-
-  if (p[-1] == ':')
-    {
-      /* MAXPATHLEN+1 is guaranteed to be enough space for getdefdir.  */
-      char *res = alloca (MAXPATHLEN + 1);
-      char *r = res;
-
-      if (p == beg + 4 && IS_DIRECTORY_SEP (*beg) && beg[1] == ':')
-	{
-	  memcpy (res, beg, 2);
-	  beg += 2;
-	  r += 2;
-	}
-
-      if (getdefdir (c_toupper (*beg) - 'A' + 1, r))
-	{
-	  size_t l = strlen (res);
-
-	  if (l > 3 || !IS_DIRECTORY_SEP (res[l - 1]))
-	    strcat (res, "/");
-	  beg = res;
-	  p = beg + strlen (beg);
-	  dostounix_filename (beg);
-	  tem_fn = make_specified_string (beg, -1, p - beg,
-					  STRING_MULTIBYTE (filename));
-	}
-      else
-	tem_fn = make_specified_string (beg - 2, -1, p - beg + 2,
-					STRING_MULTIBYTE (filename));
-    }
-  else if (STRING_MULTIBYTE (filename))
-    {
-      tem_fn = make_specified_string (beg, -1, p - beg, 1);
-      dostounix_filename (SSDATA (tem_fn));
-#ifdef WINDOWSNT
-      if (!NILP (Vw32_downcase_file_names))
-	tem_fn = Fdowncase (tem_fn);
-#endif
-    }
-  else
-    {
-      dostounix_filename (beg);
-      tem_fn = make_specified_string (beg, -1, p - beg, 0);
-    }
-  SAFE_FREE ();
-  return tem_fn;
-#else  /* DOS_NT */
-  return make_specified_string (beg, -1, p - beg, STRING_MULTIBYTE (filename));
-#endif	/* DOS_NT */
-}
-
-DEFUN ("file-name-nondirectory", Ffile_name_nondirectory,
-       Sfile_name_nondirectory, 1, 1, 0,
-       doc: /* Return file name FILENAME sans its directory.
-For example, in a Unix-syntax file name,
-this is everything after the last slash,
-or the entire name if it contains no slash.  */)
-  (Lisp_Object filename)
-{
-  register const char *beg, *p, *end;
-  Lisp_Object handler;
-
-  CHECK_STRING (filename);
-
-  /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (filename, Qfile_name_nondirectory);
-  if (!NILP (handler))
-    {
-      Lisp_Object handled_name = call2 (handler, Qfile_name_nondirectory,
-					filename);
-      if (STRINGP (handled_name))
-	return handled_name;
-      error ("Invalid handler in `file-name-handler-alist'");
-    }
-
-  beg = SSDATA (filename);
-  end = p = beg + SBYTES (filename);
-
-  while (p != beg && !IS_DIRECTORY_SEP (p[-1])
-#ifdef DOS_NT
-	 /* only recognize drive specifier at beginning */
-	 && !(p[-1] == ':'
-	      /* handle the "/:d:foo" case correctly  */
-	      && (p == beg + 2 || (p == beg + 4 && IS_DIRECTORY_SEP (*beg))))
-#endif
-	 )
-    p--;
-
-  return make_specified_string (p, -1, end - p, STRING_MULTIBYTE (filename));
-}
-
-DEFUN ("unhandled-file-name-directory", Funhandled_file_name_directory,
-       Sunhandled_file_name_directory, 1, 1, 0,
-       doc: /* Return a directly usable directory name somehow associated with FILENAME.
-A `directly usable' directory name is one that may be used without the
-intervention of any file handler.
-If FILENAME is a directly usable file itself, return
-\(file-name-as-directory FILENAME).
-If FILENAME refers to a file which is not accessible from a local process,
-then this should return nil.
-The `call-process' and `start-process' functions use this function to
-get a current directory to run processes in.  */)
-  (Lisp_Object filename)
-{
-  Lisp_Object handler;
-
-  /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (filename, Qunhandled_file_name_directory);
-  if (!NILP (handler))
-    {
-      Lisp_Object handled_name = call2 (handler, Qunhandled_file_name_directory,
-					filename);
-      return STRINGP (handled_name) ? handled_name : Qnil;
-    }
-
-  return Ffile_name_as_directory (filename);
-}
-
-/* Maximum number of bytes that DST will be longer than SRC
-   in file_name_as_directory.  This occurs when SRCLEN == 0.  */
-enum { file_name_as_directory_slop = 2 };
-
-/* Convert from file name SRC of length SRCLEN to directory name in
-   DST.  MULTIBYTE non-zero means the file name in SRC is a multibyte
-   string.  On UNIX, just make sure there is a terminating /.  Return
-   the length of DST in bytes.  */
-
-static ptrdiff_t
-file_name_as_directory (char *dst, const char *src, ptrdiff_t srclen,
-			bool multibyte)
-{
-  if (srclen == 0)
-    {
-      dst[0] = '.';
-      dst[1] = '/';
-      dst[2] = '\0';
-      return 2;
-    }
-
-  memcpy (dst, src, srclen);
-  if (!IS_DIRECTORY_SEP (dst[srclen - 1]))
-    dst[srclen++] = DIRECTORY_SEP;
-  dst[srclen] = 0;
-#ifdef DOS_NT
-  dostounix_filename (dst);
-#endif
-  return srclen;
-}
-
-DEFUN ("file-name-as-directory", Ffile_name_as_directory,
-       Sfile_name_as_directory, 1, 1, 0,
-       doc: /* Return a string representing the file name FILE interpreted as a directory.
-This operation exists because a directory is also a file, but its name as
-a directory is different from its name as a file.
-The result can be used as the value of `default-directory'
-or passed as second argument to `expand-file-name'.
-For a Unix-syntax file name, just appends a slash.  */)
-  (Lisp_Object file)
-{
-  char *buf;
-  ptrdiff_t length;
-  Lisp_Object handler, val;
-  USE_SAFE_ALLOCA;
-
-  CHECK_STRING (file);
-
-  /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (file, Qfile_name_as_directory);
-  if (!NILP (handler))
-    {
-      Lisp_Object handled_name = call2 (handler, Qfile_name_as_directory,
-					file);
-      if (STRINGP (handled_name))
-	return handled_name;
-      error ("Invalid handler in `file-name-handler-alist'");
-    }
-
-#ifdef WINDOWSNT
-  if (!NILP (Vw32_downcase_file_names))
-    file = Fdowncase (file);
-#endif
-  buf = SAFE_ALLOCA (SBYTES (file) + file_name_as_directory_slop + 1);
-  length = file_name_as_directory (buf, SSDATA (file), SBYTES (file),
-				   STRING_MULTIBYTE (file));
-  val = make_specified_string (buf, -1, length, STRING_MULTIBYTE (file));
-  SAFE_FREE ();
-  return val;
-}
-
-/* Convert from directory name SRC of length SRCLEN to file name in
-   DST.  MULTIBYTE non-zero means the file name in SRC is a multibyte
-   string.  On UNIX, just make sure there isn't a terminating /.
-   Return the length of DST in bytes.  */
-
-static ptrdiff_t
-directory_file_name (char *dst, char *src, ptrdiff_t srclen, bool multibyte)
-{
-  /* Process as Unix format: just remove any final slash.
-     But leave "/" and "//" unchanged.  */
-  while (srclen > 1
-#ifdef DOS_NT
-	 && !IS_ANY_SEP (src[srclen - 2])
-#endif
-	 && IS_DIRECTORY_SEP (src[srclen - 1])
-	 && ! (srclen == 2 && IS_DIRECTORY_SEP (src[0])))
-    srclen--;
-
-  memcpy (dst, src, srclen);
-  dst[srclen] = 0;
-#ifdef DOS_NT
-  dostounix_filename (dst);
-#endif
-  return srclen;
-}
-
-DEFUN ("directory-file-name", Fdirectory_file_name, Sdirectory_file_name,
-       1, 1, 0,
-       doc: /* Returns the file name of the directory named DIRECTORY.
-This is the name of the file that holds the data for the directory DIRECTORY.
-This operation exists because a directory is also a file, but its name as
-a directory is different from its name as a file.
-In Unix-syntax, this function just removes the final slash.  */)
-  (Lisp_Object directory)
-{
-  char *buf;
-  ptrdiff_t length;
-  Lisp_Object handler, val;
-  USE_SAFE_ALLOCA;
-
-  CHECK_STRING (directory);
-
-  /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (directory, Qdirectory_file_name);
-  if (!NILP (handler))
-    {
-      Lisp_Object handled_name = call2 (handler, Qdirectory_file_name,
-					directory);
-      if (STRINGP (handled_name))
-	return handled_name;
-      error ("Invalid handler in `file-name-handler-alist'");
-    }
-
-#ifdef WINDOWSNT
-  if (!NILP (Vw32_downcase_file_names))
-    directory = Fdowncase (directory);
-#endif
-  buf = SAFE_ALLOCA (SBYTES (directory) + 1);
-  length = directory_file_name (buf, SSDATA (directory), SBYTES (directory),
-				STRING_MULTIBYTE (directory));
-  val = make_specified_string (buf, -1, length, STRING_MULTIBYTE (directory));
-  SAFE_FREE ();
-  return val;
-}
-
-static const char make_temp_name_tbl[64] =
-{
-  'A','B','C','D','E','F','G','H',
-  'I','J','K','L','M','N','O','P',
-  'Q','R','S','T','U','V','W','X',
-  'Y','Z','a','b','c','d','e','f',
-  'g','h','i','j','k','l','m','n',
-  'o','p','q','r','s','t','u','v',
-  'w','x','y','z','0','1','2','3',
-  '4','5','6','7','8','9','-','_'
 };
 
-static unsigned make_temp_name_count, make_temp_name_count_initialized_p;
+static int  buf_write_bytes(struct bw_info *ip);
 
-/* Value is a temporary file name starting with PREFIX, a string.
+#ifdef FEAT_MBYTE
+static linenr_T readfile_linenr(linenr_T linecnt, char_u *p, char_u *endp);
+static int ucs2bytes(unsigned c, char_u **pp, int flags);
+static int need_conversion(char_u *fenc);
+static int get_fio_flags(char_u *ptr);
+static char_u *check_for_bom(char_u *p, long size, int *lenp, int flags);
+static int make_bom(char_u *buf, char_u *name);
+# ifdef WIN3264
+static int get_win_fio_flags(char_u *ptr);
+# endif
+# ifdef MACOS_X
+static int get_mac_fio_flags(char_u *ptr);
+# endif
+#endif
+static int move_lines(buf_T *frombuf, buf_T *tobuf);
+#ifdef TEMPDIRNAMES
+static void vim_settempdir(char_u *tempdir);
+#endif
+#ifdef FEAT_AUTOCMD
+static char *e_auchangedbuf = N_("E812: Autocommands changed buffer or buffer name");
+#endif
 
-   The Emacs process number forms part of the result, so there is
-   no danger of generating a name being used by another process.
-   In addition, this function makes an attempt to choose a name
-   which has no existing file.  To make this work, PREFIX should be
-   an absolute file name.
+#ifdef FEAT_AUTOCMD
+/*
+ * Set by the apply_autocmds_group function if the given event is equal to
+ * EVENT_FILETYPE. Used by the readfile function in order to determine if
+ * EVENT_BUFREADPOST triggered the EVENT_FILETYPE.
+ *
+ * Relying on this value requires one to reset it prior calling
+ * apply_autocmds_group.
+ */
+static int au_did_filetype INIT(= FALSE);
+#endif
 
-   BASE64_P means add the pid as 3 characters in base64
-   encoding.  In this case, 6 characters will be added to PREFIX to
-   form the file name.  Otherwise, if Emacs is running on a system
-   with long file names, add the pid as a decimal number.
-
-   This function signals an error if no unique file name could be
-   generated.  */
-
-Lisp_Object
-make_temp_name (Lisp_Object prefix, bool base64_p)
+    void
+filemess(
+    buf_T	*buf,
+    char_u	*name,
+    char_u	*s,
+    int		attr)
 {
-  Lisp_Object val, encoded_prefix;
-  ptrdiff_t len;
-  printmax_t pid;
-  char *p, *data;
-  char pidbuf[INT_BUFSIZE_BOUND (printmax_t)];
-  int pidlen;
+    int		msg_scroll_save;
 
-  CHECK_STRING (prefix);
+    if (msg_silent != 0)
+	return;
+    msg_add_fname(buf, name);	    /* put file name in IObuff with quotes */
+    /* If it's extremely long, truncate it. */
+    if (STRLEN(IObuff) > IOSIZE - 80)
+	IObuff[IOSIZE - 80] = NUL;
+    STRCAT(IObuff, s);
+    /*
+     * For the first message may have to start a new line.
+     * For further ones overwrite the previous one, reset msg_scroll before
+     * calling filemess().
+     */
+    msg_scroll_save = msg_scroll;
+    if (shortmess(SHM_OVERALL) && !exiting && p_verbose == 0)
+	msg_scroll = FALSE;
+    if (!msg_scroll)	/* wait a bit when overwriting an error msg */
+	check_for_delay(FALSE);
+    msg_start();
+    msg_scroll = msg_scroll_save;
+    msg_scrolled_ign = TRUE;
+    /* may truncate the message to avoid a hit-return prompt */
+    msg_outtrans_attr(msg_may_trunc(FALSE, IObuff), attr);
+    msg_clr_eos();
+    out_flush();
+    msg_scrolled_ign = FALSE;
+}
 
-  /* VAL is created by adding 6 characters to PREFIX.  The first
-     three are the PID of this process, in base 64, and the second
-     three are incremented if the file already exists.  This ensures
-     262144 unique file names per PID per PREFIX.  */
-
-  pid = getpid ();
-
-  if (base64_p)
-    {
-      pidbuf[0] = make_temp_name_tbl[pid & 63], pid >>= 6;
-      pidbuf[1] = make_temp_name_tbl[pid & 63], pid >>= 6;
-      pidbuf[2] = make_temp_name_tbl[pid & 63], pid >>= 6;
-      pidlen = 3;
-    }
-  else
-    {
-#ifdef HAVE_LONG_FILE_NAMES
-      pidlen = sprintf (pidbuf, "%"pMd, pid);
+/*
+ * Read lines from file "fname" into the buffer after line "from".
+ *
+ * 1. We allocate blocks with lalloc, as big as possible.
+ * 2. Each block is filled with characters from the file with a single read().
+ * 3. The lines are inserted in the buffer with ml_append().
+ *
+ * (caller must check that fname != NULL, unless READ_STDIN is used)
+ *
+ * "lines_to_skip" is the number of lines that must be skipped
+ * "lines_to_read" is the number of lines that are appended
+ * When not recovering lines_to_skip is 0 and lines_to_read MAXLNUM.
+ *
+ * flags:
+ * READ_NEW	starting to edit a new buffer
+ * READ_FILTER	reading filter output
+ * READ_STDIN	read from stdin instead of a file
+ * READ_BUFFER	read from curbuf instead of a file (converting after reading
+ *		stdin)
+ * READ_DUMMY	read into a dummy buffer (to check if file contents changed)
+ * READ_KEEP_UNDO  don't clear undo info or read it from a file
+ *
+ * return FAIL for failure, OK otherwise
+ */
+    int
+readfile(
+    char_u	*fname,
+    char_u	*sfname,
+    linenr_T	from,
+    linenr_T	lines_to_skip,
+    linenr_T	lines_to_read,
+    exarg_T	*eap,			/* can be NULL! */
+    int		flags)
+{
+    int		fd = 0;
+    int		newfile = (flags & READ_NEW);
+    int		check_readonly;
+    int		filtering = (flags & READ_FILTER);
+    int		read_stdin = (flags & READ_STDIN);
+    int		read_buffer = (flags & READ_BUFFER);
+    int		set_options = newfile || read_buffer
+					   || (eap != NULL && eap->read_edit);
+    linenr_T	read_buf_lnum = 1;	/* next line to read from curbuf */
+    colnr_T	read_buf_col = 0;	/* next char to read from this line */
+    char_u	c;
+    linenr_T	lnum = from;
+    char_u	*ptr = NULL;		/* pointer into read buffer */
+    char_u	*buffer = NULL;		/* read buffer */
+    char_u	*new_buffer = NULL;	/* init to shut up gcc */
+    char_u	*line_start = NULL;	/* init to shut up gcc */
+    int		wasempty;		/* buffer was empty before reading */
+    colnr_T	len;
+    long	size = 0;
+    char_u	*p;
+    off_T	filesize = 0;
+    int		skip_read = FALSE;
+#ifdef FEAT_CRYPT
+    char_u	*cryptkey = NULL;
+    int		did_ask_for_key = FALSE;
+#endif
+#ifdef FEAT_PERSISTENT_UNDO
+    context_sha256_T sha_ctx;
+    int		read_undo_file = FALSE;
+#endif
+    int		split = 0;		/* number of split lines */
+#define UNKNOWN	 0x0fffffff		/* file size is unknown */
+    linenr_T	linecnt;
+    int		error = FALSE;		/* errors encountered */
+    int		ff_error = EOL_UNKNOWN; /* file format with errors */
+    long	linerest = 0;		/* remaining chars in line */
+#ifdef UNIX
+    int		perm = 0;
+    int		swap_mode = -1;		/* protection bits for swap file */
 #else
-      pidbuf[0] = make_temp_name_tbl[pid & 63], pid >>= 6;
-      pidbuf[1] = make_temp_name_tbl[pid & 63], pid >>= 6;
-      pidbuf[2] = make_temp_name_tbl[pid & 63], pid >>= 6;
-      pidlen = 3;
+    int		perm;
 #endif
-    }
-
-  encoded_prefix = ENCODE_FILE (prefix);
-  len = SBYTES (encoded_prefix);
-  val = make_uninit_string (len + 3 + pidlen);
-  data = SSDATA (val);
-  memcpy (data, SSDATA (encoded_prefix), len);
-  p = data + len;
-
-  memcpy (p, pidbuf, pidlen);
-  p += pidlen;
-
-  /* Here we try to minimize useless stat'ing when this function is
-     invoked many times successively with the same PREFIX.  We achieve
-     this by initializing count to a random value, and incrementing it
-     afterwards.
-
-     We don't want make-temp-name to be called while dumping,
-     because then make_temp_name_count_initialized_p would get set
-     and then make_temp_name_count would not be set when Emacs starts.  */
-
-  if (!make_temp_name_count_initialized_p)
-    {
-      make_temp_name_count = time (NULL);
-      make_temp_name_count_initialized_p = 1;
-    }
-
-  while (1)
-    {
-      unsigned num = make_temp_name_count;
-
-      p[0] = make_temp_name_tbl[num & 63], num >>= 6;
-      p[1] = make_temp_name_tbl[num & 63], num >>= 6;
-      p[2] = make_temp_name_tbl[num & 63], num >>= 6;
-
-      /* Poor man's congruential RN generator.  Replace with
-         ++make_temp_name_count for debugging.  */
-      make_temp_name_count += 25229;
-      make_temp_name_count %= 225307;
-
-      if (!check_existing (data))
-	{
-	  /* We want to return only if errno is ENOENT.  */
-	  if (errno == ENOENT)
-	    return DECODE_FILE (val);
-	  else
-	    /* The error here is dubious, but there is little else we
-	       can do.  The alternatives are to return nil, which is
-	       as bad as (and in many cases worse than) throwing the
-	       error, or to ignore the error, which will likely result
-	       in looping through 225307 stat's, which is not only
-	       dog-slow, but also useless since eventually nil would
-	       have to be returned anyway.  */
-	    report_file_error ("Cannot create temporary name for prefix",
-			       prefix);
-	  /* not reached */
-	}
-    }
-}
-
-
-DEFUN ("make-temp-name", Fmake_temp_name, Smake_temp_name, 1, 1, 0,
-       doc: /* Generate temporary file name (string) starting with PREFIX (a string).
-The Emacs process number forms part of the result, so there is no
-danger of generating a name being used by another Emacs process
-\(so long as only a single host can access the containing directory...).
-
-This function tries to choose a name that has no existing file.
-For this to work, PREFIX should be an absolute file name.
-
-There is a race condition between calling `make-temp-name' and creating the
-file, which opens all kinds of security holes.  For that reason, you should
-normally use `make-temp-file' instead.  */)
-  (Lisp_Object prefix)
-{
-  return make_temp_name (prefix, 0);
-}
-
-DEFUN ("expand-file-name", Fexpand_file_name, Sexpand_file_name, 1, 2, 0,
-       doc: /* Convert filename NAME to absolute, and canonicalize it.
-Second arg DEFAULT-DIRECTORY is directory to start with if NAME is relative
-\(does not start with slash or tilde); both the directory name and
-a directory's file name are accepted.  If DEFAULT-DIRECTORY is nil or
-missing, the current buffer's value of `default-directory' is used.
-NAME should be a string that is a valid file name for the underlying
-filesystem.
-File name components that are `.' are removed, and
-so are file name components followed by `..', along with the `..' itself;
-note that these simplifications are done without checking the resulting
-file names in the file system.
-Multiple consecutive slashes are collapsed into a single slash,
-except at the beginning of the file name when they are significant (e.g.,
-UNC file names on MS-Windows.)
-An initial `~/' expands to your home directory.
-An initial `~USER/' expands to USER's home directory.
-See also the function `substitute-in-file-name'.
-
-For technical reasons, this function can return correct but
-non-intuitive results for the root directory; for instance,
-\(expand-file-name ".." "/") returns "/..".  For this reason, use
-\(directory-file-name (file-name-directory dirname)) to traverse a
-filesystem tree, not (expand-file-name ".."  dirname).  */)
-  (Lisp_Object name, Lisp_Object default_directory)
-{
-  /* These point to SDATA and need to be careful with string-relocation
-     during GC (via DECODE_FILE).  */
-  char *nm;
-  char *nmlim;
-  const char *newdir;
-  const char *newdirlim;
-  /* This should only point to alloca'd data.  */
-  char *target;
-
-  ptrdiff_t tlen;
-  struct passwd *pw;
-#ifdef DOS_NT
-  int drive = 0;
-  bool collapse_newdir = true;
-  bool is_escaped = 0;
-#endif /* DOS_NT */
-  ptrdiff_t length, nbytes;
-  Lisp_Object handler, result, handled_name;
-  bool multibyte;
-  Lisp_Object hdir;
-  USE_SAFE_ALLOCA;
-
-  CHECK_STRING (name);
-
-  /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (name, Qexpand_file_name);
-  if (!NILP (handler))
-    {
-      handled_name = call3 (handler, Qexpand_file_name,
-			    name, default_directory);
-      if (STRINGP (handled_name))
-	return handled_name;
-      error ("Invalid handler in `file-name-handler-alist'");
-    }
-
-
-  /* Use the buffer's default-directory if DEFAULT_DIRECTORY is omitted.  */
-  if (NILP (default_directory))
-    default_directory = BVAR (current_buffer, directory);
-  if (! STRINGP (default_directory))
-    {
-#ifdef DOS_NT
-      /* "/" is not considered a root directory on DOS_NT, so using "/"
-	 here causes an infinite recursion in, e.g., the following:
-
-            (let (default-directory)
-	      (expand-file-name "a"))
-
-	 To avoid this, we set default_directory to the root of the
-	 current drive.  */
-      default_directory = build_string (emacs_root_dir ());
-#else
-      default_directory = build_string ("/");
-#endif
-    }
-
-  if (!NILP (default_directory))
-    {
-      handler = Ffind_file_name_handler (default_directory, Qexpand_file_name);
-      if (!NILP (handler))
-	{
-	  handled_name = call3 (handler, Qexpand_file_name,
-				name, default_directory);
-	  if (STRINGP (handled_name))
-	    return handled_name;
-	  error ("Invalid handler in `file-name-handler-alist'");
-	}
-    }
-
-  {
-    char *o = SSDATA (default_directory);
-
-    /* Make sure DEFAULT_DIRECTORY is properly expanded.
-       It would be better to do this down below where we actually use
-       default_directory.  Unfortunately, calling Fexpand_file_name recursively
-       could invoke GC, and the strings might be relocated.  This would
-       be annoying because we have pointers into strings lying around
-       that would need adjusting, and people would add new pointers to
-       the code and forget to adjust them, resulting in intermittent bugs.
-       Putting this call here avoids all that crud.
-
-       The EQ test avoids infinite recursion.  */
-    if (! NILP (default_directory) && !EQ (default_directory, name)
-	/* Save time in some common cases - as long as default_directory
-	   is not relative, it can be canonicalized with name below (if it
-	   is needed at all) without requiring it to be expanded now.  */
-#ifdef DOS_NT
-	/* Detect MSDOS file names with drive specifiers.  */
-	&& ! (IS_DRIVE (o[0]) && IS_DEVICE_SEP (o[1])
-	      && IS_DIRECTORY_SEP (o[2]))
-#ifdef WINDOWSNT
-	/* Detect Windows file names in UNC format.  */
-	&& ! (IS_DIRECTORY_SEP (o[0]) && IS_DIRECTORY_SEP (o[1]))
-#endif
-#else /* not DOS_NT */
-      /* Detect Unix absolute file names (/... alone is not absolute on
-	 DOS or Windows).  */
-	&& ! (IS_DIRECTORY_SEP (o[0]))
-#endif /* not DOS_NT */
-	)
-      {
-	default_directory = Fexpand_file_name (default_directory, Qnil);
-      }
-  }
-  multibyte = STRING_MULTIBYTE (name);
-  if (multibyte != STRING_MULTIBYTE (default_directory))
-    {
-      if (multibyte)
-	{
-	  unsigned char *p = SDATA (name);
-
-	  while (*p && ASCII_CHAR_P (*p))
-	    p++;
-	  if (*p == '\0')
-	    {
-	      /* NAME is a pure ASCII string, and DEFAULT_DIRECTORY is
-		 unibyte.  Do not convert DEFAULT_DIRECTORY to
-		 multibyte; instead, convert NAME to a unibyte string,
-		 so that the result of this function is also a unibyte
-		 string.  This is needed during bootstrapping and
-		 dumping, when Emacs cannot decode file names, because
-		 the locale environment is not set up.  */
-	      name = make_unibyte_string (SSDATA (name), SBYTES (name));
-	      multibyte = 0;
-	    }
-	  else
-	    default_directory = string_to_multibyte (default_directory);
-	}
-      else
-	{
-	  name = string_to_multibyte (name);
-	  multibyte = 1;
-	}
-    }
-
-#ifdef WINDOWSNT
-  if (!NILP (Vw32_downcase_file_names))
-    default_directory = Fdowncase (default_directory);
-#endif
-
-  /* Make a local copy of NAME to protect it from GC in DECODE_FILE below.  */
-  SAFE_ALLOCA_STRING (nm, name);
-  nmlim = nm + SBYTES (name);
-
-#ifdef DOS_NT
-  /* Note if special escape prefix is present, but remove for now.  */
-  if (nm[0] == '/' && nm[1] == ':')
-    {
-      is_escaped = 1;
-      nm += 2;
-    }
-
-  /* Find and remove drive specifier if present; this makes nm absolute
-     even if the rest of the name appears to be relative.  Only look for
-     drive specifier at the beginning.  */
-  if (IS_DRIVE (nm[0]) && IS_DEVICE_SEP (nm[1]))
-    {
-      drive = (unsigned char) nm[0];
-      nm += 2;
-    }
-
-#ifdef WINDOWSNT
-  /* If we see "c://somedir", we want to strip the first slash after the
-     colon when stripping the drive letter.  Otherwise, this expands to
-     "//somedir".  */
-  if (drive && IS_DIRECTORY_SEP (nm[0]) && IS_DIRECTORY_SEP (nm[1]))
-    nm++;
-
-  /* Discard any previous drive specifier if nm is now in UNC format.  */
-  if (IS_DIRECTORY_SEP (nm[0]) && IS_DIRECTORY_SEP (nm[1])
-      && !IS_DIRECTORY_SEP (nm[2]))
-    drive = 0;
-#endif /* WINDOWSNT */
-#endif /* DOS_NT */
-
-  /* If nm is absolute, look for `/./' or `/../' or `//''sequences; if
-     none are found, we can probably return right away.  We will avoid
-     allocating a new string if name is already fully expanded.  */
-  if (
-      IS_DIRECTORY_SEP (nm[0])
-#ifdef MSDOS
-      && drive && !is_escaped
-#endif
-#ifdef WINDOWSNT
-      && (drive || IS_DIRECTORY_SEP (nm[1])) && !is_escaped
-#endif
-      )
-    {
-      /* If it turns out that the filename we want to return is just a
-	 suffix of FILENAME, we don't need to go through and edit
-	 things; we just need to construct a new string using data
-	 starting at the middle of FILENAME.  If we set LOSE, that
-	 means we've discovered that we can't do that cool trick.  */
-      bool lose = 0;
-      char *p = nm;
-
-      while (*p)
-	{
-	  /* Since we know the name is absolute, we can assume that each
-	     element starts with a "/".  */
-
-	  /* "." and ".." are hairy.  */
-	  if (IS_DIRECTORY_SEP (p[0])
-	      && p[1] == '.'
-	      && (IS_DIRECTORY_SEP (p[2])
-		  || p[2] == 0
-		  || (p[2] == '.' && (IS_DIRECTORY_SEP (p[3])
-				      || p[3] == 0))))
-	    lose = 1;
-	  /* Replace multiple slashes with a single one, except
-	     leave leading "//" alone.  */
-	  else if (IS_DIRECTORY_SEP (p[0])
-		   && IS_DIRECTORY_SEP (p[1])
-		   && (p != nm || IS_DIRECTORY_SEP (p[2])))
-	    lose = 1;
-	  p++;
-	}
-      if (!lose)
-	{
-#ifdef DOS_NT
-	  /* Make sure directories are all separated with /, but
-	     avoid allocation of a new string when not required. */
-	  dostounix_filename (nm);
-#ifdef WINDOWSNT
-	  if (IS_DIRECTORY_SEP (nm[1]))
-	    {
-	      if (strcmp (nm, SSDATA (name)) != 0)
-		name = make_specified_string (nm, -1, nmlim - nm, multibyte);
-	    }
-	  else
-#endif
-	  /* Drive must be set, so this is okay.  */
-	  if (strcmp (nm - 2, SSDATA (name)) != 0)
-	    {
-	      name = make_specified_string (nm, -1, p - nm, multibyte);
-	      char temp[] = { DRIVE_LETTER (drive), ':', 0 };
-	      AUTO_STRING_WITH_LEN (drive_prefix, temp, 2);
-	      name = concat2 (drive_prefix, name);
-	    }
-#ifdef WINDOWSNT
-	  if (!NILP (Vw32_downcase_file_names))
-	    name = Fdowncase (name);
-#endif
-#else /* not DOS_NT */
-	  if (strcmp (nm, SSDATA (name)) != 0)
-	    name = make_specified_string (nm, -1, nmlim - nm, multibyte);
-#endif /* not DOS_NT */
-	  SAFE_FREE ();
-	  return name;
-	}
-    }
-
-  /* At this point, nm might or might not be an absolute file name.  We
-     need to expand ~ or ~user if present, otherwise prefix nm with
-     default_directory if nm is not absolute, and finally collapse /./
-     and /foo/../ sequences.
-
-     We set newdir to be the appropriate prefix if one is needed:
-       - the relevant user directory if nm starts with ~ or ~user
-       - the specified drive's working dir (DOS/NT only) if nm does not
-         start with /
-       - the value of default_directory.
-
-     Note that these prefixes are not guaranteed to be absolute (except
-     for the working dir of a drive).  Therefore, to ensure we always
-     return an absolute name, if the final prefix is not absolute we
-     append it to the current working directory.  */
-
-  newdir = newdirlim = 0;
-
-  if (nm[0] == '~')		/* prefix ~ */
-    {
-      if (IS_DIRECTORY_SEP (nm[1])
-	  || nm[1] == 0)	/* ~ by itself */
-	{
-	  Lisp_Object tem;
-
-	  if (!(newdir = egetenv ("HOME")))
-	    newdir = newdirlim = "";
-	  nm++;
-	  /* `egetenv' may return a unibyte string, which will bite us since
-	     we expect the directory to be multibyte.  */
-#ifdef WINDOWSNT
-	  if (newdir[0])
-	    {
-	      char newdir_utf8[MAX_UTF8_PATH];
-
-	      filename_from_ansi (newdir, newdir_utf8);
-	      tem = make_unibyte_string (newdir_utf8, strlen (newdir_utf8));
-	    }
-	  else
-#endif
-	    tem = build_string (newdir);
-	  newdirlim = newdir + SBYTES (tem);
-	  if (multibyte && !STRING_MULTIBYTE (tem))
-	    {
-	      hdir = DECODE_FILE (tem);
-	      newdir = SSDATA (hdir);
-	      newdirlim = newdir + SBYTES (hdir);
-	    }
-#ifdef DOS_NT
-	  collapse_newdir = false;
-#endif
-	}
-      else			/* ~user/filename */
-	{
-	  char *o, *p;
-	  for (p = nm; *p && !IS_DIRECTORY_SEP (*p); p++)
-	    continue;
-	  o = SAFE_ALLOCA (p - nm + 1);
-	  memcpy (o, nm, p - nm);
-	  o[p - nm] = 0;
-
-	  block_input ();
-	  pw = getpwnam (o + 1);
-	  unblock_input ();
-	  if (pw)
-	    {
-	      Lisp_Object tem;
-
-	      newdir = pw->pw_dir;
-	      /* `getpwnam' may return a unibyte string, which will
-		 bite us since we expect the directory to be
-		 multibyte.  */
-	      tem = make_unibyte_string (newdir, strlen (newdir));
-	      newdirlim = newdir + SBYTES (tem);
-	      if (multibyte && !STRING_MULTIBYTE (tem))
-		{
-		  hdir = DECODE_FILE (tem);
-		  newdir = SSDATA (hdir);
-		  newdirlim = newdir + SBYTES (hdir);
-		}
-	      nm = p;
-#ifdef DOS_NT
-	      collapse_newdir = false;
-#endif
-	    }
-
-	  /* If we don't find a user of that name, leave the name
-	     unchanged; don't move nm forward to p.  */
-	}
-    }
-
-#ifdef DOS_NT
-  /* On DOS and Windows, nm is absolute if a drive name was specified;
-     use the drive's current directory as the prefix if needed.  */
-  if (!newdir && drive)
-    {
-      /* Get default directory if needed to make nm absolute.  */
-      char *adir = NULL;
-      if (!IS_DIRECTORY_SEP (nm[0]))
-	{
-	  adir = alloca (MAXPATHLEN + 1);
-	  if (!getdefdir (c_toupper (drive) - 'A' + 1, adir))
-	    adir = NULL;
-	  else if (multibyte)
-	    {
-	      Lisp_Object tem = build_string (adir);
-
-	      tem = DECODE_FILE (tem);
-	      newdirlim = adir + SBYTES (tem);
-	      memcpy (adir, SSDATA (tem), SBYTES (tem) + 1);
-	    }
-	  else
-	    newdirlim = adir + strlen (adir);
-	}
-      if (!adir)
-	{
-	  /* Either nm starts with /, or drive isn't mounted.  */
-	  adir = alloca (4);
-	  adir[0] = DRIVE_LETTER (drive);
-	  adir[1] = ':';
-	  adir[2] = '/';
-	  adir[3] = 0;
-	  newdirlim = adir + 3;
-	}
-      newdir = adir;
-    }
-#endif /* DOS_NT */
-
-  /* Finally, if no prefix has been specified and nm is not absolute,
-     then it must be expanded relative to default_directory.  */
-
-  if (1
-#ifndef DOS_NT
-      /* /... alone is not absolute on DOS and Windows.  */
-      && !IS_DIRECTORY_SEP (nm[0])
-#endif
-#ifdef WINDOWSNT
-      && !(IS_DIRECTORY_SEP (nm[0]) && IS_DIRECTORY_SEP (nm[1])
-	   && !IS_DIRECTORY_SEP (nm[2]))
-#endif
-      && !newdir)
-    {
-      newdir = SSDATA (default_directory);
-      newdirlim = newdir + SBYTES (default_directory);
-#ifdef DOS_NT
-      /* Note if special escape prefix is present, but remove for now.  */
-      if (newdir[0] == '/' && newdir[1] == ':')
-	{
-	  is_escaped = 1;
-	  newdir += 2;
-	}
-#endif
-    }
-
-#ifdef DOS_NT
-  if (newdir)
-    {
-      /* First ensure newdir is an absolute name.  */
-      if (
-	  /* Detect MSDOS file names with drive specifiers.  */
-	  ! (IS_DRIVE (newdir[0])
-	     && IS_DEVICE_SEP (newdir[1]) && IS_DIRECTORY_SEP (newdir[2]))
-#ifdef WINDOWSNT
-	  /* Detect Windows file names in UNC format.  */
-	  && ! (IS_DIRECTORY_SEP (newdir[0]) && IS_DIRECTORY_SEP (newdir[1])
-		&& !IS_DIRECTORY_SEP (newdir[2]))
-#endif
-	  )
-	{
-	  /* Effectively, let newdir be (expand-file-name newdir cwd).
-	     Because of the admonition against calling expand-file-name
-	     when we have pointers into lisp strings, we accomplish this
-	     indirectly by prepending newdir to nm if necessary, and using
-	     cwd (or the wd of newdir's drive) as the new newdir.  */
-	  char *adir;
-#ifdef WINDOWSNT
-	  const int adir_size = MAX_UTF8_PATH;
-#else
-	  const int adir_size = MAXPATHLEN + 1;
-#endif
-
-	  if (IS_DRIVE (newdir[0]) && IS_DEVICE_SEP (newdir[1]))
-	    {
-	      drive = (unsigned char) newdir[0];
-	      newdir += 2;
-	    }
-	  if (!IS_DIRECTORY_SEP (nm[0]))
-	    {
-	      ptrdiff_t nmlen = nmlim - nm;
-	      ptrdiff_t newdirlen = newdirlim - newdir;
-	      char *tmp = alloca (newdirlen + file_name_as_directory_slop
-				  + nmlen + 1);
-	      ptrdiff_t dlen = file_name_as_directory (tmp, newdir, newdirlen,
-						       multibyte);
-	      memcpy (tmp + dlen, nm, nmlen + 1);
-	      nm = tmp;
-	      nmlim = nm + dlen + nmlen;
-	    }
-	  adir = alloca (adir_size);
-	  if (drive)
-	    {
-	      if (!getdefdir (c_toupper (drive) - 'A' + 1, adir))
-		strcpy (adir, "/");
-	    }
-	  else
-	    getcwd (adir, adir_size);
-	  if (multibyte)
-	    {
-	      Lisp_Object tem = build_string (adir);
-
-	      tem = DECODE_FILE (tem);
-	      newdirlim = adir + SBYTES (tem);
-	      memcpy (adir, SSDATA (tem), SBYTES (tem) + 1);
-	    }
-	  else
-	    newdirlim = adir + strlen (adir);
-	  newdir = adir;
-	}
-
-      /* Strip off drive name from prefix, if present.  */
-      if (IS_DRIVE (newdir[0]) && IS_DEVICE_SEP (newdir[1]))
-	{
-	  drive = newdir[0];
-	  newdir += 2;
-	}
-
-      /* Keep only a prefix from newdir if nm starts with slash
-         (//server/share for UNC, nothing otherwise).  */
-      if (IS_DIRECTORY_SEP (nm[0]) && collapse_newdir)
-	{
-#ifdef WINDOWSNT
-	  if (IS_DIRECTORY_SEP (newdir[0]) && IS_DIRECTORY_SEP (newdir[1])
-	      && !IS_DIRECTORY_SEP (newdir[2]))
-	    {
-	      char *adir = strcpy (alloca (newdirlim - newdir + 1), newdir);
-	      char *p = adir + 2;
-	      while (*p && !IS_DIRECTORY_SEP (*p)) p++;
-	      p++;
-	      while (*p && !IS_DIRECTORY_SEP (*p)) p++;
-	      *p = 0;
-	      newdir = adir;
-	      newdirlim = newdir + strlen (adir);
-	    }
-	  else
-#endif
-	    newdir = newdirlim = "";
-	}
-    }
-#endif /* DOS_NT */
-
-  /* Ignore any slash at the end of newdir, unless newdir is
-     just "/" or "//".  */
-  length = newdirlim - newdir;
-  while (length > 1 && IS_DIRECTORY_SEP (newdir[length - 1])
-	 && ! (length == 2 && IS_DIRECTORY_SEP (newdir[0])))
-    length--;
-
-  /* Now concatenate the directory and name to new space in the stack frame.  */
-  tlen = length + file_name_as_directory_slop + (nmlim - nm) + 1;
-  eassert (tlen > file_name_as_directory_slop + 1);
-#ifdef DOS_NT
-  /* Reserve space for drive specifier and escape prefix, since either
-     or both may need to be inserted.  (The Microsoft x86 compiler
-     produces incorrect code if the following two lines are combined.)  */
-  target = alloca (tlen + 4);
-  target += 4;
-#else  /* not DOS_NT */
-  target = SAFE_ALLOCA (tlen);
-#endif /* not DOS_NT */
-  *target = 0;
-  nbytes = 0;
-
-  if (newdir)
-    {
-      if (nm[0] == 0 || IS_DIRECTORY_SEP (nm[0]))
-	{
-#ifdef DOS_NT
-	  /* If newdir is effectively "C:/", then the drive letter will have
-	     been stripped and newdir will be "/".  Concatenating with an
-	     absolute directory in nm produces "//", which will then be
-	     incorrectly treated as a network share.  Ignore newdir in
-	     this case (keeping the drive letter).  */
-	  if (!(drive && nm[0] && IS_DIRECTORY_SEP (newdir[0])
-		&& newdir[1] == '\0'))
-#endif
-	    {
-	      memcpy (target, newdir, length);
-	      target[length] = 0;
-	      nbytes = length;
-	    }
-	}
-      else
-	nbytes = file_name_as_directory (target, newdir, length, multibyte);
-    }
-
-  memcpy (target + nbytes, nm, nmlim - nm + 1);
-
-  /* Now canonicalize by removing `//', `/.' and `/foo/..' if they
-     appear.  */
-  {
-    char *p = target;
-    char *o = target;
-
-    while (*p)
-      {
-	if (!IS_DIRECTORY_SEP (*p))
-	  {
-	    *o++ = *p++;
-	  }
-	else if (p[1] == '.'
-		 && (IS_DIRECTORY_SEP (p[2])
-		     || p[2] == 0))
-	  {
-	    /* If "/." is the entire filename, keep the "/".  Otherwise,
-	       just delete the whole "/.".  */
-	    if (o == target && p[2] == '\0')
-	      *o++ = *p;
-	    p += 2;
-	  }
-	else if (p[1] == '.' && p[2] == '.'
-		 /* `/../' is the "superroot" on certain file systems.
-		    Turned off on DOS_NT systems because they have no
-		    "superroot" and because this causes us to produce
-		    file names like "d:/../foo" which fail file-related
-		    functions of the underlying OS.  (To reproduce, try a
-		    long series of "../../" in default_directory, longer
-		    than the number of levels from the root.)  */
-#ifndef DOS_NT
-		 && o != target
-#endif
-		 && (IS_DIRECTORY_SEP (p[3]) || p[3] == 0))
-	  {
-#ifdef WINDOWSNT
-	    char *prev_o = o;
-#endif
-	    while (o != target && (--o, !IS_DIRECTORY_SEP (*o)))
-	      continue;
-#ifdef WINDOWSNT
-	    /* Don't go below server level in UNC filenames.  */
-	    if (o == target + 1 && IS_DIRECTORY_SEP (*o)
-		&& IS_DIRECTORY_SEP (*target))
-	      o = prev_o;
-	    else
-#endif
-	    /* Keep initial / only if this is the whole name.  */
-	    if (o == target && IS_ANY_SEP (*o) && p[3] == 0)
-	      ++o;
-	    p += 3;
-	  }
-	else if (IS_DIRECTORY_SEP (p[1])
-		 && (p != target || IS_DIRECTORY_SEP (p[2])))
-	  /* Collapse multiple "/", except leave leading "//" alone.  */
-	  p++;
-	else
-	  {
-	    *o++ = *p++;
-	  }
-      }
-
-#ifdef DOS_NT
-    /* At last, set drive name.  */
-#ifdef WINDOWSNT
-    /* Except for network file name.  */
-    if (!(IS_DIRECTORY_SEP (target[0]) && IS_DIRECTORY_SEP (target[1])))
-#endif /* WINDOWSNT */
-      {
-	if (!drive) emacs_abort ();
-	target -= 2;
-	target[0] = DRIVE_LETTER (drive);
-	target[1] = ':';
-      }
-    /* Reinsert the escape prefix if required.  */
-    if (is_escaped)
-      {
-	target -= 2;
-	target[0] = '/';
-	target[1] = ':';
-      }
-    result = make_specified_string (target, -1, o - target, multibyte);
-    dostounix_filename (SSDATA (result));
-#ifdef WINDOWSNT
-    if (!NILP (Vw32_downcase_file_names))
-      result = Fdowncase (result);
-#endif
-#else  /* !DOS_NT */
-    result = make_specified_string (target, -1, o - target, multibyte);
-#endif /* !DOS_NT */
-  }
-
-  /* Again look to see if the file name has special constructs in it
-     and perhaps call the corresponding file handler.  This is needed
-     for filenames such as "/foo/../user@host:/bar/../baz".  Expanding
-     the ".." component gives us "/user@host:/bar/../baz" which needs
-     to be expanded again.  */
-  handler = Ffind_file_name_handler (result, Qexpand_file_name);
-  if (!NILP (handler))
-    {
-      handled_name = call3 (handler, Qexpand_file_name,
-			    result, default_directory);
-      if (! STRINGP (handled_name))
-	error ("Invalid handler in `file-name-handler-alist'");
-      result = handled_name;
-    }
-
-  SAFE_FREE ();
-  return result;
-}
-
-#if 0
-/* PLEASE DO NOT DELETE THIS COMMENTED-OUT VERSION!
-   This is the old version of expand-file-name, before it was thoroughly
-   rewritten for Emacs 10.31.  We leave this version here commented-out,
-   because the code is very complex and likely to have subtle bugs.  If
-   bugs _are_ found, it might be of interest to look at the old code and
-   see what did it do in the relevant situation.
-
-   Don't remove this code: it's true that it will be accessible
-   from the repository, but a few years from deletion, people will
-   forget it is there.  */
-
-/* Changed this DEFUN to a DEAFUN, so as not to confuse `make-docfile'.  */
-DEAFUN ("expand-file-name", Fexpand_file_name, Sexpand_file_name, 1, 2, 0,
-  "Convert FILENAME to absolute, and canonicalize it.\n\
-Second arg DEFAULT is directory to start with if FILENAME is relative\n\
-\(does not start with slash); if DEFAULT is nil or missing,\n\
-the current buffer's value of default-directory is used.\n\
-Filenames containing `.' or `..' as components are simplified;\n\
-initial `~/' expands to your home directory.\n\
-See also the function `substitute-in-file-name'.")
-     (name, defalt)
-     Lisp_Object name, defalt;
-{
-  unsigned char *nm;
-
-  register unsigned char *newdir, *p, *o;
-  ptrdiff_t tlen;
-  unsigned char *target;
-  struct passwd *pw;
-
-  CHECK_STRING (name);
-  nm = SDATA (name);
-
-  /* If nm is absolute, flush ...// and detect /./ and /../.
-     If no /./ or /../ we can return right away.  */
-  if (nm[0] == '/')
-    {
-      bool lose = 0;
-      p = nm;
-      while (*p)
-	{
-	  if (p[0] == '/' && p[1] == '/')
-	    nm = p + 1;
-	  if (p[0] == '/' && p[1] == '~')
-	    nm = p + 1, lose = 1;
-	  if (p[0] == '/' && p[1] == '.'
-	      && (p[2] == '/' || p[2] == 0
-		  || (p[2] == '.' && (p[3] == '/' || p[3] == 0))))
-	    lose = 1;
-	  p++;
-	}
-      if (!lose)
-	{
-	  if (nm == SDATA (name))
-	    return name;
-	  return build_string (nm);
-	}
-    }
-
-  /* Now determine directory to start with and put it in NEWDIR.  */
-
-  newdir = 0;
-
-  if (nm[0] == '~')             /* prefix ~ */
-    if (nm[1] == '/' || nm[1] == 0)/* ~/filename */
-      {
-	if (!(newdir = (unsigned char *) egetenv ("HOME")))
-	  newdir = (unsigned char *) "";
-	nm++;
-      }
-    else  /* ~user/filename */
-      {
-	/* Get past ~ to user.  */
-	unsigned char *user = nm + 1;
-	/* Find end of name.  */
-	unsigned char *ptr = (unsigned char *) strchr (user, '/');
-	ptrdiff_t len = ptr ? ptr - user : strlen (user);
-	/* Copy the user name into temp storage.  */
-	o = alloca (len + 1);
-	memcpy (o, user, len);
-	o[len] = 0;
-
-	/* Look up the user name.  */
-	block_input ();
-	pw = (struct passwd *) getpwnam (o + 1);
-	unblock_input ();
-	if (!pw)
-	  error ("\"%s\" isn't a registered user", o + 1);
-
-	newdir = (unsigned char *) pw->pw_dir;
-
-	/* Discard the user name from NM.  */
-	nm += len;
-      }
-
-  if (nm[0] != '/' && !newdir)
-    {
-      if (NILP (defalt))
-	defalt = current_buffer->directory;
-      CHECK_STRING (defalt);
-      newdir = SDATA (defalt);
-    }
-
-  /* Now concatenate the directory and name to new space in the stack frame.  */
-
-  tlen = (newdir ? strlen (newdir) + 1 : 0) + strlen (nm) + 1;
-  target = alloca (tlen);
-  *target = 0;
-
-  if (newdir)
-    {
-      if (nm[0] == 0 || nm[0] == '/')
-	strcpy (target, newdir);
-      else
-      file_name_as_directory (target, newdir);
-    }
-
-  strcat (target, nm);
-
-  /* Now canonicalize by removing /. and /foo/.. if they appear.  */
-
-  p = target;
-  o = target;
-
-  while (*p)
-    {
-      if (*p != '/')
-	{
-	  *o++ = *p++;
-	}
-      else if (!strncmp (p, "//", 2)
-	       )
-	{
-	  o = target;
-	  p++;
-	}
-      else if (p[0] == '/' && p[1] == '.'
-	       && (p[2] == '/' || p[2] == 0))
-	p += 2;
-      else if (!strncmp (p, "/..", 3)
-	       /* `/../' is the "superroot" on certain file systems.  */
-	       && o != target
-	       && (p[3] == '/' || p[3] == 0))
-	{
-	  while (o != target && *--o != '/')
-	    ;
-	  if (o == target && *o == '/')
-	    ++o;
-	  p += 3;
-	}
-      else
-	{
-	  *o++ = *p++;
-	}
-    }
-
-  return make_string (target, o - target);
-}
-#endif
-
-/* If /~ or // appears, discard everything through first slash.  */
-static bool
-file_name_absolute_p (const char *filename)
-{
-  return
-    (IS_DIRECTORY_SEP (*filename) || *filename == '~'
-#ifdef DOS_NT
-     || (IS_DRIVE (*filename) && IS_DEVICE_SEP (filename[1])
-	 && IS_DIRECTORY_SEP (filename[2]))
-#endif
-     );
-}
-
-static char *
-search_embedded_absfilename (char *nm, char *endp)
-{
-  char *p, *s;
-
-  for (p = nm + 1; p < endp; p++)
-    {
-      if (IS_DIRECTORY_SEP (p[-1])
-	  && file_name_absolute_p (p)
-#if defined (WINDOWSNT) || defined (CYGWIN)
-	  /* // at start of file name is meaningful in Apollo,
-	     WindowsNT and Cygwin systems.  */
-	  && !(IS_DIRECTORY_SEP (p[0]) && p - 1 == nm)
-#endif /* not (WINDOWSNT || CYGWIN) */
-	  )
-	{
-	  for (s = p; *s && !IS_DIRECTORY_SEP (*s); s++);
-	  if (p[0] == '~' && s > p + 1)	/* We've got "/~something/".  */
-	    {
-	      USE_SAFE_ALLOCA;
-	      char *o = SAFE_ALLOCA (s - p + 1);
-	      struct passwd *pw;
-	      memcpy (o, p, s - p);
-	      o [s - p] = 0;
-
-	      /* If we have ~user and `user' exists, discard
-		 everything up to ~.  But if `user' does not exist, leave
-		 ~user alone, it might be a literal file name.  */
-	      block_input ();
-	      pw = getpwnam (o + 1);
-	      unblock_input ();
-	      SAFE_FREE ();
-	      if (pw)
-		return p;
-	    }
-	  else
-	    return p;
-	}
-    }
-  return NULL;
-}
-
-DEFUN ("substitute-in-file-name", Fsubstitute_in_file_name,
-       Ssubstitute_in_file_name, 1, 1, 0,
-       doc: /* Substitute environment variables referred to in FILENAME.
-`$FOO' where FOO is an environment variable name means to substitute
-the value of that variable.  The variable name should be terminated
-with a character not a letter, digit or underscore; otherwise, enclose
-the entire variable name in braces.
-
-If `/~' appears, all of FILENAME through that `/' is discarded.
-If `//' appears, everything up to and including the first of
-those `/' is discarded.  */)
-  (Lisp_Object filename)
-{
-  char *nm, *p, *x, *endp;
-  bool substituted = false;
-  bool multibyte;
-  char *xnm;
-  Lisp_Object handler;
-
-  CHECK_STRING (filename);
-
-  multibyte = STRING_MULTIBYTE (filename);
-
-  /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (filename, Qsubstitute_in_file_name);
-  if (!NILP (handler))
-    {
-      Lisp_Object handled_name = call2 (handler, Qsubstitute_in_file_name,
-					filename);
-      if (STRINGP (handled_name))
-	return handled_name;
-      error ("Invalid handler in `file-name-handler-alist'");
-    }
-
-  /* Always work on a copy of the string, in case GC happens during
-     decode of environment variables, causing the original Lisp_String
-     data to be relocated.  */
-  USE_SAFE_ALLOCA;
-  SAFE_ALLOCA_STRING (nm, filename);
-
-#ifdef DOS_NT
-  dostounix_filename (nm);
-  substituted = (memcmp (nm, SDATA (filename), SBYTES (filename)) != 0);
-#endif
-  endp = nm + SBYTES (filename);
-
-  /* If /~ or // appears, discard everything through first slash.  */
-  p = search_embedded_absfilename (nm, endp);
-  if (p)
-    /* Start over with the new string, so we check the file-name-handler
-       again.  Important with filenames like "/home/foo//:/hello///there"
-       which would substitute to "/:/hello///there" rather than "/there".  */
-    {
-      Lisp_Object result
-	= (Fsubstitute_in_file_name
-	   (make_specified_string (p, -1, endp - p, multibyte)));
-      SAFE_FREE ();
-      return result;
-    }
-
-  /* See if any variables are substituted into the string.  */
-
-  if (!NILP (Ffboundp (Qsubstitute_env_in_file_name)))
-    {
-      Lisp_Object name
-	= (!substituted ? filename
-	   : make_specified_string (nm, -1, endp - nm, multibyte));
-      Lisp_Object tmp = call1 (Qsubstitute_env_in_file_name, name);
-      CHECK_STRING (tmp);
-      if (!EQ (tmp, name))
-	substituted = true;
-      filename = tmp;
-    }
-
-  if (!substituted)
-    {
-#ifdef WINDOWSNT
-      if (!NILP (Vw32_downcase_file_names))
-	filename = Fdowncase (filename);
-#endif
-      SAFE_FREE ();
-      return filename;
-    }
-
-  xnm = SSDATA (filename);
-  x = xnm + SBYTES (filename);
-
-  /* If /~ or // appears, discard everything through first slash.  */
-  while ((p = search_embedded_absfilename (xnm, x)) != NULL)
-    /* This time we do not start over because we've already expanded envvars
-       and replaced $$ with $.  Maybe we should start over as well, but we'd
-       need to quote some $ to $$ first.  */
-    xnm = p;
-
-#ifdef WINDOWSNT
-  if (!NILP (Vw32_downcase_file_names))
-    {
-      Lisp_Object xname = make_specified_string (xnm, -1, x - xnm, multibyte);
-
-      filename = Fdowncase (xname);
-    }
-  else
-#endif
-  if (xnm != SSDATA (filename))
-    filename = make_specified_string (xnm, -1, x - xnm, multibyte);
-  SAFE_FREE ();
-  return filename;
-}
-
-/* A slightly faster and more convenient way to get
-   (directory-file-name (expand-file-name FOO)).  */
-
-Lisp_Object
-expand_and_dir_to_file (Lisp_Object filename, Lisp_Object defdir)
-{
-  register Lisp_Object absname;
-
-  absname = Fexpand_file_name (filename, defdir);
-
-  /* Remove final slash, if any (unless this is the root dir).
-     stat behaves differently depending!  */
-  if (SCHARS (absname) > 1
-      && IS_DIRECTORY_SEP (SREF (absname, SBYTES (absname) - 1))
-      && !IS_DEVICE_SEP (SREF (absname, SBYTES (absname) - 2)))
-    /* We cannot take shortcuts; they might be wrong for magic file names.  */
-    absname = Fdirectory_file_name (absname);
-  return absname;
-}
-
-/* Signal an error if the file ABSNAME already exists.
-   If KNOWN_TO_EXIST, the file is known to exist.
-   QUERYSTRING is a name for the action that is being considered
-   to alter the file.
-   If INTERACTIVE, ask the user whether to proceed,
-   and bypass the error if the user says to go ahead.
-   If QUICK, ask for y or n, not yes or no.  */
-
-static void
-barf_or_query_if_file_exists (Lisp_Object absname, bool known_to_exist,
-			      const char *querystring, bool interactive,
-			      bool quick)
-{
-  Lisp_Object tem, encoded_filename;
-  struct stat statbuf;
-
-  encoded_filename = ENCODE_FILE (absname);
-
-  if (! known_to_exist && lstat (SSDATA (encoded_filename), &statbuf) == 0)
-    {
-      if (S_ISDIR (statbuf.st_mode))
-	xsignal2 (Qfile_error,
-		  build_string ("File is a directory"), absname);
-      known_to_exist = true;
-    }
-
-  if (known_to_exist)
-    {
-      if (! interactive)
-	xsignal2 (Qfile_already_exists,
-		  build_string ("File already exists"), absname);
-      AUTO_STRING (format, "File %s already exists; %s anyway? ");
-      tem = CALLN (Fformat, format, absname, build_string (querystring));
-      if (quick)
-	tem = call1 (intern ("y-or-n-p"), tem);
-      else
-	tem = do_yes_or_no_p (tem);
-      if (NILP (tem))
-	xsignal2 (Qfile_already_exists,
-		  build_string ("File already exists"), absname);
-    }
-}
-
-DEFUN ("copy-file", Fcopy_file, Scopy_file, 2, 6,
-       "fCopy file: \nGCopy %s to file: \np\nP",
-       doc: /* Copy FILE to NEWNAME.  Both args must be strings.
-If NEWNAME names a directory, copy FILE there.
-
-This function always sets the file modes of the output file to match
-the input file.
-
-The optional third argument OK-IF-ALREADY-EXISTS specifies what to do
-if file NEWNAME already exists.  If OK-IF-ALREADY-EXISTS is nil, we
-signal a `file-already-exists' error without overwriting.  If
-OK-IF-ALREADY-EXISTS is a number, we request confirmation from the user
-about overwriting; this is what happens in interactive use with M-x.
-Any other value for OK-IF-ALREADY-EXISTS means to overwrite the
-existing file.
-
-Fourth arg KEEP-TIME non-nil means give the output file the same
-last-modified time as the old one.  (This works on only some systems.)
-
-A prefix arg makes KEEP-TIME non-nil.
-
-If PRESERVE-UID-GID is non-nil, we try to transfer the
-uid and gid of FILE to NEWNAME.
-
-If PRESERVE-PERMISSIONS is non-nil, copy permissions of FILE to NEWNAME;
-this includes the file modes, along with ACL entries and SELinux
-context if present.  Otherwise, if NEWNAME is created its file
-permission bits are those of FILE, masked by the default file
-permissions.  */)
-  (Lisp_Object file, Lisp_Object newname, Lisp_Object ok_if_already_exists,
-   Lisp_Object keep_time, Lisp_Object preserve_uid_gid,
-   Lisp_Object preserve_permissions)
-{
-  Lisp_Object handler;
-  ptrdiff_t count = SPECPDL_INDEX ();
-  Lisp_Object encoded_file, encoded_newname;
-#if HAVE_LIBSELINUX
-  security_context_t con;
-  int conlength = 0;
-#endif
-#ifdef WINDOWSNT
-  int result;
-#else
-  bool already_exists = false;
-  mode_t new_mask;
-  int ifd, ofd;
-  struct stat st;
-#endif
-
-  encoded_file = encoded_newname = Qnil;
-  CHECK_STRING (file);
-  CHECK_STRING (newname);
-
-  if (!NILP (Ffile_directory_p (newname)))
-    newname = Fexpand_file_name (Ffile_name_nondirectory (file), newname);
-  else
-    newname = Fexpand_file_name (newname, Qnil);
-
-  file = Fexpand_file_name (file, Qnil);
-
-  /* If the input file name has special constructs in it,
-     call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (file, Qcopy_file);
-  /* Likewise for output file name.  */
-  if (NILP (handler))
-    handler = Ffind_file_name_handler (newname, Qcopy_file);
-  if (!NILP (handler))
-    return call7 (handler, Qcopy_file, file, newname,
-		  ok_if_already_exists, keep_time, preserve_uid_gid,
-		  preserve_permissions);
-
-  encoded_file = ENCODE_FILE (file);
-  encoded_newname = ENCODE_FILE (newname);
-
-#ifdef WINDOWSNT
-  if (NILP (ok_if_already_exists)
-      || INTEGERP (ok_if_already_exists))
-    barf_or_query_if_file_exists (newname, false, "copy to it",
-				  INTEGERP (ok_if_already_exists), false);
-
-  result = w32_copy_file (SSDATA (encoded_file), SSDATA (encoded_newname),
-			  !NILP (keep_time), !NILP (preserve_uid_gid),
-			  !NILP (preserve_permissions));
-  switch (result)
-    {
-    case -1:
-      report_file_error ("Copying file", list2 (file, newname));
-    case -2:
-      report_file_error ("Copying permissions from", file);
-    case -3:
-      xsignal2 (Qfile_date_error,
-		build_string ("Resetting file times"), newname);
-    case -4:
-      report_file_error ("Copying permissions to", newname);
-    }
-#else /* not WINDOWSNT */
-  immediate_quit = 1;
-  ifd = emacs_open (SSDATA (encoded_file), O_RDONLY, 0);
-  immediate_quit = 0;
-
-  if (ifd < 0)
-    report_file_error ("Opening input file", file);
-
-  record_unwind_protect_int (close_file_unwind, ifd);
-
-  if (fstat (ifd, &st) != 0)
-    report_file_error ("Input file status", file);
-
-  if (!NILP (preserve_permissions))
-    {
-#if HAVE_LIBSELINUX
-      if (is_selinux_enabled ())
-	{
-	  conlength = fgetfilecon (ifd, &con);
-	  if (conlength == -1)
-	    report_file_error ("Doing fgetfilecon", file);
-	}
-#endif
-    }
-
-  /* We can copy only regular files.  */
-  if (!S_ISREG (st.st_mode))
-    report_file_errno ("Non-regular file", file,
-		       S_ISDIR (st.st_mode) ? EISDIR : EINVAL);
-
-#ifndef MSDOS
-  new_mask = st.st_mode & (!NILP (preserve_uid_gid) ? 0700 : 0777);
-#else
-  new_mask = S_IREAD | S_IWRITE;
-#endif
-
-  ofd = emacs_open (SSDATA (encoded_newname), O_WRONLY | O_CREAT | O_EXCL,
-		    new_mask);
-  if (ofd < 0 && errno == EEXIST)
-    {
-      if (NILP (ok_if_already_exists) || INTEGERP (ok_if_already_exists))
-	barf_or_query_if_file_exists (newname, true, "copy to it",
-				      INTEGERP (ok_if_already_exists), false);
-      already_exists = true;
-      ofd = emacs_open (SSDATA (encoded_newname), O_WRONLY, 0);
-    }
-  if (ofd < 0)
-    report_file_error ("Opening output file", newname);
-
-  record_unwind_protect_int (close_file_unwind, ofd);
-
-  off_t oldsize = 0, newsize = 0;
-
-  if (already_exists)
-    {
-      struct stat out_st;
-      if (fstat (ofd, &out_st) != 0)
-	report_file_error ("Output file status", newname);
-      if (st.st_dev == out_st.st_dev && st.st_ino == out_st.st_ino)
-	report_file_errno ("Input and output files are the same",
-			   list2 (file, newname), 0);
-      if (S_ISREG (out_st.st_mode))
-	oldsize = out_st.st_size;
-    }
-
-  immediate_quit = 1;
-  QUIT;
-  while (true)
-    {
-      char buf[MAX_ALLOCA];
-      ptrdiff_t n = emacs_read (ifd, buf, sizeof buf);
-      if (n < 0)
-	report_file_error ("Read error", file);
-      if (n == 0)
-	break;
-      if (emacs_write_sig (ofd, buf, n) != n)
-	report_file_error ("Write error", newname);
-      newsize += n;
-    }
-
-  /* Truncate any existing output file after writing the data.  This
-     is more likely to work than truncation before writing, if the
-     file system is out of space or the user is over disk quota.  */
-  if (newsize < oldsize && ftruncate (ofd, newsize) != 0)
-    report_file_error ("Truncating output file", newname);
-
-  immediate_quit = 0;
-
-#ifndef MSDOS
-  /* Preserve the original file permissions, and if requested, also its
-     owner and group.  */
-  {
-    mode_t preserved_permissions = st.st_mode & 07777;
-    mode_t default_permissions = st.st_mode & 0777 & ~realmask;
-    if (!NILP (preserve_uid_gid))
-      {
-	/* Attempt to change owner and group.  If that doesn't work
-	   attempt to change just the group, as that is sometimes allowed.
-	   Adjust the mode mask to eliminate setuid or setgid bits
-	   or group permissions bits that are inappropriate if the
-	   owner or group are wrong.  */
-	if (fchown (ofd, st.st_uid, st.st_gid) != 0)
-	  {
-	    if (fchown (ofd, -1, st.st_gid) == 0)
-	      preserved_permissions &= ~04000;
-	    else
-	      {
-		preserved_permissions &= ~06000;
-
-		/* Copy the other bits to the group bits, since the
-		   group is wrong.  */
-		preserved_permissions &= ~070;
-		preserved_permissions |= (preserved_permissions & 7) << 3;
-		default_permissions &= ~070;
-		default_permissions |= (default_permissions & 7) << 3;
-	      }
-	  }
-      }
-
-    switch (!NILP (preserve_permissions)
-	    ? qcopy_acl (SSDATA (encoded_file), ifd,
-			 SSDATA (encoded_newname), ofd,
-			 preserved_permissions)
-	    : (already_exists
-	       || (new_mask & ~realmask) == default_permissions)
-	    ? 0
-	    : fchmod (ofd, default_permissions))
-      {
-      case -2: report_file_error ("Copying permissions from", file);
-      case -1: report_file_error ("Copying permissions to", newname);
-      }
-  }
-#endif	/* not MSDOS */
-
-#if HAVE_LIBSELINUX
-  if (conlength > 0)
-    {
-      /* Set the modified context back to the file.  */
-      bool fail = fsetfilecon (ofd, con) != 0;
-      /* See http://debbugs.gnu.org/11245 for ENOTSUP.  */
-      if (fail && errno != ENOTSUP)
-	report_file_error ("Doing fsetfilecon", newname);
-
-      freecon (con);
-    }
-#endif
-
-  if (!NILP (keep_time))
-    {
-      struct timespec atime = get_stat_atime (&st);
-      struct timespec mtime = get_stat_mtime (&st);
-      if (set_file_times (ofd, SSDATA (encoded_newname), atime, mtime) != 0)
-	xsignal2 (Qfile_date_error,
-		  build_string ("Cannot set file date"), newname);
-    }
-
-  if (emacs_close (ofd) < 0)
-    report_file_error ("Write error", newname);
-
-  emacs_close (ifd);
-
-#ifdef MSDOS
-  /* In DJGPP v2.0 and later, fstat usually returns true file mode bits,
-     and if it can't, it tells so.  Otherwise, under MSDOS we usually
-     get only the READ bit, which will make the copied file read-only,
-     so it's better not to chmod at all.  */
-  if ((_djstat_flags & _STFAIL_WRITEBIT) == 0)
-    chmod (SDATA (encoded_newname), st.st_mode & 07777);
-#endif /* MSDOS */
-#endif /* not WINDOWSNT */
-
-  /* Discard the unwind protects.  */
-  specpdl_ptr = specpdl + count;
-
-  return Qnil;
-}
-
-DEFUN ("make-directory-internal", Fmake_directory_internal,
-       Smake_directory_internal, 1, 1, 0,
-       doc: /* Create a new directory named DIRECTORY.  */)
-  (Lisp_Object directory)
-{
-  const char *dir;
-  Lisp_Object handler;
-  Lisp_Object encoded_dir;
-
-  CHECK_STRING (directory);
-  directory = Fexpand_file_name (directory, Qnil);
-
-  handler = Ffind_file_name_handler (directory, Qmake_directory_internal);
-  if (!NILP (handler))
-    return call2 (handler, Qmake_directory_internal, directory);
-
-  encoded_dir = ENCODE_FILE (directory);
-
-  dir = SSDATA (encoded_dir);
-
-#ifdef WINDOWSNT
-  if (mkdir (dir) != 0)
-#else
-  if (mkdir (dir, 0777 & ~auto_saving_dir_umask) != 0)
-#endif
-    report_file_error ("Creating directory", directory);
-
-  return Qnil;
-}
-
-DEFUN ("delete-directory-internal", Fdelete_directory_internal,
-       Sdelete_directory_internal, 1, 1, 0,
-       doc: /* Delete the directory named DIRECTORY.  Does not follow symlinks.  */)
-  (Lisp_Object directory)
-{
-  const char *dir;
-  Lisp_Object encoded_dir;
-
-  CHECK_STRING (directory);
-  directory = Fdirectory_file_name (Fexpand_file_name (directory, Qnil));
-  encoded_dir = ENCODE_FILE (directory);
-  dir = SSDATA (encoded_dir);
-
-  if (rmdir (dir) != 0)
-    report_file_error ("Removing directory", directory);
-
-  return Qnil;
-}
-
-DEFUN ("delete-file", Fdelete_file, Sdelete_file, 1, 2,
-       "(list (read-file-name \
-                (if (and delete-by-moving-to-trash (null current-prefix-arg)) \
-                    \"Move file to trash: \" \"Delete file: \") \
-                nil default-directory (confirm-nonexistent-file-or-buffer)) \
-              (null current-prefix-arg))",
-       doc: /* Delete file named FILENAME.  If it is a symlink, remove the symlink.
-If file has multiple names, it continues to exist with the other names.
-TRASH non-nil means to trash the file instead of deleting, provided
-`delete-by-moving-to-trash' is non-nil.
-
-When called interactively, TRASH is t if no prefix argument is given.
-With a prefix argument, TRASH is nil.  */)
-  (Lisp_Object filename, Lisp_Object trash)
-{
-  Lisp_Object handler;
-  Lisp_Object encoded_file;
-
-  if (!NILP (Ffile_directory_p (filename))
-      && NILP (Ffile_symlink_p (filename)))
-    xsignal2 (Qfile_error,
-	      build_string ("Removing old name: is a directory"),
-	      filename);
-  filename = Fexpand_file_name (filename, Qnil);
-
-  handler = Ffind_file_name_handler (filename, Qdelete_file);
-  if (!NILP (handler))
-    return call3 (handler, Qdelete_file, filename, trash);
-
-  if (delete_by_moving_to_trash && !NILP (trash))
-    return call1 (Qmove_file_to_trash, filename);
-
-  encoded_file = ENCODE_FILE (filename);
-
-  if (unlink (SSDATA (encoded_file)) < 0)
-    report_file_error ("Removing old name", filename);
-  return Qnil;
-}
-
-static Lisp_Object
-internal_delete_file_1 (Lisp_Object ignore)
-{
-  return Qt;
-}
-
-/* Delete file FILENAME, returning true if successful.
-   This ignores `delete-by-moving-to-trash'.  */
-
-bool
-internal_delete_file (Lisp_Object filename)
-{
-  Lisp_Object tem;
-
-  tem = internal_condition_case_2 (Fdelete_file, filename, Qnil,
-				   Qt, internal_delete_file_1);
-  return NILP (tem);
-}
-
-DEFUN ("rename-file", Frename_file, Srename_file, 2, 3,
-       "fRename file: \nGRename %s to file: \np",
-       doc: /* Rename FILE as NEWNAME.  Both args must be strings.
-If file has names other than FILE, it continues to have those names.
-Signals a `file-already-exists' error if a file NEWNAME already exists
-unless optional third argument OK-IF-ALREADY-EXISTS is non-nil.
-A number as third arg means request confirmation if NEWNAME already exists.
-This is what happens in interactive use with M-x.  */)
-  (Lisp_Object file, Lisp_Object newname, Lisp_Object ok_if_already_exists)
-{
-  Lisp_Object handler;
-  Lisp_Object encoded_file, encoded_newname, symlink_target;
-
-  symlink_target = encoded_file = encoded_newname = Qnil;
-  CHECK_STRING (file);
-  CHECK_STRING (newname);
-  file = Fexpand_file_name (file, Qnil);
-
-  if ((!NILP (Ffile_directory_p (newname)))
-#ifdef DOS_NT
-      /* If the file names are identical but for the case,
-	 don't attempt to move directory to itself. */
-      && (NILP (Fstring_equal (Fdowncase (file), Fdowncase (newname))))
-#endif
-      )
-    {
-      Lisp_Object fname = (NILP (Ffile_directory_p (file))
-			   ? file : Fdirectory_file_name (file));
-      newname = Fexpand_file_name (Ffile_name_nondirectory (fname), newname);
-    }
-  else
-    newname = Fexpand_file_name (newname, Qnil);
-
-  /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (file, Qrename_file);
-  if (NILP (handler))
-    handler = Ffind_file_name_handler (newname, Qrename_file);
-  if (!NILP (handler))
-    return call4 (handler, Qrename_file,
-		  file, newname, ok_if_already_exists);
-
-  encoded_file = ENCODE_FILE (file);
-  encoded_newname = ENCODE_FILE (newname);
-
-#ifdef DOS_NT
-  /* If the file names are identical but for the case, don't ask for
-     confirmation: they simply want to change the letter-case of the
-     file name.  */
-  if (NILP (Fstring_equal (Fdowncase (file), Fdowncase (newname))))
-#endif
-  if (NILP (ok_if_already_exists)
-      || INTEGERP (ok_if_already_exists))
-    barf_or_query_if_file_exists (newname, false, "rename to it",
-				  INTEGERP (ok_if_already_exists), false);
-  if (rename (SSDATA (encoded_file), SSDATA (encoded_newname)) < 0)
-    {
-      int rename_errno = errno;
-      if (rename_errno == EXDEV)
-	{
-          ptrdiff_t count;
-          symlink_target = Ffile_symlink_p (file);
-          if (! NILP (symlink_target))
-            Fmake_symbolic_link (symlink_target, newname,
-                                 NILP (ok_if_already_exists) ? Qnil : Qt);
-	  else if (!NILP (Ffile_directory_p (file)))
-	    call4 (Qcopy_directory, file, newname, Qt, Qnil);
-	  else
-	    /* We have already prompted if it was an integer, so don't
-	       have copy-file prompt again.  */
-	    Fcopy_file (file, newname,
-			NILP (ok_if_already_exists) ? Qnil : Qt,
-			Qt, Qt, Qt);
-
-	  count = SPECPDL_INDEX ();
-	  specbind (Qdelete_by_moving_to_trash, Qnil);
-
-	  if (!NILP (Ffile_directory_p (file)) && NILP (symlink_target))
-	    call2 (Qdelete_directory, file, Qt);
-	  else
-	    Fdelete_file (file, Qnil);
-	  unbind_to (count, Qnil);
-	}
-      else
-	report_file_errno ("Renaming", list2 (file, newname), rename_errno);
-    }
-
-  return Qnil;
-}
-
-DEFUN ("add-name-to-file", Fadd_name_to_file, Sadd_name_to_file, 2, 3,
-       "fAdd name to file: \nGName to add to %s: \np",
-       doc: /* Give FILE additional name NEWNAME.  Both args must be strings.
-Signals a `file-already-exists' error if a file NEWNAME already exists
-unless optional third argument OK-IF-ALREADY-EXISTS is non-nil.
-A number as third arg means request confirmation if NEWNAME already exists.
-This is what happens in interactive use with M-x.  */)
-  (Lisp_Object file, Lisp_Object newname, Lisp_Object ok_if_already_exists)
-{
-  Lisp_Object handler;
-  Lisp_Object encoded_file, encoded_newname;
-
-  encoded_file = encoded_newname = Qnil;
-  CHECK_STRING (file);
-  CHECK_STRING (newname);
-  file = Fexpand_file_name (file, Qnil);
-
-  if (!NILP (Ffile_directory_p (newname)))
-    newname = Fexpand_file_name (Ffile_name_nondirectory (file), newname);
-  else
-    newname = Fexpand_file_name (newname, Qnil);
-
-  /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (file, Qadd_name_to_file);
-  if (!NILP (handler))
-    return call4 (handler, Qadd_name_to_file, file,
-		  newname, ok_if_already_exists);
-
-  /* If the new name has special constructs in it,
-     call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (newname, Qadd_name_to_file);
-  if (!NILP (handler))
-    return call4 (handler, Qadd_name_to_file, file,
-		  newname, ok_if_already_exists);
-
-  encoded_file = ENCODE_FILE (file);
-  encoded_newname = ENCODE_FILE (newname);
-
-  if (NILP (ok_if_already_exists)
-      || INTEGERP (ok_if_already_exists))
-    barf_or_query_if_file_exists (newname, false, "make it a new name",
-				  INTEGERP (ok_if_already_exists), false);
-
-  unlink (SSDATA (newname));
-  if (link (SSDATA (encoded_file), SSDATA (encoded_newname)) < 0)
-    {
-      int link_errno = errno;
-      report_file_errno ("Adding new name", list2 (file, newname), link_errno);
-    }
-
-  return Qnil;
-}
-
-DEFUN ("make-symbolic-link", Fmake_symbolic_link, Smake_symbolic_link, 2, 3,
-       "FMake symbolic link to file: \nGMake symbolic link to file %s: \np",
-       doc: /* Make a symbolic link to TARGET, named LINKNAME.
-Both args must be strings.
-Signals a `file-already-exists' error if a file LINKNAME already exists
-unless optional third argument OK-IF-ALREADY-EXISTS is non-nil.
-A number as third arg means request confirmation if LINKNAME already exists.
-This happens for interactive use with M-x.  */)
-  (Lisp_Object target, Lisp_Object linkname, Lisp_Object ok_if_already_exists)
-{
-  Lisp_Object handler;
-  Lisp_Object encoded_target, encoded_linkname;
-
-  encoded_target = encoded_linkname = Qnil;
-  CHECK_STRING (target);
-  CHECK_STRING (linkname);
-  /* If the link target has a ~, we must expand it to get
-     a truly valid file name.  Otherwise, do not expand;
-     we want to permit links to relative file names.  */
-  if (SREF (target, 0) == '~')
-    target = Fexpand_file_name (target, Qnil);
-
-  if (!NILP (Ffile_directory_p (linkname)))
-    linkname = Fexpand_file_name (Ffile_name_nondirectory (target), linkname);
-  else
-    linkname = Fexpand_file_name (linkname, Qnil);
-
-  /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (target, Qmake_symbolic_link);
-  if (!NILP (handler))
-    return call4 (handler, Qmake_symbolic_link, target,
-		  linkname, ok_if_already_exists);
-
-  /* If the new link name has special constructs in it,
-     call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (linkname, Qmake_symbolic_link);
-  if (!NILP (handler))
-    return call4 (handler, Qmake_symbolic_link, target,
-		  linkname, ok_if_already_exists);
-
-  encoded_target = ENCODE_FILE (target);
-  encoded_linkname = ENCODE_FILE (linkname);
-
-  if (NILP (ok_if_already_exists)
-      || INTEGERP (ok_if_already_exists))
-    barf_or_query_if_file_exists (linkname, false, "make it a link",
-				  INTEGERP (ok_if_already_exists), false);
-  if (symlink (SSDATA (encoded_target), SSDATA (encoded_linkname)) < 0)
-    {
-      /* If we didn't complain already, silently delete existing file.  */
-      int symlink_errno;
-      if (errno == EEXIST)
-	{
-	  unlink (SSDATA (encoded_linkname));
-	  if (symlink (SSDATA (encoded_target), SSDATA (encoded_linkname))
-	      >= 0)
-	    return Qnil;
-	}
-      if (errno == ENOSYS)
-	xsignal1 (Qfile_error,
-		  build_string ("Symbolic links are not supported"));
-
-      symlink_errno = errno;
-      report_file_errno ("Making symbolic link", list2 (target, linkname),
-			 symlink_errno);
-    }
-
-  return Qnil;
-}
-
-
-DEFUN ("file-name-absolute-p", Ffile_name_absolute_p, Sfile_name_absolute_p,
-       1, 1, 0,
-       doc: /* Return t if file FILENAME specifies an absolute file name.
-On Unix, this is a name starting with a `/' or a `~'.  */)
-  (Lisp_Object filename)
-{
-  CHECK_STRING (filename);
-  return file_name_absolute_p (SSDATA (filename)) ? Qt : Qnil;
-}
-
-DEFUN ("file-exists-p", Ffile_exists_p, Sfile_exists_p, 1, 1, 0,
-       doc: /* Return t if file FILENAME exists (whether or not you can read it.)
-See also `file-readable-p' and `file-attributes'.
-This returns nil for a symlink to a nonexistent file.
-Use `file-symlink-p' to test for such links.  */)
-  (Lisp_Object filename)
-{
-  Lisp_Object absname;
-  Lisp_Object handler;
-
-  CHECK_STRING (filename);
-  absname = Fexpand_file_name (filename, Qnil);
-
-  /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (absname, Qfile_exists_p);
-  if (!NILP (handler))
-    {
-      Lisp_Object result = call2 (handler, Qfile_exists_p, absname);
-      errno = 0;
-      return result;
-    }
-
-  absname = ENCODE_FILE (absname);
-
-  return check_existing (SSDATA (absname)) ? Qt : Qnil;
-}
-
-DEFUN ("file-executable-p", Ffile_executable_p, Sfile_executable_p, 1, 1, 0,
-       doc: /* Return t if FILENAME can be executed by you.
-For a directory, this means you can access files in that directory.
-\(It is generally better to use `file-accessible-directory-p' for that
-purpose, though.)  */)
-  (Lisp_Object filename)
-{
-  Lisp_Object absname;
-  Lisp_Object handler;
-
-  CHECK_STRING (filename);
-  absname = Fexpand_file_name (filename, Qnil);
-
-  /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (absname, Qfile_executable_p);
-  if (!NILP (handler))
-    return call2 (handler, Qfile_executable_p, absname);
-
-  absname = ENCODE_FILE (absname);
-
-  return (check_executable (SSDATA (absname)) ? Qt : Qnil);
-}
-
-DEFUN ("file-readable-p", Ffile_readable_p, Sfile_readable_p, 1, 1, 0,
-       doc: /* Return t if file FILENAME exists and you can read it.
-See also `file-exists-p' and `file-attributes'.  */)
-  (Lisp_Object filename)
-{
-  Lisp_Object absname;
-  Lisp_Object handler;
-
-  CHECK_STRING (filename);
-  absname = Fexpand_file_name (filename, Qnil);
-
-  /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (absname, Qfile_readable_p);
-  if (!NILP (handler))
-    return call2 (handler, Qfile_readable_p, absname);
-
-  absname = ENCODE_FILE (absname);
-  return (faccessat (AT_FDCWD, SSDATA (absname), R_OK, AT_EACCESS) == 0
-	  ? Qt : Qnil);
-}
-
-DEFUN ("file-writable-p", Ffile_writable_p, Sfile_writable_p, 1, 1, 0,
-       doc: /* Return t if file FILENAME can be written or created by you.  */)
-  (Lisp_Object filename)
-{
-  Lisp_Object absname, dir, encoded;
-  Lisp_Object handler;
-
-  CHECK_STRING (filename);
-  absname = Fexpand_file_name (filename, Qnil);
-
-  /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (absname, Qfile_writable_p);
-  if (!NILP (handler))
-    return call2 (handler, Qfile_writable_p, absname);
-
-  encoded = ENCODE_FILE (absname);
-  if (check_writable (SSDATA (encoded), W_OK))
-    return Qt;
-  if (errno != ENOENT)
-    return Qnil;
-
-  dir = Ffile_name_directory (absname);
-  eassert (!NILP (dir));
-#ifdef MSDOS
-  dir = Fdirectory_file_name (dir);
-#endif /* MSDOS */
-
-  dir = ENCODE_FILE (dir);
-#ifdef WINDOWSNT
-  /* The read-only attribute of the parent directory doesn't affect
-     whether a file or directory can be created within it.  Some day we
-     should check ACLs though, which do affect this.  */
-  return file_directory_p (SDATA (dir)) ? Qt : Qnil;
-#else
-  return check_writable (SSDATA (dir), W_OK | X_OK) ? Qt : Qnil;
-#endif
-}
-
-DEFUN ("access-file", Faccess_file, Saccess_file, 2, 2, 0,
-       doc: /* Access file FILENAME, and get an error if that does not work.
-The second argument STRING is used in the error message.
-If there is no error, returns nil.  */)
-  (Lisp_Object filename, Lisp_Object string)
-{
-  Lisp_Object handler, encoded_filename, absname;
-
-  CHECK_STRING (filename);
-  absname = Fexpand_file_name (filename, Qnil);
-
-  CHECK_STRING (string);
-
-  /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (absname, Qaccess_file);
-  if (!NILP (handler))
-    return call3 (handler, Qaccess_file, absname, string);
-
-  encoded_filename = ENCODE_FILE (absname);
-
-  if (faccessat (AT_FDCWD, SSDATA (encoded_filename), R_OK, AT_EACCESS) != 0)
-    report_file_error (SSDATA (string), filename);
-
-  return Qnil;
-}
-
-/* Relative to directory FD, return the symbolic link value of FILENAME.
-   On failure, return nil.  */
-Lisp_Object
-emacs_readlinkat (int fd, char const *filename)
-{
-  static struct allocator const emacs_norealloc_allocator =
-    { xmalloc, NULL, xfree, memory_full };
-  Lisp_Object val;
-  char readlink_buf[1024];
-  char *buf = careadlinkat (fd, filename, readlink_buf, sizeof readlink_buf,
-			    &emacs_norealloc_allocator, readlinkat);
-  if (!buf)
-    return Qnil;
-
-  val = build_unibyte_string (buf);
-  if (buf[0] == '/' && strchr (buf, ':'))
-    {
-      AUTO_STRING (slash_colon, "/:");
-      val = concat2 (slash_colon, val);
-    }
-  if (buf != readlink_buf)
-    xfree (buf);
-  val = DECODE_FILE (val);
-  return val;
-}
-
-DEFUN ("file-symlink-p", Ffile_symlink_p, Sfile_symlink_p, 1, 1, 0,
-       doc: /* Return non-nil if file FILENAME is the name of a symbolic link.
-The value is the link target, as a string.
-Otherwise it returns nil.
-
-This function does not check whether the link target exists.  */)
-  (Lisp_Object filename)
-{
-  Lisp_Object handler;
-
-  CHECK_STRING (filename);
-  filename = Fexpand_file_name (filename, Qnil);
-
-  /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (filename, Qfile_symlink_p);
-  if (!NILP (handler))
-    return call2 (handler, Qfile_symlink_p, filename);
-
-  filename = ENCODE_FILE (filename);
-
-  return emacs_readlinkat (AT_FDCWD, SSDATA (filename));
-}
-
-DEFUN ("file-directory-p", Ffile_directory_p, Sfile_directory_p, 1, 1, 0,
-       doc: /* Return t if FILENAME names an existing directory.
-Symbolic links to directories count as directories.
-See `file-symlink-p' to distinguish symlinks.  */)
-  (Lisp_Object filename)
-{
-  Lisp_Object absname;
-  Lisp_Object handler;
-
-  absname = expand_and_dir_to_file (filename, BVAR (current_buffer, directory));
-
-  /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (absname, Qfile_directory_p);
-  if (!NILP (handler))
-    return call2 (handler, Qfile_directory_p, absname);
-
-  absname = ENCODE_FILE (absname);
-
-  return file_directory_p (SSDATA (absname)) ? Qt : Qnil;
-}
-
-/* Return true if FILE is a directory or a symlink to a directory.  */
-bool
-file_directory_p (char const *file)
-{
-#ifdef WINDOWSNT
-  /* This is cheaper than 'stat'.  */
-  return faccessat (AT_FDCWD, file, D_OK, AT_EACCESS) == 0;
-#else
-  struct stat st;
-  return stat (file, &st) == 0 && S_ISDIR (st.st_mode);
-#endif
-}
-
-DEFUN ("file-accessible-directory-p", Ffile_accessible_directory_p,
-       Sfile_accessible_directory_p, 1, 1, 0,
-       doc: /* Return t if file FILENAME names a directory you can open.
-For the value to be t, FILENAME must specify the name of a directory as a file,
-and the directory must allow you to open files in it.  In order to use a
-directory as a buffer's current directory, this predicate must return true.
-A directory name spec may be given instead; then the value is t
-if the directory so specified exists and really is a readable and
-searchable directory.  */)
-  (Lisp_Object filename)
-{
-  Lisp_Object absname;
-  Lisp_Object handler;
-
-  CHECK_STRING (filename);
-  absname = Fexpand_file_name (filename, Qnil);
-
-  /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (absname, Qfile_accessible_directory_p);
-  if (!NILP (handler))
-    {
-      Lisp_Object r = call2 (handler, Qfile_accessible_directory_p, absname);
-      errno = 0;
-      return r;
-    }
-
-  absname = ENCODE_FILE (absname);
-  return file_accessible_directory_p (absname) ? Qt : Qnil;
-}
-
-/* If FILE is a searchable directory or a symlink to a
-   searchable directory, return true.  Otherwise return
-   false and set errno to an error number.  */
-bool
-file_accessible_directory_p (Lisp_Object file)
-{
-#ifdef DOS_NT
-# ifdef WINDOWSNT
-  /* We need a special-purpose test because (a) NTFS security data is
-     not reflected in Posix-style mode bits, and (b) the trick with
-     accessing "DIR/.", used below on Posix hosts, doesn't work on
-     Windows, because "DIR/." is normalized to just "DIR" before
-     hitting the disk.  */
-  return (SBYTES (file) == 0
-	  || w32_accessible_directory_p (SSDATA (file), SBYTES (file)));
-# else	/* MSDOS */
-  return file_directory_p (SSDATA (file));
-# endif	 /* MSDOS */
-#else	 /* !DOS_NT */
-  /* On POSIXish platforms, use just one system call; this avoids a
-     race and is typically faster.  */
-  const char *data = SSDATA (file);
-  ptrdiff_t len = SBYTES (file);
-  char const *dir;
-  bool ok;
-  int saved_errno;
-  USE_SAFE_ALLOCA;
-
-  /* Normally a file "FOO" is an accessible directory if "FOO/." exists.
-     There are three exceptions: "", "/", and "//".  Leave "" alone,
-     as it's invalid.  Append only "." to the other two exceptions as
-     "/" and "//" are distinct on some platforms, whereas "/", "///",
-     "////", etc. are all equivalent.  */
-  if (! len)
-    dir = data;
-  else
-    {
-      /* Just check for trailing '/' when deciding whether to append '/'.
-	 That's simpler than testing the two special cases "/" and "//",
-	 and it's a safe optimization here.  */
-      char *buf = SAFE_ALLOCA (len + 3);
-      memcpy (buf, data, len);
-      strcpy (buf + len, &"/."[data[len - 1] == '/']);
-      dir = buf;
-    }
-
-  ok = check_existing (dir);
-  saved_errno = errno;
-  SAFE_FREE ();
-  errno = saved_errno;
-  return ok;
-#endif	/* !DOS_NT */
-}
-
-DEFUN ("file-regular-p", Ffile_regular_p, Sfile_regular_p, 1, 1, 0,
-       doc: /* Return t if FILENAME names a regular file.
-This is the sort of file that holds an ordinary stream of data bytes.
-Symbolic links to regular files count as regular files.
-See `file-symlink-p' to distinguish symlinks.  */)
-  (Lisp_Object filename)
-{
-  register Lisp_Object absname;
-  struct stat st;
-  Lisp_Object handler;
-
-  absname = expand_and_dir_to_file (filename, BVAR (current_buffer, directory));
-
-  /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (absname, Qfile_regular_p);
-  if (!NILP (handler))
-    return call2 (handler, Qfile_regular_p, absname);
-
-  absname = ENCODE_FILE (absname);
-
-#ifdef WINDOWSNT
-  {
-    int result;
-    Lisp_Object tem = Vw32_get_true_file_attributes;
-
-    /* Tell stat to use expensive method to get accurate info.  */
-    Vw32_get_true_file_attributes = Qt;
-    result = stat (SDATA (absname), &st);
-    Vw32_get_true_file_attributes = tem;
-
-    if (result < 0)
-      return Qnil;
-    return S_ISREG (st.st_mode) ? Qt : Qnil;
-  }
-#else
-  if (stat (SSDATA (absname), &st) < 0)
-    return Qnil;
-  return S_ISREG (st.st_mode) ? Qt : Qnil;
-#endif
-}
-
-DEFUN ("file-selinux-context", Ffile_selinux_context,
-       Sfile_selinux_context, 1, 1, 0,
-       doc: /* Return SELinux context of file named FILENAME.
-The return value is a list (USER ROLE TYPE RANGE), where the list
-elements are strings naming the user, role, type, and range of the
-file's SELinux security context.
-
-Return (nil nil nil nil) if the file is nonexistent or inaccessible,
-or if SELinux is disabled, or if Emacs lacks SELinux support.  */)
-  (Lisp_Object filename)
-{
-  Lisp_Object absname;
-  Lisp_Object user = Qnil, role = Qnil, type = Qnil, range = Qnil;
-
-  Lisp_Object handler;
-#if HAVE_LIBSELINUX
-  security_context_t con;
-  int conlength;
-  context_t context;
-#endif
-
-  absname = expand_and_dir_to_file (filename, BVAR (current_buffer, directory));
-
-  /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (absname, Qfile_selinux_context);
-  if (!NILP (handler))
-    return call2 (handler, Qfile_selinux_context, absname);
-
-  absname = ENCODE_FILE (absname);
-
-#if HAVE_LIBSELINUX
-  if (is_selinux_enabled ())
-    {
-      conlength = lgetfilecon (SSDATA (absname), &con);
-      if (conlength > 0)
-	{
-	  context = context_new (con);
-	  if (context_user_get (context))
-	    user = build_string (context_user_get (context));
-	  if (context_role_get (context))
-	    role = build_string (context_role_get (context));
-	  if (context_type_get (context))
-	    type = build_string (context_type_get (context));
-	  if (context_range_get (context))
-	    range = build_string (context_range_get (context));
-	  context_free (context);
-	  freecon (con);
-	}
-    }
-#endif
-
-  return list4 (user, role, type, range);
-}
-
-DEFUN ("set-file-selinux-context", Fset_file_selinux_context,
-       Sset_file_selinux_context, 2, 2, 0,
-       doc: /* Set SELinux context of file named FILENAME to CONTEXT.
-CONTEXT should be a list (USER ROLE TYPE RANGE), where the list
-elements are strings naming the components of a SELinux context.
-
-Value is t if setting of SELinux context was successful, nil otherwise.
-
-This function does nothing and returns nil if SELinux is disabled,
-or if Emacs was not compiled with SELinux support.  */)
-  (Lisp_Object filename, Lisp_Object context)
-{
-  Lisp_Object absname;
-  Lisp_Object handler;
-#if HAVE_LIBSELINUX
-  Lisp_Object encoded_absname;
-  Lisp_Object user = CAR_SAFE (context);
-  Lisp_Object role = CAR_SAFE (CDR_SAFE (context));
-  Lisp_Object type = CAR_SAFE (CDR_SAFE (CDR_SAFE (context)));
-  Lisp_Object range = CAR_SAFE (CDR_SAFE (CDR_SAFE (CDR_SAFE (context))));
-  security_context_t con;
-  bool fail;
-  int conlength;
-  context_t parsed_con;
-#endif
-
-  absname = Fexpand_file_name (filename, BVAR (current_buffer, directory));
-
-  /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (absname, Qset_file_selinux_context);
-  if (!NILP (handler))
-    return call3 (handler, Qset_file_selinux_context, absname, context);
-
-#if HAVE_LIBSELINUX
-  if (is_selinux_enabled ())
-    {
-      /* Get current file context. */
-      encoded_absname = ENCODE_FILE (absname);
-      conlength = lgetfilecon (SSDATA (encoded_absname), &con);
-      if (conlength > 0)
-	{
-	  parsed_con = context_new (con);
-	  /* Change the parts defined in the parameter.*/
-	  if (STRINGP (user))
-	    {
-	      if (context_user_set (parsed_con, SSDATA (user)))
-		error ("Doing context_user_set");
-	    }
-	  if (STRINGP (role))
-	    {
-	      if (context_role_set (parsed_con, SSDATA (role)))
-		error ("Doing context_role_set");
-	    }
-	  if (STRINGP (type))
-	    {
-	      if (context_type_set (parsed_con, SSDATA (type)))
-		error ("Doing context_type_set");
-	    }
-	  if (STRINGP (range))
-	    {
-	      if (context_range_set (parsed_con, SSDATA (range)))
-		error ("Doing context_range_set");
-	    }
-
-	  /* Set the modified context back to the file.  */
-	  fail = (lsetfilecon (SSDATA (encoded_absname),
-			       context_str (parsed_con))
-		  != 0);
-          /* See http://debbugs.gnu.org/11245 for ENOTSUP.  */
-	  if (fail && errno != ENOTSUP)
-	    report_file_error ("Doing lsetfilecon", absname);
-
-	  context_free (parsed_con);
-	  freecon (con);
-	  return fail ? Qnil : Qt;
-	}
-      else
-	report_file_error ("Doing lgetfilecon", absname);
-    }
-#endif
-
-  return Qnil;
-}
-
-DEFUN ("file-acl", Ffile_acl, Sfile_acl, 1, 1, 0,
-       doc: /* Return ACL entries of file named FILENAME.
-The entries are returned in a format suitable for use in `set-file-acl'
-but is otherwise undocumented and subject to change.
-Return nil if file does not exist or is not accessible, or if Emacs
-was unable to determine the ACL entries.  */)
-  (Lisp_Object filename)
-{
-#if USE_ACL
-  Lisp_Object absname;
-  Lisp_Object handler;
-# ifdef HAVE_ACL_SET_FILE
-  acl_t acl;
-  Lisp_Object acl_string;
-  char *str;
-#  ifndef HAVE_ACL_TYPE_EXTENDED
-  acl_type_t ACL_TYPE_EXTENDED = ACL_TYPE_ACCESS;
+    int		fileformat = 0;		/* end-of-line format */
+    int		keep_fileformat = FALSE;
+    stat_T	st;
+    int		file_readonly;
+    linenr_T	skip_count = 0;
+    linenr_T	read_count = 0;
+    int		msg_save = msg_scroll;
+    linenr_T	read_no_eol_lnum = 0;   /* non-zero lnum when last line of
+					 * last read was missing the eol */
+    int		try_mac = (vim_strchr(p_ffs, 'm') != NULL);
+    int		try_dos = (vim_strchr(p_ffs, 'd') != NULL);
+    int		try_unix = (vim_strchr(p_ffs, 'x') != NULL);
+    int		file_rewind = FALSE;
+#ifdef FEAT_MBYTE
+    int		can_retry;
+    linenr_T	conv_error = 0;		/* line nr with conversion error */
+    linenr_T	illegal_byte = 0;	/* line nr with illegal byte */
+    int		keep_dest_enc = FALSE;	/* don't retry when char doesn't fit
+					   in destination encoding */
+    int		bad_char_behavior = BAD_REPLACE;
+					/* BAD_KEEP, BAD_DROP or character to
+					 * replace with */
+    char_u	*tmpname = NULL;	/* name of 'charconvert' output file */
+    int		fio_flags = 0;
+    char_u	*fenc;			/* fileencoding to use */
+    int		fenc_alloced;		/* fenc_next is in allocated memory */
+    char_u	*fenc_next = NULL;	/* next item in 'fencs' or NULL */
+    int		advance_fenc = FALSE;
+    long	real_size = 0;
+# ifdef USE_ICONV
+    iconv_t	iconv_fd = (iconv_t)-1;	/* descriptor for iconv() or -1 */
+#  ifdef FEAT_EVAL
+    int		did_iconv = FALSE;	/* TRUE when iconv() failed and trying
+					   'charconvert' next */
 #  endif
 # endif
+    int		converted = FALSE;	/* TRUE if conversion done */
+    int		notconverted = FALSE;	/* TRUE if conversion wanted but it
+					   wasn't possible */
+    char_u	conv_rest[CONV_RESTLEN];
+    int		conv_restlen = 0;	/* nr of bytes in conv_rest[] */
+#endif
+#ifdef FEAT_AUTOCMD
+    buf_T	*old_curbuf;
+    char_u	*old_b_ffname;
+    char_u	*old_b_fname;
+    int		using_b_ffname;
+    int		using_b_fname;
+#endif
 
-  absname = expand_and_dir_to_file (filename,
-				    BVAR (current_buffer, directory));
+#ifdef FEAT_AUTOCMD
+    au_did_filetype = FALSE; /* reset before triggering any autocommands */
+#endif
 
-  /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (absname, Qfile_acl);
-  if (!NILP (handler))
-    return call2 (handler, Qfile_acl, absname);
+    curbuf->b_no_eol_lnum = 0;	/* in case it was set by the previous read */
 
-# ifdef HAVE_ACL_SET_FILE
-  absname = ENCODE_FILE (absname);
-
-  acl = acl_get_file (SSDATA (absname), ACL_TYPE_EXTENDED);
-  if (acl == NULL)
-    return Qnil;
-
-  str = acl_to_text (acl, NULL);
-  if (str == NULL)
+    /*
+     * If there is no file name yet, use the one for the read file.
+     * BF_NOTEDITED is set to reflect this.
+     * Don't do this for a read from a filter.
+     * Only do this when 'cpoptions' contains the 'f' flag.
+     */
+    if (curbuf->b_ffname == NULL
+	    && !filtering
+	    && fname != NULL
+	    && vim_strchr(p_cpo, CPO_FNAMER) != NULL
+	    && !(flags & READ_DUMMY))
     {
-      acl_free (acl);
-      return Qnil;
+	if (set_rw_fname(fname, sfname) == FAIL)
+	    return FAIL;
     }
 
-  acl_string = build_string (str);
-  acl_free (str);
-  acl_free (acl);
+#ifdef FEAT_AUTOCMD
+    /* Remember the initial values of curbuf, curbuf->b_ffname and
+     * curbuf->b_fname to detect whether they are altered as a result of
+     * executing nasty autocommands.  Also check if "fname" and "sfname"
+     * point to one of these values. */
+    old_curbuf = curbuf;
+    old_b_ffname = curbuf->b_ffname;
+    old_b_fname = curbuf->b_fname;
+    using_b_ffname = (fname == curbuf->b_ffname)
+					      || (sfname == curbuf->b_ffname);
+    using_b_fname = (fname == curbuf->b_fname) || (sfname == curbuf->b_fname);
+#endif
 
-  return acl_string;
+    /* After reading a file the cursor line changes but we don't want to
+     * display the line. */
+    ex_no_reprint = TRUE;
+
+    /* don't display the file info for another buffer now */
+    need_fileinfo = FALSE;
+
+    /*
+     * For Unix: Use the short file name whenever possible.
+     * Avoids problems with networks and when directory names are changed.
+     * Don't do this for MS-DOS, a "cd" in a sub-shell may have moved us to
+     * another directory, which we don't detect.
+     */
+    if (sfname == NULL)
+	sfname = fname;
+#if defined(UNIX)
+    fname = sfname;
+#endif
+
+#ifdef FEAT_AUTOCMD
+    /*
+     * The BufReadCmd and FileReadCmd events intercept the reading process by
+     * executing the associated commands instead.
+     */
+    if (!filtering && !read_stdin && !read_buffer)
+    {
+	pos_T	    pos;
+
+	pos = curbuf->b_op_start;
+
+	/* Set '[ mark to the line above where the lines go (line 1 if zero). */
+	curbuf->b_op_start.lnum = ((from == 0) ? 1 : from);
+	curbuf->b_op_start.col = 0;
+
+	if (newfile)
+	{
+	    if (apply_autocmds_exarg(EVENT_BUFREADCMD, NULL, sfname,
+							  FALSE, curbuf, eap))
+#ifdef FEAT_EVAL
+		return aborting() ? FAIL : OK;
+#else
+		return OK;
+#endif
+	}
+	else if (apply_autocmds_exarg(EVENT_FILEREADCMD, sfname, sfname,
+							    FALSE, NULL, eap))
+#ifdef FEAT_EVAL
+	    return aborting() ? FAIL : OK;
+#else
+	    return OK;
+#endif
+
+	curbuf->b_op_start = pos;
+    }
+#endif
+
+    if ((shortmess(SHM_OVER) || curbuf->b_help) && p_verbose == 0)
+	msg_scroll = FALSE;	/* overwrite previous file message */
+    else
+	msg_scroll = TRUE;	/* don't overwrite previous file message */
+
+    /*
+     * If the name ends in a path separator, we can't open it.  Check here,
+     * because reading the file may actually work, but then creating the swap
+     * file may destroy it!  Reported on MS-DOS and Win 95.
+     * If the name is too long we might crash further on, quit here.
+     */
+    if (fname != NULL && *fname != NUL)
+    {
+	p = fname + STRLEN(fname);
+	if (after_pathsep(fname, p) || STRLEN(fname) >= MAXPATHL)
+	{
+	    filemess(curbuf, fname, (char_u *)_("Illegal file name"), 0);
+	    msg_end();
+	    msg_scroll = msg_save;
+	    return FAIL;
+	}
+    }
+
+    if (!read_stdin && !read_buffer)
+    {
+#ifdef UNIX
+	/*
+	 * On Unix it is possible to read a directory, so we have to
+	 * check for it before the mch_open().
+	 */
+	perm = mch_getperm(fname);
+	if (perm >= 0 && !S_ISREG(perm)		    /* not a regular file ... */
+# ifdef S_ISFIFO
+		      && !S_ISFIFO(perm)	    /* ... or fifo */
 # endif
-#endif
-
-  return Qnil;
-}
-
-DEFUN ("set-file-acl", Fset_file_acl, Sset_file_acl,
-       2, 2, 0,
-       doc: /* Set ACL of file named FILENAME to ACL-STRING.
-ACL-STRING should contain the textual representation of the ACL
-entries in a format suitable for the platform.
-
-Value is t if setting of ACL was successful, nil otherwise.
-
-Setting ACL for local files requires Emacs to be built with ACL
-support.  */)
-  (Lisp_Object filename, Lisp_Object acl_string)
-{
-#if USE_ACL
-  Lisp_Object absname;
-  Lisp_Object handler;
-# ifdef HAVE_ACL_SET_FILE
-  Lisp_Object encoded_absname;
-  acl_t acl;
-  bool fail;
+# ifdef S_ISSOCK
+		      && !S_ISSOCK(perm)	    /* ... or socket */
 # endif
-
-  absname = Fexpand_file_name (filename, BVAR (current_buffer, directory));
-
-  /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (absname, Qset_file_acl);
-  if (!NILP (handler))
-    return call3 (handler, Qset_file_acl, absname, acl_string);
-
-# ifdef HAVE_ACL_SET_FILE
-  if (STRINGP (acl_string))
-    {
-      acl = acl_from_text (SSDATA (acl_string));
-      if (acl == NULL)
-	{
-	  report_file_error ("Converting ACL", absname);
-	  return Qnil;
-	}
-
-      encoded_absname = ENCODE_FILE (absname);
-
-      fail = (acl_set_file (SSDATA (encoded_absname), ACL_TYPE_ACCESS,
-			    acl)
-	      != 0);
-      if (fail && acl_errno_valid (errno))
-	report_file_error ("Setting ACL", absname);
-
-      acl_free (acl);
-      return fail ? Qnil : Qt;
-    }
+# ifdef OPEN_CHR_FILES
+		      && !(S_ISCHR(perm) && is_dev_fd_file(fname))
+			/* ... or a character special file named /dev/fd/<n> */
 # endif
-#endif
-
-  return Qnil;
-}
-
-DEFUN ("file-modes", Ffile_modes, Sfile_modes, 1, 1, 0,
-       doc: /* Return mode bits of file named FILENAME, as an integer.
-Return nil, if file does not exist or is not accessible.  */)
-  (Lisp_Object filename)
-{
-  Lisp_Object absname;
-  struct stat st;
-  Lisp_Object handler;
-
-  absname = expand_and_dir_to_file (filename, BVAR (current_buffer, directory));
-
-  /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (absname, Qfile_modes);
-  if (!NILP (handler))
-    return call2 (handler, Qfile_modes, absname);
-
-  absname = ENCODE_FILE (absname);
-
-  if (stat (SSDATA (absname), &st) < 0)
-    return Qnil;
-
-  return make_number (st.st_mode & 07777);
-}
-
-DEFUN ("set-file-modes", Fset_file_modes, Sset_file_modes, 2, 2,
-       "(let ((file (read-file-name \"File: \")))			\
-	  (list file (read-file-modes nil file)))",
-       doc: /* Set mode bits of file named FILENAME to MODE (an integer).
-Only the 12 low bits of MODE are used.
-
-Interactively, mode bits are read by `read-file-modes', which accepts
-symbolic notation, like the `chmod' command from GNU Coreutils.  */)
-  (Lisp_Object filename, Lisp_Object mode)
-{
-  Lisp_Object absname, encoded_absname;
-  Lisp_Object handler;
-
-  absname = Fexpand_file_name (filename, BVAR (current_buffer, directory));
-  CHECK_NUMBER (mode);
-
-  /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (absname, Qset_file_modes);
-  if (!NILP (handler))
-    return call3 (handler, Qset_file_modes, absname, mode);
-
-  encoded_absname = ENCODE_FILE (absname);
-
-  if (chmod (SSDATA (encoded_absname), XINT (mode) & 07777) < 0)
-    report_file_error ("Doing chmod", absname);
-
-  return Qnil;
-}
-
-DEFUN ("set-default-file-modes", Fset_default_file_modes, Sset_default_file_modes, 1, 1, 0,
-       doc: /* Set the file permission bits for newly created files.
-The argument MODE should be an integer; only the low 9 bits are used.
-This setting is inherited by subprocesses.  */)
-  (Lisp_Object mode)
-{
-  mode_t oldrealmask, oldumask, newumask;
-  CHECK_NUMBER (mode);
-  oldrealmask = realmask;
-  newumask = ~ XINT (mode) & 0777;
-
-  block_input ();
-  realmask = newumask;
-  oldumask = umask (newumask);
-  unblock_input ();
-
-  eassert (oldumask == oldrealmask);
-  return Qnil;
-}
-
-DEFUN ("default-file-modes", Fdefault_file_modes, Sdefault_file_modes, 0, 0, 0,
-       doc: /* Return the default file protection for created files.
-The value is an integer.  */)
-  (void)
-{
-  Lisp_Object value;
-  XSETINT (value, (~ realmask) & 0777);
-  return value;
-}
-
-
-DEFUN ("set-file-times", Fset_file_times, Sset_file_times, 1, 2, 0,
-       doc: /* Set times of file FILENAME to TIMESTAMP.
-Set both access and modification times.
-Return t on success, else nil.
-Use the current time if TIMESTAMP is nil.  TIMESTAMP is in the format of
-`current-time'. */)
-  (Lisp_Object filename, Lisp_Object timestamp)
-{
-  Lisp_Object absname, encoded_absname;
-  Lisp_Object handler;
-  struct timespec t = lisp_time_argument (timestamp);
-
-  absname = Fexpand_file_name (filename, BVAR (current_buffer, directory));
-
-  /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (absname, Qset_file_times);
-  if (!NILP (handler))
-    return call3 (handler, Qset_file_times, absname, timestamp);
-
-  encoded_absname = ENCODE_FILE (absname);
-
-  {
-    if (set_file_times (-1, SSDATA (encoded_absname), t, t) != 0)
-      {
-#ifdef MSDOS
-        /* Setting times on a directory always fails.  */
-        if (file_directory_p (SSDATA (encoded_absname)))
-          return Qnil;
-#endif
-        report_file_error ("Setting file times", absname);
-      }
-  }
-
-  return Qt;
-}
-
-#ifdef HAVE_SYNC
-DEFUN ("unix-sync", Funix_sync, Sunix_sync, 0, 0, "",
-       doc: /* Tell Unix to finish all pending disk updates.  */)
-  (void)
-{
-  sync ();
-  return Qnil;
-}
-
-#endif /* HAVE_SYNC */
-
-DEFUN ("file-newer-than-file-p", Ffile_newer_than_file_p, Sfile_newer_than_file_p, 2, 2, 0,
-       doc: /* Return t if file FILE1 is newer than file FILE2.
-If FILE1 does not exist, the answer is nil;
-otherwise, if FILE2 does not exist, the answer is t.  */)
-  (Lisp_Object file1, Lisp_Object file2)
-{
-  Lisp_Object absname1, absname2;
-  struct stat st1, st2;
-  Lisp_Object handler;
-
-  CHECK_STRING (file1);
-  CHECK_STRING (file2);
-
-  absname1 = Qnil;
-  absname1 = expand_and_dir_to_file (file1, BVAR (current_buffer, directory));
-  absname2 = expand_and_dir_to_file (file2, BVAR (current_buffer, directory));
-
-  /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (absname1, Qfile_newer_than_file_p);
-  if (NILP (handler))
-    handler = Ffind_file_name_handler (absname2, Qfile_newer_than_file_p);
-  if (!NILP (handler))
-    return call3 (handler, Qfile_newer_than_file_p, absname1, absname2);
-
-  absname1 = ENCODE_FILE (absname1);
-  absname2 = ENCODE_FILE (absname2);
-
-  if (stat (SSDATA (absname1), &st1) < 0)
-    return Qnil;
-
-  if (stat (SSDATA (absname2), &st2) < 0)
-    return Qt;
-
-  return (timespec_cmp (get_stat_mtime (&st2), get_stat_mtime (&st1)) < 0
-	  ? Qt : Qnil);
-}
-
-#ifndef READ_BUF_SIZE
-#define READ_BUF_SIZE (64 << 10)
-#endif
-/* Some buffer offsets are stored in 'int' variables.  */
-verify (READ_BUF_SIZE <= INT_MAX);
-
-/* This function is called after Lisp functions to decide a coding
-   system are called, or when they cause an error.  Before they are
-   called, the current buffer is set unibyte and it contains only a
-   newly inserted text (thus the buffer was empty before the
-   insertion).
-
-   The functions may set markers, overlays, text properties, or even
-   alter the buffer contents, change the current buffer.
-
-   Here, we reset all those changes by:
-	o set back the current buffer.
-	o move all markers and overlays to BEG.
-	o remove all text properties.
-	o set back the buffer multibyteness.  */
-
-static void
-decide_coding_unwind (Lisp_Object unwind_data)
-{
-  Lisp_Object multibyte, undo_list, buffer;
-
-  multibyte = XCAR (unwind_data);
-  unwind_data = XCDR (unwind_data);
-  undo_list = XCAR (unwind_data);
-  buffer = XCDR (unwind_data);
-
-  set_buffer_internal (XBUFFER (buffer));
-  adjust_markers_for_delete (BEG, BEG_BYTE, Z, Z_BYTE);
-  adjust_overlays_for_delete (BEG, Z - BEG);
-  set_buffer_intervals (current_buffer, NULL);
-  TEMP_SET_PT_BOTH (BEG, BEG_BYTE);
-
-  /* Now we are safe to change the buffer's multibyteness directly.  */
-  bset_enable_multibyte_characters (current_buffer, multibyte);
-  bset_undo_list (current_buffer, undo_list);
-}
-
-/* Read from a non-regular file.  STATE is a Lisp_Save_Value
-   object where slot 0 is the file descriptor, slot 1 specifies
-   an offset to put the read bytes, and slot 2 is the maximum
-   amount of bytes to read.  Value is the number of bytes read.  */
-
-static Lisp_Object
-read_non_regular (Lisp_Object state)
-{
-  int nbytes;
-
-  immediate_quit = 1;
-  QUIT;
-  nbytes = emacs_read (XSAVE_INTEGER (state, 0),
-		       ((char *) BEG_ADDR + PT_BYTE - BEG_BYTE
-			+ XSAVE_INTEGER (state, 1)),
-		       XSAVE_INTEGER (state, 2));
-  immediate_quit = 0;
-  /* Fast recycle this object for the likely next call.  */
-  free_misc (state);
-  return make_number (nbytes);
-}
-
-
-/* Condition-case handler used when reading from non-regular files
-   in insert-file-contents.  */
-
-static Lisp_Object
-read_non_regular_quit (Lisp_Object ignore)
-{
-  return Qnil;
-}
-
-/* Return the file offset that VAL represents, checking for type
-   errors and overflow.  */
-static off_t
-file_offset (Lisp_Object val)
-{
-  if (RANGED_INTEGERP (0, val, TYPE_MAXIMUM (off_t)))
-    return XINT (val);
-
-  if (FLOATP (val))
-    {
-      double v = XFLOAT_DATA (val);
-      if (0 <= v
-	  && (sizeof (off_t) < sizeof v
-	      ? v <= TYPE_MAXIMUM (off_t)
-	      : v < TYPE_MAXIMUM (off_t)))
-	return v;
-    }
-
-  wrong_type_argument (intern ("file-offset"), val);
-}
-
-/* Return a special time value indicating the error number ERRNUM.  */
-static struct timespec
-time_error_value (int errnum)
-{
-  int ns = (errnum == ENOENT || errnum == EACCES || errnum == ENOTDIR
-	    ? NONEXISTENT_MODTIME_NSECS
-	    : UNKNOWN_MODTIME_NSECS);
-  return make_timespec (0, ns);
-}
-
-static Lisp_Object
-get_window_points_and_markers (void)
-{
-  Lisp_Object pt_marker = Fpoint_marker ();
-  Lisp_Object windows
-    = call3 (Qget_buffer_window_list, Fcurrent_buffer (), Qnil, Qt);
-  Lisp_Object window_markers = windows;
-  /* Window markers (and point) are handled specially: rather than move to
-     just before or just after the modified text, we try to keep the
-     markers at the same distance (bug#19161).
-     In general, this is wrong, but for window-markers, this should be harmless
-     and is convenient for the end user when most of the file is unmodified,
-     except for a few minor details near the beginning and near the end.  */
-  for (; CONSP (windows); windows = XCDR (windows))
-    if (WINDOWP (XCAR (windows)))
-      {
-	Lisp_Object window_marker = XWINDOW (XCAR (windows))->pointm;
-	XSETCAR (windows,
-		 Fcons (window_marker, Fmarker_position (window_marker)));
-      }
-  return Fcons (Fcons (pt_marker, Fpoint ()), window_markers);
-}
-
-static void
-restore_window_points (Lisp_Object window_markers, ptrdiff_t inserted,
-		       ptrdiff_t same_at_start, ptrdiff_t same_at_end)
-{
-  for (; CONSP (window_markers); window_markers = XCDR (window_markers))
-    if (CONSP (XCAR (window_markers)))
-      {
-	Lisp_Object car = XCAR (window_markers);
-	Lisp_Object marker = XCAR (car);
-	Lisp_Object oldpos = XCDR (car);
-	if (MARKERP (marker) && INTEGERP (oldpos)
-	    && XINT (oldpos) > same_at_start
-	    && XINT (oldpos) < same_at_end)
-	  {
-	    ptrdiff_t oldsize = same_at_end - same_at_start;
-	    ptrdiff_t newsize = inserted;
-	    double growth = newsize / (double)oldsize;
-	    ptrdiff_t newpos
-	      = same_at_start + growth * (XINT (oldpos) - same_at_start);
-	    Fset_marker (marker, make_number (newpos), Qnil);
-	  }
-      }
-}
-
-/* FIXME: insert-file-contents should be split with the top-level moved to
-   Elisp and only the core kept in C.  */
-
-DEFUN ("insert-file-contents", Finsert_file_contents, Sinsert_file_contents,
-       1, 5, 0,
-       doc: /* Insert contents of file FILENAME after point.
-Returns list of absolute file name and number of characters inserted.
-If second argument VISIT is non-nil, the buffer's visited filename and
-last save file modtime are set, and it is marked unmodified.  If
-visiting and the file does not exist, visiting is completed before the
-error is signaled.
-
-The optional third and fourth arguments BEG and END specify what portion
-of the file to insert.  These arguments count bytes in the file, not
-characters in the buffer.  If VISIT is non-nil, BEG and END must be nil.
-
-If optional fifth argument REPLACE is non-nil, replace the current
-buffer contents (in the accessible portion) with the file contents.
-This is better than simply deleting and inserting the whole thing
-because (1) it preserves some marker positions and (2) it puts less data
-in the undo list.  When REPLACE is non-nil, the second return value is
-the number of characters that replace previous buffer contents.
-
-This function does code conversion according to the value of
-`coding-system-for-read' or `file-coding-system-alist', and sets the
-variable `last-coding-system-used' to the coding system actually used.
-
-In addition, this function decodes the inserted text from known formats
-by calling `format-decode', which see.  */)
-  (Lisp_Object filename, Lisp_Object visit, Lisp_Object beg, Lisp_Object end, Lisp_Object replace)
-{
-  struct stat st;
-  struct timespec mtime;
-  int fd;
-  ptrdiff_t inserted = 0;
-  ptrdiff_t how_much;
-  off_t beg_offset, end_offset;
-  int unprocessed;
-  ptrdiff_t count = SPECPDL_INDEX ();
-  Lisp_Object handler, val, insval, orig_filename, old_undo;
-  Lisp_Object p;
-  ptrdiff_t total = 0;
-  bool not_regular = 0;
-  int save_errno = 0;
-  char read_buf[READ_BUF_SIZE];
-  struct coding_system coding;
-  bool replace_handled = false;
-  bool set_coding_system = false;
-  Lisp_Object coding_system;
-  bool read_quit = false;
-  /* If the undo log only contains the insertion, there's no point
-     keeping it.  It's typically when we first fill a file-buffer.  */
-  bool empty_undo_list_p
-    = (!NILP (visit) && NILP (BVAR (current_buffer, undo_list))
-       && BEG == Z);
-  Lisp_Object old_Vdeactivate_mark = Vdeactivate_mark;
-  bool we_locked_file = false;
-  ptrdiff_t fd_index;
-  Lisp_Object window_markers = Qnil;
-  /* same_at_start and same_at_end count bytes, because file access counts
-     bytes and BEG and END count bytes.  */
-  ptrdiff_t same_at_start = BEGV_BYTE;
-  ptrdiff_t same_at_end = ZV_BYTE;
-  /* SAME_AT_END_CHARPOS counts characters, because
-     restore_window_points needs the old character count.  */
-  ptrdiff_t same_at_end_charpos = ZV;
-
-  if (current_buffer->base_buffer && ! NILP (visit))
-    error ("Cannot do file visiting in an indirect buffer");
-
-  if (!NILP (BVAR (current_buffer, read_only)))
-    Fbarf_if_buffer_read_only (Qnil);
-
-  val = Qnil;
-  p = Qnil;
-  orig_filename = Qnil;
-  old_undo = Qnil;
-
-  CHECK_STRING (filename);
-  filename = Fexpand_file_name (filename, Qnil);
-
-  /* The value Qnil means that the coding system is not yet
-     decided.  */
-  coding_system = Qnil;
-
-  /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (filename, Qinsert_file_contents);
-  if (!NILP (handler))
-    {
-      val = call6 (handler, Qinsert_file_contents, filename,
-		   visit, beg, end, replace);
-      if (CONSP (val) && CONSP (XCDR (val))
-	  && RANGED_INTEGERP (0, XCAR (XCDR (val)), ZV - PT))
-	inserted = XINT (XCAR (XCDR (val)));
-      goto handled;
-    }
-
-  orig_filename = filename;
-  filename = ENCODE_FILE (filename);
-
-  fd = emacs_open (SSDATA (filename), O_RDONLY, 0);
-  if (fd < 0)
-    {
-      save_errno = errno;
-      if (NILP (visit))
-	report_file_error ("Opening input file", orig_filename);
-      mtime = time_error_value (save_errno);
-      st.st_size = -1;
-      if (!NILP (Vcoding_system_for_read))
+						)
 	{
-	  /* Don't let invalid values into buffer-file-coding-system.  */
-	  CHECK_CODING_SYSTEM (Vcoding_system_for_read);
-	  Fset (Qbuffer_file_coding_system, Vcoding_system_for_read);
+	    if (S_ISDIR(perm))
+		filemess(curbuf, fname, (char_u *)_("is a directory"), 0);
+	    else
+		filemess(curbuf, fname, (char_u *)_("is not a file"), 0);
+	    msg_end();
+	    msg_scroll = msg_save;
+	    return FAIL;
 	}
-      goto notfound;
-    }
-
-  fd_index = SPECPDL_INDEX ();
-  record_unwind_protect_int (close_file_unwind, fd);
-
-  /* Replacement should preserve point as it preserves markers.  */
-  if (!NILP (replace))
-    {
-      window_markers = get_window_points_and_markers ();
-      record_unwind_protect (restore_point_unwind,
-			     XCAR (XCAR (window_markers)));
-    }
-
-  if (fstat (fd, &st) != 0)
-    report_file_error ("Input file status", orig_filename);
-  mtime = get_stat_mtime (&st);
-
-  /* This code will need to be changed in order to work on named
-     pipes, and it's probably just not worth it.  So we should at
-     least signal an error.  */
-  if (!S_ISREG (st.st_mode))
-    {
-      not_regular = 1;
-
-      if (! NILP (visit))
-	goto notfound;
-
-      if (! NILP (replace) || ! NILP (beg) || ! NILP (end))
-	xsignal2 (Qfile_error,
-		  build_string ("not a regular file"), orig_filename);
-    }
-
-  if (!NILP (visit))
-    {
-      if (!NILP (beg) || !NILP (end))
-	error ("Attempt to visit less than an entire file");
-      if (BEG < Z && NILP (replace))
-	error ("Cannot do file visiting in a non-empty buffer");
-    }
-
-  if (!NILP (beg))
-    beg_offset = file_offset (beg);
-  else
-    beg_offset = 0;
-
-  if (!NILP (end))
-    end_offset = file_offset (end);
-  else
-    {
-      if (not_regular)
-	end_offset = TYPE_MAXIMUM (off_t);
-      else
+#endif
+#if defined(MSWIN)
+	/*
+	 * MS-Windows allows opening a device, but we will probably get stuck
+	 * trying to read it.
+	 */
+	if (!p_odev && mch_nodetype(fname) == NODE_WRITABLE)
 	{
-	  end_offset = st.st_size;
-
-	  /* A negative size can happen on a platform that allows file
-	     sizes greater than the maximum off_t value.  */
-	  if (end_offset < 0)
-	    buffer_overflow ();
-
-	  /* The file size returned from stat may be zero, but data
-	     may be readable nonetheless, for example when this is a
-	     file in the /proc filesystem.  */
-	  if (end_offset == 0)
-	    end_offset = READ_BUF_SIZE;
+	    filemess(curbuf, fname, (char_u *)_("is a device (disabled with 'opendevice' option)"), 0);
+	    msg_end();
+	    msg_scroll = msg_save;
+	    return FAIL;
 	}
+#endif
     }
 
-  /* Check now whether the buffer will become too large,
-     in the likely case where the file's length is not changing.
-     This saves a lot of needless work before a buffer overflow.  */
-  if (! not_regular)
-    {
-      /* The likely offset where we will stop reading.  We could read
-	 more (or less), if the file grows (or shrinks) as we read it.  */
-      off_t likely_end = min (end_offset, st.st_size);
+    /* Set default or forced 'fileformat' and 'binary'. */
+    set_file_options(set_options, eap);
 
-      if (beg_offset < likely_end)
+    /*
+     * When opening a new file we take the readonly flag from the file.
+     * Default is r/w, can be set to r/o below.
+     * Don't reset it when in readonly mode
+     * Only set/reset b_p_ro when BF_CHECK_RO is set.
+     */
+    check_readonly = (newfile && (curbuf->b_flags & BF_CHECK_RO));
+    if (check_readonly && !readonlymode)
+	curbuf->b_p_ro = FALSE;
+
+    if (newfile && !read_stdin && !read_buffer)
+    {
+	/* Remember time of file. */
+	if (mch_stat((char *)fname, &st) >= 0)
 	{
-	  ptrdiff_t buf_bytes
-	    = Z_BYTE - (!NILP (replace) ? ZV_BYTE - BEGV_BYTE  : 0);
-	  ptrdiff_t buf_growth_max = BUF_BYTES_MAX - buf_bytes;
-	  off_t likely_growth = likely_end - beg_offset;
-	  if (buf_growth_max < likely_growth)
-	    buffer_overflow ();
+	    buf_store_time(curbuf, &st, fname);
+	    curbuf->b_mtime_read = curbuf->b_mtime;
+#ifdef UNIX
+	    /*
+	     * Use the protection bits of the original file for the swap file.
+	     * This makes it possible for others to read the name of the
+	     * edited file from the swapfile, but only if they can read the
+	     * edited file.
+	     * Remove the "write" and "execute" bits for group and others
+	     * (they must not write the swapfile).
+	     * Add the "read" and "write" bits for the user, otherwise we may
+	     * not be able to write to the file ourselves.
+	     * Setting the bits is done below, after creating the swap file.
+	     */
+	    swap_mode = (st.st_mode & 0644) | 0600;
+#endif
+#ifdef FEAT_CW_EDITOR
+	    /* Get the FSSpec on MacOS
+	     * TODO: Update it properly when the buffer name changes
+	     */
+	    (void)GetFSSpecFromPath(curbuf->b_ffname, &curbuf->b_FSSpec);
+#endif
+#ifdef VMS
+	    curbuf->b_fab_rfm = st.st_fab_rfm;
+	    curbuf->b_fab_rat = st.st_fab_rat;
+	    curbuf->b_fab_mrs = st.st_fab_mrs;
+#endif
 	}
-    }
-
-  /* Prevent redisplay optimizations.  */
-  current_buffer->clip_changed = true;
-
-  if (EQ (Vcoding_system_for_read, Qauto_save_coding))
-    {
-      coding_system = coding_inherit_eol_type (Qutf_8_emacs, Qunix);
-      setup_coding_system (coding_system, &coding);
-      /* Ensure we set Vlast_coding_system_used.  */
-      set_coding_system = true;
-    }
-  else if (BEG < Z)
-    {
-      /* Decide the coding system to use for reading the file now
-         because we can't use an optimized method for handling
-         `coding:' tag if the current buffer is not empty.  */
-      if (!NILP (Vcoding_system_for_read))
-	coding_system = Vcoding_system_for_read;
-      else
+	else
 	{
-	  /* Don't try looking inside a file for a coding system
-	     specification if it is not seekable.  */
-	  if (! not_regular && ! NILP (Vset_auto_coding_function))
+	    curbuf->b_mtime = 0;
+	    curbuf->b_mtime_read = 0;
+	    curbuf->b_orig_size = 0;
+	    curbuf->b_orig_mode = 0;
+	}
+
+	/* Reset the "new file" flag.  It will be set again below when the
+	 * file doesn't exist. */
+	curbuf->b_flags &= ~(BF_NEW | BF_NEW_W);
+    }
+
+/*
+ * for UNIX: check readonly with perm and mch_access()
+ * for Amiga: check readonly by trying to open the file for writing
+ */
+    file_readonly = FALSE;
+    if (read_stdin)
+    {
+#if defined(MSWIN)
+	/* Force binary I/O on stdin to avoid CR-LF -> LF conversion. */
+	setmode(0, O_BINARY);
+#endif
+    }
+    else if (!read_buffer)
+    {
+#ifdef USE_MCH_ACCESS
+	if (
+# ifdef UNIX
+	    !(perm & 0222) ||
+# endif
+				mch_access((char *)fname, W_OK))
+	    file_readonly = TRUE;
+	fd = mch_open((char *)fname, O_RDONLY | O_EXTRA, 0);
+#else
+	if (!newfile
+		|| readonlymode
+		|| (fd = mch_open((char *)fname, O_RDWR | O_EXTRA, 0)) < 0)
+	{
+	    file_readonly = TRUE;
+	    /* try to open ro */
+	    fd = mch_open((char *)fname, O_RDONLY | O_EXTRA, 0);
+	}
+#endif
+    }
+
+    if (fd < 0)			    /* cannot open at all */
+    {
+#ifndef UNIX
+	int	isdir_f;
+#endif
+	msg_scroll = msg_save;
+#ifndef UNIX
+	/*
+	 * On Amiga we can't open a directory, check here.
+	 */
+	isdir_f = (mch_isdir(fname));
+	perm = mch_getperm(fname);  /* check if the file exists */
+	if (isdir_f)
+	{
+	    filemess(curbuf, sfname, (char_u *)_("is a directory"), 0);
+	    curbuf->b_p_ro = TRUE;	/* must use "w!" now */
+	}
+	else
+#endif
+	    if (newfile)
 	    {
-	      /* Find a coding system specified in the heading two
-		 lines or in the tailing several lines of the file.
-		 We assume that the 1K-byte and 3K-byte for heading
-		 and tailing respectively are sufficient for this
-		 purpose.  */
-	      int nread;
-
-	      if (st.st_size <= (1024 * 4))
-		nread = emacs_read (fd, read_buf, 1024 * 4);
-	      else
+		if (perm < 0
+#ifdef ENOENT
+			&& errno == ENOENT
+#endif
+		   )
 		{
-		  nread = emacs_read (fd, read_buf, 1024);
-		  if (nread == 1024)
+		    /*
+		     * Set the 'new-file' flag, so that when the file has
+		     * been created by someone else, a ":w" will complain.
+		     */
+		    curbuf->b_flags |= BF_NEW;
+
+		    /* Create a swap file now, so that other Vims are warned
+		     * that we are editing this file.  Don't do this for a
+		     * "nofile" or "nowrite" buffer type. */
+#ifdef FEAT_QUICKFIX
+		    if (!bt_dontwrite(curbuf))
+#endif
 		    {
-		      int ntail;
-		      if (lseek (fd, - (1024 * 3), SEEK_END) < 0)
-			report_file_error ("Setting file position",
-					   orig_filename);
-		      ntail = emacs_read (fd, read_buf + nread, 1024 * 3);
-		      nread = ntail < 0 ? ntail : nread + ntail;
+			check_need_swap(newfile);
+#ifdef FEAT_AUTOCMD
+			/* SwapExists autocommand may mess things up */
+			if (curbuf != old_curbuf
+				|| (using_b_ffname
+					&& (old_b_ffname != curbuf->b_ffname))
+				|| (using_b_fname
+					 && (old_b_fname != curbuf->b_fname)))
+			{
+			    EMSG(_(e_auchangedbuf));
+			    return FAIL;
+			}
+#endif
+		    }
+		    if (dir_of_file_exists(fname))
+			filemess(curbuf, sfname, (char_u *)_("[New File]"), 0);
+		    else
+			filemess(curbuf, sfname,
+					   (char_u *)_("[New DIRECTORY]"), 0);
+#ifdef FEAT_VIMINFO
+		    /* Even though this is a new file, it might have been
+		     * edited before and deleted.  Get the old marks. */
+		    check_marks_read();
+#endif
+#ifdef FEAT_MBYTE
+		    /* Set forced 'fileencoding'.  */
+		    if (eap != NULL)
+			set_forced_fenc(eap);
+#endif
+#ifdef FEAT_AUTOCMD
+		    apply_autocmds_exarg(EVENT_BUFNEWFILE, sfname, sfname,
+							  FALSE, curbuf, eap);
+#endif
+		    /* remember the current fileformat */
+		    save_file_ff(curbuf);
+
+#if defined(FEAT_AUTOCMD) && defined(FEAT_EVAL)
+		    if (aborting())   /* autocmds may abort script processing */
+			return FAIL;
+#endif
+		    return OK;	    /* a new file is not an error */
+		}
+		else
+		{
+		    filemess(curbuf, sfname, (char_u *)(
+# ifdef EFBIG
+			    (errno == EFBIG) ? _("[File too big]") :
+# endif
+# ifdef EOVERFLOW
+			    (errno == EOVERFLOW) ? _("[File too big]") :
+# endif
+						_("[Permission Denied]")), 0);
+		    curbuf->b_p_ro = TRUE;	/* must use "w!" now */
+		}
+	    }
+
+	return FAIL;
+    }
+
+    /*
+     * Only set the 'ro' flag for readonly files the first time they are
+     * loaded.	Help files always get readonly mode
+     */
+    if ((check_readonly && file_readonly) || curbuf->b_help)
+	curbuf->b_p_ro = TRUE;
+
+    if (set_options)
+    {
+	/* Don't change 'eol' if reading from buffer as it will already be
+	 * correctly set when reading stdin. */
+	if (!read_buffer)
+	{
+	    curbuf->b_p_eol = TRUE;
+	    curbuf->b_start_eol = TRUE;
+	}
+#ifdef FEAT_MBYTE
+	curbuf->b_p_bomb = FALSE;
+	curbuf->b_start_bomb = FALSE;
+#endif
+    }
+
+    /* Create a swap file now, so that other Vims are warned that we are
+     * editing this file.
+     * Don't do this for a "nofile" or "nowrite" buffer type. */
+#ifdef FEAT_QUICKFIX
+    if (!bt_dontwrite(curbuf))
+#endif
+    {
+	check_need_swap(newfile);
+#ifdef FEAT_AUTOCMD
+	if (!read_stdin && (curbuf != old_curbuf
+		|| (using_b_ffname && (old_b_ffname != curbuf->b_ffname))
+		|| (using_b_fname && (old_b_fname != curbuf->b_fname))))
+	{
+	    EMSG(_(e_auchangedbuf));
+	    if (!read_buffer)
+		close(fd);
+	    return FAIL;
+	}
+#endif
+#ifdef UNIX
+	/* Set swap file protection bits after creating it. */
+	if (swap_mode > 0 && curbuf->b_ml.ml_mfp != NULL
+			  && curbuf->b_ml.ml_mfp->mf_fname != NULL)
+	    (void)mch_setperm(curbuf->b_ml.ml_mfp->mf_fname, (long)swap_mode);
+#endif
+    }
+
+#if defined(HAS_SWAP_EXISTS_ACTION)
+    /* If "Quit" selected at ATTENTION dialog, don't load the file */
+    if (swap_exists_action == SEA_QUIT)
+    {
+	if (!read_buffer && !read_stdin)
+	    close(fd);
+	return FAIL;
+    }
+#endif
+
+    ++no_wait_return;	    /* don't wait for return yet */
+
+    /*
+     * Set '[ mark to the line above where the lines go (line 1 if zero).
+     */
+    curbuf->b_op_start.lnum = ((from == 0) ? 1 : from);
+    curbuf->b_op_start.col = 0;
+
+#ifdef FEAT_AUTOCMD
+    if (!read_buffer)
+    {
+	int	m = msg_scroll;
+	int	n = msg_scrolled;
+
+	/*
+	 * The file must be closed again, the autocommands may want to change
+	 * the file before reading it.
+	 */
+	if (!read_stdin)
+	    close(fd);		/* ignore errors */
+
+	/*
+	 * The output from the autocommands should not overwrite anything and
+	 * should not be overwritten: Set msg_scroll, restore its value if no
+	 * output was done.
+	 */
+	msg_scroll = TRUE;
+	if (filtering)
+	    apply_autocmds_exarg(EVENT_FILTERREADPRE, NULL, sfname,
+							  FALSE, curbuf, eap);
+	else if (read_stdin)
+	    apply_autocmds_exarg(EVENT_STDINREADPRE, NULL, sfname,
+							  FALSE, curbuf, eap);
+	else if (newfile)
+	    apply_autocmds_exarg(EVENT_BUFREADPRE, NULL, sfname,
+							  FALSE, curbuf, eap);
+	else
+	    apply_autocmds_exarg(EVENT_FILEREADPRE, sfname, sfname,
+							    FALSE, NULL, eap);
+	if (msg_scrolled == n)
+	    msg_scroll = m;
+
+#ifdef FEAT_EVAL
+	if (aborting())	    /* autocmds may abort script processing */
+	{
+	    --no_wait_return;
+	    msg_scroll = msg_save;
+	    curbuf->b_p_ro = TRUE;	/* must use "w!" now */
+	    return FAIL;
+	}
+#endif
+	/*
+	 * Don't allow the autocommands to change the current buffer.
+	 * Try to re-open the file.
+	 *
+	 * Don't allow the autocommands to change the buffer name either
+	 * (cd for example) if it invalidates fname or sfname.
+	 */
+	if (!read_stdin && (curbuf != old_curbuf
+		|| (using_b_ffname && (old_b_ffname != curbuf->b_ffname))
+		|| (using_b_fname && (old_b_fname != curbuf->b_fname))
+		|| (fd = mch_open((char *)fname, O_RDONLY | O_EXTRA, 0)) < 0))
+	{
+	    --no_wait_return;
+	    msg_scroll = msg_save;
+	    if (fd < 0)
+		EMSG(_("E200: *ReadPre autocommands made the file unreadable"));
+	    else
+		EMSG(_("E201: *ReadPre autocommands must not change current buffer"));
+	    curbuf->b_p_ro = TRUE;	/* must use "w!" now */
+	    return FAIL;
+	}
+    }
+#endif /* FEAT_AUTOCMD */
+
+    /* Autocommands may add lines to the file, need to check if it is empty */
+    wasempty = (curbuf->b_ml.ml_flags & ML_EMPTY);
+
+    if (!recoverymode && !filtering && !(flags & READ_DUMMY))
+    {
+	/*
+	 * Show the user that we are busy reading the input.  Sometimes this
+	 * may take a while.  When reading from stdin another program may
+	 * still be running, don't move the cursor to the last line, unless
+	 * always using the GUI.
+	 */
+	if (read_stdin)
+	{
+#ifndef ALWAYS_USE_GUI
+	    mch_msg(_("Vim: Reading from stdin...\n"));
+#endif
+#ifdef FEAT_GUI
+	    /* Also write a message in the GUI window, if there is one. */
+	    if (gui.in_use && !gui.dying && !gui.starting)
+	    {
+		p = (char_u *)_("Reading from stdin...");
+		gui_write(p, (int)STRLEN(p));
+	    }
+#endif
+	}
+	else if (!read_buffer)
+	    filemess(curbuf, sfname, (char_u *)"", 0);
+    }
+
+    msg_scroll = FALSE;			/* overwrite the file message */
+
+    /*
+     * Set linecnt now, before the "retry" caused by a wrong guess for
+     * fileformat, and after the autocommands, which may change them.
+     */
+    linecnt = curbuf->b_ml.ml_line_count;
+
+#ifdef FEAT_MBYTE
+    /* "++bad=" argument. */
+    if (eap != NULL && eap->bad_char != 0)
+    {
+	bad_char_behavior = eap->bad_char;
+	if (set_options)
+	    curbuf->b_bad_char = eap->bad_char;
+    }
+    else
+	curbuf->b_bad_char = 0;
+
+    /*
+     * Decide which 'encoding' to use or use first.
+     */
+    if (eap != NULL && eap->force_enc != 0)
+    {
+	fenc = enc_canonize(eap->cmd + eap->force_enc);
+	fenc_alloced = TRUE;
+	keep_dest_enc = TRUE;
+    }
+    else if (curbuf->b_p_bin)
+    {
+	fenc = (char_u *)"";		/* binary: don't convert */
+	fenc_alloced = FALSE;
+    }
+    else if (curbuf->b_help)
+    {
+	char_u	    firstline[80];
+	int	    fc;
+
+	/* Help files are either utf-8 or latin1.  Try utf-8 first, if this
+	 * fails it must be latin1.
+	 * Always do this when 'encoding' is "utf-8".  Otherwise only do
+	 * this when needed to avoid [converted] remarks all the time.
+	 * It is needed when the first line contains non-ASCII characters.
+	 * That is only in *.??x files. */
+	fenc = (char_u *)"latin1";
+	c = enc_utf8;
+	if (!c && !read_stdin)
+	{
+	    fc = fname[STRLEN(fname) - 1];
+	    if (TOLOWER_ASC(fc) == 'x')
+	    {
+		/* Read the first line (and a bit more).  Immediately rewind to
+		 * the start of the file.  If the read() fails "len" is -1. */
+		len = read_eintr(fd, firstline, 80);
+		vim_lseek(fd, (off_T)0L, SEEK_SET);
+		for (p = firstline; p < firstline + len; ++p)
+		    if (*p >= 0x80)
+		    {
+			c = TRUE;
+			break;
+		    }
+	    }
+	}
+
+	if (c)
+	{
+	    fenc_next = fenc;
+	    fenc = (char_u *)"utf-8";
+
+	    /* When the file is utf-8 but a character doesn't fit in
+	     * 'encoding' don't retry.  In help text editing utf-8 bytes
+	     * doesn't make sense. */
+	    if (!enc_utf8)
+		keep_dest_enc = TRUE;
+	}
+	fenc_alloced = FALSE;
+    }
+    else if (*p_fencs == NUL)
+    {
+	fenc = curbuf->b_p_fenc;	/* use format from buffer */
+	fenc_alloced = FALSE;
+    }
+    else
+    {
+	fenc_next = p_fencs;		/* try items in 'fileencodings' */
+	fenc = next_fenc(&fenc_next);
+	fenc_alloced = TRUE;
+    }
+#endif
+
+    /*
+     * Jump back here to retry reading the file in different ways.
+     * Reasons to retry:
+     * - encoding conversion failed: try another one from "fenc_next"
+     * - BOM detected and fenc was set, need to setup conversion
+     * - "fileformat" check failed: try another
+     *
+     * Variables set for special retry actions:
+     * "file_rewind"	Rewind the file to start reading it again.
+     * "advance_fenc"	Advance "fenc" using "fenc_next".
+     * "skip_read"	Re-use already read bytes (BOM detected).
+     * "did_iconv"	iconv() conversion failed, try 'charconvert'.
+     * "keep_fileformat" Don't reset "fileformat".
+     *
+     * Other status indicators:
+     * "tmpname"	When != NULL did conversion with 'charconvert'.
+     *			Output file has to be deleted afterwards.
+     * "iconv_fd"	When != -1 did conversion with iconv().
+     */
+retry:
+
+    if (file_rewind)
+    {
+	if (read_buffer)
+	{
+	    read_buf_lnum = 1;
+	    read_buf_col = 0;
+	}
+	else if (read_stdin || vim_lseek(fd, (off_T)0L, SEEK_SET) != 0)
+	{
+	    /* Can't rewind the file, give up. */
+	    error = TRUE;
+	    goto failed;
+	}
+	/* Delete the previously read lines. */
+	while (lnum > from)
+	    ml_delete(lnum--, FALSE);
+	file_rewind = FALSE;
+#ifdef FEAT_MBYTE
+	if (set_options)
+	{
+	    curbuf->b_p_bomb = FALSE;
+	    curbuf->b_start_bomb = FALSE;
+	}
+	conv_error = 0;
+#endif
+    }
+
+    /*
+     * When retrying with another "fenc" and the first time "fileformat"
+     * will be reset.
+     */
+    if (keep_fileformat)
+	keep_fileformat = FALSE;
+    else
+    {
+	if (eap != NULL && eap->force_ff != 0)
+	{
+	    fileformat = get_fileformat_force(curbuf, eap);
+	    try_unix = try_dos = try_mac = FALSE;
+	}
+	else if (curbuf->b_p_bin)
+	    fileformat = EOL_UNIX;		/* binary: use Unix format */
+	else if (*p_ffs == NUL)
+	    fileformat = get_fileformat(curbuf);/* use format from buffer */
+	else
+	    fileformat = EOL_UNKNOWN;		/* detect from file */
+    }
+
+#ifdef FEAT_MBYTE
+# ifdef USE_ICONV
+    if (iconv_fd != (iconv_t)-1)
+    {
+	/* aborted conversion with iconv(), close the descriptor */
+	iconv_close(iconv_fd);
+	iconv_fd = (iconv_t)-1;
+    }
+# endif
+
+    if (advance_fenc)
+    {
+	/*
+	 * Try the next entry in 'fileencodings'.
+	 */
+	advance_fenc = FALSE;
+
+	if (eap != NULL && eap->force_enc != 0)
+	{
+	    /* Conversion given with "++cc=" wasn't possible, read
+	     * without conversion. */
+	    notconverted = TRUE;
+	    conv_error = 0;
+	    if (fenc_alloced)
+		vim_free(fenc);
+	    fenc = (char_u *)"";
+	    fenc_alloced = FALSE;
+	}
+	else
+	{
+	    if (fenc_alloced)
+		vim_free(fenc);
+	    if (fenc_next != NULL)
+	    {
+		fenc = next_fenc(&fenc_next);
+		fenc_alloced = (fenc_next != NULL);
+	    }
+	    else
+	    {
+		fenc = (char_u *)"";
+		fenc_alloced = FALSE;
+	    }
+	}
+	if (tmpname != NULL)
+	{
+	    mch_remove(tmpname);		/* delete converted file */
+	    vim_free(tmpname);
+	    tmpname = NULL;
+	}
+    }
+
+    /*
+     * Conversion may be required when the encoding of the file is different
+     * from 'encoding' or 'encoding' is UTF-16, UCS-2 or UCS-4.
+     */
+    fio_flags = 0;
+    converted = need_conversion(fenc);
+    if (converted)
+    {
+
+	/* "ucs-bom" means we need to check the first bytes of the file
+	 * for a BOM. */
+	if (STRCMP(fenc, ENC_UCSBOM) == 0)
+	    fio_flags = FIO_UCSBOM;
+
+	/*
+	 * Check if UCS-2/4 or Latin1 to UTF-8 conversion needs to be
+	 * done.  This is handled below after read().  Prepare the
+	 * fio_flags to avoid having to parse the string each time.
+	 * Also check for Unicode to Latin1 conversion, because iconv()
+	 * appears not to handle this correctly.  This works just like
+	 * conversion to UTF-8 except how the resulting character is put in
+	 * the buffer.
+	 */
+	else if (enc_utf8 || STRCMP(p_enc, "latin1") == 0)
+	    fio_flags = get_fio_flags(fenc);
+
+# ifdef WIN3264
+	/*
+	 * Conversion from an MS-Windows codepage to UTF-8 or another codepage
+	 * is handled with MultiByteToWideChar().
+	 */
+	if (fio_flags == 0)
+	    fio_flags = get_win_fio_flags(fenc);
+# endif
+
+# ifdef MACOS_X
+	/* Conversion from Apple MacRoman to latin1 or UTF-8 */
+	if (fio_flags == 0)
+	    fio_flags = get_mac_fio_flags(fenc);
+# endif
+
+# ifdef USE_ICONV
+	/*
+	 * Try using iconv() if we can't convert internally.
+	 */
+	if (fio_flags == 0
+#  ifdef FEAT_EVAL
+		&& !did_iconv
+#  endif
+		)
+	    iconv_fd = (iconv_t)my_iconv_open(
+				  enc_utf8 ? (char_u *)"utf-8" : p_enc, fenc);
+# endif
+
+# ifdef FEAT_EVAL
+	/*
+	 * Use the 'charconvert' expression when conversion is required
+	 * and we can't do it internally or with iconv().
+	 */
+	if (fio_flags == 0 && !read_stdin && !read_buffer && *p_ccv != NUL
+#  ifdef USE_ICONV
+						    && iconv_fd == (iconv_t)-1
+#  endif
+		)
+	{
+#  ifdef USE_ICONV
+	    did_iconv = FALSE;
+#  endif
+	    /* Skip conversion when it's already done (retry for wrong
+	     * "fileformat"). */
+	    if (tmpname == NULL)
+	    {
+		tmpname = readfile_charconvert(fname, fenc, &fd);
+		if (tmpname == NULL)
+		{
+		    /* Conversion failed.  Try another one. */
+		    advance_fenc = TRUE;
+		    if (fd < 0)
+		    {
+			/* Re-opening the original file failed! */
+			EMSG(_("E202: Conversion made file unreadable!"));
+			error = TRUE;
+			goto failed;
+		    }
+		    goto retry;
+		}
+	    }
+	}
+	else
+# endif
+	{
+	    if (fio_flags == 0
+# ifdef USE_ICONV
+		    && iconv_fd == (iconv_t)-1
+# endif
+	       )
+	    {
+		/* Conversion wanted but we can't.
+		 * Try the next conversion in 'fileencodings' */
+		advance_fenc = TRUE;
+		goto retry;
+	    }
+	}
+    }
+
+    /* Set "can_retry" when it's possible to rewind the file and try with
+     * another "fenc" value.  It's FALSE when no other "fenc" to try, reading
+     * stdin or fixed at a specific encoding. */
+    can_retry = (*fenc != NUL && !read_stdin && !keep_dest_enc);
+#endif
+
+    if (!skip_read)
+    {
+	linerest = 0;
+	filesize = 0;
+	skip_count = lines_to_skip;
+	read_count = lines_to_read;
+#ifdef FEAT_MBYTE
+	conv_restlen = 0;
+#endif
+#ifdef FEAT_PERSISTENT_UNDO
+	read_undo_file = (newfile && (flags & READ_KEEP_UNDO) == 0
+				  && curbuf->b_ffname != NULL
+				  && curbuf->b_p_udf
+				  && !filtering
+				  && !read_stdin
+				  && !read_buffer);
+	if (read_undo_file)
+	    sha256_start(&sha_ctx);
+#endif
+#ifdef FEAT_CRYPT
+	if (curbuf->b_cryptstate != NULL)
+	{
+	    /* Need to free the state, but keep the key, don't want to ask for
+	     * it again. */
+	    crypt_free_state(curbuf->b_cryptstate);
+	    curbuf->b_cryptstate = NULL;
+	}
+#endif
+    }
+
+    while (!error && !got_int)
+    {
+	/*
+	 * We allocate as much space for the file as we can get, plus
+	 * space for the old line plus room for one terminating NUL.
+	 * The amount is limited by the fact that read() only can read
+	 * upto max_unsigned characters (and other things).
+	 */
+#if VIM_SIZEOF_INT <= 2
+	if (linerest >= 0x7ff0)
+	{
+	    ++split;
+	    *ptr = NL;		    /* split line by inserting a NL */
+	    size = 1;
+	}
+	else
+#endif
+	{
+	    if (!skip_read)
+	    {
+#if VIM_SIZEOF_INT > 2
+# if defined(SSIZE_MAX) && (SSIZE_MAX < 0x10000L)
+		size = SSIZE_MAX;		    /* use max I/O size, 52K */
+# else
+		size = 0x10000L;		    /* use buffer >= 64K */
+# endif
+#else
+		size = 0x7ff0L - linerest;	    /* limit buffer to 32K */
+#endif
+
+		for ( ; size >= 10; size = (long)((long_u)size >> 1))
+		{
+		    if ((new_buffer = lalloc((long_u)(size + linerest + 1),
+							      FALSE)) != NULL)
+			break;
+		}
+		if (new_buffer == NULL)
+		{
+		    do_outofmem_msg((long_u)(size * 2 + linerest + 1));
+		    error = TRUE;
+		    break;
+		}
+		if (linerest)	/* copy characters from the previous buffer */
+		    mch_memmove(new_buffer, ptr - linerest, (size_t)linerest);
+		vim_free(buffer);
+		buffer = new_buffer;
+		ptr = buffer + linerest;
+		line_start = buffer;
+
+#ifdef FEAT_MBYTE
+		/* May need room to translate into.
+		 * For iconv() we don't really know the required space, use a
+		 * factor ICONV_MULT.
+		 * latin1 to utf-8: 1 byte becomes up to 2 bytes
+		 * utf-16 to utf-8: 2 bytes become up to 3 bytes, 4 bytes
+		 * become up to 4 bytes, size must be multiple of 2
+		 * ucs-2 to utf-8: 2 bytes become up to 3 bytes, size must be
+		 * multiple of 2
+		 * ucs-4 to utf-8: 4 bytes become up to 6 bytes, size must be
+		 * multiple of 4 */
+		real_size = (int)size;
+# ifdef USE_ICONV
+		if (iconv_fd != (iconv_t)-1)
+		    size = size / ICONV_MULT;
+		else
+# endif
+		    if (fio_flags & FIO_LATIN1)
+		    size = size / 2;
+		else if (fio_flags & (FIO_UCS2 | FIO_UTF16))
+		    size = (size * 2 / 3) & ~1;
+		else if (fio_flags & FIO_UCS4)
+		    size = (size * 2 / 3) & ~3;
+		else if (fio_flags == FIO_UCSBOM)
+		    size = size / ICONV_MULT;	/* worst case */
+# ifdef WIN3264
+		else if (fio_flags & FIO_CODEPAGE)
+		    size = size / ICONV_MULT;	/* also worst case */
+# endif
+# ifdef MACOS_X
+		else if (fio_flags & FIO_MACROMAN)
+		    size = size / ICONV_MULT;	/* also worst case */
+# endif
+#endif
+
+#ifdef FEAT_MBYTE
+		if (conv_restlen > 0)
+		{
+		    /* Insert unconverted bytes from previous line. */
+		    mch_memmove(ptr, conv_rest, conv_restlen);
+		    ptr += conv_restlen;
+		    size -= conv_restlen;
+		}
+#endif
+
+		if (read_buffer)
+		{
+		    /*
+		     * Read bytes from curbuf.  Used for converting text read
+		     * from stdin.
+		     */
+		    if (read_buf_lnum > from)
+			size = 0;
+		    else
+		    {
+			int	n, ni;
+			long	tlen;
+
+			tlen = 0;
+			for (;;)
+			{
+			    p = ml_get(read_buf_lnum) + read_buf_col;
+			    n = (int)STRLEN(p);
+			    if ((int)tlen + n + 1 > size)
+			    {
+				/* Filled up to "size", append partial line.
+				 * Change NL to NUL to reverse the effect done
+				 * below. */
+				n = (int)(size - tlen);
+				for (ni = 0; ni < n; ++ni)
+				{
+				    if (p[ni] == NL)
+					ptr[tlen++] = NUL;
+				    else
+					ptr[tlen++] = p[ni];
+				}
+				read_buf_col += n;
+				break;
+			    }
+			    else
+			    {
+				/* Append whole line and new-line.  Change NL
+				 * to NUL to reverse the effect done below. */
+				for (ni = 0; ni < n; ++ni)
+				{
+				    if (p[ni] == NL)
+					ptr[tlen++] = NUL;
+				    else
+					ptr[tlen++] = p[ni];
+				}
+				ptr[tlen++] = NL;
+				read_buf_col = 0;
+				if (++read_buf_lnum > from)
+				{
+				    /* When the last line didn't have an
+				     * end-of-line don't add it now either. */
+				    if (!curbuf->b_p_eol)
+					--tlen;
+				    size = tlen;
+				    break;
+				}
+			    }
+			}
+		    }
+		}
+		else
+		{
+		    /*
+		     * Read bytes from the file.
+		     */
+		    size = read_eintr(fd, ptr, size);
+		}
+
+#ifdef FEAT_CRYPT
+		/*
+		 * At start of file: Check for magic number of encryption.
+		 */
+		if (filesize == 0 && size > 0)
+		    cryptkey = check_for_cryptkey(cryptkey, ptr, &size,
+						  &filesize, newfile, sfname,
+						  &did_ask_for_key);
+		/*
+		 * Decrypt the read bytes.  This is done before checking for
+		 * EOF because the crypt layer may be buffering.
+		 */
+		if (cryptkey != NULL && size > 0)
+		{
+		    if (crypt_works_inplace(curbuf->b_cryptstate))
+		    {
+			crypt_decode_inplace(curbuf->b_cryptstate, ptr, size);
+		    }
+		    else
+		    {
+			char_u	*newptr = NULL;
+			int	decrypted_size;
+
+			decrypted_size = crypt_decode_alloc(
+				    curbuf->b_cryptstate, ptr, size, &newptr);
+
+			/* If the crypt layer is buffering, not producing
+			 * anything yet, need to read more. */
+			if (size > 0 && decrypted_size == 0)
+			    continue;
+
+			if (linerest == 0)
+			{
+			    /* Simple case: reuse returned buffer (may be
+			     * NULL, checked later). */
+			    new_buffer = newptr;
+			}
+			else
+			{
+			    long_u	new_size;
+
+			    /* Need new buffer to add bytes carried over. */
+			    new_size = (long_u)(decrypted_size + linerest + 1);
+			    new_buffer = lalloc(new_size, FALSE);
+			    if (new_buffer == NULL)
+			    {
+				do_outofmem_msg(new_size);
+				error = TRUE;
+				break;
+			    }
+
+			    mch_memmove(new_buffer, buffer, linerest);
+			    if (newptr != NULL)
+				mch_memmove(new_buffer + linerest, newptr,
+							      decrypted_size);
+			}
+
+			if (new_buffer != NULL)
+			{
+			    vim_free(buffer);
+			    buffer = new_buffer;
+			    new_buffer = NULL;
+			    line_start = buffer;
+			    ptr = buffer + linerest;
+			}
+			size = decrypted_size;
+		    }
+		}
+#endif
+
+		if (size <= 0)
+		{
+		    if (size < 0)		    /* read error */
+			error = TRUE;
+#ifdef FEAT_MBYTE
+		    else if (conv_restlen > 0)
+		    {
+			/*
+			 * Reached end-of-file but some trailing bytes could
+			 * not be converted.  Truncated file?
+			 */
+
+			/* When we did a conversion report an error. */
+			if (fio_flags != 0
+# ifdef USE_ICONV
+				|| iconv_fd != (iconv_t)-1
+# endif
+			   )
+			{
+			    if (can_retry)
+				goto rewind_retry;
+			    if (conv_error == 0)
+				conv_error = curbuf->b_ml.ml_line_count
+								- linecnt + 1;
+			}
+			/* Remember the first linenr with an illegal byte */
+			else if (illegal_byte == 0)
+			    illegal_byte = curbuf->b_ml.ml_line_count
+								- linecnt + 1;
+			if (bad_char_behavior == BAD_DROP)
+			{
+			    *(ptr - conv_restlen) = NUL;
+			    conv_restlen = 0;
+			}
+			else
+			{
+			    /* Replace the trailing bytes with the replacement
+			     * character if we were converting; if we weren't,
+			     * leave the UTF8 checking code to do it, as it
+			     * works slightly differently. */
+			    if (bad_char_behavior != BAD_KEEP && (fio_flags != 0
+# ifdef USE_ICONV
+				    || iconv_fd != (iconv_t)-1
+# endif
+			       ))
+			    {
+				while (conv_restlen > 0)
+				{
+				    *(--ptr) = bad_char_behavior;
+				    --conv_restlen;
+				}
+			    }
+			    fio_flags = 0;	/* don't convert this */
+# ifdef USE_ICONV
+			    if (iconv_fd != (iconv_t)-1)
+			    {
+				iconv_close(iconv_fd);
+				iconv_fd = (iconv_t)-1;
+			    }
+# endif
+			}
+		    }
+#endif
+		}
+	    }
+	    skip_read = FALSE;
+
+#ifdef FEAT_MBYTE
+	    /*
+	     * At start of file (or after crypt magic number): Check for BOM.
+	     * Also check for a BOM for other Unicode encodings, but not after
+	     * converting with 'charconvert' or when a BOM has already been
+	     * found.
+	     */
+	    if ((filesize == 0
+# ifdef FEAT_CRYPT
+		   || (cryptkey != NULL
+			&& filesize == crypt_get_header_len(
+						 crypt_get_method_nr(curbuf)))
+# endif
+		       )
+		    && (fio_flags == FIO_UCSBOM
+			|| (!curbuf->b_p_bomb
+			    && tmpname == NULL
+			    && (*fenc == 'u' || (*fenc == NUL && enc_utf8)))))
+	    {
+		char_u	*ccname;
+		int	blen;
+
+		/* no BOM detection in a short file or in binary mode */
+		if (size < 2 || curbuf->b_p_bin)
+		    ccname = NULL;
+		else
+		    ccname = check_for_bom(ptr, size, &blen,
+		      fio_flags == FIO_UCSBOM ? FIO_ALL : get_fio_flags(fenc));
+		if (ccname != NULL)
+		{
+		    /* Remove BOM from the text */
+		    filesize += blen;
+		    size -= blen;
+		    mch_memmove(ptr, ptr + blen, (size_t)size);
+		    if (set_options)
+		    {
+			curbuf->b_p_bomb = TRUE;
+			curbuf->b_start_bomb = TRUE;
 		    }
 		}
 
-	      if (nread < 0)
-		report_file_error ("Read error", orig_filename);
-	      else if (nread > 0)
+		if (fio_flags == FIO_UCSBOM)
 		{
-		  AUTO_STRING (name, " *code-converting-work*");
-		  struct buffer *prev = current_buffer;
-		  Lisp_Object workbuf;
-		  struct buffer *buf;
-
-		  record_unwind_current_buffer ();
-
-		  workbuf = Fget_buffer_create (name);
-		  buf = XBUFFER (workbuf);
-
-		  delete_all_overlays (buf);
-		  bset_directory (buf, BVAR (current_buffer, directory));
-		  bset_read_only (buf, Qnil);
-		  bset_filename (buf, Qnil);
-		  bset_undo_list (buf, Qt);
-		  eassert (buf->overlays_before == NULL);
-		  eassert (buf->overlays_after == NULL);
-
-		  set_buffer_internal (buf);
-		  Ferase_buffer ();
-		  bset_enable_multibyte_characters (buf, Qnil);
-
-		  insert_1_both ((char *) read_buf, nread, nread, 0, 0, 0);
-		  TEMP_SET_PT_BOTH (BEG, BEG_BYTE);
-		  coding_system = call2 (Vset_auto_coding_function,
-					 filename, make_number (nread));
-		  set_buffer_internal (prev);
-
-		  /* Discard the unwind protect for recovering the
-                     current buffer.  */
-		  specpdl_ptr--;
-
-		  /* Rewind the file for the actual read done later.  */
-		  if (lseek (fd, 0, SEEK_SET) < 0)
-		    report_file_error ("Setting file position", orig_filename);
+		    if (ccname == NULL)
+		    {
+			/* No BOM detected: retry with next encoding. */
+			advance_fenc = TRUE;
+		    }
+		    else
+		    {
+			/* BOM detected: set "fenc" and jump back */
+			if (fenc_alloced)
+			    vim_free(fenc);
+			fenc = ccname;
+			fenc_alloced = FALSE;
+		    }
+		    /* retry reading without getting new bytes or rewinding */
+		    skip_read = TRUE;
+		    goto retry;
 		}
 	    }
 
-	  if (NILP (coding_system))
-	    {
-	      /* If we have not yet decided a coding system, check
-                 file-coding-system-alist.  */
-	      coding_system = CALLN (Ffind_operation_coding_system,
-				     Qinsert_file_contents, orig_filename,
-				     visit, beg, end, replace);
-	      if (CONSP (coding_system))
-		coding_system = XCAR (coding_system);
-	    }
-	}
-
-      if (NILP (coding_system))
-	coding_system = Qundecided;
-      else
-	CHECK_CODING_SYSTEM (coding_system);
-
-      if (NILP (BVAR (current_buffer, enable_multibyte_characters)))
-	/* We must suppress all character code conversion except for
-	   end-of-line conversion.  */
-	coding_system = raw_text_coding_system (coding_system);
-
-      setup_coding_system (coding_system, &coding);
-      /* Ensure we set Vlast_coding_system_used.  */
-      set_coding_system = true;
-    }
-
-  /* If requested, replace the accessible part of the buffer
-     with the file contents.  Avoid replacing text at the
-     beginning or end of the buffer that matches the file contents;
-     that preserves markers pointing to the unchanged parts.
-
-     Here we implement this feature in an optimized way
-     for the case where code conversion is NOT needed.
-     The following if-statement handles the case of conversion
-     in a less optimal way.
-
-     If the code conversion is "automatic" then we try using this
-     method and hope for the best.
-     But if we discover the need for conversion, we give up on this method
-     and let the following if-statement handle the replace job.  */
-  if (!NILP (replace)
-      && BEGV < ZV
-      && (NILP (coding_system)
-	  || ! CODING_REQUIRE_DECODING (&coding)))
-    {
-      ptrdiff_t overlap;
-      /* There is still a possibility we will find the need to do code
-	 conversion.  If that happens, set this variable to
-	 give up on handling REPLACE in the optimized way.  */
-      bool giveup_match_end = false;
-
-      if (beg_offset != 0)
-	{
-	  if (lseek (fd, beg_offset, SEEK_SET) < 0)
-	    report_file_error ("Setting file position", orig_filename);
-	}
-
-      immediate_quit = 1;
-      QUIT;
-      /* Count how many chars at the start of the file
-	 match the text at the beginning of the buffer.  */
-      while (1)
-	{
-	  int nread, bufpos;
-
-	  nread = emacs_read (fd, read_buf, sizeof read_buf);
-	  if (nread < 0)
-	    report_file_error ("Read error", orig_filename);
-	  else if (nread == 0)
-	    break;
-
-	  if (CODING_REQUIRE_DETECTION (&coding))
-	    {
-	      coding_system = detect_coding_system ((unsigned char *) read_buf,
-						    nread, nread, 1, 0,
-						    coding_system);
-	      setup_coding_system (coding_system, &coding);
-	    }
-
-	  if (CODING_REQUIRE_DECODING (&coding))
-	    /* We found that the file should be decoded somehow.
-               Let's give up here.  */
-	    {
-	      giveup_match_end = true;
-	      break;
-	    }
-
-	  bufpos = 0;
-	  while (bufpos < nread && same_at_start < ZV_BYTE
-		 && FETCH_BYTE (same_at_start) == read_buf[bufpos])
-	    same_at_start++, bufpos++;
-	  /* If we found a discrepancy, stop the scan.
-	     Otherwise loop around and scan the next bufferful.  */
-	  if (bufpos != nread)
-	    break;
-	}
-      immediate_quit = false;
-      /* If the file matches the buffer completely,
-	 there's no need to replace anything.  */
-      if (same_at_start - BEGV_BYTE == end_offset - beg_offset)
-	{
-	  emacs_close (fd);
-	  clear_unwind_protect (fd_index);
-
-	  /* Truncate the buffer to the size of the file.  */
-	  del_range_1 (same_at_start, same_at_end, 0, 0);
-	  goto handled;
-	}
-      immediate_quit = true;
-      QUIT;
-      /* Count how many chars at the end of the file
-	 match the text at the end of the buffer.  But, if we have
-	 already found that decoding is necessary, don't waste time.  */
-      while (!giveup_match_end)
-	{
-	  int total_read, nread, bufpos, trial;
-	  off_t curpos;
-
-	  /* At what file position are we now scanning?  */
-	  curpos = end_offset - (ZV_BYTE - same_at_end);
-	  /* If the entire file matches the buffer tail, stop the scan.  */
-	  if (curpos == 0)
-	    break;
-	  /* How much can we scan in the next step?  */
-	  trial = min (curpos, sizeof read_buf);
-	  if (lseek (fd, curpos - trial, SEEK_SET) < 0)
-	    report_file_error ("Setting file position", orig_filename);
-
-	  total_read = nread = 0;
-	  while (total_read < trial)
-	    {
-	      nread = emacs_read (fd, read_buf + total_read, trial - total_read);
-	      if (nread < 0)
-		report_file_error ("Read error", orig_filename);
-	      else if (nread == 0)
+	    /* Include not converted bytes. */
+	    ptr -= conv_restlen;
+	    size += conv_restlen;
+	    conv_restlen = 0;
+#endif
+	    /*
+	     * Break here for a read error or end-of-file.
+	     */
+	    if (size <= 0)
 		break;
-	      total_read += nread;
-	    }
 
-	  /* Scan this bufferful from the end, comparing with
-	     the Emacs buffer.  */
-	  bufpos = total_read;
+#ifdef FEAT_MBYTE
 
-	  /* Compare with same_at_start to avoid counting some buffer text
-	     as matching both at the file's beginning and at the end.  */
-	  while (bufpos > 0 && same_at_end > same_at_start
-		 && FETCH_BYTE (same_at_end - 1) == read_buf[bufpos - 1])
-	    same_at_end--, bufpos--;
-
-	  /* If we found a discrepancy, stop the scan.
-	     Otherwise loop around and scan the preceding bufferful.  */
-	  if (bufpos != 0)
+# ifdef USE_ICONV
+	    if (iconv_fd != (iconv_t)-1)
 	    {
-	      /* If this discrepancy is because of code conversion,
-		 we cannot use this method; giveup and try the other.  */
-	      if (same_at_end > same_at_start
-		  && FETCH_BYTE (same_at_end - 1) >= 0200
-		  && ! NILP (BVAR (current_buffer, enable_multibyte_characters))
-		  && (CODING_MAY_REQUIRE_DECODING (&coding)))
-		giveup_match_end = true;
-	      break;
-	    }
-
-	  if (nread == 0)
-	    break;
-	}
-      immediate_quit = 0;
-
-      if (! giveup_match_end)
-	{
-	  ptrdiff_t temp;
-
-	  /* We win!  We can handle REPLACE the optimized way.  */
-
-	  /* Extend the start of non-matching text area to multibyte
-             character boundary.  */
-	  if (! NILP (BVAR (current_buffer, enable_multibyte_characters)))
-	    while (same_at_start > BEGV_BYTE
-		   && ! CHAR_HEAD_P (FETCH_BYTE (same_at_start)))
-	      same_at_start--;
-
-	  /* Extend the end of non-matching text area to multibyte
-             character boundary.  */
-	  if (! NILP (BVAR (current_buffer, enable_multibyte_characters)))
-	    while (same_at_end < ZV_BYTE
-		   && ! CHAR_HEAD_P (FETCH_BYTE (same_at_end)))
-	      same_at_end++;
-
-	  /* Don't try to reuse the same piece of text twice.  */
-	  overlap = (same_at_start - BEGV_BYTE
-		     - (same_at_end
-			+ (! NILP (end) ? end_offset : st.st_size) - ZV_BYTE));
-	  if (overlap > 0)
-	    same_at_end += overlap;
-	  same_at_end_charpos = BYTE_TO_CHAR (same_at_end);
-
-	  /* Arrange to read only the nonmatching middle part of the file.  */
-	  beg_offset += same_at_start - BEGV_BYTE;
-	  end_offset -= ZV_BYTE - same_at_end;
-
-	  invalidate_buffer_caches (current_buffer,
-				    BYTE_TO_CHAR (same_at_start),
-				    same_at_end_charpos);
-	  del_range_byte (same_at_start, same_at_end, 0);
-	  /* Insert from the file at the proper position.  */
-	  temp = BYTE_TO_CHAR (same_at_start);
-	  SET_PT_BOTH (temp, same_at_start);
-
-	  /* If display currently starts at beginning of line,
-	     keep it that way.  */
-	  if (XBUFFER (XWINDOW (selected_window)->contents) == current_buffer)
-	    XWINDOW (selected_window)->start_at_line_beg = !NILP (Fbolp ());
-
-	  replace_handled = true;
-	}
-    }
-
-  /* If requested, replace the accessible part of the buffer
-     with the file contents.  Avoid replacing text at the
-     beginning or end of the buffer that matches the file contents;
-     that preserves markers pointing to the unchanged parts.
-
-     Here we implement this feature for the case where code conversion
-     is needed, in a simple way that needs a lot of memory.
-     The preceding if-statement handles the case of no conversion
-     in a more optimized way.  */
-  if (!NILP (replace) && ! replace_handled && BEGV < ZV)
-    {
-      ptrdiff_t same_at_start_charpos;
-      ptrdiff_t inserted_chars;
-      ptrdiff_t overlap;
-      ptrdiff_t bufpos;
-      unsigned char *decoded;
-      ptrdiff_t temp;
-      ptrdiff_t this = 0;
-      ptrdiff_t this_count = SPECPDL_INDEX ();
-      bool multibyte
-	= ! NILP (BVAR (current_buffer, enable_multibyte_characters));
-      Lisp_Object conversion_buffer;
-
-      conversion_buffer = code_conversion_save (1, multibyte);
-
-      /* First read the whole file, performing code conversion into
-	 CONVERSION_BUFFER.  */
-
-      if (lseek (fd, beg_offset, SEEK_SET) < 0)
-	report_file_error ("Setting file position", orig_filename);
-
-      inserted = 0;		/* Bytes put into CONVERSION_BUFFER so far.  */
-      unprocessed = 0;		/* Bytes not processed in previous loop.  */
-
-      while (1)
-	{
-	  /* Read at most READ_BUF_SIZE bytes at a time, to allow
-	     quitting while reading a huge file.  */
-
-	  /* Allow quitting out of the actual I/O.  */
-	  immediate_quit = 1;
-	  QUIT;
-	  this = emacs_read (fd, read_buf + unprocessed,
-			     READ_BUF_SIZE - unprocessed);
-	  immediate_quit = 0;
-
-	  if (this <= 0)
-	    break;
-
-	  BUF_TEMP_SET_PT (XBUFFER (conversion_buffer),
-			   BUF_Z (XBUFFER (conversion_buffer)));
-	  decode_coding_c_string (&coding, (unsigned char *) read_buf,
-				  unprocessed + this, conversion_buffer);
-	  unprocessed = coding.carryover_bytes;
-	  if (coding.carryover_bytes > 0)
-	    memcpy (read_buf, coding.carryover, unprocessed);
-	}
-
-      if (this < 0)
-	report_file_error ("Read error", orig_filename);
-      emacs_close (fd);
-      clear_unwind_protect (fd_index);
-
-      if (unprocessed > 0)
-	{
-	  coding.mode |= CODING_MODE_LAST_BLOCK;
-	  decode_coding_c_string (&coding, (unsigned char *) read_buf,
-				  unprocessed, conversion_buffer);
-	  coding.mode &= ~CODING_MODE_LAST_BLOCK;
-	}
-
-      coding_system = CODING_ID_NAME (coding.id);
-      set_coding_system = true;
-      decoded = BUF_BEG_ADDR (XBUFFER (conversion_buffer));
-      inserted = (BUF_Z_BYTE (XBUFFER (conversion_buffer))
-		  - BUF_BEG_BYTE (XBUFFER (conversion_buffer)));
-
-      /* Compare the beginning of the converted string with the buffer
-	 text.  */
-
-      bufpos = 0;
-      while (bufpos < inserted && same_at_start < same_at_end
-	     && FETCH_BYTE (same_at_start) == decoded[bufpos])
-	same_at_start++, bufpos++;
-
-      /* If the file matches the head of buffer completely,
-	 there's no need to replace anything.  */
-
-      if (bufpos == inserted)
-	{
-	  /* Truncate the buffer to the size of the file.  */
-	  if (same_at_start != same_at_end)
-	    {
-	      invalidate_buffer_caches (current_buffer,
-					BYTE_TO_CHAR (same_at_start),
-					BYTE_TO_CHAR (same_at_end));
-	      del_range_byte (same_at_start, same_at_end, 0);
-	    }
-	  inserted = 0;
-
-	  unbind_to (this_count, Qnil);
-	  goto handled;
-	}
-
-      /* Extend the start of non-matching text area to the previous
-	 multibyte character boundary.  */
-      if (! NILP (BVAR (current_buffer, enable_multibyte_characters)))
-	while (same_at_start > BEGV_BYTE
-	       && ! CHAR_HEAD_P (FETCH_BYTE (same_at_start)))
-	  same_at_start--;
-
-      /* Scan this bufferful from the end, comparing with
-	 the Emacs buffer.  */
-      bufpos = inserted;
-
-      /* Compare with same_at_start to avoid counting some buffer text
-	 as matching both at the file's beginning and at the end.  */
-      while (bufpos > 0 && same_at_end > same_at_start
-	     && FETCH_BYTE (same_at_end - 1) == decoded[bufpos - 1])
-	same_at_end--, bufpos--;
-
-      /* Extend the end of non-matching text area to the next
-	 multibyte character boundary.  */
-      if (! NILP (BVAR (current_buffer, enable_multibyte_characters)))
-	while (same_at_end < ZV_BYTE
-	       && ! CHAR_HEAD_P (FETCH_BYTE (same_at_end)))
-	  same_at_end++;
-
-      /* Don't try to reuse the same piece of text twice.  */
-      overlap = same_at_start - BEGV_BYTE - (same_at_end + inserted - ZV_BYTE);
-      if (overlap > 0)
-	same_at_end += overlap;
-      same_at_end_charpos = BYTE_TO_CHAR (same_at_end);
-
-      /* If display currently starts at beginning of line,
-	 keep it that way.  */
-      if (XBUFFER (XWINDOW (selected_window)->contents) == current_buffer)
-	XWINDOW (selected_window)->start_at_line_beg = !NILP (Fbolp ());
-
-      /* Replace the chars that we need to replace,
-	 and update INSERTED to equal the number of bytes
-	 we are taking from the decoded string.  */
-      inserted -= (ZV_BYTE - same_at_end) + (same_at_start - BEGV_BYTE);
-
-      if (same_at_end != same_at_start)
-	{
-	  invalidate_buffer_caches (current_buffer,
-				    BYTE_TO_CHAR (same_at_start),
-				    same_at_end_charpos);
-	  del_range_byte (same_at_start, same_at_end, 0);
-	  temp = GPT;
-	  eassert (same_at_start == GPT_BYTE);
-	  same_at_start = GPT_BYTE;
-	}
-      else
-	{
-	  temp = same_at_end_charpos;
-	}
-      /* Insert from the file at the proper position.  */
-      SET_PT_BOTH (temp, same_at_start);
-      same_at_start_charpos
-	= buf_bytepos_to_charpos (XBUFFER (conversion_buffer),
-				  same_at_start - BEGV_BYTE
-				  + BUF_BEG_BYTE (XBUFFER (conversion_buffer)));
-      eassert (same_at_start_charpos == temp - (BEGV - BEG));
-      inserted_chars
-	= (buf_bytepos_to_charpos (XBUFFER (conversion_buffer),
-				   same_at_start + inserted - BEGV_BYTE
-				  + BUF_BEG_BYTE (XBUFFER (conversion_buffer)))
-	   - same_at_start_charpos);
-      /* This binding is to avoid ask-user-about-supersession-threat
-	 being called in insert_from_buffer (via in
-	 prepare_to_modify_buffer).  */
-      specbind (intern ("buffer-file-name"), Qnil);
-      insert_from_buffer (XBUFFER (conversion_buffer),
-			  same_at_start_charpos, inserted_chars, 0);
-      /* Set `inserted' to the number of inserted characters.  */
-      inserted = PT - temp;
-      /* Set point before the inserted characters.  */
-      SET_PT_BOTH (temp, same_at_start);
-
-      unbind_to (this_count, Qnil);
-
-      goto handled;
-    }
-
-  if (! not_regular)
-    total = end_offset - beg_offset;
-  else
-    /* For a special file, all we can do is guess.  */
-    total = READ_BUF_SIZE;
-
-  if (NILP (visit) && total > 0)
-    {
-      if (!NILP (BVAR (current_buffer, file_truename))
-	  /* Make binding buffer-file-name to nil effective.  */
-	  && !NILP (BVAR (current_buffer, filename))
-	  && SAVE_MODIFF >= MODIFF)
-	we_locked_file = true;
-      prepare_to_modify_buffer (PT, PT, NULL);
-    }
-
-  move_gap_both (PT, PT_BYTE);
-  if (GAP_SIZE < total)
-    make_gap (total - GAP_SIZE);
-
-  if (beg_offset != 0 || !NILP (replace))
-    {
-      if (lseek (fd, beg_offset, SEEK_SET) < 0)
-	report_file_error ("Setting file position", orig_filename);
-    }
-
-  /* In the following loop, HOW_MUCH contains the total bytes read so
-     far for a regular file, and not changed for a special file.  But,
-     before exiting the loop, it is set to a negative value if I/O
-     error occurs.  */
-  how_much = 0;
-
-  /* Total bytes inserted.  */
-  inserted = 0;
-
-  /* Here, we don't do code conversion in the loop.  It is done by
-     decode_coding_gap after all data are read into the buffer.  */
-  {
-    ptrdiff_t gap_size = GAP_SIZE;
-
-    while (how_much < total)
-      {
-	/* `try' is reserved in some compilers (Microsoft C).  */
-	ptrdiff_t trytry = min (total - how_much, READ_BUF_SIZE);
-	ptrdiff_t this;
-
-	if (not_regular)
-	  {
-	    Lisp_Object nbytes;
-
-	    /* Maybe make more room.  */
-	    if (gap_size < trytry)
-	      {
-		make_gap (trytry - gap_size);
-		gap_size = GAP_SIZE - inserted;
-	      }
-
-	    /* Read from the file, capturing `quit'.  When an
-	       error occurs, end the loop, and arrange for a quit
-	       to be signaled after decoding the text we read.  */
-	    nbytes = internal_condition_case_1
-	      (read_non_regular,
-	       make_save_int_int_int (fd, inserted, trytry),
-	       Qerror, read_non_regular_quit);
-
-	    if (NILP (nbytes))
-	      {
-		read_quit = true;
-		break;
-	      }
-
-	    this = XINT (nbytes);
-	  }
-	else
-	  {
-	    /* Allow quitting out of the actual I/O.  We don't make text
-	       part of the buffer until all the reading is done, so a C-g
-	       here doesn't do any harm.  */
-	    immediate_quit = 1;
-	    QUIT;
-	    this = emacs_read (fd,
-			       ((char *) BEG_ADDR + PT_BYTE - BEG_BYTE
-				+ inserted),
-			       trytry);
-	    immediate_quit = 0;
-	  }
-
-	if (this <= 0)
-	  {
-	    how_much = this;
-	    break;
-	  }
-
-	gap_size -= this;
-
-	/* For a regular file, where TOTAL is the real size,
-	   count HOW_MUCH to compare with it.
-	   For a special file, where TOTAL is just a buffer size,
-	   so don't bother counting in HOW_MUCH.
-	   (INSERTED is where we count the number of characters inserted.)  */
-	if (! not_regular)
-	  how_much += this;
-	inserted += this;
-      }
-  }
-
-  /* Now we have either read all the file data into the gap,
-     or stop reading on I/O error or quit.  If nothing was
-     read, undo marking the buffer modified.  */
-
-  if (inserted == 0)
-    {
-      if (we_locked_file)
-	unlock_file (BVAR (current_buffer, file_truename));
-      Vdeactivate_mark = old_Vdeactivate_mark;
-    }
-  else
-    Fset (Qdeactivate_mark, Qt);
-
-  emacs_close (fd);
-  clear_unwind_protect (fd_index);
-
-  if (how_much < 0)
-    report_file_error ("Read error", orig_filename);
-
-  /* Make the text read part of the buffer.  */
-  GAP_SIZE -= inserted;
-  GPT      += inserted;
-  GPT_BYTE += inserted;
-  ZV       += inserted;
-  ZV_BYTE  += inserted;
-  Z        += inserted;
-  Z_BYTE   += inserted;
-
-  if (GAP_SIZE > 0)
-    /* Put an anchor to ensure multi-byte form ends at gap.  */
-    *GPT_ADDR = 0;
-
- notfound:
-
-  if (NILP (coding_system))
-    {
-      /* The coding system is not yet decided.  Decide it by an
-	 optimized method for handling `coding:' tag.
-
-	 Note that we can get here only if the buffer was empty
-	 before the insertion.  */
-
-      if (!NILP (Vcoding_system_for_read))
-	coding_system = Vcoding_system_for_read;
-      else
-	{
-	  /* Since we are sure that the current buffer was empty
-	     before the insertion, we can toggle
-	     enable-multibyte-characters directly here without taking
-	     care of marker adjustment.  By this way, we can run Lisp
-	     program safely before decoding the inserted text.  */
-	  Lisp_Object unwind_data;
-	  ptrdiff_t count1 = SPECPDL_INDEX ();
-
-	  unwind_data = Fcons (BVAR (current_buffer, enable_multibyte_characters),
-			       Fcons (BVAR (current_buffer, undo_list),
-				      Fcurrent_buffer ()));
-	  bset_enable_multibyte_characters (current_buffer, Qnil);
-	  bset_undo_list (current_buffer, Qt);
-	  record_unwind_protect (decide_coding_unwind, unwind_data);
-
-	  if (inserted > 0 && ! NILP (Vset_auto_coding_function))
-	    {
-	      coding_system = call2 (Vset_auto_coding_function,
-				     filename, make_number (inserted));
-	    }
-
-	  if (NILP (coding_system))
-	    {
-	      /* If the coding system is not yet decided, check
-		 file-coding-system-alist.  */
-	      coding_system = CALLN (Ffind_operation_coding_system,
-				     Qinsert_file_contents, orig_filename,
-				     visit, beg, end, Qnil);
-	      if (CONSP (coding_system))
-		coding_system = XCAR (coding_system);
-	    }
-	  unbind_to (count1, Qnil);
-	  inserted = Z_BYTE - BEG_BYTE;
-	}
-
-      if (NILP (coding_system))
-	coding_system = Qundecided;
-      else
-	CHECK_CODING_SYSTEM (coding_system);
-
-      if (NILP (BVAR (current_buffer, enable_multibyte_characters)))
-	/* We must suppress all character code conversion except for
-	   end-of-line conversion.  */
-	coding_system = raw_text_coding_system (coding_system);
-      setup_coding_system (coding_system, &coding);
-      /* Ensure we set Vlast_coding_system_used.  */
-      set_coding_system = true;
-    }
-
-  if (!NILP (visit))
-    {
-      /* When we visit a file by raw-text, we change the buffer to
-	 unibyte.  */
-      if (CODING_FOR_UNIBYTE (&coding)
-	  /* Can't do this if part of the buffer might be preserved.  */
-	  && NILP (replace))
-	{
-	  /* Visiting a file with these coding system makes the buffer
-	     unibyte.  */
-	  if (inserted > 0)
-	    bset_enable_multibyte_characters (current_buffer, Qnil);
-	  else
-	    Fset_buffer_multibyte (Qnil);
-	}
-    }
-
-  coding.dst_multibyte = ! NILP (BVAR (current_buffer, enable_multibyte_characters));
-  if (CODING_MAY_REQUIRE_DECODING (&coding)
-      && (inserted > 0 || CODING_REQUIRE_FLUSHING (&coding)))
-    {
-      move_gap_both (PT, PT_BYTE);
-      GAP_SIZE += inserted;
-      ZV_BYTE -= inserted;
-      Z_BYTE -= inserted;
-      ZV -= inserted;
-      Z -= inserted;
-      decode_coding_gap (&coding, inserted, inserted);
-      inserted = coding.produced_char;
-      coding_system = CODING_ID_NAME (coding.id);
-    }
-  else if (inserted > 0)
-    {
-      invalidate_buffer_caches (current_buffer, PT, PT + inserted);
-      adjust_after_insert (PT, PT_BYTE, PT + inserted, PT_BYTE + inserted,
-			   inserted);
-    }
-
-  /* Call after-change hooks for the inserted text, aside from the case
-     of normal visiting (not with REPLACE), which is done in a new buffer
-     "before" the buffer is changed.  */
-  if (inserted > 0 && total > 0
-      && (NILP (visit) || !NILP (replace)))
-    {
-      signal_after_change (PT, 0, inserted);
-      update_compositions (PT, PT, CHECK_BORDER);
-    }
-
-  /* Now INSERTED is measured in characters.  */
-
- handled:
-
-  if (inserted > 0)
-    restore_window_points (window_markers, inserted,
-			   BYTE_TO_CHAR (same_at_start),
-			   same_at_end_charpos);
-
-  if (!NILP (visit))
-    {
-      if (empty_undo_list_p)
-	bset_undo_list (current_buffer, Qnil);
-
-      if (NILP (handler))
-	{
-	  current_buffer->modtime = mtime;
-	  current_buffer->modtime_size = st.st_size;
-	  bset_filename (current_buffer, orig_filename);
-	}
-
-      SAVE_MODIFF = MODIFF;
-      BUF_AUTOSAVE_MODIFF (current_buffer) = MODIFF;
-      XSETFASTINT (BVAR (current_buffer, save_length), Z - BEG);
-      if (NILP (handler))
-	{
-	  if (!NILP (BVAR (current_buffer, file_truename)))
-	    unlock_file (BVAR (current_buffer, file_truename));
-	  unlock_file (filename);
-	}
-      if (not_regular)
-	xsignal2 (Qfile_error,
-		  build_string ("not a regular file"), orig_filename);
-    }
-
-  if (set_coding_system)
-    Vlast_coding_system_used = coding_system;
-
-  if (! NILP (Ffboundp (Qafter_insert_file_set_coding)))
-    {
-      insval = call2 (Qafter_insert_file_set_coding, make_number (inserted),
-		      visit);
-      if (! NILP (insval))
-	{
-	  if (! RANGED_INTEGERP (0, insval, ZV - PT))
-	    wrong_type_argument (intern ("inserted-chars"), insval);
-	  inserted = XFASTINT (insval);
-	}
-    }
-
-  /* Decode file format.  */
-  if (inserted > 0)
-    {
-      /* Don't run point motion or modification hooks when decoding.  */
-      ptrdiff_t count1 = SPECPDL_INDEX ();
-      ptrdiff_t old_inserted = inserted;
-      specbind (Qinhibit_point_motion_hooks, Qt);
-      specbind (Qinhibit_modification_hooks, Qt);
-
-      /* Save old undo list and don't record undo for decoding.  */
-      old_undo = BVAR (current_buffer, undo_list);
-      bset_undo_list (current_buffer, Qt);
-
-      if (NILP (replace))
-	{
-	  insval = call3 (Qformat_decode,
-			  Qnil, make_number (inserted), visit);
-	  if (! RANGED_INTEGERP (0, insval, ZV - PT))
-	    wrong_type_argument (intern ("inserted-chars"), insval);
-	  inserted = XFASTINT (insval);
-	}
-      else
-	{
-	  /* If REPLACE is non-nil and we succeeded in not replacing the
-	     beginning or end of the buffer text with the file's contents,
-	     call format-decode with `point' positioned at the beginning
-	     of the buffer and `inserted' equaling the number of
-	     characters in the buffer.  Otherwise, format-decode might
-	     fail to correctly analyze the beginning or end of the buffer.
-	     Hence we temporarily save `point' and `inserted' here and
-	     restore `point' iff format-decode did not insert or delete
-	     any text.  Otherwise we leave `point' at point-min.  */
-	  ptrdiff_t opoint = PT;
-	  ptrdiff_t opoint_byte = PT_BYTE;
-	  ptrdiff_t oinserted = ZV - BEGV;
-	  EMACS_INT ochars_modiff = CHARS_MODIFF;
-
-	  TEMP_SET_PT_BOTH (BEGV, BEGV_BYTE);
-	  insval = call3 (Qformat_decode,
-			  Qnil, make_number (oinserted), visit);
-	  if (! RANGED_INTEGERP (0, insval, ZV - PT))
-	    wrong_type_argument (intern ("inserted-chars"), insval);
-	  if (ochars_modiff == CHARS_MODIFF)
-	    /* format_decode didn't modify buffer's characters => move
-	       point back to position before inserted text and leave
-	       value of inserted alone.  */
-	    SET_PT_BOTH (opoint, opoint_byte);
-	  else
-	    /* format_decode modified buffer's characters => consider
-	       entire buffer changed and leave point at point-min.  */
-	    inserted = XFASTINT (insval);
-	}
-
-      /* For consistency with format-decode call these now iff inserted > 0
-	 (martin 2007-06-28).  */
-      p = Vafter_insert_file_functions;
-      while (CONSP (p))
-	{
-	  if (NILP (replace))
-	    {
-	      insval = call1 (XCAR (p), make_number (inserted));
-	      if (!NILP (insval))
+		/*
+		 * Attempt conversion of the read bytes to 'encoding' using
+		 * iconv().
+		 */
+		const char	*fromp;
+		char		*top;
+		size_t		from_size;
+		size_t		to_size;
+
+		fromp = (char *)ptr;
+		from_size = size;
+		ptr += size;
+		top = (char *)ptr;
+		to_size = real_size - size;
+
+		/*
+		 * If there is conversion error or not enough room try using
+		 * another conversion.  Except for when there is no
+		 * alternative (help files).
+		 */
+		while ((iconv(iconv_fd, (void *)&fromp, &from_size,
+							       &top, &to_size)
+			    == (size_t)-1 && ICONV_ERRNO != ICONV_EINVAL)
+						  || from_size > CONV_RESTLEN)
 		{
-		  if (! RANGED_INTEGERP (0, insval, ZV - PT))
-		    wrong_type_argument (intern ("inserted-chars"), insval);
-		  inserted = XFASTINT (insval);
+		    if (can_retry)
+			goto rewind_retry;
+		    if (conv_error == 0)
+			conv_error = readfile_linenr(linecnt,
+							  ptr, (char_u *)top);
+
+		    /* Deal with a bad byte and continue with the next. */
+		    ++fromp;
+		    --from_size;
+		    if (bad_char_behavior == BAD_KEEP)
+		    {
+			*top++ = *(fromp - 1);
+			--to_size;
+		    }
+		    else if (bad_char_behavior != BAD_DROP)
+		    {
+			*top++ = bad_char_behavior;
+			--to_size;
+		    }
+		}
+
+		if (from_size > 0)
+		{
+		    /* Some remaining characters, keep them for the next
+		     * round. */
+		    mch_memmove(conv_rest, (char_u *)fromp, from_size);
+		    conv_restlen = (int)from_size;
+		}
+
+		/* move the linerest to before the converted characters */
+		line_start = ptr - linerest;
+		mch_memmove(line_start, buffer, (size_t)linerest);
+		size = (long)((char_u *)top - ptr);
+	    }
+# endif
+
+# ifdef WIN3264
+	    if (fio_flags & FIO_CODEPAGE)
+	    {
+		char_u	*src, *dst;
+		WCHAR	ucs2buf[3];
+		int	ucs2len;
+		int	codepage = FIO_GET_CP(fio_flags);
+		int	bytelen;
+		int	found_bad;
+		char	replstr[2];
+
+		/*
+		 * Conversion from an MS-Windows codepage or UTF-8 to UTF-8 or
+		 * a codepage, using standard MS-Windows functions.  This
+		 * requires two steps:
+		 * 1. convert from 'fileencoding' to ucs-2
+		 * 2. convert from ucs-2 to 'encoding'
+		 *
+		 * Because there may be illegal bytes AND an incomplete byte
+		 * sequence at the end, we may have to do the conversion one
+		 * character at a time to get it right.
+		 */
+
+		/* Replacement string for WideCharToMultiByte(). */
+		if (bad_char_behavior > 0)
+		    replstr[0] = bad_char_behavior;
+		else
+		    replstr[0] = '?';
+		replstr[1] = NUL;
+
+		/*
+		 * Move the bytes to the end of the buffer, so that we have
+		 * room to put the result at the start.
+		 */
+		src = ptr + real_size - size;
+		mch_memmove(src, ptr, size);
+
+		/*
+		 * Do the conversion.
+		 */
+		dst = ptr;
+		size = size;
+		while (size > 0)
+		{
+		    found_bad = FALSE;
+
+#  ifdef CP_UTF8	/* VC 4.1 doesn't define CP_UTF8 */
+		    if (codepage == CP_UTF8)
+		    {
+			/* Handle CP_UTF8 input ourselves to be able to handle
+			 * trailing bytes properly.
+			 * Get one UTF-8 character from src. */
+			bytelen = (int)utf_ptr2len_len(src, size);
+			if (bytelen > size)
+			{
+			    /* Only got some bytes of a character.  Normally
+			     * it's put in "conv_rest", but if it's too long
+			     * deal with it as if they were illegal bytes. */
+			    if (bytelen <= CONV_RESTLEN)
+				break;
+
+			    /* weird overlong byte sequence */
+			    bytelen = size;
+			    found_bad = TRUE;
+			}
+			else
+			{
+			    int	    u8c = utf_ptr2char(src);
+
+			    if (u8c > 0xffff || (*src >= 0x80 && bytelen == 1))
+				found_bad = TRUE;
+			    ucs2buf[0] = u8c;
+			    ucs2len = 1;
+			}
+		    }
+		    else
+#  endif
+		    {
+			/* We don't know how long the byte sequence is, try
+			 * from one to three bytes. */
+			for (bytelen = 1; bytelen <= size && bytelen <= 3;
+								    ++bytelen)
+			{
+			    ucs2len = MultiByteToWideChar(codepage,
+							 MB_ERR_INVALID_CHARS,
+							 (LPCSTR)src, bytelen,
+								   ucs2buf, 3);
+			    if (ucs2len > 0)
+				break;
+			}
+			if (ucs2len == 0)
+			{
+			    /* If we have only one byte then it's probably an
+			     * incomplete byte sequence.  Otherwise discard
+			     * one byte as a bad character. */
+			    if (size == 1)
+				break;
+			    found_bad = TRUE;
+			    bytelen = 1;
+			}
+		    }
+
+		    if (!found_bad)
+		    {
+			int	i;
+
+			/* Convert "ucs2buf[ucs2len]" to 'enc' in "dst". */
+			if (enc_utf8)
+			{
+			    /* From UCS-2 to UTF-8.  Cannot fail. */
+			    for (i = 0; i < ucs2len; ++i)
+				dst += utf_char2bytes(ucs2buf[i], dst);
+			}
+			else
+			{
+			    BOOL	bad = FALSE;
+			    int		dstlen;
+
+			    /* From UCS-2 to "enc_codepage".  If the
+			     * conversion uses the default character "?",
+			     * the data doesn't fit in this encoding. */
+			    dstlen = WideCharToMultiByte(enc_codepage, 0,
+				    (LPCWSTR)ucs2buf, ucs2len,
+				    (LPSTR)dst, (int)(src - dst),
+				    replstr, &bad);
+			    if (bad)
+				found_bad = TRUE;
+			    else
+				dst += dstlen;
+			}
+		    }
+
+		    if (found_bad)
+		    {
+			/* Deal with bytes we can't convert. */
+			if (can_retry)
+			    goto rewind_retry;
+			if (conv_error == 0)
+			    conv_error = readfile_linenr(linecnt, ptr, dst);
+			if (bad_char_behavior != BAD_DROP)
+			{
+			    if (bad_char_behavior == BAD_KEEP)
+			    {
+				mch_memmove(dst, src, bytelen);
+				dst += bytelen;
+			    }
+			    else
+				*dst++ = bad_char_behavior;
+			}
+		    }
+
+		    src += bytelen;
+		    size -= bytelen;
+		}
+
+		if (size > 0)
+		{
+		    /* An incomplete byte sequence remaining. */
+		    mch_memmove(conv_rest, src, size);
+		    conv_restlen = size;
+		}
+
+		/* The new size is equal to how much "dst" was advanced. */
+		size = (long)(dst - ptr);
+	    }
+	    else
+# endif
+# ifdef MACOS_CONVERT
+	    if (fio_flags & FIO_MACROMAN)
+	    {
+		/*
+		 * Conversion from Apple MacRoman char encoding to UTF-8 or
+		 * latin1.  This is in os_mac_conv.c.
+		 */
+		if (macroman2enc(ptr, &size, real_size) == FAIL)
+		    goto rewind_retry;
+	    }
+	    else
+# endif
+	    if (fio_flags != 0)
+	    {
+		int	u8c;
+		char_u	*dest;
+		char_u	*tail = NULL;
+
+		/*
+		 * "enc_utf8" set: Convert Unicode or Latin1 to UTF-8.
+		 * "enc_utf8" not set: Convert Unicode to Latin1.
+		 * Go from end to start through the buffer, because the number
+		 * of bytes may increase.
+		 * "dest" points to after where the UTF-8 bytes go, "p" points
+		 * to after the next character to convert.
+		 */
+		dest = ptr + real_size;
+		if (fio_flags == FIO_LATIN1 || fio_flags == FIO_UTF8)
+		{
+		    p = ptr + size;
+		    if (fio_flags == FIO_UTF8)
+		    {
+			/* Check for a trailing incomplete UTF-8 sequence */
+			tail = ptr + size - 1;
+			while (tail > ptr && (*tail & 0xc0) == 0x80)
+			    --tail;
+			if (tail + utf_byte2len(*tail) <= ptr + size)
+			    tail = NULL;
+			else
+			    p = tail;
+		    }
+		}
+		else if (fio_flags & (FIO_UCS2 | FIO_UTF16))
+		{
+		    /* Check for a trailing byte */
+		    p = ptr + (size & ~1);
+		    if (size & 1)
+			tail = p;
+		    if ((fio_flags & FIO_UTF16) && p > ptr)
+		    {
+			/* Check for a trailing leading word */
+			if (fio_flags & FIO_ENDIAN_L)
+			{
+			    u8c = (*--p << 8);
+			    u8c += *--p;
+			}
+			else
+			{
+			    u8c = *--p;
+			    u8c += (*--p << 8);
+			}
+			if (u8c >= 0xd800 && u8c <= 0xdbff)
+			    tail = p;
+			else
+			    p += 2;
+		    }
+		}
+		else /*  FIO_UCS4 */
+		{
+		    /* Check for trailing 1, 2 or 3 bytes */
+		    p = ptr + (size & ~3);
+		    if (size & 3)
+			tail = p;
+		}
+
+		/* If there is a trailing incomplete sequence move it to
+		 * conv_rest[]. */
+		if (tail != NULL)
+		{
+		    conv_restlen = (int)((ptr + size) - tail);
+		    mch_memmove(conv_rest, (char_u *)tail, conv_restlen);
+		    size -= conv_restlen;
+		}
+
+
+		while (p > ptr)
+		{
+		    if (fio_flags & FIO_LATIN1)
+			u8c = *--p;
+		    else if (fio_flags & (FIO_UCS2 | FIO_UTF16))
+		    {
+			if (fio_flags & FIO_ENDIAN_L)
+			{
+			    u8c = (*--p << 8);
+			    u8c += *--p;
+			}
+			else
+			{
+			    u8c = *--p;
+			    u8c += (*--p << 8);
+			}
+			if ((fio_flags & FIO_UTF16)
+					    && u8c >= 0xdc00 && u8c <= 0xdfff)
+			{
+			    int u16c;
+
+			    if (p == ptr)
+			    {
+				/* Missing leading word. */
+				if (can_retry)
+				    goto rewind_retry;
+				if (conv_error == 0)
+				    conv_error = readfile_linenr(linecnt,
+								      ptr, p);
+				if (bad_char_behavior == BAD_DROP)
+				    continue;
+				if (bad_char_behavior != BAD_KEEP)
+				    u8c = bad_char_behavior;
+			    }
+
+			    /* found second word of double-word, get the first
+			     * word and compute the resulting character */
+			    if (fio_flags & FIO_ENDIAN_L)
+			    {
+				u16c = (*--p << 8);
+				u16c += *--p;
+			    }
+			    else
+			    {
+				u16c = *--p;
+				u16c += (*--p << 8);
+			    }
+			    u8c = 0x10000 + ((u16c & 0x3ff) << 10)
+							      + (u8c & 0x3ff);
+
+			    /* Check if the word is indeed a leading word. */
+			    if (u16c < 0xd800 || u16c > 0xdbff)
+			    {
+				if (can_retry)
+				    goto rewind_retry;
+				if (conv_error == 0)
+				    conv_error = readfile_linenr(linecnt,
+								      ptr, p);
+				if (bad_char_behavior == BAD_DROP)
+				    continue;
+				if (bad_char_behavior != BAD_KEEP)
+				    u8c = bad_char_behavior;
+			    }
+			}
+		    }
+		    else if (fio_flags & FIO_UCS4)
+		    {
+			if (fio_flags & FIO_ENDIAN_L)
+			{
+			    u8c = (*--p << 24);
+			    u8c += (*--p << 16);
+			    u8c += (*--p << 8);
+			    u8c += *--p;
+			}
+			else	/* big endian */
+			{
+			    u8c = *--p;
+			    u8c += (*--p << 8);
+			    u8c += (*--p << 16);
+			    u8c += (*--p << 24);
+			}
+		    }
+		    else    /* UTF-8 */
+		    {
+			if (*--p < 0x80)
+			    u8c = *p;
+			else
+			{
+			    len = utf_head_off(ptr, p);
+			    p -= len;
+			    u8c = utf_ptr2char(p);
+			    if (len == 0)
+			    {
+				/* Not a valid UTF-8 character, retry with
+				 * another fenc when possible, otherwise just
+				 * report the error. */
+				if (can_retry)
+				    goto rewind_retry;
+				if (conv_error == 0)
+				    conv_error = readfile_linenr(linecnt,
+								      ptr, p);
+				if (bad_char_behavior == BAD_DROP)
+				    continue;
+				if (bad_char_behavior != BAD_KEEP)
+				    u8c = bad_char_behavior;
+			    }
+			}
+		    }
+		    if (enc_utf8)	/* produce UTF-8 */
+		    {
+			dest -= utf_char2len(u8c);
+			(void)utf_char2bytes(u8c, dest);
+		    }
+		    else		/* produce Latin1 */
+		    {
+			--dest;
+			if (u8c >= 0x100)
+			{
+			    /* character doesn't fit in latin1, retry with
+			     * another fenc when possible, otherwise just
+			     * report the error. */
+			    if (can_retry)
+				goto rewind_retry;
+			    if (conv_error == 0)
+				conv_error = readfile_linenr(linecnt, ptr, p);
+			    if (bad_char_behavior == BAD_DROP)
+				++dest;
+			    else if (bad_char_behavior == BAD_KEEP)
+				*dest = u8c;
+			    else if (eap != NULL && eap->bad_char != 0)
+				*dest = bad_char_behavior;
+			    else
+				*dest = 0xBF;
+			}
+			else
+			    *dest = u8c;
+		    }
+		}
+
+		/* move the linerest to before the converted characters */
+		line_start = dest - linerest;
+		mch_memmove(line_start, buffer, (size_t)linerest);
+		size = (long)((ptr + real_size) - dest);
+		ptr = dest;
+	    }
+	    else if (enc_utf8 && !curbuf->b_p_bin)
+	    {
+		int  incomplete_tail = FALSE;
+
+		/* Reading UTF-8: Check if the bytes are valid UTF-8. */
+		for (p = ptr; ; ++p)
+		{
+		    int	 todo = (int)((ptr + size) - p);
+		    int	 l;
+
+		    if (todo <= 0)
+			break;
+		    if (*p >= 0x80)
+		    {
+			/* A length of 1 means it's an illegal byte.  Accept
+			 * an incomplete character at the end though, the next
+			 * read() will get the next bytes, we'll check it
+			 * then. */
+			l = utf_ptr2len_len(p, todo);
+			if (l > todo && !incomplete_tail)
+			{
+			    /* Avoid retrying with a different encoding when
+			     * a truncated file is more likely, or attempting
+			     * to read the rest of an incomplete sequence when
+			     * we have already done so. */
+			    if (p > ptr || filesize > 0)
+				incomplete_tail = TRUE;
+			    /* Incomplete byte sequence, move it to conv_rest[]
+			     * and try to read the rest of it, unless we've
+			     * already done so. */
+			    if (p > ptr)
+			    {
+				conv_restlen = todo;
+				mch_memmove(conv_rest, p, conv_restlen);
+				size -= conv_restlen;
+				break;
+			    }
+			}
+			if (l == 1 || l > todo)
+			{
+			    /* Illegal byte.  If we can try another encoding
+			     * do that, unless at EOF where a truncated
+			     * file is more likely than a conversion error. */
+			    if (can_retry && !incomplete_tail)
+				break;
+# ifdef USE_ICONV
+			    /* When we did a conversion report an error. */
+			    if (iconv_fd != (iconv_t)-1 && conv_error == 0)
+				conv_error = readfile_linenr(linecnt, ptr, p);
+# endif
+			    /* Remember the first linenr with an illegal byte */
+			    if (conv_error == 0 && illegal_byte == 0)
+				illegal_byte = readfile_linenr(linecnt, ptr, p);
+
+			    /* Drop, keep or replace the bad byte. */
+			    if (bad_char_behavior == BAD_DROP)
+			    {
+				mch_memmove(p, p + 1, todo - 1);
+				--p;
+				--size;
+			    }
+			    else if (bad_char_behavior != BAD_KEEP)
+				*p = bad_char_behavior;
+			}
+			else
+			    p += l - 1;
+		    }
+		}
+		if (p < ptr + size && !incomplete_tail)
+		{
+		    /* Detected a UTF-8 error. */
+rewind_retry:
+		    /* Retry reading with another conversion. */
+# if defined(FEAT_EVAL) && defined(USE_ICONV)
+		    if (*p_ccv != NUL && iconv_fd != (iconv_t)-1)
+			/* iconv() failed, try 'charconvert' */
+			did_iconv = TRUE;
+		    else
+# endif
+			/* use next item from 'fileencodings' */
+			advance_fenc = TRUE;
+		    file_rewind = TRUE;
+		    goto retry;
 		}
 	    }
-	  else
-	    {
-	      /* For the rationale of this see the comment on
-		 format-decode above.  */
-	      ptrdiff_t opoint = PT;
-	      ptrdiff_t opoint_byte = PT_BYTE;
-	      ptrdiff_t oinserted = ZV - BEGV;
-	      EMACS_INT ochars_modiff = CHARS_MODIFF;
-
-	      TEMP_SET_PT_BOTH (BEGV, BEGV_BYTE);
-	      insval = call1 (XCAR (p), make_number (oinserted));
-	      if (!NILP (insval))
-		{
-		  if (! RANGED_INTEGERP (0, insval, ZV - PT))
-		    wrong_type_argument (intern ("inserted-chars"), insval);
-		  if (ochars_modiff == CHARS_MODIFF)
-		    /* after_insert_file_functions didn't modify
-		       buffer's characters => move point back to
-		       position before inserted text and leave value of
-		       inserted alone.  */
-		    SET_PT_BOTH (opoint, opoint_byte);
-		  else
-		    /* after_insert_file_functions did modify buffer's
-	               characters => consider entire buffer changed and
-	               leave point at point-min.  */
-		    inserted = XFASTINT (insval);
-		}
-	    }
-
-	  QUIT;
-	  p = XCDR (p);
-	}
-
-      if (!empty_undo_list_p)
-	{
-	  bset_undo_list (current_buffer, old_undo);
-	  if (CONSP (old_undo) && inserted != old_inserted)
-	    {
-	      /* Adjust the last undo record for the size change during
-		 the format conversion.  */
-	      Lisp_Object tem = XCAR (old_undo);
-	      if (CONSP (tem) && INTEGERP (XCAR (tem))
-		  && INTEGERP (XCDR (tem))
-		  && XFASTINT (XCDR (tem)) == PT + old_inserted)
-		XSETCDR (tem, make_number (PT + inserted));
-	    }
-	}
-      else
-	/* If undo_list was Qt before, keep it that way.
-	   Otherwise start with an empty undo_list.  */
-	bset_undo_list (current_buffer, EQ (old_undo, Qt) ? Qt : Qnil);
-
-      unbind_to (count1, Qnil);
-    }
-
-  if (!NILP (visit)
-      && current_buffer->modtime.tv_nsec == NONEXISTENT_MODTIME_NSECS)
-    {
-      /* If visiting nonexistent file, return nil.  */
-      report_file_errno ("Opening input file", orig_filename, save_errno);
-    }
-
-  /* We made a lot of deletions and insertions above, so invalidate
-     the newline cache for the entire region of the inserted
-     characters.  */
-  if (current_buffer->base_buffer && current_buffer->base_buffer->newline_cache)
-    invalidate_region_cache (current_buffer->base_buffer,
-                             current_buffer->base_buffer->newline_cache,
-                             PT - BEG, Z - PT - inserted);
-  else if (current_buffer->newline_cache)
-    invalidate_region_cache (current_buffer,
-                             current_buffer->newline_cache,
-                             PT - BEG, Z - PT - inserted);
-
-  if (read_quit)
-    Fsignal (Qquit, Qnil);
-
-  /* Retval needs to be dealt with in all cases consistently.  */
-  if (NILP (val))
-    val = list2 (orig_filename, make_number (inserted));
-
-  return unbind_to (count, val);
-}
-
-static Lisp_Object build_annotations (Lisp_Object, Lisp_Object);
-
-static void
-build_annotations_unwind (Lisp_Object arg)
-{
-  Vwrite_region_annotation_buffers = arg;
-}
-
-/* Decide the coding-system to encode the data with.  */
-
-static Lisp_Object
-choose_write_coding_system (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
-			    Lisp_Object append, Lisp_Object visit, Lisp_Object lockname,
-			    struct coding_system *coding)
-{
-  Lisp_Object val;
-  Lisp_Object eol_parent = Qnil;
-
-  if (auto_saving
-      && NILP (Fstring_equal (BVAR (current_buffer, filename),
-			      BVAR (current_buffer, auto_save_file_name))))
-    {
-      val = Qutf_8_emacs;
-      eol_parent = Qunix;
-    }
-  else if (!NILP (Vcoding_system_for_write))
-    {
-      val = Vcoding_system_for_write;
-      if (coding_system_require_warning
-	  && !NILP (Ffboundp (Vselect_safe_coding_system_function)))
-	/* Confirm that VAL can surely encode the current region.  */
-	val = call5 (Vselect_safe_coding_system_function,
-		     start, end, list2 (Qt, val),
-		     Qnil, filename);
-    }
-  else
-    {
-      /* If the variable `buffer-file-coding-system' is set locally,
-	 it means that the file was read with some kind of code
-	 conversion or the variable is explicitly set by users.  We
-	 had better write it out with the same coding system even if
-	 `enable-multibyte-characters' is nil.
-
-	 If it is not set locally, we anyway have to convert EOL
-	 format if the default value of `buffer-file-coding-system'
-	 tells that it is not Unix-like (LF only) format.  */
-      bool using_default_coding = 0;
-      bool force_raw_text = 0;
-
-      val = BVAR (current_buffer, buffer_file_coding_system);
-      if (NILP (val)
-	  || NILP (Flocal_variable_p (Qbuffer_file_coding_system, Qnil)))
-	{
-	  val = Qnil;
-	  if (NILP (BVAR (current_buffer, enable_multibyte_characters)))
-	    force_raw_text = 1;
-	}
-
-      if (NILP (val))
-	{
-	  /* Check file-coding-system-alist.  */
-	  Lisp_Object coding_systems
-	    = CALLN (Ffind_operation_coding_system, Qwrite_region, start, end,
-		     filename, append, visit, lockname);
-	  if (CONSP (coding_systems) && !NILP (XCDR (coding_systems)))
-	    val = XCDR (coding_systems);
-	}
-
-      if (NILP (val))
-	{
-	  /* If we still have not decided a coding system, use the
-	     current buffer's value of buffer-file-coding-system.  */
-	  val = BVAR (current_buffer, buffer_file_coding_system);
-	  using_default_coding = 1;
-	}
-
-      if (! NILP (val) && ! force_raw_text)
-	{
-	  Lisp_Object spec, attrs;
-
-	  CHECK_CODING_SYSTEM (val);
-	  CHECK_CODING_SYSTEM_GET_SPEC (val, spec);
-	  attrs = AREF (spec, 0);
-	  if (EQ (CODING_ATTR_TYPE (attrs), Qraw_text))
-	    force_raw_text = 1;
-	}
-
-      if (!force_raw_text
-	  && !NILP (Ffboundp (Vselect_safe_coding_system_function)))
-	{
-	  /* Confirm that VAL can surely encode the current region.  */
-	  val = call5 (Vselect_safe_coding_system_function,
-		       start, end, val, Qnil, filename);
-	  /* As the function specified by select-safe-coding-system-function
-	     is out of our control, make sure we are not fed by bogus
-	     values.  */
-	  if (!NILP (val))
-	    CHECK_CODING_SYSTEM (val);
-	}
-
-      /* If the decided coding-system doesn't specify end-of-line
-	 format, we use that of
-	 `default-buffer-file-coding-system'.  */
-      if (! using_default_coding)
-	{
-	  Lisp_Object dflt = BVAR (&buffer_defaults, buffer_file_coding_system);
-
-	  if (! NILP (dflt))
-	    val = coding_inherit_eol_type (val, dflt);
-	}
-
-      /* If we decide not to encode text, use `raw-text' or one of its
-	 subsidiaries.  */
-      if (force_raw_text)
-	val = raw_text_coding_system (val);
-    }
-
-  val = coding_inherit_eol_type (val, eol_parent);
-  setup_coding_system (val, coding);
-
-  if (!STRINGP (start) && !NILP (BVAR (current_buffer, selective_display)))
-    coding->mode |= CODING_MODE_SELECTIVE_DISPLAY;
-  return val;
-}
-
-DEFUN ("write-region", Fwrite_region, Swrite_region, 3, 7,
-       "r\nFWrite region to file: \ni\ni\ni\np",
-       doc: /* Write current region into specified file.
-When called from a program, requires three arguments:
-START, END and FILENAME.  START and END are normally buffer positions
-specifying the part of the buffer to write.
-If START is nil, that means to use the entire buffer contents.
-If START is a string, then output that string to the file
-instead of any buffer contents; END is ignored.
-
-Optional fourth argument APPEND if non-nil means
-  append to existing file contents (if any).  If it is a number,
-  seek to that offset in the file before writing.
-Optional fifth argument VISIT, if t or a string, means
-  set the last-save-file-modtime of buffer to this file's modtime
-  and mark buffer not modified.
-If VISIT is a string, it is a second file name;
-  the output goes to FILENAME, but the buffer is marked as visiting VISIT.
-  VISIT is also the file name to lock and unlock for clash detection.
-If VISIT is neither t nor nil nor a string, or if Emacs is in batch mode,
-  do not display the \"Wrote file\" message.
-The optional sixth arg LOCKNAME, if non-nil, specifies the name to
-  use for locking and unlocking, overriding FILENAME and VISIT.
-The optional seventh arg MUSTBENEW, if non-nil, insists on a check
-  for an existing file with the same name.  If MUSTBENEW is `excl',
-  that means to get an error if the file already exists; never overwrite.
-  If MUSTBENEW is neither nil nor `excl', that means ask for
-  confirmation before overwriting, but do go ahead and overwrite the file
-  if the user confirms.
-
-This does code conversion according to the value of
-`coding-system-for-write', `buffer-file-coding-system', or
-`file-coding-system-alist', and sets the variable
-`last-coding-system-used' to the coding system actually used.
-
-This calls `write-region-annotate-functions' at the start, and
-`write-region-post-annotation-function' at the end.  */)
-  (Lisp_Object start, Lisp_Object end, Lisp_Object filename, Lisp_Object append,
-   Lisp_Object visit, Lisp_Object lockname, Lisp_Object mustbenew)
-{
-  return write_region (start, end, filename, append, visit, lockname, mustbenew,
-		       -1);
-}
-
-/* Like Fwrite_region, except that if DESC is nonnegative, it is a file
-   descriptor for FILENAME, so do not open or close FILENAME.  */
-
-Lisp_Object
-write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
-	      Lisp_Object append, Lisp_Object visit, Lisp_Object lockname,
-	      Lisp_Object mustbenew, int desc)
-{
-  int open_flags;
-  int mode;
-  off_t offset IF_LINT (= 0);
-  bool open_and_close_file = desc < 0;
-  bool ok;
-  int save_errno = 0;
-  const char *fn;
-  struct stat st;
-  struct timespec modtime;
-  ptrdiff_t count = SPECPDL_INDEX ();
-  ptrdiff_t count1 IF_LINT (= 0);
-  Lisp_Object handler;
-  Lisp_Object visit_file;
-  Lisp_Object annotations;
-  Lisp_Object encoded_filename;
-  bool visiting = (EQ (visit, Qt) || STRINGP (visit));
-  bool quietly = !NILP (visit);
-  bool file_locked = 0;
-  struct buffer *given_buffer;
-  struct coding_system coding;
-
-  if (current_buffer->base_buffer && visiting)
-    error ("Cannot do file visiting in an indirect buffer");
-
-  if (!NILP (start) && !STRINGP (start))
-    validate_region (&start, &end);
-
-  visit_file = Qnil;
-
-  filename = Fexpand_file_name (filename, Qnil);
-
-  if (!NILP (mustbenew) && !EQ (mustbenew, Qexcl))
-    barf_or_query_if_file_exists (filename, false, "overwrite", true, true);
-
-  if (STRINGP (visit))
-    visit_file = Fexpand_file_name (visit, Qnil);
-  else
-    visit_file = filename;
-
-  if (NILP (lockname))
-    lockname = visit_file;
-
-  annotations = Qnil;
-
-  /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (filename, Qwrite_region);
-  /* If FILENAME has no handler, see if VISIT has one.  */
-  if (NILP (handler) && STRINGP (visit))
-    handler = Ffind_file_name_handler (visit, Qwrite_region);
-
-  if (!NILP (handler))
-    {
-      Lisp_Object val;
-      val = call6 (handler, Qwrite_region, start, end,
-		   filename, append, visit);
-
-      if (visiting)
-	{
-	  SAVE_MODIFF = MODIFF;
-	  XSETFASTINT (BVAR (current_buffer, save_length), Z - BEG);
-	  bset_filename (current_buffer, visit_file);
-	}
-
-      return val;
-    }
-
-  record_unwind_protect (save_restriction_restore, save_restriction_save ());
-
-  /* Special kludge to simplify auto-saving.  */
-  if (NILP (start))
-    {
-      /* Do it later, so write-region-annotate-function can work differently
-	 if we save "the buffer" vs "a region".
-	 This is useful in tar-mode.  --Stef
-      XSETFASTINT (start, BEG);
-      XSETFASTINT (end, Z); */
-      Fwiden ();
-    }
-
-  record_unwind_protect (build_annotations_unwind,
-			 Vwrite_region_annotation_buffers);
-  Vwrite_region_annotation_buffers = list1 (Fcurrent_buffer ());
-
-  given_buffer = current_buffer;
-
-  if (!STRINGP (start))
-    {
-      annotations = build_annotations (start, end);
-
-      if (current_buffer != given_buffer)
-	{
-	  XSETFASTINT (start, BEGV);
-	  XSETFASTINT (end, ZV);
-	}
-    }
-
-  if (NILP (start))
-    {
-      XSETFASTINT (start, BEGV);
-      XSETFASTINT (end, ZV);
-    }
-
-  /* Decide the coding-system to encode the data with.
-     We used to make this choice before calling build_annotations, but that
-     leads to problems when a write-annotate-function takes care of
-     unsavable chars (as was the case with X-Symbol).  */
-  Vlast_coding_system_used
-    = choose_write_coding_system (start, end, filename,
-                                 append, visit, lockname, &coding);
-
-  if (open_and_close_file && !auto_saving)
-    {
-      lock_file (lockname);
-      file_locked = 1;
-    }
-
-  encoded_filename = ENCODE_FILE (filename);
-  fn = SSDATA (encoded_filename);
-  open_flags = O_WRONLY | O_CREAT;
-  open_flags |= EQ (mustbenew, Qexcl) ? O_EXCL : !NILP (append) ? 0 : O_TRUNC;
-  if (NUMBERP (append))
-    offset = file_offset (append);
-  else if (!NILP (append))
-    open_flags |= O_APPEND;
-#ifdef DOS_NT
-  mode = S_IREAD | S_IWRITE;
-#else
-  mode = auto_saving ? auto_save_mode_bits : 0666;
 #endif
 
-  if (open_and_close_file)
-    {
-      desc = emacs_open (fn, open_flags, mode);
-      if (desc < 0)
-	{
-	  int open_errno = errno;
-	  if (file_locked)
-	    unlock_file (lockname);
-	  report_file_errno ("Opening output file", filename, open_errno);
+	    /* count the number of characters (after conversion!) */
+	    filesize += size;
+
+	    /*
+	     * when reading the first part of a file: guess EOL type
+	     */
+	    if (fileformat == EOL_UNKNOWN)
+	    {
+		/* First try finding a NL, for Dos and Unix */
+		if (try_dos || try_unix)
+		{
+		    /* Reset the carriage return counter. */
+		    if (try_mac)
+			try_mac = 1;
+
+		    for (p = ptr; p < ptr + size; ++p)
+		    {
+			if (*p == NL)
+			{
+			    if (!try_unix
+				    || (try_dos && p > ptr && p[-1] == CAR))
+				fileformat = EOL_DOS;
+			    else
+				fileformat = EOL_UNIX;
+			    break;
+			}
+			else if (*p == CAR && try_mac)
+			    try_mac++;
+		    }
+
+		    /* Don't give in to EOL_UNIX if EOL_MAC is more likely */
+		    if (fileformat == EOL_UNIX && try_mac)
+		    {
+			/* Need to reset the counters when retrying fenc. */
+			try_mac = 1;
+			try_unix = 1;
+			for (; p >= ptr && *p != CAR; p--)
+			    ;
+			if (p >= ptr)
+			{
+			    for (p = ptr; p < ptr + size; ++p)
+			    {
+				if (*p == NL)
+				    try_unix++;
+				else if (*p == CAR)
+				    try_mac++;
+			    }
+			    if (try_mac > try_unix)
+				fileformat = EOL_MAC;
+			}
+		    }
+		    else if (fileformat == EOL_UNKNOWN && try_mac == 1)
+			/* Looking for CR but found no end-of-line markers at
+			 * all: use the default format. */
+			fileformat = default_fileformat();
+		}
+
+		/* No NL found: may use Mac format */
+		if (fileformat == EOL_UNKNOWN && try_mac)
+		    fileformat = EOL_MAC;
+
+		/* Still nothing found?  Use first format in 'ffs' */
+		if (fileformat == EOL_UNKNOWN)
+		    fileformat = default_fileformat();
+
+		/* if editing a new file: may set p_tx and p_ff */
+		if (set_options)
+		    set_fileformat(fileformat, OPT_LOCAL);
+	    }
 	}
 
-      count1 = SPECPDL_INDEX ();
-      record_unwind_protect_int (close_file_unwind, desc);
+	/*
+	 * This loop is executed once for every character read.
+	 * Keep it fast!
+	 */
+	if (fileformat == EOL_MAC)
+	{
+	    --ptr;
+	    while (++ptr, --size >= 0)
+	    {
+		/* catch most common case first */
+		if ((c = *ptr) != NUL && c != CAR && c != NL)
+		    continue;
+		if (c == NUL)
+		    *ptr = NL;	/* NULs are replaced by newlines! */
+		else if (c == NL)
+		    *ptr = CAR;	/* NLs are replaced by CRs! */
+		else
+		{
+		    if (skip_count == 0)
+		    {
+			*ptr = NUL;	    /* end of line */
+			len = (colnr_T) (ptr - line_start + 1);
+			if (ml_append(lnum, line_start, len, newfile) == FAIL)
+			{
+			    error = TRUE;
+			    break;
+			}
+#ifdef FEAT_PERSISTENT_UNDO
+			if (read_undo_file)
+			    sha256_update(&sha_ctx, line_start, len);
+#endif
+			++lnum;
+			if (--read_count == 0)
+			{
+			    error = TRUE;	/* break loop */
+			    line_start = ptr;	/* nothing left to write */
+			    break;
+			}
+		    }
+		    else
+			--skip_count;
+		    line_start = ptr + 1;
+		}
+	    }
+	}
+	else
+	{
+	    --ptr;
+	    while (++ptr, --size >= 0)
+	    {
+		if ((c = *ptr) != NUL && c != NL)  /* catch most common case */
+		    continue;
+		if (c == NUL)
+		    *ptr = NL;	/* NULs are replaced by newlines! */
+		else
+		{
+		    if (skip_count == 0)
+		    {
+			*ptr = NUL;		/* end of line */
+			len = (colnr_T)(ptr - line_start + 1);
+			if (fileformat == EOL_DOS)
+			{
+			    if (ptr[-1] == CAR)	/* remove CR */
+			    {
+				ptr[-1] = NUL;
+				--len;
+			    }
+			    /*
+			     * Reading in Dos format, but no CR-LF found!
+			     * When 'fileformats' includes "unix", delete all
+			     * the lines read so far and start all over again.
+			     * Otherwise give an error message later.
+			     */
+			    else if (ff_error != EOL_DOS)
+			    {
+				if (   try_unix
+				    && !read_stdin
+				    && (read_buffer
+					|| vim_lseek(fd, (off_T)0L, SEEK_SET)
+									  == 0))
+				{
+				    fileformat = EOL_UNIX;
+				    if (set_options)
+					set_fileformat(EOL_UNIX, OPT_LOCAL);
+				    file_rewind = TRUE;
+				    keep_fileformat = TRUE;
+				    goto retry;
+				}
+				ff_error = EOL_DOS;
+			    }
+			}
+			if (ml_append(lnum, line_start, len, newfile) == FAIL)
+			{
+			    error = TRUE;
+			    break;
+			}
+#ifdef FEAT_PERSISTENT_UNDO
+			if (read_undo_file)
+			    sha256_update(&sha_ctx, line_start, len);
+#endif
+			++lnum;
+			if (--read_count == 0)
+			{
+			    error = TRUE;	    /* break loop */
+			    line_start = ptr;	/* nothing left to write */
+			    break;
+			}
+		    }
+		    else
+			--skip_count;
+		    line_start = ptr + 1;
+		}
+	    }
+	}
+	linerest = (long)(ptr - line_start);
+	ui_breakcheck();
     }
 
-  if (NUMBERP (append))
+failed:
+    /* not an error, max. number of lines reached */
+    if (error && read_count == 0)
+	error = FALSE;
+
+    /*
+     * If we get EOF in the middle of a line, note the fact and
+     * complete the line ourselves.
+     * In Dos format ignore a trailing CTRL-Z, unless 'binary' set.
+     */
+    if (!error
+	    && !got_int
+	    && linerest != 0
+	    && !(!curbuf->b_p_bin
+		&& fileformat == EOL_DOS
+		&& *line_start == Ctrl_Z
+		&& ptr == line_start + 1))
     {
-      off_t ret = lseek (desc, offset, SEEK_SET);
-      if (ret < 0)
+	/* remember for when writing */
+	if (set_options)
+	    curbuf->b_p_eol = FALSE;
+	*ptr = NUL;
+	len = (colnr_T)(ptr - line_start + 1);
+	if (ml_append(lnum, line_start, len, newfile) == FAIL)
+	    error = TRUE;
+	else
 	{
-	  int lseek_errno = errno;
-	  if (file_locked)
-	    unlock_file (lockname);
-	  report_file_errno ("Lseek error", filename, lseek_errno);
+#ifdef FEAT_PERSISTENT_UNDO
+	    if (read_undo_file)
+		sha256_update(&sha_ctx, line_start, len);
+#endif
+	    read_no_eol_lnum = ++lnum;
 	}
     }
 
-  immediate_quit = 1;
+    if (set_options)
+	save_file_ff(curbuf);		/* remember the current file format */
 
-  if (STRINGP (start))
-    ok = a_write (desc, start, 0, SCHARS (start), &annotations, &coding);
-  else if (XINT (start) != XINT (end))
-    ok = a_write (desc, Qnil, XINT (start), XINT (end) - XINT (start),
-		  &annotations, &coding);
-  else
+#ifdef FEAT_CRYPT
+    if (curbuf->b_cryptstate != NULL)
     {
-      /* If file was empty, still need to write the annotations.  */
-      coding.mode |= CODING_MODE_LAST_BLOCK;
-      ok = a_write (desc, Qnil, XINT (end), 0, &annotations, &coding);
+	crypt_free_state(curbuf->b_cryptstate);
+	curbuf->b_cryptstate = NULL;
     }
-  save_errno = errno;
+    if (cryptkey != NULL && cryptkey != curbuf->b_p_key)
+	crypt_free_key(cryptkey);
+    /* Don't set cryptkey to NULL, it's used below as a flag that
+     * encryption was used. */
+#endif
 
-  if (ok && CODING_REQUIRE_FLUSHING (&coding)
-      && !(coding.mode & CODING_MODE_LAST_BLOCK))
+#ifdef FEAT_MBYTE
+    /* If editing a new file: set 'fenc' for the current buffer.
+     * Also for ":read ++edit file". */
+    if (set_options)
+	set_string_option_direct((char_u *)"fenc", -1, fenc,
+						       OPT_FREE|OPT_LOCAL, 0);
+    if (fenc_alloced)
+	vim_free(fenc);
+# ifdef USE_ICONV
+    if (iconv_fd != (iconv_t)-1)
     {
-      /* We have to flush out a data. */
-      coding.mode |= CODING_MODE_LAST_BLOCK;
-      ok = e_write (desc, Qnil, 1, 1, &coding);
-      save_errno = errno;
+	iconv_close(iconv_fd);
+	iconv_fd = (iconv_t)-1;
+    }
+# endif
+#endif
+
+    if (!read_buffer && !read_stdin)
+	close(fd);				/* errors are ignored */
+#ifdef HAVE_FD_CLOEXEC
+    else
+    {
+	int fdflags = fcntl(fd, F_GETFD);
+	if (fdflags >= 0 && (fdflags & FD_CLOEXEC) == 0)
+	    (void)fcntl(fd, F_SETFD, fdflags | FD_CLOEXEC);
+    }
+#endif
+    vim_free(buffer);
+
+#ifdef HAVE_DUP
+    if (read_stdin)
+    {
+	/* Use stderr for stdin, makes shell commands work. */
+	close(0);
+	ignored = dup(2);
+    }
+#endif
+
+#ifdef FEAT_MBYTE
+    if (tmpname != NULL)
+    {
+	mch_remove(tmpname);		/* delete converted file */
+	vim_free(tmpname);
+    }
+#endif
+    --no_wait_return;			/* may wait for return now */
+
+    /*
+     * In recovery mode everything but autocommands is skipped.
+     */
+    if (!recoverymode)
+    {
+	/* need to delete the last line, which comes from the empty buffer */
+	if (newfile && wasempty && !(curbuf->b_ml.ml_flags & ML_EMPTY))
+	{
+#ifdef FEAT_NETBEANS_INTG
+	    netbeansFireChanges = 0;
+#endif
+	    ml_delete(curbuf->b_ml.ml_line_count, FALSE);
+#ifdef FEAT_NETBEANS_INTG
+	    netbeansFireChanges = 1;
+#endif
+	    --linecnt;
+	}
+	linecnt = curbuf->b_ml.ml_line_count - linecnt;
+	if (filesize == 0)
+	    linecnt = 0;
+	if (newfile || read_buffer)
+	{
+	    redraw_curbuf_later(NOT_VALID);
+#ifdef FEAT_DIFF
+	    /* After reading the text into the buffer the diff info needs to
+	     * be updated. */
+	    diff_invalidate(curbuf);
+#endif
+#ifdef FEAT_FOLDING
+	    /* All folds in the window are invalid now.  Mark them for update
+	     * before triggering autocommands. */
+	    foldUpdateAll(curwin);
+#endif
+	}
+	else if (linecnt)		/* appended at least one line */
+	    appended_lines_mark(from, linecnt);
+
+#ifndef ALWAYS_USE_GUI
+	/*
+	 * If we were reading from the same terminal as where messages go,
+	 * the screen will have been messed up.
+	 * Switch on raw mode now and clear the screen.
+	 */
+	if (read_stdin)
+	{
+	    settmode(TMODE_RAW);	/* set to raw mode */
+	    starttermcap();
+	    screenclear();
+	}
+#endif
+
+	if (got_int)
+	{
+	    if (!(flags & READ_DUMMY))
+	    {
+		filemess(curbuf, sfname, (char_u *)_(e_interr), 0);
+		if (newfile)
+		    curbuf->b_p_ro = TRUE;	/* must use "w!" now */
+	    }
+	    msg_scroll = msg_save;
+#ifdef FEAT_VIMINFO
+	    check_marks_read();
+#endif
+	    return OK;		/* an interrupt isn't really an error */
+	}
+
+	if (!filtering && !(flags & READ_DUMMY))
+	{
+	    msg_add_fname(curbuf, sfname);   /* fname in IObuff with quotes */
+	    c = FALSE;
+
+#ifdef UNIX
+# ifdef S_ISFIFO
+	    if (S_ISFIFO(perm))			    /* fifo or socket */
+	    {
+		STRCAT(IObuff, _("[fifo/socket]"));
+		c = TRUE;
+	    }
+# else
+#  ifdef S_IFIFO
+	    if ((perm & S_IFMT) == S_IFIFO)	    /* fifo */
+	    {
+		STRCAT(IObuff, _("[fifo]"));
+		c = TRUE;
+	    }
+#  endif
+#  ifdef S_IFSOCK
+	    if ((perm & S_IFMT) == S_IFSOCK)	    /* or socket */
+	    {
+		STRCAT(IObuff, _("[socket]"));
+		c = TRUE;
+	    }
+#  endif
+# endif
+# ifdef OPEN_CHR_FILES
+	    if (S_ISCHR(perm))			    /* or character special */
+	    {
+		STRCAT(IObuff, _("[character special]"));
+		c = TRUE;
+	    }
+# endif
+#endif
+	    if (curbuf->b_p_ro)
+	    {
+		STRCAT(IObuff, shortmess(SHM_RO) ? _("[RO]") : _("[readonly]"));
+		c = TRUE;
+	    }
+	    if (read_no_eol_lnum)
+	    {
+		msg_add_eol();
+		c = TRUE;
+	    }
+	    if (ff_error == EOL_DOS)
+	    {
+		STRCAT(IObuff, _("[CR missing]"));
+		c = TRUE;
+	    }
+	    if (split)
+	    {
+		STRCAT(IObuff, _("[long lines split]"));
+		c = TRUE;
+	    }
+#ifdef FEAT_MBYTE
+	    if (notconverted)
+	    {
+		STRCAT(IObuff, _("[NOT converted]"));
+		c = TRUE;
+	    }
+	    else if (converted)
+	    {
+		STRCAT(IObuff, _("[converted]"));
+		c = TRUE;
+	    }
+#endif
+#ifdef FEAT_CRYPT
+	    if (cryptkey != NULL)
+	    {
+		crypt_append_msg(curbuf);
+		c = TRUE;
+	    }
+#endif
+#ifdef FEAT_MBYTE
+	    if (conv_error != 0)
+	    {
+		sprintf((char *)IObuff + STRLEN(IObuff),
+		       _("[CONVERSION ERROR in line %ld]"), (long)conv_error);
+		c = TRUE;
+	    }
+	    else if (illegal_byte > 0)
+	    {
+		sprintf((char *)IObuff + STRLEN(IObuff),
+			 _("[ILLEGAL BYTE in line %ld]"), (long)illegal_byte);
+		c = TRUE;
+	    }
+	    else
+#endif
+		if (error)
+	    {
+		STRCAT(IObuff, _("[READ ERRORS]"));
+		c = TRUE;
+	    }
+	    if (msg_add_fileformat(fileformat))
+		c = TRUE;
+#ifdef FEAT_CRYPT
+	    if (cryptkey != NULL)
+		msg_add_lines(c, (long)linecnt, filesize
+			 - crypt_get_header_len(crypt_get_method_nr(curbuf)));
+	    else
+#endif
+		msg_add_lines(c, (long)linecnt, filesize);
+
+	    vim_free(keep_msg);
+	    keep_msg = NULL;
+	    msg_scrolled_ign = TRUE;
+#ifdef ALWAYS_USE_GUI
+	    /* Don't show the message when reading stdin, it would end up in a
+	     * message box (which might be shown when exiting!) */
+	    if (read_stdin || read_buffer)
+		p = msg_may_trunc(FALSE, IObuff);
+	    else
+#endif
+		p = msg_trunc_attr(IObuff, FALSE, 0);
+	    if (read_stdin || read_buffer || restart_edit != 0
+		    || (msg_scrolled != 0 && !need_wait_return))
+		/* Need to repeat the message after redrawing when:
+		 * - When reading from stdin (the screen will be cleared next).
+		 * - When restart_edit is set (otherwise there will be a delay
+		 *   before redrawing).
+		 * - When the screen was scrolled but there is no wait-return
+		 *   prompt. */
+		set_keep_msg(p, 0);
+	    msg_scrolled_ign = FALSE;
+	}
+
+	/* with errors writing the file requires ":w!" */
+	if (newfile && (error
+#ifdef FEAT_MBYTE
+		    || conv_error != 0
+		    || (illegal_byte > 0 && bad_char_behavior != BAD_KEEP)
+#endif
+		    ))
+	    curbuf->b_p_ro = TRUE;
+
+	u_clearline();	    /* cannot use "U" command after adding lines */
+
+	/*
+	 * In Ex mode: cursor at last new line.
+	 * Otherwise: cursor at first new line.
+	 */
+	if (exmode_active)
+	    curwin->w_cursor.lnum = from + linecnt;
+	else
+	    curwin->w_cursor.lnum = from + 1;
+	check_cursor_lnum();
+	beginline(BL_WHITE | BL_FIX);	    /* on first non-blank */
+
+	/*
+	 * Set '[ and '] marks to the newly read lines.
+	 */
+	curbuf->b_op_start.lnum = from + 1;
+	curbuf->b_op_start.col = 0;
+	curbuf->b_op_end.lnum = from + linecnt;
+	curbuf->b_op_end.col = 0;
+
+#ifdef WIN32
+	/*
+	 * Work around a weird problem: When a file has two links (only
+	 * possible on NTFS) and we write through one link, then stat() it
+	 * through the other link, the timestamp information may be wrong.
+	 * It's correct again after reading the file, thus reset the timestamp
+	 * here.
+	 */
+	if (newfile && !read_stdin && !read_buffer
+					 && mch_stat((char *)fname, &st) >= 0)
+	{
+	    buf_store_time(curbuf, &st, fname);
+	    curbuf->b_mtime_read = curbuf->b_mtime;
+	}
+#endif
+    }
+    msg_scroll = msg_save;
+
+#ifdef FEAT_VIMINFO
+    /*
+     * Get the marks before executing autocommands, so they can be used there.
+     */
+    check_marks_read();
+#endif
+
+    /*
+     * We remember if the last line of the read didn't have
+     * an eol even when 'binary' is off, to support turning 'fixeol' off,
+     * or writing the read again with 'binary' on.  The latter is required
+     * for ":autocmd FileReadPost *.gz set bin|'[,']!gunzip" to work.
+     */
+    curbuf->b_no_eol_lnum = read_no_eol_lnum;
+
+    /* When reloading a buffer put the cursor at the first line that is
+     * different. */
+    if (flags & READ_KEEP_UNDO)
+	u_find_first_changed();
+
+#ifdef FEAT_PERSISTENT_UNDO
+    /*
+     * When opening a new file locate undo info and read it.
+     */
+    if (read_undo_file)
+    {
+	char_u	hash[UNDO_HASH_SIZE];
+
+	sha256_finish(&sha_ctx, hash);
+	u_read_undo(NULL, hash, fname);
+    }
+#endif
+
+#ifdef FEAT_AUTOCMD
+    if (!read_stdin && !read_buffer)
+    {
+	int m = msg_scroll;
+	int n = msg_scrolled;
+
+	/* Save the fileformat now, otherwise the buffer will be considered
+	 * modified if the format/encoding was automatically detected. */
+	if (set_options)
+	    save_file_ff(curbuf);
+
+	/*
+	 * The output from the autocommands should not overwrite anything and
+	 * should not be overwritten: Set msg_scroll, restore its value if no
+	 * output was done.
+	 */
+	msg_scroll = TRUE;
+	if (filtering)
+	    apply_autocmds_exarg(EVENT_FILTERREADPOST, NULL, sfname,
+							  FALSE, curbuf, eap);
+	else if (newfile)
+	{
+	    apply_autocmds_exarg(EVENT_BUFREADPOST, NULL, sfname,
+							  FALSE, curbuf, eap);
+	    if (!au_did_filetype && *curbuf->b_p_ft != NUL)
+		/*
+		 * EVENT_FILETYPE was not triggered but the buffer already has a
+		 * filetype. Trigger EVENT_FILETYPE using the existing filetype.
+		 */
+		apply_autocmds(EVENT_FILETYPE, curbuf->b_p_ft, curbuf->b_fname,
+			TRUE, curbuf);
+	}
+	else
+	    apply_autocmds_exarg(EVENT_FILEREADPOST, sfname, sfname,
+							    FALSE, NULL, eap);
+	if (msg_scrolled == n)
+	    msg_scroll = m;
+# ifdef FEAT_EVAL
+	if (aborting())	    /* autocmds may abort script processing */
+	    return FAIL;
+# endif
+    }
+#endif
+
+    if (recoverymode && error)
+	return FAIL;
+    return OK;
+}
+
+#ifdef OPEN_CHR_FILES
+/*
+ * Returns TRUE if the file name argument is of the form "/dev/fd/\d\+",
+ * which is the name of files used for process substitution output by
+ * some shells on some operating systems, e.g., bash on SunOS.
+ * Do not accept "/dev/fd/[012]", opening these may hang Vim.
+ */
+    static int
+is_dev_fd_file(char_u *fname)
+{
+    return (STRNCMP(fname, "/dev/fd/", 8) == 0
+	    && VIM_ISDIGIT(fname[8])
+	    && *skipdigits(fname + 9) == NUL
+	    && (fname[9] != NUL
+		|| (fname[8] != '0' && fname[8] != '1' && fname[8] != '2')));
+}
+#endif
+
+#ifdef FEAT_MBYTE
+
+/*
+ * From the current line count and characters read after that, estimate the
+ * line number where we are now.
+ * Used for error messages that include a line number.
+ */
+    static linenr_T
+readfile_linenr(
+    linenr_T	linecnt,	/* line count before reading more bytes */
+    char_u	*p,		/* start of more bytes read */
+    char_u	*endp)		/* end of more bytes read */
+{
+    char_u	*s;
+    linenr_T	lnum;
+
+    lnum = curbuf->b_ml.ml_line_count - linecnt + 1;
+    for (s = p; s < endp; ++s)
+	if (*s == '\n')
+	    ++lnum;
+    return lnum;
+}
+#endif
+
+/*
+ * Fill "*eap" to force the 'fileencoding', 'fileformat' and 'binary to be
+ * equal to the buffer "buf".  Used for calling readfile().
+ * Returns OK or FAIL.
+ */
+    int
+prep_exarg(exarg_T *eap, buf_T *buf)
+{
+    eap->cmd = alloc((unsigned)(STRLEN(buf->b_p_ff)
+#ifdef FEAT_MBYTE
+		+ STRLEN(buf->b_p_fenc)
+#endif
+						 + 15));
+    if (eap->cmd == NULL)
+	return FAIL;
+
+#ifdef FEAT_MBYTE
+    sprintf((char *)eap->cmd, "e ++ff=%s ++enc=%s", buf->b_p_ff, buf->b_p_fenc);
+    eap->force_enc = 14 + (int)STRLEN(buf->b_p_ff);
+    eap->bad_char = buf->b_bad_char;
+#else
+    sprintf((char *)eap->cmd, "e ++ff=%s", buf->b_p_ff);
+#endif
+    eap->force_ff = 7;
+
+    eap->force_bin = buf->b_p_bin ? FORCE_BIN : FORCE_NOBIN;
+    eap->read_edit = FALSE;
+    eap->forceit = FALSE;
+    return OK;
+}
+
+/*
+ * Set default or forced 'fileformat' and 'binary'.
+ */
+    void
+set_file_options(int set_options, exarg_T *eap)
+{
+    /* set default 'fileformat' */
+    if (set_options)
+    {
+	if (eap != NULL && eap->force_ff != 0)
+	    set_fileformat(get_fileformat_force(curbuf, eap), OPT_LOCAL);
+	else if (*p_ffs != NUL)
+	    set_fileformat(default_fileformat(), OPT_LOCAL);
     }
 
-  immediate_quit = 0;
-
-  /* fsync is not crucial for temporary files.  Nor for auto-save
-     files, since they might lose some work anyway.  */
-  if (open_and_close_file && !auto_saving && !write_region_inhibit_fsync)
+    /* set or reset 'binary' */
+    if (eap != NULL && eap->force_bin != 0)
     {
-      /* Transfer data and metadata to disk, retrying if interrupted.
-	 fsync can report a write failure here, e.g., due to disk full
-	 under NFS.  But ignore EINVAL, which means fsync is not
-	 supported on this file.  */
-      while (fsync (desc) != 0)
-	if (errno != EINTR)
-	  {
-	    if (errno != EINVAL)
-	      ok = 0, save_errno = errno;
+	int	oldval = curbuf->b_p_bin;
+
+	curbuf->b_p_bin = (eap->force_bin == FORCE_BIN);
+	set_options_bin(oldval, curbuf->b_p_bin, OPT_LOCAL);
+    }
+}
+
+#if defined(FEAT_MBYTE) || defined(PROTO)
+/*
+ * Set forced 'fileencoding'.
+ */
+    void
+set_forced_fenc(exarg_T *eap)
+{
+    if (eap->force_enc != 0)
+    {
+	char_u *fenc = enc_canonize(eap->cmd + eap->force_enc);
+
+	if (fenc != NULL)
+	    set_string_option_direct((char_u *)"fenc", -1,
+				 fenc, OPT_FREE|OPT_LOCAL, 0);
+	vim_free(fenc);
+    }
+}
+
+/*
+ * Find next fileencoding to use from 'fileencodings'.
+ * "pp" points to fenc_next.  It's advanced to the next item.
+ * When there are no more items, an empty string is returned and *pp is set to
+ * NULL.
+ * When *pp is not set to NULL, the result is in allocated memory.
+ */
+    static char_u *
+next_fenc(char_u **pp)
+{
+    char_u	*p;
+    char_u	*r;
+
+    if (**pp == NUL)
+    {
+	*pp = NULL;
+	return (char_u *)"";
+    }
+    p = vim_strchr(*pp, ',');
+    if (p == NULL)
+    {
+	r = enc_canonize(*pp);
+	*pp += STRLEN(*pp);
+    }
+    else
+    {
+	r = vim_strnsave(*pp, (int)(p - *pp));
+	*pp = p + 1;
+	if (r != NULL)
+	{
+	    p = enc_canonize(r);
+	    vim_free(r);
+	    r = p;
+	}
+    }
+    if (r == NULL)	/* out of memory */
+    {
+	r = (char_u *)"";
+	*pp = NULL;
+    }
+    return r;
+}
+
+# ifdef FEAT_EVAL
+/*
+ * Convert a file with the 'charconvert' expression.
+ * This closes the file which is to be read, converts it and opens the
+ * resulting file for reading.
+ * Returns name of the resulting converted file (the caller should delete it
+ * after reading it).
+ * Returns NULL if the conversion failed ("*fdp" is not set) .
+ */
+    static char_u *
+readfile_charconvert(
+    char_u	*fname,		/* name of input file */
+    char_u	*fenc,		/* converted from */
+    int		*fdp)		/* in/out: file descriptor of file */
+{
+    char_u	*tmpname;
+    char_u	*errmsg = NULL;
+
+    tmpname = vim_tempname('r', FALSE);
+    if (tmpname == NULL)
+	errmsg = (char_u *)_("Can't find temp file for conversion");
+    else
+    {
+	close(*fdp);		/* close the input file, ignore errors */
+	*fdp = -1;
+	if (eval_charconvert(fenc, enc_utf8 ? (char_u *)"utf-8" : p_enc,
+						      fname, tmpname) == FAIL)
+	    errmsg = (char_u *)_("Conversion with 'charconvert' failed");
+	if (errmsg == NULL && (*fdp = mch_open((char *)tmpname,
+						  O_RDONLY | O_EXTRA, 0)) < 0)
+	    errmsg = (char_u *)_("can't read output of 'charconvert'");
+    }
+
+    if (errmsg != NULL)
+    {
+	/* Don't use emsg(), it breaks mappings, the retry with
+	 * another type of conversion might still work. */
+	MSG(errmsg);
+	if (tmpname != NULL)
+	{
+	    mch_remove(tmpname);	/* delete converted file */
+	    vim_free(tmpname);
+	    tmpname = NULL;
+	}
+    }
+
+    /* If the input file is closed, open it (caller should check for error). */
+    if (*fdp < 0)
+	*fdp = mch_open((char *)fname, O_RDONLY | O_EXTRA, 0);
+
+    return tmpname;
+}
+# endif
+
+#endif
+
+#ifdef FEAT_VIMINFO
+/*
+ * Read marks for the current buffer from the viminfo file, when we support
+ * buffer marks and the buffer has a name.
+ */
+    static void
+check_marks_read(void)
+{
+    if (!curbuf->b_marks_read && get_viminfo_parameter('\'') > 0
+						  && curbuf->b_ffname != NULL)
+	read_viminfo(NULL, VIF_WANT_MARKS);
+
+    /* Always set b_marks_read; needed when 'viminfo' is changed to include
+     * the ' parameter after opening a buffer. */
+    curbuf->b_marks_read = TRUE;
+}
+#endif
+
+#if defined(FEAT_CRYPT) || defined(PROTO)
+/*
+ * Check for magic number used for encryption.  Applies to the current buffer.
+ * If found, the magic number is removed from ptr[*sizep] and *sizep and
+ * *filesizep are updated.
+ * Return the (new) encryption key, NULL for no encryption.
+ */
+    static char_u *
+check_for_cryptkey(
+    char_u	*cryptkey,	/* previous encryption key or NULL */
+    char_u	*ptr,		/* pointer to read bytes */
+    long	*sizep,		/* length of read bytes */
+    off_T	*filesizep,	/* nr of bytes used from file */
+    int		newfile,	/* editing a new buffer */
+    char_u	*fname,		/* file name to display */
+    int		*did_ask)	/* flag: whether already asked for key */
+{
+    int method = crypt_method_nr_from_magic((char *)ptr, *sizep);
+    int b_p_ro = curbuf->b_p_ro;
+
+    if (method >= 0)
+    {
+	/* Mark the buffer as read-only until the decryption has taken place.
+	 * Avoids accidentally overwriting the file with garbage. */
+	curbuf->b_p_ro = TRUE;
+
+	/* Set the cryptmethod local to the buffer. */
+	crypt_set_cm_option(curbuf, method);
+	if (cryptkey == NULL && !*did_ask)
+	{
+	    if (*curbuf->b_p_key)
+		cryptkey = curbuf->b_p_key;
+	    else
+	    {
+		/* When newfile is TRUE, store the typed key in the 'key'
+		 * option and don't free it.  bf needs hash of the key saved.
+		 * Don't ask for the key again when first time Enter was hit.
+		 * Happens when retrying to detect encoding. */
+		smsg((char_u *)_(need_key_msg), fname);
+		msg_scroll = TRUE;
+		crypt_check_method(method);
+		cryptkey = crypt_get_key(newfile, FALSE);
+		*did_ask = TRUE;
+
+		/* check if empty key entered */
+		if (cryptkey != NULL && *cryptkey == NUL)
+		{
+		    if (cryptkey != curbuf->b_p_key)
+			vim_free(cryptkey);
+		    cryptkey = NULL;
+		}
+	    }
+	}
+
+	if (cryptkey != NULL)
+	{
+	    int header_len;
+
+	    curbuf->b_cryptstate = crypt_create_from_header(
+						       method, cryptkey, ptr);
+	    crypt_set_cm_option(curbuf, method);
+
+	    /* Remove cryptmethod specific header from the text. */
+	    header_len = crypt_get_header_len(method);
+	    *filesizep += header_len;
+	    *sizep -= header_len;
+	    mch_memmove(ptr, ptr + header_len, (size_t)*sizep);
+
+	    /* Restore the read-only flag. */
+	    curbuf->b_p_ro = b_p_ro;
+	}
+    }
+    /* When starting to edit a new file which does not have encryption, clear
+     * the 'key' option, except when starting up (called with -x argument) */
+    else if (newfile && *curbuf->b_p_key != NUL && !starting)
+	set_option_value((char_u *)"key", 0L, (char_u *)"", OPT_LOCAL);
+
+    return cryptkey;
+}
+#endif  /* FEAT_CRYPT */
+
+#ifdef UNIX
+    static void
+set_file_time(
+    char_u  *fname,
+    time_t  atime,	    /* access time */
+    time_t  mtime)	    /* modification time */
+{
+# if defined(HAVE_UTIME) && defined(HAVE_UTIME_H)
+    struct utimbuf  buf;
+
+    buf.actime	= atime;
+    buf.modtime	= mtime;
+    (void)utime((char *)fname, &buf);
+# else
+#  if defined(HAVE_UTIMES)
+    struct timeval  tvp[2];
+
+    tvp[0].tv_sec   = atime;
+    tvp[0].tv_usec  = 0;
+    tvp[1].tv_sec   = mtime;
+    tvp[1].tv_usec  = 0;
+#   ifdef NeXT
+    (void)utimes((char *)fname, tvp);
+#   else
+    (void)utimes((char *)fname, (const struct timeval *)&tvp);
+#   endif
+#  endif
+# endif
+}
+#endif /* UNIX */
+
+#if defined(VMS) && !defined(MIN)
+/* Older DECC compiler for VAX doesn't define MIN() */
+# define MIN(a, b) ((a) < (b) ? (a) : (b))
+#endif
+
+/*
+ * Return TRUE if a file appears to be read-only from the file permissions.
+ */
+    int
+check_file_readonly(
+    char_u	*fname,		/* full path to file */
+    int		perm)		/* known permissions on file */
+{
+#ifndef USE_MCH_ACCESS
+    int	    fd = 0;
+#endif
+
+    return (
+#ifdef USE_MCH_ACCESS
+# ifdef UNIX
+	(perm & 0222) == 0 ||
+# endif
+	mch_access((char *)fname, W_OK)
+#else
+	(fd = mch_open((char *)fname, O_RDWR | O_EXTRA, 0)) < 0
+					? TRUE : (close(fd), FALSE)
+#endif
+	);
+}
+
+
+/*
+ * buf_write() - write to file "fname" lines "start" through "end"
+ *
+ * We do our own buffering here because fwrite() is so slow.
+ *
+ * If "forceit" is true, we don't care for errors when attempting backups.
+ * In case of an error everything possible is done to restore the original
+ * file.  But when "forceit" is TRUE, we risk losing it.
+ *
+ * When "reset_changed" is TRUE and "append" == FALSE and "start" == 1 and
+ * "end" == curbuf->b_ml.ml_line_count, reset curbuf->b_changed.
+ *
+ * This function must NOT use NameBuff (because it's called by autowrite()).
+ *
+ * return FAIL for failure, OK otherwise
+ */
+    int
+buf_write(
+    buf_T	    *buf,
+    char_u	    *fname,
+    char_u	    *sfname,
+    linenr_T	    start,
+    linenr_T	    end,
+    exarg_T	    *eap,		/* for forced 'ff' and 'fenc', can be
+					   NULL! */
+    int		    append,		/* append to the file */
+    int		    forceit,
+    int		    reset_changed,
+    int		    filtering)
+{
+    int		    fd;
+    char_u	    *backup = NULL;
+    int		    backup_copy = FALSE; /* copy the original file? */
+    int		    dobackup;
+    char_u	    *ffname;
+    char_u	    *wfname = NULL;	/* name of file to write to */
+    char_u	    *s;
+    char_u	    *ptr;
+    char_u	    c;
+    int		    len;
+    linenr_T	    lnum;
+    long	    nchars;
+    char_u	    *errmsg = NULL;
+    int		    errmsg_allocated = FALSE;
+    char_u	    *errnum = NULL;
+    char_u	    *buffer;
+    char_u	    smallbuf[SMBUFSIZE];
+    char_u	    *backup_ext;
+    int		    bufsize;
+    long	    perm;		    /* file permissions */
+    int		    retval = OK;
+    int		    newfile = FALSE;	    /* TRUE if file doesn't exist yet */
+    int		    msg_save = msg_scroll;
+    int		    overwriting;	    /* TRUE if writing over original */
+    int		    no_eol = FALSE;	    /* no end-of-line written */
+    int		    device = FALSE;	    /* writing to a device */
+    stat_T	    st_old;
+    int		    prev_got_int = got_int;
+    int		    file_readonly = FALSE;  /* overwritten file is read-only */
+    static char	    *err_readonly = "is read-only (cannot override: \"W\" in 'cpoptions')";
+#if defined(UNIX)			    /*XXX fix me sometime? */
+    int		    made_writable = FALSE;  /* 'w' bit has been set */
+#endif
+					/* writing everything */
+    int		    whole = (start == 1 && end == buf->b_ml.ml_line_count);
+#ifdef FEAT_AUTOCMD
+    linenr_T	    old_line_count = buf->b_ml.ml_line_count;
+#endif
+    int		    attr;
+    int		    fileformat;
+    int		    write_bin;
+    struct bw_info  write_info;		/* info for buf_write_bytes() */
+#ifdef FEAT_MBYTE
+    int		    converted = FALSE;
+    int		    notconverted = FALSE;
+    char_u	    *fenc;		/* effective 'fileencoding' */
+    char_u	    *fenc_tofree = NULL; /* allocated "fenc" */
+#endif
+#ifdef HAS_BW_FLAGS
+    int		    wb_flags = 0;
+#endif
+#ifdef HAVE_ACL
+    vim_acl_T	    acl = NULL;		/* ACL copied from original file to
+					   backup or new file */
+#endif
+#ifdef FEAT_PERSISTENT_UNDO
+    int		    write_undo_file = FALSE;
+    context_sha256_T sha_ctx;
+#endif
+    unsigned int    bkc = get_bkc_value(buf);
+
+    if (fname == NULL || *fname == NUL)	/* safety check */
+	return FAIL;
+    if (buf->b_ml.ml_mfp == NULL)
+    {
+	/* This can happen during startup when there is a stray "w" in the
+	 * vimrc file. */
+	EMSG(_(e_emptybuf));
+	return FAIL;
+    }
+
+    /*
+     * Disallow writing from .exrc and .vimrc in current directory for
+     * security reasons.
+     */
+    if (check_secure())
+	return FAIL;
+
+    /* Avoid a crash for a long name. */
+    if (STRLEN(fname) >= MAXPATHL)
+    {
+	EMSG(_(e_longname));
+	return FAIL;
+    }
+
+#ifdef FEAT_MBYTE
+    /* must init bw_conv_buf and bw_iconv_fd before jumping to "fail" */
+    write_info.bw_conv_buf = NULL;
+    write_info.bw_conv_error = FALSE;
+    write_info.bw_conv_error_lnum = 0;
+    write_info.bw_restlen = 0;
+# ifdef USE_ICONV
+    write_info.bw_iconv_fd = (iconv_t)-1;
+# endif
+#endif
+#ifdef FEAT_CRYPT
+    write_info.bw_buffer = buf;
+#endif
+
+    /* After writing a file changedtick changes but we don't want to display
+     * the line. */
+    ex_no_reprint = TRUE;
+
+    /*
+     * If there is no file name yet, use the one for the written file.
+     * BF_NOTEDITED is set to reflect this (in case the write fails).
+     * Don't do this when the write is for a filter command.
+     * Don't do this when appending.
+     * Only do this when 'cpoptions' contains the 'F' flag.
+     */
+    if (buf->b_ffname == NULL
+	    && reset_changed
+	    && whole
+	    && buf == curbuf
+#ifdef FEAT_QUICKFIX
+	    && !bt_nofile(buf)
+#endif
+	    && !filtering
+	    && (!append || vim_strchr(p_cpo, CPO_FNAMEAPP) != NULL)
+	    && vim_strchr(p_cpo, CPO_FNAMEW) != NULL)
+    {
+	if (set_rw_fname(fname, sfname) == FAIL)
+	    return FAIL;
+	buf = curbuf;	    /* just in case autocmds made "buf" invalid */
+    }
+
+    if (sfname == NULL)
+	sfname = fname;
+    /*
+     * For Unix: Use the short file name whenever possible.
+     * Avoids problems with networks and when directory names are changed.
+     * Don't do this for MS-DOS, a "cd" in a sub-shell may have moved us to
+     * another directory, which we don't detect
+     */
+    ffname = fname;			    /* remember full fname */
+#ifdef UNIX
+    fname = sfname;
+#endif
+
+    if (buf->b_ffname != NULL && fnamecmp(ffname, buf->b_ffname) == 0)
+	overwriting = TRUE;
+    else
+	overwriting = FALSE;
+
+    if (exiting)
+	settmode(TMODE_COOK);	    /* when exiting allow typeahead now */
+
+    ++no_wait_return;		    /* don't wait for return yet */
+
+    /*
+     * Set '[ and '] marks to the lines to be written.
+     */
+    buf->b_op_start.lnum = start;
+    buf->b_op_start.col = 0;
+    buf->b_op_end.lnum = end;
+    buf->b_op_end.col = 0;
+
+#ifdef FEAT_AUTOCMD
+    {
+	aco_save_T	aco;
+	int		buf_ffname = FALSE;
+	int		buf_sfname = FALSE;
+	int		buf_fname_f = FALSE;
+	int		buf_fname_s = FALSE;
+	int		did_cmd = FALSE;
+	int		nofile_err = FALSE;
+	int		empty_memline = (buf->b_ml.ml_mfp == NULL);
+	bufref_T	bufref;
+
+	/*
+	 * Apply PRE autocommands.
+	 * Set curbuf to the buffer to be written.
+	 * Careful: The autocommands may call buf_write() recursively!
+	 */
+	if (ffname == buf->b_ffname)
+	    buf_ffname = TRUE;
+	if (sfname == buf->b_sfname)
+	    buf_sfname = TRUE;
+	if (fname == buf->b_ffname)
+	    buf_fname_f = TRUE;
+	if (fname == buf->b_sfname)
+	    buf_fname_s = TRUE;
+
+	/* set curwin/curbuf to buf and save a few things */
+	aucmd_prepbuf(&aco, buf);
+	set_bufref(&bufref, buf);
+
+	if (append)
+	{
+	    if (!(did_cmd = apply_autocmds_exarg(EVENT_FILEAPPENDCMD,
+					 sfname, sfname, FALSE, curbuf, eap)))
+	    {
+#ifdef FEAT_QUICKFIX
+		if (overwriting && bt_nofile(curbuf))
+		    nofile_err = TRUE;
+		else
+#endif
+		    apply_autocmds_exarg(EVENT_FILEAPPENDPRE,
+					  sfname, sfname, FALSE, curbuf, eap);
+	    }
+	}
+	else if (filtering)
+	{
+	    apply_autocmds_exarg(EVENT_FILTERWRITEPRE,
+					    NULL, sfname, FALSE, curbuf, eap);
+	}
+	else if (reset_changed && whole)
+	{
+	    int was_changed = curbufIsChanged();
+
+	    did_cmd = apply_autocmds_exarg(EVENT_BUFWRITECMD,
+					  sfname, sfname, FALSE, curbuf, eap);
+	    if (did_cmd)
+	    {
+		if (was_changed && !curbufIsChanged())
+		{
+		    /* Written everything correctly and BufWriteCmd has reset
+		     * 'modified': Correct the undo information so that an
+		     * undo now sets 'modified'. */
+		    u_unchanged(curbuf);
+		    u_update_save_nr(curbuf);
+		}
+	    }
+	    else
+	    {
+#ifdef FEAT_QUICKFIX
+		if (overwriting && bt_nofile(curbuf))
+		    nofile_err = TRUE;
+		else
+#endif
+		    apply_autocmds_exarg(EVENT_BUFWRITEPRE,
+					  sfname, sfname, FALSE, curbuf, eap);
+	    }
+	}
+	else
+	{
+	    if (!(did_cmd = apply_autocmds_exarg(EVENT_FILEWRITECMD,
+					 sfname, sfname, FALSE, curbuf, eap)))
+	    {
+#ifdef FEAT_QUICKFIX
+		if (overwriting && bt_nofile(curbuf))
+		    nofile_err = TRUE;
+		else
+#endif
+		    apply_autocmds_exarg(EVENT_FILEWRITEPRE,
+					  sfname, sfname, FALSE, curbuf, eap);
+	    }
+	}
+
+	/* restore curwin/curbuf and a few other things */
+	aucmd_restbuf(&aco);
+
+	/*
+	 * In three situations we return here and don't write the file:
+	 * 1. the autocommands deleted or unloaded the buffer.
+	 * 2. The autocommands abort script processing.
+	 * 3. If one of the "Cmd" autocommands was executed.
+	 */
+	if (!bufref_valid(&bufref))
+	    buf = NULL;
+	if (buf == NULL || (buf->b_ml.ml_mfp == NULL && !empty_memline)
+				       || did_cmd || nofile_err
+#ifdef FEAT_EVAL
+				       || aborting()
+#endif
+				       )
+	{
+	    --no_wait_return;
+	    msg_scroll = msg_save;
+	    if (nofile_err)
+		EMSG(_("E676: No matching autocommands for acwrite buffer"));
+
+	    if (nofile_err
+#ifdef FEAT_EVAL
+		    || aborting()
+#endif
+		    )
+		/* An aborting error, interrupt or exception in the
+		 * autocommands. */
+		return FAIL;
+	    if (did_cmd)
+	    {
+		if (buf == NULL)
+		    /* The buffer was deleted.  We assume it was written
+		     * (can't retry anyway). */
+		    return OK;
+		if (overwriting)
+		{
+		    /* Assume the buffer was written, update the timestamp. */
+		    ml_timestamp(buf);
+		    if (append)
+			buf->b_flags &= ~BF_NEW;
+		    else
+			buf->b_flags &= ~BF_WRITE_MASK;
+		}
+		if (reset_changed && buf->b_changed && !append
+			&& (overwriting || vim_strchr(p_cpo, CPO_PLUS) != NULL))
+		    /* Buffer still changed, the autocommands didn't work
+		     * properly. */
+		    return FAIL;
+		return OK;
+	    }
+#ifdef FEAT_EVAL
+	    if (!aborting())
+#endif
+		EMSG(_("E203: Autocommands deleted or unloaded buffer to be written"));
+	    return FAIL;
+	}
+
+	/*
+	 * The autocommands may have changed the number of lines in the file.
+	 * When writing the whole file, adjust the end.
+	 * When writing part of the file, assume that the autocommands only
+	 * changed the number of lines that are to be written (tricky!).
+	 */
+	if (buf->b_ml.ml_line_count != old_line_count)
+	{
+	    if (whole)						/* write all */
+		end = buf->b_ml.ml_line_count;
+	    else if (buf->b_ml.ml_line_count > old_line_count)	/* more lines */
+		end += buf->b_ml.ml_line_count - old_line_count;
+	    else						/* less lines */
+	    {
+		end -= old_line_count - buf->b_ml.ml_line_count;
+		if (end < start)
+		{
+		    --no_wait_return;
+		    msg_scroll = msg_save;
+		    EMSG(_("E204: Autocommand changed number of lines in unexpected way"));
+		    return FAIL;
+		}
+	    }
+	}
+
+	/*
+	 * The autocommands may have changed the name of the buffer, which may
+	 * be kept in fname, ffname and sfname.
+	 */
+	if (buf_ffname)
+	    ffname = buf->b_ffname;
+	if (buf_sfname)
+	    sfname = buf->b_sfname;
+	if (buf_fname_f)
+	    fname = buf->b_ffname;
+	if (buf_fname_s)
+	    fname = buf->b_sfname;
+    }
+#endif
+
+#ifdef FEAT_NETBEANS_INTG
+    if (netbeans_active() && isNetbeansBuffer(buf))
+    {
+	if (whole)
+	{
+	    /*
+	     * b_changed can be 0 after an undo, but we still need to write
+	     * the buffer to NetBeans.
+	     */
+	    if (buf->b_changed || isNetbeansModified(buf))
+	    {
+		--no_wait_return;		/* may wait for return now */
+		msg_scroll = msg_save;
+		netbeans_save_buffer(buf);	/* no error checking... */
+		return retval;
+	    }
+	    else
+	    {
+		errnum = (char_u *)"E656: ";
+		errmsg = (char_u *)_("NetBeans disallows writes of unmodified buffers");
+		buffer = NULL;
+		goto fail;
+	    }
+	}
+	else
+	{
+	    errnum = (char_u *)"E657: ";
+	    errmsg = (char_u *)_("Partial writes disallowed for NetBeans buffers");
+	    buffer = NULL;
+	    goto fail;
+	}
+    }
+#endif
+
+    if (shortmess(SHM_OVER) && !exiting)
+	msg_scroll = FALSE;	    /* overwrite previous file message */
+    else
+	msg_scroll = TRUE;	    /* don't overwrite previous file message */
+    if (!filtering)
+	filemess(buf,
+#ifndef UNIX
+		sfname,
+#else
+		fname,
+#endif
+		    (char_u *)"", 0);	/* show that we are busy */
+    msg_scroll = FALSE;		    /* always overwrite the file message now */
+
+    buffer = alloc(BUFSIZE);
+    if (buffer == NULL)		    /* can't allocate big buffer, use small
+				     * one (to be able to write when out of
+				     * memory) */
+    {
+	buffer = smallbuf;
+	bufsize = SMBUFSIZE;
+    }
+    else
+	bufsize = BUFSIZE;
+
+    /*
+     * Get information about original file (if there is one).
+     */
+#if defined(UNIX)
+    st_old.st_dev = 0;
+    st_old.st_ino = 0;
+    perm = -1;
+    if (mch_stat((char *)fname, &st_old) < 0)
+	newfile = TRUE;
+    else
+    {
+	perm = st_old.st_mode;
+	if (!S_ISREG(st_old.st_mode))		/* not a file */
+	{
+	    if (S_ISDIR(st_old.st_mode))
+	    {
+		errnum = (char_u *)"E502: ";
+		errmsg = (char_u *)_("is a directory");
+		goto fail;
+	    }
+	    if (mch_nodetype(fname) != NODE_WRITABLE)
+	    {
+		errnum = (char_u *)"E503: ";
+		errmsg = (char_u *)_("is not a file or writable device");
+		goto fail;
+	    }
+	    /* It's a device of some kind (or a fifo) which we can write to
+	     * but for which we can't make a backup. */
+	    device = TRUE;
+	    newfile = TRUE;
+	    perm = -1;
+	}
+    }
+#else /* !UNIX */
+    /*
+     * Check for a writable device name.
+     */
+    c = mch_nodetype(fname);
+    if (c == NODE_OTHER)
+    {
+	errnum = (char_u *)"E503: ";
+	errmsg = (char_u *)_("is not a file or writable device");
+	goto fail;
+    }
+    if (c == NODE_WRITABLE)
+    {
+# if defined(MSWIN)
+	/* MS-Windows allows opening a device, but we will probably get stuck
+	 * trying to write to it.  */
+	if (!p_odev)
+	{
+	    errnum = (char_u *)"E796: ";
+	    errmsg = (char_u *)_("writing to device disabled with 'opendevice' option");
+	    goto fail;
+	}
+# endif
+	device = TRUE;
+	newfile = TRUE;
+	perm = -1;
+    }
+    else
+    {
+	perm = mch_getperm(fname);
+	if (perm < 0)
+	    newfile = TRUE;
+	else if (mch_isdir(fname))
+	{
+	    errnum = (char_u *)"E502: ";
+	    errmsg = (char_u *)_("is a directory");
+	    goto fail;
+	}
+	if (overwriting)
+	    (void)mch_stat((char *)fname, &st_old);
+    }
+#endif /* !UNIX */
+
+    if (!device && !newfile)
+    {
+	/*
+	 * Check if the file is really writable (when renaming the file to
+	 * make a backup we won't discover it later).
+	 */
+	file_readonly = check_file_readonly(fname, (int)perm);
+
+	if (!forceit && file_readonly)
+	{
+	    if (vim_strchr(p_cpo, CPO_FWRITE) != NULL)
+	    {
+		errnum = (char_u *)"E504: ";
+		errmsg = (char_u *)_(err_readonly);
+	    }
+	    else
+	    {
+		errnum = (char_u *)"E505: ";
+		errmsg = (char_u *)_("is read-only (add ! to override)");
+	    }
+	    goto fail;
+	}
+
+	/*
+	 * Check if the timestamp hasn't changed since reading the file.
+	 */
+	if (overwriting)
+	{
+	    retval = check_mtime(buf, &st_old);
+	    if (retval == FAIL)
+		goto fail;
+	}
+    }
+
+#ifdef HAVE_ACL
+    /*
+     * For systems that support ACL: get the ACL from the original file.
+     */
+    if (!newfile)
+	acl = mch_get_acl(fname);
+#endif
+
+    /*
+     * If 'backupskip' is not empty, don't make a backup for some files.
+     */
+    dobackup = (p_wb || p_bk || *p_pm != NUL);
+#ifdef FEAT_WILDIGN
+    if (dobackup && *p_bsk != NUL && match_file_list(p_bsk, sfname, ffname))
+	dobackup = FALSE;
+#endif
+
+    /*
+     * Save the value of got_int and reset it.  We don't want a previous
+     * interruption cancel writing, only hitting CTRL-C while writing should
+     * abort it.
+     */
+    prev_got_int = got_int;
+    got_int = FALSE;
+
+    /* Mark the buffer as 'being saved' to prevent changed buffer warnings */
+    buf->b_saving = TRUE;
+
+    /*
+     * If we are not appending or filtering, the file exists, and the
+     * 'writebackup', 'backup' or 'patchmode' option is set, need a backup.
+     * When 'patchmode' is set also make a backup when appending.
+     *
+     * Do not make any backup, if 'writebackup' and 'backup' are both switched
+     * off.  This helps when editing large files on almost-full disks.
+     */
+    if (!(append && *p_pm == NUL) && !filtering && perm >= 0 && dobackup)
+    {
+#if defined(UNIX) || defined(WIN32)
+	stat_T	    st;
+#endif
+
+	if ((bkc & BKC_YES) || append)	/* "yes" */
+	    backup_copy = TRUE;
+#if defined(UNIX) || defined(WIN32)
+	else if ((bkc & BKC_AUTO))	/* "auto" */
+	{
+	    int		i;
+
+# ifdef UNIX
+	    /*
+	     * Don't rename the file when:
+	     * - it's a hard link
+	     * - it's a symbolic link
+	     * - we don't have write permission in the directory
+	     * - we can't set the owner/group of the new file
+	     */
+	    if (st_old.st_nlink > 1
+		    || mch_lstat((char *)fname, &st) < 0
+		    || st.st_dev != st_old.st_dev
+		    || st.st_ino != st_old.st_ino
+#  ifndef HAVE_FCHOWN
+		    || st.st_uid != st_old.st_uid
+		    || st.st_gid != st_old.st_gid
+#  endif
+		    )
+		backup_copy = TRUE;
+	    else
+# else
+#  ifdef WIN32
+	    /* On NTFS file systems hard links are possible. */
+	    if (mch_is_linked(fname))
+		backup_copy = TRUE;
+	    else
+#  endif
+# endif
+	    {
+		/*
+		 * Check if we can create a file and set the owner/group to
+		 * the ones from the original file.
+		 * First find a file name that doesn't exist yet (use some
+		 * arbitrary numbers).
+		 */
+		STRCPY(IObuff, fname);
+		for (i = 4913; ; i += 123)
+		{
+		    sprintf((char *)gettail(IObuff), "%d", i);
+		    if (mch_lstat((char *)IObuff, &st) < 0)
+			break;
+		}
+		fd = mch_open((char *)IObuff,
+				    O_CREAT|O_WRONLY|O_EXCL|O_NOFOLLOW, perm);
+		if (fd < 0)	/* can't write in directory */
+		    backup_copy = TRUE;
+		else
+		{
+# ifdef UNIX
+#  ifdef HAVE_FCHOWN
+		    ignored = fchown(fd, st_old.st_uid, st_old.st_gid);
+#  endif
+		    if (mch_stat((char *)IObuff, &st) < 0
+			    || st.st_uid != st_old.st_uid
+			    || st.st_gid != st_old.st_gid
+			    || (long)st.st_mode != perm)
+			backup_copy = TRUE;
+# endif
+		    /* Close the file before removing it, on MS-Windows we
+		     * can't delete an open file. */
+		    close(fd);
+		    mch_remove(IObuff);
+# ifdef MSWIN
+		    /* MS-Windows may trigger a virus scanner to open the
+		     * file, we can't delete it then.  Keep trying for half a
+		     * second. */
+		    {
+			int try;
+
+			for (try = 0; try < 10; ++try)
+			{
+			    if (mch_lstat((char *)IObuff, &st) < 0)
+				break;
+			    ui_delay(50L, TRUE);  /* wait 50 msec */
+			    mch_remove(IObuff);
+			}
+		    }
+# endif
+		}
+	    }
+	}
+
+	/*
+	 * Break symlinks and/or hardlinks if we've been asked to.
+	 */
+	if ((bkc & BKC_BREAKSYMLINK) || (bkc & BKC_BREAKHARDLINK))
+	{
+# ifdef UNIX
+	    int	lstat_res;
+
+	    lstat_res = mch_lstat((char *)fname, &st);
+
+	    /* Symlinks. */
+	    if ((bkc & BKC_BREAKSYMLINK)
+		    && lstat_res == 0
+		    && st.st_ino != st_old.st_ino)
+		backup_copy = FALSE;
+
+	    /* Hardlinks. */
+	    if ((bkc & BKC_BREAKHARDLINK)
+		    && st_old.st_nlink > 1
+		    && (lstat_res != 0 || st.st_ino == st_old.st_ino))
+		backup_copy = FALSE;
+# else
+#  if defined(WIN32)
+	    /* Symlinks. */
+	    if ((bkc & BKC_BREAKSYMLINK) && mch_is_symbolic_link(fname))
+		backup_copy = FALSE;
+
+	    /* Hardlinks. */
+	    if ((bkc & BKC_BREAKHARDLINK) && mch_is_hard_link(fname))
+		backup_copy = FALSE;
+#  endif
+# endif
+	}
+
+#endif
+
+	/* make sure we have a valid backup extension to use */
+	if (*p_bex == NUL)
+	    backup_ext = (char_u *)".bak";
+	else
+	    backup_ext = p_bex;
+
+	if (backup_copy
+		&& (fd = mch_open((char *)fname, O_RDONLY | O_EXTRA, 0)) >= 0)
+	{
+	    int		bfd;
+	    char_u	*copybuf, *wp;
+	    int		some_error = FALSE;
+	    stat_T	st_new;
+	    char_u	*dirp;
+	    char_u	*rootname;
+#if defined(UNIX)
+	    int		did_set_shortname;
+#endif
+
+	    copybuf = alloc(BUFSIZE + 1);
+	    if (copybuf == NULL)
+	    {
+		some_error = TRUE;	    /* out of memory */
+		goto nobackup;
+	    }
+
+	    /*
+	     * Try to make the backup in each directory in the 'bdir' option.
+	     *
+	     * Unix semantics has it, that we may have a writable file,
+	     * that cannot be recreated with a simple open(..., O_CREAT, ) e.g:
+	     *  - the directory is not writable,
+	     *  - the file may be a symbolic link,
+	     *  - the file may belong to another user/group, etc.
+	     *
+	     * For these reasons, the existing writable file must be truncated
+	     * and reused. Creation of a backup COPY will be attempted.
+	     */
+	    dirp = p_bdir;
+	    while (*dirp)
+	    {
+#ifdef UNIX
+		st_new.st_ino = 0;
+		st_new.st_dev = 0;
+		st_new.st_gid = 0;
+#endif
+
+		/*
+		 * Isolate one directory name, using an entry in 'bdir'.
+		 */
+		(void)copy_option_part(&dirp, copybuf, BUFSIZE, ",");
+		rootname = get_file_in_dir(fname, copybuf);
+		if (rootname == NULL)
+		{
+		    some_error = TRUE;	    /* out of memory */
+		    goto nobackup;
+		}
+
+#if defined(UNIX)
+		did_set_shortname = FALSE;
+#endif
+
+		/*
+		 * May try twice if 'shortname' not set.
+		 */
+		for (;;)
+		{
+		    /*
+		     * Make backup file name.
+		     */
+		    backup = buf_modname((buf->b_p_sn || buf->b_shortname),
+						 rootname, backup_ext, FALSE);
+		    if (backup == NULL)
+		    {
+			vim_free(rootname);
+			some_error = TRUE;		/* out of memory */
+			goto nobackup;
+		    }
+
+		    /*
+		     * Check if backup file already exists.
+		     */
+		    if (mch_stat((char *)backup, &st_new) >= 0)
+		    {
+#ifdef UNIX
+			/*
+			 * Check if backup file is same as original file.
+			 * May happen when modname() gave the same file back.
+			 * E.g. silly link, or file name-length reached.
+			 * If we don't check here, we either ruin the file
+			 * when copying or erase it after writing. jw.
+			 */
+			if (st_new.st_dev == st_old.st_dev
+					    && st_new.st_ino == st_old.st_ino)
+			{
+			    vim_free(backup);
+			    backup = NULL;	/* no backup file to delete */
+			    /*
+			     * may try again with 'shortname' set
+			     */
+			    if (!(buf->b_shortname || buf->b_p_sn))
+			    {
+				buf->b_shortname = TRUE;
+				did_set_shortname = TRUE;
+				continue;
+			    }
+				/* setting shortname didn't help */
+			    if (did_set_shortname)
+				buf->b_shortname = FALSE;
+			    break;
+			}
+#endif
+
+			/*
+			 * If we are not going to keep the backup file, don't
+			 * delete an existing one, try to use another name.
+			 * Change one character, just before the extension.
+			 */
+			if (!p_bk)
+			{
+			    wp = backup + STRLEN(backup) - 1
+							 - STRLEN(backup_ext);
+			    if (wp < backup)	/* empty file name ??? */
+				wp = backup;
+			    *wp = 'z';
+			    while (*wp > 'a'
+				    && mch_stat((char *)backup, &st_new) >= 0)
+				--*wp;
+			    /* They all exist??? Must be something wrong. */
+			    if (*wp == 'a')
+			    {
+				vim_free(backup);
+				backup = NULL;
+			    }
+			}
+		    }
+		    break;
+		}
+		vim_free(rootname);
+
+		/*
+		 * Try to create the backup file
+		 */
+		if (backup != NULL)
+		{
+		    /* remove old backup, if present */
+		    mch_remove(backup);
+		    /* Open with O_EXCL to avoid the file being created while
+		     * we were sleeping (symlink hacker attack?) */
+		    bfd = mch_open((char *)backup,
+				O_WRONLY|O_CREAT|O_EXTRA|O_EXCL|O_NOFOLLOW,
+								 perm & 0777);
+		    if (bfd < 0)
+		    {
+			vim_free(backup);
+			backup = NULL;
+		    }
+		    else
+		    {
+			/* set file protection same as original file, but
+			 * strip s-bit */
+			(void)mch_setperm(backup, perm & 0777);
+
+#ifdef UNIX
+			/*
+			 * Try to set the group of the backup same as the
+			 * original file. If this fails, set the protection
+			 * bits for the group same as the protection bits for
+			 * others.
+			 */
+			if (st_new.st_gid != st_old.st_gid
+# ifdef HAVE_FCHOWN  /* sequent-ptx lacks fchown() */
+				&& fchown(bfd, (uid_t)-1, st_old.st_gid) != 0
+# endif
+						)
+			    mch_setperm(backup,
+					  (perm & 0707) | ((perm & 07) << 3));
+# if defined(HAVE_SELINUX) || defined(HAVE_SMACK)
+			mch_copy_sec(fname, backup);
+# endif
+#endif
+
+			/*
+			 * copy the file.
+			 */
+			write_info.bw_fd = bfd;
+			write_info.bw_buf = copybuf;
+#ifdef HAS_BW_FLAGS
+			write_info.bw_flags = FIO_NOCONVERT;
+#endif
+			while ((write_info.bw_len = read_eintr(fd, copybuf,
+								BUFSIZE)) > 0)
+			{
+			    if (buf_write_bytes(&write_info) == FAIL)
+			    {
+				errmsg = (char_u *)_("E506: Can't write to backup file (add ! to override)");
+				break;
+			    }
+			    ui_breakcheck();
+			    if (got_int)
+			    {
+				errmsg = (char_u *)_(e_interr);
+				break;
+			    }
+			}
+
+			if (close(bfd) < 0 && errmsg == NULL)
+			    errmsg = (char_u *)_("E507: Close error for backup file (add ! to override)");
+			if (write_info.bw_len < 0)
+			    errmsg = (char_u *)_("E508: Can't read file for backup (add ! to override)");
+#ifdef UNIX
+			set_file_time(backup, st_old.st_atime, st_old.st_mtime);
+#endif
+#ifdef HAVE_ACL
+			mch_set_acl(backup, acl);
+#endif
+#if defined(HAVE_SELINUX) || defined(HAVE_SMACK)
+			mch_copy_sec(fname, backup);
+#endif
+			break;
+		    }
+		}
+	    }
+    nobackup:
+	    close(fd);		/* ignore errors for closing read file */
+	    vim_free(copybuf);
+
+	    if (backup == NULL && errmsg == NULL)
+		errmsg = (char_u *)_("E509: Cannot create backup file (add ! to override)");
+	    /* ignore errors when forceit is TRUE */
+	    if ((some_error || errmsg != NULL) && !forceit)
+	    {
+		retval = FAIL;
+		goto fail;
+	    }
+	    errmsg = NULL;
+	}
+	else
+	{
+	    char_u	*dirp;
+	    char_u	*p;
+	    char_u	*rootname;
+
+	    /*
+	     * Make a backup by renaming the original file.
+	     */
+	    /*
+	     * If 'cpoptions' includes the "W" flag, we don't want to
+	     * overwrite a read-only file.  But rename may be possible
+	     * anyway, thus we need an extra check here.
+	     */
+	    if (file_readonly && vim_strchr(p_cpo, CPO_FWRITE) != NULL)
+	    {
+		errnum = (char_u *)"E504: ";
+		errmsg = (char_u *)_(err_readonly);
+		goto fail;
+	    }
+
+	    /*
+	     *
+	     * Form the backup file name - change path/fo.o.h to
+	     * path/fo.o.h.bak Try all directories in 'backupdir', first one
+	     * that works is used.
+	     */
+	    dirp = p_bdir;
+	    while (*dirp)
+	    {
+		/*
+		 * Isolate one directory name and make the backup file name.
+		 */
+		(void)copy_option_part(&dirp, IObuff, IOSIZE, ",");
+		rootname = get_file_in_dir(fname, IObuff);
+		if (rootname == NULL)
+		    backup = NULL;
+		else
+		{
+		    backup = buf_modname((buf->b_p_sn || buf->b_shortname),
+						 rootname, backup_ext, FALSE);
+		    vim_free(rootname);
+		}
+
+		if (backup != NULL)
+		{
+		    /*
+		     * If we are not going to keep the backup file, don't
+		     * delete an existing one, try to use another name.
+		     * Change one character, just before the extension.
+		     */
+		    if (!p_bk && mch_getperm(backup) >= 0)
+		    {
+			p = backup + STRLEN(backup) - 1 - STRLEN(backup_ext);
+			if (p < backup)	/* empty file name ??? */
+			    p = backup;
+			*p = 'z';
+			while (*p > 'a' && mch_getperm(backup) >= 0)
+			    --*p;
+			/* They all exist??? Must be something wrong! */
+			if (*p == 'a')
+			{
+			    vim_free(backup);
+			    backup = NULL;
+			}
+		    }
+		}
+		if (backup != NULL)
+		{
+		    /*
+		     * Delete any existing backup and move the current version
+		     * to the backup.	For safety, we don't remove the backup
+		     * until the write has finished successfully. And if the
+		     * 'backup' option is set, leave it around.
+		     */
+		    /*
+		     * If the renaming of the original file to the backup file
+		     * works, quit here.
+		     */
+		    if (vim_rename(fname, backup) == 0)
+			break;
+
+		    vim_free(backup);   /* don't do the rename below */
+		    backup = NULL;
+		}
+	    }
+	    if (backup == NULL && !forceit)
+	    {
+		errmsg = (char_u *)_("E510: Can't make backup file (add ! to override)");
+		goto fail;
+	    }
+	}
+    }
+
+#if defined(UNIX)
+    /* When using ":w!" and the file was read-only: make it writable */
+    if (forceit && perm >= 0 && !(perm & 0200) && st_old.st_uid == getuid()
+				     && vim_strchr(p_cpo, CPO_FWRITE) == NULL)
+    {
+	perm |= 0200;
+	(void)mch_setperm(fname, perm);
+	made_writable = TRUE;
+    }
+#endif
+
+    /* When using ":w!" and writing to the current file, 'readonly' makes no
+     * sense, reset it, unless 'Z' appears in 'cpoptions'.  */
+    if (forceit && overwriting && vim_strchr(p_cpo, CPO_KEEPRO) == NULL)
+    {
+	buf->b_p_ro = FALSE;
+#ifdef FEAT_TITLE
+	need_maketitle = TRUE;	    /* set window title later */
+#endif
+#ifdef FEAT_WINDOWS
+	status_redraw_all();	    /* redraw status lines later */
+#endif
+    }
+
+    if (end > buf->b_ml.ml_line_count)
+	end = buf->b_ml.ml_line_count;
+    if (buf->b_ml.ml_flags & ML_EMPTY)
+	start = end + 1;
+
+    /*
+     * If the original file is being overwritten, there is a small chance that
+     * we crash in the middle of writing. Therefore the file is preserved now.
+     * This makes all block numbers positive so that recovery does not need
+     * the original file.
+     * Don't do this if there is a backup file and we are exiting.
+     */
+    if (reset_changed && !newfile && overwriting
+					      && !(exiting && backup != NULL))
+    {
+	ml_preserve(buf, FALSE);
+	if (got_int)
+	{
+	    errmsg = (char_u *)_(e_interr);
+	    goto restore_backup;
+	}
+    }
+
+#ifdef MACOS_CLASSIC /* TODO: Is it need for MACOS_X? (Dany) */
+    /*
+     * Before risking to lose the original file verify if there's
+     * a resource fork to preserve, and if cannot be done warn
+     * the users. This happens when overwriting without backups.
+     */
+    if (backup == NULL && overwriting && !append)
+	if (mch_has_resource_fork(fname))
+	{
+	    errmsg = (char_u *)_("E460: The resource fork would be lost (add ! to override)");
+	    goto restore_backup;
+	}
+#endif
+
+#ifdef VMS
+    vms_remove_version(fname); /* remove version */
+#endif
+    /* Default: write the file directly.  May write to a temp file for
+     * multi-byte conversion. */
+    wfname = fname;
+
+#ifdef FEAT_MBYTE
+    /* Check for forced 'fileencoding' from "++opt=val" argument. */
+    if (eap != NULL && eap->force_enc != 0)
+    {
+	fenc = eap->cmd + eap->force_enc;
+	fenc = enc_canonize(fenc);
+	fenc_tofree = fenc;
+    }
+    else
+	fenc = buf->b_p_fenc;
+
+    /*
+     * Check if the file needs to be converted.
+     */
+    converted = need_conversion(fenc);
+
+    /*
+     * Check if UTF-8 to UCS-2/4 or Latin1 conversion needs to be done.  Or
+     * Latin1 to Unicode conversion.  This is handled in buf_write_bytes().
+     * Prepare the flags for it and allocate bw_conv_buf when needed.
+     */
+    if (converted && (enc_utf8 || STRCMP(p_enc, "latin1") == 0))
+    {
+	wb_flags = get_fio_flags(fenc);
+	if (wb_flags & (FIO_UCS2 | FIO_UCS4 | FIO_UTF16 | FIO_UTF8))
+	{
+	    /* Need to allocate a buffer to translate into. */
+	    if (wb_flags & (FIO_UCS2 | FIO_UTF16 | FIO_UTF8))
+		write_info.bw_conv_buflen = bufsize * 2;
+	    else /* FIO_UCS4 */
+		write_info.bw_conv_buflen = bufsize * 4;
+	    write_info.bw_conv_buf
+			   = lalloc((long_u)write_info.bw_conv_buflen, TRUE);
+	    if (write_info.bw_conv_buf == NULL)
+		end = 0;
+	}
+    }
+
+# ifdef WIN3264
+    if (converted && wb_flags == 0 && (wb_flags = get_win_fio_flags(fenc)) != 0)
+    {
+	/* Convert UTF-8 -> UCS-2 and UCS-2 -> DBCS.  Worst-case * 4: */
+	write_info.bw_conv_buflen = bufsize * 4;
+	write_info.bw_conv_buf
+			    = lalloc((long_u)write_info.bw_conv_buflen, TRUE);
+	if (write_info.bw_conv_buf == NULL)
+	    end = 0;
+    }
+# endif
+
+# ifdef MACOS_X
+    if (converted && wb_flags == 0 && (wb_flags = get_mac_fio_flags(fenc)) != 0)
+    {
+	write_info.bw_conv_buflen = bufsize * 3;
+	write_info.bw_conv_buf
+			    = lalloc((long_u)write_info.bw_conv_buflen, TRUE);
+	if (write_info.bw_conv_buf == NULL)
+	    end = 0;
+    }
+# endif
+
+# if defined(FEAT_EVAL) || defined(USE_ICONV)
+    if (converted && wb_flags == 0)
+    {
+#  ifdef USE_ICONV
+	/*
+	 * Use iconv() conversion when conversion is needed and it's not done
+	 * internally.
+	 */
+	write_info.bw_iconv_fd = (iconv_t)my_iconv_open(fenc,
+					enc_utf8 ? (char_u *)"utf-8" : p_enc);
+	if (write_info.bw_iconv_fd != (iconv_t)-1)
+	{
+	    /* We're going to use iconv(), allocate a buffer to convert in. */
+	    write_info.bw_conv_buflen = bufsize * ICONV_MULT;
+	    write_info.bw_conv_buf
+			   = lalloc((long_u)write_info.bw_conv_buflen, TRUE);
+	    if (write_info.bw_conv_buf == NULL)
+		end = 0;
+	    write_info.bw_first = TRUE;
+	}
+#   ifdef FEAT_EVAL
+	else
+#   endif
+#  endif
+
+#  ifdef FEAT_EVAL
+	    /*
+	     * When the file needs to be converted with 'charconvert' after
+	     * writing, write to a temp file instead and let the conversion
+	     * overwrite the original file.
+	     */
+	    if (*p_ccv != NUL)
+	    {
+		wfname = vim_tempname('w', FALSE);
+		if (wfname == NULL)	/* Can't write without a tempfile! */
+		{
+		    errmsg = (char_u *)_("E214: Can't find temp file for writing");
+		    goto restore_backup;
+		}
+	    }
+#  endif
+    }
+# endif
+    if (converted && wb_flags == 0
+#  ifdef USE_ICONV
+	    && write_info.bw_iconv_fd == (iconv_t)-1
+#  endif
+#  ifdef FEAT_EVAL
+	    && wfname == fname
+#  endif
+	    )
+    {
+	if (!forceit)
+	{
+	    errmsg = (char_u *)_("E213: Cannot convert (add ! to write without conversion)");
+	    goto restore_backup;
+	}
+	notconverted = TRUE;
+    }
+#endif
+
+    /*
+     * Open the file "wfname" for writing.
+     * We may try to open the file twice: If we can't write to the
+     * file and forceit is TRUE we delete the existing file and try to create
+     * a new one. If this still fails we may have lost the original file!
+     * (this may happen when the user reached his quotum for number of files).
+     * Appending will fail if the file does not exist and forceit is FALSE.
+     */
+    while ((fd = mch_open((char *)wfname, O_WRONLY | O_EXTRA | (append
+			? (forceit ? (O_APPEND | O_CREAT) : O_APPEND)
+			: (O_CREAT | O_TRUNC))
+			, perm < 0 ? 0666 : (perm & 0777))) < 0)
+    {
+	/*
+	 * A forced write will try to create a new file if the old one is
+	 * still readonly. This may also happen when the directory is
+	 * read-only. In that case the mch_remove() will fail.
+	 */
+	if (errmsg == NULL)
+	{
+#ifdef UNIX
+	    stat_T	st;
+
+	    /* Don't delete the file when it's a hard or symbolic link. */
+	    if ((!newfile && st_old.st_nlink > 1)
+		    || (mch_lstat((char *)fname, &st) == 0
+			&& (st.st_dev != st_old.st_dev
+			    || st.st_ino != st_old.st_ino)))
+		errmsg = (char_u *)_("E166: Can't open linked file for writing");
+	    else
+#endif
+	    {
+		errmsg = (char_u *)_("E212: Can't open file for writing");
+		if (forceit && vim_strchr(p_cpo, CPO_FWRITE) == NULL
+								 && perm >= 0)
+		{
+#ifdef UNIX
+		    /* we write to the file, thus it should be marked
+		       writable after all */
+		    if (!(perm & 0200))
+			made_writable = TRUE;
+		    perm |= 0200;
+		    if (st_old.st_uid != getuid() || st_old.st_gid != getgid())
+			perm &= 0777;
+#endif
+		    if (!append)	    /* don't remove when appending */
+			mch_remove(wfname);
+		    continue;
+		}
+	    }
+	}
+
+restore_backup:
+	{
+	    stat_T	st;
+
+	    /*
+	     * If we failed to open the file, we don't need a backup. Throw it
+	     * away.  If we moved or removed the original file try to put the
+	     * backup in its place.
+	     */
+	    if (backup != NULL && wfname == fname)
+	    {
+		if (backup_copy)
+		{
+		    /*
+		     * There is a small chance that we removed the original,
+		     * try to move the copy in its place.
+		     * This may not work if the vim_rename() fails.
+		     * In that case we leave the copy around.
+		     */
+		    /* If file does not exist, put the copy in its place */
+		    if (mch_stat((char *)fname, &st) < 0)
+			vim_rename(backup, fname);
+		    /* if original file does exist throw away the copy */
+		    if (mch_stat((char *)fname, &st) >= 0)
+			mch_remove(backup);
+		}
+		else
+		{
+		    /* try to put the original file back */
+		    vim_rename(backup, fname);
+		}
+	    }
+
+	    /* if original file no longer exists give an extra warning */
+	    if (!newfile && mch_stat((char *)fname, &st) < 0)
+		end = 0;
+	}
+
+#ifdef FEAT_MBYTE
+	if (wfname != fname)
+	    vim_free(wfname);
+#endif
+	goto fail;
+    }
+    errmsg = NULL;
+
+#if defined(MACOS_CLASSIC) || defined(WIN3264)
+    /* TODO: Is it need for MACOS_X? (Dany) */
+    /*
+     * On macintosh copy the original files attributes (i.e. the backup)
+     * This is done in order to preserve the resource fork and the
+     * Finder attribute (label, comments, custom icons, file creator)
+     */
+    if (backup != NULL && overwriting && !append)
+    {
+	if (backup_copy)
+	    (void)mch_copy_file_attribute(wfname, backup);
+	else
+	    (void)mch_copy_file_attribute(backup, wfname);
+    }
+
+    if (!overwriting && !append)
+    {
+	if (buf->b_ffname != NULL)
+	    (void)mch_copy_file_attribute(buf->b_ffname, wfname);
+	/* Should copy resource fork */
+    }
+#endif
+
+    write_info.bw_fd = fd;
+
+#ifdef FEAT_CRYPT
+    if (*buf->b_p_key != NUL && !filtering)
+    {
+	char_u		*header;
+	int		header_len;
+
+	buf->b_cryptstate = crypt_create_for_writing(crypt_get_method_nr(buf),
+					  buf->b_p_key, &header, &header_len);
+	if (buf->b_cryptstate == NULL || header == NULL)
+	    end = 0;
+	else
+	{
+	    /* Write magic number, so that Vim knows how this file is
+	     * encrypted when reading it back. */
+	    write_info.bw_buf = header;
+	    write_info.bw_len = header_len;
+	    write_info.bw_flags = FIO_NOCONVERT;
+	    if (buf_write_bytes(&write_info) == FAIL)
+		end = 0;
+	    wb_flags |= FIO_ENCRYPTED;
+	    vim_free(header);
+	}
+    }
+#endif
+
+    write_info.bw_buf = buffer;
+    nchars = 0;
+
+    /* use "++bin", "++nobin" or 'binary' */
+    if (eap != NULL && eap->force_bin != 0)
+	write_bin = (eap->force_bin == FORCE_BIN);
+    else
+	write_bin = buf->b_p_bin;
+
+#ifdef FEAT_MBYTE
+    /*
+     * The BOM is written just after the encryption magic number.
+     * Skip it when appending and the file already existed, the BOM only makes
+     * sense at the start of the file.
+     */
+    if (buf->b_p_bomb && !write_bin && (!append || perm < 0))
+    {
+	write_info.bw_len = make_bom(buffer, fenc);
+	if (write_info.bw_len > 0)
+	{
+	    /* don't convert, do encryption */
+	    write_info.bw_flags = FIO_NOCONVERT | wb_flags;
+	    if (buf_write_bytes(&write_info) == FAIL)
+		end = 0;
+	    else
+		nchars += write_info.bw_len;
+	}
+    }
+    write_info.bw_start_lnum = start;
+#endif
+
+#ifdef FEAT_PERSISTENT_UNDO
+    write_undo_file = (buf->b_p_udf && overwriting && !append
+					      && !filtering && reset_changed);
+    if (write_undo_file)
+	/* Prepare for computing the hash value of the text. */
+	sha256_start(&sha_ctx);
+#endif
+
+    write_info.bw_len = bufsize;
+#ifdef HAS_BW_FLAGS
+    write_info.bw_flags = wb_flags;
+#endif
+    fileformat = get_fileformat_force(buf, eap);
+    s = buffer;
+    len = 0;
+    for (lnum = start; lnum <= end; ++lnum)
+    {
+	/*
+	 * The next while loop is done once for each character written.
+	 * Keep it fast!
+	 */
+	ptr = ml_get_buf(buf, lnum, FALSE) - 1;
+#ifdef FEAT_PERSISTENT_UNDO
+	if (write_undo_file)
+	    sha256_update(&sha_ctx, ptr + 1, (UINT32_T)(STRLEN(ptr + 1) + 1));
+#endif
+	while ((c = *++ptr) != NUL)
+	{
+	    if (c == NL)
+		*s = NUL;		/* replace newlines with NULs */
+	    else if (c == CAR && fileformat == EOL_MAC)
+		*s = NL;		/* Mac: replace CRs with NLs */
+	    else
+		*s = c;
+	    ++s;
+	    if (++len != bufsize)
+		continue;
+	    if (buf_write_bytes(&write_info) == FAIL)
+	    {
+		end = 0;		/* write error: break loop */
+		break;
+	    }
+	    nchars += bufsize;
+	    s = buffer;
+	    len = 0;
+#ifdef FEAT_MBYTE
+	    write_info.bw_start_lnum = lnum;
+#endif
+	}
+	/* write failed or last line has no EOL: stop here */
+	if (end == 0
+		|| (lnum == end
+		    && (write_bin || !buf->b_p_fixeol)
+		    && (lnum == buf->b_no_eol_lnum
+			|| (lnum == buf->b_ml.ml_line_count && !buf->b_p_eol))))
+	{
+	    ++lnum;			/* written the line, count it */
+	    no_eol = TRUE;
 	    break;
-	  }
-    }
-
-  modtime = invalid_timespec ();
-  if (visiting)
-    {
-      if (fstat (desc, &st) == 0)
-	modtime = get_stat_mtime (&st);
-      else
-	ok = 0, save_errno = errno;
-    }
-
-  if (open_and_close_file)
-    {
-      /* NFS can report a write failure now.  */
-      if (emacs_close (desc) < 0)
-	ok = 0, save_errno = errno;
-
-      /* Discard the unwind protect for close_file_unwind.  */
-      specpdl_ptr = specpdl + count1;
-    }
-
-  /* Some file systems have a bug where st_mtime is not updated
-     properly after a write.  For example, CIFS might not see the
-     st_mtime change until after the file is opened again.
-
-     Attempt to detect this file system bug, and update MODTIME to the
-     newer st_mtime if the bug appears to be present.  This introduces
-     a race condition, so to avoid most instances of the race condition
-     on non-buggy file systems, skip this check if the most recently
-     encountered non-buggy file system was the current file system.
-
-     A race condition can occur if some other process modifies the
-     file between the fstat above and the fstat below, but the race is
-     unlikely and a similar race between the last write and the fstat
-     above cannot possibly be closed anyway.  */
-
-  if (timespec_valid_p (modtime)
-      && ! (valid_timestamp_file_system && st.st_dev == timestamp_file_system))
-    {
-      int desc1 = emacs_open (fn, O_WRONLY, 0);
-      if (desc1 >= 0)
+	}
+	if (fileformat == EOL_UNIX)
+	    *s++ = NL;
+	else
 	{
-	  struct stat st1;
-	  if (fstat (desc1, &st1) == 0
-	      && st.st_dev == st1.st_dev && st.st_ino == st1.st_ino)
+	    *s++ = CAR;			/* EOL_MAC or EOL_DOS: write CR */
+	    if (fileformat == EOL_DOS)	/* write CR-NL */
 	    {
-	      /* Use the heuristic if it appears to be valid.  With neither
-		 O_EXCL nor O_TRUNC, if Emacs happened to write nothing to the
-		 file, the time stamp won't change.  Also, some non-POSIX
-		 systems don't update an empty file's time stamp when
-		 truncating it.  Finally, file systems with 100 ns or worse
-		 resolution sometimes seem to have bugs: on a system with ns
-		 resolution, checking ns % 100 incorrectly avoids the heuristic
-		 1% of the time, but the problem should be temporary as we will
-		 try again on the next time stamp.  */
-	      bool use_heuristic
-		= ((open_flags & (O_EXCL | O_TRUNC)) != 0
-		   && st.st_size != 0
-		   && modtime.tv_nsec % 100 != 0);
-
-	      struct timespec modtime1 = get_stat_mtime (&st1);
-	      if (use_heuristic
-		  && timespec_cmp (modtime, modtime1) == 0
-		  && st.st_size == st1.st_size)
+		if (++len == bufsize)
 		{
-		  timestamp_file_system = st.st_dev;
-		  valid_timestamp_file_system = 1;
+		    if (buf_write_bytes(&write_info) == FAIL)
+		    {
+			end = 0;	/* write error: break loop */
+			break;
+		    }
+		    nchars += bufsize;
+		    s = buffer;
+		    len = 0;
 		}
-	      else
+		*s++ = NL;
+	    }
+	}
+	if (++len == bufsize && end)
+	{
+	    if (buf_write_bytes(&write_info) == FAIL)
+	    {
+		end = 0;		/* write error: break loop */
+		break;
+	    }
+	    nchars += bufsize;
+	    s = buffer;
+	    len = 0;
+
+	    ui_breakcheck();
+	    if (got_int)
+	    {
+		end = 0;		/* Interrupted, break loop */
+		break;
+	    }
+	}
+#ifdef VMS
+	/*
+	 * On VMS there is a problem: newlines get added when writing blocks
+	 * at a time. Fix it by writing a line at a time.
+	 * This is much slower!
+	 * Explanation: VAX/DECC RTL insists that records in some RMS
+	 * structures end with a newline (carriage return) character, and if
+	 * they don't it adds one.
+	 * With other RMS structures it works perfect without this fix.
+	 */
+	if (buf->b_fab_rfm == FAB$C_VFC
+		|| ((buf->b_fab_rat & (FAB$M_FTN | FAB$M_CR)) != 0))
+	{
+	    int b2write;
+
+	    buf->b_fab_mrs = (buf->b_fab_mrs == 0
+		    ? MIN(4096, bufsize)
+		    : MIN(buf->b_fab_mrs, bufsize));
+
+	    b2write = len;
+	    while (b2write > 0)
+	    {
+		write_info.bw_len = MIN(b2write, buf->b_fab_mrs);
+		if (buf_write_bytes(&write_info) == FAIL)
 		{
-		  st.st_size = st1.st_size;
-		  modtime = modtime1;
+		    end = 0;
+		    break;
+		}
+		b2write -= MIN(b2write, buf->b_fab_mrs);
+	    }
+	    write_info.bw_len = bufsize;
+	    nchars += len;
+	    s = buffer;
+	    len = 0;
+	}
+#endif
+    }
+    if (len > 0 && end > 0)
+    {
+	write_info.bw_len = len;
+	if (buf_write_bytes(&write_info) == FAIL)
+	    end = 0;		    /* write error */
+	nchars += len;
+    }
+
+#if defined(UNIX) && defined(HAVE_FSYNC)
+    /* On many journalling file systems there is a bug that causes both the
+     * original and the backup file to be lost when halting the system right
+     * after writing the file.  That's because only the meta-data is
+     * journalled.  Syncing the file slows down the system, but assures it has
+     * been written to disk and we don't lose it.
+     * For a device do try the fsync() but don't complain if it does not work
+     * (could be a pipe).
+     * If the 'fsync' option is FALSE, don't fsync().  Useful for laptops. */
+    if (p_fs && fsync(fd) != 0 && !device)
+    {
+	errmsg = (char_u *)_("E667: Fsync failed");
+	end = 0;
+    }
+#endif
+
+#if defined(HAVE_SELINUX) || defined(HAVE_SMACK)
+    /* Probably need to set the security context. */
+    if (!backup_copy)
+	mch_copy_sec(backup, wfname);
+#endif
+
+#ifdef UNIX
+    /* When creating a new file, set its owner/group to that of the original
+     * file.  Get the new device and inode number. */
+    if (backup != NULL && !backup_copy)
+    {
+# ifdef HAVE_FCHOWN
+	stat_T	st;
+
+	/* don't change the owner when it's already OK, some systems remove
+	 * permission or ACL stuff */
+	if (mch_stat((char *)wfname, &st) < 0
+		|| st.st_uid != st_old.st_uid
+		|| st.st_gid != st_old.st_gid)
+	{
+	    ignored = fchown(fd, st_old.st_uid, st_old.st_gid);
+	    if (perm >= 0)	/* set permission again, may have changed */
+		(void)mch_setperm(wfname, perm);
+	}
+# endif
+	buf_setino(buf);
+    }
+    else if (!buf->b_dev_valid)
+	/* Set the inode when creating a new file. */
+	buf_setino(buf);
+#endif
+
+    if (close(fd) != 0)
+    {
+	errmsg = (char_u *)_("E512: Close failed");
+	end = 0;
+    }
+
+#ifdef UNIX
+    if (made_writable)
+	perm &= ~0200;		/* reset 'w' bit for security reasons */
+#endif
+    if (perm >= 0)		/* set perm. of new file same as old file */
+	(void)mch_setperm(wfname, perm);
+#ifdef HAVE_ACL
+    /*
+     * Probably need to set the ACL before changing the user (can't set the
+     * ACL on a file the user doesn't own).
+     * On Solaris, with ZFS and the aclmode property set to "discard" (the
+     * default), chmod() discards all part of a file's ACL that don't represent
+     * the mode of the file.  It's non-trivial for us to discover whether we're
+     * in that situation, so we simply always re-set the ACL.
+     */
+# ifndef HAVE_SOLARIS_ZFS_ACL
+    if (!backup_copy)
+# endif
+	mch_set_acl(wfname, acl);
+#endif
+#ifdef FEAT_CRYPT
+    if (buf->b_cryptstate != NULL)
+    {
+	crypt_free_state(buf->b_cryptstate);
+	buf->b_cryptstate = NULL;
+    }
+#endif
+
+#if defined(FEAT_MBYTE) && defined(FEAT_EVAL)
+    if (wfname != fname)
+    {
+	/*
+	 * The file was written to a temp file, now it needs to be converted
+	 * with 'charconvert' to (overwrite) the output file.
+	 */
+	if (end != 0)
+	{
+	    if (eval_charconvert(enc_utf8 ? (char_u *)"utf-8" : p_enc, fenc,
+						       wfname, fname) == FAIL)
+	    {
+		write_info.bw_conv_error = TRUE;
+		end = 0;
+	    }
+	}
+	mch_remove(wfname);
+	vim_free(wfname);
+    }
+#endif
+
+    if (end == 0)
+    {
+	if (errmsg == NULL)
+	{
+#ifdef FEAT_MBYTE
+	    if (write_info.bw_conv_error)
+	    {
+		if (write_info.bw_conv_error_lnum == 0)
+		    errmsg = (char_u *)_("E513: write error, conversion failed (make 'fenc' empty to override)");
+		else
+		{
+		    errmsg_allocated = TRUE;
+		    errmsg = alloc(300);
+		    vim_snprintf((char *)errmsg, 300, _("E513: write error, conversion failed in line %ld (make 'fenc' empty to override)"),
+					 (long)write_info.bw_conv_error_lnum);
 		}
 	    }
-	  emacs_close (desc1);
+	    else
+#endif
+		if (got_int)
+		    errmsg = (char_u *)_(e_interr);
+		else
+		    errmsg = (char_u *)_("E514: write error (file system full?)");
 	}
-    }
 
-  /* Call write-region-post-annotation-function. */
-  while (CONSP (Vwrite_region_annotation_buffers))
-    {
-      Lisp_Object buf = XCAR (Vwrite_region_annotation_buffers);
-      if (!NILP (Fbuffer_live_p (buf)))
-  	{
-  	  Fset_buffer (buf);
-  	  if (FUNCTIONP (Vwrite_region_post_annotation_function))
-  	    call0 (Vwrite_region_post_annotation_function);
-  	}
-      Vwrite_region_annotation_buffers
-  	= XCDR (Vwrite_region_annotation_buffers);
-    }
-
-  unbind_to (count, Qnil);
-
-  if (file_locked)
-    unlock_file (lockname);
-
-  /* Do this before reporting IO error
-     to avoid a "file has changed on disk" warning on
-     next attempt to save.  */
-  if (timespec_valid_p (modtime))
-    {
-      current_buffer->modtime = modtime;
-      current_buffer->modtime_size = st.st_size;
-    }
-
-  if (! ok)
-    report_file_errno ("Write error", filename, save_errno);
-
-  if (visiting)
-    {
-      SAVE_MODIFF = MODIFF;
-      XSETFASTINT (BVAR (current_buffer, save_length), Z - BEG);
-      bset_filename (current_buffer, visit_file);
-      update_mode_lines = 14;
-    }
-  else if (quietly)
-    {
-      if (auto_saving
-	  && ! NILP (Fstring_equal (BVAR (current_buffer, filename),
-				    BVAR (current_buffer, auto_save_file_name))))
-	SAVE_MODIFF = MODIFF;
-
-      return Qnil;
-    }
-
-  if (!auto_saving && !noninteractive)
-    message_with_string ((NUMBERP (append)
-			  ? "Updated %s"
-			  : ! NILP (append)
-			  ? "Added to %s"
-			  : "Wrote %s"),
-			 visit_file, 1);
-
-  return Qnil;
-}
-
-DEFUN ("car-less-than-car", Fcar_less_than_car, Scar_less_than_car, 2, 2, 0,
-       doc: /* Return t if (car A) is numerically less than (car B).  */)
-  (Lisp_Object a, Lisp_Object b)
-{
-  return CALLN (Flss, Fcar (a), Fcar (b));
-}
-
-/* Build the complete list of annotations appropriate for writing out
-   the text between START and END, by calling all the functions in
-   write-region-annotate-functions and merging the lists they return.
-   If one of these functions switches to a different buffer, we assume
-   that buffer contains altered text.  Therefore, the caller must
-   make sure to restore the current buffer in all cases,
-   as save-excursion would do.  */
-
-static Lisp_Object
-build_annotations (Lisp_Object start, Lisp_Object end)
-{
-  Lisp_Object annotations;
-  Lisp_Object p, res;
-  Lisp_Object original_buffer;
-  int i;
-  bool used_global = false;
-
-  XSETBUFFER (original_buffer, current_buffer);
-
-  annotations = Qnil;
-  p = Vwrite_region_annotate_functions;
-  while (CONSP (p))
-    {
-      struct buffer *given_buffer = current_buffer;
-      if (EQ (Qt, XCAR (p)) && !used_global)
-	{ /* Use the global value of the hook.  */
-	  used_global = true;
-	  p = CALLN (Fappend,
-		     Fdefault_value (Qwrite_region_annotate_functions),
-		     XCDR (p));
-	  continue;
-	}
-      Vwrite_region_annotations_so_far = annotations;
-      res = call2 (XCAR (p), start, end);
-      /* If the function makes a different buffer current,
-	 assume that means this buffer contains altered text to be output.
-	 Reset START and END from the buffer bounds
-	 and discard all previous annotations because they should have
-	 been dealt with by this function.  */
-      if (current_buffer != given_buffer)
+	/*
+	 * If we have a backup file, try to put it in place of the new file,
+	 * because the new file is probably corrupt.  This avoids losing the
+	 * original file when trying to make a backup when writing the file a
+	 * second time.
+	 * When "backup_copy" is set we need to copy the backup over the new
+	 * file.  Otherwise rename the backup file.
+	 * If this is OK, don't give the extra warning message.
+	 */
+	if (backup != NULL)
 	{
-	  Vwrite_region_annotation_buffers
-	    = Fcons (Fcurrent_buffer (),
-		     Vwrite_region_annotation_buffers);
-	  XSETFASTINT (start, BEGV);
-	  XSETFASTINT (end, ZV);
-	  annotations = Qnil;
+	    if (backup_copy)
+	    {
+		/* This may take a while, if we were interrupted let the user
+		 * know we got the message. */
+		if (got_int)
+		{
+		    MSG(_(e_interr));
+		    out_flush();
+		}
+		if ((fd = mch_open((char *)backup, O_RDONLY | O_EXTRA, 0)) >= 0)
+		{
+		    if ((write_info.bw_fd = mch_open((char *)fname,
+				    O_WRONLY | O_CREAT | O_TRUNC | O_EXTRA,
+							   perm & 0777)) >= 0)
+		    {
+			/* copy the file. */
+			write_info.bw_buf = smallbuf;
+#ifdef HAS_BW_FLAGS
+			write_info.bw_flags = FIO_NOCONVERT;
+#endif
+			while ((write_info.bw_len = read_eintr(fd, smallbuf,
+						      SMBUFSIZE)) > 0)
+			    if (buf_write_bytes(&write_info) == FAIL)
+				break;
+
+			if (close(write_info.bw_fd) >= 0
+						   && write_info.bw_len == 0)
+			    end = 1;		/* success */
+		    }
+		    close(fd);	/* ignore errors for closing read file */
+		}
+	    }
+	    else
+	    {
+		if (vim_rename(backup, fname) == 0)
+		    end = 1;
+	    }
 	}
-      Flength (res);   /* Check basic validity of return value */
-      annotations = merge (annotations, res, Qcar_less_than_car);
-      p = XCDR (p);
+	goto fail;
     }
 
-  /* Now do the same for annotation functions implied by the file-format */
-  if (auto_saving && (!EQ (BVAR (current_buffer, auto_save_file_format), Qt)))
-    p = BVAR (current_buffer, auto_save_file_format);
-  else
-    p = BVAR (current_buffer, file_format);
-  for (i = 0; CONSP (p); p = XCDR (p), ++i)
+    lnum -= start;	    /* compute number of written lines */
+    --no_wait_return;	    /* may wait for return now */
+
+#if !(defined(UNIX) || defined(VMS))
+    fname = sfname;	    /* use shortname now, for the messages */
+#endif
+    if (!filtering)
     {
-      struct buffer *given_buffer = current_buffer;
-
-      Vwrite_region_annotations_so_far = annotations;
-
-      /* Value is either a list of annotations or nil if the function
-         has written annotations to a temporary buffer, which is now
-         current.  */
-      res = call5 (Qformat_annotate_function, XCAR (p), start, end,
-		   original_buffer, make_number (i));
-      if (current_buffer != given_buffer)
+	msg_add_fname(buf, fname);	/* put fname in IObuff with quotes */
+	c = FALSE;
+#ifdef FEAT_MBYTE
+	if (write_info.bw_conv_error)
 	{
-	  XSETFASTINT (start, BEGV);
-	  XSETFASTINT (end, ZV);
-	  annotations = Qnil;
+	    STRCAT(IObuff, _(" CONVERSION ERROR"));
+	    c = TRUE;
+	    if (write_info.bw_conv_error_lnum != 0)
+		vim_snprintf_add((char *)IObuff, IOSIZE, _(" in line %ld;"),
+			(long)write_info.bw_conv_error_lnum);
+	}
+	else if (notconverted)
+	{
+	    STRCAT(IObuff, _("[NOT converted]"));
+	    c = TRUE;
+	}
+	else if (converted)
+	{
+	    STRCAT(IObuff, _("[converted]"));
+	    c = TRUE;
+	}
+#endif
+	if (device)
+	{
+	    STRCAT(IObuff, _("[Device]"));
+	    c = TRUE;
+	}
+	else if (newfile)
+	{
+	    STRCAT(IObuff, shortmess(SHM_NEW) ? _("[New]") : _("[New File]"));
+	    c = TRUE;
+	}
+	if (no_eol)
+	{
+	    msg_add_eol();
+	    c = TRUE;
+	}
+	/* may add [unix/dos/mac] */
+	if (msg_add_fileformat(fileformat))
+	    c = TRUE;
+#ifdef FEAT_CRYPT
+	if (wb_flags & FIO_ENCRYPTED)
+	{
+	    crypt_append_msg(buf);
+	    c = TRUE;
+	}
+#endif
+	msg_add_lines(c, (long)lnum, nchars);	/* add line/char count */
+	if (!shortmess(SHM_WRITE))
+	{
+	    if (append)
+		STRCAT(IObuff, shortmess(SHM_WRI) ? _(" [a]") : _(" appended"));
+	    else
+		STRCAT(IObuff, shortmess(SHM_WRI) ? _(" [w]") : _(" written"));
 	}
 
-      if (CONSP (res))
-	annotations = merge (annotations, res, Qcar_less_than_car);
+	set_keep_msg(msg_trunc_attr(IObuff, FALSE, 0), 0);
     }
 
-  return annotations;
+    /* When written everything correctly: reset 'modified'.  Unless not
+     * writing to the original file and '+' is not in 'cpoptions'. */
+    if (reset_changed && whole && !append
+#ifdef FEAT_MBYTE
+	    && !write_info.bw_conv_error
+#endif
+	    && (overwriting || vim_strchr(p_cpo, CPO_PLUS) != NULL)
+	    )
+    {
+	unchanged(buf, TRUE);
+#ifdef FEAT_AUTOCMD
+	/* buf->b_changedtick is always incremented in unchanged() but that
+	 * should not trigger a TextChanged event. */
+	if (last_changedtick + 1 == buf->b_changedtick
+					       && last_changedtick_buf == buf)
+	    last_changedtick = buf->b_changedtick;
+#endif
+	u_unchanged(buf);
+	u_update_save_nr(buf);
+    }
+
+    /*
+     * If written to the current file, update the timestamp of the swap file
+     * and reset the BF_WRITE_MASK flags. Also sets buf->b_mtime.
+     */
+    if (overwriting)
+    {
+	ml_timestamp(buf);
+	if (append)
+	    buf->b_flags &= ~BF_NEW;
+	else
+	    buf->b_flags &= ~BF_WRITE_MASK;
+    }
+
+    /*
+     * If we kept a backup until now, and we are in patch mode, then we make
+     * the backup file our 'original' file.
+     */
+    if (*p_pm && dobackup)
+    {
+	char *org = (char *)buf_modname((buf->b_p_sn || buf->b_shortname),
+							  fname, p_pm, FALSE);
+
+	if (backup != NULL)
+	{
+	    stat_T	st;
+
+	    /*
+	     * If the original file does not exist yet
+	     * the current backup file becomes the original file
+	     */
+	    if (org == NULL)
+		EMSG(_("E205: Patchmode: can't save original file"));
+	    else if (mch_stat(org, &st) < 0)
+	    {
+		vim_rename(backup, (char_u *)org);
+		vim_free(backup);	    /* don't delete the file */
+		backup = NULL;
+#ifdef UNIX
+		set_file_time((char_u *)org, st_old.st_atime, st_old.st_mtime);
+#endif
+	    }
+	}
+	/*
+	 * If there is no backup file, remember that a (new) file was
+	 * created.
+	 */
+	else
+	{
+	    int empty_fd;
+
+	    if (org == NULL
+		    || (empty_fd = mch_open(org,
+				      O_CREAT | O_EXTRA | O_EXCL | O_NOFOLLOW,
+					perm < 0 ? 0666 : (perm & 0777))) < 0)
+	      EMSG(_("E206: patchmode: can't touch empty original file"));
+	    else
+	      close(empty_fd);
+	}
+	if (org != NULL)
+	{
+	    mch_setperm((char_u *)org, mch_getperm(fname) & 0777);
+	    vim_free(org);
+	}
+    }
+
+    /*
+     * Remove the backup unless 'backup' option is set
+     */
+    if (!p_bk && backup != NULL && mch_remove(backup) != 0)
+	EMSG(_("E207: Can't delete backup file"));
+
+#ifdef FEAT_SUN_WORKSHOP
+    if (usingSunWorkShop)
+	workshop_file_saved((char *) ffname);
+#endif
+
+    goto nofail;
+
+    /*
+     * Finish up.  We get here either after failure or success.
+     */
+fail:
+    --no_wait_return;		/* may wait for return now */
+nofail:
+
+    /* Done saving, we accept changed buffer warnings again */
+    buf->b_saving = FALSE;
+
+    vim_free(backup);
+    if (buffer != smallbuf)
+	vim_free(buffer);
+#ifdef FEAT_MBYTE
+    vim_free(fenc_tofree);
+    vim_free(write_info.bw_conv_buf);
+# ifdef USE_ICONV
+    if (write_info.bw_iconv_fd != (iconv_t)-1)
+    {
+	iconv_close(write_info.bw_iconv_fd);
+	write_info.bw_iconv_fd = (iconv_t)-1;
+    }
+# endif
+#endif
+#ifdef HAVE_ACL
+    mch_free_acl(acl);
+#endif
+
+    if (errmsg != NULL)
+    {
+	int numlen = errnum != NULL ? (int)STRLEN(errnum) : 0;
+
+	attr = hl_attr(HLF_E);	/* set highlight for error messages */
+	msg_add_fname(buf,
+#ifndef UNIX
+		sfname
+#else
+		fname
+#endif
+		     );		/* put file name in IObuff with quotes */
+	if (STRLEN(IObuff) + STRLEN(errmsg) + numlen >= IOSIZE)
+	    IObuff[IOSIZE - STRLEN(errmsg) - numlen - 1] = NUL;
+	/* If the error message has the form "is ...", put the error number in
+	 * front of the file name. */
+	if (errnum != NULL)
+	{
+	    STRMOVE(IObuff + numlen, IObuff);
+	    mch_memmove(IObuff, errnum, (size_t)numlen);
+	}
+	STRCAT(IObuff, errmsg);
+	emsg(IObuff);
+	if (errmsg_allocated)
+	    vim_free(errmsg);
+
+	retval = FAIL;
+	if (end == 0)
+	{
+	    MSG_PUTS_ATTR(_("\nWARNING: Original file may be lost or damaged\n"),
+		    attr | MSG_HIST);
+	    MSG_PUTS_ATTR(_("don't quit the editor until the file is successfully written!"),
+		    attr | MSG_HIST);
+
+	    /* Update the timestamp to avoid an "overwrite changed file"
+	     * prompt when writing again. */
+	    if (mch_stat((char *)fname, &st_old) >= 0)
+	    {
+		buf_store_time(buf, &st_old, fname);
+		buf->b_mtime_read = buf->b_mtime;
+	    }
+	}
+    }
+    msg_scroll = msg_save;
+
+#ifdef FEAT_PERSISTENT_UNDO
+    /*
+     * When writing the whole file and 'undofile' is set, also write the undo
+     * file.
+     */
+    if (retval == OK && write_undo_file)
+    {
+	char_u	    hash[UNDO_HASH_SIZE];
+
+	sha256_finish(&sha_ctx, hash);
+	u_write_undo(NULL, FALSE, buf, hash);
+    }
+#endif
+
+#ifdef FEAT_AUTOCMD
+#ifdef FEAT_EVAL
+    if (!should_abort(retval))
+#else
+    if (!got_int)
+#endif
+    {
+	aco_save_T	aco;
+
+	curbuf->b_no_eol_lnum = 0;  /* in case it was set by the previous read */
+
+	/*
+	 * Apply POST autocommands.
+	 * Careful: The autocommands may call buf_write() recursively!
+	 */
+	aucmd_prepbuf(&aco, buf);
+
+	if (append)
+	    apply_autocmds_exarg(EVENT_FILEAPPENDPOST, fname, fname,
+							  FALSE, curbuf, eap);
+	else if (filtering)
+	    apply_autocmds_exarg(EVENT_FILTERWRITEPOST, NULL, fname,
+							  FALSE, curbuf, eap);
+	else if (reset_changed && whole)
+	    apply_autocmds_exarg(EVENT_BUFWRITEPOST, fname, fname,
+							  FALSE, curbuf, eap);
+	else
+	    apply_autocmds_exarg(EVENT_FILEWRITEPOST, fname, fname,
+							  FALSE, curbuf, eap);
+
+	/* restore curwin/curbuf and a few other things */
+	aucmd_restbuf(&aco);
+
+#ifdef FEAT_EVAL
+	if (aborting())	    /* autocmds may abort script processing */
+	    retval = FALSE;
+#endif
+    }
+#endif
+
+    got_int |= prev_got_int;
+
+#ifdef MACOS_CLASSIC /* TODO: Is it need for MACOS_X? (Dany) */
+    /* Update machine specific information. */
+    mch_post_buffer_write(buf);
+#endif
+    return retval;
 }
 
-
-/* Write to descriptor DESC the NCHARS chars starting at POS of STRING.
-   If STRING is nil, POS is the character position in the current buffer.
-   Intersperse with them the annotations from *ANNOT
-   which fall within the range of POS to POS + NCHARS,
-   each at its appropriate position.
-
-   We modify *ANNOT by discarding elements as we use them up.
-
-   Return true if successful.  */
-
-static bool
-a_write (int desc, Lisp_Object string, ptrdiff_t pos,
-	 ptrdiff_t nchars, Lisp_Object *annot,
-	 struct coding_system *coding)
+/*
+ * Set the name of the current buffer.  Use when the buffer doesn't have a
+ * name and a ":r" or ":w" command with a file name is used.
+ */
+    static int
+set_rw_fname(char_u *fname, char_u *sfname)
 {
-  Lisp_Object tem;
-  ptrdiff_t nextpos;
-  ptrdiff_t lastpos = pos + nchars;
+#ifdef FEAT_AUTOCMD
+    buf_T	*buf = curbuf;
 
-  while (NILP (*annot) || CONSP (*annot))
+    /* It's like the unnamed buffer is deleted.... */
+    if (curbuf->b_p_bl)
+	apply_autocmds(EVENT_BUFDELETE, NULL, NULL, FALSE, curbuf);
+    apply_autocmds(EVENT_BUFWIPEOUT, NULL, NULL, FALSE, curbuf);
+# ifdef FEAT_EVAL
+    if (aborting())	    /* autocmds may abort script processing */
+	return FAIL;
+# endif
+    if (curbuf != buf)
     {
-      tem = Fcar_safe (Fcar (*annot));
-      nextpos = pos - 1;
-      if (INTEGERP (tem))
-	nextpos = XFASTINT (tem);
+	/* We are in another buffer now, don't do the renaming. */
+	EMSG(_(e_auchangedbuf));
+	return FAIL;
+    }
+#endif
 
-      /* If there are no more annotations in this range,
-	 output the rest of the range all at once.  */
-      if (! (nextpos >= pos && nextpos <= lastpos))
-	return e_write (desc, string, pos, lastpos, coding);
+    if (setfname(curbuf, fname, sfname, FALSE) == OK)
+	curbuf->b_flags |= BF_NOTEDITED;
 
-      /* Output buffer text up to the next annotation's position.  */
-      if (nextpos > pos)
+#ifdef FEAT_AUTOCMD
+    /* ....and a new named one is created */
+    apply_autocmds(EVENT_BUFNEW, NULL, NULL, FALSE, curbuf);
+    if (curbuf->b_p_bl)
+	apply_autocmds(EVENT_BUFADD, NULL, NULL, FALSE, curbuf);
+# ifdef FEAT_EVAL
+    if (aborting())	    /* autocmds may abort script processing */
+	return FAIL;
+# endif
+
+    /* Do filetype detection now if 'filetype' is empty. */
+    if (*curbuf->b_p_ft == NUL)
+    {
+	if (au_has_group((char_u *)"filetypedetect"))
+	    (void)do_doautocmd((char_u *)"filetypedetect BufRead", FALSE, NULL);
+	do_modelines(0);
+    }
+#endif
+
+    return OK;
+}
+
+/*
+ * Put file name into IObuff with quotes.
+ */
+    void
+msg_add_fname(buf_T *buf, char_u *fname)
+{
+    if (fname == NULL)
+	fname = (char_u *)"-stdin-";
+    home_replace(buf, fname, IObuff + 1, IOSIZE - 4, TRUE);
+    IObuff[0] = '"';
+    STRCAT(IObuff, "\" ");
+}
+
+/*
+ * Append message for text mode to IObuff.
+ * Return TRUE if something appended.
+ */
+    static int
+msg_add_fileformat(int eol_type)
+{
+#ifndef USE_CRNL
+    if (eol_type == EOL_DOS)
+    {
+	STRCAT(IObuff, shortmess(SHM_TEXT) ? _("[dos]") : _("[dos format]"));
+	return TRUE;
+    }
+#endif
+#ifndef USE_CR
+    if (eol_type == EOL_MAC)
+    {
+	STRCAT(IObuff, shortmess(SHM_TEXT) ? _("[mac]") : _("[mac format]"));
+	return TRUE;
+    }
+#endif
+#if defined(USE_CRNL) || defined(USE_CR)
+    if (eol_type == EOL_UNIX)
+    {
+	STRCAT(IObuff, shortmess(SHM_TEXT) ? _("[unix]") : _("[unix format]"));
+	return TRUE;
+    }
+#endif
+    return FALSE;
+}
+
+/*
+ * Append line and character count to IObuff.
+ */
+    void
+msg_add_lines(
+    int	    insert_space,
+    long    lnum,
+    off_T   nchars)
+{
+    char_u  *p;
+
+    p = IObuff + STRLEN(IObuff);
+
+    if (insert_space)
+	*p++ = ' ';
+    if (shortmess(SHM_LINES))
+	vim_snprintf((char *)p, IOSIZE - (p - IObuff),
+		"%ldL, %lldC", lnum, (varnumber_T)nchars);
+    else
+    {
+	if (lnum == 1)
+	    STRCPY(p, _("1 line, "));
+	else
+	    sprintf((char *)p, _("%ld lines, "), lnum);
+	p += STRLEN(p);
+	if (nchars == 1)
+	    STRCPY(p, _("1 character"));
+	else
+	    vim_snprintf((char *)p, IOSIZE - (p - IObuff),
+		    _("%lld characters"), (varnumber_T)nchars);
+    }
+}
+
+/*
+ * Append message for missing line separator to IObuff.
+ */
+    static void
+msg_add_eol(void)
+{
+    STRCAT(IObuff, shortmess(SHM_LAST) ? _("[noeol]") : _("[Incomplete last line]"));
+}
+
+/*
+ * Check modification time of file, before writing to it.
+ * The size isn't checked, because using a tool like "gzip" takes care of
+ * using the same timestamp but can't set the size.
+ */
+    static int
+check_mtime(buf_T *buf, stat_T *st)
+{
+    if (buf->b_mtime_read != 0
+	    && time_differs((long)st->st_mtime, buf->b_mtime_read))
+    {
+	msg_scroll = TRUE;	    /* don't overwrite messages here */
+	msg_silent = 0;		    /* must give this prompt */
+	/* don't use emsg() here, don't want to flush the buffers */
+	MSG_ATTR(_("WARNING: The file has been changed since reading it!!!"),
+						       hl_attr(HLF_E));
+	if (ask_yesno((char_u *)_("Do you really want to write to it"),
+								 TRUE) == 'n')
+	    return FAIL;
+	msg_scroll = FALSE;	    /* always overwrite the file message now */
+    }
+    return OK;
+}
+
+    static int
+time_differs(long t1, long t2)
+{
+#if defined(__linux__) || defined(MSWIN)
+    /* On a FAT filesystem, esp. under Linux, there are only 5 bits to store
+     * the seconds.  Since the roundoff is done when flushing the inode, the
+     * time may change unexpectedly by one second!!! */
+    return (t1 - t2 > 1 || t2 - t1 > 1);
+#else
+    return (t1 != t2);
+#endif
+}
+
+/*
+ * Call write() to write a number of bytes to the file.
+ * Handles encryption and 'encoding' conversion.
+ *
+ * Return FAIL for failure, OK otherwise.
+ */
+    static int
+buf_write_bytes(struct bw_info *ip)
+{
+    int		wlen;
+    char_u	*buf = ip->bw_buf;	/* data to write */
+    int		len = ip->bw_len;	/* length of data */
+#ifdef HAS_BW_FLAGS
+    int		flags = ip->bw_flags;	/* extra flags */
+#endif
+
+#ifdef FEAT_MBYTE
+    /*
+     * Skip conversion when writing the crypt magic number or the BOM.
+     */
+    if (!(flags & FIO_NOCONVERT))
+    {
+	char_u		*p;
+	unsigned	c;
+	int		n;
+
+	if (flags & FIO_UTF8)
 	{
-	  if (!e_write (desc, string, pos, nextpos, coding))
+	    /*
+	     * Convert latin1 in the buffer to UTF-8 in the file.
+	     */
+	    p = ip->bw_conv_buf;	/* translate to buffer */
+	    for (wlen = 0; wlen < len; ++wlen)
+		p += utf_char2bytes(buf[wlen], p);
+	    buf = ip->bw_conv_buf;
+	    len = (int)(p - ip->bw_conv_buf);
+	}
+	else if (flags & (FIO_UCS4 | FIO_UTF16 | FIO_UCS2 | FIO_LATIN1))
+	{
+	    /*
+	     * Convert UTF-8 bytes in the buffer to UCS-2, UCS-4, UTF-16 or
+	     * Latin1 chars in the file.
+	     */
+	    if (flags & FIO_LATIN1)
+		p = buf;	/* translate in-place (can only get shorter) */
+	    else
+		p = ip->bw_conv_buf;	/* translate to buffer */
+	    for (wlen = 0; wlen < len; wlen += n)
+	    {
+		if (wlen == 0 && ip->bw_restlen != 0)
+		{
+		    int		l;
+
+		    /* Use remainder of previous call.  Append the start of
+		     * buf[] to get a full sequence.  Might still be too
+		     * short! */
+		    l = CONV_RESTLEN - ip->bw_restlen;
+		    if (l > len)
+			l = len;
+		    mch_memmove(ip->bw_rest + ip->bw_restlen, buf, (size_t)l);
+		    n = utf_ptr2len_len(ip->bw_rest, ip->bw_restlen + l);
+		    if (n > ip->bw_restlen + len)
+		    {
+			/* We have an incomplete byte sequence at the end to
+			 * be written.  We can't convert it without the
+			 * remaining bytes.  Keep them for the next call. */
+			if (ip->bw_restlen + len > CONV_RESTLEN)
+			    return FAIL;
+			ip->bw_restlen += len;
+			break;
+		    }
+		    if (n > 1)
+			c = utf_ptr2char(ip->bw_rest);
+		    else
+			c = ip->bw_rest[0];
+		    if (n >= ip->bw_restlen)
+		    {
+			n -= ip->bw_restlen;
+			ip->bw_restlen = 0;
+		    }
+		    else
+		    {
+			ip->bw_restlen -= n;
+			mch_memmove(ip->bw_rest, ip->bw_rest + n,
+						      (size_t)ip->bw_restlen);
+			n = 0;
+		    }
+		}
+		else
+		{
+		    n = utf_ptr2len_len(buf + wlen, len - wlen);
+		    if (n > len - wlen)
+		    {
+			/* We have an incomplete byte sequence at the end to
+			 * be written.  We can't convert it without the
+			 * remaining bytes.  Keep them for the next call. */
+			if (len - wlen > CONV_RESTLEN)
+			    return FAIL;
+			ip->bw_restlen = len - wlen;
+			mch_memmove(ip->bw_rest, buf + wlen,
+						      (size_t)ip->bw_restlen);
+			break;
+		    }
+		    if (n > 1)
+			c = utf_ptr2char(buf + wlen);
+		    else
+			c = buf[wlen];
+		}
+
+		if (ucs2bytes(c, &p, flags) && !ip->bw_conv_error)
+		{
+		    ip->bw_conv_error = TRUE;
+		    ip->bw_conv_error_lnum = ip->bw_start_lnum;
+		}
+		if (c == NL)
+		    ++ip->bw_start_lnum;
+	    }
+	    if (flags & FIO_LATIN1)
+		len = (int)(p - buf);
+	    else
+	    {
+		buf = ip->bw_conv_buf;
+		len = (int)(p - ip->bw_conv_buf);
+	    }
+	}
+
+# ifdef WIN3264
+	else if (flags & FIO_CODEPAGE)
+	{
+	    /*
+	     * Convert UTF-8 or codepage to UCS-2 and then to MS-Windows
+	     * codepage.
+	     */
+	    char_u	*from;
+	    size_t	fromlen;
+	    char_u	*to;
+	    int		u8c;
+	    BOOL	bad = FALSE;
+	    int		needed;
+
+	    if (ip->bw_restlen > 0)
+	    {
+		/* Need to concatenate the remainder of the previous call and
+		 * the bytes of the current call.  Use the end of the
+		 * conversion buffer for this. */
+		fromlen = len + ip->bw_restlen;
+		from = ip->bw_conv_buf + ip->bw_conv_buflen - fromlen;
+		mch_memmove(from, ip->bw_rest, (size_t)ip->bw_restlen);
+		mch_memmove(from + ip->bw_restlen, buf, (size_t)len);
+	    }
+	    else
+	    {
+		from = buf;
+		fromlen = len;
+	    }
+
+	    to = ip->bw_conv_buf;
+	    if (enc_utf8)
+	    {
+		/* Convert from UTF-8 to UCS-2, to the start of the buffer.
+		 * The buffer has been allocated to be big enough. */
+		while (fromlen > 0)
+		{
+		    n = (int)utf_ptr2len_len(from, (int)fromlen);
+		    if (n > (int)fromlen)	/* incomplete byte sequence */
+			break;
+		    u8c = utf_ptr2char(from);
+		    *to++ = (u8c & 0xff);
+		    *to++ = (u8c >> 8);
+		    fromlen -= n;
+		    from += n;
+		}
+
+		/* Copy remainder to ip->bw_rest[] to be used for the next
+		 * call. */
+		if (fromlen > CONV_RESTLEN)
+		{
+		    /* weird overlong sequence */
+		    ip->bw_conv_error = TRUE;
+		    return FAIL;
+		}
+		mch_memmove(ip->bw_rest, from, fromlen);
+		ip->bw_restlen = (int)fromlen;
+	    }
+	    else
+	    {
+		/* Convert from enc_codepage to UCS-2, to the start of the
+		 * buffer.  The buffer has been allocated to be big enough. */
+		ip->bw_restlen = 0;
+		needed = MultiByteToWideChar(enc_codepage,
+			     MB_ERR_INVALID_CHARS, (LPCSTR)from, (int)fromlen,
+								     NULL, 0);
+		if (needed == 0)
+		{
+		    /* When conversion fails there may be a trailing byte. */
+		    needed = MultiByteToWideChar(enc_codepage,
+			 MB_ERR_INVALID_CHARS, (LPCSTR)from, (int)fromlen - 1,
+								     NULL, 0);
+		    if (needed == 0)
+		    {
+			/* Conversion doesn't work. */
+			ip->bw_conv_error = TRUE;
+			return FAIL;
+		    }
+		    /* Save the trailing byte for the next call. */
+		    ip->bw_rest[0] = from[fromlen - 1];
+		    ip->bw_restlen = 1;
+		}
+		needed = MultiByteToWideChar(enc_codepage, MB_ERR_INVALID_CHARS,
+				(LPCSTR)from, (int)(fromlen - ip->bw_restlen),
+							  (LPWSTR)to, needed);
+		if (needed == 0)
+		{
+		    /* Safety check: Conversion doesn't work. */
+		    ip->bw_conv_error = TRUE;
+		    return FAIL;
+		}
+		to += needed * 2;
+	    }
+
+	    fromlen = to - ip->bw_conv_buf;
+	    buf = to;
+#  ifdef CP_UTF8	/* VC 4.1 doesn't define CP_UTF8 */
+	    if (FIO_GET_CP(flags) == CP_UTF8)
+	    {
+		/* Convert from UCS-2 to UTF-8, using the remainder of the
+		 * conversion buffer.  Fails when out of space. */
+		for (from = ip->bw_conv_buf; fromlen > 1; fromlen -= 2)
+		{
+		    u8c = *from++;
+		    u8c += (*from++ << 8);
+		    to += utf_char2bytes(u8c, to);
+		    if (to + 6 >= ip->bw_conv_buf + ip->bw_conv_buflen)
+		    {
+			ip->bw_conv_error = TRUE;
+			return FAIL;
+		    }
+		}
+		len = (int)(to - buf);
+	    }
+	    else
+#endif
+	    {
+		/* Convert from UCS-2 to the codepage, using the remainder of
+		 * the conversion buffer.  If the conversion uses the default
+		 * character "0", the data doesn't fit in this encoding, so
+		 * fail. */
+		len = WideCharToMultiByte(FIO_GET_CP(flags), 0,
+			(LPCWSTR)ip->bw_conv_buf, (int)fromlen / sizeof(WCHAR),
+			(LPSTR)to, (int)(ip->bw_conv_buflen - fromlen), 0,
+									&bad);
+		if (bad)
+		{
+		    ip->bw_conv_error = TRUE;
+		    return FAIL;
+		}
+	    }
+	}
+# endif
+
+# ifdef MACOS_CONVERT
+	else if (flags & FIO_MACROMAN)
+	{
+	    /*
+	     * Convert UTF-8 or latin1 to Apple MacRoman.
+	     */
+	    char_u	*from;
+	    size_t	fromlen;
+
+	    if (ip->bw_restlen > 0)
+	    {
+		/* Need to concatenate the remainder of the previous call and
+		 * the bytes of the current call.  Use the end of the
+		 * conversion buffer for this. */
+		fromlen = len + ip->bw_restlen;
+		from = ip->bw_conv_buf + ip->bw_conv_buflen - fromlen;
+		mch_memmove(from, ip->bw_rest, (size_t)ip->bw_restlen);
+		mch_memmove(from + ip->bw_restlen, buf, (size_t)len);
+	    }
+	    else
+	    {
+		from = buf;
+		fromlen = len;
+	    }
+
+	    if (enc2macroman(from, fromlen,
+			ip->bw_conv_buf, &len, ip->bw_conv_buflen,
+			ip->bw_rest, &ip->bw_restlen) == FAIL)
+	    {
+		ip->bw_conv_error = TRUE;
+		return FAIL;
+	    }
+	    buf = ip->bw_conv_buf;
+	}
+# endif
+
+# ifdef USE_ICONV
+	if (ip->bw_iconv_fd != (iconv_t)-1)
+	{
+	    const char	*from;
+	    size_t	fromlen;
+	    char	*to;
+	    size_t	tolen;
+
+	    /* Convert with iconv(). */
+	    if (ip->bw_restlen > 0)
+	    {
+		char *fp;
+
+		/* Need to concatenate the remainder of the previous call and
+		 * the bytes of the current call.  Use the end of the
+		 * conversion buffer for this. */
+		fromlen = len + ip->bw_restlen;
+		fp = (char *)ip->bw_conv_buf + ip->bw_conv_buflen - fromlen;
+		mch_memmove(fp, ip->bw_rest, (size_t)ip->bw_restlen);
+		mch_memmove(fp + ip->bw_restlen, buf, (size_t)len);
+		from = fp;
+		tolen = ip->bw_conv_buflen - fromlen;
+	    }
+	    else
+	    {
+		from = (const char *)buf;
+		fromlen = len;
+		tolen = ip->bw_conv_buflen;
+	    }
+	    to = (char *)ip->bw_conv_buf;
+
+	    if (ip->bw_first)
+	    {
+		size_t	save_len = tolen;
+
+		/* output the initial shift state sequence */
+		(void)iconv(ip->bw_iconv_fd, NULL, NULL, &to, &tolen);
+
+		/* There is a bug in iconv() on Linux (which appears to be
+		 * wide-spread) which sets "to" to NULL and messes up "tolen".
+		 */
+		if (to == NULL)
+		{
+		    to = (char *)ip->bw_conv_buf;
+		    tolen = save_len;
+		}
+		ip->bw_first = FALSE;
+	    }
+
+	    /*
+	     * If iconv() has an error or there is not enough room, fail.
+	     */
+	    if ((iconv(ip->bw_iconv_fd, (void *)&from, &fromlen, &to, &tolen)
+			== (size_t)-1 && ICONV_ERRNO != ICONV_EINVAL)
+						    || fromlen > CONV_RESTLEN)
+	    {
+		ip->bw_conv_error = TRUE;
+		return FAIL;
+	    }
+
+	    /* copy remainder to ip->bw_rest[] to be used for the next call. */
+	    if (fromlen > 0)
+		mch_memmove(ip->bw_rest, (void *)from, fromlen);
+	    ip->bw_restlen = (int)fromlen;
+
+	    buf = ip->bw_conv_buf;
+	    len = (int)((char_u *)to - ip->bw_conv_buf);
+	}
+# endif
+    }
+#endif /* FEAT_MBYTE */
+
+#ifdef FEAT_CRYPT
+    if (flags & FIO_ENCRYPTED)
+    {
+	/* Encrypt the data. Do it in-place if possible, otherwise use an
+	 * allocated buffer. */
+	if (crypt_works_inplace(ip->bw_buffer->b_cryptstate))
+	{
+	    crypt_encode_inplace(ip->bw_buffer->b_cryptstate, buf, len);
+	}
+	else
+	{
+	    char_u *outbuf;
+
+	    len = crypt_encode_alloc(curbuf->b_cryptstate, buf, len, &outbuf);
+	    if (len == 0)
+		return OK;  /* Crypt layer is buffering, will flush later. */
+	    wlen = write_eintr(ip->bw_fd, outbuf, len);
+	    vim_free(outbuf);
+	    return (wlen < len) ? FAIL : OK;
+	}
+    }
+#endif
+
+    wlen = write_eintr(ip->bw_fd, buf, len);
+    return (wlen < len) ? FAIL : OK;
+}
+
+#ifdef FEAT_MBYTE
+/*
+ * Convert a Unicode character to bytes.
+ * Return TRUE for an error, FALSE when it's OK.
+ */
+    static int
+ucs2bytes(
+    unsigned	c,		/* in: character */
+    char_u	**pp,		/* in/out: pointer to result */
+    int		flags)		/* FIO_ flags */
+{
+    char_u	*p = *pp;
+    int		error = FALSE;
+    int		cc;
+
+
+    if (flags & FIO_UCS4)
+    {
+	if (flags & FIO_ENDIAN_L)
+	{
+	    *p++ = c;
+	    *p++ = (c >> 8);
+	    *p++ = (c >> 16);
+	    *p++ = (c >> 24);
+	}
+	else
+	{
+	    *p++ = (c >> 24);
+	    *p++ = (c >> 16);
+	    *p++ = (c >> 8);
+	    *p++ = c;
+	}
+    }
+    else if (flags & (FIO_UCS2 | FIO_UTF16))
+    {
+	if (c >= 0x10000)
+	{
+	    if (flags & FIO_UTF16)
+	    {
+		/* Make two words, ten bits of the character in each.  First
+		 * word is 0xd800 - 0xdbff, second one 0xdc00 - 0xdfff */
+		c -= 0x10000;
+		if (c >= 0x100000)
+		    error = TRUE;
+		cc = ((c >> 10) & 0x3ff) + 0xd800;
+		if (flags & FIO_ENDIAN_L)
+		{
+		    *p++ = cc;
+		    *p++ = ((unsigned)cc >> 8);
+		}
+		else
+		{
+		    *p++ = ((unsigned)cc >> 8);
+		    *p++ = cc;
+		}
+		c = (c & 0x3ff) + 0xdc00;
+	    }
+	    else
+		error = TRUE;
+	}
+	if (flags & FIO_ENDIAN_L)
+	{
+	    *p++ = c;
+	    *p++ = (c >> 8);
+	}
+	else
+	{
+	    *p++ = (c >> 8);
+	    *p++ = c;
+	}
+    }
+    else    /* Latin1 */
+    {
+	if (c >= 0x100)
+	{
+	    error = TRUE;
+	    *p++ = 0xBF;
+	}
+	else
+	    *p++ = c;
+    }
+
+    *pp = p;
+    return error;
+}
+
+/*
+ * Return TRUE if file encoding "fenc" requires conversion from or to
+ * 'encoding'.
+ */
+    static int
+need_conversion(char_u *fenc)
+{
+    int		same_encoding;
+    int		enc_flags;
+    int		fenc_flags;
+
+    if (*fenc == NUL || STRCMP(p_enc, fenc) == 0)
+    {
+	same_encoding = TRUE;
+	fenc_flags = 0;
+    }
+    else
+    {
+	/* Ignore difference between "ansi" and "latin1", "ucs-4" and
+	 * "ucs-4be", etc. */
+	enc_flags = get_fio_flags(p_enc);
+	fenc_flags = get_fio_flags(fenc);
+	same_encoding = (enc_flags != 0 && fenc_flags == enc_flags);
+    }
+    if (same_encoding)
+    {
+	/* Specified encoding matches with 'encoding'.  This requires
+	 * conversion when 'encoding' is Unicode but not UTF-8. */
+	return enc_unicode != 0;
+    }
+
+    /* Encodings differ.  However, conversion is not needed when 'enc' is any
+     * Unicode encoding and the file is UTF-8. */
+    return !(enc_utf8 && fenc_flags == FIO_UTF8);
+}
+
+/*
+ * Check "ptr" for a unicode encoding and return the FIO_ flags needed for the
+ * internal conversion.
+ * if "ptr" is an empty string, use 'encoding'.
+ */
+    static int
+get_fio_flags(char_u *ptr)
+{
+    int		prop;
+
+    if (*ptr == NUL)
+	ptr = p_enc;
+
+    prop = enc_canon_props(ptr);
+    if (prop & ENC_UNICODE)
+    {
+	if (prop & ENC_2BYTE)
+	{
+	    if (prop & ENC_ENDIAN_L)
+		return FIO_UCS2 | FIO_ENDIAN_L;
+	    return FIO_UCS2;
+	}
+	if (prop & ENC_4BYTE)
+	{
+	    if (prop & ENC_ENDIAN_L)
+		return FIO_UCS4 | FIO_ENDIAN_L;
+	    return FIO_UCS4;
+	}
+	if (prop & ENC_2WORD)
+	{
+	    if (prop & ENC_ENDIAN_L)
+		return FIO_UTF16 | FIO_ENDIAN_L;
+	    return FIO_UTF16;
+	}
+	return FIO_UTF8;
+    }
+    if (prop & ENC_LATIN1)
+	return FIO_LATIN1;
+    /* must be ENC_DBCS, requires iconv() */
+    return 0;
+}
+
+#ifdef WIN3264
+/*
+ * Check "ptr" for a MS-Windows codepage name and return the FIO_ flags needed
+ * for the conversion MS-Windows can do for us.  Also accept "utf-8".
+ * Used for conversion between 'encoding' and 'fileencoding'.
+ */
+    static int
+get_win_fio_flags(char_u *ptr)
+{
+    int		cp;
+
+    /* Cannot do this when 'encoding' is not utf-8 and not a codepage. */
+    if (!enc_utf8 && enc_codepage <= 0)
+	return 0;
+
+    cp = encname2codepage(ptr);
+    if (cp == 0)
+    {
+#  ifdef CP_UTF8	/* VC 4.1 doesn't define CP_UTF8 */
+	if (STRCMP(ptr, "utf-8") == 0)
+	    cp = CP_UTF8;
+	else
+#  endif
 	    return 0;
-	  pos = nextpos;
-	}
-      /* Output the annotation.  */
-      tem = Fcdr (Fcar (*annot));
-      if (STRINGP (tem))
+    }
+    return FIO_PUT_CP(cp) | FIO_CODEPAGE;
+}
+#endif
+
+#ifdef MACOS_X
+/*
+ * Check "ptr" for a Carbon supported encoding and return the FIO_ flags
+ * needed for the internal conversion to/from utf-8 or latin1.
+ */
+    static int
+get_mac_fio_flags(char_u *ptr)
+{
+    if ((enc_utf8 || STRCMP(p_enc, "latin1") == 0)
+				     && (enc_canon_props(ptr) & ENC_MACROMAN))
+	return FIO_MACROMAN;
+    return 0;
+}
+#endif
+
+/*
+ * Check for a Unicode BOM (Byte Order Mark) at the start of p[size].
+ * "size" must be at least 2.
+ * Return the name of the encoding and set "*lenp" to the length.
+ * Returns NULL when no BOM found.
+ */
+    static char_u *
+check_for_bom(
+    char_u	*p,
+    long	size,
+    int		*lenp,
+    int		flags)
+{
+    char	*name = NULL;
+    int		len = 2;
+
+    if (p[0] == 0xef && p[1] == 0xbb && size >= 3 && p[2] == 0xbf
+	    && (flags == FIO_ALL || flags == FIO_UTF8 || flags == 0))
+    {
+	name = "utf-8";		/* EF BB BF */
+	len = 3;
+    }
+    else if (p[0] == 0xff && p[1] == 0xfe)
+    {
+	if (size >= 4 && p[2] == 0 && p[3] == 0
+	    && (flags == FIO_ALL || flags == (FIO_UCS4 | FIO_ENDIAN_L)))
 	{
-	  if (!e_write (desc, tem, 0, SCHARS (tem), coding))
+	    name = "ucs-4le";	/* FF FE 00 00 */
+	    len = 4;
+	}
+	else if (flags == (FIO_UCS2 | FIO_ENDIAN_L))
+	    name = "ucs-2le";	/* FF FE */
+	else if (flags == FIO_ALL || flags == (FIO_UTF16 | FIO_ENDIAN_L))
+	    /* utf-16le is preferred, it also works for ucs-2le text */
+	    name = "utf-16le";	/* FF FE */
+    }
+    else if (p[0] == 0xfe && p[1] == 0xff
+	    && (flags == FIO_ALL || flags == FIO_UCS2 || flags == FIO_UTF16))
+    {
+	/* Default to utf-16, it works also for ucs-2 text. */
+	if (flags == FIO_UCS2)
+	    name = "ucs-2";	/* FE FF */
+	else
+	    name = "utf-16";	/* FE FF */
+    }
+    else if (size >= 4 && p[0] == 0 && p[1] == 0 && p[2] == 0xfe
+	    && p[3] == 0xff && (flags == FIO_ALL || flags == FIO_UCS4))
+    {
+	name = "ucs-4";		/* 00 00 FE FF */
+	len = 4;
+    }
+
+    *lenp = len;
+    return (char_u *)name;
+}
+
+/*
+ * Generate a BOM in "buf[4]" for encoding "name".
+ * Return the length of the BOM (zero when no BOM).
+ */
+    static int
+make_bom(char_u *buf, char_u *name)
+{
+    int		flags;
+    char_u	*p;
+
+    flags = get_fio_flags(name);
+
+    /* Can't put a BOM in a non-Unicode file. */
+    if (flags == FIO_LATIN1 || flags == 0)
+	return 0;
+
+    if (flags == FIO_UTF8)	/* UTF-8 */
+    {
+	buf[0] = 0xef;
+	buf[1] = 0xbb;
+	buf[2] = 0xbf;
+	return 3;
+    }
+    p = buf;
+    (void)ucs2bytes(0xfeff, &p, flags);
+    return (int)(p - buf);
+}
+#endif
+
+#if defined(FEAT_VIMINFO) || defined(FEAT_BROWSE) || \
+    defined(FEAT_QUICKFIX) || defined(FEAT_AUTOCMD) || defined(PROTO)
+/*
+ * Try to find a shortname by comparing the fullname with the current
+ * directory.
+ * Returns "full_path" or pointer into "full_path" if shortened.
+ */
+    char_u *
+shorten_fname1(char_u *full_path)
+{
+    char_u	*dirname;
+    char_u	*p = full_path;
+
+    dirname = alloc(MAXPATHL);
+    if (dirname == NULL)
+	return full_path;
+    if (mch_dirname(dirname, MAXPATHL) == OK)
+    {
+	p = shorten_fname(full_path, dirname);
+	if (p == NULL || *p == NUL)
+	    p = full_path;
+    }
+    vim_free(dirname);
+    return p;
+}
+#endif
+
+/*
+ * Try to find a shortname by comparing the fullname with the current
+ * directory.
+ * Returns NULL if not shorter name possible, pointer into "full_path"
+ * otherwise.
+ */
+    char_u *
+shorten_fname(char_u *full_path, char_u *dir_name)
+{
+    int		len;
+    char_u	*p;
+
+    if (full_path == NULL)
+	return NULL;
+    len = (int)STRLEN(dir_name);
+    if (fnamencmp(dir_name, full_path, len) == 0)
+    {
+	p = full_path + len;
+#if defined(MSWIN)
+	/*
+	 * MSWIN: when a file is in the root directory, dir_name will end in a
+	 * slash, since C: by itself does not define a specific dir. In this
+	 * case p may already be correct. <negri>
+	 */
+	if (!((len > 2) && (*(p - 2) == ':')))
+#endif
+	{
+	    if (vim_ispathsep(*p))
+		++p;
+#ifndef VMS   /* the path separator is always part of the path */
+	    else
+		p = NULL;
+#endif
+	}
+    }
+#if defined(MSWIN)
+    /*
+     * When using a file in the current drive, remove the drive name:
+     * "A:\dir\file" -> "\dir\file".  This helps when moving a session file on
+     * a floppy from "A:\dir" to "B:\dir".
+     */
+    else if (len > 3
+	    && TOUPPER_LOC(full_path[0]) == TOUPPER_LOC(dir_name[0])
+	    && full_path[1] == ':'
+	    && vim_ispathsep(full_path[2]))
+	p = full_path + 2;
+#endif
+    else
+	p = NULL;
+    return p;
+}
+
+/*
+ * Shorten filenames for all buffers.
+ * When "force" is TRUE: Use full path from now on for files currently being
+ * edited, both for file name and swap file name.  Try to shorten the file
+ * names a bit, if safe to do so.
+ * When "force" is FALSE: Only try to shorten absolute file names.
+ * For buffers that have buftype "nofile" or "scratch": never change the file
+ * name.
+ */
+    void
+shorten_fnames(int force)
+{
+    char_u	dirname[MAXPATHL];
+    buf_T	*buf;
+    char_u	*p;
+
+    mch_dirname(dirname, MAXPATHL);
+    FOR_ALL_BUFFERS(buf)
+    {
+	if (buf->b_fname != NULL
+#ifdef FEAT_QUICKFIX
+		&& !bt_nofile(buf)
+#endif
+		&& !path_with_url(buf->b_fname)
+		&& (force
+		    || buf->b_sfname == NULL
+		    || mch_isFullName(buf->b_sfname)))
+	{
+	    vim_free(buf->b_sfname);
+	    buf->b_sfname = NULL;
+	    p = shorten_fname(buf->b_ffname, dirname);
+	    if (p != NULL)
+	    {
+		buf->b_sfname = vim_strsave(p);
+		buf->b_fname = buf->b_sfname;
+	    }
+	    if (p == NULL || buf->b_fname == NULL)
+		buf->b_fname = buf->b_ffname;
+	}
+
+	/* Always make the swap file name a full path, a "nofile" buffer may
+	 * also have a swap file. */
+	mf_fullname(buf->b_ml.ml_mfp);
+    }
+#ifdef FEAT_WINDOWS
+    status_redraw_all();
+    redraw_tabline = TRUE;
+#endif
+}
+
+#if (defined(FEAT_DND) && defined(FEAT_GUI_GTK)) \
+	|| defined(FEAT_GUI_MSWIN) \
+	|| defined(FEAT_GUI_MAC) \
+	|| defined(PROTO)
+/*
+ * Shorten all filenames in "fnames[count]" by current directory.
+ */
+    void
+shorten_filenames(char_u **fnames, int count)
+{
+    int		i;
+    char_u	dirname[MAXPATHL];
+    char_u	*p;
+
+    if (fnames == NULL || count < 1)
+	return;
+    mch_dirname(dirname, sizeof(dirname));
+    for (i = 0; i < count; ++i)
+    {
+	if ((p = shorten_fname(fnames[i], dirname)) != NULL)
+	{
+	    /* shorten_fname() returns pointer in given "fnames[i]".  If free
+	     * "fnames[i]" first, "p" becomes invalid.  So we need to copy
+	     * "p" first then free fnames[i]. */
+	    p = vim_strsave(p);
+	    vim_free(fnames[i]);
+	    fnames[i] = p;
+	}
+    }
+}
+#endif
+
+/*
+ * add extension to file name - change path/fo.o.h to path/fo.o.h.ext or
+ * fo_o_h.ext for MSDOS or when shortname option set.
+ *
+ * Assumed that fname is a valid name found in the filesystem we assure that
+ * the return value is a different name and ends in 'ext'.
+ * "ext" MUST be at most 4 characters long if it starts with a dot, 3
+ * characters otherwise.
+ * Space for the returned name is allocated, must be freed later.
+ * Returns NULL when out of memory.
+ */
+    char_u *
+modname(
+    char_u *fname,
+    char_u *ext,
+    int	    prepend_dot)	/* may prepend a '.' to file name */
+{
+    return buf_modname((curbuf->b_p_sn || curbuf->b_shortname),
+						     fname, ext, prepend_dot);
+}
+
+    char_u *
+buf_modname(
+    int	    shortname,		/* use 8.3 file name */
+    char_u  *fname,
+    char_u  *ext,
+    int	    prepend_dot)	/* may prepend a '.' to file name */
+{
+    char_u	*retval;
+    char_u	*s;
+    char_u	*e;
+    char_u	*ptr;
+    int		fnamelen, extlen;
+
+    extlen = (int)STRLEN(ext);
+
+    /*
+     * If there is no file name we must get the name of the current directory
+     * (we need the full path in case :cd is used).
+     */
+    if (fname == NULL || *fname == NUL)
+    {
+	retval = alloc((unsigned)(MAXPATHL + extlen + 3));
+	if (retval == NULL)
+	    return NULL;
+	if (mch_dirname(retval, MAXPATHL) == FAIL ||
+				     (fnamelen = (int)STRLEN(retval)) == 0)
+	{
+	    vim_free(retval);
+	    return NULL;
+	}
+	if (!after_pathsep(retval, retval + fnamelen))
+	{
+	    retval[fnamelen++] = PATHSEP;
+	    retval[fnamelen] = NUL;
+	}
+	prepend_dot = FALSE;	    /* nothing to prepend a dot to */
+    }
+    else
+    {
+	fnamelen = (int)STRLEN(fname);
+	retval = alloc((unsigned)(fnamelen + extlen + 3));
+	if (retval == NULL)
+	    return NULL;
+	STRCPY(retval, fname);
+#ifdef VMS
+	vms_remove_version(retval); /* we do not need versions here */
+#endif
+    }
+
+    /*
+     * search backwards until we hit a '/', '\' or ':' replacing all '.'
+     * by '_' for MSDOS or when shortname option set and ext starts with a dot.
+     * Then truncate what is after the '/', '\' or ':' to 8 characters for
+     * MSDOS and 26 characters for AMIGA, a lot more for UNIX.
+     */
+    for (ptr = retval + fnamelen; ptr > retval; mb_ptr_back(retval, ptr))
+    {
+	if (*ext == '.'
+#ifdef USE_LONG_FNAME
+		    && (!USE_LONG_FNAME || shortname)
+#else
+		    && shortname
+#endif
+								)
+	    if (*ptr == '.')	/* replace '.' by '_' */
+		*ptr = '_';
+	if (vim_ispathsep(*ptr))
+	{
+	    ++ptr;
+	    break;
+	}
+    }
+
+    /* the file name has at most BASENAMELEN characters. */
+    if (STRLEN(ptr) > (unsigned)BASENAMELEN)
+	ptr[BASENAMELEN] = '\0';
+
+    s = ptr + STRLEN(ptr);
+
+    /*
+     * For 8.3 file names we may have to reduce the length.
+     */
+#ifdef USE_LONG_FNAME
+    if (!USE_LONG_FNAME || shortname)
+#else
+    if (shortname)
+#endif
+    {
+	/*
+	 * If there is no file name, or the file name ends in '/', and the
+	 * extension starts with '.', put a '_' before the dot, because just
+	 * ".ext" is invalid.
+	 */
+	if (fname == NULL || *fname == NUL
+				   || vim_ispathsep(fname[STRLEN(fname) - 1]))
+	{
+	    if (*ext == '.')
+		*s++ = '_';
+	}
+	/*
+	 * If the extension starts with '.', truncate the base name at 8
+	 * characters
+	 */
+	else if (*ext == '.')
+	{
+	    if ((size_t)(s - ptr) > (size_t)8)
+	    {
+		s = ptr + 8;
+		*s = '\0';
+	    }
+	}
+	/*
+	 * If the extension doesn't start with '.', and the file name
+	 * doesn't have an extension yet, append a '.'
+	 */
+	else if ((e = vim_strchr(ptr, '.')) == NULL)
+	    *s++ = '.';
+	/*
+	 * If the extension doesn't start with '.', and there already is an
+	 * extension, it may need to be truncated
+	 */
+	else if ((int)STRLEN(e) + extlen > 4)
+	    s = e + 4 - extlen;
+    }
+#if defined(USE_LONG_FNAME) || defined(WIN3264)
+    /*
+     * If there is no file name, and the extension starts with '.', put a
+     * '_' before the dot, because just ".ext" may be invalid if it's on a
+     * FAT partition, and on HPFS it doesn't matter.
+     */
+    else if ((fname == NULL || *fname == NUL) && *ext == '.')
+	*s++ = '_';
+#endif
+
+    /*
+     * Append the extension.
+     * ext can start with '.' and cannot exceed 3 more characters.
+     */
+    STRCPY(s, ext);
+
+    /*
+     * Prepend the dot.
+     */
+    if (prepend_dot && !shortname && *(e = gettail(retval)) != '.'
+#ifdef USE_LONG_FNAME
+	    && USE_LONG_FNAME
+#endif
+				)
+    {
+	STRMOVE(e + 1, e);
+	*e = '.';
+    }
+
+    /*
+     * Check that, after appending the extension, the file name is really
+     * different.
+     */
+    if (fname != NULL && STRCMP(fname, retval) == 0)
+    {
+	/* we search for a character that can be replaced by '_' */
+	while (--s >= ptr)
+	{
+	    if (*s != '_')
+	    {
+		*s = '_';
+		break;
+	    }
+	}
+	if (s < ptr)	/* fname was "________.<ext>", how tricky! */
+	    *ptr = 'v';
+    }
+    return retval;
+}
+
+/*
+ * Like fgets(), but if the file line is too long, it is truncated and the
+ * rest of the line is thrown away.  Returns TRUE for end-of-file.
+ */
+    int
+vim_fgets(char_u *buf, int size, FILE *fp)
+{
+    char	*eof;
+#define FGETS_SIZE 200
+    char	tbuf[FGETS_SIZE];
+
+    buf[size - 2] = NUL;
+#ifdef USE_CR
+    eof = fgets_cr((char *)buf, size, fp);
+#else
+    eof = fgets((char *)buf, size, fp);
+#endif
+    if (buf[size - 2] != NUL && buf[size - 2] != '\n')
+    {
+	buf[size - 1] = NUL;	    /* Truncate the line */
+
+	/* Now throw away the rest of the line: */
+	do
+	{
+	    tbuf[FGETS_SIZE - 2] = NUL;
+#ifdef USE_CR
+	    ignoredp = fgets_cr((char *)tbuf, FGETS_SIZE, fp);
+#else
+	    ignoredp = fgets((char *)tbuf, FGETS_SIZE, fp);
+#endif
+	} while (tbuf[FGETS_SIZE - 2] != NUL && tbuf[FGETS_SIZE - 2] != '\n');
+    }
+    return (eof == NULL);
+}
+
+#if defined(USE_CR) || defined(PROTO)
+/*
+ * Like vim_fgets(), but accept any line terminator: CR, CR-LF or LF.
+ * Returns TRUE for end-of-file.
+ * Only used for the Mac, because it's much slower than vim_fgets().
+ */
+    int
+tag_fgets(char_u *buf, int size, FILE *fp)
+{
+    int		i = 0;
+    int		c;
+    int		eof = FALSE;
+
+    for (;;)
+    {
+	c = fgetc(fp);
+	if (c == EOF)
+	{
+	    eof = TRUE;
+	    break;
+	}
+	if (c == '\r')
+	{
+	    /* Always store a NL for end-of-line. */
+	    if (i < size - 1)
+		buf[i++] = '\n';
+	    c = fgetc(fp);
+	    if (c != '\n')	/* Macintosh format: single CR. */
+		ungetc(c, fp);
+	    break;
+	}
+	if (i < size - 1)
+	    buf[i++] = c;
+	if (c == '\n')
+	    break;
+    }
+    buf[i] = NUL;
+    return eof;
+}
+#endif
+
+/*
+ * rename() only works if both files are on the same file system, this
+ * function will (attempts to?) copy the file across if rename fails -- webb
+ * Return -1 for failure, 0 for success.
+ */
+    int
+vim_rename(char_u *from, char_u *to)
+{
+    int		fd_in;
+    int		fd_out;
+    int		n;
+    char	*errmsg = NULL;
+    char	*buffer;
+#ifdef AMIGA
+    BPTR	flock;
+#endif
+    stat_T	st;
+    long	perm;
+#ifdef HAVE_ACL
+    vim_acl_T	acl;		/* ACL from original file */
+#endif
+    int		use_tmp_file = FALSE;
+
+    /*
+     * When the names are identical, there is nothing to do.  When they refer
+     * to the same file (ignoring case and slash/backslash differences) but
+     * the file name differs we need to go through a temp file.
+     */
+    if (fnamecmp(from, to) == 0)
+    {
+	if (p_fic && STRCMP(gettail(from), gettail(to)) != 0)
+	    use_tmp_file = TRUE;
+	else
 	    return 0;
-	}
-      *annot = Fcdr (*annot);
-    }
-  return 1;
-}
-
-/* Maximum number of characters that the next
-   function encodes per one loop iteration.  */
-
-enum { E_WRITE_MAX = 8 * 1024 * 1024 };
-
-/* Write text in the range START and END into descriptor DESC,
-   encoding them with coding system CODING.  If STRING is nil, START
-   and END are character positions of the current buffer, else they
-   are indexes to the string STRING.  Return true if successful.  */
-
-static bool
-e_write (int desc, Lisp_Object string, ptrdiff_t start, ptrdiff_t end,
-	 struct coding_system *coding)
-{
-  if (STRINGP (string))
-    {
-      start = 0;
-      end = SCHARS (string);
     }
 
-  /* We used to have a code for handling selective display here.  But,
-     now it is handled within encode_coding.  */
+    /*
+     * Fail if the "from" file doesn't exist.  Avoids that "to" is deleted.
+     */
+    if (mch_stat((char *)from, &st) < 0)
+	return -1;
 
-  while (start < end)
+#ifdef UNIX
     {
-      if (STRINGP (string))
+	stat_T	st_to;
+
+	/* It's possible for the source and destination to be the same file.
+	 * This happens when "from" and "to" differ in case and are on a FAT32
+	 * filesystem.  In that case go through a temp file name. */
+	if (mch_stat((char *)to, &st_to) >= 0
+		&& st.st_dev == st_to.st_dev
+		&& st.st_ino == st_to.st_ino)
+	    use_tmp_file = TRUE;
+    }
+#endif
+#ifdef WIN3264
+    {
+	BY_HANDLE_FILE_INFORMATION info1, info2;
+
+	/* It's possible for the source and destination to be the same file.
+	 * In that case go through a temp file name.  This makes rename("foo",
+	 * "./foo") a no-op (in a complicated way). */
+	if (win32_fileinfo(from, &info1) == FILEINFO_OK
+		&& win32_fileinfo(to, &info2) == FILEINFO_OK
+		&& info1.dwVolumeSerialNumber == info2.dwVolumeSerialNumber
+		&& info1.nFileIndexHigh == info2.nFileIndexHigh
+		&& info1.nFileIndexLow == info2.nFileIndexLow)
+	    use_tmp_file = TRUE;
+    }
+#endif
+
+    if (use_tmp_file)
+    {
+	char	tempname[MAXPATHL + 1];
+
+	/*
+	 * Find a name that doesn't exist and is in the same directory.
+	 * Rename "from" to "tempname" and then rename "tempname" to "to".
+	 */
+	if (STRLEN(from) >= MAXPATHL - 5)
+	    return -1;
+	STRCPY(tempname, from);
+	for (n = 123; n < 99999; ++n)
 	{
-	  coding->src_multibyte = SCHARS (string) < SBYTES (string);
-	  if (CODING_REQUIRE_ENCODING (coding))
+	    sprintf((char *)gettail((char_u *)tempname), "%d", n);
+	    if (mch_stat(tempname, &st) < 0)
 	    {
-	      ptrdiff_t nchars = min (end - start, E_WRITE_MAX);
-
-	      /* Avoid creating huge Lisp string in encode_coding_object.  */
-	      if (nchars == E_WRITE_MAX)
-		coding->raw_destination = 1;
-
-	      encode_coding_object
-		(coding, string, start, string_char_to_byte (string, start),
-		 start + nchars, string_char_to_byte (string, start + nchars),
-		 Qt);
-	    }
-	  else
-	    {
-	      coding->dst_object = string;
-	      coding->consumed_char = SCHARS (string);
-	      coding->produced = SBYTES (string);
-	    }
-	}
-      else
-	{
-	  ptrdiff_t start_byte = CHAR_TO_BYTE (start);
-	  ptrdiff_t end_byte = CHAR_TO_BYTE (end);
-
-	  coding->src_multibyte = (end - start) < (end_byte - start_byte);
-	  if (CODING_REQUIRE_ENCODING (coding))
-	    {
-	      ptrdiff_t nchars = min (end - start, E_WRITE_MAX);
-
-	      /* Likewise.  */
-	      if (nchars == E_WRITE_MAX)
-		coding->raw_destination = 1;
-
-	      encode_coding_object
-		(coding, Fcurrent_buffer (), start, start_byte,
-		 start + nchars, CHAR_TO_BYTE (start + nchars), Qt);
-	    }
-	  else
-	    {
-	      coding->dst_object = Qnil;
-	      coding->dst_pos_byte = start_byte;
-	      if (start >= GPT || end <= GPT)
+		if (mch_rename((char *)from, tempname) == 0)
 		{
-		  coding->consumed_char = end - start;
-		  coding->produced = end_byte - start_byte;
+		    if (mch_rename(tempname, (char *)to) == 0)
+			return 0;
+		    /* Strange, the second step failed.  Try moving the
+		     * file back and return failure. */
+		    mch_rename(tempname, (char *)from);
+		    return -1;
 		}
-	      else
-		{
-		  coding->consumed_char = GPT - start;
-		  coding->produced = GPT_BYTE - start_byte;
-		}
+		/* If it fails for one temp name it will most likely fail
+		 * for any temp name, give up. */
+		return -1;
 	    }
 	}
+	return -1;
+    }
 
-      if (coding->produced > 0)
+    /*
+     * Delete the "to" file, this is required on some systems to make the
+     * mch_rename() work, on other systems it makes sure that we don't have
+     * two files when the mch_rename() fails.
+     */
+
+#ifdef AMIGA
+    /*
+     * With MSDOS-compatible filesystems (crossdos, messydos) it is possible
+     * that the name of the "to" file is the same as the "from" file, even
+     * though the names are different. To avoid the chance of accidentally
+     * deleting the "from" file (horror!) we lock it during the remove.
+     *
+     * When used for making a backup before writing the file: This should not
+     * happen with ":w", because startscript() should detect this problem and
+     * set buf->b_shortname, causing modname() to return a correct ".bak" file
+     * name.  This problem does exist with ":w filename", but then the
+     * original file will be somewhere else so the backup isn't really
+     * important. If autoscripting is off the rename may fail.
+     */
+    flock = Lock((UBYTE *)from, (long)ACCESS_READ);
+#endif
+    mch_remove(to);
+#ifdef AMIGA
+    if (flock)
+	UnLock(flock);
+#endif
+
+    /*
+     * First try a normal rename, return if it works.
+     */
+    if (mch_rename((char *)from, (char *)to) == 0)
+	return 0;
+
+    /*
+     * Rename() failed, try copying the file.
+     */
+    perm = mch_getperm(from);
+#ifdef HAVE_ACL
+    /* For systems that support ACL: get the ACL from the original file. */
+    acl = mch_get_acl(from);
+#endif
+    fd_in = mch_open((char *)from, O_RDONLY|O_EXTRA, 0);
+    if (fd_in == -1)
+    {
+#ifdef HAVE_ACL
+	mch_free_acl(acl);
+#endif
+	return -1;
+    }
+
+    /* Create the new file with same permissions as the original. */
+    fd_out = mch_open((char *)to,
+		       O_CREAT|O_EXCL|O_WRONLY|O_EXTRA|O_NOFOLLOW, (int)perm);
+    if (fd_out == -1)
+    {
+	close(fd_in);
+#ifdef HAVE_ACL
+	mch_free_acl(acl);
+#endif
+	return -1;
+    }
+
+    buffer = (char *)alloc(BUFSIZE);
+    if (buffer == NULL)
+    {
+	close(fd_out);
+	close(fd_in);
+#ifdef HAVE_ACL
+	mch_free_acl(acl);
+#endif
+	return -1;
+    }
+
+    while ((n = read_eintr(fd_in, buffer, BUFSIZE)) > 0)
+	if (write_eintr(fd_out, buffer, n) != n)
 	{
-	  char *buf = (coding->raw_destination ? (char *) coding->destination
-		       : (STRINGP (coding->dst_object)
-			  ? SSDATA (coding->dst_object)
-			  : (char *) BYTE_POS_ADDR (coding->dst_pos_byte)));
-	  coding->produced -= emacs_write_sig (desc, buf, coding->produced);
+	    errmsg = _("E208: Error writing to \"%s\"");
+	    break;
+	}
 
-	  if (coding->raw_destination)
+    vim_free(buffer);
+    close(fd_in);
+    if (close(fd_out) < 0)
+	errmsg = _("E209: Error closing \"%s\"");
+    if (n < 0)
+    {
+	errmsg = _("E210: Error reading \"%s\"");
+	to = from;
+    }
+#ifndef UNIX	    /* for Unix mch_open() already set the permission */
+    mch_setperm(to, perm);
+#endif
+#ifdef HAVE_ACL
+    mch_set_acl(to, acl);
+    mch_free_acl(acl);
+#endif
+#if defined(HAVE_SELINUX) || defined(HAVE_SMACK)
+    mch_copy_sec(from, to);
+#endif
+    if (errmsg != NULL)
+    {
+	EMSG2(errmsg, to);
+	return -1;
+    }
+    mch_remove(from);
+    return 0;
+}
+
+static int already_warned = FALSE;
+
+/*
+ * Check if any not hidden buffer has been changed.
+ * Postpone the check if there are characters in the stuff buffer, a global
+ * command is being executed, a mapping is being executed or an autocommand is
+ * busy.
+ * Returns TRUE if some message was written (screen should be redrawn and
+ * cursor positioned).
+ */
+    int
+check_timestamps(
+    int		focus)		/* called for GUI focus event */
+{
+    buf_T	*buf;
+    int		didit = 0;
+    int		n;
+
+    /* Don't check timestamps while system() or another low-level function may
+     * cause us to lose and gain focus. */
+    if (no_check_timestamps > 0)
+	return FALSE;
+
+    /* Avoid doing a check twice.  The OK/Reload dialog can cause a focus
+     * event and we would keep on checking if the file is steadily growing.
+     * Do check again after typing something. */
+    if (focus && did_check_timestamps)
+    {
+	need_check_timestamps = TRUE;
+	return FALSE;
+    }
+
+    if (!stuff_empty() || global_busy || !typebuf_typed()
+#ifdef FEAT_AUTOCMD
+			|| autocmd_busy || curbuf_lock > 0 || allbuf_lock > 0
+#endif
+					)
+	need_check_timestamps = TRUE;		/* check later */
+    else
+    {
+	++no_wait_return;
+	did_check_timestamps = TRUE;
+	already_warned = FALSE;
+	FOR_ALL_BUFFERS(buf)
+	{
+	    /* Only check buffers in a window. */
+	    if (buf->b_nwindows > 0)
 	    {
-	      /* We're responsible for freeing this, see
-		 encode_coding_object to check why.  */
-	      xfree (coding->destination);
-	      coding->raw_destination = 0;
+		bufref_T bufref;
+
+		set_bufref(&bufref, buf);
+		n = buf_check_timestamp(buf, focus);
+		if (didit < n)
+		    didit = n;
+		if (n > 0 && !bufref_valid(&bufref))
+		{
+		    /* Autocommands have removed the buffer, start at the
+		     * first one again. */
+		    buf = firstbuf;
+		    continue;
+		}
 	    }
-	  if (coding->produced)
-	    return 0;
 	}
-      start += coding->consumed_char;
-    }
-
-  return 1;
-}
-
-DEFUN ("verify-visited-file-modtime", Fverify_visited_file_modtime,
-       Sverify_visited_file_modtime, 0, 1, 0,
-       doc: /* Return t if last mod time of BUF's visited file matches what BUF records.
-This means that the file has not been changed since it was visited or saved.
-If BUF is omitted or nil, it defaults to the current buffer.
-See Info node `(elisp)Modification Time' for more details.  */)
-  (Lisp_Object buf)
-{
-  struct buffer *b = decode_buffer (buf);
-  struct stat st;
-  Lisp_Object handler;
-  Lisp_Object filename;
-  struct timespec mtime;
-
-  if (!STRINGP (BVAR (b, filename))) return Qt;
-  if (b->modtime.tv_nsec == UNKNOWN_MODTIME_NSECS) return Qt;
-
-  /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (BVAR (b, filename),
-				     Qverify_visited_file_modtime);
-  if (!NILP (handler))
-    return call2 (handler, Qverify_visited_file_modtime, buf);
-
-  filename = ENCODE_FILE (BVAR (b, filename));
-
-  mtime = (stat (SSDATA (filename), &st) == 0
-	   ? get_stat_mtime (&st)
-	   : time_error_value (errno));
-  if (timespec_cmp (mtime, b->modtime) == 0
-      && (b->modtime_size < 0
-	  || st.st_size == b->modtime_size))
-    return Qt;
-  return Qnil;
-}
-
-DEFUN ("visited-file-modtime", Fvisited_file_modtime,
-       Svisited_file_modtime, 0, 0, 0,
-       doc: /* Return the current buffer's recorded visited file modification time.
-The value is a list of the form (HIGH LOW USEC PSEC), like the time values that
-`file-attributes' returns.  If the current buffer has no recorded file
-modification time, this function returns 0.  If the visited file
-doesn't exist, return -1.
-See Info node `(elisp)Modification Time' for more details.  */)
-  (void)
-{
-  int ns = current_buffer->modtime.tv_nsec;
-  if (ns < 0)
-    return make_number (UNKNOWN_MODTIME_NSECS - ns);
-  return make_lisp_time (current_buffer->modtime);
-}
-
-DEFUN ("set-visited-file-modtime", Fset_visited_file_modtime,
-       Sset_visited_file_modtime, 0, 1, 0,
-       doc: /* Update buffer's recorded modification time from the visited file's time.
-Useful if the buffer was not read from the file normally
-or if the file itself has been changed for some known benign reason.
-An argument specifies the modification time value to use
-\(instead of that of the visited file), in the form of a list
-\(HIGH LOW USEC PSEC) or an integer flag as returned by
-`visited-file-modtime'.  */)
-  (Lisp_Object time_flag)
-{
-  if (!NILP (time_flag))
-    {
-      struct timespec mtime;
-      if (INTEGERP (time_flag))
+	--no_wait_return;
+	need_check_timestamps = FALSE;
+	if (need_wait_return && didit == 2)
 	{
-	  CHECK_RANGED_INTEGER (time_flag, -1, 0);
-	  mtime = make_timespec (0, UNKNOWN_MODTIME_NSECS - XINT (time_flag));
+	    /* make sure msg isn't overwritten */
+	    msg_puts((char_u *)"\n");
+	    out_flush();
 	}
-      else
-	mtime = lisp_time_argument (time_flag);
-
-      current_buffer->modtime = mtime;
-      current_buffer->modtime_size = -1;
     }
-  else
-    {
-      register Lisp_Object filename;
-      struct stat st;
-      Lisp_Object handler;
-
-      filename = Fexpand_file_name (BVAR (current_buffer, filename), Qnil);
-
-      /* If the file name has special constructs in it,
-	 call the corresponding file handler.  */
-      handler = Ffind_file_name_handler (filename, Qset_visited_file_modtime);
-      if (!NILP (handler))
-	/* The handler can find the file name the same way we did.  */
-	return call2 (handler, Qset_visited_file_modtime, Qnil);
-
-      filename = ENCODE_FILE (filename);
-
-      if (stat (SSDATA (filename), &st) >= 0)
-        {
-	  current_buffer->modtime = get_stat_mtime (&st);
-          current_buffer->modtime_size = st.st_size;
-        }
-    }
-
-  return Qnil;
-}
-
-static Lisp_Object
-auto_save_error (Lisp_Object error_val)
-{
-  Lisp_Object msg;
-  int i;
-
-  auto_save_error_occurred = 1;
-
-  ring_bell (XFRAME (selected_frame));
-
-  AUTO_STRING (format, "Auto-saving %s: %s");
-  msg = CALLN (Fformat, format, BVAR (current_buffer, name),
-	       Ferror_message_string (error_val));
-
-  for (i = 0; i < 3; ++i)
-    {
-      if (i == 0)
-	message3 (msg);
-      else
-	message3_nolog (msg);
-      Fsleep_for (make_number (1), Qnil);
-    }
-
-  return Qnil;
+    return didit;
 }
 
-static Lisp_Object
-auto_save_1 (void)
+/*
+ * Move all the lines from buffer "frombuf" to buffer "tobuf".
+ * Return OK or FAIL.  When FAIL "tobuf" is incomplete and/or "frombuf" is not
+ * empty.
+ */
+    static int
+move_lines(buf_T *frombuf, buf_T *tobuf)
 {
-  struct stat st;
-  Lisp_Object modes;
+    buf_T	*tbuf = curbuf;
+    int		retval = OK;
+    linenr_T	lnum;
+    char_u	*p;
 
-  auto_save_mode_bits = 0666;
-
-  /* Get visited file's mode to become the auto save file's mode.  */
-  if (! NILP (BVAR (current_buffer, filename)))
+    /* Copy the lines in "frombuf" to "tobuf". */
+    curbuf = tobuf;
+    for (lnum = 1; lnum <= frombuf->b_ml.ml_line_count; ++lnum)
     {
-      if (stat (SSDATA (BVAR (current_buffer, filename)), &st) >= 0)
-	/* But make sure we can overwrite it later!  */
-	auto_save_mode_bits = (st.st_mode | 0600) & 0777;
-      else if (modes = Ffile_modes (BVAR (current_buffer, filename)),
-	       INTEGERP (modes))
-	/* Remote files don't cooperate with stat.  */
-	auto_save_mode_bits = (XINT (modes) | 0600) & 0777;
+	p = vim_strsave(ml_get_buf(frombuf, lnum, FALSE));
+	if (p == NULL || ml_append(lnum - 1, p, 0, FALSE) == FAIL)
+	{
+	    vim_free(p);
+	    retval = FAIL;
+	    break;
+	}
+	vim_free(p);
     }
 
-  return
-    Fwrite_region (Qnil, Qnil, BVAR (current_buffer, auto_save_file_name), Qnil,
-		   NILP (Vauto_save_visited_file_name) ? Qlambda : Qt,
-		   Qnil, Qnil);
+    /* Delete all the lines in "frombuf". */
+    if (retval != FAIL)
+    {
+	curbuf = frombuf;
+	for (lnum = curbuf->b_ml.ml_line_count; lnum > 0; --lnum)
+	    if (ml_delete(lnum, FALSE) == FAIL)
+	    {
+		/* Oops!  We could try putting back the saved lines, but that
+		 * might fail again... */
+		retval = FAIL;
+		break;
+	    }
+    }
+
+    curbuf = tbuf;
+    return retval;
 }
 
-struct auto_save_unwind
+/*
+ * Check if buffer "buf" has been changed.
+ * Also check if the file for a new buffer unexpectedly appeared.
+ * return 1 if a changed buffer was found.
+ * return 2 if a message has been displayed.
+ * return 0 otherwise.
+ */
+    int
+buf_check_timestamp(
+    buf_T	*buf,
+    int		focus UNUSED)	/* called for GUI focus event */
 {
-  FILE *stream;
-  bool auto_raise;
+    stat_T	st;
+    int		stat_res;
+    int		retval = 0;
+    char_u	*path;
+    char_u	*tbuf;
+    char	*mesg = NULL;
+    char	*mesg2 = "";
+    int		helpmesg = FALSE;
+    int		reload = FALSE;
+    char	*reason;
+#if defined(FEAT_CON_DIALOG) || defined(FEAT_GUI_DIALOG)
+    int		can_reload = FALSE;
+#endif
+    off_T	orig_size = buf->b_orig_size;
+    int		orig_mode = buf->b_orig_mode;
+#ifdef FEAT_GUI
+    int		save_mouse_correct = need_mouse_correct;
+#endif
+#ifdef FEAT_AUTOCMD
+    static int	busy = FALSE;
+    int		n;
+    char_u	*s;
+    bufref_T	bufref;
+
+    set_bufref(&bufref, buf);
+#endif
+
+    /* If there is no file name, the buffer is not loaded, 'buftype' is
+     * set, we are in the middle of a save or being called recursively: ignore
+     * this buffer. */
+    if (buf->b_ffname == NULL
+	    || buf->b_ml.ml_mfp == NULL
+#if defined(FEAT_QUICKFIX)
+	    || *buf->b_p_bt != NUL
+#endif
+	    || buf->b_saving
+#ifdef FEAT_AUTOCMD
+	    || busy
+#endif
+#ifdef FEAT_NETBEANS_INTG
+	    || isNetbeansBuffer(buf)
+#endif
+	    )
+	return 0;
+
+    if (       !(buf->b_flags & BF_NOTEDITED)
+	    && buf->b_mtime != 0
+	    && ((stat_res = mch_stat((char *)buf->b_ffname, &st)) < 0
+		|| time_differs((long)st.st_mtime, buf->b_mtime)
+		|| st.st_size != buf->b_orig_size
+#ifdef HAVE_ST_MODE
+		|| (int)st.st_mode != buf->b_orig_mode
+#else
+		|| mch_getperm(buf->b_ffname) != buf->b_orig_mode
+#endif
+		))
+    {
+	retval = 1;
+
+	/* set b_mtime to stop further warnings (e.g., when executing
+	 * FileChangedShell autocmd) */
+	if (stat_res < 0)
+	{
+	    buf->b_mtime = 0;
+	    buf->b_orig_size = 0;
+	    buf->b_orig_mode = 0;
+	}
+	else
+	    buf_store_time(buf, &st, buf->b_ffname);
+
+	/* Don't do anything for a directory.  Might contain the file
+	 * explorer. */
+	if (mch_isdir(buf->b_fname))
+	    ;
+
+	/*
+	 * If 'autoread' is set, the buffer has no changes and the file still
+	 * exists, reload the buffer.  Use the buffer-local option value if it
+	 * was set, the global option value otherwise.
+	 */
+	else if ((buf->b_p_ar >= 0 ? buf->b_p_ar : p_ar)
+				       && !bufIsChanged(buf) && stat_res >= 0)
+	    reload = TRUE;
+	else
+	{
+	    if (stat_res < 0)
+		reason = "deleted";
+	    else if (bufIsChanged(buf))
+		reason = "conflict";
+	    else if (orig_size != buf->b_orig_size || buf_contents_changed(buf))
+		reason = "changed";
+	    else if (orig_mode != buf->b_orig_mode)
+		reason = "mode";
+	    else
+		reason = "time";
+
+#ifdef FEAT_AUTOCMD
+	    /*
+	     * Only give the warning if there are no FileChangedShell
+	     * autocommands.
+	     * Avoid being called recursively by setting "busy".
+	     */
+	    busy = TRUE;
+# ifdef FEAT_EVAL
+	    set_vim_var_string(VV_FCS_REASON, (char_u *)reason, -1);
+	    set_vim_var_string(VV_FCS_CHOICE, (char_u *)"", -1);
+# endif
+	    ++allbuf_lock;
+	    n = apply_autocmds(EVENT_FILECHANGEDSHELL,
+				      buf->b_fname, buf->b_fname, FALSE, buf);
+	    --allbuf_lock;
+	    busy = FALSE;
+	    if (n)
+	    {
+		if (!bufref_valid(&bufref))
+		    EMSG(_("E246: FileChangedShell autocommand deleted buffer"));
+# ifdef FEAT_EVAL
+		s = get_vim_var_str(VV_FCS_CHOICE);
+		if (STRCMP(s, "reload") == 0 && *reason != 'd')
+		    reload = TRUE;
+		else if (STRCMP(s, "ask") == 0)
+		    n = FALSE;
+		else
+# endif
+		    return 2;
+	    }
+	    if (!n)
+#endif
+	    {
+		if (*reason == 'd')
+		    mesg = _("E211: File \"%s\" no longer available");
+		else
+		{
+		    helpmesg = TRUE;
+#if defined(FEAT_CON_DIALOG) || defined(FEAT_GUI_DIALOG)
+		    can_reload = TRUE;
+#endif
+		    /*
+		     * Check if the file contents really changed to avoid
+		     * giving a warning when only the timestamp was set (e.g.,
+		     * checked out of CVS).  Always warn when the buffer was
+		     * changed.
+		     */
+		    if (reason[2] == 'n')
+		    {
+			mesg = _("W12: Warning: File \"%s\" has changed and the buffer was changed in Vim as well");
+			mesg2 = _("See \":help W12\" for more info.");
+		    }
+		    else if (reason[1] == 'h')
+		    {
+			mesg = _("W11: Warning: File \"%s\" has changed since editing started");
+			mesg2 = _("See \":help W11\" for more info.");
+		    }
+		    else if (*reason == 'm')
+		    {
+			mesg = _("W16: Warning: Mode of file \"%s\" has changed since editing started");
+			mesg2 = _("See \":help W16\" for more info.");
+		    }
+		    else
+			/* Only timestamp changed, store it to avoid a warning
+			 * in check_mtime() later. */
+			buf->b_mtime_read = buf->b_mtime;
+		}
+	    }
+	}
+
+    }
+    else if ((buf->b_flags & BF_NEW) && !(buf->b_flags & BF_NEW_W)
+						&& vim_fexists(buf->b_ffname))
+    {
+	retval = 1;
+	mesg = _("W13: Warning: File \"%s\" has been created after editing started");
+	buf->b_flags |= BF_NEW_W;
+#if defined(FEAT_CON_DIALOG) || defined(FEAT_GUI_DIALOG)
+	can_reload = TRUE;
+#endif
+    }
+
+    if (mesg != NULL)
+    {
+	path = home_replace_save(buf, buf->b_fname);
+	if (path != NULL)
+	{
+	    if (!helpmesg)
+		mesg2 = "";
+	    tbuf = alloc((unsigned)(STRLEN(path) + STRLEN(mesg)
+							+ STRLEN(mesg2) + 2));
+	    sprintf((char *)tbuf, mesg, path);
+#ifdef FEAT_EVAL
+	    /* Set warningmsg here, before the unimportant and output-specific
+	     * mesg2 has been appended. */
+	    set_vim_var_string(VV_WARNINGMSG, tbuf, -1);
+#endif
+#if defined(FEAT_CON_DIALOG) || defined(FEAT_GUI_DIALOG)
+	    if (can_reload)
+	    {
+		if (*mesg2 != NUL)
+		{
+		    STRCAT(tbuf, "\n");
+		    STRCAT(tbuf, mesg2);
+		}
+		if (do_dialog(VIM_WARNING, (char_u *)_("Warning"), tbuf,
+			  (char_u *)_("&OK\n&Load File"), 1, NULL, TRUE) == 2)
+		    reload = TRUE;
+	    }
+	    else
+#endif
+	    if (State > NORMAL_BUSY || (State & CMDLINE) || already_warned)
+	    {
+		if (*mesg2 != NUL)
+		{
+		    STRCAT(tbuf, "; ");
+		    STRCAT(tbuf, mesg2);
+		}
+		EMSG(tbuf);
+		retval = 2;
+	    }
+	    else
+	    {
+# ifdef FEAT_AUTOCMD
+		if (!autocmd_busy)
+# endif
+		{
+		    msg_start();
+		    msg_puts_attr(tbuf, hl_attr(HLF_E) + MSG_HIST);
+		    if (*mesg2 != NUL)
+			msg_puts_attr((char_u *)mesg2,
+						   hl_attr(HLF_W) + MSG_HIST);
+		    msg_clr_eos();
+		    (void)msg_end();
+		    if (emsg_silent == 0)
+		    {
+			out_flush();
+# ifdef FEAT_GUI
+			if (!focus)
+# endif
+			    /* give the user some time to think about it */
+			    ui_delay(1000L, TRUE);
+
+			/* don't redraw and erase the message */
+			redraw_cmdline = FALSE;
+		    }
+		}
+		already_warned = TRUE;
+	    }
+
+	    vim_free(path);
+	    vim_free(tbuf);
+	}
+    }
+
+    if (reload)
+    {
+	/* Reload the buffer. */
+	buf_reload(buf, orig_mode);
+#ifdef FEAT_PERSISTENT_UNDO
+	if (buf->b_p_udf && buf->b_ffname != NULL)
+	{
+	    char_u	    hash[UNDO_HASH_SIZE];
+	    buf_T	    *save_curbuf = curbuf;
+
+	    /* Any existing undo file is unusable, write it now. */
+	    curbuf = buf;
+	    u_compute_hash(hash);
+	    u_write_undo(NULL, FALSE, buf, hash);
+	    curbuf = save_curbuf;
+	}
+#endif
+    }
+
+#ifdef FEAT_AUTOCMD
+    /* Trigger FileChangedShell when the file was changed in any way. */
+    if (bufref_valid(&bufref) && retval != 0)
+	(void)apply_autocmds(EVENT_FILECHANGEDSHELLPOST,
+				      buf->b_fname, buf->b_fname, FALSE, buf);
+#endif
+#ifdef FEAT_GUI
+    /* restore this in case an autocommand has set it; it would break
+     * 'mousefocus' */
+    need_mouse_correct = save_mouse_correct;
+#endif
+
+    return retval;
+}
+
+/*
+ * Reload a buffer that is already loaded.
+ * Used when the file was changed outside of Vim.
+ * "orig_mode" is buf->b_orig_mode before the need for reloading was detected.
+ * buf->b_orig_mode may have been reset already.
+ */
+    void
+buf_reload(buf_T *buf, int orig_mode)
+{
+    exarg_T	ea;
+    pos_T	old_cursor;
+    linenr_T	old_topline;
+    int		old_ro = buf->b_p_ro;
+    buf_T	*savebuf;
+    bufref_T	bufref;
+    int		saved = OK;
+    aco_save_T	aco;
+    int		flags = READ_NEW;
+
+    /* set curwin/curbuf for "buf" and save some things */
+    aucmd_prepbuf(&aco, buf);
+
+    /* We only want to read the text from the file, not reset the syntax
+     * highlighting, clear marks, diff status, etc.  Force the fileformat
+     * and encoding to be the same. */
+    if (prep_exarg(&ea, buf) == OK)
+    {
+	old_cursor = curwin->w_cursor;
+	old_topline = curwin->w_topline;
+
+	if (p_ur < 0 || curbuf->b_ml.ml_line_count <= p_ur)
+	{
+	    /* Save all the text, so that the reload can be undone.
+	     * Sync first so that this is a separate undo-able action. */
+	    u_sync(FALSE);
+	    saved = u_savecommon(0, curbuf->b_ml.ml_line_count + 1, 0, TRUE);
+	    flags |= READ_KEEP_UNDO;
+	}
+
+	/*
+	 * To behave like when a new file is edited (matters for
+	 * BufReadPost autocommands) we first need to delete the current
+	 * buffer contents.  But if reading the file fails we should keep
+	 * the old contents.  Can't use memory only, the file might be
+	 * too big.  Use a hidden buffer to move the buffer contents to.
+	 */
+	if (bufempty() || saved == FAIL)
+	    savebuf = NULL;
+	else
+	{
+	    /* Allocate a buffer without putting it in the buffer list. */
+	    savebuf = buflist_new(NULL, NULL, (linenr_T)1, BLN_DUMMY);
+	    set_bufref(&bufref, savebuf);
+	    if (savebuf != NULL && buf == curbuf)
+	    {
+		/* Open the memline. */
+		curbuf = savebuf;
+		curwin->w_buffer = savebuf;
+		saved = ml_open(curbuf);
+		curbuf = buf;
+		curwin->w_buffer = buf;
+	    }
+	    if (savebuf == NULL || saved == FAIL || buf != curbuf
+				      || move_lines(buf, savebuf) == FAIL)
+	    {
+		EMSG2(_("E462: Could not prepare for reloading \"%s\""),
+							    buf->b_fname);
+		saved = FAIL;
+	    }
+	}
+
+	if (saved == OK)
+	{
+	    curbuf->b_flags |= BF_CHECK_RO;	/* check for RO again */
+#ifdef FEAT_AUTOCMD
+	    keep_filetype = TRUE;		/* don't detect 'filetype' */
+#endif
+	    if (readfile(buf->b_ffname, buf->b_fname, (linenr_T)0,
+			(linenr_T)0,
+			(linenr_T)MAXLNUM, &ea, flags) == FAIL)
+	    {
+#if defined(FEAT_AUTOCMD) && defined(FEAT_EVAL)
+		if (!aborting())
+#endif
+		    EMSG2(_("E321: Could not reload \"%s\""), buf->b_fname);
+		if (savebuf != NULL && bufref_valid(&bufref) && buf == curbuf)
+		{
+		    /* Put the text back from the save buffer.  First
+		     * delete any lines that readfile() added. */
+		    while (!bufempty())
+			if (ml_delete(buf->b_ml.ml_line_count, FALSE) == FAIL)
+			    break;
+		    (void)move_lines(savebuf, buf);
+		}
+	    }
+	    else if (buf == curbuf)  /* "buf" still valid */
+	    {
+		/* Mark the buffer as unmodified and free undo info. */
+		unchanged(buf, TRUE);
+		if ((flags & READ_KEEP_UNDO) == 0)
+		{
+		    u_blockfree(buf);
+		    u_clearall(buf);
+		}
+		else
+		{
+		    /* Mark all undo states as changed. */
+		    u_unchanged(curbuf);
+		}
+	    }
+	}
+	vim_free(ea.cmd);
+
+	if (savebuf != NULL && bufref_valid(&bufref))
+	    wipe_buffer(savebuf, FALSE);
+
+#ifdef FEAT_DIFF
+	/* Invalidate diff info if necessary. */
+	diff_invalidate(curbuf);
+#endif
+
+	/* Restore the topline and cursor position and check it (lines may
+	 * have been removed). */
+	if (old_topline > curbuf->b_ml.ml_line_count)
+	    curwin->w_topline = curbuf->b_ml.ml_line_count;
+	else
+	    curwin->w_topline = old_topline;
+	curwin->w_cursor = old_cursor;
+	check_cursor();
+	update_topline();
+#ifdef FEAT_AUTOCMD
+	keep_filetype = FALSE;
+#endif
+#ifdef FEAT_FOLDING
+	{
+	    win_T	*wp;
+	    tabpage_T	*tp;
+
+	    /* Update folds unless they are defined manually. */
+	    FOR_ALL_TAB_WINDOWS(tp, wp)
+		if (wp->w_buffer == curwin->w_buffer
+			&& !foldmethodIsManual(wp))
+		    foldUpdateAll(wp);
+	}
+#endif
+	/* If the mode didn't change and 'readonly' was set, keep the old
+	 * value; the user probably used the ":view" command.  But don't
+	 * reset it, might have had a read error. */
+	if (orig_mode == curbuf->b_orig_mode)
+	    curbuf->b_p_ro |= old_ro;
+
+	/* Modelines must override settings done by autocommands. */
+	do_modelines(0);
+    }
+
+    /* restore curwin/curbuf and a few other things */
+    aucmd_restbuf(&aco);
+    /* Careful: autocommands may have made "buf" invalid! */
+}
+
+    void
+buf_store_time(buf_T *buf, stat_T *st, char_u *fname UNUSED)
+{
+    buf->b_mtime = (long)st->st_mtime;
+    buf->b_orig_size = st->st_size;
+#ifdef HAVE_ST_MODE
+    buf->b_orig_mode = (int)st->st_mode;
+#else
+    buf->b_orig_mode = mch_getperm(fname);
+#endif
+}
+
+/*
+ * Adjust the line with missing eol, used for the next write.
+ * Used for do_filter(), when the input lines for the filter are deleted.
+ */
+    void
+write_lnum_adjust(linenr_T offset)
+{
+    if (curbuf->b_no_eol_lnum != 0)	/* only if there is a missing eol */
+	curbuf->b_no_eol_lnum += offset;
+}
+
+#if defined(TEMPDIRNAMES) || defined(FEAT_EVAL) || defined(PROTO)
+/*
+ * Delete "name" and everything in it, recursively.
+ * return 0 for succes, -1 if some file was not deleted.
+ */
+    int
+delete_recursive(char_u *name)
+{
+    int result = 0;
+    char_u	**files;
+    int		file_count;
+    int		i;
+    char_u	*exp;
+
+    /* A symbolic link to a directory itself is deleted, not the directory it
+     * points to. */
+    if (
+# if defined(UNIX) || defined(WIN32)
+	 mch_isrealdir(name)
+# else
+	 mch_isdir(name)
+# endif
+	    )
+    {
+	vim_snprintf((char *)NameBuff, MAXPATHL, "%s/*", name);
+	exp = vim_strsave(NameBuff);
+	if (exp == NULL)
+	    return -1;
+	if (gen_expand_wildcards(1, &exp, &file_count, &files,
+	      EW_DIR|EW_FILE|EW_SILENT|EW_ALLLINKS|EW_DODOT|EW_EMPTYOK) == OK)
+	{
+	    for (i = 0; i < file_count; ++i)
+		if (delete_recursive(files[i]) != 0)
+		    result = -1;
+	    FreeWild(file_count, files);
+	}
+	else
+	    result = -1;
+	vim_free(exp);
+	(void)mch_rmdir(name);
+    }
+    else
+	result = mch_remove(name) == 0 ? 0 : -1;
+
+    return result;
+}
+#endif
+
+#if defined(TEMPDIRNAMES) || defined(PROTO)
+static long	temp_count = 0;		/* Temp filename counter. */
+
+/*
+ * Delete the temp directory and all files it contains.
+ */
+    void
+vim_deltempdir(void)
+{
+    if (vim_tempdir != NULL)
+    {
+	/* remove the trailing path separator */
+	gettail(vim_tempdir)[-1] = NUL;
+	delete_recursive(vim_tempdir);
+	vim_free(vim_tempdir);
+	vim_tempdir = NULL;
+    }
+}
+
+/*
+ * Directory "tempdir" was created.  Expand this name to a full path and put
+ * it in "vim_tempdir".  This avoids that using ":cd" would confuse us.
+ * "tempdir" must be no longer than MAXPATHL.
+ */
+    static void
+vim_settempdir(char_u *tempdir)
+{
+    char_u	*buf;
+
+    buf = alloc((unsigned)MAXPATHL + 2);
+    if (buf != NULL)
+    {
+	if (vim_FullName(tempdir, buf, MAXPATHL, FALSE) == FAIL)
+	    STRCPY(buf, tempdir);
+	add_pathsep(buf);
+	vim_tempdir = vim_strsave(buf);
+	vim_free(buf);
+    }
+}
+#endif
+
+/*
+ * vim_tempname(): Return a unique name that can be used for a temp file.
+ *
+ * The temp file is NOT guaranteed to be created.  If "keep" is FALSE it is
+ * guaranteed to NOT be created.
+ *
+ * The returned pointer is to allocated memory.
+ * The returned pointer is NULL if no valid name was found.
+ */
+    char_u  *
+vim_tempname(
+    int	    extra_char UNUSED,  /* char to use in the name instead of '?' */
+    int	    keep UNUSED)
+{
+#ifdef USE_TMPNAM
+    char_u	itmp[L_tmpnam];	/* use tmpnam() */
+#else
+    char_u	itmp[TEMPNAMELEN];
+#endif
+
+#ifdef TEMPDIRNAMES
+    static char	*(tempdirs[]) = {TEMPDIRNAMES};
+    int		i;
+# ifndef EEXIST
+    stat_T	st;
+# endif
+
+    /*
+     * This will create a directory for private use by this instance of Vim.
+     * This is done once, and the same directory is used for all temp files.
+     * This method avoids security problems because of symlink attacks et al.
+     * It's also a bit faster, because we only need to check for an existing
+     * file when creating the directory and not for each temp file.
+     */
+    if (vim_tempdir == NULL)
+    {
+	/*
+	 * Try the entries in TEMPDIRNAMES to create the temp directory.
+	 */
+	for (i = 0; i < (int)(sizeof(tempdirs) / sizeof(char *)); ++i)
+	{
+# ifndef HAVE_MKDTEMP
+	    size_t	itmplen;
+	    long	nr;
+	    long	off;
+# endif
+
+	    /* Expand $TMP, leave room for "/v1100000/999999999".
+	     * Skip the directory check if the expansion fails. */
+	    expand_env((char_u *)tempdirs[i], itmp, TEMPNAMELEN - 20);
+	    if (itmp[0] != '$' && mch_isdir(itmp))
+	    {
+		/* directory exists */
+		add_pathsep(itmp);
+
+# ifdef HAVE_MKDTEMP
+		{
+#  if defined(UNIX) || defined(VMS)
+		    /* Make sure the umask doesn't remove the executable bit.
+		     * "repl" has been reported to use "177". */
+		    mode_t	umask_save = umask(077);
+#  endif
+		    /* Leave room for filename */
+		    STRCAT(itmp, "vXXXXXX");
+		    if (mkdtemp((char *)itmp) != NULL)
+			vim_settempdir(itmp);
+#  if defined(UNIX) || defined(VMS)
+		    (void)umask(umask_save);
+#  endif
+		}
+# else
+		/* Get an arbitrary number of up to 6 digits.  When it's
+		 * unlikely that it already exists it will be faster,
+		 * otherwise it doesn't matter.  The use of mkdir() avoids any
+		 * security problems because of the predictable number. */
+		nr = (mch_get_pid() + (long)time(NULL)) % 1000000L;
+		itmplen = STRLEN(itmp);
+
+		/* Try up to 10000 different values until we find a name that
+		 * doesn't exist. */
+		for (off = 0; off < 10000L; ++off)
+		{
+		    int		r;
+#  if defined(UNIX) || defined(VMS)
+		    mode_t	umask_save;
+#  endif
+
+		    sprintf((char *)itmp + itmplen, "v%ld", nr + off);
+#  ifndef EEXIST
+		    /* If mkdir() does not set errno to EEXIST, check for
+		     * existing file here.  There is a race condition then,
+		     * although it's fail-safe. */
+		    if (mch_stat((char *)itmp, &st) >= 0)
+			continue;
+#  endif
+#  if defined(UNIX) || defined(VMS)
+		    /* Make sure the umask doesn't remove the executable bit.
+		     * "repl" has been reported to use "177". */
+		    umask_save = umask(077);
+#  endif
+		    r = vim_mkdir(itmp, 0700);
+#  if defined(UNIX) || defined(VMS)
+		    (void)umask(umask_save);
+#  endif
+		    if (r == 0)
+		    {
+			vim_settempdir(itmp);
+			break;
+		    }
+#  ifdef EEXIST
+		    /* If the mkdir() didn't fail because the file/dir exists,
+		     * we probably can't create any dir here, try another
+		     * place. */
+		    if (errno != EEXIST)
+#  endif
+			break;
+		}
+# endif /* HAVE_MKDTEMP */
+		if (vim_tempdir != NULL)
+		    break;
+	    }
+	}
+    }
+
+    if (vim_tempdir != NULL)
+    {
+	/* There is no need to check if the file exists, because we own the
+	 * directory and nobody else creates a file in it. */
+	sprintf((char *)itmp, "%s%ld", vim_tempdir, temp_count++);
+	return vim_strsave(itmp);
+    }
+
+    return NULL;
+
+#else /* TEMPDIRNAMES */
+
+# ifdef WIN3264
+    char	szTempFile[_MAX_PATH + 1];
+    char	buf4[4];
+    char_u	*retval;
+    char_u	*p;
+
+    STRCPY(itmp, "");
+    if (GetTempPath(_MAX_PATH, szTempFile) == 0)
+    {
+	szTempFile[0] = '.';	/* GetTempPath() failed, use current dir */
+	szTempFile[1] = NUL;
+    }
+    strcpy(buf4, "VIM");
+    buf4[2] = extra_char;   /* make it "VIa", "VIb", etc. */
+    if (GetTempFileName(szTempFile, buf4, 0, (LPSTR)itmp) == 0)
+	return NULL;
+    if (!keep)
+	/* GetTempFileName() will create the file, we don't want that */
+	(void)DeleteFile((LPSTR)itmp);
+
+    /* Backslashes in a temp file name cause problems when filtering with
+     * "sh".  NOTE: This also checks 'shellcmdflag' to help those people who
+     * didn't set 'shellslash'. */
+    retval = vim_strsave(itmp);
+    if (*p_shcf == '-' || p_ssl)
+	for (p = retval; *p; ++p)
+	    if (*p == '\\')
+		*p = '/';
+    return retval;
+
+# else /* WIN3264 */
+
+#  ifdef USE_TMPNAM
+    char_u	*p;
+
+    /* tmpnam() will make its own name */
+    p = tmpnam((char *)itmp);
+    if (p == NULL || *p == NUL)
+	return NULL;
+#  else
+    char_u	*p;
+
+#   ifdef VMS_TEMPNAM
+    /* mktemp() is not working on VMS.  It seems to be
+     * a do-nothing function. Therefore we use tempnam().
+     */
+    sprintf((char *)itmp, "VIM%c", extra_char);
+    p = (char_u *)tempnam("tmp:", (char *)itmp);
+    if (p != NULL)
+    {
+	/* VMS will use '.LIS' if we don't explicitly specify an extension,
+	 * and VIM will then be unable to find the file later */
+	STRCPY(itmp, p);
+	STRCAT(itmp, ".txt");
+	free(p);
+    }
+    else
+	return NULL;
+#   else
+    STRCPY(itmp, TEMPNAME);
+    if ((p = vim_strchr(itmp, '?')) != NULL)
+	*p = extra_char;
+    if (mktemp((char *)itmp) == NULL)
+	return NULL;
+#   endif
+#  endif
+
+    return vim_strsave(itmp);
+# endif /* WIN3264 */
+#endif /* TEMPDIRNAMES */
+}
+
+#if defined(BACKSLASH_IN_FILENAME) || defined(PROTO)
+/*
+ * Convert all backslashes in fname to forward slashes in-place, unless when
+ * it looks like a URL.
+ */
+    void
+forward_slash(char_u *fname)
+{
+    char_u	*p;
+
+    if (path_with_url(fname))
+	return;
+    for (p = fname; *p != NUL; ++p)
+# ifdef  FEAT_MBYTE
+	/* The Big5 encoding can have '\' in the trail byte. */
+	if (enc_dbcs != 0 && (*mb_ptr2len)(p) > 1)
+	    ++p;
+	else
+# endif
+	if (*p == '\\')
+	    *p = '/';
+}
+#endif
+
+
+/*
+ * Code for automatic commands.
+ *
+ * Only included when "FEAT_AUTOCMD" has been defined.
+ */
+
+#if defined(FEAT_AUTOCMD) || defined(PROTO)
+
+/*
+ * The autocommands are stored in a list for each event.
+ * Autocommands for the same pattern, that are consecutive, are joined
+ * together, to avoid having to match the pattern too often.
+ * The result is an array of Autopat lists, which point to AutoCmd lists:
+ *
+ * first_autopat[0] --> Autopat.next  -->  Autopat.next -->  NULL
+ *			Autopat.cmds	   Autopat.cmds
+ *			    |			 |
+ *			    V			 V
+ *			AutoCmd.next	   AutoCmd.next
+ *			    |			 |
+ *			    V			 V
+ *			AutoCmd.next		NULL
+ *			    |
+ *			    V
+ *			   NULL
+ *
+ * first_autopat[1] --> Autopat.next  -->  NULL
+ *			Autopat.cmds
+ *			    |
+ *			    V
+ *			AutoCmd.next
+ *			    |
+ *			    V
+ *			   NULL
+ *   etc.
+ *
+ *   The order of AutoCmds is important, this is the order in which they were
+ *   defined and will have to be executed.
+ */
+typedef struct AutoCmd
+{
+    char_u	    *cmd;		/* The command to be executed (NULL
+					   when command has been removed) */
+    char	    nested;		/* If autocommands nest here */
+    char	    last;		/* last command in list */
+#ifdef FEAT_EVAL
+    scid_T	    scriptID;		/* script ID where defined */
+#endif
+    struct AutoCmd  *next;		/* Next AutoCmd in list */
+} AutoCmd;
+
+typedef struct AutoPat
+{
+    char_u	    *pat;		/* pattern as typed (NULL when pattern
+					   has been removed) */
+    regprog_T	    *reg_prog;		/* compiled regprog for pattern */
+    AutoCmd	    *cmds;		/* list of commands to do */
+    struct AutoPat  *next;		/* next AutoPat in AutoPat list */
+    int		    group;		/* group ID */
+    int		    patlen;		/* strlen() of pat */
+    int		    buflocal_nr;	/* !=0 for buffer-local AutoPat */
+    char	    allow_dirs;		/* Pattern may match whole path */
+    char	    last;		/* last pattern for apply_autocmds() */
+} AutoPat;
+
+static struct event_name
+{
+    char	*name;	/* event name */
+    event_T	event;	/* event number */
+} event_names[] =
+{
+    {"BufAdd",		EVENT_BUFADD},
+    {"BufCreate",	EVENT_BUFADD},
+    {"BufDelete",	EVENT_BUFDELETE},
+    {"BufEnter",	EVENT_BUFENTER},
+    {"BufFilePost",	EVENT_BUFFILEPOST},
+    {"BufFilePre",	EVENT_BUFFILEPRE},
+    {"BufHidden",	EVENT_BUFHIDDEN},
+    {"BufLeave",	EVENT_BUFLEAVE},
+    {"BufNew",		EVENT_BUFNEW},
+    {"BufNewFile",	EVENT_BUFNEWFILE},
+    {"BufRead",		EVENT_BUFREADPOST},
+    {"BufReadCmd",	EVENT_BUFREADCMD},
+    {"BufReadPost",	EVENT_BUFREADPOST},
+    {"BufReadPre",	EVENT_BUFREADPRE},
+    {"BufUnload",	EVENT_BUFUNLOAD},
+    {"BufWinEnter",	EVENT_BUFWINENTER},
+    {"BufWinLeave",	EVENT_BUFWINLEAVE},
+    {"BufWipeout",	EVENT_BUFWIPEOUT},
+    {"BufWrite",	EVENT_BUFWRITEPRE},
+    {"BufWritePost",	EVENT_BUFWRITEPOST},
+    {"BufWritePre",	EVENT_BUFWRITEPRE},
+    {"BufWriteCmd",	EVENT_BUFWRITECMD},
+    {"CmdwinEnter",	EVENT_CMDWINENTER},
+    {"CmdwinLeave",	EVENT_CMDWINLEAVE},
+    {"CmdUndefined",	EVENT_CMDUNDEFINED},
+    {"ColorScheme",	EVENT_COLORSCHEME},
+    {"CompleteDone",	EVENT_COMPLETEDONE},
+    {"CursorHold",	EVENT_CURSORHOLD},
+    {"CursorHoldI",	EVENT_CURSORHOLDI},
+    {"CursorMoved",	EVENT_CURSORMOVED},
+    {"CursorMovedI",	EVENT_CURSORMOVEDI},
+    {"EncodingChanged",	EVENT_ENCODINGCHANGED},
+    {"FileEncoding",	EVENT_ENCODINGCHANGED},
+    {"FileAppendPost",	EVENT_FILEAPPENDPOST},
+    {"FileAppendPre",	EVENT_FILEAPPENDPRE},
+    {"FileAppendCmd",	EVENT_FILEAPPENDCMD},
+    {"FileChangedShell",EVENT_FILECHANGEDSHELL},
+    {"FileChangedShellPost",EVENT_FILECHANGEDSHELLPOST},
+    {"FileChangedRO",	EVENT_FILECHANGEDRO},
+    {"FileReadPost",	EVENT_FILEREADPOST},
+    {"FileReadPre",	EVENT_FILEREADPRE},
+    {"FileReadCmd",	EVENT_FILEREADCMD},
+    {"FileType",	EVENT_FILETYPE},
+    {"FileWritePost",	EVENT_FILEWRITEPOST},
+    {"FileWritePre",	EVENT_FILEWRITEPRE},
+    {"FileWriteCmd",	EVENT_FILEWRITECMD},
+    {"FilterReadPost",	EVENT_FILTERREADPOST},
+    {"FilterReadPre",	EVENT_FILTERREADPRE},
+    {"FilterWritePost",	EVENT_FILTERWRITEPOST},
+    {"FilterWritePre",	EVENT_FILTERWRITEPRE},
+    {"FocusGained",	EVENT_FOCUSGAINED},
+    {"FocusLost",	EVENT_FOCUSLOST},
+    {"FuncUndefined",	EVENT_FUNCUNDEFINED},
+    {"GUIEnter",	EVENT_GUIENTER},
+    {"GUIFailed",	EVENT_GUIFAILED},
+    {"InsertChange",	EVENT_INSERTCHANGE},
+    {"InsertEnter",	EVENT_INSERTENTER},
+    {"InsertLeave",	EVENT_INSERTLEAVE},
+    {"InsertCharPre",	EVENT_INSERTCHARPRE},
+    {"MenuPopup",	EVENT_MENUPOPUP},
+    {"OptionSet",	EVENT_OPTIONSET},
+    {"QuickFixCmdPost",	EVENT_QUICKFIXCMDPOST},
+    {"QuickFixCmdPre",	EVENT_QUICKFIXCMDPRE},
+    {"QuitPre",		EVENT_QUITPRE},
+    {"RemoteReply",	EVENT_REMOTEREPLY},
+    {"SessionLoadPost",	EVENT_SESSIONLOADPOST},
+    {"ShellCmdPost",	EVENT_SHELLCMDPOST},
+    {"ShellFilterPost",	EVENT_SHELLFILTERPOST},
+    {"SourcePre",	EVENT_SOURCEPRE},
+    {"SourceCmd",	EVENT_SOURCECMD},
+    {"SpellFileMissing",EVENT_SPELLFILEMISSING},
+    {"StdinReadPost",	EVENT_STDINREADPOST},
+    {"StdinReadPre",	EVENT_STDINREADPRE},
+    {"SwapExists",	EVENT_SWAPEXISTS},
+    {"Syntax",		EVENT_SYNTAX},
+    {"TabNew",		EVENT_TABNEW},
+    {"TabClosed",	EVENT_TABCLOSED},
+    {"TabEnter",	EVENT_TABENTER},
+    {"TabLeave",	EVENT_TABLEAVE},
+    {"TermChanged",	EVENT_TERMCHANGED},
+    {"TermResponse",	EVENT_TERMRESPONSE},
+    {"TextChanged",	EVENT_TEXTCHANGED},
+    {"TextChangedI",	EVENT_TEXTCHANGEDI},
+    {"User",		EVENT_USER},
+    {"VimEnter",	EVENT_VIMENTER},
+    {"VimLeave",	EVENT_VIMLEAVE},
+    {"VimLeavePre",	EVENT_VIMLEAVEPRE},
+    {"WinNew",		EVENT_WINNEW},
+    {"WinEnter",	EVENT_WINENTER},
+    {"WinLeave",	EVENT_WINLEAVE},
+    {"VimResized",	EVENT_VIMRESIZED},
+    {NULL,		(event_T)0}
 };
 
-static void
-do_auto_save_unwind (void *arg)
+static AutoPat *first_autopat[NUM_EVENTS] =
 {
-  struct auto_save_unwind *p = arg;
-  FILE *stream = p->stream;
-  minibuffer_auto_raise = p->auto_raise;
-  auto_saving = 0;
-  if (stream != NULL)
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
+};
+
+/*
+ * struct used to keep status while executing autocommands for an event.
+ */
+typedef struct AutoPatCmd
+{
+    AutoPat	*curpat;	/* next AutoPat to examine */
+    AutoCmd	*nextcmd;	/* next AutoCmd to execute */
+    int		group;		/* group being used */
+    char_u	*fname;		/* fname to match with */
+    char_u	*sfname;	/* sfname to match with */
+    char_u	*tail;		/* tail of fname */
+    event_T	event;		/* current event */
+    int		arg_bufnr;	/* initially equal to <abuf>, set to zero when
+				   buf is deleted */
+    struct AutoPatCmd   *next;	/* chain of active apc-s for auto-invalidation*/
+} AutoPatCmd;
+
+static AutoPatCmd *active_apc_list = NULL; /* stack of active autocommands */
+
+/*
+ * augroups stores a list of autocmd group names.
+ */
+static garray_T augroups = {0, 0, sizeof(char_u *), 10, NULL};
+#define AUGROUP_NAME(i) (((char_u **)augroups.ga_data)[i])
+static char_u *deleted_augroup = NULL;
+
+/*
+ * The ID of the current group.  Group 0 is the default one.
+ */
+static int current_augroup = AUGROUP_DEFAULT;
+
+static int au_need_clean = FALSE;   /* need to delete marked patterns */
+
+static void show_autocmd(AutoPat *ap, event_T event);
+static void au_remove_pat(AutoPat *ap);
+static void au_remove_cmds(AutoPat *ap);
+static void au_cleanup(void);
+static int au_new_group(char_u *name);
+static void au_del_group(char_u *name);
+static event_T event_name2nr(char_u *start, char_u **end);
+static char_u *event_nr2name(event_T event);
+static char_u *find_end_event(char_u *arg, int have_group);
+static int event_ignored(event_T event);
+static int au_get_grouparg(char_u **argp);
+static int do_autocmd_event(event_T event, char_u *pat, int nested, char_u *cmd, int forceit, int group);
+static int apply_autocmds_group(event_T event, char_u *fname, char_u *fname_io, int force, int group, buf_T *buf, exarg_T *eap);
+static void auto_next_pat(AutoPatCmd *apc, int stop_at_last);
+#if defined(FEAT_AUTOCMD) || defined(FEAT_WILDIGN)
+static int match_file_pat(char_u *pattern, regprog_T **prog, char_u *fname, char_u *sfname, char_u *tail, int allow_dirs);
+#endif
+
+
+static event_T	last_event;
+static int	last_group;
+static int	autocmd_blocked = 0;	/* block all autocmds */
+
+/*
+ * Show the autocommands for one AutoPat.
+ */
+    static void
+show_autocmd(AutoPat *ap, event_T event)
+{
+    AutoCmd *ac;
+
+    /* Check for "got_int" (here and at various places below), which is set
+     * when "q" has been hit for the "--more--" prompt */
+    if (got_int)
+	return;
+    if (ap->pat == NULL)		/* pattern has been removed */
+	return;
+
+    msg_putchar('\n');
+    if (got_int)
+	return;
+    if (event != last_event || ap->group != last_group)
     {
-      block_input ();
-      fclose (stream);
-      unblock_input ();
-    }
-}
-
-static Lisp_Object
-do_auto_save_make_dir (Lisp_Object dir)
-{
-  Lisp_Object result;
-
-  auto_saving_dir_umask = 077;
-  result = call2 (Qmake_directory, dir, Qt);
-  auto_saving_dir_umask = 0;
-  return result;
-}
-
-static Lisp_Object
-do_auto_save_eh (Lisp_Object ignore)
-{
-  auto_saving_dir_umask = 0;
-  return Qnil;
-}
-
-DEFUN ("do-auto-save", Fdo_auto_save, Sdo_auto_save, 0, 2, "",
-       doc: /* Auto-save all buffers that need it.
-This is all buffers that have auto-saving enabled
-and are changed since last auto-saved.
-Auto-saving writes the buffer into a file
-so that your editing is not lost if the system crashes.
-This file is not the file you visited; that changes only when you save.
-Normally we run the normal hook `auto-save-hook' before saving.
-
-A non-nil NO-MESSAGE argument means do not print any message if successful.
-A non-nil CURRENT-ONLY argument means save only current buffer.  */)
-  (Lisp_Object no_message, Lisp_Object current_only)
-{
-  struct buffer *old = current_buffer, *b;
-  Lisp_Object tail, buf, hook;
-  bool auto_saved = 0;
-  int do_handled_files;
-  Lisp_Object oquit;
-  FILE *stream = NULL;
-  ptrdiff_t count = SPECPDL_INDEX ();
-  bool orig_minibuffer_auto_raise = minibuffer_auto_raise;
-  bool old_message_p = 0;
-  struct auto_save_unwind auto_save_unwind;
-
-  if (max_specpdl_size < specpdl_size + 40)
-    max_specpdl_size = specpdl_size + 40;
-
-  if (minibuf_level)
-    no_message = Qt;
-
-  if (NILP (no_message))
-    {
-      old_message_p = push_message ();
-      record_unwind_protect_void (pop_message_unwind);
-    }
-
-  /* Ordinarily don't quit within this function,
-     but don't make it impossible to quit (in case we get hung in I/O).  */
-  oquit = Vquit_flag;
-  Vquit_flag = Qnil;
-
-  hook = intern ("auto-save-hook");
-  safe_run_hooks (hook);
-
-  if (STRINGP (Vauto_save_list_file_name))
-    {
-      Lisp_Object listfile;
-
-      listfile = Fexpand_file_name (Vauto_save_list_file_name, Qnil);
-
-      /* Don't try to create the directory when shutting down Emacs,
-         because creating the directory might signal an error, and
-         that would leave Emacs in a strange state.  */
-      if (!NILP (Vrun_hooks))
+	if (ap->group != AUGROUP_DEFAULT)
 	{
-	  Lisp_Object dir;
-	  dir = Ffile_name_directory (listfile);
-	  if (NILP (Ffile_directory_p (dir)))
-	    internal_condition_case_1 (do_auto_save_make_dir,
-				       dir, Qt,
-				       do_auto_save_eh);
+	    if (AUGROUP_NAME(ap->group) == NULL)
+		msg_puts_attr(deleted_augroup, hl_attr(HLF_E));
+	    else
+		msg_puts_attr(AUGROUP_NAME(ap->group), hl_attr(HLF_T));
+	    msg_puts((char_u *)"  ");
+	}
+	msg_puts_attr(event_nr2name(event), hl_attr(HLF_T));
+	last_event = event;
+	last_group = ap->group;
+	msg_putchar('\n');
+	if (got_int)
+	    return;
+    }
+    msg_col = 4;
+    msg_outtrans(ap->pat);
+
+    for (ac = ap->cmds; ac != NULL; ac = ac->next)
+    {
+	if (ac->cmd != NULL)		/* skip removed commands */
+	{
+	    if (msg_col >= 14)
+		msg_putchar('\n');
+	    msg_col = 14;
+	    if (got_int)
+		return;
+	    msg_outtrans(ac->cmd);
+#ifdef FEAT_EVAL
+	    if (p_verbose > 0)
+		last_set_msg(ac->scriptID);
+#endif
+	    if (got_int)
+		return;
+	    if (ac->next != NULL)
+	    {
+		msg_putchar('\n');
+		if (got_int)
+		    return;
+	    }
+	}
+    }
+}
+
+/*
+ * Mark an autocommand pattern for deletion.
+ */
+    static void
+au_remove_pat(AutoPat *ap)
+{
+    vim_free(ap->pat);
+    ap->pat = NULL;
+    ap->buflocal_nr = -1;
+    au_need_clean = TRUE;
+}
+
+/*
+ * Mark all commands for a pattern for deletion.
+ */
+    static void
+au_remove_cmds(AutoPat *ap)
+{
+    AutoCmd *ac;
+
+    for (ac = ap->cmds; ac != NULL; ac = ac->next)
+    {
+	vim_free(ac->cmd);
+	ac->cmd = NULL;
+    }
+    au_need_clean = TRUE;
+}
+
+/*
+ * Cleanup autocommands and patterns that have been deleted.
+ * This is only done when not executing autocommands.
+ */
+    static void
+au_cleanup(void)
+{
+    AutoPat	*ap, **prev_ap;
+    AutoCmd	*ac, **prev_ac;
+    event_T	event;
+
+    if (autocmd_busy || !au_need_clean)
+	return;
+
+    /* loop over all events */
+    for (event = (event_T)0; (int)event < (int)NUM_EVENTS;
+					    event = (event_T)((int)event + 1))
+    {
+	/* loop over all autocommand patterns */
+	prev_ap = &(first_autopat[(int)event]);
+	for (ap = *prev_ap; ap != NULL; ap = *prev_ap)
+	{
+	    /* loop over all commands for this pattern */
+	    prev_ac = &(ap->cmds);
+	    for (ac = *prev_ac; ac != NULL; ac = *prev_ac)
+	    {
+		/* remove the command if the pattern is to be deleted or when
+		 * the command has been marked for deletion */
+		if (ap->pat == NULL || ac->cmd == NULL)
+		{
+		    *prev_ac = ac->next;
+		    vim_free(ac->cmd);
+		    vim_free(ac);
+		}
+		else
+		    prev_ac = &(ac->next);
+	    }
+
+	    /* remove the pattern if it has been marked for deletion */
+	    if (ap->pat == NULL)
+	    {
+		*prev_ap = ap->next;
+		vim_regfree(ap->reg_prog);
+		vim_free(ap);
+	    }
+	    else
+		prev_ap = &(ap->next);
+	}
+    }
+
+    au_need_clean = FALSE;
+}
+
+/*
+ * Called when buffer is freed, to remove/invalidate related buffer-local
+ * autocmds.
+ */
+    void
+aubuflocal_remove(buf_T *buf)
+{
+    AutoPat	*ap;
+    event_T	event;
+    AutoPatCmd	*apc;
+
+    /* invalidate currently executing autocommands */
+    for (apc = active_apc_list; apc; apc = apc->next)
+	if (buf->b_fnum == apc->arg_bufnr)
+	    apc->arg_bufnr = 0;
+
+    /* invalidate buflocals looping through events */
+    for (event = (event_T)0; (int)event < (int)NUM_EVENTS;
+					    event = (event_T)((int)event + 1))
+	/* loop over all autocommand patterns */
+	for (ap = first_autopat[(int)event]; ap != NULL; ap = ap->next)
+	    if (ap->buflocal_nr == buf->b_fnum)
+	    {
+		au_remove_pat(ap);
+		if (p_verbose >= 6)
+		{
+		    verbose_enter();
+		    smsg((char_u *)
+			    _("auto-removing autocommand: %s <buffer=%d>"),
+					   event_nr2name(event), buf->b_fnum);
+		    verbose_leave();
+		}
+	    }
+    au_cleanup();
+}
+
+/*
+ * Add an autocmd group name.
+ * Return it's ID.  Returns AUGROUP_ERROR (< 0) for error.
+ */
+    static int
+au_new_group(char_u *name)
+{
+    int		i;
+
+    i = au_find_group(name);
+    if (i == AUGROUP_ERROR)	/* the group doesn't exist yet, add it */
+    {
+	/* First try using a free entry. */
+	for (i = 0; i < augroups.ga_len; ++i)
+	    if (AUGROUP_NAME(i) == NULL)
+		break;
+	if (i == augroups.ga_len && ga_grow(&augroups, 1) == FAIL)
+	    return AUGROUP_ERROR;
+
+	AUGROUP_NAME(i) = vim_strsave(name);
+	if (AUGROUP_NAME(i) == NULL)
+	    return AUGROUP_ERROR;
+	if (i == augroups.ga_len)
+	    ++augroups.ga_len;
+    }
+
+    return i;
+}
+
+    static void
+au_del_group(char_u *name)
+{
+    int	    i;
+
+    i = au_find_group(name);
+    if (i == AUGROUP_ERROR)	/* the group doesn't exist */
+	EMSG2(_("E367: No such group: \"%s\""), name);
+    else
+    {
+	event_T	event;
+	AutoPat	*ap;
+	int	in_use = FALSE;
+
+	for (event = (event_T)0; (int)event < (int)NUM_EVENTS;
+					    event = (event_T)((int)event + 1))
+	{
+	    for (ap = first_autopat[(int)event]; ap != NULL; ap = ap->next)
+		if (ap->group == i)
+		{
+		    give_warning((char_u *)_("W19: Deleting augroup that is still in use"), TRUE);
+		    in_use = TRUE;
+		    event = NUM_EVENTS;
+		    break;
+		}
+	}
+	vim_free(AUGROUP_NAME(i));
+	if (in_use)
+	{
+	    if (deleted_augroup == NULL)
+		deleted_augroup = (char_u *)_("--Deleted--");
+	    AUGROUP_NAME(i) = deleted_augroup;
+	}
+	else
+	    AUGROUP_NAME(i) = NULL;
+    }
+}
+
+/*
+ * Find the ID of an autocmd group name.
+ * Return it's ID.  Returns AUGROUP_ERROR (< 0) for error.
+ */
+    static int
+au_find_group(char_u *name)
+{
+    int	    i;
+
+    for (i = 0; i < augroups.ga_len; ++i)
+	if (AUGROUP_NAME(i) != NULL && AUGROUP_NAME(i) != deleted_augroup
+		&& STRCMP(AUGROUP_NAME(i), name) == 0)
+	    return i;
+    return AUGROUP_ERROR;
+}
+
+/*
+ * Return TRUE if augroup "name" exists.
+ */
+    int
+au_has_group(char_u *name)
+{
+    return au_find_group(name) != AUGROUP_ERROR;
+}
+
+/*
+ * ":augroup {name}".
+ */
+    void
+do_augroup(char_u *arg, int del_group)
+{
+    int	    i;
+
+    if (del_group)
+    {
+	if (*arg == NUL)
+	    EMSG(_(e_argreq));
+	else
+	    au_del_group(arg);
+    }
+    else if (STRICMP(arg, "end") == 0)   /* ":aug end": back to group 0 */
+	current_augroup = AUGROUP_DEFAULT;
+    else if (*arg)		    /* ":aug xxx": switch to group xxx */
+    {
+	i = au_new_group(arg);
+	if (i != AUGROUP_ERROR)
+	    current_augroup = i;
+    }
+    else			    /* ":aug": list the group names */
+    {
+	msg_start();
+	for (i = 0; i < augroups.ga_len; ++i)
+	{
+	    if (AUGROUP_NAME(i) != NULL)
+	    {
+		msg_puts(AUGROUP_NAME(i));
+		msg_puts((char_u *)"  ");
+	    }
+	}
+	msg_clr_eos();
+	msg_end();
+    }
+}
+
+#if defined(EXITFREE) || defined(PROTO)
+    void
+free_all_autocmds(void)
+{
+    int		i;
+    char_u	*s;
+
+    for (current_augroup = -1; current_augroup < augroups.ga_len;
+							    ++current_augroup)
+	do_autocmd((char_u *)"", TRUE);
+
+    for (i = 0; i < augroups.ga_len; ++i)
+    {
+	s = ((char_u **)(augroups.ga_data))[i];
+	if (s != deleted_augroup)
+	    vim_free(s);
+    }
+    ga_clear(&augroups);
+}
+#endif
+
+/*
+ * Return the event number for event name "start".
+ * Return NUM_EVENTS if the event name was not found.
+ * Return a pointer to the next event name in "end".
+ */
+    static event_T
+event_name2nr(char_u *start, char_u **end)
+{
+    char_u	*p;
+    int		i;
+    int		len;
+
+    /* the event name ends with end of line, '|', a blank or a comma */
+    for (p = start; *p && !vim_iswhite(*p) && *p != ',' && *p != '|'; ++p)
+	;
+    for (i = 0; event_names[i].name != NULL; ++i)
+    {
+	len = (int)STRLEN(event_names[i].name);
+	if (len == p - start && STRNICMP(event_names[i].name, start, len) == 0)
+	    break;
+    }
+    if (*p == ',')
+	++p;
+    *end = p;
+    if (event_names[i].name == NULL)
+	return NUM_EVENTS;
+    return event_names[i].event;
+}
+
+/*
+ * Return the name for event "event".
+ */
+    static char_u *
+event_nr2name(event_T event)
+{
+    int	    i;
+
+    for (i = 0; event_names[i].name != NULL; ++i)
+	if (event_names[i].event == event)
+	    return (char_u *)event_names[i].name;
+    return (char_u *)"Unknown";
+}
+
+/*
+ * Scan over the events.  "*" stands for all events.
+ */
+    static char_u *
+find_end_event(
+    char_u  *arg,
+    int	    have_group)	    /* TRUE when group name was found */
+{
+    char_u  *pat;
+    char_u  *p;
+
+    if (*arg == '*')
+    {
+	if (arg[1] && !vim_iswhite(arg[1]))
+	{
+	    EMSG2(_("E215: Illegal character after *: %s"), arg);
+	    return NULL;
+	}
+	pat = arg + 1;
+    }
+    else
+    {
+	for (pat = arg; *pat && *pat != '|' && !vim_iswhite(*pat); pat = p)
+	{
+	    if ((int)event_name2nr(pat, &p) >= (int)NUM_EVENTS)
+	    {
+		if (have_group)
+		    EMSG2(_("E216: No such event: %s"), pat);
+		else
+		    EMSG2(_("E216: No such group or event: %s"), pat);
+		return NULL;
+	    }
+	}
+    }
+    return pat;
+}
+
+/*
+ * Return TRUE if "event" is included in 'eventignore'.
+ */
+    static int
+event_ignored(event_T event)
+{
+    char_u	*p = p_ei;
+
+    while (*p != NUL)
+    {
+	if (STRNICMP(p, "all", 3) == 0 && (p[3] == NUL || p[3] == ','))
+	    return TRUE;
+	if (event_name2nr(p, &p) == event)
+	    return TRUE;
+    }
+
+    return FALSE;
+}
+
+/*
+ * Return OK when the contents of p_ei is valid, FAIL otherwise.
+ */
+    int
+check_ei(void)
+{
+    char_u	*p = p_ei;
+
+    while (*p)
+    {
+	if (STRNICMP(p, "all", 3) == 0 && (p[3] == NUL || p[3] == ','))
+	{
+	    p += 3;
+	    if (*p == ',')
+		++p;
+	}
+	else if (event_name2nr(p, &p) == NUM_EVENTS)
+	    return FAIL;
+    }
+
+    return OK;
+}
+
+# if defined(FEAT_SYN_HL) || defined(PROTO)
+
+/*
+ * Add "what" to 'eventignore' to skip loading syntax highlighting for every
+ * buffer loaded into the window.  "what" must start with a comma.
+ * Returns the old value of 'eventignore' in allocated memory.
+ */
+    char_u *
+au_event_disable(char *what)
+{
+    char_u	*new_ei;
+    char_u	*save_ei;
+
+    save_ei = vim_strsave(p_ei);
+    if (save_ei != NULL)
+    {
+	new_ei = vim_strnsave(p_ei, (int)(STRLEN(p_ei) + STRLEN(what)));
+	if (new_ei != NULL)
+	{
+	    if (*what == ',' && *p_ei == NUL)
+		STRCPY(new_ei, what + 1);
+	    else
+		STRCAT(new_ei, what);
+	    set_string_option_direct((char_u *)"ei", -1, new_ei,
+							  OPT_FREE, SID_NONE);
+	    vim_free(new_ei);
+	}
+    }
+    return save_ei;
+}
+
+    void
+au_event_restore(char_u *old_ei)
+{
+    if (old_ei != NULL)
+    {
+	set_string_option_direct((char_u *)"ei", -1, old_ei,
+							  OPT_FREE, SID_NONE);
+	vim_free(old_ei);
+    }
+}
+# endif  /* FEAT_SYN_HL */
+
+/*
+ * do_autocmd() -- implements the :autocmd command.  Can be used in the
+ *  following ways:
+ *
+ * :autocmd <event> <pat> <cmd>	    Add <cmd> to the list of commands that
+ *				    will be automatically executed for <event>
+ *				    when editing a file matching <pat>, in
+ *				    the current group.
+ * :autocmd <event> <pat>	    Show the auto-commands associated with
+ *				    <event> and <pat>.
+ * :autocmd <event>		    Show the auto-commands associated with
+ *				    <event>.
+ * :autocmd			    Show all auto-commands.
+ * :autocmd! <event> <pat> <cmd>    Remove all auto-commands associated with
+ *				    <event> and <pat>, and add the command
+ *				    <cmd>, for the current group.
+ * :autocmd! <event> <pat>	    Remove all auto-commands associated with
+ *				    <event> and <pat> for the current group.
+ * :autocmd! <event>		    Remove all auto-commands associated with
+ *				    <event> for the current group.
+ * :autocmd!			    Remove ALL auto-commands for the current
+ *				    group.
+ *
+ *  Multiple events and patterns may be given separated by commas.  Here are
+ *  some examples:
+ * :autocmd bufread,bufenter *.c,*.h	set tw=0 smartindent noic
+ * :autocmd bufleave	     *		set tw=79 nosmartindent ic infercase
+ *
+ * :autocmd * *.c		show all autocommands for *.c files.
+ *
+ * Mostly a {group} argument can optionally appear before <event>.
+ */
+    void
+do_autocmd(char_u *arg_in, int forceit)
+{
+    char_u	*arg = arg_in;
+    char_u	*pat;
+    char_u	*envpat = NULL;
+    char_u	*cmd;
+    event_T	event;
+    int		need_free = FALSE;
+    int		nested = FALSE;
+    int		group;
+
+    if (*arg == '|')
+    {
+	arg = (char_u *)"";
+	group = AUGROUP_ALL;	/* no argument, use all groups */
+    }
+    else
+    {
+	/*
+	 * Check for a legal group name.  If not, use AUGROUP_ALL.
+	 */
+	group = au_get_grouparg(&arg);
+	if (arg == NULL)	    /* out of memory */
+	    return;
+    }
+
+    /*
+     * Scan over the events.
+     * If we find an illegal name, return here, don't do anything.
+     */
+    pat = find_end_event(arg, group != AUGROUP_ALL);
+    if (pat == NULL)
+	return;
+
+    pat = skipwhite(pat);
+    if (*pat == '|')
+    {
+	pat = (char_u *)"";
+	cmd = (char_u *)"";
+    }
+    else
+    {
+	/*
+	 * Scan over the pattern.  Put a NUL at the end.
+	 */
+	cmd = pat;
+	while (*cmd && (!vim_iswhite(*cmd) || cmd[-1] == '\\'))
+	    cmd++;
+	if (*cmd)
+	    *cmd++ = NUL;
+
+	/* Expand environment variables in the pattern.  Set 'shellslash', we want
+	 * forward slashes here. */
+	if (vim_strchr(pat, '$') != NULL || vim_strchr(pat, '~') != NULL)
+	{
+#ifdef BACKSLASH_IN_FILENAME
+	    int	p_ssl_save = p_ssl;
+
+	    p_ssl = TRUE;
+#endif
+	    envpat = expand_env_save(pat);
+#ifdef BACKSLASH_IN_FILENAME
+	    p_ssl = p_ssl_save;
+#endif
+	    if (envpat != NULL)
+		pat = envpat;
 	}
 
-      stream = emacs_fopen (SSDATA (listfile), "w");
-    }
-
-  auto_save_unwind.stream = stream;
-  auto_save_unwind.auto_raise = minibuffer_auto_raise;
-  record_unwind_protect_ptr (do_auto_save_unwind, &auto_save_unwind);
-  minibuffer_auto_raise = 0;
-  auto_saving = 1;
-  auto_save_error_occurred = 0;
-
-  /* On first pass, save all files that don't have handlers.
-     On second pass, save all files that do have handlers.
-
-     If Emacs is crashing, the handlers may tweak what is causing
-     Emacs to crash in the first place, and it would be a shame if
-     Emacs failed to autosave perfectly ordinary files because it
-     couldn't handle some ange-ftp'd file.  */
-
-  for (do_handled_files = 0; do_handled_files < 2; do_handled_files++)
-    FOR_EACH_LIVE_BUFFER (tail, buf)
-      {
-	b = XBUFFER (buf);
-
-	/* Record all the buffers that have auto save mode
-	   in the special file that lists them.  For each of these buffers,
-	   Record visited name (if any) and auto save name.  */
-	if (STRINGP (BVAR (b, auto_save_file_name))
-	    && stream != NULL && do_handled_files == 0)
-	  {
-	    block_input ();
-	    if (!NILP (BVAR (b, filename)))
-	      {
-		fwrite (SDATA (BVAR (b, filename)), 1,
-			SBYTES (BVAR (b, filename)), stream);
-	      }
-	    putc ('\n', stream);
-	    fwrite (SDATA (BVAR (b, auto_save_file_name)), 1,
-		    SBYTES (BVAR (b, auto_save_file_name)), stream);
-	    putc ('\n', stream);
-	    unblock_input ();
-	  }
-
-	if (!NILP (current_only)
-	    && b != current_buffer)
-	  continue;
-
-	/* Don't auto-save indirect buffers.
-	   The base buffer takes care of it.  */
-	if (b->base_buffer)
-	  continue;
-
-	/* Check for auto save enabled
-	   and file changed since last auto save
-	   and file changed since last real save.  */
-	if (STRINGP (BVAR (b, auto_save_file_name))
-	    && BUF_SAVE_MODIFF (b) < BUF_MODIFF (b)
-	    && BUF_AUTOSAVE_MODIFF (b) < BUF_MODIFF (b)
-	    /* -1 means we've turned off autosaving for a while--see below.  */
-	    && XINT (BVAR (b, save_length)) >= 0
-	    && (do_handled_files
-		|| NILP (Ffind_file_name_handler (BVAR (b, auto_save_file_name),
-						  Qwrite_region))))
-	  {
-	    struct timespec before_time = current_timespec ();
-	    struct timespec after_time;
-
-	    /* If we had a failure, don't try again for 20 minutes.  */
-	    if (b->auto_save_failure_time > 0
-		&& before_time.tv_sec - b->auto_save_failure_time < 1200)
-	      continue;
-
-	    set_buffer_internal (b);
-	    if (NILP (Vauto_save_include_big_deletions)
-		&& (XFASTINT (BVAR (b, save_length)) * 10
-		    > (BUF_Z (b) - BUF_BEG (b)) * 13)
-		/* A short file is likely to change a large fraction;
-		   spare the user annoying messages.  */
-		&& XFASTINT (BVAR (b, save_length)) > 5000
-		/* These messages are frequent and annoying for `*mail*'.  */
-		&& !EQ (BVAR (b, filename), Qnil)
-		&& NILP (no_message))
-	      {
-		/* It has shrunk too much; turn off auto-saving here.  */
-		minibuffer_auto_raise = orig_minibuffer_auto_raise;
-		message_with_string ("Buffer %s has shrunk a lot; auto save disabled in that buffer until next real save",
-				     BVAR (b, name), 1);
-		minibuffer_auto_raise = 0;
-		/* Turn off auto-saving until there's a real save,
-		   and prevent any more warnings.  */
-		XSETINT (BVAR (b, save_length), -1);
-		Fsleep_for (make_number (1), Qnil);
-		continue;
-	      }
-	    if (!auto_saved && NILP (no_message))
-	      message1 ("Auto-saving...");
-	    internal_condition_case (auto_save_1, Qt, auto_save_error);
-	    auto_saved = 1;
-	    BUF_AUTOSAVE_MODIFF (b) = BUF_MODIFF (b);
-	    XSETFASTINT (BVAR (current_buffer, save_length), Z - BEG);
-	    set_buffer_internal (old);
-
-	    after_time = current_timespec ();
-
-	    /* If auto-save took more than 60 seconds,
-	       assume it was an NFS failure that got a timeout.  */
-	    if (after_time.tv_sec - before_time.tv_sec > 60)
-	      b->auto_save_failure_time = after_time.tv_sec;
-	  }
-      }
-
-  /* Prevent another auto save till enough input events come in.  */
-  record_auto_save ();
-
-  if (auto_saved && NILP (no_message))
-    {
-      if (old_message_p)
+	/*
+	 * Check for "nested" flag.
+	 */
+	cmd = skipwhite(cmd);
+	if (*cmd != NUL && STRNCMP(cmd, "nested", 6) == 0 && vim_iswhite(cmd[6]))
 	{
-	  /* If we are going to restore an old message,
-	     give time to read ours.  */
-	  sit_for (make_number (1), 0, 0);
-	  restore_message ();
+	    nested = TRUE;
+	    cmd = skipwhite(cmd + 6);
 	}
-      else if (!auto_save_error_occurred)
-	/* Don't overwrite the error message if an error occurred.
-	   If we displayed a message and then restored a state
-	   with no message, leave a "done" message on the screen.  */
-	message1 ("Auto-saving...done");
+
+	/*
+	 * Find the start of the commands.
+	 * Expand <sfile> in it.
+	 */
+	if (*cmd != NUL)
+	{
+	    cmd = expand_sfile(cmd);
+	    if (cmd == NULL)	    /* some error */
+		return;
+	    need_free = TRUE;
+	}
     }
 
-  Vquit_flag = oquit;
+    /*
+     * Print header when showing autocommands.
+     */
+    if (!forceit && *cmd == NUL)
+    {
+	/* Highlight title */
+	MSG_PUTS_TITLE(_("\n--- Auto-Commands ---"));
+    }
 
-  /* This restores the message-stack status.  */
-  unbind_to (count, Qnil);
-  return Qnil;
+    /*
+     * Loop over the events.
+     */
+    last_event = (event_T)-1;		/* for listing the event name */
+    last_group = AUGROUP_ERROR;		/* for listing the group name */
+    if (*arg == '*' || *arg == NUL || *arg == '|')
+    {
+	for (event = (event_T)0; (int)event < (int)NUM_EVENTS;
+					    event = (event_T)((int)event + 1))
+	    if (do_autocmd_event(event, pat,
+					 nested, cmd, forceit, group) == FAIL)
+		break;
+    }
+    else
+    {
+	while (*arg && *arg != '|' && !vim_iswhite(*arg))
+	    if (do_autocmd_event(event_name2nr(arg, &arg), pat,
+					nested,	cmd, forceit, group) == FAIL)
+		break;
+    }
+
+    if (need_free)
+	vim_free(cmd);
+    vim_free(envpat);
 }
 
-DEFUN ("set-buffer-auto-saved", Fset_buffer_auto_saved,
-       Sset_buffer_auto_saved, 0, 0, 0,
-       doc: /* Mark current buffer as auto-saved with its current text.
-No auto-save file will be written until the buffer changes again.  */)
-  (void)
+/*
+ * Find the group ID in a ":autocmd" or ":doautocmd" argument.
+ * The "argp" argument is advanced to the following argument.
+ *
+ * Returns the group ID, AUGROUP_ERROR for error (out of memory).
+ */
+    static int
+au_get_grouparg(char_u **argp)
 {
-  /* FIXME: This should not be called in indirect buffers, since
-     they're not autosaved.  */
-  BUF_AUTOSAVE_MODIFF (current_buffer) = MODIFF;
-  XSETFASTINT (BVAR (current_buffer, save_length), Z - BEG);
-  current_buffer->auto_save_failure_time = 0;
-  return Qnil;
+    char_u	*group_name;
+    char_u	*p;
+    char_u	*arg = *argp;
+    int		group = AUGROUP_ALL;
+
+    for (p = arg; *p && !vim_iswhite(*p) && *p != '|'; ++p)
+	;
+    if (p > arg)
+    {
+	group_name = vim_strnsave(arg, (int)(p - arg));
+	if (group_name == NULL)		/* out of memory */
+	    return AUGROUP_ERROR;
+	group = au_find_group(group_name);
+	if (group == AUGROUP_ERROR)
+	    group = AUGROUP_ALL;	/* no match, use all groups */
+	else
+	    *argp = skipwhite(p);	/* match, skip over group name */
+	vim_free(group_name);
+    }
+    return group;
 }
 
-DEFUN ("clear-buffer-auto-save-failure", Fclear_buffer_auto_save_failure,
-       Sclear_buffer_auto_save_failure, 0, 0, 0,
-       doc: /* Clear any record of a recent auto-save failure in the current buffer.  */)
-  (void)
+/*
+ * do_autocmd() for one event.
+ * If *pat == NUL do for all patterns.
+ * If *cmd == NUL show entries.
+ * If forceit == TRUE delete entries.
+ * If group is not AUGROUP_ALL, only use this group.
+ */
+    static int
+do_autocmd_event(
+    event_T	event,
+    char_u	*pat,
+    int		nested,
+    char_u	*cmd,
+    int		forceit,
+    int		group)
 {
-  current_buffer->auto_save_failure_time = 0;
-  return Qnil;
-}
+    AutoPat	*ap;
+    AutoPat	**prev_ap;
+    AutoCmd	*ac;
+    AutoCmd	**prev_ac;
+    int		brace_level;
+    char_u	*endpat;
+    int		findgroup;
+    int		allgroups;
+    int		patlen;
+    int		is_buflocal;
+    int		buflocal_nr;
+    char_u	buflocal_pat[25];	/* for "<buffer=X>" */
 
-DEFUN ("recent-auto-save-p", Frecent_auto_save_p, Srecent_auto_save_p,
-       0, 0, 0,
-       doc: /* Return t if current buffer has been auto-saved recently.
-More precisely, if it has been auto-saved since last read from or saved
-in the visited file.  If the buffer has no visited file,
-then any auto-save counts as "recent".  */)
-  (void)
-{
-  /* FIXME: maybe we should return nil for indirect buffers since
-     they're never autosaved.  */
-  return (SAVE_MODIFF < BUF_AUTOSAVE_MODIFF (current_buffer) ? Qt : Qnil);
-}
+    if (group == AUGROUP_ALL)
+	findgroup = current_augroup;
+    else
+	findgroup = group;
+    allgroups = (group == AUGROUP_ALL && !forceit && *cmd == NUL);
 
-/* Reading and completing file names.  */
+    /*
+     * Show or delete all patterns for an event.
+     */
+    if (*pat == NUL)
+    {
+	for (ap = first_autopat[(int)event]; ap != NULL; ap = ap->next)
+	{
+	    if (forceit)  /* delete the AutoPat, if it's in the current group */
+	    {
+		if (ap->group == findgroup)
+		    au_remove_pat(ap);
+	    }
+	    else if (group == AUGROUP_ALL || ap->group == group)
+		show_autocmd(ap, event);
+	}
+    }
 
-DEFUN ("next-read-file-uses-dialog-p", Fnext_read_file_uses_dialog_p,
-       Snext_read_file_uses_dialog_p, 0, 0, 0,
-       doc: /* Return t if a call to `read-file-name' will use a dialog.
-The return value is only relevant for a call to `read-file-name' that happens
-before any other event (mouse or keypress) is handled.  */)
-  (void)
-{
-#if (defined USE_GTK || defined USE_MOTIF \
-     || defined HAVE_NS || defined HAVE_NTGUI)
-  if ((NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
-      && use_dialog_box
-      && use_file_dialog
-      && window_system_available (SELECTED_FRAME ()))
-    return Qt;
+    /*
+     * Loop through all the specified patterns.
+     */
+    for ( ; *pat; pat = (*endpat == ',' ? endpat + 1 : endpat))
+    {
+	/*
+	 * Find end of the pattern.
+	 * Watch out for a comma in braces, like "*.\{obj,o\}".
+	 */
+	brace_level = 0;
+	for (endpat = pat; *endpat && (*endpat != ',' || brace_level
+			   || (endpat > pat && endpat[-1] == '\\')); ++endpat)
+	{
+	    if (*endpat == '{')
+		brace_level++;
+	    else if (*endpat == '}')
+		brace_level--;
+	}
+	if (pat == endpat)		/* ignore single comma */
+	    continue;
+	patlen = (int)(endpat - pat);
+
+	/*
+	 * detect special <buflocal[=X]> buffer-local patterns
+	 */
+	is_buflocal = FALSE;
+	buflocal_nr = 0;
+
+	if (patlen >= 8 && STRNCMP(pat, "<buffer", 7) == 0
+						    && pat[patlen - 1] == '>')
+	{
+	    /* "<buffer...>": Error will be printed only for addition.
+	     * printing and removing will proceed silently. */
+	    is_buflocal = TRUE;
+	    if (patlen == 8)
+		/* "<buffer>" */
+		buflocal_nr = curbuf->b_fnum;
+	    else if (patlen > 9 && pat[7] == '=')
+	    {
+		if (patlen == 13 && STRNICMP(pat, "<buffer=abuf>", 13) == 0)
+		    /* "<buffer=abuf>" */
+		    buflocal_nr = autocmd_bufnr;
+		else if (skipdigits(pat + 8) == pat + patlen - 1)
+		    /* "<buffer=123>" */
+		    buflocal_nr = atoi((char *)pat + 8);
+	    }
+	}
+
+	if (is_buflocal)
+	{
+	    /* normalize pat into standard "<buffer>#N" form */
+	    sprintf((char *)buflocal_pat, "<buffer=%d>", buflocal_nr);
+	    pat = buflocal_pat;			/* can modify pat and patlen */
+	    patlen = (int)STRLEN(buflocal_pat);	/*   but not endpat */
+	}
+
+	/*
+	 * Find AutoPat entries with this pattern.
+	 */
+	prev_ap = &first_autopat[(int)event];
+	while ((ap = *prev_ap) != NULL)
+	{
+	    if (ap->pat != NULL)
+	    {
+		/* Accept a pattern when:
+		 * - a group was specified and it's that group, or a group was
+		 *   not specified and it's the current group, or a group was
+		 *   not specified and we are listing
+		 * - the length of the pattern matches
+		 * - the pattern matches.
+		 * For <buffer[=X]>, this condition works because we normalize
+		 * all buffer-local patterns.
+		 */
+		if ((allgroups || ap->group == findgroup)
+			&& ap->patlen == patlen
+			&& STRNCMP(pat, ap->pat, patlen) == 0)
+		{
+		    /*
+		     * Remove existing autocommands.
+		     * If adding any new autocmd's for this AutoPat, don't
+		     * delete the pattern from the autopat list, append to
+		     * this list.
+		     */
+		    if (forceit)
+		    {
+			if (*cmd != NUL && ap->next == NULL)
+			{
+			    au_remove_cmds(ap);
+			    break;
+			}
+			au_remove_pat(ap);
+		    }
+
+		    /*
+		     * Show autocmd's for this autopat, or buflocals <buffer=X>
+		     */
+		    else if (*cmd == NUL)
+			show_autocmd(ap, event);
+
+		    /*
+		     * Add autocmd to this autopat, if it's the last one.
+		     */
+		    else if (ap->next == NULL)
+			break;
+		}
+	    }
+	    prev_ap = &ap->next;
+	}
+
+	/*
+	 * Add a new command.
+	 */
+	if (*cmd != NUL)
+	{
+	    /*
+	     * If the pattern we want to add a command to does appear at the
+	     * end of the list (or not is not in the list at all), add the
+	     * pattern at the end of the list.
+	     */
+	    if (ap == NULL)
+	    {
+		/* refuse to add buffer-local ap if buffer number is invalid */
+		if (is_buflocal && (buflocal_nr == 0
+				      || buflist_findnr(buflocal_nr) == NULL))
+		{
+		    EMSGN(_("E680: <buffer=%d>: invalid buffer number "),
+								 buflocal_nr);
+		    return FAIL;
+		}
+
+		ap = (AutoPat *)alloc((unsigned)sizeof(AutoPat));
+		if (ap == NULL)
+		    return FAIL;
+		ap->pat = vim_strnsave(pat, patlen);
+		ap->patlen = patlen;
+		if (ap->pat == NULL)
+		{
+		    vim_free(ap);
+		    return FAIL;
+		}
+
+		if (is_buflocal)
+		{
+		    ap->buflocal_nr = buflocal_nr;
+		    ap->reg_prog = NULL;
+		}
+		else
+		{
+		    char_u	*reg_pat;
+
+		    ap->buflocal_nr = 0;
+		    reg_pat = file_pat_to_reg_pat(pat, endpat,
+							 &ap->allow_dirs, TRUE);
+		    if (reg_pat != NULL)
+			ap->reg_prog = vim_regcomp(reg_pat, RE_MAGIC);
+		    vim_free(reg_pat);
+		    if (reg_pat == NULL || ap->reg_prog == NULL)
+		    {
+			vim_free(ap->pat);
+			vim_free(ap);
+			return FAIL;
+		    }
+		}
+		ap->cmds = NULL;
+		*prev_ap = ap;
+		ap->next = NULL;
+		if (group == AUGROUP_ALL)
+		    ap->group = current_augroup;
+		else
+		    ap->group = group;
+	    }
+
+	    /*
+	     * Add the autocmd at the end of the AutoCmd list.
+	     */
+	    prev_ac = &(ap->cmds);
+	    while ((ac = *prev_ac) != NULL)
+		prev_ac = &ac->next;
+	    ac = (AutoCmd *)alloc((unsigned)sizeof(AutoCmd));
+	    if (ac == NULL)
+		return FAIL;
+	    ac->cmd = vim_strsave(cmd);
+#ifdef FEAT_EVAL
+	    ac->scriptID = current_SID;
 #endif
-  return Qnil;
+	    if (ac->cmd == NULL)
+	    {
+		vim_free(ac);
+		return FAIL;
+	    }
+	    ac->next = NULL;
+	    *prev_ac = ac;
+	    ac->nested = nested;
+	}
+    }
+
+    au_cleanup();	/* may really delete removed patterns/commands now */
+    return OK;
 }
 
-
-DEFUN ("set-binary-mode", Fset_binary_mode, Sset_binary_mode, 2, 2, 0,
-       doc: /* Switch STREAM to binary I/O mode or text I/O mode.
-STREAM can be one of the symbols `stdin', `stdout', or `stderr'.
-If MODE is non-nil, switch STREAM to binary mode, otherwise switch
-it to text mode.
-
-As a side effect, this function flushes any pending STREAM's data.
-
-Value is the previous value of STREAM's I/O mode, nil for text mode,
-non-nil for binary mode.
-
-On MS-Windows and MS-DOS, binary mode is needed to read or write
-arbitrary binary data, and for disabling translation between CR-LF
-pairs and a single newline character.  Examples include generation
-of text files with Unix-style end-of-line format using `princ' in
-batch mode, with standard output redirected to a file.
-
-On Posix systems, this function always returns non-nil, and has no
-effect except for flushing STREAM's data.  */)
-  (Lisp_Object stream, Lisp_Object mode)
+/*
+ * Implementation of ":doautocmd [group] event [fname]".
+ * Return OK for success, FAIL for failure;
+ */
+    int
+do_doautocmd(
+    char_u	*arg,
+    int		do_msg,	    /* give message for no matching autocmds? */
+    int		*did_something)
 {
-  FILE *fp = NULL;
-  int binmode;
+    char_u	*fname;
+    int		nothing_done = TRUE;
+    int		group;
 
-  CHECK_SYMBOL (stream);
-  if (EQ (stream, Qstdin))
-    fp = stdin;
-  else if (EQ (stream, Qstdout))
-    fp = stdout;
-  else if (EQ (stream, Qstderr))
-    fp = stderr;
-  else
-    xsignal2 (Qerror, build_string ("unsupported stream"), stream);
+    if (did_something != NULL)
+	*did_something = FALSE;
 
-  binmode = NILP (mode) ? O_TEXT : O_BINARY;
-  if (fp != stdin)
-    fflush (fp);
+    /*
+     * Check for a legal group name.  If not, use AUGROUP_ALL.
+     */
+    group = au_get_grouparg(&arg);
+    if (arg == NULL)	    /* out of memory */
+	return FAIL;
 
-  return (set_binary_mode (fileno (fp), binmode) == O_BINARY) ? Qt : Qnil;
-}
-
-void
-init_fileio (void)
-{
-  realmask = umask (0);
-  umask (realmask);
+    if (*arg == '*')
+    {
+	EMSG(_("E217: Can't execute autocommands for ALL events"));
+	return FAIL;
+    }
 
-  valid_timestamp_file_system = 0;
+    /*
+     * Scan over the events.
+     * If we find an illegal name, return here, don't do anything.
+     */
+    fname = find_end_event(arg, group != AUGROUP_ALL);
+    if (fname == NULL)
+	return FAIL;
 
-  /* fsync can be a significant performance hit.  Often it doesn't
-     suffice to make the file-save operation survive a crash.  For
-     batch scripts, which are typically part of larger shell commands
-     that don't fsync other files, its effect on performance can be
-     significant so its utility is particularly questionable.
-     Hence, for now by default fsync is used only when interactive.
+    fname = skipwhite(fname);
 
-     For more on why fsync often fails to work on today's hardware, see:
-     Zheng M et al. Understanding the robustness of SSDs under power fault.
-     11th USENIX Conf. on File and Storage Technologies, 2013 (FAST '13), 271-84
-     http://www.usenix.org/system/files/conference/fast13/fast13-final80.pdf
+    /*
+     * Loop over the events.
+     */
+    while (*arg && !vim_iswhite(*arg))
+	if (apply_autocmds_group(event_name2nr(arg, &arg),
+				      fname, NULL, TRUE, group, curbuf, NULL))
+	    nothing_done = FALSE;
 
-     For more on why fsync does not suffice even if it works properly, see:
-     Roche X. Necessary step(s) to synchronize filename operations on disk.
-     Austin Group Defect 672, 2013-03-19
-     http://austingroupbugs.net/view.php?id=672  */
-  write_region_inhibit_fsync = noninteractive;
-}
+    if (nothing_done && do_msg)
+	MSG(_("No matching autocommands"));
+    if (did_something != NULL)
+	*did_something = !nothing_done;
 
-void
-syms_of_fileio (void)
-{
-  /* Property name of a file name handler,
-     which gives a list of operations it handles.  */
-  DEFSYM (Qoperations, "operations");
-
-  DEFSYM (Qexpand_file_name, "expand-file-name");
-  DEFSYM (Qsubstitute_in_file_name, "substitute-in-file-name");
-  DEFSYM (Qdirectory_file_name, "directory-file-name");
-  DEFSYM (Qfile_name_directory, "file-name-directory");
-  DEFSYM (Qfile_name_nondirectory, "file-name-nondirectory");
-  DEFSYM (Qunhandled_file_name_directory, "unhandled-file-name-directory");
-  DEFSYM (Qfile_name_as_directory, "file-name-as-directory");
-  DEFSYM (Qcopy_file, "copy-file");
-  DEFSYM (Qmake_directory_internal, "make-directory-internal");
-  DEFSYM (Qmake_directory, "make-directory");
-  DEFSYM (Qdelete_file, "delete-file");
-  DEFSYM (Qrename_file, "rename-file");
-  DEFSYM (Qadd_name_to_file, "add-name-to-file");
-  DEFSYM (Qmake_symbolic_link, "make-symbolic-link");
-  DEFSYM (Qfile_exists_p, "file-exists-p");
-  DEFSYM (Qfile_executable_p, "file-executable-p");
-  DEFSYM (Qfile_readable_p, "file-readable-p");
-  DEFSYM (Qfile_writable_p, "file-writable-p");
-  DEFSYM (Qfile_symlink_p, "file-symlink-p");
-  DEFSYM (Qaccess_file, "access-file");
-  DEFSYM (Qfile_directory_p, "file-directory-p");
-  DEFSYM (Qfile_regular_p, "file-regular-p");
-  DEFSYM (Qfile_accessible_directory_p, "file-accessible-directory-p");
-  DEFSYM (Qfile_modes, "file-modes");
-  DEFSYM (Qset_file_modes, "set-file-modes");
-  DEFSYM (Qset_file_times, "set-file-times");
-  DEFSYM (Qfile_selinux_context, "file-selinux-context");
-  DEFSYM (Qset_file_selinux_context, "set-file-selinux-context");
-  DEFSYM (Qfile_acl, "file-acl");
-  DEFSYM (Qset_file_acl, "set-file-acl");
-  DEFSYM (Qfile_newer_than_file_p, "file-newer-than-file-p");
-  DEFSYM (Qinsert_file_contents, "insert-file-contents");
-  DEFSYM (Qwrite_region, "write-region");
-  DEFSYM (Qverify_visited_file_modtime, "verify-visited-file-modtime");
-  DEFSYM (Qset_visited_file_modtime, "set-visited-file-modtime");
-
-  /* The symbol bound to coding-system-for-read when
-     insert-file-contents is called for recovering a file.  This is not
-     an actual coding system name, but just an indicator to tell
-     insert-file-contents to use `emacs-mule' with a special flag for
-     auto saving and recovering a file.  */
-  DEFSYM (Qauto_save_coding, "auto-save-coding");
-
-  DEFSYM (Qfile_name_history, "file-name-history");
-  Fset (Qfile_name_history, Qnil);
-
-  DEFSYM (Qfile_error, "file-error");
-  DEFSYM (Qfile_already_exists, "file-already-exists");
-  DEFSYM (Qfile_date_error, "file-date-error");
-  DEFSYM (Qfile_notify_error, "file-notify-error");
-  DEFSYM (Qexcl, "excl");
-
-  DEFVAR_LISP ("file-name-coding-system", Vfile_name_coding_system,
-	       doc: /* Coding system for encoding file names.
-If it is nil, `default-file-name-coding-system' (which see) is used.
-
-On MS-Windows, the value of this variable is largely ignored if
-`w32-unicode-filenames' (which see) is non-nil.  Emacs on Windows
-behaves as if file names were encoded in `utf-8'.  */);
-  Vfile_name_coding_system = Qnil;
-
-  DEFVAR_LISP ("default-file-name-coding-system",
-	       Vdefault_file_name_coding_system,
-	       doc: /* Default coding system for encoding file names.
-This variable is used only when `file-name-coding-system' is nil.
-
-This variable is set/changed by the command `set-language-environment'.
-User should not set this variable manually,
-instead use `file-name-coding-system' to get a constant encoding
-of file names regardless of the current language environment.
-
-On MS-Windows, the value of this variable is largely ignored if
-`w32-unicode-filenames' (which see) is non-nil.  Emacs on Windows
-behaves as if file names were encoded in `utf-8'.  */);
-  Vdefault_file_name_coding_system = Qnil;
-
-  /* Lisp functions for translating file formats.  */
-  DEFSYM (Qformat_decode, "format-decode");
-  DEFSYM (Qformat_annotate_function, "format-annotate-function");
-
-  /* Lisp function for setting buffer-file-coding-system and the
-     multibyteness of the current buffer after inserting a file.  */
-  DEFSYM (Qafter_insert_file_set_coding, "after-insert-file-set-coding");
-
-  DEFSYM (Qcar_less_than_car, "car-less-than-car");
-
-  Fput (Qfile_error, Qerror_conditions,
-	Fpurecopy (list2 (Qfile_error, Qerror)));
-  Fput (Qfile_error, Qerror_message,
-	build_pure_c_string ("File error"));
-
-  Fput (Qfile_already_exists, Qerror_conditions,
-	Fpurecopy (list3 (Qfile_already_exists, Qfile_error, Qerror)));
-  Fput (Qfile_already_exists, Qerror_message,
-	build_pure_c_string ("File already exists"));
-
-  Fput (Qfile_date_error, Qerror_conditions,
-	Fpurecopy (list3 (Qfile_date_error, Qfile_error, Qerror)));
-  Fput (Qfile_date_error, Qerror_message,
-	build_pure_c_string ("Cannot set file date"));
-
-  Fput (Qfile_notify_error, Qerror_conditions,
-	Fpurecopy (list3 (Qfile_notify_error, Qfile_error, Qerror)));
-  Fput (Qfile_notify_error, Qerror_message,
-	build_pure_c_string ("File notification error"));
-
-  DEFVAR_LISP ("file-name-handler-alist", Vfile_name_handler_alist,
-	       doc: /* Alist of elements (REGEXP . HANDLER) for file names handled specially.
-If a file name matches REGEXP, all I/O on that file is done by calling
-HANDLER.  If a file name matches more than one handler, the handler
-whose match starts last in the file name gets precedence.  The
-function `find-file-name-handler' checks this list for a handler for
-its argument.
-
-HANDLER should be a function.  The first argument given to it is the
-name of the I/O primitive to be handled; the remaining arguments are
-the arguments that were passed to that primitive.  For example, if you
-do (file-exists-p FILENAME) and FILENAME is handled by HANDLER, then
-HANDLER is called like this:
-
-  (funcall HANDLER \\='file-exists-p FILENAME)
-
-Note that HANDLER must be able to handle all I/O primitives; if it has
-nothing special to do for a primitive, it should reinvoke the
-primitive to handle the operation \"the usual way\".
-See Info node `(elisp)Magic File Names' for more details.  */);
-  Vfile_name_handler_alist = Qnil;
-
-  DEFVAR_LISP ("set-auto-coding-function",
-	       Vset_auto_coding_function,
-	       doc: /* If non-nil, a function to call to decide a coding system of file.
-Two arguments are passed to this function: the file name
-and the length of a file contents following the point.
-This function should return a coding system to decode the file contents.
-It should check the file name against `auto-coding-alist'.
-If no coding system is decided, it should check a coding system
-specified in the heading lines with the format:
-	-*- ... coding: CODING-SYSTEM; ... -*-
-or local variable spec of the tailing lines with `coding:' tag.  */);
-  Vset_auto_coding_function = Qnil;
-
-  DEFVAR_LISP ("after-insert-file-functions", Vafter_insert_file_functions,
-	       doc: /* A list of functions to be called at the end of `insert-file-contents'.
-Each is passed one argument, the number of characters inserted,
-with point at the start of the inserted text.  Each function
-should leave point the same, and return the new character count.
-If `insert-file-contents' is intercepted by a handler from
-`file-name-handler-alist', that handler is responsible for calling the
-functions in `after-insert-file-functions' if appropriate.  */);
-  Vafter_insert_file_functions = Qnil;
-
-  DEFVAR_LISP ("write-region-annotate-functions", Vwrite_region_annotate_functions,
-	       doc: /* A list of functions to be called at the start of `write-region'.
-Each is passed two arguments, START and END as for `write-region'.
-These are usually two numbers but not always; see the documentation
-for `write-region'.  The function should return a list of pairs
-of the form (POSITION . STRING), consisting of strings to be effectively
-inserted at the specified positions of the file being written (1 means to
-insert before the first byte written).  The POSITIONs must be sorted into
-increasing order.
-
-If there are several annotation functions, the lists returned by these
-functions are merged destructively.  As each annotation function runs,
-the variable `write-region-annotations-so-far' contains a list of all
-annotations returned by previous annotation functions.
-
-An annotation function can return with a different buffer current.
-Doing so removes the annotations returned by previous functions, and
-resets START and END to `point-min' and `point-max' of the new buffer.
-
-After `write-region' completes, Emacs calls the function stored in
-`write-region-post-annotation-function', once for each buffer that was
-current when building the annotations (i.e., at least once), with that
-buffer current.  */);
-  Vwrite_region_annotate_functions = Qnil;
-  DEFSYM (Qwrite_region_annotate_functions, "write-region-annotate-functions");
-
-  DEFVAR_LISP ("write-region-post-annotation-function",
-	       Vwrite_region_post_annotation_function,
-	       doc: /* Function to call after `write-region' completes.
-The function is called with no arguments.  If one or more of the
-annotation functions in `write-region-annotate-functions' changed the
-current buffer, the function stored in this variable is called for
-each of those additional buffers as well, in addition to the original
-buffer.  The relevant buffer is current during each function call.  */);
-  Vwrite_region_post_annotation_function = Qnil;
-  staticpro (&Vwrite_region_annotation_buffers);
-
-  DEFVAR_LISP ("write-region-annotations-so-far",
-	       Vwrite_region_annotations_so_far,
-	       doc: /* When an annotation function is called, this holds the previous annotations.
-These are the annotations made by other annotation functions
-that were already called.  See also `write-region-annotate-functions'.  */);
-  Vwrite_region_annotations_so_far = Qnil;
-
-  DEFVAR_LISP ("inhibit-file-name-handlers", Vinhibit_file_name_handlers,
-	       doc: /* A list of file name handlers that temporarily should not be used.
-This applies only to the operation `inhibit-file-name-operation'.  */);
-  Vinhibit_file_name_handlers = Qnil;
-
-  DEFVAR_LISP ("inhibit-file-name-operation", Vinhibit_file_name_operation,
-	       doc: /* The operation for which `inhibit-file-name-handlers' is applicable.  */);
-  Vinhibit_file_name_operation = Qnil;
-
-  DEFVAR_LISP ("auto-save-list-file-name", Vauto_save_list_file_name,
-	       doc: /* File name in which we write a list of all auto save file names.
-This variable is initialized automatically from `auto-save-list-file-prefix'
-shortly after Emacs reads your init file, if you have not yet given it
-a non-nil value.  */);
-  Vauto_save_list_file_name = Qnil;
-
-  DEFVAR_LISP ("auto-save-visited-file-name", Vauto_save_visited_file_name,
-	       doc: /* Non-nil says auto-save a buffer in the file it is visiting, when practical.
-Normally auto-save files are written under other names.  */);
-  Vauto_save_visited_file_name = Qnil;
-
-  DEFVAR_LISP ("auto-save-include-big-deletions", Vauto_save_include_big_deletions,
-	       doc: /* If non-nil, auto-save even if a large part of the text is deleted.
-If nil, deleting a substantial portion of the text disables auto-save
-in the buffer; this is the default behavior, because the auto-save
-file is usually more useful if it contains the deleted text.  */);
-  Vauto_save_include_big_deletions = Qnil;
-
-  DEFVAR_BOOL ("write-region-inhibit-fsync", write_region_inhibit_fsync,
-	       doc: /* Non-nil means don't call fsync in `write-region'.
-This variable affects calls to `write-region' as well as save commands.
-Setting this to nil may avoid data loss if the system loses power or
-the operating system crashes.  By default, it is non-nil in batch mode.  */);
-  write_region_inhibit_fsync = 0; /* See also `init_fileio' above.  */
-
-  DEFVAR_BOOL ("delete-by-moving-to-trash", delete_by_moving_to_trash,
-               doc: /* Specifies whether to use the system's trash can.
-When non-nil, certain file deletion commands use the function
-`move-file-to-trash' instead of deleting files outright.
-This includes interactive calls to `delete-file' and
-`delete-directory' and the Dired deletion commands.  */);
-  delete_by_moving_to_trash = 0;
-  DEFSYM (Qdelete_by_moving_to_trash, "delete-by-moving-to-trash");
-
-  /* Lisp function for moving files to trash.  */
-  DEFSYM (Qmove_file_to_trash, "move-file-to-trash");
-
-  /* Lisp function for recursively copying directories.  */
-  DEFSYM (Qcopy_directory, "copy-directory");
-
-  /* Lisp function for recursively deleting directories.  */
-  DEFSYM (Qdelete_directory, "delete-directory");
-
-  DEFSYM (Qsubstitute_env_in_file_name, "substitute-env-in-file-name");
-  DEFSYM (Qget_buffer_window_list, "get-buffer-window-list");
-
-  DEFSYM (Qstdin, "stdin");
-  DEFSYM (Qstdout, "stdout");
-  DEFSYM (Qstderr, "stderr");
-
-  defsubr (&Sfind_file_name_handler);
-  defsubr (&Sfile_name_directory);
-  defsubr (&Sfile_name_nondirectory);
-  defsubr (&Sunhandled_file_name_directory);
-  defsubr (&Sfile_name_as_directory);
-  defsubr (&Sdirectory_file_name);
-  defsubr (&Smake_temp_name);
-  defsubr (&Sexpand_file_name);
-  defsubr (&Ssubstitute_in_file_name);
-  defsubr (&Scopy_file);
-  defsubr (&Smake_directory_internal);
-  defsubr (&Sdelete_directory_internal);
-  defsubr (&Sdelete_file);
-  defsubr (&Srename_file);
-  defsubr (&Sadd_name_to_file);
-  defsubr (&Smake_symbolic_link);
-  defsubr (&Sfile_name_absolute_p);
-  defsubr (&Sfile_exists_p);
-  defsubr (&Sfile_executable_p);
-  defsubr (&Sfile_readable_p);
-  defsubr (&Sfile_writable_p);
-  defsubr (&Saccess_file);
-  defsubr (&Sfile_symlink_p);
-  defsubr (&Sfile_directory_p);
-  defsubr (&Sfile_accessible_directory_p);
-  defsubr (&Sfile_regular_p);
-  defsubr (&Sfile_modes);
-  defsubr (&Sset_file_modes);
-  defsubr (&Sset_file_times);
-  defsubr (&Sfile_selinux_context);
-  defsubr (&Sfile_acl);
-  defsubr (&Sset_file_acl);
-  defsubr (&Sset_file_selinux_context);
-  defsubr (&Sset_default_file_modes);
-  defsubr (&Sdefault_file_modes);
-  defsubr (&Sfile_newer_than_file_p);
-  defsubr (&Sinsert_file_contents);
-  defsubr (&Swrite_region);
-  defsubr (&Scar_less_than_car);
-  defsubr (&Sverify_visited_file_modtime);
-  defsubr (&Svisited_file_modtime);
-  defsubr (&Sset_visited_file_modtime);
-  defsubr (&Sdo_auto_save);
-  defsubr (&Sset_buffer_auto_saved);
-  defsubr (&Sclear_buffer_auto_save_failure);
-  defsubr (&Srecent_auto_save_p);
-
-  defsubr (&Snext_read_file_uses_dialog_p);
-
-  defsubr (&Sset_binary_mode);
-
-#ifdef HAVE_SYNC
-  defsubr (&Sunix_sync);
+#ifdef FEAT_EVAL
+    return aborting() ? FAIL : OK;
+#else
+    return OK;
 #endif
 }
+
+/*
+ * ":doautoall": execute autocommands for each loaded buffer.
+ */
+    void
+ex_doautoall(exarg_T *eap)
+{
+    int		retval;
+    aco_save_T	aco;
+    buf_T	*buf;
+    bufref_T	bufref;
+    char_u	*arg = eap->arg;
+    int		call_do_modelines = check_nomodeline(&arg);
+    int		did_aucmd;
+
+    /*
+     * This is a bit tricky: For some commands curwin->w_buffer needs to be
+     * equal to curbuf, but for some buffers there may not be a window.
+     * So we change the buffer for the current window for a moment.  This
+     * gives problems when the autocommands make changes to the list of
+     * buffers or windows...
+     */
+    FOR_ALL_BUFFERS(buf)
+    {
+	if (buf->b_ml.ml_mfp != NULL)
+	{
+	    /* find a window for this buffer and save some values */
+	    aucmd_prepbuf(&aco, buf);
+	    set_bufref(&bufref, buf);
+
+	    /* execute the autocommands for this buffer */
+	    retval = do_doautocmd(arg, FALSE, &did_aucmd);
+
+	    if (call_do_modelines && did_aucmd)
+	    {
+		/* Execute the modeline settings, but don't set window-local
+		 * options if we are using the current window for another
+		 * buffer. */
+		do_modelines(curwin == aucmd_win ? OPT_NOWIN : 0);
+	    }
+
+	    /* restore the current window */
+	    aucmd_restbuf(&aco);
+
+	    /* stop if there is some error or buffer was deleted */
+	    if (retval == FAIL || !bufref_valid(&bufref))
+		break;
+	}
+    }
+
+    check_cursor();	    /* just in case lines got deleted */
+}
+
+/*
+ * Check *argp for <nomodeline>.  When it is present return FALSE, otherwise
+ * return TRUE and advance *argp to after it.
+ * Thus return TRUE when do_modelines() should be called.
+ */
+    int
+check_nomodeline(char_u **argp)
+{
+    if (STRNCMP(*argp, "<nomodeline>", 12) == 0)
+    {
+	*argp = skipwhite(*argp + 12);
+	return FALSE;
+    }
+    return TRUE;
+}
+
+/*
+ * Prepare for executing autocommands for (hidden) buffer "buf".
+ * Search for a visible window containing the current buffer.  If there isn't
+ * one then use "aucmd_win".
+ * Set "curbuf" and "curwin" to match "buf".
+ * When FEAT_AUTOCMD is not defined another version is used, see below.
+ */
+    void
+aucmd_prepbuf(
+    aco_save_T	*aco,		/* structure to save values in */
+    buf_T	*buf)		/* new curbuf */
+{
+    win_T	*win;
+#ifdef FEAT_WINDOWS
+    int		save_ea;
+#endif
+#ifdef FEAT_AUTOCHDIR
+    int		save_acd;
+#endif
+
+    /* Find a window that is for the new buffer */
+    if (buf == curbuf)		/* be quick when buf is curbuf */
+	win = curwin;
+    else
+#ifdef FEAT_WINDOWS
+	FOR_ALL_WINDOWS(win)
+	    if (win->w_buffer == buf)
+		break;
+#else
+	win = NULL;
+#endif
+
+    /* Allocate "aucmd_win" when needed.  If this fails (out of memory) fall
+     * back to using the current window. */
+    if (win == NULL && aucmd_win == NULL)
+    {
+	win_alloc_aucmd_win();
+	if (aucmd_win == NULL)
+	    win = curwin;
+    }
+    if (win == NULL && aucmd_win_used)
+	/* Strange recursive autocommand, fall back to using the current
+	 * window.  Expect a few side effects... */
+	win = curwin;
+
+    aco->save_curwin = curwin;
+    aco->save_curbuf = curbuf;
+    if (win != NULL)
+    {
+	/* There is a window for "buf" in the current tab page, make it the
+	 * curwin.  This is preferred, it has the least side effects (esp. if
+	 * "buf" is curbuf). */
+	aco->use_aucmd_win = FALSE;
+	curwin = win;
+    }
+    else
+    {
+	/* There is no window for "buf", use "aucmd_win".  To minimize the side
+	 * effects, insert it in the current tab page.
+	 * Anything related to a window (e.g., setting folds) may have
+	 * unexpected results. */
+	aco->use_aucmd_win = TRUE;
+	aucmd_win_used = TRUE;
+	aucmd_win->w_buffer = buf;
+	aucmd_win->w_s = &buf->b_s;
+	++buf->b_nwindows;
+	win_init_empty(aucmd_win); /* set cursor and topline to safe values */
+
+	/* Make sure w_localdir and globaldir are NULL to avoid a chdir() in
+	 * win_enter_ext(). */
+	vim_free(aucmd_win->w_localdir);
+	aucmd_win->w_localdir = NULL;
+	aco->globaldir = globaldir;
+	globaldir = NULL;
+
+
+#ifdef FEAT_WINDOWS
+	/* Split the current window, put the aucmd_win in the upper half.
+	 * We don't want the BufEnter or WinEnter autocommands. */
+	block_autocmds();
+	make_snapshot(SNAP_AUCMD_IDX);
+	save_ea = p_ea;
+	p_ea = FALSE;
+
+# ifdef FEAT_AUTOCHDIR
+	/* Prevent chdir() call in win_enter_ext(), through do_autochdir(). */
+	save_acd = p_acd;
+	p_acd = FALSE;
+# endif
+
+	(void)win_split_ins(0, WSP_TOP, aucmd_win, 0);
+	(void)win_comp_pos();   /* recompute window positions */
+	p_ea = save_ea;
+# ifdef FEAT_AUTOCHDIR
+	p_acd = save_acd;
+# endif
+	unblock_autocmds();
+#endif
+	curwin = aucmd_win;
+    }
+    curbuf = buf;
+    aco->new_curwin = curwin;
+    set_bufref(&aco->new_curbuf, curbuf);
+}
+
+/*
+ * Cleanup after executing autocommands for a (hidden) buffer.
+ * Restore the window as it was (if possible).
+ * When FEAT_AUTOCMD is not defined another version is used, see below.
+ */
+    void
+aucmd_restbuf(
+    aco_save_T	*aco)		/* structure holding saved values */
+{
+#ifdef FEAT_WINDOWS
+    int dummy;
+#endif
+
+    if (aco->use_aucmd_win)
+    {
+	--curbuf->b_nwindows;
+#ifdef FEAT_WINDOWS
+	/* Find "aucmd_win", it can't be closed, but it may be in another tab
+	 * page. Do not trigger autocommands here. */
+	block_autocmds();
+	if (curwin != aucmd_win)
+	{
+	    tabpage_T	*tp;
+	    win_T	*wp;
+
+	    FOR_ALL_TAB_WINDOWS(tp, wp)
+	    {
+		if (wp == aucmd_win)
+		{
+		    if (tp != curtab)
+			goto_tabpage_tp(tp, TRUE, TRUE);
+		    win_goto(aucmd_win);
+		    goto win_found;
+		}
+	    }
+	}
+win_found:
+
+	/* Remove the window and frame from the tree of frames. */
+	(void)winframe_remove(curwin, &dummy, NULL);
+	win_remove(curwin, NULL);
+	aucmd_win_used = FALSE;
+	last_status(FALSE);	    /* may need to remove last status line */
+	restore_snapshot(SNAP_AUCMD_IDX, FALSE);
+	(void)win_comp_pos();   /* recompute window positions */
+	unblock_autocmds();
+
+	if (win_valid(aco->save_curwin))
+	    curwin = aco->save_curwin;
+	else
+	    /* Hmm, original window disappeared.  Just use the first one. */
+	    curwin = firstwin;
+# ifdef FEAT_EVAL
+	vars_clear(&aucmd_win->w_vars->dv_hashtab);  /* free all w: variables */
+	hash_init(&aucmd_win->w_vars->dv_hashtab);   /* re-use the hashtab */
+# endif
+#else
+	curwin = aco->save_curwin;
+#endif
+	curbuf = curwin->w_buffer;
+
+	vim_free(globaldir);
+	globaldir = aco->globaldir;
+
+	/* the buffer contents may have changed */
+	check_cursor();
+	if (curwin->w_topline > curbuf->b_ml.ml_line_count)
+	{
+	    curwin->w_topline = curbuf->b_ml.ml_line_count;
+#ifdef FEAT_DIFF
+	    curwin->w_topfill = 0;
+#endif
+	}
+#if defined(FEAT_GUI)
+	/* Hide the scrollbars from the aucmd_win and update. */
+	gui_mch_enable_scrollbar(&aucmd_win->w_scrollbars[SBAR_LEFT], FALSE);
+	gui_mch_enable_scrollbar(&aucmd_win->w_scrollbars[SBAR_RIGHT], FALSE);
+	gui_may_update_scrollbars();
+#endif
+    }
+    else
+    {
+	/* restore curwin */
+#ifdef FEAT_WINDOWS
+	if (win_valid(aco->save_curwin))
+#endif
+	{
+	    /* Restore the buffer which was previously edited by curwin, if
+	     * it was changed, we are still the same window and the buffer is
+	     * valid. */
+	    if (curwin == aco->new_curwin
+		    && curbuf != aco->new_curbuf.br_buf
+		    && bufref_valid(&aco->new_curbuf)
+		    && aco->new_curbuf.br_buf->b_ml.ml_mfp != NULL)
+	    {
+# if defined(FEAT_SYN_HL) || defined(FEAT_SPELL)
+		if (curwin->w_s == &curbuf->b_s)
+		    curwin->w_s = &aco->new_curbuf.br_buf->b_s;
+# endif
+		--curbuf->b_nwindows;
+		curbuf = aco->new_curbuf.br_buf;
+		curwin->w_buffer = curbuf;
+		++curbuf->b_nwindows;
+	    }
+
+	    curwin = aco->save_curwin;
+	    curbuf = curwin->w_buffer;
+	    /* In case the autocommand move the cursor to a position that that
+	     * not exist in curbuf. */
+	    check_cursor();
+	}
+    }
+}
+
+static int	autocmd_nested = FALSE;
+
+/*
+ * Execute autocommands for "event" and file name "fname".
+ * Return TRUE if some commands were executed.
+ */
+    int
+apply_autocmds(
+    event_T	event,
+    char_u	*fname,	    /* NULL or empty means use actual file name */
+    char_u	*fname_io,  /* fname to use for <afile> on cmdline */
+    int		force,	    /* when TRUE, ignore autocmd_busy */
+    buf_T	*buf)	    /* buffer for <abuf> */
+{
+    return apply_autocmds_group(event, fname, fname_io, force,
+						      AUGROUP_ALL, buf, NULL);
+}
+
+/*
+ * Like apply_autocmds(), but with extra "eap" argument.  This takes care of
+ * setting v:filearg.
+ */
+    static int
+apply_autocmds_exarg(
+    event_T	event,
+    char_u	*fname,
+    char_u	*fname_io,
+    int		force,
+    buf_T	*buf,
+    exarg_T	*eap)
+{
+    return apply_autocmds_group(event, fname, fname_io, force,
+						       AUGROUP_ALL, buf, eap);
+}
+
+/*
+ * Like apply_autocmds(), but handles the caller's retval.  If the script
+ * processing is being aborted or if retval is FAIL when inside a try
+ * conditional, no autocommands are executed.  If otherwise the autocommands
+ * cause the script to be aborted, retval is set to FAIL.
+ */
+    int
+apply_autocmds_retval(
+    event_T	event,
+    char_u	*fname,	    /* NULL or empty means use actual file name */
+    char_u	*fname_io,  /* fname to use for <afile> on cmdline */
+    int		force,	    /* when TRUE, ignore autocmd_busy */
+    buf_T	*buf,	    /* buffer for <abuf> */
+    int		*retval)    /* pointer to caller's retval */
+{
+    int		did_cmd;
+
+#ifdef FEAT_EVAL
+    if (should_abort(*retval))
+	return FALSE;
+#endif
+
+    did_cmd = apply_autocmds_group(event, fname, fname_io, force,
+						      AUGROUP_ALL, buf, NULL);
+    if (did_cmd
+#ifdef FEAT_EVAL
+	    && aborting()
+#endif
+	    )
+	*retval = FAIL;
+    return did_cmd;
+}
+
+/*
+ * Return TRUE when there is a CursorHold autocommand defined.
+ */
+    int
+has_cursorhold(void)
+{
+    return (first_autopat[(int)(get_real_state() == NORMAL_BUSY
+			    ? EVENT_CURSORHOLD : EVENT_CURSORHOLDI)] != NULL);
+}
+
+/*
+ * Return TRUE if the CursorHold event can be triggered.
+ */
+    int
+trigger_cursorhold(void)
+{
+    int		state;
+
+    if (!did_cursorhold
+	    && has_cursorhold()
+	    && !Recording
+	    && typebuf.tb_len == 0
+#ifdef FEAT_INS_EXPAND
+	    && !ins_compl_active()
+#endif
+	    )
+    {
+	state = get_real_state();
+	if (state == NORMAL_BUSY || (state & INSERT) != 0)
+	    return TRUE;
+    }
+    return FALSE;
+}
+
+/*
+ * Return TRUE when there is a CursorMoved autocommand defined.
+ */
+    int
+has_cursormoved(void)
+{
+    return (first_autopat[(int)EVENT_CURSORMOVED] != NULL);
+}
+
+/*
+ * Return TRUE when there is a CursorMovedI autocommand defined.
+ */
+    int
+has_cursormovedI(void)
+{
+    return (first_autopat[(int)EVENT_CURSORMOVEDI] != NULL);
+}
+
+/*
+ * Return TRUE when there is a TextChanged autocommand defined.
+ */
+    int
+has_textchanged(void)
+{
+    return (first_autopat[(int)EVENT_TEXTCHANGED] != NULL);
+}
+
+/*
+ * Return TRUE when there is a TextChangedI autocommand defined.
+ */
+    int
+has_textchangedI(void)
+{
+    return (first_autopat[(int)EVENT_TEXTCHANGEDI] != NULL);
+}
+
+/*
+ * Return TRUE when there is an InsertCharPre autocommand defined.
+ */
+    int
+has_insertcharpre(void)
+{
+    return (first_autopat[(int)EVENT_INSERTCHARPRE] != NULL);
+}
+
+/*
+ * Return TRUE when there is an CmdUndefined autocommand defined.
+ */
+    int
+has_cmdundefined(void)
+{
+    return (first_autopat[(int)EVENT_CMDUNDEFINED] != NULL);
+}
+
+/*
+ * Return TRUE when there is an FuncUndefined autocommand defined.
+ */
+    int
+has_funcundefined(void)
+{
+    return (first_autopat[(int)EVENT_FUNCUNDEFINED] != NULL);
+}
+
+/*
+ * Execute autocommands for "event" and file name "fname".
+ * Return TRUE if some commands were executed.
+ */
+    static int
+apply_autocmds_group(
+    event_T	event,
+    char_u	*fname,	    /* NULL or empty means use actual file name */
+    char_u	*fname_io,  /* fname to use for <afile> on cmdline, NULL means
+			       use fname */
+    int		force,	    /* when TRUE, ignore autocmd_busy */
+    int		group,	    /* group ID, or AUGROUP_ALL */
+    buf_T	*buf,	    /* buffer for <abuf> */
+    exarg_T	*eap)	    /* command arguments */
+{
+    char_u	*sfname = NULL;	/* short file name */
+    char_u	*tail;
+    int		save_changed;
+    buf_T	*old_curbuf;
+    int		retval = FALSE;
+    char_u	*save_sourcing_name;
+    linenr_T	save_sourcing_lnum;
+    char_u	*save_autocmd_fname;
+    int		save_autocmd_fname_full;
+    int		save_autocmd_bufnr;
+    char_u	*save_autocmd_match;
+    int		save_autocmd_busy;
+    int		save_autocmd_nested;
+    static int	nesting = 0;
+    AutoPatCmd	patcmd;
+    AutoPat	*ap;
+#ifdef FEAT_EVAL
+    scid_T	save_current_SID;
+    void	*save_funccalp;
+    char_u	*save_cmdarg;
+    long	save_cmdbang;
+#endif
+    static int	filechangeshell_busy = FALSE;
+#ifdef FEAT_PROFILE
+    proftime_T	wait_time;
+#endif
+    int		did_save_redobuff = FALSE;
+
+    /*
+     * Quickly return if there are no autocommands for this event or
+     * autocommands are blocked.
+     */
+    if (first_autopat[(int)event] == NULL || autocmd_blocked > 0)
+	goto BYPASS_AU;
+
+    /*
+     * When autocommands are busy, new autocommands are only executed when
+     * explicitly enabled with the "nested" flag.
+     */
+    if (autocmd_busy && !(force || autocmd_nested))
+	goto BYPASS_AU;
+
+#ifdef FEAT_EVAL
+    /*
+     * Quickly return when immediately aborting on error, or when an interrupt
+     * occurred or an exception was thrown but not caught.
+     */
+    if (aborting())
+	goto BYPASS_AU;
+#endif
+
+    /*
+     * FileChangedShell never nests, because it can create an endless loop.
+     */
+    if (filechangeshell_busy && (event == EVENT_FILECHANGEDSHELL
+				      || event == EVENT_FILECHANGEDSHELLPOST))
+	goto BYPASS_AU;
+
+    /*
+     * Ignore events in 'eventignore'.
+     */
+    if (event_ignored(event))
+	goto BYPASS_AU;
+
+    /*
+     * Allow nesting of autocommands, but restrict the depth, because it's
+     * possible to create an endless loop.
+     */
+    if (nesting == 10)
+    {
+	EMSG(_("E218: autocommand nesting too deep"));
+	goto BYPASS_AU;
+    }
+
+    /*
+     * Check if these autocommands are disabled.  Used when doing ":all" or
+     * ":ball".
+     */
+    if (       (autocmd_no_enter
+		&& (event == EVENT_WINENTER || event == EVENT_BUFENTER))
+	    || (autocmd_no_leave
+		&& (event == EVENT_WINLEAVE || event == EVENT_BUFLEAVE)))
+	goto BYPASS_AU;
+
+    /*
+     * Save the autocmd_* variables and info about the current buffer.
+     */
+    save_autocmd_fname = autocmd_fname;
+    save_autocmd_fname_full = autocmd_fname_full;
+    save_autocmd_bufnr = autocmd_bufnr;
+    save_autocmd_match = autocmd_match;
+    save_autocmd_busy = autocmd_busy;
+    save_autocmd_nested = autocmd_nested;
+    save_changed = curbuf->b_changed;
+    old_curbuf = curbuf;
+
+    /*
+     * Set the file name to be used for <afile>.
+     * Make a copy to avoid that changing a buffer name or directory makes it
+     * invalid.
+     */
+    if (fname_io == NULL)
+    {
+	if (event == EVENT_COLORSCHEME || event == EVENT_OPTIONSET)
+	    autocmd_fname = NULL;
+	else if (fname != NULL && *fname != NUL)
+	    autocmd_fname = fname;
+	else if (buf != NULL)
+	    autocmd_fname = buf->b_ffname;
+	else
+	    autocmd_fname = NULL;
+    }
+    else
+	autocmd_fname = fname_io;
+    if (autocmd_fname != NULL)
+	autocmd_fname = vim_strsave(autocmd_fname);
+    autocmd_fname_full = FALSE; /* call FullName_save() later */
+
+    /*
+     * Set the buffer number to be used for <abuf>.
+     */
+    if (buf == NULL)
+	autocmd_bufnr = 0;
+    else
+	autocmd_bufnr = buf->b_fnum;
+
+    /*
+     * When the file name is NULL or empty, use the file name of buffer "buf".
+     * Always use the full path of the file name to match with, in case
+     * "allow_dirs" is set.
+     */
+    if (fname == NULL || *fname == NUL)
+    {
+	if (buf == NULL)
+	    fname = NULL;
+	else
+	{
+#ifdef FEAT_SYN_HL
+	    if (event == EVENT_SYNTAX)
+		fname = buf->b_p_syn;
+	    else
+#endif
+		if (event == EVENT_FILETYPE)
+		    fname = buf->b_p_ft;
+		else
+		{
+		    if (buf->b_sfname != NULL)
+			sfname = vim_strsave(buf->b_sfname);
+		    fname = buf->b_ffname;
+		}
+	}
+	if (fname == NULL)
+	    fname = (char_u *)"";
+	fname = vim_strsave(fname);	/* make a copy, so we can change it */
+    }
+    else
+    {
+	sfname = vim_strsave(fname);
+	/* Don't try expanding FileType, Syntax, FuncUndefined, WindowID,
+	 * ColorScheme or QuickFixCmd* */
+	if (event == EVENT_FILETYPE
+		|| event == EVENT_SYNTAX
+		|| event == EVENT_FUNCUNDEFINED
+		|| event == EVENT_REMOTEREPLY
+		|| event == EVENT_SPELLFILEMISSING
+		|| event == EVENT_QUICKFIXCMDPRE
+		|| event == EVENT_COLORSCHEME
+		|| event == EVENT_OPTIONSET
+		|| event == EVENT_QUICKFIXCMDPOST)
+	    fname = vim_strsave(fname);
+	else
+	    fname = FullName_save(fname, FALSE);
+    }
+    if (fname == NULL)	    /* out of memory */
+    {
+	vim_free(sfname);
+	retval = FALSE;
+	goto BYPASS_AU;
+    }
+
+#ifdef BACKSLASH_IN_FILENAME
+    /*
+     * Replace all backslashes with forward slashes.  This makes the
+     * autocommand patterns portable between Unix and MS-DOS.
+     */
+    if (sfname != NULL)
+	forward_slash(sfname);
+    forward_slash(fname);
+#endif
+
+#ifdef VMS
+    /* remove version for correct match */
+    if (sfname != NULL)
+	vms_remove_version(sfname);
+    vms_remove_version(fname);
+#endif
+
+    /*
+     * Set the name to be used for <amatch>.
+     */
+    autocmd_match = fname;
+
+
+    /* Don't redraw while doing auto commands. */
+    ++RedrawingDisabled;
+    save_sourcing_name = sourcing_name;
+    sourcing_name = NULL;	/* don't free this one */
+    save_sourcing_lnum = sourcing_lnum;
+    sourcing_lnum = 0;		/* no line number here */
+
+#ifdef FEAT_EVAL
+    save_current_SID = current_SID;
+
+# ifdef FEAT_PROFILE
+    if (do_profiling == PROF_YES)
+	prof_child_enter(&wait_time); /* doesn't count for the caller itself */
+# endif
+
+    /* Don't use local function variables, if called from a function */
+    save_funccalp = save_funccal();
+#endif
+
+    /*
+     * When starting to execute autocommands, save the search patterns.
+     */
+    if (!autocmd_busy)
+    {
+	save_search_patterns();
+#ifdef FEAT_INS_EXPAND
+	if (!ins_compl_active())
+#endif
+	{
+	    saveRedobuff();
+	    did_save_redobuff = TRUE;
+	}
+	did_filetype = keep_filetype;
+    }
+
+    /*
+     * Note that we are applying autocmds.  Some commands need to know.
+     */
+    autocmd_busy = TRUE;
+    filechangeshell_busy = (event == EVENT_FILECHANGEDSHELL);
+    ++nesting;		/* see matching decrement below */
+
+    /* Remember that FileType was triggered.  Used for did_filetype(). */
+    if (event == EVENT_FILETYPE)
+	did_filetype = TRUE;
+
+    tail = gettail(fname);
+
+    /* Find first autocommand that matches */
+    patcmd.curpat = first_autopat[(int)event];
+    patcmd.nextcmd = NULL;
+    patcmd.group = group;
+    patcmd.fname = fname;
+    patcmd.sfname = sfname;
+    patcmd.tail = tail;
+    patcmd.event = event;
+    patcmd.arg_bufnr = autocmd_bufnr;
+    patcmd.next = NULL;
+    auto_next_pat(&patcmd, FALSE);
+
+    /* found one, start executing the autocommands */
+    if (patcmd.curpat != NULL)
+    {
+	/* add to active_apc_list */
+	patcmd.next = active_apc_list;
+	active_apc_list = &patcmd;
+
+#ifdef FEAT_EVAL
+	/* set v:cmdarg (only when there is a matching pattern) */
+	save_cmdbang = (long)get_vim_var_nr(VV_CMDBANG);
+	if (eap != NULL)
+	{
+	    save_cmdarg = set_cmdarg(eap, NULL);
+	    set_vim_var_nr(VV_CMDBANG, (long)eap->forceit);
+	}
+	else
+	    save_cmdarg = NULL;	/* avoid gcc warning */
+#endif
+	retval = TRUE;
+	/* mark the last pattern, to avoid an endless loop when more patterns
+	 * are added when executing autocommands */
+	for (ap = patcmd.curpat; ap->next != NULL; ap = ap->next)
+	    ap->last = FALSE;
+	ap->last = TRUE;
+	check_lnums(TRUE);	/* make sure cursor and topline are valid */
+	do_cmdline(NULL, getnextac, (void *)&patcmd,
+				     DOCMD_NOWAIT|DOCMD_VERBOSE|DOCMD_REPEAT);
+#ifdef FEAT_EVAL
+	if (eap != NULL)
+	{
+	    (void)set_cmdarg(NULL, save_cmdarg);
+	    set_vim_var_nr(VV_CMDBANG, save_cmdbang);
+	}
+#endif
+	/* delete from active_apc_list */
+	if (active_apc_list == &patcmd)	    /* just in case */
+	    active_apc_list = patcmd.next;
+    }
+
+    --RedrawingDisabled;
+    autocmd_busy = save_autocmd_busy;
+    filechangeshell_busy = FALSE;
+    autocmd_nested = save_autocmd_nested;
+    vim_free(sourcing_name);
+    sourcing_name = save_sourcing_name;
+    sourcing_lnum = save_sourcing_lnum;
+    vim_free(autocmd_fname);
+    autocmd_fname = save_autocmd_fname;
+    autocmd_fname_full = save_autocmd_fname_full;
+    autocmd_bufnr = save_autocmd_bufnr;
+    autocmd_match = save_autocmd_match;
+#ifdef FEAT_EVAL
+    current_SID = save_current_SID;
+    restore_funccal(save_funccalp);
+# ifdef FEAT_PROFILE
+    if (do_profiling == PROF_YES)
+	prof_child_exit(&wait_time);
+# endif
+#endif
+    vim_free(fname);
+    vim_free(sfname);
+    --nesting;		/* see matching increment above */
+
+    /*
+     * When stopping to execute autocommands, restore the search patterns and
+     * the redo buffer.  Free any buffers in the au_pending_free_buf list and
+     * free any windows in the au_pending_free_win list.
+     */
+    if (!autocmd_busy)
+    {
+	restore_search_patterns();
+	if (did_save_redobuff)
+	    restoreRedobuff();
+	did_filetype = FALSE;
+	while (au_pending_free_buf != NULL)
+	{
+	    buf_T *b = au_pending_free_buf->b_next;
+	    vim_free(au_pending_free_buf);
+	    au_pending_free_buf = b;
+	}
+	while (au_pending_free_win != NULL)
+	{
+	    win_T *w = au_pending_free_win->w_next;
+	    vim_free(au_pending_free_win);
+	    au_pending_free_win = w;
+	}
+    }
+
+    /*
+     * Some events don't set or reset the Changed flag.
+     * Check if still in the same buffer!
+     */
+    if (curbuf == old_curbuf
+	    && (event == EVENT_BUFREADPOST
+		|| event == EVENT_BUFWRITEPOST
+		|| event == EVENT_FILEAPPENDPOST
+		|| event == EVENT_VIMLEAVE
+		|| event == EVENT_VIMLEAVEPRE))
+    {
+#ifdef FEAT_TITLE
+	if (curbuf->b_changed != save_changed)
+	    need_maketitle = TRUE;
+#endif
+	curbuf->b_changed = save_changed;
+    }
+
+    au_cleanup();	/* may really delete removed patterns/commands now */
+
+BYPASS_AU:
+    /* When wiping out a buffer make sure all its buffer-local autocommands
+     * are deleted. */
+    if (event == EVENT_BUFWIPEOUT && buf != NULL)
+	aubuflocal_remove(buf);
+
+    if (retval == OK && event == EVENT_FILETYPE)
+	au_did_filetype = TRUE;
+
+    return retval;
+}
+
+# ifdef FEAT_EVAL
+static char_u	*old_termresponse = NULL;
+# endif
+
+/*
+ * Block triggering autocommands until unblock_autocmd() is called.
+ * Can be used recursively, so long as it's symmetric.
+ */
+    void
+block_autocmds(void)
+{
+# ifdef FEAT_EVAL
+    /* Remember the value of v:termresponse. */
+    if (autocmd_blocked == 0)
+	old_termresponse = get_vim_var_str(VV_TERMRESPONSE);
+# endif
+    ++autocmd_blocked;
+}
+
+    void
+unblock_autocmds(void)
+{
+    --autocmd_blocked;
+
+# ifdef FEAT_EVAL
+    /* When v:termresponse was set while autocommands were blocked, trigger
+     * the autocommands now.  Esp. useful when executing a shell command
+     * during startup (vimdiff). */
+    if (autocmd_blocked == 0
+		      && get_vim_var_str(VV_TERMRESPONSE) != old_termresponse)
+	apply_autocmds(EVENT_TERMRESPONSE, NULL, NULL, FALSE, curbuf);
+# endif
+}
+
+    int
+is_autocmd_blocked(void)
+{
+    return autocmd_blocked != 0;
+}
+
+/*
+ * Find next autocommand pattern that matches.
+ */
+    static void
+auto_next_pat(
+    AutoPatCmd	*apc,
+    int		stop_at_last)	    /* stop when 'last' flag is set */
+{
+    AutoPat	*ap;
+    AutoCmd	*cp;
+    char_u	*name;
+    char	*s;
+
+    vim_free(sourcing_name);
+    sourcing_name = NULL;
+
+    for (ap = apc->curpat; ap != NULL && !got_int; ap = ap->next)
+    {
+	apc->curpat = NULL;
+
+	/* Only use a pattern when it has not been removed, has commands and
+	 * the group matches. For buffer-local autocommands only check the
+	 * buffer number. */
+	if (ap->pat != NULL && ap->cmds != NULL
+		&& (apc->group == AUGROUP_ALL || apc->group == ap->group))
+	{
+	    /* execution-condition */
+	    if (ap->buflocal_nr == 0
+		    ? (match_file_pat(NULL, &ap->reg_prog, apc->fname,
+				      apc->sfname, apc->tail, ap->allow_dirs))
+		    : ap->buflocal_nr == apc->arg_bufnr)
+	    {
+		name = event_nr2name(apc->event);
+		s = _("%s Auto commands for \"%s\"");
+		sourcing_name = alloc((unsigned)(STRLEN(s)
+					    + STRLEN(name) + ap->patlen + 1));
+		if (sourcing_name != NULL)
+		{
+		    sprintf((char *)sourcing_name, s,
+					       (char *)name, (char *)ap->pat);
+		    if (p_verbose >= 8)
+		    {
+			verbose_enter();
+			smsg((char_u *)_("Executing %s"), sourcing_name);
+			verbose_leave();
+		    }
+		}
+
+		apc->curpat = ap;
+		apc->nextcmd = ap->cmds;
+		/* mark last command */
+		for (cp = ap->cmds; cp->next != NULL; cp = cp->next)
+		    cp->last = FALSE;
+		cp->last = TRUE;
+	    }
+	    line_breakcheck();
+	    if (apc->curpat != NULL)	    /* found a match */
+		break;
+	}
+	if (stop_at_last && ap->last)
+	    break;
+    }
+}
+
+/*
+ * Get next autocommand command.
+ * Called by do_cmdline() to get the next line for ":if".
+ * Returns allocated string, or NULL for end of autocommands.
+ */
+    char_u *
+getnextac(int c UNUSED, void *cookie, int indent UNUSED)
+{
+    AutoPatCmd	    *acp = (AutoPatCmd *)cookie;
+    char_u	    *retval;
+    AutoCmd	    *ac;
+
+    /* Can be called again after returning the last line. */
+    if (acp->curpat == NULL)
+	return NULL;
+
+    /* repeat until we find an autocommand to execute */
+    for (;;)
+    {
+	/* skip removed commands */
+	while (acp->nextcmd != NULL && acp->nextcmd->cmd == NULL)
+	    if (acp->nextcmd->last)
+		acp->nextcmd = NULL;
+	    else
+		acp->nextcmd = acp->nextcmd->next;
+
+	if (acp->nextcmd != NULL)
+	    break;
+
+	/* at end of commands, find next pattern that matches */
+	if (acp->curpat->last)
+	    acp->curpat = NULL;
+	else
+	    acp->curpat = acp->curpat->next;
+	if (acp->curpat != NULL)
+	    auto_next_pat(acp, TRUE);
+	if (acp->curpat == NULL)
+	    return NULL;
+    }
+
+    ac = acp->nextcmd;
+
+    if (p_verbose >= 9)
+    {
+	verbose_enter_scroll();
+	smsg((char_u *)_("autocommand %s"), ac->cmd);
+	msg_puts((char_u *)"\n");   /* don't overwrite this either */
+	verbose_leave_scroll();
+    }
+    retval = vim_strsave(ac->cmd);
+    autocmd_nested = ac->nested;
+#ifdef FEAT_EVAL
+    current_SID = ac->scriptID;
+#endif
+    if (ac->last)
+	acp->nextcmd = NULL;
+    else
+	acp->nextcmd = ac->next;
+    return retval;
+}
+
+/*
+ * Return TRUE if there is a matching autocommand for "fname".
+ * To account for buffer-local autocommands, function needs to know
+ * in which buffer the file will be opened.
+ */
+    int
+has_autocmd(event_T event, char_u *sfname, buf_T *buf)
+{
+    AutoPat	*ap;
+    char_u	*fname;
+    char_u	*tail = gettail(sfname);
+    int		retval = FALSE;
+
+    fname = FullName_save(sfname, FALSE);
+    if (fname == NULL)
+	return FALSE;
+
+#ifdef BACKSLASH_IN_FILENAME
+    /*
+     * Replace all backslashes with forward slashes.  This makes the
+     * autocommand patterns portable between Unix and MS-DOS.
+     */
+    sfname = vim_strsave(sfname);
+    if (sfname != NULL)
+	forward_slash(sfname);
+    forward_slash(fname);
+#endif
+
+    for (ap = first_autopat[(int)event]; ap != NULL; ap = ap->next)
+	if (ap->pat != NULL && ap->cmds != NULL
+	      && (ap->buflocal_nr == 0
+		? match_file_pat(NULL, &ap->reg_prog,
+					  fname, sfname, tail, ap->allow_dirs)
+		: buf != NULL && ap->buflocal_nr == buf->b_fnum
+	   ))
+	{
+	    retval = TRUE;
+	    break;
+	}
+
+    vim_free(fname);
+#ifdef BACKSLASH_IN_FILENAME
+    vim_free(sfname);
+#endif
+
+    return retval;
+}
+
+#if defined(FEAT_CMDL_COMPL) || defined(PROTO)
+/*
+ * Function given to ExpandGeneric() to obtain the list of autocommand group
+ * names.
+ */
+    char_u *
+get_augroup_name(expand_T *xp UNUSED, int idx)
+{
+    if (idx == augroups.ga_len)		/* add "END" add the end */
+	return (char_u *)"END";
+    if (idx >= augroups.ga_len)		/* end of list */
+	return NULL;
+    if (AUGROUP_NAME(idx) == NULL || AUGROUP_NAME(idx) == deleted_augroup)
+	/* skip deleted entries */
+	return (char_u *)"";
+    return AUGROUP_NAME(idx);		/* return a name */
+}
+
+static int include_groups = FALSE;
+
+    char_u  *
+set_context_in_autocmd(
+    expand_T	*xp,
+    char_u	*arg,
+    int		doautocmd)	/* TRUE for :doauto*, FALSE for :autocmd */
+{
+    char_u	*p;
+    int		group;
+
+    /* check for a group name, skip it if present */
+    include_groups = FALSE;
+    p = arg;
+    group = au_get_grouparg(&arg);
+    if (group == AUGROUP_ERROR)
+	return NULL;
+    /* If there only is a group name that's what we expand. */
+    if (*arg == NUL && group != AUGROUP_ALL && !vim_iswhite(arg[-1]))
+    {
+	arg = p;
+	group = AUGROUP_ALL;
+    }
+
+    /* skip over event name */
+    for (p = arg; *p != NUL && !vim_iswhite(*p); ++p)
+	if (*p == ',')
+	    arg = p + 1;
+    if (*p == NUL)
+    {
+	if (group == AUGROUP_ALL)
+	    include_groups = TRUE;
+	xp->xp_context = EXPAND_EVENTS;	    /* expand event name */
+	xp->xp_pattern = arg;
+	return NULL;
+    }
+
+    /* skip over pattern */
+    arg = skipwhite(p);
+    while (*arg && (!vim_iswhite(*arg) || arg[-1] == '\\'))
+	arg++;
+    if (*arg)
+	return arg;			    /* expand (next) command */
+
+    if (doautocmd)
+	xp->xp_context = EXPAND_FILES;	    /* expand file names */
+    else
+	xp->xp_context = EXPAND_NOTHING;    /* pattern is not expanded */
+    return NULL;
+}
+
+/*
+ * Function given to ExpandGeneric() to obtain the list of event names.
+ */
+    char_u *
+get_event_name(expand_T *xp UNUSED, int idx)
+{
+    if (idx < augroups.ga_len)		/* First list group names, if wanted */
+    {
+	if (!include_groups || AUGROUP_NAME(idx) == NULL
+				       || AUGROUP_NAME(idx) == deleted_augroup)
+	    return (char_u *)"";	/* skip deleted entries */
+	return AUGROUP_NAME(idx);	/* return a name */
+    }
+    return (char_u *)event_names[idx - augroups.ga_len].name;
+}
+
+#endif	/* FEAT_CMDL_COMPL */
+
+/*
+ * Return TRUE if autocmd is supported.
+ */
+    int
+autocmd_supported(char_u *name)
+{
+    char_u *p;
+
+    return (event_name2nr(name, &p) != NUM_EVENTS);
+}
+
+/*
+ * Return TRUE if an autocommand is defined for a group, event and
+ * pattern:  The group can be omitted to accept any group. "event" and "pattern"
+ * can be NULL to accept any event and pattern. "pattern" can be NULL to accept
+ * any pattern. Buffer-local patterns <buffer> or <buffer=N> are accepted.
+ * Used for:
+ *	exists("#Group") or
+ *	exists("#Group#Event") or
+ *	exists("#Group#Event#pat") or
+ *	exists("#Event") or
+ *	exists("#Event#pat")
+ */
+    int
+au_exists(char_u *arg)
+{
+    char_u	*arg_save;
+    char_u	*pattern = NULL;
+    char_u	*event_name;
+    char_u	*p;
+    event_T	event;
+    AutoPat	*ap;
+    buf_T	*buflocal_buf = NULL;
+    int		group;
+    int		retval = FALSE;
+
+    /* Make a copy so that we can change the '#' chars to a NUL. */
+    arg_save = vim_strsave(arg);
+    if (arg_save == NULL)
+	return FALSE;
+    p = vim_strchr(arg_save, '#');
+    if (p != NULL)
+	*p++ = NUL;
+
+    /* First, look for an autocmd group name */
+    group = au_find_group(arg_save);
+    if (group == AUGROUP_ERROR)
+    {
+	/* Didn't match a group name, assume the first argument is an event. */
+	group = AUGROUP_ALL;
+	event_name = arg_save;
+    }
+    else
+    {
+	if (p == NULL)
+	{
+	    /* "Group": group name is present and it's recognized */
+	    retval = TRUE;
+	    goto theend;
+	}
+
+	/* Must be "Group#Event" or "Group#Event#pat". */
+	event_name = p;
+	p = vim_strchr(event_name, '#');
+	if (p != NULL)
+	    *p++ = NUL;	    /* "Group#Event#pat" */
+    }
+
+    pattern = p;	    /* "pattern" is NULL when there is no pattern */
+
+    /* find the index (enum) for the event name */
+    event = event_name2nr(event_name, &p);
+
+    /* return FALSE if the event name is not recognized */
+    if (event == NUM_EVENTS)
+	goto theend;
+
+    /* Find the first autocommand for this event.
+     * If there isn't any, return FALSE;
+     * If there is one and no pattern given, return TRUE; */
+    ap = first_autopat[(int)event];
+    if (ap == NULL)
+	goto theend;
+
+    /* if pattern is "<buffer>", special handling is needed which uses curbuf */
+    /* for pattern "<buffer=N>, fnamecmp() will work fine */
+    if (pattern != NULL && STRICMP(pattern, "<buffer>") == 0)
+	buflocal_buf = curbuf;
+
+    /* Check if there is an autocommand with the given pattern. */
+    for ( ; ap != NULL; ap = ap->next)
+	/* only use a pattern when it has not been removed and has commands. */
+	/* For buffer-local autocommands, fnamecmp() works fine. */
+	if (ap->pat != NULL && ap->cmds != NULL
+	    && (group == AUGROUP_ALL || ap->group == group)
+	    && (pattern == NULL
+		|| (buflocal_buf == NULL
+		    ? fnamecmp(ap->pat, pattern) == 0
+		    : ap->buflocal_nr == buflocal_buf->b_fnum)))
+	{
+	    retval = TRUE;
+	    break;
+	}
+
+theend:
+    vim_free(arg_save);
+    return retval;
+}
+
+#else	/* FEAT_AUTOCMD */
+
+/*
+ * Prepare for executing commands for (hidden) buffer "buf".
+ * This is the non-autocommand version, it simply saves "curbuf" and sets
+ * "curbuf" and "curwin" to match "buf".
+ */
+    void
+aucmd_prepbuf(
+    aco_save_T	*aco,		/* structure to save values in */
+    buf_T	*buf)		/* new curbuf */
+{
+    aco->save_curbuf = curbuf;
+    --curbuf->b_nwindows;
+    curbuf = buf;
+    curwin->w_buffer = buf;
+    ++curbuf->b_nwindows;
+}
+
+/*
+ * Restore after executing commands for a (hidden) buffer.
+ * This is the non-autocommand version.
+ */
+    void
+aucmd_restbuf(
+    aco_save_T	*aco)		/* structure holding saved values */
+{
+    --curbuf->b_nwindows;
+    curbuf = aco->save_curbuf;
+    curwin->w_buffer = curbuf;
+    ++curbuf->b_nwindows;
+}
+
+#endif	/* FEAT_AUTOCMD */
+
+
+#if defined(FEAT_AUTOCMD) || defined(FEAT_WILDIGN) || defined(PROTO)
+/*
+ * Try matching a filename with a "pattern" ("prog" is NULL), or use the
+ * precompiled regprog "prog" ("pattern" is NULL).  That avoids calling
+ * vim_regcomp() often.
+ * Used for autocommands and 'wildignore'.
+ * Returns TRUE if there is a match, FALSE otherwise.
+ */
+    static int
+match_file_pat(
+    char_u	*pattern,		/* pattern to match with */
+    regprog_T	**prog,			/* pre-compiled regprog or NULL */
+    char_u	*fname,			/* full path of file name */
+    char_u	*sfname,		/* short file name or NULL */
+    char_u	*tail,			/* tail of path */
+    int		allow_dirs)		/* allow matching with dir */
+{
+    regmatch_T	regmatch;
+    int		result = FALSE;
+
+    regmatch.rm_ic = p_fic; /* ignore case if 'fileignorecase' is set */
+    if (prog != NULL)
+	regmatch.regprog = *prog;
+    else
+	regmatch.regprog = vim_regcomp(pattern, RE_MAGIC);
+
+    /*
+     * Try for a match with the pattern with:
+     * 1. the full file name, when the pattern has a '/'.
+     * 2. the short file name, when the pattern has a '/'.
+     * 3. the tail of the file name, when the pattern has no '/'.
+     */
+    if (regmatch.regprog != NULL
+	     && ((allow_dirs
+		     && (vim_regexec(&regmatch, fname, (colnr_T)0)
+			 || (sfname != NULL
+			     && vim_regexec(&regmatch, sfname, (colnr_T)0))))
+		 || (!allow_dirs && vim_regexec(&regmatch, tail, (colnr_T)0))))
+	result = TRUE;
+
+    if (prog != NULL)
+	*prog = regmatch.regprog;
+    else
+	vim_regfree(regmatch.regprog);
+    return result;
+}
+#endif
+
+#if defined(FEAT_WILDIGN) || defined(PROTO)
+/*
+ * Return TRUE if a file matches with a pattern in "list".
+ * "list" is a comma-separated list of patterns, like 'wildignore'.
+ * "sfname" is the short file name or NULL, "ffname" the long file name.
+ */
+    int
+match_file_list(char_u *list, char_u *sfname, char_u *ffname)
+{
+    char_u	buf[100];
+    char_u	*tail;
+    char_u	*regpat;
+    char	allow_dirs;
+    int		match;
+    char_u	*p;
+
+    tail = gettail(sfname);
+
+    /* try all patterns in 'wildignore' */
+    p = list;
+    while (*p)
+    {
+	copy_option_part(&p, buf, 100, ",");
+	regpat = file_pat_to_reg_pat(buf, NULL, &allow_dirs, FALSE);
+	if (regpat == NULL)
+	    break;
+	match = match_file_pat(regpat, NULL, ffname, sfname,
+						       tail, (int)allow_dirs);
+	vim_free(regpat);
+	if (match)
+	    return TRUE;
+    }
+    return FALSE;
+}
+#endif
+
+/*
+ * Convert the given pattern "pat" which has shell style wildcards in it, into
+ * a regular expression, and return the result in allocated memory.  If there
+ * is a directory path separator to be matched, then TRUE is put in
+ * allow_dirs, otherwise FALSE is put there -- webb.
+ * Handle backslashes before special characters, like "\*" and "\ ".
+ *
+ * Returns NULL when out of memory.
+ */
+    char_u *
+file_pat_to_reg_pat(
+    char_u	*pat,
+    char_u	*pat_end,	/* first char after pattern or NULL */
+    char	*allow_dirs,	/* Result passed back out in here */
+    int		no_bslash UNUSED) /* Don't use a backward slash as pathsep */
+{
+    int		size = 2; /* '^' at start, '$' at end */
+    char_u	*endp;
+    char_u	*reg_pat;
+    char_u	*p;
+    int		i;
+    int		nested = 0;
+    int		add_dollar = TRUE;
+
+    if (allow_dirs != NULL)
+	*allow_dirs = FALSE;
+    if (pat_end == NULL)
+	pat_end = pat + STRLEN(pat);
+
+    for (p = pat; p < pat_end; p++)
+    {
+	switch (*p)
+	{
+	    case '*':
+	    case '.':
+	    case ',':
+	    case '{':
+	    case '}':
+	    case '~':
+		size += 2;	/* extra backslash */
+		break;
+#ifdef BACKSLASH_IN_FILENAME
+	    case '\\':
+	    case '/':
+		size += 4;	/* could become "[\/]" */
+		break;
+#endif
+	    default:
+		size++;
+# ifdef FEAT_MBYTE
+		if (enc_dbcs != 0 && (*mb_ptr2len)(p) > 1)
+		{
+		    ++p;
+		    ++size;
+		}
+# endif
+		break;
+	}
+    }
+    reg_pat = alloc(size + 1);
+    if (reg_pat == NULL)
+	return NULL;
+
+    i = 0;
+
+    if (pat[0] == '*')
+	while (pat[0] == '*' && pat < pat_end - 1)
+	    pat++;
+    else
+	reg_pat[i++] = '^';
+    endp = pat_end - 1;
+    if (endp >= pat && *endp == '*')
+    {
+	while (endp - pat > 0 && *endp == '*')
+	    endp--;
+	add_dollar = FALSE;
+    }
+    for (p = pat; *p && nested >= 0 && p <= endp; p++)
+    {
+	switch (*p)
+	{
+	    case '*':
+		reg_pat[i++] = '.';
+		reg_pat[i++] = '*';
+		while (p[1] == '*')	/* "**" matches like "*" */
+		    ++p;
+		break;
+	    case '.':
+	    case '~':
+		reg_pat[i++] = '\\';
+		reg_pat[i++] = *p;
+		break;
+	    case '?':
+		reg_pat[i++] = '.';
+		break;
+	    case '\\':
+		if (p[1] == NUL)
+		    break;
+#ifdef BACKSLASH_IN_FILENAME
+		if (!no_bslash)
+		{
+		    /* translate:
+		     * "\x" to "\\x"  e.g., "dir\file"
+		     * "\*" to "\\.*" e.g., "dir\*.c"
+		     * "\?" to "\\."  e.g., "dir\??.c"
+		     * "\+" to "\+"   e.g., "fileX\+.c"
+		     */
+		    if ((vim_isfilec(p[1]) || p[1] == '*' || p[1] == '?')
+			    && p[1] != '+')
+		    {
+			reg_pat[i++] = '[';
+			reg_pat[i++] = '\\';
+			reg_pat[i++] = '/';
+			reg_pat[i++] = ']';
+			if (allow_dirs != NULL)
+			    *allow_dirs = TRUE;
+			break;
+		    }
+		}
+#endif
+		/* Undo escaping from ExpandEscape():
+		 * foo\?bar -> foo?bar
+		 * foo\%bar -> foo%bar
+		 * foo\,bar -> foo,bar
+		 * foo\ bar -> foo bar
+		 * Don't unescape \, * and others that are also special in a
+		 * regexp.
+		 * An escaped { must be unescaped since we use magic not
+		 * verymagic.  Use "\\\{n,m\}"" to get "\{n,m}".
+		 */
+		if (*++p == '?'
+#ifdef BACKSLASH_IN_FILENAME
+			&& no_bslash
+#endif
+			)
+		    reg_pat[i++] = '?';
+		else
+		    if (*p == ',' || *p == '%' || *p == '#'
+			       || vim_isspace(*p) || *p == '{' || *p == '}')
+			reg_pat[i++] = *p;
+		    else if (*p == '\\' && p[1] == '\\' && p[2] == '{')
+		    {
+			reg_pat[i++] = '\\';
+			reg_pat[i++] = '{';
+			p += 2;
+		    }
+		    else
+		    {
+			if (allow_dirs != NULL && vim_ispathsep(*p)
+#ifdef BACKSLASH_IN_FILENAME
+				&& (!no_bslash || *p != '\\')
+#endif
+				)
+			    *allow_dirs = TRUE;
+			reg_pat[i++] = '\\';
+			reg_pat[i++] = *p;
+		    }
+		break;
+#ifdef BACKSLASH_IN_FILENAME
+	    case '/':
+		reg_pat[i++] = '[';
+		reg_pat[i++] = '\\';
+		reg_pat[i++] = '/';
+		reg_pat[i++] = ']';
+		if (allow_dirs != NULL)
+		    *allow_dirs = TRUE;
+		break;
+#endif
+	    case '{':
+		reg_pat[i++] = '\\';
+		reg_pat[i++] = '(';
+		nested++;
+		break;
+	    case '}':
+		reg_pat[i++] = '\\';
+		reg_pat[i++] = ')';
+		--nested;
+		break;
+	    case ',':
+		if (nested)
+		{
+		    reg_pat[i++] = '\\';
+		    reg_pat[i++] = '|';
+		}
+		else
+		    reg_pat[i++] = ',';
+		break;
+	    default:
+# ifdef  FEAT_MBYTE
+		if (enc_dbcs != 0 && (*mb_ptr2len)(p) > 1)
+		    reg_pat[i++] = *p++;
+		else
+# endif
+		if (allow_dirs != NULL && vim_ispathsep(*p))
+		    *allow_dirs = TRUE;
+		reg_pat[i++] = *p;
+		break;
+	}
+    }
+    if (add_dollar)
+	reg_pat[i++] = '$';
+    reg_pat[i] = NUL;
+    if (nested != 0)
+    {
+	if (nested < 0)
+	    EMSG(_("E219: Missing {."));
+	else
+	    EMSG(_("E220: Missing }."));
+	vim_free(reg_pat);
+	reg_pat = NULL;
+    }
+    return reg_pat;
+}
+
+#if defined(EINTR) || defined(PROTO)
+/*
+ * Version of read() that retries when interrupted by EINTR (possibly
+ * by a SIGWINCH).
+ */
+    long
+read_eintr(int fd, void *buf, size_t bufsize)
+{
+    long ret;
+
+    for (;;)
+    {
+	ret = vim_read(fd, buf, bufsize);
+	if (ret >= 0 || errno != EINTR)
+	    break;
+    }
+    return ret;
+}
+
+/*
+ * Version of write() that retries when interrupted by EINTR (possibly
+ * by a SIGWINCH).
+ */
+    long
+write_eintr(int fd, void *buf, size_t bufsize)
+{
+    long    ret = 0;
+    long    wlen;
+
+    /* Repeat the write() so long it didn't fail, other than being interrupted
+     * by a signal. */
+    while (ret < (long)bufsize)
+    {
+	wlen = vim_write(fd, (char *)buf + ret, bufsize - ret);
+	if (wlen < 0)
+	{
+	    if (errno != EINTR)
+		break;
+	}
+	else
+	    ret += wlen;
+    }
+    return ret;
+}
+#endif

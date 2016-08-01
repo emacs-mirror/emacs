@@ -1,5 +1,0 @@
-%%% configure updates this using a make rule.
-\def\versionemacs{@majorversion@}           % major version of emacs
-%% This one should not be automatically updated;
-%% M-x set-copyright in admin.el handles it.
-\def\year{2016}                             % latest copyright year

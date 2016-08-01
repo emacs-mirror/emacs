@@ -1,0 +1,34 @@
+version: "{build}"
+
+skip_tags: true
+
+environment:
+  matrix:
+    - FEATURE: HUGE
+    - FEATURE: NORMAL
+# disabled
+#    - FEATURE: TINY
+#    - FEATURE: SMALL
+#    - FEATURE: BIG
+
+matrix:
+  fast_finish: true
+
+before_build:
+  - '"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd" /x64 /release'
+  # Work around for Python 2.7.11's bug
+  - reg copy HKLM\SOFTWARE\Python\PythonCore\2.7 HKLM\SOFTWARE\Python\PythonCore\2.7-32 /s /reg:32
+  - reg copy HKLM\SOFTWARE\Python\PythonCore\2.7 HKLM\SOFTWARE\Python\PythonCore\2.7-32 /s /reg:64
+
+build_script:
+  - src/appveyor.bat
+
+test_script:
+  - cd src/testdir
+    # Testing with MSVC gvim
+  - nmake -f Make_dos.mak VIMPROG=..\gvim
+  - nmake -f Make_dos.mak clean
+    # Testing with MingW console version
+  - nmake -f Make_dos.mak VIMPROG=..\vim
+
+# vim: sw=2 sts=2 et ts=2 sr
