@@ -33,6 +33,8 @@
                     'foopkg :bind good-values)
                    good-values)))
   (should-error (use-package-normalize-binder
+                 'foopkg :bind '("foo")))
+  (should-error (use-package-normalize-binder
                  'foopkg :bind '("foo" . 99)))
   (should-error (use-package-normalize-binder
                  'foopkg :bind '(99 . sym))))

@@ -712,6 +712,10 @@ If RECURSED is non-nil, recurse into sublists."
 (defun use-package-normalize-binder (name keyword args)
   (use-package-as-one (symbol-name keyword) args
     (lambda (label arg)
+      (unless (consp arg)
+        (use-package-error
+         (concat label " a (<string or vector> . <symbol or string>)"
+                 " or list of these")))
       (use-package-normalize-pairs (lambda (k) (or (stringp k) (vectorp k)))
                                    (lambda (b) (or (symbolp b) (stringp b)))
                                    name label arg))))
