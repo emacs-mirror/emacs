@@ -500,7 +500,8 @@ manually updated package."
 (defun use-package-ensure-elpa (package &optional no-refresh)
   (if (package-installed-p package)
       t
-    (if (and (not no-refresh) (assoc package package-pinned-packages))
+    (if (and (not no-refresh)
+             (assoc package (bound-and-true-p package-pinned-packages)))
         (package-read-all-archive-contents))
     (if (or (assoc package package-archive-contents) no-refresh)
         (package-install package)
