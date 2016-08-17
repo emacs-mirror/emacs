@@ -1657,20 +1657,21 @@ is the width of the live window."
 
 (defun which-key--echo (text)
   "Echo TEXT to minibuffer without logging."
-  (let* ((minibuffer (eq which-key-popup-type 'minibuffer))
-         ;; (delay (if minibuffer
-         ;;            0.2
-         ;;          (+ (or echo-keystrokes 0) 0.001)))
-         message-log-max)
-    (unless minibuffer (message "%s" text))
+  (let (message-log-max)
+    (message "%s" text)))
 
-    ;; Caused some completion commands in the minibuffer to be overwritten, so
-    ;; disable the hack for now
-
-    ;; (run-with-idle-timer
-    ;;  delay nil (lambda () (let (message-log-max)
-    ;;                         (message "%s" text))))
-    ))
+;; Caused some completion commands in the minibuffer to be overwritten, so
+;; disable the hack for now
+;; (defun which-key--echo (text)
+;;   "Echo TEXT to minibuffer without logging."
+;;   (let* ((minibuffer (eq which-key-popup-type 'minibuffer))
+;;          (delay (if minibuffer
+;;                     0.2
+;;                   (+ (or echo-keystrokes 0) 0.001)))
+;;          message-log-max)
+;;     (run-with-idle-timer
+;;      delay nil (lambda () (let (message-log-max)
+;;                             (message "%s" text))))))
 
 (defun which-key--next-page-hint (prefix-keys)
   "Return string for next page hint."
