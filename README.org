@@ -386,7 +386,8 @@ The options below are also available through customize. Their defaults are
 shown.
 
 #+BEGIN_SRC emacs-lisp
-  ;; Set the time delay (in seconds) for the which-key popup to appear.
+  ;; Set the time delay (in seconds) for the which-key popup to appear. A value of
+  ;; zero might cause issues so a non-zero value is recommended.
   (setq which-key-idle-delay 1.0)
 
   ;; Set the maximum length (in characters) for key descriptions (commands or
