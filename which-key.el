@@ -1202,11 +1202,6 @@ coming before a prefix. Within these categories order using
         (and (not apref?) bpref?)
       (which-key-key-order acons bcons))))
 
-(defun which-key--local-binding-p (keydesc)
-  (eq (which-key--safe-lookup-key
-       (current-local-map) (kbd (which-key--current-key-string (car keydesc))))
-      (intern (cdr keydesc))))
-
 (defun which-key-local-then-key-order (acons bcons)
   "Order first by whether A and/or B is a local binding with
 local bindings coming first. Within these categories order using
@@ -1253,6 +1248,11 @@ replacement occurs return the new STRING."
 
 (defsubst which-key--current-key-string (&optional key-str)
   (key-description (which-key--current-key-list key-str)))
+
+(defun which-key--local-binding-p (keydesc)
+  (eq (which-key--safe-lookup-key
+       (current-local-map) (kbd (which-key--current-key-string (car keydesc))))
+      (intern (cdr keydesc))))
 
 (defun which-key--maybe-replace-prefix-name (keys desc)
   "KEYS is a list of keys produced by `listify-key-sequences' and
