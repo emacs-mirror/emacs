@@ -48,6 +48,8 @@
 (defvar golden-ratio-mode)
 (declare-function evil-get-command-property "ext:evil-common.el")
 
+;;; Options
+
 (defgroup which-key nil
   "Customization options for which-key-mode"
   :group 'help
@@ -388,7 +390,8 @@ by `key-description'."
 (defvar which-key-init-buffer-hook '()
   "Hook run when which-key buffer is initialized.")
 
-;; Faces
+;;;; Faces
+
 (defgroup which-key-faces nil
   "Faces for which-key-mode"
   :group 'which-key
@@ -435,7 +438,8 @@ and it matches a string in `which-key-highlighted-command-list'."
   "Face for special keys (SPC, TAB, RET)"
   :group 'which-key-faces)
 
-;; Custom popup
+;;;; Custom popup
+
 (defcustom which-key-custom-popup-max-dimensions-function nil
   "Variable to hold a custom max-dimensions function.
 Will be passed the width of the active window and is expected to
@@ -474,7 +478,8 @@ to a non-nil value for the execution of a command. Like this
   "History of keymap selections in functions like
 `which-key-show-keymap'.")
 
-;; Internal Vars
+;;; Internal Vars
+
 (defvar which-key--buffer nil
   "Internal: Holds reference to which-key buffer.")
 (defvar which-key--timer nil
@@ -534,9 +539,9 @@ alongside the actual current key sequence when
 `which-key-show-prefix' is set to either top or echo.")
 
 
-;; Third-party library support
+;;; Third-party library support
+;;;; Evil
 
-;; Evil
 (defcustom which-key-allow-evil-operators (boundp 'evil-this-operator)
   "Allow popup to show for evil operators. The popup is normally
   inhibited in the middle of commands, but setting this to
@@ -552,7 +557,8 @@ valid keys missing and it might be showing some invalid keys."
   :group 'which-key
   :type 'boolean)
 
-;; God-mode
+;;;;; God-mode
+
 (defvar which-key--god-mode-support-enabled nil
   "Support god-mode if non-nil. This is experimental,
 so you need to explicitly opt-in for now. Please report any
@@ -583,6 +589,8 @@ problems at github. If DISABLE is non-nil disable support."
      'god-mode-lookup-command
      'around 'which-key--god-mode-lookup-command-advice))
   (ad-activate 'god-mode-lookup-command))
+
+;;; Mode
 
 ;;;###autoload
 (define-minor-mode which-key-mode
@@ -661,8 +669,7 @@ starter kit for example."
   (setq which-key-key-replacement-alist
         (delete '("right" . "→") which-key-key-replacement-alist)))
 
-;; Default configuration functions for use by users. Should be the "best"
-;; configurations
+;;; Default configuration functions for use by users.
 
 ;;;###autoload
 (defun which-key-setup-side-window-right ()
@@ -699,7 +706,7 @@ bottom."
   (setq which-key-popup-type 'minibuffer
         which-key-show-prefix 'left))
 
-;; Helper functions to modify replacement lists.
+;;; Helper functions to modify replacement lists.
 
 (defun which-key--add-key-val-to-alist (alist key value &optional alist-name)
   "Internal function to add (KEY . VALUE) to ALIST."
@@ -838,8 +845,7 @@ If AT-ROOT is non-nil the binding is also placed at the root of MAP."
        (which-key-define-key-recursively df key def t)))
    map))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Functions for computing window sizes
+;;; Functions for computing window sizes
 
 (defun which-key--text-width-to-total (text-width)
   "Convert window text-width to window total-width.
@@ -903,8 +909,7 @@ total height."
       height-or-percentage
     (round (* height-or-percentage (window-total-height (frame-root-window))))))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Show/hide which-key buffer
+;;; Show/hide which-key buffer
 
 (defun which-key--hide-popup ()
   "This function is called to hide the which-key buffer."
@@ -1063,8 +1068,7 @@ call signature in different emacs versions"
       (set-frame-size (window-frame window) frame-width frame-height)
       window)))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Max dimension of available window functions
+;;; Max dimension of available window functions
 
 (defun which-key--popup-max-dimensions ()
   "Dimesion functions should return the maximum possible (height
@@ -1104,10 +1108,12 @@ width) in lines and characters respectively."
    ;; width
    (max 0
         (- (if (member which-key-side-window-location '(left right))
-               (which-key--total-width-to-text (which-key--width-or-percentage-to-width
-                                                which-key-side-window-max-width))
-             (which-key--total-width-to-text (which-key--width-or-percentage-to-width
-                                              1.0)))
+               (which-key--total-width-to-text
+		(which-key--width-or-percentage-to-width
+		 which-key-side-window-max-width))
+             (which-key--total-width-to-text
+	      (which-key--width-or-percentage-to-width
+	       1.0)))
            which-key-unicode-correction))))
 
 (defun which-key--frame-max-dimensions ()
@@ -1115,8 +1121,7 @@ width) in lines and characters respectively."
 width) in lines and characters respectively."
   (cons which-key-frame-max-height which-key-frame-max-width))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Sorting functions
+;;; Sorting functions
 
 (defun which-key--string< (a b &optional alpha)
   (if alpha
@@ -1212,8 +1217,7 @@ local bindings coming first. Within these categories order using
         (and aloc? (not bloc?))
       (which-key-key-order acons bcons))))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Functions for retrieving and formatting keys
+;;; Functions for retrieving and formatting keys
 
 (defsubst which-key--string-width (maybe-string)
   "If MAYBE-STRING is a string use `which-key--string-width' o/w return 0."
@@ -1486,7 +1490,8 @@ alists. Returns a list (key separator description)."
                    ((member binding ignore-bindings))
                    ((string-match-p ignore-keys-regexp key))
                    ((and which-key--current-prefix
-                         (string-match (format "^%s[ \t]\\([^ \t]+\\)[ \t]+$" key-str-qt) key))
+                         (string-match (format "^%s[ \t]\\([^ \t]+\\)[ \t]+$"
+					       key-str-qt) key))
                     (unless (assoc-string (match-string 1 key) bindings)
                       (push (cons (match-string 1 key) binding) bindings)))
                    ((and which-key--current-prefix
@@ -1513,8 +1518,7 @@ BUFFER that follow the key sequence KEY-SEQ."
             (sort unformatted (lambda (a b) (funcall which-key-sort-order a b)))))
     (which-key--format-and-replace unformatted)))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Functions for laying out which-key buffer pages
+;;; Functions for laying out which-key buffer pages
 
 (defun which-key--normalize-columns (columns)
   "Pad COLUMNS to the same length using empty strings."
@@ -1821,8 +1825,7 @@ enough space based on your settings and frame size." prefix-keys)
       (with-no-warnings
         (set-temporary-overlay-map (which-key--get-popup-map))))))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; paging functions
+;;; Paging functions
 
 ;;;###autoload
 (defun which-key-reload-key-sequence (key-seq)
@@ -1962,8 +1965,7 @@ prefix) if `which-key-use-C-h-commands' is non nil."
          (which-key-inhibit t))
     (if cmd (funcall cmd) (which-key-turn-page 0))))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Update
+;;; Update
 
 (defun which-key--any-match-p (regexps string)
   "Non-nil if any of REGEXPS match STRING."
@@ -2184,7 +2186,7 @@ Finally, show the buffer."
                 (not which-key--using-show-keymap))
            (which-key--hide-popup)))))
 
-;; Timers
+;;; Timers
 
 (defun which-key--start-timer (&optional delay secondary)
   "Activate idle timer to trigger `which-key--update'."
@@ -2216,7 +2218,7 @@ Finally, show the buffer."
                    (cancel-timer which-key--paging-timer)
                    (which-key--start-timer))))))
 
-;; backport some functions for 24.3
+;;; backport some functions for 24.3
 
 ;; found at https://github.com/Lindydancer/andersl-old-emacs-support/blob/master/andersl-old-emacs-support.el
 (unless (fboundp 'frame-fringe-width)
