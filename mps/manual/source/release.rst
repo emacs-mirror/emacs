@@ -112,6 +112,14 @@ Interface changes
 #. The :ref:`pool-snc` pool class now implements
    :c:func:`mps_pool_total_size` and :c:func:`mps_pool_free_size`.
 
+#. The (undocumented) reservoir functions
+   :c:func:`mps_ap_fill_with_reservoir_permit`,
+   :c:func:`mps_reservoir_available`, :c:func:`mps_reservoir_limit`,
+   :c:func:`mps_reservoir_limit_set`, and
+   :c:func:`mps_reserve_with_reservoir_permit`, together with the
+   ``has_reservoir_permit`` arguments to :c:func:`mps_sac_alloc` and
+   :c:func:`MPS_SAC_ALLOC_FAST` are now deprecated.
+
 
 Other changes
 .............
@@ -507,14 +515,6 @@ Interface changes
 #. On OS X, when debugging with ``gdb``, you no longer need to turn on
    ``dont-handle-bad-access`` or to request special handling of
    ``SIGBUS``.
-
-#. The (undocumented) reservoir functions
-   :c:func:`mps_ap_fill_with_reservoir_permit`,
-   :c:func:`mps_reservoir_available`, :c:func:`mps_reservoir_limit`,
-   :c:func:`mps_reservoir_limit_set`, and
-   :c:func:`mps_reserve_with_reservoir_permit`, together with the
-   ``has_reservoir_permit`` arguments to :c:func:`mps_sac_alloc` and
-   :c:func:`MPS_SAC_ALLOC_FAST` are deprecated.
 
 
 Other changes
