@@ -485,7 +485,7 @@ Res BufferReserve(Addr *pReturn, Buffer buffer, Size size)
   AVERT(Buffer, buffer);
   AVER(size > 0);
   AVER(SizeIsAligned(size, BufferPool(buffer)->alignment));
-  AVER(BufferIsReady(buffer));
+  AVER(BufferIsReady(buffer)); /* <design/check/#.common> */
 
   /* Is there enough room in the unallocated portion of the buffer to */
   /* satisfy the request?  If so, just increase the alloc marker and */

@@ -1086,7 +1086,7 @@ static void gcSegFinish(Seg seg)
   gcseg->sig = SigInvalid;
 
   /* Don't leave a dangling buffer allocating into hyperspace. */
-  AVER(gcseg->buffer == NULL);
+  AVER(gcseg->buffer == NULL); /* <design/check/#.common> */
 
   RingFinish(&gcseg->greyRing);
 
