@@ -1491,7 +1491,7 @@ static Res AMSFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   case RankFINAL:
   case RankWEAK:
     AVER_CRITICAL(AddrIsAligned(base, PoolAlignment(pool)));
-    AVER_CRITICAL(AMS_ALLOCED(seg, i));
+    AVER_CRITICAL(AMS_ALLOCED(seg, i)); /* <design/check/#.common> */
     if (AMS_IS_WHITE(seg, i)) {
       ss->wasMarked = FALSE;
       if (ss->rank == RankWEAK) { /* then splat the reference */

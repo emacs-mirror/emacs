@@ -122,6 +122,18 @@ reference this tag. The structure could be considered for addition to
 ``mpmst.h``.
 
 
+Common assertions
+-----------------
+
+_`.common`: Some assertions are commonly triggered by mistakes in the
+:term:`client program`. These are listed in the section "Common
+assertions and their causes" in the MPS Reference, together with an
+explanation of their likely cause, and advice for fixing the problem.
+To assist with keeping the MPS Reference up to date, these assertions
+are marked with a cross-reference to this tag. When you update the
+assertion, you must also update the MPS Reference.
+
+
 Document History
 ----------------
 
@@ -138,7 +150,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2013-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

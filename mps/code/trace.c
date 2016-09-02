@@ -1178,7 +1178,7 @@ static Res traceScanSegRes(TraceSet ts, Rank rank, Arena arena, Seg seg)
     /* .verify.segsummary: were the seg contents, as found by this 
      * scan, consistent with the recorded SegSummary?
      */
-    AVER(RefSetSub(ScanStateUnfixedSummary(ss), SegSummary(seg)));
+    AVER(RefSetSub(ScanStateUnfixedSummary(ss), SegSummary(seg))); /* <design/check/#.common> */
 
     /* Write barrier deferral -- see design.mps.write-barrier.deferral. */
     /* Did the segment refer to the white set? */
@@ -1373,7 +1373,7 @@ mps_res_t _mps_fix2(mps_ss_t mps_ss, mps_addr_t *mps_ref_io)
   if (!BTGet(chunk->allocTable, i)) {
     /* Reference points into a chunk but not to an allocated tract.
      * See <design/trace/#exact.legal> */
-    AVER_CRITICAL(ss->rank < RankEXACT);
+    AVER_CRITICAL(ss->rank < RankEXACT); /* <design/check/#.common> */
     goto done;
   }
 
