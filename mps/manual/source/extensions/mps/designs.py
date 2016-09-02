@@ -83,7 +83,8 @@ def citation_sub(m):
         fmt += ' "{title}".'
     return fmt.format(**groups)
 
-index = re.compile(r'^:Index\s+terms:(.*$\n(?:[ \t]+.*$\n)*)', re.IGNORECASE)
+index = re.compile(r'^:Index\s+terms:(.*$\n(?:[ \t]+.*$\n)*)',
+                   re.MULTILINE | re.IGNORECASE)
 
 # <http://sphinx-doc.org/markup/misc.html#directive-index>
 index_term = re.compile(r'^\s*(\w+):\s*(.*?)\s*$', re.MULTILINE)
