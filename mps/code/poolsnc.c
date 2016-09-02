@@ -564,7 +564,7 @@ static Res SNCFramePop(Pool pool, Buffer buf, AllocFrame frame)
     arena = PoolArena(pool);
     addr = (Addr)frame;
     foundSeg = SegOfAddr(&seg, arena, addr);
-    AVER(foundSeg);
+    AVER(foundSeg); /* <design/check/#.common> */
     AVER(SegPool(seg) == pool);
 
     if (SegBuffer(seg) == buf) {
