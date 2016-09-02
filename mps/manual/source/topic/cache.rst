@@ -285,26 +285,34 @@ Allocation interface
 
     .. note::
 
-        There's also a macro :c:func:`MPS_SAC_ALLOC_FAST` that does
-        the same thing. The macro is faster, but generates more code
-        and does less checking.
+        1. There's also a macro :c:func:`MPS_SAC_ALLOC_FAST` that does
+           the same thing. The macro is faster, but generates more
+           code and does less checking.
 
-    .. note::
+        2. The :term:`client program` is responsible for synchronizing
+           the access to the cache, but if the cache decides to access
+           the pool, the MPS will properly synchronize with any other
+           :term:`threads` that might be accessing the same pool.
 
-        The :term:`client program` is responsible for synchronizing
-        the access to the cache, but if the cache decides to access
-        the pool, the MPS will properly synchronize with any other
-        :term:`threads` that might be accessing the same
-        pool.
+        3. Blocks allocated through a segregated allocation cache
+           should only be freed through a segregated allocation cache
+           with the same class structure. Calling :c:func:`mps_free`
+           on them can cause :term:`memory leaks`, because the size of
+           the block might be larger than you think. Naturally, the
+           cache must also be attached to the same pool.
 
-    .. note::
+        4. It is tempting to call :c:func:`mps_sac_alloc` with a cast
+           from the desired pointer type to ``mps_addr_t *``, like
+           this::
 
-        Blocks allocated through a segregated allocation cache should
-        only be freed through a segregated allocation cache with the
-        same class structure. Calling :c:func:`mps_free` on them can
-        cause :term:`memory leaks`, because the size of
-        the block might be larger than you think. Naturally, the cache
-        must also be attached to the same pool.
+               my_object *obj;
+               res = mps_alloc((mps_addr_t *)&obj, sac, sizeof *p, 0);
+               if (res != MPS_RES_OK)
+                   error(...);
+
+           but this is :term:`type punning`, and its behaviour is not
+           defined in ANSI/ISO Standard C. See
+           :ref:`topic-interface-pun` for more details.
 
 
 .. c:function:: MPS_SAC_ALLOC_FAST(mps_res_t res_v, mps_addr_t *p_v, mps_sac_t sac, size_t size, mps_bool_t has_reservoir_permit)
