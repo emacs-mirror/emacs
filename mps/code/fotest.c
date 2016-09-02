@@ -88,11 +88,12 @@ static mps_res_t stress(size_t (*size)(unsigned long, mps_align_t),
 
   /* allocate a load of objects */
   for (i=0; i<testSetSIZE; ++i) {
+    mps_addr_t obj;
     ss[i] = (*size)(i, alignment);
-
-    res = make((mps_addr_t *)&ps[i], ap, ss[i]);
+    res = make(&obj, ap, ss[i]);
     if (res != MPS_RES_OK)
       goto allocFail;
+    ps[i] = obj;
     if (ss[i] >= sizeof(ps[i]))
       *ps[i] = 1; /* Write something, so it gets swap. */
   }
@@ -118,10 +119,12 @@ static mps_res_t stress(size_t (*size)(unsigned long, mps_align_t),
     }
     /* allocate some new objects */
     for (i=testSetSIZE/2; i<testSetSIZE; ++i) {
+      mps_addr_t obj;
       ss[i] = (*size)(i, alignment);
-      res = make((mps_addr_t *)&ps[i], ap, ss[i]);
+      res = make(&obj, ap, ss[i]);
       if (res != MPS_RES_OK)
         goto allocFail;
+      ps[i] = obj;
     }
 
     CLASS_STATIC(MFSPool).alloc = rnd() % 2 ? mfs_alloc : oomAlloc;
