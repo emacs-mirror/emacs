@@ -508,6 +508,14 @@ Interface changes
    ``dont-handle-bad-access`` or to request special handling of
    ``SIGBUS``.
 
+#. The (undocumented) reservoir functions
+   :c:func:`mps_ap_fill_with_reservoir_permit`,
+   :c:func:`mps_reservoir_available`, :c:func:`mps_reservoir_limit`,
+   :c:func:`mps_reservoir_limit_set`, and
+   :c:func:`mps_reserve_with_reservoir_permit`, together with the
+   ``has_reservoir_permit`` arguments to :c:func:`mps_sac_alloc` and
+   :c:func:`MPS_SAC_ALLOC_FAST` are deprecated.
+
 
 Other changes
 .............

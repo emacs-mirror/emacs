@@ -44,8 +44,7 @@ access that memory. This means that threads must be registered with
 the MPS by calling :c:func:`mps_thread_reg` (and thread roots created;
 see :ref:`topic-root-thread`).
 
-For simplicity, we recommend that a thread must be registered with an
-:term:`arena` if:
+A thread must be registered with an :term:`arena` if:
 
 * its :term:`control stack` and :term:`registers` form a root (this is
   enforced by :c:func:`mps_root_create_thread`); or
