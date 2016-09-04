@@ -1,7 +1,7 @@
 /* cbs.c: COALESCING BLOCK STRUCTURE IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001-2015 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  * .intro: This is a portable implementation of coalescing block
  * structures.
@@ -441,6 +441,9 @@ static void cbsBlockInsert(CBS cbs, CBSBlock block)
  *
  * .insert.alloc: Will only allocate a block if the range does not
  * abut an existing range.
+ *
+ * .insert.critical: In manual-allocation-bound programs using MVFF
+ * this is on the critical path.
  */
 
 static Res cbsInsert(Range rangeReturn, Land land, Range range)
@@ -454,9 +457,9 @@ static Res cbsInsert(Range rangeReturn, Land land, Range range)
   Bool leftMerge, rightMerge;
   Size oldSize;
 
-  AVER(rangeReturn != NULL);
-  AVERT(Range, range);
-  AVER(RangeIsAligned(range, LandAlignment(land)));
+  AVER_CRITICAL(rangeReturn != NULL);
+  AVERT_CRITICAL(Range, range);
+  AVER_CRITICAL(RangeIsAligned(range, LandAlignment(land)));
 
   base = RangeBase(range);
   limit = RangeLimit(range);
@@ -526,14 +529,14 @@ static Res cbsInsert(Range rangeReturn, Land land, Range range)
     cbsBlockInsert(cbs, block);
   }
 
-  AVER(newBase <= base);
-  AVER(newLimit >= limit);
+  AVER_CRITICAL(newBase <= base);
+  AVER_CRITICAL(newLimit >= limit);
   RangeInit(rangeReturn, newBase, newLimit);
 
   return ResOK;
 
 fail:
-  AVER(res != ResOK);
+  AVER_CRITICAL(res != ResOK);
   return res;
 }
 
@@ -1163,7 +1166,7 @@ DEFINE_CLASS(Land, CBSZoned, klass)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2015 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
