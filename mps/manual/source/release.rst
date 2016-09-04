@@ -15,6 +15,9 @@ Interface changes
 
 #. Allocation frames are no longer deprecated. See :ref:`topic-frame`.
 
+#. On Linux and FreeBSD, it is now possible to configure the signals
+   used to suspend and resume threads. See :ref:`topic-thread-signal`.
+
 
 Other changes
 .............
