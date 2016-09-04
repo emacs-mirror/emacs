@@ -55,6 +55,11 @@ Other changes
 
    .. _job004037: https://www.ravenbrook.com/project/mps/issue/job004037/
 
+#. The MPS no longer passes an uninitialized variable to
+   :c:func:`thread_swap_exception_ports` on OS X. See job004040_.
+
+   .. _job004040: https://www.ravenbrook.com/project/mps/issue/job004040/
+
 
 .. _release-notes-1.115:
 
