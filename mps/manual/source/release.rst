@@ -36,6 +36,15 @@ Other changes
 
    .. _job004011: https://www.ravenbrook.com/project/mps/issue/job004011/
 
+#. Roots created by :c:func:`mps_root_create_thread_scanned` no longer
+   cause an assertion failure. See job004036_.
+
+   .. _job004036: https://www.ravenbrook.com/project/mps/issue/job004036/
+
+#. The MPS test suite now compiles and passes with GCC 6.1. See job004037_.
+
+   .. _job004037: https://www.ravenbrook.com/project/mps/issue/job004037/
+
 
 .. _release-notes-1.115:
 
