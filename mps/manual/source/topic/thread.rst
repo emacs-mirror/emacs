@@ -69,17 +69,30 @@ Signal and exception handling issues
 
 .. warning::
 
-    On Unix platforms (except OS X), the MPS suspends and resumes
-    threads by sending them signals. There's a shortage of available
-    signals that aren't already dedicated to other purposes (for
-    example, ValGrind uses ``SIGUSR1`` and ``SIGUSR2``), so the MPS uses
-    ``SIGXCPU`` and ``SIGXFSZ``. This means that programs must not mask
-    these two signals.
+    On Linux and FreeBSD, the MPS suspends and resumes threads by
+    sending them signals. There's a shortage of available signals that
+    aren't already dedicated to other purposes (for example, ValGrind
+    uses ``SIGUSR1`` and ``SIGUSR2``), so the MPS uses ``SIGXCPU`` and
+    ``SIGXFSZ``. This means that programs must not mask or handle
+    either of these signals.
 
-    If your program needs to handle these signals, then it must
-    co-operate with the MPS. At present, there's no documented
-    mechanism for co-operating: if you are in this situation, please
-    :ref:`contact us <contact>`.
+    If your program needs to mask or handle either of these signals,
+    then you can configure the MPS to use another pair of signals of
+    your choosing, by defining these preprocessor constants:
+
+    .. c:macro:: CONFIG_PTHREADEXT_SIGSUSPEND
+
+        If this preprocessor constant is defined, its definition names
+        the signal used to suspend a thread. For example::
+
+            cc -DCONFIG_PTHREADEXT_SIGSUSPEND=SIGUSR1 -c mps.c
+
+    .. c:macro:: CONFIG_PTHREADEXT_SIGRESUME
+
+        If this preprocessor constant is defined, its definition names
+        the signal used to resume a thread. For example::
+
+            cc -DCONFIG_PTHREADEXT_SIGSUSPEND=SIGUSR2 -c mps.c
 
 .. warning::
 
