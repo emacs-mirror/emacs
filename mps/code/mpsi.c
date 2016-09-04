@@ -745,16 +745,16 @@ mps_res_t mps_alloc(mps_addr_t *p_o, mps_pool_t pool, size_t size)
   Addr p;
   Res res;
 
-  AVER(TESTT(Pool, pool));
+  AVER_CRITICAL(TESTT(Pool, pool));
   arena = PoolArena(pool);
 
   ArenaEnter(arena);
 
   ArenaPoll(ArenaGlobals(arena)); /* .poll */
 
-  AVER(p_o != NULL);
-  AVERT(Pool, pool);
-  AVER(size > 0);
+  AVER_CRITICAL(p_o != NULL);
+  AVERT_CRITICAL(Pool, pool);
+  AVER_CRITICAL(size > 0);
   /* Note: class may allow unaligned size, see */
   /* <design/class-interface/#alloc.size.align>. */
   /* Rest ignored, see .varargs. */
@@ -787,13 +787,13 @@ void mps_free(mps_pool_t pool, mps_addr_t p, size_t size)
 {
   Arena arena;
 
-  AVER(TESTT(Pool, pool));
+  AVER_CRITICAL(TESTT(Pool, pool));
   arena = PoolArena(pool);
 
   ArenaEnter(arena);
 
-  AVERT(Pool, pool);
-  AVER(size > 0);
+  AVERT_CRITICAL(Pool, pool);
+  AVER_CRITICAL(size > 0);
   /* Note: class may allow unaligned size, see */
   /* <design/class-interface/#alloc.size.align>. */
 

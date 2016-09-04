@@ -297,7 +297,11 @@ static Res mvffFindFree(Range rangeReturn, MVFF mvff, Size size,
 }
 
 
-/* MVFFAlloc -- Allocate a block */
+/* MVFFAlloc -- Allocate a block
+ *
+ * .alloc.critical: In manual-allocation-bound programs this is on the
+ * critical path.
+ */
 
 static Res MVFFAlloc(Addr *aReturn, Pool pool, Size size)
 {
@@ -307,11 +311,11 @@ static Res MVFFAlloc(Addr *aReturn, Pool pool, Size size)
   LandFindMethod findMethod;
   FindDelete findDelete;
 
-  AVER(aReturn != NULL);
-  AVERT(Pool, pool);
+  AVER_CRITICAL(aReturn != NULL);
+  AVERT_CRITICAL(Pool, pool);
   mvff = PoolMVFF(pool);
-  AVERT(MVFF, mvff);
-  AVER(size > 0);
+  AVERT_CRITICAL(MVFF, mvff);
+  AVER_CRITICAL(size > 0);
 
   size = SizeAlignUp(size, PoolAlignment(pool));
   findMethod = mvff->firstFit ? LandFindFirst : LandFindLast;
@@ -321,13 +325,17 @@ static Res MVFFAlloc(Addr *aReturn, Pool pool, Size size)
   if (res != ResOK)
     return res;
 
-  AVER(RangeSize(&range) == size);
+  AVER_CRITICAL(RangeSize(&range) == size);
   *aReturn = RangeBase(&range);
   return ResOK;
 }
 
 
-/* MVFFFree -- free the given block */
+/* MVFFFree -- free the given block
+ *
+ * .free.critical: In manual-allocation-bound programs this is on the
+ * critical path.
+ */
 
 static void MVFFFree(Pool pool, Addr old, Size size)
 {
@@ -335,18 +343,18 @@ static void MVFFFree(Pool pool, Addr old, Size size)
   RangeStruct range, coalescedRange;
   MVFF mvff;
 
-  AVERT(Pool, pool);
+  AVERT_CRITICAL(Pool, pool);
   mvff = PoolMVFF(pool);
-  AVERT(MVFF, mvff);
+  AVERT_CRITICAL(MVFF, mvff);
 
-  AVER(old != (Addr)0);
-  AVER(AddrIsAligned(old, PoolAlignment(pool)));
-  AVER(size > 0);
+  AVER_CRITICAL(old != (Addr)0);
+  AVER_CRITICAL(AddrIsAligned(old, PoolAlignment(pool)));
+  AVER_CRITICAL(size > 0);
 
   RangeInitSize(&range, old, SizeAlignUp(size, PoolAlignment(pool)));
   res = LandInsert(&coalescedRange, MVFFFreeLand(mvff), &range);
   /* Insertion must succeed because it fails over to a Freelist. */
-  AVER(res == ResOK);
+  AVER_CRITICAL(res == ResOK);
   MVFFReduce(mvff);
 }
 
