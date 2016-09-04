@@ -51,7 +51,7 @@ Manual allocation
         the desired pointer type to ``mps_addr_t *``, like this::
 
             my_object *obj;
-            res = mps_alloc((mps_addr_t *)&obj, pool, sizeof *p);
+            res = mps_alloc((mps_addr_t *)&obj, pool, sizeof *obj);
             if (res != MPS_RES_OK)
                 error(...);
 

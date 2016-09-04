@@ -306,7 +306,7 @@ Allocation interface
            this::
 
                my_object *obj;
-               res = mps_alloc((mps_addr_t *)&obj, sac, sizeof *p, 0);
+               res = mps_alloc((mps_addr_t *)&obj, sac, sizeof *obj, 0);
                if (res != MPS_RES_OK)
                    error(...);
 
