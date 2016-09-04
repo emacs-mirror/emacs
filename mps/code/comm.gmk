@@ -332,8 +332,7 @@ RATIO=$$(awk "BEGIN{print int(100 * $$TIME_HOT / $$TIME_RASH)}"); \
 printf "Performance ratio (hot/rash) for $(2): %d%%\n" $$RATIO
 endef
 
-.PHONY: testratio
-testratio:
+testratio: phony
 	$(MAKE) -f $(PFM).gmk VARIETY=hot djbench gcbench
 	$(MAKE) -f $(PFM).gmk VARIETY=rash djbench gcbench
 	$(call ratio,gcbench,amc)
@@ -352,6 +351,12 @@ $(PFM)/$(VARIETY)/testmmqa:
 	(cd ../test && $(MMQA) runset testsets/argerr)
 	(cd ../test && $(MMQA) runset testsets/conerr)
 	(cd ../test && $(MMQA) runset testsets/passing)
+
+
+# == Toy Scheme interpreter ==
+
+testscheme: phony
+	$(MAKE) -C ../example/scheme test
 
 
 # These convenience targets allow one to type "make foo" to build target
