@@ -292,7 +292,7 @@ static void *protCatchThread(void *p) {
 extern void ProtThreadRegister(Bool setup)
 {
   kern_return_t kr;
-  mach_msg_type_number_t old_exception_count;
+  mach_msg_type_number_t old_exception_count = 1;
   exception_mask_t old_exception_masks;
   exception_behavior_t behavior;
   mach_port_t old_exception_ports;
