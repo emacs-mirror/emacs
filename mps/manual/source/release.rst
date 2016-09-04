@@ -22,6 +22,13 @@ Interface changes
 Other changes
 .............
 
+#. It is now possible to register a thread with the MPS multiple times
+   on OS X, thus supporting the use case where a program that does not
+   use the MPS is calling into MPS-using code from multiple threads.
+   (This was already supported on other platforms.) See job003559_.
+
+   .. _job003559: https://www.ravenbrook.com/project/mps/issue/job003559/
+
 #. Objects in :ref:`pool-snc` pools are no longer scanned after their
    :term:`allocation frame` is popped, and so do not keep objects in
    automatically managed pools alive. See job003883_.
