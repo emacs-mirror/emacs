@@ -157,8 +157,9 @@ typedef void (*SegSetRankSetMethod)(Seg seg, RankSet rankSet);
 typedef void (*SegSetRankSummaryMethod)(Seg seg, RankSet rankSet,
                                         RefSet summary);
 typedef void (*SegSetSummaryMethod)(Seg seg, RefSet summary);
-typedef Buffer (*SegBufferMethod)(Seg seg);
+typedef Bool (*SegBufferMethod)(Buffer *bufferReturn, Seg seg);
 typedef void (*SegSetBufferMethod)(Seg seg, Buffer buffer);
+typedef void (*SegUnsetBufferMethod)(Seg seg);
 typedef Res (*SegMergeMethod)(Seg seg, Seg segHi,
                               Addr base, Addr mid, Addr limit);
 typedef Res (*SegSplitMethod)(Seg seg, Seg segHi,

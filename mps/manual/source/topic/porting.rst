@@ -66,9 +66,8 @@ usable.
 
    There is a generic implementation in ``protan.c``, which can't
    provide memory protection, so it forces memory to be scanned until
-   that there is no further need to protect it. This means it can't
-   support incremental collection, and has no control over pause
-   times.
+   there is no further need to protect it. This means it can't support
+   incremental collection, and has no control over pause times.
 
 #. The **protection mutator context** module figures out what the
    :term:`mutator` was doing when it caused a :term:`protection
