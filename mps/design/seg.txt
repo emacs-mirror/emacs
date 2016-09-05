@@ -248,6 +248,11 @@ design.mps.protocol.overview.next-method_).
 
 .. _design.mps.protocol.overview.next-method: protocol#overview.next-method
 
+_`.method.split.accounting`: If ``seg`` belongs to a generation in a
+chain, then the pool generation accounting must be updated. In the
+simple case where the split segments remain in the same generation,
+this can be done by calling ``PoolGenAccountForSegSplit()``.
+
 ``typedef Res (*SegMergeMethod)(Seg seg, Seg segHi, Addr base, Addr mid, Addr limit)``
 
 _`.method.merge`: Segment subclasses may extend the support for
@@ -264,6 +269,12 @@ method, either before or after any class-specific code (see
 design.mps.protocol.overview.next-method_).
 
 .. _design.mps.protocol.overview.next-method: protocol#overview.next-method
+
+_`.method.merge.accounting`: If ``seg`` belongs to a generation in a
+chain, then the pool generation accounting must be updated. In the
+simple case where the two segments started in the same generation and
+the merged segment remains in that generation, this can be done by
+calling ``PoolGenAccountForSegMerge()``.
 
 _`.split-merge.shield`: Split and merge methods may assume that the
 segments they are manipulating are not in the shield queue.
