@@ -114,7 +114,6 @@ typedef void (*ArenaVarargsMethod)(ArgStruct args[], va_list varargs);
 typedef Res (*ArenaCreateMethod)(Arena *arenaReturn, ArgList args);
 typedef void (*ArenaDestroyMethod)(Arena arena);
 typedef Res (*ArenaInitMethod)(Arena arena, Size grainSize, ArgList args);
-typedef void (*ArenaFinishMethod)(Arena arena);
 typedef Size (*ArenaPurgeSpareMethod)(Arena arena, Size size);
 typedef Res (*ArenaExtendMethod)(Arena arena, Addr base, Size size);
 typedef Res (*ArenaGrowMethod)(Arena arena, LocusPref pref, Size size);
@@ -122,7 +121,6 @@ typedef void (*ArenaFreeMethod)(Addr base, Size size, Pool pool);
 typedef Res (*ArenaChunkInitMethod)(Chunk chunk, BootBlock boot);
 typedef void (*ArenaChunkFinishMethod)(Chunk chunk);
 typedef void (*ArenaCompactMethod)(Arena arena, Trace trace);
-typedef Res (*ArenaDescribeMethod)(Arena arena, mps_lib_FILE *stream, Count depth);
 typedef Res (*ArenaPagesMarkAllocatedMethod)(Arena arena, Chunk chunk,
                                              Index baseIndex, Count pages,
                                              Pool pool);
@@ -153,7 +151,6 @@ typedef void (*FreeBlockVisitor)(Addr base, Addr limit, Pool pool, void *p);
 
 typedef Res (*SegInitMethod)(Seg seg, Pool pool, Addr base, Size size,
                              ArgList args);
-typedef void (*SegFinishMethod)(Seg seg);
 typedef void (*SegSetGreyMethod)(Seg seg, TraceSet grey);
 typedef void (*SegSetWhiteMethod)(Seg seg, TraceSet white);
 typedef void (*SegSetRankSetMethod)(Seg seg, RankSet rankSet);
@@ -163,7 +160,6 @@ typedef void (*SegSetSummaryMethod)(Seg seg, RefSet summary);
 typedef Bool (*SegBufferMethod)(Buffer *bufferReturn, Seg seg);
 typedef void (*SegSetBufferMethod)(Seg seg, Buffer buffer);
 typedef void (*SegUnsetBufferMethod)(Seg seg);
-typedef Res (*SegDescribeMethod)(Seg seg, mps_lib_FILE *stream, Count depth);
 typedef Res (*SegMergeMethod)(Seg seg, Seg segHi,
                               Addr base, Addr mid, Addr limit);
 typedef Res (*SegSplitMethod)(Seg seg, Seg segHi,
@@ -173,7 +169,6 @@ typedef Res (*SegSplitMethod)(Seg seg, Seg segHi,
 
 typedef void (*BufferVarargsMethod)(ArgStruct args[], va_list varargs);
 typedef Res (*BufferInitMethod)(Buffer buffer, Pool pool, Bool isMutator, ArgList args);
-typedef void (*BufferFinishMethod)(Buffer buffer);
 typedef void (*BufferAttachMethod)(Buffer buffer, Addr base, Addr limit,
                                    Addr init, Size size);
 typedef void (*BufferDetachMethod)(Buffer buffer);
@@ -181,7 +176,6 @@ typedef Seg (*BufferSegMethod)(Buffer buffer);
 typedef RankSet (*BufferRankSetMethod)(Buffer buffer);
 typedef void (*BufferSetRankSetMethod)(Buffer buffer, RankSet rankSet);
 typedef void (*BufferReassignSegMethod)(Buffer buffer, Seg seg);
-typedef Res (*BufferDescribeMethod)(Buffer buffer, mps_lib_FILE *stream, Count depth);
 
 
 /* Pool*Method -- see <design/class-interface/> */
@@ -190,7 +184,6 @@ typedef Res (*BufferDescribeMethod)(Buffer buffer, mps_lib_FILE *stream, Count d
 
 typedef void (*PoolVarargsMethod)(ArgStruct args[], va_list varargs);
 typedef Res (*PoolInitMethod)(Pool pool, Arena arena, PoolClass klass, ArgList args);
-typedef void (*PoolFinishMethod)(Pool pool);
 typedef Res (*PoolAllocMethod)(Addr *pReturn, Pool pool, Size size);
 typedef void (*PoolFreeMethod)(Pool pool, Addr old, Size size);
 typedef Res (*PoolBufferFillMethod)(Addr *baseReturn, Addr *limitReturn,
@@ -223,7 +216,6 @@ typedef void (*PoolWalkMethod)(Pool pool, Seg seg, FormattedObjectsVisitor f,
                                void *v, size_t s);
 typedef void (*PoolFreeWalkMethod)(Pool pool, FreeBlockVisitor f, void *p);
 typedef BufferClass (*PoolBufferClassMethod)(void);
-typedef Res (*PoolDescribeMethod)(Pool pool, mps_lib_FILE *stream, Count depth);
 typedef PoolDebugMixin (*PoolDebugMixinMethod)(Pool pool);
 typedef Size (*PoolSizeMethod)(Pool pool);
 
@@ -256,7 +248,6 @@ typedef struct TraceMessageStruct *TraceMessage;  /* trace end */
 /* Land*Method -- see <design/land/> */
 
 typedef Res (*LandInitMethod)(Land land, Arena arena, Align alignment, ArgList args);
-typedef void (*LandFinishMethod)(Land land);
 typedef Size (*LandSizeMethod)(Land land);
 typedef Res (*LandInsertMethod)(Range rangeReturn, Land land, Range range);
 typedef Res (*LandDeleteMethod)(Range rangeReturn, Land land, Range range);
@@ -266,7 +257,6 @@ typedef Bool (*LandIterateMethod)(Land land, LandVisitor visitor, void *closure)
 typedef Bool (*LandIterateAndDeleteMethod)(Land land, LandDeleteVisitor visitor, void *closure);
 typedef Bool (*LandFindMethod)(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete);
 typedef Res (*LandFindInZonesMethod)(Bool *foundReturn, Range rangeReturn, Range oldRangeReturn, Land land, Size size, ZoneSet zoneSet, Bool high);
-typedef Res (*LandDescribeMethod)(Land land, mps_lib_FILE *stream, Count depth);
 
 
 /* CONSTANTS */

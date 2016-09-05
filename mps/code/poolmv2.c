@@ -33,12 +33,12 @@ typedef struct MVTStruct *MVT;
 static void MVTVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs);
 static Res MVTInit(Pool pool, Arena arena, PoolClass klass, ArgList arg);
 static Bool MVTCheck(MVT mvt);
-static void MVTFinish(Pool pool);
+static void MVTFinish(Inst inst);
 static Res MVTBufferFill(Addr *baseReturn, Addr *limitReturn,
                          Pool pool, Buffer buffer, Size minSize);
 static void MVTBufferEmpty(Pool pool, Buffer buffer, Addr base, Addr limit);
 static void MVTFree(Pool pool, Addr base, Size size);
-static Res MVTDescribe(Pool pool, mps_lib_FILE *stream, Count depth);
+static Res MVTDescribe(Inst inst, mps_lib_FILE *stream, Count depth);
 static Size MVTTotalSize(Pool pool);
 static Size MVTFreeSize(Pool pool);
 static Res MVTSegAlloc(Seg *segReturn, MVT mvt, Size size);
@@ -139,16 +139,16 @@ typedef struct MVTStruct
 DEFINE_CLASS(Pool, MVTPool, klass)
 {
   INHERIT_CLASS(klass, MVTPool, AbstractBufferPool);
+  klass->instClassStruct.describe = MVTDescribe;
+  klass->instClassStruct.finish = MVTFinish;
   klass->size = sizeof(MVTStruct);
   klass->varargs = MVTVarargs;
   klass->init = MVTInit;
-  klass->finish = MVTFinish;
   klass->free = MVTFree;
   klass->bufferFill = MVTBufferFill;
   klass->bufferEmpty = MVTBufferEmpty;
   klass->totalSize = MVTTotalSize;
   klass->freeSize = MVTFreeSize;
-  klass->describe = MVTDescribe;
 }
 
 /* Macros */
@@ -376,7 +376,7 @@ failFreeLandInit:
 failFreeSecondaryInit:
   LandFinish(MVTFreePrimary(mvt));
 failFreePrimaryInit:
-  PoolAbsFinish(pool);
+  NextMethod(Inst, MVTPool, finish)(MustBeA(Inst, pool));
 failAbsInit:
   AVER(res != ResOK);
   return res;
@@ -421,18 +421,15 @@ static Bool MVTCheck(MVT mvt)
 
 /* MVTFinish -- finish an MVT pool
  */
-static void MVTFinish(Pool pool)
+static void MVTFinish(Inst inst)
 {
-  MVT mvt;
-  Arena arena;
+  Pool pool = MustBeA(AbstractPool, inst);
+  MVT mvt = MustBeA(MVTPool, pool);
+  Arena arena = PoolArena(pool);
   Ring ring;
   Ring node, nextNode;
  
-  AVERT(Pool, pool);
-  mvt = PoolMVT(pool);
   AVERT(MVT, mvt);
-  arena = PoolArena(pool);
-  AVERT(Arena, arena);
 
   mvt->sig = SigInvalid;
 
@@ -450,7 +447,8 @@ static void MVTFinish(Pool pool)
   LandFinish(MVTFreeLand(mvt));
   LandFinish(MVTFreeSecondary(mvt));
   LandFinish(MVTFreePrimary(mvt));
-  PoolAbsFinish(pool);
+
+  NextMethod(Inst, MVTPool, finish)(inst);
 }
 
 
@@ -1023,8 +1021,9 @@ static Size MVTFreeSize(Pool pool)
 
 /* MVTDescribe -- describe an MVT pool */
 
-static Res MVTDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
+static Res MVTDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 {
+  Pool pool = CouldBeA(AbstractPool, inst);
   MVT mvt = CouldBeA(MVTPool, pool);
   Res res;
 
@@ -1033,7 +1032,7 @@ static Res MVTDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
   if (stream == NULL)
     return ResFAIL;
 
-  res = NextMethod(Pool, MVTPool, describe)(pool, stream, depth);
+  res = NextMethod(Inst, MVTPool, describe)(inst, stream, depth);
   if (res != ResOK)
     return res;
 

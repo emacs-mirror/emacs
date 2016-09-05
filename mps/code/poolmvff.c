@@ -586,7 +586,7 @@ failFreePrimaryInit:
 failTotalLandInit:
   PoolFinish(MVFFBlockPool(mvff));
 failBlockPoolInit:
-  PoolAbsFinish(pool);
+  NextMethod(Inst, MVFFPool, finish)(MustBeA(Inst, pool));
 failAbsInit:
   AVER(res != ResOK);
   return res;
@@ -612,13 +612,12 @@ static Bool mvffFinishVisitor(Bool *deleteReturn, Land land, Range range,
   return TRUE;
 }
 
-static void MVFFFinish(Pool pool)
+static void MVFFFinish(Inst inst)
 {
-  MVFF mvff;
+  Pool pool = MustBeA(AbstractPool, inst);
+  MVFF mvff = MustBeA(MVFFPool, pool);
   Bool b;
 
-  AVERT(Pool, pool);
-  mvff = PoolMVFF(pool);
   AVERT(MVFF, mvff);
   mvff->sig = SigInvalid;
 
@@ -631,7 +630,7 @@ static void MVFFFinish(Pool pool)
   LandFinish(MVFFFreePrimary(mvff));
   LandFinish(MVFFTotalLand(mvff));
   PoolFinish(MVFFBlockPool(mvff));
-  PoolAbsFinish(pool);
+  NextMethod(Inst, MVFFPool, finish)(inst);
 }
 
 
@@ -679,8 +678,9 @@ static Size MVFFFreeSize(Pool pool)
 
 /* MVFFDescribe -- describe an MVFF pool */
 
-static Res MVFFDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
+static Res MVFFDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 {
+  Pool pool = CouldBeA(AbstractPool, inst);
   MVFF mvff = CouldBeA(MVFFPool, pool);
   Res res;
 
@@ -689,7 +689,7 @@ static Res MVFFDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
   if (stream == NULL)
     return ResPARAM;
 
-  res = NextMethod(Pool, MVFFPool, describe)(pool, stream, depth);
+  res = NextMethod(Inst, MVFFPool, describe)(inst, stream, depth);
   if (res != ResOK)
     return res;
 
@@ -730,17 +730,17 @@ DEFINE_CLASS(Pool, MVFFPool, klass)
 {
   INHERIT_CLASS(klass, MVFFPool, AbstractPool);
   PoolClassMixInBuffer(klass);
+  klass->instClassStruct.describe = MVFFDescribe;
+  klass->instClassStruct.finish = MVFFFinish;
   klass->size = sizeof(MVFFStruct);
   klass->varargs = MVFFVarargs;
   klass->init = MVFFInit;
-  klass->finish = MVFFFinish;
   klass->alloc = MVFFAlloc;
   klass->free = MVFFFree;
   klass->bufferFill = MVFFBufferFill;
   klass->bufferEmpty = MVFFBufferEmpty;
   klass->totalSize = MVFFTotalSize;
   klass->freeSize = MVFFFreeSize;
-  klass->describe = MVFFDescribe;
 }
 
 

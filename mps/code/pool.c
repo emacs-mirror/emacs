@@ -37,13 +37,12 @@ SRCID(pool, "$Id$");
 
 Bool PoolClassCheck(PoolClass klass)
 {
-  CHECKD(InstClass, &klass->protocol);
+  CHECKD(InstClass, &klass->instClassStruct);
   CHECKL(klass->size >= sizeof(PoolStruct));
   CHECKL(AttrCheck(klass->attr));
   CHECKL(!(klass->attr & AttrMOVINGGC) || (klass->attr & AttrGC));
   CHECKL(FUNCHECK(klass->varargs));
   CHECKL(FUNCHECK(klass->init));
-  CHECKL(FUNCHECK(klass->finish));
   CHECKL(FUNCHECK(klass->alloc));
   CHECKL(FUNCHECK(klass->free));
   CHECKL(FUNCHECK(klass->bufferFill));
@@ -65,13 +64,13 @@ Bool PoolClassCheck(PoolClass klass)
   CHECKL(FUNCHECK(klass->walk));
   CHECKL(FUNCHECK(klass->freewalk));
   CHECKL(FUNCHECK(klass->bufferClass));
-  CHECKL(FUNCHECK(klass->describe));
   CHECKL(FUNCHECK(klass->debugMixin));
   CHECKL(FUNCHECK(klass->totalSize));
   CHECKL(FUNCHECK(klass->freeSize));
 
   /* Check that pool classes overide sets of related methods. */
-  CHECKL((klass->init == PoolAbsInit) == (klass->finish == PoolAbsFinish));
+  CHECKL((klass->init == PoolAbsInit) ==
+         (klass->instClassStruct.finish == PoolAbsFinish));
   CHECKL((klass->bufferFill == PoolNoBufferFill) ==
          (klass->bufferEmpty == PoolNoBufferEmpty));
   CHECKL((klass->framePush == PoolNoFramePush) ==
@@ -197,7 +196,7 @@ failControlAlloc:
 void PoolFinish(Pool pool)
 {
   AVERT(Pool, pool); 
-  Method(Pool, pool, finish)(pool);
+  Method(Inst, pool, finish)(MustBeA(Inst, pool));
 }
 
 
@@ -496,7 +495,7 @@ Size PoolFreeSize(Pool pool)
 
 Res PoolDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 {
-  return Method(Pool, pool, describe)(pool, stream, depth);
+  return Method(Inst, pool, describe)(MustBeA(Inst, pool), stream, depth);
 }
 
 

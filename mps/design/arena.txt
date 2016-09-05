@@ -202,12 +202,6 @@ arguments to ``mps_arena_create_k()`` are class-dependent.
 
 .. _design.mps.protocol: protocol
 
-_`.class.init`: However, the generic ``ArenaInit()`` is called from the
-class-specific method, rather than vice versa, because the method is
-responsible for allocating the memory for the arena descriptor and the
-arena lock in the first place. Likewise, ``ArenaFinish()`` is called
-from the finish method.
-
 _`.class.fields`: The ``grainSize`` (for allocation and freeing) and
 ``zoneShift`` (for computing zone sizes and what zone an address is
 in) fields in the arena are the responsibility of the each class, and

@@ -305,21 +305,20 @@ static Res MVInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
 failSpanPoolInit:
   PoolFinish(mvBlockPool(mv));
 failBlockPoolInit:
-  PoolAbsFinish(pool);
+  NextMethod(Inst, MVPool, finish)(MustBeA(Inst, pool));
   return res;
 }
 
 
 /* MVFinish -- finish method for class MV */
 
-static void MVFinish(Pool pool)
+static void MVFinish(Inst inst)
 {
-  MV mv;
+  Pool pool = MustBeA(AbstractPool, inst);
+  MV mv = MustBeA(MVPool, pool);
   Ring spans, node = NULL, nextNode; /* gcc whinge stop */
   MVSpan span;
 
-  AVERT(Pool, pool);
-  mv = PoolMV(pool);
   AVERT(MV, mv);
 
   /* Destroy all the spans attached to the pool. */
@@ -335,7 +334,7 @@ static void MVFinish(Pool pool)
   PoolFinish(mvBlockPool(mv));
   PoolFinish(mvSpanPool(mv));
 
-  PoolAbsFinish(pool);
+  NextMethod(Inst, MVPool, finish)(inst);
 }
 
 
@@ -752,8 +751,9 @@ static Size MVFreeSize(Pool pool)
 }
 
 
-static Res MVDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
+static Res MVDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 {
+  Pool pool = CouldBeA(AbstractPool, inst);
   MV mv = CouldBeA(MVPool, pool);
   Res res;
   MVSpan span;
@@ -767,7 +767,7 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
   if (stream == NULL)
     return ResPARAM;
 
-  res = NextMethod(Pool, MVPool, describe)(pool, stream, depth);
+  res = NextMethod(Inst, MVPool, describe)(inst, stream, depth);
   if (res != ResOK)
     return res;
 
@@ -864,15 +864,15 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 DEFINE_CLASS(Pool, MVPool, klass)
 {
   INHERIT_CLASS(klass, MVPool, AbstractBufferPool);
+  klass->instClassStruct.describe = MVDescribe;
+  klass->instClassStruct.finish = MVFinish;
   klass->size = sizeof(MVStruct);
   klass->varargs = MVVarargs;
   klass->init = MVInit;
-  klass->finish = MVFinish;
   klass->alloc = MVAlloc;
   klass->free = MVFree;
   klass->totalSize = MVTotalSize;
   klass->freeSize = MVFreeSize;
-  klass->describe = MVDescribe;
 }
 
 
