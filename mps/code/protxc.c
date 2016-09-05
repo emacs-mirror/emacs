@@ -1,7 +1,7 @@
 /* protxc.c: PROTECTION EXCEPTION HANDLER FOR OS X MACH
  *
  * $Id$
- * Copyright (c) 2013-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2013-2016 Ravenbrook Limited.  See end of file for license.
  *
  * This is the protection exception handling code for OS X using the
  * Mach interface (not pthreads).
@@ -292,7 +292,7 @@ static void *protCatchThread(void *p) {
 extern void ProtThreadRegister(Bool setup)
 {
   kern_return_t kr;
-  mach_msg_type_number_t old_exception_count;
+  mach_msg_type_number_t old_exception_count = 1;
   exception_mask_t old_exception_masks;
   exception_behavior_t behavior;
   mach_port_t old_exception_ports;
@@ -338,7 +338,8 @@ extern void ProtThreadRegister(Bool setup)
     mach_error("ERROR: MPS thread_swap_exception_ports", kr); /* .trans.must */
   AVER(old_exception_masks == EXC_MASK_BAD_ACCESS);
   AVER(old_exception_count == 1);
-  AVER(old_exception_ports == MACH_PORT_NULL); /* .assume.only-port */
+  AVER(old_exception_ports == MACH_PORT_NULL
+       || old_exception_ports == protExcPort); /* .assume.only-port */
 }
 
 
@@ -401,7 +402,7 @@ void ProtSetup(void)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2013-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

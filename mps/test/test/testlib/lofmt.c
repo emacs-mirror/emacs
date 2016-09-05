@@ -186,7 +186,7 @@ long int getlocopycount(locell *obj)
  return obj->data.copycount;
 }
 
-long int getlosize(locell *obj)
+size_t getlosize(locell *obj)
 {
  asserts(obj->tag == LOdata, "getlosize: non-data object.");
  return obj->data.size - offsetof(struct lodata, data);

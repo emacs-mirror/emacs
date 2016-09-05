@@ -243,11 +243,12 @@ Cautions
 
    a. call library code;
 
-   b. perform a non-local exit (for example, by calling ``longjmp``);
+   b. perform a non-local exit (for example, by throwing an exception,
+      or calling :c:func:`longjmp`);
 
-   c. call any functions in the MPS other than the fix functions
-      (:c:func:`mps_fix`, :c:func:`MPS_FIX1`, :c:func:`MPS_FIX12`, and
-      :c:func:`MPS_FIX2`).
+   c. call any functions or macros in the MPS other than the fix
+      macros :c:func:`MPS_FIX1`, :c:func:`MPS_FIX12`, and
+      :c:func:`MPS_FIX2`.
 
    It's permissible to call other functions in the client program, but
    see :c:func:`MPS_FIX_CALL` for a restriction on passing the
@@ -368,7 +369,7 @@ Format methods
         object format has a non-zero
         :c:macro:`MPS_KEY_FMT_HEADER_SIZE`.
 
-   .. note::
+    .. note::
 
         The MPS will ask for padding objects of any size aligned to
         the pool alignment, no matter what size objects the pool
