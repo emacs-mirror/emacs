@@ -29,6 +29,12 @@ Other changes
 
    .. _job003559: https://www.ravenbrook.com/project/mps/issue/job003559/
 
+#. The function :c:func:`mps_arena_formatted_objects_walk` walks the
+   formatted objects in all pools. Previously this was not implemented
+   for :ref:`pool-ams` pools. See job003738_.
+
+   .. _job003738: https://www.ravenbrook.com/project/mps/issue/job003738/
+
 #. Objects in :ref:`pool-snc` pools are no longer scanned after their
    :term:`allocation frame` is popped, and so do not keep objects in
    automatically managed pools alive. See job003883_.
