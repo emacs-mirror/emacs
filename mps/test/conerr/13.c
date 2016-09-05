@@ -28,7 +28,7 @@ static void test(void)
 
 /* cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE), "create arena");
 */
- arena=malloc(64);
+ arena=malloc(4096);
 
  cdie(
   mps_pool_create(&pool, arena, mps_class_mv(),

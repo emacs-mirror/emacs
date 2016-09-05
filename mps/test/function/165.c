@@ -30,7 +30,7 @@ static void test(void)
  mps_pool_t pool;
  mps_thr_t thread;
 
- unsigned long com0, com1, com2;
+ size_t com0, com1, com2;
 
 /* create a VM arena of 40MB with commit limit of 100MB, i.e. let the
    arena do the limiting. */

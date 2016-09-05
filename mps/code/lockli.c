@@ -1,7 +1,7 @@
 /* lockli.c: RECURSIVE LOCKS FOR POSIX SYSTEMS
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  * .linux: This implementation currently just supports LinuxThreads
  * (platform MPS_OS_LI), Single Unix i/f.
@@ -136,7 +136,7 @@ void (LockClaim)(Lock lock)
 
   res = pthread_mutex_lock(&lock->mut);
   /* pthread_mutex_lock will error if we own the lock already. */
-  AVER(res == 0);
+  AVER(res == 0); /* <design/check/#.common> */
 
   /* This should be the first claim.  Now we own the mutex */
   /* it is ok to check this. */
@@ -259,7 +259,7 @@ void (LockReleaseGlobal)(void)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

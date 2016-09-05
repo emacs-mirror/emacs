@@ -1,7 +1,7 @@
 /* global.c: ARENA-GLOBAL INTERFACES
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .sources: See <design/arena/>.  design.mps.thread-safety is relevant
@@ -188,7 +188,8 @@ Bool GlobalsCheck(Globals arenaGlobals)
   CHECKL(RingCheck(&arenaRing));
 
   CHECKL(BoolCheck(arena->emergency));
-  /* There can only be an emergency when a trace is busy. */
+  /* .emergency.invariant: There can only be an emergency when a trace
+   * is busy. */
   CHECKL(!arena->emergency || arena->busyTraces != TraceSetEMPTY);
   
   if (arenaGlobals->defaultChain != NULL)
@@ -463,12 +464,12 @@ void GlobalsPrepareToDestroy(Globals arenaGlobals)
    * and so RingCheck dereferences a pointer into that unmapped memory
    * and we get a crash instead of an assertion. See job000652.
    */
-  AVER(RingIsSingle(&arena->formatRing));
-  AVER(RingIsSingle(&arena->chainRing));
+  AVER(RingIsSingle(&arena->formatRing)); /* <design/check/#.common> */
+  AVER(RingIsSingle(&arena->chainRing)); /* <design/check/#.common> */
   AVER(RingIsSingle(&arena->messageRing));
-  AVER(RingIsSingle(&arena->threadRing));
+  AVER(RingIsSingle(&arena->threadRing)); /* <design/check/#.common> */
   AVER(RingIsSingle(&arena->deadRing));
-  AVER(RingIsSingle(&arenaGlobals->rootRing));
+  AVER(RingIsSingle(&arenaGlobals->rootRing)); /* <design/check/#.common> */
   for(rank = RankMIN; rank < RankLIMIT; ++rank)
     AVER(RingIsSingle(&arena->greyRing[rank]));
 
@@ -478,7 +479,7 @@ void GlobalsPrepareToDestroy(Globals arenaGlobals)
    * 2. arena->controlPoolStruct.blockPoolStruct
    * 3. arena->controlPoolStruct.spanPoolStruct
    */
-  AVER(RingLength(&arenaGlobals->poolRing) == 4);
+  AVER(RingLength(&arenaGlobals->poolRing) == 4); /* <design/check/#.common> */
 }
 
 
@@ -1066,7 +1067,7 @@ Bool ArenaEmergency(Arena arena)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

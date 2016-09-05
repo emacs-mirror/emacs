@@ -213,20 +213,20 @@ References
 Document History
 ----------------
 
-- 2002-05-23 	RB_ 	Created empty catalogue based on P4DTI design document catalogue.
-- 2002-06-07 	RB_ 	Added a bunch of design documents referenced by the source code.
-- 2002-06-21 	NB_ 	Remove P4DTI reference, which doesn't fit here. Maybe one day we'll have a corporate design document procedure.
-- 2002-06-24 	RB_ 	Added fix, object-debug, thread-manager, and thread-safety.
-- 2007-02-08 	RHSK 	Added message-gc and shield.
-- 2007-06-12 	RHSK 	Added cstyle.
-- 2007-06-28 	RHSK 	Added diag.
-- 2008-12-04 	RHSK 	Added tests.
-- 2008-12-10 	RHSK 	Correct description of message-gc: gc begin or end.
-- 2012-09-14 	RB_ 	Added link to critical-path
-- 2013-05-10 	RB_ 	Fixed link to sig and added guide.hex.trans
-- 2013-05-22 	GDR_ 	Add link to keyword-arguments.
-- 2013-05-25 	RB_ 	Replacing "cstyle" with reworked "guide.impl.c.format".
-- 2013-06-07	RB_	Converting to reST_.  Linking to [RB_2002-06-18]_.
+- 2002-05-23    RB_     Created empty catalogue based on P4DTI design document catalogue.
+- 2002-06-07    RB_     Added a bunch of design documents referenced by the source code.
+- 2002-06-21    NB_     Remove P4DTI reference, which doesn't fit here. Maybe one day we'll have a corporate design document procedure.
+- 2002-06-24    RB_     Added fix, object-debug, thread-manager, and thread-safety.
+- 2007-02-08    RHSK    Added message-gc and shield.
+- 2007-06-12    RHSK    Added cstyle.
+- 2007-06-28    RHSK    Added diag.
+- 2008-12-04    RHSK    Added tests.
+- 2008-12-10    RHSK    Correct description of message-gc: gc begin or end.
+- 2012-09-14    RB_     Added link to critical-path
+- 2013-05-10    RB_     Fixed link to sig and added guide.hex.trans
+- 2013-05-22    GDR_    Add link to keyword-arguments.
+- 2013-05-25    RB_     Replacing "cstyle" with reworked "guide.impl.c.format".
+- 2013-06-07    RB_     Converting to reST_.  Linking to [RB_2002-06-18]_.
 - 2014-01-29    RB_     The arena no longer manages generation zonesets.
 - 2014-01-17    GDR_    Add abq, nailboard, range.
 - 2016-03-22    RB_     Add write-barier.

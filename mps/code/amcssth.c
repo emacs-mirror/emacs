@@ -120,13 +120,17 @@ typedef struct closure_s {
 static void *kid_thread(void *arg)
 {
   void *marker = &marker;
-  mps_thr_t thread;
+  mps_thr_t thread1, thread2;
   mps_root_t reg_root;
   mps_ap_t ap;
   closure_t cl = arg;
 
-  die(mps_thread_reg(&thread, (mps_arena_t)arena), "thread_reg");
-  die(mps_root_create_thread(&reg_root, arena, thread, marker),
+  /* Register the thread twice to check this is supported -- see
+   * <design/thread-manager/#req.register.multi>
+   */
+  die(mps_thread_reg(&thread1, arena), "thread_reg");
+  die(mps_thread_reg(&thread2, arena), "thread_reg");
+  die(mps_root_create_thread(&reg_root, arena, thread1, marker),
       "root_create");
 
   die(mps_ap_create(&ap, cl->pool, mps_rank_exact()), "BufferCreate(fooey)");
@@ -136,7 +140,8 @@ static void *kid_thread(void *arg)
   mps_ap_destroy(ap);
 
   mps_root_destroy(reg_root);
-  mps_thread_dereg(thread);
+  mps_thread_dereg(thread2);
+  mps_thread_dereg(thread1);
 
   return NULL;
 }
