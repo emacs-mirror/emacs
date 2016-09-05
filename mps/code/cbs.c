@@ -289,8 +289,9 @@ static Res cbsInitZoned(Land land, Arena arena, Align alignment, ArgList args)
  * See <design/land/#function.finish>.
  */
 
-static void cbsFinish(Land land)
+static void cbsFinish(Inst inst)
 {
+  Land land = MustBeA(Land, inst);
   CBS cbs = MustBeA(CBS, land);
 
   METER_EMIT(&cbs->treeSearch);
@@ -301,7 +302,7 @@ static void cbsFinish(Land land)
   if (cbs->ownPool)
     PoolDestroy(cbsBlockPool(cbs));
 
-  NextMethod(Land, CBS, finish)(land);
+  NextMethod(Inst, CBS, finish)(inst);
 }
 
 
@@ -1092,8 +1093,9 @@ fail:
  * See <design/land/#function.describe>.
  */
 
-static Res cbsDescribe(Land land, mps_lib_FILE *stream, Count depth)
+static Res cbsDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 {
+  Land land = CouldBeA(Land, inst);
   CBS cbs = CouldBeA(CBS, land);
   Res res;
   Res (*describe)(Tree, mps_lib_FILE *);
@@ -1103,7 +1105,7 @@ static Res cbsDescribe(Land land, mps_lib_FILE *stream, Count depth)
   if (stream == NULL)
     return ResPARAM;
 
-  res = NextMethod(Land, CBS, describe)(land, stream, depth);
+  res = NextMethod(Inst, CBS, describe)(inst, stream, depth);
   if (res != ResOK)
     return res;
 
@@ -1136,9 +1138,10 @@ static Res cbsDescribe(Land land, mps_lib_FILE *stream, Count depth)
 DEFINE_CLASS(Land, CBS, klass)
 {
   INHERIT_CLASS(klass, CBS, Land);
+  klass->instClassStruct.describe = cbsDescribe;
+  klass->instClassStruct.finish = cbsFinish;
   klass->size = sizeof(CBSStruct);
   klass->init = cbsInit;
-  klass->finish = cbsFinish;
   klass->sizeMethod = cbsSize;
   klass->insert = cbsInsert;
   klass->delete = cbsDelete;
@@ -1148,7 +1151,6 @@ DEFINE_CLASS(Land, CBS, klass)
   klass->findLast = cbsFindLast;
   klass->findLargest = cbsFindLargest;
   klass->findInZones = cbsFindInZones;
-  klass->describe = cbsDescribe;
 }
 
 DEFINE_CLASS(Land, CBSFast, klass)

@@ -240,7 +240,7 @@ failControlAllocAlloc:
 failControlAllocScanned:
   ControlFree(arena, awlseg->mark, tableSize);
 failControlAllocMark:
-  NextMethod(Seg, AWLSeg, finish)(seg);
+  NextMethod(Inst, AWLSeg, finish)(MustBeA(Inst, seg));
 failSuperInit:
   AVER(res != ResOK);
   return res;
@@ -249,8 +249,9 @@ failSuperInit:
 
 /* AWLSegFinish -- Finish method for AWL segments */
 
-static void AWLSegFinish(Seg seg)
+static void AWLSegFinish(Inst inst)
 {
+  Seg seg = MustBeA(Seg, inst);
   AWLSeg awlseg = MustBeA(AWLSeg, seg);
   Pool pool = SegPool(seg);
   AWL awl = MustBeA(AWLPool, pool);
@@ -269,7 +270,7 @@ static void AWLSegFinish(Seg seg)
   awlseg->sig = SigInvalid;
 
   /* finish the superclass fields last */
-  NextMethod(Seg, AWLSeg, finish)(seg);
+  NextMethod(Inst, AWLSeg, finish)(inst);
 }
 
 
@@ -279,9 +280,9 @@ DEFINE_CLASS(Seg, AWLSeg, klass)
 {
   INHERIT_CLASS(klass, AWLSeg, GCSeg);
   SegClassMixInNoSplitMerge(klass);  /* no support for this (yet) */
+  klass->instClassStruct.finish = AWLSegFinish;
   klass->size = sizeof(AWLSegStruct);
   klass->init = AWLSegInit;
-  klass->finish = AWLSegFinish;
 }
 
 
@@ -571,7 +572,7 @@ static Res AWLInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
   return ResOK;
 
 failGenInit:
-  PoolAbsFinish(pool);
+  NextMethod(Inst, AWLPool, finish)(MustBeA(Inst, pool));
 failAbsInit:
   AVER(res != ResOK);
   return res;
@@ -580,8 +581,9 @@ failAbsInit:
 
 /* AWLFinish -- finish an AWL pool */
 
-static void AWLFinish(Pool pool)
+static void AWLFinish(Inst inst)
 {
+  Pool pool = MustBeA(AbstractPool, inst);
   AWL awl = MustBeA(AWLPool, pool);
   Ring ring, node, nextNode;
 
@@ -600,7 +602,8 @@ static void AWLFinish(Pool pool)
   }
   awl->sig = SigInvalid;
   PoolGenFinish(awl->pgen);
-  PoolAbsFinish(pool);
+
+  NextMethod(Inst, AWLPool, finish)(inst);
 }
 
 
@@ -1216,10 +1219,10 @@ DEFINE_CLASS(Pool, AWLPool, klass)
 {
   INHERIT_CLASS(klass, AWLPool, AbstractCollectPool);
   PoolClassMixInFormat(klass);
+  klass->instClassStruct.finish = AWLFinish;
   klass->size = sizeof(AWLPoolStruct);
   klass->varargs = AWLVarargs;
   klass->init = AWLInit;
-  klass->finish = AWLFinish;
   klass->bufferClass = RankBufClassGet;
   klass->bufferFill = AWLBufferFill;
   klass->bufferEmpty = AWLBufferEmpty;

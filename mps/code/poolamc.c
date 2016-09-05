@@ -233,9 +233,10 @@ static void AMCSegSketch(Seg seg, char *pbSketch, size_t cbSketch)
  *
  * See <design/poolamc/#seg-describe>.
  */
-static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
+static Res AMCSegDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 {
-  amcSeg amcseg = CouldBeA(amcSeg, seg);
+  amcSeg amcseg = CouldBeA(amcSeg, inst);
+  Seg seg = CouldBeA(Seg, amcseg);
   Res res;
   Pool pool;
   Addr i, p, base, limit, init;
@@ -250,7 +251,7 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
     return ResPARAM;
 
   /* Describe the superclass fields first via next-method call */
-  res = NextMethod(Seg, amcSeg, describe)(seg, stream, depth);
+  res = NextMethod(Inst, amcSeg, describe)(inst, stream, depth);
   if (res != ResOK)
     return res;
 
@@ -331,9 +332,9 @@ DEFINE_CLASS(Seg, amcSeg, klass)
 {
   INHERIT_CLASS(klass, amcSeg, GCSeg);
   SegClassMixInNoSplitMerge(klass);  /* no support for this (yet) */
+  klass->instClassStruct.describe = AMCSegDescribe;
   klass->size = sizeof(amcSegStruct);
   klass->init = AMCSegInit;
-  klass->describe = AMCSegDescribe;
 }
 
 
@@ -508,11 +509,12 @@ static Res AMCBufInit(Buffer buffer, Pool pool, Bool isMutator, ArgList args)
 
 /* AMCBufFinish -- Finish an amcBuf */
 
-static void AMCBufFinish(Buffer buffer)
+static void AMCBufFinish(Inst inst)
 {
+  Buffer buffer = MustBeA(Buffer, inst);
   amcBuf amcbuf = MustBeA(amcBuf, buffer);
   amcbuf->sig = SigInvalid;
-  NextMethod(Buffer, amcBuf, finish)(buffer);
+  NextMethod(Inst, amcBuf, finish)(inst);
 }
 
 
@@ -521,9 +523,9 @@ static void AMCBufFinish(Buffer buffer)
 DEFINE_CLASS(Buffer, amcBuf, klass)
 {
   INHERIT_CLASS(klass, amcBuf, SegBuf);
+  klass->instClassStruct.finish = AMCBufFinish;
   klass->size = sizeof(amcBufStruct);
   klass->init = AMCBufInit;
-  klass->finish = AMCBufFinish;
 }
 
 
@@ -798,7 +800,7 @@ failGenAlloc:
   }
   ControlFree(arena, amc->gen, genArraySize);
 failGensAlloc:
-  PoolAbsFinish(pool);
+  NextMethod(Inst, AMCZPool, finish)(MustBeA(Inst, pool));
   return res;
 }
 
@@ -823,8 +825,9 @@ static Res AMCZInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
  *
  * See <design/poolamc/#finish>.
  */
-static void AMCFinish(Pool pool)
+static void AMCFinish(Inst inst)
 {
+  Pool pool = MustBeA(AbstractPool, inst);
   AMC amc = MustBeA(AMCZPool, pool);
   Ring ring;
   Ring node, nextNode;
@@ -867,7 +870,8 @@ static void AMCFinish(Pool pool)
   }
 
   amc->sig = SigInvalid;
-  PoolAbsFinish(pool);
+
+  NextMethod(Inst, AMCZPool, finish)(inst);
 }
 
 
@@ -1961,10 +1965,11 @@ static Size AMCFreeSize(Pool pool)
  * See <design/poolamc/#describe>.
  */
 
-static Res AMCDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
+static Res AMCDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 {
-  Res res;
+  Pool pool = CouldBeA(AbstractPool, inst);
   AMC amc = CouldBeA(AMCZPool, pool);
+  Res res;
   Ring node, nextNode;
   const char *rampmode;
 
@@ -1973,7 +1978,7 @@ static Res AMCDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
   if (stream == NULL)
     return ResPARAM;
 
-  res = NextMethod(Pool, AMCZPool, describe)(pool, stream, depth);
+  res = NextMethod(Inst, AMCZPool, describe)(inst, stream, depth);
   if (res != ResOK)
     return res;
 
@@ -2005,7 +2010,7 @@ static Res AMCDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
     /* SegDescribes */
     RING_FOR(node, &pool->segRing, nextNode) {
       Seg seg = RING_ELT(Seg, poolRing, node);
-      res = AMCSegDescribe(seg, stream, depth + 2);
+      res = SegDescribe(seg, stream, depth + 2);
       if(res != ResOK)
         return res;
     }
@@ -2022,11 +2027,12 @@ DEFINE_CLASS(Pool, AMCZPool, klass)
   INHERIT_CLASS(klass, AMCZPool, AbstractSegBufPool);
   PoolClassMixInFormat(klass);
   PoolClassMixInCollect(klass);
+  klass->instClassStruct.describe = AMCDescribe;
+  klass->instClassStruct.finish = AMCFinish;
   klass->size = sizeof(AMCStruct);
   klass->attr |= AttrMOVINGGC;
   klass->varargs = AMCVarargs;
   klass->init = AMCZInit;
-  klass->finish = AMCFinish;
   klass->bufferFill = AMCBufferFill;
   klass->bufferEmpty = AMCBufferEmpty;
   klass->whiten = AMCWhiten;
@@ -2040,7 +2046,6 @@ DEFINE_CLASS(Pool, AMCZPool, klass)
   klass->bufferClass = amcBufClassGet;
   klass->totalSize = AMCTotalSize;
   klass->freeSize = AMCFreeSize;  
-  klass->describe = AMCDescribe;
 }
 
 

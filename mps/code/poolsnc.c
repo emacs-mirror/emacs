@@ -138,8 +138,9 @@ static Res SNCBufInit(Buffer buffer, Pool pool, Bool isMutator, ArgList args)
 
 /* SNCBufFinish -- Finish an SNCBuf */
 
-static void SNCBufFinish(Buffer buffer)
+static void SNCBufFinish(Inst inst)
 {
+  Buffer buffer = MustBeA(Buffer, inst);
   SNCBuf sncbuf = MustBeA(SNCBuf, buffer);
   SNC snc = MustBeA(SNCPool, BufferPool(buffer));
 
@@ -148,7 +149,7 @@ static void SNCBufFinish(Buffer buffer)
 
   sncbuf->sig = SigInvalid;
 
-  NextMethod(Buffer, SNCBuf, finish)(buffer);
+  NextMethod(Inst, SNCBuf, finish)(inst);
 }
 
 
@@ -157,9 +158,9 @@ static void SNCBufFinish(Buffer buffer)
 DEFINE_CLASS(Buffer, SNCBuf, klass)
 {
   INHERIT_CLASS(klass, SNCBuf, RankBuf);
+  klass->instClassStruct.finish = SNCBufFinish;
   klass->size = sizeof(SNCBufStruct);
   klass->init = SNCBufInit;
-  klass->finish = SNCBufFinish;
 }
 
 
@@ -380,13 +381,12 @@ static Res SNCInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
 
 /* SNCFinish -- finish an SNC pool */
 
-static void SNCFinish(Pool pool)
+static void SNCFinish(Inst inst)
 {
-  SNC snc;
+  Pool pool = MustBeA(AbstractPool, inst);
+  SNC snc = MustBeA(SNCPool, pool);
   Ring ring, node, nextNode;
 
-  AVERT(Pool, pool);
-  snc = PoolSNC(pool);
   AVERT(SNC, snc);
 
   ring = &pool->segRing;
@@ -396,7 +396,7 @@ static void SNCFinish(Pool pool)
     SegFree(seg);
   }
 
-  PoolAbsFinish(pool);
+  NextMethod(Inst, SNCPool, finish)(inst);
 }
 
 
@@ -669,10 +669,10 @@ DEFINE_CLASS(Pool, SNCPool, klass)
 {
   INHERIT_CLASS(klass, SNCPool, AbstractScanPool);
   PoolClassMixInFormat(klass);
+  klass->instClassStruct.finish = SNCFinish;
   klass->size = sizeof(SNCStruct);
   klass->varargs = SNCVarargs;
   klass->init = SNCInit;
-  klass->finish = SNCFinish;
   klass->bufferFill = SNCBufferFill;
   klass->bufferEmpty = SNCBufferEmpty;
   klass->scan = SNCScan;

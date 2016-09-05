@@ -206,7 +206,7 @@ static Res DebugPoolInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
   return ResOK;
 
 tagFail:
-  SuperclassPoly(Pool, klass)->finish(pool);
+  SuperclassPoly(Inst, klass)->finish(MustBeA(Inst, pool));
   AVER(res != ResOK);
   return res;
 }
@@ -214,8 +214,9 @@ tagFail:
 
 /* DebugPoolFinish -- finish method for a debug pool */
 
-static void DebugPoolFinish(Pool pool)
+static void DebugPoolFinish(Inst inst)
 {
+  Pool pool = MustBeA(AbstractPool, inst);
   PoolDebugMixin debug;
   PoolClass klass;
 
@@ -229,7 +230,7 @@ static void DebugPoolFinish(Pool pool)
     PoolDestroy(debug->tagPool);
   }
   klass = ClassOfPoly(Pool, pool);
-  SuperclassPoly(Pool, klass)->finish(pool);
+  SuperclassPoly(Inst, klass)->finish(inst);
 }
 
 
@@ -775,8 +776,8 @@ void DebugPoolCheckFreeSpace(Pool pool)
 void PoolClassMixInDebug(PoolClass klass)
 {
   /* Can't check klass because it's not initialized yet */
+  klass->instClassStruct.finish = DebugPoolFinish;
   klass->init = DebugPoolInit;
-  klass->finish = DebugPoolFinish;
   klass->alloc = DebugPoolAlloc;
   klass->free = DebugPoolFree;
 }

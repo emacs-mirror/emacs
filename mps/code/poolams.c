@@ -266,7 +266,7 @@ static Res AMSSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   return ResOK;
 
 failCreateTables:
-  NextMethod(Seg, AMSSeg, finish)(seg);
+  NextMethod(Inst, AMSSeg, finish)(MustBeA(Inst, seg));
 failNextMethod:
   AVER(res != ResOK);
   return res;
@@ -275,18 +275,14 @@ failNextMethod:
 
 /* AMSSegFinish -- Finish method for AMS segments */
 
-static void AMSSegFinish(Seg seg)
+static void AMSSegFinish(Inst inst)
 {
-  AMSSeg amsseg;
-  AMS ams;
-  Arena arena;
+  Seg seg = MustBeA(Seg, inst);
+  AMSSeg amsseg = MustBeA(AMSSeg, seg);
+  AMS ams = amsseg->ams;
+  Arena arena = PoolArena(AMSPool(ams));
 
-  AVERT(Seg, seg);
-  amsseg = Seg2AMSSeg(seg);
   AVERT(AMSSeg, amsseg);
-  ams = amsseg->ams;
-  AVERT(AMS, ams);
-  arena = PoolArena(AMSPool(ams));
   AVER(!SegHasBuffer(seg));
 
   /* keep the destructions in step with AMSSegInit failure cases */
@@ -299,7 +295,7 @@ static void AMSSegFinish(Seg seg)
   amsseg->sig = SigInvalid;
 
   /* finish the superclass fields last */
-  NextMethod(Seg, AMSSeg, finish)(seg);
+  NextMethod(Inst, AMSSeg, finish)(inst);
 }
 
 
@@ -522,9 +518,10 @@ failCreateTablesLo:
     } \
   END
 
-static Res AMSSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
+static Res AMSSegDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 {
-  AMSSeg amsseg = CouldBeA(AMSSeg, seg);
+  AMSSeg amsseg = CouldBeA(AMSSeg, inst);
+  Seg seg = CouldBeA(Seg, amsseg);
   Res res;
   Buffer buffer;
   Bool hasBuffer;
@@ -536,7 +533,7 @@ static Res AMSSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
     return ResPARAM;
 
   /* Describe the superclass fields first via next-method call */
-  res = NextMethod(Seg, AMSSeg, describe)(seg, stream, depth);
+  res = NextMethod(Inst, AMSSeg, describe)(inst, stream, depth);
   if (res != ResOK)
     return res;
 
@@ -618,12 +615,12 @@ static Res AMSSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
 DEFINE_CLASS(Seg, AMSSeg, klass)
 {
   INHERIT_CLASS(klass, AMSSeg, GCSeg);
+  klass->instClassStruct.describe = AMSSegDescribe;
+  klass->instClassStruct.finish = AMSSegFinish;
   klass->size = sizeof(AMSSegStruct);
   klass->init = AMSSegInit;
-  klass->finish = AMSSegFinish;
   klass->merge = AMSSegMerge;
   klass->split = AMSSegSplit;
-  klass->describe = AMSSegDescribe;
   AVERT(SegClass, klass);
 }
 
@@ -839,7 +836,7 @@ static Res AMSInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
   return ResOK;
 
 failGenInit:
-  PoolAbsFinish(pool);
+  NextMethod(Inst, AMSPool, finish)(MustBeA(Inst, pool));
 failAbsInit:
   return res;
 }
@@ -850,12 +847,11 @@ failAbsInit:
  * Destroys all the segs in the pool.  Can't invalidate the AMS until
  * we've destroyed all the segments, as it may be checked.
  */
-void AMSFinish(Pool pool)
+void AMSFinish(Inst inst)
 {
-  AMS ams;
+  Pool pool = MustBeA(AbstractPool, inst);
+  AMS ams = MustBeA(AMSPool, pool);
 
-  AVERT(Pool, pool);
-  ams = PoolAMS(pool);
   AVERT(AMS, ams);
 
   ams->segsDestroy(ams);
@@ -864,7 +860,8 @@ void AMSFinish(Pool pool)
   RingFinish(&ams->segRing);
   PoolGenFinish(ams->pgen);
   ams->pgen = NULL;
-  PoolAbsFinish(pool);
+
+  NextMethod(Inst, AMSPool, finish)(inst);
 }
 
 
@@ -1696,8 +1693,9 @@ static Size AMSFreeSize(Pool pool)
  * Iterates over the segments, describing all of them.
  */
 
-static Res AMSDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
+static Res AMSDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 {
+  Pool pool = CouldBeA(AbstractPool, inst);
   AMS ams = CouldBeA(AMSPool, pool);
   Ring node, nextNode;
   Res res;
@@ -1707,7 +1705,7 @@ static Res AMSDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
   if (stream == NULL)
     return ResPARAM;
 
-  res = NextMethod(Pool, AMSPool, describe)(pool, stream, depth);
+  res = NextMethod(Inst, AMSPool, describe)(inst, stream, depth);
   if (res != ResOK)
     return res;
 
@@ -1744,10 +1742,11 @@ DEFINE_CLASS(Pool, AMSPool, klass)
 {
   INHERIT_CLASS(klass, AMSPool, AbstractCollectPool);
   PoolClassMixInFormat(klass);
+  klass->instClassStruct.describe = AMSDescribe;
+  klass->instClassStruct.finish = AMSFinish;
   klass->size = sizeof(AMSStruct);
   klass->varargs = AMSVarargs;
   klass->init = AMSInit;
-  klass->finish = AMSFinish;
   klass->bufferClass = RankBufClassGet;
   klass->bufferFill = AMSBufferFill;
   klass->bufferEmpty = AMSBufferEmpty;
@@ -1762,7 +1761,6 @@ DEFINE_CLASS(Pool, AMSPool, klass)
   klass->freewalk = AMSFreeWalk;
   klass->totalSize = AMSTotalSize;
   klass->freeSize = AMSFreeSize;
-  klass->describe = AMSDescribe;
   AVERT(PoolClass, klass);
 }
 

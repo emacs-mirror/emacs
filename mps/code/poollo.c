@@ -61,7 +61,7 @@ typedef struct LOSegStruct {
 
 /* forward decls */
 static Res loSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args);
-static void loSegFinish(Seg seg);
+static void loSegFinish(Inst inst);
 static Count loSegGrains(LOSeg loseg);
 
 
@@ -71,9 +71,9 @@ DEFINE_CLASS(Seg, LOSeg, klass)
 {
   INHERIT_CLASS(klass, LOSeg, GCSeg);
   SegClassMixInNoSplitMerge(klass);
+  klass->instClassStruct.finish = loSegFinish;
   klass->size = sizeof(LOSegStruct);
   klass->init = loSegInit;
-  klass->finish = loSegFinish;
 }
 
 
@@ -143,7 +143,7 @@ static Res loSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 failAllocTable:
   ControlFree(arena, loseg->mark, tablebytes);
 failMarkTable:
-  NextMethod(Seg, LOSeg, finish)(seg);
+  NextMethod(Inst, LOSeg, finish)(MustBeA(Inst, seg));
 failSuperInit:
   AVER(res != ResOK);
   return res;
@@ -152,8 +152,9 @@ failSuperInit:
 
 /* loSegFinish -- Finish method for LO segments */
 
-static void loSegFinish(Seg seg)
+static void loSegFinish(Inst inst)
 {
+  Seg seg = MustBeA(Seg, inst);
   LOSeg loseg = MustBeA(LOSeg, seg);
   Pool pool = SegPool(seg);
   Arena arena = PoolArena(pool);
@@ -167,7 +168,7 @@ static void loSegFinish(Seg seg)
   ControlFree(arena, loseg->alloc, tablesize);
   ControlFree(arena, loseg->mark, tablesize);
 
-  NextMethod(Seg, LOSeg, finish)(seg);
+  NextMethod(Inst, LOSeg, finish)(inst);
 }
 
 
@@ -502,7 +503,7 @@ static Res LOInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
   return ResOK;
 
 failGenInit:
-  PoolAbsFinish(pool);
+  NextMethod(Inst, LOPool, finish)(MustBeA(Inst, pool));
 failAbsInit:
   AVER(res != ResOK);
   return res;
@@ -511,8 +512,9 @@ failAbsInit:
 
 /* LOFinish -- finish an LO pool */
 
-static void LOFinish(Pool pool)
+static void LOFinish(Inst inst)
 {
+  Pool pool = MustBeA(AbstractPool, inst);
   LO lo = MustBeA(LOPool, pool);
   Ring node, nextNode;
 
@@ -531,7 +533,8 @@ static void LOFinish(Pool pool)
   PoolGenFinish(lo->pgen);
 
   lo->sig = SigInvalid;
-  PoolAbsFinish(pool);
+
+  NextMethod(Inst, LOPool, finish)(inst);
 }
 
 
@@ -783,10 +786,10 @@ DEFINE_CLASS(Pool, LOPool, klass)
   INHERIT_CLASS(klass, LOPool, AbstractSegBufPool);
   PoolClassMixInFormat(klass);
   PoolClassMixInCollect(klass);
+  klass->instClassStruct.finish = LOFinish;
   klass->size = sizeof(LOStruct);
   klass->varargs = LOVarargs;
   klass->init = LOInit;
-  klass->finish = LOFinish;
   klass->bufferFill = LOBufferFill;
   klass->bufferEmpty = LOBufferEmpty;
   klass->whiten = LOWhiten;

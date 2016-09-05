@@ -47,6 +47,11 @@ static void InstClassInitInternal(InstClass klass)
   klass->level = 0;
   klass->display[klass->level] = CLASS_ID(Inst);
 
+  /* Generic methods */
+  klass->describe = InstDescribe;
+  klass->finish = InstFinish;
+  klass->init = InstInit;
+
   /* We can't call CLASS(InstClass) here because it causes a loop back
      to here, so we have to tie this knot specially. */
   klass->instStruct.klass = &CLASS_STATIC(InstClass);
@@ -70,6 +75,9 @@ Bool InstClassCheck(InstClass klass)
   for (i = klass->level + 1; i < ClassDEPTH; ++i) {
     CHECKL(klass->display[i] == NULL);
   }
+  CHECKL(FUNCHECK(klass->describe));
+  CHECKL(FUNCHECK(klass->finish));
+  CHECKL(FUNCHECK(klass->init));
   return TRUE;
 }
 
@@ -101,7 +109,10 @@ static InstClassStruct invalidClassStruct = {
   /* .name = */       "Invalid",
   /* .superclass = */ &invalidClassStruct,
   /* .level = */      0,
-  /* .display = */    {(ClassId)&invalidClassStruct}
+  /* .display = */    {(ClassId)&invalidClassStruct},
+  /* .describe = */   NULL,
+  /* .finish = */     NULL,
+  /* .init = */       NULL,
 };
   
 void InstFinish(Inst inst)

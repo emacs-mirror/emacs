@@ -637,8 +637,9 @@ static Res MRGInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
 
 /* MRGFinish -- finish a MRG pool */
 
-static void MRGFinish(Pool pool)
+static void MRGFinish(Inst inst)
 {
+  Pool pool = MustBeA(AbstractPool, inst);
   MRG mrg = MustBeA(MRGPool, pool);
   Ring node, nextNode;
 
@@ -676,7 +677,7 @@ static void MRGFinish(Pool pool)
   RingFinish(&mrg->refRing);
   /* <design/poolmrg/#trans.no-finish> */
 
-  PoolAbsFinish(pool);
+  NextMethod(Inst, MRGPool, finish)(inst);
 }
 
 
@@ -771,8 +772,9 @@ Res MRGDeregister(Pool pool, Ref obj)
  * and having MRGDescribe iterate over all the pool's segments.
  */
 
-static Res MRGDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
+static Res MRGDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 {
+  Pool pool = CouldBeA(AbstractPool, inst);
   MRG mrg = CouldBeA(MRGPool, pool);
   Arena arena;
   Ring node, nextNode;
@@ -784,7 +786,7 @@ static Res MRGDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
   if (stream == NULL)
     return ResPARAM;
 
-  res = NextMethod(Pool, MRGPool, describe)(pool, stream, depth);
+  res = NextMethod(Inst, MRGPool, describe)(inst, stream, depth);
   if (res != ResOK)
     return res;
 
@@ -840,13 +842,13 @@ static Res MRGScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 DEFINE_CLASS(Pool, MRGPool, klass)
 {
   INHERIT_CLASS(klass, MRGPool, AbstractPool);
+  klass->instClassStruct.describe = MRGDescribe;
+  klass->instClassStruct.finish = MRGFinish;
   klass->size = sizeof(MRGStruct);
   klass->init = MRGInit;
-  klass->finish = MRGFinish;
   klass->grey = PoolTrivGrey;
   klass->blacken = PoolTrivBlacken;
   klass->scan = MRGScan;
-  klass->describe = MRGDescribe;
 }
 
 
