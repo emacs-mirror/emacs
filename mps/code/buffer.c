@@ -487,7 +487,7 @@ Res BufferReserve(Addr *pReturn, Buffer buffer, Size size)
   AVERT(Buffer, buffer);
   AVER(size > 0);
   AVER(SizeIsAligned(size, BufferPool(buffer)->alignment));
-  AVER(BufferIsReady(buffer));
+  AVER(BufferIsReady(buffer)); /* <design/check/#.common> */
 
   /* Is there enough room in the unallocated portion of the buffer to */
   /* satisfy the request?  If so, just increase the alloc marker and */
@@ -1136,7 +1136,7 @@ static void segBufAttach(Buffer buffer, Addr base, Addr limit,
   found = SegOfAddr(&seg, arena, base);
   AVER(found);
   AVER(segbuf->seg == NULL);
-  AVER(SegBuffer(seg) == NULL);
+  AVER(!SegHasBuffer(seg));
   AVER(SegBase(seg) <= base);
   AVER(limit <= SegLimit(seg));
 
@@ -1153,11 +1153,8 @@ static void segBufAttach(Buffer buffer, Addr base, Addr limit,
 static void segBufDetach(Buffer buffer)
 {
   SegBuf segbuf = MustBeA(SegBuf, buffer);
-  Seg seg;
-
-  seg = segbuf->seg;
-  AVER(seg != NULL);
-  SegSetBuffer(seg, NULL);
+  Seg seg = segbuf->seg;
+  SegUnsetBuffer(seg);
   segbuf->seg = NULL;
 }
 

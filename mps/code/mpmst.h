@@ -222,6 +222,7 @@ typedef struct SegClassStruct {
   SegSetSummaryMethod setSummary; /* set the segment summary  */
   SegBufferMethod buffer;       /* get the segment buffer  */
   SegSetBufferMethod setBuffer; /* set the segment buffer  */
+  SegUnsetBufferMethod unsetBuffer; /* unset the segment buffer */
   SegSetGreyMethod setGrey;     /* change greyness of segment */
   SegSetWhiteMethod setWhite;   /* change whiteness of segment */
   SegSetRankSetMethod setRankSet; /* change rank set of segment */
@@ -685,7 +686,9 @@ typedef struct SortStruct {
 
 typedef struct ShieldStruct {
   Sig sig;           /* design.mps.sig */
-  Bool inside;       /* design.mps.shield.def.inside */
+  BOOLFIELD(inside); /* design.mps.shield.def.inside */
+  BOOLFIELD(suspended); /* mutator suspended? */
+  BOOLFIELD(queuePending); /* queue insertion pending? */
   Seg *queue;        /* queue of unsynced segs */
   Count length;      /* number of elements in shield queue */
   Index next;        /* next free element in shield queue */
@@ -693,7 +696,6 @@ typedef struct ShieldStruct {
   Count depth;       /* sum of depths of all segs */
   Count unsynced;    /* number of unsynced segments */
   Count holds;       /* number of holds */
-  Bool suspended;    /* mutator suspended? */
   SortStruct sortStruct; /* workspace for queue sort */
 } ShieldStruct;
 

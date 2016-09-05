@@ -197,8 +197,7 @@ static void AMCSegSketch(Seg seg, char *pbSketch, size_t cbSketch)
     pbSketch[2] = 'W';  /* White */
   }
 
-  buffer = SegBuffer(seg);
-  if(buffer == NULL) {
+  if (!SegBuffer(&buffer, seg)) {
     pbSketch[3] = '_';
   } else {
     Bool mut = BufferIsMutator(buffer);
@@ -244,6 +243,7 @@ static Res AMCSegDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
   Align step;
   Size row;
   char abzSketch[5];
+  Buffer buffer;
 
   if (!TESTC(amcSeg, amcseg))
     return ResPARAM;
@@ -278,8 +278,8 @@ static Res AMCSegDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
   if (res != ResOK)
     return res;
 
-  if (SegBuffer(seg) != NULL)
-    init = BufferGetInit(SegBuffer(seg));
+  if (SegBuffer(&buffer, seg))
+    init = BufferGetInit(buffer);
   else
     init = limit;
   
@@ -1104,8 +1104,7 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
 
   AVERT(Trace, trace);
 
-  buffer = SegBuffer(seg);
-  if(buffer != NULL) {
+  if (SegBuffer(&buffer, seg)) {
     AVERT(Buffer, buffer);
 
     if(!BufferIsMutator(buffer)) {      /* forwarding buffer */
@@ -1254,6 +1253,7 @@ static Res amcScanNailedOnce(Bool *totalReturn, Bool *moreReturn,
   Addr p, limit;
   Nailboard board;
   Res res;
+  Buffer buffer;
 
   EVENT3(AMCScanBegin, amc, seg, ss); /* TODO: consider using own event */
 
@@ -1262,8 +1262,8 @@ static Res amcScanNailedOnce(Bool *totalReturn, Bool *moreReturn,
   NailboardClearNewNails(board);
 
   p = SegBase(seg);
-  while(SegBuffer(seg) != NULL) {
-    limit = BufferScanLimit(SegBuffer(seg));
+  while (SegBuffer(&buffer, seg)) {
+    limit = BufferScanLimit(buffer);
     if(p >= limit) {
       AVER(p == limit);
       goto returnGood;
@@ -1346,6 +1346,7 @@ static Res AMCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
   Format format;
   AMC amc = MustBeA(AMCZPool, pool);
   Res res;
+  Buffer buffer;
 
   AVER(totalReturn != NULL);
   AVERT(ScanState, ss);
@@ -1362,8 +1363,8 @@ static Res AMCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 
   base = AddrAdd(SegBase(seg), format->headerSize);
   /* <design/poolamc/#seg-scan.loop> */
-  while(SegBuffer(seg) != NULL) {
-    limit = AddrAdd(BufferScanLimit(SegBuffer(seg)),
+  while (SegBuffer(&buffer, seg)) {
+    limit = AddrAdd(BufferScanLimit(buffer),
                     format->headerSize);
     if(base >= limit) {
       /* @@@@ Are we sure we don't need scan the rest of the */
@@ -1723,13 +1724,13 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
 
   /* Free the seg if we can; fixes .nailboard.limitations.middle. */
   if(preservedInPlaceCount == 0
-     && (SegBuffer(seg) == NULL)
+     && (!SegHasBuffer(seg))
      && (SegNailed(seg) == TraceSetEMPTY)) {
 
     amcGen gen = amcSegGen(seg);
 
     /* We may not free a buffered seg. */
-    AVER(SegBuffer(seg) == NULL);
+    AVER(!SegHasBuffer(seg));
 
     PoolGenFree(&gen->pgen, seg, 0, SegSize(seg), 0, MustBeA(amcSeg, seg)->deferred);
   }
@@ -1771,7 +1772,7 @@ static void AMCReclaim(Pool pool, Trace trace, Seg seg)
 
   /* We may not free a buffered seg.  (But all buffered + condemned */
   /* segs should have been nailed anyway). */
-  AVER(SegBuffer(seg) == NULL);
+  AVER(!SegHasBuffer(seg));
 
   STATISTIC(trace->reclaimSize += SegSize(seg));
 
@@ -1888,6 +1889,7 @@ static Res AMCAddrObject(Addr *pReturn, Pool pool, Seg seg, Addr addr)
   Res res;
   Arena arena;
   Addr base, limit;    /* range of objects on segment */
+  Buffer buffer;
 
   AVER(pReturn != NULL);
   AVERT(Pool, pool);
@@ -1898,7 +1900,7 @@ static Res AMCAddrObject(Addr *pReturn, Pool pool, Seg seg, Addr addr)
 
   arena = PoolArena(pool);
   base = SegBase(seg);
-  if (SegBuffer(seg) != NULL) {
+  if (SegBuffer(&buffer, seg)) {
     /* We use BufferGetInit here (and not BufferScanLimit) because we
      * want to be able to find objects that have been allocated and
      * committed since the last flip. These objects lie between the
@@ -1910,7 +1912,7 @@ static Res AMCAddrObject(Addr *pReturn, Pool pool, Seg seg, Addr addr)
      * *must* point inside a live object and we stop skipping once we
      * have found it. The init pointer serves this purpose.
      */
-    limit = BufferGetInit(SegBuffer(seg));
+    limit = BufferGetInit(buffer);
   } else {
     limit = SegLimit(seg);
   }

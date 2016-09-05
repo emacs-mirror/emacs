@@ -1,7 +1,7 @@
 /* poolmv.c: MANUAL VARIABLE POOL
  *
  * $Id$
- * Copyright (c) 2001-2015 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * **** RESTRICTION: This pool may not allocate from the arena control
@@ -732,22 +732,22 @@ static Size MVTotalSize(Pool pool)
 
 static Size MVFreeSize(Pool pool)
 {
-  MV mv;
-  Size size = 0;
-  Ring node, next;
+  MV mv = MustBeA(MVPool, pool);
 
-  AVERT(Pool, pool);
-  mv = PoolMV(pool);
-  AVERT(MV, mv);
-
-  RING_FOR(node, &mv->spans, next) {
-    MVSpan span = RING_ELT(MVSpan, spans, node);
-    AVERT(MVSpan, span);
-    size += span->free;
+#if defined(AVER_AND_CHECK_ALL)
+  {
+    Size size = 0;
+    Ring node, next;
+    RING_FOR(node, &mv->spans, next) {
+      MVSpan span = RING_ELT(MVSpan, spans, node);
+      AVERT(MVSpan, span);
+      size += span->free;
+    }
+    AVER(size == mv->free);
   }
+#endif
 
-  AVER(size == mv->free + mv->lost);
-  return size;
+  return mv->free + mv->lost;
 }
 
 
@@ -929,7 +929,7 @@ Bool MVCheck(MV mv)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2015 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

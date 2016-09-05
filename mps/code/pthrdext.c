@@ -1,7 +1,7 @@
 /* pthreadext.c: POSIX THREAD EXTENSIONS
  *
  *  $Id$
- *  Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ *  Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: Provides extension to Pthreads.
  *
@@ -26,15 +26,6 @@
 #include "pthrdext.h"
 
 SRCID(pthreadext, "$Id$");
-
-
-/* PTHREADEXT_SIGSUSPEND, PTHREADEXT_SIGRESUME -- signals used
- *
- * See <design/pthreadext/#impl.signals>
- */
-
-#define PTHREADEXT_SIGSUSPEND SIGXFSZ
-#define PTHREADEXT_SIGRESUME SIGXCPU
 
 
 /* Static data initialized on first use of the module
@@ -366,7 +357,7 @@ unlock:
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
