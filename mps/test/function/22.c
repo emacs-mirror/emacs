@@ -27,8 +27,8 @@ static void test(void) {
  for (p=0; p<2000; p++) {
   report("promise", "%i", p);
   die(mps_alloc(&r, pool, 1024*1024), "alloc");
-  mps_free(pool, q, 256*1024-8);
-  q = (mps_addr_t) ((char *) r + 8);
+  mps_free(pool, q, 256*1024-MPS_PF_ALIGN);
+  q = (mps_addr_t) ((char *) r + MPS_PF_ALIGN);
  }
 }
 

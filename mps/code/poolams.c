@@ -524,19 +524,16 @@ failCreateTablesLo:
 
 static Res AMSSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
 {
+  AMSSeg amsseg = CouldBeA(AMSSeg, seg);
   Res res;
-  AMSSeg amsseg;
   Buffer buffer;
   Bool hasBuffer;
   Index i;
 
-  if (!TESTT(Seg, seg))
-    return ResFAIL;
+  if (!TESTC(AMSSeg, amsseg))
+    return ResPARAM;
   if (stream == NULL)
-    return ResFAIL;
-  amsseg = Seg2AMSSeg(seg);
-  if (!TESTT(AMSSeg, amsseg))
-    return ResFAIL;
+    return ResPARAM;
 
   /* Describe the superclass fields first via next-method call */
   res = NextMethod(Seg, AMSSeg, describe)(seg, stream, depth);
@@ -545,13 +542,13 @@ static Res AMSSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
 
   hasBuffer = SegBuffer(&buffer, seg);
 
-  res = WriteF(stream, depth,
-               "  AMS $P\n", (WriteFP)amsseg->ams,
-               "  grains $W\n", (WriteFW)amsseg->grains,
-               "  freeGrains $W\n", (WriteFW)amsseg->freeGrains,
-               "  buffferedGrains $W\n", (WriteFW)amsseg->bufferedGrains,
-               "  newGrains $W\n", (WriteFW)amsseg->newGrains,
-               "  oldGrains $W\n", (WriteFW)amsseg->oldGrains,
+  res = WriteF(stream, depth + 2,
+               "AMS $P\n", (WriteFP)amsseg->ams,
+               "grains $W\n", (WriteFW)amsseg->grains,
+               "freeGrains $W\n", (WriteFW)amsseg->freeGrains,
+               "buffferedGrains $W\n", (WriteFW)amsseg->bufferedGrains,
+               "newGrains $W\n", (WriteFW)amsseg->newGrains,
+               "oldGrains $W\n", (WriteFW)amsseg->oldGrains,
                NULL);
   if (res != ResOK)
     return res;
@@ -1493,7 +1490,7 @@ static Res AMSFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   case RankFINAL:
   case RankWEAK:
     AVER_CRITICAL(AddrIsAligned(base, PoolAlignment(pool)));
-    AVER_CRITICAL(AMS_ALLOCED(seg, i));
+    AVER_CRITICAL(AMS_ALLOCED(seg, i)); /* <design/check/#.common> */
     if (AMS_IS_WHITE(seg, i)) {
       ss->wasMarked = FALSE;
       if (ss->rank == RankWEAK) { /* then splat the reference */
@@ -1698,25 +1695,24 @@ static Size AMSFreeSize(Pool pool)
  *
  * Iterates over the segments, describing all of them.
  */
+
 static Res AMSDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 {
-  AMS ams;
+  AMS ams = CouldBeA(AMSPool, pool);
   Ring node, nextNode;
   Res res;
 
-  if (!TESTT(Pool, pool))
-    return ResFAIL;
-  ams = PoolAMS(pool);
-  if (!TESTT(AMS, ams))
-    return ResFAIL;
+  if (!TESTC(AMSPool, ams))
+    return ResPARAM;
   if (stream == NULL)
-    return ResFAIL;
+    return ResPARAM;
 
-  res = WriteF(stream, depth,
-               "AMS $P {\n", (WriteFP)ams,
-               "  pool $P ($U)\n",
-               (WriteFP)pool, (WriteFU)pool->serial,
-               "  grain shift $U\n", (WriteFU)ams->grainShift,
+  res = NextMethod(Pool, AMSPool, describe)(pool, stream, depth);
+  if (res != ResOK)
+    return res;
+
+  res = WriteF(stream, depth + 2,
+               "grain shift $U\n", (WriteFU)ams->grainShift,
                NULL);
   if (res != ResOK)
     return res;
@@ -1734,10 +1730,6 @@ static Res AMSDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
     if (res != ResOK)
       return res;
   }
-
-  res = WriteF(stream, depth, "} AMS $P\n",(WriteFP)ams, NULL);
-  if (res != ResOK)
-    return res;
 
   return ResOK;
 }
