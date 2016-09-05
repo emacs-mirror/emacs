@@ -560,6 +560,7 @@ static Res SNCFramePop(Pool pool, Buffer buf, AllocFrame frame)
     Arena arena;
     Seg seg = NULL;     /* suppress "may be used uninitialized" */
     Bool foundSeg;
+    Buffer segBuf;
 
     arena = PoolArena(pool);
     addr = (Addr)frame;
@@ -567,7 +568,7 @@ static Res SNCFramePop(Pool pool, Buffer buf, AllocFrame frame)
     AVER(foundSeg); /* <design/check/#.common> */
     AVER(SegPool(seg) == pool);
 
-    if (SegBuffer(seg) == buf) {
+    if (SegBuffer(&segBuf, seg) && segBuf == buf) {
       /* don't need to change the segment - just the alloc pointers */
       AVER(addr <= BufferScanLimit(buf));  /* check direction of pop */
       BufferSetAllocAddr(buf, addr);

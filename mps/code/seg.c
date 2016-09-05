@@ -332,12 +332,21 @@ void SegSetRankAndSummary(Seg seg, RankSet rankSet, RefSet summary)
 }
 
 
-/* SegBuffer -- return the buffer of a segment */
+/* SegHasBuffer -- segment has a buffer? */
 
-Buffer SegBuffer(Seg seg)
+Bool SegHasBuffer(Seg seg)
+{
+  Buffer buffer;
+  return SegBuffer(&buffer, seg);
+}
+
+
+/* SegBuffer -- get the buffer of a segment */
+
+Bool SegBuffer(Buffer *bufferReturn, Seg seg)
 {
   AVERT_CRITICAL(Seg, seg);  /* .seg.critical */
-  return Method(Seg, seg, buffer)(seg);
+  return Method(Seg, seg, buffer)(bufferReturn, seg);
 }
 
 
@@ -346,9 +355,17 @@ Buffer SegBuffer(Seg seg)
 void SegSetBuffer(Seg seg, Buffer buffer)
 {
   AVERT(Seg, seg);
-  if (buffer != NULL)
-    AVERT(Buffer, buffer);
+  AVERT(Buffer, buffer);
   Method(Seg, seg, setBuffer)(seg, buffer);
+}
+
+
+/* SegUnsetBuffer -- remove the buffer from a segment */
+
+void SegUnsetBuffer(Seg seg)
+{
+  AVERT(Seg, seg);
+  Method(Seg, seg, unsetBuffer)(seg);
 }
 
 
@@ -361,8 +378,7 @@ Addr SegBufferScanLimit(Seg seg)
 
   AVERT(Seg, seg);
 
-  buf = SegBuffer(seg);
-  if (buf == NULL) {
+  if (!SegBuffer(&buf, seg)) {
     /* Segment is unbuffered: entire segment scannable */
     limit = SegLimit(seg);
   } else {
@@ -627,6 +643,7 @@ Res SegSplit(Seg *segLoReturn, Seg *segHiReturn, Seg seg, Addr at)
   Arena arena;
   Res res;
   void *p;
+  Buffer buffer;
 
   AVER(NULL != segLoReturn);
   AVER(NULL != segHiReturn);
@@ -642,7 +659,7 @@ Res SegSplit(Seg *segLoReturn, Seg *segHiReturn, Seg seg, Addr at)
 
   /* Can only split a buffered segment if the entire buffer is below
    * the split point. */
-  AVER(SegBuffer(seg) == NULL || BufferLimit(SegBuffer(seg)) <= at);
+  AVER(!SegBuffer(&buffer, seg) || BufferLimit(buffer) <= at);
 
   if (seg->queued)
     ShieldFlush(arena);  /* see <design/seg/#split-merge.shield> */
@@ -824,11 +841,12 @@ static void segNoSetRankSummary(Seg seg, RankSet rankSet, RefSet summary)
 
 /* segNoBuffer -- non-method to return the buffer of a segment */
 
-static Buffer segNoBuffer(Seg seg)
+static Bool segNoBuffer(Buffer *bufferReturn, Seg seg)
 {
   AVERT(Seg, seg);
+  AVER(bufferReturn != NULL);
   NOTREACHED;
-  return NULL;
+  return FALSE;
 }
 
 
@@ -837,8 +855,16 @@ static Buffer segNoBuffer(Seg seg)
 static void segNoSetBuffer(Seg seg, Buffer buffer)
 {
   AVERT(Seg, seg);
-  if (buffer != NULL)
-    AVERT(Buffer, buffer);
+  AVERT(Buffer, buffer);
+  NOTREACHED;
+}
+
+
+/* segNoSetBuffer -- non-method to set the buffer of a segment */
+
+static void segNoUnsetBuffer(Seg seg)
+{
+  AVERT(Seg, seg);
   NOTREACHED;
 }
 
@@ -1345,7 +1371,7 @@ static void gcSegSetRankSummary(Seg seg, RankSet rankSet, RefSet summary)
 
 /* gcSegBuffer -- GCSeg method to return the buffer of a segment */
 
-static Buffer gcSegBuffer(Seg seg)
+static Bool gcSegBuffer(Buffer *bufferReturn, Seg seg)
 {
   GCSeg gcseg;
 
@@ -1354,7 +1380,12 @@ static Buffer gcSegBuffer(Seg seg)
   AVERT_CRITICAL(GCSeg, gcseg);           /* .seg.method.check */
   AVER_CRITICAL(&gcseg->segStruct == seg);
 
-  return gcseg->buffer;
+  if (gcseg->buffer != NULL) {
+    *bufferReturn = gcseg->buffer;
+    return TRUE;
+  }
+
+  return FALSE;
 }
 
 
@@ -1372,6 +1403,15 @@ static void gcSegSetBuffer(Seg seg, Buffer buffer)
   AVER_CRITICAL(&gcseg->segStruct == seg);
 
   gcseg->buffer = buffer;
+}
+
+
+/* gcSegUnsetBuffer -- GCSeg method to remove the buffer from a segment */
+
+static void gcSegUnsetBuffer(Seg seg)
+{
+  GCSeg gcseg = MustBeA_CRITICAL(GCSeg, seg); /* .seg.method.check */
+  gcseg->buffer = NULL;
 }
 
 
@@ -1582,7 +1622,8 @@ DEFINE_CLASS(Seg, Seg, klass)
   klass->finish = SegAbsFinish;
   klass->setSummary = segNoSetSummary; 
   klass->buffer = segNoBuffer; 
-  klass->setBuffer = segNoSetBuffer; 
+  klass->setBuffer = segNoSetBuffer;
+  klass->unsetBuffer = segNoUnsetBuffer;
   klass->setGrey = segNoSetGrey;
   klass->setWhite = segNoSetWhite;
   klass->setRankSet = segNoSetRankSet;
@@ -1607,7 +1648,8 @@ DEFINE_CLASS(Seg, GCSeg, klass)
   klass->finish = gcSegFinish;
   klass->setSummary = gcSegSetSummary; 
   klass->buffer = gcSegBuffer; 
-  klass->setBuffer = gcSegSetBuffer; 
+  klass->setBuffer = gcSegSetBuffer;
+  klass->unsetBuffer = gcSegUnsetBuffer;
   klass->setGrey = gcSegSetGrey;
   klass->setWhite = gcSegSetWhite;
   klass->setRankSet = gcSegSetRankSet;

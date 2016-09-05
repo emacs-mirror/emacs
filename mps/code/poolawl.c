@@ -589,7 +589,7 @@ static void AWLFinish(Pool pool)
   RING_FOR(node, ring, nextNode) {
     Seg seg = SegOfPoolRing(node);
     AWLSeg awlseg = MustBeA(AWLSeg, seg);
-    AVER(SegBuffer(seg) == NULL);
+    AVER(!SegHasBuffer(seg));
     AVERT(AWLSeg, awlseg);
     AVER(awlseg->bufferedGrains == 0);
     PoolGenFree(awl->pgen, seg,
@@ -627,7 +627,7 @@ static Res AWLBufferFill(Addr *baseReturn, Addr *limitReturn,
 
     /* Only try to allocate in the segment if it is not already */
     /* buffered, and has the same ranks as the buffer. */
-    if (SegBuffer(seg) == NULL
+    if (!SegHasBuffer(seg)
         && SegRankSet(seg) == BufferRankSet(buffer)
         && AWLGrainsSize(awl, awlseg->freeGrains) >= size
         && AWLSegAlloc(&base, &limit, awlseg, awl, size))
@@ -715,7 +715,7 @@ static Res AWLWhiten(Pool pool, Trace trace, Seg seg)
 {
   AWL awl = MustBeA(AWLPool, pool);
   AWLSeg awlseg = MustBeA(AWLSeg, seg);
-  Buffer buffer = SegBuffer(seg);
+  Buffer buffer;
   Count agedGrains, uncondemnedGrains;
 
   /* All parameters checked by generic PoolWhiten. */
@@ -724,7 +724,7 @@ static Res AWLWhiten(Pool pool, Trace trace, Seg seg)
   /* see <design/poolawl/#fun.condemn> */
   AVER(SegWhite(seg) == TraceSetEMPTY);
 
-  if(buffer == NULL) {
+  if (!SegBuffer(&buffer, seg)) {
     awlRangeWhiten(awlseg, 0, awlseg->grains);
     uncondemnedGrains = (Count)0;
   } else {
@@ -781,6 +781,8 @@ static void AWLRangeGrey(AWLSeg awlseg, Index base, Index limit)
 
 static void AWLGrey(Pool pool, Trace trace, Seg seg)
 {
+  Buffer buffer;
+  
   AVERT(Pool, pool);
   AVERT(Trace, trace);
   AVERT(Seg, seg);
@@ -790,9 +792,8 @@ static void AWLGrey(Pool pool, Trace trace, Seg seg)
     AWLSeg awlseg = MustBeA(AWLSeg, seg);
 
     SegSetGrey(seg, TraceSetAdd(SegGrey(seg), trace));
-    if (SegBuffer(seg) != NULL) {
+    if (SegBuffer(&buffer, seg)) {
       Addr base = SegBase(seg);
-      Buffer buffer = SegBuffer(seg);
 
       AWLRangeGrey(awlseg,
                    0,
@@ -866,7 +867,7 @@ static Res awlScanSinglePass(Bool *anyScannedReturn,
   AWL awl = MustBeA(AWLPool, pool);
   AWLSeg awlseg = MustBeA(AWLSeg, seg);
   Arena arena = PoolArena(pool);
-  Buffer buffer = SegBuffer(seg);
+  Buffer buffer;
   Format format = pool->format;
   Addr base = SegBase(seg);
   Addr limit = SegLimit(seg);
@@ -879,7 +880,7 @@ static Res awlScanSinglePass(Bool *anyScannedReturn,
 
   *anyScannedReturn = FALSE;
   p = base;
-  if (buffer != NULL && BufferScanLimit(buffer) != BufferLimit(buffer))
+  if (SegBuffer(&buffer, seg) && BufferScanLimit(buffer) != BufferLimit(buffer))
     bufferScanLimit = BufferScanLimit(buffer);
   else
     bufferScanLimit = limit;
@@ -1027,7 +1028,8 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
   AWL awl = MustBeA(AWLPool, pool);
   AWLSeg awlseg = MustBeA(AWLSeg, seg);
   Addr base = SegBase(seg);
-  Buffer buffer = SegBuffer(seg);
+  Buffer buffer;
+  Bool hasBuffer = SegBuffer(&buffer, seg);
   Format format = pool->format;
   Count reclaimedGrains = (Count)0;
   Count preservedInPlaceCount = (Count)0;
@@ -1046,7 +1048,7 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
       continue;
     }
     p = awlAddrOfIndex(base, awl, i);
-    if (buffer != NULL
+    if (hasBuffer
         && p == BufferScanLimit(buffer)
         && BufferScanLimit(buffer) != BufferLimit(buffer))
     {
@@ -1085,7 +1087,7 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
   trace->preservedInPlaceSize += preservedInPlaceSize;
   SegSetWhite(seg, TraceSetDel(SegWhite(seg), trace));
 
-  if (awlseg->freeGrains == awlseg->grains && buffer == NULL) {
+  if (awlseg->freeGrains == awlseg->grains && !hasBuffer) {
     /* No survivors */
     AVER(awlseg->bufferedGrains == 0);
     PoolGenFree(awl->pgen, seg,
@@ -1158,9 +1160,9 @@ static void AWLWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
     /* free grain */
     Addr next;
     Index i;
+    Buffer buffer;
 
-    if (SegBuffer(seg) != NULL) {
-      Buffer buffer = SegBuffer(seg);
+    if (SegBuffer(&buffer, seg)) {
       if (object == BufferScanLimit(buffer)
           && BufferScanLimit(buffer) != BufferLimit(buffer)) {
         /* skip over buffered area */

@@ -1135,7 +1135,7 @@ static void segBufAttach(Buffer buffer, Addr base, Addr limit,
   found = SegOfAddr(&seg, arena, base);
   AVER(found);
   AVER(segbuf->seg == NULL);
-  AVER(SegBuffer(seg) == NULL);
+  AVER(!SegHasBuffer(seg));
   AVER(SegBase(seg) <= base);
   AVER(limit <= SegLimit(seg));
 
@@ -1152,11 +1152,8 @@ static void segBufAttach(Buffer buffer, Addr base, Addr limit,
 static void segBufDetach(Buffer buffer)
 {
   SegBuf segbuf = MustBeA(SegBuf, buffer);
-  Seg seg;
-
-  seg = segbuf->seg;
-  AVER(seg != NULL);
-  SegSetBuffer(seg, NULL);
+  Seg seg = segbuf->seg;
+  SegUnsetBuffer(seg);
   segbuf->seg = NULL;
 }
 
