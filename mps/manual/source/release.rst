@@ -41,6 +41,14 @@ Other changes
 
    .. _job003883: https://www.ravenbrook.com/project/mps/issue/job003883/
 
+#. When the MPS collects a set of :term:`generations`, it
+   :term:`condemns` only the :term:`blocks` in those generations.
+   Previously, it also condemned blocks that happened to share a
+   region of memory with blocks currently or formerly allocated in
+   those generations. See job004000_.
+
+   .. _job004000: https://www.ravenbrook.com/project/mps/issue/job004000/
+
 #. Memory in :term:`allocation points` no longer contributes to the
    decision to start a collection, avoid wasted work repeatedly
    collecting generations with very small capacities. See job004007_.
