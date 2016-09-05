@@ -360,8 +360,7 @@ static void loSegReclaim(LOSeg loseg, Trace trace)
 
   STATISTIC(trace->reclaimSize += LOGrainsSize(lo, reclaimedGrains));
   STATISTIC(trace->preservedInPlaceCount += preservedInPlaceCount);
-  trace->preservedInPlaceSize += preservedInPlaceSize;
-
+  GenDescSurvived(lo->pgen->gen, trace, 0, preservedInPlaceSize);
   SegSetWhite(seg, TraceSetDel(SegWhite(seg), trace));
 
   if (!marked) {
@@ -676,7 +675,6 @@ static Res LOWhiten(Pool pool, Trace trace, Seg seg)
     BTCopyInvertRange(loseg->alloc, loseg->mark, 0, grains);
   }
 
-
   /* The unused part of the buffer remains buffered: the rest becomes old. */
   AVER(loseg->bufferedGrains >= uncondemnedGrains);
   agedGrains = loseg->bufferedGrains - uncondemnedGrains;
@@ -686,8 +684,10 @@ static Res LOWhiten(Pool pool, Trace trace, Seg seg)
   loseg->bufferedGrains = uncondemnedGrains;
   loseg->newGrains = 0;
 
-  trace->condemned += LOGrainsSize(lo, loseg->oldGrains);
-  SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace));
+  if (loseg->oldGrains > 0) {
+    GenDescCondemned(lo->pgen->gen, trace, LOGrainsSize(lo, loseg->oldGrains));
+    SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace));
+  }
 
   return ResOK;
 }

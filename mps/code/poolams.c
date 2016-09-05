@@ -1135,7 +1135,8 @@ static Res AMSWhiten(Pool pool, Trace trace, Seg seg)
   amsseg->ambiguousFixes = FALSE;
 
   if (amsseg->oldGrains > 0) {
-    trace->condemned += AMSGrainsSize(ams, amsseg->oldGrains);
+    GenDescCondemned(ams->pgen->gen, trace,
+                     AMSGrainsSize(ams, amsseg->oldGrains));
     SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace));
   } else {
     amsseg->colourTablesInUse = FALSE;
@@ -1543,6 +1544,7 @@ static void AMSReclaim(Pool pool, Trace trace, Seg seg)
   AMS ams;
   AMSSeg amsseg;
   Count nowFree, grains, reclaimedGrains;
+  Size preservedInPlaceSize;
   PoolDebugMixin debug;
 
   AVERT(Pool, pool);
@@ -1594,7 +1596,8 @@ static void AMSReclaim(Pool pool, Trace trace, Seg seg)
   PoolGenAccountForReclaim(ams->pgen, AMSGrainsSize(ams, reclaimedGrains), FALSE);
   STATISTIC(trace->reclaimSize += AMSGrainsSize(ams, reclaimedGrains));
   /* preservedInPlaceCount is updated on fix */
-  trace->preservedInPlaceSize += AMSGrainsSize(ams, amsseg->oldGrains);
+  preservedInPlaceSize = AMSGrainsSize(ams, amsseg->oldGrains);
+  GenDescSurvived(ams->pgen->gen, trace, 0, preservedInPlaceSize);
 
   /* Ensure consistency of segment even if are just about to free it */
   amsseg->colourTablesInUse = FALSE;

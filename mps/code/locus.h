@@ -17,9 +17,20 @@
 typedef struct GenParamStruct *GenParam;
 
 typedef struct GenParamStruct {
-  Size capacity; /* capacity in kB */
-  double mortality;
+  Size capacity;                /* capacity in kB */
+  double mortality;             /* predicted mortality */
 } GenParamStruct;
+
+
+/* GenTraceStats -- per-generation per-trace statistics */
+
+typedef struct GenTraceStatsStruct *GenTraceStats;
+
+typedef struct GenTraceStatsStruct {
+  Size condemned;        /* size of objects condemned by the trace */
+  Size forwarded;        /* size of objects that were forwarded by the trace */
+  Size preservedInPlace; /* size of objects preserved in place by the trace */
+} GenTraceStatsStruct;
 
 
 /* GenDesc -- descriptor of a generation in a chain */
@@ -30,11 +41,12 @@ typedef struct GenDescStruct *GenDesc;
 
 typedef struct GenDescStruct {
   Sig sig;
-  ZoneSet zones; /* zoneset for this generation */
-  Size capacity; /* capacity in kB */
-  double mortality;
+  ZoneSet zones;        /* zoneset for this generation */
+  Size capacity;        /* capacity in kB */
+  double mortality;     /* predicted mortality */
   RingStruct locusRing; /* Ring of all PoolGen's in this GenDesc (locus) */
   RingStruct segRing; /* Ring of GCSegs in this generation */
+  GenTraceStatsStruct trace[TraceLIMIT];
 } GenDescStruct;
 
 
@@ -80,6 +92,8 @@ typedef struct mps_chain_s {
 extern Bool GenDescCheck(GenDesc gen);
 extern Size GenDescNewSize(GenDesc gen);
 extern Size GenDescTotalSize(GenDesc gen);
+extern void GenDescCondemned(GenDesc gen, Trace trace, Size size);
+extern void GenDescSurvived(GenDesc gen, Trace trace, Size forwarded, Size preservedInPlace);
 extern Res GenDescDescribe(GenDesc gen, mps_lib_FILE *stream, Count depth);
 
 extern Res ChainCreate(Chain *chainReturn, Arena arena, size_t genCount,
@@ -88,8 +102,8 @@ extern void ChainDestroy(Chain chain);
 extern Bool ChainCheck(Chain chain);
 
 extern double ChainDeferral(Chain chain);
-extern void ChainStartGC(Chain chain, Trace trace);
-extern void ChainEndGC(Chain chain, Trace trace);
+extern void ChainStartTrace(Chain chain, Trace trace);
+extern void ChainEndTrace(Chain chain, Trace trace);
 extern size_t ChainGens(Chain chain);
 extern GenDesc ChainGen(Chain chain, Index gen);
 extern Res ChainDescribe(Chain chain, mps_lib_FILE *stream, Count depth);

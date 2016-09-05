@@ -758,7 +758,8 @@ static Res AWLWhiten(Pool pool, Trace trace, Seg seg)
   awlseg->newGrains = 0;
 
   if (awlseg->oldGrains > 0) {
-    trace->condemned += AWLGrainsSize(awl, awlseg->oldGrains);
+    GenDescCondemned(awl->pgen->gen, trace,
+                     AWLGrainsSize(awl, awlseg->oldGrains));
     SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace));
   }
   
@@ -1087,7 +1088,7 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
 
   STATISTIC(trace->reclaimSize += AWLGrainsSize(awl, reclaimedGrains));
   STATISTIC(trace->preservedInPlaceCount += preservedInPlaceCount);
-  trace->preservedInPlaceSize += preservedInPlaceSize;
+  GenDescSurvived(awl->pgen->gen, trace, 0, preservedInPlaceSize);
   SegSetWhite(seg, TraceSetDel(SegWhite(seg), trace));
 
   if (awlseg->freeGrains == awlseg->grains && !hasBuffer) {

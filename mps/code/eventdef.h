@@ -37,7 +37,7 @@
 
 #define EVENT_VERSION_MAJOR  ((unsigned)1)
 #define EVENT_VERSION_MEDIAN ((unsigned)6)
-#define EVENT_VERSION_MINOR  ((unsigned)0)
+#define EVENT_VERSION_MINOR  ((unsigned)1)
 
 
 /* EVENT_LIST -- list of event types and general properties
@@ -67,7 +67,7 @@
  */
  
 #define EventNameMAX ((size_t)19)
-#define EventCodeMAX ((EventCode)0x0087)
+#define EventCodeMAX ((EventCode)0x0088)
 
 #define EVENT_LIST(EVENT, X) \
   /*       0123456789012345678 <- don't exceed without changing EventNameMAX */ \
@@ -189,11 +189,12 @@
   EVENT(X, AMCTraceEnd        , 0x0081,  TRUE, Trace) \
   EVENT(X, TraceCreatePoolGen , 0x0082,  TRUE, Trace) \
   /* new events for performance analysis of large heaps. */ \
-  EVENT(X, TraceCondemnZones  , 0x0083,  TRUE, Trace) \
+  /* EVENT(X, TraceCondemnZones  , 0x0083,  TRUE, Trace) */ \
   EVENT(X, ArenaGenZoneAdd    , 0x0084,  TRUE, Arena) \
   EVENT(X, ArenaUseFreeZone   , 0x0085,  TRUE, Arena) \
   /* EVENT(X, ArenaBlacklistZone , 0x0086,  TRUE, Arena) */ \
-  EVENT(X, PauseTimeSet       , 0x0087,  TRUE, Arena)
+  EVENT(X, PauseTimeSet       , 0x0087,  TRUE, Arena) \
+  EVENT(X, TraceEndGen        , 0x0088,  TRUE, Trace)
 
 
 /* Remember to update EventNameMAX and EventCodeMAX above! 
@@ -713,11 +714,6 @@
   PARAM(X,  9, W, newDeferredSize) /* new size (deferred) of pool gen */ \
   PARAM(X, 10, W, oldDeferredSize) /* old size (deferred) of pool gen */
 
-#define EVENT_TraceCondemnZones_PARAMS(PARAM, X) \
-  PARAM(X,  0, P, trace)        /* the trace */ \
-  PARAM(X,  1, W, condemnedSet) /* the condemned zoneSet */ \
-  PARAM(X,  2, W, white)        /* the trace's white zoneSet */
-
 #define EVENT_ArenaGenZoneAdd_PARAMS(PARAM, X) \
   PARAM(X,  0, P, arena)        /* the arena */ \
   PARAM(X,  1, P, gendesc)      /* the generation description */ \
@@ -730,6 +726,14 @@
 #define EVENT_PauseTimeSet_PARAMS(PARAM, X) \
   PARAM(X,  0, P, arena)        /* the arena */ \
   PARAM(X,  1, D, pauseTime)    /* the new maximum pause time, in seconds */
+
+#define EVENT_TraceEndGen_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, trace)        /* the trace */ \
+  PARAM(X,  1, P, gen)          /* the generation */ \
+  PARAM(X,  2, W, condemned)    /* bytes condemned in generation */ \
+  PARAM(X,  3, W, forwarded)    /* bytes forwarded from generation */ \
+  PARAM(X,  4, W, preservedInPlace) /* bytes preserved in generation */ \
+  PARAM(X,  5, D, mortality)    /* updated mortality */
 
 
 #endif /* eventdef_h */

@@ -102,6 +102,7 @@ typedef struct amcSegStruct {
   GCSegStruct gcSegStruct;  /* superclass fields must come first */
   amcGen gen;               /* generation this segment belongs to */
   Nailboard board;          /* nailboard for this segment or NULL if none */
+  Size forwarded[TraceLIMIT]; /* size of objects forwarded for each trace */
   BOOLFIELD(accountedAsBuffered); /* .seg.accounted-as-buffered */
   BOOLFIELD(old);           /* .seg.old */
   BOOLFIELD(deferred);      /* .seg.deferred */
@@ -980,11 +981,14 @@ static void AMCBufferEmpty(Pool pool, Buffer buffer,
   Arena arena;
   Seg seg;
   amcSeg amcseg;
+  TraceId ti;
+  Trace trace;
 
   AVERT(Buffer, buffer);
   AVER(BufferIsReady(buffer));
   seg = BufferSeg(buffer);
   AVERT(Seg, seg);
+  amcseg = MustBeA(amcSeg, seg);
   AVER(init <= limit);
 
   arena = BufferArena(buffer);
@@ -1002,12 +1006,16 @@ static void AMCBufferEmpty(Pool pool, Buffer buffer,
     ShieldExpose(arena, seg);
     (*pool->format->pad)(init, size);
     ShieldCover(arena, seg);
+
+    /* The padding object is white, so needs to be accounted as condemned. */
+    TRACE_SET_ITER(ti, trace, seg->white, arena)
+      GenDescCondemned(amcseg->gen->pgen.gen, trace, size);
+    TRACE_SET_ITER_END(ti, trace, seg->white, arena);
   }
 
-  amcseg = MustBeA(amcSeg, seg);
   if (amcseg->accountedAsBuffered) {
     /* Account the entire buffer (including the padding object) as used. */
-    PoolGenAccountForEmpty(&amcSegGen(seg)->pgen, SegSize(seg), 0,
+    PoolGenAccountForEmpty(&amcseg->gen->pgen, SegSize(seg), 0,
                            amcseg->deferred);
     amcseg->accountedAsBuffered = FALSE;
   }
@@ -1162,10 +1170,6 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
     }
   }
 
-  SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace));
-  condemned += SegSize(seg);
-  trace->condemned += condemned;
-
   gen = amcSegGen(seg);
   AVERT(amcGen, gen);
   if (!amcseg->old) {
@@ -1178,6 +1182,10 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
     } else
       PoolGenAccountForAge(&gen->pgen, 0, SegSize(seg), amcseg->deferred);
   }
+
+  amcseg->forwarded[trace->ti] = 0;
+  SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace));
+  GenDescCondemned(gen->pgen.gen, trace, condemned + SegSize(seg));
 
   /* Ensure we are forwarding into the right generation. */
 
@@ -1501,6 +1509,8 @@ static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   amcGen gen;          /* generation of old copy of object */
   TraceSet grey;       /* greyness of object being relocated */
   Seg toSeg;           /* segment to which object is being relocated */
+  TraceId ti;
+  Trace trace;
 
   /* <design/trace/#fix.noaver> */
   AVERT_CRITICAL(Pool, pool);
@@ -1588,7 +1598,6 @@ static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
 
     length = AddrOffset(ref, clientQ);  /* .exposed.seg */
     STATISTIC(++ss->forwardedCount);
-    ss->forwardedSize += length;
     do {
       res = BUFFER_RESERVE(&newBase, buffer, length);
       if (res != ResOK)
@@ -1614,7 +1623,11 @@ static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
 
       ShieldCover(arena, toSeg);
     } while (!BUFFER_COMMIT(buffer, newBase, length));
+
     STATISTIC(ss->copiedSize += length);
+    TRACE_SET_ITER(ti, trace, ss->traces, ss->arena)
+      MustBeA(amcSeg, seg)->forwarded[ti] += length;
+    TRACE_SET_ITER_END(ti, trace, ss->traces, ss->arena);
 
     (*format->move)(ref, newRef);  /* .exposed.seg */
 
@@ -1648,6 +1661,7 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
   Count preservedInPlaceCount = (Count)0;
   Size preservedInPlaceSize = (Size)0;
   AMC amc = MustBeA(AMCZPool, pool);
+  PoolGen pgen;
   Size headerSize;
   Addr padBase;          /* base of next padding object */
   Size padLength;        /* length of next padding object */
@@ -1720,19 +1734,19 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
   STATISTIC(AVER(bytesReclaimed <= SegSize(seg)));
   STATISTIC(trace->reclaimSize += bytesReclaimed);
   STATISTIC(trace->preservedInPlaceCount += preservedInPlaceCount);
-  trace->preservedInPlaceSize += preservedInPlaceSize;
+  pgen = &amcSegGen(seg)->pgen;
+  GenDescSurvived(pgen->gen, trace, MustBeA(amcSeg, seg)->forwarded[trace->ti],
+                  preservedInPlaceSize);
 
   /* Free the seg if we can; fixes .nailboard.limitations.middle. */
   if(preservedInPlaceCount == 0
      && (!SegHasBuffer(seg))
      && (SegNailed(seg) == TraceSetEMPTY)) {
 
-    amcGen gen = amcSegGen(seg);
-
     /* We may not free a buffered seg. */
     AVER(!SegHasBuffer(seg));
 
-    PoolGenFree(&gen->pgen, seg, 0, SegSize(seg), 0, MustBeA(amcSeg, seg)->deferred);
+    PoolGenFree(pgen, seg, 0, SegSize(seg), 0, MustBeA(amcSeg, seg)->deferred);
   }
 }
 
@@ -1745,10 +1759,11 @@ static void AMCReclaim(Pool pool, Trace trace, Seg seg)
 {
   AMC amc = MustBeA_CRITICAL(AMCZPool, pool);
   amcGen gen;
+  amcSeg amcseg;
 
   AVERT_CRITICAL(Trace, trace);
   AVERT_CRITICAL(Seg, seg);
-
+  amcseg = MustBeA_CRITICAL(amcSeg, seg);
   gen = amcSegGen(seg);
   AVERT_CRITICAL(amcGen, gen);
 
@@ -1776,7 +1791,8 @@ static void AMCReclaim(Pool pool, Trace trace, Seg seg)
 
   STATISTIC(trace->reclaimSize += SegSize(seg));
 
-  PoolGenFree(&gen->pgen, seg, 0, SegSize(seg), 0, MustBeA(amcSeg, seg)->deferred);
+  GenDescSurvived(gen->pgen.gen, trace, amcseg->forwarded[trace->ti], 0);
+  PoolGenFree(&gen->pgen, seg, 0, SegSize(seg), 0, amcseg->deferred);
 }
 
 

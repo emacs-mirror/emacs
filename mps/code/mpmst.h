@@ -430,9 +430,7 @@ typedef struct ScanStateStruct {
   STATISTIC_DECL(Count nailCount) /* segments nailed by ambig refs */
   STATISTIC_DECL(Count snapCount) /* refs snapped to forwarded objs */
   STATISTIC_DECL(Count forwardedCount) /* objects preserved by moving */
-  Size forwardedSize;           /* bytes preserved by moving */
   STATISTIC_DECL(Count preservedInPlaceCount) /* objects preserved in place */
-  Size preservedInPlaceSize;    /* bytes preserved in place */
   STATISTIC_DECL(Size copiedSize) /* bytes copied */
   Size scannedSize;             /* bytes scanned */
 } ScanStateStruct;
