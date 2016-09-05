@@ -90,8 +90,8 @@ describes it, like this::
 
 _`.overview.prefix`: We make use of the fact that we can cast between
 structures with common prefixes, or between structures and their first
-members, to provide dynamic typing and subtyping (see [K&R_1998]_,
-A.8.3).
+members, to provide dynamic typing and subtyping (see
+[Kernighan_1988]_, A.8.3).
 
 _`.overview.method`: The ``InstClassStruct`` it itself at the start of
 a class structure contains pointers to functions that can be called to
@@ -129,21 +129,21 @@ class is extended, it becomes a member of a different kind.  Kinds
 allow subtype checking to be applied to classes as well as instances,
 to determine whether methods are available. ::
 
-      instance          class      	  kind
+      instance          class             kind
       (e.g. CBS)        (e.g. CBSClass)   (e.g. LandClassClass)
-     .----------.      .----------.	 .----------.
+     .----------.      .----------.      .----------.
      |  class   |----->|  class   |----->|  class   |-->InstClassClass
-     ------------      ------------	 ------------
-     |  ...     |      |  sig     |	 |  sig     |
-     ------------      ------------	 ------------
-     |  ...     |      |  name    |	 |  name    |
-     ------------      ------------    	 ------------
-     |  ...     |      |superclass|-.  	 |superclass|-->InstClassClass
-     ------------      ------------ |	 ------------
-     |          |      |   ...    | |	 |   ...    |
-				    |
-				    |
-       	       	       	 LandClass<-'
+     ------------      ------------      ------------
+     |  ...     |      |  sig     |      |  sig     |
+     ------------      ------------      ------------
+     |  ...     |      |  name    |      |  name    |
+     ------------      ------------      ------------
+     |  ...     |      |superclass|-.    |superclass|-->InstClassClass
+     ------------      ------------ |    ------------
+     |          |      |   ...    | |    |   ...    |
+                                    |
+                                    |
+                         LandClass<-'
 
 
 _`.overview.sig.inherit`: Instances (and therefore classes) will
@@ -490,7 +490,7 @@ anti-method to clean-up a subsequent failure. ::
 
     static Res AMSSegInit(Seg seg, Pool pool,
                           Addr base, Size size,
-			  ArgList args)
+                          ArgList args)
     {
       AMS ams = MustBeA(AMSPool, pool);
       Arena arena = PoolArena(pool);
@@ -500,7 +500,7 @@ anti-method to clean-up a subsequent failure. ::
       /* Initialize the superclass fields first via next-method call */
       res = NextMethod(Seg, AMSSeg, init)(seg, pool, base, size, args);
       if (res != ResOK)
-	goto failNextMethod;
+        goto failNextMethod;
       amsseg = CouldBeA(AMSSeg, seg);
 
       amsseg->grains = size >> ams->grainShift;
@@ -511,10 +511,10 @@ anti-method to clean-up a subsequent failure. ::
       amsseg->ambiguousFixes = FALSE;
 
       res = amsCreateTables(ams, &amsseg->allocTable,
-			    &amsseg->nongreyTable, &amsseg->nonwhiteTable,
-			    arena, amsseg->grains);
+                            &amsseg->nongreyTable, &amsseg->nonwhiteTable,
+                            arena, amsseg->grains);
       if (res != ResOK)
-	goto failCreateTables;
+        goto failCreateTables;
 
       /* start off using firstFree, see <design/poolams/#no-bit> */
       amsseg->allocTableInUse = FALSE;
@@ -524,7 +524,7 @@ anti-method to clean-up a subsequent failure. ::
       amsseg->ams = ams;
       RingInit(&amsseg->segRing);
       RingAppend((ams->allocRing)(ams, SegRankSet(seg), size),
-		 &amsseg->segRing);
+                 &amsseg->segRing);
 
       SetClassOfPoly(seg, CLASS(AMSSeg));
       amsseg->sig = AMSSegSig;
@@ -575,6 +575,8 @@ level.  The level is statically defined using enum constants, and the
 id is the address of the canonical class object, so the test is fast
 and simple.
 
+.. _RB: http://www.ravenbrook.com/consultants/rb/
+
 
 A. References
 -------------
@@ -582,14 +584,14 @@ A. References
 .. [Cohen_1991] "Type-Extension Type Tests Can Be Performed In
    Constant Time"; Norman H Cohen; IBM Thomas J Watson Research
    Center; ACM Transactions on Programming Languages and Systems,
-   Vol. 13 No. 4, pp626-629; 1991-10.
+   Vol. 13 No. 4, pp. 626-629; 1991-10.
 
 .. [Gibbs_2004] "Fast Dynamic Casting"; Michael Gibbs, Bjarne
    Stroustrup; 2004;
    <http://www.stroustrup.com/fast_dynamic_casting.pdf>.
 
-.. [K&R_1988] "The C Programming language 2nd Edition";
-   Brian W. Kernighan, Dennis M. Ritchie; 1998.
+.. [Kernighan_1988] "The C Programming language 2nd Edition"; Brian W.
+   Kernighan, Dennis M. Ritchie; 1988.
 
 
 B. Document History
@@ -612,7 +614,6 @@ B. Document History
 
 - 2016-04-19 RB_ Miscellaneous clean-up in response to review by GDR_.
 
-.. _RB: http://www.ravenbrook.com/consultants/rb/
 .. _GDR: http://www.ravenbrook.com/consultants/gdr/
 
 

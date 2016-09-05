@@ -105,7 +105,7 @@ TEST_TARGETS=\
 # Stand-alone programs go in EXTRA_TARGETS if they should always be
 # built, or in OPTIONAL_TARGETS if they should only be built if 
 
-EXTRA_TARGETS=mpseventcnv.exe mpseventtxt.exe
+EXTRA_TARGETS=mpseventcnv.exe mpseventpy.exe mpseventtxt.exe
 OPTIONAL_TARGETS=mpseventsql.exe
 
 # This target records programs that we were once able to build but

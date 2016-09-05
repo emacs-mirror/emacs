@@ -138,7 +138,7 @@ static void test(void) {
    }
   }
   if(mps_message_get(&message, arena, mps_message_type_gc())) {
-    unsigned long live, condemned, notCondemned;
+    size_t live, condemned, notCondemned;
     live = mps_message_gc_live_size(arena, message);
     condemned = mps_message_gc_condemned_size(arena, message);
     notCondemned = mps_message_gc_not_condemned_size(arena, message);

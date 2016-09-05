@@ -26,15 +26,39 @@ Interface changes
 
 #. Allocation frames are no longer deprecated. See :ref:`topic-frame`.
 
+#. On Linux and FreeBSD, it is now possible to configure the signals
+   used to suspend and resume threads. See :ref:`topic-thread-signal`.
+
 
 Other changes
 .............
+
+#. It is now possible to register a thread with the MPS multiple times
+   on OS X, thus supporting the use case where a program that does not
+   use the MPS is calling into MPS-using code from multiple threads.
+   (This was already supported on other platforms.) See job003559_.
+
+   .. _job003559: https://www.ravenbrook.com/project/mps/issue/job003559/
+
+#. The function :c:func:`mps_arena_formatted_objects_walk` walks the
+   formatted objects in all pools. Previously this was not implemented
+   for :ref:`pool-ams` pools. See job003738_.
+
+   .. _job003738: https://www.ravenbrook.com/project/mps/issue/job003738/
 
 #. Objects in :ref:`pool-snc` pools are no longer scanned after their
    :term:`allocation frame` is popped, and so do not keep objects in
    automatically managed pools alive. See job003883_.
 
    .. _job003883: https://www.ravenbrook.com/project/mps/issue/job003883/
+
+#. When the MPS collects a set of :term:`generations`, it
+   :term:`condemns` only the :term:`blocks` in those generations.
+   Previously, it also condemned blocks that happened to share a
+   region of memory with blocks currently or formerly allocated in
+   those generations. See job004000_.
+
+   .. _job004000: https://www.ravenbrook.com/project/mps/issue/job004000/
 
 #. Memory in :term:`allocation points` no longer contributes to the
    decision to start a collection, avoid wasted work repeatedly
@@ -46,6 +70,20 @@ Other changes
    allowing the :term:`client program` to run first. See job004011_.
 
    .. _job004011: https://www.ravenbrook.com/project/mps/issue/job004011/
+
+#. Roots created by :c:func:`mps_root_create_thread_scanned` no longer
+   cause an assertion failure. See job004036_.
+
+   .. _job004036: https://www.ravenbrook.com/project/mps/issue/job004036/
+
+#. The MPS test suite now compiles and passes with GCC 6.1. See job004037_.
+
+   .. _job004037: https://www.ravenbrook.com/project/mps/issue/job004037/
+
+#. The MPS no longer passes an uninitialized variable to
+   :c:func:`thread_swap_exception_ports` on OS X. See job004040_.
+
+   .. _job004040: https://www.ravenbrook.com/project/mps/issue/job004040/
 
 
 .. _release-notes-1.115:
@@ -122,6 +160,14 @@ Interface changes
 
 #. The :ref:`pool-snc` pool class now implements
    :c:func:`mps_pool_total_size` and :c:func:`mps_pool_free_size`.
+
+#. The (undocumented) reservoir functions
+   :c:func:`mps_ap_fill_with_reservoir_permit`,
+   :c:func:`mps_reservoir_available`, :c:func:`mps_reservoir_limit`,
+   :c:func:`mps_reservoir_limit_set`, and
+   :c:func:`mps_reserve_with_reservoir_permit`, together with the
+   ``has_reservoir_permit`` arguments to :c:func:`mps_sac_alloc` and
+   :c:func:`MPS_SAC_ALLOC_FAST` are now deprecated.
 
 
 Other changes

@@ -77,8 +77,8 @@ the function :c:func:`mps_ld_reset`.
 
 .. note::
 
-    This means that it is not possible to statically create a location
-    dependency that has been reset.
+    It is not possible to statically create a location dependency that
+    has been reset.
 
 You can call :c:func:`mps_ld_reset` at any later point to clear all
 dependencies from the structure. For example, this is normally done
