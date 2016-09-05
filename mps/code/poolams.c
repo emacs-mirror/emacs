@@ -51,7 +51,6 @@ Bool AMSSegCheck(AMSSeg amsseg)
   CHECKD(GCSeg, &amsseg->gcSegStruct);
   CHECKU(AMS, amsseg->ams);
   CHECKL(AMSPool(amsseg->ams) == SegPool(seg));
-  CHECKD_NOSIG(Ring, &amsseg->segRing);
 
   CHECKL(amsseg->grains == AMSGrains(amsseg->ams, SegSize(seg)));
   CHECKL(amsseg->grains > 0);
@@ -253,12 +252,7 @@ static Res AMSSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   amsseg->allocTableInUse = FALSE;
   amsseg->firstFree = 0;
   amsseg->colourTablesInUse = FALSE;
-
   amsseg->ams = ams;
-  RingInit(&amsseg->segRing);
-  RingAppend((ams->allocRing)(ams, SegRankSet(seg), size),
-             &amsseg->segRing);
-
   SetClassOfPoly(seg, CLASS(AMSSeg));
   amsseg->sig = AMSSegSig;
   AVERC(AMSSeg, amsseg);
@@ -288,9 +282,6 @@ static void AMSSegFinish(Inst inst)
   /* keep the destructions in step with AMSSegInit failure cases */
   amsDestroyTables(ams, amsseg->allocTable, amsseg->nongreyTable,
                    amsseg->nonwhiteTable, arena, amsseg->grains);
-
-  RingRemove(&amsseg->segRing);
-  RingFinish(&amsseg->segRing);
 
   amsseg->sig = SigInvalid;
 
@@ -385,8 +376,6 @@ static Res AMSSegMerge(Seg seg, Seg segHi,
   amsseg->oldGrains = amsseg->oldGrains + amssegHi->oldGrains;
   /* other fields in amsseg are unaffected */
 
-  RingRemove(&amssegHi->segRing);
-  RingFinish(&amssegHi->segRing);
   amssegHi->sig = SigInvalid;
 
   AVERT(AMSSeg, amsseg);
@@ -484,12 +473,7 @@ static Res AMSSegSplit(Seg seg, Seg segHi,
   amssegHi->firstFree = 0;
   /* use colour tables if the segment is white */
   amssegHi->colourTablesInUse = (SegWhite(segHi) != TraceSetEMPTY);
-
   amssegHi->ams = ams;
-  RingInit(&amssegHi->segRing);
-  RingAppend((ams->allocRing)(ams, SegRankSet(segHi), SegSize(segHi)),
-             &amssegHi->segRing);
-
   amssegHi->sig = AMSSegSig;
   AVERT(AMSSeg, amsseg);
   AVERT(AMSSeg, amssegHi);
@@ -622,16 +606,6 @@ DEFINE_CLASS(Seg, AMSSeg, klass)
   klass->merge = AMSSegMerge;
   klass->split = AMSSegSplit;
   AVERT(SegClass, klass);
-}
-
-
-/* AMSPoolRing -- the ring of segments in the pool */
-
-static Ring AMSPoolRing(AMS ams, RankSet rankSet, Size size)
-{
-  /* arguments checked in the caller */
-  UNUSED(rankSet); UNUSED(size);
-  return &ams->segRing;
 }
 
 
@@ -814,11 +788,8 @@ static Res AMSInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
   ams->shareAllocTable = !supportAmbiguous;
   ams->pgen = NULL;
 
-  RingInit(&ams->segRing);
-
   /* The next four might be overridden by a subclass. */
   ams->segSize = AMSSegSizePolicy;
-  ams->allocRing = AMSPoolRing;
   ams->segsDestroy = AMSSegsDestroy;
   ams->segClass = AMSSegClassGet;
 
@@ -857,7 +828,6 @@ void AMSFinish(Inst inst)
   ams->segsDestroy(ams);
   /* can't invalidate the AMS until we've destroyed all the segs */
   ams->sig = SigInvalid;
-  RingFinish(&ams->segRing);
   PoolGenFinish(ams->pgen);
   ams->pgen = NULL;
 
@@ -932,6 +902,7 @@ static Res AMSBufferFill(Addr *baseReturn, Addr *limitReturn,
   Res res;
   AMS ams;
   Seg seg;
+  AMSSeg amsseg;
   Ring node, ring, nextNode;    /* for iterating over the segments */
   Index base = 0, limit = 0;    /* suppress "may be used uninitialized" */
   Addr baseAddr, limitAddr;
@@ -953,14 +924,13 @@ static Res AMSBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVER(PoolArena(pool)->busyTraces == PoolArena(pool)->flippedTraces);
 
   rankSet = BufferRankSet(buffer);
-  ring = (ams->allocRing)(ams, rankSet, size);
+  ring = PoolSegRing(AMSPool(ams));
   /* <design/poolams/#fill.slow> */
   RING_FOR(node, ring, nextNode) {
-    AMSSeg amsseg = RING_ELT(AMSSeg, segRing, node);
+    seg = SegOfPoolRing(node);
+    amsseg = Seg2AMSSeg(seg);
     AVERT_CRITICAL(AMSSeg, amsseg);
     if (amsseg->freeGrains >= AMSGrains(ams, size)) {
-      seg = AMSSeg2Seg(amsseg);
-
       if (SegRankSet(seg) == rankSet
           && !SegHasBuffer(seg)
           /* Can't use a white or grey segment, see d.m.p.fill.colour. */
@@ -1713,9 +1683,9 @@ static void AMSFreeWalk(Pool pool, FreeBlockVisitor f, void *p)
   ams = PoolAMS(pool);
   AVERT(AMS, ams);
 
-  ring = &ams->segRing;
+  ring = PoolSegRing(AMSPool(ams));
   RING_FOR(node, ring, nextNode) {
-    AMSSegFreeWalk(RING_ELT(AMSSeg, segRing, node), f, p);
+    AMSSegFreeWalk(Seg2AMSSeg(SegOfPoolRing(node)), f, p);
   }
 }
 
@@ -1757,7 +1727,7 @@ static Res AMSDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 {
   Pool pool = CouldBeA(AbstractPool, inst);
   AMS ams = CouldBeA(AMSPool, pool);
-  Ring node, nextNode;
+  Ring ring, node, nextNode;
   Res res;
 
   if (!TESTC(AMSPool, ams))
@@ -1782,9 +1752,9 @@ static Res AMSDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
   if (res != ResOK)
     return res;
 
-  RING_FOR(node, &ams->segRing, nextNode) {
-    AMSSeg amsseg = RING_ELT(AMSSeg, segRing, node);
-    res = SegDescribe(AMSSeg2Seg(amsseg), stream, depth + 2);
+  ring = PoolSegRing(AMSPool(ams));
+  RING_FOR(node, ring, nextNode) {
+    res = SegDescribe(SegOfPoolRing(node), stream, depth + 2);
     if (res != ResOK)
       return res;
   }
@@ -1881,8 +1851,6 @@ Bool AMSCheck(AMS ams)
     CHECKD(PoolGen, ams->pgen);
   }
   CHECKL(FUNCHECK(ams->segSize));
-  CHECKD_NOSIG(Ring, &ams->segRing);
-  CHECKL(FUNCHECK(ams->allocRing));
   CHECKL(FUNCHECK(ams->segsDestroy));
   CHECKL(FUNCHECK(ams->segClass));
 

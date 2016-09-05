@@ -523,14 +523,7 @@ chain; this function indicates if the chain needs collecting, and if
 so, how urgent it is to collect that chain. The most urgent chain in
 need of collection (if any) is then condemned by calling
 ``policyCondemnChain()``, which chooses the set of generations to
-condemn, computes the zoneset corresponding to the union those
-generations, and condemns those zones by calling
-``TraceCondemnZones()``.
-
-Note that the resulting condemned set includes every segment in an
-automatic pool in any zone in the zoneset. It is not limited to the
-segments actually associated with the condemned generations.
-
+condemn, and condemns all the segments in those generations.
 
 
 Trace progress
