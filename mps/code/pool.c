@@ -80,8 +80,7 @@ Bool PoolClassCheck(PoolClass klass)
 
   /* Check that pool classes that set attributes also override the
      methods they imply. */
-  /* .check.ams.walk: Can't enforce this one until job003738 is resolved. */
-  /* CHECKL(((klass->attr & AttrFMT) == 0) == (klass->walk == PoolNoWalk)); */
+  CHECKL(((klass->attr & AttrFMT) == 0) == (klass->walk == PoolNoWalk));
   if (klass != &CLASS_STATIC(AbstractCollectPool)) {
     CHECKL(((klass->attr & AttrGC) == 0) == (klass->fix == PoolNoFix));
     CHECKL(((klass->attr & AttrGC) == 0) == (klass->fixEmergency == PoolNoFix));
