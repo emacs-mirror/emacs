@@ -358,9 +358,9 @@ this documentation.
 
 ``seg.c: gcseg->buffer == NULL``
 
-    The client program destroyed pool without first destroying all the
-    allocation points created on that pool. The allocation points must
-    be destroyed first.
+    The client program destroyed a pool without first destroying all
+    the allocation points created on that pool. The allocation points
+    must be destroyed first.
 
 
 ``trace.c: ss->rank < RankEXACT``
