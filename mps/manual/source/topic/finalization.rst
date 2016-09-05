@@ -194,7 +194,7 @@ Cautions
         are finalized is to maintain a table of :term:`weak
         references (1)` to all such objects. The weak references don't
         prevent the objects from being finalized, but you can iterate
-        over the list at an appropriate point and finalize any
+        over the table at an appropriate point and finalize any
         remaining objects yourself.
 
 #.  Not all :term:`pool classes` support finalization. In general, only

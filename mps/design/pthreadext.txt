@@ -324,10 +324,17 @@ likely to be generated and/or handled by other parts of the
 application and so should not be used (for example, ``SIGSEGV``). Some
 implementations of PThreads use some signals for themselves, so they
 may not be used; for example, LinuxThreads uses ``SIGUSR1`` and
-``SIGUSR2`` for its own purposes. The design abstractly names the
-signals ``PTHREADEXT_SIGSUSPEND`` and ``PTHREAD_SIGRESUME``, so that
-they may be easily mapped to appropriate real signal values. Candidate
-choices are ``SIGXFSZ`` and ``SIGPWR``.
+``SIGUSR2`` for its own purposes, and so do popular tools like
+Valgrind that we would like to be compatible with the MPS. The design
+therefore abstractly names the signals ``PTHREADEXT_SIGSUSPEND`` and
+``PTHREAD_SIGRESUME``, so that they may be easily mapped to
+appropriate real signal values. Candidate choices are ``SIGXFSZ`` and
+``SIGXCPU``.
+
+_`.impl.signals.config`: The identity of the signals used to suspend
+and resume threads can be configured at compilation time using the
+preprocessor constants ``CONFIG_PTHREADEXT_SIGSUSPEND`` and
+``CONFIG_PTHREADEXT_SIGRESUME`` respectively.
 
 
 Attachments
@@ -368,7 +375,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2013-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

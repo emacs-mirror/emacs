@@ -1,7 +1,7 @@
 # commpost.nmk: SECOND COMMON FRAGMENT FOR PLATFORMS USING NMAKE -*- makefile -*-
 #
 # $Id$
-# Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+# Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
 #
 # DESCRIPTION
 #
@@ -315,6 +315,9 @@ $(PFM)\$(VARIETY)\ztfm.exe: $(PFM)\$(VARIETY)\ztfm.obj \
 $(PFM)\$(VARIETY)\mpseventcnv.exe: $(PFM)\$(VARIETY)\eventcnv.obj \
 	$(PFM)\$(VARIETY)\mps.lib
 
+$(PFM)\$(VARIETY)\mpseventpy.exe: $(PFM)\$(VARIETY)\eventpy.obj \
+	$(PFM)\$(VARIETY)\mps.lib
+
 $(PFM)\$(VARIETY)\mpseventtxt.exe: $(PFM)\$(VARIETY)\eventtxt.obj \
 	$(PFM)\$(VARIETY)\mps.lib
 
@@ -333,6 +336,9 @@ $(PFM)\$(VARIETY)\replaysw.obj: $(PFM)\$(VARIETY)\replay.obj
 	copy $** $@ >nul:
 
 $(PFM)\$(VARIETY)\mpseventcnv.obj: $(PFM)\$(VARIETY)\eventcnv.obj
+	copy $** $@ >nul:
+
+$(PFM)\$(VARIETY)\mpseventpy.obj: $(PFM)\$(VARIETY)\eventpy.obj
 	copy $** $@ >nul:
 
 $(PFM)\$(VARIETY)\mpseventtxt.obj: $(PFM)\$(VARIETY)\eventtxt.obj
@@ -385,7 +391,7 @@ $(PFM)\$(VARIETY)\sqlite3.obj:
 
 # C. COPYRIGHT AND LICENSE
 #
-# Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+# Copyright (c) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
 # All rights reserved.  This is an open source license.  Contact
 # Ravenbrook for commercial licensing options.
 # 

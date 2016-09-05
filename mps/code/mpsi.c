@@ -1,7 +1,7 @@
 /* mpsi.c: MEMORY POOL SYSTEM C INTERFACE LAYER
  *
  * $Id$
- * Copyright (c) 2001-2015 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (c) 2002 Global Graphics Software.
  *
  * .purpose: This code bridges between the MPS interface to C,
@@ -745,16 +745,16 @@ mps_res_t mps_alloc(mps_addr_t *p_o, mps_pool_t pool, size_t size)
   Addr p;
   Res res;
 
-  AVER(TESTT(Pool, pool));
+  AVER_CRITICAL(TESTT(Pool, pool));
   arena = PoolArena(pool);
 
   ArenaEnter(arena);
 
   ArenaPoll(ArenaGlobals(arena)); /* .poll */
 
-  AVER(p_o != NULL);
-  AVERT(Pool, pool);
-  AVER(size > 0);
+  AVER_CRITICAL(p_o != NULL);
+  AVERT_CRITICAL(Pool, pool);
+  AVER_CRITICAL(size > 0);
   /* Note: class may allow unaligned size, see */
   /* <design/class-interface/#alloc.size.align>. */
   /* Rest ignored, see .varargs. */
@@ -787,13 +787,13 @@ void mps_free(mps_pool_t pool, mps_addr_t p, size_t size)
 {
   Arena arena;
 
-  AVER(TESTT(Pool, pool));
+  AVER_CRITICAL(TESTT(Pool, pool));
   arena = PoolArena(pool);
 
   ArenaEnter(arena);
 
-  AVERT(Pool, pool);
-  AVER(size > 0);
+  AVERT_CRITICAL(Pool, pool);
+  AVER_CRITICAL(size > 0);
   /* Note: class may allow unaligned size, see */
   /* <design/class-interface/#alloc.size.align>. */
 
@@ -1060,7 +1060,7 @@ mps_res_t mps_ap_fill(mps_addr_t *p_o, mps_ap_t mps_ap, size_t size)
   AVER(p_o != NULL);
   AVERT(Buffer, buf);
   AVER(size > 0);
-  AVER(SizeIsAligned(size, BufferPool(buf)->alignment));
+  AVER(SizeIsAligned(size, BufferPool(buf)->alignment)); /* <design/check/#.common> */
 
   res = BufferFill(&p, buf, size);
 
@@ -2141,7 +2141,7 @@ void _mps_args_set_key(mps_arg_s args[MPS_ARGS_MAX], unsigned i,
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2015 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
