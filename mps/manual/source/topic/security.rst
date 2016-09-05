@@ -37,6 +37,37 @@ please :ref:`contact us <contact>`.
 
 
 .. index::
+   pair: security issues; address disclosure
+
+Address disclosure
+------------------
+
+The MPS supports :term:`semi-conservative garbage collection` in which
+some memory locations are :term:`scanned <scan>` as :term:`ambiguous
+references`. This may make it possible for a program to discover the
+:term:`address` of an :term:`object`, even if the programming language
+has no feature for obtaining the address of an object. Discovering the
+addresses of objects makes it easier to exploit buffer overflow bugs.
+
+The attack proceeds as follows: create a :term:`weak reference (1)` to
+the object of interest (for example, via a :term:`weak-key hash
+table`); guess a value for the address of the object; and arrange for
+that value to be scanned as an ambiguous reference (for example, by
+ensuring that it appears in :term:`registers` or on the :term:`control
+stack` of a :term:`thread`). If the guess was correct, the MPS keeps
+the object :term:`alive`; if incorrect, the object may :term:`die
+<dead>`. The attacker can then determine which of these was the case
+by examining the weak reference to see if it has been
+:term:`splatted <splat>`.
+
+The attack was pointed out by `Dionysus Blazakis in 2012
+<https://github.com/justdionysus/gcwoah>`_ with respect to JavaScript
+implementations, but it affects all :term:`conservative <conservative
+garbage collection>` and :term:`semi-conservative <semi-conservative
+garbage collection>` garbage collectors.
+
+
+.. index::
    pair: security issues; telemetry
 
 Telemetry
