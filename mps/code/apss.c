@@ -230,7 +230,7 @@ int main(int argc, char *argv[])
   
   testlib_init(argc, argv);
 
-  arena_grain_size = rnd_grain(2 * testArenaSIZE);
+  arena_grain_size = rnd_grain(testArenaSIZE);
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, 2 * testArenaSIZE);
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_GRAIN_SIZE, arena_grain_size);
