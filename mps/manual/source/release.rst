@@ -13,10 +13,10 @@ New features
 ............
 
 #. The MPS now measures the mortality of a :term:`generation` each
-   time it is collected, and maintains a moving average. This means
-   that it is no longer important to provide an accurate estimate of
-   the mortality when creating a :term:`generation chain` by calling
-   :c:func:`mps_chain_create`..
+   time it is :term:`collected`, and maintains a moving average. This
+   means that it is no longer important to provide an accurate
+   estimate of the mortality when creating a :term:`generation chain`
+   by calling :c:func:`mps_chain_create`.
 
 
 Interface changes
@@ -33,16 +33,17 @@ Interface changes
 Other changes
 .............
 
-#. It is now possible to register a thread with the MPS multiple times
-   on OS X, thus supporting the use case where a program that does not
-   use the MPS is calling into MPS-using code from multiple threads.
-   (This was already supported on other platforms.) See job003559_.
+#. It is now possible to register a :term:`thread` with the MPS
+   multiple times on OS X, thus supporting the use case where a
+   program that does not use the MPS is calling into MPS-using code
+   from multiple threads. (This was already supported on other
+   platforms.) See job003559_.
 
    .. _job003559: https://www.ravenbrook.com/project/mps/issue/job003559/
 
 #. The function :c:func:`mps_arena_formatted_objects_walk` walks the
-   formatted objects in all pools. Previously this was not implemented
-   for :ref:`pool-ams` pools. See job003738_.
+   :term:`formatted objects` in all :term:`pools`. Previously this was
+   not implemented for :ref:`pool-ams` pools. See job003738_.
 
    .. _job003738: https://www.ravenbrook.com/project/mps/issue/job003738/
 
@@ -52,27 +53,29 @@ Other changes
 
    .. _job003883: https://www.ravenbrook.com/project/mps/issue/job003883/
 
-#. When the MPS collects a set of :term:`generations`, it
-   :term:`condemns` only the :term:`blocks` in those generations.
-   Previously, it also condemned blocks that happened to share a
-   region of memory with blocks currently or formerly allocated in
-   those generations. See job004000_.
+#. When the MPS :term:`collects` a set of :term:`generations`, it
+   :term:`condemns <condemned set>` only the :term:`blocks` in those
+   generations. Previously, it also condemned blocks that happened to
+   share a region of memory with blocks currently or formerly
+   allocated in those generations. See job004000_.
 
    .. _job004000: https://www.ravenbrook.com/project/mps/issue/job004000/
 
 #. Memory in :term:`allocation points` no longer contributes to the
-   decision to start a collection, avoid wasted work repeatedly
-   collecting generations with very small capacities. See job004007_.
+   decision to start a :term:`collection`, avoiding wasted work
+   repeatedly collecting generations with very small capacities. See
+   job004007_.
 
    .. _job004007: https://www.ravenbrook.com/project/mps/issue/job004007/
 
-#. The MPS no longer considers collecting the world again, without
-   allowing the :term:`client program` to run first. See job004011_.
+#. The MPS no longer considers :term:`collecting <collect>` the world
+   again, without allowing the :term:`client program` to run first.
+   See job004011_.
 
    .. _job004011: https://www.ravenbrook.com/project/mps/issue/job004011/
 
-#. Roots created by :c:func:`mps_root_create_thread_scanned` no longer
-   cause an assertion failure. See job004036_.
+#. :term:`Roots` created by :c:func:`mps_root_create_thread_scanned`
+   no longer cause an assertion failure. See job004036_.
 
    .. _job004036: https://www.ravenbrook.com/project/mps/issue/job004036/
 
