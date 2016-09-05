@@ -142,14 +142,7 @@ Platform interface
     IA-32 processor architecture, and the GCC compiler.
 
 
-.. c:macro:: MPS_PF_FRI6GC
-
-    A :term:`C` preprocessor macro that indicates, if defined, that
-    the :term:`platform` consists of the FreeBSD operating system, the
-    x86-64 processor architecture, and the GCC compiler.
-
-
-.. c:macro:: MPS_PF_FRI3GC
+.. c:macro:: MPS_PF_FRI3LL
 
     A :term:`C` preprocessor macro that indicates, if defined, that
     the :term:`platform` consists of the FreeBSD operating system, the
@@ -157,6 +150,13 @@ Platform interface
 
 
 .. c:macro:: MPS_PF_FRI6GC
+
+    A :term:`C` preprocessor macro that indicates, if defined, that
+    the :term:`platform` consists of the FreeBSD operating system, the
+    x86-64 processor architecture, and the GCC compiler.
+
+
+.. c:macro:: MPS_PF_FRI6LL
 
     A :term:`C` preprocessor macro that indicates, if defined, that
     the :term:`platform` consists of the FreeBSD operating system, the
@@ -218,6 +218,13 @@ Platform interface
     A :term:`C` preprocessor macro that indicates, if defined, that
     the :term:`platform` consists of the OS X operating system, the
     IA-32 processor architecture, and the Clang/LLVM compiler.
+
+
+.. c:macro:: MPS_PF_XCI6GC
+
+    A :term:`C` preprocessor macro that indicates, if defined, that
+    the :term:`platform` consists of the OS X operating system, the
+    x86-64 processor architecture, and the GCC compiler.
 
 
 .. c:macro:: MPS_PF_XCI6LL
@@ -373,6 +380,7 @@ Platform    Status
 ``w3ppmv``  *Not supported*
 ``xci3gc``  *Not supported*
 ``xci3ll``  Supported
+``xci6gc``  *Not supported*
 ``xci6ll``  Supported
 ``xcppgc``  *Not supported*
 ==========  =======================

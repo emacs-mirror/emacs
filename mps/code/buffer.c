@@ -1,7 +1,7 @@
 /* buffer.c: ALLOCATION BUFFER IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: This is (part of) the implementation of allocation buffers.
  * Several macros which also form part of the implementation are in
@@ -119,54 +119,47 @@ Bool BufferCheck(Buffer buffer)
  *
  * See <code/mpmst.h> for structure definitions.  */
 
-Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream, Count depth)
+static Res BufferAbsDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 {
+  Buffer buffer = CouldBeA(Buffer, inst);
   Res res;
-  BufferClass klass;
 
   if (!TESTC(Buffer, buffer))
     return ResPARAM;
   if (stream == NULL)
     return ResPARAM;
 
-  klass = ClassOfPoly(Buffer, buffer);
-
-  res = WriteF(stream, depth,
-               "Buffer $P ($U) {\n",
-               (WriteFP)buffer, (WriteFU)buffer->serial,
-               "  class $P (\"$S\")\n",
-               (WriteFP)klass, (WriteFS)ClassName(klass),
-               "  Arena $P\n",       (WriteFP)buffer->arena,
-               "  Pool $P\n",        (WriteFP)buffer->pool,
-               "  ", buffer->isMutator ? "Mutator" : "Internal", " Buffer\n",
-               "  mode $C$C$C$C (TRANSITION, LOGGED, FLIPPED, ATTACHED)\n",
-               (WriteFC)((buffer->mode & BufferModeTRANSITION) ? 't' : '_'),
-               (WriteFC)((buffer->mode & BufferModeLOGGED)     ? 'l' : '_'),
-               (WriteFC)((buffer->mode & BufferModeFLIPPED)    ? 'f' : '_'),
-               (WriteFC)((buffer->mode & BufferModeATTACHED)   ? 'a' : '_'),
-               "  fillSize $UKb\n",  (WriteFU)(buffer->fillSize / 1024),
-               "  emptySize $UKb\n", (WriteFU)(buffer->emptySize / 1024),
-               "  alignment $W\n",   (WriteFW)buffer->alignment,
-               "  base $A\n",        (WriteFA)buffer->base,
-               "  initAtFlip $A\n",  (WriteFA)buffer->initAtFlip,
-               "  init $A\n",        (WriteFA)buffer->ap_s.init,
-               "  alloc $A\n",       (WriteFA)buffer->ap_s.alloc,
-               "  limit $A\n",       (WriteFA)buffer->ap_s.limit,
-               "  poolLimit $A\n",   (WriteFA)buffer->poolLimit,
-               "  alignment $W\n",   (WriteFW)buffer->alignment,
-               "  rampCount $U\n",   (WriteFU)buffer->rampCount,
-               NULL);
+  res = NextMethod(Inst, Buffer, describe)(inst, stream, depth);
   if (res != ResOK)
     return res;
 
-  res = Method(Buffer, buffer, describe)(buffer, stream, depth + 2);
-  if (res != ResOK)
-    return res;
+  return WriteF(stream, depth + 2,
+                "serial $U\n", (WriteFU)buffer->serial,
+                "Arena $P\n",       (WriteFP)buffer->arena,
+                "Pool $P\n",        (WriteFP)buffer->pool,
+                buffer->isMutator ? "Mutator" : "Internal", " Buffer\n",
+                "mode $C$C$C$C (TRANSITION, LOGGED, FLIPPED, ATTACHED)\n",
+                (WriteFC)((buffer->mode & BufferModeTRANSITION) ? 't' : '_'),
+                (WriteFC)((buffer->mode & BufferModeLOGGED)     ? 'l' : '_'),
+                (WriteFC)((buffer->mode & BufferModeFLIPPED)    ? 'f' : '_'),
+                (WriteFC)((buffer->mode & BufferModeATTACHED)   ? 'a' : '_'),
+                "fillSize $UKb\n",  (WriteFU)(buffer->fillSize / 1024),
+                "emptySize $UKb\n", (WriteFU)(buffer->emptySize / 1024),
+                "alignment $W\n",   (WriteFW)buffer->alignment,
+                "base $A\n",        (WriteFA)buffer->base,
+                "initAtFlip $A\n",  (WriteFA)buffer->initAtFlip,
+                "init $A\n",        (WriteFA)buffer->ap_s.init,
+                "alloc $A\n",       (WriteFA)buffer->ap_s.alloc,
+                "limit $A\n",       (WriteFA)buffer->ap_s.limit,
+                "poolLimit $A\n",   (WriteFA)buffer->poolLimit,
+                "alignment $W\n",   (WriteFW)buffer->alignment,
+                "rampCount $U\n",   (WriteFU)buffer->rampCount,
+                NULL);
+}
 
-  res = WriteF(stream, depth, "} Buffer $P ($U)\n",
-               (WriteFP)buffer, (WriteFU)buffer->serial,
-               NULL);
-  return res;
+Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream, Count depth)
+{
+  return Method(Inst, buffer, describe)(MustBeA(Inst, buffer), stream, depth);
 }
 
 
@@ -340,8 +333,9 @@ void BufferDestroy(Buffer buffer)
 
 /* BufferFinish -- finish an allocation buffer */
 
-static void BufferAbsFinish(Buffer buffer)
+static void BufferAbsFinish(Inst inst)
 {
+  Buffer buffer = MustBeA(Buffer, inst);
   AVERT(Buffer, buffer);
   AVER(BufferIsReset(buffer));
 
@@ -361,9 +355,9 @@ void BufferFinish(Buffer buffer)
   AVERT(Buffer, buffer);
   AVER(BufferIsReady(buffer));
 
-  BufferDetach(buffer, BufferPool(buffer));
+  BufferDetach(buffer, BufferPool(buffer)); /* FIXME: Should be in BufferAbsFinish? */
 
-  Method(Buffer, buffer, finish)(buffer);
+  Method(Inst, buffer, finish)(MustBeA(Inst, buffer));
 }
 
 
@@ -493,7 +487,7 @@ Res BufferReserve(Addr *pReturn, Buffer buffer, Size size)
   AVERT(Buffer, buffer);
   AVER(size > 0);
   AVER(SizeIsAligned(size, BufferPool(buffer)->alignment));
-  AVER(BufferIsReady(buffer));
+  AVER(BufferIsReady(buffer)); /* <design/check/#.common> */
 
   /* Is there enough room in the unallocated portion of the buffer to */
   /* satisfy the request?  If so, just increase the alloc marker and */
@@ -1006,36 +1000,20 @@ static void bufferNoReassignSeg(Buffer buffer, Seg seg)
 }
 
 
-/* bufferTrivDescribe -- basic Buffer describe method */
-
-static Res bufferTrivDescribe(Buffer buffer, mps_lib_FILE *stream, Count depth)
-{
-  if (!TESTT(Buffer, buffer))
-    return ResFAIL;
-  if (stream == NULL)
-    return ResFAIL;
-  UNUSED(depth);
-  /* dispatching function does it all */
-  return ResOK;
-}
-
-
 /* BufferClassCheck -- check the consistency of a BufferClass */
 
 Bool BufferClassCheck(BufferClass klass)
 {
-  CHECKD(InstClass, &klass->protocol);
+  CHECKD(InstClass, &klass->instClassStruct);
   CHECKL(klass->size >= sizeof(BufferStruct));
   CHECKL(FUNCHECK(klass->varargs));
   CHECKL(FUNCHECK(klass->init));
-  CHECKL(FUNCHECK(klass->finish));
   CHECKL(FUNCHECK(klass->attach));
   CHECKL(FUNCHECK(klass->detach));
   CHECKL(FUNCHECK(klass->seg));
   CHECKL(FUNCHECK(klass->rankSet));
   CHECKL(FUNCHECK(klass->setRankSet));
   CHECKL(FUNCHECK(klass->reassignSeg));
-  CHECKL(FUNCHECK(klass->describe));
   CHECKS(BufferClass, klass);
   return TRUE;
 }
@@ -1052,14 +1030,14 @@ DEFINE_CLASS(Inst, BufferClass, klass)
 
 DEFINE_CLASS(Buffer, Buffer, klass)
 {
-  INHERIT_CLASS(&klass->protocol, Buffer, Inst);
+  INHERIT_CLASS(&klass->instClassStruct, Buffer, Inst);
+  klass->instClassStruct.finish = BufferAbsFinish;
+  klass->instClassStruct.describe = BufferAbsDescribe;
   klass->size = sizeof(BufferStruct);
   klass->varargs = ArgTrivVarargs;
   klass->init = BufferAbsInit;
-  klass->finish = BufferAbsFinish;
   klass->attach = bufferTrivAttach;
   klass->detach = bufferTrivDetach;
-  klass->describe = bufferTrivDescribe;
   klass->seg = bufferNoSeg;
   klass->rankSet = bufferTrivRankSet;
   klass->setRankSet = bufferNoSetRankSet;
@@ -1130,12 +1108,13 @@ static Res segBufInit(Buffer buffer, Pool pool, Bool isMutator, ArgList args)
 
 /* segBufFinish -- SegBuf finish method */
 
-static void segBufFinish(Buffer buffer)
+static void segBufFinish(Inst inst)
 {
+  Buffer buffer = MustBeA(Buffer, inst);
   SegBuf segbuf = MustBeA(SegBuf, buffer);
   AVER(BufferIsReset(buffer));
   segbuf->sig = SigInvalid;
-  NextMethod(Buffer, SegBuf, finish)(buffer);
+  NextMethod(Inst, SegBuf, finish)(inst);
 }
 
 
@@ -1157,7 +1136,7 @@ static void segBufAttach(Buffer buffer, Addr base, Addr limit,
   found = SegOfAddr(&seg, arena, base);
   AVER(found);
   AVER(segbuf->seg == NULL);
-  AVER(SegBuffer(seg) == NULL);
+  AVER(!SegHasBuffer(seg));
   AVER(SegBase(seg) <= base);
   AVER(limit <= SegLimit(seg));
 
@@ -1174,11 +1153,8 @@ static void segBufAttach(Buffer buffer, Addr base, Addr limit,
 static void segBufDetach(Buffer buffer)
 {
   SegBuf segbuf = MustBeA(SegBuf, buffer);
-  Seg seg;
-
-  seg = segbuf->seg;
-  AVER(seg != NULL);
-  SegSetBuffer(seg, NULL);
+  Seg seg = segbuf->seg;
+  SegUnsetBuffer(seg);
   segbuf->seg = NULL;
 }
 
@@ -1232,8 +1208,9 @@ static void segBufReassignSeg(Buffer buffer, Seg seg)
 
 /* segBufDescribe --  describe method for SegBuf */
 
-static Res segBufDescribe(Buffer buffer, mps_lib_FILE *stream, Count depth)
+static Res segBufDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 {
+  Buffer buffer = CouldBeA(Buffer, inst);
   SegBuf segbuf = CouldBeA(SegBuf, buffer);
   Res res;
 
@@ -1242,15 +1219,14 @@ static Res segBufDescribe(Buffer buffer, mps_lib_FILE *stream, Count depth)
   if (stream == NULL)
     return ResPARAM;
 
-  /* Describe the superclass fields first via next-method call */
-  res = NextMethod(Buffer, SegBuf, describe)(buffer, stream, depth);
+  res = NextMethod(Inst, SegBuf, describe)(inst, stream, depth);
   if (res != ResOK)
     return res;
 
   return WriteF(stream, depth + 2,
-		"Seg     $P\n", (WriteFP)segbuf->seg,
-		"rankSet $U\n", (WriteFU)segbuf->rankSet,
-		NULL);
+                "Seg     $P\n", (WriteFP)segbuf->seg,
+                "rankSet $U\n", (WriteFU)segbuf->rankSet,
+                NULL);
 }
 
 
@@ -1262,12 +1238,12 @@ static Res segBufDescribe(Buffer buffer, mps_lib_FILE *stream, Count depth)
 DEFINE_CLASS(Buffer, SegBuf, klass)
 {
   INHERIT_CLASS(klass, SegBuf, Buffer);
+  klass->instClassStruct.finish = segBufFinish;
+  klass->instClassStruct.describe = segBufDescribe;
   klass->size = sizeof(SegBufStruct);
   klass->init = segBufInit;
-  klass->finish = segBufFinish;
   klass->attach = segBufAttach;
   klass->detach = segBufDetach;
-  klass->describe = segBufDescribe;
   klass->seg = segBufSeg;
   klass->rankSet = segBufRankSet;
   klass->setRankSet = segBufSetRankSet;
@@ -1333,7 +1309,7 @@ DEFINE_CLASS(Buffer, RankBuf, klass)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

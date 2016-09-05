@@ -1,7 +1,7 @@
 /* poolmv2.c: MANUAL VARIABLE-SIZED TEMPORAL POOL
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: A manual-variable pool designed to take advantage of
  * placement according to predicted deathtime.
@@ -33,12 +33,12 @@ typedef struct MVTStruct *MVT;
 static void MVTVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs);
 static Res MVTInit(Pool pool, Arena arena, PoolClass klass, ArgList arg);
 static Bool MVTCheck(MVT mvt);
-static void MVTFinish(Pool pool);
+static void MVTFinish(Inst inst);
 static Res MVTBufferFill(Addr *baseReturn, Addr *limitReturn,
                          Pool pool, Buffer buffer, Size minSize);
 static void MVTBufferEmpty(Pool pool, Buffer buffer, Addr base, Addr limit);
 static void MVTFree(Pool pool, Addr base, Size size);
-static Res MVTDescribe(Pool pool, mps_lib_FILE *stream, Count depth);
+static Res MVTDescribe(Inst inst, mps_lib_FILE *stream, Count depth);
 static Size MVTTotalSize(Pool pool);
 static Size MVTFreeSize(Pool pool);
 static Res MVTSegAlloc(Seg *segReturn, MVT mvt, Size size);
@@ -139,16 +139,16 @@ typedef struct MVTStruct
 DEFINE_CLASS(Pool, MVTPool, klass)
 {
   INHERIT_CLASS(klass, MVTPool, AbstractBufferPool);
+  klass->instClassStruct.describe = MVTDescribe;
+  klass->instClassStruct.finish = MVTFinish;
   klass->size = sizeof(MVTStruct);
   klass->varargs = MVTVarargs;
   klass->init = MVTInit;
-  klass->finish = MVTFinish;
   klass->free = MVTFree;
   klass->bufferFill = MVTBufferFill;
   klass->bufferEmpty = MVTBufferEmpty;
   klass->totalSize = MVTTotalSize;
   klass->freeSize = MVTFreeSize;
-  klass->describe = MVTDescribe;
 }
 
 /* Macros */
@@ -376,7 +376,7 @@ failFreeLandInit:
 failFreeSecondaryInit:
   LandFinish(MVTFreePrimary(mvt));
 failFreePrimaryInit:
-  PoolAbsFinish(pool);
+  NextMethod(Inst, MVTPool, finish)(MustBeA(Inst, pool));
 failAbsInit:
   AVER(res != ResOK);
   return res;
@@ -421,18 +421,15 @@ static Bool MVTCheck(MVT mvt)
 
 /* MVTFinish -- finish an MVT pool
  */
-static void MVTFinish(Pool pool)
+static void MVTFinish(Inst inst)
 {
-  MVT mvt;
-  Arena arena;
+  Pool pool = MustBeA(AbstractPool, inst);
+  MVT mvt = MustBeA(MVTPool, pool);
+  Arena arena = PoolArena(pool);
   Ring ring;
   Ring node, nextNode;
  
-  AVERT(Pool, pool);
-  mvt = PoolMVT(pool);
   AVERT(MVT, mvt);
-  arena = PoolArena(pool);
-  AVERT(Arena, arena);
 
   mvt->sig = SigInvalid;
 
@@ -450,7 +447,8 @@ static void MVTFinish(Pool pool)
   LandFinish(MVTFreeLand(mvt));
   LandFinish(MVTFreeSecondary(mvt));
   LandFinish(MVTFreePrimary(mvt));
-  PoolAbsFinish(pool);
+
+  NextMethod(Inst, MVTPool, finish)(inst);
 }
 
 
@@ -1023,36 +1021,37 @@ static Size MVTFreeSize(Pool pool)
 
 /* MVTDescribe -- describe an MVT pool */
 
-static Res MVTDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
+static Res MVTDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 {
+  Pool pool = CouldBeA(AbstractPool, inst);
+  MVT mvt = CouldBeA(MVTPool, pool);
   Res res;
-  MVT mvt;
 
-  if (!TESTT(Pool, pool))
-    return ResFAIL;
-  mvt = PoolMVT(pool);
-  if (!TESTT(MVT, mvt))
-    return ResFAIL;
+  if (!TESTC(MVTPool, mvt))
+    return ResPARAM;
   if (stream == NULL)
     return ResFAIL;
 
-  res = WriteF(stream, depth,
-               "MVT $P {\n", (WriteFP)mvt,
-               "  minSize: $U\n", (WriteFU)mvt->minSize,
-               "  meanSize: $U\n", (WriteFU)mvt->meanSize,
-               "  maxSize: $U\n", (WriteFU)mvt->maxSize,
-               "  fragLimit: $U\n", (WriteFU)mvt->fragLimit,
-               "  reuseSize: $U\n", (WriteFU)mvt->reuseSize,
-               "  fillSize: $U\n", (WriteFU)mvt->fillSize,
-               "  availLimit: $U\n", (WriteFU)mvt->availLimit,
-               "  abqOverflow: $S\n", WriteFYesNo(mvt->abqOverflow),
-               "  splinter: $S\n", WriteFYesNo(mvt->splinter),
-               "  splinterBase: $A\n", (WriteFA)mvt->splinterBase,
-               "  splinterLimit: $A\n", (WriteFU)mvt->splinterLimit,
-               "  size: $U\n", (WriteFU)mvt->size,
-               "  allocated: $U\n", (WriteFU)mvt->allocated,
-               "  available: $U\n", (WriteFU)mvt->available,
-               "  unavailable: $U\n", (WriteFU)mvt->unavailable,
+  res = NextMethod(Inst, MVTPool, describe)(inst, stream, depth);
+  if (res != ResOK)
+    return res;
+
+  res = WriteF(stream, depth + 2,
+               "minSize: $U\n", (WriteFU)mvt->minSize,
+               "meanSize: $U\n", (WriteFU)mvt->meanSize,
+               "maxSize: $U\n", (WriteFU)mvt->maxSize,
+               "fragLimit: $U\n", (WriteFU)mvt->fragLimit,
+               "reuseSize: $U\n", (WriteFU)mvt->reuseSize,
+               "fillSize: $U\n", (WriteFU)mvt->fillSize,
+               "availLimit: $U\n", (WriteFU)mvt->availLimit,
+               "abqOverflow: $S\n", WriteFYesNo(mvt->abqOverflow),
+               "splinter: $S\n", WriteFYesNo(mvt->splinter),
+               "splinterBase: $A\n", (WriteFA)mvt->splinterBase,
+               "splinterLimit: $A\n", (WriteFU)mvt->splinterLimit,
+               "size: $U\n", (WriteFU)mvt->size,
+               "allocated: $U\n", (WriteFU)mvt->allocated,
+               "available: $U\n", (WriteFU)mvt->available,
+               "unavailable: $U\n", (WriteFU)mvt->unavailable,
                NULL);
   if (res != ResOK)
     return res;
@@ -1103,8 +1102,7 @@ static Res MVTDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
   METER_WRITE(mvt->exceptionSplinters, stream, depth + 2);
   METER_WRITE(mvt->exceptionReturns, stream, depth + 2);
  
-  res = WriteF(stream, depth, "} MVT $P\n", (WriteFP)mvt, NULL);
-  return res;
+  return ResOK;
 }
 
 
@@ -1353,23 +1351,9 @@ static Bool MVTCheckFit(Addr base, Addr limit, Size min, Arena arena)
 }
 
 
-/* Return the CBS of an MVT pool for the benefit of fotest.c. */
-
-extern Land _mps_mvt_cbs(Pool);
-Land _mps_mvt_cbs(Pool pool) {
-  MVT mvt;
-
-  AVERT(Pool, pool);
-  mvt = PoolMVT(pool);
-  AVERT(MVT, mvt);
-
-  return MVTFreePrimary(mvt);
-}
-
-
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

@@ -401,7 +401,7 @@ void ChainDestroy(Chain chain)
   size_t i;
 
   AVERT(Chain, chain);
-  AVER(chain->activeTraces == TraceSetEMPTY);
+  AVER(chain->activeTraces == TraceSetEMPTY); /* <design/check/#.common> */
 
   arena = chain->arena;
   genCount = chain->genCount;

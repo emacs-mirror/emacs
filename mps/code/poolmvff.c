@@ -1,7 +1,7 @@
 /* poolmvff.c: First Fit Manual Variable Pool
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .purpose: This is a pool class for manually managed objects of
@@ -297,7 +297,11 @@ static Res mvffFindFree(Range rangeReturn, MVFF mvff, Size size,
 }
 
 
-/* MVFFAlloc -- Allocate a block */
+/* MVFFAlloc -- Allocate a block
+ *
+ * .alloc.critical: In manual-allocation-bound programs this is on the
+ * critical path.
+ */
 
 static Res MVFFAlloc(Addr *aReturn, Pool pool, Size size)
 {
@@ -307,11 +311,11 @@ static Res MVFFAlloc(Addr *aReturn, Pool pool, Size size)
   LandFindMethod findMethod;
   FindDelete findDelete;
 
-  AVER(aReturn != NULL);
-  AVERT(Pool, pool);
+  AVER_CRITICAL(aReturn != NULL);
+  AVERT_CRITICAL(Pool, pool);
   mvff = PoolMVFF(pool);
-  AVERT(MVFF, mvff);
-  AVER(size > 0);
+  AVERT_CRITICAL(MVFF, mvff);
+  AVER_CRITICAL(size > 0);
 
   size = SizeAlignUp(size, PoolAlignment(pool));
   findMethod = mvff->firstFit ? LandFindFirst : LandFindLast;
@@ -321,13 +325,17 @@ static Res MVFFAlloc(Addr *aReturn, Pool pool, Size size)
   if (res != ResOK)
     return res;
 
-  AVER(RangeSize(&range) == size);
+  AVER_CRITICAL(RangeSize(&range) == size);
   *aReturn = RangeBase(&range);
   return ResOK;
 }
 
 
-/* MVFFFree -- free the given block */
+/* MVFFFree -- free the given block
+ *
+ * .free.critical: In manual-allocation-bound programs this is on the
+ * critical path.
+ */
 
 static void MVFFFree(Pool pool, Addr old, Size size)
 {
@@ -335,18 +343,18 @@ static void MVFFFree(Pool pool, Addr old, Size size)
   RangeStruct range, coalescedRange;
   MVFF mvff;
 
-  AVERT(Pool, pool);
+  AVERT_CRITICAL(Pool, pool);
   mvff = PoolMVFF(pool);
-  AVERT(MVFF, mvff);
+  AVERT_CRITICAL(MVFF, mvff);
 
-  AVER(old != (Addr)0);
-  AVER(AddrIsAligned(old, PoolAlignment(pool)));
-  AVER(size > 0);
+  AVER_CRITICAL(old != (Addr)0);
+  AVER_CRITICAL(AddrIsAligned(old, PoolAlignment(pool)));
+  AVER_CRITICAL(size > 0);
 
   RangeInitSize(&range, old, SizeAlignUp(size, PoolAlignment(pool)));
   res = LandInsert(&coalescedRange, MVFFFreeLand(mvff), &range);
   /* Insertion must succeed because it fails over to a Freelist. */
-  AVER(res == ResOK);
+  AVER_CRITICAL(res == ResOK);
   MVFFReduce(mvff);
 }
 
@@ -578,7 +586,7 @@ failFreePrimaryInit:
 failTotalLandInit:
   PoolFinish(MVFFBlockPool(mvff));
 failBlockPoolInit:
-  PoolAbsFinish(pool);
+  NextMethod(Inst, MVFFPool, finish)(MustBeA(Inst, pool));
 failAbsInit:
   AVER(res != ResOK);
   return res;
@@ -604,13 +612,12 @@ static Bool mvffFinishVisitor(Bool *deleteReturn, Land land, Range range,
   return TRUE;
 }
 
-static void MVFFFinish(Pool pool)
+static void MVFFFinish(Inst inst)
 {
-  MVFF mvff;
+  Pool pool = MustBeA(AbstractPool, inst);
+  MVFF mvff = MustBeA(MVFFPool, pool);
   Bool b;
 
-  AVERT(Pool, pool);
-  mvff = PoolMVFF(pool);
   AVERT(MVFF, mvff);
   mvff->sig = SigInvalid;
 
@@ -623,7 +630,7 @@ static void MVFFFinish(Pool pool)
   LandFinish(MVFFFreePrimary(mvff));
   LandFinish(MVFFTotalLand(mvff));
   PoolFinish(MVFFBlockPool(mvff));
-  PoolAbsFinish(pool);
+  NextMethod(Inst, MVFFPool, finish)(inst);
 }
 
 
@@ -671,28 +678,27 @@ static Size MVFFFreeSize(Pool pool)
 
 /* MVFFDescribe -- describe an MVFF pool */
 
-static Res MVFFDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
+static Res MVFFDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 {
+  Pool pool = CouldBeA(AbstractPool, inst);
+  MVFF mvff = CouldBeA(MVFFPool, pool);
   Res res;
-  MVFF mvff;
 
-  if (!TESTT(Pool, pool))
-    return ResFAIL;
-  mvff = PoolMVFF(pool);
-  if (!TESTT(MVFF, mvff))
-    return ResFAIL;
+  if (!TESTC(MVFFPool, mvff))
+    return ResPARAM;
   if (stream == NULL)
-    return ResFAIL;
+    return ResPARAM;
 
-  res = WriteF(stream, depth,
-               "MVFF $P {\n", (WriteFP)mvff,
-               "  pool $P ($U)\n",
-               (WriteFP)pool, (WriteFU)pool->serial,
-               "  extendBy  $W\n",  (WriteFW)mvff->extendBy,
-               "  avgSize   $W\n",  (WriteFW)mvff->avgSize,
-               "  firstFit  $U\n",  (WriteFU)mvff->firstFit,
-               "  slotHigh  $U\n",  (WriteFU)mvff->slotHigh,
-               "  spare     $D\n",  (WriteFD)mvff->spare,
+  res = NextMethod(Inst, MVFFPool, describe)(inst, stream, depth);
+  if (res != ResOK)
+    return res;
+
+  res = WriteF(stream, depth + 2,
+               "extendBy  $W\n",  (WriteFW)mvff->extendBy,
+               "avgSize   $W\n",  (WriteFW)mvff->avgSize,
+               "firstFit  $U\n",  (WriteFU)mvff->firstFit,
+               "slotHigh  $U\n",  (WriteFU)mvff->slotHigh,
+               "spare     $D\n",  (WriteFD)mvff->spare,
                NULL);
   if (res != ResOK)
     return res;
@@ -716,8 +722,7 @@ static Res MVFFDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
   if (res != ResOK)
     return res;
 
-  res = WriteF(stream, depth, "} MVFF $P\n", (WriteFP)mvff, NULL);
-  return res;
+  return ResOK;
 }
 
 
@@ -725,17 +730,17 @@ DEFINE_CLASS(Pool, MVFFPool, klass)
 {
   INHERIT_CLASS(klass, MVFFPool, AbstractPool);
   PoolClassMixInBuffer(klass);
+  klass->instClassStruct.describe = MVFFDescribe;
+  klass->instClassStruct.finish = MVFFFinish;
   klass->size = sizeof(MVFFStruct);
   klass->varargs = MVFFVarargs;
   klass->init = MVFFInit;
-  klass->finish = MVFFFinish;
   klass->alloc = MVFFAlloc;
   klass->free = MVFFFree;
   klass->bufferFill = MVFFBufferFill;
   klass->bufferEmpty = MVFFBufferEmpty;
   klass->totalSize = MVFFTotalSize;
   klass->freeSize = MVFFFreeSize;
-  klass->describe = MVFFDescribe;
 }
 
 
@@ -799,23 +804,9 @@ static Bool MVFFCheck(MVFF mvff)
 }
 
 
-/* Return the CBS of an MVFF pool for the benefit of fotest.c. */
-
-extern Land _mps_mvff_cbs(Pool);
-Land _mps_mvff_cbs(Pool pool) {
-  MVFF mvff;
-
-  AVERT(Pool, pool);
-  mvff = PoolMVFF(pool);
-  AVERT(MVFF, mvff);
-
-  return MVFFFreePrimary(mvff);
-}
-
-
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

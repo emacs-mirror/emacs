@@ -240,7 +240,7 @@ failControlAllocAlloc:
 failControlAllocScanned:
   ControlFree(arena, awlseg->mark, tableSize);
 failControlAllocMark:
-  NextMethod(Seg, AWLSeg, finish)(seg);
+  NextMethod(Inst, AWLSeg, finish)(MustBeA(Inst, seg));
 failSuperInit:
   AVER(res != ResOK);
   return res;
@@ -249,8 +249,9 @@ failSuperInit:
 
 /* AWLSegFinish -- Finish method for AWL segments */
 
-static void AWLSegFinish(Seg seg)
+static void AWLSegFinish(Inst inst)
 {
+  Seg seg = MustBeA(Seg, inst);
   AWLSeg awlseg = MustBeA(AWLSeg, seg);
   Pool pool = SegPool(seg);
   AWL awl = MustBeA(AWLPool, pool);
@@ -269,7 +270,7 @@ static void AWLSegFinish(Seg seg)
   awlseg->sig = SigInvalid;
 
   /* finish the superclass fields last */
-  NextMethod(Seg, AWLSeg, finish)(seg);
+  NextMethod(Inst, AWLSeg, finish)(inst);
 }
 
 
@@ -279,9 +280,9 @@ DEFINE_CLASS(Seg, AWLSeg, klass)
 {
   INHERIT_CLASS(klass, AWLSeg, GCSeg);
   SegClassMixInNoSplitMerge(klass);  /* no support for this (yet) */
+  klass->instClassStruct.finish = AWLSegFinish;
   klass->size = sizeof(AWLSegStruct);
   klass->init = AWLSegInit;
-  klass->finish = AWLSegFinish;
 }
 
 
@@ -571,7 +572,7 @@ static Res AWLInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
   return ResOK;
 
 failGenInit:
-  PoolAbsFinish(pool);
+  NextMethod(Inst, AWLPool, finish)(MustBeA(Inst, pool));
 failAbsInit:
   AVER(res != ResOK);
   return res;
@@ -580,8 +581,9 @@ failAbsInit:
 
 /* AWLFinish -- finish an AWL pool */
 
-static void AWLFinish(Pool pool)
+static void AWLFinish(Inst inst)
 {
+  Pool pool = MustBeA(AbstractPool, inst);
   AWL awl = MustBeA(AWLPool, pool);
   Ring ring, node, nextNode;
 
@@ -589,7 +591,7 @@ static void AWLFinish(Pool pool)
   RING_FOR(node, ring, nextNode) {
     Seg seg = SegOfPoolRing(node);
     AWLSeg awlseg = MustBeA(AWLSeg, seg);
-    AVER(SegBuffer(seg) == NULL);
+    AVER(!SegHasBuffer(seg));
     AVERT(AWLSeg, awlseg);
     AVER(awlseg->bufferedGrains == 0);
     PoolGenFree(awl->pgen, seg,
@@ -600,7 +602,8 @@ static void AWLFinish(Pool pool)
   }
   awl->sig = SigInvalid;
   PoolGenFinish(awl->pgen);
-  PoolAbsFinish(pool);
+
+  NextMethod(Inst, AWLPool, finish)(inst);
 }
 
 
@@ -627,7 +630,7 @@ static Res AWLBufferFill(Addr *baseReturn, Addr *limitReturn,
 
     /* Only try to allocate in the segment if it is not already */
     /* buffered, and has the same ranks as the buffer. */
-    if (SegBuffer(seg) == NULL
+    if (!SegHasBuffer(seg)
         && SegRankSet(seg) == BufferRankSet(buffer)
         && AWLGrainsSize(awl, awlseg->freeGrains) >= size
         && AWLSegAlloc(&base, &limit, awlseg, awl, size))
@@ -715,7 +718,7 @@ static Res AWLWhiten(Pool pool, Trace trace, Seg seg)
 {
   AWL awl = MustBeA(AWLPool, pool);
   AWLSeg awlseg = MustBeA(AWLSeg, seg);
-  Buffer buffer = SegBuffer(seg);
+  Buffer buffer;
   Count agedGrains, uncondemnedGrains;
 
   /* All parameters checked by generic PoolWhiten. */
@@ -724,7 +727,7 @@ static Res AWLWhiten(Pool pool, Trace trace, Seg seg)
   /* see <design/poolawl/#fun.condemn> */
   AVER(SegWhite(seg) == TraceSetEMPTY);
 
-  if(buffer == NULL) {
+  if (!SegBuffer(&buffer, seg)) {
     awlRangeWhiten(awlseg, 0, awlseg->grains);
     uncondemnedGrains = (Count)0;
   } else {
@@ -782,6 +785,8 @@ static void AWLRangeGrey(AWLSeg awlseg, Index base, Index limit)
 
 static void AWLGrey(Pool pool, Trace trace, Seg seg)
 {
+  Buffer buffer;
+  
   AVERT(Pool, pool);
   AVERT(Trace, trace);
   AVERT(Seg, seg);
@@ -791,9 +796,8 @@ static void AWLGrey(Pool pool, Trace trace, Seg seg)
     AWLSeg awlseg = MustBeA(AWLSeg, seg);
 
     SegSetGrey(seg, TraceSetAdd(SegGrey(seg), trace));
-    if (SegBuffer(seg) != NULL) {
+    if (SegBuffer(&buffer, seg)) {
       Addr base = SegBase(seg);
-      Buffer buffer = SegBuffer(seg);
 
       AWLRangeGrey(awlseg,
                    0,
@@ -867,7 +871,7 @@ static Res awlScanSinglePass(Bool *anyScannedReturn,
   AWL awl = MustBeA(AWLPool, pool);
   AWLSeg awlseg = MustBeA(AWLSeg, seg);
   Arena arena = PoolArena(pool);
-  Buffer buffer = SegBuffer(seg);
+  Buffer buffer;
   Format format = pool->format;
   Addr base = SegBase(seg);
   Addr limit = SegLimit(seg);
@@ -880,7 +884,7 @@ static Res awlScanSinglePass(Bool *anyScannedReturn,
 
   *anyScannedReturn = FALSE;
   p = base;
-  if (buffer != NULL && BufferScanLimit(buffer) != BufferLimit(buffer))
+  if (SegBuffer(&buffer, seg) && BufferScanLimit(buffer) != BufferLimit(buffer))
     bufferScanLimit = BufferScanLimit(buffer);
   else
     bufferScanLimit = limit;
@@ -1028,7 +1032,8 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
   AWL awl = MustBeA(AWLPool, pool);
   AWLSeg awlseg = MustBeA(AWLSeg, seg);
   Addr base = SegBase(seg);
-  Buffer buffer = SegBuffer(seg);
+  Buffer buffer;
+  Bool hasBuffer = SegBuffer(&buffer, seg);
   Format format = pool->format;
   Count reclaimedGrains = (Count)0;
   Count preservedInPlaceCount = (Count)0;
@@ -1047,7 +1052,7 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
       continue;
     }
     p = awlAddrOfIndex(base, awl, i);
-    if (buffer != NULL
+    if (hasBuffer
         && p == BufferScanLimit(buffer)
         && BufferScanLimit(buffer) != BufferLimit(buffer))
     {
@@ -1086,7 +1091,7 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
   GenDescSurvived(awl->pgen->gen, trace, 0, preservedInPlaceSize);
   SegSetWhite(seg, TraceSetDel(SegWhite(seg), trace));
 
-  if (awlseg->freeGrains == awlseg->grains && buffer == NULL) {
+  if (awlseg->freeGrains == awlseg->grains && !hasBuffer) {
     /* No survivors */
     AVER(awlseg->bufferedGrains == 0);
     PoolGenFree(awl->pgen, seg,
@@ -1159,9 +1164,9 @@ static void AWLWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
     /* free grain */
     Addr next;
     Index i;
+    Buffer buffer;
 
-    if (SegBuffer(seg) != NULL) {
-      Buffer buffer = SegBuffer(seg);
+    if (SegBuffer(&buffer, seg)) {
       if (object == BufferScanLimit(buffer)
           && BufferScanLimit(buffer) != BufferLimit(buffer)) {
         /* skip over buffered area */
@@ -1215,10 +1220,10 @@ DEFINE_CLASS(Pool, AWLPool, klass)
 {
   INHERIT_CLASS(klass, AWLPool, AbstractCollectPool);
   PoolClassMixInFormat(klass);
+  klass->instClassStruct.finish = AWLFinish;
   klass->size = sizeof(AWLPoolStruct);
   klass->varargs = AWLVarargs;
   klass->init = AWLInit;
-  klass->finish = AWLFinish;
   klass->bufferClass = RankBufClassGet;
   klass->bufferFill = AWLBufferFill;
   klass->bufferEmpty = AWLBufferEmpty;

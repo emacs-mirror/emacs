@@ -617,6 +617,29 @@
 #endif
 
 
+/* POSIX thread extensions configuration -- see <code/pthrdext.c> */
+
+#if defined(MPS_OS_LI) || defined(MPS_OS_FR)
+
+/* PTHREADEXT_SIGSUSPEND -- signal used to suspend a thread
+ * See <design/pthreadext/#impl.signals>
+ */
+#if defined(CONFIG_PTHREADEXT_SIGSUSPEND)
+#define PTHREADEXT_SIGSUSPEND CONFIG_PTHREADEXT_SIGSUSPEND
+#else
+#define PTHREADEXT_SIGSUSPEND SIGXFSZ
+#endif
+
+/* PTHREADEXT_SIGRESUME -- signal used to resume a thread
+ * See <design/pthreadext/#impl.signals>
+ */
+#if defined(CONFIG_PTHREADEXT_SIGRESUME)
+#define PTHREADEXT_SIGRESUME CONFIG_PTHREADEXT_SIGRESUME
+#else
+#define PTHREADEXT_SIGRESUME SIGXCPU
+#endif
+
+#endif
 
 
 /* Tracer Configuration -- see <code/trace.c> */

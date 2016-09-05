@@ -550,6 +550,16 @@ happen if requested explicitly via ``mps_arena_collect()`` or
 ``mps_arena_step()``, but it also means that protection is not needed,
 and so shield operations can be replaced with no-ops in ``mpm.h``.
 
+_`.opt.signal.suspend`: ``CONFIG_PTHREADEXT_SIGSUSPEND`` names the
+signal used to suspend a thread, on platforms using the POSIX thread
+extensions module. See design.pthreadext.impl.signals_.
+
+.. _design.pthreadext.impl.signals: pthreadext#impl.signals
+
+_`.opt.signal.resume`: ``CONFIG_PTHREADEXT_SIGRESUME`` names the
+signal used to resume a thread, on platforms using the POSIX thread
+extensions module. See design.pthreadext.impl.signals_.
+
 
 To document
 -----------

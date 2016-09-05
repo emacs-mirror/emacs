@@ -169,7 +169,7 @@ typedef struct AMSSegStruct {
 extern Res AMSInitInternal(AMS ams, Arena arena, PoolClass klass,
                            Chain chain, unsigned gen,
                            Bool shareAllocTable, ArgList args);
-extern void AMSFinish(Pool pool);
+extern void AMSFinish(Inst inst);
 extern Bool AMSCheck(AMS ams);
 
 extern Res AMSScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg);

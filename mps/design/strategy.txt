@@ -542,10 +542,12 @@ clock time when the MPS was entered; ``moreWork`` and ``tracedWork``
 are the results of the last call to ``TracePoll()``.
 
 _`.policy.poll.impl`: The implementation keep doing work until either
-the maximum pause time is exceeded (see design.mps.arena.pause-time_),
+the maximum pause time is exceeded (see `design.mps.arena.pause-time`_),
 or there is no more work to do. Then it schedules the next collection
 so that there is approximately one call to ``TracePoll()`` for every
 ``ArenaPollALLOCTIME`` bytes of allocation.
+
+.. _design.mps.arena.pause-time: arena#pause-time
 
 
 References

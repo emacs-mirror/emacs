@@ -205,17 +205,17 @@ void EventInit(void)
     if (!eventInited) {
       EventKind kind;
       for (kind = 0; kind < EventKindLIMIT; ++kind) {
-	AVER(EventLast[kind] == NULL);
-	AVER(EventWritten[kind] == NULL);
-	EventLast[kind] = EventWritten[kind] = EventBuffer[kind] + EventBufferSIZE;
+        AVER(EventLast[kind] == NULL);
+        AVER(EventWritten[kind] == NULL);
+        EventLast[kind] = EventWritten[kind] = EventBuffer[kind] + EventBufferSIZE;
       }
       eventInited = TRUE;
       EventKindControl = (Word)mps_lib_telemetry_control();
       EventInternSerial = (Serial)1; /* 0 is reserved */
       (void)EventInternString(MPSVersion()); /* emit version */
       EVENT7(EventInit, EVENT_VERSION_MAJOR, EVENT_VERSION_MEDIAN,
-	     EVENT_VERSION_MINOR, EventCodeMAX, EventNameMAX, MPS_WORD_WIDTH,
-	     mps_clocks_per_sec());
+             EVENT_VERSION_MINOR, EventCodeMAX, EventNameMAX, MPS_WORD_WIDTH,
+             mps_clocks_per_sec());
       /* flush these initial events to get the first ClockSync out. */
       EventSync();
     }
@@ -520,7 +520,7 @@ extern void EventDump(mps_lib_FILE *stream)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
