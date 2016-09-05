@@ -286,7 +286,7 @@ this documentation.
     It is necessary to call :c:func:`mps_fmt_destroy` first.
 
 
-``global.c: RingIsSingle(&arena->rootRing)``
+``global.c: RingIsSingle(&arenaGlobals->rootRing)``
 
     The client program called :c:func:`mps_arena_destroy` without
     destroying all the :term:`roots` belonging to the arena.
@@ -300,7 +300,7 @@ this documentation.
     It is necessary to call :c:func:`mps_thread_dereg` first.
 
 
-``global.c: RingLength(&arenaGlobals->poolRing) == 5``
+``global.c: RingLength(&arenaGlobals->poolRing) == 4``
 
     The client program called :c:func:`mps_arena_destroy` without
     destroying all the :term:`pools` belonging to the arena.

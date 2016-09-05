@@ -30,7 +30,7 @@ static void test(void)
  mps_pool_t poolhi, poollo;
  mps_thr_t thread;
 
- unsigned long com0, com1;
+ size_t com0, com1;
 
 /* create a VM arena of 40MB */
 

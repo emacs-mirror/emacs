@@ -238,7 +238,7 @@ extern Size PoolTotalSize(Pool pool);
 extern Size PoolFreeSize(Pool pool);
 
 extern Res PoolAbsInit(Pool pool, Arena arena, PoolClass klass, ArgList arg);
-extern void PoolAbsFinish(Pool pool);
+extern void PoolAbsFinish(Inst inst);
 extern Res PoolNoAlloc(Addr *pReturn, Pool pool, Size size);
 extern Res PoolTrivAlloc(Addr *pReturn, Pool pool, Size size);
 extern void PoolNoFree(Pool pool, Addr old, Size size);
@@ -251,7 +251,7 @@ extern void PoolNoBufferEmpty(Pool pool, Buffer buffer,
                               Addr init, Addr limit);
 extern void PoolTrivBufferEmpty(Pool pool, Buffer buffer,
                                 Addr init, Addr limit);
-extern Res PoolTrivDescribe(Pool pool, mps_lib_FILE *stream, Count depth);
+extern Res PoolAbsDescribe(Inst inst, mps_lib_FILE *stream, Count depth);
 extern Res PoolNoTraceBegin(Pool pool, Trace trace);
 extern Res PoolTrivTraceBegin(Pool pool, Trace trace);
 extern Res PoolNoAccess(Pool pool, Seg seg, Addr addr,
@@ -669,10 +669,13 @@ extern void SegSetRankSet(Seg seg, RankSet rankSet);
 extern void SegSetRankAndSummary(Seg seg, RankSet rankSet, RefSet summary);
 extern Res SegMerge(Seg *mergedSegReturn, Seg segLo, Seg segHi);
 extern Res SegSplit(Seg *segLoReturn, Seg *segHiReturn, Seg seg, Addr at);
+extern Res SegAbsDescribe(Inst seg, mps_lib_FILE *stream, Count depth);
 extern Res SegDescribe(Seg seg, mps_lib_FILE *stream, Count depth);
 extern void SegSetSummary(Seg seg, RefSet summary);
-extern Buffer SegBuffer(Seg seg);
+extern Bool SegHasBuffer(Seg seg);
+extern Bool SegBuffer(Buffer *bufferReturn, Seg seg);
 extern void SegSetBuffer(Seg seg, Buffer buffer);
+extern void SegUnsetBuffer(Seg seg);
 extern Addr SegBufferScanLimit(Seg seg);
 extern Bool SegCheck(Seg seg);
 extern Bool GCSegCheck(GCSeg gcseg);

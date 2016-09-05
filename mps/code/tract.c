@@ -1,7 +1,7 @@
 /* tract.c: PAGE TABLES
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  * .ullagepages: Pages whose page index is < allocBase are recorded as
  * free but never allocated as alloc starts searching after the tables.
@@ -60,8 +60,8 @@ Bool TractCheck(Tract tract)
 
 void TractInit(Tract tract, Pool pool, Addr base)
 {
-  AVER(tract != NULL);
-  AVERT(Pool, pool);
+  AVER_CRITICAL(tract != NULL);
+  AVERT_CRITICAL(Pool, pool);
 
   tract->pool.pool = pool;
   tract->base = base;
@@ -456,11 +456,11 @@ void PageAlloc(Chunk chunk, Index pi, Pool pool)
   Addr base;
   Page page;
 
-  AVERT(Chunk, chunk);
-  AVER(pi >= chunk->allocBase);
-  AVER(pi < chunk->pages);
-  AVER(!BTGet(chunk->allocTable, pi));
-  AVERT(Pool, pool);
+  AVERT_CRITICAL(Chunk, chunk);
+  AVER_CRITICAL(pi >= chunk->allocBase);
+  AVER_CRITICAL(pi < chunk->pages);
+  AVER_CRITICAL(!BTGet(chunk->allocTable, pi));
+  AVERT_CRITICAL(Pool, pool);
 
   page = ChunkPage(chunk, pi);
   tract = PageTract(page);
@@ -476,9 +476,9 @@ void PageInit(Chunk chunk, Index pi)
 {
   Page page;
 
-  AVERT(Chunk, chunk);
-  AVER(pi < chunk->pages);
-  
+  AVERT_CRITICAL(Chunk, chunk);
+  AVER_CRITICAL(pi < chunk->pages);
+
   page = ChunkPage(chunk, pi);
 
   BTRes(chunk->allocTable, pi);
@@ -504,7 +504,7 @@ void PageFree(Chunk chunk, Index pi)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

@@ -141,12 +141,11 @@ static Res amstSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 
 /* amstSegFinish -- Finish method for AMST segments */
 
-static void amstSegFinish(Seg seg)
+static void amstSegFinish(Inst inst)
 {
-  AMSTSeg amstseg;
+  Seg seg = MustBeA(Seg, inst);
+  AMSTSeg amstseg = MustBeA(AMSTSeg, seg);
 
-  AVERT(Seg, seg);
-  amstseg = Seg2AMSTSeg(seg);
   AVERT(AMSTSeg, amstseg);
 
   if (amstseg->next != NULL)
@@ -156,7 +155,7 @@ static void amstSegFinish(Seg seg)
 
   amstseg->sig = SigInvalid;
   /* finish the superclass fields last */
-  NextMethod(Seg, AMSTSeg, finish)(seg);
+  NextMethod(Inst, AMSTSeg, finish)(inst);
 }
 
 
@@ -269,9 +268,9 @@ failSuper:
 DEFINE_CLASS(Seg, AMSTSeg, klass)
 {
   INHERIT_CLASS(klass, AMSTSeg, AMSSeg);
+  klass->instClassStruct.finish = amstSegFinish;
   klass->size = sizeof(AMSTSegStruct);
   klass->init = amstSegInit;
-  klass->finish = amstSegFinish;
   klass->split = amstSegSplit;
   klass->merge = amstSegMerge;
   AVERT(SegClass, klass);
@@ -345,13 +344,14 @@ static Res AMSTInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
 
 /* AMSTFinish -- the pool class finish method */
 
-static void AMSTFinish(Pool pool)
+static void AMSTFinish(Inst inst)
 {
-  AMST amst;
+  Pool pool = MustBeA(AbstractPool, inst);
+  AMST amst = MustBeA(AMSTPool, pool);
 
-  AVERT(Pool, pool);
-  amst = PoolAMST(pool);
   AVERT(AMST, amst);
+
+  amst->sig = SigInvalid;
 
   printf("\nDestroying pool, having performed:\n");
   printf("    %"PRIuLONGEST" splits          (S)\n", (ulongest_t)amst->splits);
@@ -362,8 +362,7 @@ static void AMSTFinish(Pool pool)
   printf("    %"PRIuLONGEST" buffered splits (C)\n", (ulongest_t)amst->bsplits);
   printf("    %"PRIuLONGEST" buffered merges (J)\n", (ulongest_t)amst->bmerges);
 
-  AMSFinish(pool);
-  amst->sig = SigInvalid;
+  NextMethod(Inst, AMSTPool, finish)(inst);
 }
 
 
@@ -536,7 +535,7 @@ static Res AMSTBufferFill(Addr *baseReturn, Addr *limitReturn,
   if (SegLimit(seg) == limit && SegBase(seg) == base) {
     if (amstseg->prev != NULL) {
       Seg segLo = AMSTSeg2Seg(amstseg->prev);
-      if (SegBuffer(segLo) == NULL &&
+      if (!SegHasBuffer(segLo) &&
           SegGrey(segLo) == SegGrey(seg) &&
           SegWhite(segLo) == SegWhite(seg)) {
         /* .merge */
@@ -599,10 +598,11 @@ static void AMSTStressBufferedSeg(Seg seg, Buffer buffer)
   AMST amst;
   Arena arena;
   Addr limit;
+  Buffer segBuf;
 
   AVERT(Seg, seg);
   AVERT(Buffer, buffer);
-  AVER(SegBuffer(seg) == buffer);
+  AVER(SegBuffer(&segBuf, seg) && segBuf == buffer);
   amstseg = Seg2AMSTSeg(seg);
   AVERT(AMSTSeg, amstseg);
   limit = BufferLimit(buffer);
@@ -651,9 +651,9 @@ static void AMSTStressBufferedSeg(Seg seg, Buffer buffer)
 DEFINE_CLASS(Pool, AMSTPool, klass)
 {
   INHERIT_CLASS(klass, AMSTPool, AMSPool);
+  klass->instClassStruct.finish = AMSTFinish;
   klass->size = sizeof(AMSTStruct);
   klass->init = AMSTInit;
-  klass->finish = AMSTFinish;
   klass->bufferFill = AMSTBufferFill;
 }
 

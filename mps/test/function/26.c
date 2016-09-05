@@ -20,7 +20,8 @@ static mps_res_t trysize(size_t try) {
  mps_res_t res;
 
  die(mps_pool_create(&pool, arena, mps_class_mv(),
-  1024*32, 1024*16, 1024*256), "pool");
+                     (size_t)(1024*32), (size_t)(1024*16), (size_t)(1024*256)),
+     "pool_create");
 
  comment("Trying %x", try);
 

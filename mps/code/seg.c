@@ -132,8 +132,7 @@ static Res SegAbsInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   AVER(SizeIsArenaGrains(size, arena));
   AVERT(ArgList, args);
 
-  /* Superclass init */
-  InstInit(CouldBeA(Inst, seg));
+  NextMethod(Inst, Seg, init)(CouldBeA(Inst, seg));
 
   limit = AddrAdd(base, size);
   seg->limit = limit;
@@ -192,8 +191,9 @@ static Res SegInit(Seg seg, SegClass klass, Pool pool, Addr base, Size size, Arg
 
 /* SegFinish -- finish a segment */
 
-static void SegAbsFinish(Seg seg)
+static void SegAbsFinish(Inst inst)
 {
+  Seg seg = MustBeA(Seg, inst);
   Arena arena;
   Addr addr, limit;
   Tract tract;
@@ -246,7 +246,7 @@ static void SegAbsFinish(Seg seg)
 static void SegFinish(Seg seg)
 {
   AVERC(Seg, seg);
-  Method(Seg, seg, finish)(seg);
+  Method(Inst, seg, finish)(MustBeA(Inst, seg));
 }
 
 
@@ -332,12 +332,21 @@ void SegSetRankAndSummary(Seg seg, RankSet rankSet, RefSet summary)
 }
 
 
-/* SegBuffer -- return the buffer of a segment */
+/* SegHasBuffer -- segment has a buffer? */
 
-Buffer SegBuffer(Seg seg)
+Bool SegHasBuffer(Seg seg)
+{
+  Buffer buffer;
+  return SegBuffer(&buffer, seg);
+}
+
+
+/* SegBuffer -- get the buffer of a segment */
+
+Bool SegBuffer(Buffer *bufferReturn, Seg seg)
 {
   AVERT_CRITICAL(Seg, seg);  /* .seg.critical */
-  return Method(Seg, seg, buffer)(seg);
+  return Method(Seg, seg, buffer)(bufferReturn, seg);
 }
 
 
@@ -346,9 +355,17 @@ Buffer SegBuffer(Seg seg)
 void SegSetBuffer(Seg seg, Buffer buffer)
 {
   AVERT(Seg, seg);
-  if (buffer != NULL)
-    AVERT(Buffer, buffer);
+  AVERT(Buffer, buffer);
   Method(Seg, seg, setBuffer)(seg, buffer);
+}
+
+
+/* SegUnsetBuffer -- remove the buffer from a segment */
+
+void SegUnsetBuffer(Seg seg)
+{
+  AVERT(Seg, seg);
+  Method(Seg, seg, unsetBuffer)(seg);
 }
 
 
@@ -361,8 +378,7 @@ Addr SegBufferScanLimit(Seg seg)
 
   AVERT(Seg, seg);
 
-  buf = SegBuffer(seg);
-  if (buf == NULL) {
+  if (!SegBuffer(&buf, seg)) {
     /* Segment is unbuffered: entire segment scannable */
     limit = SegLimit(seg);
   } else {
@@ -375,61 +391,58 @@ Addr SegBufferScanLimit(Seg seg)
 
 /* SegDescribe -- describe a segment */
 
-Res SegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
+Res SegAbsDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 {
+  Seg seg = CouldBeA(Seg, inst);
   Res res;
   Pool pool;
-  SegClass klass;
 
   if (!TESTC(Seg, seg))
     return ResPARAM;
   if (stream == NULL)
     return ResPARAM;
 
-  pool = SegPool(seg);
-  klass = ClassOfPoly(Seg, seg);
+  res = NextMethod(Inst, Seg, describe)(inst, stream, depth);
+  if (res != ResOK)
+    return res;
 
-  res = WriteF(stream, depth,
-               "Segment $P [$A,$A) {\n", (WriteFP)seg,
-               (WriteFA)SegBase(seg), (WriteFA)SegLimit(seg),
-               "  class $P (\"$S\")\n",
-               (WriteFP)klass, (WriteFS)ClassName(klass),
-               "  pool $P ($U)\n",
-               (WriteFP)pool, (WriteFU)pool->serial,
-               "  depth $U\n", seg->depth,
-               "  pm",
+  pool = SegPool(seg);
+
+  res = WriteF(stream, depth + 2,
+               "base  $A\n", (WriteFA)SegBase(seg),
+               "limit $A\n", (WriteFA)SegLimit(seg),
+               "pool  $P ($U)\n", (WriteFP)pool, (WriteFU)pool->serial,
+               "depth $U\n", seg->depth,
+               "pm",
                seg->pm == AccessSetEMPTY ? " EMPTY" : "",
                seg->pm & AccessREAD ? " READ" : "",
                seg->pm & AccessWRITE ? " WRITE" : "",
                "\n",
-               "  sm",
+               "sm",
                seg->sm == AccessSetEMPTY ? " EMPTY" : "",
                seg->sm & AccessREAD ? " READ" : "",
                seg->sm & AccessWRITE ? " WRITE" : "",
                "\n",
-               "  grey $B\n", (WriteFB)seg->grey,
-               "  white $B\n", (WriteFB)seg->white,
-               "  nailed $B\n", (WriteFB)seg->nailed,
-               "  rankSet",
+               "grey $B\n", (WriteFB)seg->grey,
+               "white $B\n", (WriteFB)seg->white,
+               "nailed $B\n", (WriteFB)seg->nailed,
+               "rankSet",
                seg->rankSet == RankSetEMPTY ? " EMPTY" : "",
                BS_IS_MEMBER(seg->rankSet, RankAMBIG) ? " AMBIG" : "",
                BS_IS_MEMBER(seg->rankSet, RankEXACT) ? " EXACT" : "",
                BS_IS_MEMBER(seg->rankSet, RankFINAL) ? " FINAL" : "",
                BS_IS_MEMBER(seg->rankSet, RankWEAK)  ? " WEAK"  : "",
+               "\n",
                NULL);
   if (res != ResOK)
     return res;
 
-  res = Method(Seg, seg, describe)(seg, stream, depth + 2);
-  if (res != ResOK)
-    return res;
+  return ResOK;
+}
 
-  res = WriteF(stream, 0, "\n", NULL);
-  if (res != ResOK)
-    return res;
-
-  res = WriteF(stream, depth, "} Segment $P\n", (WriteFP)seg, NULL);
-  return res;
+Res SegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
+{
+  return Method(Inst, seg, describe)(MustBeA(Inst, seg), stream, depth);
 }
 
 
@@ -631,6 +644,7 @@ Res SegSplit(Seg *segLoReturn, Seg *segHiReturn, Seg seg, Addr at)
   Arena arena;
   Res res;
   void *p;
+  Buffer buffer;
 
   AVER(NULL != segLoReturn);
   AVER(NULL != segHiReturn);
@@ -646,7 +660,7 @@ Res SegSplit(Seg *segLoReturn, Seg *segHiReturn, Seg seg, Addr at)
 
   /* Can only split a buffered segment if the entire buffer is below
    * the split point. */
-  AVER(SegBuffer(seg) == NULL || BufferLimit(SegBuffer(seg)) <= at);
+  AVER(!SegBuffer(&buffer, seg) || BufferLimit(buffer) <= at);
 
   if (seg->queued)
     ShieldFlush(arena);  /* see <design/seg/#split-merge.shield> */
@@ -828,11 +842,12 @@ static void segNoSetRankSummary(Seg seg, RankSet rankSet, RefSet summary)
 
 /* segNoBuffer -- non-method to return the buffer of a segment */
 
-static Buffer segNoBuffer(Seg seg)
+static Bool segNoBuffer(Buffer *bufferReturn, Seg seg)
 {
   AVERT(Seg, seg);
+  AVER(bufferReturn != NULL);
   NOTREACHED;
-  return NULL;
+  return FALSE;
 }
 
 
@@ -841,8 +856,16 @@ static Buffer segNoBuffer(Seg seg)
 static void segNoSetBuffer(Seg seg, Buffer buffer)
 {
   AVERT(Seg, seg);
-  if (buffer != NULL)
-    AVERT(Buffer, buffer);
+  AVERT(Buffer, buffer);
+  NOTREACHED;
+}
+
+
+/* segNoSetBuffer -- non-method to set the buffer of a segment */
+
+static void segNoUnsetBuffer(Seg seg)
+{
+  AVERT(Seg, seg);
   NOTREACHED;
 }
 
@@ -1011,39 +1034,6 @@ static Res segTrivSplit(Seg seg, Seg segHi,
 }
 
 
-/* segTrivDescribe -- Basic Seg description method */
-
-static Res segTrivDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
-{
-  Res res;
-
-  if (!TESTT(Seg, seg))
-    return ResFAIL;
-  if (stream == NULL)
-    return ResFAIL;
-
-  res = WriteF(stream, depth,
-               "shield depth $U\n", (WriteFU)seg->depth,
-               "protection mode: ",
-               (SegPM(seg) & AccessREAD) ? "" : "!", "READ", " ",
-               (SegPM(seg) & AccessWRITE) ? "" : "!", "WRITE", "\n",
-               "shield mode: ",
-               (SegSM(seg) & AccessREAD) ? "" : "!", "READ", " ",
-               (SegSM(seg) & AccessWRITE) ? "" : "!", "WRITE", "\n",
-               "ranks:",
-               RankSetIsMember(seg->rankSet, RankAMBIG) ? " ambiguous" : "",
-               RankSetIsMember(seg->rankSet, RankEXACT) ? " exact" : "",
-               RankSetIsMember(seg->rankSet, RankFINAL) ? " final" : "",
-               RankSetIsMember(seg->rankSet, RankWEAK) ? " weak" : "",
-               "\n",
-               "white  $B\n", (WriteFB)seg->white,
-               "grey   $B\n", (WriteFB)seg->grey,
-               "nailed $B\n", (WriteFB)seg->nailed,
-               NULL);
-  return res;
-}
-
-
 /* Class GCSeg -- Segment class with GC support
  */
 
@@ -1105,14 +1095,10 @@ static Res gcSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 
 /* gcSegFinish -- finish a GC segment */
 
-static void gcSegFinish(Seg seg)
+static void gcSegFinish(Inst inst)
 {
-  GCSeg gcseg;
-
-  AVERT(Seg, seg);
-  gcseg = SegGCSeg(seg);
-  AVERT(GCSeg, gcseg);
-  AVER(&gcseg->segStruct == seg);
+  Seg seg = MustBeA(Seg, inst);
+  GCSeg gcseg = MustBeA(GCSeg, seg);
 
   if (SegGrey(seg) != TraceSetEMPTY) {
     RingRemove(&gcseg->greyRing);
@@ -1123,12 +1109,12 @@ static void gcSegFinish(Seg seg)
   gcseg->sig = SigInvalid;
 
   /* Don't leave a dangling buffer allocating into hyperspace. */
-  AVER(gcseg->buffer == NULL);
+  AVER(gcseg->buffer == NULL); /* <design/check/#.common> */
 
   RingFinish(&gcseg->greyRing);
 
   /* finish the superclass fields last */
-  NextMethod(Seg, GCSeg, finish)(seg);
+  NextMethod(Inst, GCSeg, finish)(inst);
 }
 
 
@@ -1382,7 +1368,7 @@ static void gcSegSetRankSummary(Seg seg, RankSet rankSet, RefSet summary)
 
 /* gcSegBuffer -- GCSeg method to return the buffer of a segment */
 
-static Buffer gcSegBuffer(Seg seg)
+static Bool gcSegBuffer(Buffer *bufferReturn, Seg seg)
 {
   GCSeg gcseg;
 
@@ -1391,7 +1377,12 @@ static Buffer gcSegBuffer(Seg seg)
   AVERT_CRITICAL(GCSeg, gcseg);           /* .seg.method.check */
   AVER_CRITICAL(&gcseg->segStruct == seg);
 
-  return gcseg->buffer;
+  if (gcseg->buffer != NULL) {
+    *bufferReturn = gcseg->buffer;
+    return TRUE;
+  }
+
+  return FALSE;
 }
 
 
@@ -1409,6 +1400,15 @@ static void gcSegSetBuffer(Seg seg, Buffer buffer)
   AVER_CRITICAL(&gcseg->segStruct == seg);
 
   gcseg->buffer = buffer;
+}
+
+
+/* gcSegUnsetBuffer -- GCSeg method to remove the buffer from a segment */
+
+static void gcSegUnsetBuffer(Seg seg)
+{
+  GCSeg gcseg = MustBeA_CRITICAL(GCSeg, seg); /* .seg.method.check */
+  gcseg->buffer = NULL;
 }
 
 
@@ -1551,34 +1551,31 @@ failSuper:
 
 /* gcSegDescribe -- GCSeg  description method */
 
-static Res gcSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
+static Res gcSegDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 {
+  GCSeg gcseg = CouldBeA(GCSeg, inst);
   Res res;
-  GCSeg gcseg;
 
-  if (!TESTT(Seg, seg))
-    return ResFAIL;
+  if (!TESTC(GCSeg, gcseg))
+    return ResPARAM;
   if (stream == NULL)
-    return ResFAIL;
-  gcseg = SegGCSeg(seg);
-  if (!TESTT(GCSeg, gcseg))
-    return ResFAIL;
+    return ResPARAM;
 
   /* Describe the superclass fields first via next-method call */
-  res = NextMethod(Seg, GCSeg, describe)(seg, stream, depth);
+  res = NextMethod(Inst, GCSeg, describe)(inst, stream, depth);
   if (res != ResOK)
     return res;
 
-  res = WriteF(stream, depth,
+  res = WriteF(stream, depth + 2,
                "summary $W\n", (WriteFW)gcseg->summary,
                NULL);
   if (res != ResOK)
     return res;
 
   if (gcseg->buffer == NULL) {
-    res = WriteF(stream, depth, "buffer: NULL\n", NULL);
+    res = WriteF(stream, depth + 2, "buffer: NULL\n", NULL);
   } else {
-    res = BufferDescribe(gcseg->buffer, stream, depth);
+    res = BufferDescribe(gcseg->buffer, stream, depth + 2);
   }
   if (res != ResOK)
     return res;
@@ -1591,17 +1588,15 @@ static Res gcSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
 
 Bool SegClassCheck(SegClass klass)
 {
-  CHECKD(InstClass, &klass->protocol);
+  CHECKD(InstClass, &klass->instClassStruct);
   CHECKL(klass->size >= sizeof(SegStruct));
   CHECKL(FUNCHECK(klass->init));
-  CHECKL(FUNCHECK(klass->finish));
   CHECKL(FUNCHECK(klass->setGrey));
   CHECKL(FUNCHECK(klass->setWhite));
   CHECKL(FUNCHECK(klass->setRankSet));
   CHECKL(FUNCHECK(klass->setRankSummary));
   CHECKL(FUNCHECK(klass->merge));
   CHECKL(FUNCHECK(klass->split));
-  CHECKL(FUNCHECK(klass->describe));
   CHECKS(SegClass, klass);
   return TRUE;
 }
@@ -1616,20 +1611,21 @@ DEFINE_CLASS(Inst, SegClass, klass)
 
 DEFINE_CLASS(Seg, Seg, klass)
 {
-  INHERIT_CLASS(&klass->protocol, Seg, Inst);
+  INHERIT_CLASS(&klass->instClassStruct, Seg, Inst);
+  klass->instClassStruct.describe = SegAbsDescribe;
+  klass->instClassStruct.finish = SegAbsFinish;
   klass->size = sizeof(SegStruct);
   klass->init = SegAbsInit;
-  klass->finish = SegAbsFinish;
   klass->setSummary = segNoSetSummary; 
   klass->buffer = segNoBuffer; 
-  klass->setBuffer = segNoSetBuffer; 
+  klass->setBuffer = segNoSetBuffer;
+  klass->unsetBuffer = segNoUnsetBuffer;
   klass->setGrey = segNoSetGrey;
   klass->setWhite = segNoSetWhite;
   klass->setRankSet = segNoSetRankSet;
   klass->setRankSummary = segNoSetRankSummary;
   klass->merge = segTrivMerge;
   klass->split = segTrivSplit;
-  klass->describe = segTrivDescribe;
   klass->sig = SegClassSig;
   AVERT(SegClass, klass);
 }
@@ -1642,19 +1638,20 @@ typedef SegClassStruct GCSegClassStruct;
 DEFINE_CLASS(Seg, GCSeg, klass)
 {
   INHERIT_CLASS(klass, GCSeg, Seg);
+  klass->instClassStruct.describe = gcSegDescribe;
+  klass->instClassStruct.finish = gcSegFinish;
   klass->size = sizeof(GCSegStruct);
   klass->init = gcSegInit;
-  klass->finish = gcSegFinish;
   klass->setSummary = gcSegSetSummary; 
   klass->buffer = gcSegBuffer; 
-  klass->setBuffer = gcSegSetBuffer; 
+  klass->setBuffer = gcSegSetBuffer;
+  klass->unsetBuffer = gcSegUnsetBuffer;
   klass->setGrey = gcSegSetGrey;
   klass->setWhite = gcSegSetWhite;
   klass->setRankSet = gcSegSetRankSet;
   klass->setRankSummary = gcSegSetRankSummary;
   klass->merge = gcSegMerge;
   klass->split = gcSegSplit;
-  klass->describe = gcSegDescribe;
   AVERT(SegClass, klass);
 }
 
