@@ -129,6 +129,14 @@ Bool RootCheck(Root root)
        scan. */
     break;
 
+  case RootTHREAD:
+    CHECKD_NOSIG(Thread, root->the.thread.thread); /* <design/check/#hidden-type> */
+    CHECKL(FUNCHECK(root->the.thread.scan_area));
+    /* Can't check anything about closure as it could mean anything to
+       scan_area. */
+    /* Can't check anything about stackCold. */
+    break;
+
   case RootTHREAD_TAGGED:
     CHECKD_NOSIG(Thread, root->the.thread.thread); /* <design/check/#hidden-type> */
     CHECKL(FUNCHECK(root->the.thread.scan_area));

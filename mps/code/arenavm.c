@@ -187,17 +187,18 @@ static Bool VMArenaCheck(VMArena vmArena)
 
 /* VMArenaDescribe -- describe the VMArena
  */
-static Res VMArenaDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
+static Res VMArenaDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 {
-  Res res;
+  Arena arena = CouldBeA(AbstractArena, inst);
   VMArena vmArena = CouldBeA(VMArena, arena);
+  Res res;
 
   if (!TESTC(VMArena, vmArena))
     return ResPARAM;
   if (stream == NULL)
     return ResPARAM;
 
-  res = NextMethod(Arena, VMArena, describe)(arena, stream, depth);
+  res = NextMethod(Inst, VMArena, describe)(inst, stream, depth);
   if (res != ResOK)
     return res;
 
@@ -502,6 +503,7 @@ static Res vmArenaChunkSize(Size *chunkSizeReturn, VMArena vmArena, Size size)
   overhead = 0;
   do {
     chunkSize = size + overhead;
+    AVER(SizeIsAligned(chunkSize, grainSize));
 
     /* See .overhead.chunk-struct. */
     overhead = SizeAlignUp(sizeof(VMChunkStruct), MPS_PF_ALIGN);
@@ -632,15 +634,18 @@ static Res VMArenaCreate(Arena *arenaReturn, ArgList args)
     goto failChunkCreate;
 
 #if defined(AVER_AND_CHECK_ALL)
-  /* Check that the computation of the chunk size in vmArenaChunkSize
-   * was correct, now that we have the actual chunk for comparison. */
+  /* Check the computation of the chunk size in vmArenaChunkSize, now
+   * that we have the actual chunk for comparison. Note that
+   * vmArenaChunkSize computes the smallest size with a given number
+   * of usable bytes -- the actual chunk may be one grain larger. */
   {
     Size usableSize, computedChunkSize;
     usableSize = AddrOffset(PageIndexBase(chunk, chunk->allocBase),
                             chunk->limit);
     res = vmArenaChunkSize(&computedChunkSize, vmArena, usableSize);
     AVER(res == ResOK);
-    AVER(computedChunkSize == ChunkSize(chunk));
+    AVER(computedChunkSize == ChunkSize(chunk)
+         || computedChunkSize + grainSize == ChunkSize(chunk));
   }
 #endif
 
@@ -662,7 +667,7 @@ static Res VMArenaCreate(Arena *arenaReturn, ArgList args)
   return ResOK;
 
 failChunkCreate:
-  NextMethod(Arena, VMArena, finish)(arena);
+  NextMethod(Inst, VMArena, finish)(MustBeA(Inst, arena));
 failArenaInit:
   VMUnmap(vm, VMBase(vm), VMLimit(vm));
 failVMMap:
@@ -697,7 +702,7 @@ static void VMArenaDestroy(Arena arena)
 
   vmArena->sig = SigInvalid;
 
-  NextMethod(Arena, VMArena, finish)(arena); /* <code/global.c#finish.caller> */
+  NextMethod(Inst, VMArena, finish)(MustBeA(Inst, arena));
 
   /* Copy VM descriptor to stack-local storage so that we can continue
    * using the descriptor after the VM has been unmapped. */
@@ -1191,6 +1196,7 @@ mps_res_t mps_arena_vm_growth(mps_arena_t mps_arena,
 DEFINE_CLASS(Arena, VMArena, klass)
 {
   INHERIT_CLASS(klass, VMArena, AbstractArena);
+  klass->instClassStruct.describe = VMArenaDescribe;
   klass->size = sizeof(VMArenaStruct);
   klass->varargs = VMArenaVarargs;
   klass->create = VMArenaCreate;
@@ -1201,7 +1207,6 @@ DEFINE_CLASS(Arena, VMArena, klass)
   klass->chunkInit = VMChunkInit;
   klass->chunkFinish = VMChunkFinish;
   klass->compact = VMCompact;
-  klass->describe = VMArenaDescribe;
   klass->pagesMarkAllocated = VMPagesMarkAllocated;
 }
 

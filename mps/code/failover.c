@@ -52,11 +52,12 @@ static Res failoverInit(Land land, Arena arena, Align alignment, ArgList args)
 }
 
 
-static void failoverFinish(Land land)
+static void failoverFinish(Inst inst)
 {
+  Land land = MustBeA(Land, inst);
   Failover fo = MustBeA(Failover, land);
   fo->sig = SigInvalid;
-  NextMethod(Land, Failover, finish)(land);
+  NextMethod(Inst, Failover, finish)(inst);
 }
 
 
@@ -240,8 +241,9 @@ static Bool failoverFindInZones(Bool *foundReturn, Range rangeReturn, Range oldR
 }
 
 
-static Res failoverDescribe(Land land, mps_lib_FILE *stream, Count depth)
+static Res failoverDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 {
+  Land land = CouldBeA(Land, inst);
   Failover fo = CouldBeA(Failover, land);
   LandClass primaryClass, secondaryClass;
   Res res;
@@ -251,7 +253,7 @@ static Res failoverDescribe(Land land, mps_lib_FILE *stream, Count depth)
   if (stream == NULL)
     return ResPARAM;
 
-  res = NextMethod(Land, Failover, describe)(land, stream, depth);
+  res = NextMethod(Inst, Failover, describe)(inst, stream, depth);
   if (res != ResOK)
     return res;
 
@@ -272,9 +274,10 @@ static Res failoverDescribe(Land land, mps_lib_FILE *stream, Count depth)
 DEFINE_CLASS(Land, Failover, klass)
 {
   INHERIT_CLASS(klass, Failover, Land);
+  klass->instClassStruct.describe = failoverDescribe;
+  klass->instClassStruct.finish = failoverFinish;
   klass->size = sizeof(FailoverStruct);
   klass->init = failoverInit;
-  klass->finish = failoverFinish;
   klass->sizeMethod = failoverSize;
   klass->insert = failoverInsert;
   klass->delete = failoverDelete;
@@ -283,7 +286,6 @@ DEFINE_CLASS(Land, Failover, klass)
   klass->findLast = failoverFindLast;
   klass->findLargest = failoverFindLargest;
   klass->findInZones = failoverFindInZones;
-  klass->describe = failoverDescribe;
 }
 
 

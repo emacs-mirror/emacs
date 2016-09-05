@@ -197,8 +197,7 @@ static void AMCSegSketch(Seg seg, char *pbSketch, size_t cbSketch)
     pbSketch[2] = 'W';  /* White */
   }
 
-  buffer = SegBuffer(seg);
-  if(buffer == NULL) {
+  if (!SegBuffer(&buffer, seg)) {
     pbSketch[3] = '_';
   } else {
     Bool mut = BufferIsMutator(buffer);
@@ -234,24 +233,26 @@ static void AMCSegSketch(Seg seg, char *pbSketch, size_t cbSketch)
  *
  * See <design/poolamc/#seg-describe>.
  */
-static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
+static Res AMCSegDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 {
+  amcSeg amcseg = CouldBeA(amcSeg, inst);
+  Seg seg = CouldBeA(Seg, amcseg);
   Res res;
-  amcSeg amcseg = CouldBeA(amcSeg, seg);
   Pool pool;
   Addr i, p, base, limit, init;
   Align step;
   Size row;
   char abzSketch[5];
+  Buffer buffer;
 
-  if(!TESTC(amcSeg, amcseg))
+  if (!TESTC(amcSeg, amcseg))
     return ResPARAM;
-  if(stream == NULL)
+  if (stream == NULL)
     return ResPARAM;
 
   /* Describe the superclass fields first via next-method call */
-  res = NextMethod(Seg, amcSeg, describe)(seg, stream, depth);
-  if(res != ResOK)
+  res = NextMethod(Inst, amcSeg, describe)(inst, stream, depth);
+  if (res != ResOK)
     return res;
 
   pool = SegPool(seg);
@@ -262,16 +263,9 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
   p = AddrAdd(base, pool->format->headerSize);
   limit = SegLimit(seg);
 
-  res = WriteF(stream, depth,
-               "AMC seg $P [$A,$A){\n",
-               (WriteFP)seg, (WriteFA)base, (WriteFA)limit,
-               NULL);
-  if(res != ResOK)
-    return res;
-
-  if(amcSegHasNailboard(seg)) {
+  if (amcSegHasNailboard(seg)) {
     res = WriteF(stream, depth + 2, "Boarded\n", NULL);
-  } else if(SegNailed(seg) == TraceSetEMPTY) {
+  } else if (SegNailed(seg) == TraceSetEMPTY) {
     res = WriteF(stream, depth + 2, "Mobile\n", NULL);
   } else {
     res = WriteF(stream, depth + 2, "Stuck\n", NULL);
@@ -281,32 +275,32 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
 
   res = WriteF(stream, depth + 2,
                "Map:  *===:object  @+++:nails  bbbb:buffer\n", NULL);
-  if(res != ResOK)
+  if (res != ResOK)
     return res;
 
-  if(SegBuffer(seg) != NULL)
-    init = BufferGetInit(SegBuffer(seg));
+  if (SegBuffer(&buffer, seg))
+    init = BufferGetInit(buffer);
   else
     init = limit;
   
-  for(i = base; i < limit; i = AddrAdd(i, row)) {
+  for (i = base; i < limit; i = AddrAdd(i, row)) {
     Addr j;
     char c;
 
     res = WriteF(stream, depth + 2, "$A  ", (WriteFA)i, NULL);
-    if(res != ResOK)
+    if (res != ResOK)
       return res;
 
     /* @@@@ This misses a header-sized pad at the end. */
-    for(j = i; j < AddrAdd(i, row); j = AddrAdd(j, step)) {
-      if(j >= limit)
+    for (j = i; j < AddrAdd(i, row); j = AddrAdd(j, step)) {
+      if (j >= limit)
         c = ' ';  /* if seg is not a whole number of print rows */
-      else if(j >= init)
+      else if (j >= init)
         c = 'b';
       else {
         Bool nailed = amcSegHasNailboard(seg)
           && NailboardGet(amcSegNailboard(seg), j);
-        if(j == p) {
+        if (j == p) {
           c = (nailed ? '@' : '*');
           p = (pool->format->skip)(p);
         } else {
@@ -314,21 +308,17 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
         }
       }
       res = WriteF(stream, 0, "$C", (WriteFC)c, NULL);
-      if(res != ResOK)
+      if (res != ResOK)
         return res;
     }
 
     res = WriteF(stream, 0, "\n", NULL);
-    if(res != ResOK)
+    if (res != ResOK)
       return res;
   }
 
   AMCSegSketch(seg, abzSketch, NELEMS(abzSketch));
   res = WriteF(stream, depth + 2, "Sketch: $S\n", (WriteFS)abzSketch, NULL);
-  if(res != ResOK)
-    return res;
-
-  res = WriteF(stream, depth, "} AMC Seg $P\n", (WriteFP)seg, NULL);
   if(res != ResOK)
     return res;
 
@@ -342,9 +332,9 @@ DEFINE_CLASS(Seg, amcSeg, klass)
 {
   INHERIT_CLASS(klass, amcSeg, GCSeg);
   SegClassMixInNoSplitMerge(klass);  /* no support for this (yet) */
+  klass->instClassStruct.describe = AMCSegDescribe;
   klass->size = sizeof(amcSegStruct);
   klass->init = AMCSegInit;
-  klass->describe = AMCSegDescribe;
 }
 
 
@@ -519,11 +509,12 @@ static Res AMCBufInit(Buffer buffer, Pool pool, Bool isMutator, ArgList args)
 
 /* AMCBufFinish -- Finish an amcBuf */
 
-static void AMCBufFinish(Buffer buffer)
+static void AMCBufFinish(Inst inst)
 {
+  Buffer buffer = MustBeA(Buffer, inst);
   amcBuf amcbuf = MustBeA(amcBuf, buffer);
   amcbuf->sig = SigInvalid;
-  NextMethod(Buffer, amcBuf, finish)(buffer);
+  NextMethod(Inst, amcBuf, finish)(inst);
 }
 
 
@@ -532,9 +523,9 @@ static void AMCBufFinish(Buffer buffer)
 DEFINE_CLASS(Buffer, amcBuf, klass)
 {
   INHERIT_CLASS(klass, amcBuf, SegBuf);
+  klass->instClassStruct.finish = AMCBufFinish;
   klass->size = sizeof(amcBufStruct);
   klass->init = AMCBufInit;
-  klass->finish = AMCBufFinish;
 }
 
 
@@ -809,7 +800,7 @@ failGenAlloc:
   }
   ControlFree(arena, amc->gen, genArraySize);
 failGensAlloc:
-  PoolAbsFinish(pool);
+  NextMethod(Inst, AMCZPool, finish)(MustBeA(Inst, pool));
   return res;
 }
 
@@ -834,8 +825,9 @@ static Res AMCZInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
  *
  * See <design/poolamc/#finish>.
  */
-static void AMCFinish(Pool pool)
+static void AMCFinish(Inst inst)
 {
+  Pool pool = MustBeA(AbstractPool, inst);
   AMC amc = MustBeA(AMCZPool, pool);
   Ring ring;
   Ring node, nextNode;
@@ -878,7 +870,8 @@ static void AMCFinish(Pool pool)
   }
 
   amc->sig = SigInvalid;
-  PoolAbsFinish(pool);
+
+  NextMethod(Inst, AMCZPool, finish)(inst);
 }
 
 
@@ -1111,8 +1104,7 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
 
   AVERT(Trace, trace);
 
-  buffer = SegBuffer(seg);
-  if(buffer != NULL) {
+  if (SegBuffer(&buffer, seg)) {
     AVERT(Buffer, buffer);
 
     if(!BufferIsMutator(buffer)) {      /* forwarding buffer */
@@ -1261,6 +1253,7 @@ static Res amcScanNailedOnce(Bool *totalReturn, Bool *moreReturn,
   Addr p, limit;
   Nailboard board;
   Res res;
+  Buffer buffer;
 
   EVENT3(AMCScanBegin, amc, seg, ss); /* TODO: consider using own event */
 
@@ -1269,8 +1262,8 @@ static Res amcScanNailedOnce(Bool *totalReturn, Bool *moreReturn,
   NailboardClearNewNails(board);
 
   p = SegBase(seg);
-  while(SegBuffer(seg) != NULL) {
-    limit = BufferScanLimit(SegBuffer(seg));
+  while (SegBuffer(&buffer, seg)) {
+    limit = BufferScanLimit(buffer);
     if(p >= limit) {
       AVER(p == limit);
       goto returnGood;
@@ -1353,6 +1346,7 @@ static Res AMCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
   Format format;
   AMC amc = MustBeA(AMCZPool, pool);
   Res res;
+  Buffer buffer;
 
   AVER(totalReturn != NULL);
   AVERT(ScanState, ss);
@@ -1369,8 +1363,8 @@ static Res AMCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 
   base = AddrAdd(SegBase(seg), format->headerSize);
   /* <design/poolamc/#seg-scan.loop> */
-  while(SegBuffer(seg) != NULL) {
-    limit = AddrAdd(BufferScanLimit(SegBuffer(seg)),
+  while (SegBuffer(&buffer, seg)) {
+    limit = AddrAdd(BufferScanLimit(buffer),
                     format->headerSize);
     if(base >= limit) {
       /* @@@@ Are we sure we don't need scan the rest of the */
@@ -1730,13 +1724,13 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
 
   /* Free the seg if we can; fixes .nailboard.limitations.middle. */
   if(preservedInPlaceCount == 0
-     && (SegBuffer(seg) == NULL)
+     && (!SegHasBuffer(seg))
      && (SegNailed(seg) == TraceSetEMPTY)) {
 
     amcGen gen = amcSegGen(seg);
 
     /* We may not free a buffered seg. */
-    AVER(SegBuffer(seg) == NULL);
+    AVER(!SegHasBuffer(seg));
 
     PoolGenFree(&gen->pgen, seg, 0, SegSize(seg), 0, MustBeA(amcSeg, seg)->deferred);
   }
@@ -1778,7 +1772,7 @@ static void AMCReclaim(Pool pool, Trace trace, Seg seg)
 
   /* We may not free a buffered seg.  (But all buffered + condemned */
   /* segs should have been nailed anyway). */
-  AVER(SegBuffer(seg) == NULL);
+  AVER(!SegHasBuffer(seg));
 
   STATISTIC(trace->reclaimSize += SegSize(seg));
 
@@ -1895,6 +1889,7 @@ static Res AMCAddrObject(Addr *pReturn, Pool pool, Seg seg, Addr addr)
   Res res;
   Arena arena;
   Addr base, limit;    /* range of objects on segment */
+  Buffer buffer;
 
   AVER(pReturn != NULL);
   AVERT(Pool, pool);
@@ -1905,7 +1900,7 @@ static Res AMCAddrObject(Addr *pReturn, Pool pool, Seg seg, Addr addr)
 
   arena = PoolArena(pool);
   base = SegBase(seg);
-  if (SegBuffer(seg) != NULL) {
+  if (SegBuffer(&buffer, seg)) {
     /* We use BufferGetInit here (and not BufferScanLimit) because we
      * want to be able to find objects that have been allocated and
      * committed since the last flip. These objects lie between the
@@ -1917,7 +1912,7 @@ static Res AMCAddrObject(Addr *pReturn, Pool pool, Seg seg, Addr addr)
      * *must* point inside a live object and we stop skipping once we
      * have found it. The init pointer serves this purpose.
      */
-    limit = BufferGetInit(SegBuffer(seg));
+    limit = BufferGetInit(buffer);
   } else {
     limit = SegLimit(seg);
   }
@@ -1969,24 +1964,22 @@ static Size AMCFreeSize(Pool pool)
  *
  * See <design/poolamc/#describe>.
  */
-static Res AMCDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
+
+static Res AMCDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 {
-  Res res;
+  Pool pool = CouldBeA(AbstractPool, inst);
   AMC amc = CouldBeA(AMCZPool, pool);
+  Res res;
   Ring node, nextNode;
   const char *rampmode;
 
-  if(!TESTC(AMCZPool, amc))
+  if (!TESTC(AMCZPool, amc))
     return ResPARAM;
-  if(stream == NULL)
+  if (stream == NULL)
     return ResPARAM;
 
-  res = WriteF(stream, depth,
-               (amc->rankSet == RankSetEMPTY) ? "AMCZ" : "AMC",
-               " $P {\n", (WriteFP)amc, "  pool $P ($U)\n",
-               (WriteFP)pool, (WriteFU)pool->serial,
-               NULL);
-  if(res != ResOK)
+  res = NextMethod(Inst, AMCZPool, describe)(inst, stream, depth);
+  if (res != ResOK)
     return res;
 
   switch(amc->rampMode) {
@@ -2013,19 +2006,15 @@ static Res AMCDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
       return res;
   }
 
-  if(0) {
+  if (0) {
     /* SegDescribes */
     RING_FOR(node, &pool->segRing, nextNode) {
       Seg seg = RING_ELT(Seg, poolRing, node);
-      res = AMCSegDescribe(seg, stream, depth + 2);
+      res = SegDescribe(seg, stream, depth + 2);
       if(res != ResOK)
         return res;
     }
   }
-
-  res = WriteF(stream, depth, "} AMC $P\n", (WriteFP)amc, NULL);
-  if(res != ResOK)
-    return res;
 
   return ResOK;
 }
@@ -2038,11 +2027,12 @@ DEFINE_CLASS(Pool, AMCZPool, klass)
   INHERIT_CLASS(klass, AMCZPool, AbstractSegBufPool);
   PoolClassMixInFormat(klass);
   PoolClassMixInCollect(klass);
+  klass->instClassStruct.describe = AMCDescribe;
+  klass->instClassStruct.finish = AMCFinish;
   klass->size = sizeof(AMCStruct);
   klass->attr |= AttrMOVINGGC;
   klass->varargs = AMCVarargs;
   klass->init = AMCZInit;
-  klass->finish = AMCFinish;
   klass->bufferFill = AMCBufferFill;
   klass->bufferEmpty = AMCBufferEmpty;
   klass->whiten = AMCWhiten;
@@ -2056,7 +2046,6 @@ DEFINE_CLASS(Pool, AMCZPool, klass)
   klass->bufferClass = amcBufClassGet;
   klass->totalSize = AMCTotalSize;
   klass->freeSize = AMCFreeSize;  
-  klass->describe = AMCDescribe;
 }
 
 

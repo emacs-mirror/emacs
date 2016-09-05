@@ -61,7 +61,7 @@ typedef struct LOSegStruct {
 
 /* forward decls */
 static Res loSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args);
-static void loSegFinish(Seg seg);
+static void loSegFinish(Inst inst);
 static Count loSegGrains(LOSeg loseg);
 
 
@@ -71,9 +71,9 @@ DEFINE_CLASS(Seg, LOSeg, klass)
 {
   INHERIT_CLASS(klass, LOSeg, GCSeg);
   SegClassMixInNoSplitMerge(klass);
+  klass->instClassStruct.finish = loSegFinish;
   klass->size = sizeof(LOSegStruct);
   klass->init = loSegInit;
-  klass->finish = loSegFinish;
 }
 
 
@@ -143,7 +143,7 @@ static Res loSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 failAllocTable:
   ControlFree(arena, loseg->mark, tablebytes);
 failMarkTable:
-  NextMethod(Seg, LOSeg, finish)(seg);
+  NextMethod(Inst, LOSeg, finish)(MustBeA(Inst, seg));
 failSuperInit:
   AVER(res != ResOK);
   return res;
@@ -152,8 +152,9 @@ failSuperInit:
 
 /* loSegFinish -- Finish method for LO segments */
 
-static void loSegFinish(Seg seg)
+static void loSegFinish(Inst inst)
 {
+  Seg seg = MustBeA(Seg, inst);
   LOSeg loseg = MustBeA(LOSeg, seg);
   Pool pool = SegPool(seg);
   Arena arena = PoolArena(pool);
@@ -167,7 +168,7 @@ static void loSegFinish(Seg seg)
   ControlFree(arena, loseg->alloc, tablesize);
   ControlFree(arena, loseg->mark, tablesize);
 
-  NextMethod(Seg, LOSeg, finish)(seg);
+  NextMethod(Inst, LOSeg, finish)(inst);
 }
 
 
@@ -231,7 +232,7 @@ static Bool loSegFindFree(Addr *bReturn, Addr *lReturn,
   AVER(agrains <= loseg->freeGrains);
   AVER(size <= SegSize(seg));
 
-  if(SegBuffer(seg) != NULL)
+  if (SegHasBuffer(seg))
     /* Don't bother trying to allocate from a buffered segment */
     return FALSE;
 
@@ -312,11 +313,12 @@ static void loSegReclaim(LOSeg loseg, Trace trace)
    */
   p = base;
   while(p < limit) {
-    Buffer buffer = SegBuffer(seg);
+    Buffer buffer;
+    Bool hasBuffer = SegBuffer(&buffer, seg);
     Addr q;
     Index i;
 
-    if(buffer != NULL) {
+    if (hasBuffer) {
       marked = TRUE;
       if (p == BufferScanLimit(buffer)
           && BufferScanLimit(buffer) != BufferLimit(buffer)) {
@@ -403,9 +405,9 @@ static void LOWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
     Addr object = loAddrOfIndex(base, lo, i);
     Addr next;
     Index j;
+    Buffer buffer;
 
-    if(SegBuffer(seg) != NULL) {
-      Buffer buffer = SegBuffer(seg);
+    if (SegBuffer(&buffer, seg)) {
       if(object == BufferScanLimit(buffer) &&
          BufferScanLimit(buffer) != BufferLimit(buffer)) {
         /* skip over buffered area */
@@ -501,7 +503,7 @@ static Res LOInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
   return ResOK;
 
 failGenInit:
-  PoolAbsFinish(pool);
+  NextMethod(Inst, LOPool, finish)(MustBeA(Inst, pool));
 failAbsInit:
   AVER(res != ResOK);
   return res;
@@ -510,15 +512,16 @@ failAbsInit:
 
 /* LOFinish -- finish an LO pool */
 
-static void LOFinish(Pool pool)
+static void LOFinish(Inst inst)
 {
+  Pool pool = MustBeA(AbstractPool, inst);
   LO lo = MustBeA(LOPool, pool);
   Ring node, nextNode;
 
   RING_FOR(node, &pool->segRing, nextNode) {
     Seg seg = SegOfPoolRing(node);
     LOSeg loseg = MustBeA(LOSeg, seg);
-    AVER(SegBuffer(seg) == NULL);
+    AVER(!SegHasBuffer(seg));
     AVERT(LOSeg, loseg);
     AVER(loseg->bufferedGrains == 0);
     PoolGenFree(lo->pgen, seg,
@@ -530,7 +533,8 @@ static void LOFinish(Pool pool)
   PoolGenFinish(lo->pgen);
 
   lo->sig = SigInvalid;
-  PoolAbsFinish(pool);
+
+  NextMethod(Inst, LOPool, finish)(inst);
 }
 
 
@@ -658,8 +662,7 @@ static Res LOWhiten(Pool pool, Trace trace, Seg seg)
   grains = loSegGrains(loseg);
 
   /* Whiten allocated objects; leave free areas black. */
-  buffer = SegBuffer(seg);
-  if (buffer != NULL) {
+  if (SegBuffer(&buffer, seg)) {
     Addr base = SegBase(seg);
     Index scanLimitIndex = loIndexOfAddr(base, lo, BufferScanLimit(buffer));
     Index limitIndex = loIndexOfAddr(base, lo, BufferLimit(buffer));
@@ -783,10 +786,10 @@ DEFINE_CLASS(Pool, LOPool, klass)
   INHERIT_CLASS(klass, LOPool, AbstractSegBufPool);
   PoolClassMixInFormat(klass);
   PoolClassMixInCollect(klass);
+  klass->instClassStruct.finish = LOFinish;
   klass->size = sizeof(LOStruct);
   klass->varargs = LOVarargs;
   klass->init = LOInit;
-  klass->finish = LOFinish;
   klass->bufferFill = LOBufferFill;
   klass->bufferEmpty = LOBufferEmpty;
   klass->whiten = LOWhiten;

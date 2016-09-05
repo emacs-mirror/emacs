@@ -202,12 +202,6 @@ arguments to ``mps_arena_create_k()`` are class-dependent.
 
 .. _design.mps.protocol: protocol
 
-_`.class.init`: However, the generic ``ArenaInit()`` is called from the
-class-specific method, rather than vice versa, because the method is
-responsible for allocating the memory for the arena descriptor and the
-arena lock in the first place. Likewise, ``ArenaFinish()`` is called
-from the finish method.
-
 _`.class.fields`: The ``grainSize`` (for allocation and freeing) and
 ``zoneShift`` (for computing zone sizes and what zone an address is
 in) fields in the arena are the responsibility of the each class, and
@@ -567,9 +561,10 @@ _`.ld`: The ``historyStruct`` contains fields used to maintain a
 history of garbage collection and in particular object motion in order
 to implement location dependency.
 
-_`.ld.epoch`: The ``epoch`` is the "current epoch". This is the
-number of 'flips' of traces in the arena since the arena was created.
-From the mutator's point of view locations change atomically at flip.
+_`.ld.epoch`: The ``epoch`` is the "current epoch". This is the number
+of "flips" of traces, in which objects might have moved, in the arena
+since it was created. From the mutator's point of view, locations
+change atomically at flip.
 
 _`.ld.history`: The ``history`` is a circular buffer of
 ``LDHistoryLENGTH`` elements of type ``RefSet``. These are the
@@ -619,7 +614,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

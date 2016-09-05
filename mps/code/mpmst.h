@@ -49,12 +49,11 @@
 #define PoolClassSig    ((Sig)0x519C7A55) /* SIGnature pool CLASS */
 
 typedef struct mps_pool_class_s {
-  InstClassStruct protocol;
+  InstClassStruct instClassStruct;
   size_t size;                  /* size of outer structure */
   Attr attr;                    /* attributes */
   PoolVarargsMethod varargs;    /* convert deprecated varargs into keywords */
   PoolInitMethod init;          /* initialize the pool descriptor */
-  PoolFinishMethod finish;      /* finish the pool descriptor */
   PoolAllocMethod alloc;        /* allocate memory from pool */
   PoolFreeMethod free;          /* free memory to pool */
   PoolBufferFillMethod bufferFill;      /* out-of-line reserve */
@@ -76,7 +75,6 @@ typedef struct mps_pool_class_s {
   PoolWalkMethod walk;          /* walk over a segment */
   PoolFreeWalkMethod freewalk;  /* walk over free blocks */
   PoolBufferClassMethod bufferClass; /* default BufferClass of pool */
-  PoolDescribeMethod describe;  /* describe the contents of the pool */
   PoolDebugMixinMethod debugMixin; /* find the debug mixin, if any */
   PoolSizeMethod totalSize;     /* total memory allocated from arena */
   PoolSizeMethod freeSize;      /* free memory (unused by client program) */
@@ -218,18 +216,17 @@ typedef struct mps_message_s {
 #define SegClassSig    ((Sig)0x5195E9C7) /* SIGnature SEG CLass */
 
 typedef struct SegClassStruct {
-  InstClassStruct protocol;
+  InstClassStruct instClassStruct;
   size_t size;                  /* size of outer structure */
   SegInitMethod init;           /* initialize the segment */
-  SegFinishMethod finish;       /* finish the segment */
   SegSetSummaryMethod setSummary; /* set the segment summary  */
   SegBufferMethod buffer;       /* get the segment buffer  */
   SegSetBufferMethod setBuffer; /* set the segment buffer  */
+  SegUnsetBufferMethod unsetBuffer; /* unset the segment buffer */
   SegSetGreyMethod setGrey;     /* change greyness of segment */
   SegSetWhiteMethod setWhite;   /* change whiteness of segment */
   SegSetRankSetMethod setRankSet; /* change rank set of segment */
   SegSetRankSummaryMethod setRankSummary; /* change rank set & summary */
-  SegDescribeMethod describe;   /* describe the contents of the seg */
   SegMergeMethod merge;         /* merge two adjacent segments */
   SegSplitMethod split;         /* split a segment into two */
   Sig sig;                      /* .class.end-sig */
@@ -305,14 +302,12 @@ typedef struct LocusPrefStruct { /* locus placement preferences */
 #define BufferClassSig    ((Sig)0x519B0FC7) /* SIGnature BUFfer CLass */
 
 typedef struct BufferClassStruct {
-  InstClassStruct protocol;
+  InstClassStruct instClassStruct;
   size_t size;                  /* size of outer structure */
   BufferVarargsMethod varargs;  /* parse obsolete varargs */
   BufferInitMethod init;        /* initialize the buffer */
-  BufferFinishMethod finish;    /* finish the buffer */
   BufferAttachMethod attach;    /* attach the buffer */
   BufferDetachMethod detach;    /* detach the buffer */
-  BufferDescribeMethod describe;/* describe the contents of the buffer */
   BufferSegMethod seg;          /* seg of buffer */
   BufferRankSetMethod rankSet;  /* rank set of buffer */
   BufferSetRankSetMethod setRankSet; /* change rank set of buffer */
@@ -496,11 +491,10 @@ typedef struct TraceStruct {
 #define ArenaClassSig   ((Sig)0x519A6C1A) /* SIGnature ARena CLAss */
 
 typedef struct mps_arena_class_s {
-  InstClassStruct protocol;
+  InstClassStruct instClassStruct;
   size_t size;                  /* size of outer structure */
   ArenaVarargsMethod varargs;
   ArenaInitMethod init;
-  ArenaFinishMethod finish;
   ArenaCreateMethod create;
   ArenaDestroyMethod destroy;
   ArenaPurgeSpareMethod purgeSpare;
@@ -510,7 +504,6 @@ typedef struct mps_arena_class_s {
   ArenaChunkInitMethod chunkInit;
   ArenaChunkFinishMethod chunkFinish;
   ArenaCompactMethod compact;
-  ArenaDescribeMethod describe;
   ArenaPagesMarkAllocatedMethod pagesMarkAllocated;
   Sig sig;
 } ArenaClassStruct;
@@ -575,11 +568,10 @@ typedef struct GlobalsStruct {
 #define LandClassSig    ((Sig)0x5197A4DC) /* SIGnature LAND Class */
 
 typedef struct LandClassStruct {
-  InstClassStruct protocol;
+  InstClassStruct instClassStruct;
   size_t size;                  /* size of outer structure */
   LandSizeMethod sizeMethod;    /* total size of ranges in land */
   LandInitMethod init;          /* initialize the land */
-  LandFinishMethod finish;      /* finish the land */
   LandInsertMethod insert;      /* insert a range into the land */
   LandDeleteMethod delete;      /* delete a range from the land */
   LandIterateMethod iterate;    /* iterate over ranges in the land */
@@ -588,7 +580,6 @@ typedef struct LandClassStruct {
   LandFindMethod findLast;      /* find last range of given size */
   LandFindMethod findLargest;   /* find largest range */
   LandFindInZonesMethod findInZones; /* find first range of given size in zone set */
-  LandDescribeMethod describe;  /* describe the land */
   Sig sig;                      /* .class.end-sig */
 } LandClassStruct;
 
@@ -695,7 +686,9 @@ typedef struct SortStruct {
 
 typedef struct ShieldStruct {
   Sig sig;           /* design.mps.sig */
-  Bool inside;       /* design.mps.shield.def.inside */
+  BOOLFIELD(inside); /* design.mps.shield.def.inside */
+  BOOLFIELD(suspended); /* mutator suspended? */
+  BOOLFIELD(queuePending); /* queue insertion pending? */
   Seg *queue;        /* queue of unsynced segs */
   Count length;      /* number of elements in shield queue */
   Index next;        /* next free element in shield queue */
@@ -703,7 +696,6 @@ typedef struct ShieldStruct {
   Count depth;       /* sum of depths of all segs */
   Count unsynced;    /* number of unsynced segments */
   Count holds;       /* number of holds */
-  Bool suspended;    /* mutator suspended? */
   SortStruct sortStruct; /* workspace for queue sort */
 } ShieldStruct;
 
