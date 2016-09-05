@@ -51,6 +51,10 @@ static mps_res_t make(mps_addr_t *p, mps_ap_t ap, size_t size)
 }
 
 
+/* The original alloc method on the MFS pool. */
+static PoolAllocMethod mfs_alloc;
+
+
 /* oomAlloc -- allocation function that always fails
  *
  * Returns a randomly chosen memory error code.
@@ -58,16 +62,25 @@ static mps_res_t make(mps_addr_t *p, mps_ap_t ap, size_t size)
 
 static Res oomAlloc(Addr *pReturn, Pool pool, Size size)
 {
+  MFS mfs = MustBeA(MFSPool, pool);
   UNUSED(pReturn);
-  UNUSED(pool);
   UNUSED(size);
-  switch (rnd() % 3) {
-  case 0:
-    return ResRESOURCE;
-  case 1:
-    return ResMEMORY;
-  default:
-    return ResCOMMIT_LIMIT;
+  if (mfs->extendSelf) {
+    /* This is the MFS block pool belonging to the CBS belonging to
+     * the MVFF or MVT pool under test, so simulate a failure to
+     * enforce the fail-over behaviour. */
+    switch (rnd() % 3) {
+    case 0:
+      return ResRESOURCE;
+    case 1:
+      return ResMEMORY;
+    default:
+      return ResCOMMIT_LIMIT;
+    }
+  } else {
+    /* This is the MFS block pool belonging to the arena's free land,
+     * so succeed here (see job004041). */
+    return mfs_alloc(pReturn, pool, size);
   }
 }
 
@@ -77,7 +90,6 @@ static Res oomAlloc(Addr *pReturn, Pool pool, Size size)
 static mps_res_t stress(size_t (*size)(unsigned long, mps_align_t),
                         mps_align_t alignment, mps_pool_t pool)
 {
-  PoolAllocMethod mfs_alloc = CLASS_STATIC(MFSPool).alloc;
   mps_res_t res = MPS_RES_OK;
   mps_ap_t ap;
   unsigned long i, k;
@@ -158,6 +170,7 @@ int main(int argc, char *argv[])
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
       "mps_arena_create");
+  mfs_alloc = CLASS_STATIC(MFSPool).alloc;
   alignment = sizeof(void *) << (rnd() % 4);
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_EXTEND_BY, (64 + rnd() % 64) * 1024);
