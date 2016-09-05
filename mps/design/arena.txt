@@ -567,9 +567,10 @@ _`.ld`: The ``historyStruct`` contains fields used to maintain a
 history of garbage collection and in particular object motion in order
 to implement location dependency.
 
-_`.ld.epoch`: The ``epoch`` is the "current epoch". This is the
-number of 'flips' of traces in the arena since the arena was created.
-From the mutator's point of view locations change atomically at flip.
+_`.ld.epoch`: The ``epoch`` is the "current epoch". This is the number
+of "flips" of traces, in which objects might have moved, in the arena
+since it was created. From the mutator's point of view, locations
+change atomically at flip.
 
 _`.ld.history`: The ``history`` is a circular buffer of
 ``LDHistoryLENGTH`` elements of type ``RefSet``. These are the
@@ -619,7 +620,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

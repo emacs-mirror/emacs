@@ -502,6 +502,7 @@ static Res vmArenaChunkSize(Size *chunkSizeReturn, VMArena vmArena, Size size)
   overhead = 0;
   do {
     chunkSize = size + overhead;
+    AVER(SizeIsAligned(chunkSize, grainSize));
 
     /* See .overhead.chunk-struct. */
     overhead = SizeAlignUp(sizeof(VMChunkStruct), MPS_PF_ALIGN);
@@ -632,15 +633,18 @@ static Res VMArenaCreate(Arena *arenaReturn, ArgList args)
     goto failChunkCreate;
 
 #if defined(AVER_AND_CHECK_ALL)
-  /* Check that the computation of the chunk size in vmArenaChunkSize
-   * was correct, now that we have the actual chunk for comparison. */
+  /* Check the computation of the chunk size in vmArenaChunkSize, now
+   * that we have the actual chunk for comparison. Note that
+   * vmArenaChunkSize computes the smallest size with a given number
+   * of usable bytes -- the actual chunk may be one grain larger. */
   {
     Size usableSize, computedChunkSize;
     usableSize = AddrOffset(PageIndexBase(chunk, chunk->allocBase),
                             chunk->limit);
     res = vmArenaChunkSize(&computedChunkSize, vmArena, usableSize);
     AVER(res == ResOK);
-    AVER(computedChunkSize == ChunkSize(chunk));
+    AVER(computedChunkSize == ChunkSize(chunk)
+         || computedChunkSize + grainSize == ChunkSize(chunk));
   }
 #endif
 

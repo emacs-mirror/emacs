@@ -1,63 +1,69 @@
-/*  poolmfs.h: MANUAL FIXED SMALL UNIT POOL
+/* eventpy.c: GENERATE PYTHON INTERFACE TO EVENTS
  *
- *  $Id$
+ * $Id$
+ * Copyright (c) 2016 Ravenbrook Limited.  See end of file for license.
  *
- *  Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
- *
- *  The MFS pool is used to manage small fixed-size chunks of memory.  It
- *  stores control structures in the memory it manages, rather than to one
- *  side.  It therefore achieves better locality for small objects, but
- *  wastes memory for large objects.  It should not be used unless you are
- *  packing a reasonable number of objects into an arena grain.
- *
- *  Create and Init take the following arguments:
- *
- *    Size extendBy
- *
- *  extendBy is the default number of bytes reserved by the pool at a time.
- *  A large size will make allocation cheaper but have a higher resource
- *  overhead.  A typical value might be 65536.  See note 2.
- *
- *    Size unitSize
- *
- *  unitSize is the size in bytes of the objects you with to allocate.  It
- *  must be larger than the minimum unit size returned by GetInfo, and not
- *  larger than extendBy.
+ * This command-line program emits Python data structures that can be
+ * used to parse an event stream in text format (as output by the
+ * mpseventcnv program).
  */
 
-#ifndef poolmfs_h
-#define poolmfs_h
+#include <stdio.h> /* printf, puts */
 
-#include "mpm.h"
-#include "mpscmfs.h"
+#include "event.h"
 
-typedef struct MFSStruct *MFS;
-typedef MFS MFSPool;
-DECLARE_CLASS(Pool, MFSPool, AbstractPool);
+int main(int argc, char *argv[])
+{
+  UNUSED(argc);
+  UNUSED(argv);
 
-#define MFSPool(mfs) (&(mfs)->poolStruct)
+  puts("from collections import namedtuple");
 
-extern PoolClass PoolClassMFS(void);
+  printf("__version__ = %d, %d, %d\n", EVENT_VERSION_MAJOR,
+         EVENT_VERSION_MEDIAN, EVENT_VERSION_MINOR);
 
-extern Bool MFSCheck(MFS mfs);
+  puts("EventKind = namedtuple('EventKind', 'name code doc')");
+  puts("class kind:");
+#define ENUM(_, NAME, DOC)                                              \
+  printf("    " #NAME " = EventKind('" #NAME "', %d, \"%s\")\n",        \
+         EventKind ## NAME, DOC);
+  EventKindENUM(ENUM, _);
+#undef ENUM
 
-extern const struct mps_key_s _mps_key_MFSExtendSelf;
-#define MFSExtendSelf (&_mps_key_MFSExtendSelf)
-#define MFSExtendSelf_FIELD b
+  puts("kinds = {");
+#define ENUM(_, NAME, _1) \
+  printf("    %d: kind." #NAME ",\n", EventKind ## NAME);
+  EventKindENUM(ENUM, _);
+#undef ENUM
+  puts("}");
 
-extern void MFSExtend(Pool pool, Addr base, Size size);
+  puts("EventParam = namedtuple('EventParam', 'sort, name')");
+  puts("Event = namedtuple('Event', 'name code always kind params')");
+  puts("class event:");
+#define EVENT_PARAM(X, INDEX, SORT, NAME)               \
+  puts("        EventParam('" #SORT "', '" #NAME "'),");
+#define EVENT_DEFINE(X, NAME, CODE, ALWAYS, KIND)                       \
+  printf("    " #NAME " = Event('" #NAME "', %d, %s, kind." #KIND ", [\n", \
+         CODE, ALWAYS ? "True" : "False");                              \
+  EVENT_ ## NAME ## _PARAMS(EVENT_PARAM, X);                            \
+  puts("    ]);");
+  EVENT_LIST(EVENT_DEFINE, 0);
+#undef EVENT
 
-typedef void MFSTractVisitor(Pool pool, Addr base, Size size,
-                             void *closure);
-extern void MFSFinishTracts(Pool pool, MFSTractVisitor visitor,
-                            void *closure);
+  puts("events = {");
+#define EVENT_ITEM(X, NAME, CODE, ALWAYS, KIND) \
+  printf("    %d: event." #NAME ",\n", CODE);
+  EVENT_LIST(EVENT_ITEM, 0);
+#undef EVENT
+  puts("}");
 
-#endif /* poolmfs_h */
+  return 0;
+}
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

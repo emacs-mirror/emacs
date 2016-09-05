@@ -15,8 +15,10 @@ An arena is an object that encapsulates the state of the Memory Pool
 System, and tells it where to get the memory it manages. You typically
 start a session with the MPS by creating an arena with
 :c:func:`mps_arena_create_k` and end the session by destroying it with
-:c:func:`mps_arena_destroy`. The only function you might need to call
-before making an arena is :c:func:`mps_telemetry_control`.
+:c:func:`mps_arena_destroy`. The only functions you might need to call
+before making an arena are :term:`telemetry system` functions like
+:c:func:`mps_telemetry_set` and the :term:`plinth` function
+:c:func:`mps_lib_assert_fail_install`.
 
 Before destroying an arena, you must first destroy all objects and
 data in it, as usual for abstract data types in the MPS. If you can't
@@ -470,8 +472,8 @@ Arena properties
     When the pause time is short, the MPS needs to take more slices of
     time in order to make :term:`garbage collection` progress, and
     make more use of :term:`barriers (1)` to support
-    :term:`incremental collection`.  This increases time overheads,
-    and especially operating system overheads.
+    :term:`incremental garbage collection`. This increases time
+    overheads, and especially operating system overheads.
 
     The pause time may be set to zero, in which case the MPS returns
     as soon as it can, without regard for overall efficiency.  This
@@ -485,7 +487,7 @@ Arena properties
     The pause time may be set to infinity, in which case the MPS
     completes all outstanding :term:`garbage collection` work before
     returning from an operation. The consequence is that the MPS will
-    be able to save on the overheads due to :term:`incremental
+    be able to save on the overheads due to :term:`incremental garbage
     collection`, leading to lower total time spent in collection. This
     value is suitable for non-interactive applications where total
     time is important.

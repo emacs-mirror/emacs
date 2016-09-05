@@ -227,22 +227,24 @@ BufferClass PoolDefaultBufferClass(Pool pool)
 }
 
 
-/* PoolAlloc -- allocate a block of memory from a pool */
+/* PoolAlloc -- allocate a block of memory from a pool
+ *
+ * .alloc.critical: In manual-allocation-bound programs this is on the
+ * critical path.
+ */
 
 Res PoolAlloc(Addr *pReturn, Pool pool, Size size)
 {
   Res res;
 
-  AVER(pReturn != NULL);
-  AVERT(Pool, pool);
-  AVER(size > 0);
+  AVER_CRITICAL(pReturn != NULL);
+  AVERT_CRITICAL(Pool, pool);
+  AVER_CRITICAL(size > 0);
 
   res = Method(Pool, pool, alloc)(pReturn, pool, size);
   if (res != ResOK)
     return res;
   /* Make sure that the allocated address was in the pool's memory. */
-  /* .hasaddr.critical: The PoolHasAddr check is expensive, and in */
-  /* allocation-bound programs this is on the critical path. */
   AVER_CRITICAL(PoolHasAddr(pool, *pReturn));
   /* All allocations should be aligned to the pool's alignment */
   AVER_CRITICAL(AddrIsAligned(*pReturn, pool->alignment));
@@ -257,16 +259,20 @@ Res PoolAlloc(Addr *pReturn, Pool pool, Size size)
 }
 
 
-/* PoolFree -- deallocate a block of memory allocated from the pool */
+/* PoolFree -- deallocate a block of memory allocated from the pool
+ *
+ * .free.critical: In manual-allocation-bound programs this is on the
+ * critical path.
+ */
 
 void PoolFree(Pool pool, Addr old, Size size)
 {
-  AVERT(Pool, pool);
-  AVER(old != NULL);
+  AVERT_CRITICAL(Pool, pool);
+  AVER_CRITICAL(old != NULL);
   /* The pool methods should check that old is in pool. */
-  AVER(size > 0);
-  AVER(AddrIsAligned(old, pool->alignment));
-  AVER(PoolHasRange(pool, old, AddrAdd(old, size)));
+  AVER_CRITICAL(size > 0);
+  AVER_CRITICAL(AddrIsAligned(old, pool->alignment));
+  AVER_CRITICAL(PoolHasRange(pool, old, AddrAdd(old, size)));
 
   Method(Pool, pool, free)(pool, old, size);
  
@@ -490,51 +496,7 @@ Size PoolFreeSize(Pool pool)
 
 Res PoolDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 {
-  Res res;
-  Ring node, nextNode;
-  PoolClass klass;
-
-  if (!TESTC(AbstractPool, pool))
-    return ResPARAM;
-  if (stream == NULL)
-    return ResPARAM;
-
-  klass = ClassOfPoly(Pool, pool);
- 
-  res = WriteF(stream, depth,
-               "Pool $P ($U) {\n", (WriteFP)pool, (WriteFU)pool->serial,
-               "  class $P (\"$S\")\n",
-               (WriteFP)klass, (WriteFS)ClassName(klass),
-               "  arena $P ($U)\n",
-               (WriteFP)pool->arena, (WriteFU)pool->arena->serial,
-               "  alignment $W\n", (WriteFW)pool->alignment,
-               NULL);
-  if (res != ResOK)
-    return res;
-  if (NULL != pool->format) {
-    res = FormatDescribe(pool->format, stream, depth + 2);
-    if (res != ResOK)
-      return res;
-  }
-
-  res = Method(Pool, pool, describe)(pool, stream, depth + 2);
-  if (res != ResOK)
-    return res;
-
-  RING_FOR(node, &pool->bufferRing, nextNode) {
-    Buffer buffer = RING_ELT(Buffer, poolRing, node);
-    res = BufferDescribe(buffer, stream, depth + 2);
-    if (res != ResOK)
-      return res;
-  }
-
-  res = WriteF(stream, depth,
-               "} Pool $P ($U)\n", (WriteFP)pool, (WriteFU)pool->serial,
-               NULL);
-  if (res != ResOK)
-    return res;
-
-  return ResOK;
+  return Method(Pool, pool, describe)(pool, stream, depth);
 }
 
 
@@ -640,8 +602,8 @@ Bool PoolHasRange(Pool pool, Addr base, Addr limit)
   Arena arena;
   Bool managed;
 
-  AVERT(Pool, pool);
-  AVER(base < limit);
+  AVERT_CRITICAL(Pool, pool);
+  AVER_CRITICAL(base < limit);
 
   arena = PoolArena(pool);
   managed = PoolOfRange(&rangePool, arena, base, limit);

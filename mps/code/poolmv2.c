@@ -1,7 +1,7 @@
 /* poolmv2.c: MANUAL VARIABLE-SIZED TEMPORAL POOL
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: A manual-variable pool designed to take advantage of
  * placement according to predicted deathtime.
@@ -1025,34 +1025,34 @@ static Size MVTFreeSize(Pool pool)
 
 static Res MVTDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 {
+  MVT mvt = CouldBeA(MVTPool, pool);
   Res res;
-  MVT mvt;
 
-  if (!TESTT(Pool, pool))
-    return ResFAIL;
-  mvt = PoolMVT(pool);
-  if (!TESTT(MVT, mvt))
-    return ResFAIL;
+  if (!TESTC(MVTPool, mvt))
+    return ResPARAM;
   if (stream == NULL)
     return ResFAIL;
 
-  res = WriteF(stream, depth,
-               "MVT $P {\n", (WriteFP)mvt,
-               "  minSize: $U\n", (WriteFU)mvt->minSize,
-               "  meanSize: $U\n", (WriteFU)mvt->meanSize,
-               "  maxSize: $U\n", (WriteFU)mvt->maxSize,
-               "  fragLimit: $U\n", (WriteFU)mvt->fragLimit,
-               "  reuseSize: $U\n", (WriteFU)mvt->reuseSize,
-               "  fillSize: $U\n", (WriteFU)mvt->fillSize,
-               "  availLimit: $U\n", (WriteFU)mvt->availLimit,
-               "  abqOverflow: $S\n", WriteFYesNo(mvt->abqOverflow),
-               "  splinter: $S\n", WriteFYesNo(mvt->splinter),
-               "  splinterBase: $A\n", (WriteFA)mvt->splinterBase,
-               "  splinterLimit: $A\n", (WriteFU)mvt->splinterLimit,
-               "  size: $U\n", (WriteFU)mvt->size,
-               "  allocated: $U\n", (WriteFU)mvt->allocated,
-               "  available: $U\n", (WriteFU)mvt->available,
-               "  unavailable: $U\n", (WriteFU)mvt->unavailable,
+  res = NextMethod(Pool, MVTPool, describe)(pool, stream, depth);
+  if (res != ResOK)
+    return res;
+
+  res = WriteF(stream, depth + 2,
+               "minSize: $U\n", (WriteFU)mvt->minSize,
+               "meanSize: $U\n", (WriteFU)mvt->meanSize,
+               "maxSize: $U\n", (WriteFU)mvt->maxSize,
+               "fragLimit: $U\n", (WriteFU)mvt->fragLimit,
+               "reuseSize: $U\n", (WriteFU)mvt->reuseSize,
+               "fillSize: $U\n", (WriteFU)mvt->fillSize,
+               "availLimit: $U\n", (WriteFU)mvt->availLimit,
+               "abqOverflow: $S\n", WriteFYesNo(mvt->abqOverflow),
+               "splinter: $S\n", WriteFYesNo(mvt->splinter),
+               "splinterBase: $A\n", (WriteFA)mvt->splinterBase,
+               "splinterLimit: $A\n", (WriteFU)mvt->splinterLimit,
+               "size: $U\n", (WriteFU)mvt->size,
+               "allocated: $U\n", (WriteFU)mvt->allocated,
+               "available: $U\n", (WriteFU)mvt->available,
+               "unavailable: $U\n", (WriteFU)mvt->unavailable,
                NULL);
   if (res != ResOK)
     return res;
@@ -1103,8 +1103,7 @@ static Res MVTDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
   METER_WRITE(mvt->exceptionSplinters, stream, depth + 2);
   METER_WRITE(mvt->exceptionReturns, stream, depth + 2);
  
-  res = WriteF(stream, depth, "} MVT $P\n", (WriteFP)mvt, NULL);
-  return res;
+  return ResOK;
 }
 
 
@@ -1353,23 +1352,9 @@ static Bool MVTCheckFit(Addr base, Addr limit, Size min, Arena arena)
 }
 
 
-/* Return the CBS of an MVT pool for the benefit of fotest.c. */
-
-extern Land _mps_mvt_cbs(Pool);
-Land _mps_mvt_cbs(Pool pool) {
-  MVT mvt;
-
-  AVERT(Pool, pool);
-  mvt = PoolMVT(pool);
-  AVERT(MVT, mvt);
-
-  return MVTFreePrimary(mvt);
-}
-
-
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

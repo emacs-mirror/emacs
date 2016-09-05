@@ -770,6 +770,7 @@ Res MRGDeregister(Pool pool, Ref obj)
  * This could be improved by implementing MRGSegDescribe
  * and having MRGDescribe iterate over all the pool's segments.
  */
+
 static Res MRGDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 {
   MRG mrg = CouldBeA(MRGPool, pool);
@@ -783,20 +784,25 @@ static Res MRGDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
   if (stream == NULL)
     return ResPARAM;
 
+  res = NextMethod(Pool, MRGPool, describe)(pool, stream, depth);
+  if (res != ResOK)
+    return res;
+
+  res = WriteF(stream, depth + 2, "extendBy $W\n", (WriteFW)mrg->extendBy, NULL);
+  if (res != ResOK)
+    return res;
+
+  res = WriteF(stream, depth + 2, "Entry queue:\n", NULL);
+  if (res != ResOK)
+    return res;
   arena = PoolArena(pool);
-  res = WriteF(stream, depth, "extendBy $W\n", (WriteFW)mrg->extendBy, NULL);
-  if (res != ResOK)
-    return res;
-  res = WriteF(stream, depth, "Entry queue:\n", NULL);
-  if (res != ResOK)
-    return res;
   RING_FOR(node, &mrg->entryRing, nextNode) {
     Bool outsideShield = !ArenaShield(arena)->inside;
     refPart = MRGRefPartOfLink(linkOfRing(node), arena);
     if (outsideShield) {
       ShieldEnter(arena);
     }
-    res = WriteF(stream, depth, "at $A Ref $A\n",
+    res = WriteF(stream, depth + 2, "at $A Ref $A\n",
                  (WriteFA)refPart, (WriteFA)MRGRefPartRef(arena, refPart),
                  NULL);
     if (outsideShield) {
