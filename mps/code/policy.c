@@ -288,14 +288,15 @@ Bool PolicyStartTrace(Trace *traceReturn, Bool *collectWorldReturn,
   Res res;
   Trace trace;
 
+  AVER(traceReturn != NULL);
+  AVERT(Arena, arena);
+
   if (collectWorldAllowed) {
     Size sFoundation, sCondemned, sSurvivors, sConsTrace;
     double tTracePerScan; /* tTrace/cScan */
     double dynamicDeferral;
 
     /* Compute dynamic criterion.  See strategy.lisp-machine. */
-    AVER(arena->topGen.mortality >= 0.0);
-    AVER(arena->topGen.mortality <= 1.0);
     sFoundation = (Size)0; /* condemning everything, only roots @@@@ */
     /* @@@@ sCondemned should be scannable only */
     sCondemned = ArenaCommitted(arena) - ArenaSpareCommitted(arena);
@@ -339,13 +340,13 @@ Bool PolicyStartTrace(Trace *traceReturn, Bool *collectWorldReturn,
 
       res = TraceCreate(&trace, arena, TraceStartWhyCHAIN_GEN0CAP);
       AVER(res == ResOK);
+      trace->chain = firstChain;
+      ChainStartTrace(firstChain, trace);
       res = policyCondemnChain(&mortality, firstChain, trace);
       if (res != ResOK) /* should try some other trace, really @@@@ */
         goto failCondemn;
       if (TraceIsEmpty(trace))
         goto nothingCondemned;
-      trace->chain = firstChain;
-      ChainStartGC(firstChain, trace);
       res = TraceStart(trace, mortality, trace->condemned * TraceWorkFactor);
       /* We don't expect normal GC traces to fail to start. */
       AVER(res == ResOK);
