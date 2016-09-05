@@ -388,7 +388,8 @@ extern void TraceDestroyFinished(Trace trace);
 
 extern Bool TraceIsEmpty(Trace trace);
 extern Res TraceAddWhite(Trace trace, Seg seg);
-extern Res TraceCondemnZones(Trace trace, ZoneSet condemnedSet);
+extern void TraceCondemnStart(Trace trace);
+extern void TraceCondemnEnd(Trace trace);
 extern Res TraceStart(Trace trace, double mortality, double finishingTime);
 extern Bool TracePoll(Work *workReturn, Bool *collectWorldReturn,
                       Globals globals, Bool collectWorldAllowed);
@@ -683,6 +684,7 @@ extern Bool SegClassCheck(SegClass klass);
 DECLARE_CLASS(Inst, SegClass, InstClass);
 DECLARE_CLASS(Seg, Seg, Inst);
 DECLARE_CLASS(Seg, GCSeg, Seg);
+#define SegGCSeg(seg) MustBeA(GCSeg, (seg))
 extern void SegClassMixInNoSplitMerge(SegClass klass);
 
 extern Size SegSize(Seg seg);
