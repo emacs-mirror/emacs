@@ -1,7 +1,7 @@
 /* dbgpool.c: POOL DEBUG MIXIN
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .source: design.mps.object-debug
@@ -206,7 +206,7 @@ static Res DebugPoolInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
   return ResOK;
 
 tagFail:
-  SuperclassPoly(Pool, klass)->finish(pool);
+  SuperclassPoly(Inst, klass)->finish(MustBeA(Inst, pool));
   AVER(res != ResOK);
   return res;
 }
@@ -214,8 +214,9 @@ tagFail:
 
 /* DebugPoolFinish -- finish method for a debug pool */
 
-static void DebugPoolFinish(Pool pool)
+static void DebugPoolFinish(Inst inst)
 {
+  Pool pool = MustBeA(AbstractPool, inst);
   PoolDebugMixin debug;
   PoolClass klass;
 
@@ -229,7 +230,7 @@ static void DebugPoolFinish(Pool pool)
     PoolDestroy(debug->tagPool);
   }
   klass = ClassOfPoly(Pool, pool);
-  SuperclassPoly(Pool, klass)->finish(pool);
+  SuperclassPoly(Inst, klass)->finish(inst);
 }
 
 
@@ -523,7 +524,7 @@ static void fenceFree(PoolDebugMixin debug,
 {
   Size alignedFenceSize, alignedSize;
 
-  ASSERT(fenceCheck(debug, pool, old, size), "fencepost check on free");
+  ASSERT(fenceCheck(debug, pool, old, size), "fencepost check on free"); /* <design/check/#.common> */
 
   alignedFenceSize = SizeAlignUp(debug->fenceSize, PoolAlignment(pool));
   alignedSize = SizeAlignUp(size, PoolAlignment(pool));
@@ -738,7 +739,7 @@ void DebugPoolFreeCheck(Pool pool, Addr base, Addr limit)
     AVERT(PoolDebugMixin, debug);
     if (debug->freeSize != 0)
       ASSERT(freeCheck(debug, pool, base, limit),
-             "free space corrupted on release");
+             "free space corrupted on release"); /* <design/check/#.common> */
   }
 }
 
@@ -775,8 +776,8 @@ void DebugPoolCheckFreeSpace(Pool pool)
 void PoolClassMixInDebug(PoolClass klass)
 {
   /* Can't check klass because it's not initialized yet */
+  klass->instClassStruct.finish = DebugPoolFinish;
   klass->init = DebugPoolInit;
-  klass->finish = DebugPoolFinish;
   klass->alloc = DebugPoolAlloc;
   klass->free = DebugPoolFree;
 }
@@ -784,7 +785,7 @@ void PoolClassMixInDebug(PoolClass klass)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

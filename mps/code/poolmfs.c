@@ -1,7 +1,7 @@
 /* poolmfs.c: MANUAL FIXED SMALL UNIT POOL
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  * This is the implementation of the MFS pool class.
  *
@@ -37,10 +37,6 @@
 #include "mpm.h"
 
 SRCID(poolmfs, "$Id$");
-
-
-typedef MFS MFSPool;
-DECLARE_CLASS(Pool, MFSPool, AbstractPool);
 
 
 /* ROUND -- Round up
@@ -153,14 +149,16 @@ static void MFSTractFreeVisitor(Pool pool, Addr base, Size size,
 }
 
 
-static void MFSFinish(Pool pool)
+static void MFSFinish(Inst inst)
 {
+  Pool pool = MustBeA(AbstractPool, inst);
   MFS mfs = MustBeA(MFSPool, pool);
 
   MFSFinishTracts(pool, MFSTractFreeVisitor, UNUSED_POINTER);
 
   mfs->sig = SigInvalid;
-  PoolAbsFinish(pool);
+
+  NextMethod(Inst, MFSPool, finish)(inst);
 }
 
 
@@ -306,8 +304,9 @@ static Size MFSFreeSize(Pool pool)
 }
 
 
-static Res MFSDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
+static Res MFSDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 {
+  Pool pool = CouldBeA(AbstractPool, inst);
   MFS mfs = CouldBeA(MFSPool, pool);
   Res res;
 
@@ -316,35 +315,35 @@ static Res MFSDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
   if (stream == NULL)
     return ResPARAM;
 
-  res = WriteF(stream, depth,
-               "unroundedUnitSize $W\n", (WriteFW)mfs->unroundedUnitSize,
-               "extendBy $W\n", (WriteFW)mfs->extendBy,
-               "extendSelf $S\n", WriteFYesNo(mfs->extendSelf),
-               "unitSize $W\n", (WriteFW)mfs->unitSize,
-               "freeList $P\n", (WriteFP)mfs->freeList,
-               "total $W\n", (WriteFW)mfs->total,
-               "free $W\n", (WriteFW)mfs->free,
-               "tractList $P\n", (WriteFP)mfs->tractList,
-               NULL);
+  res = NextMethod(Inst, MFSPool, describe)(inst, stream, depth);
   if (res != ResOK)
     return res;
 
-  return ResOK;
+  return WriteF(stream, depth + 2,
+                "unroundedUnitSize $W\n", (WriteFW)mfs->unroundedUnitSize,
+                "extendBy $W\n", (WriteFW)mfs->extendBy,
+                "extendSelf $S\n", WriteFYesNo(mfs->extendSelf),
+                "unitSize $W\n", (WriteFW)mfs->unitSize,
+                "freeList $P\n", (WriteFP)mfs->freeList,
+                "total $W\n", (WriteFW)mfs->total,
+                "free $W\n", (WriteFW)mfs->free,
+                "tractList $P\n", (WriteFP)mfs->tractList,
+                NULL);
 }
 
 
 DEFINE_CLASS(Pool, MFSPool, klass)
 {
   INHERIT_CLASS(klass, MFSPool, AbstractPool);
+  klass->instClassStruct.describe = MFSDescribe;
+  klass->instClassStruct.finish = MFSFinish;
   klass->size = sizeof(MFSStruct);
   klass->varargs = MFSVarargs;
   klass->init = MFSInit;
-  klass->finish = MFSFinish;
   klass->alloc = MFSAlloc;
   klass->free = MFSFree;
   klass->totalSize = MFSTotalSize;
   klass->freeSize = MFSFreeSize;  
-  klass->describe = MFSDescribe;
 }
 
 
@@ -386,7 +385,7 @@ Bool MFSCheck(MFS mfs)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

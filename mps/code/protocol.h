@@ -117,13 +117,13 @@ typedef void *ClassId;
       LockClaimGlobalRecursive(); \
       if (CLASS_GUARDIAN(className) == FALSE) { \
         CLASS_INIT(className)(klass); \
-	/* Prevent infinite regress. */ \
-	if (CLASS_ID(className) != CLASS_ID(InstClass) && \
-	    CLASS_ID(className) != CLASS_ID(Inst)) \
+        /* Prevent infinite regress. */ \
+        if (CLASS_ID(className) != CLASS_ID(InstClass) && \
+            CLASS_ID(className) != CLASS_ID(Inst)) \
           SetClassOfPoly(klass, CLASS(KIND_CLASS(kind))); \
         AVER(CLASS_CHECK(kind)(klass)); \
         CLASS_GUARDIAN(className) = TRUE; \
-	ClassRegister(MustBeA(InstClass, klass)); \
+        ClassRegister(MustBeA(InstClass, klass)); \
       } \
       LockReleaseGlobalRecursive(); \
     } \
@@ -177,6 +177,9 @@ typedef struct InstStruct {
 
 typedef const char *ClassName;
 typedef unsigned char ClassLevel;
+typedef Res (*DescribeMethod)(Inst inst, mps_lib_FILE *stream, Count depth);
+typedef void (*InstInitMethod)(Inst inst);
+typedef void (*FinishMethod)(Inst inst);
 #define ClassDEPTH 8            /* maximum depth of class hierarchy */
 
 #define InstClassSig ((Sig)0x519B1452) /* SIGnature Protocol INST */
@@ -188,6 +191,9 @@ typedef struct InstClassStruct {
   InstClass superclass;         /* pointer to direct superclass */
   ClassLevel level;             /* distance from root of class hierarchy */
   ClassId display[ClassDEPTH];  /* classes at this level and above */
+  DescribeMethod describe;      /* write a debugging description */
+  FinishMethod finish;          /* finish instance */
+  InstInitMethod init;          /* base init method */
 } InstClassStruct;
 
 enum {ClassLevelNoSuper = -1};
@@ -248,15 +254,15 @@ extern void ClassRegister(InstClass klass);
 
 #define MustBeA(_class, inst) \
   CouldBeA(_class, \
-	   AVERPC(IsNonNullAndA(_class, inst), \
-		  "MustBeA " #_class ": " #inst, \
-		  inst))
+           AVERPC(IsNonNullAndA(_class, inst), \
+                  "MustBeA " #_class ": " #inst, \
+                  inst))
 
 #define MustBeA_CRITICAL(_class, inst) \
   CouldBeA(_class, \
-	   AVERPC_CRITICAL(IsNonNullAndA(_class, inst), \
-			   "MustBeA " #_class ": " #inst, \
-			   inst))
+           AVERPC_CRITICAL(IsNonNullAndA(_class, inst), \
+                           "MustBeA " #_class ": " #inst, \
+                           inst))
 
 
 /* Protocol introspection interface
