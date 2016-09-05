@@ -1,7 +1,7 @@
 /* land.c: LAND (COLLECTION OF ADDRESS RANGES) IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2014-2015 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2014-2016 Ravenbrook Limited.  See end of file for license.
  *
  * .design: <design/land/>
  */
@@ -191,12 +191,15 @@ void LandFinish(Land land)
 /* LandSize -- return the total size of ranges in land
  *
  * See <design/land/#function.size>
+ *
+ * .size.critical: In manual-allocation-bound programs using MVFF this
+ * is on the critical path.
  */
 
 Size LandSize(Land land)
 {
   /* .enter-leave.simple */
-  AVERC(Land, land);
+  AVERC_CRITICAL(Land, land);
 
   return Method(Land, land, sizeMethod)(land);
 }
@@ -205,17 +208,20 @@ Size LandSize(Land land)
 /* LandInsert -- insert range of addresses into land
  *
  * See <design/land/#function.insert>
+ *
+ * .insert.critical: In manual-allocation-bound programs using MVFF
+ * this is on the critical path.
  */
 
 Res LandInsert(Range rangeReturn, Land land, Range range)
 {
   Res res;
 
-  AVER(rangeReturn != NULL);
-  AVERC(Land, land);
-  AVERT(Range, range);
-  AVER(RangeIsAligned(range, land->alignment));
-  AVER(!RangeIsEmpty(range));
+  AVER_CRITICAL(rangeReturn != NULL);
+  AVERC_CRITICAL(Land, land);
+  AVERT_CRITICAL(Range, range);
+  AVER_CRITICAL(RangeIsAligned(range, land->alignment));
+  AVER_CRITICAL(!RangeIsEmpty(range));
   landEnter(land);
 
   res = Method(Land, land, insert)(rangeReturn, land, range);
@@ -250,13 +256,16 @@ Res LandDelete(Range rangeReturn, Land land, Range range)
 /* LandIterate -- iterate over isolated ranges of addresses in land
  *
  * See <design/land/#function.iterate>
+ *
+ * .iterate.critical: In manual-allocation-bound programs using MVFF
+ * this is on the critical path.
  */
 
 Bool LandIterate(Land land, LandVisitor visitor, void *closure)
 {
   Bool b;
-  AVERC(Land, land);
-  AVER(FUNCHECK(visitor));
+  AVERC_CRITICAL(Land, land);
+  AVER_CRITICAL(FUNCHECK(visitor));
   landEnter(land);
 
   b = Method(Land, land, iterate)(land, visitor, closure);
@@ -275,8 +284,8 @@ Bool LandIterate(Land land, LandVisitor visitor, void *closure)
 Bool LandIterateAndDelete(Land land, LandDeleteVisitor visitor, void *closure)
 {
   Bool b;
-  AVERC(Land, land);
-  AVER(FUNCHECK(visitor));
+  AVERC_CRITICAL(Land, land);
+  AVER_CRITICAL(FUNCHECK(visitor));
   landEnter(land);
 
   b = Method(Land, land, iterateAndDelete)(land, visitor, closure);
@@ -427,12 +436,15 @@ static Bool landFlushVisitor(Bool *deleteReturn, Land land, Range range,
 /* LandFlush -- move ranges from src to dest
  *
  * See <design/land/#function.flush>
+ *
+ * .flush.critical: In manual-allocation-bound programs using MVFF
+ * this is on the critical path.
  */
 
 Bool LandFlush(Land dest, Land src)
 {
-  AVERC(Land, dest);
-  AVERC(Land, src);
+  AVERC_CRITICAL(Land, dest);
+  AVERC_CRITICAL(Land, src);
 
   return LandIterateAndDelete(src, landFlushVisitor, dest);
 }
@@ -594,7 +606,7 @@ DEFINE_CLASS(Land, Land, klass)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2014-2015 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2014-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  *
