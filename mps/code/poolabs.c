@@ -211,7 +211,7 @@ DEFINE_CLASS(Pool, AbstractPool, klass)
   klass->walk = PoolNoWalk;
   klass->freewalk = PoolTrivFreeWalk;
   klass->bufferClass = PoolNoBufferClass;
-  klass->describe = PoolTrivDescribe;
+  klass->describe = PoolAbsDescribe;
   klass->debugMixin = PoolNoDebugMixin;
   klass->totalSize = PoolNoSize;
   klass->freeSize = PoolNoSize;
@@ -353,13 +353,43 @@ void PoolTrivBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
 }
 
 
-Res PoolTrivDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
+Res PoolAbsDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 {
-  AVERT(Pool, pool);
-  AVER(stream != NULL);
-  return WriteF(stream, depth,
-                "No class-specific description available.\n",
-                NULL);
+  Res res;
+  Ring node, nextNode;
+
+  if (!TESTC(AbstractPool, pool))
+    return ResPARAM;
+  if (stream == NULL)
+    return ResPARAM;
+
+  res = InstDescribe(CouldBeA(Inst, pool), stream, depth);
+  if (res != ResOK)
+    return res;
+
+  res = WriteF(stream, depth + 2,
+               "serial $U\n", (WriteFU)pool->serial,
+               "arena $P ($U)\n",
+               (WriteFP)pool->arena, (WriteFU)pool->arena->serial,
+               "alignment $W\n", (WriteFW)pool->alignment,
+               NULL);
+  if (res != ResOK)
+    return res;
+
+  if (pool->format != NULL) {
+    res = FormatDescribe(pool->format, stream, depth + 2);
+    if (res != ResOK)
+      return res;
+  }
+
+  RING_FOR(node, &pool->bufferRing, nextNode) {
+    Buffer buffer = RING_ELT(Buffer, poolRing, node);
+    res = BufferDescribe(buffer, stream, depth + 2);
+    if (res != ResOK)
+      return res;
+  }
+
+  return ResOK;
 }
 
 

@@ -23,7 +23,7 @@ static void test(void) {
  cdie(mps_pool_create(&pool, arena, mps_class_mv(),
   1024*32, 1024*16, 1024*256), "pool");
 
- cdie(mps_alloc(&q, pool, (size_t) -100 * mmqaArenaSIZE), "alloc");
+ cdie(mps_alloc(&q, pool, ((size_t)-1) - 100 * mmqaArenaSIZE), "alloc");
 
  mps_pool_destroy(pool);
  mps_arena_destroy(arena);

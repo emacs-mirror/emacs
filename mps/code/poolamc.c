@@ -235,8 +235,8 @@ static void AMCSegSketch(Seg seg, char *pbSketch, size_t cbSketch)
  */
 static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
 {
-  Res res;
   amcSeg amcseg = CouldBeA(amcSeg, seg);
+  Res res;
   Pool pool;
   Addr i, p, base, limit, init;
   Align step;
@@ -244,14 +244,14 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
   char abzSketch[5];
   Buffer buffer;
 
-  if(!TESTC(amcSeg, amcseg))
+  if (!TESTC(amcSeg, amcseg))
     return ResPARAM;
-  if(stream == NULL)
+  if (stream == NULL)
     return ResPARAM;
 
   /* Describe the superclass fields first via next-method call */
   res = NextMethod(Seg, amcSeg, describe)(seg, stream, depth);
-  if(res != ResOK)
+  if (res != ResOK)
     return res;
 
   pool = SegPool(seg);
@@ -262,16 +262,9 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
   p = AddrAdd(base, pool->format->headerSize);
   limit = SegLimit(seg);
 
-  res = WriteF(stream, depth,
-               "AMC seg $P [$A,$A){\n",
-               (WriteFP)seg, (WriteFA)base, (WriteFA)limit,
-               NULL);
-  if(res != ResOK)
-    return res;
-
-  if(amcSegHasNailboard(seg)) {
+  if (amcSegHasNailboard(seg)) {
     res = WriteF(stream, depth + 2, "Boarded\n", NULL);
-  } else if(SegNailed(seg) == TraceSetEMPTY) {
+  } else if (SegNailed(seg) == TraceSetEMPTY) {
     res = WriteF(stream, depth + 2, "Mobile\n", NULL);
   } else {
     res = WriteF(stream, depth + 2, "Stuck\n", NULL);
@@ -281,7 +274,7 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
 
   res = WriteF(stream, depth + 2,
                "Map:  *===:object  @+++:nails  bbbb:buffer\n", NULL);
-  if(res != ResOK)
+  if (res != ResOK)
     return res;
 
   if (SegBuffer(&buffer, seg))
@@ -289,24 +282,24 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
   else
     init = limit;
   
-  for(i = base; i < limit; i = AddrAdd(i, row)) {
+  for (i = base; i < limit; i = AddrAdd(i, row)) {
     Addr j;
     char c;
 
     res = WriteF(stream, depth + 2, "$A  ", (WriteFA)i, NULL);
-    if(res != ResOK)
+    if (res != ResOK)
       return res;
 
     /* @@@@ This misses a header-sized pad at the end. */
-    for(j = i; j < AddrAdd(i, row); j = AddrAdd(j, step)) {
-      if(j >= limit)
+    for (j = i; j < AddrAdd(i, row); j = AddrAdd(j, step)) {
+      if (j >= limit)
         c = ' ';  /* if seg is not a whole number of print rows */
-      else if(j >= init)
+      else if (j >= init)
         c = 'b';
       else {
         Bool nailed = amcSegHasNailboard(seg)
           && NailboardGet(amcSegNailboard(seg), j);
-        if(j == p) {
+        if (j == p) {
           c = (nailed ? '@' : '*');
           p = (pool->format->skip)(p);
         } else {
@@ -314,21 +307,17 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
         }
       }
       res = WriteF(stream, 0, "$C", (WriteFC)c, NULL);
-      if(res != ResOK)
+      if (res != ResOK)
         return res;
     }
 
     res = WriteF(stream, 0, "\n", NULL);
-    if(res != ResOK)
+    if (res != ResOK)
       return res;
   }
 
   AMCSegSketch(seg, abzSketch, NELEMS(abzSketch));
   res = WriteF(stream, depth + 2, "Sketch: $S\n", (WriteFS)abzSketch, NULL);
-  if(res != ResOK)
-    return res;
-
-  res = WriteF(stream, depth, "} AMC Seg $P\n", (WriteFP)seg, NULL);
   if(res != ResOK)
     return res;
 
@@ -1971,6 +1960,7 @@ static Size AMCFreeSize(Pool pool)
  *
  * See <design/poolamc/#describe>.
  */
+
 static Res AMCDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 {
   Res res;
@@ -1978,17 +1968,13 @@ static Res AMCDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
   Ring node, nextNode;
   const char *rampmode;
 
-  if(!TESTC(AMCZPool, amc))
+  if (!TESTC(AMCZPool, amc))
     return ResPARAM;
-  if(stream == NULL)
+  if (stream == NULL)
     return ResPARAM;
 
-  res = WriteF(stream, depth,
-               (amc->rankSet == RankSetEMPTY) ? "AMCZ" : "AMC",
-               " $P {\n", (WriteFP)amc, "  pool $P ($U)\n",
-               (WriteFP)pool, (WriteFU)pool->serial,
-               NULL);
-  if(res != ResOK)
+  res = NextMethod(Pool, AMCZPool, describe)(pool, stream, depth);
+  if (res != ResOK)
     return res;
 
   switch(amc->rampMode) {
@@ -2015,7 +2001,7 @@ static Res AMCDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
       return res;
   }
 
-  if(0) {
+  if (0) {
     /* SegDescribes */
     RING_FOR(node, &pool->segRing, nextNode) {
       Seg seg = RING_ELT(Seg, poolRing, node);
@@ -2024,10 +2010,6 @@ static Res AMCDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
         return res;
     }
   }
-
-  res = WriteF(stream, depth, "} AMC $P\n", (WriteFP)amc, NULL);
-  if(res != ResOK)
-    return res;
 
   return ResOK;
 }
