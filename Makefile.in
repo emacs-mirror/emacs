@@ -290,7 +290,7 @@ EMACS = ${EMACS_NAME}${EXEEXT}
 EMACSFULL = `echo emacs-${version} | sed '$(TRANSFORM)'`${EXEEXT}
 
 # Subdirectories to make recursively.
-SUBDIR = $(NTDIR) lib lib-src src lisp
+SUBDIR = $(NTDIR) lib lib-src src lisp packages
 
 # The subdir makefiles created by config.status.
 SUBDIR_MAKEFILES_IN = @SUBDIR_MAKEFILES_IN@
@@ -381,7 +381,7 @@ src: lib-src
 lisp: src
 
 # These targets should be "${SUBDIR} without 'src'".
-lib lib-src lisp nt: Makefile
+lib lib-src lisp nt packages: Makefile
 	$(MAKE) -C $@ all
 
 # Ideally, VCSWITNESS should be a file that is modified whenever the
