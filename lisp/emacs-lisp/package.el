@@ -292,7 +292,10 @@ packages in `package-directory-list'."
       (and (stringp f)
            (equal (file-name-nondirectory f) "site-lisp")
            (push (expand-file-name "elpa" f) result)))
-    (nreverse result))
+    (cons
+     ;; And the inbuild ELPA directory
+     (concat (expand-file-name "../packages" data-directory))
+     (nreverse result)))
   "List of additional directories containing Emacs Lisp packages.
 Each directory name should be absolute.
 
