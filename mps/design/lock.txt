@@ -194,15 +194,6 @@ _`.impl.ix`: POSIX implementation ``lockix.c``:
   success or ``EDEADLK`` (indicating a recursive claim);
 - also performs checking.
 
-_`.impl.li`: Linux implementation ``lockli.c``:
-
-- supports [POSIXThreads]_;
-- also supports [LinuxThreads]_, a partial implementation of POSIX Threads
-  that was used in Linux 2.4 and 2.5;
-- almost identical to `.impl.posix`_, except that on LinuxThreads
-  ``pthread_mutexattr_setkind_np`` is used where POSIX has
-  ``pthread_mutexattr_settype``.
-
 
 Example
 -------
@@ -258,11 +249,6 @@ References
    "Critical Section Objects";
    <http://msdn.microsoft.com/en-us/library/windows/desktop/ms682530.aspx>
 
-.. [LinuxThreads]
-   Xavier Leroy;
-   "The LinuxThreads library";
-   <http://pauillac.inria.fr/~xleroy/linuxthreads/>
-
 .. [POSIXThreads]
    The Open Group;
    "The Single UNIX Specification, Version 2---Threads";
@@ -287,7 +273,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2013-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
