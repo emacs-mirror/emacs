@@ -59,6 +59,11 @@ be claimed again by the thread currently holding them, without
 blocking or deadlocking. (This is needed to implement the global
 recursive lock.)
 
+_`.req.held`: Provide a means to test if a lock is held. (This is
+needed for debugging a dynamic function table callback on Windows on
+x86-64. See ``mps_arena_busy()`` for a detailed description of this
+use case.)
+
 _`.req.global`: Provide *global* locks: that is locks that need not be
 allocated or initialized by the user.
 
@@ -123,6 +128,10 @@ thread and claims the lock (if not already held).
 
 Restores the previous state of the lock remembered by the
 corresponding ``LockClaimRecursive()`` call.
+
+``Bool LockIsHeld(Lock lock)``
+
+Return true if the lock is held, false otherwise.
 
 ``void LockClaimGlobal(void)``
 

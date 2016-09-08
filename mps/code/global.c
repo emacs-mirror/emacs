@@ -73,14 +73,14 @@ static void arenaAnnounce(Arena arena)
 }
 
 
-/* arenaDenounce -- remove an arena from the global ring of arenas
+/* ArenaDenounce -- remove an arena from the global ring of arenas
  *
  * After this, no other thread can access the arena through ArenaAccess.
  * On entry, the arena should be locked.  On exit, it will still be, but
  * the lock has been released and reacquired in the meantime, so callers
  * should not assume anything about the state of the arena.  */
 
-static void arenaDenounce(Arena arena)
+void ArenaDenounce(Arena arena)
 {
   Globals arenaGlobals;
 
@@ -403,7 +403,7 @@ void GlobalsPrepareToDestroy(Globals arenaGlobals)
 
   arena = GlobalsArena(arenaGlobals);
 
-  arenaDenounce(arena);
+  ArenaDenounce(arena);
 
   defaultChain = arenaGlobals->defaultChain;
   arenaGlobals->defaultChain = NULL;
@@ -573,6 +573,12 @@ void ArenaLeaveRecursive(Arena arena)
 {
   ArenaLeaveLock(arena, TRUE);
 }
+
+Bool ArenaBusy(Arena arena)
+{
+  return LockIsHeld(ArenaGlobals(arena)->lock);
+}
+
 
 /* mps_exception_info -- pointer to exception info
  *

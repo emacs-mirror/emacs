@@ -103,6 +103,15 @@ void (LockReleaseRecursive)(Lock lock)
   LeaveCriticalSection(&lock->cs);
 }
 
+Bool (LockIsHeld)(Lock lock)
+{
+  if (TryEnterCriticalSection(&lock->cs)) {
+    Bool claimed = lock->claims > 0;
+    LeaveCriticalSection(&lock->cs);
+    return claimed;
+  }
+  return TRUE;
+}
 
 
 /* Global locking is performed by normal locks.

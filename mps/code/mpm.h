@@ -487,7 +487,7 @@ extern Res ArenaDescribeTracts(Arena arena, mps_lib_FILE *stream, Count depth);
 extern Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context);
 extern Res ArenaFreeLandInsert(Arena arena, Addr base, Addr limit);
 extern void ArenaFreeLandDelete(Arena arena, Addr base, Addr limit);
-
+extern void ArenaDenounce(Arena arena);
 
 extern Bool GlobalsCheck(Globals arena);
 extern Res GlobalsInit(Globals arena);
@@ -546,10 +546,12 @@ extern Bool (ArenaStep)(Globals globals, double interval, double multiplier);
 extern void ArenaClamp(Globals globals);
 extern void ArenaRelease(Globals globals);
 extern void ArenaPark(Globals globals);
+extern void ArenaPostmortem(Globals globals);
 extern void ArenaExposeRemember(Globals globals, Bool remember);
 extern void ArenaRestoreProtection(Globals globals);
 extern Res ArenaStartCollect(Globals globals, int why);
 extern Res ArenaCollect(Globals globals, int why);
+extern Bool ArenaBusy(Arena arena);
 extern Bool ArenaHasAddr(Arena arena, Addr addr);
 extern Res ArenaAddrObject(Addr *pReturn, Arena arena, Addr addr);
 extern void ArenaChunkInsert(Arena arena, Chunk chunk);

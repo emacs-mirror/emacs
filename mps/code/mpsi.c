@@ -260,6 +260,14 @@ void mps_arena_park(mps_arena_t arena)
 }
 
 
+void mps_arena_postmortem(mps_arena_t arena)
+{
+  /* Don't call ArenaEnter -- one of the purposes of this function is
+   * to release the arena lock if it's held */
+  ArenaPostmortem(ArenaGlobals(arena));
+}
+
+
 void mps_arena_expose(mps_arena_t arena)
 {
   ArenaEnter(arena);
@@ -371,6 +379,14 @@ void mps_arena_destroy(mps_arena_t arena)
 {
   ArenaEnter(arena);
   ArenaDestroy(arena);
+}
+
+
+/* mps_arena_busy -- is the arena part way through an operation? */
+
+mps_bool_t mps_arena_busy(mps_arena_t arena)
+{
+  return ArenaBusy(arena);
 }
 
 

@@ -457,6 +457,7 @@ static mps_res_t scan1(mps_ss_t ss, mps_addr_t *objectIO)
 
 static mps_res_t scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
 {
+  Insist(mps_arena_busy(arena));
   while(base < limit) {
     mps_res_t res;
 

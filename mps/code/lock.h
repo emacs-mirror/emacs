@@ -78,6 +78,11 @@ extern void LockRelease(Lock lock);
 extern Bool LockCheck(Lock lock);
 
 
+/* LockIsHeld -- test whether lock is held */
+
+extern Bool LockIsHeld(Lock lock);
+
+
 /*  == Global locks == */
 
 
@@ -133,6 +138,7 @@ extern void LockReleaseGlobal(void);
 #define LockReleaseRecursive(lock) UNUSED(lock)
 #define LockClaim(lock) UNUSED(lock)
 #define LockRelease(lock) UNUSED(lock)
+#define LockIsHeld(lock) ((void)lock, FALSE)
 #define LockCheck(lock) ((void)lock, TRUE)
 #define LockClaimGlobalRecursive()
 #define LockReleaseGlobalRecursive()

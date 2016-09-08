@@ -25,6 +25,12 @@ New features
 
    .. _LinuxThreads: http://pauillac.inria.fr/~xleroy/linuxthreads/
 
+#. New function :c:func:`mps_arena_postmortem` assists with postmortem
+   debugging.
+
+#. New function :c:func:`mps_arena_busy` assists debugging of re-entry
+   errors in dynamic function table callbacks on Windows on x86-64.
+
 
 Interface changes
 .................

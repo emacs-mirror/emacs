@@ -185,6 +185,21 @@ void (LockReleaseRecursive)(Lock lock)
 }
 
 
+/* LockIsHeld -- test whether lock is held */
+
+Bool (LockIsHeld)(Lock lock)
+{
+  AVERT(Lock, lock);
+  if (pthread_mutex_trylock(&lock->mut) == 0) {
+    Bool claimed = lock->claims > 0;
+    int res = pthread_mutex_unlock(&lock->mut);
+    AVER(res == 0);
+    return claimed;
+  }
+  return TRUE;
+}
+
+
 /* Global locks
  *
  * .global: The two "global" locks are statically allocated normal locks.
