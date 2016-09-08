@@ -4,6 +4,13 @@
 
 % Assertion in different place in the hot variety.
 argerr/16.c
+argerr/24.c
+argerr/30.c
+argerr/31.c
+argerr/33.c
+argerr/35.c
+argerr/37.c
+conerr/26.c
 
 % Rank is not a structure type, so AVERT(Rank) does nothing. 
 argerr/49.c
@@ -28,7 +35,14 @@ argerr/123.c
 argerr/124.c
 
 % Assertion is on the critical path.
+argerr/20.c
+argerr/22.c
+argerr/28.c
+argerr/29.c
 conerr/17.c
+conerr/20.c
+conerr/21.c
 conerr/22.c
 conerr/23.c
+conerr/27.c
 function/72.c
