@@ -402,6 +402,16 @@ Memory Management Glossary: P
             class of :term:`pools` that manage memory according to
             particular policy. See :ref:`pool`.
 
+    postmortem state
+
+        .. mps:specific::
+
+            One of the four states an :term:`arena` can be in (the
+            others being the :term:`unclamped state`, the
+            :term:`clamped state`, and the :term:`parked state`). In the postmortem state, 
+
+
+
     precise garbage collection
 
         .. see:: :term:`exact garbage collection`.

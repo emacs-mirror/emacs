@@ -124,6 +124,7 @@ typedef void (*ArenaCompactMethod)(Arena arena, Trace trace);
 typedef Res (*ArenaPagesMarkAllocatedMethod)(Arena arena, Chunk chunk,
                                              Index baseIndex, Count pages,
                                              Pool pool);
+typedef Bool (*ArenaChunkPageMappedMethod)(Chunk chunk, Index index);
 
 
 /* These are not generally exposed and public, but are part of a commercial
