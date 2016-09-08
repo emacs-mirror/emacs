@@ -521,7 +521,7 @@
  * Source      Symbols                   Header        Feature
  * =========== ========================= ============= ====================
  * eventtxt.c  setenv                    <stdlib.h>    _GNU_SOURCE
- * lockli.c    pthread_mutexattr_settype <pthread.h>   _XOPEN_SOURCE >= 500
+ * lockix.c    pthread_mutexattr_settype <pthread.h>   _XOPEN_SOURCE >= 500
  * prmci3li.c  REG_EAX etc.              <ucontext.h>  _GNU_SOURCE
  * prmci6li.c  REG_RAX etc.              <ucontext.h>  _GNU_SOURCE
  * prmcix.h    stack_t, siginfo_t        <signal.h>    _XOPEN_SOURCE

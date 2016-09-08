@@ -48,8 +48,8 @@ usable.
    again without deadlocking.
 
    See :ref:`design-lock` for the design, and ``lock.h`` for the
-   interface. There are implementations for Linux in ``lockli.c``,
-   POSIX in ``lockix.c``, and Windows in ``lockw3.c``.
+   interface. There are implementations for POSIX in ``lockix.c``, and
+   Windows in ``lockw3.c``.
 
    There is a generic implementation in ``lockan.c``, which cannot
    actually take any locks and so only works for a single thread.
@@ -195,7 +195,7 @@ For example::
 
     #elif defined(MPS_PF_LII6GC) || defined(MPS_PF_LII6LL)
 
-    #include "lockli.c"     /* Linux locks */
+    #include "lockix.c"     /* Posix locks */
     #include "thix.c"       /* Posix threading */
     #include "pthrdext.c"   /* Posix thread extensions */
     #include "vmix.c"       /* Posix virtual memory */
@@ -228,7 +228,7 @@ For example, ``lii6ll.gmk`` looks like this:
     PFM = lii6ll
 
     MPMPF = \
-        lockli.c \
+        lockix.c \
         prmci6li.c \
         proti6.c \
         protix.c \

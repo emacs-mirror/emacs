@@ -24,21 +24,23 @@
  * number of claims acquired on a lock.  This field must only be
  * modified while we hold the mutex.
  *
- * .from: This version was copied from the FreeBSD version (lockfr.c)
- * which was itself a cleaner version of the Linux version (lockli.c).
+ * .from: This was copied from the FreeBSD implementation (lockfr.c)
+ * which was itself a cleaner version of the LinuxThreads
+ * implementation (lockli.c).
  */
 
-#include <pthread.h>
+#include "config.h"
+
+#include <pthread.h> /* see .feature.li in config.h */
 #include <semaphore.h>
 #include <errno.h>
 
-#include "mpmtypes.h"
 #include "lock.h"
-#include "config.h"
+#include "mpmtypes.h"
 
 
-#if !defined(MPS_OS_FR) && !defined(MPS_OS_XC)
-#error "lockix.c is Unix specific, currently for MPS_OS_FR XC."
+#if !defined(MPS_OS_FR) && !defined(MPS_OS_LI) && !defined(MPS_OS_XC)
+#error "lockix.c is Unix specific."
 #endif
 
 SRCID(lockix, "$Id$");

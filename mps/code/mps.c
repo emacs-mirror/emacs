@@ -172,7 +172,7 @@
 
 #elif defined(MPS_PF_LII3GC)
 
-#include "lockli.c"     /* Linux locks */
+#include "lockix.c"     /* Posix locks */
 #include "thix.c"       /* Posix threading */
 #include "pthrdext.c"   /* Posix thread extensions */
 #include "vmix.c"       /* Posix virtual memory */
@@ -187,7 +187,7 @@
 
 #elif defined(MPS_PF_LII6GC) || defined(MPS_PF_LII6LL)
 
-#include "lockli.c"     /* Linux locks */
+#include "lockix.c"     /* Posix locks */
 #include "thix.c"       /* Posix threading */
 #include "pthrdext.c"   /* Posix thread extensions */
 #include "vmix.c"       /* Posix virtual memory */
