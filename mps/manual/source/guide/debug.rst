@@ -94,6 +94,31 @@ General debugging advice
    On OS X, barrier hits do not use signals and so do not enter the
    debugger.
 
+#. .. index::
+       single: postmortem debugging
+       single: postmortem state
+
+   If the :term:`client program` is stopped in the debugger with the
+   MPS part of the way through execution of an operation in an
+   :term:`arena` (for example, a crash inside a :term:`scan method`),
+   it will not be possible to call introspection functions, such as
+   :c:func:`mps_arena_has_addr` or :c:func:`mps_addr_pool` (because
+   the MPS is not re-entrant), and it may not be possible to examine
+   some regions of memory (because they are :term:`protected` by the
+   MPS).
+
+   If you are in this situation and would like to be able to call MPS
+   functions or examine regions of memory from the debugger, then you
+   can put the arena into the :term:`postmortem state` by calling
+   :c:func:`mps_arena_postmortem` from the debugger. This unlocks the
+   arena and turns off protection.
+
+   .. warning:: 
+
+       After calling :c:func:`mps_arena_postmortem`, MPS-managed
+       memory is not in a consistent state, and so it is no longer
+       safe to continue running the client program.
+
 
 .. index::
       single: ASLR

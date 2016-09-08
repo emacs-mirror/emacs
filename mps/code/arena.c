@@ -82,6 +82,14 @@ static Res ArenaNoPagesMarkAllocated(Arena arena, Chunk chunk,
   return ResUNIMPL;
 }
 
+static Bool ArenaNoChunkPageMapped(Chunk chunk, Index index)
+{
+  UNUSED(chunk);
+  UNUSED(index);
+  NOTREACHED;
+  return FALSE;
+}
+
 static Res ArenaNoCreate(Arena *arenaReturn, ArgList args)
 {
   UNUSED(arenaReturn);
@@ -122,6 +130,7 @@ DEFINE_CLASS(Arena, AbstractArena, klass)
   klass->chunkFinish = ArenaNoChunkFinish;
   klass->compact = ArenaTrivCompact;
   klass->pagesMarkAllocated = ArenaNoPagesMarkAllocated;
+  klass->chunkPageMapped = ArenaNoChunkPageMapped;
   klass->sig = ArenaClassSig;
 }
 
@@ -144,6 +153,7 @@ Bool ArenaClassCheck(ArenaClass klass)
   CHECKL(FUNCHECK(klass->chunkFinish));
   CHECKL(FUNCHECK(klass->compact));
   CHECKL(FUNCHECK(klass->pagesMarkAllocated));
+  CHECKL(FUNCHECK(klass->chunkPageMapped));
   CHECKS(ArenaClass, klass);
   return TRUE;
 }
