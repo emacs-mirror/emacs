@@ -162,7 +162,6 @@ File          Description
 lock.h        Lock interface. See design.mps.lock_.
 lockan.c      Lock implementation for standard C.
 lockix.c      Lock implementation for POSIX.
-lockli.c      Lock implementation for Linux.
 lockw3.c      Lock implementation for Windows.
 prmcan.c      Mutator context implementation for standard C.
 prmci3.h      Mutator context interface for IA-32.

@@ -18,6 +18,13 @@ New features
    estimate of the mortality when creating a :term:`generation chain`
    by calling :c:func:`mps_chain_create`.
 
+#. The MPS no longer supports Linux 2.4 and 2.5. (These versions used
+   LinuxThreads_ instead of POSIX threads; all major distributions
+   have long since ceased to support these versions and so it is no
+   longer convenient to test against them.)
+
+   .. _LinuxThreads: http://pauillac.inria.fr/~xleroy/linuxthreads/
+
 
 Interface changes
 .................
