@@ -983,6 +983,13 @@ Arena introspection and debugging
                 mps_arena_postmortem(arena);
             }
 
+    .. warning::
+
+        This function only gives a reliable result in single-threaded
+        programs, and in multi-threaded programs where all threads but
+        one are known to be stopped (as they are when the debugger is
+        decoding the call stack in the use case described above).
+
 
 .. c:function:: mps_bool_t mps_arena_has_addr(mps_arena_t arena, mps_addr_t addr)
 

@@ -45,6 +45,7 @@
 
 SRCID(lockix, "$Id$");
 
+#if defined(LOCK)
 
 /* LockStruct -- the MPS lock structure
  *
@@ -258,6 +259,13 @@ void (LockReleaseGlobal)(void)
 {
   LockRelease(globalLock);
 }
+
+
+#elif defined(LOCK_NONE)
+#include "lockan.c"
+#else
+#error "No lock configuration."
+#endif
 
 
 /* C. COPYRIGHT AND LICENSE
