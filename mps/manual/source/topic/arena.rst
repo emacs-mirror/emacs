@@ -663,9 +663,9 @@ An arena is always in one of three states.
    .. warning::
 
        In this state, memory managed by the arena is not in a
-       consistent state, and so it is no longer safe to continue
-       running the client program. This state is intended for
-       postmortem debugging only.
+       consistent state, and so it is not safe to continue running the
+       client program. This state is intended for postmortem debugging
+       only.
 
 
 Here's a summary:
