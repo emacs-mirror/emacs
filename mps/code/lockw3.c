@@ -31,6 +31,7 @@
 
 SRCID(lockw3, "$Id$");
 
+#if defined(LOCK)
 
 /* .lock.win32: Win32 lock structure; uses CRITICAL_SECTION */
 typedef struct LockStruct {
@@ -163,6 +164,13 @@ void (LockReleaseGlobal)(void)
   AVER(globalLockInit);
   LockRelease(globalLock);
 }
+
+
+#elif defined(LOCK_NONE)
+#include "lockan.c"
+#else
+#error "No lock configuration."
+#endif
 
 
 /* C. COPYRIGHT AND LICENSE

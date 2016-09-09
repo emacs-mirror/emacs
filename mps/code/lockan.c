@@ -79,6 +79,12 @@ void (LockReleaseRecursive)(Lock lock)
   --lock->claims;
 }
 
+Bool (LockIsHeld)(Lock lock)
+{
+  AVERT(Lock, lock);
+  return lock->claims > 0;
+}
+
 
 /* Global locking is performed by normal locks.
  * A separate lock structure is used for recursive and
