@@ -739,7 +739,7 @@ can only be called in this state.
 
 .. c:function:: void mps_arena_release(mps_arena_t arena)
 
-    Puts an arena into the :term:`unclamped state`.
+    Put an arena into the :term:`unclamped state`.
 
     ``arena`` is the arena.
 
@@ -749,7 +749,7 @@ can only be called in this state.
 
 .. c:function:: void mps_arena_postmortem(mps_arena_t arena)
 
-    Puts an arena into the :term:`postmortem state`.
+    Put an arena into the :term:`postmortem state`.
 
     ``arena`` is the arena.
 
