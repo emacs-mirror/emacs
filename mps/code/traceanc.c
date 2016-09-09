@@ -601,8 +601,13 @@ void ArenaPark(Globals globals)
  * This is called by ArenaPostmortem, which we expect only to be used
  * after a fatal error. So we use the lowest-level description of the
  * MPS-managed memory (the chunk ring page tables) to avoid the risk
- * of the higher-level structurs (like the segments) having been
+ * of higher-level structures (like the segments) having been
  * corrupted.
+ *
+ * After calling this function memory may not be in a consistent
+ * state, so it is not safe to continue running the MPS. If you need
+ * to expose memory but continue running the MPS, use
+ * ArenaExposeRemember instead.
  */
 
 static void arenaExpose(Arena arena)
@@ -627,7 +632,7 @@ void ArenaPostmortem(Globals globals)
 {
   Arena arena = GlobalsArena(globals);
 
-  /* Ensure lock is releases. */
+  /* Ensure lock is released. */
   while (LockIsHeld(globals->lock)) {
     LockReleaseRecursive(globals->lock);
   }
