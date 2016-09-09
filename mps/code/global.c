@@ -409,7 +409,7 @@ void GlobalsPrepareToDestroy(Globals arenaGlobals)
   arenaGlobals->defaultChain = NULL;
   ChainDestroy(defaultChain);
 
-  LockRelease(arenaGlobals->lock);
+  ArenaLeave(arena);
   /* Theoretically, another thread could grab the lock here, but it's */
   /* not worth worrying about, since an attempt after the lock has been */
   /* destroyed would lead to a crash just the same. */
@@ -493,10 +493,9 @@ Ring GlobalsRememberedSummaryRing(Globals global)
 
 /* ArenaEnter -- enter the state where you can look at the arena */
 
-void (ArenaEnter)(Arena arena)
+void ArenaEnter(Arena arena)
 {
-  AVERT(Arena, arena);
-  ArenaEnter(arena);
+  ArenaEnterLock(arena, FALSE);
 }
 
 /*  The recursive argument specifies whether to claim the lock
@@ -541,10 +540,10 @@ void ArenaEnterRecursive(Arena arena)
 
 /* ArenaLeave -- leave the state where you can look at MPM data structures */
 
-void (ArenaLeave)(Arena arena)
+void ArenaLeave(Arena arena)
 {
   AVERT(Arena, arena);
-  ArenaLeave(arena);
+  ArenaLeaveLock(arena, FALSE);
 }
 
 void ArenaLeaveLock(Arena arena, Bool recursive)
