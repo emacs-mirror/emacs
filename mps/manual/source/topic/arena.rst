@@ -430,12 +430,10 @@ Arena properties
     operating system.
 
     The function :c:func:`mps_arena_committed` may be called whatever
-    state the the arena is in (:term:`unclamped <unclamped state>`,
-    :term:`clamped <clamped state>`, or :term:`parked <parked
-    state>`). If it is called when the arena is in the unclamped state
-    then the value may change after this function returns. A possible
-    use might be to call it just after :c:func:`mps_arena_collect` to
-    estimate the size of the heap.
+    state the the arena is in. If it is called when the arena is in
+    the :term:`unclamped state` then the value may change after this
+    function returns. A possible use might be to call it just after
+    :c:func:`mps_arena_collect` to estimate the size of the heap.
 
     If you want to know how much memory the MPS is using then you're
     probably interested in the value :c:func:`mps_arena_committed` −
