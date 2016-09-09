@@ -524,16 +524,12 @@ extern Bool ArenaGrainSizeCheck(Size size);
 extern void ArenaEnterLock(Arena arena, Bool recursive);
 extern void ArenaLeaveLock(Arena arena, Bool recursive);
 
-extern void (ArenaEnter)(Arena arena);
-extern void (ArenaLeave)(Arena arena);
+extern void ArenaEnter(Arena arena);
+extern void ArenaLeave(Arena arena);
 extern void (ArenaPoll)(Globals globals);
 
 #if defined(SHIELD)
-#define ArenaEnter(arena)  ArenaEnterLock(arena, FALSE)
-#define ArenaLeave(arena)  ArenaLeaveLock(arena, FALSE)
 #elif defined(SHIELD_NONE)
-#define ArenaEnter(arena)  UNUSED(arena)
-#define ArenaLeave(arena)  AVER(arena->busyTraces == TraceSetEMPTY)
 #define ArenaPoll(globals)  UNUSED(globals)
 #else
 #error "No shield configuration."
@@ -897,7 +893,7 @@ extern void (ShieldFlush)(Arena arena);
 #define ShieldLower(arena, seg, mode) \
   BEGIN UNUSED(arena); UNUSED(seg); UNUSED(mode); END
 #define ShieldEnter(arena) BEGIN UNUSED(arena); END
-#define ShieldLeave(arena) BEGIN UNUSED(arena); END
+#define ShieldLeave(arena) AVER(arena->busyTraces == TraceSetEMPTY)
 #define ShieldExpose(arena, seg)  \
   BEGIN UNUSED(arena); UNUSED(seg); END
 #define ShieldCover(arena, seg) \
