@@ -116,8 +116,8 @@ General debugging advice
    .. warning:: 
 
        After calling :c:func:`mps_arena_postmortem`, MPS-managed
-       memory is not in a consistent state, and so it is no longer
-       safe to continue running the client program.
+       memory is not in a consistent state, and so it is not safe to
+       continue running the client program.
 
 
 .. index::
