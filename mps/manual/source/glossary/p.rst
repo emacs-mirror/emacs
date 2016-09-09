@@ -408,9 +408,14 @@ Memory Management Glossary: P
 
             One of the four states an :term:`arena` can be in (the
             others being the :term:`unclamped state`, the
-            :term:`clamped state`, and the :term:`parked state`). In the postmortem state, 
-
-
+            :term:`clamped state`, and the :term:`parked state`). In
+            the postmortem state, objects do not move in memory, the
+            staleness of :term:`location dependencies` does not
+            change, memory occupied by :term:`unreachable` objects is
+            not recycled, all memory protection is removed, and memory
+            may be in an inconsistent state. Call
+            :c:func:`mps_arena_postmortem` to put an arena into the
+            postmortem state.
 
     precise garbage collection
 
