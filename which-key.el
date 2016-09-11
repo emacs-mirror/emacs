@@ -516,6 +516,7 @@ used.")
 (defvar which-key--inhibit-next-operator-popup nil)
 (defvar which-key--current-show-keymap-name nil)
 (defvar which-key--prior-show-keymap-args nil)
+(defvar which-key--previous-frame-size nil)
 
 (defvar which-key-key-based-description-replacement-alist '()
   "New version of
@@ -620,6 +621,8 @@ problems at github. If DISABLE is non-nil disable support."
         (add-hook 'pre-command-hook #'which-key--hide-popup)
         (add-hook 'focus-out-hook #'which-key--stop-timer)
         (add-hook 'focus-in-hook #'which-key--start-timer)
+        (add-hook 'window-configuration-change-hook
+                  'which-key--hide-popup-on-frame-size-change)
         (which-key--start-timer))
     (setq echo-keystrokes which-key--echo-keystrokes-backup)
     (when which-key--prefix-help-cmd-backup
@@ -629,6 +632,8 @@ problems at github. If DISABLE is non-nil disable support."
     (remove-hook 'pre-command-hook #'which-key--hide-popup)
     (remove-hook 'focus-out-hook #'which-key--stop-timer)
     (remove-hook 'focus-in-hook #'which-key--start-timer)
+    (remove-hook 'window-configuration-change-hook
+                 'which-key--hide-popup-on-frame-size-change)
     (which-key--stop-timer)))
 
 (defun which-key--init-buffer ()
@@ -909,6 +914,15 @@ total height."
       height-or-percentage
     (round (* height-or-percentage (window-total-height (frame-root-window))))))
 
+(defun which-key--frame-size-changed-p ()
+  "Non-nil if a change in frame size is detected."
+  (let ((new-size (cons (frame-width) (frame-height))))
+    (cond ((null which-key--previous-frame-size)
+           (setq which-key--previous-frame-size new-size)
+           nil)
+          ((not (equal which-key--previous-frame-size new-size))
+           (setq which-key--previous-frame-size new-size)))))
+
 ;;; Show/hide which-key buffer
 
 (defun which-key--hide-popup ()
@@ -939,6 +953,12 @@ total height."
     (side-window (which-key--hide-buffer-side-window))
     (frame (which-key--hide-buffer-frame))
     (custom (funcall which-key-custom-hide-popup-function))))
+
+(defun which-key--hide-popup-on-frame-size-change ()
+  "Hide which-key popup if the frame is resized (to trigger a new
+popup)."
+  (when (which-key--frame-size-changed-p)
+    (which-key--hide-popup)))
 
 (defun which-key--hide-buffer-side-window ()
   "Hide which-key buffer when side-window popup is used."
@@ -1109,11 +1129,11 @@ width) in lines and characters respectively."
    (max 0
         (- (if (member which-key-side-window-location '(left right))
                (which-key--total-width-to-text
-		(which-key--width-or-percentage-to-width
-		 which-key-side-window-max-width))
+                (which-key--width-or-percentage-to-width
+                 which-key-side-window-max-width))
              (which-key--total-width-to-text
-	      (which-key--width-or-percentage-to-width
-	       1.0)))
+              (which-key--width-or-percentage-to-width
+               1.0)))
            which-key-unicode-correction))))
 
 (defun which-key--frame-max-dimensions ()
@@ -1491,7 +1511,7 @@ alists. Returns a list (key separator description)."
                    ((string-match-p ignore-keys-regexp key))
                    ((and which-key--current-prefix
                          (string-match (format "^%s[ \t]\\([^ \t]+\\)[ \t]+$"
-					       key-str-qt) key))
+                                               key-str-qt) key))
                     (unless (assoc-string (match-string 1 key) bindings)
                       (push (cons (match-string 1 key) binding) bindings)))
                    ((and which-key--current-prefix
