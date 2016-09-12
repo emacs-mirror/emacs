@@ -7,7 +7,8 @@ EMACS=../src/emacs
 DIRS=$(filter-out .,$(subst ./,,$(shell find . -maxdepth 1 -type d)))
 
 ## alas "all" is an ELPA package, so this is going to break
-all: $(DIRS)
+build-all: $(DIRS)
+
 
 define package_template
 $(1): $(1)/$(1)-pkg.el
