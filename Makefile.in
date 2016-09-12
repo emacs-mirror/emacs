@@ -380,6 +380,11 @@ src: lib-src
 # We need to build 'emacs' in 'src' to compile the *.elc files in 'lisp'.
 lisp: src
 
+# We should assume that all files in core are byte compiled before we
+# start to build packages. And we assume that src is build because we
+# need 'emacs'.
+packages: lisp src
+
 # These targets should be "${SUBDIR} without 'src'".
 lib lib-src lisp nt packages: Makefile
 	$(MAKE) -C $@ all

@@ -19,14 +19,14 @@ tests directory."
    (directory-files directory nil ".*-tests.el$")
    (directory-files directory nil "test-.*.el$")
    (let ((dir-test
-          (concat directory "test/")))
+          (concat directory "/test/")))
      (when (file-exists-p dir-test)
        (mapcar
         (lambda (file)
           (concat dir-test file))
         (directory-files dir-test nil ".*.el"))))
    (let ((dir-tests
-          (concat directory "tests/")))
+          (concat directory "/tests/")))
      (when (file-exists-p dir-tests)
        (mapcar
         (lambda (file)
@@ -34,9 +34,11 @@ tests directory."
         (directory-files dir-tests nil ".*.el"))))))
 
 (defun assess-discover--load-all-tests (directory)
-  (mapc
-   'load
-   (assess-discover-tests directory)))
+  (let ((loads
+         (assess-discover-tests directory)))
+    (mapc
+     'load
+     loads)))
 
 (defun assess-discover-load-tests ()
   (interactive)
@@ -52,5 +54,7 @@ tests directory."
   (assess-discover-run-and-exit-batch-dir default-directory))
 
 (defun assess-discover-run-and-exit-batch-dir (directory &optional selector)
-  (assess-discover--load-all-tests directory)
+  (assess-discover--load-all-tests
+   (concat default-directory
+           directory))
   (ert-run-tests-batch-and-exit selector))
