@@ -164,8 +164,12 @@ check-no-automated-subdir:
 ## be available during clean.
 -include make-test-deps.mk
 ## Rerun all default tests.
-check: mostlyclean check-no-automated-subdir
+check: mostlyclean check-no-automated-subdir check-packages
 	@${MAKE} check-doit SELECTOR="${SELECTOR_ACTUAL}"
+
+
+check-packages:
+	@${MAKE} -C ../packages test
 
 ## Rerun all default and expensive tests.
 .PHONY: check-expensive
