@@ -12,24 +12,27 @@ all: build-all
 build-all: $(DIRS) $(EMACS)
 
 
-define package_template
-$(1): $(1)/$(1)-pkg.el
+# define package_template
+# $(1): $(1)/$(1)-pkg.el
 
-$(1)/$(1)-pkg.el:
-	$$(EMACS) --batch --load package-build.el --eval '(package-build-prepare "$(1)")'
+# $(1)/$(1)-pkg.el:
+# 	$$(EMACS) --batch --load package-build.el --eval '(package-build-prepare "$(1)")'
 
-endef
+# endef
 
-$(foreach dir,$(DIRS),$(eval $(call package_template,$(dir))))
+# $(foreach dir,$(DIRS),$(eval $(call package_template,$(dir))))
 
-define test_template
-$(1)-test:
-	$$(EMACS) --batch --load package-test.el --eval '(assess-discover-run-and-exit-batch-dir "$(1)")'
-endef
+# define test_template
+# $(1)-test:
+# 	$$(EMACS) --batch --load package-test.el --eval '(assess-discover-run-and-exit-batch-dir "$(1)")'
+# endef
 
-$(foreach dir,$(DIRS),$(eval $(call test_template,$(dir))))
+# $(foreach dir,$(DIRS),$(info $(call test_template,$(dir))))
 
-test: $(patsubst %,%-test,$(DIRS))
+# test: $(patsubst %,%-test,$(DIRS))
+
+include gnumakefile.mk
+
 
 clean:
 	find . -name "*pkg.el" -exec rm -v {} \;
