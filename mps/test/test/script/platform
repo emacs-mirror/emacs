@@ -43,6 +43,7 @@ sub settings_nt {
  $dirsep = "/";
  $link_obj = "$PLATFORM/$VARIETY/mps.obj";
  $make_command = "nmake /f $PLATFORM.nmk VARIETY=$VARIETY $link_obj";
+ $debug_command = "vsjitdebugger";
  $cc_command = "cl";
  $cc_opts = "/nologo /DWIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /W3 /Zi /Oy- /MD";
  $cc_link = "$obj_dir/platform.obj";
@@ -91,10 +92,13 @@ sub settings_unix {
  $cc_link_opts = "-z muldefs";
  if ($PLATFORM =~ /ll$/) {
   $cc_command = "clang";
+  $debug_command = "lldb";
  } elsif ($PLATFORM =~ /gc$/) {
   $cc_command = "gcc";
+  $debug_command = "gdb";
  } else {
   $cc_command = "cc";
+  $debug_command = "gdb";
  }
  $cc_opts = "-ansi -pedantic -Wall -Wstrict-prototypes ".
   "-Winline -Waggregate-return -Wnested-externs -Wcast-qual ".
@@ -145,6 +149,7 @@ sub settings_macosx {
  }
  $link_obj = "xc/$config/libmps.a";
  $make_command = "xcodebuild -project mps.xcodeproj -config $config -target mps";
+ $debug_command = "lldb";
  $cc_command = "clang";
  $cc_link = "$obj_dir/platform.o";
  $cc_link_opts =~ s/-z muldefs//;
