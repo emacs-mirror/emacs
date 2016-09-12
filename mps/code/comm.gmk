@@ -343,10 +343,9 @@ testratio: phony
 #
 # See test/README for documentation on running the MMQA test suite.
 
-MMQA=perl test/qa -i ../code -l ../code/$(PFM)/$(VARIETY)/mps.o
+MMQA=perl test/qa -p $(PFM) -v $(VARIETY)
 
 $(PFM)/$(VARIETY)/testmmqa:
-	$(MAKE) -f $(PFM).gmk VARIETY=$(VARIETY) TARGET=mps.o variety
 	(if [ "$(VARIETY)" = "cool" ]; then cd ../test && $(MMQA) runset testsets/coolonly; fi)
 	(cd ../test && $(MMQA) runset testsets/argerr)
 	(cd ../test && $(MMQA) runset testsets/conerr)

@@ -13,7 +13,6 @@ sub harness_init {
  &set_dirs;
  &platform_settings;
  &identify;
- &auto_settings;
  &platform_settings;
 }
 
