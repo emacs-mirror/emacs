@@ -13,43 +13,38 @@
 # Set lots of variables correctly, depending on the platform
 # (which was determined in 'options')
 #
-# Currently, it should work correctly on NT, Solaris, Linux, MacOS X.
+# Currently, it should work correctly on Windows, Linux, MacOS X,
+# FreeBSD.
 #
 
 sub platform_settings {
-    if ($PLATFORM =~ "^nt_") {
-        &settings_nt();
-        if ($PLATFORM =~ "^nt_x86_cap") {
-            &settings_nt_cap();
-        } elsif ($PLATFORM =~ "^nt_x86_coff") {
-            &settings_nt_coff();
-        }
-    } elsif ($PLATFORM =~ "^SunOS") {
-        &settings_unix();
-        if ($PLATFORM =~ "sos8gp") {
-            &settings_gprof();
-        }
-    } elsif ($PLATFORM =~ "^Linux") {
-        &settings_unix();
-        &settings_linux();
-    } elsif ($PLATFORM =~ "^Mac_OS_10" || $PLATFORM =~ "^Darwin_") {
-        &settings_unix();
-        &settings_macosx();
-    } elsif ($PLATFORM =~ "__unix") {
-        &logcomment("I don't know anything specific about $PLATFORM --");
-        &logcomment("using generic unix/gcc settings.");
-        &settings_unix();
-    } else {
-        die "Sorry: I don't know how to use ".$PLATFORM."\n";
-    }
+ if ($PLATFORM =~ "^w3") {
+  &settings_nt();
+  &settings_nt_coff();
+ } elsif ($PLATFORM =~ "^li") {
+  &settings_unix();
+  &settings_linux();
+ } elsif ($PLATFORM =~ "^xc") {
+  &settings_unix();
+  &settings_macosx();
+ } elsif ($PLATFORM =~ "^fr") {
+  &settings_unix();
+  &settings_linux();
+ } else {
+  die "Sorry: I don't know how to use $PLATFORM.\n";
+ }
+ unless (defined $MPS_LINK_OBJ && $MPS_LINK_OBJ ne "") {
+  $MPS_LINK_OBJ = "$MPS_INCLUDE_DIR/$link_obj";
+ }
 }
 
 
 sub settings_nt {
  $dirsep = "/";
+ $link_obj = "$PLATFORM/$VARIETY/mps.obj";
+ $make_command = "nmake /f $PLATFORM.nmk VARIETY=$VARIETY $link_obj";
  $cc_command = "cl";
-# following line used to include /DMMQA_VERS_$MPS_INTERFACE_VERSION
- $cc_opts = "/nologo /DWIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /W3 /Zi /Oy- /MD /DMMQA_PROD_$MPS_PRODUCT";
+ $cc_opts = "/nologo /DWIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /W3 /Zi /Oy- /MD";
  $cc_link = "$obj_dir/platform.obj";
  $cc_link_opts = "/link /NODEFAULTLIB:LIBCMT /NODEFAULTLIB:LIBCMTD /NODEFAULTLIB:LIBC /NODEFAULTLIB:LIBCD /NODEFAULTLIB:MSVCRTD /DEFAULTLIB:MSVCRT /debug";
  $cc_include = "/I$testlib_dir /I$MPS_INCLUDE_DIR /I$obj_dir";
@@ -90,14 +85,21 @@ sub settings_nt_coff {
 
 sub settings_unix {
  $dirsep = "/";
+ $link_obj = "$PLATFORM/$VARIETY/mps.o";
+ $make_command = "make -B -f $PLATFORM.gmk VARIETY=$VARIETY $link_obj";
  $cc_link = "$obj_dir/platform.o -lm";
  $cc_link_opts = "-z muldefs";
- $cc_command = "gcc";
+ if ($PLATFORM =~ /ll$/) {
+  $cc_command = "clang";
+ } elsif ($PLATFORM =~ /gc$/) {
+  $cc_command = "gcc";
+ } else {
+  $cc_command = "cc";
+ }
  $cc_opts = "-ansi -pedantic -Wall -Wstrict-prototypes ".
   "-Winline -Waggregate-return -Wnested-externs -Wcast-qual ".
   "-Wshadow -Wmissing-prototypes -Wcast-align ".
-  "-O -g -ggdb3 ".
-  "-DMMQA_PROD_$MPS_PRODUCT";
+  "-O -g -ggdb3 ";
  $cc_include = "-I$testlib_dir -I$MPS_INCLUDE_DIR -I$obj_dir";
  $cc_def = "-D";
  $cc_defeq = "=";
@@ -130,18 +132,24 @@ sub settings_gprof {
 
 
 sub settings_linux {
- $cc_link = $cc_link . " -lpthread";
+ $cc_link .= " -lpthread";
 }
 
 
 sub settings_macosx {
-    $cc_command = "cc";
-    $cc_link = "$obj_dir/platform.o";
-    $cc_link_opts =~ s/-z muldefs//;
-    $cc_opts =~ s/-Wstrict-prototypes//;
-    $cc_opts .= " -Wno-unused -Wno-missing-prototypes";
-    $stdboth_red = ">&%s";
-    $preprocommand = "$cc_command $cc_preonly";
+ local $config = "Debug";
+ if ($VARIETY eq "hot") {
+  $config = "Release";
+ } elsif ($VARIETY eq "rash") {
+  $config = "Rash";
+ }
+ $link_obj = "xc/$config/libmps.a";
+ $make_command = "xcodebuild -project mps.xcodeproj -config $config -target mps";
+ $cc_command = "clang";
+ $cc_link = "$obj_dir/platform.o";
+ $cc_link_opts =~ s/-z muldefs//;
+ $cc_opts =~ s/-Wstrict-prototypes//;
+ $cc_opts .= " -Wno-unused -Wno-missing-prototypes";
 }
 
 
@@ -191,9 +199,9 @@ sub unix_mailfile {
 
 sub identify {
  %identify = ();
- if ($PLATFORM =~ /^nt/) {
+ if ($PLATFORM =~ /^w3/) {
   &identify_nt;
- } elsif ($PLATFORM =~ /__unix/) {
+ } elsif ($PLATFORM =~ /^(fr|li|xc)/) {
   &identify_unix;
  }
  $identify{"time"} = localtime;
@@ -237,7 +245,7 @@ sub identify_unix {
  if (exists $identify{"user"}) {
   $identify{"user"} =~ s/\s.*//;
  }
- &comvar("c_version", "gcc -v", "version");
+ &comvar("c_version", "$cc_command -v", "version");
  &comvar("OS", "uname", "");
  &comvar("arch", "uname -a", "");
 }
