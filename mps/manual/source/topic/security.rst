@@ -11,20 +11,19 @@ the MPS.
 
 
 .. index::
-   pair: security issues; predictable address space layout
-   single: address space; predictable layout
+   pair: security issues; predictable address space layout on FreeBSD
+   single: address space; predictable layout on FreeBSD
 
-Predictable address space layout
---------------------------------
+Predictable address space layout on FreeBSD
+-------------------------------------------
 
 The MPS acquires :term:`address space` using the operating system's
-:term:`virtual memory` interface (specifically, :c:func:`mmap` on Unix
-platforms, and :c:func:`VirtualAlloc` on Windows). None of the
-supported platforms randomize the allocated regions of address space,
-which means that the :term:`addresses` of :term:`blocks` allocated by
-the MPS are predictable: a :term:`client program` that makes an
-identical series of calls to the MPS gets an identical series of
-addresses back.
+:term:`virtual memory` interface (specifically, :c:func:`mmap` on
+FreeBSD). As of version 10, FreeBSD does not randomize the allocated
+regions of address space, which means that the :term:`addresses` of
+:term:`blocks` allocated by the MPS are predictable: a :term:`client
+program` that makes an identical series of calls to the MPS gets an
+identical series of addresses back.
 
 This means that if a program using the MPS has a buffer overflow, the
 overflow is more easily exploitable by an attacker than if the program
@@ -34,6 +33,10 @@ determine the address of allocated structures.
 
 There is currently no workaround for this issue. If this affects you,
 please :ref:`contact us <contact>`.
+
+Other supported platforms are unaffected by this issue: Linux and OS X
+randomize the addresses allocated by :c:func:`mmap`, and Windows
+randomizes the addresses allocated by :c:func:`VirtualAlloc`.
 
 
 .. index::
