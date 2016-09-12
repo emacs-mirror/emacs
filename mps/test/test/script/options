@@ -40,7 +40,7 @@ sub platform_detect {
    $platform_os = "xx";
    $platform_ct = "xx";
   }
-  local $processor = `uname -p`;
+  local $processor = `uname -m`;
   chomp($processor);
   if ($processor eq "i386") {
    $platform_ar = "i3";
