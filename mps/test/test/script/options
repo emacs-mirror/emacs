@@ -14,43 +14,49 @@
 
 sub platform_detect {
  if (($ENV{"OS"} || "") eq "Windows_NT") {
-  # it's NT, so find out what the processor is
-  #  from a system variable
-  $platform_class = "nt_".$ENV{"PROCESSOR_ARCHITECTURE"};
-  if ($platform_class eq "nt_") {
-   $platform_class = "nt_dunno";
+  $platform_os = "w3";
+  # See https://msdn.microsoft.com/en-us/library/aa384274.aspx
+  if ($ENV{"PROCESSOR_ARCHITECTURE"} eq "x86") {
+   $platform_ar = "i3";
+  } elsif ($ENV{"PROCESSOR_ARCHITECTURE"} eq "AMD64") {
+   $platform_ar = "i6";
+  } else {
+   $platform_ar = "xx";
   }
-  $platform_phylum = "pc";
+  $platform_ct = "mv";
  } else {
-  # it's unix by default
-     local $os = `uname`;
-     local $osrel = `uname -r`;
-     local $processor = `uname -p`;
-     chomp($os); chomp($osrel); chomp($processor);
-     $platform_class = $os."_".$osrel."_".$processor;
-     $platform_class =~ s/ /_/g;
-     $platform_phylum = "unix";
- }
- $qa_defaults{"PLATFORM"} = $platform_class."__".$platform_phylum;
-}
-
-sub auto_settings {
- unless (&getoption("MPS_PRODUCT")) {
-  if (&getoption("MPS_LINK_OBJ")) {
-   &mpslibvers(&getoption("MPS_LINK_OBJ"));
-   unless ($mpslibvers{"product"} eq "unknown") {
-    &setoption("MPS_PRODUCT", $mpslibvers{"product"});
-   }
+  local $os = `uname -s`;
+  chomp($os);
+  if ($os eq "Darwin") {
+   $platform_os = "xc";
+   $platform_ct = "ll";
+  } elsif ($os eq "FreeBSD") {
+   $platform_os = "fr";
+   $platform_ct = "gc";
+  } elsif ($os eq "Linux") {
+   $platform_os = "li";
+   $platform_ct = "gc";
+  } else {
+   $platform_os = "xx";
+   $platform_ct = "xx";
+  }
+  local $processor = `uname -p`;
+  chomp($processor);
+  if ($processor eq "i386") {
+   $platform_ar = "i3";
+  } elsif ($processor eq "x86_64") {
+   $platform_ar = "i6";
+  } else {
+   $platform_ar = "xx";
   }
  }
+ $qa_defaults{"PLATFORM"} = $platform_os . $platform_ar . $platform_ct;
 }
-
 
 %qa_options = (
-# "v", "MPS_INTERFACE_VERSION",
+ "v", "VARIETY",
  "i", "MPS_INCLUDE_DIR",
  "l", "MPS_LINK_OBJ",
- "prod", "MPS_PRODUCT",
  "p", "PLATFORM",
  "data", "DATA_DIR",
  "a", "PARAMETERS",
@@ -73,13 +79,14 @@ sub auto_settings {
 #
 
 %qa_defaults = (
+ "MPS_INCLUDE_DIR", $test_dir . "/../../code",
  "PLATFORM", "[error -- you shouldn't see this]",
+ "VARIETY", "cool",
  "DEBUG_INFO", "off",
  "DANGEROUS", "off",
  "DATA_DIR", "$test_dir/../data",
  "LOG_DIR", "$test_dir/log",
  "PARAMETERS", "",
-# "MPS_INTERFACE_VERSION", "HU",
  "MAIL_RESULTS", "off",
  "MAIL_TO", "mm-qa-test-log",
  "MAIL_SUBJECT", "MMQA-log"
