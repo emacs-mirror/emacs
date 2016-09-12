@@ -29,7 +29,7 @@ sub platform_settings {
   &settings_macosx();
  } elsif ($PLATFORM =~ "^fr") {
   &settings_unix();
-  &settings_linux();
+  &settings_freebsd();
  } else {
   die "Sorry: I don't know how to use $PLATFORM.\n";
  }
@@ -136,6 +136,12 @@ sub settings_gprof {
 
 
 sub settings_linux {
+ $cc_link .= " -lpthread";
+}
+
+
+sub settings_freebsd {
+ $make_command = "gmake -B -f $PLATFORM.gmk VARIETY=$VARIETY $link_obj";
  $cc_link .= " -lpthread";
 }
 
