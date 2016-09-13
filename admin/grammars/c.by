@@ -1242,7 +1242,7 @@ unaryexpression
   | multi-stage-dereference
   | NEW multi-stage-dereference
   | NEW builtintype-types semantic-list
-  | symbol
+  | namespace-symbol
  ;; Klaus Berndl: C/C++ allows sequences of strings which are
  ;; concatenated by the precompiler to one string
   | string-seq
