@@ -1,7 +1,7 @@
 /* mpmss.c: MPM STRESS TEST
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  */
 
@@ -57,11 +57,12 @@ static mps_res_t stress(mps_arena_t arena, mps_pool_debug_option_s *options,
 
   /* allocate a load of objects */
   for (i=0; i<testSetSIZE; ++i) {
+    mps_addr_t obj;
     ss[i] = (*size)(i);
-
-    res = mps_alloc((mps_addr_t *)&ps[i], pool, ss[i]);
+    res = mps_alloc(&obj, pool, ss[i]);
     if (res != MPS_RES_OK)
       return res;
+    ps[i] = obj;
     allocated += alignUp(ss[i], align) + debugOverhead;
     if (ss[i] >= sizeof(ps[i]))
       *ps[i] = 1; /* Write something, so it gets swap. */
@@ -93,10 +94,12 @@ static mps_res_t stress(mps_arena_t arena, mps_pool_debug_option_s *options,
     }
     /* allocate some new objects */
     for (i=testSetSIZE/2; i<testSetSIZE; ++i) {
+      mps_addr_t obj;
       ss[i] = (*size)(i);
-      res = mps_alloc((mps_addr_t *)&ps[i], pool, ss[i]);
+      res = mps_alloc(&obj, pool, ss[i]);
       if (res != MPS_RES_OK)
         return res;
+      ps[i] = obj;
       allocated += alignUp(ss[i], align) + debugOverhead;
     }
     check_allocated_size(pool, allocated);
@@ -241,7 +244,7 @@ int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

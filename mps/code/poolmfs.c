@@ -1,7 +1,7 @@
 /* poolmfs.c: MANUAL FIXED SMALL UNIT POOL
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  * This is the implementation of the MFS pool class.
  *
@@ -47,9 +47,6 @@ SRCID(poolmfs, "$Id$");
 #define ROUND(unit, n)  ((n)+(unit)-1 - ((n)+(unit)-1)%(unit))
 
 
-#define PoolPoolMFS(pool)       PARENT(MFSStruct, poolStruct, pool)
-
-
 /* HeaderStruct -- Freelist structure */
 
 typedef struct MFSHeaderStruct {
@@ -75,17 +72,19 @@ static void MFSVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
 ARG_DEFINE_KEY(MFS_UNIT_SIZE, Size);
 ARG_DEFINE_KEY(MFSExtendSelf, Bool);
 
-static Res MFSInit(Pool pool, ArgList args)
+static Res MFSInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
 {
   Size extendBy = MFS_EXTEND_BY_DEFAULT;
   Bool extendSelf = TRUE;
   Size unitSize;
   MFS mfs;
-  Arena arena;
   ArgStruct arg;
+  Res res;
 
   AVER(pool != NULL);
+  AVERT(Arena, arena);
   AVERT(ArgList, args);
+  UNUSED(klass); /* used for debug pools only */
   
   ArgRequire(&arg, args, MPS_KEY_MFS_UNIT_SIZE);
   unitSize = arg.val.size;
@@ -97,9 +96,12 @@ static Res MFSInit(Pool pool, ArgList args)
   AVER(unitSize > 0);
   AVER(extendBy > 0);
   AVERT(Bool, extendSelf);
- 
-  mfs = PoolPoolMFS(pool);
-  arena = PoolArena(pool);
+
+  res = PoolAbsInit(pool, arena, klass, args);
+  if (res != ResOK)
+    return res;
+  SetClassOfPoly(pool, CLASS(MFSPool));
+  mfs = MustBeA(MFSPool, pool);
 
   mfs->unroundedUnitSize = unitSize;
 
@@ -128,12 +130,8 @@ static Res MFSInit(Pool pool, ArgList args)
 void MFSFinishTracts(Pool pool, MFSTractVisitor visitor,
                      void *closure)
 {
-  MFS mfs;
+  MFS mfs = MustBeA(MFSPool, pool);
 
-  AVERT(Pool, pool);
-  mfs = PoolPoolMFS(pool);
-  AVERT(MFS, mfs);
-  
   while (mfs->tractList != NULL) {
     Tract nextTract = (Tract)TractP(mfs->tractList);   /* .tract.chain */
     visitor(pool, TractBase(mfs->tractList), mfs->extendBy, closure);
@@ -151,31 +149,27 @@ static void MFSTractFreeVisitor(Pool pool, Addr base, Size size,
 }
 
 
-static void MFSFinish(Pool pool)
+static void MFSFinish(Inst inst)
 {
-  MFS mfs;
-
-  AVERT(Pool, pool);
-  mfs = PoolPoolMFS(pool);
-  AVERT(MFS, mfs);
+  Pool pool = MustBeA(AbstractPool, inst);
+  MFS mfs = MustBeA(MFSPool, pool);
 
   MFSFinishTracts(pool, MFSTractFreeVisitor, UNUSED_POINTER);
 
   mfs->sig = SigInvalid;
+
+  NextMethod(Inst, MFSPool, finish)(inst);
 }
 
 
 void MFSExtend(Pool pool, Addr base, Size size)
 {
-  MFS mfs;
+  MFS mfs = MustBeA(MFSPool, pool);
   Tract tract;
   Word i, unitsPerExtent;
   Size unitSize;
   Header header = NULL;
 
-  AVERT(Pool, pool);
-  mfs = PoolPoolMFS(pool);
-  AVERT(MFS, mfs);
   AVER(size == mfs->extendBy);
 
   /* Ensure that the memory we're adding belongs to this pool.  This is
@@ -227,13 +221,9 @@ void MFSExtend(Pool pool, Addr base, Size size)
 
 static Res MFSAlloc(Addr *pReturn, Pool pool, Size size)
 {
+  MFS mfs = MustBeA(MFSPool, pool);
   Header f;
   Res res;
-  MFS mfs;
-
-  AVERT(Pool, pool);
-  mfs = PoolPoolMFS(pool);
-  AVERT(MFS, mfs);
 
   AVER(pReturn != NULL);
   AVER(size == mfs->unroundedUnitSize);
@@ -282,12 +272,8 @@ static Res MFSAlloc(Addr *pReturn, Pool pool, Size size)
 
 static void MFSFree(Pool pool, Addr old, Size size)
 {
+  MFS mfs = MustBeA(MFSPool, pool);
   Header h;
-  MFS mfs;
-
-  AVERT(Pool, pool);
-  mfs = PoolPoolMFS(pool);
-  AVERT(MFS, mfs);
 
   AVER(old != (Addr)0);
   AVER(size == mfs->unroundedUnitSize);
@@ -304,12 +290,7 @@ static void MFSFree(Pool pool, Addr old, Size size)
 
 static Size MFSTotalSize(Pool pool)
 {
-  MFS mfs;
-
-  AVERT(Pool, pool);
-  mfs = PoolPoolMFS(pool);
-  AVERT(MFS, mfs);
-
+  MFS mfs = MustBeA(MFSPool, pool);
   return mfs->total;
 }
 
@@ -318,65 +299,57 @@ static Size MFSTotalSize(Pool pool)
 
 static Size MFSFreeSize(Pool pool)
 {
-  MFS mfs;
-
-  AVERT(Pool, pool);
-  mfs = PoolPoolMFS(pool);
-  AVERT(MFS, mfs);
-
+  MFS mfs = MustBeA(MFSPool, pool);
   return mfs->free;
 }
 
 
-static Res MFSDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
+static Res MFSDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 {
-  MFS mfs;
+  Pool pool = CouldBeA(AbstractPool, inst);
+  MFS mfs = CouldBeA(MFSPool, pool);
   Res res;
 
-  AVERT(Pool, pool);
-  mfs = PoolPoolMFS(pool);
-  AVERT(MFS, mfs);
+  if (!TESTC(MFSPool, mfs))
+    return ResPARAM;
+  if (stream == NULL)
+    return ResPARAM;
 
-  AVER(stream != NULL);
-
-  res = WriteF(stream, depth,
-               "unroundedUnitSize $W\n", (WriteFW)mfs->unroundedUnitSize,
-               "extendBy $W\n", (WriteFW)mfs->extendBy,
-               "extendSelf $S\n", WriteFYesNo(mfs->extendSelf),
-               "unitSize $W\n", (WriteFW)mfs->unitSize,
-               "freeList $P\n", (WriteFP)mfs->freeList,
-               "total $W\n", (WriteFW)mfs->total,
-               "free $W\n", (WriteFW)mfs->free,
-               "tractList $P\n", (WriteFP)mfs->tractList,
-               NULL);
+  res = NextMethod(Inst, MFSPool, describe)(inst, stream, depth);
   if (res != ResOK)
     return res;
 
-  return ResOK;
+  return WriteF(stream, depth + 2,
+                "unroundedUnitSize $W\n", (WriteFW)mfs->unroundedUnitSize,
+                "extendBy $W\n", (WriteFW)mfs->extendBy,
+                "extendSelf $S\n", WriteFYesNo(mfs->extendSelf),
+                "unitSize $W\n", (WriteFW)mfs->unitSize,
+                "freeList $P\n", (WriteFP)mfs->freeList,
+                "total $W\n", (WriteFW)mfs->total,
+                "free $W\n", (WriteFW)mfs->free,
+                "tractList $P\n", (WriteFP)mfs->tractList,
+                NULL);
 }
 
 
-DEFINE_POOL_CLASS(MFSPoolClass, this)
+DEFINE_CLASS(Pool, MFSPool, klass)
 {
-  INHERIT_CLASS(this, AbstractPoolClass);
-  this->name = "MFS";
-  this->size = sizeof(MFSStruct);
-  this->offset = offsetof(MFSStruct, poolStruct);
-  this->varargs = MFSVarargs;
-  this->init = MFSInit;
-  this->finish = MFSFinish;
-  this->alloc = MFSAlloc;
-  this->free = MFSFree;
-  this->totalSize = MFSTotalSize;
-  this->freeSize = MFSFreeSize;  
-  this->describe = MFSDescribe;
-  AVERT(PoolClass, this);
+  INHERIT_CLASS(klass, MFSPool, AbstractPool);
+  klass->instClassStruct.describe = MFSDescribe;
+  klass->instClassStruct.finish = MFSFinish;
+  klass->size = sizeof(MFSStruct);
+  klass->varargs = MFSVarargs;
+  klass->init = MFSInit;
+  klass->alloc = MFSAlloc;
+  klass->free = MFSFree;
+  klass->totalSize = MFSTotalSize;
+  klass->freeSize = MFSFreeSize;  
 }
 
 
 PoolClass PoolClassMFS(void)
 {
-  return EnsureMFSPoolClass();
+  return CLASS(MFSPool);
 }
 
 
@@ -391,8 +364,9 @@ Bool MFSCheck(MFS mfs)
   Arena arena;
 
   CHECKS(MFS, mfs);
+  CHECKC(MFSPool, mfs);
   CHECKD(Pool, MFSPool(mfs));
-  CHECKL(MFSPool(mfs)->class == EnsureMFSPoolClass());
+  CHECKC(MFSPool, mfs);
   CHECKL(mfs->unitSize >= UNIT_MIN);
   CHECKL(mfs->extendBy >= UNIT_MIN);
   CHECKL(BoolCheck(mfs->extendSelf));
@@ -411,7 +385,7 @@ Bool MFSCheck(MFS mfs)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

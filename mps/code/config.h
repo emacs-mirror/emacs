@@ -1,7 +1,7 @@
 /* config.h: MPS CONFIGURATION
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (c) 2002 Global Graphics Software.
  *
  * PURPOSE
@@ -106,8 +106,6 @@
 
 #if defined(CONFIG_STATS)
 /* CONFIG_STATS = STATISTICS = METERs */
-/* WARNING: this may change the size and fields of MPS structs */
-/* (...but see STATISTIC_DECL, which is invariant) */
 #define STATISTICS
 #define MPS_STATS_STRING "stats"
 #else
@@ -304,6 +302,22 @@
 #endif
 
 
+/* Compiler extensions */
+
+/* LIKELY -- likely conditions
+ *
+ * Use to annotate conditions that are likely to be true, such as
+ * assertions, to help move unlikely code out-of-line.  See
+ * <https://gcc.gnu.org/onlinedocs/gcc/Other-Builtins.html>.
+ */
+
+#if defined(MPS_BUILD_GC) || defined(MPS_BUILD_LL)
+#define LIKELY(exp) __builtin_expect((exp) != 0, 1)
+#else
+#define LIKELY(exp) ((exp) != 0)
+#endif
+
+
 /* EPVMDefaultSubsequentSegSIZE is a default for the alignment of
  * subsequent segments (non-initial at each save level) in EPVM.  See
  * design.mps.poolepvm.arch.segment.size.
@@ -395,8 +409,6 @@
 /* Arena Configuration -- see <code/arena.c> */
 
 #define ArenaPollALLOCTIME (65536.0)
-
-#define ARENA_ZONESHIFT         ((Shift)20)
 
 /* .client.seg-size: ARENA_CLIENT_GRAIN_SIZE is the minimum size, in
  * bytes, of a grain in the client arena. It's set at 8192 with no
@@ -509,7 +521,7 @@
  * Source      Symbols                   Header        Feature
  * =========== ========================= ============= ====================
  * eventtxt.c  setenv                    <stdlib.h>    _GNU_SOURCE
- * lockli.c    pthread_mutexattr_settype <pthread.h>   _XOPEN_SOURCE >= 500
+ * lockix.c    pthread_mutexattr_settype <pthread.h>   _XOPEN_SOURCE >= 500
  * prmci3li.c  REG_EAX etc.              <ucontext.h>  _GNU_SOURCE
  * prmci6li.c  REG_RAX etc.              <ucontext.h>  _GNU_SOURCE
  * prmcix.h    stack_t, siginfo_t        <signal.h>    _XOPEN_SOURCE
@@ -605,6 +617,29 @@
 #endif
 
 
+/* POSIX thread extensions configuration -- see <code/pthrdext.c> */
+
+#if defined(MPS_OS_LI) || defined(MPS_OS_FR)
+
+/* PTHREADEXT_SIGSUSPEND -- signal used to suspend a thread
+ * See <design/pthreadext/#impl.signals>
+ */
+#if defined(CONFIG_PTHREADEXT_SIGSUSPEND)
+#define PTHREADEXT_SIGSUSPEND CONFIG_PTHREADEXT_SIGSUSPEND
+#else
+#define PTHREADEXT_SIGSUSPEND SIGXFSZ
+#endif
+
+/* PTHREADEXT_SIGRESUME -- signal used to resume a thread
+ * See <design/pthreadext/#impl.signals>
+ */
+#if defined(CONFIG_PTHREADEXT_SIGRESUME)
+#define PTHREADEXT_SIGRESUME CONFIG_PTHREADEXT_SIGRESUME
+#else
+#define PTHREADEXT_SIGRESUME SIGXCPU
+#endif
+
+#endif
 
 
 /* Tracer Configuration -- see <code/trace.c> */
@@ -699,7 +734,7 @@
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  *

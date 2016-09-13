@@ -162,7 +162,6 @@ File          Description
 lock.h        Lock interface. See design.mps.lock_.
 lockan.c      Lock implementation for standard C.
 lockix.c      Lock implementation for POSIX.
-lockli.c      Lock implementation for Linux.
 lockw3.c      Lock implementation for Windows.
 prmcan.c      Mutator context implementation for standard C.
 prmci3.h      Mutator context interface for IA-32.
@@ -200,8 +199,8 @@ ssan.c        Stack scanning implementation for standard C.
 ssixi3.c      Stack scanning implementation for POSIX, IA-32.
 ssixi6.c      Stack scanning implementation for POSIX, x86-64.
 ssw3i3mv.c    Stack scanning implementation for Windows, IA-32, Visual C.
-ssw3i3pc.c    Stack scanning implementation for Windows, x86-64, Pelles C.
-ssw3i6mv.c    Stack scanning implementation for Windows, IA-32, Visual C.
+ssw3i3pc.c    Stack scanning implementation for Windows, IA-32, Pelles C.
+ssw3i6mv.c    Stack scanning implementation for Windows, x86-64, Visual C.
 ssw3i6pc.c    Stack scanning implementation for Windows, x86-64, Pelles C.
 th.h          Threads interface. See design.mps.thread-manager_.
 than.c        Threads implementation for standard C.

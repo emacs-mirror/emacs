@@ -1,7 +1,7 @@
 /* mpm.c: GENERAL MPM SUPPORT
  *
  * $Id$
- * Copyright (c) 2001-2015 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: Miscellaneous support for the implementation of the MPM
  * and pool classes.
@@ -711,7 +711,7 @@ static Bool quickSorted(void *array[], Count length,
 
 void QuickSort(void *array[], Count length,
                QuickSortCompare compare, void *closure,
-	       SortStruct *sortStruct)
+               SortStruct *sortStruct)
 {
   Index left, right, sp, lo, hi, leftLimit, rightBase;
   void *pivot, *temp;
@@ -770,15 +770,15 @@ void QuickSort(void *array[], Count length,
          for later. */
       AVER_CRITICAL(sp < sizeof sortStruct->stack / sizeof sortStruct->stack[0]);
       if (leftLimit - left < right - rightBase) {
-	sortStruct->stack[sp].left = rightBase;
-	sortStruct->stack[sp].right = right;
-	++sp;
-	right = leftLimit;
+        sortStruct->stack[sp].left = rightBase;
+        sortStruct->stack[sp].right = right;
+        ++sp;
+        right = leftLimit;
       } else {
-	sortStruct->stack[sp].left = left;
-	sortStruct->stack[sp].right = leftLimit;
-	++sp;
-	left = rightBase;
+        sortStruct->stack[sp].left = left;
+        sortStruct->stack[sp].right = leftLimit;
+        ++sp;
+        left = rightBase;
       }
     }
 
@@ -799,7 +799,7 @@ void QuickSort(void *array[], Count length,
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2015 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
