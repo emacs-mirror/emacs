@@ -7,6 +7,7 @@
 
 1;
 
+use Cwd;
 use File::Path qw(rmtree);
 
 sub clib {
@@ -15,6 +16,7 @@ sub clib {
  my $tlobj;
 
  &objpurge();
+ &mpslibbuild();
  &scrutinize();
  &logcomment("Compiling test libraries.");
 
@@ -58,6 +60,19 @@ sub objpurge {
  }
  closedir(DIR);
 }
+
+#
+# Build the MPS object file.
+#
+
+sub mpslibbuild {
+ &logcomment("Building MPS library.");
+ local $dir = cwd();
+ chdir($MPS_INCLUDE_DIR);
+ &mysystem($make_command);
+ chdir($dir);
+}
+
 
 #
 # record information about environment so that when running tests
