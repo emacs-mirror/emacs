@@ -504,6 +504,7 @@ typedef struct mps_arena_class_s {
   ArenaChunkFinishMethod chunkFinish;
   ArenaCompactMethod compact;
   ArenaPagesMarkAllocatedMethod pagesMarkAllocated;
+  ArenaChunkPageMappedMethod chunkPageMapped;
   Sig sig;
 } ArenaClassStruct;
 

@@ -410,6 +410,7 @@ All
 :term:`pointer`
 :term:`pool`
 :term:`pool class`
+:term:`postmortem state`
 :term:`precise garbage collection <exact garbage collection>`
 :term:`precise reference <exact reference>`
 :term:`precise root <exact root>`

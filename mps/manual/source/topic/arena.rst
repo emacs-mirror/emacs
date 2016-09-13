@@ -430,12 +430,10 @@ Arena properties
     operating system.
 
     The function :c:func:`mps_arena_committed` may be called whatever
-    state the the arena is in (:term:`unclamped <unclamped state>`,
-    :term:`clamped <clamped state>`, or :term:`parked <parked
-    state>`). If it is called when the arena is in the unclamped state
-    then the value may change after this function returns. A possible
-    use might be to call it just after :c:func:`mps_arena_collect` to
-    estimate the size of the heap.
+    state the the arena is in. If it is called when the arena is in
+    the :term:`unclamped state` then the value may change after this
+    function returns. A possible use might be to call it just after
+    :c:func:`mps_arena_collect` to estimate the size of the heap.
 
     If you want to know how much memory the MPS is using then you're
     probably interested in the value :c:func:`mps_arena_committed` −
@@ -649,21 +647,41 @@ An arena is always in one of three states.
    The *parked state* is the same as the clamped state, with the
    additional constraint that no garbage collections are in progress.
 
+#. .. index::
+      single: arena; postmortem state
+      single: postmortem state
+
+   In the *postmortem state*, incremental collection does not take
+   place, objects do not move in memory, references do not change, the
+   staleness of :term:`location dependencies` does not change, and
+   memory occupied by :term:`unreachable` objects is not recycled.
+   Additionally, all memory protection is removed, and memory may be
+   in an inconsistent state.
+
+   .. warning::
+
+       In this state, memory managed by the arena is not in a
+       consistent state, and so it is not safe to continue running the
+       client program. This state is intended for postmortem debugging
+       only.
+
+
 Here's a summary:
 
-============================================ ================================== ============================= ===========================
-State                                        unclamped                          clamped                       parked
-============================================ ================================== ============================= ===========================
-Collections may be running?                  yes                                yes                           no
-New collections may start?                   yes                                no                            no
-Objects may move?                            yes                                no                            no
-Location dependencies may become stale?      yes                                no                            no
-Memory may be returned to the OS?            yes                                no                            no
-Functions that leave the arena in this state :c:func:`mps_arena_create_k`,      :c:func:`mps_arena_clamp`,    :c:func:`mps_arena_park`,
+============================================ ================================== ============================= =========================== ==============================
+State                                        unclamped                          clamped                       parked                      postmortem
+============================================ ================================== ============================= =========================== ==============================
+Collections may be running?                  yes                                yes                           no                          yes
+New collections may start?                   yes                                no                            no                          no
+Objects may move?                            yes                                no                            no                          no
+Location dependencies may become stale?      yes                                no                            no                          no
+Memory may be returned to the OS?            yes                                no                            no                          no
+Safe to continue running?                    yes                                yes                           yes                         no
+Functions that leave the arena in this state :c:func:`mps_arena_create_k`,      :c:func:`mps_arena_clamp`,    :c:func:`mps_arena_park`,   :c:func:`mps_arena_postmortem`
                                              :c:func:`mps_arena_release`,       :c:func:`mps_arena_step`      :c:func:`mps_arena_collect`
-                                             :c:func:`mps_arena_start_collect`, 
-                                             :c:func:`mps_arena_step`           
-============================================ ================================== ============================= ===========================
+                                             :c:func:`mps_arena_start_collect`,
+                                             :c:func:`mps_arena_step`
+============================================ ================================== ============================= =========================== ==============================
 
 The clamped and parked states are important when introspecting and
 debugging. If you are examining the contents of the heap, you don't
@@ -688,7 +706,7 @@ can only be called in this state.
 
     Put an :term:`arena` into the :term:`clamped state`.
 
-    ``arena`` is the arena to clamp.
+    ``arena`` is the arena.
 
     In the clamped state, no object motion will occur and the
     staleness of :term:`location dependencies` will not change. All
@@ -706,7 +724,7 @@ can only be called in this state.
 
     Put an :term:`arena` into the :term:`parked state`.
 
-    ``arena`` is the arena to park.
+    ``arena`` is the arena.
 
     While an arena is parked, no object motion will occur and the
     staleness of :term:`location dependencies` will not change. All
@@ -720,12 +738,40 @@ can only be called in this state.
 
 .. c:function:: void mps_arena_release(mps_arena_t arena)
 
-    Puts an arena into the :term:`unclamped state`.
+    Put an arena into the :term:`unclamped state`.
 
-    ``arena`` is the arena to unclamp.
+    ``arena`` is the arena.
 
     While an arena is unclamped, :term:`garbage collection`, object
     motion, and other background activity can take place.
+
+
+.. c:function:: void mps_arena_postmortem(mps_arena_t arena)
+
+    Put an arena into the :term:`postmortem state`.
+
+    ``arena`` is the arena.
+
+    In the postmortem state, incremental collection does not take
+    place, objects do not move in memory, references do not change,
+    the staleness of :term:`location dependencies` does not change,
+    and memory occupied by :term:`unreachable` objects is not
+    recycled. Additionally, all memory protection is removed, and
+    memory may be in an inconsistent state.
+
+    .. warning::
+
+       1. After calling this function, memory managed by the arena is
+          not in a consistent state, and so it is no longer safe to
+          continue running the client program. This functions is
+          intended for postmortem debugging only.
+
+       2. This function must be called from the thread that holds the
+          arena lock (if any thread holds it). This is the case if the
+          program is single-threaded, or if it is called from an MPS
+          assertion handler. When calling this function from the
+          debugger, check the stack to see which thread has the MPS
+          arena lock.
 
 
 .. index::
@@ -885,9 +931,10 @@ application.
 
 .. index::
    pair: arena; introspection
+   pair: arena; debugging
 
-Arena introspection
--------------------
+Arena introspection and debugging
+---------------------------------
 
 .. note::
 
@@ -901,6 +948,51 @@ Arena introspection
       :term:`roots` registered with an arena; and
     * :c:func:`mps_addr_pool`: determine the :term:`pool` to which an
       address belongs.
+
+
+.. c:function:: mps_bool_t mps_arena_busy(mps_arena_t arena)
+
+    Return true if an :term:`arena` is part of the way through
+    execution of an operation, false otherwise.
+
+    ``arena`` is the arena.
+
+    .. note::
+
+        This function is intended to assist with debugging fatal
+        errors in the :term:`client program`. It is not expected to be
+        needed in normal use. If you find yourself wanting to use this
+        function other than in the use case described below, there may
+        be a better way to meet your requirements: please
+        :ref:`contact us <contact>`.
+
+        A debugger running on Windows on x86-64 needs to decode the
+        call stack, which it does by calling a callback that was
+        previously installed in the dynamic function table using
+        |RtlInstallFunctionTableCallback|_. If the debugger is entered
+        while the arena is busy, and if the callback needs to read
+        from MPS-managed memory, then it may attempt to re-enter the
+        MPS, which will fail as the MPS is not re-entrant.
+
+        .. |RtlInstallFunctionTableCallback| replace:: ``RtlInstallFunctionTableCallback()``
+        .. _RtlInstallFunctionTableCallback: https://msdn.microsoft.com/en-us/library/windows/desktop/ms680595(v=vs.85).aspx
+
+        If this happens, in order to allow the debugger to finish
+        decoding the call stack, the only remedy is to put the arena
+        into the :term:`postmortem state`, so that memory is
+        :term:`unprotected` and objects do not move. So in your
+        dynamic function table callback, you might write::
+
+            if (mps_arena_busy(arena)) {
+                mps_arena_postmortem(arena);
+            }
+
+    .. warning::
+
+        This function only gives a reliable result in single-threaded
+        programs, and in multi-threaded programs where all threads but
+        one are known to be stopped (as they are when the debugger is
+        decoding the call stack in the use case described above).
 
 
 .. c:function:: mps_bool_t mps_arena_has_addr(mps_arena_t arena, mps_addr_t addr)

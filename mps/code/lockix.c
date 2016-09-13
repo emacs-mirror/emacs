@@ -45,6 +45,7 @@
 
 SRCID(lockix, "$Id$");
 
+#if defined(LOCK)
 
 /* LockStruct -- the MPS lock structure
  *
@@ -185,6 +186,21 @@ void (LockReleaseRecursive)(Lock lock)
 }
 
 
+/* LockIsHeld -- test whether lock is held */
+
+Bool (LockIsHeld)(Lock lock)
+{
+  AVERT(Lock, lock);
+  if (pthread_mutex_trylock(&lock->mut) == 0) {
+    Bool claimed = lock->claims > 0;
+    int res = pthread_mutex_unlock(&lock->mut);
+    AVER(res == 0);
+    return claimed;
+  }
+  return TRUE;
+}
+
+
 /* Global locks
  *
  * .global: The two "global" locks are statically allocated normal locks.
@@ -243,6 +259,13 @@ void (LockReleaseGlobal)(void)
 {
   LockRelease(globalLock);
 }
+
+
+#elif defined(LOCK_NONE)
+#include "lockan.c"
+#else
+#error "No lock configuration."
+#endif
 
 
 /* C. COPYRIGHT AND LICENSE

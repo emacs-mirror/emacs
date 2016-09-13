@@ -488,7 +488,6 @@ extern Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context);
 extern Res ArenaFreeLandInsert(Arena arena, Addr base, Addr limit);
 extern void ArenaFreeLandDelete(Arena arena, Addr base, Addr limit);
 
-
 extern Bool GlobalsCheck(Globals arena);
 extern Res GlobalsInit(Globals arena);
 extern void GlobalsFinish(Globals arena);
@@ -524,16 +523,12 @@ extern Bool ArenaGrainSizeCheck(Size size);
 extern void ArenaEnterLock(Arena arena, Bool recursive);
 extern void ArenaLeaveLock(Arena arena, Bool recursive);
 
-extern void (ArenaEnter)(Arena arena);
-extern void (ArenaLeave)(Arena arena);
+extern void ArenaEnter(Arena arena);
+extern void ArenaLeave(Arena arena);
 extern void (ArenaPoll)(Globals globals);
 
 #if defined(SHIELD)
-#define ArenaEnter(arena)  ArenaEnterLock(arena, FALSE)
-#define ArenaLeave(arena)  ArenaLeaveLock(arena, FALSE)
 #elif defined(SHIELD_NONE)
-#define ArenaEnter(arena)  UNUSED(arena)
-#define ArenaLeave(arena)  AVER(arena->busyTraces == TraceSetEMPTY)
 #define ArenaPoll(globals)  UNUSED(globals)
 #else
 #error "No shield configuration."
@@ -546,10 +541,12 @@ extern Bool (ArenaStep)(Globals globals, double interval, double multiplier);
 extern void ArenaClamp(Globals globals);
 extern void ArenaRelease(Globals globals);
 extern void ArenaPark(Globals globals);
+extern void ArenaPostmortem(Globals globals);
 extern void ArenaExposeRemember(Globals globals, Bool remember);
 extern void ArenaRestoreProtection(Globals globals);
 extern Res ArenaStartCollect(Globals globals, int why);
 extern Res ArenaCollect(Globals globals, int why);
+extern Bool ArenaBusy(Arena arena);
 extern Bool ArenaHasAddr(Arena arena, Addr addr);
 extern Res ArenaAddrObject(Addr *pReturn, Arena arena, Addr addr);
 extern void ArenaChunkInsert(Arena arena, Chunk chunk);
@@ -895,7 +892,7 @@ extern void (ShieldFlush)(Arena arena);
 #define ShieldLower(arena, seg, mode) \
   BEGIN UNUSED(arena); UNUSED(seg); UNUSED(mode); END
 #define ShieldEnter(arena) BEGIN UNUSED(arena); END
-#define ShieldLeave(arena) BEGIN UNUSED(arena); END
+#define ShieldLeave(arena) AVER(arena->busyTraces == TraceSetEMPTY)
 #define ShieldExpose(arena, seg)  \
   BEGIN UNUSED(arena); UNUSED(seg); END
 #define ShieldCover(arena, seg) \
