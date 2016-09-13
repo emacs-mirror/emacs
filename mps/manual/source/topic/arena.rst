@@ -676,7 +676,6 @@ New collections may start?                   yes                                
 Objects may move?                            yes                                no                            no                          no
 Location dependencies may become stale?      yes                                no                            no                          no
 Memory may be returned to the OS?            yes                                no                            no                          no
-Memory protection may be applied?            yes                                yes                           yes                         no
 Safe to continue running?                    yes                                yes                           yes                         no
 Functions that leave the arena in this state :c:func:`mps_arena_create_k`,      :c:func:`mps_arena_clamp`,    :c:func:`mps_arena_park`,   :c:func:`mps_arena_postmortem`
                                              :c:func:`mps_arena_release`,       :c:func:`mps_arena_step`      :c:func:`mps_arena_collect`
@@ -762,10 +761,17 @@ can only be called in this state.
 
     .. warning::
 
-       After calling this function, memory managed by the arena is not
-       in a consistent state, and so it is no longer safe to continue
-       running the client program. This functions is intended for
-       postmortem debugging only.
+       1. After calling this function, memory managed by the arena is
+          not in a consistent state, and so it is no longer safe to
+          continue running the client program. This functions is
+          intended for postmortem debugging only.
+
+       2. This function must be called from the thread that holds the
+          arena lock (if any thread holds it). This is the case if the
+          program is single-threaded, or if it is called from an MPS
+          assertion handler. When calling this function from the
+          debugger, check the stack to see which thread has the MPS
+          arena lock.
 
 
 .. index::
