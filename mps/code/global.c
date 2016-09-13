@@ -73,14 +73,14 @@ static void arenaAnnounce(Arena arena)
 }
 
 
-/* ArenaDenounce -- remove an arena from the global ring of arenas
+/* arenaDenounce -- remove an arena from the global ring of arenas
  *
  * After this, no other thread can access the arena through ArenaAccess.
  * On entry, the arena should be locked.  On exit, it will still be, but
  * the lock has been released and reacquired in the meantime, so callers
  * should not assume anything about the state of the arena.  */
 
-void ArenaDenounce(Arena arena)
+static void arenaDenounce(Arena arena)
 {
   Globals arenaGlobals;
 
@@ -403,7 +403,7 @@ void GlobalsPrepareToDestroy(Globals arenaGlobals)
 
   arena = GlobalsArena(arenaGlobals);
 
-  ArenaDenounce(arena);
+  arenaDenounce(arena);
 
   defaultChain = arenaGlobals->defaultChain;
   arenaGlobals->defaultChain = NULL;
