@@ -1,7 +1,7 @@
 /* version.c: VERSION INSPECTION
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  
  * See end of file for license.
  *
  * PURPOSE
@@ -38,7 +38,7 @@ SRCID(version, "$Id$");
  * .release.old: before 2006-02-01 the style was "release.epcore.chub".
  */
 
-#define MPS_RELEASE "release/1.115.0"
+#define MPS_RELEASE "release/1.116.0"
 
 
 /* MPSCopyrightNotice -- copyright notice for the binary
@@ -74,7 +74,7 @@ char *MPSVersion(void)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited 
+ * Copyright (C) 2001-2016 Ravenbrook Limited 
  * <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
