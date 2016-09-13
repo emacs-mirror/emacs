@@ -115,8 +115,12 @@ sub settings_unix {
  $obj_suffix = ".o";
  $try_command = "sh -c ";
  $catcommand = "cat";
- $comwrap = "sh -c \"ulimit -c 0; ";
- $comwrapend = "\"";
+ $comwrap = "sh -c 'ulimit -c 0; ";
+ # The "true" after the test program forces the test program to be run
+ # inside the subshell (with "Segmentation fault" messages written to
+ # the pipe and captured) rather than in the parent shell (with
+ # "Segmentation fault" messages written to the terminal and so lost).
+ $comwrapend = "; true'";
  $stdout_red = ">";
  $stdout_dup = "| tee";
  $stdin_red = "<";
