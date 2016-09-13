@@ -487,7 +487,6 @@ extern Res ArenaDescribeTracts(Arena arena, mps_lib_FILE *stream, Count depth);
 extern Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context);
 extern Res ArenaFreeLandInsert(Arena arena, Addr base, Addr limit);
 extern void ArenaFreeLandDelete(Arena arena, Addr base, Addr limit);
-extern void ArenaDenounce(Arena arena);
 
 extern Bool GlobalsCheck(Globals arena);
 extern Res GlobalsInit(Globals arena);

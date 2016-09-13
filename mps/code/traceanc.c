@@ -637,21 +637,17 @@ void ArenaPostmortem(Globals globals)
     LockReleaseRecursive(globals->lock);
   }
 
-  /* Acquire the lock again so that we can call ArenaDenounce. */
-  ArenaEnter(arena);
-
   /* Remove the arena from the global arena ring so that it no longer
-   * handles protection faults. */
-  ArenaDenounce(arena);
+   * handles protection faults. (Don't call arenaDenounce because that
+   * needs to claim the global ring lock, but that might already be
+   * held, for example if we are inside ArenaAccess.) */
+  RingRemove(&globals->globalRing);
 
   /* Clamp the arena so that ArenaPoll does nothing. */
   ArenaClamp(globals);
 
   /* Remove all protection from mapped pages. */
   arenaExpose(arena);
-
-  /* Release the lock finally. */
-  ArenaLeave(arena);
 }
 
 
