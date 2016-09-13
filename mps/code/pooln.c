@@ -18,6 +18,10 @@ typedef struct PoolNStruct {
 } PoolNStruct;
 
 
+typedef PoolN NPool;
+DECLARE_CLASS(Pool, NPool, AbstractPool);
+
+
 /* PoolPoolN -- get the PoolN structure from generic Pool */
 
 #define PoolPoolN(pool) PARENT(PoolNStruct, poolStruct, pool)
@@ -30,31 +34,46 @@ typedef struct PoolNStruct {
 
 /* NInit -- init method for class N */
 
-static Res NInit(Pool pool, ArgList args)
+static Res NInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
 {
-  PoolN poolN = PoolPoolN(pool);
+  PoolN poolN;
+  Res res;
 
-  UNUSED(args);
- 
+  AVER(pool != NULL);
+  AVERT(Arena, arena);
+  AVERT(ArgList, args);
+  UNUSED(klass); /* used for debug pools only */
+
+  /* FIXME: Reduce this boilerplate. */
+  res = PoolAbsInit(pool, arena, klass, args);
+  if (res != ResOK)
+    goto failAbsInit;
+  poolN = CouldBeA(NPool, pool);
+  
   /* Initialize pool-specific structures. */
 
-  AVERT(PoolN, poolN);
-  EVENT3(PoolInit, pool, PoolArena(pool), ClassOfPool(pool));
+  SetClassOfPoly(pool, CLASS(NPool));
+  AVERC(PoolN, poolN);
+
   return ResOK;
+
+failAbsInit:
+  AVER(res != ResOK);
+  return res;
 }
 
 
 /* NFinish -- finish method for class N */
 
-static void NFinish(Pool pool)
+static void NFinish(Inst inst)
 {
-  PoolN poolN;
-
-  AVERT(Pool, pool);
-  poolN = PoolPoolN(pool);
-  AVERT(PoolN, poolN);
+  Pool pool = MustBeA(AbstractPool, inst);
+  PoolN poolN = MustBeA(NPool, pool);
 
   /* Finish pool-specific structures. */
+  UNUSED(poolN);
+
+  NextMethod(Inst, NPool, finish)(inst);
 }
 
 
@@ -62,14 +81,11 @@ static void NFinish(Pool pool)
 
 static Res NAlloc(Addr *pReturn, Pool pool, Size size)
 {
-  PoolN poolN;
-
-  AVERT(Pool, pool);
-  poolN = PoolPoolN(pool);
-  AVERT(PoolN, poolN);
+  PoolN poolN = MustBeA(NPool, pool);
 
   AVER(pReturn != NULL);
   AVER(size > 0);
+  UNUSED(poolN);
 
   return ResLIMIT;  /* limit of nil blocks exceeded */
 }
@@ -79,14 +95,11 @@ static Res NAlloc(Addr *pReturn, Pool pool, Size size)
 
 static void NFree(Pool pool, Addr old, Size size)
 {
-  PoolN poolN;
-
-  AVERT(Pool, pool);
-  poolN = PoolPoolN(pool);
-  AVERT(PoolN, poolN);
+  PoolN poolN = MustBeA(NPool, pool);
 
   AVER(old != (Addr)0);
   AVER(size > 0);
+  UNUSED(poolN);
 
   NOTREACHED;  /* can't allocate, should never free */
 }
@@ -97,16 +110,14 @@ static void NFree(Pool pool, Addr old, Size size)
 static Res NBufferFill(Addr *baseReturn, Addr *limitReturn,
                        Pool pool, Buffer buffer, Size size)
 {
-  PoolN poolN;
+  PoolN poolN = MustBeA(NPool, pool);
 
-  AVERT(Pool, pool);
-  poolN = PoolPoolN(pool);
-  AVERT(PoolN, poolN);
   AVER(baseReturn != NULL);
   AVER(limitReturn != NULL);
   AVERT(Buffer, buffer);
   AVER(BufferIsReset(buffer));
   AVER(size > 0);
+  UNUSED(poolN);
 
   NOTREACHED;   /* can't create buffers, so shouldn't fill them */
   return ResUNIMPL;
@@ -129,16 +140,18 @@ static void NBufferEmpty(Pool pool, Buffer buffer,
 
 /* NDescribe -- describe method for class N */
 
-static Res NDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
+static Res NDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 {
-  PoolN poolN;
+  Pool pool = CouldBeA(AbstractPool, inst);
+  PoolN poolN = CouldBeA(NPool, pool);
+  Res res;
 
-  AVERT(Pool, pool);
-  poolN = PoolPoolN(pool);
-  AVERT(PoolN, poolN);
+  res = NextMethod(Inst, NPool, describe)(inst, stream, depth);
+  if (res != ResOK)
+    return res;
 
-  UNUSED(stream); /* TODO: should output something here */
-  UNUSED(depth);
+  /* This is where you'd output some information about pool fields. */
+  UNUSED(poolN);
 
   return ResOK;
 }
@@ -148,14 +161,11 @@ static Res NDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 
 static Res NWhiten(Pool pool, Trace trace, Seg seg)
 {
-  PoolN poolN;
-
-  AVERT(Pool, pool);
-  poolN = PoolPoolN(pool);
-  AVERT(PoolN, poolN);
+  PoolN poolN = MustBeA(NPool, pool);
 
   AVERT(Trace, trace);
   AVERT(Seg, seg);
+  UNUSED(poolN);
  
   NOTREACHED; /* pool doesn't have any actions */
 
@@ -167,14 +177,11 @@ static Res NWhiten(Pool pool, Trace trace, Seg seg)
 
 static void NGrey(Pool pool, Trace trace, Seg seg)
 {
-  PoolN poolN;
-
-  AVERT(Pool, pool);
-  poolN = PoolPoolN(pool);
-  AVERT(PoolN, poolN);
+  PoolN poolN = MustBeA(NPool, pool);
 
   AVERT(Trace, trace);
   AVERT(Seg, seg);
+  UNUSED(poolN);
 }
 
 
@@ -182,14 +189,11 @@ static void NGrey(Pool pool, Trace trace, Seg seg)
 
 static void NBlacken(Pool pool, TraceSet traceSet, Seg seg)
 {
-  PoolN poolN;
-
-  AVERT(Pool, pool);
-  poolN = PoolPoolN(pool);
-  AVERT(PoolN, poolN);
+  PoolN poolN = MustBeA(NPool, pool);
 
   AVERT(TraceSet, traceSet);
   AVERT(Seg, seg);
+  UNUSED(poolN);
 }
 
 
@@ -197,14 +201,12 @@ static void NBlacken(Pool pool, TraceSet traceSet, Seg seg)
 
 static Res NScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 {
-  PoolN poolN;
+  PoolN poolN = MustBeA(NPool, pool);
 
   AVER(totalReturn != NULL);
   AVERT(ScanState, ss);
-  AVERT(Pool, pool);
-  poolN = PoolPoolN(pool);
-  AVERT(PoolN, poolN);
   AVERT(Seg, seg);
+  UNUSED(poolN);
 
   return ResOK;
 }
@@ -214,15 +216,12 @@ static Res NScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 
 static Res NFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
 {
-  PoolN poolN;
-
-  AVERT(Pool, pool);
-  poolN = PoolPoolN(pool);
-  AVERT(PoolN, poolN);
+  PoolN poolN = MustBeA(NPool, pool);
 
   AVERT(ScanState, ss);
   UNUSED(refIO);
   AVERT(Seg, seg);
+  UNUSED(poolN);
   NOTREACHED;  /* Since we don't allocate any objects, should never */
                /* be called upon to fix a reference. */
   return ResFAIL;
@@ -233,14 +232,11 @@ static Res NFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
 
 static void NReclaim(Pool pool, Trace trace, Seg seg)
 {
-  PoolN poolN;
-
-  AVERT(Pool, pool);
-  poolN = PoolPoolN(pool);
-  AVERT(PoolN, poolN);
+  PoolN poolN = MustBeA(NPool, pool);
 
   AVERT(Trace, trace);
   AVERT(Seg, seg);
+  UNUSED(poolN);
   /* all unmarked and white objects reclaimed */
 }
 
@@ -249,41 +245,36 @@ static void NReclaim(Pool pool, Trace trace, Seg seg)
 
 static void NTraceEnd(Pool pool, Trace trace)
 {
-  PoolN poolN;
-
-  AVERT(Pool, pool);
-  poolN = PoolPoolN(pool);
-  AVERT(PoolN, poolN);
+  PoolN poolN = MustBeA(NPool, pool);
 
   AVERT(Trace, trace);
+  UNUSED(poolN);
 }
 
 
 /* NPoolClass -- pool class definition for N */
 
-DEFINE_POOL_CLASS(NPoolClass, this)
+DEFINE_CLASS(Pool, NPool, klass)
 {
-  INHERIT_CLASS(this, AbstractPoolClass);
-  this->name = "N";
-  this->size = sizeof(PoolNStruct);
-  this->offset = offsetof(PoolNStruct, poolStruct);
-  this->attr |= AttrGC;
-  this->init = NInit;
-  this->finish = NFinish;
-  this->alloc = NAlloc;
-  this->free = NFree;
-  this->bufferFill = NBufferFill;
-  this->bufferEmpty = NBufferEmpty;
-  this->whiten = NWhiten;
-  this->grey = NGrey;
-  this->blacken = NBlacken;
-  this->scan = NScan;
-  this->fix = NFix;
-  this->fixEmergency = NFix;
-  this->reclaim = NReclaim;
-  this->traceEnd = NTraceEnd;
-  this->describe = NDescribe;
-  AVERT(PoolClass, this);
+  INHERIT_CLASS(klass, NPool, AbstractPool);
+  klass->instClassStruct.describe = NDescribe;
+  klass->instClassStruct.finish = NFinish;
+  klass->size = sizeof(PoolNStruct);
+  klass->attr |= AttrGC;
+  klass->init = NInit;
+  klass->alloc = NAlloc;
+  klass->free = NFree;
+  klass->bufferFill = NBufferFill;
+  klass->bufferEmpty = NBufferEmpty;
+  klass->whiten = NWhiten;
+  klass->grey = NGrey;
+  klass->blacken = NBlacken;
+  klass->scan = NScan;
+  klass->fix = NFix;
+  klass->fixEmergency = NFix;
+  klass->reclaim = NReclaim;
+  klass->traceEnd = NTraceEnd;
+  AVERT(PoolClass, klass);
 }
 
 
@@ -291,7 +282,7 @@ DEFINE_POOL_CLASS(NPoolClass, this)
 
 PoolClass PoolClassN(void)
 {
-  return EnsureNPoolClass();
+  return CLASS(NPool);
 }
 
 
@@ -301,7 +292,7 @@ Bool PoolNCheck(PoolN poolN)
 {
   CHECKL(poolN != NULL);
   CHECKD(Pool, PoolNPool(poolN));
-  CHECKL(PoolNPool(poolN)->class == EnsureNPoolClass());
+  CHECKC(NPool, poolN);
   UNUSED(poolN); /* <code/mpm.c#check.unused> */
 
   return TRUE;

@@ -1,7 +1,7 @@
 /* lockw3.c: RECURSIVE LOCKS IN WIN32
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  * .design: These are implemented using critical sections.
  *  See the section titled "Synchronization functions" in the Groups
@@ -75,7 +75,7 @@ void (LockClaim)(Lock lock)
   EnterCriticalSection(&lock->cs);
   /* This should be the first claim.  Now we are inside the
    * critical section it is ok to check this. */
-  AVER(lock->claims == 0);
+  AVER(lock->claims == 0); /* <design/check/#.common> */
   lock->claims = 1;
 }
 
@@ -158,7 +158,7 @@ void (LockReleaseGlobal)(void)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

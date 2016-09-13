@@ -1,79 +1,69 @@
-/* dbgpool.h: POOL DEBUG MIXIN
- *
- * See <design/object-debug>.
+/* eventpy.c: GENERATE PYTHON INTERFACE TO EVENTS
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
- * Portions copyright (C) 2002 Global Graphics Software.
- */
-
-#ifndef dbgpool_h
-#define dbgpool_h
-
-#include "splay.h"
-#include "mpmtypes.h"
-#include <stdarg.h>
-
-
-/* tag init function: copies the user-supplied data into the tag */
-
-typedef void (*TagInitFunction)(void *tag, va_list args);
-
-
-/* PoolDebugOptions -- option structure for debug pool init
+ * Copyright (c) 2016 Ravenbrook Limited.  See end of file for license.
  *
- * This must be kept in sync with <code/mps.h#mps_pool_debug_option_s>.
+ * This command-line program emits Python data structures that can be
+ * used to parse an event stream in text format (as output by the
+ * mpseventcnv program).
  */
 
-typedef struct PoolDebugOptionsStruct {
-  const void *fenceTemplate;
-  Size  fenceSize;
-  const void *freeTemplate;
-  Size  freeSize;
-  /* TagInitFunction tagInit; */
-  /* Size  tagSize; */
-} PoolDebugOptionsStruct;
+#include <stdio.h> /* printf, puts */
 
-typedef PoolDebugOptionsStruct *PoolDebugOptions;
+#include "event.h"
 
+int main(int argc, char *argv[])
+{
+  UNUSED(argc);
+  UNUSED(argv);
 
-/* PoolDebugMixinStruct -- internal structure for debug mixins */
+  puts("from collections import namedtuple");
 
-#define PoolDebugMixinSig ((Sig)0x519B0DB9)  /* SIGnature POol DeBuG */
+  printf("__version__ = %d, %d, %d\n", EVENT_VERSION_MAJOR,
+         EVENT_VERSION_MEDIAN, EVENT_VERSION_MINOR);
 
-typedef struct PoolDebugMixinStruct {
-  Sig sig;
-  const struct AddrStruct *fenceTemplate;
-  Size fenceSize;
-  const struct AddrStruct *freeTemplate;
-  Size freeSize;
-  TagInitFunction tagInit;
-  Size tagSize;
-  Pool tagPool;
-  Count missingTags;
-  SplayTreeStruct index;
-} PoolDebugMixinStruct;
+  puts("EventKind = namedtuple('EventKind', 'name code doc')");
+  puts("class kind:");
+#define ENUM(_, NAME, DOC)                                              \
+  printf("    " #NAME " = EventKind('" #NAME "', %d, \"%s\")\n",        \
+         EventKind ## NAME, DOC);
+  EventKindENUM(ENUM, _);
+#undef ENUM
 
+  puts("kinds = {");
+#define ENUM(_, NAME, _1) \
+  printf("    %d: kind." #NAME ",\n", EventKind ## NAME);
+  EventKindENUM(ENUM, _);
+#undef ENUM
+  puts("}");
 
-extern Bool PoolDebugOptionsCheck(PoolDebugOptions opt);
+  puts("EventParam = namedtuple('EventParam', 'sort, name')");
+  puts("Event = namedtuple('Event', 'name code always kind params')");
+  puts("class event:");
+#define EVENT_PARAM(X, INDEX, SORT, NAME)               \
+  puts("        EventParam('" #SORT "', '" #NAME "'),");
+#define EVENT_DEFINE(X, NAME, CODE, ALWAYS, KIND)                       \
+  printf("    " #NAME " = Event('" #NAME "', %d, %s, kind." #KIND ", [\n", \
+         CODE, ALWAYS ? "True" : "False");                              \
+  EVENT_ ## NAME ## _PARAMS(EVENT_PARAM, X);                            \
+  puts("    ]);");
+  EVENT_LIST(EVENT_DEFINE, 0);
+#undef EVENT
 
-extern Bool PoolDebugMixinCheck(PoolDebugMixin dbg);
+  puts("events = {");
+#define EVENT_ITEM(X, NAME, CODE, ALWAYS, KIND) \
+  printf("    %d: event." #NAME ",\n", CODE);
+  EVENT_LIST(EVENT_ITEM, 0);
+#undef EVENT
+  puts("}");
 
-extern void PoolClassMixInDebug(PoolClass klass);
-
-extern void DebugPoolCheckFences(Pool pool);
-extern void DebugPoolCheckFreeSpace(Pool pool);
-
-extern void DebugPoolFreeSplat(Pool pool, Addr base, Addr limit);
-extern void DebugPoolFreeCheck(Pool pool, Addr base, Addr limit);
-
-
-#endif /* dbgpool_h */
+  return 0;
+}
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

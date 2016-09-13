@@ -1,7 +1,7 @@
 /* tract.c: PAGE TABLES
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  * .ullagepages: Pages whose page index is < allocBase are recorded as
  * free but never allocated as alloc starts searching after the tables.
@@ -60,8 +60,8 @@ Bool TractCheck(Tract tract)
 
 void TractInit(Tract tract, Pool pool, Addr base)
 {
-  AVER(tract != NULL);
-  AVERT(Pool, pool);
+  AVER_CRITICAL(tract != NULL);
+  AVERT_CRITICAL(Pool, pool);
 
   tract->pool.pool = pool;
   tract->base = base;
@@ -174,6 +174,7 @@ Res ChunkInit(Chunk chunk, Arena arena, Addr base, Addr limit, Size reserved,
   Count pages;
   Shift pageShift;
   Size pageTableSize;
+  Addr allocBase;
   void *p;
   Res res;
 
@@ -196,6 +197,7 @@ Res ChunkInit(Chunk chunk, Arena arena, Addr base, Addr limit, Size reserved,
   chunk->reserved = reserved;
   size = ChunkSize(chunk);
 
+  /* .overhead.pages: Chunk overhead for the page allocation table. */
   chunk->pages = pages = size >> pageShift;
   res = BootAlloc(&p, boot, (size_t)BTSize(pages), MPS_PF_ALIGN);
   if (res != ResOK)
@@ -205,7 +207,7 @@ Res ChunkInit(Chunk chunk, Arena arena, Addr base, Addr limit, Size reserved,
   pageTableSize = SizeAlignUp(pages * sizeof(PageUnion), chunk->pageSize);
   chunk->pageTablePages = pageTableSize >> pageShift;
 
-  res = (arena->class->chunkInit)(chunk, boot);
+  res = Method(Arena, arena, chunkInit)(chunk, boot);
   if (res != ResOK)
     goto failClassInit;
 
@@ -219,12 +221,14 @@ Res ChunkInit(Chunk chunk, Arena arena, Addr base, Addr limit, Size reserved,
   /* Init allocTable after class init, because it might be mapped there. */
   BTResRange(chunk->allocTable, 0, pages);
 
+  /* Check that there is some usable address space remaining in the chunk. */
+  allocBase = PageIndexBase(chunk, chunk->allocBase);
+  AVER(allocBase < chunk->limit);
+
   /* Add the chunk's free address space to the arena's freeLand, so that
      we can allocate from it. */
   if (arena->hasFreeLand) {
-    res = ArenaFreeLandInsert(arena,
-                              PageIndexBase(chunk, chunk->allocBase),
-                              chunk->limit);
+    res = ArenaFreeLandInsert(arena, allocBase, chunk->limit);
     if (res != ResOK)
       goto failLandInsert;
   }
@@ -239,7 +243,7 @@ Res ChunkInit(Chunk chunk, Arena arena, Addr base, Addr limit, Size reserved,
   return ResOK;
 
 failLandInsert:
-  (arena->class->chunkFinish)(chunk);
+  Method(Arena, arena, chunkFinish)(chunk);
   /* .no-clean: No clean-ups needed past this point for boot, as we will
      discard the chunk. */
 failClassInit:
@@ -273,7 +277,7 @@ void ChunkFinish(Chunk chunk)
 
   /* Finish all other fields before class finish, because they might be */
   /* unmapped there. */
-  (*arena->class->chunkFinish)(chunk);
+  Method(Arena, arena, chunkFinish)(chunk);
 }
 
 
@@ -452,11 +456,11 @@ void PageAlloc(Chunk chunk, Index pi, Pool pool)
   Addr base;
   Page page;
 
-  AVERT(Chunk, chunk);
-  AVER(pi >= chunk->allocBase);
-  AVER(pi < chunk->pages);
-  AVER(!BTGet(chunk->allocTable, pi));
-  AVERT(Pool, pool);
+  AVERT_CRITICAL(Chunk, chunk);
+  AVER_CRITICAL(pi >= chunk->allocBase);
+  AVER_CRITICAL(pi < chunk->pages);
+  AVER_CRITICAL(!BTGet(chunk->allocTable, pi));
+  AVERT_CRITICAL(Pool, pool);
 
   page = ChunkPage(chunk, pi);
   tract = PageTract(page);
@@ -472,9 +476,9 @@ void PageInit(Chunk chunk, Index pi)
 {
   Page page;
 
-  AVERT(Chunk, chunk);
-  AVER(pi < chunk->pages);
-  
+  AVERT_CRITICAL(Chunk, chunk);
+  AVER_CRITICAL(pi < chunk->pages);
+
   page = ChunkPage(chunk, pi);
 
   BTRes(chunk->allocTable, pi);
@@ -500,7 +504,7 @@ void PageFree(Chunk chunk, Index pi)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

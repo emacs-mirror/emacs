@@ -1,7 +1,7 @@
 /* gcbench.c -- "GC" Benchmark on ANSI C library
  *
  * $Id$
- * Copyright 2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2014-2016 Ravenbrook Limited.  See end of file for license.
  *
  * This is an allocation stress benchmark test for gc pools
  */
@@ -298,15 +298,9 @@ static struct {
 int main(int argc, char *argv[]) {
   int ch;
   unsigned i;
-  int k;
+  mps_bool_t seed_specified = FALSE;
 
   seed = rnd_seed();
-  for(k=0; k<argc; k++) {
-    printf("%s", argv[k]);
-    if (k + 1 < argc)
-      putchar(' ');
-  }
-  putchar('\n');
   
   while ((ch = getopt_long(argc, argv, "ht:i:p:g:m:a:w:d:r:u:lx:zP:",
                            longopts, NULL)) != -1)
@@ -394,6 +388,7 @@ int main(int argc, char *argv[]) {
       break;
     case 'x':
       seed = strtoul(optarg, NULL, 10);
+      seed_specified = TRUE;
       break;
     case 'z':
       zoned = FALSE;
@@ -457,8 +452,10 @@ int main(int argc, char *argv[]) {
   argc -= optind;
   argv += optind;
 
-  printf("seed: %lu\n", seed);
-  (void)fflush(stdout);
+  if (!seed_specified) {
+    printf("seed: %lu\n", seed);
+    (void)fflush(stdout);
+  }
 
   while (argc > 0) {
     for (i = 0; i < NELEMS(pools); ++i)
@@ -480,7 +477,7 @@ int main(int argc, char *argv[]) {
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2014-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

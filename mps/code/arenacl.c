@@ -21,6 +21,8 @@
 
 SRCID(arenacl, "$Id$");
 
+DECLARE_CLASS(Arena, ClientArena, AbstractArena);
+
 
 /* ClientArenaStruct -- Client Arena Structure */
 
@@ -31,9 +33,6 @@ typedef struct ClientArenaStruct {
   Sig sig;                 /* <design/sig/> */
 } ClientArenaStruct;
 typedef struct ClientArenaStruct *ClientArena;
-
-#define Arena2ClientArena(arena) PARENT(ClientArenaStruct, arenaStruct, arena)
-#define ClientArena2Arena(clArena) (&(clArena)->arenaStruct)
 
 
 /* CLChunk -- chunk structure */
@@ -81,11 +80,8 @@ static Bool ClientChunkCheck(ClientChunk clChunk)
 ATTRIBUTE_UNUSED
 static Bool ClientArenaCheck(ClientArena clientArena)
 {
-  Arena arena;
+  Arena arena = MustBeA(AbstractArena, clientArena);
 
-  CHECKS(ClientArena, clientArena);
-  arena = ClientArena2Arena(clientArena);
-  CHECKD(Arena, arena);
   /* See <code/arena.c#.reserved.check> */
   CHECKL(arena->committed <= arena->reserved);
   CHECKL(arena->spareCommitted == 0);
@@ -99,7 +95,7 @@ static Bool ClientArenaCheck(ClientArena clientArena)
 static Res clientChunkCreate(Chunk *chunkReturn, ClientArena clientArena,
                              Addr base, Addr limit)
 {
-  Arena arena;
+  Arena arena = MustBeA(AbstractArena, clientArena);
   ClientChunk clChunk;
   Chunk chunk;
   Addr alignedBase;
@@ -109,8 +105,6 @@ static Res clientChunkCreate(Chunk *chunkReturn, ClientArena clientArena,
   void *p;
 
   AVER(chunkReturn != NULL);
-  AVERT(ClientArena, clientArena);
-  arena = ClientArena2Arena(clientArena);
   AVER(base != (Addr)0);
   AVER(limit != (Addr)0);
   AVER(limit > base);
@@ -244,7 +238,7 @@ static void ClientArenaVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
 
 ARG_DEFINE_KEY(ARENA_CL_BASE, Addr);
 
-static Res ClientArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
+static Res ClientArenaCreate(Arena *arenaReturn, ArgList args)
 {
   Arena arena;
   ClientArena clientArena;
@@ -257,7 +251,6 @@ static Res ClientArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
   mps_arg_s arg;
   
   AVER(arenaReturn != NULL);
-  AVER((ArenaClass)mps_arena_class_cl() == class);
   AVERT(ArgList, args);
   
   ArgRequire(&arg, args, MPS_KEY_ARENA_SIZE);
@@ -289,11 +282,13 @@ static Res ClientArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
   if (chunkBase > limit)
     return ResMEMORY;
 
-  arena = ClientArena2Arena(clientArena);
-  /* <code/arena.c#init.caller> */
-  res = ArenaInit(arena, class, grainSize, args);
+  arena = CouldBeA(AbstractArena, clientArena);
+
+  res = NextMethod(Arena, ClientArena, init)(arena, grainSize, args);
   if (res != ResOK)
-    return res;
+    goto failSuperInit;
+  SetClassOfPoly(arena, CLASS(ClientArena));
+  AVER(clientArena == MustBeA(ClientArena, arena));
 
   /* have to have a valid arena before calling ChunkCreate */
   clientArena->sig = ClientArenaSig;
@@ -316,20 +311,18 @@ static Res ClientArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
   return ResOK;
 
 failChunkCreate:
-  ArenaFinish(arena);
+  NextMethod(Inst, ClientArena, finish)(MustBeA(Inst, arena));
+failSuperInit:
   AVER(res != ResOK);
   return res;
 }
 
 
-/* ClientArenaFinish -- finish the arena */
+/* ClientArenaDestroy -- destroy the arena */
 
-static void ClientArenaFinish(Arena arena)
+static void ClientArenaDestroy(Arena arena)
 {
-  ClientArena clientArena;
-
-  clientArena = Arena2ClientArena(arena);
-  AVERT(ClientArena, clientArena);
+  ClientArena clientArena = MustBeA(ClientArena, arena);
 
   /* Destroy all chunks, including the primary. See
    * <design/arena/#chunk.delete> */
@@ -343,7 +336,7 @@ static void ClientArenaFinish(Arena arena)
   AVER(arena->reserved == 0);
   AVER(arena->committed == 0);
 
-  ArenaFinish(arena); /* <code/arena.c#finish.caller> */
+  NextMethod(Inst, ClientArena, finish)(MustBeA(Inst, arena));
 }
 
 
@@ -351,19 +344,13 @@ static void ClientArenaFinish(Arena arena)
 
 static Res ClientArenaExtend(Arena arena, Addr base, Size size)
 {
-  ClientArena clientArena;
+  ClientArena clientArena = MustBeA(ClientArena, arena);
   Chunk chunk;
-  Res res;
-  Addr limit;
 
-  AVERT(Arena, arena);
   AVER(base != (Addr)0);
   AVER(size > 0);
-  limit = AddrAdd(base, size);
  
-  clientArena = Arena2ClientArena(arena);
-  res = clientChunkCreate(&chunk, clientArena, base, limit);
-  return res;
+  return clientChunkCreate(&chunk, clientArena, base, AddrAdd(base, size));
 }
 
 
@@ -403,7 +390,6 @@ static void ClientArenaFree(Addr base, Size size, Pool pool)
   Arena arena;
   Chunk chunk = NULL;           /* suppress "may be used uninitialized" */
   Size pages;
-  ClientArena clientArena;
   Index pi, baseIndex, limitIndex;
   Bool foundChunk;
   ClientChunk clChunk;
@@ -412,9 +398,7 @@ static void ClientArenaFree(Addr base, Size size, Pool pool)
   AVER(size > (Size)0);
   AVERT(Pool, pool);
   arena = PoolArena(pool);
-  AVERT(Arena, arena);
-  clientArena = Arena2ClientArena(arena);
-  AVERT(ClientArena, clientArena);
+  AVERC(ClientArena, arena);
   AVER(SizeIsAligned(size, ChunkPageSize(arena->primary)));
   AVER(AddrIsAligned(base, ChunkPageSize(arena->primary)));
 
@@ -447,21 +431,18 @@ static void ClientArenaFree(Addr base, Size size, Pool pool)
 
 /* ClientArenaClass  -- The Client arena class definition */
 
-DEFINE_ARENA_CLASS(ClientArenaClass, this)
+DEFINE_CLASS(Arena, ClientArena, klass)
 {
-  INHERIT_CLASS(this, AbstractArenaClass);
-  this->name = "CL";
-  this->size = sizeof(ClientArenaStruct);
-  this->offset = offsetof(ClientArenaStruct, arenaStruct);
-  this->varargs = ClientArenaVarargs;
-  this->init = ClientArenaInit;
-  this->finish = ClientArenaFinish;
-  this->extend = ClientArenaExtend;
-  this->pagesMarkAllocated = ClientArenaPagesMarkAllocated;
-  this->free = ClientArenaFree;
-  this->chunkInit = ClientChunkInit;
-  this->chunkFinish = ClientChunkFinish;
-  AVERT(ArenaClass, this);
+  INHERIT_CLASS(klass, ClientArena, AbstractArena);
+  klass->size = sizeof(ClientArenaStruct);
+  klass->varargs = ClientArenaVarargs;
+  klass->create = ClientArenaCreate;
+  klass->destroy = ClientArenaDestroy;
+  klass->extend = ClientArenaExtend;
+  klass->pagesMarkAllocated = ClientArenaPagesMarkAllocated;
+  klass->free = ClientArenaFree;
+  klass->chunkInit = ClientChunkInit;
+  klass->chunkFinish = ClientChunkFinish;
 }
 
 
@@ -469,7 +450,7 @@ DEFINE_ARENA_CLASS(ClientArenaClass, this)
 
 mps_arena_class_t mps_arena_class_cl(void)
 {
-  return (mps_arena_class_t)EnsureClientArenaClass();
+  return (mps_arena_class_t)CLASS(ClientArena);
 }
 
 

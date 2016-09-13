@@ -1,25 +1,28 @@
 # -*- makefile -*-
 #
-# lii6gc.gmk: BUILD FOR LINUX/x64/GCC PLATFORM
+# xci6gc.gmk: BUILD FOR MAC OS X/x86_64/GCC PLATFORM
 #
 # $Id$
 # Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+#
+# .prefer.xcode: The documented and preferred way to develop the MPS
+# for this platform is to use the Xcode project (mps.xcodeproj). This
+# makefile provides a way to compile the MPS one source file at a
+# time, rather than all at once via mps.c (which can hide errors due
+# to missing headers).
 
-PFM = lii6gc
+PFM = xci6gc
 
 MPMPF = \
     lockix.c \
-    prmci6li.c \
+    prmci6xc.c \
     proti6.c \
     protix.c \
-    protli.c \
-    pthrdext.c \
+    protxc.c \
     span.c \
     ssixi6.c \
-    thix.c \
+    thxc.c \
     vmix.c
-
-LIBS = -lm -lpthread
 
 include gc.gmk
 include comm.gmk

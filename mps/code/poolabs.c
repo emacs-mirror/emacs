@@ -29,13 +29,6 @@
 SRCID(poolabs, "$Id$");
 
 
-typedef PoolClassStruct AbstractPoolClassStruct;
-typedef PoolClassStruct AbstractBufferPoolClassStruct;
-typedef PoolClassStruct AbstractSegBufPoolClassStruct;
-typedef PoolClassStruct AbstractScanPoolClassStruct;
-typedef PoolClassStruct AbstractCollectPoolClassStruct;
-
-
 /* Mixins:
  *
  * For now (at least) we're avoiding multiple inheritance.
@@ -49,128 +42,222 @@ typedef PoolClassStruct AbstractCollectPoolClassStruct;
 
 /* PoolClassMixInBuffer -- mix in the protocol for buffer reserve / commit */
 
-void PoolClassMixInBuffer(PoolClass class)
+void PoolClassMixInBuffer(PoolClass klass)
 {
-  /* Can't check class because it's not initialized yet */
-  class->bufferFill = PoolTrivBufferFill;
-  class->bufferEmpty = PoolTrivBufferEmpty;
+  /* Can't check klass because it's not initialized yet */
+  klass->bufferFill = PoolTrivBufferFill;
+  klass->bufferEmpty = PoolTrivBufferEmpty;
   /* By default, buffered pools treat frame operations as NOOPs */
-  class->framePush = PoolTrivFramePush;
-  class->framePop = PoolTrivFramePop;
-  class->bufferClass = BufferClassGet;
+  klass->framePush = PoolTrivFramePush;
+  klass->framePop = PoolTrivFramePop;
+  klass->bufferClass = BufferClassGet;
 }
 
 
 /* PoolClassMixInScan -- mix in the protocol for scanning */
 
-void PoolClassMixInScan(PoolClass class)
+void PoolClassMixInScan(PoolClass klass)
 {
-  /* Can't check class because it's not initialized yet */
-  class->access = PoolSegAccess;
-  class->blacken = PoolTrivBlacken;
-  class->grey = PoolTrivGrey;
+  /* Can't check klass because it's not initialized yet */
+  klass->access = PoolSegAccess;
+  klass->blacken = PoolTrivBlacken;
+  klass->grey = PoolTrivGrey;
   /* scan is part of the scanning protocol, but there is no useful
-   * default method.
-   */
-  class->scan = NULL;
+     default method */
+  klass->scan = PoolNoScan;
 }
 
 
 /* PoolClassMixInFormat -- mix in the protocol for formatted pools */
 
-void PoolClassMixInFormat(PoolClass class)
+void PoolClassMixInFormat(PoolClass klass)
 {
-  /* Can't check class because it's not initialized yet */
-  class->attr |= AttrFMT;
+  /* Can't check klass because it's not initialized yet */
+  klass->attr |= AttrFMT;
   /* walk is part of the format protocol, but there is no useful
-   * default method.
-   */
-  class->walk = NULL;
+     default method */
+  klass->walk = PoolNoWalk;
 }
 
 
 /* PoolClassMixInCollect -- mix in the protocol for GC */
 
-void PoolClassMixInCollect(PoolClass class)
+void PoolClassMixInCollect(PoolClass klass)
 {
-  /* Can't check class because it's not initialized yet */
-  class->attr |= AttrGC;
-  class->whiten = PoolTrivWhiten;
+  /* Can't check klass because it's not initialized yet */
+  klass->attr |= AttrGC;
+  klass->whiten = PoolTrivWhiten;
   /* fix, fixEmergency and reclaim are part of the collection
-   * protocol, but there are no useful default methods for them.
-   */
-  class->fix = NULL;
-  class->fixEmergency = NULL;
-  class->reclaim = NULL;
-  class->rampBegin = PoolTrivRampBegin;
-  class->rampEnd = PoolTrivRampEnd;
+     protocol, but there are no useful default methods for them */
+  klass->fix = PoolNoFix;
+  klass->fixEmergency = PoolNoFix;
+  klass->reclaim = PoolNoReclaim;
+  klass->rampBegin = PoolTrivRampBegin;
+  klass->rampEnd = PoolTrivRampEnd;
 }
 
 
 /* Classes */
 
 
-DEFINE_CLASS(AbstractPoolClass, class)
+/* PoolAbsInit -- initialize an abstract pool instance */
+
+static Res PoolAutoSetFix(Pool pool, ScanState ss, Seg seg, Ref *refIO);
+
+Res PoolAbsInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
 {
-  INHERIT_CLASS(&class->protocol, ProtocolClass);
-  class->name = "ABSTRACT";
-  class->size = 0;
-  class->offset = 0;
-  class->attr = 0;
-  class->varargs = ArgTrivVarargs;
-  class->init = PoolTrivInit;
-  class->finish = PoolTrivFinish;
-  class->alloc = PoolNoAlloc;
-  class->free = PoolNoFree;
-  class->bufferFill = PoolNoBufferFill;
-  class->bufferEmpty = PoolNoBufferEmpty;
-  class->access = PoolNoAccess;
-  class->whiten = PoolNoWhiten;
-  class->grey = PoolNoGrey;
-  class->blacken = PoolNoBlacken;
-  class->scan = PoolNoScan;
-  class->fix = PoolNoFix;
-  class->fixEmergency = PoolNoFix;
-  class->reclaim = PoolNoReclaim;
-  class->traceEnd = PoolTrivTraceEnd;
-  class->rampBegin = PoolNoRampBegin;
-  class->rampEnd = PoolNoRampEnd;
-  class->framePush = PoolNoFramePush;
-  class->framePop = PoolNoFramePop;
-  class->addrObject = PoolNoAddrObject;
-  class->walk = PoolNoWalk;
-  class->freewalk = PoolTrivFreeWalk;
-  class->bufferClass = PoolNoBufferClass;
-  class->describe = PoolTrivDescribe;
-  class->debugMixin = PoolNoDebugMixin;
-  class->totalSize = PoolNoSize;
-  class->freeSize = PoolNoSize;
-  class->labelled = FALSE;
-  class->sig = PoolClassSig;
+  ArgStruct arg;
+  
+  AVER(pool != NULL);
+  AVERT(Arena, arena);
+  UNUSED(args);
+  UNUSED(klass); /* used for debug pools only */
+  
+  /* Superclass init */
+  InstInit(CouldBeA(Inst, pool));
+
+  pool->arena = arena;
+  RingInit(&pool->arenaRing);
+  RingInit(&pool->bufferRing);
+  RingInit(&pool->segRing);
+  pool->bufferSerial = (Serial)0;
+  pool->alignment = MPS_PF_ALIGN;
+  pool->format = NULL;
+  pool->fix = PoolAutoSetFix;
+
+  if (ArgPick(&arg, args, MPS_KEY_FORMAT)) {
+    Format format = arg.val.format;
+    AVERT(Format, format);
+    AVER(FormatArena(format) == arena);
+    pool->format = format;
+    /* .init.format: Increment reference count on the format for
+       consistency checking.  See .finish.format. */
+    ++pool->format->poolCount;
+  } else {
+    pool->format = NULL;
+  }
+
+  pool->serial = ArenaGlobals(arena)->poolSerial;
+  ++ArenaGlobals(arena)->poolSerial;
+
+  /* Initialise signature last; see <design/sig/> */
+  SetClassOfPoly(pool, CLASS(AbstractPool));
+  pool->sig = PoolSig;
+  AVERT(Pool, pool);
+
+  /* Add initialized pool to list of pools in arena. */
+  RingAppend(ArenaPoolRing(arena), PoolArenaRing(pool));
+
+  return ResOK;
 }
 
-DEFINE_CLASS(AbstractBufferPoolClass, class)
+
+/* PoolAbsFinish -- finish an abstract pool instance */
+
+void PoolAbsFinish(Inst inst)
 {
-  INHERIT_CLASS(class, AbstractPoolClass);
-  PoolClassMixInBuffer(class);
+  Pool pool = MustBeA(AbstractPool, inst);
+  
+  /* Detach the pool from the arena and format, and unsig it. */
+  RingRemove(PoolArenaRing(pool));
+
+  /* .finish.format: Decrement the reference count on the format for
+     consistency checking.  See .format.init. */
+  if (pool->format) {
+    AVER(pool->format->poolCount > 0);
+    --pool->format->poolCount;
+    pool->format = NULL;
+  }
+
+  pool->sig = SigInvalid;
+  InstFinish(CouldBeA(Inst, pool));
+ 
+  RingFinish(&pool->segRing);
+  RingFinish(&pool->bufferRing);
+  RingFinish(&pool->arenaRing);
+ 
+  EVENT1(PoolFinish, pool);
 }
 
-DEFINE_CLASS(AbstractSegBufPoolClass, class)
+DEFINE_CLASS(Inst, PoolClass, klass)
 {
-  INHERIT_CLASS(class, AbstractBufferPoolClass);
-  class->bufferClass = SegBufClassGet;
+  INHERIT_CLASS(klass, PoolClass, InstClass);
 }
 
-DEFINE_CLASS(AbstractScanPoolClass, class)
+DEFINE_CLASS(Pool, AbstractPool, klass)
 {
-  INHERIT_CLASS(class, AbstractSegBufPoolClass);
-  PoolClassMixInScan(class);
+  INHERIT_CLASS(&klass->instClassStruct, AbstractPool, Inst);
+  klass->instClassStruct.describe = PoolAbsDescribe;
+  klass->instClassStruct.finish = PoolAbsFinish;
+  klass->size = sizeof(PoolStruct);
+  klass->attr = 0;
+  klass->varargs = ArgTrivVarargs;
+  klass->init = PoolAbsInit;
+  klass->alloc = PoolNoAlloc;
+  klass->free = PoolNoFree;
+  klass->bufferFill = PoolNoBufferFill;
+  klass->bufferEmpty = PoolNoBufferEmpty;
+  klass->access = PoolNoAccess;
+  klass->whiten = PoolNoWhiten;
+  klass->grey = PoolNoGrey;
+  klass->blacken = PoolNoBlacken;
+  klass->scan = PoolNoScan;
+  klass->fix = PoolNoFix;
+  klass->fixEmergency = PoolNoFix;
+  klass->reclaim = PoolNoReclaim;
+  klass->traceEnd = PoolTrivTraceEnd;
+  klass->rampBegin = PoolNoRampBegin;
+  klass->rampEnd = PoolNoRampEnd;
+  klass->framePush = PoolNoFramePush;
+  klass->framePop = PoolNoFramePop;
+  klass->addrObject = PoolNoAddrObject;
+  klass->walk = PoolNoWalk;
+  klass->freewalk = PoolTrivFreeWalk;
+  klass->bufferClass = PoolNoBufferClass;
+  klass->debugMixin = PoolNoDebugMixin;
+  klass->totalSize = PoolNoSize;
+  klass->freeSize = PoolNoSize;
+  klass->sig = PoolClassSig;
 }
 
-DEFINE_CLASS(AbstractCollectPoolClass, class)
+DEFINE_CLASS(Pool, AbstractBufferPool, klass)
 {
-  INHERIT_CLASS(class, AbstractScanPoolClass);
-  PoolClassMixInCollect(class);
+  INHERIT_CLASS(klass, AbstractBufferPool, AbstractPool);
+  PoolClassMixInBuffer(klass);
+}
+
+DEFINE_CLASS(Pool, AbstractSegBufPool, klass)
+{
+  INHERIT_CLASS(klass, AbstractSegBufPool, AbstractBufferPool);
+  klass->bufferClass = SegBufClassGet;
+}
+
+DEFINE_CLASS(Pool, AbstractScanPool, klass)
+{
+  INHERIT_CLASS(klass, AbstractScanPool, AbstractSegBufPool);
+  PoolClassMixInScan(klass);
+}
+
+DEFINE_CLASS(Pool, AbstractCollectPool, klass)
+{
+  INHERIT_CLASS(klass, AbstractCollectPool, AbstractScanPool);
+  PoolClassMixInCollect(klass);
+}
+
+
+/* PoolAutoSetFix -- set fix method on first call
+ *
+ * The pool structure has a shortcut to the class fix method to avoid
+ * an indirection on the critical path.  This is the default value of
+ * that shortcut, which replaces itself on the first call.  This
+ * avoids some tricky initialization.
+ */
+
+static Res PoolAutoSetFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
+{
+  AVERC(AbstractCollectPool, pool);
+  pool->fix = ClassOfPoly(Pool, pool)->fix;
+  return pool->fix(pool, ss, seg, refIO);
 }
 
 
@@ -178,21 +265,6 @@ DEFINE_CLASS(AbstractCollectPoolClass, class)
  *
  * See <design/pool/#no> and <design/pool/#triv>
  */
-
-
-void PoolTrivFinish(Pool pool)
-{
-  AVERT(Pool, pool);
-  NOOP;
-}
-
-Res PoolTrivInit(Pool pool, ArgList args)
-{
-  AVERT(Pool, pool);
-  AVERT(ArgList, args);
-  UNUSED(args);
-  return ResOK;
-}
 
 Res PoolNoAlloc(Addr *pReturn, Pool pool, Size size)
 {
@@ -283,13 +355,44 @@ void PoolTrivBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
 }
 
 
-Res PoolTrivDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
+Res PoolAbsDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 {
-  AVERT(Pool, pool);
-  AVER(stream != NULL);
-  return WriteF(stream, depth,
-                "No class-specific description available.\n",
-                NULL);
+  Pool pool = CouldBeA(AbstractPool, inst);
+  Res res;
+  Ring node, nextNode;
+
+  if (!TESTC(AbstractPool, pool))
+    return ResPARAM;
+  if (stream == NULL)
+    return ResPARAM;
+
+  res = InstDescribe(CouldBeA(Inst, pool), stream, depth);
+  if (res != ResOK)
+    return res;
+
+  res = WriteF(stream, depth + 2,
+               "serial $U\n", (WriteFU)pool->serial,
+               "arena $P ($U)\n",
+               (WriteFP)pool->arena, (WriteFU)pool->arena->serial,
+               "alignment $W\n", (WriteFW)pool->alignment,
+               NULL);
+  if (res != ResOK)
+    return res;
+
+  if (pool->format != NULL) {
+    res = FormatDescribe(pool->format, stream, depth + 2);
+    if (res != ResOK)
+      return res;
+  }
+
+  RING_FOR(node, &pool->bufferRing, nextNode) {
+    Buffer buffer = RING_ELT(Buffer, poolRing, node);
+    res = BufferDescribe(buffer, stream, depth + 2);
+    if (res != ResOK)
+      return res;
+  }
+
+  return ResOK;
 }
 
 

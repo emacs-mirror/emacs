@@ -1,7 +1,7 @@
 /* arenavm.c: VIRTUAL MEMORY ARENA CLASS
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  *
  * DESIGN
@@ -56,7 +56,7 @@ typedef struct VMChunkStruct {
 /* VMChunkVMArena -- get the VM arena from a VM chunk */
 
 #define VMChunkVMArena(vmchunk) \
-  Arena2VMArena(ChunkArena(VMChunk2Chunk(vmchunk)))
+  MustBeA(VMArena, ChunkArena(VMChunk2Chunk(vmchunk)))
 
 
 /* VMArena
@@ -81,8 +81,6 @@ typedef struct VMArenaStruct {  /* VM arena structure */
   Sig sig;                      /* <design/sig/> */
 } VMArenaStruct;
 
-#define Arena2VMArena(arena) PARENT(VMArenaStruct, arenaStruct, arena)
-#define VMArena2Arena(vmarena) (&(vmarena)->arenaStruct)
 #define VMArenaVM(vmarena) (&(vmarena)->vmStruct)
 
 
@@ -90,7 +88,7 @@ typedef struct VMArenaStruct {  /* VM arena structure */
 
 static Size VMPurgeSpare(Arena arena, Size size);
 static void chunkUnmapSpare(Chunk chunk);
-extern ArenaClass VMArenaClassGet(void);
+DECLARE_CLASS(Arena, VMArena, AbstractArena);
 static void VMCompact(Arena arena, Trace trace);
 
 
@@ -163,7 +161,7 @@ static Bool VMArenaCheck(VMArena vmArena)
   VMChunk primary;
 
   CHECKS(VMArena, vmArena);
-  arena = VMArena2Arena(vmArena);
+  arena = MustBeA(AbstractArena, vmArena);
   CHECKD(Arena, arena);
   /* spare pages are committed, so must be less spare than committed. */
   CHECKL(vmArena->spareSize <= arena->committed);
@@ -189,29 +187,20 @@ static Bool VMArenaCheck(VMArena vmArena)
 
 /* VMArenaDescribe -- describe the VMArena
  */
-static Res VMArenaDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
+static Res VMArenaDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 {
+  Arena arena = CouldBeA(AbstractArena, inst);
+  VMArena vmArena = CouldBeA(VMArena, arena);
   Res res;
-  VMArena vmArena;
 
-  if (!TESTT(Arena, arena))
-    return ResFAIL;
+  if (!TESTC(VMArena, vmArena))
+    return ResPARAM;
   if (stream == NULL)
-    return ResFAIL;
-  vmArena = Arena2VMArena(arena);
-  if (!TESTT(VMArena, vmArena))
-    return ResFAIL;
+    return ResPARAM;
 
-  /* Describe the superclass fields first via next-method call */
-  /* ...but the next method is ArenaTrivDescribe, so don't call it;
-   * see impl.c.arena#describe.triv.dont-upcall.
-   *
-  super = ARENA_SUPERCLASS(VMArenaClass);
-  res = super->describe(arena, stream);
+  res = NextMethod(Inst, VMArena, describe)(inst, stream, depth);
   if (res != ResOK)
     return res;
-   *
-  */
 
   res = WriteF(stream, depth,
                "  spareSize:     $U\n", (WriteFU)vmArena->spareSize,
@@ -219,7 +208,7 @@ static Res VMArenaDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
   if(res != ResOK)
     return res;
 
-  /* (incomplete: some fields are not Described) */
+  /* TODO: incomplete -- some fields are not Described */
 
   return ResOK;
 }
@@ -234,14 +223,12 @@ static Res VMArenaDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
  */
 static Res vmArenaMap(VMArena vmArena, VM vm, Addr base, Addr limit)
 {
-  Arena arena;
-  Size size;
+  Arena arena = MustBeA(AbstractArena, vmArena);
+  Size size = AddrOffset(base, limit);
   Res res;
 
   /* no checking as function is local to module */
 
-  arena = VMArena2Arena(vmArena);
-  size = AddrOffset(base, limit);
   /* committed can't overflow (since we can't commit more memory than */
   /* address space), but we're paranoid. */
   AVER(arena->committed < arena->committed + size);
@@ -259,18 +246,14 @@ static Res vmArenaMap(VMArena vmArena, VM vm, Addr base, Addr limit)
 
 static void vmArenaUnmap(VMArena vmArena, VM vm, Addr base, Addr limit)
 {
-  Arena arena;
-  Size size;
+  Arena arena = MustBeA(AbstractArena, vmArena);
+  Size size = AddrOffset(base, limit);
 
   /* no checking as function is local to module */
-
-  arena = VMArena2Arena(vmArena);
-  size = AddrOffset(base, limit);
   AVER(size <= arena->committed);
 
   VMUnmap(vm, base, limit);
   arena->committed -= size;
-  return;
 }
 
 
@@ -282,7 +265,7 @@ static void vmArenaUnmap(VMArena vmArena, VM vm, Addr base, Addr limit)
  */
 static Res VMChunkCreate(Chunk *chunkReturn, VMArena vmArena, Size size)
 {
-  Arena arena;
+  Arena arena = MustBeA(AbstractArena, vmArena);
   Res res;
   Addr base, limit, chunkStructLimit;
   VMStruct vmStruct;
@@ -294,7 +277,6 @@ static Res VMChunkCreate(Chunk *chunkReturn, VMArena vmArena, Size size)
 
   AVER(chunkReturn != NULL);
   AVERT(VMArena, vmArena);
-  arena = VMArena2Arena(vmArena);
   AVER(size > 0);
 
   res = VMInit(vm, size, ArenaGrainSize(arena), vmArena->vmParams);
@@ -308,8 +290,7 @@ static Res VMChunkCreate(Chunk *chunkReturn, VMArena vmArena, Size size)
   if (res != ResOK)
     goto failBootInit;
 
-  /* Allocate and map the descriptor. */
-  /* See <design/arena/>.@@@@ */
+  /* .overhead.chunk-struct: Allocate and map the chunk structure. */
   res = BootAlloc(&p, boot, sizeof(VMChunkStruct), MPS_PF_ALIGN);
   if (res != ResOK)
     goto failChunkAlloc;
@@ -361,11 +342,13 @@ static Res VMChunkInit(Chunk chunk, BootBlock boot)
   vmChunk = Chunk2VMChunk(chunk);
   AVERT(BootBlock, boot);
   
+  /* .overhead.sa-mapped: Chunk overhead for sparse array 'mapped' table. */
   res = BootAlloc(&p, boot, BTSize(chunk->pages), MPS_PF_ALIGN);
   if (res != ResOK)
     goto failSaMapped;
   saMapped = p;
   
+  /* .overhead.sa-pages: Chunk overhead for sparse array 'pages' table. */
   res = BootAlloc(&p, boot, BTSize(chunk->pageTablePages), MPS_PF_ALIGN);
   if (res != ResOK)
     goto failSaPages;
@@ -373,8 +356,8 @@ static Res VMChunkInit(Chunk chunk, BootBlock boot)
   
   overheadLimit = AddrAdd(chunk->base, (Size)BootAllocated(boot));
 
-  /* Put the page table as late as possible, as in VM systems we don't want */
-  /* to map it. */
+  /* .overhead.page-table: Put the page table as late as possible, as
+   * in VM systems we don't want to map it. */
   res = BootAlloc(&p, boot, chunk->pageTablePages << chunk->pageShift, chunk->pageSize);
   if (res != ResOK)
     goto failAllocPageTable;
@@ -491,7 +474,66 @@ static void vmArenaTrivContracted(Arena arena, Addr base, Size size)
 }
 
 
-/* VMArenaInit -- create and initialize the VM arena
+/* vmArenaChunkSize -- compute chunk size
+ *
+ * Compute the size of the smallest chunk that has size bytes of usable
+ * address space (that is, after all overheads are accounted for).
+ *
+ * If successful, update *chunkSizeReturn with the computed chunk size
+ * and return ResOK. If size is too large for a chunk, leave
+ * *chunkSizeReturn unchanged and return ResRESOURCE.
+ */
+static Res vmArenaChunkSize(Size *chunkSizeReturn, VMArena vmArena, Size size)
+{
+  Size grainSize;               /* Arena grain size. */
+  Shift grainShift;             /* The corresponding Shift. */
+  Count pages;                  /* Number of usable pages in chunk. */
+  Size pageTableSize;           /* Size of the page table. */
+  Count pageTablePages;         /* Number of pages in the page table. */
+  Size chunkSize;               /* Size of the chunk. */
+  Size overhead;                /* Total overheads for the chunk. */
+
+  AVER(chunkSizeReturn != NULL);
+  AVERT(VMArena, vmArena);
+  AVER(size > 0);
+
+  grainSize = ArenaGrainSize(MustBeA(AbstractArena, vmArena));
+  grainShift = SizeLog2(grainSize);
+
+  overhead = 0;
+  do {
+    chunkSize = size + overhead;
+    AVER(SizeIsAligned(chunkSize, grainSize));
+
+    /* See .overhead.chunk-struct. */
+    overhead = SizeAlignUp(sizeof(VMChunkStruct), MPS_PF_ALIGN);
+
+    /* See <code/tract.c#overhead.pages>, */
+    pages = chunkSize >> grainShift;
+    overhead += SizeAlignUp(BTSize(pages), MPS_PF_ALIGN);
+
+    /* See .overhead.sa-mapped. */
+    overhead += SizeAlignUp(BTSize(pages), MPS_PF_ALIGN);
+
+    /* See .overhead.sa-pages. */
+    pageTableSize = SizeAlignUp(pages * sizeof(PageUnion), grainSize);
+    pageTablePages = pageTableSize >> grainShift;
+    overhead += SizeAlignUp(BTSize(pageTablePages), MPS_PF_ALIGN);
+
+    /* See .overhead.page-table. */
+    overhead = SizeAlignUp(overhead, grainSize);
+    overhead += SizeAlignUp(pageTableSize, grainSize);
+
+    if (SizeMAX - overhead < size)
+      return ResRESOURCE;
+  } while (chunkSize < size + overhead);
+
+  *chunkSizeReturn = chunkSize;
+  return ResOK;
+}
+
+
+/* VMArenaCreate -- create and initialize the VM arena
  *
  * .arena.init: Once the arena has been allocated, we call ArenaInit
  * to do the generic part of init.
@@ -502,7 +544,7 @@ ARG_DEFINE_KEY(arena_extended, Fun);
 ARG_DEFINE_KEY(arena_contracted, Fun);
 #define vmKeyArenaContracted (&_mps_key_arena_contracted)
 
-static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
+static Res VMArenaCreate(Arena *arenaReturn, ArgList args)
 {
   Size size = VM_ARENA_SIZE_DEFAULT; /* initial arena size */
   Align grainSize = MPS_PF_ALIGN; /* arena grain size */
@@ -519,7 +561,6 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
   char vmParams[VMParamSize];
   
   AVER(arenaReturn != NULL);
-  AVER(class == VMArenaClassGet());
   AVERT(ArgList, args);
 
   if (ArgPick(&arg, args, MPS_KEY_ARENA_GRAIN_SIZE))
@@ -554,11 +595,14 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
     goto failVMMap;
   vmArena = (VMArena)VMBase(vm);
 
-  arena = VMArena2Arena(vmArena);
-  /* <code/arena.c#init.caller> */
-  res = ArenaInit(arena, class, grainSize, args);
+  arena = CouldBeA(AbstractArena, vmArena);
+
+  res = NextMethod(Arena, VMArena, init)(arena, grainSize, args);
   if (res != ResOK)
     goto failArenaInit;
+  SetClassOfPoly(arena, CLASS(VMArena));
+  AVER(vmArena == MustBeA(VMArena, arena));
+  
   arena->reserved = VMReserved(vm);
   arena->committed = VMMapped(vm);
 
@@ -589,6 +633,22 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
   if (res != ResOK)
     goto failChunkCreate;
 
+#if defined(AVER_AND_CHECK_ALL)
+  /* Check the computation of the chunk size in vmArenaChunkSize, now
+   * that we have the actual chunk for comparison. Note that
+   * vmArenaChunkSize computes the smallest size with a given number
+   * of usable bytes -- the actual chunk may be one grain larger. */
+  {
+    Size usableSize, computedChunkSize;
+    usableSize = AddrOffset(PageIndexBase(chunk, chunk->allocBase),
+                            chunk->limit);
+    res = vmArenaChunkSize(&computedChunkSize, vmArena, usableSize);
+    AVER(res == ResOK);
+    AVER(computedChunkSize == ChunkSize(chunk)
+         || computedChunkSize + grainSize == ChunkSize(chunk));
+  }
+#endif
+
   /* .zoneshift: Set the zone shift to divide the chunk into the same */
   /* number of stripes as will fit into a reference set (the number of */
   /* bits in a word).  Fail if the chunk is so small stripes are smaller */
@@ -607,7 +667,7 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
   return ResOK;
 
 failChunkCreate:
-  ArenaFinish(arena);
+  NextMethod(Inst, VMArena, finish)(MustBeA(Inst, arena));
 failArenaInit:
   VMUnmap(vm, VMBase(vm), VMLimit(vm));
 failVMMap:
@@ -617,16 +677,13 @@ failVMInit:
 }
 
 
-/* VMArenaFinish -- finish the arena */
+/* VMArenaDestroy -- destroy the arena */
 
-static void VMArenaFinish(Arena arena)
+static void VMArenaDestroy(Arena arena)
 {
+  VMArena vmArena = MustBeA(VMArena, arena);
   VMStruct vmStruct;
   VM vm = &vmStruct;
-  VMArena vmArena;
-
-  vmArena = Arena2VMArena(arena);
-  AVERT(VMArena, vmArena);
 
   EVENT1(ArenaDestroy, vmArena);
 
@@ -645,7 +702,7 @@ static void VMArenaFinish(Arena arena)
 
   vmArena->sig = SigInvalid;
 
-  ArenaFinish(arena); /* <code/global.c#finish.caller> */
+  NextMethod(Inst, VMArena, finish)(MustBeA(Inst, arena));
 
   /* Copy VM descriptor to stack-local storage so that we can continue
    * using the descriptor after the VM has been unmapped. */
@@ -655,63 +712,34 @@ static void VMArenaFinish(Arena arena)
 }
 
 
-/* vmArenaChunkSize -- choose chunk size for arena extension
- *
- * .vmchunk.overhead: This code still lacks a proper estimate of
- * the overhead required by a vmChunk for chunkStruct, page tables
- * etc.  For now, estimate it as 10%.  RHSK 2007-12-21
- */
-static Size vmArenaChunkSize(VMArena vmArena, Size size)
-{
-  Size fraction = 10;  /* 10% -- see .vmchunk.overhead */
-  Size chunkSize;
-  Size chunkOverhead;
-
-  /* 1: use extendBy, if it is big enough for size + overhead */
-  chunkSize = vmArena->extendBy;
-  chunkOverhead = chunkSize / fraction;
-  if(chunkSize > size && (chunkSize - size) >= chunkOverhead)
-    return chunkSize;
-
-  /* 2: use size + overhead (unless it overflows SizeMAX) */
-  chunkOverhead = size / (fraction - 1);
-  if((SizeMAX - size) >= chunkOverhead)
-    return size + chunkOverhead;
-
-  /* 3: use SizeMAX */
-  return SizeMAX;
-}
-
-
 /* VMArenaGrow -- Extend the arena by making a new chunk
  *
- * The size arg specifies how much we wish to allocate after the extension.
+ * size specifies how much we wish to allocate after the extension.
+ * pref specifies the preference for the location of the allocation.
  */
 static Res VMArenaGrow(Arena arena, LocusPref pref, Size size)
 {
+  VMArena vmArena = MustBeA(VMArena, arena);
   Chunk newChunk;
   Size chunkSize;
+  Size chunkMin;
   Res res;
-  VMArena vmArena;
-  
-  AVERT(Arena, arena);
-  vmArena = Arena2VMArena(arena);
-  AVERT(VMArena, vmArena);
   
   /* TODO: Ensure that extended arena will be able to satisfy pref. */
   AVERT(LocusPref, pref);
   UNUSED(pref);
 
-  chunkSize = vmArenaChunkSize(vmArena, size);
+  res = vmArenaChunkSize(&chunkMin, vmArena, size);
+  if (res != ResOK)
+    return res;
+  chunkSize = vmArena->extendBy;
 
-  EVENT3(vmArenaExtendStart, size, chunkSize,
-         ArenaReserved(VMArena2Arena(vmArena)));
+  EVENT3(vmArenaExtendStart, size, chunkSize, ArenaReserved(arena));
 
   /* .chunk-create.fail: If we fail, try again with a smaller size */
   {
     unsigned fidelity = 8;  /* max fraction of addr-space we may 'waste' */
     Size chunkHalf;
-    Size chunkMin = 4 * 1024;  /* typical single page */
     Size sliceSize;
     
     if (vmArena->extendMin > chunkMin)
@@ -728,8 +756,7 @@ static Res VMArenaGrow(Arena arena, LocusPref pref, Size size)
       /* remove slices, down to chunkHalf but no further */
       for(; chunkSize > chunkHalf; chunkSize -= sliceSize) {
         if(chunkSize < chunkMin) {
-          EVENT2(vmArenaExtendFail, chunkMin,
-                 ArenaReserved(VMArena2Arena(vmArena)));
+          EVENT2(vmArenaExtendFail, chunkMin, ArenaReserved(arena));
           return res;
         }
         res = VMChunkCreate(&newChunk, vmArena, chunkSize);
@@ -740,8 +767,8 @@ static Res VMArenaGrow(Arena arena, LocusPref pref, Size size)
   }
   
 vmArenaGrow_Done:
-  EVENT2(vmArenaExtendDone, chunkSize, ArenaReserved(VMArena2Arena(vmArena)));
-  vmArena->extended(VMArena2Arena(vmArena),
+  EVENT2(vmArenaExtendDone, chunkSize, ArenaReserved(arena));
+  vmArena->extended(arena,
                     newChunk->base,
                     AddrOffset(newChunk->base, newChunk->limit));
       
@@ -786,7 +813,7 @@ static void sparePageRelease(VMChunk vmChunk, Index pi)
 static Res pageDescMap(VMChunk vmChunk, Index basePI, Index limitPI)
 {
   Size before = VMMapped(VMChunkVM(vmChunk));
-  Arena arena = VMArena2Arena(VMChunkVMArena(vmChunk));
+  Arena arena = MustBeA(AbstractArena, VMChunkVMArena(vmChunk));
   Res res = SparseArrayMap(&vmChunk->pages, basePI, limitPI);
   Size after = VMMapped(VMChunkVM(vmChunk));
   AVER(before <= after);
@@ -798,7 +825,7 @@ static void pageDescUnmap(VMChunk vmChunk, Index basePI, Index limitPI)
 {
   Size size, after;
   Size before = VMMapped(VMChunkVM(vmChunk));
-  Arena arena = VMArena2Arena(VMChunkVMArena(vmChunk));
+  Arena arena = MustBeA(AbstractArena, VMChunkVMArena(vmChunk));
   SparseArrayUnmap(&vmChunk->pages, basePI, limitPI);
   after = VMMapped(VMChunkVM(vmChunk));
   AVER(after <= before);
@@ -872,6 +899,7 @@ static Res VMPagesMarkAllocated(Arena arena, Chunk chunk,
                                 Index baseIndex, Count pages, Pool pool)
 {
   Res res;
+  VMArena vmArena = MustBeA(VMArena, arena);
 
   AVERT(Arena, arena);
   AVERT(Chunk, chunk);
@@ -880,7 +908,7 @@ static Res VMPagesMarkAllocated(Arena arena, Chunk chunk,
   AVER(baseIndex + pages <= chunk->pages);
   AVERT(Pool, pool);
 
-  res = pagesMarkAllocated(Arena2VMArena(arena),
+  res = pagesMarkAllocated(vmArena,
                            Chunk2VMChunk(chunk),
                            baseIndex,
                            pages,
@@ -894,7 +922,7 @@ static Res VMPagesMarkAllocated(Arena arena, Chunk chunk,
        success if we have enough spare pages. */
     if (VMPurgeSpare(arena, pages * ChunkPageSize(chunk)) == 0)
       break;
-    res = pagesMarkAllocated(Arena2VMArena(arena),
+    res = pagesMarkAllocated(vmArena,
                              Chunk2VMChunk(chunk),
                              baseIndex,
                              pages,
@@ -970,13 +998,10 @@ static Size chunkUnmapAroundPage(Chunk chunk, Size size, Page page)
 
 static Size arenaUnmapSpare(Arena arena, Size size, Chunk filter)
 {
+  VMArena vmArena = MustBeA(VMArena, arena);
   Ring node;
   Size purged = 0;
-  VMArena vmArena;
 
-  AVERT(Arena, arena);
-  vmArena = Arena2VMArena(arena);
-  AVERT(VMArena, vmArena);
   if (filter != NULL)
     AVERT(Chunk, filter);
 
@@ -1038,9 +1063,7 @@ static void VMFree(Addr base, Size size, Pool pool)
   AVER(size > (Size)0);
   AVERT(Pool, pool);
   arena = PoolArena(pool);
-  AVERT(Arena, arena);
-  vmArena = Arena2VMArena(arena);
-  AVERT(VMArena, vmArena);
+  vmArena = MustBeA(VMArena, arena);
 
   /* All chunks have same pageSize. */
   AVER(SizeIsAligned(size, ChunkPageSize(arena->primary)));
@@ -1096,13 +1119,10 @@ static Bool vmChunkCompact(Tree tree, void *closure)
 {
   Chunk chunk;
   Arena arena = closure;
-  VMArena vmArena;
+  VMArena vmArena = MustBeA(VMArena, arena);
 
   AVERT(Tree, tree);
-  AVERT(Arena, arena);
 
-  vmArena = Arena2VMArena(arena);
-  AVERT(VMArena, vmArena);
   chunk = ChunkOfTree(tree);
   AVERT(Chunk, chunk);
   if(chunk != arena->primary
@@ -1124,33 +1144,26 @@ static Bool vmChunkCompact(Tree tree, void *closure)
 
 static void VMCompact(Arena arena, Trace trace)
 {
-  VMArena vmArena;
-  Size vmem1;
+  STATISTIC_DECL(Size vmem1)
 
-  vmArena = Arena2VMArena(arena);
-  AVERT(VMArena, vmArena);
   AVERT(Trace, trace);
 
-  vmem1 = ArenaReserved(arena);
+  STATISTIC(vmem1 = ArenaReserved(arena));
 
   /* Destroy chunks that are completely free, but not the primary
    * chunk. See <design/arena/#chunk.delete>
    * TODO: add hysteresis here. See job003815. */
   TreeTraverseAndDelete(&arena->chunkTree, vmChunkCompact, arena);
 
-  {
+  STATISTIC({
     Size vmem0 = trace->preTraceArenaReserved;
     Size vmem2 = ArenaReserved(arena);
 
-    /* VMCompact event: emit for all client-requested collections, */
-    /* plus any others where chunks were gained or lost during the */
-    /* collection.  */
-    if(trace->why == TraceStartWhyCLIENTFULL_INCREMENTAL
-       || trace->why == TraceStartWhyCLIENTFULL_BLOCK
-       || vmem0 != vmem1
-       || vmem1 != vmem2)
+    /* VMCompact event: emit for collections where chunks were gained
+     * or lost during the collection. */
+    if (vmem0 != vmem1 || vmem1 != vmem2)
       EVENT3(VMCompact, vmem0, vmem1, vmem2);
-  }
+  });
 }
 
 mps_res_t mps_arena_vm_growth(mps_arena_t mps_arena,
@@ -1164,8 +1177,7 @@ mps_res_t mps_arena_vm_growth(mps_arena_t mps_arena,
   ArenaEnter(arena);
   
   AVERT(Arena, arena);
-  vmArena = Arena2VMArena(arena);
-  AVERT(VMArena, vmArena);
+  vmArena = MustBeA(VMArena, arena);
   
   /* Must desire at least the minimum increment! */
   AVER(desired >= minimum);
@@ -1181,24 +1193,21 @@ mps_res_t mps_arena_vm_growth(mps_arena_t mps_arena,
 
 /* VMArenaClass  -- The VM arena class definition */
 
-DEFINE_ARENA_CLASS(VMArenaClass, this)
+DEFINE_CLASS(Arena, VMArena, klass)
 {
-  INHERIT_CLASS(this, AbstractArenaClass);
-  this->name = "VM";
-  this->size = sizeof(VMArenaStruct);
-  this->offset = offsetof(VMArenaStruct, arenaStruct);
-  this->varargs = VMArenaVarargs;
-  this->init = VMArenaInit;
-  this->finish = VMArenaFinish;
-  this->purgeSpare = VMPurgeSpare;
-  this->grow = VMArenaGrow;
-  this->free = VMFree;
-  this->chunkInit = VMChunkInit;
-  this->chunkFinish = VMChunkFinish;
-  this->compact = VMCompact;
-  this->describe = VMArenaDescribe;
-  this->pagesMarkAllocated = VMPagesMarkAllocated;
-  AVERT(ArenaClass, this);
+  INHERIT_CLASS(klass, VMArena, AbstractArena);
+  klass->instClassStruct.describe = VMArenaDescribe;
+  klass->size = sizeof(VMArenaStruct);
+  klass->varargs = VMArenaVarargs;
+  klass->create = VMArenaCreate;
+  klass->destroy = VMArenaDestroy;
+  klass->purgeSpare = VMPurgeSpare;
+  klass->grow = VMArenaGrow;
+  klass->free = VMFree;
+  klass->chunkInit = VMChunkInit;
+  klass->chunkFinish = VMChunkFinish;
+  klass->compact = VMCompact;
+  klass->pagesMarkAllocated = VMPagesMarkAllocated;
 }
 
 
@@ -1206,13 +1215,13 @@ DEFINE_ARENA_CLASS(VMArenaClass, this)
 
 mps_arena_class_t mps_arena_class_vm(void)
 {
-  return (mps_arena_class_t)VMArenaClassGet();
+  return (mps_arena_class_t)CLASS(VMArena);
 }
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

@@ -73,9 +73,9 @@ endif
 # EXTRA TARGETS
 #
 # Don't build mpseventsql by default (might not have sqlite3 installed),
-# but do build mpseventcnv and mpseventtxt.
+# but do build mpseventcnv, mpseventpy and mpseventtxt.
 
-EXTRA_TARGETS ?= mpseventcnv mpseventtxt
+EXTRA_TARGETS ?= mpseventcnv mpseventpy mpseventtxt
 
 
 #
@@ -319,18 +319,43 @@ $(addprefix $(PFM)/$(VARIETY)/,$(TEST_SUITES)): $(TEST_TARGETS)
 	../tool/testrun.sh -s "$(notdir $@)" "$(PFM)/$(VARIETY)"
 
 
+# == Automated performance testing ==
+# 
+# testratio = measure performance ratio of hot variety versus rash
+
+TESTRATIO_SEED = 1564912146
+
+define ratio
+TIME_HOT=$$(/usr/bin/time -p $(PFM)/hot/$(1) -x $(TESTRATIO_SEED) $(2) 2>&1 | tail -2 | awk '{T += $$2} END {print T}'); \
+TIME_RASH=$$(/usr/bin/time -p $(PFM)/rash/$(1) -x $(TESTRATIO_SEED) $(2) 2>&1 | tail -2 | awk '{T += $$2} END {print T}'); \
+RATIO=$$(awk "BEGIN{print int(100 * $$TIME_HOT / $$TIME_RASH)}"); \
+printf "Performance ratio (hot/rash) for $(2): %d%%\n" $$RATIO
+endef
+
+testratio: phony
+	$(MAKE) -f $(PFM).gmk VARIETY=hot djbench gcbench
+	$(MAKE) -f $(PFM).gmk VARIETY=rash djbench gcbench
+	$(call ratio,gcbench,amc)
+	$(call ratio,djbench,mvff)
+
+
 # == MMQA test suite ==
 #
 # See test/README for documentation on running the MMQA test suite.
 
-MMQA=perl test/qa -i ../code -l ../code/$(PFM)/$(VARIETY)/mps.o
+MMQA=perl test/qa -p $(PFM) -v $(VARIETY)
 
 $(PFM)/$(VARIETY)/testmmqa:
-	$(MAKE) -f $(PFM).gmk VARIETY=$(VARIETY) TARGET=mps.o variety
 	(if [ "$(VARIETY)" = "cool" ]; then cd ../test && $(MMQA) runset testsets/coolonly; fi)
 	(cd ../test && $(MMQA) runset testsets/argerr)
 	(cd ../test && $(MMQA) runset testsets/conerr)
 	(cd ../test && $(MMQA) runset testsets/passing)
+
+
+# == Toy Scheme interpreter ==
+
+testscheme: phony
+	$(MAKE) -C ../example/scheme test
 
 
 # These convenience targets allow one to type "make foo" to build target
@@ -549,6 +574,9 @@ $(PFM)/$(VARIETY)/zmess: $(PFM)/$(VARIETY)/zmess.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/mpseventcnv: $(PFM)/$(VARIETY)/eventcnv.o \
+  $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/mpseventpy: $(PFM)/$(VARIETY)/eventpy.o \
   $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/mpseventtxt: $(PFM)/$(VARIETY)/eventtxt.o \

@@ -136,17 +136,16 @@ well:
 Platform     OS          Architecture    Compiler      Makefile
 ==========   =========   =============   ============  =================
 ``fri3gc``   FreeBSD     IA-32           GCC           ``fri3gc.gmk``
-``fri6gc``   FreeBSD     x86_64          GCC           ``fri6gc.gmk``
 ``fri3ll``   FreeBSD     IA-32           Clang         ``fri3ll.gmk``
+``fri6gc``   FreeBSD     x86_64          GCC           ``fri6gc.gmk``
 ``fri6ll``   FreeBSD     x86_64          Clang         ``fri6ll.gmk``
 ``lii3gc``   Linux       IA-32           GCC           ``lii3gc.gmk``
 ``lii6gc``   Linux       x86_64          GCC           ``lii6gc.gmk``
 ``lii6ll``   Linux       x86_64          Clang         ``lii6ll.gmk``
-``xci3ll``   Mac OS X    IA-32           Clang         ``mps.xcodeproj``
-``xci6ll``   Mac OS X    x86_64          Clang         ``mps.xcodeproj``
-``xci3gc``   Mac OS X    IA-32           GCC (legacy)  ``xci3gc.gmk``
 ``w3i3mv``   Windows     IA-32           Microsoft C   ``w3i3mv.nmk``
 ``w3i6mv``   Windows     x86_64          Microsoft C   ``w3i6mv.nmk``
+``xci3ll``   Mac OS X    IA-32           Clang         ``mps.xcodeproj``
+``xci6ll``   Mac OS X    x86_64          Clang         ``mps.xcodeproj``
 ==========   =========   =============   ============  =================
 
 Historically, the MPS worked on a much wider variety of platforms, and

@@ -1,45 +1,57 @@
 $Id$
 
-This is the Memory Management QA test harness. To use it you need
-perl 5 (or higher). Go "perl qa help" for help, "perl qa options"
-to see what version of the harness you have (or look at the
-file "test/version").
+This is the Memory Management QA test harness. To use it you need Perl
+5 (or higher).
 
 
-Testing on Unix
----------------
+Quick start
+-----------
 
-From the test directory::
+In a shell in the test directory::
 
-    PLATFORM=lii6ll # substitute your platform
-    VARIETY=cool # or hot
-    CODE=../code # code directory of the branch you are testing
-    make -B -C $CODE -f $PLATFORM.gmk VARIETY=$VARIETY $PLATFORM/$VARIETY/mps.o
-    alias qa="perl test/qa -i $CODE -l $CODE/$PLATFORM/$VARIETY/mps.o"
-    qa clib
-    qa run function/5.c
-    qa runset testsets/passing
-
-Each test case is compiled in its turn to the file
-``test/obj/$(uname -s)_$(uname -r)_$(uname -p)__unix/tmp_test``
-so you can debug it with::
-
-    lldb test/obj/$(uname -s)_$(uname -r)_$(uname -p)__unix/tmp_test
-
-Or ``gdb`` instead of ``lldb``. MMQA sets its own assertion handler,
-so you'll probably want to set a breakpoint on mmqa_assert_handler.
+    perl test/qa clib
+    perl test/qa run function/5.c
+    perl test/qa runset testsets/passing
+    perl test/qa debug argerr/12.c
 
 
-Testing on OS X
----------------
+Usage and options
+-----------------
 
-From the test directory, build mpslib.a using the Xcode project::
+Run ``perl test/qa help`` for help; run ``perl test/qa options`` to
+see what version of the harness you have (or look at the file
+``test/version``) and which options are available.
 
-    xcodebuild -project ../code/mps.xcodeproj -target mps
+The most important options are the ``-p`` option which specifies the
+platform (for example, ``-p lii6ll``) if the auto-detected platform is
+not the one you want to test, and the ``-v`` option which specifies
+the variety (for example ``-v hot``) if the cool variety is not the
+one you want to test.
 
-(You can also use "make" from the project root.)  Then::
 
-    perl test/qa -i ../code -l ../code/xc/Debug/libmps.a clib
-    perl test/qa -i ../code -l ../code/xc/Debug/libmps.a run function/232.c
+Debugging
+---------
 
-etc.  See "Testing on Unix" above.
+MMQA sets its own assertion handler, so you'll probably want to set a
+breakpoint on ``mmqa_assert_handler``.
+
+
+Windows
+-------
+
+Use a Cygwin shell. Set the ``LANG`` environment variable::
+
+    export LANG=C
+
+to avoid locale warnings from Perl.
+
+The runset command can result in this error::
+
+    LINK : fatal error LNK1168: cannot open test/obj/nt_AMD64__pc/tmp_test.exe for writing
+
+You may be able to avoid this by running "View Local Services" from
+the Windows Control Panel, double-clicking the "Application
+Experience" service, and switching "Startup type" to "Automatic". See
+the documentation for LNK1168_.
+
+.. _LNK1168: https://msdn.microsoft.com/en-us/library/hhbdtt6d.aspx
