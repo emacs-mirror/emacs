@@ -830,6 +830,7 @@ void ArenaRestoreProtection(Globals globals)
       }
     }
   }
+
   arenaForgetProtection(globals);
 }
 

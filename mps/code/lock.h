@@ -78,7 +78,7 @@ extern void LockRelease(Lock lock);
 extern Bool LockCheck(Lock lock);
 
 
-/* LockIsHeld -- test whether lock is held */
+/* LockIsHeld -- test whether lock is held by any thread */
 
 extern Bool LockIsHeld(Lock lock);
 

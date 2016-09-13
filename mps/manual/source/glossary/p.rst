@@ -179,14 +179,15 @@ Memory Management Glossary: P
 
         .. mps:specific::
 
-            One of the three states an :term:`arena` can be in (the
-            others being the :term:`clamped state` and the
-            :term:`unclamped state`). In the parked state, no
-            :term:`garbage collection` is in progress, no object
-            motion occurs and the staleness of :term:`location
-            dependencies` does not change. Call
-            :c:func:`mps_arena_park` or :c:func:`mps_arena_collect` to
-            put an arena into the parked state.
+            One of the four states an :term:`arena` can be in (the
+            others being the :term:`clamped state`, the
+            :term:`postmortem state`, and the :term:`unclamped
+            state`). In the parked state, no :term:`garbage
+            collection` is in progress, no object motion occurs and
+            the staleness of :term:`location dependencies` does not
+            change. Call :c:func:`mps_arena_park` or
+            :c:func:`mps_arena_collect` to put an arena into the
+            parked state.
 
     perfect fit
 
