@@ -294,7 +294,7 @@ packages in `package-directory-list'."
            (push (expand-file-name "elpa" f) result)))
     (cons
      ;; And the inbuild ELPA directory
-     (concat (expand-file-name "../packages" data-directory))
+     (concat (expand-file-name "../packages/core" data-directory))
      (nreverse result)))
   "List of additional directories containing Emacs Lisp packages.
 Each directory name should be absolute.

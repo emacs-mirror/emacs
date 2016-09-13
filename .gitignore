@@ -142,7 +142,7 @@ src/stamp-h1
 *.res
 *.so
 [0-9]*.core
-core
+
 core.*[0-9]
 gmon.out
 oo/

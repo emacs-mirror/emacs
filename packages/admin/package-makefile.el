@@ -1,17 +1,5 @@
-(defvar package-makefile-archives
-  '("core")
-  "List of directories with packages in them.
-
-Directories can be either relative to the \"packages\" directory
-or absolute. The order is important because we want to only build
-packages which occur earlier in the list.")
-
-(defvar package-makefile--packages-seen nil
-  "List of packages we have already seen.")
-
 (defun package-makefile--package-dirs (directory)
   (directory-files directory nil "[^.].*"))
-
 
 (defun package-makefile--target-pkg-el (top-dir base-dir)
   (format
@@ -27,24 +15,30 @@ packages which occur earlier in the list.")
    top-dir base-dir base-dir
    top-dir base-dir))
 
-(defun package-makefile--makefile-pkg-targets (top-dir)
+(defun package-makefile--makefile-pkg-targets (top-dir all-dirs)
   (concat
    "pkg-all: "
    (mapconcat
     'identity
-    (package-makefile--package-dirs top-dir) "" "-pkg ")
+    all-dirs
+    "-pkg ")
+   "-pkg"
    "\n\n"
    (mapconcat
     (lambda (base-dir)
       (package-makefile--target-pkg-el top-dir base-dir))
-    (package-makefile--package-dirs top-dir)
+    all-dirs
     "\n")))
 
+
+(defun package-makefile--core-packages ()
+  (package-makefile--package-dirs "core"))
+
 (defun package-makefile--makefile ()
-  (mapconcat
-   (lambda (top-dir)
-     (package-makefile--makefile-pkg-targets top-dir))
-   package-makefile-archives
+  (concat
+   (package-makefile--makefile-pkg-targets
+    "core"
+    (package-makefile--core-packages))
    "\n"))
 
 
@@ -52,7 +46,6 @@ packages which occur earlier in the list.")
   (with-temp-buffer
     (insert
      (package-makefile--makefile))
-    
     (write-file "gnumakefile-inc.mk")))
 
 ;; example: core/example/example-pkg.el

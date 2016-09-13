@@ -8,6 +8,4 @@
 
 (package-build-prepare "core/example")
 
-(defun temp ()
-  (interactive)
-  (package-makefile))
+(package-makefile)

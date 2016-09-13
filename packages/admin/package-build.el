@@ -8,7 +8,7 @@
   (let ((descr
            (package-desc-create :name (make-symbol dir)))
           (location (package-build-dir dir)))
-      (archive--refresh-pkg-file location)
+      (archive-refresh-pkg-file location)
       (setq descr (package-load-descriptor location))
       (package-generate-autoloads (package-desc-name descr) location)
       (package-activate descr)
