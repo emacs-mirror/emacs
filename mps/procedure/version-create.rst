@@ -18,7 +18,7 @@ releases 1.105.0 and 1.105.1, this document tells you how to abandon the
 1.105 lineage and take a new clone from the master sources to create
 version 1.106).
 
-Refer to "Product Quality Through Change Management" [RB_1999-05-20]
+Refer to "Product Quality Through Change Management" [RB_1999-05-20]_
 for background, terminology, rationale, and usage guidance. This tells
 you what "a version" actually is.
 
@@ -99,6 +99,7 @@ Run the script ``tool/branch``, passing the options:
 * ``-C CHANGELEVEL`` — changelevel at which to make the branch
 * ``-v`` — request a version branch
 * ``-d "DESCRIPTION"`` — description of the branch (see below)
+* ``-g`` — create a corresponding Git branch using Git Fusion
 
 The branch description will be published in the version index and
 should be a short summary of the improvements detailed in the release
@@ -108,7 +109,7 @@ If omitted, the project and parent branch are deduced from the current
 directory, and the changelevel defaults to the most recent change on
 the parent branch. A typical invocation looks like this::
 
-    tool/branch -p master -v -d "Improved interface to generation chains."
+    tool/branch -v -d "Improved interface to generation chains." -g
 
 Visually check the output of the script against `3.3. Manual
 procedure`_, and when satisfied, repeat the invocation with the ``-y``
@@ -161,7 +162,7 @@ Ensure that the branch appears correctly at:
 A. References
 -------------
 
-.. [RB_1995-05-20] Richard Brooksby; "Product Quality Through Change
+.. [RB_1999-05-20] Richard Brooksby; "Product Quality Through Change
    Management"; Ravenbrook Limited; 1999-05-20;
    http://www.ravenbrook.com/doc/1999/05/20/pqtcm/
 
@@ -183,6 +184,7 @@ B. Document History
 ==========  =====  ========================================================
 
 .. _GDR: mailto:gdr@ravenbrook.com
+.. _RB: mailto:rb@ravenbrook.com
 .. _RHSK: mailto:rhsk@ravenbrook.com
 
 
