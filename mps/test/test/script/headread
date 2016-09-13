@@ -85,6 +85,9 @@ sub readheader {
  } else {
   $testid = $test_header{"id"};
  }
+ if (length($testid) > 70) {
+  $testid = substr($testid, 0, 33) . "..." . substr($testid, -33);
+ }
  if (! exists $test_header{"harness"}) {
   $test_header{"harness"} = "1.0";
  }
