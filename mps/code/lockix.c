@@ -1,7 +1,7 @@
 /* lockix.c: RECURSIVE LOCKS FOR POSIX SYSTEMS
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  * .posix: The implementation uses a POSIX interface, and should be reusable
  * for many Unix-like operating systems.
@@ -24,21 +24,23 @@
  * number of claims acquired on a lock.  This field must only be
  * modified while we hold the mutex.
  *
- * .from: This version was copied from the FreeBSD version (lockfr.c)
- * which was itself a cleaner version of the Linux version (lockli.c).
+ * .from: This was copied from the FreeBSD implementation (lockfr.c)
+ * which was itself a cleaner version of the LinuxThreads
+ * implementation (lockli.c).
  */
 
-#include <pthread.h>
+#include "config.h"
+
+#include <pthread.h> /* see .feature.li in config.h */
 #include <semaphore.h>
 #include <errno.h>
 
-#include "mpmtypes.h"
 #include "lock.h"
-#include "config.h"
+#include "mpmtypes.h"
 
 
-#if !defined(MPS_OS_FR) && !defined(MPS_OS_XC)
-#error "lockix.c is Unix specific, currently for MPS_OS_FR XC."
+#if !defined(MPS_OS_FR) && !defined(MPS_OS_LI) && !defined(MPS_OS_XC)
+#error "lockix.c is Unix specific."
 #endif
 
 SRCID(lockix, "$Id$");
@@ -122,7 +124,7 @@ void (LockClaim)(Lock lock)
 
   res = pthread_mutex_lock(&lock->mut);
   /* pthread_mutex_lock will error if we own the lock already. */
-  AVER(res == 0);
+  AVER(res == 0); /* <design/check/#.common> */
 
   /* This should be the first claim.  Now we own the mutex */
   /* it is ok to check this. */
@@ -245,7 +247,7 @@ void (LockReleaseGlobal)(void)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

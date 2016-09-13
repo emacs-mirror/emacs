@@ -471,7 +471,7 @@ extern int main(int argc, char *argv[])
   /* 1. Test CBS */
 
   MPS_ARGS_BEGIN(args) {
-    die((mps_res_t)LandInit(cbs, CBSFastLandClassGet(), arena, state.align,
+    die((mps_res_t)LandInit(cbs, CLASS(CBSFast), arena, state.align,
                             NULL, args),
         "failed to initialise CBS");
   } MPS_ARGS_END(args);
@@ -481,7 +481,7 @@ extern int main(int argc, char *argv[])
 
   /* 2. Test Freelist */
 
-  die((mps_res_t)LandInit(fl, FreelistLandClassGet(), arena, state.align,
+  die((mps_res_t)LandInit(fl, CLASS(Freelist), arena, state.align,
                           NULL, mps_args_none),
       "failed to initialise Freelist");
   state.land = fl;
@@ -503,18 +503,18 @@ extern int main(int argc, char *argv[])
 
       MPS_ARGS_BEGIN(args) {
         MPS_ARGS_ADD(args, CBSBlockPool, mfs);
-        die((mps_res_t)LandInit(cbs, CBSFastLandClassGet(), arena, state.align,
+        die((mps_res_t)LandInit(cbs, CLASS(CBSFast), arena, state.align,
                                 NULL, args),
             "failed to initialise CBS");
       } MPS_ARGS_END(args);
 
-      die((mps_res_t)LandInit(fl, FreelistLandClassGet(), arena, state.align,
+      die((mps_res_t)LandInit(fl, CLASS(Freelist), arena, state.align,
                               NULL, mps_args_none),
           "failed to initialise Freelist");
       MPS_ARGS_BEGIN(args) {
         MPS_ARGS_ADD(args, FailoverPrimary, cbs);
         MPS_ARGS_ADD(args, FailoverSecondary, fl);
-        die((mps_res_t)LandInit(fo, FailoverLandClassGet(), arena, state.align,
+        die((mps_res_t)LandInit(fo, CLASS(Failover), arena, state.align,
                                 NULL, args),
             "failed to initialise Failover");
       } MPS_ARGS_END(args);

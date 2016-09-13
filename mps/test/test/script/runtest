@@ -269,3 +269,35 @@ sub missingTestSymbols {
  return &missingSymbols(&listFileSymbols($testfile));
 }
 
+
+sub debugtest {
+ local ($testfile,) = @_;
+
+ &readheader($testfile, 1);
+
+ unless (vleq($test_header{"harness"}, $HARNESS_VERSION)) {
+  die "This test requires version $test_header{\"harness\"} or later of the MMQA harness.
+(You are using version $HARNESS_VERSION.)\n";
+ }
+
+ for $lang ($test_header{"language"}) {
+  if ($lang =~ /^c$/) {
+   unless ($DANGEROUS eq "on") {
+    $_ = &test_clib();
+    if ($_) {
+     print "Warning: $_\n";
+     die "-- recompile test libraries (\"qa clib\") before debugging tests.\n";
+    }
+   }
+   $linkfiles = $test_header{"link"};
+   $objfile = "$obj_dir/tmp_test";
+   if (&compile_and_link($testfile, $objfile, $linkfiles)) {
+    mysystem("$debug_command $objfile")
+   } else {
+    die "compilation failed:\n$compoutput";
+   }
+  } else {
+   die "Don't know how to debug tests in the $lang language.\n";
+  }
+ }
+}

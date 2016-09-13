@@ -17,7 +17,7 @@ static void test(void)
 {
  mps_arena_t arena;
 
- arena = malloc(64);
+ arena = malloc(4096);
  mps_arena_destroy(arena);
  comment("Destroy arena.");
 }

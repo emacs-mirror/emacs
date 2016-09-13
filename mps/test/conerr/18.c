@@ -6,8 +6,8 @@ TEST_HEADER
  link = testlib.o
 OUTPUT_SPEC
  assert = true
- assertfile P= poollo.c
- assertcond = FormatArena(pool->format) == arena
+ assertfile P= poolabs.c
+ assertcond = FormatArena(format) == arena
 END_HEADER
 */
 

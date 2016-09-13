@@ -55,11 +55,11 @@ write-protected segment. See ``TraceSegAccess()``.)
 Design
 ------
 
-_`.sol.sync`: If memory protection is not available, only way to meet
-`.req.consistent`_, is ensure that no protection is required,
-essentially by running the collector until it has no more incremental
-work to do. (This makes it impossible to meet real-time requirements
-on pause times, but may be the best that can be done.)
+_`.sol.sync`: If memory protection is not available, the only way to
+meet `.req.consistent`_ is to ensure that no protection is required,
+by running the collector until it has no more incremental work to do.
+(This makes it impossible to meet real-time requirements on pause
+times, but may be the best that can be done.)
 
 _`.sol.fault.handle`: The protection module handles protection faults
 by decoding the context of the fault (see
@@ -165,7 +165,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2013-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

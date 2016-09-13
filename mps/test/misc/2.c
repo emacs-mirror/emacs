@@ -6,7 +6,7 @@ TEST_HEADER
  link = testlib.o
  parameters = NUM=1
 OUTPUT_SPEC
- memoryerror = true
+ abort = true
 END_HEADER
 */
 

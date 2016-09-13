@@ -15,8 +15,10 @@ An arena is an object that encapsulates the state of the Memory Pool
 System, and tells it where to get the memory it manages. You typically
 start a session with the MPS by creating an arena with
 :c:func:`mps_arena_create_k` and end the session by destroying it with
-:c:func:`mps_arena_destroy`. The only function you might need to call
-before making an arena is :c:func:`mps_telemetry_control`.
+:c:func:`mps_arena_destroy`. The only functions you might need to call
+before making an arena are :term:`telemetry system` functions like
+:c:func:`mps_telemetry_set` and the :term:`plinth` function
+:c:func:`mps_lib_assert_fail_install`.
 
 Before destroying an arena, you must first destroy all objects and
 data in it, as usual for abstract data types in the MPS. If you can't
@@ -314,10 +316,19 @@ Arena properties
 
 .. c:function:: mps_word_t mps_collections(mps_arena_t arena)
 
-    Return the number of :term:`flips` that have taken place in an
-    :term:`arena` since it was created.
+    Return the number of garbage collections (technically, the number
+    of :term:`flips`) in which objects might have moved, that have
+    taken place in an :term:`arena` since it was created.
 
     ``arena`` is the arena.
+
+    .. note::
+
+        If you are only using non-moving pool classes like
+        :ref:`pool-ams`, then :c:func:`mps_collections` will always
+        return 0. To find out about these collections, consider
+        enabling garbage collection messages: see
+        :c:func:`mps_message_type_gc`.
 
 
 .. c:function:: size_t mps_arena_commit_limit(mps_arena_t arena)
