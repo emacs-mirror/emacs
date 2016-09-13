@@ -6,10 +6,9 @@ EMACS=../src/emacs
 
 DIRS=$(filter-out .,$(subst ./,,$(shell find . -maxdepth 1 -type d)))
 
-## alas "all" is an ELPA package, so this is going to break
-all: build-all
+## dependent on makefile
+all: pkg-all $(EMACS)
 
-build-all: $(DIRS) $(EMACS)
 
 
 # define package_template
@@ -31,8 +30,7 @@ build-all: $(DIRS) $(EMACS)
 
 # test: $(patsubst %,%-test,$(DIRS))
 
-include gnumakefile.mk
-
+include gnumakefile-inc.mk
 
 clean:
 	find . -name "*pkg.el" -exec rm -v {} \;
