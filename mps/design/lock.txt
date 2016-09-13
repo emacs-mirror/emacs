@@ -62,7 +62,9 @@ recursive lock.)
 _`.req.held`: Provide a means to test if a lock is held. (This is
 needed for debugging a dynamic function table callback on Windows on
 x86-64. See ``mps_arena_busy()`` for a detailed description of this
-use case.)
+use case. Note that in this use case the program is running
+single-threaded and so there is no need for this feature to be
+thread-safe.)
 
 _`.req.global`: Provide *global* locks: that is locks that need not be
 allocated or initialized by the user.
@@ -131,7 +133,8 @@ corresponding ``LockClaimRecursive()`` call.
 
 ``Bool LockIsHeld(Lock lock)``
 
-Return true if the lock is held, false otherwise.
+Return true if the lock is held by any thread, false otherwise. Note
+that this function need not be thread-safe (see `.req.held`_).
 
 ``void LockClaimGlobal(void)``
 

@@ -264,6 +264,7 @@ void mps_arena_postmortem(mps_arena_t arena)
 {
   /* Don't call ArenaEnter -- one of the purposes of this function is
    * to release the arena lock if it's held */
+  AVER(TESTT(Arena, arena));
   ArenaPostmortem(ArenaGlobals(arena));
 }
 
@@ -386,6 +387,9 @@ void mps_arena_destroy(mps_arena_t arena)
 
 mps_bool_t mps_arena_busy(mps_arena_t arena)
 {
+  /* Don't call ArenaEnter -- the purpose of this function is to
+   * determine if the arena lock is held */
+  AVER(TESTT(Arena, arena));
   return ArenaBusy(arena);
 }
 
