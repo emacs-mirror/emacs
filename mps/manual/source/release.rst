@@ -36,15 +36,6 @@ Interface changes
 #. On Linux and FreeBSD, it is now possible to configure the signals
    used to suspend and resume threads. See :ref:`topic-thread-signal`.
 
-New features
-............
-
-#. The MPS now measures the mortality of a :term:`generation` each
-   time it is collected, and maintains a moving average. This means
-   that it is no longer important to provide an accurate estimate of
-   the mortality when creating a :term:`generation chain` by calling
-   :c:func:`mps_chain_create`..
-
 
 Other changes
 .............
