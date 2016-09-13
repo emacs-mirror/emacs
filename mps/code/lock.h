@@ -78,6 +78,11 @@ extern void LockRelease(Lock lock);
 extern Bool LockCheck(Lock lock);
 
 
+/* LockIsHeld -- test whether lock is held by any thread */
+
+extern Bool LockIsHeld(Lock lock);
+
+
 /*  == Global locks == */
 
 
@@ -121,26 +126,6 @@ extern void LockClaimGlobal(void);
  */
 
 extern void LockReleaseGlobal(void);
-
-
-#if defined(LOCK)
-/* Nothing to do: functions declared in all lock configurations. */
-#elif defined(LOCK_NONE)
-#define LockSize() MPS_PF_ALIGN
-#define LockInit(lock) UNUSED(lock)
-#define LockFinish(lock) UNUSED(lock)
-#define LockClaimRecursive(lock) UNUSED(lock)
-#define LockReleaseRecursive(lock) UNUSED(lock)
-#define LockClaim(lock) UNUSED(lock)
-#define LockRelease(lock) UNUSED(lock)
-#define LockCheck(lock) ((void)lock, TRUE)
-#define LockClaimGlobalRecursive()
-#define LockReleaseGlobalRecursive()
-#define LockClaimGlobal()
-#define LockReleaseGlobal()
-#else
-#error "No lock configuration."
-#endif  /* LOCK */
 
 
 #endif /* lock_h */
