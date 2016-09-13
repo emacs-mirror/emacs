@@ -567,8 +567,6 @@ void PoolGenFinish(PoolGen pgen)
   AVER(pgen->bufferedSize == 0);
   AVER(pgen->newSize == 0);
   AVER(pgen->newDeferredSize == 0);
-  AVER(pgen->segs == 0);
-  AVER(pgen->freeSize == 0);
   AVER(pgen->oldSize == 0);
   AVER(pgen->oldDeferredSize == 0);
 
