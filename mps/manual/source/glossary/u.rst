@@ -49,12 +49,12 @@ Memory Management Glossary: U
 
         .. mps:specific::
 
-            One of the three states an :term:`arena` can be in (the
-            others being the :term:`clamped state` and the
-            :term:`parked state`). In the unclamped state, object
-            motion and other background activity may occur. Call
-            :c:func:`mps_arena_release` to put an arena into the
-            unclamped state.
+            One of the four states an :term:`arena` can be in (the
+            others being the :term:`clamped state`, the :term:`parked
+            state` and the :term:`postmortem state`). In the unclamped
+            state, object motion and other background activity may
+            occur. Call :c:func:`mps_arena_release` to put an arena
+            into the unclamped state.
 
     undead
 

@@ -167,8 +167,9 @@
 /* CONFIG_THREAD_SINGLE -- support single-threaded execution only
  *
  * This symbol causes the MPS to be built for single-threaded
- * execution only, where locks are not needed and so lock operations
- * can be defined as no-ops by lock.h.
+ * execution only, where locks are not needed and so the generic
+ * ("ANSI") lock module lockan.c can be used instead of the
+ * platform-specific lock module.
  */
 
 #if !defined(CONFIG_THREAD_SINGLE)
