@@ -236,9 +236,9 @@ sub run_testset {
 
  %testsetresults = ();
 
- open(LOG_SUMMARY, ">".$logsummfile);
- open(LOG_RESULTS, ">".$logresfile);
- open(LOG_FULL,    ">".$logfullfile);
+ open(LOG_SUMMARY, ">>".$logsummfile);
+ open(LOG_RESULTS, ">>".$logresfile);
+ open(LOG_FULL,    ">>".$logfullfile);
  &describe_settings(LOG_SUMMARY);
  @LOG_FILES = (STDOUT, LOG_SUMMARY, LOG_RESULTS, LOG_FULL);
  &logcomment("Test set $testsetfile");
