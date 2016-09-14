@@ -38,7 +38,7 @@ SRCID(version, "$Id$");
  * .release.old: before 2006-02-01 the style was "release.epcore.chub".
  */
 
-#define MPS_RELEASE "release/1.116.0"
+#define MPS_RELEASE "release/1.117.0"
 
 
 /* MPSCopyrightNotice -- copyright notice for the binary

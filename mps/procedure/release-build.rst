@@ -79,14 +79,24 @@ All relative paths are relative to
    procedure::
 
         p4 opened version/$VERSION/...
-        # should output "version/$VERSION/... - file(s) not opened on this client."
+
+   This should output "version/$VERSION/... - file(s) not opened on
+   this client." But if there are opened files, then::
+
         p4 revert version/$VERSION/...
+
+   Next::
+
+	p4 update version/$VERSION/...@$CHANGELEVEL
+	p4 status version/$VERSION/...
+
+   This should output "version/$VERSION/... - no file(s) to
+   reconcile." But if there are discrepancies, then::
+
         rm -rf version/$VERSION
         p4 sync -f version/$VERSION/...@$CHANGELEVEL
 
-   Note that the ``revert`` and ``sync -f`` are necessary, otherwise
-   opened files may be left in place, or writeable-on-client files may
-   be omitted; see [RHSK_2008-10-16]_.
+   See [RHSK_2008-10-16]_.
 
 #. Run the test suite::
 
@@ -98,14 +108,9 @@ All relative paths are relative to
    commands to run the test suite are::
 
         cd version\$VERSION\code
-        nmake /f w3i6mv.nmk clean testrun
+        nmake /f w3i6mv.nmk clean testci
         nmake /f ananmv.nmk clean testansi
         nmake /f ananmv.nmk CFLAGS="-DCONFIG_POLL_NONE" clean testpollnone
-        cd ../test
-        perl test/qa runset testsets/coolonly
-        perl test/qa runset testsets/argerr
-        perl test/qa runset testsets/conerr
-        perl test/qa runset testsets/passing
 
 #. Check that there are no performance regressions by comparing the
    benchmarks (``djbench`` and ``gcbench``) for the last release and
@@ -127,7 +132,7 @@ If omitted, the project and branch are deduced from the current
 directory, and the changelevel defaults to the most recent change on
 the branch. A typical invocation looks like this::
 
-    tool/release -b version/1.113 -d "Improved interface to generation chains." -y
+    tool/release -b version/$VERSION -d "Improved interface to generation chains." -y
 
 
 6. Making the release (manual procedure)
