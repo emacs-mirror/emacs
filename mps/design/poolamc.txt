@@ -435,10 +435,6 @@ _`.nailboard.limitations.middle`: An ambiguous reference to a segment
 that does not point into any object in that segment will cause that
 segment to survive even though there are no surviving objects on it.
 
-_`.nailboard.limitations.reclaim`: ``AMCReclaimNailed()`` could cover
-each block of reclaimed objects between two nailed objects with a
-single padding object, speeding up further scans.
-
 
 Emergency tracing
 -----------------
@@ -813,7 +809,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2013-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
