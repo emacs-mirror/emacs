@@ -111,6 +111,8 @@ All relative paths are relative to
         nmake /f w3i6mv.nmk clean testci
         nmake /f ananmv.nmk clean testansi
         nmake /f ananmv.nmk CFLAGS="-DCONFIG_POLL_NONE" clean testpollnone
+        cd ../test
+        perl test/qa runset testsets/{coolonly,argerr,conerr,passing}
 
 #. Check that there are no performance regressions by comparing the
    benchmarks (``djbench`` and ``gcbench``) for the last release and
