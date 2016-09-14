@@ -1006,12 +1006,15 @@ static void AMCBufferEmpty(Pool pool, Buffer buffer,
     ShieldExpose(arena, seg);
     (*pool->format->pad)(init, size);
     ShieldCover(arena, seg);
-
-    /* The padding object is white, so needs to be accounted as condemned. */
-    TRACE_SET_ITER(ti, trace, seg->white, arena)
-      GenDescCondemned(amcseg->gen->pgen.gen, trace, size);
-    TRACE_SET_ITER_END(ti, trace, seg->white, arena);
   }
+
+  /* Any allocation in the buffer (including the padding object just
+   * created) is white, so needs to be accounted as condemned for all
+   * traces for which this segment is white. */
+  TRACE_SET_ITER(ti, trace, seg->white, arena)
+    GenDescCondemned(amcseg->gen->pgen.gen, trace,
+                     AddrOffset(BufferBase(buffer), limit));
+  TRACE_SET_ITER_END(ti, trace, seg->white, arena);
 
   if (amcseg->accountedAsBuffered) {
     /* Account the entire buffer (including the padding object) as used. */
@@ -1132,6 +1135,7 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
         /* BufferDetach(buffer, pool); */
       /* } */
       else {
+        Addr bufferScanLimit = BufferScanLimit(buffer);
         /* There is an active buffer, make sure it's nailed. */
         if(!amcSegHasNailboard(seg)) {
           if(SegNailed(seg) == TraceSetEMPTY) {
@@ -1140,9 +1144,9 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
               /* Can't create nailboard, don't condemn. */
               return ResOK;
             }
-            if(BufferScanLimit(buffer) != BufferLimit(buffer)) {
+            if (bufferScanLimit != BufferLimit(buffer)) {
               NailboardSetRange(amcSegNailboard(seg),
-                                BufferScanLimit(buffer),
+                                bufferScanLimit,
                                 BufferLimit(buffer));
             }
             STATISTIC(++trace->nailCount);
@@ -1154,18 +1158,22 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
           }
         } else {
           /* We have a nailboard, the buffer must be nailed already. */
-          AVER(BufferScanLimit(buffer) == BufferLimit(buffer)
+          AVER(bufferScanLimit == BufferLimit(buffer)
                || NailboardIsSetRange(amcSegNailboard(seg), 
-                                      BufferScanLimit(buffer),
+                                      bufferScanLimit,
                                       BufferLimit(buffer)));
           /* Nail it for this trace as well. */
           SegSetNailed(seg, TraceSetAdd(SegNailed(seg), trace));
         }
+        /* Move the buffer's base up to the scan limit, so that we can
+         * detect allocation that happens during the trace, and
+         * account for it correctly in AMCBufferEmpty and
+         * amcReclaimNailed. */
+        buffer->base = bufferScanLimit;
         /* We didn't condemn the buffer, subtract it from the count. */
-        /* @@@@ We could subtract all the nailed grains. */
         /* Relies on unsigned arithmetic wrapping round */
         /* on under- and overflow (which it does). */
-        condemned -= AddrOffset(BufferScanLimit(buffer), BufferLimit(buffer));
+        condemned -= AddrOffset(BufferBase(buffer), BufferLimit(buffer));
       }
     }
   }
@@ -1665,6 +1673,7 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
   Size headerSize;
   Addr padBase;          /* base of next padding object */
   Size padLength;        /* length of next padding object */
+  Buffer buffer;
 
   /* All arguments AVERed by AMCReclaim */
 
@@ -1735,6 +1744,12 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
   STATISTIC(trace->reclaimSize += bytesReclaimed);
   STATISTIC(trace->preservedInPlaceCount += preservedInPlaceCount);
   pgen = &amcSegGen(seg)->pgen;
+  if (SegBuffer(&buffer, seg)) {
+    /* Any allocation in the buffer was white, so needs to be
+     * accounted as condemned now. */
+    GenDescCondemned(pgen->gen, trace,
+                     AddrOffset(BufferBase(buffer), BufferLimit(buffer)));
+  }
   GenDescSurvived(pgen->gen, trace, MustBeA(amcSeg, seg)->forwarded[trace->ti],
                   preservedInPlaceSize);
 
