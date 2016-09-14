@@ -11,7 +11,7 @@ DIRS=$(filter-out .,$(subst ./,,$(shell find . -maxdepth 1 -type d)))
 ## dependent on makefile
 all: pkg-all $(EMACS)
 
-check: cleanlog check-packages
+check: cleanlog check-packages ert-summarize
 
 check-maybe: check-packages
 

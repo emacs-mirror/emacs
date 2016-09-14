@@ -58,6 +58,5 @@ tests directory."
 
 (defun assess-discover-run-and-exit-batch-dir (directory &optional selector)
   (assess-discover--load-all-tests
-   (concat default-directory
-           directory))
+   (expand-file-name directory))
   (ert-run-tests-batch-and-exit selector))

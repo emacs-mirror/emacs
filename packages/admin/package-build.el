@@ -6,8 +6,8 @@
 ;; So this one does the business during build
 (defun package-build-prepare (dir)
   (let ((descr
-           (package-desc-create :name (make-symbol dir)))
-          (location (package-build-dir dir)))
+         (package-desc-create :name (make-symbol dir)))
+          (location (expand-file-name dir)))
       (archive-refresh-pkg-file location)
       (setq descr (package-load-descriptor location))
       (package-generate-autoloads (package-desc-name descr) location)
