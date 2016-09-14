@@ -3,36 +3,33 @@
 
 
 EMACS=../src/emacs
+ELPA=../../elpa
+
 
 DIRS=$(filter-out .,$(subst ./,,$(shell find . -maxdepth 1 -type d)))
 
 ## dependent on makefile
 all: pkg-all $(EMACS)
 
+check: cleanlog check-packages
 
+check-maybe: check-packages
 
-# define package_template
-# $(1): $(1)/$(1)-pkg.el
+WRITE_LOG = > $@ 2>&1 || { stat=ERROR; cat $@; }; echo $$stat: $@
 
-# $(1)/$(1)-pkg.el:
-# 	$$(EMACS) --batch --load package-build.el --eval '(package-build-prepare "$(1)")'
-
-# endef
-
-# $(foreach dir,$(DIRS),$(eval $(call package_template,$(dir))))
-
-# define test_template
-# $(1)-test:
-# 	$$(EMACS) --batch --load package-test.el --eval '(assess-discover-run-and-exit-batch-dir "$(1)")'
-# endef
-
-# $(foreach dir,$(DIRS),$(info $(call test_template,$(dir))))
-
-# test: $(patsubst %,%-test,$(DIRS))
+gnumakefile-inc.mk: ./admin/package-makefile.el
+	$(EMACS) --batch --load admin/package-makefile.el \
+		--funcall package-makefile
 
 include gnumakefile-inc.mk
 
-clean:
+cleanlog:
+	find . -name "*log" -exec rm -v {} \;
+
+clean: cleanlog
 	find . -name "*pkg.el" -exec rm -v {} \;
 	find . -name "*-autoloads.el" -exec rm -v {} \;
 	find . -name "*elc" -exec rm -v {} \;
+
+
+.PHONY: check clean all

@@ -169,7 +169,7 @@ check: mostlyclean check-no-automated-subdir check-packages
 
 
 check-packages:
-	@${MAKE} -C ../packages test
+	@${MAKE} -C ../packages check
 
 ## Rerun all default and expensive tests.
 .PHONY: check-expensive

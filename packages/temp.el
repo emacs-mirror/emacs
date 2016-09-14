@@ -8,4 +8,7 @@
 
 (package-build-prepare "core/example")
 
-(package-makefile)
+(package-makefile--pkg-targets
+ "/home/phillord/src/git/elpa-git/master/packages"
+ (package-makefile--package-dirs
+  "/home/phillord/src/git/elpa-git/master/packages"))
