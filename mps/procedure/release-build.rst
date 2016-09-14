@@ -98,9 +98,14 @@ All relative paths are relative to
    commands to run the test suite are::
 
         cd version\$VERSION\code
-        nmake /f w3i6mv.nmk testrun
-
-   On other platforms they are as shown above.
+        nmake /f w3i6mv.nmk clean testrun
+        nmake /f ananmv.nmk clean testansi
+        nmake /f ananmv.nmk CFLAGS="-DCONFIG_POLL_NONE" clean testpollnone
+        cd ../test
+        perl test/qa runset testsets/coolonly
+        perl test/qa runset testsets/argerr
+        perl test/qa runset testsets/conerr
+        perl test/qa runset testsets/passing
 
 #. Check that there are no performance regressions by comparing the
    benchmarks (``djbench`` and ``gcbench``) for the last release and
