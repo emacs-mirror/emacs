@@ -493,7 +493,7 @@
 /* Stack probe configuration -- see <code/sp*.c> */
 
 /* Currently StackProbe has a useful implementation only on Windows. */
-#if defined(MPS_OS_W3)
+#if defined(MPS_OS_W3) && !defined(CONFIG_PF_ANSI)
 /* See <design/sp/#sol.depth.analysis> for a justification of this value. */
 #define StackProbeDEPTH ((Size)500)
 #else
