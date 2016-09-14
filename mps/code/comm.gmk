@@ -346,10 +346,8 @@ testratio: phony
 MMQA=perl test/qa -p $(PFM) -v $(VARIETY)
 
 $(PFM)/$(VARIETY)/testmmqa:
-	(if [ "$(VARIETY)" = "cool" ]; then cd ../test && $(MMQA) runset testsets/coolonly; fi)
-	(cd ../test && $(MMQA) runset testsets/argerr)
-	(cd ../test && $(MMQA) runset testsets/conerr)
-	(cd ../test && $(MMQA) runset testsets/passing)
+	([ "$(VARIETY)" = "cool" ] && cd ../test && $(MMQA) runset testsets/coolonly)
+	(cd ../test && $(MMQA) runset testsets/{argerr,conerr,passing})
 
 
 # == Toy Scheme interpreter ==
