@@ -16,7 +16,7 @@ check-maybe: check-packages
 
 WRITE_LOG = > $@ 2>&1 || { stat=ERROR; cat $@; }; echo $$stat: $@
 
-gnumakefile-inc.mk: ./admin/package-makefile.el
+makefile-inc.mk: ./admin/package-makefile.el
 	$(EMACS) --batch --load admin/package-makefile.el \
 		--funcall package-makefile
 
