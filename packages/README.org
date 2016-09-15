@@ -55,6 +55,9 @@ Files in the "admin" directory should probably be in the emacs-root admin.
 
 * Bugs
 
+packages cannot include each other.
+
+
 package.el does not initialize when emacs is launched with -q. This is
 somewhat problematic, since packages in the "core" dir should probably
 always be loaded. Unfortunately package.el is either initialized or
