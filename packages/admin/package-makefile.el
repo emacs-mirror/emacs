@@ -141,7 +141,7 @@
   (with-temp-buffer
     (insert
      (package-makefile--1))
-    (write-file "gnumakefile-inc.mk")))
+    (write-file "makefile-inc.mk")))
 
 ;; example: core/example/example-pkg.el
 ;; core/example/example-pkg.el

@@ -49,8 +49,6 @@ disabled. Most of these do not have regular test file locations at the moment.
 
 There is no support for make install.
 
-There is no support for autoconf.
-
 There is no support for info.
 
 Files in the "admin" directory should probably be in the emacs-root admin.

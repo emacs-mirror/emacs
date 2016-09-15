@@ -1,8 +1,7 @@
-## This file is called GNUmakefile because Makefile is git ignored. Rename
-## when this is autoconf'd
+### @configure_input@
 
 
-EMACS=../src/emacs
+EMACS= ../src/emacs
 ELPA=../../elpa
 
 
@@ -21,7 +20,7 @@ gnumakefile-inc.mk: ./admin/package-makefile.el
 	$(EMACS) --batch --load admin/package-makefile.el \
 		--funcall package-makefile
 
-include gnumakefile-inc.mk
+include makefile-inc.mk
 
 cleanlog:
 	find . -name "*log" -exec rm -v {} \;
