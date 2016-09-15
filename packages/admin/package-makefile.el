@@ -16,6 +16,7 @@
 
 %s: %s
 \t$(EMACS) --batch --directory=admin \\
+\t\t--directory=%s/%s \\
 \t\t--load admin/package-build.el \\
 \t\t--eval '(package-build-prepare \"%s/%s\")'
 "
@@ -37,6 +38,7 @@
         nil
         ".*el$"))
       " ")
+     top-dir base-dir
      top-dir base-dir)))
 
 (defun package-makefile--pkg-targets (top-dir all-dirs)

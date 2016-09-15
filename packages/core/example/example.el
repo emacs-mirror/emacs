@@ -12,3 +12,5 @@
 (defun example ()
   (interactive)
   (message "Hello from Example"))
+
+(provide 'example)
