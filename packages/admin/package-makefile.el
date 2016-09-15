@@ -1,6 +1,7 @@
 (require 'seq)
 
-(defvar package-makefile--elpa nil)
+(defvar package-makefile--elpa
+  (expand-file-name "../../../../elpa-git/master/packages"))
 (defvar package-makefile--log-targets nil)
 (defvar package-makefile--pkg-targets nil)
 
@@ -121,19 +122,20 @@
      "\n"
 
      (when package-makefile--elpa
-       (package-makefile--pkg-targets
-        package-makefile--elpa
-        (package-makefile--elpa-dirs
-         package-makefile-0elpa))
-       "\n"
+       (concat
+        (package-makefile--pkg-targets
+         package-makefile--elpa
+         (package-makefile--elpa-dirs
+          package-makefile--elpa))
+        "\n"
 
-       (package-makefile--test-targets
-        package-makefile--elpa
-        (package-makefile--elpa-dirs
-         package-makefile--elpa)))
+        (package-makefile--test-targets
+         package-makefile--elpa
+         (package-makefile--elpa-dirs
+          package-makefile--elpa))))
 
      "ert-summarize: " (mapconcat 'identity package-makefile--log-targets " ")
-     "\n\t$(EMACS) -l ert -f ert-summarize-tests-batch-and-exit $^\n\n"
+     "\n\t$(EMACS) --batch -l ert -f ert-summarize-tests-batch-and-exit $^\n\n"
 
      "pkg-all: " (mapconcat 'identity package-makefile--pkg-targets " ")
      "\n\n"

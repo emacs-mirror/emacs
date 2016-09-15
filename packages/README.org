@@ -42,8 +42,9 @@ necessary for this cannot be here.
 
 Packages now build, test and summarise correctly.
 
-Preliminary ELPA support has been added also, but is correctly
-disabled. Most of these do not have regular test file locations at the moment.
+Preliminary ELPA support has been added also, but is currently
+hardcoded. Most of these do not have regular test file locations at
+the moment.
 
 * Things to do
 
