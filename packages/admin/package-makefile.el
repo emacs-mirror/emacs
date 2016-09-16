@@ -1,7 +1,10 @@
 (require 'seq)
 
 (defvar package-makefile--elpa
-  (expand-file-name "../../../../elpa-git/master/packages"))
+  (when (getenv "ELPA")
+    (concat (getenv "ELPA")
+            "/packages")))
+
 (defvar package-makefile--log-targets nil)
 (defvar package-makefile--pkg-targets nil)
 
@@ -133,6 +136,7 @@
          package-makefile--elpa
          (package-makefile--elpa-dirs
           package-makefile--elpa))))
+
 
      "ert-summarize: " (mapconcat 'identity package-makefile--log-targets " ")
      "\n\t$(EMACS) --batch -l ert -f ert-summarize-tests-batch-and-exit $^\n\n"
