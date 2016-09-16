@@ -6,13 +6,15 @@ EMACS= ../src/emacs
 
 ## This should be coming from autoconf!
 ELPA=/home/phillord/src/git/elpa-git/master
-
+ifdef ELPA
+ELPA_ENV=ELPA=$(ELPA)
+endif
 
 
 DIRS=$(filter-out .,$(subst ./,,$(shell find . -maxdepth 1 -type d)))
 
 ## dependent on makefile
-all: pkg-all $(EMACS)
+all: pkg-all makefile-inc.mk
 
 check: cleanlog check-packages ert-summarize
 
@@ -21,7 +23,7 @@ check-maybe: check-packages
 WRITE_LOG = > $@ 2>&1 || { stat=ERROR; cat $@; }; echo $$stat: $@
 
 makefile-inc.mk: ./admin/package-makefile.el
-	ELPA=$(ELPA)   $(EMACS) --batch --load admin/package-makefile.el \
+	$(ELPA_ENV) $(EMACS) --batch --load admin/package-makefile.el \
 		--funcall package-makefile
 
 include makefile-inc.mk
