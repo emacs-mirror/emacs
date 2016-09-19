@@ -24,6 +24,63 @@ The intention here is that different directories can be used to group
 packages probably by policy -- those which are core only, those which
 are also available in ELPA and so on.
 
+* Techniques for Sharing between ELPA and Core
+
+At the moment, it is not clear what is the best way to share files
+between the core build and ELPA. Essentially, the build on this fork
+makes the assumption that ELPA source available within the directory
+structure. So how to get the files here.
+
+** Using Package.el download
+
+By the time we build this, Emacs is all ready to go, so we could use
+package.el to install a set of packages into the build.
+
+Pro:
+
+ - Packages will be build and installed from ELPA in only one way
+
+Con:
+ 
+ - Difficult to achieve a reproducible build, as it depends on the
+   state of ELPA which changes over time.
+
+
+** Using an ELPA git checkout
+
+We can pick up files from an ELPA git checkout; we have partial
+support for this already, although the original intention for this was
+to support integration testing.
+
+Pro:
+ - Nice and simple
+
+Con:
+ - Emacs and ELPA checkout versions would have to be linked to ensure
+   reproducible build. Could add a checkout elpa target to help with
+   this, although, obtaining ELPA requires checkouts from multiple
+   branches, due to externals.
+
+
+** Using git submodule/subtree/subrepo
+
+Use one of these tools pull a subdirectory of ELPA into Emacs.
+
+Pro:
+ - Someone else does the work of syncing the source
+
+Con:
+ - submodule and subtree work, but only sort of
+
+Unknown:
+ - Can we include different packages at different versions
+
+** Other git cleverness
+
+Something like git-archive or git-checkout-index to grab the files
+from ELPA.
+
+
 * Limitations
 
 It is not expected that all files would ever be in this directory
