@@ -37,8 +37,8 @@ static void test(void)
 
  for (p=0; p<ITERATE; p++) {
   die(mps_alloc(&q, pool, PROMISE*1024), "alloc");
-  q = (mps_addr_t) ((char *) q + 8);
-  mps_free(pool, q, PROMISE*1024-8);
+  q = (mps_addr_t) ((char *) q + MPS_PF_ALIGN);
+  mps_free(pool, q, PROMISE*1024-MPS_PF_ALIGN);
   report("promise", "%i", p);
  }
 
