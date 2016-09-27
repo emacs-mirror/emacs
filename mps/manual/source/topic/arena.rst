@@ -615,7 +615,7 @@ Arena properties
 Arena states
 ------------
 
-An arena is always in one of three states.
+An arena is always in one of four states.
 
 #. .. index::
       single: arena; unclamped state
