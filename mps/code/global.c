@@ -409,7 +409,7 @@ void GlobalsPrepareToDestroy(Globals arenaGlobals)
   arenaGlobals->defaultChain = NULL;
   ChainDestroy(defaultChain);
 
-  ArenaLeave(arena);
+  LockRelease(arenaGlobals->lock);
   /* Theoretically, another thread could grab the lock here, but it's */
   /* not worth worrying about, since an attempt after the lock has been */
   /* destroyed would lead to a crash just the same. */
