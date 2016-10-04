@@ -1303,7 +1303,7 @@ An empty stiring is returned if no title exists."
            (mode-alist (assq major-mode alist))
            (mode-res (when mode-alist
                        (assoc-string keys mode-alist)))
-           (binding (key-binding keys))
+           (binding (key-binding (kbd keys)))
            (alternate (when (and binding (symbolp binding))
                         (symbol-name binding))))
       (cond (mode-res (cdr mode-res))
