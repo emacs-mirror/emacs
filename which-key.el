@@ -1219,6 +1219,26 @@ replacement occurs return the new STRING."
        (current-local-map) (kbd (which-key--current-key-string (car keydesc))))
       (intern (cdr keydesc))))
 
+(defun which-key--maybe-replace-key-based (string keys &optional title)
+  "KEYS is a string produced by `key-description'
+and STRING is the description that is possibly replaced using the
+`which-key-key-based-description-replacement-alist'. Whether or
+not a replacement occurs return the new STRING."
+  (let* ((alist which-key-key-based-description-replacement-alist)
+         (str-res (assoc-string keys alist))
+         (mode-alist (assq major-mode alist))
+         (mode-res (when mode-alist (assoc-string keys mode-alist)))
+         tmp-res)
+    (setq tmp-res
+          (cond (mode-res (cdr mode-res))
+                (str-res (cdr str-res))
+                (t string)))
+    (cond ((and (listp tmp-res) title)
+           (nth 1 tmp-res))
+          ((listp tmp-res)
+           (car tmp-res))
+          (t tmp-res))))
+
 (defun which-key--maybe-get-prefix-title (keys)
   "KEYS is a string produced by `key-description'.
 A title is possibly returned using
@@ -1243,26 +1263,6 @@ stiring is returned if no title exists."
     (which-key--current-show-keymap-name
      which-key--current-show-keymap-name)
     (t "")))
-
-(defun which-key--maybe-replace-key-based (string keys &optional title)
-  "KEYS is a string produced by `key-description'
-and STRING is the description that is possibly replaced using the
-`which-key-key-based-description-replacement-alist'. Whether or
-not a replacement occurs return the new STRING."
-  (let* ((alist which-key-key-based-description-replacement-alist)
-         (str-res (assoc-string keys alist))
-         (mode-alist (assq major-mode alist))
-         (mode-res (when mode-alist (assoc-string keys mode-alist)))
-         tmp-res)
-    (setq tmp-res
-          (cond (mode-res (cdr mode-res))
-                (str-res (cdr str-res))
-                (t string)))
-    (cond ((and (listp tmp-res) title)
-           (nth 1 tmp-res))
-          ((listp tmp-res)
-           (car tmp-res))
-          (t tmp-res))))
 
 (defun which-key--propertize-key (key)
   "Add a face to KEY.
