@@ -525,20 +525,8 @@ used.")
 `which-key-add-major-mode-key-based-replacements' to set this
 variable.")
 
-(defvar which-key-prefix-name-alist '()
-  "An alist with elements of the form (key-sequence . prefix-name).
-key-sequence is a sequence of the sort produced by applying
-`key-description' to create a canonical version of the key
-sequence. prefix-name is a string.")
-
-(defvar which-key-prefix-title-alist '()
-  "An alist with elements of the form (key-sequence . prefix-title).
-key-sequence is a sequence of the sort produced by applying
-`key-description' to create a canonical version of the key
-sequence. prefix-title is a string. The title is displayed
-alongside the actual current key sequence when
-`which-key-show-prefix' is set to either top or echo.")
-
+(make-obsolete-variable 'which-key-prefix-name-alist nil "2016-10-05")
+(make-obsolete-variable 'which-key-prefix-title-alist nil "2016-10-05")
 
 ;;; Third-party library support
 ;;;; Evil
@@ -715,13 +703,14 @@ bottom."
 
 (defun which-key--add-key-val-to-alist (alist key value &optional alist-name)
   "Internal function to add (KEY . VALUE) to ALIST."
-  (when (or (not (stringp key)) (not (stringp value)))
-    (error "which-key: Error %s (key) and %s (value) should be strings"
+  (when (or (not (stringp key)) (not (or (stringp value) (listp value))))
+    (error "which-key: Error %s (key) should be a string and %s (value) should\
+ be a string or list of strings."
            key value))
   (let ((keys (key-description (kbd key))))
     (cond ((null alist) (list (cons keys value)))
           ((assoc-string keys alist)
-           (when (not (string-equal (cdr (assoc-string keys alist)) value))
+           (when (not (equal (cdr (assoc-string keys alist)) value))
              (when which-key-is-verbose
                (message "which-key: changing %s name from %s to %s in the %s alist"
                         key (cdr (assoc-string keys alist)) value alist-name))
@@ -732,11 +721,19 @@ bottom."
 ;;;###autoload
 (defun which-key-add-key-based-replacements (key-sequence replacement &rest more)
   "Replace the description of KEY-SEQUENCE with REPLACEMENT.
-Both KEY-SEQUENCE and REPLACEMENT should be strings.  For Example,
+KEY-SEQUENCE is a string suitable for use in `kbd'. REPLACEMENT
+may either be a string, as in
 
 \(which-key-add-key-based-replacements \"C-x 1\" \"maximize\"\)
 
-MORE allows you to specifcy additional KEY REPL pairs.  All
+or a list of two strings as in
+
+\(which-key-add-key-based-replacements \"C-x 8\" '(\"unicode\" \"Unicode keys\")\)
+
+In the second case, the second string is used to provide a longer
+name for the keys under a prefix.
+
+MORE allows you to specifcy additional KEY REPLACEMENT pairs.  All
 replacements are added to
 `which-key-key-based-description-replacement-alist'."
   ;; TODO: Make interactive
@@ -768,77 +765,21 @@ addition KEY-SEQUENCE REPLACEMENT pairs) to apply."
       (push (cons mode mode-alist) which-key-key-based-description-replacement-alist))))
 (put 'which-key-add-major-mode-key-based-replacements 'lisp-indent-function 'defun)
 
-;;;###autoload
-(defun which-key-add-prefix-title (key-seq-str title &optional force)
-  "Deprecated in favor of `which-key-declare-prefixes'.
+(defalias 'which-key-add-prefix-title 'which-key-add-key-based-replacements)
+(make-obsolete 'which-key-add-prefix-title
+               'which-key-add-key-based-replacements
+               "2016-10-05")
 
-Add title for KEY-SEQ-STR given by TITLE. FORCE, if non-nil, will
-add the new title even if one already exists. KEY-SEQ-STR should
-be a key sequence string suitable for `kbd' and TITLE should be a
-string."
-  (let ((keys (key-description (kbd key-seq-str))))
-    (if (and (null force)
-             (assoc-string keys which-key-prefix-title-alist))
-        (when which-key-is-verbose
-          (message "which-key: Prefix title not added. A title exists for this prefix."))
-      (push (cons keys title) which-key-prefix-title-alist))))
+(defalias 'which-key-declare-prefixes 'which-key-add-key-based-replacements)
+(make-obsolete 'which-key-declare-prefixes
+               'which-key-add-key-based-replacements
+               "2016-10-05")
 
-;;;###autoload
-(defun which-key-declare-prefixes (key-sequence name &rest more)
-  "Name the KEY-SEQUENCE prefix NAME.
-KEY-SEQUENCE should be a string, acceptable to `kbd'. NAME can be
-a string or a cons cell of two strings. In the first case, the
-string is used as both the name and the title (the title is
-displayed in the echo area only). For Example,
-
-\(which-key-declare-prefixes \"C-x 8\" \"unicode\"\)
-
-or
-
-\(which-key-declare-prefixes \"C-x 8\" (\"unicode\" . \"Unicode Chararcters\")\)
-
-MORE allows you to specifcy additional KEY-SEQUENCE NAME pairs.
-All names are added to `which-key-prefix-names-alist' and titles
-to `which-key-prefix-title-alist'."
-  (while key-sequence
-    (let ((name (if (consp name) (car name) name))
-          (title (if (consp name) (cdr name) name)))
-        (setq which-key-prefix-name-alist
-              (which-key--add-key-val-to-alist
-               which-key-prefix-name-alist key-sequence name "prefix-name")
-              which-key-prefix-title-alist
-              (which-key--add-key-val-to-alist
-               which-key-prefix-title-alist key-sequence title "prefix-title")))
-    (setq key-sequence (pop more) name (pop more))))
-(put 'which-key-declare-prefixes 'lisp-indent-function 'defun)
-
-;;;###autoload
-(defun which-key-declare-prefixes-for-mode (mode key-sequence name &rest more)
-  "Functions like `which-key-declare-prefixes'.
-The difference is that MODE specifies the `major-mode' that must
-be active for KEY-SEQUENCE and NAME (MORE contains
-addition KEY-SEQUENCE NAME pairs) to apply."
-  (when (not (symbolp mode))
-    (error "MODE should be a symbol corresponding to a value of major-mode"))
-  (let ((mode-name-alist (cdr (assq mode which-key-prefix-name-alist)))
-        (mode-title-alist (cdr (assq mode which-key-prefix-title-alist))))
-    (while key-sequence
-      (let ((name (if (consp name) (car name) name))
-            (title (if (consp name) (cdr name) name)))
-        (setq mode-name-alist (which-key--add-key-val-to-alist
-                               mode-name-alist key-sequence name
-                               (format "prefix-name-%s" mode))
-              mode-title-alist (which-key--add-key-val-to-alist
-                                mode-title-alist key-sequence title
-                                (format "prefix-name-%s" mode))))
-      (setq key-sequence (pop more) name (pop more)))
-    (if (assq mode which-key-prefix-name-alist)
-        (setcdr (assq mode which-key-prefix-name-alist) mode-name-alist)
-      (push (cons mode mode-name-alist) which-key-prefix-name-alist))
-    (if (assq mode which-key-prefix-title-alist)
-        (setcdr (assq mode which-key-prefix-title-alist) mode-title-alist)
-      (push (cons mode mode-title-alist) which-key-prefix-title-alist))))
-(put 'which-key-declare-prefixes-for-mode 'lisp-indent-function 'defun)
+(defalias 'which-key-declare-prefixes-for-mode
+  'which-key-add-major-mode-key-based-replacements)
+(make-obsolete 'which-key-declare-prefixes-for-mode
+               'which-key-add-major-mode-key-based-replacements
+               "2016-10-05")
 
 (defun which-key-define-key-recursively (map key def &optional at-root)
   "Recursively bind KEY in MAP to DEF on every level of MAP except the first.
@@ -1278,36 +1219,18 @@ replacement occurs return the new STRING."
        (current-local-map) (kbd (which-key--current-key-string (car keydesc))))
       (intern (cdr keydesc))))
 
-(defun which-key--maybe-replace-prefix-name (keys desc)
-  "KEYS is a list of keys produced by `listify-key-sequences' and
-`key-description'. DESC is the description that is possibly
-replaced using the `which-key-prefix-name-alist'. Whether or not
-a replacement occurs return the new STRING."
-  (let* ((alist which-key-prefix-name-alist)
-         (res (assoc-string keys alist))
-         (mode-alist (assq major-mode alist))
-         (mode-res (when mode-alist
-                     (assoc-string keys mode-alist))))
-    (cond (mode-res (cdr mode-res))
-          (res (cdr res))
-          (t desc))))
-
 (defun which-key--maybe-get-prefix-title (keys)
   "KEYS is a string produced by `key-description'.
-A title is possibly returned using `which-key-prefix-title-alist'.
-An empty stiring is returned if no title exists."
+A title is possibly returned using
+`which-key-key-based-description-replacement-alist'.  An empty
+stiring is returned if no title exists."
   (cond
    ((not (string-equal keys ""))
-    (let* ((alist which-key-prefix-title-alist)
-           (res (assoc-string keys alist))
-           (mode-alist (assq major-mode alist))
-           (mode-res (when mode-alist
-                       (assoc-string keys mode-alist)))
+    (let* ((repl-res (which-key--maybe-replace-key-based "" keys t))
            (binding (key-binding (kbd keys)))
            (alternate (when (and binding (symbolp binding))
                         (symbol-name binding))))
-      (cond (mode-res (cdr mode-res))
-            (res (cdr res))
+      (cond (repl-res repl-res)
             ((and (eq which-key-show-prefix 'echo) alternate)
              alternate)
             ((and (member which-key-show-prefix '(bottom top))
@@ -1321,7 +1244,7 @@ An empty stiring is returned if no title exists."
      which-key--current-show-keymap-name)
     (t "")))
 
-(defun which-key--maybe-replace-key-based (string keys)
+(defun which-key--maybe-replace-key-based (string keys &optional title)
   "KEYS is a string produced by `key-description'
 and STRING is the description that is possibly replaced using the
 `which-key-key-based-description-replacement-alist'. Whether or
@@ -1329,10 +1252,17 @@ not a replacement occurs return the new STRING."
   (let* ((alist which-key-key-based-description-replacement-alist)
          (str-res (assoc-string keys alist))
          (mode-alist (assq major-mode alist))
-         (mode-res (when mode-alist (assoc-string keys mode-alist))))
-    (cond (mode-res (cdr mode-res))
-          (str-res (cdr str-res))
-          (t string))))
+         (mode-res (when mode-alist (assoc-string keys mode-alist)))
+         tmp-res)
+    (setq tmp-res
+          (cond (mode-res (cdr mode-res))
+                (str-res (cdr str-res))
+                (t string)))
+    (cond ((and (listp tmp-res) title)
+           (nth 1 tmp-res))
+          ((listp tmp-res)
+           (car tmp-res))
+          (t tmp-res))))
 
 (defun which-key--propertize-key (key)
   "Add a face to KEY.
@@ -1437,9 +1367,6 @@ alists. Returns a list (key separator description)."
               (desc (which-key--maybe-replace
                      orig-desc which-key-description-replacement-alist))
               (desc (which-key--maybe-replace-key-based desc keys))
-              (desc (if group
-                        (which-key--maybe-replace-prefix-name keys desc)
-                      desc))
               (key-w-face (which-key--propertize-key key))
               (desc-w-face (which-key--propertize-description
                             desc group local hl-face orig-desc)))
