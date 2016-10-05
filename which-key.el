@@ -703,9 +703,9 @@ bottom."
 
 (defun which-key--add-key-val-to-alist (alist key value &optional alist-name)
   "Internal function to add (KEY . VALUE) to ALIST."
-  (when (or (not (stringp key)) (not (or (stringp value) (listp value))))
+  (when (or (not (stringp key)) (not (or (stringp value) (consp value))))
     (error "which-key: Error %s (key) should be a string and %s (value) should\
- be a string or list of strings."
+ be a string or cons of two strings."
            key value))
   (let ((keys (key-description (kbd key))))
     (cond ((null alist) (list (cons keys value)))
@@ -726,9 +726,9 @@ may either be a string, as in
 
 \(which-key-add-key-based-replacements \"C-x 1\" \"maximize\"\)
 
-or a list of two strings as in
+or a cons of two strings as in
 
-\(which-key-add-key-based-replacements \"C-x 8\" '(\"unicode\" \"Unicode keys\")\)
+\(which-key-add-key-based-replacements \"C-x 8\" '(\"unicode\" . \"Unicode keys\")\)
 
 In the second case, the second string is used to provide a longer
 name for the keys under a prefix.
@@ -1233,9 +1233,9 @@ not a replacement occurs return the new STRING."
           (cond (mode-res (cdr mode-res))
                 (str-res (cdr str-res))
                 (t string)))
-    (cond ((and (listp tmp-res) title)
-           (nth 1 tmp-res))
-          ((listp tmp-res)
+    (cond ((and (consp tmp-res) title)
+           (cdr tmp-res))
+          ((consp tmp-res)
            (car tmp-res))
           (t tmp-res))))
 
