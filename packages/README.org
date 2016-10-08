@@ -113,6 +113,8 @@ Files in the "admin" directory should probably be in the emacs-root admin.
 
 * Bugs
 
+** Launching with -q
+
 package.el does not initialize when emacs is launched with -q. This is
 somewhat problematic, since packages in the "core" dir should probably
 always be loaded. Unfortunately package.el is either initialized or
@@ -120,3 +122,64 @@ not -- it can be done just for one directory. Currently this means
 that if files were moved from the "lisp" directory to the "package"
 directory, they would disappear under "emacs -q", until
 package-initialize is called.
+
+*** Investigations
+
+package-initialize is the main issue here. It needs to run even with
+emacs -q, *but* only to load packages in core. At the same time it
+should not record that emacs has been initied, since running
+package-initialize again needs to load files in ~/.emacs.d/elpa.
+
+Functions/Variables to investigate:
+
+package--init-file-ensured
+
+  "Whether we know the init file has package-initialize.")
+
+package-enable-at-startup
+
+  "Whether to activate installed packages when Emacs starts.
+If non-nil, packages are activated after reading the init file
+and before `after-init-hook'.  Activation is not done if
+`user-init-file' is nil (e.g. Emacs was started with \"-q\").
+
+Even if the value is nil, you can type \\[package-initialize] to
+activate the package system at any time."
+
+
+package--ensure-init-file
+
+  "Ensure that the user's init file has `package-initialize'.
+`package-initialize' doesn't have to be called, as long as it is
+present somewhere in the file, even as a comment.  If it is not,
+add a call to it along with some explanatory comments."
+
+ This is entirely hideous
+
+
+package-load-all-descriptors
+
+  "Load descriptors for installed Emacs Lisp packages.
+This looks for package subdirectories in `package-user-dir' and
+`package-directory-list'.  The variable `package-load-list'
+controls which package subdirectories may be loaded.
+
+In each valid package subdirectory, this function loads the
+description file containing a call to `define-package', which
+updates `package-alist'."
+
+
+package-read-all-archive-contents
+
+  "Re-read `archive-contents', if it exists.
+If successful, set `package-archive-contents'."
+
+
+package-build-compatibility-table
+
+
+  "Build `package--compatibility-table' with `package--mapc'."
+
+
+Most of these seem quite easy to re-write in a form which takes a
+directory.
