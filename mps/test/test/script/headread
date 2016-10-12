@@ -160,6 +160,7 @@ sub read_results {
   } elsif (/Abort trap|abnormal program termination|Segmentation fault/) {
 # abort for other reason
    $real_output{"abort"} = "true";
+   $real_output{"assert_or_abort"} = "true";
   } elsif (/^%/ || /^\s$/) {
 # comment or blank line
   } else {
