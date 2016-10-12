@@ -23,6 +23,7 @@ LONG mySEHFilter(LPEXCEPTION_POINTERS info) {
   }
   report("memoryaddr", "%ld", address);
   report("abort", "true");
+  report("assert_or_abort", "true");
   myabort();
  }
 
