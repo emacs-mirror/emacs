@@ -16,6 +16,7 @@
 
 
 typedef struct MutatorContextStruct {
+  CONTEXT context;              /* Thread context. */
   LPEXCEPTION_POINTERS ep;      /* Windows Exception Pointers */
 } MutatorContextStruct;
 

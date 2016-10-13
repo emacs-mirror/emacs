@@ -204,7 +204,6 @@
 
 #include "lockw3.c"     /* Windows locks */
 #include "thw3.c"       /* Windows threading */
-#include "thw3i3.c"     /* Windows on 32-bit Intel thread stack scan */
 #include "vmw3.c"       /* Windows virtual memory */
 #include "protw3.c"     /* Windows protection */
 #include "prmci3.c"     /* 32-bit Intel mutator context decoding */
@@ -219,7 +218,6 @@
 
 #include "lockw3.c"     /* Windows locks */
 #include "thw3.c"       /* Windows threading */
-#include "thw3i6.c"     /* Windows on 64-bit Intel thread stack scan */
 #include "vmw3.c"       /* Windows virtual memory */
 #include "protw3.c"     /* Windows protection */
 #include "prmci6.c"     /* 64-bit Intel mutator context decoding */
@@ -234,7 +232,6 @@
 
 #include "lockw3.c"     /* Windows locks */
 #include "thw3.c"       /* Windows threading */
-#include "thw3i3.c"     /* Windows on 32-bit Intel thread stack scan */
 #include "vmw3.c"       /* Windows virtual memory */
 #include "protw3.c"     /* Windows protection */
 #include "prmci3.c"     /* 32-bit Intel mutator context decoding */
@@ -249,7 +246,6 @@
 
 #include "lockw3.c"     /* Windows locks */
 #include "thw3.c"       /* Windows threading */
-#include "thw3i6.c"     /* Windows on 64-bit Intel thread stack scan */
 #include "vmw3.c"       /* Windows virtual memory */
 #include "protw3.c"     /* Windows protection */
 #include "prmci6.c"     /* 64-bit Intel mutator context decoding */
