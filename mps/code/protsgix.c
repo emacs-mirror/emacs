@@ -1,15 +1,17 @@
-/* protsgix.c: PROTECTION (SIGNAL HANDLER) FOR UNIX
+/* protsgix.c: PROTECTION (SIGNAL HANDLER) FOR POSIX
  *
  *  $Id$
- *  Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ *  Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  * This implements protection exception handling using POSIX signals.
- * It is designed to run on any POSIX-compliant Unix, but currently is
- * only used on FreeBSD, as we have separate implementions for OS X
- * (see protxc.c) and Linux (see protli.c).
+ * It is designed to run on any POSIX-compliant Unix.
  *
  *
  * SOURCES
+ *
+ * .source.posix: POSIX specifications for signal.h and sigaction
+ * <http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/signal.h.html>
+ * <http://pubs.opengroup.org/onlinepubs/9699919799/functions/sigaction.html>
  *
  * .source.man: sigaction(2): FreeBSD System Calls Manual.
  *
@@ -20,12 +22,14 @@
 
 #include "mpm.h"
 
-#if !defined(MPS_OS_FR)
-#error "protsgix.c is Unix-specific, currently for MPS_OS_FR"
+#if !defined(MPS_OS_FR) && !defined(MPS_OS_LI)
+#error "protsgix.c is Unix-specific, currently for MPS_OS_FR and MPS_OS_LI"
 #endif
 
+#include "prmcix.h"
+
 #include <signal.h>    /* for many functions */
-#include <sys/types.h> /* for getpid */
+#include <ucontext.h>  /* for ucontext_t */
 #include <unistd.h>    /* for getpid */
 
 SRCID(protsgix, "$Id$");
@@ -36,66 +40,69 @@ SRCID(protsgix, "$Id$");
 
 static struct sigaction sigNext;
 
+
 /* sigHandle -- protection signal handler
  *
- *  This is the signal handler installed by ProtSetup to deal with
- *  protection faults.  It is installed on the PROT_SIGNAL (a macro
- *  defined according to the platform in config.h) signal.  It
- *  decodes the protection fault details from the signal context and
- *  passes them to ArenaAccess, which attempts to handle the fault and
- *  remove its cause.  If the fault is handled, then the handler
- *  returns and execution resumes.  If it isn't handled, then
- *  sigHandle does its best to pass the signal on to the previously
- *  installed signal handler (sigNext); which it does by signalling
- *  itself using kill(2).
+ * This is the signal handler installed by ProtSetup to deal with
+ * protection faults. It is installed on the signal given by the
+ * PROT_SIGNAL macro (that is, SIGSEGV). It constructs a mutator
+ * context based on the signal context, and passes it to ArenaAccess,
+ * which attempts to handle the fault and remove its cause. If the
+ * fault is handled, then the handler returns and execution resumes.
+ * If it isn't handled, then sigHandle does its best to pass the
+ * signal on to the previously installed signal handler (sigNext);
+ * which it does by signalling itself using kill(2).
  *
- *  .sigh.args: The sigaction manual page .source.man documents three
- *  different handler prototypes: ANSI C sa_handler, traditional BSD
- *  sa_handler, and POSIX SA_SIGINFO sa_sigaction.  The ANSI C
- *  prototype isn't powerful enough for us (can't get addresses), and
- *  the manual page deprecates the BSD sa_handler in favour of the
- *  POSIX SA_SIGINFO sa_sigaction.  In that prototype, the arguments
- *  are: signal number, pointer to signal info structure, pointer to
- *  signal context structure.
+ * .sigh.args: We set the SA_SIGINFO flag in the sa_flags field of the
+ * sigaction structure, and so the signal handler in the sa_sigaction
+ * field receives three arguments: signal number, pointer to signal
+ * info structure, pointer to signal context structure.
  *
- *  .sigh.context: We use the PROT_SIGINFO_GOOD macro to (usually) check
- *  the info->si_code.  The macro is platform dependent and defined in
- *  config.h.  We assume that info->si_addr is the fault address.  This
- *  assumption turns out to fail for PowerPC Darwin (we use protxcpp.c
- *  there).
+ * .sigh.check: We check that info->si_code is SEGV_ACCERR (meaning
+ * "Invalid permissions for mapped object").
  *
- *  .sigh.mode: The fault type (read/write) does not appear to be
- *  available to the signal handler (see mail archive).
+ * .sign.addr: If so, we assume info->si_addr is the fault address.
+ *
+ * .sigh.mode: The fault type (read/write) does not appear to be
+ * available to the signal handler (see mail archive).
  */
 
-static void sigHandle(int sig, siginfo_t *info, void *context)  /* .sigh.args */
+#define PROT_SIGNAL SIGSEGV
+
+static void sigHandle(int sig, siginfo_t *info, void *uap)  /* .sigh.args */
 {
   int e;
   /* sigset renamed to asigset due to clash with global on Darwin. */
   sigset_t asigset, oldset;
   struct sigaction sa;
-  
-  UNUSED(context);
+
   AVER(sig == PROT_SIGNAL);
 
-  /* .sigh.context */
-  if(PROT_SIGINFO_GOOD(info)) {
+  if(info->si_code == SEGV_ACCERR) {  /* .sigh.check */
     AccessSet mode;
     Addr base;
+    ucontext_t *ucontext;
+    MutatorContextStruct context;
+
+    ucontext = (ucontext_t *)uap;
+    context.ucontext = ucontext;
+    context.info = info;
 
     mode = AccessREAD | AccessWRITE; /* .sigh.mode */
 
     /* We assume that the access is for one word at the address. */
-    base = (Addr)info->si_addr;   /* .sigh.context */
+    base = (Addr)info->si_addr;   /* .sigh.addr */
 
     /* Offer each protection structure the opportunity to handle the */
     /* exception.  If it succeeds, then allow the mutator to continue. */
-    if(ArenaAccess(base, mode, NULL))
+    if(ArenaAccess(base, mode, &context))
       return;
   }
 
   /* The exception was not handled by any known protection structure, */
-  /* so throw it to the previously installed handler. */
+  /* so throw it to the previously installed handler.  That handler won't */
+  /* get an accurate context (the MPS would fail if it were the second in */
+  /* line) but it's the best we can do. */
 
   e = sigaction(PROT_SIGNAL, &sigNext, &sa);
   AVER(e == 0);
@@ -113,15 +120,16 @@ static void sigHandle(int sig, siginfo_t *info, void *context)  /* .sigh.args */
 
 /*  ProtSetup -- global protection setup
  *
- *  Under Unix, the global setup involves installing a signal
- *  handler on PROT_SIGNAL to catch and handle page faults (see
- *  sigHandle).  The previous handler is recorded so that it can be
- *  reached from sigHandle if it fails to handle the fault.
+ *  Under Unix, the global setup involves installing a signal handler
+ *  on PROT_SIGNAL to catch and handle page faults (see sigHandle).
+ *  The previous handler is recorded so that it can be reached from
+ *  sigHandle if it fails to handle the fault.
  *
  *  NOTE: There are problems with this approach:
  *    1. we can't honor the sa_flags for the previous handler,
  *    2. what if this thread is suspended just after calling signal(3)?
- *       The sigNext variable will never be initialized!  */
+ *       The sigNext variable will never be initialized!
+ */
 
 void ProtSetup(void)
 {
@@ -139,7 +147,7 @@ void ProtSetup(void)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
