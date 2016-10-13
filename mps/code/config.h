@@ -578,21 +578,6 @@
 #endif
 
 
-/* Protection Configuration see <code/prot*.c>
-
-   For each architecture/OS that uses protix.c or protsgix.c, we need to
-   define what signal number to use, and what si_code value to check.
-*/
-
-#if defined(MPS_OS_FR)
-#define PROT_SIGNAL (SIGSEGV)
-#endif
-
-#if defined(MPS_OS_FR)
-#define PROT_SIGINFO_GOOD(info) ((info)->si_code == SEGV_ACCERR)
-#endif
-
-
 /* Almost all of protxc.c etc. are architecture-independent, but unfortunately
    the Mach headers don't provide architecture neutral symbols for simple
    things like thread states.  These definitions fix that. */
