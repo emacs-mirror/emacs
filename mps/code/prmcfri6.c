@@ -4,7 +4,7 @@
  * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: This module implements the part of the protection module
- * that decodes the MutatorFaultContext.
+ * that decodes the MutatorContext.
  *
  *
  * ASSUMPTIONS
@@ -26,15 +26,14 @@ SRCID(prmcfri6, "$Id$");
 #endif
 
 
-Addr MutatorFaultContextSP(MutatorFaultContext mfc)
+Addr MutatorContextSP(MutatorContext context)
 {
-  return (Addr)mfc->ucontext->uc_mcontext.mc_rsp;   /* .sp */
+  return (Addr)context->ucontext->uc_mcontext.mc_rsp;   /* .sp */
 }
 
 
-Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext mfc,
-                            mps_area_scan_t scan_area,
-                            void *closure)
+Res MutatorContextScan(ScanState ss, MutatorContext context,
+                       mps_area_scan_t scan_area, void *closure)
 {
   Res res;
 
@@ -43,8 +42,8 @@ Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext mfc,
      parts would be machine dependent. */
   res = TraceScanArea(
     ss,
-    (Word *)mfc->ucontext,
-    (Word *)((char *)mfc->ucontext + sizeof(*(mfc->ucontext))),
+    (Word *)context->ucontext,
+    (Word *)((char *)context->ucontext + sizeof(*(context->ucontext))),
     scan_area, closure
   );
 

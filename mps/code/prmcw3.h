@@ -1,7 +1,7 @@
 /* prmcw3.h:  PROTECTION FOR WIN32
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  * .readership: MPS developers.
  */
@@ -15,9 +15,9 @@
 #include "mpswin.h"
 
 
-typedef struct MutatorFaultContextStruct { /* Protection fault context data */
-  LPEXCEPTION_POINTERS ep;                   /* Windows Exception Pointers */
-} MutatorFaultContextStruct;
+typedef struct MutatorContextStruct {
+  LPEXCEPTION_POINTERS ep;      /* Windows Exception Pointers */
+} MutatorContextStruct;
 
 
 #endif /* prmcw3_h */
@@ -25,7 +25,7 @@ typedef struct MutatorFaultContextStruct { /* Protection fault context data */
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

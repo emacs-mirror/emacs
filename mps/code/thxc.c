@@ -1,7 +1,7 @@
 /* thxc.c: OS X MACH THREADS MANAGER
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  * .design: See <design/thread-manager/>.
  *
@@ -225,7 +225,7 @@ Res ThreadScan(ScanState ss, Thread thread, Word *stackCold,
     if(res != ResOK)
       return res;
   } else if (thread->alive) {
-    MutatorFaultContextStruct mfcStruct;
+    MutatorContextStruct context;
     THREAD_STATE_S threadState;
     Word *stackBase, *stackLimit;
     Addr stackPtr;
@@ -236,19 +236,19 @@ Res ThreadScan(ScanState ss, Thread thread, Word *stackCold,
        order to assert that the thread is suspended, but it's probably
        unnecessary and is a lot of work to check a static condition. */
 
-    mfcStruct.address = NULL;
-    mfcStruct.threadState = &threadState;
+    context.address = NULL;
+    context.threadState = &threadState;
 
     count = THREAD_STATE_COUNT;
-    AVER(sizeof(*mfcStruct.threadState) == count * sizeof(natural_t));
+    AVER(sizeof(*context.threadState) == count * sizeof(natural_t));
     kern_return = thread_get_state(thread->port,
                                    THREAD_STATE_FLAVOR,
-                                   (thread_state_t)mfcStruct.threadState,
+                                   (thread_state_t)context.threadState,
                                    &count);
     AVER(kern_return == KERN_SUCCESS);
     AVER(count == THREAD_STATE_COUNT);
 
-    stackPtr = MutatorFaultContextSP(&mfcStruct);
+    stackPtr = MutatorContextSP(&context);
     /* .stack.align */
     stackBase  = (Word *)AddrAlignUp(stackPtr, sizeof(Word));
     stackLimit = stackCold;
@@ -264,7 +264,7 @@ Res ThreadScan(ScanState ss, Thread thread, Word *stackCold,
       return res;
 
     /* scan the registers in the mutator fault context */
-    res = MutatorFaultContextScan(ss, &mfcStruct, scan_area, closure);
+    res = MutatorContextScan(ss, &context, scan_area, closure);
     if(res != ResOK)
       return res;
   }
@@ -294,7 +294,7 @@ Res ThreadDescribe(Thread thread, mps_lib_FILE *stream, Count depth)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
