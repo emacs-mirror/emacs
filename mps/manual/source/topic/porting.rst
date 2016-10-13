@@ -61,8 +61,8 @@ usable.
 
    See :ref:`design-prot` for the design, and ``prot.h`` for the
    interface. There are implementations for POSIX in ``protix.c`` plus
-   ``protsgix.c``, Linux in ``protli.c``, Windows in ``protw3.c``, and
-   OS X using Mach in ``protxc.c``.
+   ``protsgix.c``, Windows in ``protw3.c``, and OS X using Mach in
+   ``protix.c`` plus ``protxc.c``.
 
    There is a generic implementation in ``protan.c``, which can't
    provide memory protection, so it forces memory to be scanned until
@@ -200,7 +200,7 @@ For example::
     #include "pthrdext.c"   /* Posix thread extensions */
     #include "vmix.c"       /* Posix virtual memory */
     #include "protix.c"     /* Posix protection */
-    #include "protli.c"     /* Linux protection */
+    #include "protsgix.c"   /* Posix signal handling */
     #include "prmci6.c"     /* 64-bit Intel mutator context */
     #include "prmclii6.c"   /* 64-bit Intel for Linux mutator context */
     #include "span.c"       /* generic stack probe */
@@ -232,7 +232,7 @@ For example, ``lii6ll.gmk`` looks like this:
         prmci6.c \
         prmclii6.c \
         protix.c \
-        protli.c \
+        protsgix.c \
         pthrdext.c \
         span.c \
         ssixi6.c \

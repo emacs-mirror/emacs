@@ -1,17 +1,17 @@
 .. mode: -*- rst -*-
 
-Linux implementation of protection module
+POSIX implementation of protection module
 =========================================
 
-:Tag: design.mps.protli
+:Tag: design.mps.protix
 :Author: Tony Mann
 :Date: 2000-02-03
 :Status: incomplete document
 :Revision: $Id$
 :Copyright: See `Copyright and License`_.
 :Index terms:
-   pair: Linux; protection interface design
-   pair: Linux protection interface; design
+   pair: POSIX; protection interface design
+   pair: POSIX protection interface; design
 
 
 Introduction
@@ -19,9 +19,9 @@ Introduction
 
 _`.readership`: Any MPS developer
 
-_`.intro`: This is the design of the Linux implementation of the
-protection module. It makes use of various services provided by Linux.
-It is intended to work with LinuxThreads.
+_`.intro`: This is the design of the POSIX implementation of the
+protection module. It makes use of various services provided by POSIX.
+It is intended to work with POSIX Threads.
 
 
 Requirements
@@ -36,12 +36,13 @@ interface defined in design.mps.prot.if_.
 Data structures
 ---------------
 
-_`.data.signext`: This is static. Because that is the only
-communications channel available to signal handlers.
-
-.. note::
-
-    Write a little more here.
+_`.data.signext`: If the SIGSEGV signal is not handled by any MPS
+arena, ``sigHandle()`` needs to forward the signal to the next signal
+handler in the chain (the signal handler that was installed when the
+``ProtSetup()`` was called), by temporarily reinstalling the old
+signal handler and calling ``kill()``. The only way to pass the next
+signal handler to the current signal handler is via a global variable,
+in this case the variable ``sigNext``.
 
 
 Functions
@@ -52,19 +53,6 @@ signal ``SIGSEGV`` to catch and handle protection faults (this handler
 is the function ``sigHandle()``). The previous handler is recorded (in
 the variable ``sigNext``, see `.data.signext`_) so that it can be
 reached from ``sigHandle()`` if it fails to handle the fault.
-
-_`.fun.setup.problem`: The problem with this approach is that we can't
-honour the wishes of the ``sigvec(2)`` entry for the previous handler
-(in terms of masks in particular).
-
-_`.improve.sigvec`: What if when we want to pass on the signal instead
-of calling the handler we call ``sigvec()`` with the old entry and use
-``kill()`` to send the signal to ourselves and then restore our
-handler using ``sigvec()`` again?
-
-.. note::
-
-    Need more detail and analysis here.
 
 _`.fun.set`: ``ProtSet()`` uses ``mprotect()`` to adjust the
 protection for pages.
@@ -97,7 +85,7 @@ Threads
 -------
 
 _`.threads`: The design must operate in a multi-threaded environment
-(with LinuxThreads) and cooperate with the Linux support for locks
+(with POSIX Threads) and cooperate with the POSIX support for locks
 (see design.mps.lock_) and the thread suspension mechanism (see
 design.mps.pthreadext_ ).
 
@@ -112,14 +100,13 @@ simply nest at top of stack.
 
 .. _design.mps.pthreadext.req.suspend.protection: pthreadext#req.suspend.protection
 
-_`.threads.async`: POSIX (and hence Linux) imposes some restrictions
-on signal handler functions (see
-design.mps.pthreadext.anal.signal.safety_). Basically the rules say the
-behaviour of almost all POSIX functions inside a signal handler is
-undefined, except for a handful of functions which are known to be
-"async-signal safe". However, if it's known that the signal didn't
-happen inside a POSIX function, then it is safe to call arbitrary
-POSIX functions inside a handler.
+_`.threads.async`: POSIX imposes some restrictions on signal handler
+functions (see design.mps.pthreadext.anal.signal.safety_). Basically
+the rules say the behaviour of almost all POSIX functions inside a
+signal handler is undefined, except for a handful of functions which
+are known to be "async-signal safe". However, if it's known that the
+signal didn't happen inside a POSIX function, then it is safe to call
+arbitrary POSIX functions inside a handler.
 
 .. _design.mps.pthreadext.anal.signal.safety: pthreadext#anal.signal.safety
 
@@ -136,55 +123,34 @@ it's OK to call arbitrary POSIX functions inside the handler.
 
 _`.threads.async.other`: If the signal handler is invoked for some
 other reason (that is, one we are not prepared to handle) then there
-is less we can say about what might have caused the SEGV. In general
-it is not safe to call arbitrary POSIX functions inside the handler in
-this case.
+is less we can say about what might have caused the SIGSEGV. In
+general it is not safe to call arbitrary POSIX functions inside the
+handler in this case.
 
 _`.threads.async.choice`: The signal handler calls ``ArenaAccess()``
 to determine whether the segmentation fault was the result of an MPS
-access. ArenaAccess will claim various MPS locks (that is, the arena
-ring lock and some arena locks). The code calls no other POSIX
+access. ``ArenaAccess()`` will claim various MPS locks (that is, the
+arena ring lock and some arena locks). The code calls no other POSIX
 functions in the case where the segmentation fault is not an MPS
 access. The locks are implemented as mutexes and are claimed by
 calling ``pthread_mutex_lock()``, which is not defined to be
 async-signal safe.
 
-_`.threads.async.choice.ok`: However, despite the fact that PThreads
-documentation doesn't define the behaviour of ``pthread_mutex_lock()``
-in these circumstances, we expect the LinuxThreads implementation will
-be well-behaved unless the segmentation fault occurs while while in
-the process of locking or unlocking one of the MPS locks (see
-`.threads.async.linux-mutex`_). But we can assume that a segmentation
-fault will not happen then (because we use the locks correctly, and
-generally must assume that they work). Hence we conclude that it is OK
-to call ``ArenaAccess()`` directly from the signal handler.
-
-_`.threads.async.linux-mutex`: A study of the LinuxThreads source code
-reveals that mutex lock and unlock functions are implemented as a
-spinlock (using a locked compare-and-exchange instruction) with a
-backup suspension mechanism using ``sigsuspend()``. On locking, the
-spinlock code performs a loop which examines the state of the lock,
-and then atomically tests that the state is unchanged while attempting
-to modify it. This part of the code is reentrant (and hence
-async-signal safe). Eventually, when locking, the spinlock code may
-need to block, in which case it calls ``sigsuspend()``, waiting for
-the manager thread to unblock it. The unlocking code is similar,
-except that this code may need to release another thread, in which
-case it calls ``kill()``. The functions ``sigsuspend()`` and
-``kill()`` are both defined to be async-signal safe by POSIX. In
-summary, the mutex locking functions use primitives which are entirely
-async-signal safe. They perform side-effects which modify the fields
-of the lock structure only. This code may be safely invoked inside a
-signal handler unless the interrupted function is in the process of
-manipulating the fields of that lock structure.
+_`.threads.async.choice.ok`: However, despite the fact that POSIX
+Threads documentation doesn't define the behaviour of
+``pthread_mutex_lock()`` in these circumstances, we expect the POSIX
+Threads implementation will be well-behaved unless the segmentation
+fault occurs while while in the process of locking or unlocking one of
+the MPS locks. But we can assume that a segmentation fault will not
+happen then (because we use the locks correctly, and generally must
+assume that they work). Hence we conclude that it is OK to call
+``ArenaAccess()`` directly from the signal handler.
 
 _`.threads.async.improve`: In future it would be preferable to not
-have to assume reentrant mutex locking and unlocking functions. By
-making the assumption we also assume that the implementation of
-mutexes in LinuxThreads will not be completely re-designed in future
-(which is not wise for the long term). An alternative approach would
-be necessary anyway when supporting another platform which doesn't
-offer reentrant locks (if such a platform does exist).
+have to assume reentrant mutex locking and unlocking functions. An
+alternative approach would be necessary anyway when supporting another
+platform which doesn't offer reentrant locks (if such a platform does
+exist).
 
 _`.threads.async.improve.how`: We could avoid the assumption if we had
 a means of testing whether an address lies within an arena chunk
@@ -198,7 +164,7 @@ datastructure.
 
 _`.threads.sig-stack`: We do not handle signals on a separate signal
 stack. Separate signal stacks apparently don't work properly with
-Pthreads.
+POSIX Threads.
 
 
 Document History
@@ -210,6 +176,8 @@ Document History
 
 - 2013-05-23 GDR_ Converted to reStructuredText.
 
+- 2016-10-13 GDR_ Generalise to POSIX, not just Linux.
+
 .. _RB: http://www.ravenbrook.com/consultants/rb/
 .. _GDR: http://www.ravenbrook.com/consultants/gdr/
 
@@ -217,7 +185,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2013-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

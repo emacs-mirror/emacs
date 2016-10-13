@@ -87,7 +87,7 @@ poolmvt_                Manual Variable Temporal pool class
 poolmvff_               Manual Variable First-Fit pool class
 prmc_                   Mutator context
 prot_                   Memory protection
-protli_                 Linux implementation of protection module
+protix_                 POSIX implementation of protection module
 protocol_               Protocol inheritance
 protsu_                 SunOS 4 implementation of protection module
 pthreadext_             POSIX thread extensions
@@ -167,7 +167,7 @@ writef_                 The WriteF function
 .. _poolmvff: poolmvff
 .. _prmc: prmc
 .. _prot: prot
-.. _protli: protli
+.. _protix: protix
 .. _protocol: protocol
 .. _protsu: protsu
 .. _pthreadext: pthreadext

@@ -133,11 +133,7 @@ mutator context module that support single-stepping of accesses (see design.mps.
 
 .. _design.mps.prmc.req.fault.step: prmc#req.fault.step
 
-_`.impl.ix`: POSIX implementation.
-
-_`.impl.li`: Linux implementation. See design.mps.protli_.
-
-.. _design.mps.protli: protli
+_`.impl.ix`: POSIX implementation. See design.mps.protix_.
 
 _`.impl.w3`: Windows implementation.
 
