@@ -14,10 +14,10 @@ MPMPF = \
     protix.c \
     protsgix.c \
     pthrdext.c \
-    span.c
+    span.c \
     ssixi6.c \
     thix.c \
-    vmix.c \
+    vmix.c
 
 LIBS = -lm -pthread
 
