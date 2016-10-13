@@ -41,7 +41,6 @@ Old design
     poolmv
     poolmvt
     poolmvff
-    protli
     protsu
     protocol
     pthreadext

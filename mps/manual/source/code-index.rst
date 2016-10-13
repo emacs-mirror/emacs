@@ -183,7 +183,6 @@ prmcxci6.c    Mutator context implementation for OS X, x86-64.
 prot.h        Protection interface. See design.mps.prot_.
 protan.c      Protection implementation for standard C.
 protix.c      Protection implementation for POSIX.
-protli.c      Protection implementation for Linux.
 protsgix.c    Protection implementation for POSIX (signals part).
 protw3.c      Protection implementation for Windows.
 protxc.c      Protection implementation for OS X.

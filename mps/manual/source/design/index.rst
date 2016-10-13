@@ -27,6 +27,7 @@ Design
     nailboard
     prmc
     prot
+    protix
     range
     ring
     shield
