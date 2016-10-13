@@ -41,7 +41,6 @@ static void landEnter(Land land)
   /* Don't need to check as always called from interface function. */
   AVER(!land->inLand);
   land->inLand = TRUE;
-  return;
 }
 
 static void landLeave(Land land)
@@ -49,7 +48,6 @@ static void landLeave(Land land)
   /* Don't need to check as always called from interface function. */
   AVER(land->inLand);
   land->inLand = FALSE;
-  return;
 }
 
 

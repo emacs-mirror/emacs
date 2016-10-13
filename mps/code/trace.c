@@ -310,7 +310,6 @@ static void traceSetUpdateCounts(TraceSet ts, Arena arena, ScanState ss,
   TRACE_SET_ITER(ti, trace, ts, arena)
     traceUpdateCounts(trace, ss, phase);
   TRACE_SET_ITER_END(ti, trace, ts, arena);
-  return;
 }
 
 
@@ -1448,8 +1447,6 @@ void TraceScanSingleRef(TraceSet ts, Rank rank, Arena arena,
     /* Ought to be OK in emergency mode now. */
   }
   AVER(ResOK == res);
-
-  return;
 }
 
 
