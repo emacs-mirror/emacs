@@ -347,7 +347,7 @@ MMQA=perl test/qa -p $(PFM) -v $(VARIETY)
 
 $(PFM)/$(VARIETY)/testmmqa:
 	if [ "$(VARIETY)" = "cool" ]; then (cd ../test && $(MMQA) runset testsets/coolonly); fi
-	(cd ../test && $(MMQA) runset testsets/{argerr,conerr,passing})
+	(cd ../test && $(MMQA) runset testsets/argerr testsets/conerr testsets/passing)
 
 
 # == Toy Scheme interpreter ==
