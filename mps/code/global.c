@@ -526,7 +526,6 @@ void ArenaEnterLock(Arena arena, Bool recursive)
   } else {
     ShieldEnter(arena);
   }
-  return;
 }
 
 /* Same as ArenaEnter, but for the few functions that need to be
@@ -565,7 +564,6 @@ void ArenaLeaveLock(Arena arena, Bool recursive)
   } else {
     LockRelease(lock);
   }
-  return;
 }
 
 void ArenaLeaveRecursive(Arena arena)

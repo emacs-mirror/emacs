@@ -1,7 +1,7 @@
 /* qs.c: QUICKSORT
  *
  *  $Id$
- *  Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ *  Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  *  The purpose of this program is to act as a "real" client of the MM.
  *  It is a test, but (hopefully) less contrived than some of the other
@@ -120,7 +120,6 @@ static void cons(mps_word_t tag0, mps_addr_t value0, QSCell tail)
 
   reg[0] = (mps_addr_t)new;
   regtag[0] = QSRef;
-  return;
 }
 
 
@@ -165,7 +164,6 @@ static void append(void)
   /* null out reg[1] */
   regtag[1] = QSRef;
   reg[1] = (mps_addr_t)0;
-  return;
 }
 
 
@@ -394,7 +392,6 @@ static void pad(mps_addr_t base, size_t size)
   cdie(size >= 2*sizeof(mps_word_t), "pad size 2");
   object[0] = QSPadMany;
   object[1] = size;
-  return;
 }
 
 
@@ -541,7 +538,7 @@ int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

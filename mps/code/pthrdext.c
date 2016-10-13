@@ -89,7 +89,6 @@ static void suspendSignalHandler(int sig,
     sigsuspend(&signal_set);
 
     /* Once here, the resume signal handler has run to completion. */
-    return;
 }
 
 
@@ -102,7 +101,6 @@ static void resumeSignalHandler(int sig)
 {
     AVER(sig == PTHREADEXT_SIGRESUME);
     UNUSED(sig);
-    return;
 }
 
 /* PThreadextModuleInit -- Initialize the PThreadext module

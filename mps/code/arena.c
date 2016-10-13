@@ -1175,7 +1175,6 @@ void ArenaFree(Addr base, Size size, Pool pool)
   CHECKL(arena->spareCommitted <= arena->spareCommitLimit);
 
   EVENT3(ArenaFree, arena, wholeBase, wholeSize);
-  return;
 }
 
 
@@ -1373,7 +1372,6 @@ static void ArenaTrivCompact(Arena arena, Trace trace)
 {
   UNUSED(arena);
   UNUSED(trace);
-  return;
 }
 
 

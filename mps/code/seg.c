@@ -108,7 +108,6 @@ void SegFree(Seg seg)
   ArenaFree(base, size, pool);
 
   EVENT2(SegFree, arena, seg);
-  return;
 }
 
 
