@@ -177,7 +177,7 @@
 #include "pthrdext.c"   /* Posix thread extensions */
 #include "vmix.c"       /* Posix virtual memory */
 #include "protix.c"     /* Posix protection */
-#include "protli.c"     /* Linux protection */
+#include "protsgix.c"   /* Posix signal handling */
 #include "prmci3.c"     /* 32-bit Intel mutator context */
 #include "prmclii3.c"   /* 32-bit Intel for Linux mutator context */
 #include "span.c"       /* generic stack probe */
@@ -192,7 +192,7 @@
 #include "pthrdext.c"   /* Posix thread extensions */
 #include "vmix.c"       /* Posix virtual memory */
 #include "protix.c"     /* Posix protection */
-#include "protli.c"     /* Linux protection */
+#include "protsgix.c"   /* Posix signal handling */
 #include "prmci6.c"     /* 64-bit Intel mutator context */
 #include "prmclii6.c"   /* 64-bit Intel for Linux mutator context */
 #include "span.c"       /* generic stack probe */
