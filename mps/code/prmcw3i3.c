@@ -16,6 +16,15 @@
  *
  * .assume.regref: The registers in the context can be modified by
  * storing into an MRef pointer.
+ *
+ * .assume.regroots: The root registers (Edi, Esi, Ebx, Edx, Ecx, Eax)
+ * are stored in the CONTEXT data structure and are stored at
+ * word-aligned addresses. This requires CONTEXT_INTEGER to be set in
+ * ContextFlags when GetThreadContext is called.
+ *
+ * .assume.sp: The stack pointer is stored in CONTEXT.Esp. This
+ * requires CONTEXT_CONTROL to be set in ContextFlags when
+ * GetThreadContext is called.
  */
 
 #include "prmcw3.h"
@@ -79,6 +88,25 @@ void Prmci3DecodeFaultContext(MRef *faultmemReturn, Byte **insvecReturn,
 void Prmci3StepOverIns(MutatorContext context, Size inslen)
 {
   context->ep->ContextRecord->Eip += (DWORD)inslen;
+}
+
+
+Addr MutatorContextSP(MutatorContext context)
+{
+  return (Addr)context->context.Esp; /* .assume.sp */
+}
+
+
+Res MutatorContextScan(ScanState ss, MutatorContext context,
+                       mps_area_scan_t scan_area, void *closure)
+{
+  CONTEXT *cx;
+  Res res;
+
+  cx = &context->context;
+  res = TraceScanArea(ss, (Word *)cx, (Word *)((char *)cx + sizeof *cx),
+                      scan_area, closure); /* .assume.regroots */
+  return res;
 }
 
 
