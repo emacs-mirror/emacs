@@ -579,16 +579,6 @@ Bool ArenaBusy(Arena arena)
 }
 
 
-/* mps_exception_info -- pointer to exception info
- *
- * This is a hack to make exception info easier to find in a release
- * version.  The format is platform-specific.  We won't necessarily
- * publish this.  */
-
-extern MutatorFaultContext mps_exception_info;
-MutatorFaultContext mps_exception_info = NULL;
-
-
 /* ArenaAccess -- deal with an access fault
  *
  * This is called when a protected address is accessed.  The mode
@@ -603,7 +593,6 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
   Res res;
 
   arenaClaimRingLock();    /* <design/arena/#lock.ring> */
-  mps_exception_info = context;
   AVERT(Ring, &arenaRing);
 
   RING_FOR(node, &arenaRing, nextNode) {
@@ -619,7 +608,6 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
     /* protected root on a segment. */
     /* It is possible to overcome this restriction. */
     if (SegOfAddr(&seg, arena, addr)) {
-      mps_exception_info = NULL;
       arenaReleaseRingLock();
       /* An access in a different thread (or even in the same thread,
        * via a signal or exception handler) may have already caused
@@ -638,7 +626,6 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
       ArenaLeave(arena);
       return TRUE;
     } else if (RootOfAddr(&root, arena, addr)) {
-      mps_exception_info = NULL;
       arenaReleaseRingLock();
       mode &= RootPM(root);
       if (mode != AccessSetEMPTY)
@@ -656,7 +643,6 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
     ArenaLeave(arena);
   }
 
-  mps_exception_info = NULL;
   arenaReleaseRingLock();
   return FALSE;
 }
