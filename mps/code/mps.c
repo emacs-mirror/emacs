@@ -120,6 +120,7 @@
 #include "protix.c"     /* Posix protection */
 #include "protxc.c"     /* OS X Mach exception handling */
 #include "prmci3.c"     /* 32-bit Intel mutator context decoding */
+#include "prmcxc.c"     /* Mac OS X mutator context */
 #include "prmcxci3.c"   /* 32-bit Intel for Mac OS X mutator context */
 #include "span.c"       /* generic stack probe */
 #include "ssixi3.c"     /* Posix on 32-bit Intel stack scan */
@@ -134,6 +135,7 @@
 #include "protix.c"     /* Posix protection */
 #include "protxc.c"     /* OS X Mach exception handling */
 #include "prmci6.c"     /* 64-bit Intel mutator context decoding */
+#include "prmcxc.c"     /* Mac OS X mutator context */
 #include "prmcxci6.c"   /* 64-bit Intel for Mac OS X mutator context */
 #include "span.c"       /* generic stack probe */
 #include "ssixi6.c"     /* Posix on 64-bit Intel stack scan */
@@ -149,6 +151,7 @@
 #include "protix.c"     /* Posix protection */
 #include "protsgix.c"   /* Posix signal handling */
 #include "prmcan.c"     /* generic mutator context */
+#include "prmcix.c"     /* Posix mutator context */
 #include "prmcfri3.c"   /* 32-bit Intel for FreeBSD mutator context */
 #include "span.c"       /* generic stack probe */
 #include "ssixi3.c"     /* Posix on 32-bit Intel stack scan */
@@ -164,6 +167,7 @@
 #include "protix.c"     /* Posix protection */
 #include "protsgix.c"   /* Posix signal handling */
 #include "prmcan.c"     /* generic mutator context */
+#include "prmcix.c"     /* Posix mutator context */
 #include "prmcfri6.c"   /* 64-bit Intel for FreeBSD mutator context */
 #include "span.c"       /* generic stack probe */
 #include "ssixi6.c"     /* Posix on 64-bit Intel stack scan */
@@ -179,6 +183,7 @@
 #include "protix.c"     /* Posix protection */
 #include "protsgix.c"   /* Posix signal handling */
 #include "prmci3.c"     /* 32-bit Intel mutator context */
+#include "prmcix.c"     /* Posix mutator context */
 #include "prmclii3.c"   /* 32-bit Intel for Linux mutator context */
 #include "span.c"       /* generic stack probe */
 #include "ssixi3.c"     /* Posix on 32-bit Intel stack scan */
@@ -194,6 +199,7 @@
 #include "protix.c"     /* Posix protection */
 #include "protsgix.c"   /* Posix signal handling */
 #include "prmci6.c"     /* 64-bit Intel mutator context */
+#include "prmcix.c"     /* Posix mutator context */
 #include "prmclii6.c"   /* 64-bit Intel for Linux mutator context */
 #include "span.c"       /* generic stack probe */
 #include "ssixi6.c"     /* Posix on 64-bit Intel stack scan */

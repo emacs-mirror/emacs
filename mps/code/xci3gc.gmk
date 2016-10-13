@@ -12,6 +12,7 @@ PFM = xci3gc
 MPMPF = \
     lockix.c \
     prmci3.c \
+    prmcxc.c \
     prmcxci3.c \
     protix.c \
     protxc.c \
