@@ -94,7 +94,7 @@ typedef struct GlobalsStruct *Globals;  /* <design/arena/> */
 typedef struct VMStruct *VM;            /* <code/vm.c>* */
 typedef struct RootStruct *Root;        /* <code/root.c> */
 typedef struct mps_thr_s *Thread;       /* <code/th.c>* */
-typedef struct MutatorContextStruct *MutatorContext; /* <design/prot/> */
+typedef struct MutatorContextStruct *MutatorContext; /* <design/prmc/> */
 typedef struct PoolDebugMixinStruct *PoolDebugMixin;
 typedef struct AllocPatternStruct *AllocPattern;
 typedef struct AllocFrameStruct *AllocFrame; /* <design/alloc-frame/> */
