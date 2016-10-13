@@ -15,12 +15,14 @@
 #include <mach/i386/thread_status.h>
 
 typedef struct MutatorContextStruct {
+  Sig sig;                      /* <design/sig/> */
   Addr address;
   THREAD_STATE_S *threadState;
   /* FIXME: Might need to get the floats in case the compiler stashes
      intermediate values in them. */
 } MutatorContextStruct;
 
+extern void MutatorContextInit(MutatorContext context, Addr address, THREAD_STATE_S *threadState);
 
 #endif /* prmcxc_h */
 

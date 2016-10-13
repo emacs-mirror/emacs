@@ -80,7 +80,7 @@ static void suspendSignalHandler(int sig,
     /* copy the ucontext structure so we definitely have it on our stack,
      * not (e.g.) shared with other threads. */
     ucontext = *(ucontext_t *)uap;
-    context.ucontext = &ucontext;
+    MutatorContextInit(&context, NULL, &ucontext);
     suspendingVictim->context = &context;
     /* Block all signals except PTHREADEXT_SIGRESUME while suspended. */
     sigfillset(&signal_set);

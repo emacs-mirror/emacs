@@ -18,9 +18,6 @@
  *
  * .sp: The stack pointer in the context is ESP.
  *
- * .context.regroots: The root regs are assumed to be recorded in the context
- * at pointer-aligned boundaries.
- *
  * .assume.regref: The registers in the context can be modified by
  * storing into an MRef pointer.
  */
@@ -41,10 +38,9 @@ MRef Prmci3AddressHoldingReg(MutatorContext context, unsigned int regnum)
 {
   MRef gregs;
 
-  AVER(context != NULL);
+  AVERT(MutatorContext, context);
   AVER(NONNEGATIVE(regnum));
   AVER(regnum <= 7);
-  AVER(context->ucontext != NULL);
 
   /* TODO: The current arrangement of the fix operation (taking a Ref *)
      forces us to pun these registers (actually `int` on LII3GC).  We can
@@ -80,6 +76,10 @@ void Prmci3DecodeFaultContext(MRef *faultmemReturn,
                               Byte **insvecReturn,
                               MutatorContext context)
 {
+  AVER(faultmemReturn != NULL);
+  AVER(insvecReturn != NULL);
+  AVERT(MutatorContext, context);
+
   /* .source.linux.kernel (linux/arch/i386/mm/fault.c). */
   *faultmemReturn = (MRef)context->info->si_addr;
   *insvecReturn = (Byte*)context->ucontext->uc_mcontext.gregs[REG_EIP];
@@ -90,31 +90,17 @@ void Prmci3DecodeFaultContext(MRef *faultmemReturn,
 
 void Prmci3StepOverIns(MutatorContext context, Size inslen)
 {
+  AVERT(MutatorContext, context);
+
   context->ucontext->uc_mcontext.gregs[REG_EIP] += (unsigned long)inslen;
 }
 
 
 Addr MutatorContextSP(MutatorContext context)
 {
+  AVERT(MutatorContext, context);
+
   return (Addr)context->ucontext->uc_mcontext.gregs[REG_ESP];
-}
-
-
-Res MutatorContextScan(ScanState ss, MutatorContext context,
-                       mps_area_scan_t scan_area, void *closure)
-{
-  mcontext_t *mc;
-  Res res;
-
-  /* This scans the root registers (.context.regroots).  It also
-     unnecessarily scans the rest of the context.  The optimisation
-     to scan only relevant parts would be machine dependent. */
-  mc = &context->ucontext->uc_mcontext;
-  res = TraceScanArea(ss,
-                      (Word *)mc,
-                      (Word *)((char *)mc + sizeof(*mc)),
-                      scan_area, closure);
-  return res;
 }
 
 

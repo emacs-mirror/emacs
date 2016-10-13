@@ -59,6 +59,8 @@ Bool MutatorContextCanStepInstruction(MutatorContext context)
   MRef src;
   MRef dest;
 
+  AVERT(MutatorContext, context);
+
   /* .assume.null */
   if(IsSimpleMov(&inslen, &src, &dest, context)) {
     return TRUE;
@@ -73,6 +75,8 @@ Res MutatorContextStepInstruction(MutatorContext context)
   Size inslen;
   MRef src;
   MRef dest;
+
+  AVERT(MutatorContext, context);
 
   /* .assume.null */
   if(IsSimpleMov(&inslen, &src, &dest, context)) {

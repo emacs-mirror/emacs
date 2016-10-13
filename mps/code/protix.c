@@ -1,14 +1,10 @@
 /* protix.c: PROTECTION FOR UNIX
  *
  *  $Id$
- *  Copyright (c) 2001-2015 Ravenbrook Limited.  See end of file for license.
+ *  Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  *  Somewhat generic across different Unix systems.  Shared between
  *  OS X, FreeBSD, and Linux.
- *
- *  This file does not contain a signal handler. That's in protsgix.c for
- *  historical reasons (there used to be separate implementations for the
- *  different flavours of Unix).
  *
  *
  *  SOURCES
@@ -123,7 +119,7 @@ Size ProtGranularity(void)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2015 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

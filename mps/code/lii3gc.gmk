@@ -10,6 +10,7 @@ PFM = lii3gc
 MPMPF = \
     lockix.c \
     prmci3.c \
+    prmcix.c \
     prmclii3.c \
     protix.c \
     protsgix.c \

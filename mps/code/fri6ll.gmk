@@ -11,6 +11,7 @@ MPMPF = \
     lockix.c \
     prmcan.c \
     prmcfri6.c \
+    prmcix.c \
     protix.c \
     protsgix.c \
     pthrdext.c \

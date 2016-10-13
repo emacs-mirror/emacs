@@ -15,10 +15,12 @@
 #include <ucontext.h> /* ucontext_t */
 
 typedef struct MutatorContextStruct {
+  Sig sig;                      /* <design/sig/> */
   siginfo_t *info;
   ucontext_t *ucontext;
 } MutatorContextStruct;
 
+extern void MutatorContextInit(MutatorContext context, siginfo_t *info, ucontext_t *ucontext);
 
 #endif /* prmcix_h */
 

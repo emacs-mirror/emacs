@@ -84,6 +84,13 @@ See design.mps.thread-manager.if.thread_.
 
 .. _design.mps.thread-manager.if.thread: thread-manager#if.thread
 
+``Bool MutatorContextCheck(MutatorContext context)``
+
+_`.if.check`: The check function for mutator contexts. See
+design.mps.check_.
+
+.. _design.mps.check: check
+
 ``Bool MutatorContextCanStepInstruction(MutatorContext context)``
 
 _`.if.canstep`: Examine the context to determine whether the

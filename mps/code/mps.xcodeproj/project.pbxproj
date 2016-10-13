@@ -1452,6 +1452,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		2213454C1DB0386600E14202 /* prmc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = prmc.h; sourceTree = "<group>"; };
+		2213454D1DB038D400E14202 /* prmcxc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = prmcxc.c; sourceTree = "<group>"; };
 		2231BB5918CA97D8002D6322 /* locbwcss */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = locbwcss; sourceTree = BUILT_PRODUCTS_DIR; };
 		2231BB6718CA97DC002D6322 /* locusss */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = locusss; sourceTree = BUILT_PRODUCTS_DIR; };
 		2231BB6818CA9834002D6322 /* locbwcss.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = locbwcss.c; sourceTree = "<group>"; };
@@ -1655,17 +1657,13 @@
 		311F2F6B17398B4C00C15B6A /* mpswin.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mpswin.h; sourceTree = "<group>"; };
 		311F2F6D17398B6300C15B6A /* prmci3.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = prmci3.h; sourceTree = "<group>"; };
 		311F2F6E17398B6300C15B6A /* prmci6.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = prmci6.h; sourceTree = "<group>"; };
-		311F2F6F17398B6300C15B6A /* prmcix.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = prmcix.h; sourceTree = "<group>"; };
-		311F2F7017398B6300C15B6A /* prmcw3.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = prmcw3.h; sourceTree = "<group>"; };
 		311F2F7117398B7100C15B6A /* protocol.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = protocol.h; sourceTree = "<group>"; };
-		311F2F7217398B7100C15B6A /* pthrdext.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pthrdext.h; sourceTree = "<group>"; };
 		311F2F7317398B7100C15B6A /* ring.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ring.h; sourceTree = "<group>"; };
 		311F2F7417398B7100C15B6A /* sac.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sac.h; sourceTree = "<group>"; };
 		311F2F7517398B8E00C15B6A /* sc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sc.h; sourceTree = "<group>"; };
 		311F2F7617398B8E00C15B6A /* splay.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = splay.h; sourceTree = "<group>"; };
 		311F2F7717398B8E00C15B6A /* ss.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ss.h; sourceTree = "<group>"; };
 		311F2F7817398B8E00C15B6A /* th.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = th.h; sourceTree = "<group>"; };
-		311F2F7917398B8E00C15B6A /* thw3.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = thw3.h; sourceTree = "<group>"; };
 		311F2F7A17398B8E00C15B6A /* tract.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = tract.h; sourceTree = "<group>"; };
 		311F2F7B17398E7600C15B6A /* poolmv.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = poolmv.h; sourceTree = "<group>"; };
 		311F2F7C17398E9A00C15B6A /* mpscmv.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mpscmv.h; sourceTree = "<group>"; };
@@ -2453,7 +2451,6 @@
 		31EEABF4156AAF6500714D05 /* MPM Core */ = {
 			isa = PBXGroup;
 			children = (
-				31942A671C8EC3FC001AAF32 /* locus.h */,
 				3114A645156E9525001E0AA3 /* abq.c */,
 				2291A5EA175CB503001D4920 /* abq.h */,
 				31EEAC05156AB27B00714D05 /* arena.c */,
@@ -2489,6 +2486,7 @@
 				31EEAC2B156AB2F200714D05 /* ld.c */,
 				311F2F5E17398B0E00C15B6A /* lock.h */,
 				31EEAC08156AB27B00714D05 /* locus.c */,
+				31942A671C8EC3FC001AAF32 /* locus.h */,
 				31EEAC2C156AB2F200714D05 /* message.c */,
 				31EEAC42156AB32500714D05 /* meter.c */,
 				311F2F5F17398B0E00C15B6A /* meter.h */,
@@ -2519,13 +2517,9 @@
 				311F2F7B17398E7600C15B6A /* poolmv.h */,
 				22FACEDE18880933000FDBC1 /* pooln.c */,
 				22FACEDF18880933000FDBC1 /* pooln.h */,
-				311F2F6D17398B6300C15B6A /* prmci3.h */,
-				311F2F6E17398B6300C15B6A /* prmci6.h */,
-				311F2F6F17398B6300C15B6A /* prmcix.h */,
-				311F2F7017398B6300C15B6A /* prmcw3.h */,
+				2213454C1DB0386600E14202 /* prmc.h */,
 				31EEAC0B156AB27B00714D05 /* protocol.c */,
 				311F2F7117398B7100C15B6A /* protocol.h */,
-				311F2F7217398B7100C15B6A /* pthrdext.h */,
 				2291A5EB175CB53E001D4920 /* range.c */,
 				2291A5EC175CB53E001D4920 /* range.h */,
 				31EEAC1B156AB2B200714D05 /* ref.c */,
@@ -2545,7 +2539,6 @@
 				22FACEDA1888088A000FDBC1 /* ss.c */,
 				311F2F7717398B8E00C15B6A /* ss.h */,
 				311F2F7817398B8E00C15B6A /* th.h */,
-				311F2F7917398B8E00C15B6A /* thw3.h */,
 				31EEAC1E156AB2B200714D05 /* trace.c */,
 				31EEAC1F156AB2B200714D05 /* traceanc.c */,
 				31EEAC0D156AB27B00714D05 /* tract.c */,
@@ -2563,9 +2556,12 @@
 		31EEAC4B156AB39C00714D05 /* Platform */ = {
 			isa = PBXGroup;
 			children = (
-				315B7AFC17834FDB00B097C4 /* prmci3.c */,
-				315B7AFD17834FDB00B097C4 /* prmci6.c */,
 				31EEAC4C156AB3B000714D05 /* lockix.c */,
+				315B7AFC17834FDB00B097C4 /* prmci3.c */,
+				311F2F6D17398B6300C15B6A /* prmci3.h */,
+				315B7AFD17834FDB00B097C4 /* prmci6.c */,
+				311F2F6E17398B6300C15B6A /* prmci6.h */,
+				2213454D1DB038D400E14202 /* prmcxc.c */,
 				31172ABB177512F6009488E5 /* prmcxci3.c */,
 				31172ABC1775131C009488E5 /* prmcxci6.c */,
 				31172ABE1775164F009488E5 /* prmcxc.h */,

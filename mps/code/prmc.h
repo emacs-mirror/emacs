@@ -15,7 +15,9 @@
 
 #include "mpmtypes.h"
 
+#define MutatorContextSig ((Sig)0x519302C0) /* SIGnature MUTator COntext */
 
+extern Bool MutatorContextCheck(MutatorContext context);
 extern Bool MutatorContextCanStepInstruction(MutatorContext context);
 extern Res MutatorContextStepInstruction(MutatorContext context);
 extern Addr MutatorContextSP(MutatorContext context);

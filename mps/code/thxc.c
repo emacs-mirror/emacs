@@ -236,8 +236,7 @@ Res ThreadScan(ScanState ss, Thread thread, Word *stackCold,
        order to assert that the thread is suspended, but it's probably
        unnecessary and is a lot of work to check a static condition. */
 
-    context.address = NULL;
-    context.threadState = &threadState;
+    MutatorContextInit(&context, NULL, &threadState);
 
     count = THREAD_STATE_COUNT;
     AVER(sizeof(*context.threadState) == count * sizeof(natural_t));

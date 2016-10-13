@@ -1,36 +1,72 @@
-/* prmcfri6.c: MUTATOR CONTEXT x64 (FREEBSD)
+/* prmcxc.c: MUTATOR CONTEXT INTEL 386 (MAC OS X)
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2016 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: Implement the mutator context module. See <design/prmc/>.
  *
  *
  * ASSUMPTIONS
  *
- * .sp: The stack pointer in the context is RSP.
+ * .context.regroots: The root registers are assumed to be recorded in
+ * the context at pointer-aligned boundaries.
  */
 
-#include "prmcix.h"
-#include "prmci6.h"
+#include "prmcxc.h"
 
-SRCID(prmcfri6, "$Id$");
+SRCID(prmcxc, "$Id$");
 
-#if !defined(MPS_OS_FR) || !defined(MPS_ARCH_I6)
-#error "prmcfri6.c is specific to MPS_OS_FR and MPS_ARCH_I6"
+#if !defined(MPS_OS_XC)
+#error "prmcxc.c is specific to MPS_OS_XC"
 #endif
 
 
-Addr MutatorContextSP(MutatorContext context)
+Bool MutatorContextCheck(MutatorContext context)
 {
+  CHECKS(MutatorContext, context);
+  CHECKL(context->threadState != NULL);
+  return TRUE;
+}
+
+
+void MutatorContextInit(MutatorContext context, Addr address,
+                        THREAD_STATE_S *threadState)
+{
+  AVER(context != NULL);
+  AVER(threadState != NULL);
+
+  context->address = address;
+  AVER(sizeof *context->threadState == sizeof(THREAD_STATE_S));
+  context->threadState = threadState;
+  context->sig = MutatorContextSig;
+
   AVERT(MutatorContext, context);
-  return (Addr)context->ucontext->uc_mcontext.mc_rsp;   /* .sp */
+}
+
+
+Res MutatorContextScan(ScanState ss, MutatorContext context,
+                       mps_area_scan_t scan_area, void *closure)
+{
+  THREAD_STATE_S *mc;
+  Res res;
+
+  AVERT(MutatorContext, context);
+
+  /* This scans the root registers (.context.regroots).  It also
+     unnecessarily scans the rest of the context.  The optimisation
+     to scan only relevant parts would be architecture dependent. */
+  mc = context->threadState;
+  res = TraceScanArea(ss,
+                      (Word *)mc,
+                      (Word *)((char *)mc + sizeof(*mc)),
+                      scan_area, closure);
+  return res;
 }
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

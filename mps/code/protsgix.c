@@ -81,12 +81,9 @@ static void sigHandle(int sig, siginfo_t *info, void *uap)  /* .sigh.args */
   if(info->si_code == SEGV_ACCERR) {  /* .sigh.check */
     AccessSet mode;
     Addr base;
-    ucontext_t *ucontext;
     MutatorContextStruct context;
 
-    ucontext = (ucontext_t *)uap;
-    context.ucontext = ucontext;
-    context.info = info;
+    MutatorContextInit(&context, info, (ucontext_t *)uap);
 
     mode = AccessREAD | AccessWRITE; /* .sigh.mode */
 

@@ -15,10 +15,6 @@
  * ASSUMPTIONS
  *
  * .sp: The stack pointer in the context is ESP.
- *
- * .context.regroots: The root regs are EDI, ESI, EBX, EDX, ECX, EAX,
- * and they are assumed to be recorded in the context at
- * pointer-aligned boundaries.
  */
 
 #include "prmcix.h"
@@ -33,26 +29,8 @@ SRCID(prmcfri3, "$Id$");
 
 Addr MutatorContextSP(MutatorContext context)
 {
+  AVERT(MutatorContext, context);
   return (Addr)context->ucontext->uc_mcontext.mc_esp;   /* .sp */
-}
-
-
-Res MutatorContextScan(ScanState ss, MutatorContext context,
-                       mps_area_scan_t scan_area, void *closure)
-{
-  Res res;
-
-  /* This scans the root registers (.context.regroots).  It also unnecessarily
-     scans the rest of the context.  The optimisation to scan only relevant
-     parts would be machine dependent. */
-  res = TraceScanArea(
-    ss,
-    (Word *)context->ucontext,
-    (Word *)((char *)context->ucontext + sizeof(*(context->ucontext))),
-    scan_area, closure
-  );
-
-  return res;
 }
 
 
