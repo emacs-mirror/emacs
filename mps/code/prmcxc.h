@@ -1,4 +1,4 @@
-/* prmcxc.h: PROTECTION MUTATOR CONTEXT FOR OS X MACH
+/* prmcxc.h: MUTATOR CONTEXT FOR OS X MACH
  *
  * $Id$
  * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.

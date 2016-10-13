@@ -153,8 +153,8 @@ Document History
 
 - 2013-05-23 GDR_ Converted to reStructuredText.
 
-- 2014-10-23 GDR_ Move protection mutator context interface to
-  design.mps.prmc_. Bring design up to date.
+- 2014-10-23 GDR_ Move mutator context interface to design.mps.prmc_.
+  Bring design up to date.
 
   .. _design.mps.prmc: prmc
 

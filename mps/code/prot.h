@@ -25,15 +25,6 @@ extern void ProtSet(Addr base, Addr limit, AccessSet mode);
 extern void ProtSync(Arena arena);
 
 
-/* Mutator Fault Context */
-
-extern Bool ProtCanStepInstruction(MutatorContext context);
-extern Res ProtStepInstruction(MutatorContext context);
-extern Addr MutatorContextSP(MutatorContext context);
-extern Res MutatorContextScan(ScanState ss, MutatorContext context,
-                              mps_area_scan_t scan, void *closure);
-
-
 #endif /* prot_h */
 
 

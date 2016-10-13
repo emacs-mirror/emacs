@@ -263,7 +263,7 @@ Res ThreadScan(ScanState ss, Thread thread, Word *stackCold,
     if(res != ResOK)
       return res;
 
-    /* scan the registers in the mutator fault context */
+    /* scan the registers in the mutator context */
     res = MutatorContextScan(ss, &context, scan_area, closure);
     if(res != ResOK)
       return res;

@@ -1,7 +1,7 @@
 .. mode: -*- rst -*-
 
-Protection mutator context
-==========================
+Mutator context
+===============
 
 :Tag: design.mps.prmc
 :Author: Gareth Rees
@@ -9,31 +9,30 @@ Protection mutator context
 :Status: complete design
 :Revision: $Id$
 :Copyright: See `Copyright and License`_.
-:Index terms: pair: protection mutator context; design
+:Index terms: pair: mutator context; design
 
 
 Introduction
 ------------
 
-_`.intro`: This is the design of the protection mutator context
-module.
+_`.intro`: This is the design of the mutator context module.
 
 _`.readership`: Any MPS developer; anyone porting the MPS to a new
 platform.
 
-_`.overview`: The protection mutator context module decodes the
-*context* of a mutator thread at the point when it caused a protection
-fault, so that access to a protected region of memory can be handled,
-or when it was suspended by the thread manager, so that its registers
-and control stack can be scanned.
+_`.overview`: The mutator context module decodes the *context* of a
+mutator thread at the point when it caused a protection fault, so that
+access to a protected region of memory can be handled, or when it was
+suspended by the thread manager, so that its registers and control
+stack can be scanned.
 
 _`.def.context`: The *context* of a thread (also called its
 *continuation*) is an abstract representation of the control state of
 the thread at a point in time, including enough information to
 continue the thread from that point.
 
-_`.status`: The protection mutator context module does not currently
-present a clean interface to the rest of the MPS: source files are
+_`.status`: The mutator context module does not currently present a
+clean interface to the rest of the MPS: source files are
 inconsistently named, and the implementation is (necessarily) mixed up
 with the implementation of the memory protection module
 (design.mps.prot_) and the thread manager
@@ -64,7 +63,7 @@ weak hash tables. See request.dylan.160044_.)
 
 .. _request.dylan.160044: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/dylan/160044/
 
-_`.req.suspend.scan`: Must capature enough information to ambiguously
+_`.req.suspend.scan`: Must capture enough information to ambiguously
 scan all roots in the context of a thread that has been suspended by
 the thread manager. (This is necessary for conservative garbage
 collection to work. See design.mps.thread-manager.if.scan_.)
@@ -85,14 +84,14 @@ See design.mps.thread-manager.if.thread_.
 
 .. _design.mps.thread-manager.if.thread: thread-manager#if.thread
 
-``Bool ProtCanStepInstruction(MutatorContext context)``
+``Bool MutatorContextCanStepInstruction(MutatorContext context)``
 
 _`.if.canstep`: Examine the context to determine whether the
 protection module can single-step the instruction which is causing the
-fault. Return ``TRUE`` if ``ProtStepInstruction()`` is capable of
-single-stepping the instruction, or ``FALSE`` if not.
+fault. Return ``TRUE`` if ``MutatorContextStepInstruction()`` is
+capable of single-stepping the instruction, or ``FALSE`` if not.
 
-``Bool Res ProtStepInstruction(MutatorContext context)``
+``Bool Res MutatorContextStepInstruction(MutatorContext context)``
 
 _`.if.step`: Single-step the instruction which is causing the fault.
 Update the mutator context according to the emulation or execution of
@@ -101,8 +100,8 @@ instruction which was caused the fault to be re-executed. Return
 ``ResOK`` if the instruction was single-stepped successfully, or
 ``ResUNIMPL`` if the instruction cannot be single-stepped.
 
-This function is only called if ``ProtCanStepInstruction(context)``
-returned ``TRUE``.
+This function is only called if
+``MutatorContextCanStepInstruction(context)`` returned ``TRUE``.
 
 ``Res MutatorContextScan(ScanState ss, MutatorContext context, mps_area_scan_t scan, void *closure)``
 
