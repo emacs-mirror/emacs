@@ -1,7 +1,7 @@
 /* landtest.c: LAND TEST
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  * Test all three Land implementations against duplicate operations on
  * a bit-table.
@@ -384,8 +384,6 @@ static void find(TestState state, Size size, Bool high, FindDelete findDelete)
       BTSetRange(state->allocTable, expectedBase, expectedLimit);
     }
   }
-
-  return;
 }
 
 static void test(TestState state, unsigned n) {
@@ -545,7 +543,7 @@ extern int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
