@@ -14,7 +14,6 @@ MPMPF = \
     [spw3i3] \
     [ssw3i3mv] \
     [thw3] \
-    [thw3i3] \
     [vmw3]
 
 !INCLUDE commpre.nmk

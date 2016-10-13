@@ -207,9 +207,6 @@ th.h          Threads interface. See design.mps.thread-manager_.
 than.c        Threads implementation for standard C.
 thix.c        Threads implementation for POSIX.
 thw3.c        Threads implementation for Windows.
-thw3.h        Threads interface for Windows.
-thw3i3.c      Threads implementation for Windows, IA-32.
-thw3i6.c      Threads implementation for Windows, x86-64.
 thxc.c        Threads implementation for OS X.
 vm.c          Virtual memory implementation (common part).
 vm.h          Virtual memory interface. See design.mps.vm_.
