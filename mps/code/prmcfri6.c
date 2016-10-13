@@ -1,10 +1,9 @@
-/* prmcfri6.c: PROTECTION MUTATOR CONTEXT x64 (FREEBSD)
+/* prmcfri6.c: MUTATOR CONTEXT x64 (FREEBSD)
  *
  * $Id$
  * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
- * .purpose: This module implements the part of the protection module
- * that decodes the MutatorContext.
+ * .purpose: Implement the mutator context module. See <design/prmc/>.
  *
  *
  * ASSUMPTIONS

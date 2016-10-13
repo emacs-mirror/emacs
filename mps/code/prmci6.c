@@ -1,14 +1,13 @@
-/* prmci6.c: PROTECTION MUTATOR CONTEXT (x64)
+/* prmci6.c: MUTATOR CONTEXT (x64)
  *
  * $Id$
  * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
- * .design: See <design/prot/> for the generic design of the interface
+ * .design: See <design/prmc/> for the generic design of the interface
  * which is implemented in this module, including the contracts for the
  * functions.
  *
- * .purpose: This module implements the part of the protection module
- * that implements the MutatorContext type. 
+ * .purpose: Implement the mutator context module. See <design/prmc/>.
  *
  *
  * SOURCES
@@ -20,9 +19,9 @@
  *
  * ASSUMPTIONS
  *
- * .assume.null: It's always safe for Prot*StepInstruction to return
- * ResUNIMPL.  A null implementation of this module would be overly
- * conservative but otherwise correct.
+ * .assume.null: It's always safe for MutatorContextCanStepInstruction
+ * to return FALSE. A null implementation of this module would be
+ * overly conservative but otherwise correct.
  *
  */
 
@@ -54,7 +53,7 @@ static Bool IsSimpleMov(Size *inslenReturn,
 }
 
 
-Bool ProtCanStepInstruction(MutatorContext context)
+Bool MutatorContextCanStepInstruction(MutatorContext context)
 {
   Size inslen;
   MRef src;
@@ -69,7 +68,7 @@ Bool ProtCanStepInstruction(MutatorContext context)
 }
 
 
-Res ProtStepInstruction(MutatorContext context)
+Res MutatorContextStepInstruction(MutatorContext context)
 {
   Size inslen;
   MRef src;

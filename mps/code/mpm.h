@@ -18,6 +18,7 @@
 
 #include "event.h"
 #include "lock.h"
+#include "prmc.h"
 #include "prot.h"
 #include "sp.h"
 #include "th.h"

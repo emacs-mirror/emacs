@@ -112,10 +112,10 @@ The core must be freestanding.
 
 _`.arch.platform`: The *platform* provides the core with interfaces to
 features of the operating system and processor (locks, memory
-protection, protection mutator context, stack probing, stack and
-register scanning, thread management, and virtual memory). The
-platform is specialized to a particular environment and so can safely
-use whatever features are available in that environment.
+protection, mutator context, stack probing, stack and register
+scanning, thread management, and virtual memory). The platform is
+specialized to a particular environment and so can safely use whatever
+features are available in that environment.
 
 _`.arch.plinth`: The *plinth* provides the core with interfaces to
 features of the user environment (time, assertions, and logging). See

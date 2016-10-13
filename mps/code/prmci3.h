@@ -1,4 +1,4 @@
-/* prmci3.h: PROTECTION MUTATOR CONTEXT (Intel 386)
+/* prmci3.h: MUTATOR CONTEXT (Intel 386)
  *
  * $Id$
  * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.

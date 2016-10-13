@@ -1,31 +1,34 @@
-/* prmcix.h:  MUTATOR CONTEXT (UNIX)
+/* prmc.h: MUTATOR CONTEXT INTERFACE
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2016 Ravenbrook Limited.  See end of file for license.
  *
- * .readership: MPS developers.
+ * See <design/prmc/> for the design of the generic interface including
+ * the contracts for these functions.
+ *
+ * This interface has several different implementations, typically one
+ * per platform, see <code/prmc*.c> for the various implementations.
  */
 
-#ifndef prmcix_h
-#define prmcix_h
+#ifndef prmc_h
+#define prmc_h
 
-#include "mpm.h"
-
-#include <signal.h> /* siginfo_t -- see .feature.li in config.h */
-#include <ucontext.h> /* ucontext_t */
-
-typedef struct MutatorContextStruct {
-  siginfo_t *info;
-  ucontext_t *ucontext;
-} MutatorContextStruct;
+#include "mpmtypes.h"
 
 
-#endif /* prmcix_h */
+extern Bool MutatorContextCanStepInstruction(MutatorContext context);
+extern Res MutatorContextStepInstruction(MutatorContext context);
+extern Addr MutatorContextSP(MutatorContext context);
+extern Res MutatorContextScan(ScanState ss, MutatorContext context,
+                              mps_area_scan_t scan, void *closure);
+
+
+#endif /* prmc_h */
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

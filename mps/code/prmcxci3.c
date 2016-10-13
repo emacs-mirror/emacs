@@ -1,10 +1,9 @@
-/* prmcxci3.c: PROTECTION MUTATOR CONTEXT INTEL 386 (MAC OS X)
+/* prmcxci3.c: MUTATOR CONTEXT INTEL 386 (MAC OS X)
  *
  * $Id$
  * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
- * .purpose: This module implements the part of the protection module
- * that decodes the MutatorContext. 
+ * .purpose: Implement the mutator context module. See <design/prmc/>.
  *
  *
  * SOURCES

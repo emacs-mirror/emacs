@@ -1,4 +1,4 @@
-/* prmcan.c: PROTECTION MUTATOR CONTEXT (ANSI)
+/* prmcan.c: MUTATOR CONTEXT (ANSI)
  *
  * $Id$
  * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
@@ -7,9 +7,9 @@
  * which is implemented in this module including the contracts for the
  * functions.
  *
- * .purpose: This module implements the part of the protection module
- * that implements the MutatorContext type.  In this ANSI version
- * none of the functions have a useful implementation.
+ * .purpose: Implement the mutator context module. See <design/prmc/>.
+ * In this ANSI version none of the functions have a useful
+ * implementation.
  */
 
 #include "mpm.h"
@@ -17,9 +17,7 @@
 SRCID(prmcan, "$Id$");
 
 
-/* ProtCanStepInstruction -- can the current instruction be single-stepped */
-
-Bool ProtCanStepInstruction(MutatorContext context)
+Bool MutatorContextCanStepInstruction(MutatorContext context)
 {
   UNUSED(context);
 
@@ -27,9 +25,7 @@ Bool ProtCanStepInstruction(MutatorContext context)
 }
 
 
-/* ProtStepInstruction -- step over instruction by modifying context */
-
-Res ProtStepInstruction(MutatorContext context)
+Res MutatorContextStepInstruction(MutatorContext context)
 {
   UNUSED(context);
 

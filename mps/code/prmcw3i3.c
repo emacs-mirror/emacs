@@ -1,12 +1,11 @@
-/* prmcw3i3.c: PROTECTION MUTATOR CONTEXT INTEL 386 (Windows)
+/* prmcw3i3.c: MUTATOR CONTEXT INTEL 386 (Windows)
  *
  * $Id$
  * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  * PURPOSE
  *
- * .purpose: This module implements the part of the protection module
- * that decodes the MutatorContext. 
+ * .purpose: Implement the mutator context module. See <design/prmc/>.
  *
  * SOURCES
  *
