@@ -146,8 +146,8 @@ Unix implementation
 ...................
 
 _`.impl.ix`: In ``protsgix.c``, with processor-specific parts in
-``proti3.c`` and ``proti6.c``, and other platform-specific parts in
-``prmci3fr.c``, ``prmci3li.c``, ``prmci6fr.c``, and ``prmci6li.c``.
+``prmci3.c`` and ``prmci6.c``, and other platform-specific parts in
+``prmcfri3.c``, ``prmclii3.c``, ``prmcfri6.c``, and ``prmclii6.c``.
 
 _`.impl.ix.context`: The context consists of the |siginfo_t|_ and
 |ucontext_t|_ structures. POSIX specifies some of the fields in
@@ -185,8 +185,8 @@ _`.impl.ix.context.sp`: The stack pointer is obtained from
 Windows implementation
 ......................
 
-_`.impl.w3`: In ``proti3.c``, ``proti6.c``, ``prmci3w3.c``, and
-``prmci6w3.c``.
+_`.impl.w3`: In ``prmci3.c``, ``prmci6.c``, ``prmcw3i3.c``, and
+``prmcw3i6.c``.
 
 _`.impl.w3.context`: The context of a thread that hit a protection
 fault is given by the |EXCEPTION_POINTERS|_ structure passed to a
@@ -227,8 +227,8 @@ OS X implementation
 ...................
 
 _`.impl.xc`: In ``protxc.c``, with processor-specific parts in
-``proti3.c`` and ``proti6.c``, and other platform-specific parts in
-``prmci3xc.c`` and ``prmci6xc.c``.
+``prmci3.c`` and ``prmci6.c``, and other platform-specific parts in
+``prmcxci3.c`` and ``prmcxci6.c``.
 
 _`.impl.xc.context`: The context consists of the
 ``__Request__mach_exception_raise_state_identity_t`` and
@@ -271,7 +271,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2014-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

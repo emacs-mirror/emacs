@@ -1,34 +1,40 @@
-/* prmci6li.c: PROTECTION MUTATOR CONTEXT x64 (FREEBSD)
+/* prmcfri3.c: PROTECTION MUTATOR CONTEXT INTEL 386 (FREEBSD)
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: This module implements the part of the protection module
- * that decodes the MutatorFaultContext.
+ * that decodes the MutatorFaultContext. 
+ *
+ *
+ * SOURCES
+ *
+ * .source.i486: Intel486 Microprocessor Family Programmer's
+ * Reference Manual
  *
  *
  * ASSUMPTIONS
  *
- * .sp: The stack pointer in the context is RSP.
+ * .sp: The stack pointer in the context is ESP.
  *
- * .context.regroots: The root regs are RDI, RSI, RBX, RDX, RCX, RAX,
+ * .context.regroots: The root regs are EDI, ESI, EBX, EDX, ECX, EAX,
  * and they are assumed to be recorded in the context at
  * pointer-aligned boundaries.
  */
 
 #include "prmcix.h"
-#include "prmci6.h"
+#include "prmci3.h"
 
-SRCID(prmci6fr, "$Id$");
+SRCID(prmcfri3, "$Id$");
 
-#if !defined(MPS_OS_FR) || !defined(MPS_ARCH_I6)
-#error "prmci6fr.c is specific to MPS_OS_FR and MPS_ARCH_I6"
+#if !defined(MPS_OS_FR) || !defined(MPS_ARCH_I3)
+#error "prmcfri3.c is specific to MPS_OS_FR and MPS_ARCH_I3"
 #endif
 
 
 Addr MutatorFaultContextSP(MutatorFaultContext mfc)
 {
-  return (Addr)mfc->ucontext->uc_mcontext.mc_rsp;   /* .sp */
+  return (Addr)mfc->ucontext->uc_mcontext.mc_esp;   /* .sp */
 }
 
 
@@ -54,7 +60,7 @@ Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext mfc,
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

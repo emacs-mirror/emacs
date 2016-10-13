@@ -1,7 +1,7 @@
-/* prmci3xc.c: PROTECTION MUTATOR CONTEXT INTEL 386 (MAC OS X)
+/* prmcxci3.c: PROTECTION MUTATOR CONTEXT INTEL 386 (MAC OS X)
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: This module implements the part of the protection module
  * that decodes the MutatorFaultContext. 
@@ -27,10 +27,10 @@
 #include "prmcxc.h"
 #include "prmci3.h"
 
-SRCID(prmci3xc, "$Id$");
+SRCID(prmcxci3, "$Id$");
 
 #if !defined(MPS_OS_XC) || !defined(MPS_ARCH_I3)
-#error "prmci3xc.c is specific to MPS_OS_XC and MPS_ARCH_I3"
+#error "prmcxci3.c is specific to MPS_OS_XC and MPS_ARCH_I3"
 #endif
 
 
@@ -117,7 +117,7 @@ Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext mfc,
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

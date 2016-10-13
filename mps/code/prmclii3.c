@@ -1,7 +1,7 @@
-/* prmci6xc.c: PROTECTION MUTATOR CONTEXT x64 (OS X)
+/* prmclii3.c: PROTECTION MUTATOR CONTEXT INTEL 386 (LINUX)
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: This module implements the part of the protection module
  * that decodes the MutatorFaultContext. 
@@ -9,10 +9,15 @@
  *
  * SOURCES
  *
+ * .source.i486: Intel486 Microprocessor Family Programmer's
+ * Reference Manual
+ *
+ * .source.linux.kernel: Linux kernel source files.
+ *
  *
  * ASSUMPTIONS
  *
- * .sp: The stack pointer in the context is RSP.
+ * .sp: The stack pointer in the context is ESP.
  *
  * .context.regroots: The root regs are assumed to be recorded in the context
  * at pointer-aligned boundaries.
@@ -21,52 +26,48 @@
  * storing into an MRef pointer.
  */
 
-#include "prmcxc.h"
-#include "prmci6.h"
+#include "prmcix.h"
+#include "prmci3.h"
 
-SRCID(prmci6xc, "$Id$");
+SRCID(prmclii3, "$Id$");
 
-#if !defined(MPS_OS_XC) || !defined(MPS_ARCH_I6)
-#error "prmci6xc.c is specific to MPS_OS_XC and MPS_ARCH_I6"
+#if !defined(MPS_OS_LI) || !defined(MPS_ARCH_I3)
+#error "prmclii3.c is specific to MPS_OS_LI and MPS_ARCH_I3"
 #endif
 
 
-/* Prmci6AddressHoldingReg -- return an address of a register in a context */
+/* Prmci3AddressHoldingReg -- return an address of a register in a context */
 
-MRef Prmci6AddressHoldingReg(MutatorFaultContext mfc, unsigned int regnum)
+MRef Prmci3AddressHoldingReg(MutatorFaultContext mfc, unsigned int regnum)
 {
-  THREAD_STATE_S *threadState;
+  MRef gregs;
 
   AVER(mfc != NULL);
   AVER(NONNEGATIVE(regnum));
-  AVER(regnum <= 15);
-  AVER(mfc->threadState != NULL);
-  threadState = mfc->threadState;
+  AVER(regnum <= 7);
+  AVER(mfc->ucontext != NULL);
 
+  /* TODO: The current arrangement of the fix operation (taking a Ref *)
+     forces us to pun these registers (actually `int` on LII3GC).  We can
+     suppress the warning by casting through `void *` and this might make
+     it safe, but does it really?  RB 2012-09-10 */
+  AVER(sizeof(void *) == sizeof(*mfc->ucontext->uc_mcontext.gregs));
+  gregs = (void *)mfc->ucontext->uc_mcontext.gregs;
+
+  /* .source.i486 */
   /* .assume.regref */
-  /* The register numbers (REG_RAX etc.) are defined in <ucontext.h>
-     but only if _XOPEN_SOURCE is defined: see .feature.xc in
+  /* The register numbers (REG_EAX etc.) are defined in <ucontext.h>
+     but only if _GNU_SOURCE is defined: see .feature.li in
      config.h. */
-  /* MRef (a Word *) is not compatible with pointers to the register
-     types (actually a __uint64_t). To avoid aliasing optimization
-     problems, the registers are cast through (void *). */
   switch (regnum) {
-    case  0: return (void *)&threadState->__rax;
-    case  1: return (void *)&threadState->__rcx;
-    case  2: return (void *)&threadState->__rdx;
-    case  3: return (void *)&threadState->__rbx;
-    case  4: return (void *)&threadState->__rsp;
-    case  5: return (void *)&threadState->__rbp;
-    case  6: return (void *)&threadState->__rsi;
-    case  7: return (void *)&threadState->__rdi;
-    case  8: return (void *)&threadState->__r8;
-    case  9: return (void *)&threadState->__r9;
-    case 10: return (void *)&threadState->__r10;
-    case 11: return (void *)&threadState->__r11;
-    case 12: return (void *)&threadState->__r12;
-    case 13: return (void *)&threadState->__r13;
-    case 14: return (void *)&threadState->__r14;
-    case 15: return (void *)&threadState->__r15;
+    case 0: return &gregs[REG_EAX];
+    case 1: return &gregs[REG_ECX];
+    case 2: return &gregs[REG_EDX];
+    case 3: return &gregs[REG_EBX];
+    case 4: return &gregs[REG_ESP];
+    case 5: return &gregs[REG_EBP];
+    case 6: return &gregs[REG_ESI];
+    case 7: return &gregs[REG_EDI];
     default:
       NOTREACHED;
       return NULL;  /* Avoids compiler warning. */
@@ -74,28 +75,29 @@ MRef Prmci6AddressHoldingReg(MutatorFaultContext mfc, unsigned int regnum)
 }
 
 
-/* Prmci6DecodeFaultContext -- decode fault to find faulting address and IP */
+/* Prmci3DecodeFaultContext -- decode fault to find faulting address and IP */
 
-void Prmci6DecodeFaultContext(MRef *faultmemReturn,
+void Prmci3DecodeFaultContext(MRef *faultmemReturn,
                               Byte **insvecReturn,
                               MutatorFaultContext mfc)
 {
-  *faultmemReturn = (MRef)mfc->address;
-  *insvecReturn = (Byte*)mfc->threadState->__rip;
+  /* .source.linux.kernel (linux/arch/i386/mm/fault.c). */
+  *faultmemReturn = (MRef)mfc->info->si_addr;
+  *insvecReturn = (Byte*)mfc->ucontext->uc_mcontext.gregs[REG_EIP];
 }
 
 
-/* Prmci6StepOverIns -- modify context to step over instruction */
+/* Prmci3StepOverIns -- modify context to step over instruction */
 
-void Prmci6StepOverIns(MutatorFaultContext mfc, Size inslen)
+void Prmci3StepOverIns(MutatorFaultContext mfc, Size inslen)
 {
-  mfc->threadState->__rip += (Word)inslen;
+  mfc->ucontext->uc_mcontext.gregs[REG_EIP] += (unsigned long)inslen;
 }
 
 
 Addr MutatorFaultContextSP(MutatorFaultContext mfc)
 {
-  return (Addr)mfc->threadState->__rsp;
+  return (Addr)mfc->ucontext->uc_mcontext.gregs[REG_ESP];
 }
 
 
@@ -103,13 +105,13 @@ Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext mfc,
                             mps_area_scan_t scan_area,
                             void *closure)
 {
-  x86_thread_state64_t *mc;
+  mcontext_t *mc;
   Res res;
 
   /* This scans the root registers (.context.regroots).  It also
      unnecessarily scans the rest of the context.  The optimisation
      to scan only relevant parts would be machine dependent. */
-  mc = mfc->threadState;
+  mc = &mfc->ucontext->uc_mcontext;
   res = TraceScanArea(ss,
                       (Word *)mc,
                       (Word *)((char *)mc + sizeof(*mc)),
@@ -120,7 +122,7 @@ Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext mfc,
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

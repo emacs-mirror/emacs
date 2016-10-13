@@ -164,23 +164,23 @@ lockan.c      Lock implementation for standard C.
 lockix.c      Lock implementation for POSIX.
 lockw3.c      Lock implementation for Windows.
 prmcan.c      Mutator context implementation for standard C.
+prmcfri3.c    Mutator context implementation for FreeBSD, IA-32.
+prmcfri6.c    Mutator context implementation for FreeBSD, x86-64.
+prmci3.c      Mutator context implementation for IA-32.
 prmci3.h      Mutator context interface for IA-32.
-prmci3fr.c    Mutator context implementation for FreeBSD, IA-32.
-prmci3li.c    Mutator context implementation for Linux, IA-32.
-prmci3w3.c    Mutator context implementation for Windows, IA-32.
-prmci3xc.c    Mutator context implementation for OS X, IA-32.
+prmci6.c      Mutator context implementation for x86-64.
 prmci6.h      Mutator context interface for x86-64.
-prmci6fr.c    Mutator context implementation for FreeBSD, x86-64.
-prmci6li.c    Mutator context implementation for Linux, x86-64.
-prmci6w3.c    Mutator context implementation for Windows, x86-64.
-prmci6xc.c    Mutator context implementation for OS X, x86-64.
 prmcix.h      Mutator context interface for POSIX.
+prmclii3.c    Mutator context implementation for Linux, IA-32.
+prmclii6.c    Mutator context implementation for Linux, x86-64.
 prmcw3.h      Mutator context interface for Windows.
+prmcw3i3.c    Mutator context implementation for Windows, IA-32.
+prmcw3i6.c    Mutator context implementation for Windows, x86-64.
 prmcxc.h      Mutator context interface for OS X.
+prmcxci3.c    Mutator context implementation for OS X, IA-32.
+prmcxci6.c    Mutator context implementation for OS X, x86-64.
 prot.h        Protection interface. See design.mps.prot_.
 protan.c      Protection implementation for standard C.
-proti3.c      Protection implementation for IA-32.
-proti6.c      Protection implementation for x86-64.
 protix.c      Protection implementation for POSIX.
 protli.c      Protection implementation for Linux.
 protsgix.c    Protection implementation for POSIX (signals part).
