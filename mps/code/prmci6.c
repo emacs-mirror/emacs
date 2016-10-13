@@ -1,91 +1,94 @@
-/* prmci3w3.c: PROTECTION MUTATOR CONTEXT INTEL 386 (Windows)
+/* prmci6.c: PROTECTION MUTATOR CONTEXT (x64)
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
- * PURPOSE
+ * .design: See <design/prot/> for the generic design of the interface
+ * which is implemented in this module, including the contracts for the
+ * functions.
  *
  * .purpose: This module implements the part of the protection module
- * that decodes the MutatorFaultContext. 
+ * that implements the MutatorFaultContext type. 
+ *
  *
  * SOURCES
  *
- * .source.i486: Intel486 Microprocessor Family Programmer's
- * Reference Manual (book.intel92).
+ * .source.amd64: AMD64 Architecture Programmer’s Manual Volume 3: 
+ * General-Purpose and System Instructions
+ * <http://support.amd.com/us/Processor_TechDocs/24594_APM_v3.pdf>
+ *
  *
  * ASSUMPTIONS
  *
- * .assume.regref: The registers in the context can be modified by
- * storing into an MRef pointer.
+ * .assume.null: It's always safe for Prot*StepInstruction to return
+ * ResUNIMPL.  A null implementation of this module would be overly
+ * conservative but otherwise correct.
+ *
  */
 
-#include "prmcw3.h"
-#include "prmci3.h"
 #include "mpm.h"
+#include "prmci6.h"
 
-SRCID(prmci3w3, "$Id$");
+SRCID(prmci6, "$Id$");
 
-#if !defined(MPS_OS_W3) || !defined(MPS_ARCH_I3)
-#error "prmci3w3.c is specific to MPS_OS_W3 and MPS_ARCH_I3"
+#if !defined(MPS_ARCH_I6)
+#error "prmci6.c is specific to MPS_ARCH_I6"
 #endif
 
 
-/* Prmci3AddressHoldingReg -- Return an address for a given machine register */
-
-MRef Prmci3AddressHoldingReg(MutatorFaultContext context, unsigned int regnum)
+static Bool IsSimpleMov(Size *inslenReturn,
+                        MRef *srcReturn,
+                        MRef *destReturn,
+                        MutatorFaultContext context)
 {
-  PCONTEXT wincont;
+  Byte *insvec;
+  MRef faultmem;
 
-  AVER(NONNEGATIVE(regnum));
-  AVER(regnum <= 7);
+  Prmci6DecodeFaultContext(&faultmem, &insvec, context);
+  /* Unimplemented */
+  UNUSED(inslenReturn);
+  UNUSED(srcReturn);
+  UNUSED(destReturn);
+  
+  return FALSE;
+}
 
-  wincont = context->ep->ContextRecord;
 
-  switch (regnum) {
-  case 0: return (MRef)&wincont->Eax;
-  case 1: return (MRef)&wincont->Ecx;
-  case 2: return (MRef)&wincont->Edx;
-  case 3: return (MRef)&wincont->Ebx;
-  case 4: return (MRef)&wincont->Esp;
-  case 5: return (MRef)&wincont->Ebp;
-  case 6: return (MRef)&wincont->Esi;
-  case 7: return (MRef)&wincont->Edi;
-  default:
-    NOTREACHED;
-    return NULL; /* suppress warning */
+Bool ProtCanStepInstruction(MutatorFaultContext context)
+{
+  Size inslen;
+  MRef src;
+  MRef dest;
+
+  /* .assume.null */
+  if(IsSimpleMov(&inslen, &src, &dest, context)) {
+    return TRUE;
   }
+
+  return FALSE;
 }
 
 
-/* Prmci3DecodeFaultContext -- decode fault context */
-
-void Prmci3DecodeFaultContext(MRef *faultmemReturn, Byte **insvecReturn,
-                              MutatorFaultContext context)
+Res ProtStepInstruction(MutatorFaultContext context)
 {
-  LPEXCEPTION_RECORD er;
+  Size inslen;
+  MRef src;
+  MRef dest;
 
-  er = context->ep->ExceptionRecord;
+  /* .assume.null */
+  if(IsSimpleMov(&inslen, &src, &dest, context)) {
+    *dest = *src;
+    Prmci6StepOverIns(context, inslen);
+    return ResOK;
+  }
 
-  /* Assert that this is an access violation.  The computation of */
-  /* faultmem depends on this. */
-  AVER(er->ExceptionCode == EXCEPTION_ACCESS_VIOLATION);
-
-  *faultmemReturn = (MRef)er->ExceptionInformation[1];
-  *insvecReturn = (Byte*)context->ep->ContextRecord->Eip;
-}
-
-
-/* Prmci3StepOverIns -- skip an instruction by changing the context */
-
-void Prmci3StepOverIns(MutatorFaultContext context, Size inslen)
-{
-  context->ep->ContextRecord->Eip += (DWORD)inslen;
+  return ResUNIMPL;
 }
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

@@ -201,8 +201,8 @@ For example::
     #include "vmix.c"       /* Posix virtual memory */
     #include "protix.c"     /* Posix protection */
     #include "protli.c"     /* Linux protection */
-    #include "proti6.c"     /* 64-bit Intel mutator context */
-    #include "prmci6li.c"   /* 64-bit Intel for Linux mutator context */
+    #include "prmci6.c"     /* 64-bit Intel mutator context */
+    #include "prmclii6.c"   /* 64-bit Intel for Linux mutator context */
     #include "span.c"       /* generic stack probe */
     #include "ssixi6.c"     /* Posix on 64-bit Intel stack scan */
 
@@ -229,8 +229,8 @@ For example, ``lii6ll.gmk`` looks like this:
 
     MPMPF = \
         lockix.c \
-        prmci6li.c \
-        proti6.c \
+        prmci6.c \
+        prmclii6.c \
         protix.c \
         protli.c \
         pthrdext.c \
@@ -266,8 +266,8 @@ this:
     MPMPF = \
         [lockw3] \
         [mpsiw3] \
-        [prmci6w3] \
-        [proti6] \
+        [prmci6] \
+        [prmcw3i6] \
         [protw3] \
         [spw3i6] \
         [ssw3i6mv] \
