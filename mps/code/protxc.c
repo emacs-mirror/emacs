@@ -234,20 +234,20 @@ static void protCatchOne(void)
      re-entered. */
 
   if (request.code[0] == KERN_PROTECTION_FAILURE) {
-    MutatorFaultContextStruct mfcStruct;
+    MutatorContextStruct context;
 
     /* The cast via Word suppresses "cast to pointer from integer of
        different size" warnings in GCC, for the  XCI3GC build. */
-    mfcStruct.address = (Addr)(Word)request.code[1];
-    AVER(sizeof(*mfcStruct.threadState) == sizeof(THREAD_STATE_S));
-    mfcStruct.threadState = (void *)request.old_state;
+    context.address = (Addr)(Word)request.code[1];
+    AVER(sizeof(*context.threadState) == sizeof(THREAD_STATE_S));
+    context.threadState = (void *)request.old_state;
   
-    if (ArenaAccess(mfcStruct.address,
+    if (ArenaAccess(context.address,
                     AccessREAD | AccessWRITE,
-                    &mfcStruct)) {
+                    &context)) {
       /* Send a reply that will cause the thread to continue.
          Note that ArenaAccess may have updated request.old_state
-         via mfcStruct.thread_state, and that will get copied to the
+         via context.thread_state, and that will get copied to the
          reply and affect the state the thread resumes in. */
       protBuildReply(&reply, &request, KERN_SUCCESS);
       protMustSend(&reply.Head);

@@ -1,14 +1,14 @@
 /* prmcan.c: PROTECTION MUTATOR CONTEXT (ANSI)
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  * .design: See <design/prot/> for the generic design of the interface
  * which is implemented in this module including the contracts for the
  * functions.
  *
  * .purpose: This module implements the part of the protection module
- * that implements the MutatorFaultContext type.  In this ANSI version
+ * that implements the MutatorContext type.  In this ANSI version
  * none of the functions have a useful implementation.
  */
 
@@ -19,7 +19,7 @@ SRCID(prmcan, "$Id$");
 
 /* ProtCanStepInstruction -- can the current instruction be single-stepped */
 
-Bool ProtCanStepInstruction(MutatorFaultContext context)
+Bool ProtCanStepInstruction(MutatorContext context)
 {
   UNUSED(context);
 
@@ -29,7 +29,7 @@ Bool ProtCanStepInstruction(MutatorFaultContext context)
 
 /* ProtStepInstruction -- step over instruction by modifying context */
 
-Res ProtStepInstruction(MutatorFaultContext context)
+Res ProtStepInstruction(MutatorContext context)
 {
   UNUSED(context);
 
@@ -39,7 +39,7 @@ Res ProtStepInstruction(MutatorFaultContext context)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

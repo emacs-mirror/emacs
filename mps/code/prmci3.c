@@ -8,7 +8,7 @@
  * functions.
  *
  * .purpose: This module implements the part of the protection module
- * that implements the MutatorFaultContext type. 
+ * that implements the MutatorContext type. 
  *
  * .requirements: Current requirements are for limited support only, for
  * stepping the sorts of instructions that the Dylan compiler might
@@ -100,7 +100,7 @@ static void DecodeModRM(unsigned int *modReturn,
 
 /* RegValue -- Return the value of a machine register from a context */
 
-static Word RegValue(MutatorFaultContext context, unsigned int regnum)
+static Word RegValue(MutatorContext context, unsigned int regnum)
 {
   MRef addr;
 
@@ -131,7 +131,7 @@ static Word SignedInsElt(Byte insvec[], Count i)
 static Bool DecodeSimpleMov(unsigned int *regnumReturn,
                             MRef *memReturn,
                             Size *inslenReturn,
-                            MutatorFaultContext context,
+                            MutatorContext context,
                             Byte insvec[])
 {
   unsigned int mod;
@@ -178,7 +178,7 @@ static Bool DecodeSimpleMov(unsigned int *regnumReturn,
 static Bool IsSimpleMov(Size *inslenReturn,
                         MRef *srcReturn,
                         MRef *destReturn,
-                        MutatorFaultContext context)
+                        MutatorContext context)
 {
   Byte *insvec;
   unsigned int regnum;
@@ -211,7 +211,7 @@ static Bool IsSimpleMov(Size *inslenReturn,
 }
 
 
-Bool ProtCanStepInstruction(MutatorFaultContext context)
+Bool ProtCanStepInstruction(MutatorContext context)
 {
   Size inslen;
   MRef src;
@@ -227,7 +227,7 @@ Bool ProtCanStepInstruction(MutatorFaultContext context)
 }
 
 
-Res ProtStepInstruction(MutatorFaultContext context)
+Res ProtStepInstruction(MutatorContext context)
 {
   Size inslen;
   MRef src;

@@ -68,11 +68,11 @@ static RingStruct suspendedRing;            /* PThreadext suspend ring */
 
 static void suspendSignalHandler(int sig,
                                  siginfo_t *info,
-                                 void *context)
+                                 void *uap)
 {
     sigset_t signal_set;
     ucontext_t ucontext;
-    MutatorFaultContextStruct mfContext;
+    MutatorContextStruct context;
 
     AVER(sig == PTHREADEXT_SIGSUSPEND);
     UNUSED(sig);
@@ -81,9 +81,9 @@ static void suspendSignalHandler(int sig,
     AVER(suspendingVictim != NULL);
     /* copy the ucontext structure so we definitely have it on our stack,
      * not (e.g.) shared with other threads. */
-    ucontext = *(ucontext_t *)context;
-    mfContext.ucontext = &ucontext;
-    suspendingVictim->suspendedMFC = &mfContext;
+    ucontext = *(ucontext_t *)uap;
+    context.ucontext = &ucontext;
+    suspendingVictim->context = &context;
     /* Block all signals except PTHREADEXT_SIGRESUME while suspended. */
     sigfillset(&signal_set);
     sigdelset(&signal_set, PTHREADEXT_SIGRESUME);
@@ -171,7 +171,7 @@ extern Bool PThreadextCheck(PThreadext pthreadext)
   /* can't check ID */
   CHECKD_NOSIG(Ring, &pthreadext->threadRing);
   CHECKD_NOSIG(Ring, &pthreadext->idRing);
-  if (pthreadext->suspendedMFC == NULL) {
+  if (pthreadext->context == NULL) {
     /* not suspended */
     CHECKL(RingIsSingle(&pthreadext->threadRing));
     CHECKL(RingIsSingle(&pthreadext->idRing));
@@ -182,7 +182,7 @@ extern Bool PThreadextCheck(PThreadext pthreadext)
     RING_FOR(node, &pthreadext->idRing, next) {
       PThreadext pt = RING_ELT(PThreadext, idRing, node);
       CHECKL(pt->id == pthreadext->id);
-      CHECKL(pt->suspendedMFC == pthreadext->suspendedMFC);
+      CHECKL(pt->context == pthreadext->context);
     }
   }
   status = pthread_mutex_unlock(&pthreadextMut);
@@ -203,7 +203,7 @@ extern void PThreadextInit(PThreadext pthreadext, pthread_t id)
   AVER(status == 0);
 
   pthreadext->id = id;
-  pthreadext->suspendedMFC = NULL;
+  pthreadext->context = NULL;
   RingInit(&pthreadext->threadRing);
   RingInit(&pthreadext->idRing);
   pthreadext->sig = PThreadextSig;
@@ -225,7 +225,7 @@ extern void PThreadextFinish(PThreadext pthreadext)
   status = pthread_mutex_lock(&pthreadextMut);
   AVER(status == 0);
 
-  if(pthreadext->suspendedMFC == NULL) {
+  if(pthreadext->context == NULL) {
     AVER(RingIsSingle(&pthreadext->threadRing));
     AVER(RingIsSingle(&pthreadext->idRing));
   } else {
@@ -250,7 +250,7 @@ extern void PThreadextFinish(PThreadext pthreadext)
  * See <design/pthreadext/#impl.suspend>
  */
 
-Res PThreadextSuspend(PThreadext target, MutatorFaultContext *contextReturn)
+Res PThreadextSuspend(PThreadext target, MutatorContext *contextReturn)
 {
   Ring node, next;
   Res res;
@@ -258,7 +258,7 @@ Res PThreadextSuspend(PThreadext target, MutatorFaultContext *contextReturn)
 
   AVERT(PThreadext, target);
   AVER(contextReturn != NULL);
-  AVER(target->suspendedMFC == NULL); /* multiple suspends illegal */
+  AVER(target->context == NULL); /* multiple suspends illegal */
 
   /* Serialize access to suspend, makes life easier */
   status = pthread_mutex_lock(&pthreadextMut);
@@ -272,7 +272,7 @@ Res PThreadextSuspend(PThreadext target, MutatorFaultContext *contextReturn)
     PThreadext alreadySusp = RING_ELT(PThreadext, threadRing, node);
     if (alreadySusp->id == target->id) {
       RingAppend(&alreadySusp->idRing, &target->idRing);
-      target->suspendedMFC = alreadySusp->suspendedMFC;
+      target->context = alreadySusp->context;
       goto noteSuspended;
     }
   }
@@ -294,9 +294,9 @@ Res PThreadextSuspend(PThreadext target, MutatorFaultContext *contextReturn)
   }
 
 noteSuspended:
-  AVER(target->suspendedMFC != NULL);
+  AVER(target->context != NULL);
   RingAppend(&suspendedRing, &target->threadRing);
-  *contextReturn = target->suspendedMFC;
+  *contextReturn = target->context;
   res = ResOK;
 
 unlock:
@@ -319,7 +319,7 @@ Res PThreadextResume(PThreadext target)
 
   AVERT(PThreadext, target);
   AVER(pthreadextModuleInitialized);  /* must have been a prior suspend */
-  AVER(target->suspendedMFC != NULL);
+  AVER(target->context != NULL);
 
   /* Serialize access to suspend, makes life easier. */
   status = pthread_mutex_lock(&pthreadextMut);
@@ -345,7 +345,7 @@ Res PThreadextResume(PThreadext target)
 noteResumed:
   /* Remove the thread from the suspended ring */
   RingRemove(&target->threadRing);
-  target->suspendedMFC = NULL;
+  target->context = NULL;
   res = ResOK;
 
 unlock:

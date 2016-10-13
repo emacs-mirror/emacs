@@ -8,7 +8,7 @@
  * functions.
  *
  * .purpose: This module implements the part of the protection module
- * that implements the MutatorFaultContext type. 
+ * that implements the MutatorContext type. 
  *
  *
  * SOURCES
@@ -39,7 +39,7 @@ SRCID(prmci6, "$Id$");
 static Bool IsSimpleMov(Size *inslenReturn,
                         MRef *srcReturn,
                         MRef *destReturn,
-                        MutatorFaultContext context)
+                        MutatorContext context)
 {
   Byte *insvec;
   MRef faultmem;
@@ -54,7 +54,7 @@ static Bool IsSimpleMov(Size *inslenReturn,
 }
 
 
-Bool ProtCanStepInstruction(MutatorFaultContext context)
+Bool ProtCanStepInstruction(MutatorContext context)
 {
   Size inslen;
   MRef src;
@@ -69,7 +69,7 @@ Bool ProtCanStepInstruction(MutatorFaultContext context)
 }
 
 
-Res ProtStepInstruction(MutatorFaultContext context)
+Res ProtStepInstruction(MutatorContext context)
 {
   Size inslen;
   MRef src;

@@ -1,7 +1,7 @@
 /* thix.c: Threads Manager for Posix threads
  *
  *  $Id$
- *  Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ *  Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: This is a pthreads implementation of the threads manager.
  * This implements <code/th.h>.
@@ -51,7 +51,7 @@ typedef struct mps_thr_s {       /* PThreads thread structure */
   Bool alive;                    /* thread believed to be alive? */
   PThreadextStruct thrextStruct; /* PThreads extension */
   pthread_t id;                  /* Pthread object of thread */
-  MutatorFaultContext mfc;       /* Context if suspended, NULL if not */
+  MutatorContext context;        /* Context if suspended, NULL if not */
 } ThreadStruct;
 
 
@@ -100,7 +100,7 @@ Res ThreadRegister(Thread *threadReturn, Arena arena)
   ++arena->threadSerial;
   thread->arena = arena;
   thread->alive = TRUE;
-  thread->mfc = NULL;
+  thread->context = NULL;
 
   PThreadextInit(&thread->thrextStruct, thread->id);
 
@@ -174,10 +174,10 @@ static Bool threadSuspend(Thread thread)
   /* .error.suspend: if PThreadextSuspend fails, we assume the thread
    * has been terminated. */
   Res res;
-  AVER(thread->mfc == NULL);
-  res = PThreadextSuspend(&thread->thrextStruct, &thread->mfc);
+  AVER(thread->context == NULL);
+  res = PThreadextSuspend(&thread->thrextStruct, &thread->context);
   AVER(res == ResOK);
-  AVER(thread->mfc != NULL);
+  AVER(thread->context != NULL);
   /* design.thread-manager.sol.thread.term.attempt */
   return res == ResOK;
 }
@@ -198,10 +198,10 @@ static Bool threadResume(Thread thread)
   Res res;
   /* .error.resume: If PThreadextResume fails, we assume the thread
    * has been terminated. */
-  AVER(thread->mfc != NULL);
+  AVER(thread->context != NULL);
   res = PThreadextResume(&thread->thrextStruct);
   AVER(res == ResOK);
-  thread->mfc = NULL;
+  thread->context = NULL;
   /* design.thread-manager.sol.thread.term.attempt */
   return res == ResOK;
 }
@@ -254,14 +254,14 @@ Res ThreadScan(ScanState ss, Thread thread, Word *stackCold,
     if(res != ResOK)
       return res;
   } else if (thread->alive) {
-    MutatorFaultContext mfc;
+    MutatorContext context;
     Word *stackBase, *stackLimit;
     Addr stackPtr;
 
-    mfc = thread->mfc;
-    AVER(mfc != NULL);
+    context = thread->context;
+    AVER(context != NULL);
 
-    stackPtr = MutatorFaultContextSP(mfc);
+    stackPtr = MutatorContextSP(context);
     /* .stack.align */
     stackBase  = (Word *)AddrAlignUp(stackPtr, sizeof(Word));
     stackLimit = stackCold;
@@ -277,7 +277,7 @@ Res ThreadScan(ScanState ss, Thread thread, Word *stackCold,
       return res;
 
     /* scan the registers in the mutator fault context */
-    res = MutatorFaultContextScan(ss, mfc, scan_area, closure);
+    res = MutatorContextScan(ss, context, scan_area, closure);
     if(res != ResOK)
       return res;
   }
@@ -309,7 +309,7 @@ Res ThreadDescribe(Thread thread, mps_lib_FILE *stream, Count depth)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

@@ -4,7 +4,7 @@
  * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: This module implements the part of the protection module
- * that decodes the MutatorFaultContext. 
+ * that decodes the MutatorContext. 
  *
  *
  * SOURCES
@@ -36,15 +36,15 @@ SRCID(prmcxci3, "$Id$");
 
 /* Prmci3AddressHoldingReg -- return an address of a register in a context */
 
-MRef Prmci3AddressHoldingReg(MutatorFaultContext mfc, unsigned int regnum)
+MRef Prmci3AddressHoldingReg(MutatorContext context, unsigned int regnum)
 {
   THREAD_STATE_S *threadState;
 
-  AVER(mfc != NULL);
+  AVER(context != NULL);
   AVER(NONNEGATIVE(regnum));
   AVER(regnum <= 7);
-  AVER(mfc->threadState != NULL);
-  threadState = mfc->threadState;
+  AVER(context->threadState != NULL);
+  threadState = context->threadState;
 
   /* .source.i486 */
   /* .assume.regref */
@@ -75,30 +75,29 @@ MRef Prmci3AddressHoldingReg(MutatorFaultContext mfc, unsigned int regnum)
 
 void Prmci3DecodeFaultContext(MRef *faultmemReturn,
                               Byte **insvecReturn,
-                              MutatorFaultContext mfc)
+                              MutatorContext context)
 {
-  *faultmemReturn = (MRef)mfc->address;
-  *insvecReturn = (Byte*)mfc->threadState->__eip;
+  *faultmemReturn = (MRef)context->address;
+  *insvecReturn = (Byte*)context->threadState->__eip;
 }
 
 
 /* Prmci3StepOverIns -- modify context to step over instruction */
 
-void Prmci3StepOverIns(MutatorFaultContext mfc, Size inslen)
+void Prmci3StepOverIns(MutatorContext context, Size inslen)
 {
-  mfc->threadState->__eip += (Word)inslen;
+  context->threadState->__eip += (Word)inslen;
 }
 
 
-Addr MutatorFaultContextSP(MutatorFaultContext mfc)
+Addr MutatorContextSP(MutatorContext context)
 {
-  return (Addr)mfc->threadState->__esp;
+  return (Addr)context->threadState->__esp;
 }
 
 
-Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext mfc,
-                            mps_area_scan_t scan_area,
-                            void *closure)
+Res MutatorContextScan(ScanState ss, MutatorContext context,
+                       mps_area_scan_t scan_area, void *closure)
 {
   x86_thread_state32_t *mc;
   Res res;
@@ -106,7 +105,7 @@ Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext mfc,
   /* This scans the root registers (.context.regroots).  It also
      unnecessarily scans the rest of the context.  The optimisation
      to scan only relevant parts would be machine dependent. */
-  mc = mfc->threadState;
+  mc = context->threadState;
   res = TraceScanArea(ss,
                       (Word *)mc,
                       (Word *)((char *)mc + sizeof(*mc)),

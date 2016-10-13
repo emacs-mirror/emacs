@@ -6,7 +6,7 @@
  * PURPOSE
  *
  * .purpose: This module implements the part of the protection module
- * that decodes the MutatorFaultContext. 
+ * that decodes the MutatorContext. 
  *
  * SOURCES
  *
@@ -30,7 +30,7 @@ SRCID(prmcw3i6, "$Id$");
 
 /* Prmci6AddressHoldingReg -- Return an address for a given machine register */
 
-MRef Prmci6AddressHoldingReg(MutatorFaultContext context, unsigned int regnum)
+MRef Prmci6AddressHoldingReg(MutatorContext context, unsigned int regnum)
 {
   PCONTEXT wincont;
 
@@ -66,7 +66,7 @@ MRef Prmci6AddressHoldingReg(MutatorFaultContext context, unsigned int regnum)
 /* Prmci6DecodeFaultContext -- decode fault context */
 
 void Prmci6DecodeFaultContext(MRef *faultmemReturn, Byte **insvecReturn,
-                              MutatorFaultContext context)
+                              MutatorContext context)
 {
   LPEXCEPTION_RECORD er;
 
@@ -83,7 +83,7 @@ void Prmci6DecodeFaultContext(MRef *faultmemReturn, Byte **insvecReturn,
 
 /* Prmci6StepOverIns -- skip an instruction by changing the context */
 
-void Prmci6StepOverIns(MutatorFaultContext context, Size inslen)
+void Prmci6StepOverIns(MutatorContext context, Size inslen)
 {
   context->ep->ContextRecord->Rip += (DWORD64)inslen;
 }

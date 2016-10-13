@@ -94,8 +94,7 @@ typedef struct GlobalsStruct *Globals;  /* <design/arena/> */
 typedef struct VMStruct *VM;            /* <code/vm.c>* */
 typedef struct RootStruct *Root;        /* <code/root.c> */
 typedef struct mps_thr_s *Thread;       /* <code/th.c>* */
-typedef struct MutatorFaultContextStruct
-        *MutatorFaultContext;           /* <design/prot/> */
+typedef struct MutatorContextStruct *MutatorContext; /* <design/prot/> */
 typedef struct PoolDebugMixinStruct *PoolDebugMixin;
 typedef struct AllocPatternStruct *AllocPattern;
 typedef struct AllocFrameStruct *AllocFrame; /* <design/alloc-frame/> */
@@ -193,7 +192,7 @@ typedef void (*PoolBufferEmptyMethod)(Pool pool, Buffer buffer,
                                       Addr init, Addr limit);
 typedef Res (*PoolTraceBeginMethod)(Pool pool, Trace trace);
 typedef Res (*PoolAccessMethod)(Pool pool, Seg seg, Addr addr,
-                                AccessSet mode, MutatorFaultContext context);
+                                AccessSet mode, MutatorContext context);
 typedef Res (*PoolWhitenMethod)(Pool pool, Trace trace, Seg seg);
 typedef void (*PoolGreyMethod)(Pool pool, Trace trace, Seg seg);
 typedef void (*PoolBlackenMethod)(Pool pool, TraceSet traceSet, Seg seg);

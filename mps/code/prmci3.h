@@ -1,7 +1,7 @@
 /* prmci3.h: PROTECTION MUTATOR CONTEXT (Intel 386)
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  * .readership: MPS developers.
  */
@@ -14,18 +14,18 @@
 
 typedef Word *MRef;                  /* pointer to a machine word */
 
-MRef Prmci3AddressHoldingReg(MutatorFaultContext, unsigned int);
+MRef Prmci3AddressHoldingReg(MutatorContext, unsigned int);
 
-void Prmci3DecodeFaultContext(MRef *, Byte **, MutatorFaultContext);
+void Prmci3DecodeFaultContext(MRef *, Byte **, MutatorContext);
 
-void Prmci3StepOverIns(MutatorFaultContext, Size);
+void Prmci3StepOverIns(MutatorContext, Size);
 
 #endif /* prmci3_h */
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
