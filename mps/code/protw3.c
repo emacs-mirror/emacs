@@ -1,11 +1,11 @@
 /* protw3.c: PROTECTION FOR WIN32
  *
  *  $Id$
- *  Copyright (c) 2001-2015 Ravenbrook Limited.  See end of file for license.
+ *  Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  */
 
 #include "mpm.h"
-/* prmcw3.h needed to share MutatorFaultContextStruct declation */
+/* prmcw3.h needed to share MutatorContextStruct declation */
 /* with <code/prmcw3i3.c> */
 #include "prmcw3.h"
 #include "vm.h"
@@ -47,7 +47,7 @@ LONG WINAPI ProtSEHfilter(LPEXCEPTION_POINTERS info)
   AccessSet mode;
   Addr base, limit;
   LONG action;
-  MutatorFaultContextStruct context;
+  MutatorContextStruct context;
 
   er = info->ExceptionRecord;
 
@@ -141,7 +141,7 @@ void ProtSync(Arena arena)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2015 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

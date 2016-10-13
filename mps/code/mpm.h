@@ -221,7 +221,7 @@ extern Res PoolAlloc(Addr *pReturn, Pool pool, Size size);
 extern void PoolFree(Pool pool, Addr old, Size size);
 extern Res PoolTraceBegin(Pool pool, Trace trace);
 extern Res PoolAccess(Pool pool, Seg seg, Addr addr,
-                      AccessSet mode, MutatorFaultContext context);
+                      AccessSet mode, MutatorContext context);
 extern Res PoolWhiten(Pool pool, Trace trace, Seg seg);
 extern void PoolGrey(Pool pool, Trace trace, Seg seg);
 extern void PoolBlacken(Pool pool, TraceSet traceSet, Seg seg);
@@ -255,11 +255,11 @@ extern Res PoolAbsDescribe(Inst inst, mps_lib_FILE *stream, Count depth);
 extern Res PoolNoTraceBegin(Pool pool, Trace trace);
 extern Res PoolTrivTraceBegin(Pool pool, Trace trace);
 extern Res PoolNoAccess(Pool pool, Seg seg, Addr addr,
-                        AccessSet mode, MutatorFaultContext context);
+                        AccessSet mode, MutatorContext context);
 extern Res PoolSegAccess(Pool pool, Seg seg, Addr addr,
-                         AccessSet mode, MutatorFaultContext context);
+                         AccessSet mode, MutatorContext context);
 extern Res PoolSingleAccess(Pool pool, Seg seg, Addr addr,
-                            AccessSet mode, MutatorFaultContext context);
+                            AccessSet mode, MutatorContext context);
 extern Res PoolNoWhiten(Pool pool, Trace trace, Seg seg);
 extern Res PoolTrivWhiten(Pool pool, Trace trace, Seg seg);
 extern void PoolNoGrey(Pool pool, Trace trace, Seg seg);
@@ -484,7 +484,7 @@ extern Res ArenaCreate(Arena *arenaReturn, ArenaClass klass, ArgList args);
 extern void ArenaDestroy(Arena arena);
 extern Res ArenaDescribe(Arena arena, mps_lib_FILE *stream, Count depth);
 extern Res ArenaDescribeTracts(Arena arena, mps_lib_FILE *stream, Count depth);
-extern Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context);
+extern Bool ArenaAccess(Addr addr, AccessSet mode, MutatorContext context);
 extern Res ArenaFreeLandInsert(Arena arena, Addr base, Addr limit);
 extern void ArenaFreeLandDelete(Arena arena, Addr base, Addr limit);
 

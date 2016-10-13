@@ -1,7 +1,7 @@
 /* poolabs.c: ABSTRACT POOL CLASSES
  *
  * $Id$
- * Copyright (c) 2001-2015 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * PURPOSE
@@ -421,7 +421,7 @@ Res PoolTrivTraceBegin(Pool pool, Trace trace)
  * by the mutator are protected.
  */
 Res PoolNoAccess(Pool pool, Seg seg, Addr addr,
-                 AccessSet mode, MutatorFaultContext context)
+                 AccessSet mode, MutatorContext context)
 {
   AVERT(Pool, pool);
   AVERT(Seg, seg);
@@ -446,7 +446,7 @@ Res PoolNoAccess(Pool pool, Seg seg, Addr addr,
  * the barrier.
  */
 Res PoolSegAccess(Pool pool, Seg seg, Addr addr,
-                  AccessSet mode, MutatorFaultContext context)
+                  AccessSet mode, MutatorContext context)
 {
   AVERT(Pool, pool);
   AVERT(Seg, seg);
@@ -480,7 +480,7 @@ Res PoolSegAccess(Pool pool, Seg seg, Addr addr,
  * no such assumption is necessary.
  */
 Res PoolSingleAccess(Pool pool, Seg seg, Addr addr,
-                     AccessSet mode, MutatorFaultContext context)
+                     AccessSet mode, MutatorContext context)
 {
   Arena arena;
 
@@ -764,7 +764,7 @@ Size PoolNoSize(Pool pool)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2015 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

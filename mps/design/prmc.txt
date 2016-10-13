@@ -75,7 +75,7 @@ collection to work. See design.mps.thread-manager.if.scan_.)
 Interface
 ---------
 
-``typedef MutatorFaultContextStruct *MutatorFaultContext``
+``typedef MutatorContextStruct *MutatorContext``
 
 _`.if.context`: A structure representing the context of the mutator at
 the point when a protection fault occurred, or when it was suspended
@@ -85,14 +85,14 @@ See design.mps.thread-manager.if.thread_.
 
 .. _design.mps.thread-manager.if.thread: thread-manager#if.thread
 
-``Bool ProtCanStepInstruction(MutatorFaultContext context)``
+``Bool ProtCanStepInstruction(MutatorContext context)``
 
 _`.if.canstep`: Examine the context to determine whether the
 protection module can single-step the instruction which is causing the
 fault. Return ``TRUE`` if ``ProtStepInstruction()`` is capable of
 single-stepping the instruction, or ``FALSE`` if not.
 
-``Bool Res ProtStepInstruction(MutatorFaultContext context)``
+``Bool Res ProtStepInstruction(MutatorContext context)``
 
 _`.if.step`: Single-step the instruction which is causing the fault.
 Update the mutator context according to the emulation or execution of
@@ -104,13 +104,13 @@ instruction which was caused the fault to be re-executed. Return
 This function is only called if ``ProtCanStepInstruction(context)``
 returned ``TRUE``.
 
-``Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext context, mps_area_scan_t scan, void *closure)``
+``Res MutatorContextScan(ScanState ss, MutatorContext context, mps_area_scan_t scan, void *closure)``
 
 _`.if.context.scan`: Scan all roots found in ``context`` using the
 given scan state by calling ``scan``, and return the result code from
 the scanner.
 
-``Addr MutatorFaultContextSP(MutatorFaultContext context)``
+``Addr MutatorContextSP(MutatorContext context)``
 
 _`.if.context.sp`: Return the pointer to the "top" of the thread's
 stack at the point given by ``context``. In the common case, where the
@@ -126,7 +126,7 @@ Generic implementation
 _`.impl.an`: In ``prmcan.c``.
 
 _`.impl.an.context`: There is no definition of
-``MutatorFaultContextStruct`` and so the mutator context cannot be
+``MutatorContextStruct`` and so the mutator context cannot be
 decoded.
 
 _`.impl.an.fault`: Compatible only with the generic memory protection

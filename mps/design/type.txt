@@ -667,10 +667,10 @@ pointers to structures. For example, ``Ring`` is a pointer to a
 
 ``AllocFrame``, ``AllocPattern``, ``AP``, ``Arena``, ``BootBlock``,
 ``Buffer``, ``Chain``, ``Chunk``, ``Format``, ``Globals``, ``Land``,
-``LD``, ``Lock``, ``LocusPref``, ``MutatorFaultContext``,
-``PoolClass``, ``Page``, ``Pool``, ``PoolDebugMixin``, ``Range``,
-``Ring``, ``Root``, ``ScanState``, ``Seg``, ``SegBuf``,
-``StackContext``, ``Thread``, ``Trace``, ``VM``.
+``LD``, ``Lock``, ``LocusPref``, ``MutatorContext``, ``PoolClass``,
+``Page``, ``Pool``, ``PoolDebugMixin``, ``Range``, ``Ring``, ``Root``,
+``ScanState``, ``Seg``, ``SegBuf``, ``StackContext``, ``Thread``,
+``Trace``, ``VM``.
 
 ``typedef void *Pointer``
 
@@ -694,7 +694,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2013-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

@@ -1106,7 +1106,7 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
 /* AWLAccess -- handle a barrier hit */
 
 static Res AWLAccess(Pool pool, Seg seg, Addr addr,
-                     AccessSet mode, MutatorFaultContext context)
+                     AccessSet mode, MutatorContext context)
 {
   AWL awl = MustBeA(AWLPool, pool);
   Res res;

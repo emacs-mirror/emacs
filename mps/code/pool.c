@@ -279,14 +279,14 @@ void PoolFree(Pool pool, Addr old, Size size)
 
 
 Res PoolAccess(Pool pool, Seg seg, Addr addr,
-               AccessSet mode, MutatorFaultContext context)
+               AccessSet mode, MutatorContext context)
 {
   AVERT(Pool, pool);
   AVERT(Seg, seg);
   AVER(SegBase(seg) <= addr);
   AVER(addr < SegLimit(seg));
   AVERT(AccessSet, mode);
-  /* Can't check MutatorFaultContext as there is no check method */
+  /* Can't check MutatorContext as there is no check method (job003957) */
 
   return Method(Pool, pool, access)(pool, seg, addr, mode, context);
 }

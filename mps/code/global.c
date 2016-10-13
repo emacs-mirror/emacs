@@ -585,7 +585,7 @@ Bool ArenaBusy(Arena arena)
  * corresponds to which mode flags need to be cleared in order for the
  * access to continue.  */
 
-Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
+Bool ArenaAccess(Addr addr, AccessSet mode, MutatorContext context)
 {
   static Count count = 0;       /* used to match up ArenaAccess events */
   Seg seg;

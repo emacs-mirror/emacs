@@ -1,7 +1,7 @@
 /* prmci6.h: PROTECTION MUTATOR CONTEXT (x64)
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  * .readership: MPS developers.
  */
@@ -14,18 +14,18 @@
 
 typedef Word *MRef;                  /* pointer to a machine word */
 
-MRef Prmci6AddressHoldingReg(MutatorFaultContext, unsigned int);
+MRef Prmci6AddressHoldingReg(MutatorContext, unsigned int);
 
-void Prmci6DecodeFaultContext(MRef *, Byte **, MutatorFaultContext);
+void Prmci6DecodeFaultContext(MRef *, Byte **, MutatorContext);
 
-void Prmci6StepOverIns(MutatorFaultContext, Size);
+void Prmci6StepOverIns(MutatorContext, Size);
 
 #endif /* prmci6_h */
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

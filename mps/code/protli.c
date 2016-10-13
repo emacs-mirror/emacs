@@ -1,7 +1,7 @@
 /* protli.c: PROTECTION FOR LINUX
  *
  *  $Id$
- *  Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ *  Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  * SOURCES
  *
@@ -59,7 +59,7 @@ static struct sigaction sigNext;
 
 #define PROT_SIGNAL SIGSEGV
 
-static void sigHandle(int sig, siginfo_t *info, void *context)  /* .sigh.args */
+static void sigHandle(int sig, siginfo_t *info, void *uap)  /* .sigh.args */
 {
   int e;
   /* sigset renamed to asigset due to clash with global on Darwin. */
@@ -72,11 +72,11 @@ static void sigHandle(int sig, siginfo_t *info, void *context)  /* .sigh.args */
     AccessSet mode;
     Addr base;
     ucontext_t *ucontext;
-    MutatorFaultContextStruct mfContext;
+    MutatorContextStruct context;
 
-    ucontext = (ucontext_t *)context;
-    mfContext.ucontext = ucontext;
-    mfContext.info = info;
+    ucontext = (ucontext_t *)uap;
+    context.ucontext = ucontext;
+    context.info = info;
 
     /* on linux we used to be able to tell whether this was a read or a write */
     mode = AccessREAD | AccessWRITE;
@@ -88,7 +88,7 @@ static void sigHandle(int sig, siginfo_t *info, void *context)  /* .sigh.args */
     /* Offer each protection structure the opportunity to handle the */
     /* exception.  If it succeeds, then allow the mutator to continue. */
 
-    if(ArenaAccess(base, mode, &mfContext))
+    if(ArenaAccess(base, mode, &context))
       return;
   }
 
@@ -140,7 +140,7 @@ void ProtSetup(void)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
