@@ -1,14 +1,13 @@
-/* prmci3.c: PROTECTION MUTATOR CONTEXT (INTEL 386)
+/* prmci3.c: MUTATOR CONTEXT (INTEL 386)
  *
  * $Id$
  * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
- * .design: See <design/prot/> for the generic design of the interface
+ * .design: See <design/prmc/> for the generic design of the interface
  * which is implemented in this module, including the contracts for the
  * functions.
  *
- * .purpose: This module implements the part of the protection module
- * that implements the MutatorContext type. 
+ * .purpose: Implement the mutator context module. See <design/prmc/>.
  *
  * .requirements: Current requirements are for limited support only, for
  * stepping the sorts of instructions that the Dylan compiler might
@@ -31,9 +30,9 @@
  *
  * ASSUMPTIONS
  *
- * .assume.null: It's always safe for Prot*StepInstruction to return
- * ResUNIMPL.  A null implementation of this module would be overly
- * conservative but otherwise correct.
+ * .assume.null: It's always safe for MutatorContextCanStepInstruction
+ * to return FALSE. A null implementation of this module would be
+ * overly conservative but otherwise correct.
  *
  * .assume.want: The Dylan implementation is likely to access a
  * weak table vector using either MOV r/m32,r32 or MOV r32,r/m32
@@ -211,7 +210,7 @@ static Bool IsSimpleMov(Size *inslenReturn,
 }
 
 
-Bool ProtCanStepInstruction(MutatorContext context)
+Bool MutatorContextCanStepInstruction(MutatorContext context)
 {
   Size inslen;
   MRef src;
@@ -227,7 +226,7 @@ Bool ProtCanStepInstruction(MutatorContext context)
 }
 
 
-Res ProtStepInstruction(MutatorContext context)
+Res MutatorContextStepInstruction(MutatorContext context)
 {
   Size inslen;
   MRef src;

@@ -85,7 +85,7 @@ poolmrg_                Manual Rank Guardian pool class
 poolmv_                 Manual Variable pool class
 poolmvt_                Manual Variable Temporal pool class
 poolmvff_               Manual Variable First-Fit pool class
-prmc_                   Protection mutator context
+prmc_                   Mutator context
 prot_                   Memory protection
 protli_                 Linux implementation of protection module
 protocol_               Protocol inheritance

@@ -106,7 +106,7 @@
 #include "than.c"       /* generic threads manager */
 #include "vman.c"       /* malloc-based pseudo memory mapping */
 #include "protan.c"     /* generic memory protection */
-#include "prmcan.c"     /* generic protection mutator context */
+#include "prmcan.c"     /* generic mutator context */
 #include "span.c"       /* generic stack probe */
 #include "ssan.c"       /* generic stack scanner */
 

@@ -55,8 +55,6 @@ static RingStruct suspendedRing;            /* PThreadext suspend ring */
  *
  * See <design/pthreadext/#impl.suspend-handler>
  *
- * The interface for determining the MFC might be platform specific.
- *
  * Handle PTHREADEXT_SIGSUSPEND in the target thread, to suspend it until
  * receiving PTHREADEXT_SIGRESUME (resume). Note that this is run with both
  * PTHREADEXT_SIGSUSPEND and PTHREADEXT_SIGRESUME blocked. Having

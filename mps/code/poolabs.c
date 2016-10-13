@@ -494,7 +494,7 @@ Res PoolSingleAccess(Pool pool, Seg seg, Addr addr,
 
   arena = PoolArena(pool);
 
-  if(ProtCanStepInstruction(context)) {
+  if (MutatorContextCanStepInstruction(context)) {
     Ref ref;
     Res res;
 
@@ -517,7 +517,7 @@ Res PoolSingleAccess(Pool pool, Seg seg, Addr addr,
                            seg, (Ref *)addr);
       }
     }
-    res = ProtStepInstruction(context);
+    res = MutatorContextStepInstruction(context);
     AVER(res == ResOK);
 
     /* Update SegSummary according to the possibly changed reference. */

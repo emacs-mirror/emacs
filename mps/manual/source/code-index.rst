@@ -163,6 +163,7 @@ lock.h        Lock interface. See design.mps.lock_.
 lockan.c      Lock implementation for standard C.
 lockix.c      Lock implementation for POSIX.
 lockw3.c      Lock implementation for Windows.
+prmc.h        Mutator context interface. See design.mps.prmc_.
 prmcan.c      Mutator context implementation for standard C.
 prmcfri3.c    Mutator context implementation for FreeBSD, IA-32.
 prmcfri6.c    Mutator context implementation for FreeBSD, x86-64.

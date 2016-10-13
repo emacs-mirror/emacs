@@ -100,7 +100,7 @@ _`.mod`: This section lists the functional modules in the MPS.
 
 _`.mod.lock`: Locks. See design.mps.lock_.
 
-_`.mod.prmc`: Protection mutator context. See design.mps.prmc_.
+_`.mod.prmc`: Mutator context. See design.mps.prmc_.
 
 _`.mod.prot`: Memory protection. See design.mps.prot_.
 
@@ -136,7 +136,7 @@ design.mps.prmc.impl.an.fault_) and requires a single-threaded mutator
 
 _`.lim.prot`: Does not support incremental collection (see
 design.mps.prot.impl.an.sync_) and is not compatible with
-implementations of the protection mutator context module that support
+implementations of the mutator context module that support
 single-stepping of accesses (see design.mps.prot.impl.an.sync.issue_).
 
 _`.lim.sp`: Only suitable for use with programs that do not handle
@@ -176,7 +176,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2014-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

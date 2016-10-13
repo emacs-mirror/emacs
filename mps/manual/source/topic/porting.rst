@@ -69,13 +69,13 @@ usable.
    there is no further need to protect it. This means it can't support
    incremental collection, and has no control over pause times.
 
-#. The **protection mutator context** module figures out what the
-   :term:`mutator` was doing when it caused a :term:`protection
-   fault`, so that access to a protected region of memory can be
-   handled, or when a thread was suspended, so that its
-   :term:`registers` and :term:`control stack` can be scanned.
+#. The **mutator context** module figures out what the :term:`mutator`
+   was doing when it caused a :term:`protection fault`, so that access
+   to a protected region of memory can be handled, or when a thread
+   was suspended, so that its :term:`registers` and :term:`control
+   stack` can be scanned.
 
-   See :ref:`design-prmc` for the design, and ``prot.h`` for the
+   See :ref:`design-prmc` for the design, and ``prmc.h`` for the
    interface. There are implementations on Unix, Windows, and OS X for
    IA-32 and x86-64.
 

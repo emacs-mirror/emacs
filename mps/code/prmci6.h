@@ -1,4 +1,4 @@
-/* prmci6.h: PROTECTION MUTATOR CONTEXT (x64)
+/* prmci6.h: MUTATOR CONTEXT (x64)
  *
  * $Id$
  * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
