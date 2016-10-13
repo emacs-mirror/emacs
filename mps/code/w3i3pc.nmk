@@ -1,15 +1,15 @@
 # w3i3pc.nmk: WINDOWS (IA-32) NMAKE FILE -*- makefile -*-
 #
 # $Id$
-# Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+# Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
 
 PFM = w3i3pc
 
 MPMPF = \
     [lockw3] \
     [mpsiw3] \
-    [prmci3w3] \
-    [proti3] \
+    [prmci3] \
+    [prmcw3i3] \
     [protw3] \
     [spw3i3] \
     [ssw3i3pc] \
@@ -24,7 +24,7 @@ MPMPF = \
 
 # C. COPYRIGHT AND LICENSE
 #
-# Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+# Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
 # All rights reserved.  This is an open source license.  Contact
 # Ravenbrook for commercial licensing options.
 # 

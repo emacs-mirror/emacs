@@ -523,9 +523,9 @@
  * =========== ========================= ============= ====================
  * eventtxt.c  setenv                    <stdlib.h>    _GNU_SOURCE
  * lockix.c    pthread_mutexattr_settype <pthread.h>   _XOPEN_SOURCE >= 500
- * prmci3li.c  REG_EAX etc.              <ucontext.h>  _GNU_SOURCE
- * prmci6li.c  REG_RAX etc.              <ucontext.h>  _GNU_SOURCE
  * prmcix.h    stack_t, siginfo_t        <signal.h>    _XOPEN_SOURCE
+ * prmclii3.c  REG_EAX etc.              <ucontext.h>  _GNU_SOURCE
+ * prmclii6.c  REG_RAX etc.              <ucontext.h>  _GNU_SOURCE
  * pthrdext.c  sigaction etc.            <signal.h>    _XOPEN_SOURCE
  * vmix.c      MAP_ANON                  <sys/mman.h>  _GNU_SOURCE
  *
@@ -560,8 +560,8 @@
  *
  * Source      Symbols                   Header        Feature
  * =========== ========================= ============= ====================
- * prmci3li.c  __eax etc.                <ucontext.h>  _XOPEN_SOURCE
- * prmci6li.c  __rax etc.                <ucontext.h>  _XOPEN_SOURCE
+ * prmclii3.c  __eax etc.                <ucontext.h>  _XOPEN_SOURCE
+ * prmclii6.c  __rax etc.                <ucontext.h>  _XOPEN_SOURCE
  *
  * It is not possible to localize these feature specifications around
  * the individual headers: all headers share a common set of features

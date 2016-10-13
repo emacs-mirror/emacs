@@ -1,94 +1,97 @@
-/* proti6.c: PROTECTION MUTATOR CONTEXT (x64)
+/* prmcw3i6.c: PROTECTION MUTATOR CONTEXT INTEL x64 (Windows)
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
- * .design: See <design/prot/> for the generic design of the interface
- * which is implemented in this module, including the contracts for the
- * functions.
+ * PURPOSE
  *
  * .purpose: This module implements the part of the protection module
- * that implements the MutatorFaultContext type. 
- *
+ * that decodes the MutatorFaultContext. 
  *
  * SOURCES
- *
- * .source.amd64: AMD64 Architecture Programmer’s Manual Volume 3: 
- * General-Purpose and System Instructions
- * <http://support.amd.com/us/Processor_TechDocs/24594_APM_v3.pdf>
  *
  *
  * ASSUMPTIONS
  *
- * .assume.null: It's always safe for Prot*StepInstruction to return
- * ResUNIMPL.  A null implementation of this module would be overly
- * conservative but otherwise correct.
- *
+ * .assume.regref: The registers in the context can be modified by
+ * storing into an MRef pointer.
  */
 
-#include "mpm.h"
+#include "prmcw3.h"
 #include "prmci6.h"
+#include "mpm.h"
 
-SRCID(proti6, "$Id$");
+SRCID(prmcw3i6, "$Id$");
 
-#if !defined(MPS_ARCH_I6)
-#error "proti6.c is specific to MPS_ARCH_I6"
+#if !defined(MPS_OS_W3) || !defined(MPS_ARCH_I6)
+#error "prmcw3i6.c is specific to MPS_OS_W3 and MPS_ARCH_I6"
 #endif
 
 
-static Bool IsSimpleMov(Size *inslenReturn,
-                        MRef *srcReturn,
-                        MRef *destReturn,
-                        MutatorFaultContext context)
-{
-  Byte *insvec;
-  MRef faultmem;
+/* Prmci6AddressHoldingReg -- Return an address for a given machine register */
 
-  Prmci6DecodeFaultContext(&faultmem, &insvec, context);
-  /* Unimplemented */
-  UNUSED(inslenReturn);
-  UNUSED(srcReturn);
-  UNUSED(destReturn);
-  
-  return FALSE;
+MRef Prmci6AddressHoldingReg(MutatorFaultContext context, unsigned int regnum)
+{
+  PCONTEXT wincont;
+
+  AVER(NONNEGATIVE(regnum));
+  AVER(regnum <= 16);
+
+  wincont = context->ep->ContextRecord;
+
+  switch (regnum) {
+  case  0: return (MRef)&wincont->Rax;
+  case  1: return (MRef)&wincont->Rcx;
+  case  2: return (MRef)&wincont->Rdx;
+  case  3: return (MRef)&wincont->Rbx;
+  case  4: return (MRef)&wincont->Rsp;
+  case  5: return (MRef)&wincont->Rbp;
+  case  6: return (MRef)&wincont->Rsi;
+  case  7: return (MRef)&wincont->Rdi;
+  case  8: return (MRef)&wincont->R8;
+  case  9: return (MRef)&wincont->R9;
+  case 10: return (MRef)&wincont->R10;
+  case 11: return (MRef)&wincont->R11;
+  case 12: return (MRef)&wincont->R12;
+  case 13: return (MRef)&wincont->R13;
+  case 14: return (MRef)&wincont->R14;
+  case 15: return (MRef)&wincont->R15;
+  default:
+    NOTREACHED;
+    return NULL; /* suppress warning */
+  }
 }
 
 
-Bool ProtCanStepInstruction(MutatorFaultContext context)
+/* Prmci6DecodeFaultContext -- decode fault context */
+
+void Prmci6DecodeFaultContext(MRef *faultmemReturn, Byte **insvecReturn,
+                              MutatorFaultContext context)
 {
-  Size inslen;
-  MRef src;
-  MRef dest;
+  LPEXCEPTION_RECORD er;
 
-  /* .assume.null */
-  if(IsSimpleMov(&inslen, &src, &dest, context)) {
-    return TRUE;
-  }
+  er = context->ep->ExceptionRecord;
 
-  return FALSE;
+  /* Assert that this is an access violation.  The computation of */
+  /* faultmem depends on this. */
+  AVER(er->ExceptionCode == EXCEPTION_ACCESS_VIOLATION);
+
+  *faultmemReturn = (MRef)er->ExceptionInformation[1];
+  *insvecReturn = (Byte*)context->ep->ContextRecord->Rip;
 }
 
 
-Res ProtStepInstruction(MutatorFaultContext context)
+/* Prmci6StepOverIns -- skip an instruction by changing the context */
+
+void Prmci6StepOverIns(MutatorFaultContext context, Size inslen)
 {
-  Size inslen;
-  MRef src;
-  MRef dest;
-
-  /* .assume.null */
-  if(IsSimpleMov(&inslen, &src, &dest, context)) {
-    *dest = *src;
-    Prmci6StepOverIns(context, inslen);
-    return ResOK;
-  }
-
-  return ResUNIMPL;
+  context->ep->ContextRecord->Rip += (DWORD64)inslen;
 }
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

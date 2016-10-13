@@ -1,15 +1,13 @@
-/* prmci6li.c: PROTECTION MUTATOR CONTEXT x64 (LINUX)
+/* prmcxci6.c: PROTECTION MUTATOR CONTEXT x64 (OS X)
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: This module implements the part of the protection module
  * that decodes the MutatorFaultContext. 
  *
  *
  * SOURCES
- *
- * .source.linux.kernel: Linux kernel source files.
  *
  *
  * ASSUMPTIONS
@@ -23,13 +21,13 @@
  * storing into an MRef pointer.
  */
 
-#include "prmcix.h"
+#include "prmcxc.h"
 #include "prmci6.h"
 
-SRCID(prmci6li, "$Id$");
+SRCID(prmcxci6, "$Id$");
 
-#if !defined(MPS_OS_LI) || !defined(MPS_ARCH_I6)
-#error "prmci6li.c is specific to MPS_OS_LI and MPS_ARCH_I6"
+#if !defined(MPS_OS_XC) || !defined(MPS_ARCH_I6)
+#error "prmcxci6.c is specific to MPS_OS_XC and MPS_ARCH_I6"
 #endif
 
 
@@ -37,41 +35,38 @@ SRCID(prmci6li, "$Id$");
 
 MRef Prmci6AddressHoldingReg(MutatorFaultContext mfc, unsigned int regnum)
 {
-  MRef gregs;
+  THREAD_STATE_S *threadState;
 
   AVER(mfc != NULL);
   AVER(NONNEGATIVE(regnum));
   AVER(regnum <= 15);
-  AVER(mfc->ucontext != NULL);
-
-  /* TODO: The current arrangement of the fix operation (taking a Ref *)
-     forces us to pun these registers (actually `int` on LII6GC).  We can
-     suppress the warning by casting through `void *` and this might make
-     it safe, but does it really?  RB 2012-09-10 */
-  AVER(sizeof(void *) == sizeof(*mfc->ucontext->uc_mcontext.gregs));
-  gregs = (void *)mfc->ucontext->uc_mcontext.gregs;
+  AVER(mfc->threadState != NULL);
+  threadState = mfc->threadState;
 
   /* .assume.regref */
   /* The register numbers (REG_RAX etc.) are defined in <ucontext.h>
-     but only if _GNU_SOURCE is defined: see .feature.li in
+     but only if _XOPEN_SOURCE is defined: see .feature.xc in
      config.h. */
+  /* MRef (a Word *) is not compatible with pointers to the register
+     types (actually a __uint64_t). To avoid aliasing optimization
+     problems, the registers are cast through (void *). */
   switch (regnum) {
-    case  0: return &gregs[REG_RAX];
-    case  1: return &gregs[REG_RCX];
-    case  2: return &gregs[REG_RDX];
-    case  3: return &gregs[REG_RBX];
-    case  4: return &gregs[REG_RSP];
-    case  5: return &gregs[REG_RBP];
-    case  6: return &gregs[REG_RSI];
-    case  7: return &gregs[REG_RDI];
-    case  8: return &gregs[REG_R8];
-    case  9: return &gregs[REG_R9];
-    case 10: return &gregs[REG_R10];
-    case 11: return &gregs[REG_R11];
-    case 12: return &gregs[REG_R12];
-    case 13: return &gregs[REG_R13];
-    case 14: return &gregs[REG_R14];
-    case 15: return &gregs[REG_R15];
+    case  0: return (void *)&threadState->__rax;
+    case  1: return (void *)&threadState->__rcx;
+    case  2: return (void *)&threadState->__rdx;
+    case  3: return (void *)&threadState->__rbx;
+    case  4: return (void *)&threadState->__rsp;
+    case  5: return (void *)&threadState->__rbp;
+    case  6: return (void *)&threadState->__rsi;
+    case  7: return (void *)&threadState->__rdi;
+    case  8: return (void *)&threadState->__r8;
+    case  9: return (void *)&threadState->__r9;
+    case 10: return (void *)&threadState->__r10;
+    case 11: return (void *)&threadState->__r11;
+    case 12: return (void *)&threadState->__r12;
+    case 13: return (void *)&threadState->__r13;
+    case 14: return (void *)&threadState->__r14;
+    case 15: return (void *)&threadState->__r15;
     default:
       NOTREACHED;
       return NULL;  /* Avoids compiler warning. */
@@ -85,9 +80,8 @@ void Prmci6DecodeFaultContext(MRef *faultmemReturn,
                               Byte **insvecReturn,
                               MutatorFaultContext mfc)
 {
-  /* .source.linux.kernel (linux/arch/x86/mm/fault.c). */
-  *faultmemReturn = (MRef)mfc->info->si_addr;
-  *insvecReturn = (Byte*)mfc->ucontext->uc_mcontext.gregs[REG_RIP];
+  *faultmemReturn = (MRef)mfc->address;
+  *insvecReturn = (Byte*)mfc->threadState->__rip;
 }
 
 
@@ -95,13 +89,13 @@ void Prmci6DecodeFaultContext(MRef *faultmemReturn,
 
 void Prmci6StepOverIns(MutatorFaultContext mfc, Size inslen)
 {
-  mfc->ucontext->uc_mcontext.gregs[REG_RIP] += (Word)inslen;
+  mfc->threadState->__rip += (Word)inslen;
 }
 
 
 Addr MutatorFaultContextSP(MutatorFaultContext mfc)
 {
-  return (Addr)mfc->ucontext->uc_mcontext.gregs[REG_RSP];
+  return (Addr)mfc->threadState->__rsp;
 }
 
 
@@ -109,13 +103,13 @@ Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext mfc,
                             mps_area_scan_t scan_area,
                             void *closure)
 {
-  mcontext_t *mc;
+  x86_thread_state64_t *mc;
   Res res;
 
   /* This scans the root registers (.context.regroots).  It also
      unnecessarily scans the rest of the context.  The optimisation
      to scan only relevant parts would be machine dependent. */
-  mc = &mfc->ucontext->uc_mcontext;
+  mc = mfc->threadState;
   res = TraceScanArea(ss,
                       (Word *)mc,
                       (Word *)((char *)mc + sizeof(*mc)),
@@ -126,7 +120,7 @@ Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext mfc,
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
