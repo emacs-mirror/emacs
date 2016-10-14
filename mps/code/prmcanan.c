@@ -1,29 +1,37 @@
-/* prmcan.c: MUTATOR CONTEXT (GENERIC OPERATING SYSTEM)
+/* prmcanan.c: MUTATOR CONTEXT (GENERIC PROCESSOR ARCHITECTURE)
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2016 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: Implement the mutator context module. See <design/prmc/>.
- * In this version, for a generic operating system, none of the
+ * In this version for a generic processor architecture, none of the
  * functions have a useful implementation.
  */
 
 #include "mpm.h"
 
-SRCID(prmcan, "$Id$");
+SRCID(prmcanan, "$Id$");
 
 
-Bool MutatorContextCheck(MutatorContext context)
+Bool MutatorContextCanStepInstruction(MutatorContext context)
 {
   UNUSED(context);
 
-  return TRUE;
+  return FALSE;
+}
+
+
+Res MutatorContextStepInstruction(MutatorContext context)
+{
+  UNUSED(context);
+
+  return ResUNIMPL;
 }
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

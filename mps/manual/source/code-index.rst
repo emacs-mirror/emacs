@@ -164,7 +164,8 @@ lockan.c      Lock implementation for standard C.
 lockix.c      Lock implementation for POSIX.
 lockw3.c      Lock implementation for Windows.
 prmc.h        Mutator context interface. See design.mps.prmc_.
-prmcan.c      Mutator context implementation for standard C.
+prmcan.c      Mutator context implementation for generic operating system.
+prmcanan.c    Mutator context implementation for generic architecture.
 prmcfri3.c    Mutator context implementation for FreeBSD, IA-32.
 prmcfri6.c    Mutator context implementation for FreeBSD, x86-64.
 prmci3.c      Mutator context implementation for IA-32.
