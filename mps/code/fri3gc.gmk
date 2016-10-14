@@ -9,7 +9,7 @@ PFM = fri3gc
 
 MPMPF = \
     lockix.c \
-    prmcan.c \
+    prmcanan.c \
     prmcfri3.c \
     prmcix.c \
     protix.c \
