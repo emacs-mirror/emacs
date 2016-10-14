@@ -79,6 +79,7 @@ void Prmci6DecodeFaultContext(MRef *faultmemReturn,
   AVER(faultmemReturn != NULL);
   AVER(insvecReturn != NULL);
   AVERT(MutatorContext, context);
+  AVER(context->var == MutatorContextFAULT);
 
   *faultmemReturn = (MRef)context->address;
   *insvecReturn = (Byte*)context->threadState->__rip;
