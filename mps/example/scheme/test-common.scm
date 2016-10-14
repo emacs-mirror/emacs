@@ -1,4 +1,5 @@
 ;;; test-common.scm -- common definitions for the Scheme tests
+;;; $Id$
 
 (load "r4rs.scm")
 
