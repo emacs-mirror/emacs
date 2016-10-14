@@ -75,9 +75,9 @@ Other changes
    .. _job004000: https://www.ravenbrook.com/project/mps/issue/job004000/
 
 #. Memory in :term:`allocation points` no longer contributes to the
-   decision to start a :term:`collection`, avoiding wasted work
-   repeatedly collecting generations with very small capacities. See
-   job004007_.
+   decision to start a :term:`garbage collection`, avoiding wasted
+   work repeatedly collecting generations with very small capacities.
+   See job004007_.
 
    .. _job004007: https://www.ravenbrook.com/project/mps/issue/job004007/
 

@@ -505,6 +505,13 @@ Memory Management Glossary: P
             :c:macro:`MPS_RM_PROT` when calling a registration
             function such as :c:func:`mps_root_create`.
 
+    protected
+
+        A region of :term:`memory (2)` is said to be protected if
+        there is a :term:`barrier (1)` on that region.
+
+        .. opposite:: :term:`protected`
+
     protection
 
         .. aka:: *memory protection*, *page protection*.
