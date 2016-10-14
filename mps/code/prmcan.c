@@ -3,10 +3,6 @@
  * $Id$
  * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
- * .design: See <design/prot/> for the generic design of the interface
- * which is implemented in this module including the contracts for the
- * functions.
- *
  * .purpose: Implement the mutator context module. See <design/prmc/>.
  * In this ANSI version none of the functions have a useful
  * implementation.
@@ -15,6 +11,14 @@
 #include "mpm.h"
 
 SRCID(prmcan, "$Id$");
+
+
+Bool MutatorContextCheck(MutatorContext context)
+{
+  UNUSED(context);
+
+  return TRUE;
+}
 
 
 Bool MutatorContextCanStepInstruction(MutatorContext context)
