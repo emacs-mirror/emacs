@@ -83,6 +83,7 @@ void Prmci6DecodeFaultContext(MRef *faultmemReturn,
   AVER(faultmemReturn != NULL);
   AVER(insvecReturn != NULL);
   AVERT(MutatorContext, context);
+  AVER(context->var == MutatorContextFAULT);
 
   /* .source.linux.kernel (linux/arch/x86/mm/fault.c). */
   *faultmemReturn = (MRef)context->info->si_addr;

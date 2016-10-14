@@ -83,7 +83,7 @@ static void sigHandle(int sig, siginfo_t *info, void *uap)  /* .sigh.args */
     Addr base;
     MutatorContextStruct context;
 
-    MutatorContextInit(&context, info, (ucontext_t *)uap);
+    MutatorContextInitFault(&context, info, (ucontext_t *)uap);
 
     mode = AccessREAD | AccessWRITE; /* .sigh.mode */
 
