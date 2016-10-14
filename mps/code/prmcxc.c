@@ -24,19 +24,39 @@ SRCID(prmcxc, "$Id$");
 Bool MutatorContextCheck(MutatorContext context)
 {
   CHECKS(MutatorContext, context);
+  CHECKL(sizeof *context->threadState == sizeof(THREAD_STATE_S));
+  CHECKL(NONNEGATIVE(context->var));
+  CHECKL(context->var < MutatorContextLIMIT);
+  CHECKL((context->var == MutatorContextTHREAD) == (context->address == NULL));
   CHECKL(context->threadState != NULL);
   return TRUE;
 }
 
 
-void MutatorContextInit(MutatorContext context, Addr address,
-                        THREAD_STATE_S *threadState)
+void MutatorContextInitFault(MutatorContext context, Addr address,
+                             THREAD_STATE_S *threadState)
+{
+  AVER(context != NULL);
+  AVER(address != NULL);
+  AVER(threadState != NULL);
+
+  context->var = MutatorContextFAULT;
+  context->address = address;
+  context->threadState = threadState;
+  context->sig = MutatorContextSig;
+
+  AVERT(MutatorContext, context);
+}
+
+
+void MutatorContextInitThread(MutatorContext context,
+                              THREAD_STATE_S *threadState)
 {
   AVER(context != NULL);
   AVER(threadState != NULL);
 
-  context->address = address;
-  AVER(sizeof *context->threadState == sizeof(THREAD_STATE_S));
+  context->var = MutatorContextTHREAD;
+  context->address = NULL;
   context->threadState = threadState;
   context->sig = MutatorContextSig;
 
@@ -50,7 +70,9 @@ Res MutatorContextScan(ScanState ss, MutatorContext context,
   THREAD_STATE_S *mc;
   Res res;
 
+  AVERT(ScanState, ss);
   AVERT(MutatorContext, context);
+  AVER(context->var == MutatorContextTHREAD);
 
   /* This scans the root registers (.context.regroots).  It also
      unnecessarily scans the rest of the context.  The optimisation

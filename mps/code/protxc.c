@@ -238,8 +238,8 @@ static void protCatchOne(void)
 
     /* The cast via Word suppresses "cast to pointer from integer of
        different size" warnings in GCC, for the  XCI3GC build. */
-    MutatorContextInit(&context, (Addr)(Word)request.code[1],
-                       (void *)request.old_state);
+    MutatorContextInitFault(&context, (Addr)(Word)request.code[1],
+                            (void *)request.old_state);
   
     if (ArenaAccess(context.address,
                     AccessREAD | AccessWRITE,
