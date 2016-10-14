@@ -24,18 +24,37 @@ SRCID(prmcix, "$Id$");
 Bool MutatorContextCheck(MutatorContext context)
 {
   CHECKS(MutatorContext, context);
+  CHECKL(NONNEGATIVE(context->var));
+  CHECKL(context->var < MutatorContextLIMIT);
+  CHECKL((context->var == MutatorContextTHREAD) == (context->info == NULL));
   CHECKL(context->ucontext != NULL);
   return TRUE;
 }
 
 
-void MutatorContextInit(MutatorContext context, siginfo_t *info,
-                        ucontext_t *ucontext)
+void MutatorContextInitFault(MutatorContext context, siginfo_t *info,
+                             ucontext_t *ucontext)
+{
+  AVER(context != NULL);
+  AVER(info != NULL);
+  AVER(ucontext != NULL);
+
+  context->var = MutatorContextFAULT;
+  context->info = info;
+  context->ucontext = ucontext;
+  context->sig = MutatorContextSig;
+
+  AVERT(MutatorContext, context);
+}
+
+
+void MutatorContextInitThread(MutatorContext context, ucontext_t *ucontext)
 {
   AVER(context != NULL);
   AVER(ucontext != NULL);
 
-  context->info = info;
+  context->var = MutatorContextTHREAD;
+  context->info = NULL;
   context->ucontext = ucontext;
   context->sig = MutatorContextSig;
 
@@ -63,7 +82,7 @@ Res MutatorContextScan(ScanState ss, MutatorContext context,
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2015 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

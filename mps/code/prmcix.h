@@ -16,11 +16,14 @@
 
 typedef struct MutatorContextStruct {
   Sig sig;                      /* <design/sig/> */
-  siginfo_t *info;
+  MutatorContextVar var;        /* Discriminator. */
+  siginfo_t *info;              /* Signal info, if stopped by protection
+                                 * fault; NULL if stopped by thread manager. */
   ucontext_t *ucontext;
 } MutatorContextStruct;
 
-extern void MutatorContextInit(MutatorContext context, siginfo_t *info, ucontext_t *ucontext);
+extern void MutatorContextInitFault(MutatorContext context, siginfo_t *info, ucontext_t *ucontext);
+extern void MutatorContextInitThread(MutatorContext context, ucontext_t *ucontext);
 
 #endif /* prmcix_h */
 
