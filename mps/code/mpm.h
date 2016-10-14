@@ -973,8 +973,6 @@ extern Bool LandCheck(Land land);
 #define LandAlignment(land) ((land)->alignment)
 extern Size LandSize(Land land);
 extern Res LandInit(Land land, LandClass klass, Arena arena, Align alignment, void *owner, ArgList args);
-extern Res LandCreate(Land *landReturn, Arena arena, LandClass klass, Align alignment, void *owner, ArgList args);
-extern void LandDestroy(Land land);
 extern void LandFinish(Land land);
 extern Res LandInsert(Range rangeReturn, Land land, Range range);
 extern Res LandDelete(Range rangeReturn, Land land, Range range);

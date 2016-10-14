@@ -120,58 +120,6 @@ Res LandInit(Land land, LandClass klass, Arena arena, Align alignment, void *own
 }
 
 
-/* LandCreate -- allocate and initialize land
- *
- * See <design/land/#function.create>
- */
-
-Res LandCreate(Land *landReturn, Arena arena, LandClass klass, Align alignment, void *owner, ArgList args)
-{
-  Res res;
-  Land land;
-  void *p;
-
-  AVER(landReturn != NULL);
-  AVERT(Arena, arena);
-  AVERT(LandClass, klass);
-
-  res = ControlAlloc(&p, arena, klass->size);
-  if (res != ResOK)
-    goto failAlloc;
-  land = p;
-
-  res = LandInit(land, klass, arena, alignment, owner, args);
-  if (res != ResOK)
-    goto failInit;
-
-  *landReturn = land;
-  return ResOK;
-
-failInit:
-  ControlFree(arena, land, klass->size);
-failAlloc:
-  return res;
-}
-
-
-/* LandDestroy -- finish and deallocate land
- *
- * See <design/land/#function.destroy>
- */
-
-void LandDestroy(Land land)
-{
-  Arena arena;
-  Size size;
-
-  AVERC(Land, land);
-  arena = land->arena;
-  size = ClassOfPoly(Land, land)->size;
-  LandFinish(land);
-  ControlFree(arena, land, size);
-}
-
-
 /* LandFinish -- finish land
  *
  * See <design/land/#function.finish>
