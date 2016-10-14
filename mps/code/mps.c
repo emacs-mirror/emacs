@@ -106,7 +106,8 @@
 #include "than.c"       /* generic threads manager */
 #include "vman.c"       /* malloc-based pseudo memory mapping */
 #include "protan.c"     /* generic memory protection */
-#include "prmcan.c"     /* generic mutator context */
+#include "prmcan.c"     /* generic operating system mutator context */
+#include "prmcanan.c"   /* generic architecture mutator context */
 #include "span.c"       /* generic stack probe */
 #include "ssan.c"       /* generic stack scanner */
 
@@ -150,7 +151,7 @@
 #include "vmix.c"       /* Posix virtual memory */
 #include "protix.c"     /* Posix protection */
 #include "protsgix.c"   /* Posix signal handling */
-#include "prmcan.c"     /* generic mutator context */
+#include "prmcanan.c"   /* generic architecture mutator context */
 #include "prmcix.c"     /* Posix mutator context */
 #include "prmcfri3.c"   /* 32-bit Intel for FreeBSD mutator context */
 #include "span.c"       /* generic stack probe */
@@ -166,7 +167,7 @@
 #include "vmix.c"       /* Posix virtual memory */
 #include "protix.c"     /* Posix protection */
 #include "protsgix.c"   /* Posix signal handling */
-#include "prmcan.c"     /* generic mutator context */
+#include "prmcanan.c"   /* generic architecture mutator context */
 #include "prmcix.c"     /* Posix mutator context */
 #include "prmcfri6.c"   /* 64-bit Intel for FreeBSD mutator context */
 #include "span.c"       /* generic stack probe */
