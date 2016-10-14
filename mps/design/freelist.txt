@@ -67,26 +67,24 @@ Types
 
 ``typedef struct FreelistStruct *Freelist``
 
-_`.type.freelist`: The type of free lists. A ``FreelistStruct`` may be
-embedded in another structure, or you can create it using
-``LandCreate()``.
+_`.type.freelist`: The type of free lists. A ``FreelistStruct`` is
+typically embedded in another structure.
 
 
-External functions
-..................
+Classes
+.......
 
-``LandClass FreelistLandClassGet(void)``
+``CLASS(Freelist)``
 
-_`.function.class`: The function ``FreelistLandClassGet()`` returns
-the free list class, a subclass of ``LandClass`` suitable for passing
-to ``LandCreate()`` or ``LandInit()``.
+_`.class`: The free list class, a subclass of ``CLASS(Land)`` suitable
+for passing to ``LandInit()``.
 
 
 Keyword arguments
 .................
 
-When initializing a free list, ``LandCreate()`` and ``LandInit()``
-take no keyword arguments. Pass ``mps_args_none``.
+When initializing a free list, ``LandInit()`` takes no keyword
+arguments. Pass ``mps_args_none``.
 
 
 Implementation
@@ -172,7 +170,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2013-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

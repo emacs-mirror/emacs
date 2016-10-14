@@ -62,40 +62,37 @@ External types
 ``typedef struct CBSStruct *CBS``
 
 _`.type.cbs`: The type of coalescing block structures. A ``CBSStruct``
-may be embedded in another structure, or you can create it using
-``LandCreate()``.
+is typically embedded in another structure.
 
 
-External functions
-..................
+External classes
+................
 
-``LandClass CBSLandClassGet(void)``
+``CLASS(CBS)``
 
-_`.function.class`: The function ``CBSLandClassGet()`` returns the CBS
-class, a subclass of ``LandClass`` suitable for passing to
-``LandCreate()`` or ``LandInit()``.
+_`.class.cbs`: The CBS class, a subclass of ``CLASS(Land)`` suitable
+for passing to ``LandInit()``.
 
-``LandClass CBSFastLandClassGet(void)``
+``CLASS(CBSFast)``
 
-_`.function.class.fast`: Returns a subclass of ``CBSLandClass`` that
-maintains, for each subtree, the size of the largest block in that
-subtree. This enables the ``LandFindFirst()``, ``LandFindLast()``, and
-``LandFindLargest()`` generic functions.
+_`.class.fast`: A subclass of ``CLASS(CBS)`` that maintains, for each
+subtree, the size of the largest block in that subtree. This enables
+the ``LandFindFirst()``, ``LandFindLast()``, and ``LandFindLargest()``
+generic functions.
 
-``LandClass CBSZonedLandClassGet(void)``
+``CLASS(CBSZoned)``
 
-_`.function.class.zoned`: Returns a subclass of ``CBSFastLandClass`` that
-maintains, for each subtree, the union of the zone sets of all ranges
-in that subtree. This enables the ``LandFindInZones()`` generic
-function.
+_`.class.zoned`: A subclass of ``CLASS(CBSFast)`` that maintains, for
+each subtree, the union of the zone sets of all ranges in that
+subtree. This enables the ``LandFindInZones()`` generic function.
 
 
 
 Keyword arguments
 .................
 
-When initializing a CBS, ``LandCreate()`` and ``LandInit()`` take the
-following optional keyword arguments:
+When initializing a CBS, ``LandInit()`` takes the following optional
+keyword arguments:
 
 * ``CBSBlockPool`` (type ``Pool``) is the pool from which the CBS
   block descriptors will be allocated. If omitted, a new MFS pool is

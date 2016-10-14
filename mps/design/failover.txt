@@ -46,31 +46,29 @@ abstract data type, so the interface consists of the generic functions
 for lands. See design.mps.land_.
 
 
-External types
-..............
+Types
+.....
 
 ``typedef struct FailoverStruct *Failover``
 
 _`.type.failover`: The type of fail-over allocator structures. A
-``FailoverStruct`` may be embedded in another structure, or you can
-create it using ``LandCreate()``.
+``FailoverStruct`` is typically embedded in another structure.
 
 
-External functions
-..................
+Classes
+.......
 
-``LandClass FailoverLandClassGet(void)``
+``CLASS(Failover)``
 
-_`.function.class`: The function ``FailoverLandClassGet()`` returns
-the fail-over allocator class, a subclass of ``LandClass`` suitable
-for passing to ``LandCreate()`` or ``LandInit()``.
+_`.class`: The fail-over allocator class, a subclass of
+``CLASS(Land)`` suitable for passing to ``LandInit()``.
 
 
 Keyword arguments
 .................
 
-When initializing a fail-over allocator, ``LandCreate()`` and
-``LandInit()`` require these two keyword arguments:
+When initializing a fail-over allocator, ``LandInit()`` requires these
+two keyword arguments:
 
 * ``FailoverPrimary`` (type ``Land``) is the primary land.
 
