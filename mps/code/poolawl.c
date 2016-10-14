@@ -1116,7 +1116,8 @@ static Res AWLAccess(Pool pool, Seg seg, Addr addr,
   AVER(addr < SegLimit(seg));
   AVER(SegPool(seg) == pool);
   AVERT(AccessSet, mode);
-  
+  AVERT(MutatorContext, context);
+
   /* Attempt scanning a single reference if permitted */
   if(AWLCanTrySingleAccess(PoolArena(pool), awl, seg, addr)) {
     res = PoolSingleAccess(pool, seg, addr, mode, context);

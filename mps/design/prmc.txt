@@ -74,6 +74,18 @@ collection to work. See design.mps.thread-manager.if.scan_.)
 Interface
 ---------
 
+``typedef unsigned MutatorContextVar``
+
+_`.if.var`: The type ``MutatorContextVar`` is the type of the
+discriminator for the union within ``MutatorContextStruct``:
+
+========================  ================================================
+Value                     Description
+========================  ================================================
+``MutatorContextFAULT``   Context of thread stopped by a protection fault.
+``MutatorContextTHREAD``  Context of thread stopped by the thread manager.
+========================  ================================================
+
 ``typedef MutatorContextStruct *MutatorContext``
 
 _`.if.context`: A structure representing the context of the mutator at
@@ -90,6 +102,20 @@ _`.if.check`: The check function for mutator contexts. See
 design.mps.check_.
 
 .. _design.mps.check: check
+
+``Res MutatorContextInitFault(MutatorContext context, ...)``
+
+_`.if.init.thread`: Initialize with the context of the mutator at the
+point where it was stopped by a protection fault. The arguments are
+platform-specific and the return may be ``void`` instead of ``Res`` if
+this always succeeds.
+
+``Res MutatorContextInitThread(MutatorContext context, ...)``
+
+_`.if.init.thread`: Initialize with the context of the mutator at the
+point where it was suspended by the thread manager. The arguments are
+platform-specific and the return may be ``void`` instead of ``Res`` if
+this always succeeds.
 
 ``Bool MutatorContextCanStepInstruction(MutatorContext context)``
 

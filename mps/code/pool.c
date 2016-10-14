@@ -286,7 +286,7 @@ Res PoolAccess(Pool pool, Seg seg, Addr addr,
   AVER(SegBase(seg) <= addr);
   AVER(addr < SegLimit(seg));
   AVERT(AccessSet, mode);
-  /* Can't check MutatorContext as there is no check method (job003957) */
+  AVERT(MutatorContext, context);
 
   return Method(Pool, pool, access)(pool, seg, addr, mode, context);
 }

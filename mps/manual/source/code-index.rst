@@ -175,6 +175,7 @@ prmcix.c      Mutator context implementation for POSIX.
 prmcix.h      Mutator context interface for POSIX.
 prmclii3.c    Mutator context implementation for Linux, IA-32.
 prmclii6.c    Mutator context implementation for Linux, x86-64.
+prmcw3.c      Mutator context implementation for Windows.
 prmcw3.h      Mutator context interface for Windows.
 prmcw3i3.c    Mutator context implementation for Windows, IA-32.
 prmcw3i6.c    Mutator context implementation for Windows, x86-64.

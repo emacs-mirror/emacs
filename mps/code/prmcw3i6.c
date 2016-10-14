@@ -15,11 +15,6 @@
  * .assume.regref: The registers in the context can be modified by
  * storing into an MRef pointer.
  *
- * .assume.regroots: The root registers (Rdi, Rsi, Rbx, Rbp, Rdx, Rcx,
- * Rax, R8, ..., R15) are stored in the CONTEXT data structure and are
- * stored at word-aligned addresses. This requires CONTEXT_INTEGER to
- * be set in ContextFlags when GetThreadContext is called.
- *
  * .assume.sp: The stack pointer is stored in CONTEXT.Rsp. This
  * requires CONTEXT_CONTROL to be set in ContextFlags when
  * GetThreadContext is called.
@@ -42,10 +37,12 @@ MRef Prmci6AddressHoldingReg(MutatorContext context, unsigned int regnum)
 {
   PCONTEXT wincont;
 
+  AVERT(MutatorContext, context);
+  AVER(context->var == MutatorContextFAULT);
   AVER(NONNEGATIVE(regnum));
   AVER(regnum <= 16);
 
-  wincont = context->ep->ContextRecord;
+  wincont = context->the.ep->ContextRecord;
 
   switch (regnum) {
   case  0: return (MRef)&wincont->Rax;
@@ -78,14 +75,19 @@ void Prmci6DecodeFaultContext(MRef *faultmemReturn, Byte **insvecReturn,
 {
   LPEXCEPTION_RECORD er;
 
-  er = context->ep->ExceptionRecord;
+  AVER(faultmemReturn != NULL);
+  AVER(insvecReturn != NULL);
+  AVERT(MutatorContext, context);
+  AVER(context->var == MutatorContextFAULT);
+
+  er = context->the.ep->ExceptionRecord;
 
   /* Assert that this is an access violation.  The computation of */
   /* faultmem depends on this. */
   AVER(er->ExceptionCode == EXCEPTION_ACCESS_VIOLATION);
 
   *faultmemReturn = (MRef)er->ExceptionInformation[1];
-  *insvecReturn = (Byte*)context->ep->ContextRecord->Rip;
+  *insvecReturn = (Byte*)context->the.ep->ContextRecord->Rip;
 }
 
 
@@ -93,26 +95,19 @@ void Prmci6DecodeFaultContext(MRef *faultmemReturn, Byte **insvecReturn,
 
 void Prmci6StepOverIns(MutatorContext context, Size inslen)
 {
-  context->ep->ContextRecord->Rip += (DWORD64)inslen;
+  AVERT(MutatorContext, context);
+  AVER(context->var == MutatorContextFAULT);
+
+  context->the.ep->ContextRecord->Rip += (DWORD64)inslen;
 }
 
 
 Addr MutatorContextSP(MutatorContext context)
 {
-  return (Addr)context->context.Rsp; /* .assume.sp */
-}
+  AVERT(MutatorContext, context);
+  AVER(context->var == MutatorContextTHREAD);
 
-
-Res MutatorContextScan(ScanState ss, MutatorContext context,
-                       mps_area_scan_t scan_area, void *closure)
-{
-  CONTEXT *cx;
-  Res res;
-
-  cx = &context->context;
-  res = TraceScanArea(ss, (Word *)cx, (Word *)((char *)cx + sizeof *cx),
-                      scan_area, closure); /* .assume.regroots */
-  return res;
+  return (Addr)context->the.context.Rsp; /* .assume.sp */
 }
 
 

@@ -9,6 +9,7 @@ MPMPF = \
     [lockw3] \
     [mpsiw3] \
     [prmci6] \
+    [prmcw3] \
     [prmcw3i6] \
     [protw3] \
     [spw3i6] \

@@ -50,16 +50,6 @@
  * CloseHandle
  * SuspendThread
  * ResumeThread
- * CONTEXT
- * CONTEXT_CONTROL | CONTEXT_INTEGER
- * GetThreadContext
- *
- * .context: ContextFlags determine what is recorded by
- * GetThreadContext.  This should be set to whichever bits of the
- * context that need to be recorded.  This should include:
- * .context.sp: sp assumed to be recorded by CONTEXT_CONTROL.
- * .context.regroots: assumed to be recorded by CONTEXT_INTEGER.
- * see winnt.h for description of CONTEXT and ContextFlags.
  */
 
 #include "mpm.h"
@@ -279,18 +269,13 @@ Res ThreadScan(ScanState ss, Thread thread, Word *stackCold,
 
   if (id != thread->id) { /* .thread.id */
     MutatorContextStruct context;
-    BOOL success;
     Word *stackBase, *stackLimit;
     Addr stackPtr;
 
     /* scan stack and register roots in other threads */
-
-    /* This dumps the relevant registers into the context */
-    /* .context.flags */
-    context.context.ContextFlags = CONTEXT_CONTROL | CONTEXT_INTEGER;
     /* .thread.handle.get-context */
-    success = GetThreadContext(thread->handle, &context.context);
-    if (!success) {
+    res = MutatorContextInitThread(&context, thread->handle);
+    if (res != ResOK) {
       /* .error.get-context */
       /* We assume that the thread must have been destroyed. */
       /* We ignore the situation by returning immediately. */
