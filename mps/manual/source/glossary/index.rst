@@ -420,6 +420,7 @@ All
 :term:`primary storage <main memory>`
 :term:`promotion`
 :term:`protectable root`
+:term:`protected`
 :term:`protection`
 :term:`protection exception <protection fault>`
 :term:`protection fault`
@@ -583,6 +584,7 @@ All
 :term:`unclamped state`
 :term:`undead`
 :term:`unmapped`
+:term:`unprotected`
 :term:`unreachable`
 :term:`unsure reference <ambiguous reference>`
 :term:`unwrapped`

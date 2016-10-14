@@ -135,6 +135,8 @@ mutator context module that support single-stepping of accesses (see design.mps.
 
 _`.impl.ix`: POSIX implementation. See design.mps.protix_.
 
+.. _design.mps.protix: protix
+
 _`.impl.w3`: Windows implementation.
 
 _`.impl.xc`: OS X implementation.

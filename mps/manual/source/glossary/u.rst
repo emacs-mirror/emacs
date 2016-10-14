@@ -80,6 +80,13 @@ Memory Management Glossary: U
 
         .. opposite:: :term:`mapped`.
 
+    unprotected
+
+        A region of :term:`memory (2)` is said to be unprotected if
+        there are no :term:`barriers (1)` on that region.
+
+        .. opposite:: :term:`protected`
+
     unreachable
 
         An :term:`object` is unreachable if there is no
