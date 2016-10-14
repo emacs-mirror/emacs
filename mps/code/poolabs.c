@@ -428,7 +428,7 @@ Res PoolNoAccess(Pool pool, Seg seg, Addr addr,
   AVER(SegBase(seg) <= addr);
   AVER(addr < SegLimit(seg));
   AVERT(AccessSet, mode);
-  /* can't check context as there is no Check method */
+  AVERT(MutatorContext, context);
   UNUSED(mode);
   UNUSED(context);
 
@@ -454,7 +454,7 @@ Res PoolSegAccess(Pool pool, Seg seg, Addr addr,
   AVER(addr < SegLimit(seg));
   AVER(SegPool(seg) == pool);
   AVERT(AccessSet, mode);
-  /* can't check context as there is no Check method */
+  AVERT(MutatorContext, context);
 
   UNUSED(addr);
   UNUSED(context);
@@ -490,7 +490,7 @@ Res PoolSingleAccess(Pool pool, Seg seg, Addr addr,
   AVER(addr < SegLimit(seg));
   AVER(SegPool(seg) == pool);
   AVERT(AccessSet, mode);
-  /* can't check context as there is no Check method */
+  AVERT(MutatorContext, context);
 
   arena = PoolArena(pool);
 

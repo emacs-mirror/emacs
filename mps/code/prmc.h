@@ -17,6 +17,14 @@
 
 #define MutatorContextSig ((Sig)0x519302C0) /* SIGnature MUTator COntext */
 
+enum {
+  MutatorContextFAULT, /* Context of thread stopped by protection fault. */
+  MutatorContextTHREAD, /* Context of thread stopped by thread manager. */
+  MutatorContextLIMIT
+};
+
+typedef unsigned MutatorContextVar;
+
 extern Bool MutatorContextCheck(MutatorContext context);
 extern Bool MutatorContextCanStepInstruction(MutatorContext context);
 extern Res MutatorContextStepInstruction(MutatorContext context);

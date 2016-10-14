@@ -213,6 +213,7 @@
 #include "vmw3.c"       /* Windows virtual memory */
 #include "protw3.c"     /* Windows protection */
 #include "prmci3.c"     /* 32-bit Intel mutator context decoding */
+#include "prmcw3.c"     /* Windows mutator context */
 #include "prmcw3i3.c"   /* Windows on 32-bit Intel mutator context */
 #include "ssw3i3mv.c"   /* Windows on 32-bit Intel stack scan for Microsoft C */
 #include "spw3i3.c"     /* Windows on 32-bit Intel stack probe */
@@ -227,6 +228,7 @@
 #include "vmw3.c"       /* Windows virtual memory */
 #include "protw3.c"     /* Windows protection */
 #include "prmci6.c"     /* 64-bit Intel mutator context decoding */
+#include "prmcw3.c"     /* Windows mutator context */
 #include "prmcw3i6.c"   /* Windows on 64-bit Intel mutator context */
 #include "ssw3i6mv.c"   /* Windows on 64-bit Intel stack scan for Microsoft C */
 #include "spw3i6.c"     /* Windows on 64-bit Intel stack probe */
@@ -241,6 +243,7 @@
 #include "vmw3.c"       /* Windows virtual memory */
 #include "protw3.c"     /* Windows protection */
 #include "prmci3.c"     /* 32-bit Intel mutator context decoding */
+#include "prmcw3.c"     /* Windows mutator context */
 #include "prmcw3i3.c"   /* Windows on 32-bit Intel mutator context */
 #include "ssw3i3pc.c"   /* Windows on 32-bit stack scan for Pelles C */
 #include "spw3i3.c"     /* 32-bit Intel stack probe */
@@ -255,6 +258,7 @@
 #include "vmw3.c"       /* Windows virtual memory */
 #include "protw3.c"     /* Windows protection */
 #include "prmci6.c"     /* 64-bit Intel mutator context decoding */
+#include "prmcw3.c"     /* Windows mutator context */
 #include "prmcw3i6.c"   /* Windows on 64-bit Intel mutator context */
 #include "ssw3i6pc.c"   /* Windows on 64-bit stack scan for Pelles C */
 #include "spw3i6.c"     /* 64-bit Intel stack probe */

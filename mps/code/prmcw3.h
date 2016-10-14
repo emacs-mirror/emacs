@@ -1,4 +1,4 @@
-/* prmcw3.h:  PROTECTION FOR WIN32
+/* prmcw3.h: MUTATOR CONTEXT FOR WIN32
  *
  * $Id$
  * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
@@ -9,17 +9,20 @@
 #ifndef prmcw3_h
 #define prmcw3_h
 
-
 #include "mpm.h"
-
 #include "mpswin.h"
 
-
 typedef struct MutatorContextStruct {
-  CONTEXT context;              /* Thread context. */
-  LPEXCEPTION_POINTERS ep;      /* Windows Exception Pointers */
+  Sig sig;                      /* <design/sig/> */
+  MutatorContextVar var;        /* Union discriminator */
+  union {
+    LPEXCEPTION_POINTERS ep;    /* Windows Exception Pointers */
+    CONTEXT context;            /* Thread context */
+  } the;
 } MutatorContextStruct;
 
+extern Res MutatorContextInitThread(MutatorContext context, HANDLE thread);
+extern void MutatorContextInitFault(MutatorContext context, LPEXCEPTION_POINTERS ep);
 
 #endif /* prmcw3_h */
 
