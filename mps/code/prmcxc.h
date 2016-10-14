@@ -16,13 +16,16 @@
 
 typedef struct MutatorContextStruct {
   Sig sig;                      /* <design/sig/> */
-  Addr address;
+  MutatorContextVar var;        /* Discriminator. */
+  Addr address;                 /* Fault address, if stopped by protection
+                                 * fault; NULL if stopped by thread manager. */
   THREAD_STATE_S *threadState;
   /* FIXME: Might need to get the floats in case the compiler stashes
      intermediate values in them. */
 } MutatorContextStruct;
 
-extern void MutatorContextInit(MutatorContext context, Addr address, THREAD_STATE_S *threadState);
+extern void MutatorContextInitFault(MutatorContext context, Addr address, THREAD_STATE_S *threadState);
+extern void MutatorContextInitThread(MutatorContext context, THREAD_STATE_S *threadState);
 
 #endif /* prmcxc_h */
 
