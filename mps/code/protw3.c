@@ -4,11 +4,8 @@
  *  Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  */
 
-#include "mpm.h"
-/* prmcw3.h needed to share MutatorContextStruct declation */
-/* with <code/prmcw3i3.c> */
 #include "prmcw3.h"
-#include "vm.h"
+#include "vm.h" /* PageSize */
 
 #ifndef MPS_OS_W3
 #error "protw3.c is Win32-specific, but MPS_OS_W3 is not set"
@@ -53,8 +50,8 @@ LONG WINAPI ProtSEHfilter(LPEXCEPTION_POINTERS info)
 
   if(er->ExceptionCode != EXCEPTION_ACCESS_VIOLATION)
     return EXCEPTION_CONTINUE_SEARCH;
- 
-  context.ep = info;
+
+  MutatorContextInitFault(&context, info);
 
   /* assert that the exception is continuable */
   /* Note that Microsoft say that this field should be 0 or */

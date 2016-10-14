@@ -1,107 +1,97 @@
-/* prmcw3i3.c: MUTATOR CONTEXT INTEL 386 (Windows)
+/* prmcw3.c: MUTATOR CONTEXT FOR WIN32
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
- *
- * PURPOSE
+ * Copyright (c) 2016 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: Implement the mutator context module. See <design/prmc/>.
  *
- * SOURCES
- *
- * .source.i486: Intel486 Microprocessor Family Programmer's
- * Reference Manual (book.intel92).
  *
  * ASSUMPTIONS
  *
- * .assume.regref: The registers in the context can be modified by
- * storing into an MRef pointer.
+ * .context.regroots: The root registers are assumed to be recorded in
+ * the context at word-aligned boundaries.
  *
- * .assume.sp: The stack pointer is stored in CONTEXT.Esp. This
- * requires CONTEXT_CONTROL to be set in ContextFlags when
- * GetThreadContext is called (see <code/prmcw3.c>).
+ * .context.flags: The ContextFlags field in the CONTEXT structure
+ * determines what is recorded by GetThreadContext. This must include:
+ * 
+ * .context.sp: CONTEXT_CONTROL, so that the stack pointer (Esp on
+ * IA-32; Rsp on x86-64) is recorded.
+ * 
+ * .context.regroots: CONTEXT_INTEGER, so that the root registers
+ * (Edi, Esi, Ebx, Edx, Ecx, Eax on IA-32; Rdi, Rsi, Rbx, Rbp, Rdx,
+ * Rcx, Rax, R8, ..., R15 on x86-64) are recorded.
+ * 
+ * See the header WinNT.h for documentation of CONTEXT and
+ * ContextFlags.
  */
 
 #include "prmcw3.h"
-#include "prmci3.h"
-#include "mpm.h"
 
-SRCID(prmcw3i3, "$Id$");
+SRCID(prmcw3, "$Id$");
 
-#if !defined(MPS_OS_W3) || !defined(MPS_ARCH_I3)
-#error "prmcw3i3.c is specific to MPS_OS_W3 and MPS_ARCH_I3"
+#if !defined(MPS_OS_W3)
+#error "prmcw3.c is specific to MPS_OS_W3"
 #endif
 
 
-/* Prmci3AddressHoldingReg -- Return an address for a given machine register */
-
-MRef Prmci3AddressHoldingReg(MutatorContext context, unsigned int regnum)
+Bool MutatorContextCheck(MutatorContext context)
 {
-  PCONTEXT wincont;
-
-  AVERT(MutatorContext, context);
-  AVER(context->var == MutatorContextFAULT);
-  AVER(NONNEGATIVE(regnum));
-  AVER(regnum <= 7);
-
-  wincont = context->the.ep->ContextRecord;
-
-  switch (regnum) {
-  case 0: return (MRef)&wincont->Eax;
-  case 1: return (MRef)&wincont->Ecx;
-  case 2: return (MRef)&wincont->Edx;
-  case 3: return (MRef)&wincont->Ebx;
-  case 4: return (MRef)&wincont->Esp;
-  case 5: return (MRef)&wincont->Ebp;
-  case 6: return (MRef)&wincont->Esi;
-  case 7: return (MRef)&wincont->Edi;
-  default:
-    NOTREACHED;
-    return NULL; /* suppress warning */
-  }
+  CHECKS(MutatorContext, context);
+  CHECKL(NONNEGATIVE(context->var));
+  CHECKL(context->var < MutatorContextLIMIT);
+  return TRUE;
 }
 
 
-/* Prmci3DecodeFaultContext -- decode fault context */
-
-void Prmci3DecodeFaultContext(MRef *faultmemReturn, Byte **insvecReturn,
-                              MutatorContext context)
+Res MutatorContextInitThread(MutatorContext context, HANDLE thread)
 {
-  LPEXCEPTION_RECORD er;
+  BOOL success;
 
-  AVER(faultmemReturn != NULL);
-  AVER(insvecReturn != NULL);
+  AVER(context != NULL);
+
+  context->var = MutatorContextTHREAD;
+  /* This dumps the relevant registers into the context */
+  /* .context.flags */
+  context->the.context.ContextFlags = CONTEXT_CONTROL | CONTEXT_INTEGER;
+  success = GetThreadContext(thread, &context->the.context);
+  if (!success)
+    return ResFAIL;
+  context->sig = MutatorContextSig;
+
   AVERT(MutatorContext, context);
-  AVER(context->var == MutatorContextFAULT);
-
-  er = context->the.ep->ExceptionRecord;
-
-  /* Assert that this is an access violation.  The computation of */
-  /* faultmemReturn depends on this. */
-  AVER(er->ExceptionCode == EXCEPTION_ACCESS_VIOLATION);
-
-  *faultmemReturn = (MRef)er->ExceptionInformation[1];
-  *insvecReturn = (Byte*)context->the.ep->ContextRecord->Eip;
+  return ResOK;
 }
 
 
-/* Prmci3StepOverIns -- skip an instruction by changing the context */
-
-void Prmci3StepOverIns(MutatorContext context, Size inslen)
+void MutatorContextInitFault(MutatorContext context,
+                             LPEXCEPTION_POINTERS ep)
 {
-  AVERT(MutatorContext, context);
-  AVER(context->var == MutatorContextFAULT);
+  AVER(context != NULL);
+  AVER(ep != NULL);
 
-  context->the.ep->ContextRecord->Eip += (DWORD)inslen;
+  context->var = MutatorContextFAULT;
+  context->the.ep = ep;
+  context->sig = MutatorContextSig;
+
+  AVERT(MutatorContext, context);
 }
 
 
-Addr MutatorContextSP(MutatorContext context)
+Res MutatorContextScan(ScanState ss, MutatorContext context,
+                       mps_area_scan_t scan_area, void *closure)
 {
+  CONTEXT *cx;
+  Res res;
+
+  AVERT(ScanState, ss);
   AVERT(MutatorContext, context);
   AVER(context->var == MutatorContextTHREAD);
 
-  return (Addr)context->the.context.Esp; /* .assume.sp */
+  cx = &context->the.context;
+  res = TraceScanArea(ss, (Word *)cx, (Word *)((char *)cx + sizeof *cx),
+                      scan_area, closure); /* .context.regroots */
+
+  return res;
 }
 
 

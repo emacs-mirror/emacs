@@ -22,11 +22,11 @@ TYPES = '''
     Arena Attr Bool BootBlock BT Buffer BufferMode Byte Chain Chunk
     Clock Compare Count Epoch EventClock FindDelete Format Fun GenDesc
     Globals Index Land LD Lock LocusPref LocusPrefKind Message
-    MessageType MutatorContext Page Pointer Pool PoolGen PThreadext
-    Range Rank RankSet ReadonlyAddr Ref RefSet Res Ring Root RootMode
-    RootVar ScanState Seg SegBuf Serial Shift Sig Size Space SplayNode
-    SplayTree StackContext Thread Trace TraceId TraceSet TraceStartWhy
-    TraceState ULongest VM Word ZoneSet
+    MessageType MutatorContext MutatorContextVar Page Pointer Pool
+    PoolGen PThreadext Range Rank RankSet ReadonlyAddr Ref RefSet Res
+    Ring Root RootMode RootVar ScanState Seg SegBuf Serial Shift Sig
+    Size Space SplayNode SplayTree StackContext Thread Trace TraceId
+    TraceSet TraceStartWhy TraceState ULongest VM Word ZoneSet
 
 '''
 
