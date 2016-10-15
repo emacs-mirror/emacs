@@ -155,11 +155,10 @@ Implementations
 Generic implementation
 ......................
 
-_`.impl.an`: In ``prmcan.c``.
+_`.impl.an`: In ``prmcan.c`` and ``prmcanan.c``.
 
 _`.impl.an.context`: There is no definition of
-``MutatorContextStruct`` and so the mutator context cannot be
-decoded.
+``MutatorContextStruct`` and so the mutator context cannot be decoded.
 
 _`.impl.an.fault`: Compatible only with the generic memory protection
 module (design.mps.prot.impl.an_) where there are no protection
@@ -174,12 +173,13 @@ thread, and so no threads are suspended.
 .. _design.mps.thread-manager.impl.an: thread-manager#impl.an
 
 
-Unix implementation
-...................
+Posix implementation
+....................
 
-_`.impl.ix`: In ``protsgix.c``, with processor-specific parts in
-``prmci3.c`` and ``prmci6.c``, and other platform-specific parts in
-``prmcfri3.c``, ``prmclii3.c``, ``prmcfri6.c``, and ``prmclii6.c``.
+_`.impl.ix`: In ``prmcix.c`` and ``protsgix.c``, with
+processor-specific parts in ``prmci3.c`` and ``prmci6.c``, and other
+platform-specific parts in ``prmcfri3.c``, ``prmclii3.c``,
+``prmcfri6.c``, and ``prmclii6.c``.
 
 _`.impl.ix.context`: The context consists of the |siginfo_t|_ and
 |ucontext_t|_ structures. POSIX specifies some of the fields in
@@ -190,6 +190,13 @@ This is decoded on a platform-by-platform basis.
 .. _siginfo_t: http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/signal.h.html
 .. |ucontext_t| replace:: ``ucontext_t``
 .. _ucontext_t: http://pubs.opengroup.org/onlinepubs/9699919799/functions/sigaction.html
+
+_`.impl.ix.fault.signal`: POSIX specifies that "Invalid permissions
+for mapped object" (a protection fault) causes a ``SEGV`` signal.
+
+_`.impl.ix.fault.code`: POSIX specifies that "Invalid permissions for
+mapped object" (a protection fault) causes ``siginfo_t.si_code`` to be
+set to ``SEGV_ACCERR``.
 
 _`.impl.ix.fault.addr`: POSIX specifies that ``siginfo_t.si_addr`` is
 the address that the faulting instruction was attempting to access.
@@ -217,8 +224,9 @@ _`.impl.ix.context.sp`: The stack pointer is obtained from
 Windows implementation
 ......................
 
-_`.impl.w3`: In ``prmci3.c``, ``prmci6.c``, ``prmcw3i3.c``, and
-``prmcw3i6.c``.
+_`.impl.w3`: In ``prmcw3.c``, with processor-specific parts in
+``prmci3.c``, ``prmci6.c``, and other platform-specific parts in
+``prmcw3i3.c`` and ``prmcw3i6.c``.
 
 _`.impl.w3.context`: The context of a thread that hit a protection
 fault is given by the |EXCEPTION_POINTERS|_ structure passed to a
@@ -258,9 +266,9 @@ _`.impl.w3.context.sp`: The stack pointer is obtained from
 OS X implementation
 ...................
 
-_`.impl.xc`: In ``protxc.c``, with processor-specific parts in
-``prmci3.c`` and ``prmci6.c``, and other platform-specific parts in
-``prmcxci3.c`` and ``prmcxci6.c``.
+_`.impl.xc`: In ``prmcix.c`` and ``prmcxc.c``, with processor-specific
+parts in ``prmci3.c`` and ``prmci6.c``, and other platform-specific
+parts in ``prmcxci3.c`` and ``prmcxci6.c``.
 
 _`.impl.xc.context`: The context consists of the
 ``__Request__mach_exception_raise_state_identity_t`` and
