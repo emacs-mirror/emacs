@@ -273,8 +273,12 @@ or call the function `%s'."))))
 	 ,(or doc
 	      (format (concat "Toggle %s on or off.
 With a prefix argument ARG, enable %s if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil, and toggle it if ARG is `toggle'.
+positive, and disable it otherwise.
+
+When called from Lisp, toggle the mode if ARG is `toggle',
+disable the mode if ARG is a non-positive integer, and enable the
+mode otherwise (including if ARG is omitted or nil or a positive
+integer).
 \\{%s}") pretty-name pretty-name keymap-sym))
 	 ;; Use `toggle' rather than (if ,mode 0 1) so that using
 	 ;; repeat-command still does the toggling correctly.
