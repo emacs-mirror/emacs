@@ -12,7 +12,7 @@ the popup will look like are included below. =which-key= started as a rewrite of
 to a certain extent. 
 
 ** Table of Contents                                                 :TOC@4:
- - [[#which-key-][which-key ]]
+ - [[#which-key][which-key]]
    - [[#introduction][Introduction]]
    - [[#install][Install]]
      - [[#melpa][MELPA]]
