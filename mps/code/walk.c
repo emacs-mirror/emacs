@@ -1,7 +1,7 @@
 /* walk.c: OBJECT WALKER
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  */
 
 #include "mpm.h"
@@ -14,7 +14,7 @@ SRCID(walk, "$Id$");
  */
 
 
-#define FormattedObjectsStepClosureSig ((Sig)0x519F05C1)
+#define FormattedObjectsStepClosureSig ((Sig)0x519F05C1) /* SIGnature Formatted Objects Step CLosure */
 
 typedef struct FormattedObjectsStepClosureStruct *FormattedObjectsStepClosure;
 
@@ -145,8 +145,7 @@ void mps_arena_formatted_objects_walk(mps_arena_t mps_arena,
  *
  * Defined as a subclass of ScanState.  */
 
-/* SIGnature Roots Step CLOsure */
-#define rootsStepClosureSig ((Sig)0x51965C10) 
+#define rootsStepClosureSig ((Sig)0x51965C10) /* SIGnature Roots Step CLOsure */
 
 typedef struct rootsStepClosureStruct *rootsStepClosure;
 typedef struct rootsStepClosureStruct {
@@ -391,7 +390,7 @@ void mps_arena_roots_walk(mps_arena_t mps_arena, mps_roots_stepper_t f,
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

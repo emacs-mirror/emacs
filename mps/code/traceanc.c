@@ -1,7 +1,7 @@
 /* traceanc.c: ANCILLARY SUPPORT FOR TRACER
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.
  * See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
@@ -45,7 +45,7 @@
  * See <design/message-gc/>.
  */
 
-#define TraceStartMessageSig ((Sig)0x51926535) /* SIG TRaceStartMeSsage */
+#define TraceStartMessageSig ((Sig)0x51926535) /* SIGnature TRaceStartMeSsage */
 
 /* .whybuf:
  * .whybuf.len: Length (in chars) of a char buffer used to store the 
@@ -274,7 +274,7 @@ void TracePostStartMessage(Trace trace)
 
 /* TraceMessage -- type of trace end messages */
 
-#define TraceMessageSig ((Sig)0x51926359)
+#define TraceMessageSig ((Sig)0x51926359) /* SIGnature TRace MeSsaGe */
 
 typedef struct TraceMessageStruct  {
   Sig sig;
@@ -854,7 +854,7 @@ static void arenaForgetProtection(Globals globals)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited
+ * Copyright (C) 2001-2016 Ravenbrook Limited
  * <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
