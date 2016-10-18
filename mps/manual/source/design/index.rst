@@ -24,6 +24,7 @@ Design
     keyword-arguments
     land
     lock
+    message
     nailboard
     prmc
     prot
