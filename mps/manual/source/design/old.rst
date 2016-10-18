@@ -28,7 +28,6 @@ Old design
     io
     lib
     locus
-    message
     message-gc
     object-debug
     pool

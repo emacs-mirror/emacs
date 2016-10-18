@@ -148,7 +148,7 @@ MPS detects that objects are finalizable.
 
 _`.over.message`: ``PoolClassMRG`` implements a ``MessageClass`` (see
 design.mps.message_). All the messages are of one ``MessageType``. This
-type is ``MessageTypeFinalization``. Messages are created when objects
+type is ``MessageTypeFINALIZATION``. Messages are created when objects
 are discovered to be finalizable and destroyed when the MPS client has
 received the message.
 
@@ -685,7 +685,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2013-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

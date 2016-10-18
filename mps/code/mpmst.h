@@ -176,7 +176,7 @@ typedef struct MessageClassStruct {
   /* generic methods */
   MessageDeleteMethod delete;   /* terminates a message */
 
-  /* methods specific to MessageTypeFinalization */
+  /* methods specific to MessageTypeFINALIZATION */
   MessageFinalizationRefMethod finalizationRef;       
 
   /* methods specific to MessageTypeGC */
@@ -184,7 +184,7 @@ typedef struct MessageClassStruct {
   MessageGCCondemnedSizeMethod gcCondemnedSize;
   MessageGCNotCondemnedSizeMethod gcNotCondemnedSize;
 
-  /* methods specific to MessageTypeGCStart */
+  /* methods specific to MessageTypeGCSTART */
   MessageGCStartWhyMethod gcStartWhy;
 
   Sig endSig;                   /* <design/message/#class.sig.double> */
