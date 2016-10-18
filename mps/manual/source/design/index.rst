@@ -37,7 +37,9 @@ Design
     ss
     testthr
     thread-manager
+    thread-safety
     type
+    version-library
     vm
     write-barrier
     writef
