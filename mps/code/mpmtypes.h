@@ -262,8 +262,8 @@ typedef Res (*LandFindInZonesMethod)(Bool *foundReturn, Range rangeReturn, Range
 /* CONSTANTS */
 
 
-/* <design/sig/> SIGnature IS BAD */
-#define SigInvalid      ((Sig)0x51915BAD)
+/* <design/sig/>  */
+#define SigInvalid      ((Sig)0x51915BAD) /* SIGnature IS BAD */
 
 #define SizeMAX         ((Size)-1)
 #define AccessSetEMPTY  ((AccessSet)0) /* <design/type/#access-set> */
