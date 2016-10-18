@@ -6,7 +6,7 @@ Thread safety in the MPS
 :Tag: design.mps.thread-safety
 :Author: David Moore
 :Date: 1995-10-03
-:Status: incomplete design
+:Status: complete design
 :Revision: $Id$
 :Copyright: See `Copyright and License`_.
 :Index terms:    pair: thread safety; design
@@ -17,18 +17,14 @@ Introduction
 
 _`.intro`: This describes how thread safety is achieved in the MPS.
 
-
-Overview
---------
-
-_`.over`: The MPS is expected to run in an environment with multiple
-threads calling into the MPS. The initial approach is very simple.
-Some of the code is known to operate with exclusive access to the data
-it manipulates, so this code is safe. For the rest of the code, shared
-data structures are locked by the use of a single binary lock
-(design.mps.lock_) per arena. This lock is claimed on entry to the
-MPS and released on exit from it. So there is at most a single thread
-(per arena) running "inside" the MPS at a time.
+_`.overview`: The MPS is expected to run in an environment with
+multiple threads calling into the MPS. The initial approach is very
+simple. Some of the code is known to operate with exclusive access to
+the data it manipulates, so this code is safe. For the rest of the
+code, shared data structures are locked by the use of a single binary
+lock (design.mps.lock_) per arena. This lock is claimed on entry to
+the MPS and released on exit from it. So there is at most a single
+thread (per arena) running "inside" the MPS at a time.
 
 .. _design.mps.lock: lock
 
@@ -36,55 +32,20 @@ MPS and released on exit from it. So there is at most a single thread
 Requirements
 ------------
 
-_`.req.mt`: Code must work correctly in presence of multiple threads
-all calling into the MPS.
+_`.req.threads`: Code must work correctly in presence of multiple
+threads all calling into the MPS.
+
+_`.req.arena`: The MPS must safely manage per-arena non-shared data.
+
+_`.req.global.mutable`: The MPS must safely manage global data that
+may be updated many times (that is, the arena ring).
+
+_`.req.global.once`: The MPS must safely manage global data that is
+updated at most once (that is, the protocol classes).
+
+_`.req.deadlock`: The MPS must not deadlock.
 
 _`.req.perf`: Performance should not be unreasonably hindered.
-
-
-Architecture
-------------
-
-_`.arch.arena`: Arena Lock: no shared data between arenas.
-
-_`.arch.global.binary`: Global binary lock: protects mutable data
-shared between arenas -- that is, the arena ring, see
-design.mps.arena.static.ring.lock_.
-
-.. _design.mps.arena.static.ring.lock: arena#static.ring.lock
-
-_`.arch.global.recursive`: Global recursive lock: protects static data
-which must be initialized once -- for example, pool classes, see
-design.mps.protocol.impl.init-lock_.
-
-.. _design.mps.protocol.impl.init-lock: protocol#impl.init-lock
-
-_`.arch.other`: Other: data not shared.
-
-_`.arch.static`: Static data: sigs: shared-non-mutable always inited
-to same thing.
-
-_`.arena-entry`: Each arena has a single lock. Externally visible
-calls fall into two categories. Simple: arena lock not held. Lock is
-claimed on entry, and released on exit. Recall: These are callable
-only after a call-back from the MPS. In this case a arena lock is
-already held.
-
-_`.interface`: The definition of the interface should guarantee safe
-use of calls (from a locking point of view). For example, a buffer
-must be exclusive to a thread.
-
-_`.buffers`: The buffer code is designed not to need a lock in the
-fast case. A lock is only claimed on the exceptional reserve, trip and
-commit cases (fill and trip?). A buffer contains references to shared
-data (via pool field). Accessing this shared data must involve a lock.
-
-_`.deadlock`: A strict ordering is required between the global and
-arena locks to prevent deadlock. The binary global lock may not be
-claimed while either the arena or recursive global lock is held; the
-arena lock may not be claimed while the recursive global lock is held.
-Each arena lock is independent of all other arena locks; that is, a
-thread may not attempt to claim more than one arena lock at a time.
 
 
 Analysis
@@ -93,6 +54,7 @@ Analysis
 _`.anal.simple`: To have the code functioning correctly it should be
 easy to change correctly. So a simple approach is desirable. We have
 to also ensure that performance is not unreasonably downgraded.
+
 
 Performance cost of locking
 ...........................
@@ -137,6 +99,7 @@ estimate, most significantly the overhead of calling the locking
 functions. Hence it would be undesirable from a performance point of
 view to have more than one lock.
 
+
 Recursive vs binary locks
 .........................
 
@@ -168,169 +131,82 @@ easiest to implement first, but could be evolved into a `.binary`_
 strategy. (That evolution has now happened. tony 1999-08-31).
 
 
-Ideas
------
+Design
+------
 
-_`.sol.arena-lock`: Lock per arena which locks all MPS structures
-associated with the arena, except allocation buffers.
+_`.sol.locks`: Use MPS locks (design.mps.lock_) to implement the
+locking.
 
-_`.sol.init`: Shared static data may not be changed. It is initialised
-before being read, and if re-initalised the values written must be
-identical to those already there. Essentially only read-only shared
-static data is allowed.
+.. _design.mps.lock: lock
 
-_`.sol.fine-grain`: Use finer grained locks, for example, a lock per
-per pool instance. Arena lock locks only operations on arena. Pool
-locks are claimed per pool. An ordering on pool instances would avoid
-deadlock.
+_`.sol.arena`: Each arena has a binary lock that protects the
+non-shared data for that arena. Functions in the public interface fall
+into the following categories:
 
-_`.sol.global`: Use global locks for genuinely global data which must
-be updated dynamically. An ordering between global and arena locks
-would avoid deadlock.
+- _`.sol.arena.entry`: Must be called with the arena lock not held
+  (thus, these functions are not callable from format methods and
+  other callbacks). Claims arena binary lock on entry, releases it on
+  exit. The usual case. For example, ``mps_arena_park()``.
 
+- _`.sol.arena.recursive`: May be called with the arena lock held (for
+  example, from format methods and other callbacks). Claim arena lock
+  recursively on entry, release it on exit. For example,
+  ``mps_addr_fmt()``.
 
-Implementation
---------------
+- _`.sol.arena.lock-free`: May be called at any time and does not
+  claim or release any locks, because it is documented as being up to
+  the client program to ensure thread safety (for example,
+  ``mps_ld_add()``).
 
-Use MPS locks (design.mps.lock_) to do locking.
+- _`.sol.arena.maybe-entry`: Must be called with the arena lock not
+  held. In the common case, does not claim or release any locks
+  (because it is documented as being up to the client program to
+  ensure thread safety, as for `.sol.arena.lock-free`_), but may need
+  to claim and release the arena binary lock (as for
+  `.sol.arena.entry`_). For example, ``mps_reserve()``,
+  ``mps_commit()``, ``mps_ap_frame_push()``, and
+  ``mps_ap_frame_pop()``.
 
-Locking Functions
-.................
+_`.sol.global.mutable`: There is a global binary lock (see
+design.mps.lock.req.global.binary_) that protects mutable data shared
+between all arenas (that is, the arena ring lock: see
+design.mps.arena.static.ring.lock_).
 
-``ArenaEnter()`` and ``ArenaLeave()`` are used to claim and release the
-arena lock. To implement this:
+.. _design.mps.lock.req.global.binary: lock#req.global.binary
+.. _design.mps.arena.static.ring.lock: arena#static.ring.lock
 
-- There is a lock for every arena. The arena class init function
-  allocates the lock as well as the arena itself.
-- ``ArenaInit()`` calls ``LockInit()`` on the lock and initializes the
-  pointer to it from the arena.
-- ``ArenaDestroy()`` calls ``LockFinish()`` on it.
-- ``ArenaEnter()`` claims the lock.
-- ``ArenaLeave()`` releases the lock.
+_`.sol.global.once`: There is a global recursive lock (see
+design.mps.lock.req.global.recursive_) that protects static data which
+must be initialized at most once (that is, the protocol classes). Each
+static data structure is accessed only via an "ensure" function that
+claims the global recursive lock, checks to see if the data structure
+has been initialized yet, and does so if necessary (see
+design.mps.protocol.impl.define-class.lock_).
 
-Shared and non-shared data
-..........................
+.. _design.mps.lock.req.global.recursive: lock#req.global.recursive
+.. _design.mps.protocol.impl.define-class.lock: protocol#impl.define-class.lock
 
-Non-shared data is data for which no other thread has a handle on it.
-shared-non-mutable data is data which is never changed after
-initialisation. It may be re-initialised, if re-initialisation does
-not change its value. atomically updatable data is data which is not
-locked, but may be shared because it is in a consistent state before
-and after an update.
+_`.sol.deadlock`: A strict ordering is required between the global and
+arena locks to prevent deadlock. The binary global lock may not be
+claimed while either the arena or recursive global lock is held; the
+arena lock may not be claimed while the recursive global lock is held.
+Each arena lock is independent of all other arena locks; that is, a
+thread may not attempt to claim more than one arena lock at a time.
+See design.mps.arena.lock.avoid_.
 
-A function is "safe" if it may safely execute without exclusive access
-to the data it manipulates.
+.. _design.mps.arena.lock.avoid: arena#lock.avoid
 
-A "safe" function may:
+_`.sol.check`: The MPS interface design requires that a function must
+check the signatures on the data structures pointed to by its
+parameters (see design.mps.sig.check.arg_). In particular, for
+functions in the class `.sol.arena.entry`_ it is necessary to check
+some data structure signatures before taking the arena lock. The
+checking interface provides a ``TESTT()`` macro that checks the
+signature in a thread-safe way (see
+design.mps.sig.check.arg.unlocked_).
 
-- call other safe functions;
-- manipulate non-shared data;
-- read shared-non-mutable data;
-- claim the arena lock around code which may manipulate shared data in
-  the arena.
-
-Each function in the external MPS interface falls into one of the
-following categories:
-
-- calls ``ArenaEnter()`` on entry and ``ArenaLeave()`` on exit;
-- uses ``PoolArena()`` to identify the arena, before claiming the lock;
-- uses ``BufferPool()`` and ``PoolArena()`` to identify the arena, before
-  claiming the lock;
-- is not defined as external but is listed for explicitness;
-- only claims the lock in otherwise unsafe situations (buffer code?);
-- may be called externally but only in a situation where the arena
-  lock is already held;
-- is the unique accessor of its data.
-
-So ``PoolArena()`` and ``BufferPool()`` must be "safe". ``pool->arena`` is
-shared-non-mutable. ``buffer->pool`` is shared-non-mutable.
-
-Validation
-..........
-
-We have to be careful about validation. Any function that is called
-from a arena-safe function without the arena-lock held, must itself be
-safe, or manipulating non-shared data.
-
-For example, calling ``PoolIsValid()`` before claiming the lock would be
-wrong if ``PoolIsValid()`` is unsafe. Defining it to be safe would
-involve locking it, which if done in all similar situations would be
-very expensive.
-
-Possibly remove validation from accessor methods; replace with
-signature check and ``IsValid()`` calls in callers of accessor
-functions.
-
-Annotations?:
-- safe
-- non-shared
-- shared-non-mutable
-
-Safe functions
-..............
-
-Arena
-
-- ``ArenaCreate()`` -- no shared data; no lock; calls ``LockInit()``.
-- ``ArenaDestroy()`` -- no shared data; no lock (should only finish
-  arena after use); calls ``LockFinish()``.
-- ``ArenaDescribe()`` -- lock.
-
-Root (for the purposes of locking this module can be thought of as external)
-
-- ``RootCreate()`` -- calls create
-- ``RootCreateTable()`` -- calls create
-- create -- lock
-- ``RootDestroy()`` -- lock
-- ``RootDescribe()`` -- lock
-
-will be attached to arena, can lock now.
-
-
-Pool               
-
-- ``PoolCreate()`` / ``PoolCreateV()`` -- lock (Create calls CreateV which locks).
-- ``PoolDestroy()`` -- lock
-- ``PoolAlloc()`` -- lock
-- ``PoolFree()`` -- lock
-- ``PoolArena()`` -- accesses shared-non-mutable data only
-- ``PoolDescribe()`` -- lock
-
-Format
-
-- ``FormatCreate()`` -- lock
-- ``FormatDestroy()`` -- lock
-
-Buffer
-
-- ``BufferCreate()`` -- lock
-- ``BufferDestroy()`` -- lock
-- ``BufferFill()`` -- lock
-- ``BufferTrip()`` -- lock
-- ``BufferPool()`` -- accesses shared-non-mutable data only
-- ``BufferDescribe()`` -- lock
-- ``BufferCommit()`` -- "unsafe": buffer may be used by single thread
-  only. (but safe wrt arena)
-- ``BufferReserve()`` -- "unsafe": also
-
-PoolClass (only shared data is static and non-mutable)
-
-- ``PoolClass()``
-- ``PoolClassAMC()``
-- ``PoolClassMV()``
-- ``PoolClassMFS()``
-
-Sig (as with ``PoolClass``, relies on static data reinitialised to
-constant value)
-
-Collect
-
-- ``Collect()`` -- lock
-
-Thread
-
-- ``ThreadRegister()`` -- lock
-- ``ThreadDeregister()`` -- lock
+.. _design.mps.sig.check.arg: sig#check.arg
+.. _design.mps.sig.check.arg.unlocked: sig#check.arg.unlocked
 
 
 Document History
@@ -349,7 +225,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2013-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

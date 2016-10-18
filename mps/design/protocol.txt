@@ -231,7 +231,7 @@ macro doesn't just pick a name implicitly because of the danger of a
 name clash with other names used by the programmer). A call to the
 macro defines the ensure function for the class along with some static
 storage for the canonical class object, and some other things to
-ensure the class gets initialized exactly once.
+ensure the class gets initialized at most once.
 
 
 Class access
@@ -543,6 +543,12 @@ anti-method to clean-up a subsequent failure. ::
 Implementation
 --------------
 
+_`.impl.define-class.lock`: The ``DEFINE_CLASS`` macro ensures that
+each class is initialized at most once (even in multi-threaded
+programs) by claiming the global recursive lock (see design.mps.thread-safety.arch.global.recursive_).
+
+.. _design.mps.thread-safety.arch.global.recursive: thread-safety#arch.global.recursive
+
 _`.impl.derived-names`: The ``DEFINE_CLASS()`` macro derives some
 additional names from the class name as part of it's implementation.
 These should not appear in the source code, but it may be useful to
@@ -554,7 +560,7 @@ following:
 
   The class ensure function. See `.overview.naming`_.  This function
   handles local static storage for the canonical class object and a
-  guardian to ensure the storage is initialized exactly once.  This
+  guardian to ensure the storage is initialized at most once.  This
   function is invoked by the ``CLASS`` macro (`.if.class`_).
 
 * ``static void SomeClassInit(SomeKind);``

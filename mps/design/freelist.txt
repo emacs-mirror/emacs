@@ -74,10 +74,8 @@ typically embedded in another structure.
 Classes
 .......
 
-``CLASS(Freelist)``
-
-_`.class`: The free list class, a subclass of ``CLASS(Land)`` suitable
-for passing to ``LandInit()``.
+_`.class`: ``CLASS(Freelist)`` is the free list class, a subclass of
+``CLASS(Land)`` suitable for passing to ``LandInit()``.
 
 
 Keyword arguments

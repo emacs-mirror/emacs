@@ -41,19 +41,12 @@ Old design
     poolmv
     poolmvt
     poolmvff
-    protsu
     protocol
     pthreadext
     root
     scan
     seg
-    sso1al
     strategy
     telemetry
     tests
-    thread-safety
     trace
-    version-library
-    version
-    vmo1
-    vmso
