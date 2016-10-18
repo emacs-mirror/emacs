@@ -58,10 +58,8 @@ _`.type.failover`: The type of fail-over allocator structures. A
 Classes
 .......
 
-``CLASS(Failover)``
-
-_`.class`: The fail-over allocator class, a subclass of
-``CLASS(Land)`` suitable for passing to ``LandInit()``.
+_`.class`: ``CLASS(Failover)`` is the fail-over allocator class, a
+subclass of ``CLASS(Land)`` suitable for passing to ``LandInit()``.
 
 
 Keyword arguments

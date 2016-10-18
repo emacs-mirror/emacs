@@ -72,22 +72,22 @@ allocated or initialized by the user.
 _`.req.global.binary`: Provide a global binary lock. (This is required
 to protect the data structure allowing multiple arenas to coordinate
 handling of protection faults: see
-design.mps.thread-safety.arch.global.binary_.)
+design.mps.thread-safety.sol.global.mutable_.)
 
-.. _design.mps.thread-safety.arch.global.binary: thread-safety#arch.global.binary
+.. _design.mps.thread-safety.sol.global.mutable: thread-safety#sol.global.mutable
 
 _`.req.global.recursive`: Provide a global recursive lock. (This is
-required to protect pool class initialization: see 
-design.mps.thread-safety.arch.global.recursive_.)
+required to protect protocol class initialization: see
+design.mps.thread-safety.sol.global.once_.)
 
-.. _design.mps.thread-safety.arch.global.recursive: thread-safety#arch.global.recursive
+.. _design.mps.thread-safety.sol.global.once: thread-safety#sol.global.once
 
 _`.req.deadlock.not`: There is no requirement to provide protection
 against deadlock. (Clients are able to avoid deadlock using
 traditional strategies such as ordering of locks; see
-design.mps.thread-safety.deadlock_.)
+design.mps.thread-safety.sol.deadlock_.)
 
-.. _design.mps.thread-safety.deadlock: thread-safety#deadlock
+.. _design.mps.thread-safety.sol.deadlock: thread-safety#sol.deadlock
 
 
 Interface

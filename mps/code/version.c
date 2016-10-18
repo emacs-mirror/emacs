@@ -13,7 +13,8 @@
  *
  * .design: See <design/version-library>, but -- to let you in on a
  * secret -- it works by declaring a string with all the necessary info
- * in.  */
+ * in.
+ */
 
 #include "mpm.h"
 
@@ -55,9 +56,9 @@ char MPSCopyrightNotice[] =
 /* MPSVersion -- return version string
  *
  * The value of MPSVersion is a declared object comprising the
- * concatenation of all the version info.  The "@(#)" prefix 
- * is the convention used by the BSD Unix command what(1); 
- * see also guide.mps.version.
+ * concatenation of all the version info. The "@(#)" prefix is the
+ * convention used by the BSD Unix command what(1); see also
+ * design.mps.version.impl.tool.
  */
 
 extern char MPSVersionString[];
