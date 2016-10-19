@@ -277,9 +277,9 @@ static Res MVTInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
   if (abqDepth < 3)
     abqDepth = 3;
 
-  res = PoolAbsInit(pool, arena, klass, args);
+  res = NextMethod(Pool, MVTPool, init)(pool, arena, klass, args);
   if (res != ResOK)
-    goto failAbsInit;
+    goto failNextInit;
   mvt = CouldBeA(MVTPool, pool);
 
   res = LandInit(MVTFreePrimary(mvt), CLASS(CBSFast), arena, align, mvt,
@@ -377,7 +377,7 @@ failFreeSecondaryInit:
   LandFinish(MVTFreePrimary(mvt));
 failFreePrimaryInit:
   NextMethod(Inst, MVTPool, finish)(MustBeA(Inst, pool));
-failAbsInit:
+failNextInit:
   AVER(res != ResOK);
   return res;
 }

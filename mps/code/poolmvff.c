@@ -509,9 +509,9 @@ static Res MVFFInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
   AVERT(Bool, arenaHigh);
   AVERT(Bool, firstFit);
 
-  res = PoolAbsInit(pool, arena, klass, args);
+  res = NextMethod(Pool, MVFFPool, init)(pool, arena, klass, args);
   if (res != ResOK)
-    goto failAbsInit;
+    goto failNextInit;
   mvff = CouldBeA(MVFFPool, pool);
 
   mvff->extendBy = extendBy;
@@ -587,7 +587,7 @@ failTotalLandInit:
   PoolFinish(MVFFBlockPool(mvff));
 failBlockPoolInit:
   NextMethod(Inst, MVFFPool, finish)(MustBeA(Inst, pool));
-failAbsInit:
+failNextInit:
   AVER(res != ResOK);
   return res;
 }
