@@ -254,7 +254,7 @@ static Res MVInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
   AVER(maxSize > 0);
   AVER(extendBy <= maxSize);
 
-  res = PoolAbsInit(pool, arena, klass, args);
+  res = NextMethod(Pool, MVPool, init)(pool, arena, klass, args);
   if (res != ResOK)
     return res;
   mv = CouldBeA(MVPool, pool);

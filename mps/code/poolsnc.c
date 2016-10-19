@@ -358,9 +358,9 @@ static Res SNCInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
   AVERT(ArgList, args);
   UNUSED(klass); /* used for debug pools only */
 
-  res = PoolAbsInit(pool, arena, klass, args);
+  res = NextMethod(Pool, SNCPool, init)(pool, arena, klass, args);
   if (res != ResOK)
-    return res;
+    goto failNextInit;
   snc = CouldBeA(SNCPool, pool);
 
   /* Ensure a format was supplied in the argument list. */
@@ -376,6 +376,10 @@ static Res SNCInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
   EVENT2(PoolInitSNC, pool, pool->format);
 
   return ResOK;
+
+failNextInit:
+  AVER(res != ResOK);
+  return res;
 }
 
 

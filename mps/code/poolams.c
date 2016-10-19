@@ -774,9 +774,9 @@ static Res AMSInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
   AVER(gen <= ChainGens(chain));
   AVER(chain->arena == arena);
 
-  res = PoolAbsInit(pool, arena, klass, args);
+  res = NextMethod(Pool, AMSPool, init)(pool, arena, klass, args);
   if (res != ResOK)
-    goto failAbsInit;
+    goto failNextInit;
   ams = CouldBeA(AMSPool, pool);
 
   /* Ensure a format was supplied in the argument list. */
@@ -808,7 +808,8 @@ static Res AMSInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
 
 failGenInit:
   NextMethod(Inst, AMSPool, finish)(MustBeA(Inst, pool));
-failAbsInit:
+failNextInit:
+  AVER(res != ResOK);
   return res;
 }
 

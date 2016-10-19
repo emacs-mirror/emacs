@@ -1,7 +1,7 @@
 /* poolmrg.c: MANUAL RANK GUARDIAN POOL
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  * 
  * 
@@ -616,10 +616,9 @@ static Res MRGInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
   UNUSED(args);
   UNUSED(klass); /* used for debug pools only */
 
-  /* FIXME: These lines are often repeated */
-  res = PoolAbsInit(pool, arena, klass, args);
+  res = NextMethod(Pool, MRGPool, init)(pool, arena, klass, args);
   if (res != ResOK)
-    return res;
+    goto failNextInit;
   mrg = CouldBeA(MRGPool, pool);
  
   RingInit(&mrg->entryRing);
@@ -632,6 +631,10 @@ static Res MRGInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
   AVERC(MRGPool, mrg);
 
   return ResOK;
+
+failNextInit:
+  AVER(res != ResOK);
+  return res;
 }
 
 
@@ -860,7 +863,7 @@ PoolClass PoolClassMRG(void)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
