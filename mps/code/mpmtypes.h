@@ -178,7 +178,7 @@ typedef void (*BufferSetRankSetMethod)(Buffer buffer, RankSet rankSet);
 typedef void (*BufferReassignSegMethod)(Buffer buffer, Seg seg);
 
 
-/* Pool*Method -- see <design/class-interface/> */
+/* Pool*Method -- see <design/pool/> */
 
 /* Order of types corresponds to PoolClassStruct in <code/mpmst.h> */
 
