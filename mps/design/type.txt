@@ -108,9 +108,10 @@ Attribute            Description
 ===================  ===================================================
 
 There is an attribute field in the pool class (``PoolClassStruct``)
-which declares the attributes of that class. See design.mps.class-interface.field.attr_.
+which declares the attributes of that class. See
+design.mps.pool.field.attr_.
 
-.. _design.mps.class-interface.field.attr: class-interface
+.. _design.mps.pool.field.attr: pool#field.attr
 
 
 ``typedef int Bool``

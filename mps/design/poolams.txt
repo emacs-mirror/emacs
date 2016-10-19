@@ -22,12 +22,12 @@ _`.intro`: This is the design of the AMS pool class.
 _`.readership`: MM developers.
 
 _`.source`: design.mps.buffer_, design.mps.trace_, design.mps.scan_,
-design.mps.action and design.mps.class-interface_ [none of these were
+design.mps.action and design.mps.pool_ [none of these were
 actually used -- pekka 1998-04-21]. No requirements doc [we need a
 req.mps that captures the commonalities between the products -- pekka
 1998-01-27].
 
-.. _design.mps.class-interface: class-interface
+.. _design.mps.pool: pool
 .. _design.mps.scan: scan
 .. _design.mps.trace: trace
 .. _design.mps.buffer: buffer
@@ -497,7 +497,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2013-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

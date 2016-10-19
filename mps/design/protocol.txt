@@ -584,6 +584,24 @@ and simple.
 .. _RB: http://www.ravenbrook.com/consultants/rb/
 
 
+Common instance methods
+-----------------------
+
+_`.method`: These methods are available on all instances.
+
+``typedef void (*FinishMethod)(Inst inst)``
+
+_`.method.finish`: The ``finish`` method should finish the instance
+data structure (releasing any resources that were acquired by the
+instance during its lifetime) and then call its superclass method via
+the ``NextMethod()`` macro.
+
+``typedef Res (*DescribeMethod)(Inst inst, mps_lib_FILE *stream, Count depth)``
+
+_`.method.describe`: The ``describe`` field should print out a
+description of the instance to ``stream`` (by calling ``WriteF()``).
+
+
 A. References
 -------------
 

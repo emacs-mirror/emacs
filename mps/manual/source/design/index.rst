@@ -26,6 +26,7 @@ Design
     lock
     message
     nailboard
+    pool
     prmc
     prot
     protix

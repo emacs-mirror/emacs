@@ -6,7 +6,7 @@
  *
  * DESIGN
  *
- * .design: See <design/class-interface/> and <design/pool/>.
+ * .design: See <design/pool/>.
  *
  * PURPOSE
  *

@@ -774,7 +774,7 @@ mps_res_t mps_alloc(mps_addr_t *p_o, mps_pool_t pool, size_t size)
   AVERT_CRITICAL(Pool, pool);
   AVER_CRITICAL(size > 0);
   /* Note: class may allow unaligned size, see */
-  /* <design/class-interface/#alloc.size.align>. */
+  /* <design/pool/#method.alloc.size.align>. */
   /* Rest ignored, see .varargs. */
 
   res = PoolAlloc(&p, pool, size);
@@ -813,7 +813,7 @@ void mps_free(mps_pool_t pool, mps_addr_t p, size_t size)
   AVERT_CRITICAL(Pool, pool);
   AVER_CRITICAL(size > 0);
   /* Note: class may allow unaligned size, see */
-  /* <design/class-interface/#alloc.size.align>. */
+  /* <design/pool/#method.free.size.align>. */
 
   PoolFree(pool, (Addr)p, size);
   ArenaLeave(arena);
