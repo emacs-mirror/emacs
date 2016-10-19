@@ -297,21 +297,27 @@ Memory Management Glossary: B
         ``brk`` is a Unix system call that sets the limit of the data
         segment. This limit is known as the *break*.
 
-        The :term:`C` library implementation of :term:`malloc` usually
-        :term:`allocates` :term:`memory (2)` for the
-        :term:`heap` by extending the data segment using ``brk`` or
-        :term:`sbrk`.
+        ``brk`` and its companion :term:`sbrk` are obsolete on Unix
+        systems that support :term:`virtual memory` and the ``mmap``
+        system call.
 
-        Most implementations of ``malloc`` never shrink the data
-        segment, so the memory usage of a process never decreases. In
-        most Unix systems, the data segment resides immediately above
-        the program code (text segment) in the :term:`address space`.
+        The :term:`C` library implementation of :term:`malloc`
+        formerly :term:`allocated` :term:`memory (2)` for the
+        :term:`heap` by extending the data segment using ``brk`` or
+        ``sbrk``. The data segment resided immediately above the
+        program code and :term:`static data <static allocation>` (the
+        "text segment") in the :term:`address space`.
 
         .. figure:: ../diagrams/brk.svg
             :align: center
             :alt: Diagram: A simplified view of the address space of a Unix process.
 
             A simplified view of the address space of a Unix process.
+
+        More modern Unix systems use :term:`address space layout
+        randomization` to place these segments at randomized locations
+        in :term:`address space`, so that the :term:`heap` is no
+        longer adjacent to the static data.
 
     broken heart
 
