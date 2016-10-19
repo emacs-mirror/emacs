@@ -510,7 +510,7 @@ Memory Management Glossary: P
         A region of :term:`memory (2)` is said to be protected if
         there is a :term:`barrier (1)` on that region.
 
-        .. opposite:: :term:`protected`
+        .. opposite:: :term:`unprotected`
 
     protection
 
