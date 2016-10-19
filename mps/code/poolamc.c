@@ -722,9 +722,9 @@ static Res amcInitComm(Pool pool, Arena arena, PoolClass klass,
    * assertion catches this bad case. */
   AVER(largeSize >= extendBy);
 
-  res = PoolAbsInit(pool, arena, klass, args);
+  res = NextMethod(Pool, AMCZPool, init)(pool, arena, klass, args);
   if (res != ResOK)
-    return res;
+    goto failNextInit;
   amc = CouldBeA(AMCZPool, pool);
 
   /* Ensure a format was supplied in the argument list. */
@@ -802,6 +802,8 @@ failGenAlloc:
   ControlFree(arena, amc->gen, genArraySize);
 failGensAlloc:
   NextMethod(Inst, AMCZPool, finish)(MustBeA(Inst, pool));
+failNextInit:
+  AVER(res != ResOK);
   return res;
 }
 

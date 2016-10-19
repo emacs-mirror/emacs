@@ -97,11 +97,10 @@ static Res MFSInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
   AVER(extendBy > 0);
   AVERT(Bool, extendSelf);
 
-  res = PoolAbsInit(pool, arena, klass, args);
+  res = NextMethod(Pool, MFSPool, init)(pool, arena, klass, args);
   if (res != ResOK)
-    return res;
-  SetClassOfPoly(pool, CLASS(MFSPool));
-  mfs = MustBeA(MFSPool, pool);
+    goto failNextInit;
+  mfs = CouldBeA(MFSPool, pool);
 
   mfs->unroundedUnitSize = unitSize;
 
@@ -119,11 +118,17 @@ static Res MFSInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
   mfs->tractList = NULL;
   mfs->total = 0;
   mfs->free = 0;
-  mfs->sig = MFSSig;
 
-  AVERT(MFS, mfs);
+  SetClassOfPoly(pool, CLASS(MFSPool));
+  mfs->sig = MFSSig;
+  AVERC(MFS, mfs);
+
   EVENT5(PoolInitMFS, pool, arena, extendBy, BOOLOF(extendSelf), unitSize);
   return ResOK;
+
+failNextInit:
+  AVER(res != ResOK);
+  return res;
 }
 
 
