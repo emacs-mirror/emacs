@@ -20,7 +20,6 @@ Old design
     bt
     buffer
     check
-    class-interface
     collection
     diag
     finalize
@@ -30,7 +29,6 @@ Old design
     locus
     message-gc
     object-debug
-    pool
     poolamc
     poolams
     poolawl

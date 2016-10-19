@@ -36,11 +36,12 @@
  * See <design/pool/>.
  *
  * .class: The pool class structure is defined by each pool class
- * implementation in order to provide an interface between the MPM
- * and the class (see <design/class-interface/>) via generic
- * functions (see <code/pool.c>).  A class XXX defines a function
- * PoolClassXXX() returning a PoolClass pointing to a PoolClassStruct
- * of methods which implement the memory management policy.
+ * implementation in order to provide an interface between the MPM and
+ * the class (see <design/pool/>) via generic functions (see
+ * <code/pool.c>). Pool classes use the class protocol (see
+ * <design/protocol/>) and so CLASS(ABCPool) returns a PoolClass
+ * pointing to a PoolClassStruct of methods which implement the memory
+ * management policy for pool class ABC.
  *
  * .class.end-sig: The class structure has a signature at the end.  This
  * causes the compiler to complain if the class structure is extended

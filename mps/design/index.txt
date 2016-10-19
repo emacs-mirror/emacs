@@ -49,7 +49,6 @@ bt_                     Bit tables
 buffer_                 Allocation buffers and allocation points
 cbs_                    Coalescing block structures
 check_                  Checking
-class-interface_        Pool class interface
 clock_                  Fast high-resolution clock
 collection_             Collection framework
 config_                 MPS configuration
@@ -75,7 +74,7 @@ message_                Client message protocol
 message-gc_             GC messages
 nailboard_              Nailboards for ambiguously referenced segments
 object-debug_           Debugging features for client objects
-pool_                   Pool and pool class mechanisms
+pool_                   Pool classes
 poolamc_                Automatic Mostly-Copying pool class
 poolams_                Automatic Mark-and-Sweep pool class
 poolawl_                Automatic Weak Linked pool class
@@ -125,7 +124,6 @@ writef_                 The WriteF function
 .. _cbs: cbs
 .. _check: check
 .. _clock: clock
-.. _class-interface: class-interface
 .. _collection: collection
 .. _config: config
 .. _critical-path: critical-path

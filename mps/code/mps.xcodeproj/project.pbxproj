@@ -1569,7 +1569,6 @@
 		31160D971899540D0071EB17 /* buffer.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = buffer.txt; path = ../design/buffer.txt; sourceTree = "<group>"; };
 		31160D981899540D0071EB17 /* cbs.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = cbs.txt; path = ../design/cbs.txt; sourceTree = "<group>"; };
 		31160D991899540D0071EB17 /* check.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = check.txt; path = ../design/check.txt; sourceTree = "<group>"; };
-		31160D9A1899540D0071EB17 /* class-interface.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = "class-interface.txt"; path = "../design/class-interface.txt"; sourceTree = "<group>"; };
 		31160D9B1899540D0071EB17 /* collection.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = collection.txt; path = ../design/collection.txt; sourceTree = "<group>"; };
 		31160D9C1899540D0071EB17 /* config.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = config.txt; path = ../design/config.txt; sourceTree = "<group>"; };
 		31160D9D1899540D0071EB17 /* critical-path.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = "critical-path.txt"; path = "../design/critical-path.txt"; sourceTree = "<group>"; };
@@ -1589,7 +1588,7 @@
 		31160DAB1899540D0071EB17 /* message-gc.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = "message-gc.txt"; path = "../design/message-gc.txt"; sourceTree = "<group>"; };
 		31160DAC1899540D0071EB17 /* message.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = message.txt; path = ../design/message.txt; sourceTree = "<group>"; };
 		31160DAD1899540D0071EB17 /* object-debug.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = "object-debug.txt"; path = "../design/object-debug.txt"; sourceTree = "<group>"; };
-		31160DAE1899540D0071EB17 /* pool.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = pool.txt; path = ../design/pool.txt; sourceTree = "<group>"; };
+		31160D9A1899540D0071EB17 /* pool.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = "pool.txt"; path = "../design/pool.txt"; sourceTree = "<group>"; };
 		31160DAF1899540D0071EB17 /* poolamc.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = poolamc.txt; path = ../design/poolamc.txt; sourceTree = "<group>"; };
 		31160DB01899540D0071EB17 /* poolams.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = poolams.txt; path = ../design/poolams.txt; sourceTree = "<group>"; };
 		31160DB11899540D0071EB17 /* poolawl.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = poolawl.txt; path = ../design/poolawl.txt; sourceTree = "<group>"; };
@@ -2220,7 +2219,6 @@
 				31160D971899540D0071EB17 /* buffer.txt */,
 				31160D981899540D0071EB17 /* cbs.txt */,
 				31160D991899540D0071EB17 /* check.txt */,
-				31160D9A1899540D0071EB17 /* class-interface.txt */,
 				31942A741C8EC445001AAF32 /* clock.txt */,
 				31160D9B1899540D0071EB17 /* collection.txt */,
 				31160D9C1899540D0071EB17 /* config.txt */,
@@ -2250,7 +2248,7 @@
 				31942A8E1C8EC446001AAF32 /* nailboard-3.svg */,
 				31942A8F1C8EC446001AAF32 /* nailboard.txt */,
 				31160DAD1899540D0071EB17 /* object-debug.txt */,
-				31160DAE1899540D0071EB17 /* pool.txt */,
+				31160D9A1899540D0071EB17 /* pool.txt */,
 				31160DAF1899540D0071EB17 /* poolamc.txt */,
 				31160DB01899540D0071EB17 /* poolams.txt */,
 				31160DB11899540D0071EB17 /* poolawl.txt */,
