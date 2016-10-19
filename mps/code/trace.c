@@ -825,7 +825,6 @@ static void traceReclaim(Trace trace)
 {
   Arena arena;
   Seg seg;
-  Ring node, nextNode;
 
   AVER(trace->state == TraceRECLAIM);
 
@@ -865,12 +864,6 @@ static void traceReclaim(Trace trace)
   }
 
   trace->state = TraceFINISHED;
-
-  /* Call each pool's TraceEnd method -- do end-of-trace work */
-  RING_FOR(node, &ArenaGlobals(arena)->poolRing, nextNode) {
-    Pool pool = RING_ELT(Pool, arenaRing, node);
-    PoolTraceEnd(pool, trace);
-  }
 
   ArenaCompact(arena, trace);  /* let arenavm drop chunks */
 

@@ -190,7 +190,6 @@ typedef Res (*PoolBufferFillMethod)(Addr *baseReturn, Addr *limitReturn,
                                     Pool pool, Buffer buffer, Size size);
 typedef void (*PoolBufferEmptyMethod)(Pool pool, Buffer buffer,
                                       Addr init, Addr limit);
-typedef Res (*PoolTraceBeginMethod)(Pool pool, Trace trace);
 typedef Res (*PoolAccessMethod)(Pool pool, Seg seg, Addr addr,
                                 AccessSet mode, MutatorContext context);
 typedef Res (*PoolWhitenMethod)(Pool pool, Trace trace, Seg seg);
@@ -198,12 +197,8 @@ typedef void (*PoolGreyMethod)(Pool pool, Trace trace, Seg seg);
 typedef void (*PoolBlackenMethod)(Pool pool, TraceSet traceSet, Seg seg);
 typedef Res (*PoolScanMethod)(Bool *totalReturn, ScanState ss,
                               Pool pool, Seg seg);
-typedef Res (*PoolFixMethod)(Pool pool, ScanState ss, Seg seg,
-                             Ref *refIO);
-typedef Res (*PoolFixEmergencyMethod)(Pool pool, ScanState ss,
-                                      Seg seg, Ref *refIO);
+typedef Res (*PoolFixMethod)(Pool pool, ScanState ss, Seg seg, Ref *refIO);
 typedef void (*PoolReclaimMethod)(Pool pool, Trace trace, Seg seg);
-typedef void (*PoolTraceEndMethod)(Pool pool, Trace trace);
 typedef void (*PoolRampBeginMethod)(Pool pool, Buffer buf, Bool collectAll);
 typedef void (*PoolRampEndMethod)(Pool pool, Buffer buf);
 typedef Res (*PoolFramePushMethod)(AllocFrame *frameReturn,

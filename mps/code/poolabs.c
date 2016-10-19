@@ -205,7 +205,6 @@ DEFINE_CLASS(Pool, AbstractPool, klass)
   klass->fix = PoolNoFix;
   klass->fixEmergency = PoolNoFix;
   klass->reclaim = PoolNoReclaim;
-  klass->traceEnd = PoolTrivTraceEnd;
   klass->rampBegin = PoolNoRampBegin;
   klass->rampEnd = PoolNoRampEnd;
   klass->framePush = PoolNoFramePush;
@@ -628,13 +627,6 @@ void PoolNoReclaim(Pool pool, Trace trace, Seg seg)
   AVERT(Trace, trace);
   AVERT(Seg, seg);
   NOTREACHED;
-}
-
-void PoolTrivTraceEnd(Pool pool, Trace trace)
-{
-  AVERT(Pool, pool);
-  AVERT(Trace, trace);
-  NOOP;
 }
 
 
