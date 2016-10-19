@@ -13,12 +13,11 @@ Memory Management Glossary: S
         ``sbrk`` is a Unix library function that adjusts the limit of
         the data segment; this limit is known as the *break*.
 
-        ``sbrk`` returns the previous value of the break, so
-        ``sbrk(0)`` is a common idiom for getting the current value.
+        ``sbrk`` and its companion :term:`brk` are obsolete on Unix
+        systems that support :term:`virtual memory`.
 
-        Note that, if you use :term:`brk`, you probably can't safely
-        use ``sbrk`` as well, because it may store the last value of
-        the break in a private variable.
+        ``sbrk`` returns the previous value of the break, so
+        ``sbrk(0)`` was a common idiom for getting the current value.
 
     scalar data type
 
