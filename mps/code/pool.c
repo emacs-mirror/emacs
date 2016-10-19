@@ -59,7 +59,6 @@ Bool PoolClassCheck(PoolClass klass)
   CHECKL(FUNCHECK(klass->rampEnd));
   CHECKL(FUNCHECK(klass->framePush));
   CHECKL(FUNCHECK(klass->framePop));
-  CHECKL(FUNCHECK(klass->addrObject));
   CHECKL(FUNCHECK(klass->walk));
   CHECKL(FUNCHECK(klass->freewalk));
   CHECKL(FUNCHECK(klass->bufferClass));
@@ -403,24 +402,6 @@ void PoolReclaim(Pool pool, Trace trace, Seg seg)
   AVER_CRITICAL(TraceSetIsMember(SegWhite(seg), trace));
 
   Method(Pool, pool, reclaim)(pool, trace, seg);
-}
-
-
-/* PoolAddrObject -- find client pointer to object containing addr
- * See user documentation for mps_addr_object.
- * addr is known to belong to seg, which belongs to pool.
- * See job003589.
- */
-
-Res PoolAddrObject(Addr *pReturn, Pool pool, Seg seg, Addr addr)
-{
-  AVER(pReturn != NULL);
-  AVERT(Pool, pool);
-  AVERT(Seg, seg);
-  AVER(pool == SegPool(seg));
-  AVER(SegBase(seg) <= addr);
-  AVER(addr < SegLimit(seg));
-  return Method(Pool, pool, addrObject)(pReturn, pool, seg, addr);
 }
 
 

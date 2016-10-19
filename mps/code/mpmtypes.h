@@ -205,8 +205,6 @@ typedef Res (*PoolFramePushMethod)(AllocFrame *frameReturn,
                                    Pool pool, Buffer buf);
 typedef Res (*PoolFramePopMethod)(Pool pool, Buffer buf,
                                   AllocFrame frame);
-typedef Res (*PoolAddrObjectMethod)(Addr *pReturn,
-                                    Pool pool, Seg seg, Addr addr);
 typedef void (*PoolWalkMethod)(Pool pool, Seg seg, FormattedObjectsVisitor f,
                                void *v, size_t s);
 typedef void (*PoolFreeWalkMethod)(Pool pool, FreeBlockVisitor f, void *p);

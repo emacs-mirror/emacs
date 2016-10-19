@@ -1875,88 +1875,6 @@ static void amcWalkAll(Pool pool, FormattedObjectsVisitor f, void *p, size_t s)
 }
 
 
-/* amcAddrObjectSearch -- skip over objects (belonging to pool)
- * starting at objBase until we reach one of the following cases:
- * 1. addr is found (and not moved): set *pReturn to the client
- * pointer to the object containing addr and return ResOK;
- * 2. addr is found, but it moved: return ResFAIL;
- * 3. we reach searchLimit: return ResFAIL.
- */
-static Res amcAddrObjectSearch(Addr *pReturn, Pool pool, Addr objBase,
-                               Addr searchLimit, Addr addr)
-{
-  Format format;
-  Size hdrSize;
-
-  AVER(pReturn != NULL);
-  AVERT(Pool, pool);
-  AVER(objBase <= searchLimit);
-
-  format = pool->format;
-  hdrSize = format->headerSize;
-  while (objBase < searchLimit) {
-    Addr objRef = AddrAdd(objBase, hdrSize);
-    Addr objLimit = AddrSub((*format->skip)(objRef), hdrSize);
-    AVER(objBase < objLimit);
-    if (addr < objLimit) {
-      AVER(objBase <= addr);
-      AVER(addr < objLimit); /* the point */
-      if (!(*format->isMoved)(objRef)) {
-        *pReturn = objRef;
-        return ResOK;
-      }
-      break;
-    }
-    objBase = objLimit;
-  }
-  return ResFAIL;
-}
-
-
-/* AMCAddrObject -- find client pointer to object containing addr.
- * addr is known to belong to seg, which belongs to pool.
- * See job003589.
- */
-static Res AMCAddrObject(Addr *pReturn, Pool pool, Seg seg, Addr addr)
-{
-  Res res;
-  Arena arena;
-  Addr base, limit;    /* range of objects on segment */
-  Buffer buffer;
-
-  AVER(pReturn != NULL);
-  AVERT(Pool, pool);
-  AVERT(Seg, seg);
-  AVER(SegPool(seg) == pool);
-  AVER(SegBase(seg) <= addr);
-  AVER(addr < SegLimit(seg));
-
-  arena = PoolArena(pool);
-  base = SegBase(seg);
-  if (SegBuffer(&buffer, seg)) {
-    /* We use BufferGetInit here (and not BufferScanLimit) because we
-     * want to be able to find objects that have been allocated and
-     * committed since the last flip. These objects lie between the
-     * addresses returned by BufferScanLimit (which returns the value
-     * of init at the last flip) and BufferGetInit.
-     *
-     * Strictly speaking we only need a limit that is at least the
-     * maximum of the objects on the segments. This is because addr
-     * *must* point inside a live object and we stop skipping once we
-     * have found it. The init pointer serves this purpose.
-     */
-    limit = BufferGetInit(buffer);
-  } else {
-    limit = SegLimit(seg);
-  }
-
-  ShieldExpose(arena, seg);
-  res = amcAddrObjectSearch(pReturn, pool, base, limit, addr);
-  ShieldCover(arena, seg);
-  return res;
-}
-
-
 /* AMCTotalSize -- total memory allocated from the arena */
 
 static Size AMCTotalSize(Pool pool)
@@ -2074,7 +1992,6 @@ DEFINE_CLASS(Pool, AMCZPool, klass)
   klass->reclaim = AMCReclaim;
   klass->rampBegin = AMCRampBegin;
   klass->rampEnd = AMCRampEnd;
-  klass->addrObject = AMCAddrObject;
   klass->walk = AMCWalk;
   klass->bufferClass = amcBufClassGet;
   klass->totalSize = AMCTotalSize;
