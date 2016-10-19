@@ -240,17 +240,6 @@ static void NReclaim(Pool pool, Trace trace, Seg seg)
 }
 
 
-/* NTraceEnd -- trace end method for class N */
-
-static void NTraceEnd(Pool pool, Trace trace)
-{
-  PoolN poolN = MustBeA(NPool, pool);
-
-  AVERT(Trace, trace);
-  UNUSED(poolN);
-}
-
-
 /* NPoolClass -- pool class definition for N */
 
 DEFINE_CLASS(Pool, NPool, klass)
@@ -272,7 +261,6 @@ DEFINE_CLASS(Pool, NPool, klass)
   klass->fix = NFix;
   klass->fixEmergency = NFix;
   klass->reclaim = NReclaim;
-  klass->traceEnd = NTraceEnd;
   AVERT(PoolClass, klass);
 }
 
