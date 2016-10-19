@@ -55,7 +55,6 @@ Bool PoolClassCheck(PoolClass klass)
   CHECKL(FUNCHECK(klass->fix));
   CHECKL(FUNCHECK(klass->fixEmergency));
   CHECKL(FUNCHECK(klass->reclaim));
-  CHECKL(FUNCHECK(klass->traceEnd));
   CHECKL(FUNCHECK(klass->rampBegin));
   CHECKL(FUNCHECK(klass->rampEnd));
   CHECKL(FUNCHECK(klass->framePush));
@@ -404,23 +403,6 @@ void PoolReclaim(Pool pool, Trace trace, Seg seg)
   AVER_CRITICAL(TraceSetIsMember(SegWhite(seg), trace));
 
   Method(Pool, pool, reclaim)(pool, trace, seg);
-}
-
-
-/* PoolTraceEnd -- do end-of-trace work
- *
- * This method is for a pool class to do final end-of-trace work, 
- * after all reclaiming is complete.  For example, emitting 
- * diagnostics about what happened during the trace.
- */
-
-void PoolTraceEnd(Pool pool, Trace trace)
-{
-  AVERT(Pool, pool);
-  AVERT(Trace, trace);
-  AVER(pool->arena == trace->arena);
-
-  Method(Pool, pool, traceEnd)(pool, trace);
 }
 
 
