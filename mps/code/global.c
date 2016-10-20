@@ -819,6 +819,7 @@ Ref ArenaPeek(Arena arena, Ref *p)
   Ref ref;
 
   AVERT(Arena, arena);
+  /* Can't check p as it is arbitrary */
 
   if (SegOfAddr(&seg, arena, (Addr)p))
     ref = ArenaPeekSeg(arena, seg, p);
@@ -836,7 +837,7 @@ Ref ArenaPeekSeg(Arena arena, Seg seg, Ref *p)
 
   AVER(SegBase(seg) <= (Addr)p);
   AVER((Addr)p < SegLimit(seg));
-  /* TODO: Consider checking addr's alignment using seg->pool->alignment */
+  /* TODO: Consider checking p's alignment using seg->pool->alignment */
 
   ShieldExpose(arena, seg);
   ref = *p;
@@ -849,7 +850,7 @@ void ArenaPoke(Arena arena, Ref *p, Ref ref)
   Seg seg;
 
   AVERT(Arena, arena);
-  /* Can't check addr as it is arbitrary */
+  /* Can't check p as it is arbitrary */
   /* Can't check ref as it is arbitrary */
 
   if (SegOfAddr(&seg, arena, (Addr)p))
@@ -866,7 +867,7 @@ void ArenaPokeSeg(Arena arena, Seg seg, Ref *p, Ref ref)
   AVERT(Seg, seg);
   AVER(SegBase(seg) <= (Addr)p);
   AVER((Addr)p < SegLimit(seg));
-  /* TODO: Consider checking addr's alignment using seg->pool->alignment */
+  /* TODO: Consider checking p's alignment using seg->pool->alignment */
   /* ref is arbitrary and can't be checked */
 
   ShieldExpose(arena, seg);
