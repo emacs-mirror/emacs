@@ -127,6 +127,7 @@ All
 :term:`client program <mutator>`
 :term:`closure`
 :term:`coalesce`
+:term:`cold end`
 :term:`collect`
 :term:`collection <collection cycle>`
 :term:`collection cycle`
@@ -263,6 +264,7 @@ All
 :term:`hit`
 :term:`hit rate`
 :term:`hot`
+:term:`hot end`
 :term:`huge page`
 
 :term:`immediate data`
