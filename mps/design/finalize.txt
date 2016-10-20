@@ -6,7 +6,7 @@ Finalization
 :Tag: design.mps.finalize
 :Author: David Jones
 :Date: 1997-02-14
-:Status: incomplete design
+:Status: complete design
 :Revision: $Id$
 :Copyright: See `Copyright and License`_.
 :Index terms: pair: finalization; design
@@ -74,7 +74,8 @@ then ``ArenaDestroy()`` destroys the final pool.
 _`.impl.access`: ``mps_message_finalization_ref()`` needs to access
 the finalization message to retrieve the reference and then write it
 to where the client asks. This must be done carefully, in order to
-avoid breaking the invariants or creating a hidden root.
+avoid hitting the write barrier or invalidating collection invariants
+such as the segment summary.
 
 _`.impl.invariants`: We protect the invariants by using special
 routines ``ArenaRead()`` and ``ArenaPoke()`` to read and write the
@@ -89,6 +90,14 @@ reference. This works as long as there's no write-barrier collection.
     we could change it to do the real thing, but in the absence of a
     write-barrier, it's functionally identical to ``ArenaPoke()``.
     Pekka P. Pirinen, 1997-12-09.
+
+.. note::
+
+    There is no need to maintain a write barrier on segments belonging
+    to the MRG pool, as these segments are never given to the mutator.
+    See job004030_.
+
+    .. _job004030: https://www.ravenbrook.com/project/mps/issue/job004030/
 
 
 External interface

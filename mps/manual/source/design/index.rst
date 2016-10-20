@@ -15,6 +15,7 @@ Design
     critical-path
     exec-env
     failover
+    finalize
     freelist
     guide.hex.trans
     guide.impl.c.format
