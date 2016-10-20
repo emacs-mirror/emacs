@@ -22,7 +22,6 @@ Old design
     check
     collection
     diag
-    finalize
     fix
     io
     lib
