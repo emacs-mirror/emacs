@@ -759,6 +759,29 @@ and updates the data stored in ENV."
      ;; seem worth the trouble.
      (dolist (form forms) (cconv-analyze-form form nil)))
 
+    (`(select . ,alternatives)
+     (dolist (alternative alternatives)
+       (let ((env env)
+             (varstruct nil))
+         (pcase (car alternative)
+           (`(receive ,chan)
+            (cconv-analyze-form chan env))
+           (`(receive ,chan ,var)
+            (cconv-analyze-form chan env)
+            (setq varstruct (list var nil nil nil nil))
+            (push varstruct env))
+           (`(send ,chan ,val)
+            (cconv-analyze-form chan env)
+            (cconv-analyze-form val env))
+           ('default)
+           (invalid
+            (byte-compile-report-error
+             (format-message "invalid `select' alternative %S" invalid))))
+         (dolist (form (cdr alternative))
+           (cconv-analyze-form form env))
+         (when varstruct
+           (cconv--analyze-use varstruct form "variable")))))
+
     ;; `declare' should now be macro-expanded away (and if they're not, we're
     ;; in trouble because they *can* contain code nowadays).
     ;; (`(declare . ,_) nil)               ;The args don't contain code.

@@ -195,7 +195,7 @@ x_menu_wait_for_event (void *data)
 	 xg_select so that timeout gets triggered.  */
       xg_select (n + 1, &read_fds, NULL, NULL, ntp, NULL);
 #else
-      pselect (n + 1, &read_fds, NULL, NULL, ntp, NULL);
+      pselect_noblock (n + 1, &read_fds, NULL, NULL, ntp, NULL);
 #endif
     }
 }

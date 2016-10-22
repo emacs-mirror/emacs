@@ -3760,6 +3760,56 @@ Lisp_Object backtrace_top_function (void)
 }
 
 void
+init_emacs_lisp_context (bool main_task,
+                         struct emacs_lisp_task_context *context)
+{
+  if (main_task)
+    {
+#define SET(var) do { context->var = (var); } while (false)
+      SET(handlerlist);
+      SET(handlerlist_sentinel);
+      SET(specpdl_size);
+      SET(specpdl);
+      SET(specpdl_ptr);
+      SET(lisp_eval_depth);
+      SET(Vinternal_interpreter_environment);
+#undef SET
+    }
+  else
+    {
+      context->handlerlist = context->handlerlist_sentinel.nextfree = &context->handlerlist_sentinel;
+      context->specpdl_size = 50;
+      context->specpdl = xmalloc ((1 + context->specpdl_size) * sizeof *context->specpdl);
+      ++context->specpdl;
+      context->specpdl_ptr = context->specpdl;
+      struct handler *prev = handlerlist;
+      handlerlist = context->handlerlist;
+      struct handler *c = push_handler_nosignal (Qunbound, CATCHER);
+      handlerlist = prev;
+      eassert (c == &context->handlerlist_sentinel);
+      context->handlerlist_sentinel.nextfree = NULL;
+      context->handlerlist_sentinel.next = NULL;
+      context->lisp_eval_depth = 0;
+      context->Vinternal_interpreter_environment = CONSP (Vinternal_interpreter_environment) ? list1 (Qt) : Qnil;
+    }
+}
+
+void
+switch_emacs_lisp_context (struct emacs_lisp_task_context *from,
+                           const struct emacs_lisp_task_context *to)
+{
+#define SWAP(var) do { from->var = (var); (var) = to->var; } while (false)
+  SWAP(handlerlist);
+  SWAP(handlerlist_sentinel);
+  SWAP(specpdl_size);
+  SWAP(specpdl);
+  SWAP(specpdl_ptr);
+  SWAP(lisp_eval_depth);
+  SWAP(Vinternal_interpreter_environment);
+#undef SWAP
+}
+
+void
 syms_of_eval (void)
 {
   DEFVAR_INT ("max-specpdl-size", max_specpdl_size,

@@ -91,6 +91,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "systime.h"
 #include "puresize.h"
 
+#include "libtask/task.h"
+
 #include "getpagesize.h"
 #include "gnutls.h"
 
@@ -661,8 +663,8 @@ close_output_streams (void)
 }
 
 /* ARGSUSED */
-int
-main (int argc, char **argv)
+void
+taskmain (int argc, char **argv)
 {
   Lisp_Object dummy;
   char stack_bottom_variable;
@@ -737,12 +739,6 @@ main (int argc, char **argv)
 #ifdef RUN_TIME_REMAP
   if (initialized)
     run_time_remap (argv[0]);
-#endif
-
-/* If using unexmacosx.c (set by s/darwin.h), we must do this. */
-#ifdef DARWIN_OS
-  if (!initialized)
-    unexec_init_emacs_zone ();
 #endif
 
   init_standard_fds ();
@@ -1436,6 +1432,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
       syms_of_ccl ();
       syms_of_character ();
       syms_of_cmds ();
+      syms_of_coroutine ();
       syms_of_dired ();
       syms_of_display ();
       syms_of_doc ();
@@ -1657,8 +1654,6 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 
   /* Enter editor command loop.  This never returns.  */
   Frecursive_edit ();
-  /* NOTREACHED */
-  return 0;
 }
 
 /* Sort the args so we can find the most important ones
@@ -2066,6 +2061,19 @@ shut_down_emacs (int sig, Lisp_Object stuff)
 
 
 
+/* Called by libtask before allocating the main task.  Use this
+   function to initialize allocation.  After this, alloc should be
+   usable.  */
+void
+init_emacs_main_task (void)
+{
+  /* If using unexmacosx.c (set by s/darwin.h), we must do this. */
+#ifdef DARWIN_OS
+  if (!initialized)
+    unexec_init_emacs_zone ();
+#endif
+}
+
 #ifndef CANNOT_DUMP
 
 #include "unexec.h"

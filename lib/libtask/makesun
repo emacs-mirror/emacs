@@ -1,0 +1,22 @@
+#!/bin/sh
+
+case "x$CC" in
+x|xcc)
+	CC=cc
+	CFLAGS="-mt -g -O -c -xCC -D__sun__ -I."
+	;;
+xgcc)
+	CC=gcc
+	CFLAGS="-Wall -c -I."
+	;;
+*)
+	echo 'unknown $CC'
+	exit 1
+esac
+
+u=`uname`
+v=`uname -r`
+s=`echo $u$v | tr '. ' '__'`
+CFLAGS="$CFLAGS -D__${s}__"
+
+make "CC=$CC" "CFLAGS=$CFLAGS" "ASM=" "TCPLIBS=-lsocket -lnsl"

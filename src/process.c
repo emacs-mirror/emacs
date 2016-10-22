@@ -3279,7 +3279,7 @@ connect_network_socket (Lisp_Object proc, Lisp_Object addrinfos,
 	  FD_ZERO (&fdset);
 	  FD_SET (s, &fdset);
 	  QUIT;
-	  sc = pselect (s + 1, NULL, &fdset, NULL, NULL, NULL);
+	  sc = pselect_noblock (s + 1, NULL, &fdset, NULL, NULL, NULL);
 	  if (sc == -1)
 	    {
 	      if (errno == EINTR)
@@ -5003,10 +5003,10 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	  Ctemp = write_mask;
 
 	  timeout = make_timespec (0, 0);
-	  if ((pselect (max (max_process_desc, max_input_desc) + 1,
-			&Atemp,
-			(num_pending_connects > 0 ? &Ctemp : NULL),
-			NULL, &timeout, NULL)
+	  if ((pselect_noblock (max (max_process_desc, max_input_desc) + 1,
+                                &Atemp,
+                                (num_pending_connects > 0 ? &Ctemp : NULL),
+                                NULL, &timeout, NULL)
 	       <= 0))
 	    {
 	      /* It's okay for us to do this and then continue with
@@ -5187,7 +5187,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 #elif defined (HAVE_GLIB)
 	  nfds = xg_select
 #else
-	  nfds = pselect
+	  nfds = pselect_noblock
 #endif
             (max (max_process_desc, max_input_desc) + 1,
              &Available,
@@ -7410,7 +7410,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	{
 	  if (read_kbd || !NILP (wait_for_cell))
 	    FD_SET (0, &waitchannels);
-	  nfds = pselect (1, &waitchannels, NULL, NULL, &timeout, NULL);
+	  nfds = pselect_noblock (1, &waitchannels, NULL, NULL, &timeout, NULL);
 	}
 
       xerrno = errno;

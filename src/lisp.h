@@ -459,6 +459,7 @@ enum Lisp_Misc_Type
     Lisp_Misc_Overlay,
     Lisp_Misc_Save_Value,
     Lisp_Misc_Finalizer,
+    Lisp_Misc_Channel,
 #ifdef HAVE_MODULES
     Lisp_Misc_User_Ptr,
 #endif
@@ -610,6 +611,8 @@ extern bool might_dump;
 /* True means Emacs has already been initialized.
    Used during startup to detect startup of dumped Emacs.  */
 extern bool initialized;
+
+void init_emacs_main_task (void);
 
 /* Defined in floatfns.c.  */
 extern double extract_float (Lisp_Object);
@@ -2252,6 +2255,12 @@ XSAVE_OBJECT (Lisp_Object obj, int n)
   return XSAVE_VALUE (obj)->data[n].object;
 }
 
+struct Lisp_Channel
+{
+  struct Lisp_Misc_Any base;
+  struct Channel* channel;
+};
+
 #ifdef HAVE_MODULES
 struct Lisp_User_Ptr
 {
@@ -2299,6 +2308,7 @@ union Lisp_Misc
     struct Lisp_Overlay u_overlay;
     struct Lisp_Save_Value u_save_value;
     struct Lisp_Finalizer u_finalizer;
+    struct Lisp_Channel u_channel;
 #ifdef HAVE_MODULES
     struct Lisp_User_Ptr u_user_ptr;
 #endif
@@ -2349,6 +2359,19 @@ XFINALIZER (Lisp_Object a)
 {
   eassert (FINALIZERP (a));
   return & XMISC (a)->u_finalizer;
+}
+
+INLINE bool
+CHANNELP (Lisp_Object a)
+{
+  return MISCP (a) && XMISCTYPE (a) == Lisp_Misc_Channel;
+}
+
+INLINE struct Lisp_Channel *
+XCHANNEL (Lisp_Object a)
+{
+  eassert (CHANNELP (a));
+  return & XMISC (a)->u_channel;
 }
 
 #ifdef HAVE_MODULES
@@ -3412,6 +3435,9 @@ extern void init_coding (void);
 extern void init_coding_once (void);
 extern void syms_of_coding (void);
 
+/* Defined in coroutine.c.  */
+extern void syms_of_coroutine (void);
+
 /* Defined in character.c.  */
 extern ptrdiff_t chars_in_text (const unsigned char *, ptrdiff_t);
 extern ptrdiff_t multibyte_chars_in_text (const unsigned char *, ptrdiff_t);
@@ -3931,6 +3957,22 @@ extern void get_backtrace (Lisp_Object array);
 Lisp_Object backtrace_top_function (void);
 extern bool let_shadows_buffer_binding_p (struct Lisp_Symbol *symbol);
 extern bool let_shadows_global_binding_p (Lisp_Object symbol);
+
+struct emacs_lisp_task_context {
+  struct handler *handlerlist;
+  struct handler handlerlist_sentinel;
+  ptrdiff_t specpdl_size;
+  union specbinding *specpdl;
+  union specbinding *specpdl_ptr;
+  EMACS_INT lisp_eval_depth;
+  struct emacs_globals globals;
+};
+
+void init_emacs_lisp_context (bool main_task,
+                              struct emacs_lisp_task_context *context);
+
+void switch_emacs_lisp_context (struct emacs_lisp_task_context *from,
+                                const struct emacs_lisp_task_context *to);
 
 #ifdef HAVE_MODULES
 /* Defined in alloc.c.  */

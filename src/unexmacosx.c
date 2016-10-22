@@ -1377,6 +1377,8 @@ unexec_malloc (size_t size)
 void *
 unexec_realloc (void *old_ptr, size_t new_size)
 {
+  if (old_ptr == NULL)
+    return unexec_malloc (new_size);
   if (in_dumped_exec)
     {
       void *p;

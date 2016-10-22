@@ -109,8 +109,8 @@ xg_select (int fds_lim, fd_set *rfds, fd_set *wfds, fd_set *efds,
     }
 
   fds_lim = max_fds + 1;
-  nfds = pselect (fds_lim, &all_rfds, have_wfds ? &all_wfds : NULL,
-		  efds, tmop, sigmask);
+  nfds = pselect_noblock (fds_lim, &all_rfds, have_wfds ? &all_wfds : NULL,
+                          efds, tmop, sigmask);
 
   if (nfds < 0)
     retval = nfds;
