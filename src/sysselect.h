@@ -90,4 +90,12 @@ INLINE_HEADER_END
 
 #endif	/* !WINDOWSNT */
 
+// Defined in coroutine.c.
+int pselect_noblock (int nfds,
+                     fd_set *restrict readfds,
+                     fd_set *restrict writefds,
+                     fd_set *restrict errorfds,
+                     const struct timespec *restrict timeout,
+                     const sigset_t *restrict sigmask);
+
 #endif

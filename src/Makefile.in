@@ -398,6 +398,7 @@ base_obj = dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
 	buffer.o filelock.o insdel.o marker.o \
 	minibuf.o fileio.o dired.o \
 	cmds.o casetab.o casefiddle.o indent.o search.o regex.o undo.o \
+	coroutine.o \
 	alloc.o data.o doc.o editfns.o callint.o \
 	eval.o floatfns.o fns.o font.o print.o lread.o $(MODULES_OBJ) \
 	syntax.o $(UNEXEC_OBJ) bytecode.o \
@@ -598,14 +599,29 @@ LIBEGNU_ARCHIVE = $(lib)/lib$(if $(HYBRID_MALLOC),e)gnu.a
 $(LIBEGNU_ARCHIVE): $(config_h)
 	$(MAKE) -C $(lib) all
 
+libtask = \
+	$(lib)/libtask/asm.o \
+	$(lib)/libtask/channel.o \
+	$(lib)/libtask/context.o \
+	$(lib)/libtask/print.o \
+	$(lib)/libtask/qlock.o \
+	$(lib)/libtask/rendez.o \
+	$(lib)/libtask/task.o
+
+$(libtask): $(lib)/libtask/*.h
+
+$(lib)/libtask/%.o: $(lib)/libtask/%.c $(lib)/libtask/*.h lisp.h config.h globals.h
+	$(AM_V_CC)$(CC) -c -DEMACS -I. -I$(lib) $(CPPFLAGS) $(CFLAGS) -o $@ $<
+
 ## We have to create $(etc) here because init_cmdargs tests its
 ## existence when setting Vinstallation_directory (FIXME?).
 ## This goes on to affect various things, and the emacs binary fails
 ## to start if Vinstallation_directory has the wrong value.
 temacs$(EXEEXT): $(LIBXMENU) $(ALLOBJS) \
-	         $(LIBEGNU_ARCHIVE) $(EMACSRES) ${charsets} ${charscript}
+	         $(LIBEGNU_ARCHIVE) $(EMACSRES) ${charsets} ${charscript} \
+	         $(libtask)
 	$(AM_V_CCLD)$(CC) $(ALL_CFLAGS) $(TEMACS_LDFLAGS) $(LDFLAGS) \
-	  -o temacs $(ALLOBJS) $(LIBEGNU_ARCHIVE) $(W32_RES_LINK) $(LIBES)
+	  -o temacs $(ALLOBJS) $(LIBEGNU_ARCHIVE) $(W32_RES_LINK) $(libtask) $(LIBES)
 	$(MKDIR_P) $(etc)
 ifneq ($(CANNOT_DUMP),yes)
   ifneq ($(PAXCTL_notdumped),)

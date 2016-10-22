@@ -3976,7 +3976,7 @@ XTflash (struct frame *f)
 	    timeout = make_timespec (0, 10 * 1000 * 1000);
 
 	    /* Try to wait that long--but we might wake up sooner.  */
-	    pselect (0, NULL, NULL, NULL, &timeout, NULL);
+	    pselect_noblock (0, NULL, NULL, NULL, &timeout, NULL);
 	  }
       }
 
@@ -10564,7 +10564,7 @@ x_wait_for_event (struct frame *f, int eventtype)
 	break;
 
       tmo = timespec_sub (tmo_at, time_now);
-      if (pselect (fd + 1, &fds, NULL, NULL, &tmo, NULL) == 0)
+      if (pselect_noblock (fd + 1, &fds, NULL, NULL, &tmo, NULL) == 0)
         break; /* Timeout */
     }
 

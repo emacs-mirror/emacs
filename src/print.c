@@ -38,6 +38,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <float.h>
 #include <ftoastr.h>
 
+#include "libtask/task.h"
+
 #ifdef WINDOWSNT
 # include <sys/socket.h> /* for F_DUPFD_CLOEXEC */
 #endif
@@ -2004,6 +2006,38 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 			    printcharfun);
 	    }
 	  printchar ('>', printcharfun);
+          break;
+
+        case Lisp_Misc_Channel:
+          {
+            print_c_string ("#<channel", printcharfun);
+            const Channel *channel = XCHANNEL (obj)->channel;
+            {
+              int n = snprintf (buf, sizeof buf, " at %p", channel);
+              strout (buf, n, n, printcharfun);
+            }
+            if (channel->bufsize != 0)
+              {
+                int n = snprintf (buf, sizeof buf, " with a buffer size of %d", channel->bufsize);
+                strout (buf, n, n, printcharfun);
+              }
+            if (channel->nbuf != 0)
+              {
+                int n = snprintf (buf, sizeof buf, " with %d buffered objects", channel->nbuf);
+                strout (buf, n, n, printcharfun);
+              }
+             if (channel->arecv.n != 0)
+              {
+                int n = snprintf (buf, sizeof buf, " with %d queued receivers", channel->arecv.n);
+                strout (buf, n, n, printcharfun);
+              }
+             if (channel->asend.n != 0)
+              {
+                int n = snprintf (buf, sizeof buf, " with %d queued senders", channel->asend.n);
+                strout (buf, n, n, printcharfun);
+              }
+             printchar ('>', printcharfun);
+          }
           break;
 
 #ifdef HAVE_MODULES

@@ -525,6 +525,25 @@
                            (cdr (cdr form))
                          (byte-optimize-body (cdr form) for-effect)))))
 
+          ((eq fn 'select)
+           (cons fn
+                 (mapcar
+                  (lambda (alt)
+                    (cons
+                     (pcase (car alt)
+                       (`(receive ,chan . ,rest)
+                        `(receive ,(byte-optimize-form chan) ,@rest))
+                       (`(send ,chan ,val)
+                        `(send ,(byte-optimize-form chan)
+                               ,(byte-optimize-form val)))
+                       ('default 'default)
+                       (invalid
+                        (byte-compile-report-error
+                         (format-message "invalid `select' alternative %S"
+                                         invalid))))
+                     (byte-optimize-body (cdr alt) for-effect)))
+                  (cdr form))))
+
 	  ((eq fn 'ignore)
 	   ;; Don't treat the args to `ignore' as being
 	   ;; computed for effect.  We want to avoid the warnings

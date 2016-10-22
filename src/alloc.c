@@ -51,6 +51,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <verify.h>
 #include <execinfo.h>           /* For backtrace.  */
 
+#include "libtask/task.h"
+
 #ifdef HAVE_LINUX_SYSINFO
 #include <sys/sysinfo.h>
 #endif
@@ -3865,6 +3867,28 @@ free_marker (Lisp_Object marker)
   free_misc (marker);
 }
 
+DEFUN ("make-channel", Fmake_channel, Smake_channel, 0, 1, 0,
+       doc: /* Return a newly allocated communication channel.
+BUFFER-SIZE, if provided, must be a non-negative integer specifying the
+number of object that can be buffered in the channel.  If BUFFER-SIZE
+is not provided, nil, or 0, the channel is unbuffered.  */)
+  (Lisp_Object buffer_size)
+{
+  int buf_size;
+  if (NILP (buffer_size))
+    buf_size = 0;
+  else
+    {
+      CHECK_RANGED_INTEGER (buffer_size, 0, INT_MAX);
+      buf_size = XFASTINT (buffer_size);
+    }
+
+  Lisp_Object obj = allocate_misc (Lisp_Misc_Channel);
+  struct Lisp_Channel *chan = XCHANNEL (obj);
+  chan->channel = chancreate (sizeof (Lisp_Object), buf_size);
+  return obj;
+}
+
 
 /* Return a newly created vector or string with specified arguments as
    elements.  If all the arguments are characters that can fit
@@ -6524,6 +6548,17 @@ mark_object (Lisp_Object arg)
           mark_object (XFINALIZER (obj)->function);
           break;
 
+        case Lisp_Misc_Channel:
+          {
+            XMISCANY (obj)->gcmarkbit = 1;
+            Channel *channel = XCHANNEL (obj)->channel;
+            eassert (channel->elemsize == sizeof (Lisp_Object));
+            Lisp_Object *buffer_contents = (Lisp_Object *) channel->buf;
+            for (unsigned int i = 0; i < channel->nbuf; ++i)
+              mark_object (buffer_contents[channel->off + i]);
+          }
+          break;
+
 #ifdef HAVE_MODULES
 	case Lisp_Misc_User_Ptr:
 	  XMISCANY (obj)->gcmarkbit = true;
@@ -6908,6 +6943,15 @@ sweep_misc (void)
                 unchain_marker (&mblk->markers[i].m.u_marker);
               else if (mblk->markers[i].m.u_any.type == Lisp_Misc_Finalizer)
                 unchain_finalizer (&mblk->markers[i].m.u_finalizer);
+              else if (mblk->markers[i].m.u_any.type == Lisp_Misc_Channel)
+                {
+                  Channel *channel = mblk->markers[i].m.u_channel.channel;
+                  eassert (channel != NULL);
+                  eassert (channel->nbuf == 0);
+                  eassert (channel->asend.n == 0);
+                  eassert (channel->arecv.n == 0);
+                  chanfree (channel);
+                }
 #ifdef HAVE_MODULES
 	      else if (mblk->markers[i].m.u_any.type == Lisp_Misc_User_Ptr)
 		{
@@ -7419,6 +7463,7 @@ The time is in seconds as a floating point value.  */);
   defsubr (&Smake_symbol);
   defsubr (&Smake_marker);
   defsubr (&Smake_finalizer);
+  defsubr (&Smake_channel);
   defsubr (&Spurecopy);
   defsubr (&Sgarbage_collect);
   defsubr (&Smemory_limit);
