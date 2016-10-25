@@ -611,7 +611,7 @@ libtask = \
 $(libtask): $(lib)/libtask/*.h
 
 $(lib)/libtask/%.o: $(lib)/libtask/%.c $(lib)/libtask/*.h lisp.h config.h globals.h
-	$(AM_V_CC)$(CC) -c -DEMACS -I. -I$(lib) $(CPPFLAGS) $(CFLAGS) -o $@ $<
+	$(AM_V_CC)$(CC) -c -DEMACS -Demacs -I. -I$(lib) $(CPPFLAGS) $(CFLAGS) -o $@ $<
 
 ## We have to create $(etc) here because init_cmdargs tests its
 ## existence when setting Vinstallation_directory (FIXME?).

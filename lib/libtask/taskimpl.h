@@ -212,13 +212,3 @@ void	deltask(Tasklist*, Task*);
 
 extern Task	*taskrunning;
 extern int	taskcount;
-
-
-#ifdef EMACS
-#define malloc unexec_malloc
-#define realloc unexec_realloc
-#define free unexec_free
-void *unexec_malloc (size_t size);
-void *unexec_realloc (void *old_ptr, size_t new_size);
-void unexec_free (void *ptr);
-#endif
