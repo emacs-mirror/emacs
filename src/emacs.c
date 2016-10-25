@@ -748,6 +748,8 @@ taskmain (int argc, char **argv)
   module_init ();
 #endif
 
+  coroutine_init ();
+
   sort_args (argc, argv);
   argc = 0;
   while (argv[argc]) argc++;

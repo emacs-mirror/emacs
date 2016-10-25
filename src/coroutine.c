@@ -73,11 +73,17 @@ coroutine_reset_handlerlist (const int *dummy)
   handlerlist = handlerlist->next;
 }
 
+static bool pending_error;
+
 /* Called on `signal'.  ERR is a pair (SYMBOL . DATA).  */
 static void
 coroutine_handle_signal (Lisp_Object err)
 {
+  eassert (! pending_error);
   print_error_message (err, Qnil, "signal in coroutine caught: ", Qnil);
+  pending_error = true;
+  Vpending_coroutine_error_symbol = XCAR (err);
+  Vpending_coroutine_error_data = XCDR (err);
   taskexit (1);
 }
 
@@ -85,14 +91,22 @@ coroutine_handle_signal (Lisp_Object err)
 static void
 coroutine_handle_throw (Lisp_Object tag_val)
 {
+  eassert (! pending_error);
   print_error_message (tag_val, Qnil, "throw in coroutine caught: ", Qnil);
+  pending_error = true;
+  Vpending_coroutine_error_symbol = Qno_catch;
+  Vpending_coroutine_error_data = list2 (XCAR (tag_val), XCDR (tag_val));
   taskexit (1);
 }
 
 static void
 coroutine_out_of_memory (void)
 {
+  eassert (! pending_error);
   fputs ("OOM in coroutine\n", stderr);
+  pending_error = true;
+  Vpending_coroutine_error_symbol = Qnil;
+  Vpending_coroutine_error_data = Vmemory_signal_data;
   taskexit (1);
 }
 
@@ -124,6 +138,37 @@ DEFUN ("start-coroutine", Fstart_coroutine, Sstart_coroutine, 1, 1, 0,
   return Qnil;
 }
 
+static unsigned int main_task_id;
+
+static bool
+in_main_task (void)
+{
+  return taskid () == main_task_id;
+}
+
+static void
+check_coroutine_signal (void)
+{
+  if (! pending_error)
+    return;
+  if (in_main_task ())
+    {
+      pending_error = false;
+      Lisp_Object symbol = Vpending_coroutine_error_symbol;
+      Lisp_Object data = Vpending_coroutine_error_data;
+      eassert (SYMBOLP (symbol) || CONSP (data));
+      Vpending_coroutine_error_symbol = Qnil;
+      Vpending_coroutine_error_data = Qnil;
+      xsignal (symbol, data);
+    }
+  else
+    {
+      int woken = taskyield ();
+      eassert (woken > 0);
+      eassert (! pending_error);
+    }
+}
+
 static void
 CHECK_CHANNEL (Lisp_Object x)
 {
@@ -149,6 +194,7 @@ CHANNEL must be a communication channel created by `make-channel'.  */)
   Lisp_Object result;
   int status = chanrecv (XCHANNEL (channel)->channel, &result);
   eassert (status == 1);
+  check_coroutine_signal ();
   return result;
 }
 
@@ -177,6 +223,7 @@ created by `make-channel'.  */)
   CHECK_CHANNEL (channel);
   int status = chansend (XCHANNEL (channel)->channel, &value);
   eassert (status == 1);
+  check_coroutine_signal ();
   return Qnil;
 }
 
@@ -315,6 +362,7 @@ is returned.  */)
 
   // Actually perform the select operation.
   int choice = chanalt (alts);
+  check_coroutine_signal ();
 
   if (choice == -1)
     {
@@ -381,7 +429,15 @@ pselect_noblock (int nfds,
   };
   taskcreate (do_pselect, &args, 0x1000);
   tasksleep (&args.rendez);
+  check_coroutine_signal ();
   return args.result;
+}
+
+void
+coroutine_init (void)
+{
+  main_task_id = taskid ();
+  pending_error = false;
 }
 
 void
@@ -390,6 +446,16 @@ syms_of_coroutine (void)
   DEFSYM (Qchannelp, "channelp");
   DEFSYM (Qreceive, "receive");
   DEFSYM (Qsend, "send");
+
+  DEFVAR_LISP ("pending-coroutine-error-symbol", Vpending_coroutine_error_symbol,
+               doc: /* Pending error symbol. */);
+  DEFSYM (Qpending_coroutine_error_symbol, "pending-coroutine-error-symbol");
+  Funintern (Qpending_coroutine_error_symbol, Qnil);
+
+  DEFVAR_LISP ("pending-coroutine-error-data", Vpending_coroutine_error_data,
+               doc: /* Pending error data. */);
+  DEFSYM (Qpending_coroutine_error_data, "pending-coroutine-error-data");
+  Funintern (Qpending_coroutine_error_data, Qnil);
 
   defsubr (&Sstart_coroutine);
   defsubr (&Sreceive_from_channel);

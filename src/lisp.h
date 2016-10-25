@@ -3436,6 +3436,7 @@ extern void init_coding_once (void);
 extern void syms_of_coding (void);
 
 /* Defined in coroutine.c.  */
+extern void coroutine_init (void);
 extern void syms_of_coroutine (void);
 
 /* Defined in character.c.  */
