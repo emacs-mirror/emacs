@@ -6947,7 +6947,6 @@ sweep_misc (void)
                 {
                   Channel *channel = mblk->markers[i].m.u_channel.channel;
                   eassert (channel != NULL);
-                  eassert (channel->nbuf == 0);
                   eassert (channel->asend.n == 0);
                   eassert (channel->arecv.n == 0);
                   chanfree (channel);
