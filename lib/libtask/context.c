@@ -2,6 +2,15 @@
 
 #include "taskimpl.h"
 
+#ifdef LIBTASK_USE_FIBER
+
+#define STRICT
+#define NOMINMAX
+#define UNICODE
+#include <windows.h>
+
+#else
+
 #if defined(__APPLE__)
 #if defined(__i386__)
 #define NEEDX86MAKECONTEXT
@@ -33,6 +42,8 @@
 #if defined(__linux__) && defined(__mips__)
 #define	NEEDSWAPCONTEXT
 #define	NEEDMIPSMAKECONTEXT
+#endif
+
 #endif
 
 #ifdef NEEDPOWERMAKECONTEXT
@@ -137,5 +148,14 @@ swapcontext(ucontext_t *oucp, const ucontext_t *ucp)
 	if(getcontext(oucp) == 0)
 		setcontext(ucp);
 	return 0;
+}
+#endif
+
+#ifdef LIBTASK_USE_FIBER
+int
+swapcontext (ucontext_t *oucp, const ucontext_t *ucp)
+{
+  SwitchToFiber (ucp->fiber);
+  return 0;
 }
 #endif
