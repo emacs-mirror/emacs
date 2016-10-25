@@ -163,4 +163,9 @@
 ;;     (receive-from-channel ch-2)
 ;;     (send-to-channel ch-1 nil)))
 
+(ert-deftest coroutines-test--signal ()
+  (start-coroutine (lambda () (signal 'beginning-of-buffer '(foo))))
+  (let ((err (should-error (sleep-for 0.1))))
+    (should (equal err '(beginning-of-buffer foo)))))
+
 ;;; coroutine-tests.el ends here
