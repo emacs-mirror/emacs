@@ -2018,22 +2018,22 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
             }
             if (channel->bufsize != 0)
               {
-                int n = snprintf (buf, sizeof buf, " with a buffer size of %d", channel->bufsize);
+                int n = snprintf (buf, sizeof buf, " with a buffer size of %u", channel->bufsize);
                 strout (buf, n, n, printcharfun);
               }
             if (channel->nbuf != 0)
               {
-                int n = snprintf (buf, sizeof buf, " with %d buffered objects", channel->nbuf);
+                int n = snprintf (buf, sizeof buf, " with %u buffered objects", channel->nbuf);
                 strout (buf, n, n, printcharfun);
               }
              if (channel->arecv.n != 0)
               {
-                int n = snprintf (buf, sizeof buf, " with %d queued receivers", channel->arecv.n);
+                int n = snprintf (buf, sizeof buf, " with %u queued receivers", channel->arecv.n);
                 strout (buf, n, n, printcharfun);
               }
              if (channel->asend.n != 0)
               {
-                int n = snprintf (buf, sizeof buf, " with %d queued senders", channel->asend.n);
+                int n = snprintf (buf, sizeof buf, " with %u queued senders", channel->asend.n);
                 strout (buf, n, n, printcharfun);
               }
              printchar ('>', printcharfun);
