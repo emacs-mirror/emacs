@@ -27,6 +27,11 @@
 #ifdef EMACS
 #include <config.h>
 #include "lisp.h"
+#ifdef WINDOWSNT
+#undef USE_UCONTEXT
+#define USE_UCONTEXT 0
+#define LIBTASK_USE_FIBER
+#endif
 #endif
 
 #include <errno.h>
@@ -83,6 +88,19 @@ int vfprint(int, char*, va_list);
 char *vsnprint(char*, uint, char*, va_list);
 char *vseprint(char*, char*, char*, va_list);
 char *strecpy(char*, char*, char*);
+
+#ifdef LIBTASK_USE_FIBER
+
+#undef ucontext
+#undef ucontext_t
+#define ucontext libtask_fiber_ucontext
+#define ucontext_t libtask_fiber_ucontext_t
+typedef struct libtask_fiber_ucontext {
+  void *fiber;
+} libtask_fiber_ucontext_t;
+extern int swapcontext(ucontext_t *, const ucontext_t *);
+
+#else
 
 #if defined(__FreeBSD__) && __FreeBSD__ < 5
 extern	int		getmcontext(mcontext_t*);
@@ -143,6 +161,8 @@ void setmcontext(const mcontext_t*);
 #define	getcontext(u)	getmcontext(&(u)->uc_mcontext)
 #endif
 
+#endif
+
 typedef struct Context Context;
 
 enum
@@ -169,14 +189,18 @@ struct Task
 	Context	context;
 	uvlong	alarmtime;
 	uint	id;
+#ifndef LIBTASK_USE_FIBER
 	uchar	*stk;
 	uint	stksize;
+#endif
 	int	exiting;
 	int	alltaskslot;
 	int	system;
 	int	ready;
+#ifndef LIBTASK_USE_FIBER
 	void	(*startfn)(void*);
 	void	*startarg;
+#endif
 	void	*udata;
 };
 

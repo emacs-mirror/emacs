@@ -4,6 +4,13 @@
 #include <fcntl.h>
 #include <stdio.h>
 
+#ifdef LIBTASK_USE_FIBER
+#define STRICT
+#define NOMINMAX
+#define UNICODE
+#include <windows.h>
+#endif
+
 int	taskdebuglevel;
 int	taskcount;
 int	tasknswitch;
@@ -55,6 +62,7 @@ return;
 		fprint(fd, "%d._: %s\n", getpid(), buf);
 }
 
+#ifndef LIBTASK_USE_FIBER
 static void
 taskstart(uint y, uint x)
 {
@@ -72,6 +80,7 @@ taskstart(uint y, uint x)
 	taskexit(0);
 //print("not reacehd\n");
 }
+#endif
 
 static int taskidgen;
 
@@ -83,23 +92,36 @@ taskalloc(void (*fn)(void*), void *arg, uint stack)
 	uint x, y;
 	ulong z;
 
+#ifdef LIBTASK_USE_FIBER
+        t = malloc (sizeof *t);
+#else
 	/* allocate the task and stack together */
 	t = malloc(sizeof *t+stack);
+#endif
 	if(t == nil){
 		fprint(2, "taskalloc malloc: %r\n");
 		abort();
 	}
 	memset(t, 0, sizeof *t);
+#ifdef LIBTASK_USE_FIBER
+        t->context.uc.fiber = CreateFiber (stack, fn, arg);
+        if (t->context.uc.fiber == NULL)
+          abort ();
+#else
 	t->stk = (uchar*)(t+1);
 	t->stksize = stack;
+#endif
 	t->id = ++taskidgen;
+#ifndef LIBTASK_USE_FIBER
 	t->startfn = fn;
 	t->startarg = arg;
+#endif
 
 #ifdef EMACS
         init_emacs_lisp_context (t->id == 1, &t->context.ec);
 #endif
 
+#ifndef LIBTASK_USE_FIBER
 	/* do a reasonable initialization */
 	memset(&t->context.uc, 0, sizeof t->context.uc);
 	sigemptyset(&zero);
@@ -133,6 +155,7 @@ taskalloc(void (*fn)(void*), void *arg, uint stack)
 	z >>= 16;	/* hide undefined 32-bit shift from 32-bit compilers */
 	x = z>>16;
 	makecontext(&t->context.uc, (void(*)())taskstart, 2, y, x);
+#endif
 
 	return t;
 }
@@ -308,6 +331,7 @@ taskgetstate(void)
 void
 needstack(int n)
 {
+#ifndef LIBTASK_USE_FIBER
 	Task *t;
 
 	t = taskrunning;
@@ -317,6 +341,7 @@ needstack(int n)
 		fprint(2, "task stack overflow: &t=%p tstk=%p n=%d\n", &t, t->stk, 256+n);
 		abort();
 	}
+#endif
 }
 
 static void
@@ -373,6 +398,11 @@ main(int argc, char **argv)
 	argv0 = argv[0];
 	taskargc = argc;
 	taskargv = argv;
+
+#ifdef LIBTASK_USE_FIBER
+        if (ConvertThreadToFiber (NULL) == NULL)
+          return 2;
+#endif
 
 	if(mainstacksize == 0)
 		mainstacksize = 256*1024;
