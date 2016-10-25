@@ -168,4 +168,9 @@
   (let ((err (should-error (sleep-for 0.1))))
     (should (equal err '(beginning-of-buffer foo)))))
 
+(ert-deftest channelp ()
+  (should-not (channelp nil))
+  (should-not (channelp 5))
+  (should (channelp (make-channel))))
+
 ;;; coroutine-tests.el ends here

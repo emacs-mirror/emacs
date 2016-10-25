@@ -458,6 +458,7 @@ syms_of_coroutine (void)
   Funintern (Qpending_coroutine_error_data, Qnil);
 
   defsubr (&Sstart_coroutine);
+  defsubr (&Schannelp);
   defsubr (&Sreceive_from_channel);
   defsubr (&Stry_receive_from_channel);
   defsubr (&Ssend_to_channel);
