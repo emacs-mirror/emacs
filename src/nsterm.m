@@ -5509,7 +5509,7 @@ not_in_argv (NSString *arg)
           fd_set fds;
           FD_ZERO (&fds);
           FD_SET (selfds[0], &fds);
-          result = pselect_noblock (selfds[0]+1, &fds, NULL, NULL, NULL, NULL);
+          result = select (selfds[0]+1, &fds, NULL, NULL, NULL);
           if (result > 0 && read (selfds[0], &c, 1) == 1 && c == 'g')
 	    waiting = 0;
         }
@@ -5543,7 +5543,7 @@ not_in_argv (NSString *arg)
           FD_SET (selfds[0], &readfds);
           if (selfds[0] >= nfds) nfds = selfds[0]+1;
 
-          result = pselect_noblock (nfds, &readfds, wfds, NULL, tmo, NULL);
+          result = pselect (nfds, &readfds, wfds, NULL, tmo, NULL);
 
           if (result == 0)
             ns_send_appdefined (-2);
