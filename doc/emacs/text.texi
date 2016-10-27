@@ -412,6 +412,7 @@ beginning of a line.
 @cindex mode, Electric Quote
 @cindex curly quotes
 @cindex curved quotes
+@cindex guillemets
 @findex electric-quote-mode
   One common way to quote is the typewriter convention, which quotes
 using straight apostrophes @t{'like this'} or double-quotes @t{"like
@@ -420,9 +421,15 @@ left and right single or double quotation marks @t{‘like this’} or
 @t{“like this”}.  In text files, typewriter quotes are simple and
 portable; curved quotes are less ambiguous and typically look nicer.
 
+@vindex electric-quote-chars
   Electric Quote mode makes it easier to type curved quotes.  As you
 type characters it optionally converts @t{`} to @t{‘}, @t{'} to @t{’},
-@t{``} to @t{“}, and @t{''} to @t{”}.
+@t{``} to @t{“}, and @t{''} to @t{”}.  It's possible to change the
+default quotes listed above, by customizing the variable
+@code{electric-quote-chars}, a list of four characters, where the
+items correspond to the left single quote, the right single quote, the
+left double quote and the right double quote, respectively, whose
+default value is @code{'(?‘ ?’ ?“ ?”)}.
 
 @vindex electric-quote-paragraph
 @vindex electric-quote-comment
@@ -443,7 +450,10 @@ type @kbd{C-q `} or @kbd{C-q '} instead of @kbd{`} or @kbd{'}.  To
 insert a curved quote even when Electric Quote is disabled or
 inactive, you can type @kbd{C-x 8 [} for @t{‘}, @kbd{C-x 8 ]} for
 @t{’}, @kbd{C-x 8 @{} for @t{“}, and @kbd{C-x 8 @}} for @t{”}.
-@xref{Inserting Text}.
+@xref{Inserting Text}.  Note that the value of
+@code{electric-quote-chars} does not affect these keybindings, they
+are not keybindings of @code{electric-quote-mode} but bound in
+@code{global-map}.
 
 @node Filling
 @section Filling Text

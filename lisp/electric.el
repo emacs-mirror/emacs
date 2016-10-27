@@ -425,6 +425,19 @@ The variable `electric-layout-rules' says when and how to insert newlines."
   :version "25.1"
   :type 'boolean :safe 'booleanp :group 'electricity)
 
+(defcustom electric-quote-chars '(?‘ ?’ ?“ ?”)
+  "Curved quote characters for `electric-quote-mode'.
+This list's members correspond to left single quote, right single
+quote, left double quote, and right double quote, respectively."
+  :version "26.1"
+  :type '(list character character character character)
+  :safe #'(lambda (x)
+	    (pcase x
+	      (`(,(pred characterp) ,(pred characterp)
+		 ,(pred characterp) ,(pred characterp))
+	       t)))
+  :group 'electricity)
+
 (defcustom electric-quote-paragraph t
   "Non-nil means to use electric quoting in text paragraphs."
   :version "25.1"
@@ -451,26 +464,28 @@ This requotes when a quoting key is typed."
                   (derived-mode-p 'text-mode)
                   (or (eq last-command-event ?\`)
                       (save-excursion (backward-paragraph) (point)))))))
-      (when start
-        (save-excursion
-          (if (eq last-command-event ?\`)
-              (cond ((search-backward "‘`" (- (point) 2) t)
-                     (replace-match "“")
-                     (when (and electric-pair-mode
-                                (eq (cdr-safe
-                                     (assq ?‘ electric-pair-text-pairs))
-                                    (char-after)))
-                       (delete-char 1))
-                     (setq last-command-event ?“))
-                    ((search-backward "`" (1- (point)) t)
-                     (replace-match "‘")
-                     (setq last-command-event ?‘)))
-            (cond ((search-backward "’'" (- (point) 2) t)
-                   (replace-match "”")
-                   (setq last-command-event ?”))
-                  ((search-backward "'" (1- (point)) t)
-                   (replace-match "’")
-                   (setq last-command-event ?’)))))))))
+      (pcase electric-quote-chars
+        (`(,q< ,q> ,q<< ,q>>)
+         (when start
+           (save-excursion
+             (if (eq last-command-event ?\`)
+                 (cond ((search-backward (string q< ?`) (- (point) 2) t)
+                        (replace-match (string q<<))
+                        (when (and electric-pair-mode
+                                   (eq (cdr-safe
+                                        (assq q< electric-pair-text-pairs))
+                                       (char-after)))
+                          (delete-char 1))
+                        (setq last-command-event q<<))
+                       ((search-backward "`" (1- (point)) t)
+                        (replace-match (string q<))
+                        (setq last-command-event q<)))
+               (cond ((search-backward (string q> ?') (- (point) 2) t)
+                      (replace-match (string q>>))
+                      (setq last-command-event q>>))
+                     ((search-backward "'" (1- (point)) t)
+                      (replace-match (string q>))
+                      (setq last-command-event q>)))))))))))
 
 (put 'electric-quote-post-self-insert-function 'priority 10)
 
@@ -486,6 +501,9 @@ When enabled, as you type this replaces \\=` with ‘, \\=' with ’,
 and text paragraphs, and these are selectively controlled with
 `electric-quote-comment', `electric-quote-string', and
 `electric-quote-paragraph'.
+
+Customize `electric-quote-chars' to use characters other than the
+ones listed here.
 
 This is a global minor mode.  To toggle the mode in a single buffer,
 use `electric-quote-local-mode'."

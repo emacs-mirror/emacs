@@ -722,7 +722,7 @@ argument procedure FUN.*/)
   // procedure that retrieves the return value.
   webkit_web_view_run_javascript (WEBKIT_WEB_VIEW (xw->widget_osr),
                                   SSDATA (script),
-                                  NULL, /*cancellable*/
+                                  NULL, /* cancelable */
                                   callback,
                                   (gpointer) fun);
   return Qnil;

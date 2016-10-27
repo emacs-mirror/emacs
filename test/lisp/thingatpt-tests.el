@@ -84,12 +84,26 @@ position to retrieve THING.")
       (goto-char (nth 1 test))
       (should (equal (thing-at-point (nth 2 test)) (nth 3 test))))))
 
+;; These tests reflect the actual behaviour of
+;; `thing-at-point-bounds-of-list-at-point'.
 (ert-deftest thing-at-point-bug24627 ()
   "Test for http://debbugs.gnu.org/24627 ."
   :expected-result :failed
-  (let ((file
+  (let ((string-result '(("(a \"b\" c)" . (a "b" c))
+                         (";(a \"b\" c)")
+                         ("(a \"b\" c\n)" . (a "b" c))
+                         ("\"(a b c)\"")
+                         ("(a ;(b c d)\ne)" . (a e))
+                         ("(foo\n(a ;(b c d)\ne) bar)" . (a e))
+                         ("(foo\na ;(b c d)\ne bar)" . (foo a e bar))
+                         ("(foo\n(a \"(b c d)\"\ne) bar)" . (a "(b c d)" e))
+                         ("(b\n(a ;(foo c d)\ne) bar)" . (a e))
+                         ("(princ \"(a b c)\")" . (princ "(a b c)"))
+                         ("(defun foo ()\n  \"Test function.\"\n  ;;(a b)\n  nil)" . (defun foo nil "Test function." nil))))
+        (file
          (expand-file-name "lisp/thingatpt.el" source-directory))
         buf)
+    ;; Test for `thing-at-point'.
     (when (file-exists-p file)
       (unwind-protect
           (progn
@@ -97,6 +111,14 @@ position to retrieve THING.")
             (goto-char (point-max))
             (forward-line -1)
             (should-not (thing-at-point 'list)))
-        (kill-buffer buf)))))
+        (kill-buffer buf)))
+    ;; Tests for `list-at-point'.
+    (dolist (str-res string-result)
+      (with-temp-buffer
+        (emacs-lisp-mode)
+        (insert (car str-res))
+        (re-search-backward "\\((a\\|^a\\)")
+        (should (equal (list-at-point)
+                       (cdr str-res)))))))
 
 ;;; thingatpt.el ends here
