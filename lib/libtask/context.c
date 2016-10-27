@@ -9,7 +9,7 @@
 #define UNICODE
 #include <windows.h>
 
-#else
+#elseif ! defined LIBTASK_USE_PTHREAD
 
 #if defined(__APPLE__)
 #if defined(__i386__)
@@ -157,5 +157,31 @@ swapcontext (ucontext_t *oucp, const ucontext_t *ucp)
 {
   SwitchToFiber (ucp->fiber);
   return 0;
+}
+#endif
+
+#ifdef LIBTASK_USE_PTHREAD
+#include <pthread.h>
+static bool oucp_is_valid = false;
+
+int
+swapcontext (ucontext_t *oucp, /* const */ ucontext_t *ucp)
+{
+  oucp->running = false;
+  ucp->running = true;
+  pthread_mutex_lock (&ucp->mutex);
+  pthread_cond_signal (&ucp->cond);
+  pthread_mutex_unlock (&ucp->mutex);
+  if (! oucp_is_valid)
+  {
+    pthread_mutex_init (&oucp->mutex, NULL);
+    pthread_cond_init (&oucp->cond, NULL);
+    oucp->thread = pthread_self ();
+    oucp_is_valid = true;
+  }
+  pthread_mutex_lock (&oucp->mutex);
+  while (! oucp->running)
+    pthread_cond_wait (&oucp->cond, &oucp->mutex);
+  pthread_mutex_unlock (&oucp->mutex);
 }
 #endif

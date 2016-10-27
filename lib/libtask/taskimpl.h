@@ -28,10 +28,15 @@
 #include <config.h>
 #include "lisp.h"
 #ifdef WINDOWSNT
+#define LIBTASK_USE_FIBER
+#else
+//#define LIBTASK_USE_PTHREAD
+#endif
+#endif
+
+#if defined LIBTASK_USE_FIBER || defined LIBTASK_USE_PTHREAD
 #undef USE_UCONTEXT
 #define USE_UCONTEXT 0
-#define LIBTASK_USE_FIBER
-#endif
 #endif
 
 #include <errno.h>
@@ -89,7 +94,7 @@ char *vsnprint(char*, uint, char*, va_list);
 char *vseprint(char*, char*, char*, va_list);
 char *strecpy(char*, char*, char*);
 
-#ifdef LIBTASK_USE_FIBER
+#if defined LIBTASK_USE_FIBER
 
 #undef ucontext
 #undef ucontext_t
@@ -99,6 +104,21 @@ typedef struct libtask_fiber_ucontext {
   void *fiber;
 } libtask_fiber_ucontext_t;
 extern int swapcontext(ucontext_t *, const ucontext_t *);
+
+#elif defined LIBTASK_USE_PTHREAD
+
+#include <pthread.h>
+#undef ucontext
+#undef ucontext_t
+#define ucontext libtask_pthread_ucontext
+#define ucontext_t libtask_pthread_ucontext_t
+typedef struct libtask_pthread_ucontext {
+  pthread_t thread;
+  pthread_mutex_t mutex;
+  pthread_cond_t cond;
+  bool running;
+} libtask_pthread_ucontext_t;
+extern int swapcontext(ucontext_t *, /* const */ ucontext_t *);
 
 #else
 

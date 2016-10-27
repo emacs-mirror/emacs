@@ -11,6 +11,10 @@
 #include <windows.h>
 #endif
 
+#ifdef LIBTASK_USE_PTHREAD
+#include <pthread.h>
+#endif
+
 int	taskdebuglevel;
 int	taskcount;
 int	tasknswitch;
@@ -62,7 +66,7 @@ return;
 		fprint(fd, "%d._: %s\n", getpid(), buf);
 }
 
-#ifndef LIBTASK_USE_FIBER
+#if ! defined LIBTASK_USE_FIBER && ! defined LIBTASK_USE_PTHREAD
 static void
 taskstart(uint y, uint x)
 {
@@ -79,6 +83,21 @@ taskstart(uint y, uint x)
 //print("taskexits %p\n", t);
 	taskexit(0);
 //print("not reacehd\n");
+}
+#endif
+
+#ifdef LIBTASK_USE_PTHREAD
+static void *
+thread_func (void *arg)
+{
+  Task *t = arg;
+  ucontext_t *uc = &t->context.uc;
+  pthread_mutex_lock (&uc->mutex);
+  while (! uc->running)
+    pthread_cond_wait (&uc->cond, &uc->mutex);
+  pthread_mutex_unlock (&uc->mutex);
+  t->startfn (t->startarg);
+  return NULL;
 }
 #endif
 
@@ -108,8 +127,17 @@ taskalloc(void (*fn)(void*), void *arg, uint stack)
         if (t->context.uc.fiber == NULL)
           abort ();
 #else
+#ifdef LIBTASK_USE_PTHREAD
+        if (pthread_mutex_init (&t->context.uc.mutex, NULL) != 0)
+          abort ();
+        if (pthread_cond_init (&t->context.uc.cond, NULL) != 0)
+          abort ();
+        if (pthread_create (&t->context.uc.thread, NULL, thread_func, t) != 0)
+          abort ();
+#else
 	t->stk = (uchar*)(t+1);
 	t->stksize = stack;
+#endif
 #endif
 	t->id = ++taskidgen;
 #ifndef LIBTASK_USE_FIBER
@@ -121,7 +149,7 @@ taskalloc(void (*fn)(void*), void *arg, uint stack)
         init_emacs_lisp_context (t->id == 1, &t->context.ec);
 #endif
 
-#ifndef LIBTASK_USE_FIBER
+#if ! defined LIBTASK_USE_FIBER && ! defined LIBTASK_USE_PTHREAD
 	/* do a reasonable initialization */
 	memset(&t->context.uc, 0, sizeof t->context.uc);
 	sigemptyset(&zero);
