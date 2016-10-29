@@ -1176,6 +1176,16 @@ coming before a prefix. Within these categories order using
         (and (not apref?) bpref?)
       (which-key-key-order acons bcons))))
 
+(defun which-key-prefix-then-key-order-reverse (acons bcons)
+  "Order first by whether A and/or B is a prefix with prefix
+coming before a prefix. Within these categories order using
+`which-key-key-order'."
+  (let ((apref? (which-key--group-p (cdr acons)))
+        (bpref? (which-key--group-p (cdr bcons))))
+    (if (not (eq apref? bpref?))
+        (and apref? (not bpref?))
+      (which-key-key-order acons bcons))))
+
 (defun which-key-local-then-key-order (acons bcons)
   "Order first by whether A and/or B is a local binding with
 local bindings coming first. Within these categories order using
