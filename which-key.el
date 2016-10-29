@@ -149,6 +149,25 @@ This is a list of lists for replacing descriptions."
   :group 'which-key
   :type '(alist :key-type regexp :value-type string))
 
+(defcustom which-key-binding-filter-function nil
+  "Optional function to use to filter key bindings before they
+are processed by which-key. The function should accept a cons
+cell of the form (\"KEY\" . \"BINDING\") and the current prefix
+sequence as a string. If it returns nil, the key binding is
+ignored by which-key. Otherwise it should a cons cell of the same
+form. To leave the key binding unchanged simply return the
+original cons cell. Here's an example
+
+\(defun my-filter \(cell prefix\)
+  \(if \(and \(string-equal prefix \"SPC\"\)
+           \(string-equal \(car cell\) \"?\"\)\)
+      \(cons \"?\" \"NEW DESCRIPTION\")
+    cell\)\)
+
+\(setq which-key-binding-filter-function 'my-filter\)"
+  :group 'which-key
+  :type 'function)
+
 (defcustom which-key-highlighted-command-list '()
   "A list of strings and/or cons cells used to highlight certain
 commands. If the element is a string, assume it is a regexp
@@ -1481,6 +1500,13 @@ BUFFER that follow the key sequence KEY-SEQ."
     (when which-key-sort-order
       (setq unformatted
             (sort unformatted which-key-sort-order)))
+    (when which-key-binding-filter-function
+      (setq unformatted
+            (delq nil (mapcar
+                       (lambda (cell)
+                         (funcall which-key-binding-filter-function
+                                  cell (which-key--current-key-string)))
+                       unformatted))))
     (which-key--format-and-replace unformatted)))
 
 ;;; Functions for laying out which-key buffer pages
