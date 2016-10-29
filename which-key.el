@@ -268,6 +268,13 @@ information."
   :group 'which-key
   :type 'function)
 
+(defcustom which-key-sort-uppercase-first t
+  "If non-nil, uppercase comes before lowercase in sorting
+function chosen in `which-key-sort-order'. Otherwise, the order
+is reversed."
+  :group 'which-key
+  :type 'boolean)
+
 (defcustom which-key-paging-prefixes '()
   "Enable paging for these prefixes."
   :group 'which-key
@@ -1085,13 +1092,14 @@ width) in lines and characters respectively."
 ;;; Sorting functions
 
 (defun which-key--string< (a b &optional alpha)
-  (if alpha
-      (let ((da (downcase a))
-            (db (downcase b)))
-        (if (string-equal da db)
-            (not (string-lessp a b))
-          (string-lessp da db)))
-    (string-lessp a b)))
+  (let* ((da (downcase a))
+         (db (downcase b)))
+    (cond ((string-equal da db)
+           (if which-key-sort-uppercase-first
+               (string-lessp a b)
+             (not (string-lessp a b))))
+          (alpha (string-lessp da db))
+          (t (string-lessp a b)))))
 
 (defun which-key--key-description< (a b &optional alpha)
   "Sorting function used for `which-key-key-order' and
@@ -1116,7 +1124,7 @@ width) in lines and characters respectively."
             ((and asp? bsp?)
              (if (string-equal (substring a 0 3) (substring b 0 3))
                  (which-key--key-description< (substring a 3) (substring b 3) alpha)
-               (string-lessp a b)))
+               (which-key--string< a b alpha)))
             ((or asp? bsp?) asp?)
             ((and a1? b1?) (which-key--string< a b alpha))
             ((or a1? b1?) a1?)
@@ -1127,9 +1135,9 @@ width) in lines and characters respectively."
             ((and apr? bpr?)
              (if (string-equal (substring a 0 2) (substring b 0 2))
                  (which-key--key-description< (substring a 2) (substring b 2) alpha)
-               (string-lessp a b)))
+               (which-key--string< a b alpha)))
             ((or apr? bpr?) apr?)
-            (t (string-lessp a b))))))
+            (t (which-key--string< a b alpha))))))
 
 (defsubst which-key-key-order-alpha (acons bcons)
   "Order key descriptions A and B.
@@ -1462,7 +1470,7 @@ BUFFER that follow the key sequence KEY-SEQ."
   (let* ((unformatted (if bindings bindings (which-key--get-current-bindings))))
     (when which-key-sort-order
       (setq unformatted
-            (sort unformatted (lambda (a b) (funcall which-key-sort-order a b)))))
+            (sort unformatted which-key-sort-order)))
     (which-key--format-and-replace unformatted)))
 
 ;;; Functions for laying out which-key buffer pages
