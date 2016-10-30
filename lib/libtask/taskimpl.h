@@ -30,7 +30,7 @@
 #ifdef WINDOWSNT
 #define LIBTASK_USE_FIBER
 #else
-//#define LIBTASK_USE_PTHREAD
+#define LIBTASK_USE_PTHREAD
 #endif
 #endif
 

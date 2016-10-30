@@ -92,10 +92,12 @@ thread_func (void *arg)
 {
   Task *t = arg;
   ucontext_t *uc = &t->context.uc;
-  pthread_mutex_lock (&uc->mutex);
+  if (pthread_mutex_lock (&uc->mutex) != 0) abort ();
   while (! uc->running)
-    pthread_cond_wait (&uc->cond, &uc->mutex);
-  pthread_mutex_unlock (&uc->mutex);
+    {
+      if (pthread_cond_wait (&uc->cond, &uc->mutex) != 0) abort ();
+    }
+  if (pthread_mutex_unlock (&uc->mutex) != 0) abort ();
   t->startfn (t->startarg);
   return NULL;
 }
@@ -132,8 +134,22 @@ taskalloc(void (*fn)(void*), void *arg, uint stack)
           abort ();
         if (pthread_cond_init (&t->context.uc.cond, NULL) != 0)
           abort ();
-        if (pthread_create (&t->context.uc.thread, NULL, thread_func, t) != 0)
-          abort ();
+        {
+          pthread_attr_t attr;
+          if (pthread_attr_init (&attr) != 0)
+            abort ();
+          if (stack < PTHREAD_STACK_MIN)
+            stack = PTHREAD_STACK_MIN;
+          long pagesize = sysconf (_SC_PAGESIZE);
+          if (stack % pagesize != 0)
+            stack += pagesize - stack % pagesize;
+          if (pthread_attr_setstacksize (&attr, stack) != 0)
+            abort ();
+          if (pthread_create (&t->context.uc.thread, &attr, thread_func, t) != 0)
+            abort ();
+          if (pthread_attr_destroy (&attr) != 0)
+            abort ();
+        }
 #else
 	t->stk = (uchar*)(t+1);
 	t->stksize = stack;
@@ -282,6 +298,14 @@ taskscheduler(void)
 {
 	int i;
 	Task *t;
+
+#ifdef LIBTASK_USE_PTHREAD
+        memset (&taskschedcontext, 0, sizeof taskschedcontext);
+        if (pthread_mutex_init (&taskschedcontext.uc.mutex, NULL) != 0) abort ();
+        if (pthread_cond_init (&taskschedcontext.uc.cond, NULL) != 0) abort ();
+        taskschedcontext.uc.thread = pthread_self ();
+        taskschedcontext.uc.running = true;
+#endif
 
 	taskdebug("scheduler enter");
 	for(;;){

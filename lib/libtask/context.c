@@ -162,26 +162,21 @@ swapcontext (ucontext_t *oucp, const ucontext_t *ucp)
 
 #ifdef LIBTASK_USE_PTHREAD
 #include <pthread.h>
-static bool oucp_is_valid = false;
 
 int
 swapcontext (ucontext_t *oucp, /* const */ ucontext_t *ucp)
 {
-  oucp->running = false;
+  if (pthread_mutex_lock (&ucp->mutex) != 0) abort ();
   ucp->running = true;
-  pthread_mutex_lock (&ucp->mutex);
-  pthread_cond_signal (&ucp->cond);
-  pthread_mutex_unlock (&ucp->mutex);
-  if (! oucp_is_valid)
-  {
-    pthread_mutex_init (&oucp->mutex, NULL);
-    pthread_cond_init (&oucp->cond, NULL);
-    oucp->thread = pthread_self ();
-    oucp_is_valid = true;
-  }
-  pthread_mutex_lock (&oucp->mutex);
+  if (pthread_cond_signal (&ucp->cond) != 0) abort ();
+  if (pthread_mutex_unlock (&ucp->mutex) != 0) abort ();
+  if (pthread_mutex_lock (&oucp->mutex) != 0) abort ();
+  oucp->running = false;
   while (! oucp->running)
-    pthread_cond_wait (&oucp->cond, &oucp->mutex);
-  pthread_mutex_unlock (&oucp->mutex);
+    {
+      if (pthread_cond_wait (&oucp->cond, &oucp->mutex) != 0) abort ();
+    }
+  if (pthread_mutex_unlock (&oucp->mutex) != 0) abort ();
+  return 0;
 }
 #endif
