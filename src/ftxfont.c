@@ -95,7 +95,7 @@ ftxfont_get_gcs (struct frame *f, unsigned long foreground, unsigned long backgr
       if (! x_alloc_nearest_color (f, FRAME_X_COLORMAP (f), &color))
 	break;
       xgcv.foreground = color.pixel;
-      new->gcs[i - 1] = XCreateGC (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+      new->gcs[i - 1] = XCreateGC (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f),
 				   GCForeground, &xgcv);
     }
   unblock_input ();
@@ -139,14 +139,14 @@ ftxfont_draw_bitmap (struct frame *f, GC gc_fore, GC *gcs, struct font *font,
 		p[n[0]].y = y - bitmap.top + i;
 		if (++n[0] == size)
 		  {
-		    XDrawPoints (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+                    XDrawPoints (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f),
 				 gc_fore, p, size, CoordModeOrigin);
 		    n[0] = 0;
 		  }
 	      }
 	}
       if (flush && n[0] > 0)
-	XDrawPoints (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+        XDrawPoints (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f),
 		     gc_fore, p, n[0], CoordModeOrigin);
     }
   else
@@ -168,7 +168,7 @@ ftxfont_draw_bitmap (struct frame *f, GC gc_fore, GC *gcs, struct font *font,
 		  pp[n[idx]].y = y - bitmap.top + i;
 		  if (++(n[idx]) == size)
 		    {
-		      XDrawPoints (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+                      XDrawPoints (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f),
 				   idx == 6 ? gc_fore : gcs[idx], pp, size,
 				   CoordModeOrigin);
 		      n[idx] = 0;
@@ -180,10 +180,10 @@ ftxfont_draw_bitmap (struct frame *f, GC gc_fore, GC *gcs, struct font *font,
 	{
 	  for (i = 0; i < 6; i++)
 	    if (n[i] > 0)
-	      XDrawPoints (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+              XDrawPoints (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f),
 			   gcs[i], p + 0x100 * i, n[i], CoordModeOrigin);
 	  if (n[6] > 0)
-	    XDrawPoints (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+            XDrawPoints (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f),
 			 gc_fore, p + 0x600, n[6], CoordModeOrigin);
 	}
     }
@@ -203,7 +203,7 @@ ftxfont_draw_background (struct frame *f, struct font *font, GC gc, int x, int y
   XGetGCValues (FRAME_X_DISPLAY (f), gc,
 		GCForeground | GCBackground, &xgcv);
   XSetForeground (FRAME_X_DISPLAY (f), gc, xgcv.background);
-  XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), gc,
+  XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f), gc,
 		  x, y - FONT_BASE (font), width, FONT_HEIGHT (font));
   XSetForeground (FRAME_X_DISPLAY (f), gc, xgcv.foreground);
 }

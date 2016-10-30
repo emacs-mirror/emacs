@@ -586,7 +586,7 @@ xftfont_get_xft_draw (struct frame *f)
     {
       block_input ();
       xft_draw= XftDrawCreate (FRAME_X_DISPLAY (f),
-			       FRAME_X_WINDOW (f),
+                               FRAME_X_DRAWABLE (f),
 			       FRAME_X_VISUAL (f),
 			       FRAME_X_COLORMAP (f));
       unblock_input ();
@@ -600,6 +600,8 @@ static int
 xftfont_draw (struct glyph_string *s, int from, int to, int x, int y,
               bool with_background)
 {
+  block_input ();
+
   struct frame *f = s->f;
   struct face *face = s->face;
   struct xftfont_info *xftfont_info = (struct xftfont_info *) s->font;
@@ -614,7 +616,6 @@ xftfont_draw (struct glyph_string *s, int from, int to, int x, int y,
     xftface_info = (struct xftface_info *) face->extra;
   xftfont_get_colors (f, face, s->gc, xftface_info,
 		      &fg, with_background ? &bg : NULL);
-  block_input ();
   if (s->num_clips > 0)
     XftDrawSetClipRectangles (xft_draw, 0, 0, s->clip, s->num_clips);
   else
@@ -652,9 +653,12 @@ xftfont_draw (struct glyph_string *s, int from, int to, int x, int y,
 		     x + i, y, code + i, 1);
   else
     XftDrawGlyphs (xft_draw, &fg, xftfont_info->xftfont,
-		   x, y, code, len);
+                   x, y, code, len);
+  /* Need to explicitly mark the frame dirty because we didn't call
+     FRAME_X_DRAWABLE in order to draw: we cached the drawable in the
+     XftDraw structure.  */
+  x_mark_frame_dirty (f);
   unblock_input ();
-
   return len;
 }
 
@@ -678,13 +682,10 @@ xftfont_shape (Lisp_Object lgstring)
 static int
 xftfont_end_for_frame (struct frame *f)
 {
+  block_input ();
   XftDraw *xft_draw;
 
-  /* Don't do anything if display is dead */
-  if (FRAME_X_DISPLAY (f) == NULL) return 0;
-
   xft_draw = font_get_frame_data (f, Qxft);
-
   if (xft_draw)
     {
       block_input ();
@@ -692,7 +693,17 @@ xftfont_end_for_frame (struct frame *f)
       unblock_input ();
       font_put_frame_data (f, Qxft, NULL);
     }
+  unblock_input ();
   return 0;
+}
+
+static void
+xftfont_drop_xrender_surfaces (struct frame *f)
+{
+  block_input ();
+  if (FRAME_X_DOUBLE_BUFFERED_P (f))
+    xftfont_end_for_frame (f);
+  unblock_input ();
 }
 
 static bool
@@ -777,6 +788,10 @@ This is needed with some fonts to correct vertical overlap of glyphs.  */);
 #if defined (HAVE_M17N_FLT) && defined (HAVE_LIBOTF)
   xftfont_driver.shape = xftfont_shape;
 #endif
+  /* When using X double buffering, the XftDraw structure we build
+   seems to be useless once a frame is resized, so recreate it on
+   ConfigureNotify and in some other cases.  */
+  xftfont_driver.drop_xrender_surfaces = xftfont_drop_xrender_surfaces;
 
   register_font_driver (&xftfont_driver, NULL);
 }

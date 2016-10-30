@@ -763,6 +763,13 @@ struct font_driver
      Return non-nil if the driver support rendering of combining
      characters for FONT according to Unicode combining class.  */
   Lisp_Object (*combining_capability) (struct font *font);
+
+  /* Optional
+
+     Called when frame F is double-buffered and its size changes; Xft
+     relies on this hook to throw away its old XftDraw (which won't
+     work after the size change) and get a new one.  */
+  void (*drop_xrender_surfaces) (struct frame *f);
 };
 
 
@@ -862,7 +869,9 @@ extern void *font_get_frame_data (struct frame *f, Lisp_Object);
 extern void font_filter_properties (Lisp_Object font,
 				    Lisp_Object alist,
 				    const char *const boolean_properties[],
-				    const char *const non_boolean_properties[]);
+                                    const char *const non_boolean_properties[]);
+
+extern void font_drop_xrender_surfaces (struct frame *f);
 
 #ifdef HAVE_FREETYPE
 extern struct font_driver ftfont_driver;

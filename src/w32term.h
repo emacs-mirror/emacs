@@ -790,7 +790,7 @@ typedef struct tagTRACKMOUSEEVENT
 struct image;
 struct face;
 
-XGCValues *XCreateGC (void *, Window, unsigned long, XGCValues *);
+XGCValues *XCreateGC (void *, HWND, unsigned long, XGCValues *);
 
 typedef DWORD (WINAPI * ClipboardSequence_Proc) (void);
 typedef BOOL (WINAPI * AppendMenuW_Proc) (

@@ -3128,6 +3128,7 @@ static const struct frame_parm_table frame_parms[] =
   {"alpha",			SYMBOL_INDEX (Qalpha)},
   {"sticky",			SYMBOL_INDEX (Qsticky)},
   {"tool-bar-position",		SYMBOL_INDEX (Qtool_bar_position)},
+  {"inhibit-double-buffering",  SYMBOL_INDEX (Qinhibit_double_buffering)},
 };
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -5044,6 +5045,7 @@ syms_of_frame (void)
   DEFSYM (Qvertical_scroll_bars, "vertical-scroll-bars");
   DEFSYM (Qvisibility, "visibility");
   DEFSYM (Qwait_for_wm, "wait-for-wm");
+  DEFSYM (Qinhibit_double_buffering, "inhibit-double-buffering");
 
   {
     int i;

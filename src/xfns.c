@@ -53,6 +53,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "gtkutil.h"
 #endif
 
+#ifdef HAVE_XDBE
+#include <X11/extensions/Xdbe.h>
+#endif
+
 #ifdef USE_X_TOOLKIT
 #include <X11/Shell.h>
 
@@ -114,6 +118,7 @@ static int dpyinfo_refcount;
 #endif
 
 static struct x_display_info *x_display_info_for_name (Lisp_Object);
+static void set_up_x_back_buffer (struct frame *f);
 
 /* Let the user specify an X display with a Lisp object.
    OBJECT may be nil, a frame or a terminal object.
@@ -699,6 +704,35 @@ x_set_tool_bar_position (struct frame *f,
     }
   else
     wrong_choice (choice, new_value);
+}
+
+static void
+x_set_inhibit_double_buffering (struct frame *f,
+                                Lisp_Object new_value,
+                                Lisp_Object old_value)
+{
+  block_input ();
+  if (FRAME_X_WINDOW (f) && !EQ (new_value, old_value))
+    {
+      bool want_double_buffering = NILP (new_value);
+      bool was_double_buffered = FRAME_X_DOUBLE_BUFFERED_P (f);
+      /* font_drop_xrender_surfaces in xftfont does something only if
+         we're double-buffered, so call font_drop_xrender_surfaces before
+         and after any potential change.  One of the calls will end up
+         being a no-op.  */
+      if (want_double_buffering != was_double_buffered)
+        font_drop_xrender_surfaces (f);
+      if (FRAME_X_DOUBLE_BUFFERED_P (f) && !want_double_buffering)
+        tear_down_x_back_buffer (f);
+      else if (!FRAME_X_DOUBLE_BUFFERED_P (f) && want_double_buffering)
+        set_up_x_back_buffer (f);
+      if (FRAME_X_DOUBLE_BUFFERED_P (f) != was_double_buffered)
+        {
+          SET_FRAME_GARBAGED (f);
+          font_drop_xrender_surfaces (f);
+        }
+    }
+  unblock_input ();
 }
 
 #ifdef USE_GTK
@@ -2483,6 +2517,72 @@ xic_set_xfontset (struct frame *f, const char *base_fontname)
 
 
 
+
+void
+x_mark_frame_dirty (struct frame *f)
+{
+  if (FRAME_X_DOUBLE_BUFFERED_P (f) && !FRAME_X_NEED_BUFFER_FLIP (f))
+    FRAME_X_NEED_BUFFER_FLIP (f) = true;
+}
+
+static void
+set_up_x_back_buffer (struct frame *f)
+{
+#ifdef HAVE_XDBE
+  block_input ();
+  if (FRAME_X_WINDOW (f) && !FRAME_X_DOUBLE_BUFFERED_P (f))
+    {
+      FRAME_X_RAW_DRAWABLE (f) = FRAME_X_WINDOW (f);
+      if (FRAME_DISPLAY_INFO (f)->supports_xdbe)
+        {
+          /* If allocating a back buffer fails, either because the
+             server ran out of memory or we don't have the right kind
+             of visual, just use single-buffered rendering.  */
+          x_catch_errors (FRAME_X_DISPLAY (f));
+          FRAME_X_RAW_DRAWABLE (f) = XdbeAllocateBackBufferName (
+            FRAME_X_DISPLAY (f),
+            FRAME_X_WINDOW (f),
+            XdbeCopied);
+          if (x_had_errors_p (FRAME_X_DISPLAY (f)))
+            FRAME_X_RAW_DRAWABLE (f) = FRAME_X_WINDOW (f);
+          x_uncatch_errors_after_check ();
+        }
+    }
+  unblock_input ();
+#endif
+}
+
+void
+tear_down_x_back_buffer (struct frame *f)
+{
+#ifdef HAVE_XDBE
+  block_input ();
+  if (FRAME_X_WINDOW (f) && FRAME_X_DOUBLE_BUFFERED_P (f))
+    {
+      if (FRAME_X_DOUBLE_BUFFERED_P (f))
+        {
+          XdbeDeallocateBackBufferName (FRAME_X_DISPLAY (f),
+                                        FRAME_X_DRAWABLE (f));
+          FRAME_X_RAW_DRAWABLE (f) = FRAME_X_WINDOW (f);
+        }
+    }
+  unblock_input ();
+#endif
+}
+
+/* Set up double buffering if the frame parameters don't prohibit
+   it.  */
+void
+initial_set_up_x_back_buffer (struct frame *f)
+{
+  block_input ();
+  eassert (FRAME_X_WINDOW (f));
+  FRAME_X_RAW_DRAWABLE (f) = FRAME_X_WINDOW (f);
+  if (NILP (CDR (Fassq (Qinhibit_double_buffering, f->param_alist))))
+    set_up_x_back_buffer (f);
+  unblock_input ();
+}
+
 #ifdef USE_X_TOOLKIT
 
 /* Create and set up the X widget for frame F.  */
@@ -2638,7 +2738,7 @@ x_window (struct frame *f, long window_prompting)
 		     f->output_data.x->parent_desc, 0, 0);
 
   FRAME_X_WINDOW (f) = XtWindow (frame_widget);
-
+  initial_set_up_x_back_buffer (f);
   validate_x_resource_name ();
 
   class_hints.res_name = SSDATA (Vx_resource_name);
@@ -2784,7 +2884,8 @@ x_window (struct frame *f)
 		     CopyFromParent, /* depth */
 		     InputOutput, /* class */
 		     FRAME_X_VISUAL (f),
-		     attribute_mask, &attributes);
+                     attribute_mask, &attributes);
+  initial_set_up_x_back_buffer (f);
 
 #ifdef HAVE_X_I18N
   if (use_xim)
@@ -2938,7 +3039,7 @@ x_make_gc (struct frame *f)
   gc_values.line_width = 0;	/* Means 1 using fast algorithm.  */
   f->output_data.x->normal_gc
     = XCreateGC (FRAME_X_DISPLAY (f),
-		 FRAME_X_WINDOW (f),
+                 FRAME_X_DRAWABLE (f),
 		 GCLineWidth | GCForeground | GCBackground,
 		 &gc_values);
 
@@ -2947,7 +3048,7 @@ x_make_gc (struct frame *f)
   gc_values.background = FRAME_FOREGROUND_PIXEL (f);
   f->output_data.x->reverse_gc
     = XCreateGC (FRAME_X_DISPLAY (f),
-		 FRAME_X_WINDOW (f),
+                 FRAME_X_DRAWABLE (f),
 		 GCForeground | GCBackground | GCLineWidth,
 		 &gc_values);
 
@@ -2956,7 +3057,7 @@ x_make_gc (struct frame *f)
   gc_values.background = f->output_data.x->cursor_pixel;
   gc_values.fill_style = FillOpaqueStippled;
   f->output_data.x->cursor_gc
-    = XCreateGC (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+    = XCreateGC (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f),
 		 (GCForeground | GCBackground
 		  | GCFillStyle | GCLineWidth),
 		 &gc_values);
@@ -3463,6 +3564,9 @@ This function is an internal primitive--use `make-frame' instead.  */)
 		       "waitForWM", "WaitForWM", RES_TYPE_BOOLEAN);
   x_default_parameter (f, parms, Qtool_bar_position,
                        FRAME_TOOL_BAR_POSITION (f), 0, 0, RES_TYPE_SYMBOL);
+  x_default_parameter (f, parms, Qinhibit_double_buffering, Qnil,
+                       "inhibitDoubleBuffering", "InhibitDoubleBuffering",
+                       RES_TYPE_BOOLEAN);
 
   /* Compute the size of the X window.  */
   window_prompting = x_figure_window_size (f, parms, true, &x_width, &x_height);
@@ -5636,7 +5740,8 @@ x_create_tip_frame (struct x_display_info *dpyinfo, Lisp_Object parms)
 		       /* Border.  */
 		       f->border_width,
 		       CopyFromParent, InputOutput, CopyFromParent,
-		       mask, &attrs);
+                       mask, &attrs);
+    initial_set_up_x_back_buffer (f);
     XChangeProperty (FRAME_X_DISPLAY (f), tip_window,
                      FRAME_DISPLAY_INFO (f)->Xatom_net_window_type,
                      XA_ATOM, 32, PropModeReplace,
@@ -6211,6 +6316,15 @@ Value is t if tooltip was open, nil otherwise.  */)
   (void)
 {
   return x_hide_tip (!tooltip_reuse_hidden_frame);
+}
+
+DEFUN ("x-double-buffered-p", Fx_double_buffered_p, Sx_double_buffered_p,
+       0, 1, 0,
+       doc: /* Return t if FRAME is being double buffered.  */)
+     (Lisp_Object frame)
+{
+  struct frame *f = decode_live_frame (frame);
+  return FRAME_X_DOUBLE_BUFFERED_P (f) ? Qt : Qnil;
 }
 
 
@@ -6864,6 +6978,7 @@ frame_parm_handler x_frame_parm_handlers[] =
   x_set_alpha,
   x_set_sticky,
   x_set_tool_bar_position,
+  x_set_inhibit_double_buffering,
 };
 
 void
@@ -7080,6 +7195,7 @@ When using Gtk+ tooltips, the tooltip face is not used.  */);
 
   defsubr (&Sx_show_tip);
   defsubr (&Sx_hide_tip);
+  defsubr (&Sx_double_buffered_p);
   tip_timer = Qnil;
   staticpro (&tip_timer);
   tip_frame = Qnil;

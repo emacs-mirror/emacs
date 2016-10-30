@@ -48,6 +48,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "emacsgtkfixed.h"
 #endif
 
+#ifdef HAVE_XDBE
+#include <X11/extensions/Xdbe.h>
+#endif
+
 #ifndef HAVE_GTK_WIDGET_SET_HAS_WINDOW
 #define gtk_widget_set_has_window(w, b) \
   (gtk_fixed_set_has_window (GTK_FIXED (w), b))
@@ -142,6 +146,8 @@ struct xg_frame_tb_info
   int hmargin, vmargin;
   GtkTextDirection dir;
 };
+
+static GtkWidget * xg_get_widget_from_map (ptrdiff_t idx);
 
 
 /***********************************************************************
@@ -815,12 +821,6 @@ xg_clear_under_internal_border (struct frame *f)
 {
   if (FRAME_INTERNAL_BORDER_WIDTH (f) > 0)
     {
-#ifndef USE_CAIRO
-      GtkWidget *wfixed = f->output_data.x->edit_widget;
-
-      gtk_widget_queue_draw (wfixed);
-      gdk_window_process_all_updates ();
-#endif
       x_clear_area (f, 0, 0,
 		    FRAME_PIXEL_WIDTH (f), FRAME_INTERNAL_BORDER_WIDTH (f));
 
@@ -1233,6 +1233,7 @@ xg_create_frame_widgets (struct frame *f)
      by callers of this function.  */
   gtk_widget_realize (wfixed);
   FRAME_X_WINDOW (f) = GTK_WIDGET_TO_X_WIN (wfixed);
+  initial_set_up_x_back_buffer (f);
 
   /* Since GTK clears its window by filling with the background color,
      we must keep X and GTK background in sync.  */
@@ -1296,8 +1297,11 @@ xg_free_frame_widgets (struct frame *f)
       if (tbinfo)
         xfree (tbinfo);
 
+      /* x_free_frame_resources should have taken care of it */
+      eassert (!FRAME_X_DOUBLE_BUFFERED_P (f));
       gtk_widget_destroy (FRAME_GTK_OUTER_WIDGET (f));
       FRAME_X_WINDOW (f) = 0; /* Set to avoid XDestroyWindow in xterm.c */
+      FRAME_X_RAW_DRAWABLE (f) = 0;
       FRAME_GTK_OUTER_WIDGET (f) = 0;
 #ifdef USE_GTK_TOOLTIP
       if (x->ttip_lbl)
@@ -1440,6 +1444,18 @@ xg_set_background_color (struct frame *f, unsigned long bg)
     {
       block_input ();
       xg_set_widget_bg (f, FRAME_GTK_WIDGET (f), FRAME_BACKGROUND_PIXEL (f));
+
+      Lisp_Object bar;
+      for (bar = FRAME_SCROLL_BARS (f);
+           !NILP (bar);
+           bar = XSCROLL_BAR (bar)->next)
+        {
+          GtkWidget *scrollbar =
+            xg_get_widget_from_map (XSCROLL_BAR (bar)->x_window);
+          GtkWidget *webox = gtk_widget_get_parent (scrollbar);
+          xg_set_widget_bg (f, webox, FRAME_BACKGROUND_PIXEL (f));
+        }
+
       unblock_input ();
     }
 }
@@ -2264,7 +2280,6 @@ xg_mark_data (void)
         }
     }
 }
-
 
 /* Callback called when a menu item is destroyed.  Used to free data.
    W is the widget that is being destroyed (not used).
@@ -3569,44 +3584,23 @@ xg_gtk_scroll_destroy (GtkWidget *widget, gpointer data)
   xg_remove_widget_from_map (id);
 }
 
-/* Create a scroll bar widget for frame F.  Store the scroll bar
-   in BAR.
-   SCROLL_CALLBACK is the callback to invoke when the value of the
-   bar changes.
-   END_CALLBACK is the callback to invoke when scrolling ends.
-   SCROLL_BAR_NAME is the name we use for the scroll bar.  Can be used
-   to set resources for the widget.  */
-
-void
-xg_create_scroll_bar (struct frame *f,
-                      struct scroll_bar *bar,
-                      GCallback scroll_callback,
-                      GCallback end_callback,
-                      const char *scroll_bar_name)
+static void
+xg_finish_scroll_bar_creation (struct frame *f,
+                               GtkWidget *wscroll,
+                               struct scroll_bar *bar,
+                               GCallback scroll_callback,
+                               GCallback end_callback,
+                               const char *scroll_bar_name)
 {
-  GtkWidget *wscroll;
-  GtkWidget *webox;
-  intptr_t scroll_id;
-#ifdef HAVE_GTK3
-  GtkAdjustment *vadj;
-#else
-  GtkObject *vadj;
-#endif
+  GtkWidget *webox = gtk_event_box_new ();
 
-  /* Page, step increment values are not so important here, they
-     will be corrected in x_set_toolkit_scroll_bar_thumb. */
-  vadj = gtk_adjustment_new (XG_SB_MIN, XG_SB_MIN, XG_SB_MAX,
-                             0.1, 0.1, 0.1);
-
-  wscroll = gtk_scrollbar_new (GTK_ORIENTATION_VERTICAL, GTK_ADJUSTMENT (vadj));
-  webox = gtk_event_box_new ();
   gtk_widget_set_name (wscroll, scroll_bar_name);
 #ifndef HAVE_GTK3
   gtk_range_set_update_policy (GTK_RANGE (wscroll), GTK_UPDATE_CONTINUOUS);
 #endif
   g_object_set_data (G_OBJECT (wscroll), XG_FRAME_DATA, (gpointer)f);
 
-  scroll_id = xg_store_widget_in_map (wscroll);
+  ptrdiff_t scroll_id = xg_store_widget_in_map (wscroll);
 
   g_signal_connect (G_OBJECT (wscroll),
                     "destroy",
@@ -3630,11 +3624,52 @@ xg_create_scroll_bar (struct frame *f,
   gtk_fixed_put (GTK_FIXED (f->output_data.x->edit_widget), webox, -1, -1);
   gtk_container_add (GTK_CONTAINER (webox), wscroll);
 
+  xg_set_widget_bg (f, webox, FRAME_BACKGROUND_PIXEL (f));
+
+  /* N.B. The event box doesn't become a real X11 window until we ask
+     for its XID via GTK_WIDGET_TO_X_WIN.  If the event box is not a
+     real X window, it and its scroll-bar child try to draw on the
+     Emacs main window, which we draw over using Xlib.  */
+  gtk_widget_realize (webox);
+  GTK_WIDGET_TO_X_WIN (webox);
 
   /* Set the cursor to an arrow.  */
   xg_set_cursor (webox, FRAME_DISPLAY_INFO (f)->xg_cursor);
 
   bar->x_window = scroll_id;
+}
+
+/* Create a scroll bar widget for frame F.  Store the scroll bar
+   in BAR.
+   SCROLL_CALLBACK is the callback to invoke when the value of the
+   bar changes.
+   END_CALLBACK is the callback to invoke when scrolling ends.
+   SCROLL_BAR_NAME is the name we use for the scroll bar.  Can be used
+   to set resources for the widget.  */
+
+void
+xg_create_scroll_bar (struct frame *f,
+                      struct scroll_bar *bar,
+                      GCallback scroll_callback,
+                      GCallback end_callback,
+                      const char *scroll_bar_name)
+{
+  GtkWidget *wscroll;
+#ifdef HAVE_GTK3
+  GtkAdjustment *vadj;
+#else
+  GtkObject *vadj;
+#endif
+
+  /* Page, step increment values are not so important here, they
+     will be corrected in x_set_toolkit_scroll_bar_thumb. */
+  vadj = gtk_adjustment_new (XG_SB_MIN, XG_SB_MIN, XG_SB_MAX,
+                             0.1, 0.1, 0.1);
+
+  wscroll = gtk_scrollbar_new (GTK_ORIENTATION_VERTICAL, GTK_ADJUSTMENT (vadj));
+
+  xg_finish_scroll_bar_creation (f, wscroll, bar, scroll_callback,
+                                 end_callback, scroll_bar_name);
   bar->horizontal = 0;
 }
 
@@ -3652,8 +3687,6 @@ xg_create_horizontal_scroll_bar (struct frame *f,
 				 const char *scroll_bar_name)
 {
   GtkWidget *wscroll;
-  GtkWidget *webox;
-  intptr_t scroll_id;
 #ifdef HAVE_GTK3
   GtkAdjustment *hadj;
 #else
@@ -3666,42 +3699,9 @@ xg_create_horizontal_scroll_bar (struct frame *f,
                              0.1, 0.1, 0.1);
 
   wscroll = gtk_scrollbar_new (GTK_ORIENTATION_HORIZONTAL, GTK_ADJUSTMENT (hadj));
-  webox = gtk_event_box_new ();
-  gtk_widget_set_name (wscroll, scroll_bar_name);
-#ifndef HAVE_GTK3
-  gtk_range_set_update_policy (GTK_RANGE (wscroll), GTK_UPDATE_CONTINUOUS);
-#endif
-  g_object_set_data (G_OBJECT (wscroll), XG_FRAME_DATA, (gpointer)f);
 
-  scroll_id = xg_store_widget_in_map (wscroll);
-
-  g_signal_connect (G_OBJECT (wscroll),
-                    "destroy",
-                    G_CALLBACK (xg_gtk_scroll_destroy),
-                    (gpointer) scroll_id);
-  g_signal_connect (G_OBJECT (wscroll),
-                    "change-value",
-                    scroll_callback,
-                    (gpointer) bar);
-  g_signal_connect (G_OBJECT (wscroll),
-                    "button-release-event",
-                    end_callback,
-                    (gpointer) bar);
-
-  /* The scroll bar widget does not draw on a window of its own.  Instead
-     it draws on the parent window, in this case the edit widget.  So
-     whenever the edit widget is cleared, the scroll bar needs to redraw
-     also, which causes flicker.  Put an event box between the edit widget
-     and the scroll bar, so the scroll bar instead draws itself on the
-     event box window.  */
-  gtk_fixed_put (GTK_FIXED (f->output_data.x->edit_widget), webox, -1, -1);
-  gtk_container_add (GTK_CONTAINER (webox), wscroll);
-
-
-  /* Set the cursor to an arrow.  */
-  xg_set_cursor (webox, FRAME_DISPLAY_INFO (f)->xg_cursor);
-
-  bar->x_window = scroll_id;
+  xg_finish_scroll_bar_creation (f, wscroll, bar, scroll_callback,
+                                 end_callback, scroll_bar_name);
   bar->horizontal = 1;
 }
 
@@ -3770,16 +3770,10 @@ xg_update_scrollbar_pos (struct frame *f,
           gtk_widget_show_all (wparent);
           gtk_widget_set_size_request (wscroll, width, height);
         }
-#ifndef USE_CAIRO
-      gtk_widget_queue_draw (wfixed);
-      gdk_window_process_all_updates ();
-#endif
       if (oldx != -1 && oldw > 0 && oldh > 0)
         {
-          /* Clear under old scroll bar position.  This must be done after
-             the gtk_widget_queue_draw and gdk_window_process_all_updates
-             above.  */
-	  oldw += (scale - 1) * oldw;
+          /* Clear under old scroll bar position.  */
+          oldw += (scale - 1) * oldw;
 	  oldx -= (scale - 1) * oldw;
           x_clear_area (f, oldx, oldy, oldw, oldh);
         }
@@ -3841,14 +3835,9 @@ xg_update_horizontal_scrollbar_pos (struct frame *f,
           gtk_widget_show_all (wparent);
           gtk_widget_set_size_request (wscroll, width, height);
         }
-      gtk_widget_queue_draw (wfixed);
-      gdk_window_process_all_updates ();
       if (oldx != -1 && oldw > 0 && oldh > 0)
-	/* Clear under old scroll bar position.  This must be done after
-	   the gtk_widget_queue_draw and gdk_window_process_all_updates
-	   above.  */
-	x_clear_area (f,
-		      oldx, oldy, oldw, oldh);
+        /* Clear under old scroll bar position.  */
+        x_clear_area (f, oldx, oldy, oldw, oldh);
 
       /* GTK does not redraw until the main loop is entered again, but
          if there are no X events pending we will not enter it.  So we sync

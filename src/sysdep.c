@@ -2188,27 +2188,35 @@ void
 init_random (void)
 {
   random_seed v;
-  if (! (EQ (emacs_gnutls_global_init (), Qt)
-	 && gnutls_rnd (GNUTLS_RND_NONCE, &v, sizeof v) == 0))
-    {
-      bool success = false;
-#ifndef WINDOWSNT
-      int fd = emacs_open ("/dev/urandom", O_RDONLY, 0);
-      if (0 <= fd)
-	{
-	  success = emacs_read (fd, &v, sizeof v) == sizeof v;
-	  emacs_close (fd);
-	}
+  bool success = false;
+
+  /* First, try seeding the PRNG from the operating system's entropy
+     source.  This approach is both fast and secure.  */
+#ifdef WINDOWSNT
+  success = w32_init_random (&v, sizeof v) == 0;
 #else
-      success = w32_init_random (&v, sizeof v) == 0;
-#endif
-      if (! success)
-	{
-	  /* Fall back to current time value + PID.  */
-	  struct timespec t = current_timespec ();
-	  v = getpid () ^ t.tv_sec ^ t.tv_nsec;
-	}
+  int fd = emacs_open ("/dev/urandom", O_RDONLY, 0);
+  if (0 <= fd)
+    {
+      success = emacs_read (fd, &v, sizeof v) == sizeof v;
+      close (fd);
     }
+#endif
+
+  /* If that didn't work, try using GnuTLS, which is secure, but on
+     some systems, can be somewhat slow.  */
+  if (!success)
+    success = EQ (emacs_gnutls_global_init (), Qt)
+      && gnutls_rnd (GNUTLS_RND_NONCE, &v, sizeof v) == 0;
+
+  /* If _that_ didn't work, just use the current time value and PID.
+     It's at least better than XKCD 221.  */
+  if (!success)
+    {
+      struct timespec t = current_timespec ();
+      v = getpid () ^ t.tv_sec ^ t.tv_nsec;
+    }
+
   set_random_seed (v);
 }
 

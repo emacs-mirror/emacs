@@ -1012,11 +1012,13 @@ and `dired-compress-files-alist'."
           (t
            (when (zerop
                   (dired-shell-command
-                   (replace-regexp-in-string
-                    "%o" out-file
-                    (replace-regexp-in-string
-                     "%i" (mapconcat #'file-name-nondirectory in-files " ")
-                     (cdr rule)))))
+                   (format-spec (cdr rule)
+                                `((?\o . ,(shell-quote-argument out-file))
+                                  (?\i . ,(mapconcat
+                                           (lambda (file-desc)
+                                             (shell-quote-argument (file-name-nondirectory
+                                                                    file-desc)))
+                                           in-files " "))))))
              (message "Compressed %d file(s) to %s"
                       (length in-files)
                       (file-name-nondirectory out-file)))))))

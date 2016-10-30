@@ -631,6 +631,11 @@ struct terminal
   /* Called when a frame's display becomes entirely up to date.  */
   void (*frame_up_to_date_hook) (struct frame *);
 
+  /* Called when buffer flipping becomes unblocked after having
+     previously been blocked.  Redisplay always blocks buffer flips
+     while it runs.  */
+  void (*buffer_flipping_unblocked_hook) (struct frame *);
+
 
   /* Called to delete the device-specific portions of a frame that is
      on this terminal device. */

@@ -1276,7 +1276,6 @@ struct glyph_string
 
   /* X display and window for convenience.  */
   Display *display;
-  Window window;
 
   /* The glyph row for which this string was built.  It determines the
      y-origin and height of the string.  */
@@ -3356,6 +3355,10 @@ void x_cr_init_fringe (struct redisplay_interface *);
 #endif
 
 extern unsigned row_hash (struct glyph_row *);
+
+extern void block_buffer_flips(void);
+extern void unblock_buffer_flips(void);
+extern bool buffer_flipping_blocked_p(void);
 
 /* Defined in image.c */
 

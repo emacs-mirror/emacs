@@ -4160,7 +4160,10 @@ Invokes `password-read' if available, `read-passwd' else."
 				 :max 1
 				 :user (or tramp-current-user t)
 				 :host tramp-current-host
-				 :port tramp-current-method)
+				 :port tramp-current-method
+				 :require
+				 (cons
+				  :secret (and tramp-current-user '(:user))))
 				auth-passwd (plist-get
 					     (nth 0 auth-info) :secret)
 				auth-passwd (if (functionp auth-passwd)

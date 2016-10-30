@@ -3,6 +3,7 @@
 
 
 #include <config.h>
+#include <stdlib.h>
 #include <X11/Xlib.h>
 #include <errno.h>
 #include "X10.h"

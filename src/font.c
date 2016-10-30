@@ -5275,6 +5275,16 @@ font_deferred_log (const char *action, Lisp_Object arg, Lisp_Object result)
 }
 
 void
+font_drop_xrender_surfaces (struct frame *f)
+{
+  struct font_driver_list *list;
+
+  for (list = f->font_driver_list; list; list = list->next)
+    if (list->on && list->driver->drop_xrender_surfaces)
+      list->driver->drop_xrender_surfaces (f);
+}
+
+void
 syms_of_font (void)
 {
   sort_shift_bits[FONT_TYPE_INDEX] = 0;

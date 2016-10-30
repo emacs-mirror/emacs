@@ -220,7 +220,7 @@ x_create_bitmap_from_data (struct frame *f, char *bits, unsigned int width, unsi
 
 #ifdef HAVE_X_WINDOWS
   Pixmap bitmap;
-  bitmap = XCreateBitmapFromData (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+  bitmap = XCreateBitmapFromData (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f),
 				  bits, width, height);
   if (! bitmap)
     return -1;
@@ -327,7 +327,7 @@ x_create_bitmap_from_file (struct frame *f, Lisp_Object file)
 
   filename = SSDATA (found);
 
-  result = XReadBitmapFile (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+  result = XReadBitmapFile (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f),
 			    filename, &width, &height, &bitmap, &xhot, &yhot);
   if (result != BitmapSuccess)
     return -1;
@@ -1952,7 +1952,7 @@ x_create_x_image_and_pixmap (struct frame *f, int width, int height, int depth,
 {
 #ifdef HAVE_X_WINDOWS
   Display *display = FRAME_X_DISPLAY (f);
-  Window window = FRAME_X_WINDOW (f);
+  Drawable drawable = FRAME_X_DRAWABLE (f);
   Screen *screen = FRAME_X_SCREEN (f);
 
   eassert (input_blocked_p ());
@@ -1981,7 +1981,7 @@ x_create_x_image_and_pixmap (struct frame *f, int width, int height, int depth,
   (*ximg)->data = xmalloc ((*ximg)->bytes_per_line * height);
 
   /* Allocate a pixmap of the same size.  */
-  *pixmap = XCreatePixmap (display, window, width, height, depth);
+  *pixmap = XCreatePixmap (display, drawable, width, height, depth);
   if (*pixmap == NO_PIXMAP)
     {
       x_destroy_x_image (*ximg);
@@ -2742,7 +2742,7 @@ Create_Pixmap_From_Bitmap_Data (struct frame *f, struct image *img, char *data,
   img->pixmap =
    (x_check_image_size (0, img->width, img->height)
     ? XCreatePixmapFromBitmapData (FRAME_X_DISPLAY (f),
-				   FRAME_X_WINDOW (f),
+                                   FRAME_X_DRAWABLE (f),
 				   data,
 				   img->width, img->height,
 				   fg, bg,
@@ -3520,7 +3520,7 @@ x_create_bitmap_from_xpm_data (struct frame *f, const char **bits)
   xpm_init_color_cache (f, &attrs);
 #endif
 
-  rc = XpmCreatePixmapFromData (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+  rc = XpmCreatePixmapFromData (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f),
 				(char **) bits, &bitmap, &mask, &attrs);
   if (rc != XpmSuccess)
     {
@@ -3758,7 +3758,7 @@ xpm_load (struct frame *f, struct image *img)
 #ifdef HAVE_X_WINDOWS
   if (rc == XpmSuccess)
     {
-      img->pixmap = XCreatePixmap (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+      img->pixmap = XCreatePixmap (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f),
 				   img->ximg->width, img->ximg->height,
 				   img->ximg->depth);
       if (img->pixmap == NO_PIXMAP)
@@ -3768,7 +3768,7 @@ xpm_load (struct frame *f, struct image *img)
 	}
       else if (img->mask_img)
 	{
-	  img->mask = XCreatePixmap (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+          img->mask = XCreatePixmap (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f),
 				     img->mask_img->width,
 				     img->mask_img->height,
 				     img->mask_img->depth);
@@ -9541,7 +9541,7 @@ gs_load (struct frame *f, struct image *img)
     {
       /* Only W32 version did BLOCK_INPUT here.  ++kfs */
       block_input ();
-      img->pixmap = XCreatePixmap (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+      img->pixmap = XCreatePixmap (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f),
 				   img->width, img->height,
 				   DefaultDepthOfScreen (FRAME_X_SCREEN (f)));
       unblock_input ();
@@ -9557,7 +9557,7 @@ gs_load (struct frame *f, struct image *img)
      if successful.  We do not record_unwind_protect here because
      other places in redisplay like calling window scroll functions
      don't either.  Let the Lisp loader use `unwind-protect' instead.  */
-  printnum1 = FRAME_X_WINDOW (f);
+  printnum1 = FRAME_X_DRAWABLE (f);
   printnum2 = img->pixmap;
   window_and_pixmap_id
     = make_formatted_string (buffer, "%"pMu" %"pMu, printnum1, printnum2);
