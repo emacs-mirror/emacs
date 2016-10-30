@@ -9,7 +9,7 @@
 #define UNICODE
 #include <windows.h>
 
-#elseif ! defined LIBTASK_USE_PTHREAD
+#elif ! defined LIBTASK_USE_PTHREAD
 
 #if defined(__APPLE__)
 #if defined(__i386__)
