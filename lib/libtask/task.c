@@ -99,6 +99,7 @@ thread_func (void *arg)
     }
   if (pthread_mutex_unlock (&uc->mutex) != 0) abort ();
   t->startfn (t->startarg);
+  taskexit (0);
   return NULL;
 }
 #endif
