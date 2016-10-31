@@ -47,6 +47,7 @@
 (eval-when-compile (require 'regexp-opt))
 
 (declare-function package-installed-p "package")
+(declare-function package-read-all-archive-contents "package" ())
 
 (defgroup use-package nil
   "A use-package declaration for simplifying your `.emacs'."
