@@ -990,21 +990,9 @@ call signature in different emacs versions"
               (window-height . (lambda (w) (fit-window-to-buffer w nil 1)))
               (side . ,which-key-side-window-location)
               (slot . ,which-key-side-window-slot)))))
-    ;; Note: `display-buffer-in-side-window' and `display-buffer-in-major-side-window'
-    ;; were added in Emacs 24.3
-
-    ;; If two side windows exist in the same side, `display-buffer-in-side-window'
-    ;; will use on of them, which isn't desirable. `display-buffer-in-major-side-window'
-    ;; will pop a new window, so we use that.
-    ;; +-------------------------+         +-------------------------+
-    ;; |     regular window      |         |     regular window      |
-    ;; |                         |         +------------+------------+
-    ;; +------------+------------+   -->   | side-win 1 | side-win 2 |
-    ;; | side-win 1 | side-win 2 |         |------------+------------|
-    ;; |            |            |         |     which-key window    |
-    ;; +------------+------------+         +------------+------------+
-    ;; (display-buffer which-key--buffer (cons 'display-buffer-in-side-window alist))
-    ;; side defaults to bottom
+    ;; Previously used `display-buffer-in-major-side-window' here, but
+    ;; apparently that is meant to be an internal function. See emacs bug #24828
+    ;; and advice given there.
     (cond
      ((eq which-key--multiple-locations t)
       ;; possibly want to switch sides in this case so we can't reuse the window
