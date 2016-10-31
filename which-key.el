@@ -230,6 +230,20 @@ location is tried."
                 (const (right bottom))
                 (const (bottom right))))
 
+(defcustom which-key-side-window-slot 0
+  "The `slot' to use for `display-buffer-in-side-window' when
+`which-key-popup-type' is 'side-window. Quoting from the
+docstring of `display-buffer-in-side-window',
+
+‘slot’ if non-nil, specifies the window slot where to display
+  BUFFER.  A value of zero or nil means use the middle slot on
+  the specified side.  A negative value means use a slot
+  preceding (that is, above or on the left of) the middle slot.
+  A positive value means use a slot following (that is, below or
+  on the right of) the middle slot.  The default is zero."
+  :group 'which-key
+  :type 'integer)
+
 (defcustom which-key-side-window-max-width 0.333
   "Maximum width of which-key popup when type is side-window and
 location is left or right.
@@ -966,13 +980,16 @@ call signature in different emacs versions"
   "Show which-key buffer when popup type is side-window."
   (let* ((height (car act-popup-dim))
          (width (cdr act-popup-dim))
-         (side which-key-side-window-location)
          (alist
           (if which-key-allow-imprecise-window-fit
               `((window-width .  ,(which-key--text-width-to-total width))
-                (window-height . ,height))
-            '((window-width . which-key--fit-buffer-to-window-horizontally)
-              (window-height . (lambda (w) (fit-window-to-buffer w nil 1)))))))
+                (window-height . ,height)
+                (side . ,which-key-side-window-location)
+                (slot . ,which-key-side-window-slot))
+            `((window-width . which-key--fit-buffer-to-window-horizontally)
+              (window-height . (lambda (w) (fit-window-to-buffer w nil 1)))
+              (side . ,which-key-side-window-location)
+              (slot . ,which-key-side-window-slot)))))
     ;; Note: `display-buffer-in-side-window' and `display-buffer-in-major-side-window'
     ;; were added in Emacs 24.3
 
@@ -992,11 +1009,11 @@ call signature in different emacs versions"
      ((eq which-key--multiple-locations t)
       ;; possibly want to switch sides in this case so we can't reuse the window
       (delete-windows-on which-key--buffer)
-      (display-buffer-in-major-side-window which-key--buffer side 0 alist))
+      (display-buffer-in-side-window which-key--buffer alist))
      ((get-buffer-window which-key--buffer)
       (display-buffer-reuse-window which-key--buffer alist))
      (t
-      (display-buffer-in-major-side-window which-key--buffer side 0 alist)))))
+      (display-buffer-in-side-window which-key--buffer alist)))))
 
 (defun which-key--show-buffer-frame (act-popup-dim)
   "Show which-key buffer when popup type is frame."
