@@ -2524,7 +2524,8 @@ enum Lisp_Compiled
     COMPILED_CONSTANTS = 2,
     COMPILED_STACK_DEPTH = 3,
     COMPILED_DOC_STRING = 4,
-    COMPILED_INTERACTIVE = 5
+    COMPILED_INTERACTIVE = 5,
+    COMPILED_JIT_ID = 6
   };
 
 /* Flag bits in a character.  These also get used in termhooks.h.
@@ -3671,7 +3672,6 @@ build_string (const char *str)
 }
 
 extern Lisp_Object pure_cons (Lisp_Object, Lisp_Object);
-extern void make_byte_code (struct Lisp_Vector *);
 extern struct Lisp_Vector *allocate_vector (EMACS_INT);
 
 /* Make an uninitialized vector for SIZE objects.  NOTE: you must

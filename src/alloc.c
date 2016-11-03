@@ -3429,23 +3429,6 @@ usage: (vector &rest OBJECTS)  */)
   return val;
 }
 
-void
-make_byte_code (struct Lisp_Vector *v)
-{
-  /* Don't allow the global zero_vector to become a byte code object.  */
-  eassert (0 < v->header.size);
-
-  if (v->header.size > 1 && STRINGP (v->contents[1])
-      && STRING_MULTIBYTE (v->contents[1]))
-    /* BYTECODE-STRING must have been produced by Emacs 20.2 or the
-       earlier because they produced a raw 8-bit string for byte-code
-       and now such a byte-code string is loaded as multibyte while
-       raw 8-bit characters converted to multibyte form.  Thus, now we
-       must convert them back to the original unibyte form.  */
-    v->contents[1] = Fstring_as_unibyte (v->contents[1]);
-  XSETPVECTYPE (v, PVEC_COMPILED);
-}
-
 DEFUN ("make-byte-code", Fmake_byte_code, Smake_byte_code, 4, MANY, 0,
        doc: /* Create a byte-code object with specified arguments as elements.
 The arguments should be the ARGLIST, bytecode-string BYTE-CODE, constant
@@ -3465,8 +3448,12 @@ usage: (make-byte-code ARGLIST BYTE-CODE CONSTANTS DEPTH &optional DOCSTRING INT
   (ptrdiff_t nargs, Lisp_Object *args)
 {
   ptrdiff_t i;
-  register Lisp_Object val = make_uninit_vector (nargs);
+  register Lisp_Object val = make_uninit_vector (max(nargs, COMPILED_JIT_ID + 1));
   register struct Lisp_Vector *p = XVECTOR (val);
+  size_t size = min(nargs, COMPILED_JIT_ID);
+
+  /* Don't allow the global zero_vector to become a byte code object.  */
+  eassert (0 < nargs);
 
   /* We used to purecopy everything here, if purify-flag was set.  This worked
      OK for Emacs-23, but with Emacs-24's lexical binding code, it can be
@@ -3476,9 +3463,21 @@ usage: (make-byte-code ARGLIST BYTE-CODE CONSTANTS DEPTH &optional DOCSTRING INT
      just wasteful and other times plainly wrong (e.g. those free vars may want
      to be setcar'd).  */
 
-  for (i = 0; i < nargs; i++)
+  for (i = 0; i < size; i++)
     p->contents[i] = args[i];
-  make_byte_code (p);
+
+  if (STRINGP (p->contents[COMPILED_BYTECODE])
+      && STRING_MULTIBYTE (p->contents[COMPILED_BYTECODE]))
+    /* BYTECODE-STRING must have been produced by Emacs 20.2 or the
+       earlier because they produced a raw 8-bit string for byte-code
+       and now such a byte-code string is loaded as multibyte while
+       raw 8-bit characters converted to multibyte form.  Thus, now we
+       must convert them back to the original unibyte form.  */
+    p->contents[COMPILED_BYTECODE] = Fstring_as_unibyte (p->contents[COMPILED_BYTECODE]);
+
+  /* set rest size so that total footprint = COMPILED_JIT_ID + 1 */
+  XSETPVECTYPESIZE (p, PVEC_COMPILED, size, COMPILED_JIT_ID + 1 - size);
+  p->contents[COMPILED_JIT_ID] = 0;
   XSETCOMPILED (val, p);
   return val;
 }
