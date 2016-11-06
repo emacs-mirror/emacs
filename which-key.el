@@ -1502,9 +1502,6 @@ alists. Returns a list (key separator description)."
   "Uses `describe-buffer-bindings' to collect the key bindings in
 BUFFER that follow the key sequence KEY-SEQ."
   (let* ((unformatted (if bindings bindings (which-key--get-current-bindings))))
-    (when which-key-sort-order
-      (setq unformatted
-            (sort unformatted which-key-sort-order)))
     (when which-key-binding-filter-function
       (setq unformatted
             (delq nil (mapcar
@@ -1512,6 +1509,9 @@ BUFFER that follow the key sequence KEY-SEQ."
                          (funcall which-key-binding-filter-function
                                   cell (which-key--current-key-string)))
                        unformatted))))
+    (when which-key-sort-order
+      (setq unformatted
+            (sort unformatted which-key-sort-order)))
     (which-key--format-and-replace unformatted)))
 
 ;;; Functions for laying out which-key buffer pages
