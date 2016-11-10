@@ -466,13 +466,12 @@ Root mode                      Description
 =============================  =========================================
 
 _`.rootmode.const.unused`: ``RootModeCONSTANT`` has no effect. This
-mode was introduced in the hope of being able to maintain a
-:term:`remembered set` for the root without needing a :term:`write
-barrier`, but it can't work as described, since you can't reliably
-create a valid registered constant root that contains any references.
-(If you add the references before registering the root, they may have
-become invalid; but you can't add them afterwards because the root is
-supposed to be constant.)
+mode was introduced in the hope of being able to maintain a remembered
+set for the root without needing a write barrier, but it can't work as
+described, since you can't reliably create a valid registered constant
+root that contains any references. (If you add the references before
+registering the root, they may have become invalid; but you can't add
+them afterwards because the root is supposed to be constant.)
 
 _`.rootmode.conv.c`: ``RootMode`` is converted to ``mps_rm_t`` in the
 MPS C Interface.
