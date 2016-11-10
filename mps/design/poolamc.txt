@@ -169,10 +169,10 @@ more)::
       /* large */
     }</code></pre></blockquote>
 
-``amc->extendBy`` defaults to 4096 (rounded up to the arena alignment), and is
-settable by using :c:macro:`MPS_KEY_EXTEND_BY` keyword argument.
-``amc->largeSize`` is currently 32768 -- see `The LSP payoff calculation`_
-below.
+``amc->extendBy`` defaults to 4096 (rounded up to the arena
+alignment), and is settable by using ``MPS_KEY_EXTEND_BY`` keyword
+argument. ``amc->largeSize`` is currently 32768 -- see `The LSP payoff
+calculation`_ below.
 
 AMC might treat "Large" segments specially, in two ways:
 
@@ -266,7 +266,7 @@ poolamc.c calculates metrics; see `Feedback about retained pages`_
 below. If this one-size-fits-all approach is not satisfactory,
 ``amc->largeSize`` is a client-tunable parameter which defaults to
 ``AMC_LARGE_SIZE_DEFAULT``. It can be tuned by passing an
-:c:macro:`MPS_KEY_LARGE_SIZE` keyword argument to :c:func:`mps_pool_create_k`.
+``MPS_KEY_LARGE_SIZE`` keyword argument to ``mps_pool_create_k()``.
 
 
 Retained pages
