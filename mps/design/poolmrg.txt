@@ -183,7 +183,7 @@ registered for finalization. This protocol is handled by the arena
 module on behalf of finalization. see
 design.mps.finalize.int.finalize_.
 
-.. _design.mps.finalize.int.finalize: finalize#int.finalize
+.. _design.mps.finalize.int.finalize: finalize#int-finalize
 
 
 Finalizer execution
@@ -204,7 +204,7 @@ _`.protocol.life`: An instance of PoolClassMRG is needed in order to
 support finalization, it is called the "final" pool and is attached to
 the arena (see design.mps.finalize.int.arena.struct_).
 
-.. _design.mps.finalize.int.arena.struct: finalize#int.arena.struct
+.. _design.mps.finalize.int.arena.struct: finalize#int-arena-struct
 
 _`.protocol.life.birth`: The final pool is created lazily by
 ``ArenaFinalize()``.

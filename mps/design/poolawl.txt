@@ -175,7 +175,7 @@ which the structure is::
       Sig sig;
     }
 
-.. _design.mps.seg.over.hierarchy.gcseg: seg#over.hierarchy.gcseg
+.. _design.mps.seg.over.hierarchy.gcseg: seg#over-hierarchy-gcseg
 
 _`.awlseg.bt`: The mark, alloc, and scanned fields are bit-tables (see
 design.mps.bt_). Each bit in the table corresponds to a a single
@@ -417,7 +417,7 @@ perform another pass (see `.fun.scan.pass`_ above).
 _`.fun.fix`: ``ss->wasMarked`` is set to ``TRUE`` (clear compliance
 with design.mps.fix.protocol.was-marked.conservative_).
 
-.. _design.mps.fix.protocol.was-marked.conservative: fix#protocol.was-marked.conservative
+.. _design.mps.fix.protocol.was-marked.conservative: fix#protocol-was-marked-conservative
 
 If the rank (``ss->rank``) is ``RankAMBIG`` then fix returns
 immediately unless the reference is aligned to the pool alignment.

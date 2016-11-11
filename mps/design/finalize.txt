@@ -60,7 +60,7 @@ _`.impl.scan`: An object is determined to be finalizable if it is
 fixed at rank FINAL for a trace, and was not fixed at any lower rank
 for that trace. See design.mps.poolmrg.scan.wasold_.
 
-.. _design.mps.poolmrg.scan.wasold: poolmrg#scan.wasold
+.. _design.mps.poolmrg.scan.wasold: poolmrg#scan-wasold
 
 _`.impl.message`: When an object is determined to be finalizable, a
 message for that object is posted to the arena's message queue.
