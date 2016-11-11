@@ -172,8 +172,8 @@ design.mps.lock.req.global.binary_) that protects mutable data shared
 between all arenas (that is, the arena ring lock: see
 design.mps.arena.static.ring.lock_).
 
-.. _design.mps.lock.req.global.binary: lock#req.global.binary
-.. _design.mps.arena.static.ring.lock: arena#static.ring.lock
+.. _design.mps.lock.req.global.binary: lock#req-global-binary
+.. _design.mps.arena.static.ring.lock: arena#static-ring-lock
 
 _`.sol.global.once`: There is a global recursive lock (see
 design.mps.lock.req.global.recursive_) that protects static data which
@@ -183,8 +183,8 @@ claims the global recursive lock, checks to see if the data structure
 has been initialized yet, and does so if necessary (see
 design.mps.protocol.impl.define-class.lock_).
 
-.. _design.mps.lock.req.global.recursive: lock#req.global.recursive
-.. _design.mps.protocol.impl.define-class.lock: protocol#impl.define-class.lock
+.. _design.mps.lock.req.global.recursive: lock#req-global-recursive
+.. _design.mps.protocol.impl.define-class.lock: protocol#impl-define-class-lock
 
 _`.sol.deadlock`: A strict ordering is required between the global and
 arena locks to prevent deadlock. The binary global lock may not be
@@ -194,7 +194,7 @@ Each arena lock is independent of all other arena locks; that is, a
 thread may not attempt to claim more than one arena lock at a time.
 See design.mps.arena.lock.avoid_.
 
-.. _design.mps.arena.lock.avoid: arena#lock.avoid
+.. _design.mps.arena.lock.avoid: arena#lock-avoid
 
 _`.sol.check`: The MPS interface design requires that a function must
 check the signatures on the data structures pointed to by its
@@ -205,8 +205,8 @@ checking interface provides a ``TESTT()`` macro that checks the
 signature in a thread-safe way (see
 design.mps.sig.check.arg.unlocked_).
 
-.. _design.mps.sig.check.arg: sig#check.arg
-.. _design.mps.sig.check.arg.unlocked: sig#check.arg.unlocked
+.. _design.mps.sig.check.arg: sig#check-arg
+.. _design.mps.sig.check.arg.unlocked: sig#check-arg-unlocked
 
 
 Document History
