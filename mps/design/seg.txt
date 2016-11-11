@@ -246,7 +246,7 @@ _`.method.split.next`: A split method should always call the next
 method, either before or after any class-specific code (see
 design.mps.protocol.overview.next-method_).
 
-.. _design.mps.protocol.overview.next-method: protocol#overview.next-method
+.. _design.mps.protocol.overview.next-method: protocol#overview-next-method
 
 _`.method.split.accounting`: If ``seg`` belongs to a generation in a
 chain, then the pool generation accounting must be updated. In the
@@ -268,7 +268,7 @@ _`.method.merge.next`: A merge method should always call the next
 method, either before or after any class-specific code (see
 design.mps.protocol.overview.next-method_).
 
-.. _design.mps.protocol.overview.next-method: protocol#overview.next-method
+.. _design.mps.protocol.overview.next-method: protocol#overview-next-method
 
 _`.method.merge.accounting`: If ``seg`` belongs to a generation in a
 chain, then the pool generation accounting must be updated. In the
@@ -298,7 +298,7 @@ before calling the next method, the appropriate anti-method must be
 used (see design.mps.protocol.guide.fail.after-next_). Split methods
 are anti-methods for merge methods, and vice-versa.
 
-.. _design.mps.protocol.guide.fail.after-next: protocol#guide.fail.after-next
+.. _design.mps.protocol.guide.fail.after-next: protocol#guide-fail-after-next
 
 _`.split-merge.fail.anti.constrain`: In general, care should be taken
 when writing split and merge methods to ensure that they really are

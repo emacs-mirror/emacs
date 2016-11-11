@@ -547,7 +547,7 @@ _`.impl.define-class.lock`: The ``DEFINE_CLASS`` macro ensures that
 each class is initialized at most once (even in multi-threaded
 programs) by claiming the global recursive lock (see design.mps.thread-safety.arch.global.recursive_).
 
-.. _design.mps.thread-safety.arch.global.recursive: thread-safety#arch.global.recursive
+.. _design.mps.thread-safety.arch.global.recursive: thread-safety#arch-global-recursive
 
 _`.impl.derived-names`: The ``DEFINE_CLASS()`` macro derives some
 additional names from the class name as part of it's implementation.

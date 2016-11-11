@@ -793,8 +793,8 @@ attempts to flush blocks from the free list back to the CBS. See
 design.mps.freelist_ for the design and implementation of the free
 list.
 
-.. _design.mps.cbs.function.cbs.delete.fail: cbs#function.cbs.delete.fail
-.. _design.mps.cbs.function.cbs.insert.fail: cbs#function.cbs.insert.fail
+.. _design.mps.cbs.function.cbs.delete.fail: cbs#function-cbs-delete-fail
+.. _design.mps.cbs.function.cbs.insert.fail: cbs#function-cbs-insert-fail
 .. _design.mps.freelist: freelist
 
 

@@ -68,7 +68,7 @@ scan all roots in the context of a thread that has been suspended by
 the thread manager. (This is necessary for conservative garbage
 collection to work. See design.mps.thread-manager.if.scan_.)
 
-.. _design.mps.thread-manager.if.scan: thread-manager#if.scan
+.. _design.mps.thread-manager.if.scan: thread-manager#if-scan
 
 
 Interface
@@ -94,7 +94,7 @@ by the thread manager. This structure should be declared in a header
 so that it can be inlined in the ``Thread`` structure if necessary.
 See design.mps.thread-manager.if.thread_.
 
-.. _design.mps.thread-manager.if.thread: thread-manager#if.thread
+.. _design.mps.thread-manager.if.thread: thread-manager#if-thread
 
 ``Bool MutatorContextCheck(MutatorContext context)``
 
@@ -164,13 +164,13 @@ _`.impl.an.fault`: Compatible only with the generic memory protection
 module (design.mps.prot.impl.an_) where there are no protection
 faults.
 
-.. _design.mps.prot.impl.an: prot#impl.an
+.. _design.mps.prot.impl.an: prot#impl-an
 
 _`.impl.an.suspend`: Compatible only with the generic thread manager
 module (design.mps.thread-manager.impl.an_) where there is only one
 thread, and so no threads are suspended.
 
-.. _design.mps.thread-manager.impl.an: thread-manager#impl.an
+.. _design.mps.thread-manager.impl.an: thread-manager#impl-an
 
 
 Posix implementation

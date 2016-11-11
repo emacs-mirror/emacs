@@ -111,7 +111,7 @@ There is an attribute field in the pool class (``PoolClassStruct``)
 which declares the attributes of that class. See
 design.mps.pool.field.attr_.
 
-.. _design.mps.pool.field.attr: pool#field.attr
+.. _design.mps.pool.field.attr: pool#field-attr
 
 
 ``typedef int Bool``
@@ -553,7 +553,7 @@ _`.traceid`: A ``TraceId`` is an unsigned integer which is less than
 is used to index into the tables and bitfields that record the state
 of that trace. See design.mps.trace.instance.limit_.
 
-.. _design.mps.trace.instance.limit: trace#instance.limit
+.. _design.mps.trace.instance.limit: trace#instance-limit
 
 
 ``typedef unsigned TraceSet``
@@ -632,7 +632,7 @@ _`.word.source`: ``Word`` is derived from the macro ``MPS_T_WORD``
 which is declared in impl.h.mpstd according to the target platform
 (design.mps.config.pf.word_).
 
-.. _design.mps.config.pf.word: config#pf.word
+.. _design.mps.config.pf.word: config#pf-word
 
 _`.word.conv.c`: ``Word`` is converted to ``mps_word_t`` in the MPS C
 Interface.

@@ -66,8 +66,8 @@ by decoding the context of the fault (see
 design.mps.prmc.req.fault.addr_ and design.mps.prmc.req.fault.access_)
 and calling ``ArenaAccess()``.
 
-.. _design.mps.prmc.req.fault.addr: prmc#req.fault.addr
-.. _design.mps.prmc.req.fault.access: prmc#req.fault.access
+.. _design.mps.prmc.req.fault.addr: prmc#req-fault-addr
+.. _design.mps.prmc.req.fault.access: prmc#req-fault-access
 
 
 Interface
@@ -131,7 +131,7 @@ protection, otherwise there is an infinite loop here. This is
 therefore not compatible with implementations of the protection
 mutator context module that support single-stepping of accesses (see design.mps.prmc.req.fault.step_).
 
-.. _design.mps.prmc.req.fault.step: prmc#req.fault.step
+.. _design.mps.prmc.req.fault.step: prmc#req-fault-step
 
 _`.impl.ix`: POSIX implementation. See design.mps.protix_.
 
