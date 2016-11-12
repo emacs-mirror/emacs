@@ -2811,6 +2811,11 @@ CHECK_VECTOR (Lisp_Object x)
   CHECK_TYPE (VECTORP (x), Qvectorp, x);
 }
 INLINE void
+CHECK_COMPILED (Lisp_Object x)
+{
+  CHECK_TYPE (COMPILEDP (x), Qcompiledp, x);
+}
+INLINE void
 CHECK_BOOL_VECTOR (Lisp_Object x)
 {
   CHECK_TYPE (BOOL_VECTOR_P (x), Qbool_vector_p, x);
@@ -3173,6 +3178,7 @@ struct handler
   enum handlertype type;
   Lisp_Object tag_or_ch;
   Lisp_Object val;
+  Lisp_Object *stack;
   struct handler *next;
   struct handler *nextfree;
 
@@ -4206,6 +4212,10 @@ extern struct byte_stack *byte_stack_list;
 extern void relocate_byte_stack (void);
 extern Lisp_Object exec_byte_code (Lisp_Object, Lisp_Object, Lisp_Object,
 				   Lisp_Object, ptrdiff_t, Lisp_Object *);
+
+/* Defined in bytecode-jit.c  */
+extern void syms_of_bytecode_jit (void);
+extern Lisp_Object jit_byte_code (Lisp_Object, Lisp_Object, ptrdiff_t, Lisp_Object *);
 
 /* Defined in macros.c.  */
 extern void init_macros (void);

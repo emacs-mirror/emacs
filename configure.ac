@@ -354,6 +354,7 @@ OPTION_DEFAULT_ON([selinux],[don't compile with SELinux support])
 OPTION_DEFAULT_ON([gnutls],[don't use -lgnutls for SSL/TLS support])
 OPTION_DEFAULT_ON([zlib],[don't compile with zlib decompression support])
 OPTION_DEFAULT_OFF([modules],[compile with dynamic modules support])
+OPTION_DEFAULT_ON([libjit],[compile with emacs lisp jit support])
 
 AC_ARG_WITH([file-notification],[AS_HELP_STRING([--with-file-notification=LIB],
  [use a file notification library (LIB one of: yes, inotify, kqueue, gfile, w32, no)])],
@@ -3349,6 +3350,18 @@ if test "${HAVE_ZLIB}" = "yes"; then
   fi
 fi
 AC_SUBST(LIBZ)
+
+HAVE_LIBJIT=no
+LIBJIT=
+if test "${with_libjit}" != "no"; then
+  OLIBS=$LIBS
+  LIBJIT_REQUIRED=0.0.1
+  LIBJIT_MODULES="libjit >= $LIBJIT_REQUIRED"
+  EMACS_CHECK_MODULES([LIBJIT], [$LIBJIT_MODULES])
+  if test "${HAVE_LIBJIT}" = "yes"; then
+    AC_DEFINE([HAVE_LIBJIT], 1, [Define to 1 if you have the libjit library (-ljit).])
+  fi
+fi
 
 ### Dynamic modules support
 LIBMODULES=
