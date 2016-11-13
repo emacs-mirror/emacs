@@ -55,7 +55,8 @@ TASK_BRANCH_ENTRY = '''
 VERSION_BRANCH_ENTRY = '''
   <tr valign="top">
     <td> <a href="{version}/">{version}</a> </td>
-    <td> None. </td>
+    <td>
+    </td>
     <td> <a href="https://info.ravenbrook.com/infosys/cgi/perfbrowse.cgi?@files+{depot}/project/{project}/{parent}/...@{changelevel}">{parent}/...@{changelevel}</a> </td>
     <td>
       {desc_html}
