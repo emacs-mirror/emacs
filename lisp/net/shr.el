@@ -540,6 +540,9 @@ size, and full-buffer size."
       (current-column)
     (if (not (get-buffer-window (current-buffer)))
 	(save-window-excursion
+          ;; Avoid errors if the selected window is a dedicated one,
+          ;; and they just want to insert a document into it.
+          (set-window-dedicated-p nil nil)
 	  (set-window-buffer nil (current-buffer))
 	  (car (window-text-pixel-size nil (line-beginning-position) (point))))
       (car (window-text-pixel-size nil (line-beginning-position) (point))))))

@@ -1501,6 +1501,12 @@ This stands for the day of month, zero-padded.
 This is a synonym for @samp{%m/%d/%y}.
 @item %e
 This stands for the day of month, blank-padded.
+@item %F
+This stands for the ISO 8601 date format, i.e., @samp{"%Y-%m-%d"}.
+@item %g
+This stands for the year corresponding to the ISO week within the century.
+@item %G
+This stands for the year corresponding to the ISO week.
 @item %h
 This is a synonym for @samp{%b}.
 @item %H
@@ -1537,9 +1543,13 @@ This stands for the seconds (00--59).
 This stands for a tab character.
 @item %T
 This is a synonym for @samp{%H:%M:%S}.
+@item %u
+This stands for the numeric day of week (1--7).  Monday is day 1.
 @item %U
 This stands for the week of the year (01--52), assuming that weeks
 start on Sunday.
+@item %V
+This stands for the week of the year according to ISO 8601.
 @item %w
 This stands for the numeric day of week (0--6).  Sunday is day 0.
 @item %W
