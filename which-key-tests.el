@@ -30,20 +30,20 @@
 (ert-deftest which-key-test-prefix-declaration ()
   "Test `which-key-declare-prefixes' and
 `which-key-declare-prefixes-for-mode'. See Bug #109."
-  (let* (test-mode which-key-key-based-description-replacement-alist)
-    (which-key-declare-prefixes
+  (let* ((major-mode 'test-mode)
+         which-key-replacement-alist)
+    (which-key-add-key-based-replacements
       "SPC C-c" '("complete" . "complete title")
       "SPC C-k" "cancel")
-    (which-key-declare-prefixes-for-mode 'test-mode
+    (which-key-add-major-mode-key-based-replacements 'test-mode
       "C-c C-c" '("complete" . "complete title")
       "C-c C-k" "cancel")
     (should (equal
-             (assoc-string "SPC C-k" which-key-key-based-description-replacement-alist)
+             (which-key--maybe-replace '("SPC C-k" . ""))
              '("SPC C-k" . "cancel")))
     (should (equal
-             (assoc-string
-              "C-c C-c" (cdr (assq 'test-mode which-key-key-based-description-replacement-alist)))
-             '("C-c C-c" . ("complete" . "complete title"))))))
+             (which-key--maybe-replace '("C-c C-c" . ""))
+             '("C-c C-c" . "complete")))))
 
 (provide 'which-key-tests)
 ;;; which-key-tests.el ends here
