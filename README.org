@@ -1,15 +1,22 @@
 * which-key 
 [[http://melpa.org/#/which-key][http://melpa.org/packages/which-key-badge.svg]] [[http://stable.melpa.org/#/which-key][file:http://stable.melpa.org/packages/which-key-badge.svg]] [[https://travis-ci.org/justbur/emacs-which-key][file:https://travis-ci.org/justbur/emacs-which-key.svg?branch=master]]
 
+** Recent Changes
+*** [2016-11-21] Replacement list changes
+The alists controlling the replacement of key binding descriptions was
+simplified to use one centralized alist, =which-key-replacement-alist=. This
+change also allows for some new features compared to the old method. The other
+alists are deprecated. See [[Custom%20String%20Replacement%20Options][Custom String Replacement Options]].
+
 ** Introduction
-=which-key= is a minor mode for Emacs that displays the key bindings following your currently
-entered incomplete command (a prefix) in a popup. For example, after enabling the minor mode
-if you enter =C-x= and wait for the default of 1 second the minibuffer will expand with all of
-the available key bindings that follow =C-x= (or as many as space allows given your settings).
-This includes prefixes like =C-x 8= which are shown in a different face. Screenshots of what
+=which-key= is a minor mode for Emacs that displays the key bindings following
+your currently entered incomplete command (a prefix) in a popup. For example,
+after enabling the minor mode if you enter =C-x= and wait for the default of 1
+second the minibuffer will expand with all of the available key bindings that
+follow =C-x= (or as many as space allows given your settings).  This includes
+prefixes like =C-x 8= which are shown in a different face. Screenshots of what
 the popup will look like are included below. =which-key= started as a rewrite of
-[[https://github.com/kai2nenobu/guide-key][guide-key-mode]], but the feature sets have diverged
-to a certain extent. 
+[[https://github.com/kai2nenobu/guide-key][guide-key-mode]], but the feature sets have diverged to a certain extent.
 
 ** Table of Contents                                                 :TOC@4:
  - [[#which-key][which-key]]
@@ -214,13 +221,8 @@ of behind each alist is that you specify a selection string in the =car= of each
 cons cell and the replacement string in the =cdr=.
 
 **** "Key-Based" replacement
-[Note on 2015-9-3 the format of
-=which-key-key-based-description-replacement-alist= changed. It will be easier
-to use the functions below in your configuration, instead of modifying this
-variable directly.]
-
 Using this method, the description of a key is replaced using a string that you
-provide. Here's an example 
+provide. Here's an example
 
 #+BEGIN_SRC emacs-lisp
 (which-key-add-key-based-replacements
@@ -245,20 +247,23 @@ itself, the major-mode version takes precedence.
 **** Key and Description replacement
 
 The second and third methods target the text used for the keys and the
-descriptions directly. The relevant variables are
-=which-key-key-replacement-alist= and =which-key-description-replacement-alist=.
+descriptions directly. The relevant variable is =which-key-replacement-alist=.
 Here's an example of one of the default key replacements
 
 #+BEGIN_SRC emacs-lisp
-("<\\([[:alnum:]-]+\\)>" . "\\1")
+(push '(("<\\([[:alnum:]-]+\\)>" . nil) . ("\\1" . nil))
+      which-key-replacement-alist)
 #+END_SRC
 
-The =car= takes a string which may use Emacs regexp and the =cdr= takes a string
-with the replacement text. As shown, you can specify a sub-expression of the
-match. The replacements do not need to use regexp and can be as simple as
+Each element of the outer cons cell is a cons cell of the form =(KEY
+. BINDING)=. The =car= of the outer cons determines how to match key bindings
+while the =cdr= determines how those matches are replaced. See the docstring of
+=which-key-replacement-alist= for more information.
+
+The next example shows how to replace the description.
 
 #+BEGIN_SRC emacs-lisp
-("left" . "lft")
+(push '((nil . "left") . (nil . "lft")) which-key-replacement-alist)
 #+END_SRC
 
 Here is an example of using key replacement to include Unicode characters in the
@@ -267,10 +272,10 @@ which-key buffer, because Unicode characters can have different widths even in a
 monospace font and alignment is based on character width.
 
 #+BEGIN_SRC emacs-lisp
-(add-to-list 'which-key-key-replacement-alist '("TAB" . "↹"))
-(add-to-list 'which-key-key-replacement-alist '("RET" . "⏎"))
-(add-to-list 'which-key-key-replacement-alist '("DEL" . "⇤"))
-(add-to-list 'which-key-key-replacement-alist '("SPC" . "␣"))
+(add-to-list 'which-key-replacement-alist '(("TAB" . nil) . ("↹" . nil))
+(add-to-list 'which-key-replacement-alist '(("RET" . nil) . ("⏎" . nil))
+(add-to-list 'which-key-replacement-alist '(("DEL" . nil) . ("⇤" . nil))
+(add-to-list 'which-key-replacement-alist '(("SPC" . nil) . ("␣" . nil))
 #+END_SRC
 
 *** Sorting Options

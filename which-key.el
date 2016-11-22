@@ -131,42 +131,69 @@ that represent a sub-map). Default is \"+\"."
   :group 'which-key
   :type 'string)
 
-(defcustom which-key-key-replacement-alist
-  (if which-key-dont-use-unicode
-      '(("<\\([[:alnum:]-]+\\)>" . "\\1"))
-    '(("<\\([[:alnum:]-]+\\)>" . "\\1") ("left" . "←") ("right" . "→")))
-  "The strings in the car of each cons are replaced with the
-strings in the cdr for each key.  Elisp regexp can be used as
-in the first example."
+(defvar which-key-key-replacement-alist nil)
+(make-obsolete-variable 'which-key-key-replacement-alist
+                        'which-key-replacement-alist "2016-11-21")
+(defvar which-key-description-replacement-alist nil)
+(make-obsolete-variable 'which-key-description-replacement-alist
+                        'which-key-replacement-alist "2016-11-21")
+(defvar which-key-key-based-description-replacement-alist nil)
+(make-obsolete-variable 'which-key-key-based-description-replacement-alist
+                        'which-key-replacement-alist "2016-11-21")
+
+(defcustom which-key-replacement-alist
+  (delq nil
+        `(((nil . "Prefix Command") . (nil . "prefix"))
+          ((nil . "\\`\\?\\?\\'") . (nil . "lambda"))
+          ((nil . "which-key-show-next-page") . (nil . "wk next pg"))
+          (("<\\([[:alnum:]-]+\\)>") . ("\\1"))
+          ,@(unless which-key-dont-use-unicode
+              '((("left") . ("←"))
+                (("right") . ("→"))))))
+  "Association list to determine how to manipulate descriptions
+of key bindings in the which-key popup. Each element of the list
+is a nested cons cell with the format
+
+\(MATCH CONS . REPLACEMENT\).
+
+The MATCH CONS determines when a replacement should occur and
+REPLACEMENT determines how the replacement should occur. Each may
+have the format \(KEY REGEXP . BINDING REGEXP\). For the
+replacement to apply the key binding must match both the KEY
+REGEXP and the BINDING REGEXP. A value of nil in either position
+can be used to match every possibility. The replacement is
+performed by using `replace-regexp-in-string' on the KEY REGEXP
+from the MATCH CONS and REPLACEMENT when it is a cons cell, and
+then similarly for the BINDING REGEXP. A nil value in the BINDING
+REGEXP position cancels the replacement. For example, the entry
+
+\(\(nil . \"Prefix Command\"\) . \(nil . \"prefix\"\)\)
+
+matches any binding with the descriptions \"Prefix Command\" and
+replaces the description with \"prefix\", ignoring the
+corresponding key.
+
+REPLACEMENT may also be a function taking a cons cell
+\(KEY . BINDING\) and producing a new corresponding cons cell.
+
+If REPLACEMENT is anything other than a cons cell \(and non nil\)
+the key binding is ignored by which-key."
   :group 'which-key
-  :type '(alist :key-type regexp :value-type string))
+  :type '(alist :key-type (alist :key-type regexp :value-type regexp)
+                :value-type (alist :key-type regexp :value-type regexp)))
 
-(defcustom which-key-description-replacement-alist
-  '(("Prefix Command" . "prefix") ("which-key-show-next-page" . "wk next pg")
-    ("\\`\\?\\?\\'" . "lambda"))
-  "See `which-key-key-replacement-alist'.
-This is a list of lists for replacing descriptions."
-  :group 'which-key
-  :type '(alist :key-type regexp :value-type string))
-
-(defcustom which-key-binding-filter-function nil
-  "Optional function to use to filter key bindings before they
-are processed by which-key. The function should accept a cons
-cell of the form (\"KEY\" . \"BINDING\") and the current prefix
-sequence as a string. If it returns nil, the key binding is
-ignored by which-key. Otherwise it should a cons cell of the same
-form. To leave the key binding unchanged simply return the
-original cons cell. Here's an example
-
-\(defun my-filter \(cell prefix\)
-  \(if \(and \(string-equal prefix \"SPC\"\)
-           \(string-equal \(car cell\) \"?\"\)\)
-      \(cons \"?\" \"NEW DESCRIPTION\")
-    cell\)\)
-
-\(setq which-key-binding-filter-function 'my-filter\)"
-  :group 'which-key
-  :type 'function)
+(when (bound-and-true-p which-key-key-replacement-alist)
+  (mapc
+   (lambda (repl)
+     (push (cons (cons (car repl) nil) (cons (cdr repl) nil))
+           which-key-replacement-alist))
+   which-key-key-replacement-alist))
+(when (bound-and-true-p which-key-description-replacement-alist)
+  (mapc
+   (lambda (repl)
+     (push (cons (cons nil (car repl)) (cons nil (cdr repl)))
+           which-key-replacement-alist))
+   which-key-description-replacement-alist))
 
 (defcustom which-key-highlighted-command-list '()
   "A list of strings and/or cons cells used to highlight certain
@@ -557,13 +584,8 @@ used.")
 (defvar which-key--current-show-keymap-name nil)
 (defvar which-key--prior-show-keymap-args nil)
 (defvar which-key--previous-frame-size nil)
-
-(defvar which-key-key-based-description-replacement-alist '()
-  "New version of
-`which-key-key-based-description-replacement-alist'. Use
-`which-key-add-key-based-replacements' or
-`which-key-add-major-mode-key-based-replacements' to set this
-variable.")
+(defvar which-key--last-replace-key nil)
+(defvar which-key--prefix-title-alist nil)
 
 (make-obsolete-variable 'which-key-prefix-name-alist nil "2016-10-05")
 (make-obsolete-variable 'which-key-prefix-title-alist nil "2016-10-05")
@@ -758,6 +780,14 @@ bottom."
            alist)
           (t (cons (cons keys value) alist)))))
 
+(defun which-key-replace-key-binding (match-cons replace-cons)
+  (lambda (key-binding)
+    (cons
+     (replace-regexp-in-string
+      (car match-cons) (car replace-cons) (car key-binding))
+     (replace-regexp-in-string
+      (cdr match-cons) (cdr replace-cons) (cdr key-binding)))))
+
 ;;;###autoload
 (defun which-key-add-key-based-replacements (key-sequence replacement &rest more)
   "Replace the description of KEY-SEQUENCE with REPLACEMENT.
@@ -778,15 +808,18 @@ replacements are added to
 `which-key-key-based-description-replacement-alist'."
   ;; TODO: Make interactive
   (while key-sequence
-    (setq which-key-key-based-description-replacement-alist
-          (which-key--add-key-val-to-alist
-           which-key-key-based-description-replacement-alist
-           key-sequence replacement "key-based"))
+    (push (cons (cons (format "\\`%s\\'" key-sequence) nil)
+                (cons nil (or (car-safe replacement) replacement)))
+           which-key-replacement-alist)
+    (when (consp replacement)
+      (push (cons key-sequence (cdr-safe replacement))
+            which-key--prefix-title-alist))
     (setq key-sequence (pop more) replacement (pop more))))
 (put 'which-key-add-key-based-replacements 'lisp-indent-function 'defun)
 
 ;;;###autoload
-(defun which-key-add-major-mode-key-based-replacements (mode key-sequence replacement &rest more)
+(defun which-key-add-major-mode-key-based-replacements
+    (mode key-sequence replacement &rest more)
   "Functions like `which-key-add-key-based-replacements'.
 The difference is that MODE specifies the `major-mode' that must
 be active for KEY-SEQUENCE and REPLACEMENT (MORE contains
@@ -794,16 +827,26 @@ addition KEY-SEQUENCE REPLACEMENT pairs) to apply."
   ;; TODO: Make interactive
   (when (not (symbolp mode))
     (error "MODE should be a symbol corresponding to a value of major-mode"))
-  (let ((mode-alist (cdr (assq mode which-key-key-based-description-replacement-alist))))
+  (let ((mode-alist
+         (or (cdr-safe (assq mode which-key-replacement-alist)) (list)))
+        (title-mode-alist
+         (or (cdr-safe (assq mode which-key--prefix-title-alist)) (list))))
     (while key-sequence
-      (setq mode-alist (which-key--add-key-val-to-alist
-                        mode-alist key-sequence replacement
-                        (format "key-based-%s" mode)))
+      (push (cons (cons (format "\\`%s\\'" key-sequence) nil)
+                  (cons nil (or (car-safe replacement) replacement)))
+            mode-alist)
+      (when (consp replacement)
+        (push (cons key-sequence (cdr-safe replacement))
+              title-mode-alist))
       (setq key-sequence (pop more) replacement (pop more)))
-    (if (assq mode which-key-key-based-description-replacement-alist)
-        (setcdr (assq mode which-key-key-based-description-replacement-alist) mode-alist)
-      (push (cons mode mode-alist) which-key-key-based-description-replacement-alist))))
-(put 'which-key-add-major-mode-key-based-replacements 'lisp-indent-function 'defun)
+    (if (assq mode which-key-replacement-alist)
+        (setcdr (assq mode which-key-replacement-alist) mode-alist)
+      (push (cons mode mode-alist) which-key-replacement-alist))
+    (if (assq mode which-key--prefix-title-alist)
+        (setcdr (assq mode which-key--prefix-title-alist) title-mode-alist)
+      (push (cons mode title-mode-alist) which-key--prefix-title-alist))))
+(put 'which-key-add-major-mode-key-based-replacements
+     'lisp-indent-function 'defun)
 
 (defalias 'which-key-add-prefix-title 'which-key-add-key-based-replacements)
 (make-obsolete 'which-key-add-prefix-title
@@ -1233,20 +1276,40 @@ local bindings coming first. Within these categories order using
 (defsubst which-key--butlast-string (str)
   (mapconcat #'identity (butlast (split-string str)) " "))
 
-(defun which-key--maybe-replace (string repl-alist &optional literal)
-  "Perform replacements on STRING.
-REPL-ALIST is an alist where the car of each element is the text
-to replace and the cdr is the replacement text.  Unless LITERAL is
-non-nil regexp is used in the replacements.  Whether or not a
-replacement occurs return the new STRING."
-  (save-match-data
-    (let ((new-string string)
-          case-fold-search)
-      (dolist (repl repl-alist)
-        (when (string-match (car repl) new-string)
-          (setq new-string
-                (replace-match (cdr repl) t literal new-string))))
-      new-string)))
+(defun which-key--replacement-test (alist-key key)
+  (when (and (consp alist-key)
+             (or (null (car alist-key))
+                 (string-match-p (car alist-key) (car key)))
+             (or (null (cdr alist-key))
+                 (string-match-p (cdr alist-key) (cdr key))))
+    (setq which-key--last-replace-key alist-key)))
+
+(defun which-key--maybe-replace (key-binding)
+  (setq which-key--last-replace-key nil)
+  (let* ((mode-alist (assq major-mode which-key-replacement-alist))
+         (mode-res (when mode-alist
+                     (assoc-default
+                      key-binding mode-alist 'which-key--replacement-test)))
+         (res (or mode-res
+                  (assoc-default
+                   key-binding which-key-replacement-alist
+                   'which-key--replacement-test))))
+    (cond ((null res) key-binding)
+          ((consp res)
+           (cons
+            (cond ((and (car res) (car which-key--last-replace-key))
+                   (replace-regexp-in-string
+                    (car which-key--last-replace-key)
+                    (car res) (car key-binding) t))
+                  ((car res) (car res))
+                  (t (car key-binding)))
+            (cond ((and (cdr res) (cdr which-key--last-replace-key))
+                   (replace-regexp-in-string
+                    (cdr which-key--last-replace-key)
+                    (cdr res) (cdr key-binding) t))
+                  ((cdr res) (cdr res))
+                  (t (cdr key-binding)))))
+          ((functionp res) (funcall res key-binding)))))
 
 (defsubst which-key--current-key-list (&optional key-str)
   (append (listify-key-sequence which-key--current-prefix)
@@ -1261,38 +1324,22 @@ replacement occurs return the new STRING."
        (current-local-map) (kbd (which-key--current-key-string (car keydesc))))
       (intern (cdr keydesc))))
 
-(defun which-key--maybe-replace-key-based (string keys &optional title)
-  "KEYS is a string produced by `key-description'
-and STRING is the description that is possibly replaced using the
-`which-key-key-based-description-replacement-alist'. Whether or
-not a replacement occurs return the new STRING."
-  (let* ((alist which-key-key-based-description-replacement-alist)
-         (str-res (assoc-string keys alist))
-         (mode-alist (assq major-mode alist))
-         (mode-res (when mode-alist (assoc-string keys mode-alist)))
-         tmp-res)
-    (setq tmp-res
-          (cond (mode-res (cdr mode-res))
-                (str-res (cdr str-res))
-                (t string)))
-    (cond ((and (consp tmp-res) title)
-           (cdr tmp-res))
-          ((consp tmp-res)
-           (car tmp-res))
-          (t tmp-res))))
-
 (defun which-key--maybe-get-prefix-title (keys)
   "KEYS is a string produced by `key-description'.
 A title is possibly returned using
-`which-key-key-based-description-replacement-alist'.  An empty
-stiring is returned if no title exists."
+`which-key--prefix-title-alist'.  An empty stiring is returned if
+no title exists."
   (cond
    ((not (string-equal keys ""))
-    (let* ((repl-res (which-key--maybe-replace-key-based "" keys t))
+    (let* ((title-res
+            (cdr-safe (assoc-string keys which-key--prefix-title-alist)))
+           (repl-res
+            (cdr-safe (which-key--maybe-replace (cons keys ""))))
            (binding (key-binding (kbd keys)))
            (alternate (when (and binding (symbolp binding))
                         (symbol-name binding))))
-      (cond (repl-res repl-res)
+      (cond (title-res title-res)
+            ((not (string-equal repl-res "")) repl-res)
             ((and (eq which-key-show-prefix 'echo) alternate)
              alternate)
             ((and (member which-key-show-prefix '(bottom top))
@@ -1396,23 +1443,20 @@ alists. Returns a list (key separator description)."
          (propertize which-key-separator 'face 'which-key-separator-face))
         (local-map (current-local-map)))
     (mapcar
-     (lambda (key-desc-cons)
-       (let* ((key (car key-desc-cons))
-              (orig-desc (cdr key-desc-cons))
+     (lambda (key-binding)
+       (let* ((key (car key-binding))
+              (orig-desc (cdr key-binding))
               (group (which-key--group-p orig-desc))
               (keys (which-key--current-key-string key))
               (local (eq (which-key--safe-lookup-key local-map (kbd keys))
                          (intern orig-desc)))
               (hl-face (which-key--highlight-face orig-desc))
-              (key (which-key--maybe-replace
-                    key which-key-key-replacement-alist))
-              (desc (which-key--maybe-replace
-                     orig-desc which-key-description-replacement-alist))
-              (desc (which-key--maybe-replace-key-based desc keys))
-              (key-w-face (which-key--propertize-key key))
-              (desc-w-face (which-key--propertize-description
-                            desc group local hl-face orig-desc)))
-         (list key-w-face sep-w-face desc-w-face)))
+              (key-binding (which-key--maybe-replace (cons keys orig-desc))))
+         (list (which-key--propertize-key
+                (car (last (split-string (car key-binding) " "))))
+               sep-w-face
+               (which-key--propertize-description
+                (cdr key-binding) group local hl-face orig-desc))))
      unformatted)))
 
 (defun which-key--get-keymap-bindings (keymap &optional filter)
@@ -1502,13 +1546,6 @@ alists. Returns a list (key separator description)."
   "Uses `describe-buffer-bindings' to collect the key bindings in
 BUFFER that follow the key sequence KEY-SEQ."
   (let* ((unformatted (if bindings bindings (which-key--get-current-bindings))))
-    (when which-key-binding-filter-function
-      (setq unformatted
-            (delq nil (mapcar
-                       (lambda (cell)
-                         (funcall which-key-binding-filter-function
-                                  cell (which-key--current-key-string)))
-                       unformatted))))
     (when which-key-sort-order
       (setq unformatted
             (sort unformatted which-key-sort-order)))
