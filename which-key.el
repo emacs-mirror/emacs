@@ -1277,14 +1277,18 @@ local bindings coming first. Within these categories order using
   (mapconcat #'identity (butlast (split-string str)) " "))
 
 (defun which-key--replacement-test (alist-key key)
-  (when (and (consp alist-key)
-             (or (null (car alist-key))
-                 (string-match-p (car alist-key) (car key)))
-             (or (null (cdr alist-key))
-                 (string-match-p (cdr alist-key) (cdr key))))
-    (setq which-key--last-replace-key alist-key)))
+  (let (case-fold-search)
+    (when (and (consp alist-key)
+               (or (null (car alist-key))
+                   (string-match-p (car alist-key) (car key)))
+               (or (null (cdr alist-key))
+                   (string-match-p (cdr alist-key) (cdr key))))
+      (setq which-key--last-replace-key alist-key))))
 
 (defun which-key--maybe-replace (key-binding)
+  "Use `which-key--replacement-alist' to maybe replace KEY-BINDING.
+KEY-BINDING is a cons cell of the form \(KEY . BINDING\) each of
+which are strings. KEY is of the form produced by `key-binding'."
   (setq which-key--last-replace-key nil)
   (let* ((mode-alist (assq major-mode which-key-replacement-alist))
          (mode-res (when mode-alist
