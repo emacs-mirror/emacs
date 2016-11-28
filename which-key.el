@@ -1445,26 +1445,26 @@ faces and perform replacements according to the three replacement
 alists. Returns a list (key separator description)."
   (let ((sep-w-face
          (propertize which-key-separator 'face 'which-key-separator-face))
-        (local-map (current-local-map)))
-    (delq
-     nil
-     (mapcar
-      (lambda (key-binding)
-        (let* ((key (car key-binding))
-               (orig-desc (cdr key-binding))
-               (group (which-key--group-p orig-desc))
-               (keys (which-key--current-key-string key))
-               (local (eq (which-key--safe-lookup-key local-map (kbd keys))
-                          (intern orig-desc)))
-               (hl-face (which-key--highlight-face orig-desc))
-               (key-binding (which-key--maybe-replace (cons keys orig-desc))))
-          (when (consp key-binding)
-            (list (which-key--propertize-key
-                   (car (last (split-string (car key-binding) " "))))
-                  sep-w-face
-                  (which-key--propertize-description
-                   (cdr key-binding) group local hl-face orig-desc)))))
-      unformatted))))
+        (local-map (current-local-map))
+        new-list)
+    (dolist (key-binding unformatted)
+      (let* ((key (car key-binding))
+             (orig-desc (cdr key-binding))
+             (group (which-key--group-p orig-desc))
+             (keys (which-key--current-key-string key))
+             (local (eq (which-key--safe-lookup-key local-map (kbd keys))
+                        (intern orig-desc)))
+             (hl-face (which-key--highlight-face orig-desc))
+             (key-binding (which-key--maybe-replace (cons keys orig-desc))))
+        (when (consp key-binding)
+          (push
+           (list (which-key--propertize-key
+                  (car (last (split-string (car key-binding) " "))))
+                 sep-w-face
+                 (which-key--propertize-description
+                  (cdr key-binding) group local hl-face orig-desc))
+           new-list))))
+    (nreverse new-list)))
 
 (defun which-key--get-keymap-bindings (keymap &optional filter)
   "Retrieve top-level bindings from KEYMAP."
