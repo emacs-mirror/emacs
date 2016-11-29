@@ -808,12 +808,14 @@ replacements are added to
 `which-key-key-based-description-replacement-alist'."
   ;; TODO: Make interactive
   (while key-sequence
-    (push (cons (cons (format "\\`%s\\'" key-sequence) nil)
-                (cons nil (or (car-safe replacement) replacement)))
-           which-key-replacement-alist)
-    (when (consp replacement)
-      (push (cons key-sequence (cdr-safe replacement))
-            which-key--prefix-title-alist))
+    ;; normalize key sequences before adding
+    (let ((key-seq (key-description (kbd key-sequence))))
+      (push (cons (cons (format "\\`%s\\'" key-seq) nil)
+                  (cons nil (or (car-safe replacement) replacement)))
+            which-key-replacement-alist)
+      (when (consp replacement)
+        (push (cons key-seq (cdr-safe replacement))
+              which-key--prefix-title-alist)))
     (setq key-sequence (pop more) replacement (pop more))))
 (put 'which-key-add-key-based-replacements 'lisp-indent-function 'defun)
 
@@ -832,12 +834,14 @@ addition KEY-SEQUENCE REPLACEMENT pairs) to apply."
         (title-mode-alist
          (or (cdr-safe (assq mode which-key--prefix-title-alist)) (list))))
     (while key-sequence
-      (push (cons (cons (format "\\`%s\\'" key-sequence) nil)
-                  (cons nil (or (car-safe replacement) replacement)))
-            mode-alist)
-      (when (consp replacement)
-        (push (cons key-sequence (cdr-safe replacement))
-              title-mode-alist))
+    ;; normalize key sequences before adding
+      (let ((key-seq (key-description (kbd key-sequence))))
+        (push (cons (cons (format "\\`%s\\'" key-seq) nil)
+                    (cons nil (or (car-safe replacement) replacement)))
+              mode-alist)
+        (when (consp replacement)
+          (push (cons key-seq (cdr-safe replacement))
+                title-mode-alist)))
       (setq key-sequence (pop more) replacement (pop more)))
     (if (assq mode which-key-replacement-alist)
         (setcdr (assq mode which-key-replacement-alist) mode-alist)
