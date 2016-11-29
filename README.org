@@ -6,7 +6,7 @@
 The alists controlling the replacement of key binding descriptions was
 simplified to use one centralized alist, =which-key-replacement-alist=. This
 change also allows for some new features compared to the old method. The other
-alists are deprecated. See [[Custom%20String%20Replacement%20Options][Custom String Replacement Options]].
+alists are deprecated. See [[#custom-string-replacement-options][Custom String Replacement Options]].
 
 ** Introduction
 =which-key= is a minor mode for Emacs that displays the key bindings following
