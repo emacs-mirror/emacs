@@ -278,6 +278,22 @@ monospace font and alignment is based on character width.
 (add-to-list 'which-key-replacement-alist '(("SPC" . nil) . ("␣" . nil))
 #+END_SRC
 
+The =cdr= may also be a function that receives a =cons= of the form =(KEY
+. BINDING)= and produces a =cons= of the same form. This allows for interesting
+ideas like this one suggested by @pdcawley in [[https://github.com/justbur/emacs-which-key/pull/147][PR #147]].
+
+#+BEGIN_SRC emacs-lisp
+(push (cons '(nil . "paredit-mode") 
+            (lambda (kb)
+              (cons (car kb)
+                    (if paredit-mode
+                        "[x] paredit-mode"
+                      "[ ] paredit-mode"))))
+      which-key-replacement-alist)
+#+END_SRC
+
+The box will be checked if =paredit-mode= is currently active. 
+
 *** Sorting Options
 By default the output is sorted by the key in a custom order. The default order
 is to sort lexicographically within each "class" of key, where the classes and
