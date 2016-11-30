@@ -280,7 +280,7 @@ monospace font and alignment is based on character width.
 
 The =cdr= may also be a function that receives a =cons= of the form =(KEY
 . BINDING)= and produces a =cons= of the same form. This allows for interesting
-ideas like this one suggested by @pdcawley in [[https://github.com/justbur/emacs-which-key/pull/147][PR #147]].
+ideas like this one suggested by [[https://github.com/pdcawley][@pdcawley]] in [[https://github.com/justbur/emacs-which-key/pull/147][PR #147]].
 
 #+BEGIN_SRC emacs-lisp
 (push (cons '(nil . "paredit-mode") 
@@ -475,7 +475,6 @@ windows.
 
 ** Thanks
 Special thanks to
-- @bmag for helping with the initial development and finding many
-  bugs.
-- @iqbalansari who among other things adapted the code to make
+- [[https://github.com/bmag][@bmag]] for helping with the initial development and finding many bugs.
+- [[https://github/iqbalansari][@iqbalansari]] who among other things adapted the code to make
   =which-key-show-top-level= possible.
