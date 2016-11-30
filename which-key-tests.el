@@ -52,6 +52,7 @@
            (("C-c .+" . nil) . ("C-c *" . "c-c *")))))
     (which-key-add-key-based-replacements
       "C-c ." "test ."
+      "SPC ." "SPC ."
       "C-c \\" "regexp quoting"
       "C-c [" "bad regexp")
     (should (equal
@@ -61,18 +62,22 @@
              (which-key--maybe-replace '("C-c b" . "test"))
              '("C-c a" . "c-c a")))
     (should (equal
-             (which-key--maybe-replace '("C-c ." "not test ."))
+             (which-key--maybe-replace '("C-c ." . "not test ."))
              '("C-c ." . "test .")))
     (should (not
              (equal
-              (which-key--maybe-replace '("C-c +" "not test ."))
+              (which-key--maybe-replace '("C-c +" . "not test ."))
               '("C-c ." . "test ."))))
     (should (equal
-             (which-key--maybe-replace '("C-c [" "orig bad regexp"))
+             (which-key--maybe-replace '("C-c [" . "orig bad regexp"))
              '("C-c [" . "bad regexp")))
     (should (equal
-             (which-key--maybe-replace '("C-c \\" "pre quoting"))
-             '("C-c \\" . "regexp quoting")))))
+             (which-key--maybe-replace '("C-c \\" . "pre quoting"))
+             '("C-c \\" . "regexp quoting")))
+    ;; see #155
+    (should (equal
+             (which-key--maybe-replace '("SPC . ." . "don't replace"))
+             '("SPC . ." . "don't replace")))))
 
 (provide 'which-key-tests)
 ;;; which-key-tests.el ends here
