@@ -45,5 +45,34 @@
              (which-key--maybe-replace '("C-c C-c" . ""))
              '("C-c C-c" . "complete")))))
 
+(ert-deftest which-key-test--maybe-replace ()
+  "Test `which-key--maybe-replace'. See #154"
+  (let ((which-key-replacement-alist
+         '((("C-c [a-d]" . nil) . ("C-c a" . "c-c a"))
+           (("C-c .+" . nil) . ("C-c *" . "c-c *")))))
+    (which-key-add-key-based-replacements
+      "C-c ." "test ."
+      "C-c \\" "regexp quoting"
+      "C-c [" "bad regexp")
+    (should (equal
+             (which-key--maybe-replace '("C-c g" . "test"))
+             '("C-c *" . "c-c *")))
+    (should (equal
+             (which-key--maybe-replace '("C-c b" . "test"))
+             '("C-c a" . "c-c a")))
+    (should (equal
+             (which-key--maybe-replace '("C-c ." "not test ."))
+             '("C-c ." . "test .")))
+    (should (not
+             (equal
+              (which-key--maybe-replace '("C-c +" "not test ."))
+              '("C-c ." . "test ."))))
+    (should (equal
+             (which-key--maybe-replace '("C-c [" "orig bad regexp"))
+             '("C-c [" . "bad regexp")))
+    (should (equal
+             (which-key--maybe-replace '("C-c \\" "pre quoting"))
+             '("C-c \\" . "regexp quoting")))))
+
 (provide 'which-key-tests)
 ;;; which-key-tests.el ends here
