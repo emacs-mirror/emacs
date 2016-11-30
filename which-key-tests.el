@@ -49,12 +49,24 @@
   "Test `which-key--maybe-replace'. See #154"
   (let ((which-key-replacement-alist
          '((("C-c [a-d]" . nil) . ("C-c a" . "c-c a"))
-           (("C-c .+" . nil) . ("C-c *" . "c-c *")))))
+           (("C-c .+" . nil) . ("C-c *" . "c-c *"))))
+        (test-mode-1 t)
+        (test-mode-2 nil))
     (which-key-add-key-based-replacements
       "C-c ." "test ."
       "SPC ." "SPC ."
       "C-c \\" "regexp quoting"
-      "C-c [" "bad regexp")
+      "C-c [" "bad regexp"
+      "SPC t1" (lambda (kb)
+                 (cons (car kb)
+                       (if test-mode-1
+                           "[x] test mode"
+                         "[ ] test mode")))
+      "SPC t2" (lambda (kb)
+                 (cons (car kb)
+                       (if test-mode-2
+                           "[x] test mode"
+                         "[ ] test mode"))))
     (should (equal
              (which-key--maybe-replace '("C-c g" . "test"))
              '("C-c *" . "c-c *")))
@@ -77,7 +89,13 @@
     ;; see #155
     (should (equal
              (which-key--maybe-replace '("SPC . ." . "don't replace"))
-             '("SPC . ." . "don't replace")))))
+             '("SPC . ." . "don't replace")))
+    (should (equal
+             (which-key--maybe-replace '("SPC t 1" . "test mode"))
+             '("SPC t 1" . "[x] test mode")))
+    (should (equal
+             (which-key--maybe-replace '("SPC t 2" . "test mode"))
+             '("SPC t 2" . "[ ] test mode")))))
 
 (provide 'which-key-tests)
 ;;; which-key-tests.el ends here

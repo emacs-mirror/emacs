@@ -796,9 +796,12 @@ may either be a string, as in
 
 \(which-key-add-key-based-replacements \"C-x 1\" \"maximize\"\)
 
-or a cons of two strings as in
+a cons of two strings as in
 
 \(which-key-add-key-based-replacements \"C-x 8\" '(\"unicode\" . \"Unicode keys\")\)
+
+or a function that takes a \(KEY . BINDING\) cons and returns a
+replacement.
 
 In the second case, the second string is used to provide a longer
 name for the keys under a prefix.
@@ -809,9 +812,12 @@ replacements are added to
   ;; TODO: Make interactive
   (while key-sequence
     ;; normalize key sequences before adding
-    (let ((key-seq (key-description (kbd key-sequence))))
+    (let ((key-seq (key-description (kbd key-sequence)))
+          (replace (or (and (functionp replacement) replacement)
+                       (cdr-safe replacement)
+                       replacement)))
       (push (cons (cons (concat "\\`" (regexp-quote key-seq) "\\'") nil)
-                  (cons nil (or (car-safe replacement) replacement)))
+                  (if (functionp replace) replace (cons nil replace)))
             which-key-replacement-alist)
       (when (consp replacement)
         (push (cons key-seq (cdr-safe replacement))
@@ -835,9 +841,12 @@ addition KEY-SEQUENCE REPLACEMENT pairs) to apply."
          (or (cdr-safe (assq mode which-key--prefix-title-alist)) (list))))
     (while key-sequence
     ;; normalize key sequences before adding
-      (let ((key-seq (key-description (kbd key-sequence))))
+      (let ((key-seq (key-description (kbd key-sequence)))
+            (replace (or (and (functionp replacement) replacement)
+                         (cdr-safe replacement)
+                         replacement)))
         (push (cons (cons (concat "\\`" (regexp-quote key-seq) "\\'") nil)
-                    (cons nil (or (car-safe replacement) replacement)))
+                    (if (functionp replace) replace (cons nil replace)))
               mode-alist)
         (when (consp replacement)
           (push (cons key-seq (cdr-safe replacement))
