@@ -763,31 +763,6 @@ bottom."
 
 ;;; Helper functions to modify replacement lists.
 
-(defun which-key--add-key-val-to-alist (alist key value &optional alist-name)
-  "Internal function to add (KEY . VALUE) to ALIST."
-  (when (or (not (stringp key)) (not (or (stringp value) (consp value))))
-    (error "which-key: Error %s (key) should be a string and %s (value) should\
- be a string or cons of two strings."
-           key value))
-  (let ((keys (key-description (kbd key))))
-    (cond ((null alist) (list (cons keys value)))
-          ((assoc-string keys alist)
-           (when (not (equal (cdr (assoc-string keys alist)) value))
-             (when which-key-is-verbose
-               (message "which-key: changing %s name from %s to %s in the %s alist"
-                        key (cdr (assoc-string keys alist)) value alist-name))
-             (setcdr (assoc-string keys alist) value))
-           alist)
-          (t (cons (cons keys value) alist)))))
-
-(defun which-key-replace-key-binding (match-cons replace-cons)
-  (lambda (key-binding)
-    (cons
-     (replace-regexp-in-string
-      (car match-cons) (car replace-cons) (car key-binding))
-     (replace-regexp-in-string
-      (cdr match-cons) (cdr replace-cons) (cdr key-binding)))))
-
 ;;;###autoload
 (defun which-key-add-key-based-replacements (key-sequence replacement &rest more)
   "Replace the description of KEY-SEQUENCE with REPLACEMENT.
@@ -1718,19 +1693,6 @@ is the width of the live window."
   "Echo TEXT to minibuffer without logging."
   (let (message-log-max)
     (message "%s" text)))
-
-;; Caused some completion commands in the minibuffer to be overwritten, so
-;; disable the hack for now
-;; (defun which-key--echo (text)
-;;   "Echo TEXT to minibuffer without logging."
-;;   (let* ((minibuffer (eq which-key-popup-type 'minibuffer))
-;;          (delay (if minibuffer
-;;                     0.2
-;;                   (+ (or echo-keystrokes 0) 0.001)))
-;;          message-log-max)
-;;     (run-with-idle-timer
-;;      delay nil (lambda () (let (message-log-max)
-;;                             (message "%s" text))))))
 
 (defun which-key--next-page-hint (prefix-keys)
   "Return string for next page hint."
