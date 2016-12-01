@@ -814,7 +814,7 @@ replacements are added to
     ;; normalize key sequences before adding
     (let ((key-seq (key-description (kbd key-sequence)))
           (replace (or (and (functionp replacement) replacement)
-                       (cdr-safe replacement)
+                       (car-safe replacement)
                        replacement)))
       (push (cons (cons (concat "\\`" (regexp-quote key-seq) "\\'") nil)
                   (if (functionp replace) replace (cons nil replace)))
@@ -843,7 +843,7 @@ addition KEY-SEQUENCE REPLACEMENT pairs) to apply."
     ;; normalize key sequences before adding
       (let ((key-seq (key-description (kbd key-sequence)))
             (replace (or (and (functionp replacement) replacement)
-                         (cdr-safe replacement)
+                         (car-safe replacement)
                          replacement)))
         (push (cons (cons (concat "\\`" (regexp-quote key-seq) "\\'") nil)
                     (if (functionp replace) replace (cons nil replace)))
