@@ -145,7 +145,7 @@ that represent a sub-map). Default is \"+\"."
   (delq nil
         `(((nil . "Prefix Command") . (nil . "prefix"))
           ((nil . "\\`\\?\\?\\'") . (nil . "lambda"))
-          ((nil . "which-key-show-next-page") . (nil . "wk next pg"))
+          ((nil . "which-key-show-next-page-no-cycle") . (nil . "wk next pg"))
           (("<\\([[:alnum:]-]+\\)>") . ("\\1"))
           ,@(unless which-key-dont-use-unicode
               '((("left") . ("←"))
@@ -363,11 +363,6 @@ prefixes in `which-key-paging-prefixes'"
   a which-key paging command when which-key-mode is active."
   :group 'which-key
   :type 'boolean)
-(defvaralias 'which-key-use-C-h-for-paging
-  'which-key-use-C-h-commands)
-(make-obsolete-variable 'which-key-use-C-h-for-paging
-                        'which-key-use-C-h-commands
-                        "2015-12-2")
 
 (defcustom which-key-is-verbose nil
   "Whether to warn about potential mistakes in configuration."
@@ -392,25 +387,12 @@ prefixes in `which-key-paging-prefixes'"
 
 (defvar which-key--paging-functions '(which-key-C-h-dispatch
                                       which-key-turn-page
-                                      which-key-show-next-page
                                       which-key-show-next-page-cycle
                                       which-key-show-next-page-no-cycle
                                       which-key-show-previous-page-cycle
                                       which-key-show-previous-page-no-cycle
                                       which-key-undo-key
                                       which-key-undo))
-
-(defcustom which-key-prevent-C-h-from-cycling t
-  "When using C-h for paging, which-key overrides the default
-  behavior of calling `describe-prefix-bindings'. Setting this
-  variable to t makes it so that when on the last page, pressing
-  C-h calls the default function instead of cycling pages. If you
-  want which-key to cycle, set this to nil."
-  :group 'which-key
-  :type 'boolean)
-(make-obsolete-variable 'which-key-prevent-C-h-from-cycling
-                        "No longer applies. See `which-key-C-h-dispatch'"
-                        "2015-12-2")
 
 (defcustom which-key-hide-alt-key-translations t
   "Hide key translations using Alt key if non nil.
@@ -1896,9 +1878,6 @@ call `which-key-show-standard-help'."
              which-key--on-last-page)
         (which-key-show-standard-help)
       (which-key-turn-page 1))))
-(defalias 'which-key-show-next-page 'which-key-show-next-page-no-cycle)
-(make-obsolete 'which-key-show-next-page 'which-key-show-next-page-no-cycle
-               "2015-12-2")
 
 ;;;###autoload
 (defun which-key-show-previous-page-no-cycle ()
