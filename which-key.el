@@ -1265,6 +1265,8 @@ local bindings coming first. Within these categories order using
   (mapconcat #'identity (butlast (split-string str)) " "))
 
 (defun which-key--replacement-test (alist-key key)
+  "`assoc-default' test to find bindings in `which-key-replacement-alist'.
+Used in `which-key--maybe-replace'."
   (let (case-fold-search)
     (when (and (consp alist-key)
                (or (null (car alist-key))
@@ -1472,6 +1474,7 @@ alists. Returns a list (key separator description)."
 
 ;; adapted from helm-descbinds
 (defun which-key--get-current-bindings ()
+  "Generate a list of current active bindings."
   (let ((key-str-qt (regexp-quote (key-description which-key--current-prefix)))
         (buffer (current-buffer))
         (ignore-bindings '("self-insert-command" "ignore" "ignore-event" "company-ignore"))
@@ -1743,6 +1746,7 @@ including prefix arguments."
               (propertize dash 'face 'which-key-key-face)))))
 
 (defun which-key--get-popup-map ()
+  "Generate transient-map for use in the top level binding display."
   (unless which-key--current-prefix
     (let ((map (make-sparse-keymap)))
       (define-key map (kbd which-key-paging-key) #'which-key-C-h-dispatch)
@@ -1752,6 +1756,9 @@ including prefix arguments."
       map)))
 
 (defun which-key--process-page (page-n pages-plist)
+  "Add information to the basic list of key bindings, including
+if applicable the current prefix, the name of the current prefix,
+and a page count."
   (let* ((page (nth page-n (plist-get pages-plist :pages)))
          (height (plist-get pages-plist :page-height))
          (n-pages (plist-get pages-plist :n-pages))
