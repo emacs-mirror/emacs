@@ -568,6 +568,7 @@ used.")
 (defvar which-key--previous-frame-size nil)
 (defvar which-key--last-replace-key nil)
 (defvar which-key--prefix-title-alist nil)
+(defvar which-key--debug nil)
 
 (make-obsolete-variable 'which-key-prefix-name-alist nil "2016-10-05")
 (make-obsolete-variable 'which-key-prefix-title-alist nil "2016-10-05")
@@ -2100,7 +2101,8 @@ is selected interactively by mode in `minor-mode-map-alist'."
 Finally, show the buffer."
   (setq which-key--current-prefix prefix-keys
         which-key--last-try-2-loc nil)
-  (let ((formatted-keys (which-key--get-formatted-key-bindings))
+  (let ((start-time (when which-key--debug (current-time)))
+        (formatted-keys (which-key--get-formatted-key-bindings))
         (prefix-keys (key-description which-key--current-prefix)))
     (cond ((= (length formatted-keys) 0)
            (message "%s-  which-key: There are no keys to show" prefix-keys))
@@ -2110,7 +2112,10 @@ Finally, show the buffer."
                         formatted-keys 0 which-key-side-window-location)))
           (t (setq which-key--pages-plist
                    (which-key--create-pages formatted-keys))
-             (which-key--show-page 0)))))
+             (which-key--show-page 0)))
+    (when which-key--debug
+      (message "On prefix \"%s\" which-key took %.0f ms." prefix-keys
+               (* 1000 (float-time (time-since start-time)))))))
 
 (defun which-key--update ()
   "Function run by timer to possibly trigger `which-key--create-buffer-and-show'."
