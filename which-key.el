@@ -2171,12 +2171,13 @@ Finally, show the buffer."
                          (bound-and-true-p god-local-mode)
                          (eq this-command 'god-mode-self-insert))
                     (null this-command)))
-           (when (or (null which-key-delay-functions)
-                     (null (setq delay-time (run-hook-with-args-until-success
-                                             'which-key-delay-functions
-                                             (key-description prefix-keys)
-                                             (length prefix-keys))))
-                     (sit-for delay-time))
+           (when (and (not (equal prefix-keys which-key--current-prefix))
+                      (or (null which-key-delay-functions)
+                          (null (setq delay-time (run-hook-with-args-until-success
+                                                  'which-key-delay-functions
+                                                  (key-description prefix-keys)
+                                                  (length prefix-keys))))
+                          (sit-for delay-time)))
              (which-key--create-buffer-and-show prefix-keys)
              (when (and which-key-idle-secondary-delay
                         (not which-key--secondary-timer-active))
