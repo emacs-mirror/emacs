@@ -439,7 +439,8 @@ symbol itself."
   (or (memq symbol '(nil t))
       (keywordp symbol)
       (if any-value
-	  (or (memq symbol byte-compile-const-variables)
+	  (or (and (boundp 'byte-compile-const-variables)
+                   (memq symbol byte-compile-const-variables))
 	      ;; FIXME: We should provide a less intrusive way to find out
 	      ;; if a variable is "constant".
 	      (and (boundp symbol)

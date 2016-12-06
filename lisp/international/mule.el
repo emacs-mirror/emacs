@@ -290,7 +290,7 @@ attribute."
 		      elt))
 		  props))
     (setcdr (assq :plist attrs) props)
-
+    (put name 'internal--charset-args (mapcar #'cdr attrs))
     (apply 'define-charset-internal name (mapcar 'cdr attrs))))
 
 
@@ -920,6 +920,8 @@ non-ASCII files.  This attribute is meaningful only when
 	  (cons :name (cons name (cons :docstring (cons (purecopy docstring)
 							props)))))
     (setcdr (assq :plist common-attrs) props)
+    (put name 'internal--cs-args
+         (mapcar #'cdr (append common-attrs spec-attrs)))
     (apply 'define-coding-system-internal
 	   name (mapcar 'cdr (append common-attrs spec-attrs)))))
 

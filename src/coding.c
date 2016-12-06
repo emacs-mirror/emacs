@@ -10337,8 +10337,9 @@ usage: (define-coding-system-internal ...)  */)
       CHECK_NUMBER_CAR (reg_usage);
       CHECK_NUMBER_CDR (reg_usage);
 
-      request = Fcopy_sequence (args[coding_arg_iso2022_request]);
-      for (tail = request; CONSP (tail); tail = XCDR (tail))
+      request = Qnil;
+      for (tail = args[coding_arg_iso2022_request];
+            CONSP (tail); tail = XCDR (tail))
 	{
 	  int id;
 	  Lisp_Object tmp1;
@@ -10350,7 +10351,8 @@ usage: (define-coding-system-internal ...)  */)
 	  CHECK_NATNUM_CDR (val);
 	  if (XINT (XCDR (val)) >= 4)
 	    error ("Invalid graphic register number: %"pI"d", XINT (XCDR (val)));
-	  XSETCAR (val, make_number (id));
+	  request = Fcons (Fcons (make_number (id), XCDR (val)),
+                           request);
 	}
 
       flags = args[coding_arg_iso2022_flags];

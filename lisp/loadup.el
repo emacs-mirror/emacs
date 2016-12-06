@@ -1,4 +1,4 @@
-;;; loadup.el --- load up standardly loaded Lisp files for Emacs
+;;; loadup.el --- load up standardly loaded Lisp files for Emacs  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1985-1986, 1992, 1994, 2001-2017 Free Software
 ;; Foundation, Inc.
@@ -482,6 +482,150 @@ lost after dumping")))
 						invocation-directory)
 			      (expand-file-name name invocation-directory)
 			      t)))
+      (message "Dumping into dumped.elc...preparing...")
+
+      ;; Dump the current state into a file so we can reload it!
+      (message "Dumping into dumped.elc...generating...")
+      (let ((faces '())
+            (coding-systems '()) (coding-system-aliases '())
+            (charsets '()) (charset-aliases '())
+            (cmds '()))
+        (setcdr global-buffers-menu-map nil) ;; Get rid of buffer objects!
+        (mapatoms
+         (lambda (s)
+           (when (fboundp s)
+             (if (subrp (symbol-function s))
+                 ;; subr objects aren't readable!
+                 (unless (equal (symbol-name s) (subr-name (symbol-function s)))
+                   (push `(fset ',s (symbol-function ',(intern (subr-name (symbol-function s))))) cmds))
+               (if (memq s '(rename-buffer))
+                   ;; FIXME: We need these, but they contain
+                   ;; unprintable objects.
+                   nil
+                 (push `(fset ',s ,(macroexp-quote (symbol-function s)))
+                       cmds))))
+           (when (and (boundp s)
+                      (not (macroexp--const-symbol-p s 'any-value))
+                      ;; I think we don't need/want these!
+                      (not (memq s '(terminal-frame obarray
+                                     initial-window-system window-system
+                                     ;; custom-delayed-init-variables
+                                     exec-path
+                                     process-environment
+                                     command-line-args noninteractive))))
+             ;; FIXME: Handle varaliases!
+             (let ((v (symbol-value s)))
+               (push `(set-default
+                       ',s
+                       ,(cond
+                         ;; FIXME: (Correct) hack to avoid
+                         ;; unprintable objects.
+                         ((eq s 'undo-auto--undoably-changed-buffers) nil)
+                         ;; FIXME: Incorrect hack to avoid
+                         ;; unprintable objects.
+                         ((eq s 'advertised-signature-table)
+                          (make-hash-table :test 'eq :weakness 'key))
+                         ((subrp v)
+                          `(symbol-function ',(intern (subr-name v))))
+                         ((and (markerp v) (null (marker-buffer v)))
+                          '(make-marker))
+                         ((and (overlayp v) (null (overlay-buffer v)))
+                          '(let ((ol (make-overlay (point-min) (point-min))))
+                             (delete-overlay ol)
+                             ol))
+                         (v (macroexp-quote v))))
+                     cmds)
+               (push `(defvar ,s) cmds)))
+           (when (symbol-plist s)
+             (push `(setplist ',s ',(symbol-plist s)) cmds))
+           (when (get s 'face-defface-spec)
+             (push s faces))
+           (if (get s 'internal--cs-args)
+               (push s coding-systems))
+           (when (and (coding-system-p s)
+                      (not (eq s (car (coding-system-aliases s)))))
+             (push (cons s (car (coding-system-aliases s)))
+                   coding-system-aliases))
+           (if (get s 'internal--charset-args)
+               (push s charsets)
+             (when (and (charsetp s)
+                        (not (eq s (get-charset-property s :name))))
+               (push (cons s (get-charset-property s :name))
+                     charset-aliases))))
+         obarray)
+        (message "Dumping into dumped.elc...printing...")
+        (with-current-buffer (generate-new-buffer "dumped.elc")
+          (insert ";ELC\^W\^@\^@\^@\n;;; Compiled\n;;; in Emacs version "
+                  emacs-version "\n")
+          (let ((print-circle t)
+                (print-gensym t)
+                (print-quoted t)
+                (print-level nil)
+                (print-length nil)
+                (print-escape-newlines t)
+                (standard-output (current-buffer)))
+            (print `(progn . ,cmds))
+            (terpri)
+            (print `(let ((css ',charsets))
+                      (dotimes (i 3)
+                        (dolist (cs (prog1 css (setq css nil)))
+                          ;; (message "Defining charset %S..." cs)
+                          (condition-case nil
+                              (progn
+                                (apply #'define-charset-internal
+                                       cs (get cs 'internal--charset-args))
+                                ;; (message "Defining charset %S...done" cs)
+                                )
+                            (error
+                             ;; (message "Defining charset %S...postponed"
+                             ;;          cs)
+                             (push cs css)))))))
+            (terpri)
+            (print `(dolist (cs ',charset-aliases)
+                      (define-charset-alias (car cs) (cdr cs))))
+            (terpri)
+            (print `(let ((css ',coding-systems))
+                      (dotimes (i 3)
+                        (dolist (cs (prog1 css (setq css nil)))
+                          ;; (message "Defining coding-system %S..." cs)
+                          (condition-case nil
+                              (progn
+                                (apply #'define-coding-system-internal
+                                       cs (get cs 'internal--cs-args))
+                                ;; (message "Defining coding-system %S...done" cs)
+                                )
+                            (error
+                             ;; (message "Defining coding-system %S...postponed"
+                             ;;          cs)
+                             (push cs css)))))))
+            (print `(dolist (f ',faces)
+                      (face-spec-set f (get f 'face-defface-spec)
+                                     'face-defface-spec)))
+            (terpri)
+            (print `(dolist (cs ',coding-system-aliases)
+                      (define-coding-system-alias (car cs) (cdr cs))))
+            (terpri)
+            (print `(progn
+                      ;; (message "Done preloading!")
+                      ;; (message "custom-delayed-init-variables = %S"
+                      ;;          custom-delayed-init-variables)
+                      ;; (message "Running top-level = %S" top-level)
+                      (setq debug-on-error t)
+                      (use-global-map global-map)
+                      (eval top-level)
+                      ;; (message "top-level done!?")
+                      ))
+            (terpri))
+          (goto-char (point-min))
+          (while (re-search-forward " (\\(defvar\\|setplist\\|fset\\) " nil t)
+            (goto-char (match-beginning 0))
+            (delete-char 1) (insert "\n"))
+          (message "Dumping into dumped.elc...saving...")
+          (let ((coding-system-for-write 'emacs-internal))
+            (write-region (point-min) (point-max) (buffer-name)))
+          (message "Dumping into dumped.elc...done")
+          ))
+
       (kill-emacs)))
 
 ;; For machines with CANNOT_DUMP defined in config.h,

@@ -1673,9 +1673,9 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #endif
 	  Vtop_level = list2 (Qload, build_unibyte_string (file));
 	}
-      /* Unless next switch is -nl, load "loadup.el" first thing.  */
-      if (! no_loadup)
-	Vtop_level = list2 (Qload, build_string ("loadup.el"));
+      else if (! no_loadup)
+        /* Unless next switch is -nl, load "loadup.el" first thing.  */
+	Vtop_level = list2 (Qload, build_string ("../src/dumped.elc"));
     }
 
   /* Set up for profiling.  This is known to work on FreeBSD,
