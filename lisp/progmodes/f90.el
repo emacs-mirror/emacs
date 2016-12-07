@@ -953,7 +953,7 @@ Used in the F90 entry in `hs-special-modes-alist'.")
    ;; Avoid F2003 "type is" in "select type",
    ;; and also variables of derived type "type (foo)".
    ;; "type, foo" must be a block (?).
-   "type[ \t,]\\("
+   "\\(type\\|class\\)[ \t,]\\("
    "[^i(!\n\"& \t]\\|"                 ; not-i(
    "i[^s!\n\"& \t]\\|"                 ; i not-s
    "is\\(?:\\sw\\|\\s_\\)\\)\\|"
@@ -1451,7 +1451,7 @@ if all else fails."
   (save-excursion
     (not (or (looking-at "end")
              (looking-at "\\(do\\|if\\|else\\(if\\|where\\)?\
-\\|select[ \t]*\\(case\\|type\\)\\|case\\|where\\|forall\\|\
+\\|select[ \t]*\\(case\\|type\\)\\|class\\|case\\|where\\|forall\\|\
 block\\|critical\\|enum\\|associate\\)\\_>")
              (looking-at "\\(program\\|\\(?:sub\\)?module\\|\
 \\(?:abstract[ \t]*\\)?interface\\|block[ \t]*data\\)\\_>")
