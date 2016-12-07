@@ -202,7 +202,8 @@ pattern for matching command names and use
 `which-key-highlighted-command-face' for any matching names. If
 the element is a cons cell, it should take the form (regexp .
 face to apply)."
-  :group 'which-key)
+  :group 'which-key
+  :type  '(repeat (choice string (cons regexp face))))
 
 (defcustom which-key-special-keys '()
   "These keys will automatically be truncated to one character
