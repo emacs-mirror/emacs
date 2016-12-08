@@ -1674,8 +1674,19 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 	  Vtop_level = list2 (Qload, build_unibyte_string (file));
 	}
       else if (! no_loadup)
-        /* Unless next switch is -nl, load "loadup.el" first thing.  */
-	Vtop_level = list2 (Qload, build_string ("../src/dumped.elc"));
+        /* Unless next switch is -nl, load "dumped.elc" first thing.
+	   If it fails, we won't be able to run.  */
+	{
+	  Lisp_Object load = list2 (Qload, build_string ("../src/dumped.elc"));
+	  /* XXX We need a way for Lisp to cause Emacs to exit, with
+	     an error message to stderr after restoring tty modes.  */
+	  /* (condition-case nil bodyform (file-missing (kill-emacs 42)))  */
+	  Vtop_level = list4 (Qcondition_case,
+			      Qnil,
+			      load,
+			      list2 (Qfile_missing,
+				     list2 (Qkill_emacs, make_number (42))));
+	}
     }
 
   /* Set up for profiling.  This is known to work on FreeBSD,
@@ -2506,6 +2517,7 @@ syms_of_emacs (void)
   DEFSYM (Qrisky_local_variable, "risky-local-variable");
   DEFSYM (Qkill_emacs, "kill-emacs");
   DEFSYM (Qkill_emacs_hook, "kill-emacs-hook");
+  DEFSYM (Qcondition_case, "condition-case");
 
 #ifndef CANNOT_DUMP
   defsubr (&Sdump_emacs);
