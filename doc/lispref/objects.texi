@@ -1410,6 +1410,9 @@ editing.
 * Window Configuration Type::   Recording the way a frame is subdivided.
 * Frame Configuration Type::    Recording the status of all frames.
 * Process Type::        A subprocess of Emacs running on the underlying OS.
+* Thread Type::         A thread of Emacs Lisp execution.
+* Mutex Type::          An exclusive lock for thread synchronization.
+* Condition Variable Type::     Condition variable for thread synchronization.
 * Stream Type::         Receive or send characters.
 * Keymap Type::         What function a keystroke invokes.
 * Overlay Type::        How an overlay is represented.
@@ -1625,6 +1628,63 @@ giving the name of the process:
 return information about, send input or signals to, and receive output
 from processes.
 
+@node Thread Type
+@subsection Thread Type
+
+  A @dfn{thread} in Emacs represents a separate thread of Emacs Lisp
+execution.  It runs its own Lisp program, has its own current buffer,
+and can have subprocesses locked to it, i.e.@: subprocesses whose
+output only this thread can accept.  @xref{Threads}.
+
+  Thread objects have no read syntax.  They print in hash notation,
+giving the name of the thread (if it has been given a name) or its
+address in core:
+
+@example
+@group
+(all-threads)
+    @result{} (#<thread 0176fc40>)
+@end group
+@end example
+
+@node Mutex Type
+@subsection Mutex Type
+
+  A @dfn{mutex} is an exclusive lock that threads can own and disown,
+in order to synchronize between them.  @xref{Mutexes}.
+
+  Mutex objects have no read syntax.  They print in hash notation,
+giving the name of the mutex (if it has been given a name) or its
+address in core:
+
+@example
+@group
+(make-mutex "my-mutex")
+    @result{} #<mutex my-mutex>
+(make-mutex)
+    @result{} #<mutex 01c7e4e0>
+@end group
+@end example
+
+@node Condition Variable Type
+@subsection Condition Variable Type
+
+  A @dfn{condition variable} is a device for a more complex thread
+synchronization than the one supported by a mutex.  A thread can wait
+on a condition variable, to be woken up when some other thread
+notifies the condition.
+
+  Condition variable objects have no read syntax.  They print in hash
+notation, giving the name of the condition variable (if it has been
+given a name) or its address in core:
+
+@example
+@group
+(make-condition-variable (make-mutex))
+    @result{} #<condvar 01c45ae8>
+@end group
+@end example
+
 @node Stream Type
 @subsection Stream Type
 
@@ -1830,6 +1890,9 @@ with references to further information.
 @item commandp
 @xref{Interactive Call, commandp}.
 
+@item condition-variable-p
+@xref{Condition Variables, condition-variable-p}.
+
 @item consp
 @xref{List-related Predicates, consp}.
 
@@ -1875,6 +1938,9 @@ with references to further information.
 @item markerp
 @xref{Predicates on Markers, markerp}.
 
+@item mutexp
+@xref{Mutexes, mutexp}.
+
 @item wholenump
 @xref{Predicates on Numbers, wholenump}.
 
@@ -1907,6 +1973,9 @@ with references to further information.
 
 @item syntax-table-p
 @xref{Syntax Tables, syntax-table-p}.
+
+@item threadp
+@xref{Basic Thread Functions, threadp}.
 
 @item vectorp
 @xref{Vectors, vectorp}.

@@ -845,6 +845,7 @@ enum pvec_type
   PVEC_THREAD,
   PVEC_MUTEX,
   PVEC_CONDVAR,
+
   /* These should be last, check internal_equal to see why.  */
   PVEC_COMPILED,
   PVEC_CHAR_TABLE,
@@ -3229,6 +3230,7 @@ union specbinding
     } bt;
   };
 
+/* These 3 are defined as macros in thread.h.  */
 /* extern union specbinding *specpdl; */
 /* extern union specbinding *specpdl_ptr; */
 /* extern ptrdiff_t specpdl_size; */

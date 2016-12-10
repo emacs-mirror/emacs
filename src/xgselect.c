@@ -76,6 +76,9 @@ xg_select (int fds_lim, fd_set *rfds, fd_set *wfds, fd_set *efds,
 
   if (gfds_size < n_gfds)
     {
+      /* Avoid using SAFE_NALLOCA, as that implicitly refers to the
+	 current thread.  Using xnmalloc avoids thread-switching
+	 problems here.  */
       gfds = xnmalloc (n_gfds, sizeof *gfds);
       must_free = 1;
       gfds_size = n_gfds;

@@ -1140,6 +1140,7 @@ print_double_string (re_char *where, re_char *string1, ssize_t size1,
 #endif /* not DEBUG */
 
 #ifndef emacs
+
 /* Set by `re_set_syntax' to the current regexp syntax to recognize.  Can
    also be assigned to arbitrarily: each pattern buffer stores its own
    syntax, so it can be changed between regex compilations.  */

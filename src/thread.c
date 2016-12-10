@@ -144,7 +144,7 @@ static int
 lisp_mutex_unlock (lisp_mutex_t *mutex)
 {
   if (mutex->owner != current_thread)
-    error ("blah");
+    error ("Cannot unlock mutex owned by another thread");
 
   if (--mutex->count > 0)
     return 0;
@@ -301,7 +301,7 @@ finalize_one_mutex (struct Lisp_Mutex *mutex)
 DEFUN ("make-condition-variable",
        Fmake_condition_variable, Smake_condition_variable,
        1, 2, 0,
-       doc: /* Make a condition variable.
+       doc: /* Make a condition variable associated with MUTEX.
 A condition variable provides a way for a thread to sleep while
 waiting for a state change.
 
@@ -355,27 +355,27 @@ condition_wait_callback (void *arg)
 }
 
 DEFUN ("condition-wait", Fcondition_wait, Scondition_wait, 1, 1, 0,
-       doc: /* Wait for the condition variable to be notified.
-CONDITION is the condition variable to wait on.
+       doc: /* Wait for the condition variable COND to be notified.
+COND is the condition variable to wait on.
 
-The mutex associated with CONDITION must be held when this is called.
+The mutex associated with COND must be held when this is called.
 It is an error if it is not held.
 
-This releases the mutex and waits for CONDITION to be notified or for
+This releases the mutex and waits for COND to be notified or for
 this thread to be signalled with `thread-signal'.  When
-`condition-wait' returns, the mutex will again be locked by this
-thread.  */)
-  (Lisp_Object condition)
+`condition-wait' returns, COND's mutex will again be locked by
+this thread.  */)
+  (Lisp_Object cond)
 {
   struct Lisp_CondVar *cvar;
   struct Lisp_Mutex *mutex;
 
-  CHECK_CONDVAR (condition);
-  cvar = XCONDVAR (condition);
+  CHECK_CONDVAR (cond);
+  cvar = XCONDVAR (cond);
 
   mutex = XMUTEX (cvar->mutex);
   if (!lisp_mutex_owned_p (&mutex->mutex))
-    error ("fixme");
+    error ("Condition variable's mutex is not held by current thread");
 
   flush_stack_call_func (condition_wait_callback, cvar);
 
@@ -409,28 +409,28 @@ condition_notify_callback (void *arg)
 }
 
 DEFUN ("condition-notify", Fcondition_notify, Scondition_notify, 1, 2, 0,
-       doc: /* Notify a condition variable.
-This wakes a thread waiting on CONDITION.
+       doc: /* Notify COND, a condition variable.
+This wakes a thread waiting on COND.
 If ALL is non-nil, all waiting threads are awoken.
 
-The mutex associated with CONDITION must be held when this is called.
+The mutex associated with COND must be held when this is called.
 It is an error if it is not held.
 
-This releases the mutex when notifying CONDITION.  When
+This releases COND's mutex when notifying COND.  When
 `condition-notify' returns, the mutex will again be locked by this
 thread.  */)
-  (Lisp_Object condition, Lisp_Object all)
+  (Lisp_Object cond, Lisp_Object all)
 {
   struct Lisp_CondVar *cvar;
   struct Lisp_Mutex *mutex;
   struct notify_args args;
 
-  CHECK_CONDVAR (condition);
-  cvar = XCONDVAR (condition);
+  CHECK_CONDVAR (cond);
+  cvar = XCONDVAR (cond);
 
   mutex = XMUTEX (cvar->mutex);
   if (!lisp_mutex_owned_p (&mutex->mutex))
-    error ("fixme");
+    error ("Condition variable's mutex is not held by current thread");
 
   args.cvar = cvar;
   args.all = !NILP (all);
@@ -440,26 +440,26 @@ thread.  */)
 }
 
 DEFUN ("condition-mutex", Fcondition_mutex, Scondition_mutex, 1, 1, 0,
-       doc: /* Return the mutex associated with CONDITION.  */)
-  (Lisp_Object condition)
+       doc: /* Return the mutex associated with condition variable COND.  */)
+  (Lisp_Object cond)
 {
   struct Lisp_CondVar *cvar;
 
-  CHECK_CONDVAR (condition);
-  cvar = XCONDVAR (condition);
+  CHECK_CONDVAR (cond);
+  cvar = XCONDVAR (cond);
 
   return cvar->mutex;
 }
 
 DEFUN ("condition-name", Fcondition_name, Scondition_name, 1, 1, 0,
-       doc: /* Return the name of CONDITION.
-If no name was given when CONDITION was created, return nil.  */)
-  (Lisp_Object condition)
+       doc: /* Return the name of condition variable COND.
+If no name was given when COND was created, return nil.  */)
+  (Lisp_Object cond)
 {
   struct Lisp_CondVar *cvar;
 
-  CHECK_CONDVAR (condition);
-  cvar = XCONDVAR (condition);
+  CHECK_CONDVAR (cond);
+  cvar = XCONDVAR (cond);
 
   return cvar->name;
 }
@@ -540,7 +540,7 @@ mark_one_thread (struct thread_state *thread)
 
   mark_object (thread->m_last_thing_searched);
 
-  if (thread->m_saved_last_thing_searched)
+  if (!NILP (thread->m_saved_last_thing_searched))
     mark_object (thread->m_saved_last_thing_searched);
 }
 
@@ -678,7 +678,7 @@ finalize_one_thread (struct thread_state *state)
 DEFUN ("make-thread", Fmake_thread, Smake_thread, 1, 2, 0,
        doc: /* Start a new thread and run FUNCTION in it.
 When the function exits, the thread dies.
-If NAME is given, it names the new thread.  */)
+If NAME is given, it must be a string; it names the new thread.  */)
   (Lisp_Object function, Lisp_Object name)
 {
   sys_thread_t thr;
@@ -843,8 +843,9 @@ thread_join_callback (void *arg)
 }
 
 DEFUN ("thread-join", Fthread_join, Sthread_join, 1, 1, 0,
-       doc: /* Wait for a thread to exit.
-This blocks the current thread until THREAD exits.
+       doc: /* Wait for THREAD to exit.
+This blocks the current thread until THREAD exits or until
+the current thread is signaled.
 It is an error for a thread to try to join itself.  */)
   (Lisp_Object thread)
 {
@@ -854,7 +855,7 @@ It is an error for a thread to try to join itself.  */)
   tstate = XTHREAD (thread);
 
   if (tstate == current_thread)
-    error ("cannot join current thread");
+    error ("Cannot join current thread");
 
   if (thread_alive_p (tstate))
     flush_stack_call_func (thread_join_callback, tstate);
@@ -863,7 +864,7 @@ It is an error for a thread to try to join itself.  */)
 }
 
 DEFUN ("all-threads", Fall_threads, Sall_threads, 0, 0, 0,
-       doc: /* Return a list of all threads.  */)
+       doc: /* Return a list of all the live threads.  */)
   (void)
 {
   Lisp_Object result = Qnil;

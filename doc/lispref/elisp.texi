@@ -349,6 +349,9 @@ Editing Types
 * Window Configuration Type::  Recording the way a frame is subdivided.
 * Frame Configuration Type::   Recording the status of all frames.
 * Process Type::            A subprocess of Emacs running on the underlying OS.
+* Thread Type::             A thread of Emacs Lisp execution.
+* Mutex Type::              An exclusive lock for thread synchronization.
+* Condition Variable Type::    Condition variable for thread synchronization.
 * Stream Type::             Receive or send characters.
 * Keymap Type::             What function a keystroke invokes.
 * Overlay Type::            How an overlay is represented.
