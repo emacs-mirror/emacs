@@ -130,10 +130,11 @@ folding to be used on case-insensitive filesystems only."
   :group 'dired-x
   :version "26.1")
 
+(declare-function file-name-case-insensitive-p "fileio.c" (filename))
 (defun dired-omit-case-fold-p (dir)
   "Non-nil if `dired-omit-mode' should be case-insensitive in DIR."
   (if (eq dired-omit-case-fold 'filesystem)
-      (file-name-case-sensitive-p dir)
+      (file-name-case-insensitive-p dir)
     dired-omit-case-fold))
 
 ;; For backward compatibility
