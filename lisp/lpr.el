@@ -42,7 +42,7 @@
 
 (defgroup lpr nil
   "Print Emacs buffer on line printer."
-  :group 'wp)
+  :group 'text)
 
 
 ;;;###autoload

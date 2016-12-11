@@ -66,9 +66,12 @@ cause confusion.}
 
 @kindex group@r{, customization keyword}
 @item :group @var{group}
-Put this customization item in group @var{group}.  When you use
-@code{:group} in a @code{defgroup}, it makes the new group a subgroup of
-@var{group}.
+Put this customization item in group @var{group}.  If this keyword is
+missing from a customization item, it'll be placed in the same group
+that was last defined (in the current file).
+
+When you use @code{:group} in a @code{defgroup}, it makes the new
+group a subgroup of @var{group}.
 
 If you use this keyword more than once, you can put a single item into
 more than one group.  Displaying any of those groups will show this
@@ -841,6 +844,7 @@ most general last.  Here's an example of proper usage:
 This way, the special value @code{nil} is not treated like other
 symbols, and symbols are not treated like other Lisp expressions.
 
+@cindex radio, customization types
 @item (radio @var{element-types}@dots{})
 This is similar to @code{choice}, except that the choices are displayed
 using radio buttons rather than a menu.  This has the advantage of
@@ -936,6 +940,7 @@ The value must be a list and each element of the list must fit the type
 list of elements, with @samp{[INS]} and @samp{[DEL]} buttons for adding
 more elements or removing elements.
 
+@cindex restricted-sexp, customization types
 @item (restricted-sexp :match-alternatives @var{criteria})
 This is the most general composite type construct.  The value may be
 any Lisp object that satisfies one of @var{criteria}.  @var{criteria}
@@ -1020,6 +1025,7 @@ and whose remaining arguments should be zero or more of @code{foo} and
 This matches values such as @code{(baz)}, @code{(baz foo)}, @code{(baz bar)}
 and @code{(baz foo bar)}.
 
+@cindex choice, customization types
   When the element-type is a @code{choice}, you use @code{:inline} not
 in the @code{choice} itself, but in (some of) the alternatives of the
 @code{choice}.  For example, to match a list which must start with a

@@ -1102,7 +1102,14 @@ extern Lisp_Object selected_frame;
 extern int frame_default_tool_bar_height;
 #endif
 
-extern struct frame *decode_window_system_frame (Lisp_Object);
+#ifdef HAVE_WINDOW_SYSTEM
+# define WINDOW_SYSTEM_RETURN
+#else
+# define WINDOW_SYSTEM_RETURN _Noreturn
+#endif
+
+extern WINDOW_SYSTEM_RETURN struct frame *
+  decode_window_system_frame (Lisp_Object);
 extern struct frame *decode_live_frame (Lisp_Object);
 extern struct frame *decode_any_frame (Lisp_Object);
 extern struct frame *make_initial_frame (void);
@@ -1112,11 +1119,20 @@ extern struct frame *make_minibuffer_frame (void);
 extern struct frame *make_frame_without_minibuffer (Lisp_Object,
                                                     struct kboard *,
                                                     Lisp_Object);
-extern bool window_system_available (struct frame *);
-#else /* not HAVE_WINDOW_SYSTEM */
-#define window_system_available(f) ((void) (f), false)
-#endif /* HAVE_WINDOW_SYSTEM */
-extern void check_window_system (struct frame *);
+extern bool display_available (void);
+#endif
+
+INLINE bool
+window_system_available (struct frame *f)
+{
+#ifdef HAVE_WINDOW_SYSTEM
+  return f ? FRAME_WINDOW_P (f) || FRAME_MSDOS_P (f) : display_available ();
+#else
+  return false;
+#endif
+}
+
+extern WINDOW_SYSTEM_RETURN void check_window_system (struct frame *);
 extern void frame_make_pointer_invisible (struct frame *);
 extern void frame_make_pointer_visible (struct frame *);
 extern Lisp_Object delete_frame (Lisp_Object, Lisp_Object);
@@ -1150,46 +1166,68 @@ extern Lisp_Object Vframe_list;
    This value currently equals the average width of the default font of F.  */
 #define FRAME_COLUMN_WIDTH(F) ((F)->column_width)
 
-/* Pixel width of areas used to display truncation marks, continuation
-   marks, overlay arrows.  This is 0 for terminal frames.  */
+/* Get a frame's window system dimension.  If no window system, this is 0.  */
 
+INLINE int
+frame_dimension (int x)
+{
 #ifdef HAVE_WINDOW_SYSTEM
+  return x;
+#else
+  return 0;
+#endif
+}
 
 /* Total width of fringes reserved for drawing truncation bitmaps,
    continuation bitmaps and alike.  The width is in canonical char
    units of the frame.  This must currently be the case because window
    sizes aren't pixel values.  If it weren't the case, we wouldn't be
    able to split windows horizontally nicely.  */
-#define FRAME_FRINGE_COLS(F) ((F)->fringe_cols)
+INLINE int
+FRAME_FRINGE_COLS (struct frame *f)
+{
+  return frame_dimension (f->fringe_cols);
+}
 
 /* Pixel-width of the left and right fringe.  */
 
-#define FRAME_LEFT_FRINGE_WIDTH(F) ((F)->left_fringe_width)
-#define FRAME_RIGHT_FRINGE_WIDTH(F) ((F)->right_fringe_width)
+INLINE int
+FRAME_LEFT_FRINGE_WIDTH (struct frame *f)
+{
+  return frame_dimension (f->left_fringe_width);
+}
+INLINE int
+FRAME_RIGHT_FRINGE_WIDTH (struct frame *f)
+{
+  return frame_dimension (f->right_fringe_width);
+}
 
 /* Total width of fringes in pixels.  */
 
-#define FRAME_TOTAL_FRINGE_WIDTH(F) \
-  (FRAME_LEFT_FRINGE_WIDTH (F) + FRAME_RIGHT_FRINGE_WIDTH (F))
+INLINE int
+FRAME_TOTAL_FRINGE_WIDTH (struct frame *f)
+{
+  return FRAME_LEFT_FRINGE_WIDTH (f) + FRAME_RIGHT_FRINGE_WIDTH (f);
+}
 
 /* Pixel-width of internal border lines */
-#define FRAME_INTERNAL_BORDER_WIDTH(F) ((F)->internal_border_width)
+INLINE int
+FRAME_INTERNAL_BORDER_WIDTH (struct frame *f)
+{
+  return frame_dimension (f->internal_border_width);
+}
 
 /* Pixel-size of window border lines */
-#define FRAME_RIGHT_DIVIDER_WIDTH(F) ((F)->right_divider_width)
-#define FRAME_BOTTOM_DIVIDER_WIDTH(F) ((F)->bottom_divider_width)
-
-#else /* not HAVE_WINDOW_SYSTEM */
-
-#define FRAME_FRINGE_COLS(F)	0
-#define FRAME_TOTAL_FRINGE_WIDTH(F)	0
-#define FRAME_LEFT_FRINGE_WIDTH(F)  0
-#define FRAME_RIGHT_FRINGE_WIDTH(F) 0
-#define FRAME_INTERNAL_BORDER_WIDTH(F) 0
-#define FRAME_RIGHT_DIVIDER_WIDTH(F) 0
-#define FRAME_BOTTOM_DIVIDER_WIDTH(F) 0
-
-#endif /* not HAVE_WINDOW_SYSTEM */
+INLINE int
+FRAME_RIGHT_DIVIDER_WIDTH (struct frame *f)
+{
+  return frame_dimension (f->right_divider_width);
+}
+INLINE int
+FRAME_BOTTOM_DIVIDER_WIDTH (struct frame *f)
+{
+  return frame_dimension (f->bottom_divider_width);
+}
 
 /***********************************************************************
 	    Conversion between canonical units and pixels
@@ -1470,7 +1508,7 @@ INLINE_HEADER_END
 /* Suppress -Wsuggest-attribute=const if there are no scroll bars.
    This is for functions like x_set_horizontal_scroll_bars that have
    no effect in this case.  */
-#if ! USE_HORIZONTAL_SCROLL_BARS && 4 < __GNUC__ + (6 <= __GNUC_MINOR__)
+#if ! USE_HORIZONTAL_SCROLL_BARS && GNUC_PREREQ (4, 6, 0)
 # pragma GCC diagnostic ignored "-Wsuggest-attribute=const"
 #endif
 

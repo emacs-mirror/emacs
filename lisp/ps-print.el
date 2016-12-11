@@ -1,4 +1,4 @@
-;;; ps-print.el --- print text from the buffer as PostScript
+;;; ps-print.el --- print text from the buffer as PostScript -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1993-2016 Free Software Foundation, Inc.
 
@@ -1495,7 +1495,7 @@ Please send all bug fixes and enhancements to
   :link '(emacs-library-link :tag "Source Lisp File" "ps-print.el")
   :prefix "ps-"
   :version "20"
-  :group 'wp
+  :group 'text
   :group 'postscript)
 
 (defgroup ps-print-horizontal nil
@@ -5828,7 +5828,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 	ps-default-background (ps-rgb-color
 			       (cond
 				((or (member ps-print-color-p
-					     '(nil back-white))
+					     '(nil black-white))
 				     (eq genfunc 'ps-generate-postscript))
 				 nil)
 				((eq ps-default-bg 'frame-parameter)
@@ -5842,7 +5842,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 	ps-default-foreground (ps-rgb-color
 			       (cond
 				((or (member ps-print-color-p
-					     '(nil back-white))
+					     '(nil black-white))
 				     (eq genfunc 'ps-generate-postscript))
 				 nil)
 				((eq ps-default-fg 'frame-parameter)
@@ -5857,12 +5857,12 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 			       #'(lambda (arg)
 				   (ps-rgb-color arg "unspecified-fg" 0.0))
 			       (append (and (not (member ps-print-color-p
-							 '(nil back-white)))
+							 '(nil black-white)))
 					    ps-fg-list)
 				       (list ps-default-foreground
 					     "black")))
 	ps-default-color      (and (not (member ps-print-color-p
-						'(nil back-white)))
+						'(nil black-white)))
 				   ps-default-foreground)
 	ps-current-color      ps-default-color
 	;; Set up default functions.

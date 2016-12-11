@@ -1347,10 +1347,8 @@ arguments to `skip-chars-forward'."
 		 ;; located on the same remote host.
 		 (apply 'process-file ediff-cmp-program nil nil nil
 			(append ediff-cmp-options
-				(list (or (file-remote-p f1 'localname)
-					  (expand-file-name f1))
-				      (or (file-remote-p f2 'localname)
-					  (expand-file-name f2)))))
+				(list (expand-file-name (file-local-name f1))
+				      (expand-file-name (file-local-name f2)))))
 		 ))
 	    (and (numberp res) (eq res 0)))
 

@@ -108,9 +108,10 @@ Optional LIGHTER is displayed in the mode line when the mode is on.
 Optional KEYMAP is the default keymap bound to the mode keymap.
   If non-nil, it should be a variable name (whose value is a keymap),
   or an expression that returns either a keymap or a list of
-  arguments for `easy-mmode-define-keymap'.  If you supply a KEYMAP
-  argument that is not a symbol, this macro defines the variable
-  MODE-map and gives it the value that KEYMAP specifies.
+  (KEY . BINDING) pairs where KEY and BINDING are suitable for
+  `define-key'.  If you supply a KEYMAP argument that is not a
+  symbol, this macro defines the variable MODE-map and gives it
+  the value that KEYMAP specifies.
 
 BODY contains code to execute each time the mode is enabled or disabled.
   It is executed after toggling the mode, and before running MODE-hook.
@@ -252,7 +253,8 @@ Use the command `%s' to change this variable." pretty-name mode))
          (t
 	  (let ((base-doc-string
                  (concat "Non-nil if %s is enabled.
-See the command `%s' for a description of this minor mode."
+See the `%s' command
+for a description of this minor mode."
                          (if body "
 Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')

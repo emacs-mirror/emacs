@@ -1668,7 +1668,7 @@ separator; otherwise, ensure unix-style directory separator."
   :link '(emacs-library-link :tag "Source Lisp File" "printing.el")
   :prefix "pr-"
   :version "22.1"
-  :group 'wp
+  :group 'text
   :group 'postscript)
 
 
@@ -2272,7 +2272,7 @@ Useful links:
 * gv 3.5, June 1997
   `http://www.cs.wisc.edu/~ghost/gv/gv_doc/gv.html'
 
-* MacGSView (MacOS)
+* MacGSView (Mac OS)
   `http://www.cs.wisc.edu/~ghost/macos/index.htm'
 "
   :type '(string :tag "Ghostview Utility")
@@ -5673,7 +5673,7 @@ If menu binding was not done, calls `pr-menu-bind'."
   (or (listp switches)
       (error "%S should have a list of strings" mess))
   (lpr-flatten-list			; dynamic evaluation
-   (mapcar 'ps-eval-switch switches)))
+   (mapcar #'lpr-eval-switch switches)))
 
 
 (defun pr-ps-preview (kind n-up filename mess)

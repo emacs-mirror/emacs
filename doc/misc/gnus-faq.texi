@@ -584,10 +584,10 @@ Now we need to tell Gnus, where to get its mail from. If
 it's a POP3 server, then you need something like this:
 
 @example
-(eval-after-load "mail-source"
-  '(add-to-list 'mail-sources '(pop :server "pop.YourProvider.net"
-                                    :user "yourUserName"
-                                    :password "yourPassword")))
+(with-eval-after-load "mail-source"
+  (add-to-list 'mail-sources '(pop :server "pop.YourProvider.net"
+                                   :user "yourUserName"
+                                   :password "yourPassword")))
 @end example
 @noindent
 
@@ -596,8 +596,8 @@ your password there. If you want to read your mail from a
 traditional spool file on your local machine, it's
 
 @example
-(eval-after-load "mail-source"
-  '(add-to-list 'mail-sources '(file :path "/path/to/spool/file"))
+(with-eval-after-load "mail-source"
+  (add-to-list 'mail-sources '(file :path "/path/to/spool/file"))
 @end example
 @noindent
 
@@ -605,9 +605,9 @@ If it's a Maildir, with one file per message as used by
 postfix, Qmail and (optionally) fetchmail it's
 
 @example
-(eval-after-load "mail-source"
-  '(add-to-list 'mail-sources '(maildir :path "/path/to/Maildir/"
-                                        :subdirs ("cur" "new")))
+(with-eval-after-load "mail-source"
+  (add-to-list 'mail-sources '(maildir :path "/path/to/Maildir/"
+                                       :subdirs ("cur" "new")))
 @end example
 @noindent
 
@@ -616,10 +616,10 @@ in one directory, for example because procmail already split your
 mail, it's
 
 @example
-(eval-after-load "mail-source"
-  '(add-to-list 'mail-sources
-                '(directory :path "/path/to/procmail-dir/"
-                            :suffix ".prcml")))
+(with-eval-after-load "mail-source"
+  (add-to-list 'mail-sources
+               '(directory :path "/path/to/procmail-dir/"
+                           :suffix ".prcml")))
 @end example
 @noindent
 
@@ -850,10 +850,9 @@ text part if it's available. How to do it?
 Say
 
 @example
-(eval-after-load "mm-decode"
- '(progn
-      (add-to-list 'mm-discouraged-alternatives "text/html")
-      (add-to-list 'mm-discouraged-alternatives "text/richtext")))
+(with-eval-after-load "mm-decode"
+  (add-to-list 'mm-discouraged-alternatives "text/html")
+  (add-to-list 'mm-discouraged-alternatives "text/richtext"))
 @end example
 @noindent
 
@@ -1577,14 +1576,14 @@ if you already use Gnus 5.10, if you still use 5.8.8 or
 5.9 try this instead:
 
 @example
-(eval-after-load "gnus-msg"
-  '(unless (boundp 'gnus-confirm-mail-reply-to-news)
-     (defadvice gnus-summary-reply (around reply-in-news activate)
-       "Request confirmation when replying to news."
-       (interactive)
-       (when (or (not (gnus-news-group-p gnus-newsgroup-name))
-                 (y-or-n-p "Really reply by mail to article author? "))
-         ad-do-it))))
+(with-eval-after-load "gnus-msg"
+  (unless (boundp 'gnus-confirm-mail-reply-to-news)
+    (defadvice gnus-summary-reply (around reply-in-news activate)
+      "Request confirmation when replying to news."
+      (interactive)
+      (when (or (not (gnus-news-group-p gnus-newsgroup-name))
+                (y-or-n-p "Really reply by mail to article author? "))
+        ad-do-it))))
 @end example
 @noindent
 
@@ -1599,8 +1598,8 @@ Since 5.10 Gnus doesn't generate a sender header by
 default. For older Gnus' try this in @file{~/.gnus.el}:
 
 @example
-(eval-after-load "message"
-      '(add-to-list 'message-syntax-checks '(sender . disabled)))
+(with-eval-after-load "message"
+  (add-to-list 'message-syntax-checks '(sender . disabled)))
 @end example
 @noindent
 
@@ -1665,14 +1664,14 @@ in @file{~/.gnus.el}.  If you use Gnus 5.9 or earlier, you can use this
 instead (works for newer versions as well):
 
 @example
-(eval-after-load "message"
-  '(let ((fqdn "yourmachine.yourdomain.tld"));; <-- Edit this!
-     (if (boundp 'message-user-fqdn)
-         (setq message-user-fqdn fqdn)
-       (gnus-message 1 "Redefining `message-make-fqdn'.")
-       (defun message-make-fqdn ()
-         "Return user's fully qualified domain name."
-         fqdn))))
+(with-eval-after-load "message"
+  (let ((fqdn "yourmachine.yourdomain.tld"));; <-- Edit this!
+    (if (boundp 'message-user-fqdn)
+        (setq message-user-fqdn fqdn)
+      (gnus-message 1 "Redefining `message-make-fqdn'.")
+      (defun message-make-fqdn ()
+        "Return user's fully qualified domain name."
+        fqdn))))
 @end example
 @noindent
 
@@ -2195,7 +2194,7 @@ An other idea would be to byte compile your @file{~/.gnus.el} (say
 @samp{M-x byte-compile-file RET ~/.gnus.el
 RET} to do it). Finally, if you have require
 statements in your .gnus, you could replace them with
-eval-after-load, which loads the stuff not at startup
+@code{with-eval-after-load}, which loads the stuff not at startup
 time, but when it's needed. Say you've got this in your
 @file{~/.gnus.el}:
 
@@ -2209,8 +2208,8 @@ then as soon as you start Gnus, message.el is loaded. If
 you replace it with
 
 @example
-(eval-after-load "message"
-      '(add-to-list 'message-syntax-checks '(sender . disabled)))
+(with-eval-after-load "message"
+  (add-to-list 'message-syntax-checks '(sender . disabled)))
 @end example
 @noindent
 

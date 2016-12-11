@@ -414,9 +414,8 @@
 	       (substring arg 0 (match-end 1))
 	     arg))))
 
-(require 'cl-lib)
-
 (eval-when-compile			; to avoid compiler warnings
+  (require 'cl-lib)
   (require 'dired)
   (require 'apropos))
 
@@ -434,7 +433,7 @@ As a special case, if PATHS is nil then replace it by calling
 	     (mapcar 'woman-Cyg-to-Win (woman-parse-man.conf)))
 	    ((string-match-p ";" paths)
 	     ;; Assume DOS-style path-list...
-	     (cl-mapcan			; splice list into list
+	     (mapcan			; splice list into list
 	      (lambda (x)
 		(if x
 		    (list x)
@@ -445,14 +444,14 @@ As a special case, if PATHS is nil then replace it by calling
 	     (list paths))
 	    (t
 	     ;; Assume UNIX/Cygwin-style path-list...
-	     (cl-mapcan			; splice list into list
+	     (mapcan			; splice list into list
 	      (lambda (x)
 		(mapcar 'woman-Cyg-to-Win
 			(if x (list x) (woman-parse-man.conf))))
 	      (let ((path-separator ":"))
 		(parse-colon-path paths)))))
     ;; Assume host-default-style path-list...
-    (cl-mapcan				; splice list into list
+    (mapcan				; splice list into list
      (lambda (x) (if x (list x) (woman-parse-man.conf)))
      (parse-colon-path (or paths "")))))
 
@@ -569,11 +568,11 @@ or
 			    "\
 ^[ \t]*\\(?:\\(?:MANDATORY_\\|OPTIONAL_\\)?MANPATH[ \t]+\\(\\S-+\\)\\|\
 MANPATH_MAP[ \t]+\\(\\S-+\\)[ \t]+\\(\\S-+\\)\\)" nil t)
-		      (add-to-list 'manpath
-				   (if (match-beginning 1)
-				       (match-string 1)
-				     (cons (match-string 2)
-					   (match-string 3)))))
+                      (cl-pushnew (if (match-beginning 1)
+                                      (match-string 1)
+                                    (cons (match-string 2)
+                                          (match-string 3)))
+                                  manpath :test #'equal))
 		    manpath))
 		 ))
       (setq path (cdr path)))
@@ -624,11 +623,12 @@ of `woman-expand-locale' on `woman-locale' added, where they exist."
                                                (if (consp elem)
                                                    (cdr elem)
                                                  elem))))))
-            (add-to-list 'lst (if (consp elem)
-                                  (cons (car elem) dir)
-                                dir))))
+            (cl-pushnew (if (consp elem)
+                            (cons (car elem) dir)
+                          dir)
+                        lst :test #'equal)))
         ;; Non-locale-specific has lowest precedence.
-        (add-to-list 'lst elem)))))
+        (cl-pushnew elem lst :test #'equal)))))
 
 (defcustom woman-manpath
   ;; Locales could also be added in woman-expand-directory-path.
@@ -926,25 +926,21 @@ or different fonts."
   '((t :inherit italic))
   "Face for italic font in man pages."
   :group 'woman-faces)
-(define-obsolete-face-alias 'woman-italic-face 'woman-italic "22.1")
 
 (defface woman-bold
   '((t :inherit bold))
   "Face for bold font in man pages."
   :group 'woman-faces)
-(define-obsolete-face-alias 'woman-bold-face 'woman-bold "22.1")
 
 (defface woman-unknown
   '((t :inherit font-lock-warning-face))
   "Face for all unknown fonts in man pages."
   :group 'woman-faces)
-(define-obsolete-face-alias 'woman-unknown-face 'woman-unknown "22.1")
 
 (defface woman-addition
   '((t :inherit font-lock-builtin-face))
   "Face for all WoMan additions to man pages."
   :group 'woman-faces)
-(define-obsolete-face-alias 'woman-addition-face 'woman-addition "22.1")
 
 (defun woman-default-faces ()
   "Set foreground colors of italic and bold faces to their default values."
@@ -1026,8 +1022,7 @@ Under MS-Windows, the default is
 
 ;;; Internal variables:
 
-(defconst woman-justify-list
-  '(left right center full)
+(defconst woman-justify-styles [left right center full]
   "Justify styles for `fill-region-as-paragraph'.")
 (defconst woman-adjust-left 0		; == adjust off, noadjust
   "Adjustment indicator `l' -- adjust left margin only.")
@@ -1042,8 +1037,7 @@ Under MS-Windows, the default is
   "Current adjustment number-register value.")
 (defvar woman-adjust-previous woman-adjust
   "Previous adjustment number-register value.")
-(defvar woman-justify
-  (nth woman-adjust woman-justify-list)	; use vector?
+(defvar woman-justify (aref woman-justify-styles woman-adjust)
   "Current justification style for `fill-region-as-paragraph'.")
 (defvar woman-justify-previous woman-justify
   "Previous justification style for `fill-region-as-paragraph'.")
@@ -1203,7 +1197,8 @@ Called both to generate and to check the cache!"
 		(setq path
 		      (split-string (getenv "PATH") path-separator t)))
 	      (setq dir (and (member (car dir) path) (cdr dir))))
-	    (when dir (add-to-list 'lst (substitute-in-file-name dir)))))
+	    (when dir
+              (cl-pushnew (substitute-in-file-name dir) lst :test #'equal))))
 	(mapcar 'substitute-in-file-name woman-path)))
 
 (defun woman-read-directory-cache ()
@@ -1662,7 +1657,7 @@ Do not call directly!"
     (woman-insert-file-contents filename compressed)
     ;; Set buffer's default directory to that of the file.
     (setq default-directory (file-name-directory filename))
-    (set (make-local-variable 'backup-inhibited) t)
+    (setq-local backup-inhibited t)
     (set-visited-file-name "")
     (woman-process-buffer)))
 
@@ -1785,7 +1780,7 @@ Leave point at end of new text.  Return length of inserted text."
     (define-key map [remap man] 'woman)
     (define-key map [remap man-follow] 'woman-follow)
     map)
-  "Keymap for woman mode.")
+  "Keymap for `woman-mode'.")
 
 (defun woman-follow (topic)
   "Get a Un*x manual page of the item under point and put it in a buffer."
@@ -1877,15 +1872,15 @@ Argument EVENT is the invoking mouse event."
   (woman-reformat-last-file))
 
 (defvar bookmark-make-record-function)
-(put 'woman-mode 'mode-class 'special)
 
-(defun woman-mode ()
+(define-derived-mode woman-mode special-mode "WoMan"
   "Turn on (most of) Man mode to browse a buffer formatted by WoMan.
 WoMan is an ELisp emulation of much of the functionality of the Emacs
 `man' command running the standard UN*X man and ?roff programs.
 WoMan author: F.J.Wright@Maths.QMW.ac.uk
 WoMan version: see `woman-version'.
-See `Man-mode' for additional details."
+See `Man-mode' for additional details.
+\\{woman-mode-map}"
   (let ((Man-build-page-list (symbol-function 'Man-build-page-list))
 	(Man-strip-page-headers (symbol-function 'Man-strip-page-headers))
 	(Man-unindent (symbol-function 'Man-unindent))
@@ -1910,13 +1905,10 @@ See `Man-mode' for additional details."
   (kill-local-variable 'mode-line-buffer-identification)
   (use-local-map woman-mode-map)
   ;; Imenu support:
-  (set (make-local-variable 'imenu-generic-expression)
-       ;; `make-local-variable' in case imenu not yet loaded!
-       woman-imenu-generic-expression)
-  (set (make-local-variable 'imenu-space-replacement) " ")
+  (setq imenu-generic-expression woman-imenu-generic-expression)
+  (setq-local imenu-space-replacement " ")
   ;; Bookmark support.
-  (set (make-local-variable 'bookmark-make-record-function)
-       'woman-bookmark-make-record)
+  (setq-local bookmark-make-record-function 'woman-bookmark-make-record)
   ;; For reformat ...
   ;; necessary when reformatting a file in its old buffer:
   (setq imenu--last-menubar-index-alist nil)
@@ -1924,9 +1916,7 @@ See `Man-mode' for additional details."
   (setq woman-imenu-done nil)
   (if woman-imenu (woman-imenu))
   (let ((inhibit-read-only t))
-    (Man-highlight-references 'WoMan-xref-man-page))
-  (set-buffer-modified-p nil)
-  (run-mode-hooks 'woman-mode-hook))
+    (Man-highlight-references 'WoMan-xref-man-page)))
 
 (defun woman-imenu (&optional redraw)
   "Add a \"Contents\" menu to the menubar.
@@ -2242,7 +2232,7 @@ Currently set only from \\='\\\" t in the first line of the source file.")
 	  woman-RS-left-margin nil
 	  woman-RS-prevailing-indent nil
 	  woman-adjust woman-adjust-both
-	  woman-justify (nth woman-adjust woman-justify-list)
+	  woman-justify (aref woman-justify-styles woman-adjust)
 	  woman-nofill nil)
 
     (setq woman-if-conditions-true
@@ -3889,7 +3879,7 @@ Leave 1 blank line.  Format paragraphs upto TO."
 		((eq c ?\t)		; skip
 		 (if (eq (following-char) ?\t)
 		     (forward-char)	; both tabs, just skip
-		   (dotimes (i woman-tab-width)
+		   (dotimes (_ woman-tab-width)
                      (if (eolp)
                          (insert ?\s)	; extend line
                        (forward-char)) ; skip
@@ -4037,7 +4027,7 @@ Format paragraphs upto TO.  (Breaks, but should not.)"
 	      ((memq (following-char) '(?b ?n)) woman-adjust-both)
 	      (t (woman-get-numeric-arg))
 	      )
-	woman-justify (nth woman-adjust woman-justify-list))
+	woman-justify (aref woman-justify-styles woman-adjust))
   (woman-delete-line 1)			; ignore any remaining arguments
   (woman2-format-paragraphs to))
 
@@ -4047,7 +4037,7 @@ Format paragraphs upto TO.  (Breaks, but should not.)"
   (setq woman-adjust-previous woman-adjust
 	woman-justify-previous woman-justify
 	woman-adjust woman-adjust-left	; fill but do not adjust
-	woman-justify (nth woman-adjust woman-justify-list))
+	woman-justify (aref woman-justify-styles woman-adjust))
   (woman-delete-line 1)			; ignore any arguments
   (woman2-format-paragraphs to))
 

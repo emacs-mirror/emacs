@@ -1023,7 +1023,7 @@ indent of the current line in parameterlist."
       (let ((lineup (if (or (looking-at "\\<var\\>\\|\\<record\\>") arg start)
 			":" "="))
 	    (stpos (if start start
-		       (forward-word 2) (backward-word 1) (point)))
+		       (forward-word-strictly 2) (backward-word 1) (point)))
 	    (edpos (set-marker (make-marker)
 			       (if end end
 				 (max (progn (pascal-declaration-end)

@@ -39,7 +39,7 @@
 (eval-and-compile
 
 (defun indian-regexp-of-hashtbl-keys (hashtbl)
-  "Returns the regular expression of hashtable keys."
+  "Return the regular expression of hash table keys."
   (let (keys)
     (maphash (lambda (key val) (push key keys)) hashtbl)
     (regexp-opt keys)))

@@ -31,6 +31,7 @@
 
 ;;; Code:
 
+;;;###autoload
 (defvar cursor-sensor-inhibit nil)
 
 (defun cursor-sensor--intangible-p (pos)
@@ -113,7 +114,7 @@
            ;; non-sticky on both ends, but that means get-pos-property might
            ;; never see it.
            (new (or (get-char-property point 'cursor-sensor-functions)
-                    (unless (= point 1)
+                    (unless (<= (point-min) point)
                       (get-char-property (1- point) 'cursor-sensor-functions))))
            (old (window-parameter window 'cursor-sensor--last-state))
            (oldposmark (car old))

@@ -3,8 +3,8 @@ See the end of the file for license conditions.
 
 This file contains information about GNU Emacs on "Nextstep" platforms.
 The Nextstep support code works on many POSIX systems (and possibly
-W32) using the GNUstep libraries, and on MacOS X systems using the
-Cocoa libraries.
+W32) using the GNUstep libraries, and on macOS systems using the Cocoa
+libraries.
 
 Background
 ----------
@@ -17,9 +17,9 @@ system in the late 1980's.  Later on, in collaboration with Sun, this
 API was published as a specification called OpenStep.  The GNUstep
 project started in the early 1990's to provide a free implementation
 of this API.  Later on, Apple bought NeXT (some would say "NeXT bought
-Apple") and made OpenStep the basis of OS X, calling the API "Cocoa".
-Since then, Cocoa has evolved beyond the OpenStep specification, and
-GNUstep has followed it.
+Apple") and made OpenStep the basis of Mac OS X, calling the API
+"Cocoa".  Since then, Cocoa has evolved beyond the OpenStep
+specification, and GNUstep has followed it.
 
 Thus, calling this port "OpenStep" is not technically accurate, and in
 the absence of any other determinant, we are using the term
@@ -30,8 +30,8 @@ begin with the letters "NS".
 (See http://en.wikipedia.org/wiki/Nextstep)
 
 This Emacs port was first released in the early 1990's on the NeXT
-computer, and was successively updated to OpenStep, Rhapsody, OS X,
-and then finally GNUstep, tracking GNU emacs core releases in the
+computer, and was successively updated to OpenStep, Rhapsody, Mac OS
+X, and then finally GNUstep, tracking GNU Emacs core releases in the
 meantime.
 
 
@@ -62,13 +62,13 @@ Release History
 
 1999/05/??	6.0b3		Scott Bender: "OS X Server", Emacs 20.3.
 
-2001/06/25	7.0		Ported to MacOS X (10.1) by Christophe de
+2001/06/25	7.0		Ported to Mac OS X (10.1) by Christophe de
 				Dinechin. Release based on Emacs 20.7. Hosting
 				moved to SourceForge.
 
 2002/01/03	7.0.1		Bug fixes.
 
-2002/08/27	7.0.2		Jaguar (OS X 10.2) support. Added an autoconf
+2002/08/27	7.0.2		Jaguar (Mac OS X 10.2) support. Added autoconf
 				option for sys_nerr being in stdio. Added
 				libncurses to the build libraries. Fixed a
 				problem with ns-alternate-is-meta. Changed the
@@ -76,7 +76,7 @@ Release History
 
 2004/10/07	8.0-pre1	Ported to GNUstep by Adrian Robert.
 
-2004/11/04	8.0-pre2	Restored functionality on OS X (menu code
+2004/11/04	8.0-pre2	Restored functionality on Mac OS X (menu code
 				cleanup).  Improved scrollbar handling and
 				paste from other applications.  File icons
 				obtained properly from NSWorkspace.  Dropped
@@ -116,7 +116,8 @@ Release History
 				and Planner go away.  Improved scrollbar
 				handling and rendering speed.  Color panel
 				and other bug fixes. mac-fix-env utility.
-				Font handling improvements (OS X 10.3, 10.4):
+				Font handling improvements (Mac OS X 10.3,
+				10.4):
 				- heed 'GSFontAntiAlias' default
 				- heed system antialiasing threshold
 				- added 'UseQuickdrawSmoothing' default to
@@ -150,8 +151,9 @@ Release History
 				handling improved.  Fixed some portability
 				problems on Tiger and Puma.
 
-2005/09/12	8.0		Bundled ispell on OS X.  Minor bug fixes and
-				stability improvements.  Compiles under gcc-4.
+2005/09/12	8.0		Bundled ispell on Mac OS X.  Minor bug fixes
+				and stability improvements.  Compiles under
+				gcc-4.
 
 2005/09/26	8.0.1		Correct clipped rendering for synthetic
 				italics. Include the info directory.
@@ -247,7 +249,7 @@ Christian Limpach
 Scott Bender
     OpenStep, Rhapsody ports
 Christophe de Dinechin
-    MacOS X port
+    macOS port
 Adrian Robert
     GNUstep port, update Emacs 20 -> 21+
 

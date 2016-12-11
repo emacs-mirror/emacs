@@ -34,7 +34,7 @@
 (defvar gnus-face-properties-alist)
 
 (defcustom gnus-x-face-directory (expand-file-name "x-faces" gnus-directory)
-  "*Directory where X-Face PBM files are stored."
+  "Directory where X-Face PBM files are stored."
   :version "22.1"
   :group 'gnus-fun
   :type 'directory)
@@ -46,7 +46,7 @@
   :type '(choice (const nil) string))
 
 (defcustom gnus-face-directory (expand-file-name "faces" gnus-directory)
-  "*Directory where Face PNG files are stored."
+  "Directory where Face PNG files are stored."
   :version "25.1"
   :group 'gnus-fun
   :type 'directory)

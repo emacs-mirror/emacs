@@ -198,7 +198,10 @@ abbrevs in a file automatically, under the control of variables
 described here.
 
 @defopt abbrev-file-name
-This is the default file name for reading and saving abbrevs.
+This is the default file name for reading and saving abbrevs.  By
+default, Emacs will look for @file{~/.emacs.d/abbrev_defs}, and, if
+not found, for @file{~/.abbrev_defs}; if neither file exists, Emacs
+will create @file{~/.emacs.d/abbrev_defs}.
 @end defopt
 
 @defun quietly-read-abbrev-file &optional filename
@@ -216,7 +219,7 @@ A non-@code{nil} value for @code{save-abbrevs} means that Emacs should
 offer to save abbrevs (if any have changed) when files are saved.  If
 the value is @code{silently}, Emacs saves the abbrevs without asking
 the user.  @code{abbrev-file-name} specifies the file to save the
-abbrevs in.
+abbrevs in.  The default value is @code{t}.
 @end defopt
 
 @defvar abbrevs-changed
@@ -282,7 +285,7 @@ omitted, it defaults to point.  @code{name}, if non-@code{nil}, should
 be the name by which this abbrev was found (a string); it is used to
 figure out whether to adjust the capitalization of the expansion.  The
 function returns @code{abbrev} if the abbrev was successfully
-inserted.
+inserted, otherwise it returns @code{nil}.
 @end defun
 
 @deffn Command abbrev-prefix-mark &optional arg

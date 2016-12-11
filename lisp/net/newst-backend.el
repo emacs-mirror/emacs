@@ -442,13 +442,6 @@ buffers *newsticker-wget-<feed>* will not be closed."
 
 ;; FIXME It is bad practice to define compat functions with such generic names.
 
-;; This is not needed in Emacs >= 22.1.
-(unless (fboundp 'time-add)
-  (require 'time-date);;FIXME
-  (defun time-add (t1 t2)
-    (with-no-warnings ; don't warn about obsolete time-to-seconds in 23.2
-      (seconds-to-time (+ (time-to-seconds t1) (time-to-seconds t2))))))
-
 (unless (fboundp 'match-string-no-properties)
   (defalias 'match-string-no-properties 'match-string))
 

@@ -338,6 +338,10 @@ mouse-3: Toggle minor modes"
 (defvar mode-line-column-line-number-mode-map
   (let ((map (make-sparse-keymap))
 	(menu-map (make-sparse-keymap "Toggle Line and Column Number Display")))
+    (bindings--define-key menu-map [size-indication-mode]
+      '(menu-item "Display Size Indication" size-indication-mode
+		  :help "Toggle displaying a size indication in the mode-line"
+		  :button (:toggle . size-indication-mode)))
     (bindings--define-key menu-map [line-number-mode]
       '(menu-item "Display Line Numbers" line-number-mode
 		  :help "Toggle displaying line numbers in the mode-line"

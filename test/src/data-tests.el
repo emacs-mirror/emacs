@@ -4,18 +4,18 @@
 
 ;; This file is part of GNU Emacs.
 
-;; This program is free software: you can redistribute it and/or
-;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation, either version 3 of the
-;; License, or (at your option) any later version.
-;;
-;; This program is distributed in the hope that it will be useful, but
-;; WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-;; General Public License for more details.
-;;
+;; GNU Emacs is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see `http://www.gnu.org/licenses/'.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -255,3 +255,118 @@ comparing the subr with a much slower lisp implementation."
          (v2 (test-bool-vector-bv-from-hex-string "0000C"))
          (v3 (bool-vector-not v1)))
     (should (equal v2 v3))))
+
+(ert-deftest data-tests-variable-watchers ()
+  (defvar data-tests-var 0)
+  (let* ((watch-data nil)
+         (collect-watch-data
+          (lambda (&rest args) (push args watch-data))))
+    (cl-flet ((should-have-watch-data (data)
+                                      (should (equal (pop watch-data) data))
+                                      (should (null watch-data))))
+      (add-variable-watcher 'data-tests-var collect-watch-data)
+      (setq data-tests-var 1)
+      (should-have-watch-data '(data-tests-var 1 set nil))
+      (let ((data-tests-var 2))
+        (should-have-watch-data '(data-tests-var 2 let nil))
+        (setq data-tests-var 3)
+        (should-have-watch-data '(data-tests-var 3 set nil)))
+      (should-have-watch-data '(data-tests-var 1 unlet nil))
+      ;; `setq-default' on non-local variable is same as `setq'.
+      (setq-default data-tests-var 4)
+      (should-have-watch-data '(data-tests-var 4 set nil))
+      (makunbound 'data-tests-var)
+      (should-have-watch-data '(data-tests-var nil makunbound nil))
+      (setq data-tests-var 5)
+      (should-have-watch-data '(data-tests-var 5 set nil))
+      (remove-variable-watcher 'data-tests-var collect-watch-data)
+      (setq data-tests-var 6)
+      (should (null watch-data)))))
+
+(ert-deftest data-tests-varalias-watchers ()
+  (defvar data-tests-var0 0)
+  (defvar data-tests-var1 0)
+  (defvar data-tests-var2 0)
+  (defvar data-tests-var3 0)
+  (let* ((watch-data nil)
+         (collect-watch-data
+          (lambda (&rest args) (push args watch-data))))
+    (cl-flet ((should-have-watch-data (data)
+                                      (should (equal (pop watch-data) data))
+                                      (should (null watch-data))))
+      ;; Watch var0, then alias it.
+      (add-variable-watcher 'data-tests-var0 collect-watch-data)
+      (defvaralias 'data-tests-var0-alias 'data-tests-var0)
+      (setq data-tests-var0 1)
+      (should-have-watch-data '(data-tests-var0 1 set nil))
+      (setq data-tests-var0-alias 2)
+      (should-have-watch-data '(data-tests-var0 2 set nil))
+      ;; Alias var1, then watch var1-alias.
+      (defvaralias 'data-tests-var1-alias 'data-tests-var1)
+      (add-variable-watcher 'data-tests-var1-alias collect-watch-data)
+      (setq data-tests-var1 1)
+      (should-have-watch-data '(data-tests-var1 1 set nil))
+      (setq data-tests-var1-alias 2)
+      (should-have-watch-data '(data-tests-var1 2 set nil))
+      ;; Alias var2, then watch it.
+      (defvaralias 'data-tests-var2-alias 'data-tests-var2)
+      (add-variable-watcher 'data-tests-var2 collect-watch-data)
+      (setq data-tests-var2 1)
+      (should-have-watch-data '(data-tests-var2 1 set nil))
+      (setq data-tests-var2-alias 2)
+      (should-have-watch-data '(data-tests-var2 2 set nil))
+      ;; Watch var3-alias, then make it alias var3 (this removes the
+      ;; watcher flag).
+      (defvar data-tests-var3-alias 0)
+      (add-variable-watcher 'data-tests-var3-alias collect-watch-data)
+      (defvaralias 'data-tests-var3-alias 'data-tests-var3)
+      (should-have-watch-data '(data-tests-var3-alias
+                                data-tests-var3 defvaralias nil))
+      (setq data-tests-var3 1)
+      (setq data-tests-var3-alias 2)
+      (should (null watch-data)))))
+
+(ert-deftest data-tests-local-variable-watchers ()
+  (defvar-local data-tests-lvar 0)
+  (let* ((buf1 (current-buffer))
+         (buf2 nil)
+         (watch-data nil)
+         (collect-watch-data
+          (lambda (&rest args) (push args watch-data))))
+    (cl-flet ((should-have-watch-data (data)
+                                      (should (equal (pop watch-data) data))
+                                      (should (null watch-data))))
+      (add-variable-watcher 'data-tests-lvar collect-watch-data)
+      (setq data-tests-lvar 1)
+      (should-have-watch-data `(data-tests-lvar 1 set ,buf1))
+      (let ((data-tests-lvar 2))
+        (should-have-watch-data `(data-tests-lvar 2 let ,buf1))
+        (setq data-tests-lvar 3)
+        (should-have-watch-data `(data-tests-lvar 3 set ,buf1)))
+      (should-have-watch-data `(data-tests-lvar 1 unlet ,buf1))
+      (setq-default data-tests-lvar 4)
+      (should-have-watch-data `(data-tests-lvar 4 set nil))
+      (with-temp-buffer
+        (setq buf2 (current-buffer))
+        (setq data-tests-lvar 1)
+        (should-have-watch-data `(data-tests-lvar 1 set ,buf2))
+        (let ((data-tests-lvar 2))
+          (should-have-watch-data `(data-tests-lvar 2 let ,buf2))
+          (setq data-tests-lvar 3)
+          (should-have-watch-data `(data-tests-lvar 3 set ,buf2)))
+        (should-have-watch-data `(data-tests-lvar 1 unlet ,buf2))
+        (kill-local-variable 'data-tests-lvar)
+        (should-have-watch-data `(data-tests-lvar nil makunbound ,buf2))
+        (setq data-tests-lvar 3.5)
+        (should-have-watch-data `(data-tests-lvar 3.5 set ,buf2))
+        (kill-all-local-variables)
+        (should-have-watch-data `(data-tests-lvar nil makunbound ,buf2)))
+      (setq-default data-tests-lvar 4)
+      (should-have-watch-data `(data-tests-lvar 4 set nil))
+      (makunbound 'data-tests-lvar)
+      (should-have-watch-data '(data-tests-lvar nil makunbound nil))
+      (setq data-tests-lvar 5)
+      (should-have-watch-data `(data-tests-lvar 5 set ,buf1))
+      (remove-variable-watcher 'data-tests-lvar collect-watch-data)
+      (setq data-tests-lvar 6)
+      (should (null watch-data)))))

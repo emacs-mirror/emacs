@@ -1,4 +1,4 @@
-;;; auth-source.el --- authentication sources for Gnus and Emacs
+;;; auth-source.el --- authentication sources for Gnus and Emacs -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2008-2016 Free Software Foundation, Inc.
 
@@ -41,7 +41,7 @@
 
 (require 'password-cache)
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 (require 'eieio)
 
 (autoload 'secrets-create-item "secrets")
@@ -363,8 +363,8 @@ Only one of CHOICES will be returned.  The PROMPT is augmented
 with \"[a/b/c] \" if CHOICES is \(?a ?b ?c)."
   (when choices
     (let* ((prompt-choices
-            (apply #'concat (loop for c in choices
-                                 collect (format "%c/" c))))
+            (apply #'concat
+                   (cl-loop for c in choices collect (format "%c/" c))))
            (prompt-choices (concat "[" (substring prompt-choices 0 -1) "] "))
            (full-prompt (concat prompt prompt-choices))
            k)
@@ -417,13 +417,13 @@ with \"[a/b/c] \" if CHOICES is \(?a ?b ?c)."
     ;; Keychain collection matching any user, host, and protocol
     ((eq entry 'macos-keychain-generic)
      (auth-source-backend-parse '(:source (:macos-keychain-generic default))))
-    ;; take macos-keychain-internet:XYZ and recurse to get it as MacOS
+    ;; take macos-keychain-internet:XYZ and recurse to get it as macOS
     ;; Keychain "XYZ" matching any user, host, and protocol
     ((and (stringp entry) (string-match "^macos-keychain-internet:\\(.+\\)"
                                         entry))
      (auth-source-backend-parse `(:source (:macos-keychain-internet
                                            ,(match-string 1 entry)))))
-    ;; take macos-keychain-generic:XYZ and recurse to get it as MacOS
+    ;; take macos-keychain-generic:XYZ and recurse to get it as macOS
     ;; Keychain "XYZ" matching any user, host, and protocol
     ((and (stringp entry) (string-match "^macos-keychain-generic:\\(.+\\)"
                                         entry))
@@ -452,7 +452,7 @@ with \"[a/b/c] \" if CHOICES is \(?a ?b ?c)."
         :search-function #'auth-source-netrc-search
         :create-function #'auth-source-netrc-create)))
 
-    ;; the MacOS Keychain
+    ;; the macOS Keychain
     ((and
       (not (null (plist-get entry :source))) ; the source must not be nil
       (listp (plist-get entry :source))      ; and it must be a list
@@ -538,10 +538,9 @@ parameters."
 
 ;; (mapcar 'auth-source-backend-parse auth-sources)
 
-(defun* auth-source-search (&rest spec
-                                  &key max
-                                  require create delete
-                                  &allow-other-keys)
+(cl-defun auth-source-search (&rest spec
+                              &key max require create delete
+                              &allow-other-keys)
   "Search or modify authentication backends according to SPEC.
 
 This function parses `auth-sources' for matches of the SPEC
@@ -681,9 +680,9 @@ must call it to obtain the actual value."
   (let* ((backends (mapcar #'auth-source-backend-parse auth-sources))
          (max (or max 1))
          (ignored-keys '(:require :create :delete :max))
-         (keys (loop for i below (length spec) by 2
-                     unless (memq (nth i spec) ignored-keys)
-                     collect (nth i spec)))
+         (keys (cl-loop for i below (length spec) by 2
+                        unless (memq (nth i spec) ignored-keys)
+                        collect (nth i spec)))
          (cached (auth-source-remembered-p spec))
          ;; note that we may have cached results but found is still nil
          ;; (there were no results from the search)
@@ -695,24 +694,24 @@ must call it to obtain the actual value."
          "auth-source-search: found %d CACHED results matching %S"
          (length found) spec)
 
-      (assert
+      (cl-assert
        (or (eq t create) (listp create)) t
        "Invalid auth-source :create parameter (must be t or a list): %s %s")
 
-      (assert
+      (cl-assert
        (listp require) t
        "Invalid auth-source :require parameter (must be a list): %s")
 
       (setq filtered-backends (copy-sequence backends))
       (dolist (backend backends)
-        (dolist (key keys)
+        (cl-dolist (key keys)
           ;; ignore invalid slots
           (condition-case nil
               (unless (auth-source-search-collection
                        (plist-get spec key)
                        (slot-value backend key))
                 (setq filtered-backends (delq backend filtered-backends))
-                (return))
+                (cl-return))
             (invalid-slot-name nil))))
 
       (auth-source-do-trivia
@@ -812,12 +811,11 @@ Returns the deleted entries."
 (defun auth-source-forget-all-cached ()
   "Forget all cached auth-source data."
   (interactive)
-  (loop for sym being the symbols of password-data
-        ;; when the symbol name starts with auth-source-magic
-        when (string-match (concat "^" auth-source-magic)
-                           (symbol-name sym))
-        ;; remove that key
-        do (password-cache-remove (symbol-name sym)))
+  (cl-do-symbols (sym password-data)
+    ;; when the symbol name starts with auth-source-magic
+    (when (string-match (concat "^" auth-source-magic) (symbol-name sym))
+      ;; remove that key
+      (password-cache-remove (symbol-name sym))))
   (setq auth-source-netrc-cache nil))
 
 (defun auth-source-format-cache-entry (spec)
@@ -866,27 +864,26 @@ cached data that was found with a search for those two hosts,
 while \(:host t) would find all host entries."
   (let ((count 0)
         sname)
-    (loop for sym being the symbols of password-data
-          ;; when the symbol name matches with auth-source-magic
-          when (and (setq sname (symbol-name sym))
-                    (string-match (concat "^" auth-source-magic "\\(.+\\)")
-                                  sname)
-                    ;; and the spec matches what was stored in the cache
-                    (auth-source-specmatchp spec (read (match-string 1 sname))))
-          ;; remove that key
-          do (progn
-               (password-cache-remove sname)
-               (incf count)))
+    (cl-do-symbols (sym password-data)
+      ;; when the symbol name matches with auth-source-magic
+      (when (and (setq sname (symbol-name sym))
+                 (string-match (concat "^" auth-source-magic "\\(.+\\)")
+                               sname)
+                 ;; and the spec matches what was stored in the cache
+                 (auth-source-specmatchp spec (read (match-string 1 sname))))
+        ;; remove that key
+        (password-cache-remove sname)
+        (cl-incf count)))
     count))
 
 (defun auth-source-specmatchp (spec stored)
-  (let ((keys (loop for i below (length spec) by 2
-                    collect (nth i spec))))
+  (let ((keys (cl-loop for i below (length spec) by 2
+                       collect (nth i spec))))
     (not (eq
-          (dolist (key keys)
+          (cl-dolist (key keys)
             (unless (auth-source-search-collection (plist-get stored key)
                                                    (plist-get spec key))
-              (return 'no)))
+              (cl-return 'no)))
           'no))))
 
 ;; (auth-source-pick-first-password :host "z.lifelogs.com")
@@ -941,8 +938,8 @@ while \(:host t) would find all host entries."
   (cdr (assoc key alist)))
 
 ;; (auth-source-netrc-parse :file "~/.authinfo.gpg")
-(defun* auth-source-netrc-parse (&key file max host user port require
-                                 &allow-other-keys)
+(cl-defun auth-source-netrc-parse (&key file max host user port require
+                                   &allow-other-keys)
   "Parse FILE and return a list of all entries in the file.
 Note that the MAX parameter is used so we can exit the parse early."
   (if (listp file)
@@ -983,8 +980,8 @@ Note that the MAX parameter is used so we can exit the parse early."
                               ;; every element of require is in n(ormalized)
                               (let ((n (nth 0 (auth-source-netrc-normalize
                                                (list alist) file))))
-                                (loop for req in require
-                                      always (plist-get n req)))))))
+                                (cl-loop for req in require
+                                         always (plist-get n req)))))))
                result)
 
           (if (and (functionp cached-secrets)
@@ -1002,7 +999,7 @@ Note that the MAX parameter is used so we can exit the parse early."
             (auth-source--aput
              auth-source-netrc-cache file
              (list :mtime (nth 5 (file-attributes file))
-                   :secret (lexical-let ((v (mapcar #'1+ (buffer-string))))
+                   :secret (let ((v (mapcar #'1+ (buffer-string))))
                              (lambda () (apply #'string (mapcar #'1- v)))))))
           (goto-char (point-min))
           (let ((entries (auth-source-netrc-parse-entries check max))
@@ -1118,7 +1115,7 @@ Note that the MAX parameter is used so we can exit the parse early."
 		(read-passwd
 		 (format "Passphrase for %s tokens: " file)
 		 t))
-	  (setcdr entry (lexical-let ((p (copy-sequence passphrase)))
+	  (setcdr entry (let ((p (copy-sequence passphrase)))
 			  (lambda () p)))
 	  passphrase))))
 
@@ -1155,7 +1152,7 @@ FILE is the file from which we obtained this token."
                       (point-min)
                       (point-max))))))
 
-(defun auto-source--symbol-keyword (symbol)
+(defun auth-source--symbol-keyword (symbol)
   (intern (format ":%s" symbol)))
 
 (defun auth-source-netrc-normalize (alist filename)
@@ -1174,8 +1171,8 @@ FILE is the file from which we obtained this token."
 
                   ;; send back the secret in a function (lexical binding)
                   (when (equal k "secret")
-                    (setq v (lexical-let ((lexv v)
-                                          (token-decoder nil))
+                    (setq v (let ((lexv v)
+                                  (token-decoder nil))
                               (when (string-match "^gpg:" lexv)
                                 ;; it's a GPG token: create a token decoder
                                 ;; which unsets itself once
@@ -1191,7 +1188,7 @@ FILE is the file from which we obtained this token."
                                   (setq lexv (funcall token-decoder lexv)))
                                 lexv))))
                   (setq ret (plist-put ret
-                                       (auto-source--symbol-keyword k)
+                                       (auth-source--symbol-keyword k)
                                        v))))
               ret))
           alist))
@@ -1199,16 +1196,15 @@ FILE is the file from which we obtained this token."
 ;; (setq secret (plist-get (nth 0 (auth-source-search :host t :type 'netrc :K 1 :max 1)) :secret))
 ;; (funcall secret)
 
-(defun* auth-source-netrc-search (&rest
-                                  spec
-                                  &key backend require create
-                                  type max host user port
-                                  &allow-other-keys)
+(cl-defun auth-source-netrc-search (&rest spec
+                                    &key backend require create
+                                    type max host user port
+                                    &allow-other-keys)
   "Given a property list SPEC, return search matches from the :backend.
 See `auth-source-search' for details on SPEC."
   ;; just in case, check that the type is correct (null or same as the backend)
-  (assert (or (null type) (eq type (oref backend type)))
-          t "Invalid netrc search: %s %s")
+  (cl-assert (or (null type) (eq type (oref backend type)))
+             t "Invalid netrc search: %s %s")
 
   (let ((results (auth-source-netrc-normalize
                   (auth-source-netrc-parse
@@ -1245,10 +1241,9 @@ See `auth-source-search' for details on SPEC."
 ;; (auth-source-search :host "nonesuch" :type 'netrc :max 1 :create t)
 ;; (auth-source-search :host "nonesuch" :type 'netrc :max 1 :create t :create-extra-keys '((A "default A") (B)))
 
-(defun* auth-source-netrc-create (&rest spec
-                                        &key backend
-                                        host port create
-                                        &allow-other-keys)
+(cl-defun auth-source-netrc-create (&rest spec
+                                    &key backend host port create
+                                    &allow-other-keys)
   (let* ((base-required '(host user port secret))
          ;; we know (because of an assertion in auth-source-search) that the
          ;; :create parameter is either t or a list (which includes nil)
@@ -1268,7 +1263,7 @@ See `auth-source-search' for details on SPEC."
     ;; fill in the valist with whatever data we may have from the search
     ;; we complete the first value if it's a list and use the value otherwise
     (dolist (br base-required)
-      (let ((val (plist-get spec (auto-source--symbol-keyword br))))
+      (let ((val (plist-get spec (auth-source--symbol-keyword br))))
         (when val
           (let ((br-choice (cond
                             ;; all-accepting choice (predicate is t)
@@ -1280,9 +1275,9 @@ See `auth-source-search' for details on SPEC."
 
     ;; for extra required elements, see if the spec includes a value for them
     (dolist (er create-extra)
-      (let ((k (auto-source--symbol-keyword er))
-            (keys (loop for i below (length spec) by 2
-                        collect (nth i spec))))
+      (let ((k (auth-source--symbol-keyword er))
+            (keys (cl-loop for i below (length spec) by 2
+                           collect (nth i spec))))
         (when (memq k keys)
           (auth-source--aput valist er (plist-get spec k)))))
 
@@ -1292,7 +1287,7 @@ See `auth-source-search' for details on SPEC."
              ;; take the first element if the data is a list
              (data (or (auth-source-netrc-element-or-first data)
                        (plist-get current-data
-                                  (auto-source--symbol-keyword r))))
+                                  (auth-source--symbol-keyword r))))
              ;; this is the default to be offered
              (given-default (auth-source--aget
                              auth-source-creation-defaults r))
@@ -1323,7 +1318,7 @@ See `auth-source-search' for details on SPEC."
                                          (plist-get artificial :port)
                                          "[any port]"))))
              (prompt (or (auth-source--aget auth-source-creation-prompts r)
-                         (case r
+                         (cl-case r
                            (secret "%p password for %u@%h: ")
                            (user "%p user name for %h: ")
                            (host "%p host name for user %u: ")
@@ -1382,9 +1377,9 @@ See `auth-source-search' for details on SPEC."
 
         (when data
           (setq artificial (plist-put artificial
-                                      (auto-source--symbol-keyword r)
+                                      (auth-source--symbol-keyword r)
                                       (if (eq r 'secret)
-                                          (lexical-let ((data data))
+                                          (let ((data data))
                                             (lambda () data))
                                         data))))
 
@@ -1400,7 +1395,7 @@ See `auth-source-search' for details on SPEC."
                                    ;; prepend a space
                                    (if (zerop (length add)) "" " ")
                                    ;; remap auth-source tokens to netrc
-                                   (case r
+                                   (cl-case r
                                      (user   "login")
                                      (host   "machine")
                                      (secret "password")
@@ -1414,8 +1409,8 @@ See `auth-source-search' for details on SPEC."
     (plist-put
      artificial
      :save-function
-     (lexical-let ((file file)
-                   (add add))
+     (let ((file file)
+           (add add))
        (lambda () (auth-source-netrc-saver file add))))
 
     (list artificial)))
@@ -1454,7 +1449,7 @@ Respects `auth-source-save-behavior'.  Uses
               k)
           (while (not done)
             (setq k (auth-source-read-char-choice prompt '(?y ?n ?N ?e ??)))
-            (case k
+            (cl-case k
               (?y (setq done t))
               (?? (save-excursion
                     (with-output-to-temp-buffer bufname
@@ -1526,17 +1521,12 @@ list, it matches the original pattern."
            (heads (if (stringp value)
                       (list (list key value))
                     (mapcar (lambda (v) (list key v)) value))))
-      (loop
-         for h in heads
-         nconc
-           (loop
-              for tl in tails
-              collect (append h tl))))))
+      (cl-loop for h in heads
+               nconc (cl-loop for tl in tails collect (append h tl))))))
 
-(defun* auth-source-secrets-search (&rest
-                                    spec
-                                    &key backend create delete label max
-                                    &allow-other-keys)
+(cl-defun auth-source-secrets-search (&rest spec
+                                      &key backend create delete label max
+                                      &allow-other-keys)
   "Search the Secrets API; spec is like `auth-source'.
 
 The :label key specifies the item's label.  It is the only key
@@ -1569,19 +1559,19 @@ authentication tokens:
 "
 
   ;; TODO
-  (assert (not create) nil
-          "The Secrets API auth-source backend doesn't support creation yet")
+  (cl-assert (not create) nil
+             "The Secrets API auth-source backend doesn't support creation yet")
   ;; TODO
   ;; (secrets-delete-item coll elt)
-  (assert (not delete) nil
-          "The Secrets API auth-source backend doesn't support deletion yet")
+  (cl-assert (not delete) nil
+             "The Secrets API auth-source backend doesn't support deletion yet")
 
   (let* ((coll (oref backend source))
          (max (or max 5000))     ; sanity check: default to stop at 5K
          (ignored-keys '(:create :delete :max :backend :label :require :type))
-         (search-keys (loop for i below (length spec) by 2
-                            unless (memq (nth i spec) ignored-keys)
-                            collect (nth i spec)))
+         (search-keys (cl-loop for i below (length spec) by 2
+                               unless (memq (nth i spec) ignored-keys)
+                               collect (nth i spec)))
          ;; build a search spec without the ignored keys
          ;; if a search key is nil or t (match anything), we skip it
          (search-specs (auth-source-secrets-listify-pattern
@@ -1597,12 +1587,13 @@ authentication tokens:
 				      '(:host :login :port :secret)
 				      search-keys)))
          (items
-          (loop for search-spec in search-specs
-               nconc
-               (loop for item in (apply #'secrets-search-items coll search-spec)
-                  unless (and (stringp label)
-                              (not (string-match label item)))
-                  collect item)))
+          (cl-loop
+           for search-spec in search-specs
+           nconc
+           (cl-loop for item in (apply #'secrets-search-items coll search-spec)
+                    unless (and (stringp label)
+                                (not (string-match label item)))
+                    collect item)))
          ;; TODO: respect max in `secrets-search-items', not after the fact
          (items (butlast items (- (length items) max)))
          ;; convert the item name to a full plist
@@ -1611,7 +1602,7 @@ authentication tokens:
                            ;; make an entry for the secret (password) element
                            (list
                             :secret
-                            (lexical-let ((v (secrets-get-secret coll item)))
+                            (let ((v (secrets-get-secret coll item)))
                               (lambda () v)))
                            ;; rewrite the entry from ((k1 v1) (k2 v2)) to plist
                            (apply #'append
@@ -1653,12 +1644,10 @@ authentication tokens:
 ;; (let ((auth-sources '("macos-keychain-generic:Login"))) (auth-source-search :max 1 :host "git.gnus.org"))
 ;; (let ((auth-sources '("macos-keychain-generic:Login"))) (auth-source-search :max 1))
 
-(defun* auth-source-macos-keychain-search (&rest
-                                    spec
-                                    &key backend create delete
-                                    type max
-                                    &allow-other-keys)
-  "Search the MacOS Keychain; spec is like `auth-source'.
+(cl-defun auth-source-macos-keychain-search (&rest spec
+                                             &key backend create delete type max
+                                             &allow-other-keys)
+  "Search the macOS Keychain; spec is like `auth-source'.
 
 All search keys must match exactly.  If you need substring
 matching, do a wider search and narrow it down yourself.
@@ -1680,13 +1669,13 @@ Similarly, :host maps to \"-c HOST\" (the \"creator\" keychain
 field), :user maps to \"-a USER\", and :port maps to \"-s PORT\".
 
 Here's an example that looks for the first item in the default
-generic MacOS Keychain:
+generic macOS Keychain:
 
  (let ((auth-sources \\='(macos-keychain-generic)))
     (auth-source-search :max 1)
 
 Here's another that looks for the first item in the internet
-MacOS Keychain collection whose label is `gnus':
+macOS Keychain collection whose label is `gnus':
 
  (let ((auth-sources \\='(macos-keychain-internet)))
     (auth-source-search :max 1 :label \"gnus\")
@@ -1698,21 +1687,22 @@ entries for git.gnus.org:
     (auth-source-search :max 1 :host \"git.gnus.org\"))
 "
   ;; TODO
-  (assert (not create) nil
-          "The MacOS Keychain auth-source backend doesn't support creation yet")
+  (cl-assert (not create) nil
+          "The macOS Keychain auth-source backend doesn't support creation yet")
   ;; TODO
   ;; (macos-keychain-delete-item coll elt)
-  (assert (not delete) nil
-          "The MacOS Keychain auth-source backend doesn't support deletion yet")
+  (cl-assert (not delete) nil
+          "The macOS Keychain auth-source backend doesn't support deletion yet")
 
   (let* ((coll (oref backend source))
          (max (or max 5000))     ; sanity check: default to stop at 5K
          ;; Filter out ignored keys from the spec
          (ignored-keys '(:create :delete :max :backend :label :host :port))
          ;; Build a search spec without the ignored keys
-         (search-keys (loop for i below (length spec) by 2
-                            unless (memq (nth i spec) ignored-keys)
-                            collect (nth i spec)))
+         ;; FIXME make this loop a function? it's used in at least 3 places
+         (search-keys (cl-loop for i below (length spec) by 2
+                               unless (memq (nth i spec) ignored-keys)
+                               collect (nth i spec)))
          ;; If a search key value is nil or t (match anything), we skip it
          (search-spec (apply #'append (mapcar
                                       (lambda (k)
@@ -1735,7 +1725,7 @@ entries for git.gnus.org:
          (items (catch 'match
                   (dolist (host hosts)
                     (dolist (port ports)
-                      (let* ((port (format "%S" port))
+                      (let* ((port (if port (format "%S" port)))
                              (items (apply #'auth-source-macos-keychain-search-items
                                            coll
                                            type
@@ -1758,12 +1748,26 @@ entries for git.gnus.org:
                         items)))
     items))
 
-(defun* auth-source-macos-keychain-search-items (coll _type _max
-                                                      host port
-                                                      &key label type
-                                                      user
-                                                      &allow-other-keys)
 
+(defun auth-source--decode-octal-string (string)
+  "Convert octal string to utf-8 string. E.g: 'a\134b' to 'a\b'"
+  (let ((list (string-to-list string))
+        (size (length string)))
+    (decode-coding-string
+     (apply #'unibyte-string
+            (cl-loop for i = 0 then (+ i (if (eq (nth i list) ?\\) 4 1))
+                     for var = (nth i list)
+                     while (< i size)
+                     if (eq var ?\\)
+                     collect (string-to-number
+                              (concat (cl-subseq list (+ i 1) (+ i 4))) 8)
+                     else
+                     collect var))
+     'utf-8)))
+
+(cl-defun auth-source-macos-keychain-search-items (coll _type _max host port
+                                                   &key label type user
+                                                   &allow-other-keys)
   (let* ((keychain-generic (eq type 'macos-keychain-generic))
          (args `(,(if keychain-generic
                       "find-generic-password"
@@ -1792,36 +1796,39 @@ entries for git.gnus.org:
         (goto-char (point-min))
         (while (not (eobp))
           (cond
-           ((looking-at "^password: \"\\(.+\\)\"$")
+           ((looking-at "^password: \\(?:0x[0-9A-F]+\\)? *\"\\(.+\\)\"")
             (setq ret (auth-source-macos-keychain-result-append
                        ret
                        keychain-generic
                        "secret"
-                       (lexical-let ((v (match-string 1)))
+                       (let ((v (auth-source--decode-octal-string
+                                 (match-string 1))))
                          (lambda () v)))))
            ;; TODO: check if this is really the label
            ;; match 0x00000007 <blob>="AppleID"
-           ((looking-at "^[ ]+0x00000007 <blob>=\"\\(.+\\)\"")
+           ((looking-at
+             "^[ ]+0x00000007 <blob>=\\(?:0x[0-9A-F]+\\)? *\"\\(.+\\)\"")
             (setq ret (auth-source-macos-keychain-result-append
                        ret
                        keychain-generic
                        "label"
-                       (match-string 1))))
+                       (auth-source--decode-octal-string (match-string 1)))))
            ;; match "crtr"<uint32>="aapl"
            ;; match "svce"<blob>="AppleID"
-           ((looking-at "^[ ]+\"\\([a-z]+\\)\"[^=]+=\"\\(.+\\)\"")
+           ((looking-at
+             "^[ ]+\"\\([a-z]+\\)\"[^=]+=\\(?:0x[0-9A-F]+\\)? *\"\\(.+\\)\"")
             (setq ret (auth-source-macos-keychain-result-append
                        ret
                        keychain-generic
-                       (match-string 1)
-                       (match-string 2)))))
+                       (auth-source--decode-octal-string (match-string 1))
+                       (auth-source--decode-octal-string (match-string 2))))))
           (forward-line)))
       ;; return `ret' iff it has the :secret key
       (and (plist-get ret :secret) (list ret))))
 
 (defun auth-source-macos-keychain-result-append (result generic k v)
   (push v result)
-  (push (auto-source--symbol-keyword
+  (push (auth-source--symbol-keyword
          (cond
           ((equal k "acct") "user")
           ;; for generic keychains, creator is host, service is port
@@ -1839,18 +1846,16 @@ entries for git.gnus.org:
 
 ;;; Backend specific parsing: PLSTORE backend
 
-(defun* auth-source-plstore-search (&rest
-                                    spec
-                                    &key backend create delete
-                                    max
-                                    &allow-other-keys)
+(cl-defun auth-source-plstore-search (&rest spec
+                                      &key backend create delete max
+                                      &allow-other-keys)
   "Search the PLSTORE; spec is like `auth-source'."
   (let* ((store (oref backend data))
          (max (or max 5000))     ; sanity check: default to stop at 5K
          (ignored-keys '(:create :delete :max :backend :label :require :type))
-         (search-keys (loop for i below (length spec) by 2
-                            unless (memq (nth i spec) ignored-keys)
-                            collect (nth i spec)))
+         (search-keys (cl-loop for i below (length spec) by 2
+                               unless (memq (nth i spec) ignored-keys)
+                               collect (nth i spec)))
          ;; build a search spec without the ignored keys
          ;; if a search key is nil or t (match anything), we skip it
          (search-spec (apply #'append (mapcar
@@ -1877,7 +1882,7 @@ entries for git.gnus.org:
                             (if secret
                                 (setcar
                                  (cdr secret)
-                                 (lexical-let ((v (car (cdr secret))))
+                                 (let ((v (car (cdr secret))))
                                    (lambda () v))))
                             plist))
                         items))
@@ -1915,10 +1920,9 @@ entries for git.gnus.org:
       (plstore-save store)))
     items))
 
-(defun* auth-source-plstore-create (&rest spec
-                                          &key backend
-                                          host port create
-                                          &allow-other-keys)
+(cl-defun auth-source-plstore-create (&rest spec
+                                      &key backend host port create
+                                      &allow-other-keys)
   (let* ((base-required '(host user port secret))
          (base-secret '(secret))
          ;; we know (because of an assertion in auth-source-search) that the
@@ -1938,7 +1942,7 @@ entries for git.gnus.org:
     ;; fill in the valist with whatever data we may have from the search
     ;; we complete the first value if it's a list and use the value otherwise
     (dolist (br base-required)
-      (let ((val (plist-get spec (auto-source--symbol-keyword br))))
+      (let ((val (plist-get spec (auth-source--symbol-keyword br))))
         (when val
           (let ((br-choice (cond
                             ;; all-accepting choice (predicate is t)
@@ -1950,9 +1954,9 @@ entries for git.gnus.org:
 
     ;; for extra required elements, see if the spec includes a value for them
     (dolist (er create-extra)
-      (let ((k (auto-source--symbol-keyword er))
-            (keys (loop for i below (length spec) by 2
-                        collect (nth i spec))))
+      (let ((k (auth-source--symbol-keyword er))
+            (keys (cl-loop for i below (length spec) by 2
+                           collect (nth i spec))))
         (when (memq k keys)
           (auth-source--aput valist er (plist-get spec k)))))
 
@@ -1962,7 +1966,7 @@ entries for git.gnus.org:
              ;; take the first element if the data is a list
              (data (or (auth-source-netrc-element-or-first data)
                        (plist-get current-data
-                                  (auto-source--symbol-keyword r))))
+                                  (auth-source--symbol-keyword r))))
              ;; this is the default to be offered
              (given-default (auth-source--aget
                              auth-source-creation-defaults r))
@@ -1993,7 +1997,7 @@ entries for git.gnus.org:
                                          (plist-get artificial :port)
                                          "[any port]"))))
              (prompt (or (auth-source--aget auth-source-creation-prompts r)
-                         (case r
+                         (cl-case r
                            (secret "%p password for %u@%h: ")
                            (user "%p user name for %h: ")
                            (host "%p host name for user %u: ")
@@ -2022,10 +2026,10 @@ entries for git.gnus.org:
           (if (member r base-secret)
               (setq secret-artificial
                     (plist-put secret-artificial
-                               (auto-source--symbol-keyword r)
+                               (auth-source--symbol-keyword r)
                                data))
             (setq artificial (plist-put artificial
-                                        (auto-source--symbol-keyword r)
+                                        (auth-source--symbol-keyword r)
                                         data))))))
     (plstore-put (oref backend data)
                  (sha1 (format "%s@%s:%s"

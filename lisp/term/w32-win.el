@@ -177,12 +177,15 @@ the last file dropped is selected."
 
  ;;; make f10 activate the real menubar rather than the mini-buffer menu
  ;;; navigation feature.
- (defun w32-menu-bar-open (&optional frame)
+(defun w32-menu-bar-open (&optional frame)
    "Start key navigation of the menu bar in FRAME.
 
 This initially activates the first menu-bar item, and you can then navigate
 with the arrow keys, select a menu entry with the Return key or cancel with
-the Escape key.  If FRAME has no menu bar, this function does nothing.
+one or two Escape keypresses.  (Two Escape keypresses are needed when a
+menu was already dropped down by pressing Return.)
+
+If FRAME has no menu bar, this function does nothing.
 
 If FRAME is nil or not given, use the selected frame.
 If FRAME does not have the menu bar enabled, display a text menu using
@@ -397,11 +400,15 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
     (put 'x-selections (or type 'PRIMARY) value)))
 
 (defun w32--get-selection  (&optional type data-type)
-  (if (and (eq type 'CLIPBOARD)
-           (eq data-type 'STRING))
-      (with-demoted-errors "w32-get-clipboard-data:%S"
-        (w32-get-clipboard-data))
-    (get 'x-selections (or type 'PRIMARY))))
+  (cond ((and (eq type 'CLIPBOARD)
+              (eq data-type 'STRING))
+         (with-demoted-errors "w32-get-clipboard-data:%S"
+           (w32-get-clipboard-data)))
+        ((eq data-type 'TARGETS)
+         (if (eq type 'CLIPBOARD)
+             (w32-selection-targets type)
+           (if (get 'x-selections (or type 'PRIMARY)) '[STRING])))
+        (t (get 'x-selections (or type 'PRIMARY)))))
 
 (defun w32--selection-owner-p (selection)
   (and (memq selection '(nil PRIMARY SECONDARY))

@@ -279,7 +279,7 @@ See `eshell-needs-pipe'."
 	    (let ((process-connection-type
 		   (unless (eshell-needs-pipe-p command)
 		     process-connection-type))
-		  (command (or (file-remote-p command 'localname) command)))
+		  (command (file-local-name command)))
 	      (apply 'start-file-process
 		     (file-name-nondirectory command) nil
 		     ;; `start-process' can't deal with relative filenames.

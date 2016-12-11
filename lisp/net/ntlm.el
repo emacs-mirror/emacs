@@ -5,7 +5,7 @@
 ;; Author: Taro Kawagishi <tarok@transpulse.org>
 ;; Maintainer: Thomas Fitzsimmons <fitzsim@fitzsim.org>
 ;; Keywords: NTLM, SASL, comm
-;; Version: 2.0.0
+;; Version: 2.1.0
 ;; Created: February 2001
 
 ;; This file is part of GNU Emacs.
@@ -49,10 +49,12 @@
 ;;
 ;;  1. Open a network connection to the Exchange server at the IMAP port (143)
 ;;  2. Receive an opening message such as:
-;;     "* OK Microsoft Exchange IMAP4rev1 server version 5.5.2653.7 (XXXX) ready"
+;;     "* OK Microsoft Exchange IMAP4rev1 server
+;;        version 5.5.2653.7 (XXXX) ready"
 ;;  3. Ask for IMAP server capability by sending "NNN capability"
 ;;  4. Receive a capability message such as:
-;;     "* CAPABILITY IMAP4 IMAP4rev1 IDLE LITERAL+ LOGIN-REFERRALS MAILBOX-REFERRALS NAMESPACE AUTH=NTLM"
+;;     "* CAPABILITY IMAP4 IMAP4rev1 IDLE LITERAL+
+;;        LOGIN-REFERRALS MAILBOX-REFERRALS NAMESPACE AUTH=NTLM"
 ;;  5. Ask for NTLM authentication by sending a string
 ;;     "NNN authenticate ntlm"
 ;;  6. Receive continuation acknowledgment "+"
@@ -101,31 +103,34 @@ is not given."
   (let ((request-ident (concat "NTLMSSP" (make-string 1 0)))
 	(request-msgType (concat (make-string 1 1) (make-string 3 0)))
 					;0x01 0x00 0x00 0x00
-	(request-flags (concat (make-string 1 7) (make-string 1 178)
+	(request-flags (concat (make-string 1 7) (make-string 1 130)
 			       (make-string 1 8) (make-string 1 0)))
-					;0x07 0xb2 0x08 0x00
+					;0x07 0x82 0x08 0x00
 	lu ld off-d off-u)
-    (when (string-match "@" user)
+    (when (and user (string-match "@" user))
       (unless domain
 	(setq domain (substring user (1+ (match-beginning 0)))))
       (setq user (substring user 0 (match-beginning 0))))
+    (when (and (stringp domain) (> (length domain) 0))
+      ;; set "negotiate domain supplied" bit
+      (aset request-flags 1 (logior (aref request-flags 1) ?\x10)))
     ;; set fields offsets within the request struct
     (setq lu (length user))
     (setq ld (length domain))
     (setq off-u 32)			;offset to the string 'user
     (setq off-d (+ 32 lu))		;offset to the string 'domain
     ;; pack the request struct in a string
-    (concat request-ident		;8 bytes
-	    request-msgType	;4 bytes
-	    request-flags		;4 bytes
-	    (md4-pack-int16 lu)	;user field, count field
-	    (md4-pack-int16 lu)	;user field, max count field
-	    (md4-pack-int32 (cons 0 off-u)) ;user field, offset field
-	    (md4-pack-int16 ld)	;domain field, count field
-	    (md4-pack-int16 ld)	;domain field, max count field
-	    (md4-pack-int32 (cons 0 off-d)) ;domain field, offset field
-	    user			;buffer field
-	    domain		;buffer field
+    (concat request-ident			;8 bytes
+	    request-msgType			;4 bytes
+	    request-flags			;4 bytes
+	    (md4-pack-int16 lu)			;user field, count field
+	    (md4-pack-int16 lu)			;user field, max count field
+	    (md4-pack-int32 (cons 0 off-u))	;user field, offset field
+	    (md4-pack-int16 ld)			;domain field, count field
+	    (md4-pack-int16 ld)			;domain field, max count field
+	    (md4-pack-int32 (cons 0 off-d))	;domain field, offset field
+	    user				;buffer field
+	    domain				;buffer field
 	    )))
 
 (eval-when-compile
@@ -178,6 +183,10 @@ by PASSWORD-HASHES.  PASSWORD-HASHES should be a return value of
 	 ;;(ident (substring rchallenge 0 8))	;ident, 8 bytes
 	 ;;(msgType (substring rchallenge 8 12))	;msgType, 4 bytes
 	 (uDomain (substring rchallenge 12 20))	;uDomain, 8 bytes
+	 ;; match default setting in `ntlm-build-auth-request'
+	 (request-flags (concat (make-string 1 7) (make-string 1 130)
+				(make-string 1 8) (make-string 1 0)))
+					;0x07 0x82 0x08 0x00
 	 (flags (substring rchallenge 20 24))	;flags, 4 bytes
 	 (challengeData (substring rchallenge 24 32)) ;challengeData, 8 bytes
 	 uDomain-len uDomain-offs
@@ -185,19 +194,28 @@ by PASSWORD-HASHES.  PASSWORD-HASHES should be a return value of
 	 lmRespData			;lmRespData, 24 bytes
 	 ntRespData			;ntRespData, variable length
 	 domain				;ascii domain string
-	 lu ld ln off-lm off-nt off-d off-u off-w off-s)
+	 workstation			;ascii workstation string
+	 ll ln lu ld lw off-lm off-nt off-u off-d off-w)
     ;; extract domain string from challenge string
     (setq uDomain-len (md4-unpack-int16 (substring uDomain 0 2)))
     (setq uDomain-offs (md4-unpack-int32 (substring uDomain 4 8)))
-    (setq domain
-	  (ntlm-unicode2ascii (substring challenge
-					 (cdr uDomain-offs)
-					 (+ (cdr uDomain-offs) uDomain-len))
-			      (/ uDomain-len 2)))
+    ;; match Mozilla behavior, which is to send an empty domain string
+    (setq domain "")
+    ;; match Mozilla behavior, which is to send "WORKSTATION"
+    (setq workstation "WORKSTATION")
     ;; overwrite domain in case user is given in <user>@<domain> format
     (when (string-match "@" user)
       (setq domain (substring user (1+ (match-beginning 0))))
       (setq user (substring user 0 (match-beginning 0))))
+    (when (and (stringp domain) (> (length domain) 0))
+      ;; set "negotiate domain supplied" bit, since presumably domain
+      ;; was also set in `ntlm-build-auth-request'
+      (aset request-flags 1 (logior (aref request-flags 1) ?\x10)))
+    ;; match Mozilla behavior, which is to send the logical and of the
+    ;; type 1 and type 2 flags
+    (dotimes (index 4)
+      (aset flags index (logand (aref flags index)
+				(aref request-flags index))))
 
     (unless (and (integerp ntlm-compatibility-level)
 		 (>= ntlm-compatibility-level 0)
@@ -223,22 +241,20 @@ by PASSWORD-HASHES.  PASSWORD-HASHES should be a return value of
 					(cadr password-hashes)))
 		 (nonce (ntlm-generate-nonce))
 		 (blob (concat (make-string 2 1)
-			       (make-string 2 0)	; blob signature
-			       (make-string 4 0)	; reserved value
-			       (ntlm-compute-timestamp) ; timestamp
-			       nonce			; client nonce
-			       (make-string 4 0)	; unknown
-			       targetInfo		; target info
-			       (make-string 4 0)))	; unknown
+			       (make-string 2 0)	;blob signature
+			       (make-string 4 0)	;reserved value
+			       (ntlm-compute-timestamp)	;timestamp
+			       nonce			;client nonce
+			       (make-string 4 0)	;unknown
+			       targetInfo))		;target info
 		 ;; for reference: LMv2 interim calculation
-		 ;; (lm-interim (hmac-md5 (concat challengeData nonce)
-		 ;;                       ntlmv2-hash))
+		 (lm-interim (hmac-md5 (concat challengeData nonce)
+				       ntlmv2-hash))
 		 (nt-interim (hmac-md5 (concat challengeData blob)
 				       ntlmv2-hash)))
 	    ;; for reference: LMv2 field, but match other clients that
 	    ;; send all zeros
-	    ;; (setq lmRespData (concat lm-interim nonce))
-	    (setq lmRespData (make-string 24 0))
+	    (setq lmRespData (concat lm-interim nonce))
 	    (setq ntRespData (concat nt-interim blob))))
       ;; compatibility level is 2, 1 or 0
       ;; level 2 should be treated specially but it's not clear how,
@@ -263,69 +279,69 @@ by PASSWORD-HASHES.  PASSWORD-HASHES should be a return value of
 	      (ntlm-smb-owf-encrypt (cadr password-hashes) challengeData))))
 
     ;; get offsets to fields to pack the response struct in a string
+    (setq ll (length lmRespData))
+    (setq ln (length ntRespData))
     (setq lu (length user))
     (setq ld (length domain))
-    (setq ln (length ntRespData))
-    (setq off-lm 64)			;offset to string 'lmResponse
-    (setq off-nt (+ 64 24))		;offset to string 'ntResponse
-    (setq off-d (+ 64 24 ln))		;offset to string 'uDomain
-    (setq off-u (+ 64 24 ln (* 2 ld)))	;offset to string 'uUser
-    (setq off-w (+ 64 24 ln (* 2 (+ ld lu)))) ;offset to string 'uWks
-    (setq off-s (+ 64 24 ln (* 2 (+ ld lu lu)))) ;offset to string 'sessionKey
+    (setq lw (length workstation))
+    (setq off-u 64)			;offset to string 'uUser
+    (setq off-d (+ off-u (* 2 lu)))	;offset to string 'uDomain
+    (setq off-w (+ off-d (* 2 ld)))	;offset to string 'uWks
+    (setq off-lm (+ off-w (* 2 lw)))	;offset to string 'lmResponse
+    (setq off-nt (+ off-lm ll))		;offset to string 'ntResponse
     ;; pack the response struct in a string
-    (concat "NTLMSSP\0"			;response ident field, 8 bytes
-	    (md4-pack-int32 '(0 . 3))	;response msgType field, 4 bytes
+    (concat "NTLMSSP\0"				;response ident field, 8 bytes
+	    (md4-pack-int32 '(0 . 3))		;response msgType field, 4 bytes
 
 	    ;; lmResponse field, 8 bytes
 	    ;;AddBytes(response,lmResponse,lmRespData,24);
-	    (md4-pack-int16 24)		;len field
-	    (md4-pack-int16 24)		;maxlen field
-	    (md4-pack-int32 (cons 0 off-lm)) ;field offset
+	    (md4-pack-int16 ll)			;len field
+	    (md4-pack-int16 ll)			;maxlen field
+	    (md4-pack-int32 (cons 0 off-lm))	;field offset
 
 	    ;; ntResponse field, 8 bytes
 	    ;;AddBytes(response,ntResponse,ntRespData,ln);
-	    (md4-pack-int16 ln)	;len field
-	    (md4-pack-int16 ln)	;maxlen field
-	    (md4-pack-int32 (cons 0 off-nt)) ;field offset
+	    (md4-pack-int16 ln)			;len field
+	    (md4-pack-int16 ln)			;maxlen field
+	    (md4-pack-int32 (cons 0 off-nt))	;field offset
 
 	    ;; uDomain field, 8 bytes
 	    ;;AddUnicodeString(response,uDomain,domain);
 	    ;;AddBytes(response, uDomain, udomain, 2*ld);
-	    (md4-pack-int16 (* 2 ld))	;len field
-	    (md4-pack-int16 (* 2 ld))	;maxlen field
-	    (md4-pack-int32 (cons 0 off-d)) ;field offset
+	    (md4-pack-int16 (* 2 ld))		;len field
+	    (md4-pack-int16 (* 2 ld))		;maxlen field
+	    ;; match Mozilla behavior, which is to hard-code the
+	    ;; domain offset to 64
+	    (md4-pack-int32 (cons 0 64))	;field offset
 
 	    ;; uUser field, 8 bytes
 	    ;;AddUnicodeString(response,uUser,u);
 	    ;;AddBytes(response, uUser, uuser, 2*lu);
-	    (md4-pack-int16 (* 2 lu))	;len field
-	    (md4-pack-int16 (* 2 lu))	;maxlen field
-	    (md4-pack-int32 (cons 0 off-u)) ;field offset
+	    (md4-pack-int16 (* 2 lu))		;len field
+	    (md4-pack-int16 (* 2 lu))		;maxlen field
+	    (md4-pack-int32 (cons 0 off-u))	;field offset
 
 	    ;; uWks field, 8 bytes
 	    ;;AddUnicodeString(response,uWks,u);
-	    (md4-pack-int16 (* 2 lu))	;len field
-	    (md4-pack-int16 (* 2 lu))	;maxlen field
-	    (md4-pack-int32 (cons 0 off-w)) ;field offset
+	    (md4-pack-int16 (* 2 lw))		;len field
+	    (md4-pack-int16 (* 2 lw))		;maxlen field
+	    (md4-pack-int32 (cons 0 off-w))	;field offset
 
-	    ;; sessionKey field, 8 bytes
+	    ;; sessionKey field, blank, 8 bytes
 	    ;;AddString(response,sessionKey,NULL);
-	    (md4-pack-int16 0)		;len field
-	    (md4-pack-int16 0)		;maxlen field
-	    (md4-pack-int32 (cons 0 (- off-s off-lm))) ;field offset
+	    (md4-pack-int16 0)			;len field
+	    (md4-pack-int16 0)			;maxlen field
+	    (md4-pack-int32 (cons 0 0))		;field offset
 
 	    ;; flags field, 4 bytes
-	    flags			;
+	    flags
 
 	    ;; buffer field
-	    lmRespData			;lmResponse, 24 bytes
-	    ntRespData			;ntResponse, 24 bytes
-	    (ntlm-ascii2unicode domain	;Unicode domain string, 2*ld bytes
-				(length domain)) ;
-	    (ntlm-ascii2unicode user	;Unicode user string, 2*lu bytes
-				(length user)) ;
-	    (ntlm-ascii2unicode user	;Unicode user string, 2*lu bytes
-				(length user)) ;
+	    (ntlm-ascii2unicode user lu)	;Unicode user, 2*lu bytes
+	    (ntlm-ascii2unicode domain ld)	;Unicode domain, 2*ld bytes
+	    (ntlm-ascii2unicode workstation lw)	;Unicode workstation, 2*lw bytes
+	    lmRespData				;lmResponse, 24 bytes
+	    ntRespData				;ntResponse, ln bytes
 	    )))
 
 (defun ntlm-get-password-hashes (password)
@@ -544,7 +560,7 @@ length of STR is LEN."
     (concat (substring str c len) (substring str 0 c))))
 
 (defsubst ntlm-string-xor (in1 in2 n)
-  "Return exclusive-or of sequences in1 and in2"
+  "Return exclusive-or of sequences in1 and in2."
   (let ((w (make-string n 0)) (i 0))
     (while (< i n)
       (aset w i (logxor (aref in1 i) (aref in2 i)))

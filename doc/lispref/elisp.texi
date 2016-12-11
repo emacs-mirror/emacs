@@ -228,7 +228,7 @@ To view this manual in other formats, click
 
 Appendices
 
-* Antinews::                Info for users downgrading to Emacs 23.
+* Antinews::                Info for users downgrading to Emacs 24.
 * GNU Free Documentation License:: The license for this documentation.
 * GPL::                     Conditions for copying and changing GNU Emacs.
 * Tips::                    Advice and coding conventions for Emacs Lisp.
@@ -498,11 +498,13 @@ Variables
 * Accessing Variables::     Examining values of variables whose names
                               are known only at run time.
 * Setting Variables::       Storing new values in variables.
+* Watching Variables::      Running a function when a variable is changed.
 * Variable Scoping::        How Lisp chooses among local and global values.
 * Buffer-Local Variables::  Variable values in effect only in one buffer.
 * File Local Variables::    Handling local variable lists in files.
 * Directory Local Variables:: Local variables common to all files in a
                                 directory.
+* Connection Local Variables::  Local variables common for remote connections.
 * Variable Aliases::        Variables that are aliases for other variables.
 * Variables with Restricted Values::  Non-constant variables whose value can
                                         @emph{not} be an arbitrary Lisp object.
@@ -641,6 +643,7 @@ The Lisp Debugger
 * Error Debugging::         Entering the debugger when an error happens.
 * Infinite Loops::          Stopping and debugging a program that doesn't exit.
 * Function Debugging::      Entering it when a certain function is called.
+* Variable Debugging::      Entering it when a variable is modified.
 * Explicit Debug::          Entering it at a certain point in the program.
 * Using Debugger::          What the debugger does; what you see while in it.
 * Debugger Commands::       Commands used while in the debugger.
@@ -1038,6 +1041,8 @@ Windows
                               a specific window.
 * Quitting Windows::        How to restore the state prior to displaying a
                               buffer.
+* Side Windows::            Special windows on a frame's sides.
+* Atomic Windows::          Preserving parts of the window layout.
 * Window Point::            Each window has its own location of point.
 * Window Start and End::    Buffer positions indicating which text is
                               on-screen in a window.
@@ -1050,6 +1055,14 @@ Windows
 * Window Hooks::            Hooks for scrolling, window size changes,
                               redisplay going past a certain point,
                               or window configuration changes.
+
+Side Windows
+
+* Displaying Buffers in Side Windows:: An action function for displaying
+                              buffers in side windows.
+* Side Window Options and Functions:: Further tuning of side windows.
+* Frame Layouts with Side Windows:: Setting up frame layouts with side
+                              windows.
 
 Frames
 
@@ -1380,6 +1393,7 @@ Emacs Display
 * Character Display::       How Emacs displays individual characters.
 * Beeping::                 Audible signal to the user.
 * Window Systems::          Which window system is being used.
+* Tooltips::                Tooltip display in Emacs.
 * Bidirectional Display::   Display of bidirectional scripts, such as
                               Arabic and Farsi.
 

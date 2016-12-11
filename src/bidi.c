@@ -532,7 +532,7 @@ bidi_copy_it (struct bidi_it *to, struct bidi_it *from)
   /* Copy everything from the start through the active part of
      the level stack.  */
   memcpy (to, from,
-	  (offsetof (struct bidi_it, level_stack[1])
+	  (offsetof (struct bidi_it, level_stack) + sizeof from->level_stack[0]
 	   + from->stack_idx * sizeof from->level_stack[0]));
 }
 
@@ -1107,15 +1107,9 @@ bidi_initialize (void)
     emacs_abort ();
   staticpro (&bidi_brackets_table);
 
-  DEFSYM (Qparagraph_start, "paragraph-start");
-  paragraph_start_re = Fsymbol_value (Qparagraph_start);
-  if (!STRINGP (paragraph_start_re))
-    paragraph_start_re = build_string ("\f\\|[ \t]*$");
+  paragraph_start_re = build_string ("^\\(\f\\|[ \t]*\\)$");
   staticpro (&paragraph_start_re);
-  DEFSYM (Qparagraph_separate, "paragraph-separate");
-  paragraph_separate_re = Fsymbol_value (Qparagraph_separate);
-  if (!STRINGP (paragraph_separate_re))
-    paragraph_separate_re = build_string ("[ \t\f]*$");
+  paragraph_separate_re = build_string ("^[ \t\f]*$");
   staticpro (&paragraph_separate_re);
 
   bidi_cache_sp = 0;
@@ -2498,10 +2492,10 @@ typedef struct bpa_stack_entry {
 
    And finally, cross-reference these two:
 
-    fgrep -w -f brackets.txt decompositions.txt
+    grep -Fw -f brackets.txt decompositions.txt
 
    where "decompositions.txt" was produced by the 1st script, and
-   "brackets.txt" by the 2nd script.  In the output of fgrep, look
+   "brackets.txt" by the 2nd script.  In the output of grep, look
    only for decompositions that don't begin with some compatibility
    formatting tag, such as "<compat>".  Only decompositions that
    consist solely of character codepoints are relevant to bidi
@@ -2977,15 +2971,13 @@ bidi_resolve_neutral (struct bidi_it *bidi_it)
       /* N1-N2/Retaining */
       || type == WEAK_BN)
     {
-      if (bidi_it->next_for_neutral.type != UNKNOWN_BT)
+      if (bidi_it->next_for_neutral.type != UNKNOWN_BT
+	  && (bidi_it->next_for_neutral.charpos > bidi_it->charpos
+	      /* PDI defines an eos, so it's OK for it to serve as its
+		 own next_for_neutral.  */
+	      || (bidi_it->next_for_neutral.charpos == bidi_it->charpos
+		  && bidi_it->type == PDI)))
 	{
-	  /* Make sure the data for resolving neutrals we are
-	     about to use is valid.  */
-	  eassert (bidi_it->next_for_neutral.charpos > bidi_it->charpos
-		   /* PDI defines an eos, so it's OK for it to
-		      serve as its own next_for_neutral.  */
-		   || (bidi_it->next_for_neutral.charpos == bidi_it->charpos
-		       && bidi_it->type == PDI));
 	  type = bidi_resolve_neutral_1 (bidi_it->prev_for_neutral.type,
 					 bidi_it->next_for_neutral.type,
 					 current_level);

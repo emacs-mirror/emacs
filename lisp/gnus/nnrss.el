@@ -39,6 +39,10 @@
 (require 'mml)
 (require 'xml)
 
+(defgroup nnrss nil
+  "RSS access for Gnus."
+  :group 'gnus)
+
 (nnoo-declare nnrss)
 
 (defvoo nnrss-directory (nnheader-concat gnus-directory "rss/")
@@ -86,14 +90,16 @@ The arguments are (ENTRY GROUP ARTICLE).
 ENTRY is the record of the current headline.  GROUP is the group name.
 ARTICLE is the article number of the current headline.")
 
-(defvar nnrss-file-coding-system mm-universal-coding-system
-  "*Coding system used when reading and writing files.
+(defcustom nnrss-file-coding-system mm-universal-coding-system
+  "Coding system used when reading and writing files.
 If you run Gnus with various versions of Emacsen, the value of this
 variable should be the coding system that all those Emacsen support.
 Note that you have to regenerate all the nnrss groups if you change
 the value.  Moreover, you should be patient even if you are made to
 read the same articles twice, that arises for the difference of the
-versions of xml.el.")
+versions of xml.el."
+  :group 'nnrss
+  :type 'coding-system)
 
 (defvar nnrss-compatible-encoding-alist
   (delq nil (mapcar (lambda (elem)

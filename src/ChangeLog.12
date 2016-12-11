@@ -2895,7 +2895,7 @@
 	(wait_reading_process_output, init_process_emacs):
 	Assume O_NONBLOCK.
 	(wait_reading_process_output): Put in a special case for WINDOWSNT
-	to mimick the older behavior where it had O_NDELAY but not O_NONBLOCK.
+	to mimic the older behavior where it had O_NDELAY but not O_NONBLOCK.
 	It's not clear this is needed, but it's a more-conservative change.
 	(create_process): Assume FD_CLOEXEC.
 	(create_process, create_pty): Assume O_NOCTTY.
@@ -4382,7 +4382,7 @@
 
 	* nsterm.m (ns_dumpglyphs_image): Only draw slice of image (Bug#12506).
 
-	* nsterm.m (ns_update_auto_hide_menu_bar): Remove defintion of
+	* nsterm.m (ns_update_auto_hide_menu_bar): Remove definition of
 	MAC_OS_X_VERSION_10_6.
 	(syms_of_nsterm): Remove comment about Panther and above for
 	ns-antialias-text.

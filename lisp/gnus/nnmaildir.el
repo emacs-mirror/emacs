@@ -125,8 +125,8 @@ SUFFIX should start with \":2,\"."
     (concat ":2," new-flags)))
 
 (defvar nnmaildir-article-file-name nil
-  "*The filename of the most recently requested article.  This variable is set
-by nnmaildir-request-article.")
+  "The filename of the most recently requested article.
+This variable is set by `nnmaildir-request-article'.")
 
 ;; The filename of the article being moved/copied:
 (defvar nnmaildir--file nil)
@@ -371,8 +371,7 @@ by nnmaildir-request-article.")
        (string= (downcase (caddr err)) "too many links")))
 
 (defun nnmaildir--enoent-p (err)
-  (and (eq (car err) 'file-error)
-       (string= (downcase (caddr err)) "no such file or directory")))
+  (eq (car err) 'file-missing))
 
 (defun nnmaildir--eexist-p (err)
   (eq (car err) 'file-already-exists))

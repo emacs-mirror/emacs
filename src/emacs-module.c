@@ -21,16 +21,16 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "emacs-module.h"
 
-#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <string.h>
 
 #include "lisp.h"
 #include "dynlib.h"
 #include "coding.h"
-#include "verify.h"
+
+#include <intprops.h>
+#include <verify.h>
 
 
 /* Feature tests.  */
@@ -147,8 +147,8 @@ static emacs_value const module_nil = 0;
    or a pointer to handle non-local exits.  The function must have an
    ENV parameter.  The function will return the specified value if a
    signal or throw is caught.  */
-// TODO: Have Fsignal check for CATCHER_ALL so we only have to install
-// one handler.
+/* TODO: Have Fsignal check for CATCHER_ALL so we only have to install
+   one handler.  */
 #define MODULE_HANDLE_NONLOCAL_EXIT(retval)                     \
   MODULE_SETJMP (CONDITION_CASE, module_handle_signal, retval); \
   MODULE_SETJMP (CATCHER_ALL, module_handle_throw, retval)
@@ -168,7 +168,7 @@ static emacs_value const module_nil = 0;
    code after the macro may longjmp back into the macro, which means
    its local variable C must stay live in later code.  */
 
-// TODO: Make backtraces work if this macros is used.
+/* TODO: Make backtraces work if this macros is used.  */
 
 #define MODULE_SETJMP_1(handlertype, handlerfunc, retval, c, dummy)	\
   if (module_non_local_exit_check (env) != emacs_funcall_exit_return)	\
@@ -395,17 +395,19 @@ module_make_function (emacs_env *env, ptrdiff_t min_arity, ptrdiff_t max_arity,
   envptr->data = data;
 
   Lisp_Object envobj = make_save_ptr (envptr);
-  Lisp_Object doc
-    = (documentation
-       ? code_convert_string_norecord (build_unibyte_string (documentation),
-				       Qutf_8, false)
-       : Qnil);
+  Lisp_Object doc = Qnil;
+  if (documentation)
+    {
+      AUTO_STRING (unibyte_doc, documentation);
+      doc = code_convert_string_norecord (unibyte_doc, Qutf_8, false);
+    }
+
   /* FIXME: Use a bytecompiled object, or even better a subr.  */
   Lisp_Object ret = list4 (Qlambda,
                            list2 (Qand_rest, Qargs),
                            doc,
                            list4 (Qapply,
-                                  list2 (Qfunction, Qinternal_module_call),
+                                  list2 (Qfunction, Qinternal__module_call),
                                   envobj,
                                   Qargs));
 
@@ -422,13 +424,14 @@ module_funcall (emacs_env *env, emacs_value fun, ptrdiff_t nargs,
      first arg, because that's what Ffuncall takes.  */
   Lisp_Object *newargs;
   USE_SAFE_ALLOCA;
-  if (nargs == PTRDIFF_MAX)
+  ptrdiff_t nargs1;
+  if (INT_ADD_WRAPV (nargs, 1, &nargs1))
     xsignal0 (Qoverflow_error);
-  SAFE_ALLOCA_LISP (newargs, nargs + 1);
+  SAFE_ALLOCA_LISP (newargs, nargs1);
   newargs[0] = value_to_lisp (fun);
   for (ptrdiff_t i = 0; i < nargs; i++)
     newargs[1 + i] = value_to_lisp (args[i]);
-  emacs_value result = lisp_to_value (Ffuncall (nargs + 1, newargs));
+  emacs_value result = lisp_to_value (Ffuncall (nargs1, newargs));
   SAFE_FREE ();
   return result;
 }
@@ -537,7 +540,7 @@ static emacs_value
 module_make_string (emacs_env *env, const char *str, ptrdiff_t length)
 {
   MODULE_FUNCTION_BEGIN (module_nil);
-  Lisp_Object lstr = make_unibyte_string (str, length);
+  AUTO_STRING_WITH_LEN (lstr, str, length);
   return lisp_to_value (code_convert_string_norecord (lstr, Qutf_8, false));
 }
 
@@ -588,13 +591,21 @@ module_set_user_finalizer (emacs_env *env, emacs_value uptr,
 }
 
 static void
+check_vec_index (Lisp_Object lvec, ptrdiff_t i)
+{
+  CHECK_VECTOR (lvec);
+  if (! (0 <= i && i < ASIZE (lvec)))
+    args_out_of_range_3 (make_fixnum_or_float (i),
+			 make_number (0), make_number (ASIZE (lvec) - 1));
+}
+
+static void
 module_vec_set (emacs_env *env, emacs_value vec, ptrdiff_t i, emacs_value val)
 {
   /* FIXME: This function should return bool because it can fail.  */
   MODULE_FUNCTION_BEGIN ();
   Lisp_Object lvec = value_to_lisp (vec);
-  CHECK_VECTOR (lvec);
-  CHECK_RANGED_INTEGER (make_number (i), 0, ASIZE (lvec) - 1);
+  check_vec_index (lvec, i);
   ASET (lvec, i, value_to_lisp (val));
 }
 
@@ -603,8 +614,7 @@ module_vec_get (emacs_env *env, emacs_value vec, ptrdiff_t i)
 {
   MODULE_FUNCTION_BEGIN (module_nil);
   Lisp_Object lvec = value_to_lisp (vec);
-  CHECK_VECTOR (lvec);
-  CHECK_RANGED_INTEGER (make_number (i), 0, ASIZE (lvec) - 1);
+  check_vec_index (lvec, i);
   return lisp_to_value (AREF (lvec, i));
 }
 
@@ -656,7 +666,7 @@ DEFUN ("module-load", Fmodule_load, Smodule_load, 1, 1, 0,
 
   if (r != 0)
     {
-      if (! (MOST_NEGATIVE_FIXNUM <= r && r <= MOST_POSITIVE_FIXNUM))
+      if (FIXNUM_OVERFLOW_P (r))
         xsignal0 (Qoverflow_error);
       xsignal2 (Qmodule_load_failed, file, make_number (r));
     }
@@ -985,10 +995,12 @@ module_format_fun_env (const struct module_fun_env *env)
        ? exprintf (&buf, &bufsize, buffer, -1,
 		   "#<module function %s from %s>", sym, path)
        : sprintf (buffer, noaddr_format, env->subr));
-  Lisp_Object unibyte_result = make_unibyte_string (buffer, size);
+  AUTO_STRING_WITH_LEN (unibyte_result, buffer, size);
+  Lisp_Object result = code_convert_string_norecord (unibyte_result,
+						     Qutf_8, false);
   if (buf != buffer)
     xfree (buf);
-  return code_convert_string_norecord (unibyte_result, Qutf_8, false);
+  return result;
 }
 
 
@@ -1047,7 +1059,7 @@ syms_of_module (void)
 
   defsubr (&Smodule_load);
 
-  DEFSYM (Qinternal_module_call, "internal--module-call");
+  DEFSYM (Qinternal__module_call, "internal--module-call");
   defsubr (&Sinternal_module_call);
 }
 

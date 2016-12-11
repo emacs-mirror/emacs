@@ -162,7 +162,7 @@ extern void reset_standard_handles (int in, int out,
 				    int err, HANDLE handles[4]);
 
 /* Return the string resource associated with KEY of type TYPE.  */
-extern LPBYTE w32_get_resource (char * key, LPDWORD type);
+extern LPBYTE w32_get_resource (const char * key, LPDWORD type);
 
 extern void release_listen_threads (void);
 extern void init_ntproc (int);
@@ -195,6 +195,7 @@ extern int  filename_from_ansi (const char *, char *);
 extern int  filename_to_ansi (const char *, char *);
 extern int  filename_from_utf16 (const wchar_t *, char *);
 extern int  filename_to_utf16 (const char *, wchar_t *);
+extern void w32_init_file_name_codepage (void);
 extern int  codepage_for_filenames (CPINFO *);
 extern Lisp_Object ansi_encode_filename (Lisp_Object);
 extern int  w32_copy_file (const char *, const char *, int, int, int);

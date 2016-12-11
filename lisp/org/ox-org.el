@@ -25,7 +25,7 @@
 ;;; Code:
 
 (require 'ox)
-(declare-function htmlize-buffer "htmlize" (&optional buffer))
+(declare-function htmlize-buffer "ext:htmlize" (&optional buffer))
 
 (defgroup org-export-org nil
   "Options for exporting Org mode files to Org."

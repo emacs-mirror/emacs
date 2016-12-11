@@ -31,25 +31,21 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    an undo-boundary.  */
 static Lisp_Object pending_boundary;
 
-/* Record point as it was at beginning of this command (if necessary)
-   and prepare the undo info for recording a change.
-   Prepare the undo info for recording a change. */
+/* Prepare the undo info for recording a change. */
 static void
 prepare_record (void)
 {
   /* Allocate a cons cell to be the undo boundary after this command.  */
   if (NILP (pending_boundary))
     pending_boundary = Fcons (Qnil, Qnil);
-
-  if (MODIFF <= SAVE_MODIFF)
-    record_first_change ();
 }
 
-/* Record point as it was at beginning of this command.
-   PT is the position of point that will naturally occur as a result of the
-   undo record that will be added just after this command terminates.  */
+/* Record point, if necessary, as it was at beginning of this command.
+   BEG is the position of point that will naturally occur as a result
+   of the undo record that will be added just after this command
+   terminates.  */
 static void
-record_point (ptrdiff_t pt)
+record_point (ptrdiff_t beg)
 {
   /* Don't record position of pt when undo_inhibit_record_point holds.  */
   if (undo_inhibit_record_point)
@@ -57,16 +53,28 @@ record_point (ptrdiff_t pt)
 
   bool at_boundary;
 
+  /* Check whether we are at a boundary now, in case we record the
+  first change. FIXME: This check is currently dependent on being
+  called before record_first_change, but could be made not to by
+  ignoring timestamp undo entries */
   at_boundary = ! CONSP (BVAR (current_buffer, undo_list))
                 || NILP (XCAR (BVAR (current_buffer, undo_list)));
 
-  prepare_record ();
+  /* If this is the first change since save, then record this.*/
+  if (MODIFF <= SAVE_MODIFF)
+    record_first_change ();
 
-  /* If we are just after an undo boundary, and
-     point wasn't at start of deleted range, record where it was.  */
-  if (at_boundary)
+  /* We may need to record point if we are immediately after a
+     boundary, so that this will be restored correctly after undo. We
+     do not need to do this if point is at the start of a change
+     region since it will be restored there anyway, and we must not do
+     this if the buffer has changed since the last command, since the
+     value of point that we have will be for that buffer, not this.*/
+  if (at_boundary
+      && point_before_last_command_or_undo != beg
+      && buffer_before_last_command_or_undo == current_buffer )
     bset_undo_list (current_buffer,
-		    Fcons (make_number (pt),
+		    Fcons (make_number (point_before_last_command_or_undo),
 			   BVAR (current_buffer, undo_list)));
 }
 
@@ -84,6 +92,8 @@ record_insert (ptrdiff_t beg, ptrdiff_t length)
     return;
 
   prepare_record ();
+
+  record_point (beg);
 
   /* If this is following another insertion and consecutive with it
      in the buffer, combine the two.  */
@@ -120,9 +130,7 @@ record_marker_adjustments (ptrdiff_t from, ptrdiff_t to)
   register struct Lisp_Marker *m;
   register ptrdiff_t charpos, adjustment;
 
-  /* Allocate a cons cell to be the undo boundary after this command.  */
-  if (NILP (pending_boundary))
-    pending_boundary = Fcons (Qnil, Qnil);
+  prepare_record();
 
   for (m = BUF_MARKERS (current_buffer); m; m = m->next)
     {
@@ -163,19 +171,17 @@ record_delete (ptrdiff_t beg, Lisp_Object string, bool record_markers)
   if (EQ (BVAR (current_buffer, undo_list), Qt))
     return;
 
-  if (point_before_last_command_or_undo != beg
-      && buffer_before_last_command_or_undo == current_buffer)
-    record_point (point_before_last_command_or_undo);
+  prepare_record ();
+
+  record_point (beg);
 
   if (PT == beg + SCHARS (string))
     {
       XSETINT (sbeg, -beg);
-      prepare_record ();
     }
   else
     {
       XSETFASTINT (sbeg, beg);
-      prepare_record ();
     }
 
   /* primitive-undo assumes marker adjustments are recorded
@@ -234,9 +240,7 @@ record_property_change (ptrdiff_t beg, ptrdiff_t length,
   if (EQ (BVAR (buf, undo_list), Qt))
     return;
 
-  /* Allocate a cons cell to be the undo boundary after this command.  */
-  if (NILP (pending_boundary))
-    pending_boundary = Fcons (Qnil, Qnil);
+  prepare_record();
 
   if (MODIFF <= SAVE_MODIFF)
     record_first_change ();

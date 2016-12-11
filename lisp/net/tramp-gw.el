@@ -93,7 +93,7 @@
 
 (defun tramp-gw-gw-proc-sentinel (proc _event)
   "Delete auxiliary process when we are deleted."
-  (unless (memq (process-status proc) '(run open))
+  (unless (tramp-compat-process-live-p proc)
     (tramp-message
      tramp-gw-vector 4 "Deleting auxiliary process `%s'" tramp-gw-gw-proc)
     (let* ((tramp-verbose 0)
@@ -102,7 +102,7 @@
 
 (defun tramp-gw-aux-proc-sentinel (proc _event)
   "Activate the different filters for involved gateway and auxiliary processes."
-  (when (memq (process-status proc) '(run open))
+  (when (tramp-compat-process-live-p proc)
     ;; A new process has been spawned from `tramp-gw-aux-proc'.
     (tramp-message
      tramp-gw-vector 4
@@ -125,6 +125,7 @@
 	  (tramp-gw-process-filter tramp-gw-gw-proc s))))))
 
 (defun tramp-gw-process-filter (proc string)
+  "Resend the string to the other process."
   (let ((tramp-verbose 0))
     ;; The other process might have been stopped already.  We don't
     ;; want to be interrupted then.
@@ -148,8 +149,7 @@ instead of the host name declared in TARGET-VEC."
 	tramp-gw-gw-vector gw-vec)
 
   ;; Start listening auxiliary process.
-  (unless (and (processp tramp-gw-aux-proc)
-	       (memq (process-status tramp-gw-aux-proc) '(listen)))
+  (unless (tramp-compat-process-live-p tramp-gw-aux-proc)
     (let ((aux-vec
 	   (vector "aux" (tramp-file-name-user gw-vec)
 		   (tramp-file-name-host gw-vec) nil nil)))
@@ -331,6 +331,9 @@ password in password cache.  This is done for the first try only."
 ;;; TODO:
 
 ;; * Provide descriptive Commentary.
+;;
 ;; * Enable it for several gateway processes in parallel.
+;;
+;; * Use `url-https-proxy-connect' as of Emacs 26.
 
 ;;; tramp-gw.el ends here

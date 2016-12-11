@@ -294,14 +294,14 @@ is `(valuefunc member)'."
   :group 'gnus)
 
 (defcustom nnir-ignored-newsgroups ""
-  "*A regexp to match newsgroups in the active file that should
+  "A regexp to match newsgroups in the active file that should
   be skipped when searching."
   :version "24.1"
   :type '(regexp)
   :group 'nnir)
 
 (defcustom nnir-summary-line-format nil
-  "*The format specification of the lines in an nnir summary buffer.
+  "The format specification of the lines in an nnir summary buffer.
 
 All the items from `gnus-summary-line-format' are available, along
 with three items unique to nnir summary buffers:
@@ -316,7 +316,7 @@ If nil this will use `gnus-summary-line-format'."
   :group 'nnir)
 
 (defcustom nnir-retrieve-headers-override-function nil
-  "*If non-nil, a function that accepts an article list and group
+  "If non-nil, a function that accepts an article list and group
 and populates the `nntp-server-buffer' with the retrieved
 headers. Must return either 'nov or 'headers indicating the
 retrieved header format.
@@ -328,7 +328,7 @@ result, `gnus-retrieve-headers' will be called instead."
   :group 'nnir)
 
 (defcustom nnir-imap-default-search-key "whole message"
-  "*The default IMAP search key for an nnir search. Must be one of
+  "The default IMAP search key for an nnir search. Must be one of
   the keys in `nnir-imap-search-arguments'. To use raw imap queries
   by default set this to \"imap\"."
   :version "24.1"
@@ -338,17 +338,17 @@ result, `gnus-retrieve-headers' will be called instead."
 
 (defcustom nnir-swish++-configuration-file
   (expand-file-name "~/Mail/swish++.conf")
-  "*Configuration file for swish++."
+  "Configuration file for swish++."
   :type '(file)
   :group 'nnir)
 
 (defcustom nnir-swish++-program "search"
-  "*Name of swish++ search executable."
+  "Name of swish++ search executable."
   :type '(string)
   :group 'nnir)
 
 (defcustom nnir-swish++-additional-switches '()
-  "*A list of strings, to be given as additional arguments to swish++.
+  "A list of strings, to be given as additional arguments to swish++.
 
 Note that this should be a list.  I.e., do NOT use the following:
     (setq nnir-swish++-additional-switches \"-i -w\") ; wrong
@@ -358,7 +358,7 @@ Instead, use this:
   :group 'nnir)
 
 (defcustom nnir-swish++-remove-prefix (concat (getenv "HOME") "/Mail/")
-  "*The prefix to remove from each file name returned by swish++
+  "The prefix to remove from each file name returned by swish++
 in order to get a group name (albeit with / instead of .).  This is a
 regular expression.
 
@@ -376,7 +376,7 @@ that it is for swish++, not Namazu."
 			'nnir-swish-e-index-files "Emacs 23.1")
 (defcustom nnir-swish-e-index-file
   (expand-file-name "~/Mail/index.swish-e")
-  "*Index file for swish-e.
+  "Index file for swish-e.
 This could be a server parameter.
 It is never consulted once `nnir-swish-e-index-files', which should be
 used instead, has been customized."
@@ -385,19 +385,19 @@ used instead, has been customized."
 
 (defcustom nnir-swish-e-index-files
   (list nnir-swish-e-index-file)
-  "*List of index files for swish-e.
+  "List of index files for swish-e.
 This could be a server parameter."
   :type '(repeat (file))
   :group 'nnir)
 
 (defcustom nnir-swish-e-program "swish-e"
-  "*Name of swish-e search executable.
+  "Name of swish-e search executable.
 This cannot be a server parameter."
   :type '(string)
   :group 'nnir)
 
 (defcustom nnir-swish-e-additional-switches '()
-  "*A list of strings, to be given as additional arguments to swish-e.
+  "A list of strings, to be given as additional arguments to swish-e.
 
 Note that this should be a list.  I.e., do NOT use the following:
     (setq nnir-swish-e-additional-switches \"-i -w\") ; wrong
@@ -409,7 +409,7 @@ This could be a server parameter."
   :group 'nnir)
 
 (defcustom nnir-swish-e-remove-prefix (concat (getenv "HOME") "/Mail/")
-  "*The prefix to remove from each file name returned by swish-e
+  "The prefix to remove from each file name returned by swish-e
 in order to get a group name (albeit with / instead of .).  This is a
 regular expression.
 
@@ -423,12 +423,12 @@ This could be a server parameter."
 ;; HyREX engine, see <URL:http://ls6-www.cs.uni-dortmund.de/>
 
 (defcustom nnir-hyrex-program "nnir-search"
-  "*Name of the nnir-search executable."
+  "Name of the nnir-search executable."
   :type '(string)
   :group 'nnir)
 
 (defcustom nnir-hyrex-additional-switches '()
-  "*A list of strings, to be given as additional arguments for nnir-search.
+  "A list of strings, to be given as additional arguments for nnir-search.
 Note that this should be a list. I.e., do NOT use the following:
     (setq nnir-hyrex-additional-switches \"-ddl ddl.xml -c nnir\") ; wrong !
 Instead, use this:
@@ -437,12 +437,12 @@ Instead, use this:
   :group 'nnir)
 
 (defcustom nnir-hyrex-index-directory (getenv "HOME")
-  "*Index directory for HyREX."
+  "Index directory for HyREX."
   :type '(directory)
   :group 'nnir)
 
 (defcustom nnir-hyrex-remove-prefix (concat (getenv "HOME") "/Mail/")
-  "*The prefix to remove from each file name returned by HyREX
+  "The prefix to remove from each file name returned by HyREX
 in order to get a group name (albeit with / instead of .).
 
 For example, suppose that HyREX returns file names such as
@@ -457,17 +457,17 @@ arrive at the correct group name, \"mail.misc\"."
 ;; Namazu engine, see <URL:http://www.namazu.org/>
 
 (defcustom nnir-namazu-program "namazu"
-  "*Name of Namazu search executable."
+  "Name of Namazu search executable."
   :type '(string)
   :group 'nnir)
 
 (defcustom nnir-namazu-index-directory (expand-file-name "~/Mail/namazu/")
-  "*Index directory for Namazu."
+  "Index directory for Namazu."
   :type '(directory)
   :group 'nnir)
 
 (defcustom nnir-namazu-additional-switches '()
-  "*A list of strings, to be given as additional arguments to namazu.
+  "A list of strings, to be given as additional arguments to namazu.
 The switches `-q', `-a', and `-s' are always used, very few other switches
 make any sense in this context.
 
@@ -479,7 +479,7 @@ Instead, use this:
   :group 'nnir)
 
 (defcustom nnir-namazu-remove-prefix (concat (getenv "HOME") "/Mail/")
-  "*The prefix to remove from each file name returned by Namazu
+  "The prefix to remove from each file name returned by Namazu
 in order to get a group name (albeit with / instead of .).
 
 For example, suppose that Namazu returns file names such as
@@ -492,13 +492,13 @@ arrive at the correct group name, \"mail.misc\"."
   :group 'nnir)
 
 (defcustom nnir-notmuch-program "notmuch"
-  "*Name of notmuch search executable."
+  "Name of notmuch search executable."
   :version "24.1"
   :type '(string)
   :group 'nnir)
 
 (defcustom nnir-notmuch-additional-switches '()
-  "*A list of strings, to be given as additional arguments to notmuch.
+  "A list of strings, to be given as additional arguments to notmuch.
 
 Note that this should be a list.  I.e., do NOT use the following:
     (setq nnir-notmuch-additional-switches \"-i -w\") ; wrong
@@ -509,7 +509,7 @@ Instead, use this:
   :group 'nnir)
 
 (defcustom nnir-notmuch-remove-prefix (concat (getenv "HOME") "/Mail/")
-  "*The prefix to remove from each file name returned by notmuch
+  "The prefix to remove from each file name returned by notmuch
 in order to get a group name (albeit with / instead of .).  This is a
 regular expression.
 
@@ -563,7 +563,7 @@ needs the variables `nnir-namazu-program',
 Add an entry here when adding a new search engine.")
 
 (defcustom nnir-method-default-engines  '((nnimap . imap) (nntp . gmane))
-  "*Alist of default search engines keyed by server method."
+  "Alist of default search engines keyed by server method."
   :version "24.1"
   :group 'nnir
   :type `(repeat (cons (choice (const nnimap) (const nntp) (const nnspool)

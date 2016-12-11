@@ -55,12 +55,12 @@
 	     t)
 
 (defcustom ede-simple-save-directory "~/.ede"
-  "*Directory where simple EDE project overlays are saved."
+  "Directory where simple EDE project overlays are saved."
  :group 'ede
  :type 'directory)
 
 (defcustom ede-simple-save-file-name "ProjSimple.ede"
-  "*File name used for simple project wrappers."
+  "File name used for simple project wrappers."
   :group 'ede
   :type 'string)
 

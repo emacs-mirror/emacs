@@ -102,7 +102,7 @@ This only happens if `flyspell-sort-corrections' is non-nil.  The
 function takes three parameters -- the two correction candidates
 to be sorted, and the third parameter is the word that's being
 corrected."
-  :version "25.2"
+  :version "26.1"
   :type 'function
   :group 'flyspell)
 
@@ -368,7 +368,7 @@ property of the major mode name.")
 (defun texinfo-mode-flyspell-verify ()
   "Function used for `flyspell-generic-check-word-predicate' in Texinfo mode."
   (save-excursion
-    (forward-word -1)
+    (forward-word-strictly -1)
     (not (looking-at "@"))))
 
 ;;*--- tex mode --------------------------------------------------------*/

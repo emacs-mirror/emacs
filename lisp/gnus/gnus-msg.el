@@ -33,7 +33,7 @@
 (require 'gnus-util)
 
 (defcustom gnus-post-method 'current
-  "*Preferred method for posting USENET news.
+  "Preferred method for posting USENET news.
 
 If this variable is `current' (which is the default), Gnus will use
 the \"current\" select method when posting.  If it is `native', Gnus
@@ -71,7 +71,7 @@ of names)."
 (make-obsolete-variable 'gnus-outgoing-message-group 'gnus-message-archive-group "24.1")
 
 (defcustom gnus-mailing-list-groups nil
-  "*If non-nil a regexp matching groups that are really mailing lists.
+  "If non-nil a regexp matching groups that are really mailing lists.
 This is useful when you're reading a mailing list that has been
 gatewayed to a newsgroup, and you want to followup to an article in
 the group."
@@ -80,7 +80,7 @@ the group."
 		 (const nil)))
 
 (defcustom gnus-add-to-list nil
-  "*If non-nil, add a `to-list' parameter automatically."
+  "If non-nil, add a `to-list' parameter automatically."
   :group 'gnus-message
   :type 'boolean)
 
@@ -111,12 +111,12 @@ the second with the current group name."
   :type 'hook)
 
 (defcustom gnus-bug-create-help-buffer t
-  "*Should we create the *Gnus Help Bug* buffer?"
+  "Should we create the *Gnus Help Bug* buffer?"
   :group 'gnus-message
   :type 'boolean)
 
 (defcustom gnus-posting-styles nil
-  "*Alist of styles to use when posting.
+  "Alist of styles to use when posting.
 See Info node `(gnus)Posting Styles'."
   :group 'gnus-message
   :link '(custom-manual "(gnus)Posting Styles")

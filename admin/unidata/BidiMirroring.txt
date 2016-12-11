@@ -1,19 +1,21 @@
-# BidiMirroring-8.0.0.txt
-# Date: 2015-01-20, 18:30:00 GMT [KW, LI]
+# BidiMirroring-9.0.0.txt
+# Date: 2016-01-21, 22:00:00 GMT [KW, LI]
+# © 2016 Unicode®, Inc.
+# For terms of use, see http://www.unicode.org/terms_of_use.html
+#
+# Unicode Character Database
+# For documentation, see http://www.unicode.org/reports/tr44/
 #
 # Bidi_Mirroring_Glyph Property
 # 
 # This file is an informative contributory data file in the
 # Unicode Character Database.
 #
-# Copyright (c) 1991-2015 Unicode, Inc.
-# For terms of use, see http://www.unicode.org/terms_of_use.html
-#
 # This data file lists characters that have the Bidi_Mirrored=Yes property
 # value, for which there is another Unicode character that typically has a glyph
 # that is the mirror image of the original character's glyph.
 #
-# The repertoire covered by the file is Unicode 8.0.0.
+# The repertoire covered by the file is Unicode 9.0.0.
 # 
 # The file contains a list of lines with mappings from one code point
 # to another one for character-based mirroring.

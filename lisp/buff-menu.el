@@ -37,6 +37,12 @@
   :group 'tools
   :group 'convenience)
 
+(defvar Buffer-menu-marker-char ?>
+  "The mark character for marked buffers.")
+
+(defvar Buffer-menu-del-char ?D
+  "Character used to flag buffers for deletion.")
+
 (defcustom Buffer-menu-use-header-line t
   "If non-nil, use the header line to display Buffer Menu column titles."
   :type 'boolean
@@ -121,6 +127,8 @@ commands.")
     (define-key map "\177" 'Buffer-menu-backup-unmark)
     (define-key map "~" 'Buffer-menu-not-modified)
     (define-key map "u" 'Buffer-menu-unmark)
+    (define-key map "\M-\177" 'Buffer-menu-unmark-all-buffers)
+    (define-key map "U" 'Buffer-menu-unmark-all)
     (define-key map "m" 'Buffer-menu-mark)
     (define-key map "t" 'Buffer-menu-visit-tags-table)
     (define-key map "%" 'Buffer-menu-toggle-read-only)
@@ -197,6 +205,12 @@ commands.")
     (bindings--define-key menu-map [umk]
       '(menu-item "Unmark" Buffer-menu-unmark
 		 :help "Cancel all requested operations on buffer on this line and move down"))
+    (bindings--define-key menu-map [umkab]
+      '(menu-item "Remove marks..." Buffer-menu-unmark-all-buffers
+                  :help "Cancel a requested operation on all buffers"))
+    (bindings--define-key menu-map [umka]
+      '(menu-item "Unmark all" Buffer-menu-unmark-all
+                  :help "Cancel all requested operations on buffers"))
     (bindings--define-key menu-map [mk]
       '(menu-item "Mark" Buffer-menu-mark
 		 :help "Mark buffer on this line for being displayed by v command"))
@@ -239,6 +253,8 @@ In Buffer Menu mode, the following commands are defined:
 \\[Buffer-menu-execute]    Delete or save marked buffers.
 \\[Buffer-menu-unmark]    Remove all marks from current line.
      With prefix argument, also move up one line.
+\\[Buffer-menu-unmark-all-buffers]    Remove a particular mark from all lines.
+\\[Buffer-menu-unmark-all]    Remove all marks from all lines.
 \\[Buffer-menu-backup-unmark]  Back up a line and remove marks.
 \\[Buffer-menu-toggle-read-only]    Toggle read-only status of buffer on this line.
 \\[revert-buffer]    Update the list of buffers.
@@ -328,7 +344,7 @@ is nil or omitted, and signal an error otherwise."
 (defun Buffer-menu-no-header ()
   (beginning-of-line)
   (if (or Buffer-menu-use-header-line
-	  (not (eq (char-after) ?C)))
+	  (not (tabulated-list-header-overlay-p (point))))
       t
     (ding)
     (forward-line 1)
@@ -346,7 +362,7 @@ is nil or omitted, and signal an error otherwise."
   "Mark the Buffer menu entry at point for later display.
 It will be displayed by the \\<Buffer-menu-mode-map>\\[Buffer-menu-select] command."
   (interactive)
-  (tabulated-list-set-col 0 ">" t)
+  (tabulated-list-set-col 0 (char-to-string Buffer-menu-marker-char) t)
   (forward-line))
 
 (defun Buffer-menu-unmark (&optional backup)
@@ -355,6 +371,28 @@ Optional prefix arg means move up."
   (interactive "P")
   (Buffer-menu--unmark)
   (forward-line (if backup -1 1)))
+
+(defun Buffer-menu-unmark-all-buffers (mark)
+  "Cancel a requested operation on all buffers.
+MARK is the character to flag the operation on the buffers.
+When called interactively prompt for MARK;  RET remove all marks."
+  (interactive "cRemove marks (RET means all):")
+  (save-excursion
+    (goto-char (point-min))
+    (when (tabulated-list-header-overlay-p)
+      (forward-line))
+    (while (not (eobp))
+      (let ((xmarks (list (aref (tabulated-list-get-entry) 0)
+                          (aref (tabulated-list-get-entry) 2))))
+        (when (or (char-equal mark ?\r)
+                  (member (char-to-string mark) xmarks))
+          (Buffer-menu--unmark)))
+      (forward-line))))
+
+(defun Buffer-menu-unmark-all ()
+  "Cancel all requested operations on buffers."
+  (interactive)
+  (Buffer-menu-unmark-all-buffers ?\r))
 
 (defun Buffer-menu-backup-unmark ()
   "Move up and cancel all requested operations on buffer on line above."
@@ -382,12 +420,12 @@ buffers to delete; a negative ARG means to delete backwards."
       (setq arg 1))
   (while (> arg 0)
     (when (Buffer-menu-buffer)
-      (tabulated-list-set-col 0 "D" t))
+      (tabulated-list-set-col 0 (char-to-string Buffer-menu-del-char) t))
     (forward-line 1)
     (setq arg (1- arg)))
   (while (< arg 0)
     (when (Buffer-menu-buffer)
-      (tabulated-list-set-col 0 "D" t))
+      (tabulated-list-set-col 0 (char-to-string Buffer-menu-del-char) t))
     (forward-line -1)
     (setq arg (1+ arg))))
 
@@ -633,7 +671,8 @@ means list those buffers and no others."
 	       (file buffer-file-name))
 	  (when (and (buffer-live-p buffer)
 		     (or buffer-list
-			 (and (not (string= (substring name 0 1) " "))
+			 (and (or (not (string= (substring name 0 1) " "))
+                                  file)
 			      (not (eq buffer buffer-menu-buffer))
 			      (or file show-non-file))))
 	    (push (list buffer

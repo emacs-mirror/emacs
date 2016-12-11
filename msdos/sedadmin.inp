@@ -15,15 +15,11 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 # ----------------------------------------------------------------------
-/^SHELL *=/s/^/# /
+/^SHELL *=/s!@SHELL@!/bin/sh!
+/^AWK *=/s/@AWK@/gawk/
 /^srcdir *=/s/@[^@\n]*@/./
 /^top_srcdir *=/s|@[^@\n]*@|../..|
 /^top_builddir *=/s|@[^@\n]*@|../..|
-
-/^	 *-if /,/^	 *fi/d
-/^	 *if test -f charprop/,/^	 *fi/c\
-	rm -f uni-*.el
-/^	 *if test -f \${DSTDIR/,/^	 *fi/c\
-	rm -f ${DSTDIR}/uni-*.el ${DSTDIR}/charprop.el
-/^	 *cp `sed -n/c\
-	cp uni-*.el ${DSTDIR}
+/^AM_DEFAULT_VERBOSITY *=/s/@AM_DEFAULT_VERBOSITY@/1/
+/^[Aa][Mm]_/s/@AM_V@/$(V)/
+/^[Aa][Mm]_/s/@AM_DEFAULT_V@/$(AM_DEFAULT_VERBOSITY)/

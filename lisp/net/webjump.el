@@ -67,142 +67,18 @@
 
 ;;------------------------------------------------------------------- Constants
 
-(defvar webjump-sample-sites
+(defgroup webjump nil
+  "Programmable Web hotlist."
+  :prefix "webjump-"
+  :group 'browse-url)
+
+(defconst webjump-sample-sites
   '(
     ;; FSF, not including Emacs-specific.
     ("GNU Project FTP Archive" .
      ;; GNU FTP Mirror List from http://www.gnu.org/order/ftp.html
      [mirrors "ftp://ftp.gnu.org/pub/gnu/"
-              ;; United States
-              "ftp://mirrors.kernel.org/gnu"
-              "ftp://gatekeeper.dec.com/pub/GNU/"
-              "ftp://ftp.keystealth.org/pub/gnu/"
-              "ftp://mirrors.usc.edu/pub/gnu/"
-              "ftp://cudlug.cudenver.edu/pub/mirrors/ftp.gnu.org/"
-              "ftp://ftp.cise.ufl.edu/pub/mirrors/GNU/"
-              "ftp://uiarchive.cso.uiuc.edu/pub/ftp/ftp.gnu.org/gnu/"
-              "ftp://gnu.cs.lewisu.edu/gnu/"
-              "ftp://ftp.in-span.net/pub/mirrors/ftp.gnu.org/"
-              "ftp://gnu.ms.uky.edu/pub/mirrors/gnu/"
-              "ftp://ftp.algx.net/pub/gnu/"
-              "ftp://aeneas.mit.edu/pub/gnu/"
-              "ftp://ftp.egr.msu.edu/pub/gnu/"
-              "ftp://ftp.wayne.edu/pub/gnu/"
-              "ftp://wuarchive.wustl.edu/mirrors/gnu/"
-              "ftp://gnu.teleglobe.net/ftp.gnu.org/"
-              "ftp://ftp.cs.columbia.edu/archives/gnu/prep/"
-              "ftp://ftp.ece.cornell.edu/pub/mirrors/gnu/"
-              "ftp://ftp.ibiblio.org/pub/mirrors/gnu/"
-              "ftp://ftp.cis.ohio-state.edu/mirror/gnu/"
-              "ftp://ftp.club.cc.cmu.edu/gnu/"
-              "ftp://ftp.sunsite.utk.edu/pub/gnu/ftp/"
-              "ftp://thales.memphis.edu/pub/gnu/"
-              "ftp://gnu.wwc.edu"
-              "ftp://ftp.twtelecom.net/pub/GNU/"
-              ;; Africa
-              "ftp://ftp.sun.ac.za/mirrorsites/ftp.gnu.org"
-              ;; The Americas
-              "ftp://ftp.unicamp.br/pub/gnu/"
-              "ftp://master.softaplic.com.br/pub/gnu/"
-              "ftp://ftp.matrix.com.br/pub/gnu/"
-              "ftp://ftp.pucpr.br/gnu"
-              "ftp://ftp.linorg.usp.br/gnu"
-              "ftp://ftp.cs.ubc.ca/mirror2/gnu/"
-              "ftp://cs.ubishops.ca/pub/ftp.gnu.org/"
-              "ftp://ftp.inf.utfsm.cl/pub/gnu/"
-              "ftp://sunsite.ulatina.ac.cr/Mirrors/GNU/"
-              "ftp://www.gnu.unam.mx/pub/gnu/software/"
-              "ftp://gnu.cem.itesm.mx/pub/mirrors/gnu.org/"
-              "ftp://ftp.azc.uam.mx/mirrors/gnu/"
-              ;; Australia
-              "ftp://mirror.aarnet.edu.au/pub/gnu/"
-              "ftp://gnu.mirror.pacific.net.au/gnu/"
-              ;; Asia
-              "ftp://ftp.cs.cuhk.edu.hk/pub/gnu/gnu/"
-              "ftp://sunsite.ust.hk/pub/gnu/"
-              "ftp://ftp.gnupilgrims.org/pub/gnu"
-              "ftp://www.imtech.res.in/mirror/gnuftp/"
-              "ftp://kambing.vlsm.org/gnu"
-              "ftp://ftp.cs.huji.ac.il/mirror/GNU/"
-              "ftp://tron.um.u-tokyo.ac.jp/pub/GNU/"
-              "ftp://core.ring.gr.jp/pub/GNU/"
-              "ftp://ftp.ring.gr.jp/pub/GNU/"
-              "ftp://mirrors.hbi.co.jp/gnu/"
-              "ftp://ftp.cs.titech.ac.jp/pub/gnu/"
-              "ftp://ftpmirror.hanyang.ac.kr/GNU/"
-              "ftp://ftp.linux.sarang.net/mirror/gnu/gnu/"
-              "ftp://ftp.xgate.co.kr/pub/mirror/gnu/"
-              "ftp://ftp://gnu.xinicks.com/"
-              "ftp://ftp.isu.net.sa/pub/gnu/"
-              "ftp://ftp.nctu.edu.tw/UNIX/gnu/"
-              "ftp://coda.nctu.edu.tw/UNIX/gnu/"
-              "ftp://ftp1.sinica.edu.tw/pub3/GNU/gnu/"
-              "ftp://gnu.cdpa.nsysu.edu.tw/gnu"
-              "ftp://ftp.nectec.or.th/pub/mirrors/gnu/"
-              ;; Europe
-              "ftp://ftp.gnu.vbs.at/"
-              "ftp://ftp.univie.ac.at/packages/gnu/"
-              "ftp://gd.tuwien.ac.at/gnu/gnusrc/"
-              "ftp://ftp.belnet.be/mirror/ftp.gnu.org/"
-              "ftp://gnu.blic.net/pub/gnu/"
-              "ftp://ftp.fi.muni.cz/pub/gnu/"
-              "ftp://ftp.dkuug.dk/pub/gnu/"
-              "ftp://sunsite.dk/mirrors/gnu"
-              "ftp://ftp.funet.fi/pub/gnu/prep/"
-              "ftp://ftp.irisa.fr/pub/gnu/"
-              "ftp://ftp.cs.univ-paris8.fr/mirrors/ftp.gnu.org/"
-              "ftp://ftp.cs.tu-berlin.de/pub/gnu/"
-              "ftp://ftp.leo.org/pub/comp/os/unix/gnu/"
-              "ftp://ftp.informatik.rwth-aachen.de/pub/gnu/"
-              "ftp://ftp.de.uu.net/pub/gnu/"
-              "ftp://ftp.freenet.de/pub/ftp.gnu.org/gnu/"
-              "ftp://ftp.cs.uni-bonn.de/pub/gnu/"
-              "ftp://ftp-stud.fht-esslingen.de/pub/Mirrors/ftp.gnu.org/"
-              "ftp://ftp.stw-bonn.de/pub/mirror/ftp.gnu.org/"
-              "ftp://ftp.math.uni-bremen.de/pub/gnu"
-              "ftp://ftp.forthnet.gr/pub/gnu/"
-              "ftp://ftp.ntua.gr/pub/gnu/"
-              "ftp://ftp.duth.gr/pub/gnu/"
-              "ftp://ftp.physics.auth.gr/pub/gnu/"
-              "ftp://ftp.esat.net/pub/gnu/"
-              "ftp://ftp.heanet.ie/mirrors/ftp.gnu.org"
-              "ftp://ftp.lugroma2.org/pub/gnu/"
-              "ftp://ftp.gnu.inetcosmos.org/pub/gnu/"
-              "ftp://ftp.digitaltrust.it/pub/gnu"
-              "ftp://ftp://rm.mirror.garr.it/mirrors/gnuftp"
-              "ftp://ftp.nluug.nl/pub/gnu/"
-              "ftp://ftp.mirror.nl/pub/mirror/gnu/"
-              "ftp://ftp.nl.uu.net/pub/gnu/"
-              "ftp://mirror.widexs.nl/pub/gnu/"
-              "ftp://ftp.easynet.nl/mirror/GNU/"
-              "ftp://ftp.win.tue.nl/pub/gnu"
-              "ftp://gnu.mirror.vuurwerk.net/pub/GNU/"
-              "ftp://gnu.kookel.org/pub/ftp.gnu.org/"
-              "ftp://ftp.uninett.no/pub/gnu/"
-              "ftp://ftp.task.gda.pl/pub/gnu/"
-              "ftp://sunsite.icm.edu.pl/pub/gnu/"
-              "ftp://ftp.man.poznan.pl/pub/gnu"
-              "ftp://ftp.ist.utl.pt/pub/GNU/gnu/"
-              "ftp://ftp.telepac.pt/pub/gnu/"
-              "ftp://ftp.timisoara.roedu.net/mirrors/ftp.gnu.org/pub/gnu"
-              "ftp://ftp.chg.ru/pub/gnu/"
-              "ftp://gnuftp.axitel.ru/"
-              "ftp://ftp.arnes.si/software/gnu/"
-              "ftp://ftp.etsimo.uniovi.es/pub/gnu/"
-              "ftp://ftp.rediris.es/pub/gnu/"
-              "ftp://ftp.chl.chalmers.se/pub/gnu/"
-              "ftp://ftp.isy.liu.se/pub/gnu/"
-              "ftp://ftp.luth.se/pub/unix/gnu/"
-              "ftp://ftp.stacken.kth.se/pub/gnu/"
-              "ftp://ftp.sunet.se/pub/gnu/"
-              "ftp://sunsite.cnlab-switch.ch/mirror/gnu/"
-              "ftp://ftp.ulak.net.tr/gnu/"
-              "ftp://ftp.gnu.org.ua"
-              "ftp://ftp.mcc.ac.uk/pub/gnu/"
-              "ftp://ftp.mirror.ac.uk/sites/ftp.gnu.org/gnu/"
-              "ftp://ftp.warwick.ac.uk/pub/gnu/"
-              "ftp://ftp.hands.com/ftp.gnu.org/"
-              "ftp://gnu.teleglobe.net/ftp.gnu.org/"])
+              "http://ftpmirror.gnu.org"])
     ("GNU Project Home Page" . "www.gnu.org")
 
     ;; Emacs.
@@ -233,7 +109,7 @@
      [simple-query "wikipedia.org" "wikipedia.org/wiki/" ""])
 
     ;; Misc. general interest.
-    ("Interactive Weather Information Network" . webjump-to-iwin)
+    ("National Weather Service" . webjump-to-iwin)
     ("Usenet FAQs" .
      "www.faqs.org/faqs/")
     ("RTFM Usenet FAQs by Group" .
@@ -254,10 +130,10 @@
      "www.neilvandyke.org/webjump/")
 
     )
-  "Sample hotlist for WebJump.  See the documentation for the `webjump'
-function and the `webjump-sites' variable.")
+  "Sample hotlist for WebJump.
+See the documentation for `webjump' and `webjump-sites'.")
 
-(defvar webjump-state-to-postal-alist
+(defconst webjump-state-to-postal-alist
   '(("Alabama" . "al") ("Alaska" . "ak") ("Arizona" . "az") ("Arkansas" . "ar")
     ("California" . "ca") ("Colorado" . "co") ("Connecticut" . "ct")
     ("Delaware" . "de") ("Florida" . "fl") ("Georgia" . "ga") ("Hawaii" . "hi")
@@ -277,8 +153,7 @@ function and the `webjump-sites' variable.")
 
 ;;------------------------------------------------------------ Option Variables
 
-(defvar webjump-sites
-  webjump-sample-sites
+(defcustom webjump-sites webjump-sample-sites
   "Hotlist for WebJump.
 
 The hotlist is represented as an association list, with the CAR of each cell
@@ -309,33 +184,47 @@ parameter.  This might come in handy for various kludges.
 
 For convenience, if the `http://', `ftp://', or `file://' prefix is missing
 from a URL, WebJump will make a guess at what you wanted and prepend it before
-submitting the URL.")
+submitting the URL."
+  :type '(alist :key-type (string :tag "Name")
+                :value-type (choice :tag "URL"
+                                    (string :tag "URL")
+                                    function
+                                    (vector :tag "Builtin"
+                                            (symbol :tag "Name")
+                                            (repeat :inline t :tag "Arguments"
+                                                    string))
+                                    (sexp :tag "Expression to eval"))))
 
 ;;------------------------------------------------------- Sample Site Functions
 
 (defun webjump-to-iwin (name)
-  (let ((prefix "http://iwin.nws.noaa.gov/")
-        (state (webjump-read-choice name "state"
-                                    (append '(("Puerto Rico" . "pr"))
-                                            webjump-state-to-postal-alist))))
-    (if state
-        (concat prefix "iwin/" state "/"
-                (webjump-read-choice name "option"
-                                     '(("Hourly Report" . "hourly")
-                                       ("State Forecast" . "state")
-                                       ("Local Forecast" . "local")
-                                       ("Zone Forecast" . "zone")
-                                       ("Short-Term Forecast" . "shortterm")
-                                       ("Weather Summary" . "summary")
-                                       ("Public Information" . "public")
-                                       ("Climatic Data" . "climate")
-                                       ("Aviation Products" . "aviation")
-                                       ("Hydro Products" . "hydro")
-                                       ("Special Weather" . "special")
-                                       ("Watches and Warnings" . "warnings"))
-                                     "zone")
-                ".html")
-      prefix)))
+  (let* ((prefix "http://www.nws.noaa.gov/view/")
+         (state (webjump-read-choice name "state"
+                                     (append '(("Puerto Rico" . "pr")
+                                               ("Guam" . "gu")
+                                               ("American Samoa" . "as")
+                                               ("District of Columbia" . "dc")
+                                               ("US Virgin Islands" . "vi"))
+                                             webjump-state-to-postal-alist)))
+         (opt (if state
+                  (webjump-read-choice
+                   name "option"
+                   '(("Hourly Report" . "hourly")
+                     ("State Forecast" . "state")
+                     ("Zone Forecast" . "zone")
+                     ("Short-Term Forecast" . "shortterm")
+                     ("Forecast Discussion" . "discussion")
+                     ("Weather Summary" . "summary")
+                     ("Public Information" . "public")
+                     ("Climatic Data" . "climate")
+                     ("Hydro Products" . "hydro")
+                     ("Watches" . "watches")
+                     ("Special Weather" . "special")
+                     ("Warnings and Advisories" . "warnings")
+                     ("Fire Weather" . "firewx"))))))
+    (cond (opt (concat prefix "prodsByState.php?state=" state "&prodtype=" opt))
+          (state (concat prefix "states.php?state=" state))
+          (t prefix))))
 
 (defun webjump-to-risks (name)
   (let (issue volume)

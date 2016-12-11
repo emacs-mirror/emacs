@@ -522,6 +522,18 @@ a new backup file.  @kbd{C-u C-u C-u C-x C-s} does both things: it
 makes a backup from the previous contents, and arranges to make
 another from the newly saved contents if you save again.
 
+@vindex backup-directory-alist
+  You can customize the variable @code{backup-directory-alist} to
+specify that files matching certain patterns should be backed up in
+specific directories.  A typical use is to add an element @code{("."
+. @var{dir})} to make all backups in the directory with absolute name
+@var{dir}.  Emacs modifies the backup file names to avoid clashes
+between files with the same names originating in different
+directories.  Alternatively, adding, @code{("." . ".~")} would make
+backups in the invisible subdirectory @file{.~} of the original file's
+directory.  Emacs creates the directory, if necessary, to make the
+backup.
+
 @menu
 * Names: Backup Names.          How backup files are named.
 * Deletion: Backup Deletion.    Emacs deletes excess numbered backups.
@@ -584,19 +596,6 @@ or @samp{numbered}, then @code{version-control} becomes @code{t}; if the
 value is @samp{nil} or @samp{existing}, then @code{version-control}
 becomes @code{nil}; if it is @samp{never} or @samp{simple}, then
 @code{version-control} becomes @code{never}.
-
-@vindex backup-directory-alist
-  You can customize the variable @code{backup-directory-alist} to
-specify that files matching certain patterns should be backed up in
-specific directories.  This variable applies to both single and
-numbered backups.  A typical use is to add an element @code{("."
-. @var{dir})} to make all backups in the directory with absolute name
-@var{dir}; Emacs modifies the backup file names to avoid clashes
-between files with the same names originating in different
-directories.  Alternatively, adding, @code{("." . ".~")} would make
-backups in the invisible subdirectory @file{.~} of the original file's
-directory.  Emacs creates the directory, if necessary, to make the
-backup.
 
 @vindex make-backup-file-name-function
   If you set the variable @code{make-backup-file-name-function} to
@@ -702,7 +701,7 @@ after it visits the file.  (This marks the buffer as modified, and you
 can undo it.)  If the value is @code{visit-save}, Emacs adds such
 newlines both on visiting and on saving.  If the value is @code{nil},
 Emacs leaves the end of the file unchanged; any other non-@code{nil}
-value means to asks you whether to add a newline.  The default is
+value means Emacs asks you whether to add a newline.  The default is
 @code{nil}.
 
 @vindex mode-require-final-newline
@@ -1282,7 +1281,7 @@ The value of @code{diff-switches} should be a string; the default is
 @c Note that the actual name of the info file is diffutils.info,
 @c but it adds a dir entry for diff too.
 @c On older systems, only "info diff" works, not "info diffutils".
-@xref{Top,, Diff, diff, Comparing and Merging Files}, for more
+@xref{Top,, Diff, diffutils, Comparing and Merging Files}, for more
 information about the @command{diff} program.
 
   The output of the @code{diff} command is shown using a major mode
@@ -1555,8 +1554,8 @@ delete-file}.  @xref{VC Delete/Rename}.
 
 @findex copy-file
 @cindex copying files
-  @kbd{M-x copy-file} reads the file @var{old} and writes a new file
-named @var{new} with the same contents.
+  @kbd{M-x copy-file} copies the contents of the file @var{old} to the
+file @var{new}.
 
 @findex copy-directory
   @kbd{M-x copy-directory} copies directories, similar to the
@@ -1870,6 +1869,11 @@ The way to do this is to add @samp{/:} at the beginning.
 prevent it from being treated as a remote file name.  Thus, if you have
 a directory named @file{/foo:} and a file named @file{bar} in it, you
 can refer to that file in Emacs as @samp{/:/foo:/bar}.
+
+  If you want to quote only special characters in the local part of a
+remote file name, you can quote just the local part.
+@samp{/baz:/:/foo:/bar} refers to the file @file{bar} of directory
+@file{/foo:} on the host @file{baz}.
 
   @samp{/:} can also prevent @samp{~} from being treated as a special
 character for a user's home directory.  For example, @file{/:/tmp/~hack}

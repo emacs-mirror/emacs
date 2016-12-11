@@ -460,7 +460,7 @@ See `defclass' for more information."
                           (cl--slot-descriptor-initform (aref slots i)))))
       (setf (eieio--class-class-allocation-values newc) v))
 
-    ;; Attach slot symbols into a hashtable, and store the index of
+    ;; Attach slot symbols into a hash table, and store the index of
     ;; this slot as the value this table.
     (let* ((slots (eieio--class-slots newc))
 	   ;; (cslots (eieio--class-class-slots newc))
@@ -971,7 +971,7 @@ If a consistent order does not exist, signal an error."
 
 (defun eieio--class-precedence-c3 (class)
   "Return all parents of CLASS in c3 order."
-  (let ((parents (eieio--class-parents (cl--find-class class))))
+  (let ((parents (eieio--class-parents class)))
     (eieio--c3-merge-lists
      (list class)
      (append
@@ -1065,6 +1065,7 @@ method invocation orders of the involved classes."
                  (eieio--class-precedence-list (symbol-value tag))))))
 
 (cl-defmethod cl-generic-generalizers :extra "class" (specializer)
+  "Support for dispatch on types defined by EIEIO's `defclass'."
   ;; CLHS says:
   ;;    A class must be defined before it can be used as a parameter
   ;;    specializer in a defmethod form.
@@ -1093,6 +1094,8 @@ method invocation orders of the involved classes."
   #'eieio--generic-subclass-specializers)
 
 (cl-defmethod cl-generic-generalizers ((_specializer (head subclass)))
+  "Support for (subclass CLASS) specializers.
+These match if the argument is the name of a subclass of CLASS."
   (list eieio--generic-subclass-generalizer))
 
 (provide 'eieio-core)

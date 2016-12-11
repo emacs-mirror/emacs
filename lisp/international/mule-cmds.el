@@ -72,7 +72,7 @@
   (let ((map (make-sparse-keymap "Set Coding System")))
     (bindings--define-key map [set-buffer-process-coding-system]
       '(menu-item "For I/O with Subprocess" set-buffer-process-coding-system
-        :visible (fboundp 'start-process)
+        :visible (fboundp 'make-process)
         :enable (get-buffer-process (current-buffer))
         :help "How to en/decode I/O from/to subprocess connected to this buffer"))
     (bindings--define-key map [set-next-selection-coding-system]
@@ -2235,7 +2235,7 @@ See `set-language-info-alist' for use in programs."
     ("br" . "Latin-1") ; Breton
     ("bs" . "Latin-2") ; Bosnian
     ("byn" . "UTF-8")  ; Bilin; Blin
-    ("ca" . "Latin-1") ; Catalan
+    ("ca" "Catalan" iso-8859-1) ; Catalan
     ; co Corsican
     ("cs" "Czech" iso-8859-2)
     ("cy" "Welsh" iso-8859-14)
@@ -2704,10 +2704,12 @@ See also `locale-charset-language-names', `locale-language-names',
     ;; terminal-coding-system with the ANSI or console codepage.
     (when (and (eq system-type 'windows-nt)
                (boundp 'w32-ansi-code-page))
-      (let* ((code-page-coding
-              (intern (format "cp%d" (if noninteractive
-                                         (w32-get-console-codepage)
-                                       w32-ansi-code-page))))
+      (let* ((ansi-code-page-coding
+              (intern (format "cp%d" w32-ansi-code-page)))
+             (code-page-coding
+              (if noninteractive
+                  (intern (format "cp%d" (w32-get-console-codepage)))
+                ansi-code-page-coding))
              (output-coding
               (if noninteractive
                   (intern (format "cp%d" (w32-get-console-output-codepage)))
@@ -2717,13 +2719,13 @@ See also `locale-charset-language-names', `locale-language-names',
 	  (unless frame (setq locale-coding-system code-page-coding))
 	  (set-keyboard-coding-system code-page-coding frame)
 	  (set-terminal-coding-system output-coding frame)
-	  (setq default-file-name-coding-system code-page-coding))))
+	  (setq default-file-name-coding-system ansi-code-page-coding))))
 
     (when (eq system-type 'darwin)
       ;; On Darwin, file names are always encoded in utf-8, no matter
       ;; the locale.
       (setq default-file-name-coding-system 'utf-8)
-      ;; Mac OS X's Terminal.app by default uses utf-8 regardless of
+      ;; macOS's Terminal.app by default uses utf-8 regardless of
       ;; the locale.
       (when (and (null window-system)
 		 (equal (getenv "TERM_PROGRAM" frame) "Apple_Terminal"))
@@ -2733,8 +2735,8 @@ See also `locale-charset-language-names', `locale-language-names',
     ;; Default to A4 paper if we're not in a C, POSIX or US locale.
     ;; (See comments in Flocale_info.)
     (unless frame
-      (let ((locale locale)
-	    (paper (locale-info 'paper)))
+      (let ((paper (locale-info 'paper))
+            locale)
 	(if paper
 	    ;; This will always be null at the time of writing.
 	    (cond
@@ -2939,7 +2941,10 @@ on encoding."
                (#x14400 . #x14646)
 	       ;; (#x14647 . #x167FF) unused
 	       (#x16800 . #x16F9F)
-	       ;; (#x16FA0 . #x1AFFF) unused
+               (#x16FE0 . #x16FE0)
+               ;; (#x17000 . #x187FF) Tangut Ideographs
+               ;; (#x18800 . #x18AFF) Tangut Components
+	       ;; (#x18B00 . #x1AFFF) unused
 	       (#x1B000 . #x1B0FF)
 	       ;; (#x1B100 . #x1BBFF) unused
                (#x1BC00 . #x1BCAF)
@@ -2975,6 +2980,27 @@ on encoding."
   (let ((char (assoc name ucs-names)))
     (when char (format " (%c)" (cdr char)))))
 
+(defun char-from-name (string &optional ignore-case)
+  "Return a character as a number from its Unicode name STRING.
+If optional IGNORE-CASE is non-nil, ignore case in STRING.
+Return nil if STRING does not name a character."
+  (or (cdr (assoc-string string (ucs-names) ignore-case))
+      (let ((minus (string-match-p "-[0-9A-F]+\\'" string)))
+        (when minus
+          ;; Parse names like "VARIATION SELECTOR-17" and "CJK
+          ;; COMPATIBILITY IDEOGRAPH-F900" that are not in ucs-names.
+          (ignore-errors
+            (let* ((case-fold-search ignore-case)
+                   (vs (string-match-p "\\`VARIATION SELECTOR-" string))
+                   (minus-num (string-to-number (substring string minus)
+                                                (if vs 10 16)))
+                   (vs-offset (if vs (if (< minus-num -16) #xE00EF #xFDFF) 0))
+                   (code (- vs-offset minus-num))
+                   (name (get-char-code-property code 'name)))
+              (when (eq t (compare-strings string nil nil name nil nil
+                                           ignore-case))
+                code)))))))
+
 (defun read-char-by-name (prompt)
   "Read a character by its Unicode name or hex number string.
 Display PROMPT and read a string that represents a character by its
@@ -2988,9 +3014,11 @@ preceded by an asterisk `*' and use completion, it will show all
 the characters whose names include that substring, not necessarily
 at the beginning of the name.
 
-This function also accepts a hexadecimal number of Unicode code
-point or a number in hash notation, e.g. #o21430 for octal,
-#x2318 for hex, or #10r8984 for decimal."
+Accept a name like \"CIRCULATION FUNCTION\", a hexadecimal
+number like \"2A10\", or a number in hash notation (e.g.,
+\"#x2a10\" for hex, \"10r10768\" for decimal, or \"#o25020\" for
+octal).  Treat otherwise-ambiguous strings like \"BED\" (U+1F6CF)
+as names, not numbers."
   (let* ((enable-recursive-minibuffers t)
 	 (completion-ignore-case t)
 	 (input
@@ -3003,13 +3031,13 @@ point or a number in hash notation, e.g. #o21430 for octal,
 		   (category . unicode-name))
 	       (complete-with-action action (ucs-names) string pred)))))
 	 (char
-	  (cond
-	   ((string-match-p "\\`[0-9a-fA-F]+\\'" input)
-	    (string-to-number input 16))
-	   ((string-match-p "\\`#" input)
-	    (read input))
-	   (t
-	    (cdr (assoc-string input (ucs-names) t))))))
+          (cond
+           ((char-from-name input t))
+           ((string-match-p "\\`[0-9a-fA-F]+\\'" input)
+            (ignore-errors (string-to-number input 16)))
+           ((string-match-p "\\`#\\([bBoOxX]\\|[0-9]+[rR]\\)[0-9a-zA-Z]+\\'"
+                            input)
+            (ignore-errors (read input))))))
     (unless (characterp char)
       (error "Invalid character"))
     char))

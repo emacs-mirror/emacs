@@ -25,7 +25,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <glib.h>
 #include <errno.h>
-#include <stdbool.h>
 #include "blockinput.h"
 #include "systime.h"
 

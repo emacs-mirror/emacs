@@ -578,11 +578,20 @@ baz\"\""
 (define-electric-pair-test autowrapping-7
   "foo" "\"" :expected-string "``foo''" :expected-point 8
   :modes '(tex-mode)
+  :test-in-comments nil
   :fixture-fn #'(lambda ()
                   (electric-pair-mode 1)
                   (goto-char (point-max))
                   (skip-chars-backward "\"")
                   (mark-sexp -1)))
+
+
+;;; Electric quotes
+(define-electric-pair-test electric-quote-string
+  "" "'" :expected-string "'" :expected-point 2
+  :fixture-fn #'electric-quote-local-mode
+  :bindings '((electric-quote-string . t))
+  :test-in-comments nil :test-in-strings nil)
 
 (provide 'electric-tests)
 ;;; electric-tests.el ends here

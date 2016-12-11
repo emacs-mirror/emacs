@@ -138,7 +138,7 @@ wrong_length_argument (Lisp_Object a1, Lisp_Object a2, Lisp_Object a3)
 	      make_number (bool_vector_size (a3)));
 }
 
-Lisp_Object
+_Noreturn void
 wrong_type_argument (register Lisp_Object predicate, register Lisp_Object value)
 {
   /* If VALUE is not even a valid Lisp object, we'd want to abort here
@@ -629,7 +629,12 @@ global value outside of any lexical scope.  */)
   return (EQ (valcontents, Qunbound) ? Qnil : Qt);
 }
 
-/* FIXME: Make it an alias for function-symbol!  */
+/* FIXME: It has been previously suggested to make this function an
+   alias for symbol-function, but upon discussion at Bug#23957,
+   there is a risk breaking backward compatibility, as some users of
+   fboundp may expect `t' in particular, rather than any true
+   value.  An alias is still welcome so long as the compatibility
+   issues are addressed.  */
 DEFUN ("fboundp", Ffboundp, Sfboundp, 1, 1, 0,
        doc: /* Return t if SYMBOL's function definition is not void.  */)
   (register Lisp_Object symbol)
@@ -1220,7 +1225,7 @@ DEFUN ("set", Fset, Sset, 2, 2, 0,
        doc: /* Set SYMBOL's value to NEWVAL, and return NEWVAL.  */)
   (register Lisp_Object symbol, Lisp_Object newval)
 {
-  set_internal (symbol, newval, Qnil, 0);
+  set_internal (symbol, newval, Qnil, SET_INTERNAL_SET);
   return newval;
 }
 
@@ -1228,13 +1233,14 @@ DEFUN ("set", Fset, Sset, 2, 2, 0,
    If buffer/frame-locality is an issue, WHERE specifies which context to use.
    (nil stands for the current buffer/frame).
 
-   If BINDFLAG is false, then if this symbol is supposed to become
-   local in every buffer where it is set, then we make it local.
-   If BINDFLAG is true, we don't do that.  */
+   If BINDFLAG is SET_INTERNAL_SET, then if this symbol is supposed to
+   become local in every buffer where it is set, then we make it
+   local.  If BINDFLAG is SET_INTERNAL_BIND or SET_INTERNAL_UNBIND, we
+   don't do that.  */
 
 void
 set_internal (Lisp_Object symbol, Lisp_Object newval, Lisp_Object where,
-	      bool bindflag)
+              enum Set_Internal_Bind bindflag)
 {
   bool voide = EQ (newval, Qunbound);
   struct Lisp_Symbol *sym;
@@ -1245,18 +1251,29 @@ set_internal (Lisp_Object symbol, Lisp_Object newval, Lisp_Object where,
       return; */
 
   CHECK_SYMBOL (symbol);
-  if (SYMBOL_CONSTANT_P (symbol))
-    {
-      if (NILP (Fkeywordp (symbol))
-	  || !EQ (newval, Fsymbol_value (symbol)))
-	xsignal1 (Qsetting_constant, symbol);
-      else
-	/* Allow setting keywords to their own value.  */
-	return;
-    }
-
-  maybe_set_redisplay (symbol);
   sym = XSYMBOL (symbol);
+  switch (sym->trapped_write)
+    {
+    case SYMBOL_NOWRITE:
+      if (NILP (Fkeywordp (symbol))
+          || !EQ (newval, Fsymbol_value (symbol)))
+        xsignal1 (Qsetting_constant, symbol);
+      else
+        /* Allow setting keywords to their own value.  */
+        return;
+
+    case SYMBOL_TRAPPED_WRITE:
+      notify_variable_watchers (symbol, voide? Qnil : newval,
+                                (bindflag == SET_INTERNAL_BIND? Qlet :
+                                 bindflag == SET_INTERNAL_UNBIND? Qunlet :
+                                 voide? Qmakunbound : Qset),
+                                where);
+      /* FALLTHROUGH!  */
+    case SYMBOL_UNTRAPPED_WRITE:
+        break;
+
+    default: emacs_abort ();
+    }
 
  start:
   switch (sym->redirect)
@@ -1380,6 +1397,130 @@ set_internal (Lisp_Object symbol, Lisp_Object newval, Lisp_Object where,
     }
   return;
 }
+
+static void
+set_symbol_trapped_write (Lisp_Object symbol, enum symbol_trapped_write trap)
+{
+  struct Lisp_Symbol* sym = XSYMBOL (symbol);
+  if (sym->trapped_write == SYMBOL_NOWRITE)
+    xsignal1 (Qtrapping_constant, symbol);
+  else if (sym->redirect == SYMBOL_LOCALIZED
+           && SYMBOL_BLV (sym)->frame_local)
+    xsignal1 (Qtrapping_frame_local, symbol);
+  sym->trapped_write = trap;
+}
+
+static void
+restore_symbol_trapped_write (Lisp_Object symbol)
+{
+  set_symbol_trapped_write (symbol, SYMBOL_TRAPPED_WRITE);
+}
+
+static void
+harmonize_variable_watchers (Lisp_Object alias, Lisp_Object base_variable)
+{
+  if (!EQ (base_variable, alias)
+      && EQ (base_variable, Findirect_variable (alias)))
+    set_symbol_trapped_write
+      (alias, XSYMBOL (base_variable)->trapped_write);
+}
+
+DEFUN ("add-variable-watcher", Fadd_variable_watcher, Sadd_variable_watcher,
+       2, 2, 0,
+       doc: /* Cause WATCH-FUNCTION to be called when SYMBOL is set.
+
+It will be called with 4 arguments: (SYMBOL NEWVAL OPERATION WHERE).
+SYMBOL is the variable being changed.
+NEWVAL is the value it will be changed to.
+OPERATION is a symbol representing the kind of change, one of: `set',
+`let', `unlet', `makunbound', and `defvaralias'.
+WHERE is a buffer if the buffer-local value of the variable being
+changed, nil otherwise.
+
+All writes to aliases of SYMBOL will call WATCH-FUNCTION too.  */)
+  (Lisp_Object symbol, Lisp_Object watch_function)
+{
+  symbol = Findirect_variable (symbol);
+  set_symbol_trapped_write (symbol, SYMBOL_TRAPPED_WRITE);
+  map_obarray (Vobarray, harmonize_variable_watchers, symbol);
+
+  Lisp_Object watchers = Fget (symbol, Qwatchers);
+  Lisp_Object member = Fmember (watch_function, watchers);
+  if (NILP (member))
+    Fput (symbol, Qwatchers, Fcons (watch_function, watchers));
+  return Qnil;
+}
+
+DEFUN ("remove-variable-watcher", Fremove_variable_watcher, Sremove_variable_watcher,
+       2, 2, 0,
+       doc: /* Undo the effect of `add-variable-watcher'.
+Remove WATCH-FUNCTION from the list of functions to be called when
+SYMBOL (or its aliases) are set.  */)
+  (Lisp_Object symbol, Lisp_Object watch_function)
+{
+  symbol = Findirect_variable (symbol);
+  Lisp_Object watchers = Fget (symbol, Qwatchers);
+  watchers = Fdelete (watch_function, watchers);
+  if (NILP (watchers))
+    {
+      set_symbol_trapped_write (symbol, SYMBOL_UNTRAPPED_WRITE);
+      map_obarray (Vobarray, harmonize_variable_watchers, symbol);
+    }
+  Fput (symbol, Qwatchers, watchers);
+  return Qnil;
+}
+
+DEFUN ("get-variable-watchers", Fget_variable_watchers, Sget_variable_watchers,
+       1, 1, 0,
+       doc: /* Return a list of SYMBOL's active watchers.  */)
+  (Lisp_Object symbol)
+{
+  return (SYMBOL_TRAPPED_WRITE_P (symbol) == SYMBOL_TRAPPED_WRITE)
+    ? Fget (Findirect_variable (symbol), Qwatchers)
+    : Qnil;
+}
+
+void
+notify_variable_watchers (Lisp_Object symbol,
+                          Lisp_Object newval,
+                          Lisp_Object operation,
+                          Lisp_Object where)
+{
+  symbol = Findirect_variable (symbol);
+
+  ptrdiff_t count = SPECPDL_INDEX ();
+  record_unwind_protect (restore_symbol_trapped_write, symbol);
+  /* Avoid recursion.  */
+  set_symbol_trapped_write (symbol, SYMBOL_UNTRAPPED_WRITE);
+
+  if (NILP (where)
+      && !EQ (operation, Qset_default) && !EQ (operation, Qmakunbound)
+      && !NILP (Flocal_variable_if_set_p (symbol, Fcurrent_buffer ())))
+    {
+      XSETBUFFER (where, current_buffer);
+    }
+
+  if (EQ (operation, Qset_default))
+    operation = Qset;
+
+  for (Lisp_Object watchers = Fget (symbol, Qwatchers);
+       CONSP (watchers);
+       watchers = XCDR (watchers))
+    {
+      Lisp_Object watcher = XCAR (watchers);
+      /* Call subr directly to avoid gc.  */
+      if (SUBRP (watcher))
+        {
+          Lisp_Object args[] = { symbol, newval, operation, where };
+          funcall_subr (XSUBR (watcher), ARRAYELTS (args), args);
+        }
+      else
+        CALLN (Ffuncall, watcher, symbol, newval, operation, where);
+    }
+
+  unbind_to (count, Qnil);
+}
+
 
 /* Access or set a buffer-local symbol's default value.  */
 
@@ -1466,16 +1607,27 @@ for this variable.  */)
   struct Lisp_Symbol *sym;
 
   CHECK_SYMBOL (symbol);
-  if (SYMBOL_CONSTANT_P (symbol))
-    {
-      if (NILP (Fkeywordp (symbol))
-	  || !EQ (value, Fdefault_value (symbol)))
-	xsignal1 (Qsetting_constant, symbol);
-      else
-	/* Allow setting keywords to their own value.  */
-	return value;
-    }
   sym = XSYMBOL (symbol);
+  switch (sym->trapped_write)
+    {
+    case SYMBOL_NOWRITE:
+      if (NILP (Fkeywordp (symbol))
+          || !EQ (value, Fsymbol_value (symbol)))
+        xsignal1 (Qsetting_constant, symbol);
+      else
+        /* Allow setting keywords to their own value.  */
+        return value;
+
+    case SYMBOL_TRAPPED_WRITE:
+      /* Don't notify here if we're going to call Fset anyway.  */
+      if (sym->redirect != SYMBOL_PLAINVAL)
+        notify_variable_watchers (symbol, value, Qset_default, Qnil);
+      /* FALLTHROUGH!  */
+    case SYMBOL_UNTRAPPED_WRITE:
+        break;
+
+    default: emacs_abort ();
+    }
 
  start:
   switch (sym->redirect)
@@ -1614,8 +1766,8 @@ The function `default-value' gets the default value and `set-default' sets it.  
 {
   struct Lisp_Symbol *sym;
   struct Lisp_Buffer_Local_Value *blv = NULL;
-  union Lisp_Val_Fwd valcontents IF_LINT (= {LISP_INITIALLY_ZERO});
-  bool forwarded IF_LINT (= 0);
+  union Lisp_Val_Fwd valcontents;
+  bool forwarded;
 
   CHECK_SYMBOL (variable);
   sym = XSYMBOL (variable);
@@ -1646,7 +1798,7 @@ The function `default-value' gets the default value and `set-default' sets it.  
     default: emacs_abort ();
     }
 
-  if (sym->constant)
+  if (SYMBOL_CONSTANT_P (variable))
     error ("Symbol %s may not be buffer-local", SDATA (SYMBOL_NAME (variable)));
 
   if (!blv)
@@ -1692,8 +1844,8 @@ Instead, use `add-hook' and specify t for the LOCAL argument.  */)
   (Lisp_Object variable)
 {
   Lisp_Object tem;
-  bool forwarded IF_LINT (= 0);
-  union Lisp_Val_Fwd valcontents IF_LINT (= {LISP_INITIALLY_ZERO});
+  bool forwarded;
+  union Lisp_Val_Fwd valcontents;
   struct Lisp_Symbol *sym;
   struct Lisp_Buffer_Local_Value *blv = NULL;
 
@@ -1721,7 +1873,7 @@ Instead, use `add-hook' and specify t for the LOCAL argument.  */)
     default: emacs_abort ();
     }
 
-  if (sym->constant)
+  if (sym->trapped_write == SYMBOL_NOWRITE)
     error ("Symbol %s may not be buffer-local",
 	   SDATA (SYMBOL_NAME (variable)));
 
@@ -1833,6 +1985,9 @@ From now on the default value will apply in this buffer.  Return VARIABLE.  */)
     default: emacs_abort ();
     }
 
+  if (sym->trapped_write == SYMBOL_TRAPPED_WRITE)
+    notify_variable_watchers (variable, Qnil, Qmakunbound, Fcurrent_buffer ());
+
   /* Get rid of this buffer's alist element, if any.  */
   XSETSYMBOL (variable, sym);	/* Propagate variable indirection.  */
   tem = Fassq (variable, BVAR (current_buffer, local_var_alist));
@@ -1915,7 +2070,7 @@ frame-local bindings).  */)
     default: emacs_abort ();
     }
 
-  if (sym->constant)
+  if (SYMBOL_TRAPPED_WRITE_P (variable))
     error ("Symbol %s may not be frame-local", SDATA (SYMBOL_NAME (variable)));
 
   blv = make_blv (sym, forwarded, valcontents);
@@ -2458,7 +2613,7 @@ uintmax_t
 cons_to_unsigned (Lisp_Object c, uintmax_t max)
 {
   bool valid = 0;
-  uintmax_t val IF_LINT (= 0);
+  uintmax_t val;
   if (INTEGERP (c))
     {
       valid = 0 <= XINT (c);
@@ -2511,7 +2666,7 @@ intmax_t
 cons_to_signed (Lisp_Object c, intmax_t min, intmax_t max)
 {
   bool valid = 0;
-  intmax_t val IF_LINT (= 0);
+  intmax_t val;
   if (INTEGERP (c))
     {
       val = XINT (c);
@@ -2769,7 +2924,7 @@ float_arith_driver (double accum, ptrdiff_t argnum, enum arithop code,
 	case Alogand:
 	case Alogior:
 	case Alogxor:
-	  return wrong_type_argument (Qinteger_or_marker_p, val);
+	  wrong_type_argument (Qinteger_or_marker_p, val);
 	case Amax:
 	  if (!argnum || isnan (next) || next > accum)
 	    accum = next;
@@ -2919,26 +3074,33 @@ usage: (logxor &rest INTS-OR-MARKERS)  */)
   return arith_driver (Alogxor, nargs, args);
 }
 
-DEFUN ("ash", Fash, Sash, 2, 2, 0,
-       doc: /* Return VALUE with its bits shifted left by COUNT.
-If COUNT is negative, shifting is actually to the right.
-In this case, the sign bit is duplicated.  */)
-  (register Lisp_Object value, Lisp_Object count)
+static Lisp_Object
+ash_lsh_impl (register Lisp_Object value, Lisp_Object count, bool lsh)
 {
   register Lisp_Object val;
 
   CHECK_NUMBER (value);
   CHECK_NUMBER (count);
 
-  if (XINT (count) >= BITS_PER_EMACS_INT)
+  if (XINT (count) >= EMACS_INT_WIDTH)
     XSETINT (val, 0);
   else if (XINT (count) > 0)
     XSETINT (val, XUINT (value) << XFASTINT (count));
-  else if (XINT (count) <= -BITS_PER_EMACS_INT)
-    XSETINT (val, XINT (value) < 0 ? -1 : 0);
+  else if (XINT (count) <= -EMACS_INT_WIDTH)
+    XSETINT (val, lsh ? 0 : XINT (value) < 0 ? -1 : 0);
   else
-    XSETINT (val, XINT (value) >> -XINT (count));
+    XSETINT (val, lsh ? XUINT (value) >> -XINT (count) : \
+                        XINT (value) >> -XINT (count));
   return val;
+}
+
+DEFUN ("ash", Fash, Sash, 2, 2, 0,
+       doc: /* Return VALUE with its bits shifted left by COUNT.
+If COUNT is negative, shifting is actually to the right.
+In this case, the sign bit is duplicated.  */)
+  (register Lisp_Object value, Lisp_Object count)
+{
+  return ash_lsh_impl (value, count, false);
 }
 
 DEFUN ("lsh", Flsh, Slsh, 2, 2, 0,
@@ -2947,20 +3109,7 @@ If COUNT is negative, shifting is actually to the right.
 In this case, zeros are shifted in on the left.  */)
   (register Lisp_Object value, Lisp_Object count)
 {
-  register Lisp_Object val;
-
-  CHECK_NUMBER (value);
-  CHECK_NUMBER (count);
-
-  if (XINT (count) >= BITS_PER_EMACS_INT)
-    XSETINT (val, 0);
-  else if (XINT (count) > 0)
-    XSETINT (val, XUINT (value) << XFASTINT (count));
-  else if (XINT (count) <= -BITS_PER_EMACS_INT)
-    XSETINT (val, 0);
-  else
-    XSETINT (val, XUINT (value) >> -XINT (count));
-  return val;
+  return ash_lsh_impl (value, count, true);
 }
 
 DEFUN ("1+", Fadd1, Sadd1, 1, 1, 0,
@@ -3026,24 +3175,24 @@ bool_vector_spare_mask (EMACS_INT nr_bits)
 /* Info about unsigned long long, falling back on unsigned long
    if unsigned long long is not available.  */
 
-#if HAVE_UNSIGNED_LONG_LONG_INT && defined ULLONG_MAX
-enum { BITS_PER_ULL = CHAR_BIT * sizeof (unsigned long long) };
+#if HAVE_UNSIGNED_LONG_LONG_INT && defined ULLONG_WIDTH
+enum { ULL_WIDTH = ULLONG_WIDTH };
 # define ULL_MAX ULLONG_MAX
 #else
-enum { BITS_PER_ULL = CHAR_BIT * sizeof (unsigned long) };
+enum { ULL_WIDTH = ULONG_WIDTH };
 # define ULL_MAX ULONG_MAX
 # define count_one_bits_ll count_one_bits_l
 # define count_trailing_zeros_ll count_trailing_zeros_l
 #endif
 
 /* Shift VAL right by the width of an unsigned long long.
-   BITS_PER_ULL must be less than BITS_PER_BITS_WORD.  */
+   ULL_WIDTH must be less than BITS_PER_BITS_WORD.  */
 
 static bits_word
 shift_right_ull (bits_word w)
 {
   /* Pacify bogus GCC warning about shift count exceeding type width.  */
-  int shift = BITS_PER_ULL - BITS_PER_BITS_WORD < 0 ? BITS_PER_ULL : 0;
+  int shift = ULL_WIDTH - BITS_PER_BITS_WORD < 0 ? ULL_WIDTH : 0;
   return w >> shift;
 }
 
@@ -3060,7 +3209,7 @@ count_one_bits_word (bits_word w)
     {
       int i = 0, count = 0;
       while (count += count_one_bits_ll (w),
-	     (i += BITS_PER_ULL) < BITS_PER_BITS_WORD)
+	     (i += ULL_WIDTH) < BITS_PER_BITS_WORD)
 	w = shift_right_ull (w);
       return count;
     }
@@ -3205,18 +3354,18 @@ count_trailing_zero_bits (bits_word val)
     {
       int count;
       for (count = 0;
-	   count < BITS_PER_BITS_WORD - BITS_PER_ULL;
-	   count += BITS_PER_ULL)
+	   count < BITS_PER_BITS_WORD - ULL_WIDTH;
+	   count += ULL_WIDTH)
 	{
 	  if (val & ULL_MAX)
 	    return count + count_trailing_zeros_ll (val);
 	  val = shift_right_ull (val);
 	}
 
-      if (BITS_PER_BITS_WORD % BITS_PER_ULL != 0
+      if (BITS_PER_BITS_WORD % ULL_WIDTH != 0
 	  && BITS_WORD_MAX == (bits_word) -1)
 	val |= (bits_word) 1 << pre_value (ULONG_MAX < BITS_WORD_MAX,
-					   BITS_PER_BITS_WORD % BITS_PER_ULL);
+					   BITS_PER_BITS_WORD % ULL_WIDTH);
       return count + count_trailing_zeros_ll (val);
     }
 }
@@ -3466,6 +3615,8 @@ syms_of_data (void)
   DEFSYM (Qcyclic_variable_indirection, "cyclic-variable-indirection");
   DEFSYM (Qvoid_variable, "void-variable");
   DEFSYM (Qsetting_constant, "setting-constant");
+  DEFSYM (Qtrapping_constant, "trapping-constant");
+  DEFSYM (Qtrapping_frame_local, "trapping-frame-local");
   DEFSYM (Qinvalid_read_syntax, "invalid-read-syntax");
 
   DEFSYM (Qinvalid_function, "invalid-function");
@@ -3544,6 +3695,10 @@ syms_of_data (void)
   PUT_ERROR (Qvoid_variable, error_tail, "Symbol's value as variable is void");
   PUT_ERROR (Qsetting_constant, error_tail,
 	     "Attempt to set a constant symbol");
+  PUT_ERROR (Qtrapping_constant, error_tail,
+             "Attempt to trap writes to a constant symbol");
+  PUT_ERROR (Qtrapping_frame_local, error_tail,
+             "Attempt to trap writes to a frame local variable");
   PUT_ERROR (Qinvalid_read_syntax, error_tail, "Invalid read syntax");
   PUT_ERROR (Qinvalid_function, error_tail, "Invalid function");
   PUT_ERROR (Qwrong_number_of_arguments, error_tail,
@@ -3722,10 +3877,19 @@ syms_of_data (void)
   DEFVAR_LISP ("most-positive-fixnum", Vmost_positive_fixnum,
 	       doc: /* The largest value that is representable in a Lisp integer.  */);
   Vmost_positive_fixnum = make_number (MOST_POSITIVE_FIXNUM);
-  XSYMBOL (intern_c_string ("most-positive-fixnum"))->constant = 1;
+  make_symbol_constant (intern_c_string ("most-positive-fixnum"));
 
   DEFVAR_LISP ("most-negative-fixnum", Vmost_negative_fixnum,
 	       doc: /* The smallest value that is representable in a Lisp integer.  */);
   Vmost_negative_fixnum = make_number (MOST_NEGATIVE_FIXNUM);
-  XSYMBOL (intern_c_string ("most-negative-fixnum"))->constant = 1;
+  make_symbol_constant (intern_c_string ("most-negative-fixnum"));
+
+  DEFSYM (Qwatchers, "watchers");
+  DEFSYM (Qmakunbound, "makunbound");
+  DEFSYM (Qunlet, "unlet");
+  DEFSYM (Qset, "set");
+  DEFSYM (Qset_default, "set-default");
+  defsubr (&Sadd_variable_watcher);
+  defsubr (&Sremove_variable_watcher);
+  defsubr (&Sget_variable_watchers);
 }

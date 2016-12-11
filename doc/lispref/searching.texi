@@ -44,7 +44,7 @@ Searching and Replacement, emacs, The GNU Emacs Manual}.
 buffer is multibyte; they convert the search string to unibyte if the
 buffer is unibyte.  @xref{Text Representations}.
 
-@deffn Command search-forward string &optional limit noerror repeat
+@deffn Command search-forward string &optional limit noerror count
 This function searches forward from point for an exact match for
 @var{string}.  If successful, it sets point to the end of the occurrence
 found, and returns the new value of point.  If no match is found, the
@@ -95,24 +95,24 @@ The argument @var{noerror} only affects valid searches which fail to
 find a match.  Invalid arguments cause errors regardless of
 @var{noerror}.
 
-If @var{repeat} is a positive number @var{n}, it serves as a repeat
-count: the search is repeated @var{n} times, each time starting at the
-end of the previous time's match.  If these successive searches
-succeed, the function succeeds, moving point and returning its new
-value.  Otherwise the search fails, with results depending on the
-value of @var{noerror}, as described above.  If @var{repeat} is a
-negative number -@var{n}, it serves as a repeat count of @var{n} for a
-search in the opposite (backward) direction.
+If @var{count} is a positive number @var{n}, the search is done
+@var{n} times; each successive search starts at the end of the
+previous match.  If all these successive searches succeed, the
+function call succeeds, moving point and returning its new value.
+Otherwise the function call fails, with results depending on the value
+of @var{noerror}, as described above.  If @var{count} is a negative
+number -@var{n}, the search is done @var{n} times in the opposite
+(backward) direction.
 @end deffn
 
-@deffn Command search-backward string &optional limit noerror repeat
+@deffn Command search-backward string &optional limit noerror count
 This function searches backward from point for @var{string}.  It is
 like @code{search-forward}, except that it searches backwards rather
 than forwards.  Backward searches leave point at the beginning of the
 match.
 @end deffn
 
-@deffn Command word-search-forward string &optional limit noerror repeat
+@deffn Command word-search-forward string &optional limit noerror count
 This function searches forward from point for a word match for
 @var{string}.  If it finds a match, it sets point to the end of the
 match found, and returns the new value of point.
@@ -156,8 +156,10 @@ returns @code{nil} instead of signaling an error.  If @var{noerror} is
 neither @code{nil} nor @code{t}, it moves point to @var{limit} (or the
 end of the accessible portion of the buffer) and returns @code{nil}.
 
-If @var{repeat} is non-@code{nil}, then the search is repeated that many
-times.  Point is positioned at the end of the last match.
+If @var{count} is a positive number, it specifies how many successive
+occurrences to search for.  Point is positioned at the end of the last
+match.  If @var{count} is a negative number, the search is backward
+and point is positioned at the beginning of the last match.
 
 @findex word-search-regexp
 Internally, @code{word-search-forward} and related functions use the
@@ -165,7 +167,7 @@ function @code{word-search-regexp} to convert @var{string} to a
 regular expression that ignores punctuation.
 @end deffn
 
-@deffn Command word-search-forward-lax string &optional limit noerror repeat
+@deffn Command word-search-forward-lax string &optional limit noerror count
 This command is identical to @code{word-search-forward}, except that
 the beginning or the end of @var{string} need not match a word
 boundary, unless @var{string} begins or ends in whitespace.
@@ -173,14 +175,14 @@ For instance, searching for @samp{ball boy} matches @samp{ball boyee},
 but does not match @samp{balls boy}.
 @end deffn
 
-@deffn Command word-search-backward string &optional limit noerror repeat
+@deffn Command word-search-backward string &optional limit noerror count
 This function searches backward from point for a word match to
 @var{string}.  This function is just like @code{word-search-forward}
 except that it searches backward and normally leaves point at the
 beginning of the match.
 @end deffn
 
-@deffn Command word-search-backward-lax string &optional limit noerror repeat
+@deffn Command word-search-backward-lax string &optional limit noerror count
 This command is identical to @code{word-search-backward}, except that
 the beginning or the end of @var{string} need not match a word
 boundary, unless @var{string} begins or ends in whitespace.
@@ -946,26 +948,46 @@ possible.  A hand-tuned regular expression can sometimes be slightly
 more efficient, but is almost never worth the effort.}.
 @c E.g., see http://debbugs.gnu.org/2816
 
-If the optional argument @var{paren} is non-@code{nil}, then the
-returned regular expression is always enclosed by at least one
-parentheses-grouping construct.  If @var{paren} is @code{words}, then
-that construct is additionally surrounded by @samp{\<} and @samp{\>};
-alternatively, if @var{paren} is @code{symbols}, then that construct
-is additionally surrounded by @samp{\_<} and @samp{\_>}
-(@code{symbols} is often appropriate when matching
-programming-language keywords and the like).
+The optional argument @var{paren} can be any of the following:
 
-This simplified definition of @code{regexp-opt} produces a
-regular expression which is equivalent to the actual value
-(but not as efficient):
+@table @asis
+@item a string
+The resulting regexp is preceded by @var{paren} and followed by
+@samp{\)}, e.g. use @samp{"\\(?1:"} to produce an explicitly
+numbered group.
+
+@item @code{words}
+The resulting regexp is surrounded by @samp{\<\(} and @samp{\)\>}.
+
+@item @code{symbols}
+The resulting regexp is surrounded by @samp{\_<\(} and @samp{\)\_>}
+(this is often appropriate when matching programming-language
+keywords and the like).
+
+@item non-@code{nil}
+The resulting regexp is surrounded by @samp{\(} and @samp{\)}.
+
+@item @code{nil}
+The resulting regexp is surrounded by @samp{\(?:} and @samp{\)},
+if it is necessary to ensure that a postfix operator appended to
+it will apply to the whole expression.
+@end table
+
+The resulting regexp of @code{regexp-opt} is equivalent to but usually
+more efficient than that of a simplified version:
 
 @example
-(defun regexp-opt (strings &optional paren)
-  (let ((open-paren (if paren "\\(" ""))
-        (close-paren (if paren "\\)" "")))
-    (concat open-paren
-            (mapconcat 'regexp-quote strings "\\|")
-            close-paren)))
+(defun simplified-regexp-opt (strings &optional paren)
+ (let ((parens
+        (cond
+         ((stringp paren)       (cons paren "\\)"))
+         ((eq paren 'words)    '("\\<\\(" . "\\)\\>"))
+         ((eq paren 'symbols) '("\\_<\\(" . "\\)\\_>"))
+         ((null paren)          '("\\(?:" . "\\)"))
+         (t                       '("\\(" . "\\)")))))
+   (concat (car paren)
+           (mapconcat 'regexp-quote strings "\\|")
+           (cdr paren))))
 @end example
 @end defun
 
@@ -1005,7 +1027,7 @@ only the search functions useful in programs.  The principal one is
 the buffer is multibyte; they convert the regular expression to unibyte
 if the buffer is unibyte.  @xref{Text Representations}.
 
-@deffn Command re-search-forward regexp &optional limit noerror repeat
+@deffn Command re-search-forward regexp &optional limit noerror count
 This function searches forward in the current buffer for a string of
 text that is matched by the regular expression @var{regexp}.  The
 function skips over any amount of text that is not matched by
@@ -1014,14 +1036,12 @@ It returns the new value of point.
 
 If @var{limit} is non-@code{nil}, it must be a position in the current
 buffer.  It specifies the upper bound to the search.  No match
-extending after that position is accepted.
+extending after that position is accepted.  If @var{limit} is omitted
+or @code{nil}, it defaults to the end of the accessible portion of the
+buffer.
 
-If @var{repeat} is supplied, it must be a positive number; the search
-is repeated that many times; each repetition starts at the end of the
-previous match.  If all these successive searches succeed, the search
-succeeds, moving point and returning its new value.  Otherwise the
-search fails.  What @code{re-search-forward} does when the search
-fails depends on the value of @var{noerror}:
+What @code{re-search-forward} does when the search fails depends on
+the value of @var{noerror}:
 
 @table @asis
 @item @code{nil}
@@ -1032,6 +1052,19 @@ Do nothing and return @code{nil}.
 Move point to @var{limit} (or the end of the accessible portion of the
 buffer) and return @code{nil}.
 @end table
+
+The argument @var{noerror} only affects valid searches which fail to
+find a match.  Invalid arguments cause errors regardless of
+@var{noerror}.
+
+If @var{count} is a positive number @var{n}, the search is done
+@var{n} times; each successive search starts at the end of the
+previous match.  If all these successive searches succeed, the
+function call succeeds, moving point and returning its new value.
+Otherwise the function call fails, with results depending on the value
+of @var{noerror}, as described above.  If @var{count} is a negative
+number -@var{n}, the search is done @var{n} times in the opposite
+(backward) direction.
 
 In the following example, point is initially before the @samp{T}.
 Evaluating the search call moves point to the end of that line (between
@@ -1057,7 +1090,7 @@ comes back" twice.
 @end example
 @end deffn
 
-@deffn Command re-search-backward regexp &optional limit noerror repeat
+@deffn Command re-search-backward regexp &optional limit noerror count
 This function searches backward in the current buffer for a string of
 text that is matched by the regular expression @var{regexp}, leaving
 point at the beginning of the first text found.
@@ -1228,13 +1261,13 @@ non-greedy repetition operators (@pxref{Regexp Special, non-greedy}).
 This is because POSIX backtracking conflicts with the semantics of
 non-greedy repetition.
 
-@deffn Command posix-search-forward regexp &optional limit noerror repeat
+@deffn Command posix-search-forward regexp &optional limit noerror count
 This is like @code{re-search-forward} except that it performs the full
 backtracking specified by the POSIX standard for regular expression
 matching.
 @end deffn
 
-@deffn Command posix-search-backward regexp &optional limit noerror repeat
+@deffn Command posix-search-backward regexp &optional limit noerror count
 This is like @code{re-search-backward} except that it performs the full
 backtracking specified by the POSIX standard for regular expression
 matching.

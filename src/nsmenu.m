@@ -1,4 +1,4 @@
-/* NeXT/Open/GNUstep and MacOSX Cocoa menu and toolbar module.
+/* NeXT/Open/GNUstep and macOS Cocoa menu and toolbar module.
    Copyright (C) 2007-2016 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -53,8 +53,7 @@ Carbon version by Yamamoto Mitsuharu. */
 #endif
 
 extern long context_menu_value;
-EmacsMenu *mainMenu, *svcsMenu, *dockMenu;
-
+EmacsMenu *svcsMenu;
 /* Nonzero means a menu is currently active.  */
 static int popup_activated_flag;
 
@@ -93,7 +92,7 @@ popup_activated (void)
 /* --------------------------------------------------------------------------
     Update menubar.  Three cases:
     1) ! deep_p, submenu = nil: Fresh switch onto a frame -- either set up
-       just top-level menu strings (OS X), or goto case (2) (GNUstep).
+       just top-level menu strings (macOS), or goto case (2) (GNUstep).
     2) deep_p, submenu = nil: Recompute all submenus.
     3) deep_p, submenu = non-nil: Update contents of a single submenu.
    -------------------------------------------------------------------------- */
@@ -135,12 +134,6 @@ ns_update_menubar (struct frame *f, bool deep_p, EmacsMenu *submenu)
     {
       menu = [[EmacsMenu alloc] initWithTitle: ns_app_name];
       needsSet = YES;
-    }
-  else
-    {  /* close up anything on there */
-      id attMenu = [menu attachedMenu];
-      if (attMenu != nil)
-        [attMenu close];
     }
 
 #if NSMENUPROFILE
@@ -584,7 +577,7 @@ x_activate_menubar (struct frame *f)
     return;
 /*fprintf (stderr, "Updating menu '%s'\n", [[self title] UTF8String]); NSLog (@"%@\n", event); */
 #ifdef NS_IMPL_GNUSTEP
-  /* Don't know how to do this for anything other than OSX >= 10.5
+  /* Don't know how to do this for anything other than Mac OS X 10.5 and later.
      This is wrong, as it might run Lisp code in the event loop.  */
   ns_update_menubar (frame, true, self);
 #endif
@@ -610,7 +603,7 @@ x_activate_menubar (struct frame *f)
 -(NSString *)parseKeyEquiv: (const char *)key
 {
   const char *tpos = key;
-  keyEquivModMask = NSCommandKeyMask;
+  keyEquivModMask = NSEventModifierFlagCommand;
 
   if (!key || !strlen (key))
     return @"";
@@ -645,7 +638,7 @@ x_activate_menubar (struct frame *f)
 
       keyEq = [self parseKeyEquiv: wv->key];
 #ifdef NS_IMPL_COCOA
-      /* OS X just ignores modifier strings longer than one character */
+      /* macOS just ignores modifier strings longer than one character */
       if (keyEquivModMask == 0)
         title = [title stringByAppendingFormat: @" (%@)", keyEq];
 #endif
@@ -698,7 +691,6 @@ x_activate_menubar (struct frame *f)
   widget_value *wv = (widget_value *)wvptr;
 
   /* clear existing contents */
-  [self setMenuChangedMessagesEnabled: NO];
   [self clear];
 
   /* add new contents */
@@ -722,7 +714,6 @@ x_activate_menubar (struct frame *f)
         }
     }
 
-  [self setMenuChangedMessagesEnabled: YES];
 #ifdef NS_IMPL_GNUSTEP
   if ([[self window] isVisible])
     [self sizeToFit];
@@ -754,7 +745,7 @@ x_activate_menubar (struct frame *f)
 /*   p = [view convertPoint:p fromView: nil]; */
   p.y = NSHeight ([view frame]) - p.y;
   e = [[view window] currentEvent];
-   event = [NSEvent mouseEventWithType: NSRightMouseDown
+   event = [NSEvent mouseEventWithType: NSEventTypeRightMouseDown
                               location: p
                          modifierFlags: 0
                              timestamp: [e timestamp]
@@ -1057,9 +1048,9 @@ update_frame_tool_bar (struct frame *f)
       /* Check if this is a separator.  */
       if (EQ (TOOLPROP (TOOL_BAR_ITEM_TYPE), Qt))
         {
-          /* Skip separators.  Newer OSX don't show them, and on GNUstep they
-             are wide as a button, thus overflowing the toolbar most of
-             the time.  */
+          /* Skip separators.  Newer macOS don't show them, and on
+             GNUstep they are wide as a button, thus overflowing the
+             toolbar most of the time.  */
           continue;
         }
 
@@ -1426,29 +1417,19 @@ update_frame_tool_bar (struct frame *f)
 
    ========================================================================== */
 
-struct Popdown_data
-{
-  NSAutoreleasePool *pool;
-  EmacsDialogPanel *dialog;
-};
-
 static void
 pop_down_menu (void *arg)
 {
-  struct Popdown_data *unwind_data = arg;
+  EmacsDialogPanel *panel = arg;
 
-  block_input ();
   if (popup_activated_flag)
     {
-      EmacsDialogPanel *panel = unwind_data->dialog;
+      block_input ();
       popup_activated_flag = 0;
       [panel close];
-      [unwind_data->pool release];
       [[FRAME_NS_VIEW (SELECTED_FRAME ()) window] makeKeyWindow];
+      unblock_input ();
     }
-
-  xfree (unwind_data);
-  unblock_input ();
 }
 
 
@@ -1459,7 +1440,6 @@ ns_popup_dialog (struct frame *f, Lisp_Object header, Lisp_Object contents)
   Lisp_Object tem, title;
   NSPoint p;
   BOOL isQ;
-  NSAutoreleasePool *pool;
 
   NSTRACE ("ns_popup_dialog");
 
@@ -1479,18 +1459,13 @@ ns_popup_dialog (struct frame *f, Lisp_Object header, Lisp_Object contents)
     contents = list2 (title, Fcons (build_string ("Ok"), Qt));
 
   block_input ();
-  pool = [[NSAutoreleasePool alloc] init];
   dialog = [[EmacsDialogPanel alloc] initFromContents: contents
                                            isQuestion: isQ];
 
   {
     ptrdiff_t specpdl_count = SPECPDL_INDEX ();
-    struct Popdown_data *unwind_data = xmalloc (sizeof (*unwind_data));
 
-    unwind_data->pool = pool;
-    unwind_data->dialog = dialog;
-
-    record_unwind_protect_ptr (pop_down_menu, unwind_data);
+    record_unwind_protect_ptr (pop_down_menu, dialog);
     popup_activated_flag = 1;
     tem = [dialog runDialogAt: p];
     unbind_to (specpdl_count, Qnil);  /* calls pop_down_menu */
@@ -1556,7 +1531,7 @@ ns_popup_dialog (struct frame *f, Lisp_Object header, Lisp_Object contents)
   [img autorelease];
   [imgView autorelease];
 
-  aStyle = NSTitledWindowMask|NSClosableWindowMask|NSUtilityWindowMask;
+  aStyle = NSWindowStyleMaskTitled|NSWindowStyleMaskClosable|NSUtilityWindowMask;
   flag = YES;
   rows = 0;
   cols = 1;
@@ -1814,7 +1789,7 @@ ns_popup_dialog (struct frame *f, Lisp_Object header, Lisp_Object contents)
 
 - (void)timeout_handler: (NSTimer *)timedEntry
 {
-  NSEvent *nxev = [NSEvent otherEventWithType: NSApplicationDefined
+  NSEvent *nxev = [NSEvent otherEventWithType: NSEventTypeApplicationDefined
                             location: NSMakePoint (0, 0)
                        modifierFlags: 0
                            timestamp: 0
@@ -1865,7 +1840,7 @@ ns_popup_dialog (struct frame *f, Lisp_Object header, Lisp_Object contents)
 
   if (EQ (ret, Qundefined) && window_closed)
     /* Make close button pressed equivalent to C-g.  */
-    Fsignal (Qquit, Qnil);
+    quit ();
 
   return ret;
 }

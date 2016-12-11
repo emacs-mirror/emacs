@@ -336,6 +336,8 @@ The category is changed only for table TABLE, which defaults to
 the current buffer's category table.
 CHARACTER can be either a single character or a cons representing the
 lower and upper ends of an inclusive character range to modify.
+CATEGORY must be a category name (a character between ` ' and `~').
+Use `describe-categories' to see existing category names.
 If optional fourth argument RESET is non-nil,
 then delete CATEGORY from the category set instead of adding it.  */)
   (Lisp_Object character, Lisp_Object category, Lisp_Object table, Lisp_Object reset)

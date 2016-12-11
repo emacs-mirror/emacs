@@ -136,7 +136,7 @@ i.e. when `starttls-use-gnutls' is nil."
   :group 'starttls)
 
 (defcustom starttls-use-gnutls (not (executable-find starttls-program))
-  "*Whether to use GnuTLS instead of the `starttls' command."
+  "Whether to use GnuTLS instead of the `starttls' command."
   :version "22.1"
   :type 'boolean
   :group 'starttls)
@@ -153,20 +153,20 @@ These apply when the `starttls' command is used, i.e. when
 These apply when GnuTLS is used, i.e. when `starttls-use-gnutls' is non-nil.
 
 For example, non-TLS compliant servers may require
-'(\"--protocols\" \"ssl3\").  Invoke \"gnutls-cli --help\" to
+\(\"--protocols\" \"ssl3\").  Invoke \"gnutls-cli --help\" to
 find out which parameters are available."
   :version "22.1"
   :type '(repeat string)
   :group 'starttls)
 
 (defcustom starttls-process-connection-type nil
-  "*Value for `process-connection-type' to use when starting STARTTLS process."
+  "Value for `process-connection-type' to use when starting STARTTLS process."
   :version "22.1"
   :type 'boolean
   :group 'starttls)
 
 (defcustom starttls-connect "- Simple Client Mode:\n\n"
-  "*Regular expression indicating successful connection.
+  "Regular expression indicating successful connection.
 The default is what GnuTLS's \"gnutls-cli\" outputs."
   ;; GnuTLS cli.c:main() prints this string when it is starting to run
   ;; in the application read/write phase.  If the logic, or the string
@@ -176,7 +176,7 @@ The default is what GnuTLS's \"gnutls-cli\" outputs."
   :group 'starttls)
 
 (defcustom starttls-failure "\\*\\*\\* Handshake has failed"
-  "*Regular expression indicating failed TLS handshake.
+  "Regular expression indicating failed TLS handshake.
 The default is what GnuTLS's \"gnutls-cli\" outputs."
   ;; GnuTLS cli.c:do_handshake() prints this string on failure.  If the
   ;; logic, or the string itself, is modified, this must be updated.
@@ -185,7 +185,7 @@ The default is what GnuTLS's \"gnutls-cli\" outputs."
   :group 'starttls)
 
 (defcustom starttls-success "- Compression: "
-  "*Regular expression indicating completed TLS handshakes.
+  "Regular expression indicating completed TLS handshakes.
 The default is what GnuTLS's \"gnutls-cli\" outputs."
   ;; GnuTLS cli.c:do_handshake() calls, on success,
   ;; common.c:print_info(), that unconditionally print this string

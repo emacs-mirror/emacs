@@ -84,7 +84,7 @@ It is no longer needed, as the crt*.o files are no longer linked specially.
 ** Directories passed to configure option `--enable-locallisppath' are
 no longer created during installation.
 
-** Emacs for Nextstep (Mac OS X, GNUstep) can be built with ImageMagick support.
+** Emacs for Nextstep (OS X, GNUstep) can be built with ImageMagick support.
 This requires pkg-config to be available at build time.
 
 
@@ -1559,7 +1559,7 @@ The previous binding, introduced in Emacs 24.1, was a mistake, because
 
 *** New input method `vietnamese-vni'.
 
-** Nextstep (GNUstep / Mac OS X) port
+** Nextstep (GNUstep / OS X) port
 
 *** Support for fullscreen and the frame parameter fullscreen.
 
@@ -2373,9 +2373,9 @@ Emacs now supports `mouse-highlight', help-echo (in the echo area), and
 ** On MS Windows, you can pass `--without-libxml2' to configure.bat to omit
 support for libxml2, even if its presence is detected.
 
-** On Mac OS X, the Nextstep port requires OS X 10.4 or later.
+** On OS X, the Nextstep port requires Mac OS X 10.4 or later.
 
-** On Mac OS X, configure no longer automatically adds the Fink "/sw"
+** On OS X, configure no longer automatically adds the Fink "/sw"
 directories to the search path.  You must add them yourself if you want them.
 
 
@@ -3833,7 +3833,7 @@ and also when HOME is set to C:\ by default.
 (It is only used internally in the Emacs C code.)
 
 ** Customize ns-auto-hide-menu-bar to have the menu-bar hidden, but
-reappear on mouse-over.  (Requires OS X 10.6 or later.)
+reappear on mouse-over.  (Requires Mac OS X 10.6 or later.)
 
 ** On Mac OS X, dragging a file into Emacs visits the file, like on
 other platforms, rather than inserting its contents into the buffer.

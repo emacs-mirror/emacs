@@ -1254,7 +1254,7 @@
 2015-03-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/shr.el (shr-insert): Remove soft hyphens.
-	(shr-insert): Also remove soft hypens from non-folded text.
+	(shr-insert): Also remove soft hyphens from non-folded text.
 
 2015-02-28  Eli Zaretskii  <eliz@gnu.org>
 
@@ -3737,7 +3737,7 @@
 	* net/tramp.el (tramp-read-passwd): Ignore errors from `auth-source-*'.
 
 	* net/tramp-sh.el (tramp-do-copy-or-rename-file-out-of-band): Use "\n"
-	as end-of-line delimeter for passwords, when running on MS Windows.
+	as end-of-line delimiter for passwords, when running on MS Windows.
 
 2014-12-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -6026,7 +6026,7 @@
 
 2014-11-01  Michael R. Mauger  <michael@mauger.com>
 
-	* sql.el (sql-mode-oracle-font-lock-keywords): Correct regexp
+	* progmodes/sql.el (sql-mode-oracle-font-lock-keywords): Correct regexp
 	syntax, add new keywords, and parse longer keywords first.
 	(sql-redirect-one): Protect against empty command.
 	(sql-mode, sql-interactive-mode): Set `custom-mode-group' property
@@ -6034,7 +6034,7 @@
 
 2014-11-01  Michael R. Mauger  <michael@mauger.com>
 
-	* sql.el (sql-interactive-mode, sql-stop): Correct fix for
+	* progmodes/sql.el (sql-interactive-mode, sql-stop): Correct fix for
 	Bug#16814 with let-bind of comint-input-ring variables around read
 	and save functions.
 
@@ -6835,7 +6835,7 @@
 	console as well (bug#18629).
 	* w32-common-fns.el: Remove.
 	* loadup.el: Don't load w32-common-fns.el.
-	* w32-fns.elc: Don't require w32-common-fns.
+	* w32-fns.el: Don't require w32-common-fns.
 
 	* icomplete.el: Move Iswitchb autoload here.  Much simpler.
 	* obsolete/iswitchb.el (iswitchb-mode): Use normal autoload cookie.
@@ -8033,7 +8033,7 @@
 2014-08-24  Alan Mackenzie  <acm@muc.de>
 
 	Handle C++11's "auto" and "decltype" constructions.
-	* progmodes/cc-engine.el (c-forward-type): Enhance to recognise
+	* progmodes/cc-engine.el (c-forward-type): Enhance to recognize
 	and return 'decltype.
 	(c-forward-decl-or-cast-1): New let variables backup-kwd-sym,
 	prev-kwd-sym, new-style-auto.  Enhance to handle the new "auto"
@@ -13542,7 +13542,7 @@
 
 	c-parse-state.  Don't "append-lower-brace-pair" in certain
 	circumstances.  Also fix an obscure bug where "\\s!" shouldn't be
-	recognised as a comment.
+	recognized as a comment.
 
 	* progmodes/cc-engine.el (c-state-pp-to-literal): Check for "\\s!"
 	as well as normal comment starter.
@@ -17480,7 +17480,7 @@
 	after a function declaration with only types (no identifiers) in
 	the parentheses.  Also, accept a function declaration with just a
 	type inside the parentheses, if this type can be positively
-	recognised as such, or if a prefix keyword like "explicit" nails
+	recognized as such, or if a prefix keyword like "explicit" nails
 	down the construct as a declaration.
 
 2013-10-19  Eli Zaretskii  <eliz@gnu.org>

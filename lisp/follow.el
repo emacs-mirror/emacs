@@ -399,11 +399,11 @@ virtual window.  This is accomplished by two main techniques:
   makes it possible to walk between windows using normal cursor
   movement commands.
 
-Follow mode comes to its prime when used on a large screen and two
-side-by-side windows are used.  The user can, with the help of Follow
-mode, use two full-height windows as though they would have been
-one.  Imagine yourself editing a large function, or section of text,
-and being able to use 144 lines instead of the normal 72... (your
+Follow mode comes to its prime when used on a large screen and two or
+more side-by-side windows are used.  The user can, with the help of
+Follow mode, use these full-height windows as though they were one.
+Imagine yourself editing a large function, or section of text, and
+being able to use 144 or 216 lines instead of the normal 72... (your
 mileage may vary).
 
 To split one large window into two side-by-side windows, the commands
@@ -532,6 +532,80 @@ Return the new position."
 ;; position...  (This would also be corrected if we would have had a
 ;; good redisplay abstraction.)
 
+(defun follow-scroll-up-arg (arg)
+  "Scroll the text in a follow mode window chain up by ARG lines.
+If ARG is nil, scroll the size of the current window.
+
+This is an internal function for `follow-scroll-up' and
+`follow-scroll-up-window'."
+  (let ((opoint (point))  (owin (selected-window)))
+    (while
+        ;; If we are too near EOB, try scrolling the previous window.
+        (condition-case nil (progn (scroll-up arg) nil)
+          (end-of-buffer
+           (condition-case nil (progn (follow-previous-window) t)
+             (error
+              (select-window owin)
+              (goto-char opoint)
+              (signal 'end-of-buffer nil))))))
+    (unless (and scroll-preserve-screen-position
+                 (get this-command 'scroll-command))
+      (goto-char opoint))
+    (setq follow-fixed-window t)))
+
+(defun follow-scroll-down-arg (arg)
+  "Scroll the text in a follow mode window chain down by ARG lines.
+If ARG is nil, scroll the size of the current window.
+
+This is an internal function for `follow-scroll-down' and
+`follow-scroll-down-window'."
+  (let ((opoint (point)))
+    (scroll-down arg)
+    (unless (and scroll-preserve-screen-position
+                 (get this-command 'scroll-command))
+      (goto-char opoint))
+    (setq follow-fixed-window t)))
+
+;;;###autoload
+(defun follow-scroll-up-window (&optional arg)
+  "Scroll text in a Follow mode window up by that window's size.
+The other windows in the window chain will scroll synchronously.
+
+If called with no ARG, the `next-screen-context-lines' last lines of
+the window will be visible after the scroll.
+
+If called with an argument, scroll ARG lines up.
+Negative ARG means scroll downward.
+
+Works like `scroll-up' when not in Follow mode."
+  (interactive "P")
+  (cond ((not follow-mode)
+	 (scroll-up arg))
+	((eq arg '-)
+	 (follow-scroll-down-window))
+	(t (follow-scroll-up-arg arg))))
+(put 'follow-scroll-up-window 'scroll-command t)
+
+;;;###autoload
+(defun follow-scroll-down-window (&optional arg)
+  "Scroll text in a Follow mode window down by that window's size.
+The other windows in the window chain will scroll synchronously.
+
+If called with no ARG, the `next-screen-context-lines' top lines of
+the window in the chain will be visible after the scroll.
+
+If called with an argument, scroll ARG lines down.
+Negative ARG means scroll upward.
+
+Works like `scroll-down' when not in Follow mode."
+  (interactive "P")
+  (cond ((not follow-mode)
+	 (scroll-down arg))
+	((eq arg '-)
+	 (follow-scroll-up-window))
+	(t (follow-scroll-down-arg arg))))
+(put 'follow-scroll-down-window 'scroll-command t)
+
 ;;;###autoload
 (defun follow-scroll-up (&optional arg)
   "Scroll text in a Follow mode window chain up.
@@ -546,23 +620,18 @@ Works like `scroll-up' when not in Follow mode."
   (interactive "P")
   (cond ((not follow-mode)
 	 (scroll-up arg))
-	((eq arg '-)
-	 (follow-scroll-down))
-	(t
-	 (let ((opoint (point))  (owin (selected-window)))
-	   (while
-	       ;; If we are too near EOB, try scrolling the previous window.
-	       (condition-case nil (progn (scroll-up arg) nil)
-		 (end-of-buffer
-		  (condition-case nil (progn (follow-previous-window) t)
-		    (error
-		     (select-window owin)
-		     (goto-char opoint)
-		     (signal 'end-of-buffer nil))))))
-	   (unless (and scroll-preserve-screen-position
-			(get this-command 'scroll-command))
-	     (goto-char opoint))
-	   (setq follow-fixed-window t)))))
+	(arg (follow-scroll-up-arg arg))
+        (t
+	 (let* ((windows (follow-all-followers))
+		(end (window-end (car (reverse windows)))))
+	   (if (eq end (point-max))
+	       (signal 'end-of-buffer nil)
+	     (select-window (car windows))
+	     ;; `window-end' might return nil.
+	     (if end
+		 (goto-char end))
+	     (vertical-motion (- next-screen-context-lines))
+	     (set-window-start (car windows) (point)))))))
 (put 'follow-scroll-up 'scroll-command t)
 
 ;;;###autoload
@@ -579,15 +648,22 @@ Works like `scroll-down' when not in Follow mode."
   (interactive "P")
   (cond ((not follow-mode)
 	 (scroll-down arg))
-	((eq arg '-)
-	 (follow-scroll-up))
-	(t
-	 (let ((opoint (point)))
-	   (scroll-down arg)
-	   (unless (and scroll-preserve-screen-position
-			(get this-command 'scroll-command))
-	     (goto-char opoint))
-	   (setq follow-fixed-window t)))))
+	(arg (follow-scroll-down-arg arg))
+        (t
+	 (let* ((windows (follow-all-followers))
+		(win (car (reverse windows)))
+		(start (window-start (car windows))))
+	   (if (eq start (point-min))
+	       (signal 'beginning-of-buffer nil)
+	     (select-window win)
+	     (goto-char start)
+	     (vertical-motion (- (- (window-height win)
+				    (if header-line-format 2 1)
+				    next-screen-context-lines)))
+	     (set-window-start win (point))
+	     (goto-char start)
+	     (vertical-motion (- next-screen-context-lines 1))
+	     (setq follow-internal-force-redisplay t))))))
 (put 'follow-scroll-down 'scroll-command t)
 
 (declare-function comint-adjust-point "comint" (window))

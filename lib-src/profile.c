@@ -35,6 +35,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <inttypes.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include <intprops.h>
 #include <systime.h>
@@ -84,13 +85,13 @@ main (void)
 	  puts (get_time ());
 	  break;
 	case 'q':
-	  exit (EXIT_SUCCESS);
+	  return EXIT_SUCCESS;
 	}
       /* Anything remaining on the line is ignored.  */
       while (c != '\n' && c != EOF)
 	c = getchar ();
     }
-  exit (EXIT_FAILURE);
+  return EXIT_FAILURE;
 }
 
 

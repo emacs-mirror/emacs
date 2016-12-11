@@ -503,22 +503,9 @@ the codeset part of the locale cannot be @code{"UTF-8"} on MS-Windows.
 If your system does not support a locale environment, this function
 behaves like @code{string-equal}.
 
-Do @emph{not} use this function to compare file names for equality, only
-for sorting them.
-@end defun
-
-@defun string-prefix-p string1 string2 &optional ignore-case
-This function returns non-@code{nil} if @var{string1} is a prefix of
-@var{string2}; i.e., if @var{string2} starts with @var{string1}.  If
-the optional argument @var{ignore-case} is non-@code{nil}, the
-comparison ignores case differences.
-@end defun
-
-@defun string-suffix-p suffix string &optional ignore-case
-This function returns non-@code{nil} if @var{suffix} is a suffix of
-@var{string}; i.e., if @var{string} ends with @var{suffix}.  If the
-optional argument @var{ignore-case} is non-@code{nil}, the comparison
-ignores case differences.
+Do @emph{not} use this function to compare file names for equality, as
+filesystems generally don't honor linguistic equivalence of strings
+that collation implements.
 @end defun
 
 @cindex lexical comparison of strings
@@ -668,7 +655,7 @@ The strings are compared by the numeric values of their characters.
 For instance, @var{str1} is considered less than @var{str2} if
 its first differing character has a smaller numeric value.  If
 @var{ignore-case} is non-@code{nil}, characters are converted to
-lower-case before comparing them.  Unibyte strings are converted to
+upper-case before comparing them.  Unibyte strings are converted to
 multibyte for comparison (@pxref{Text Representations}), so that a
 unibyte string and its conversion to multibyte are always regarded as
 equal.
@@ -685,7 +672,8 @@ specified portion) is less.
 This function works like @code{assoc}, except that @var{key} must be a
 string or symbol, and comparison is done using @code{compare-strings}.
 Symbols are converted to strings before testing.
-If @var{case-fold} is non-@code{nil}, it ignores case differences.
+If @var{case-fold} is non-@code{nil}, @var{key} and the elements of
+@var{alist} are converted to upper-case before comparison.
 Unlike @code{assoc}, this function can also match elements of the alist
 that are strings or symbols rather than conses.  In particular, @var{alist} can
 be a list of strings or symbols rather than an actual alist.
@@ -833,17 +821,23 @@ arguments @var{objects} are the computed values to be formatted.
 
 The characters in @var{string}, other than the format specifications,
 are copied directly into the output, including their text properties,
-if any.
+if any.  Any text properties of the format specifications are copied
+to the produced string representations of the argument @var{objects}.
 @end defun
 
 @defun format-message string &rest objects
 @cindex curved quotes
 @cindex curly quotes
 This function acts like @code{format}, except it also converts any
-curved single quotes in @var{string} as per the value of
-@code{text-quoting-style}, and treats grave accent (@t{`}) and
-apostrophe (@t{'}) as if they were curved single quotes.  @xref{Keys
-in Documentation}.
+grave accents (@t{`}) and apostrophes (@t{'}) in @var{string} as per the
+value of @code{text-quoting-style}.
+
+A format that quotes with grave accents and apostrophes @t{`like
+this'} typically generates curved quotes @t{‘like this’}.  In
+contrast, a format that quotes with only apostrophes @t{'like this'}
+typically generates two closing curved quotes @t{’like this’}, an
+unusual style in English.  @xref{Keys in Documentation}, for how the
+@code{text-quoting-style} variable affects generated quotes.
 @end defun
 
 @cindex @samp{%} in format
@@ -1052,8 +1046,9 @@ precision specifies how many decimal places to show; if zero, the
 decimal-point itself is also omitted.  For @samp{%s} and @samp{%S},
 the precision truncates the string to the given width, so @samp{%.3s}
 shows only the first three characters of the representation for
-@var{object}.  Precision has no effect for other specification
-characters.
+@var{object}.  For other specification characters, the effect of
+precision is what the local library functions of the @code{printf}
+family produce.
 
 @node Case Conversion
 @section Case Conversion in Lisp

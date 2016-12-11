@@ -880,11 +880,11 @@ because @code{defun-rcirc-command} is not yet available, and without
 @code{rcirc} loaded, the command wouldn't do us much good anyway.
 
 @smallexample
-(eval-after-load 'rcirc
-  '(defun-rcirc-command sv (arg)
-     "Boast about rcirc."
-     (interactive "i")
-     (rcirc-send-message process target
+(with-eval-after-load 'rcirc
+  (defun-rcirc-command sv (arg)
+    "Boast about rcirc."
+    (interactive "i")
+    (rcirc-send-message process target
                          (concat "I use " rcirc-id-string))))
 @end smallexample
 
@@ -904,29 +904,29 @@ copies of every channel buffer, one dead and one live.
 The real answer, therefore, is a @code{/reconnect} command:
 
 @smallexample
-(eval-after-load 'rcirc
-  '(defun-rcirc-command reconnect (arg)
-     "Reconnect the server process."
-     (interactive "i")
-     (unless process
-       (error "There's no process for this target"))
-     (let* ((server (car (process-contact process)))
-            (port (process-contact process :service))
-            (nick (rcirc-nick process))
-            channels query-buffers)
-       (dolist (buf (buffer-list))
-         (with-current-buffer buf
-           (when (eq process (rcirc-buffer-process))
-             (remove-hook 'change-major-mode-hook
-                          'rcirc-change-major-mode-hook)
-             (if (rcirc-channel-p rcirc-target)
-                 (setq channels (cons rcirc-target channels))
-               (setq query-buffers (cons buf query-buffers))))))
-       (delete-process process)
-       (rcirc-connect server port nick
-                      rcirc-default-user-name
-                      rcirc-default-full-name
-                      channels))))
+(with-eval-after-load 'rcirc
+  (defun-rcirc-command reconnect (arg)
+    "Reconnect the server process."
+    (interactive "i")
+    (unless process
+      (error "There's no process for this target"))
+    (let* ((server (car (process-contact process)))
+           (port (process-contact process :service))
+           (nick (rcirc-nick process))
+           channels query-buffers)
+      (dolist (buf (buffer-list))
+        (with-current-buffer buf
+          (when (eq process (rcirc-buffer-process))
+            (remove-hook 'change-major-mode-hook
+                         'rcirc-change-major-mode-hook)
+            (if (rcirc-channel-p rcirc-target)
+                (setq channels (cons rcirc-target channels))
+              (setq query-buffers (cons buf query-buffers))))))
+      (delete-process process)
+      (rcirc-connect server port nick
+                     rcirc-default-user-name
+                     rcirc-default-full-name
+                     channels))))
 @end smallexample
 
 @node GNU Free Documentation License

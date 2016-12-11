@@ -24,7 +24,7 @@
 
 ;;; Code:
 (defvar reftex-tables-dirty)
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 (eval-and-compile
   (defun reftex-set-dirty (symbol value)
     (setq reftex-tables-dirty t)
@@ -1076,9 +1076,9 @@ used in the variable `reftex-ref-style-alist'."
 
 ;; Compatibility with obsolete variables.
 (when reftex-vref-is-default
-  (add-to-list 'reftex-ref-style-default-list "Varioref"))
+  (cl-pushnew "Varioref" reftex-ref-style-default-list :test #'equal))
 (when reftex-fref-is-default
-  (add-to-list 'reftex-ref-style-default-list "Fancyref"))
+  (cl-pushnew "Fancyref" reftex-ref-style-default-list :test #'equal))
 
 (defcustom reftex-level-indent 2
   "Number of spaces to be used for indentation per section level."

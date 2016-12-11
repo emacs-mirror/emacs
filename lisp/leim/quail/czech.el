@@ -142,18 +142,7 @@
  ("=[" ?\[)
  ("=]" ?\])
  ("={" ?{)
- ("=}" ?})
- ([kp-1] ?1)
- ([kp-2] ?2)
- ([kp-3] ?3)
- ([kp-4] ?4)
- ([kp-5] ?5)
- ([kp-6] ?6)
- ([kp-7] ?7)
- ([kp-8] ?8)
- ([kp-9] ?9)
- ([kp-0] ?0)
- ([kp-add] ?+))
+ ("=}" ?}))
 
 (quail-define-package
  "czech-qwerty" "Czech" "CZ" t
@@ -260,18 +249,7 @@
  ("=[" ?\[)
  ("=]" ?\])
  ("={" ?{)
- ("=}" ?})
- ([kp-1] ?1)
- ([kp-2] ?2)
- ([kp-3] ?3)
- ([kp-4] ?4)
- ([kp-5] ?5)
- ([kp-6] ?6)
- ([kp-7] ?7)
- ([kp-8] ?8)
- ([kp-9] ?9)
- ([kp-0] ?0)
- ([kp-add] ?+))
+ ("=}" ?}))
 
 (quail-define-package
  "czech-prog-1" "Czech" "CZ" t
@@ -350,18 +328,7 @@ All other keys are the same as on standard US keyboard."
  ("++U" ?Ů)
  ("+++U" ?Ü)
  ("+Y" ?Ý)
- ("+Z" ?Ž)
- ([kp-1] ?1)
- ([kp-2] ?2)
- ([kp-3] ?3)
- ([kp-4] ?4)
- ([kp-5] ?5)
- ([kp-6] ?6)
- ([kp-7] ?7)
- ([kp-8] ?8)
- ([kp-9] ?9)
- ([kp-0] ?0)
- ([kp-add] ?+))
+ ("+Z" ?Ž))
 
 (quail-define-package
  "czech-prog-2" "Czech" "CZ" t
@@ -440,18 +407,7 @@ All other keys are the same as on standard US keyboard."
  ("++U" ?Ů)
  ("+++U" ?Ü)
  ("+Y" ?Ý)
- ("+Z" ?Ž)
- ([kp-1] ?1)
- ([kp-2] ?2)
- ([kp-3] ?3)
- ([kp-4] ?4)
- ([kp-5] ?5)
- ([kp-6] ?6)
- ([kp-7] ?7)
- ([kp-8] ?8)
- ([kp-9] ?9)
- ([kp-0] ?0)
- ([kp-add] ?+))
+ ("+Z" ?Ž))
 
 (quail-define-package
  "czech-prog-3" "Czech" "CZ" t
@@ -552,17 +508,6 @@ All other keys are the same as on standard US keyboard."
  ("+u" ?ů)
  ("+=u" ?ü)
  ("=y" ?ý)
- ("+z" ?ž)
- ([kp-1] ?1)
- ([kp-2] ?2)
- ([kp-3] ?3)
- ([kp-4] ?4)
- ([kp-5] ?5)
- ([kp-6] ?6)
- ([kp-7] ?7)
- ([kp-8] ?8)
- ([kp-9] ?9)
- ([kp-0] ?0)
- ([kp-add] ?+))
+ ("+z" ?ž))
 
 ;;; czech.el ends here

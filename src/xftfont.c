@@ -125,15 +125,12 @@ xftfont_get_colors (struct frame *f, struct face *face, GC gc,
     }
 }
 
-
-struct font_driver xftfont_driver;
-
 static Lisp_Object
 xftfont_list (struct frame *f, Lisp_Object spec)
 {
-  Lisp_Object list = ftfont_driver.list (f, spec), tail;
+  Lisp_Object list = ftfont_list (f, spec);
 
-  for (tail = list; CONSP (tail); tail = XCDR (tail))
+  for (Lisp_Object tail = list; CONSP (tail); tail = XCDR (tail))
     ASET (XCAR (tail), FONT_TYPE_INDEX, Qxft);
   return list;
 }
@@ -141,7 +138,7 @@ xftfont_list (struct frame *f, Lisp_Object spec)
 static Lisp_Object
 xftfont_match (struct frame *f, Lisp_Object spec)
 {
-  Lisp_Object entity = ftfont_driver.match (f, spec);
+  Lisp_Object entity = ftfont_match (f, spec);
 
   if (! NILP (entity))
     ASET (entity, FONT_TYPE_INDEX, Qxft);
@@ -395,6 +392,24 @@ xftfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
 
   font->ascent = xftfont->ascent;
   font->descent = xftfont->descent;
+  /* The following workaround is unnecessary on most systems, and
+     causes annoying differences in glyph height between regular and
+     bold fonts (see bug#22383).  However, with some fonts, such as
+     monaco, removing the workaround results in overlapping vertical
+     space of a line, see bug#23360.  As long as the way to reconcile
+     these opposites is not known, we provide a user option to work
+     around the problem.  */
+  if (pixel_size >= 5
+      && xft_font_ascent_descent_override)
+    {
+      /* The above condition is a dirty workaround because
+	 XftTextExtents8 behaves strangely for some fonts
+	 (e.g. "Dejavu Sans Mono") when pixel_size is less than 5. */
+      if (font->ascent < extents.y)
+	font->ascent = extents.y;
+      if (font->descent < extents.height - extents.y)
+	font->descent = extents.height - extents.y;
+    }
   font->height = font->ascent + font->descent;
 
   if (XINT (AREF (entity, FONT_SIZE_INDEX)) == 0)
@@ -524,7 +539,7 @@ xftfont_has_char (Lisp_Object font, int c)
     return (ENCODE_CHAR (cs, c) != CHARSET_INVALID_CODE (cs));
 
   if (FONT_ENTITY_P (font))
-    return ftfont_driver.has_char (font, c);
+    return ftfont_has_char (font, c);
   xftfont_info = (struct xftfont_info *) XFONT_OBJECT (font);
   return (XftCharExists (xftfont_info->display, xftfont_info->xftfont,
 			 (FcChar32) c) == FcTrue);
@@ -568,7 +583,7 @@ xftfont_get_xft_draw (struct frame *f)
     {
       block_input ();
       xft_draw= XftDrawCreate (FRAME_X_DISPLAY (f),
-			       FRAME_X_WINDOW (f),
+                               FRAME_X_DRAWABLE (f),
 			       FRAME_X_VISUAL (f),
 			       FRAME_X_COLORMAP (f));
       unblock_input ();
@@ -582,6 +597,8 @@ static int
 xftfont_draw (struct glyph_string *s, int from, int to, int x, int y,
               bool with_background)
 {
+  block_input ();
+
   struct frame *f = s->f;
   struct face *face = s->face;
   struct xftfont_info *xftfont_info = (struct xftfont_info *) s->font;
@@ -596,7 +613,6 @@ xftfont_draw (struct glyph_string *s, int from, int to, int x, int y,
     xftface_info = (struct xftface_info *) face->extra;
   xftfont_get_colors (f, face, s->gc, xftface_info,
 		      &fg, with_background ? &bg : NULL);
-  block_input ();
   if (s->num_clips > 0)
     XftDrawSetClipRectangles (xft_draw, 0, 0, s->clip, s->num_clips);
   else
@@ -634,9 +650,12 @@ xftfont_draw (struct glyph_string *s, int from, int to, int x, int y,
 		     x + i, y, code + i, 1);
   else
     XftDrawGlyphs (xft_draw, &fg, xftfont_info->xftfont,
-		   x, y, code, len);
+                   x, y, code, len);
+  /* Need to explicitly mark the frame dirty because we didn't call
+     FRAME_X_DRAWABLE in order to draw: we cached the drawable in the
+     XftDraw structure.  */
+  x_mark_frame_dirty (f);
   unblock_input ();
-
   return len;
 }
 
@@ -646,12 +665,9 @@ xftfont_shape (Lisp_Object lgstring)
 {
   struct font *font = CHECK_FONT_GET_OBJECT (LGSTRING_FONT (lgstring));
   struct xftfont_info *xftfont_info = (struct xftfont_info *) font;
-  FT_Face ft_face;
-  Lisp_Object val;
-
-  ft_face = XftLockFace (xftfont_info->xftfont);
+  FT_Face ft_face = XftLockFace (xftfont_info->xftfont);
   xftfont_info->ft_size = ft_face->size;
-  val = ftfont_driver.shape (lgstring);
+  Lisp_Object val = ftfont_shape (lgstring);
   XftUnlockFace (xftfont_info->xftfont);
   return val;
 }
@@ -660,13 +676,10 @@ xftfont_shape (Lisp_Object lgstring)
 static int
 xftfont_end_for_frame (struct frame *f)
 {
+  block_input ();
   XftDraw *xft_draw;
 
-  /* Don't do anything if display is dead */
-  if (FRAME_X_DISPLAY (f) == NULL) return 0;
-
   xft_draw = font_get_frame_data (f, Qxft);
-
   if (xft_draw)
     {
       block_input ();
@@ -674,7 +687,21 @@ xftfont_end_for_frame (struct frame *f)
       unblock_input ();
       font_put_frame_data (f, Qxft, NULL);
     }
+  unblock_input ();
   return 0;
+}
+
+/* When using X double buffering, the XftDraw structure we build
+   seems to be useless once a frame is resized, so recreate it on
+   ConfigureNotify and in some other cases.  */
+
+static void
+xftfont_drop_xrender_surfaces (struct frame *f)
+{
+  block_input ();
+  if (FRAME_X_DOUBLE_BUFFERED_P (f))
+    xftfont_end_for_frame (f);
+  unblock_input ();
 }
 
 static bool
@@ -722,6 +749,40 @@ xftfont_cached_font_ok (struct frame *f, Lisp_Object font_object,
   return ok;
 }
 
+struct font_driver const xftfont_driver =
+  {
+    /* We can't draw a text without device dependent functions.  */
+  type: LISPSYM_INITIALLY (Qxft),
+  get_cache: xfont_get_cache,
+  list: xftfont_list,
+  match: xftfont_match,
+  list_family: ftfont_list_family,
+  open: xftfont_open,
+  close: xftfont_close,
+  prepare_face: xftfont_prepare_face,
+  done_face: xftfont_done_face,
+  has_char: xftfont_has_char,
+  encode_char: xftfont_encode_char,
+  text_extents: xftfont_text_extents,
+  draw: xftfont_draw,
+  get_bitmap: ftfont_get_bitmap,
+  anchor_point: ftfont_anchor_point,
+#ifdef HAVE_LIBOTF
+  otf_capability: ftfont_otf_capability,
+#endif
+  end_for_frame: xftfont_end_for_frame,
+#if defined HAVE_M17N_FLT && defined HAVE_LIBOTF
+  shape: xftfont_shape,
+#endif
+#ifdef HAVE_OTF_GET_VARIATION_GLYPHS
+  get_variation_glyphs: ftfont_variation_glyphs,
+#endif
+  filter_properties: ftfont_filter_properties,
+  cached_font_ok: xftfont_cached_font_ok,
+  combining_capability: ftfont_combining_capability,
+  drop_xrender_surfaces: xftfont_drop_xrender_surfaces,
+  };
+
 void
 syms_of_xftfont (void)
 {
@@ -733,26 +794,13 @@ syms_of_xftfont (void)
   DEFSYM (QCembolden, ":embolden");
   DEFSYM (QClcdfilter, ":lcdfilter");
 
-  ascii_printable[0] = 0;
+  DEFVAR_BOOL ("xft-font-ascent-descent-override",
+	       xft_font_ascent_descent_override,
+	       doc:  /* Non-nil means override the ascent and descent values for Xft font driver.
+This is needed with some fonts to correct vertical overlap of glyphs.  */);
+  xft_font_ascent_descent_override = 0;
 
-  xftfont_driver = ftfont_driver;
-  xftfont_driver.type = Qxft;
-  xftfont_driver.get_cache = xfont_driver.get_cache;
-  xftfont_driver.list = xftfont_list;
-  xftfont_driver.match = xftfont_match;
-  xftfont_driver.open = xftfont_open;
-  xftfont_driver.close = xftfont_close;
-  xftfont_driver.prepare_face = xftfont_prepare_face;
-  xftfont_driver.done_face = xftfont_done_face;
-  xftfont_driver.has_char = xftfont_has_char;
-  xftfont_driver.encode_char = xftfont_encode_char;
-  xftfont_driver.text_extents = xftfont_text_extents;
-  xftfont_driver.draw = xftfont_draw;
-  xftfont_driver.end_for_frame = xftfont_end_for_frame;
-  xftfont_driver.cached_font_ok = xftfont_cached_font_ok;
-#if defined (HAVE_M17N_FLT) && defined (HAVE_LIBOTF)
-  xftfont_driver.shape = xftfont_shape;
-#endif
+  ascii_printable[0] = 0;
 
   register_font_driver (&xftfont_driver, NULL);
 }

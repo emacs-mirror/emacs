@@ -4,7 +4,7 @@
 
 ;; Author: Fabián E. Gallina <fgallina@gnu.org>
 ;; URL: https://github.com/fgallina/python.el
-;; Version: 0.25.1
+;; Version: 0.25.2
 ;; Package-Requires: ((emacs "24.1") (cl-lib "1.0"))
 ;; Maintainer: emacs-devel@gnu.org
 ;; Created: Jul 2010
@@ -330,6 +330,7 @@
     ;; Some util commands
     (define-key map "\C-c\C-v" 'python-check)
     (define-key map "\C-c\C-f" 'python-eldoc-at-point)
+    (define-key map "\C-c\C-d" 'python-describe-at-point)
     ;; Utilities
     (substitute-key-definition 'complete-symbol 'completion-at-point
                                map global-map)
@@ -384,7 +385,10 @@
   (defconst python-rx-constituents
     `((block-start          . ,(rx symbol-start
                                    (or "def" "class" "if" "elif" "else" "try"
-                                       "except" "finally" "for" "while" "with")
+                                       "except" "finally" "for" "while" "with"
+                                       ;; Python 3.5+ PEP492
+                                       (and "async" (+ space)
+                                            (or "def" "for" "with")))
                                    symbol-end))
       (dedenter            . ,(rx symbol-start
                                    (or "elif" "else" "except" "finally")
@@ -395,7 +399,11 @@
                                   symbol-end))
       (decorator            . ,(rx line-start (* space) ?@ (any letter ?_)
                                    (* (any word ?_))))
-      (defun                . ,(rx symbol-start (or "def" "class") symbol-end))
+      (defun                . ,(rx symbol-start
+                                   (or "def" "class"
+                                       ;; Python 3.5+ PEP492
+                                       (and "async" (+ space) "def"))
+                                   symbol-end))
       (if-name-main         . ,(rx line-start "if" (+ space) "__name__"
                                    (+ space) "==" (+ space)
                                    (any ?' ?\") "__main__" (any ?' ?\")
@@ -527,6 +535,9 @@ The type returned can be `comment', `string' or `paren'."
           ;; fontified like that in order to keep font-lock consistent between
           ;; Python versions.
           "nonlocal"
+          ;; Python 3.5+ PEP492
+          (and "async" (+ space) (or "def" "for" "with"))
+          "await"
           ;; Extra:
           "self")
          symbol-end)
@@ -551,23 +562,32 @@ The type returned can be `comment', `string' or `paren'."
     ;; Builtin Exceptions
     (,(rx symbol-start
           (or
+           ;; Python 2 and 3:
            "ArithmeticError" "AssertionError" "AttributeError" "BaseException"
-           "DeprecationWarning" "EOFError" "EnvironmentError" "Exception"
-           "FloatingPointError" "FutureWarning" "GeneratorExit" "IOError"
-           "ImportError" "ImportWarning" "IndexError" "KeyError"
-           "KeyboardInterrupt" "LookupError" "MemoryError" "NameError"
-           "NotImplementedError" "OSError" "OverflowError"
-           "PendingDeprecationWarning" "ReferenceError" "RuntimeError"
-           "RuntimeWarning" "StopIteration" "SyntaxError" "SyntaxWarning"
-           "SystemError" "SystemExit" "TypeError" "UnboundLocalError"
-           "UnicodeDecodeError" "UnicodeEncodeError" "UnicodeError"
-           "UnicodeTranslateError" "UnicodeWarning" "UserWarning" "VMSError"
-           "ValueError" "Warning" "WindowsError" "ZeroDivisionError"
+           "BufferError" "BytesWarning" "DeprecationWarning" "EOFError"
+           "EnvironmentError" "Exception" "FloatingPointError" "FutureWarning"
+           "GeneratorExit" "IOError" "ImportError" "ImportWarning"
+           "IndentationError" "IndexError" "KeyError" "KeyboardInterrupt"
+           "LookupError" "MemoryError" "NameError" "NotImplementedError"
+           "OSError" "OverflowError" "PendingDeprecationWarning"
+           "ReferenceError" "RuntimeError" "RuntimeWarning" "StopIteration"
+           "SyntaxError" "SyntaxWarning" "SystemError" "SystemExit" "TabError"
+           "TypeError" "UnboundLocalError" "UnicodeDecodeError"
+           "UnicodeEncodeError" "UnicodeError" "UnicodeTranslateError"
+           "UnicodeWarning" "UserWarning" "ValueError" "Warning"
+           "ZeroDivisionError"
            ;; Python 2:
            "StandardError"
            ;; Python 3:
-           "BufferError" "BytesWarning" "IndentationError" "ResourceWarning"
-           "TabError")
+           "BlockingIOError" "BrokenPipeError" "ChildProcessError"
+           "ConnectionAbortedError" "ConnectionError" "ConnectionRefusedError"
+           "ConnectionResetError" "FileExistsError" "FileNotFoundError"
+           "InterruptedError" "IsADirectoryError" "NotADirectoryError"
+           "PermissionError" "ProcessLookupError" "RecursionError"
+           "ResourceWarning" "StopAsyncIteration" "TimeoutError"
+           ;; OS specific
+           "VMSError" "WindowsError"
+           )
           symbol-end) . font-lock-type-face)
     ;; Builtins
     (,(rx symbol-start
@@ -2359,7 +2379,9 @@ the `buffer-name'."
 (defun python-shell-calculate-command ()
   "Calculate the string used to execute the inferior Python process."
   (format "%s %s"
-          (shell-quote-argument python-shell-interpreter)
+          ;; `python-shell-make-comint' expects to be able to
+          ;; `split-string-and-unquote' the result of this function.
+          (combine-and-quote-strings (list python-shell-interpreter))
           python-shell-interpreter-args))
 
 (define-obsolete-function-alias
@@ -2416,7 +2438,7 @@ banner and the initial prompt are received separately."
 (defun python-shell-comint-end-of-output-p (output)
   "Return non-nil if OUTPUT is ends with input prompt."
   (string-match
-   ;; XXX: It seems on OSX an extra carriage return is attached
+   ;; XXX: It seems on macOS an extra carriage return is attached
    ;; at the end of output, this handles that too.
    (concat
     "\r?\n?"
@@ -2680,6 +2702,7 @@ variable.
 \(Type \\[describe-mode] in the process buffer for a list of commands.)"
   (when python-shell--parent-buffer
     (python-util-clone-local-variables python-shell--parent-buffer))
+  (set (make-local-variable 'indent-tabs-mode) nil)
   ;; Users can interactively override default values for
   ;; `python-shell-interpreter' and `python-shell-interpreter-args'
   ;; when calling `run-python'.  This ensures values let-bound in
@@ -3129,13 +3152,10 @@ t when called interactively."
                      (insert-file-contents
                       (or temp-file-name file-name))
                      (python-info-encoding)))
-         (file-name (expand-file-name
-                     (or (file-remote-p file-name 'localname)
-                         file-name)))
+         (file-name (expand-file-name (file-local-name file-name)))
          (temp-file-name (when temp-file-name
                            (expand-file-name
-                            (or (file-remote-p temp-file-name 'localname)
-                                temp-file-name)))))
+                            (file-local-name temp-file-name)))))
     (python-shell-send-string
      (format
       (concat
@@ -3297,7 +3317,7 @@ When a match is found, native completion is disabled."
          python-shell-completion-native-try-output-timeout))
     (python-shell-completion-native-get-completions
      (get-buffer-process (current-buffer))
-     nil "")))
+     nil "_")))
 
 (defun python-shell-completion-native-setup ()
   "Try to setup native completion, return non-nil on success."
@@ -4019,14 +4039,14 @@ be added to `python-mode-skeleton-abbrev-table'."
   "Abbrev table for Python mode."
   :parents (list python-mode-skeleton-abbrev-table))
 
-(defmacro python-define-auxiliary-skeleton (name doc &optional &rest skel)
+(defmacro python-define-auxiliary-skeleton (name &optional doc &rest skel)
   "Define a `python-mode' auxiliary skeleton using NAME DOC and SKEL.
 The skeleton will be bound to python-skeleton-NAME."
   (declare (indent 2))
   (let* ((name (symbol-name name))
          (function-name (intern (concat "python-skeleton--" name)))
-         (msg (format-message
-               "Add `%s' clause? " name)))
+         (msg (funcall (if (fboundp 'format-message) #'format-message #'format)
+                       "Add `%s' clause? " name)))
     (when (not skel)
       (setq skel
             `(< ,(format "%s:" name) \n \n
@@ -4039,11 +4059,11 @@ The skeleton will be bound to python-skeleton-NAME."
          (signal 'quit t))
        ,@skel)))
 
-(python-define-auxiliary-skeleton else nil)
+(python-define-auxiliary-skeleton else)
 
-(python-define-auxiliary-skeleton except nil)
+(python-define-auxiliary-skeleton except)
 
-(python-define-auxiliary-skeleton finally nil)
+(python-define-auxiliary-skeleton finally)
 
 (python-skeleton-define if nil
   "Condition: "
@@ -4293,12 +4313,47 @@ returns will be used.  If not FORCE-PROCESS is passed what
         (unless (zerop (length docstring))
           docstring)))))
 
+(defvar-local python-eldoc-get-doc t
+  "Non-nil means eldoc should fetch the documentation
+  automatically. Set to nil by `python-eldoc-function' if
+  `python-eldoc-function-timeout-permanent' is non-nil and
+  `python-eldoc-function' times out.")
+
+(defcustom python-eldoc-function-timeout 1
+  "Timeout for `python-eldoc-function' in seconds."
+  :group 'python
+  :type 'integer
+  :version "25.1")
+
+(defcustom python-eldoc-function-timeout-permanent t
+  "Non-nil means that when `python-eldoc-function' times out
+`python-eldoc-get-doc' will be set to nil"
+  :group 'python
+  :type 'boolean
+  :version "25.1")
+
 (defun python-eldoc-function ()
   "`eldoc-documentation-function' for Python.
 For this to work as best as possible you should call
 `python-shell-send-buffer' from time to time so context in
-inferior Python process is updated properly."
-  (python-eldoc--get-doc-at-point))
+inferior Python process is updated properly.
+
+If `python-eldoc-function-timeout' seconds elapse before this
+function returns then if
+`python-eldoc-function-timeout-permanent' is non-nil
+`python-eldoc-get-doc' will be set to nil and eldoc will no
+longer return the documentation at the point automatically.
+
+Set `python-eldoc-get-doc' to t to reenable eldoc documentation
+fetching"
+  (when python-eldoc-get-doc
+    (with-timeout (python-eldoc-function-timeout
+                   (if python-eldoc-function-timeout-permanent
+                       (progn
+                         (message "Eldoc echo-area display muted in this buffer, see `python-eldoc-function'")
+                         (setq python-eldoc-get-doc nil))
+                     (message "`python-eldoc-function' timed out, see `python-eldoc-function-timeout'")))
+      (python-eldoc--get-doc-at-point))))
 
 (defun python-eldoc-at-point (symbol)
   "Get help on SYMBOL using `help'.
@@ -4311,6 +4366,11 @@ Interactively, prompt for symbol."
                           "Describe symbol: ")
                         nil nil symbol))))
   (message (python-eldoc--get-doc-at-point symbol)))
+
+(defun python-describe-at-point (symbol process)
+  (interactive (list (python-info-current-symbol)
+                     (python-shell-get-process)))
+  (comint-send-string process (concat "help('" symbol "')\n")))
 
 
 ;;; Hideshow
@@ -4831,12 +4891,19 @@ point's current `syntax-ppss'."
              ;; Allow up to two consecutive docstrings only.
              (>=
               2
-              (progn
+              (let (last-backward-sexp-point)
                 (while (save-excursion
                          (python-nav-backward-sexp)
                          (setq backward-sexp-point (point))
                          (and (= indentation (current-indentation))
-                              (not (bobp)) ; Prevent infloop.
+                              ;; Make sure we're always moving point.
+                              ;; If we get stuck in the same position
+                              ;; on consecutive loop iterations,
+                              ;; bail out.
+                              (prog1 (not (eql last-backward-sexp-point
+                                               backward-sexp-point))
+                                (setq last-backward-sexp-point
+                                      backward-sexp-point))
                               (looking-at-p
                                (concat "[uU]?[rR]?"
                                        (python-rx string-delimiter)))))
@@ -5102,7 +5169,7 @@ returned as is."
   (add-to-list
    'hs-special-modes-alist
    `(python-mode
-     "\\s-*\\(?:def\\|class\\)\\>"
+     "\\s-*\\_<\\(?:def\\|class\\)\\_>"
      ;; Use the empty string as end regexp so it doesn't default to
      ;; "\\s)".  This way parens at end of defun are properly hidden.
      ""

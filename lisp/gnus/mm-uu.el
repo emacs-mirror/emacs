@@ -43,7 +43,7 @@
 (autoload 'yenc-extract-filename "yenc")
 
 (defcustom mm-uu-decode-function 'uudecode-decode-region
-  "*Function to uudecode.
+  "Function to uudecode.
 Internal function is done in Lisp by default, therefore decoding may
 appear to be horribly slow.  You can make Gnus use an external
 decoder, such as uudecode."
@@ -54,7 +54,7 @@ decoder, such as uudecode."
   :group 'gnus-article-mime)
 
 (defcustom mm-uu-binhex-decode-function 'binhex-decode-region
-  "*Function to binhex decode.
+  "Function to binhex decode.
 Internal function is done in elisp by default, therefore decoding may
 appear to be horribly slow . You can make Gnus use the external Unix
 decoder, such as hexbin."
@@ -85,7 +85,7 @@ This can be either \"inline\" or \"attachment\".")
   :group 'gnus-article-mime)
 
 (defcustom mm-uu-tex-groups-regexp "\\.tex\\>"
-  "*Regexp matching TeX groups."
+  "Regexp matching TeX groups."
   :version "23.1"
   :type 'regexp
   :group 'gnus-article-mime)

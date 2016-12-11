@@ -114,7 +114,10 @@ Each element has the form (WHERE BYTECODE STACK) where:
            (usage (help-split-fundoc origdoc function)))
       (setq usage (if (null usage)
                       (let ((arglist (help-function-arglist flist)))
-                        (help--make-usage-docstring function arglist))
+                        ;; "[Arg list not available until function
+                        ;; definition is loaded]", bug#21299
+                        (if (stringp arglist) t
+                          (help--make-usage-docstring function arglist)))
                     (setq origdoc (cdr usage)) (car usage)))
       (help-add-fundoc-usage (concat docstring origdoc) usage))))
 

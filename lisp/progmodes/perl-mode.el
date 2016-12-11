@@ -301,7 +301,7 @@
        ;; sub tr {...}
        (3 (ignore
            (if (save-excursion (goto-char (match-beginning 0))
-                               (forward-word -1)
+                               (forward-word-strictly -1)
                                (looking-at-p "sub[ \t\n]"))
                ;; This is defining a function.
                nil
@@ -404,7 +404,8 @@
                        (skip-syntax-backward " ")
                        (skip-syntax-backward "w")
                        (member (buffer-substring
-                                (point) (progn (forward-word 1) (point)))
+                                (point) (progn (forward-word-strictly 1)
+                                               (point)))
                                '("tr" "s" "y"))))
             (close (cdr (assq char perl-quote-like-pairs)))
             (st (perl-quote-syntax-table char)))
@@ -993,7 +994,7 @@ Returns (parse-state) if line starts inside a string."
         ((memq c '(?\) ?\] ?\} ?\"))
          (forward-sexp -1) (forward-comment (- (point))) t)
         ((eq ?w (char-syntax c))
-         (forward-word -1) (forward-comment (- (point))) t)
+         (forward-word-strictly -1) (forward-comment (- (point))) t)
         (t (forward-char -1) (forward-comment (- (point))) t)))))
 
 ;; note: this may be slower than the c-mode version, but I can understand it.

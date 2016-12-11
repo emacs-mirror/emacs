@@ -74,7 +74,7 @@ bookmark is to set this variable to 1 (or 0, which produces the same
 behavior.)
 
 To specify the file in which to save them, modify the variable
-`bookmark-default-file', which is `~/.emacs.bmk' by default."
+`bookmark-default-file'."
   :type '(choice (const nil) integer (other t))
   :group 'bookmark)
 
@@ -1481,9 +1481,9 @@ while loading.
 If you load a file that doesn't contain a proper bookmark alist, you
 will corrupt Emacs's bookmark list.  Generally, you should only load
 in files that were created with the bookmark functions in the first
-place.  Your own personal bookmark file, `~/.emacs.bmk', is
-maintained automatically by Emacs; you shouldn't need to load it
-explicitly.
+place.  Your own personal bookmark file, specified by the variable
+`bookmark-default-file', is maintained automatically by Emacs; you
+shouldn't need to load it explicitly.
 
 If you load a file containing bookmarks with the same names as
 bookmarks already present in your Emacs, the new bookmarks will get

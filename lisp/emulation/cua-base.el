@@ -302,7 +302,7 @@ is not turned on."
 If there is additional input within this time, the prefix key is
 used as a normal prefix key.  So typing a key sequence quickly will
 inhibit overriding the prefix key.
-As a special case, if the prefix keys repeated within this time, the
+As a special case, if the prefix key is repeated within this time, the
 first prefix key is discarded, so typing a prefix key twice in quick
 succession will also inhibit overriding the prefix key.
 If the value is nil, use a shifted prefix key to inhibit the override."

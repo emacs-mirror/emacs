@@ -519,6 +519,7 @@ Multiple Windows
 * Pop Up Window::       Finding a file or buffer in another window.
 * Change Window::       Deleting windows and changing their sizes.
 * Displaying Buffers::  How Emacs picks a window for displaying a buffer.
+* Temporary Displays::  Displaying non-editable buffers.
 * Window Convenience::  Convenience functions for window handling.
 
 Displaying a Buffer in a Window

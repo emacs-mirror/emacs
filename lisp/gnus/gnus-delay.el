@@ -53,12 +53,12 @@
   :group 'gnus-delay)
 
 (defcustom gnus-delay-default-delay "3d"
-  "*Default length of delay."
+  "Default length of delay."
   :type 'string
   :group 'gnus-delay)
 
 (defcustom gnus-delay-default-hour 8
-  "*If deadline is given as date, then assume this time of day."
+  "If deadline is given as date, then assume this time of day."
   :version "22.1"
   :type 'integer
   :group 'gnus-delay)

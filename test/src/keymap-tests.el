@@ -38,6 +38,13 @@ commit 86c19714b097aa477d339ed99ffb5136c755a046."
           (should (eq (lookup-key Buffer-menu-mode-map [32]) 'undefined)))
       (define-key Buffer-menu-mode-map [32] def))))
 
+(ert-deftest keymap-where-is-internal-test ()
+  "Make sure we don't crash when `where-is-preferred-modifier' is not a symbol."
+  (should
+   (equal (let ((where-is-preferred-modifier "alt"))
+            (where-is-internal 'execute-extended-command global-map t))
+          [#x8000078])))
+
 (provide 'keymap-tests)
 
 ;;; keymap-tests.el ends here

@@ -113,8 +113,8 @@ static void
 compile_pattern_1 (struct regexp_cache *cp, Lisp_Object pattern,
 		   Lisp_Object translate, bool posix)
 {
+  const char *whitespace_regexp;
   char *val;
-  reg_syntax_t old;
 
   cp->regexp = Qnil;
   cp->buf.translate = (! NILP (translate) ? translate : make_number (0));
@@ -131,24 +131,17 @@ compile_pattern_1 (struct regexp_cache *cp, Lisp_Object pattern,
      Using BLOCK_INPUT here means the debugger won't run if an error occurs.
      So let's turn it off.  */
   /*  BLOCK_INPUT;  */
-  old = re_set_syntax (RE_SYNTAX_EMACS
-		       | (posix ? 0 : RE_NO_POSIX_BACKTRACKING));
 
-  if (STRINGP (Vsearch_spaces_regexp))
-    re_set_whitespace_regexp (SSDATA (Vsearch_spaces_regexp));
-  else
-    re_set_whitespace_regexp (NULL);
+  whitespace_regexp = STRINGP (Vsearch_spaces_regexp) ?
+    SSDATA (Vsearch_spaces_regexp) : NULL;
 
-  val = (char *) re_compile_pattern (SSDATA (pattern),
-				     SBYTES (pattern), &cp->buf);
+  val = (char *) re_compile_pattern (SSDATA (pattern), SBYTES (pattern),
+				     posix, whitespace_regexp, &cp->buf);
 
   /* If the compiled pattern hard codes some of the contents of the
      syntax-table, it can only be reused with *this* syntax table.  */
   cp->syntax_table = cp->buf.used_syntax ? BVAR (current_buffer, syntax_table) : Qt;
 
-  re_set_whitespace_regexp (NULL);
-
-  re_set_syntax (old);
   /* unblock_input ();  */
   if (val)
     xsignal1 (Qinvalid_regexp, build_string (val));
@@ -308,12 +301,20 @@ looking_at_1 (Lisp_Object string, bool posix)
 
   re_match_object = Qnil;
 
+#ifdef REL_ALLOC
+  /* Prevent ralloc.c from relocating the current buffer while
+     searching it.  */
+  r_alloc_inhibit_buffer_relocation (1);
+#endif
   i = re_match_2 (bufp, (char *) p1, s1, (char *) p2, s2,
 		  PT_BYTE - BEGV_BYTE,
 		  (NILP (Vinhibit_changing_match_data)
 		   ? &search_regs : NULL),
 		  ZV_BYTE - BEGV_BYTE);
   immediate_quit = 0;
+#ifdef REL_ALLOC
+  r_alloc_inhibit_buffer_relocation (0);
+#endif
 
   if (i == -2)
     matcher_overflow ();
@@ -561,8 +562,16 @@ fast_looking_at (Lisp_Object regexp, ptrdiff_t pos, ptrdiff_t pos_byte,
 
   buf = compile_pattern (regexp, 0, Qnil, 0, multibyte);
   immediate_quit = 1;
+#ifdef REL_ALLOC
+  /* Prevent ralloc.c from relocating the current buffer while
+     searching it.  */
+  r_alloc_inhibit_buffer_relocation (1);
+#endif
   len = re_match_2 (buf, (char *) p1, s1, (char *) p2, s2,
 		    pos_byte, NULL, limit_byte);
+#ifdef REL_ALLOC
+  r_alloc_inhibit_buffer_relocation (0);
+#endif
   immediate_quit = 0;
 
   return len;
@@ -1213,6 +1222,12 @@ search_buffer (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 	}
       re_match_object = Qnil;
 
+#ifdef REL_ALLOC
+  /* Prevent ralloc.c from relocating the current buffer while
+     searching it.  */
+  r_alloc_inhibit_buffer_relocation (1);
+#endif
+
       while (n < 0)
 	{
 	  ptrdiff_t val;
@@ -1254,6 +1269,9 @@ search_buffer (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 	  else
 	    {
 	      immediate_quit = 0;
+#ifdef REL_ALLOC
+              r_alloc_inhibit_buffer_relocation (0);
+#endif
 	      return (n);
 	    }
 	  n++;
@@ -1296,11 +1314,17 @@ search_buffer (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 	  else
 	    {
 	      immediate_quit = 0;
+#ifdef REL_ALLOC
+              r_alloc_inhibit_buffer_relocation (0);
+#endif
 	      return (0 - n);
 	    }
 	  n--;
 	}
       immediate_quit = 0;
+#ifdef REL_ALLOC
+      r_alloc_inhibit_buffer_relocation (0);
+#endif
       return (pos);
     }
   else				/* non-RE case */
@@ -1999,12 +2023,26 @@ boyer_moore (EMACS_INT n, unsigned char *base_pat,
 	      if (i + direction == 0)
 		{
 		  ptrdiff_t position, start, end;
+#ifdef REL_ALLOC
+		  ptrdiff_t cursor_off;
+#endif
 
 		  cursor -= direction;
 
 		  position = pos_byte + cursor - p2 + ((direction > 0)
 						       ? 1 - len_byte : 0);
+#ifdef REL_ALLOC
+		  /* set_search_regs might call malloc, which could
+		     cause ralloc.c relocate buffer text.  We need to
+		     update pointers into buffer text due to that.  */
+		  cursor_off = cursor - p2;
+#endif
 		  set_search_regs (position, len_byte);
+#ifdef REL_ALLOC
+		  p_limit = BYTE_POS_ADDR (limit);
+		  p2 = BYTE_POS_ADDR (pos_byte);
+		  cursor = p2 + cursor_off;
+#endif
 
 		  if (NILP (Vinhibit_changing_match_data))
 		    {
@@ -2164,12 +2202,17 @@ DEFUN ("search-backward", Fsearch_backward, Ssearch_backward, 1, 4,
        doc: /* Search backward from point for STRING.
 Set point to the beginning of the occurrence found, and return point.
 An optional second argument bounds the search; it is a buffer position.
-The match found must not extend before that position.
+  The match found must not begin before that position.  A value of nil
+  means search to the beginning of the accessible portion of the buffer.
 Optional third argument, if t, means if fail just return nil (no error).
- If not nil and not t, position at limit of search and return nil.
-Optional fourth argument COUNT, if non-nil, means to search for COUNT
- successive occurrences.  If COUNT is negative, search forward,
- instead of backward, for -COUNT occurrences.
+  If not nil and not t, position at limit of search and return nil.
+Optional fourth argument COUNT, if a positive number, means to search
+  for COUNT successive occurrences.  If COUNT is negative, search
+  forward, instead of backward, for -COUNT occurrences.  A value of
+  nil means the same as 1.
+With COUNT positive, the match found is the COUNTth to last one (or
+  last, if COUNT is 1 or nil) in the buffer located entirely before
+  the origin of the search; correspondingly with COUNT negative.
 
 Search case-sensitivity is determined by the value of the variable
 `case-fold-search', which see.
@@ -2184,13 +2227,17 @@ DEFUN ("search-forward", Fsearch_forward, Ssearch_forward, 1, 4, "MSearch: ",
        doc: /* Search forward from point for STRING.
 Set point to the end of the occurrence found, and return point.
 An optional second argument bounds the search; it is a buffer position.
-The match found must not extend after that position.  A value of nil is
-  equivalent to (point-max).
+  The match found must not end after that position.  A value of nil
+  means search to the end of the accessible portion of the buffer.
 Optional third argument, if t, means if fail just return nil (no error).
   If not nil and not t, move to limit of search and return nil.
-Optional fourth argument COUNT, if non-nil, means to search for COUNT
- successive occurrences.  If COUNT is negative, search backward,
- instead of forward, for -COUNT occurrences.
+Optional fourth argument COUNT, if a positive number, means to search
+  for COUNT successive occurrences.  If COUNT is negative, search
+  backward, instead of forward, for -COUNT occurrences.  A value of
+  nil means the same as 1.
+With COUNT positive, the match found is the COUNTth one (or first,
+  if COUNT is 1 or nil) in the buffer located entirely after the
+  origin of the search; correspondingly with COUNT negative.
 
 Search case-sensitivity is determined by the value of the variable
 `case-fold-search', which see.
@@ -2204,14 +2251,19 @@ See also the functions `match-beginning', `match-end' and `replace-match'.  */)
 DEFUN ("re-search-backward", Fre_search_backward, Sre_search_backward, 1, 4,
        "sRE search backward: ",
        doc: /* Search backward from point for match for regular expression REGEXP.
-Set point to the beginning of the match, and return point.
-The match found is the one starting last in the buffer
-and yet ending before the origin of the search.
+Set point to the beginning of the occurrence found, and return point.
 An optional second argument bounds the search; it is a buffer position.
-The match found must start at or after that position.
+  The match found must not begin before that position.  A value of nil
+  means search to the beginning of the accessible portion of the buffer.
 Optional third argument, if t, means if fail just return nil (no error).
-  If not nil and not t, move to limit of search and return nil.
-Optional fourth argument is repeat count--search for successive occurrences.
+  If not nil and not t, position at limit of search and return nil.
+Optional fourth argument COUNT, if a positive number, means to search
+  for COUNT successive occurrences.  If COUNT is negative, search
+  forward, instead of backward, for -COUNT occurrences.  A value of
+  nil means the same as 1.
+With COUNT positive, the match found is the COUNTth to last one (or
+  last, if COUNT is 1 or nil) in the buffer located entirely before
+  the origin of the search; correspondingly with COUNT negative.
 
 Search case-sensitivity is determined by the value of the variable
 `case-fold-search', which see.
@@ -2228,10 +2280,17 @@ DEFUN ("re-search-forward", Fre_search_forward, Sre_search_forward, 1, 4,
        doc: /* Search forward from point for regular expression REGEXP.
 Set point to the end of the occurrence found, and return point.
 An optional second argument bounds the search; it is a buffer position.
-The match found must not extend after that position.
+  The match found must not end after that position.  A value of nil
+  means search to the end of the accessible portion of the buffer.
 Optional third argument, if t, means if fail just return nil (no error).
   If not nil and not t, move to limit of search and return nil.
-Optional fourth argument is repeat count--search for successive occurrences.
+Optional fourth argument COUNT, if a positive number, means to search
+  for COUNT successive occurrences.  If COUNT is negative, search
+  backward, instead of forward, for -COUNT occurrences.  A value of
+  nil means the same as 1.
+With COUNT positive, the match found is the COUNTth one (or first,
+  if COUNT is 1 or nil) in the buffer located entirely after the
+  origin of the search; correspondingly with COUNT negative.
 
 Search case-sensitivity is determined by the value of the variable
 `case-fold-search', which see.
@@ -2247,14 +2306,19 @@ DEFUN ("posix-search-backward", Fposix_search_backward, Sposix_search_backward, 
        "sPosix search backward: ",
        doc: /* Search backward from point for match for regular expression REGEXP.
 Find the longest match in accord with Posix regular expression rules.
-Set point to the beginning of the match, and return point.
-The match found is the one starting last in the buffer
-and yet ending before the origin of the search.
+Set point to the beginning of the occurrence found, and return point.
 An optional second argument bounds the search; it is a buffer position.
-The match found must start at or after that position.
+  The match found must not begin before that position.  A value of nil
+  means search to the beginning of the accessible portion of the buffer.
 Optional third argument, if t, means if fail just return nil (no error).
-  If not nil and not t, move to limit of search and return nil.
-Optional fourth argument is repeat count--search for successive occurrences.
+  If not nil and not t, position at limit of search and return nil.
+Optional fourth argument COUNT, if a positive number, means to search
+  for COUNT successive occurrences.  If COUNT is negative, search
+  forward, instead of backward, for -COUNT occurrences.  A value of
+  nil means the same as 1.
+With COUNT positive, the match found is the COUNTth to last one (or
+  last, if COUNT is 1 or nil) in the buffer located entirely before
+  the origin of the search; correspondingly with COUNT negative.
 
 Search case-sensitivity is determined by the value of the variable
 `case-fold-search', which see.
@@ -2272,10 +2336,17 @@ DEFUN ("posix-search-forward", Fposix_search_forward, Sposix_search_forward, 1, 
 Find the longest match in accord with Posix regular expression rules.
 Set point to the end of the occurrence found, and return point.
 An optional second argument bounds the search; it is a buffer position.
-The match found must not extend after that position.
+  The match found must not end after that position.  A value of nil
+  means search to the end of the accessible portion of the buffer.
 Optional third argument, if t, means if fail just return nil (no error).
   If not nil and not t, move to limit of search and return nil.
-Optional fourth argument is repeat count--search for successive occurrences.
+Optional fourth argument COUNT, if a positive number, means to search
+  for COUNT successive occurrences.  If COUNT is negative, search
+  backward, instead of forward, for -COUNT occurrences.  A value of
+  nil means the same as 1.
+With COUNT positive, the match found is the COUNTth one (or first,
+  if COUNT is 1 or nil) in the buffer located entirely after the
+  origin of the search; correspondingly with COUNT negative.
 
 Search case-sensitivity is determined by the value of the variable
 `case-fold-search', which see.
@@ -2591,6 +2662,7 @@ since only regular expressions have distinguished subexpressions.  */)
 	  const unsigned char *add_stuff = NULL;
 	  ptrdiff_t add_len = 0;
 	  ptrdiff_t idx = -1;
+	  ptrdiff_t begbyte;
 
 	  if (str_multibyte)
 	    {
@@ -2653,11 +2725,10 @@ since only regular expressions have distinguished subexpressions.  */)
 	     set up ADD_STUFF and ADD_LEN to point to it.  */
 	  if (idx >= 0)
 	    {
-	      ptrdiff_t begbyte = CHAR_TO_BYTE (search_regs.start[idx]);
+	      begbyte = CHAR_TO_BYTE (search_regs.start[idx]);
 	      add_len = CHAR_TO_BYTE (search_regs.end[idx]) - begbyte;
 	      if (search_regs.start[idx] < GPT && GPT < search_regs.end[idx])
 		move_gap_both (search_regs.start[idx], begbyte);
-	      add_stuff = BYTE_POS_ADDR (begbyte);
 	    }
 
 	  /* Now the stuff we want to add to SUBSTED
@@ -2669,6 +2740,11 @@ since only regular expressions have distinguished subexpressions.  */)
 	      xpalloc (substed, &substed_alloc_size,
 		       add_len - (substed_alloc_size - substed_len),
 		       STRING_BYTES_BOUND, 1);
+
+	  /* We compute this after the call to xpalloc, because that
+	     could cause buffer text be relocated when ralloc.c is used.  */
+	  if (idx >= 0)
+	    add_stuff = BYTE_POS_ADDR (begbyte);
 
 	  /* Now add to the end of SUBSTED.  */
 	  if (add_stuff)
@@ -2684,37 +2760,38 @@ since only regular expressions have distinguished subexpressions.  */)
       xfree (substed);
     }
 
+  /* The functions below modify the buffer, so they could trigger
+     various modification hooks (see signal_before_change and
+     signal_after_change).  If these hooks clobber the match data we
+     error out since otherwise this will result in confusing bugs.  */
+  ptrdiff_t sub_start = search_regs.start[sub];
+  ptrdiff_t sub_end = search_regs.end[sub];
+  unsigned  num_regs = search_regs.num_regs;
+  newpoint = search_regs.start[sub] + SCHARS (newtext);
+
   /* Replace the old text with the new in the cleanest possible way.  */
   replace_range (search_regs.start[sub], search_regs.end[sub],
-		 newtext, 1, 0, 1);
-  newpoint = search_regs.start[sub] + SCHARS (newtext);
+                 newtext, 1, 0, 1, 1);
+  /* Update saved data to match adjustment made by replace_range.  */
+  {
+    ptrdiff_t change = newpoint - sub_end;
+    if (sub_start >= sub_end)
+      sub_start += change;
+    sub_end += change;
+  }
 
   if (case_action == all_caps)
     Fupcase_region (make_number (search_regs.start[sub]),
-		    make_number (newpoint));
+		    make_number (newpoint),
+		    Qnil);
   else if (case_action == cap_initial)
     Fupcase_initials_region (make_number (search_regs.start[sub]),
 			     make_number (newpoint));
 
-  /* Adjust search data for this change.  */
-  {
-    ptrdiff_t oldend = search_regs.end[sub];
-    ptrdiff_t oldstart = search_regs.start[sub];
-    ptrdiff_t change = newpoint - search_regs.end[sub];
-    ptrdiff_t i;
-
-    for (i = 0; i < search_regs.num_regs; i++)
-      {
-	if (search_regs.start[i] >= oldend)
-	  search_regs.start[i] += change;
-	else if (search_regs.start[i] > oldstart)
-	  search_regs.start[i] = oldstart;
-	if (search_regs.end[i] >= oldend)
-	  search_regs.end[i] += change;
-	else if (search_regs.end[i] > oldstart)
-	  search_regs.end[i] = oldstart;
-      }
-  }
+  if (search_regs.start[sub] != sub_start
+      || search_regs.end[sub] != sub_end
+      || search_regs.num_regs != num_regs)
+    error ("Match data clobbered by buffer modification hooks");
 
   /* Put point back where it was in the text.  */
   if (opoint <= 0)
@@ -3056,6 +3133,27 @@ restore_search_regs (void)
     }
 }
 
+/* Called from replace-match via replace_range.  */
+void
+update_search_regs (ptrdiff_t oldstart, ptrdiff_t oldend, ptrdiff_t newend)
+{
+  /* Adjust search data for this change.  */
+  ptrdiff_t change = newend - oldend;
+  ptrdiff_t i;
+
+  for (i = 0; i < search_regs.num_regs; i++)
+    {
+      if (search_regs.start[i] >= oldend)
+        search_regs.start[i] += change;
+      else if (search_regs.start[i] > oldstart)
+        search_regs.start[i] = oldstart;
+      if (search_regs.end[i] >= oldend)
+        search_regs.end[i] += change;
+      else if (search_regs.end[i] > oldstart)
+        search_regs.end[i] = oldstart;
+    }
+}
+
 static void
 unwind_set_match_data (Lisp_Object list)
 {
@@ -3342,6 +3440,7 @@ or other such regexp constructs are not replaced with this.
 A value of nil (which is the normal value) means treat spaces literally.  */);
   Vsearch_spaces_regexp = Qnil;
 
+  DEFSYM (Qinhibit_changing_match_data, "inhibit-changing-match-data");
   DEFVAR_LISP ("inhibit-changing-match-data", Vinhibit_changing_match_data,
       doc: /* Internal use only.
 If non-nil, the primitive searching and matching functions

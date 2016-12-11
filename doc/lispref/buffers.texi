@@ -669,8 +669,9 @@ reason.
 This function is used to ask a user how to proceed after an attempt to
 modify an buffer visiting file @var{filename} when the file is newer
 than the buffer text.  Emacs detects this because the modification
-time of the file on disk is newer than the last save-time of the
-buffer.  This means some other program has probably altered the file.
+time of the file on disk is newer than the last save-time and its contents
+have changed.
+This means some other program has probably altered the file.
 
 @kindex file-supersession
 Depending on the user's answer, the function may return normally, in
@@ -1211,6 +1212,12 @@ swapped as well: the positions of point and mark, all the markers, the
 overlays, the text properties, the undo list, the value of the
 @code{enable-multibyte-characters} flag (@pxref{Text Representations,
 enable-multibyte-characters}), etc.
+
+@strong{Warning:} If this function is called from within a
+@code{save-excursion} form, the current buffer will be set to
+@var{buffer} upon leaving the form, since the marker used by
+@code{save-excursion} to save the position and buffer will be swapped
+as well.
 @end defun
 
   If you use @code{buffer-swap-text} on a file-visiting buffer, you

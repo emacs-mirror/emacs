@@ -37,22 +37,17 @@
 (defvar org-babel-call-process-region-original nil)
 (defvar org-src-lang-modes)
 (defvar org-babel-library-of-babel)
-(declare-function show-all "outline" ())
+(declare-function outline-show-all "outline" ())
 (declare-function org-every "org" (pred seq))
 (declare-function org-reduce "org" (CL-FUNC CL-SEQ &rest CL-KEYS))
 (declare-function org-mark-ring-push "org" (&optional pos buffer))
 (declare-function tramp-compat-make-temp-file "tramp-compat"
                   (filename &optional dir-flag))
-(declare-function tramp-dissect-file-name "tramp" (name &optional nodefault))
-(declare-function tramp-file-name-user "tramp" (vec))
-(declare-function tramp-file-name-host "tramp" (vec))
-(declare-function with-parsed-tramp-file-name "tramp" (filename var &rest body))
 (declare-function org-icompleting-read "org" (&rest args))
 (declare-function org-edit-src-code "org-src"
-                  (&optional context code edit-buffer-name quietp))
+                  (&optional context code edit-buffer-name))
 (declare-function org-edit-src-exit "org-src"  (&optional context))
 (declare-function org-open-at-point "org" (&optional in-emacs reference-buffer))
-(declare-function org-save-outline-visibility "org-macs" (use-markers &rest body))
 (declare-function org-outline-overlay-data "org" (&optional use-markers))
 (declare-function org-set-outline-overlay-data "org" (data))
 (declare-function org-narrow-to-subtree "org" ())
@@ -73,7 +68,8 @@
 		  (hook function &optional append local))
 (declare-function org-table-align "org-table" ())
 (declare-function org-table-end "org-table" (&optional table-type))
-(declare-function orgtbl-to-generic "org-table" (table params))
+(declare-function orgtbl-to-generic "org-table"
+                  (table params &optional backend))
 (declare-function orgtbl-to-orgtbl "org-table" (table params))
 (declare-function org-babel-tangle-comment-links "ob-tangle" (&optional info))
 (declare-function org-babel-lob-get-info "ob-lob" nil)
@@ -2669,7 +2665,7 @@ of the string."
   (start end program &optional delete buffer display &rest args)
   "Use Tramp to handle `call-process-region'.
 Fixes a bug in `tramp-handle-call-process-region'."
-  (if (and (featurep 'tramp) (file-remote-p default-directory))
+  (if (file-remote-p default-directory)
       (let ((tmpfile (tramp-compat-make-temp-file "")))
 	(write-region start end tmpfile)
 	(when delete (delete-region start end))
@@ -2684,13 +2680,12 @@ Fixes a bug in `tramp-handle-call-process-region'."
     (apply org-babel-call-process-region-original
            start end program delete buffer display args)))
 
-(defun org-babel-local-file-name (file)
-  "Return the local name component of FILE."
-  (if (file-remote-p file)
-      (let (localname)
-	(with-parsed-tramp-file-name file nil
-				     localname))
-    file))
+(defalias 'org-babel-local-file-name
+  (if (fboundp 'file-local-name)
+      'file-local-name
+    (lambda (file)
+      "Return the local name component of FILE."
+      (or (file-remote-p file 'localname) file))))
 
 (defun org-babel-process-file-name (name &optional no-quote-p)
   "Prepare NAME to be used in an external process.

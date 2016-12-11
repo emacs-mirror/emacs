@@ -1082,7 +1082,7 @@ Use line numbers if `ps-run-error-line-numbers' is not nil"
       (goto-char (max 1 (1- (point)))))
     (when (looking-at "[0-9]")
       (forward-char 1)
-      (forward-word -1)
+      (forward-word-strictly -1)
       (when (looking-at "[0-9]+")
 	(let (i)
 	  (setq

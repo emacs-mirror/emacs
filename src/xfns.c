@@ -19,6 +19,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
 #include <unistd.h>
 
@@ -50,6 +51,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef USE_GTK
 #include "gtkutil.h"
+#endif
+
+#ifdef HAVE_XDBE
+#include <X11/extensions/Xdbe.h>
 #endif
 
 #ifdef USE_X_TOOLKIT
@@ -91,11 +96,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "../lwlib/xlwmenu.h"
 #endif
 
-#if !defined (NO_EDITRES)
-#define HACK_EDITRES
-extern void _XEditResCheckMessages (Widget, XtPointer, XEvent *, Boolean *);
-#endif /* not defined NO_EDITRES */
-
 /* Unique id counter for widgets created by the Lucid Widget Library.  */
 
 extern LWLIB_ID widget_id_tick;
@@ -118,6 +118,7 @@ static int dpyinfo_refcount;
 #endif
 
 static struct x_display_info *x_display_info_for_name (Lisp_Object);
+static void set_up_x_back_buffer (struct frame *f);
 
 /* Let the user specify an X display with a Lisp object.
    OBJECT may be nil, a frame or a terminal object.
@@ -273,7 +274,7 @@ x_real_pos_and_offsets (struct frame *f,
       XFree (tmp_children);
 #endif
 
-      if (wm_window == rootw || had_errors)
+      if (had_errors || wm_window == rootw)
         break;
 
       win = wm_window;
@@ -703,6 +704,35 @@ x_set_tool_bar_position (struct frame *f,
     }
   else
     wrong_choice (choice, new_value);
+}
+
+static void
+x_set_inhibit_double_buffering (struct frame *f,
+                                Lisp_Object new_value,
+                                Lisp_Object old_value)
+{
+  block_input ();
+  if (FRAME_X_WINDOW (f) && !EQ (new_value, old_value))
+    {
+      bool want_double_buffering = NILP (new_value);
+      bool was_double_buffered = FRAME_X_DOUBLE_BUFFERED_P (f);
+      /* font_drop_xrender_surfaces in xftfont does something only if
+         we're double-buffered, so call font_drop_xrender_surfaces before
+         and after any potential change.  One of the calls will end up
+         being a no-op.  */
+      if (want_double_buffering != was_double_buffered)
+        font_drop_xrender_surfaces (f);
+      if (FRAME_X_DOUBLE_BUFFERED_P (f) && !want_double_buffering)
+        tear_down_x_back_buffer (f);
+      else if (!FRAME_X_DOUBLE_BUFFERED_P (f) && want_double_buffering)
+        set_up_x_back_buffer (f);
+      if (FRAME_X_DOUBLE_BUFFERED_P (f) != was_double_buffered)
+        {
+          SET_FRAME_GARBAGED (f);
+          font_drop_xrender_surfaces (f);
+        }
+    }
+  unblock_input ();
 }
 
 #ifdef USE_GTK
@@ -1434,7 +1464,7 @@ x_set_internal_border_width (struct frame *f, Lisp_Object arg, Lisp_Object oldva
 
   if (border != FRAME_INTERNAL_BORDER_WIDTH (f))
     {
-      FRAME_INTERNAL_BORDER_WIDTH (f) = border;
+      f->internal_border_width = border;
 
 #ifdef USE_X_TOOLKIT
       if (FRAME_X_OUTPUT (f)->edit_widget)
@@ -2487,6 +2517,72 @@ xic_set_xfontset (struct frame *f, const char *base_fontname)
 
 
 
+
+void
+x_mark_frame_dirty (struct frame *f)
+{
+  if (FRAME_X_DOUBLE_BUFFERED_P (f) && !FRAME_X_NEED_BUFFER_FLIP (f))
+    FRAME_X_NEED_BUFFER_FLIP (f) = true;
+}
+
+static void
+set_up_x_back_buffer (struct frame *f)
+{
+#ifdef HAVE_XDBE
+  block_input ();
+  if (FRAME_X_WINDOW (f) && !FRAME_X_DOUBLE_BUFFERED_P (f))
+    {
+      FRAME_X_RAW_DRAWABLE (f) = FRAME_X_WINDOW (f);
+      if (FRAME_DISPLAY_INFO (f)->supports_xdbe)
+        {
+          /* If allocating a back buffer fails, either because the
+             server ran out of memory or we don't have the right kind
+             of visual, just use single-buffered rendering.  */
+          x_catch_errors (FRAME_X_DISPLAY (f));
+          FRAME_X_RAW_DRAWABLE (f) = XdbeAllocateBackBufferName (
+            FRAME_X_DISPLAY (f),
+            FRAME_X_WINDOW (f),
+            XdbeCopied);
+          if (x_had_errors_p (FRAME_X_DISPLAY (f)))
+            FRAME_X_RAW_DRAWABLE (f) = FRAME_X_WINDOW (f);
+          x_uncatch_errors_after_check ();
+        }
+    }
+  unblock_input ();
+#endif
+}
+
+void
+tear_down_x_back_buffer (struct frame *f)
+{
+#ifdef HAVE_XDBE
+  block_input ();
+  if (FRAME_X_WINDOW (f) && FRAME_X_DOUBLE_BUFFERED_P (f))
+    {
+      if (FRAME_X_DOUBLE_BUFFERED_P (f))
+        {
+          XdbeDeallocateBackBufferName (FRAME_X_DISPLAY (f),
+                                        FRAME_X_DRAWABLE (f));
+          FRAME_X_RAW_DRAWABLE (f) = FRAME_X_WINDOW (f);
+        }
+    }
+  unblock_input ();
+#endif
+}
+
+/* Set up double buffering if the frame parameters don't prohibit
+   it.  */
+void
+initial_set_up_x_back_buffer (struct frame *f)
+{
+  block_input ();
+  eassert (FRAME_X_WINDOW (f));
+  FRAME_X_RAW_DRAWABLE (f) = FRAME_X_WINDOW (f);
+  if (NILP (CDR (Fassq (Qinhibit_double_buffering, f->param_alist))))
+    set_up_x_back_buffer (f);
+  unblock_input ();
+}
+
 #ifdef USE_X_TOOLKIT
 
 /* Create and set up the X widget for frame F.  */
@@ -2642,7 +2738,7 @@ x_window (struct frame *f, long window_prompting)
 		     f->output_data.x->parent_desc, 0, 0);
 
   FRAME_X_WINDOW (f) = XtWindow (frame_widget);
-
+  initial_set_up_x_back_buffer (f);
   validate_x_resource_name ();
 
   class_hints.res_name = SSDATA (Vx_resource_name);
@@ -2662,7 +2758,7 @@ x_window (struct frame *f, long window_prompting)
 
   hack_wm_protocols (f, shell_widget);
 
-#ifdef HACK_EDITRES
+#ifdef X_TOOLKIT_EDITRES
   XtAddEventHandler (shell_widget, 0, True, _XEditResCheckMessages, 0);
 #endif
 
@@ -2788,7 +2884,8 @@ x_window (struct frame *f)
 		     CopyFromParent, /* depth */
 		     InputOutput, /* class */
 		     FRAME_X_VISUAL (f),
-		     attribute_mask, &attributes);
+                     attribute_mask, &attributes);
+  initial_set_up_x_back_buffer (f);
 
 #ifdef HAVE_X_I18N
   if (use_xim)
@@ -2942,7 +3039,7 @@ x_make_gc (struct frame *f)
   gc_values.line_width = 0;	/* Means 1 using fast algorithm.  */
   f->output_data.x->normal_gc
     = XCreateGC (FRAME_X_DISPLAY (f),
-		 FRAME_X_WINDOW (f),
+                 FRAME_X_DRAWABLE (f),
 		 GCLineWidth | GCForeground | GCBackground,
 		 &gc_values);
 
@@ -2951,7 +3048,7 @@ x_make_gc (struct frame *f)
   gc_values.background = FRAME_FOREGROUND_PIXEL (f);
   f->output_data.x->reverse_gc
     = XCreateGC (FRAME_X_DISPLAY (f),
-		 FRAME_X_WINDOW (f),
+                 FRAME_X_DRAWABLE (f),
 		 GCForeground | GCBackground | GCLineWidth,
 		 &gc_values);
 
@@ -2960,7 +3057,7 @@ x_make_gc (struct frame *f)
   gc_values.background = f->output_data.x->cursor_pixel;
   gc_values.fill_style = FillOpaqueStippled;
   f->output_data.x->cursor_gc
-    = XCreateGC (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+    = XCreateGC (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f),
 		 (GCForeground | GCBackground
 		  | GCFillStyle | GCLineWidth),
 		 &gc_values);
@@ -3128,7 +3225,7 @@ x_default_font_parameter (struct frame *f, Lisp_Object parms)
     {
       /* Remember the explicit font parameter, so we can re-apply it after
 	 we've applied the `default' face settings.  */
-      AUTO_FRAME_ARG (arg, Qfont_param, font_param);
+      AUTO_FRAME_ARG (arg, Qfont_parameter, font_param);
       x_set_frame_parameters (f, arg);
     }
 
@@ -3467,6 +3564,9 @@ This function is an internal primitive--use `make-frame' instead.  */)
 		       "waitForWM", "WaitForWM", RES_TYPE_BOOLEAN);
   x_default_parameter (f, parms, Qtool_bar_position,
                        FRAME_TOOL_BAR_POSITION (f), 0, 0, RES_TYPE_SYMBOL);
+  x_default_parameter (f, parms, Qinhibit_double_buffering, Qnil,
+                       "inhibitDoubleBuffering", "InhibitDoubleBuffering",
+                       RES_TYPE_BOOLEAN);
 
   /* Compute the size of the X window.  */
   window_prompting = x_figure_window_size (f, parms, true, &x_width, &x_height);
@@ -4286,7 +4386,7 @@ x_get_monitor_attributes_xrandr (struct x_display_info *dpyinfo)
   n_monitors = resources->noutput;
   monitors = xzalloc (n_monitors * sizeof *monitors);
 
-#ifdef RANDR13_LIBRARY
+#if RANDR13_LIBRARY
   if (randr13_avail)
     pxid = XRRGetOutputPrimary (dpy, dpyinfo->root_window);
 #endif
@@ -4295,8 +4395,8 @@ x_get_monitor_attributes_xrandr (struct x_display_info *dpyinfo)
     {
       XRROutputInfo *info = XRRGetOutputInfo (dpy, resources,
                                               resources->outputs[i]);
-      Connection conn = info ? info->connection : RR_Disconnected;
-      RRCrtc id = info ? info->crtc : None;
+      if (!info)
+	continue;
 
       if (strcmp (info->name, "default") == 0)
         {
@@ -4307,9 +4407,9 @@ x_get_monitor_attributes_xrandr (struct x_display_info *dpyinfo)
           return Qnil;
         }
 
-      if (conn != RR_Disconnected && id != None)
+      if (info->connection != RR_Disconnected && info->crtc != None)
         {
-          XRRCrtcInfo *crtc = XRRGetCrtcInfo (dpy, resources, id);
+          XRRCrtcInfo *crtc = XRRGetCrtcInfo (dpy, resources, info->crtc);
           struct MonitorInfo *mi = &monitors[i];
           XRectangle workarea_r;
 
@@ -4631,7 +4731,9 @@ frame_geometry (Lisp_Object frame, Lisp_Object attribute)
     }
 #else
   tool_bar_height = FRAME_TOOL_BAR_HEIGHT (f);
-  tool_bar_width = tool_bar_height ? native_width : 0;
+  tool_bar_width = (tool_bar_height
+		    ? native_width - 2 * internal_border_width
+		    : 0);
   inner_top += tool_bar_height;
 #endif
 
@@ -5111,11 +5213,18 @@ FRAME.  Default is to change on the edit X window.  */)
     }
   else
     {
+      ptrdiff_t elsize;
+
       CHECK_STRING (value);
       data = SDATA (value);
       if (INT_MAX < SBYTES (value))
 	error ("VALUE too long");
-      nelements = SBYTES (value);
+
+      /* See comment above about longs and format=32 */
+      elsize = element_format == 32 ? sizeof (long) : element_format >> 3;
+      if (SBYTES (value) % elsize != 0)
+        error ("VALUE must contain an integral number of octets for FORMAT");
+      nelements = SBYTES (value) / elsize;
     }
 
   block_input ();
@@ -5215,7 +5324,7 @@ x_window_property_intern (struct frame *f,
              property and those are indeed in 32 bit quantities if format is
              32.  */
 
-          if (BITS_PER_LONG > 32 && actual_format == 32)
+          if (LONG_WIDTH > 32 && actual_format == 32)
             {
               unsigned long i;
               int  *idata = (int *) tmp_data;
@@ -5226,7 +5335,8 @@ x_window_property_intern (struct frame *f,
             }
 
           if (NILP (vector_ret_p))
-            prop_value = make_string ((char *) tmp_data, actual_size);
+            prop_value = make_string ((char *) tmp_data,
+                                      (actual_format >> 3) * actual_size);
           else
             prop_value = x_property_data_to_lisp (f,
                                                   tmp_data,
@@ -5311,6 +5421,77 @@ no value of TYPE (always string in the MS Windows case).  */)
 
   unblock_input ();
   return prop_value;
+}
+
+DEFUN ("x-window-property-attributes", Fx_window_property_attributes, Sx_window_property_attributes,
+       1, 3, 0,
+       doc: /* Retrieve metadata about window property PROP on FRAME.
+If FRAME is nil or omitted, use the selected frame.
+If SOURCE is non-nil, get the property on that window instead of from
+FRAME.  The number 0 denotes the root window.
+
+Return value is nil if FRAME hasn't a property with name PROP.
+Otherwise, the return value is a vector with the following fields:
+
+0. The property type, as an integer.  The symbolic name of
+ the type can be obtained with `x-get-atom-name'.
+1. The format of each element; one of 8, 16, or 32.
+2. The length of the property, in number of elements. */)
+  (Lisp_Object prop, Lisp_Object frame, Lisp_Object source)
+{
+  struct frame *f = decode_window_system_frame (frame);
+  Window target_window = FRAME_X_WINDOW (f);
+  Atom prop_atom;
+  Lisp_Object prop_attr = Qnil;
+  Atom actual_type;
+  int actual_format;
+  unsigned long actual_size, bytes_remaining;
+  unsigned char *tmp_data = NULL;
+  int rc;
+
+  CHECK_STRING (prop);
+
+  if (! NILP (source))
+    {
+      CONS_TO_INTEGER (source, Window, target_window);
+      if (! target_window)
+	target_window = FRAME_DISPLAY_INFO (f)->root_window;
+    }
+
+  block_input ();
+
+  prop_atom = XInternAtom (FRAME_X_DISPLAY (f), SSDATA (prop), False);
+  rc = XGetWindowProperty (FRAME_X_DISPLAY (f), target_window,
+			   prop_atom, 0, 0, False, AnyPropertyType,
+			   &actual_type, &actual_format, &actual_size,
+			   &bytes_remaining, &tmp_data);
+  if (rc == Success          /* no invalid params */
+      && actual_format == 0  /* but prop not found */
+      && NILP (source)
+      && target_window != FRAME_OUTER_WINDOW (f))
+    {
+      /* analogous behavior to x-window-property: if property isn't found
+         on the frame's inner window and no alternate window id was
+         provided, try the frame's outer window. */
+      target_window = FRAME_OUTER_WINDOW (f);
+      rc = XGetWindowProperty (FRAME_X_DISPLAY (f), target_window,
+                               prop_atom, 0, 0, False, AnyPropertyType,
+                               &actual_type, &actual_format, &actual_size,
+                               &bytes_remaining, &tmp_data);
+    }
+
+  if (rc == Success && actual_format != 0)
+    {
+      XFree (tmp_data);
+
+      prop_attr = make_uninit_vector (3);
+      ASET (prop_attr, 0, make_number (actual_type));
+      ASET (prop_attr, 1, make_number (actual_format));
+      ASET (prop_attr, 2, make_number (bytes_remaining / (actual_format >> 3)));
+    }
+
+  unblock_input ();
+  return prop_attr;
 }
 
 /***********************************************************************
@@ -5559,7 +5740,8 @@ x_create_tip_frame (struct x_display_info *dpyinfo, Lisp_Object parms)
 		       /* Border.  */
 		       f->border_width,
 		       CopyFromParent, InputOutput, CopyFromParent,
-		       mask, &attrs);
+                       mask, &attrs);
+    initial_set_up_x_back_buffer (f);
     XChangeProperty (FRAME_X_DISPLAY (f), tip_window,
                      FRAME_DISPLAY_INFO (f)->Xatom_net_window_type,
                      XA_ATOM, 32, PropModeReplace,
@@ -6136,6 +6318,15 @@ Value is t if tooltip was open, nil otherwise.  */)
   return x_hide_tip (!tooltip_reuse_hidden_frame);
 }
 
+DEFUN ("x-double-buffered-p", Fx_double_buffered_p, Sx_double_buffered_p,
+       0, 1, 0,
+       doc: /* Return t if FRAME is being double buffered.  */)
+     (Lisp_Object frame)
+{
+  struct frame *f = decode_live_frame (frame);
+  return FRAME_X_DOUBLE_BUFFERED_P (f) ? Qt : Qnil;
+}
+
 
 /***********************************************************************
 			File selection dialog
@@ -6351,7 +6542,7 @@ value of DIR as in previous invocations; this is standard Windows behavior.  */)
 
   /* Make "Cancel" equivalent to C-g.  */
   if (NILP (file))
-    Fsignal (Qquit, Qnil);
+    quit ();
 
   decoded_file = DECODE_FILE (file);
 
@@ -6423,7 +6614,7 @@ value of DIR as in previous invocations; this is standard Windows behavior.  */)
 
   /* Make "Cancel" equivalent to C-g.  */
   if (NILP (file))
-    Fsignal (Qquit, Qnil);
+    quit ();
 
   decoded_file = DECODE_FILE (file);
 
@@ -6463,7 +6654,7 @@ nil, it defaults to the selected frame. */)
     default_name = xlispstrdup (font_param);
   else
     {
-      font_param = Fframe_parameter (frame, Qfont_param);
+      font_param = Fframe_parameter (frame, Qfont_parameter);
       if (STRINGP (font_param))
         default_name = xlispstrdup (font_param);
     }
@@ -6474,7 +6665,7 @@ nil, it defaults to the selected frame. */)
   unblock_input ();
 
   if (NILP (font))
-    Fsignal (Qquit, Qnil);
+    quit ();
 
   return unbind_to (count, font);
 }
@@ -6787,6 +6978,7 @@ frame_parm_handler x_frame_parm_handlers[] =
   x_set_alpha,
   x_set_sticky,
   x_set_tool_bar_position,
+  x_set_inhibit_double_buffering,
 };
 
 void
@@ -6795,7 +6987,7 @@ syms_of_xfns (void)
   DEFSYM (Qundefined_color, "undefined-color");
   DEFSYM (Qcompound_text, "compound-text");
   DEFSYM (Qcancel_timer, "cancel-timer");
-  DEFSYM (Qfont_param, "font-parameter");
+  DEFSYM (Qfont_parameter, "font-parameter");
   DEFSYM (Qmono, "mono");
   DEFSYM (Qassq_delete_all, "assq-delete-all");
 
@@ -6969,6 +7161,7 @@ When using Gtk+ tooltips, the tooltip face is not used.  */);
   defsubr (&Sx_change_window_property);
   defsubr (&Sx_delete_window_property);
   defsubr (&Sx_window_property);
+  defsubr (&Sx_window_property_attributes);
 
   defsubr (&Sxw_display_color_p);
   defsubr (&Sx_display_grayscale_p);
@@ -7002,6 +7195,7 @@ When using Gtk+ tooltips, the tooltip face is not used.  */);
 
   defsubr (&Sx_show_tip);
   defsubr (&Sx_hide_tip);
+  defsubr (&Sx_double_buffered_p);
   tip_timer = Qnil;
   staticpro (&tip_timer);
   tip_frame = Qnil;

@@ -263,7 +263,7 @@ template <int w>
 # define assume(R) ((R) ? (void) 0 : __builtin_unreachable ())
 #elif 1200 <= _MSC_VER
 # define assume(R) __assume (R)
-#elif (defined lint \
+#elif ((defined GCC_LINT || defined lint) \
        && (__has_builtin (__builtin_trap) \
            || 3 < __GNUC__ + (3 < __GNUC_MINOR__ + (4 <= __GNUC_PATCHLEVEL__))))
   /* Doing it this way helps various packages when configured with

@@ -24,7 +24,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(require 'cl-lib)
 (require 'format-spec)
 (require 'shr)
 (require 'url)
@@ -74,8 +74,8 @@ duplicate entries (if any) removed."
   :group 'eww
   :type 'hook
   :options '(eww-links-at-point
-	     url-get-url-at-point
-	     eww-current-url))
+             url-get-url-at-point
+             eww-current-url))
 
 (defcustom eww-bookmarks-directory user-emacs-directory
   "Directory where bookmark files will be stored."
@@ -313,6 +313,20 @@ word(s) will be searched for via `eww-search-prefix'."
 See the `eww-search-prefix' variable for the search engine used."
   (interactive "r")
   (eww (buffer-substring beg end)))
+
+(defun eww-open-in-new-buffer ()
+  "Fetch link at point in a new EWW buffer."
+  (interactive)
+  (let ((url (eww-suggested-uris)))
+    (if (null url) (user-error "No link at point")
+      ;; clone useful to keep history, but
+      ;; should not clone from non-eww buffer
+      (with-current-buffer
+          (if (eq major-mode 'eww-mode) (clone-buffer)
+            (generate-new-buffer "*eww*"))
+        (unless (equal url (eww-current-url))
+          (eww-mode)
+          (eww (if (consp url) (car url) url)))))))
 
 (defun eww-html-p (content-type)
   "Return non-nil if CONTENT-TYPE designates an HTML content type.
@@ -669,11 +683,13 @@ the like."
       (setq score (- (length (split-string (dom-text node))))))
      (t
       (dolist (elem (dom-children node))
-	(if (stringp elem)
-	    (setq score (+ score (length (split-string elem))))
+	(cond
+         ((stringp elem)
+          (setq score (+ score (length (split-string elem)))))
+         ((consp elem)
 	  (setq score (+ score
 			 (or (cdr (assoc :eww-readability-score (cdr elem)))
-			     (eww-score-readability elem))))))))
+			     (eww-score-readability elem)))))))))
     ;; Cache the score of the node to avoid recomputing all the time.
     (dom-set-attribute node :eww-readability-score score)
     score))
@@ -695,6 +711,7 @@ the like."
   (let ((map (make-sparse-keymap)))
     (define-key map "g" 'eww-reload) ;FIXME: revert-buffer-function instead!
     (define-key map "G" 'eww)
+    (define-key map [?\M-\r] 'eww-open-in-new-buffer)
     (define-key map [?\t] 'shr-next-link)
     (define-key map [?\M-\t] 'shr-previous-link)
     (define-key map [backtab] 'shr-previous-link)
@@ -729,6 +746,7 @@ the like."
 	["Exit" quit-window t]
 	["Close browser" quit-window t]
 	["Reload" eww-reload t]
+	["Follow URL in new buffer" eww-open-in-new-buffer]
 	["Back to previous page" eww-back-url
 	 :active (not (zerop (length eww-history)))]
 	["Forward to next page" eww-forward-url
@@ -2006,7 +2024,7 @@ Otherwise, the restored buffer will contain a prompt to do so by using
 			    (list :url (plist-get misc-data :uri))))
     (unless file-name
       (when (plist-get eww-data :url)
-	(case eww-restore-desktop
+	(cl-case eww-restore-desktop
 	  ((t auto) (eww (plist-get eww-data :url)))
 	  ((zerop (buffer-size))
 	   (let ((inhibit-read-only t))

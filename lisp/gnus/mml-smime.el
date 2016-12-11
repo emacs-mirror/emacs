@@ -32,17 +32,17 @@
 (autoload 'message-narrow-to-headers "message")
 (autoload 'message-fetch-field "message")
 
-;; Prefer epg over openssl if it is available as epg uses GnuPG's gpgsm,
+;; Prefer epg over openssl as epg uses GnuPG's gpgsm,
 ;; which features full-fledged certificate management, while openssl requires
 ;; major manual efforts for certificate revocation and expiry and has bugs
 ;; as documented under man smime(1).
-(ignore-errors (require 'epg))
+(require 'epg)
 
-(defcustom mml-smime-use (if (featurep 'epg) 'epg 'openssl)
+(defcustom mml-smime-use 'epg
   "Whether to use OpenSSL or EasyPG (EPG) to handle S/MIME messages.
-Defaults to EPG if it's available.
-If you think about using OpenSSL, please read the BUGS section in the manual
-for the `smime' command coming with OpenSSL first.  EasyPG is recommended."
+If you're thinking about using OpenSSL, please first read the BUGS section
+in the manual for the `smime' command that comes with OpenSSL.
+We recommend EasyPG."
   :group 'mime-security
   :type '(choice (const :tag "EPG" epg)
                  (const :tag "OpenSSL" openssl)))
@@ -348,10 +348,6 @@ Whether the passphrase is cached at all is controlled by
 (declare-function epg-sub-key-validity   "epg" (sub-key) t)
 
 (autoload 'mml-compute-boundary "mml")
-
-;; We require mm-decode, which requires mm-bodies, which autoloads
-;; message-options-get (!).
-(declare-function message-options-set "message" (symbol value))
 
 (defun mml-smime-epg-sign (cont)
   (let ((inhibit-redisplay t)

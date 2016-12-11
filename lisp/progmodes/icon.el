@@ -404,8 +404,8 @@ Returns nil if line starts inside a string, t if in a comment."
 	 (ch-syntax (char-syntax ch)))
     (if (eq ch-syntax ?w)
 	(assoc (buffer-substring
-		(progn (forward-word -1) (point))
-		(progn (forward-word 1) (point)))
+		(progn (forward-word-strictly -1) (point))
+		(progn (forward-word-strictly 1) (point)))
 	       icon-resword-alist)
       (not (memq ch '(0 ?\; ?\} ?\{ ?\) ?\] ?\" ?\' ?\# ?\, ?\. ?\n))))))
 
@@ -431,7 +431,8 @@ Returns nil if line starts inside a string, t if in a comment."
    ((and (eq (char-syntax (following-char)) ?w)
 	 (cdr
 	  (assoc (buffer-substring (point)
-				   (save-excursion (forward-word 1) (point)))
+				   (save-excursion (forward-word-strictly 1)
+                                                   (point)))
 		 icon-resword-alist))) 0)
    (t (end-of-line 0) (icon-backward-to-start-of-continued-exp lim))))
 
@@ -475,7 +476,7 @@ Returns nil if line starts inside a string, t if in a comment."
   (interactive)
   (if (not (bobp)) (forward-char -1))
   (re-search-forward "\\(\\s \\|^\\)end\\(\\s \\|$\\)" (point-max) 'move)
-  (forward-word -1)
+  (forward-word-strictly -1)
   (forward-line 1))
 
 (defun indent-icon-exp ()

@@ -51,13 +51,16 @@
 
 (autoload 'gnus-group-make-nnir-group "nnir")
 
+(autoload 'gnus-cloud-upload-all-data "gnus-cloud")
+(autoload 'gnus-cloud-download-all-data "gnus-cloud")
+
 (defcustom gnus-no-groups-message "No news is good news"
-  "*Message displayed by Gnus when no groups are available."
+  "Message displayed by Gnus when no groups are available."
   :group 'gnus-start
   :type 'string)
 
 (defcustom gnus-keep-same-level nil
-  "*Non-nil means that the next newsgroup after the current will be on the same level.
+  "Non-nil means that the next newsgroup after the current will be on the same level.
 When you type, for instance, `n' after reading the last article in the
 current newsgroup, you will go to the next newsgroup.  If this variable
 is nil, the next newsgroup will be the next from the group
@@ -74,19 +77,19 @@ with the best level."
 		 (sexp :tag "other" t)))
 
 (defcustom gnus-group-goto-unread t
-  "*If non-nil, movement commands will go to the next unread and subscribed group."
+  "If non-nil, movement commands will go to the next unread and subscribed group."
   :link '(custom-manual "(gnus)Group Maneuvering")
   :group 'gnus-group-various
   :type 'boolean)
 
 (defcustom gnus-goto-next-group-when-activating t
-  "*If non-nil, the \\<gnus-group-mode-map>\\[gnus-group-get-new-news-this-group] command will advance point to the next group."
+  "If non-nil, the \\<gnus-group-mode-map>\\[gnus-group-get-new-news-this-group] command will advance point to the next group."
   :link '(custom-manual "(gnus)Scanning New Messages")
   :group 'gnus-group-various
   :type 'boolean)
 
 (defcustom gnus-permanently-visible-groups nil
-  "*Regexp to match groups that should always be listed in the group buffer.
+  "Regexp to match groups that should always be listed in the group buffer.
 This means that they will still be listed even when there are no
 unread articles in the groups.
 
@@ -107,7 +110,7 @@ effective only when emacs-w3m renders html articles, i.e., in the case
 		 (const nil)))
 
 (defcustom gnus-list-groups-with-ticked-articles t
-  "*If non-nil, list groups that have only ticked articles.
+  "If non-nil, list groups that have only ticked articles.
 If nil, only list groups that have unread articles."
   :group 'gnus-group-listing
   :type 'boolean)
@@ -120,13 +123,13 @@ Ignored if `gnus-group-use-permanent-levels' is non-nil."
                  (function :tag "Function returning level")))
 
 (defcustom gnus-group-list-inactive-groups t
-  "*If non-nil, inactive groups will be listed."
+  "If non-nil, inactive groups will be listed."
   :group 'gnus-group-listing
   :group 'gnus-group-levels
   :type 'boolean)
 
 (defcustom gnus-group-sort-function 'gnus-group-sort-by-alphabet
-  "*Function used for sorting the group buffer.
+  "Function used for sorting the group buffer.
 This function will be called with group info entries as the arguments
 for the groups to be sorted.  Pre-made functions include
 `gnus-group-sort-by-alphabet', `gnus-group-sort-by-real-name',
@@ -155,7 +158,7 @@ list."
 			 (function :tag "other" nil))))
 
 (defcustom gnus-group-line-format "%M\ %S\ %p\ %P\ %5y:%B%(%g%)\n"
-  "*Format of group lines.
+  "Format of group lines.
 It works along the same lines as a normal formatting string,
 with some simple extensions.
 
@@ -213,7 +216,7 @@ See Info node `(gnus)Formatting Variables'."
   :type 'string)
 
 (defcustom gnus-group-mode-line-format "Gnus: %%b {%M\ %:%S}"
-  "*The format specification for the group mode line.
+  "The format specification for the group mode line.
 It works along the same lines as a normal formatting string,
 with some simple extensions:
 
@@ -240,7 +243,7 @@ with some simple extensions:
   :type 'hook)
 
 (defcustom gnus-group-prepare-function 'gnus-group-prepare-flat
-  "*A function that is called to generate the group buffer.
+  "A function that is called to generate the group buffer.
 The function is called with three arguments: The first is a number;
 all group with a level less or equal to that number should be listed,
 if the second is non-nil, empty groups should also be displayed.  If
@@ -297,7 +300,7 @@ If you want to modify the group buffer, you can use this hook."
 		       (unless file
 			 (error "Couldn't find doc group"))
 		       file))))))
-  "*Alist of useful group-server pairs."
+  "Alist of useful group-server pairs."
   :group 'gnus-group-listing
   :type '(repeat (list (string :tag "Description")
 		       (string :tag "Name")
@@ -350,7 +353,7 @@ If you want to modify the group buffer, you can use this hook."
      gnus-group-news-low-empty)
     (t .
      gnus-group-news-low))
-  "*Controls the highlighting of group buffer lines.
+  "Controls the highlighting of group buffer lines.
 
 Below is a list of `Form'/`Face' pairs.  When deciding how a
 particular group line should be displayed, each form is
@@ -385,7 +388,7 @@ ticked: The number of ticked articles."
 
 (defcustom gnus-group-icon-list
   nil
-  "*Controls the insertion of icons into group buffer lines.
+  "Controls the insertion of icons into group buffer lines.
 
 Below is a list of `Form'/`File' pairs.  When deciding how a
 particular group line should be displayed, each form is evaluated.
@@ -448,10 +451,12 @@ used when no prefix argument is given to `gnus-group-jump-to-group'."
 		 (repeat (cons (integer :tag "Argument")
 			       (string :tag "Prompt string")))))
 
-(defvar gnus-group-listing-limit 1000
-  "*A limit of the number of groups when listing.
+(defcustom gnus-group-listing-limit 1000
+  "A limit of the number of groups when listing.
 If the number of groups is larger than the limit, list them in a
-simple manner.")
+simple manner."
+  :group 'gnus-group-listing
+  :type 'integer)
 
 ;;; Internal variables
 
@@ -633,6 +638,12 @@ simple manner.")
   "\M-&" gnus-group-universal-argument
   "#" gnus-group-mark-group
   "\M-#" gnus-group-unmark-group)
+
+(gnus-define-keys (gnus-group-cloud-map "~" gnus-group-mode-map)
+  "u" gnus-cloud-upload-all-data
+  "~" gnus-cloud-upload-all-data
+  "d" gnus-cloud-download-all-data
+  "\r" gnus-cloud-download-all-data)
 
 (gnus-define-keys (gnus-group-mark-map "M" gnus-group-mode-map)
   "m" gnus-group-mark-group
@@ -4530,7 +4541,7 @@ or `gnus-group-catchup-group-hook'."
   "Return the offset in seconds from the timestamp for GROUP to the current time, as a floating point number."
   (let* ((time (or (gnus-group-timestamp group)
 		   (list 0 0)))
-	 (delta (subtract-time (current-time) time)))
+	 (delta (time-subtract (current-time) time)))
     (+ (* (nth 0 delta) 65536.0)
        (nth 1 delta))))
 

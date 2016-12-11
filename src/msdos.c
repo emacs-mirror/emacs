@@ -59,6 +59,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <libc/dosio.h>  /* for _USE_LFN */
 #include <conio.h>	 /* for cputs */
 
+#if (__DJGPP__ + (__DJGPP_MINOR__ > 3)) >= 3
+#define SYS_ENVIRON _environ
+#else
+#define SYS_ENVIRON environ
+#endif
+
 #include "msdos.h"
 #include "systime.h"
 #include "frame.h"
@@ -422,8 +428,6 @@ static unsigned long screen_old_address = 0;
 /* Segment and offset of the virtual screen.  If 0, DOS/V is NOT loaded.  */
 static unsigned short screen_virtual_segment = 0;
 static unsigned short screen_virtual_offset = 0;
-extern Lisp_Object Qcursor_type;
-extern Lisp_Object Qbar, Qhbar;
 
 /* The screen colors of the current frame, which serve as the default
    colors for newly-created frames.  */
@@ -791,8 +795,8 @@ static void
 IT_set_face (int face)
 {
   struct frame *sf = SELECTED_FRAME ();
-  struct face *fp  = FACE_FROM_ID (sf, face);
-  struct face *dfp = FACE_FROM_ID (sf, DEFAULT_FACE_ID);
+  struct face *fp  = FACE_FROM_ID_OR_NULL (sf, face);
+  struct face *dfp = FACE_FROM_ID_OR_NULL (sf, DEFAULT_FACE_ID);
   unsigned long fg, bg, dflt_fg, dflt_bg;
   struct tty_display_info *tty = FRAME_TTY (sf);
 
@@ -1072,7 +1076,7 @@ IT_clear_screen (struct frame *f)
      any valid faces and will abort.  Instead, use the initial screen
      colors; that should mimic what a Unix tty does, which simply clears
      the screen with whatever default colors are in use.  */
-  if (FACE_FROM_ID (SELECTED_FRAME (), DEFAULT_FACE_ID) == NULL)
+  if (FACE_FROM_ID_OR_NULL (SELECTED_FRAME (), DEFAULT_FACE_ID) == NULL)
     ScreenAttrib = (initial_screen_colors[0] << 4) | initial_screen_colors[1];
   else
     IT_set_face (0);
@@ -1383,11 +1387,6 @@ IT_delete_glyphs (struct frame *f, int n)
 }
 
 /* This was copied from xfaces.c  */
-
-extern Lisp_Object Qbackground_color;
-extern Lisp_Object Qforeground_color;
-Lisp_Object Qreverse;
-extern Lisp_Object Qtitle;
 
 /* IT_set_terminal_modes is called when emacs is started,
    resumed, and whenever the screen is redrawn!  */
@@ -1792,7 +1791,7 @@ internal_terminal_init (void)
 	}
 
       Vinitial_window_system = Qpc;
-      Vwindow_system_version = make_number (25); /* RE Emacs version */
+      Vwindow_system_version = make_number (26); /* RE Emacs version */
       tty->terminal->type = output_msdos_raw;
 
       /* If Emacs was dumped on DOS/V machine, forget the stale VRAM
@@ -3710,7 +3709,7 @@ dos_ttcooked (void)
    file TEMPOUT and stderr to TEMPERR.  */
 
 int
-run_msdos_command (unsigned char **argv, const char *working_dir,
+run_msdos_command (char **argv, const char *working_dir,
 		   int tempin, int tempout, int temperr, char **envv)
 {
   char *saveargv1, *saveargv2, *lowcase_argv0, *pa, *pl;
@@ -3796,8 +3795,8 @@ run_msdos_command (unsigned char **argv, const char *working_dir,
 	;
       if (*cmnd)
 	{
-	  extern char **environ;
-	  char **save_env = environ;
+	  extern char **SYS_ENVIRON;
+	  char **save_env = SYS_ENVIRON;
 	  int save_system_flags = __system_flags;
 
 	  /* Request the most powerful version of `system'.  We need
@@ -3809,16 +3808,16 @@ run_msdos_command (unsigned char **argv, const char *working_dir,
 			     | __system_handle_null_commands
 			     | __system_emulate_chdir);
 
-	  environ = envv;
+	  SYS_ENVIRON = envv;
 	  result = system (cmnd);
 	  __system_flags = save_system_flags;
-	  environ = save_env;
+	  SYS_ENVIRON = save_env;
 	}
       else
 	result = 0;	/* emulate Unixy shell behavior with empty cmd line */
     }
   else
-    result = spawnve (P_WAIT, argv[0], (char **)argv, envv);
+    result = spawnve (P_WAIT, argv[0], argv, envv);
 
   dup2 (inbak, 0);
   dup2 (outbak, 1);
@@ -4085,11 +4084,14 @@ sys_select (int nfds, fd_set *rfds, fd_set *wfds, fd_set *efds,
 	  gettime (&t);
 	  clnow = make_timespec (t.tv_sec, t.tv_nsec);
 	  cldiff = timespec_sub (clnow, cllast);
+	  /* Stop when timeout value is about to cross zero.  */
+	  if (timespec_cmp (*timeout, cldiff) <= 0)
+	    {
+	      timeout->tv_sec = 0;
+	      timeout->tv_nsec = 0;
+	      return 0;
+	    }
 	  *timeout = timespec_sub (*timeout, cldiff);
-
-	  /* Stop when timeout value crosses zero.  */
-	  if (timespec_sign (*timeout) <= 0)
-	    return 0;
 	  cllast = clnow;
 	  dos_yield_time_slice ();
 	}

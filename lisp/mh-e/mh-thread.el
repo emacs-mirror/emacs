@@ -89,11 +89,11 @@
   (real-child-p t))
 
 (defvar mh-thread-id-hash nil
-  "Hashtable used to canonicalize message identifiers.")
+  "Hash table used to canonicalize message identifiers.")
 (make-variable-buffer-local 'mh-thread-id-hash)
 
 (defvar mh-thread-subject-hash nil
-  "Hashtable used to canonicalize subject strings.")
+  "Hash table used to canonicalize subject strings.")
 (make-variable-buffer-local 'mh-thread-subject-hash)
 
 (defvar mh-thread-id-table nil
@@ -109,11 +109,11 @@
 (make-variable-buffer-local 'mh-thread-id-index-map)
 
 (defvar mh-thread-subject-container-hash nil
-  "Hashtable used to group messages by subject.")
+  "Hash table used to group messages by subject.")
 (make-variable-buffer-local 'mh-thread-subject-container-hash)
 
 (defvar mh-thread-duplicates nil
-  "Hashtable used to associate messages with the same message identifier.")
+  "Hash table used to associate messages with the same message identifier.")
 (make-variable-buffer-local 'mh-thread-duplicates)
 
 (defvar mh-thread-history ()
@@ -647,7 +647,7 @@ Only information about messages in MSG-LIST are added to the tree."
 
 (defun mh-thread-set-tables (folder)
   "Use the tables of FOLDER in current buffer."
-  (mh-cl-flet
+  (mh-flet
    ((mh-get-table (symbol)
                   (with-current-buffer folder
                     (symbol-value symbol))))

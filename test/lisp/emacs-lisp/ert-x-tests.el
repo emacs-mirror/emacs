@@ -275,49 +275,6 @@ desired effect."
              (should (equal (c x) (lisp x))))))
 
 
-(defun ert--dummy-id (a)
-  "Identity function.  Used for tests only."
-  a)
-
-(ert-deftest ert-with-function-mocked ()
-  (let ((mock-id  (lambda (_) 21)))
-    (should (eq 42 (ert--dummy-id 42)))
-
-    (ert-with-function-mocked ert--dummy-id nil
-       (fset 'ert--dummy-id mock-id)
-       (should (eq 21 (ert--dummy-id 42))))
-    (should (eq 42 (ert--dummy-id 42)))
-
-    (ert-with-function-mocked ert--dummy-id mock-id
-       (should (eq 21 (ert--dummy-id 42))))
-    (should (eq 42 (ert--dummy-id 42)))
-
-    (should
-     (catch 'exit
-       (ert-with-function-mocked ert--dummy-id mock-id
-         (should (eq 21 (ert--dummy-id 42))))
-         (throw 'exit t)))
-    (should (eq 42 (ert--dummy-id 42)))
-
-    (should
-     (string= "Foo"
-              (condition-case err
-                  (progn
-                    (ert-with-function-mocked ert--dummy-id mock-id
-                      (should (eq 21 (ert--dummy-id 42))))
-                    (user-error "Foo"))
-                (user-error (cadr err)))))
-    (should (eq 42 (ert--dummy-id 42)))
-
-    (should
-     (string= "`ert--dummy-id' unexpectedly called."
-              (condition-case err
-                  (ert-with-function-mocked ert--dummy-id nil
-                    (ert--dummy-id 42))
-                (ert-test-failed (cadr err)))))
-    (should (eq 42 (ert--dummy-id 42)))))
-
-
 (provide 'ert-x-tests)
 
 ;;; ert-x-tests.el ends here

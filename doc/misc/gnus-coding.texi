@@ -364,11 +364,11 @@ such multiple commits, like whitespace differences, and unify those ;-).
 
 @heading @file{GNUS-NEWS}
 
-Starting from No Gnus, the @file{GNUS-NEWS} is created from
-@file{texi/gnus-news.texi}.  Don't edit @file{GNUS-NEWS}.  Edit
-@file{texi/gnus-news.texi}, type @command{make GNUS-NEWS} in the
-@file{texi} directory and commit @file{GNUS-NEWS} and
-@file{texi/gnus-news.texi}.
+The @file{etc/GNUS-NEWS} is created from
+@file{doc/misc/gnus-news.texi}.  Don't edit @file{etc/GNUS-NEWS}.
+Edit @file{doc/misc/gnus-news.texi}, type @command{make
+update-gnus-news} in the @file{lisp} directory and commit
+@file{etc/GNUS-NEWS} and @file{doc/misc/gnus-news.texi}.
 
 @heading Conventions for version information in defcustoms
 

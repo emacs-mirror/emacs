@@ -1473,6 +1473,131 @@ keys as being transformed into ( and ) respectively.  For ( and ), use
  ("/" ?б) ("?" ?Б)
  ("\\" ?') ("|" ?Ы))
 
+;; This is a slight modification of the `cyrillic-yawerty' input
+;; method. In addition to the standard Russian letters, the Tuvan
+;; alphabet introduces three letters: `Ң', `Ө' and `Ү'. They were made
+;; available in combination with `/' and `N', `T' and `Y' respectively.
+(quail-define-package
+ "cyrillic-tuvan" "Tuvan" "ҢӨҮ" nil
+ "ЯВЕРТЫ Roman transcription of the Tuvan alphabet
+
+When preceded by a `/', the letters `N', `T' and `Y' change
+as follows.
+
+  keytop | N  T  Y  n  t  y
+ --------+------------------
+  input  | Ң  Ө  Ү  ң  ө  ү"
+ nil t t t t nil nil nil nil nil t)
+
+;;  1! 2ё 3ъ 4Ё 5% 6^ 7& 8* 9( 0) -_ Ч  Ю
+;;   Я  В  Е  Р  Т  Ы  У  И  О  П  Ш  Щ
+;;    А  С  Д  Ф  Г  Х  Й  К  Л  ;: '" Э
+;;     З  Ь  Ц  Ж  Б  Н  М  ,< .> /?
+
+(quail-define-rules
+ ("1" ?1)
+ ("2" ?2)
+ ("3" ?3)
+ ("4" ?4)
+ ("5" ?5)
+ ("6" ?6)
+ ("7" ?7)
+ ("8" ?8)
+ ("9" ?9)
+ ("0" ?0)
+ ("-" ?-)
+ ("=" ?ч)
+ ("`" ?ю)
+ ("q" ?я)
+ ("w" ?в)
+ ("e" ?е)
+ ("r" ?р)
+ ("t" ?т)
+ ("y" ?ы)
+ ("u" ?у)
+ ("i" ?и)
+ ("o" ?о)
+ ("p" ?п)
+ ("[" ?ш)
+ ("]" ?щ)
+ ("a" ?а)
+ ("s" ?с)
+ ("d" ?д)
+ ("f" ?ф)
+ ("g" ?г)
+ ("h" ?х)
+ ("j" ?й)
+ ("k" ?к)
+ ("l" ?л)
+ (";" ?\;)
+ ("'" ?')
+ ("\\" ?э)
+ ("z" ?з)
+ ("x" ?ь)
+ ("c" ?ц)
+ ("v" ?ж)
+ ("b" ?б)
+ ("n" ?н)
+ ("m" ?м)
+ ("," ?,)
+ ("." ?.)
+ ("/" ?/)
+
+ ("!" ?!)
+ ("@" ?ё)
+ ("#" ?ъ)
+ ("$" ?Ё)
+ ("%" ?%)
+ ("^" ?^)
+ ("&" ?&)
+ ("*" ?*)
+ ("(" ?\()
+ (")" ?\))
+ ("_" ?_)
+ ("+" ?Ч)
+ ("~" ?Ю)
+ ("Q" ?Я)
+ ("W" ?В)
+ ("E" ?Е)
+ ("R" ?Р)
+ ("T" ?Т)
+ ("Y" ?Ы)
+ ("U" ?У)
+ ("I" ?И)
+ ("O" ?О)
+ ("P" ?П)
+ ("{" ?Ш)
+ ("}" ?Щ)
+ ("A" ?А)
+ ("S" ?С)
+ ("D" ?Д)
+ ("F" ?Ф)
+ ("G" ?Г)
+ ("H" ?Х)
+ ("J" ?Й)
+ ("K" ?К)
+ ("L" ?Л)
+ (":" ?:)
+ ("\"" ?\")
+ ("|" ?Э)
+ ("Z" ?З)
+ ("X" ?Ь)
+ ("C" ?Ц)
+ ("V" ?Ж)
+ ("B" ?Б)
+ ("N" ?Н)
+ ("M" ?М)
+ ("<" ?<)
+ (">" ?>)
+ ("?" ??)
+
+ ("/n" ?ң)
+ ("/t" ?ө)
+ ("/y" ?ү)
+ ("/N" ?Ң)
+ ("/T" ?Ө)
+ ("/Y" ?Ү))
+
 ;; Local Variables:
 ;; coding: utf-8
 ;; End:

@@ -3,7 +3,7 @@ eval '(exit $?0)' && eval 'exec perl -wS "$0" "$@"'
     if 0;
 # Convert git log output to ChangeLog format.
 
-my $VERSION = '2016-01-12 23:09'; # UTC
+my $VERSION = '2016-03-22 21:49'; # UTC
 # The definition above must lie within the first 8 lines in order
 # for the Emacs time-stamp write hook (at end) to update it.
 # If you change this file with Emacs, please let the write hook
@@ -298,9 +298,7 @@ sub git_dir_option($)
             {
               if ($sha =~ /^$_/)
                 {
-                  $skipflag = 1;
-                  ## Perhaps only warn if a pattern matches more than once?
-                  warn "$ME: warning: skipping $sha due to $_\n";
+                  $skipflag = $_;
                   last;
                 }
             }
@@ -386,8 +384,17 @@ sub git_dir_option($)
       }
 
       # Ignore commits that match the --ignore-matching pattern, if specified.
-      if (! ($skipflag || (defined $ignore_matching
-             && @line && $line[0] =~ /$ignore_matching/)))
+      if (defined $ignore_matching && @line && $line[0] =~ /$ignore_matching/)
+        {
+          $skipflag = 1;
+        }
+      elsif ($skipflag)
+        {
+          ## Perhaps only warn if a pattern matches more than once?
+          warn "$ME: warning: skipping $sha due to $skipflag\n";
+        }
+
+      if (! $skipflag)
         {
           if (defined $ignore_line && @line)
             {

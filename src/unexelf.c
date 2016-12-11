@@ -66,9 +66,6 @@ what you give them.   Help stamp out software-hoarding!  */
 #include <sys/elf_mips.h>
 #include <sym.h>
 #endif /* _SYSTYPE_SYSV */
-#if __sgi
-#include <syms.h> /* for HDRR declaration */
-#endif /* __sgi */
 
 #ifndef MAP_ANON
 #ifdef MAP_ANONYMOUS
@@ -329,7 +326,11 @@ unexec (const char *new_name, const char *old_name)
   if (old_bss_index == -1)
     fatal ("no bss section found");
 
+#ifdef HAVE_SBRK
   new_break = sbrk (0);
+#else
+  new_break = (byte *) old_bss_addr + old_bss_size;
+#endif
   new_bss_addr = (ElfW (Addr)) new_break;
   bss_size_growth = new_bss_addr - old_bss_addr;
   new_data2_size = bss_size_growth;
@@ -494,53 +495,6 @@ unexec (const char *new_name, const char *old_name)
 	  phdr->cbExtOffset += diff;
 	}
 #endif /* __alpha__ || _SYSTYPE_SYSV */
-
-#if __sgi
-      /* Adjust  the HDRR offsets in .mdebug and copy the
-	 line data if it's in its usual 'hole' in the object.
-	 Makes the new file debuggable with dbx.
-	 patches up two problems: the absolute file offsets
-	 in the HDRR record of .mdebug (see /usr/include/syms.h), and
-	 the ld bug that gets the line table in a hole in the
-	 elf file rather than in the .mdebug section proper.
-	 David Anderson. davea@sgi.com  Jan 16,1994.  */
-      if (strcmp (old_section_names + new_shdr->sh_name, ".mdebug") == 0
-	  && new_shdr->sh_offset - old_shdr->sh_offset != 0)
-	{
-#define MDEBUGADJUST(__ct,__fileaddr)		\
-  if (n_phdrr->__ct > 0)			\
-    {						\
-      n_phdrr->__fileaddr += movement;		\
-    }
-
-	  HDRR *o_phdrr = (HDRR *) ((byte *) old_base + old_shdr->sh_offset);
-	  HDRR *n_phdrr = (HDRR *) ((byte *) new_base + new_shdr->sh_offset);
-	  ptrdiff_t movement = new_shdr->sh_offset - old_shdr->sh_offset;
-
-	  MDEBUGADJUST (idnMax, cbDnOffset);
-	  MDEBUGADJUST (ipdMax, cbPdOffset);
-	  MDEBUGADJUST (isymMax, cbSymOffset);
-	  MDEBUGADJUST (ioptMax, cbOptOffset);
-	  MDEBUGADJUST (iauxMax, cbAuxOffset);
-	  MDEBUGADJUST (issMax, cbSsOffset);
-	  MDEBUGADJUST (issExtMax, cbSsExtOffset);
-	  MDEBUGADJUST (ifdMax, cbFdOffset);
-	  MDEBUGADJUST (crfd, cbRfdOffset);
-	  MDEBUGADJUST (iextMax, cbExtOffset);
-	  /* The Line Section, being possible off in a hole of the object,
-	     requires special handling.  */
-	  if (n_phdrr->cbLine > 0)
-	    {
-	      n_phdrr->cbLineOffset += movement;
-
-	      if (o_phdrr->cbLineOffset > (old_shdr->sh_offset
-					   + old_shdr->sh_size))
-		/* If not covered by section, it hasn't yet been copied.  */
-		memcpy (n_phdrr->cbLineOffset + new_base,
-			o_phdrr->cbLineOffset + old_base, n_phdrr->cbLine);
-	    }
-	}
-#endif /* __sgi */
     }
 
   /* Update the symbol values of _edata and _end.  */

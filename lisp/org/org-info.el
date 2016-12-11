@@ -34,8 +34,8 @@
 
 ;; Declare external functions and variables
 
-(declare-function Info-find-node "info" (filename nodename
-						  &optional no-going-back))
+(declare-function Info-find-node "info"
+                  (filename nodename &optional no-going-back strict-case))
 (defvar Info-current-file)
 (defvar Info-current-node)
 

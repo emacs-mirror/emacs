@@ -49,6 +49,9 @@ See the function `cedet-idutils-search' for more details.")
     (semantic-symref-parse-tool-output tool b)
     ))
 
+(defconst semantic-symref-idutils--line-re
+  "^\\(\\(?:[a-zA-Z]:\\)?[^:\n]+\\):\\([0-9]+\\):")
+
 (cl-defmethod semantic-symref-parse-tool-output-one-line ((tool semantic-symref-tool-idutils))
   "Parse one line of grep output, and return it as a match list.
 Moves cursor to end of the match."
@@ -59,8 +62,13 @@ Moves cursor to end of the match."
 	((eq (oref tool :searchtype) 'tagcompletions)
 	 (when (re-search-forward "^\\([^ ]+\\) " nil t)
 	   (match-string 1)))
-	(t
-	 (when (re-search-forward "^\\(\\(?:[a-zA-Z]:\\)?[^:\n]+\\):\\([0-9]+\\):" nil t)
+        ((eq (oref tool :resulttype) 'line-and-text)
+         (when (re-search-forward semantic-symref-idutils--line-re nil t)
+	   (list (string-to-number (match-string 2))
+                 (expand-file-name (match-string 1) default-directory)
+                 (buffer-substring-no-properties (point) (line-end-position)))))
+	(t ; resulttype is line
+	 (when (re-search-forward semantic-symref-idutils--line-re nil t)
 	   (cons (string-to-number (match-string 2))
 		 (expand-file-name (match-string 1) default-directory))
 	   ))))

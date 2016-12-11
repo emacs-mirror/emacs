@@ -22,7 +22,9 @@
 
 #include <time.h>
 
-#ifndef _LIBC
+#ifdef _LIBC
+typedef time_t mktime_offset_t;
+#else
 # undef __gmtime_r
 # define __gmtime_r gmtime_r
 # define __mktime_internal mktime_internal
@@ -32,7 +34,7 @@
 time_t
 timegm (struct tm *tmp)
 {
-  static time_t gmtime_offset;
+  static mktime_offset_t gmtime_offset;
   tmp->tm_isdst = 0;
   return __mktime_internal (tmp, __gmtime_r, &gmtime_offset);
 }

@@ -174,7 +174,7 @@ If GVD is not the debugger used, nothing happens."
   :type 'boolean :group 'ada)
 
 (defcustom ada-xref-search-with-egrep t
-  "If non-nil, use egrep to find the possible declarations for an entity.
+  "If non-nil, use grep -E to find the possible declarations for an entity.
 This alternate method is used when the exact location was not found in the
 information provided by GNAT.  However, it might be expensive if you have a lot
 of sources, since it will search in all the files in your project."
@@ -2013,7 +2013,7 @@ This function should be used when the standard algorithm that parses the
 exist.
 This function attempts to find the possible declarations for the identifier
 anywhere in the object path.
-This command requires the external `egrep' program to be available.
+This command requires the external `grep' program to be available.
 
 This works well when one is using an external library and wants to find
 the declaration and documentation of the subprograms one is using."

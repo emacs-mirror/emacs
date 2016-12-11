@@ -620,8 +620,7 @@ draw_fringe_bitmap_1 (struct window *w, struct glyph_row *row, int left_p, int o
       break;
     }
 
-  p.face = FACE_FROM_ID (f, face_id);
-
+  p.face = FACE_FROM_ID_OR_NULL (f, face_id);
   if (p.face == NULL)
     {
       /* This could happen after clearing face cache.
@@ -956,7 +955,7 @@ update_window_fringes (struct window *w, bool keep_current_p)
      row->indicate_bob_p is set, so it's OK that top_row_ends_at_zv_p
      is not initialized here.  Similarly for bot_ind_rn,
      row->indicate_eob_p and bot_row_ends_at_zv_p.  */
-  int top_row_ends_at_zv_p IF_LINT (= 0), bot_row_ends_at_zv_p IF_LINT (= 0);
+  int top_row_ends_at_zv_p UNINIT, bot_row_ends_at_zv_p UNINIT;
 
   if (w->pseudo_window_p)
     return 0;
@@ -1627,7 +1626,7 @@ If FACE is nil, reset face to default fringe face.  */)
     {
       struct frame *f = SELECTED_FRAME ();
 
-      if (FACE_FROM_ID (f, FRINGE_FACE_ID)
+      if (FACE_FROM_ID_OR_NULL (f, FRINGE_FACE_ID)
 	  && lookup_derived_face (f, face, FRINGE_FACE_ID, 1) < 0)
 	error ("No such face");
     }

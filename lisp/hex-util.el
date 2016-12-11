@@ -1,4 +1,4 @@
-;;; hex-util.el --- Functions to encode/decode hexadecimal string.
+;;; hex-util.el --- Functions to encode/decode hexadecimal string -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1999, 2001-2016 Free Software Foundation, Inc.
 

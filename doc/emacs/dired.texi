@@ -353,8 +353,8 @@ file.  @xref{Windows}.
 Visit the file described on the current line, and display the buffer in
 another window, but do not select that window (@code{dired-display-file}).
 
-@item Mouse-1
-@itemx Mouse-2
+@item mouse-1
+@itemx mouse-2
 @findex dired-mouse-find-file-other-window
 Visit the file whose name you clicked on
 (@code{dired-mouse-find-file-other-window}).  This uses another window
@@ -550,7 +550,16 @@ Mark (with @samp{*}) all files whose @emph{contents} contain a match for
 the regular expression @var{regexp}
 (@code{dired-mark-files-containing-regexp}).  This command is like
 @kbd{% m}, except that it searches the file contents instead of the file
-name.
+name.  Note that if a file is visited in an Emacs buffer,
+and @code{dired-always-read-filesystem} is @code{nil} (the default), this
+command will look in the buffer without revisiting the file, so the results
+might be inconsistent with the file on disk if its contents has changed
+since it was last visited.  If you don't want this, you may wish
+reverting the files you have visited in your buffers, or turning on
+the @code{auto-revert} mode in those buffers, before invoking this
+command.  @xref{Reverting}.  If you prefer that this command always revisit
+the file, without having to revert the file or enable @code{auto-revert}
+mode, you might want to set @code{dired-always-read-filesystem} to non-@code{nil}.
 
 @item C-/
 @itemx C-x u
@@ -789,6 +798,14 @@ This command is a variant of @code{xref-find-references}
 where you can navigate between matches and display them as needed
 using the commands described in @ref{Xref Commands}.
 
+@vindex grep-find-ignored-files @r{(Dired)}
+@vindex grep-find-ignored-directories @r{(Dired)}
+If any of the marked files are directories, then this command searches
+all of the files in those directories, and any of their
+subdirectories, recursively, except files whose names match
+@code{grep-find-ignored-files} and subdirectories whose names match
+@code{grep-find-ignored-directories}.
+
 @kindex Q @r{(Dired)}
 @findex dired-do-find-regexp-and-replace
 @cindex search and replace in multiple files (in Dired)
@@ -803,6 +820,12 @@ and you can use the special commands in that buffer (@pxref{Xref
 Commands}).  In particular, if you exit the query replace loop, you
 can use @kbd{r} in that buffer to replace more matches.
 @xref{Identifier Search}.
+
+Like with @code{dired-do-find-regexp}, if any of the marked files are
+directories, this command performs replacements in all of the files in
+those directories, and in any of their subdirectories, recursively,
+except for files whose names match @code{grep-find-ignored-files} and
+subdirectories whose names match @code{grep-find-ignored-directories}.
 @end table
 
 @node Shell Commands in Dired

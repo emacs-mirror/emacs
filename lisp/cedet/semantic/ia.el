@@ -146,7 +146,7 @@ Completion options are calculated with `semantic-analyze-possible-completions'."
 
 (defcustom semantic-ia-completion-menu-format-tag-function
   'semantic-format-tag-uml-concise-prototype
-  "*Function used to convert a tag to a string during completion."
+  "Function used to convert a tag to a string during completion."
   :group 'semantic
   :type semantic-format-tag-custom-list)
 

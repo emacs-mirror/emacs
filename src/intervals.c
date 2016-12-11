@@ -1821,11 +1821,16 @@ set_point (ptrdiff_t charpos)
 void
 set_point_from_marker (Lisp_Object marker)
 {
+  ptrdiff_t charpos = clip_to_bounds (BEGV, marker_position (marker), ZV);
+  ptrdiff_t bytepos = marker_byte_position (marker);
+
+  /* Don't trust the byte position if the marker belongs to a
+     different buffer.  */
   if (XMARKER (marker)->buffer != current_buffer)
-    signal_error ("Marker points into wrong buffer", marker);
-  set_point_both
-    (clip_to_bounds (BEGV, marker_position (marker), ZV),
-     clip_to_bounds (BEGV_BYTE, marker_byte_position (marker), ZV_BYTE));
+    bytepos = buf_charpos_to_bytepos (current_buffer, charpos);
+  else
+    bytepos = clip_to_bounds (BEGV_BYTE, bytepos, ZV_BYTE);
+  set_point_both (charpos, bytepos);
 }
 
 /* If there's an invisible character at position POS + TEST_OFFS in the

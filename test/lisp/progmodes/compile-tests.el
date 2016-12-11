@@ -1,4 +1,4 @@
-;;; compile-tests.el --- Test suite for font parsing.
+;;; compile-tests.el --- Test suite for compile.el.
 
 ;; Copyright (C) 2011-2016 Free Software Foundation, Inc.
 
@@ -79,6 +79,13 @@
      1 nil 302 "\\lib\\python\\Products\\PythonScripts\\PythonScript.py")
     ("File \"/tmp/foo.py\", line 10"
      1 nil 10 "/tmp/foo.py")
+    ;; cmake cmake-info
+    ("CMake Error at CMakeLists.txt:23 (hurz):"
+     1 nil 23 "CMakeLists.txt")
+    ("CMake Warning at cmake/modules/UseUG.cmake:73 (find_package):"
+     1 nil 73 "cmake/modules/UseUG.cmake")
+    ("  cmake/modules/DuneGridMacros.cmake:19 (include)"
+     1 nil 19 "cmake/modules/DuneGridMacros.cmake")
     ;; comma
     ("\"foo.f\", line 3: Error: syntax error near end of statement"
      1 nil 3 "foo.f")

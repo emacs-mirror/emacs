@@ -793,7 +793,7 @@ wset_next_buffers (struct window *w, Lisp_Object val)
    || WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_RIGHT (W))
 
 #if (defined (HAVE_WINDOW_SYSTEM)					\
-     && ((defined (USE_TOOLKIT_SCROLL_BARS) && !defined (HAVE_NS))	\
+     && ((defined (USE_TOOLKIT_SCROLL_BARS))	\
 	 || defined (HAVE_NTGUI)))
 # define USE_HORIZONTAL_SCROLL_BARS true
 #else
@@ -920,7 +920,7 @@ wset_next_buffers (struct window *w, Lisp_Object val)
    ? WINDOW_CONFIG_SCROLL_BAR_HEIGHT (W)	\
    : 0)
 
-/* Height in pixels, and in lines, of the mode line.
+/* Height in pixels of the mode line.
    May be zero if W doesn't have a mode line.  */
 #define WINDOW_MODE_LINE_HEIGHT(W)	\
   (WINDOW_WANTS_MODELINE_P ((W))	\
@@ -930,7 +930,7 @@ wset_next_buffers (struct window *w, Lisp_Object val)
 #define WINDOW_MODE_LINE_LINES(W)	\
   WINDOW_WANTS_MODELINE_P (W)
 
-/* Height in pixels, and in lines, of the header line.
+/* Height in pixels of the header line.
    Zero if W doesn't have a header line.  */
 #define WINDOW_HEADER_LINE_HEIGHT(W)	\
   (WINDOW_WANTS_HEADER_LINE_P (W)	\
@@ -1063,7 +1063,6 @@ extern void wset_redisplay (struct window *w);
 extern void fset_redisplay (struct frame *f);
 extern void bset_redisplay (struct buffer *b);
 extern void bset_update_mode_line (struct buffer *b);
-extern void maybe_set_redisplay (Lisp_Object);
 /* Call this to tell redisplay to look for other windows than selected-window
    that need to be redisplayed.  Calling one of the *set_redisplay functions
    above already does it, so it's only needed in unusual cases.  */
@@ -1105,7 +1104,7 @@ extern int window_body_width (struct window *w, bool);
 extern void temp_output_buffer_show (Lisp_Object);
 extern void replace_buffer_in_windows (Lisp_Object);
 extern void replace_buffer_in_windows_safely (Lisp_Object);
-extern Lisp_Object sanitize_window_sizes (Lisp_Object, Lisp_Object);
+extern void sanitize_window_sizes (Lisp_Object horizontal);
 /* This looks like a setter, but it is a bit special.  */
 extern void wset_buffer (struct window *, Lisp_Object);
 extern bool window_outdated (struct window *);

@@ -2568,7 +2568,7 @@ above block should be commented out.
 
 Even though these commands are sometimes useful, they are no substitute for
 the powerful @emph{tag table} facility of Emacs.  Viper's @kbd{:tag} command
-in a primitive interface to Emacs tags.  @xref{Tags,Tags,Tags,emacs,
+in a primitive interface to Emacs tags.  @xref{Tags Tables,,,emacs,
 The GNU Emacs Manual}, for more information on tags.
 
 The following two commands are normally bound to a mouse click and are part
@@ -2591,7 +2591,7 @@ occurrence of the pattern to search for.
 
 Note: while loading initially, Viper binds this mouse action only if it is
 not already bound to something else.  If you want to use the mouse-search
-feature, and the @kbd{Meta-Shift-Mouse-1} mouse action is already bound to
+feature, and the @kbd{Meta-Shift-mouse-1} mouse action is already bound to
 something else, you can rebind the mouse-search feature by setting
 @code{viper-mouse-search-key} to something else in
 your Viper customization file:
@@ -2669,8 +2669,8 @@ purpose of mouse search and mouse insert.  By default, this is set to
 @code{double-click-time} in Emacs and to
 @code{mouse-track-multi-click-time} milliseconds in XEmacs.
 @end table
-@kindex @kbd{S-Mouse-1}
-@kindex @kbd{S-Mouse-2}
+@kindex @kbd{S-mouse-1}
+@kindex @kbd{S-mouse-2}
 @kindex @kbd{meta shift button1up}
 @kindex @kbd{meta shift button2up}
 @vindex @code{viper-multiclick-timeout}
@@ -4428,7 +4428,7 @@ The following two mouse actions are normally bound to special search and
 insert commands in of Viper:
 
 @table @kbd
-@item S-Mouse-1
+@item S-mouse-1
 Holding Shift and clicking mouse button 1 will
 initiate search for
 a region under the mouse pointer.
@@ -4437,7 +4437,7 @@ binding only if this mouse action is not
 already bound to something else.
 @xref{Viper Specials}, for more information.
 
-@item S-Mouse-2
+@item S-mouse-2
 Holding Shift and clicking button 2 of the mouse will
 insert a region surrounding the mouse pointer.
 This command can also take a prefix argument.
@@ -4445,8 +4445,8 @@ Note: Viper sets this binding only if this mouse action is not
 already bound to something else.
 @xref{Viper Specials}, for more details.
 @end table
-@kindex @kbd{S-Mouse-1}
-@kindex @kbd{S-Mouse-2}
+@kindex @kbd{S-mouse-1}
+@kindex @kbd{S-mouse-2}
 @kindex @kbd{meta button1up}
 @kindex @kbd{meta button2up}
 

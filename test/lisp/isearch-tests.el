@@ -28,5 +28,13 @@
     (isearch-update)
     (should (equal isearch--current-buffer (current-buffer)))))
 
+(ert-deftest isearch--test-done ()
+  ;; Normal operation.
+  (isearch-update)
+  (isearch-done)
+  (should-not isearch--current-buffer)
+  ;; Bug #21091: let `isearch-done' work without `isearch-update'.
+  (isearch-done))
+
 (provide 'isearch-tests)
 ;;; isearch-tests.el ends here

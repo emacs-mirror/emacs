@@ -1,4 +1,4 @@
-;;; wdired.el --- Rename files editing their names in dired buffers
+;;; wdired.el --- Rename files editing their names in dired buffers -*- coding: utf-8; -*-
 
 ;; Copyright (C) 2004-2016 Free Software Foundation, Inc.
 
@@ -158,7 +158,7 @@ If non-nil, when you rename a file to a destination path within a
 nonexistent directory, wdired will create any parent directories
 necessary.  When nil, attempts to rename a file into a
 nonexistent directory will fail."
-  :version "25.2"
+  :version "26.1"
   :type 'boolean
   :group 'wdired)
 
@@ -590,7 +590,7 @@ Optional arguments are ignored."
   "Move down lines then position at filename or the current column.
 See `wdired-use-dired-vertical-movement'.  Optional prefix ARG
 says how many lines to move; default is one line."
-  (interactive "p")
+  (interactive "^p")
   (with-no-warnings (next-line arg))
   (if (or (eq wdired-use-dired-vertical-movement t)
 	  (and wdired-use-dired-vertical-movement
@@ -603,7 +603,7 @@ says how many lines to move; default is one line."
   "Move up lines then position at filename or the current column.
 See `wdired-use-dired-vertical-movement'.  Optional prefix ARG
 says how many lines to move; default is one line."
-  (interactive "p")
+  (interactive "^p")
   (with-no-warnings (previous-line arg))
   (if (or (eq wdired-use-dired-vertical-movement t)
 	  (and wdired-use-dired-vertical-movement
@@ -685,7 +685,7 @@ If OLD, return the old target.  If MOVE, move point before it."
             (funcall command 1)
             (setq arg (1- arg)))
         (error
-         (if (forward-word)
+         (if (forward-word-strictly)
 	     ;; Skip any non-word characters to avoid triggering a read-only
 	     ;; error which would cause skipping the next word characters too.
 	     (skip-syntax-forward "^w")

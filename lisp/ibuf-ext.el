@@ -35,15 +35,15 @@
 
 (eval-when-compile
   (require 'ibuf-macs)
-  (require 'cl-lib))
+  (require 'cl-lib)
+  (require 'subr-x))
 
 ;;; Utility functions
-(defun ibuffer-delete-alist (key alist)
-  "Delete all entries in ALIST that have a key equal to KEY."
-  (let (entry)
-    (while (setq entry (assoc key alist))
-      (setq alist (delete entry alist)))
-    alist))
+(defun ibuffer-remove-alist (key alist)
+  "Remove all entries in ALIST that have a key equal to KEY."
+  (while (ibuffer-awhen (assoc key alist)
+           (setq alist (remove it alist)) it))
+  alist)
 
 ;; borrowed from Gnus
 (defun ibuffer-remove-duplicates (list)
@@ -85,6 +85,32 @@ regardless of any active filters in this buffer."
   :type '(repeat (choice regexp function))
   :group 'ibuffer)
 
+(defcustom ibuffer-never-search-content-name
+  (let* ((names    '("Completions" "Help" "Messages" "Pp Eval Output"
+                     "CompileLog" "Info" "Buffer List" "Ibuffer" "Apropos"))
+         (partial  '("Customize Option: " "Async Shell Command\\*"
+                     "Shell Command Output\\*" "ediff "))
+         (beg      "\\`\\*")
+         (end      "\\*\\'")
+         (excluded (mapcar (lambda (x)
+                             (format "%s%s" beg x)) partial)))
+    (dolist (str names (nreverse excluded))
+      (push (format "%s%s%s" beg str end) excluded)))
+  "A list of regexps for buffers ignored by `ibuffer-mark-by-content-regexp'.
+Buffers whose name matches a regexp in this list, are not searched."
+  :version "26.1"
+  :type '(repeat regexp)
+  :require 'ibuf-ext
+  :group 'ibuffer)
+
+(defcustom ibuffer-never-search-content-mode '(dired-mode)
+  "A list of major modes ignored by `ibuffer-mark-by-content-regexp'.
+Buffers whose major mode is in this list, are not searched."
+  :version "26.1"
+  :type '(repeat regexp)
+  :require 'ibuf-ext
+  :group 'ibuffer)
+
 (defvar ibuffer-tmp-hide-regexps nil
   "A list of regexps which should match buffer names to not show.")
 
@@ -93,31 +119,99 @@ regardless of any active filters in this buffer."
 
 (defvar ibuffer-auto-buffers-changed nil)
 
+(defun ibuffer-update-saved-filters-format (filters)
+  "Transforms alist from old to new `ibuffer-saved-filters' format.
+
+Specifically, converts old-format alist with values of the
+form (STRING (FILTER-SPECS...)) to alist with values of the
+form (STRING FILTER-SPECS...), where each filter spec should be a
+cons cell with a symbol in the car. Any elements in the latter
+form are kept as is.
+
+Returns (OLD-FORMAT-DETECTED . UPDATED-SAVED-FILTERS-LIST)."
+  (when filters
+    (let* ((old-format-detected nil)
+           (fix-filter (lambda (filter-spec)
+                         (if (symbolp (car (cadr filter-spec)))
+                             filter-spec
+                           (setq old-format-detected t) ; side-effect
+                           (cons (car filter-spec) (cadr filter-spec)))))
+           (fixed (mapcar fix-filter filters)))
+      (cons old-format-detected fixed))))
+
 (defcustom ibuffer-saved-filters '(("gnus"
-				    ((or (mode . message-mode)
-					 (mode . mail-mode)
-					 (mode . gnus-group-mode)
-					 (mode . gnus-summary-mode)
-					 (mode . gnus-article-mode))))
-				   ("programming"
-				    ((or (mode . emacs-lisp-mode)
-					 (mode . cperl-mode)
-					 (mode . c-mode)
-					 (mode . java-mode)
-					 (mode . idl-mode)
-					 (mode . lisp-mode)))))
+                                    (or (mode . message-mode)
+                                        (mode . mail-mode)
+                                        (mode . gnus-group-mode)
+                                        (mode . gnus-summary-mode)
+                                        (mode . gnus-article-mode)))
+                                   ("programming"
+                                    (or (mode . emacs-lisp-mode)
+                                        (mode . cperl-mode)
+                                        (mode . c-mode)
+                                        (mode . java-mode)
+                                        (mode . idl-mode)
+                                        (mode . lisp-mode))))
 
-  "An alist of filter qualifiers to switch between.
+  "An alist mapping saved filter names to filter specifications.
 
-This variable should look like ((\"STRING\" QUALIFIERS)
-                                (\"STRING\" QUALIFIERS) ...), where
-QUALIFIERS is a list of the same form as
-`ibuffer-filtering-qualifiers'.
-See also the variables `ibuffer-filtering-qualifiers',
-`ibuffer-filtering-alist', and the functions
-`ibuffer-switch-to-saved-filters', `ibuffer-save-filters'."
-  :type '(repeat sexp)
+Each element should look like (\"NAME\" . FILTER-LIST), where
+FILTER-LIST has the same structure as the variable
+`ibuffer-filtering-qualifiers', which see. The filters defined
+here are joined with an implicit logical `and' and associated
+with NAME. The combined specification can be used by name in
+other filter specifications via the `saved' qualifier (again, see
+`ibuffer-filtering-qualifiers'). They can also be switched to by
+name (see the functions `ibuffer-switch-to-saved-filters' and
+`ibuffer-save-filters'). The variable `ibuffer-save-with-custom'
+affects how this information is saved for future sessions. This
+variable can be set directly from lisp code."
+  :version "26.1"
+  :type '(alist :key-type (string :tag "Filter name")
+                :value-type (repeat :tag "Filter specification" sexp))
+  :set (lambda (symbol value)
+         ;; Just set-default but update legacy old-style format
+         (set-default symbol (cdr (ibuffer-update-saved-filters-format value))))
   :group 'ibuffer)
+
+(defvar ibuffer-old-saved-filters-warning
+  (concat "Deprecated format detected for variable `ibuffer-saved-filters'.
+
+The format has been repaired and the variable modified accordingly.
+You can save the current value through the customize system by
+either clicking or hitting return "
+          (make-text-button
+           "here" nil
+           'face '(:weight bold :inherit button)
+           'mouse-face '(:weight normal :background "gray50" :inherit button)
+           'follow-link t
+           'help-echo "Click or RET: save new value in customize"
+           'action (lambda (_)
+                     (if (not (fboundp 'customize-save-variable))
+                         (message "Customize not available; value not saved")
+                       (customize-save-variable 'ibuffer-saved-filters
+                                                ibuffer-saved-filters)
+                       (message "Saved updated ibuffer-saved-filters."))))
+          ". See below for
+an explanation and alternative ways to save the repaired value.
+
+Explanation: For the list variable `ibuffer-saved-filters',
+elements of the form (STRING (FILTER-SPECS...)) are deprecated
+and should instead have the form (STRING FILTER-SPECS...), where
+each filter spec is a cons cell with a symbol in the car. See
+`ibuffer-saved-filters' for details. The repaired value fixes
+this format without changing the meaning of the saved filters.
+
+Alternative ways to save the repaired value:
+
+  1. Do M-x customize-variable and entering `ibuffer-saved-filters'
+     when prompted.
+
+  2. Set the updated value manually by copying the
+     following emacs-lisp form to your emacs init file.
+
+%s
+"))
 
 (defvar ibuffer-filtering-qualifiers nil
   "A list like (SYMBOL . QUALIFIER) which filters the current buffer list.
@@ -198,6 +292,28 @@ Currently, this only applies to `ibuffer-saved-filters' and
   :type 'boolean
   :group 'ibuffer)
 
+(defun ibuffer-repair-saved-filters ()
+  "Updates `ibuffer-saved-filters' to its new-style format, if needed.
+
+If this list has any elements of the old-style format, a
+deprecation warning is raised, with a button allowing persistent
+update. Any updated filters retain their meaning in the new
+format. See `ibuffer-update-saved-filters-format' and
+`ibuffer-saved-filters' for details of the old and new formats."
+  (interactive)
+  (when (and (boundp 'ibuffer-saved-filters) ibuffer-saved-filters)
+    (let ((fixed (ibuffer-update-saved-filters-format ibuffer-saved-filters)))
+      (prog1
+          (setq ibuffer-saved-filters (cdr fixed))
+        (when-let (old-format-detected (car fixed))
+          (let ((warning-series t)
+                (updated-form
+                 (with-output-to-string
+                   (pp `(setq ibuffer-saved-filters ',ibuffer-saved-filters)))))
+            (display-warning
+             'ibuffer
+             (format ibuffer-old-saved-filters-warning updated-form))))))))
+
 (defun ibuffer-ext-visible-p (buf all &optional ibuffer-buf)
   (or
    (ibuffer-buf-matches-predicates buf ibuffer-tmp-show-regexps)
@@ -224,8 +340,11 @@ the mode if ARG is omitted or nil."
   nil nil nil
   (unless (derived-mode-p 'ibuffer-mode)
     (error "This buffer is not in Ibuffer mode"))
-  (frame-or-buffer-changed-p 'ibuffer-auto-buffers-changed) ; Initialize state vector
-  (add-hook 'post-command-hook 'ibuffer-auto-update-changed))
+  (cond (ibuffer-auto-mode
+         (frame-or-buffer-changed-p 'ibuffer-auto-buffers-changed) ; Initialize state vector
+         (add-hook 'post-command-hook 'ibuffer-auto-update-changed))
+        (t
+         (remove-hook 'post-command-hook 'ibuffer-auto-update-changed))))
 
 (defun ibuffer-auto-update-changed ()
   (when (frame-or-buffer-changed-p 'ibuffer-auto-buffers-changed)
@@ -252,7 +371,7 @@ the mode if ARG is omitted or nil."
   (let ((buf (ibuffer-current-buffer)))
     (if (assq 'mode ibuffer-filtering-qualifiers)
 	(setq ibuffer-filtering-qualifiers
-	      (ibuffer-delete-alist 'mode ibuffer-filtering-qualifiers))
+	      (ibuffer-remove-alist 'mode ibuffer-filtering-qualifiers))
       (ibuffer-push-filter (cons 'mode (buffer-local-value 'major-mode buf)))))
   (ibuffer-update nil t))
 
@@ -324,8 +443,7 @@ the mode if ARG is omitted or nil."
    :opstring "Shell command executed on"
    :modifier-p nil)
   (shell-command-on-region
-   (point-min) (point-max) command
-   (get-buffer-create "* ibuffer-shell-output*")))
+   (point-min) (point-max) command))
 
 ;;;###autoload (autoload 'ibuffer-do-shell-command-pipe-replace "ibuf-ext")
 (define-ibuffer-op shell-command-pipe-replace (command)
@@ -347,10 +465,14 @@ the mode if ARG is omitted or nil."
    :modifier-p nil)
   (shell-command (concat command " "
 			 (shell-quote-argument
-			  (if buffer-file-name
-			      buffer-file-name
-			    (make-temp-file
-			     (substring (buffer-name) 0 (min 10 (length (buffer-name))))))))))
+			  (or buffer-file-name
+			      (let ((file
+				     (make-temp-file
+				      (substring
+				       (buffer-name) 0
+				       (min 10 (length (buffer-name)))))))
+				(write-region nil nil file nil 0)
+				file))))))
 
 ;;;###autoload (autoload 'ibuffer-do-eval "ibuf-ext")
 (define-ibuffer-op eval (form)
@@ -503,13 +625,11 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
 			   (ibuffer-included-in-filter-p buf x))
 		       (cdr filter))))
       (`saved
-       (let ((data
-	      (assoc (cdr filter)
-		     ibuffer-saved-filters)))
+       (let ((data (assoc (cdr filter) ibuffer-saved-filters)))
 	 (unless data
 	   (ibuffer-filter-disable t)
 	   (error "Unknown saved filter %s" (cdr filter)))
-	 (ibuffer-included-in-filters-p buf (cadr data))))
+	 (ibuffer-included-in-filters-p buf (cdr data))))
       (_
        (pcase-let ((`(,_type ,_desc ,func)
                     (assq (car filter) ibuffer-filtering-alist)))
@@ -524,7 +644,7 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
 			      (append ibuffer-filter-groups
 				      (list (cons "Default" nil))))))
     ;; (dolist (hidden ibuffer-hidden-filter-groups)
-    ;;   (setq filter-group-alist (ibuffer-delete-alist
+    ;;   (setq filter-group-alist (ibuffer-remove-alist
     ;;     			   hidden filter-group-alist)))
     (let ((vec (make-vector (length filter-group-alist) nil))
 	  (i 0))
@@ -608,7 +728,7 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
   (interactive
    (list (ibuffer-read-filter-group-name "Decompose filter group: " t)))
   (let ((data (cdr (assoc group ibuffer-filter-groups))))
-    (setq ibuffer-filter-groups (ibuffer-delete-alist
+    (setq ibuffer-filter-groups (ibuffer-remove-alist
 				 group ibuffer-filter-groups)
 	  ibuffer-filtering-qualifiers data))
   (ibuffer-update nil t))
@@ -656,7 +776,7 @@ The group will be added to `ibuffer-filter-group-kill-ring'."
   (ibuffer-aif (assoc name ibuffer-filter-groups)
       (progn
 	(push (copy-tree it) ibuffer-filter-group-kill-ring)
-	(setq ibuffer-filter-groups (ibuffer-delete-alist
+	(setq ibuffer-filter-groups (ibuffer-remove-alist
 				     name ibuffer-filter-groups))
 	(setq ibuffer-hidden-filter-groups
 	      (delete name ibuffer-hidden-filter-groups)))
@@ -746,7 +866,7 @@ They are removed from `ibuffer-saved-filter-groups'."
       (completing-read "Delete saved filter group: "
 		       ibuffer-saved-filter-groups nil t))))
   (setq ibuffer-saved-filter-groups
-	(ibuffer-delete-alist name ibuffer-saved-filter-groups))
+	(ibuffer-remove-alist name ibuffer-saved-filter-groups))
   (ibuffer-maybe-save-stuff)
   (ibuffer-update nil t))
 
@@ -808,43 +928,35 @@ This means that the topmost filter on the filtering stack, which must
 be a complex filter like (OR [name: foo] [mode: bar-mode]), will be
 turned into two separate filters [name: foo] and [mode: bar-mode]."
   (interactive)
-  (when (null ibuffer-filtering-qualifiers)
+  (unless ibuffer-filtering-qualifiers
     (error "No filters in effect"))
-  (let ((lim (pop ibuffer-filtering-qualifiers)))
-    (pcase (car lim)
-      (`or
-       (setq ibuffer-filtering-qualifiers (append
-					  (cdr lim)
-					  ibuffer-filtering-qualifiers)))
-      (`saved
-       (let ((data
-	      (assoc (cdr lim)
-		     ibuffer-saved-filters)))
-	 (unless data
-	   (ibuffer-filter-disable)
-	   (error "Unknown saved filter %s" (cdr lim)))
-	 (setq ibuffer-filtering-qualifiers (append
-					    (cadr data)
-					    ibuffer-filtering-qualifiers))))
-      (`not
-       (push (cdr lim)
-	     ibuffer-filtering-qualifiers))
-      (_
-       (error "Filter type %s is not compound" (car lim)))))
+  (let* ((filters ibuffer-filtering-qualifiers)
+         (head (cdar filters))
+         (tail (cdr filters))
+         (value
+          (pcase (caar filters)
+            (`or (nconc head tail))
+            (`saved
+             (let ((data (assoc head ibuffer-saved-filters)))
+               (unless data
+                 (ibuffer-filter-disable)
+                 (error "Unknown saved filter %s" head))
+               (append (cdr data) tail)))
+            (`not (cons head tail))
+            (_
+             (error "Filter type %s is not compound" (caar filters))))))
+    (setq ibuffer-filtering-qualifiers value))
   (ibuffer-update nil t))
 
 ;;;###autoload
 (defun ibuffer-exchange-filters ()
   "Exchange the top two filters on the stack in this buffer."
   (interactive)
-  (when (< (length ibuffer-filtering-qualifiers)
-	   2)
-    (error "Need two filters to exchange"))
-  (let ((first (pop ibuffer-filtering-qualifiers))
-	(second (pop ibuffer-filtering-qualifiers)))
-    (push first ibuffer-filtering-qualifiers)
-    (push second ibuffer-filtering-qualifiers))
-  (ibuffer-update nil t))
+  (let ((filters ibuffer-filtering-qualifiers))
+    (when (< (length filters) 2)
+      (error "Need two filters to exchange"))
+    (cl-rotatef (car filters) (cadr filters))
+    (ibuffer-update nil t)))
 
 ;;;###autoload
 (defun ibuffer-negate-filter ()
@@ -907,7 +1019,7 @@ Interactively, prompt for NAME, and use the current filters."
       ibuffer-filtering-qualifiers)))
   (ibuffer-aif (assoc name ibuffer-saved-filters)
       (setcdr it filters)
-    (push (list name filters) ibuffer-saved-filters))
+    (push (cons name filters) ibuffer-saved-filters))
   (ibuffer-maybe-save-stuff))
 
 ;;;###autoload
@@ -920,7 +1032,7 @@ Interactively, prompt for NAME, and use the current filters."
       (completing-read "Delete saved filters: "
 		       ibuffer-saved-filters nil t))))
   (setq ibuffer-saved-filters
-	(ibuffer-delete-alist name ibuffer-saved-filters))
+	(ibuffer-remove-alist name ibuffer-saved-filters))
   (ibuffer-maybe-save-stuff)
   (ibuffer-update nil t))
 
@@ -1388,7 +1500,7 @@ This requires the external program \"diff\" to be in your `exec-path'."
 
 ;;;###autoload
 (defun ibuffer-copy-filename-as-kill (&optional arg)
-  "Copy filenames of marked buffers into the kill ring.
+  "Copy filenames of marked (or next ARG) buffers into the kill ring.
 
 The names are separated by a space.
 If a buffer has no filename, it is ignored.
@@ -1399,37 +1511,51 @@ With \\[universal-argument], use the filename of each marked file relative
 to `ibuffer-default-directory' if non-nil, otherwise `default-directory'.
 
 You can then feed the file name(s) to other commands with \\[yank]."
-  (interactive "p")
-  (if (zerop (ibuffer-count-marked-lines))
-      (message "No buffers marked; use 'm' to mark a buffer")
-    (let ((ibuffer-copy-filename-as-kill-result "")
-	  (type (cond ((or (null arg) (zerop arg))
-		       'full)
-		      ((= arg 4)
-		       'relative)
-		      (t
-		       'name))))
-      (ibuffer-map-marked-lines
-       #'(lambda (buf _mark)
-	   (setq ibuffer-copy-filename-as-kill-result
-                 (concat ibuffer-copy-filename-as-kill-result
-                         (let ((name (buffer-file-name buf)))
-                           (cond (name
-                                  (concat
-                                   (pcase type
-                                     (`full
-                                      name)
-                                     (`relative
-                                      (file-relative-name
-                                       name (or ibuffer-default-directory
-                                                default-directory)))
-                                     (_
-                                      (file-name-nondirectory name))) " "))
-                                 (t "")))))))
-      (when (not (zerop (length ibuffer-copy-filename-as-kill-result)))
-        (setq ibuffer-copy-filename-as-kill-result
-              (substring ibuffer-copy-filename-as-kill-result 0 -1)))
-      (kill-new ibuffer-copy-filename-as-kill-result))))
+  (interactive "P")
+  (let* ((buffers (cond ((and (integerp arg) (not (zerop arg)))
+                         (ibuffer--near-buffers arg))
+                        (t
+                         (or (ibuffer-get-marked-buffers)
+                             (list (ibuffer-current-buffer))))))
+         (file-names
+          (mapcar
+           (lambda (buf)
+             (let ((name (with-current-buffer buf
+                           (ibuffer-buffer-file-name))))
+               (if (null name)
+                   ""
+                 (cond ((and (integerp arg) (zerop arg)) name)
+                       ((consp arg)
+                        (file-relative-name
+                         name (or ibuffer-default-directory
+                                  default-directory)))
+                       (t (file-name-nondirectory name))))))
+           buffers))
+         (string
+          (mapconcat 'identity (delete "" file-names) " ")))
+    (unless (string= string "")
+      (if (eq last-command 'kill-region)
+          (kill-append string nil)
+        (kill-new string))
+      (message "%s" string))))
+
+;;;###autoload
+(defun ibuffer-copy-buffername-as-kill (&optional arg)
+  "Copy buffer names of marked (or next ARG) buffers into the kill ring.
+The names are separated by a space.
+You can then feed the file name(s) to other commands with \\[yank]."
+  (interactive "P")
+  (let* ((buffers (cond ((and (integerp arg) (not (zerop arg)))
+                         (ibuffer--near-buffers arg))
+                        (t
+                         (or (ibuffer-get-marked-buffers)
+                             (list (ibuffer-current-buffer))))))
+         (string (mapconcat #'buffer-name buffers " ")))
+    (unless (string= string "")
+      (if (eq last-command 'kill-region)
+          (kill-append string nil)
+        (kill-new string))
+      (message "%s" string))))
 
 (defun ibuffer-mark-on-buffer (func &optional ibuffer-mark-on-buffer-mark group)
   (let ((count
@@ -1452,6 +1578,23 @@ You can then feed the file name(s) to other commands with \\[yank]."
   (ibuffer-mark-on-buffer
    #'(lambda (buf)
        (string-match regexp (buffer-name buf)))))
+
+(defun ibuffer-locked-buffer-p (&optional buf)
+  "Return non-nil if BUF is locked.
+When BUF nil, default to the buffer at current line."
+  (let ((cbuffer (or buf (ibuffer-current-buffer))))
+    (when cbuffer
+      (with-current-buffer cbuffer
+        (and (boundp 'emacs-lock-mode) emacs-lock-mode)))))
+
+;;;###autoload
+(defun ibuffer-mark-by-locked ()
+  "Mark all locked buffers."
+  (interactive)
+  (when (featurep 'emacs-lock)
+    (ibuffer-mark-on-buffer
+     (lambda (buf)
+       (ibuffer-locked-buffer-p buf)))))
 
 ;;;###autoload
 (defun ibuffer-mark-by-mode-regexp (regexp)
@@ -1476,6 +1619,31 @@ You can then feed the file name(s) to other commands with \\[yank]."
 			  dired-directory)))))
 	 (when name
 	   (string-match regexp name))))))
+
+;;;###autoload
+(defun ibuffer-mark-by-content-regexp (regexp &optional all-buffers)
+  "Mark all buffers whose content matches REGEXP.
+Optional arg ALL-BUFFERS, if non-nil, then search in all buffers.
+Otherwise buffers whose name matches an element of
+`ibuffer-never-search-content-name' or whose major mode is on
+`ibuffer-never-search-content-mode' are excluded."
+  (interactive (let ((reg (read-string "Mark by content (regexp): ")))
+                 (list reg current-prefix-arg)))
+  (ibuffer-mark-on-buffer
+   #'(lambda (buf)
+       (let ((mode (with-current-buffer buf major-mode))
+             res)
+         (cond ((and (not all-buffers)
+                     (or
+                      (memq mode ibuffer-never-search-content-mode)
+                      (cl-some (lambda (x) (string-match x (buffer-name buf)))
+                               ibuffer-never-search-content-name)))
+                (setq res nil))
+               (t
+                (with-current-buffer buf
+                  (save-mark-and-excursion
+                   (goto-char (point-min))
+                   (setq res (re-search-forward regexp nil t)))))) res))))
 
 ;;;###autoload
 (defun ibuffer-mark-by-mode (mode)

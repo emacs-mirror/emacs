@@ -61,7 +61,8 @@ Do not call this mode function yourself.  It is meant for internal use."
 (defvar custom-theme-insert-face-marker nil)
 
 (defvar custom-theme--listed-faces '(default cursor fixed-pitch
-  variable-pitch escape-glyph minibuffer-prompt highlight region
+  variable-pitch escape-glyph homoglyph
+  minibuffer-prompt highlight region
   shadow secondary-selection trailing-whitespace
   font-lock-builtin-face font-lock-comment-delimiter-face
   font-lock-comment-face font-lock-constant-face

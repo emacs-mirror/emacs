@@ -188,7 +188,8 @@ Summary:
             (`no-applicable-method
              (setq method 'cl-no-applicable-method)
              (setq specializers `(generic ,@specializers))
-             (lambda (generic arg &rest args) (apply code arg generic args)))
+             (lambda (generic arg &rest args)
+               (apply code arg (cl--generic-name generic) (cons arg args))))
             (_ code))))
     (cl-generic-define-method
      method (unless (memq kind '(nil :primary)) (list kind))

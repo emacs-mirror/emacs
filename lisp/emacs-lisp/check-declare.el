@@ -43,7 +43,7 @@
   "Name of buffer used to display any `check-declare' warnings.")
 
 (defun check-declare-locate (file basefile)
-  "Return the full path of FILE.
+  "Return the relative name of FILE.
 Expands files with a \".c\" or \".m\" extension relative to the Emacs
 \"src/\" directory.  Otherwise, `locate-library' searches for FILE.
 If that fails, expands FILE relative to BASEFILE's directory part.
@@ -70,6 +70,7 @@ the result."
                       (string-match "\\.el\\'" tfile))
                   tfile
                 (concat tfile ".el")))))
+    (setq file (file-relative-name file))
     (if ext (concat "ext:" file)
       file)))
 
@@ -80,48 +81,39 @@ where only the first two elements need be present.  This claims that FNFILE
 defines FN, with ARGLIST.  FILEONLY non-nil means only check that FNFILE
 exists, not that it defines FN.  This is for function definitions that we
 don't know how to recognize (e.g. some macros)."
-  (let ((m (format "Scanning %s..." file))
-        alist form len fn fnfile arglist fileonly)
-    (message "%s" m)
+  (let (alist)
     (with-temp-buffer
       (insert-file-contents file)
       ;; FIXME we could theoretically be inside a string.
       (while (re-search-forward "^[ \t]*\\((declare-function\\)[ \t\n]" nil t)
-        (goto-char (match-beginning 1))
-        (if (and (setq form (ignore-errors (read (current-buffer))))
+        (let ((pos (match-beginning 1)))
+          (goto-char pos)
+          (let ((form (ignore-errors (read (current-buffer))))
+                len fn formfile fnfile arglist fileonly)
+            (if (and
                  ;; Exclude element of byte-compile-initial-macro-environment.
                  (or (listp (cdr form)) (setq form nil))
                  (> (setq len (length form)) 2)
                  (< len 6)
+                 (setq formfile (nth 2 form))
                  (symbolp (setq fn (cadr form)))
                  (setq fn (symbol-name fn)) ; later we use as a search string
-                 (stringp (setq fnfile (nth 2 form)))
-                 (setq fnfile (check-declare-locate fnfile
-                                                    (expand-file-name file)))
+                 (stringp formfile)
+                 (setq fnfile (check-declare-locate formfile file))
                  ;; Use t to distinguish unspecified arglist from empty one.
                  (or (eq t (setq arglist (if (> len 3)
                                              (nth 3 form)
                                            t)))
                      (listp arglist))
                  (symbolp (setq fileonly (nth 4 form))))
-            (setq alist (cons (list fnfile fn arglist fileonly) alist))
-          ;; FIXME make this more noticeable.
-          (if form (message "Malformed declaration for `%s'" (cadr form))))))
-    (message "%sdone" m)
+                (setq alist (cons (list fnfile fn arglist fileonly) alist))
+              (when form
+                (check-declare-warn file (or fn "unknown function")
+                                    (if (stringp formfile) formfile
+                                      "unknown file")
+                                    "Malformed declaration"
+                                    (line-number-at-pos pos))))))))
     alist))
-
-(defun check-declare-errmsg (errlist &optional full)
-  "Return a string with the number of errors in ERRLIST, if any.
-Normally just counts the number of elements in ERRLIST.
-With optional argument FULL, sums the number of elements in each element."
-  (if errlist
-      (let ((l (length errlist)))
-        (when full
-          (setq l 0)
-          (dolist (e errlist)
-            (setq l (+ l (1- (length e))))))
-        (format "%d problem%s found" l (if (= l 1) "" "s")))
-    "OK"))
 
 (autoload 'byte-compile-arglist-signature "bytecomp")
 
@@ -144,11 +136,9 @@ to only check that FNFILE exists, not that it actually defines FN.
 Returns nil if all claims are found to be true, otherwise a list
 of errors with elements of the form \(FILE FN TYPE), where TYPE
 is a string giving details of the error."
-  (let ((m (format "Checking %s..." fnfile))
-        (cflag (member (file-name-extension fnfile) '("c" "m")))
+  (let ((cflag (member (file-name-extension fnfile) '("c" "m")))
         (ext (string-match "^ext:" fnfile))
         re fn sig siglist arglist type errlist minargs maxargs)
-    (message "%s" m)
     (if ext
         (setq fnfile (substring fnfile 4)))
     (if (file-regular-p fnfile)
@@ -216,7 +206,8 @@ fset\\|\\(?:cl-\\)?defmethod\\)\\>" type)
       (setq arglist (nth 2 e)
             type
             (if (not re)
-                "file not found"
+                (when (or check-declare-ext-errors (not ext))
+                  "file not found")
               (if (not (setq sig (assoc (cadr e) siglist)))
                   (unless (nth 3 e)     ; fileonly
                     "function not found")
@@ -235,13 +226,6 @@ fset\\|\\(?:cl-\\)?defmethod\\)\\>" type)
                        "arglist mismatch")))))
       (when type
         (setq errlist (cons (list (car e) (cadr e) type) errlist))))
-    (message "%s%s" m
-             (if (or re (or check-declare-ext-errors
-                            (not ext)))
-                 (check-declare-errmsg errlist)
-               (progn
-                 (setq errlist nil)
-                 "skipping external file")))
     errlist))
 
 (defun check-declare-sort (alist)
@@ -258,30 +242,27 @@ Returned list has elements FNFILE (FILE ...)."
           (setq sort (cons (list fnfile (cons file rest)) sort)))))
     sort))
 
-(defun check-declare-warn (file fn fnfile type)
+(defun check-declare-warn (file fn fnfile type &optional line)
   "Warn that FILE made a false claim about FN in FNFILE.
-TYPE is a string giving the nature of the error.  Warning is displayed in
-`check-declare-warning-buffer'."
+TYPE is a string giving the nature of the error.
+Optional LINE is the claim's line number; otherwise, search for the claim.
+Display warning in `check-declare-warning-buffer'."
   (let ((warning-prefix-function
          (lambda (level entry)
-           (let ((line 0)
-                 (col 0))
-             (insert
-              (with-current-buffer (find-file-noselect file)
-                (goto-char (point-min))
-                (when (re-search-forward
-                       (format "(declare-function[ \t\n]+%s" fn) nil t)
-                  (goto-char (match-beginning 0))
-                  (setq line (line-number-at-pos))
-                  (setq col (1+ (current-column))))
-                (format "%s:%d:%d:"
-                        (file-name-nondirectory file)
-                        line col))))
+	   (insert (format "%s:%d:" (file-relative-name file) (or line 0)))
            entry))
         (warning-fill-prefix "    "))
+    (unless line
+      (with-current-buffer (find-file-noselect file)
+        (goto-char (point-min))
+        (when (and (not line)
+                   (re-search-forward
+                    (format "(declare-function[ \t\n]+%s" fn) nil t))
+          (goto-char (match-beginning 0))
+          (setq line (line-number-at-pos)))))
     (display-warning 'check-declare
                      (format-message "said `%s' was defined in %s: %s"
-                                     fn (file-name-nondirectory fnfile) type)
+                                     fn (file-relative-name fnfile) type)
                      nil check-declare-warning-buffer)))
 
 (declare-function compilation-forget-errors "compile" ())
@@ -289,7 +270,18 @@ TYPE is a string giving the nature of the error.  Warning is displayed in
 (defun check-declare-files (&rest files)
   "Check veracity of all `declare-function' statements in FILES.
 Return a list of any errors found."
-  (let (alist err errlist)
+  (if (get-buffer check-declare-warning-buffer)
+      (kill-buffer check-declare-warning-buffer))
+  (let ((buf (get-buffer-create check-declare-warning-buffer))
+        alist err errlist)
+    (with-current-buffer buf
+      (unless (derived-mode-p 'compilation-mode)
+        (compilation-mode))
+      (setq mode-line-process
+            '(:propertize ":run" face compilation-mode-line-run))
+      (let ((inhibit-read-only t))
+        (insert "\f\n"))
+      (compilation-forget-errors))
     (dolist (file files)
       (setq alist (cons (cons file (check-declare-scan file)) alist)))
     ;; Sort so that things are ordered by the files supposed to
@@ -298,19 +290,15 @@ Return a list of any errors found."
       (if (setq err (check-declare-verify (car e) (cdr e)))
           (setq errlist (cons (cons (car e) err) errlist))))
     (setq errlist (nreverse errlist))
-    (if (get-buffer check-declare-warning-buffer)
-        (kill-buffer check-declare-warning-buffer))
-    (with-current-buffer (get-buffer-create check-declare-warning-buffer)
-      (unless (derived-mode-p 'compilation-mode)
-        (compilation-mode))
-      (let ((inhibit-read-only t))
-        (insert "\f\n"))
-      (compilation-forget-errors))
     ;; Sort back again so that errors are ordered by the files
     ;; containing the declare-function statements.
     (dolist (e (check-declare-sort errlist))
       (dolist (f (cdr e))
         (check-declare-warn (car e) (cadr f) (car f) (nth 2 f))))
+    (with-current-buffer buf
+      (setq mode-line-process
+            '(:propertize ":exit" face compilation-mode-line-run))
+      (force-mode-line-update))
     errlist))
 
 ;;;###autoload
@@ -320,34 +308,22 @@ See `check-declare-directory' for more information."
   (interactive "fFile to check: ")
   (or (file-exists-p file)
       (error "File `%s' not found" file))
-  (let ((m (format "Checking %s..." file))
-        errlist)
-    (message "%s" m)
-    (setq errlist (check-declare-files file))
-    (message "%s%s" m (check-declare-errmsg errlist))
-    errlist))
+  (check-declare-files file))
 
 ;;;###autoload
 (defun check-declare-directory (root)
   "Check veracity of all `declare-function' statements under directory ROOT.
 Returns non-nil if any false statements are found."
   (interactive "DDirectory to check: ")
-  (or (file-directory-p (setq root (expand-file-name root)))
+  (setq root (directory-file-name (file-relative-name root)))
+  (or (file-directory-p root)
       (error "Directory `%s' not found" root))
-  (let ((m "Checking `declare-function' statements...")
-        (m2 "Finding files with declarations...")
-        errlist files)
-    (message "%s" m)
-    (message "%s" m2)
-    (setq files (process-lines find-program root
-			       "-name" "*.el"
-			       "-exec" grep-program
-			       "-l" "^[ \t]*(declare-function" "{}" ";"))
-    (message "%s%d found" m2 (length files))
+  (let ((files (process-lines find-program root
+                              "-name" "*.el"
+                              "-exec" grep-program
+                              "-l" "^[ \t]*(declare-function" "{}" "+")))
     (when files
-      (setq errlist (apply 'check-declare-files files))
-      (message "%s%s" m (check-declare-errmsg errlist t))
-      errlist)))
+      (apply #'check-declare-files files))))
 
 (provide 'check-declare)
 

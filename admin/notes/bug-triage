@@ -14,9 +14,7 @@ the ones that are not reproducible on the current release.
   1. To start, enter debbugs mode (either debbugs-gnu, debbugs-org, or via the
      web browser), and accept the default list option of bugs that have severity
      serious, important, or normal.
-  2. This will also show closed bugs that have yet to be archived.  You can
-     filter these out in debbugs-gnu with "x" (debbugs-gnu-toggle-suppress).
-  3. For each bug, we want to primarily make sure it is still
+  2. For each bug, we want to primarily make sure it is still
      reproducible.  A bug can and should stay open as long as it is
      still a bug and no one has fixed it.  The following is a
      suggested checklist to follow for handling these bugs, along with
@@ -30,12 +28,12 @@ the ones that are not reproducible on the current release.
      [ ] Make sure there's enough information to reproduce the bug.
          It should be very clear how to reproduce.  If not, please ask
          for specific steps to reproduce.  If you don't get them, and
-         you can't reproduce without them, you can close as
-         "doneunreproducible".  Sometimes there is specific hardware
-         involved, such as particular models of keyboards, or it may
-         simply involve a platform you don't have access to.  It's
-         fine to ignore those, and let a future triager that is better
-         equipped to reproduce it handle it.
+         you can't reproduce without them, you can tag the bug report
+         as "unreproducible" and close the bug report.  Sometimes this
+         involves specific hardware such as particular models of
+         keyboards, or it may simply involve a platform you don't have
+         access to.  It's fine to ignore those, and let a future
+         triager that is better equipped to reproduce it handle it.
 
          An example reply asking for clear reproduction steps would be
          something like: "Hi!  In the interest of seeing whether this
@@ -61,9 +59,9 @@ the ones that are not reproducible on the current release.
 
          If you can't reproduce, state that you can't reproduce it on
          the current release, ask if they can try again against the
-         current release.  Tag the bug as "unreproducable".  Wait a
+         current release.  Tag the bug as "unreproducible".  Wait a
          few weeks for their reply - if they can reproduce it, then
-         that's great, otherwise close as "doneunreproducible".
+         that's great, otherwise close the bug report.
 
          Example reply: "I've attempted to reproduce this on the
          latest version of emacs, Emacs 25, but haven't been able to.
@@ -73,7 +71,7 @@ the ones that are not reproducible on the current release.
      [ ] Check that the priority is reasonable.  Most bugs should be
          marked as normal, but crashers and security issues can be
          marked as serious.
-  4. Your changes will take some time to take effect.  After a period of minutes
+  3. Your changes will take some time to take effect.  After a period of minutes
      to hours, you will get a mail telling you the control message has been
      processed.  At this point, if there were no errors detected, you and
      everyone else can see your changes. If there are errors, read the error

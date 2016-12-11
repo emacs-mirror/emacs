@@ -57,6 +57,7 @@
     (?っ ?ッ ?ｯ)
     (?ゃ ?ャ ?ｬ) (?ゅ ?ュ ?ｭ) (?ょ ?ョ ?ｮ)
     (?ゎ ?ヮ "ﾜ")
+    (?ゝ ?ヽ) (?ゞ ?ヾ)
     ("う゛" ?ヴ "ｳﾞ") (nil ?ヵ "ｶ") (nil ?ヶ "ｹ"))
   "Japanese JISX0208 Kana character table.
 Each element is of the form (HIRAGANA KATAKANA HANKAKU-KATAKANA), where
@@ -146,7 +147,7 @@ and HANKAKU belongs to `japanese-jisx0201-kana'.")
     (?ｐ . ?p) (?ｑ . ?q) (?ｒ . ?r) (?ｓ . ?s) (?ｔ . ?t)
     (?ｕ . ?u) (?ｖ . ?v) (?ｗ . ?w) (?ｘ . ?x) (?ｙ . ?y) (?ｚ . ?z))
   "Japanese JISX0208 alpha numeric character table.
-Each element is of the form (ALPHA-NUMERIC ASCII), where ALPHA-NUMERIC
+Each element is of the form (ALPHA-NUMERIC . ASCII), where ALPHA-NUMERIC
 belongs to `japanese-jisx0208', ASCII belongs to `ascii'.")
 
 ;; Put properties 'jisx0208 and 'ascii to each Japanese alpha numeric

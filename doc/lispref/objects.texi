@@ -353,25 +353,32 @@ following text.)
 control characters, Emacs provides several types of escape syntax that
 you can use to specify non-@acronym{ASCII} text characters.
 
+@enumerate
+@item
 @cindex @samp{\} in character constant
 @cindex backslash in character constants
 @cindex unicode character escape
-  Firstly, you can specify characters by their Unicode values.
-@code{?\u@var{nnnn}} represents a character with Unicode code point
-@samp{U+@var{nnnn}}, where @var{nnnn} is (by convention) a hexadecimal
-number with exactly four digits.  The backslash indicates that the
-subsequent characters form an escape sequence, and the @samp{u}
-specifies a Unicode escape sequence.
+You can specify characters by their Unicode names, if any.
+@code{?\N@{@var{NAME}@}} represents the Unicode character named
+@var{NAME}.  Thus, @samp{?\N@{LATIN SMALL LETTER A WITH GRAVE@}} is
+equivalent to @code{?à} and denotes the Unicode character U+00E0.  To
+simplify entering multi-line strings, you can replace spaces in the
+names by non-empty sequences of whitespace (e.g., newlines).
 
-  There is a slightly different syntax for specifying Unicode
-characters with code points higher than @code{U+@var{ffff}}:
-@code{?\U00@var{nnnnnn}} represents the character with code point
-@samp{U+@var{nnnnnn}}, where @var{nnnnnn} is a six-digit hexadecimal
-number.  The Unicode Standard only defines code points up to
-@samp{U+@var{10ffff}}, so if you specify a code point higher than
-that, Emacs signals an error.
+@item
+You can specify characters by their Unicode values.
+@code{?\N@{U+@var{X}@}} represents a character with Unicode code point
+@var{X}, where @var{X} is a hexadecimal number.  Also,
+@code{?\u@var{xxxx}} and @code{?\U@var{xxxxxxxx}} represent code
+points @var{xxxx} and @var{xxxxxxxx}, respectively, where each @var{x}
+is a single hexadecimal digit.  For example, @code{?\N@{U+E0@}},
+@code{?\u00e0} and @code{?\U000000E0} are all equivalent to @code{?à}
+and to @samp{?\N@{LATIN SMALL LETTER A WITH GRAVE@}}.  The Unicode
+Standard defines code points only up to @samp{U+@var{10ffff}}, so if
+you specify a code point higher than that, Emacs signals an error.
 
-  Secondly, you can specify characters by their hexadecimal character
+@item
+You can specify characters by their hexadecimal character
 codes.  A hexadecimal escape sequence consists of a backslash,
 @samp{x}, and the hexadecimal character code.  Thus, @samp{?\x41} is
 the character @kbd{A}, @samp{?\x1} is the character @kbd{C-a}, and
@@ -379,13 +386,16 @@ the character @kbd{A}, @samp{?\x1} is the character @kbd{C-a}, and
 You can use any number of hex digits, so you can represent any
 character code in this way.
 
+@item
 @cindex octal character code
-  Thirdly, you can specify characters by their character code in
+You can specify characters by their character code in
 octal.  An octal escape sequence consists of a backslash followed by
 up to three octal digits; thus, @samp{?\101} for the character
 @kbd{A}, @samp{?\001} for the character @kbd{C-a}, and @code{?\002}
 for the character @kbd{C-b}.  Only characters up to octal code 777 can
 be specified this way.
+
+@end enumerate
 
   These escape sequences may also be used in strings.  @xref{Non-ASCII
 in Strings}.

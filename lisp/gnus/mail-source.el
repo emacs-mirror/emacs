@@ -228,7 +228,7 @@ Leave mails for this many days" :value 14)))))
 					   (boolean :tag "Plugged"))))))))
 
 (defcustom mail-source-ignore-errors nil
-  "*Ignore errors when querying mail sources.
+  "Ignore errors when querying mail sources.
 If nil, the user will be prompted when an error occurs.  If non-nil,
 the error will be ignored."
   :version "22.1"
@@ -236,13 +236,13 @@ the error will be ignored."
   :type 'boolean)
 
 (defcustom mail-source-primary-source nil
-  "*Primary source for incoming mail.
+  "Primary source for incoming mail.
 If non-nil, this maildrop will be checked periodically for new mail."
   :group 'mail-source
   :type 'sexp)
 
 (defcustom mail-source-flash t
-  "*If non-nil, flash periodically when mail is available."
+  "If non-nil, flash periodically when mail is available."
   :group 'mail-source
   :type 'boolean)
 

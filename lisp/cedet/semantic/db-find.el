@@ -902,7 +902,7 @@ instead."
 This makes it appear more like the results of a `semantic-find-' call.
 This is like `semanticdb-strip-find-results', except the input list RESULTS
 will be changed."
-  (apply #'nconc (mapcar #'cdr results)))
+  (mapcan #'cdr results))
 
 (defun semanticdb-find-results-p (resultp)
   "Non-nil if RESULTP is in the form of a semanticdb search result.

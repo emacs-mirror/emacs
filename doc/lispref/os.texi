@@ -19,6 +19,7 @@ terminal and the screen.
 * System Environment::  Distinguish the name and kind of system.
 * User Identification:: Finding the name and user id of the user.
 * Time of Day::         Getting the current time.
+* Time Zone Rules::     Rules for time zones and daylight saving time.
 * Time Conversion::     Converting a time from numeric form to
                           calendrical data and vice versa.
 * Time Parsing::        Converting a time from numeric form to text
@@ -111,8 +112,8 @@ compiled into the Emacs executable when it was built.
 It runs the normal hook @code{before-init-hook}.
 
 @item
-If appropriate, it creates a graphical frame.  This is not done if the
-options @samp{--batch} or @samp{--daemon} were specified.
+If appropriate, it creates a graphical frame.  This is not done in
+batch (noninteractive) or daemon mode.
 
 @item
 It initializes the initial frame's faces, and sets up the menu bar
@@ -154,9 +155,13 @@ It loads your abbrevs from the file specified by
 option @samp{--batch} was specified.
 
 @item
-If @code{package-enable-at-startup} is non-@code{nil}, it calls the
-function @code{package-initialize} to activate any optional Emacs Lisp
-package that has been installed.  @xref{Packaging Basics}.
+It calls the function @code{package-initialize} to activate any
+optional Emacs Lisp package that has been installed.  @xref{Packaging
+Basics}.  However, Emacs doesn't initialize packages when
+@code{package-enable-at-startup} is @code{nil} or when it's started
+with one of the options @samp{-q}, @samp{-Q}, or @samp{--batch}.  To
+initialize packages in the latter case, @code{package-initialize}
+should be called explicitly (e.g., via the @samp{--funcall} option).
 
 @vindex after-init-time
 @item
@@ -251,10 +256,10 @@ options were specified.
 @c last few bits of command-line-1 are not done in batch mode.
 
 @item
-If the option @code{--daemon} was specified, it calls
-@code{server-start}, and on Posix systems also detaches from the
-controlling terminal.  @xref{Emacs Server,,, emacs, The GNU Emacs
-Manual}.
+If a daemon was requested, it calls @code{server-start}.
+(On Posix systems, if a background daemon was requested, it then
+detaches from the controlling terminal.)  @xref{Emacs
+Server,,, emacs, The GNU Emacs Manual}.
 
 @item
 If started by the X session manager, it calls
@@ -332,7 +337,10 @@ Do not display a splash screen.
 Run without an interactive terminal.  @xref{Batch Mode}.
 
 @item --daemon
-Do not initialize any display; just start a server in the background.
+@itemx --old-daemon
+@itemx --new-daemon
+Do not initialize any display; just start a server.
+(An ``old-style'' daemon automatically runs in the background.)
 
 @item --no-init-file
 @itemx -q
@@ -883,7 +891,7 @@ Berkeley BSD and its variants.
 Cygwin, a Posix layer on top of MS-Windows.
 
 @item darwin
-Darwin (Mac OS X).
+Darwin (macOS).
 
 @item gnu
 The GNU system (using the GNU kernel, which consists of the HURD and Mach).
@@ -1049,8 +1057,9 @@ value is a string, and does not include a directory name.
 @end defvar
 
 @defvar invocation-directory
-This variable holds the directory from which the Emacs executable was
-invoked, or @code{nil} if that directory cannot be determined.
+This variable holds the directory in which the Emacs executable was
+located when it was run, or @code{nil} if that directory cannot be
+determined.
 @end defvar
 
 @defvar installation-directory
@@ -1259,7 +1268,7 @@ information may some day be added at the end.
 
 The argument @var{time}, if given, specifies a time to format,
 instead of the current time.  The optional argument @var{zone}
-defaults to the current time zone rule.
+defaults to the current time zone rule.  @xref{Time Zone Rules}.
 
 @example
 @group
@@ -1296,33 +1305,25 @@ For example, if @var{time} is a number, @code{(time-to-seconds
 or rounding errors occur.
 @end defun
 
-@defun current-time-zone &optional time zone
-@cindex time zone, current
-This function returns a list describing the time zone that the user is
-in.
-
-The value has the form @code{(@var{offset} @var{name})}.  Here
-@var{offset} is an integer giving the number of seconds ahead of UTC
-(east of Greenwich).  A negative value means west of Greenwich.  The
-second element, @var{name}, is a string giving the name of the time
-zone.  Both elements change when daylight saving time begins or ends;
-if the user has specified a time zone that does not use a seasonal time
-adjustment, then the value is constant through time.
-
-If the operating system doesn't supply all the information necessary to
-compute the value, the unknown elements of the list are @code{nil}.
-
-The argument @var{time}, if given, specifies a time value to
-analyze instead of the current time.  The optional argument @var{zone}
-defaults to the current time zone rule.
-@end defun
+@node Time Zone Rules
+@section Time Zone Rules
+@cindex time zone rules
 
 @vindex TZ, environment variable
 The default time zone is determined by the @env{TZ} environment
 variable.  @xref{System Environment}.  For example, you can tell Emacs
-to default to universal time with @code{(setenv "TZ" "UTC0")}.  If
+to default to Universal Time with @code{(setenv "TZ" "UTC0")}.  If
 @env{TZ} is not in the environment, Emacs uses system wall clock time,
 which is a platform-dependent default time zone.
+
+The set of supported @env{TZ} strings is system-dependent.  GNU and
+many other systems support the tzdata database, e.g.,
+@samp{"America/New_York"} specifies the time zone and daylight saving
+time history for locations near New York City.  GNU and most other
+systems support POSIX-style @env{TZ} strings, e.g.,
+@samp{"EST+5EDT,M4.1.0/2,M10.5.0/2"} specifies the rules used in New
+York from 1987 through 2006.  All systems support the string
+@samp{"UTC0"} meaning Universal Time.
 
 @cindex time zone rule
 Functions that convert to and from local time accept an optional
@@ -1332,7 +1333,36 @@ omitted or @code{nil}, the conversion uses Emacs's default time zone.
 If it is @code{t}, the conversion uses Universal Time.  If it is
 @code{wall}, the conversion uses the system wall clock time.  If it is
 a string, the conversion uses the time zone rule equivalent to setting
-@env{TZ} to that string.
+@env{TZ} to that string.  If it is an integer @var{offset}, the
+conversion uses a fixed time zone with the given offset and a numeric
+abbreviation on POSIX-compatible platforms and an unspecified abbreviation
+on MS-Windows.  If it is a list (@var{offset} @var{abbr}), where
+@var{offset} is an integer number of seconds east of Universal Time
+and @var{abbr} is a string, the conversion uses a fixed time zone with
+the given offset and abbreviation.
+
+@defun current-time-zone &optional time zone
+@cindex time zone, current
+This function returns a list describing the time zone that the user is
+in.
+
+The value has the form @code{(@var{offset} @var{abbr})}.  Here
+@var{offset} is an integer giving the number of seconds ahead of Universal Time
+(east of Greenwich).  A negative value means west of Greenwich.  The
+second element, @var{abbr}, is a string giving an abbreviation for the
+time zone, e.g., @samp{"CST"} for China Standard Time or for
+U.S. Central Standard Time.  Both elements can change when daylight
+saving time begins or ends; if the user has specified a time zone that
+does not use a seasonal time adjustment, then the value is constant
+through time.
+
+If the operating system doesn't supply all the information necessary to
+compute the value, the unknown elements of the list are @code{nil}.
+
+The argument @var{time}, if given, specifies a time value to
+analyze instead of the current time.  The optional argument @var{zone}
+defaults to the current time zone rule.
+@end defun
 
 @node Time Conversion
 @section Time Conversion
@@ -1344,8 +1374,8 @@ calendrical information and vice versa.
 
   Many 32-bit operating systems are limited to system times containing
 32 bits of information in their seconds component; these systems
-typically handle only the times from 1901-12-13 20:45:52 UTC through
-2038-01-19 03:14:07 UTC@.  However, 64-bit and some 32-bit operating
+typically handle only the times from 1901-12-13 20:45:52 through
+2038-01-19 03:14:07 Universal Time.  However, 64-bit and some 32-bit operating
 systems have larger seconds components, and can represent times far in
 the past or future.
 
@@ -1358,8 +1388,8 @@ as traditional Gregorian years do; for example, the year number
 @defun decode-time &optional time zone
 This function converts a time value into calendrical information.  If
 you don't specify @var{time}, it decodes the current time, and similarly
-@var{zone} defaults to the current time zone rule.  The return
-value is a list of nine elements, as follows:
+@var{zone} defaults to the current time zone rule.  @xref{Time Zone Rules}.
+The return value is a list of nine elements, as follows:
 
 @example
 (@var{seconds} @var{minutes} @var{hour} @var{day} @var{month} @var{year} @var{dow} @var{dst} @var{utcoff})
@@ -1387,7 +1417,7 @@ Sunday.
 @item dst
 @code{t} if daylight saving time is effect, otherwise @code{nil}.
 @item utcoff
-An integer indicating the UTC offset in seconds, i.e., the number of
+An integer indicating the Universal Time offset in seconds, i.e., the number of
 seconds east of Greenwich.
 @end table
 
@@ -1406,10 +1436,7 @@ to stand for years above 1900, or years above 2000, you must alter them
 yourself before you call @code{encode-time}.
 
 The optional argument @var{zone} defaults to the current time zone rule.
-In addition to the usual time zone rule values, it can also be a list
-(as you would get from @code{current-time-zone}) or an integer (as
-from @code{decode-time}), applied without any further alteration for
-daylight saving time.
+@xref{Time Zone Rules}.
 
 If you pass more than seven arguments to @code{encode-time}, the first
 six are used as @var{seconds} through @var{year}, the last argument is
@@ -1448,9 +1475,9 @@ corresponding time value.
 @defun format-time-string format-string &optional time zone
 
 This function converts @var{time} (or the current time, if
-@var{time} is omitted) to a string according to
-@var{format-string}.  The conversion uses the time zone rule @var{zone}
-(or the current time zone rule, if omitted).  The argument
+@var{time} is omitted or @code{nil}) to a string according to
+@var{format-string}.  The conversion uses the time zone rule @var{zone}, which
+defaults to the current time zone rule.  @xref{Time Zone Rules}.  The argument
 @var{format-string} may contain @samp{%}-sequences which say to
 substitute parts of the time.  Here is a table of what the
 @samp{%}-sequences mean:
@@ -1475,6 +1502,12 @@ This stands for the day of month, zero-padded.
 This is a synonym for @samp{%m/%d/%y}.
 @item %e
 This stands for the day of month, blank-padded.
+@item %F
+This stands for the ISO 8601 date format, i.e., @samp{"%Y-%m-%d"}.
+@item %g
+This stands for the year corresponding to the ISO week within the century.
+@item %G
+This stands for the year corresponding to the ISO week.
 @item %h
 This is a synonym for @samp{%b}.
 @item %H
@@ -1499,6 +1532,8 @@ fewer digits, use @samp{%3N} for milliseconds, @samp{%6N} for
 microseconds, etc.  Any excess digits are discarded, without rounding.
 @item %p
 This stands for @samp{AM} or @samp{PM}, as appropriate.
+@item %q
+This stands for the calendar quarter (1--4).
 @item %r
 This is a synonym for @samp{%I:%M:%S %p}.
 @item %R
@@ -1509,9 +1544,13 @@ This stands for the seconds (00--59).
 This stands for a tab character.
 @item %T
 This is a synonym for @samp{%H:%M:%S}.
+@item %u
+This stands for the numeric day of week (1--7).  Monday is day 1.
 @item %U
 This stands for the week of the year (01--52), assuming that weeks
 start on Sunday.
+@item %V
+This stands for the week of the year according to ISO 8601.
 @item %w
 This stands for the numeric day of week (0--6).  Sunday is day 0.
 @item %W
@@ -1555,10 +1594,6 @@ based on the Japanese Emperors' reigns.  @samp{E} is allowed in
 @samp{O} means to use the current locale's alternative
 representation of numbers, instead of the ordinary decimal digits.  This
 is allowed with most letters, all the ones that output numbers.
-
-If @var{universal} is non-@code{nil}, that means to describe the time as
-Universal Time; @code{nil} means describe it using what Emacs believes
-is the local time zone (see @code{current-time-zone}).
 
 This function uses the C library function @code{strftime}
 (@pxref{Formatting Calendar Time,,, libc, The GNU C Library Reference
@@ -1670,7 +1705,9 @@ interactively, it prints the duration in the echo area.
 @cindex calendrical computations
 
   These functions perform calendrical computations using time values
-(@pxref{Time of Day}).
+(@pxref{Time of Day}).  A value of @code{nil} for any of their
+time-value arguments stands for the current system time, and a single
+integer number stands for the number of seconds since the epoch.
 
 @defun time-less-p t1 t2
 This returns @code{t} if time value @var{t1} is less than time value
@@ -1679,12 +1716,15 @@ This returns @code{t} if time value @var{t1} is less than time value
 
 @defun time-subtract t1 t2
 This returns the time difference @var{t1} @minus{} @var{t2} between
-two time values, as a time value.
+two time values, as a time value.  If you need the difference in units
+of elapsed seconds, use @code{float-time} (@pxref{Time of Day,
+float-time}) to convert the result into seconds.
 @end defun
 
 @defun time-add t1 t2
 This returns the sum of two time values, as a time value.
-One argument should represent a time difference rather than a point in time.
+One argument should represent a time difference rather than a point in time,
+either as a list or as a single number of elapsed seconds.
 Here is how to add a number of seconds to a time value:
 
 @example
@@ -1707,10 +1747,17 @@ This function returns @code{t} if @var{year} is a leap year.
 
 @node Timers
 @section Timers for Delayed Execution
-@cindex timer
+@cindex timers
 
   You can set up a @dfn{timer} to call a function at a specified
-future time or after a certain length of idleness.
+future time or after a certain length of idleness.  A timer is a
+special object that stores the information about the next invocation
+times and the function to invoke.
+
+@defun timerp object
+This predicate function returns non-@code{nil} of @code{object} is a
+timer.
+@end defun
 
   Emacs cannot run timers at any arbitrary point in a Lisp program; it
 can run them only when Emacs could accept output from a subprocess:
@@ -2228,14 +2275,16 @@ The variable is always local to the current terminal, and cannot be
 buffer-local.  @xref{Multiple Terminals}.
 @end defvar
 
-You can specify which keysyms Emacs should use for the Meta, Alt, Hyper, and Super modifiers by setting these variables:
+You can specify which keysyms Emacs should use for the Control, Meta,
+Alt, Hyper, and Super modifiers by setting these variables:
 
-@defvar x-alt-keysym
+@defvar x-ctrl-keysym
+@defvarx x-alt-keysym
 @defvarx x-meta-keysym
 @defvarx x-hyper-keysym
 @defvarx x-super-keysym
-The name of the keysym that should stand for the Alt modifier
-(respectively, for Meta, Hyper, and Super).  For example, here is
+The name of the keysym that should stand for the Control modifier
+(respectively, for Alt, Meta, Hyper, and Super).  For example, here is
 how to swap the Meta and Alt modifiers within Emacs:
 @lisp
 (setq x-alt-keysym 'meta)

@@ -37,14 +37,19 @@
 (require 'rfc2045) ;; rfc2045-encode-string
 (autoload 'mm-body-7-or-8 "mm-bodies")
 
-(defvar rfc2047-header-encoding-alist
+(defgroup rfc2047 nil
+  "RFC2047 messages."
+  :group 'mail
+  :prefix "rfc2047-")
+
+(defcustom rfc2047-header-encoding-alist
   '(("Newsgroups" . nil)
     ("Followup-To" . nil)
     ("Message-ID" . nil)
     ("\\(Resent-\\)?\\(From\\|Cc\\|To\\|Bcc\\|\\(In-\\)?Reply-To\\|Sender\
 \\|Mail-Followup-To\\|Mail-Copies-To\\|Approved\\)" . address-mime)
     (t . mime))
-  "*Header/encoding method alist.
+  "Header/encoding method alist.
 The list is traversed sequentially.  The keys can either be
 header regexps or t.
 
@@ -56,7 +61,12 @@ The values can be:
    fields (where quoted strings and comments must be treated separately);
 4) a charset, in which case it will be encoded as that charset;
 5) `default', in which case the field will be encoded as the rest
-   of the article.")
+   of the article."
+  :type '(alist :key-type (choice regexp (const t))
+                :value-type (choice (const nil) (const mime)
+                                    (const address-mime)
+                                    coding-system
+                                    (const default))))
 
 (defvar rfc2047-charset-encoding-alist
   '((us-ascii . nil)
@@ -97,8 +107,9 @@ quoted-printable and base64 respectively.")
 (defvar rfc2047-encode-encoded-words t
   "Whether encoded words should be encoded again.")
 
-(defvar rfc2047-allow-irregular-q-encoded-words t
-  "*Whether to decode irregular Q-encoded words.")
+(defcustom rfc2047-allow-irregular-q-encoded-words t
+  "Whether to decode irregular Q-encoded words."
+  :type 'boolean)
 
 (eval-and-compile ;; Necessary to hard code them in `rfc2047-decode-region'.
   (defconst rfc2047-encoded-word-regexp
@@ -864,14 +875,15 @@ is the standard but many mailers don't support it."
 (defvar rfc2047-quote-decoded-words-containing-tspecials nil
   "If non-nil, quote decoded words containing special characters.")
 
-(defvar rfc2047-allow-incomplete-encoded-text t
-  "*Non-nil means allow incomplete encoded-text in successive encoded-words.
+(defcustom rfc2047-allow-incomplete-encoded-text t
+  "Non-nil means allow incomplete encoded-text in successive encoded-words.
 Dividing of encoded-text in the place other than character boundaries
 violates RFC2047 section 5, while we have a capability to decode it.
 If it is non-nil, the decoder will decode B- or Q-encoding in each
 encoded-word, concatenate them, and decode it by charset.  Otherwise,
 the decoder will fully decode each encoded-word before concatenating
-them.")
+them."
+  :type 'boolean)
 
 (defun rfc2047-strip-backslashes-in-quoted-strings ()
   "Strip backslashes in quoted strings.  `\\\"' remains."

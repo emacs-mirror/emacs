@@ -46,7 +46,7 @@ The resulting file should be viewed with `inhibit-bidi-mirroring' set to t."
       (insert-file-contents input-file)
       (goto-char (point-min))
       (while (not (eobp))
-	(when (looking-at "^\\([0-9A-F ]+\\);\\([012]\\);\\([01]\\);\\([0-9 ]+\\);\\([0-9 ]+\\)$")
+	(when (looking-at "^\\([0-9A-F ]+\\);\\([012]\\);\\([01]\\);\\([0-9x ]+\\);\\([0-9 ]+\\)$")
 	  (let ((codes (match-string 1))
 		(default-paragraph (match-string 2))
 		(resolved-paragraph (match-string 3))

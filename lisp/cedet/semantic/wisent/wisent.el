@@ -127,8 +127,9 @@ POSITIONS are available."
               (apply #'max (mapcar #'cdr pl))))))
 
 ;;; Reporting
-(defvar wisent-parse-verbose-flag nil
-  "*Non-nil means to issue more messages while parsing.")
+(defcustom wisent-parse-verbose-flag nil
+  "Non-nil means to issue more messages while parsing."
+  :type 'boolean)
 
 (defun wisent-parse-toggle-verbose-flag ()
   "Toggle whether to issue more messages while parsing."

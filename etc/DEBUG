@@ -73,11 +73,11 @@ prompt, to unconditionally load the GDB init file.
 
 We recommend using the GUI front-end for GDB provided by Emacs.  With
 it, you can start GDB by typing "M-x gdb RET".  This will suggest the
-default binary to debug; if you are going to start a new Emacs
-process, change it as needed to point to the correct binary.
-Alternatively, if you want to attach the debugger to an already
-running Emacs process, change the GDB command shown in the minibuffer
-to say this:
+file name of the default binary to debug; if the suggested default is
+not the Emacs binary you want to debug, change the file name as
+needed.  Alternatively, if you want to attach the debugger to an
+already running Emacs process, change the GDB command shown in the
+minibuffer to say this:
 
    gdb -i=mi -p PID
 
@@ -144,8 +144,8 @@ These are displayed as integer values (or structures, if you used the
 "--enable-check-lisp-object-type" option at configure time) that are
 hard to interpret, especially if they represent long lists.  You can
 use the 'pp' command to display them in their Lisp form.  That command
-displays its output on the standard error stream (on GNU/Linux, you
-can redirect that to a file using "M-x redirect-debugging-output").
+displays its output on the standard error stream, which you
+can redirect to a file using "M-x redirect-debugging-output".
 This means that if you attach GDB to a running Emacs that was invoked
 from a desktop icon, chances are you will not see the output at all,
 or it will wind up in an obscure place (check the documentation of
@@ -190,24 +190,44 @@ kick in, provided that you run under GDB.
 
 ** Getting control to the debugger
 
+Setting a breakpoint in a strategic place, after loading Emacs into
+the debugger, but before running it, is the most efficient way of
+making sure control will be returned to the debugger when you need
+that.
+
 'Fsignal' is a very useful place to put a breakpoint in.  All Lisp
 errors go through there.  If you are only interested in errors that
-would fire the debugger, breaking at 'maybe_call_debugger' is useful.
+would fire the Lisp debugger, breaking at 'maybe_call_debugger' is
+useful.
 
-It is useful, when debugging, to have a guaranteed way to return to
-the debugger at any time.  When using X, this is easy: type C-z at the
-window where Emacs is running under GDB, and it will stop Emacs just
-as it would stop any ordinary program.  When Emacs is running in a
-terminal, things are not so easy.
+Another technique for get control to the debugger is to put a
+breakpoint in some rarely used function.  One such convenient function
+is Fredraw_display, which you can invoke at will interactively with
+"M-x redraw-display RET".
+
+It is also useful to have a guaranteed way to return to the debugger
+at any arbitrary time.  When using X, this is easy: type C-z at the
+window where you are interacting with GDB, and it will stop Emacs just
+as it would stop any ordinary program.  (This doesn't work if GDB was
+attached to a running Emacs process; in that case, you will need to
+type C-z to the shell window from which Emacs was started, or use the
+"kill -TSTP" method described below.)
+
+When Emacs is displaying on a text terminal, things are not so easy,
+so we describe the various alternatives below (however, those of them
+that use signals only work on Posix systems).
 
 The src/.gdbinit file in the Emacs distribution arranges for SIGINT
-(C-g in Emacs) to be passed to Emacs and not give control back to GDB.
-On modern POSIX systems, you can override that with this command:
+(C-g in Emacs on a text-mode frame) to be passed to Emacs and not give
+control back to GDB.  On modern systems, you can override that with
+this command:
 
    handle SIGINT stop nopass
 
 After this 'handle' command, SIGINT will return control to GDB.  If
 you want the C-g to cause a QUIT within Emacs as well, omit the 'nopass'.
+See the GDB manual for more details about signal handling and the
+'handle' command.
 
 A technique that can work when 'handle SIGINT' does not is to store
 the code for some character into the variable stop_character.  Thus,
@@ -216,25 +236,36 @@ the code for some character into the variable stop_character.  Thus,
 
 makes Control-] (decimal code 29) the stop character.
 Typing Control-] will cause immediate stop.  You cannot
-use the set command until the inferior process has been started.
-Put a breakpoint early in 'main', or suspend the Emacs,
-to get an opportunity to do the set command.
+use the set command until the inferior process has been started, so
+start Emacs with the 'start' command, to get an opportunity to do the
+above 'set' command.
 
-Another technique for get control to the debugger is to put a
-breakpoint in some rarely used function.  One such convenient function
-is Fredraw_display, which you can invoke at will interactively with
-"M-x redraw-display RET".
+On a Posix host, you can also send a signal using the 'kill' command
+from a shell prompt, like this:
 
-When Emacs is running in a terminal, it is sometimes useful to use a separate
-terminal for the debug session.  This can be done by starting Emacs as usual,
-then attaching to it from gdb with the 'attach' command which is explained in
-the node "Attach" of the GDB manual.
+   kill -TSTP Emacs-PID
 
-On MS-Windows, you can start Emacs in its own separate terminal by
-setting the new-console option before running Emacs under GDB:
+where Emacs-PID is the process ID of Emacs being debugged.  Other
+useful signals to send are SIGUSR1 and SIGUSR2; see "Error Debugging"
+in the ELisp manual for how to use those.
+
+When Emacs is displaying on a text terminal, it is useful to have a
+separate terminal for the debug session.  This can be done by starting
+Emacs as usual, then attaching to it from gdb with the 'attach'
+command which is explained in the node "Attach" of the GDB manual.
+
+On MS-Windows, you can alternatively start Emacs from its own separate
+console by setting the new-console option before running Emacs under
+GDB:
 
   (gdb) set new-console 1
   (gdb) run
+
+If you do this, then typing C-c or C-BREAK into the console window
+through which you interact with GDB will stop Emacs and return control
+to the debugger, no matter if Emacs displays GUI or text-mode frames.
+This is the only reliable alternative on MS-Windows to get control to
+the debugger, besides setting breakpoints in advance.
 
 ** Examining Lisp object values.
 
@@ -250,8 +281,8 @@ To see the current value of a Lisp Variable, use 'pv variable'.
 These commands send their output to stderr; if that is closed or
 redirected to some file you don't know, you won't see their output.
 This is particularly so for Emacs invoked on MS-Windows from the
-desktop shortcut.  On GNU/Linux, you can use the command
-'redirect-debugging-output' to redirect stderr to a file.
+desktop shortcut.  You can use the command 'redirect-debugging-output'
+to redirect stderr to a file.
 
 Note: It is not a good idea to try 'pr', 'pp', or 'pv' if you know that Emacs
 is in deep trouble: its stack smashed (e.g., if it encountered SIGSEGV
@@ -282,7 +313,7 @@ type.  Here are these commands:
     xbufobjfwd xkbobjfwd xbuflocal xbuffer xsymbol xstring xvector xframe
     xwinconfig xcompiled xcons xcar xcdr xsubr xprocess xfloat xscrollbar
     xchartable xsubchartable xboolvector xhashtable xlist xcoding
-    xcharset xfontset xfont xbytecode
+    xcharset xfontset xfont
 
 Each one of them applies to a certain type or class of types.
 (Some of these types are not visible in Lisp, because they exist only
@@ -681,8 +712,9 @@ not exit when it should.
 On GNU and Unix systems, you can also trying sending Emacs SIGUSR2,
 which, if 'debug-on-event' has its default value, will cause Emacs to
 attempt to break it out of its current loop and into the Lisp
-debugger.  This feature is useful when a C-level debugger is not
-conveniently available.
+debugger.  (See the node "Debugging" in the ELisp manual for the
+details about the Lisp debugger.)  This feature is useful when a
+C-level debugger is not conveniently available.
 
 ** If certain operations in Emacs are slower than they used to be, here
 is some advice for how to find out why.
@@ -847,7 +879,7 @@ directed to the xterm window you opened above.
 Similar arrangement is possible on a character terminal by using the
 'screen' package.
 
-On MS-Windows, you can start Emacs in its own separate terminal by
+On MS-Windows, you can start Emacs in its own separate console by
 setting the new-console option before running Emacs under GDB:
 
   (gdb) set new-console 1

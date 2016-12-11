@@ -1,4 +1,4 @@
-# serial 25
+# serial 27
 dnl Copyright (C) 2002-2003, 2005-2007, 2009-2016 Free Software Foundation,
 dnl Inc.
 dnl This file is free software; the Free Software Foundation
@@ -7,14 +7,30 @@ dnl with or without modifications, as long as this notice is preserved.
 
 dnl From Jim Meyering.
 
+AC_DEFUN([gl_TIME_T_IS_SIGNED],
+[
+  AC_CACHE_CHECK([whether time_t is signed],
+    [gl_cv_time_t_is_signed],
+    [AC_COMPILE_IFELSE(
+       [AC_LANG_PROGRAM([[#include <time.h>
+                          char time_t_signed[(time_t) -1 < 0 ? 1 : -1];]])],
+       [gl_cv_time_t_is_signed=yes],
+       [gl_cv_time_t_is_signed=no])])
+  if test $gl_cv_time_t_is_signed = yes; then
+    AC_DEFINE([TIME_T_IS_SIGNED], [1], [Define to 1 if time_t is signed.])
+  fi
+])
+
 AC_DEFUN([gl_FUNC_MKTIME],
 [
   AC_REQUIRE([gl_HEADER_TIME_H_DEFAULTS])
+  AC_REQUIRE([gl_TIME_T_IS_SIGNED])
 
   dnl We don't use AC_FUNC_MKTIME any more, because it is no longer maintained
   dnl in Autoconf and because it invokes AC_LIBOBJ.
   AC_CHECK_HEADERS_ONCE([unistd.h])
   AC_CHECK_DECLS_ONCE([alarm])
+  AC_CHECK_FUNCS_ONCE([tzset])
   AC_REQUIRE([gl_MULTIARCH])
   if test $APPLE_UNIVERSAL_BUILD = 1; then
     # A universal build on Apple Mac OS X platforms.
@@ -169,7 +185,6 @@ main ()
   time_t t, delta;
   int i, j;
   int time_t_signed_magnitude = (time_t) ~ (time_t) 0 < (time_t) -1;
-  int time_t_signed = ! ((time_t) 0 < (time_t) -1);
 
 #if HAVE_DECL_ALARM
   /* This test makes some buggy mktime implementations loop.
@@ -179,11 +194,11 @@ main ()
   alarm (60);
 #endif
 
-  time_t_max = (! time_t_signed
+  time_t_max = (! TIME_T_IS_SIGNED
                 ? (time_t) -1
                 : ((((time_t) 1 << (sizeof (time_t) * CHAR_BIT - 2)) - 1)
                    * 2 + 1));
-  time_t_min = (! time_t_signed
+  time_t_min = (! TIME_T_IS_SIGNED
                 ? (time_t) 0
                 : time_t_signed_magnitude
                 ? ~ (time_t) 0

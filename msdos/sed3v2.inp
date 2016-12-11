@@ -15,11 +15,8 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 # ----------------------------------------------------------------------
-/^# DIST: /d
 /^SHELL *=/s/^/# /
-/^CC *=/s/=.*$/=gcc/
-s/-DVERSION[^ ]* //
-/^configname *=/s/=.*$/=msdos/
+/^CC *=/s/=.*$/=gcc -std=gnu99/
 /^archlibdir *=/s!=.*$!=/emacs/bin!
 /^bindir *=/s!=.*$!=/emacs/bin!
 /^libdir *=/s!=.*$!=/emacs/bin!
@@ -38,12 +35,17 @@ s/-DVERSION[^ ]* //
 /^LIB_CLOCK_GETTIME *=/s/@[^@\n]*@//g
 /^LIB_TIMER_TIME *=/s/@[^@\n]*@//g
 /^CFLAGS *=/s!=.*$!=-O2 -g!
+/^CPPFLAGS *=/s/@CPPFLAGS@//
+/^LDFLAGS *=/s/@LDFLAGS@//
 /^C_SWITCH_SYSTEM *=/s!=.*$!=-DMSDOS -I../msdos!
 /^C_SWITCH_MACHINE *=/s/@C_SWITCH_MACHINE@//
 /^WARN_CFLAGS *=/s/@WARN_CFLAGS@//
 /^WERROR_CFLAGS *=/s/@WERROR_CFLAGS@//
 /^UPDATE_MANIFEST *=/s/@UPDATE_MANIFEST@//
 /^PROFILING_CFLAGS *=/s/@PROFILING_CFLAGS@//
+/^AM_DEFAULT_VERBOSITY *=/s/@AM_DEFAULT_VERBOSITY@/1/
+/^[Aa][Mm]_/s/@AM_V@/$(V)/
+/^[Aa][Mm]_/s/@AM_DEFAULT_V@/$(AM_DEFAULT_VERBOSITY)/
 /^ALLOCA *=/s!@ALLOCA@!!
 /^EXEEXT *=/s!@EXEEXT@!.exe!
 /^CLIENTW *=/s/@CLIENTW@//
@@ -56,9 +58,6 @@ s/-DVERSION[^ ]* //
 /^GETOPT_H *=/s!@GETOPT_H@!getopt.h!
 /^GETOPTOBJS *=/s!@GETOPTOBJS@!getopt.o getopt1.o!
 /^INSTALLABLES/s/emacsclient[^ ]* *//
-s!^	\./!	!
 /^UTILITIES *=/,/^$/{
   s/movemail[^ ]* *//
 }
-/^insrcdir=/s/^.*$/\#&/
-/^	 *\$(insrcdir) ||/s,\$(insrcdir) ||,command.com /c if not exist $(<F),

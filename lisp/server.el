@@ -255,6 +255,7 @@ This means that the server should not kill the buffer when you say you
 are done with it in the server.")
 (make-variable-buffer-local 'server-existing-buffer)
 
+;;;###autoload
 (defcustom server-name "server"
   "The name of the Emacs server, if this Emacs process creates one.
 The command `server-start' makes use of this.  It should not be
@@ -647,7 +648,12 @@ server or call `\\[server-force-delete]' to forcibly disconnect it."))
 	  (add-hook 'delete-frame-functions 'server-handle-delete-frame)
 	  (add-hook 'kill-emacs-query-functions
                     'server-kill-emacs-query-function)
-	  (add-hook 'kill-emacs-hook 'server-force-stop) ;Cleanup upon exit.
+          ;; We put server's kill-emacs-hook after the others, so that
+          ;; frames are not deleted too early, because doing that
+          ;; would severely degrade our abilities to communicate with
+          ;; the user, while some hooks may wish to ask the user
+          ;; questions (e.g., desktop-kill).
+	  (add-hook 'kill-emacs-hook 'server-force-stop t) ;Cleanup upon exit.
 	  (setq server-process
 		(apply #'make-network-process
 		       :name server-name
@@ -655,6 +661,7 @@ server or call `\\[server-force-delete]' to forcibly disconnect it."))
 		       :noquery t
 		       :sentinel #'server-sentinel
 		       :filter #'server-process-filter
+		       :use-external-socket t
 		       ;; We must receive file names without being decoded.
 		       ;; Those are decoded by server-process-filter according
 		       ;; to file-name-coding-system.  Also don't get
@@ -782,7 +789,7 @@ This handles splitting the command if it would be bigger than
       ;; We have to split the string
       (setq part (substring qtext 0 (- server-msg-size (length prefix) 1)))
       ;; Don't split in the middle of a quote sequence
-      (if (string-match "\\(^\\|[^&]\\)\\(&&\\)+$" part)
+      (if (string-match "\\(^\\|[^&]\\)&\\(&&\\)*$" part)
 	  ;; There is an uneven number of & at the end
 	  (setq part (substring part 0 -1)))
       (setq qtext (substring qtext (length part)))

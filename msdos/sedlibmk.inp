@@ -146,7 +146,7 @@ am__cd = cd
 /^ARFLAGS *=/s/@[^@\n]*@/cru/
 /^AWK *=/s/@[^@\n]*@/gawk/
 /^CANNOT_DUMP *=/s/@[^@\n]*@/no/
-/^CC *=/s/@[^@\n]*@/gcc/
+/^CC *=/s/@[^@\n]*@/gcc -std=gnu99/
 /^CPP *=/s/@[^@\n]*@/gcc -e/
 /^CPPFLAGS *=/s/@[^@\n]*@//
 /^CCDEPMODE *=/s/@[^@\n]*@/depmode=gcc3/
@@ -163,7 +163,6 @@ am__cd = cd
 /^WERROR_CFLAGS *=/s/@WERROR_CFLAGS@//
 /^DEFS *=/s/@[^@\n]*@//
 /^DEPDIR *=/s/@[^@\n]*@/deps/
-/^DEPFLAGS *=/s/@[^@\n]*@/-MMD -MF ${DEPDIR}\/$*.d/
 /^ECHO_N *=/s/@[^@\n]*@/-n/
 /^EXEEXT *=/s/@[^@\n]*@/.exe/
 /^EXECINFO_H *=/s/@[^@\n]*@/execinfo.h/
@@ -190,7 +189,9 @@ am__cd = cd
 /^GNULIB_GL_UNISTD_H_GETOPT *=/s/@GNULIB_GL_UNISTD_H_GETOPT@/1/
 /^GNULIB_MEMRCHR *=/s/@GNULIB_MEMRCHR@/1/
 /^GNULIB_MKOSTEMP *=/s/@GNULIB_MKOSTEMP@/1/
+/^GNULIB_MKTIME *=/s/@GNULIB_MKTIME@/1/
 /^GNULIB_TIME_R *=/s/@GNULIB_TIME_R@/1/
+/^GNULIB_TIME_RZ *=/s/@GNULIB_TIME_RZ@/1/
 /^GNULIB_UNSETENV *=/s/@GNULIB_UNSETENV@/1/
 /^GNULIB_[^ =]* *= *@/s/@[^@\n]*@/0/
 /^GSETTINGS_CFLAGS *=/s/@[^@\n]*@//
@@ -218,6 +219,7 @@ am__cd = cd
 /^HAVE_LONG_LONG_INT *=/s/@HAVE_LONG_LONG_INT@/1/
 /^HAVE_LSTAT *=/s/@HAVE_LSTAT@/HAVE_LSTAT/
 /^HAVE_MAKEINFO *=/s/@HAVE_MAKEINFO@/yes/
+/^HAVE_MAX_ALIGN_T *=/s/@HAVE_MAX_ALIGN_T@/0/
 /^HAVE_MEMCHR *=/s/@HAVE_MEMCHR@/1/
 /^HAVE_MKFIFO *=/s/@HAVE_MKFIFO@/1/
 /^HAVE_MKNOD *=/s/@HAVE_MKNOD@/1/
@@ -272,8 +274,7 @@ am__cd = cd
 /^NEXT_AS_FIRST_DIRECTIVE_FCNTL_H *=/s/@[^@\n]*@/<fcntl.h>/
 /^NEXT_AS_FIRST_DIRECTIVE_GETOPT_H *=/s/@[^@\n]*@/<getopt.h>/
 /^NEXT_AS_FIRST_DIRECTIVE_SIGNAL_H *=/s/@[^@\n]*@/<signal.h>/
-/^NEXT_AS_FIRST_DIRECTIVE_STDARG_H *=/s/@[^@\n]*@//
-/^NEXT_AS_FIRST_DIRECTIVE_STDDEF_H *=/s/@[^@\n]*@//
+/^NEXT_AS_FIRST_DIRECTIVE_STDDEF_H *=/s/@[^@\n]*@/<stddef.h>/
 /^NEXT_AS_FIRST_DIRECTIVE_STDINT_H *=/s/@[^@\n]*@/<stdint.h>/
 /^NEXT_AS_FIRST_DIRECTIVE_STDIO_H *=/s/@[^@\n]*@/<stdio.h>/
 /^NEXT_AS_FIRST_DIRECTIVE_STDLIB_H *=/s/@[^@\n]*@/<stdlib.h>/
@@ -288,9 +289,8 @@ am__cd = cd
 /^NEXT_ERRNO_H *=/s/@[^@\n]*@//
 /^NEXT_FCNTL_H *=/s/@[^@\n]*@/<fcntl.h>/
 /^NEXT_GETOPT_H *=/s/@[^@\n]*@/<getopt.h>/
-/^NEXT_STDARG_H *=/s/@[^@\n]*@//
 /^NEXT_SIGNAL_H *=/s/@[^@\n]*@/<signal.h>/
-/^NEXT_STDDEF_H *=/s/@[^@\n]*@//
+/^NEXT_STDDEF_H *=/s/@[^@\n]*@/<stddef.h>/
 /^NEXT_STDIO_H *=/s/@[^@\n]*@/<stdio.h>/
 /^NEXT_STDINT_H *=/s/@[^@\n]*@/<stdint.h>/
 /^NEXT_STDLIB_H *=/s/@[^@\n]*@/<stdlib.h>/
@@ -307,7 +307,8 @@ am__cd = cd
 /^PTHREAD_H_DEFINES_STRUCT_TIMESPEC *=/s/@[^@\n]*@/0/
 /^PTRDIFF_T_SUFFIX *=/s/@[^@\n]*@//
 /^RANLIB *=/s/@[^@\n]*@/ranlib/
-# We never want any gnulib replacement functions
+/^REPLACE_MKTIME *=/s/@[^@\n]*@/1/
+# We don't want any other gnulib replacement functions
 /^REPLACE_[^ =]* *= *@/s/@[^@\n]*@/0/
 /^SIG_ATOMIC_T_SUFFIX *=/s/@SIG_ATOMIC_T_SUFFIX@//
 /^SIZE_T_SUFFIX *=/s/@SIZE_T_SUFFIX@/u/
@@ -316,15 +317,14 @@ am__cd = cd
 /^DIRENT_H *=/s/@[^@\n]*@//
 /^ERRNO_H *=/s/@[^@\n]*@//
 /^EXECINFO_H *=/s/@[^@\n]*@/execinfo.h/
-/^STDBOOL_H *=/s/@[^@\n]*@//
 /^STDALIGN_H *=/s/@[^@\n]*@/stdalign.h/
-/^STDARG_H *=/s/@[^@\n]*@//
-/^STDDEF_H *=/s/@[^@\n]*@//
+/^STDDEF_H *=/s/@[^@\n]*@/stddef.h/
 /^STDINT_H *=/s/@[^@\n]*@/stdint.h/
 /^SYS_TIME_H_DEFINES_STRUCT_TIMESPEC *=/s/@[^@\n]*@/0/
 /^TIME_H_DEFINES_STRUCT_TIMESPEC *=/s/@[^@\n]*@/0/
 /^UNISTD_H_HAVE_WINSOCK2_H *=/s/@[^@\n]*@/0/
 /^UNISTD_H_HAVE_WINSOCK2_H_AND_USE_SOCKETS *=/s/@[^@\n]*@/0/
+/^UNISTD_H_DEFINES_STRUCT_TIMESPEC *=/s/@[^@\n]*@/0/
 /^UNDEFINE_STRTOK_R *=/s/@UNDEFINE_STRTOK_R@/0/
 /^WCHAR_T_SUFFIX *=/s/@WCHAR_T_SUFFIX@/h/
 /^WINT_T_SUFFIX *=/s/@WINT_T_SUFFIX@//
@@ -334,7 +334,7 @@ am__cd = cd
 /am__append_[1-9][0-9]* *=.*gettext\.h/s/@[^@\n]*@/\#/
 /am__append_2 *=.*verify\.h/s/@[^@\n]*@//
 /^@gl_GNULIB_ENABLED_tempname_TRUE@/s/@[^@\n]*@//
-/^gl_LIBOBJS *=/s/@[^@\n]*@/getopt.o getopt1.o memrchr.o sig2str.o time_r.o getloadavg.o pthread_sigmask.o mkostemp.o fpending.o fdatasync.o execinfo.o/
+/^gl_LIBOBJS *=/s/@[^@\n]*@/getopt.o getopt1.o memrchr.o sig2str.o time_r.o time_rz.o timegm.o mktime.o getloadavg.o pthread_sigmask.o mkostemp.o fpending.o fdatasync.o execinfo.o/
 /^am__append_[1-9][0-9]* *=/,/^[^ 	]/{
   s/ *inttypes\.h//
   s| *sys/select\.h||
@@ -342,13 +342,13 @@ am__cd = cd
 }
 /^am_libgnu_a_OBJECTS *=/,/^[^ 	]/{
   s/allocator\.\$(OBJEXT) //
-  s/binary-io\.\$(OBJEXT) //
   s/careadlinkat\.\$(OBJEXT) //
   s/pipe2\.\$(OBJEXT) //
   s/acl-errno-valid\.\$(OBJEXT) //
-  s/file-has-acl\.\$(OBJEXT) //
+  s/acl-internal\.\$(OBJEXT) //
+  s/get-permissions\.\$(OBJEXT) //
+  s/set-permissions\.\$(OBJEXT) //
   s/qcopy-acl\.\$(OBJEXT) //
-  s/qset-acl\.\$(OBJEXT) //
   s/openat-die\.\$(OBJEXT) //
   s/save-cwd\.\$(OBJEXT) //
 }
@@ -396,13 +396,9 @@ s/^@GL_GENERATE_ERRNO_H_TRUE@/\#/
 s/^@GL_GENERATE_ERRNO_H_FALSE@//
 s/^@GL_GENERATE_EXECINFO_H_TRUE@//
 s/^@GL_GENERATE_EXECINFO_H_FALSE@/\#/
-s/^@GL_GENERATE_STDBOOL_H_TRUE@/\#/
-s/^@GL_GENERATE_STDBOOL_H_FALSE@//
 s/^@GL_GENERATE_STDALIGN_H_TRUE@//
 s/^@GL_GENERATE_STDALIGN_H_FALSE@/\#/
-s/^@GL_GENERATE_STDARG_H_TRUE@/\#/
-s/^@GL_GENERATE_STDARG_H_FALSE@/\#/
-s/^@GL_GENERATE_STDDEF_H_TRUE@/\#/
+s/^@GL_GENERATE_STDDEF_H_TRUE@//
 s/^@GL_GENERATE_STDDEF_H_FALSE@/\#/
 s/^@GL_GENERATE_STDINT_H_TRUE@//
 s/^@GL_GENERATE_STDINT_H_FALSE@/\#/

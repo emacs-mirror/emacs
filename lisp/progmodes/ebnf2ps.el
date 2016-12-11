@@ -1191,7 +1191,7 @@ Elements of ALIST that are not conses are ignored."
   "Translate an EBNF to a syntactic chart on PostScript."
   :prefix "ebnf-"
   :version "20"
-  :group 'wp
+  :group 'text
   :group 'postscript)
 
 

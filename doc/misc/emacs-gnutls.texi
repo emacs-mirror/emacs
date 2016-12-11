@@ -181,7 +181,7 @@ syntax are the same as those given to @code{open-network-stream}
 Manual}).  The connection process is called @var{name} (made unique if
 necessary).  This function returns the connection process.
 
-The @var{nowait} parameter means that the scoket should be
+The @var{nowait} parameter means that the socket should be
 asynchronous, and the connection process will be returned to the
 caller before TLS negotiation has happened.
 

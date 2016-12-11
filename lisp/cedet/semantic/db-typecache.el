@@ -56,7 +56,7 @@
    (stream :initform nil
 	   :documentation
 	   "The searchable tag stream for this cache.
-NOTE: Can I get rid of this?  Use a hashtable instead?")
+NOTE: Can I get rid of this?  Use a hash table instead?")
    (dependants :initform nil
 	       :documentation
 	       "Any other object that is dependent on typecache results.

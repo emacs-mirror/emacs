@@ -69,6 +69,7 @@ debugger recursively.  @xref{Recursive Editing}.
 * Error Debugging::       Entering the debugger when an error happens.
 * Infinite Loops::        Stopping and debugging a program that doesn't exit.
 * Function Debugging::    Entering it when a certain function is called.
+* Variable Debugging::    Entering it when a variable is modified.
 * Explicit Debug::        Entering it at a certain point in the program.
 * Using Debugger::        What the debugger does; what you see while in it.
 * Debugger Commands::     Commands used while in the debugger.
@@ -151,6 +152,13 @@ debugger gets the first chance at every error, regardless of the
 presence of @code{condition-case}.  (To invoke the debugger, the error
 must still fulfill the criteria specified by @code{debug-on-error} and
 @code{debug-ignored-errors}.)
+
+@cindex emacsclient, getting a backtrace
+@cindex backtrace from emacsclient's @option{--eval}
+For example, setting this variable is useful to get a backtrace from
+code evaluated by emacsclient's @option{--eval} option.  If Lisp code
+evaluated by emacsclient signals an error while this variable is
+non-@code{nil}, the backtrace will popup in the running Emacs.
 
 @strong{Warning:} Setting this variable to non-@code{nil} may have
 annoying effects.  Various parts of Emacs catch errors in the normal
@@ -282,6 +290,36 @@ omitted or @code{nil}, it cancels break-on-entry for all functions.
 Calling @code{cancel-debug-on-entry} does nothing to a function which is
 not currently set up to break on entry.
 @end deffn
+
+@node Variable Debugging
+@subsection Entering the debugger when a variable is modified
+@cindex variable write debugging
+@cindex debugging changes to variables
+
+Sometimes a problem with a function is due to a wrong setting of a
+variable.  Setting up the debugger to trigger whenever the variable is
+changed is a quick way to find the origin of the setting.
+
+@deffn Command debug-on-variable-change variable
+This function arranges for the debugger to be called whenever
+@var{variable} is modified.
+
+It is implemented using the watchpoint mechanism, so it inherits the
+same characteristics and limitations: all aliases of @var{variable}
+will be watched together, only dynamic variables can be watched, and
+changes to the objects referenced by variables are not detected.  For
+details, see @ref{Watching Variables}.
+@end deffn
+
+@deffn Command cancel-debug-on-variable-change &optional variable
+This function undoes the effect of @code{debug-on-variable-change} on
+@var{variable}.  When called interactively, it prompts for
+@var{variable} in the minibuffer.  If @var{variable} is omitted or
+@code{nil}, it cancels break-on-change for all variables.  Calling
+@code{cancel-debug-on-variable-change} does nothing to a variable
+which is not currently set up to break on change.
+@end deffn
+
 
 @node Explicit Debug
 @subsection Explicit Entry to the Debugger
@@ -623,6 +661,37 @@ forms are elided.
 @end smallexample
 @end deffn
 
+@defvar debugger-stack-frame-as-list
+If this variable is non-@code{nil}, every stack frame of the backtrace
+is displayed as a list.  This aims at improving the backtrace
+readability at the cost of special forms no longer being visually
+different from regular function calls.
+
+With @code{debugger-stack-frame-as-list} non-@code{nil}, the above
+example would look as follows:
+
+@smallexample
+@group
+----------- Buffer: backtrace-output ------------
+  (backtrace)
+  (list ...computing arguments...)
+@end group
+  (progn ...)
+  (eval (progn (1+ var) (list (quote testing) (backtrace))))
+  (setq ...)
+  (save-excursion ...)
+  (let ...)
+  (with-output-to-temp-buffer ...)
+  (eval (with-output-to-temp-buffer ...))
+  (eval-last-sexp-1 nil)
+@group
+  (eval-last-sexp nil)
+  (call-interactively eval-last-sexp)
+----------- Buffer: backtrace-output ------------
+@end group
+@end smallexample
+@end defvar
+
 @defvar debug-on-next-call
 @cindex @code{eval}, and debugging
 @cindex @code{apply}, and debugging
@@ -654,6 +723,8 @@ invocation.
 The advantage of using this variable rather than an ordinary global
 variable is that the data will never carry over to a subsequent command
 invocation.
+
+This variable is obsolete and will be removed in future versions.
 @end defvar
 
 @defun backtrace-frame frame-number
@@ -840,8 +911,9 @@ called, followed by how much resource (processor or memory) it used in
 absolute and percentage times since profiling started.  If a given
 line has a @samp{+} symbol at the left-hand side, you can expand that
 line by typing @key{RET}, in order to see the function(s) called by
-the higher-level function.  Pressing @key{RET} again will collapse
-back to the original state.
+the higher-level function.  Use a prefix argument (@key{C-u RET}) to
+see the whole call tree below a function.  Pressing @key{RET} again
+will collapse back to the original state.
 
 Press @kbd{j} or @kbd{mouse-2} to jump to the definition of a function.
 Press @kbd{d} to view a function's documentation.

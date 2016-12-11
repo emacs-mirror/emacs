@@ -671,19 +671,19 @@ to other man pages.  If these man pages are installed then WoMan can
 easily be directed to follow the reference, i.e., to find and format the
 man page.  When the mouse is passed over a correctly formatted reference
 it is highlighted, in which case clicking the middle button
-@kbd{Mouse-2} will cause WoMan to follow the reference.  Alternatively,
+@kbd{mouse-2} will cause WoMan to follow the reference.  Alternatively,
 when point is over such a reference the key @key{RET} will follow the
 reference.
 
 Any word in the buffer can be used as a reference by clicking
-@kbd{Mouse-2} over it provided the Meta key is also used (although in
+@kbd{mouse-2} over it provided the Meta key is also used (although in
 general such a ``reference'' will not lead to a man page).
 Alternatively, the key @kbd{r} allows completion to be used to select a
 reference to follow, based on the word at point as default.
 
 @table @kbd
-@item @kbd{Mouse-2}
-@kindex Mouse-2
+@item @kbd{mouse-2}
+@kindex mouse-2
 @findex woman-mouse-2
 Run WoMan with word under mouse as topic (@code{woman-mouse-2}).  The
 word must be mouse-highlighted unless @code{woman-mouse-2} is used with

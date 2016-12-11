@@ -201,7 +201,7 @@ update-subdirs:
 	   $(srcdir)/../build-aux/update-subdirs $$file; \
 	done;
 
-.PHONY: updates repo-update update-authors
+.PHONY: updates repo-update update-authors update-gnus-news
 
 # Some modes of make-dist use this.
 updates: update-subdirs autoloads finder-data custom-deps
@@ -214,11 +214,16 @@ updates: update-subdirs autoloads finder-data custom-deps
 # this directory's autoloads rule.
 repo-update: compile finder-data custom-deps
 
-# Update the AUTHORS file.
+# Update etc/AUTHORS and etc/GNUS-NEWS.
 
 update-authors:
 	$(emacs) -L "$(top_srcdir)/admin" -l authors \
 	  -f batch-update-authors "$(top_srcdir)/etc/AUTHORS" "$(top_srcdir)"
+
+update-gnus-news:
+	$(emacs) -L "$(top_srcdir)/doc/misc" -l gnus-news -f batch-gnus-news \
+	  "$(top_srcdir)/doc/misc/gnus-news.texi" \
+	  "$(top_srcdir)/etc/GNUS-NEWS"
 
 FORCE:
 .PHONY: FORCE

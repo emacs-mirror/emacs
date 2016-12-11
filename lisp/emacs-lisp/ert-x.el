@@ -285,46 +285,6 @@ BUFFER defaults to current buffer.  Does not modify BUFFER."
             (kill-buffer clone)))))))
 
 
-(defmacro ert-with-function-mocked (name mock &rest body)
-  "Mocks function NAME with MOCK and run BODY.
-
-Once BODY finishes (be it normally by returning a value or
-abnormally by throwing or signalling), the old definition of
-function NAME is restored.
-
-BODY may further change the mock with `fset'.
-
-If MOCK is nil, the function NAME is mocked with a function
-`ert-fail'ing when called.
-
-For example:
-
-    ;; Regular use, function is mocked inside the BODY:
-    (should (eq 2 (+ 1 1)))
-    (ert-with-function-mocked ((+ (lambda (a b) (- a b))))
-      (should (eq 0 (+ 1 1))))
-    (should (eq 2 (+ 1 1)))
-
-    ;; Macro correctly recovers from a throw or signal:
-    (should
-      (catch 'done
-        (ert-with-function-mocked ((+ (lambda (a b) (- a b))))
-          (should (eq 0 (+ 1 1))))
-          (throw 'done t)))
-    (should (eq 2 (+ 1 1)))
-"
-  (declare (indent 2))
-  (let ((old-var (make-symbol "old-var"))
-        (mock-var (make-symbol "mock-var")))
-    `(let ((,old-var (symbol-function (quote ,name))) (,mock-var ,mock))
-       (fset (quote ,name)
-             (or ,mock-var (lambda (&rest _)
-                             (ert-fail (concat "`" ,(symbol-name name)
-                                               "' unexpectedly called.")))))
-       (unwind-protect
-           (progn ,@body)
-         (fset (quote ,name) ,old-var)))))
-
 (provide 'ert-x)
 
 ;;; ert-x.el ends here

@@ -223,7 +223,7 @@ basic editing operations under Bazaar.
 @cindex SRC
 @cindex src
 @item
-SRC (src) is RCS, reloaded - a specialized version-control system
+SRC (src) is RCS, reloaded---a specialized version-control system
 designed for single-file projects worked on by only one person.  It
 allows multiple files with independent version-control histories to
 exist in one directory, and is thus particularly well suited for
@@ -432,7 +432,7 @@ to the master repository.
 
   On a graphical display, you can move the mouse over this mode line
 indicator to pop up a tool-tip, which displays a more verbose
-description of the version control status.  Pressing @kbd{Mouse-1}
+description of the version control status.  Pressing @kbd{mouse-1}
 over the indicator pops up a menu of VC commands, identical to
 @samp{Tools / Version Control} on the menu bar.
 
@@ -1289,15 +1289,15 @@ whose state is that of the item at point.
 @findex vc-dir-mark
 @findex vc-dir-mark-all-files
   While in the VC Directory buffer, all the files that you mark with
-@kbd{m} (@code{vc-dir-mark}) or @kbd{M} (@code{vc-dir-mark}) are in
-the current VC fileset.  If you mark a directory entry with @kbd{m},
-all the listed files in that directory tree are in the current VC
-fileset.  The files and directories that belong to the current VC
-fileset are indicated with a @samp{*} character in the VC Directory
-buffer, next to their VC status.  In this way, you can set up a
-multi-file VC fileset to be acted on by VC commands like @w{@kbd{C-x v
-v}} (@pxref{Basic VC Editing}), @w{@kbd{C-x v =}} (@pxref{Old
-Revisions}), and @w{@kbd{C-x v u}} (@pxref{VC Undo}).
+@kbd{m} (@code{vc-dir-mark}) or @kbd{M} (@code{vc-dir-mark-all-files})
+are in the current VC fileset.  If you mark a directory entry with
+@kbd{m}, all the listed files in that directory tree are in the
+current VC fileset.  The files and directories that belong to the
+current VC fileset are indicated with a @samp{*} character in the VC
+Directory buffer, next to their VC status.  In this way, you can set
+up a multi-file VC fileset to be acted on by VC commands like
+@w{@kbd{C-x v v}} (@pxref{Basic VC Editing}), @w{@kbd{C-x v =}}
+(@pxref{Old Revisions}), and @w{@kbd{C-x v u}} (@pxref{VC Undo}).
 
   The VC Directory buffer also defines some single-key shortcuts for
 VC commands with the @kbd{C-x v} prefix: @kbd{=}, @kbd{+}, @kbd{l},
@@ -1335,7 +1335,7 @@ their single-buffer counterparts (@pxref{Search}).
 @cindex stashes in version control
 @cindex shelves in version control
   The above commands are also available via the menu bar, and via a
-context menu invoked by @kbd{Mouse-2}.  Furthermore, some VC backends
+context menu invoked by @kbd{mouse-2}.  Furthermore, some VC backends
 use the menu to provide extra backend-specific commands.  For example,
 Git and Bazaar allow you to manipulate @dfn{stashes} and @dfn{shelves}
 (where are a way to temporarily put aside uncommitted changes, and
@@ -1813,7 +1813,7 @@ object-oriented language, or if there's a function and a variable by
 the same name), the command shows the candidate definitions in a
 @file{*xref*} buffer, together with the files in which these
 definitions are found.  Selecting one of these candidates by typing
-@kbd{@key{RET}} or clicking @kbd{Mouse-2} will pop a buffer showing
+@kbd{@key{RET}} or clicking @kbd{mouse-2} will pop a buffer showing
 the corresponding definition.
 
   When entering the identifier argument to @kbd{M-.}, the usual
@@ -1865,7 +1865,7 @@ the special XREF mode:
 
 @table @kbd
 @item @key{RET}
-@itemx Mouse-2
+@itemx mouse-2
 Display the reference on the current line and bury the @file{*xref*}
 buffer.
 @item n
@@ -2552,10 +2552,10 @@ directory as the default.
 @vindex tags-file-name
   Emacs does not actually read in the tags table contents until you
 try to use them; all @code{visit-tags-table} does is store the file
-name in the variable @code{tags-file-name}, and setting the variable
-yourself is just as good.  The variable's initial value is @code{nil};
-that value tells all the commands for working with tags tables that
-they must ask for a tags table file name to use.
+name in the variable @code{tags-file-name}, and not much more.  The
+variable's initial value is @code{nil}; that value tells all the
+commands for working with tags tables that they must ask for a tags
+table file name to use.
 
   Using @code{visit-tags-table} when a tags table is already loaded
 gives you a choice: you can add the new tags table to the current list
@@ -2580,7 +2580,7 @@ current list, it is used @emph{as well as} the others.
 This tells the tags commands to look at the @file{TAGS} files in your
 @file{~/emacs} directory and in the @file{/usr/local/lib/emacs/src}
 directory.  The order depends on which file you are in and which tags
-table mentions that file, as explained above.
+table mentions that file.
 
   Do not set both @code{tags-file-name} and @code{tags-table-list}.
 

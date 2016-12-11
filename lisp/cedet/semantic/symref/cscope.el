@@ -60,6 +60,9 @@ See the function `cedet-cscope-search' for more details.")
     (semantic-symref-parse-tool-output tool b)
     ))
 
+(defconst semantic-symref-cscope--line-re
+  "^\\([^ ]+\\) [^ ]+ \\([0-9]+\\) ")
+
 (cl-defmethod semantic-symref-parse-tool-output-one-line ((tool semantic-symref-tool-cscope))
   "Parse one line of grep output, and return it as a match list.
 Moves cursor to end of the match."
@@ -78,8 +81,13 @@ Moves cursor to end of the match."
 	       ;; We have to return something at this point.
 	       subtxt)))
 	 )
-	(t
-	 (when (re-search-forward "^\\([^ ]+\\) [^ ]+ \\([0-9]+\\) " nil t)
+        ((eq (oref tool :resulttype) 'line-and-text)
+         (when (re-search-forward semantic-symref-cscope--line-re nil t)
+           (list (string-to-number (match-string 2))
+                 (expand-file-name (match-string 1))
+                 (buffer-substring-no-properties (point) (line-end-position)))))
+	(t ; :resulttype is 'line
+	 (when (re-search-forward semantic-symref-cscope--line-re nil t)
 	   (cons (string-to-number (match-string 2))
 		 (expand-file-name (match-string 1)))
 	   ))))

@@ -299,7 +299,8 @@ FORM is of the form (ARGS . BODY)."
                                ;; Be careful with make-symbol and (back)quote,
                                ;; see bug#12884.
                                (help--docstring-quote
-                                (let ((print-gensym nil) (print-quoted t))
+                                (let ((print-gensym nil) (print-quoted t)
+                                      (print-escape-newlines t))
                                   (format "%S" (cons 'fn (cl--make-usage-args
                                                           orig-args))))))
                               header)))
@@ -325,6 +326,20 @@ FORM is of the form (ARGS . BODY)."
   "Define NAME as a function.
 Like normal `defun', except ARGLIST allows full Common Lisp conventions,
 and BODY is implicitly surrounded by (cl-block NAME ...).
+
+The full form of a Common Lisp function argument list is
+
+   (VAR...
+    [&optional (VAR [INITFORM [SVAR]])...]
+    [&rest|&body VAR]
+    [&key (([KEYWORD] VAR) [INITFORM [SVAR]])... [&allow-other-keys]]
+    [&aux (VAR [INITFORM])...])
+
+VAR maybe be replaced recursively with an argument list for
+destructing, `&whole' is supported within these sublists.  If
+SVAR, INITFORM, and KEYWORD are all omitted, then `(VAR)' may be
+written simply `VAR'.  See the Info node `(cl)Argument Lists' for
+more details.
 
 \(fn NAME ARGLIST [DOCSTRING] BODY...)"
   (declare (debug
@@ -404,6 +419,21 @@ and BODY is implicitly surrounded by (cl-block NAME ...).
   "Define NAME as a macro.
 Like normal `defmacro', except ARGLIST allows full Common Lisp conventions,
 and BODY is implicitly surrounded by (cl-block NAME ...).
+
+The full form of a Common Lisp macro argument list is
+
+   (VAR...
+    [&optional (VAR [INITFORM [SVAR]])...]
+    [&rest|&body VAR]
+    [&key (([KEYWORD] VAR) [INITFORM [SVAR]])... [&allow-other-keys]]
+    [&aux (VAR [INITFORM])...]
+    [&environment VAR])
+
+VAR maybe be replaced recursively with an argument list for
+destructing, `&whole' is supported within these sublists.  If
+SVAR, INITFORM, and KEYWORD are all omitted, then `(VAR)' may be
+written simply `VAR'.  See the Info node `(cl)Argument Lists' for
+more details.
 
 \(fn NAME ARGLIST [DOCSTRING] BODY...)"
   (declare (debug
@@ -850,9 +880,9 @@ This is compatible with Common Lisp, but note that `defun' and
   "The Common Lisp `loop' macro.
 Valid clauses include:
   For clauses:
-    for VAR from/upfrom/downfrom EXPR1 to/upto/downto/above/below EXPR2 by EXPR3
+    for VAR from/upfrom/downfrom EXPR1 to/upto/downto/above/below EXPR2 [by EXPR3]
     for VAR = EXPR1 then EXPR2
-    for VAR in/on/in-ref LIST by FUNC
+    for VAR in/on/in-ref LIST [by FUNC]
     for VAR across/across-ref ARRAY
     for VAR being:
       the elements of/of-ref SEQUENCE [using (index VAR2)]
@@ -893,6 +923,7 @@ For more details, see Info node `(cl)Loop Facility'.
                                "count" "maximize" "minimize" "if" "unless"
                                "return"]
                           form]
+                         ["using" (symbolp symbolp)]
                          ;; Simple default, which covers 99% of the cases.
                          symbolp form)))
   (if (not (memq t (mapcar #'symbolp
@@ -1807,6 +1838,27 @@ Labels have lexical scope and dynamic extent."
                     `(throw ',catch-tag ',label))))
          ,@macroexpand-all-environment)))))
 
+(defun cl--prog (binder bindings body)
+  (let (decls)
+    (while (eq 'declare (car-safe (car body)))
+      (push (pop body) decls))
+    `(cl-block nil
+       (,binder ,bindings
+         ,@(nreverse decls)
+         (cl-tagbody . ,body)))))
+
+;;;###autoload
+(defmacro cl-prog (bindings &rest body)
+  "Run BODY like a `cl-tagbody' after setting up the BINDINGS.
+Shorthand for (cl-block nil (let BINDINGS (cl-tagbody BODY)))"
+  (cl--prog 'let bindings body))
+
+;;;###autoload
+(defmacro cl-prog* (bindings &rest body)
+  "Run BODY like a `cl-tagbody' after setting up the BINDINGS.
+Shorthand for (cl-block nil (let* BINDINGS (cl-tagbody BODY)))"
+  (cl--prog 'let* bindings body))
+
 ;;;###autoload
 (defmacro cl-do-symbols (spec &rest body)
   "Loop over all symbols.
@@ -2083,7 +2135,7 @@ Within the body FORMs, references to the variable NAME will be replaced
 by EXPANSION, and (setq NAME ...) will act like (setf EXPANSION ...).
 
 \(fn ((NAME EXPANSION) ...) FORM...)"
-  (declare (indent 1) (debug ((&rest (symbol sexp)) cl-declarations body)))
+  (declare (indent 1) (debug ((&rest (symbolp sexp)) cl-declarations body)))
   (cond
    ((cdr bindings)
     `(cl-symbol-macrolet (,(car bindings))
@@ -2527,20 +2579,19 @@ non-nil value, that slot cannot be set via `setf'.
              [&or symbolp
                   (gate
                    symbolp &rest
-                   (&or [":conc-name" symbolp]
-                        [":constructor" symbolp &optional cl-lambda-list]
-                        [":copier" symbolp]
-                        [":predicate" symbolp]
-                        [":include" symbolp &rest sexp] ;; Not finished.
-                        ;; The following are not supported.
-                        ;; [":print-function" ...]
-                        ;; [":type" ...]
-                        ;; [":initial-offset" ...]
-                        ))]
+                   [&or symbolp
+                        (&or [":conc-name" symbolp]
+                             [":constructor" symbolp &optional cl-lambda-list]
+                             [":copier" symbolp]
+                             [":predicate" symbolp]
+                             [":include" symbolp &rest sexp] ;; Not finished.
+                             [":print-function" sexp]
+                             [":type" symbolp]
+                             [":named"]
+                             [":initial-offset" natnump])])]
              [&optional stringp]
              ;; All the above is for the following def-form.
-             &rest &or symbolp (symbolp def-form
-                                        &optional ":read-only" sexp))))
+             &rest &or symbolp (symbolp &optional def-form &rest sexp))))
   (let* ((name (if (consp struct) (car struct) struct))
 	 (opts (cdr-safe struct))
 	 (slots nil)
@@ -2604,7 +2655,7 @@ non-nil value, that slot cannot be set via `setf'.
 	       (setq descs (nconc (make-list (car args) '(cl-skip-slot))
 				  descs)))
 	      (t
-	       (error "Slot option %s unrecognized" opt)))))
+	       (error "Structure option %s unrecognized" opt)))))
     (unless (or include-name type)
       (setq include-name cl--struct-default-parent))
     (when include-name (setq include (cl--struct-get-class include-name)))
@@ -2660,7 +2711,7 @@ non-nil value, that slot cannot be set via `setf'.
     (let ((pos 0) (descp descs))
       (while descp
 	(let* ((desc (pop descp))
-	       (slot (car desc)))
+	       (slot (pop desc)))
 	  (if (memq slot '(cl-tag-slot cl-skip-slot))
 	      (progn
 		(push nil slots)
@@ -2670,8 +2721,12 @@ non-nil value, that slot cannot be set via `setf'.
 		(error "Duplicate slots named %s in %s" slot name))
 	    (let ((accessor (intern (format "%s%s" conc-name slot))))
 	      (push slot slots)
-	      (push (nth 1 desc) defaults)
+	      (push (pop desc) defaults)
+	      ;; The arg "cl-x" is referenced by name in eg pred-form
+	      ;; and pred-check, so changing it is not straightforward.
 	      (push `(cl-defsubst ,accessor (cl-x)
+                       ,(format "Access slot \"%s\" of `%s' struct CL-X."
+                                slot struct)
                        (declare (side-effect-free t))
                        ,@(and pred-check
 			      (list `(or ,pred-check
@@ -2681,7 +2736,9 @@ non-nil value, that slot cannot be set via `setf'.
                           (if (= pos 0) '(car cl-x)
                             `(nth ,pos cl-x))))
                     forms)
-              (if (cadr (memq :read-only (cddr desc)))
+              (when (cl-oddp (length desc))
+                (error "Invalid options for slot %s in %s" slot name))
+              (if (plist-get desc ':read-only)
                   (push `(gv-define-expander ,accessor
                            (lambda (_cl-do _cl-x)
                              (error "%s is a read-only slot" ',accessor)))
@@ -2973,7 +3030,7 @@ omitted, a default message listing FORM itself is used."
                          (delq nil (mapcar (lambda (x)
                                              (unless (macroexp-const-p x)
                                                x))
-                                           (cdr form))))))
+                                           (cdr-safe form))))))
 	 `(progn
             (or ,form
                 (cl--assertion-failed

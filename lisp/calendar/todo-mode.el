@@ -612,11 +612,12 @@ Otherwise, `todo-show' always visits `todo-default-todo-file'."
 (defun todo-show (&optional solicit-file interactive)
   "Visit a todo file and display one of its categories.
 
-When invoked in Todo mode, prompt for which todo file to visit.
-When invoked outside of Todo mode with non-nil prefix argument
-SOLICIT-FILE prompt for which todo file to visit; otherwise visit
-`todo-default-todo-file'.  Subsequent invocations from outside
-of Todo mode revisit this file or, with option
+When invoked in Todo mode, Todo Archive mode or Todo Filtered
+Items mode, or when invoked anywhere else with a prefix argument,
+prompt for which todo file to visit.  When invoked outside of a
+Todo mode buffer without a prefix argument, visit
+`todo-default-todo-file'.  Subsequent invocations from outside of
+Todo mode revisit this file or, with option
 `todo-show-current-file' non-nil (the default), whichever todo
 file was last visited.
 
@@ -643,10 +644,7 @@ In Todo mode just the category's unfinished todo items are shown
 by default.  The done items are hidden, but typing
 `\\[todo-toggle-view-done-items]' displays them below the todo
 items.  With non-nil user option `todo-show-with-done' both todo
-and done items are always shown on visiting a category.
-
-Invoking this command in Todo Archive mode visits the
-corresponding todo file, displaying the corresponding category."
+and done items are always shown on visiting a category."
   (interactive "P\np")
   (when todo-default-todo-file
     (todo-check-file (todo-absolute-file-name todo-default-todo-file)))
@@ -904,17 +902,19 @@ Categories mode."
       (todo-show)
     (let* ((archive (eq where 'archive))
 	   (cat (unless archive where))
+           (goto-archive (and cat
+                              todo-skip-archived-categories
+                              (zerop (todo-get-count 'todo cat))
+                              (zerop (todo-get-count 'done cat))
+                              (not (zerop (todo-get-count 'archived cat)))))
 	   (file0 (when cat		; We're in Todo Categories mode.
-		    ;; With non-nil `todo-skip-archived-categories'
-		    ;; jump to archive file of a category with only
-		    ;; archived items.
-		    (if (and todo-skip-archived-categories
-			     (zerop (todo-get-count 'todo cat))
-			     (zerop (todo-get-count 'done cat))
-			     (not (zerop (todo-get-count 'archived cat))))
+		    (if goto-archive
+			;; If the category has only archived items and
+			;; `todo-skip-archived-categories' is non-nil, jump to
+			;; the archive category.
 			(concat (file-name-sans-extension
 				 todo-current-todo-file) ".toda")
-		      ;; Otherwise, jump to current todo file.
+		      ;; Otherwise, jump to the category in the todo file.
 		      todo-current-todo-file)))
 	   (len (length todo-categories))
 	   (cat+file (unless cat
@@ -925,18 +925,15 @@ Categories mode."
 	   (category (or cat (car cat+file))))
       (unless cat (setq file0 (cdr cat+file)))
       (with-current-buffer (find-file-noselect file0 'nowarn)
-	(setq todo-current-todo-file file0)
-	;; If called from Todo Categories mode, clean up before jumping.
-	(if (string= (buffer-name) todo-categories-buffer)
-	    (kill-buffer))
-	(set-window-buffer (selected-window)
-			   (set-buffer (find-buffer-visiting file0)))
-	(unless todo-global-current-todo-file
-	  (setq todo-global-current-todo-file todo-current-todo-file))
-	(todo-category-number category)
-	(todo-category-select)
-	(goto-char (point-min))
-	(when add-item (todo-insert-item--basic))))))
+        (when goto-archive (todo-archive-mode))
+        (set-window-buffer (selected-window)
+                           (set-buffer (find-buffer-visiting file0)))
+        (unless todo-global-current-todo-file
+          (setq todo-global-current-todo-file todo-current-todo-file))
+        (todo-category-number category)
+        (todo-category-select)
+        (goto-char (point-min))
+        (when add-item (todo-insert-item--basic))))))
 
 (defun todo-next-item (&optional count)
   "Move point down to the beginning of the next item.
@@ -1414,7 +1411,12 @@ the archive of the file moved to, creating it if it does not exist."
 	(setq todo-files (funcall todo-files-function))
 	(todo-reevaluate-filelist-defcustoms))
       (dolist (buf buffers)
+        ;; Make sure archive file is in Todo Archive mode so that
+        ;; todo-categories has correct value.
 	(with-current-buffer (find-file-noselect buf)
+          (when (equal (file-name-extension (buffer-file-name)) "toda")
+            (unless (derived-mode-p 'todo-archive-mode)
+              (todo-archive-mode)))
 	  (widen)
 	  (goto-char (point-max))
 	  (let* ((beg (re-search-backward
@@ -1466,10 +1468,18 @@ the archive of the file moved to, creating it if it does not exist."
 		  (re-search-backward
 		   (concat "^" (regexp-quote todo-category-beg)
 			   "\\(" (regexp-quote cat) "\\)$") nil t)
-		  (replace-match new nil nil nil 1)))
-	      (setq todo-categories
-		    (append todo-categories (list (cons (or new cat) counts))))
-	      (todo-update-categories-sexp)
+		  (replace-match new nil nil nil 1))
+                (setq todo-categories
+                      (append todo-categories (list (cons (or new cat) counts))))
+                (goto-char (point-min))
+                (if (looking-at "((\"")
+                    ;; Delete existing sexp.
+                    (delete-region (line-beginning-position) (line-end-position))
+                  ;; Otherwise, file is new, so make space for categories sexp.
+                  (insert "\n")
+                  (goto-char (point-min)))
+                ;; Insert (new or updated) sexp.
+                (prin1 todo-categories (current-buffer)))
 	      ;; If archive was just created, save it to avoid "File
 	      ;; <xyz> no longer exists!" message on invoking
 	      ;; `todo-view-archived-items'.
@@ -1500,9 +1510,7 @@ the archive of the file moved to, creating it if it does not exist."
 		(setq todo-category-number 1))
 	      (todo-category-select)))))
       (set-window-buffer (selected-window)
-			 (set-buffer (find-file-noselect nfile)))
-      (todo-category-number (or new cat))
-      (todo-category-select))))
+			 (set-buffer (find-file-noselect nfile))))))
 
 (defun todo-merge-category (&optional file)
   "Merge current category into another existing category.
@@ -5742,8 +5750,11 @@ With non-nil argument FILE prompt for a file and complete only
 against categories in that file; otherwise complete against all
 categories from `todo-category-completions-files'."
   ;; Allow SPC to insert spaces, for adding new category names.
-  (let ((map minibuffer-local-completion-map))
-    (define-key map " " nil)
+  (let ((minibuffer-local-completion-map
+         (let ((map (make-sparse-keymap)))
+           (set-keymap-parent map minibuffer-local-completion-map)
+           (define-key map " " nil)
+           map)))
     (let* ((add (eq match-type 'add))
 	   (archive (eq match-type 'archive))
 	   (file0 (when (and file (> (length todo-files) 1))

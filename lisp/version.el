@@ -116,18 +116,6 @@ or if we could not determine the revision.")
 		  (looking-at "[0-9a-fA-F]\\{40\\}"))
 	   (match-string 0)))))
 
-(defun emacs-repository--version-git-1 (file dir)
-  "Internal subroutine of `emacs-repository-get-version'."
-  (when (file-readable-p file)
-    (with-temp-buffer
-      (insert-file-contents file)
-      (cond ((looking-at "[0-9a-fA-F]\\{40\\}")
-             (match-string 0))
-            ((looking-at "ref: \\(.*\\)")
-             (emacs-repository--version-git-1
-              (expand-file-name (match-string 1) dir)
-              dir))))))
-
 (defun emacs-repository-get-version (&optional dir external)
   "Try to return as a string the repository revision of the Emacs sources.
 The format of the returned string is dependent on the VCS in use.
@@ -137,42 +125,8 @@ this reports on the current state of the sources, which may not
 correspond to the running Emacs.
 
 Optional argument DIR is a directory to use instead of `source-directory'.
-Optional argument EXTERNAL non-nil means to just ask the VCS itself,
-if the sources appear to be under version control.  Otherwise only ask
-the VCS if we cannot find any information ourselves."
-  (or dir (setq dir source-directory))
-  (let* ((base-dir (expand-file-name ".git" dir))
-         (in-main-worktree (file-directory-p base-dir))
-         (in-linked-worktree nil)
-         sub-dir)
-    ;; If the sources are in a linked worktree, .git is a file that points to
-    ;; the location of the main worktree and the repo's administrative files.
-    (when (and (not in-main-worktree)
-               (file-regular-p base-dir)
-               (file-readable-p base-dir))
-      (with-temp-buffer
-        (insert-file-contents base-dir)
-        (when (looking-at "gitdir: \\(.*\.git\\)\\(.*\\)$")
-          (setq base-dir (match-string 1)
-                sub-dir (concat base-dir (match-string 2))
-                in-linked-worktree t))))
-    ;; We've found a worktree, either main or linked.
-    (when (or in-main-worktree in-linked-worktree)
-      (if external
-          (emacs-repository-version-git dir)
-        (or (if in-linked-worktree
-                (emacs-repository--version-git-1
-                 (expand-file-name "HEAD" sub-dir) base-dir)
-              (let ((files '("HEAD" "refs/heads/master"))
-                    file rev)
-                (while (and (not rev)
-                            (setq file (car files)))
-                  (setq file (expand-file-name file base-dir)
-                        files (cdr files)
-                        rev (emacs-repository--version-git-1 file base-dir)))
-                rev))
-            ;; AFAICS this doesn't work during dumping (bug#20799).
-            (emacs-repository-version-git dir))))))
+Optional argument EXTERNAL is ignored."
+  (emacs-repository-version-git (or dir source-directory)))
 
 ;; We put version info into the executable in the form that `ident' uses.
 (purecopy (concat "\n$Id: " (subst-char-in-string ?\n ?\s (emacs-version))

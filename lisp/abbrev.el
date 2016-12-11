@@ -837,18 +837,19 @@ Takes no argument and should return the abbrev symbol if expansion took place.")
   "Expand the abbrev before point, if there is an abbrev there.
 Effective when explicitly called even when `abbrev-mode' is nil.
 Before doing anything else, runs `pre-abbrev-expand-hook'.
-Calls `abbrev-expand-function' with no argument to do the work,
-and returns whatever it does.  (This should be the abbrev symbol
-if expansion occurred, else nil.)"
+Calls the value of `abbrev-expand-function' with no argument to do
+the work, and returns whatever it does.  (That return value should
+be the abbrev symbol if expansion occurred, else nil.)"
   (interactive)
   (run-hooks 'pre-abbrev-expand-hook)
   (funcall abbrev-expand-function))
 
 (defun abbrev--default-expand ()
   "Default function to use for `abbrev-expand-function'.
-This respects the wrapper hook `abbrev-expand-functions'.
+This also respects the obsolete wrapper hook `abbrev-expand-functions'.
+\(See `with-wrapper-hook' for details about wrapper hooks.)
 Calls `abbrev-insert' to insert any expansion, and returns what it does."
-  (with-wrapper-hook abbrev-expand-functions ()
+  (subr--with-wrapper-hook-no-warnings abbrev-expand-functions ()
     (pcase-let ((`(,sym ,name ,wordstart ,wordend) (abbrev--before-point)))
       (when sym
         (let ((startpos (copy-marker (point) t))

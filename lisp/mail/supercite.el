@@ -302,6 +302,9 @@ during the initial citing via `sc-cite-original'."
   "Hook which gets run once after Supercite loads."
   :type 'hook
   :group 'supercite-hooks)
+(make-obsolete-variable 'sc-load-hook
+                        "use `with-eval-after-load' instead." "26.1")
+
 (defcustom sc-pre-hook nil
   "Hook which gets run before each invocation of `sc-cite-original'."
   :type 'hook

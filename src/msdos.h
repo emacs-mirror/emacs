@@ -41,8 +41,12 @@ void mouse_on (void);
 void mouse_off (void);
 void mouse_moveto (int, int);
 
+void IT_set_frame_parameters (struct frame *, Lisp_Object);
+
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <pc.h>
+#include <signal.h>
 
 #if __DJGPP__ == 2 && __DJGPP_MINOR__ < 4
 int readlink (const char *, char *, size_t);
@@ -50,6 +54,16 @@ int readlink (const char *, char *, size_t);
 ssize_t readlinkat (int, const char *, char *, size_t);
 int fstatat (int, char const *, struct stat *, int);
 int unsetenv (const char *);
+int faccessat (int, const char *, int, int);
+void msdos_fatal_signal (int);
+void syms_of_msdos (void);
+int pthread_sigmask (int, const sigset_t *, sigset_t *);
+int dos_keysns (void);
+int dos_keyread (void);
+int run_msdos_command (char **, const char *, int, int, int, char **);
+
+void syms_of_win16select (void);
+
 
 /* Constants.  */
 #define EINPROGRESS 112

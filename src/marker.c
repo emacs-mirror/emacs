@@ -412,8 +412,7 @@ Returns nil if MARKER points into a dead buffer.  */)
 }
 
 DEFUN ("marker-position", Fmarker_position, Smarker_position, 1, 1, 0,
-       doc: /* Return the position MARKER points at, as a character number.
-Returns nil if MARKER points nowhere.  */)
+       doc: /* Return the position of MARKER, or nil if it points nowhere.  */)
   (Lisp_Object marker)
 {
   CHECK_MARKER (marker);
@@ -508,7 +507,11 @@ set_marker_internal (Lisp_Object marker, Lisp_Object position,
       charpos = clip_to_bounds
 	(restricted ? BUF_BEGV (b) : BUF_BEG (b), charpos,
 	 restricted ? BUF_ZV (b) : BUF_Z (b));
-      if (bytepos == -1)
+      /* Don't believe BYTEPOS if it comes from a different buffer,
+	 since that buffer might have a very different correspondence
+	 between character and byte positions.  */
+      if (bytepos == -1
+	  || !(MARKERP (position) && XMARKER (position)->buffer == b))
 	bytepos = buf_charpos_to_bytepos (b, charpos);
       else
 	bytepos = clip_to_bounds

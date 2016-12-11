@@ -369,15 +369,6 @@ Use `\\[viper-set-expert-level]' to change this.")
 
 ;; VI-style Undo
 
-;; Used to 'undo' complex commands, such as replace and insert commands.
-(viper-deflocalvar viper-undo-needs-adjustment nil)
-(put 'viper-undo-needs-adjustment 'permanent-local t)
-
-;; A mark that Viper puts on buffer-undo-list.  Marks the beginning of a
-;; complex command that must be undone atomically.  If inserted, it is
-;; erased by viper-change-state-to-vi and viper-repeat.
-(defconst viper-buffer-undo-list-mark 'viper)
-
 (defcustom viper-keep-point-on-undo nil
   "Non-nil means not to move point while undoing commands.
 This style is different from Emacs and Vi.  Try it to see if
@@ -786,7 +777,7 @@ Related buffers can be cycled through via :R and :P commands."
 	  "^@end \\|"						; texinfo
 	  ")\n\n[ \t\n]*\\|"					; lisp
 	  "\\.\\s-*$")						; prolog
-      "*Regexps to end Headings/Sections.  Used by [].")
+  "Regexps to end Headings/Sections.  Used by [].")
 
 
 ;; These two vars control the interaction of jumps performed by ' and `.

@@ -368,7 +368,7 @@ UPattern.  For example:
 @item (app @var{function} @var{upattern})
 Matches if @var{function} applied to the value being matched returns a
 value that matches @var{upattern}.  This is like the @code{pred}
-UPattern, except that it tests the result against @var{UPattern},
+UPattern, except that it tests the result against @var{upattern},
 rather than against a boolean truth value.  The @var{function} call can
 use one of the forms described below.
 @item (or @var{upattern1} @var{upattern2}@dots{})
@@ -805,6 +805,7 @@ The following piece of code demonstrates some important principles of
 working with iterators.
 
 @example
+(require 'generator)
 (iter-defun my-iter (x)
   (iter-yield (1+ (iter-yield (1+ x))))
    ;; Return normally
@@ -1100,10 +1101,13 @@ These examples show typical uses of @code{error}:
 error symbol @code{error}, and a list containing the string returned by
 @code{format-message}.
 
-In a format string containing single quotes, curved quotes @t{‘like
-this’} and grave quotes @t{`like this'} work better than straight
-quotes @t{'like this'}, as @code{error} typically formats every
-straight quote as a curved closing quote.
+The @code{text-quoting-style} variable controls what quotes are
+generated; @xref{Keys in Documentation}.  A call using a format like
+@t{"Missing `%s'"} with grave accents and apostrophes typically
+generates a message like @t{"Missing ‘foo’"} with matching curved
+quotes.  In contrast, a call using a format like @t{"Missing '%s'"}
+with only apostrophes typically generates a message like @t{"Missing
+’foo’"} with only closing curved quotes, an unusual style in English.
 
 @strong{Warning:} If you want to use your own string as an error message
 verbatim, don't just write @code{(error @var{string})}.  If @var{string}

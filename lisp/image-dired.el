@@ -104,9 +104,6 @@
 ;; * Some sort of auto-rotate function based on rotate info in the
 ;; EXIF data.
 ;;
-;; * Check if exiftool exist before trying to call it to give a better
-;; error message.
-;;
 ;; * Investigate if it is possible to also write the tags to the image
 ;; files.
 ;;
@@ -156,9 +153,8 @@
 (require 'format-spec)
 (require 'widget)
 
-(require 'cl-lib)
-
 (eval-when-compile
+  (require 'cl-lib)
   (require 'wid-edit))
 
 (defgroup image-dired nil
@@ -274,8 +270,7 @@ with the information required by the Thumbnail Managing Standard."
 
 (defcustom image-dired-cmd-create-standard-thumbnail-command
   (concat
-   image-dired-cmd-create-thumbnail-program " "
-   "-size %wx%h \"%f\" "
+   "%p -size %wx%h \"%f\" "
    (unless (or image-dired-cmd-pngcrush-program image-dired-cmd-pngnq-program)
      (concat
       "-set \"Thumb::MTime\" \"%m\" "
@@ -304,6 +299,7 @@ with the information required by the Thumbnail Managing Standard."
         "%q %t"
         " ; rm %q")))
   "Command to create thumbnails according to the Thumbnail Managing Standard."
+  :version "26.1"
   :type 'string
   :group 'image-dired)
 
@@ -613,8 +609,14 @@ according to the Thumbnail Managing Standard."
                    (file-name-base f)
                    (file-name-extension f))))))
 
+(defun image-dired--check-executable-exists (executable)
+  (unless (executable-find (symbol-value executable))
+    (error "Executable %S not found" executable)))
+
 (defun image-dired-create-thumb (original-file thumbnail-file)
   "For ORIGINAL-FILE, create thumbnail image named THUMBNAIL-FILE."
+  (image-dired--check-executable-exists
+   'image-dired-cmd-create-thumbnail-program)
   (let* ((width (int-to-string image-dired-thumb-width))
          (height (int-to-string image-dired-thumb-height))
          (modif-time (format "%.0f" (float-time (nth 5 (file-attributes
@@ -650,25 +652,22 @@ of the marked files.  If ARG is an integer, use the next ARG (or
 previous -ARG, if ARG<0) files."
   (interactive "P")
   (dired-map-over-marks
-   (let* ((image-pos  (dired-move-to-filename))
-          (image-file (dired-get-filename nil t))
-          thumb-file
-          overlay)
+   (let ((image-pos  (dired-move-to-filename))
+         (image-file (dired-get-filename nil t))
+         thumb-file
+         overlay)
      (when (and image-file
                 (string-match-p (image-file-name-regexp) image-file))
        (setq thumb-file (image-dired-get-thumbnail-image image-file))
        ;; If image is not already added, then add it.
-       (let* ((cur-ovs (overlays-in (point) (1+ (point))))
-              (thumb-ov (car (cl-remove-if-not
-                              (lambda (ov) (overlay-get ov 'thumb-file))
-                              cur-ovs))))
+       (let ((thumb-ov (cl-loop for ov in (overlays-in (point) (1+ (point)))
+                                if (overlay-get ov 'thumb-file) return ov)))
          (if thumb-ov
              (delete-overlay thumb-ov)
 	   (put-image thumb-file image-pos)
 	   (setq overlay
-                 (cl-loop for o in (overlays-in (point) (1+ (point)))
-                          when (overlay-get o 'put-image) collect o into ov
-                          finally return (car ov)))
+                 (cl-loop for ov in (overlays-in (point) (1+ (point)))
+                          if (overlay-get ov 'put-image) return ov))
 	   (overlay-put overlay 'image-file image-file)
 	   (overlay-put overlay 'thumb-file thumb-file)))))
    arg             ; Show or hide image on ARG next files.
@@ -793,9 +792,9 @@ calling `image-dired-restore-window-configuration'."
       (setq truncate-lines t)
       (save-excursion
         (other-window 1)
-        (switch-to-buffer buf)
+        (pop-to-buffer-same-window buf)
         (select-window (split-window-below))
-        (switch-to-buffer buf2)
+        (pop-to-buffer-same-window buf2)
         (other-window -2)))))
 
 (defun image-dired-restore-window-configuration ()
@@ -840,14 +839,15 @@ thumbnail buffer to be selected."
         (if (not append)
             (erase-buffer)
           (goto-char (point-max)))
-        (mapc
-         (lambda (curr-file)
-           (setq thumb-name (image-dired-thumb-name curr-file))
-           (if (and (not (file-exists-p thumb-name))
-                    (not (= 0 (image-dired-create-thumb curr-file thumb-name))))
-               (message "Thumb could not be created for file %s" curr-file)
-             (image-dired-insert-thumbnail thumb-name curr-file dired-buf)))
-         files))
+        (dolist (curr-file files)
+          (setq thumb-name (image-dired-thumb-name curr-file))
+          (if (and (not (file-exists-p thumb-name))
+                   (not (= 0 (image-dired-create-thumb curr-file thumb-name))))
+              (message "Thumb could not be created for file %s" curr-file)
+            (image-dired-insert-thumbnail thumb-name curr-file dired-buf))))
+      (if do-not-pop
+          (display-buffer buf)
+        (pop-to-buffer buf))
       (cond ((eq 'dynamic image-dired-line-up-method)
              (image-dired-line-up-dynamic))
             ((eq 'fixed image-dired-line-up-method)
@@ -857,10 +857,7 @@ thumbnail buffer to be selected."
             ((eq 'none image-dired-line-up-method)
              nil)
             (t
-             (image-dired-line-up-dynamic))))
-    (if do-not-pop
-        (display-buffer image-dired-thumbnail-buffer)
-      (pop-to-buffer image-dired-thumbnail-buffer))))
+             (image-dired-line-up-dynamic))))))
 
 ;;;###autoload
 (defun image-dired-show-all-from-dir (dir)
@@ -868,7 +865,7 @@ thumbnail buffer to be selected."
 If the number of files in DIR matching `image-file-name-regexp'
 exceeds `image-dired-show-all-from-dir-max-files', a warning will be
 displayed."
-  (interactive "DDir: ")
+  (interactive "DImage Dired: ")
   (dired dir)
   (dired-mark-files-regexp (image-file-name-regexp))
   (let ((files (dired-get-marked-files)))
@@ -1104,7 +1101,7 @@ Optional prefix ARG says how many images to move; default is one
 image."
   (interactive "p")
   (let (pos (steps (or arg 1)))
-    (dotimes (i steps)
+    (dotimes (_ steps)
       (if (and (not (eobp))
                (save-excursion
                  (forward-char)
@@ -1125,7 +1122,7 @@ Optional prefix ARG says how many images to move; default is one
 image."
   (interactive "p")
   (let (pos (steps (or arg 1)))
-    (dotimes (i steps)
+    (dotimes (_ steps)
       (if (and (not (bobp))
                (save-excursion
                  (backward-char)
@@ -1144,7 +1141,8 @@ image."
   "Move to next line and display properties."
   (interactive)
   (let ((goal-column (current-column)))
-    (next-line))
+    (forward-line 1)
+    (move-to-column goal-column))
   ;; If we end up in an empty spot, back up to the next thumbnail.
   (if (not (image-dired-image-at-point-p))
       (image-dired-backward-image))
@@ -1157,7 +1155,8 @@ image."
   "Move to previous line and display properties."
   (interactive)
   (let ((goal-column (current-column)))
-    (previous-line))
+    (forward-line -1)
+    (move-to-column goal-column))
   ;; If we end up in an empty spot, back up to the next
   ;; thumbnail. This should only happen if the user deleted a
   ;; thumbnail and did not refresh, so it is not very common. But we
@@ -1276,197 +1275,121 @@ You probably want to use this together with
           (select-window window))
       (message "Thumbnail buffer not visible"))))
 
-(defvar image-dired-thumbnail-mode-map (make-sparse-keymap)
-  "Keymap for `image-dired-thumbnail-mode'.")
-
-(defvar image-dired-thumbnail-mode-line-up-map (make-sparse-keymap)
+(defvar image-dired-thumbnail-mode-line-up-map
+  (let ((map (make-sparse-keymap)))
+    ;; map it to "g" so that the user can press it more quickly
+    (define-key map "g" 'image-dired-line-up-dynamic)
+    ;; "f" for "fixed" number of thumbs per row
+    (define-key map "f" 'image-dired-line-up)
+    ;; "i" for "interactive"
+    (define-key map "i" 'image-dired-line-up-interactive)
+    map)
   "Keymap for line-up commands in `image-dired-thumbnail-mode'.")
 
-(defvar image-dired-thumbnail-mode-tag-map (make-sparse-keymap)
+(defvar image-dired-thumbnail-mode-tag-map
+  (let ((map (make-sparse-keymap)))
+    ;; map it to "t" so that the user can press it more quickly
+    (define-key map "t" 'image-dired-tag-thumbnail)
+    ;; "r" for "remove"
+    (define-key map "r" 'image-dired-tag-thumbnail-remove)
+    map)
   "Keymap for tag commands in `image-dired-thumbnail-mode'.")
 
-(defun image-dired-define-thumbnail-mode-keymap ()
-  "Define keymap for `image-dired-thumbnail-mode'."
+(defvar image-dired-thumbnail-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [right] 'image-dired-forward-image)
+    (define-key map [left] 'image-dired-backward-image)
+    (define-key map [up] 'image-dired-previous-line)
+    (define-key map [down] 'image-dired-next-line)
+    (define-key map "\C-f" 'image-dired-forward-image)
+    (define-key map "\C-b" 'image-dired-backward-image)
+    (define-key map "\C-p" 'image-dired-previous-line)
+    (define-key map "\C-n" 'image-dired-next-line)
 
-  ;; Keys
-  (define-key image-dired-thumbnail-mode-map [right] 'image-dired-forward-image)
-  (define-key image-dired-thumbnail-mode-map [left] 'image-dired-backward-image)
-  (define-key image-dired-thumbnail-mode-map [up] 'image-dired-previous-line)
-  (define-key image-dired-thumbnail-mode-map [down] 'image-dired-next-line)
-  (define-key image-dired-thumbnail-mode-map "\C-f" 'image-dired-forward-image)
-  (define-key image-dired-thumbnail-mode-map "\C-b" 'image-dired-backward-image)
-  (define-key image-dired-thumbnail-mode-map "\C-p" 'image-dired-previous-line)
-  (define-key image-dired-thumbnail-mode-map "\C-n" 'image-dired-next-line)
+    (define-key map "d" 'image-dired-flag-thumb-original-file)
+    (define-key map [delete] 'image-dired-flag-thumb-original-file)
+    (define-key map "m" 'image-dired-mark-thumb-original-file)
+    (define-key map "u" 'image-dired-unmark-thumb-original-file)
+    (define-key map "." 'image-dired-track-original-file)
+    (define-key map [tab] 'image-dired-jump-original-dired-buffer)
 
-  (define-key image-dired-thumbnail-mode-map "d" 'image-dired-flag-thumb-original-file)
-  (define-key image-dired-thumbnail-mode-map [delete]
-    'image-dired-flag-thumb-original-file)
-  (define-key image-dired-thumbnail-mode-map "m" 'image-dired-mark-thumb-original-file)
-  (define-key image-dired-thumbnail-mode-map "u" 'image-dired-unmark-thumb-original-file)
-  (define-key image-dired-thumbnail-mode-map "." 'image-dired-track-original-file)
-  (define-key image-dired-thumbnail-mode-map [tab] 'image-dired-jump-original-dired-buffer)
+    ;; add line-up map
+    (define-key map "g" image-dired-thumbnail-mode-line-up-map)
+    ;; add tag map
+    (define-key map "t" image-dired-thumbnail-mode-tag-map)
 
-  ;; add line-up map
-  (define-key image-dired-thumbnail-mode-map "g" image-dired-thumbnail-mode-line-up-map)
+    (define-key map "\C-m" 'image-dired-display-thumbnail-original-image)
+    (define-key map [C-return] 'image-dired-thumbnail-display-external)
 
-  ;; map it to "g" so that the user can press it more quickly
-  (define-key image-dired-thumbnail-mode-line-up-map "g" 'image-dired-line-up-dynamic)
-  ;; "f" for "fixed" number of thumbs per row
-  (define-key image-dired-thumbnail-mode-line-up-map "f" 'image-dired-line-up)
-  ;; "i" for "interactive"
-  (define-key image-dired-thumbnail-mode-line-up-map "i" 'image-dired-line-up-interactive)
+    (define-key map "l" 'image-dired-rotate-thumbnail-left)
+    (define-key map "r" 'image-dired-rotate-thumbnail-right)
+    (define-key map "L" 'image-dired-rotate-original-left)
+    (define-key map "R" 'image-dired-rotate-original-right)
 
-  ;; add tag map
-  (define-key image-dired-thumbnail-mode-map "t" image-dired-thumbnail-mode-tag-map)
+    (define-key map "D" 'image-dired-thumbnail-set-image-description)
+    (define-key map "\C-d" 'image-dired-delete-char)
+    (define-key map " " 'image-dired-display-next-thumbnail-original)
+    (define-key map (kbd "DEL") 'image-dired-display-previous-thumbnail-original)
+    (define-key map "c" 'image-dired-comment-thumbnail)
+    (define-key map "q" 'image-dired-kill-buffer-and-window)
 
-  ;; map it to "t" so that the user can press it more quickly
-  (define-key image-dired-thumbnail-mode-tag-map "t" 'image-dired-tag-thumbnail)
-  ;; "r" for "remove"
-  (define-key image-dired-thumbnail-mode-tag-map "r" 'image-dired-tag-thumbnail-remove)
+    ;; Mouse
+    (define-key map [mouse-2] 'image-dired-mouse-display-image)
+    (define-key map [mouse-1] 'image-dired-mouse-select-thumbnail)
+    ;; Seems I must first set C-down-mouse-1 to undefined, or else it
+    ;; will trigger the buffer menu. If I try to instead bind
+    ;; C-down-mouse-1 to `image-dired-mouse-toggle-mark', I get a message
+    ;; about C-mouse-1 not being defined afterwards. Annoying, but I
+    ;; probably do not completely understand mouse events.
+    (define-key map [C-down-mouse-1] 'undefined)
+    (define-key map [C-mouse-1] 'image-dired-mouse-toggle-mark)
 
-  (define-key image-dired-thumbnail-mode-map "\C-m"
-    'image-dired-display-thumbnail-original-image)
-  (define-key image-dired-thumbnail-mode-map [C-return]
-    'image-dired-thumbnail-display-external)
+    ;; Menu
+    (easy-menu-define nil map
+      "Menu for `image-dired-thumbnail-mode'."
+      '("Image-Dired"
+        ["Quit" image-dired-kill-buffer-and-window]
+        ["Delete thumbnail from buffer" image-dired-delete-char]
+        ["Remove tag from thumbnail" image-dired-tag-thumbnail-remove]
+        ["Tag thumbnail" image-dired-tag-thumbnail]
+        ["Comment thumbnail" image-dired-comment-thumbnail]
+        ["Refresh thumb" image-dired-refresh-thumb]
+        ["Dynamic line up" image-dired-line-up-dynamic]
+        ["Line up thumbnails" image-dired-line-up]
 
-  (define-key image-dired-thumbnail-mode-map "l" 'image-dired-rotate-thumbnail-left)
-  (define-key image-dired-thumbnail-mode-map "r" 'image-dired-rotate-thumbnail-right)
+        ["Rotate thumbnail left" image-dired-rotate-thumbnail-left]
+        ["Rotate thumbnail right" image-dired-rotate-thumbnail-right]
+        ["Rotate original left" image-dired-rotate-original-left]
+        ["Rotate original right" image-dired-rotate-original-right]
 
-  (define-key image-dired-thumbnail-mode-map "L" 'image-dired-rotate-original-left)
-  (define-key image-dired-thumbnail-mode-map "R" 'image-dired-rotate-original-right)
+        ["Toggle movement tracking on/off" image-dired-toggle-movement-tracking]
 
-  (define-key image-dired-thumbnail-mode-map "D"
-    'image-dired-thumbnail-set-image-description)
+        ["Jump to dired buffer" image-dired-jump-original-dired-buffer]
+        ["Track original" image-dired-track-original-file]
 
-  (define-key image-dired-thumbnail-mode-map "\C-d" 'image-dired-delete-char)
-  (define-key image-dired-thumbnail-mode-map " "
-    'image-dired-display-next-thumbnail-original)
-  (define-key image-dired-thumbnail-mode-map
-    (kbd "DEL") 'image-dired-display-previous-thumbnail-original)
-  (define-key image-dired-thumbnail-mode-map "c" 'image-dired-comment-thumbnail)
-  (define-key image-dired-thumbnail-mode-map "q" 'image-dired-kill-buffer-and-window)
+        ["Flag original for deletion" image-dired-flag-thumb-original-file]
+        ["Unmark original" image-dired-unmark-thumb-original-file]
+        ["Mark original" image-dired-mark-thumb-original-file]
 
-  ;; Mouse
-  (define-key image-dired-thumbnail-mode-map [mouse-2] 'image-dired-mouse-display-image)
-  (define-key image-dired-thumbnail-mode-map [mouse-1] 'image-dired-mouse-select-thumbnail)
+        ["Display in external viewer" image-dired-thumbnail-display-external]
+        ["Display image" image-dired-display-thumbnail-original-image]))
+    map)
+  "Keymap for `image-dired-thumbnail-mode'.")
 
-  ;; Seems I must first set C-down-mouse-1 to undefined, or else it
-  ;; will trigger the buffer menu. If I try to instead bind
-  ;; C-down-mouse-1 to `image-dired-mouse-toggle-mark', I get a message
-  ;; about C-mouse-1 not being defined afterwards. Annoying, but I
-  ;; probably do not completely understand mouse events.
+(defvar image-dired-display-image-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "q" 'image-dired-kill-buffer-and-window)
+    (define-key map "f" 'image-dired-display-current-image-full)
+    (define-key map "s" 'image-dired-display-current-image-sized)
 
-  (define-key image-dired-thumbnail-mode-map [C-down-mouse-1] 'undefined)
-  (define-key image-dired-thumbnail-mode-map [C-mouse-1] 'image-dired-mouse-toggle-mark)
-
-  ;; Menu
-  (define-key image-dired-thumbnail-mode-map [menu-bar image-dired]
-    (cons "Image-Dired" (make-sparse-keymap "Image-Dired")))
-
-  (define-key image-dired-thumbnail-mode-map
-    [menu-bar image-dired image-dired-kill-buffer-and-window]
-    '("Quit" . image-dired-kill-buffer-and-window))
-
-  (define-key image-dired-thumbnail-mode-map
-    [menu-bar image-dired image-dired-delete-char]
-    '("Delete thumbnail from buffer" . image-dired-delete-char))
-
-  (define-key image-dired-thumbnail-mode-map
-    [menu-bar image-dired image-dired-tag-thumbnail-remove]
-    '("Remove tag from thumbnail" . image-dired-tag-thumbnail-remove))
-
-  (define-key image-dired-thumbnail-mode-map
-    [menu-bar image-dired image-dired-tag-thumbnail]
-    '("Tag thumbnail" . image-dired-tag-thumbnail))
-
-  (define-key image-dired-thumbnail-mode-map
-    [menu-bar image-dired image-dired-comment-thumbnail]
-    '("Comment thumbnail" . image-dired-comment-thumbnail))
-
-  (define-key image-dired-thumbnail-mode-map
-    [menu-bar image-dired image-dired-refresh-thumb]
-    '("Refresh thumb" . image-dired-refresh-thumb))
-  (define-key image-dired-thumbnail-mode-map
-    [menu-bar image-dired image-dired-line-up-dynamic]
-    '("Dynamic line up" . image-dired-line-up-dynamic))
-  (define-key image-dired-thumbnail-mode-map
-    [menu-bar image-dired image-dired-line-up]
-    '("Line up thumbnails" . image-dired-line-up))
-
-  (define-key image-dired-thumbnail-mode-map
-    [menu-bar image-dired image-dired-rotate-thumbnail-left]
-    '("Rotate thumbnail left" . image-dired-rotate-thumbnail-left))
-  (define-key image-dired-thumbnail-mode-map
-    [menu-bar image-dired image-dired-rotate-thumbnail-right]
-    '("Rotate thumbnail right" . image-dired-rotate-thumbnail-right))
-
-  (define-key image-dired-thumbnail-mode-map
-    [menu-bar image-dired image-dired-rotate-original-left]
-    '("Rotate original left" . image-dired-rotate-original-left))
-  (define-key image-dired-thumbnail-mode-map
-    [menu-bar image-dired image-dired-rotate-original-right]
-    '("Rotate original right" . image-dired-rotate-original-right))
-
-  (define-key image-dired-thumbnail-mode-map
-    [menu-bar image-dired image-dired-toggle-movement-tracking]
-    '("Toggle movement tracking on/off" . image-dired-toggle-movement-tracking))
-
-  (define-key image-dired-thumbnail-mode-map
-    [menu-bar image-dired image-dired-jump-original-dired-buffer]
-    '("Jump to dired buffer" . image-dired-jump-original-dired-buffer))
-  (define-key image-dired-thumbnail-mode-map
-    [menu-bar image-dired image-dired-track-original-file]
-    '("Track original" . image-dired-track-original-file))
-
-  (define-key image-dired-thumbnail-mode-map
-    [menu-bar image-dired image-dired-flag-thumb-original-file]
-    '("Flag original for deletion" . image-dired-flag-thumb-original-file))
-  (define-key image-dired-thumbnail-mode-map
-    [menu-bar image-dired image-dired-unmark-thumb-original-file]
-    '("Unmark original" . image-dired-unmark-thumb-original-file))
-  (define-key image-dired-thumbnail-mode-map
-    [menu-bar image-dired image-dired-mark-thumb-original-file]
-    '("Mark original" . image-dired-mark-thumb-original-file))
-
-  (define-key image-dired-thumbnail-mode-map
-    [menu-bar image-dired image-dired-thumbnail-display-external]
-    '("Display in external viewer" . image-dired-thumbnail-display-external))
-  (define-key image-dired-thumbnail-mode-map
-    [menu-bar image-dired image-dired-display-thumbnail-original-image]
-    '("Display image" . image-dired-display-thumbnail-original-image)))
-
-(defvar image-dired-display-image-mode-map (make-sparse-keymap)
+    (easy-menu-define nil map
+      "Menu for `image-dired-display-image-mode-map'."
+      '("Image-Dired"
+        ["Quit" image-dired-kill-buffer-and-window]
+        ["Display original, sized to fit" image-dired-display-current-image-sized]
+        ["Display original, full size" image-dired-display-current-image-full]))
+    map)
   "Keymap for `image-dired-display-image-mode'.")
-
-(defun image-dired-define-display-image-mode-keymap ()
-  "Define keymap for `image-dired-display-image-mode'."
-
-  ;; Keys
-  (define-key image-dired-display-image-mode-map "q" 'image-dired-kill-buffer-and-window)
-
-  (define-key image-dired-display-image-mode-map "f"
-    'image-dired-display-current-image-full)
-
-  (define-key image-dired-display-image-mode-map "s"
-    'image-dired-display-current-image-sized)
-
-  ;; Menu
-  (define-key image-dired-display-image-mode-map [menu-bar image-dired]
-    (cons "Image-Dired" (make-sparse-keymap "Image-Dired")))
-
-  (define-key image-dired-display-image-mode-map
-    [menu-bar image-dired image-dired-kill-buffer-and-window]
-    '("Quit" . image-dired-kill-buffer-and-window))
-
-  (define-key image-dired-display-image-mode-map
-    [menu-bar image-dired image-dired-display-current-image-sized]
-    '("Display original, sized to fit" . image-dired-display-current-image-sized))
-
-  (define-key image-dired-display-image-mode-map
-    [menu-bar image-dired image-dired-display-current-image-full]
-    '("Display original, full size" . image-dired-display-current-image-full))
-
-  )
 
 (defun image-dired-display-current-image-full ()
   "Display current image in full size."
@@ -1485,7 +1408,7 @@ You probably want to use this together with
     (if file
         (progn
           (image-dired-display-image file)
-          (message "Full size image displayed"))
+          (message "Fitted image displayed"))
       (error "No original file name at point"))))
 
 (define-derived-mode image-dired-thumbnail-mode
@@ -1493,14 +1416,12 @@ You probably want to use this together with
   "Browse and manipulate thumbnail images using dired.
 Use `image-dired-dired' and `image-dired-setup-dired-keybindings' to get a
 nice setup to start with."
-  (image-dired-define-thumbnail-mode-keymap)
   (message "image-dired-thumbnail-mode enabled"))
 
 (define-derived-mode image-dired-display-image-mode
   fundamental-mode "image-dired-image-display"
   "Mode for displaying and manipulating original image.
 Resized or in full-size."
-  (image-dired-define-display-image-mode-keymap)
   (message "image-dired-display-image-mode enabled"))
 
 ;;;###autoload
@@ -1603,22 +1524,18 @@ Note that n, p and <down> and <up> will be hijacked and bound to
 With prefix argument ARG, create thumbnails even if they already exist
 \(i.e. use this to refresh your thumbnails)."
   (interactive "P")
-  (let (thumb-name files)
-    (setq files (dired-get-marked-files))
-    (mapcar
-     (lambda (curr-file)
-       (setq thumb-name (image-dired-thumb-name curr-file))
-       ;; If the user overrides the exist check, we must clear the
-       ;; image cache so that if the user wants to display the
-       ;; thumbnail, it is not fetched from cache.
-       (if arg
-           (clear-image-cache))
-       (if (or (not (file-exists-p thumb-name))
-               arg)
-           (if (not (= 0 (image-dired-create-thumb curr-file
-                                             (image-dired-thumb-name curr-file))))
-               (error "Thumb could not be created"))))
-     files)))
+  (let (thumb-name)
+    (dolist (curr-file (dired-get-marked-files))
+      (setq thumb-name (image-dired-thumb-name curr-file))
+      ;; If the user overrides the exist check, we must clear the
+      ;; image cache so that if the user wants to display the
+      ;; thumbnail, it is not fetched from cache.
+      (if arg
+          (clear-image-cache))
+      (when (or (not (file-exists-p thumb-name))
+                arg)
+        (when (not (= 0 (image-dired-create-thumb curr-file thumb-name)))
+          (error "Thumb could not be created"))))))
 
 (defvar image-dired-slideshow-timer nil
   "Slideshow timer.")
@@ -1802,6 +1719,8 @@ should feel snappy enough.
 
 If optional argument ORIGINAL-SIZE is non-nil, display image in its
 original size."
+  (image-dired--check-executable-exists
+   'image-dired-cmd-create-temp-image-program)
   (let ((new-file (expand-file-name image-dired-temp-image-file))
         width height command ret
         (image-type 'jpeg))
@@ -1866,6 +1785,8 @@ With prefix argument ARG, display image in its original size."
 
 (defun image-dired-rotate-thumbnail (degrees)
   "Rotate thumbnail DEGREES degrees."
+  (image-dired--check-executable-exists
+   'image-dired-cmd-rotate-thumbnail-program)
   (if (not (image-dired-image-at-point-p))
       (message "No thumbnail at point")
     (let ((file (image-dired-thumb-name (image-dired-original-file-name)))
@@ -1908,12 +1829,14 @@ overwritten.  This confirmation can be turned off using
 
 (defun image-dired-rotate-original (degrees)
   "Rotate original image DEGREES degrees."
+  (image-dired--check-executable-exists
+   'image-dired-cmd-rotate-original-program)
   (if (not (image-dired-image-at-point-p))
       (message "No image at point")
     (let ((file (image-dired-original-file-name))
           command)
-      (if (not (string-match "\\.[jJ][pP[eE]?[gG]$" file))
-          (error "Only JPEG images can be rotated!"))
+      (unless (eq 'jpeg (image-type file))
+        (error "Only JPEG images can be rotated!"))
       (setq command (format-spec
                      image-dired-cmd-rotate-original-options
                      (list
@@ -1952,15 +1875,14 @@ for traceability.  The format of the returned file name is
 YYYY_MM_DD_HH_MM_DD_ORIG_FILE_NAME.jpg.  Used from
 `image-dired-copy-with-exif-file-name'."
   (let (data no-exif-data-found)
-    (if (not (string-match "\\.[Jj][Pp][Ee]?[Gg]$" (expand-file-name file)))
-        (progn
-          (setq no-exif-data-found t)
-          (setq data
-                (format-time-string
-                 "%Y:%m:%d %H:%M:%S"
-                 (nth 5 (file-attributes (expand-file-name file))))))
+    (if (not (eq 'jpeg (image-type (expand-file-name file))))
+        (setq no-exif-data-found t
+              data (format-time-string
+                    "%Y:%m:%d %H:%M:%S"
+                    (file-attribute-modification-time
+                     (file-attributes (expand-file-name file)))))
       (setq data (image-dired-get-exif-data (expand-file-name file)
-				      "DateTimeOriginal")))
+                                            "DateTimeOriginal")))
     (while (string-match "[ :]" data)
       (setq data (replace-match "_" nil nil data)))
     (format "%s%s%s" data
@@ -1987,6 +1909,8 @@ default value at the prompt."
 
 (defun image-dired-set-exif-data (file tag-name tag-value)
   "In FILE, set EXIF tag TAG-NAME to value TAG-VALUE."
+  (image-dired--check-executable-exists
+   'image-dired-cmd-write-exif-data-program)
   (let (command)
     (setq command (format-spec
                    image-dired-cmd-write-exif-data-options
@@ -1999,6 +1923,8 @@ default value at the prompt."
 
 (defun image-dired-get-exif-data (file tag-name)
   "From FILE, return EXIF tag TAG-NAME."
+  (image-dired--check-executable-exists
+   'image-dired-cmd-read-exif-data-program)
   (let ((buf (get-buffer-create "*image-dired-get-exif-data*"))
         command tag-value)
     (setq command (format-spec
@@ -2467,7 +2393,7 @@ easy-to-use form."
   (setq image-dired-widget-list nil)
   ;; Setup buffer.
   (let ((files (dired-get-marked-files)))
-    (switch-to-buffer "*Image-Dired Edit Meta Data*")
+    (pop-to-buffer-same-window "*Image-Dired Edit Meta Data*")
     (kill-all-local-variables)
     (make-local-variable 'widget-example-repeat)
     (let ((inhibit-read-only t))

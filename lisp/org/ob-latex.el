@@ -32,11 +32,12 @@
 ;;; Code:
 (require 'ob)
 
-(declare-function org-create-formula-image "org" (string tofile options buffer))
+(declare-function org-create-formula-image "org"
+                  (string tofile options buffer &optional type))
 (declare-function org-splice-latex-header "org"
 		  (tpl def-pkg pkg snippets-p &optional extra))
 (declare-function org-latex-guess-inputenc "ox-latex" (header))
-(declare-function org-latex-compile "ox-latex" (file))
+(declare-function org-latex-compile "ox-latex" (texfile &optional snippet))
 
 (defvar org-babel-tangle-lang-exts)
 (add-to-list 'org-babel-tangle-lang-exts '("latex" . "tex"))

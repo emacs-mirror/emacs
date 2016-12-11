@@ -37,11 +37,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 
 #include <stdarg.h>
-#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>   /* config.h unconditionally includes this anyway */
+#include <stdlib.h>
+#include <string.h>
 
 #ifdef WINDOWSNT
 /* Defined to be sys_fopen in ms-w32.h, but only #ifdef emacs, so this
@@ -491,7 +491,7 @@ write_c_args (char *func, char *buf, int minargs, int maxargs)
 {
   char *p;
   bool in_ident = false;
-  char *ident_start IF_LINT (= NULL);
+  char *ident_start UNINIT;
   ptrdiff_t ident_length = 0;
 
   fputs ("(fn", stdout);

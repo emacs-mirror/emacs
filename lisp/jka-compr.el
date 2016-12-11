@@ -444,17 +444,18 @@ There should be no more than seven characters after the final `/'."
                  ;; If the file we wanted to uncompress does not exist,
                  ;; handle that according to VISIT as `insert-file-contents'
                  ;; would, maybe signaling the same error it normally would.
-                 (if (and (eq (car error-code) 'file-error)
+                 (if (and (eq (car error-code) 'file-missing)
                           (eq (nth 3 error-code) local-file))
                      (if visit
                          (setq notfound error-code)
-                       (signal 'file-error
+                       (signal 'file-missing
                                (cons "Opening input file"
                                      (nthcdr 2 error-code))))
                    ;; If the uncompression program can't be found,
                    ;; signal that as a non-file error
                    ;; so that find-file-noselect-1 won't handle it.
-                   (if (and (eq (car error-code) 'file-error)
+                   (if (and (memq 'file-error (get (car error-code)
+                                                   'error-conditions))
                             (equal (cadr error-code) "Searching for program"))
                        (error "Uncompression program `%s' not found"
                               (nth 3 error-code)))
@@ -487,7 +488,7 @@ There should be no more than seven characters after the final `/'."
         (and
          visit
          notfound
-         (signal 'file-error
+         (signal 'file-missing
                  (cons "Opening input file" (nth 2 notfound))))
 
         ;; This is done in insert-file-contents after we return.

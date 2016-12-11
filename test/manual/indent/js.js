@@ -53,6 +53,14 @@ var p = {
 var evens = [e for each (e in range(0, 21))
                if (ed % 2 == 0)];
 
+var funs = [
+  function() {
+    for (;;) {
+    }
+  },
+  function(){},
+];
+
 !b
   !=b
   !==b
@@ -60,6 +68,9 @@ var evens = [e for each (e in range(0, 21))
 a++
 b +=
   c
+
+var re = /some value/
+str.match(re)
 
 baz(`http://foo.bar/${tee}`)
   .qux();
@@ -94,6 +105,18 @@ Foobar
   .then((num) => {
     console.log(num);
   });
+
+var z = [
+  ...iterableObj,
+  4,
+  5
+]
+
+var arr = [
+  -1, 2,
+  -3, 4 +
+    -5
+];
 
 // Local Variables:
 // indent-tabs-mode: nil

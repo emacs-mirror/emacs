@@ -95,7 +95,7 @@ from the command history."
 
 ;;;###autoload
 (defun list-command-history ()
-  "List history of commands typed to minibuffer.
+  "List history of commands that used the minibuffer.
 The number of commands listed is controlled by `list-command-history-max'.
 Calls value of `list-command-history-filter' (if non-nil) on each history
 element to judge if that element should be excluded from the list.

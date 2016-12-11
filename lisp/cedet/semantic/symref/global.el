@@ -49,6 +49,9 @@ See the function `cedet-gnu-global-search' for more details.")
     (semantic-symref-parse-tool-output tool b)
     ))
 
+(defconst semantic-symref-global--line-re
+  "^\\([^ ]+\\) +\\([0-9]+\\) \\([^ ]+\\) ")
+
 (cl-defmethod semantic-symref-parse-tool-output-one-line ((tool semantic-symref-tool-global))
   "Parse one line of grep output, and return it as a match list.
 Moves cursor to end of the match."
@@ -57,8 +60,13 @@ Moves cursor to end of the match."
 	 ;; Search for files
 	 (when (re-search-forward "^\\([^\n]+\\)$" nil t)
 	   (match-string 1)))
+        ((eq (oref tool :resulttype) 'line-and-text)
+         (when (re-search-forward semantic-symref-global--line-re nil t)
+           (list (string-to-number (match-string 2))
+                 (match-string 3)
+                 (buffer-substring-no-properties (point) (line-end-position)))))
 	(t
-	 (when (re-search-forward "^\\([^ ]+\\) +\\([0-9]+\\) \\([^ ]+\\) " nil t)
+	 (when (re-search-forward semantic-symref-global--line-re nil t)
 	   (cons (string-to-number (match-string 2))
 		 (match-string 3))
 	   ))))

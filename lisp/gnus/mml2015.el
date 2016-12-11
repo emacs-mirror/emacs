@@ -27,16 +27,12 @@
 
 ;;; Code:
 
-(eval-and-compile
-  (if (locate-library "password-cache")
-      (require 'password-cache)
-    (require 'password)))
-
 (eval-when-compile (require 'cl))
 (require 'mm-decode)
 (require 'mm-util)
 (require 'mml)
 (require 'mml-sec)
+(require 'epg-config)
 
 (defvar mc-pgp-always-sign)
 
@@ -47,27 +43,7 @@
 ;; Maybe this should be in eg mml-sec.el (and have a different name).
 ;; Then mml1991 would not need to require mml2015, and mml1991-use
 ;; could be removed.
-(defvar mml2015-use (or
-		     (progn
-		       (ignore-errors (require 'epg-config))
-		       (and (fboundp 'epg-check-configuration)
-			   'epg))
-		     (progn
-		       (let ((abs-file (locate-library "pgg")))
-			 ;; Don't load PGG if it is marked as obsolete
-			 ;; (Emacs 24).
-			 (when (and abs-file
-				    (not (string-match "/obsolete/[^/]*\\'"
-						       abs-file)))
-			   (ignore-errors (require 'pgg))
-			   (and (fboundp 'pgg-sign-region)
-				'pgg))))
-		     (progn (ignore-errors
-			      (load "mc-toplev"))
-			    (and (fboundp 'mc-encrypt-generic)
-				 (fboundp 'mc-sign-generic)
-				 (fboundp 'mc-cleanup-recipient-headers)
-				 'mailcrypt)))
+(defvar mml2015-use 'epg
   "The package used for PGP/MIME.
 Valid packages include `epg', `pgg' and `mailcrypt'.")
 

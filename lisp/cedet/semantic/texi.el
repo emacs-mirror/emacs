@@ -258,7 +258,7 @@ can handle the @menu environment.")
 	(when (not parenthetical)
 	  ;; We are in parentheses.  Are they the types of parens
 	  ;; belonging to a texinfo construct?
-	  (forward-word -1)
+	  (forward-word-strictly -1)
 	  (when (looking-at "@\\w+{")
 	    (setq done (point))))))
     ;; If we are not in a parenthetical node, then find a block instead.
@@ -287,7 +287,7 @@ can handle the @menu environment.")
       ;; If we can't go up, we can't do this either.
       t
     ;; We moved, so now we need to skip into whatever this thing is.
-    (forward-word 1) ;; skip the command
+    (forward-word-strictly 1) ;; skip the command
     (if (looking-at "\\s-*{")
 	;; In a short command.  Go in.
 	(down-list 1)

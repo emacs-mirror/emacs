@@ -543,6 +543,145 @@ from the MODE alist ignoring the input argument VALUE."
     (add-file-local-variable-prop-line (car elt) (cdr elt))))
 
 
+;;; connection-local variables.
+
+;;;###autoload
+(defvar enable-connection-local-variables t
+  "Non-nil means enable use of connection-local variables.")
+
+(defvar connection-local-variables-alist nil
+  "Alist of connection-local variable settings in the current buffer.
+Each element in this list has the form (VAR . VALUE), where VAR
+is a connection-local variable (a symbol) and VALUE is its value.
+The actual value in the buffer may differ from VALUE, if it is
+changed by the user.")
+(make-variable-buffer-local 'connection-local-variables-alist)
+(setq ignored-local-variables
+      (cons 'connection-local-variables-alist ignored-local-variables))
+
+(defvar connection-local-class-alist '()
+  "Alist mapping connection-local variable classes (symbols) to variable lists.
+Each element in this list has the form (CLASS VARIABLES).
+CLASS is the name of a variable class (a symbol).
+VARIABLES is a list that declares connection-local variables for
+CLASS.  An element in VARIABLES is an alist whose elements are of
+the form (VAR . VALUE).")
+
+(defvar connection-local-criteria-alist '()
+  "Alist mapping criteria to connection-local variable classes (symbols).
+Each element in this list has the form (CRITERIA CLASSES).
+CRITERIA is either a regular expression identifying a remote
+server, or a function with one argument IDENTIFICATION, which
+returns non-nil when a remote server shall apply CLASS'es
+variables.  If CRITERIA is nil, it always applies.
+CLASSES is a list of variable classes (symbols).")
+
+(defsubst connection-local-get-classes (criteria &optional identification)
+  "Return the connection-local classes list for CRITERIA.
+CRITERIA is either a regular expression identifying a remote
+server, or a function with one argument IDENTIFICATION, which
+returns non-nil when a remote server shall apply CLASS'es
+variables.  If CRITERIA is nil, it always applies.
+If IDENTIFICATION is non-nil, CRITERIA must be nil, or match
+IDENTIFICATION accordingly."
+  (and (cond ((null identification))
+             ((not (stringp identification))
+              (error "Wrong identification `%s'" identification))
+             ((null criteria))
+             ((stringp criteria) (string-match criteria identification))
+             ((functionp criteria) (funcall criteria identification))
+             (t  "Wrong criteria `%s'" criteria))
+       (cdr (assoc criteria connection-local-criteria-alist))))
+
+;;;###autoload
+(defun connection-local-set-classes (criteria &rest classes)
+  "Add CLASSES for remote servers.
+CRITERIA is either a regular expression identifying a remote
+server, or a function with one argument IDENTIFICATION, which
+returns non-nil when a remote server shall apply CLASS'es
+variables.  If CRITERIA is nil, it always applies.
+CLASSES are the names of a variable class (a symbol).
+
+When a connection to a remote server is opened and CRITERIA
+matches to that server, the connection-local variables from CLASSES
+are applied to the corresponding process buffer.  The variables
+for a class are defined using `connection-local-set-class-variables'."
+  (unless (or (null criteria) (stringp criteria) (functionp criteria))
+    (error "Wrong criteria `%s'" criteria))
+  (dolist (class classes)
+    (unless (assq class connection-local-class-alist)
+      (error "No such class `%s'" (symbol-name class))))
+  (let ((slot (assoc criteria connection-local-criteria-alist)))
+    (if slot
+        (setcdr slot (delete-dups (append (cdr slot) classes)))
+      (setq connection-local-criteria-alist
+            (cons (cons criteria (delete-dups classes))
+		  connection-local-criteria-alist)))))
+
+(defsubst connection-local-get-class-variables (class)
+  "Return the connection-local variable list for CLASS."
+  (cdr (assq class connection-local-class-alist)))
+
+;;;###autoload
+(defun connection-local-set-class-variables (class variables)
+  "Map the symbol CLASS to a list of variable settings.
+VARIABLES is a list that declares connection-local variables for
+the class.  An element in VARIABLES is an alist whose elements
+are of the form (VAR . VALUE).
+
+When a connection to a remote server is opened, the server's
+classes are found.  A server may be assigned a class using
+`connection-local-set-class'.  Then variables are set in the
+server's process buffer according to the VARIABLES list of the
+class.  The list is processed in order."
+  (setf (alist-get class connection-local-class-alist) variables))
+
+(defun hack-connection-local-variables ()
+  "Read per-connection local variables for the current buffer.
+Store the connection-local variables in `connection-local-variables-alist'.
+
+This does nothing if `enable-connection-local-variables' is nil."
+  (let ((identification (file-remote-p default-directory)))
+    (when (and enable-connection-local-variables identification)
+      ;; Loop over criteria.
+      (dolist (criteria (mapcar 'car connection-local-criteria-alist))
+        ;; Filter classes which map identification.
+        (dolist (class (connection-local-get-classes criteria identification))
+          ;; Loop over variables.
+          (dolist (variable (connection-local-get-class-variables class))
+            (unless (assq (car variable) connection-local-variables-alist)
+              (push variable connection-local-variables-alist))))))))
+
+;;;###autoload
+(defun hack-connection-local-variables-apply ()
+ "Apply connection-local variables identified by `default-directory'.
+Other local variables, like file-local and dir-local variables,
+will not be changed."
+ (hack-connection-local-variables)
+ (let ((file-local-variables-alist
+        (copy-tree connection-local-variables-alist)))
+   (hack-local-variables-apply)))
+
+;;;###autoload
+(defmacro with-connection-local-classes (classes &rest body)
+  "Apply connection-local variables according to CLASSES in current buffer.
+Execute BODY, and unwind connection local variables."
+  (declare (indent 1) (debug t))
+  `(let ((enable-connection-local-variables t)
+         (old-buffer-local-variables (buffer-local-variables))
+	 connection-local-variables-alist connection-local-criteria-alist)
+     (apply 'connection-local-set-classes "" ,classes)
+     (hack-connection-local-variables-apply)
+     (unwind-protect
+         (progn ,@body)
+       ;; Cleanup.
+       (dolist (variable connection-local-variables-alist)
+	 (let ((elt (assq (car variable) old-buffer-local-variables)))
+	   (if elt
+	       (set (make-local-variable (car elt)) (cdr elt))
+           (kill-local-variable (car variable))))))))
+
+
 
 (provide 'files-x)
 

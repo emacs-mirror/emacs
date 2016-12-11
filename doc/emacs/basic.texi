@@ -337,10 +337,11 @@ move to the column number specified by the argument's numeric value.
 @kindex C-x C-n
 @findex set-goal-column
 Use the current column of point as the @dfn{semipermanent goal column}
-for @kbd{C-n} and @kbd{C-p} (@code{set-goal-column}).  When a
-semipermanent goal column is in effect, those commands always try to
-move to this column, or as close as possible to it, after moving
-vertically.  The goal column remains in effect until canceled.
+for @kbd{C-n} and @kbd{C-p} (@code{set-goal-column}) in the current
+buffer.  When a semipermanent goal column is in effect, those commands
+always try to move to this column, or as close as possible to it,
+after moving vertically.  The goal column remains in effect until
+canceled.
 
 @item C-u C-x C-n
 Cancel the goal column.  Henceforth, @kbd{C-n} and @kbd{C-p} try to

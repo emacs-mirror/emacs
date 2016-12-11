@@ -191,20 +191,30 @@ in the opposite direction.
 @node Word Motion
 @subsection Motion by Words
 
-  These functions for parsing words use the syntax table to decide
-whether a given character is part of a word.  @xref{Syntax Tables}.
+  The functions for parsing words described below use the syntax table
+and @code{char-script-table} to decide whether a given character is
+part of a word.  @xref{Syntax Tables}, and see @ref{Character
+Properties}.
 
 @deffn Command forward-word &optional count
 This function moves point forward @var{count} words (or backward if
 @var{count} is negative).  If @var{count} is omitted or @code{nil}, it
-defaults to 1.
+defaults to 1.  In an interactive call, @var{count} is specified by
+the numeric prefix argument.
 
 ``Moving one word'' means moving until point crosses a
-word-constituent character and then encounters a word-separator
-character.  However, this function cannot move point past the boundary
-of the accessible portion of the buffer, or across a field boundary
-(@pxref{Fields}).  The most common case of a field boundary is the end
-of the prompt in the minibuffer.
+word-constituent character, which indicates the beginning of a word,
+and then continue moving until the word ends.  By default, characters
+that begin and end words, known as @dfn{word boundaries}, are defined
+by the current buffer's syntax table (@pxref{Syntax Class Table}), but
+modes can override that by setting up a suitable
+@code{find-word-boundary-function-table}, described below.  Characters
+that belong to different scripts (as defined by
+@code{char-syntax-table}), also define a word boundary
+(@pxref{Character Properties}).  In any case, this function cannot
+move point past the boundary of the accessible portion of the buffer,
+or across a field boundary (@pxref{Fields}).  The most common case of
+a field boundary is the end of the prompt in the minibuffer.
 
 If it is possible to move @var{count} words, without being stopped
 prematurely by the buffer boundary or a field boundary, the value is
@@ -214,8 +224,6 @@ the buffer boundary or field boundary.
 If @code{inhibit-field-text-motion} is non-@code{nil},
 this function ignores field boundaries.
 
-In an interactive call, @var{count} is specified by the numeric prefix
-argument.
 @end deffn
 
 @deffn Command backward-word &optional count
@@ -225,10 +233,10 @@ backward until encountering the front of a word, rather than forward.
 
 @defopt words-include-escapes
 @c Emacs 19 feature
-This variable affects the behavior of @code{forward-word} and everything
-that uses it.  If it is non-@code{nil}, then characters in the
-escape and character-quote syntax classes count as part of
-words.  Otherwise, they do not.
+This variable affects the behavior of @code{forward-word} and
+@code{backward-word}, and everything that uses them.  If it is
+non-@code{nil}, then characters in the escape and character-quote
+syntax classes count as part of words.  Otherwise, they do not.
 @end defopt
 
 @defvar inhibit-field-text-motion
@@ -236,6 +244,37 @@ If this variable is non-@code{nil}, certain motion functions including
 @code{forward-word}, @code{forward-sentence}, and
 @code{forward-paragraph} ignore field boundaries.
 @end defvar
+
+@defvar find-word-boundary-function-table
+This variable affects the behavior of @code{forward-word} and
+@code{backward-word}, and everything that uses them.  Its value is a
+char-table (@pxref{Char-Tables}) of functions to search for word
+boundaries.  If a character has a non-@code{nil} entry in this table,
+then when a word starts or ends with that character, the corresponding
+function will be called with 2 arguments: @var{pos} and @var{limit}.
+The function should return the position of the other word boundary.
+Specifically, if @var{pos} is smaller than @var{limit}, then @var{pos}
+is at the beginning of a word, and the function should return the
+position after the last character of the word; otherwise, @var{pos} is
+at the last character of a word, and the function should return the
+position of that word's first character.
+@end defvar
+
+@defun forward-word-strictly &optional count
+This function is like @code{forward-word}, but it is not affected by
+@code{find-word-boundary-function-table}.  Lisp programs that should
+not change behavior when word movement is modified by modes which set
+that table, such as @code{subword-mode}, should use this function
+instead of @code{forward-word}.
+@end defun
+
+@defun backward-word-strictly &optional count
+This function is like @code{backward-word}, but it is not affected by
+@code{find-word-boundary-function-table}.  Like with
+@code{forward-word-strictly}, use this function instead of
+@code{backward-word} when movement by words should only consider
+syntax tables.
+@end defun
 
 @node Buffer End Motion
 @subsection Motion to an End of the Buffer
@@ -554,10 +593,12 @@ any buffer, whether or not it is currently displayed in some window.
 @deffn Command move-to-window-line count
 This function moves point with respect to the text currently displayed
 in the selected window.  It moves point to the beginning of the screen
-line @var{count} screen lines from the top of the window.  If
-@var{count} is negative, that specifies a position
-@w{@minus{}@var{count}} lines from the bottom (or the last line of the
-buffer, if the buffer ends above the specified screen position).
+line @var{count} screen lines from the top of the window; zero means
+the topmost line.  If @var{count} is negative, that specifies a
+position @w{@minus{}@var{count}} lines from the bottom (or the last
+line of the buffer, if the buffer ends above the specified screen
+position); thus, @var{count} of -1 specifies the last fully visible
+screen line of the window.
 
 If @var{count} is @code{nil}, then point moves to the beginning of the
 line in the middle of the window.  If the absolute value of @var{count}
@@ -568,8 +609,8 @@ location onto the screen.
 
 In an interactive call, @var{count} is the numeric prefix argument.
 
-The value returned is the window line number point has moved to, with
-the top line in the window numbered 0.
+The value returned is the screen line number point has moved to,
+relative to the top line of the window.
 @end deffn
 
 @vindex move-to-window-group-line-function

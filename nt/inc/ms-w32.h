@@ -146,6 +146,7 @@ extern char *getenv ();
    in its system headers, and is not really compatible with values
    lower than 0x0500, so leave it alone.  */
 #ifndef MINGW_W64
+# undef _WIN32_WINNT
 # define _WIN32_WINNT 0x0400
 #endif
 
@@ -291,6 +292,19 @@ extern int sys_umask (int);
 /* Map to MSVC names.  */
 #define execlp    _execlp
 #define execvp    _execvp
+#include <stdint.h>		/* for intptr_t */
+extern intptr_t _execvp (const char *, char **);
+#ifdef MINGW_W64
+/* GCC 6 has a builtin execve with the prototype shown below.  MinGW64
+   changed the prototype in its process.h to match that, although the
+   library function still calls _execve, which still returns intptr_t.
+   However, using the prototype with intptr_t causes GCC to emit
+   warnings.  Fortunately, execve is not used in the MinGW build, but
+   the code that references it is still compiled.  */
+extern int execve (const char *, char * const *, char * const *);
+#else
+extern intptr_t execve (const char *, char * const *, char * const *);
+#endif
 #define fdatasync _commit
 #define fdopen	  _fdopen
 #define fsync	  _commit

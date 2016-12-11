@@ -87,21 +87,21 @@ If a file with the `.el' or `.elc' suffixes exists, it will be read instead."
   :type '(choice file (const nil)))
 
 (defcustom gnus-use-dribble-file t
-  "*Non-nil means that Gnus will use a dribble file to store user updates.
+  "Non-nil means that Gnus will use a dribble file to store user updates.
 If Emacs should crash without saving the .newsrc files, complete
 information can be restored from the dribble file."
   :group 'gnus-dribble-file
   :type 'boolean)
 
 (defcustom gnus-dribble-directory nil
-  "*The directory where dribble files will be saved.
+  "The directory where dribble files will be saved.
 If this variable is nil, the directory where the .newsrc files are
 saved will be used."
   :group 'gnus-dribble-file
   :type '(choice directory (const nil)))
 
 (defcustom gnus-check-new-newsgroups 'ask-server
-  "*Non-nil means that Gnus will run `gnus-find-new-newsgroups' at startup.
+  "Non-nil means that Gnus will run `gnus-find-new-newsgroups' at startup.
 This normally finds new newsgroups by comparing the active groups the
 servers have already reported with those Gnus already knows, either alive
 or killed.
@@ -138,14 +138,14 @@ check for new newsgroups with \\<gnus-group-mode-map>\\[gnus-find-new-newsgroups
 			 (sexp :format "%v"))))
 
 (defcustom gnus-check-bogus-newsgroups nil
-  "*Non-nil means that Gnus will check and remove bogus newsgroup at startup.
+  "Non-nil means that Gnus will check and remove bogus newsgroup at startup.
 If this variable is nil, then you have to tell Gnus explicitly to
 check for bogus newsgroups with \\<gnus-group-mode-map>\\[gnus-group-check-bogus-groups]."
   :group 'gnus-start-server
   :type 'boolean)
 
 (defcustom gnus-read-active-file 'some
-  "*Non-nil means that Gnus will read the entire active file at startup.
+  "Non-nil means that Gnus will read the entire active file at startup.
 If this variable is nil, Gnus will only know about the groups in your
 `.newsrc' file.
 
@@ -183,24 +183,24 @@ Levels' for details.")
   "Groups with this level are killed.")
 
 (defcustom gnus-level-default-subscribed 3
-  "*New subscribed groups will be subscribed at this level."
+  "New subscribed groups will be subscribed at this level."
   :group 'gnus-group-levels
   :type 'integer)
 
 (defcustom gnus-level-default-unsubscribed 6
-  "*New unsubscribed groups will be unsubscribed at this level."
+  "New unsubscribed groups will be unsubscribed at this level."
   :group 'gnus-group-levels
   :type 'integer)
 
 (defcustom gnus-activate-level (1+ gnus-level-subscribed)
-  "*Groups higher than this level won't be activated on startup.
+  "Groups higher than this level won't be activated on startup.
 Setting this variable to something low might save lots of time when
 you have many groups that you aren't interested in."
   :group 'gnus-group-levels
   :type 'integer)
 
 (defcustom gnus-activate-foreign-newsgroups 4
-  "*If nil, Gnus will not check foreign newsgroups at startup.
+  "If nil, Gnus will not check foreign newsgroups at startup.
 If it is non-nil, it should be a number between one and nine.  Foreign
 newsgroups that have a level lower or equal to this number will be
 activated on startup.  For instance, if you want to active all
@@ -216,7 +216,7 @@ groups."
 		 (const :tag "none" nil)))
 
 (defcustom gnus-read-newsrc-file t
-  "*Non-nil means that Gnus will read the `.newsrc' file.
+  "Non-nil means that Gnus will read the `.newsrc' file.
 Gnus always reads its own startup file, which is called
 \".newsrc.eld\".  The file called \".newsrc\" is in a format that can
 be readily understood by other newsreaders.  If you don't plan on
@@ -227,7 +227,7 @@ entry."
   :type 'boolean)
 
 (defcustom gnus-save-newsrc-file t
-  "*Non-nil means that Gnus will save the `.newsrc' file.
+  "Non-nil means that Gnus will save the `.newsrc' file.
 Gnus always saves its own startup file, which is called
 \".newsrc.eld\".  The file called \".newsrc\" is in a format that can
 be readily understood by other newsreaders.  If you don't plan on
@@ -237,7 +237,7 @@ exit."
   :type 'boolean)
 
 (defcustom gnus-save-killed-list t
-  "*If non-nil, save the list of killed groups to the startup file.
+  "If non-nil, save the list of killed groups to the startup file.
 If you set this variable to nil, you'll save both time (when starting
 and quitting) and space (both memory and disk), but it will also mean
 that Gnus has no record of which groups are new and which are old, so
@@ -263,7 +263,7 @@ not match this regexp will be removed before saving the list."
 	       "^[\"][\"#'()]"	; bogus characters
 	       )
 	     "\\|")
-  "*A regexp to match uninteresting newsgroups in the active file.
+  "A regexp to match uninteresting newsgroups in the active file.
 Any lines in the active file matching this regular expression are
 removed from the newsgroup list before anything else is done to it,
 thus making them effectively non-existent."
@@ -271,7 +271,7 @@ thus making them effectively non-existent."
   :type 'regexp)
 
 (defcustom gnus-subscribe-newsgroup-method 'gnus-subscribe-zombies
-  "*Function(s) called with a group name when new group is detected.
+  "Function(s) called with a group name when new group is detected.
 A few pre-made functions are supplied: `gnus-subscribe-randomly'
 inserts new groups at the beginning of the list of groups;
 `gnus-subscribe-alphabetically' inserts new groups in strict
@@ -295,7 +295,7 @@ claim them."
 (define-obsolete-variable-alias 'gnus-subscribe-newsgroup-hooks
   'gnus-subscribe-newsgroup-functions "24.3")
 (defcustom gnus-subscribe-newsgroup-functions nil
-  "*Hooks run after you subscribe to a new group.
+  "Hooks run after you subscribe to a new group.
 The hooks will be called with new group's name as argument."
   :version "22.1"
   :group 'gnus-group-new
@@ -303,7 +303,7 @@ The hooks will be called with new group's name as argument."
 
 (defcustom gnus-subscribe-options-newsgroup-method
   'gnus-subscribe-alphabetically
-  "*Function(s) called to subscribe newsgroups mentioned on \"options -n\" lines.
+  "Function(s) called to subscribe newsgroups mentioned on \"options -n\" lines.
 If, for instance, you want to subscribe to all newsgroups in the
 \"no\" and \"alt\" hierarchies, you'd put the following in your
 .newsrc file:
@@ -324,7 +324,7 @@ with the subscription method in this variable."
 		(repeat function)))
 
 (defcustom gnus-subscribe-hierarchical-interactive nil
-  "*If non-nil, Gnus will offer to subscribe hierarchically.
+  "If non-nil, Gnus will offer to subscribe hierarchically.
 When a new hierarchy appears, Gnus will ask the user:
 
 'alt.binaries': Do you want to subscribe to this hierarchy? ([d]ys):
@@ -336,7 +336,7 @@ hierarchy in its entirety."
   :type 'boolean)
 
 (defcustom gnus-auto-subscribed-categories '(mail post-mail)
-  "*New groups from methods of these categories will be subscribed automatically.
+  "New groups from methods of these categories will be subscribed automatically.
 Note that this variable only deals with new groups.  It has no
 effect whatsoever on old groups.  The default is to automatically
 subscribe all groups from mail-like backends."
@@ -346,7 +346,7 @@ subscribe all groups from mail-like backends."
 
 (defcustom gnus-auto-subscribed-groups
   "^nnml\\|^nnfolder\\|^nnmbox\\|^nnmh\\|^nnbabyl\\|^nnmaildir\\|^nnimap"
-  "*All new groups that match this regexp will be subscribed automatically.
+  "All new groups that match this regexp will be subscribed automatically.
 Note that this variable only deals with new groups.  It has no effect
 whatsoever on old groups.
 
@@ -357,7 +357,7 @@ be subscribed using `gnus-subscribe-options-newsgroup-method'."
   :type 'regexp)
 
 (defcustom gnus-options-subscribe nil
-  "*All new groups matching this regexp will be subscribed unconditionally.
+  "All new groups matching this regexp will be subscribed unconditionally.
 Note that this variable deals only with new newsgroups.  This variable
 does not affect old newsgroups.
 
@@ -369,7 +369,7 @@ be subscribed using `gnus-subscribe-options-newsgroup-method'."
 		 (const :tag "none" nil)))
 
 (defcustom gnus-options-not-subscribe nil
-  "*All new groups matching this regexp will be ignored.
+  "All new groups matching this regexp will be ignored.
 Note that this variable deals only with new newsgroups.  This variable
 does not affect old (already subscribed) newsgroups."
   :group 'gnus-group-new
@@ -377,7 +377,7 @@ does not affect old (already subscribed) newsgroups."
 		 (const :tag "none" nil)))
 
 (defcustom gnus-modtime-botch nil
-  "*Non-nil means .newsrc should be deleted prior to save.
+  "Non-nil means .newsrc should be deleted prior to save.
 Its use is due to the bogus appearance that .newsrc was modified on
 disc."
   :group 'gnus-newsrc
@@ -432,7 +432,7 @@ See also `gnus-before-startup-hook'."
 
 (defcustom gnus-after-getting-new-news-hook
   '(gnus-display-time-event-handler)
-  "*A hook run after Gnus checks for new news when Gnus is already running."
+  "A hook run after Gnus checks for new news when Gnus is already running."
   :version "24.1"
   :group 'gnus-group-new
   :type 'hook)

@@ -1,4 +1,4 @@
-;;; url-http.el --- HTTP retrieval routines
+;;; url-http.el --- HTTP retrieval routines  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1999, 2001, 2004-2016 Free Software Foundation, Inc.
 
@@ -27,6 +27,7 @@
 
 (require 'cl-lib)
 (require 'puny)
+(require 'nsm)
 (eval-when-compile
   (require 'subr-x))
 
@@ -127,6 +128,7 @@ request.")
     (422 unprocessable-entity            "Unprocessable Entity (Added by DAV)")
     (423 locked                          "Locked")
     (424 failed-Dependency               "Failed Dependency")
+    (451 unavailable-for-legal-reasons   "Unavailable for legal reasons") ;RFC 7725
     (500 internal-server-error           "Internal server error")
     (501 not-implemented                 "Not implemented")
     (502 bad-gateway                     "Bad gateway")
@@ -135,6 +137,8 @@ request.")
     (505 http-version-not-supported      "HTTP version not supported")
     (507 insufficient-storage            "Insufficient storage"))
   "The HTTP return codes and their text.")
+
+(defconst url-https-default-port 443 "Default HTTPS port.")
 
 ;(eval-when-compile
 ;; These are all macros so that they are hidden from external sight
@@ -197,7 +201,14 @@ request.")
 	;; `url-open-stream' needs a buffer in which to do things
 	;; like authentication.  But we use another buffer afterwards.
 	(unwind-protect
-	    (let ((proc (url-open-stream host buf host port gateway-method)))
+            (let ((proc (url-open-stream host buf
+                                         (if url-using-proxy
+                                             (url-host url-using-proxy)
+                                           host)
+                                         (if url-using-proxy
+                                             (url-port url-using-proxy)
+                                           port)
+                                         gateway-method)))
 	      ;; url-open-stream might return nil.
 	      (when (processp proc)
 		;; Drop the temp buffer link before killing the buffer.
@@ -212,15 +223,36 @@ request.")
     (if connection
 	(url-http-mark-connection-as-busy host port connection))))
 
+(defun url-http--user-agent-default-string ()
+  "Compute a default User-Agent string based on `url-privacy-level'."
+  (let ((package-info (when url-package-name
+                        (format "%s/%s" url-package-name url-package-version)))
+        (emacs-info (unless (and (listp url-privacy-level)
+                                 (memq 'emacs url-privacy-level))
+                      (format "Emacs/%s" emacs-version)))
+        (os-info (unless (and (listp url-privacy-level)
+                              (memq 'os url-privacy-level))
+                   (format "(%s; %s)" url-system-type url-os-type)))
+        (url-info (format "URL/%s" url-version)))
+    (string-join (delq nil (list package-info url-info
+                                 emacs-info os-info))
+                 " ")))
+
 ;; Building an HTTP request
 (defun url-http-user-agent-string ()
-  (if (or (eq url-privacy-level 'paranoid)
-	  (and (listp url-privacy-level)
-	       (memq 'agent url-privacy-level)))
-      ""
-    (if (functionp url-user-agent)
-        (funcall url-user-agent)
-      url-user-agent)))
+  "Compute a User-Agent string.
+The string is based on `url-privacy-level' and `url-user-agent'."
+  (let* ((hide-ua
+          (or (eq url-privacy-level 'paranoid)
+              (and (listp url-privacy-level)
+                   (memq 'agent url-privacy-level))))
+         (ua-string
+          (and (not hide-ua)
+               (cond
+                ((functionp url-user-agent) (funcall url-user-agent))
+                ((stringp url-user-agent) url-user-agent)
+                ((eq url-user-agent 'default) (url-http--user-agent-default-string))))))
+    (if ua-string (format "User-Agent: %s\r\n" (string-trim ua-string)) "")))
 
 (defun url-http-create-request (&optional ref-url)
   "Create an HTTP request for `url-http-target-url', referred to by REF-URL."
@@ -236,7 +268,7 @@ request.")
 			      'url-http-proxy-basic-auth-storage))
 			 (url-get-authentication url-http-proxy nil 'any nil))))
 	 (real-fname (url-filename url-http-target-url))
-	 (host (url-host url-http-target-url))
+	 (host (url-http--encode-string (url-host url-http-target-url)))
 	 (auth (if (cdr-safe (assoc "Authorization" url-http-extra-headers))
 		   nil
 		 (url-get-authentication (or
@@ -276,22 +308,11 @@ request.")
     ;; allows us to elide null lines directly, at the cost of making
     ;; the layout less clear.
     (setq request
-          ;; We used to concat directly, but if one of the strings happens
-          ;; to being multibyte (even if it only contains pure ASCII) then
-          ;; every string gets converted with `string-MAKE-multibyte' which
-          ;; turns the 127-255 codes into things like latin-1 accented chars
-          ;; (it would work right if it used `string-TO-multibyte' instead).
-          ;; So to avoid the problem we force every string to be unibyte.
-          (mapconcat
-           ;; FIXME: Instead of `string-AS-unibyte' we'd want
-           ;; `string-to-unibyte', so as to properly signal an error if one
-           ;; of the strings contains a multibyte char.
-           'string-as-unibyte
-           (delq nil
-            (list
+          (concat
              ;; The request
              (or url-http-method "GET") " "
-             (if using-proxy (url-recreate-url url-http-target-url) real-fname)
+             (url-http--encode-string
+              (if using-proxy (url-recreate-url url-http-target-url) real-fname))
              " HTTP/" url-http-version "\r\n"
              ;; Version of MIME we speak
              "MIME-Version: 1.0\r\n"
@@ -328,7 +349,9 @@ request.")
                   "Accept-encoding: " url-mime-encoding-string "\r\n"))
              (if url-mime-charset-string
                  (concat
-                  "Accept-charset: " url-mime-charset-string "\r\n"))
+                  "Accept-charset: "
+                  (url-http--encode-string url-mime-charset-string)
+                  "\r\n"))
              ;; Languages we understand
              (if url-mime-language-string
                  (concat
@@ -343,9 +366,10 @@ request.")
              auth
              ;; Cookies
 	     (when (url-use-cookies url-http-target-url)
-	       (url-cookie-generate-header-lines
-		host real-fname
-		(equal "https" (url-type url-http-target-url))))
+               (url-http--encode-string
+                (url-cookie-generate-header-lines
+                 host real-fname
+                 (equal "https" (url-type url-http-target-url)))))
              ;; If-modified-since
              (if (and (not no-cache)
                       (member url-http-method '("GET" nil)))
@@ -367,9 +391,17 @@ request.")
              "\r\n"
              ;; Any data
              url-http-data))
-           ""))
+    ;; Bug#23750
+    (unless (= (string-bytes request)
+               (length request))
+      (error "Multibyte text in HTTP request: %s" request))
     (url-http-debug "Request is: \n%s" request)
     request))
+
+(defun url-http--encode-string (s)
+  (if (multibyte-string-p s)
+      (encode-coding-string s 'us-ascii)
+    s))
 
 ;; Parsing routines
 (defun url-http-clean-headers ()
@@ -477,6 +509,7 @@ work correctly."
   )
 
 (declare-function gnutls-peer-status "gnutls.c" (proc))
+(declare-function gnutls-negotiate "gnutls.el" t t)
 
 (defun url-http-parse-headers ()
  "Parse and handle HTTP specific headers.
@@ -899,7 +932,7 @@ should be shown to the user."
 ;; )
 
 ;; These unfortunately cannot be macros... please ignore them!
-(defun url-http-idle-sentinel (proc why)
+(defun url-http-idle-sentinel (proc _why)
   "Remove (now defunct) process PROC from the list of open connections."
   (maphash (lambda (key val)
 		(if (memq proc val)
@@ -925,18 +958,24 @@ should be shown to the user."
 	       (erase-buffer)
                (let ((url-request-method url-http-method)
                      (url-request-extra-headers url-http-extra-headers)
-                     (url-request-data url-http-data))
+                     (url-request-data url-http-data)
+                     (url-using-proxy (url-find-proxy-for-url
+                                       url-current-object
+                                       (url-host url-current-object))))
+                 (when url-using-proxy
+                   (setq url-using-proxy
+                         (url-generic-parse-url url-using-proxy)))
                  (url-http url-current-object url-callback-function
                            url-callback-arguments (current-buffer)))))
 	    ((url-http-parse-headers)
 	     (url-http-activate-callback))))))
 
-(defun url-http-simple-after-change-function (st nd length)
+(defun url-http-simple-after-change-function (_st _nd _length)
   ;; Function used when we do NOT know how long the document is going to be
   ;; Just _very_ simple 'downloaded %d' type of info.
-  (url-lazy-message "Reading %s..." (file-size-human-readable nd)))
+  (url-lazy-message "Reading %s..." (file-size-human-readable (buffer-size))))
 
-(defun url-http-content-length-after-change-function (st nd length)
+(defun url-http-content-length-after-change-function (_st nd _length)
   "Function used when we DO know how long the document is going to be.
 More sophisticated percentage downloaded, etc.
 Also does minimal parsing of HTTP headers and will actually cause
@@ -1055,7 +1094,7 @@ the end of the document."
 		  (if (url-http-parse-headers)
 		      (url-http-activate-callback))))))))))
 
-(defun url-http-wait-for-headers-change-function (st nd length)
+(defun url-http-wait-for-headers-change-function (_st nd _length)
   ;; This will wait for the headers to arrive and then splice in the
   ;; next appropriate after-change-function, etc.
   (url-http-debug "url-http-wait-for-headers-change-function (%s)"
@@ -1063,7 +1102,8 @@ the end of the document."
   (let ((end-of-headers nil)
 	(old-http nil)
 	(process-buffer (current-buffer))
-	(content-length nil))
+	;; (content-length nil)
+        )
     (when (not (bobp))
       (goto-char (point-min))
       (if (and (looking-at ".*\n")	; have one line at least
@@ -1204,22 +1244,25 @@ overriding the value of `url-gateway-method'.
 
 The return value of this function is the retrieval buffer."
   (cl-check-type url vector "Need a pre-parsed URL.")
-  (let* ((host (url-host (or url-using-proxy url)))
-	 (port (url-port (or url-using-proxy url)))
+  (let* (;; (host (url-host (or url-using-proxy url)))
+	 ;; (port (url-port (or url-using-proxy url)))
 	 (nsm-noninteractive (or url-request-noninteractive
 				 (and (boundp 'url-http-noninteractive)
 				      url-http-noninteractive)))
-	 (connection (url-http-find-free-connection host port gateway-method))
+         (connection (url-http-find-free-connection (url-host url)
+                                                    (url-port url)
+                                                    gateway-method))
          (mime-accept-string url-mime-accept-string)
 	 (buffer (or retry-buffer
 		     (generate-new-buffer
-                      (format " *http %s:%d*" host port)))))
+                      (format " *http %s:%d*" (url-host url) (url-port url))))))
     (if (not connection)
 	;; Failed to open the connection for some reason
 	(progn
 	  (kill-buffer buffer)
 	  (setq buffer nil)
-	  (error "Could not create connection to %s:%d" host port))
+          (error "Could not create connection to %s:%d" (url-host url)
+                 (url-port url)))
       (with-current-buffer buffer
 	(mm-disable-multibyte)
 	(setq url-current-object url
@@ -1275,12 +1318,71 @@ The return value of this function is the retrieval buffer."
            (set-process-sentinel connection 'url-http-async-sentinel))
           (`failed
            ;; Asynchronous connection failed
-           (error "Could not create connection to %s:%d" host port))
+           (error "Could not create connection to %s:%d" (url-host url)
+                  (url-port url)))
           (_
-           (set-process-sentinel connection
-                                 'url-http-end-of-document-sentinel)
-           (process-send-string connection (url-http-create-request))))))
+           (if (and url-http-proxy (string= "https"
+                                            (url-type url-current-object)))
+               (url-https-proxy-connect connection)
+             (set-process-sentinel connection
+                                   'url-http-end-of-document-sentinel)
+             (process-send-string connection (url-http-create-request)))))))
     buffer))
+
+(defun url-https-proxy-connect (connection)
+  (setq url-http-after-change-function 'url-https-proxy-after-change-function)
+  (process-send-string connection (format (concat "CONNECT %s:%d HTTP/1.1\r\n"
+                                                  "Host: %s\r\n"
+                                                  "\r\n")
+                                          (url-host url-current-object)
+                                          (or (url-port url-current-object)
+                                              url-https-default-port)
+                                          (url-host url-current-object))))
+
+(defun url-https-proxy-after-change-function (_st _nd _length)
+  (let* ((process-buffer (current-buffer))
+         (proc (get-buffer-process process-buffer)))
+    (goto-char (point-min))
+    (when (re-search-forward "^\r?\n" nil t)
+      (backward-char 1)
+      ;; Saw the end of the headers
+      (setq url-http-end-of-headers (set-marker (make-marker) (point)))
+      (url-http-parse-response)
+      (cond
+       ((null url-http-response-status)
+        ;; We got back a headerless malformed response from the
+        ;; server.
+        (url-http-activate-callback)
+        (error "Malformed response from proxy, fail!"))
+       ((= url-http-response-status 200)
+        (if (gnutls-available-p)
+            (condition-case e
+                (let ((tls-connection (gnutls-negotiate
+                                       :process proc
+                                       :hostname (url-host url-current-object)
+                                       :verify-error nil)))
+                  ;; check certificate validity
+                  (setq tls-connection
+                        (nsm-verify-connection tls-connection
+                                               (url-host url-current-object)
+                                               (url-port url-current-object)))
+                  (with-current-buffer process-buffer (erase-buffer))
+                  (set-process-buffer tls-connection process-buffer)
+                  (setq url-http-after-change-function
+                        'url-http-wait-for-headers-change-function)
+                  (set-process-filter tls-connection 'url-http-generic-filter)
+                  (process-send-string tls-connection
+                                       (url-http-create-request)))
+              (gnutls-error
+               (url-http-activate-callback)
+               (error "gnutls-error: %s" e))
+              (error
+               (url-http-activate-callback)
+               (error "error: %s" e)))
+          (error "error: gnutls support needed!")))
+       (t
+        (message "error response: %d" url-http-response-status)
+        (url-http-activate-callback))))))
 
 (defun url-http-async-sentinel (proc why)
   ;; We are performing an asynchronous connection, and a status change
@@ -1293,11 +1395,13 @@ The return value of this function is the retrieval buffer."
 	(url-http-end-of-document-sentinel proc why))
        ((string= (substring why 0 4) "open")
 	(setq url-http-connection-opened t)
-	(condition-case error
-	    (process-send-string proc (url-http-create-request))
-	  (file-error
-	   (setq url-http-connection-opened nil)
-	   (message "HTTP error: %s" error))))
+        (if (and url-http-proxy (string= "https" (url-type url-current-object)))
+            (url-https-proxy-connect proc)
+          (condition-case error
+              (process-send-string proc (url-http-create-request))
+            (file-error
+             (setq url-http-connection-opened nil)
+             (message "HTTP error: %s" error)))))
        (t
 	(setf (car url-callback-arguments)
 	      (nconc (list :error (list 'error 'connection-failed why
@@ -1359,7 +1463,7 @@ The return value of this function is the retrieval buffer."
 
 (defalias 'url-http-file-readable-p 'url-http-file-exists-p)
 
-(defun url-http-head-file-attributes (url &optional id-format)
+(defun url-http-head-file-attributes (url &optional _id-format)
   (let ((buffer (url-http-head url)))
     (when buffer
       (prog1
@@ -1374,7 +1478,7 @@ The return value of this function is the retrieval buffer."
            nil nil nil)          ;whether gid would change ; inode ; device.
         (kill-buffer buffer)))))
 
-(declare-function url-dav-file-attributes "url-dav" (url &optional id-format))
+(declare-function url-dav-file-attributes "url-dav" (url &optional _id-format))
 
 (defun url-http-file-attributes (url &optional id-format)
   (if (url-dav-supported-p url)
@@ -1458,7 +1562,6 @@ p3p
 ;; with url-http.el on systems with 8-character file names.
 (require 'tls)
 
-(defconst url-https-default-port 443 "Default HTTPS port.")
 (defconst url-https-asynchronous-p t "HTTPS retrievals are asynchronous.")
 
 ;; FIXME what is the point of this alias being an autoload?

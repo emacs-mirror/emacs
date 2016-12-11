@@ -68,7 +68,7 @@ if [ -f "$output" ]; then
 fi
 
 # If this is not a Git repository, just generate an empty ChangeLog.
-test -d .git || {
+test -e .git || {
   >"$output"
   exit
 }
@@ -77,11 +77,11 @@ test -d .git || {
 # Maybe we should skip all "Merge branch 'master'" messages.
 # See eg the cairo-related ones.
 ./build-aux/gitlog-to-changelog \
-    --ignore-matching="^; |^Merge branch '(master|emacs-[0-9][0-9])' of git\.(savannah|sv)\.gnu\.org:/srv/git/emacs$|^Merge remote-tracking branch '.*'$" \
+    --ignore-matching="^; |^Merge branch '[^']*' of git\.(savannah|sv)\.gnu\.org:/srv/git/emacs|^Merge remote-tracking branch '.*'$" \
   --ignore-line='^; ' --format='%B' \
   "$gen_origin..$new_origin" >"ChangeLog.tmp" || exit
 
-if test -s "ChangeLog.tmp"; then
+if test -e "ChangeLog.tmp"; then
 
   # Fix up bug references.
   # This would be better as eg a --transform option to gitlog-to-changelog,
@@ -99,7 +99,7 @@ if test -s "ChangeLog.tmp"; then
   `
   start_year=
   end_year=
-  for year in $years; do
+  for year in ${years:-`date +%Y`}; do
     : ${start_year:=$year}
     end_year=$year
   done
@@ -110,13 +110,19 @@ if test -s "ChangeLog.tmp"; then
     year_range=$start_year-$end_year
   fi
 
-  # Update gen_origin and append a proper copyright notice.
-  sed -n '
-    1i\
+  # Update gen_origin
+  if test "$gen_origin" != "$new_origin"; then
+      sed -n '
+        1i\
 
-    /^This file records repository revisions/p
-    s/^commit [0-9a-f]* (exclusive)/commit '"$gen_origin"' (exclusive)/p
-    s/^commit [0-9a-f]* (inclusive)/commit '"$new_origin"' (inclusive)/p
+        /^This file records repository revisions/p
+        s/^commit [0-9a-f]* (exclusive)/commit '"$gen_origin"' (exclusive)/p
+        s/^commit [0-9a-f]* (inclusive)/commit '"$new_origin"' (inclusive)/p
+      ' <ChangeLog.$nmax >>"ChangeLog.tmp" || exit
+  fi
+
+  # Append a proper copyright notice.
+  sed -n '
     /^See ChangeLog.[0-9]* for earlier/,${
        s/ChangeLog\.[0-9]*/ChangeLog.'$nmax'/
        s/\(Copyright[ (C)]*\)[0-9]*-[0-9]*/\1'"$year_range"'/

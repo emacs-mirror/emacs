@@ -83,7 +83,10 @@ struct Lisp_Process
     Lisp_Object mark;
 
     /* Symbol indicating status of process.
-       This may be a symbol: run, open, or closed.
+       This may be a symbol: run, open, closed, listen, or failed.
+       Or it may be a pair (connect . ADDRINFOS) where ADDRINFOS is
+       a list of remaining (PROTOCOL . ADDRINFO) pairs to try.
+       Or it may be (failed ERR) where ERR is an integer, string or symbol.
        Or it may be a list, whose car is stop, exit or signal
        and whose cdr is a pair (EXIT_CODE . COREDUMP_FLAG)
        or (SIGNAL_NUMBER . COREDUMP_FLAG).  */
@@ -115,10 +118,11 @@ struct Lisp_Process
     /* After this point, there are no Lisp_Objects any more.  */
     /* alloc.c assumes that `pid' is the first such non-Lisp slot.  */
 
-    /* Number of this process.
-       allocate_process assumes this is the first non-Lisp_Object field.
-       A value 0 is used for pseudo-processes such as network or serial
-       connections.  */
+    /* Process ID.  A positive value is a child process ID.
+       Zero is for pseudo-processes such as network or serial connections,
+       or for processes that have not been fully created yet.
+       -1 is for a process that was not created successfully.
+       -2 is for a pty with no process, e.g., for GDB.  */
     pid_t pid;
     /* Descriptor by which we read from this process.  */
     int infd;
@@ -173,8 +177,6 @@ struct Lisp_Process
     int port;
     /* The socket type. */
     int socktype;
-    /* The socket protocol. */
-    int ai_protocol;
 
 #ifdef HAVE_GETADDRINFO_A
     /* Whether the socket is waiting for response from an asynchronous
@@ -263,6 +265,7 @@ extern void delete_read_fd (int fd);
 extern void add_write_fd (int fd, fd_callback func, void *data);
 extern void delete_write_fd (int fd);
 extern void catch_child_signal (void);
+extern void restore_nofile_limit (void);
 
 #ifdef WINDOWSNT
 extern Lisp_Object network_interface_list (void);

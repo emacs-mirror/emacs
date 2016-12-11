@@ -23,6 +23,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/file.h>
 #include <sys/time.h>
 #include <unistd.h>
@@ -58,10 +59,7 @@ static int been_here = -1;
 
 /* The name of the default console device.  */
 #ifdef WINDOWSNT
-#define DEV_TTY  "CONOUT$"
 #include "w32term.h"
-#else
-#define DEV_TTY  "/dev/tty"
 #endif
 
 static void tty_set_scroll_region (struct frame *f, int start, int stop);
@@ -548,8 +546,8 @@ encode_terminal_code (struct glyph *src, int src_len,
     {
       if (src->type == COMPOSITE_GLYPH)
 	{
-	  struct composition *cmp IF_LINT (= NULL);
-	  Lisp_Object gstring IF_LINT (= Qnil);
+	  struct composition *cmp UNINIT;
+	  Lisp_Object gstring UNINIT;
 	  int i;
 
 	  nbytes = buf - encode_terminal_src;
@@ -596,7 +594,7 @@ encode_terminal_code (struct glyph *src, int src_len,
 		  continue;
 		if (char_charset (c, charset_list, NULL))
 		  {
-		    if (CHAR_WIDTH (c) == 0
+		    if (CHARACTER_WIDTH (c) == 0
 			&& i > 0 && COMPOSITION_GLYPH (cmp, i - 1) == '\t')
 		      /* Should be left-padded */
 		      {
@@ -614,7 +612,7 @@ encode_terminal_code (struct glyph *src, int src_len,
       else if (! CHAR_GLYPH_PADDING_P (*src))
 	{
 	  GLYPH g;
-	  int c IF_LINT (= 0);
+	  int c UNINIT;
 	  Lisp_Object string;
 
 	  string = Qnil;
@@ -1496,6 +1494,8 @@ append_glyph (struct it *it)
       glyph->pixel_width = 1;
       glyph->u.ch = it->char_to_display;
       glyph->face_id = it->face_id;
+      glyph->avoid_cursor_p = it->avoid_cursor_p;
+      glyph->multibyte_p = it->multibyte_p;
       glyph->padding_p = i > 0;
       glyph->charpos = CHARPOS (it->position);
       glyph->object = it->object;
@@ -1627,7 +1627,7 @@ produce_glyphs (struct it *it)
 
       if (char_charset (it->char_to_display, charset_list, NULL))
 	{
-	  it->pixel_width = CHAR_WIDTH (it->char_to_display);
+	  it->pixel_width = CHARACTER_WIDTH (it->char_to_display);
 	  it->nglyphs = it->pixel_width;
 	  if (it->glyph_row)
 	    append_glyph (it);
@@ -1676,6 +1676,7 @@ append_composite_glyph (struct it *it)
 	  glyph = it->glyph_row->glyphs[it->area];
 	}
       glyph->type = COMPOSITE_GLYPH;
+      eassert (it->pixel_width <= SHRT_MAX);
       glyph->pixel_width = it->pixel_width;
       glyph->u.cmp.id = it->cmp_it.id;
       if (it->cmp_it.ch < 0)
@@ -1691,8 +1692,10 @@ append_composite_glyph (struct it *it)
 	  glyph->slice.cmp.to = it->cmp_it.to - 1;
 	}
 
+      glyph->avoid_cursor_p = it->avoid_cursor_p;
+      glyph->multibyte_p = it->multibyte_p;
       glyph->face_id = it->face_id;
-      glyph->padding_p = 0;
+      glyph->padding_p = false;
       glyph->charpos = CHARPOS (it->position);
       glyph->object = it->object;
       if (it->bidi_p)
@@ -1775,8 +1778,10 @@ append_glyphless_glyph (struct it *it, int face_id, const char *str)
     return;
   glyph->type = CHAR_GLYPH;
   glyph->pixel_width = 1;
+  glyph->avoid_cursor_p = it->avoid_cursor_p;
+  glyph->multibyte_p = it->multibyte_p;
   glyph->face_id = face_id;
-  glyph->padding_p = 0;
+  glyph->padding_p = false;
   glyph->charpos = CHARPOS (it->position);
   glyph->object = it->object;
   if (it->bidi_p)
@@ -1817,7 +1822,7 @@ static void
 produce_glyphless_glyph (struct it *it, Lisp_Object acronym)
 {
   int len, face_id = merge_glyphless_glyph_face (it);
-  char buf[sizeof "\\x" + max (6, (sizeof it->c * CHAR_BIT + 3) / 4)];
+  char buf[sizeof "\\x" + max (6, (INT_WIDTH + 3) / 4)];
   char const *str = "    ";
 
   if (it->glyphless_method == GLYPHLESS_DISPLAY_THIN_SPACE)
@@ -1828,7 +1833,7 @@ produce_glyphless_glyph (struct it *it, Lisp_Object acronym)
     }
   else if (it->glyphless_method == GLYPHLESS_DISPLAY_EMPTY_BOX)
     {
-      len = CHAR_WIDTH (it->c);
+      len = CHARACTER_WIDTH (it->c);
       if (len == 0)
 	len = 1;
       else if (len > 4)
@@ -1952,8 +1957,6 @@ turn_off_face (struct frame *f, int face_id)
 {
   struct face *face = FACE_FROM_ID (f, face_id);
   struct tty_display_info *tty = FRAME_TTY (f);
-
-  eassert (face != NULL);
 
   if (tty->TS_exit_attribute_mode)
     {
@@ -3100,7 +3103,7 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
   struct tty_menu_state *state;
   int statecount, x, y, i;
   bool leave, onepane;
-  int result IF_LINT (= 0);
+  int result UNINIT;
   int title_faces[4];		/* Face to display the menu title.  */
   int faces[4], buffers_num_deleted = 0;
   struct frame *sf = SELECTED_FRAME ();
@@ -3402,9 +3405,11 @@ static void
 tty_pop_down_menu (Lisp_Object arg)
 {
   tty_menu *menu = XSAVE_POINTER (arg, 0);
+  struct buffer *orig_buffer = XSAVE_POINTER (arg, 1);
 
   block_input ();
   tty_menu_destroy (menu);
+  set_buffer_internal (orig_buffer);
   unblock_input ();
 }
 
@@ -3683,7 +3688,10 @@ tty_menu_show (struct frame *f, int x, int y, int menuflags,
 
   pane = selidx = 0;
 
-  record_unwind_protect (tty_pop_down_menu, make_save_ptr (menu));
+  /* We save and restore the current buffer because tty_menu_activate
+     triggers redisplay, which switches buffers at will.  */
+  record_unwind_protect (tty_pop_down_menu,
+			 make_save_ptr_ptr (menu, current_buffer));
 
   specbind (Qoverriding_terminal_local_map,
 	    Fsymbol_value (Qtty_menu_navigation_map));
@@ -3749,7 +3757,7 @@ tty_menu_show (struct frame *f, int x, int y, int menuflags,
       /* Make "Cancel" equivalent to C-g unless FOR_CLICK (which means
 	 the menu was invoked with a mouse event as POSITION).  */
       if (!(menuflags & MENU_FOR_CLICK))
-        Fsignal (Qquit, Qnil);
+	quit ();
       break;
     }
 
@@ -3898,7 +3906,7 @@ dissociate_if_controlling_tty (int fd)
 /* Create a termcap display on the tty device with the given name and
    type.
 
-   If NAME is NULL, then use the controlling tty, i.e., "/dev/tty".
+   If NAME is NULL, then use the controlling tty, i.e., DEV_TTY.
    Otherwise NAME should be a path to the tty device file,
    e.g. "/dev/pts/7".
 
@@ -3909,13 +3917,15 @@ dissociate_if_controlling_tty (int fd)
 struct terminal *
 init_tty (const char *name, const char *terminal_type, bool must_succeed)
 {
+  struct tty_display_info *tty = NULL;
+  struct terminal *terminal = NULL;
+#ifndef DOS_NT
   char *area;
   char **address = &area;
   int status;
-  struct tty_display_info *tty = NULL;
-  struct terminal *terminal = NULL;
   sigset_t oldset;
   bool ctty = false;  /* True if asked to open controlling tty.  */
+#endif
 
   if (!terminal_type)
     maybe_fatal (must_succeed, 0,
@@ -3924,8 +3934,10 @@ init_tty (const char *name, const char *terminal_type, bool must_succeed)
 
   if (name == NULL)
     name = DEV_TTY;
+#ifndef DOS_NT
   if (!strcmp (name, DEV_TTY))
     ctty = 1;
+#endif
 
   /* If we already have a terminal on the given device, use that.  If
      all such terminals are suspended, create a new one instead.  */

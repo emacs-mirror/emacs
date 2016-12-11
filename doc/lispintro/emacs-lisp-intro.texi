@@ -584,7 +584,6 @@ Regular Expression Searches
 * re-search-forward::           Very similar to @code{search-forward}.
 * forward-sentence::            A straightforward example of regexp search.
 * forward-paragraph::           A somewhat complex example.
-* etags::                       How to create your own @file{TAGS} table.
 * Regexp Review::
 * re-search Exercises::
 
@@ -1004,11 +1003,11 @@ the name stands for ``Lots of Isolated Silly Parentheses''.  But the
 claim is unwarranted.  Lisp stands for LISt Processing, and the
 programming language handles @emph{lists} (and lists of lists) by
 putting them between parentheses.  The parentheses mark the boundaries
-of the list.  Sometimes a list is preceded by a single apostrophe or
-quotation mark, @samp{'}@footnote{The single apostrophe or quotation
-mark is an abbreviation for the function @code{quote}; you need not
-think about functions now; functions are defined in @ref{Making
-Errors, , Generate an Error Message}.}  Lists are the basis of Lisp.
+of the list.  Sometimes a list is preceded by an apostrophe @samp{'},
+called a @dfn{single-quote} in Lisp.@footnote{A single-quote is an
+abbreviation for the special form @code{quote}; you need not think
+about special forms now.  @xref{Complications}.}  Lists are the basis
+of Lisp.
 
 @menu
 * Lisp Lists::                  What are lists?
@@ -2490,14 +2489,7 @@ in the list and then at the function definition bound to that symbol.
 Then the instructions in the function definition are carried out.
 
 @item
-A single quotation mark,
-@ifinfo
-'
-@end ifinfo
-@ifnotinfo
-@code{'}
-@end ifnotinfo
-, tells the Lisp interpreter that it should
+A single-quote @samp{'} tells the Lisp interpreter that it should
 return the following expression as written, and not evaluate it as it
 would if the quote were not there.
 
@@ -4590,54 +4582,21 @@ definition.
 @end ignore
 
 More generally, if you want to see a function in its original source
-file, you can use the @code{find-tag} function to jump to it.
-@code{find-tag} works with a wide variety of languages, not just
-Lisp, and C, and it works with non-programming text as well.  For
-example, @code{find-tag} will jump to the various nodes in the
-Texinfo source file of this document.
-The @code{find-tag} function depends on @dfn{tags tables} that record
-the locations of the functions, variables, and other items to which
-@code{find-tag} jumps.
+file, you can use the @code{xref-find-definitions} function to jump to
+it.  @code{xref-find-definitions} works with a wide variety of
+languages, not just Lisp, and C, and it works with non-programming
+text as well.  For example, @code{xref-find-definitions} will jump to
+the various nodes in the Texinfo source file of this document.
 
-To use the @code{find-tag} command, type @kbd{M-.}  (i.e., press the
-period key while holding down the @key{META} key, or else type the
-@key{ESC} key and then type the period key), and then, at the prompt,
-type in the name of the function whose source code you want to see,
-such as @code{mark-whole-buffer}, and then type @key{RET}.  Emacs will
-switch buffers and display the source code for the function on your
-screen.  To switch back to your current buffer, type @kbd{C-x b
-@key{RET}}.  (On some keyboards, the @key{META} key is labeled
-@key{ALT}.)
-
-@c !!! 22.1.1 tags table location in this paragraph
-@cindex TAGS table, specifying
-@findex find-tag
-Depending on how the initial default values of your copy of Emacs are
-set, you may also need to specify the location of your tags table,
-which is a file called @file{TAGS}.  For example, if you are
-interested in Emacs sources, the tags table you will most likely want,
-if it has already been created for you, will be in a subdirectory of
-the @file{/usr/local/share/emacs/} directory; thus you would use the
-@code{M-x visit-tags-table} command and specify a pathname such as
-@file{/usr/local/share/emacs/22.1.1/lisp/TAGS}.  If the tags table
-has not already been created, you will have to create it yourself.  It
-will be in a file such as @file{/usr/local/src/emacs/src/TAGS}.
-
-@need 1250
-To create a @file{TAGS} file in a specific directory, switch to that
-directory in Emacs using @kbd{M-x cd} command, or list the directory
-with @kbd{C-x d} (@code{dired}).  Then run the compile command, with
-@w{@code{etags *.el}} as the command to execute:
-
-@smallexample
-M-x compile RET etags *.el RET
-@end smallexample
-
-For more information, see @ref{etags, , Create Your Own @file{TAGS} File}.
-
-After you become more familiar with Emacs Lisp, you will find that you will
-frequently use @code{find-tag} to navigate your way around source code;
-and you will create your own @file{TAGS} tables.
+To use the @code{xref-find-definitions} command, type @kbd{M-.}
+(i.e., press the period key while holding down the @key{META} key, or
+else type the @key{ESC} key and then type the period key), and then,
+at the prompt, type in the name of the function whose source code you
+want to see, such as @code{mark-whole-buffer}, and then type
+@key{RET}.  Emacs will switch buffers and display the source code for
+the function on your screen.  To switch back to your current buffer,
+type @kbd{C-x b @key{RET}}.  (On some keyboards, the @key{META} key is
+labeled @key{ALT}.)
 
 @cindex Library, as term for ``file''
 Incidentally, the files that contain Lisp code are conventionally
@@ -7610,7 +7569,8 @@ displays in which grave accent and apostrophe were often mirror images
 suitable for use as quotes.  On most modern displays this is no longer
 true, and when these two ASCII characters appear in documentation
 strings or diagnostic message formats, Emacs typically transliterates
-them to curved single quotes, so that the abovequoted symbol appears
+them to @dfn{curved quotes} (left and right single quotation marks),
+so that the abovequoted symbol appears
 as @t{‘case-fold-search’}.  Source-code strings can also simply use
 curved quotes directly.
 
@@ -12148,7 +12108,6 @@ introduces several new features.
 * re-search-forward::           Very similar to @code{search-forward}.
 * forward-sentence::            A straightforward example of regexp search.
 * forward-paragraph::           A somewhat complex example.
-* etags::                       How to create your own @file{TAGS} table.
 * Regexp Review::
 * re-search Exercises::
 @end menu
@@ -13299,130 +13258,6 @@ source.  Place point over the name of the library and press the RET
 key; you will be taken directly to the source.  (Be sure to install
 your sources!  Without them, you are like a person who tries to drive
 a car with his eyes shut!)
-
-@node etags
-@section Create Your Own @file{TAGS} File
-@findex etags
-@cindex @file{TAGS} file, create own
-
-Besides @kbd{C-h f} (@code{describe-function}), another way to see the
-source of a function is to type @kbd{M-.} (@code{find-tag}) and the
-name of the function when prompted for it.  This is a good habit to
-get into.  The @kbd{M-.} (@code{find-tag}) command takes you directly
-to the source for a function, variable, or node.  The function depends
-on tags tables to tell it where to go.
-
-If the @code{find-tag} function first asks you for the name of a
-@file{TAGS} table, give it the name of a @file{TAGS} file such as
-@file{/usr/local/src/emacs/src/TAGS}.  (The exact path to your
-@file{TAGS} file depends on how your copy of Emacs was installed.  I
-just told you the location that provides both my C and my Emacs Lisp
-sources.)
-
-You can also create your own @file{TAGS} file for directories that
-lack one.
-
-You often need to build and install tags tables yourself.  They are
-not built automatically.  A tags table is called a @file{TAGS} file;
-the name is in upper case letters.
-
-You can create a @file{TAGS} file by calling the @code{etags} program
-that comes as a part of the Emacs distribution.  Usually, @code{etags}
-is compiled and installed when Emacs is built.  (@code{etags} is not
-an Emacs Lisp function or a part of Emacs; it is a C program.)
-
-@need 1250
-To create a @file{TAGS} file, first switch to the directory in which
-you want to create the file.  In Emacs you can do this with the
-@kbd{M-x cd} command, or by visiting a file in the directory, or by
-listing the directory with @kbd{C-x d} (@code{dired}).  Then run the
-compile command, with @w{@code{etags *.el}} as the command to execute
-
-@smallexample
-M-x compile RET etags *.el RET
-@end smallexample
-
-@noindent
-to create a @file{TAGS} file for Emacs Lisp.
-
-For example, if you have a large number of files in your
-@file{~/emacs} directory, as I do---I have 137 @file{.el} files in it,
-of which I load 12---you can create a @file{TAGS} file for the Emacs
-Lisp files in that directory.
-
-@need 1250
-The @code{etags} program takes all the usual shell wildcards.  For
-example, if you have two directories for which you want a single
-@file{TAGS} file, type @w{@code{etags *.el ../elisp/*.el}}, where
-@file{../elisp/} is the second directory:
-
-@smallexample
-M-x compile RET etags *.el ../elisp/*.el RET
-@end smallexample
-
-@need 1250
-Type
-
-@smallexample
-M-x compile RET etags --help RET
-@end smallexample
-
-@noindent
-to see a list of the options accepted by @code{etags} as well as a
-list of supported languages.
-
-The @code{etags} program handles more than 20 languages, including
-Emacs Lisp, Common Lisp, Scheme, C, C++, Ada, Fortran, HTML, Java,
-LaTeX, Pascal, Perl, PostScript, Python, TeX, Texinfo, makefiles, and
-most assemblers.  The program has no switches for specifying the
-language; it recognizes the language in an input file according to its
-file name and contents.
-
-@file{etags} is very helpful when you are writing code yourself and
-want to refer back to functions you have already written.  Just run
-@code{etags} again at intervals as you write new functions, so they
-become part of the @file{TAGS} file.
-
-If you think an appropriate @file{TAGS} file already exists for what
-you want, but do not know where it is, you can use the @code{locate}
-program to attempt to find it.
-
-Type @w{@kbd{M-x locate @key{RET} TAGS @key{RET}}} and Emacs will list
-for you the full path names of all your @file{TAGS} files.  On my
-system, this command lists 34 @file{TAGS} files.  On the other hand, a
-plain vanilla system I recently installed did not contain any
-@file{TAGS} files.
-
-If the tags table you want has been created, you can use the @code{M-x
-visit-tags-table} command to specify it.  Otherwise, you will need to
-create the tag table yourself and then use @code{M-x
-visit-tags-table}.
-
-@subsubheading Building Tags in the Emacs sources
-@cindex Building Tags in the Emacs sources
-@cindex Tags in the Emacs sources
-@findex make tags
-
-The GNU Emacs sources come with a @file{Makefile} that contains a
-sophisticated @code{etags} command that creates, collects, and merges
-tags tables from all over the Emacs sources and puts the information
-into one @file{TAGS} file in the @file{src/} directory.  (The
-@file{src/} directory is below the top level of your Emacs directory.)
-
-@need 1250
-To build this @file{TAGS} file, go to the top level of your Emacs
-source directory and run the compile command @code{make tags}:
-
-@smallexample
-M-x compile RET make tags RET
-@end smallexample
-
-@noindent
-(The @code{make tags} command works well with the GNU Emacs sources,
-as well as with some other source packages.)
-
-For more information, see @ref{Tags, , Tag Tables, emacs, The GNU Emacs
-Manual}.
 
 @node Regexp Review
 @section Review
@@ -15630,7 +15465,7 @@ Here is the function:
 @group
       (cond
        ;; check to see whether filename ends in '.el'
-       ;; and if so, append its name to a list.
+       ;; and if so, add its name to a list.
        ((equal ".el" (substring (car (car current-directory-list)) -3))
         (setq el-files-list
               (cons (car (car current-directory-list)) el-files-list)))
@@ -17117,7 +16952,7 @@ This line is a short, but complete Emacs Lisp expression.
 
 We are already familiar with @code{setq}.  It sets the following variable,
 @code{major-mode}, to the subsequent value, which is @code{text-mode}.
-The single quote mark before @code{text-mode} tells Emacs to deal directly
+The single-quote before @code{text-mode} tells Emacs to deal directly
 with the @code{text-mode} symbol, not with whatever it might stand for.
 @xref{set & setq, , Setting the Value of a Variable},
 for a reminder of how @code{setq} works.
@@ -17284,11 +17119,11 @@ Rebinding Keys in Your Init File, emacs, The GNU Emacs Manual}, for
 details.)
 
 The command invoked by the keys is @code{compare-windows}.  Note that
-@code{compare-windows} is preceded by a single quote; otherwise, Emacs
+@code{compare-windows} is preceded by a single-quote; otherwise, Emacs
 would first try to evaluate the symbol to determine its value.
 
 These three things, the double quotation marks, the backslash before
-the @samp{C}, and the single quote mark are necessary parts of
+the @samp{C}, and the single-quote are necessary parts of
 keybinding that I tend to forget.  Fortunately, I have come to
 remember that I should look at my existing @file{.emacs} file, and
 adapt what is there.
@@ -17749,11 +17584,10 @@ file that set values:
 
 @group
 ;; Set calendar highlighting colors
-(add-hook 'calendar-load-hook
-      (lambda ()
-        (set-face-foreground 'diary-face   "skyblue")
-        (set-face-background 'holiday-face "slate blue")
-        (set-face-foreground 'holiday-face "white")))
+(with-eval-after-load 'calendar
+  (set-face-foreground 'diary   "skyblue")
+  (set-face-background 'holiday "slate blue")
+  (set-face-foreground 'holiday "white"))
 @end group
 @end smallexample
 
@@ -17812,7 +17646,7 @@ Set the shape and color of the mouse cursor:
       (setq mpointer "132")) ; top_left_arrow
 @end group
 @group
-  (setq x-pointer-shape (string-to-int mpointer))
+  (setq x-pointer-shape (string-to-number mpointer))
   (set-mouse-color "white"))
 @end group
 @end smallexample

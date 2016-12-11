@@ -119,7 +119,7 @@
 (eval-when-compile
   (require 'cl))
 
-(declare-function org-publish-get-project-from-filename "org-publish"
+(declare-function org-publish-get-project-from-filename "ox-publish"
 		  (filename &optional up))
 (declare-function server-edit "server" (&optional arg))
 

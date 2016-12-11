@@ -411,6 +411,18 @@ Remove all flags from the current line, and move down
 @kindex DEL @r{(Buffer Menu)}
 Move to the previous line and remove all flags on that line
 (@code{Buffer-menu-backup-unmark}).
+
+@item M-@key{DEL}
+@findex Buffer-menu-unmark-all-buffers
+@kindex M-DEL @r{(Buffer Menu)}
+Remove a particular flag from all lines
+(@code{Buffer-menu-unmark-all-buffers}).
+
+@item U
+@findex Buffer-menu-unmark-all
+@kindex U @r{(Buffer Menu)}
+Remove all flags from all the lines
+(@code{Buffer-menu-unmark-all}).
 @end table
 
 @noindent
@@ -699,10 +711,10 @@ C-b}.  To customize this buffer list, use the @code{bs} Custom group
 @cindex mode, MSB
 @cindex MSB mode
 @findex mouse-buffer-menu
-@kindex C-Down-Mouse-1
+@kindex C-Down-mouse-1
   MSB global minor mode (``MSB'' stands for ``mouse select buffer'')
 provides a different and customizable mouse buffer menu which you may
 prefer.  It replaces the bindings of @code{mouse-buffer-menu},
-normally on @kbd{C-Down-Mouse-1} and @kbd{C-@key{F10}}, and the menu
+normally on @kbd{C-Down-mouse-1} and @kbd{C-@key{F10}}, and the menu
 bar buffer menu.  You can customize the menu in the @code{msb} Custom
 group.

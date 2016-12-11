@@ -46,6 +46,16 @@ extern int _snprintf (char *buffer, size_t count, const char *format, ...);
 #define stdout GetStdHandle (STD_OUTPUT_HANDLE)
 #define stderr GetStdHandle (STD_ERROR_HANDLE)
 
+#if __GNUC__ + (__GNUC_MINOR__ >= 4) >= 5
+void fail (const char *, ...) __attribute__((noreturn));
+#else
+void fail (const char *, ...);
+#endif
+int vfprintf (HANDLE, const char *, va_list);
+int fprintf (HANDLE, const char *, ...);
+int printf (const char *, ...);
+void warn (const char *, ...);
+
 int
 vfprintf (HANDLE hnd, const char * msg, va_list args)
 {
@@ -106,7 +116,7 @@ warn (const char * msg, ...)
 
 /******************************************************************/
 
-char *
+static char *
 canon_filename (char *fname)
 {
   char *p = fname;
@@ -121,14 +131,14 @@ canon_filename (char *fname)
   return fname;
 }
 
-const char *
+static const char *
 skip_space (const char *str)
 {
   while (isspace (*str)) str++;
   return str;
 }
 
-const char *
+static const char *
 skip_nonspace (const char *str)
 {
   while (*str && !isspace (*str)) str++;
@@ -141,7 +151,7 @@ skip_nonspace (const char *str)
 const int escape_char = '\\';
 
 /* Get next token from input, advancing pointer.  */
-int
+static int
 get_next_token (char * buf, const char ** pSrc)
 {
   const char * p = *pSrc;
@@ -244,7 +254,7 @@ get_next_token (char * buf, const char ** pSrc)
 }
 
 /* Return TRUE if PROGNAME is a batch file. */
-BOOL
+static BOOL
 batch_file_p (const char *progname)
 {
   const char *exts[] = {".bat", ".cmd"};
@@ -267,7 +277,7 @@ batch_file_p (const char *progname)
 
 /* Search for EXEC file in DIR.  If EXEC does not have an extension,
    DIR is searched for EXEC with the standard extensions appended.  */
-int
+static int
 search_dir (const char *dir, const char *exec, int bufsize, char *buffer)
 {
   const char *exts[] = {".bat", ".cmd", ".exe", ".com"};
@@ -320,7 +330,7 @@ search_dir (const char *dir, const char *exec, int bufsize, char *buffer)
 /* Return the absolute name of executable file PROG, including
    any file extensions.  If an absolute name for PROG cannot be found,
    return NULL.  */
-char *
+static char *
 make_absolute (const char *prog)
 {
   char absname[MAX_PATH];
@@ -393,7 +403,7 @@ make_absolute (const char *prog)
    success, return 1 with cmdline dequoted.  Otherwise, when we've
    found constructs only cmd can properly interpret, return 0 and
    leave cmdline unchanged.  */
-int
+static int
 try_dequote_cmdline (char* cmdline)
 {
   /* Dequoting can only subtract characters, so the length of the
@@ -491,6 +501,8 @@ setup_argv (void)
 PROCESS_INFORMATION child;
 int interactive = TRUE;
 
+BOOL console_event_handler (DWORD);
+
 BOOL
 console_event_handler (DWORD event)
 {
@@ -527,7 +539,7 @@ console_event_handler (DWORD event)
 
 /* Change from normal usage; return value indicates whether spawn
    succeeded or failed - program return code is returned separately.  */
-int
+static int
 spawn (const char *progname, char *cmdline, const char *dir, int *retcode)
 {
   BOOL success = FALSE;
@@ -572,7 +584,7 @@ spawn (const char *progname, char *cmdline, const char *dir, int *retcode)
 }
 
 /* Return size of current environment block.  */
-int
+static int
 get_env_size (void)
 {
   char * start = GetEnvironmentStrings ();

@@ -235,7 +235,7 @@ This method is obsolete."
            (let ((f (intern (format "%s-child-p" name))))
              `((defalias ',f ',testsym2)
                (make-obsolete
-                ',f ,(format "use (cl-typep ... \\='%s) instead" name)
+                ',f ,(format "use (cl-typep ... '%s) instead" name)
                 "25.1"))))
 
        ;; When using typep, (typep OBJ 'myclass) returns t for objects which
@@ -679,7 +679,7 @@ This class is not stored in the `parent' slot of a class vector."
 (setq eieio-default-superclass (cl--find-class 'eieio-default-superclass))
 
 (define-obsolete-function-alias 'standard-class
-  'eieio-default-superclass "25.2")
+  'eieio-default-superclass "26.1")
 
 (cl-defgeneric make-instance (class &rest initargs)
   "Make a new instance of CLASS based on INITARGS.
@@ -815,7 +815,7 @@ first and modify the returned object.")
 
 (cl-defgeneric destructor (_this &rest _params)
   "Destructor for cleaning up any dynamic links to our object."
-  (declare (obsolete nil "25.2"))
+  (declare (obsolete nil "26.1"))
   ;; No cleanup... yet.
   nil)
 
@@ -938,7 +938,7 @@ this object."
 This may create or delete slots, but does not affect the return value
 of `eq'."
   (error "EIEIO: `change-class' is unimplemented"))
-(define-obsolete-function-alias 'change-class 'eieio-change-class "25.2")
+(define-obsolete-function-alias 'change-class 'eieio-change-class "26.1")
 
 ;; Hook ourselves into help system for describing classes and methods.
 ;; FIXME: This is not actually needed any more since we can click on the

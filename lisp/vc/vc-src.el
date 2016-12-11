@@ -85,6 +85,8 @@
   (require 'cl-lib)
   (require 'vc))
 
+(declare-function vc-setup-buffer "vc-dispatcher" (buf))
+
 (defgroup vc-src nil
   "VC SRC backend."
   :version "25.1"

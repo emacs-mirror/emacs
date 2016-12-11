@@ -161,6 +161,13 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
 \\(?: characters? \\([0-9]+\\)-?\\([0-9]+\\)?:\\)?\\([ \n]Warning\\(?: [0-9]+\\)?:\\)?\\)"
      2 (3 . 4) (5 . 6) (7))
 
+    (cmake
+     "^CMake \\(?:Error\\|\\(Warning\\)\\) at \\(.*\\):\\([1-9][0-9]*\\) ([^)]+):$"
+     2 3 nil (1))
+    (cmake-info
+     "^  \\(?: \\*\\)?\\(.*\\):\\([1-9][0-9]*\\) ([^)]+)$"
+     1 2 nil 0)
+
     (comma
      "^\"\\([^,\" \n\t]+\\)\", line \\([0-9]+\\)\
 \\(?:[(. pos]+\\([0-9]+\\))?\\)?[:.,; (-]\\( warning:\\|[-0-9 ]*(W)\\)?" 1 2 3 (4))
@@ -1736,7 +1743,7 @@ Returns the compilation buffer created."
 	    (funcall compilation-process-setup-function))
 	(and outwin (compilation-set-window-height outwin))
 	;; Start the compilation.
-	(if (fboundp 'start-process)
+	(if (fboundp 'make-process)
 	    (let ((proc
 		   (if (eq mode t)
 		       ;; comint uses `start-file-process'.
@@ -2753,7 +2760,9 @@ FILE should be (FILENAME) or (RELATIVE-FILENAME . DIRNAME).
 In the former case, FILENAME may be relative or absolute.
 
 The file-structure looks like this:
-  ((FILENAME [DIR-FROM-PREV-MSG]) FMT LINE-STRUCT...)"
+  ((FILENAME [TRUE-DIRNAME]) FMT ...)
+
+TRUE-DIRNAME is the `file-truename' of DIRNAME, if given."
   (or (gethash file compilation-locs)
       ;; File was not previously encountered, at least not in the form passed.
       ;; Let's normalize it and look again.
@@ -2808,7 +2817,7 @@ The file-structure looks like this:
   (let ((fs (compilation-get-file-structure file)))
     (cl-assert (eq fs (gethash file compilation-locs)))
     (cl-assert (eq fs (gethash (cons (caar fs) (cadr (car fs)))
-                            compilation-locs)))
+                               compilation-locs)))
     (maphash (lambda (k v)
                (if (eq v fs) (remhash k compilation-locs)))
              compilation-locs)))

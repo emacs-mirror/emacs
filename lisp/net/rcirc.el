@@ -611,10 +611,7 @@ If ARG is non-nil, instead prompt for connection parameters."
   `(with-current-buffer rcirc-server-buffer
      ,@body))
 
-(defalias 'rcirc-float-time
-  (if (featurep 'xemacs)
-      'time-to-seconds
-    'float-time))
+(define-obsolete-function-alias 'rcirc-float-time 'float-time "26.1")
 
 (defun rcirc-prompt-for-encryption (server-plist)
   "Prompt the user for the encryption method to use.
@@ -638,7 +635,7 @@ last ping."
                   (rcirc-send-ctcp process
                                    rcirc-nick
                                    (format "KEEPALIVE %f"
-                                           (rcirc-float-time))))))
+                                           (float-time))))))
             (rcirc-process-list))
     ;; no processes, clean up timer
     (when (timerp rcirc-keepalive-timer)
@@ -647,7 +644,7 @@ last ping."
 
 (defun rcirc-handler-ctcp-KEEPALIVE (process _target _sender message)
   (with-rcirc-process-buffer process
-    (setq header-line-format (format "%f" (- (rcirc-float-time)
+    (setq header-line-format (format "%f" (- (float-time)
 					     (string-to-number message))))))
 
 (defvar rcirc-debug-buffer "*rcirc debug*")
@@ -2342,7 +2339,7 @@ With a prefix arg, prompt for new topic."
 
 (defun rcirc-ctcp-sender-PING (process target _request)
   "Send a CTCP PING message to TARGET."
-  (let ((timestamp (format "%.0f" (rcirc-float-time))))
+  (let ((timestamp (format "%.0f" (float-time))))
     (rcirc-send-ctcp process target "PING" timestamp)))
 
 (defun rcirc-cmd-me (args &optional process target)

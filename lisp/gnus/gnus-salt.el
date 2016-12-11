@@ -35,7 +35,7 @@
 ;;;
 
 (defcustom gnus-pick-display-summary nil
-  "*Display summary while reading."
+  "Display summary while reading."
   :type 'boolean
   :group 'gnus-summary-pick)
 
@@ -45,7 +45,7 @@
   :group 'gnus-summary-pick)
 
 (defcustom gnus-mark-unpicked-articles-as-read nil
-  "*If non-nil, mark all unpicked articles as read."
+  "If non-nil, mark all unpicked articles as read."
   :type 'boolean
   :group 'gnus-summary-pick)
 
@@ -57,7 +57,7 @@
 
 (defcustom gnus-summary-pick-line-format
   "%-5P %U\ %R\ %z\ %I\ %(%[%4L: %-23,23n%]%) %s\n"
-  "*The format specification of the lines in pick buffers.
+  "The format specification of the lines in pick buffers.
 It accepts the same format specs that `gnus-summary-line-format' does."
   :type 'string
   :group 'gnus-summary-pick)
@@ -373,7 +373,7 @@ lines."
   :group 'gnus-summary-tree)
 
 (defcustom gnus-selected-tree-face 'mode-line
-  "*Face used for highlighting selected articles in the thread tree."
+  "Face used for highlighting selected articles in the thread tree."
   :type 'face
   :group 'gnus-summary-tree)
 
@@ -385,12 +385,12 @@ lines."
   "Characters used to connect parents with children.")
 
 (defcustom gnus-tree-mode-line-format "Gnus: %%b %S %Z"
-  "*The format specification for the tree mode line."
+  "The format specification for the tree mode line."
   :type 'string
   :group 'gnus-summary-tree)
 
 (defcustom gnus-generate-tree-function 'gnus-generate-vertical-tree
-  "*Function for generating a thread tree.
+  "Function for generating a thread tree.
 Two predefined functions are available:
 `gnus-generate-horizontal-tree' and `gnus-generate-vertical-tree'."
   :type '(radio (function-item gnus-generate-vertical-tree)
@@ -399,7 +399,7 @@ Two predefined functions are available:
   :group 'gnus-summary-tree)
 
 (defcustom gnus-tree-mode-hook nil
-  "*Hook run in tree mode buffers."
+  "Hook run in tree mode buffers."
   :type 'hook
   :group 'gnus-summary-tree)
 

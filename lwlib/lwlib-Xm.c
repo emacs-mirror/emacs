@@ -22,6 +22,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <unistd.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <setjmp.h>
 
 #include <X11/StringDefs.h>

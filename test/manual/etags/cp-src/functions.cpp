@@ -1,7 +1,7 @@
 #include "main.hpp"
 #pragma ident	"@(#)functions.cpp	1.0	98/11/12 (c) Rupak Rathore"
 
-// Constructor default argument initialises to today's values
+// Constructor default argument initializes to today's values
 void Date::setDate ( int d , int m , int y ){
 	time_t t;
 	struct tm * ptm;
@@ -9,9 +9,9 @@ void Date::setDate ( int d , int m , int y ){
 	if ( date != NULL )
 		delete date;
 	date = NULL;
-	if ( d == 0 && m == 0 && y == 0 ) // explicity called or default constructor hence leave it.
+	if ( d == 0 && m == 0 && y == 0 ) //Explicitly called or default constructor hence leave it.
 		return;
-	if ( d < 0 && m < 0 && d < 0 ) // Special instruction to intialise to today's value
+	if ( d < 0 && m < 0 && d < 0 ) //Special instruction to initialize to today's value
 		d=m=y=0;
 	date = new tm;
 	ptm=localtime ( &t ) ;

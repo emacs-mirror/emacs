@@ -19,28 +19,16 @@
 /^srcdir *=/s/@[^@\n]*@/./
 /^VPATH *=/s/@[^@\n]*@/./
 /^MAKEINFO *=/s/@[^@\n]*@/makeinfo/
-/^INFO_EXT *=/s/@[^@\n]*@/.info/
-/^INFO_OPTS *=/s/@[^@\n]*@/--no-split/
+/^AM_DEFAULT_VERBOSITY *=/s/@AM_DEFAULT_VERBOSITY@/1/
+/^[Aa][Mm]_/s/@AM_V@/$(V)/
+/^[Aa][Mm]_/s/@AM_DEFAULT_V@/$(AM_DEFAULT_VERBOSITY)/
 /^ENVADD/,/^$/c\
 ENVADD =\
-export TEXINPUTS := $(srcdir)";"$(TEXINPUTS)\
+export TEXINPUTS := $(srcdir)";"$(texinfodir)";"$(TEXINPUTS)\
 export MAKEINFO := $(MAKEINFO) $(MAKEINFO_OPTS)
 /^SHELL *=/s/^/# /
-/^elisp.dvi:/,/^$/ {
-  /^	 *if \[ *\a${permuted_index}/,/^	 *fi *$/c\
-	command.com /c 'if not a${permuted_index}==a sh ./permute-index' \
-	command.com /c 'if not a${permuted_index}==a mv permuted.fns elisp.fns' \
-	command.com /c 'if not a${permuted_index}==a texindex elisp.tp' \
-	command.com /c 'if a${permuted_index}==a texindex elisp.??'
+/^doc-emacsver:/,/^$/ {
+  s/emacsver\.texi\.in/emacsver.in/g
+  s/\.texi\.\$\$\$\$/.tmp/g
+  s/[^	 ]*move-if-change/update/
 }
-/^index.texi:/,/^$/ {
-  /^	 *if \[ *\a${permuted_index}/,/^	 *fi *$/c\
-	command.com /c 'if not a${permuted_index}==a cp -p ./index.perm index.texi' \
-	command.com /c 'if a${permuted_index}==a cp -p ./index.unperm index.texi'
-}
-/^maintainer-clean:/,/^$/ {
-  s/^	for file in $(INFO_TARGETS)\; do rm -f.*$/	rm -f $(INFO_TARGETS)/
-}
-
-/^mkinfodir *=/s| @.*$|@command.com /c if not exist ..\\..\\info\\emacs$(INFO_EXT) mkdir ..\\..\\info|
-

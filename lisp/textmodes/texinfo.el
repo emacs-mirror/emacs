@@ -351,8 +351,6 @@ Subexpression 1 is what goes into the corresponding `@end' statement.")
   '((t (:inherit font-lock-function-name-face)))
   "Face used for section headings in `texinfo-mode'."
   :group 'texinfo)
-(define-obsolete-face-alias 'texinfo-heading-face 'texinfo-heading "22.1")
-(defvar texinfo-heading-face 'texinfo-heading)
 
 (defvar texinfo-font-lock-keywords
   `(;; All but the first had an OVERRIDE of t.
@@ -380,7 +378,8 @@ Subexpression 1 is what goes into the corresponding `@end' statement.")
     ;; (,texinfo-environment-regexp
     ;;  1 (texinfo-clone-environment (match-beginning 1) (match-end 1)) keep)
     (,(concat "^@" (regexp-opt (mapcar 'car texinfo-section-list) t)
-	       ".*\n") 0 texinfo-heading-face t))
+	       ".*\n")
+     0 'texinfo-heading t))
   "Additional expressions to highlight in Texinfo mode.")
 
 (defun texinfo-clone-environment (start end)
@@ -393,7 +392,7 @@ Subexpression 1 is what goes into the corresponding `@end' statement.")
 	(unless (get-char-property start 'text-clones)
 	  (if endp
 	      (texinfo-last-unended-begin)
-	    (forward-word 1)
+	    (forward-word-strictly 1)
 	    (texinfo-next-unmatched-end))
 	  (skip-syntax-forward "^w")
 	  (when (looking-at
@@ -738,7 +737,7 @@ With prefix argument or inside @code or @example, inserts a plain \"."
   "Insert the matching `@end' for the last Texinfo command that needs one."
 	 (ignore-errors
 	   (save-excursion
-      (backward-word 1)
+             (backward-word-strictly 1)
 	     (texinfo-last-unended-begin)
       (or (match-string 1) '-)))
   \n "@end " str \n \n)

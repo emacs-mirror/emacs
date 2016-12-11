@@ -24,7 +24,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (require 'reftex)
 (require 'reftex-parse)
@@ -374,7 +374,7 @@ also applies `reftex-translate-to-ascii-function' to the string."
            (sep (or separator "")))
       (while (assoc (concat label sep (int-to-string num))
                     (symbol-value reftex-docstruct-symbol))
-        (incf num))
+        (cl-incf num))
       (setcdr cell num)
       (concat label sep (int-to-string num))))))
 
@@ -566,7 +566,7 @@ When called with 2 C-u prefix args, disable magic word recognition."
                 (reftex-erase-buffer))
               (unless (eq major-mode 'reftex-select-label-mode)
                 (reftex-select-label-mode))
-              (add-to-list 'selection-buffers (current-buffer))
+              (cl-pushnew (current-buffer) selection-buffers)
               (setq truncate-lines t)
               (setq mode-line-format
                     (list "----  " 'mode-line-buffer-identification

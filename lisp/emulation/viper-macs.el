@@ -274,7 +274,7 @@ a key is a symbol, e.g., `a', `\\1', `f2', etc., or a list, e.g.,
     ))
 
 
-(declare-function viper-change-state-to-vi "viper-cmd" ())
+(declare-function viper-change-state-to-vi "viper-cmd" (&rest _))
 
 ;; Terminate a Vi kbd macro.
 ;; optional argument IGNORE, if t, indicates that we are dealing with an

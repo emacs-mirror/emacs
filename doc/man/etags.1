@@ -17,7 +17,7 @@ etags, ctags \- generate tag file for Emacs, vi
 [\|\-\-parse\-stdin=\fIfile\fP\|]
 .br
 [\|\-\-append\|] [\|\-\-no\-defines\|] [\|\-\-globals\|]
-[\|\-\-no\-globals\|] [\|\-\-include=\fIfile\fP\|]
+[\|\-\-no\-globals\|] [\|\-\-no\-line\-directive\|] [\|\-\-include=\fIfile\fP\|]
 [\|\-\-ignore\-indentation\|] [\|\-\-language=\fIlanguage\fP\|]
 [\|\-\-members\|] [\|\-\-no\-members\|] [\|\-\-output=\fItagfile\fP\|]
 [\|\-\-class\-qualify\|]
@@ -31,8 +31,8 @@ etags, ctags \- generate tag file for Emacs, vi
 [\|\-\-parse\-stdin=\fIfile\fP\|]
 .br
 [\|\-\-append\|] [\|\-\-backward\-search\|]
-[\|\-\-cxref\|] [\|\-\-no\-defines\|]
-[\|\-\-globals\|] [\|\-\-no\-globals\|] [\|\-\-ignore\-indentation\|]
+[\|\-\-cxref\|] [\|\-\-no\-defines\|] [\|\-\-globals\|]
+[\|\-\-no\-globals\|] [\|\-\-no\-line\-directive\|] [\|\-\-ignore\-indentation\|]
 [\|\-\-language=\fIlanguage\fP\|] [\|\-\-members\|] [\|\-\-no\-members\|]
 [\|\-\-class\-qualify\|]
 [\|\-\-output=\fItagfile\fP\|] [\|\-\-regex=\fIregexp\fP\|]
@@ -104,6 +104,12 @@ the default in C and derived languages.
 .B \-\-no\-globals
 Do not tag global variables in C and derived languages.  Typically this
 reduces the file size by one fourth.
+.TP
+.B \-\-no\-line\-directive
+Ignore \fB#line\fP preprocessor directives in C and derived languages.  The
+default is to honor those directives, and record the tags as if the
+file scanned was the one named in the \fB#line\fP directive.  This switch is
+useful when the original file named by \fB#line\fP is no longer available.
 .TP
 \fB\-i\fP \fIfile\fP, \fB\-\-include=\fIfile\fP
 Include a note in the tag file indicating that, when searching for a

@@ -25,7 +25,6 @@
 ;;; Code:
 
 (require 'ert)
-(require 'ert-x)
 (require 'vc-bzr)
 (require 'vc-dir)
 
@@ -102,7 +101,7 @@
           (while (vc-dir-busy)
             (sit-for 0.1))
           (vc-dir-mark-all-files t)
-          (ert-with-function-mocked y-or-n-p (lambda (_) t)
+          (cl-letf (((symbol-function 'y-or-n-p) (lambda (_) t)))
             (vc-next-action nil))
           (should (get-buffer "*vc-log*")))
       (delete-directory homedir t))))

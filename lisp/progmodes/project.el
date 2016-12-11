@@ -101,7 +101,9 @@ that it is not applicable, or a project instance.")
 (defun project-current (&optional maybe-prompt dir)
   "Return the project instance in DIR or `default-directory'.
 When no project found in DIR, and MAYBE-PROMPT is non-nil, ask
-the user for a different directory to look in."
+the user for a different directory to look in.  If that directory
+is not a part of a detectable project either, return a
+`transient' project instance rooted in it."
   (unless dir (setq dir default-directory))
   (let ((pr (project--find-in-directory dir)))
     (cond
@@ -110,7 +112,8 @@ the user for a different directory to look in."
       (setq dir (read-directory-name "Choose the project directory: " dir nil t)
             pr (project--find-in-directory dir))
       (unless pr
-        (user-error "No project found in `%s'" dir))))
+        (message "Using '%s' as a transient project root" dir)
+        (setq pr (cons 'transient dir)))))
     pr))
 
 (defun project--find-in-directory (dir)
@@ -169,7 +172,8 @@ to find the list of ignores for each directory."
 	    (let ((command
 		   (format "%s %s %s -type f -print0"
 			   find-program
-			   dir
+                           (shell-quote-argument
+                            (expand-file-name dir))
 			   (xref--find-ignores-arguments
 			    (project-ignores project dir)
 			    (expand-file-name dir)))))
@@ -181,6 +185,9 @@ to find the list of ignores for each directory."
 	'(metadata . ((category . project-file))))
        (t
 	(complete-with-action action all-files string pred))))))
+
+(cl-defmethod project-roots ((project (head transient)))
+  (list (cdr project)))
 
 (defgroup project-vc nil
   "Project implementation using the VC package."

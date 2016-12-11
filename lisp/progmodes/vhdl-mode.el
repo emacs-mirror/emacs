@@ -13,10 +13,10 @@
 ;; filed in the Emacs bug reporting system against this file, a copy
 ;; of the bug report be sent to the maintainer's email address.
 
-(defconst vhdl-version "3.37.1"
+(defconst vhdl-version "3.38.1"
   "VHDL Mode version number.")
 
-(defconst vhdl-time-stamp "2015-01-15"
+(defconst vhdl-time-stamp "2015-03-12"
   "VHDL Mode time stamp for last update.")
 
 ;; This file is part of GNU Emacs.
@@ -4684,7 +4684,7 @@ Usage:
   SPECIAL MENUES:
     As an alternative to the speedbar, an index menu can be added (set
     option `vhdl-index-menu' to non-nil) or made accessible as a mouse menu
-    (e.g. add \"(global-set-key '[S-down-mouse-3] 'imenu)\" to your start-up
+    (e.g. add \"(global-set-key [S-down-mouse-3] \\='imenu)\" to your start-up
     file) for browsing the file contents (is not populated if buffer is
     larger than 256000).  Also, a source file menu can be
     added (set option `vhdl-source-file-menu' to non-nil) for browsing the
@@ -4876,8 +4876,6 @@ Key bindings:
   (set (make-local-variable 'indent-line-function) 'vhdl-indent-line)
   (set (make-local-variable 'comment-start) "--")
   (set (make-local-variable 'comment-end) "")
-  (when vhdl-emacs-21
-    (set (make-local-variable 'comment-padding) ""))
   (set (make-local-variable 'comment-column) vhdl-inline-comment-column)
   (set (make-local-variable 'end-comment-column) vhdl-end-comment-column)
   (set (make-local-variable 'comment-start-skip) "--+\\s-*")
@@ -6001,6 +5999,7 @@ keyword."
 	   ;; following search list so that we don't run into
 	   ;; semicolons in the function interface list.
 	   (backward-sexp)
+	   (skip-chars-forward "(")
 	   (let (foundp)
 	     (while (and (not foundp)
 			 (re-search-backward
@@ -6582,7 +6581,7 @@ returned point is at the first character of the \"libunit\" keyword."
 	 ;; keyword, allow for the keyword and an extra character,
 	 ;; as this will be used when looking forward for the
 	 ;; "begin" keyword.
-	 (save-excursion (forward-word 1) (1+ (point))))
+	 (save-excursion (forward-word-strictly 1) (1+ (point))))
 	foundp literal placeholder)
     ;; Find the "libunit" keyword.
     (while (and (not foundp)
@@ -6633,7 +6632,7 @@ stops due to beginning or end of buffer."
 	     ;; keyword, allow for the keyword and an extra character,
 	     ;; as this will be used when looking forward for the
 	     ;; "begin" keyword.
-	     (save-excursion (forward-word 1) (1+ (point))))
+	     (save-excursion (forward-word-strictly 1) (1+ (point))))
 	    begin-string literal)
 	(while (and (not foundp)
 		    (re-search-backward vhdl-defun-re nil 'move))
@@ -6779,7 +6778,8 @@ statement if already at the beginning of one."
 		    ;; start point was not inside leader area
 		    ;; set stop point at word after leader
 		    (setq pos (point))))
-	    (forward-word 1)
+	    (unless (looking-at "\\<else\\s-+generate\\>")
+	      (forward-word-strictly 1))
 	    (vhdl-forward-syntactic-ws here)
 	    (setq pos (point)))
 	  (goto-char pos)
@@ -8457,7 +8457,7 @@ buffer."
 	    (setq end (vhdl-re-search-forward "\\<then\\>" proc-end t))
 	    (when (vhdl-re-search-backward "\\('event\\|\\<\\(falling\\|rising\\)_edge\\)\\>" beg t)
 	      (goto-char end)
-	      (backward-word 1)
+	      (backward-word-strictly 1)
 	      (vhdl-forward-sexp)
 	      (push (cons end (point)) seq-region-list)
 	      (beginning-of-line)))
@@ -8929,7 +8929,7 @@ is omitted or nil."
     (vhdl-insert-keyword ": BLOCK ")
     (goto-char start)
     (when (setq label (vhdl-template-field "label" nil t start (+ (point) 8)))
-      (forward-word 1)
+      (forward-word-strictly 1)
       (forward-char 1)
       (insert "(")
       (if (vhdl-template-field "[guard expression]" nil t)
@@ -8965,7 +8965,7 @@ is omitted or nil."
 		   (if (vhdl-template-field "[quantity name]" " USE " t)
 		       (progn (vhdl-template-field "quantity name" " => ") t)
 		     (delete-region (point)
-				    (progn (forward-word -1) (point)))
+				    (progn (forward-word-strictly -1) (point)))
 		     nil))
 	    (vhdl-template-field "[quantity name]" " => " t))
       (vhdl-template-field "expression")
@@ -8998,7 +8998,7 @@ is omitted or nil."
       (goto-char start)
       (setq label (vhdl-template-field "[label]" nil t))
       (unless label (delete-char 2))
-      (forward-word 1)
+      (forward-word-strictly 1)
       (forward-char 1))
     (when (vhdl-template-field "expression" nil t start (point))
       (vhdl-insert-keyword (concat " " (if (eq kind 'is) "IS" "USE") "\n\n"))
@@ -9280,7 +9280,7 @@ a configuration declaration if not within a design unit."
   (interactive)
   (insert " ")
   (unexpand-abbrev)
-  (backward-word 1)
+  (backward-word-strictly 1)
   (vhdl-case-word 1)
   (forward-char 1))
 
@@ -9289,7 +9289,7 @@ a configuration declaration if not within a design unit."
   (interactive)
   (insert " ")
   (unexpand-abbrev)
-  (backward-word 1)
+  (backward-word-strictly 1)
   (vhdl-case-word 1)
   (forward-char 1)
   (indent-according-to-mode))
@@ -9311,9 +9311,11 @@ a configuration declaration if not within a design unit."
   (let (margin)
     (vhdl-prepare-search-1
      (vhdl-insert-keyword "ELSE")
-     (if (and (save-excursion (vhdl-re-search-backward "\\(\\<when\\>\\|;\\)" nil t))
-	      (equal "WHEN" (upcase (match-string 1))))
+     (if (and (save-excursion (vhdl-re-search-backward "\\(\\(\\<when\\>\\)\\|;\\)" nil t))
+	      (match-string 2))
 	 (insert " ")
+       (unless (vhdl-sequential-statement-p)
+ 	 (vhdl-insert-keyword " GENERATE"))
        (indent-according-to-mode)
        (setq margin (current-indentation))
        (insert "\n")
@@ -9325,15 +9327,16 @@ a configuration declaration if not within a design unit."
   (let ((start (point))
 	margin)
     (vhdl-insert-keyword "ELSIF ")
-    (when (or (vhdl-sequential-statement-p) (vhdl-standard-p 'ams))
       (when vhdl-conditions-in-parenthesis (insert "("))
       (when (vhdl-template-field "condition" nil t start (point))
 	(when vhdl-conditions-in-parenthesis (insert ")"))
 	(indent-according-to-mode)
 	(setq margin (current-indentation))
 	(vhdl-insert-keyword
-	 (concat " " (if (vhdl-sequential-statement-p) "THEN" "USE") "\n"))
-	(indent-to (+ margin vhdl-basic-offset))))))
+       (concat " " (cond ((vhdl-sequential-statement-p) "THEN")
+			 ((vhdl-standard-p 'ams) "USE")
+			 (t "GENERATE")) "\n"))
+      (indent-to (+ margin vhdl-basic-offset)))))
 
 (defun vhdl-template-entity ()
   "Insert an entity."
@@ -9450,7 +9453,7 @@ otherwise."
       (goto-char start)
       (setq label (vhdl-template-field "[label]" nil t))
       (unless label (delete-char 2))
-      (forward-word 1)
+      (forward-word-strictly 1)
       (forward-char 1))
     (when (setq index (vhdl-template-field "loop variable"
 					   nil t start (point)))
@@ -9591,7 +9594,7 @@ otherwise."
       (goto-char start)
       (setq label (vhdl-template-field "[label]" nil t))
       (unless label (delete-char 2))
-      (forward-word 1)
+      (forward-word-strictly 1)
       (forward-char 1))
     (when vhdl-conditions-in-parenthesis (insert "("))
     (when (vhdl-template-field "condition" nil t start (point))
@@ -9674,7 +9677,7 @@ otherwise."
       (goto-char start)
       (setq label (vhdl-template-field "[label]" nil t))
       (unless label (delete-char 2))
-      (forward-word 1)
+      (forward-word-strictly 1)
       (delete-char 1))
     (insert "\n\n")
     (indent-to margin)
@@ -9758,11 +9761,13 @@ otherwise."
 	(cond ((equal definition "")
 	       (insert ";"))
 	      ((equal definition "ARRAY")
-	       (delete-region (point) (progn (forward-word -1) (point)))
+	       (delete-region (point) (progn (forward-word-strictly -1)
+                                             (point)))
 	       (vhdl-template-array 'nature t))
 	      ((equal definition "RECORD")
 	       (setq mid-pos (point-marker))
-	       (delete-region (point) (progn (forward-word -1) (point)))
+	       (delete-region (point) (progn (forward-word-strictly -1)
+                                             (point)))
 	       (vhdl-template-record 'nature name t))
 	      (t
 	       (vhdl-insert-keyword " ACROSS ")
@@ -9875,7 +9880,7 @@ otherwise."
       (goto-char start)
       (setq label (vhdl-template-field "[label]" nil t))
       (unless label (delete-char 2))
-      (forward-word 1)
+      (forward-word-strictly 1)
       (forward-char 1))
     (unless (vhdl-standard-p '87) (vhdl-insert-keyword "IS"))
     (insert "\n")
@@ -9932,7 +9937,7 @@ otherwise."
       (goto-char start)
       (setq label (vhdl-template-field "[label]" nil t))
       (unless label (delete-char 2))
-      (forward-word 1)
+      (forward-word-strictly 1)
       (forward-char 1))
     (insert "(")
     (if (not seq)
@@ -10128,7 +10133,7 @@ otherwise."
     (vhdl-insert-keyword "WITH ")
     (when (vhdl-template-field "selector expression"
 			       nil t start (+ (point) 7))
-      (forward-word 1)
+      (forward-word-strictly 1)
       (delete-char 1)
       (insert "\n")
       (indent-to (+ margin vhdl-basic-offset))
@@ -10250,11 +10255,13 @@ otherwise."
 	       (delete-char -4)
 	       (insert ";"))
 	      ((equal definition "ARRAY")
-	       (delete-region (point) (progn (forward-word -1) (point)))
+	       (delete-region (point) (progn (forward-word-strictly -1)
+                                             (point)))
 	       (vhdl-template-array 'type t))
 	      ((equal definition "RECORD")
 	       (setq mid-pos (point-marker))
-	       (delete-region (point) (progn (forward-word -1) (point)))
+	       (delete-region (point) (progn (forward-word-strictly -1)
+                                             (point)))
 	       (vhdl-template-record 'type name t))
 	      ((equal definition "ACCESS")
 	       (insert " ")
@@ -10298,7 +10305,8 @@ otherwise."
      (if (or (save-excursion
 	       (progn (vhdl-beginning-of-block)
 		      (looking-at "\\s-*\\(\\w+\\s-*:\\s-*\\)?\\<\\(\\<function\\|procedure\\|process\\|procedural\\)\\>")))
-	     (save-excursion (backward-word 1) (looking-at "\\<shared\\>")))
+	     (save-excursion (backward-word-strictly 1)
+                             (looking-at "\\<shared\\>")))
 	 (vhdl-insert-keyword "VARIABLE ")
        (if (vhdl-standard-p '87)
 	   (error "ERROR:  Not within sequential block")
@@ -10356,7 +10364,7 @@ otherwise."
       (goto-char start)
       (setq label (vhdl-template-field "[label]" nil t))
       (unless label (delete-char 2))
-      (forward-word 1)
+      (forward-word-strictly 1)
       (forward-char 1))
     (when vhdl-conditions-in-parenthesis (insert "("))
     (when (vhdl-template-field "condition" nil t start (point))
@@ -11218,7 +11226,7 @@ else insert tab (used for word completion in VHDL minibuffer)."
 				       (save-match-data
 					 (save-excursion
 					   (goto-char (match-end 5))
-					   (forward-word 1)
+					   (forward-word-strictly 1)
 					   (vhdl-forward-syntactic-ws)
 					   (when (looking-at "(")
 					     (forward-sexp))
@@ -11292,19 +11300,19 @@ else insert tab (used for word completion in VHDL minibuffer)."
 but not if inside a comment or quote."
   (if (or (vhdl-in-literal)
 	  (save-excursion
-	    (forward-word -1)
+	    (forward-word-strictly -1)
 	    (and (looking-at "\\<end\\>") (not (looking-at "\\<end;")))))
       (progn
 	(insert " ")
 	(unexpand-abbrev)
-	(backward-word 1)
+	(backward-word-strictly 1)
 	(vhdl-case-word 1)
 	(delete-char 1))
     (if (not vhdl-electric-mode)
 	(progn
 	  (insert " ")
 	  (unexpand-abbrev)
-	  (backward-word 1)
+	  (backward-word-strictly 1)
 	  (vhdl-case-word 1)
 	  (delete-char 1))
       (let ((invoke-char vhdl-last-input-event)
@@ -11707,7 +11715,7 @@ reflected in a subsequent paste operation."
 		    (equal "END" (upcase (match-string 1))))
 	    (throw 'parse "ERROR:  Not within an entity or component declaration"))
 	  (setq decl-type (downcase (match-string-no-properties 1)))
-	  (forward-word 1)
+	  (forward-word-strictly 1)
 	  (vhdl-parse-string "\\s-+\\(\\w+\\)\\(\\s-+is\\>\\)?")
 	  (setq name (match-string-no-properties 1))
 	  (message "Reading port of %s \"%s\"..." decl-type name)
@@ -12996,7 +13004,7 @@ File statistics: \"%s\"\n\
   (let (pos)
     (save-excursion
       (while (and (setq pos (re-search-forward regexp bound noerror count))
-		  (vhdl-in-literal))))
+		  (save-match-data (vhdl-in-literal)))))
     (when pos (goto-char pos))
     pos))
 
@@ -13005,7 +13013,7 @@ File statistics: \"%s\"\n\
   (let (pos)
     (save-excursion
       (while (and (setq pos (re-search-backward regexp bound noerror count))
-		  (vhdl-in-literal))))
+		  (save-match-data (vhdl-in-literal)))))
     (when pos (goto-char pos))
     pos))
 
@@ -13211,7 +13219,7 @@ File statistics: \"%s\"\n\
        ;; subprogram body
        (when (match-string 2)
 	 (re-search-forward "^\\s-*\\<begin\\>" nil t)
-	 (backward-word 1)
+	 (backward-word-strictly 1)
 	 (vhdl-forward-sexp)))
       ;; block (recursive)
       ((looking-at "^\\s-*\\w+\\s-*:\\s-*block\\>")
@@ -13224,7 +13232,7 @@ File statistics: \"%s\"\n\
        (re-search-forward "^\\s-*end\\s-+process\\>" nil t))
       ;; configuration declaration
       ((looking-at "^\\s-*configuration\\>")
-       (forward-word 4)
+       (forward-word-strictly 4)
        (vhdl-forward-sexp))
       (t (goto-char pos))))))
 

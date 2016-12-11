@@ -1859,7 +1859,7 @@ PROC is used to convert the value to actual data."
 (defun mh-index-update-maps (folder &optional origin-map)
   "Annotate all as yet unannotated messages in FOLDER with their MD5 hash.
 As a side effect msg -> checksum map is updated. Optional
-argument ORIGIN-MAP is a hashtable which maps each message in the
+argument ORIGIN-MAP is a hash table which maps each message in the
 index folder to the original folder and message from whence it
 was copied. If present the checksum -> (origin-folder,
 origin-index) map is updated too."
@@ -1913,7 +1913,7 @@ origin-index) map is updated too."
 (defun mh-index-update-single-msg (msg checksum origin-map)
   "Update various maps for one message.
 MSG is a index folder message, CHECKSUM its MD5 hash and
-ORIGIN-MAP, if non-nil, a hashtable containing which maps each
+ORIGIN-MAP, if non-nil, a hash table containing which maps each
 message in the index folder to the folder and message that it was
 copied from. The function updates the hash tables
 `mh-index-msg-checksum-map' and `mh-index-checksum-origin-map'.

@@ -6616,7 +6616,7 @@ applying it to another one.
 @vindex org-clock-idle-time
 By customizing the variable @code{org-clock-idle-time} to some integer, such
 as 10 or 15, Emacs can alert you when you get back to your computer after
-being idle for that many minutes@footnote{On computers using Mac OS X,
+being idle for that many minutes@footnote{On computers using macOS,
 idleness is based on actual user idleness, not just Emacs' idle time.  For
 X11, you can install a utility program @file{x11idle.c}, available in the
 @code{contrib/scripts} directory of the Org git distribution, or install the

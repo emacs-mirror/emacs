@@ -187,7 +187,8 @@ This can be slightly disconcerting, but some people prefer it."
 
 (defun mwheel-scroll (event)
   "Scroll up or down according to the EVENT.
-This should only be bound to mouse buttons 4 and 5."
+This should be bound only to mouse buttons 4 and 5 on non-Windows
+systems."
   (interactive (list last-input-event))
   (let* ((curwin (if mouse-wheel-follow-mouse
                      (prog1

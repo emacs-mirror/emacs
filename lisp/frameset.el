@@ -572,7 +572,7 @@ see `frameset-filter-alist'."
 (defun frameset-filter-minibuffer (current filtered _parameters saving)
   "Force the minibuffer parameter to have a sensible value.
 
-When saving, convert (minibuffer . #<window>) to (minibuffer . t).
+When saving, convert (minibuffer . #<window>) to (minibuffer . nil).
 When restoring, if there are two copies, keep the one pointing to
 a live window.
 
@@ -580,7 +580,12 @@ For the meaning of CURRENT, FILTERED, PARAMETERS and SAVING,
 see `frameset-filter-alist'."
   (let ((value (cdr current)) mini)
     (cond (saving
-	   (if (windowp value) '(minibuffer . t) t))
+           ;; "Fix semantics of 'minibuffer' frame parameter" change:
+           ;; When the cdr of the parameter is a minibuffer window, save
+           ;; (minibuffer . nil) instead of (minibuffer . t).
+           (if (windowp value)
+               '(minibuffer . nil)
+             t))
 	  ((setq mini (assq 'minibuffer filtered))
 	   (when (windowp value) (setcdr mini value))
 	   nil)
@@ -906,12 +911,12 @@ is the parameter alist of the frame being restored.  Internal use only."
 	   ;; If it has not been loaded, and it is not a minibuffer-only frame,
 	   ;; let's look for an existing non-minibuffer-only frame to reuse.
 	   (unless (or frame (eq (cdr (assq 'minibuffer parameters)) 'only))
+           ;; "Fix semantics of 'minibuffer' frame parameter" change:
+           ;; The 'minibuffer' frame parameter of a non-minibuffer-only
+           ;; frame is t instead of that frame's minibuffer window.
 	     (setq frame (frameset--find-frame-if
 			  (lambda (f)
-			    (let ((w (frame-parameter f 'minibuffer)))
-			      (and (window-live-p w)
-				   (window-minibuffer-p w)
-				   (eq (window-frame w) f))))
+			    (eq (frame-parameter f 'minibuffer) t))
 			  display))))
 	  (mini
 	   ;; For minibufferless frames, check whether they already exist,
@@ -1027,8 +1032,11 @@ For the meaning of FORCE-DISPLAY, see `frameset-restore'."
 	(t (not force-display))))
 
 (defun frameset-minibufferless-first-p (frame1 _frame2)
-  "Predicate to sort minibufferless frames before other frames."
-  (not (frame-parameter frame1 'minibuffer)))
+  "Predicate to sort minibuffer-less frames before other frames."
+  ;; "Fix semantics of 'minibuffer' frame parameter" change: The
+  ;; 'minibuffer' frame parameter of a minibuffer-less frame is that
+  ;; frame's minibuffer window instead of nil.
+  (windowp (frame-parameter frame1 'minibuffer)))
 
 ;;;###autoload
 (cl-defun frameset-restore (frameset

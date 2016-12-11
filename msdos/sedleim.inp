@@ -19,6 +19,11 @@
 SHELL=/xyzzy/command\
 MAKESHELL=/xyzzy/command
 
+/^EXEEXT *=/s/@EXEEXT@/.exe/
+/^AM_DEFAULT_VERBOSITY *=/s/@AM_DEFAULT_VERBOSITY@/1/
+/^[Aa][Mm]_/s/@AM_V@/$(V)/
+/^[Aa][Mm]_/s/@AM_DEFAULT_V@/$(AM_DEFAULT_VERBOSITY)/
+
 /^srcdir=/s|srcdir=@srcdir@|srcdir := $(subst \\,/,$(shell cd))|
 
 # Need a relative directory name for the md command, otherwise it
@@ -33,7 +38,6 @@ s|\([ 	]\)echo|\1djecho|g
 export EMACSLOADPATH=\
 RUN_EMACS = ${EMACS} -batch --no-site-file --no-site-lisp
 
-/^MKDIR_P *=/s,@MKDIR_P@,-command.com /c md,
+/^MKDIR_P *=/s,@MKDIR_P@,gmkdir -p,
 
-/MKDIR_P.* \${leimdir}\/.*$/s|\${leimdir}/|$(rel_leimdir)\\|
-/MKDIR_P.* \$(leimdir)\/.*$/s|\$(leimdir)/|$(rel_leimdir)\\|
+/^\${leimdir}\/quail \${leimdir}\/ja-dic: *$/s|\${leimdir}/|$(rel_leimdir)\\|

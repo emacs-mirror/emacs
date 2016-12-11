@@ -300,8 +300,6 @@ To disable timer scans, set this to zero."
 				 (:background "white")))
   "Face used for highlighting the bogus whitespaces that exist in the buffer."
   :group 'whitespace)
-(define-obsolete-face-alias 'whitespace-highlight-face
-  'whitespace-highlight "22.1")
 
 (if (not (assoc 'whitespace-mode minor-mode-alist))
     (setq minor-mode-alist (cons '(whitespace-mode whitespace-mode-line)

@@ -587,7 +587,11 @@ Interactively, the behavior depends on `narrow-to-defun-include-comments'."
 Each element looks like (OPEN-CHAR CLOSE-CHAR) or (COMMAND-CHAR
 OPEN-CHAR CLOSE-CHAR).  The characters OPEN-CHAR and CLOSE-CHAR
 of the pair whose key is equal to the last input character with
-or without modifiers, are inserted by `insert-pair'.")
+or without modifiers, are inserted by `insert-pair'.
+
+If COMMAND-CHAR is specified, it is a character that triggers the
+insertion of the open/close pair, and COMMAND-CHAR itself isn't
+inserted.")
 
 (defun insert-pair (&optional arg open close)
   "Enclose following ARG sexps in a pair of OPEN and CLOSE characters.

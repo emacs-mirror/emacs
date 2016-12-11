@@ -1,4 +1,4 @@
-;;; timer.el --- run a function with args at some time in future
+;;; timer.el --- run a function with args at some time in future -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1996, 2001-2016 Free Software Foundation, Inc.
 
@@ -424,6 +424,8 @@ This function returns a timer object which you can use in `cancel-timer'."
 (defun add-timeout (secs function object &optional repeat)
   "Add a timer to run SECS seconds from now, to call FUNCTION on OBJECT.
 If REPEAT is non-nil, repeat the timer every REPEAT seconds.
+
+This function returns a timer object which you can use in `cancel-timer'.
 This function is for compatibility; see also `run-with-timer'."
   (run-with-timer secs repeat function object))
 

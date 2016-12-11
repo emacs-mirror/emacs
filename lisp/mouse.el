@@ -34,6 +34,11 @@
 ;; Indent track-mouse like progn.
 (put 'track-mouse 'lisp-indent-function 0)
 
+(defgroup mouse nil
+  "Input from the mouse."  ;; "Mouse support."
+  :group 'environment
+  :group 'editing)
+
 (defcustom mouse-yank-at-point nil
   "If non-nil, mouse yank commands yank at point instead of at click."
   :type 'boolean
@@ -97,35 +102,44 @@ Expects to be bound to `down-mouse-1' in `key-translation-map'."
   (when (and mouse-1-click-follows-link
              (eq (if (eq mouse-1-click-follows-link 'double)
                      'double-down-mouse-1 'down-mouse-1)
-                 (car-safe last-input-event))
-             (mouse-on-link-p (event-start last-input-event))
-             (or mouse-1-click-in-non-selected-windows
-                 (eq (selected-window)
-                     (posn-window (event-start last-input-event)))))
-    (let ((timedout
-           (sit-for (if (numberp mouse-1-click-follows-link)
-                     (/ (abs mouse-1-click-follows-link) 1000.0)
-                     0))))
-      (if (if (and (numberp mouse-1-click-follows-link)
-                   (>= mouse-1-click-follows-link 0))
-              timedout (not timedout))
-          nil
-
-        (let ((event (read-key))) ;Use read-key so it works for xterm-mouse-mode!
-          (if (eq (car-safe event) (if (eq mouse-1-click-follows-link 'double)
-                                       'double-mouse-1 'mouse-1))
-              ;; Turn the mouse-1 into a mouse-2 to follow links.
-              (let ((newup (if (eq mouse-1-click-follows-link 'double)
-                                'double-mouse-2 'mouse-2)))
-                ;; If mouse-2 has never been done by the user, it doesn't have
-                ;; the necessary property to be interpreted correctly.
-                (unless (get newup 'event-kind)
-                  (put newup 'event-kind (get (car event) 'event-kind)))
-                (push (cons newup (cdr event)) unread-command-events)
-                ;; Don't change the down event, only the up-event (bug#18212).
-                nil)
-            (push event unread-command-events)
-            nil))))))
+                 (car-safe last-input-event)))
+    (let ((action (mouse-on-link-p (event-start last-input-event))))
+      (when (and action
+                 (or mouse-1-click-in-non-selected-windows
+                     (eq (selected-window)
+                         (posn-window (event-start last-input-event)))))
+        (let ((timedout
+               (sit-for (if (numberp mouse-1-click-follows-link)
+                            (/ (abs mouse-1-click-follows-link) 1000.0)
+                          0))))
+          (if (if (and (numberp mouse-1-click-follows-link)
+                       (>= mouse-1-click-follows-link 0))
+                  timedout (not timedout))
+              nil
+            ;; Use read-key so it works for xterm-mouse-mode!
+            (let ((event (read-key)))
+              (if (eq (car-safe event)
+                      (if (eq mouse-1-click-follows-link 'double)
+                          'double-mouse-1 'mouse-1))
+                  (progn
+                    ;; Turn the mouse-1 into a mouse-2 to follow links,
+                    ;; but only if ‘mouse-on-link-p’ hasn’t returned a
+                    ;; string or vector (see its docstring).
+                    (if (or (stringp action) (vectorp action))
+                        (push (aref action 0) unread-command-events)
+                      (let ((newup (if (eq mouse-1-click-follows-link 'double)
+                                       'double-mouse-2 'mouse-2)))
+                        ;; If mouse-2 has never been done by the user, it
+                        ;; doesn't have the necessary property to be
+                        ;; interpreted correctly.
+                        (unless (get newup 'event-kind)
+                          (put newup 'event-kind (get (car event) 'event-kind)))
+                        (push (cons newup (cdr event)) unread-command-events)))
+                    ;; Don't change the down event, only the up-event
+                    ;; (bug#18212).
+                    nil)
+                (push event unread-command-events)
+                nil))))))))
 
 (define-key key-translation-map [down-mouse-1]
   #'mouse--down-1-maybe-follows-link)
@@ -155,7 +169,7 @@ items `Turn Off' and `Help'."
               (if (fboundp mm-fun)      ; bug#20201
                   `(keymap
                     ,indicator
-                    (turn-off menu-item "Turn Off minor mode" ,mm-fun)
+                    (turn-off menu-item "Turn off minor mode" ,mm-fun)
                     (help menu-item "Help for minor mode"
                           (lambda () (interactive)
                             (describe-function ',mm-fun)))))))
@@ -406,7 +420,13 @@ must be one of the symbols `header', `mode', or `vertical'."
 			   (or (not resize-mini-windows)
 			       (eq minibuffer-window
 				   (active-minibuffer-window)))))))
-	  (setq draggable nil))))
+	  (setq draggable nil)))
+     ((eq line 'vertical)
+      (let ((divider-width (frame-right-divider-width frame)))
+        (when (and (or (not (numberp divider-width))
+                       (zerop divider-width))
+                   (eq (frame-parameter frame 'vertical-scroll-bars) 'left))
+          (setq window (window-in-direction 'left window t))))))
 
     (let* ((exitfun nil)
            (move
@@ -473,7 +493,8 @@ must be one of the symbols `header', `mode', or `vertical'."
 						(window-pixel-height window)))))
 		  (setq dragged t)
 		  (adjust-window-trailing-edge window growth nil t))
-		(setq last-position position))))))
+		(setq last-position position)))))
+           (old-track-mouse track-mouse))
       ;; Start tracking.  The special value 'dragging' signals the
       ;; display engine to freeze the mouse pointer shape for as long
       ;; as we drag.
@@ -506,7 +527,7 @@ must be one of the symbols `header', `mode', or `vertical'."
 	       (define-key map [right-divider] map)
 	       (define-key map [bottom-divider] map)
 	       map)
-	     t (lambda () (setq track-mouse nil)))))))
+	     t (lambda () (setq track-mouse old-track-mouse)))))))
 
 (defun mouse-drag-mode-line (start-event)
   "Change the height of a window by dragging on the mode line."
@@ -523,15 +544,29 @@ must be one of the symbols `header', `mode', or `vertical'."
   (interactive "e")
   (mouse-drag-line start-event 'vertical))
 
+(defcustom mouse-select-region-move-to-beginning nil
+  "Effect of selecting a region extending backward from double click.
+Nil means keep point at the position clicked (region end);
+non-nil means move point to beginning of region."
+  :type '(choice (const :tag "Don't move point" nil)
+		 (const :tag "Move point to beginning of region" t))
+  :group 'mouse
+  :version "26.1")
+
 (defun mouse-set-point (event &optional promote-to-region)
   "Move point to the position clicked on with the mouse.
 This should be bound to a mouse click event type.
-If PROMOTE-TO-REGION is non-nil and event is a multiple-click,
-select the corresponding element around point."
+If PROMOTE-TO-REGION is non-nil and event is a multiple-click, select
+the corresponding element around point, with the resulting position of
+point determined by `mouse-select-region-move-to-beginning'."
   (interactive "e\np")
   (mouse-minibuffer-check event)
   (if (and promote-to-region (> (event-click-count event) 1))
-      (mouse-set-region event)
+      (progn
+        (mouse-set-region event)
+        (when mouse-select-region-move-to-beginning
+          (when (> (posn-point (event-start event)) (region-beginning))
+            (exchange-point-and-mark))))
     ;; Use event-end in case called from mouse-drag-region.
     ;; If EVENT is a click, event-end and event-start give same value.
     (posn-set-point (event-end event))))
@@ -558,7 +593,12 @@ command alters the kill ring or not."
   (mouse-minibuffer-check click)
   (select-window (posn-window (event-start click)))
   (let ((beg (posn-point (event-start click)))
-	(end (posn-point (event-end click)))
+        (end
+         (if (eq (posn-window (event-end click)) (selected-window))
+             (posn-point (event-end click))
+           ;; If the mouse ends up in any other window or on the menu
+           ;; bar, use `window-point' of selected window (Bug#23707).
+           (window-point)))
         (click-count (event-click-count click)))
     (let ((drag-start (terminal-parameter nil 'mouse-drag-start)))
       (when drag-start
@@ -705,8 +745,9 @@ its value is returned."
 
 (defun mouse-on-link-p (pos)
   "Return non-nil if POS is on a link in the current buffer.
-POS must be a buffer position in the current buffer or a mouse
-event location in the selected window (see `event-start').
+POS must specify a buffer position in the current buffer, as a list
+of the form returned by the `event-start' and `event-end' functions,
+or a mouse event location in the selected window (see `event-start').
 However, if `mouse-1-click-in-non-selected-windows' is non-nil,
 POS may be a mouse event location in any window.
 
@@ -793,14 +834,16 @@ The region will be defined with mark and point."
   (setq mouse-selection-click-count-buffer (current-buffer))
   (deactivate-mark)
   (let* ((scroll-margin 0) ; Avoid margin scrolling (Bug#9541).
+	 (start-posn (event-start start-event))
+	 (start-point (posn-point start-posn))
+	 (start-window (posn-window start-posn))
+	 (_ (with-current-buffer (window-buffer start-window)
+	      (setq deactivate-mark nil)))
          ;; We've recorded what we needed from the current buffer and
          ;; window, now let's jump to the place of the event, where things
          ;; are happening.
          (_ (mouse-set-point start-event))
          (echo-keystrokes 0)
-	 (start-posn (event-start start-event))
-	 (start-point (posn-point start-posn))
-	 (start-window (posn-window start-posn))
 	 (bounds (window-edges start-window))
 	 (make-cursor-line-fully-visible nil)
 	 (top (nth 1 bounds))
@@ -811,7 +854,8 @@ The region will be defined with mark and point."
 	 (click-count (1- (event-click-count start-event)))
 	 ;; Suppress automatic hscrolling, because that is a nuisance
 	 ;; when setting point near the right fringe (but see below).
-	 (auto-hscroll-mode-saved auto-hscroll-mode))
+	 (auto-hscroll-mode-saved auto-hscroll-mode)
+         (old-track-mouse track-mouse))
 
     (setq mouse-selection-click-count click-count)
     ;; In case the down click is in the middle of some intangible text,
@@ -863,7 +907,7 @@ The region will be defined with mark and point."
                                       nil start-point))))))))
        map)
      t (lambda ()
-         (setq track-mouse nil)
+         (setq track-mouse old-track-mouse)
          (setq auto-hscroll-mode auto-hscroll-mode-saved)
           (deactivate-mark)
          (pop-mark)))))
@@ -1605,8 +1649,8 @@ and selects that window."
 	      (let ((others-list
 		     (mouse-buffer-menu-alist
 		      ;; we don't need split-by-major-mode any more,
-		      ;; so we can ditch it with nconc.
-		      (apply 'nconc (mapcar 'cddr split-by-major-mode)))))
+		      ;; so we can ditch it with nconc (mapcan).
+		      (mapcan 'cddr split-by-major-mode))))
 		(and others-list
 		     (setq subdivided-menus
 			   (cons (cons "Others" others-list)
@@ -1683,7 +1727,7 @@ and selects that window."
 ;; Font selection.
 
 (defun font-menu-add-default ()
-  (let* ((default (cdr (assq 'font (frame-parameters (selected-frame)))))
+  (let* ((default (frame-parameter nil 'font))
 	 (font-alist x-fixed-font-alist)
 	 (elt (or (assoc "Misc" font-alist) (nth 1 font-alist))))
     (if (assoc "Default" elt)

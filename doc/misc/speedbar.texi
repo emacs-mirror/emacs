@@ -62,7 +62,7 @@ authors of other packages to provide speedbar summaries customized to
 the needs of that mode.
 
 Throughout this manual, activities are defined as ``clicking on'', or
-``expanding'' items.  Clicking means using @kbd{Mouse-2} on a
+``expanding'' items.  Clicking means using @kbd{mouse-2} on a
 button.  Expanding refers to clicking on an expansion button to display
 an expanded summary of the entry the expansion button is
 on.  @xref{Basic Navigation}.
@@ -316,29 +316,29 @@ with the mouse, or affected by the menu.
 The mouse bindings are:
 
 @table @kbd
-@item Mouse-1
+@item mouse-1
 Move cursor to that location.
-@item Mouse-2
-@itemx Double-Mouse-1
-Activate the current button.  @kbd{Double-Mouse-1} is called a @dfn{double
+@item mouse-2
+@itemx Double-mouse-1
+Activate the current button.  @kbd{Double-mouse-1} is called a @dfn{double
 click} on other platforms, and is useful for windows users with two
 button mice.
-@c Isn't it true that with two-button mice, the right button is Mouse-2?
-@c On GNU/Linux, the right button is Mouse-3.
-@item S-Mouse-2
-@itemx S-Double-Mouse-1
+@c Isn't it true that with two-button mice, the right button is mouse-2?
+@c On GNU/Linux, the right button is mouse-3.
+@item S-mouse-2
+@itemx S-Double-mouse-1
 @cindex power click
-This has the same effect as @kbd{Mouse-2}, except it is called a power
+This has the same effect as @kbd{mouse-2}, except it is called a power
 click.  This means that if a group with an expansion button @samp{+} is
 clicked, any caches are flushed, and subitems re-read.  If it is a name,
 it will be opened in a new frame.
-@item Mouse-3
+@item mouse-3
 Activate the speedbar menu.  The item selected affects the line clicked,
 not the line where the cursor was.
-@item Mouse-1 @r{(mode line)}
+@item mouse-1 @r{(mode line)}
 Activate the menu.  This affects the item the cursor is on before the
 click, since the mouse was not clicked on anything.
-@item C-Mouse-1
+@item C-mouse-1
 Buffers sub-menu.  The buffer in the attached frame is switched.
 @end table
 
@@ -355,7 +355,7 @@ You can display different data by using different display modes.  These
 specialized modes make it easier to navigate the relevant pieces of
 information, such as files and directories, or buffers.
 
-In the main menu, found by clicking @kbd{Mouse-3}, there is a submenu
+In the main menu, found by clicking @kbd{mouse-3}, there is a submenu
 labeled @samp{Displays}.  This submenu lets you easily choose between
 different display modes.
 
@@ -1030,7 +1030,7 @@ it is not provided, you can derive it like this:
       (progn
         (beginning-of-line)
         (looking-at "^\\([0-9]+\\):")
-        (setq depth (string-to-int (match-string 1)))))
+        (setq depth (string-to-number (match-string 1)))))
 @end example
 
 @noindent

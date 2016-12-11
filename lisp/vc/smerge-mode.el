@@ -82,7 +82,7 @@ Used in `smerge-diff-base-upper' and related functions."
     (((class color))
      :foreground "red"))
   "Face for the `upper' version of a conflict.")
-(define-obsolete-face-alias 'smerge-mine 'smerge-upper "25.2")
+(define-obsolete-face-alias 'smerge-mine 'smerge-upper "26.1")
 (defvar smerge-upper-face 'smerge-upper)
 
 (defface smerge-lower
@@ -93,7 +93,7 @@ Used in `smerge-diff-base-upper' and related functions."
     (((class color))
      :foreground "green"))
   "Face for the `lower' version of a conflict.")
-(define-obsolete-face-alias 'smerge-other 'smerge-lower "25.2")
+(define-obsolete-face-alias 'smerge-other 'smerge-lower "26.1")
 (defvar smerge-lower-face 'smerge-lower)
 
 (defface smerge-base
@@ -702,7 +702,7 @@ this keeps \"LLL\"."
   (smerge-keep-n 3)
   (smerge-auto-leave))
 
-(define-obsolete-function-alias 'smerge-keep-other 'smerge-keep-lower "25.2")
+(define-obsolete-function-alias 'smerge-keep-other 'smerge-keep-lower "26.1")
 
 (defun smerge-keep-upper ()
   "Keep the \"upper\" version of a merge conflict.
@@ -719,7 +719,7 @@ this keeps \"UUU\"."
   (smerge-keep-n 1)
   (smerge-auto-leave))
 
-(define-obsolete-function-alias 'smerge-keep-mine 'smerge-keep-upper "25.2")
+(define-obsolete-function-alias 'smerge-keep-mine 'smerge-keep-upper "26.1")
 
 (defun smerge-get-current ()
   (let ((i 3))
@@ -760,7 +760,7 @@ this keeps \"UUU\"."
   (smerge-diff 2 1))
 
 (define-obsolete-function-alias 'smerge-diff-base-mine
-  'smerge-diff-base-upper "25.2")
+  'smerge-diff-base-upper "26.1")
 
 (defun smerge-diff-base-lower ()
   "Diff `base' and `lower' version in current conflict region."
@@ -768,7 +768,7 @@ this keeps \"UUU\"."
   (smerge-diff 2 3))
 
 (define-obsolete-function-alias 'smerge-diff-base-other
-  'smerge-diff-base-lower "25.2")
+  'smerge-diff-base-lower "26.1")
 
 (defun smerge-diff-upper-lower ()
   "Diff `upper' and `lower' version in current conflict region."
@@ -776,7 +776,7 @@ this keeps \"UUU\"."
   (smerge-diff 1 3))
 
 (define-obsolete-function-alias 'smerge-diff-mine-other
-  'smerge-diff-upper-lower "25.2")
+  'smerge-diff-upper-lower "26.1")
 
 (defun smerge-match-conflict ()
   "Get info about the conflict.  Puts the info in the `match-data'.

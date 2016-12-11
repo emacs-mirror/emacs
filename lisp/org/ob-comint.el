@@ -34,8 +34,9 @@
 (require 'org-compat)
 (require 'comint)
 (eval-when-compile (require 'cl))
-(declare-function with-parsed-tramp-file-name "tramp" (filename var &rest body))
-(declare-function tramp-flush-directory-property "tramp" (vec directory))
+(declare-function with-parsed-tramp-file-name "tramp"
+                  (filename var &rest body) t)
+(declare-function tramp-flush-directory-property "tramp-cache" (key directory))
 
 (defun org-babel-comint-buffer-livep (buffer)
   "Check if BUFFER is a comint buffer with a live process."

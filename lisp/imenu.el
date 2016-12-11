@@ -462,12 +462,15 @@ Don't move point."
 Simple elements in the alist look like (INDEX-NAME . POSITION).
 POSITION is the buffer position of the item; to go to the item
 is simply to move point to that position.
-POSITION is passed to `imenu-default-goto-function', so it can be a non-number
-if that variable has been changed (e.g. Semantic uses overlays for POSITIONs).
 
-Special elements look like (INDEX-NAME POSITION FUNCTION ARGUMENTS...).
-To \"go to\" a special element means applying FUNCTION
-to INDEX-NAME, POSITION, and the ARGUMENTS.
+POSITION is passed to `imenu-default-goto-function', so it can be
+a non-number if that variable has been changed (e.g. Semantic
+uses overlays for POSITIONs).
+
+Special elements look like
+\(INDEX-NAME POSITION FUNCTION ARGUMENTS...).
+To \"go to\" a special element means applying FUNCTION to
+INDEX-NAME, POSITION, and the ARGUMENTS.
 
 A nested sub-alist element looks like (INDEX-NAME . SUB-ALIST).
 The function `imenu--subalist-p' tests an element and returns t

@@ -252,7 +252,9 @@ need to use a function that takes some other data type, you will need to
 call it in an Elisp expression (which can also be used with
 @ref{Expansion, expansions}).  As with other shells, you can
 escape special characters and spaces with the backslash (@code{\}) and
-apostrophes (@code{''}) and double quotes (@code{""}).
+apostrophes (@code{''}) and double quotes (@code{""}).  This is needed
+especially for file names with special characters like pipe
+(@code{|}), which could be part of remote file names.
 
 @node Built-ins
 

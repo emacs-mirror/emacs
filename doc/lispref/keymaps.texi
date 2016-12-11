@@ -194,10 +194,19 @@ explicitly bound to @code{nil} (see below).
 @item @var{char-table}
 If an element of a keymap is a char-table, it counts as holding
 bindings for all character events with no modifier bits
-(@pxref{modifier bits}): element @var{n} is the binding for the
-character with code @var{n}.  This is a compact way to record lots of
-bindings.  A keymap with such a char-table is called a @dfn{full
-keymap}.  Other keymaps are called @dfn{sparse keymaps}.
+(@pxref{modifier bits}): the element whose index is @var{c} is the
+binding for the character @var{c}.  This is a compact way to record
+lots of bindings.  A keymap with such a char-table is called a
+@dfn{full keymap}.  Other keymaps are called @dfn{sparse keymaps}.
+
+@item @var{vector}
+This kind of element is similar to a char-table: the element whose
+index is @var{c} is the binding for the character @var{c}.  Since the
+range of characters that can be bound this way is limited by the
+vector size, and vector creation allocates space for all character
+codes from 0 up, this format should not be used except for creating
+menu keymaps (@pxref{Menu Keymaps}), where the bindings themselves
+don't matter.
 
 @item @var{string}
 @cindex keymap prompt string
@@ -341,7 +350,21 @@ lots of bindings; for just a few, the sparse keymap is better.
 @end defun
 
 @defun copy-keymap keymap
-This function returns a copy of @var{keymap}.  Any keymaps that
+This function returns a copy of @var{keymap}.  This is almost never
+needed.  If you want a keymap that's like another yet with a few
+changes, you should use map inheritance rather than copying.
+I.e., something like:
+
+@example
+@group
+(let ((map (make-sparse-keymap)))
+  (set-keymap-parent map <theirmap>)
+  (define-key map ...)
+  ...)
+@end group
+@end example
+
+When performing @code{copy-keymap}, any keymaps that
 appear directly as bindings in @var{keymap} are also copied recursively,
 and so on to any number of levels.  However, recursive copying does not
 take place when the definition of a character is a symbol whose function
@@ -1368,7 +1391,7 @@ default global map.
   The function @code{substitute-key-definition} scans a keymap for
 keys that have a certain binding and rebinds them with a different
 binding.  Another feature which is cleaner and can often produce the
-same results to remap one command into another (@pxref{Remapping
+same results is to remap one command into another (@pxref{Remapping
 Commands}).
 
 @defun substitute-key-definition olddef newdef keymap &optional oldmap
@@ -2605,8 +2628,8 @@ this is how you specify the image to display in the tool bar:
 
 @table @code
 @item :image @var{image}
-@var{images} is either a single image specification or a vector of four
-image specifications.  If you use a vector of four,
+@var{image} is either a single image specification (@pxref{Images}) or
+a vector of four image specifications.  If you use a vector of four,
 one of them is used, depending on circumstances:
 
 @table @asis

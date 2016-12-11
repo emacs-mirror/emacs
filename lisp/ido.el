@@ -1882,6 +1882,7 @@ If INITIAL is non-nil, it specifies the initial input string."
        ido-selected
        ido-final-text
        (done nil)
+       (non-essential t) ;; prevent eager Tramp connection
        (icomplete-mode nil) ;; prevent icomplete starting up
        ;; Exported dynamic variables:
        ido-cur-list

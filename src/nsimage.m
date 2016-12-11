@@ -1,4 +1,4 @@
-/* Image support for the NeXT/Open/GNUstep and MacOSX window system.
+/* Image support for the NeXT/Open/GNUstep and macOS window system.
    Copyright (C) 1989, 1992-1994, 2005-2006, 2008-2016 Free Software
    Foundation, Inc.
 
@@ -21,7 +21,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 Originally by Carl Edman
 Updated by Christian Limpach (chris@nice.ch)
 OpenStep/Rhapsody port by Scott Bender (sbender@harmony-ds.com)
-MacOSX/Aqua port by Christophe de Dinechin (descubes@earthlink.net)
+macOS/Aqua port by Christophe de Dinechin (descubes@earthlink.net)
 GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 */
 
@@ -46,11 +46,11 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
    ========================================================================== */
 
 void *
-ns_image_from_XBM (unsigned char *bits, int width, int height,
+ns_image_from_XBM (char *bits, int width, int height,
                    unsigned long fg, unsigned long bg)
 {
   NSTRACE ("ns_image_from_XBM");
-  return [[EmacsImage alloc] initFromXBM: bits
+  return [[EmacsImage alloc] initFromXBM: (unsigned char *) bits
                                    width: width height: height
                                       fg: fg bg: bg];
 }

@@ -1,4 +1,4 @@
-;;; url-auth.el --- Uniform Resource Locator authorization modules
+;;; url-auth.el --- Uniform Resource Locator authorization modules -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1996-1999, 2004-2016 Free Software Foundation, Inc.
 
@@ -53,7 +53,7 @@ lists.  The first assoc list is keyed by the server name.  The cdr of
 this is an assoc list based on the \"directory\" specified by the URL we
 are looking up.")
 
-(defun url-basic-auth (url &optional prompt overwrite realm args)
+(defun url-basic-auth (url &optional prompt overwrite realm _args)
   "Get the username/password for the specified URL.
 If optional argument PROMPT is non-nil, ask for the username/password
 to use for the url and its descendants.  If optional third argument

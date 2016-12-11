@@ -1,4 +1,4 @@
-;;; htmlfontify.el --- htmlize a buffer/source tree with optional hyperlinks
+;;; htmlfontify.el --- htmlize a buffer/source tree with optional hyperlinks -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2002-2003, 2009-2016 Free Software Foundation, Inc.
 
@@ -81,7 +81,7 @@
 ;; Changes: moved to changelog (CHANGES) file.
 
 ;;; Code:
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 (require 'faces)
 ;;  (`facep' `face-attr-construct' `x-color-values' `color-values' `face-name')
 (require 'custom)
@@ -524,8 +524,8 @@ Some examples:\n
 
 (defvar hfy-sheet-assoc 'please-ignore-this-line
   "An assoc with elements of the form (face-name style-name . style-string):\n
-'((default               \"default\" . \"{background: black; color: white}\")
-  (font-lock-string-face \"string\"  . \"{color: rgb(64,224,208)}\"))" )
+\((default               \"default\" . \"{background: black; color: white}\")
+ (font-lock-string-face \"string\"  . \"{color: rgb(64,224,208)}\"))" )
 
 (defvar hfy-facemap-assoc 'please-ignore-this-line
   "An assoc of (point . FACE-SYMBOL) or (point . DEFFACE-LIST)
@@ -818,7 +818,7 @@ regular specifiers."
   (if spec
       (let ((tag (car  spec))
             (val (cadr spec)))
-        (cons (case tag
+        (cons (cl-case tag
                 (:color (cons "colour" val))
                 (:width (cons "width"  val))
                 (:style (cons "style"  val)))
@@ -831,7 +831,7 @@ regular specifiers."
     (list
      (if col (cons "border-color" (cdr (assoc "colour" css))))
      (cons "border-width" (format "%dpx" (or (cdr (assoc "width" css)) 1)))
-     (cons "border-style" (case s
+     (cons "border-style" (cl-case s
                             (released-button "outset")
                             (pressed-button  "inset" )
                             (t               "solid" ))))))
@@ -850,7 +850,7 @@ TAG is an Emacs font attribute key (eg :underline).
 VAL is ignored."
   (list
    ;; FIXME: Why not '("text-decoration" . "underline")?  --Stef
-   (case tag
+   (cl-case tag
      (:underline      (cons "text-decoration" "underline"   ))
      (:overline       (cons "text-decoration" "overline"    ))
      (:strike-through (cons "text-decoration" "line-through")))))
@@ -1003,7 +1003,7 @@ merged by the user - `hfy-flatten-style' should do this."
                    (hfy-face-to-style-i
                     (hfy-face-attr-for-class v hfy-display-class))))))
         (setq this
-              (if val (case key
+              (if val (cl-case key
                        (:family         (hfy-family    val))
                        (:width          (hfy-width     val))
                        (:weight         (hfy-weight    val))
@@ -1287,7 +1287,7 @@ return a `defface' style list of face properties instead of a face symbol."
                             (setq fprops (cdr fprops)))
                         ;; ((prop val))
                         (setq p (caar fprops))
-                        (setq v (cadar fprops))
+                        (setq v (cl-cadar fprops))
                         (setq fprops (cdr fprops)))
                     (if (listp (cdr fprops))
                         (progn
@@ -1304,7 +1304,7 @@ return a `defface' style list of face properties instead of a face symbol."
                             (setq v (cdr fprops))
                             (setq fprops nil))
                         (error "Eh... another format! fprops=%s" fprops) )))
-                  (setq p (case p
+                  (setq p (cl-case p
                             ;; These are all the properties handled
                             ;; in `hfy-face-to-style-i'.
                             ;;
@@ -1407,8 +1407,8 @@ Returns a modified copy of FACE-MAP."
     ;;(push (car  tmp-map) reduced-map)
     ;;(push (cadr tmp-map) reduced-map)
     (while tmp-map
-      (setq first-start (cadddr tmp-map)
-            first-stop  (caddr  tmp-map)
+      (setq first-start (cl-cadddr tmp-map)
+            first-stop (cl-caddr tmp-map)
             last-start  (cadr   tmp-map)
             last-stop   (car    tmp-map)
             map-buf      tmp-map
@@ -1421,8 +1421,8 @@ Returns a modified copy of FACE-MAP."
                     (not (re-search-forward "[^ \t\n\r]" (car last-start) t))))
         (setq map-buf     (cddr map-buf)
               span-start  first-start
-              first-start (cadddr map-buf)
-              first-stop  (caddr  map-buf)
+              first-start (cl-cadddr map-buf)
+              first-stop (cl-caddr map-buf)
               last-start  (cadr   map-buf)
               last-stop   (car    map-buf)))
       (push span-stop  reduced-map)
@@ -1762,7 +1762,7 @@ FILE, if set, is the file name."
             (if (not (setq pr (get-text-property pt lp))) nil
               (goto-char pt)
               (remove-text-properties pt (1+ pt) (list lp nil))
-              (case lp
+              (cl-case lp
                 (hfy-link
                  (if (setq rr (get-text-property pt 'hfy-inst))
                      (insert (format "<a name=\"%s\"></a>" rr)))
@@ -1805,8 +1805,7 @@ It is assumed that STRING has text properties that allow it to be
 fontified.  This is a simple convenience wrapper around
 `htmlfontify-buffer'."
   (let* ((hfy-optimizations-1 (copy-sequence hfy-optimizations))
-         (hfy-optimizations (add-to-list 'hfy-optimizations-1
-                                         'skip-refontification)))
+         (hfy-optimizations (cl-pushnew 'skip-refontification hfy-optimizations-1)))
     (with-temp-buffer
       (insert string)
       (htmlfontify-buffer)
@@ -1849,8 +1848,9 @@ Dangerous characters in the existing buffer are turned into HTML
 entities, so you should even be able to do HTML-within-HTML
 fontified display.
 
-You should, however, note that random control or eight-bit
-characters such as ^L (\x0c) or ¤ (\xa4) won't get mapped yet.
+You should, however, note that random control or non-ASCII
+characters such as ^L (U+000C FORM FEED (FF)) or ¤ (U+00A4
+CURRENCY SIGN) won't get mapped yet.
 
 If the SRCDIR and FILE arguments are set, lookup etags derived
 entries in the `hfy-tags-cache' and add HTML anchors and
@@ -1962,7 +1962,7 @@ property, with a value of \"tag.line-number\"."
             (lambda (TLIST)
               (if (string= file (car TLIST))
                   (let* ((line              (cadr TLIST) )
-                         (chr              (caddr TLIST) )
+                         (chr (cl-caddr TLIST))
                          (link (format "%s.%d" TAG line) ))
                     (put-text-property (+ 1 chr)
                                        (+ 2 chr)

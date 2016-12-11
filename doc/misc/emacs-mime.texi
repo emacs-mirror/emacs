@@ -1554,7 +1554,7 @@ Here's a bunch of time/date/second/day examples:
 (time-less-p '(13818 19266) '(13818 19145))
 @result{} nil
 
-(subtract-time '(13818 19266) '(13818 19145))
+(time-subtract '(13818 19266) '(13818 19145))
 @result{} (0 121)
 
 (days-between "Sat Sep 12 12:21:54 1998 +0200"
@@ -1632,14 +1632,14 @@ return a ``zero'' time.
 
 @item time-less-p
 Take two times and say whether the first time is less (i.e., earlier)
-than the second time.
+than the second time.  (This is a built-in function.)
 
 @item time-since
 Take a time and return a time saying how long it was since that time.
 
-@item subtract-time
+@item time-subtract
 Take two times and subtract the second from the first.  I.e., return
-the time between the two times.
+the time between the two times.  (This is a built-in function.)
 
 @item days-between
 Take two days and return the number of days between those two days.
@@ -1825,6 +1825,11 @@ matching types.
 @item mailcap-mime-data
 @vindex mailcap-mime-data
 This variable is an alist of alists containing backup viewing rules.
+
+@item mailcap-user-mime-data
+@vindex mailcap-user-mime-data
+A customizable list of viewers that take preference over
+@code{mailcap-mime-data}.
 
 @end table
 

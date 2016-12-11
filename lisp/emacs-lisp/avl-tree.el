@@ -98,7 +98,8 @@
   ;; avl-tree-right avl-tree-data] branch) node)
   "Get value of a branch of a node.
 NODE is the node, and BRANCH is the branch.
-0 for left pointer, 1 for right pointer and 2 for the data.")
+0 for left pointer, 1 for right pointer and 2 for the data.
+\n(fn BRANCH NODE)")
 
 
 ;; The funcall/aref trick wouldn't work for the setf method, unless we
@@ -400,7 +401,8 @@ itself."
   reverse store)
 
 (defalias 'avl-tree-stack-p #'avl-tree--stack-p
-  "Return t if argument is an avl-tree-stack, nil otherwise.")
+  "Return t if OBJ is an avl-tree-stack, nil otherwise.
+\n(fn OBJ)")
 
 (defun avl-tree--stack-repopulate (stack)
   ;; Recursively push children of the node at the head of STACK onto the
@@ -419,12 +421,12 @@ itself."
 (defalias 'avl-tree-create #'avl-tree--create
   "Create an empty AVL tree.
 COMPARE-FUNCTION is a function which takes two arguments, A and B,
-and returns non-nil if A is less than B, and nil otherwise.")
+and returns non-nil if A is less than B, and nil otherwise.
+\n(fn COMPARE-FUNCTION)")
 
 (defalias 'avl-tree-compare-function #'avl-tree--cmpfun
   "Return the comparison function for the AVL tree TREE.
-
-\(fn TREE)")
+\n(fn TREE)")
 
 (defun avl-tree-empty (tree)
   "Return t if AVL tree TREE is empty, otherwise return nil."

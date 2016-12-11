@@ -296,7 +296,7 @@ Return the defined symbol as a special spp lex token."
 ;;; Conditional Skipping
 ;;
 (defcustom semantic-c-obey-conditional-section-parsing-flag t
-  "*Non-nil means to interpret preprocessor #if sections.
+  "Non-nil means to interpret preprocessor #if sections.
 This implies that some blocks of code will not be parsed based on the
 values of the conditions in the #if blocks."
   :group 'c

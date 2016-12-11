@@ -1252,7 +1252,9 @@ any integer representable in Lisp, i.e., an integer between
 (@pxref{Integer Basics}).
 
 If @var{limit} is @code{t}, it means to choose a new seed as if Emacs
-were restarting.
+were restarting, typically from the system entropy.  On systems
+lacking entropy pools, choose the seed from less-random volatile data
+such as the current time.
 
 If @var{limit} is a string, it means to choose a new seed based on the
 string's contents.

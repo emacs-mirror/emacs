@@ -41,6 +41,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "lisp.h"
 #include "commands.h"
@@ -971,8 +972,18 @@ copy_keymap_1 (Lisp_Object chartable, Lisp_Object idx, Lisp_Object elt)
 
 DEFUN ("copy-keymap", Fcopy_keymap, Scopy_keymap, 1, 1, 0,
        doc: /* Return a copy of the keymap KEYMAP.
-The copy starts out with the same definitions of KEYMAP,
-but changing either the copy or KEYMAP does not affect the other.
+
+Note that this is almost never needed.  If you want a keymap that's like
+another yet with a few changes, you should use map inheritance rather
+than copying.  I.e. something like:
+
+    (let ((map (make-sparse-keymap)))
+      (set-keymap-parent map <theirmap>)
+      (define-key map ...)
+      ...)
+
+After performing `copy-keymap', the copy starts out with the same definitions
+of KEYMAP, but changing either the copy or KEYMAP does not affect the other.
 Any key definitions that are subkeymaps are recursively copied.
 However, a key definition which is a symbol whose definition is a keymap
 is not copied.  */)
@@ -1303,7 +1314,7 @@ silly_event_symbol_error (Lisp_Object c)
       *p = 0;
 
       c = reorder_modifiers (c);
-      AUTO_STRING (new_mods_string, new_mods);
+      AUTO_STRING_WITH_LEN (new_mods_string, new_mods, p - new_mods);
       keystring = concat2 (new_mods_string, XCDR (assoc));
 
       error ("To bind the key %s, use [?%s], not [%s]",
@@ -1737,10 +1748,12 @@ bindings; see the description of `lookup-key' for more details about this.  */)
 
 DEFUN ("define-prefix-command", Fdefine_prefix_command, Sdefine_prefix_command, 1, 3, 0,
        doc: /* Define COMMAND as a prefix command.  COMMAND should be a symbol.
-A new sparse keymap is stored as COMMAND's function definition and its value.
-If a second optional argument MAPVAR is given, the map is stored as
-its value instead of as COMMAND's value; but COMMAND is still defined
-as a function.
+A new sparse keymap is stored as COMMAND's function definition and its
+value.
+This prepares COMMAND for use as a prefix key's binding.
+If a second optional argument MAPVAR is given, it should be a symbol.
+The map is then stored as MAPVAR's value instead of as COMMAND's
+value; but COMMAND is still defined as a function.
 The third optional argument NAME, if given, supplies a menu name
 string for the map.  This is required to use the keymap as a menu.
 This function returns COMMAND.  */)

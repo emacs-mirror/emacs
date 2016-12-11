@@ -335,7 +335,7 @@ get_composition_id (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t nchars,
 	  ch = XINT (key_contents[i]);
 	  /* TAB in a composition means display glyphs with padding
 	     space on the left or right.  */
-	  this_width = (ch == '\t' ? 1 : CHAR_WIDTH (ch));
+	  this_width = (ch == '\t' ? 1 : CHARACTER_WIDTH (ch));
 	  if (cmp->width < this_width)
 	    cmp->width = this_width;
 	}
@@ -346,7 +346,7 @@ get_composition_id (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t nchars,
       double leftmost = 0.0, rightmost;
 
       ch = XINT (key_contents[0]);
-      rightmost = ch != '\t' ? CHAR_WIDTH (ch) : 1;
+      rightmost = ch != '\t' ? CHARACTER_WIDTH (ch) : 1;
 
       for (i = 1; i < glyph_len; i += 2)
 	{
@@ -356,7 +356,7 @@ get_composition_id (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t nchars,
 
 	  rule = XINT (key_contents[i]);
 	  ch = XINT (key_contents[i + 1]);
-	  this_width = ch != '\t' ? CHAR_WIDTH (ch) : 1;
+	  this_width = ch != '\t' ? CHARACTER_WIDTH (ch) : 1;
 
 	  /* A composition rule is specified by an integer value
 	     that encodes global and new reference points (GREF and
@@ -891,7 +891,6 @@ autocmp_chars (Lisp_Object rule, ptrdiff_t charpos, ptrdiff_t bytepos,
   if (len <= 0)
     return unbind_to (count, Qnil);
   to = limit = charpos + len;
-#ifdef HAVE_WINDOW_SYSTEM
   if (FRAME_WINDOW_P (f))
     {
       font_object = font_range (charpos, bytepos, &to, win, face, string);
@@ -902,7 +901,6 @@ autocmp_chars (Lisp_Object rule, ptrdiff_t charpos, ptrdiff_t bytepos,
 	return unbind_to (count, Qnil);
     }
   else
-#endif	/* not HAVE_WINDOW_SYSTEM */
     font_object = win->frame;
   lgstring = Fcomposition_get_gstring (pos, make_number (to), font_object,
 				       string);
@@ -1308,7 +1306,8 @@ composition_reseat_it (struct composition_it *cmp_it, ptrdiff_t charpos,
 int
 composition_update_it (struct composition_it *cmp_it, ptrdiff_t charpos, ptrdiff_t bytepos, Lisp_Object string)
 {
-  int i, c IF_LINT (= 0);
+  int i;
+  int c UNINIT;
 
   if (cmp_it->ch < 0)
     {
@@ -1384,7 +1383,7 @@ composition_update_it (struct composition_it *cmp_it, ptrdiff_t charpos, ptrdiff
 	{
 	  c = XINT (LGSTRING_CHAR (gstring, from + i));
 	  cmp_it->nbytes += CHAR_BYTES (c);
-	  cmp_it->width += CHAR_WIDTH (c);
+	  cmp_it->width += CHARACTER_WIDTH (c);
 	}
     }
   return c;

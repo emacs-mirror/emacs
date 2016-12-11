@@ -31,7 +31,7 @@ fchdir_unwind (int dir_fd)
 }
 
 static void
-chdir_to_default_directory ()
+chdir_to_default_directory (void)
 {
   Lisp_Object new_cwd;
   int old_cwd_fd = emacs_open (".", O_RDONLY | O_DIRECTORY, 0);
@@ -46,7 +46,7 @@ chdir_to_default_directory ()
   if (!STRINGP (new_cwd))
     new_cwd = build_string ("/");
 
-  if (chdir (SDATA (ENCODE_FILE (new_cwd))))
+  if (chdir (SSDATA (ENCODE_FILE (new_cwd))))
     error ("could not chdir: %s", strerror (errno));
 }
 

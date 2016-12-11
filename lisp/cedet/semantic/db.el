@@ -814,7 +814,7 @@ local variable."
 ;; associated databases.
 
 (defcustom semanticdb-project-roots nil
-  "*List of directories, where each directory is the root of some project.
+  "List of directories, where each directory is the root of some project.
 All subdirectories of a root project are considered a part of one project.
 Values in this string can be overridden by project management programs
 via the `semanticdb-project-root-functions' variable."

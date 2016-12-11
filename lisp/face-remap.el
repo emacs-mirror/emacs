@@ -256,6 +256,23 @@ disable `text-scale-mode' as necessary)."
 						text-scale-mode-amount))))
   (force-window-update (current-buffer)))
 
+(defun text-scale-min-amount ()
+  "Return the minimum amount of text-scaling we allow."
+  ;; When the resulting pixel-height of characters will become smaller
+  ;; than 1 pixel, we can expect trouble from the display engine.
+  ;; E.g., it requires that the character glyph's ascent is
+  ;; non-negative.
+  (log (/ 1.0 (frame-char-height)) text-scale-mode-step))
+
+(defun text-scale-max-amount ()
+  "Return the maximum amount of text-scaling we allow."
+  ;; The display engine uses a 16-bit short for pixel-width of
+  ;; characters, thus the 0xffff limitation.  It also makes no sense
+  ;; to have characters wider than the display.
+  (log (/ (min (display-pixel-width) #xffff)
+          (frame-char-width))
+       text-scale-mode-step))
+
 ;;;###autoload
 (defun text-scale-set (level)
   "Set the scale factor of the default face in the current buffer to LEVEL.
@@ -266,7 +283,8 @@ Each step scales the height of the default face by the variable
 `text-scale-mode-step' (a negative number decreases the height by
 the same amount)."
   (interactive "p")
-  (setq text-scale-mode-amount level)
+  (setq text-scale-mode-amount
+        (max (min level (text-scale-max-amount)) (text-scale-min-amount)))
   (text-scale-mode (if (zerop text-scale-mode-amount) -1 1)))
 
 ;;;###autoload
@@ -279,8 +297,13 @@ Each step scales the height of the default face by the variable
 height by the same amount).  As a special case, an argument of 0
 will remove any scaling currently active."
   (interactive "p")
-  (setq text-scale-mode-amount
-	(if (= inc 0) 0 (+ (if text-scale-mode text-scale-mode-amount 0) inc)))
+  (let* ((current-value (if text-scale-mode text-scale-mode-amount 0))
+         (new-value (if (= inc 0) 0 (+ current-value inc))))
+    (if (or (> new-value (text-scale-max-amount))
+            (< new-value (text-scale-min-amount)))
+        (user-error "Cannot %s the default face height more than it already is"
+                    (if (> inc 0) "increase" "decrease")))
+    (setq text-scale-mode-amount new-value))
   (text-scale-mode (if (zerop text-scale-mode-amount) -1 1)))
 
 ;;;###autoload

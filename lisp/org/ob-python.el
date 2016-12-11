@@ -33,7 +33,7 @@
 (declare-function org-remove-indentation "org" )
 (declare-function py-shell "ext:python-mode" (&optional argprompt))
 (declare-function py-toggle-shells "ext:python-mode" (arg))
-(declare-function run-python "ext:python" (cmd &optional dedicated show))
+(declare-function run-python "ext:python" (&optional cmd dedicated show))
 
 (defvar org-babel-tangle-lang-exts)
 (add-to-list 'org-babel-tangle-lang-exts '("python" . "py"))

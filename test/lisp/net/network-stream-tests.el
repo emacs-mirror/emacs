@@ -145,21 +145,30 @@
                                      :buffer (generate-new-buffer "*foo*")
                                      :host "localhost"
                                      :nowait t
-                                     :service port)))
+                                     :family 'ipv4
+                                     :service port))
+         (times 0))
     (should (eq (process-status proc) 'connect))
-    (while (eq (process-status proc) 'connect)
+    (while (and (eq (process-status proc) 'connect)
+                (< (setq times (1+ times)) 10))
       (sit-for 0.1))
+    (should-not (eq (process-status proc) 'connect))
     (with-current-buffer (process-buffer proc)
       (process-send-string proc "echo foo")
       (sleep-for 0.1)
       (should (equal (buffer-string) "foo\n")))
     (delete-process server)))
 
+(defconst network-stream-tests--datadir
+  (expand-file-name "test/data/net" source-directory))
+
 (defun make-tls-server (port)
   (start-process "gnutls" (generate-new-buffer "*tls*")
                  "gnutls-serv" "--http"
-                 "--x509keyfile" "lisp/net/key.pem"
-                 "--x509certfile" "lisp/net/cert.pem"
+                 "--x509keyfile"
+                 (concat network-stream-tests--datadir "/key.pem")
+                 "--x509certfile"
+                 (concat network-stream-tests--datadir "/cert.pem")
                  "--port" (format "%s" port)))
 
 (ert-deftest connect-to-tls-ipv4-wait ()
@@ -168,24 +177,26 @@
   (let ((server (make-tls-server 44332))
         (times 0)
         proc status)
-    (sleep-for 1)
-    (with-current-buffer (process-buffer server)
-      (message "gnutls-serv: %s" (buffer-string)))
+    (unwind-protect
+        (progn
+          (sleep-for 1)
+          (with-current-buffer (process-buffer server)
+            (message "gnutls-serv: %s" (buffer-string)))
 
-    ;; It takes a while for gnutls-serv to start.
-    (while (and (null (ignore-errors
-                        (setq proc (make-network-process
-                                    :name "bar"
-                                    :buffer (generate-new-buffer "*foo*")
-                                    :host "localhost"
-                                    :service 44332))))
-                (< (setq times (1+ times)) 10))
-      (sit-for 0.1))
-    (should proc)
-    (gnutls-negotiate :process proc
-                      :type 'gnutls-x509pki
-                      :hostname "localhost")
-    (delete-process server)
+          ;; It takes a while for gnutls-serv to start.
+          (while (and (null (ignore-errors
+                              (setq proc (make-network-process
+                                          :name "bar"
+                                          :buffer (generate-new-buffer "*foo*")
+                                          :host "localhost"
+                                          :service 44332))))
+                      (< (setq times (1+ times)) 10))
+            (sit-for 0.1))
+          (should proc)
+          (gnutls-negotiate :process proc
+                            :type 'gnutls-x509pki
+                            :hostname "localhost"))
+      (if (process-live-p server) (delete-process server)))
     (setq status (gnutls-peer-status proc))
     (should (consp status))
     (delete-process proc)
@@ -204,28 +215,33 @@
   (let ((server (make-tls-server 44331))
         (times 0)
         proc status)
-    (sleep-for 1)
-    (with-current-buffer (process-buffer server)
-      (message "gnutls-serv: %s" (buffer-string)))
+    (unwind-protect
+        (progn
+          (sleep-for 1)
+          (with-current-buffer (process-buffer server)
+            (message "gnutls-serv: %s" (buffer-string)))
 
-    ;; It takes a while for gnutls-serv to start.
-    (while (and (null (ignore-errors
-                        (setq proc (make-network-process
-                                    :name "bar"
-                                    :buffer (generate-new-buffer "*foo*")
-                                    :nowait t
-                                    :tls-parameters
-                                    (cons 'gnutls-x509pki
-                                          (gnutls-boot-parameters
-                                           :hostname "localhost"))
-                                    :host "localhost"
-                                    :service 44331))))
-                (< (setq times (1+ times)) 10))
-      (sit-for 0.1))
-    (should proc)
-    (while (eq (process-status proc) 'connect)
-      (sit-for 0.1))
-    (delete-process server)
+          ;; It takes a while for gnutls-serv to start.
+          (while (and (null (ignore-errors
+                              (setq proc (make-network-process
+                                          :name "bar"
+                                          :buffer (generate-new-buffer "*foo*")
+                                          :nowait t
+                                          :tls-parameters
+                                          (cons 'gnutls-x509pki
+                                                (gnutls-boot-parameters
+                                                 :hostname "localhost"))
+                                          :host "localhost"
+                                          :service 44331))))
+                      (< (setq times (1+ times)) 10))
+            (sit-for 0.1))
+          (should proc)
+          (setq times 0)
+          (while (and (eq (process-status proc) 'connect)
+                      (< (setq times (1+ times)) 10))
+            (sit-for 0.1))
+          (should-not (eq (process-status proc) 'connect)))
+      (if (process-live-p server) (delete-process server)))
     (setq status (gnutls-peer-status proc))
     (should (consp status))
     (delete-process proc)
@@ -238,33 +254,35 @@
   (skip-unless (executable-find "gnutls-serv"))
   (skip-unless (gnutls-available-p))
   (skip-unless (not (eq system-type 'windows-nt)))
-  (skip-unless (featurep 'make-network-process '(family ipv6)))
+  (skip-unless (featurep 'make-network-process '(:family ipv6)))
   (let ((server (make-tls-server 44333))
         (times 0)
         proc status)
-    (sleep-for 1)
-    (with-current-buffer (process-buffer server)
-      (message "gnutls-serv: %s" (buffer-string)))
+    (unwind-protect
+        (progn
+          (sleep-for 1)
+          (with-current-buffer (process-buffer server)
+            (message "gnutls-serv: %s" (buffer-string)))
 
-    ;; It takes a while for gnutls-serv to start.
-    (while (and (null (ignore-errors
-                        (setq proc (make-network-process
-                                    :name "bar"
-                                    :buffer (generate-new-buffer "*foo*")
-                                    :family 'ipv6
-                                    :nowait t
-                                    :tls-parameters
-                                    (cons 'gnutls-x509pki
-                                          (gnutls-boot-parameters
-                                           :hostname "localhost"))
-                                    :host "::1"
-                                    :service 44333))))
-                (< (setq times (1+ times)) 10))
-      (sit-for 0.1))
-    (should proc)
-    (while (eq (process-status proc) 'connect)
-      (sit-for 0.1))
-    (delete-process server)
+          ;; It takes a while for gnutls-serv to start.
+          (while (and (null (ignore-errors
+                              (setq proc (make-network-process
+                                          :name "bar"
+                                          :buffer (generate-new-buffer "*foo*")
+                                          :family 'ipv6
+                                          :nowait t
+                                          :tls-parameters
+                                          (cons 'gnutls-x509pki
+                                                (gnutls-boot-parameters
+                                                 :hostname "localhost"))
+                                          :host "::1"
+                                          :service 44333))))
+                      (< (setq times (1+ times)) 10))
+            (sit-for 0.1))
+          (should proc)
+          (while (eq (process-status proc) 'connect)
+            (sit-for 0.1)))
+      (if (process-live-p server) (delete-process server)))
     (setq status (gnutls-peer-status proc))
     (should (consp status))
     (delete-process proc)

@@ -22,6 +22,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <limits.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "lisp.h"
 #include "blockinput.h"
 #include "commands.h"
@@ -90,6 +91,7 @@ union specbinding *backtrace_top (void) EXTERNALLY_VISIBLE;
 
 static Lisp_Object funcall_lambda (Lisp_Object, ptrdiff_t, Lisp_Object *);
 static Lisp_Object apply_lambda (Lisp_Object, Lisp_Object, ptrdiff_t);
+static Lisp_Object lambda_arity (Lisp_Object);
 
 static Lisp_Object
 specpdl_symbol (union specbinding *pdl)
@@ -221,7 +223,6 @@ static struct handler handlerlist_sentinel;
 void
 init_eval (void)
 {
-  byte_stack_list = 0;
   specpdl_ptr = specpdl;
   { /* Put a dummy catcher at top-level so that handlerlist is never NULL.
        This is important since handlerlist->nextfree holds the freelist
@@ -298,6 +299,11 @@ call_debugger (Lisp_Object arg)
 	    debug_while_redisplaying ? Qnil : Qt);
   specbind (Qinhibit_redisplay, Qnil);
   specbind (Qinhibit_debugger, Qt);
+
+  /* If we are debugging an error while `inhibit-changing-match-data'
+     is bound to non-nil (e.g., within a call to `string-match-p'),
+     then make sure debugger code can still use match data.  */
+  specbind (Qinhibit_changing_match_data, Qnil);
 
 #if 0 /* Binding this prevents execution of Lisp code during
 	 redisplay, which necessarily leads to display problems.  */
@@ -587,11 +593,11 @@ The return value is BASE-VARIABLE.  */)
   CHECK_SYMBOL (new_alias);
   CHECK_SYMBOL (base_variable);
 
-  sym = XSYMBOL (new_alias);
-
-  if (sym->constant)
-    /* Not sure why, but why not?  */
+  if (SYMBOL_CONSTANT_P (new_alias))
+    /* Making it an alias effectively changes its value.  */
     error ("Cannot make a constant an alias");
+
+  sym = XSYMBOL (new_alias);
 
   switch (sym->redirect)
     {
@@ -611,8 +617,8 @@ The return value is BASE-VARIABLE.  */)
      so that old-code that affects n_a before the aliasing is setup
      still works.  */
   if (NILP (Fboundp (base_variable)))
-    set_internal (base_variable, find_symbol_value (new_alias), Qnil, 1);
-
+    set_internal (base_variable, find_symbol_value (new_alias),
+                  Qnil, SET_INTERNAL_BIND);
   {
     union specbinding *p;
 
@@ -622,11 +628,14 @@ The return value is BASE-VARIABLE.  */)
 	error ("Don't know how to make a let-bound variable an alias");
   }
 
+  if (sym->trapped_write == SYMBOL_TRAPPED_WRITE)
+    notify_variable_watchers (new_alias, base_variable, Qdefvaralias, Qnil);
+
   sym->declared_special = 1;
   XSYMBOL (base_variable)->declared_special = 1;
   sym->redirect = SYMBOL_VARALIAS;
   SET_SYMBOL_ALIAS (sym, XSYMBOL (base_variable));
-  sym->constant = SYMBOL_CONSTANT_P (base_variable);
+  sym->trapped_write = XSYMBOL (base_variable)->trapped_write;
   LOADHIST_ATTACH (new_alias);
   /* Even if docstring is nil: remove old docstring.  */
   Fput (new_alias, Qvariable_documentation, docstring);
@@ -1051,11 +1060,11 @@ usage: (catch TAG BODY...)  */)
   return internal_catch (tag, Fprogn, XCDR (args));
 }
 
-/* Assert that E is true, as a comment only.  Use this instead of
+/* Assert that E is true, but do not evaluate E.  Use this instead of
    eassert (E) when E contains variables that might be clobbered by a
    longjmp.  */
 
-#define clobbered_eassert(E) ((void) 0)
+#define clobbered_eassert(E) verify (sizeof (E) != 0)
 
 /* Set up a catch, then call C function FUNC on argument ARG.
    FUNC should return a Lisp_Object.
@@ -1129,7 +1138,6 @@ unwind_to_catch (struct handler *catch, Lisp_Object value)
 
   eassert (handlerlist == catch);
 
-  byte_stack_list = catch->byte_stack;
   lisp_eval_depth = catch->lisp_eval_depth;
 
   sys_longjmp (catch->jmp, 1);
@@ -1424,12 +1432,12 @@ push_handler_nosignal (Lisp_Object tag_ch_val, enum handlertype handlertype)
   c->pdlcount = SPECPDL_INDEX ();
   c->poll_suppress_count = poll_suppress_count;
   c->interrupt_input_blocked = interrupt_input_blocked;
-  c->byte_stack = byte_stack_list;
   handlerlist = c;
   return c;
 }
 
 
+static Lisp_Object signal_or_quit (Lisp_Object, Lisp_Object, bool);
 static Lisp_Object find_handler_clause (Lisp_Object, Lisp_Object);
 static bool maybe_call_debugger (Lisp_Object conditions, Lisp_Object sig,
 				 Lisp_Object data);
@@ -1443,7 +1451,7 @@ process_quit_flag (void)
     Fkill_emacs (Qnil);
   if (EQ (Vthrow_on_input, flag))
     Fthrow (Vthrow_on_input, Qt);
-  Fsignal (Qquit, Qnil);
+  quit ();
 }
 
 DEFUN ("signal", Fsignal, Ssignal, 2, 2, 0,
@@ -1459,8 +1467,28 @@ DATA should be a list.  Its elements are printed as part of the error message.
 See Info anchor `(elisp)Definition of signal' for some details on how this
 error message is constructed.
 If the signal is handled, DATA is made available to the handler.
-See also the function `condition-case'.  */)
+See also the function `condition-case'.  */
+       attributes: noreturn)
   (Lisp_Object error_symbol, Lisp_Object data)
+{
+  signal_or_quit (error_symbol, data, false);
+  eassume (false);
+}
+
+/* Quit, in response to a keyboard quit request.  */
+Lisp_Object
+quit (void)
+{
+  return signal_or_quit (Qquit, Qnil, true);
+}
+
+/* Signal an error, or quit.  ERROR_SYMBOL and DATA are as with Fsignal.
+   If KEYBOARD_QUIT, this is a quit; ERROR_SYMBOL should be
+   Qquit and DATA should be Qnil, and this function may return.
+   Otherwise this function is like Fsignal and does not return.  */
+
+static Lisp_Object
+signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool keyboard_quit)
 {
   /* When memory is full, ERROR-SYMBOL is nil,
      and DATA is (REAL-ERROR-SYMBOL . REAL-DATA).
@@ -1473,7 +1501,6 @@ See also the function `condition-case'.  */)
   struct handler *h;
 
   immediate_quit = 0;
-  abort_on_gc = 0;
   if (gc_in_progress || waiting_for_input)
     emacs_abort ();
 
@@ -1541,7 +1568,7 @@ See also the function `condition-case'.  */)
 	= maybe_call_debugger (conditions, error_symbol, data);
       /* We can't return values to code which signaled an error, but we
 	 can continue code which has signaled a quit.  */
-      if (debugger_called && EQ (real_error_symbol, Qquit))
+      if (keyboard_quit && debugger_called && EQ (real_error_symbol, Qquit))
 	return Qnil;
     }
 
@@ -1566,16 +1593,6 @@ See also the function `condition-case'.  */)
 
   string = Ferror_message_string (data);
   fatal ("%s", SDATA (string));
-}
-
-/* Internal version of Fsignal that never returns.
-   Used for anything but Qquit (which can return from Fsignal).  */
-
-void
-xsignal (Lisp_Object error_symbol, Lisp_Object data)
-{
-  Fsignal (error_symbol, data);
-  emacs_abort ();
 }
 
 /* Like xsignal, but takes 0, 1, 2, or 3 args instead of a list.  */
@@ -1974,7 +1991,8 @@ it defines a macro.  */)
       Lisp_Object fun = Findirect_function (funname, Qnil);
 
       if (!NILP (Fequal (fun, fundef)))
-	error ("Autoloading failed to define function %s",
+	error ("Autoloading file %s failed to define function %s",
+	       SDATA (Fcar (Fcar (Vload_history))),
 	       SDATA (SYMBOL_NAME (funname)));
       else
 	return fun;
@@ -2620,6 +2638,37 @@ DEFUN ("functionp", Ffunctionp, Sfunctionp, 1, 1, 0,
   return Qnil;
 }
 
+bool
+FUNCTIONP (Lisp_Object object)
+{
+  if (SYMBOLP (object) && !NILP (Ffboundp (object)))
+    {
+      object = Findirect_function (object, Qt);
+
+      if (CONSP (object) && EQ (XCAR (object), Qautoload))
+	{
+	  /* Autoloaded symbols are functions, except if they load
+	     macros or keymaps.  */
+	  for (int i = 0; i < 4 && CONSP (object); i++)
+	    object = XCDR (object);
+
+	  return ! (CONSP (object) && !NILP (XCAR (object)));
+	}
+    }
+
+  if (SUBRP (object))
+    return XSUBR (object)->max_args != UNEVALLED;
+  else if (COMPILEDP (object))
+    return true;
+  else if (CONSP (object))
+    {
+      Lisp_Object car = XCAR (object);
+      return EQ (car, Qlambda) || EQ (car, Qclosure);
+    }
+  else
+    return false;
+}
+
 DEFUN ("funcall", Ffuncall, Sfuncall, 1, MANY, 0,
        doc: /* Call first argument as a function, passing remaining arguments to it.
 Return the value that function returns.
@@ -2630,9 +2679,7 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
   Lisp_Object fun, original_fun;
   Lisp_Object funcar;
   ptrdiff_t numargs = nargs - 1;
-  Lisp_Object lisp_numargs;
   Lisp_Object val;
-  Lisp_Object *internal_args;
   ptrdiff_t count;
 
   QUIT;
@@ -2665,86 +2712,7 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
     fun = indirect_function (fun);
 
   if (SUBRP (fun))
-    {
-      if (numargs < XSUBR (fun)->min_args
-	  || (XSUBR (fun)->max_args >= 0 && XSUBR (fun)->max_args < numargs))
-	{
-	  XSETFASTINT (lisp_numargs, numargs);
-	  xsignal2 (Qwrong_number_of_arguments, original_fun, lisp_numargs);
-	}
-
-      else if (XSUBR (fun)->max_args == UNEVALLED)
-	xsignal1 (Qinvalid_function, original_fun);
-
-      else if (XSUBR (fun)->max_args == MANY)
-	val = (XSUBR (fun)->function.aMANY) (numargs, args + 1);
-      else
-	{
-	  Lisp_Object internal_argbuf[8];
-	  if (XSUBR (fun)->max_args > numargs)
-	    {
-	      eassert (XSUBR (fun)->max_args <= ARRAYELTS (internal_argbuf));
-	      internal_args = internal_argbuf;
-	      memcpy (internal_args, args + 1, numargs * word_size);
-	      memclear (internal_args + numargs,
-			(XSUBR (fun)->max_args - numargs) * word_size);
-	    }
-	  else
-	    internal_args = args + 1;
-	  switch (XSUBR (fun)->max_args)
-	    {
-	    case 0:
-	      val = (XSUBR (fun)->function.a0 ());
-	      break;
-	    case 1:
-	      val = (XSUBR (fun)->function.a1 (internal_args[0]));
-	      break;
-	    case 2:
-	      val = (XSUBR (fun)->function.a2
-		     (internal_args[0], internal_args[1]));
-	      break;
-	    case 3:
-	      val = (XSUBR (fun)->function.a3
-		     (internal_args[0], internal_args[1], internal_args[2]));
-	      break;
-	    case 4:
-	      val = (XSUBR (fun)->function.a4
-		     (internal_args[0], internal_args[1], internal_args[2],
-		     internal_args[3]));
-	      break;
-	    case 5:
-	      val = (XSUBR (fun)->function.a5
-		     (internal_args[0], internal_args[1], internal_args[2],
-		      internal_args[3], internal_args[4]));
-	      break;
-	    case 6:
-	      val = (XSUBR (fun)->function.a6
-		     (internal_args[0], internal_args[1], internal_args[2],
-		      internal_args[3], internal_args[4], internal_args[5]));
-	      break;
-	    case 7:
-	      val = (XSUBR (fun)->function.a7
-		     (internal_args[0], internal_args[1], internal_args[2],
-		      internal_args[3], internal_args[4], internal_args[5],
-		      internal_args[6]));
-	      break;
-
-	    case 8:
-	      val = (XSUBR (fun)->function.a8
-		     (internal_args[0], internal_args[1], internal_args[2],
-		      internal_args[3], internal_args[4], internal_args[5],
-		      internal_args[6], internal_args[7]));
-	      break;
-
-	    default:
-
-	      /* If a subr takes more than 8 arguments without using MANY
-		 or UNEVALLED, we need to extend this function to support it.
-		 Until this is done, there is no way to call the function.  */
-	      emacs_abort ();
-	    }
-	}
-    }
+    val = funcall_subr (XSUBR (fun), numargs, args + 1);
   else if (COMPILEDP (fun))
     val = funcall_lambda (fun, numargs, args + 1);
   else
@@ -2776,6 +2744,89 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
   return val;
 }
 
+
+/* Apply a C subroutine SUBR to the NUMARGS evaluated arguments in ARG_VECTOR
+   and return the result of evaluation.  */
+
+Lisp_Object
+funcall_subr (struct Lisp_Subr *subr, ptrdiff_t numargs, Lisp_Object *args)
+{
+  if (numargs < subr->min_args
+      || (subr->max_args >= 0 && subr->max_args < numargs))
+    {
+      Lisp_Object fun;
+      XSETSUBR (fun, subr);
+      xsignal2 (Qwrong_number_of_arguments, fun, make_number (numargs));
+    }
+
+  else if (subr->max_args == UNEVALLED)
+    {
+      Lisp_Object fun;
+      XSETSUBR (fun, subr);
+      xsignal1 (Qinvalid_function, fun);
+    }
+
+  else if (subr->max_args == MANY)
+    return (subr->function.aMANY) (numargs, args);
+  else
+    {
+      Lisp_Object internal_argbuf[8];
+      Lisp_Object *internal_args;
+      if (subr->max_args > numargs)
+        {
+          eassert (subr->max_args <= ARRAYELTS (internal_argbuf));
+          internal_args = internal_argbuf;
+          memcpy (internal_args, args, numargs * word_size);
+          memclear (internal_args + numargs,
+                    (subr->max_args - numargs) * word_size);
+        }
+      else
+        internal_args = args;
+      switch (subr->max_args)
+        {
+        case 0:
+          return (subr->function.a0 ());
+        case 1:
+          return (subr->function.a1 (internal_args[0]));
+        case 2:
+          return (subr->function.a2
+                  (internal_args[0], internal_args[1]));
+        case 3:
+          return (subr->function.a3
+                  (internal_args[0], internal_args[1], internal_args[2]));
+        case 4:
+          return (subr->function.a4
+                  (internal_args[0], internal_args[1], internal_args[2],
+                   internal_args[3]));
+        case 5:
+          return (subr->function.a5
+                  (internal_args[0], internal_args[1], internal_args[2],
+                   internal_args[3], internal_args[4]));
+        case 6:
+          return (subr->function.a6
+                  (internal_args[0], internal_args[1], internal_args[2],
+                   internal_args[3], internal_args[4], internal_args[5]));
+        case 7:
+          return (subr->function.a7
+                  (internal_args[0], internal_args[1], internal_args[2],
+                   internal_args[3], internal_args[4], internal_args[5],
+                   internal_args[6]));
+        case 8:
+          return (subr->function.a8
+                  (internal_args[0], internal_args[1], internal_args[2],
+                   internal_args[3], internal_args[4], internal_args[5],
+                   internal_args[6], internal_args[7]));
+
+        default:
+
+          /* If a subr takes more than 8 arguments without using MANY
+             or UNEVALLED, we need to extend this function to support it.
+             Until this is done, there is no way to call the function.  */
+          emacs_abort ();
+        }
+    }
+}
+
 static Lisp_Object
 apply_lambda (Lisp_Object fun, Lisp_Object args, ptrdiff_t count)
 {
@@ -2827,9 +2878,11 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs,
     {
       if (EQ (XCAR (fun), Qclosure))
 	{
-	  fun = XCDR (fun);	/* Drop `closure'.  */
+	  Lisp_Object cdr = XCDR (fun);	/* Drop `closure'.  */
+	  if (! CONSP (cdr))
+	    xsignal1 (Qinvalid_function, fun);
+	  fun = cdr;
 	  lexenv = XCAR (fun);
-	  CHECK_LIST_CONS (fun, fun);
 	}
       else
 	lexenv = Qnil;
@@ -2846,14 +2899,14 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs,
 	xsignal1 (Qinvalid_function, fun);
       syms_left = AREF (fun, COMPILED_ARGLIST);
       if (INTEGERP (syms_left))
-	/* A byte-code object with a non-nil `push args' slot means we
+	/* A byte-code object with an integer args template means we
 	   shouldn't bind any arguments, instead just call the byte-code
 	   interpreter directly; it will push arguments as necessary.
 
-	   Byte-code objects with either a non-existent, or a nil value for
-	   the `push args' slot (the default), have dynamically-bound
-	   arguments, and use the argument-binding code below instead (as do
-	   all interpreted functions, even lexically bound ones).  */
+	   Byte-code objects with a nil args template (the default)
+	   have dynamically-bound arguments, and use the
+	   argument-binding code below instead (as do all interpreted
+	   functions, even lexically bound ones).  */
 	{
 	  /* If we have not actually read the bytecode string
 	     and constants vector yet, fetch them from the file.  */
@@ -2871,6 +2924,7 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs,
     emacs_abort ();
 
   i = optional = rest = 0;
+  bool previous_optional_or_rest = false;
   for (; CONSP (syms_left); syms_left = XCDR (syms_left))
     {
       QUIT;
@@ -2880,9 +2934,19 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs,
 	xsignal1 (Qinvalid_function, fun);
 
       if (EQ (next, Qand_rest))
-	rest = 1;
+        {
+          if (rest || previous_optional_or_rest)
+            xsignal1 (Qinvalid_function, fun);
+          rest = 1;
+          previous_optional_or_rest = true;
+        }
       else if (EQ (next, Qand_optional))
-	optional = 1;
+        {
+          if (optional || rest || previous_optional_or_rest)
+            xsignal1 (Qinvalid_function, fun);
+          optional = 1;
+          previous_optional_or_rest = true;
+        }
       else
 	{
 	  Lisp_Object arg;
@@ -2905,10 +2969,11 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs,
 	  else
 	    /* Dynamically bind NEXT.  */
 	    specbind (next, arg);
+          previous_optional_or_rest = false;
 	}
     }
 
-  if (!NILP (syms_left))
+  if (!NILP (syms_left) || previous_optional_or_rest)
     xsignal1 (Qinvalid_function, fun);
   else if (i < nargs)
     xsignal2 (Qwrong_number_of_arguments, fun, make_number (nargs));
@@ -2932,6 +2997,118 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs,
     }
 
   return unbind_to (count, val);
+}
+
+DEFUN ("func-arity", Ffunc_arity, Sfunc_arity, 1, 1, 0,
+       doc: /* Return minimum and maximum number of args allowed for FUNCTION.
+FUNCTION must be a function of some kind.
+The returned value is a cons cell (MIN . MAX).  MIN is the minimum number
+of args.  MAX is the maximum number, or the symbol `many', for a
+function with `&rest' args, or `unevalled' for a special form.  */)
+  (Lisp_Object function)
+{
+  Lisp_Object original;
+  Lisp_Object funcar;
+  Lisp_Object result;
+
+  original = function;
+
+ retry:
+
+  /* Optimize for no indirection.  */
+  function = original;
+  if (SYMBOLP (function) && !NILP (function))
+    {
+      function = XSYMBOL (function)->function;
+      if (SYMBOLP (function))
+	function = indirect_function (function);
+    }
+
+  if (CONSP (function) && EQ (XCAR (function), Qmacro))
+    function = XCDR (function);
+
+  if (SUBRP (function))
+    result = Fsubr_arity (function);
+  else if (COMPILEDP (function))
+    result = lambda_arity (function);
+  else
+    {
+      if (NILP (function))
+	xsignal1 (Qvoid_function, original);
+      if (!CONSP (function))
+	xsignal1 (Qinvalid_function, original);
+      funcar = XCAR (function);
+      if (!SYMBOLP (funcar))
+	xsignal1 (Qinvalid_function, original);
+      if (EQ (funcar, Qlambda)
+	  || EQ (funcar, Qclosure))
+	result = lambda_arity (function);
+      else if (EQ (funcar, Qautoload))
+	{
+	  Fautoload_do_load (function, original, Qnil);
+	  goto retry;
+	}
+      else
+	xsignal1 (Qinvalid_function, original);
+    }
+  return result;
+}
+
+/* FUN must be either a lambda-expression or a compiled-code object.  */
+static Lisp_Object
+lambda_arity (Lisp_Object fun)
+{
+  Lisp_Object syms_left;
+
+  if (CONSP (fun))
+    {
+      if (EQ (XCAR (fun), Qclosure))
+	{
+	  fun = XCDR (fun);	/* Drop `closure'.  */
+	  CHECK_LIST_CONS (fun, fun);
+	}
+      syms_left = XCDR (fun);
+      if (CONSP (syms_left))
+	syms_left = XCAR (syms_left);
+      else
+	xsignal1 (Qinvalid_function, fun);
+    }
+  else if (COMPILEDP (fun))
+    {
+      ptrdiff_t size = ASIZE (fun) & PSEUDOVECTOR_SIZE_MASK;
+      if (size <= COMPILED_STACK_DEPTH)
+	xsignal1 (Qinvalid_function, fun);
+      syms_left = AREF (fun, COMPILED_ARGLIST);
+      if (INTEGERP (syms_left))
+        return get_byte_code_arity (syms_left);
+    }
+  else
+    emacs_abort ();
+
+  EMACS_INT minargs = 0, maxargs = 0;
+  bool optional = false;
+  for (; CONSP (syms_left); syms_left = XCDR (syms_left))
+    {
+      Lisp_Object next = XCAR (syms_left);
+      if (!SYMBOLP (next))
+	xsignal1 (Qinvalid_function, fun);
+
+      if (EQ (next, Qand_rest))
+	return Fcons (make_number (minargs), Qmany);
+      else if (EQ (next, Qand_optional))
+	optional = true;
+      else
+	{
+          if (!optional)
+            minargs++;
+          maxargs++;
+        }
+    }
+
+  if (!NILP (syms_left))
+    xsignal1 (Qinvalid_function, fun);
+
+  return Fcons (make_number (minargs), make_number (maxargs));
 }
 
 DEFUN ("fetch-bytecode", Ffetch_bytecode, Sfetch_bytecode,
@@ -3030,10 +3207,10 @@ specbind (Lisp_Object symbol, Lisp_Object value)
       specpdl_ptr->let.symbol = symbol;
       specpdl_ptr->let.old_value = SYMBOL_VAL (sym);
       grow_specpdl ();
-      if (!sym->constant)
+      if (!sym->trapped_write)
 	SET_SYMBOL_VAL (sym, value);
       else
-	set_internal (symbol, value, Qnil, 1);
+	set_internal (symbol, value, Qnil, SET_INTERNAL_BIND);
       break;
     case SYMBOL_LOCALIZED:
       if (SYMBOL_BLV (sym)->frame_local)
@@ -3073,7 +3250,7 @@ specbind (Lisp_Object symbol, Lisp_Object value)
 	  specpdl_ptr->let.kind = SPECPDL_LET;
 
 	grow_specpdl ();
-	set_internal (symbol, value, Qnil, 1);
+        set_internal (symbol, value, Qnil, SET_INTERNAL_BIND);
 	break;
       }
     default: emacs_abort ();
@@ -3200,14 +3377,16 @@ unbind_to (ptrdiff_t count, Lisp_Object value)
 	case SPECPDL_BACKTRACE:
 	  break;
 	case SPECPDL_LET:
-	  { /* If variable has a trivial value (no forwarding), we can
-	       just set it.  No need to check for constant symbols here,
-	       since that was already done by specbind.  */
+          { /* If variable has a trivial value (no forwarding), and
+               isn't trapped, we can just set it.  */
 	    Lisp_Object sym = specpdl_symbol (specpdl_ptr);
 	    if (SYMBOLP (sym) && XSYMBOL (sym)->redirect == SYMBOL_PLAINVAL)
 	      {
-		SET_SYMBOL_VAL (XSYMBOL (sym),
-				specpdl_old_value (specpdl_ptr));
+                if (XSYMBOL (sym)->trapped_write == SYMBOL_UNTRAPPED_WRITE)
+                  SET_SYMBOL_VAL (XSYMBOL (sym), specpdl_old_value (specpdl_ptr));
+                else
+                  set_internal (sym, specpdl_old_value (specpdl_ptr),
+                                Qnil, SET_INTERNAL_UNBIND);
 		break;
 	      }
 	    else
@@ -3230,7 +3409,7 @@ unbind_to (ptrdiff_t count, Lisp_Object value)
 	    /* If this was a local binding, reset the value in the appropriate
 	       buffer, but only if that buffer's binding still exists.  */
 	    if (!NILP (Flocal_variable_p (symbol, where)))
-	      set_internal (symbol, old_value, where, 1);
+              set_internal (symbol, old_value, where, SET_INTERNAL_UNBIND);
 	  }
 	  break;
 	}
@@ -3296,13 +3475,17 @@ Output stream used is value of `standard-output'.  */)
       else
 	{
 	  tem = backtrace_function (pdl);
+	  if (debugger_stack_frame_as_list)
+	    write_string ("(");
 	  Fprin1 (tem, Qnil);	/* This can QUIT.  */
-	  write_string ("(");
+	  if (!debugger_stack_frame_as_list)
+	    write_string ("(");
 	  {
 	    ptrdiff_t i;
 	    for (i = 0; i < backtrace_nargs (pdl); i++)
 	      {
-		if (i) write_string (" ");
+		if (i || debugger_stack_frame_as_list)
+		  write_string(" ");
 		Fprin1 (backtrace_args (pdl)[i], Qnil);
 	      }
 	  }
@@ -3451,7 +3634,7 @@ backtrace_eval_unrewind (int distance)
 	      {
 		set_specpdl_old_value
 		  (tmp, Fbuffer_local_value (symbol, where));
-		set_internal (symbol, old_value, where, 1);
+                set_internal (symbol, old_value, where, SET_INTERNAL_UNBIND);
 	      }
 	  }
 	  break;
@@ -3725,6 +3908,10 @@ This is nil when the debugger is called under circumstances where it
 might not be safe to continue.  */);
   debugger_may_continue = 1;
 
+  DEFVAR_BOOL ("debugger-stack-frame-as-list", debugger_stack_frame_as_list,
+	       doc: /* Non-nil means display call stack frames as lists. */);
+  debugger_stack_frame_as_list = 0;
+
   DEFVAR_LISP ("debugger", Vdebugger,
 	       doc: /* Function to call to invoke debugger.
 If due to frame exit, args are `exit' and the value being returned;
@@ -3791,6 +3978,7 @@ alist of active lexical bindings.  */);
   defsubr (&Sset_default_toplevel_value);
   defsubr (&Sdefvar);
   defsubr (&Sdefvaralias);
+  DEFSYM (Qdefvaralias, "defvaralias");
   defsubr (&Sdefconst);
   defsubr (&Smake_var_non_special);
   defsubr (&Slet);
@@ -3808,6 +3996,7 @@ alist of active lexical bindings.  */);
   defsubr (&Seval);
   defsubr (&Sapply);
   defsubr (&Sfuncall);
+  defsubr (&Sfunc_arity);
   defsubr (&Srun_hooks);
   defsubr (&Srun_hook_with_args);
   defsubr (&Srun_hook_with_args_until_success);

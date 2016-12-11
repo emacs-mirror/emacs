@@ -277,12 +277,12 @@ This function is semi-obsolete.  Use `get-char-code-property'."
 			    'general-category (intern val))
 			   val)))
 	       (list "Combining class"
-		     (let ((val (nth 1 fields)))
+		     (let ((val (nth 2 fields)))
 		       (or (char-code-property-description
 			    'canonical-combining-class (intern val))
 			   val)))
 	       (list "Bidi category"
-		     (let ((val (nth 1 fields)))
+		     (let ((val (nth 3 fields)))
 		       (or (char-code-property-description
 			    'bidi-class (intern val))
 			   val)))
@@ -619,7 +619,7 @@ relevant to POS."
                           (let ((name
                                  (or (get-char-code-property char 'name)
                                      (get-char-code-property char 'old-name))))
-                            (if name
+                            (if (and name (assoc-string name (ucs-names)))
                                 (format
                                  "type \"C-x 8 RET %x\" or \"C-x 8 RET %s\""
                                  char name)
@@ -806,9 +806,16 @@ relevant to POS."
                         'describe-char-unidata-list))
              'follow-link t)
             (insert "\n")
-            (dolist (elt (if (eq describe-char-unidata-list t)
-                             (nreverse (mapcar 'car char-code-property-alist))
-                           describe-char-unidata-list))
+            (dolist (elt
+                     (cond ((eq describe-char-unidata-list t)
+                            (nreverse (mapcar 'car char-code-property-alist)))
+                           ((< char 32)
+                            ;; Temporary fix (2016-05-22): The
+                            ;; decomposition item for \n corrupts the
+                            ;; display on a Linux virtual terminal.
+                            ;; (Bug #23594).
+                            (remq 'decomposition describe-char-unidata-list))
+                           (t describe-char-unidata-list)))
               (let ((val (get-char-code-property char elt))
                     description)
                 (when val

@@ -436,6 +436,8 @@ If SELECT is non-nil, select the target window."
 ;;; XREF buffer (part of the UI)
 
 ;; The xref buffer is used to display a set of xrefs.
+(defconst xref-buffer-name "*xref*"
+  "The name of the buffer to show xrefs.")
 
 (defmacro xref--with-dedicated-window (&rest body)
   `(let* ((xref-w (get-buffer-window xref-buffer-name))
@@ -470,6 +472,9 @@ If SELECT is non-nil, select the target window."
         (xref--show-pos-in-buf marker buf select))
     (user-error (message (error-message-string err)))))
 
+(defvar-local xref--window nil
+  "The original window this xref buffer was created from.")
+
 (defun xref-show-location-at-point ()
   "Display the source of xref at point in the appropriate window, if any."
   (interactive)
@@ -500,9 +505,6 @@ If SELECT is non-nil, select the target window."
     (back-to-indentation)
     (get-text-property (point) 'xref-item)))
 
-(defvar-local xref--window nil
-  "The original window this xref buffer was created from.")
-
 (defun xref-goto-xref ()
   "Jump to the xref on the current line and select its window."
   (interactive)
@@ -519,58 +521,86 @@ references displayed in the current *xref* buffer."
    (let ((fr (read-regexp "Xref query-replace (regexp)" ".*")))
      (list fr
            (read-regexp (format "Xref query-replace (regexp) %s with: " fr)))))
-  (let ((reporter (make-progress-reporter (format "Saving search results...")
-                                          0 (line-number-at-pos (point-max))))
-        (counter 0)
-        pairs item)
+  (let* (item xrefs iter)
+    (save-excursion
+      (while (setq item (xref--search-property 'xref-item))
+        (when (xref-match-length item)
+          (push item xrefs))))
     (unwind-protect
         (progn
-          (save-excursion
-            (goto-char (point-min))
-            ;; TODO: This list should be computed on-demand instead.
-            ;; As long as the UI just iterates through matches one by
-            ;; one, there's no need to compute them all in advance.
-            ;; Then we can throw away the reporter.
-            (while (setq item (xref--search-property 'xref-item))
-              (when (xref-match-length item)
-                (save-excursion
-                  (let* ((loc (xref-item-location item))
-                         (beg (xref-location-marker loc))
-                         (end (move-marker (make-marker)
-                                           (+ beg (xref-match-length item))
-                                           (marker-buffer beg))))
-                    ;; Perform sanity check first.
-                    (xref--goto-location loc)
-                    ;; FIXME: The check should probably be a generic
-                    ;; function, instead of the assumption that all
-                    ;; matches contain the full line as summary.
-                    ;; TODO: Offer to re-scan otherwise.
-                    (unless (equal (buffer-substring-no-properties
-                                    (line-beginning-position)
-                                    (line-end-position))
-                                   (xref-item-summary item))
-                      (user-error "Search results out of date"))
-                    (progress-reporter-update reporter (cl-incf counter))
-                    (push (cons beg end) pairs)))))
-            (setq pairs (nreverse pairs)))
-          (unless pairs (user-error "No suitable matches here"))
-          (progress-reporter-done reporter)
-          (xref--query-replace-1 from to pairs))
-      (dolist (pair pairs)
-        (move-marker (car pair) nil)
-        (move-marker (cdr pair) nil)))))
+          (goto-char (point-min))
+          (setq iter (xref--buf-pairs-iterator (nreverse xrefs)))
+          (xref--query-replace-1 from to iter))
+      (funcall iter :cleanup))))
+
+(defun xref--buf-pairs-iterator (xrefs)
+  (let (chunk-done item next-pair file-buf pairs all-pairs)
+    (lambda (action)
+      (pcase action
+        (:next
+         (when (or xrefs next-pair)
+           (setq chunk-done nil)
+           (when next-pair
+             (setq file-buf (marker-buffer (car next-pair))
+                   pairs (list next-pair)
+                   next-pair nil))
+           (while (and (not chunk-done)
+                       (setq item (pop xrefs)))
+             (save-excursion
+               (let* ((loc (xref-item-location item))
+                      (beg (xref-location-marker loc))
+                      (end (move-marker (make-marker)
+                                        (+ beg (xref-match-length item))
+                                        (marker-buffer beg))))
+                 (let ((pair (cons beg end)))
+                   (push pair all-pairs)
+                   ;; Perform sanity check first.
+                   (xref--goto-location loc)
+                   (if (xref--outdated-p item
+                                         (buffer-substring-no-properties
+                                          (line-beginning-position)
+                                          (line-end-position)))
+                       (message "Search result out of date, skipping")
+                     (cond
+                      ((null file-buf)
+                       (setq file-buf (marker-buffer beg))
+                       (push pair pairs))
+                      ((equal file-buf (marker-buffer beg))
+                       (push pair pairs))
+                      (t
+                       (setq chunk-done t
+                             next-pair pair))))))))
+           (cons file-buf (nreverse pairs))))
+        (:cleanup
+         (dolist (pair all-pairs)
+           (move-marker (car pair) nil)
+           (move-marker (cdr pair) nil)))))))
+
+(defun xref--outdated-p (item line-text)
+  ;; FIXME: The check should probably be a generic function instead of
+  ;; the assumption that all matches contain the full line as summary.
+  (let ((summary (xref-item-summary item))
+        (strip (lambda (s) (if (string-match "\r\\'" s)
+                          (substring-no-properties s 0 -1)
+                        s))))
+    (not
+     ;; Sometimes buffer contents include ^M, and sometimes Grep
+     ;; output includes it, and they don't always match.
+     (equal (funcall strip line-text)
+            (funcall strip summary)))))
 
 ;; FIXME: Write a nicer UI.
-(defun xref--query-replace-1 (from to pairs)
+(defun xref--query-replace-1 (from to iter)
   (let* ((query-replace-lazy-highlight nil)
-         current-beg current-end current-buf
+         (continue t)
+         did-it-once buf-pairs pairs
+         current-beg current-end
          ;; Counteract the "do the next match now" hack in
          ;; `perform-replace'.  And still, it'll report that those
          ;; matches were "filtered out" at the end.
          (isearch-filter-predicate
           (lambda (beg end)
             (and current-beg
-                 (eq (current-buffer) current-buf)
                  (>= beg current-beg)
                  (<= end current-end))))
          (replace-re-search-function
@@ -579,19 +609,24 @@ references displayed in the current *xref* buffer."
               (while (and (not found) pairs)
                 (setq pair (pop pairs)
                       current-beg (car pair)
-                      current-end (cdr pair)
-                      current-buf (marker-buffer current-beg))
-                (xref--with-dedicated-window
-                 (pop-to-buffer current-buf))
+                      current-end (cdr pair))
                 (goto-char current-beg)
                 (when (re-search-forward from current-end noerror)
                   (setq found t)))
               found))))
-    ;; FIXME: Despite this being a multi-buffer replacement, `N'
-    ;; doesn't work, because we're not using
-    ;; `multi-query-replace-map', and it would expect the below
-    ;; function to be called once per buffer.
-    (perform-replace from to t t nil)))
+    (while (and continue (setq buf-pairs (funcall iter :next)))
+      (if did-it-once
+          ;; Reuse the same window for subsequent buffers.
+          (switch-to-buffer (car buf-pairs))
+        (xref--with-dedicated-window
+         (pop-to-buffer (car buf-pairs)))
+        (setq did-it-once t))
+      (setq pairs (cdr buf-pairs))
+      (setq continue
+            (perform-replace from to t t nil nil multi-query-replace-map)))
+    (unless did-it-once (user-error "No suitable matches here"))
+    (when (and continue (not buf-pairs))
+      (message "All results processed"))))
 
 (defvar xref--xref-buffer-mode-map
   (let ((map (make-sparse-keymap)))
@@ -623,9 +658,6 @@ references displayed in the current *xref* buffer."
            (xref--show-location (xref-item-location xref) t))
           (t
            (error "No %s xref" (if backward "previous" "next"))))))
-
-(defconst xref-buffer-name "*xref*"
-  "The name of the buffer to show xrefs.")
 
 (defvar xref--button-map
   (let ((map (make-sparse-keymap)))
@@ -688,7 +720,9 @@ Return an alist of the form ((FILENAME . (XREF ...)) ...)."
 (defun xref--show-xref-buffer (xrefs alist)
   (let ((xref-alist (xref--analyze xrefs)))
     (with-current-buffer (get-buffer-create xref-buffer-name)
-      (let ((inhibit-read-only t))
+      (setq buffer-undo-list nil)
+      (let ((inhibit-read-only t)
+            (buffer-undo-list t))
         (erase-buffer)
         (xref--insert-xrefs xref-alist)
         (xref--xref-buffer-mode)
@@ -840,16 +874,16 @@ and just use etags."
         (kill-local-variable 'xref-backend-functions))
     (setq-local xref-backend-functions xref-etags-mode--saved)))
 
-(declare-function semantic-symref-find-references-by-name "semantic/symref")
-(declare-function semantic-find-file-noselect "semantic/fw")
+(declare-function semantic-symref-instantiate "semantic/symref")
+(declare-function semantic-symref-perform-search "semantic/symref")
 (declare-function grep-expand-template "grep")
 (defvar ede-minor-mode) ;; ede.el
 
 (defun xref-collect-references (symbol dir)
   "Collect references to SYMBOL inside DIR.
 This function uses the Semantic Symbol Reference API, see
-`semantic-symref-find-references-by-name' for details on which
-tools are used, and when."
+`semantic-symref-tool-alist' for details on which tools are used,
+and when."
   (cl-assert (directory-name-p dir))
   (require 'semantic/symref)
   (defvar semantic-symref-tool)
@@ -860,19 +894,19 @@ tools are used, and when."
   ;; to force the backend to use `default-directory'.
   (let* ((ede-minor-mode nil)
          (default-directory dir)
+         ;; FIXME: Remove CScope and Global from the recognized tools?
+         ;; The current implementations interpret the symbol search as
+         ;; "find all calls to the given function", but not function
+         ;; definition. And they return nothing when passed a variable
+         ;; name, even a global one.
          (semantic-symref-tool 'detect)
          (case-fold-search nil)
-         (res (semantic-symref-find-references-by-name symbol 'subdirs))
-         (hits (and res (oref res hit-lines)))
-         (orig-buffers (buffer-list)))
-    (unwind-protect
-        (cl-mapcan (lambda (hit) (xref--collect-matches
-                             hit (format "\\_<%s\\_>" (regexp-quote symbol))))
-                   hits)
-      ;; TODO: Implement "lightweight" buffer visiting, so that we
-      ;; don't have to kill them.
-      (mapc #'kill-buffer
-            (cl-set-difference (buffer-list) orig-buffers)))))
+         (inst (semantic-symref-instantiate :searchfor symbol
+                                            :searchtype 'symbol
+                                            :searchscope 'subdirs
+                                            :resulttype 'line-and-text)))
+    (xref--convert-hits (semantic-symref-perform-search inst)
+                        (format "\\_<%s\\_>" (regexp-quote symbol)))))
 
 ;;;###autoload
 (defun xref-collect-matches (regexp files dir ignores)
@@ -891,39 +925,26 @@ IGNORES is a list of glob patterns."
                                        files
                                        (expand-file-name dir)
                                        ignores))
-         (orig-buffers (buffer-list))
          (buf (get-buffer-create " *xref-grep*"))
          (grep-re (caar grep-regexp-alist))
-         (counter 0)
-         reporter
          hits)
     (with-current-buffer buf
       (erase-buffer)
       (call-process-shell-command command nil t)
       (goto-char (point-min))
       (while (re-search-forward grep-re nil t)
-        (push (cons (string-to-number (match-string 2))
-                    (match-string 1))
+        (push (list (string-to-number (match-string 2))
+                    (match-string 1)
+                    (buffer-substring-no-properties (point) (line-end-position)))
               hits)))
-    (setq reporter (make-progress-reporter
-                    (format "Collecting search results...")
-                    0 (length hits)))
-    (unwind-protect
-        (cl-mapcan (lambda (hit)
-                     (prog1
-                         (progress-reporter-update reporter counter)
-                       (cl-incf counter))
-                     (xref--collect-matches hit regexp))
-                   (nreverse hits))
-      (progress-reporter-done reporter)
-      ;; TODO: Same as above.
-      (mapc #'kill-buffer
-            (cl-set-difference (buffer-list) orig-buffers)))))
+    (xref--convert-hits (nreverse hits) regexp)))
 
 (defun xref--rgrep-command (regexp files dir ignores)
   (require 'find-dired)      ; for `find-name-arg'
   (defvar grep-find-template)
   (defvar find-name-arg)
+  ;; `shell-quote-argument' quotes the tilde as well.
+  (cl-assert (not (string-match-p "\\`~" dir)))
   (grep-expand-template
    grep-find-template
    regexp
@@ -935,14 +956,13 @@ IGNORES is a list of glob patterns."
             (concat " -o " find-name-arg " "))
            " "
            (shell-quote-argument ")"))
-   dir
+   (shell-quote-argument dir)
    (xref--find-ignores-arguments ignores dir)))
 
 (defun xref--find-ignores-arguments (ignores dir)
   "Convert IGNORES and DIR to a list of arguments for 'find'.
 IGNORES is a list of glob patterns.  DIR is an absolute
 directory, used as the root of the ignore globs."
-  ;; `shell-quote-argument' quotes the tilde as well.
   (cl-assert (not (string-match-p "\\`~" dir)))
   (when ignores
     (concat
@@ -981,30 +1001,75 @@ directory, used as the root of the ignore globs."
                (match-string 1 str)))))
    str t t))
 
-(defun xref--collect-matches (hit regexp)
-  (pcase-let* ((`(,line . ,file) hit)
-               (buf (or (find-buffer-visiting file)
-                        (semantic-find-file-noselect file))))
-    (with-current-buffer buf
-      (save-excursion
+(defvar xref--last-visiting-buffer nil)
+(defvar xref--temp-buffer-file-name nil)
+
+(defun xref--convert-hits (hits regexp)
+  (let (xref--last-visiting-buffer
+        (tmp-buffer (generate-new-buffer " *xref-temp*")))
+    (unwind-protect
+        (cl-mapcan (lambda (hit) (xref--collect-matches hit regexp tmp-buffer))
+                   hits)
+      (kill-buffer tmp-buffer))))
+
+(defun xref--collect-matches (hit regexp tmp-buffer)
+  (pcase-let* ((`(,line ,file ,text) hit)
+               (buf (xref--find-buffer-visiting file)))
+    (if buf
+        (with-current-buffer buf
+          (save-excursion
+            (goto-char (point-min))
+            (forward-line (1- line))
+            (xref--collect-matches-1 regexp file line
+                                     (line-beginning-position)
+                                     (line-end-position))))
+      ;; Using the temporary buffer is both a performance and a buffer
+      ;; management optimization.
+      (with-current-buffer tmp-buffer
+        (erase-buffer)
+        (unless (equal file xref--temp-buffer-file-name)
+          (insert-file-contents file nil 0 200)
+          ;; Can't (setq-local delay-mode-hooks t) because of
+          ;; bug#23272, but the performance penalty seems minimal.
+          (let ((buffer-file-name file)
+                (inhibit-message t)
+                message-log-max)
+            (ignore-errors
+              (set-auto-mode t)))
+          (setq-local xref--temp-buffer-file-name file)
+          (setq-local inhibit-read-only t)
+          (erase-buffer))
+        (insert text)
         (goto-char (point-min))
-        (forward-line (1- line))
-        (let ((line-end (line-end-position))
-              (line-beg (line-beginning-position))
-              matches)
-          (syntax-propertize line-end)
-          ;; FIXME: This results in several lines with the same
-          ;; summary. Solve with composite pattern?
-          (while (re-search-forward regexp line-end t)
-            (let* ((beg-column (- (match-beginning 0) line-beg))
-                   (end-column (- (match-end 0) line-beg))
-                   (loc (xref-make-file-location file line beg-column))
-                   (summary (buffer-substring line-beg line-end)))
-              (add-face-text-property beg-column end-column 'highlight
-                                      t summary)
-              (push (xref-make-match summary loc (- end-column beg-column))
-                    matches)))
-          (nreverse matches))))))
+        (xref--collect-matches-1 regexp file line
+                                 (point)
+                                 (point-max))))))
+
+(defun xref--collect-matches-1 (regexp file line line-beg line-end)
+  (let (matches)
+    (syntax-propertize line-end)
+    ;; FIXME: This results in several lines with the same
+    ;; summary. Solve with composite pattern?
+    (while (and
+            ;; REGEXP might match an empty string.  Or line.
+            (or (null matches)
+                (> (point) line-beg))
+            (re-search-forward regexp line-end t))
+      (let* ((beg-column (- (match-beginning 0) line-beg))
+             (end-column (- (match-end 0) line-beg))
+             (loc (xref-make-file-location file line beg-column))
+             (summary (buffer-substring line-beg line-end)))
+        (add-face-text-property beg-column end-column 'highlight
+                                t summary)
+        (push (xref-make-match summary loc (- end-column beg-column))
+              matches)))
+    (nreverse matches)))
+
+(defun xref--find-buffer-visiting (file)
+  (unless (equal (car xref--last-visiting-buffer) file)
+    (setq xref--last-visiting-buffer
+          (cons file (find-buffer-visiting file))))
+  (cdr xref--last-visiting-buffer))
 
 (provide 'xref)
 

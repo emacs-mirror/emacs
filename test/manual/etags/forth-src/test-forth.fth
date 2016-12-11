@@ -51,3 +51,24 @@ c;
     a-forth-word dup 200 > abort" Eek.  The number is too big"
     ." Result is " . cr
 ;
+
+: (foo) 1 ;
+: foo (foo) ;
+
+: create-bar foo ;
+create-bar  \ Do NOT create a tag here
+
+3 4 2constant 2const
+2const 2value 2val
+2variable 2var
+
+3.1415e fconstant fconst
+fconst fvalue fval
+fvariable fvar
+
+synonym mypi fconst
+
+BEGIN-STRUCTURE point \ create the named structure
+  1 CELLS +FIELD p.x    \ A single cell filed named p.x
+  1 CELLS +FIELD p.y    \ A single cell field named p.y
+END-STRUCTURE

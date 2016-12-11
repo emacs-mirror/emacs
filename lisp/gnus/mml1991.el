@@ -25,11 +25,6 @@
 
 ;;; Code:
 
-(eval-and-compile
-  (if (locate-library "password-cache")
-      (require 'password-cache)
-    (require 'password)))
-
 (eval-when-compile
   (require 'cl)
   (require 'mm-util))

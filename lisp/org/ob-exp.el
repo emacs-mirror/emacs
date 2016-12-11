@@ -45,7 +45,7 @@
 (declare-function org-fill-template "org" (template alist))
 (declare-function org-split-string "org" (string &optional separators))
 (declare-function org-element-at-point "org-element" (&optional keep-trail))
-(declare-function org-element-context "org-element" ())
+(declare-function org-element-context "org-element" (&optional element))
 (declare-function org-element-property "org-element" (property element))
 (declare-function org-element-type "org-element" (element))
 (declare-function org-escape-code-in-string "org-src" (s))

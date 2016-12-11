@@ -35,6 +35,9 @@
 ;; Maintainer: Włodek Bzyl <matwb@univ.gda.pl>
 ;;
 ;; latin-[89]-prefix: Dave Love <fx@gnu.org>
+;;
+;; polish-prefix:
+;; Author: Wojciech Gac <wojciech.s.gac@gmail.com>
 
 ;; You might make extra input sequences on the basis of the X
 ;; locale/*/Compose files (which have both prefix and postfix
@@ -188,6 +191,7 @@
   diaeresis  |   \"    | \"i -> ï   \"\" -> ¨
     tilde    |   ~    | ~n -> ñ
    cedilla   |   ~    | ~c -> ç
+  middle dot |   ~    | ~. -> ·
    symbol    |   ~    | ~> -> »   ~< -> «   ~! -> ¡   ~? -> ¿
 " nil t nil nil nil nil nil nil nil nil t)
 
@@ -223,6 +227,7 @@
  ("~<" ?\«)
  ("~!" ?¡)
  ("~?" ?¿)
+ ("~." ?·)
  ("~ " ?~)
 )
 
@@ -702,6 +707,93 @@ Key translation rules are:
  (".z" ?ż)
 )
 
+(quail-define-package
+ "polish-prefix" "Polish" "PL>" nil
+ "Input method for Polish, Kashubian, Kurpie and Silesian.
+Similar in spirit to `polish-slash', but uses the most intuitive
+prefix for each diacritic.  In addition to ordinary Polish diacritics,
+this input method also contains characters from the Kashubian, Kurpie
+and Silesian (both Steuer and Ślabikŏrzowy szrajbōnek) scripts."
+ nil t t nil nil nil nil nil nil nil t)
+
+(quail-define-rules
+ (",a" ?ą)
+ (",A" ?Ą)
+ ("/a" ?á)
+ ("/A" ?Á)
+ ("'a" ?á)
+ ("'A" ?Á)
+ ("\\a" ?à)
+ ("\\A" ?À)
+ ("`a" ?à)
+ ("`A" ?À)
+ (".a" ?å)
+ (".A" ?Å)
+ ("~a" ?ã)
+ ("~A" ?Ã)
+ ("/c" ?ć)
+ ("/C" ?Ć)
+ ("'c" ?ć)
+ ("'C" ?Ć)
+ ("'e" ?é)
+ ("'E" ?É)
+ ("/e" ?é)
+ ("/E" ?É)
+ (",e" ?ę)
+ (",E" ?Ę)
+ (":e" ?ë)
+ (":E" ?Ë)
+ (":i" ?ï)
+ (":I" ?Ï)
+ ("/l" ?ł)
+ ("/L" ?Ł)
+ ("/n" ?ń)
+ ("/N" ?Ń)
+ ("'n" ?ń)
+ ("'N" ?Ń)
+ ("`o" ?ò)
+ ("`O" ?Ò)
+ ("\\o" ?ò)
+ ("\\O" ?Ò)
+ ("'o" ?ó)
+ ("'O" ?Ó)
+ ("/o" ?ó)
+ ("/O" ?Ó)
+ ("^o" ?ô)
+ ("^O" ?Ô)
+ ("-o" ?ō)
+ ("-O" ?Ō)
+ ("~o" ?õ)
+ ("~O" ?Õ)
+ ("#o" ?ŏ)
+ ("#O" ?Ŏ)
+ ("/s" ?ś)
+ ("/S" ?Ś)
+ ("'s" ?ś)
+ ("'S" ?Ś)
+ ("`u" ?ù)
+ ("`U" ?Ù)
+ (".u" ?ů)
+ (".U" ?Ů)
+ ("/z" ?ź)
+ ("/Z" ?Ź)
+ ("'z" ?ź)
+ ("'Z" ?Ź)
+ (".z" ?ż)
+ (".Z" ?Ż)
+ ;; Explicit input of prefix characters. Normally, to input a prefix
+ ;; character itself, one needs to press <Tab>. Definitions below
+ ;; allow to input those characters by entering them twice.
+ ("//" ?/)
+ ("\\\\" ?\\)
+ ("~~" ?~)
+ ("''" ?')
+ ("::" ?:)
+ ("``" ?`)
+ ("^^" ?^)
+ (".." ?.)
+ (",," ?,)
+ ("--" ?-))
 
 (quail-define-package
  "polish-slash" "Polish" "PL>" nil

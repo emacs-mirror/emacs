@@ -574,7 +574,7 @@ of a mail alias.  The value is set up, buffer-local, when first needed.")
   (let ((end (point))
         (beg (with-syntax-table mail-abbrev-syntax-table
                (save-excursion
-                 (backward-word 1)
+                 (backward-word-strictly 1)
                  (point)))))
     (completion-in-region beg end mail-abbrevs)))
 

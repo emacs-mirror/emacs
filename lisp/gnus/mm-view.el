@@ -198,8 +198,10 @@
 	      (delete-region ,(point-min-marker)
 			     ,(point-max-marker)))))))))
 
-(defvar mm-w3m-standalone-supports-m17n-p 'undecided
-  "*T means the w3m command supports the m17n feature.")
+(defcustom mm-w3m-standalone-supports-m17n-p 'undecided
+  "T means the w3m command supports the m17n feature."
+  :type '(choice (const nil) (const t) (other :tag "detect" undecided))
+  :group 'mime-display)
 
 (defun mm-w3m-standalone-supports-m17n-p ()
   "Say whether the w3m command supports the m17n feature."

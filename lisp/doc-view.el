@@ -626,7 +626,7 @@ at the bottom edge of the page moves to the next page."
 	    (image-bob)
 	    (image-bol 1))
 	  (set-window-hscroll (selected-window) hscroll)))
-    (image-next-line 1)))
+    (image-next-line arg)))
 
 (defun doc-view-previous-line-or-previous-page (&optional arg)
   "Scroll downward by ARG lines if possible, else goto previous page.

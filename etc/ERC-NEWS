@@ -1077,7 +1077,7 @@ major changes for implementers, and module writers:
     corresponding hook variables.
 
     The mapping of server commands to hook variables is no longer
-    done via `erc-event-to-hook', but through an #'equal hashtable,
+    done via `erc-event-to-hook', but through an #'equal hash table,
     `erc-server-responses'.  In order to find a hook you do:
 
     (erc-get-hook command)

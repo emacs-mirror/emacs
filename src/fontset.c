@@ -26,6 +26,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "lisp.h"
 #include "blockinput.h"
@@ -750,7 +751,8 @@ fontset_find_font (Lisp_Object fontset, int c, struct face *face,
 static Lisp_Object
 fontset_font (Lisp_Object fontset, int c, struct face *face, int id)
 {
-  Lisp_Object rfont_def, default_rfont_def IF_LINT (= Qnil);
+  Lisp_Object rfont_def;
+  Lisp_Object default_rfont_def UNINIT;
   Lisp_Object base_fontset;
 
   /* Try a font-group of FONTSET. */
@@ -919,7 +921,8 @@ face_for_char (struct frame *f, struct face *face, int c,
   if (ASCII_CHAR_P (c) || CHAR_BYTE8_P (c))
     return face->ascii_face->id;
 
-  if (c > 0 && EQ (CHAR_TABLE_REF (Vchar_script_table, c), Qsymbol))
+  if (use_default_font_for_symbols  /* let the user disable this feature */
+      && c > 0 && EQ (CHAR_TABLE_REF (Vchar_script_table, c), Qsymbol))
     {
       /* Fonts often have characters for punctuation and other
          symbols, even if they don't match the 'symbol' script.  So
@@ -1304,7 +1307,7 @@ free_realized_fontsets (Lisp_Object base)
 	    {
 	      struct frame *f = XFRAME (FONTSET_FRAME (this));
 	      int face_id = XINT (XCDR (XCAR (tail)));
-	      struct face *face = FACE_FROM_ID (f, face_id);
+	      struct face *face = FACE_FROM_ID_OR_NULL (f, face_id);
 
 	      /* Face THIS itself is also freed by the following call.  */
 	      free_realized_face (f, face);
@@ -1636,7 +1639,7 @@ appended.  By default, FONT-SPEC overrides the previous settings.  */)
 	    continue;
 	  if (fontset_id != FRAME_FONTSET (f))
 	    continue;
-	  face = FACE_FROM_ID (f, DEFAULT_FACE_ID);
+	  face = FACE_FROM_ID_OR_NULL (f, DEFAULT_FACE_ID);
 	  if (face)
 	    font_object = font_load_for_lface (f, face->lface, font_spec);
 	  else
@@ -2147,6 +2150,16 @@ is assumed to be specified by _MULE_DEFAULT_ASCENT property of a font.
 This affects how a composite character which contains
 such a character is displayed on screen.  */);
   Vuse_default_ascent = Qnil;
+
+  DEFVAR_BOOL ("use-default-font-for-symbols", use_default_font_for_symbols,
+	       doc: /*
+If non-nil, use the default face's font for symbols and punctuation.
+
+By default, Emacs will try to use the default face's font for
+displaying symbol and punctuation characters, disregarding the
+fontsets, if the default font can display the character.
+Set this to nil to make Emacs honor the fontsets instead.  */);
+  use_default_font_for_symbols = 1;
 
   DEFVAR_LISP ("ignore-relative-composition", Vignore_relative_composition,
 	       doc: /*

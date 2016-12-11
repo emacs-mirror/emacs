@@ -75,11 +75,24 @@ introduced in Emacs 22."
       'cancel-timer
     'delete-itimer))
 
-;; Emacs 24 renamed flet to cl-flet.
-(defalias 'mh-cl-flet
-  (if (fboundp 'cl-flet)
-      'cl-flet
-    'flet))
+;; Emacs 24 made flet obsolete and suggested either cl-flet or
+;; cl-letf. This macro is based upon gmm-flet from Gnus.
+(defmacro mh-flet (bindings &rest body)
+  "Make temporary overriding function definitions.
+This is an analogue of a dynamically scoped `let' that operates on
+the function cell of FUNCs rather than their value cell.
+
+\(fn ((FUNC ARGLIST BODY...) ...) FORM...)"
+  (if (fboundp 'cl-letf)
+      `(cl-letf ,(mapcar (lambda (binding)
+                           `((symbol-function ',(car binding))
+                             (lambda ,@(cdr binding))))
+                         bindings)
+         ,@body)
+    `(flet ,bindings ,@body)))
+(put 'mh-flet 'lisp-indent-function 1)
+(put 'mh-flet 'edebug-form-spec
+     '((&rest (sexp sexp &rest form)) &rest form))
 
 (defun mh-display-color-cells (&optional display)
   "Return the number of color cells supported by DISPLAY.

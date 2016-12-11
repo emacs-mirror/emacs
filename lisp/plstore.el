@@ -99,10 +99,12 @@ If neither t nor nil, doesn't ask user."
 		 (const :tag "Don't ask" silent))
   :group 'plstore)
 
-(defvar plstore-encrypt-to nil
-  "*Recipient(s) used for encrypting secret entries.
+(defcustom plstore-encrypt-to nil
+  "Recipient(s) used for encrypting secret entries.
 May either be a string or a list of strings.  If it is nil,
-symmetric encryption will be used.")
+symmetric encryption will be used."
+  :type '(choice (const nil) (repeat :tag "Recipient(s)" string))
+  :group 'plstore)
 
 (put 'plstore-encrypt-to 'safe-local-variable
      (lambda (val)

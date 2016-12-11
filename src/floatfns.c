@@ -3,8 +3,7 @@
 Copyright (C) 1988, 1993-1994, 1999, 2001-2016 Free Software Foundation,
 Inc.
 
-Author: Wolfgang Rupprecht (ac
-ording to ack.texi)
+Author: Wolfgang Rupprecht (according to ack.texi)
 
 This file is part of GNU Emacs.
 
@@ -186,8 +185,8 @@ If X is zero, both parts (SGNFCAND and EXP) are zero.  */)
 }
 
 DEFUN ("ldexp", Fldexp, Sldexp, 2, 2, 0,
-       doc: /* Return X * 2**EXP, as a floating point number.
-EXP must be an integer.   */)
+       doc: /* Return SGNFCAND * 2**EXPONENT, as a floating point number.
+EXPONENT must be an integer.   */)
   (Lisp_Object sgnfcand, Lisp_Object exponent)
 {
   CHECK_NUMBER (exponent);

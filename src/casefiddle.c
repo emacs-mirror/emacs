@@ -196,7 +196,7 @@ casify_region (enum case_action flag, Lisp_Object b, Lisp_Object e)
   ptrdiff_t start_byte;
 
   /* Position of first and last changes.  */
-  ptrdiff_t first = -1, last IF_LINT (= 0);
+  ptrdiff_t first = -1, last;
 
   ptrdiff_t opoint = PT;
   ptrdiff_t opoint_byte = PT_BYTE;
@@ -294,15 +294,31 @@ casify_region (enum case_action flag, Lisp_Object b, Lisp_Object e)
     }
 }
 
-DEFUN ("upcase-region", Fupcase_region, Supcase_region, 2, 2, "r",
+DEFUN ("upcase-region", Fupcase_region, Supcase_region, 2, 3,
+       "(list (region-beginning) (region-end) (region-noncontiguous-p))",
        doc: /* Convert the region to upper case.  In programs, wants two arguments.
 These arguments specify the starting and ending character numbers of
 the region to operate on.  When used as a command, the text between
 point and the mark is operated on.
 See also `capitalize-region'.  */)
-  (Lisp_Object beg, Lisp_Object end)
+  (Lisp_Object beg, Lisp_Object end, Lisp_Object region_noncontiguous_p)
 {
-  casify_region (CASE_UP, beg, end);
+  Lisp_Object bounds = Qnil;
+
+  if (!NILP (region_noncontiguous_p))
+    {
+      bounds = call1 (Fsymbol_value (intern ("region-extract-function")),
+		      intern ("bounds"));
+
+      while (CONSP (bounds))
+	{
+	  casify_region (CASE_UP, XCAR (XCAR (bounds)), XCDR (XCAR (bounds)));
+	  bounds = XCDR (bounds);
+	}
+    }
+  else
+    casify_region (CASE_UP, beg, end);
+
   return Qnil;
 }
 
@@ -360,22 +376,16 @@ character positions to operate on.  */)
 }
 
 static Lisp_Object
-operate_on_word (Lisp_Object arg, ptrdiff_t *newpoint)
+casify_word (enum case_action flag, Lisp_Object arg)
 {
-  Lisp_Object val;
-  ptrdiff_t farend;
-  EMACS_INT iarg;
-
   CHECK_NUMBER (arg);
-  iarg = XINT (arg);
-  farend = scan_words (PT, iarg);
+  ptrdiff_t farend = scan_words (PT, XINT (arg));
   if (!farend)
-    farend = iarg > 0 ? ZV : BEGV;
-
-  *newpoint = PT > farend ? PT : farend;
-  XSETFASTINT (val, farend);
-
-  return val;
+    farend = XINT (arg) <= 0 ? BEGV : ZV;
+  ptrdiff_t newpoint = max (PT, farend);
+  casify_region (flag, make_number (PT), make_number (farend));
+  SET_PT (newpoint);
+  return Qnil;
 }
 
 DEFUN ("upcase-word", Fupcase_word, Supcase_word, 1, 1, "p",
@@ -388,13 +398,7 @@ With negative argument, convert previous words but do not move.
 See also `capitalize-word'.  */)
   (Lisp_Object arg)
 {
-  Lisp_Object beg, end;
-  ptrdiff_t newpoint;
-  XSETFASTINT (beg, PT);
-  end = operate_on_word (arg, &newpoint);
-  casify_region (CASE_UP, beg, end);
-  SET_PT (newpoint);
-  return Qnil;
+  return casify_word (CASE_UP, arg);
 }
 
 DEFUN ("downcase-word", Fdowncase_word, Sdowncase_word, 1, 1, "p",
@@ -406,13 +410,7 @@ is ignored when moving forward.
 With negative argument, convert previous words but do not move.  */)
   (Lisp_Object arg)
 {
-  Lisp_Object beg, end;
-  ptrdiff_t newpoint;
-  XSETFASTINT (beg, PT);
-  end = operate_on_word (arg, &newpoint);
-  casify_region (CASE_DOWN, beg, end);
-  SET_PT (newpoint);
-  return Qnil;
+  return casify_word (CASE_DOWN, arg);
 }
 
 DEFUN ("capitalize-word", Fcapitalize_word, Scapitalize_word, 1, 1, "p",
@@ -427,13 +425,7 @@ is ignored when moving forward.
 With negative argument, capitalize previous words but do not move.  */)
   (Lisp_Object arg)
 {
-  Lisp_Object beg, end;
-  ptrdiff_t newpoint;
-  XSETFASTINT (beg, PT);
-  end = operate_on_word (arg, &newpoint);
-  casify_region (CASE_CAPITALIZE, beg, end);
-  SET_PT (newpoint);
-  return Qnil;
+  return casify_word (CASE_CAPITALIZE, arg);
 }
 
 void

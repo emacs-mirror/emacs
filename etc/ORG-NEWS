@@ -952,7 +952,7 @@ instead of requiring each Babel library one by one.
 - New option [[doc:org-gnus-no-server][org-gnus-no-server]] to start Gnus with =gnus-no-server=
 - Org is now distributed with =htmlize.el= version 1.43
 - ~org-drill.el~ has been updated to version 2.3.7
-- ~org-mac-iCal.el~ now supports MacOSX version up to 10.8
+- ~org-mac-iCal.el~ now supports OS X versions up to 10.8
 - Various improvements to ~org-contacts.el~ and =orgpan.el=
 
 ** Outside Org

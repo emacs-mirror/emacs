@@ -81,8 +81,9 @@
    of 'struct timeval', and no definition of this type.
    Also, Mac OS X, AIX, HP-UX, IRIX, Solaris, Interix declare select()
    in <sys/time.h>.
-   But avoid namespace pollution on glibc systems.  */
-# ifndef __GLIBC__
+   But avoid namespace pollution on glibc systems and "unknown type
+   name" problems on Cygwin.  */
+# if !(defined __GLIBC__ || defined __CYGWIN__)
 #  include <sys/time.h>
 # endif
 
@@ -100,10 +101,11 @@
 #endif
 
 /* Get definition of 'sigset_t'.
-   But avoid namespace pollution on glibc systems.
+   But avoid namespace pollution on glibc systems and "unknown type
+   name" problems on Cygwin.
    Do this after the include_next (for the sake of OpenBSD 5.0) but before
    the split double-inclusion guard (for the sake of Solaris).  */
-#if !(defined __GLIBC__ && !defined __UCLIBC__)
+#if !((defined __GLIBC__ || defined __CYGWIN__) && !defined __UCLIBC__)
 # include <signal.h>
 #endif
 
@@ -289,12 +291,15 @@ _GL_WARN_ON_USE (pselect, "pselect is not portable - "
 #   define select rpl_select
 #  endif
 _GL_FUNCDECL_RPL (select, int,
-                  (int, fd_set *, fd_set *, fd_set *, struct timeval *));
+                  (int, fd_set *restrict, fd_set *restrict, fd_set *restrict,
+                   struct timeval *restrict));
 _GL_CXXALIAS_RPL (select, int,
-                  (int, fd_set *, fd_set *, fd_set *, struct timeval *));
+                  (int, fd_set *restrict, fd_set *restrict, fd_set *restrict,
+                   struct timeval *restrict));
 # else
 _GL_CXXALIAS_SYS (select, int,
-                  (int, fd_set *, fd_set *, fd_set *, struct timeval *));
+                  (int, fd_set *restrict, fd_set *restrict, fd_set *restrict,
+                   struct timeval *restrict));
 # endif
 _GL_CXXALIASWARN (select);
 #elif @HAVE_WINSOCK2_H@

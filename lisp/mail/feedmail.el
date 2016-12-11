@@ -504,7 +504,7 @@ as-is.  The filling is done after mail address alias expansion."
   )
 
 
-(defcustom feedmail-fill-to-cc-fill-column default-fill-column
+(defcustom feedmail-fill-to-cc-fill-column (default-value 'fill-column)
   "Fill column used by `feedmail-fill-to-cc'."
   :group 'feedmail-headers
   :type 'integer

@@ -1510,9 +1510,9 @@ and the functions `ffap-file-at-point' and `ffap-url-at-point'."
 		 ;; expand-file-name fixes "~/~/.emacs" bug sent by CHUCKR.
 		 (expand-file-name filename)))
        ;; User does not want to find a non-existent file:
-       ((signal 'file-error (list "Opening file buffer"
-				  "No such file or directory"
-				  filename)))))))
+       ((signal 'file-missing (list "Opening file buffer"
+				    "No such file or directory"
+				    filename)))))))
 
 ;; Shortcut: allow {M-x ffap} rather than {M-x find-file-at-point}.
 ;;;###autoload
@@ -1888,7 +1888,10 @@ If `dired-at-point-require-prefix' is set, the prefix meaning is reversed."
 	     (y-or-n-p "Directory does not exist, create it? "))
 	(make-directory filename)
 	(funcall ffap-directory-finder filename))
-       ((error "No such file or directory `%s'" filename))))))
+       (t
+	(signal 'file-missing (list "Opening directory"
+				    "No such file or directory"
+				    filename)))))))
 
 (defun dired-at-point-prompter (&optional guess)
   ;; Does guess and prompt step for find-file-at-point.
@@ -1966,7 +1969,9 @@ Only intended for interactive use."
 (defun ffap-guess-file-name-at-point ()
   "Try to get a file name at point.
 This hook is intended to be put in `file-name-at-point-functions'."
-  (let ((guess (ffap-guesser)))
+  ;; ffap-guesser can signal an error, and we don't want that when,
+  ;; e.g., the user types M-n at the "C-x C-f" prompt.
+  (let ((guess (ignore-errors (ffap-guesser))))
     (when (stringp guess)
       (let ((url (ffap-url-p guess)))
 	(or url

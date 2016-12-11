@@ -459,11 +459,9 @@ smart.  It sees that the Shell uses terminal type 'unknown' and turns
 on the flag to output ^M at the end of each line.  You can fix the
 problem by adding this to your .cshrc file:
 
-    if ($?EMACS) then
-        if ("$EMACS" =~ /*) then
-            unset edit
-            stty  -icrnl -onlcr -echo susp ^Z
-        endif
+    if ($?INSIDE_EMACS && $?tcsh)
+        unset edit
+        stty -icrnl -onlcr -echo susp ^Z
     endif
 
 *** Emacs startup on GNU/Linux systems (and possibly other systems) is slow.
@@ -579,6 +577,14 @@ If your spell-checking program is Aspell, it has been reported that if
 you have a personal configuration file (normally ~/.aspell.conf), it
 can cause this error.  Remove that file, execute 'ispell-kill-ispell'
 in Emacs, and then try spell-checking again.
+
+*** TLS problems, e.g., Gnus hangs when fetching via imaps
+http://debbugs.gnu.org/24247
+
+gnutls-cli 3.5.3 (2016-08-09) does not generate a "- Handshake was
+completed" message that tls.el relies upon, causing affected Emacs
+functions to hang.  To work around the problem, use older or newer
+versions of gnutls-cli, or use Emacs's built-in gnutls support.
 
 * Runtime problems related to font handling
 
@@ -719,6 +725,20 @@ screen), can both make the problem disappear.  Alternatively, customize
 the following variables: tex-font-script-display (how much to
 lower/raise); tex-suscript-height-ratio (how much smaller than
 normal); tex-suscript-height-minimum (minimum height).
+
+** Screen refresh is slow when there are special characters for which no suitable font is available
+
+If the display is too slow in refreshing when you scroll to a new
+region, or when you edit the buffer, it might be due to the fact that
+some characters cannot be displayed in the default font, and Emacs is
+spending too much time in looking for a suitable font to display them.
+
+You can suspect this if you have several characters that are displayed
+as small rectangles containing a hexadecimal code inside.
+
+The solution is to install the appropriate fonts on your machine. For
+instance if you are editing a text with a lot of math symbols, then
+installing a font like 'Symbola' should solve this problem.
 
 * Internationalization problems
 
@@ -911,6 +931,54 @@ into Meta.  This is because of the great importance of Meta in Emacs.
 
 ** Window-manager and toolkit-related problems
 
+*** Emacs built with GTK+ toolkit produces corrupted display on HiDPI screen
+
+This can happen if you set GDK_SCALE=2 in the environment or in your
+'.xinitrc' file.  (This setting is usually accompanied by
+GDK_DPI_SCALE=0.5.)  Emacs can not support these settings correctly,
+as it doesn't use GTK+ exclusively.  The result is that sometimes
+widgets like the scroll bar are displayed incorrectly, and frames
+could be displayed "cropped" to only part of the stuff that should be
+displayed.
+
+The workaround is to explicitly disable these settings when invoking
+Emacs, for example (from a Posix shell prompt):
+
+  $ GDK_SCALE=1 GDK_DPI_SCALE=1 emacs
+
+*** Emacs built with GTK+ toolkit can unexpectedly widen frames
+
+This resizing takes place when a frame is not wide enough to accommodate
+its entire menu bar.  Typically, it occurs when switching buffers or
+changing a buffer's major mode and the new mode adds entries to the menu
+bar.  The frame is then widened by the window manager so that the menu
+bar is fully shown.  Subsequently switching to another buffer or
+changing the buffer's mode will not shrink the frame back to its
+previous width.  The height of the frame remains unaltered.  Apparently,
+the failure is also dependent on the chosen font.
+
+The resizing is usually accompanied by console output like
+
+Gtk-CRITICAL **: gtk_distribute_natural_allocation: assertion 'extra_space >= 0' failed
+
+It's not clear whether the GTK version used has any impact on the
+occurrence of the failure.  So far, the failure has been observed with
+GTK+ versions 3.4.2, 3.14.5 and 3.18.7.  However, another 3.4.2 build
+does not exhibit the bug.
+
+Some window managers (Xfce) apparently work around this failure by
+cropping the menu bar.  With other windows managers, it's possible to
+shrink the frame manually after the problem occurs, e.g. by dragging the
+frame's border with the mouse.  However, some window managers have been
+reported to refuse such attempts and snap back to the width needed to
+show the full menu bar (wmii) or at least cause the screen to flicker
+during such resizing attempts (i3, IceWM).
+
+See also http://debbugs.gnu.org/cgi/bugreport.cgi?bug=15700,
+http://debbugs.gnu.org/cgi/bugreport.cgi?bug=22000,
+http://debbugs.gnu.org/cgi/bugreport.cgi?bug=22898 and
+http://lists.gnu.org/archive/html/emacs-devel/2016-07/msg00154.html.
+
 *** Metacity: Resizing Emacs or ALT-Tab causes X to be unresponsive.
 
 This happens sometimes when using Metacity.  Resizing Emacs or ALT-Tab:bing
@@ -978,6 +1046,28 @@ while, Emacs may print a message:
 
 A workaround is to not use 'klipper'.  Upgrading 'klipper' to the one
 coming with KDE 3.3 or later also solves the problem.
+
+*** KDE / Plasma 5: Emacs exhausts memory and needs to be killed
+
+This problem occurs when large selections contain mixed line endings
+(i.e. the buffer has LF line endings, but in some parts CRLF is used).
+The source of the problem is currently under investigation, older
+versions of Emacs up to 24.5 just hang for a few seconds and then
+return with the message "Timed out waiting for property-notify event"
+as described in the previous note.  As a workaround, go to the
+settings dialog for the Clipboard widget and select the option "Ignore
+Selection".
+
+Note: Plasma 5 has replaced the separate klipper process from earlier
+KDE versions with functionality directly integrated into plasmashell,
+so even if you've previously did not use klipper this will affect you.
+Also, all configuration you might have done to klipper is not used by
+the new Clipboard widget / plasmoid since it uses its own settings.
+You can hide the Clipboard widget by removing its entry from the
+system tray settings "Extra Items", but it's not clear if the
+underlying functionality in plasmashell gets fully disabled as well.
+At least a restart of plasmashell is required for the clipboard
+history to be cleared.
 
 *** CDE: Frames may cover dialogs they created when using CDE.
 
@@ -1626,7 +1716,7 @@ which combination produces "M-x" in the echo area.  You can also use
 the 'xmodmap' utility to show all the keys which produce a Meta
 modifier:
 
-         xmodmap -pk | egrep -i "meta|alt"
+         xmodmap -pk | grep -Ei "meta|alt"
 
 A more convenient way of finding out which keys produce a Meta modifier
 is to use the 'xkbprint' utility, if it's available on your system:
@@ -2183,11 +2273,11 @@ month names with consistent widths for some locales on some versions
 of Windows.  This is caused by a deficiency in the underlying system
 library function.
 
-** Problems with set-time-zone-rule function
+** Non-US time zones.
 
-The function set-time-zone-rule gives incorrect results for many
-non-US timezones.  This is due to over-simplistic handling of
-daylight savings switchovers by the Windows libraries.
+Many non-US time zones are implemented incorrectly.  This is due to
+over-simplistic handling of daylight savings switchovers by the
+Windows libraries.
 
 ** Files larger than 4GB report wrong size in a 32-bit Windows build
 
@@ -2325,6 +2415,18 @@ If this does not work, please inform bug-gnu-emacs@gnu.org.  Then
 please call support for your X-server and see if you can get a fix.
 If you do, please send it to bug-gnu-emacs@gnu.org so we can list it here.
 
+
+* Runtime problems specific to Mac OS X
+
+** On Mac OS X, file-name-case-insensitive-p may be unreliable
+
+The implementation of that function on Mac OS X uses pathconf with the
+_PC_CASE_SENSITIVE flag.  There have been reports that this use of
+pathconf does not work reliably.  If you have a problem, please
+recompile Emacs with -D DARWIN_OS_CASE_SENSITIVE_FIXME=1 or
+-D DARWIN_OS_CASE_SENSITIVE_FIXME=2, and file a bug report saying
+whether this fixed your problem.
+
 * Build-time problems
 
 ** Configuration
@@ -2391,6 +2493,13 @@ files are installed.  Then use:
   env CC="gcc -m32" ./configure --build=i386-linux-gnu --x-libraries=/usr/lib
 
 (using the location of the 32-bit X libraries on your system).
+
+*** Building on FreeBSD 11 fails at link time due to unresolved symbol
+
+The symbol is sendmmsg@FBSD_1.4.  This is due to a faulty libgio
+library on these systems.  The solution is to reconfigure Emacs while
+disabling all the features that require libgio: rsvg, dbus, gconf, and
+imagemagick.
 
 *** Building Emacs for Cygwin can fail with GCC 3
 
@@ -2563,51 +2672,70 @@ See <URL:http://debbugs.gnu.org/327>, <URL:http://debbugs.gnu.org/821>.
 
 ** Dumping
 
-*** Segfault during 'make bootstrap' under the Linux kernel.
+*** Segfault during 'make'
 
-In Red Hat Linux kernels, "Exec-shield" functionality is enabled by
-default, which creates a different memory layout that can break the
-emacs dumper.  Emacs tries to handle this at build time, but if this
-fails, the following instructions may be useful.
+If Emacs segfaults when 'make' executes one of these commands:
 
-Exec-shield is enabled on your system if
+  LC_ALL=C ./temacs -batch -l loadup bootstrap
+  LC_ALL=C ./temacs -batch -l loadup dump
+
+the problem may be due to inadequate workarounds for address space
+layout randomization (ASLR), an operating system feature that
+randomizes the virtual address space of a process.  ASLR is commonly
+enabled in Linux and NetBSD kernels, and is intended to deter exploits
+of pointer-related bugs in applications.  If ASLR is enabled, the
+command:
+
+   cat /proc/sys/kernel/randomize_va_space  # GNU/Linux
+   sysctl security.pax.aslr.global          # NetBSD
+
+outputs a nonzero value.
+
+These segfaults should not occur on most modern systems, because the
+Emacs build procedure uses the command 'setfattr' or 'paxctl' to mark
+the Emacs executable as requiring non-randomized address space, and
+Emacs uses the 'personality' system call to disable address space
+randomization when dumping.  However, older kernels may not support
+'setfattr', 'paxctl', or 'personality', and newer Linux kernels have a
+secure computing mode (seccomp) that can be configured to disable the
+'personality' call.
+
+It may be possible to work around the 'personality' problem in a newer
+Linux kernel by configuring seccomp to allow the 'personality' call.
+For example, if you are building Emacs under Docker, you can run the
+Docker container with a security profile that allows 'personality' by
+using Docker's --security-opt option with an appropriate profile; see
+<https://docs.docker.com/engine/security/seccomp/>.
+
+To work around the ASLR problem in either an older or a newer kernel,
+you can temporarily disable the feature while building Emacs.  On
+GNU/Linux you can do so using the following command (as root).
+
+    echo 0 > /proc/sys/kernel/randomize_va_space
+
+You can re-enable the feature when you are done, by echoing the
+original value back to the file.  NetBSD uses a different command,
+e.g., 'sysctl -w security.pax.aslr.global=0'.
+
+Alternatively, you can try using the 'setarch' command when building
+temacs like this, where -R disables address space randomization:
+
+    setarch $(uname -m) -R make
+
+ASLR is not the only problem that can break Emacs dumping.  Another
+issue is that in Red Hat Linux kernels, Exec-shield is enabled by
+default, and this creates a different memory layout.  Emacs should
+handle this at build time, but if this fails the following
+instructions may be useful.  Exec-shield is enabled on your system if
 
     cat /proc/sys/kernel/exec-shield
 
-prints a value other than 0.  (Please read your system documentation
-for more details on Exec-shield and associated commands.)
-
-Additionally, Linux kernel versions since 2.6.12 randomize the virtual
-address space of a process by default.  If this feature is enabled on
-your system, then
-
-   cat /proc/sys/kernel/randomize_va_space
-
-prints a value other than 0.
-
-When these features are enabled, building Emacs may segfault during
-the execution of this command:
-
-    ./temacs --batch --load loadup [dump|bootstrap]
-
-To work around this problem, you can temporarily disable these
-features while building Emacs.  You can do so using the following
-commands (as root).  Remember to re-enable them when you are done,
-by echoing the original values back to the files.
+prints a nonzero value.  You can temporarily disable it as follows:
 
     echo 0 > /proc/sys/kernel/exec-shield
-    echo 0 > /proc/sys/kernel/randomize_va_space
 
-Or, on x86, you can try using the 'setarch' command when running
-temacs, like this:
-
-    setarch i386 -R ./temacs --batch --load loadup [dump|bootstrap]
-
-or
-
-    setarch i386 -R make
-
-(The -R option disables address space randomization.)
+As with randomize_va_space, you can re-enable Exec-shield when you are
+done, by echoing the original value back to the file.
 
 *** temacs prints "Pure Lisp storage exhausted".
 

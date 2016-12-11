@@ -171,16 +171,17 @@ With ARG, repeat that many times.  `C-u' means until end of buffer."
      active region.
  `kill'
      `kill-region' is used on the selection, rather than
-     `delete-region'.  (Text selected with the mouse will typically
-     be yankable anyhow.)
- t
-     The normal case: delete the active region prior to executing
-     the command which will insert replacement text.
+     `delete-region'.  (Text selected with the mouse will
+     typically be yankable anyhow.)
  FUNCTION
-     For commands which need to dynamically determine this behavior.
-     FUNCTION should take no argument and return one of the above
-     values, or nil.  In the latter case, FUNCTION should itself
-     do with the active region whatever is appropriate."
+     For commands which need to dynamically determine this
+     behavior.  FUNCTION should take no argument and return a
+     value acceptable as TYPE, or nil.  In the latter case,
+     FUNCTION should itself do with the active region whatever is
+     appropriate.
+ Other non-nil values
+     The normal case: delete the active region prior to executing
+     the command which will insert replacement text."
   (condition-case data
       (cond ((eq type 'kill)            ;Deprecated, backward compatibility.
 	     (delete-active-region t)

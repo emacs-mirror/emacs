@@ -462,9 +462,9 @@ file.  Since that is a plaintext file, this could be dangerous."
      :list-all ("\\d+" . "\\dS+")
      :list-table ("\\d+ %s" . "\\dS+ %s")
      :completion-object sql-postgres-completion-object
-     :prompt-regexp "^\\w*=[#>] "
+     :prompt-regexp "^[[:alnum:]_]*=[#>] "
      :prompt-length 5
-     :prompt-cont-regexp "^\\w*[-(][#>] "
+     :prompt-cont-regexp "^[[:alnum:]_]*[-(][#>] "
      :input-filter sql-remove-tabs-filter
      :terminator ("\\(^\\s-*\\\\g$\\|;\\)" . "\\g"))
 
@@ -514,9 +514,9 @@ file.  Since that is a plaintext file, this could be dangerous."
      :sqli-comint-func sql-comint-vertica
      :list-all ("\\d" . "\\dS")
      :list-table "\\d %s"
-     :prompt-regexp "^\\w*=[#>] "
+     :prompt-regexp "^[[:alnum:]_]*=[#>] "
      :prompt-length 5
-     :prompt-cont-regexp "^\\w*[-(][#>] ")
+     :prompt-cont-regexp "^[[:alnum:]_]*[-(][#>] ")
     )
   "An alist of product specific configuration settings.
 
@@ -1072,13 +1072,25 @@ add your name with a \"-U\" prefix (such as \"-Umark\") to the list."
   :version "20.8"
   :group 'SQL)
 
-(defcustom sql-postgres-login-params `((user :default ,(user-login-name))
-                                       (database :default ,(user-login-name))
-                                       server)
+(defcustom sql-postgres-login-params
+  `((user :default ,(user-login-name))
+    (database :default ,(user-login-name)
+              :completion ,(completion-table-dynamic
+                            (lambda (_) (sql-postgres-list-databases))))
+    server)
   "List of login parameters needed to connect to Postgres."
   :type 'sql-login-params
   :version "24.1"
   :group 'SQL)
+
+(defun sql-postgres-list-databases ()
+  "Return a list of available PostgreSQL databases."
+  (when (executable-find sql-postgres-program)
+    (let ((res '()))
+      (dolist (row (process-lines sql-postgres-program "-ltX"))
+        (when (string-match "^ \\([[:alnum:]-_]+\\) +|.*" row)
+          (push (match-string 1 row) res)))
+      (nreverse res))))
 
 ;; Customization for Interbase
 
@@ -1340,7 +1352,7 @@ Based on `comint-mode-map'.")
     ;; double quotes (") don't delimit strings
     (modify-syntax-entry ?\" "." table)
     ;; Make these all punctuation
-    (mapc #'(lambda (c) (modify-syntax-entry c "." table))
+    (mapc (lambda (c) (modify-syntax-entry c "." table))
           (string-to-list "!#$%&+,.:;<=>?@\\|"))
     table)
   "Syntax table used in `sql-mode' and `sql-interactive-mode'.")
@@ -2441,7 +2453,7 @@ highlighting rules in SQL mode.")
   (let ((init (or (and initial (symbol-name initial)) "ansi")))
     (intern (completing-read
              prompt
-             (mapcar #'(lambda (info) (symbol-name (car info)))
+             (mapcar (lambda (info) (symbol-name (car info)))
                      sql-product-alist)
              nil 'require-match
              init 'sql-product-history init))))
@@ -2476,7 +2488,7 @@ configuration."
 			;; after this product's name.
 			(let ((next-item)
 			      (down-display (downcase display)))
-			  (map-keymap #'(lambda (k b)
+                          (map-keymap (lambda (k b)
                                           (when (and (not next-item)
                                                      (string-lessp down-display
                                                                    (downcase (cadr b))))
@@ -2582,7 +2594,7 @@ also be configured."
       (font-lock-mode-internal t))
 
     (add-hook 'font-lock-mode-hook
-	      #'(lambda ()
+              (lambda ()
                   ;; Provide defaults for new font-lock faces.
                   (defvar font-lock-builtin-face
                     (if (boundp 'font-lock-preprocessor-face)
@@ -2631,7 +2643,7 @@ adds a fontification pattern to fontify identifiers ending in
   "Iterate through login parameters and return a list of results."
   (delq nil
         (mapcar
-         #'(lambda (param)
+         (lambda (param)
              (let ((token (or (car-safe param) param))
                    (plist (cdr-safe param)))
                (funcall body token plist)))
@@ -2643,7 +2655,7 @@ adds a fontification pattern to fontify identifiers ending in
 
 (defun sql-product-syntax-table ()
   (let ((table (copy-syntax-table sql-mode-syntax-table)))
-    (mapc #'(lambda (entry)
+    (mapc (lambda (entry)
               (modify-syntax-entry (car entry) (cdr entry) table))
           (sql-get-product-feature sql-product :syntax-alist))
     table))
@@ -2652,7 +2664,7 @@ adds a fontification pattern to fontify identifiers ending in
   (append
    ;; Change all symbol character to word characters
    (mapcar
-    #'(lambda (entry) (if (string= (substring (cdr entry) 0 1) "_")
+    (lambda (entry) (if (string= (substring (cdr entry) 0 1) "_")
                           (cons (car entry)
                                 (concat "w" (substring (cdr entry) 1)))
                         entry))
@@ -3025,7 +3037,7 @@ In order to qualify, the SQLi buffer must be alive, be in
           buf)
      ;; Look thru each buffer
      (car (apply #'append
-                 (mapcar #'(lambda (b)
+                 (mapcar (lambda (b)
                              (and (sql-buffer-live-p b prod connection)
                                   (list (buffer-name b))))
                          (buffer-list)))))))
@@ -3112,7 +3124,7 @@ server/database name."
                   (apply #'append nil
                          (sql-for-each-login
                           (sql-get-product-feature sql-product :sqli-login)
-                          #'(lambda (token plist)
+                          (lambda (token plist)
                               (pcase token
                                 (`user
                                  (unless (string= "" sql-user)
@@ -3278,12 +3290,12 @@ Allows the suppression of continuation prompts.")
      ((functionp filter)
       (setq string (funcall filter string)))
      ((listp filter)
-      (mapc #'(lambda (f) (setq string (funcall f string))) filter))
+      (mapc (lambda (f) (setq string (funcall f string))) filter))
      (t nil))
 
     ;; Count how many newlines in the string
     (setq sql-output-newline-count
-          (apply #'+ (mapcar #'(lambda (ch)
+          (apply #'+ (mapcar (lambda (ch)
                                 (if (eq ch ?\n) 1 0)) string)))
 
     ;; Send the string
@@ -3510,7 +3522,7 @@ list of SQLi command strings."
     (when visible
       (message "Executing SQL command..."))
     (if (consp command)
-        (mapc #'(lambda (c) (sql-redirect-one sqlbuf c outbuf save-prior))
+        (mapc (lambda (c) (sql-redirect-one sqlbuf c outbuf save-prior))
               command)
       (sql-redirect-one sqlbuf command outbuf save-prior))
     (when visible
@@ -3594,7 +3606,7 @@ for each match."
            (match-string regexp-groups))
           ;; list of numbers; return the specified matches only
           ((consp regexp-groups)
-           (mapcar #'(lambda (c)
+           (mapcar (lambda (c)
                        (cond
                         ((numberp c) (match-string c))
                         ((stringp c) (match-substitute-replacement c))
@@ -3624,7 +3636,7 @@ strings are formatted with ARG and executed.
 If the results are empty the OUTBUF is deleted, otherwise the
 buffer is popped into a view window."
   (mapc
-   #'(lambda (c)
+   (lambda (c)
        (cond
         ((stringp c)
          (sql-redirect sqlbuf (if arg (format c arg) c) outbuf) t)
@@ -4009,7 +4021,7 @@ Sentinels will always get the two parameters PROCESS and EVENT."
   "Read a connection name."
   (let ((completion-ignore-case t))
     (completing-read prompt
-                     (mapcar #'(lambda (c) (car c))
+                     (mapcar (lambda (c) (car c))
                              sql-connection-alist)
                      nil t initial 'sql-connection-history default)))
 
@@ -4040,6 +4052,12 @@ is specified in the connection settings."
           (if connect-set
               ;; Set the desired parameters
               (let (param-var login-params set-params rem-params)
+                ;; Set the parameters and start the interactive session
+                (mapc
+                 (lambda (vv)
+                   (set-default (car vv) (eval (cadr vv))))
+                 (cdr connect-set))
+                (setq-default sql-connection connection)
 
                 ;; :sqli-login params variable
                 (setq param-var
@@ -4052,7 +4070,7 @@ is specified in the connection settings."
                 ;; Params in the connection
                 (setq set-params
                       (mapcar
-                       #'(lambda (v)
+                       (lambda (v)
                            (pcase (car v)
                              (`sql-user     'user)
                              (`sql-password 'password)
@@ -4065,16 +4083,9 @@ is specified in the connection settings."
                 ;; the remaining params (w/o the connection params)
                 (setq rem-params
                       (sql-for-each-login login-params
-                       #'(lambda (token plist)
+                       (lambda (token plist)
                            (unless (member token set-params)
                              (if plist (cons token plist) token)))))
-
-                ;; Set the parameters and start the interactive session
-                (mapc
-                 #'(lambda (vv)
-                     (set-default (car vv) (eval (cadr vv))))
-                 (cdr connect-set))
-                (setq-default sql-connection connection)
 
                 ;; Start the SQLi session with revised list of login parameters
                 (eval `(let ((,param-var ',rem-params))
@@ -4125,7 +4136,7 @@ optionally is saved to the user's init file."
                 (cons name
                       (sql-for-each-login
                        `(product ,@login)
-                       #'(lambda (token _plist)
+                       (lambda (token _plist)
                            (pcase token
                              (`product  `(sql-product  ',product))
                              (`user     `(sql-user     ,user))
@@ -4144,7 +4155,7 @@ optionally is saved to the user's init file."
   "Generate menu entries for using each connection."
   (append
    (mapcar
-    #'(lambda (conn)
+    (lambda (conn)
         (vector
          (format "Connection <%s>\t%s" (car conn)
                  (let ((sql-user "") (sql-database "")
@@ -4428,7 +4439,7 @@ The default comes from `process-coding-system-alist' and
 
   ;; Remove any settings that haven't changed
   (mapc
-   #'(lambda (one-cur-setting)
+   (lambda (one-cur-setting)
        (setq saved-settings (delete one-cur-setting saved-settings)))
    (sql-oracle-save-settings sqlbuf))
 
@@ -4946,7 +4957,7 @@ Try to set `comint-output-filter-functions' like this:
         (sql-redirect sqlbuf "\\a"))
 
       ;; Return the list of table names (public schema name can be omitted)
-      (mapcar #'(lambda (tbl)
+      (mapcar (lambda (tbl)
                   (if (string= (car tbl) "public")
                       (format "\"%s\"" (cadr tbl))
                     (format "\"%s\".\"%s\"" (car tbl) (cadr tbl))))

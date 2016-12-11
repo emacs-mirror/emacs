@@ -4,6 +4,9 @@ See the end of the file for license conditions.
 This directory contains files intended to test various aspects of
 Emacs's functionality.  Please help add tests!
 
+See the file file-organization.org for the details of the directory
+structure and file-naming conventions.
+
 Emacs uses ERT, Emacs Lisp Regression Testing, for testing.  See (info
 "(ert)") or https://www.gnu.org/software/emacs/manual/html_node/ert/
 for more information on writing and running tests.

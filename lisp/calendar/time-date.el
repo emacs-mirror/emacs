@@ -126,16 +126,17 @@ type 2 is (HIGH LOW MICRO), and type 3 is (HIGH LOW MICRO PICO).
 
 For backward compatibility, if only four arguments are given,
 it is assumed that PICO was omitted and should be treated as zero."
+  (when (null type)
+    (setq type pico)
+    (setq pico 0))
   (cond
    ((eq type 0) (cons high low))
    ((eq type 1) (list high low))
    ((eq type 2) (list high low micro))
-   ((eq type 3) (list high low micro pico))
-   ((null type) (encode-time-value high low micro 0 pico))))
+   ((eq type 3) (list high low micro pico))))
 
-(when (and (fboundp 'time-add) (subrp (symbol-function 'time-add)))
-  (make-obsolete 'encode-time-value nil "25.1")
-  (make-obsolete 'with-decoded-time-value nil "25.1"))
+(make-obsolete 'encode-time-value nil "25.1")
+(make-obsolete 'with-decoded-time-value nil "25.1")
 
 (autoload 'parse-time-string "parse-time")
 (autoload 'timezone-make-date-arpa-standard "timezone")
@@ -163,27 +164,8 @@ If DATE lacks timezone information, GMT is assumed."
 		(apply 'signal err)
 	      (error "Invalid date: %s" date)))))))))
 
-;; Bit of a mess.  Emacs has float-time since at least 21.1.
-;; This file is synced to Gnus, and XEmacs packages may have been written
-;; using time-to-seconds from the Gnus library.
-;;;###autoload(if (or (featurep 'emacs)
-;;;###autoload        (and (fboundp 'float-time)
-;;;###autoload             (subrp (symbol-function 'float-time))))
-;;;###autoload    (defalias 'time-to-seconds 'float-time)
-;;;###autoload  (autoload 'time-to-seconds "time-date"))
-
-(eval-when-compile
-  (or (featurep 'emacs)
-      (and (fboundp 'float-time)
-           (subrp (symbol-function 'float-time)))
-      (defun time-to-seconds (&optional time)
-        "Convert optional value TIME to a floating point number.
-TIME defaults to the current time."
-        (with-decoded-time-value ((high low micro pico _type
-				   (or time (current-time))))
-          (+ (* high 65536.0)
-             low
-	     (/ (+ (* micro 1e6) pico) 1e12))))))
+;;;###autoload
+(defalias 'time-to-seconds 'float-time)
 
 ;;;###autoload
 (defun seconds-to-time (seconds)
@@ -209,68 +191,7 @@ TIME should be either a time value or a date-time string."
   (time-subtract nil time))
 
 ;;;###autoload
-(defalias 'subtract-time 'time-subtract)
-
-;; These autoloads do nothing in Emacs 25, where the functions are builtin.
-;;;###autoload(autoload 'time-add "time-date")
-;;;###autoload(autoload 'time-subtract "time-date")
-;;;###autoload(autoload 'time-less-p "time-date")
-
-(eval-and-compile
-  (when (not (and (fboundp 'time-add) (subrp (symbol-function 'time-add))))
-
-    (defun time-add (t1 t2)
-      "Add two time values T1 and T2.  One should represent a time difference."
-      (with-decoded-time-value ((high low micro pico type t1)
-				(high2 low2 micro2 pico2 type2 t2))
-	(setq high (+ high high2)
-	      low (+ low low2)
-	      micro (+ micro micro2)
-	      pico (+ pico pico2)
-	      type (max type type2))
-	(when (>= pico 1000000)
-	  (setq micro (1+ micro)
-		pico (- pico 1000000)))
-	(when (>= micro 1000000)
-	  (setq low (1+ low)
-		micro (- micro 1000000)))
-	(when (>= low 65536)
-	  (setq high (1+ high)
-		low (- low 65536)))
-	(encode-time-value high low micro pico type)))
-
-    (defun time-subtract (t1 t2)
-      "Subtract two time values, T1 minus T2.
-Return the difference in the format of a time value."
-      (with-decoded-time-value ((high low micro pico type t1)
-				(high2 low2 micro2 pico2 type2 t2))
-	(setq high (- high high2)
-	      low (- low low2)
-	      micro (- micro micro2)
-	      pico (- pico pico2)
-	      type (max type type2))
-	(when (< pico 0)
-	  (setq micro (1- micro)
-		pico (+ pico 1000000)))
-	(when (< micro 0)
-	  (setq low (1- low)
-		micro (+ micro 1000000)))
-	(when (< low 0)
-	  (setq high (1- high)
-		low (+ low 65536)))
-	(encode-time-value high low micro pico type)))
-
-    (defun time-less-p (t1 t2)
-      "Return non-nil if time value T1 is earlier than time value T2."
-      (with-decoded-time-value ((high1 low1 micro1 pico1 _type1 t1)
-				(high2 low2 micro2 pico2 _type2 t2))
-	(or (< high1 high2)
-	    (and (= high1 high2)
-		 (or (< low1 low2)
-		     (and (= low1 low2)
-			  (or (< micro1 micro2)
-			      (and (= micro1 micro2)
-				   (< pico1 pico2)))))))))))
+(define-obsolete-function-alias 'subtract-time 'time-subtract "26.1")
 
 ;;;###autoload
 (defun date-to-day (date)
@@ -324,12 +245,7 @@ The Gregorian date Sunday, December 31, 1bce is imaginary."
 (defun time-to-number-of-days (time)
   "Return the number of days represented by TIME.
 Returns a floating point number."
-  (/ (funcall (eval-when-compile
-                (if (or (featurep 'emacs)
-                        (and (fboundp 'float-time)
-                             (subrp (symbol-function 'float-time))))
-                    'float-time
-                  'time-to-seconds)) time) (* 60 60 24)))
+  (/ (float-time time) (* 60 60 24)))
 
 ;;;###autoload
 (defun safe-date-to-time (date)

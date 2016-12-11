@@ -912,7 +912,9 @@ Return nil if there is nothing appropriate in the buffer near point."
              ;; for things that should go to Function: etc, and those latter
              ;; are much more important.  Perhaps this could change if some
              ;; sort of fallback match scheme existed.
-             ("(elisp)Index"          nil "^ -+ .*: " "\\( \\|$\\)")))
+             ("(elisp)Index"          nil "^ -+ .*: " "\\( \\|$\\)")
+             ("(cl)Function Index"    nil "^ -+ .*: " "\\( \\|$\\)")
+             ("(cl)Variable Index"    nil "^ -+ .*: " "\\( \\|$\\)")))
 
 ;; docstrings talk about elisp, so have apropos-mode follow emacs-lisp-mode
 (info-lookup-maybe-add-help

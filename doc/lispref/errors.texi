@@ -107,6 +107,11 @@ the error-strings are not very relevant.  However, these error symbols
 do have @code{error-message} properties, and if no data is provided,
 the @code{error-message} property @emph{is} used.  @xref{Files}.
 
+@item file-missing
+This is a subcategory of @code{file-error}.  It occurs when an
+operation attempts to act on a file that is missing.  @xref{Changing
+Files}.
+
 @c jka-compr.el
 @item compression-error
 This is a subcategory of @code{file-error}, which results from
@@ -190,8 +195,7 @@ The message is @samp{Symbol's value as variable is void}.
 @xref{Accessing Variables}.
 
 @item wrong-number-of-arguments
-The message is @samp{Wrong number of arguments}.  @xref{Classifying
-Lists}.
+The message is @samp{Wrong number of arguments}.  @xref{Argument List}.
 
 @item wrong-type-argument
 The message is @samp{Wrong type argument}.  @xref{Type Predicates}.

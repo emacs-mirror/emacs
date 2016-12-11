@@ -1832,7 +1832,7 @@ Redefining advices affect the construction of an advised definition."
 ;; @@ Interactive input functions:
 ;; ===============================
 
-(declare-function 'function-called-at-point "help")
+(declare-function function-called-at-point "help")
 
 (defun ad-read-advised-function (&optional prompt predicate default)
   "Read name of advised function with completion from the minibuffer.

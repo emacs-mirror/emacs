@@ -37,38 +37,38 @@ General steps (for each step, check for possible errors):
       M-: (require 'authors) RET
       M-x authors RET
 
+    (This first updates the current versioned ChangeLog.N)
+
     If there is an "*Authors Errors*" buffer, address the issues.
-    If there was a ChangeLog typo, run "make change-history" and then
-    fix the newest ChangeLog history file.  If a file was deleted or
-    renamed, consider adding an appropriate entry to
-    authors-ignored-files, authors-valid-file-names, or
+    If there was a ChangeLog typo, fix the relevant entry.
+    If a file was deleted or renamed, consider adding an appropriate
+    entry to authors-ignored-files, authors-valid-file-names, or
     authors-renamed-files-alist.
 
-    If necessary, repeat M-x authors after making those changes.
+    If necessary, repeat 'C-u M-x authors' after making those changes.
     Save the "*Authors*" buffer as etc/AUTHORS.
     Check the diff looks reasonable.  Maybe add entries to
     authors-ambiguous-files or authors-aliases, and repeat.
     Commit any fixes to authors.el.
 
 3.  Set the version number (M-x load-file RET admin/admin.el RET, then
-    M-x set-version RET).  For a release, add released ChangeLog
-    entries (create a ChangeLog symlink a la vc-dwim, then run M-x
-    add-release-logs RET, then run the shell command 'vc-dwim --commit').
-
-    For a pretest, start at version .90.  After .99, use .990 (so that
-    it sorts).
+    M-x set-version RET).  For a pretest, start at version .90.  After
+    .99, use .990 (so that it sorts).
 
     The final pretest should be a release candidate.  Set the version
     number to that of the actual release.  Pick a date about a week
-    from now when you intend to make the release.  Use vc-dwim and
-    M-x add-release-logs as described above to add commit messages
-    that will appear in the tarball's automatically-generated ChangeLog
-    file as entries for that date.
+    from now when you intend to make the release.  Use M-x
+    add-release-logs to add entries to etc/HISTORY and the ChangeLog
+    file.  It's best not to commit these files until the release is
+    actually made.  Merge the entries from (unversioned) ChangeLog
+    into the top of the current versioned ChangeLog.N and commit that
+    along with etc/HISTORY.  Then you can tag that commit as the
+    release.
 
     Name the tar file as emacs-XX.Y-rc1.tar.  If all goes well in the
     following week, you can simply rename the file and use it for the
     actual release.  If you need another release candidate, remember
-    to adjust the ChangeLog entries.
+    to adjust the ChangeLog and etc/HISTORY entries.
 
     If you need to change only a file(s) that cannot possibly affect
     the build (README, ChangeLog, NEWS, etc.) then rather than doing
@@ -86,8 +86,8 @@ General steps (for each step, check for possible errors):
 
 5.  Copy lisp/loaddefs.el to lisp/ldefs-boot.el.
 
-    Commit etc/AUTHORS, lisp/ldefs-boot.el, and the files changed
-    by M-x set-version.
+    Commit ChangeLog.N, etc/AUTHORS, lisp/ldefs-boot.el, and the
+    files changed by M-x set-version.
 
     If someone else made a commit between step 1 and now,
     you need to repeat from step 4 onwards.  (You can commit the files

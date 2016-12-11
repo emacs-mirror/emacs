@@ -57,7 +57,7 @@
 
 
 (ert-deftest message-strip-subject-trailing-was ()
-  (ert-with-function-mocked message-talkative-question nil
+  (cl-letf (((symbol-function 'message-talkative-question) nil))
     (with-temp-buffer
       (let ((no-was "Re: Foo ")
             (with-was "Re: Foo \t (was: Bar ) ")

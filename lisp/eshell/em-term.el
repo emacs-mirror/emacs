@@ -102,10 +102,11 @@ See also `eshell-visual-commands' and `eshell-visual-options'."
 of commands with options that present their output in a visual
 fashion.  For example, a sensible entry would be
 
-  (\"git\" \"--help\")
+  (\"git\" \"--help\" \"--paginate\")
 
 because \"git <command> --help\" shows the command's
-documentation with a pager.
+documentation with a pager and \"git --paginate <command>\"
+always uses a pager for output.
 
 See also `eshell-visual-commands' and `eshell-visual-subcommands'."
   :type '(repeat (cons (string :tag "Command")

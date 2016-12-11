@@ -28,14 +28,20 @@
 (require 'mm-util)			; for mm-universal-coding-system
 (require 'gnus-util)			; for gnus-pp, gnus-run-mode-hooks
 
-(defvar gnus-score-edit-done-hook nil
-  "*Hook run at the end of closing the score buffer.")
+(defcustom gnus-score-edit-done-hook nil
+  "Hook run at the end of closing the score buffer."
+  :group 'gnus-score
+  :type 'hook)
 
-(defvar gnus-score-mode-hook nil
-  "*Hook run in score mode buffers.")
+(defcustom gnus-score-mode-hook nil
+  "Hook run in score mode buffers."
+  :group 'gnus-score
+  :type 'hook)
 
-(defvar gnus-score-menu-hook nil
-  "*Hook run after creating the score mode menu.")
+(defcustom gnus-score-menu-hook nil
+  "Hook run after creating the score mode menu."
+  :group 'gnus-score
+  :type 'hook)
 
 (defvar gnus-score-edit-exit-function nil
   "Function run on exit from the score buffer.")

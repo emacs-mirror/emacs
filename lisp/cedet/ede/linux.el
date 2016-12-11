@@ -64,12 +64,12 @@
 
 
 (defcustom project-linux-compile-target-command (concat ede-make-command " -k -C %s SUBDIRS=%s")
-  "*Default command used to compile a target."
+  "Default command used to compile a target."
   :group 'project-linux
   :type 'string)
 
 (defcustom project-linux-compile-project-command (concat ede-make-command " -k -C %s")
-  "*Default command used to compile a project."
+  "Default command used to compile a project."
   :group 'project-linux
   :type 'string)
 

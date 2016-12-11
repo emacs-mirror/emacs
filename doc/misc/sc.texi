@@ -775,18 +775,6 @@ MUA calls @code{sc-cite-original} at the right time.  As mentioned
 above, some MUAs handle this differently.  Read the sections that follow
 pertaining to the MUAs you are using.
 
-@vindex sc-load-hook
-@vindex load-hook (sc-)
-@vindex sc-pre-hook
-@vindex pre-hook (sc-)
-One final note.  After Supercite is loaded into your Emacs session, it
-runs the hook @code{sc-load-hook}.  You can put any customizations into
-this hook since it is only run once.  This will not work, however, if
-your Emacs maintainer has put Supercite into your dumped Emacs image.
-In that case, you can use the @code{sc-pre-hook} variable, but this will
-get executed every time @code{sc-cite-original} is called.  @xref{Reply
-Buffer Initialization}.
-
 @node  Replying and Yanking
 @chapter Replying and Yanking
 
@@ -964,8 +952,6 @@ reset certain variables set in @code{sc-pre-hook}.
 @cindex gin-mode
 @findex sc-setup-filladapt
 @findex setup-filladapt (sc-)
-@vindex sc-load-hook
-@vindex load-hook (sc-)
 
 Supercite will automatically fill newly cited text from the original
 message unless the variable @code{sc-auto-fill-region-p} has a
@@ -979,7 +965,8 @@ two best known are @dfn{filladapt} and @dfn{gin-mode}.  Both work well
 with Supercite and both are available at the normal Emacs Lisp archive
 sites.  @dfn{gin-mode} works pretty well out of the box, but if you use
 @dfn{filladapt}, you may want to run the function
-@code{sc-setup-filladapt} from your @code{sc-load-hook}.  This simply
+@code{sc-setup-filladapt} after loading @file{supercite}
+(e.g., using @code{with-eval-after-load}).  This simply
 makes @dfn{filladapt} a little more Supercite savvy than its default
 setup.
 

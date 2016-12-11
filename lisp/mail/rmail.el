@@ -1818,9 +1818,21 @@ not be a new one).  It returns non-nil if it got any new messages."
 	;; Read in the contents of the inbox files, renaming them as
 	;; necessary, and adding to the list of files to delete
 	;; eventually.
-	(if file-name
-	    (rmail-insert-inbox-text files nil)
-	  (setq delete-files (rmail-insert-inbox-text files t)))
+	(unwind-protect
+	    (progn
+	      ;; Set modified now to lock the file, so that we don't
+	      ;; encounter locking problems later in the middle of
+	      ;; reading the mail.
+	      (set-buffer-modified-p t)
+	      (if file-name
+		  (rmail-insert-inbox-text files nil)
+		(setq delete-files (rmail-insert-inbox-text files t))))
+	  ;; If there was no new mail, or we aborted before actually
+	  ;; trying to get any, mark buffer unmodified.  Otherwise the
+	  ;; buffer is correctly marked modified and the file locked
+	  ;; until we save out the new mail.
+	  (if (= (point-min) (point-max))
+	      (set-buffer-modified-p nil)))
 	;; Scan the new text and convert each message to
 	;; Rmail/mbox format.
 	(goto-char (point-min))
@@ -1969,11 +1981,6 @@ Value is the size of the newly read mail after conversion."
     size))
 
 (defun rmail-insert-inbox-text (files renamep)
-  ;; Detect a locked file now, so that we avoid moving mail
-  ;; out of the real inbox file.  (That could scare people.)
-  (or (memq (file-locked-p buffer-file-name) '(nil t))
-      (error "RMAIL file %s is locked"
-	     (file-name-nondirectory buffer-file-name)))
   (let (file tofile delete-files popmail got-password password)
     (while files
       ;; Handle remote mailbox names specially; don't expand as filenames
@@ -4089,7 +4096,7 @@ typically for purposes of moderating a list."
 		    (set-syntax-table mail-abbrev-syntax-table)
 		    (goto-char before)
 		    (while (and (< (point) end)
-				(progn (forward-word 1)
+				(progn (forward-word-strictly 1)
 				       (<= (point) end)))
 		      (expand-abbrev))
 		    (set-syntax-table old-syntax-table))
@@ -4584,6 +4591,8 @@ Argument MIME is non-nil if this is a mime message."
 
     (list armor-start (- (point-max) after-end) mime
           armor-end-regexp)))
+
+(declare-function rmail-mime-entity-truncated "rmailmm" (entity))
 
 ;; Should this have a key-binding, or be in a menu?
 ;; There doesn't really seem to be an appropriate menu.

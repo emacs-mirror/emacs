@@ -791,10 +791,10 @@ Hooks}).
 @subsection Parser State
 @cindex parser state
 
-  A @dfn{parser state} is a list of ten elements describing the state
-of the syntactic parser, after it parses the text between a specified
-starting point and a specified end point in the buffer.  Parsing
-functions such as @code{syntax-ppss}
+  A @dfn{parser state} is a list of (currently) eleven elements
+describing the state of the syntactic parser, after it parses the text
+between a specified starting point and a specified end point in the
+buffer.  Parsing functions such as @code{syntax-ppss}
 @ifnottex
 (@pxref{Position Parse})
 @end ifnottex
@@ -851,15 +851,20 @@ position where the string began.  When outside of strings and comments,
 this element is @code{nil}.
 
 @item
-Internal data for continuing the parsing.  The meaning of this
-data is subject to change; it is used if you pass this list
-as the @var{state} argument to another call.
+The list of the positions of the currently open parentheses, starting
+with the outermost.
+
+@item
+When the last buffer position scanned was the (potential) first
+character of a two character construct (comment delimiter or
+escaped/char-quoted character pair), the @var{syntax-code}
+(@pxref{Syntax Table Internals}) of that position.  Otherwise
+@code{nil}.
 @end enumerate
 
   Elements 1, 2, and 6 are ignored in a state which you pass as an
-argument to continue parsing, and elements 8 and 9 are used only in
-trivial cases.  Those elements are mainly used internally by the
-parser code.
+argument to continue parsing.  Elements 9 and 10 are mainly used
+internally by the parser code.
 
   One additional piece of useful information is available from a
 parser state using this function:
@@ -898,11 +903,11 @@ The depth starts at 0, or at whatever is given in @var{state}.
 
 If the fourth argument @var{stop-before} is non-@code{nil}, parsing
 stops when it comes to any character that starts a sexp.  If
-@var{stop-comment} is non-@code{nil}, parsing stops when it comes to the
-start of an unnested comment.  If @var{stop-comment} is the symbol
+@var{stop-comment} is non-@code{nil}, parsing stops after the start of
+an unnested comment.  If @var{stop-comment} is the symbol
 @code{syntax-table}, parsing stops after the start of an unnested
-comment or a string, or the end of an unnested comment or a string,
-whichever comes first.
+comment or a string, or after the end of an unnested comment or a
+string, whichever comes first.
 
 If @var{state} is @code{nil}, @var{start} is assumed to be at the top
 level of parenthesis structure, such as the beginning of a function

@@ -1,8 +1,8 @@
 # Prefer GNU C11 and C++11 to earlier versions.  -*- coding: utf-8 -*-
 
 # This implementation is taken from GNU Autoconf lib/autoconf/c.m4
-# commit 5ad3567c3cbd90b4faa6539c35bc4a8c6500f535
-# dated 2015-10-08 10:12:41 2015 +0200.
+# commit 017d5ddd82854911f0119691d91ea8a1438824d6
+# dated Sun Apr 3 13:57:17 2016 -0700
 # This implementation will be obsolete once we can assume Autoconf 2.70
 # or later is installed everywhere a Gnulib program might be developed.
 
@@ -57,6 +57,9 @@ if test -z "$CC"; then
 fi
 if test -z "$CC"; then
   AC_CHECK_TOOLS(CC, cl.exe)
+fi
+if test -z "$CC"; then
+  AC_CHECK_TOOL(CC, clang)
 fi
 ])
 
@@ -123,7 +126,7 @@ if test -z "$CXX"; then
   else
     AC_CHECK_TOOLS(CXX,
 		   [m4_default([$1],
-			       [g++ c++ gpp aCC CC cxx cc++ cl.exe FCC KCC RCC xlC_r xlC])],
+			       [g++ c++ gpp aCC CC cxx cc++ cl.exe FCC KCC RCC xlC_r xlC clang++])],
 		   g++)
   fi
 fi
@@ -198,6 +201,7 @@ AS_IF([test "x$ac_cv_prog_cc_$1" != xno], [$5], [$6])
 AC_DEFUN([_AC_C_C99_TEST_HEADER],
 [[#include <stdarg.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdlib.h>
 #include <wchar.h>
 #include <stdio.h>
@@ -432,7 +436,9 @@ struct anonymous
 [_AC_C_C99_TEST_BODY[
   v1.i = 2;
   v1.w.k = 5;
-  _Static_assert (&v1.i == &v1.w.k, "Anonymous union alignment botch");
+  _Static_assert ((offsetof (struct anonymous, i)
+		   == offsetof (struct anonymous, w.k)),
+		  "Anonymous union alignment botch");
 ]],
 dnl Try
 dnl GCC		-std=gnu11 (unused restrictive mode: -std=c11)
@@ -701,7 +707,7 @@ AC_DEFUN([_AC_CXX_CXX11_TEST_BODY],
   short sa[cxx11test::get_val()] = { 0 };
 }
 {
-  // Test initialiser lists
+  // Test initializer lists
   cxx11test::testinit il = { 4323, 435234.23544 };
 }
 {
@@ -754,9 +760,9 @@ AC_DEFUN([_AC_CXX_CXX11_TEST_BODY],
 }
 {
   // Unicode literals
-  char *utf8 = u8"UTF-8 string \u2500";
-  char16_t *utf16 = u"UTF-8 string \u2500";
-  char32_t *utf32 = U"UTF-32 string \u2500";
+  char const *utf8 = u8"UTF-8 string \u2500";
+  char16_t const *utf16 = u"UTF-8 string \u2500";
+  char32_t const *utf32 = U"UTF-32 string \u2500";
 }
 ]])
 
@@ -795,7 +801,7 @@ dnl with extended modes being tried first.
 # considers the compiler to be in ISO C++11 mode if it handles all the
 # tests from the C++98 checks, plus the following: Language features
 # (auto, constexpr, decltype, default/deleted constructors, delegate
-# constructors, final, initialiser lists, lambda functions, nullptr,
+# constructors, final, initializer lists, lambda functions, nullptr,
 # override, range-based for loops, template brackets without spaces,
 # unicode literals) and library features (array, memory (shared_ptr,
 # weak_ptr), regex and tuple types).

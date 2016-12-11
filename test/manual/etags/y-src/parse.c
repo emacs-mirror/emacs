@@ -26,7 +26,7 @@
 # define	L_NE	277
 # define	L_GE	278
 
-#line 1 "parse.y"
+#line 1 "y-src/parse.y"
 
 /*	Copyright (C) 1990, 1992-1993, 2016 Free Software Foundation, Inc.
 
@@ -45,7 +45,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Oleo; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
-#line 41 "parse.y"
+#line 41 "y-src/parse.y"
 
 #include "funcdef.h"
 
@@ -1125,84 +1125,84 @@ yyreduce:
   switch (yyn) {
 
 case 1:
-#line 87 "parse.y"
+#line 87 "y-src/parse.y"
 { parse_return=yyvsp[0]; }
     break;
 case 2:
-#line 88 "parse.y"
+#line 88 "y-src/parse.y"
 {
 		if(!parse_error)
 			parse_error=PARSE_ERR;
 		parse_return=0; }
     break;
 case 5:
-#line 96 "parse.y"
+#line 96 "y-src/parse.y"
 {
 		yyval=yyvsp[-2]; }
     break;
 case 6:
-#line 98 "parse.y"
+#line 98 "y-src/parse.y"
 {
 		(yyvsp[-3])->n_x.v_subs[0]=yyvsp[-1];
 		(yyvsp[-3])->n_x.v_subs[1]=(struct node *)0;
 		yyval=yyvsp[-3]; }
     break;
 case 7:
-#line 102 "parse.y"
+#line 102 "y-src/parse.y"
 {
 		(yyvsp[-5])->n_x.v_subs[0]=yyvsp[-3];
 		(yyvsp[-5])->n_x.v_subs[1]=yyvsp[-1];
 		yyval=yyvsp[-5]; }
     break;
 case 8:
-#line 106 "parse.y"
+#line 106 "y-src/parse.y"
 {
 		(yyvsp[-7])->n_x.v_subs[0]=make_list(yyvsp[-5],yyvsp[-3]);
  		(yyvsp[-7])->n_x.v_subs[1]=yyvsp[-1];
  		yyval=yyvsp[-7];}
     break;
 case 9:
-#line 110 "parse.y"
+#line 110 "y-src/parse.y"
 {
 		(yyvsp[-9])->n_x.v_subs[0]=make_list(yyvsp[-7],yyvsp[-5]);
  		(yyvsp[-9])->n_x.v_subs[1]=make_list(yyvsp[-3],yyvsp[-1]);
  		yyval=yyvsp[-9];}
     break;
 case 10:
-#line 114 "parse.y"
+#line 114 "y-src/parse.y"
 {
 		(yyvsp[-3])->n_x.v_subs[0]=(struct node *)0;
 		(yyvsp[-3])->n_x.v_subs[1]=yyvsp[-1];
 		yyval=yyvsp[-3]; }
     break;
 case 11:
-#line 118 "parse.y"
+#line 118 "y-src/parse.y"
 {
 		yyvsp[-3]->n_x.v_subs[0]=yyvsp[-1];
 		yyval=yyvsp[-3]; }
     break;
 case 12:
-#line 121 "parse.y"
+#line 121 "y-src/parse.y"
 {
 		yyvsp[-3]->n_x.v_subs[0]=yyvsp[-1];
 		yyval=yyvsp[-3]; }
     break;
 case 13:
-#line 125 "parse.y"
+#line 125 "y-src/parse.y"
 {
 		yyvsp[-5]->n_x.v_subs[0]=yyvsp[-3];
 		yyvsp[-5]->n_x.v_subs[1]=yyvsp[-1];
 		yyval=yyvsp[-5]; }
     break;
 case 14:
-#line 129 "parse.y"
+#line 129 "y-src/parse.y"
 {
 		yyvsp[-5]->n_x.v_subs[0]=yyvsp[-3];
 		yyvsp[-5]->n_x.v_subs[1]=yyvsp[-1];
 		yyval=yyvsp[-5]; }
     break;
 case 15:
-#line 135 "parse.y"
+#line 135 "y-src/parse.y"
 {
 		if(yyvsp[-7]->comp_value!=F_INDEX)
 			parse_error=PARSE_ERR;
@@ -1212,7 +1212,7 @@ case 15:
 		yyval=yyvsp[-7]; }
     break;
 case 16:
-#line 142 "parse.y"
+#line 142 "y-src/parse.y"
 {
 		if(yyvsp[-7]->comp_value!=F_INDEX)
 			parse_error=PARSE_ERR;
@@ -1222,28 +1222,28 @@ case 16:
 		yyval=yyvsp[-7]; }
     break;
 case 17:
-#line 150 "parse.y"
+#line 150 "y-src/parse.y"
 {
 		(yyvsp[-7])->n_x.v_subs[0]=make_list(yyvsp[-5],yyvsp[-3]);
  		(yyvsp[-7])->n_x.v_subs[1]=yyvsp[-1];
  		yyval=yyvsp[-7];}
     break;
 case 18:
-#line 154 "parse.y"
+#line 154 "y-src/parse.y"
 {
 		(yyvsp[-7])->n_x.v_subs[0]=make_list(yyvsp[-5],yyvsp[-3]);
  		(yyvsp[-7])->n_x.v_subs[1]=yyvsp[-1];
  		yyval=yyvsp[-7];}
     break;
 case 19:
-#line 159 "parse.y"
+#line 159 "y-src/parse.y"
 {
 		(yyvsp[-3])->n_x.v_subs[0]=(struct node *)0;
 		(yyvsp[-3])->n_x.v_subs[1]=yyvsp[-1];
 		yyval=yyvsp[-3]; }
     break;
 case 20:
-#line 163 "parse.y"
+#line 163 "y-src/parse.y"
 {
 		yyvsp[-3]->comp_value=IF;
 		yyvsp[-3]->n_x.v_subs[0]=yyvsp[-1];
@@ -1253,98 +1253,98 @@ case 20:
 		yyval=yyvsp[-3]; }
     break;
 case 21:
-#line 174 "parse.y"
+#line 174 "y-src/parse.y"
 {
 		yyvsp[-1]->n_x.v_subs[0]=yyvsp[-2];
 		yyvsp[-1]->n_x.v_subs[1]=yyvsp[0];
 		yyval = yyvsp[-1]; }
     break;
 case 22:
-#line 178 "parse.y"
+#line 178 "y-src/parse.y"
 {
 		yyvsp[-1]->n_x.v_subs[0]=yyvsp[-2];
 		yyvsp[-1]->n_x.v_subs[1]=yyvsp[0];
 		yyval = yyvsp[-1]; }
     break;
 case 23:
-#line 182 "parse.y"
+#line 182 "y-src/parse.y"
 {
 		yyvsp[-1]->n_x.v_subs[0]=yyvsp[-2];
 		yyvsp[-1]->n_x.v_subs[1]=yyvsp[0];
 		yyval = yyvsp[-1]; }
     break;
 case 24:
-#line 186 "parse.y"
+#line 186 "y-src/parse.y"
 {
 		yyvsp[-1]->n_x.v_subs[0]=yyvsp[-2];
 		yyvsp[-1]->n_x.v_subs[1]=yyvsp[0];
 		yyval = yyvsp[-1]; }
     break;
 case 25:
-#line 190 "parse.y"
+#line 190 "y-src/parse.y"
 {
 		yyvsp[-1]->n_x.v_subs[0]=yyvsp[-2];
 		yyvsp[-1]->n_x.v_subs[1]=yyvsp[0];
 		yyval = yyvsp[-1]; }
     break;
 case 26:
-#line 194 "parse.y"
+#line 194 "y-src/parse.y"
 {
 		yyvsp[-1]->n_x.v_subs[0]=yyvsp[-2];
 		yyvsp[-1]->n_x.v_subs[1]=yyvsp[0];
 		yyval = yyvsp[-1]; }
     break;
 case 27:
-#line 198 "parse.y"
+#line 198 "y-src/parse.y"
 {
 		yyvsp[-1]->n_x.v_subs[0]=yyvsp[-2];
 		yyvsp[-1]->n_x.v_subs[1]=yyvsp[0];
 		yyval = yyvsp[-1]; }
     break;
 case 28:
-#line 202 "parse.y"
+#line 202 "y-src/parse.y"
 {
 		yyvsp[-1]->n_x.v_subs[0]=yyvsp[-2];
 		yyvsp[-1]->n_x.v_subs[1]=yyvsp[0];
 		yyval = yyvsp[-1]; }
     break;
 case 29:
-#line 206 "parse.y"
+#line 206 "y-src/parse.y"
 {
 		yyvsp[-1]->n_x.v_subs[0]=yyvsp[-2];
 		yyvsp[-1]->n_x.v_subs[1]=yyvsp[0];
 		yyval = yyvsp[-1]; }
     break;
 case 30:
-#line 210 "parse.y"
+#line 210 "y-src/parse.y"
 {
 		yyvsp[-1]->n_x.v_subs[0]=yyvsp[-2];
 		yyvsp[-1]->n_x.v_subs[1]=yyvsp[0];
 		yyval = yyvsp[-1]; }
     break;
 case 31:
-#line 214 "parse.y"
+#line 214 "y-src/parse.y"
 {
 		yyvsp[-1]->n_x.v_subs[0]=yyvsp[-2];
 		yyvsp[-1]->n_x.v_subs[1]=yyvsp[0];
 		yyval = yyvsp[-1]; }
     break;
 case 32:
-#line 218 "parse.y"
+#line 218 "y-src/parse.y"
 {
 		yyvsp[-1]->n_x.v_subs[0]=yyvsp[-2];
 		yyvsp[-1]->n_x.v_subs[1]=yyvsp[0];
 		yyval = yyvsp[-1]; }
     break;
 case 33:
-#line 222 "parse.y"
+#line 222 "y-src/parse.y"
 {
 		yyvsp[-1]->n_x.v_subs[0]=yyvsp[-2];
 		yyvsp[-1]->n_x.v_subs[1]=yyvsp[0];
 		yyval = yyvsp[-1]; }
     break;
 case 34:
-#line 226 "parse.y"
+#line 226 "y-src/parse.y"
 {
 		if(yyvsp[0]->comp_value==CONST_FLT) {
 			yyvsp[0]->n_x.v_float= -(yyvsp[0]->n_x.v_float);
@@ -1362,48 +1362,48 @@ case 34:
 		} }
     break;
 case 35:
-#line 241 "parse.y"
+#line 241 "y-src/parse.y"
 {
 		yyvsp[-1]->n_x.v_subs[0]=yyvsp[0];
 		yyvsp[-1]->n_x.v_subs[1]=(struct node *)0;
 		yyval = yyvsp[-1]; }
     break;
 case 36:
-#line 246 "parse.y"
+#line 246 "y-src/parse.y"
 { yyval = yyvsp[-1]; }
     break;
 case 37:
-#line 247 "parse.y"
+#line 247 "y-src/parse.y"
 {
 		if(!parse_error)
 			parse_error=NO_CLOSE;
 		}
     break;
 case 38:
-#line 255 "parse.y"
+#line 255 "y-src/parse.y"
 {
 		if(!parse_error)
 			parse_error=NO_CLOSE;
 		}
     break;
 case 39:
-#line 263 "parse.y"
+#line 263 "y-src/parse.y"
 { yyval = make_list(yyvsp[0], 0); }
     break;
 case 40:
-#line 265 "parse.y"
+#line 265 "y-src/parse.y"
 { yyval = make_list(yyvsp[0], yyvsp[-2]); }
     break;
 case 43:
-#line 273 "parse.y"
+#line 273 "y-src/parse.y"
 { yyval=make_list(yyvsp[0], 0); }
     break;
 case 44:
-#line 275 "parse.y"
+#line 275 "y-src/parse.y"
 { yyval=make_list(yyvsp[0],yyvsp[-2]); }
     break;
 case 45:
-#line 279 "parse.y"
+#line 279 "y-src/parse.y"
 { yyval=yyvsp[0]; }
     break;
 }
@@ -1639,7 +1639,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 282 "parse.y"
+#line 282 "y-src/parse.y"
 
 
 void

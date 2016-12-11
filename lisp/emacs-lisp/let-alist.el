@@ -76,6 +76,11 @@ symbol, and each cdr is the same symbol without the `.'."
         ;; with other results in the clause below.
         (list (cons data (intern (replace-match "" nil nil name)))))))
    ((not (consp data)) nil)
+   ((eq (car data) 'let-alist)
+    ;; For nested ‘let-alist’ forms, ignore symbols appearing in the
+    ;; inner body because they don’t refer to the alist currently
+    ;; being processed.  See Bug#24641.
+    (let-alist--deep-dot-search (cadr data)))
    (t (append (let-alist--deep-dot-search (car data))
               (let-alist--deep-dot-search (cdr data))))))
 

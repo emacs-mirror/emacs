@@ -542,13 +542,13 @@ But only if it is longer than `completion-min-length'."
         ;; Remove chars to ignore at the start.
         (cond ((= (char-syntax (char-after cmpl-symbol-start)) ?w)
                (goto-char cmpl-symbol-start)
-               (forward-word 1)
+               (forward-word-strictly 1)
                (setq cmpl-symbol-start (point))
                (goto-char saved-point)))
         ;; Remove chars to ignore at the end.
         (cond ((= (char-syntax (char-after (1- cmpl-symbol-end))) ?w)
                (goto-char cmpl-symbol-end)
-               (forward-word -1)
+               (forward-word-strictly -1)
                (setq cmpl-symbol-end (point))
                (goto-char saved-point)))
         ;; Return completion if the length is reasonable.
@@ -584,7 +584,7 @@ Returns nil if there isn't one longer than `completion-min-length'."
            ;; Remove chars to ignore at the start.
            (cond ((= (char-syntax (char-after cmpl-symbol-start)) ?w)
                   (goto-char cmpl-symbol-start)
-                  (forward-word 1)
+                  (forward-word-strictly 1)
                   (setq cmpl-symbol-start (point))
                   (goto-char cmpl-symbol-end)))
            ;; Return value if long enough.
@@ -597,12 +597,12 @@ Returns nil if there isn't one longer than `completion-min-length'."
            (let ((saved-point (point)))
              (setq cmpl-symbol-start (scan-sexps saved-point -1))
              ;; take off chars. from end
-             (forward-word -1)
+             (forward-word-strictly -1)
              (setq cmpl-symbol-end (point))
              ;; remove chars to ignore at the start
              (cond ((= (char-syntax (char-after cmpl-symbol-start)) ?w)
                     (goto-char cmpl-symbol-start)
-                    (forward-word 1)
+                    (forward-word-strictly 1)
                     (setq cmpl-symbol-start (point))))
              ;; Restore state.
              (goto-char saved-point)
@@ -653,7 +653,7 @@ Returns nil if there isn't one longer than `completion-min-length'."
            ;; Remove chars to ignore at the start.
            (cond ((= (char-syntax (char-after cmpl-symbol-start)) ?w)
                   (goto-char cmpl-symbol-start)
-                  (forward-word 1)
+                  (forward-word-strictly 1)
                   (setq cmpl-symbol-start (point))
                   (goto-char cmpl-symbol-end)))
            ;; Return completion if the length is reasonable.
@@ -821,7 +821,7 @@ This is sensitive to `case-fold-search'."
 				  ;; symbol char to ignore at end.  Are we at end ?
 				  (progn
 				    (setq saved-point-2 (point))
-				    (forward-word -1)
+				    (forward-word-strictly -1)
 				    (prog1
 				      (= (char-syntax (preceding-char)) ? )
 				      (goto-char saved-point-2)))))
@@ -1850,7 +1850,7 @@ Prefix args ::
                     (cond ((looking-at "\\(define\\|ifdef\\)\\>")
                            ;; skip forward over definition symbol
                            ;; and add it to database
-                           (and (forward-word 2)
+                           (and (forward-word-strictly 2)
                                 (setq string (symbol-before-point))
                                 ;;(push string foo)
                                 (add-completion-to-tail-if-new string)))))
@@ -1868,7 +1868,7 @@ Prefix args ::
                         ;; move to next separator char.
                         (goto-char
                          (setq next-point (scan-sexps (point) 1))))
-                      (forward-word -1)
+                      (forward-word-strictly -1)
                       ;; add to database
                       (if (setq string (symbol-under-point))
                           ;; (push string foo)
@@ -1876,7 +1876,7 @@ Prefix args ::
                         ;; Local TMC hack (useful for parsing paris.h)
                         (if (and (looking-at "_AP") ;; "ansi prototype"
                                  (progn
-                                   (forward-word -1)
+                                   (forward-word-strictly -1)
                                    (setq string
                                          (symbol-under-point))))
                             (add-completion-to-tail-if-new string)))

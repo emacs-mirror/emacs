@@ -45,36 +45,38 @@
 (defcustom pop3-maildrop (or (user-login-name)
 			     (getenv "LOGNAME")
 			     (getenv "USER"))
-  "*POP3 maildrop."
+  "POP3 maildrop."
   :version "22.1" ;; Oort Gnus
   :type 'string
   :group 'pop3)
 
 (defcustom pop3-mailhost (or (getenv "MAILHOST") ;; nil -> mismatch
 			     "pop3")
-  "*POP3 mailhost."
+  "POP3 mailhost."
   :version "22.1" ;; Oort Gnus
   :type 'string
   :group 'pop3)
 
 (defcustom pop3-port 110
-  "*POP3 port."
+  "POP3 port."
   :version "22.1" ;; Oort Gnus
   :type 'number
   :group 'pop3)
 
 (defcustom pop3-password-required t
-  "*Non-nil if a password is required when connecting to POP server."
+  "Non-nil if a password is required when connecting to POP server."
   :version "22.1" ;; Oort Gnus
   :type 'boolean
   :group 'pop3)
 
 ;; Should this be customizable?
-(defvar pop3-password nil
-  "*Password to use when connecting to POP server.")
+(defcustom pop3-password nil
+  "Password to use when connecting to POP server."
+  :type '(choice (const nil) string)
+  :group 'pop3)
 
 (defcustom pop3-authentication-scheme 'pass
-  "*POP3 authentication scheme.
+  "POP3 authentication scheme.
 Defaults to `pass', for the standard USER/PASS authentication.  The other
 valid value is `apop'."
   :type '(choice (const :tag "Normal user/password" pass)
@@ -400,8 +402,7 @@ Return non-nil if it is necessary to update the local UIDL file."
 	       (push uidl new))
 	     (decf i)))
 	  (pop3-uidl
-	   (setq new (apply 'nconc (mapcar (lambda (elt) (list elt ctime))
-					   pop3-uidl)))))
+	   (setq new (mapcan (lambda (elt) (list elt ctime)) pop3-uidl))))
     (when new (setq mod t))
     ;; List expirable messages and delete them from the data to be saved.
     (setq ctime (when (numberp pop3-leave-mail-on-server)
@@ -515,7 +516,7 @@ Return non-nil if it is necessary to update the local UIDL file."
       (insert "X-UIDL: " (nth (1- msgno) pop3-uidl) "\n"))))
 
 (defcustom pop3-stream-type nil
-  "*Transport security type for POP3 connections.
+  "Transport security type for POP3 connections.
 This may be either nil (plain connection), `ssl' (use an
 SSL/TSL-secured stream) or `starttls' (use the starttls mechanism
 to turn on TLS security after opening the stream).  However, if

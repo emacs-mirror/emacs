@@ -175,7 +175,7 @@ Note: The search is conducted only within 10%, at the beginning of the file."
   "List of files that cause `find-change-log' to stop in containing directory.
 This applies if no pre-existing ChangeLog is found.  If nil, then in such
 a case simply use the directory containing the changed file."
-  :version "25.2"
+  :version "26.1"
   :type '(repeat file)
   :group 'change-log)
 
@@ -184,51 +184,42 @@ a case simply use the directory containing the changed file."
   "Face used to highlight dates in date lines."
   :version "21.1"
   :group 'change-log)
-(define-obsolete-face-alias 'change-log-date-face 'change-log-date "22.1")
 
 (defface change-log-name
   '((t (:inherit font-lock-constant-face)))
   "Face for highlighting author names."
   :version "21.1"
   :group 'change-log)
-(define-obsolete-face-alias 'change-log-name-face 'change-log-name "22.1")
 
 (defface change-log-email
   '((t (:inherit font-lock-variable-name-face)))
   "Face for highlighting author email addresses."
   :version "21.1"
   :group 'change-log)
-(define-obsolete-face-alias 'change-log-email-face 'change-log-email "22.1")
 
 (defface change-log-file
   '((t (:inherit font-lock-function-name-face)))
   "Face for highlighting file names."
   :version "21.1"
   :group 'change-log)
-(define-obsolete-face-alias 'change-log-file-face 'change-log-file "22.1")
 
 (defface change-log-list
   '((t (:inherit font-lock-keyword-face)))
   "Face for highlighting parenthesized lists of functions or variables."
   :version "21.1"
   :group 'change-log)
-(define-obsolete-face-alias 'change-log-list-face 'change-log-list "22.1")
 
 (defface change-log-conditionals
   '((t (:inherit font-lock-variable-name-face)))
   "Face for highlighting conditionals of the form `[...]'."
   :version "21.1"
   :group 'change-log)
-(define-obsolete-face-alias 'change-log-conditionals-face
-  'change-log-conditionals "22.1")
 
 (defface change-log-function
   '((t (:inherit font-lock-variable-name-face)))
   "Face for highlighting items of the form `<....>'."
   :version "21.1"
   :group 'change-log)
-(define-obsolete-face-alias 'change-log-function-face
-  'change-log-function "22.1")
 
 (defface change-log-acknowledgment
   '((t (:inherit font-lock-comment-face)))
@@ -237,8 +228,6 @@ a case simply use the directory containing the changed file."
   :group 'change-log)
 (define-obsolete-face-alias 'change-log-acknowledgement
   'change-log-acknowledgment "24.3")
-(define-obsolete-face-alias 'change-log-acknowledgement-face
-  'change-log-acknowledgment "22.1")
 
 (defconst change-log-file-names-re "^\\( +\\|\t\\)\\* \\([^ ,:([\n]+\\)")
 (defconst change-log-start-entry-re "^\\sw.........[0-9:+ ]*")
@@ -583,33 +572,21 @@ Compatibility function for \\[next-error] invocations."
 ;; called add-log-time-zone-rule since it's only used from add-log-* code.
 (defvaralias 'change-log-time-zone-rule 'add-log-time-zone-rule)
 (defvar add-log-time-zone-rule nil
-  "Time zone used for calculating change log time stamps.
-It takes the same format as the TZ argument of `set-time-zone-rule'.
-If nil, use local time.
-If t, use universal time.")
+  "Time zone rule used for calculating change log time stamps.
+If nil, use local time.  If t, use Universal Time.
+If a string, interpret as the ZONE argument of `format-time-string'.")
 (put 'add-log-time-zone-rule 'safe-local-variable
      (lambda (x) (or (booleanp x) (stringp x))))
 
 (defun add-log-iso8601-time-zone (&optional time zone)
-  (let* ((utc-offset (or (car (current-time-zone time zone)) 0))
-	 (sign (if (< utc-offset 0) ?- ?+))
-	 (sec (abs utc-offset))
-	 (ss (% sec 60))
-	 (min (/ sec 60))
-	 (mm (% min 60))
-	 (hh (/ min 60)))
-    (format (cond ((not (zerop ss)) "%c%02d:%02d:%02d")
-		  ((not (zerop mm)) "%c%02d:%02d")
-		  (t "%c%02d"))
-	    sign hh mm ss)))
+  (declare (obsolete nil "26.1"))
+  (format-time-string "%:::z" time zone))
 
 (defvar add-log-iso8601-with-time-zone nil)
 
 (defun add-log-iso8601-time-string (&optional time zone)
-  (let ((date (format-time-string "%Y-%m-%d" time zone)))
-    (if add-log-iso8601-with-time-zone
-        (concat date " " (add-log-iso8601-time-zone time zone))
-      date)))
+  (format-time-string
+   (if add-log-iso8601-with-time-zone "%Y-%m-%d %:::z" "%Y-%m-%d") time zone))
 
 (defun change-log-name ()
   "Return (system-dependent) default name for a change log file."

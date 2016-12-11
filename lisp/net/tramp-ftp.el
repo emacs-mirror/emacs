@@ -60,6 +60,7 @@ present for backward compatibility."
 
 ;;;###autoload
 (defun tramp-ftp-enable-ange-ftp ()
+  "Reenable Ange-FTP, when Tramp is unloaded."
   ;; The following code is commented out in Ange-FTP.
 
   ;;; This regexp takes care of real ange-ftp file names (with a slash

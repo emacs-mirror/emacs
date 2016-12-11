@@ -408,7 +408,7 @@ buffers, add @code{flyspell-mode} to @code{text-mode-hook}.
 @findex flyspell-auto-correct-word
 @findex flyspell-correct-word-before-point
   When Flyspell mode highlights a word as misspelled, you can click on
-it with @kbd{Mouse-2} (@code{flyspell-correct-word}) to display a menu
+it with @kbd{mouse-2} (@code{flyspell-correct-word}) to display a menu
 of possible corrections and actions.  In addition, @kbd{C-.} or
 @kbd{@key{ESC}-@key{TAB}} (@code{flyspell-auto-correct-word}) will
 propose various successive corrections for the word at point, and

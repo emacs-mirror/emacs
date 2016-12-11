@@ -49,7 +49,7 @@
 ;;
 (defface semantic-decoration-on-includes
   nil
-  "*Overlay Face used on includes that are not in some other state.
+  "Overlay Face used on includes that are not in some other state.
 Used by the decoration style: `semantic-decoration-on-includes'."
   :group 'semantic-faces)
 
@@ -119,7 +119,7 @@ Used by the decoration style: `semantic-decoration-on-includes'."
      (:background "#900000"))
     (((class color) (background light))
      (:background "#fff0f0")))
-  "*Face used to show includes that cannot be found.
+  "Face used to show includes that cannot be found.
 Used by the decoration style: `semantic-decoration-on-unknown-includes'."
   :group 'semantic-faces)
 
@@ -182,7 +182,7 @@ Used by the decoration style: `semantic-decoration-on-unknown-includes'."
      (:background "#009000"))
     (((class color) (background light))
      (:background "#f0fdf0")))
-  "*Face used to show includes that have no file, but do have a DB table.
+  "Face used to show includes that have no file, but do have a DB table.
 Used by the decoration style: `semantic-decoration-on-fileless-includes'."
   :group 'semantic-faces)
 
@@ -245,7 +245,7 @@ Used by the decoration style: `semantic-decoration-on-fileless-includes'."
      (:background "#555500"))
     (((class color) (background light))
      (:background "#ffff55")))
-  "*Face used to show includes that have not yet been parsed.
+  "Face used to show includes that have not yet been parsed.
 Used by the decoration style: `semantic-decoration-on-unparsed-includes'."
   :group 'semantic-faces)
 

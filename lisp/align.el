@@ -577,7 +577,7 @@ The possible settings for `align-region-separate' are:
 		     (eq '- current-prefix-arg)))))
 
     (css-declaration
-     (regexp . "^\\s-*\\w+:\\(\\s-*\\).*;")
+     (regexp . "^\\s-*\\(?:\\w-?\\)+:\\(\\s-*\\).*;")
      (group . (1))
      (modes . '(css-mode html-mode))))
   "A list describing all of the available alignment rules.
@@ -1054,7 +1054,9 @@ to be colored."
 
 ;;;###autoload
 (defun align-newline-and-indent ()
-  "A replacement function for `newline-and-indent', aligning as it goes."
+  "A replacement function for `newline-and-indent', aligning as it goes.
+The alignment is done by calling `align' on the region that was
+indented."
   (interactive)
   (let ((separate (or (if (and (symbolp align-region-separate)
 			       (boundp align-region-separate))

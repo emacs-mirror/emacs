@@ -393,7 +393,8 @@ Universal Time, ignoring `org-icalendar-date-time-format'."
       ;; Convert timestamp into internal time in order to use
       ;; `format-time-string' and fix any mistake (i.e. MI >= 60).
       (encode-time 0 mi h d m y)
-      (or utc (and with-time-p (org-icalendar-use-UTC-date-time-p)))))))
+      (not (not (or utc (and with-time-p
+                             (org-icalendar-use-UTC-date-time-p)))))))))
 
 (defun org-icalendar-dtstamp ()
   "Return DTSTAMP property, as a string."

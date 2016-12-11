@@ -449,7 +449,7 @@ class Foo             class Foo
 Works with: inher-cont."
   (save-excursion
     (goto-char (c-langelem-pos langelem))
-    (forward-word 1)
+    (forward-word-strictly 1)
     (if (looking-at "[ \t]*$")
 	c-basic-offset
       (c-forward-syntactic-ws)

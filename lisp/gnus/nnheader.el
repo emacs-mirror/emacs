@@ -63,18 +63,23 @@ they will keep on jabbering all the time."
   :group 'gnus-server
   :type 'boolean)
 
-(defvar nnheader-max-head-length 8192
-  "*Max length of the head of articles.
+(defcustom nnheader-max-head-length 8192
+  "Max length of the head of articles.
 
 Value is an integer, nil, or t.  nil means read in chunks of a file
 indefinitely until a complete head is found; t means always read the
 entire file immediately, disregarding `nnheader-head-chop-length'.
 
 Integer values will in effect be rounded up to the nearest multiple of
-`nnheader-head-chop-length'.")
+`nnheader-head-chop-length'."
+  :group 'gnus-article-various		; FIXME?
+  :type '(choice integer (const :tag "Read chunks" nil)
+		 (const :tag "Read entire file" t)))
 
-(defvar nnheader-head-chop-length 2048
-  "*Length of each read operation when trying to fetch HEAD headers.")
+(defcustom nnheader-head-chop-length 2048
+  "Length of each read operation when trying to fetch HEAD headers."
+  :group 'gnus-article-various		; FIXME?
+  :type 'integer)
 
 (defvar nnheader-read-timeout
   (if (string-match "windows-nt\\|os/2\\|cygwin"
@@ -99,7 +104,7 @@ Integer values will in effect be rounded up to the nearest multiple of
   "How long nntp should wait between checking for the end of output.
 Shorter values mean quicker response, but are more CPU intensive.")
 
-(defvar nnheader-file-name-translation-alist
+(defcustom nnheader-file-name-translation-alist
   (let ((case-fold-search t))
     (cond
      ((string-match "windows-nt\\|os/2\\|cygwin"
@@ -111,15 +116,19 @@ Shorter values mean quicker response, but are more CPU intensive.")
 		  nil
 		'((?+ . ?-)))))
      (t nil)))
-  "*Alist that says how to translate characters in file names.
+  "Alist that says how to translate characters in file names.
 For instance, if \":\" is invalid as a file character in file names
 on your system, you could say something like:
 
-\(setq nnheader-file-name-translation-alist \\='((?: . ?_)))")
+\(setq nnheader-file-name-translation-alist \\='((?: . ?_)))"
+  :group 'gnus-article-various		; FIXME?
+  :type '(alist :key-type character :value-type character))
 
-(defvar nnheader-directory-separator-character
+(defcustom nnheader-directory-separator-character
   (string-to-char (substring (file-name-as-directory ".") -1))
-  "*A character used to a directory separator.")
+  "A character used as a directory separator."
+  :group 'gnus-article-various		; FIXME?
+  :type 'character)
 
 (autoload 'nnmail-message-id "nnmail")
 (autoload 'mail-position-on-field "sendmail")
@@ -865,8 +874,10 @@ without formatting."
   (or (not (numberp gnus-verbose-backends))
       (<= level gnus-verbose-backends)))
 
-(defvar nnheader-pathname-coding-system 'iso-8859-1
-  "*Coding system for file name.")
+(defcustom nnheader-pathname-coding-system 'iso-8859-1
+  "Coding system for file name."
+  :group 'gnus-article-various		; FIXME?
+  :type 'coding-system)
 
 (defun nnheader-group-pathname (group dir &optional file)
   "Make file name for GROUP."

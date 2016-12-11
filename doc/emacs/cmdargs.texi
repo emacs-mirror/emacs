@@ -334,17 +334,18 @@ setting @code{inhibit-x-resources} to @code{t} (@pxref{Resources}).
 
 @item -daemon
 @opindex -daemon
-@itemx --daemon
+@itemx --daemon[=@var{name}]
 @opindex --daemon
+@itemx --old-daemon[=@var{name}]
+@itemx --new-daemon[=@var{name}]
 Start Emacs as a daemon---after Emacs starts up, it starts the Emacs
-server and disconnects from the terminal without opening any frames.
+server without opening any frames.
+(Optionally, you can specify an explicit @var{name} for the server.)
 You can then use the @command{emacsclient} command to connect to Emacs
 for editing.  @xref{Emacs Server}, for information about using Emacs
-as a daemon.
-
-@item -daemon=@var{SERVER-NAME}
-Start emacs in background as a daemon, and use @var{SERVER-NAME} as
-the server name.
+as a daemon.  An ``old-style'' daemon disconnects from the terminal
+and runs in the background (@samp{--daemon} is an alias for
+@samp{--old-daemon}).
 
 @item --no-desktop
 @opindex --no-desktop
@@ -557,11 +558,11 @@ variables is not set, the category defaults to the value of the
 @env{LANG} is not set.  But if @env{LC_ALL} is specified, it overrides
 the settings of all the other locale environment variables.
 
-On MS-Windows and OS X, if @env{LANG} is not already set in the
+On MS-Windows and macOS, if @env{LANG} is not already set in the
 environment, Emacs sets it based on the system-wide default.  You can
 set this in the ``Regional Settings'' Control Panel on some versions
 of MS-Windows, and in the ``Language and Region'' System Preference on
-OS X.
+macOS.
 
 The value of the @env{LC_CTYPE} category is
 matched against entries in @code{locale-language-names},
@@ -641,8 +642,9 @@ to put temporary files (@pxref{Backup}).  Emacs tries to use
 @env{TMP}, then @env{TEMP}, and finally @file{c:/temp}.
 @item TZ
 @vindex TZ, environment variable
-This specifies the current time zone and possibly also daylight
-saving time information.  On MS-DOS, if @env{TZ} is not set in the
+This specifies the default time zone and possibly also daylight
+saving time information.  @xref{Time Zone Rules,,, elisp, The GNU
+Emacs Lisp Reference Manual}.  On MS-DOS, if @env{TZ} is not set in the
 environment when Emacs starts, Emacs defines a default value as
 appropriate for the country code returned by DOS@.  On MS-Windows, Emacs
 does not use @env{TZ} at all.

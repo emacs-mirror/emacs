@@ -64,9 +64,9 @@
 /^#undef PACKAGE_NAME/s/^.*$/#define PACKAGE_NAME ""/
 /^#undef PACKAGE_STRING/s/^.*$/#define PACKAGE_STRING ""/
 /^#undef PACKAGE_TARNAME/s/^.*$/#define PACKAGE_TARNAME ""/
-/^#undef PACKAGE_VERSION/s/^.*$/#define PACKAGE_VERSION ""/
+/^#undef PACKAGE_VERSION/s/^.*$/#define PACKAGE_VERSION VERSION/
 /^#undef PENDING_OUTPUT_COUNT/s/^.*$/#define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_ptr - (FILE)->_base)/
-/^#undef VERSION/s/^.*$/#define VERSION "25.1.50"/
+/^#undef VERSION/s/^.*$/#define VERSION "26.0.50"/
 /^#undef SYSTEM_TYPE/s/^.*$/#define SYSTEM_TYPE "ms-dos"/
 /^#undef HAVE_DECL_GETENV/s/^.*$/#define HAVE_DECL_GETENV 1/
 /^#undef SYS_SIGLIST_DECLARED/s/^.*$/#define SYS_SIGLIST_DECLARED 1/
@@ -82,7 +82,6 @@
 /^#undef HAVE_SIGNED_SIG_ATOMIC_T *$/s/^.*$/#define HAVE_SIGNED_SIG_ATOMIC_T 1/
 /^#undef HAVE_SIGNED_WINT_T *$/s/^.*$/#define HAVE_SIGNED_WINT_T 1/
 /^#undef HAVE_UNSIGNED_LONG_LONG_INT *$/s/^.*$/#define HAVE_UNSIGNED_LONG_LONG_INT 1/
-/^#undef HAVE_WCHAR_H *$/s/^.*$/#define HAVE_WCHAR_H 1/
 /^#undef DEVICE_SEP *$/s/^.*$/#define DEVICE_SEP ':'/
 /^#undef IS_DIRECTORY_SEP *$/s,^.*$,#define IS_DIRECTORY_SEP(_c_) ((_c_) == '/' || (_c_) == '\\\\'),
 /^#undef IS_DEVICE_SEP *$/s/^.*$/#define IS_DEVICE_SEP(_c_) ((_c_) == ':')/
@@ -91,6 +90,7 @@
 /^#undef NULL_DEVICE *$/s/^.*$/#define NULL_DEVICE "nul"/
 /^#undef SEPCHAR *$/s/^.*$/#define SEPCHAR '\;'/
 /^#undef USER_FULL_NAME *$/s/^.*$/#define USER_FULL_NAME (getenv ("NAME"))/
+/^# *undef _GNU_SOURCE *$/s/^.*$/#define _GNU_SOURCE 1/
 /^#undef inline/s/^.*$/#define inline __inline__/
 /^#undef my_strftime/s/^.*$/#define my_strftime nstrftime/
 /^#undef restrict/s/^.*$/#define restrict __restrict/
@@ -101,6 +101,7 @@
 s/^#undef STACK_DIRECTION *$/#define STACK_DIRECTION -1/
 s/^#undef EMACS_CONFIGURATION *$/#define EMACS_CONFIGURATION "i386-pc-msdosdjgpp"/
 s/^#undef EMACS_CONFIG_OPTIONS *$/#define EMACS_CONFIG_OPTIONS "msdos"/
+s/^#undef EMACS_CONFIG_FEATURES *$/#define EMACS_CONFIG_FEATURES ""/
 s/^#undef PROTOTYPES *$/#define PROTOTYPES 1/
 s/^#undef POINTER_TYPE *$/#define POINTER_TYPE void/
 /^#undef HAVE_INTTYPES_H/c\
@@ -115,12 +116,14 @@ s/^#undef POINTER_TYPE *$/#define POINTER_TYPE void/
 #else\
 #undef HAVE_STDINT_H\
 #endif
+s/^#undef HAVE_C_VARARRAYS *$/#define HAVE_C_VARARRAYS 1/
 s/^#undef HAVE_DECL_STRTOLL *$/#define HAVE_DECL_STRTOLL 1/
 s/^#undef HAVE_DECL_STRTOULL *$/#define HAVE_DECL_STRTOULL 1/
 s/^#undef HAVE_DECL_STRTOIMAX *$/#define HAVE_DECL_STRTOIMAX 1/
 s/^#undef HAVE_DECL_STRTOUMAX *$/#define HAVE_DECL_STRTOUMAX 1/
 s/^#undef HAVE_STRTOLL *$/#define HAVE_STRTOLL 1/
 s/^#undef HAVE_STRTOULL *$/#define HAVE_STRTOULL 1/
+s/^#undef HAVE_PUTENV *$/#define HAVE_PUTENV 1/
 /^#undef HAVE_SIGSET_T *$/s/^.*$/#define HAVE_SIGSET_T 1/
 /^#undef HAVE_SNPRINTF/c\
 #if __DJGPP__ > 2 || __DJGPP_MINOR__ > 3\

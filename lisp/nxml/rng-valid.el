@@ -101,7 +101,7 @@
 
 (defgroup relax-ng nil
   "Validation of XML using RELAX NG."
-  :group 'wp
+  :group 'text
   :group 'nxml
   :group 'languages)
 

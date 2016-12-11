@@ -255,6 +255,18 @@ new Dired buffers."
   :version "24.4"
   :group 'dired)
 
+(defcustom dired-always-read-filesystem nil
+  "Non-nil means revert buffers visiting files before searching them.
+ By default,  commands like `dired-mark-files-containing-regexp' will
+ search any buffers visiting the marked files without reverting them,
+ even if they were changed on disk.  When this option is non-nil, such
+ buffers are always reverted in a temporary buffer before searching
+ them: the search is performed on the temporary buffer, the original
+ buffer visiting the file is not modified."
+  :type 'boolean
+  :version "26.1"
+  :group 'dired)
+
 ;; Internal variables
 
 (defvar dired-marker-char ?*		; the answer is 42
@@ -303,7 +315,7 @@ The directory name must be absolute, but need not be fully expanded.")
 
 (put 'dired-actual-switches 'safe-local-variable 'dired-safe-switches-p)
 
-(defvar dired-re-inode-size "[0-9 \t]*"
+(defvar dired-re-inode-size "[0-9  \t]*[.,0-9]*[BkKMGTPEZY]?[ \t]*"
   "Regexp for optional initial inode and file size as made by `ls -i -s'.")
 
 ;; These regexps must be tested at beginning-of-line, but are also
@@ -1833,11 +1845,11 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
       '("--"))
 
     (define-key map [menu-bar operate query-replace]
-      '(menu-item "Query Replace in Files..." dired-do-query-replace-regexp
-		  :help "Replace regexp in marked files"))
+      '(menu-item "Query Replace in Files..." dired-do-find-regexp-and-replace
+		  :help "Replace regexp matches in marked files"))
     (define-key map [menu-bar operate search]
-      '(menu-item "Search Files..." dired-do-search
-		  :help "Search marked files for regexp"))
+      '(menu-item "Search Files..." dired-do-find-regexp
+		  :help "Search marked files for matches of regexp"))
     (define-key map [menu-bar operate isearch-regexp]
       '(menu-item "Isearch Regexp Files..." dired-do-isearch-regexp
 		  :help "Incrementally search marked files for regexp"))
@@ -2455,10 +2467,11 @@ You can then feed the file name(s) to other commands with \\[yank]."
 				    'no-dir (prefix-numeric-value arg))))
                           (dired-get-marked-files 'no-dir))
                         " "))))
-    (if (eq last-command 'kill-region)
-	(kill-append string nil)
-      (kill-new string))
-    (message "%s" string)))
+    (unless (string= string "")
+      (if (eq last-command 'kill-region)
+          (kill-append string nil)
+        (kill-new string))
+      (message "%s" string))))
 
 
 ;; Keeping Dired buffers in sync with the filesystem and with each other
@@ -2740,9 +2753,18 @@ instead of `dired-actual-switches'."
 		 (save-excursion
 		   (goto-char (point-min))
 		   (dired-goto-file-1 file file (point-max)))
-		 ;; Otherwise, look for it as a relative name.  The
-		 ;; hair is to get the result of `dired-goto-subdir'
-		 ;; without calling it if we don't have any subdirs.
+                 ;; Next, look for it as a relative name with leading
+                 ;; subdirectories.  (This happens in Dired buffers
+                 ;; created by find-dired, for example.)
+                 (save-excursion
+                   (goto-char (point-min))
+                   (dired-goto-file-1 (file-relative-name file
+                                                          default-directory)
+                                      file (point-max)))
+		 ;; Otherwise, look for it as a relative name, a base
+		 ;; name only.  The hair is to get the result of
+		 ;; `dired-goto-subdir' without calling it if we don't
+		 ;; have any subdirs.
 		 (save-excursion
 		   (when (if (string= dir (expand-file-name default-directory))
 			     (goto-char (point-min))
@@ -3291,7 +3313,7 @@ is one line.
 If the region is active in Transient Mark mode, unmark all files
 in the active region."
   (interactive "p")
-  (dired-unmark (- arg)))
+  (dired-unmark (- arg) t))
 
 (defun dired-toggle-marks ()
   "Toggle marks: marked files become unmarked, and vice versa.
@@ -3348,7 +3370,13 @@ object files--just `.o' will mark more than you might think."
 (defun dired-mark-files-containing-regexp (regexp &optional marker-char)
   "Mark all files with contents containing REGEXP for use in later commands.
 A prefix argument means to unmark them instead.
-`.' and `..' are never marked."
+`.' and `..' are never marked.
+
+Note that if a file is visited in an Emacs buffer, and
+`dired-always-read-filesystem' is nil, this command will
+look in the buffer without revisiting the file, so the results might
+be inconsistent with the file on disk if its contents has changed
+since it was last visited."
   (interactive
    (list (read-regexp (concat (if current-prefix-arg "Unmark" "Mark")
                               " files containing (regexp): ")
@@ -3365,7 +3393,7 @@ A prefix argument means to unmark them instead.
 		(message "Checking %s" fn)
 		;; For now we do it inside emacs
 		;; Grep might be better if there are a lot of files
-		(if prebuf
+		(if (and prebuf (not dired-always-read-filesystem))
 		    (with-current-buffer prebuf
 		      (save-excursion
 			(goto-char (point-min))

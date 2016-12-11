@@ -38,6 +38,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <X11/CoreP.h>		/* foul, but we need this to use our own
 				   window inside a widget instead of one
 				   that Xt creates... */
+#ifdef X_TOOLKIT_EDITRES
+#include <X11/Xmu/Editres.h>
+#endif
+
 typedef Widget xt_or_gtk_widget;
 #endif
 
@@ -471,6 +475,10 @@ struct x_display_info
 #ifdef USE_XCB
   xcb_connection_t *xcb_connection;
 #endif
+
+#ifdef HAVE_XDBE
+  bool supports_xdbe;
+#endif
 };
 
 #ifdef HAVE_X_I18N
@@ -522,6 +530,16 @@ struct x_output
      May be zero while the frame object is being created
      and the X window has not yet been created.  */
   Window window_desc;
+
+  /* The drawable to which we're rendering.  In the single-buffered
+     base, the window itself.  In the double-buffered case, the
+     window's back buffer.  */
+  Drawable draw_desc;
+
+  /* Flag that indicates whether we've modified the back buffer and
+     need to publish our modifications to the front buffer at a
+     convenient time.  */
+  bool need_buffer_flip;
 
   /* The X window used for the bitmap icon;
      or 0 if we don't have a bitmap icon.  */
@@ -732,6 +750,24 @@ enum
 
 /* Return the X window used for displaying data in frame F.  */
 #define FRAME_X_WINDOW(f) ((f)->output_data.x->window_desc)
+
+/* Return the drawable used for rendering to frame F.  */
+#define FRAME_X_RAW_DRAWABLE(f) ((f)->output_data.x->draw_desc)
+
+extern void x_mark_frame_dirty (struct frame *f);
+
+/* Return the drawable used for rendering to frame F and mark the
+   frame as needing a buffer flip later.  There's no easy way to run
+   code after any drawing command, but we can run code whenever
+   someone asks for the handle necessary to draw.  */
+#define FRAME_X_DRAWABLE(f)                             \
+  (x_mark_frame_dirty((f)), FRAME_X_RAW_DRAWABLE ((f)))
+
+#define FRAME_X_DOUBLE_BUFFERED_P(f)            \
+  (FRAME_X_WINDOW (f) != FRAME_X_RAW_DRAWABLE (f))
+
+/* Return the need-buffer-flip flag for frame F.  */
+#define FRAME_X_NEED_BUFFER_FLIP(f) ((f)->output_data.x->need_buffer_flip)
 
 /* Return the outermost X window associated with the frame F.  */
 #ifdef USE_X_TOOLKIT
@@ -1135,6 +1171,9 @@ extern void x_set_sticky (struct frame *, Lisp_Object, Lisp_Object);
 extern bool x_wm_supports (struct frame *, Atom);
 extern void x_wait_for_event (struct frame *, int);
 extern void x_clear_under_internal_border (struct frame *f);
+
+extern void tear_down_x_back_buffer (struct frame *f);
+extern void initial_set_up_x_back_buffer (struct frame *f);
 
 /* Defined in xselect.c.  */
 

@@ -88,7 +88,7 @@ enum
 # elif FLT_RADIX <= 16 /* IBM hex floating point has FLT_RADIX == 16.  */
 #  define _GL_FLOAT_DIG_BITS_BOUND 4
 # else /* no machine is this bad, but let's be complete */
-#  define _GL_FLOAT_DIG_BITS_BOUND (CHAR_BIT * (int) sizeof (int) - 1)
+#  define _GL_FLOAT_DIG_BITS_BOUND ((int) TYPE_WIDTH (int) - 1)
 # endif
 
 /* An upper bound on the number of decimal digits needed to represent

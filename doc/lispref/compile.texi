@@ -438,7 +438,7 @@ Emacs commands for operating on compiler output can be used on these
 messages.
 
   When an error is due to invalid syntax in the program, the byte
-compiler might get confused about the errors' exact location.  One way
+compiler might get confused about the error's exact location.  One way
 to investigate is to switch to the buffer @w{@file{ *Compiler
 Input*}}.  (This buffer name starts with a space, so it does not show
 up in the Buffer Menu.)  This buffer contains the program being
@@ -533,8 +533,19 @@ there is no maximum number, but only the first six elements have any
 normal use.  They are:
 
 @table @var
-@item arglist
-The list of argument symbols.
+@item argdesc
+The descriptor of the arguments.  This can either be a list of
+arguments, as described in @ref{Argument List}, or an integer encoding
+the required number of arguments.  In the latter case, the value of
+the descriptor specifies the minimum number of arguments in the bits
+zero to 6, and the maximum number of arguments in bits 8 to 14.  If
+the argument list uses @code{&rest}, then bit 7 is set; otherwise it's
+cleared.
+
+If @var{argdesc} is a list, the arguments will be dynamically bound
+before executing the byte code.  If @var{argdesc} is an integer, the
+arguments will be instead pushed onto the stack of the byte-code
+interpreter, before executing the code.
 
 @item byte-code
 The string containing the byte-code instructions.
@@ -562,11 +573,11 @@ representation.  It is the definition of the command
 @code{backward-sexp}.
 
 @example
-#[(&optional arg)
-  "^H\204^F^@@\301^P\302^H[!\207"
-  [arg 1 forward-sexp]
-  2
-  254435
+#[256
+  "\211\204^G^@@\300\262^A\301^A[!\207"
+  [1 forward-sexp]
+  3
+  1793299
   "^p"]
 @end example
 

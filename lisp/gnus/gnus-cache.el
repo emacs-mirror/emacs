@@ -35,7 +35,7 @@
 
 (defcustom gnus-cache-active-file
   (expand-file-name "active" gnus-cache-directory)
-  "*The cache active file."
+  "The cache active file."
   :group 'gnus-cache
   :type 'file)
 
@@ -50,7 +50,7 @@
   :type '(set (const ticked) (const dormant) (const unread) (const read)))
 
 (defcustom gnus-cacheable-groups nil
-  "*Groups that match this regexp will be cached.
+  "Groups that match this regexp will be cached.
 
 If you only want to cache your nntp groups, you could set this
 variable to \"^nntp\".
@@ -62,7 +62,7 @@ it's not cached."
 		 regexp))
 
 (defcustom gnus-uncacheable-groups nil
-  "*Groups that match this regexp will not be cached.
+  "Groups that match this regexp will not be cached.
 
 If you want to avoid caching your nnml groups, you could set this
 variable to \"^nnml\".

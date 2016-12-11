@@ -521,6 +521,9 @@ _GL_CXXALIASWARN (putenv);
 #endif
 
 #if @GNULIB_QSORT_R@
+/* Sort an array of NMEMB elements, starting at address BASE, each element
+   occupying SIZE bytes, in ascending order according to the comparison
+   function COMPARE.  */
 # if @REPLACE_QSORT_R@
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   undef qsort_r
@@ -535,12 +538,24 @@ _GL_CXXALIAS_RPL (qsort_r, void, (void *base, size_t nmemb, size_t size,
                                                   void *),
                                   void *arg));
 # else
+#  if !@HAVE_QSORT_R@
+_GL_FUNCDECL_SYS (qsort_r, void, (void *base, size_t nmemb, size_t size,
+                                  int (*compare) (void const *, void const *,
+                                                  void *),
+                                  void *arg) _GL_ARG_NONNULL ((1, 4)));
+#  endif
 _GL_CXXALIAS_SYS (qsort_r, void, (void *base, size_t nmemb, size_t size,
                                   int (*compare) (void const *, void const *,
                                                   void *),
                                   void *arg));
 # endif
 _GL_CXXALIASWARN (qsort_r);
+#elif defined GNULIB_POSIXCHECK
+# undef qsort_r
+# if HAVE_RAW_DECL_QSORT_R
+_GL_WARN_ON_USE (qsort_r, "qsort_r is not portable - "
+                 "use gnulib module qsort_r for portability");
+# endif
 #endif
 
 

@@ -63,10 +63,12 @@ void sys_freeaddrinfo (struct addrinfo * ai);
 extern struct servent *hes_getservbyname (/* char *, char * */);
 #endif
 
+#include <alloca.h>
 #include <pwd.h>
 #include <netdb.h>
 #include <errno.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -90,6 +92,7 @@ extern struct servent *hes_getservbyname (/* char *, char * */);
 # endif
 #endif /* KERBEROS */
 
+#include <c-ctype.h>
 #include <min-max.h>
 
 #ifdef KERBEROS
@@ -718,7 +721,8 @@ pop_multi_next (popserver server, char **line)
       return (-1);
     }
 
-  if ((ret = pop_getline (server, &fromserver)) < 0)
+  ret = pop_getline (server, &fromserver);
+  if (ret < 0)
     {
       return (-1);
     }
@@ -1102,7 +1106,8 @@ socket_connection (char *host, int flags)
   if (! (flags & POP_NO_KERBEROS))
     {
 #ifdef KERBEROS5
-      if ((rem = krb5_init_context (&kcontext)))
+      rem = krb5_init_context (&kcontext);
+      if (rem)
 	{
 	krb5error:
 	  if (auth_context)
@@ -1115,29 +1120,29 @@ socket_connection (char *host, int flags)
 	  return (-1);
 	}
 
-      if ((rem = krb5_auth_con_init (kcontext, &auth_context)))
+      rem = krb5_auth_con_init (kcontext, &auth_context);
+      if (rem)
 	goto krb5error;
 
-      if (rem = krb5_cc_default (kcontext, &ccdef))
+      rem = krb5_cc_default (kcontext, &ccdef);
+      if (rem)
 	goto krb5error;
 
-      if (rem = krb5_cc_get_principal (kcontext, ccdef, &client))
+      rem = krb5_cc_get_principal (kcontext, ccdef, &client);
+      if (rem)
 	goto krb5error;
 
       for (cp = realhost; *cp; cp++)
-	{
-	  if (isupper (*cp))
-	    {
-	      *cp = tolower (*cp);
-	    }
-	}
+	*cp = c_tolower (*cp);
 
-      if (rem = krb5_sname_to_principal (kcontext, realhost,
-					 POP_SERVICE, FALSE, &server))
+      rem = krb5_sname_to_principal (kcontext, realhost,
+				     POP_SERVICE, FALSE, &server);
+      if (rem)
 	goto krb5error;
 
       rem = krb5_sendauth (kcontext, &auth_context,
-			   (krb5_pointer) &sock, "KPOPV1.0", client, server,
+			   (krb5_pointer) &sock, (char *) "KPOPV1.0",
+			   client, server,
 			  AP_OPTS_MUTUAL_REQUIRED,
 			  0,	/* no checksum */
 			  0,	/* no creds, use ccache instead */

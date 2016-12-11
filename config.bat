@@ -174,7 +174,7 @@ junk
 If ErrorLevel 1 Goto xmlDone
 Echo Configuring with libxml2 ...
 sed -e "/#undef HAVE_LIBXML2/s/^.*$/#define HAVE_LIBXML2 1/" <config.h2 >config.h3
-mv config.h3 config.h2
+sed -e "/#define EMACS_CONFIG_FEATURES/s/^.*$/#define EMACS_CONFIG_FEATURES \"LIBXML2\"/" <config.h3 >config.h2
 set libxml=1
 :xmlDone
 rm -f junk.c junk junk.exe
@@ -194,7 +194,7 @@ if exist dir.h ren dir.h vmsdir.h
 
 rem   Create "makefile" from "makefile.in".
 rm -f Makefile makefile.tmp
-copy Makefile.in+lisp.mk+deps.mk makefile.tmp
+copy Makefile.in+deps.mk makefile.tmp
 sed -f ../msdos/sed1v2.inp <makefile.tmp >Makefile
 rm -f makefile.tmp
 
@@ -227,6 +227,10 @@ rem   ----------------------------------------------------------------------
 Echo Configuring the library source directory...
 cd lib-src
 sed -f ../msdos/sed3v2.inp <Makefile.in >Makefile
+mv Makefile makefile.tmp
+sed -n -e "/^AC_INIT/s/[^,]*, \([^,]*\).*/@set emver=\1/p" ../configure.ac > emver.bat
+call emver.bat
+sed -e "s/@version@/%emver%/g" <makefile.tmp >Makefile
 if "%X11%" == "" goto libsrc2a
 mv Makefile makefile.tmp
 sed -f ../msdos/sed3x.inp <makefile.tmp >Makefile
@@ -252,16 +256,23 @@ cd ..
 rem   ----------------------------------------------------------------------
 Echo Configuring the doc directory, expect one "File not found" message...
 cd doc
+Rem Rename files like djtar on plain DOS filesystem would.
+If Exist emacs\emacsver.texi.in update emacs/emacsver.texi.in emacs/emacsver.in
+If Exist man\emacs.1.in update man/emacs.1.in man/emacs.in
+If Exist ..\etc\refcards\emacsver.tex.in update ../etc/refcards/emacsver.tex.in ../etc/refcards/emacsver.in
 Rem The two variants for lispintro below is for when the shell
 Rem supports long file names but DJGPP does not
-for %%d in (emacs lispref lispintro lispintr misc) do sed -f ../msdos/sed6.inp < %%d\Makefile.in > %%d\Makefile
+for %%d in (emacs lispref lispintro lispintr misc) do sed -e "s/@version@/%emver%/g" -f ../msdos/sed6.inp < %%d\Makefile.in > %%d\Makefile
+Rem produce emacs.1 from emacs.in
+If Exist man\emacs.1 goto manOk
+sed -e "s/@version@/%emver%/g" -e "s/@PACKAGE_BUGREPORT@/bug-gnu-emacs@gnu.org/g" < man\emacs.in > man\emacs.1
+:manOk
 cd ..
 rem   ----------------------------------------------------------------------
 Echo Configuring the lib directory...
 If Exist build-aux\snippet\c++defs.h update build-aux/snippet/c++defs.h build-aux/snippet/cxxdefs.h
 cd lib
 Rem Rename files like djtar on plain DOS filesystem would.
-If Exist build-aux\snippet\c++defs.h update build-aux/snippet/c++defs.h build-aux/snippet/cxxdefs.h
 If Exist alloca.in.h update alloca.in.h alloca.in-h
 If Exist byteswap.in.h update byteswap.in.h byteswap.in-h
 If Exist dirent.in.h update dirent.in.h dirent.in-h
@@ -286,6 +297,7 @@ If Exist sys_types.in.h update sys_types.in.h sys_types.in-h
 If Exist sys_time.in.h update sys_time.in.h sys_time.in-h
 If Exist time.in.h update time.in.h time.in-h
 If Exist unistd.in.h update unistd.in.h unistd.in-h
+Rem Only repository has the msdos/autogen directory
 If Exist Makefile.in sed -f ../msdos/sedlibcf.inp < Makefile.in > makefile.tmp
 If Exist ..\msdos\autogen\Makefile.in sed -f ../msdos/sedlibcf.inp < ..\msdos\autogen\Makefile.in > makefile.tmp
 sed -f ../msdos/sedlibmk.inp < makefile.tmp > Makefile
@@ -310,6 +322,12 @@ rem   ----------------------------------------------------------------------
 If Not Exist admin\unidata goto noadmin
 Echo Configuring the admin/unidata directory...
 cd admin\unidata
+sed -f ../../msdos/sedadmin.inp < Makefile.in > Makefile
+Echo Configuring the admin/charsets directory...
+cd ..\charsets
+sed -f ../../msdos/sedadmin.inp < Makefile.in > Makefile
+Echo Configuring the admin/grammars directory...
+cd ..\grammars
 sed -f ../../msdos/sedadmin.inp < Makefile.in > Makefile
 cd ..\..
 :noadmin
@@ -345,3 +363,4 @@ set nodebug=
 set djgpp_ver=
 set sys_malloc=
 set libxml=
+set emver=

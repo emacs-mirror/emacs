@@ -30,7 +30,6 @@ G_BEGIN_DECLS
 struct frame;
 
 typedef struct _EmacsFixedPrivate       EmacsFixedPrivate;
-typedef struct _EmacsFixedClass         EmacsFixedClass;
 
 struct _EmacsFixed
 {

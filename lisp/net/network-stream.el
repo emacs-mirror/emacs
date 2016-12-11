@@ -1,4 +1,4 @@
-;;; network-stream.el --- open network processes, possibly with encryption
+;;; network-stream.el --- open network processes, possibly with encryption -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2010-2016 Free Software Foundation, Inc.
 
@@ -204,7 +204,7 @@ gnutls-boot (as returned by `gnutls-boot-parameters')."
 ;;;###autoload
 (defalias 'open-protocol-stream 'open-network-stream)
 (define-obsolete-function-alias 'open-protocol-stream 'open-network-stream
-  "25.2")
+  "26.1")
 
 (defun network-stream-open-plain (name buffer host service parameters)
   (let ((start (with-current-buffer buffer (point)))
@@ -312,6 +312,9 @@ gnutls-boot (as returned by `gnutls-boot-parameters')."
 					:host (puny-encode-domain host)
                                         :service service))
 	    (network-stream-get-response stream start eoc)))
+        (unless (process-live-p stream)
+          (error "Unable to negotiate a TLS connection with %s/%s"
+                 host service))
 	;; Re-get the capabilities, which may have now changed.
 	(setq capabilities
 	      (network-stream-command stream capability-command eo-capa))))

@@ -31,5 +31,26 @@
     (symbol-function
      'dired-jump))))
 
+(ert-deftest dired-test-bug22694 ()
+  "Test for http://debbugs.gnu.org/22694 ."
+  (let* ((dir       (expand-file-name "bug22694" default-directory))
+         (file      "test")
+         (full-name (expand-file-name file dir))
+         (regexp    "bar")
+         (dired-always-read-filesystem t))
+    (if (file-exists-p dir)
+        (delete-directory dir 'recursive))
+    (make-directory dir)
+    (with-temp-file full-name (insert "foo"))
+    (find-file-noselect full-name)
+    (dired dir)
+    (with-temp-file full-name (insert "bar"))
+    (dired-mark-files-containing-regexp regexp)
+    (unwind-protect
+        (should (equal (dired-get-marked-files nil nil nil 'distinguish-1-mark)
+                       `(t ,full-name)))
+      ;; Clean up
+      (delete-directory dir 'recursive))))
+
 (provide 'dired-tests)
 ;; dired-tests.el ends here

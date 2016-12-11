@@ -504,7 +504,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 		</dict>
 	</array>
 
-	<!-- Export definitions so that OS X understands about the file types -->
+	<!-- Export definitions so that macOS understands about the file types -->
 	<key>UTExportedTypeDeclarations</key>
 	<array>
 		<dict>

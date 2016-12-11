@@ -45,10 +45,11 @@
 (defvar geiser-default-implementation) ; Defined in geiser-impl.el
 (defvar geiser-active-implementations) ; Defined in geiser-impl.el
 
-(declare-function run-geiser "geiser-repl" (impl))
-(declare-function geiser-mode "geiser-mode" ())
-(declare-function geiser-eval-region "geiser-mode" (start end &optional and-go raw nomsg))
-(declare-function geiser-repl-exit "geiser-repl" (&optional arg))
+(declare-function run-geiser "ext:geiser-repl" (impl))
+(declare-function geiser-mode "ext:geiser-mode" ())
+(declare-function geiser-eval-region "ext:geiser-mode"
+                  (start end &optional and-go raw nomsg))
+(declare-function geiser-repl-exit "ext:geiser-repl" (&optional arg))
 
 (defvar org-babel-default-header-args:scheme '()
   "Default header arguments for scheme code blocks.")

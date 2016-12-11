@@ -30,7 +30,8 @@ GNULIB_MODULES='
   careadlinkat close-stream count-one-bits count-trailing-zeros
   crypto/md5 crypto/sha1 crypto/sha256 crypto/sha512
   dtoastr dtotimespec dup2 environ execinfo faccessat
-  fcntl fcntl-h fdatasync fdopendir filemode filevercmp fstatat fsync
+  fcntl fcntl-h fdatasync fdopendir
+  filemode filevercmp flexmember fstatat fsync
   getloadavg getopt-gnu gettime gettimeofday gitlog-to-changelog
   ignore-value intprops largefile lstat
   manywarnings memrchr mkostemp mktime
@@ -44,7 +45,7 @@ GNULIB_MODULES='
 
 GNULIB_TOOL_FLAGS='
   --avoid=close --avoid=dup
-  --avoid=fchdir --avoid=flexmember --avoid=fstat
+  --avoid=fchdir --avoid=fstat
   --avoid=malloc-posix --avoid=msvc-inval --avoid=msvc-nothrow
   --avoid=open --avoid=openat-die --avoid=opendir
   --avoid=raise
@@ -93,7 +94,8 @@ test -x "$gnulib_srcdir"/gnulib-tool || {
 }
 
 "$gnulib_srcdir"/gnulib-tool --dir="$src" $GNULIB_TOOL_FLAGS $GNULIB_MODULES &&
-rm -- "$src"lib/gl_openssl.h "$src"m4/fcntl-o.m4 "$src"m4/gl-openssl.m4 \
+rm -- "$src"lib/gl_openssl.h "$src"m4/fcntl-o.m4 \
+      "$src"m4/gl-openssl.m4 \
       "$src"m4/gnulib-cache.m4"$src" m4/warn-on-use.m4 &&
 cp -- "$gnulib_srcdir"/build-aux/texinfo.tex "$src"doc/misc &&
 cp -- "$gnulib_srcdir"/build-aux/move-if-change "$src"build-aux &&

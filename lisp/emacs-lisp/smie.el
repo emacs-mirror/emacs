@@ -1493,7 +1493,10 @@ should not be computed on the basis of the following token."
                            (let ((endpos (point)))
                              (goto-char pos)
                              (forward-line 1)
-                             (and (equal res (smie-indent-forward-token))
+                             ;; As seen in bug#22960, pos may be inside
+                             ;; a string, and forward-token may then stumble.
+                             (and (ignore-errors
+                                    (equal res (smie-indent-forward-token)))
                                   (eq (point) endpos)))))
                     nil
                   (goto-char pos)

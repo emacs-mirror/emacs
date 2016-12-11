@@ -72,7 +72,7 @@
 (defvar message-strip-special-text-properties)
 
 (defun report-emacs-bug-can-use-osx-open ()
-  "Return non-nil if the OS X \"open\" command is available for mailing."
+  "Return non-nil if the macOS \"open\" command is available for mailing."
   (and (featurep 'ns)
        (equal (executable-find "open") "/usr/bin/open")
        (memq system-type '(darwin))))
@@ -107,7 +107,7 @@ This requires you to be running either Gnome, KDE, or Xfce4."
 
 (defun report-emacs-bug-insert-to-mailer ()
   "Send the message to your preferred mail client.
-This requires either the OS X \"open\" command, or the freedesktop
+This requires either the macOS \"open\" command, or the freedesktop
 \"xdg-email\" command to be available."
   (interactive)
   (save-excursion
@@ -242,7 +242,7 @@ usually do not have translators for other languages.\n\n")))
     (let ((txt (delete-and-extract-region (1+ user-point) (point))))
       (insert (propertize "\n" 'display txt)))
 
-    (insert "\n\nIn " (emacs-version))
+    (insert "\nIn " (emacs-version))
     (if emacs-build-system
         (insert " built on " emacs-build-system))
     (insert "\n")
@@ -263,6 +263,18 @@ usually do not have translators for other languages.\n\n")))
 		     (buffer-string)))))
       (if (stringp lsb)
 	  (insert "System " lsb "\n")))
+    (let ((message-buf (get-buffer "*Messages*")))
+      (if message-buf
+	  (let (beg-pos
+		(end-pos message-end-point))
+	    (with-current-buffer message-buf
+	      (goto-char end-pos)
+	      (forward-line -10)
+	      (setq beg-pos (point)))
+            (terpri (current-buffer) t)
+	    (insert "Recent messages:\n")
+	    (insert-buffer-substring message-buf beg-pos end-pos))))
+    (insert "\n")
     (when (and system-configuration-options
 	       (not (equal system-configuration-options "")))
       (insert "Configured using:\n 'configure "
@@ -295,20 +307,6 @@ usually do not have translators for other languages.\n\n")))
       (and (boundp mode) (buffer-local-value mode from-buffer)
 	   (insert (format "  %s: %s\n" mode
 			   (buffer-local-value mode from-buffer)))))
-    (let ((message-buf (get-buffer "*Messages*")))
-      (if message-buf
-	  (let (beg-pos
-		(end-pos message-end-point))
-	    (with-current-buffer message-buf
-	      (goto-char end-pos)
-	      (forward-line -10)
-	      (setq beg-pos (point)))
-	    (insert "\nRecent messages:\n")
-	    (insert-buffer-substring message-buf beg-pos end-pos))))
-    ;; After Recent messages, to avoid the messages produced by
-    ;; list-load-path-shadows.
-    (unless (looking-back "\n" (1- (point)))
-      (insert "\n"))
     (insert "\n")
     (insert "Load-path shadows:\n")
     (let* ((msg "Checking for load-path shadows...")

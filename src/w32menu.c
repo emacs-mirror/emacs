@@ -60,9 +60,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 HMENU current_popup_menu;
 
-void syms_of_w32menu (void);
-void globals_of_w32menu (void);
-
 typedef BOOL (WINAPI * GetMenuItemInfoA_Proc) (
     IN HMENU,
     IN UINT,
@@ -80,18 +77,16 @@ typedef int (WINAPI * MessageBoxW_Proc) (
     IN UINT type);
 
 #ifdef NTGUI_UNICODE
-#define get_menu_item_info GetMenuItemInfoA
-#define set_menu_item_info SetMenuItemInfoA
-#define unicode_append_menu AppendMenuW
-#define unicode_message_box MessageBoxW
+GetMenuItemInfoA_Proc get_menu_item_info = GetMenuItemInfoA;
+SetMenuItemInfoA_Proc set_menu_item_info = SetMenuItemInfoA;
+AppendMenuW_Proc unicode_append_menu = AppendMenuW;
+MessageBoxW_Proc unicode_message_box = MessageBoxW;
 #else /* !NTGUI_UNICODE */
 GetMenuItemInfoA_Proc get_menu_item_info = NULL;
 SetMenuItemInfoA_Proc set_menu_item_info = NULL;
 AppendMenuW_Proc unicode_append_menu = NULL;
 MessageBoxW_Proc unicode_message_box = NULL;
 #endif /* NTGUI_UNICODE */
-
-void set_frame_menubar (struct frame *, bool, bool);
 
 #ifdef HAVE_DIALOGS
 static Lisp_Object w32_dialog_show (struct frame *, Lisp_Object, Lisp_Object, char **);
@@ -172,6 +167,7 @@ x_activate_menubar (struct frame *f)
    when the user makes a selection.
    Figure out what the user chose
    and put the appropriate events into the keyboard buffer.  */
+void menubar_selection_callback (struct frame *, void *);
 
 void
 menubar_selection_callback (struct frame *f, void * client_data)
@@ -831,7 +827,7 @@ w32_menu_show (struct frame *f, int x, int y, int menuflags,
     {
       unblock_input ();
       /* Make "Cancel" equivalent to C-g.  */
-      Fsignal (Qquit, Qnil);
+      quit ();
     }
 
   unblock_input ();
@@ -1023,7 +1019,7 @@ w32_dialog_show (struct frame *f, Lisp_Object title,
     }
   else
     /* Make "Cancel" equivalent to C-g.  */
-    Fsignal (Qquit, Qnil);
+    quit ();
 
   return Qnil;
 }
@@ -1111,7 +1107,7 @@ simple_dialog_show (struct frame *f, Lisp_Object contents, Lisp_Object header)
 	}
       else
 	{
-	  text = L"";
+	  text = (WCHAR *)L"";
 	}
 
       if (NILP (header))
@@ -1159,7 +1155,7 @@ simple_dialog_show (struct frame *f, Lisp_Object contents, Lisp_Object header)
   else if (answer == IDNO)
     lispy_answer = build_string ("No");
   else
-    Fsignal (Qquit, Qnil);
+    quit ();
 
   for (temp = XCDR (contents); CONSP (temp); temp = XCDR (temp))
     {
@@ -1181,8 +1177,7 @@ simple_dialog_show (struct frame *f, Lisp_Object contents, Lisp_Object header)
 	  return value;
 	}
     }
-  Fsignal (Qquit, Qnil);
-  return Qnil;
+  return quit ();
 }
 #endif  /* !HAVE_DIALOGS  */
 
@@ -1465,6 +1460,8 @@ fill_in_menu (HMENU menu, widget_value *wv)
 /* Display help string for currently pointed to menu item. Not
    supported on NT 3.51 and earlier, as GetMenuItemInfo is not
    available. */
+void w32_menu_display_help (HWND, HMENU, UINT, UINT);
+
 void
 w32_menu_display_help (HWND owner, HMENU menu, UINT item, UINT flags)
 {

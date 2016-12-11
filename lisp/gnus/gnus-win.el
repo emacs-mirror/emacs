@@ -34,27 +34,27 @@
   :group 'gnus)
 
 (defcustom gnus-use-full-window t
-  "*If non-nil, use the entire Emacs screen."
+  "If non-nil, use the entire Emacs screen."
   :group 'gnus-windows
   :type 'boolean)
 
 (defcustom gnus-window-min-width 2
-  "*Minimum width of Gnus buffers."
+  "Minimum width of Gnus buffers."
   :group 'gnus-windows
   :type 'integer)
 
 (defcustom gnus-window-min-height 1
-  "*Minimum height of Gnus buffers."
+  "Minimum height of Gnus buffers."
   :group 'gnus-windows
   :type 'integer)
 
 (defcustom gnus-always-force-window-configuration nil
-  "*If non-nil, always force the Gnus window configurations."
+  "If non-nil, always force the Gnus window configurations."
   :group 'gnus-windows
   :type 'boolean)
 
 (defcustom gnus-use-frames-on-any-display nil
-  "*If non-nil, frames on all displays will be considered usable by Gnus.
+  "If non-nil, frames on all displays will be considered usable by Gnus.
 When nil, only frames on the same display as the selected frame will be
 used to display Gnus windows."
   :version "22.1"
@@ -195,7 +195,7 @@ See the Gnus manual for an explanation of the syntax used.")
   "Mapping from short symbols to buffer names or buffer variables.")
 
 (defcustom gnus-configure-windows-hook nil
-  "*A hook called when configuring windows."
+  "A hook called when configuring windows."
   :version "22.1"
   :group 'gnus-windows
   :type 'hook)

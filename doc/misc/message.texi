@@ -67,7 +67,6 @@ Message mode buffers.
 * Interface::         Setting up message buffers.
 * Commands::          Commands you can execute in message mode buffers.
 * Variables::         Customizing the message buffers.
-* Compatibility::     Making Message backwards compatible.
 * Appendices::        More technical things.
 * GNU Free Documentation License:: The license for this documentation.
 * Index::             Variable, function and concept index.
@@ -1327,7 +1326,13 @@ OpenPGP) or @code{mml-secure-smime-encrypt-to-self} (for
 The @code{Bcc} header is meant to hide recipients of messages.
 However, when encrypted messages are used, the e-mail addresses of all
 @code{Bcc}-headers are given away to all recipients without
-warning, which is a bug, see
+warning, which is a bug.
+@vindex mml-secure-safe-bcc-list
+But now Message got to warn if @code{Bcc} recipients are found in an
+encrypted message when you are just about to send it.  If you are sure
+those @code{Bcc} addresses are safe to expose, set the
+@code{mml-secure-safe-bcc-list} variable, that is a list of e-mail
+addresses.  See
 @uref{https://debbugs.gnu.org/cgi/bugreport.cgi?bug=18718}.
 
 
@@ -2585,22 +2590,6 @@ killed, postponed or exited.
 An @dfn{action} can be either: a normal function, or a list where the
 @sc{car} is a function and the @sc{cdr} is the list of arguments, or
 a form to be @code{eval}ed.
-
-
-@node Compatibility
-@chapter Compatibility
-@cindex compatibility
-
-Message uses virtually only its own variables---older @code{mail-}
-variables aren't consulted.  To force Message to take those variables
-into account, you can put the following in your @file{.emacs} file:
-
-@lisp
-(require 'messcompat)
-@end lisp
-
-This will initialize many Message variables from the values in the
-corresponding mail variables.
 
 
 @node Appendices

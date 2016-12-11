@@ -486,7 +486,7 @@ Use this defun with `erc-insert-modify-hook'."
 		    nick-end)
 	       (erc-put-text-property
 		nick-beg nick-end
-		'face match-face (current-buffer)))
+		'font-lock-face match-face (current-buffer)))
 	      ;; Highlight the nick of the message, or the current
 	      ;; nick if there's no nick in the message (e.g. /NAMES
 	      ;; output)
@@ -495,17 +495,17 @@ Use this defun with `erc-insert-modify-hook'."
 	       (if nick-end
 		   (erc-put-text-property
 		    nick-beg nick-end
-		    'face match-face (current-buffer))
+		    'font-lock-face match-face (current-buffer))
 		 (goto-char (+ 2 (or nick-end
 				     (point-min))))
 		 (while (re-search-forward match-regex nil t)
 		   (erc-put-text-property (match-beginning 0) (match-end 0)
-					  'face match-face))))
+					  'font-lock-face match-face))))
 	      ;; Highlight the whole message
 	      ((eq match-htype 'all)
 	       (erc-put-text-property
 		(point-min) (point-max)
-		'face match-face (current-buffer)))
+		'font-lock-face match-face (current-buffer)))
 	      ;; Highlight all occurrences of the word to be
 	      ;; highlighted.
 	      ((and (string= match-type "keyword")
@@ -521,7 +521,7 @@ Use this defun with `erc-insert-modify-hook'."
 			 (while (re-search-forward regex nil t)
 			   (erc-put-text-property
 			    (match-beginning 0) (match-end 0)
-			    'face face))))
+			    'font-lock-face face))))
 		     match-regex))
 	      ;; Highlight all occurrences of our nick.
 	      ((and (string= match-type "current-nick")
@@ -530,7 +530,7 @@ Use this defun with `erc-insert-modify-hook'."
 				   (point-min))))
 	       (while (re-search-forward match-regex nil t)
 		 (erc-put-text-property (match-beginning 0) (match-end 0)
-					'face match-face)))
+					'font-lock-face match-face)))
 	      ;; Else twiddle your thumbs.
 	      (t nil))
 	     (run-hook-with-args

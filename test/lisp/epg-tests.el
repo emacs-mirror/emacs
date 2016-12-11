@@ -30,16 +30,17 @@
   (expand-file-name "data/epg" (getenv "EMACS_TEST_DIRECTORY"))
   "Directory containing epg test data.")
 
-(defun epg-tests-gpg-usable (&optional require-passphrase)
-  (and (executable-find epg-gpg-program)
-       (condition-case nil
-	   (progn
-	     (epg-check-configuration (epg-configuration))
-	     (if require-passphrase
-		 (string-match "\\`1\\."
-			       (cdr (assq 'version (epg-configuration))))
-	       t))
-	 (error nil))))
+(defconst epg-tests-program-alist-for-passphrase-callback
+  '((OpenPGP
+     nil
+     ("gpg" . "1.4.3"))))
+
+(defun epg-tests-find-usable-gpg-configuration (&optional require-passphrase)
+  (epg-find-configuration
+   'OpenPGP
+   'no-cache
+   (if require-passphrase
+       epg-tests-program-alist-for-passphrase-callback)))
 
 (defun epg-tests-passphrase-callback (_c _k _d)
   ;; Need to create a copy here, since the string will be wiped out
@@ -52,9 +53,14 @@
 			    &rest body)
   "Set up temporary locations and variables for testing."
   (declare (indent 1))
-  `(let* ((epg-tests-home-directory (make-temp-file "epg-tests-homedir" t)))
+  `(let ((epg-tests-home-directory (make-temp-file "epg-tests-homedir" t)))
      (unwind-protect
 	 (let ((context (epg-make-context 'OpenPGP)))
+           (setf (epg-context-program context)
+                 (alist-get 'program
+                            (epg-tests-find-usable-gpg-configuration
+                             ,(if require-passphrase
+                                  `'require-passphrase))))
 	   (setf (epg-context-home-directory context)
 		 epg-tests-home-directory)
 	   (setenv "GPG_AGENT_INFO")
@@ -78,7 +84,7 @@
 	 (delete-directory epg-tests-home-directory t)))))
 
 (ert-deftest epg-decrypt-1 ()
-  (skip-unless (epg-tests-gpg-usable 'require-passphrase))
+  (skip-unless (epg-tests-find-usable-gpg-configuration 'require-passphrase))
   (with-epg-tests (:require-passphrase t)
     (should (equal "test"
 		   (epg-decrypt-string epg-tests-context "\
@@ -90,14 +96,14 @@ jA0EAwMCE19JBLTvvmhgyRrGGglRbnKkK9PJG8fDwO5ccjysrR7IcdNcnA==
 -----END PGP MESSAGE-----")))))
 
 (ert-deftest epg-roundtrip-1 ()
-  (skip-unless (epg-tests-gpg-usable 'require-passphrase))
+  (skip-unless (epg-tests-find-usable-gpg-configuration 'require-passphrase))
   (with-epg-tests (:require-passphrase t)
     (let ((cipher (epg-encrypt-string epg-tests-context "symmetric" nil)))
       (should (equal "symmetric"
 		     (epg-decrypt-string epg-tests-context cipher))))))
 
 (ert-deftest epg-roundtrip-2 ()
-  (skip-unless (epg-tests-gpg-usable 'require-passphrase))
+  (skip-unless (epg-tests-find-usable-gpg-configuration 'require-passphrase))
   (with-epg-tests (:require-passphrase t
 		   :require-public-key t
 		   :require-secret-key t)
@@ -108,7 +114,7 @@ jA0EAwMCE19JBLTvvmhgyRrGGglRbnKkK9PJG8fDwO5ccjysrR7IcdNcnA==
 		     (epg-decrypt-string epg-tests-context cipher))))))
 
 (ert-deftest epg-sign-verify-1 ()
-  (skip-unless (epg-tests-gpg-usable 'require-passphrase))
+  (skip-unless (epg-tests-find-usable-gpg-configuration 'require-passphrase))
   (with-epg-tests (:require-passphrase t
 		   :require-public-key t
 		   :require-secret-key t)
@@ -122,7 +128,7 @@ jA0EAwMCE19JBLTvvmhgyRrGGglRbnKkK9PJG8fDwO5ccjysrR7IcdNcnA==
       (should (eq 'good (epg-signature-status (car verify-result)))))))
 
 (ert-deftest epg-sign-verify-2 ()
-  (skip-unless (epg-tests-gpg-usable 'require-passphrase))
+  (skip-unless (epg-tests-find-usable-gpg-configuration 'require-passphrase))
   (with-epg-tests (:require-passphrase t
 		   :require-public-key t
 		   :require-secret-key t)
@@ -138,7 +144,7 @@ jA0EAwMCE19JBLTvvmhgyRrGGglRbnKkK9PJG8fDwO5ccjysrR7IcdNcnA==
       (should (eq 'good (epg-signature-status (car verify-result)))))))
 
 (ert-deftest epg-sign-verify-3 ()
-  (skip-unless (epg-tests-gpg-usable 'require-passphrase))
+  (skip-unless (epg-tests-find-usable-gpg-configuration 'require-passphrase))
   (with-epg-tests (:require-passphrase t
 		   :require-public-key t
 		   :require-secret-key t)
@@ -153,7 +159,7 @@ jA0EAwMCE19JBLTvvmhgyRrGGglRbnKkK9PJG8fDwO5ccjysrR7IcdNcnA==
       (should (eq 'good (epg-signature-status (car verify-result)))))))
 
 (ert-deftest epg-import-1 ()
-  (skip-unless (epg-tests-gpg-usable 'require-passphrase))
+  (skip-unless (epg-tests-find-usable-gpg-configuration 'require-passphrase))
   (with-epg-tests (:require-passphrase nil)
     (should (= 0 (length (epg-list-keys epg-tests-context))))
     (should (= 0 (length (epg-list-keys epg-tests-context nil t)))))

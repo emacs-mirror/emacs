@@ -75,7 +75,7 @@
 	((memq system-type '(hpux usg-unix-v berkeley-unix))
 	 'UNIX))	; very similar to GNU
   ;; Anything else defaults to nil, meaning GNU.
-  "Platform to emulate: GNU (default), MacOS, MS-Windows, UNIX.
+  "Platform to emulate: GNU (default), macOS, MS-Windows, UNIX.
 Corresponding value is one of: nil, `MacOS', `MS-Windows', `UNIX'.
 Set this to your preferred value; it need not match the actual platform
 you are using.

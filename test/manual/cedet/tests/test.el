@@ -89,7 +89,7 @@
 (defconst a-defconst 'a "var doc const")
 
 (defcustom a-defcustom nil
-  "*doc custom"
+  "doc custom"
   :group 'a-defgroup
   :type 'boolean)
 

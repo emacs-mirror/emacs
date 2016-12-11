@@ -170,7 +170,7 @@ smc_save_yourself_CB (SmcConn smcConn,
   char *smid_opt, *chdir_opt = NULL;
   Lisp_Object user_login_name = Fuser_login_name (Qnil);
 
-  // Must have these.
+  /* Must have these.  */
   if (! STRINGP (Vinvocation_name) || ! STRINGP (user_login_name))
     return;
 
@@ -545,7 +545,7 @@ syms_of_xsmfns (void)
 Changing the value does not change the session id used by Emacs.
 The value is nil if no session manager is running.
 See also `x-session-previous-id', `emacs-save-session-functions',
-`emacs-session-save' and `emacs-session-restore'." */);
+`emacs-session-save' and `emacs-session-restore'.  */);
   Vx_session_id = Qnil;
 
   DEFVAR_LISP ("x-session-previous-id", Vx_session_previous_id,
@@ -568,7 +568,7 @@ The session id Emacs has while it is running is in the variable
 same, depending on how the session manager works.
 
 See also `emacs-save-session-functions', `emacs-session-save' and
-`emacs-session-restore'." */);
+`emacs-session-restore'.  */);
   Vx_session_previous_id = Qnil;
 
   defsubr (&Shandle_save_session);

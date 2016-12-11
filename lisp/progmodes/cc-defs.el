@@ -644,13 +644,14 @@ right side of it."
 	       `(c-safe (scan-lists ,from ,count ,depth)))))
     (if limit
 	`(save-restriction
-	   ,(if (numberp count)
-		(if (< count 0)
-		    `(narrow-to-region ,limit (point-max))
-		  `(narrow-to-region (point-min) ,limit))
-	      `(if (< ,count 0)
-		   (narrow-to-region ,limit (point-max))
-		 (narrow-to-region (point-min) ,limit)))
+	   (when ,limit
+	     ,(if (numberp count)
+		  (if (< count 0)
+		      `(narrow-to-region ,limit (point-max))
+		    `(narrow-to-region (point-min) ,limit))
+		`(if (< ,count 0)
+		     (narrow-to-region ,limit (point-max))
+		   (narrow-to-region (point-min) ,limit))))
 	   ,res)
       res)))
 
@@ -665,13 +666,8 @@ leave point unmoved.
 
 A LIMIT for the search may be given.  The start position is assumed to be
 before it."
-  (let ((res `(c-safe (goto-char (scan-lists ,(or pos `(point)) 1 0)) (point))))
-    (if limit
-	`(save-restriction
-	   (if ,limit
-	       (narrow-to-region (point-min) ,limit))
-	   ,res)
-      res)))
+  `(let ((dest (c-safe-scan-lists ,(or pos `(point)) 1 0 ,limit)))
+     (when dest (goto-char dest) dest)))
 
 (defmacro c-go-list-backward (&optional pos limit)
   "Move backward across one balanced group of parentheses starting at POS or
@@ -680,13 +676,8 @@ leave point unmoved.
 
 A LIMIT for the search may be given.  The start position is assumed to be
 after it."
-  (let ((res `(c-safe (goto-char (scan-lists ,(or pos `(point)) -1 0)) (point))))
-    (if limit
-	`(save-restriction
-	   (if ,limit
-	       (narrow-to-region ,limit (point-max)))
-	   ,res)
-      res)))
+  `(let ((dest (c-safe-scan-lists ,(or pos `(point)) -1 0 ,limit)))
+     (when dest (goto-char dest) dest)))
 
 (defmacro c-up-list-forward (&optional pos limit)
   "Return the first position after the list sexp containing POS,
@@ -727,12 +718,8 @@ position exists, otherwise nil is returned and the point isn't moved.
 
 A limit for the search may be given.  The start position is assumed to
 be before it."
-  (let ((res `(c-safe (goto-char (scan-lists ,(or pos `(point)) 1 1)) t)))
-    (if limit
-	`(save-restriction
-	   (narrow-to-region (point-min) ,limit)
-	   ,res)
-      res)))
+  `(let ((dest (c-up-list-forward ,pos ,limit)))
+     (when dest (goto-char dest) t)))
 
 (defmacro c-go-up-list-backward (&optional pos limit)
   "Move the point to the position of the start of the list sexp containing POS,
@@ -741,12 +728,8 @@ position exists, otherwise nil is returned and the point isn't moved.
 
 A limit for the search may be given.  The start position is assumed to
 be after it."
-  (let ((res `(c-safe (goto-char (scan-lists ,(or pos `(point)) -1 1)) t)))
-    (if limit
-	`(save-restriction
-	   (narrow-to-region ,limit (point-max))
-	   ,res)
-      res)))
+  `(let ((dest (c-up-list-backward ,pos ,limit)))
+     (when dest (goto-char dest) t)))
 
 (defmacro c-go-down-list-forward (&optional pos limit)
   "Move the point to the first position inside the first list sexp after POS,
@@ -755,12 +738,8 @@ exists, otherwise nil is returned and the point isn't moved.
 
 A limit for the search may be given.  The start position is assumed to
 be before it."
-  (let ((res `(c-safe (goto-char (scan-lists ,(or pos `(point)) 1 -1)) t)))
-    (if limit
-	`(save-restriction
-	   (narrow-to-region (point-min) ,limit)
-	   ,res)
-      res)))
+  `(let ((dest (c-down-list-forward ,pos ,limit)))
+     (when dest (goto-char dest) t)))
 
 (defmacro c-go-down-list-backward (&optional pos limit)
   "Move the point to the last position inside the last list sexp before POS,
@@ -769,13 +748,8 @@ exists, otherwise nil is returned and the point isn't moved.
 
 A limit for the search may be given.  The start position is assumed to
 be after it."
-  (let ((res `(c-safe (goto-char (scan-lists ,(or pos `(point)) -1 -1)) t)))
-    (if limit
-	`(save-restriction
-	   (narrow-to-region ,limit (point-max))
-	   ,res)
-      res)))
-
+  `(let ((dest (c-down-list-backward ,pos ,limit)))
+     (when dest (goto-char dest) t)))
 
 (defmacro c-beginning-of-defun-1 ()
   ;; Wrapper around beginning-of-defun.
@@ -1262,7 +1236,8 @@ been put there by c-put-char-property.  POINT remains unchanged."
 (def-edebug-spec c-clear-char-property t)
 (def-edebug-spec c-clear-char-properties t)
 (def-edebug-spec c-put-overlay t)
-(def-edebug-spec c-delete-overlay t) ;))
+(def-edebug-spec c-delete-overlay t)
+(def-edebug-spec c-self-bind-state-cache t);))
 
 
 ;;; Functions.
@@ -1401,7 +1376,43 @@ been put there by c-put-char-property.  POINT remains unchanged."
        (save-restriction
 	 (widen)
 	 (c-set-cpp-delimiters ,beg ,end)))))
-
+
+(defmacro c-self-bind-state-cache (&rest forms)
+  ;; Bind the state cache to itself and execute the FORMS.  Return the result
+  ;; of the last FORM executed.  It is assumed that no buffer changes will
+  ;; happen in FORMS, and no hidden buffer changes which could affect the
+  ;; parsing will be made by FORMS.
+  `(let* ((c-state-cache (copy-tree c-state-cache))
+	  (c-state-cache-good-pos c-state-cache-good-pos)
+	  ;(c-state-nonlit-pos-cache (copy-tree c-state-nonlit-pos-cache))
+          ;(c-state-nonlit-pos-cache-limit c-state-nonlit-pos-cache-limit)
+          ;(c-state-semi-nonlit-pos-cache (copy-tree c-state-semi-nonlit-pos-cache))
+          ;(c-state-semi-nonlit-pos-cache-limit c-state-semi-nonlit-pos-cache)
+	  (c-state-brace-pair-desert (copy-tree c-state-brace-pair-desert))
+	  (c-state-point-min c-state-point-min)
+	  (c-state-point-min-lit-type c-state-point-min-lit-type)
+	  (c-state-point-min-lit-start c-state-point-min-lit-start)
+	  (c-state-min-scan-pos c-state-min-scan-pos)
+	  (c-state-old-cpp-beg-marker (if (markerp c-state-old-cpp-beg-marker)
+					  (copy-marker c-state-old-cpp-beg-marker)
+					c-state-old-cpp-beg-marker))
+	  (c-state-old-cpp-beg (if (markerp c-state-old-cpp-beg)
+				   c-state-old-cpp-beg-marker
+				 c-state-old-cpp-beg))
+	  (c-state-old-cpp-end-marker (if (markerp c-state-old-cpp-end-marker)
+					  (copy-marker c-state-old-cpp-end-marker)
+					c-state-old-cpp-end-marker))
+	  (c-state-old-cpp-end (if (markerp c-state-old-cpp-end)
+				   c-state-old-cpp-end-marker
+				 c-state-old-cpp-end))
+	  (c-parse-state-state c-parse-state-state))
+     (prog1
+	 (progn ,@forms)
+       (if (markerp c-state-old-cpp-beg-marker)
+	   (move-marker c-state-old-cpp-beg-marker nil))
+       (if (markerp c-state-old-cpp-end-marker)
+	   (move-marker c-state-old-cpp-end-marker nil)))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; The following macros are to be used only in `c-parse-state' and its
 ;; subroutines.  Their main purpose is to simplify the handling of C++/Java

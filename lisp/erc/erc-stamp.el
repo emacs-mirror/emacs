@@ -347,7 +347,8 @@ changed, it will then print it off to the right."
 Return the empty string if FORMAT is nil."
   (if format
       (let ((ts (format-time-string format time)))
-	(erc-put-text-property 0 (length ts) 'face 'erc-timestamp-face ts)
+	(erc-put-text-property 0 (length ts)
+			       'font-lock-face 'erc-timestamp-face ts)
 	(erc-put-text-property 0 (length ts) 'invisible 'timestamp ts)
 	(erc-put-text-property 0 (length ts)
 			       'isearch-open-invisible 'timestamp ts)

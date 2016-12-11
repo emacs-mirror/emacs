@@ -32,7 +32,8 @@
   '((:hlines . "yes") (:colnames . "no"))
   "Default arguments for evaluating an emacs-lisp source block.")
 
-(declare-function orgtbl-to-generic "org-table" (table params))
+(declare-function orgtbl-to-generic "org-table"
+                  (table params &optional backend))
 
 (defun org-babel-expand-body:emacs-lisp (body params)
   "Expand BODY according to PARAMS, return the expanded body."

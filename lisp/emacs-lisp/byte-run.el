@@ -362,6 +362,9 @@ is equivalent to the following two lines of code:
 \(defalias \\='old-fun \\='new-fun \"old-fun's doc.\")
 \(make-obsolete \\='old-fun \\='new-fun \"22.1\")
 
+If provided, WHEN should be a string indicating when the function
+was first made obsolete, for example a date or a release number.
+
 See the docstrings of `defalias' and `make-obsolete' for more details."
   (declare (doc-string 4)
            (advertised-calling-convention
@@ -404,6 +407,9 @@ dumped with Emacs).  This is so that any user customizations are
 applied before the defcustom tries to initialize the
 variable (this is due to the way `defvaralias' works).
 
+If provided, WHEN should be a string indicating when the variable
+was first made obsolete, for example a date or a release number.
+
 For the benefit of `custom-set-variables', if OBSOLETE-NAME has
 any of the following properties, they are copied to
 CURRENT-NAME, if it does not already have them:
@@ -428,8 +434,8 @@ CURRENT-NAME, if it does not already have them:
 ;; It only really affects M-x describe-face output.
 (defmacro define-obsolete-face-alias (obsolete-face current-face when)
   "Make OBSOLETE-FACE a face alias for CURRENT-FACE and mark it obsolete.
-The string WHEN gives the Emacs version where OBSOLETE-FACE became
-obsolete."
+If provided, WHEN should be a string indicating when the face
+was first made obsolete, for example a date or a release number."
   `(progn
      (put ,obsolete-face 'face-alias ,current-face)
      ;; Used by M-x describe-face.

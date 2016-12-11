@@ -45,7 +45,7 @@
 				(condition-case nil
 				    (require 'url)
 				  (error nil)))
-  "*If non-nil, use external grab program `mm-url-program'."
+  "If non-nil, use external grab program `mm-url-program'."
   :version "22.1"
   :type 'boolean
   :group 'mm-url)
@@ -245,7 +245,7 @@ Likely values are `wget', `w3m', `lynx' and `curl'."
     ;; To be done
     ;; (shy      . ????) ; soft hyphen
     )
-  "*An assoc list of entity names and how to actually display them.")
+  "An assoc list of entity names and how to actually display them.")
 
 (defconst mm-url-unreserved-chars
   '(
@@ -402,43 +402,54 @@ spaces.  Die Die Die."
 
 (autoload 'mml-compute-boundary "mml")
 
-(defun mm-url-encode-multipart-form-data (pairs &optional boundary)
-  "Return PAIRS encoded in multipart/form-data."
+(defun mm-url-encode-multipart-form-data (data &optional boundary)
+  "Return DATA encoded in multipart/form-data.
+DATA is a list where the elements can have the following form:
+  (\"NAME\" . \"VALUE\")
+  (\"submit\")
+  (\"file\" . ((\"name\" . \"NAME\")
+             (\"filename\" . \"FILENAME\")
+             (\"content-type\" . \"CONTENT-TYPE\")
+             (\"filedata\" . \"FILEDATA\")))
+Lowercase strings above are literals and uppercase are not."
   ;; RFC1867
-  ;; Get a good boundary
+  ;; Get a good boundary.
   (unless boundary
     (setq boundary (mml-compute-boundary '())))
-  (concat
-   ;; Start with the boundary
-   "--" boundary "\r\n"
-   ;; Create name value pairs
-   (mapconcat
-    'identity
-    ;; Delete any returned items that are empty
-    (delq nil
-          (mapcar (lambda (data)
-                    (cond ((equal (car data) "file")
-                           ;; For each pair
-                           (format
-                            ;; Encode the name
-                            "Content-Disposition: form-data; name=%S; filename=%S\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Transfer-Encoding: binary\r\n\r\n%s"
-                            (cdr (assoc "name" (cdr data))) (cdr (assoc "filename" (cdr data)))
-                            (cond ((stringp (cdr (assoc "filedata" (cdr data))))
-                                   (cdr (assoc "filedata" (cdr data))))
-                                  ((integerp (cdr (assoc "filedata" (cdr data))))
-                                   (number-to-string (cdr (assoc "filedata" (cdr data))))))))
-                          ((equal (car data) "submit")
-                           "Content-Disposition: form-data; name=\"submit\"\r\n\r\nSubmit\r\n")
-                          (t
-                           (format
-                            "Content-Disposition: form-data;name=%S\r\n\r\n%s\r\n"
-                            (car data) (concat (mm-url-form-encode-xwfu (cdr data)))
-                            ))))
-                  pairs))
-    ;; use the boundary as a separator
-    (concat "\r\n--" boundary "\r\n"))
-   ;; put a boundary at the end.
-   "--" boundary "--\r\n"))
+  (with-temp-buffer
+    (set-buffer-multibyte nil)
+    (dolist (elem data)
+      (let ((name (car elem))
+	    (value (cdr elem)))
+	(insert "--" boundary "\r\n")
+	(cond
+	 ((equal name "file")
+	  (insert (format
+		   "Content-Disposition: form-data; name=%S; filename=%S\r\n"
+		   (or (cdr (assoc "name" value)) name)
+		   (cdr (assoc "filename" value))))
+	  (insert "Content-Transfer-Encoding: binary\r\n")
+	  (insert (format "Content-Type: %s\r\n\r\n"
+			  (or (cdr (assoc "content-type" value))
+			      "text/plain")))
+	  (let ((filedata (cdr (assoc "filedata" value))))
+	    (cond
+	     ((stringp filedata)
+	      (insert filedata))
+	     ;; How can this possibly be useful?
+	     ((integerp filedata)
+	      (insert (number-to-string filedata))))))
+	 ((equal name "submit")
+	  (insert
+	   "Content-Disposition: form-data; name=\"submit\"\r\n\r\nSubmit\r\n"))
+	 (t
+	  (insert (format "Content-Disposition: form-data; name=%S\r\n\r\n"
+			  name))
+	  (insert value)))
+	(unless (bolp)
+	  (insert "\r\n"))))
+    (insert "--" boundary "--\r\n")
+    (buffer-string)))
 
 (defun mm-url-remove-markup ()
   "Remove all HTML markup, leaving just plain text."

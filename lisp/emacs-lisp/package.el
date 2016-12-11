@@ -146,6 +146,7 @@
 (eval-when-compile (require 'subr-x))
 (eval-when-compile (require 'cl-lib))
 (eval-when-compile (require 'epg))      ;For setf accessors.
+(require 'seq)
 
 (require 'tabulated-list)
 (require 'macroexp)
@@ -301,10 +302,12 @@ contrast, `package-user-dir' contains packages for personal use."
   :risky t
   :version "24.1")
 
-(defvar epg-gpg-program)
+(declare-function epg-find-configuration "epg-config"
+                  (protocol &optional no-cache program-alist))
 
 (defcustom package-check-signature
-  (if (progn (require 'epg-config) (executable-find epg-gpg-program))
+  (if (and (require 'epg-config)
+           (epg-find-configuration 'OpenPGP))
       'allow-unsigned)
   "Non-nil means to check package signatures when installing.
 The value `allow-unsigned' means to still install a package even if
@@ -789,7 +792,7 @@ untar into a directory named DIR; otherwise, signal an error."
   (tar-mode)
   ;; Make sure everything extracts into DIR.
   (let ((regexp (concat "\\`" (regexp-quote (expand-file-name dir)) "/"))
-        (case-fold-search (memq system-type '(windows-nt ms-dos cygwin))))
+        (case-fold-search (file-name-case-insensitive-p dir)))
     (dolist (tar-data tar-parse-info)
       (let ((name (expand-file-name (tar-header-name tar-data))))
         (or (string-match regexp name)
@@ -1078,6 +1081,8 @@ The return result is a `package-desc'."
               (setq files nil)
               ;; set the 'dir kind,
               (setf (package-desc-kind info) 'dir))))
+        (unless info
+          (error "No .el files with package headers in `%s'" default-directory))
         ;; and return the info.
         info))))
 
@@ -1158,38 +1163,43 @@ errors signaled by ERROR-FORM or by BODY).
     (setq body (cdr (cdr body))))
   (macroexp-let2* nil ((url-1 url)
                        (noerror-1 noerror))
-    `(cl-macrolet ((unless-error (body-2 &rest before-body)
-                                 (let ((err (make-symbol "err")))
-                                   `(with-temp-buffer
-                                      (when (condition-case ,err
-                                                (progn ,@before-body t)
-                                              ,(list 'error ',error-form
-                                                     (list 'unless ',noerror-1
-                                                           `(signal (car ,err) (cdr ,err)))))
-                                        ,@body-2)))))
-       (if (string-match-p "\\`https?:" ,url-1)
-           (let* ((url (concat ,url-1 ,file))
-                  (callback (lambda (status)
-                              (let ((b (current-buffer)))
-                                (require 'url-handlers)
-                                (unless-error ,body
-                                              (when-let ((er (plist-get status :error)))
-                                                (error "Error retrieving: %s %S" url er))
-                                              (with-current-buffer b
-                                                (goto-char (point-min))
-                                                (unless (search-forward-regexp "^\r?\n\r?" nil 'noerror)
-                                                  (error "Error retrieving: %s %S" url "incomprehensible buffer")))
-                                              (url-insert-buffer-contents b url)
-                                              (kill-buffer b)
-                                              (goto-char (point-min)))))))
-             (if ,async
-                 (unless-error nil (url-retrieve url callback nil 'silent))
-               (unless-error ,body (url-insert-file-contents url))))
-         (unless-error ,body
-                       (let ((url (expand-file-name ,file ,url-1)))
-                         (unless (file-name-absolute-p url)
-                           (error "Location %s is not a url nor an absolute file name" url))
-                         (insert-file-contents url)))))))
+    (let ((url-sym (make-symbol "url"))
+          (b-sym (make-symbol "b-sym")))
+      `(cl-macrolet ((unless-error (body-2 &rest before-body)
+                                   (let ((err (make-symbol "err")))
+                                     `(with-temp-buffer
+                                        (when (condition-case ,err
+                                                  (progn ,@before-body t)
+                                                ,(list 'error ',error-form
+                                                       (list 'unless ',noerror-1
+                                                             `(signal (car ,err) (cdr ,err)))))
+                                          ,@body-2)))))
+         (if (string-match-p "\\`https?:" ,url-1)
+             (let ((,url-sym (concat ,url-1 ,file)))
+               (if ,async
+                   (unless-error nil
+                                 (url-retrieve ,url-sym
+                                               (lambda (status)
+                                                 (let ((,b-sym (current-buffer)))
+                                                   (require 'url-handlers)
+                                                   (unless-error ,body
+                                                                 (when-let ((er (plist-get status :error)))
+                                                                   (error "Error retrieving: %s %S" ,url-sym er))
+                                                                 (with-current-buffer ,b-sym
+                                                                   (goto-char (point-min))
+                                                                   (unless (search-forward-regexp "^\r?\n\r?" nil 'noerror)
+                                                                     (error "Error retrieving: %s %S" ,url-sym "incomprehensible buffer")))
+                                                                 (url-insert-buffer-contents ,b-sym ,url-sym)
+                                                                 (kill-buffer ,b-sym)
+                                                                 (goto-char (point-min)))))
+                                               nil
+                                               'silent))
+                 (unless-error ,body (url-insert-file-contents ,url-sym))))
+           (unless-error ,body
+                         (let ((url (expand-file-name ,file ,url-1)))
+                           (unless (file-name-absolute-p url)
+                             (error "Location %s is not a url nor an absolute file name" url))
+                           (insert-file-contents url))))))))
 
 (define-error 'bad-signature "Failed to verify signature")
 
@@ -1217,7 +1227,7 @@ errors."
           (unless (and (eq package-check-signature 'allow-unsigned)
                        (eq (epg-signature-status sig) 'no-pubkey))
             (setq had-fatal-error t))))
-      (when (and (null good-signatures) had-fatal-error)
+      (when (or (null good-signatures) had-fatal-error)
         (package--display-verify-error context sig-file)
         (signal 'bad-signature (list sig-file)))
       good-signatures)))
@@ -1429,7 +1439,10 @@ If `user-init-file' does not mention `(package-initialize)', add
 it to the file.
 If called as part of loading `user-init-file', set
 `package-enable-at-startup' to nil, to prevent accidentally
-loading packages twice."
+loading packages twice.
+It is not necessary to adjust `load-path' or `require' the
+individual packages after calling `package-initialize' -- this is
+taken care of by `package-initialize'."
   (interactive)
   (setq package-alist nil)
   (if (equal user-init-file load-file-name)
@@ -1456,8 +1469,6 @@ loading packages twice."
 (defvar package--downloads-in-progress nil
   "List of in-progress asynchronous downloads.")
 
-(declare-function epg-find-configuration "epg-config"
-                  (protocol &optional force))
 (declare-function epg-import-keys-from-file "epg" (context keys))
 
 ;;;###autoload
@@ -1557,12 +1568,6 @@ downloads in the background."
   (let ((default-keyring (expand-file-name "package-keyring.gpg"
                                            data-directory))
         (inhibit-message async))
-    (if (get 'package-check-signature 'saved-value)
-        (when package-check-signature
-          (epg-find-configuration 'OpenPGP))
-      (setq package-check-signature
-            (if (epg-find-configuration 'OpenPGP)
-                'allow-unsigned)))
     (when (and package-check-signature (file-exists-p default-keyring))
       (condition-case-unless-debug error
           (package-import-keyring default-keyring)
@@ -1870,6 +1875,7 @@ add a call to it along with some explanatory comments."
              (file-readable-p user-init-file)
              (file-writable-p user-init-file))
     (let* ((buffer (find-buffer-visiting user-init-file))
+           buffer-name
            (contains-init
             (if buffer
                 (with-current-buffer buffer
@@ -1885,8 +1891,12 @@ add a call to it along with some explanatory comments."
                 (re-search-forward "(package-initialize\\_>" nil 'noerror)))))
       (unless contains-init
         (with-current-buffer (or buffer
-                                 (let ((delay-mode-hooks t))
+                                 (let ((delay-mode-hooks t)
+                                       (find-file-visit-truename t))
                                    (find-file-noselect user-init-file)))
+          (when buffer
+            (setq buffer-name (buffer-file-name))
+            (set-visited-file-name (file-chase-links user-init-file)))
           (save-excursion
             (save-restriction
               (widen)
@@ -1905,7 +1915,10 @@ add a call to it along with some explanatory comments."
                 (insert "\n"))
               (let ((file-precious-flag t))
                 (save-buffer))
-              (unless buffer
+              (if buffer
+                  (progn
+                    (set-visited-file-name buffer-name)
+                    (set-buffer-modified-p nil))
                 (kill-buffer (current-buffer)))))))))
   (setq package--init-file-ensured t))
 
@@ -1989,7 +2002,8 @@ Downloads and installs required packages as needed."
             ((derived-mode-p 'tar-mode)
              (package-tar-file-info))
             (t
-             (package-buffer-info))))
+             (save-excursion
+              (package-buffer-info)))))
          (name (package-desc-name pkg-desc)))
     ;; Download and install the dependencies.
     (let* ((requires (package-desc-reqs pkg-desc))
@@ -2027,17 +2041,21 @@ If some packages are not installed propose to install them."
   ;; gets installed).
   (if (not package-selected-packages)
       (message "`package-selected-packages' is empty, nothing to install")
-    (cl-loop for p in package-selected-packages
-             unless (package-installed-p p)
-             collect p into lst
-             finally
-             (if lst
-                 (when (y-or-n-p
-                        (format "%s packages will be installed:\n%s, proceed?"
-                          (length lst)
-                          (mapconcat #'symbol-name lst ", ")))
-                   (mapc #'package-install lst))
-               (message "All your packages are already installed")))))
+    (let* ((not-installed (seq-remove #'package-installed-p package-selected-packages))
+           (available (seq-filter (lambda (p) (assq p package-archive-contents)) not-installed))
+           (difference (- (length not-installed) (length available))))
+      (cond
+       (available
+        (when (y-or-n-p
+               (format "%s packages will be installed:\n%s, proceed?"
+                       (length available)
+                       (mapconcat #'symbol-name available ", ")))
+          (mapc (lambda (p) (package-install p 'dont-select)) available)))
+       ((> difference 0)
+        (message "%s packages are not available (the rest already installed), maybe you need to `M-x package-refresh-contents'"
+                 difference))
+       (t
+        (message "All your packages are already installed"))))))
 
 
 ;;; Package Deletion
@@ -2243,13 +2261,13 @@ Otherwise no newline is inserted."
     (package--print-help-section "Status")
     (cond (built-in
            (insert (propertize (capitalize status)
-                               'font-lock-face 'package-status-builtin-face)
+                               'font-lock-face 'package-status-built-in)
                    "."))
           (pkg-dir
            (insert (propertize (if (member status '("unsigned" "dependency"))
                                    "Installed"
                                  (capitalize status))
-                               'font-lock-face 'package-status-builtin-face))
+                               'font-lock-face 'package-status-built-in))
            (insert (substitute-command-keys " in `"))
            (let ((dir (abbreviate-file-name
                        (file-name-as-directory
@@ -2262,7 +2280,7 @@ Otherwise no newline is inserted."
                (insert (substitute-command-keys
                         "',\n             shadowing a ")
                        (propertize "built-in package"
-                                   'font-lock-face 'package-status-builtin-face))
+                                   'font-lock-face 'package-status-built-in))
              (insert (substitute-command-keys "'")))
            (if signed
                (insert ".")
@@ -2814,13 +2832,14 @@ Return (PKG-DESC [NAME VERSION STATUS DOC])."
   "Face used on package description summaries in the package menu."
   :version "25.1")
 
+;; Shame this hyphenates "built-in", when "font-lock-builtin-face" doesn't.
 (defface package-status-built-in
   '((t :inherit font-lock-builtin-face))
   "Face used on the status and version of built-in packages."
   :version "25.1")
 
 (defface package-status-external
-  '((t :inherit package-status-builtin-face))
+  '((t :inherit package-status-built-in))
   "Face used on the status and version of external packages."
   :version "25.1")
 

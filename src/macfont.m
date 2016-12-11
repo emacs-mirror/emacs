@@ -1,4 +1,4 @@
-/* Font driver on Mac OSX Core text.
+/* Font driver on macOS Core text.
    Copyright (C) 2009-2016 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -37,8 +37,6 @@ Original author: YAMAMOTO Mitsuharu
 #include "macuvs.h"
 
 #include <libkern/OSByteOrder.h>
-
-static struct font_driver macfont_driver;
 
 static double mac_font_get_advance_width_for_glyph (CTFontRef, CGGlyph);
 static CGRect mac_font_get_bounding_rect_for_glyph (CTFontRef, CGGlyph);
@@ -893,7 +891,7 @@ macfont_descriptor_entity (CTFontDescriptorRef desc, Lisp_Object extra,
 
   entity = font_make_entity ();
 
-  ASET (entity, FONT_TYPE_INDEX, macfont_driver.type);
+  ASET (entity, FONT_TYPE_INDEX, Qmac_ct);
   ASET (entity, FONT_REGISTRY_INDEX, Qiso10646_1);
 
   macfont_store_descriptor_attributes (desc, entity);
@@ -1005,7 +1003,7 @@ macfont_set_family_cache (Lisp_Object symbol, CFStringRef string)
 and those start with ".".  NULL means the cache has been invalidated.
 Otherwise, the value is CFArray of CFStrings and the elements are
 sorted in the canonical order (CTFontManagerCompareFontFamilyNames on
-OS X 10.6 and later).  */
+Mac OS X 10.6 and later).  */
 
 static CFArrayRef macfont_available_families_cache = NULL;
 
@@ -1663,34 +1661,23 @@ static int macfont_variation_glyphs (struct font *, int c,
                                      unsigned variations[256]);
 static void macfont_filter_properties (Lisp_Object, Lisp_Object);
 
-static struct font_driver macfont_driver =
+static struct font_driver const macfont_driver =
   {
-    LISP_INITIALLY_ZERO,	/* Qmac_ct */
-    0,				/* case insensitive */
-    macfont_get_cache,
-    macfont_list,
-    macfont_match,
-    macfont_list_family,
-    macfont_free_entity,
-    macfont_open,
-    macfont_close,
-    NULL,			/* prepare_face */
-    NULL,			/* done_face */
-    macfont_has_char,
-    macfont_encode_char,
-    macfont_text_extents,
-    macfont_draw,
-    NULL,			/* get_bitmap */
-    NULL,			/* free_bitmap */
-    NULL,			/* anchor_point */
-    NULL,			/* otf_capability */
-    NULL,			/* otf_drive */
-    NULL,			/* start_for_frame */
-    NULL,			/* end_for_frame */
-    macfont_shape,
-    NULL,			/* check */
-    macfont_variation_glyphs,
-    macfont_filter_properties,
+  type: LISPSYM_INITIALLY (Qmac_ct),
+  get_cache: macfont_get_cache,
+  list: macfont_list,
+  match: macfont_match,
+  list_family: macfont_list_family,
+  free_entity: macfont_free_entity,
+  open: macfont_open,
+  close: macfont_close,
+  has_char: macfont_has_char,
+  encode_char: macfont_encode_char,
+  text_extents: macfont_text_extents,
+  draw: macfont_draw,
+  shape: macfont_shape,
+  get_variation_glyphs: macfont_variation_glyphs,
+  filter_properties: macfont_filter_properties,
   };
 
 static Lisp_Object
@@ -2373,9 +2360,9 @@ macfont_list (struct frame *f, Lisp_Object spec)
                   != (spacing >= FONT_SPACING_MONO)))
             continue;
 
-          /* Don't use a color bitmap font unless its family is
-             explicitly specified.  */
-          if ((sym_traits & kCTFontTraitColorGlyphs) && NILP (family))
+          /* Don't use a color bitmap font until it is supported on
+	     free platforms.  */
+          if (sym_traits & kCTFontTraitColorGlyphs)
             continue;
 
           if (j > 0
@@ -2856,7 +2843,8 @@ macfont_draw (struct glyph_string *s, int from, int to, int x, int y,
     {
       if (s->hl == DRAW_MOUSE_FACE)
         {
-          face = FACE_FROM_ID (s->f, MOUSE_HL_INFO (s->f)->mouse_face_face_id);
+          face = FACE_FROM_ID_OR_NULL (s->f,
+				       MOUSE_HL_INFO (s->f)->mouse_face_face_id);
           if (!face)
             face = FACE_FROM_ID (s->f, MOUSE_FACE_ID);
         }
@@ -2877,7 +2865,19 @@ macfont_draw (struct glyph_string *s, int from, int to, int x, int y,
       if (macfont_info->synthetic_bold_p && ! no_antialias_p)
         {
           CGContextSetTextDrawingMode (context, kCGTextFillStroke);
+
+          /* Stroke line width for text drawing is not correctly
+             scaled on Retina display/HiDPI mode when drawn to screen
+             (whereas it is correctly scaled when drawn to bitmaps),
+             and synthetic bold looks thinner on such environments.
+             Apple says there are no plans to address this issue
+             (rdar://11644870) currently.  So we add a workaround.  */
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
+          CGContextSetLineWidth (context, synthetic_bold_factor * font_size
+                                 * [[FRAME_NS_VIEW(f) window] backingScaleFactor]);
+#else
           CGContextSetLineWidth (context, synthetic_bold_factor * font_size);
+#endif
           CG_SET_STROKE_COLOR_WITH_FACE_FOREGROUND (context, face, f);
         }
       if (no_antialias_p)
@@ -3766,6 +3766,7 @@ mac_font_shape (CTFontRef font, CFStringRef string,
             {
               struct mac_glyph_layout *gl;
               CGPoint position;
+	      CGFloat max_x;
 
               if (!RIGHT_TO_LEFT_P)
                 gl = glbuf + range.location;
@@ -3787,12 +3788,13 @@ mac_font_shape (CTFontRef font, CFStringRef string,
               CTRunGetGlyphs (ctrun, range, &gl->glyph_id);
 
               CTRunGetPositions (ctrun, range, &position);
+	      max_x = position.x + CTRunGetTypographicBounds (ctrun, range,
+							      NULL, NULL, NULL);
+	      max_x = max (max_x, total_advance);
               gl->advance_delta = position.x - total_advance;
               gl->baseline_delta = position.y;
-              gl->advance = (gl->advance_delta
-                             + CTRunGetTypographicBounds (ctrun, range,
-                                                          NULL, NULL, NULL));
-              total_advance += gl->advance;
+              gl->advance = max_x - total_advance;
+              total_advance = max_x;
             }
 
           if (RIGHT_TO_LEFT_P)
@@ -4042,9 +4044,8 @@ mac_register_font_driver (struct frame *f)
 void
 syms_of_macfont (void)
 {
-  /* Core Text, for Mac OS X.  */
+  /* Core Text, for macOS.  */
   DEFSYM (Qmac_ct, "mac-ct");
-  macfont_driver.type = Qmac_ct;
   register_font_driver (&macfont_driver, NULL);
 
   /* The font property key specifying the font design destination.  The

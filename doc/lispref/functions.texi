@@ -143,6 +143,37 @@ function, i.e., can be passed to @code{funcall}.  Note that
 and returns @code{nil} for special forms.
 @end defun
 
+  It is also possible to find out how many arguments an arbitrary
+function expects:
+
+@defun func-arity function
+This function provides information about the argument list of the
+specified @var{function}.  The returned value is a cons cell of the
+form @w{@code{(@var{min} . @var{max})}}, where @var{min} is the
+minimum number of arguments, and @var{max} is either the maximum
+number of arguments, or the symbol @code{many} for functions with
+@code{&rest} arguments, or the symbol @code{unevalled} if
+@var{function} is a special form.
+
+Note that this function might return inaccurate results in some
+situations, such as the following:
+
+@itemize @minus
+@item
+Functions defined using @code{apply-partially} (@pxref{Calling
+Functions, apply-partially}).
+
+@item
+Functions that are advised using @code{advice-add} (@pxref{Advising
+Named Functions}).
+
+@item
+Functions that determine the argument list dynamically, as part of
+their code.
+@end itemize
+
+@end defun
+
 @noindent
 Unlike @code{functionp}, the next three functions do @emph{not} treat
 a symbol as its function definition.
@@ -176,12 +207,9 @@ function.  For example:
 @end defun
 
 @defun subr-arity subr
-This function provides information about the argument list of a
-primitive, @var{subr}.  The returned value is a pair
-@code{(@var{min} . @var{max})}.  @var{min} is the minimum number of
-args.  @var{max} is the maximum number or the symbol @code{many}, for a
-function with @code{&rest} arguments, or the symbol @code{unevalled} if
-@var{subr} is a special form.
+This works like @code{func-arity}, but only for built-in functions and
+without symbol indirection.  It signals an error for non-built-in
+functions.  We recommend to use @code{func-arity} instead.
 @end defun
 
 @node Lambda Expressions
@@ -318,7 +346,8 @@ stored as symbol function definitions to produce named functions
   Our simple sample function, @code{(lambda (a b c) (+ a b c))},
 specifies three argument variables, so it must be called with three
 arguments: if you try to call it with only two arguments or four
-arguments, you get a @code{wrong-number-of-arguments} error.
+arguments, you get a @code{wrong-number-of-arguments} error
+(@pxref{Errors}).
 
   It is often convenient to write a function that allows certain
 arguments to be omitted.  For example, the function @code{substring}
@@ -2144,44 +2173,48 @@ Byte-compiling a file often produces warnings about functions that the
 compiler doesn't know about (@pxref{Compiler Errors}).  Sometimes this
 indicates a real problem, but usually the functions in question are
 defined in other files which would be loaded if that code is run.  For
-example, byte-compiling @file{fortran.el} used to warn:
+example, byte-compiling @file{simple.el} used to warn:
 
 @example
-In end of data:
-fortran.el:2152:1:Warning: the function ‘gud-find-c-expr’ is not
-    known to be defined.
+simple.el:8727:1:Warning: the function ‘shell-mode’ is not known to be
+    defined.
 @end example
 
-In fact, @code{gud-find-c-expr} is only used in the function that
-Fortran mode uses for the local value of
-@code{gud-find-expr-function}, which is a callback from GUD; if it is
-called, the GUD functions will be loaded.  When you know that such a
-warning does not indicate a real problem, it is good to suppress the
-warning.  That makes new warnings which might mean real problems more
-visible.  You do that with @code{declare-function}.
+In fact, @code{shell-mode} is used only in a function that executes
+@code{(require 'shell)} before calling @code{shell-mode}, so
+@code{shell-mode} will be defined properly at run-time.  When you know
+that such a warning does not indicate a real problem, it is good to
+suppress the warning.  That makes new warnings which might mean real
+problems more visible.  You do that with @code{declare-function}.
 
 All you need to do is add a @code{declare-function} statement before the
 first use of the function in question:
 
 @example
-(declare-function gud-find-c-expr "gud.el" nil)
+(declare-function shell-mode "shell" ())
 @end example
 
-This says that @code{gud-find-c-expr} is defined in @file{gud.el} (the
+This says that @code{shell-mode} is defined in @file{shell.el} (the
 @samp{.el} can be omitted).  The compiler takes for granted that that file
 really defines the function, and does not check.
 
   The optional third argument specifies the argument list of
-@code{gud-find-c-expr}.  In this case, it takes no arguments
+@code{shell-mode}.  In this case, it takes no arguments
 (@code{nil} is different from not specifying a value).  In other
 cases, this might be something like @code{(file &optional overwrite)}.
 You don't have to specify the argument list, but if you do the
 byte compiler can check that the calls match the declaration.
 
 @defmac declare-function function file &optional arglist fileonly
-Tell the byte compiler to assume that @var{function} is defined, with
-arguments @var{arglist}, and that the definition should come from the
-file @var{file}.  @var{fileonly} non-@code{nil} means only check that
+Tell the byte compiler to assume that @var{function} is defined in the
+file @var{file}.  The optional third argument @var{arglist} is either
+@code{t}, meaning the argument list is unspecified, or a list of
+formal parameters in the same style as @code{defun}.  An omitted
+@var{arglist} defaults to @code{t}, not @code{nil}; this is atypical
+behavior for omitted arguments, and it means that to supply a fourth
+but not third argument one must specify @code{t} for the third-argument
+placeholder instead of the usual @code{nil}.  The optional fourth
+argument @var{fileonly} non-@code{nil} means check only that
 @var{file} exists, not that it actually defines @var{function}.
 @end defmac
 

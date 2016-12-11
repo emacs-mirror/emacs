@@ -1,11 +1,11 @@
 {
-    ApplicationDescription = "GNU Emacs for GNUstep / OS X";
+    ApplicationDescription = "GNU Emacs for GNUstep / macOS";
     ApplicationIcon = emacs.tiff;
     ApplicationName = Emacs;
     ApplicationRelease = "@version@";
     Authors = (
 	"Adrian Robert (GNUstep)",
-	"Christophe de Dinechin (MacOS X)",
+	"Christophe de Dinechin (macOS)",
 	"Scott Bender (OpenStep)",
 	"Christian Limpach (NeXTstep)",
 	"Carl Edman (NeXTstep)",

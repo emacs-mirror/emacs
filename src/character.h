@@ -237,7 +237,8 @@ enum
 #define CHAR_HEAD_P(byte) (((byte) & 0xC0) != 0x80)
 
 /* How many bytes a character that starts with BYTE occupies in a
-   multibyte form.  */
+   multibyte form.  Unlike MULTIBYTE_LENGTH below, this macro does not
+   validate the multibyte form, but looks only at its first byte.  */
 #define BYTES_BY_CHAR_HEAD(byte)	\
   (!((byte) & 0x80) ? 1			\
    : !((byte) & 0x20) ? 2		\
@@ -247,7 +248,9 @@ enum
 
 
 /* The byte length of multibyte form at unibyte string P ending at
-   PEND.  If STR doesn't point to a valid multibyte form, return 0.  */
+   PEND.  If the string doesn't point to a valid multibyte form,
+   return 0.  Unlike BYTES_BY_CHAR_HEAD, this macro validates the
+   multibyte form.  */
 
 #define MULTIBYTE_LENGTH(p, pend)				\
   (p >= pend ? 0						\
@@ -263,7 +266,8 @@ enum
    : 0)
 
 
-/* Like MULTIBYTE_LENGTH, but don't check the ending address.  */
+/* Like MULTIBYTE_LENGTH, but don't check the ending address.  The
+   multibyte form is still validated, unlike BYTES_BY_CHAR_HEAD.  */
 
 #define MULTIBYTE_LENGTH_NO_CHECK(p)			\
   (!((p)[0] & 0x80) ? 1					\
@@ -304,10 +308,7 @@ enum
       }									\
   } while (false)
 
-/* Return the character code of character whose multibyte form is at
-   P.  Note that this macro unifies CJK characters whose codepoints
-   are in the Private Use Areas (PUAs), so it might return a different
-   codepoint from the one actually stored at P.  */
+/* Return the character code of character whose multibyte form is at P.  */
 
 #define STRING_CHAR(p)						\
   (!((p)[0] & 0x80)						\
@@ -324,15 +325,7 @@ enum
 
 
 /* Like STRING_CHAR, but set ACTUAL_LEN to the length of multibyte
-   form.
-
-   Note: This macro returns the actual length of the character's
-   multibyte sequence as it is stored in a buffer or string.  The
-   character it returns might have a different codepoint that has a
-   different multibyte sequence of a different length, due to possible
-   unification of CJK characters inside string_char.  Therefore do NOT
-   assume that the length returned by this macro is identical to the
-   length of the multibyte sequence of the character it returns.  */
+   form.  */
 
 #define STRING_CHAR_AND_LENGTH(p, actual_len)			\
   (!((p)[0] & 0x80)						\
@@ -595,9 +588,10 @@ sanitize_char_width (EMACS_INT width)
 
 /* Return the width of character C.  The width is measured by how many
    columns C will occupy on the screen when displayed in the current
-   buffer.  */
+   buffer.  The name CHARACTER_WIDTH avoids a collision with <limits.h>
+   CHAR_WIDTH when enabled; see ISO/IEC TS 18661-1:2014.  */
 
-#define CHAR_WIDTH(c)		\
+#define CHARACTER_WIDTH(c)	\
   (ASCII_CHAR_P (c)		\
    ? ASCII_CHAR_WIDTH (c)	\
    : sanitize_char_width (XINT (CHAR_TABLE_REF (Vchar_width_table, c))))
@@ -612,14 +606,13 @@ sanitize_char_width (EMACS_INT width)
    : (c) <= 0xE01EF ? (c) - 0xE0100 + 17	\
    : 0)
 
-/* If C is a high surrogate, return 1.  If C is a low surrogate,
-   return 2.  Otherwise, return 0.  */
+/* Return true if C is a surrogate.  */
 
-#define CHAR_SURROGATE_PAIR_P(c)	\
-  ((c) < 0xD800 ? 0			\
-   : (c) <= 0xDBFF ? 1			\
-   : (c) <= 0xDFFF ? 2			\
-   : 0)
+INLINE bool
+char_surrogate_p (int c)
+{
+  return 0xD800 <= c && c <= 0xDFFF;
+}
 
 /* Data type for Unicode general category.
 
@@ -684,7 +677,7 @@ extern Lisp_Object Vchar_unify_table;
 extern Lisp_Object string_escape_byte8 (Lisp_Object);
 
 extern bool alphabeticp (int);
-extern bool decimalnump (int);
+extern bool alphanumericp (int);
 extern bool graphicp (int);
 extern bool printablep (int);
 

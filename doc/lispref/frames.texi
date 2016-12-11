@@ -764,7 +764,7 @@ its size using the @code{height} and @code{width} parameters
 with sizes and positions.  For all of these functions the argument
 @var{frame} must denote a live frame and defaults to the selected frame.
 
-@defun frame-position &optional Lisp_Object &optional frame
+@defun frame-position &optional frame
 This function returns the outer position (@pxref{Frame Layout}) of
 @var{frame} in pixels.  The value is a cons giving the coordinates of
 the top left corner of the outer frame of @var{frame} relative to an
@@ -772,9 +772,9 @@ origin at the position (0, 0) of the frame's display.  On a text
 terminal frame both values are zero.
 @end defun
 
-@defun set-frame-position frame X Y
-This function sets the outer frame position of @var{frame} to @var{X}
-and @var{Y}.  The latter arguments specify pixels and normally count
+@defun set-frame-position frame x y
+This function sets the outer frame position of @var{frame} to @var{x}
+and @var{y}.  The latter arguments specify pixels and normally count
 from an origin at the position (0, 0) of @var{frame}'s display.
 
 A negative parameter value positions the right edge of the outer frame
@@ -1539,6 +1539,13 @@ prevent hanging with those window managers.
 If non-@code{nil}, the frame is visible on all virtual desktops on systems
 with virtual desktops.
 
+@vindex inhibit-double-buffering, a frame parameter
+@item inhibit-double-buffering
+If non-@code{nil}, the frame is drawn to the screen without double buffering.
+Emacs normally attempts to use double buffering, where available, to
+reduce flicker.  Set this property if you experience display bugs or
+pine for that retro, flicker-y feeling.
+
 @ignore
 @vindex parent-id, a frame parameter
 @item parent-id
@@ -1904,10 +1911,11 @@ to it.
 
 @deffn Command delete-frame &optional frame force
 @vindex delete-frame-functions
-This function deletes the frame @var{frame}.  Unless @var{frame} is a
-tooltip, it first runs the hook @code{delete-frame-functions} (each
-function gets one argument, @var{frame}).  By default, @var{frame} is
-the selected frame.
+This function deletes the frame @var{frame}.  The argument @var{frame}
+must specify a live frame (see below) and defaults to the selected
+frame.  Unless @var{frame} specifies a tooltip, this function first runs
+the hook @code{delete-frame-functions} (each function getting one
+argument, @var{frame}).
 
 A frame cannot be deleted as long as its minibuffer serves as surrogate
 minibuffer for another frame (@pxref{Minibuffers and Frames}).
@@ -1916,9 +1924,9 @@ but if @var{force} is non-@code{nil}, then you are allowed to do so.
 @end deffn
 
 @defun frame-live-p frame
-The function @code{frame-live-p} returns non-@code{nil} if the frame
-@var{frame} has not been deleted.  The possible non-@code{nil} return
-values are like those of @code{framep}.  @xref{Frames}.
+This function returns non-@code{nil} if the frame @var{frame} has not
+been deleted.  The possible non-@code{nil} return values are like those
+of @code{framep}.  @xref{Frames}.
 @end defun
 
   Some window managers provide a command to delete a window.  These work
@@ -1926,6 +1934,15 @@ by sending a special message to the program that operates the window.
 When Emacs gets one of these commands, it generates a
 @code{delete-frame} event, whose normal definition is a command that
 calls the function @code{delete-frame}.  @xref{Misc Events}.
+
+@deffn Command delete-other-frames &optional frame
+This command deletes all frames on @var{frame}'s terminal, except
+@var{frame}.  If @var{frame} uses another frame's minibuffer, that
+minibuffer frame is left untouched.  The argument @var{frame} must
+specify a live frame and defaults to the selected frame.  Internally,
+this command works by calling @code{delete-frame} with @var{force}
+@code{nil} for all frames that shall be deleted.
+@end deffn
 
 @node Finding All Frames
 @section Finding All Frames
@@ -1946,11 +1963,11 @@ visible, even though only the selected one is actually displayed.
 @end defun
 
 @defun next-frame &optional frame minibuf
-This function lets you cycle conveniently through all the frames on
-the current display from an arbitrary starting point.  It returns the
-next frame after @var{frame} in the cycle.  If @var{frame} is
-omitted or @code{nil}, it defaults to the selected frame (@pxref{Input
-Focus}).
+This function lets you cycle conveniently through all the frames on a
+specific terminal from an arbitrary starting point.  It returns the
+frame following @var{frame}, in the list of all live frames, on
+@var{frame}'s terminal.  The argument @var{frame} must specify a live
+frame and defaults to the selected frame.
 
 The second argument, @var{minibuf}, says which frames to consider:
 
@@ -1982,8 +1999,7 @@ Window Ordering}.
 
 Normally, each frame has its own minibuffer window at the bottom, which
 is used whenever that frame is selected.  If the frame has a minibuffer,
-you can get it with @code{minibuffer-window} (@pxref{Definition of
-minibuffer-window}).
+you can get it with @code{minibuffer-window} (@pxref{Minibuffer Windows}).
 
 @cindex frame without a minibuffer
 @cindex surrogate minibuffer frame
@@ -2200,6 +2216,12 @@ Parameters}.  The user can also iconify and deiconify frames with the
 window manager.  This happens below the level at which Emacs can exert
 any control, but Emacs does provide events that you can use to keep
 track of such changes.  @xref{Misc Events}.
+
+@defun x-double-buffered-p &optional frame
+This function returns non-@code{nil} if @var{frame} is currently
+being rendered with double buffering.  @var{frame} defaults to the
+selected frame.
+@end defun
 
 @node Raising and Lowering
 @section Raising and Lowering Frames

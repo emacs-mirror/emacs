@@ -148,6 +148,11 @@ the beginning:
 You may wish to add such a statement to your init file, if you
 make frequent use of features from this package.
 
+Code that only uses macros from this package can enclose the above in
+@code{eval-when-compile}.  Internally, this library is divided into
+several files, @pxref{Organization}.  Your code should only ever load
+the main @file{cl-lib} file, which will load the others as needed.
+
 @node Organization
 @section Organization
 
@@ -1481,7 +1486,7 @@ for a description of type specifiers.  For example,
 (cl-typecase x
   (integer (munch-integer x))
   (float (munch-float x))
-  (string (munch-integer (string-to-int x)))
+  (string (munch-integer (string-to-number x)))
   (t (munch-anything x)))
 @end example
 
@@ -3364,7 +3369,7 @@ was @code{nil} for all elements.
 @defun cl-notevery predicate seq &rest more-seqs
 This function calls @var{predicate} on each element of the sequence(s)
 in turn; it returns a non-@code{nil} value as soon as @var{predicate}
-returns @code{nil} for any element, or @code{t} if the predicate was
+returns @code{nil} for any element, or @code{nil} if the predicate was
 true for all elements.
 @end defun
 
@@ -4501,8 +4506,9 @@ referenced by @code{cl-return} or @code{cl-return-from} inside the block.
 @appendix Common Lisp Compatibility
 
 @noindent
-The following is a list of all known incompatibilities between this
-package and Common Lisp as documented in Steele (2nd edition).
+The following is a list of some of the most important
+incompatibilities between this package and Common Lisp as documented
+in Steele (2nd edition).
 
 The word @code{cl-defun} is required instead of @code{defun} in order
 to use extended Common Lisp argument lists in a function.  Likewise,

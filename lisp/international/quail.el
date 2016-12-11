@@ -1333,7 +1333,15 @@ If STR has `advice' text property, append the following special event:
 
 (defun quail-input-method (key)
   (if (or buffer-read-only
-	  overriding-terminal-local-map
+	  (and overriding-terminal-local-map
+               ;; If the overriding map is `universal-argument-map', that
+               ;; must mean the user has pressed 'C-u KEY'.  If KEY has a
+               ;; binding in `universal-argument-map' just return
+               ;; (list KEY), otherwise act as if there was no
+               ;; overriding map.
+               (or (not (eq (cadr overriding-terminal-local-map)
+                            universal-argument-map))
+                   (lookup-key overriding-terminal-local-map (vector key))))
 	  overriding-local-map)
       (list key)
     (quail-setup-overlays (quail-conversion-keymap))

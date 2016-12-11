@@ -1133,7 +1133,8 @@ The patch itself.
 Use @samp{diff -u} to make your diffs.  Diffs without context are hard
 to install reliably.  More than that, they are hard to study; we must
 always study a patch to decide whether we want to install it.  Context
-format is better than contextless diffs, but we prefer we unified format.
+format is better than contextless diffs, but we prefer the unified
+format.
 
 If you have GNU diff, use @samp{diff -u -F'^[_a-zA-Z0-9$]\+ *('} when
 making diffs of C code.  This shows the name of the function that each
@@ -1178,7 +1179,7 @@ see
 @url{http://www.gnu.org/prep/standards/html_node/Change-Log-Concepts.html},
 @end ifset
 @xref{Change Log Concepts, Change Log Concepts,
-Change Log Concepts, gnu-coding-standards, GNU Coding Standards}.
+Change Log Concepts, standards, GNU Coding Standards}.
 
 @item
 When you write the fix, keep in mind that we can't install a change that
@@ -1362,7 +1363,7 @@ Appendix, elisp, Emacs Lisp Reference}.
 @end ifclear
 
 @item
-Avoid using @code{defadvice} or @code{eval-after-load} for Lisp code
+Avoid using @code{defadvice} or @code{with-eval-after-load} for Lisp code
 to be included in Emacs.
 
 @item

@@ -344,53 +344,35 @@ This macro is used to test if macroexpansion in `should' works."
        ((error)
         (should (equal actual-condition expected-condition)))))))
 
+(defun ert-test--which-file ()
+  "Dummy function to help test `symbol-file' for tests.")
+
 (ert-deftest ert-test-deftest ()
-  ;; FIXME: These tests don't look very good.  What is their intent, i.e. what
-  ;; are they really testing?  The precise generated code shouldn't matter, so
-  ;; we should either test the behavior of the code, or else try to express the
-  ;; kind of efficiency guarantees we're looking for.
-  (should (equal (macroexpand '(ert-deftest abc () "foo" :tags '(bar)))
-		 '(progn
-		    (ert-set-test 'abc
-				  (progn
-				    "Constructor for objects of type `ert-test'."
-				    (vector 'cl-struct-ert-test 'abc "foo"
-					    #'(lambda nil)
-					    nil ':passed
-					    '(bar))))
-		    (setq current-load-list
-			  (cons
-			   '(ert-deftest . abc)
-			   current-load-list))
-		    'abc)))
-  (should (equal (macroexpand '(ert-deftest def ()
-                                 :expected-result ':passed))
-		 '(progn
-		    (ert-set-test 'def
-				  (progn
-				    "Constructor for objects of type `ert-test'."
-				    (vector 'cl-struct-ert-test 'def nil
-					    #'(lambda nil)
-					    nil ':passed 'nil)))
-		    (setq current-load-list
-			  (cons
-			   '(ert-deftest . def)
-			   current-load-list))
-		    'def)))
+  (ert-deftest ert-test-abc () "foo" :tags '(bar))
+  (let ((abc (ert-get-test 'ert-test-abc)))
+    (should (equal (ert-test-tags abc) '(bar)))
+    (should (equal (ert-test-documentation abc) "foo")))
+  (should (equal (symbol-file 'ert-test-deftest 'ert-deftest)
+                 (symbol-file 'ert-test--which-file 'defun)))
+
+  (ert-deftest ert-test-def () :expected-result ':passed)
+  (let ((def (ert-get-test 'ert-test-def)))
+    (should (equal (ert-test-expected-result-type def) :passed)))
   ;; :documentation keyword is forbidden
   (should-error (macroexpand '(ert-deftest ghi ()
                                 :documentation "foo"))))
 
 (ert-deftest ert-test-record-backtrace ()
-  (let ((test (make-ert-test :body (lambda () (ert-fail "foo")))))
-    (let ((result (ert-run-test test)))
-      (should (ert-test-failed-p result))
-      (with-temp-buffer
-        (ert--print-backtrace (ert-test-failed-backtrace result))
-        (goto-char (point-min))
-	(end-of-line)
-	(let ((first-line (buffer-substring-no-properties (point-min) (point))))
-	  (should (equal first-line "  (closure (ert--test-body-was-run t) nil (ert-fail \"foo\"))()")))))))
+  (let* ((test-body (lambda () (ert-fail "foo")))
+         (test (make-ert-test :body test-body))
+         (result (ert-run-test test)))
+    (should (ert-test-failed-p result))
+    (with-temp-buffer
+      (ert--print-backtrace (ert-test-failed-backtrace result))
+      (goto-char (point-min))
+      (end-of-line)
+      (let ((first-line (buffer-substring-no-properties (point-min) (point))))
+        (should (equal first-line (format "  %S()" test-body)))))))
 
 (ert-deftest ert-test-messages ()
   :tags '(:causes-redisplay)
@@ -837,7 +819,3 @@ This macro is used to test if macroexpansion in `should' works."
 (provide 'ert-tests)
 
 ;;; ert-tests.el ends here
-
-;; Local Variables:
-;; no-byte-compile: t
-;; End:

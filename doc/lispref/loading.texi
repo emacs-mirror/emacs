@@ -161,8 +161,8 @@ load was done for the sake of @code{autoload}, any function definitions
 made during the loading are undone.
 
 @kindex file-error
-If @code{load} can't find the file to load, then normally it signals the
-error @code{file-error} (with @samp{Cannot open load file
+If @code{load} can't find the file to load, then normally it signals a
+@code{file-error} (with @samp{Cannot open load file
 @var{filename}}).  But if @var{missing-ok} is non-@code{nil}, then
 @code{load} just returns @code{nil}.
 
@@ -610,8 +610,8 @@ and @code{define-global-minor-mode}.
 
 @item Other definition types:
 @code{defcustom}, @code{defgroup}, @code{defclass}
-(@pxref{Top,EIEIO,,eieio,EIEIO}), and @code{define-skeleton} (see the
-commentary in @file{skeleton.el}).
+(@pxref{Top,EIEIO,,eieio,EIEIO}), and @code{define-skeleton}
+(@pxref{Top,Autotyping,,autotype,Autotyping}).
 @end table
 
   You can also use a magic comment to execute a form at build time
@@ -848,8 +848,8 @@ loaded, into the current Emacs session.  This means that the facilities
 associated with @var{feature} are or will be available for other Lisp
 programs.
 
-The direct effect of calling @code{provide} is if not already in
-@var{features} then to add @var{feature} to the front of that list and
+The direct effect of calling @code{provide} is to add @var{feature} to
+the front of @code{features} if it is not already in that list and
 call any @code{eval-after-load} code waiting for it (@pxref{Hooks for
 Loading}).  The argument @var{feature} must be a symbol.
 @code{provide} returns @var{feature}.
@@ -1089,11 +1089,12 @@ execution of the rest of @var{body}.
 @end defmac
 
 Normally, well-designed Lisp programs should not use
-@code{eval-after-load}.  If you need to examine and set the variables
-defined in another library (those meant for outside use), you can do
-it immediately---there is no need to wait until the library is loaded.
-If you need to call functions defined by that library, you should load
-the library, preferably with @code{require} (@pxref{Named Features}).
+@code{with-eval-after-load}.  If you need to examine and set the
+variables defined in another library (those meant for outside use),
+you can do it immediately---there is no need to wait until the library
+is loaded.  If you need to call functions defined by that library, you
+should load the library, preferably with @code{require} (@pxref{Named
+Features}).
 
 @node Dynamic Modules
 @section Emacs Dynamic Modules

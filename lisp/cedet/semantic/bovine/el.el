@@ -149,8 +149,10 @@ compound strings."
 	 (nth 1 form))
 	(t nil)))
 
-(defvar semantic-elisp-store-documentation-in-tag nil
-  "*When non-nil, store documentation strings in the created tags.")
+(defcustom semantic-elisp-store-documentation-in-tag nil
+  "When non-nil, store documentation strings in the created tags."
+  :type 'boolean
+  :group 'semantic)
 
 (defun semantic-elisp-do-doc (str)
   "Return STR as a documentation string IF they are enabled."
@@ -700,7 +702,7 @@ of `let' or `let*', grab those variable names."
 	  ;; Snart args...
 	  (up-list -1)
 	  (forward-char 1)
-	  (forward-word 1)
+	  (forward-word-strictly 1)
 	  (skip-chars-forward "* \t\n")
 	  (let ((arglst (read (buffer-substring-no-properties
 			       (point)

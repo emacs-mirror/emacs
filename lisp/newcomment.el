@@ -990,6 +990,14 @@ comment markers."
 	  (goto-char (point-max))))))
   (set-marker end nil))
 
+(defun comment-make-bol-ws (len)
+  "Make a white-space string of width LEN for use at BOL.
+When `indent-tabs-mode' is non-nil, tab characters will be used."
+  (if (and indent-tabs-mode (> tab-width 0))
+      (concat (make-string (/ len tab-width) ?\t)
+	      (make-string (% len tab-width) ? ))
+    (make-string len ? )))
+
 (defun comment-make-extra-lines (cs ce ccs cce min-indent max-indent &optional block)
   "Make the leading and trailing extra lines.
 This is used for `extra-line' style (or `box' style if BLOCK is specified)."
@@ -1025,8 +1033,8 @@ This is used for `extra-line' style (or `box' style if BLOCK is specified)."
 	  (setq cs (replace-match fill t t s)))
 	(string-match re e)
 	(setq ce (replace-match fill t t e))))
-    (cons (concat cs "\n" (make-string min-indent ? ) ccs)
-	  (concat cce "\n" (make-string (+ min-indent eindent) ? ) ce))))
+    (cons (concat cs "\n" (comment-make-bol-ws min-indent) ccs)
+	  (concat cce "\n" (comment-make-bol-ws (+ min-indent eindent)) ce))))
 
 (defmacro comment-with-narrowing (beg end &rest body)
   "Execute BODY with BEG..END narrowing.

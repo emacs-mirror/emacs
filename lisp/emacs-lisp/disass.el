@@ -54,9 +54,13 @@ OBJECT can be a symbol defined as a function, or a function itself
 \(a lambda expression or a compiled-function object).
 If OBJECT is not already compiled, we compile it, but do not
 redefine OBJECT if it is a symbol."
-  (interactive (list (intern (completing-read "Disassemble function: "
-					      obarray 'fboundp t))
-		     nil 0 t))
+  (interactive
+   (let* ((fn (function-called-at-point))
+          (prompt (if fn (format "Disassemble function (default %s): " fn)
+                    "Disassemble function: "))
+          (def (and fn (symbol-name fn))))
+     (list (intern (completing-read prompt obarray 'fboundp t nil nil def))
+           nil 0 t)))
   (if (and (consp object) (not (functionp object)))
       (setq object `(lambda () ,object)))
   (or indent (setq indent 0))		;Default indent to zero

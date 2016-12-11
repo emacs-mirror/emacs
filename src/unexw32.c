@@ -50,10 +50,6 @@ extern char *my_begbss_static;
 /* Basically, our "initialized" flag.  */
 BOOL using_dynamic_heap = FALSE;
 
-int open_input_file (file_data *p_file, char *name);
-int open_output_file (file_data *p_file, char *name, unsigned long size);
-void close_file_data (file_data *p_file);
-
 void get_section_info (file_data *p_file);
 void copy_executable_and_dump_data (file_data *, file_data *);
 void dump_bss_and_heap (file_data *p_infile, file_data *p_outfile);
@@ -81,14 +77,17 @@ DWORD_PTR  extra_bss_size_static = 0;
 #define _start __start
 #endif
 
+extern void mainCRTStartup (void);
+
 /* Startup code for running on NT.  When we are running as the dumped
    version, we need to bootstrap our heap and .bss section into our
    address space before we can actually hand off control to the startup
    code supplied by NT (primarily because that code relies upon malloc ()).  */
+void _start (void);
+
 void
 _start (void)
 {
-  extern void mainCRTStartup (void);
 
 #if 1
   /* Give us a way to debug problems with crashes on startup when
@@ -205,7 +204,7 @@ close_file_data (file_data *p_file)
 
 /* Return pointer to section header for named section. */
 IMAGE_SECTION_HEADER *
-find_section (char * name, IMAGE_NT_HEADERS * nt_header)
+find_section (const char * name, IMAGE_NT_HEADERS * nt_header)
 {
   PIMAGE_SECTION_HEADER section;
   int i;
@@ -214,7 +213,7 @@ find_section (char * name, IMAGE_NT_HEADERS * nt_header)
 
   for (i = 0; i < nt_header->FileHeader.NumberOfSections; i++)
     {
-      if (strcmp (section->Name, name) == 0)
+      if (strcmp ((char *)section->Name, name) == 0)
 	return section;
       section++;
     }
@@ -249,9 +248,10 @@ rva_to_section (DWORD_PTR rva, IMAGE_NT_HEADERS * nt_header)
   return NULL;
 }
 
+#if 0	/* unused */
 /* Return pointer to section header for section containing the given
    offset in its raw data area. */
-IMAGE_SECTION_HEADER *
+static IMAGE_SECTION_HEADER *
 offset_to_section (DWORD_PTR offset, IMAGE_NT_HEADERS * nt_header)
 {
   PIMAGE_SECTION_HEADER section;
@@ -268,11 +268,12 @@ offset_to_section (DWORD_PTR offset, IMAGE_NT_HEADERS * nt_header)
     }
   return NULL;
 }
+#endif
 
 /* Return offset to an object in dst, given offset in src.  We assume
    there is at least one section in both src and dst images, and that
    the some sections may have been added to dst (after sections in src).  */
-DWORD_PTR
+static DWORD_PTR
 relocate_offset (DWORD_PTR offset,
 		 IMAGE_NT_HEADERS * src_nt_header,
 		 IMAGE_NT_HEADERS * dst_nt_header)
@@ -306,9 +307,6 @@ relocate_offset (DWORD_PTR offset,
     (dst_section->PointerToRawData - src_section->PointerToRawData);
 }
 
-#define OFFSET_TO_RVA(offset, section) \
-  ((section)->VirtualAddress + ((DWORD_PTR)(offset) - (section)->PointerToRawData))
-
 #define RVA_TO_OFFSET(rva, section) \
   ((section)->PointerToRawData + ((DWORD_PTR)(rva) - (section)->VirtualAddress))
 
@@ -318,14 +316,19 @@ relocate_offset (DWORD_PTR offset,
 /* Convert address in executing image to RVA.  */
 #define PTR_TO_RVA(ptr) ((DWORD_PTR)(ptr) - (DWORD_PTR) GetModuleHandle (NULL))
 
-#define RVA_TO_PTR(var,section,filedata) \
-	  ((unsigned char *)(RVA_TO_OFFSET (var,section) + (filedata).file_base))
-
 #define PTR_TO_OFFSET(ptr, pfile_data) \
           ((unsigned char *)(ptr) - (pfile_data)->file_base)
 
 #define OFFSET_TO_PTR(offset, pfile_data) \
           ((pfile_data)->file_base + (DWORD_PTR)(offset))
+
+#if 0	/* unused */
+#define OFFSET_TO_RVA(offset, section) \
+  ((section)->VirtualAddress + ((DWORD_PTR)(offset) - (section)->PointerToRawData))
+
+#define RVA_TO_PTR(var,section,filedata) \
+	  ((unsigned char *)(RVA_TO_OFFSET (var,section) + (filedata).file_base))
+#endif
 
 
 /* Flip through the executable and cache the info necessary for dumping.  */

@@ -614,6 +614,42 @@ something
    (should (eq (car (python-indent-context)) :after-line))
    (should (= (python-indent-calculate-indentation) 0))))
 
+(ert-deftest python-indent-after-async-block-1 ()
+  "Test PEP492 async def."
+  (python-tests-with-temp-buffer
+   "
+async def foo(a, b, c=True):
+"
+   (should (eq (car (python-indent-context)) :no-indent))
+   (should (= (python-indent-calculate-indentation) 0))
+   (goto-char (point-max))
+   (should (eq (car (python-indent-context)) :after-block-start))
+   (should (= (python-indent-calculate-indentation) 4))))
+
+(ert-deftest python-indent-after-async-block-2 ()
+  "Test PEP492 async with."
+  (python-tests-with-temp-buffer
+   "
+async with foo(a) as mgr:
+"
+   (should (eq (car (python-indent-context)) :no-indent))
+   (should (= (python-indent-calculate-indentation) 0))
+   (goto-char (point-max))
+   (should (eq (car (python-indent-context)) :after-block-start))
+   (should (= (python-indent-calculate-indentation) 4))))
+
+(ert-deftest python-indent-after-async-block-3 ()
+  "Test PEP492 async for."
+  (python-tests-with-temp-buffer
+   "
+async for a in sequencer():
+"
+   (should (eq (car (python-indent-context)) :no-indent))
+   (should (= (python-indent-calculate-indentation) 0))
+   (goto-char (point-max))
+   (should (eq (car (python-indent-context)) :after-block-start))
+   (should (= (python-indent-calculate-indentation) 4))))
+
 (ert-deftest python-indent-after-backslash-1 ()
   "The most common case."
   (python-tests-with-temp-buffer
@@ -1490,6 +1526,26 @@ class C(object):
                 (point))
               (save-excursion
                 (python-tests-look-at "class C(object):" -1)
+                (beginning-of-line)
+                (point))))))
+
+(ert-deftest python-nav-beginning-of-defun-3 ()
+  (python-tests-with-temp-buffer
+   "
+class C(object):
+
+    async def m(self):
+        return await self.c()
+
+    async def c(self):
+        pass
+"
+   (python-tests-look-at "self.c()")
+   (should (= (save-excursion
+                (python-nav-beginning-of-defun)
+                (point))
+              (save-excursion
+                (python-tests-look-at "async def m" -1)
                 (beginning-of-line)
                 (point))))))
 
@@ -2395,6 +2451,13 @@ if x:
       (string= (buffer-substring-no-properties
                 (line-beginning-position) (line-end-position))
                "abcdef")))))
+
+(ert-deftest python-bob-infloop-avoid ()
+  "Test that strings at BOB don't confuse syntax analysis.  Bug#24905"
+  (python-tests-with-temp-buffer
+      " \"\n"
+    (goto-char (point-min))
+    (font-lock-fontify-buffer)))
 
 
 ;;; Shell integration

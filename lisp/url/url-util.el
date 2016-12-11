@@ -1,4 +1,4 @@
-;;; url-util.el --- Miscellaneous helper routines for URL library
+;;; url-util.el --- Miscellaneous helper routines for URL library -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1996-1999, 2001, 2004-2016 Free Software Foundation,
 ;; Inc.

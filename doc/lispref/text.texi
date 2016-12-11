@@ -232,7 +232,9 @@ using a function specified by the variable
 @code{filter-buffer-substring-function}, and returns the result.
 
 The default filter function consults the obsolete wrapper hook
-@code{filter-buffer-substring-functions}, and the obsolete variable
+@code{filter-buffer-substring-functions} (see the documentation string
+of the macro @code{with-wrapper-hook} for the details about this
+obsolete facility), and the obsolete variable
 @code{buffer-substring-filters}.  If both of these are @code{nil}, it
 returns the unaltered text from the buffer, i.e., what
 @code{buffer-substring} would return.
@@ -1376,10 +1378,10 @@ before executing each key sequence, so that each undo normally undoes
 the effects of one command.  A few exceptional commands are
 @dfn{amalgamating}: these commands generally cause small changes to
 buffers, so with these a boundary is inserted only every 20th command,
-allowing to undo them as a group.  By default, commands
+allowing the changes to be undone as a group.  By default, the commands
 @code{self-insert-command}, which produces self-inserting input
-characters (@pxref{Commands for Insertion}), and @code{delete-char}
-which deletes characters (@pxref{Deletion}) are amalgamating.
+characters (@pxref{Commands for Insertion}), and @code{delete-char},
+which deletes characters (@pxref{Deletion}), are amalgamating.
 Where a command affects the contents of several buffers, as may happen,
 for example, when a function on the @code{post-command-hook} affects a
 buffer other than the @code{current-buffer}, then @code{undo-boundary}
@@ -2191,9 +2193,6 @@ This function returns the horizontal position of point, measured in
 columns, counting from 0 at the left margin.  The column position is the
 sum of the widths of all the displayed representations of the characters
 between the start of the current line and point.
-
-For an example of using @code{current-column}, see the description of
-@code{count-lines} in @ref{Text Lines}.
 @end defun
 
 @deffn Command move-to-column column &optional force
@@ -3043,6 +3042,11 @@ construct each part with @code{propertize} and then combine them with
 @code{buffer-substring-no-properties}, which copies text from the
 buffer but does not copy its properties.
 
+@findex with-silent-modifications
+  If you wish to add or remove text properties to a buffer without
+marking the buffer as modified, you can wrap the calls above in the
+@code{with-silent-modifications} macro.
+
 @node Property Search
 @subsection Text Property Search Functions
 @cindex searching text properties
@@ -3282,12 +3286,11 @@ or shorter, higher or lower, wider or narrow, or replaced with an image.
 
 @item help-echo
 @kindex help-echo @r{(text property)}
-@cindex tooltip
+@cindex tooltip for help strings
 @anchor{Text help-echo}
 If text has a string as its @code{help-echo} property, then when you
 move the mouse onto that text, Emacs displays that string in the echo
-area, or in the tooltip window (@pxref{Tooltips,,, emacs, The GNU Emacs
-Manual}).
+area, or in the tooltip window (@pxref{Tooltips}).
 
 If the value of the @code{help-echo} property is a function, that
 function is called with three arguments, @var{window}, @var{object} and
@@ -3438,12 +3441,14 @@ the beginning of the @code{display} property or at
 
 @cindex cursor position for @code{display} properties and overlays
 When the buffer has many overlay strings (e.g., @pxref{Overlay
-Properties, before-string}) or @code{display} properties that are
-strings, it is a good idea to use the @code{cursor} property on these
-strings to cue the Emacs display about the places where to put the
-cursor while traversing these strings.  This directly communicates to
-the display engine where the Lisp program wants to put the cursor, or
-where the user would expect the cursor.
+Properties, before-string}) that conceal some of the buffer text or
+@code{display} properties that are strings, it is a good idea to use
+the @code{cursor} property on these strings to cue the Emacs display
+about the places where to put the cursor while traversing these
+strings.  This directly communicates to the display engine where the
+Lisp program wants to put the cursor, or where the user would expect
+the cursor, when point is located on some buffer position that is
+``covered'' by the display or overlay string.
 
 @item pointer
 @kindex pointer @r{(text property)}
@@ -3788,7 +3793,7 @@ properties.  For simplicity, we will refer to the clickable text as a
 
   Implementing a link involves three separate steps: (1) indicating
 clickability when the mouse moves over the link; (2) making @key{RET}
-or @kbd{Mouse-2} on that link do something; and (3) setting up a
+or @kbd{mouse-2} on that link do something; and (3) setting up a
 @code{follow-link} condition so that the link obeys
 @code{mouse-1-click-follows-link}.
 
@@ -3810,10 +3815,10 @@ names are clickable:
          help-echo "mouse-2: visit this file in other window")))
 @end smallexample
 
-  To make the link clickable, bind @key{RET} and @kbd{Mouse-2} to
+  To make the link clickable, bind @key{RET} and @kbd{mouse-2} to
 commands that perform the desired action.  Each command should check
 to see whether it was called on a link, and act accordingly.  For
-instance, Dired's major mode keymap binds @kbd{Mouse-2} to the
+instance, Dired's major mode keymap binds @kbd{mouse-2} to the
 following command:
 
 @smallexample
@@ -3856,12 +3861,12 @@ bind it within the link text, using the @code{keymap} text property
 @noindent
 With this method, you can easily define different commands for
 different links.  Furthermore, the global definition of @key{RET} and
-@kbd{Mouse-2} remain available for the rest of the text in the buffer.
+@kbd{mouse-2} remain available for the rest of the text in the buffer.
 
 @vindex mouse-1-click-follows-link
-  The basic Emacs command for clicking on links is @kbd{Mouse-2}.
+  The basic Emacs command for clicking on links is @kbd{mouse-2}.
 However, for compatibility with other graphical applications, Emacs
-also recognizes @kbd{Mouse-1} clicks on links, provided the user
+also recognizes @kbd{mouse-1} clicks on links, provided the user
 clicks on the link quickly without moving the mouse.  This behavior is
 controlled by the user option @code{mouse-1-click-follows-link}.
 @xref{Mouse References,,, emacs, The GNU Emacs Manual}.
@@ -3875,9 +3880,9 @@ mode keymap or a local keymap specified via the @code{keymap} text
 property).  The value of the @code{follow-link} property, or the
 binding for the @code{follow-link} event, acts as a condition for
 the link action.  This condition tells Emacs two things: the
-circumstances under which a @kbd{Mouse-1} click should be regarded as
+circumstances under which a @kbd{mouse-1} click should be regarded as
 occurring inside the link, and how to compute an action code
-that says what to translate the @kbd{Mouse-1} click into.  The link
+that says what to translate the @kbd{mouse-1} click into.  The link
 action condition can be one of the following:
 
 @table @asis
@@ -3886,7 +3891,7 @@ If the condition is the symbol @code{mouse-face}, a position is inside
 a link if there is a non-@code{nil} @code{mouse-face} property at that
 position.  The action code is always @code{t}.
 
-For example, here is how Info mode handles @key{Mouse-1}:
+For example, here is how Info mode handles @key{mouse-1}:
 
 @smallexample
 (define-key Info-mode-map [follow-link] 'mouse-face)
@@ -3898,7 +3903,7 @@ is inside a link if @code{(@var{func} @var{pos})} evaluates to
 non-@code{nil}.  The value returned by @var{func} serves as the action
 code.
 
-For example, here is how pcvs enables @kbd{Mouse-1} to follow links on
+For example, here is how pcvs enables @kbd{mouse-1} to follow links on
 file names only:
 
 @smallexample
@@ -3916,27 +3921,27 @@ to the entire buffer).
 @end table
 
 @noindent
-The action code tells @kbd{Mouse-1} how to follow the link:
+The action code tells @kbd{mouse-1} how to follow the link:
 
 @table @asis
 @item a string or vector
-If the action code is a string or vector, the @kbd{Mouse-1} event is
+If the action code is a string or vector, the @kbd{mouse-1} event is
 translated into the first element of the string or vector; i.e., the
-action of the @kbd{Mouse-1} click is the local or global binding of
+action of the @kbd{mouse-1} click is the local or global binding of
 that character or symbol.  Thus, if the action code is @code{"foo"},
-@kbd{Mouse-1} translates into @kbd{f}.  If it is @code{[foo]},
-@kbd{Mouse-1} translates into @key{foo}.
+@kbd{mouse-1} translates into @kbd{f}.  If it is @code{[foo]},
+@kbd{mouse-1} translates into @key{foo}.
 
 @item anything else
-For any other non-@code{nil} action code, the @kbd{Mouse-1} event is
-translated into a @kbd{Mouse-2} event at the same position.
+For any other non-@code{nil} action code, the @kbd{mouse-1} event is
+translated into a @kbd{mouse-2} event at the same position.
 @end table
 
-  To define @kbd{Mouse-1} to activate a button defined with
+  To define @kbd{mouse-1} to activate a button defined with
 @code{define-button-type}, give the button a @code{follow-link}
 property.  The property value should be a link action condition, as
 described above.  @xref{Buttons}.  For example, here is how Help mode
-handles @kbd{Mouse-1}:
+handles @kbd{mouse-1}:
 
 @smallexample
 (define-button-type 'help-xref
@@ -3944,11 +3949,11 @@ handles @kbd{Mouse-1}:
   'action #'help-button-action)
 @end smallexample
 
-  To define @kbd{Mouse-1} on a widget defined with
+  To define @kbd{mouse-1} on a widget defined with
 @code{define-widget}, give the widget a @code{:follow-link} property.
 The property value should be a link action condition, as described
 above.  For example, here is how the @code{link} widget specifies that
-a @key{Mouse-1} click shall be translated to @key{RET}:
+a @key{mouse-1} click shall be translated to @key{RET}:
 
 @smallexample
 (define-widget 'link 'item
@@ -4468,6 +4473,20 @@ using the specified or chosen coding system.  However, if
 coding instead.
 @end defun
 
+@defun buffer-hash &optional buffer-or-name
+Return a hash of @var{buffer-or-name}.  If @code{nil}, this defaults
+to the current buffer.  As opposed to @code{secure-hash}, this
+function computes the hash based on the internal representation of the
+buffer, disregarding any coding systems.  It's therefore only useful
+when comparing two buffers running in the same Emacs, and is not
+guaranteed to return the same hash between different Emacs versions.
+It should be somewhat more efficient on larger buffers than
+@code{secure-hash} is, and should not allocate more memory.
+@c Note that we do not document what hashing function we're using, or
+@c even whether it's a cryptographic hash, since that may change
+@c according to what we find useful.
+@end defun
+
 @node Parsing HTML/XML
 @section Parsing HTML and XML
 @cindex parsing html
@@ -4599,6 +4618,9 @@ to be inserted between the textual elements.
 
 @item dom-parent @var{dom} @var{node}
 Return the parent of @var{node} in @var{dom}.
+
+@item dom-remove @var{dom} @var{node}
+Remove @var{node} from @var{dom}.
 @end table
 
 The following are functions for altering the @acronym{DOM}.
@@ -4644,7 +4666,7 @@ Return all nodes in @var{dom} that have IDs that match @var{match},
 which is a regular expression.
 
 @item dom-strings @var{dom}
-Return all strings in @var{DOM}.
+Return all strings in @var{dom}.
 
 @end table
 
@@ -4752,10 +4774,10 @@ group you start for any given buffer should be the last one finished.
 @cindex change hooks
 @cindex hooks for text changes
 
-  These hook variables let you arrange to take notice of all changes in
-all buffers (or in a particular buffer, if you make them buffer-local).
-See also @ref{Special Properties}, for how to detect changes to specific
-parts of the text.
+  These hook variables let you arrange to take notice of changes in
+buffers (or in a particular buffer, if you make them buffer-local).
+See also @ref{Special Properties}, for how to detect changes to
+specific parts of the text.
 
   The functions you use in these hooks should save and restore the match
 data if they do anything that uses regular expressions; otherwise, they
@@ -4763,18 +4785,20 @@ will interfere in bizarre ways with the editing operations that call
 them.
 
 @defvar before-change-functions
-This variable holds a list of functions to call before any buffer
-modification.  Each function gets two arguments, the beginning and end
-of the region that is about to change, represented as integers.  The
-buffer that is about to change is always the current buffer.
+This variable holds a list of functions to call when Emacs is about to
+modify a buffer.  Each function gets two arguments, the beginning and
+end of the region that is about to change, represented as integers.
+The buffer that is about to change is always the current buffer when
+the function is called.
 @end defvar
 
 @defvar after-change-functions
-This variable holds a list of functions to call after any buffer
-modification.  Each function receives three arguments: the beginning
-and end of the region just changed, and the length of the text that
-existed before the change.  All three arguments are integers.  The
-buffer that has been changed is always the current buffer.
+This variable holds a list of functions to call after Emacs modifies a
+buffer.  Each function receives three arguments: the beginning and end
+of the region just changed, and the length of the text that existed
+before the change.  All three arguments are integers.  The buffer that
+has been changed is always the current buffer when the function is
+called.
 
 The length of the old text is the difference between the buffer
 positions before and after that text as it was before the change.  As
@@ -4782,8 +4806,19 @@ for the changed text, its length is simply the difference between the
 first two arguments.
 @end defvar
 
-  Output of messages into the @file{*Messages*} buffer does not
-call these functions.
+  Output of messages into the @file{*Messages*} buffer does not call
+these functions, and neither do certain internal buffer changes, such
+as changes in buffers created by Emacs internally for certain jobs,
+that should not be visible to Lisp programs.
+
+  Do @emph{not} expect the before-change hooks and the after-change
+hooks be called in balanced pairs around each buffer change.  Also
+don't expect the before-change hooks to be called for every chunk of
+text Emacs is about to delete.  These hooks are provided on the
+assumption that Lisp programs will use either before- or the
+after-change hooks, but not both, and the boundaries of the region
+where the changes happen might include more than just the actual
+changed text, or even lump together several changes done piecemeal.
 
 @defmac combine-after-change-calls body@dots{}
 The macro executes @var{body} normally, but arranges to call the

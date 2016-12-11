@@ -499,7 +499,7 @@ the alternative.  Typing a number selects the associated alternative
 of the current row and uses it as input.
 
   @key{TAB} in these Chinese input methods displays a buffer showing
-all the possible characters at once; then clicking @kbd{Mouse-2} on
+all the possible characters at once; then clicking @kbd{mouse-2} on
 one of them selects that alternative.  The keys @kbd{C-f}, @kbd{C-b},
 @kbd{C-n}, @kbd{C-p}, and digits continue to work as usual, but they
 do the highlighting in the buffer showing the possible characters,
@@ -745,7 +745,7 @@ exactly what to do for end-of-line conversion:
 @item @dots{}-unix
 Don't do any end-of-line conversion; assume the file uses
 newline to separate lines.  (This is the convention normally used
-on Unix and GNU systems, and Mac OS X.)
+on Unix and GNU systems, and macOS.)
 
 @item @dots{}-dos
 Assume the file uses carriage-return linefeed to separate lines, and do
@@ -757,8 +757,8 @@ Emacs doesn't support directly.})
 
 @item @dots{}-mac
 Assume the file uses carriage-return to separate lines, and do the
-appropriate conversion.  (This was the convention used on the
-Macintosh system prior to OS X.)
+appropriate conversion.  (This was the convention used in Classic Mac
+OS.)
 @end table
 
   These variant coding systems are omitted from the
@@ -1036,7 +1036,7 @@ decoding it using coding system @var{right} instead.
 the current buffer (i.e., the coding system to use when saving or
 reverting the file).  You specify which coding system using the
 minibuffer.  You can also invoke this command by clicking with
-@kbd{Mouse-3} on the coding system indicator in the mode line
+@kbd{mouse-3} on the coding system indicator in the mode line
 (@pxref{Mode Line}).
 
   If you specify a coding system that cannot handle all the characters
@@ -1393,7 +1393,7 @@ of @code{standard-fontset-spec}.  This fontset's name is
 @noindent
 or just @samp{fontset-standard} for short.
 
-  On GNUstep and Mac OS X, the standard fontset is created using the value of
+  On GNUstep and macOS, the standard fontset is created using the value of
 @code{ns-standard-fontset-spec}, and on MS Windows it is
 created using the value of @code{w32-standard-fontset-spec}.
 

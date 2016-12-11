@@ -372,8 +372,6 @@ call."
 
 (defvar image-mode-map
   (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map special-mode-map)
-    (set-keymap-parent map image-map)
     (define-key map "\C-c\C-c" 'image-toggle-display)
     (define-key map "\C-c\C-x" 'image-toggle-hex-display)
     (define-key map (kbd "SPC")       'image-scroll-up)
@@ -478,7 +476,7 @@ call."
 	["Goto Frame..." image-goto-frame :active image-multi-frame
 	 :help "Show a specific frame of this image"]
 	))
-    map)
+    (make-composed-keymap (list map image-map) special-mode-map))
   "Mode keymap for `image-mode'.")
 
 (defvar image-minor-mode-map
@@ -786,6 +784,9 @@ Otherwise, display the image by calling `image-mode'"
   (kill-buffer (current-buffer)))
 
 (defun image-after-revert-hook ()
+  ;; Fixes bug#21598
+  (when (not (image-get-display-property))
+    (image-toggle-display-image))
   (when (image-get-display-property)
     (image-toggle-display-text)
     ;; Update image display.

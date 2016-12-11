@@ -2,7 +2,7 @@
 
 # Copyright (C) 2005-2016 Free Software Foundation, Inc.
 
-# Maintainer: Noah Friedman <friedman@splode.com>
+# Author: Noah Friedman <friedman@splode.com>
 # Created: 2005-04-28
 
 # This file is part of GNU Emacs.
@@ -70,8 +70,10 @@
 
 # Code:
 
-# Force loading of symbols, enough to give us VALMASK etc.
-set main
+# Force loading of symbols, enough to give us VALBITS etc.
+set $dummy = main + 8
+# With some compilers, we need this to give us struct Lisp_Symbol etc.:
+set $dummy = Fmake_symbol + 8
 
 # When nonzero, display some extra diagnostics in various commands
 set $yverbose = 1
@@ -81,6 +83,11 @@ define ygetptr
   set $ptr = $arg0
   set $ptr = (CHECK_LISP_OBJECT_TYPE ? $ptr.i : $ptr) & VALMASK
 end
+
+# Get the value of Qnil for comparison.  Needed when
+# CHECK_LISP_OBJECT_TYPE is non-zero.
+ygetptr Qnil
+set $qnil = $ptr
 
 define ybuffer-list
   set $files_only         = $yfile_buffers_only
@@ -93,10 +100,13 @@ define ybuffer-list
 
   set $i = 0
   set $alist = Vbuffer_alist
-  while $alist != Qnil
-    ygetptr $alist
+  ygetptr $alist
+  set $alist = $ptr
+  while $alist != $qnil
     set $this  = ((struct Lisp_Cons *) $ptr)->car
     set $alist = ((struct Lisp_Cons *) $ptr)->u.cdr
+    ygetptr $alist
+    set $alist = $ptr
 
     # Vbuffer_alist elts are pairs of the form (name . buffer)
     ygetptr $this
@@ -104,7 +114,9 @@ define ybuffer-list
     ygetptr $buf
     set $buf = (struct buffer *) $ptr
 
-    if ! ($files_only && $buf->filename_ == Qnil)
+    ygetptr $buf->filename_
+    set $fname = $ptr
+    if ! ($files_only && $fname == $qnil)
       ygetptr $buf->name_
       set $name = ((struct Lisp_String *) $ptr)->data
       set $modp = ($buf->text->modiff > $buf->text->save_modiff) ? '*' : ' '
@@ -112,11 +124,11 @@ define ybuffer-list
       ygetptr $buf->mode_name_
       set $mode = ((struct Lisp_String *) $ptr)->data
 
-      if $buf->filename_ != Qnil
+      if $fname != $qnil
         ygetptr $buf->filename_
         printf "%2d %c  %9d %-20s %-10s %s\n", \
                $i, $modp, ($buf->text->z_byte - 1), $name, $mode, \
-               ((struct Lisp_String *) $ptr)->data
+               ((struct Lisp_String *) $fname)->data
       else
         printf "%2d %c  %9d %-20s %-10s\n", \
                $i, $modp, ($buf->text->z_byte - 1), $name, $mode
@@ -146,15 +158,17 @@ define yset-buffer
   set $i = $arg0
 
   set $alist = Vbuffer_alist
-  while ($alist != Qnil && $i > 0)
-    ygetptr $alist
+  ygetptr $alist
+  set $alist = $ptr
+  while ($alist != $qnil && $i > 0)
     set $alist = ((struct Lisp_Cons *) $ptr)->u.cdr
+    ygetptr $alist
+    set $alist = $ptr
     set $i--
   end
 
   # Get car of alist; this is a pair (name . buffer)
-  ygetptr $alist
-  set $this = ((struct Lisp_Cons *) $ptr)->car
+  set $this = ((struct Lisp_Cons *) $alist)->car
 
   # Get the buffer object
   ygetptr $this

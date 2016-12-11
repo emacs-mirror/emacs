@@ -65,8 +65,6 @@ enum metrics_status
 #define METRICS_SET_STATUS(metrics, status) \
   ((metrics)->ascent = 0, (metrics)->descent = (status))
 
-struct font_driver ftcrfont_driver;
-
 static int
 ftcrfont_glyph_extents (struct font *font,
                         unsigned glyph,
@@ -101,7 +99,7 @@ ftcrfont_glyph_extents (struct font *font,
   cache = ftcrfont_info->metrics[row] + col;
 
   if (METRICS_STATUS (cache) == METRICS_INVALID)
-    ftfont_driver.text_extents (font, &glyph, 1, cache);
+    ftfont_text_extents (font, &glyph, 1, cache);
 
   if (metrics)
     *metrics = *cache;
@@ -112,7 +110,7 @@ ftcrfont_glyph_extents (struct font *font,
 static Lisp_Object
 ftcrfont_list (struct frame *f, Lisp_Object spec)
 {
-  Lisp_Object list = ftfont_driver.list (f, spec), tail;
+  Lisp_Object list = ftfont_list (f, spec), tail;
 
   for (tail = list; CONSP (tail); tail = XCDR (tail))
     ASET (XCAR (tail), FONT_TYPE_INDEX, Qftcr);
@@ -122,14 +120,12 @@ ftcrfont_list (struct frame *f, Lisp_Object spec)
 static Lisp_Object
 ftcrfont_match (struct frame *f, Lisp_Object spec)
 {
-  Lisp_Object entity = ftfont_driver.match (f, spec);
+  Lisp_Object entity = ftfont_match (f, spec);
 
   if (VECTORP (entity))
     ASET (entity, FONT_TYPE_INDEX, Qftcr);
   return entity;
 }
-
-extern FT_Face ftfont_get_ft_face (Lisp_Object);
 
 static Lisp_Object
 ftcrfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
@@ -181,7 +177,7 @@ ftcrfont_close (struct font *font)
   cairo_font_face_destroy (ftcrfont_info->cr_font_face);
   unblock_input ();
 
-  ftfont_driver.close (font);
+  ftfont_close (font);
 }
 
 static void
@@ -282,6 +278,34 @@ ftcrfont_draw (struct glyph_string *s,
 
 
 
+struct font_driver const ftcrfont_driver =
+  {
+  type: LISPSYM_INITIALLY (Qftcr),
+  get_cache: ftfont_get_cache,
+  list: ftcrfont_list,
+  match: ftcrfont_match,
+  list_family: ftfont_list_family,
+  open: ftcrfont_open,
+  close: ftcrfont_close,
+  has_char: ftfont_has_char,
+  encode_char: ftfont_encode_char,
+  text_extents: ftcrfont_text_extents,
+  draw: ftcrfont_draw,
+  get_bitmap: ftfont_get_bitmap,
+  anchor_point: ftfont_anchor_point,
+#ifdef HAVE_LIBOTF
+  otf_capability: ftfont_otf_capability,
+#endif
+#if defined HAVE_M17N_FLT && defined HAVE_LIBOTF
+  shape: ftfont_shape,
+#endif
+#ifdef HAVE_OTF_GET_VARIATION_GLYPHS
+  get_variation_glyphs: ftfont_variation_glyphs,
+#endif
+  filter_properties: ftfont_filter_properties,
+  combining_capability: ftfont_combining_capability,
+  };
+
 void
 syms_of_ftcrfont (void)
 {
@@ -289,14 +313,5 @@ syms_of_ftcrfont (void)
     abort ();
 
   DEFSYM (Qftcr, "ftcr");
-
-  ftcrfont_driver = ftfont_driver;
-  ftcrfont_driver.type = Qftcr;
-  ftcrfont_driver.list = ftcrfont_list;
-  ftcrfont_driver.match = ftcrfont_match;
-  ftcrfont_driver.open = ftcrfont_open;
-  ftcrfont_driver.close = ftcrfont_close;
-  ftcrfont_driver.text_extents = ftcrfont_text_extents;
-  ftcrfont_driver.draw = ftcrfont_draw;
   register_font_driver (&ftcrfont_driver, NULL);
 }

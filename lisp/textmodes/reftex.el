@@ -50,7 +50,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 ;; Stuff that needs to be there when we use defcustom
 (require 'custom)
@@ -100,7 +100,42 @@
 (defconst reftex-version emacs-version
   "Version string for RefTeX.")
 
-(defvar reftex-mode-map (make-sparse-keymap)
+(defvar reftex-mode-map
+  (let ((map (make-sparse-keymap)))
+    ;; The default bindings in the mode map.
+    (define-key map "\C-c=" 'reftex-toc)
+    (define-key map "\C-c-" 'reftex-toc-recenter)
+    (define-key map "\C-c(" 'reftex-label)
+    (define-key map "\C-c)" 'reftex-reference)
+    (define-key map "\C-c[" 'reftex-citation)
+    (define-key map "\C-c<" 'reftex-index)
+    (define-key map "\C-c>" 'reftex-display-index)
+    (define-key map "\C-c/" 'reftex-index-selection-or-word)
+    (define-key map "\C-c\\" 'reftex-index-phrase-selection-or-word)
+    (define-key map "\C-c|" 'reftex-index-visit-phrases-buffer)
+    (define-key map "\C-c&" 'reftex-view-crossref)
+
+    ;; Bind `reftex-mouse-view-crossref' only when the key is still free
+    (if (featurep 'xemacs)
+        (unless (key-binding [(shift button2)])
+          (define-key map [(shift button2)] 'reftex-mouse-view-crossref))
+      (unless (key-binding [(shift mouse-2)])
+        (define-key map [(shift mouse-2)] 'reftex-mouse-view-crossref)))
+
+    ;; For most of these commands there are already bindings in place.
+    ;; Setting `reftex-extra-bindings' really is only there to spare users
+    ;; the hassle of defining bindings in the user space themselves.  This
+    ;; is why they violate the key binding recommendations.
+    (when reftex-extra-bindings
+      (define-key map "\C-ct" 'reftex-toc)
+      (define-key map "\C-cl" 'reftex-label)
+      (define-key map "\C-cr" 'reftex-reference)
+      (define-key map "\C-cc" 'reftex-citation)
+      (define-key map "\C-cv" 'reftex-view-crossref)
+      (define-key map "\C-cg" 'reftex-grep-document)
+      (define-key map "\C-cs" 'reftex-search-document))
+
+    map)
   "Keymap for RefTeX mode.")
 
 (defvar reftex-mode-menu nil)
@@ -255,7 +290,7 @@ on the menu bar.
 
 (defun reftex-next-multifile-index ()
   ;; Return the next free index for multifile symbols.
-  (incf reftex-multifile-index))
+  (cl-incf reftex-multifile-index))
 
 (defun reftex-tie-multifile-symbols ()
   "Tie the buffer-local symbols to globals connected with the master file.
@@ -444,7 +479,7 @@ will deactivate it."
 	     (unless (member style list)
 	       (setq reftex-tables-dirty t
 		     changed t)
-	       (add-to-list 'list style t)))
+               (setq list (append list (list style)))))
 	    ((eq action 'deactivate)
 	     (when (member style list)
 	       (setq reftex-tables-dirty t
@@ -453,7 +488,7 @@ will deactivate it."
 	    (t
 	     (if (member style list)
 		 (delete style list)
-	       (add-to-list 'list style t))
+	       (setq list (append list (list style))))
 	     (setq reftex-tables-dirty t
 		   changed t)))
       (when changed
@@ -659,9 +694,9 @@ on next use."
   (interactive)
 
   ;; Reset the file search path variables
-  (loop for prop in '(status master-dir recursive-path rec-type) do
-        (put 'reftex-tex-path prop nil)
-        (put 'reftex-bib-path prop nil))
+  (dolist (prop '(status master-dir recursive-path rec-type))
+    (put 'reftex-tex-path prop nil)
+    (put 'reftex-bib-path prop nil))
 
   ;; Kill temporary buffers associated with RefTeX - just in case they
   ;; were not cleaned up properly
@@ -796,15 +831,15 @@ This enforces rescanning the buffer on next use."
               reffmt (nth 1 fmt))
         ;; Note a new typekey
         (if typekey
-            (add-to-list 'reftex-typekey-list typekey))
+            (cl-pushnew typekey reftex-typekey-list :test #'equal))
         (if (and typekey prefix
                  (not (assoc prefix reftex-prefix-to-typekey-alist)))
-            (add-to-list 'reftex-prefix-to-typekey-alist
-                         (cons prefix typekey)))
+            (cl-pushnew (cons prefix typekey) reftex-prefix-to-typekey-alist
+                        :test #'equal))
         (if (and typekey prefix
                  (not (assoc typekey reftex-typekey-to-prefix-alist)))
-            (add-to-list 'reftex-typekey-to-prefix-alist
-                         (cons typekey prefix)))
+            (cl-pushnew (cons typekey prefix) reftex-typekey-to-prefix-alist
+                        :test #'equal))
         ;; Check if this is a macro or environment
         (cond
          ((symbolp env-or-mac)
@@ -813,17 +848,17 @@ This enforces rescanning the buffer on next use."
             (message "Warning: %s does not seem to be a valid function"
                      env-or-mac))
           (setq nargs nil nlabel nil opt-args nil)
-          (add-to-list 'reftex-special-env-parsers env-or-mac)
+          (cl-pushnew env-or-mac reftex-special-env-parsers)
           (setq env-or-mac (symbol-name env-or-mac)))
          ((string-match "\\`\\\\" env-or-mac)
           ;; It's a macro
           (let ((result (reftex-parse-args env-or-mac)))
-            (setq env-or-mac (or (first result) env-or-mac)
-                  nargs (second result)
-                  nlabel (third result)
-                  opt-args (fourth result))
-            (if nlabel (add-to-list 'macros-with-labels env-or-mac)))
-          (if typekey (add-to-list 'reftex-label-mac-list env-or-mac)))
+            (setq env-or-mac (or (cl-first result) env-or-mac)
+                  nargs (cl-second result)
+                  nlabel (cl-third result)
+                  opt-args (cl-fourth result))
+            (if nlabel (cl-pushnew env-or-mac macros-with-labels :test #'equal)))
+          (if typekey (cl-pushnew env-or-mac reftex-label-mac-list :test #'equal)))
          (t
           ;; It's an environment
           (setq nargs nil nlabel nil opt-args nil)
@@ -831,7 +866,7 @@ This enforces rescanning the buffer on next use."
                 ((string= env-or-mac ""))
                 ((string= env-or-mac "section"))
                 (t
-                 (add-to-list 'reftex-label-env-list env-or-mac)
+                 (cl-pushnew env-or-mac reftex-label-env-list :test #'equal)
                  (if toc-level
                      (let ((string (format "begin{%s}" env-or-mac)))
                        (or (assoc string toc-levels)
@@ -915,7 +950,7 @@ This enforces rescanning the buffer on next use."
                          (not (member (aref fmt i) '(?%))))
                (setq word (concat word "\\|" (regexp-quote
                                               (substring fmt 0 (1+ i)))))
-               (incf i))
+               (cl-incf i))
              (cons (concat word "\\)\\=") typekey))
            (nreverse reftex-words-to-typekey-alist)))
 
@@ -941,10 +976,10 @@ This enforces rescanning the buffer on next use."
                          (t t))
             all-index (cdr all-index))
       (let ((result (reftex-parse-args macro)))
-        (setq macro (or (first result) macro)
-              nargs (second result)
-              nindex (third result)
-              opt-args (fourth result))
+        (setq macro (or (cl-first result) macro)
+              nargs (cl-second result)
+              nindex (cl-third result)
+              opt-args (cl-fourth result))
         (unless (member macro reftex-macros-with-index)
           ;;           0     1    2      3     4     5       6        7
           (push (list macro tag prefix verify nargs nindex opt-args repeat)
@@ -968,7 +1003,7 @@ This enforces rescanning the buffer on next use."
            (mapconcat
             (lambda(x)
               (format "[%c] %-20.20s%s" (car x) (nth 1 x)
-                      (if (= 0 (mod (incf i) 3)) "\n" "")))
+                      (if (= 0 (mod (cl-incf i) 3)) "\n" "")))
             reftex-key-to-index-macro-alist "")))
 
     ;; Make the full list of section levels
@@ -1058,7 +1093,7 @@ This enforces rescanning the buffer on next use."
               (args (substring macro (match-beginning 0)))
               opt-list nlabel (cnt 0))
           (while (string-match "\\`[[{]\\(\\*\\)?[]}]" args)
-            (incf cnt)
+            (cl-incf cnt)
             (when (eq ?\[ (string-to-char args))
               (push cnt opt-list))
             (when (and (match-end 1)
@@ -1123,7 +1158,7 @@ This enforces rescanning the buffer on next use."
 
 (defun reftex-silence-toc-markers (list n)
   ;; Set all toc markers in the first N entries in list to nil
-  (while (and list (> (decf n) -1))
+  (while (and list (> (cl-decf n) -1))
     (and (eq (car (car list)) 'toc)
          (markerp (nth 4 (car list)))
          (set-marker (nth 4 (car list)) nil))
@@ -1254,7 +1289,7 @@ Valid actions are: readable, restore, read, kill, write."
                   "SELECT EXTERNAL DOCUMENT\n------------------------\n"
                   (mapconcat
                    (lambda (x)
-                     (format fmt (incf n) (or (car x) "")
+                     (format fmt (cl-incf n) (or (car x) "")
                              (abbreviate-file-name (cdr x))))
                    xr-alist ""))
                  nil t))
@@ -1758,11 +1793,11 @@ When DIE is non-nil, throw an error if file not found."
              ;;       with limited Magic
 
              ;; The magic goes away
-             (letf ((format-alist nil)
-                    (auto-mode-alist (reftex-auto-mode-alist))
-                    ((default-value 'major-mode) 'fundamental-mode)
-                    (enable-local-variables nil)
-                    (after-insert-file-functions nil))
+             (cl-letf ((format-alist nil)
+                       (auto-mode-alist (reftex-auto-mode-alist))
+                       ((default-value 'major-mode) 'fundamental-mode)
+                       (enable-local-variables nil)
+                       (after-insert-file-functions nil))
                (setq buf (find-file-noselect file)))
 
              ;; Is there a hook to run?
@@ -1772,7 +1807,7 @@ When DIE is non-nil, throw an error if file not found."
 
            ;; Let's see if we got a license to kill :-|
            (and mark-to-kill
-                (add-to-list 'reftex-buffers-to-kill buf))
+                (cl-pushnew buf reftex-buffers-to-kill))
 
            ;; Return the new buffer
            buf)
@@ -2134,51 +2169,12 @@ IGNORE-WORDS List of words which should be removed from the string."
 ;;;
 ;;; Keybindings
 
-;; The default bindings in the mode map.
-(loop for x in
-      '(("\C-c="  . reftex-toc)
-        ("\C-c-"  . reftex-toc-recenter)
-        ("\C-c("  . reftex-label)
-        ("\C-c)"  . reftex-reference)
-        ("\C-c["  . reftex-citation)
-        ("\C-c<"  . reftex-index)
-        ("\C-c>"  . reftex-display-index)
-        ("\C-c/"  . reftex-index-selection-or-word)
-        ("\C-c\\" . reftex-index-phrase-selection-or-word)
-        ("\C-c|"  . reftex-index-visit-phrases-buffer)
-        ("\C-c&"  . reftex-view-crossref))
-      do (define-key reftex-mode-map (car x) (cdr x)))
-
-;; Bind `reftex-mouse-view-crossref' only when the key is still free
-(if (featurep 'xemacs)
-    (unless (key-binding [(shift button2)])
-      (define-key reftex-mode-map [(shift button2)]
-        'reftex-mouse-view-crossref))
-  (unless (key-binding [(shift mouse-2)])
-    (define-key reftex-mode-map [(shift mouse-2)]
-      'reftex-mouse-view-crossref)))
-
 (defvar bibtex-mode-map)
 
 ;; Bind `reftex-view-crossref-from-bibtex' in BibTeX mode map
 (eval-after-load
  "bibtex"
  '(define-key bibtex-mode-map "\C-c&" 'reftex-view-crossref-from-bibtex))
-
-;; For most of these commands there are already bindings in place.
-;; Setting `reftex-extra-bindings' really is only there to spare users
-;; the hassle of defining bindings in the user space themselves.  This
-;; is why they violate the key binding recommendations.
-(when reftex-extra-bindings
-  (loop for x in
-        '(("\C-ct" . reftex-toc)
-          ("\C-cl" . reftex-label)
-          ("\C-cr" . reftex-reference)
-          ("\C-cc" . reftex-citation)
-          ("\C-cv" . reftex-view-crossref)
-          ("\C-cg" . reftex-grep-document)
-          ("\C-cs" . reftex-search-document))
-        do (define-key reftex-mode-map (car x) (cdr x))))
 
 ;;; =========================================================================
 ;;;
@@ -2269,7 +2265,7 @@ IGNORE-WORDS List of words which should be removed from the string."
 		      :style 'toggle
 		      :selected `(member ,elt (reftex-ref-style-list))))
 	  (unless (member item list)
-	    (add-to-list 'list item t)))
+            (setq list (append list (list item)))))
 	list))
    ("Citation Style"
     ,@(mapcar

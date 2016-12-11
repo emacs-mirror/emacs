@@ -154,7 +154,6 @@
                every
                some
                mapcon
-               mapcan
                mapl
                maplist
                map
@@ -365,7 +364,7 @@ The two cases that are handled are:
             `(list 'lambda '(&rest --cl-rest--)
                    ,@(cl-sublis sub (nreverse decls))
                    (list 'apply
-                         (list 'quote
+                         (list 'function
                                #'(lambda ,(append new (cadr f))
                                    ,@(cl-sublis sub body)))
                          ,@(nconc (mapcar (lambda (x) `(list 'quote ,x))

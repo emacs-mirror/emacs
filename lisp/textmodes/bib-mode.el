@@ -35,7 +35,7 @@
   "Major mode for editing bib files."
   :prefix "bib-"
   :group 'external
-  :group 'wp)
+  :group 'text)
 
 (defcustom bib-file "~/my-bibliography.bib"
   "Default name of file used by `addbib'."

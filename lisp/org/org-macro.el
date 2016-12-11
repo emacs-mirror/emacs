@@ -48,7 +48,6 @@
 (declare-function org-remove-double-quotes "org" (s))
 (declare-function org-mode "org" ())
 (declare-function org-file-contents "org" (file &optional noerror))
-(declare-function org-with-wide-buffer "org-macs" (&rest body))
 
 ;;; Variables
 

@@ -122,8 +122,8 @@ and the menu bar
 (@pxref{Menu Bar}).
 @end ifnottex
  Scroll bars don't work in MS-DOS Emacs.  PC mice usually have only
-two buttons; these act as @kbd{Mouse-1} and @kbd{Mouse-2}, but if you
-press both of them together, that has the effect of @kbd{Mouse-3}.  If
+two buttons; these act as @kbd{mouse-1} and @kbd{mouse-2}, but if you
+press both of them together, that has the effect of @kbd{mouse-3}.  If
 the mouse does have 3 buttons, Emacs detects that at startup, and all
 the 3 buttons function normally, as on X.
 

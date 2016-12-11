@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 ### update_autogen - update some auto-generated files in the Emacs tree
 
 ## Copyright (C) 2011-2016 Free Software Foundation, Inc.
@@ -49,7 +49,7 @@ cd ../
 
 if [ -d .bzr ]; then
     vcs=bzr
-elif [ -d .git ]; then
+elif [ -e .git ]; then
     vcs=git
 else
     die "Cannot determine vcs"

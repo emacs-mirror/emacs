@@ -595,6 +595,11 @@ calls to the macro.  An indentation specification is written like this:
 @end example
 
 @noindent
+@cindex @code{lisp-indent-function} property
+This results in the @code{lisp-indent-function} property being set on
+the macro name.
+
+@noindent
 Here are the possibilities for @var{indent-spec}:
 
 @table @asis

@@ -931,6 +931,7 @@ status of its latest version.
 @menu
 * Origin of the term Emacs::
 * Latest version of Emacs::
+* New in Emacs 25::
 * New in Emacs 24::
 * New in Emacs 23::
 * New in Emacs 22::
@@ -977,9 +978,9 @@ conventions}).
 @cindex Bazaar repository, Emacs
 
 Emacs @value{EMACSVER} is the current version as of this writing.  A version
-number with two components (e.g., @samp{22.1}) indicates a released
+number with two components (e.g., @samp{24.5}) indicates a released
 version; three components indicate a development
-version (e.g., @samp{23.0.50} is what will eventually become @samp{23.1}).
+version (e.g., @samp{26.0.50} is what will eventually become @samp{26.1}).
 
 Emacs is under active development, hosted at
 @uref{http://savannah.gnu.org/projects/emacs/, Savannah}.
@@ -997,6 +998,106 @@ few Emacs releases.  For full details of the changes in any version of
 Emacs, type @kbd{C-h C-n} (@kbd{M-x view-emacs-news}).  As of Emacs 22,
 you can give this command a prefix argument to read about which features
 were new in older versions.
+
+@node New in Emacs 25
+@section What is different about Emacs 25?
+@cindex Differences between Emacs 24 and Emacs 25
+@cindex Emacs 25, new features in
+
+@itemize
+@cindex xwidgets
+@item
+Emacs can now embed native widgets inside Emacs buffers, if you have
+gtk3 and webkitgtk3 installed.  E.g., to access the embedded webkit
+browser widget, type @kbd{M-x xwidget-webkit-browse-url}.
+
+@cindex loadable modules
+@item
+Emacs can now dynamically load external modules compiled as shared
+libraries.
+
+@cindex Unicode characters, typing easily
+@item
+@kbd{C-x 8} has new shorthands for several popular characters, type
+@kbd{C-x 8 C-h} to list shorthands.
+
+@cindex automatic display of Lisp APIs
+@item
+A new minor mode @code{global-eldoc-mode} is enabled by default, and
+shows in the echo area or in the mode line the argument list of the
+Emacs Lisp form at point.
+
+@cindex pasting text on text terminals
+@cindex bracketed paste mode
+@item
+On text terminals that support the ``bracketed paste mode'' EMacs now
+uses that mode by default.  This mode allows Emacs to distinguish
+between pasted text and text typed by the user.
+
+@cindex Unicode 9.0.0
+@item
+Emacs 25 comes with data files imported from the latest Unicode
+Standard version 9.0.0.
+
+@cindex bidirectional editing
+@item
+The support for bidirectional editing was updated to include all the
+features mandated by the latest Unicode Standard version 9.0.0.
+
+@cindex character folding in searches
+@item
+Search command can now perform character folding in matches.  This is
+analogous to case folding, but instead of disregarding case variants,
+it disregards wider classes of distinctions between similar
+characters, such as matching different variants of double quote
+characters, ignoring diacritics, etc.
+
+@cindex eww
+@item
+The Emacs Web Browser EWW was extended to render text using
+variable-pitch fonts, and got other new features.
+
+@cindex rmail, and HTML mails
+@item
+Rmail can now render HTML mail messages, if Emacs is built with
+libxml2 or if you have the Lynx browser installed.
+
+@cindex support for push commands in VC
+@item
+VC now has basic support for @code{push} commands, implemented for
+Bzr, Git, and Hg.
+
+@cindex hide-ifdef, C/C@t{++} expressions in macros
+@item
+Hide-IfDef mode now support full C/C@t{++} expressions in macros,
+macro argument expansion, interactive macro evaluation and automatic
+scanning of @code{#define}d symbols.
+
+@cindex xref
+@item
+New package Xref replaces Etags's front-end and UI.  Xref provides a
+generic framework and new commands to find and move to definitions of
+functions, macros, data structures etc., as well as go back to the
+location where you were before moving to a definition.  It supersedes
+and obsoletes many Etags commands, while still using the etags.el code
+that reads the TAGS tables as one of its back-ends.  As result, the
+popular key bindings @kbd{M-.} and @kbd{M-,} have been changed to
+invoke Xref commands.
+
+@cindex project
+@item
+The new package Project provides generic infrastructure for dealing
+with projects.
+
+@cindex horizontal scroll bars
+@item
+Emacs can now draw horizontal scroll bars on some platforms that
+provide toolkit scroll bars, namely Gtk+, Lucid, Motif and Windows.
+
+@end itemize
+
+Consult the Emacs @file{NEWS} file (@kbd{C-h n}) for the full list of
+changes in Emacs 25.
 
 @node New in Emacs 24
 @section What is different about Emacs 24?
@@ -1105,7 +1206,7 @@ Emacs can be started as a daemon in the background.
 
 @cindex NeXTstep port
 @cindex GNUstep port
-@cindex Mac OS X Cocoa
+@cindex macOS Cocoa
 @item
 There is a new NeXTstep port of Emacs.  This supports GNUstep and Mac OS
 X (via the Cocoa libraries).  The Carbon port of Emacs, which supported
@@ -2290,7 +2391,7 @@ is actually typical for regexp syntax.)
 @cindex Recursive search/replace operations
 
 Dired mode (@kbd{M-x dired @key{RET}}, or @kbd{C-x d}) supports the
-command @code{dired-do-query-replace-regexp} (@kbd{Q}), which allows
+command @code{dired-do-find-regexp-and-replace} (@kbd{Q}), which allows
 users to replace regular expressions in multiple files.
 
 You can use this command to perform search/replace operations on
@@ -2315,7 +2416,7 @@ To accept all replacements in each file, hit @kbd{!}.
 Another way to do the same thing is to use the ``tags'' feature of
 Emacs: it includes the command @code{tags-query-replace} which performs
 a query-replace across all the files mentioned in the @file{TAGS} file.
-@xref{Tags Search,,, emacs, The GNU Emacs Manual}.
+@xref{Identifier Search,,, emacs, The GNU Emacs Manual}.
 
 @node Documentation for etags
 @section Where is the documentation for @code{etags}?
@@ -2408,7 +2509,7 @@ error messages, inserts them into a special buffer called
 the source.  Type @kbd{C-x `} to step through the offending lines one by
 one (starting with Emacs 22, you can also use @kbd{M-g M-p} and
 @kbd{M-g M-n} to go to the previous and next matches directly).  Click
-@kbd{Mouse-2} or press @key{RET} on a message text in the
+@kbd{mouse-2} or press @key{RET} on a message text in the
 @file{*compilation*} buffer to go to the line whose number is mentioned
 in that message.
 
@@ -2664,11 +2765,6 @@ by typing @kbd{M-x ansi-color-for-comint-mode} in the Shell buffer, or
 by adding @code{(add-hook 'shell-mode-hook
 'ansi-color-for-comint-mode-on)} to your init file.
 
-In Emacs versions before 21.1, the @code{ansi-color} package is not
-included.  In that case, you need to unalias @code{ls} for interactive
-shells running in Emacs; this can be done by checking the @code{EMACS}
-variable in the environment.
-
 @node Fullscreen mode on MS-Windows
 @section How can I start Emacs in fullscreen mode on MS-Windows?
 @cindex Maximize frame
@@ -2757,11 +2853,9 @@ For @code{tcsh}, put this in your @file{.cshrc} (or @file{.tcshrc})
 file:
 
 @example
-if ($?EMACS) then
-    if ("$EMACS" =~ /*) then
-        if ($?tcsh) unset edit
-        stty nl
-    endif
+if ($?INSIDE_EMACS && $?tcsh)
+    unset edit
+    stty -icrnl -onlcr -echo susp ^Z
 endif
 @end example
 
@@ -2769,7 +2863,7 @@ Or put this in your @file{.emacs_tcsh} or @file{~/.emacs.d/init_tcsh.sh} file:
 
 @example
 unset edit
-stty nl
+stty -icrnl -onlcr -echo susp ^Z
 @end example
 
 Alternatively, use @code{csh} in your shell buffers instead of
@@ -3247,7 +3341,7 @@ problem (@pxref{Reporting bugs}).
 * Emacs for MS-DOS::
 * Emacs for MS-Windows::
 * Emacs for GNUstep::
-* Emacs for Mac OS X::
+* Emacs for macOS::
 @end menu
 
 @node Finding Emacs on the Internet
@@ -3467,13 +3561,13 @@ For MS-DOS, @pxref{Emacs for MS-DOS}.
 Beginning with version 23.1, Emacs supports GNUstep natively.
 See the file @file{nextstep/INSTALL} in the distribution.
 
-@node Emacs for Mac OS X
-@section Where can I get Emacs for Mac OS X?
+@node Emacs for macOS
+@section Where can I get Emacs for macOS?
 @cindex Apple computers, Emacs for
 @cindex Macintosh, Emacs for
-@cindex Mac OS X, Emacs for
+@cindex macOS, Emacs for
 
-Beginning with version 22.1, Emacs supports Mac OS X natively.
+Beginning with version 22.1, Emacs supports macOS natively.
 See the file @file{nextstep/INSTALL} in the distribution.
 
 @c ------------------------------------------------------------
@@ -3895,7 +3989,7 @@ is how to make @kbd{H-M-RIGHT} move forward a word:
 Not all modifiers are permitted in all situations.  @key{Hyper},
 @key{Super}, and @key{Alt} are not available on Unix character
 terminals.  Non-@acronym{ASCII} keys and mouse events (e.g., @kbd{C-=} and
-@kbd{Mouse-1}) also fall under this category.
+@kbd{mouse-1}) also fall under this category.
 
 @end itemize
 

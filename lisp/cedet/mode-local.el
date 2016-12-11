@@ -638,7 +638,7 @@ SYMBOL is a function that can be overridden."
 
 (defun describe-mode-local-overload (symbol)
   "For `help-fns-describe-function-functions'; add overloads for SYMBOL."
-  (when (get symbol 'mode-local-overload)
+  (when (function-overload-p symbol)
     (let ((default (or (intern-soft (format "%s-default" (symbol-name symbol)))
 		       symbol))
 	  (override (with-current-buffer describe-function-orig-buffer
@@ -684,7 +684,7 @@ SYMBOL is a function that can be overridden."
 (defun xref-mode-local-overload (symbol)
   "For `elisp-xref-find-def-functions'; add overloads for SYMBOL."
   ;; Current buffer is the buffer where xref-find-definitions was invoked.
-  (when (get symbol 'mode-local-overload)
+  (when (function-overload-p symbol)
     (let* ((symbol-file (find-lisp-object-file-name symbol (symbol-function symbol)))
 	   (default (intern-soft (format "%s-default" (symbol-name symbol))))
 	   (default-file (when default (find-lisp-object-file-name default (symbol-function default))))

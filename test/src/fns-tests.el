@@ -208,3 +208,40 @@
   (should (string-version-lessp "foo1.25.5.png" "foo1.125.5"))
   (should (string-version-lessp "2" "1245"))
   (should (not (string-version-lessp "1245" "2"))))
+
+(ert-deftest fns-tests-func-arity ()
+  (should (equal (func-arity 'car) '(1 . 1)))
+  (should (equal (func-arity 'caar) '(1 . 1)))
+  (should (equal (func-arity 'format) '(1 . many)))
+  (require 'info)
+  (should (equal (func-arity 'Info-goto-node) '(1 . 3)))
+  (should (equal (func-arity (lambda (&rest x))) '(0 . many)))
+  (should (equal (func-arity (eval (lambda (x &optional y)) nil)) '(1 . 2)))
+  (should (equal (func-arity (eval (lambda (x &optional y)) t)) '(1 . 2)))
+  (should (equal (func-arity 'let) '(1 . unevalled))))
+
+(ert-deftest fns-tests-hash-buffer ()
+  (should (equal (sha1 "foo") "0beec7b5ea3f0fdbc95d0dd47f3c5bc275da8a33"))
+  (should (equal (with-temp-buffer
+                   (insert "foo")
+                   (buffer-hash))
+                 (sha1 "foo")))
+  ;; This tests whether the presence of a gap in the middle of the
+  ;; buffer is handled correctly.
+  (should (equal (with-temp-buffer
+                   (insert "foo")
+                   (goto-char 2)
+                   (insert " ")
+                   (backward-delete-char 1)
+                   (buffer-hash))
+                 (sha1 "foo"))))
+
+(ert-deftest fns-tests-mapcan ()
+  (should-error (mapcan))
+  (should-error (mapcan #'identity))
+  (should-error (mapcan #'identity (make-char-table 'foo)))
+  (should (equal (mapcan #'list '(1 2 3)) '(1 2 3)))
+  ;; `mapcan' is destructive
+  (let ((data '((foo) (bar))))
+    (should (equal (mapcan #'identity data) '(foo bar)))
+    (should (equal data                     '((foo bar) (bar))))))

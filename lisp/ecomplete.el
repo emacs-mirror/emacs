@@ -32,7 +32,7 @@
   :group 'mail)
 
 (defcustom ecomplete-database-file "~/.ecompleterc"
-  "*The name of the file to store the ecomplete data."
+  "The name of the file to store the ecomplete data."
   :group 'ecomplete
   :type 'file)
 

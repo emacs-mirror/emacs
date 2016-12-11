@@ -123,7 +123,7 @@ the region 0:00:00."
 	  (setq delta (org-timer-hms-to-secs (org-timer-fix-incomplete s)))))
 	(setq org-timer-start-time
 	      (seconds-to-time
-	       (- (org-float-time) delta))))
+	       (- (float-time) delta))))
       (org-timer-set-mode-line 'on)
       (message "Timer start time set to %s, current value is %s"
 	       (format-time-string "%T" org-timer-start-time)
@@ -142,9 +142,9 @@ With prefix arg STOP, stop it entirely."
     (setq org-timer-start-time
 	  (seconds-to-time
 	   (-
-	    (org-float-time)
-	    (- (org-float-time org-timer-pause-time)
-	       (org-float-time org-timer-start-time))))
+	    (float-time)
+	    (- (float-time org-timer-pause-time)
+	       (float-time org-timer-start-time))))
 	  org-timer-pause-time nil)
     (org-timer-set-mode-line 'on)
     (run-hooks 'org-timer-continue-hook)
@@ -194,10 +194,10 @@ it in the buffer."
 (defvar org-timer-timer-is-countdown nil)
 (defun org-timer-seconds ()
   (if org-timer-timer-is-countdown
-      (- (org-float-time org-timer-start-time)
-	 (org-float-time))
-    (- (org-float-time org-timer-pause-time)
-       (org-float-time org-timer-start-time))))
+      (- (float-time org-timer-start-time)
+	 (float-time))
+    (- (float-time org-timer-pause-time)
+       (float-time org-timer-start-time))))
 
 ;;;###autoload
 (defun org-timer-change-times-in-region (beg end delta)

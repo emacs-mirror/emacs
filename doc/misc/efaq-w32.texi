@@ -2061,7 +2061,6 @@ Jonathan Arnold has written an
 @cindex mercurial, version control integration with Emacs
 @cindex hg, version control integration with Emacs
 @cindex monotone, version control integration with Emacs
-@cindex mcvs, version control integration with Emacs
 
 If you are using a graphical revision control tool already, check if
 it comes with command-line tools.  Many such GUI tools are just

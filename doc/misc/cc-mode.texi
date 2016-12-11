@@ -2554,7 +2554,9 @@ for C code in GNU programs.
 
 @item k&r
 @cindex K&R style
-The classic Kernighan and Ritchie style for C code.
+The classic Kernighan and Ritchie style for C code. If you're looking
+for the style used in the 2nd edition of their book ``The C
+Programming Language'', then check out the @code{stroustrup} style.
 
 @item bsd
 @cindex BSD style
@@ -3542,10 +3544,11 @@ use, add this function to the front of the
 @example
 (defun c-semi&comma-no-newlines-before-nonblanks ()
   (save-excursion
-    (if (and (eq last-command-char ?\;)
-             (zerop (forward-line 1))
-             (not (looking-at "^[ \t]*$")))
-        'stop
+    (if (and (= (c-last-command-char) ?\;)
+	     (zerop (forward-line 1))
+	     (bolp)      ; forward-line has funny behavior at eob.
+	     (not (looking-at "^[ \t]*$")))
+	'stop
       nil)))
 @end example
 @end defun
@@ -6727,9 +6730,11 @@ Macros which needn't (or mustn't) be followed by a semicolon when you
 invoke them, @dfn{macros with semicolons}, are very common.  These can
 cause @ccmode{} to parse the next line wrongly as a
 @code{statement-cont} (@pxref{Function Symbols}) and thus mis-indent
-it.
+it.  At the top level, a macro invocation before a defun start can
+cause, for example, @code{c-beginning-of-defun} (@kbd{C-M-a}) not to
+find the correct start of the current function.
 
-You can prevent this by specifying which macros have semicolons.  It
+You can prevent these by specifying which macros have semicolons.  It
 doesn't matter whether or not such a macro has a parameter list:
 
 @defopt c-macro-names-with-semicolon
@@ -6767,10 +6772,10 @@ example:
 @defun c-make-macro-with-semi-re
 @findex make-macro-with-semi-re (c-)
 Call this (non-interactive) function, which sets internal variables,
-each time you change the value of
-@code{c-macro-names-with-semicolon}.  It takes no arguments, and its
+each time you change the value of @code{c-macro-names-with-semicolon}
+after the major mode function has run.  It takes no arguments, and its
 return value has no meaning.  This function is called by @ccmode{}'s
-initialization code.
+initialization code, after the mode hooks have run.
 @end defun
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -6822,9 +6827,10 @@ but doing so is OK.
 @defun c-make-noise-macro-regexps
 @findex make-noise-macro-regexps (c-)
 Call this (non-interactive) function, which sets internal variables,
-after changing the value of @code{c-noise-macro-names} or
-@code{c-noise-macro-with-parens-names} (e.g. in a hook (@pxref{CC
-Hooks})).  This function is called by @ccmode{}'s initialization code.
+on changing the value of @code{c-noise-macro-names} or
+@code{c-noise-macro-with-parens-names} after the major mode's function
+has run.  This function is called by @ccmode{}'s initialization code,
+after the mode hooks have run.
 @end defun
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

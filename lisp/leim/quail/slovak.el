@@ -151,18 +151,7 @@
  ("+7" ?&)
  ("+8" ?*)
  ("+9" ?\()
- ("+0" ?\))
- ([kp-1] ?1)
- ([kp-2] ?2)
- ([kp-3] ?3)
- ([kp-4] ?4)
- ([kp-5] ?5)
- ([kp-6] ?6)
- ([kp-7] ?7)
- ([kp-8] ?8)
- ([kp-9] ?9)
- ([kp-0] ?0)
- ([kp-add] ?+))
+ ("+0" ?\)))
 
 
 (quail-define-package
@@ -245,18 +234,7 @@ All other keys are the same as on standard US keyboard."
  ("[[[U" ?Ü)
  ("[Y" ?Ý)
  ("[Z" ?Ž)
- ("[[Z" ?Ž)
- ([kp-1] ?1)
- ([kp-2] ?2)
- ([kp-3] ?3)
- ([kp-4] ?4)
- ([kp-5] ?5)
- ([kp-6] ?6)
- ([kp-7] ?7)
- ([kp-8] ?8)
- ([kp-9] ?9)
- ([kp-0] ?0)
- ([kp-add] ?+))
+ ("[[Z" ?Ž))
 
 
 (quail-define-package
@@ -347,18 +325,7 @@ All other keys are the same as on standard US keyboard."
  ("+U" ?Ů)
  ("+=U" ?Ü)
  ("=Y" ?Ý)
- ("+Z" ?Ž)
- ([kp-1] ?1)
- ([kp-2] ?2)
- ([kp-3] ?3)
- ([kp-4] ?4)
- ([kp-5] ?5)
- ([kp-6] ?6)
- ([kp-7] ?7)
- ([kp-8] ?8)
- ([kp-9] ?9)
- ([kp-0] ?0)
- ([kp-add] ?+))
+ ("+Z" ?Ž))
 
 
 (quail-define-package
@@ -463,17 +430,6 @@ All other keys are the same as on standard US keyboard."
  ("[Y" ?Ý)
  ("[Z" ?Ž)
  ("[[Z" ?Ž)
- ("]Z" ?Ž)
- ([kp-1] ?1)
- ([kp-2] ?2)
- ([kp-3] ?3)
- ([kp-4] ?4)
- ([kp-5] ?5)
- ([kp-6] ?6)
- ([kp-7] ?7)
- ([kp-8] ?8)
- ([kp-9] ?9)
- ([kp-0] ?0)
- ([kp-add] ?+))
+ ("]Z" ?Ž))
 
 ;;; slovak.el ends here

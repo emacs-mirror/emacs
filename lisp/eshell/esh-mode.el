@@ -143,7 +143,7 @@ See variable `eshell-scroll-show-maximum-output' and function
   :type '(radio (const :tag "Do not scroll Eshell windows" nil)
 		(const :tag "Scroll all windows showing the buffer" all)
 		(const :tag "Scroll only the selected window" this)
-		(const :tag "Scroll all windows other than selected" this))
+		(const :tag "Scroll all windows other than selected" others))
   :group 'eshell-mode)
 
 (defcustom eshell-scroll-show-maximum-output t
@@ -379,6 +379,11 @@ and the hook `eshell-exit-hook'."
   (let ((modules-list (copy-sequence eshell-modules-list)))
     (make-local-variable 'eshell-modules-list)
     (setq eshell-modules-list modules-list))
+
+  ;; This is to avoid making the paragraph base direction
+  ;; right-to-left if the first word just happens to start with a
+  ;; strong R2L character.
+  (setq bidi-paragraph-direction 'left-to-right)
 
   ;; load extension modules into memory.  This will cause any global
   ;; variables they define to be visible, since some of the core

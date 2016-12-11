@@ -161,7 +161,7 @@ enable expiration per categories, topics, and groups."
                 (const :format "Disable " DISABLE)))
 
 (defcustom gnus-agent-expire-unagentized-dirs t
-  "*Whether expiration should expire in unagentized directories.
+  "Whether expiration should expire in unagentized directories.
 Have gnus-agent-expire scan the directories under
 \(gnus-agent-directory) for groups that are no longer agentized.
 When found, offer to remove them."
@@ -2633,8 +2633,10 @@ General format specifiers can also be used.  See Info node
     "\C-c\C-i" gnus-info-find-node
     "\C-c\C-b" gnus-bug))
 
-(defvar gnus-category-menu-hook nil
-  "*Hook run after the creation of the menu.")
+(defcustom gnus-category-menu-hook nil
+  "Hook run after the creation of the menu."
+  :group 'gnus-agent
+  :type 'hook)
 
 (defun gnus-category-make-menu-bar ()
   (gnus-turn-off-edit-menu 'category)

@@ -50,6 +50,7 @@ and those hits returned.")
                "Rakefile" "Thorfile" "Capfile" "Guardfile" "Vagrantfile")
     (perl-mode "*.pl" "*.PL")
     (cperl-mode "*.pl" "*.PL")
+    (lisp-interaction-mode "*.el" "*.ede" ".emacs" "_emacs")
     )
   "List of major modes and file extension pattern.
 See find -name man page for format.")
@@ -80,7 +81,7 @@ Optional argument MODE specifies the `major-mode' to test."
         (if (null (cdr args))
             args
           `("(" ,@args
-            ,@(apply #'nconc (mapcar (lambda (s) `("-o" "-name" ,s)) pat))
+            ,@(mapcan (lambda (s) `("-o" "-name" ,s)) pat)
             ")"))))))
 
 (defvar grepflags)
@@ -188,6 +189,9 @@ This shell should support pipe redirect syntax."
     ;; Return the answer
     ans))
 
+(defconst semantic-symref-grep--line-re
+  "^\\(\\(?:[a-zA-Z]:\\)?[^:\n]+\\):\\([0-9]+\\):")
+
 (cl-defmethod semantic-symref-parse-tool-output-one-line ((tool semantic-symref-tool-grep))
   "Parse one line of grep output, and return it as a match list.
 Moves cursor to end of the match."
@@ -195,8 +199,13 @@ Moves cursor to end of the match."
 	 ;; Search for files
 	 (when (re-search-forward "^\\([^\n]+\\)$" nil t)
 	   (match-string 1)))
+        ((eq (oref tool :resulttype) 'line-and-text)
+         (when (re-search-forward semantic-symref-grep--line-re nil t)
+           (list (string-to-number (match-string 2))
+                 (match-string 1)
+                 (buffer-substring-no-properties (point) (line-end-position)))))
 	(t
-	 (when (re-search-forward  "^\\(\\(?:[a-zA-Z]:\\)?[^:\n]+\\):\\([0-9]+\\):" nil t)
+	 (when (re-search-forward semantic-symref-grep--line-re nil t)
 	   (cons (string-to-number (match-string 2))
 		 (match-string 1))
 	   ))))

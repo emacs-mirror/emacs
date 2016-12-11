@@ -25,6 +25,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'subr-x)
 
 (defvar nsm-permanent-host-settings nil)
 (defvar nsm-temporary-host-settings nil)

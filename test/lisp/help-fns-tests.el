@@ -27,13 +27,62 @@
 
 (autoload 'help-fns-test--macro "help-fns" nil nil t)
 
+
+;;; Several tests for describe-function
+
+(defun help-fns-tests--describe-function (func)
+  "Helper function for `describe-function' tests.
+FUNC is the function to describe, a symbol.
+Return first line of the output of (describe-function-1 FUNC)."
+  (let ((string (with-output-to-string
+                  (describe-function-1 func))))
+    (string-match "\\(.+\\)\n" string)
+    (match-string-no-properties 1 string)))
+
 (ert-deftest help-fns-test-bug17410 ()
   "Test for http://debbugs.gnu.org/17410 ."
-  (describe-function 'help-fns-test--macro)
-  (with-current-buffer "*Help*"
-    (goto-char (point-min))
-    (should (search-forward "autoloaded Lisp macro" (line-end-position)))))
+  (let ((regexp "autoloaded Lisp macro")
+        (result (help-fns-tests--describe-function 'help-fns-test--macro)))
+    (should (string-match regexp result))))
 
+(ert-deftest help-fns-test-built-in ()
+  (let ((regexp "a built-in function in .C source code")
+        (result (help-fns-tests--describe-function 'mapcar)))
+    (should (string-match regexp result))))
+
+(ert-deftest help-fns-test-interactive-built-in ()
+  (let ((regexp "an interactive built-in function in .C source code")
+        (result (help-fns-tests--describe-function 're-search-forward)))
+    (should (string-match regexp result))))
+
+(ert-deftest help-fns-test-lisp-macro ()
+  (let ((regexp "a Lisp macro in .subr\.el")
+        (result (help-fns-tests--describe-function 'when)))
+    (should (string-match regexp result))))
+
+(ert-deftest help-fns-test-lisp-defun ()
+  (let ((regexp "a compiled Lisp function in .subr\.el")
+        (result (help-fns-tests--describe-function 'last)))
+    (should (string-match regexp result))))
+
+(ert-deftest help-fns-test-lisp-defsubst ()
+  (let ((regexp "a compiled Lisp function in .subr\.el")
+        (result (help-fns-tests--describe-function 'posn-window)))
+    (should (string-match regexp result))))
+
+(ert-deftest help-fns-test-alias-to-defun ()
+  (let ((regexp "an alias for .set-file-modes. in .subr\.el")
+        (result (help-fns-tests--describe-function 'chmod)))
+    (should (string-match regexp result))))
+
+(ert-deftest help-fns-test-bug23887 ()
+  "Test for http://debbugs.gnu.org/23887 ."
+  (let ((regexp "an alias for .re-search-forward. in .subr\.el")
+        (result (help-fns-tests--describe-function 'search-forward-regexp)))
+    (should (string-match regexp result))))
+
+
+;;; Test describe-function over functions with funny names
 (defun abc\\\[universal-argument\]b\`c\'d\\e\"f (x)
   "A function with a funny name.
 
@@ -57,6 +106,8 @@
     (should (search-forward
              "(defgh\\\\\\[universal-argument\\]b\\`c\\'d\\\\e\\\"f X)"))))
 
+
+;;; Test for describe-symbol
 (ert-deftest help-fns-test-describe-symbol ()
   "Test the `describe-symbol' function."
   ;; 'describe-symbol' would originally signal an error for

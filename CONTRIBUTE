@@ -183,13 +183,19 @@ intended for more-conservative changes such as bug fixes.  Typically,
 collective development is active on the master branch and possibly on
 the current release branch.  Periodically, the current release branch
 is merged into the master, using the gitmerge function described in
-admin/notes-git-workflow.
+admin/notes/git-workflow.
 
 If you are fixing a bug that exists in the current release, be sure to
 commit it to the release branch; it will be merged to the master
 branch later by the gitmerge function.
 
-However, if you know that the change will be difficult to merge to the
+Documentation fixes (in doc strings, in manuals, and in comments)
+should always go to the release branch, if the documentation to be
+fixed exists and is relevant to the release-branch codebase.  Doc
+fixes are always considered "safe" -- even when a release branch is in
+feature freeze, it can still receive doc fixes.
+
+When you know that the change will be difficult to merge to the
 master (e.g., because the code on master has changed a lot), you can
 apply the change to both master and branch yourself.  It could also
 happen that a change is cherry-picked from master to the release

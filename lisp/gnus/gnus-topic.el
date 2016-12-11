@@ -63,12 +63,12 @@ See Info node `(gnus)Formatting Variables'."
   :group 'gnus-topic)
 
 (defcustom gnus-topic-indent-level 2
-  "*How much each subtopic should be indented."
+  "How much each subtopic should be indented."
   :type 'integer
   :group 'gnus-topic)
 
 (defcustom gnus-topic-display-empty-topics t
-  "*If non-nil, display the topic lines even of topics that have no unread articles."
+  "If non-nil, display the topic lines even of topics that have no unread articles."
   :type 'boolean
   :group 'gnus-topic)
 

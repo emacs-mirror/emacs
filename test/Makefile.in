@@ -106,14 +106,17 @@ else
 SELECTOR_ACTUAL=$(SELECTOR_EXPENSIVE)
 endif
 
+## Byte-compile all test files to test for errors (unless explicitly
+## told not to), but then evaluate the un-byte-compiled files, because
+## they give cleaner stacktraces.
 
+## Beware: it approximates 'no-byte-compile', so watch out for false-positives!
 %.log: %.el
-	@if grep '^;.*no-byte-compile: t' $< > /dev/null; then \
-	  loadfile=$<; \
-	else \
-	  loadfile=$<c; \
-	  ${MAKE} $$loadfile; \
+	elc=$<c; \
+	if ! grep '^;.*no-byte-compile: t' $< > /dev/null; then \
+	  ${MAKE} $$elc; \
 	fi; \
+	loadfile=$<; \
 	echo Testing $$loadfile; \
 	stat=OK ; \
 	${MKDIR_P} $(dir $@) ; \
@@ -148,18 +151,25 @@ endef
 
 $(foreach test,${TESTS},$(eval $(call test_template,${test})))
 
+## Check that there is no 'automated' subdirectory, which would
+## indicate an incomplete merge from an older version of Emacs where
+## the tests were arranged differently.
+.PHONY: check-no-automated-subdir
+check-no-automated-subdir:
+	test ! -d $(srcdir)/automated
+
 ## Include dependencies between test files and the files they test.
 ## We could do this without the file and eval directly, but then we
 ## would have to run Emacs for every make invocation, and it might not
 ## be available during clean.
 -include make-test-deps.mk
 ## Rerun all default tests.
-check: mostlyclean
+check: mostlyclean check-no-automated-subdir
 	@${MAKE} check-doit SELECTOR="${SELECTOR_ACTUAL}"
 
 ## Rerun all default and expensive tests.
 .PHONY: check-expensive
-check-expensive: mostlyclean
+check-expensive: mostlyclean check-no-automated-subdir
 	@${MAKE} check-doit SELECTOR="${SELECTOR_EXPENSIVE}"
 
 ## Re-run all tests which are outdated. A test is outdated if its
@@ -168,7 +178,7 @@ check-expensive: mostlyclean
 ## determined by a heuristic and does not identify the full dependency
 ## graph. See make-test-deps.emacs-lisp for details.
 .PHONY: check-maybe
-check-maybe:
+check-maybe: check-no-automated-subdir
 	@${MAKE} check-doit SELECTOR="${SELECTOR_ACTUAL}"
 
 ## Run the tests.
@@ -180,6 +190,7 @@ check-doit: ${LOGFILES}
 
 mostlyclean:
 	-@for f in ${LOGFILES}; do test ! -f $$f || mv $$f $$f~; done
+	rm -f *.tmp
 
 clean:
 	-rm -f ${LOGFILES} ${LOGSAVEFILES}
@@ -196,5 +207,7 @@ maintainer-clean: distclean bootstrap-clean
 make-test-deps.mk: $(ELFILES) make-test-deps.emacs-lisp
 	$(EMACS) --batch -l $(srcdir)/make-test-deps.emacs-lisp \
 	--eval "(make-test-deps \"$(srcdir)\")" \
-	2> $@
-# Makefile ends here.
+	2> $@.tmp
+	# Hack to elide any CANNOT_DUMP=yes chatter.
+	sed '/\.log: /!d' $@.tmp >$@
+	rm -f $@.tmp

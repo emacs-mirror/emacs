@@ -61,6 +61,15 @@
                      (quote
                       (0 font-lock-keyword-face))))))))
 
+(ert-deftest number-sequence-test ()
+  (should (= (length
+              (number-sequence (1- most-positive-fixnum) most-positive-fixnum))
+             2))
+  (should (= (length
+              (number-sequence
+               (1+ most-negative-fixnum) most-negative-fixnum -1))
+             2)))
+
 (ert-deftest string-comparison-test ()
   (should (string-lessp "abc" "acb"))
   (should (string-lessp "aBc" "abc"))

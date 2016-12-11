@@ -268,18 +268,43 @@ under the property @code{hash-table-test}; the property value's form is
 @code{(@var{test-fn} @var{hash-fn})}.
 @end defun
 
-@defun sxhash obj
+@defun sxhash-equal obj
 This function returns a hash code for Lisp object @var{obj}.
 This is an integer which reflects the contents of @var{obj}
 and the other Lisp objects it points to.
 
-If two objects @var{obj1} and @var{obj2} are equal, then @code{(sxhash
-@var{obj1})} and @code{(sxhash @var{obj2})} are the same integer.
+If two objects @var{obj1} and @var{obj2} are @code{equal}, then
+@code{(sxhash-equal @var{obj1})} and @code{(sxhash-equal @var{obj2})}
+are the same integer.
 
-If the two objects are not equal, the values returned by @code{sxhash}
-are usually different, but not always; once in a rare while, by luck,
-you will encounter two distinct-looking objects that give the same
-result from @code{sxhash}.
+If the two objects are not @code{equal}, the values returned by
+@code{sxhash-equal} are usually different, but not always; once in a
+rare while, by luck, you will encounter two distinct-looking objects
+that give the same result from @code{sxhash-equal}.
+
+@b{Common Lisp note:} In Common Lisp a similar function is called
+@code{sxhash}.  Emacs provides this name as a compatibility alias for
+@code{sxhash-equal}.
+@end defun
+
+@defun sxhash-eq obj
+This function returns a hash code for Lisp object @var{obj}.  Its
+result reflects identity of @var{obj}, but not its contents.
+
+If two objects @var{obj1} and @var{obj2} are @code{eq}, then
+@code{(xhash @var{obj1})} and @code{(xhash @var{obj2})} are the same
+integer.
+@end defun
+
+@defun sxhash-eql obj
+This function returns a hash code for Lisp object @var{obj} suitable
+for @code{eql} comparison.  I.e. it reflects identity of @var{obj}
+except for the case where the object is a float number, in which case
+hash code is generated for the value.
+
+If two objects @var{obj1} and @var{obj2} are @code{eql}, then
+@code{(xhash @var{obj1})} and @code{(xhash @var{obj2})} are the same
+integer.
 @end defun
 
   This example creates a hash table whose keys are strings that are
@@ -289,7 +314,7 @@ compared case-insensitively.
 (defun case-fold-string= (a b)
   (eq t (compare-strings a nil nil b nil nil t)))
 (defun case-fold-string-hash (a)
-  (sxhash (upcase a)))
+  (sxhash-equal (upcase a)))
 
 (define-hash-table-test 'case-fold
   'case-fold-string= 'case-fold-string-hash)
@@ -302,7 +327,7 @@ predefined test value @code{equal}.  The keys can be any Lisp object,
 and equal-looking objects are considered the same key.
 
 @example
-(define-hash-table-test 'contents-hash 'equal 'sxhash)
+(define-hash-table-test 'contents-hash 'equal 'sxhash-equal)
 
 (make-hash-table :test 'contents-hash)
 @end example

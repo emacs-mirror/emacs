@@ -38,6 +38,7 @@
 (autoload 'mml1991-encrypt "mml1991")
 (autoload 'message-fetch-field "message")
 (autoload 'message-goto-body "message")
+(autoload 'message-options-get "message")
 (autoload 'mml-insert-tag "mml")
 (autoload 'mml-smime-sign "mml-smime")
 (autoload 'mml-smime-encrypt "mml-smime")
@@ -48,6 +49,8 @@
 (autoload 'epa--select-keys "epa")
 (autoload 'message-options-get "message")
 (autoload 'message-options-set "message")
+
+(declare-function message-options-set "message" (symbol value))
 
 (defvar mml-sign-alist
   '(("smime"     mml-smime-sign-buffer     mml-smime-sign-query)
@@ -115,6 +118,7 @@ details."
   :group 'message
   :type 'boolean)
 
+;; FIXME If it's "NOT recommended", why is it the default?
 (defcustom mml-secure-cache-passphrase password-cache
   "If t, cache OpenPGP or S/MIME passphrases inside Emacs.
 Passphrase caching in Emacs is NOT recommended.  Use gpg-agent instead.

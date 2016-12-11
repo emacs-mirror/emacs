@@ -1,4 +1,4 @@
-;;; ps-def.el --- XEmacs and Emacs definitions for ps-print
+;;; ps-def.el --- XEmacs and Emacs definitions for ps-print -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2007-2016 Free Software Foundation, Inc.
 

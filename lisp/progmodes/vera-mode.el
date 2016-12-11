@@ -1109,7 +1109,7 @@ try to increase performance by using this macro."
        ((and (save-excursion
 	       (vera-backward-syntactic-ws nil t)
 	       ;; previous line ends with a block opening?
-	       (or (/= (skip-chars-backward "{") 0) (backward-word 1))
+	       (or (/= (skip-chars-backward "{") 0) (backward-word-strictly 1))
 	       (when (looking-at vera-beg-block-re)
 		 ;; go to beginning of substatement
 		 (vera-beginning-of-substatement)
@@ -1162,7 +1162,7 @@ try to increase performance by using this macro."
        ;; is this line preceded by a substatement opening statement?
        ((save-excursion (vera-backward-syntactic-ws nil t)
 			(when (= (preceding-char) ?\)) (backward-sexp))
-			(backward-word 1)
+			(backward-word-strictly 1)
 			(setq placeholder (point))
 			(looking-at vera-beg-substatement-re))
 	(goto-char placeholder)
@@ -1225,7 +1225,7 @@ Calls `indent-region' for whole buffer."
   "If previous word is a block closing or `else', indent line again."
   (when (= (char-syntax (preceding-char)) ?w)
     (save-excursion
-      (backward-word 1)
+      (backward-word-strictly 1)
       (when (and (not (vera-in-literal))
 		 (looking-at (concat vera-end-block-re "\\|\\<else\\>")))
 	(indent-according-to-mode)))))

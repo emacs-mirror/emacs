@@ -100,7 +100,7 @@ display them initially.
 Kill Emacs (@code{save-buffers-kill-terminal}).
 @item C-z
 On a text terminal, suspend Emacs; on a graphical display,
-iconify (or ``minimize'') the selected frame (@code{suspend-emacs}).
+iconify (or ``minimize'') the selected frame (@code{suspend-frame}).
 @end table
 
 @kindex C-x C-c
@@ -132,6 +132,14 @@ is non-@code{nil}, the session is killed, otherwise Emacs continues to
 run.  One convenient function to use as the value of
 @code{confirm-kill-emacs} is the function @code{yes-or-no-p}.  The
 default value of @code{confirm-kill-emacs} is @code{nil}.
+
+@vindex confirm-kill-processes
+  If the value of the variable @code{confirm-kill-processes} is
+@code{nil}, @kbd{C-x C-c} does not ask for confirmation before killing
+subprocesses started by Emacs.  The value is @code{t} by default.
+
+  To further customize what happens when Emacs is exiting, see
+@ref{Killing Emacs,,, elisp, The GNU Emacs Lisp Reference Manual}.
 
 @findex kill-emacs
   To kill Emacs without being prompted about saving, type @kbd{M-x

@@ -283,6 +283,17 @@ This variable is buffer-local in all Comint buffers."
 		 (const others))
   :group 'comint)
 
+(defcustom comint-move-point-for-matching-input 'after-input
+  "Controls where to place point after matching input.
+\\<comint-mode-map>This influences the commands \\[comint-previous-matching-input-from-input] and \\[comint-next-matching-input-from-input].
+If `after-input', point will be positioned after the input typed
+by the user, but before the rest of the history entry that has
+been inserted.  If `end-of-line', point will be positioned at the
+end of the current logical (not visual) line after insertion."
+  :type '(radio (const :tag "Stay after input" after-input)
+                (const :tag "Move to end of line" end-of-line))
+  :group 'comint)
+
 (defvaralias 'comint-scroll-to-bottom-on-output 'comint-move-point-for-output)
 
 (defcustom comint-scroll-show-maximum-output t
@@ -345,14 +356,16 @@ This variable is buffer-local."
    (regexp-opt
     '("Enter" "enter" "Enter same" "enter same" "Enter the" "enter the"
       "Old" "old" "New" "new" "'s" "login"
-      "Kerberos" "CVS" "UNIX" " SMB" "LDAP" "[sudo]" "Repeat" "Bad") t)
+      "Kerberos" "CVS" "UNIX" " SMB" "LDAP" "PEM"
+      "[sudo]" "Repeat" "Bad" "Retype")
+    t)
    " +\\)"
    "\\(?:" (regexp-opt password-word-equivalents) "\\|Response\\)"
-   "\\(?:\\(?:, try\\)? *again\\| (empty for no passphrase)\\| (again)\\)?\
-\\(?: for [^:：៖]+\\)?[:：៖]\\s *\\'")
+   "\\(?:\\(?:, try\\)? *again\\| (empty for no passphrase)\\| (again)\\)?"
+   "\\(?: for .+\\)?[:：៖]\\s *\\'")
   "Regexp matching prompts for passwords in the inferior process.
 This is used by `comint-watch-for-password-prompt'."
-  :version "24.4"
+  :version "26.1"
   :type 'regexp
   :group 'comint)
 
@@ -1220,7 +1233,8 @@ If N is negative, search forwards for the -Nth following match."
     (comint-previous-matching-input
      (concat "^" (regexp-quote comint-matching-input-from-input-string))
      n)
-    (goto-char opoint)))
+    (when (eq comint-move-point-for-matching-input 'after-input)
+      (goto-char opoint))))
 
 (defun comint-next-matching-input-from-input (n)
   "Search forwards through input history for match for current input.

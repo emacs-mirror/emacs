@@ -739,8 +739,10 @@ a LOCAL option.")
 
 ;; Stack of nested blocks.
 (defvar semantic-lex-block-stack nil)
-;;(defvar semantic-lex-timeout 5
-;;  "*Number of sections of lexing before giving up.")
+;;(defcustom semantic-lex-timeout 5
+;;  "Number of sections of lexing before giving up."
+;;  :type 'integer
+;;  :group 'semantic)
 
 (defsubst semantic-lex-debug-break (token)
   "Break during lexical analysis at TOKEN."

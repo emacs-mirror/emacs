@@ -234,7 +234,7 @@ we will act as though we couldn't find a full name in the address."
   :group 'mail-extr)
 
 (defcustom mail-extr-ignore-realname-equals-mailbox-name t
-"*Whether to ignore a name that is equal to the mailbox name.
+"Whether to ignore a name that is equal to the mailbox name.
 If true, then when the address is like \"Single <single@address.com>\"
 we will act as though we couldn't find a full name in the address."
   :type 'boolean
@@ -880,7 +880,7 @@ consing a string.)"
 		       (and (not (eobp))
 			    (eq ?w (char-syntax (char-after)))
 			    (progn
-			      (forward-word 1)
+			      (forward-word-strictly 1)
 			      (and (not (eobp))
 				   (> (char-after) ?\177)
 				   (not (eq (char-after) ? )))))))))
@@ -1312,7 +1312,7 @@ consing a string.)"
 		     )
 		    (t
 		     (setq atom-beg (point))
-		     (forward-word 1)
+		     (forward-word-strictly 1)
 		     (setq atom-end (point))
 		     (goto-char atom-beg)
 		     (save-restriction

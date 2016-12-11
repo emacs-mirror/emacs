@@ -24,7 +24,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (declare-function bibtex-beginning-of-entry "bibtex" ())
 
@@ -424,7 +424,7 @@ Calling this function several times find successive citation locations."
     (if match
         (progn
           (put 'reftex-view-regexp-match :props newprop)
-          (put 'reftex-view-regexp-match :cnt (incf cnt))
+          (put 'reftex-view-regexp-match :cnt (cl-incf cnt))
           (reftex-highlight 0 (match-beginning highlight-group)
                             (match-end highlight-group))
           (add-hook 'pre-command-hook 'reftex-highlight-shall-die)

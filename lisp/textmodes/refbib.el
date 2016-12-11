@@ -61,7 +61,7 @@
 (defgroup refbib nil
   "Convert refer-style references to ones usable by Latex bib."
   :prefix "r2b-"
-  :group 'wp)
+  :group 'text)
 
 (defcustom r2b-trace-on nil
   "Non-nil means trace conversion."

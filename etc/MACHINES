@@ -64,9 +64,9 @@ the list at the end of this file.
   This was tested on a little-endian sh4 system (cpu type SH7751R) running
   Gentoo Linux 2008.0.
 
-** Mac OS X
+** macOS
 
-  Version 10.6 or newer.  PowerPC is not supported.
+  Mac OS X 10.6 or newer.  PowerPC is not supported.
   For installation instructions see the file nextstep/INSTALL.
 
 ** Microsoft Windows
@@ -100,15 +100,6 @@ the list at the end of this file.
 
     ./configure CC='/usr/sfw/bin/gcc -m64'  # GCC
     ./configure CC='cc -m64'                # Solaris Studio
-
-** Irix 6.5
-
-  Emacs versions later than 24.4 will not compile on Irix by default.
-  (Note that SGI stopped supporting Irix in December 2013.)
-  Older versions of Emacs 24 (and 23?) also had problems on Irix.
-  It *may* be possible to build Emacs <= 24.4 on Irix 6.5 with an old
-  version (3.1) of gcc.  Newer versions of gcc may not work.
-  See <http://bugs.gnu.org/9684>.
 
 
 * Obsolete platforms

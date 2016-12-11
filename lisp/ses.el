@@ -1,3 +1,4 @@
+
 ;;; ses.el -- Simple Emacs Spreadsheet  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2002-2016 Free Software Foundation, Inc.
@@ -275,12 +276,15 @@ Each function is called with ARG=1."
   "Display properties to create a raised box for cells in the header line.")
 
 (defconst ses-standard-printer-functions
-  '(ses-center ses-center-span ses-dashfill ses-dashfill-span
-    ses-tildefill-span)
-  "List of print functions to be included in initial history of printer
-functions.  None of these standard-printer functions is suitable for use as a
-column printer or a global-default printer because they invoke the column or
-default printer and then modify its output.")
+  '(ses-center
+    ses-center-span ses-dashfill ses-dashfill-span
+    ses-tildefill-span
+    ses-prin1)
+  "List of print functions to be included in initial history of
+printer functions.  None of these standard-printer functions,
+except function `ses-prin1', is suitable for use as a column
+printer or a global-default printer because they invoke the
+column or default printer and then modify its output.")
 
 
 ;;----------------------------------------------------------------------------
@@ -561,7 +565,14 @@ definition."
   (cond
    ((functionp printer) printer)
    ((stringp printer)
-    `(lambda (x) (format ,printer x)))
+    `(lambda (x)
+       (if (null x) ""
+         (format ,printer x))))
+   ((stringp (car-safe printer))
+    `(lambda (x)
+       (if (null x) ""
+         (setq ses-call-printer-return t)
+         (format ,(car printer) x))))
    (t (error "Invalid printer %S" printer))))
 
 (defun ses--local-printer (name def)
@@ -1328,7 +1339,7 @@ printer signaled one (and \"%s\" is used as the default printer), else nil."
 	  (car value))))
     (error
      (setq ses-call-printer-return signal)
-     (prin1-to-string value t))))
+     (ses-prin1 value))))
 
 (defun ses-adjust-print-width (col change)
   "Insert CHANGE spaces in front of column COL, or at end of line if
@@ -2201,7 +2212,17 @@ Based on the current set of columns and `window-hscroll' position."
 
 (defun ses-jump (sym)
   "Move point to cell SYM."
-  (interactive "SJump to cell: ")
+  (interactive (let* (names
+		      (s (completing-read
+			  "Jump to cell: "
+			  (and ses--named-cell-hashmap
+			       (progn (maphash (lambda (key val) (push (symbol-name key) names))
+					       ses--named-cell-hashmap)
+				      names)))))
+		 (if
+		     (string= s "")
+		     (error "Invalid cell name")
+		   (list (intern s)))))
   (let ((rowcol (ses-sym-rowcol sym)))
     (or rowcol (error "Invalid cell name"))
     (if (eq (symbol-value sym) '*skip*)
@@ -3222,7 +3243,7 @@ is non-nil.  Newlines and tabs in the export text are escaped."
       (when (eq (car-safe item) 'quote)
 	(push "'" result)
 	(setq item (cadr item)))
-      (setq item (prin1-to-string item t))
+      (setq item (ses-prin1 item))
       (setq item (replace-regexp-in-string "\t" "\\\\t" item))
       (push item result)
       (cond
@@ -3455,9 +3476,18 @@ highlighted range in the spreadsheet."
     (setq cell (or cell (ses-get-cell row col))
 	  old-name (ses-cell-symbol cell)
 	  new-rowcol (ses-decode-cell-symbol (symbol-name new-name)))
+    ;; when ses-rename-cell is called interactively, then 'sym' is the
+    ;; 'cursor-intangible' property of text at cursor position, while
+    ;; 'old-name' is the symbol stored in array cell at coordinate
+    ;; 'rowcol' corresponding to 'ses-cell' property of symbol
+    ;; 'sym'. Both must be the same.
+    (unless (eq sym old-name)
+      (error "Spreadsheet is broken, both symbols %S and %S refering to cell (%d,%d)" sym old-name row col))
     (if new-rowcol
+        ;; the new name is of A1 type, so we test that the coordinate
+        ;; inferred from new name
 	(if (equal new-rowcol rowcol)
-	  (put new-name 'ses-cell rowcol)
+            (put new-name 'ses-cell rowcol)
 	  (error "Not a valid name for this cell location"))
       (setq ses--named-cell-hashmap
             (or ses--named-cell-hashmap (make-hash-table :test 'eq)))
@@ -3471,7 +3501,7 @@ highlighted range in the spreadsheet."
 	(setf (ses-cell-formula xcell)
               (ses-replace-name-in-formula
                (ses-cell-formula xcell)
-               sym
+               old-name
                new-name))))
     ;; Replace name by new name in reference list of cells to which renamed
     ;; cell refers to.
@@ -3479,11 +3509,14 @@ highlighted range in the spreadsheet."
       (let* ((x (ses-sym-rowcol ref))
 	     (xcell (ses-get-cell (car x) (cdr x))))
 	(setf (ses-cell-references xcell)
-              (cons new-name (delq sym
+              (cons new-name (delq old-name
                                    (ses-cell-references xcell))))))
     (set (make-local-variable new-name) (symbol-value sym))
     (setf (ses-cell--symbol cell) new-name)
-    (makunbound sym)
+    ;; Unbind old name
+    (if (eq (get old-name 'ses-cell) :ses-named)
+        (ses--unbind-cell-name old-name)
+      (kill-local-variable old-name))
     (and curcell (setq ses--curcell new-name))
     (save-excursion
       (or curcell (ses-goto-print row col))
@@ -3509,34 +3542,67 @@ Uses the value COMPILED-VALUE for this printer."
 	      (ses-begin-change))
 	    (ses-print-cell row col)))))))
 
-(defun ses-define-local-printer (name)
-  "Define a local printer with name NAME."
-  (interactive "*SEnter printer name: ")
+
+(defun ses-define-local-printer (name definition)
+  "Define a local printer with name NAME and definition DEFINITION.
+
+NAME shall be a symbol. Use TAB to complete over existing local
+printer names.
+
+DEFINITION shall be either a string formatter, e.g.:
+
+  \"%.2f\" or (\"%.2f\")  for left alignment.
+
+or a lambda expression, e.g. for formatting in ISO format dates
+created with a '(calcFunc-date YEAR MONTH DAY)' formula:
+
+  (lambda (x)
+     (cond
+      ((null val) \"\")
+      ((eq (car-safe x) 'date)
+       (let ((calc-format-date '(X YYYY \"-\" MM \"-\" DD)))
+         (math-format-date x)))
+      (t (ses-center-span val ?# 'ses-prin1))))
+
+If NAME is already used to name a local printer function, then
+the current definition is proposed as default value, and the
+function is redefined."
+  (interactive
+   (let (name def already-defined-names)
+     (maphash (lambda (key val) (push (symbol-name key) already-defined-names))
+              ses--local-printer-hashmap)
+     (setq name (completing-read    "Enter printer name: " already-defined-names))
+     (when (string= name "")
+       (error "Invalid printer name"))
+     (setq name (intern name))
+     (let* ((cur-printer (gethash name ses--local-printer-hashmap))
+            (default (and cur-printer (ses--locprn-def cur-printer))))
+            (setq def (ses-read-printer (format "Enter definition of printer %S: " name)
+                                        default)))
+            (list name def)))
+
   (let* ((cur-printer (gethash name ses--local-printer-hashmap))
-	 (default (and (vectorp cur-printer) (ses--locprn-def cur-printer)))
-	 create-printer
-	 (new-def
-          (ses-read-printer (format "Enter definition of printer %S: " name)
-                            default)))
+	 (default (and cur-printer (ses--locprn-def cur-printer)))
+	 create-printer)
     (cond
      ;; cancelled operation => do nothing
-     ((eq new-def t))
+     ((eq definition t))
      ;; no change => do nothing
-     ((and (vectorp cur-printer) (equal new-def default)))
+     ((and cur-printer (equal definition default)))
      ;; re-defined printer
-     ((vectorp cur-printer)
+     (cur-printer
       (setq create-printer 0)
-      (setf (ses--locprn-def cur-printer) new-def)
+      (setf (ses--locprn-def cur-printer) definition)
       (ses-refresh-local-printer
        name
        (setf (ses--locprn-compiled cur-printer)
-             (ses-local-printer-compile new-def))))
+             (ses-local-printer-compile definition))))
      ;; new definition
      (t
       (setq create-printer 1)
       (puthash name
 	       (setq cur-printer
-		     (ses-make-local-printer-info new-def))
+		     (ses-make-local-printer-info definition))
 	       ses--local-printer-hashmap)))
     (when create-printer
       (let ((printer-def-text
@@ -3560,8 +3626,17 @@ Uses the value COMPILED-VALUE for this printer."
               (when (= create-printer 1)
                 (ses-file-format-extend-parameter-list 3)
                 (ses-set-parameter 'ses--numlocprn
-                                   (+ ses--numlocprn create-printer))))))))))
+                                   (1+ ses--numlocprn))))))))))
 
+(defsubst ses-define-if-new-local-printer (name def)
+  "Same as function `ses-define-if-new-local-printer', except
+that the definition occurs only when the local printer does not
+already exists.
+
+Function `ses-define-if-new-local-printer' is not interactive; it
+is intended for mode hooks to add local printers automatically."
+  (unless  (gethash name ses--local-printer-hashmap)
+    (ses-define-local-printer name def)))
 
 ;;----------------------------------------------------------------------------
 ;; Checking formulas for safety
@@ -3731,7 +3806,7 @@ Use `math-format-value' as a printer for Calc objects."
   "Return ARGS reversed, with the blank elements (nil and *skip*) removed."
   (let (result)
     (dolist (cur args)
-      (unless (memq cur '(nil *skip* *error*))
+      (unless (memq cur '(nil *skip*))
 	(push cur result)))
     result))
 
@@ -3772,13 +3847,16 @@ either (ses-range BEG END) or (list ...).  The TEST is evaluated."
 ;; Standard print functions
 ;;----------------------------------------------------------------------------
 
-(defun ses-center (value &optional span fill)
+(defun ses-center (value &optional span fill printer)
   "Print VALUE, centered within column.
 FILL is the fill character for centering (default = space).
 SPAN indicates how many additional rightward columns to include
-in width (default = 0)."
-  (let ((printer (or (ses-col-printer ses--col) ses--default-printer))
-	(width   (ses-col-width ses--col))
+in width (default = 0).
+PRINTER is the printer to use for printing the value, default is the
+column printer if any, or the spreadsheet the spreadsheet default
+printer otherwise."
+  (setq printer (or printer  (ses-col-printer ses--col) ses--default-printer))
+  (let ((width   (ses-col-width ses--col))
 	half)
     (or fill (setq fill ?\s))
     (or span (setq span 0))
@@ -3793,7 +3871,7 @@ in width (default = 0)."
       (concat half value half
 	      (if (> (% width 2) 0) (char-to-string fill))))))
 
-(defun ses-center-span (value &optional fill)
+(defun ses-center-span (value &optional fill printer)
   "Print VALUE, centered within the span that starts in the current column
 and continues until the next nonblank column.
 FILL specifies the fill character (default = space)."
@@ -3801,22 +3879,28 @@ FILL specifies the fill character (default = space)."
     (while (and (< end ses--numcols)
 		(memq (ses-cell-value ses--row end) '(nil *skip*)))
       (setq end (1+ end)))
-    (ses-center value (- end ses--col 1) fill)))
+    (ses-center value (- end ses--col 1) fill printer)))
 
-(defun ses-dashfill (value &optional span)
+(defun ses-dashfill (value &optional span printer)
   "Print VALUE centered using dashes.
 SPAN indicates how many rightward columns to include in width (default = 0)."
-  (ses-center value span ?-))
+  (ses-center value span ?- printer))
 
-(defun ses-dashfill-span (value)
+(defun ses-dashfill-span (value &optional printer)
   "Print VALUE, centered using dashes within the span that starts in the
 current column and continues until the next nonblank column."
-  (ses-center-span value ?-))
+  (ses-center-span value ?- printer))
 
-(defun ses-tildefill-span (value)
+(defun ses-tildefill-span (value &optional printer)
   "Print VALUE, centered using tildes within the span that starts in the
 current column and continues until the next nonblank column."
-  (ses-center-span value ?~))
+  (ses-center-span value ?~ printer))
+
+(defun ses-prin1 (value)
+  "Shorthand for  '(prin1-to-string VALUE t)'.
+Useful to handle the default behavior in custom lambda based
+printer functions."
+  (prin1-to-string value t))
 
 (defun ses-unsafe (_value)
   "Substitute for an unsafe formula or printer."

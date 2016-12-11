@@ -698,9 +698,9 @@ Emacs deletes its auto save file.
 
 If the computer crashes, you can recover your auto-saved editing by
 finding the file normally (the file you were editing, not the auto
-save file) and then typing M-x recover-file <Return>.  When it asks for
-confirmation, type yes<Return> to go ahead and recover the auto-save
-data.
+save file) and then typing M-x recover-this-file <Return>.  When it
+asks fo confirmation, type yes<Return> to go ahead and recover the
+auto-save data.
 
 
 * ECHO AREA
@@ -947,13 +947,13 @@ most other applications call a "window".  Multiple graphical frames
 can be shown on the screen at the same time.  On a text terminal, only
 one frame can be shown at a time.
 
->> Type M-x make-frame <Return>.
+>> Type C-x 5 2.
    See a new frame appear on your screen.
 
 You can do everything you did in the original frame in the new frame.
 There is nothing special about the first frame.
 
->> Type M-x delete-frame <Return>.
+>> Type C-x 5 0.
    This removes the selected frame.
 
 You can also remove a frame by using the normal method provided by the
@@ -1017,8 +1017,8 @@ are chosen to indicate what the command does, they can serve as
 very brief documentation--sufficient to remind you of commands you
 have already learned.
 
-Multi-character commands such as C-x C-s and (if you have no META or
-EDIT or ALT key) <ESC>v are also allowed after C-h c.
+Multi-character commands such as C-x C-s and <ESC>v (instead of M-v,
+if you have no META or EDIT or ALT key) are also allowed after C-h c.
 
 To get more information about a command, use C-h k instead of C-h c.
 
@@ -1046,8 +1046,9 @@ You need to type in the name of the variable when Emacs prompts for it.
    C-h a	Command Apropos.  Type in a keyword and Emacs will list
 		all the commands whose names contain that keyword.
 		These commands can all be invoked with META-x.
-		For some commands, Command Apropos will also list a one
-		or two character sequence which runs the same command.
+		For some commands, Command Apropos will also list a
+		sequence of one or more characters which runs the same
+		command.
 
 >> Type C-h a file <Return>.
 
@@ -1063,7 +1064,7 @@ corresponding command names (such as C-x C-f beside find-file).
 		you into a special buffer called "*info*" where you
 		can read manuals for the packages installed on your system.
 		Type m emacs <Return> to read the Emacs manual.
-		If you have never before used Info, type ? and Emacs
+		If you have never before used Info, type h and Emacs
 		will take you on a guided tour of Info mode facilities.
 		Once you are through with this tutorial, you should
 		consult the Emacs Info manual as your primary documentation.

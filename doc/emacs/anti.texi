@@ -75,9 +75,9 @@ benefit, this removes many useless entries at the beginning of the
 @kbd{C-h b} output.  The @code{electric-quote-mode} has been deleted,
 so there's only the one true quoting method now---using the
 plain-@acronym{ASCII} quote characters.  And if that's not enough, the
-doc strings and other messages show text quoted `like this' and "like
-this" as they were written, instead of arbitrarily replacing them
-with Unicode ``curved quote'' characters.  The
+doc strings and other messages show text quoted @t{`like this'}
+as they were written, instead of arbitrarily replacing them
+with Unicode ``curved quote'' characters @t{‘like this’}.  The
 @code{text-quoting-style} variable becomes therefore unneeded and was
 removed.  As result, text produced by Emacs can be sent to those
 venerable teletypes again, yeah!

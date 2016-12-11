@@ -20,6 +20,13 @@
 #ifndef _REGEX_H
 #define _REGEX_H 1
 
+#if defined emacs && (defined _REGEX_RE_COMP || defined _LIBC)
+/* We’re not defining re_set_syntax and using a different prototype of
+   re_compile_pattern when building Emacs so fail compilation early with
+   a (somewhat helpful) error message when conflict is detected. */
+# error "_REGEX_RE_COMP nor _LIBC can be defined if emacs is defined."
+#endif
+
 /* Allow the use in C++ code.  */
 #ifdef __cplusplus
 extern "C" {
@@ -168,8 +175,12 @@ extern reg_syntax_t re_syntax_options;
 
 #ifdef emacs
 # include "lisp.h"
-/* In Emacs, this is the string or buffer in which we
-   are matching.  It is used for looking up syntax properties.  */
+/* In Emacs, this is the string or buffer in which we are matching.
+   It is used for looking up syntax properties.
+
+   If the value is a Lisp string object, we are matching text in that
+   string; if it's nil, we are matching text in the current buffer; if
+   it's t, we are matching text in a C string.  */
 extern Lisp_Object re_match_object;
 #endif
 
@@ -347,9 +358,10 @@ struct re_pattern_buffer
 	/* Number of bytes actually used in `buffer'.  */
   size_t used;
 
+#ifndef emacs
         /* Syntax setting with which the pattern was compiled.  */
   reg_syntax_t syntax;
-
+#endif
         /* Pointer to a fastmap, if any, otherwise zero.  re_search uses
            the fastmap, if there is one, to skip over impossible
            starting points for matches.  */
@@ -453,14 +465,22 @@ typedef struct
 
 /* Declarations for routines.  */
 
+#ifndef emacs
+
 /* Sets the current default syntax to SYNTAX, and return the old syntax.
    You can also simply assign to the `re_syntax_options' variable.  */
 extern reg_syntax_t re_set_syntax (reg_syntax_t __syntax);
+
+#endif
 
 /* Compile the regular expression PATTERN, with length LENGTH
    and syntax given by the global `re_syntax_options', into the buffer
    BUFFER.  Return NULL if successful, and an error string if not.  */
 extern const char *re_compile_pattern (const char *__pattern, size_t __length,
+#ifdef emacs
+				       bool posix_backtracking,
+				       const char *whitespace_regexp,
+#endif
 				       struct re_pattern_buffer *__buffer);
 
 
@@ -585,25 +605,13 @@ extern void regfree (regex_t *__preg);
 /* Solaris 2.5 has a bug: <wchar.h> must be included before <wctype.h>.  */
 # include <wchar.h>
 # include <wctype.h>
-#endif
 
-#if WIDE_CHAR_SUPPORT
-/* The GNU C library provides support for user-defined character classes
-   and the functions from ISO C amendment 1.  */
-# ifdef CHARCLASS_NAME_MAX
-#  define CHAR_CLASS_MAX_LENGTH CHARCLASS_NAME_MAX
-# else
-/* This shouldn't happen but some implementation might still have this
-   problem.  Use a reasonable default value.  */
-#  define CHAR_CLASS_MAX_LENGTH 256
-# endif
 typedef wctype_t re_wctype_t;
 typedef wchar_t re_wchar_t;
 # define re_wctype wctype
 # define re_iswctype iswctype
 # define re_wctype_to_bit(cc) 0
 #else
-# define CHAR_CLASS_MAX_LENGTH  9 /* Namely, `multibyte'.  */
 # ifndef emacs
 #  define btowc(c) c
 # endif
@@ -621,11 +629,9 @@ typedef enum { RECC_ERROR = 0,
 } re_wctype_t;
 
 extern char re_iswctype (int ch,    re_wctype_t cc);
-extern re_wctype_t re_wctype (const unsigned char* str);
+extern re_wctype_t re_wctype_parse (const unsigned char **strp, unsigned limit);
 
 typedef int re_wchar_t;
-
-extern void re_set_whitespace_regexp (const char *regexp);
 
 #endif /* not WIDE_CHAR_SUPPORT */
 

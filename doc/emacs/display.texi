@@ -613,6 +613,9 @@ This face underlines text.
 This face forces use of a fixed-width font.  It's reasonable to
 customize this face to use a different fixed-width font, if you like,
 but you should not make it a variable-width font.
+@item fixed-pitch-serif
+This face is like @code{fixed-pitch}, except the font has serifs and
+looks more like traditional typewriting.
 @cindex variable-pitch face
 @item variable-pitch
 This face forces use of a variable-width font.
@@ -654,8 +657,15 @@ Whitespace}).
 @item escape-glyph
 The face for displaying control characters and escape sequences
 (@pxref{Text Display}).
+@item homoglyph
+The face for displaying lookalike characters, i.e., characters that
+look like but are not the characters being represented
+(@pxref{Text Display}).
 @item nobreak-space
 The face for displaying no-break space characters (@pxref{Text
+Display}).
+@item nobreak-hyphen
+The face for displaying no-break hyphen characters (@pxref{Text
 Display}).
 @end table
 
@@ -847,9 +857,15 @@ to alter the amount of fontification applied by Font Lock mode, for
 major modes that support this feature.  The value should be a number
 (with 1 representing a minimal amount of fontification; some modes
 support levels as high as 3); or @code{t}, meaning ``as high as
-possible'' (the default).  You can also specify different numbers for
-particular major modes; for example, to use level 1 for C/C++ modes,
-and the default level otherwise, use the value
+possible'' (the default).  To be effective for a given file buffer,
+the customization of @code{font-lock-maximum-decoration} should be
+done @emph{before} the file is visited; if you already have the file
+visited in a buffer when you customize this variable, kill the buffer
+and visit the file again after the customization.
+
+You can also specify different numbers for particular major modes; for
+example, to use level 1 for C/C++ modes, and the default level
+otherwise, use the value
 
 @example
 '((c-mode . 1) (c++-mode . 1)))
@@ -1086,6 +1102,23 @@ is exactly as wide as the window and point is at the end of the line.
 To disable this, change the variable
 @code{overflow-newline-into-fringe} to @code{nil}; this causes Emacs
 to continue or truncate lines that are exactly as wide as the window.
+
+  If you customize @code{fringe-mode} to remove the fringes on one or
+both sides of the window display, the features that display on the
+fringe are not available.  Indicators of line continuation and
+truncation are an exception: when fringes are not available, Emacs
+uses the leftmost and rightmost character cells to indicate
+continuation and truncation with special ASCII characters, see
+@ref{Continuation Lines}, and @ref{Line Truncation}.  This reduces the
+width available for displaying text on each line, because the
+character cells used for truncation and continuation indicators are
+reserved for that purpose.  Since buffer text can include
+bidirectional text, and thus both left-to-right and right-to-left
+paragraphs (@pxref{Bidirectional Editing}), removing only one of the
+fringes still reserves two character cells, one on each side of the
+window, for truncation and continuation indicators, because these
+indicators are displayed on opposite sides of the window in
+right-to-left paragraphs.
 
 @node Displaying Boundaries
 @section Displaying Boundaries
@@ -1464,7 +1497,7 @@ characters.  To deal with this problem, Emacs displays such characters
 specially: it displays @code{U+00A0} (no-break space) with the
 @code{nobreak-space} face, and it displays @code{U+00AD} (soft
 hyphen), @code{U+2010} (hyphen), and @code{U+2011} (non-breaking
-hyphen) with the @code{escape-glyph} face.  To disable this, change
+hyphen) with the @code{nobreak-hyphen} face.  To disable this, change
 the variable @code{nobreak-char-display} to @code{nil}.  If you give
 this variable a non-@code{nil} and non-@code{t} value, Emacs instead
 displays such characters as a highlighted backslash followed by a
@@ -1476,24 +1509,27 @@ elisp, The Emacs Lisp Reference Manual}.
 
 @cindex glyphless characters
 @cindex characters with no font glyphs
+@cindex glyphless-char face
   On graphical displays, some characters may have no glyphs in any of
 the fonts available to Emacs.  These @dfn{glyphless characters} are
 normally displayed as boxes containing the hexadecimal character code.
 Similarly, on text terminals, characters that cannot be displayed
 using the terminal encoding (@pxref{Terminal Coding}) are normally
 displayed as question signs.  You can control the display method by
-customizing the variable @code{glyphless-char-display-control}.
-@xref{Glyphless Chars,, Glyphless Character Display, elisp, The Emacs
-Lisp Reference Manual}, for details.
+customizing the variable @code{glyphless-char-display-control}.  You
+can also customize the @code{glyphless-char} face to make these
+characters more prominent on display.  @xref{Glyphless Chars,,
+Glyphless Character Display, elisp, The Emacs Lisp Reference Manual},
+for details.
 
 @cindex curly quotes
 @cindex curved quotes
-@cindex escape-glyph face
+@cindex homoglyph face
   If the curved quotes @samp{‘}, @samp{’}, @samp{“}, and @samp{”} are
 known to look just like @acronym{ASCII} characters, they are shown
-with the @code{escape-glyph} face.  Curved quotes that cannot be
+with the @code{homoglyph} face.  Curved quotes that cannot be
 displayed are shown as their @acronym{ASCII} approximations @samp{`},
-@samp{'}, and @samp{"} with the @code{escape-glyph} face.
+@samp{'}, and @samp{"} with the @code{homoglyph} face.
 
 @node Cursor Display
 @section Displaying the Cursor
@@ -1598,7 +1634,6 @@ screen lines.  Setting the variable @code{truncate-lines} in any way
 makes it local to the current buffer; until that time, the default
 value, which is normally @code{nil}, is in effect.
 
-@vindex truncate-partial-width-windows
   If a split window becomes too narrow, Emacs may automatically enable
 line truncation.  @xref{Split Window}, for the variable
 @code{truncate-partial-width-windows} which controls this.

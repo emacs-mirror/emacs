@@ -37,13 +37,13 @@
   :type 'hook)
 
 (defcustom gnus-kill-expiry-days 7
-  "*Number of days before expiring unused kill file entries."
+  "Number of days before expiring unused kill file entries."
   :group 'gnus-score-kill
   :group 'gnus-score-expire
   :type 'integer)
 
 (defcustom gnus-kill-save-kill-file nil
-  "*If non-nil, will save kill files after processing them."
+  "If non-nil, will save kill files after processing them."
   :group 'gnus-score-kill
   :type 'boolean)
 
@@ -52,7 +52,7 @@
 I don't know, Per.")
 
 (defcustom gnus-kill-killed t
-  "*If non-nil, Gnus will apply kill files to already killed articles.
+  "If non-nil, Gnus will apply kill files to already killed articles.
 If it is nil, Gnus will never apply kill files to articles that have
 already been through the scoring process, which might very well save lots
 of time."
@@ -118,7 +118,7 @@ the header field or an empty string.  If FIELD is an empty string, the
 entire article body is searched for.  REGEXP is a string which is
 compared with FIELD value.  COMMAND is a string representing a valid
 key sequence in Summary mode or Lisp expression.  COMMAND defaults to
-'(gnus-summary-mark-as-read nil \"X\").  Make sure that COMMAND is
+\(gnus-summary-mark-as-read nil \"X\").  Make sure that COMMAND is
 executed in the Summary buffer.  If the second optional argument ALL
 is non-nil, the COMMAND is applied to articles which are already
 marked as read or unread.  Articles which are marked are skipped over

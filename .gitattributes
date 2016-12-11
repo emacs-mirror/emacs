@@ -47,6 +47,52 @@ doc/misc/texinfo.tex -whitespace=blank-at-eol
 *.tiff binary
 etc/e/eterm-color binary
 
+# Git's builtin diff hunk header styles.
+*.ada diff=ada
+*.[ch] diff=cpp
+*.cc diff=cpp
+*.cpp diff=cpp
+*.hh diff=cpp
+*.for diff=fortran
+*.html diff=html
+*.shtml diff=html
+*.xml diff=html
+*.java diff=java
+*.m diff=objc
+*.perl diff=perl
+*.pl diff=perl
+*.php diff=php
+*.py diff=python
+*.rb diff=ruby
+*.ruby diff=ruby
+*.tex diff=tex
+
 # Hooks for non-default diff hunk headers; see autogen.sh.
 *.el diff=elisp
+*.ac diff=m4
+*.m4 diff=m4
+*.mk diff=make
+*[Mm]akefile diff=make
+Makefile.in diff=make
+*.sh diff=shell
 *.texi diff=texinfo
+#
+# Diff hunk header special-case file names.
+admin/build-configs diff=perl
+admin/charsets/mapconv diff=shell
+admin/diff-tar-files diff=shell
+admin/make-emacs diff=perl
+admin/merge-gnulib diff=shell
+admin/merge-pkg-config diff=shell
+admin/quick-install-emacs diff=shell
+admin/update-copyright diff=shell
+admin/update_autogen diff=shell
+build-aux/git-hooks/commit-msg diff=shell
+build-aux/git-hooks/pre-commit diff=shell
+build-aux/gitlog-to-emacslog diff=shell
+build-aux/make-info-dir diff=shell
+build-aux/move-if-change diff=shell
+build-aux/msys-to-w32 diff=shell
+build-aux/update-subdirs diff=shell
+lib-src/rcs2log diff=shell
+/make-dist diff=shell

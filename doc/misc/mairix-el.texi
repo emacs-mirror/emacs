@@ -68,7 +68,7 @@ database.
 Mairix is a tool for indexing and searching words in locally stored
 mail.  It was written by Richard Curnow and is licensed under the
 GPL@.  Mairix comes with most popular GNU/Linux distributions, but it also
-runs under Windows (with cygwin), Mac OS X and Solaris.  The homepage can
+runs under Windows (with cygwin), macOS and Solaris.  The homepage can
 be found at
 @uref{http://www.rpcurnow.force9.co.uk/mairix/index.html}
 

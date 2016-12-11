@@ -347,7 +347,9 @@ to (xref-elisp-test-descr-to-target xref)."
 	       (expand-file-name "elisp-mode-tests.el" emacs-test-dir)))
    (xref-make "(cl-defmethod xref-elisp-generic-no-default ((this xref-elisp-root-type) arg2))"
 	      (xref-make-elisp-location
-	       '(xref-elisp-generic-no-default xref-elisp-root-type t) 'cl-defmethod
+	       (cl--generic-load-hist-format
+                'xref-elisp-generic-no-default nil '(xref-elisp-root-type t))
+               'cl-defmethod
 	       (expand-file-name "elisp-mode-tests.el" emacs-test-dir)))
    ))
 
@@ -360,7 +362,10 @@ to (xref-elisp-test-descr-to-target xref)."
 	       (expand-file-name "elisp-mode-tests.el" emacs-test-dir)))
    (xref-make "(cl-defmethod xref-elisp-generic-co-located-default ((this xref-elisp-root-type) arg2))"
 	      (xref-make-elisp-location
-	       '(xref-elisp-generic-co-located-default xref-elisp-root-type t) 'cl-defmethod
+	       (cl--generic-load-hist-format
+                'xref-elisp-generic-co-located-default nil
+                '(xref-elisp-root-type t))
+               'cl-defmethod
 	       (expand-file-name "elisp-mode-tests.el" emacs-test-dir)))
    ))
 
@@ -373,11 +378,16 @@ to (xref-elisp-test-descr-to-target xref)."
 	       (expand-file-name "elisp-mode-tests.el" emacs-test-dir)))
    (xref-make "(cl-defmethod xref-elisp-generic-separate-default (arg1 arg2))"
               (xref-make-elisp-location
-               '(xref-elisp-generic-separate-default t t) 'cl-defmethod
+               (cl--generic-load-hist-format
+                'xref-elisp-generic-separate-default nil '(t t))
+               'cl-defmethod
                (expand-file-name "elisp-mode-tests.el" emacs-test-dir)))
    (xref-make "(cl-defmethod xref-elisp-generic-separate-default ((this xref-elisp-root-type) arg2))"
 	      (xref-make-elisp-location
-	       '(xref-elisp-generic-separate-default xref-elisp-root-type t) 'cl-defmethod
+               (cl--generic-load-hist-format
+                'xref-elisp-generic-separate-default nil
+                '(xref-elisp-root-type t))
+               'cl-defmethod
 	       (expand-file-name "elisp-mode-tests.el" emacs-test-dir)))
    ))
 
@@ -386,11 +396,16 @@ to (xref-elisp-test-descr-to-target xref)."
   (list
    (xref-make "(cl-defmethod xref-elisp-generic-implicit-generic (arg1 arg2))"
 	      (xref-make-elisp-location
-	       '(xref-elisp-generic-implicit-generic t t) 'cl-defmethod
+               (cl--generic-load-hist-format
+                'xref-elisp-generic-implicit-generic nil '(t t))
+               'cl-defmethod
 	       (expand-file-name "elisp-mode-tests.el" emacs-test-dir)))
    (xref-make "(cl-defmethod xref-elisp-generic-implicit-generic ((this xref-elisp-root-type) arg2))"
 	      (xref-make-elisp-location
-	       '(xref-elisp-generic-implicit-generic xref-elisp-root-type t) 'cl-defmethod
+               (cl--generic-load-hist-format
+                'xref-elisp-generic-implicit-generic nil
+                '(xref-elisp-root-type t))
+               'cl-defmethod
 	       (expand-file-name "elisp-mode-tests.el" emacs-test-dir)))
    ))
 
@@ -409,23 +424,33 @@ to (xref-elisp-test-descr-to-target xref)."
 	       (expand-file-name "../../../lisp/progmodes/xref.el" emacs-test-dir)))
    (xref-make "(cl-defmethod xref-location-marker ((l xref-elisp-location)))"
 	      (xref-make-elisp-location
-	       '(xref-location-marker xref-elisp-location) 'cl-defmethod
+	       (cl--generic-load-hist-format
+                'xref-location-marker nil '(xref-elisp-location))
+               'cl-defmethod
 	       (expand-file-name "../../../lisp/progmodes/elisp-mode.el" emacs-test-dir)))
    (xref-make "(cl-defmethod xref-location-marker ((l xref-file-location)))"
 	      (xref-make-elisp-location
-	       '(xref-location-marker xref-file-location) 'cl-defmethod
+	       (cl--generic-load-hist-format
+                'xref-location-marker nil '(xref-file-location))
+               'cl-defmethod
 	       (expand-file-name "../../../lisp/progmodes/xref.el" emacs-test-dir)))
    (xref-make "(cl-defmethod xref-location-marker ((l xref-buffer-location)))"
 	      (xref-make-elisp-location
-	       '(xref-location-marker xref-buffer-location) 'cl-defmethod
+	       (cl--generic-load-hist-format
+                'xref-location-marker nil '(xref-buffer-location))
+               'cl-defmethod
 	       (expand-file-name "../../../lisp/progmodes/xref.el" emacs-test-dir)))
    (xref-make "(cl-defmethod xref-location-marker ((l xref-bogus-location)))"
 	      (xref-make-elisp-location
-	       '(xref-location-marker xref-bogus-location) 'cl-defmethod
+	       (cl--generic-load-hist-format
+                'xref-location-marker nil '(xref-bogus-location))
+               'cl-defmethod
 	       (expand-file-name "../../../lisp/progmodes/xref.el" emacs-test-dir)))
    (xref-make "(cl-defmethod xref-location-marker ((l xref-etags-location)))"
               (xref-make-elisp-location
-               '(xref-location-marker xref-etags-location) 'cl-defmethod
+               (cl--generic-load-hist-format
+                'xref-location-marker nil '(xref-etags-location))
+               'cl-defmethod
                (expand-file-name "../../../lisp/progmodes/etags.el" emacs-test-dir)))
    ))
 
@@ -640,6 +665,12 @@ to (xref-elisp-test-descr-to-target xref)."
 (xref-elisp-deftest find-defs-feature-eval
   (elisp--xref-find-definitions (eval '(provide 'stephe-leake-feature)))
   nil)
+
+(ert-deftest elisp--preceding-sexp--char-name ()
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (insert "?\\N{HEAVY CHECK MARK}")
+    (should (equal (elisp--preceding-sexp) ?\N{HEAVY CHECK MARK}))))
 
 (provide 'elisp-mode-tests)
 ;;; elisp-mode-tests.el ends here

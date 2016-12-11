@@ -54,7 +54,7 @@
 (defgroup tildify nil
   "Add hard spaces or other text fragments to text buffers."
   :version "21.1"
-  :group 'wp)
+  :group 'text)
 
 (defcustom tildify-pattern
   "\\(?:[,:;(][ \t]*[a]\\|\\<[AIKOSUVZikosuvz]\\)\\([ \t]+\\|[ \t]*\n[ \t]*\\)\\(?:\\w\\|[([{\\]\\|<[a-zA-Z]\\)"

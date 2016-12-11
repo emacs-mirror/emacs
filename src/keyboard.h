@@ -496,6 +496,8 @@ extern void mark_kboards (void);
 extern const char *const lispy_function_keys[];
 #endif
 
+extern char const DEV_TTY[];
+
 INLINE_HEADER_END
 
 #endif /* EMACS_KEYBOARD_H */

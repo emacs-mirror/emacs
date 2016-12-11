@@ -541,7 +541,9 @@
     (yank)))
 
 (defun clipboard-kill-ring-save (beg end &optional region)
-  "Copy region to kill ring, and save in the GUI's clipboard."
+  "Copy region to kill ring, and save in the GUI's clipboard.
+If the optional argument REGION is non-nil, the function ignores
+BEG and END, and saves the current region instead."
   (interactive "r\np")
   (let ((gui-select-enable-clipboard t)
         (interprogram-cut-function (or interprogram-cut-function
@@ -549,7 +551,9 @@
     (kill-ring-save beg end region)))
 
 (defun clipboard-kill-region (beg end &optional region)
-  "Kill the region, and save it in the GUI's clipboard."
+  "Kill the region, and save it in the GUI's clipboard.
+If the optional argument REGION is non-nil, the function ignores
+BEG and END, and kills the current region instead."
   (interactive "r\np")
   (let ((gui-select-enable-clipboard t)
         (interprogram-cut-function (or interprogram-cut-function
@@ -985,49 +989,43 @@ The selected font will be the default on both the existing and future frames."
   (customize-set-variable 'horizontal-scroll-bar-mode nil))
 
 (defvar menu-bar-showhide-scroll-bar-menu
-  (let ((menu (make-sparse-keymap "Scroll-bar")))
+  (let ((menu (make-sparse-keymap "Scroll-bar"))
+        (vsb (frame-parameter nil 'vertical-scroll-bars))
+        (hsb (frame-parameter nil 'horizontal-scroll-bars)))
     (bindings--define-key menu [horizontal]
-      '(menu-item "Horizontal"
+      `(menu-item "Horizontal"
                   menu-bar-horizontal-scroll-bar
                   :help "Horizontal scroll bar"
                   :visible (horizontal-scroll-bars-available-p)
-                  :button (:radio . (cdr (assq 'horizontal-scroll-bars
-					       (frame-parameters))))))
+                  :button (:radio . ,hsb)))
 
     (bindings--define-key menu [none-horizontal]
-      '(menu-item "None-horizontal"
+      `(menu-item "None-horizontal"
                   menu-bar-no-horizontal-scroll-bar
                   :help "Turn off horizontal scroll bars"
                   :visible (horizontal-scroll-bars-available-p)
-                  :button (:radio . (not (cdr (assq 'horizontal-scroll-bars
-                                                   (frame-parameters)))))))
+                  :button (:radio . (not ,hsb))))
 
     (bindings--define-key menu [right]
-      '(menu-item "On the Right"
+      `(menu-item "On the Right"
                   menu-bar-right-scroll-bar
                   :help "Scroll-bar on the right side"
                   :visible (display-graphic-p)
-                  :button (:radio . (eq (cdr (assq 'vertical-scroll-bars
-                                                   (frame-parameters)))
-					'right))))
+                  :button (:radio . (eq ,vsb 'right))))
 
     (bindings--define-key menu [left]
-      '(menu-item "On the Left"
+      `(menu-item "On the Left"
                   menu-bar-left-scroll-bar
                   :help "Scroll-bar on the left side"
                   :visible (display-graphic-p)
-                  :button (:radio . (eq (cdr (assq 'vertical-scroll-bars
-                                                   (frame-parameters)))
-					'left))))
+                  :button (:radio . (eq ,vsb 'left))))
 
     (bindings--define-key menu [none]
-      '(menu-item "None"
+      `(menu-item "None"
                   menu-bar-no-scroll-bar
                   :help "Turn off scroll-bar"
                   :visible (display-graphic-p)
-                  :button (:radio . (eq (cdr (assq 'vertical-scroll-bars
-                                                   (frame-parameters)))
-					nil))))
+                  :button (:radio . (not ,vsb))))
     menu))
 
 (defun menu-bar-frame-for-menubar ()
@@ -1259,7 +1257,7 @@ mail status in mode line"))
 (defvar menu-bar-search-options-menu
   (let ((menu (make-sparse-keymap "Search Options")))
 
-    (dolist (x '((character-fold-to-regexp "Fold Characters" "Character folding")
+    (dolist (x '((char-fold-to-regexp "Fold Characters" "Character folding")
                  (isearch-symbol-regexp "Whole Symbols" "Whole symbol")
                  (word-search-regexp "Whole Words" "Whole word")))
       (bindings--define-key menu (vector (nth 0 x))
@@ -1583,7 +1581,7 @@ mail status in mode line"))
     (bindings--define-key menu [browse-web]
       '(menu-item "Browse the Web..." browse-web))
     (bindings--define-key menu [directory-search]
-      '(menu-item "Directory Search" eudc-tools-menu))
+      '(menu-item "Directory Servers" eudc-tools-menu))
     (bindings--define-key menu [compose-mail]
       '(menu-item "Compose New Mail" compose-mail
                   :visible (and mail-user-agent (not (eq mail-user-agent 'ignore)))
@@ -1867,7 +1865,7 @@ key, a click, or a menu-item"))
       '(menu-item "Emacs Tutorial" help-with-tutorial
                   :help "Learn how to use Emacs"))
 
-    ;; In OS X it's in the app menu already.
+    ;; In macOS it's in the app menu already.
     ;; FIXME? There already is an "About Emacs" (sans ...) entry in the Help menu.
     (and (featurep 'ns)
          (not (eq system-type 'darwin))

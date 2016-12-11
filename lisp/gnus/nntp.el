@@ -252,8 +252,10 @@ update their active files often, this can help.")
 ;;; Internal variables.
 
 (defvoo nntp-retrieval-in-progress nil)
-(defvar nntp-record-commands nil
-  "*If non-nil, nntp will record all commands in the \"*nntp-log*\" buffer.")
+(defcustom nntp-record-commands nil
+  "If non-nil, nntp will record all commands in the \"*nntp-log*\" buffer."
+  :group 'nntp
+  :type 'boolean)
 
 (defvar nntp-have-messaged nil)
 

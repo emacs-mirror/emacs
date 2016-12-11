@@ -58,7 +58,7 @@
       (setq i (1+ i)))
     (modify-syntax-entry ?\s "    " table)
     ;; Non-break space acts as whitespace.
-    (modify-syntax-entry ?\x8a0 "    " table)
+    (modify-syntax-entry ?\xa0 "    " table)
     (modify-syntax-entry ?\t "    " table)
     (modify-syntax-entry ?\f "    " table)
     (modify-syntax-entry ?\n ">   " table)
@@ -398,6 +398,9 @@ This will generate compile-time constants from BINDINGS."
        lisp-el-font-lock-keywords-1
        `( ;; Regexp negated char group.
          ("\\[\\(\\^\\)" 1 font-lock-negation-char-face prepend)
+         ;; Erroneous structures.
+         (,(concat "(" el-errs-re "\\_>")
+          (1 font-lock-warning-face))
          ;; Control structures.  Common Lisp forms.
          (lisp--el-match-keyword . 1)
          ;; Exit/Feature symbols as constants.
@@ -405,9 +408,6 @@ This will generate compile-time constants from BINDINGS."
                    "[ \t']*\\(" lisp-mode-symbol-regexp "\\)?")
            (1 font-lock-keyword-face)
            (2 font-lock-constant-face nil t))
-         ;; Erroneous structures.
-         (,(concat "(" el-errs-re "\\_>")
-          (1 font-lock-warning-face prepend))
          ;; Words inside \\[] tend to be for `substitute-command-keys'.
          (,(concat "\\\\\\\\\\[\\(" lisp-mode-symbol-regexp "\\)\\]")
           (1 font-lock-constant-face prepend))
@@ -1216,8 +1216,15 @@ and initial semicolons."
       ;;
       ;; The `fill-column' is temporarily bound to
       ;; `emacs-lisp-docstring-fill-column' if that value is an integer.
-      (let ((paragraph-start (concat paragraph-start
-				     "\\|\\s-*\\([(;:\"]\\|`(\\|#'(\\)"))
+      (let ((paragraph-start
+             (concat paragraph-start
+                     (format "\\|\\s-*\\([(;%s\"]\\|`(\\|#'(\\)"
+                             ;; If we're inside a string (like the doc
+                             ;; string), don't consider a colon to be
+                             ;; a paragraph-start character.
+                             (if (nth 3 (syntax-ppss))
+                                 ""
+                               ":"))))
 	    (paragraph-separate
 	     (concat paragraph-separate "\\|\\s-*\".*[,\\.]$"))
             (fill-column (if (and (integerp emacs-lisp-docstring-fill-column)

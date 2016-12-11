@@ -505,7 +505,7 @@ An alternative value is \" . \", if you use a font with a narrow period."
                   (funcall inbraces-re
                            (concat "{" (funcall inbraces-re "{[^}]*}") "*}"))
                   "*}\\)+\\$?\\$")
-         (0 tex-math-face))
+         (0 'tex-math))
         ;; Heading args.
         (,(concat slash headings "\\*?" opt arg)
          ;; If ARG ends up matching too much (if the {} don't match, e.g.)
@@ -735,7 +735,8 @@ automatically inserts its partner."
                   (let ((arg-end (match-end 0)))
                     (if (null type)     ;\end
                         (progn (goto-char arg-end)
-                               (latex-forward-sexp -1) (forward-word 1))
+                               (latex-forward-sexp -1)
+                               (forward-word-strictly 1))
                       (goto-char cmd-start)
                       (latex-forward-sexp 1)
                       (let (forward-sexp-function) (backward-sexp)))
@@ -799,16 +800,11 @@ Not smaller than the value set by `tex-suscript-height-minimum'."
   '((t :inherit font-lock-string-face))
   "Face used to highlight TeX math expressions."
   :group 'tex)
-(define-obsolete-face-alias 'tex-math-face 'tex-math "22.1")
-(defvar tex-math-face 'tex-math)
 
 (defface tex-verbatim
-  ;; '((t :inherit font-lock-string-face))
-  '((t :family "courier"))
+  '((t :inherit fixed-pitch-serif))
   "Face used to highlight TeX verbatim environments."
   :group 'tex)
-(define-obsolete-face-alias 'tex-verbatim-face 'tex-verbatim "22.1")
-(defvar tex-verbatim-face 'tex-verbatim)
 
 (defun tex-font-lock-verb (start delim)
   "Place syntax table properties on the \\verb construct.
@@ -836,10 +832,10 @@ START is the position of the \\ and DELIM is the delimiter char."
   (let ((char (nth 3 state)))
     (cond
      ((not char)
-      (if (eq 2 (nth 7 state)) tex-verbatim-face font-lock-comment-face))
-     ((eq char ?$) tex-math-face)
+      (if (eq 2 (nth 7 state)) 'tex-verbatim font-lock-comment-face))
+     ((eq char ?$) 'tex-math)
      ;; A \verb element.
-     (t tex-verbatim-face))))
+     (t 'tex-verbatim))))
 
 
 (defun tex-define-common-keys (keymap)
@@ -872,7 +868,7 @@ START is the position of the \\ and DELIM is the delimiter char."
     (set-keymap-parent map text-mode-map)
     (tex-define-common-keys map)
     (define-key map "\"" 'tex-insert-quote)
-    (define-key map "\n" 'tex-terminate-paragraph)
+    (define-key map "\n" 'tex-handle-newline)
     (define-key map "\M-\r" 'latex-insert-item)
     (define-key map "\C-c}" 'up-list)
     (define-key map "\C-c{" 'tex-insert-braces)
@@ -1315,6 +1311,7 @@ inserts \" characters."
   ;;
   (if (or arg (memq (char-syntax (preceding-char)) '(?/ ?\\))
           (eq (get-text-property (point) 'face) 'tex-verbatim)
+          (nth 4 (syntax-ppss)) ; non-nil if point is in a TeX comment
           ;; Discover if a preceding occurrence of `tex-open-quote'
           ;; should be morphed to a normal double quote.
           ;;
@@ -1465,6 +1462,17 @@ area if a mismatch is found."
 	 (setq failure-point (point)))))
     (if failure-point (goto-char failure-point))
     (not failure-point)))
+
+(defun tex-handle-newline (inhibit-validation)
+  "Break a TeX paragraph with two newlines, or continue a comment.
+If not in a comment, insert two newlines, breaking a paragraph for TeX,
+and check for mismatched braces or $s in the paragraph being terminated
+unless prefix arg INHIBIT-VALIDATION is non-nil to inhibit the checking.
+Otherwise (in a comment), just insert a single continued comment line."
+  (interactive "*P")
+  (if (nth 4 (syntax-ppss)) ; non-nil if point is in a TeX comment
+      (comment-indent-new-line)
+    (tex-terminate-paragraph inhibit-validation)))
 
 (defun tex-terminate-paragraph (inhibit-validation)
   "Insert two newlines, breaking a paragraph for TeX.
@@ -2994,7 +3002,7 @@ There might be text before point."
     ("\\sigma" . ?σ)
     ("\\tau" . ?τ)
     ("\\upsilon" . ?υ)
-    ("\\phi" . ?φ)
+    ("\\phi" . ?ϕ)
     ("\\chi" . ?χ)
     ("\\psi" . ?ψ)
     ("\\omega" . ?ω)
@@ -3383,10 +3391,11 @@ There might be text before point."
     ("\\u{i}" . ?ĭ)
     ("\\vDash" . ?⊨)
     ("\\varepsilon" . ?ε)
+    ("\\varphi" . ?φ)
     ("\\varprime" . ?′)
     ("\\varpropto" . ?∝)
     ("\\varrho" . ?ϱ)
-    ;; ("\\varsigma" ?ς)		;FIXME: Looks reversed with the non\var.
+    ("\\varsigma" ?ς)
     ("\\vartriangleleft" . ?⊲)
     ("\\vartriangleright" . ?⊳)
     ("\\vdash" . ?⊢)

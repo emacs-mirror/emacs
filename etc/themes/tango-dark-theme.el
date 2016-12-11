@@ -78,6 +78,7 @@ Semantic, and Ansi-Color faces are included.")
    ;; Escape and prompt faces
    `(minibuffer-prompt ((,class (:foreground ,cham-0))))
    `(escape-glyph ((,class (:foreground ,butter-3))))
+   `(homoglyph ((,class (:foreground ,butter-3))))
    `(error ((,class (:foreground ,red-0))))
    `(warning ((,class (:foreground ,orange-1))))
    `(success ((,class (:foreground ,cham-1))))

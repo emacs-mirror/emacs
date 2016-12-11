@@ -145,6 +145,6 @@ main ()
        [gl_cv_func_working_utimes=no])])
 
   if test $gl_cv_func_working_utimes = yes; then
-    AC_DEFINE([HAVE_WORKING_UTIMES], [1], [Define if utimes works properly. ])
+    AC_DEFINE([HAVE_WORKING_UTIMES], [1], [Define if utimes works properly.])
   fi
 ])

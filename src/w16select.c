@@ -65,8 +65,6 @@ unsigned get_clipboard_data (unsigned, void *, unsigned, int);
 unsigned close_clipboard (void);
 unsigned clipboard_compact (unsigned);
 
-Lisp_Object QCLIPBOARD, QPRIMARY;
-
 /* The segment address and the size of the buffer in low
    memory used to move data between us and WinOldAp module.  */
 static struct {
@@ -719,8 +717,7 @@ variable is set, it is used for the next communication only.
 After the communication, this variable is set to nil.  */);
   Vnext_selection_coding_system = Qnil;
 
-  QPRIMARY   = intern ("PRIMARY");	staticpro (&QPRIMARY);
-  QCLIPBOARD = intern ("CLIPBOARD");	staticpro (&QCLIPBOARD);
+  DEFSYM (QCLIPBOARD, "CLIPBOARD");
 }
 
 #endif /* MSDOS */

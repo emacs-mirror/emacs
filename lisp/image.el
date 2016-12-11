@@ -1,4 +1,4 @@
-;;; image.el --- image API
+;;; image.el --- image API  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1998-2016 Free Software Foundation, Inc.
 
@@ -24,7 +24,6 @@
 ;;; Commentary:
 
 ;;; Code:
-
 
 (defgroup image ()
   "Image support."
@@ -103,7 +102,7 @@ AUTODETECT can be
 	    (see `image-type-available-p').")
 
 (defvar image-format-suffixes
-  '((image/x-icon "ico"))
+  '((image/x-rgb "rgb") (image/x-icon "ico"))
   "An alist associating image types with file name suffixes.
 This is used as a hint by the ImageMagick library when detecting
 the type of image data (that does not have an associated file name).
@@ -124,7 +123,7 @@ value is used as a list of directories to search.
 
 Subdirectories are not automatically included in the search."
   :type '(repeat (choice directory variable))
-  :initialize 'custom-initialize-delay)
+  :initialize #'custom-initialize-delay)
 
 (defcustom image-scaling-factor 'auto
   "When displaying images, apply this scaling factor before displaying.
@@ -136,8 +135,7 @@ size), or the symbol `auto', which will compute a scaling factor
 based on the font pixel size."
   :type '(choice number
                  (const :tag "Automatically compute" auto))
-  :group 'image
-  :version "25.2")
+  :version "26.1")
 
 ;; Map put into text properties on images.
 (defvar image-map
@@ -345,7 +343,7 @@ be determined."
   "Determine the type of image file FILE from its name.
 Value is a symbol specifying the image type, or nil if type cannot
 be determined."
-  (let (type first)
+  (let (type first (case-fold-search t))
     (catch 'found
       (dolist (elem image-type-file-name-regexps first)
 	(when (string-match-p (car elem) file)
@@ -461,9 +459,8 @@ If VALUE is nil, PROPERTY is removed from IMAGE."
 
 (defun image-compute-scaling-factor (scaling)
   (cond
-   ((numberp image-scaling-factor)
-    image-scaling-factor)
-   ((eq image-scaling-factor 'auto)
+   ((numberp scaling) scaling)
+   ((eq scaling 'auto)
     (let ((width (/ (float (window-width nil t)) (window-width))))
       ;; If we assume that a typical character is 10 pixels in width,
       ;; then we should scale all images according to how wide they
@@ -472,7 +469,7 @@ If VALUE is nil, PROPERTY is removed from IMAGE."
           1
         (/ (float width) 10))))
    (t
-    (error "Invalid scaling factor %s" image-scaling-factor))))
+    (error "Invalid scaling factor %s" scaling))))
 
 ;;;###autoload
 (defun put-image (image pos &optional string area)
@@ -729,9 +726,9 @@ number, play until that number of seconds has elapsed."
       (if (setq timer (image-animate-timer image))
 	  (cancel-timer timer))
       (plist-put (cdr image) :animate-buffer (current-buffer))
-      (run-with-timer 0.2 nil 'image-animate-timeout
+      (run-with-timer 0.2 nil #'image-animate-timeout
 		      image (or index 0) (car animation)
-		      0 limit))))
+		      0 limit (+ (float-time) 0.2)))))
 
 (defun image-animate-timer (image)
   "Return the animation timer for image IMAGE."
@@ -740,7 +737,7 @@ number, play until that number of seconds has elapsed."
     (while tail
       (setq timer (car tail)
 	    tail (cdr tail))
-      (if (and (eq (timer--function timer) 'image-animate-timeout)
+      (if (and (eq (timer--function timer) #'image-animate-timeout)
 	       (eq (car-safe (timer--args timer)) image))
 	  (setq tail nil)
 	(setq timer nil)))
@@ -780,7 +777,7 @@ multiplication factor for the current value."
 ;; hence we need to call image-multi-frame-p to return it.
 ;; But it also returns count, so why do we bother passing that as an
 ;; argument?
-(defun image-animate-timeout (image n count time-elapsed limit)
+(defun image-animate-timeout (image n count time-elapsed limit target-time)
   "Display animation frame N of IMAGE.
 N=0 refers to the initial animation frame.
 COUNT is the total number of frames in the animation.
@@ -793,7 +790,12 @@ The minimum delay between successive frames is `image-minimum-frame-delay'.
 
 If the image has a non-nil :speed property, it acts as a multiplier
 for the animation speed.  A negative value means to animate in reverse."
-  (when (buffer-live-p (plist-get (cdr image) :animate-buffer))
+  (when (and (buffer-live-p (plist-get (cdr image) :animate-buffer))
+             ;; Delayed more than two seconds more than expected.
+	     (or (<= (- (float-time) target-time) 2)
+		 (progn
+		   (message "Stopping animation; animation possibly too big")
+		   nil)))
     (image-show-frame image n t)
     (let* ((speed (image-animate-get-speed image))
 	   (time (float-time))
@@ -816,8 +818,9 @@ for the animation speed.  A negative value means to animate in reverse."
       (if (numberp limit)
 	  (setq done (>= time-elapsed limit)))
       (unless done
-	(run-with-timer delay nil 'image-animate-timeout
-			image n count time-elapsed limit)))))
+	(run-with-timer delay nil #'image-animate-timeout
+			image n count time-elapsed limit
+                        (+ (float-time) delay))))))
 
 
 (defvar imagemagick-types-inhibit)
@@ -903,12 +906,11 @@ has no effect."
   :type '(choice (const :tag "Support all ImageMagick types" nil)
 		 (const :tag "Disable all ImageMagick types" t)
 		 (repeat symbol))
-  :initialize 'custom-initialize-default
+  :initialize #'custom-initialize-default
   :set (lambda (symbol value)
 	 (set-default symbol value)
 	 (imagemagick-register-types))
-  :version "24.3"
-  :group 'image)
+  :version "24.3")
 
 (defcustom imagemagick-enabled-types
   '(3FR ART ARW AVS BMP BMP2 BMP3 CAL CALS CMYK CMYKA CR2 CRW
@@ -941,12 +943,11 @@ has no effect."
 		 (repeat :tag "List of types"
 			 (choice (symbol :tag "type")
 				 (regexp :tag "regexp"))))
-  :initialize 'custom-initialize-default
+  :initialize #'custom-initialize-default
   :set (lambda (symbol value)
 	 (set-default symbol value)
 	 (imagemagick-register-types))
-  :version "24.3"
-  :group 'image)
+  :version "24.3")
 
 (imagemagick-register-types)
 
@@ -956,7 +957,7 @@ If N is 3, then the image size will be increased by 30%.  The
 default is 20%."
   (interactive "P")
   (image--change-size (if n
-                          (1+ (/ n 10))
+                          (1+ (/ n 10.0))
                         1.2)))
 
 (defun image-decrease-size (n)
@@ -965,18 +966,12 @@ If N is 3, then the image size will be decreased by 30%.  The
 default is 20%."
   (interactive "P")
   (image--change-size (if n
-                          (- 1 (/ n 10))
+                          (- 1 (/ n 10.0))
                         0.8)))
 
 (defun image--get-image ()
-  (let ((image (or (get-text-property (point) 'display)
-                   ;; `put-image' uses overlays, so find an image in
-                   ;; the overlays.
-                   (seq-find (lambda (overlay)
-                               (overlay-get overlay 'display))
-                             (overlays-at (point))))))
-    (when (or (not (consp image))
-              (not (eq (car image) 'image)))
+  (let ((image (get-text-property (point) 'display)))
+    (unless (eq (car-safe image) 'image)
       (error "No image under point"))
     image))
 
@@ -1018,7 +1013,11 @@ default is 20%."
   (interactive)
   (let ((image (image--get-imagemagick-and-warn)))
     (plist-put (cdr image) :rotation
-               (float (+ (or (plist-get (cdr image) :rotation) 0) 90)))))
+               (float (mod (+ (or (plist-get (cdr image) :rotation) 0) 90)
+                           ;; We don't want to exceed 360 degrees
+                           ;; rotation, because it's not seen as valid
+                           ;; in exif data.
+                           360)))))
 
 (defun image-save ()
   "Save the image under point."

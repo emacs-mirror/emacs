@@ -72,7 +72,7 @@ Set it to nil to parse all articles."
 (defcustom gnus-supercite-regexp
   (concat "^\\(" message-cite-prefix-regexp "\\)? *"
 	  ">>>>> +\"\\([^\"\n]+\\)\" +==")
-  "*Regexp matching normal Supercite attribution lines.
+  "Regexp matching normal Supercite attribution lines.
 The first grouping must match prefixes added by other packages."
   :group 'gnus-cite
   :type 'regexp)
@@ -107,13 +107,13 @@ The first regexp group should match the Supercite attribution."
 
 (defcustom gnus-cite-attribution-prefix
   "In article\\|in <\\|On \\(Mon\\|Tue\\|Wed\\|Thu\\|Fri\\|Sat\\|Sun\\),\\|----- ?Original Message ?-----"
-  "*Regexp matching the beginning of an attribution line."
+  "Regexp matching the beginning of an attribution line."
   :group 'gnus-cite
   :type 'regexp)
 
 (defcustom gnus-cite-attribution-suffix
   "\\(\\(wrote\\|writes\\|said\\|says\\|>\\)\\(:\\|\\.\\.\\.\\)\\|----- ?Original Message ?-----\\)[ \t]*$"
-  "*Regexp matching the end of an attribution line.
+  "Regexp matching the end of an attribution line.
 The text matching the first grouping will be used as a button."
   :group 'gnus-cite
   :type 'regexp)
@@ -304,7 +304,7 @@ It is merged with the face for the cited text belonging to the attribution."
 (defcustom gnus-cite-face-list
   '(gnus-cite-1 gnus-cite-2 gnus-cite-3 gnus-cite-4 gnus-cite-5 gnus-cite-6
 		gnus-cite-7 gnus-cite-8 gnus-cite-9 gnus-cite-10 gnus-cite-11)
-  "*List of faces used for highlighting citations.
+  "List of faces used for highlighting citations.
 
 When there are citations from multiple articles in the same message,
 Gnus will try to give each citation from each article its own face.

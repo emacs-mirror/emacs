@@ -285,7 +285,7 @@ connection the SMTP library uses.  The default value is @code{nil},
 which means to use a plain connection, but try to switch to a STARTTLS
 encrypted connection if the server supports it.  Other possible values
 are: @code{starttls} to insist on STARTTLS; @code{ssl} to use TLS/SSL;
-and @code{plain} for encryption.
+and @code{plain} for no encryption.
 
 Use of any form of TLS/SSL requires support in Emacs.  You can either
 use the built-in support (in Emacs 24.1 and later), or the

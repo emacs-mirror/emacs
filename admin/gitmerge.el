@@ -50,8 +50,8 @@
 (defvar gitmerge-skip-regexp
   ;; We used to include "sync" in there, but in my experience it only
   ;; caused false positives.  --Stef
-  "back[- ]?port\\|merge\\|re-?generate\\|bump version\\|from trunk\\|\
-Auto-commit"
+  "back[- ]?port\\|cherry picked from commit\\|\\(do not\\|no need to\\) merge\\|\
+re-?generate\\|bump version\\|from trunk\\|Auto-commit"
   "Regexp matching logs of revisions that might be skipped.
 `gitmerge-missing' will ask you if it should skip any matches.")
 
@@ -171,9 +171,10 @@ Auto-commit"
 (defun gitmerge-highlight-skip-regexp ()
   "Highlight strings that match `gitmerge-skip-regexp'."
   (save-excursion
-    (while (re-search-forward gitmerge-skip-regexp nil t)
-      (put-text-property (match-beginning 0) (match-end 0)
-			 'face 'font-lock-warning-face))))
+    (let ((case-fold-search t))
+      (while (re-search-forward gitmerge-skip-regexp nil t)
+        (put-text-property (match-beginning 0) (match-end 0)
+                           'face 'font-lock-warning-face)))))
 
 (defun gitmerge-missing (from)
   "Return the list of revisions that need to be merged from FROM.
@@ -330,6 +331,10 @@ is nil, only the single commit BEG is merged."
 	   (if end (list (concat beg "~.." end))
 	     `("-1" ,beg)))
     (insert "\n")
+    ;; Truncate to 72 chars so that the resulting ChangeLog line fits in 80.
+    (goto-char (point-min))
+    (while (re-search-forward "^\\(.\\{69\\}\\).\\{4,\\}" nil t)
+      (replace-match "\\1..."))
     (buffer-string)))
 
 (defun gitmerge-apply (missing from)
@@ -431,14 +436,8 @@ If so, add no longer conflicted files and commit."
 	(when mergehead
 	  (with-current-buffer (get-buffer-create gitmerge-output-buffer)
 	    (erase-buffer)
-            ;; FIXME: We add "-m-" because the default commit message
-            ;; apparently tickles our commit hook:
-            ;;    Line longer than 78 characters in commit message
-            ;;    Line longer than 78 characters in commit message
-            ;;    Line longer than 78 characters in commit message
-            ;;    Commit aborted; please see the file CONTRIBUTE
 	    (unless (zerop (call-process "git" nil t nil
-					 "commit" "--no-edit" "-m-"))
+					 "commit" "--no-edit"))
 	      (error "Git error during merge - fix it manually"))))
 	;; Successfully resumed.
 	t))))

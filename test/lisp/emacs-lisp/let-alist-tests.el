@@ -88,4 +88,12 @@
                  '(cdr (assq 'baz (cdr (assq 'bar (cdr (assq 'foo var))))))))
   (should (equal (let-alist--access-sexp '..foo.bar.baz 'var) '.foo.bar.baz)))
 
+(ert-deftest let-alist--deep-dot-search--nested ()
+  "Check that nested `let-alist' forms don't generate spurious bindings.
+See Bug#24641."
+  (should (equal (let-alist--deep-dot-search '(foo .bar (baz .qux)))
+                 '((.bar . bar) (.qux . qux))))
+  (should (equal (let-alist--deep-dot-search '(foo .bar (let-alist .qux .baz)))
+                 '((.bar . bar) (.qux . qux)))))  ; no .baz
+
 ;;; let-alist.el ends here

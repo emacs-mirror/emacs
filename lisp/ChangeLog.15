@@ -5820,7 +5820,7 @@
 	* epa.el (epa-passphrase-callback-function): Say what we're
 	querying the password for.
 
-	* ibuffer.el (ibuffer-visit-buffer): To mimick list-buffers
+	* ibuffer.el (ibuffer-visit-buffer): To mimic list-buffers
 	behavior, don't bury the ibuffer buffer when visiting other buffers.
 
 2010-10-08  Chong Yidong  <cyd@stupidchicken.com>

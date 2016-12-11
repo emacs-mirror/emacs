@@ -568,7 +568,7 @@ The relative indentation among the lines of the statement are preserved."
 	    (if (and (eq (char-syntax (preceding-char)) ?w)
 		     (eq (char-syntax (following-char)) ?w))
 		(save-excursion
-		  (backward-word 1)
+		  (backward-word-strictly 1)
 		  (if (looking-at "end\\>\\|else\\>\\|otherwise\\>\\|when\\>")
 		      (setq return-value nil)))))
 	   ((memq (preceding-char) '(?! ?t ?T))
@@ -654,12 +654,12 @@ If COUNT is negative, move forward up block level instead."
 				(1+ count)))))
 	  (while (< count 0)
 	    (re-search-forward "\\<begin\\>\\|\\<end\\>")
-	    (backward-word 1)
+	    (backward-word-strictly 1)
 	    (if (not (simula-context))
 		(setq count (if (memq (following-char) '(?e ?E))
 				(1+ count)
 			      (1- count))))
-	    (backward-word -1)))
+	    (backward-word-strictly -1)))
       ;; If block level not found, jump back to origin and signal an error
       (error (progn
 	       (goto-char origin)
@@ -689,12 +689,12 @@ If COUNT is negative, move backward down block level instead."
 	      (if (< count start-count) (signal 'error nil)))
 	  (while (> count 0)
 	    (re-search-forward "\\<begin\\>\\|\\<end\\>")
-	    (backward-word 1)
+	    (backward-word-strictly 1)
 	    (if (not (simula-context))
 		(setq count (if (memq (following-char) '(?b ?B))
 				(1- count)
 			      (1+ count))))
-	    (backward-word -1)
+	    (backward-word-strictly -1)
 	    ;; deeper level has to be found within starting block
 	    (if (> count start-count) (signal 'error nil))))
       ;; If block level not found, jump back to origin and signal an error
@@ -721,9 +721,9 @@ If COUNT is negative, move forward instead."
 	    (simula-skip-comment-backward)
 	    (if (memq (preceding-char) '(?n ?N))
 		(progn
-		  (backward-word 1)
+		  (backward-word-strictly 1)
 		  (if (not (looking-at "\\<begin\\>"))
-		      (backward-word -1)))
+		      (backward-word-strictly -1)))
 	      (if (eq (preceding-char) ?\;)
 		  (backward-char 1))
 	      )
@@ -734,7 +734,7 @@ If COUNT is negative, move forward instead."
 		(progn
 		  (if (eq (following-char) ?\;)
 		      (forward-char 1)
-		    (backward-word -1))))
+		    (backward-word-strictly -1))))
 	    (simula-skip-comment-forward))
 	(error (progn (goto-char origin)
 		      (error "Incomplete statement (too many ENDs)")))
@@ -753,13 +753,13 @@ If COUNT is negative, move backward instead."
       (condition-case ()
 	  (progn
 	    (simula-skip-comment-forward)
-	    (if (looking-at "\\<end\\>") (forward-word 1))
+	    (if (looking-at "\\<end\\>") (forward-word-strictly 1))
 	    (while (and (natnump (setq count (1- count)))
 			(setq status (simula-search-forward
 				      ";\\|\\<end\\>" (point-max) 'move))))
 	    (if (and status (/= (preceding-char) ?\;))
 		(progn
-		  (backward-word 1)
+		  (backward-word-strictly 1)
 		  (simula-skip-comment-backward))))
 	(error (progn (goto-char origin)
 		      (error "Incomplete statement (too few ENDs)")))
@@ -802,7 +802,7 @@ If COUNT is negative, move backward instead."
 	 ((eq context 2)
 	  ;; an END-comment must belong to an END
 	  (re-search-backward "\\<end\\>")
-	  (forward-word 1)
+	  (forward-word-strictly 1)
 	  (throw 'simula-out nil))
 	 ;; should be impossible to get here..
 	 )))))
@@ -915,7 +915,7 @@ If COUNT is negative, move backward instead."
 	   ((memq (following-char) '(?E ?e))
 	    (setq indent (cdr simula-if-indent)))
 	   (t
-	    (forward-word 1)
+	    (forward-word-strictly 1)
 	    (setq indent 0)))
 	  (simula-find-if))
 	 ;;
@@ -939,7 +939,7 @@ If COUNT is negative, move backward instead."
 		 (not (eq (preceding-char) ?\;))
 		 (if (memq (preceding-char) '(?N ?n))
 		     (save-excursion
-		       (backward-word 1)
+		       (backward-word-strictly 1)
 		       (not (looking-at "begin\\>")))
 		   t))
 	    (progn
@@ -954,7 +954,7 @@ If COUNT is negative, move backward instead."
 		     ;; (not found-end)
 		     (if (eq (char-syntax (preceding-char)) ?w)
 			 (progn
-			   (backward-word 1)
+			   (backward-word-strictly 1)
 			   (not (looking-at
 				 "begin\\|then\\|else\\|when\\|otherwise\\|do"
 				 )))
@@ -975,14 +975,14 @@ If COUNT is negative, move backward instead."
 		 ((looking-at "begin\\>")
 		  (setq indent (+ indent simula-indent-level)))
 		 ((looking-at "end\\>")
-		  (forward-word 1)
+		  (forward-word-strictly 1)
 		  (simula-previous-statement 1))
 		 ((looking-at "do\\>")
 		  (setq indent (+ indent simula-substatement-offset))
 		  (simula-find-do-match))
 		 ((looking-at "\\(if\\|then\\|else\\)\\>")
 		  (if (memq temp '(?I ?i))
-		      (forward-word 1)
+		      (forward-word-strictly 1)
 		    (setq indent (+ indent
 				    simula-substatement-offset
 				    (if (memq temp '(?T ?t))
@@ -1030,7 +1030,7 @@ If COUNT is negative, move backward instead."
 		  (and (not (bobp))
 		       (if (eq (char-syntax (preceding-char)) ?w)
 			   (save-excursion
-			     (backward-word 1)
+			     (backward-word-strictly 1)
 			     (not (looking-at
 				   "begin\\|then\\|else\\|when\\|otherwise\\|do")))
 			 (not (memq (preceding-char) '(?: ?\;))))))
@@ -1067,7 +1067,7 @@ If COUNT is negative, move backward instead."
 	    (simula-skip-comment-backward)
 	    (if (and (eq (char-syntax (preceding-char)) ?w)
 		     (progn
-		       (backward-word 1)
+		       (backward-word-strictly 1)
 		       (looking-at "else\\>")))
 		()
 	      (throw 'simula-out t)))
@@ -1189,7 +1189,7 @@ If COUNT is negative, move backward instead."
 	  (if where
 	      (if (and (eq where 2) (eq (char-syntax (preceding-char)) ?w))
 		  (save-excursion
-		    (backward-word 1)
+		    (backward-word-strictly 1)
 		    (not (looking-at "end\\>"))))))
 	(unexpand-abbrev)
       (cond
@@ -1204,7 +1204,7 @@ If COUNT is negative, move backward instead."
 	      ;; check if the expanded word is on the beginning of the line.
 	      (if (and (eq (char-syntax (preceding-char)) ?w)
 		       (progn
-			 (backward-word 1)
+			 (backward-word-strictly 1)
 			 (if (looking-at "end\\>")
 			     (save-excursion
 			       (simula-backward-up-level 1)

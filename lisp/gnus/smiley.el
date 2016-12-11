@@ -92,7 +92,7 @@ is nil, use `smiley-style'."
 		 ((eq smiley-style 'grayscale) "/grayscale")))))
 
 (defcustom smiley-data-directory (smiley-directory)
-  "*Location of the smiley faces files."
+  "Location of the smiley faces files."
   :set (lambda (symbol value)
 	 (set-default symbol value)
 	 (smiley-update-cache))
@@ -116,7 +116,7 @@ is nil, use `smiley-style'."
     ("\\(:-D\\)\\W" 1 "grin")
     ;; "smile" must be come after "evil"
     ("\\(\\^?:-?)\\)\\W" 1 "smile"))
-  "*A list of regexps to map smilies to images.
+  "A list of regexps to map smilies to images.
 The elements are (REGEXP MATCH IMAGE), where MATCH is the submatch in
 regexp to replace with IMAGE.  IMAGE is the name of an image file in
 `smiley-data-directory'."
@@ -137,7 +137,7 @@ regexp to replace with IMAGE.  IMAGE is the name of an image file in
     (when (gnus-image-type-available-p 'gif)
       (push "gif" types))
     types)
-  "*List of suffixes on smiley file names to try."
+  "List of suffixes on smiley file names to try."
   :version "24.1"
   :type '(repeat string)
   :group 'smiley)

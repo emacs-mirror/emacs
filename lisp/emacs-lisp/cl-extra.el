@@ -173,7 +173,9 @@ the elements themselves.
 (defun cl-mapcan (cl-func cl-seq &rest cl-rest)
   "Like `cl-mapcar', but nconc's together the values returned by the function.
 \n(fn FUNCTION SEQUENCE...)"
-  (apply 'nconc (apply 'cl-mapcar cl-func cl-seq cl-rest)))
+  (if cl-rest
+      (apply 'nconc (apply 'cl-mapcar cl-func cl-seq cl-rest))
+    (mapcan cl-func cl-seq)))
 
 ;;;###autoload
 (defun cl-mapcon (cl-func cl-list &rest cl-rest)
@@ -822,7 +824,7 @@ including `cl-block' and `cl-eval-when'."
     (cl--describe-class-slots class)
 
     ;; Describe all the methods specific to this class.
-    (let ((generics (cl--generic-all-functions type)))
+    (let ((generics (cl-generic-all-functions type)))
       (when generics
         (insert (propertize "Specialized Methods:\n\n" 'face 'bold))
         (dolist (generic generics)

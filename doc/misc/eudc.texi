@@ -177,12 +177,10 @@ initialization file to add a shortcut for email address expansion in
 email composition buffers (@pxref{Inline Query Expansion})
 
 @lisp
-(eval-after-load
- "message"
- '(define-key message-mode-map [(control ?c) (tab)] 'eudc-expand-inline))
-(eval-after-load
- "sendmail"
- '(define-key mail-mode-map [(control ?c) (tab)] 'eudc-expand-inline))
+(with-eval-after-load "message"
+  (define-key message-mode-map [(control ?c) (tab)] 'eudc-expand-inline))
+(with-eval-after-load "sendmail"
+  (define-key mail-mode-map [(control ?c) (tab)] 'eudc-expand-inline))
 @end lisp
 
 @menu
@@ -271,8 +269,8 @@ LDAP:
 @vindex eudc-server-hotlist
 @vindex ldap-host-parameters-alist
 @lisp
-(eval-after-load "message"
-  '(define-key message-mode-map (kbd "TAB") 'eudc-expand-inline))
+(with-eval-after-load "message"
+  (define-key message-mode-map (kbd "TAB") 'eudc-expand-inline))
 (customize-set-variable 'eudc-server-hotlist
                         '(("" . bbdb)
                           ("ldaps://ldap.gnu.org" . ldap)))
@@ -327,8 +325,8 @@ configure EUDC for LDAP:
 @vindex eudc-server-hotlist
 @vindex ldap-host-parameters-alist
 @lisp
-(eval-after-load "message"
-  '(define-key message-mode-map (kbd "TAB") 'eudc-expand-inline))
+(with-eval-after-load "message"
+  (define-key message-mode-map (kbd "TAB") 'eudc-expand-inline))
 (customize-set-variable 'eudc-server-hotlist
                         '(("" . bbdb)
                           ("ldaps://ldap.gnu.org" . ldap)))
@@ -356,8 +354,8 @@ and the @file{.emacs} expressions become:
 @vindex eudc-server-hotlist
 @vindex ldap-host-parameters-alist
 @lisp
-(eval-after-load "message"
-  '(define-key message-mode-map (kbd "TAB") 'eudc-expand-inline))
+(with-eval-after-load "message"
+  (define-key message-mode-map (kbd "TAB") 'eudc-expand-inline))
 (customize-set-variable 'eudc-server-hotlist
                         '(("" . bbdb) ("" . ldap)))
 (customize-set-variable 'ldap-host-parameters-alist
@@ -735,8 +733,7 @@ upon an inline expansion request.  It is a list whose first element is a
 string passed to @code{format}.  Remaining elements are symbols
 corresponding to directory attribute names.  The corresponding attribute
 values are passed as additional arguments to @code{format}.  Default is
-@code{("%s" email)} but you may want to consider a value like @code{("%s
-<%s>" name email)}
+@code{("%s %s <%s>" firstname name email)}.
 @end defvar
 
 @defvar eudc-multiple-match-handling-method
@@ -786,12 +783,11 @@ Add the current server to the hotlist of servers
 @end deffn
 
 @defvar eudc-options-file
-The name of a file where EUDC stores its internal variables
-(the hotlist and the current server).  EUDC will try to load
-that file upon initialization so, if you choose a file name
-different from the defaults @file{~/.eudc-options}, be sure to set this
-variable to the appropriate value @emph{before} EUDC is itself
-loaded.
+The name of a file where EUDC stores its internal variables (the
+hotlist and the current server).  EUDC will try to load that file upon
+initialization so, if you choose a file name different from the
+defaults @file{~/.emacs.d/eudc-options}, be sure to set this variable
+to the appropriate value @emph{before} EUDC is itself loaded.
 @end defvar
 
 @menu

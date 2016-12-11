@@ -120,9 +120,7 @@
 
 (require 'dig)
 
-(if (locate-library "password-cache")
-    (require 'password-cache)
-  (require 'password))
+(require 'password-cache)
 
 (eval-when-compile (require 'cl))
 
@@ -131,7 +129,7 @@
   :group 'mime)
 
 (defcustom smime-keys nil
-  "*Map mail addresses to a file containing Certificate (and private key).
+  "Map mail addresses to a file containing Certificate (and private key).
 The file is assumed to be in PEM format. You can also associate additional
 certificates to be sent with every message to each address."
   :type '(repeat (list (string :tag "Mail address")
@@ -141,7 +139,7 @@ certificates to be sent with every message to each address."
   :group 'smime)
 
 (defcustom smime-CA-directory nil
-  "*Directory containing certificates for CAs you trust.
+  "Directory containing certificates for CAs you trust.
 Directory should contain files (in PEM format) named to the X.509
 hash of the certificate.  This can be done using OpenSSL such as:
 
@@ -154,7 +152,7 @@ certificate."
   :group 'smime)
 
 (defcustom smime-CA-file nil
-  "*Files containing certificates for CAs you trust.
+  "Files containing certificates for CAs you trust.
 File should contain certificates in PEM format."
   :version "22.1"
   :type '(choice (const :tag "none" nil)
@@ -162,7 +160,7 @@ File should contain certificates in PEM format."
   :group 'smime)
 
 (defcustom smime-certificate-directory "~/Mail/certs/"
-  "*Directory containing other people's certificates.
+  "Directory containing other people's certificates.
 It should contain files named to the X.509 hash of the certificate,
 and the files themselves should be in PEM format."
 ;The S/MIME library provide simple functionality for fetching
@@ -176,14 +174,14 @@ and the files themselves should be in PEM format."
 	   (eq 0 (call-process "openssl" nil nil nil "version"))
 	 (error nil))
        "openssl")
-  "*Name of OpenSSL binary."
+  "Name of OpenSSL binary."
   :type 'string
   :group 'smime)
 
 ;; OpenSSL option to select the encryption cipher
 
 (defcustom smime-encrypt-cipher "-des3"
-  "*Cipher algorithm used for encryption."
+  "Cipher algorithm used for encryption."
   :version "22.1"
   :type '(choice (const :tag "Triple DES" "-des3")
 		 (const :tag "DES"  "-des")
@@ -193,7 +191,7 @@ and the files themselves should be in PEM format."
   :group 'smime)
 
 (defcustom smime-crl-check nil
-  "*Check revocation status of signers certificate using CRLs.
+  "Check revocation status of signers certificate using CRLs.
 Enabling this will have OpenSSL check the signers certificate
 against a certificate revocation list (CRL).
 
@@ -214,7 +212,7 @@ At least OpenSSL version 0.9.7 is required for this to work."
   :group 'smime)
 
 (defcustom smime-dns-server nil
-  "*DNS server to query certificates from.
+  "DNS server to query certificates from.
 If nil, use system defaults."
   :version "22.1"
   :type '(choice (const :tag "System defaults")
@@ -230,9 +228,6 @@ must be set in `ldap-host-parameters-alist'."
   :group 'smime)
 
 (defvar smime-details-buffer "*OpenSSL output*")
-
-;; Password dialog function
-(declare-function password-read-and-add "password-cache" (prompt &optional key))
 
 (defun smime-ask-passphrase (&optional cache-key)
   "Asks the passphrase to unlock the secret key.

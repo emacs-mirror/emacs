@@ -439,7 +439,7 @@ static char * file[] = {
 \"                            \",
 \"                            \",
 \"                            \"};")
-  "The Cont icon.")	  
+  "The Cont icon.")
 
 (defvar idlwave-toolbar-to-here-icon
   (idlwave-toolbar-make-button
@@ -918,7 +918,7 @@ static char * file[] = {
 		     (help (aref x 3))
 		     (key (vector 'tool-bar func))
 		     (def (list 'menu-item
-				"a"
+				""
 				func
 				:image (symbol-value icon)
 				:visible show

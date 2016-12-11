@@ -27,16 +27,17 @@
 (require 'cl-lib)
 (require 'xml)
 (require 'dom)
+(require 'subr-x)
 
 (defun svg-create (width height &rest args)
-  "Create a new, empty SVG image with dimentions WIDTHxHEIGHT.
+  "Create a new, empty SVG image with dimensions WIDTHxHEIGHT.
 ARGS can be used to provide `stroke' and `stroke-width' parameters to
 any further elements added."
   (dom-node 'svg
 	    `((width . ,width)
 	      (height . ,height)
 	      (version . "1.1")
-	      (xmlsn . "http://www.w3.org/2000/svg")
+	      (xmlns . "http://www.w3.org/2000/svg")
 	      ,@(svg--arguments nil args))))
 
 (defun svg-gradient (svg id type stops)
@@ -137,15 +138,47 @@ POINTS is a list of x/y pairs."
 			    ", "))
       ,@(svg--arguments svg args)))))
 
+(defun svg-embed (svg image image-type datap &rest args)
+  "Insert IMAGE into the SVG structure.
+IMAGE should be a file name if DATAP is nil, and a binary string
+otherwise.  IMAGE-TYPE should be a MIME image type, like
+\"image/jpeg\" or the like."
+  (svg--append
+   svg
+   (dom-node
+    'image
+    `((xlink:href . ,(svg--image-data image image-type datap))
+      ,@(svg--arguments svg args)))))
+
+(defun svg-text (svg text &rest args)
+  "Add TEXT to SVG."
+  (svg--append
+   svg
+   (dom-node
+    'text
+    `(,@(svg--arguments svg args))
+    text)))
+
 (defun svg--append (svg node)
   (let ((old (and (dom-attr node 'id)
 		  (dom-by-id svg
                              (concat "\\`" (regexp-quote (dom-attr node 'id))
                                      "\\'")))))
     (if old
-	(dom-set-attributes old (dom-attributes node))
+	(setcdr (car old) (cdr node))
       (dom-append-child svg node)))
   (svg-possibly-update-image svg))
+
+(defun svg--image-data (image image-type datap)
+  (with-temp-buffer
+    (set-buffer-multibyte nil)
+    (if datap
+        (insert image)
+      (insert-file-contents image))
+    (base64-encode-region (point-min) (point-max) t)
+    (goto-char (point-min))
+    (insert "data:" image-type ";base64,")
+    (buffer-string)))
 
 (defun svg--arguments (svg args)
   (let ((stroke-width (or (plist-get args :stroke-width)
@@ -214,16 +247,26 @@ If the SVG is later changed, the image will also be updated."
 
 (defun svg-print (dom)
   "Convert DOM into a string containing the xml representation."
-  (insert (format "<%s" (car dom)))
-  (dolist (attr (nth 1 dom))
-    ;; Ignore attributes that start with a colon.
-    (unless (= (aref (format "%s" (car attr)) 0) ?:)
-      (insert (format " %s=\"%s\"" (car attr) (cdr attr)))))
-  (insert ">")
-  (dolist (elem (nthcdr 2 dom))
-    (insert " ")
-    (svg-print elem))
-  (insert (format "</%s>" (car dom))))
+  (if (stringp dom)
+      (insert dom)
+    (insert (format "<%s" (car dom)))
+    (dolist (attr (nth 1 dom))
+      ;; Ignore attributes that start with a colon.
+      (unless (= (aref (format "%s" (car attr)) 0) ?:)
+        (insert (format " %s=\"%s\"" (car attr) (cdr attr)))))
+    (insert ">")
+    (dolist (elem (nthcdr 2 dom))
+      (insert " ")
+      (svg-print elem))
+    (insert (format "</%s>" (car dom)))))
+
+(defun svg-remove (svg id)
+  "Remove the element identified by ID from SVG."
+  (when-let ((node (car (dom-by-id
+                         svg
+                         (concat "\\`" (regexp-quote id)
+                                 "\\'")))))
+    (dom-remove-node svg node)))
 
 (provide 'svg)
 

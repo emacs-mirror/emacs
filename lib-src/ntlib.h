@@ -34,15 +34,12 @@ char *getwd (char *dir);
 int getppid (void);
 char * getlogin (void);
 char * cuserid (char * s);
-unsigned getuid (void);
-unsigned geteuid (void);
 unsigned getegid (void);
 unsigned getgid (void);
 int setuid (unsigned uid);
 int setregid (unsigned rgid, unsigned gid);
 char * getpass (const char * prompt);
 int fchown (int fd, unsigned uid, unsigned gid);
-int mkostemp (char * template, int flags);
 
 /* redirect or undo interceptions created by config.h */
 #undef access

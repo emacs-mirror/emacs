@@ -101,8 +101,8 @@ When called interactively, a Tramp connection has to be selected."
 
     ;; Flush connection cache.
     (when (processp (tramp-get-connection-process vec))
-      (delete-process (tramp-get-connection-process vec))
-      (tramp-flush-connection-property (tramp-get-connection-process vec)))
+      (tramp-flush-connection-property (tramp-get-connection-process vec))
+      (delete-process (tramp-get-connection-process vec)))
     (tramp-flush-connection-property vec)
 
     ;; Remove buffers.
@@ -190,6 +190,8 @@ This includes password cache, file cache, connection cache, buffers."
 	     password-cache
 	     password-cache-expiry
 	     remote-file-name-inhibit-cache
+	     connection-local-class-alist
+	     connection-local-criteria-alist
 	     file-name-handler-alist))))
 	(lambda (x y) (string< (symbol-name (car x)) (symbol-name (car y)))))
 
@@ -294,7 +296,7 @@ buffer in your bug report.
 		'intern
 		(all-completions "tramp-" (buffer-local-variables buffer)))
 	       ;; Non-tramp variables of interest.
-	       '(default-directory))
+	       '(connection-local-variables-alist default-directory))
 	      'string<))
 	    (reporter-dump-variable varsym elbuf))
 	(lisp-indent-line)
@@ -345,7 +347,7 @@ names.  Passwords will never be included there.")
 Please note that you have set `tramp-verbose' to a value of at
 least 6.  Therefore, the contents of files might be included in
 the debug buffer(s).")
-	    (add-text-properties start (point) (list 'face 'italic))))
+	    (add-text-properties start (point) '(face italic))))
 
 	(set-buffer-modified-p nil)
 	(setq buffer-read-only t)
@@ -384,10 +386,12 @@ please ensure that the buffers are attached to your email.\n\n"))
 ;;; TODO:
 
 ;; * Clean up unused *tramp/foo* buffers after a while.  (Pete Forman)
+;;
 ;; * WIBNI there was an interactive command prompting for Tramp
 ;;   method, hostname, username and filename and translates the user
 ;;   input into the correct filename syntax (depending on the Emacs
 ;;   flavor)  (Reiner Steib)
+;;
 ;; * Let the user edit the connection properties interactively.
 ;;   Something like `gnus-server-edit-server' in Gnus' *Server* buffer.
 

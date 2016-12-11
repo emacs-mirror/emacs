@@ -54,7 +54,8 @@
 ;; :risky - risky-local-variable property
 ;; :safe - safe-local-variable property
 ;; :tag - custom-tag property
-(let (standard native-p prop propval
+(let (standard
+      native-p prop propval
       ;; This function turns a value
       ;; into an expression which produces that value.
       (quoter (lambda (sexp)
@@ -67,27 +68,27 @@
 			(stringp sexp)
 			(numberp sexp))
 		    sexp
-		  (list 'quote sexp)))))
+		  (list 'quote sexp))))
+      (cursor-type-types
+       '(choice
+         (const :tag "Frame default" t)
+         (const :tag "Filled box" box)
+         (const :tag "Hollow cursor" hollow)
+         (const :tag "Vertical bar" bar)
+         (cons  :tag "Vertical bar with specified width"
+                (const bar) integer)
+         (const :tag "Horizontal bar" hbar)
+         (cons  :tag "Horizontal bar with specified width"
+                (const hbar) integer)
+         (const :tag "None "nil))))
   (pcase-dolist
       (`(,symbol ,group ,type ,version . ,rest)
-           '(;; alloc.c
+           `(;; alloc.c
 	     (gc-cons-threshold alloc integer)
 	     (gc-cons-percentage alloc float)
 	     (garbage-collection-messages alloc boolean)
 	     ;; buffer.c
-	     (cursor-type
-	      display
-	      (choice
-	       (const :tag "Frame default" t)
-	       (const :tag "Filled box" box)
-	       (const :tag "Hollow cursor" hollow)
-	       (const :tag "Vertical bar" bar)
-	       (cons  :tag "Vertical bar with specified width"
-		      (const bar) integer)
-	       (const :tag "Horizontal bar" hbar)
-	       (cons  :tag "Horizontal bar with specified width"
-		      (const hbar) integer)
-	       (const :tag "None "nil)))
+	     (cursor-type display ,cursor-type-types)
 	     (mode-line-format mode-line sexp) ;Hard to do right.
 	     (major-mode internal function)
 	     (case-fold-search matching boolean)
@@ -147,7 +148,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (line-spacing display (choice (const :tag "none" nil) number)
 			   "22.1")
 	     (cursor-in-non-selected-windows
-	      cursor boolean nil
+	      cursor ,cursor-type-types nil
 	      :tag "Cursor In Non-selected Windows"
 	      :set (lambda (symbol value)
 		     (set-default symbol value)
@@ -172,7 +173,9 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 					(directory :format "%v")))
                         nil
                         :standard
-                        (mapcar 'directory-file-name
+                        (mapcar (lambda (f)
+                                  (if f (directory-file-name f)
+                                    "."))
                                 (append (parse-colon-path (getenv "PATH"))
                                         (list exec-directory))))
 	     (exec-suffixes execute (repeat string))
@@ -245,6 +248,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (debug-ignored-errors debug (repeat (choice symbol regexp)))
 	     (debug-on-quit debug boolean)
 	     (debug-on-signal debug boolean)
+             (debugger-stack-frame-as-list debugger boolean "26.1")
 	     ;; fileio.c
 	     (delete-by-moving-to-trash auto-save boolean "23.1")
 	     (auto-save-visited-file-name auto-save boolean)

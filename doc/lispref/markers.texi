@@ -340,10 +340,10 @@ text is inserted at its position.  If @var{type} is @code{nil},
 This function reports the current insertion type of @var{marker}.
 @end defun
 
-Most functions that create markers, without an argument allowing to
-specify the insertion type, create them with insertion type
-@code{nil}.  Also, the mark has, by default, insertion type
-@code{nil}.
+All functions that create markers without accepting an argument that
+specifies the insertion type, create them with insertion type
+@code{nil} (@pxref{Creating Markers}).  Also, the mark has, by
+default, insertion type @code{nil}.
 
 @node Moving Markers
 @section Moving Marker Positions

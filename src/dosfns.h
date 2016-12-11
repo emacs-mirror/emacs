@@ -24,6 +24,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 extern unsigned char dos_country_info[DOS_COUNTRY_INFO];
 extern int dos_memory_info (unsigned long *, unsigned long *,
 			    unsigned long *, unsigned long *);
+void dos_cleanup (void);
+void syms_of_dosfns (void);
+void init_dosfns (void);
+
 #ifndef HAVE_X_WINDOWS
 extern int         msdos_stdcolor_idx  (const char *);
 extern Lisp_Object msdos_stdcolor_name (int);

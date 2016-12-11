@@ -1633,6 +1633,7 @@ calc-kill calc-kill-region calc-yank))))
 		 (not (equal var '(calc-mode-save-mode)))
 		 (calc-save-modes))))
       (if calc-embedded-info (calc-embedded-modes-change var))
+      (calc-set-mode-line)
       (symbol-value (car var)))))
 
 (defun calc-toggle-banner ()

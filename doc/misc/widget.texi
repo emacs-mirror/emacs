@@ -243,8 +243,8 @@ If point is not located on a button, invoke the binding in
 @code{widget-global-map} (by default the global map).
 @end deffn
 
-@kindex Mouse-2 @r{(on button widgets})
-@item Mouse-2
+@kindex mouse-2 @r{(on button widgets})
+@item mouse-2
 @deffn Command widget-button-click @var{event}
 Invoke the button at the location of the mouse pointer.  If the mouse
 pointer is located in an editable text field, invoke the binding in
@@ -456,7 +456,7 @@ There is a standard widget keymap which you might find useful.
 @findex widget-button-click
 @defvr Const widget-keymap
 @key{TAB} and @kbd{C-@key{TAB}} are bound to @code{widget-forward} and
-@code{widget-backward}, respectively.  @key{RET} and @kbd{Mouse-2}
+@code{widget-backward}, respectively.  @key{RET} and @kbd{mouse-2}
 are bound to @code{widget-button-press} and
 @code{widget-button-click}.
 @end defvr

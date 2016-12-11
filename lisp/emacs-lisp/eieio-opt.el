@@ -162,7 +162,7 @@ are not abstract."
 (defun eieio-display-method-list ()
   "Display a list of all the methods and what features are used."
   (interactive)
-  (let* ((meth1 (cl--generic-all-functions))
+  (let* ((meth1 (cl-generic-all-functions))
 	 (meth (sort meth1 (lambda (a b)
 			     (string< (symbol-name a)
 				      (symbol-name b)))))

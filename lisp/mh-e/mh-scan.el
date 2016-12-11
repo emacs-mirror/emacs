@@ -44,7 +44,7 @@
 ;; want to change the column of the notations, use the `mh-set-cmd-note'
 ;; function.
 
-(defvar mh-scan-format-mh
+(defcustom mh-scan-format-mh
   (concat
    "%4(msg)"
    "%<(cur)+%| %>"
@@ -58,7 +58,7 @@
    "%<(mymbox{from})%<{to}To:%14(friendly{to})%>%>"
    "%<(zero)%17(friendly{from})%>  "
    "%{subject}%<{body}<<%{body}%>")
-  "*Scan format string for MH.
+  "Scan format string for MH.
 This string is passed to the scan program via the -format
 argument.  This format is identical to the default except that
 additional hints for fontification have been added to the fifth
@@ -68,9 +68,11 @@ The values of the fifth column, in priority order, are: \"-\" if
 the message has been replied to, t if an address on the To: line
 matches one of the mailboxes of the current user, \"c\" if the Cc:
 line matches, \"b\" if the Bcc: line matches, and \"n\" if a
-non-empty Newsgroups: header is present.")
+non-empty Newsgroups: header is present."
+  :group 'mh-scan-line-formats
+  :type 'string)
 
-(defvar mh-scan-format-nmh
+(defcustom mh-scan-format-nmh
   (concat
    "%4(msg)"
    "%<(cur)+%| %>"
@@ -84,7 +86,7 @@ non-empty Newsgroups: header is present.")
    "%<(mymbox{from})%<{to}To:%14(decode(friendly{to}))%>%>"
    "%<(zero)%17(decode(friendly{from}))%>  "
    "%(decode{subject})%<{body}<<%{body}%>")
-  "*Scan format string for nmh.
+  "Scan format string for nmh.
 This string is passed to the scan program via the -format arg.
 This format is identical to the default except that additional
 hints for fontification have been added to the fifth
@@ -94,7 +96,9 @@ The values of the fifth column, in priority order, are: \"-\" if
 the message has been replied to, t if an address on the To: field
 matches one of the mailboxes of the current user, \"c\" if the Cc:
 field matches, \"b\" if the Bcc: field matches, and \"n\" if a
-non-empty Newsgroups: field is present.")
+non-empty Newsgroups: field is present."
+  :group 'mh-scan-line-formats
+  :type 'string)
 
 
 

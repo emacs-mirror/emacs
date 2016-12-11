@@ -727,7 +727,7 @@ with completion and history."
     (font-lock-flush)))
 
 (defun hi-lock-find-patterns ()
-  "Find patterns in current buffer for hi-lock."
+  "Add patterns from the current buffer to the list of hi-lock patterns."
   (interactive)
   (unless (memq major-mode hi-lock-exclude-modes)
     (let ((all-patterns nil)

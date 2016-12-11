@@ -74,15 +74,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define FOF_NO_CONNECTED_ELEMENTS 0x2000
 #endif
 
-void syms_of_w32fns (void);
-void globals_of_w32fns (void);
-
-extern void free_frame_menubar (struct frame *);
 extern int w32_console_toggle_lock_key (int, Lisp_Object);
 extern void w32_menu_display_help (HWND, HMENU, UINT, UINT);
 extern void w32_free_menu_strings (HWND);
 extern const char *map_w32_filename (const char *, const char **);
-extern char * w32_strerror (int error_no);
 
 #ifndef IDC_HAND
 #define IDC_HAND MAKEINTRESOURCE(32649)
@@ -191,11 +186,7 @@ MonitorFromWindow_Proc monitor_from_window_fn = NULL;
 EnumDisplayMonitors_Proc enum_display_monitors_fn = NULL;
 GetTitleBarInfo_Proc get_title_bar_info_fn = NULL;
 
-#ifdef NTGUI_UNICODE
-#define unicode_append_menu AppendMenuW
-#else /* !NTGUI_UNICODE */
 extern AppendMenuW_Proc unicode_append_menu;
-#endif /* NTGUI_UNICODE */
 
 /* Flag to selectively ignore WM_IME_CHAR messages.  */
 static int ignore_ime_char = 0;
@@ -222,7 +213,6 @@ static HWND w32_visible_system_caret_hwnd;
 static int w32_unicode_gui;
 
 /* From w32menu.c  */
-extern HMENU current_popup_menu;
 int menubar_in_use = 0;
 
 /* From w32uniscribe.c  */
@@ -285,6 +275,8 @@ static struct
   char rwin_hooked[256]; /* hook right Win+[this key]? */
 } kbdhook;
 typedef HWND (WINAPI *GetConsoleWindow_Proc) (void);
+
+typedef BOOL (WINAPI *IsDebuggerPresent_Proc) (void);
 
 /* stdin, from w32console.c */
 extern HANDLE keyboard_handle;
@@ -365,10 +357,7 @@ void x_set_cursor_type (struct frame *, Lisp_Object, Lisp_Object);
 void x_set_icon_type (struct frame *, Lisp_Object, Lisp_Object);
 void x_set_icon_name (struct frame *, Lisp_Object, Lisp_Object);
 void x_explicitly_set_name (struct frame *, Lisp_Object, Lisp_Object);
-void x_set_menu_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
 void x_set_title (struct frame *, Lisp_Object, Lisp_Object);
-void x_set_tool_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
-void x_set_internal_border_width (struct frame *f, Lisp_Object, Lisp_Object);
 
 
 /* Store the screen positions of frame F into XPTR and YPTR.
@@ -491,7 +480,7 @@ if the entry is new.  */)
 /* The default colors for the w32 color map */
 typedef struct colormap_t
 {
-  char *name;
+  const char *name;
   COLORREF colorref;
 } colormap_t;
 
@@ -829,7 +818,7 @@ add_system_logical_colors_to_map (Lisp_Object *system_colors)
 			    NULL, NULL, (LPBYTE)color_buffer, &color_size)
 	     == ERROR_SUCCESS)
 	{
-	  int r, g, b;
+	  unsigned r, g, b;
 	  if (sscanf (color_buffer, " %u %u %u", &r, &g, &b) == 3)
 	    *system_colors = Fcons (Fcons (build_string (full_name_buffer),
 					   make_number (RGB (r, g, b))),
@@ -1244,7 +1233,7 @@ w32_defined_color (struct frame *f, const char *color, XColor *color_def,
    If F is not a color screen, return DEF (default) regardless of what
    ARG says.  */
 
-int
+static int
 x_decode_color (struct frame *f, Lisp_Object arg, int def)
 {
   XColor cdef;
@@ -1527,7 +1516,7 @@ x_set_cursor_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
    Note that this does not fully take effect if done before
    F has a window.  */
 
-void
+static void
 x_set_border_pixel (struct frame *f, int pix)
 {
 
@@ -1638,7 +1627,7 @@ x_set_icon_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 #endif
 }
 
-void
+static void
 x_clear_under_internal_border (struct frame *f)
 {
   int border = FRAME_INTERNAL_BORDER_WIDTH (f);
@@ -1671,7 +1660,7 @@ x_set_internal_border_width (struct frame *f, Lisp_Object arg, Lisp_Object oldva
 
   if (border != FRAME_INTERNAL_BORDER_WIDTH (f))
     {
-      FRAME_INTERNAL_BORDER_WIDTH (f) = border;
+      f->internal_border_width = border;
 
       if (FRAME_X_WINDOW (f) != 0)
 	{
@@ -1864,7 +1853,7 @@ w32_set_title_bar_text (struct frame *f, Lisp_Object name)
        suggesting a new name, which lisp code should override; if
        F->explicit_name is set, ignore the new name; otherwise, set it.  */
 
-void
+static void
 x_set_name (struct frame *f, Lisp_Object name, bool explicit)
 {
   /* Make sure that requests from lisp code override requests from
@@ -1968,6 +1957,8 @@ x_set_scroll_bar_default_height (struct frame *f)
 }
 
 /* Subroutines for creating a frame.  */
+
+Cursor w32_load_cursor (LPCTSTR);
 
 Cursor
 w32_load_cursor (LPCTSTR name)
@@ -2189,8 +2180,8 @@ funhook (int code, WPARAM w, LPARAM l)
 		     can prevent this by setting the
 		     w32-pass-[lr]window-to-system variable to
 		     NIL.  */
-		  if (hs->vkCode == VK_LWIN && !NILP (Vw32_pass_lwindow_to_system) ||
-		      hs->vkCode == VK_RWIN && !NILP (Vw32_pass_rwindow_to_system))
+		  if ((hs->vkCode == VK_LWIN && !NILP (Vw32_pass_lwindow_to_system)) ||
+		      (hs->vkCode == VK_RWIN && !NILP (Vw32_pass_rwindow_to_system)))
 		    {
 		      /* Not prevented - Simulate the keypress to the system.  */
 		      memset (inputs, 0, sizeof (inputs));
@@ -2236,8 +2227,8 @@ funhook (int code, WPARAM w, LPARAM l)
       /* Some other key was pressed while a captured Win key is down.
 	 This is either an Emacs registered hotkey combination, or a
 	 system hotkey.	 */
-      if (kbdhook.lwindown && kbdhook.lwin_hooked[hs->vkCode] ||
-	  kbdhook.rwindown && kbdhook.rwin_hooked[hs->vkCode])
+      if ((kbdhook.lwindown && kbdhook.lwin_hooked[hs->vkCode]) ||
+	  (kbdhook.rwindown && kbdhook.rwin_hooked[hs->vkCode]))
 	{
 	  /* Hooked Win-x combination, do not pass the keypress to Windows.  */
 	  kbdhook.suppress_lone = 1;
@@ -2315,6 +2306,19 @@ setup_w32_kbdhook (void)
 {
   kbdhook.hook_count++;
 
+  /* This hook gets in the way of debugging, since when Emacs stops,
+     its input thread stops, and there's nothing to process keyboard
+     events, whereas this hook is global, and is invoked in the
+     context of the thread that installed it.  So we don't install the
+     hook if the process is being debugged. */
+  if (w32_kbdhook_active)
+    {
+      IsDebuggerPresent_Proc is_debugger_present = (IsDebuggerPresent_Proc)
+	GetProcAddress (GetModuleHandle ("kernel32.dll"), "IsDebuggerPresent");
+      if (is_debugger_present && is_debugger_present ())
+	return;
+    }
+
   /* Hooking is only available on NT architecture systems, as
      indicated by the w32_kbdhook_active variable.  */
   if (kbdhook.hook_count == 1 && w32_kbdhook_active)
@@ -2375,7 +2379,7 @@ remove_w32_kbdhook (void)
 
 /* Mark a specific key combination as hooked, preventing it to be
    handled by the system.  */
-void
+static void
 hook_w32_key (int hook, int modifier, int vkey)
 {
   char *tbl = NULL;
@@ -2413,6 +2417,7 @@ hook_w32_key (int hook, int modifier, int vkey)
     }
 }
 
+#ifdef WINDOWSNT
 /* Check the current Win key pressed state.  */
 int
 check_w32_winkey_state (int vkey)
@@ -2440,12 +2445,13 @@ check_w32_winkey_state (int vkey)
     }
   return 0;
 }
+#endif	/* WINDOWSNT */
 
 /* Reset the keyboard hook state.  Locking the workstation with Win-L
    leaves the Win key(s) "down" from the hook's point of view - the
    keyup event is never seen.  Thus, this function must be called when
    the system is locked.  */
-void
+static void
 reset_w32_kbdhook_state (void)
 {
   kbdhook.lwindown = 0;
@@ -2630,8 +2636,10 @@ modifier_set (int vkey)
       else
 	return (GetKeyState (vkey) & 0x1);
     }
+#ifdef WINDOWSNT
   if (w32_kbdhook_active && (vkey == VK_LWIN || vkey == VK_RWIN))
     return check_w32_winkey_state (vkey);
+#endif
 
   if (!modifiers_recorded)
     return (GetKeyState (vkey) & 0x8000);
@@ -2652,6 +2660,7 @@ modifier_set (int vkey)
 
 /* Convert between the modifier bits W32 uses and the modifier bits
    Emacs uses.  */
+unsigned int w32_key_to_modifier (int);
 
 unsigned int
 w32_key_to_modifier (int key)
@@ -2749,6 +2758,8 @@ w32_get_key_modifiers (unsigned int wparam, unsigned int lparam)
 
   return mods;
 }
+
+unsigned int map_keypad_keys (unsigned int, unsigned int);
 
 unsigned int
 map_keypad_keys (unsigned int virt_key, unsigned int extended)
@@ -3122,6 +3133,8 @@ cancel_all_deferred_msgs (void)
   PostThreadMessage (dwWindowsThreadId, WM_NULL, 0, 0);
 }
 
+DWORD WINAPI w32_msg_worker (void *);
+
 DWORD WINAPI
 w32_msg_worker (void *arg)
 {
@@ -3340,7 +3353,7 @@ get_wm_chars (HWND aWnd, int *buf, int buflen, int ignore_ctrl, int ctrl,
    Be ready to treat the case when this delivers WM_(SYS)DEADCHAR. */
 static int after_deadkey = -1;
 
-int
+static int
 deliver_wm_chars (int do_translate, HWND hwnd, UINT msg, UINT wParam,
 		  UINT lParam, int legacy_alt_meta)
 {
@@ -3384,7 +3397,7 @@ deliver_wm_chars (int do_translate, HWND hwnd, UINT msg, UINT wParam,
       W32Msg wmsg;
       DWORD console_modifiers = construct_console_modifiers ();
       int *b = buf, strip_ExtraMods = 1, hairy = 0;
-      char *type_CtrlAlt = NULL;
+      const char *type_CtrlAlt = NULL;
 
       /*  XXXX In fact, there may be another case when we need to do the same:
 	       What happens if the string defined in the LIGATURES has length
@@ -3540,9 +3553,45 @@ deliver_wm_chars (int do_translate, HWND hwnd, UINT msg, UINT wParam,
 	      SHORT r = VkKeyScanW (*b), bitmap = 0x1FF;
 
 	      FPRINTF_WM_CHARS((stderr, "VkKeyScanW %#06x %#04x\n", (int)r,
-			       wParam));
+				wParam));
 	      if ((r & 0xFF) == wParam)
 		bitmap = r>>8; /* *b is reachable via simple interface */
+	      else
+		{
+		  /* VkKeyScanW() (essentially) returns the FIRST key with
+		     the specified character; so here the pressed key is the
+		     SECONDARY key producing the character.
+
+		     Essentially, we have no information about the "role" of
+		     modifiers on this key: which contribute into the
+		     produced character (so "are consumed"), and which are
+		     "extra" (must attache to bindable events).
+
+		     The default above would consume ALL modifiers, so the
+		     character is reported "as is".  However, on many layouts
+		     the ordering of the keys (in the layout table) is not
+		     thought out well, so the "secondary" keys are often those
+		     which the users would prefer to use with Alt-CHAR.
+		     (Moreover - with e.g. Czech-QWERTY - the ASCII
+		     punctuation is accessible from two equally [nu]preferable
+		     AltGr-keys.)
+
+		     SO:   Heuristic: if the reported char is ASCII, AND Meta
+		     modifier is a candidate, behave as if Meta is present
+		     (fallback to the legacy branch; bug#23251).
+
+		     (This would break layouts
+		     - delivering ASCII characters
+		     - on SECONDARY keys
+		     - with not Shift/AltGr-like modifier combinations.
+		     All 3 conditions together must be pretty exotic
+		     cases - and a workaround exists: use "primary" keys!) */
+		  if (*b < 0x80
+		      && (wmsg.dwModifiers
+			  & (alt_modifier | meta_modifier
+			     | super_modifier | hyper_modifier)))
+		    return 0;
+		}
 	      if (*type_CtrlAlt == 'a') /* Simple Alt seen */
 		{
 		  if ((bitmap & ~1) == 0) /* 1: KBDSHIFT */
@@ -4759,6 +4808,11 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
       return 0;
 
+    case WM_ENDSESSION:
+      my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
+      /* If we return, the process will be terminated immediately.  */
+      sleep (1000);
+
     case WM_WINDOWPOSCHANGING:
       /* Don't restrict the sizing of any kind of frames.  If the window
 	 manager doesn't, there's no reason to do it ourselves.  */
@@ -5226,7 +5280,7 @@ x_default_font_parameter (struct frame *f, Lisp_Object parms)
   if (!STRINGP (font))
     {
       int i;
-      static char *names[]
+      static const char *names[]
 	= { "Courier New-10",
 	    "-*-Courier-normal-r-*-*-13-*-*-*-c-*-iso8859-1",
 	    "-*-Fixedsys-normal-r-*-*-12-*-*-*-c-*-iso8859-1",
@@ -5246,7 +5300,8 @@ x_default_font_parameter (struct frame *f, Lisp_Object parms)
     {
       /* Remember the explicit font parameter, so we can re-apply it after
 	 we've applied the `default' face settings.  */
-      x_set_frame_parameters (f, Fcons (Fcons (Qfont_param, font_param), Qnil));
+      x_set_frame_parameters (f, Fcons (Fcons (Qfont_parameter, font_param),
+					Qnil));
     }
   x_default_parameter (f, parms, Qfont, font, "font", "Font", RES_TYPE_STRING);
 }
@@ -5568,8 +5623,10 @@ This function is an internal primitive--use `make-frame' instead.  */)
       else if (! NILP (visibility))
 	x_make_frame_visible (f);
       else
-	/* Must have been Qnil.  */
-	;
+	{
+	  /* Must have been Qnil.  */
+	  ;
+	}
     }
 
   /* Initialize `default-minibuffer-frame' in case this is the first
@@ -6112,11 +6169,13 @@ SOUND is nil to use the normal beep.  */)
   return sound;
 }
 
+#if 0	/* unused */
 int
 x_screen_planes (register struct frame *f)
 {
   return FRAME_DISPLAY_INFO (f)->n_planes;
 }
+#endif
 
 /* Return the display structure for the display named NAME.
    Open a new connection if necessary.  */
@@ -6844,21 +6903,22 @@ A tooltip's maximum size is specified by `x-max-tooltip-size'.
 Text larger than the specified size is clipped.  */)
   (Lisp_Object string, Lisp_Object frame, Lisp_Object parms, Lisp_Object timeout, Lisp_Object dx, Lisp_Object dy)
 {
-  struct frame *f, *tip_f;
+  struct frame *tip_f;
   struct window *w;
   int root_x, root_y;
   struct buffer *old_buffer;
   struct text_pos pos;
-  int i, width, height;
+  int width, height;
   int old_windows_or_buffers_changed = windows_or_buffers_changed;
   ptrdiff_t count = SPECPDL_INDEX ();
   ptrdiff_t count_1;
   Lisp_Object window, size;
+  AUTO_STRING (tip, " *tip*");
 
   specbind (Qinhibit_redisplay, Qt);
 
   CHECK_STRING (string);
-  f = decode_window_system_frame (frame);
+  decode_window_system_frame (frame);
   if (NILP (timeout))
     timeout = make_number (5);
   else
@@ -6999,6 +7059,7 @@ Text larger than the specified size is clipped.  */)
 
       /* Create a frame for the tooltip, and record it in the global
 	 variable tip_frame.  */
+      struct frame *f;		/* The value is unused.  */
       if (NILP (tip_frame = x_create_tip_frame (FRAME_DISPLAY_INFO (f), parms)))
 	{
 	  /* Creating the tip frame failed.  */
@@ -7009,7 +7070,6 @@ Text larger than the specified size is clipped.  */)
 
   tip_f = XFRAME (tip_frame);
   window = FRAME_ROOT_WINDOW (tip_f);
-  AUTO_STRING (tip, " *tip*");
   set_window_buffer (window, Fget_buffer_create (tip), false, false);
   w = XWINDOW (window);
   w->pseudo_window_p = true;
@@ -7244,7 +7304,9 @@ value of DIR as in previous invocations; this is standard Windows behavior.  */)
 {
   /* Filter index: 1: All Files, 2: Directories only  */
   static const wchar_t filter_w[] = L"All Files (*.*)\0*.*\0Directories\0*|*\0";
+#ifndef NTGUI_UNICODE
   static const char filter_a[] = "All Files (*.*)\0*.*\0Directories\0*|*\0";
+#endif
 
   Lisp_Object filename = default_filename;
   struct frame *f = SELECTED_FRAME ();
@@ -7266,7 +7328,7 @@ value of DIR as in previous invocations; this is standard Windows behavior.  */)
   } new_file_details_w;
 
 #ifdef NTGUI_UNICODE
-  wchar_t filename_buf_w[32*1024 + 1]; // NT kernel maximum
+  wchar_t filename_buf_w[32*1024 + 1]; /* NT kernel maximum */
   OPENFILENAMEW * file_details_w = &new_file_details_w.details;
   const int use_unicode = 1;
 #else /* not NTGUI_UNICODE */
@@ -7522,7 +7584,7 @@ value of DIR as in previous invocations; this is standard Windows behavior.  */)
 
   /* Make "Cancel" equivalent to C-g.  */
   if (NILP (filename))
-    Fsignal (Qquit, Qnil);
+    quit ();
 
   return filename;
 }
@@ -7990,8 +8052,8 @@ lookup_vk_code (char *key)
       /* Alphanumerics map to themselves.  */
       if (key[1] == 0)
       {
-	if (key[0] >= 'A' && key[0] <= 'Z' ||
-	    key[0] >= '0' && key[0] <= '9')
+	if ((key[0] >= 'A' && key[0] <= 'Z')
+	    || (key[0] >= '0' && key[0] <= '9'))
 	  return key[0];
 	if (key[0] >= 'a' && key[0] <= 'z')
 	  return toupper(key[0]);
@@ -8403,24 +8465,25 @@ and width values are in pixels.
 		Fcons (Qouter_size,
 		       Fcons (make_number (right - left),
 			      make_number (bottom - top))),
-	   Fcons (Qexternal_border_size,
+		Fcons (Qexternal_border_size,
 		       Fcons (make_number (external_border_width),
 			      make_number (external_border_height))),
 		Fcons (Qtitle_bar_size,
 		       Fcons (make_number (title_bar_width),
 			      make_number (title_bar_height))),
-	   Fcons (Qmenu_bar_external, Qt),
-	   Fcons (Qmenu_bar_size,
-		  Fcons (make_number
-			 (menu_bar.rcBar.right - menu_bar.rcBar.left),
-			 make_number (menu_bar_height))),
-	   Fcons (Qtool_bar_external, Qnil),
+		Fcons (Qmenu_bar_external, Qt),
+		Fcons (Qmenu_bar_size,
+		       Fcons (make_number
+			      (menu_bar.rcBar.right - menu_bar.rcBar.left),
+			      make_number (menu_bar_height))),
+		Fcons (Qtool_bar_external, Qnil),
 		Fcons (Qtool_bar_position, tool_bar_height ? Qtop : Qnil),
-	   Fcons (Qtool_bar_size,
+		Fcons (Qtool_bar_size,
 		       Fcons (make_number
 			      (tool_bar_height
-			       ? right - left - 2 * internal_border_width
-				      : 0),
+			       ? (right - left - 2 * external_border_width
+				  - 2 * internal_border_width)
+			       : 0),
 			      make_number (tool_bar_height))),
 		Fcons (Qinternal_border_width,
 		       make_number (internal_border_width)));
@@ -8625,7 +8688,7 @@ The following %-sequences are provided:
       else
 	{
 	  long m;
-	  float h;
+	  double h;
 	  char buffer[16];
 	  snprintf (buffer, 16, "%ld", seconds_left);
 	  seconds = build_string (buffer);
@@ -8918,7 +8981,7 @@ w32_strerror (int error_no)
       --ret;
   buf[ret] = '\0';
   if (!ret)
-    sprintf (buf, "w32 error %u", error_no);
+    sprintf (buf, "w32 error %d", error_no);
 
   return buf;
 }
@@ -8926,6 +8989,8 @@ w32_strerror (int error_no)
 /* For convenience when debugging.  (You cannot call GetLastError
    directly from GDB: it will crash, because it uses the __stdcall
    calling convention, not the _cdecl convention assumed by GDB.)  */
+DWORD w32_last_error (void);
+
 DWORD
 w32_last_error (void)
 {
@@ -9576,7 +9641,7 @@ usage: (w32-notification-notify &rest PARAMS)  */)
   EMACS_INT retval;
   char *icon, *tip, *title, *msg;
   enum NI_Severity severity;
-  unsigned timeout;
+  unsigned timeout = 0;
 
   if (nargs == 0)
     return Qnil;
@@ -9588,14 +9653,14 @@ usage: (w32-notification-notify &rest PARAMS)  */)
   if (STRINGP (lres))
     icon = SSDATA (ENCODE_FILE (Fexpand_file_name (lres, Qnil)));
   else
-    icon = "";
+    icon = (char *)"";
 
   /* Tip.  */
   lres = Fplist_get (arg_plist, QCtip);
   if (STRINGP (lres))
     tip = SSDATA (code_convert_string_norecord (lres, Qutf_8, 1));
   else
-    tip = "Emacs notification";
+    tip = (char *)"Emacs notification";
 
   /* Severity.  */
   lres = Fplist_get (arg_plist, QClevel);
@@ -9615,14 +9680,14 @@ usage: (w32-notification-notify &rest PARAMS)  */)
   if (STRINGP (lres))
     title = SSDATA (code_convert_string_norecord (lres, Qutf_8, 1));
   else
-    title = "";
+    title = (char *)"";
 
   /* Notification body text.  */
   lres = Fplist_get (arg_plist, QCbody);
   if (STRINGP (lres))
     msg = SSDATA (code_convert_string_norecord (lres, Qutf_8, 1));
   else
-    msg = "";
+    msg = (char *)"";
 
   /* Do it!  */
   retval = add_tray_notification (f, icon, tip, severity, timeout, title, msg);
@@ -9692,6 +9757,7 @@ frame_parm_handler w32_frame_parm_handlers[] =
   x_set_alpha,
   0, /* x_set_sticky */
   0, /* x_set_tool_bar_position */
+  0, /* x_set_inhibit_double_buffering */
 };
 
 void
@@ -9711,7 +9777,7 @@ syms_of_w32fns (void)
   DEFSYM (Qctrl, "ctrl");
   DEFSYM (Qcontrol, "control");
   DEFSYM (Qshift, "shift");
-  DEFSYM (Qfont_param, "font-parameter");
+  DEFSYM (Qfont_parameter, "font-parameter");
   DEFSYM (Qgeometry, "geometry");
   DEFSYM (Qworkarea, "workarea");
   DEFSYM (Qmm_size, "mm-size");
@@ -9730,10 +9796,10 @@ syms_of_w32fns (void)
 #endif
 
   /* Symbols used elsewhere, but only in MS-Windows-specific code.  */
-  DEFSYM (Qgnutls_dll, "gnutls");
-  DEFSYM (Qlibxml2_dll, "libxml2");
+  DEFSYM (Qgnutls, "gnutls");
+  DEFSYM (Qlibxml2, "libxml2");
   DEFSYM (Qserif, "serif");
-  DEFSYM (Qzlib_dll, "zlib");
+  DEFSYM (Qzlib, "zlib");
 
   Fput (Qundefined_color, Qerror_conditions,
 	listn (CONSTYPE_PURE, 2, Qundefined_color, Qerror));
@@ -10212,7 +10278,7 @@ typedef USHORT (WINAPI * CaptureStackBackTrace_proc) (ULONG, ULONG, PVOID *,
 
 #define BACKTRACE_LIMIT_MAX 62
 
-int
+static int
 w32_backtrace (void **buffer, int limit)
 {
   static CaptureStackBackTrace_proc s_pfn_CaptureStackBackTrace = NULL;
@@ -10285,8 +10351,8 @@ emacs_abort (void)
 	       but not on Windows 7.  addr2line doesn't mind a missing
 	       "0x", but will be confused by an extra one.  */
 	    if (except_addr)
-	      sprintf (buf, "\r\nException 0x%lx at this address:\r\n%p\r\n",
-		       except_code, except_addr);
+	      sprintf (buf, "\r\nException 0x%x at this address:\r\n%p\r\n",
+		       (unsigned int) except_code, except_addr);
 	    if (stderr_fd >= 0)
 	      {
 		if (except_addr)

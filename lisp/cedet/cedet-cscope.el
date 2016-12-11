@@ -52,7 +52,7 @@ SCOPE is the scope of the search, such as 'project or 'subdirs."
   ;; -0 = Find C symbol
   ;; -1 = Find global definition
   ;; -3 = Find references
-  ;; -6 = Find egrep pattern
+  ;; -6 = Find grep -E pattern
   ;; -7 = Find file
   (let ((idx (cond ((eq type 'file)
 		    "-7")

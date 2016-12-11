@@ -118,7 +118,7 @@ Argument DIR is the directory containing FILE."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun find-lisp-find-files (directory regexp)
-  "Find files in DIRECTORY which match REGEXP."
+  "Find files under DIRECTORY, recursively, that match REGEXP."
   (let ((file-predicate      'find-lisp-default-file-predicate)
 	(directory-predicate 'find-lisp-default-directory-predicate)
 	(find-lisp-regexp regexp))
@@ -297,6 +297,9 @@ It is a function which takes two arguments, the directory and its parent."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun find-lisp-format (file-name file-attr switches now)
+  "Format one line of long ls output for file FILE-NAME.
+FILE-ATTR and FILE-SIZE give the file's attributes and size.
+SWITCHES and TIME-INDEX give the full switch list and time data."
   (let ((file-type (nth 0 file-attr)))
     (concat (if (memq ?i switches)	; inode number
 		(format "%6d " (nth 10 file-attr)))
@@ -325,7 +328,7 @@ It is a function which takes two arguments, the directory and its parent."
 	    "\n")))
 
 (defun find-lisp-time-index (switches)
-  ;; Return index into file-attributes according to ls SWITCHES.
+  "Return index into file-attributes according to ls SWITCHES."
   (cond
    ((memq ?c switches) 6)		; last mode change
    ((memq ?u switches) 4)		; last access
@@ -333,10 +336,11 @@ It is a function which takes two arguments, the directory and its parent."
    (t 5)))
 
 (defun find-lisp-format-time (file-attr switches now)
-  ;; Format time string for file with attributes FILE-ATTR according
-  ;; to SWITCHES (a list of ls option letters of which c and u are recognized).
-  ;; Use the same method as `ls' to decide whether to show time-of-day or year,
-  ;; depending on distance between file date and NOW.
+  "Format time string for file.
+This is done with attributes FILE-ATTR according to SWITCHES (a
+list of ls option letters of which c and u are recognized).  Use
+the same method as \"ls\" to decide whether to show time-of-day or
+year, depending on distance between file date and NOW."
   (let* ((time (nth (find-lisp-time-index switches) file-attr))
 	 (diff16 (- (car time) (car now)))
 	 (diff (+ (ash diff16 16) (- (car (cdr time)) (car (cdr now)))))

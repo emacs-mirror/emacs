@@ -75,7 +75,7 @@ am__v_at_1 =
 
 # ==================== Where To Install Things ====================
 
-# Location to install Emacs.app under GNUstep / Mac OS X.
+# Location to install Emacs.app under GNUstep / macOS.
 # Later values may use this.
 ns_appbindir=@ns_appbindir@
 

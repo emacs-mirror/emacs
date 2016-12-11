@@ -265,17 +265,16 @@ a section."
 
 (defun lm-header (header)
   "Return the contents of the header named HEADER."
-  (save-excursion
-    (goto-char (point-min))
-    (let ((case-fold-search t))
-      (when (and (re-search-forward (lm-get-header-re header) (lm-code-mark) t)
-                 ;;   RCS ident likes format "$identifier: data$"
-                 (looking-at
-                  (if (save-excursion
-                        (skip-chars-backward "^$" (match-beginning 0))
-                        (= (point) (match-beginning 0)))
-                      "[^\n]+" "[^$\n]+")))
-        (match-string-no-properties 0)))))
+  (goto-char (point-min))
+  (let ((case-fold-search t))
+    (when (and (re-search-forward (lm-get-header-re header) (lm-code-mark) t)
+	       ;;   RCS ident likes format "$identifier: data$"
+	       (looking-at
+		(if (save-excursion
+		      (skip-chars-backward "^$" (match-beginning 0))
+		      (= (point) (match-beginning 0)))
+		    "[^\n]+" "[^$\n]+")))
+      (match-string-no-properties 0))))
 
 (defun lm-header-multiline (header)
   "Return the contents of the header named HEADER, with continuation lines.

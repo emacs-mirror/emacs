@@ -156,7 +156,76 @@
       (ignore-errors (delete-directory tmpdir1 'recursive))
       (ignore-errors (delete-directory tmpdir2 'recursive)))))
 
-(ert-deftest auto-revert-test02-auto-revert-tail-mode ()
+;; This is inspired by Bug#23276.
+(ert-deftest auto-revert-test02-auto-revert-deleted-file ()
+  "Check autorevert for a deleted file."
+  :tags '(:expensive-test)
+
+  (let ((tmpfile (make-temp-file "auto-revert-test"))
+        buf)
+    (unwind-protect
+	(progn
+          (with-current-buffer (get-buffer-create "*Messages*")
+            (narrow-to-region (point-max) (point-max)))
+          (write-region "any text" nil tmpfile nil 'no-message)
+	  (setq buf (find-file-noselect tmpfile))
+	  (with-current-buffer buf
+            (should (string-equal (buffer-string) "any text"))
+            ;; `buffer-stale--default-function' checks for
+            ;; `verify-visited-file-modtime'.  We must ensure that
+            ;; it returns nil.
+            (sleep-for 1)
+            (auto-revert-mode 1)
+            (should auto-revert-mode)
+
+            ;; Remove file while reverting.  We simulate this by
+            ;; modifying `before-revert-hook'.
+            (add-hook
+             'before-revert-hook
+             (lambda () (delete-file buffer-file-name))
+             nil t)
+            (with-current-buffer (get-buffer-create "*Messages*")
+              (narrow-to-region (point-max) (point-max)))
+	    (sleep-for 1)
+            (write-region "another text" nil tmpfile nil 'no-message)
+
+	    ;; Check, that the buffer hasn't been reverted.  File
+	    ;; notification should be disabled, falling back to
+	    ;; polling.
+            (auto-revert--wait-for-revert buf)
+            (should (string-match "any text" (buffer-string)))
+            (should-not auto-revert-use-notify)
+
+            ;; Once the file has been recreated, the buffer shall be
+            ;; reverted.
+            (kill-local-variable 'before-revert-hook)
+            (with-current-buffer (get-buffer-create "*Messages*")
+              (narrow-to-region (point-max) (point-max)))
+	    (sleep-for 1)
+            (write-region "another text" nil tmpfile nil 'no-message)
+
+	    ;; Check, that the buffer has been reverted.
+            (auto-revert--wait-for-revert buf)
+            (should (string-match "another text" (buffer-string)))
+
+            ;; An empty file shall still be reverted.
+            (with-current-buffer (get-buffer-create "*Messages*")
+              (narrow-to-region (point-max) (point-max)))
+	    (sleep-for 1)
+            (write-region "" nil tmpfile nil 'no-message)
+
+	    ;; Check, that the buffer has been reverted.
+            (auto-revert--wait-for-revert buf)
+            (should (string-equal "" (buffer-string)))))
+
+      ;; Exit.
+      (with-current-buffer "*Messages*" (widen))
+      (ignore-errors
+        (with-current-buffer buf (set-buffer-modified-p nil))
+        (kill-buffer buf))
+      (ignore-errors (delete-file tmpfile)))))
+
+(ert-deftest auto-revert-test03-auto-revert-tail-mode ()
   "Check autorevert tail mode."
   ;; `auto-revert-buffers' runs every 5".  And we must wait, until the
   ;; file has been reverted.
@@ -194,7 +263,7 @@
       (ignore-errors (kill-buffer buf))
       (ignore-errors (delete-file tmpfile)))))
 
-(ert-deftest auto-revert-test03-auto-revert-mode-dired ()
+(ert-deftest auto-revert-test04-auto-revert-mode-dired ()
   "Check autorevert for dired."
   ;; `auto-revert-buffers' runs every 5".  And we must wait, until the
   ;; file has been reverted.

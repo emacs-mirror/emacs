@@ -852,7 +852,7 @@ ON-OR-OFF                 := t | nil
 For example, with the following configuration
 
 \(setq org-odt-table-styles
-      '((\"TableWithHeaderRowsAndColumns\" \"Custom\"
+      \\='((\"TableWithHeaderRowsAndColumns\" \"Custom\"
          ((use-first-row-styles . t)
           (use-first-column-styles . t)))
         (\"TableWithHeaderColumns\" \"Custom\"

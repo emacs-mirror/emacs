@@ -946,14 +946,15 @@ documentation for the major and minor modes of that buffer."
 	      (let ((mode-function (nth 0 mode))
 		    (pretty-minor-mode (nth 1 mode))
 		    (indicator (nth 2 mode)))
-		(add-text-properties 0 (length pretty-minor-mode)
-				     '(face bold) pretty-minor-mode)
 		(save-excursion
 		  (goto-char (point-max))
 		  (princ "\n\f\n")
 		  (push (point-marker) help-button-cache)
 		  ;; Document the minor modes fully.
-		  (insert pretty-minor-mode)
+                  (insert-text-button
+                   pretty-minor-mode 'type 'help-function
+                   'help-args (list mode-function)
+                   'button '(t))
 		  (princ (format " minor mode (%s):\n"
 				 (if (zerop (length indicator))
 				     "no indicator"
@@ -1484,7 +1485,8 @@ the same names as used in the original source code, when possible."
 (define-obsolete-function-alias 'help-make-usage 'help--make-usage "25.1")
 
 (defun help--make-usage-docstring (fn arglist)
-  (help--docstring-quote (format "%S" (help--make-usage fn arglist))))
+  (let ((print-escape-newlines t))
+    (help--docstring-quote (format "%S" (help--make-usage fn arglist)))))
 
 
 (provide 'help)

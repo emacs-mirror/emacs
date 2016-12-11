@@ -633,11 +633,13 @@ build will run on Windows 9X and newer systems).
 
   To support XPM images (required for color tool-bar icons), you will
   need the libXpm library.  It is available from the ezwinports site,
-  http://sourceforge.net/projects/ezwinports/files/.
+  http://sourceforge.net/projects/ezwinports/files/ and from
+  http://ftp.gnu.org/gnu/emacs/windows/.
 
   For PNG images, we recommend to use versions 1.4.x and later of
   libpng, because previous versions had security issues.  You can find
-  precompiled libraries and headers on the ezwinports site.
+  precompiled libraries and headers on the ezwinports site and on
+  ftp.gnu.org.
 
   Versions 1.4.0 and later of libpng are binary incompatible with
   earlier versions, so Emacs will only look for libpng libraries which
@@ -654,7 +656,8 @@ build will run on Windows 9X and newer systems).
   For GIF images, we recommend to use versions 5.0.0 or later of
   giflib, as it is much enhanced wrt previous versions.  You can find
   precompiled binaries and headers for giflib on the ezwinports site,
-  http://sourceforge.net/projects/ezwinports/files/.
+  http://sourceforge.net/projects/ezwinports/files/ and on
+  http://ftp.gnu.org/gnu/emacs/windows/.
 
   Version 5.0.0 and later of giflib are binary incompatible with
   previous versions (the signatures of several functions have
@@ -668,7 +671,7 @@ build will run on Windows 9X and newer systems).
 
   For JPEG images, you will need libjpeg 6b or later, which will be
   called libjpeg-N.dll, jpeg62.dll, libjpeg.dll, or jpeg.dll.  You can
-  find these on the ezwinports site.
+  find these on the ezwinports site and on ftp.gnu.org.
 
   TIFF images require libTIFF 3.0 or later, which will be called
   libtiffN.dll or libtiff-N.dll or libtiff.dll.  These can be found on
@@ -694,6 +697,10 @@ build will run on Windows 9X and newer systems).
     run Emacs with SVG support; the other 3 packages are required
     because the compiler needs to see their header files when building
     Emacs.
+
+    http://ftp.gnu.org/gnu/emacs/windows/
+
+    More fat ports, from the MSYS2 project.
 
   To use librsvg at runtime, ensure that librsvg and its dependencies
   are on your PATH, or in the same directory as the emacs.exe binary.
@@ -751,7 +758,8 @@ build will run on Windows 9X and newer systems).
   session.
 
   You can get pre-built binaries (including any required DLL and the
-  header files) at http://sourceforge.net/projects/ezwinports/files/.
+  header files) at http://sourceforge.net/projects/ezwinports/files/
+  and on http://ftp.gnu.org/gnu/emacs/windows/.
 
 * Optional libxml2 support
 
@@ -773,6 +781,7 @@ build will run on Windows 9X and newer systems).
   (including any required DLL and the header files) is here:
 
      http://sourceforge.net/projects/ezwinports/files/
+     http://ftp.gnu.org/gnu/emacs/windows/
 
   For runtime support of libxml2, you will also need to install the
   libiconv "development" tarball, because the libiconv headers need to
@@ -783,6 +792,16 @@ build will run on Windows 9X and newer systems).
 
   You need the libiconv-X.Y.Z-N-mingw32-dev.tar.lzma tarball from that
   site.
+
+* Optional support for decompressing text
+
+  Emacs can decompress text if compiled with the zlib library.
+  Prebuilt binaries of zlib DLL (for 32-bit builds of Emacs) are
+  available from the ezwinports site and on ftp.gnu.org; see above for
+  the URLs.
+
+  (This library is also a prerequisite for several image libraries, so
+  you may already have it; look for zlib1.dll or libz-1.dll.)
 
 
 This file is part of GNU Emacs.

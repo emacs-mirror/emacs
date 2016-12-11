@@ -1977,7 +1977,7 @@ in @code{event-modifiers}.  For example:
 
 @defun mouse-movement-p object
 This function returns non-@code{nil} if @var{object} is a mouse movement
-event.
+event.  @xref{Motion Events}.
 @end defun
 
 @defun event-convert-list list
@@ -2916,6 +2916,12 @@ like this:
     (progn . @var{body})))
 @end example
 @end defmac
+
+@defvar while-no-input-ignore-events
+This variable allow setting which special events @code{while-no-input}
+should ignore.  It is a list of symbols.
+
+@end defvar
 
 @defun discard-input
 @cindex flushing input

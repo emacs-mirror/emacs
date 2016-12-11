@@ -215,7 +215,7 @@ symbol_to_x_atom (struct x_display_info *dpyinfo, Lisp_Object sym)
   if (EQ (sym, QDELETE))    return dpyinfo->Xatom_DELETE;
   if (EQ (sym, QMULTIPLE))  return dpyinfo->Xatom_MULTIPLE;
   if (EQ (sym, QINCR))	    return dpyinfo->Xatom_INCR;
-  if (EQ (sym, QEMACS_TMP)) return dpyinfo->Xatom_EMACS_TMP;
+  if (EQ (sym, Q_EMACS_TMP_)) return dpyinfo->Xatom_EMACS_TMP;
   if (EQ (sym, QTARGETS))   return dpyinfo->Xatom_TARGETS;
   if (EQ (sym, QNULL))	    return dpyinfo->Xatom_NULL;
   if (!SYMBOLP (sym)) emacs_abort ();
@@ -273,7 +273,7 @@ x_atom_to_symbol (struct x_display_info *dpyinfo, Atom atom)
   if (atom == dpyinfo->Xatom_INCR)
     return QINCR;
   if (atom == dpyinfo->Xatom_EMACS_TMP)
-    return QEMACS_TMP;
+    return Q_EMACS_TMP_;
   if (atom == dpyinfo->Xatom_TARGETS)
     return QTARGETS;
   if (atom == dpyinfo->Xatom_NULL)
@@ -693,7 +693,7 @@ x_reply_selection_request (struct selection_input_event *event,
 			     : format_bytes);
 	    XFlush (display);
 	    had_errors_p = x_had_errors_p (display);
-            // See comment above about property_change_reply.
+            /* See comment above about property_change_reply.  */
             set_property_change_object (cs->wait_object);
 	    unblock_input ();
 
@@ -1318,7 +1318,7 @@ x_get_window_property (Display *display, Window window, Atom property,
 	  data = data1;
 	}
 
-      if (BITS_PER_LONG > 32 && *actual_format_ret == 32)
+      if (LONG_WIDTH > 32 && *actual_format_ret == 32)
         {
           unsigned long i;
 	  int  *idata = (int *) (data + offset);
@@ -1393,7 +1393,7 @@ receive_incremental_selection (struct x_display_info *dpyinfo,
   wait_object = expect_property_change (display, window, property,
 					PropertyNewValue);
   XFlush (display);
-  // See comment in x_reply_selection_request about property_change_reply.
+  /* See comment in x_reply_selection_request about property_change_reply.  */
   set_property_change_object (wait_object);
   unblock_input ();
 
@@ -1433,7 +1433,8 @@ receive_incremental_selection (struct x_display_info *dpyinfo,
       XDeleteProperty (display, window, property);
       wait_object = expect_property_change (display, window, property,
 					    PropertyNewValue);
-      // See comment in x_reply_selection_request about property_change_reply.
+      /* See comment in x_reply_selection_request about
+	 property_change_reply.  */
       set_property_change_object (wait_object);
       XFlush (display);
       unblock_input ();
@@ -1612,11 +1613,24 @@ selection_data_to_lisp_data (struct x_display_info *dpyinfo,
   /* Convert a single 16-bit number or a small 32-bit number to a Lisp_Int.
      If the number is 32 bits and won't fit in a Lisp_Int,
      convert it to a cons of integers, 16 bits in each half.
+
+     INTEGER is a signed type, CARDINAL is unsigned.
+     Assume any other types are unsigned as well.
    */
   else if (format == 32 && size == sizeof (int))
-    return INTEGER_TO_CONS (((int *) data) [0]);
+    {
+      if (type == XA_INTEGER)
+        return INTEGER_TO_CONS (((int *) data) [0]);
+      else
+        return INTEGER_TO_CONS (((unsigned int *) data) [0]);
+    }
   else if (format == 16 && size == sizeof (short))
-    return make_number (((short *) data) [0]);
+    {
+      if (type == XA_INTEGER)
+        return make_number (((short *) data) [0]);
+      else
+        return make_number (((unsigned short *) data) [0]);
+    }
 
   /* Convert any other kind of data to a vector of numbers, represented
      as above (as an integer, or a cons of two 16 bit integers.)
@@ -1626,11 +1640,22 @@ selection_data_to_lisp_data (struct x_display_info *dpyinfo,
       ptrdiff_t i;
       Lisp_Object v = make_uninit_vector (size / 2);
 
-      for (i = 0; i < size / 2; i++)
-	{
-	  short j = ((short *) data) [i];
-	  ASET (v, i, make_number (j));
-	}
+      if (type == XA_INTEGER)
+        {
+          for (i = 0; i < size / 2; i++)
+            {
+              short j = ((short *) data) [i];
+              ASET (v, i, make_number (j));
+            }
+        }
+      else
+        {
+          for (i = 0; i < size / 2; i++)
+            {
+              unsigned short j = ((unsigned short *) data) [i];
+              ASET (v, i, make_number (j));
+            }
+        }
       return v;
     }
   else
@@ -1638,11 +1663,22 @@ selection_data_to_lisp_data (struct x_display_info *dpyinfo,
       ptrdiff_t i;
       Lisp_Object v = make_uninit_vector (size / X_LONG_SIZE);
 
-      for (i = 0; i < size / X_LONG_SIZE; i++)
-	{
-	  int j = ((int *) data) [i];
-	  ASET (v, i, INTEGER_TO_CONS (j));
-	}
+      if (type == XA_INTEGER)
+        {
+          for (i = 0; i < size / X_LONG_SIZE; i++)
+            {
+              int j = ((int *) data) [i];
+              ASET (v, i, INTEGER_TO_CONS (j));
+            }
+        }
+      else
+        {
+          for (i = 0; i < size / X_LONG_SIZE; i++)
+            {
+              unsigned int j = ((unsigned int *) data) [i];
+              ASET (v, i, INTEGER_TO_CONS (j));
+            }
+        }
       return v;
     }
 }
@@ -2296,13 +2332,13 @@ x_fill_property_data (Display *dpy, Lisp_Object data, void *ret, int format)
       if (format == 8)
 	{
 	  if ((1 << 8) < val && val <= X_ULONG_MAX - (1 << 7))
-	    error ("Out of 'char' range");
+	    error ("Out of `char' range");
 	  *d08++ = val;
 	}
       else if (format == 16)
 	{
 	  if ((1 << 16) < val && val <= X_ULONG_MAX - (1 << 15))
-	    error ("Out of 'short' range");
+	    error ("Out of `short' range");
 	  *d16++ = val;
 	}
       else
@@ -2438,7 +2474,7 @@ x_handle_dnd_message (struct frame *f, const XClientMessageEvent *event,
      function expects them to be of size int (i.e. 32).  So to be able to
      use that function, put the data in the form it expects if format is 32. */
 
-  if (BITS_PER_LONG > 32 && event->format == 32)
+  if (LONG_WIDTH > 32 && event->format == 32)
     {
       for (i = 0; i < 5; ++i) /* There are only 5 longs in a ClientMessage. */
 	idata[i] = event->data.l[i];
@@ -2679,7 +2715,7 @@ A value of 0 means wait as long as necessary.  This is initialized from the
   DEFSYM (QDELETE, "DELETE");
   DEFSYM (QMULTIPLE, "MULTIPLE");
   DEFSYM (QINCR, "INCR");
-  DEFSYM (QEMACS_TMP, "_EMACS_TMP_");
+  DEFSYM (Q_EMACS_TMP_, "_EMACS_TMP_");
   DEFSYM (QTARGETS, "TARGETS");
   DEFSYM (QATOM, "ATOM");
   DEFSYM (QCLIPBOARD_MANAGER, "CLIPBOARD_MANAGER");

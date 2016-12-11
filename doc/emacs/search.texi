@@ -203,10 +203,10 @@ saved in the search ring is specified by the variable
 @cindex incremental search, edit search string
 @cindex interactively edit search string
 @kindex M-e @r{(Incremental search)}
-@kindex Mouse-1 @r{in the minibuffer (Incremental Search)}
+@kindex mouse-1 @r{in the minibuffer (Incremental Search)}
   To edit the current search string in the minibuffer without
 replacing it with items from the search ring, type @kbd{M-e} or click
-@kbd{Mouse-1} in the minibuffer.  Type @key{RET}, @kbd{C-s} or
+@kbd{mouse-1} in the minibuffer.  Type @key{RET}, @kbd{C-s} or
 @kbd{C-r} to finish editing the string and search for it.  Type
 @kbd{C-f} or @kbd{@key{RIGHT}} to add to the search string characters
 following point from the buffer from which you started the search.
@@ -234,7 +234,7 @@ end of a line, it appends the next line.  With a prefix argument
 
 @kindex C-y @r{(Incremental search)}
 @kindex M-y @r{(Incremental search)}
-@kindex Mouse-2 @r{in the minibuffer (Incremental search)}
+@kindex mouse-2 @r{in the minibuffer (Incremental search)}
 @findex isearch-yank-kill
 @findex isearch-yank-pop
 @findex isearch-yank-x-selection
@@ -242,7 +242,7 @@ end of a line, it appends the next line.  With a prefix argument
 appends the current kill to the search string.  @kbd{M-y}
 (@code{isearch-yank-pop}), if called after @kbd{C-y}, replaces that
 appended text with an earlier kill, similar to the usual @kbd{M-y}
-(@code{yank-pop}) command (@pxref{Yanking}).  Clicking @kbd{Mouse-2}
+(@code{yank-pop}) command (@pxref{Yanking}).  Clicking @kbd{mouse-2}
 in the echo area appends the current X selection (@pxref{Primary
 Selection}) to the search string (@code{isearch-yank-x-selection}).
 
@@ -1264,13 +1264,13 @@ but match under character folding are known as @dfn{equivalent
 character sequences}.
 
 @kindex M-s ' @r{(Incremental Search)}
-@findex isearch-toggle-character-fold
+@findex isearch-toggle-char-fold
   Generally, search commands in Emacs do not by default perform
 character folding in order to match equivalent character sequences.
 You can enable this behavior by customizing the variable
-@code{search-default-mode} to @code{character-fold-to-regexp}.
+@code{search-default-mode} to @code{char-fold-to-regexp}.
 @xref{Search Customizations}.  Within an incremental search, typing
-@kbd{M-s '} (@code{isearch-toggle-character-fold}) toggles character
+@kbd{M-s '} (@code{isearch-toggle-char-fold}) toggles character
 folding, but only for that search.  (Replace commands have a different
 default, controlled by a separate option; see @ref{Replacement and Lax
 Matches}.)
@@ -1356,12 +1356,12 @@ Replace every match for @var{regexp} with @var{newstring}.
 it can refer to all or part of what is matched by the @var{regexp}.
 @samp{\&} in @var{newstring} stands for the entire match being
 replaced.  @samp{\@var{d}} in @var{newstring}, where @var{d} is a
-digit, stands for whatever matched the @var{d}th parenthesized
-grouping in @var{regexp}.  (This is called a ``back reference''.)
-@samp{\#} refers to the count of replacements already made in this
-command, as a decimal number.  In the first replacement, @samp{\#}
-stands for @samp{0}; in the second, for @samp{1}; and so on.  For
-example,
+digit starting from 1, stands for whatever matched the @var{d}th
+parenthesized grouping in @var{regexp}.  (This is called a ``back
+reference''.)  @samp{\#} refers to the count of replacements already
+made in this command, as a decimal number.  In the first replacement,
+@samp{\#} stands for @samp{0}; in the second, for @samp{1}; and so on.
+For example,
 
 @example
 M-x replace-regexp @key{RET} c[ad]+r @key{RET} \&-safe @key{RET}
@@ -1481,7 +1481,7 @@ replacement is done without case conversion.
 (@pxref{Lax Search, character folding}) when looking for the text to
 replace.  To enable character folding for matching in
 @code{query-replace} and @code{replace-string}, set the variable
-@code{replace-character-fold} to a non-@code{nil} value.  (This
+@code{replace-char-fold} to a non-@code{nil} value.  (This
 setting does not affect the replacement text, only how Emacs finds the
 text to replace.  It also doesn't affect @code{replace-regexp}.)
 
@@ -1714,15 +1714,21 @@ a multi-file incremental search is activated automatically.
 @cindex mode, Occur
 @cindex match (face name)
 @vindex list-matching-lines-default-context-lines
+@kindex M-s o
 @item M-x occur
+@itemx M-s o
 Prompt for a regexp, and display a list showing each line in the
-buffer that contains a match for it.  The text that matched is
-highlighted using the @code{match} face.  To limit the search to part
-of the buffer, narrow to that part (@pxref{Narrowing}).  A numeric
-argument @var{n} specifies that @var{n} lines of context are to be
-displayed before and after each matching line.  The default number of
-context lines is specified by the variable
-@code{list-matching-lines-default-context-lines}.
+buffer that contains a match for it.  If you type @kbd{M-n} at the
+prompt, you can reuse search strings from previous incremental
+searches.  The text that matched is highlighted using the @code{match}
+face.  To limit the search to part of the buffer, narrow to that part
+(@pxref{Narrowing}).  A numeric argument @var{n} specifies that
+@var{n} lines of context are to be displayed before and after each
+matching line.  The default number of context lines is specified by
+the variable @code{list-matching-lines-default-context-lines}.
+
+You can also run @kbd{M-s o} when an incremental search is active;
+this uses the current search string.
 
 @kindex RET @r{(Occur mode)}
 @kindex o @r{(Occur mode)}
@@ -1743,12 +1749,6 @@ mode.
 
 The command @kbd{M-x list-matching-lines} is a synonym for @kbd{M-x
 occur}.
-
-@kindex M-s o
-@item M-s o
-Run @code{occur} using the search string of the last incremental
-string search.  You can also run @kbd{M-s o} when an incremental
-search is active; this uses the current search string.
 
 @item M-x multi-occur
 This command is just like @code{occur}, except it is able to search

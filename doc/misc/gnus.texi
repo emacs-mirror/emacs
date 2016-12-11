@@ -828,6 +828,7 @@ Various
 * Thwarting Email Spam::        Simple ways to avoid unsolicited commercial email.
 * Spam Package::                A package for filtering and processing spam.
 * The Gnus Registry::           A package for tracking messages by Message-ID.
+* The Gnus Cloud::              A package for synchronizing Gnus marks.
 * Other modes::                 Interaction with other modes.
 * Various Various::             Things that are really various.
 
@@ -17148,9 +17149,9 @@ summary buffer.
           (gnus-summary-mark-as-read-forward 1))
       (gnus-summary-scroll-up arg))))
 
-(eval-after-load "gnus"
-  #'(define-key gnus-summary-mode-map
-      (kbd "<RET>") 'browse-nnrss-url))
+(with-eval-after-load "gnus"
+  (define-key gnus-summary-mode-map
+    (kbd "<RET>") 'browse-nnrss-url))
 (add-to-list 'nnmail-extra-headers nnrss-url-field)
 @end lisp
 
@@ -17166,11 +17167,11 @@ Parameters}) in order to display @samp{text/html} parts only in
 
 @lisp
 ;; @r{Set the default value of @code{mm-discouraged-alternatives}.}
-(eval-after-load "gnus-sum"
-  '(add-to-list
-    'gnus-newsgroup-variables
-    '(mm-discouraged-alternatives
-      . '("text/html" "image/.*"))))
+(with-eval-after-load "gnus-sum"
+  (add-to-list
+   'gnus-newsgroup-variables
+   '(mm-discouraged-alternatives
+     . '("text/html" "image/.*"))))
 
 ;; @r{Display @samp{text/html} parts in @code{nnrss} groups.}
 (add-to-list
@@ -21521,7 +21522,7 @@ bound to mairix searches and are automatically updated.
 Mairix is a tool for indexing and searching words in locally stored
 mail.  It was written by Richard Curnow and is licensed under the
 GPL@.  Mairix comes with most popular GNU/Linux distributions, but it also
-runs under Windows (with cygwin), Mac OS X and Solaris.  The homepage can
+runs under Windows (with cygwin), macOS and Solaris.  The homepage can
 be found at
 @uref{http://www.rpcurnow.force9.co.uk/mairix/index.html}
 
@@ -22208,6 +22209,7 @@ to you, using @kbd{G b u} and updating the group will usually fix this.
 * Thwarting Email Spam::        Simple ways to avoid unsolicited commercial email.
 * Spam Package::                A package for filtering and processing spam.
 * The Gnus Registry::           A package for tracking messages by Message-ID.
+* The Gnus Cloud::              A package for synchronizing Gnus marks.
 * Other modes::                 Interaction with other modes.
 * Various Various::             Things that are really various.
 @end menu
@@ -26164,6 +26166,100 @@ registry keep the whole entry forever, even if there are no groups for
 the Message-ID and if the size limit of the registry is reached.  By
 default this is just @code{(marks)} so the custom registry marks are
 precious.
+@end defvar
+
+@node The Gnus Cloud
+@section The Gnus Cloud
+@cindex cloud
+@cindex gnus-cloud
+@cindex synchronization
+@cindex sync
+@cindex synch
+
+The Gnus Cloud is a way to synchronize marks and general files and
+data across multiple machines.
+
+Very often, you want all your marks (what articles you've read, which
+ones were important, and so on) to be synchronized between several
+machines. With IMAP, that's built into the protocol, so you can read
+nnimap groups from many machines and they are automatically
+synchronized. But NNTP, nnrss, and many other backends do not store
+marks, so you have to do it locally.
+
+The Gnus Cloud package stores the marks, plus any files you choose, on
+an IMAP server in a special folder. It's like a
+DropTorrentSyncBoxOakTree(TM).
+
+@menu
+* Gnus Cloud Setup::
+* Gnus Cloud Usage::
+@end menu
+
+@node Gnus Cloud Setup
+@subsection Gnus Cloud Setup
+
+Setting up the Gnus Cloud takes less than a minute. From the Group
+buffer:
+
+Press @kbd{^} to go to the Server buffer. Here you'll see all the
+servers that Gnus knows. @xref{Server Buffer}.
+
+Then press @kbd{i} to mark any servers as cloud-synchronized (their marks are synchronized).
+
+Then press @kbd{I} to mark a single server as the cloud host (it must
+be an IMAP server, and will host a special IMAP folder with all the
+synchronization data). This will set the variable
+@code{gnus-cloud-method} (using the Customize facilities), then ask
+you to optionally upload your first CloudSynchronizationDataPack(TM).
+
+@node Gnus Cloud Usage
+@subsection Gnus Cloud Usage
+
+After setting up, you can use these shortcuts from the Group buffer:
+
+@table @kbd
+@item ~ RET
+@item ~ d
+@findex gnus-cloud-download-all-data
+@cindex cloud, download
+Download the latest Gnus Cloud data.
+
+@item ~ u
+@item ~ ~
+@findex gnus-cloud-upload-all-data
+@cindex cloud, download
+Upload the local Gnus Cloud data. Creates a new
+CloudSynchronizationDataPack(TM).
+
+@end table
+
+But wait, there's more. Of course there's more. So much more. You can
+customize all of the following.
+
+@defvar gnus-cloud-synced-files
+These are the files that will be part of every
+CloudSynchronizationDataPack(TM). They are included in every upload,
+so don't synchronize a lot of large files. Files under 100Kb are best.
+@end defvar
+
+@defvar gnus-cloud-storage-method
+This is a choice from several storage methods. It's highly recommended
+to use the EPG facilities. It will be automatic if have GnuPG
+installed and EPG loaded. Otherwise, you could use Base64+gzip,
+Base64, or no encoding.
+@end defvar
+
+@defvar gnus-cloud-interactive
+When this is set, and by default it is, the Gnus Cloud package will
+ask you for confirmation here and there. Leave it on until you're
+comfortable with the package.
+@end defvar
+
+
+@defvar gnus-cloud-method
+The name of the IMAP server to store the
+CloudSynchronizationDataPack(TM)s. It's easiest to set this from the
+Server buffer (@pxref{Gnus Cloud Setup}).
 @end defvar
 
 @node Other modes

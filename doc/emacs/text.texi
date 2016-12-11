@@ -412,6 +412,7 @@ beginning of a line.
 @cindex mode, Electric Quote
 @cindex curly quotes
 @cindex curved quotes
+@cindex guillemets
 @findex electric-quote-mode
   One common way to quote is the typewriter convention, which quotes
 using straight apostrophes @t{'like this'} or double-quotes @t{"like
@@ -420,11 +421,15 @@ left and right single or double quotation marks @t{‘like this’} or
 @t{“like this”}.  In text files, typewriter quotes are simple and
 portable; curved quotes are less ambiguous and typically look nicer.
 
+@vindex electric-quote-chars
   Electric Quote mode makes it easier to type curved quotes.  As you
 type characters it optionally converts @t{`} to @t{‘}, @t{'} to @t{’},
-@t{``} to @t{“}, and @t{''} to @t{”}.  These conversions are
-suppressed in buffers whose coding systems cannot represent curved
-quote characters.
+@t{``} to @t{“}, and @t{''} to @t{”}.  It's possible to change the
+default quotes listed above, by customizing the variable
+@code{electric-quote-chars}, a list of four characters, where the
+items correspond to the left single quote, the right single quote, the
+left double quote and the right double quote, respectively, whose
+default value is @code{'(?‘ ?’ ?“ ?”)}.
 
 @vindex electric-quote-paragraph
 @vindex electric-quote-comment
@@ -445,7 +450,10 @@ type @kbd{C-q `} or @kbd{C-q '} instead of @kbd{`} or @kbd{'}.  To
 insert a curved quote even when Electric Quote is disabled or
 inactive, you can type @kbd{C-x 8 [} for @t{‘}, @kbd{C-x 8 ]} for
 @t{’}, @kbd{C-x 8 @{} for @t{“}, and @kbd{C-x 8 @}} for @t{”}.
-@xref{Inserting Text}.
+@xref{Inserting Text}.  Note that the value of
+@code{electric-quote-chars} does not affect these keybindings, they
+are not keybindings of @code{electric-quote-mode} but bound in
+@code{global-map}.
 
 @node Filling
 @section Filling Text
@@ -862,8 +870,8 @@ indenting the current line.  @xref{Indentation}, for details.
 
   Text mode turns off the features concerned with comments except when
 you explicitly invoke them.  It changes the syntax table so that
-single-quotes are considered part of words (e.g., @samp{don't} is
-considered one word).  However, if a word starts with a single-quote,
+apostrophes are considered part of words (e.g., @samp{don't} is
+considered one word).  However, if a word starts with an apostrophe,
 it is treated as a prefix for the purposes of capitalization
 (e.g., @kbd{M-c} converts @samp{'hello'} into @samp{'Hello'}, as
 expected).
@@ -1080,92 +1088,101 @@ header line.
 
 @table @kbd
 @item C-c C-c
-Make the current heading line's body invisible (@code{hide-entry}).
+Make the current heading line's body invisible
+(@code{outline-hide-entry}).
 @item C-c C-e
-Make the current heading line's body visible (@code{show-entry}).
+Make the current heading line's body visible
+(@code{outline-show-entry}).
 @item C-c C-d
 Make everything under the current heading invisible, not including the
-heading itself (@code{hide-subtree}).
+heading itself (@code{outline-hide-subtree}).
 @item C-c C-s
 Make everything under the current heading visible, including body,
-subheadings, and their bodies (@code{show-subtree}).
+subheadings, and their bodies (@code{outline-show-subtree}).
 @item C-c C-l
 Make the body of the current heading line, and of all its subheadings,
-invisible (@code{hide-leaves}).
+invisible (@code{outline-hide-leaves}).
 @item C-c C-k
 Make all subheadings of the current heading line, at all levels,
-visible (@code{show-branches}).
+visible (@code{outline-show-branches}).
 @item C-c C-i
 Make immediate subheadings (one level down) of the current heading
-line visible (@code{show-children}).
+line visible (@code{outline-show-children}).
 @item C-c C-t
-Make all body lines in the buffer invisible (@code{hide-body}).
+Make all body lines in the buffer invisible
+(@code{outline-hide-body}).
 @item C-c C-a
-Make all lines in the buffer visible (@code{show-all}).
+Make all lines in the buffer visible (@code{outline-show-all}).
 @item C-c C-q
 Hide everything except the top @var{n} levels of heading lines
-(@code{hide-sublevels}).
+(@code{outline-hide-sublevels}).
 @item C-c C-o
 Hide everything except for the heading or body that point is in, plus
 the headings leading up from there to the top level of the outline
-(@code{hide-other}).
+(@code{outline-hide-other}).
 @end table
 
-@findex hide-entry
-@findex show-entry
+@findex outline-hide-entry
+@findex outline-show-entry
 @kindex C-c C-c @r{(Outline mode)}
 @kindex C-c C-e @r{(Outline mode)}
   The simplest of these commands are @kbd{C-c C-c}
-(@code{hide-entry}), which hides the body lines directly following the
-current heading line, and @kbd{C-c C-e} (@code{show-entry}), which
-reveals them.  Subheadings and their bodies are not affected.
+(@code{outline-hide-entry}), which hides the body lines directly
+following the current heading line, and @kbd{C-c C-e}
+(@code{outline-show-entry}), which reveals them.  Subheadings and
+their bodies are not affected.
 
-@findex hide-subtree
-@findex show-subtree
+@findex outline-hide-subtree
+@findex outline-show-subtree
 @kindex C-c C-s @r{(Outline mode)}
 @kindex C-c C-d @r{(Outline mode)}
 @cindex subtree (Outline mode)
-  The commands @kbd{C-c C-d} (@code{hide-subtree}) and @kbd{C-c C-s}
-(@code{show-subtree}) are more powerful.  They apply to the current
-heading line's @dfn{subtree}: its body, all of its subheadings, both
-direct and indirect, and all of their bodies.
+  The commands @kbd{C-c C-d} (@code{outline-hide-subtree}) and
+@kbd{C-c C-s} (@code{outline-show-subtree}) are more powerful.  They
+apply to the current heading line's @dfn{subtree}: its body, all of
+its subheadings, both direct and indirect, and all of their bodies.
 
-@findex hide-leaves
-@findex show-branches
-@findex show-children
+@findex outline-hide-leaves
+@findex outline-show-branches
+@findex outline-show-children
 @kindex C-c C-l @r{(Outline mode)}
 @kindex C-c C-k @r{(Outline mode)}
 @kindex C-c C-i @r{(Outline mode)}
-  The command @kbd{C-c C-l} (@code{hide-leaves}) hides the body of the
-current heading line as well as all the bodies in its subtree; the
-subheadings themselves are left visible.  The command @kbd{C-c C-k}
-(@code{show-branches}) reveals the subheadings, if they had previously
-been hidden (e.g., by @kbd{C-c C-d}).  The command @kbd{C-c C-i}
-(@code{show-children}) is a weaker version of this; it reveals just
-the direct subheadings, i.e., those one level down.
+  The command @kbd{C-c C-l} (@code{outline-hide-leaves}) hides the
+body of the current heading line as well as all the bodies in its
+subtree; the subheadings themselves are left visible.  The command
+@kbd{C-c C-k} (@code{outline-show-branches}) reveals the subheadings,
+if they had previously been hidden (e.g., by @kbd{C-c C-d}).  The
+command @kbd{C-c C-i} (@code{outline-show-children}) is a weaker
+version of this; it reveals just the direct subheadings, i.e., those
+one level down.
 
-@findex hide-other
+@findex outline-hide-other
 @kindex C-c C-o @r{(Outline mode)}
-  The command @kbd{C-c C-o} (@code{hide-other}) hides everything
-except the entry that point is in, plus its parents (the headers
-leading up from there to top level in the outline) and the top level
-headings.
+  The command @kbd{C-c C-o} (@code{outline-hide-other}) hides
+everything except the entry that point is in, plus its parents (the
+headers leading up from there to top level in the outline) and the top
+level headings.  It also reveals body lines preceding the first
+heading in the buffer.
 
-@findex hide-body
-@findex show-all
+@findex outline-hide-body
+@findex outline-show-all
 @kindex C-c C-t @r{(Outline mode)}
 @kindex C-c C-a @r{(Outline mode)}
 @findex hide-sublevels
 @kindex C-c C-q @r{(Outline mode)}
   The remaining commands affect the whole buffer.  @kbd{C-c C-t}
-(@code{hide-body}) makes all body lines invisible, so that you see
-just the outline structure (as a special exception, it will not hide
-lines at the top of the file, preceding the first header line, even
-though these are technically body lines).  @kbd{C-c C-a}
-(@code{show-all}) makes all lines visible.  @kbd{C-c C-q}
-(@code{hide-sublevels}) hides all but the top level headings; with a
-numeric argument @var{n}, it hides everything except the top @var{n}
-levels of heading lines.
+(@code{outline-hide-body}) makes all body lines invisible, so that you
+see just the outline structure (as a special exception, it will not
+hide lines at the top of the file, preceding the first header line,
+even though these are technically body lines).  @kbd{C-c C-a}
+(@code{outline-show-all}) makes all lines visible.  @kbd{C-c C-q}
+(@code{outline-hide-sublevels}) hides all but the top level headings
+at and above the level of the current heading line (defaulting to 1 if
+point is not on a heading); with a numeric argument @var{n}, it hides
+everything except the top @var{n} levels of heading lines.  Note that
+it completely reveals all the @var{n} top levels and the body lines
+before the first heading.
 
 @anchor{Outline Search}
 @findex reveal-mode
@@ -1211,8 +1228,9 @@ levels.
 
   Consider an Outline mode buffer with all the text and subheadings under
 level-1 headings hidden.  To look at what is hidden under one of these
-headings, you could use @kbd{C-c C-e} (@kbd{M-x show-entry}) to expose
-the body, or @kbd{C-c C-i} to expose the child (level-2) headings.
+headings, you could use @kbd{C-c C-e} (@kbd{M-x outline-show-entry})
+to expose the body, or @kbd{C-c C-i} to expose the child (level-2)
+headings.
 
 @kindex C-c C-z
 @findex foldout-zoom-subtree
@@ -1227,11 +1245,12 @@ in the mode line shows how deep you've gone.
 
   When zooming in on a heading, to see only the child subheadings specify
 a numeric argument: @kbd{C-u C-c C-z}.  The number of levels of children
-can be specified too (compare @kbd{M-x show-children}), e.g., @kbd{M-2
-C-c C-z} exposes two levels of child subheadings.  Alternatively, the
-body can be specified with a negative argument: @kbd{M-- C-c C-z}.  The
-whole subtree can be expanded, similarly to @kbd{C-c C-s} (@kbd{M-x
-show-subtree}), by specifying a zero argument: @kbd{M-0 C-c C-z}.
+can be specified too (compare @kbd{M-x outline-show-children}), e.g.,
+@w{@kbd{M-2 C-c C-z}} exposes two levels of child subheadings.
+Alternatively, the body can be specified with a negative argument:
+@w{@kbd{M-- C-c C-z}}.  The whole subtree can be expanded, similarly to
+@kbd{C-c C-s} (@kbd{M-x outline-show-subtree}), by specifying a zero
+argument: @w{@kbd{M-0 C-c C-z}}.
 
   While you're zoomed in, you can still use Outline mode's exposure and
 hiding functions without disturbing Foldout.  Also, since the buffer is
@@ -1248,14 +1267,14 @@ argument exits that many levels of folds.  Specifying a zero argument
 exits all folds.
 
   To cancel the narrowing of a fold without hiding the text and
-subheadings, specify a negative argument.  For example, @kbd{M--2 C-c
-C-x} exits two folds and leaves the text and subheadings exposed.
+subheadings, specify a negative argument.  For example, @w{@kbd{M--2 C-c
+C-x}} exits two folds and leaves the text and subheadings exposed.
 
   Foldout mode also provides mouse commands for entering and exiting
 folds, and for showing and hiding text:
 
 @table @asis
-@item @kbd{C-M-Mouse-1} zooms in on the heading clicked on
+@item @kbd{C-M-mouse-1} zooms in on the heading clicked on
 @itemize @w{}
 @item
 single click: expose body.
@@ -1266,7 +1285,7 @@ triple click: expose body and subheadings.
 @item
 quad click: expose entire subtree.
 @end itemize
-@item @kbd{C-M-Mouse-2} exposes text under the heading clicked on
+@item @kbd{C-M-mouse-2} exposes text under the heading clicked on
 @itemize @w{}
 @item
 single click: expose body.
@@ -1277,7 +1296,7 @@ triple click: expose body and subheadings.
 @item
 quad click: expose entire subtree.
 @end itemize
-@item @kbd{C-M-Mouse-3} hides text under the heading clicked on or exits fold
+@item @kbd{C-M-mouse-3} hides text under the heading clicked on or exits fold
 @itemize @w{}
 @item
 single click: hide subtree.
@@ -1302,7 +1321,8 @@ it in order for this to take effect.
 automatically by putting the following in your init file:
 
 @example
-(eval-after-load "outline" '(require 'foldout))
+(with-eval-after-load "outline"
+  (require 'foldout))
 @end example
 
 @node Org Mode
@@ -2156,7 +2176,7 @@ want to set the justification style to @code{unfilled}
 
   The easiest way to alter properties is with the @samp{Text
 Properties} menu.  You can get to this menu from the @samp{Edit} menu
-in the menu bar (@pxref{Menu Bar}), or with @kbd{C-Mouse-2}
+in the menu bar (@pxref{Menu Bar}), or with @kbd{C-mouse-2}
 (@pxref{Menu Mouse Clicks}).  Some of the commands in the @samp{Text
 Properties} menu are listed below (you can also invoke them with
 @kbd{M-x}):

@@ -587,9 +587,9 @@ you can access it using the following Emacs commands:
 
 @table @kbd
 @findex mouse-set-secondary
-@kindex M-Drag-Mouse-1
+@kindex M-Drag-mouse-1
 @cindex secondary-selection face
-@item M-Drag-Mouse-1
+@item M-Drag-mouse-1
 Set the secondary selection, with one end at the place where you press
 down the button, and the other end at the place where you release it
 (@code{mouse-set-secondary}).  The selected text is highlighted, using
@@ -600,31 +600,31 @@ window, just like @code{mouse-set-region} (@pxref{Mouse Commands}).
 This command does not alter the kill ring.
 
 @findex mouse-start-secondary
-@kindex M-Mouse-1
-@item M-Mouse-1
+@kindex M-mouse-1
+@item M-mouse-1
 Set one endpoint for the @dfn{secondary selection}
 (@code{mouse-start-secondary}).
 
 @findex mouse-secondary-save-then-kill
-@kindex M-Mouse-3
-@item M-Mouse-3
+@kindex M-mouse-3
+@item M-mouse-3
 Set the secondary selection, with one end at the position clicked and
-the other at the position specified with @kbd{M-Mouse-1}
+the other at the position specified with @kbd{M-mouse-1}
 (@code{mouse-secondary-save-then-kill}).  This also puts the selected
-text in the kill ring.  A second @kbd{M-Mouse-3} at the same place
+text in the kill ring.  A second @kbd{M-mouse-3} at the same place
 kills the secondary selection just made.
 
 @findex mouse-yank-secondary
-@kindex M-Mouse-2
-@item M-Mouse-2
+@kindex M-mouse-2
+@item M-mouse-2
 Insert the secondary selection where you click, placing point at the
 end of the yanked text (@code{mouse-yank-secondary}).
 @end table
 
-Double or triple clicking of @kbd{M-Mouse-1} operates on words and
-lines, much like @kbd{Mouse-1}.
+Double or triple clicking of @kbd{M-mouse-1} operates on words and
+lines, much like @kbd{mouse-1}.
 
-If @code{mouse-yank-at-point} is non-@code{nil}, @kbd{M-Mouse-2} yanks
+If @code{mouse-yank-at-point} is non-@code{nil}, @kbd{M-mouse-2} yanks
 at point.  Then it does not matter precisely where you click, or even
 which of the frame's windows you click on.  @xref{Mouse Commands}.
 

@@ -369,6 +369,18 @@ and @code{dired-texinfo-unclean-extensions}.
 If non-@code{nil}, a list of extensions (strings) to omit from Dired listings.
 Its format is the same as that of @code{completion-ignored-extensions}.
 
+@vindex dired-omit-case-fold
+@item dired-omit-case-fold
+
+Default:  @code{filesystem}
+
+By default, when @code{dired-omit-case-fold} is set to @code{filesystem},
+@code{dired-omit-mode} will match filenames and extensions
+case-sensitively on Dired buffers visiting case-sensitive filesystems,
+and case-insensitively on case-insensitive filesystems.  Set it to
+@code{nil} to be always case-sensitive, and to @code{t} to be always
+case-insensitive.
+
 @vindex dired-omit-localp
 @item dired-omit-localp
 
@@ -711,6 +723,9 @@ variable @code{window-min-height}.
 Mark all files with a certain extension for use in later commands.  A @samp{.}
 is not automatically prepended to the string entered, you must type it
 explicitly.
+If invoked with prefix argument @kbd{C-u}, this command unmark files instead.
+If called with the @kbd{C-u C-u} prefix, asks for a character to use
+as the marker, and marks files with it.
 
 When called from Lisp, @var{extension} may also be a list of extensions
 and an optional argument @var{marker-char} specifies the marker used.

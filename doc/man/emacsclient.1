@@ -49,8 +49,18 @@ If you set the variable "server-window" to a window or a frame, "C-x
 #" displays the server buffer in that window or in that frame.
 
 .SH OPTIONS
-The programs follow the usual GNU command line syntax, with long
+Most options follow the usual GNU command line syntax, with long
 options starting with two dashes ("\-").
+.TP
+.BI + line\fR[\fP\fB:\fPcolumn\fR]\fP
+Go to the specified
+.I line
+and
+.IR column .
+A missing
+.I column
+is treated as column 1.
+This option applies only to the next file specified.
 .TP
 .B \-a, \-\-alternate-editor=EDITOR
 if the Emacs server is not running, run the specified editor instead.

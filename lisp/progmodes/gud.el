@@ -733,9 +733,15 @@ It should return a list of completion strings.")
 ;; The old gdb command (text command mode).  The new one is in gdb-mi.el.
 ;;;###autoload
 (defun gud-gdb (command-line)
-  "Run gdb on program FILE in buffer *gud-FILE*.
-The directory containing FILE becomes the initial working
-directory and source-file directory for your debugger."
+  "Run gdb passing it COMMAND-LINE as arguments.
+If COMMAND-LINE names a program FILE to debug, gdb will run in
+a buffer named *gud-FILE*, and the directory containing FILE
+becomes the initial working directory and source-file directory
+for your debugger.
+If COMMAND-LINE requests that gdb attaches to a process PID, gdb
+will run in *gud-PID*, otherwise it will run in *gud*; in these
+cases the initial working directory is the default-directory of
+the buffer in which this command was invoked."
   (interactive (list (gud-query-cmdline 'gud-gdb)))
 
   (when (and gud-comint-buffer
@@ -1947,10 +1953,10 @@ the source code display in sync with the debugging session.")
 PATH gives the directories in which to search for files with
 extension EXTN.  Normally EXTN is given as the regular expression
  \"\\.java$\" ."
-  (apply 'nconc (mapcar (lambda (d)
-			  (when (file-directory-p d)
-			    (directory-files d t extn nil)))
-			path)))
+  (mapcan (lambda (d)
+            (when (file-directory-p d)
+              (directory-files d t extn nil)))
+          path))
 
 ;; Move point past whitespace.
 (defun gud-jdb-skip-whitespace ()
@@ -2561,9 +2567,6 @@ comint mode, which see."
   :group 'gud
   :type 'boolean)
 
-(declare-function tramp-file-name-localname "tramp" (vec))
-(declare-function tramp-dissect-file-name "tramp" (name &optional nodefault))
-
 ;; Perform initializations common to all debuggers.
 ;; The first arg is the specified command line,
 ;; which starts with the program to debug.
@@ -2618,13 +2621,8 @@ comint mode, which see."
     (let ((w args))
       (while (and w (not (eq (car w) t)))
 	(setq w (cdr w)))
-      (if w
- 	  (setcar w
- 		  (if (file-remote-p file)
-		      ;; Tramp has already been loaded if we are here.
-		      (setq file (tramp-file-name-localname
-				  (tramp-dissect-file-name file)))
- 		    file))))
+      ;; Tramp has already been loaded if we are here.
+      (if w (setcar w (setq file (file-local-name file)))))
     (apply 'make-comint (concat "gud" filepart) program nil
 	   (if massage-args (funcall massage-args file args) args))
     ;; Since comint clobbered the mode, we don't set it until now.
@@ -2852,8 +2850,7 @@ Obeying it means displaying in another window the specified file and line."
 	(frame (or gud-last-frame gud-last-last-frame))
 	(buffer-file-name-localized
          (and (buffer-file-name)
-              (or (file-remote-p (buffer-file-name) 'localname)
-                  (buffer-file-name))))
+              (file-local-name (buffer-file-name))))
 	result)
     (while (and str
 		(let ((case-fold-search nil))

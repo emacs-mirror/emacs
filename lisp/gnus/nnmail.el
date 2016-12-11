@@ -76,7 +76,7 @@
   :group 'nnmail)
 
 (defcustom nnmail-split-methods '(("mail.misc" ""))
-  "*Incoming mail will be split according to this variable.
+  "Incoming mail will be split according to this variable.
 
 If you'd like, for instance, one mail group for mail from the
 \"4ad-l\" mailing list, one group for junk mail and one for everything
@@ -158,7 +158,7 @@ If nil, groups like \"mail.misc\" will end up in directories like
   :type 'integer)
 
 (defcustom nnmail-expiry-wait 7
-  "*Expirable articles that are older than this will be expired.
+  "Expirable articles that are older than this will be expired.
 This variable can either be a number (which will be interpreted as a
 number of days) -- this doesn't have to be an integer.  This variable
 can also be `immediate' and `never'."
@@ -187,7 +187,7 @@ E.g.:
 		 (function :format "%v" nnmail-)))
 
 (defcustom nnmail-expiry-target 'delete
-  "*Variable that says where expired messages should end up.
+  "Variable that says where expired messages should end up.
 The default value is `delete' (which says to delete the messages),
 but it can also be a string or a function.  If it is a string, expired
 messages end up in that group.  If it is a function, the function is
@@ -246,12 +246,12 @@ If non-nil, also update the cache when copy or move articles."
 ;; Variable removed in No Gnus v0.7
 
 (defcustom nnmail-resplit-incoming nil
-  "*If non-nil, re-split incoming procmail sorted mail."
+  "If non-nil, re-split incoming procmail sorted mail."
   :group 'nnmail-procmail
   :type 'boolean)
 
 (defcustom nnmail-scan-directory-mail-source-once nil
-  "*If non-nil, scan all incoming procmail sorted mails once.
+  "If non-nil, scan all incoming procmail sorted mails once.
 It scans low-level sorted spools even when not required."
   :version "21.1"
   :group 'nnmail-procmail
@@ -266,7 +266,7 @@ It scans low-level sorted spools even when not required."
   (if (string-match "windows-nt" (symbol-name system-type))
       'copy-file
     'add-name-to-file)
-  "*Function called to create a copy of a file.
+  "Function called to create a copy of a file.
 This is `add-name-to-file' by default, which means that crossposts
 will use hard links.  If your file system doesn't allow hard
 links, you could set this variable to `copy-file' instead."
@@ -279,7 +279,7 @@ links, you could set this variable to `copy-file' instead."
   (if (eq system-type 'windows-nt)
       '(nnheader-ms-strip-cr)
     nil)
-  "*Hook that will be run after the incoming mail has been transferred.
+  "Hook that will be run after the incoming mail has been transferred.
 The incoming mail is moved from the specified spool file (which normally is
 something like \"/usr/spool/mail/$user\") to the user's home
 directory.  This hook is called after the incoming mail box has been
@@ -355,13 +355,13 @@ discarded after running the split process."
   :type 'hook)
 
 (defcustom nnmail-spool-hook nil
-  "*A hook called when a new article is spooled."
+  "A hook called when a new article is spooled."
   :version "22.1"
   :group 'nnmail
   :type 'hook)
 
 (defcustom nnmail-large-newsgroup 50
-  "*The number of articles which indicates a large newsgroup or nil.
+  "The number of articles which indicates a large newsgroup or nil.
 If the number of articles is greater than the value, verbose
 messages will be shown to indicate the current status."
   :group 'nnmail-various
@@ -489,12 +489,12 @@ Example:
     (from . "from\\|sender\\|resent-from")
     (nato . "to\\|cc\\|resent-to\\|resent-cc")
     (naany . "from\\|to\\|cc\\|sender\\|resent-from\\|resent-to\\|resent-cc"))
-  "*Alist of abbreviations allowed in `nnmail-split-fancy'."
+  "Alist of abbreviations allowed in `nnmail-split-fancy'."
   :group 'nnmail-split
   :type '(repeat (cons :format "%v" symbol regexp)))
 
 (defcustom nnmail-message-id-cache-length 1000
-  "*The approximate number of Message-IDs nnmail will keep in its cache.
+  "The approximate number of Message-IDs nnmail will keep in its cache.
 If this variable is nil, no checking on duplicate messages will be
 performed."
   :group 'nnmail-duplicate
@@ -509,7 +509,7 @@ performed."
   :type 'file)
 
 (defcustom nnmail-treat-duplicates 'warn
-  "*If non-nil, nnmail keep a cache of Message-IDs to discover mail duplicates.
+  "If non-nil, nnmail keep a cache of Message-IDs to discover mail duplicates.
 Three values are valid: nil, which means that nnmail is not to keep a
 Message-ID cache; `warn', which means that nnmail should insert extra
 headers to warn the user about the duplication (this is the default);
@@ -601,8 +601,10 @@ using different case (i.e. mailing-list@domain vs Mailing-List@Domain)."
   mm-text-coding-system
   "Coding system used in reading inbox")
 
-(defvar nnmail-pathname-coding-system nil
-  "*Coding system for file name.")
+(defcustom nnmail-pathname-coding-system nil
+  "Coding system for file name."
+  :group 'nnmail-various
+  :type 'coding-system)
 
 (defun nnmail-find-file (file)
   "Insert FILE in server buffer safely."
@@ -670,8 +672,10 @@ nn*-request-list should have been called before calling this function."
       (forward-line 1))
     group-assoc))
 
-(defvar nnmail-active-file-coding-system 'raw-text
-  "*Coding system for active file.")
+(defcustom nnmail-active-file-coding-system 'raw-text
+  "Coding system for active file."
+  :group 'nnmail-various
+  :type 'coding-system)
 
 (defun nnmail-save-active (group-assoc file-name)
   "Save GROUP-ASSOC in ACTIVE-FILE."
@@ -1368,7 +1372,7 @@ See the documentation for the variable `nnmail-split-fancy' for details."
 
      ;; Builtin & operation.
      ((eq (car split) '&)
-      (apply 'nconc (mapcar 'nnmail-split-it (cdr split))))
+      (mapcan 'nnmail-split-it (cdr split)))
 
      ;; Builtin | operation.
      ((eq (car split) '|)

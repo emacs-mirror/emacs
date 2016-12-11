@@ -420,7 +420,7 @@ variable is set, it overrides the default priority."
 Setting it to nil is useful on Emacsen supporting Unicode if sending
 mail with multiple parts is preferred to sending a Unicode one.")
 
-(defvar mm-extra-numeric-entities
+(defcustom mm-extra-numeric-entities
   (mapcar
    (lambda (item)
      (cons (car item) (mm-ucs-to-char (cdr item))))
@@ -433,7 +433,9 @@ mail with multiple parts is preferred to sending a Unicode one.")
      (#x9C . #x0153) (#x9E . #x017E) (#x9F . #x0178)))
   "*Alist of extra numeric entities and characters other than ISO 10646.
 This table is used for decoding extra numeric entities to characters,
-like \"&#128;\" to the euro sign, mainly in html messages.")
+like \"&#128;\" to the euro sign, mainly in html messages."
+  :type '(alist :key-type character :value-type character)
+  :group 'mime)
 
 ;;; Internal variables:
 
@@ -755,7 +757,7 @@ If INHIBIT is non-nil, inhibit `mm-inhibit-file-name-handlers'."
     (write-region start end filename append visit lockname)))
 
 (defalias 'mm-make-temp-file 'make-temp-file)
-(define-obsolete-function-alias 'mm-make-temp-file 'make-temp-file "25.2")
+(define-obsolete-function-alias 'mm-make-temp-file 'make-temp-file "26.1")
 
 (defvar mm-image-load-path-cache nil)
 

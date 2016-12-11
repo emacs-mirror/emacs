@@ -19,8 +19,8 @@ prompts you for the month and year to be the center of the three-month
 calendar.  The calendar uses its own buffer, whose major mode is
 Calendar mode.
 
-  @kbd{Mouse-3} in the calendar brings up a menu of operations on a
-particular date; @kbd{Mouse-2} brings up a menu of commonly used
+  @kbd{mouse-3} in the calendar brings up a menu of operations on a
+particular date; @kbd{mouse-2} brings up a menu of commonly used
 calendar features that are independent of any particular date.  To exit
 the calendar, type @kbd{q}.
 
@@ -460,7 +460,7 @@ to.
 and can display them.  You can add your own holidays to the default list.
 
 @table @kbd
-@item Mouse-3 Holidays
+@item mouse-3 Holidays
 @itemx h
 Display holidays for the selected date
 (@code{calendar-cursor-holidays}).
@@ -483,7 +483,7 @@ List holidays in another window for a specified range of years.
 @vindex calendar-view-holidays-initially-flag
   To see if any holidays fall on a given date, position point on that
 date in the calendar window and use the @kbd{h} command.  Alternatively,
-click on that date with @kbd{Mouse-3} and then choose @kbd{Holidays}
+click on that date with @kbd{mouse-3} and then choose @kbd{Holidays}
 from the menu that appears.  Either way, this displays the holidays for
 that date, in the echo area if they fit there, otherwise in a separate
 window.
@@ -548,7 +548,7 @@ practice}, not historical fact.  For example Veteran's Day began in
 times of sunrise and sunset for any date.
 
 @table @kbd
-@item Mouse-3 Sunrise/sunset
+@item mouse-3 Sunrise/sunset
 @itemx S
 Display times of sunrise and sunset for the selected date
 (@code{calendar-sunrise-sunset}).
@@ -565,7 +565,7 @@ Display times of sunrise and sunset for the selected month.
 @findex sunrise-sunset
   Within the calendar, to display the @emph{local times} of sunrise and
 sunset in the echo area, move point to the date you want, and type
-@kbd{S}.  Alternatively, click @kbd{Mouse-3} on the date, then choose
+@kbd{S}.  Alternatively, click @kbd{mouse-3} on the date, then choose
 @samp{Sunrise/sunset} from the menu that appears.  The command @kbd{M-x
 sunrise-sunset} is available outside the calendar to display this
 information for today's date or a specified date.  To specify a date
@@ -777,7 +777,7 @@ in various other calendar systems:
 @table @kbd
 @kindex p @r{(Calendar mode)}
 @findex calendar-print-other-dates
-@item Mouse-3  Other calendars
+@item mouse-3  Other calendars
 @itemx p o
 Display the selected date in various other calendars.
 (@code{calendar-print-other-dates}).
@@ -831,7 +831,7 @@ Display Mayan date for selected day (@code{calendar-mayan-print-date}).
 appropriate command starting with @kbd{p} from the table above.  The
 prefix @kbd{p} is a mnemonic for ``print'', since Emacs ``prints'' the
 equivalent date in the echo area.  @kbd{p o} displays the
-date in all forms known to Emacs.  You can also use @kbd{Mouse-3} and
+date in all forms known to Emacs.  You can also use @kbd{mouse-3} and
 then choose @kbd{Other calendars} from the menu that appears.  This
 displays the equivalent forms of the date in all the calendars Emacs
 understands, in the form of a menu.  (Choosing an alternative from
@@ -1020,7 +1020,7 @@ it.  You can also view today's events outside of Calendar mode.  In the
 following, key bindings refer to the Calendar buffer.
 
 @table @kbd
-@item Mouse-3 Diary
+@item mouse-3 Diary
 @itemx d
 Display all diary entries for the selected date
 (@code{diary-view-entries}).
@@ -1058,7 +1058,7 @@ entries for that many successive days.  Thus, @kbd{2 d} displays all the
 entries for the selected date and for the following day.
 
   Another way to display the diary entries for a date is to click
-@kbd{Mouse-3} on the date, and then choose @kbd{Diary entries} from
+@kbd{mouse-3} on the date, and then choose @kbd{Diary entries} from
 the menu that appears.  If the variable
 @code{calendar-view-diary-initially-flag} is non-@code{nil}, creating the
 calendar lists the diary entries for the current date (provided the

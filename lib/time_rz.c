@@ -32,6 +32,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "flexmember.h"
 #include "time-internal.h"
 
 #if !HAVE_TZSET
@@ -46,8 +47,6 @@ enum { DEFAULT_MXFAST = 64 * sizeof (size_t) / 4 };
    only in the unlikely case where an abbreviation longer than this is
    used.  */
 enum { ABBR_SIZE_MIN = DEFAULT_MXFAST - offsetof (struct tm_zone, abbrs) };
-
-static char const TZ[] = "TZ";
 
 /* Magic cookie timezone_t value, for local time.  It differs from
    NULL and from all other timezone_t values.  Only the address
@@ -96,7 +95,7 @@ tzalloc (char const *name)
 {
   size_t name_size = name ? strlen (name) + 1 : 0;
   size_t abbr_size = name_size < ABBR_SIZE_MIN ? ABBR_SIZE_MIN : name_size + 1;
-  timezone_t tz = malloc (offsetof (struct tm_zone, abbrs) + abbr_size);
+  timezone_t tz = malloc (FLEXSIZEOF (struct tm_zone, abbrs, abbr_size));
   if (tz)
     {
       tz->next = NULL;
@@ -205,7 +204,7 @@ tzfree (timezone_t tz)
 static char *
 getenv_TZ (void)
 {
-  return getenv (TZ);
+  return getenv ("TZ");
 }
 #endif
 
@@ -213,7 +212,7 @@ getenv_TZ (void)
 static int
 setenv_TZ (char const *tz)
 {
-  return tz ? setenv (TZ, tz, 1) : unsetenv (TZ);
+  return tz ? setenv ("TZ", tz, 1) : unsetenv ("TZ");
 }
 #endif
 

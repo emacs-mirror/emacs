@@ -41,20 +41,24 @@ For example, write
  (defun foo (arg buf) "Doc string" (interactive "P\\nbbuffer: ") .... )
  to make ARG be the raw prefix argument, and set BUF to an existing buffer,
  when `foo' is called as a command.
-The "call" to `interactive' is actually a declaration rather than a function;
- it tells `call-interactively' how to read arguments
- to pass to the function.
-When actually called, `interactive' just returns nil.
 
-Usually the argument of `interactive' is a string containing a code letter
- followed optionally by a prompt.  (Some code letters do not use I/O to get
- the argument and do not use prompts.)  To get several arguments, concatenate
- the individual strings, separating them by newline characters.
-Prompts are passed to format, and may use % escapes to print the
+The "call" to `interactive' is actually a declaration rather than a
+ function; it tells `call-interactively' how to read arguments to pass
+ to the function.  When actually called, `interactive' just returns
+ nil.
+
+Usually the argument of `interactive' is a string containing a code
+ letter followed optionally by a prompt.  (Some code letters do not
+ use I/O to get the argument and do not use prompts.)  To pass several
+ arguments to the command, concatenate the individual strings,
+ separating them by newline characters.
+
+Prompts are passed to `format', and may use % escapes to print the
  arguments that have already been read.
 If the argument is not a string, it is evaluated to get a list of
- arguments to pass to the function.
-Just `(interactive)' means pass no args when calling interactively.
+ arguments to pass to the command.
+Just `(interactive)' means pass no arguments to the command when
+ calling interactively.
 
 Code letters available are:
 a -- Function name: symbol with a function definition.
@@ -99,7 +103,7 @@ If the string begins with `^' and `shift-select-mode' is non-nil,
  Emacs first calls the function `handle-shift-selection'.
 You may use `@', `*', and `^' together.  They are processed in the
  order that they appear, before reading any arguments.
-usage: (interactive &optional ARGS)  */
+usage: (interactive &optional ARG-DESCRIPTOR)  */
        attributes: const)
   (Lisp_Object args)
 {
@@ -268,7 +272,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 {
   /* `args' will contain the array of arguments to pass to the function.
      `visargs' will contain the same list but in a nicer form, so that if we
-     pass it to `Fformat' it will be understandable to a human.  */
+     pass it to `Fformat_message' it will be understandable to a human.  */
   Lisp_Object *args, *visargs;
   Lisp_Object specs;
   Lisp_Object filter_specs;
@@ -833,7 +837,10 @@ invoke it.  If KEYS is omitted or nil, the return value of
   kset_last_command (current_kboard, save_last_command);
 
   {
-    Lisp_Object val = Ffuncall (nargs, args);
+    Lisp_Object val;
+    specbind (Qcommand_debug_status, Qnil);
+
+    val = Ffuncall (nargs, args);
     val = unbind_to (speccount, val);
     SAFE_FREE ();
     return val;
@@ -890,6 +897,7 @@ syms_of_callint (void)
   DEFSYM (Qhandle_shift_selection, "handle-shift-selection");
   DEFSYM (Qread_number, "read-number");
   DEFSYM (Qfuncall_interactively, "funcall-interactively");
+  DEFSYM (Qcommand_debug_status, "command-debug-status");
   DEFSYM (Qenable_recursive_minibuffers, "enable-recursive-minibuffers");
   DEFSYM (Qmouse_leave_buffer_hook, "mouse-leave-buffer-hook");
 

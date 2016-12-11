@@ -62,11 +62,6 @@ uses @code{calendar-today-marker} to mark today's date.  By default,
 the calendar uses faces named @code{holiday}, @code{diary}, and
 @code{calendar-today} for these purposes.
 
-@vindex calendar-load-hook
-  The variable @code{calendar-load-hook} is a normal hook run when the
-calendar package is first loaded (before actually starting to display
-the calendar).
-
 @vindex calendar-initial-window-hook
   Starting the calendar runs the normal hook
 @code{calendar-initial-window-hook}.  Recomputation of the calendar

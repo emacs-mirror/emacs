@@ -891,7 +891,7 @@ commands."
       ;; @ is followed by a command-word; find the end of the word.
       (setq texinfo-command-start (1- (point)))
       (if (= (char-syntax (following-char)) ?w)
-          (forward-word 1)
+          (forward-word-strictly 1)
         (forward-char 1))
       (setq texinfo-command-end (point))
       ;; Detect the case of two @-commands in a row;
@@ -1190,7 +1190,7 @@ Leave point after argument."
     (forward-paragraph)
     (let ((end (point)))
       (if (save-excursion
-            (backward-word 1)
+            (backward-word-strictly 1)
             (search-forward "@refill" end t))
           (setq anchor-string "@anchor-yes-refill")
         (setq anchor-string "@anchor-no-refill")))
@@ -2003,7 +2003,7 @@ commands that are defined in texinfo.tex for printed output.
       (error "In @multitable, @columnfractions misspelled"))
      ;; Case 1: @columnfractions .25 .3 .45
      ((looking-at "@columnfractions")
-      (forward-word 1)
+      (forward-word-strictly 1)
       (while (not (eolp))
         (push (truncate
                (1-
@@ -2118,7 +2118,7 @@ This command is executed when texinfmt sees @item inside @multitable."
                       ;; Delete the @tab command, including the @-sign
                       (delete-region
                        (point)
-                       (progn (forward-word -1) (1- (point)))))
+                       (progn (forward-word-strictly -1) (1- (point)))))
                   (point)))
       ;; Set fill-column *wider* than needed to produce inter-column space
       (setq fill-column (+ 1

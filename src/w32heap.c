@@ -50,9 +50,11 @@
 #include <errno.h>
 
 #include <sys/mman.h>
+#include <sys/resource.h>
 #include "w32common.h"
 #include "w32heap.h"
 #include "lisp.h"
+#include "w32.h"	/* for FD_SETSIZE */
 
 /* We chose to leave those declarations here.  They are used only in
    this file.  The RtlCreateHeap is available since XP.  It is located
@@ -114,7 +116,7 @@ typedef struct _RTL_HEAP_PARAMETERS {
    to build only the first bootstrap-emacs.exe with the large size,
    and reset that to a lower value afterwards.  */
 #if defined _WIN64 || defined WIDE_EMACS_INT
-# define DUMPED_HEAP_SIZE (20*1024*1024)
+# define DUMPED_HEAP_SIZE (21*1024*1024)
 #else
 # define DUMPED_HEAP_SIZE (12*1024*1024)
 #endif
@@ -129,18 +131,18 @@ static DWORD_PTR committed = 0;
 /* The maximum block size that can be handled by a non-growable w32
    heap is limited by the MaxBlockSize value below.
 
-   This point deserves and explanation.
+   This point deserves an explanation.
 
-   The W32 heap allocator can be used for a growable
-   heap or a non-growable one.
+   The W32 heap allocator can be used for a growable heap or a
+   non-growable one.
 
    A growable heap is not compatible with a fixed base address for the
    heap.  Only a non-growable one is.  One drawback of non-growable
    heaps is that they can hold only objects smaller than a certain
-   size (the one defined below).  Most of the largest blocks are GC'ed
-   before dumping.  In any case and to be safe, we implement a simple
+   size (the one defined below).  Most of the larger blocks are GC'ed
+   before dumping.  In any case, and to be safe, we implement a simple
    first-fit allocation algorithm starting at the end of the
-   dumped_data[] array like depicted below:
+   dumped_data[] array as depicted below:
 
   ----------------------------------------------
   |               |              |             |
@@ -189,7 +191,7 @@ free_fn the_free_fn;
    claims for new memory.  Before dumping, we allocate space
    from the fixed size dumped_data[] array.
 */
-NTSTATUS NTAPI
+static NTSTATUS NTAPI
 dumped_data_commit (PVOID Base, PVOID *CommitAddress, PSIZE_T CommitSize)
 {
   /* This is used before dumping.
@@ -273,7 +275,7 @@ init_heap (void)
   else
     {
       /* Find the RtlCreateHeap function.  Headers for this function
-         are provided with the w32 ddk, but the function is available
+         are provided with the w32 DDK, but the function is available
          in ntdll.dll since XP.  */
       HMODULE hm_ntdll = LoadLibrary ("ntdll.dll");
       RtlCreateHeap_Proc s_pfn_Rtl_Create_Heap
@@ -317,15 +319,18 @@ init_heap (void)
   cache_system_info ();
 }
 
+
+/* malloc, realloc, free.  */
+
 #undef malloc
 #undef realloc
 #undef free
 
 /* FREEABLE_P checks if the block can be safely freed.  */
 #define FREEABLE_P(addr)						\
-    ((unsigned char *)(addr) > 0					\
-     && ((unsigned char *)(addr) < dumped_data				\
-	 || (unsigned char *)(addr) >= dumped_data + DUMPED_HEAP_SIZE))
+  ((DWORD_PTR)(unsigned char *)(addr) > 0				\
+   && ((unsigned char *)(addr) < dumped_data				\
+       || (unsigned char *)(addr) >= dumped_data + DUMPED_HEAP_SIZE))
 
 void *
 malloc_after_dump (size_t size)
@@ -623,9 +628,12 @@ sbrk (ptrdiff_t increment)
   return data_region_end;
 }
 
-#define MAX_BUFFER_SIZE (512 * 1024 * 1024)
+
 
 /* MMAP allocation for buffers.  */
+
+#define MAX_BUFFER_SIZE (512 * 1024 * 1024)
+
 void *
 mmap_alloc (void **var, size_t nbytes)
 {
@@ -708,19 +716,18 @@ mmap_realloc (void **var, size_t nbytes)
   if (memInfo.RegionSize < nbytes)
     {
       memset (&m2, 0, sizeof (m2));
-      if (VirtualQuery (*var + memInfo.RegionSize, &m2, sizeof(m2)) == 0)
+      if (VirtualQuery ((char *)*var + memInfo.RegionSize, &m2, sizeof(m2)) == 0)
         DebPrint (("mmap_realloc: VirtualQuery error = %ld\n",
 		   GetLastError ()));
       /* If there is enough room in the current reserved area, then
 	 commit more pages as needed.  */
       if (m2.State == MEM_RESERVE
+	  && m2.AllocationBase == memInfo.AllocationBase
 	  && nbytes <= memInfo.RegionSize + m2.RegionSize)
 	{
 	  void *p;
 
-	  p = VirtualAlloc (*var + memInfo.RegionSize,
-			    nbytes - memInfo.RegionSize,
-			    MEM_COMMIT, PAGE_READWRITE);
+	  p = VirtualAlloc (*var, nbytes, MEM_COMMIT, PAGE_READWRITE);
 	  if (!p /* && GetLastError() != ERROR_NOT_ENOUGH_MEMORY */)
 	    {
 	      DebPrint (("realloc enlarge: VirtualAlloc (%p + %I64x, %I64x) error %ld\n",
@@ -728,7 +735,8 @@ mmap_realloc (void **var, size_t nbytes)
 			 (uint64_t)(nbytes - memInfo.RegionSize),
 			 GetLastError ()));
 	      DebPrint (("next region: %p %p %I64x %x\n", m2.BaseAddress,
-			 m2.AllocationBase, m2.RegionSize, m2.AllocationProtect));
+			 m2.AllocationBase, (uint64_t)m2.RegionSize,
+			 m2.AllocationProtect));
 	    }
 	  else
 	    return *var;
@@ -778,7 +786,7 @@ mmap_realloc (void **var, size_t nbytes)
         }
 
       /* We still can decommit pages.  */
-      if (VirtualFree (*var + nbytes + get_page_size(),
+      if (VirtualFree ((char *)*var + nbytes + get_page_size(),
 		       memInfo.RegionSize - nbytes - get_page_size(),
 		       MEM_DECOMMIT) == 0)
         DebPrint (("mmap_realloc: VirtualFree error %ld\n", GetLastError ()));
@@ -787,4 +795,79 @@ mmap_realloc (void **var, size_t nbytes)
 
   /* Not enlarging, not shrinking by more than one page.  */
   return *var;
+}
+
+
+/* Emulation of getrlimit and setrlimit.  */
+
+int
+getrlimit (rlimit_resource_t rltype, struct rlimit *rlp)
+{
+  int retval = -1;
+
+  switch (rltype)
+    {
+    case RLIMIT_STACK:
+      {
+	MEMORY_BASIC_INFORMATION m;
+	/* Implementation note: Posix says that RLIMIT_STACK returns
+	   information about the stack size for the main thread.  The
+	   implementation below returns the stack size for the calling
+	   thread, so it's more like pthread_attr_getstacksize.  But
+	   Emacs clearly wants the latter, given how it uses the
+	   results, so the implementation below is more future-proof,
+	   if what's now the main thread will become some other thread
+	   at some future point.  */
+	if (!VirtualQuery ((LPCVOID) &m, &m, sizeof m))
+	  errno = EPERM;
+	else
+	  {
+	    rlp->rlim_cur = (DWORD_PTR) &m - (DWORD_PTR) m.AllocationBase;
+	    rlp->rlim_max =
+	      (DWORD_PTR) m.BaseAddress + m.RegionSize
+	      - (DWORD_PTR) m.AllocationBase;
+
+	    /* The last page is the guard page, so subtract that.  */
+	    rlp->rlim_cur -= getpagesize ();
+	    rlp->rlim_max -= getpagesize ();
+	    retval = 0;
+	  }
+	}
+      break;
+    case RLIMIT_NOFILE:
+      /* Implementation note: The real value is returned by
+	 _getmaxstdio.  But our FD_SETSIZE is smaller, to cater to
+	 Windows 9X, and process.c includes some logic that's based on
+	 the assumption that the handle resource is inherited to child
+	 processes.  We want to avoid that logic, so we tell process.c
+	 our current limit is already equal to FD_SETSIZE.  */
+      rlp->rlim_cur = FD_SETSIZE;
+      rlp->rlim_max = 2048;	/* see _setmaxstdio documentation */
+      retval = 0;
+      break;
+    default:
+      /* Note: we could return meaningful results for other RLIMIT_*
+	 requests, but Emacs doesn't currently need that, so we just
+	 punt for them.  */
+      errno = ENOSYS;
+      break;
+    }
+  return retval;
+}
+
+int
+setrlimit (rlimit_resource_t rltype, const struct rlimit *rlp)
+{
+  switch (rltype)
+    {
+    case RLIMIT_STACK:
+    case RLIMIT_NOFILE:
+      /* We cannot modfy these limits, so we always fail.  */
+      errno = EPERM;
+      break;
+    default:
+      errno = ENOSYS;
+      break;
+    }
+  return -1;
 }

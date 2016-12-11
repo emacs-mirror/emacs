@@ -19,7 +19,7 @@ In the top-level directory, use:
 
   ./configure --with-ns
 
-(On Mac OS X, --with-ns is enabled by default.)
+(On macOS, --with-ns is enabled by default.)
 
 This will compile all the files, but emacs will not be able to be run except
 in -nw (terminal) mode.

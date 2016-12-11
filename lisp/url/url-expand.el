@@ -1,4 +1,4 @@
-;;; url-expand.el --- expand-file-name for URLs
+;;; url-expand.el --- expand-file-name for URLs -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1999, 2004-2016 Free Software Foundation, Inc.
 

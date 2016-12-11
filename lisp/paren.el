@@ -81,11 +81,6 @@ whitespace there."
   :type 'boolean
   :version "25.1")
 
-(define-obsolete-face-alias 'show-paren-match-face 'show-paren-match "22.1")
-
-(define-obsolete-face-alias 'show-paren-mismatch-face
-  'show-paren-mismatch "22.1")
-
 (defcustom show-paren-highlight-openparen t
   "Non-nil turns on openparen highlighting when matching forward.
 When nil, and point stands just before an open paren, the paren

@@ -187,8 +187,10 @@ If optional LEFT is non-nil insert spaces on left."
 (defvar wisent-new-log-flag nil
   "Non-nil means to start a new report.")
 
-(defvar wisent-verbose-flag nil
-  "*Non-nil means to report verbose information on generated parser.")
+(defcustom wisent-verbose-flag nil
+  "Non-nil means to report verbose information on generated parser."
+  :group 'wisent
+  :type 'boolean)
 
 (defun wisent-toggle-verbose-flag ()
   "Toggle whether to report verbose information on generated parser."
@@ -2261,12 +2263,14 @@ tables so that there is no longer a conflict."
         (setq i (1+ i))))
     rrc-count))
 
-(defvar wisent-expected-conflicts nil
-  "*If non-nil suppress the warning about shift/reduce conflicts.
+(defcustom wisent-expected-conflicts nil
+  "If non-nil suppress the warning about shift/reduce conflicts.
 It is a decimal integer N that says there should be no warning if
 there are N shift/reduce conflicts and no reduce/reduce conflicts.  A
 warning is given if there are either more or fewer conflicts, or if
-there are any reduce/reduce conflicts.")
+there are any reduce/reduce conflicts."
+  :group 'wisent
+  :type '(choice (const nil) integer))
 
 (defun wisent-total-conflicts ()
   "Report the total number of conflicts."

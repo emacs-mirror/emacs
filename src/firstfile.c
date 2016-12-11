@@ -26,7 +26,7 @@ char my_begbss[1];  /* Do not initialize this variable.  */
 static char _my_begbss[1];
 char * my_begbss_static = _my_begbss;
 
-/* Add a dummy reference to ensure emacs.obj is linked in.  */
+/* Add a dummy reference to ensure emacs.o is linked in.  */
 extern int main (int, char **);
-static int (*dummy) (int, char **) = main;
+int (*dummy_main_reference) (int, char **) = main;
 #endif

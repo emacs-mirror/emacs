@@ -32,6 +32,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "widget.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "lisp.h"
 #include "xterm.h"

@@ -71,7 +71,7 @@ typedef enum
 #define GNUTLS_LOG2i(level, max, string, extra)			\
   do {								\
     if ((level) <= (max))					\
-      gnutls_log_function2i (level, "(Emacs) " string, extra);	\
+      message ("gnutls.c: [%d] %s %d", level, string, extra);	\
   } while (false)
 
 extern ptrdiff_t

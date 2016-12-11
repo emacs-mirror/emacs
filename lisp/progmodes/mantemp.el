@@ -157,8 +157,8 @@ the lines."
 	    "^template class [A-z :&*<>~=,0-9+!]*(" nil t nil)
       (progn
 	(beginning-of-line)
-	(forward-word 1)
-	(delete-region (point) (progn (forward-word 1) (point)))))))
+	(forward-word-strictly 1)
+	(delete-region (point) (progn (forward-word-strictly 1) (point)))))))
 
 (defun mantemp-make-mantemps ()
   "Gathering interface to the functions modifying the buffer."

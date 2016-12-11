@@ -81,7 +81,7 @@ If LITERAL is non-nil, insert NEWTEXT literally.  Return a new
 string containing the replacements.
 
 This is a compatibility function for different Emacsen."
-  (declare (obsolete replace-regexp-in-string "25.2"))
+  (declare (obsolete replace-regexp-in-string "26.1"))
   (replace-regexp-in-string regexp newtext string nil literal))
 
 (defun gnus-boundp (variable)
@@ -417,7 +417,7 @@ Cache the result as a text property stored in DATE."
     i))
 
 (defcustom gnus-verbose 6
-  "*Integer that says how verbose Gnus should be.
+  "Integer that says how verbose Gnus should be.
 The higher the number, the more messages Gnus will flash to say what
 it's doing.  At zero, Gnus will be totally mute; at five, Gnus will
 display most important messages; and at ten, Gnus will keep on
@@ -1599,7 +1599,7 @@ sequence, this is like `mapcar'.  With several, it is like the Common Lisp
 							   heads))
 					nil))
 	     (setq ,result-tail (cdr ,result-tail)
-		   ,@(apply 'nconc (mapcar (lambda (h) (list h (list 'cdr h))) heads))))
+		   ,@(mapcan (lambda (h) (list h (list 'cdr h))) heads)))
 	   (cdr ,result)))
     `(mapcar ,function ,seq1)))
 

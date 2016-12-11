@@ -215,6 +215,7 @@ This hook will be installed if the variable
 
 (defconst generic-unix-modes
   '(alias-generic-mode
+    ansible-inventory-generic-mode
     etc-fstab-generic-mode
     etc-modules-conf-generic-mode
     etc-passwd-generic-mode
@@ -645,6 +646,30 @@ like an INI file.  You can add this hook to `find-file-hook'."
       (setq imenu-generic-expression
 	    '((nil "^\\(alias\\|unalias\\)\\s-+\\([-a-zA-Z0-9_]+\\)" 2))))))
   "Generic mode for C Shell alias files."))
+
+;; Ansible inventory files
+(when (memq 'ansible-inventory-generic-mode generic-extras-enable-list)
+
+(define-generic-mode ansible-inventory-generic-mode
+  '(?#)
+  nil
+  '(("^\\s-*\\(\\[.*\\]\\)" 1 font-lock-constant-face)
+    ("^\\s-*\\([^ \n\r]*\\)" 1 font-lock-function-name-face)
+    ;; Variable assignments must be x=y, so highlight as warning if
+    ;; the value is missing.
+    ("\\s-\\([^ =\n\r]+\\)[\n\r ]" 1 font-lock-warning-face)
+    ;; Variable assignments: x=y
+    ("\\([^ =\n\r]+\\)=\\([^ \n\r]*\\)"
+     (1 font-lock-variable-name-face)
+     (2 font-lock-keyword-face)))
+  '("inventory")
+  (list
+   (function
+    (lambda ()
+      (setq imenu-generic-expression
+	    '((nil "^\\s-*\\[\\(.*\\)\\]" 1)
+	      ("*Variables*" "\\s-+\\([^ =\n\r]+\\)=" 1))))))
+  "Generic mode for Ansible inventory files."))
 
 ;;; Windows RC files
 ;; Contributed by ACorreir@pervasive-sw.com (Alfred Correira)

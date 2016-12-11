@@ -35,11 +35,11 @@
 
 ;; tracked: a list of symbols
 
-;; tracker: a hashtable tuned for 100 symbols to track (you should
+;; tracker: a hash table tuned for 100 symbols to track (you should
 ;; only access this with the :lookup2-function and the
 ;; :lookup2+-function)
 
-;; data: a hashtable with default size 10K and resize threshold 2.0
+;; data: a hash table with default size 10K and resize threshold 2.0
 ;; (this reflects the expected usage so override it if you know better)
 
 ;; ...plus methods to do all the work: `registry-search',
@@ -78,8 +78,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
-
+(require 'cl-lib)
 (require 'eieio)
 (require 'eieio-base)
 
@@ -124,10 +123,10 @@
              :documentation "The precious fields, a list of symbols.")
    (tracker :initarg :tracker
             :type hash-table
-            :documentation "The field tracking hashtable.")
+            :documentation "The field tracking hash table.")
    (data :initarg :data
          :type hash-table
-         :documentation "The data hashtable.")))
+         :documentation "The data hash table.")))
 
 (cl-defmethod initialize-instance :before ((this registry-db) slots)
   "Check whether a registry object needs to be upgraded."
@@ -171,14 +170,14 @@ Returns an alist of the key followed by the entry in a list, not a cons cell."
 Returns an alist of the key followed by the entry in a list, not a cons cell."
   (let ((data (oref db data)))
     (delq nil
-	  (loop for key in keys
-		when (gethash key data)
-		collect (list key (gethash key data))))))
+	  (cl-loop for key in keys
+                   when (gethash key data)
+                   collect (list key (gethash key data))))))
 
 (cl-defmethod registry-lookup-secondary ((db registry-db) tracksym
 					 &optional create)
   "Search for TRACKSYM in the registry-db THIS.
-When CREATE is not nil, create the secondary index hashtable if needed."
+When CREATE is not nil, create the secondary index hash table if needed."
   (let ((h (gethash tracksym (oref db tracker))))
     (if h
 	h
@@ -207,7 +206,7 @@ When SET is not nil, set it for VAL (use t for an empty list)."
           (vals (cdr-safe (nth 0 check-list)))
           found)
       (while (and key vals (not found))
-        (setq found (case mode
+        (setq found (cl-case mode
                       (:member
                        (member (car-safe vals) (cdr-safe (assoc key entry))))
                       (:regex
@@ -230,16 +229,16 @@ The test order is to check :all first, then :member, then :regex."
     (let ((all (plist-get spec :all))
 	  (member (plist-get spec :member))
 	  (regex (plist-get spec :regex)))
-      (loop for k being the hash-keys of (oref db data)
-	    using (hash-values v)
-	    when (or
-		  ;; :all non-nil returns all
-		  all
-		  ;; member matching
-		  (and member (registry--match :member v member))
-		  ;; regex matching
-		  (and regex (registry--match :regex v regex)))
-	    collect k))))
+      (cl-loop for k being the hash-keys of (oref db data)
+               using (hash-values v)
+               when (or
+                     ;; :all non-nil returns all
+                     all
+                     ;; member matching
+                     (and member (registry--match :member v member))
+                     ;; regex matching
+                     (and regex (registry--match :regex v regex)))
+               collect k))))
 
 (cl-defmethod registry-delete ((db registry-db) keys assert &rest spec)
   "Delete KEYS from the registry-db THIS.
@@ -254,8 +253,7 @@ With assert non-nil, errors out if the key does not exist already."
     (dolist (key keys)
       (let ((entry (gethash key data)))
 	(when assert
-	  (assert entry nil
-		  "Key %s does not exist in database" key))
+	  (cl-assert entry nil "Key %s does not exist in database" key))
 	;; clean entry from the secondary indices
 	(dolist (tr tracked)
 	  ;; is this tracked symbol indexed?
@@ -288,13 +286,10 @@ This is the key count of the `data' slot."
   "Insert ENTRY under KEY into the registry-db THIS.
 Updates the secondary ('tracked') indices as well.
 Errors out if the key exists already."
-
-  (assert (not (gethash key (oref db data))) nil
-	  "Key already exists in database")
-
-  (assert (not (registry-full db))
-	  nil
-	  "registry max-size limit reached")
+  (cl-assert (not (gethash key (oref db data))) nil
+             "Key already exists in database")
+  (cl-assert (not (registry-full db)) nil
+             "registry max-size limit reached")
 
   ;; store the entry
   (puthash key entry (oref db data))
@@ -304,7 +299,7 @@ Errors out if the key exists already."
     ;; for every value in the entry under that key...
     (dolist (val (cdr-safe (assq tr entry)))
       (let* ((value-keys (registry-lookup-secondary-value db tr val)))
-	(pushnew key value-keys :test 'equal)
+	(cl-pushnew key value-keys :test 'equal)
 	(registry-lookup-secondary-value db tr val value-keys))))
   entry)
 
@@ -316,7 +311,7 @@ Errors out if the key exists already."
       (let (values)
 	(maphash
 	 (lambda (key v)
-	   (incf count)
+	   (cl-incf count)
 	   (when (and (< 0 expected)
 		      (= 0 (mod count 1000)))
 	     (message "reindexing: %d of %d (%.2f%%)"
@@ -367,7 +362,7 @@ entries first and return candidates from beginning of list."
 	 (data (oref db data))
 	 (candidates (cl-loop for k being the hash-keys of data
 			      using (hash-values v)
-			      when (notany precious-p v)
+			      when (cl-notany precious-p v)
 			      collect (cons k v))))
     ;; We want the full entries for sorting, but should only return a
     ;; list of entry keys.

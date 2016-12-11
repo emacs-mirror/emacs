@@ -90,10 +90,6 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 
 #include <config.h>
 
-#ifndef _GNU_SOURCE
-# define _GNU_SOURCE 1		/* enables some compiler checks on GNU */
-#endif
-
 /* WIN32_NATIVE is for XEmacs.
    MSDOS, WINDOWSNT, DOS_NT are for Emacs. */
 #ifdef WIN32_NATIVE
@@ -112,7 +108,6 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 
 #ifdef WINDOWSNT
 # include <direct.h>
-# define MAXPATHLEN _MAX_PATH
 # undef HAVE_NTGUI
 # undef  DOS_NT
 # define DOS_NT
@@ -959,8 +954,7 @@ Relative ones are stored relative to the output file's directory.\n");
 	Do not create tag entries for global variables in some\n\
 	languages.  This makes the tags file smaller.");
 
-  if (PRINT_UNDOCUMENTED_OPTIONS_HELP)
-    puts ("--no-line-directive\n\
+  puts ("--no-line-directive\n\
         Ignore #line preprocessor directives in C and derived languages.");
 
   if (CTAGS)
@@ -1336,7 +1330,7 @@ main (int argc, char **argv)
 	    pfatal (tagfile);
 	}
 
-      exit (EXIT_SUCCESS);
+      return EXIT_SUCCESS;
     }
 
   /* From here on, we are in (CTAGS && !cxref_style) */
@@ -1344,7 +1338,7 @@ main (int argc, char **argv)
     {
       char *cmd =
 	xmalloc (strlen (tagfile) + whatlen_max +
-		 sizeof "mv..OTAGS;fgrep -v '\t\t' OTAGS >;rm OTAGS");
+		 sizeof "mv..OTAGS;grep -Fv '\t\t' OTAGS >;rm OTAGS");
       for (i = 0; i < current_arg; ++i)
 	{
 	  switch (argbuffer[i].arg_type)
@@ -1357,7 +1351,7 @@ main (int argc, char **argv)
 	    }
 	  char *z = stpcpy (cmd, "mv ");
 	  z = stpcpy (z, tagfile);
-	  z = stpcpy (z, " OTAGS;fgrep -v '\t");
+	  z = stpcpy (z, " OTAGS;grep -Fv '\t");
 	  z = stpcpy (z, argbuffer[i].what);
 	  z = stpcpy (z, "\t' OTAGS >");
 	  z = stpcpy (z, tagfile);
@@ -1389,7 +1383,7 @@ main (int argc, char **argv)
 	z = stpcpy (z, tagfile);
 	*z++ = ' ';
 	strcpy (z, tagfile);
-	exit (system (cmd));
+	return system (cmd);
       }
   return EXIT_SUCCESS;
 }
@@ -2008,19 +2002,78 @@ pfnote (char *name, bool is_func, char *linestart, int linelen, int lno,
 }
 
 /*
+ * Utility functions and data to avoid recursion.
+ */
+
+typedef struct stack_entry {
+  node *np;
+  struct stack_entry *next;
+} stkentry;
+
+static void
+push_node (node *np, stkentry **stack_top)
+{
+  if (np)
+    {
+      stkentry *new = xnew (1, stkentry);
+
+      new->np = np;
+      new->next = *stack_top;
+      *stack_top = new;
+    }
+}
+
+static node *
+pop_node (stkentry **stack_top)
+{
+  node *ret = NULL;
+
+  if (*stack_top)
+    {
+      stkentry *old_start = *stack_top;
+
+      ret = (*stack_top)->np;
+      *stack_top = (*stack_top)->next;
+      free (old_start);
+    }
+  return ret;
+}
+
+/*
  * free_tree ()
- *	recurse on left children, iterate on right children.
+ *	emulate recursion on left children, iterate on right children.
  */
 static void
 free_tree (register node *np)
 {
+  stkentry *stack = NULL;
+
   while (np)
     {
-      register node *node_right = np->right;
-      free_tree (np->left);
+      /* Descent on left children.  */
+      while (np->left)
+	{
+	  push_node (np, &stack);
+	  np = np->left;
+	}
+      /* Free node without left children.  */
+      node *node_right = np->right;
       free (np->name);
       free (np->regex);
       free (np);
+      if (!node_right)
+	{
+	  /* Backtrack to find a node with right children, while freeing nodes
+	     that don't have right children.  */
+	  while (node_right == NULL && (np = pop_node (&stack)) != NULL)
+	    {
+	      node_right = np->right;
+	      free (np->name);
+	      free (np->regex);
+	      free (np);
+	    }
+	}
+      /* Free right children.  */
       np = node_right;
     }
 }
@@ -2052,9 +2105,9 @@ free_fdesc (register fdesc *fdp)
 static void
 add_node (node *np, node **cur_node_p)
 {
-  register int dif;
-  register node *cur_node = *cur_node_p;
+  node *cur_node = *cur_node_p;
 
+  /* Make the first node.  */
   if (cur_node == NULL)
     {
       *cur_node_p = np;
@@ -2076,51 +2129,76 @@ add_node (node *np, node **cur_node_p)
 	  last_node->right = np;
 	  last_node = np;
 	}
-      else if (cur_node->fdp == np->fdp)
-	{
-	  /* Scanning the list we found the head of a sublist which is
-	     good for us.  Let's scan this sublist. */
-	  add_node (np, &cur_node->right);
-	}
       else
-	/* The head of this sublist is not good for us.  Let's try the
-	   next one. */
-	add_node (np, &cur_node->left);
+	{
+	   while (cur_node->fdp != np->fdp)
+	     {
+	       if (cur_node->left == NULL)
+		 break;
+	       /* The head of this sublist is not good for us.  Let's try the
+		  next one. */
+	       cur_node = cur_node->left;
+	     }
+	   if (cur_node->left)
+	     {
+	       /* Scanning the list we found the head of a sublist which is
+		  good for us.  Let's scan this sublist. */
+	       if (cur_node->right)
+		 {
+		   cur_node = cur_node->right;
+		   while (cur_node->right)
+		     cur_node = cur_node->right;
+		 }
+	       /* Make a new node in this sublist.  */
+	       cur_node->right = np;
+	     }
+	   else
+	     {
+	       /* Make a new sublist.  */
+	       cur_node->left = np;
+	     }
+	   last_node = np;
+	}
     } /* if ETAGS mode */
-
   else
     {
       /* Ctags Mode */
-      dif = strcmp (np->name, cur_node->name);
+      node **next_node = &cur_node;
 
-      /*
-       * If this tag name matches an existing one, then
-       * do not add the node, but maybe print a warning.
-       */
-      if (no_duplicates && !dif)
+      while ((cur_node = *next_node) != NULL)
 	{
-	  if (np->fdp == cur_node->fdp)
+	  int dif = strcmp (np->name, cur_node->name);
+	  /*
+	   * If this tag name matches an existing one, then
+	   * do not add the node, but maybe print a warning.
+	   */
+	  if (!dif && no_duplicates)
 	    {
-	      if (!no_warnings)
+	      if (np->fdp == cur_node->fdp)
 		{
-		  fprintf (stderr, "Duplicate entry in file %s, line %d: %s\n",
-			   np->fdp->infname, lineno, np->name);
-		  fprintf (stderr, "Second entry ignored\n");
+		  if (!no_warnings)
+		    {
+		      fprintf (stderr,
+			       "Duplicate entry in file %s, line %d: %s\n",
+			       np->fdp->infname, lineno, np->name);
+		      fprintf (stderr, "Second entry ignored\n");
+		    }
 		}
+	      else if (!cur_node->been_warned && !no_warnings)
+		{
+		  fprintf
+		    (stderr,
+		     "Duplicate entry in files %s and %s: %s (Warning only)\n",
+		     np->fdp->infname, cur_node->fdp->infname, np->name);
+		  cur_node->been_warned = true;
+		}
+	      return;
 	    }
-	  else if (!cur_node->been_warned && !no_warnings)
-	    {
-	      fprintf
-		(stderr,
-		 "Duplicate entry in files %s and %s: %s (Warning only)\n",
-		 np->fdp->infname, cur_node->fdp->infname, np->name);
-	      cur_node->been_warned = true;
-	    }
-	  return;
+	  else
+	    next_node = dif < 0 ? &cur_node->left : &cur_node->right;
 	}
-
-      /* Actually add the node */
-      add_node (np, dif < 0 ? &cur_node->left : &cur_node->right);
+      *next_node = np;
+      last_node = np;
     } /* if CTAGS mode */
 }
 
@@ -2133,31 +2211,66 @@ static void
 invalidate_nodes (fdesc *badfdp, node **npp)
 {
   node *np = *npp;
-
-  if (np == NULL)
-    return;
+  stkentry *stack = NULL;
 
   if (CTAGS)
     {
-      if (np->left != NULL)
-	invalidate_nodes (badfdp, &np->left);
-      if (np->fdp == badfdp)
-	np->valid = false;
-      if (np->right != NULL)
-	invalidate_nodes (badfdp, &np->right);
+      while (np)
+	{
+	  /* Push all the left children on the stack.  */
+	  while (np->left != NULL)
+	    {
+	      push_node (np, &stack);
+	      np = np->left;
+	    }
+	  /* Invalidate this node.  */
+	  if (np->fdp == badfdp)
+	    np->valid = false;
+	  if (!np->right)
+	    {
+	      /* Pop nodes from stack, invalidating them, until we find one
+		 with a right child.  */
+	      while ((np = pop_node (&stack)) != NULL)
+		{
+		  if (np->fdp == badfdp)
+		    np->valid = false;
+		  if (np->right != NULL)
+		    break;
+		}
+	    }
+	  /* Process the right child, if any.  */
+	  if (np)
+	    np = np->right;
+	}
     }
   else
     {
-      assert (np->fdp != NULL);
-      if (np->fdp == badfdp)
+      node super_root, *np_parent = NULL;
+
+      super_root.left = np;
+      super_root.fdp = (fdesc *) -1;
+      np = &super_root;
+
+      while (np)
 	{
-	  *npp = np->left;	/* detach the sublist from the list */
-	  np->left = NULL;	/* isolate it */
-	  free_tree (np);	/* free it */
-	  invalidate_nodes (badfdp, npp);
+	  /* Descent on left children until node with BADFP.  */
+	  while (np && np->fdp != badfdp)
+	    {
+	      assert (np->fdp != NULL);
+	      np_parent = np;
+	      np = np->left;
+	    }
+	  if (np)
+	    {
+	      np_parent->left = np->left; /* detach subtree from the tree */
+	      np->left = NULL;		  /* isolate it */
+	      free_tree (np);		  /* free it */
+
+	      /* Continue with rest of tree.  */
+	      np = np_parent->left;
+	    }
 	}
-      else
-	invalidate_nodes (badfdp, &np->left);
+      *npp = super_root.left;
     }
 }
 
@@ -2202,17 +2315,10 @@ total_size_of_entries (register node *np)
 }
 
 static void
-put_entries (register node *np)
+put_entry (node *np)
 {
   register char *sp;
   static fdesc *fdp = NULL;
-
-  if (np == NULL)
-    return;
-
-  /* Output subentries that precede this one */
-  if (CTAGS)
-    put_entries (np->left);
 
   /* Output this entry */
   if (np->valid)
@@ -2279,11 +2385,59 @@ put_entries (register node *np)
 	    }
 	}
     } /* if this node contains a valid tag */
+}
 
-  /* Output subentries that follow this one */
-  put_entries (np->right);
-  if (!CTAGS)
-    put_entries (np->left);
+static void
+put_entries (node *np)
+{
+  stkentry *stack = NULL;
+
+  if (np == NULL)
+    return;
+
+  if (CTAGS)
+    {
+      while (np)
+	{
+	  /* Stack subentries that precede this one.  */
+	  while (np->left)
+	    {
+	      push_node (np, &stack);
+	      np = np->left;
+	    }
+	  /* Output this subentry.  */
+	  put_entry (np);
+	  /* Stack subentries that follow this one.  */
+	  while (!np->right)
+	    {
+	      /* Output subentries that precede the next one.  */
+	      np = pop_node (&stack);
+	      if (!np)
+		break;
+	      put_entry (np);
+	    }
+	  if (np)
+	    np = np->right;
+	}
+    }
+  else
+    {
+      push_node (np, &stack);
+      while ((np = pop_node (&stack)) != NULL)
+	{
+	  /* Output this subentry.  */
+	  put_entry (np);
+	  while (np->right)
+	    {
+	      /* Output subentries that follow this one.  */
+	      put_entry (np->right);
+	      /* Stack subentries from the following files.  */
+	      push_node (np->left, &stack);
+	      np = np->right;
+	    }
+	  push_node (np->left, &stack);
+	}
+    }
 }
 
 
@@ -3437,13 +3591,27 @@ C_entries (int c_ext, FILE *inf)
 			      int off = tokoff;
 			      int len = toklen;
 
-			      /* Rewrite the tag so that emacs lisp DEFUNs
-				 can be found by their elisp name */
 			      if (defun)
 				{
 				  off += 1;
 				  len -= 1;
+
+				  /* First, tag it as its C name */
+				  linebuffer_setlen (&token_name, toklen);
+				  memcpy (token_name.buffer,
+					  newlb.buffer + tokoff, toklen);
+				  token_name.buffer[toklen] = '\0';
+				  token.named = true;
+				  token.lineno = lineno;
+				  token.offset = tokoff;
+				  token.length = toklen;
+				  token.line = newlb.buffer;
+				  token.linepos = newlinepos;
+				  token.valid = true;
+				  make_C_tag (funorvar);
 				}
+			      /* Rewrite the tag so that emacs lisp DEFUNs
+				 can be found also by their elisp name */
 			      linebuffer_setlen (&token_name, len);
 			      memcpy (token_name.buffer,
 				      newlb.buffer + off, len);
@@ -4071,13 +4239,13 @@ Yacc_entries (FILE *inf)
   ((assert ("" kw), true)   /* syntax error if not a literal string */	\
    && strneq ((cp), kw, sizeof (kw)-1)		/* cp points at kw */	\
    && notinname ((cp)[sizeof (kw)-1])		/* end of kw */		\
-   && ((cp) = skip_spaces ((cp)+sizeof (kw)-1))) /* skip spaces */
+   && ((cp) = skip_spaces ((cp) + sizeof (kw) - 1), true)) /* skip spaces */
 
 /* Similar to LOOKING_AT but does not use notinname, does not skip */
 #define LOOKING_AT_NOCASE(cp, kw) /* the keyword is a literal string */	\
   ((assert ("" kw), true) /* syntax error if not a literal string */	\
    && strncaseeq ((cp), kw, sizeof (kw)-1)	/* cp points at kw */	\
-   && ((cp) += sizeof (kw)-1))			/* skip spaces */
+   && ((cp) += sizeof (kw) - 1, true))		/* skip spaces */
 
 /*
  * Read a file, but do no processing.  This is used to do regexp
@@ -5301,16 +5469,37 @@ Forth_words (FILE *inf)
 	do			/* skip to ) or eol */
 	  bp++;
 	while (*bp != ')' && *bp != '\0');
-      else if ((bp[0] == ':' && c_isspace (bp[1]) && bp++)
-	       || LOOKING_AT_NOCASE (bp, "constant")
-	       || LOOKING_AT_NOCASE (bp, "code")
-	       || LOOKING_AT_NOCASE (bp, "create")
-	       || LOOKING_AT_NOCASE (bp, "defer")
-	       || LOOKING_AT_NOCASE (bp, "value")
-	       || LOOKING_AT_NOCASE (bp, "variable")
-	       || LOOKING_AT_NOCASE (bp, "buffer:")
-	       || LOOKING_AT_NOCASE (bp, "field"))
-	get_tag (skip_spaces (bp), NULL); /* Yay!  A definition! */
+      else if (((bp[0] == ':' && c_isspace (bp[1]) && bp++)
+		|| LOOKING_AT_NOCASE (bp, "constant")
+		|| LOOKING_AT_NOCASE (bp, "2constant")
+		|| LOOKING_AT_NOCASE (bp, "fconstant")
+		|| LOOKING_AT_NOCASE (bp, "code")
+		|| LOOKING_AT_NOCASE (bp, "create")
+		|| LOOKING_AT_NOCASE (bp, "defer")
+		|| LOOKING_AT_NOCASE (bp, "value")
+		|| LOOKING_AT_NOCASE (bp, "2value")
+		|| LOOKING_AT_NOCASE (bp, "fvalue")
+		|| LOOKING_AT_NOCASE (bp, "variable")
+		|| LOOKING_AT_NOCASE (bp, "2variable")
+		|| LOOKING_AT_NOCASE (bp, "fvariable")
+		|| LOOKING_AT_NOCASE (bp, "buffer:")
+		|| LOOKING_AT_NOCASE (bp, "field:")
+		|| LOOKING_AT_NOCASE (bp, "+field")
+		|| LOOKING_AT_NOCASE (bp, "field") /* not standard? */
+		|| LOOKING_AT_NOCASE (bp, "begin-structure")
+		|| LOOKING_AT_NOCASE (bp, "synonym")
+		)
+	       && c_isspace (bp[0]))
+	{
+	  /* Yay!  A definition! */
+	  char* name_start = skip_spaces (bp);
+	  char* name_end = skip_non_spaces (name_start);
+	  if (name_start < name_end)
+	    make_tag (name_start, name_end - name_start,
+		      true, lb.buffer, name_end - lb.buffer,
+		      lineno, linecharno);
+	  bp = name_end;
+	}
       else
 	bp = skip_non_spaces (bp);
 }

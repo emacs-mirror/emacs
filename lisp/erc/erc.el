@@ -2276,7 +2276,7 @@ and appears in face `erc-input-face' in the buffer."
                                        (aref string
                                              (1- (length string))))
                                    "\n"))
-                       'face 'erc-input-face)))))
+                       'font-lock-face 'erc-input-face)))))
         (let ((orig-win (selected-window))
               (debug-buffer-window (get-buffer-window (current-buffer) t)))
           (when debug-buffer-window
@@ -2466,9 +2466,9 @@ See also `erc-make-notice'."
         (t
          (erc-put-text-property
           0 (length string)
-          'face (or (intern-soft
-                     (concat "erc-" (symbol-name type) "-face"))
-                    "erc-default-face")
+          'font-lock-face (or (intern-soft
+			       (concat "erc-" (symbol-name type) "-face"))
+			      "erc-default-face")
           string)
          string)))
 
@@ -3897,7 +3897,7 @@ If FACE is non-nil, it will be used to propertize the prompt.  If it is nil,
                                      'front-sticky t
                                      'read-only t))
         (erc-put-text-property 0 (1- (length prompt))
-                               'face (or face 'erc-prompt-face)
+                               'font-lock-face (or face 'erc-prompt-face)
                                prompt)
         (insert prompt))
       ;; Set the input marker
@@ -4260,11 +4260,11 @@ and as second argument the event parsed as a vector."
          (nick-face (if privp 'erc-nick-msg-face 'erc-nick-default-face))
          (msg-face (if privp 'erc-direct-msg-face 'erc-default-face)))
     ;; add text properties to text before the nick, the nick and after the nick
-    (erc-put-text-property 0 (length mark-s) 'face msg-face str)
+    (erc-put-text-property 0 (length mark-s) 'font-lock-face msg-face str)
     (erc-put-text-property (length mark-s) (+ (length mark-s) (length nick))
-                           'face nick-face str)
+                           'font-lock-face nick-face str)
     (erc-put-text-property (+ (length mark-s) (length nick)) (length str)
-                           'face msg-face str)
+                           'font-lock-face msg-face str)
     str))
 
 (defcustom erc-format-nick-function 'erc-format-nick
@@ -4301,7 +4301,7 @@ also `erc-format-nick-function'."
     (let ((nick (erc-server-user-nickname user)))
       (concat (erc-propertize
                (erc-get-user-mode-prefix nick)
-               'face 'erc-nick-prefix-face)
+               'font-lock-face 'erc-nick-prefix-face)
 	      nick))))
 
 (defun erc-format-my-nick ()
@@ -4312,12 +4312,12 @@ also `erc-format-nick-function'."
              (nick (erc-current-nick))
              (mode (erc-get-user-mode-prefix nick)))
         (concat
-         (erc-propertize open 'face 'erc-default-face)
-         (erc-propertize mode 'face 'erc-my-nick-prefix-face)
-         (erc-propertize nick 'face 'erc-my-nick-face)
-         (erc-propertize close 'face 'erc-default-face)))
+         (erc-propertize open 'font-lock-face 'erc-default-face)
+         (erc-propertize mode 'font-lock-face 'erc-my-nick-prefix-face)
+         (erc-propertize nick 'font-lock-face 'erc-my-nick-face)
+         (erc-propertize close 'font-lock-face 'erc-default-face)))
     (let ((prefix "> "))
-      (erc-propertize prefix 'face 'erc-default-face))))
+      (erc-propertize prefix 'font-lock-face 'erc-default-face))))
 
 (defun erc-echo-notice-in-default-buffer (s parsed buffer _sender)
   "Echos a private notice in the default buffer, namely the
@@ -5238,10 +5238,10 @@ See also variable `erc-notice-highlight-type'."
   (cond
    ((eq erc-notice-highlight-type 'prefix)
     (erc-put-text-property 0 (length erc-notice-prefix)
-                           'face 'erc-notice-face s)
+                           'font-lock-face 'erc-notice-face s)
     s)
    ((eq erc-notice-highlight-type 'all)
-    (erc-put-text-property 0 (length s) 'face 'erc-notice-face s)
+    (erc-put-text-property 0 (length s) 'font-lock-face 'erc-notice-face s)
     s)
    (t s)))
 
@@ -5253,7 +5253,7 @@ See also variable `erc-notice-highlight-type'."
 
 (defun erc-highlight-error (s)
   "Highlight error message S and return it."
-  (erc-put-text-property 0 (length s) 'face 'erc-error-face s)
+  (erc-put-text-property 0 (length s) 'font-lock-face 'erc-error-face s)
   s)
 
 (defun erc-put-text-property (start end property value &optional object)
@@ -5443,7 +5443,7 @@ This returns non-nil only if we actually send anything."
       (let ((beg (point)))
         (insert line)
         (erc-put-text-property beg (point)
-                               'face 'erc-command-indicator-face)
+                               'font-lock-face 'erc-command-indicator-face)
         (insert "\n"))
       (when (processp erc-server-process)
         (set-marker (process-mark erc-server-process) (point)))
@@ -5463,7 +5463,7 @@ current position."
       (let ((beg (point)))
         (insert line)
         (erc-put-text-property beg (point)
-                               'face 'erc-input-face))
+                               'font-lock-face 'erc-input-face))
       (insert "\n")
       (when (processp erc-server-process)
         (set-marker (process-mark erc-server-process) (point)))
@@ -5887,7 +5887,7 @@ user input."
         (setq args (substring args 1)))
     ;; prepare the prompt string for echo
     (erc-put-text-property 0 (length sp)
-                           'face 'erc-command-indicator-face sp)
+                           'font-lock-face 'erc-command-indicator-face sp)
     (while lines
       (setq s (car lines))
       (erc-log (concat "erc-load-script: CMD: " s))
@@ -5897,7 +5897,7 @@ user input."
                    erc-script-echo)
               (progn
                 (erc-put-text-property 0 (length line)
-                                       'face 'erc-input-face line)
+                                       'font-lock-face 'erc-input-face line)
                 (erc-display-line (concat sp line) cb)))))
       (setq lines (cdr lines)))))
 
@@ -6007,10 +6007,8 @@ Returns a list of the form (HIGH LOW), compatible with Emacs time format."
     (list (truncate (/ n 65536))
           (truncate (mod n 65536)))))
 
-(defalias 'erc-emacs-time-to-erc-time
-  (if (featurep 'xemacs) 'time-to-seconds 'float-time))
-
-(defalias 'erc-current-time 'erc-emacs-time-to-erc-time)
+(defalias 'erc-emacs-time-to-erc-time 'float-time)
+(defalias 'erc-current-time 'float-time)
 
 (defun erc-time-diff (t1 t2)
   "Return the time difference in seconds between T1 and T2."

@@ -1521,7 +1521,7 @@ references and character references.  A processing instruction
 consists of a target and a content string.  A comment or a CDATA
 section contains a single string.  An entity reference contains a
 single name.  A character reference contains a character number."
-  (interactive "p")
+  (interactive "^p")
   (or arg (setq arg 1))
   (cond ((> arg 0)
 	 (while (progn
@@ -1733,7 +1733,7 @@ single name.  A character reference contains a character number."
     ret))
 
 (defun nxml-up-element (&optional arg)
-  (interactive "p")
+  (interactive "^p")
   (or arg (setq arg 1))
   (if (< arg 0)
       (nxml-backward-up-element (- arg))
@@ -1761,7 +1761,7 @@ single name.  A character reference contains a character number."
        (apply #'error (cddr err))))))
 
 (defun nxml-backward-up-element (&optional arg)
-  (interactive "p")
+  (interactive "^p")
   (or arg (setq arg 1))
   (if (< arg 0)
       (nxml-up-element (- arg))
@@ -1793,7 +1793,7 @@ single name.  A character reference contains a character number."
   "Move forward down into the content of an element.
 With ARG, do this that many times.
 Negative ARG means move backward but still down."
-  (interactive "p")
+  (interactive "^p")
   (or arg (setq arg 1))
   (if (< arg 0)
       (nxml-backward-down-element (- arg))
@@ -1811,7 +1811,7 @@ Negative ARG means move backward but still down."
       (setq arg (1- arg)))))
 
 (defun nxml-backward-down-element (&optional arg)
-  (interactive "p")
+  (interactive "^p")
   (or arg (setq arg 1))
   (if (< arg 0)
       (nxml-down-element (- arg))
@@ -1839,7 +1839,7 @@ Negative ARG means move backward but still down."
   "Move forward over one element.
 With ARG, do it that many times.
 Negative ARG means move backward."
-  (interactive "p")
+  (interactive "^p")
   (or arg (setq arg 1))
   (if (< arg 0)
       (nxml-backward-element (- arg))
@@ -1858,7 +1858,7 @@ Negative ARG means move backward."
   "Move backward over one element.
 With ARG, do it that many times.
 Negative ARG means move forward."
-  (interactive "p")
+  (interactive "^p")
   (or arg (setq arg 1))
   (if (< arg 0)
       (nxml-forward-element (- arg))
@@ -1893,7 +1893,7 @@ The paragraph marked is the one that contains point or follows point."
   (nxml-backward-paragraph))
 
 (defun nxml-forward-paragraph (&optional arg)
-  (interactive "p")
+  (interactive "^p")
   (or arg (setq arg 1))
   (cond ((< arg 0)
 	 (nxml-backward-paragraph (- arg)))
@@ -1903,7 +1903,7 @@ The paragraph marked is the one that contains point or follows point."
 		     (> (setq arg (1- arg)) 0))))))
 
 (defun nxml-backward-paragraph (&optional arg)
-  (interactive "p")
+  (interactive "^p")
   (or arg (setq arg 1))
   (cond ((< arg 0)
 	 (nxml-forward-paragraph (- arg)))

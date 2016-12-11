@@ -24,6 +24,7 @@
 
 (require 'url-vars)
 (require 'url-parse)
+(declare-function mm-disable-multibyte "mm-util" ())
 (autoload 'Info-goto-node "info" "" t)
 (autoload 'man "man" nil t)
 

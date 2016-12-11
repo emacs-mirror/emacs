@@ -46,7 +46,7 @@
 
 (defgroup enriched nil
   "Read and save files in text/enriched format."
-  :group 'wp)
+  :group 'text)
 
 (defcustom enriched-verbose t
   "If non-nil, give status messages when reading and writing files."

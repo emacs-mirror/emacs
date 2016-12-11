@@ -1110,10 +1110,11 @@ to combine them into one, and does so if the user says y."
               (save-restriction
                 ;; This is just so the screen doesn't change.
                 (narrow-to-region (point-min) old-max)
-                (goto-char old-point)
-                (setq query-asked t)
-                (if (y-or-n-p (format "Message contains multiple %s fields.  Combine? " field))
-                    (setq query-answer t))))
+                (save-excursion
+                  (goto-char old-point)
+                  (setq query-asked t)
+                  (if (y-or-n-p (format "Message contains multiple %s fields.  Combine? " field))
+                      (setq query-answer t)))))
             (when query-answer
               (let ((this-to-start (line-beginning-position))
                     this-to-end
@@ -1404,7 +1405,7 @@ just append to the file, in Babyl format if necessary."
 	(insert "\nFrom " (user-login-name) " " (current-time-string time) "\n")
 	;; Insert the time zone before the year.
 	(forward-char -1)
-	(forward-word -1)
+	(forward-word-strictly -1)
 	(require 'mail-utils)
 	(insert (mail-rfc822-time-zone time) " ")
 	(goto-char (point-max))

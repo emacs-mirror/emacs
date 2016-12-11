@@ -26,6 +26,7 @@ License along with this library.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 #include <stddef.h>
+#include <stdlib.h>
 #include <string.h>
 #include <limits.h>
 #include <stdint.h>
@@ -35,16 +36,12 @@ License along with this library.  If not, see <http://www.gnu.org/licenses/>.
 #include <pthread.h>
 #endif
 
-#ifdef WINDOWSNT
-#include <w32heap.h>	/* for sbrk */
-#endif
-
 #ifdef emacs
 # include "lisp.h"
 #endif
 
 #ifdef HAVE_MALLOC_H
-# if 4 < __GNUC__ + (2 <= __GNUC_MINOR__)
+# if GNUC_PREREQ (4, 2, 0)
 #  pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 # endif
 # include <malloc.h>
@@ -118,14 +115,13 @@ extern int posix_memalign (void **, size_t, size_t);
    receive a fragment of a block.  Fragment sizes are powers of two,
    and all fragments of a block are the same size.  When all the
    fragments in a block have been freed, the block itself is freed.  */
-#define INT_BIT		(CHAR_BIT * sizeof (int))
-#define BLOCKLOG	(INT_BIT > 16 ? 12 : 9)
+#define BLOCKLOG	(INT_WIDTH > 16 ? 12 : 9)
 #define BLOCKSIZE	(1 << BLOCKLOG)
 #define BLOCKIFY(SIZE)	(((SIZE) + BLOCKSIZE - 1) / BLOCKSIZE)
 
 /* Determine the amount of memory spanned by the initial heap table
    (not an absolute limit).  */
-#define HEAP		(INT_BIT > 16 ? 4194304 : 65536)
+#define HEAP		(INT_WIDTH > 16 ? 4194304 : 65536)
 
 /* Number of contiguous free blocks allowed to build up at the end of
    memory before they will be returned to the system.  */

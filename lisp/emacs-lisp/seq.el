@@ -4,7 +4,7 @@
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Keywords: sequences
-;; Version: 2.3
+;; Version: 2.19
 ;; Package: seq
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -57,7 +57,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl-generic))
-(require 'cl-extra) ;; for cl-subseq
+(require 'cl-lib) ;; for cl-subseq
 
 (defmacro seq-doseq (spec &rest body)
   "Loop over a sequence.
@@ -87,7 +87,7 @@ given, and the match does not fail."
 
 ARGS can also include the `&rest' marker followed by a variable
 name to be bound to the rest of SEQUENCE."
-  (declare (indent 2) (debug t))
+  (declare (indent 2) (debug (sexp form body)))
   `(pcase-let ((,(seq--make-pcase-patterns args) ,sequence))
      ,@body))
 
@@ -117,6 +117,16 @@ Return SEQUENCE."
 
 (defalias 'seq-each #'seq-do)
 
+(defun seq-do-indexed (function sequence)
+  "Apply FUNCTION to each element of SEQUENCE and return nil.
+Unlike `seq-map', FUNCTION takes two arguments: the element of
+the sequence, and its index within the sequence."
+  (let ((index 0))
+    (seq-do (lambda (elt)
+               (funcall function elt index)
+               (setq index (1+ index)))
+             sequence)))
+
 (cl-defgeneric seqp (sequence)
   "Return non-nil if SEQUENCE is a sequence, nil otherwise."
   (sequencep sequence))
@@ -127,7 +137,7 @@ Return SEQUENCE."
 
 (cl-defgeneric seq-subseq (sequence start &optional end)
   "Return the sequence of elements of SEQUENCE from START to END.
-END is inclusive.
+END is exclusive.
 
 If END is omitted, it defaults to the length of the sequence.  If
 START or END is negative, it counts from the end.  Signal an
@@ -218,6 +228,16 @@ The result is a sequence of the same type as SEQUENCE."
 (cl-defmethod seq-sort (pred (list list))
   (sort (seq-copy list) pred))
 
+(defun seq-sort-by (function pred sequence)
+  "Sort SEQUENCE using PRED as a comparison function.
+Elements of SEQUENCE are transformed by FUNCTION before being
+sorted.  FUNCTION must be a function of one argument."
+  (seq-sort (lambda (a b)
+              (funcall pred
+                       (funcall function a)
+                       (funcall function b)))
+            sequence))
+
 (cl-defgeneric seq-reverse (sequence)
   "Return a sequence with elements of SEQUENCE in reverse order."
   (let ((result '()))
@@ -296,7 +316,8 @@ If SEQUENCE is empty, return INITIAL-VALUE and FUNCTION is not called."
     t))
 
 (cl-defgeneric seq-some (pred sequence)
-  "Return the first value for which if (PRED element) is non-nil for in SEQUENCE."
+  "Return non-nil if PRED is satisfied for at least one element of SEQUENCE.
+If so, return the first non-nil value returned by PRED."
   (catch 'seq--break
     (seq-doseq (elt sequence)
       (let ((result (funcall pred elt)))
@@ -329,7 +350,8 @@ found or not."
   "Return the first element in SEQUENCE that is equal to ELT.
 Equality is defined by TESTFN if non-nil or by `equal' if nil."
   (seq-some (lambda (e)
-              (funcall (or testfn #'equal) elt e))
+              (when (funcall (or testfn #'equal) elt e)
+                e))
             sequence))
 
 (cl-defgeneric seq-position (sequence elt &optional testfn)
@@ -455,16 +477,20 @@ SEQUENCE must be a sequence of numbers or markers."
   "Return element of SEQUENCE at the index N.
 If no element is found, return nil."
   (ignore-errors (seq-elt sequence n)))
+
+(cl-defgeneric seq-random-elt (sequence)
+  "Return a random element from SEQUENCE.
+Signal an error if SEQUENCE is empty."
+  (if (seq-empty-p sequence)
+      (error "Sequence cannot be empty")
+    (seq-elt sequence (random (seq-length sequence)))))
 
 
 ;;; Optimized implementations for lists
 
 (cl-defmethod seq-drop ((list list) n)
   "Optimized implementation of `seq-drop' for lists."
-  (while (and list (> n 0))
-    (setq list (cdr list)
-          n (1- n)))
-  list)
+  (nthcdr n list))
 
 (cl-defmethod seq-take ((list list) n)
   "Optimized implementation of `seq-take' for lists."

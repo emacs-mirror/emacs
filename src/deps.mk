@@ -35,7 +35,7 @@
 ### Code:
 
 atimer.o: atimer.c atimer.h syssignal.h systime.h lisp.h blockinput.h \
- globals.h ../lib/unistd.h $(config_h)
+ globals.h ../lib/unistd.h msdos.h $(config_h)
 bidi.o: bidi.c buffer.h character.h dispextern.h msdos.h lisp.h \
    globals.h $(config_h)
 buffer.o: buffer.c buffer.h region-cache.h commands.h window.h \
@@ -92,7 +92,7 @@ editfns.o: editfns.c window.h buffer.h systime.h $(INTERVALS_H) character.h \
 emacs.o: emacs.c commands.h systty.h syssignal.h blockinput.h process.h \
    termhooks.h buffer.h atimer.h systime.h $(INTERVALS_H) lisp.h $(config_h) \
    globals.h ../lib/unistd.h window.h dispextern.h keyboard.h keymap.h \
-   frame.h coding.h gnutls.h msdos.h unexec.h
+   frame.h coding.h gnutls.h msdos.h dosfns.h unexec.h
 fileio.o: fileio.c window.h buffer.h systime.h $(INTERVALS_H) character.h \
    coding.h msdos.h blockinput.h atimer.h lisp.h $(config_h) frame.h \
    commands.h globals.h ../lib/unistd.h

@@ -47,7 +47,7 @@ Say you want to use the single score file
 score files in the \"/ftp.some-where:/pub/score\" directory.
 
  (setq gnus-global-score-files
-       '(\"/ftp.gnus.org:/pub/larsi/ding/score/soc.motss.SCORE\"
+       \\='(\"/ftp.gnus.org:/pub/larsi/ding/score/soc.motss.SCORE\"
 	 \"/ftp.some-where:/pub/score\"))"
   :group 'gnus-score-files
   :type '(repeat file))
@@ -127,26 +127,26 @@ the `a' symbolic prefix to the score commands will always use
 		(function :tag "Other" :value 'ignore)))
 
 (defcustom gnus-score-interactive-default-score 1000
-  "*Scoring commands will raise/lower the score with this number as the default."
+  "Scoring commands will raise/lower the score with this number as the default."
   :group 'gnus-score-default
   :type 'integer)
 
 (defcustom gnus-score-expiry-days 7
-  "*Number of days before unused score file entries are expired.
+  "Number of days before unused score file entries are expired.
 If this variable is nil, no score file entries will be expired."
   :group 'gnus-score-expire
   :type '(choice (const :tag "never" nil)
 		 number))
 
 (defcustom gnus-update-score-entry-dates t
-  "*If non-nil, update matching score entry dates.
+  "If non-nil, update matching score entry dates.
 If this variable is nil, then score entries that provide matches
 will be expired along with non-matching score entries."
   :group 'gnus-score-expire
   :type 'boolean)
 
 (defcustom gnus-decay-scores nil
-  "*If non-nil, decay non-permanent scores.
+  "If non-nil, decay non-permanent scores.
 
 If it is a regexp, only decay score files matching regexp."
   :group 'gnus-score-decay
@@ -157,19 +157,19 @@ If it is a regexp, only decay score files matching regexp."
 		 (regexp)))
 
 (defcustom gnus-decay-score-function 'gnus-decay-score
-  "*Function called to decay a score.
+  "Function called to decay a score.
 It is called with one parameter -- the score to be decayed."
   :group 'gnus-score-decay
   :type '(radio (function-item gnus-decay-score)
 		(function :tag "Other")))
 
 (defcustom gnus-score-decay-constant 3
-  "*Decay all \"small\" scores with this amount."
+  "Decay all \"small\" scores with this amount."
   :group 'gnus-score-decay
   :type 'integer)
 
 (defcustom gnus-score-decay-scale .05
-  "*Decay all \"big\" scores with this factor."
+  "Decay all \"big\" scores with this factor."
   :group 'gnus-score-decay
   :type 'number)
 
@@ -249,7 +249,7 @@ If you use score decays, you might want to set values higher than
 				     (integer :tag "Score"))))))
 
 (defcustom gnus-adaptive-word-length-limit nil
-  "*Words of a length lesser than this limit will be ignored when doing adaptive scoring."
+  "Words of a length lesser than this limit will be ignored when doing adaptive scoring."
   :version "22.1"
   :group 'gnus-score-adapt
   :type '(radio (const :format "Unlimited " nil)
@@ -275,7 +275,7 @@ If you use score decays, you might want to set values higher than
     "being" "current" "back" "still" "go" "point" "value" "each" "did"
     "both" "true" "off" "say" "another" "state" "might" "under" "start"
     "try" "re")
-  "*Default list of words to be ignored when doing adaptive word scoring."
+  "Default list of words to be ignored when doing adaptive word scoring."
   :group 'gnus-score-adapt
   :type '(repeat string))
 
@@ -284,7 +284,7 @@ If you use score decays, you might want to set values higher than
     (,gnus-catchup-mark . -10)
     (,gnus-killed-mark . -20)
     (,gnus-del-mark . -15))
-  "*Alist of marks and scores."
+  "Alist of marks and scores."
   :group 'gnus-score-adapt
   :type '(repeat (cons (character :tag "Mark")
 		       (integer :tag "Score"))))
@@ -300,12 +300,12 @@ If you use score decays, you might want to set values higher than
   :type 'boolean)
 
 (defcustom gnus-score-mimic-keymap nil
-  "*Have the score entry functions pretend that they are a keymap."
+  "Have the score entry functions pretend that they are a keymap."
   :group 'gnus-score-default
   :type 'boolean)
 
 (defcustom gnus-score-exact-adapt-limit 10
-  "*Number that says how long a match has to be before using substring matching.
+  "Number that says how long a match has to be before using substring matching.
 When doing adaptive scoring, one normally uses fuzzy or substring
 matching.  However, if the header one matches is short, the possibility
 for false positives is great, so if the length of the match is less

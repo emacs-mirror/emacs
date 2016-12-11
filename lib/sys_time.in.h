@@ -109,6 +109,13 @@ _GL_CXXALIAS_SYS_CAST (gettimeofday, int,
                        (struct timeval *restrict, void *restrict));
 # endif
 _GL_CXXALIASWARN (gettimeofday);
+# if defined __cplusplus && defined GNULIB_NAMESPACE
+namespace GNULIB_NAMESPACE {
+  typedef ::timeval
+#undef timeval
+    timeval;
+}
+# endif
 #elif defined GNULIB_POSIXCHECK
 # undef gettimeofday
 # if HAVE_RAW_DECL_GETTIMEOFDAY

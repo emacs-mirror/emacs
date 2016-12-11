@@ -78,9 +78,6 @@ the external command (usually \"kill\")."
     ("KILL" . "  (9.  Kill - cannot be caught or ignored)")
     ("ALRM" . "  (14. Alarm Clock)")
     ("TERM" . "  (15. Termination)")
-    ;; POSIX 1003.1-2001
-    ;; Which systems do not support these signals so that we can
-    ;; exclude them from `proced-signal-list'?
     ("CONT" . "  (Continue executing)")
     ("STOP" . "  (Stop executing / pause - cannot be caught or ignored)")
     ("TSTP" . "  (Terminal stop / pause)"))

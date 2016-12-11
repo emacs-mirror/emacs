@@ -146,6 +146,9 @@ VALUES-PLIST is a list with alternating index and value elements."
 (ert-deftest ruby-slash-char-literal-is-not-mistaken-for-regexp ()
   (ruby-assert-state "?/" 3 nil))
 
+(ert-deftest ruby-regexp-is-not-mistaken-for-slash-symbol ()
+  (ruby-assert-state "x = /foo:/" 3 nil))
+
 (ert-deftest ruby-indent-simple ()
   (ruby-should-indent-buffer
    "if foo
@@ -449,6 +452,14 @@ VALUES-PLIST is a list with alternating index and value elements."
     ;; It's confused by the closing paren in the middle.
     (ruby-assert-state s 8 nil)))
 
+(ert-deftest ruby-interpolation-inside-another-interpolation ()
+  :expected-result :failed
+  (let ((s "\"#{[a, b, c].map { |v| \"#{v}\" }.join}\""))
+    (ruby-assert-face s 1 font-lock-string-face)
+    (ruby-assert-face s 2 font-lock-variable-name-face)
+    (ruby-assert-face s 38 font-lock-string-face)
+    (ruby-assert-state s 8 nil)))
+
 (ert-deftest ruby-interpolation-inside-double-quoted-percent-literals ()
   (ruby-assert-face "%Q{foo #@bar}" 8 font-lock-variable-name-face)
   (ruby-assert-face "%W{foo #@bar}" 8 font-lock-variable-name-face)
@@ -704,6 +715,17 @@ VALUES-PLIST is a list with alternating index and value elements."
     (end-of-line)
     (ruby-backward-sexp)
     (should (= 2 (line-number-at-pos)))))
+
+(ert-deftest ruby-toggle-string-quotes-quotes-correctly ()
+  (let ((pairs
+         '(("puts '\"foo\"\\''" . "puts \"\\\"foo\\\"'\"")
+           ("puts \"'foo'\\\"\"" . "puts '\\'foo\\'\"'"))))
+    (dolist (pair pairs)
+      (ruby-with-temp-buffer (car pair)
+        (beginning-of-line)
+        (search-forward "foo")
+        (ruby-toggle-string-quotes)
+        (should (string= (buffer-string) (cdr pair)))))))
 
 (ert-deftest ruby--insert-coding-comment-ruby-style ()
   (with-temp-buffer

@@ -33,7 +33,7 @@
 (defgroup picture nil
   "Editing text-based pictures (\"ASCII art\")."
   :prefix "picture-"
-  :group 'wp)
+  :group 'text)
 
 (defcustom picture-rectangle-ctl ?+
   "Character `picture-draw-rectangle' uses for top left corners."
@@ -272,7 +272,11 @@ Use \"\\[command-apropos] picture-movement\" to see commands which control motio
 	(or (eolp)
 	    (let ((pos (point)))
 	      (move-to-column col t)
-	      (delete-region pos (point)))))
+	      (let ((old-width (string-width (buffer-substring pos (point)))))
+		(delete-region pos (point))
+		(when (> old-width width)
+		  (insert-char ?  (- old-width width))
+		  (goto-char pos))))))
       (insert ch)
       (forward-char -1)
       (picture-move))))

@@ -65,7 +65,7 @@ modify this GNU manual.''
 * Syntactic Symbols::
 * Frequently Asked Questions::
 * Getting the latest VHDL Mode release::
-* Sample .emacs File::
+* Sample Init File::
 * Limitations and Known Bugs::
 * Mailing Lists and Submitting Bug Reports::
 * GNU Free Documentation License:: The license for this documentation.
@@ -484,7 +484,7 @@ Here's a simplified example of what you can add to your @file{.emacs}
 file to make the changes described in the previous section
 (@ref{Interactive Customization}) more permanent.  See the Emacs
 manuals for more information on customizing Emacs via hooks.
-@xref{Sample .emacs File}, for a more complete sample @file{.emacs} file.
+@xref{Sample Init File}, for a more complete sample @file{.emacs} file.
 
 @example
 @group
@@ -600,7 +600,7 @@ optional third argument, which if non-@code{nil}, automatically
 institutes the new style in the current buffer.
 
 The sample @file{.emacs} file provides a concrete example of how a new
-style can be added and automatically set.  @xref{Sample .emacs File}.
+style can be added and automatically set.  @xref{Sample Init File}.
 
 @node     File Styles
 @subsection  File Styles
@@ -874,7 +874,7 @@ simply add the following to the top of your @file{.emacs} file:
 
 @end example
 
-See the sample @file{.emacs} file @ref{Sample .emacs File} for
+See the sample @file{.emacs} file @ref{Sample Init File} for
 details.
 
 @end quotation
@@ -894,9 +894,9 @@ either of these lists.
 The official Emacs VHDL Mode Home Page can be found at
 @uref{http://www.iis.ee.ethz.ch/~zimmi/emacs/vhdl-mode.html}.
 
-@node  Sample .emacs File
-@chapter  Sample @file{.emacs} file
-@cindex   Sample @file{.emacs} file
+@node  Sample Init File
+@chapter  Sample Init File
+@cindex   Sample init file
 
 Most customizations can be done using the ``Customize'' entry in the
 VHDL Mode menu, which requires no editing of the .emacs file.

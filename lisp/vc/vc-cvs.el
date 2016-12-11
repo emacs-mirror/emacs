@@ -27,6 +27,12 @@
 
 (eval-when-compile (require 'vc))
 
+(declare-function vc-branch-p "vc" (rev))
+(declare-function vc-checkout "vc" (file &optional rev))
+(declare-function vc-expand-dirs "vc" (file-or-dir-list backend))
+(declare-function vc-read-revision "vc"
+                  (prompt &optional files backend default initial-input))
+
 ;; Clear up the cache to force vc-call to check again and discover
 ;; new functions when we reload this file.
 (put 'CVS 'vc-functions nil)
@@ -121,7 +127,7 @@ This is only meaningful if you don't use the implicit checkout model
   :version "21.1"
   :group 'vc-cvs)
 
-(defcustom vc-stay-local 'only-file
+(defcustom vc-cvs-stay-local 'only-file
   "Non-nil means use local operations when possible for remote repositories.
 This avoids slow queries over the network and instead uses heuristics
 and past information to determine the current status of a file.
@@ -131,11 +137,11 @@ server, but heuristics will be used to determine the status for
 all other VC operations.
 
 The value can also be a regular expression or list of regular
-expressions to match against the host name of a repository; then VC
-only stays local for hosts that match it.  Alternatively, the value
-can be a list of regular expressions where the first element is the
-symbol `except'; then VC always stays local except for hosts matched
-by these regular expressions."
+expressions to match against the host name of a repository; then
+vc-cvs only stays local for hosts that match it.  Alternatively,
+the value can be a list of regular expressions where the first
+element is the symbol `except'; then vc-cvs always stays local
+except for hosts matched by these regular expressions."
   :type '(choice (const :tag "Always stay local" t)
 		 (const :tag "Only for file operations" only-file)
 		 (const :tag "Don't stay local" nil)
@@ -789,8 +795,7 @@ If FILE is a list of files, return non-nil if any of them
 individually should stay local."
   (if (listp file)
       (delq nil (mapcar (lambda (arg) (vc-cvs-stay-local-p arg)) file))
-    (let* ((sym (vc-make-backend-sym 'CVS 'stay-local))
-          (stay-local (if (boundp sym) (symbol-value sym) vc-stay-local)))
+    (let ((stay-local vc-cvs-stay-local))
       (if (symbolp stay-local) stay-local
        (let ((dirname (if (file-directory-p file)
                           (directory-file-name file)
@@ -939,103 +944,32 @@ state."
 	  (t 'edited))))))))
 
 (defun vc-cvs-after-dir-status (update-function)
-  ;; Heavily inspired by vc-cvs-parse-status. AKA a quick hack.
-  ;; This needs a lot of testing.
-  (let ((status nil)
-	(status-str nil)
-	(file nil)
-	(result nil)
-	(missing nil)
-	(ignore-next nil)
-	(subdir default-directory))
+  (let ((result nil)
+        (translation '((?? . unregistered)
+                       (?A . added)
+                       (?C . conflict)
+                       (?M . edited)
+                       (?P . needs-merge)
+                       (?R . removed)
+                       (?U . needs-update))))
     (goto-char (point-min))
-    (while
-	;; Look for either a file entry, an unregistered file, or a
-	;; directory change.
-	(re-search-forward
-	 "\\(^=+\n\\([^=c?\n].*\n\\|\n\\)+\\)\\|\\(\\(^?? .*\n\\)+\\)\\|\\(^cvs status: \\(Examining\\|nothing\\) .*\n\\)"
-	 nil t)
-      ;; FIXME: get rid of narrowing here.
-      (narrow-to-region (match-beginning 0) (match-end 0))
-      (goto-char (point-min))
-      ;; The subdir
-      (when (looking-at "cvs status: Examining \\(.+\\)")
-	(setq subdir (expand-file-name (match-string 1))))
-      ;; Unregistered files
-      (while (looking-at "? \\(.*\\)")
-	(setq file (file-relative-name
-		    (expand-file-name (match-string 1) subdir)))
-	(push (list file 'unregistered) result)
-	(forward-line 1))
-      (when (looking-at "cvs status: nothing known about")
-	;; We asked about a non existent file.  The output looks like this:
-
-	;; cvs status: nothing known about `lisp/v.diff'
-	;; ===================================================================
-	;; File: no file v.diff            Status: Unknown
-	;;
-	;;    Working revision:    No entry for v.diff
-	;;    Repository revision: No revision control file
-	;;
-
-	;; Due to narrowing in this iteration we only see the "cvs
-	;; status:" line, so just set a flag so that we can ignore the
-	;; file in the next iteration.
-	(setq ignore-next t))
-      ;; A file entry.
-      (when (re-search-forward "^File: \\(no file \\)?\\(.*[^ \t]\\)[ \t]+Status: \\(.*\\)" nil t)
-	(setq missing (match-string 1))
-	(setq file (file-relative-name
-		    (expand-file-name (match-string 2) subdir)))
-	(setq status-str (match-string 3))
-	(setq status
-	      (cond
-	       ((string-match "Up-to-date" status-str) 'up-to-date)
-	       ((string-match "Locally Modified" status-str) 'edited)
-	       ((string-match "Needs Merge" status-str) 'needs-merge)
-	       ((string-match "Needs \\(Checkout\\|Patch\\)" status-str)
-		(if missing 'missing 'needs-update))
-	       ((string-match "Locally Added" status-str) 'added)
-	       ((string-match "Locally Removed" status-str) 'removed)
-	       ((string-match "File had conflicts " status-str) 'conflict)
-	       ((string-match "Unknown" status-str) 'unregistered)
-	       (t 'edited)))
-	(if ignore-next
-	    (setq ignore-next nil)
-	  (unless (eq status 'up-to-date)
-	    (push (list file status) result))))
-      (goto-char (point-max))
-      (widen))
-    (funcall update-function result))
-  ;; Alternative implementation: use the "update" command instead of
-  ;; the "status" command.
-  ;; (let ((result nil)
-  ;; 	(translation '((?? . unregistered)
-  ;; 		       (?A . added)
-  ;; 		       (?C . conflict)
-  ;; 		       (?M . edited)
-  ;; 		       (?P . needs-merge)
-  ;; 		       (?R . removed)
-  ;; 		       (?U . needs-update))))
-  ;;   (goto-char (point-min))
-  ;;   (while (not (eobp))
-  ;;     (if (looking-at "^[ACMPRU?] \\(.*\\)$")
-  ;; 	  (push (list (match-string 1)
-  ;; 		      (cdr (assoc (char-after) translation)))
-  ;; 		result)
-  ;; 	(cond
-  ;; 	 ((looking-at "cvs update: warning: \\(.*\\) was lost")
-  ;; 	  ;; Format is:
-  ;; 	  ;; cvs update: warning: FILENAME was lost
-  ;; 	  ;; U FILENAME
-  ;; 	  (push (list (match-string 1) 'missing) result)
-  ;; 	  ;; Skip the "U" line
-  ;; 	  (forward-line 1))
-  ;; 	 ((looking-at "cvs update: New directory `\\(.*\\)' -- ignored")
-  ;; 	  (push (list (match-string 1) 'unregistered) result))))
-  ;;     (forward-line 1))
-  ;;   (funcall update-function result)))
-  )
+    (while (not (eobp))
+      (if (looking-at "^[ACMPRU?] \\(.*\\)$")
+          (push (list (match-string 1)
+                      (cdr (assoc (char-after) translation)))
+                result)
+        (cond
+         ((looking-at "cvs update: warning: \\(.*\\) was lost")
+          ;; Format is:
+          ;; cvs update: warning: FILENAME was lost
+          ;; U FILENAME
+          (push (list (match-string 1) 'missing) result)
+          ;; Skip the "U" line
+          (forward-line 1))
+         ((looking-at "cvs update: New directory `\\(.*\\)' -- ignored")
+          (push (list (match-string 1) 'unregistered) result))))
+      (forward-line 1))
+    (funcall update-function result)))
 
 ;; Based on vc-cvs-dir-state-heuristic from Emacs 22.
 ;; FIXME does not mention unregistered files.
@@ -1072,16 +1006,12 @@ state."
 Query all files in DIR if files is nil."
   (let ((local (vc-cvs-stay-local-p dir)))
     (if (and (not files) local (not (eq local 'only-file)))
-	(vc-cvs-dir-status-heuristic dir update-function)
-      (if (not files) (setq files (vc-expand-dirs (list dir) 'CVS)))
-      (vc-cvs-command (current-buffer) 'async files "-f" "status")
-      ;; Alternative implementation: use the "update" command instead of
-      ;; the "status" command.
-      ;; (vc-cvs-command (current-buffer) 'async
-      ;; 		  (file-relative-name dir)
-      ;; 		  "-f" "-n" "update" "-d" "-P")
-      (vc-run-delayed
-       (vc-cvs-after-dir-status update-function)))))
+        (vc-cvs-dir-status-heuristic dir update-function))
+    (vc-cvs-command (current-buffer) 'async
+                    files
+                    "-f" "-n" "-q" "update")
+    (vc-run-delayed
+      (vc-cvs-after-dir-status update-function))))
 
 (defun vc-cvs-file-to-string (file)
   "Read the content of FILE and return it as a string."

@@ -420,22 +420,22 @@ A value of t means to show all source files."
   :type 'integer)
 
 (defcustom idlwave-library-path nil
-  "Library path for Windows and MacOS (OS9).  Not needed under UNIX.
+  "Library path for Windows and Mac OS (OS9).  Not needed under UNIX.
 When selecting the directories to scan for IDL user catalog routine
 info, IDLWAVE can, under UNIX, query the shell for the exact search
-path \(the value of !PATH).  However, under Windows and MacOS
-\(pre-OSX), the IDLWAVE shell does not work.  In this case, this
-variable can be set to specify the paths where IDLWAVE can find PRO
-files.  The shell will only be asked for a list of paths when this
-variable is nil.  The value is a list of directories.  A directory
+path (the value of !PATH).  However, under MS-Windows, the
+IDLWAVE shell does not work.  In this case, this variable can be
+set to specify the paths where IDLWAVE can find PRO files.  The
+shell will only be asked for a list of paths when this variable
+is nil.  The value is a list of directories.  A directory
 preceded by a `+' will be searched recursively.  If you set this
-variable on a UNIX system, the shell will not be queried.  See also
-`idlwave-system-directory'."
+variable on a UNIX system, the shell will not be queried.  See
+also `idlwave-system-directory'."
   :group 'idlwave-routine-info
   :type '(repeat (directory)))
 
 (defcustom idlwave-system-directory ""
-  "The IDL system directory for Windows and MacOS.  Not needed under
+  "The IDL system directory for Windows and Mac OS.  Not needed under
 UNIX.  Set this to the value of the `!DIR' system variable in IDL.
 IDLWAVE uses this to find out which of the library routines belong to
 the official system library.  All files inside the `lib' subdirectory
@@ -2118,7 +2118,7 @@ An END token must be preceded by whitespace."
   (if (not (idlwave-quoted))
       (if
 	  (save-excursion
-	    (backward-word 1)
+	    (backward-word-strictly 1)
 	    (backward-char 1)
 	    (looking-at "[ \t\n\f]"))
 	  (idlwave-show-begin))))
@@ -2435,13 +2435,13 @@ If prefix ARG < 0 then move forward to enclosing block end."
   "Go to the beginning of the current block."
   (interactive)
   (idlwave-block-jump-out -1 'nomark)
-  (forward-word 1))
+  (forward-word-strictly 1))
 
 (defun idlwave-end-of-block ()
   "Go to the beginning of the current block."
   (interactive)
   (idlwave-block-jump-out 1 'nomark)
-  (backward-word 1))
+  (backward-word-strictly 1))
 
 (defun idlwave-forward-block (&optional arg)
   "Move across next nested block."
@@ -3150,12 +3150,12 @@ possibility of unbalanced blocks."
     (if (>= dir 0) (end-of-line)) ;Make sure we are in current block
     (if (setq found (idlwave-find-key  block-reg dir t unit-limit))
         (while (and found (looking-at block-limit))
-          (if (>= dir 0) (forward-word 1))
+          (if (>= dir 0) (forward-word-strictly 1))
           (idlwave-block-jump-out dir t)
           (setq found (idlwave-find-key block-reg dir t unit-limit))))
     (if (not nomark) (push-mark here))
     (if (not found) (goto-char unit-limit)
-      (if (>= dir 0) (forward-word 1)))))
+      (if (>= dir 0) (forward-word-strictly 1)))))
 
 (defun idlwave-min-current-statement-indent (&optional end-reg)
   "The minimum indent in the current statement."
@@ -6325,7 +6325,7 @@ Must accept two arguments: `apos' and `info'.")
 	 (is-self
 	  (and arrow
 	       (save-excursion (goto-char apos)
-			       (forward-word -1)
+			       (forward-word-strictly -1)
 			       (let ((case-fold-search t))
 				 (looking-at "self\\>")))))
 	 (force-query idlwave-force-class-query)

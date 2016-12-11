@@ -81,7 +81,8 @@ static int extra_bytes;
 
 #ifdef HAVE_MALLOC_H
 # include <malloc.h>
-#else
+#endif
+#ifndef DOUG_LEA_MALLOC
 extern void *(*__morecore) (ptrdiff_t);
 #endif
 

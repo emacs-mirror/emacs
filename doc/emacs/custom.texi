@@ -1037,9 +1037,10 @@ explicitly.  For example, here's how to obtain the default value of
 @cindex file local variables
 
   A file can specify local variable values to use when editing the
-file with Emacs.  Visiting the file checks for local variable
-specifications; it automatically makes these variables local to the
-buffer, and sets them to the values specified in the file.
+file with Emacs.  Visiting the file or setting a major mode checks for
+local variable specifications; it automatically makes these variables
+local to the buffer, and sets them to the values specified in the
+file.
 
 @menu
 * Specifying File Variables:: Specifying file local variables.
@@ -1344,6 +1345,12 @@ be applied in the current directory, not in any subdirectories.
 Finally, it specifies a different @file{ChangeLog} file name for any
 file in the @file{src/imported} subdirectory.
 
+You can specify the variables @code{mode}, @code{eval}, and
+@code{unibyte} in your @file{.dir-locals.el}, and they have the same
+meanings as they would have in file local variables.  @code{coding}
+cannot be specified as a directory local variable.  @xref{File
+Variables}.
+
 @findex add-dir-local-variable
 @findex delete-dir-local-variable
 @findex copy-file-locals-to-dir-locals
@@ -1400,7 +1407,7 @@ init file (@pxref{Init Rebinding}).
 * Minibuffer Maps::     The minibuffer uses its own local keymaps.
 * Rebinding::           How to redefine one key's meaning conveniently.
 * Init Rebinding::      Rebinding keys with your initialization file.
-* Modifier Keys::       Using modifier keys in key bindings.
+* Modifier Keys::       Using modifier keys.
 * Function Keys::       Rebinding terminal function keys.
 * Named ASCII Chars::   Distinguishing @key{TAB} from @kbd{C-i}, and so on.
 * Mouse Buttons::       Rebinding mouse buttons in Emacs.

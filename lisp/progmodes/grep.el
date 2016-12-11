@@ -235,7 +235,7 @@ buffer should be saved or not.  E.g., one can set this to
   (lambda ()
     (string-prefix-p my-grep-root (file-truename (buffer-file-name))))
 to limit saving to files located under `my-grep-root'."
-  :version "25.2"
+  :version "26.1"
   :type '(choice
           (const :tag "Ask before saving" ask)
           (const :tag "Don't save buffers" nil)
@@ -543,7 +543,9 @@ This function is called from `compilation-filter-hook'."
   (let* ((host-id
 	  (intern (or (file-remote-p default-directory) "localhost")))
 	 (host-defaults (assq host-id grep-host-defaults-alist))
-	 (defaults (assq nil grep-host-defaults-alist)))
+	 (defaults (assq nil grep-host-defaults-alist))
+         (quot-braces (shell-quote-argument "{}"))
+         (quot-scolon (shell-quote-argument ";")))
     ;; There are different defaults on different hosts.  They must be
     ;; computed for every host once.
     (dolist (setting '(grep-command grep-template
@@ -637,9 +639,8 @@ This function is called from `compilation-filter-hook'."
 				     "")))
 			 (cons
 			  (if (eq grep-find-use-xargs 'exec-plus)
-			      (format "%s %s{} +" cmd0 null)
-			    (format "%s {} %s%s" cmd0 null
-				    (shell-quote-argument ";")))
+			      (format "%s %s%s +" cmd0 null quot-braces)
+			    (format "%s %s %s%s" cmd0 quot-braces null quot-scolon))
 			  (1+ (length cmd0)))))
 		      (t
 		       (format "%s . -type f -print | \"%s\" %s"
@@ -655,12 +656,11 @@ This function is called from `compilation-filter-hook'."
 			 (format "%s <D> <X> -type f <F> -print0 | \"%s\" -0 %s"
 				 find-program xargs-program gcmd))
 			((eq grep-find-use-xargs 'exec)
-			 (format "%s <D> <X> -type f <F> -exec %s {} %s%s"
-				 find-program gcmd null
-				 (shell-quote-argument ";")))
+			 (format "%s <D> <X> -type f <F> -exec %s %s %s%s"
+				 find-program gcmd quot-braces null quot-scolon))
 			((eq grep-find-use-xargs 'exec-plus)
-			 (format "%s <D> <X> -type f <F> -exec %s %s{} +"
-				 find-program gcmd null))
+			 (format "%s <D> <X> -type f <F> -exec %s %s%s +"
+				 find-program gcmd null quot-braces))
 			(t
 			 (format "%s <D> <X> -type f <F> -print | \"%s\" %s"
 				 find-program xargs-program gcmd))))))))

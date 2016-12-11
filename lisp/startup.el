@@ -439,7 +439,7 @@ Warning Warning!!!  Pure space overflow    !!!Warning Warning
   :initialize #'custom-initialize-delay)
 
 (defun normal-top-level-add-subdirs-to-load-path ()
-  "Add all subdirectories of `default-directory' to `load-path'.
+  "Recursively add all subdirectories of `default-directory' to `load-path'.
 More precisely, this uses only the subdirectories whose names
 start with letters or digits; it excludes any subdirectory named `RCS'
 or `CVS', and any subdirectory that contains a file named `.nosearch'."
@@ -870,7 +870,7 @@ If STYLE is nil, display appropriately for the terminal."
         (if repl
             (aset (or standard-display-table
                       (setq standard-display-table (make-display-table)))
-                  char (vector (make-glyph-code repl 'escape-glyph)))
+                  char (vector (make-glyph-code repl 'homoglyph)))
           (when standard-display-table
             (aset standard-display-table char nil)))))))
 
@@ -1890,10 +1890,12 @@ we put it on this frame."
       (when frame
 	(let* ((img (create-image (fancy-splash-image-file)))
 	       (image-height (and img (cdr (image-size img nil frame))))
-	       ;; We test frame-height so that, if the frame is split
-	       ;; by displaying a warning, that doesn't cause the normal
-	       ;; splash screen to be used.
-	       (frame-height (1- (frame-height frame))))
+	       ;; We test frame-height and not window-height so that,
+	       ;; if the frame is split by displaying a warning, that
+	       ;; doesn't cause the normal splash screen to be used.
+	       ;; We subtract 2 from frame-height to account for the
+	       ;; echo area and the mode line.
+	       (frame-height (- (frame-height frame) 2)))
 	  (> frame-height (+ image-height 19)))))))
 
 
@@ -2358,7 +2360,14 @@ nil default-directory" name)
 
                     ((member argi '("-eval" "-execute"))
                      (setq inhibit-startup-screen t)
-                     (eval (read (or argval (pop command-line-args-left)))))
+                     (let* ((str-expr (or argval (pop command-line-args-left)))
+                            (read-data (read-from-string str-expr))
+                            (expr (car read-data))
+                            (end (cdr read-data)))
+                       (unless (= end (length str-expr))
+                         (error "Trailing garbage following expression: %s"
+                                (substring str-expr end)))
+                       (eval expr)))
 
                     ((member argi '("-L" "-directory"))
                      ;; -L :/foo adds /foo to the _end_ of load-path.
@@ -2384,7 +2393,7 @@ nil default-directory" name)
                             ;; Take file from default dir if it exists there;
                             ;; otherwise let `load' search for it.
                             (file-ex (expand-file-name file)))
-                       (when (file-exists-p file-ex)
+                       (when (file-regular-p file-ex)
                          (setq file file-ex))
                        (load file nil t)))
 

@@ -144,8 +144,7 @@ Returns the number of actions taken."
 						     (cons prompt map))
 				     'quit))
 		     ;; Prompt in the echo area.
-		     (let ((cursor-in-echo-area (not no-cursor-in-echo-area))
-			   (message-log-max nil))
+		     (let ((cursor-in-echo-area (not no-cursor-in-echo-area)))
 		       (message (apply 'propertize "%s(y, n, !, ., q, %sor %s) "
 				       minibuffer-prompt-properties)
 				prompt user-keys

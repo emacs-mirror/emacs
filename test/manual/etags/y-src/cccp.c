@@ -17,7 +17,7 @@
 # define	RSH	268
 # define	UNARY	269
 
-#line 26 "cccp.y"
+#line 26 "y-src/cccp.y"
 
 #include "config.h"
 #include <setjmp.h>
@@ -102,7 +102,7 @@ static void integer_overflow ();
 static long left_shift ();
 static long right_shift ();
 
-#line 111 "cccp.y"
+#line 111 "y-src/cccp.y"
 #ifndef YYSTYPE
 typedef union {
   struct constant {long value; int unsignedp;} integer;
@@ -1047,59 +1047,59 @@ yyreduce:
   switch (yyn) {
 
 case 1:
-#line 144 "cccp.y"
+#line 144 "y-src/cccp.y"
 { expression_value = yyvsp[0].integer.value; }
     break;
 case 3:
-#line 150 "cccp.y"
+#line 150 "y-src/cccp.y"
 { if (pedantic)
 			    pedwarn ("comma operator in operand of `#if'");
 			  yyval.integer = yyvsp[0].integer; }
     break;
 case 4:
-#line 157 "cccp.y"
+#line 157 "y-src/cccp.y"
 { yyval.integer.value = - yyvsp[0].integer.value;
 			  if ((yyval.integer.value & yyvsp[0].integer.value) < 0 && ! yyvsp[0].integer.unsignedp)
 			    integer_overflow ();
 			  yyval.integer.unsignedp = yyvsp[0].integer.unsignedp; }
     break;
 case 5:
-#line 162 "cccp.y"
+#line 162 "y-src/cccp.y"
 { yyval.integer.value = ! yyvsp[0].integer.value;
 			  yyval.integer.unsignedp = 0; }
     break;
 case 6:
-#line 165 "cccp.y"
+#line 165 "y-src/cccp.y"
 { yyval.integer = yyvsp[0].integer; }
     break;
 case 7:
-#line 167 "cccp.y"
+#line 167 "y-src/cccp.y"
 { yyval.integer.value = ~ yyvsp[0].integer.value;
 			  yyval.integer.unsignedp = yyvsp[0].integer.unsignedp; }
     break;
 case 8:
-#line 170 "cccp.y"
+#line 170 "y-src/cccp.y"
 { yyval.integer.value = check_assertion (yyvsp[0].name.address, yyvsp[0].name.length,
 						      0, NULL_PTR);
 			  yyval.integer.unsignedp = 0; }
     break;
 case 9:
-#line 174 "cccp.y"
+#line 174 "y-src/cccp.y"
 { keyword_parsing = 1; }
     break;
 case 10:
-#line 176 "cccp.y"
+#line 176 "y-src/cccp.y"
 { yyval.integer.value = check_assertion (yyvsp[-4].name.address, yyvsp[-4].name.length,
 						      1, yyvsp[-1].keywords);
 			  keyword_parsing = 0;
 			  yyval.integer.unsignedp = 0; }
     break;
 case 11:
-#line 181 "cccp.y"
+#line 181 "y-src/cccp.y"
 { yyval.integer = yyvsp[-1].integer; }
     break;
 case 12:
-#line 186 "cccp.y"
+#line 186 "y-src/cccp.y"
 { yyval.integer.unsignedp = yyvsp[-2].integer.unsignedp || yyvsp[0].integer.unsignedp;
 			  if (yyval.integer.unsignedp)
 			    yyval.integer.value = (unsigned long) yyvsp[-2].integer.value * yyvsp[0].integer.value;
@@ -1113,7 +1113,7 @@ case 12:
 			    } }
     break;
 case 13:
-#line 198 "cccp.y"
+#line 198 "y-src/cccp.y"
 { if (yyvsp[0].integer.value == 0)
 			    {
 			      error ("division by zero in #if");
@@ -1130,7 +1130,7 @@ case 13:
 			    } }
     break;
 case 14:
-#line 213 "cccp.y"
+#line 213 "y-src/cccp.y"
 { if (yyvsp[0].integer.value == 0)
 			    {
 			      error ("division by zero in #if");
@@ -1143,7 +1143,7 @@ case 14:
 			    yyval.integer.value = yyvsp[-2].integer.value % yyvsp[0].integer.value; }
     break;
 case 15:
-#line 224 "cccp.y"
+#line 224 "y-src/cccp.y"
 { yyval.integer.value = yyvsp[-2].integer.value + yyvsp[0].integer.value;
 			  yyval.integer.unsignedp = yyvsp[-2].integer.unsignedp || yyvsp[0].integer.unsignedp;
 			  if (! yyval.integer.unsignedp
@@ -1152,7 +1152,7 @@ case 15:
 			    integer_overflow (); }
     break;
 case 16:
-#line 231 "cccp.y"
+#line 231 "y-src/cccp.y"
 { yyval.integer.value = yyvsp[-2].integer.value - yyvsp[0].integer.value;
 			  yyval.integer.unsignedp = yyvsp[-2].integer.unsignedp || yyvsp[0].integer.unsignedp;
 			  if (! yyval.integer.unsignedp
@@ -1161,7 +1161,7 @@ case 16:
 			    integer_overflow (); }
     break;
 case 17:
-#line 238 "cccp.y"
+#line 238 "y-src/cccp.y"
 { yyval.integer.unsignedp = yyvsp[-2].integer.unsignedp;
 			  if (yyvsp[0].integer.value < 0 && ! yyvsp[0].integer.unsignedp)
 			    yyval.integer.value = right_shift (&yyvsp[-2].integer, -yyvsp[0].integer.value);
@@ -1169,7 +1169,7 @@ case 17:
 			    yyval.integer.value = left_shift (&yyvsp[-2].integer, yyvsp[0].integer.value); }
     break;
 case 18:
-#line 244 "cccp.y"
+#line 244 "y-src/cccp.y"
 { yyval.integer.unsignedp = yyvsp[-2].integer.unsignedp;
 			  if (yyvsp[0].integer.value < 0 && ! yyvsp[0].integer.unsignedp)
 			    yyval.integer.value = left_shift (&yyvsp[-2].integer, -yyvsp[0].integer.value);
@@ -1177,17 +1177,17 @@ case 18:
 			    yyval.integer.value = right_shift (&yyvsp[-2].integer, yyvsp[0].integer.value); }
     break;
 case 19:
-#line 250 "cccp.y"
+#line 250 "y-src/cccp.y"
 { yyval.integer.value = (yyvsp[-2].integer.value == yyvsp[0].integer.value);
 			  yyval.integer.unsignedp = 0; }
     break;
 case 20:
-#line 253 "cccp.y"
+#line 253 "y-src/cccp.y"
 { yyval.integer.value = (yyvsp[-2].integer.value != yyvsp[0].integer.value);
 			  yyval.integer.unsignedp = 0; }
     break;
 case 21:
-#line 256 "cccp.y"
+#line 256 "y-src/cccp.y"
 { yyval.integer.unsignedp = 0;
 			  if (yyvsp[-2].integer.unsignedp || yyvsp[0].integer.unsignedp)
 			    yyval.integer.value = (unsigned long) yyvsp[-2].integer.value <= yyvsp[0].integer.value;
@@ -1195,7 +1195,7 @@ case 21:
 			    yyval.integer.value = yyvsp[-2].integer.value <= yyvsp[0].integer.value; }
     break;
 case 22:
-#line 262 "cccp.y"
+#line 262 "y-src/cccp.y"
 { yyval.integer.unsignedp = 0;
 			  if (yyvsp[-2].integer.unsignedp || yyvsp[0].integer.unsignedp)
 			    yyval.integer.value = (unsigned long) yyvsp[-2].integer.value >= yyvsp[0].integer.value;
@@ -1203,7 +1203,7 @@ case 22:
 			    yyval.integer.value = yyvsp[-2].integer.value >= yyvsp[0].integer.value; }
     break;
 case 23:
-#line 268 "cccp.y"
+#line 268 "y-src/cccp.y"
 { yyval.integer.unsignedp = 0;
 			  if (yyvsp[-2].integer.unsignedp || yyvsp[0].integer.unsignedp)
 			    yyval.integer.value = (unsigned long) yyvsp[-2].integer.value < yyvsp[0].integer.value;
@@ -1211,7 +1211,7 @@ case 23:
 			    yyval.integer.value = yyvsp[-2].integer.value < yyvsp[0].integer.value; }
     break;
 case 24:
-#line 274 "cccp.y"
+#line 274 "y-src/cccp.y"
 { yyval.integer.unsignedp = 0;
 			  if (yyvsp[-2].integer.unsignedp || yyvsp[0].integer.unsignedp)
 			    yyval.integer.value = (unsigned long) yyvsp[-2].integer.value > yyvsp[0].integer.value;
@@ -1219,54 +1219,54 @@ case 24:
 			    yyval.integer.value = yyvsp[-2].integer.value > yyvsp[0].integer.value; }
     break;
 case 25:
-#line 280 "cccp.y"
+#line 280 "y-src/cccp.y"
 { yyval.integer.value = yyvsp[-2].integer.value & yyvsp[0].integer.value;
 			  yyval.integer.unsignedp = yyvsp[-2].integer.unsignedp || yyvsp[0].integer.unsignedp; }
     break;
 case 26:
-#line 283 "cccp.y"
+#line 283 "y-src/cccp.y"
 { yyval.integer.value = yyvsp[-2].integer.value ^ yyvsp[0].integer.value;
 			  yyval.integer.unsignedp = yyvsp[-2].integer.unsignedp || yyvsp[0].integer.unsignedp; }
     break;
 case 27:
-#line 286 "cccp.y"
+#line 286 "y-src/cccp.y"
 { yyval.integer.value = yyvsp[-2].integer.value | yyvsp[0].integer.value;
 			  yyval.integer.unsignedp = yyvsp[-2].integer.unsignedp || yyvsp[0].integer.unsignedp; }
     break;
 case 28:
-#line 289 "cccp.y"
+#line 289 "y-src/cccp.y"
 { yyval.integer.value = (yyvsp[-2].integer.value && yyvsp[0].integer.value);
 			  yyval.integer.unsignedp = 0; }
     break;
 case 29:
-#line 292 "cccp.y"
+#line 292 "y-src/cccp.y"
 { yyval.integer.value = (yyvsp[-2].integer.value || yyvsp[0].integer.value);
 			  yyval.integer.unsignedp = 0; }
     break;
 case 30:
-#line 295 "cccp.y"
+#line 295 "y-src/cccp.y"
 { yyval.integer.value = yyvsp[-4].integer.value ? yyvsp[-2].integer.value : yyvsp[0].integer.value;
 			  yyval.integer.unsignedp = yyvsp[-2].integer.unsignedp || yyvsp[0].integer.unsignedp; }
     break;
 case 31:
-#line 298 "cccp.y"
+#line 298 "y-src/cccp.y"
 { yyval.integer = yylval.integer; }
     break;
 case 32:
-#line 300 "cccp.y"
+#line 300 "y-src/cccp.y"
 { yyval.integer = yylval.integer; }
     break;
 case 33:
-#line 302 "cccp.y"
+#line 302 "y-src/cccp.y"
 { yyval.integer.value = 0;
 			  yyval.integer.unsignedp = 0; }
     break;
 case 34:
-#line 307 "cccp.y"
+#line 307 "y-src/cccp.y"
 { yyval.keywords = 0; }
     break;
 case 35:
-#line 309 "cccp.y"
+#line 309 "y-src/cccp.y"
 { struct arglist *temp;
 			  yyval.keywords = (struct arglist *) xmalloc (sizeof (struct arglist));
 			  yyval.keywords->next = yyvsp[-2].keywords;
@@ -1281,7 +1281,7 @@ case 35:
 			  temp->next->length = 1; }
     break;
 case 36:
-#line 322 "cccp.y"
+#line 322 "y-src/cccp.y"
 { yyval.keywords = (struct arglist *) xmalloc (sizeof (struct arglist));
 			  yyval.keywords->name = yyvsp[-1].name.address;
 			  yyval.keywords->length = yyvsp[-1].name.length;
@@ -1520,7 +1520,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 327 "cccp.y"
+#line 327 "y-src/cccp.y"
 
 
 /* During parsing of a C expression, the pointer to the next character

@@ -175,7 +175,7 @@ package body Truc.Bidule Truc.Bidule/b138,2153
   protected body Bidule Bidule/b139,2181
   protected body Machin_T Machin_T/b146,2281
 
-c-src/abbrev.c,2634
+c-src/abbrev.c,3274
 Lisp_Object Vabbrev_table_name_list;43,1424
 Lisp_Object Vglobal_abbrev_table;48,1569
 Lisp_Object Vfundamental_mode_abbrev_table;52,1680
@@ -188,18 +188,29 @@ Lisp_Object Vlast_abbrev_text;75,2319
 int last_abbrev_point;79,2409
 Lisp_Object Vpre_abbrev_expand_hook,83,2482
 Lisp_Object Vpre_abbrev_expand_hook, Qpre_abbrev_expand_hook;83,2482
+DEFUN ("make-abbrev-table", Fmake_abbrev_table,85,2546
 DEFUN ("make-abbrev-table", Fmake_abbrev_table,make-abbrev-table85,2546
+DEFUN ("clear-abbrev-table", Fclear_abbrev_table,92,2738
 DEFUN ("clear-abbrev-table", Fclear_abbrev_table,clear-abbrev-table92,2738
+DEFUN ("define-abbrev", Fdefine_abbrev,107,3119
 DEFUN ("define-abbrev", Fdefine_abbrev,define-abbrev107,3119
+DEFUN ("define-global-abbrev", Fdefine_global_abbrev,149,4438
 DEFUN ("define-global-abbrev", Fdefine_global_abbrev,define-global-abbrev149,4438
+DEFUN ("define-mode-abbrev", Fdefine_mode_abbrev,160,4809
 DEFUN ("define-mode-abbrev", Fdefine_mode_abbrev,define-mode-abbrev160,4809
+DEFUN ("abbrev-symbol", Fabbrev_symbol,174,5277
 DEFUN ("abbrev-symbol", Fabbrev_symbol,abbrev-symbol174,5277
+DEFUN ("abbrev-expansion", Fabbrev_expansion,202,6241
 DEFUN ("abbrev-expansion", Fabbrev_expansion,abbrev-expansion202,6241
+DEFUN ("expand-abbrev", Fexpand_abbrev,218,6756
 DEFUN ("expand-abbrev", Fexpand_abbrev,expand-abbrev218,6756
+DEFUN ("unexpand-abbrev", Funexpand_abbrev,389,11677
 DEFUN ("unexpand-abbrev", Funexpand_abbrev,unexpand-abbrev389,11677
 write_abbrev 426,12884
 describe_abbrev 445,13319
+DEFUN ("insert-abbrev-table-description", Finsert_abbrev_table_description,466,13834
 DEFUN ("insert-abbrev-table-description", Finsert_abbrev_table_description,insert-abbrev-table-description466,13834
+DEFUN ("define-abbrev-table", Fdefine_abbrev_table,506,14990
 DEFUN ("define-abbrev-table", Fdefine_abbrev_table,define-abbrev-table506,14990
 syms_of_abbrev 540,16067
   DEFVAR_LISP ("abbrev-table-name-list"542,16087
@@ -1118,7 +1129,7 @@ extern re_wctype_t re_wctype 621,23329
 typedef int re_wchar_t;623,23387
 extern void re_set_whitespace_regexp 625,23412
 
-c-src/emacs/src/keyboard.c,23269
+c-src/emacs/src/keyboard.c,25243
 volatile int interrupt_input_blocked;76,1808
 volatile bool pending_signals;80,1944
 #define KBD_BUFFER_SIZE 82,1976
@@ -1225,6 +1236,7 @@ add_command_key 672,21582
 recursive_edit_1 697,22406
 record_auto_save 742,23848
 force_auto_save_soon 751,24016
+DEFUN ("recursive-edit", Frecursive_edit,759,24137
 DEFUN ("recursive-edit", Frecursive_edit,recursive-edit759,24137
 recursive_edit_unwind 804,25747
 any_kboard_state 817,26013
@@ -1241,6 +1253,7 @@ record_single_kboard_state 943,29437
 restore_kboard_configuration 952,29621
 cmd_error 970,30077
 cmd_error_internal 1024,31510
+DEFUN ("command-error-default-function", Fcommand_error_default_function,1043,32030
 DEFUN ("command-error-default-function", Fcommand_error_default_function,command-error-default-function1043,32030
 static Lisp_Object command_loop_2 1086,33637
 static Lisp_Object top_level_1 1087,33686
@@ -1248,11 +1261,15 @@ command_loop 1094,33916
 command_loop_2 1134,35135
 top_level_2 1146,35339
 top_level_1 1152,35417
+DEFUN ("top-level", Ftop_level,1164,35787
 DEFUN ("top-level", Ftop_level,top-level1164,35787
 user_error 1183,36288
+DEFUN ("exit-recursive-edit", Fexit_recursive_edit,1189,36429
 DEFUN ("exit-recursive-edit", Fexit_recursive_edit,exit-recursive-edit1189,36429
+DEFUN ("abort-recursive-edit", Fabort_recursive_edit,1201,36819
 DEFUN ("abort-recursive-edit", Fabort_recursive_edit,abort-recursive-edit1201,36819
 tracking_off 1216,37281
+DEFUN ("internal--track-mouse", Ftrack_mouse,1234,37816
 DEFUN ("internal--track-mouse", Ftrack_mouse,track-mouse1234,37816
 bool ignore_mouse_drag_p;1256,38392
 some_mouse_moved 1259,38441
@@ -1320,6 +1337,7 @@ Lisp_Object pending_funcalls;4377,131172
 decode_timer 4381,131293
 timer_check_2 4414,132246
 timer_check 4572,136817
+DEFUN ("current-idle-time", Fcurrent_idle_time,4607,137662
 DEFUN ("current-idle-time", Fcurrent_idle_time,current-idle-time4607,137662
 static Lisp_Object accent_key_syms;4625,138239
 static Lisp_Object func_key_syms;4626,138275
@@ -1366,10 +1384,12 @@ static Lisp_Object modifier_symbols;6327,189449
 lispy_modifier_list 6331,189586
 #define KEY_TO_CHAR(6353,190252
 parse_modifiers 6356,190328
+DEFUN ("internal-event-symbol-parse-modifiers", Fevent_symbol_parse_modifiers,6399,191517
 DEFUN ("internal-event-symbol-parse-modifiers", Fevent_symbol_parse_modifiers,event-symbol-parse-modifiers6399,191517
 apply_modifiers 6422,192391
 reorder_modifiers 6491,194720
 modify_event_symbol 6536,196528
+DEFUN ("event-convert-list", Fevent_convert_list,6628,199244
 DEFUN ("event-convert-list", Fevent_convert_list,event-convert-list6628,199244
 parse_solitary_modifier 6695,201135
 #define SINGLE_LETTER_MOD(6701,201258
@@ -1443,24 +1463,38 @@ keyremap_step 8811,261450
 test_undefined 8867,262934
 read_key_sequence 8916,264861
 read_key_sequence_vs 9826,295821
+DEFUN ("read-key-sequence", Fread_key_sequence,9885,297294
 DEFUN ("read-key-sequence", Fread_key_sequence,read-key-sequence9885,297294
+DEFUN ("read-key-sequence-vector", Fread_key_sequence_vector,9938,299982
 DEFUN ("read-key-sequence-vector", Fread_key_sequence_vector,read-key-sequence-vector9938,299982
 detect_input_pending 9950,300488
 detect_input_pending_ignore_squeezables 9959,300654
 detect_input_pending_run_timers 9967,300870
 clear_input_pending 9985,301362
 requeued_events_pending_p 9997,301732
+DEFUN ("input-pending-p", Finput_pending_p,10002,301813
 DEFUN ("input-pending-p", Finput_pending_p,input-pending-p10002,301813
+DEFUN ("recent-keys", Frecent_keys,10024,302596
 DEFUN ("recent-keys", Frecent_keys,recent-keys10024,302596
+DEFUN ("this-command-keys", Fthis_command_keys,10055,303517
 DEFUN ("this-command-keys", Fthis_command_keys,this-command-keys10055,303517
+DEFUN ("this-command-keys-vector", Fthis_command_keys_vector,10068,303958
 DEFUN ("this-command-keys-vector", Fthis_command_keys_vector,this-command-keys-vector10068,303958
+DEFUN ("this-single-command-keys", Fthis_single_command_keys,10080,304380
 DEFUN ("this-single-command-keys", Fthis_single_command_keys,this-single-command-keys10080,304380
+DEFUN ("this-single-command-raw-keys", Fthis_single_command_raw_keys,10096,304955
 DEFUN ("this-single-command-raw-keys", Fthis_single_command_raw_keys,this-single-command-raw-keys10096,304955
+DEFUN ("reset-this-command-lengths", Freset_this_command_lengths,10109,305495
 DEFUN ("reset-this-command-lengths", Freset_this_command_lengths,reset-this-command-lengths10109,305495
+DEFUN ("clear-this-command-keys", Fclear_this_command_keys,10136,306510
 DEFUN ("clear-this-command-keys", Fclear_this_command_keys,clear-this-command-keys10136,306510
+DEFUN ("recursion-depth", Frecursion_depth,10158,307069
 DEFUN ("recursion-depth", Frecursion_depth,recursion-depth10158,307069
+DEFUN ("open-dribble-file", Fopen_dribble_file,10169,307406
 DEFUN ("open-dribble-file", Fopen_dribble_file,open-dribble-file10169,307406
+DEFUN ("discard-input", Fdiscard_input,10203,308447
 DEFUN ("discard-input", Fdiscard_input,discard-input10203,308447
+DEFUN ("suspend-emacs", Fsuspend_emacs,10225,308949
 DEFUN ("suspend-emacs", Fsuspend_emacs,suspend-emacs10225,308949
 stuff_buffered_input 10285,311045
 set_waiting_for_input 10323,312016
@@ -1470,13 +1504,21 @@ deliver_interrupt_signal 10378,313642
 static int volatile force_quit_count;10387,313932
 handle_interrupt 10401,314414
 quit_throw_to_read_char 10541,318711
+DEFUN ("set-input-interrupt-mode", Fset_input_interrupt_mode,10562,319288
 DEFUN ("set-input-interrupt-mode", Fset_input_interrupt_mode,set-input-interrupt-mode10562,319288
+DEFUN ("set-output-flow-control", Fset_output_flow_control,10609,320516
 DEFUN ("set-output-flow-control", Fset_output_flow_control,set-output-flow-control10609,320516
+DEFUN ("set-input-meta-mode", Fset_input_meta_mode,10643,321432
 DEFUN ("set-input-meta-mode", Fset_input_meta_mode,set-input-meta-mode10643,321432
+DEFUN ("set-quit-char", Fset_quit_char,10694,322706
 DEFUN ("set-quit-char", Fset_quit_char,set-quit-char10694,322706
+DEFUN ("set-input-mode", Fset_input_mode,10729,323570
 DEFUN ("set-input-mode", Fset_input_mode,set-input-mode10729,323570
+DEFUN ("current-input-mode", Fcurrent_input_mode,10750,324459
 DEFUN ("current-input-mode", Fcurrent_input_mode,current-input-mode10750,324459
+DEFUN ("posn-at-x-y", Fposn_at_x_y,10787,325837
 DEFUN ("posn-at-x-y", Fposn_at_x_y,posn-at-x-y10787,325837
+DEFUN ("posn-at-point", Fposn_at_point,10824,327060
 DEFUN ("posn-at-point", Fposn_at_point,posn-at-point10824,327060
 init_kboard 10861,328214
 allocate_kboard 10893,329284
@@ -3319,19 +3361,32 @@ f-src/entry.strange,172
      & intensity1(577,12231
        character*(*) function foo(579,12307
 
-forth-src/test-forth.fth,408
-: a-forth-word 20,301
+forth-src/test-forth.fth,733
+: a-forth-word20,301
 99 constant a-forth-constant!22,343
 55 value a-forth-value?23,373
 create :a-forth-dictionary-entry24,397
 defer #a-defer-word27,460
-: (another-forth-word)(another-forth-word29,481
+: (another-forth-word)(another-forth-word)29,481
    9   field   >field136,582
    5   field   >field237,605
 constant (a-forth-constant(a-forth-constant38,628
 2000 buffer: #some-storage41,657
-code assemby-code-word 43,685
-: a-forth-word 50,870
+code assemby-code-word43,685
+: a-forth-word50,870
+: (foo)(foo)55,988
+: foo56,1000
+: create-bar58,1015
+3 4 2constant 2const61,1074
+2const 2value 2val62,1095
+2variable 2var63,1114
+3.1415e fconstant fconst65,1130
+fconst fvalue fval66,1155
+fvariable fvar67,1174
+synonym mypi69,1190
+BEGIN-STRUCTURE point71,1211
+  1 CELLS +FIELD p.x72,1262
+  1 CELLS +FIELD p.y73,1318
 
 go-src/test.go,48
 package main1,0
@@ -4913,7 +4968,7 @@ void bar(5,69
 int foobar(6,94
 interface_locate(9,131
 
-c.c,2136
+c.c,2280
 void (*fa)fa131,
 void 132,
 my_printf 135,
@@ -4965,8 +5020,11 @@ short array[array190,
 int f193,
 DEAFUN 196,
 XDEFUN 203,
+DEFUN ("x-get-selection-internal", Fx_get_selection_internal,206,
 DEFUN ("x-get-selection-internal", Fx_get_selection_internal,x-get-selection-internal206,
+       Fx_get_selection_internal,212,
        Fx_get_selection_internal,x-get-selection-internal212,
+      Fy_get_selection_internal,216,
       Fy_get_selection_internal,y-get-selection-internal216,
 defun_func1(218,
 DEFUN_func2(220,
@@ -5074,59 +5132,7 @@ y-src/parse.c,520
 # define	L_NE	26,492
 # define	L_GE	27,510
 
-parse.y,1464
-#define obstack_chunk_alloc 46,
-#define obstack_chunk_free 47,
-int yylex 57,
-void yyerror 59,
-void yyerror 61,
-VOIDSTAR parse_hash;63,
-extern VOIDSTAR hash_find(64,
-unsigned char fnin[fnin67,
-#define YYSTYPE 71,
-typedef struct node *YYSTYPE;YYSTYPE72,
-YYSTYPE parse_return;73,
-YYSTYPE make_list 75,
-YYSTYPE make_list 77,
-char *instr;instr80,
-int parse_error 81,
-extern struct obstack tmp_mem;82,
-#define YYSTYPE 85,
-# define YYDEBUG 88,
-#define	YYFINAL	93,
-#define	YYFLAG	94,
-#define	YYNTBASE	95,
-#define YYTRANSLATE(98,
-static const char yytranslate[yytranslate101,
-static const short yyprhs[yyprhs134,
-static const short yyrhs[yyrhs142,
-static const short yyrline[yyrline171,
-static const char *const yytname[yytname185,
-static const short yyr1[yyr1197,
-static const short yyr2[yyr2207,
-static const short yydefact[yydefact219,
-static const short yydefgoto[yydefgoto237,
-static const short yypact[yypact242,
-static const short yypgoto[yypgoto260,
-#define	YYLAST	266,
-static const short yytable[yytable269,
-static const short yycheck[yycheck330,
-yyerror FUN1(285,
-make_list FUN2(292,
-#define ERROR 303,
-extern struct node *yylval;yylval305,
-unsigned char parse_cell_or_range 308,
-unsigned char parse_cell_or_range 310,
-yylex FUN0(314,
-parse_cell_or_range FUN2(586,
-#define CK_ABS_R(670,
-#define CK_REL_R(674,
-#define CK_ABS_C(679,
-#define CK_REL_C(683,
-#define MAYBEREL(688,
-str_to_col FUN1(846,
-
-/usr/share/bison/bison.simple,2238
+/usr/share/bison/bison.simple,1787
 # define YYSTD(40,
 # define YYSTD(42,
 #  define YYSTACK_ALLOC 50,
@@ -5198,30 +5204,6 @@ yyparse 403,
 # define YYPOPSTACK 445,
 # define YYPOPSTACK 447,
 # undef YYSTACK_RELOCATE548,
-  *++yyvsp yyvsp746,
-  *++yylsp yylsp748,
-  yyn 755,
-  yystate 757,
-    yystate 761,
-  goto yynewstate;763,
-  goto yyerrlab1;823,
-  yyerrstatus 846,
-  goto yyerrhandle;848,
-  yyn 861,
-  yystate 875,
-  yyn 895,
-  yyn 903,
-  YYDPRINTF 917,
-  *++yyvsp yyvsp919,
-  *++yylsp yylsp921,
-  yystate 924,
-  goto yynewstate;925,
-  yyresult 932,
-  goto yyreturn;933,
-  yyresult 939,
-  goto yyreturn;940,
-  yyerror 946,
-  yyresult 947,
 
 y-src/atest.y,9
 exp	2,3
@@ -5241,91 +5223,6 @@ y-src/cccp.c,303
 # define	LSH	16,293
 # define	RSH	17,310
 # define	UNARY	18,327
-
-cccp.y,2532
-typedef unsigned char U_CHAR;38,
-struct arglist 41,
-  struct arglist *next;next42,
-  U_CHAR *name;name43,
-  int length;44,
-  int argno;45,
-#define NULL 51,
-#define GENERIC_PTR 56,
-#define GENERIC_PTR 58,
-#define NULL_PTR 63,
-int yylex 66,
-void yyerror 67,
-int expression_value;68,
-static jmp_buf parse_return_error;70,
-static int keyword_parsing 73,
-extern unsigned char is_idstart[is_idstart76,
-extern unsigned char is_idstart[], is_idchar[is_idchar76,
-extern unsigned char is_idstart[], is_idchar[], is_hor_space[is_hor_space76,
-extern char *xmalloc xmalloc78,
-extern int pedantic;81,
-extern int traditional;84,
-#define CHAR_TYPE_SIZE 87,
-#define INT_TYPE_SIZE 91,
-#define LONG_TYPE_SIZE 95,
-#define WCHAR_TYPE_SIZE 99,
-#define possible_sum_sign(104,
-static void integer_overflow 106,
-static long left_shift 107,
-static long right_shift 108,
-  struct constant 113,
-  struct constant {long value;113,
-  struct constant {long value; int unsignedp;113,
-  struct constant {long value; int unsignedp;} integer;113,
-  struct name 114,
-  struct name {U_CHAR *address;address114,
-  struct name {U_CHAR *address; int length;114,
-  struct name {U_CHAR *address; int length;} name;114,
-  struct arglist *keywords;keywords115,
-  int voidval;116,
-  char *sval;sval117,
-} yystype;118,
-# define YYSTYPE 119,
-# define YYDEBUG 122,
-#define	YYFINAL	127,
-#define	YYFLAG	128,
-#define	YYNTBASE	129,
-#define YYTRANSLATE(132,
-static const char yytranslate[yytranslate135,
-static const short yyprhs[yyprhs167,
-static const short yyrhs[yyrhs174,
-static const short yyrline[yyrline195,
-static const char *const yytname[yytname208,
-static const short yyr1[yyr1219,
-static const short yyr2[yyr2228,
-static const short yydefact[yydefact239,
-static const short yydefgoto[yydefgoto251,
-static const short yypact[yypact256,
-static const short yypgoto[yypgoto268,
-#define	YYLAST	274,
-static const short yytable[yytable277,
-static const short yycheck[yycheck301,
-static char *lexptr;lexptr332,
-parse_number 341,
-struct token 437,
-  char *operator;operator438,
-  int token;439,
-static struct token tokentab2[tokentab2442,
-yylex 459,
-parse_escape 740,
-yyerror 836,
-integer_overflow 844,
-left_shift 851,
-right_shift 873,
-parse_c_expression 893,
-extern int yydebug;919,
-main 923,
-unsigned char is_idchar[is_idchar948,
-unsigned char is_idstart[is_idstart950,
-char is_hor_space[is_hor_space953,
-initialize_random_junk 958,
-error 988,
-warning 993,
-lookup 999,
 
 /usr/share/bison/bison.simple,2238
 # define YYSTD(41,

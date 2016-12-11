@@ -530,7 +530,7 @@ Integers imply a direct index, and names, an associate lookup using
 For example, to retrieve the second element of a user's record in
 '/etc/passwd', the variable reference would look like:
 
-  ${egrep johnw /etc/passwd}[: 2]"
+  ${grep johnw /etc/passwd}[: 2]"
   (while indices
     (let ((refs (car indices)))
       (when (stringp value)

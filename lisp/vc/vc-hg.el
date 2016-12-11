@@ -106,6 +106,8 @@
   (require 'vc)
   (require 'vc-dir))
 
+(declare-function vc-compilation-mode "vc-dispatcher" (backend))
+
 ;;; Customization options
 
 (defgroup vc-hg nil
@@ -278,16 +280,16 @@ If no list entry produces a useful revision, return `nil'."
                   (const :tag "Active bookmark" 'bookmark)
                   (string :tag "Hg template")
                   (function :tag "Custom")))
-  :version "25.2"
+  :version "26.1"
   :group 'vc-hg)
 
 (defcustom vc-hg-use-file-version-for-mode-line-version nil
-  "When enabled, the modeline will contain revision informtion for the visited file.
+  "When enabled, the modeline contains revision information for the visited file.
 When not, the revision in the modeline is for the repository
 working copy.  `nil' is the much faster setting for
 large repositories."
   :type 'boolean
-  :version "25.2"
+  :version "26.1"
   :group 'vc-hg)
 
 (defun vc-hg--active-bookmark-internal (rev)
@@ -572,7 +574,7 @@ directly instead of always running Mercurial.  We try to be safe
 against Mercurial data structure format changes and always fall
 back to running Mercurial directly."
   :type 'boolean
-  :version "25.2"
+  :version "26.1"
   :group 'vc-hg)
 
 (defsubst vc-hg--read-u8 ()
@@ -1345,7 +1347,11 @@ commands, which only operated on marked files."
 		args       (cddr args)))
 	(apply 'vc-do-async-command buffer root hg-program command args)
         (with-current-buffer buffer
-          (vc-run-delayed (vc-compilation-mode 'hg)))
+          (vc-run-delayed
+            (vc-compilation-mode 'hg)
+            (setq-local compile-command
+                        (concat hg-program " " command " "
+                                (if args (mapconcat 'identity args " ") "")))))
 	(vc-set-async-update buffer)))))
 
 (defun vc-hg-pull (prompt)

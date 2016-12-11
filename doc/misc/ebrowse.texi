@@ -421,9 +421,9 @@ regions in the buffer.  Please notice the help strings in the echo area
 when the mouse moves over a sensitive region.
 
 @cindex context menu
-A click with @kbd{Mouse-3} on a mouse-sensitive region opens a context
+A click with @kbd{mouse-3} on a mouse-sensitive region opens a context
 menu.  In addition to this, each buffer also has a buffer-specific menu
-that is opened with a click with @kbd{Mouse-3} somewhere in the buffer
+that is opened with a click with @kbd{mouse-3} somewhere in the buffer
 where no highlight is displayed.
 
 
@@ -488,7 +488,7 @@ editing.
 @end table
 
 The same functionality is available from the menu opened with
-@kbd{Mouse-3} on the class name.
+@kbd{mouse-3} on the class name.
 
 
 
@@ -551,7 +551,7 @@ Display a list of types.
 @end table
 
 These lists are also available from the class' context menu invoked with
-@kbd{Mouse-3} on the class name.
+@kbd{mouse-3} on the class name.
 
 
 
@@ -898,7 +898,7 @@ You can install a hook function to perform actions after a member or
 class declaration or definition has been found, or when it is not found.
 
 All the commands described above can also be found in the context menu
-displayed when clicking @kbd{Mouse-2} on a member name.
+displayed when clicking @kbd{mouse-2} on a member name.
 
 
 

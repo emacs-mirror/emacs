@@ -113,10 +113,13 @@ hook}, a customizable list of Lisp functions to run each time the mode
 is enabled in a buffer.  @xref{Hooks}, for more information about
 hooks.  Each mode hook is named after its major mode, e.g., Fortran
 mode has @code{fortran-mode-hook}.  Furthermore, all text-based major
-modes run @code{text-mode-hook}, and all programming language modes
-run @code{prog-mode-hook}, prior to running their own mode hooks.
-Hook functions can look at the value of the variable @code{major-mode}
-to see which mode is actually being entered.
+modes run @code{text-mode-hook}, and many programming language modes
+@footnote{More specifically, the modes which are ''derived'' from
+@code{prog-mode} (@pxref{Derived Modes,,, elisp, The Emacs Lisp
+Reference Manual}).} (including all those distributed with Emacs) run
+@code{prog-mode-hook}, prior to running their own mode hooks.  Hook
+functions can look at the value of the variable @code{major-mode} to
+see which mode is actually being entered.
 
   Mode hooks are commonly used to enable minor modes (@pxref{Minor
 Modes}).  For example, you can put the following lines in your init

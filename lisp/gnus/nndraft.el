@@ -43,10 +43,12 @@
   "Where nndraft will store its files."
   nnmh-directory)
 
-(defvar nndraft-required-headers '(Date)
-  "*Headers to be generated when saving a draft message.
+(defcustom nndraft-required-headers '(Date)
+  "Headers to be generated when saving a draft message.
 The headers in this variable and the ones in `message-required-headers'
-are generated if and only if they are also in `message-draft-headers'.")
+are generated if and only if they are also in `message-draft-headers'."
+  :type '(repeat sexp)
+  :group 'message-headers)		; FIXME wrong group
 
 
 

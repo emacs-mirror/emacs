@@ -268,7 +268,7 @@ usually reads the file \"/etc/mailcap\"."
               (buffer-read-only nil))
          (when (string-match "^[^% \t]+$" method)
            (setq method (concat method " %s")))
-         (mh-cl-flet
+         (mh-flet
           ((mm-handle-set-external-undisplayer
             (handle function)
             (mh-handle-set-external-undisplayer folder handle function)))
@@ -525,7 +525,7 @@ parsed and then displayed."
   (let ((handles ())
         (folder mh-show-folder-buffer)
         (raw-message-data (buffer-string)))
-    (mh-cl-flet
+    (mh-flet
      ((mm-handle-set-external-undisplayer
        (handle function)
        (mh-handle-set-external-undisplayer folder handle function)))
@@ -1049,7 +1049,7 @@ attachment, the attachment is hidden."
         (function (get-text-property (point) 'mh-callback))
         (buffer-read-only nil)
         (folder mh-show-folder-buffer))
-    (mh-cl-flet
+    (mh-flet
      ((mm-handle-set-external-undisplayer
        (handle function)
        (mh-handle-set-external-undisplayer folder handle function)))
@@ -1070,7 +1070,7 @@ to click the MIME button."
           (mm-inline-media-tests mh-mm-inline-media-tests)
           (data (get-text-property (point) 'mh-data))
           (function (get-text-property (point) 'mh-callback)))
-      (mh-cl-flet
+      (mh-flet
        ((mm-handle-set-external-undisplayer
          (handle func)
          (mh-handle-set-external-undisplayer folder handle func)))
@@ -1166,7 +1166,7 @@ this ;-)"
 (defun mh-display-emphasis ()
   "Display graphical emphasis."
   (when (and mh-graphical-emphasis-flag (mh-small-show-buffer-p))
-    (mh-cl-flet
+    (mh-flet
      ((article-goto-body ()))      ; shadow this function to do nothing
      (save-excursion
        (goto-char (point-min))

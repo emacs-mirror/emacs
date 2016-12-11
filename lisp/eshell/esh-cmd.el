@@ -800,7 +800,7 @@ This macro calls itself recursively, with NOTFIRST non-nil."
 (defmacro eshell-do-pipelines-synchronously (pipeline)
   "Execute the commands in PIPELINE in sequence synchronously.
 Output of each command is passed as input to the next one in the pipeline.
-This is used on systems where `start-process' is not supported."
+This is used on systems where async subprocesses are not supported."
   (when (setq pipeline (cadr pipeline))
     `(progn
        ,(when (cdr pipeline)
@@ -838,7 +838,7 @@ This is used on systems where `start-process' is not supported."
   "Execute the commands in PIPELINE, connecting each to one another."
   `(let ((eshell-in-pipeline-p t) tailproc)
      (progn
-       ,(if (fboundp 'start-process)
+       ,(if (fboundp 'make-process)
 	    `(eshell-do-pipelines ,pipeline)
 	  `(let ((tail-handles (eshell-create-handles
 				(car (aref eshell-current-handles

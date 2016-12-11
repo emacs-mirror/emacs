@@ -238,10 +238,12 @@ controlled by the value of @code{package-menu-hide-low-priority}.)
 
   Once a package is downloaded and installed, it is @dfn{loaded} into
 the current Emacs session.  Loading a package is not quite the same as
-loading a Lisp library (@pxref{Lisp Libraries}); its effect varies
-from package to package.  Most packages just make some new commands
-available, while others have more wide-ranging effects on the Emacs
-session.  For such information, consult the package's help buffer.
+loading a Lisp library (@pxref{Lisp Libraries}); loading a package
+adds its directory to @code{load-path} and loads its autoloads.  The
+effect of a package's autoloads varies from package to package.  Most
+packages just make some new commands available, while others have more
+wide-ranging effects on the Emacs session.  For such information,
+consult the package's help buffer.
 
   By default, Emacs also automatically loads all installed packages in
 subsequent Emacs sessions.  This happens at startup, after processing

@@ -420,6 +420,18 @@ codepoint can have.
 @end example
 @end defun
 
+@defun char-from-name string &optional ignore-case
+This function returns the character whose Unicode name is @var{string}.
+If @var{ignore-case} is non-@code{nil}, case is ignored in @var{string}.
+This function returns @code{nil} if @var{string} does not name a character.
+
+@example
+;; U+03A3
+(= (char-from-name "GREEK CAPITAL LETTER SIGMA") #x03A3)
+     @result{} t
+@end example
+@end defun
+
 @defun get-byte &optional pos string
 This function returns the byte at character position @var{pos} in the
 current buffer.  If the current buffer is unibyte, this is literally
@@ -622,18 +634,21 @@ This function returns the value of @var{char}'s @var{propname} property.
      @result{} Nd
 @end group
 @group
-;; U+2084 SUBSCRIPT FOUR
-(get-char-code-property ?\u2084 'digit-value)
+;; U+2084
+(get-char-code-property ?\N@{SUBSCRIPT FOUR@}
+                        'digit-value)
      @result{} 4
 @end group
 @group
-;; U+2155 VULGAR FRACTION ONE FIFTH
-(get-char-code-property ?\u2155 'numeric-value)
+;; U+2155
+(get-char-code-property ?\N@{VULGAR FRACTION ONE FIFTH@}
+                        'numeric-value)
      @result{} 0.2
 @end group
 @group
-;; U+2163 ROMAN NUMERAL FOUR
-(get-char-code-property ?\u2163 'numeric-value)
+;; U+2163
+(get-char-code-property ?\N@{ROMAN NUMERAL FOUR@}
+                        'numeric-value)
      @result{} 4
 @end group
 @group
@@ -1034,8 +1049,7 @@ Unix convention, used on GNU and Unix systems, is to use the linefeed
 character (also called newline).  The DOS convention, used on
 MS-Windows and MS-DOS systems, is to use a carriage-return and a
 linefeed at the end of a line.  The Mac convention is to use just
-carriage-return.  (This was the convention used on the Macintosh
-system prior to OS X.)
+carriage-return.  (This was the convention used in Classic Mac OS.)
 
 @cindex base coding system
 @cindex variant coding system

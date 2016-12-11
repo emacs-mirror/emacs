@@ -3,6 +3,8 @@
 ;; Copyright (C) 2013-2016  Free Software Foundation, Inc.
 
 ;; Author: Aaron S. Hawley <aaron.s.hawley@gmail.com>
+;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
+;; Author: Daniel Colascione <dancol@dancol.org>
 ;; Keywords: internal
 
 ;; GNU Emacs is free software: you can redistribute it and/or modify
@@ -26,6 +28,7 @@
 
 (require 'ert)
 (require 'python)
+(require 'cl-lib)
 
 (ert-deftest lisp-forward-sexp-1-empty-parens ()
   "Test basics of \\[forward-sexp]."
@@ -206,6 +209,99 @@
     (insert "(insert ?\")")
     (goto-char (point-min))
     (should-error (forward-sexp)))) ;; FIXME: Shouldn't be an error.
+
+;; Test some core Elisp rules.
+(ert-deftest core-elisp-tests-1-defvar-in-let ()
+  "Test some core Elisp rules."
+  (with-temp-buffer
+    ;; Check that when defvar is run within a let-binding, the toplevel default
+    ;; is properly initialized.
+    (should (equal (list (let ((c-e-x 1)) (defvar c-e-x 2) c-e-x) c-e-x)
+                   '(1 2)))
+    (should (equal (list (let ((c-e-x 1))
+                           (defcustom c-e-x 2 "doc" :group 'blah :type 'integer) c-e-x)
+                         c-e-x)
+                   '(1 2)))))
+
+(ert-deftest core-elisp-tests-2-window-configurations ()
+  "Test properties of window-configurations."
+  (let ((wc (current-window-configuration)))
+    (with-current-buffer (window-buffer (frame-selected-window))
+      (push-mark)
+      (activate-mark))
+    (set-window-configuration wc)
+    (should (or (not mark-active) (mark)))))
+
+(ert-deftest core-elisp-tests-3-backquote ()
+  (should (eq 3 (eval ``,,'(+ 1 2)))))
+
+;; Test up-list and backward-up-list.
+(defun lisp-run-up-list-test (fn data start instructions)
+  (cl-labels ((posof (thing)
+                (and (symbolp thing)
+                     (= (length (symbol-name thing)) 1)
+                     (- (aref (symbol-name thing) 0) ?a -1))))
+    (with-temp-buffer
+      (set-syntax-table (make-syntax-table))
+      ;; Use a syntax table in which single quote is a string
+      ;; character so that we can embed the test data in a lisp string
+      ;; literal.
+      (modify-syntax-entry ?\' "\"")
+      (insert data)
+      (goto-char (posof start))
+      (dolist (instruction instructions)
+        (cond ((posof instruction)
+               (funcall fn)
+               (should (eql (point) (posof instruction))))
+              ((symbolp instruction)
+               (should-error (funcall fn)
+                             :type instruction))
+              (t (cl-assert nil nil "unknown ins")))))))
+
+(defmacro define-lisp-up-list-test (name fn data start &rest expected)
+  `(ert-deftest ,name ()
+     (lisp-run-up-list-test ,fn ,data ',start ',expected)))
+
+(define-lisp-up-list-test up-list-basic
+  (lambda () (up-list))
+  (or "(1 1 (1 1) 1 (1 1) 1)")
+  ;;   abcdefghijklmnopqrstuv
+  i k v scan-error)
+
+(define-lisp-up-list-test up-list-with-forward-sexp-function
+  (lambda ()
+    (let ((forward-sexp-function
+           (lambda (&optional arg)
+             (let ((forward-sexp-function nil))
+               (forward-sexp arg)))))
+      (up-list)))
+  (or "(1 1 (1 1) 1 (1 1) 1)")
+  ;;   abcdefghijklmnopqrstuv
+  i k v scan-error)
+
+(define-lisp-up-list-test up-list-out-of-string
+  (lambda () (up-list 1 t))
+  (or "1 (1 '2 2 (2 2 2' 1) 1")
+  ;;   abcdefghijklmnopqrstuvwxy
+  o r u scan-error)
+
+(define-lisp-up-list-test up-list-cross-string
+  (lambda () (up-list 1 t))
+  (or "(1 '2 ( 2' 1 '2 ) 2' 1)")
+  ;;   abcdefghijklmnopqrstuvwxy
+  i r u x scan-error)
+
+(define-lisp-up-list-test up-list-no-cross-string
+  (lambda () (up-list 1 t t))
+  (or "(1 '2 ( 2' 1 '2 ) 2' 1)")
+  ;;   abcdefghijklmnopqrstuvwxy
+  i k x scan-error)
+
+(define-lisp-up-list-test backward-up-list-basic
+  (lambda () (backward-up-list))
+  (or "(1 1 (1 1) 1 (1 1) 1)")
+  ;;   abcdefghijklmnopqrstuv
+  i f a scan-error)
 
 (provide 'lisp-tests)
 ;;; lisp-tests.el ends here

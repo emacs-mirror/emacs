@@ -771,6 +771,14 @@ the output buffer.  But if you change the value of the variable
 @code{shell-command-default-error-buffer} to a string, error output is
 inserted into a buffer of that name.
 
+@vindex shell-command-dont-erase-buffer
+  By default, the output buffer is erased between shell commands.
+If you change the value of the variable
+@code{shell-command-dont-erase-buffer} to a non-@code{nil} value,
+the output buffer is not erased.  This variable also controls where to
+set the point in the output buffer after the command completes; see the
+documentation of the variable for details.
+
 @node Interactive Shell
 @subsection Interactive Subshell
 
@@ -1217,7 +1225,7 @@ submit the copy as input with @key{RET}.  If you wish, you can edit
 the copy before resubmitting it.  If you use this command on an output
 line, it copies that line to the end of the buffer.
 
-@item Mouse-2
+@item mouse-2
 If @code{comint-use-prompt-regexp} is @code{nil} (the default), copy
 the old input command that you click on, inserting the copy at the end
 of the buffer (@code{comint-insert-input}).  If
@@ -1226,7 +1234,7 @@ not over old input, just yank as usual.
 @end table
 
   Moving to a previous input and then copying it with @kbd{C-c
-@key{RET}} or @kbd{Mouse-2} produces the same results---the same
+@key{RET}} or @kbd{mouse-2} produces the same results---the same
 buffer contents---that you would get by using @kbd{M-p} enough times
 to fetch that previous input from the history list.  However, @kbd{C-c
 @key{RET}} copies the text from the buffer, which can be different
@@ -1562,7 +1570,7 @@ process.
 
   You can solve this problem by setting up Emacs as an @dfn{edit
 server}, so that it ``listens'' for external edit requests and acts
-accordingly.  There are two ways to start an Emacs server:
+accordingly.  There are various ways to start an Emacs server:
 
 @itemize
 @findex server-start
@@ -1575,15 +1583,51 @@ dies with the Emacs process.
 
 @cindex daemon, Emacs
 @item
-Run Emacs as a @dfn{daemon}, using the @samp{--daemon} command-line
-option.  @xref{Initial Options}.  When Emacs is started this way, it
-calls @code{server-start} after initialization, and returns control to
-the calling terminal instead of opening an initial frame; it then
-waits in the background, listening for edit requests.
+Run Emacs as a @dfn{daemon}, using one of the @samp{--daemon} command-line
+options.  @xref{Initial Options}.  When Emacs is started this way, it
+calls @code{server-start} after initialization and does not open an
+initial frame.  It then waits for edit requests from clients.
+
+@cindex systemd unit file
+@item
+If your operating system uses @command{systemd} to manage startup,
+you can automatically start Emacs in daemon mode when you login
+using the supplied @dfn{systemd unit file}.  To activate this:
+@example
+systemctl --user enable emacs
+@end example
+(If your Emacs was installed into a non-standard location, you may
+need to copy the @file{emacs.service} file to a standard directory
+such as @file{~/.config/systemd/user/}.)
+
+@cindex socket activation, systemd, Emacs
+@item
+An external process can invoke the Emacs server when a connection
+event occurs upon a specified socket and pass the socket to the new
+Emacs server process.  An instance of this is the socket functionality
+of @command{systemd}: the @command{systemd} service creates a socket and
+listens for connections on it; when @command{emacsclient} connects to
+it for the first time, @command{systemd} can launch the Emacs server
+and hand over the socket to it for servicing @command{emacsclient}
+connections.  A setup to use this functionality could be:
+
+@file{~/.config/systemd/user/emacs.socket}:
+@example
+[Socket]
+ListenStream=/path/to/.emacs.socket
+
+[Install]
+WantedBy=sockets.target
+@end example
+
+(The @file{emacs.service} file described above must also be installed.)
+
+The @code{ListenStream} path will be the path that Emacs listens for
+connections from @command{emacsclient}; this is a file of your choice.
 @end itemize
 
 @cindex @env{TEXEDIT} environment variable
-  Either way, once an Emacs server is started, you can use a shell
+  Once an Emacs server is started, you can use a shell
 command called @command{emacsclient} to connect to the Emacs process
 and tell it to visit a file.  You can then set the @env{EDITOR}
 environment variable to @samp{emacsclient}, so that external programs
@@ -1596,9 +1640,16 @@ variable to @samp{emacsclient +%d %s}.}
   You can run multiple Emacs servers on the same machine by giving
 each one a unique @dfn{server name}, using the variable
 @code{server-name}.  For example, @kbd{M-x set-variable @key{RET}
-server-name @key{RET} foo @key{RET}} sets the server name to
+server-name @key{RET} "foo" @key{RET}} sets the server name to
 @samp{foo}.  The @code{emacsclient} program can specify a server by
 name, using the @samp{-s} option (@pxref{emacsclient Options}).
+
+  If you want to run multiple Emacs daemons (@pxref{Initial Options}),
+you can give each daemon its own server name like this:
+
+@example
+  emacs --eval "(setq server-name \"foo\")" --daemon
+@end example
 
 @findex server-eval-at
   If you have defined a server by a unique server name, it is possible
@@ -1878,7 +1929,7 @@ Like @code{lpr-buffer} but print only the current region.
 @findex lpr-region
 @vindex lpr-switches
 @vindex lpr-commands
-  On most operating system, the above hardcopy commands submit files
+  On most operating systems, the above hardcopy commands submit files
 for printing by calling the @command{lpr} program.  To change the
 printer program, customize the variable @code{lpr-command}.  To
 specify extra switches to give the printer program, customize the list
@@ -2097,7 +2148,7 @@ You can also type @kbd{M-x pr-interface @key{RET}}; this creates a
 @file{*Printing Interface*} buffer, similar to a customization buffer,
 where you can set the printing options.  After selecting what and how
 to print, you start the print job using the @samp{Print} button (click
-@kbd{Mouse-2} on it, or move point over it and type @key{RET}).  For
+@kbd{mouse-2} on it, or move point over it and type @key{RET}).  For
 further information on the various options, use the @samp{Interface
 Help} button.
 
@@ -2317,6 +2368,17 @@ the desktop also tries to save the frame and window configuration.
 To disable this, set @code{desktop-restore-frames} to @code{nil}.
 (See that variable's documentation for some related options
 that you can customize to fine-tune this behavior.)
+
+@vindex frameset-filter-alist
+   When the desktop restores the frame and window configuration, it
+uses the recorded values of frame parameters, disregarding any
+settings for those parameters you have in your init file (@pxref{Init
+File}).  This means that frame parameters such as fonts and faces for
+the restored frames will come from the desktop file, where they were
+saved when you exited your previous Emacs session; any settings for
+those parameters in your init file will be ignored.  To disable this,
+customize the value of @code{frameset-filter-alist} to filter out the
+frame parameters you don't want to be restored.
 
 @findex desktop-save
 @vindex desktop-save-mode
@@ -2606,8 +2668,8 @@ typing @kbd{M-x goto-address-mode}.  When this buffer-local minor mode
 is enabled, it finds all the URLs in the buffer, highlights them, and
 turns them into clickable buttons.  You can follow the URL by typing
 @kbd{C-c @key{RET}} (@code{goto-address-at-point}) while point is on
-its text; or by clicking with @kbd{Mouse-2}, or by clicking
-@kbd{Mouse-1} quickly (@pxref{Mouse References}).  Following a URL is
+its text; or by clicking with @kbd{mouse-2}, or by clicking
+@kbd{mouse-1} quickly (@pxref{Mouse References}).  Following a URL is
 done by calling @code{browse-url} as a subroutine
 (@pxref{Browse-URL}).
 
@@ -2680,12 +2742,12 @@ point (@code{dired-at-point}).
 @code{ffap-dired-other-frame}, analogous to @code{dired-other-frame}.
 @item M-x ffap-next
 Search buffer for next file name or URL, then find that file or URL.
-@item S-Mouse-3
-@kindex S-Mouse-3 @r{(FFAP)}
+@item S-mouse-3
+@kindex S-mouse-3 @r{(FFAP)}
 @code{ffap-at-mouse} finds the file guessed from text around the position
 of a mouse click.
-@item C-S-Mouse-3
-@kindex C-S-Mouse-3 @r{(FFAP)}
+@item C-S-mouse-3
+@kindex C-S-mouse-3 @r{(FFAP)}
 Display a menu of files and URLs mentioned in current buffer, then
 find the one you select (@code{ffap-menu}).
 @end table

@@ -262,7 +262,7 @@ item was added to the menu bar to make it easily accessible
 You no longer need to download a separate tarball in order to build
 Emacs with Leim.
 
-** Support for MacOS X was added.
+** Support for Mac OS X was added.
 See the files mac/README and mac/INSTALL for build instructions.
 
 ** Mac OS 9 port now uses the Carbon API by default.  You can also
@@ -3390,7 +3390,7 @@ obsolete; use `dframe-update-speed' instead.
 
 *** display-battery-mode replaces display-battery.
 
-*** battery.el now works on recent versions of OS X.
+*** battery.el now works on recent versions of Mac OS X.
 
 ** Games
 

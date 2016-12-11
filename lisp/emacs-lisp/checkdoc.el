@@ -1062,7 +1062,7 @@ Calls `checkdoc' with spell-checking turned on.
 Prefix argument is the same as for `checkdoc'"
   (interactive)
   (let ((checkdoc-spellcheck-documentation-flag t))
-    (call-interactively #'checkdoc nil current-prefix-arg)))
+    (call-interactively #'checkdoc)))
 
 ;;;###autoload
 (defun checkdoc-ispell-current-buffer ()
@@ -1071,7 +1071,7 @@ Calls `checkdoc-current-buffer' with spell-checking turned on.
 Prefix argument is the same as for `checkdoc-current-buffer'"
   (interactive)
   (let ((checkdoc-spellcheck-documentation-flag t))
-    (call-interactively #'checkdoc-current-buffer nil current-prefix-arg)))
+    (call-interactively #'checkdoc-current-buffer)))
 
 ;;;###autoload
 (defun checkdoc-ispell-interactive ()
@@ -1080,7 +1080,7 @@ Calls `checkdoc-interactive' with spell-checking turned on.
 Prefix argument is the same as for `checkdoc-interactive'"
   (interactive)
   (let ((checkdoc-spellcheck-documentation-flag t))
-    (call-interactively #'checkdoc-interactive nil current-prefix-arg)))
+    (call-interactively #'checkdoc-interactive)))
 
 ;;;###autoload
 (defun checkdoc-ispell-message-interactive ()
@@ -1099,7 +1099,7 @@ Calls `checkdoc-message-text' with spell-checking turned on.
 Prefix argument is the same as for `checkdoc-message-text'"
   (interactive)
   (let ((checkdoc-spellcheck-documentation-flag t))
-    (call-interactively #'checkdoc-message-text nil current-prefix-arg)))
+    (call-interactively #'checkdoc-message-text)))
 
 ;;;###autoload
 (defun checkdoc-ispell-start ()
@@ -1108,7 +1108,7 @@ Calls `checkdoc-start' with spell-checking turned on.
 Prefix argument is the same as for `checkdoc-start'"
   (interactive)
   (let ((checkdoc-spellcheck-documentation-flag t))
-    (call-interactively #'checkdoc-start nil current-prefix-arg)))
+    (call-interactively #'checkdoc-start)))
 
 ;;;###autoload
 (defun checkdoc-ispell-continue ()
@@ -1117,7 +1117,7 @@ Calls `checkdoc-continue' with spell-checking turned on.
 Prefix argument is the same as for `checkdoc-continue'"
   (interactive)
   (let ((checkdoc-spellcheck-documentation-flag t))
-    (call-interactively #'checkdoc-continue nil current-prefix-arg)))
+    (call-interactively #'checkdoc-continue)))
 
 ;;;###autoload
 (defun checkdoc-ispell-comments ()
@@ -1126,7 +1126,7 @@ Calls `checkdoc-comments' with spell-checking turned on.
 Prefix argument is the same as for `checkdoc-comments'"
   (interactive)
   (let ((checkdoc-spellcheck-documentation-flag t))
-    (call-interactively #'checkdoc-comments nil current-prefix-arg)))
+    (call-interactively #'checkdoc-comments)))
 
 ;;;###autoload
 (defun checkdoc-ispell-defun ()
@@ -1135,7 +1135,7 @@ Calls `checkdoc-defun' with spell-checking turned on.
 Prefix argument is the same as for `checkdoc-defun'"
   (interactive)
   (let ((checkdoc-spellcheck-documentation-flag t))
-    (call-interactively #'checkdoc-defun nil current-prefix-arg)))
+    (call-interactively #'checkdoc-defun)))
 
 ;;; Error Management
 ;;
@@ -1580,7 +1580,7 @@ mouse-[0-3]\\)\\)\\>"))
 	     (if (and sym (boundp sym) (fboundp sym)
 		      (save-excursion
 			(goto-char mb)
-			(forward-word -1)
+			(forward-word-strictly -1)
 			(not (looking-at
 			      "variable\\|option\\|function\\|command\\|symbol"))))
 		 (if (checkdoc-autofix-ask-replace
@@ -1596,7 +1596,7 @@ mouse-[0-3]\\)\\)\\>"))
 			     nil t nil nil "variable")))
 		       (goto-char (1- mb))
 		       (insert disambiguate " ")
-		       (forward-word 1))
+		       (forward-word-strictly 1))
 		   (setq ret
 			 (format "Disambiguate %s by preceding w/ \
 function,command,variable,option or symbol." ms1))))))

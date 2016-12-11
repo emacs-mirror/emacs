@@ -1,0 +1,51 @@
+#+TITLE: The Location of Emacs-Lisp Tests
+
+
+
+* The Main Emacs Repository
+
+The Emacs repository contains a very large number of Emacs-Lisp files, many of
+which pre-date both formal package support for Emacs and automated unit
+testing.
+
+All paths are relative to the Emacs root directory.
+
+** Source
+
+Lisp files are stored in the ~lisp~ directory or its sub-directories.
+Sub-directories are in many cases themed after packages (~gnus~, ~org~,
+~calc~), related functionality (~net~, ~emacs-lisp~, ~progmodes~) or status
+(~obsolete~).
+
+C source is stored in the ~src~ directory, which is flat.
+
+** Test Files
+
+Automated tests should be stored in the ~test/automated/lisp~ directory. Tests
+should reflect the directory structure of the source tree; so tests for files
+in the ~emacs-lisp~ source directory should reside in the
+~test/lisp/emacs-lisp~ directory.
+
+Tests should normally reside in a file with ~-tests~ added to the name of
+the tested source file; hence ~ert.el~ is tested in ~ert-tests.el~, or
+~pcase.el~ is tested in ~pcase-tests.el~. Exceptionally, tests for a
+single feature may be placed into multiple files of any name which are
+themselves placed in a directory named after the feature with ~-tests~
+appended, such as ~/test/lisp/emacs-lisp/eieio-tests~
+
+Where features of the C source are tested using Emacs-Lisp test files, these
+should reside in ~/test/src~ and be named after the C file.
+
+There are also some test materials that cannot be run automatically
+(i.e. via ert). These should be placed in ~/test/manual~
+
+** Resource Files
+
+Resource files for tests (containing test data) should reside in a directory
+named after the feature with a ~-resources~ suffix, and located in the same
+directory as the feature. Hence, the lisp file ~flymake.el~ should have test
+files in ~/test/automated/lisp/progmodes/flymake-tests.el~ should reside in a
+directory called ~/test/automated/lisp/progmodes/flymake-resources~.
+
+No guidance is given for the organization of resource files inside the
+~-resource~ directory; files can be organized at the author's discretion.

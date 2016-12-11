@@ -34,8 +34,6 @@
 
 (require 'org-macs)
 
-(declare-function w32-focus-frame "term/w32-win" (frame))
-
 ;; The following constant is for backward compatibility.  We do not use
 ;; it in org-mode, because the Byte compiler evaluates (featurep 'xemacs)
 ;; at compilation time and can therefore optimize code better.
@@ -411,10 +409,9 @@ Pass BUFFER to the XEmacs version of `move-to-column'."
 	 (when focus-follows-mouse
 	   (set-mouse-position frame (1- (frame-width frame)) 0)))))
 
-(defalias 'org-float-time
-  (if (featurep 'xemacs) 'time-to-seconds 'float-time))
+(define-obsolete-function-alias 'org-float-time 'float-time "26.1")
 
-;; `user-error' is only available from 24.2.50 on
+;; `user-error' is only available from 24.3 on
 (unless (fboundp 'user-error)
   (defalias 'user-error 'error))
 

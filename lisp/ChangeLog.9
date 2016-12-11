@@ -6523,7 +6523,7 @@
 	* ansi-color.el (ansi-color-process-output): Use markers instead
 	of positions for start and end of region.
 	(ansi-color-apply-on-region): Rewrote code to make it more robust.
-	Previously, occasional mistakes happend when fontifying many
+	Previously, occasional mistakes happened when fontifying many
 	chunks of output (eg. ls --color=yes /dev).  This happened
 	whenever an overlay was created up to the end of the region, which
 	coincided with the process-mark.  New text would then be added
