@@ -2,7 +2,7 @@
 [[http://melpa.org/#/which-key][http://melpa.org/packages/which-key-badge.svg]] [[http://stable.melpa.org/#/which-key][file:http://stable.melpa.org/packages/which-key-badge.svg]] [[https://travis-ci.org/justbur/emacs-which-key][file:https://travis-ci.org/justbur/emacs-which-key.svg?branch=master]]
 
 ** Recent Changes
-*** [2016-11-21] Replacement list changes
+*** 2016-11-21: Replacement list changes
 The alists controlling the replacement of key binding descriptions was
 simplified to use one centralized alist, =which-key-replacement-alist=. This
 change also allows for some new features compared to the old method. The other
@@ -18,8 +18,10 @@ prefixes like =C-x 8= which are shown in a different face. Screenshots of what
 the popup will look like are included below. =which-key= started as a rewrite of
 [[https://github.com/kai2nenobu/guide-key][guide-key-mode]], but the feature sets have diverged to a certain extent.
 
-** Table of Contents                                                 :TOC@4:
+** Table of Contents                                                  :TOC_3:
  - [[#which-key][which-key]]
+   - [[#recent-changes][Recent Changes]]
+     - [[#2016-11-21-replacement-list-changes][2016-11-21: Replacement list changes]]
    - [[#introduction][Introduction]]
    - [[#install][Install]]
      - [[#melpa][MELPA]]
@@ -32,17 +34,9 @@ the popup will look like are included below. =which-key= started as a rewrite of
    - [[#additional-commands][Additional Commands]]
    - [[#special-features-and-configuration-options][Special Features and Configuration Options]]
      - [[#popup-type-options][Popup Type Options]]
-       - [[#minibuffer][minibuffer]]
-       - [[#side-window][side window]]
-       - [[#frame][frame]]
-       - [[#custom][custom]]
      - [[#custom-string-replacement-options][Custom String Replacement Options]]
-       - [[#key-based-replacement]["Key-Based" replacement]]
-       - [[#key-and-description-replacement][Key and Description replacement]]
      - [[#sorting-options][Sorting Options]]
      - [[#paging-options][Paging Options]]
-       - [[#method-1-default-using-c-h-or-help-char][Method 1 (default): Using C-h (or =help-char=)]]
-       - [[#method-2-bind-your-own-keys][Method 2: Bind your own keys]]
      - [[#face-customization-options][Face Customization Options]]
      - [[#other-options][Other Options]]
    - [[#support-for-third-party-libraries][Support for Third-Party Libraries]]
@@ -215,6 +209,7 @@ current implementation of side-window bottom).
 #+END_SRC
 
 *** Custom String Replacement Options
+    #+NAME: #custom-string-replacement-options
 You can customize the way the keys show in the buffer using three different
 replacement methods, each of which corresponds replacement alist. The basic idea
 of behind each alist is that you specify a selection string in the =car= of each
