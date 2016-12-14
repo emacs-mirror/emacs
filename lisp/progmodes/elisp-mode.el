@@ -810,15 +810,21 @@ non-nil result supercedes the xrefs produced by
             (push (elisp--xref-find-definitions sym) lst))
            (nreverse lst))))
 
+;; This used to use apply-partially, but that turned "obarray" into a
+;; reference to the actual obarray, not the symbol, and that's
+;; incompatible with the dumper code.
 (defvar elisp--xref-identifier-completion-table
-  (apply-partially #'completion-table-with-predicate
-                   obarray
-                   (lambda (sym)
-                     (or (boundp sym)
-                         (fboundp sym)
-                         (featurep sym)
-                         (facep sym)))
-                   'strict))
+  (lambda (string pred2 action)
+    (completion-table-with-predicate obarray
+                                     (lambda (sym)
+                                       (or (boundp sym)
+                                           (fboundp sym)
+                                           (featurep sym)
+                                           (facep sym)))
+                                     'strict
+                                     string
+                                     pred2
+                                     action)))
 
 (cl-defmethod xref-backend-identifier-completion-table ((_backend (eql elisp)))
   elisp--xref-identifier-completion-table)
