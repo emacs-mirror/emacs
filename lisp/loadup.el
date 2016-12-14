@@ -535,7 +535,10 @@ lost after dumping")))
                              ol))
                          (v (macroexp-quote v))))
                      cmds)
-               (push `(defvar ,s) cmds)))
+               (if (special-variable-p s)
+                   ;; A dummy initializer is needed for defvar to mark
+                   ;; the variable as special.
+                   (push `(defvar ,s 0) cmds))))
            (when (symbol-plist s)
              (push `(setplist ',s ',(symbol-plist s)) cmds))
            (when (get s 'face-defface-spec)
