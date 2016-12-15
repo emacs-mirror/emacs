@@ -51,7 +51,8 @@
          '((("C-c [a-d]" . nil) . ("C-c a" . "c-c a"))
            (("C-c .+" . nil) . ("C-c *" . "c-c *"))))
         (test-mode-1 t)
-        (test-mode-2 nil))
+        (test-mode-2 nil)
+        which-key-allow-multiple-replacements)
     (which-key-add-key-based-replacements
       "C-c ." "test ."
       "SPC ." "SPC ."
@@ -96,6 +97,22 @@
     (should (equal
              (which-key--maybe-replace '("SPC t 2" . "test mode"))
              '("SPC t 2" . "[ ] test mode")))))
+
+(ert-deftest which-key-test--maybe-replace-multiple ()
+  "Test `which-key-allow-multiple-replacements'. See #156"
+  (let ((which-key-replacement-alist
+         '(((nil . "helm") . (nil . "HLM"))
+           ((nil . "projectile") . (nil . "PRJTL"))))
+        (which-key-allow-multiple-replacements t))
+    (should (equal
+             (which-key--maybe-replace '("C-c C-c" . "helm-x"))
+             '("C-c C-c" . "HLM-x")))
+    (should (equal
+             (which-key--maybe-replace '("C-c C-c" . "projectile-x"))
+             '("C-c C-c" . "PRJTL-x")))
+    (should (equal
+             (which-key--maybe-replace '("C-c C-c" . "helm-projectile-x"))
+             '("C-c C-c" . "HLM-PRJTL-x")))))
 
 (provide 'which-key-tests)
 ;;; which-key-tests.el ends here

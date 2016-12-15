@@ -177,7 +177,11 @@ REPLACEMENT may also be a function taking a cons cell
 \(KEY . BINDING\) and producing a new corresponding cons cell.
 
 If REPLACEMENT is anything other than a cons cell \(and non nil\)
-the key binding is ignored by which-key."
+the key binding is ignored by which-key.
+
+Finally, you can multiple replacements to occur for a given key
+binding by setting `which-key-allow-multiple-replacements' to a
+non-nil value."
   :group 'which-key
   :type '(alist :key-type (alist :key-type regexp :value-type regexp)
                 :value-type (alist :key-type regexp :value-type regexp)))
@@ -194,6 +198,14 @@ the key binding is ignored by which-key."
      (push (cons (cons nil (car repl)) (cons nil (cdr repl)))
            which-key-replacement-alist))
    which-key-description-replacement-alist))
+
+(defcustom which-key-allow-multiple-replacements nil
+  "Allow a key binding to match and be modified by multiple
+elements in `which-key-replacement-alist' if non-nil. When nil,
+only the first match is used to perform replacements from
+`which-key-replacement-alist'."
+  :group 'which-key
+  :type 'boolean)
 
 (defcustom which-key-highlighted-command-list '()
   "A list of strings and/or cons cells used to highlight certain
@@ -1248,46 +1260,54 @@ local bindings coming first. Within these categories order using
 (defsubst which-key--butlast-string (str)
   (mapconcat #'identity (butlast (split-string str)) " "))
 
-(defun which-key--replacement-test (alist-key key)
-  "`assoc-default' test to find bindings in `which-key-replacement-alist'.
-Used in `which-key--maybe-replace'."
-  (let (case-fold-search)
-    (when (and (consp alist-key)
-               (or (null (car alist-key))
-                   (string-match-p (car alist-key) (car key)))
-               (or (null (cdr alist-key))
-                   (string-match-p (cdr alist-key) (cdr key))))
-      (setq which-key--last-replace-key alist-key))))
+(defun which-key--get-replacements (key-binding &optional use-major-mode)
+  (let ((alist (or (and use-major-mode
+                        (cdr-safe (assq major-mode which-key-replacement-alist)))
+                   which-key-replacement-alist))
+        res case-fold-search)
+    (catch 'res
+      (dolist (replacement alist)
+        ;; these are mode specific ones to ignore. The mode specific case is
+        ;; handled in the selection of alist
+        (unless (symbolp (car replacement))
+          (let ((key-regexp (caar replacement))
+                (binding-regexp (cdar replacement)))
+            (when (and (or (null key-regexp)
+                           (string-match-p key-regexp
+                                           (car key-binding)))
+                       (or (null binding-regexp)
+                           (string-match-p binding-regexp
+                                           (cdr key-binding))))
+              (push replacement res)
+              (when (not which-key-allow-multiple-replacements)
+                (throw 'res res)))))))
+    (nreverse res)))
 
 (defun which-key--maybe-replace (key-binding)
   "Use `which-key--replacement-alist' to maybe replace KEY-BINDING.
 KEY-BINDING is a cons cell of the form \(KEY . BINDING\) each of
 which are strings. KEY is of the form produced by `key-binding'."
-  (setq which-key--last-replace-key nil)
-  (let* ((mode-alist (assq major-mode which-key-replacement-alist))
-         (mode-res (when mode-alist
-                     (assoc-default
-                      key-binding mode-alist 'which-key--replacement-test)))
-         (res (or mode-res
-                  (assoc-default
-                   key-binding which-key-replacement-alist
-                   'which-key--replacement-test))))
-    (cond ((null res) key-binding)
-          ((functionp res) (funcall res key-binding))
-          ((consp res)
-           (cons
-            (cond ((and (car res) (car which-key--last-replace-key))
-                   (replace-regexp-in-string
-                    (car which-key--last-replace-key)
-                    (car res) (car key-binding) t))
-                  ((car res) (car res))
-                  (t (car key-binding)))
-            (cond ((and (cdr res) (cdr which-key--last-replace-key))
-                   (replace-regexp-in-string
-                    (cdr which-key--last-replace-key)
-                    (cdr res) (cdr key-binding) t))
-                  ((cdr res) (cdr res))
-                  (t (cdr key-binding))))))))
+  (let* ((mode-res (which-key--get-replacements key-binding t))
+         (all-repls (or mode-res
+                      (which-key--get-replacements key-binding))))
+    (dolist (repl all-repls key-binding)
+      (setq key-binding
+            (cond ((or (not (consp repl)) (null (cdr repl)))
+                   key-binding)
+                  ((functionp (cdr repl))
+                   (funcall (cdr repl) key-binding))
+                  ((consp (cdr repl))
+                   (cons
+                    (cond ((and (caar repl) (cadr repl))
+                           (replace-regexp-in-string
+                            (caar repl) (cadr repl) (car key-binding) t))
+                          ((cadr repl) (cadr repl))
+                          (t (car key-binding)))
+                    (cond ((and (cdar repl) (cddr repl))
+                           (replace-regexp-in-string
+                            (cdar repl) (cddr repl) (cdr key-binding) t))
+                          ((cddr repl) (cddr repl))
+                          (t (cdr key-binding))))))))))
 
 (defsubst which-key--current-key-list (&optional key-str)
   (append (listify-key-sequence which-key--current-prefix)
