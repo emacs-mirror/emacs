@@ -579,7 +579,6 @@ used.")
 (defvar which-key--current-show-keymap-name nil)
 (defvar which-key--prior-show-keymap-args nil)
 (defvar which-key--previous-frame-size nil)
-(defvar which-key--last-replace-key nil)
 (defvar which-key--prefix-title-alist nil)
 (defvar which-key--debug nil)
 
