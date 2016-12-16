@@ -126,6 +126,7 @@ the user specified."
 
 (defcustom use-package-keywords
   '(:disabled
+    :preface
     :pin
     :ensure
     :if
@@ -133,7 +134,6 @@ the user specified."
     :unless
     :requires
     :load-path
-    :preface
     :no-require
     :bind
     :bind*
