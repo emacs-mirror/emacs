@@ -241,9 +241,9 @@ function symbol (unquoted)."
       (cl-flet
           ((wrap (map bindings)
                  (if (and map pkg (not (eq map 'global-map)))
-                     (if (boundp map)
-                         bindings
-                       `((eval-after-load
+                     `((if (boundp ',map)
+                           (progn ,@bindings)
+                         (eval-after-load
                              ,(if (symbolp pkg) `',pkg pkg)
                            '(progn ,@bindings))))
                    bindings)))
