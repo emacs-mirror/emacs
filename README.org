@@ -2,6 +2,8 @@
 [[http://melpa.org/#/which-key][http://melpa.org/packages/which-key-badge.svg]] [[http://stable.melpa.org/#/which-key][file:http://stable.melpa.org/packages/which-key-badge.svg]] [[https://travis-ci.org/justbur/emacs-which-key][file:https://travis-ci.org/justbur/emacs-which-key.svg?branch=master]]
 
 ** Recent Changes
+*** 2016-12-20: Added =which-key-max-display-columns=
+Allows control over the number of columns in the popup. See [[#other-options][Other Options]].
 *** 2016-11-21: Replacement list changes
 The alists controlling the replacement of key binding descriptions was
 simplified to use one centralized alist, =which-key-replacement-alist=. This
@@ -21,6 +23,7 @@ the popup will look like are included below. =which-key= started as a rewrite of
 ** Table of Contents                                                  :TOC_3:
  - [[#which-key][which-key]]
    - [[#recent-changes][Recent Changes]]
+     - [[#2016-12-20-added-which-key-max-display-columns][2016-12-20: Added =which-key-max-display-columns=]]
      - [[#2016-11-21-replacement-list-changes][2016-11-21: Replacement list changes]]
    - [[#introduction][Introduction]]
    - [[#install][Install]]
@@ -398,6 +401,7 @@ You can also use =M-x customize-face= to customize any of the above faces to
 your liking.
 
 *** Other Options
+    #+NAME: #other-options
 The options below are also available through customize. Their defaults are
 shown.
 
@@ -413,6 +417,10 @@ shown.
   ;; Use additonal padding between columns of keys. This variable specifies the
   ;; number of spaces to add to the left of each column.
   (setq which-key-add-column-padding 0)
+
+  ;; The maximum number of columns to display in the which-key buffer. nil means
+  ;; don't impose a maximum.
+  (setq which-key-max-display-columns nil)
 
   ;; Set the separator used between keys and descriptions. Change this setting to
   ;; an ASCII character if your font does not show the default arrow. The second
