@@ -240,6 +240,7 @@ and nil. Nil turns the feature off."
                 (const :tag "In the first line" top)
                 (const :tag "In the last line" bottom)
                 (const :tag "In the echo area" echo)
+                (const :tag "In the mode-line" mode-line)
                 (const :tag "Hide" nil)))
 
 (defcustom which-key-popup-type 'side-window
@@ -1825,9 +1826,17 @@ and a page count."
         nil))
       (`echo
        (cons page
-             (concat full-prefix (when prefix-keys " ")
-                     status-line (when status-line " ")
-                     nxt-pg-hint)))
+             (lambda ()
+               (which-key--echo
+                (concat full-prefix (when prefix-keys " ")
+                        status-line (when status-line " ")
+                        nxt-pg-hint)))))
+      (`mode-line
+       (cons page
+             (lambda ()
+               (with-current-buffer which-key--buffer
+                 (setq-local mode-line-format
+                             (concat " " full-prefix " " status-line " " nxt-pg-hint))))))
       (_ (cons page nil)))))
 
 (defun which-key--show-page (n)
@@ -1839,8 +1848,8 @@ and a page count."
     (if (= 0 n-pages)
         (message "%s- which-key can't show keys: There is not \
 enough space based on your settings and frame size." prefix-keys)
-      (setq page-n (mod n n-pages)
-            which-key--current-page-n page-n)
+      (setq page-n (mod n n-pages))
+      (setq which-key--current-page-n page-n)
       (when (= n-pages (1+ n)) (setq which-key--on-last-page t))
       (let ((page-echo (which-key--process-page page-n which-key--pages-plist))
             (height (plist-get which-key--pages-plist :page-height))
@@ -1852,7 +1861,7 @@ enough space based on your settings and frame size." prefix-keys)
             (erase-buffer)
             (insert (car page-echo))
             (goto-char (point-min)))
-          (when (cdr page-echo) (which-key--echo (cdr page-echo)))
+          (when (cdr page-echo) (funcall (cdr page-echo)))
           (which-key--show-popup (cons height width)))))
     ;; used for paging at top-level
     (if (fboundp 'set-transient-map)
