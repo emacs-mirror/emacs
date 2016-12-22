@@ -80,6 +80,11 @@ The check is performed by looking for the module using `locate-library'."
   :type 'boolean
   :group 'use-package)
 
+(defcustom use-package-always-demand nil
+  "If non-nil, assume `:demand t` unless `:defer t` is given."
+  :type 'boolean
+  :group 'use-package)
+
 (defcustom use-package-always-ensure nil
   "Treat every package as though it had specified `:ensure SEXP`."
   :type 'sexp
@@ -1171,7 +1176,10 @@ this file.  Usage:
 
       (let ((body
              (macroexp-progn
-              (use-package-process-keywords name args*
+              (use-package-process-keywords name
+                (if use-package-always-demand
+                    (append args* '(:demand t))
+                  args*)
                 (and use-package-always-defer (list :deferred t))))))
         (if use-package-debug
             (display-buffer
