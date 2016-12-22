@@ -745,6 +745,8 @@ jit_byte_code__ (Lisp_Object byte_code)
   params[0] = jit_type_void_ptr;
   signature = jit_type_create_signature (jit_abi_cdecl, jit_type_nuint, params, 1, 1);
   this_func = jit_function_create (jit_context, signature);
+  jit_function_set_optimization_level (this_func,
+				       jit_function_get_max_optimization_level ());
   stackv = jit_value_get_param (this_func, 0);
   labels = alloca (sizeof (*labels) * SBYTES (bytestr));
   {
