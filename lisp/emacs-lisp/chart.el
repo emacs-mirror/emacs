@@ -60,6 +60,7 @@
 ;; with all the bitmaps you want to use.
 
 (require 'eieio)
+(eval-when-compile (require 'cl-lib))
 (eval-when-compile (require 'cl-generic))
 
 ;;; Code:
@@ -118,7 +119,7 @@ Useful if new Emacs is used on B&W display.")
 List is limited currently, which is ok since you really can't display
 too much in text characters anyways.")
 
-(define-derived-mode chart-mode fundamental-mode "CHART"
+(define-derived-mode chart-mode special-mode "Chart"
   "Define a mode in Emacs for displaying a chart."
   (buffer-disable-undo)
   (set (make-local-variable 'font-lock-global-modes) nil)
@@ -205,22 +206,23 @@ Make sure the width/height is correct."
 (cl-defmethod chart-draw ((c chart) &optional buff)
   "Start drawing a chart object C in optional BUFF.
 Erases current contents of buffer."
-  (save-excursion
-    (if buff (set-buffer buff))
-    (erase-buffer)
-    (insert (make-string 100 ?\n))
-    ;; Start by displaying the axis
-    (chart-draw-axis c)
-    ;; Display title
-    (chart-draw-title c)
-    ;; Display data
-    (message "Rendering chart...")
-    (sit-for 0)
-    (chart-draw-data c)
-    ;; Display key
-    ; (chart-draw-key c)
-    (message "Rendering chart...done")
-    ))
+  (with-silent-modifications
+    (save-excursion
+      (if buff (set-buffer buff))
+      (erase-buffer)
+      (insert (make-string (window-height (selected-window)) ?\n))
+      ;; Start by displaying the axis
+      (chart-draw-axis c)
+      ;; Display title
+      (chart-draw-title c)
+      ;; Display data
+      (message "Rendering chart...")
+      (sit-for 0)
+      (chart-draw-data c)
+      ;; Display key
+                                        ; (chart-draw-key c)
+      (message "Rendering chart...done")
+      )))
 
 (cl-defmethod chart-draw-title ((c chart))
   "Draw a title upon the chart.
@@ -434,11 +436,10 @@ or is created with the bounds of SEQ."
 		(setq axis (make-instance 'chart-axis-range
 					  :name (oref seq name)
 					  :chart c)))
-	    (while l
-	      (if (< (car l) (car range)) (setcar range (car l)))
-	      (if (> (car l) (cdr range)) (setcdr range (car l)))
-	      (setq l (cdr l)))
-	    (oset axis bounds range)))
+            (dolist (x l)
+              (if (< x (car range)) (setcar range x))
+              (if (> x (cdr range)) (setcdr range x)))
+            (oset axis bounds range)))
 	(if (eq axis-label 'x-axis) (oset axis loweredge nil))
 	(eieio-oset c axis-label axis)
 	))
@@ -449,11 +450,10 @@ or is created with the bounds of SEQ."
 (cl-defmethod chart-trim ((c chart) max)
   "Trim all sequences in chart C to be at most MAX elements long."
   (let ((s (oref c sequences)))
-    (while s
-      (let ((sl (oref (car s) data)))
+    (dolist (x s)
+      (let ((sl (oref x data)))
 	(if (> (length sl) max)
-	    (setcdr (nthcdr (1- max) sl) nil)))
-      (setq s (cdr s))))
+            (setcdr (nthcdr (1- max) sl) nil)))))
   )
 
 (cl-defmethod chart-sort ((c chart) pred)
@@ -614,27 +614,20 @@ SORT-PRED if desired."
 (defun chart-file-count (dir)
   "Draw a chart displaying the number of different file extensions in DIR."
   (interactive "DDirectory: ")
-  (if (not (string-match "/$" dir))
-      (setq dir (concat dir "/")))
   (message "Collecting statistics...")
   (let ((flst (directory-files dir nil nil t))
 	(extlst (list "<dir>"))
 	(cntlst (list 0)))
-    (while flst
-      (let* ((j (string-match "[^\\.]\\(\\.[a-zA-Z]+\\|~\\|#\\)$" (car flst)))
-	     (s (if (file-accessible-directory-p (concat dir (car flst)))
-		    "<dir>"
-		  (if j
-		      (substring (car flst) (match-beginning 1) (match-end 1))
-		    nil)))
+    (dolist (f flst)
+      (let* ((x (file-name-extension f))
+             (s (if (file-accessible-directory-p (expand-file-name f dir))
+                    "<dir>" x))
 	     (m (member s extlst)))
-	(if (not s) nil
+	(unless (null s)
 	  (if m
-	      (let ((cell (nthcdr (- (length extlst) (length m)) cntlst)))
-		(setcar cell (1+ (car cell))))
+              (cl-incf (car (nthcdr (- (length extlst) (length m)) cntlst)))
 	    (setq extlst (cons s extlst)
-		  cntlst (cons 1 cntlst)))))
-      (setq flst (cdr flst)))
+                  cntlst (cons 1 cntlst))))))
     ;; Let's create the chart!
     (chart-bar-quickie 'vertical "Files Extension Distribution"
 		       extlst "File Extensions"

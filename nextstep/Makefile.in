@@ -35,12 +35,12 @@ MKDIR_P = @MKDIR_P@
 
 ## Emacs.app.
 ns_appdir = @ns_appdir@
-## GNUstep: ns_appdir; OS X: ns_appdir/Contents/MacOS
+## GNUstep: ns_appdir; macOS: ns_appdir/Contents/MacOS
 ns_appbindir = @ns_appbindir@
 ## GNUstep/Emacs.base or Cocoa/Emacs.base.
 ns_appsrc = @ns_appsrc@
 ## GNUstep: GNUstep/Emacs.base/Resources/Info-gnustep.plist
-## OS X: Cocoa/Emacs.base/Contents/Info.plist
+## macOS: Cocoa/Emacs.base/Contents/Info.plist
 ns_check_file = @ns_appdir@/@ns_check_file@
 
 .PHONY: all

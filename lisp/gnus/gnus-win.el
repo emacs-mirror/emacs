@@ -34,27 +34,27 @@
   :group 'gnus)
 
 (defcustom gnus-use-full-window t
-  "*If non-nil, use the entire Emacs screen."
+  "If non-nil, use the entire Emacs screen."
   :group 'gnus-windows
   :type 'boolean)
 
 (defcustom gnus-window-min-width 2
-  "*Minimum width of Gnus buffers."
+  "Minimum width of Gnus buffers."
   :group 'gnus-windows
   :type 'integer)
 
 (defcustom gnus-window-min-height 1
-  "*Minimum height of Gnus buffers."
+  "Minimum height of Gnus buffers."
   :group 'gnus-windows
   :type 'integer)
 
 (defcustom gnus-always-force-window-configuration nil
-  "*If non-nil, always force the Gnus window configurations."
+  "If non-nil, always force the Gnus window configurations."
   :group 'gnus-windows
   :type 'boolean)
 
 (defcustom gnus-use-frames-on-any-display nil
-  "*If non-nil, frames on all displays will be considered usable by Gnus.
+  "If non-nil, frames on all displays will be considered usable by Gnus.
 When nil, only frames on the same display as the selected frame will be
 used to display Gnus windows."
   :version "22.1"
@@ -195,7 +195,7 @@ See the Gnus manual for an explanation of the syntax used.")
   "Mapping from short symbols to buffer names or buffer variables.")
 
 (defcustom gnus-configure-windows-hook nil
-  "*A hook called when configuring windows."
+  "A hook called when configuring windows."
   :version "22.1"
   :group 'gnus-windows
   :type 'hook)
@@ -273,9 +273,7 @@ See the Gnus manual for an explanation of the syntax used.")
 	      (cond
                ((eq buf (window-buffer (selected-window)))
                 (set-buffer buf))
-               ((eq t (window-dedicated-p
-		       ;; XEmacs version of `window-dedicated-p' requires it.
-		       (selected-window)))
+               ((eq t (window-dedicated-p))
                 ;; If the window is hard-dedicated, we have a problem because
                 ;; we just can't do what we're asked.  But signaling an error,
                 ;; like `switch-to-buffer' would do, is not an option because
@@ -417,19 +415,15 @@ See the Gnus manual for an explanation of the syntax used.")
                     (gnus-delete-windows-in-gnusey-frames))
                 ;; Just remove some windows.
                 (gnus-remove-some-windows)
-                (if (featurep 'xemacs)
-                    (switch-to-buffer nntp-server-buffer)
-                  (set-buffer nntp-server-buffer)))
+                (set-buffer nntp-server-buffer))
             (select-frame frame)))
 
         (let (gnus-window-frame-focus)
-          (if (featurep 'xemacs)
-              (switch-to-buffer nntp-server-buffer)
-            (set-buffer nntp-server-buffer))
+          (set-buffer nntp-server-buffer)
           (gnus-configure-frame split)
           (run-hooks 'gnus-configure-windows-hook)
           (when gnus-window-frame-focus
-            (gnus-select-frame-set-input-focus
+            (select-frame-set-input-focus
              (window-frame gnus-window-frame-focus)))))))))
 
 (defun gnus-delete-windows-in-gnusey-frames ()
@@ -510,27 +504,15 @@ should have point."
 		  lowest-buf buf))))
       (when lowest-buf
 	(pop-to-buffer lowest-buf)
-	(if (featurep 'xemacs)
-	    (switch-to-buffer nntp-server-buffer)
-	  (set-buffer nntp-server-buffer)))
+	(set-buffer nntp-server-buffer))
       (mapcar (lambda (b) (delete-windows-on b t))
 	      (delq lowest-buf bufs)))))
-
-(eval-and-compile
-  (cond
-   ((fboundp 'frames-on-display-list)
-    (defalias 'gnus-frames-on-display-list 'frames-on-display-list))
-   ((and (featurep 'xemacs) (fboundp 'frame-device))
-    (defun gnus-frames-on-display-list ()
-      (apply 'filtered-frame-list 'identity (list (frame-device nil)))))
-   (t
-    (defalias 'gnus-frames-on-display-list 'frame-list))))
 
 (defun gnus-get-buffer-window (buffer &optional frame)
   (cond ((and (null gnus-use-frames-on-any-display)
 	      (memq frame '(t 0 visible)))
 	 (car
-	  (let ((frames (gnus-frames-on-display-list)))
+	  (let ((frames (frames-on-display-list)))
 	    (gnus-remove-if (lambda (win) (not (memq (window-frame win)
 						     frames)))
 			    (get-buffer-window-list buffer nil frame)))))

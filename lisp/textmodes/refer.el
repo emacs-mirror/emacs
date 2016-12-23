@@ -73,7 +73,7 @@
 (defgroup refer nil
   "Look up references in bibliography files."
   :prefix "refer-"
-  :group 'wp)
+  :group 'text)
 
 (defcustom refer-bib-directory nil
   "Directory, or list of directories, to search for \\.bib files.

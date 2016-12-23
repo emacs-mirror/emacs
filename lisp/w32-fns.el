@@ -121,7 +121,7 @@ You should set this to t when using a non-system shell.\n\n"))))
 (add-hook 'after-init-hook 'w32-check-shell-configuration)
 
 ;; Override setting chosen at startup.
-(defun set-default-process-coding-system ()
+(defun w32-set-default-process-coding-system ()
   ;; Most programs on Windows will accept Unix line endings on input
   ;; (and some programs ported from Unix require it) but most will
   ;; produce DOS line endings on output.
@@ -142,8 +142,9 @@ You should set this to t when using a non-system shell.\n\n"))))
 		 . ,(if (default-value 'enable-multibyte-characters)
 			'(undecided-dos . undecided-dos)
 		      '(raw-text-dos . raw-text-dos)))))
-
-(add-hook 'before-init-hook 'set-default-process-coding-system)
+(define-obsolete-function-alias 'set-default-process-coding-system
+  #'w32-set-default-process-coding-system "26.1")
+(add-hook 'before-init-hook #'w32-set-default-process-coding-system)
 
 
 ;;; Basic support functions for managing Emacs's locale setting
@@ -200,8 +201,7 @@ certain patterns.
 This function is called by `convert-standard-filename'.
 
 Replace invalid characters and turn Cygwin names into native
-names, and also turn slashes into backslashes if the shell
-requires it (see `w32-shell-dos-semantics')."
+names."
   (save-match-data
     (let ((name
 	   (if (string-match "\\`/cygdrive/\\([a-zA-Z]\\)/" filename)
@@ -216,16 +216,9 @@ requires it (see `w32-shell-dos-semantics')."
       (while (string-match "[?*:<>|\"\000-\037]" name start)
 	(aset name (match-beginning 0) ?!)
 	(setq start (match-end 0)))
-      ;; convert directory separators to Windows format
-      ;; (but only if the shell in use requires it)
-      (when (w32-shell-dos-semantics)
-	(setq start 0)
-	(while (string-match "/" name start)
-	  (aset name (match-beginning 0) ?\\)
-	  (setq start (match-end 0))))
       name)))
 
-(defun set-w32-system-coding-system (coding-system)
+(defun w32-set-system-coding-system (coding-system)
   "Set the coding system used by the Windows system to CODING-SYSTEM.
 This is used for things like passing font names with non-ASCII
 characters in them to the system.  For a list of possible values of
@@ -241,6 +234,8 @@ This function is provided for backward compatibility, since
             default))))
   (check-coding-system coding-system)
   (setq locale-coding-system coding-system))
+(define-obsolete-function-alias 'set-w32-system-coding-system
+  #'w32-set-system-coding-system "26.1")
 
 ;; locale-coding-system was introduced to do the same thing as
 ;; w32-system-coding-system. Use that instead.

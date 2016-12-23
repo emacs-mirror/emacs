@@ -35,7 +35,7 @@
   :group 'gnus)
 
 (defcustom gnus-use-article-prefetch 30
-  "*If non-nil, prefetch articles in groups that allow this.
+  "If non-nil, prefetch articles in groups that allow this.
 If a number, prefetch only that many articles forward;
 if t, prefetch as many articles as possible."
   :group 'gnus-asynchronous
@@ -44,7 +44,7 @@ if t, prefetch as many articles as possible."
 		 (integer :tag "some" 0)))
 
 (defcustom gnus-asynchronous nil
-  "*If nil, inhibit all Gnus asynchronicity.
+  "If nil, inhibit all Gnus asynchronicity.
 If non-nil, let the other asynch variables be heeded."
   :group 'gnus-asynchronous
   :type 'boolean)
@@ -59,7 +59,7 @@ from that group."
   :type '(set (const read) (const exit)))
 
 (defcustom gnus-use-header-prefetch nil
-  "*If non-nil, prefetch the headers to the next group."
+  "If non-nil, prefetch the headers to the next group."
   :group 'gnus-asynchronous
   :type 'boolean)
 
@@ -148,18 +148,13 @@ that was fetched."
     (with-current-buffer gnus-summary-buffer
       (let ((next (caadr (gnus-data-find-list article))))
 	(when next
-	  (if (not (fboundp 'run-with-idle-timer))
-	      ;; This is either an older Emacs or XEmacs, so we
-	      ;; do this, which leads to slightly slower article
-	      ;; buffer display.
-	      (gnus-async-prefetch-article group next summary)
-	    (when gnus-async-timer
-	      (ignore-errors
-		(nnheader-cancel-timer 'gnus-async-timer)))
-	    (setq gnus-async-timer
-		  (run-with-idle-timer
-		   0.1 nil 'gnus-async-prefetch-article
-		   group next summary))))))))
+	  (when gnus-async-timer
+	    (ignore-errors
+	      (nnheader-cancel-timer 'gnus-async-timer)))
+	  (setq gnus-async-timer
+		(run-with-idle-timer
+		 0.1 nil 'gnus-async-prefetch-article
+		 group next summary)))))))
 
 (defun gnus-async-prefetch-article (group article summary &optional next)
   "Possibly prefetch several articles starting with ARTICLE."

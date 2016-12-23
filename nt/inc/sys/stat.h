@@ -30,6 +30,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 # define __MINGW_NOTHROW
 #endif
 
+/* Prevent the MinGW stat.h header from being included, ever.  */
+#ifndef _SYS_STAT_H
+# define _SYS_STAT_H
+#endif
+#ifndef _INC_STAT_H
+# define _INC_STAT_H
+#endif
+
 #include <sys/types.h>
 #include <time.h>
 

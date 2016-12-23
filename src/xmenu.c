@@ -1649,7 +1649,7 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
     {
       unblock_input ();
       /* Make "Cancel" equivalent to C-g.  */
-      Fsignal (Qquit, Qnil);
+      quit ();
     }
 
   unblock_input ();
@@ -1913,7 +1913,7 @@ x_dialog_show (struct frame *f, Lisp_Object title,
     }
   else
     /* Make "Cancel" equivalent to C-g.  */
-    Fsignal (Qquit, Qnil);
+    quit ();
 
   return Qnil;
 }
@@ -2304,7 +2304,7 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
       if (!(menuflags & MENU_FOR_CLICK))
 	{
 	  unblock_input ();
-	  Fsignal (Qquit, Qnil);
+	  quit ();
 	}
       break;
     }

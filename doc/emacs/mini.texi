@@ -469,8 +469,8 @@ separately.  (For example, when completing command names,
 @samp{em-l-m} completes to @samp{emacs-lisp-mode}.)
 
 Furthermore, a @samp{*} in the minibuffer text is treated as a
-@dfn{wildcard}---it matches any character at the corresponding
-position in the completion alternative.
+@dfn{wildcard}---it matches any string of characters at the
+corresponding position in the completion alternative.
 
 @item emacs22
 This completion style is similar to @code{basic}, except that it
@@ -788,8 +788,8 @@ File ‘foo.el’ exists; overwrite? (y or n)
 Because this query does not actually use the minibuffer, the usual
 minibuffer editing commands cannot be used.  However, you can perform
 some window scrolling operations while the query is active: @kbd{C-l}
-recenters the selected window; @kbd{M-v} (or @key{PageDown} or
-@key{next}) scrolls forward; @kbd{C-v} (or @key{PageUp}, or
+recenters the selected window; @kbd{C-v} (or @key{PageDown} or
+@key{next}) scrolls forward; @kbd{M-v} (or @key{PageUp}, or
 @key{prior}) scrolls backward; @kbd{C-M-v} scrolls forward in the next
 window; and @kbd{C-M-S-v} scrolls backward in the next window.  Typing
 @kbd{C-g} dismisses the query, and quits the command that issued it
@@ -811,5 +811,5 @@ Buffer foo.el modified; kill anyway? (yes or no)
 To answer, you must type @samp{yes} or @samp{no} into the minibuffer,
 followed by @key{RET}.  The minibuffer behaves as described in the
 previous sections; you can switch to another window with @kbd{C-x o},
-use the history commands @kbd{M-p} and @kbd{M-f}, etc.  Type @kbd{C-g}
+use the history commands @kbd{M-p} and @kbd{M-n}, etc.  Type @kbd{C-g}
 to quit the minibuffer and the querying command.

@@ -332,15 +332,13 @@ stands for no text itself.  It is used only for a side effect: it
 specifies @var{mapvar}'s value as the keymap for any following
 @samp{\[@var{command}]} sequences in this documentation string.
 
-@item ‘
-@itemx `
-(left single quotation mark and grave accent) both stand for a left quote.
+@item `
+(grave accent) stands for a left quote.
 This generates a left single quotation mark, an apostrophe, or a grave
 accent depending on the value of @code{text-quoting-style}.
 
-@item ’
-@itemx '
-(right single quotation mark and apostrophe) both stand for a right quote.
+@item '
+(apostrophe) stands for a right quote.
 This generates a right single quotation mark or an apostrophe
 depending on the value of @code{text-quoting-style}.
 
@@ -361,7 +359,8 @@ should use for single quotes in the wording of help and messages.
 If the variable's value is @code{curve}, the style is
 @t{‘like this’} with curved single quotes.  If the value is
 @code{straight}, the style is @t{'like this'} with straight
-apostrophes.  If the value is @code{grave}, the style is @t{`like
+apostrophes.  If the value is @code{grave},
+quotes are not translated and the style is @t{`like
 this'} with grave accent and apostrophe, the standard style
 before Emacs version 25.  The default value @code{nil}
 acts like @code{curve} if curved single quotes are displayable, and

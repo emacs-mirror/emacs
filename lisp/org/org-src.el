@@ -232,6 +232,8 @@ There is a mode hook, and keybindings for `org-edit-src-exit' and
 `org-edit-src-save'")
 
 (defvar org-edit-src-code-timer nil)
+(defvar org-inhibit-startup)
+
 (defun org-edit-src-code (&optional context code edit-buffer-name)
   "Edit the source CODE block at point.
 The code is copied to a separate buffer and the appropriate mode
@@ -265,7 +267,7 @@ the display of windows containing the Org buffer and the code buffer."
 	   ;; just one empty line, i.e. beg == end.
 	   (end (copy-marker (make-marker) t))
 	   (allow-write-back-p (null code))
-	   block-nindent total-nindent ovl lang lang-f single lfmt buffer msg
+	   block-nindent total-nindent ovl lang lang-f single buffer msg
 	   begline markline markcol line col transmitted-variables)
       (setq beg (move-marker beg (nth 0 info))
 	    end (move-marker end (nth 1 info))
@@ -471,7 +473,6 @@ the fragment in the Org-mode buffer."
 	(org-mode-p (derived-mode-p 'org-mode))
 	(beg (make-marker))
 	(end (make-marker))
-	(preserve-indentation org-src-preserve-indentation)
 	block-nindent ovl beg1 end1 code begline buffer)
     (beginning-of-line 1)
     (if (looking-at "[ \t]*[^:\n \t]")
@@ -927,6 +928,8 @@ fontification of code blocks see `org-src-fontify-block' and
 	   start end
 	   '(font-lock-fontified t fontified t font-lock-multiline t))
 	  (set-buffer-modified-p modified)))))
+
+(defvar org-src-fontify-natively)
 
 (defun org-src-fontify-block ()
   "Fontify code block at point."

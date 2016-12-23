@@ -52,6 +52,7 @@ typedef BOOL (WINAPI *GetModuleHandleExA_Proc) (DWORD,LPCSTR,HMODULE*);
 
 /* This needs to be called at startup to countermand any non-zero
    values recorded by temacs.  */
+void dynlib_reset_last_error (void);
 void
 dynlib_reset_last_error (void)
 {

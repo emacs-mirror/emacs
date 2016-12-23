@@ -75,7 +75,7 @@ am__v_at_1 =
 
 # ==================== Where To Install Things ====================
 
-# Location to install Emacs.app under GNUstep / Mac OS X.
+# Location to install Emacs.app under GNUstep / macOS.
 # Later values may use this.
 ns_appbindir=@ns_appbindir@
 
@@ -345,9 +345,12 @@ extraclean: maintainer-clean
 check:
 	@echo "We don't have any tests for the lib-src/ directory yet."
 
+tagsfiles = $(wildcard ${srcdir}/*.[ch])
+
+.PHONY: tags
 tags: TAGS
-TAGS: etags${EXEEXT}
-	etags *.[ch]
+TAGS: etags${EXEEXT} ${tagsfiles}
+	./etags ${tagsfiles}
 
 ../lib/libgnu.a: $(config_h)
 	$(MAKE) -C ../lib all

@@ -761,7 +761,7 @@ from the document.")
   (looking-at "JMF"))
 
 (defun nndoc-oe-dbx-type-p ()
-  (looking-at (mm-string-to-multibyte "\317\255\022\376")))
+  (looking-at (string-to-multibyte "\317\255\022\376")))
 
 (defun nndoc-read-little-endian ()
   (+ (prog1 (char-after) (forward-char 1))

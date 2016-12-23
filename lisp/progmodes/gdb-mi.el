@@ -69,12 +69,12 @@
 ;;   2) Use MinGW GDB instead.
 ;;   3) Use cygwin-mount.el
 
-;;; Mac OSX:
+;;; macOS:
 
-;; GDB in Emacs on Mac OSX works best with FSF GDB as Apple have made
-;; some changes to the version that they include as part of Mac OSX.
-;; This requires GDB version 7.0 or later (estimated release date Aug 2009)
-;; as earlier versions do not compile on Mac OSX.
+;; GDB in Emacs on macOS works best with FSF GDB as Apple have made
+;; some changes to the version that they include as part of macOS.
+;; This requires GDB version 7.0 or later as earlier versions do not
+;; compile on macOS.
 
 ;;; Known Bugs:
 
@@ -1976,6 +1976,7 @@ is running."
             (not gdb-non-stop))
            gud-running)
       (and gdb-gud-control-all-threads
+           (not (null gdb-running-threads-count))
            (> gdb-running-threads-count 0))))
 
 ;; GUD displays the selected GDB frame.  This might might not be the current
@@ -2492,7 +2493,9 @@ current thread and update GDB buffers."
   ;; Reason is available with target-async only
   (let* ((result (gdb-json-string output-field))
          (reason (bindat-get-field result 'reason))
-         (thread-id (bindat-get-field result 'thread-id)))
+         (thread-id (bindat-get-field result 'thread-id))
+         (retval (bindat-get-field result 'return-value))
+         (varnum (bindat-get-field result 'gdb-result-var)))
 
     ;; -data-list-register-names needs to be issued for any stopped
     ;; thread
@@ -2517,6 +2520,15 @@ current thread and update GDB buffers."
      (propertize gdb-inferior-status 'face font-lock-warning-face))
     (if (string-equal reason "exited-normally")
 	(setq gdb-active-process nil))
+
+    (when (and retval varnum
+               ;; When the user typed CLI commands, GDB/MI helpfully
+               ;; includes the "Value returned" response in the "~"
+               ;; record; here we avoid displaying it twice.
+               (not (string-match "^Value returned is " gdb-filter-output)))
+      (setq gdb-filter-output
+            (concat gdb-filter-output
+                    (format "Value returned is %s = %s\n" varnum retval))))
 
     ;; Select new current thread.
 
@@ -2650,8 +2662,15 @@ responses.
 If FIX-LIST is non-nil, \"FIX-LIST={..}\" is replaced with
 \"FIX-LIST=[..]\" prior to parsing. This is used to fix broken
 -break-info output when it contains breakpoint script field
-incompatible with GDB/MI output syntax."
+incompatible with GDB/MI output syntax.
+
+If `default-directory' is remote, full file names are adapted accordingly."
   (save-excursion
+    (let ((remote (file-remote-p default-directory)))
+      (when remote
+        (goto-char (point-min))
+        (while (re-search-forward "[\\[,]fullname=\"\\(.+\\)\"" nil t)
+          (replace-match (concat remote "\\1") nil nil nil 1))))
     (goto-char (point-min))
     (when fix-key
       (save-excursion

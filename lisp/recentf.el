@@ -1124,8 +1124,9 @@ IGNORE arguments."
   (recentf-dialog (format "*%s - Edit list*" recentf-menu-title)
     (set (make-local-variable 'recentf-edit-list) nil)
     (widget-insert
-     "Click on OK to delete selected files from the recent list.
-Click on Cancel or type `q' to cancel.\n")
+     (format-message
+      "Click on OK to delete selected files from the recent list.
+Click on Cancel or type `q' to cancel.\n"))
     ;; Insert the list of files as checkboxes
     (dolist (item recentf-list)
       (widget-create 'checkbox

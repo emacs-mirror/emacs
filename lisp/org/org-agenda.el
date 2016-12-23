@@ -52,7 +52,7 @@
 
 (declare-function diary-add-to-list "diary-lib"
                   (date string specifier &optional marker globcolor literal))
-(declare-function calendar-absolute-from-iso    "cal-iso"    (date))
+(declare-function calendar-iso-to-absolute      "cal-iso"    (date))
 (declare-function calendar-astro-date-string    "cal-julian" (&optional date))
 (declare-function calendar-bahai-date-string    "cal-bahai"  (&optional date))
 (declare-function calendar-chinese-date-string  "cal-china"  (&optional date))
@@ -3903,7 +3903,7 @@ functions do."
 
 (defvar org-agenda-markers nil
   "List of all currently active markers created by `org-agenda'.")
-(defvar org-agenda-last-marker-time (org-float-time)
+(defvar org-agenda-last-marker-time (float-time)
   "Creation time of the last agenda marker.")
 
 (defun org-agenda-new-marker (&optional pos)
@@ -3911,7 +3911,7 @@ functions do."
 Org-mode keeps a list of these markers and resets them when they are
 no longer in use."
   (let ((m (copy-marker (or pos (point)))))
-    (setq org-agenda-last-marker-time (org-float-time))
+    (setq org-agenda-last-marker-time (float-time))
     (if org-agenda-buffer
 	(with-current-buffer org-agenda-buffer
 	  (push m org-agenda-markers))
@@ -5231,7 +5231,7 @@ So the example above may also be written as
 The function expects the lisp variables `entry' and `date' to be provided
 by the caller, because this is how the calendar works.  Don't use this
 function from a program - use `org-agenda-get-day-entries' instead."
-  (when (> (- (org-float-time)
+  (when (> (- (float-time)
 	      org-agenda-last-marker-time)
 	   5)
     ;; I am not sure if this works with sticky agendas, because the marker
@@ -5243,7 +5243,7 @@ function from a program - use `org-agenda-get-day-entries' instead."
   (let* ((files (if (and entry (stringp entry) (string-match "\\S-" entry))
 		    (list entry)
 		  (org-agenda-files t)))
-	 (time (org-float-time))
+	 (time (float-time))
 	 file rtn results)
     (when (or (not org-diary-last-run-time)
 	      (> (- time
@@ -5912,9 +5912,9 @@ See also the user option `org-agenda-clock-consistency-checks'."
 	      (throw 'next t))
 	    (setq ts (match-string 1)
 		  te (match-string 3)
-		  ts (org-float-time
+		  ts (float-time
 		      (apply 'encode-time (org-parse-time-string ts)))
-		  te (org-float-time
+		  te (float-time
 		      (apply 'encode-time (org-parse-time-string te)))
 		  dt (- te ts))))
 	(cond

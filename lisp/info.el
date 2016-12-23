@@ -81,28 +81,24 @@ The Lisp code is executed when the node is selected.")
     (t :height 1.2 :inherit info-title-2))
   "Face for info titles at level 1."
   :group 'info)
-(define-obsolete-face-alias 'Info-title-1-face 'info-title-1 "22.1")
 
 (defface info-title-2
   '((((type tty pc) (class color)) :foreground "lightblue" :weight bold)
     (t :height 1.2 :inherit info-title-3))
   "Face for info titles at level 2."
   :group 'info)
-(define-obsolete-face-alias 'Info-title-2-face 'info-title-2 "22.1")
 
 (defface info-title-3
   '((((type tty pc) (class color)) :weight bold)
     (t :height 1.2 :inherit info-title-4))
   "Face for info titles at level 3."
   :group 'info)
-(define-obsolete-face-alias 'Info-title-3-face 'info-title-3 "22.1")
 
 (defface info-title-4
   '((((type tty pc) (class color)) :weight bold)
     (t :weight bold :inherit variable-pitch))
   "Face for info titles at level 4."
   :group 'info)
-(define-obsolete-face-alias 'Info-title-4-face 'info-title-4 "22.1")
 
 (defface info-menu-header
   '((((type tty pc))
@@ -119,7 +115,6 @@ The Lisp code is executed when the node is selected.")
     (t :underline t))
   "Face for every third `*' in an Info menu."
   :group 'info)
-(define-obsolete-face-alias 'info-menu-5 'info-menu-star "22.1")
 
 (defface info-xref
   '((t :inherit link))
@@ -189,15 +184,11 @@ A header-line does not scroll with the rest of the buffer."
 	       configure-info-directory)))
 	 (prefixes
 	  ;; Directory trees in which to look for info subdirectories
-	  (prune-directory-list '("/usr/local/" "/usr/" "/opt/" "/")))
+	  (prune-directory-list '("/usr/local/" "/usr/" "/opt/")))
 	 (suffixes
 	  ;; Subdirectories in each directory tree that may contain info
-	  ;; directories.  Most of these are rather outdated.
-	  ;; It ought to be fine to stop checking the "emacs" ones now,
-	  ;; since this is Emacs and we have not installed info files
-	  ;; into such directories for a looong time...
-	  '("share/" "" "gnu/" "gnu/lib/" "gnu/lib/emacs/"
-	    "emacs/" "lib/" "lib/emacs/"))
+	  ;; directories.
+	  '("share/" ""))
 	 (standard-info-dirs
 	  (apply #'nconc
 		 (mapcar (lambda (pfx)
@@ -4236,9 +4227,12 @@ With a zero prefix arg, put the name inside a function call to `info'."
   "Syntax table used in `Info-mode'.")
 
 (defface Info-quoted
-  '((t :family "courier"))
+  '((t :inherit fixed-pitch-serif))
   "Face used for quoted elements.")
 
+;; We deliberately fontify only ‘..’ quoting, and not `..', because
+;; the former can be done much more reliably, i.e. without risking
+;; false positives.
 (defvar Info-mode-font-lock-keywords
   '(("‘\\([^’]*\\)’" (1 'Info-quoted))))
 
@@ -5010,17 +5004,29 @@ first line or header line, and for breadcrumb links.")
       ;; Fontify footnotes
       (goto-char (point-min))
       (when (and not-fontified-p (re-search-forward "^[ \t]*-+ Footnotes -+$" nil t))
-        (let ((limit (point)))
+        (let ((limit (point))
+              (fncount 0))
+          ;; How many footnotes do we have in this node?
+          (while (re-search-forward "^ [ \t]*([0-9]+) " nil t)
+            (setq fncount (1+ fncount)))
           (goto-char (point-min))
-          (while (re-search-forward "\\(([0-9]+)\\)" nil t)
-            (add-text-properties (match-beginning 0) (match-end 0)
-                                 `(font-lock-face info-xref
-                                   link t
-                                   mouse-face highlight
-                                   help-echo
-                                   ,(if (< (point) limit)
-                                        "mouse-2: go to footnote definition"
-                                      "mouse-2: go to footnote reference"))))))
+          (while (re-search-forward "\\((\\([0-9]+\\))\\)" nil t)
+            (let ((footnote-num (string-to-number (match-string 2))))
+              ;; Don't fontify parenthesized numbers that cannot
+              ;; possibly be one of this node's footnotes.  This still
+              ;; doesn't catch unrelated numbers that happen to be
+              ;; small enough, but in that case they should use
+              ;; "@footnotestyle separate" in the Texinfo sources.
+              (when (and (> footnote-num 0)
+                         (<= footnote-num fncount))
+                (add-text-properties (match-beginning 0) (match-end 0)
+                                     `(font-lock-face info-xref
+                                       link t
+                                       mouse-face highlight
+                                       help-echo
+                                       ,(if (< (point) limit)
+                                          "mouse-2: go to footnote definition"
+                                         "mouse-2: go to footnote reference"))))))))
 
       ;; Hide empty lines at the end of the node.
       (goto-char (point-max))

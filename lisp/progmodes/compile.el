@@ -130,7 +130,7 @@ and a string describing how the process finished.")
 (defvar compilation-num-errors-found)
 
 ;; If you make any changes to `compilation-error-regexp-alist-alist',
-;; be sure to run the ERT test in test/automated/compile-tests.el.
+;; be sure to run the ERT test in test/lisp/progmodes/compile-tests.el.
 ;; emacs -batch -l compile-tests.el -f ert-run-tests-batch-and-exit
 
 (defvar compilation-error-regexp-alist-alist
@@ -160,6 +160,13 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
      "^[ \t]*File \\(\"?\\)\\([^,\" \n\t<>]+\\)\\1, lines? \\([0-9]+\\)-?\\([0-9]+\\)?\\(?:$\\|,\
 \\(?: characters? \\([0-9]+\\)-?\\([0-9]+\\)?:\\)?\\([ \n]Warning\\(?: [0-9]+\\)?:\\)?\\)"
      2 (3 . 4) (5 . 6) (7))
+
+    (cmake
+     "^CMake \\(?:Error\\|\\(Warning\\)\\) at \\(.*\\):\\([1-9][0-9]*\\) ([^)]+):$"
+     2 3 nil (1))
+    (cmake-info
+     "^  \\(?: \\*\\)?\\(.*\\):\\([1-9][0-9]*\\) ([^)]+)$"
+     1 2 nil 0)
 
     (comma
      "^\"\\([^,\" \n\t]+\\)\", line \\([0-9]+\\)\
@@ -222,6 +229,13 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
      "^ *\\([0-9]+\\)\\.[ \t]+.*\n +\\(<-*>\n\\*\\*\\* \\(?:Error\\|Warnin\\(g\\)\\)\\)"
      nil 1 nil 2 0
      (2 (compilation-face '(3))))
+
+    (clang-include
+     ,(rx bol "In file included from "
+          (group (+ (not (any ?\n ?:)))) ?:
+          (group (+ (any (?0 . ?9)))) ?:
+          eol)
+     1 2 nil 0)
 
     (gcc-include
      "^\\(?:In file included \\|                 \\|\t\\)from \

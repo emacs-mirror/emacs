@@ -768,8 +768,6 @@ extern Lisp_Object preferred_coding_system (void);
 
 #ifdef emacs
 
-extern char *emacs_strerror (int);
-
 /* Coding system to be used to encode text for terminal display when
    terminal coding system is nil.  */
 extern struct coding_system safe_terminal_coding;

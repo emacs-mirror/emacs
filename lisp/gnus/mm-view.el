@@ -31,7 +31,6 @@
 (require 'mml-smime)
 
 (autoload 'gnus-completing-read "gnus-util")
-(autoload 'gnus-window-inside-pixel-edges "gnus-ems")
 (autoload 'gnus-article-prepare-display "gnus-art")
 (autoload 'vcard-parse-string "vcard")
 (autoload 'vcard-format-string "vcard")
@@ -80,7 +79,7 @@
 
 (autoload 'gnus-rescale-image "gnus-util")
 
-(defun mm-inline-image-emacs (handle)
+(defun mm-inline-image (handle)
   (let ((b (point-marker))
 	(inhibit-read-only t))
     (put-image
@@ -88,7 +87,7 @@
        (if (eq mm-inline-large-images 'resize)
            (gnus-rescale-image
 	    image
-	    (let ((edges (gnus-window-inside-pixel-edges
+	    (let ((edges (window-inside-pixel-edges
 			  (get-buffer-window (current-buffer)))))
 	      (cons (truncate (* mm-inline-large-images-proportion
 				 (- (nth 2 edges) (nth 0 edges))))
@@ -104,27 +103,6 @@
 	      (inhibit-read-only t))
 	  (remove-images b b)
 	  (delete-region b (1+ b)))))))
-
-(defun mm-inline-image-xemacs (handle)
-  (when (featurep 'xemacs)
-    (insert "\n")
-    (forward-char -1)
-    (let ((annot (make-annotation (mm-get-image handle) nil 'text))
-	(inhibit-read-only t))
-      (mm-handle-set-undisplayer
-       handle
-       `(lambda ()
-	  (let ((b ,(point-marker))
-	      (inhibit-read-only t))
-	    (delete-annotation ,annot)
-	    (delete-region (1- b) b))))
-      (set-extent-property annot 'mm t)
-      (set-extent-property annot 'duplicable t))))
-
-(eval-and-compile
-  (if (featurep 'xemacs)
-      (defalias 'mm-inline-image 'mm-inline-image-xemacs)
-    (defalias 'mm-inline-image 'mm-inline-image-emacs)))
 
 (defvar mm-w3m-setup nil
   "Whether gnus-article-mode has been setup to use emacs-w3m.")
@@ -220,18 +198,19 @@
 	      (delete-region ,(point-min-marker)
 			     ,(point-max-marker)))))))))
 
-(defvar mm-w3m-standalone-supports-m17n-p (if (featurep 'mule) 'undecided)
-  "*T means the w3m command supports the m17n feature.")
+(defcustom mm-w3m-standalone-supports-m17n-p 'undecided
+  "T means the w3m command supports the m17n feature."
+  :type '(choice (const nil) (const t) (other :tag "detect" undecided))
+  :group 'mime-display)
 
 (defun mm-w3m-standalone-supports-m17n-p ()
   "Say whether the w3m command supports the m17n feature."
   (cond ((eq mm-w3m-standalone-supports-m17n-p t) t)
 	((eq mm-w3m-standalone-supports-m17n-p nil) nil)
-	((not (featurep 'mule)) (setq mm-w3m-standalone-supports-m17n-p nil))
 	((condition-case nil
 	     (let ((coding-system-for-write 'iso-2022-jp)
 		   (coding-system-for-read 'iso-2022-jp)
-		   (str (mm-decode-coding-string "\
+		   (str (decode-coding-string "\
 \e$B#D#o#e#s!!#w#3#m!!#s#u#p#p#o#r#t!!#m#1#7#n!)\e(B" 'iso-2022-jp)))
 	       (mm-with-multibyte-buffer
 		 (insert str)
@@ -283,7 +262,7 @@
     (delete-region (match-beginning 0) (match-end 0))))
 
 (defun mm-inline-wash-with-file (post-func cmd &rest args)
-  (let ((file (mm-make-temp-file
+  (let ((file (make-temp-file
 	       (expand-file-name "mm" mm-tmp-directory))))
     (let ((coding-system-for-write 'binary))
       (write-region (point-min) (point-max) file nil 'silent))
@@ -463,11 +442,6 @@
 	 handle
 	 `(lambda ()
 	    (let ((inhibit-read-only t))
-	      (if (fboundp 'remove-specifier)
-		  ;; This is only valid on XEmacs.
-		  (dolist (prop '(background background-pixmap foreground))
-		    (remove-specifier
-		     (face-property 'default prop) (current-buffer))))
 	      (delete-region ,(point-min-marker) ,(point-max-marker)))))))))
 
 ;; Shut up byte-compiler.
@@ -486,18 +460,14 @@ If MODE is not set, try to find mode automatically."
 	(unless charset
 	  (setq coding-system (mm-find-buffer-file-coding-system)))
 	(setq text (buffer-string))))
-    ;; XEmacs @#$@ version of font-lock refuses to fully turn itself
-    ;; on for buffers whose name begins with " ".  That's why we use
-    ;; `with-current-buffer'/`generate-new-buffer' rather than
-    ;; `with-temp-buffer'.
-    (with-current-buffer (generate-new-buffer "*fontification*")
+    (with-temp-buffer
       (buffer-disable-undo)
       (mm-enable-multibyte)
       (insert (cond ((eq charset 'gnus-decoded)
 		     (with-current-buffer (mm-handle-buffer handle)
 		       (buffer-string)))
 		    (coding-system
-		     (mm-decode-coding-string text coding-system))
+		     (decode-coding-string text coding-system))
 		    (charset
 		     (mm-decode-string text charset))
 		    (t
@@ -524,28 +494,16 @@ If MODE is not set, try to find mode automatically."
 	  ;; Do not fontify if the guess mode is fundamental.
 	  (unless (or font-lock-mode
 		      (eq major-mode 'fundamental-mode))
-            (if (fboundp 'font-lock-ensure)
-                (font-lock-ensure)
-              (font-lock-fontify-buffer)))))
-      ;; By default, XEmacs font-lock uses non-duplicable text
-      ;; properties.  This code forces all the text properties
-      ;; to be copied along with the text.
-      (when (featurep 'xemacs)
-	(map-extents (lambda (ext ignored)
-		       (set-extent-property ext 'duplicable t)
-		       nil)
-		     nil nil nil nil nil 'text-prop))
+	    (font-lock-ensure))))
       (setq text (buffer-string))
       ;; Set buffer unmodified to avoid confirmation when killing the
       ;; buffer.
-      (set-buffer-modified-p nil)
-      (kill-buffer (current-buffer)))
+      (set-buffer-modified-p nil))
     (mm-insert-inline handle text)))
 
 ;; Shouldn't these functions check whether the user even wants to use
-;; font-lock?  At least under XEmacs, this fontification is pretty
-;; much unconditional.  Also, it would be nice to change for the size
-;; of the fontified region.
+;; font-lock?  Also, it would be nice to change for the size of the
+;; fontified region.
 
 (defun mm-display-patch-inline (handle)
   (mm-display-inline-fontify handle 'diff-mode))

@@ -5,7 +5,7 @@ See the end of the file for license conditions.
 
 
 This file contains general information on building GNU Emacs.
-For more information specific to the MS-Windows, GNUstep/Mac OS X, and
+For more information specific to the MS-Windows, GNUstep/macOS, and
 MS-DOS ports, also read the files nt/INSTALL, nextstep/INSTALL, and
 msdos/INSTALL.  For information about building from a repository checkout
 (rather than a release), also read the file INSTALL.REPO.
@@ -34,7 +34,7 @@ some of the steps manually.  The more detailed description in the other
 sections of this guide will help you do that, so please refer to those
 sections if you need to.
 
-  1. Unpacking the Emacs 24 release requires about 200 MB of free
+  1. Unpacking the Emacs 25 release requires about 200 MB of free
   disk space.  Building Emacs uses about another 200 MB of space.
   The final installed Emacs uses about 150 MB of disk space.
   This includes the space-saving that comes from automatically
@@ -208,7 +208,7 @@ corresponding command is 'yum-builddep emacs'.
 
 DETAILED BUILDING AND INSTALLATION:
 
-(This is for a Unix or Unix-like system.  For GNUstep and Mac OS X,
+(This is for a Unix or Unix-like system.  For GNUstep and macOS,
 see nextstep/INSTALL.  For non-ancient versions of MS Windows, see
 the file nt/INSTALL.  For MS-DOS and MS Windows 3.X, see msdos/INSTALL.)
 
@@ -318,9 +318,11 @@ Use --enable-gcc-warnings to enable compile-time checks that warn
 about possibly-questionable C code.  This is intended for developers
 and is useful with GNU-compatible compilers.  On a recent GNU system
 there should be no warnings; on older and on non-GNU systems the
-generated warnings may still be useful, though you may prefer building
-with 'make WERROR_CFLAGS=' so that the warnings are not treated as
-errors.
+generated warnings may still be useful, though you may prefer
+configuring with --enable-gcc-warnings=warn-only so they are not
+treated as errors.  The default is --enable-gcc-warnings=warn-only if
+it appears to be a developer build, and is --disable-gcc-warnings
+otherwise.
 
 Use --disable-silent-rules to cause 'make' to give more details about
 the commands it executes.  This can be helpful when debugging a build

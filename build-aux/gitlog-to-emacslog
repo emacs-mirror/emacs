@@ -68,7 +68,7 @@ if [ -f "$output" ]; then
 fi
 
 # If this is not a Git repository, just generate an empty ChangeLog.
-test -d .git || {
+test -e .git || {
   >"$output"
   exit
 }

@@ -69,11 +69,13 @@ number, in which case Emacs will show the binding for that many
 seconds before removing it from display.  The default behavior is to
 display the binding for 2 seconds.
 
+@vindex extended-command-suggest-shorter
   Commands that don't have key bindings, can still be invoked after
 typing less than their full name at the @samp{M-x} prompt.  Emacs
 mentions such shorthands in the echo area if they are significantly
-shorter than the full command name.  The setting of
-@code{suggest-key-bindings} affects these hints as well.
+shorter than the full command name, and
+@code{extended-command-suggest-shorter} is non-@code{nil}.  The
+setting of @code{suggest-key-bindings} affects these hints as well.
 
   In this manual, when we speak of running a command by name, we often
 omit the @key{RET} that terminates the name.  Thus we might say

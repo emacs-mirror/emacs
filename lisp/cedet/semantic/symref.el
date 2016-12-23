@@ -65,6 +65,8 @@
 ;; Your tool should then create an instance of `semantic-symref-result'.
 
 (require 'semantic)
+(eval-when-compile (require 'semantic/find)) ;For semantic-find-tags-*
+(eval-when-compile (require 'ede/proj)) ;For `metasubproject' warning.
 
 (defvar ede-minor-mode)
 (declare-function data-debug-new-buffer "data-debug")
@@ -74,10 +76,12 @@
 (declare-function ede-up-directory "ede/files")
 
 ;;; Code:
-(defvar semantic-symref-tool 'detect
-  "*The active symbol reference tool name.
+(defcustom semantic-symref-tool 'detect
+  "The active symbol reference tool name.
 The tool symbol can be 'detect, or a symbol that is the name of
-a tool that can be used for symbol referencing.")
+a tool that can be used for symbol referencing."
+  :type 'symbol
+  :group 'semantic)
 (make-variable-buffer-local 'semantic-symref-tool)
 
 ;;; TOOL SETUP
@@ -109,7 +113,7 @@ Start with an EDE project, or use the default directory."
 			default-directory)))
     (if (and rootproj (condition-case nil
 			  ;; Hack for subprojects.
-			  (oref rootproj :metasubproject)
+			  (oref rootproj metasubproject)
 			(error nil)))
 	(ede-up-directory rootdirbase)
       rootdirbase)))
@@ -271,7 +275,7 @@ Optional SCOPE specifies which file set to search.  Defaults to `project'.
 Refers to `semantic-symref-tool', to determine the reference tool to use
 for the current buffer.
 Returns an object of class `semantic-symref-result'."
-  (interactive "sEgrep style Regexp: ")
+  (interactive "sGrep -E style Regexp: ")
   (let* ((inst (semantic-symref-instantiate
 		:searchfor text
 		:searchtype 'regexp
@@ -283,6 +287,80 @@ Returns an object of class `semantic-symref-result'."
       (when (called-interactively-p 'interactive)
 	(semantic-symref-data-debug-last-result))))
   )
+
+;;; SYMREF TOOLS
+;;
+;; The base symref tool provides something to hang new tools off of
+;; for finding symbol references.
+(defclass semantic-symref-tool-baseclass ()
+  ((searchfor :initarg :searchfor
+	      :type string
+	      :documentation "The thing to search for.")
+   (searchtype :initarg :searchtype
+		:type symbol
+		:documentation "The type of search to do.
+Values could be 'symbol, 'regexp, 'tagname, or 'completion.")
+   (searchscope :initarg :searchscope
+		:type symbol
+		:documentation
+		"The scope to search for.
+Can be 'project, 'target, or 'file.")
+   (resulttype :initarg :resulttype
+	       :type symbol
+	       :documentation
+	       "The kind of search results desired.
+Can be 'line, 'file, or 'tag.
+The type of result can be converted from 'line to 'file, or 'line to 'tag,
+but not from 'file to 'line or 'tag.")
+   )
+  "Baseclass for all symbol references tools.
+A symbol reference tool supplies functionality to identify the locations of
+where different symbols are used.
+
+Subclasses should be named `semantic-symref-tool-NAME', where
+NAME is the name of the tool used in the configuration variable
+`semantic-symref-tool'"
+  :abstract t)
+
+(cl-defmethod semantic-symref-get-result ((tool semantic-symref-tool-baseclass))
+  "Calculate the results of a search based on TOOL.
+The symref TOOL should already contain the search criteria."
+  (let ((answer (semantic-symref-perform-search tool))
+	)
+    (when answer
+      (let ((answersym (if (eq (oref tool resulttype) 'file)
+			   :hit-files
+			 (if (stringp (car answer))
+			     :hit-text
+			   :hit-lines))))
+	(semantic-symref-result (oref tool searchfor)
+				answersym
+				answer
+				:created-by tool))
+      )
+    ))
+
+(cl-defmethod semantic-symref-perform-search ((_tool semantic-symref-tool-baseclass))
+  "Base search for symref tools should throw an error."
+  (error "Symref tool objects must implement `semantic-symref-perform-search'"))
+
+(cl-defmethod semantic-symref-parse-tool-output ((tool semantic-symref-tool-baseclass)
+					      outputbuffer)
+  "Parse the entire OUTPUTBUFFER of a symref tool.
+Calls the method `semantic-symref-parse-tool-output-one-line' over and
+over until it returns nil."
+  (with-current-buffer outputbuffer
+    (goto-char (point-min))
+    (let ((result nil)
+	  (hit nil))
+      (while (setq hit (semantic-symref-parse-tool-output-one-line tool))
+	(setq result (cons hit result)))
+      (nreverse result)))
+  )
+
+(cl-defmethod semantic-symref-parse-tool-output-one-line ((_tool semantic-symref-tool-baseclass))
+  "Base tool output parser is not implemented."
+  (error "Symref tool objects must implement `semantic-symref-parse-tool-output-one-line'"))
 
 ;;; RESULTS
 ;;
@@ -316,9 +394,9 @@ Use the  `semantic-symref-hit-tags' method to get this list.")
 
 (cl-defmethod semantic-symref-result-get-files ((result semantic-symref-result))
   "Get the list of files from the symref result RESULT."
-  (if (slot-boundp result :hit-files)
+  (if (slot-boundp result 'hit-files)
       (oref result hit-files)
-    (let* ((lines  (oref result :hit-lines))
+    (let* ((lines  (oref result hit-lines))
 	   (files (mapcar (lambda (a) (cdr a)) lines))
 	   (ans nil))
       (setq ans (list (car files))
@@ -359,12 +437,12 @@ Optional OPEN-BUFFERS indicates that the buffers that the hits are
 in should remain open after scanning.
 Note: This can be quite slow if most of the hits are not in buffers
 already."
-  (if (and (slot-boundp result :hit-tags) (oref result hit-tags))
+  (if (and (slot-boundp result 'hit-tags) (oref result hit-tags))
       (oref result hit-tags)
     ;; Calculate the tags.
-    (let ((lines (oref result :hit-lines))
-	  (txt (oref (oref result :created-by) :searchfor))
-	  (searchtype (oref (oref result :created-by) :searchtype))
+    (let ((lines (oref result hit-lines))
+	  (txt (oref (oref result created-by) searchfor))
+	  (searchtype (oref (oref result created-by) searchtype))
 	  (ans nil)
 	  (out nil))
       (save-excursion
@@ -390,7 +468,7 @@ already."
 	      (semantic--tag-put-property (car out) :hit lines)))
 	  ))
       ;; Out is reversed... twice
-      (oset result :hit-tags (nreverse out)))))
+      (oset result hit-tags (nreverse out)))))
 
 (defun semantic-symref-hit-to-tag-via-db (hit searchtxt searchtype)
   "Convert the symref HIT into a TAG by looking up the tag via a database.
@@ -403,20 +481,18 @@ If there is no database, of if the searchtype is wrong, return nil."
   ;; tagname, tagregexp, tagcompletions
   (if (not (memq searchtype '(tagname tagregexp tagcompletions)))
       nil
-    (let* ((line (car hit))
-	   (file (cdr hit))
+    (let* ((file (cdr hit))
 	   ;; FAIL here vv - don't load is not obeyed if no table found.
 	   (db (semanticdb-file-table-object file t))
-	   (found nil)
+	   (found
+            (cond ((eq searchtype 'tagname)
+                   (semantic-find-tags-by-name searchtxt db))
+                  ((eq searchtype 'tagregexp)
+                   (semantic-find-tags-by-name-regexp searchtxt db))
+                  ((eq searchtype 'tagcompletions)
+                   (semantic-find-tags-for-completion searchtxt db))))
 	   (hit nil)
 	   )
-      (cond ((eq searchtype 'tagname)
-	     (setq found (semantic-find-tags-by-name searchtxt db)))
-	    ((eq searchtype 'tagregexp)
-	     (setq found (semantic-find-tags-by-name-regexp searchtxt db)))
-	    ((eq searchtype 'tagcompletions)
-	     (setq found (semantic-find-tags-for-completion searchtxt db)))
-	    )
       ;; Loop over FOUND to see if we can line up a match with a line number.
       (when (= (length found) 1)
 	(setq hit (car found)))
@@ -500,80 +576,6 @@ buffers that were opened."
       ;; Ad this hit to the tag.
       (semantic--tag-put-property tag :hit (list line)))
     tag))
-
-;;; SYMREF TOOLS
-;;
-;; The base symref tool provides something to hang new tools off of
-;; for finding symbol references.
-(defclass semantic-symref-tool-baseclass ()
-  ((searchfor :initarg :searchfor
-	      :type string
-	      :documentation "The thing to search for.")
-   (searchtype :initarg :searchtype
-		:type symbol
-		:documentation "The type of search to do.
-Values could be 'symbol, 'regexp, 'tagname, or 'completion.")
-   (searchscope :initarg :searchscope
-		:type symbol
-		:documentation
-		"The scope to search for.
-Can be 'project, 'target, or 'file.")
-   (resulttype :initarg :resulttype
-	       :type symbol
-	       :documentation
-	       "The kind of search results desired.
-Can be 'line, 'file, or 'tag.
-The type of result can be converted from 'line to 'file, or 'line to 'tag,
-but not from 'file to 'line or 'tag.")
-   )
-  "Baseclass for all symbol references tools.
-A symbol reference tool supplies functionality to identify the locations of
-where different symbols are used.
-
-Subclasses should be named `semantic-symref-tool-NAME', where
-NAME is the name of the tool used in the configuration variable
-`semantic-symref-tool'"
-  :abstract t)
-
-(cl-defmethod semantic-symref-get-result ((tool semantic-symref-tool-baseclass))
-  "Calculate the results of a search based on TOOL.
-The symref TOOL should already contain the search criteria."
-  (let ((answer (semantic-symref-perform-search tool))
-	)
-    (when answer
-      (let ((answersym (if (eq (oref tool :resulttype) 'file)
-			   :hit-files
-			 (if (stringp (car answer))
-			     :hit-text
-			   :hit-lines))))
-	(semantic-symref-result (oref tool searchfor)
-				answersym
-				answer
-				:created-by tool))
-      )
-    ))
-
-(cl-defmethod semantic-symref-perform-search ((tool semantic-symref-tool-baseclass))
-  "Base search for symref tools should throw an error."
-  (error "Symref tool objects must implement `semantic-symref-perform-search'"))
-
-(cl-defmethod semantic-symref-parse-tool-output ((tool semantic-symref-tool-baseclass)
-					      outputbuffer)
-  "Parse the entire OUTPUTBUFFER of a symref tool.
-Calls the method `semantic-symref-parse-tool-output-one-line' over and
-over until it returns nil."
-  (with-current-buffer outputbuffer
-    (goto-char (point-min))
-    (let ((result nil)
-	  (hit nil))
-      (while (setq hit (semantic-symref-parse-tool-output-one-line tool))
-	(setq result (cons hit result)))
-      (nreverse result)))
-  )
-
-(cl-defmethod semantic-symref-parse-tool-output-one-line ((tool semantic-symref-tool-baseclass))
-  "Base tool output parser is not implemented."
-  (error "Symref tool objects must implement `semantic-symref-parse-tool-output-one-line'"))
 
 (provide 'semantic/symref)
 

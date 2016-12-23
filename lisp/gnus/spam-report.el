@@ -162,13 +162,13 @@ submitted at once.  Internal variable.")
 	 rpt-host
 	 (concat
 	  "/"
-	  (gnus-replace-in-string
-	   (gnus-replace-in-string
-	    (gnus-replace-in-string
-	     (mail-header-xref (gnus-summary-article-header article))
-	     "/raw" ":silent")
-	    "^.*article.gmane.org/" "")
-	   "/" ":"))))
+	  (replace-regexp-in-string
+	   "/" ":"
+	   (replace-regexp-in-string
+	    "^.*article.gmane.org/" ""
+	    (replace-regexp-in-string
+	     "/raw" ":silent"
+	     (mail-header-xref (gnus-summary-article-header article))))))))
        (spam-report-gmane-use-article-number
 	(spam-report-url-ping
 	 rpt-host
@@ -207,8 +207,8 @@ submitted at once.  Internal variable.")
 	    (when host
 	      (when (string-equal "permalink.gmane.org" host)
 		(setq host rpt-host)
-		(setq report (gnus-replace-in-string
-			      report "/\\([0-9]+\\)$" ":\\1")))
+		(setq report (replace-regexp-in-string "/\\([0-9]+\\)$" ":\\1"
+						     report)))
 	      (setq url (format "http://%s%s" host report)))
 	    (if (not (and host report url))
 		(gnus-message
@@ -227,7 +227,7 @@ the function specified by `spam-report-url-ping-function'."
 
 (defcustom spam-report-user-mail-address
   (and (stringp user-mail-address)
-       (gnus-replace-in-string user-mail-address "@" "<at>"))
+       (replace-regexp-in-string "@" "<at>" user-mail-address))
   "Mail address of this user used for spam reports to Gmane.
 This is initialized based on `user-mail-address'."
   :type '(choice string
@@ -255,7 +255,7 @@ This is initialized based on `user-mail-address'."
 		 80))
 	  (error "Could not open connection to %s" host))
       (set-marker (process-mark tcp-connection) (point-min))
-      (gnus-set-process-query-on-exit-flag tcp-connection nil)
+      (set-process-query-on-exit-flag tcp-connection nil)
       (process-send-string
        tcp-connection
        (format "GET %s HTTP/1.1\nUser-Agent: %s\nHost: %s\n\n"
@@ -297,8 +297,7 @@ symbol `ask', query before flushing the queue file."
 		(re-search-forward
 		 "http://\\([^/]+\\)\\(/.*\\) *$" (point-at-eol) t))
       (let ((spam-report-gmane-wait
-	     (zerop (% (mm-line-number-at-pos)
-		       spam-report-gmane-max-requests))))
+	     (zerop (% (line-number-at-pos) spam-report-gmane-max-requests))))
 	(gnus-message 6 "Reporting %s%s..."
 		      (match-string 1) (match-string 2))
 	(funcall spam-report-url-ping-function
@@ -307,7 +306,7 @@ symbol `ask', query before flushing the queue file."
     (if (or (eq keep nil)
 	    (and (eq keep 'ask)
 		 (y-or-n-p
-		  (gnus-format-message
+		  (format-message
 		   "Flush requests from `%s'? " (current-buffer)))))
 	(progn
 	  (gnus-message 7 "Flushing request file `%s'"

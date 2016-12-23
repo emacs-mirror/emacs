@@ -37,22 +37,17 @@
 (defvar org-babel-call-process-region-original nil)
 (defvar org-src-lang-modes)
 (defvar org-babel-library-of-babel)
-(declare-function show-all "outline" ())
+(declare-function outline-show-all "outline" ())
 (declare-function org-every "org" (pred seq))
 (declare-function org-reduce "org" (CL-FUNC CL-SEQ &rest CL-KEYS))
 (declare-function org-mark-ring-push "org" (&optional pos buffer))
 (declare-function tramp-compat-make-temp-file "tramp-compat"
                   (filename &optional dir-flag))
-(declare-function tramp-dissect-file-name "tramp" (name &optional nodefault))
-(declare-function tramp-file-name-user "tramp" (vec))
-(declare-function tramp-file-name-host "tramp" (vec))
-(declare-function with-parsed-tramp-file-name "tramp" (filename var &rest body))
 (declare-function org-icompleting-read "org" (&rest args))
 (declare-function org-edit-src-code "org-src"
-                  (&optional context code edit-buffer-name quietp))
+                  (&optional context code edit-buffer-name))
 (declare-function org-edit-src-exit "org-src"  (&optional context))
 (declare-function org-open-at-point "org" (&optional in-emacs reference-buffer))
-(declare-function org-save-outline-visibility "org-macs" (use-markers &rest body))
 (declare-function org-outline-overlay-data "org" (&optional use-markers))
 (declare-function org-set-outline-overlay-data "org" (data))
 (declare-function org-narrow-to-subtree "org" ())
@@ -73,7 +68,8 @@
 		  (hook function &optional append local))
 (declare-function org-table-align "org-table" ())
 (declare-function org-table-end "org-table" (&optional table-type))
-(declare-function orgtbl-to-generic "org-table" (table params))
+(declare-function orgtbl-to-generic "org-table"
+                  (table params &optional backend))
 (declare-function orgtbl-to-orgtbl "org-table" (table params))
 (declare-function org-babel-tangle-comment-links "ob-tangle" (&optional info))
 (declare-function org-babel-lob-get-info "ob-lob" nil)
@@ -309,6 +305,8 @@ name of the code block."
 				   org-confirm-babel-evaluate)))
 	    (code-block      (if ,info (format  " %s "  ,lang) " "))
 	    (block-name      (if ,name (format " (%s) " ,name) " ")))
+       ;; Silence byte-compiler is `body' doesn't use those vars.
+       (ignore noeval query)
        ,@body)))
 
 (defsubst org-babel-check-evaluate (info)
@@ -546,6 +544,8 @@ multiple blocks are being executed (e.g., in chained execution
 through use of the :var header argument) this marker points to
 the outer-most code block.")
 
+(defvar *this*)
+
 ;;;###autoload
 (defun org-babel-execute-src-block (&optional arg info params)
   "Execute the current source code block.
@@ -589,7 +589,8 @@ block."
 	    (end-of-line 1) (forward-char 1)
 	    (let ((result (org-babel-read-result)))
 	      (message (replace-regexp-in-string
-			"%" "%%" (format "%S" result))) result)))
+			"%" "%%" (format "%S" result)))
+              result)))
 	 ((org-babel-confirm-evaluate
 	   (let ((i info)) (setf (nth 2 i) merged-params) i))
 	  (let* ((lang (nth 0 info))
@@ -685,7 +686,7 @@ org-babel-expand-body:lang function."
 	       "\n")))
 
 ;;;###autoload
-(defun org-babel-expand-src-block (&optional arg info params)
+(defun org-babel-expand-src-block (&optional _arg info params)
   "Expand the current source code block.
 Expand according to the source code block's header
 arguments and pop open the results in a preview buffer."
@@ -739,8 +740,7 @@ arguments and pop open the results in a preview buffer."
   (let ((results (copy-sequence original)))
     (dolist (new-list others)
       (dolist (arg-pair new-list)
-	(let ((header (car arg-pair))
-	      (args (cdr arg-pair)))
+	(let ((header (car arg-pair)))
 	  (setq results
 		(cons arg-pair (org-remove-if
 				(lambda (pair) (equal header (car pair)))
@@ -827,7 +827,7 @@ arguments and pop open the results in a preview buffer."
 (add-hook 'org-tab-first-hook 'org-babel-header-arg-expand)
 
 ;;;###autoload
-(defun org-babel-load-in-session (&optional arg info)
+(defun org-babel-load-in-session (&optional _arg info)
   "Load the body of the current source-code block.
 Evaluate the header arguments for the source block before
 entering the session.  After loading the body this pops open the
@@ -896,7 +896,7 @@ with a prefix argument then this is passed on to
 (defvar org-src-window-setup)
 
 ;;;###autoload
-(defun org-babel-switch-to-session-with-code (&optional arg info)
+(defun org-babel-switch-to-session-with-code (&optional arg _info)
   "Switch to code buffer and display session."
   (interactive "P")
   (let ((swap-windows
@@ -1021,7 +1021,13 @@ end-body --------- point at the end of the body"
 		   (body (match-string 5))
 		   (beg-body (match-beginning 5))
 		   (end-body (match-end 5)))
-	       ,@body
+               ;; Silence byte-compiler in case `body' doesn't use all
+               ;; those variables.
+               (ignore full-block beg-block end-block lang
+                       beg-lang end-lang switches beg-switches
+                       end-switches header-args beg-header-args
+                       end-header-args body beg-body end-body)
+               ,@body
 	       (goto-char end-block)))))
        (unless visited-p (kill-buffer to-be-removed))
        (goto-char point))))
@@ -1532,7 +1538,7 @@ Note: this function removes any hlines in TABLE."
 	 (rownames (funcall (lambda ()
 			      (let ((tp table))
 				(mapcar
-				 (lambda (row)
+				 (lambda (_row)
 				   (prog1
 				       (pop (car tp))
 				     (setq tp (cdr tp))))
@@ -1686,7 +1692,7 @@ NAME, or nil if no such block exists.  Set match data according to
 org-babel-named-src-block-regexp."
   (save-excursion
     (let ((case-fold-search t)
-	  (regexp (org-babel-named-src-block-regexp-for-name name)) msg)
+	  (regexp (org-babel-named-src-block-regexp-for-name name)))
       (goto-char (point-min))
       (when (or (re-search-forward regexp nil t)
 		(re-search-backward regexp nil t))
@@ -1724,7 +1730,8 @@ buffer or nil if no such result exists."
       (catch 'is-a-code-block
 	(when (re-search-forward
 	       (concat org-babel-result-regexp
-		       "[ \t]" (regexp-quote name) "[ \t]*[\n\f\v\r]") nil t)
+		       "[ \t]" (regexp-quote name) "[ \t]*[\n\f\v\r]")
+               nil t)
 	  (when (and (string= "name" (downcase (match-string 1)))
 		     (or (beginning-of-line 1)
 			 (looking-at org-babel-src-block-regexp)
@@ -2658,7 +2665,7 @@ of the string."
   (start end program &optional delete buffer display &rest args)
   "Use Tramp to handle `call-process-region'.
 Fixes a bug in `tramp-handle-call-process-region'."
-  (if (and (featurep 'tramp) (file-remote-p default-directory))
+  (if (file-remote-p default-directory)
       (let ((tmpfile (tramp-compat-make-temp-file "")))
 	(write-region start end tmpfile)
 	(when delete (delete-region start end))
@@ -2673,13 +2680,12 @@ Fixes a bug in `tramp-handle-call-process-region'."
     (apply org-babel-call-process-region-original
            start end program delete buffer display args)))
 
-(defun org-babel-local-file-name (file)
-  "Return the local name component of FILE."
-  (if (file-remote-p file)
-      (let (localname)
-	(with-parsed-tramp-file-name file nil
-				     localname))
-    file))
+(defalias 'org-babel-local-file-name
+  (if (fboundp 'file-local-name)
+      'file-local-name
+    (lambda (file)
+      "Return the local name component of FILE."
+      (or (file-remote-p file 'localname) file))))
 
 (defun org-babel-process-file-name (name &optional no-quote-p)
   "Prepare NAME to be used in an external process.

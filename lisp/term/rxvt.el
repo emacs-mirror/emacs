@@ -195,4 +195,6 @@
 	     (* (apply '+ (car (cddr (nth 15 rxvt-standard-colors)))) 0.6))
 	  (set-terminal-parameter nil 'background-mode 'dark)))))
 
+(provide 'term/rxvt)
+
 ;;; rxvt.el ends here

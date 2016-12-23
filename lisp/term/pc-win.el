@@ -388,5 +388,6 @@ Errors out because it is not supposed to be called, ever."
 ;; ---------------------------------------------------------------------------
 
 (provide 'pc-win)
+(provide 'term/pc-win)
 
 ;;; pc-win.el ends here

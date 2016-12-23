@@ -341,7 +341,7 @@ abbrev expansion happens only when you request it explicitly.
 @table @kbd
 @item M-/
 Expand the word in the buffer before point as a @dfn{dynamic abbrev},
-by searching in the buffer for words starting with that abbreviation
+by searching for words starting with that abbreviation
 (@code{dabbrev-expand}).
 
 @item C-M-/
@@ -361,14 +361,19 @@ The variable @code{dabbrev-limit}, if non-@code{nil}, specifies how far
 away in the buffer to search for an expansion.
 
 @vindex dabbrev-check-all-buffers
+@vindex dabbrev-check-other-buffers
   After scanning the current buffer, @kbd{M-/} normally searches other
-buffers, unless you have set @code{dabbrev-check-all-buffers} to
-@code{nil}.
+buffers.  The variables @code{dabbrev-check-all-buffers} and
+@code{dabbrev-check-other-buffers} can be used to determine which
+other buffers, if any, are searched.
 
+@vindex dabbrev-ignored-buffer-names
 @vindex dabbrev-ignored-buffer-regexps
-  For finer control over which buffers to scan, customize the variable
-@code{dabbrev-ignored-buffer-regexps}.  Its value is a list of regular
-expressions.  If a buffer's name matches any of these regular
+  For finer control over which buffers to scan, customize the
+variables @code{dabbrev-ignored-buffer-names} and
+@code{dabbrev-ignored-buffer-regexps}.  The value of the former is a
+list of buffer names to skip.  The value of the latter is a list of
+regular expressions; if a buffer's name matches any of these regular
 expressions, dynamic abbrev expansion skips that buffer.
 
   A negative argument to @kbd{M-/}, as in @kbd{C-u - M-/}, says to

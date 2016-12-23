@@ -38,9 +38,6 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (when (featurep 'xemacs)
-    (require 'easy-mmode))) ; for `define-minor-mode'
 (require 'dired)
 (autoload 'mml-attach-file "mml")
 (autoload 'mm-default-file-encoding "mm-decode");; Shift this to `mailcap.el'?
@@ -86,12 +83,6 @@ See `mail-user-agent' for more information."
 			       gnus-user-agent)
 		(function :tag "Other")))
 
-(eval-when-compile
-  (when (featurep 'xemacs)
-    (defvar gnus-dired-mode-hook)
-    (defvar gnus-dired-mode-on-hook)
-    (defvar gnus-dired-mode-off-hook)))
-
 (define-minor-mode gnus-dired-mode
   "Minor mode for intersections of gnus and dired.
 
@@ -134,9 +125,7 @@ filenames."
 	  (mapcar
 	   ;; don't attach directories
 	   (lambda (f) (if (file-directory-p f) nil f))
-	   (nreverse
-	    (let ((arg nil)) ;; Silence XEmacs 21.5 when compiling.
-	      (dired-map-over-marks (dired-get-filename) arg)))))))
+	   (nreverse (dired-map-over-marks (dired-get-filename) nil))))))
   (let ((destination nil)
 	(files-str nil)
 	(bufs nil))

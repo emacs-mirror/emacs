@@ -1030,7 +1030,7 @@ it is not provided, you can derive it like this:
       (progn
         (beginning-of-line)
         (looking-at "^\\([0-9]+\\):")
-        (setq depth (string-to-int (match-string 1)))))
+        (setq depth (string-to-number (match-string 1)))))
 @end example
 
 @noindent

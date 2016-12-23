@@ -1486,7 +1486,7 @@ for a description of type specifiers.  For example,
 (cl-typecase x
   (integer (munch-integer x))
   (float (munch-float x))
-  (string (munch-integer (string-to-int x)))
+  (string (munch-integer (string-to-number x)))
   (t (munch-anything x)))
 @end example
 

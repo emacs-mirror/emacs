@@ -104,6 +104,14 @@ Each entry is a list with the following elements:
 			       (const :tag "Both branches writable" both))))
   :group 'cpp)
 
+(defcustom cpp-message-min-time-interval 1.0
+  "Minimum time interval in seconds for `cpp-progress-message' messages.
+If nil, `cpp-progress-message' prints no progress messages."
+  :type '(choice (const :tag "Disable progress messages" nil)
+                 float)
+  :group 'cpp
+  :version "26.1")
+
 (defvar cpp-overlay-list nil)
 ;; List of cpp overlays active in the current buffer.
 (make-variable-buffer-local 'cpp-overlay-list)
@@ -278,7 +286,7 @@ A prefix arg suppresses display of that buffer."
 			  (cpp-parse-close from to))
 			 (t
 			  (cpp-parse-error "Parser error"))))))))
-      (message "Parsing...done"))
+      (cpp-progress-message "Parsing...done"))
     (if cpp-state-stack
       (save-excursion
 	(goto-char (nth 3 (car cpp-state-stack)))
@@ -819,16 +827,21 @@ BRANCH should be either nil (false branch), t (true branch) or `both'."
 
 ;;; Utilities:
 
-(defvar cpp-progress-time 0)
-;; Last time we issued a progress message.
+(defvar cpp-progress-time 0
+  "Last time `cpp-progress-message' issued a progress message.")
 
 (defun cpp-progress-message (&rest args)
-  ;; Report progress at most once a second.  Take same ARGS as `message'.
-  (let ((time (nth 1 (current-time))))
-    (if (= time cpp-progress-time)
-	()
-      (setq cpp-progress-time time)
-      (apply 'message args))))
+  "Report progress by printing messages used by \"cpp-\" functions.
+
+Print messages at most once every `cpp-message-min-time-interval' seconds.
+If that option is nil, don't prints messages.
+ARGS are the same as for `message'."
+  (when cpp-message-min-time-interval
+    (let ((time (current-time)))
+      (when (>= (float-time (time-subtract time cpp-progress-time))
+                cpp-message-min-time-interval)
+        (setq cpp-progress-time time)
+        (apply 'message args)))))
 
 (provide 'cpp)
 

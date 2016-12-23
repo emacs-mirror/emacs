@@ -45,17 +45,17 @@
 ;;; User variables:
 
 (defcustom gnus-picon-news-directories '("news")
-  "*List of directories to search for newsgroups faces."
+  "List of directories to search for newsgroups faces."
   :type '(repeat string)
   :group 'gnus-picon)
 
 (defcustom gnus-picon-user-directories '("users" "usenix" "local" "misc")
-  "*List of directories to search for user faces."
+  "List of directories to search for user faces."
   :type '(repeat string)
   :group 'gnus-picon)
 
 (defcustom gnus-picon-domain-directories '("domains")
-  "*List of directories to search for domain faces.
+  "List of directories to search for domain faces.
 Some people may want to add \"unknown\" to this list."
   :type '(repeat string)
   :group 'gnus-picon)
@@ -67,7 +67,7 @@ Some people may want to add \"unknown\" to this list."
     (when (gnus-image-type-available-p 'xpm)
       (push "xpm" types))
     types)
-  "*List of suffixes on picon file names to try."
+  "List of suffixes on picon file names to try."
   :type '(repeat string)
   :group 'gnus-picon)
 
@@ -81,7 +81,6 @@ Some people may want to add \"unknown\" to this list."
   "How should picons be displayed.
 If `inline', the textual representation is replaced.  If `right', picons are
 added right to the textual representation."
-  ;; FIXME: `right' needs improvement for XEmacs.
   :type '(choice (const inline)
 		 (const right))
   :group 'gnus-picon)

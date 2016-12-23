@@ -32,6 +32,7 @@
 (require 'mm-util)
 (require 'mml)
 (require 'mml-sec)
+(require 'epg-config)
 
 (defvar mc-pgp-always-sign)
 
@@ -42,27 +43,7 @@
 ;; Maybe this should be in eg mml-sec.el (and have a different name).
 ;; Then mml1991 would not need to require mml2015, and mml1991-use
 ;; could be removed.
-(defvar mml2015-use (or
-		     (progn
-		       (ignore-errors (require 'epg-config))
-		       (and (fboundp 'epg-check-configuration)
-			   'epg))
-		     (progn
-		       (let ((abs-file (locate-library "pgg")))
-			 ;; Don't load PGG if it is marked as obsolete
-			 ;; (Emacs 24).
-			 (when (and abs-file
-				    (not (string-match "/obsolete/[^/]*\\'"
-						       abs-file)))
-			   (ignore-errors (require 'pgg))
-			   (and (fboundp 'pgg-sign-region)
-				'pgg))))
-		     (progn (ignore-errors
-			      (load "mc-toplev"))
-			    (and (fboundp 'mc-encrypt-generic)
-				 (fboundp 'mc-sign-generic)
-				 (fboundp 'mc-cleanup-recipient-headers)
-				 'mailcrypt)))
+(defvar mml2015-use 'epg
   "The package used for PGP/MIME.
 Valid packages include `epg', `pgg' and `mailcrypt'.")
 
@@ -482,14 +463,17 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
 			(or (y-or-n-p "Sign the message? ")
 			    'not))))
 	     'never)))
-    (mm-with-unibyte-current-buffer
-      (mc-encrypt-generic
-       (or (message-options-get 'message-recipients)
-	   (message-options-set 'message-recipients
-			      (mc-cleanup-recipient-headers
-			       (read-string "Recipients: "))))
-       nil nil nil
-       (message-options-get 'message-sender))))
+    (insert
+     (with-temp-buffer
+       (set-buffer-multibyte nil)
+       (mc-encrypt-generic
+	(or (message-options-get 'message-recipients)
+	    (message-options-set 'message-recipients
+				 (mc-cleanup-recipient-headers
+				  (read-string "Recipients: "))))
+	nil nil nil
+	(message-options-get 'message-sender))
+       (buffer-string))))
   (goto-char (point-min))
   (unless (looking-at "-----BEGIN PGP MESSAGE-----")
     (error "Fail to encrypt the message"))
@@ -614,7 +598,7 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
 	    (insert "\r"))
 	  (forward-line)
 	  (end-of-line))
-	(with-temp-file (setq signature-file (mm-make-temp-file "pgg"))
+	(with-temp-file (setq signature-file (make-temp-file "pgg"))
 	  (mm-insert-part signature))
 	(if (condition-case err
 		(prog1
@@ -655,7 +639,7 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
     (if (condition-case err
 	    (prog1
 		(mm-with-unibyte-buffer
-		  (insert (mm-encode-coding-string text coding-system))
+		  (insert (encode-coding-string text coding-system))
 		  (pgg-verify-region (point-min) (point-max) nil t))
 	      (goto-char (point-min))
 	      (while (search-forward "\r\n" nil t)
@@ -775,12 +759,10 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
 (autoload 'epg-expand-group "epg-config")
 (autoload 'epa-select-keys "epa")
 
-(autoload 'gnus-create-image "gnus-ems")
-
 (defun mml2015-epg-key-image (key-id)
   "Return the image of a key, if any"
   (with-temp-buffer
-    (mm-set-buffer-multibyte nil)
+    (set-buffer-multibyte nil)
     (let* ((coding-system-for-write 'binary)
            (coding-system-for-read 'binary)
            (data (shell-command-to-string
@@ -920,7 +902,7 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
 	(mm-set-handle-multipart-parameter
 	 mm-security-handle 'gnus-info "Corrupted")
 	(throw 'error handle))
-      (setq part (mm-replace-in-string part "\n" "\r\n")
+      (setq part (replace-regexp-in-string "\n" "\r\n" part)
 	    signature (mm-get-part signature)
 	    context (epg-make-context))
       (condition-case error
@@ -943,8 +925,8 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
 (defun mml2015-epg-clear-verify ()
   (let ((inhibit-redisplay t)
 	(context (epg-make-context))
-	(signature (mm-encode-coding-string (buffer-string)
-					    coding-system-for-write))
+	(signature (encode-coding-string (buffer-string)
+					 coding-system-for-write))
 	plain)
     (condition-case error
 	(setq plain (epg-verify-string context signature))
@@ -963,7 +945,7 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
 	   (mml2015-epg-verify-result-to-string
 	    (epg-context-result-for context 'verify)))
 	  (delete-region (point-min) (point-max))
-	  (insert (mm-decode-coding-string plain coding-system-for-read)))
+	  (insert (decode-coding-string plain coding-system-for-read)))
       (mml2015-extract-cleartext-signature))))
 
 (defun mml2015-epg-sign (cont)

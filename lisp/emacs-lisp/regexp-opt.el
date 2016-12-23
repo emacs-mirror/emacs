@@ -1,4 +1,4 @@
-;;; regexp-opt.el --- generate efficient regexps to match strings
+;;; regexp-opt.el --- generate efficient regexps to match strings -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1994-2016 Free Software Foundation, Inc.
 
@@ -262,7 +262,7 @@ CHARS should be a list of characters."
   ;; The basic idea is to find character ranges.  Also we take care in the
   ;; position of character set meta characters in the character set regexp.
   ;;
-  (let* ((charmap (make-char-table 'case-table))
+  (let* ((charmap (make-char-table 'regexp-opt-charset))
 	 (start -1) (end -2)
 	 (charset "")
 	 (bracket "") (dash "") (caret ""))

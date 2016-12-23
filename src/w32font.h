@@ -84,7 +84,6 @@ int uniscribe_check_otf (LOGFONT *font, Lisp_Object otf_spec);
 
 Lisp_Object intern_font_name (char *);
 
-extern void syms_of_w32font (void);
 extern void globals_of_w32font (void);
 
 #endif

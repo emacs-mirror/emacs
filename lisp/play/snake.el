@@ -144,7 +144,6 @@
 (defvar snake-velocity-x 1)
 (defvar snake-velocity-y 0)
 (defvar snake-positions nil)
-(defvar snake-cycle 0)
 (defvar snake-score 0)
 (defvar snake-paused nil)
 (defvar snake-moved-p nil)
@@ -164,7 +163,6 @@ and then start moving it leftwards.")
 (make-variable-buffer-local 'snake-velocity-x)
 (make-variable-buffer-local 'snake-velocity-y)
 (make-variable-buffer-local 'snake-positions)
-(make-variable-buffer-local 'snake-cycle)
 (make-variable-buffer-local 'snake-score)
 (make-variable-buffer-local 'snake-paused)
 (make-variable-buffer-local 'snake-moved-p)
@@ -237,7 +235,6 @@ and then start moving it leftwards.")
 	snake-velocity-x	snake-initial-velocity-x
 	snake-velocity-y	snake-initial-velocity-y
 	snake-positions		nil
-	snake-cycle		1
 	snake-score		0
 	snake-paused		nil
 	snake-moved-p           nil
@@ -250,6 +247,14 @@ and then start moving it leftwards.")
       (cl-incf x snake-velocity-x)
       (cl-incf y snake-velocity-y)))
   (snake-update-score))
+
+(defun snake-set-dot ()
+  (let ((x (random snake-width))
+	(y (random snake-height)))
+    (while (not (= (gamegrid-get-cell x y) snake-blank))
+      (setq x (random snake-width))
+      (setq y (random snake-height)))
+    (gamegrid-set-cell x y snake-dot)))
 
 (defun snake-update-game (snake-buffer)
   "Called on each clock tick.
@@ -268,23 +273,20 @@ Argument SNAKE-BUFFER is the name of the buffer."
 	(cond ((= c snake-dot)
 	       (cl-incf snake-length)
 	       (cl-incf snake-score)
-	       (snake-update-score))
+	       (snake-update-score)
+	       (snake-set-dot))
 	      (t
 	       (let* ((last-cons (nthcdr (- snake-length 2)
 					 snake-positions))
 		      (tail-pos (cadr last-cons))
 		      (x0 (aref tail-pos 0))
 		      (y0 (aref tail-pos 1)))
-		 (gamegrid-set-cell x0 y0
-				    (if (= (% snake-cycle 5) 0)
-					snake-dot
-				      snake-blank))
-		 (cl-incf snake-cycle)
+		 (gamegrid-set-cell x0 y0 snake-blank)
 		 (setcdr last-cons nil))))
 	(gamegrid-set-cell x y snake-snake)
 	(setq snake-positions
 	      (cons (vector x y) snake-positions))
-	  (setq snake-moved-p nil)))))
+	(setq snake-moved-p nil)))))
 
 (defun snake-update-velocity ()
   (unless snake-moved-p
@@ -339,6 +341,7 @@ Argument SNAKE-BUFFER is the name of the buffer."
   "Start a new game of Snake."
   (interactive)
   (snake-reset-game)
+  (snake-set-dot)
   (use-local-map snake-mode-map)
   (gamegrid-start-timer snake-tick-period 'snake-update-game))
 

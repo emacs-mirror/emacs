@@ -542,26 +542,6 @@ Other systems allow to set LD_RUN_PATH in a similar way, but before
 Emacs is linked.  With LD_RUN_PATH set, the linker will include a
 specified run-time search path in the executable.
 
-On some systems, Emacs can crash due to problems with dynamic
-linking.  Specifically, on SGI Irix 6.5, crashes were reported with
-backtraces like this:
-
-  (dbx) where
-   0 strcmp(0xf49239d, 0x4031184, 0x40302b4, 0x12, 0xf0000000, 0xf4923aa, 0x0, 0x492ddb2) ["/xlv22/ficus-jan23/work/irix/lib/libc/libc_n32_M3_ns/strings/strcmp.s":35, 0xfb7e480]
-   1 general_find_symbol(0xf49239d, 0x0, 0x0, 0x0, 0xf0000000, 0xf4923aa, 0x0, 0x492ddb2)
- ["/comp2/mtibuild/v73/workarea/v7.3/rld/rld.c":2140, 0xfb65a98]
-   2 resolve_symbol(0xf49239d, 0x4031184, 0x0, 0xfbdd438, 0x0, 0xf4923aa, 0x0, 0x492ddb2)
- ["/comp2/mtibuild/v73/workarea/v7.3/rld/rld.c":1947, 0xfb657e4]
-   3 lazy_text_resolve(0xd18, 0x1a3, 0x40302b4, 0x12, 0xf0000000, 0xf4923aa, 0x0, 0x492ddb2)
- ["/comp2/mtibuild/v73/workarea/v7.3/rld/rld.c":997, 0xfb64d44]
-   4 _rld_text_resolve(0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0)
- ["/comp2/mtibuild/v73/workarea/v7.3/rld/rld_bridge.s":175, 0xfb6032c]
-
-('rld' is the dynamic linker.)  We don't know why this
-happens, but setting the environment variable LD_BIND_NOW to 1 (which
-forces the dynamic linker to bind all shared objects early on) seems
-to work around the problem.
-
 Please refer to the documentation of your dynamic linker for details.
 
 *** When you run Ispell from Emacs, it reports a "misalignment" error.
@@ -597,17 +577,6 @@ If your spell-checking program is Aspell, it has been reported that if
 you have a personal configuration file (normally ~/.aspell.conf), it
 can cause this error.  Remove that file, execute 'ispell-kill-ispell'
 in Emacs, and then try spell-checking again.
-
-*** Emacs eats all file descriptors when using kqueue file notifications.
-See <http://debbugs.gnu.org/22814>.
-
-When you have a large number of buffers running auto-revert-mode, and
-Emacs is configured to use the kqueue file notification library, it
-uses an own file descriptor for every watched file.  On systems with a
-small limit of file descriptors allowed per process, like OS X, you
-could run out of file descriptors.  You won't be able to open new files.
-
-auto-revert-use-notify is set to nil in global-auto-revert-mode, therefore.
 
 *** TLS problems, e.g., Gnus hangs when fetching via imaps
 http://debbugs.gnu.org/24247
@@ -2032,14 +2001,6 @@ This seems to be a GCC optimization bug that occurs for GCC 4.1.2 (-g
 and -g -O2) and GCC 4.2.3 (-g -O and -g -O2).  You can fix this by
 compiling with GCC 4.2.3 or CC 5.7, with no optimizations.
 
-** Irix
-
-*** Irix: Trouble using ptys, or running out of ptys.
-
-The program mkpts (which may be in '/usr/adm' or '/usr/sbin') needs to
-be set-UID to root, or non-root programs like Emacs will not be able
-to allocate ptys reliably.
-
 * Runtime problems specific to MS-Windows
 
 ** Emacs on Windows 9X requires UNICOWS.DLL
@@ -2453,6 +2414,18 @@ selection".
 If this does not work, please inform bug-gnu-emacs@gnu.org.  Then
 please call support for your X-server and see if you can get a fix.
 If you do, please send it to bug-gnu-emacs@gnu.org so we can list it here.
+
+
+* Runtime problems specific to Mac OS X
+
+** On Mac OS X, file-name-case-insensitive-p may be unreliable
+
+The implementation of that function on Mac OS X uses pathconf with the
+_PC_CASE_SENSITIVE flag.  There have been reports that this use of
+pathconf does not work reliably.  If you have a problem, please
+recompile Emacs with -D DARWIN_OS_CASE_SENSITIVE_FIXME=1 or
+-D DARWIN_OS_CASE_SENSITIVE_FIXME=2, and file a bug report saying
+whether this fixed your problem.
 
 * Build-time problems
 

@@ -24,7 +24,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 (provide 'reftex-global)
 (require 'reftex)
 ;;;
@@ -154,7 +154,7 @@ No active TAGS table is required."
     (while dlist
       (when (and (car (car dlist))
                  (cdr (car dlist)))
-        (incf cnt)
+        (cl-incf cnt)
         (insert (mapconcat 'identity (car dlist) "\n    ") "\n"))
       (pop dlist))
     (goto-char (point-min))
@@ -223,7 +223,7 @@ one with the `xr' package."
         (if (assoc label translate-alist)
             (error "Duplicate label %s" label))
         (setq new-label (concat (match-string 1 (car entry))
-                                (int-to-string (incf (cdr nr-cell)))))
+                                (int-to-string (cl-incf (cdr nr-cell)))))
         (push (cons label new-label) translate-alist)
         (or (string= label new-label) (setq changed-sequence t))))
 
@@ -302,7 +302,7 @@ one with the `xr' package."
                             (error "Abort")))
                     (reftex-unhighlight 1)))
                  ((and test cell)
-                  (incf n))
+                  (cl-incf n))
                  ((and (not test) cell)
                   ;; Replace
                   (goto-char (match-beginning 1))
@@ -477,5 +477,5 @@ With no argument, this command toggles
 ;;; reftex-global.el ends here
 
 ;; Local Variables:
-;; generated-autoload-file: "reftex.el"
+;; generated-autoload-file: "reftex-loaddefs.el"
 ;; End:

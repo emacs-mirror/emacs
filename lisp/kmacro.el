@@ -478,7 +478,7 @@ without repeating the prefix."
   "Display the current head of the keyboard macro ring."
   (interactive)
   (unless (kmacro-ring-empty-p)
-    (kmacro-display (car (car kmacro-ring)) "2nd macro")))
+    (kmacro-display (car (car kmacro-ring)) nil "2nd macro")))
 
 
 (defun kmacro-cycle-ring-next (&optional _arg)

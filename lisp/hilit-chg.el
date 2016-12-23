@@ -194,8 +194,6 @@
     (t (:inverse-video t)))
   "Face used for highlighting changes."
   :group 'highlight-changes)
-(define-obsolete-face-alias 'highlight-changes-face
-  'highlight-changes "22.1")
 
 ;; This looks pretty ugly, actually.  Maybe the underline should be removed.
 (defface highlight-changes-delete
@@ -204,9 +202,6 @@
     (t (:inverse-video t)))
   "Face used for highlighting deletions."
   :group 'highlight-changes)
-(define-obsolete-face-alias 'highlight-changes-delete-face
-  'highlight-changes-delete "22.1")
-
 
 ;; A (not very good) default list of colors to rotate through.
 (define-obsolete-variable-alias 'highlight-changes-colours
@@ -782,7 +777,7 @@ is non-nil."
 	   a-start a-end len-a
 	   b-start b-end len-b
 	   (bufa-modified (buffer-modified-p buf-a))
-	   (bufb-modified (buffer-modified-p buf-b))
+	   (bufb-modified (and (not (eq buf-a buf-b)) (buffer-modified-p buf-b)))
 	   (buf-a-read-only (with-current-buffer buf-a buffer-read-only))
 	   (buf-b-read-only (with-current-buffer buf-b buffer-read-only))
 	   temp-a temp-b)
@@ -913,7 +908,7 @@ changes are made, so \\[highlight-changes-next-change] and
   (let (hilit-e hilit-x hilit-y)
     (ediff-setup buf-a file-a buf-b file-b
 	       nil nil   ; buf-c file-C
-	       'hilit-chg-get-diff-list-hk
+	       '(hilit-chg-get-diff-list-hk)
 	       (list (cons 'ediff-job-name 'something))
 	       )
     (ediff-with-current-buffer hilit-e (ediff-really-quit nil))

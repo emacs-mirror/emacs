@@ -79,7 +79,7 @@
 ;; On GNU/Linux and Irix, the system's ping program seems to send packets
 ;; indefinitely unless told otherwise
 (defcustom ping-program-options
-  (and (memq system-type '(gnu/linux irix))
+  (and (eq system-type 'gnu/linux)
        (list "-c" "4"))
   "Options for the ping program.
 These options can be used to limit how many ICMP packets are emitted."
@@ -112,22 +112,31 @@ These options can be used to limit how many ICMP packets are emitted."
   :group 'net-utils
   :type  '(repeat string))
 
-(defcustom iwconfig-program "iwconfig"
+(defcustom iwconfig-program
+  (cond ((executable-find "iwconfig") "iwconfig")
+        ((net-utils--executable-find-sbin "iw") "iw")
+        (t "iw"))
   "Program to print wireless network configuration information."
   :group 'net-utils
   :type 'string
-  :version "23.1")
+  :version "26.1")
 
-(defcustom iwconfig-program-options nil
+(defcustom iwconfig-program-options
+  (cond ((string-match-p "iw\\'" iwconfig-program) (list "dev"))
+        (t nil))
  "Options for the iwconfig program."
  :group 'net-utils
  :type '(repeat string)
- :version "23.1")
+ :version "26.1")
 
-(defcustom netstat-program "netstat"
+(defcustom netstat-program
+  (cond ((executable-find "netstat") "netstat")
+        ((net-utils--executable-find-sbin "ss"))
+        (t "ss"))
   "Program to print network statistics."
   :group 'net-utils
-  :type  'string)
+  :type  'string
+  :version "26.1")
 
 (defcustom netstat-program-options
   (list "-a")
@@ -147,20 +156,25 @@ These options can be used to limit how many ICMP packets are emitted."
   :type  '(repeat string))
 
 (defcustom route-program
-  (if (eq system-type 'windows-nt)
-      "route"
-    "netstat")
+  (cond ((eq system-type 'windows-nt) "route")
+        ((executable-find "netstat") "netstat")
+        ((net-utils--executable-find-sbin "netstat"))
+        ((executable-find "ip") "ip")
+        ((net-utils--executable-find-sbin "ip"))
+        (t "ip"))
   "Program to print routing tables."
   :group 'net-utils
-  :type  'string)
+  :type  'string
+  :version "26.1")
 
 (defcustom route-program-options
-  (if (eq system-type 'windows-nt)
-      (list "print")
-    (list "-r"))
+  (cond ((eq system-type 'windows-nt) (list "print"))
+        ((string-match-p "netstat\\'" route-program) (list "-r"))
+        (t (list "route")))
   "Options for the route program."
   :group 'net-utils
-  :type  '(repeat string))
+  :type  '(repeat string)
+  :version "26.1")
 
 (defcustom nslookup-program "nslookup"
   "Program to interactively query DNS information."

@@ -1040,10 +1040,6 @@ extern struct buffer *all_buffers;
 #define FOR_EACH_BUFFER(b) \
   for ((b) = all_buffers; (b); (b) = (b)->next)
 
-/* This points to the current buffer.  */
-
-extern struct buffer *current_buffer;
-
 /* This structure holds the default values of the buffer-local variables
    that have special slots in each buffer.
    The default value occupies the same slot in this structure
@@ -1086,6 +1082,7 @@ extern void recenter_overlay_lists (struct buffer *, ptrdiff_t);
 extern ptrdiff_t overlay_strings (ptrdiff_t, struct window *, unsigned char **);
 extern void validate_region (Lisp_Object *, Lisp_Object *);
 extern void set_buffer_internal_1 (struct buffer *);
+extern void set_buffer_internal_2 (struct buffer *);
 extern void set_buffer_temp (struct buffer *);
 extern Lisp_Object buffer_local_value (Lisp_Object, Lisp_Object);
 extern void record_buffer (Lisp_Object);
@@ -1182,23 +1179,12 @@ buffer_has_overlays (void)
 
 /* Return character code of multi-byte form at byte position POS.  If POS
    doesn't point the head of valid multi-byte form, only the byte at
-   POS is returned.  No range checking.
-
-   WARNING: The character returned by this macro could be "unified"
-   inside STRING_CHAR, if the original character in the buffer belongs
-   to one of the Private Use Areas (PUAs) of codepoints that Emacs
-   uses to support non-unified CJK characters.  If that happens,
-   CHAR_BYTES will return a value that is different from the length of
-   the original multibyte sequence stored in the buffer.  Therefore,
-   do _not_ use FETCH_MULTIBYTE_CHAR if you need to advance through
-   the buffer to the next character after fetching this one.  Instead,
-   use either FETCH_CHAR_ADVANCE or STRING_CHAR_AND_LENGTH.  */
+   POS is returned.  No range checking.  */
 
 INLINE int
 FETCH_MULTIBYTE_CHAR (ptrdiff_t pos)
 {
-  unsigned char *p = ((pos >= GPT_BYTE ? GAP_SIZE : 0)
-		      + pos + BEG_ADDR - BEG_BYTE);
+  unsigned char *p = BYTE_POS_ADDR (pos);
   return STRING_CHAR (p);
 }
 

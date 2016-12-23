@@ -29,20 +29,6 @@
 ;; This is based on Sebastian Kremer's excellent dired-x.el (Dired Extra),
 ;; version 1.191, adapted for GNU Emacs.  See the `dired-x' info pages.
 
-;; USAGE: In your ~/.emacs,
-;;
-;; (add-hook 'dired-load-hook
-;;           (lambda ()
-;;                       (load "dired-x")
-;;                       ;; Set global variables here.  For example:
-;;                       ;; (setq dired-guess-shell-gnutar "gtar")
-;;                       ))
-;; (add-hook 'dired-mode-hook
-;;           (lambda ()
-;;                       ;; Set buffer-local variables here.  For example:
-;;                       ;; (dired-omit-mode 1)
-;;                       ))
-;;
 ;; At load time dired-x.el will install itself and bind some dired keys.
 ;; Some dired.el and dired-aux.el functions have extra features if
 ;; dired-x is loaded.
@@ -132,6 +118,24 @@ files not writable by you are visited read-only."
 If nil, there is no maximum size."
   :type '(choice (const :tag "no maximum" nil) integer)
   :group 'dired-x)
+
+(defcustom dired-omit-case-fold 'filesystem
+  "Determine whether \"omitting\" patterns are case-sensitive.
+When nil, always be case-sensitive; when t, always be
+case-insensitive; the default value, `filesystem', causes case
+folding to be used on case-insensitive filesystems only."
+  :type '(choice (const :tag "Always case-sensitive" nil)
+		 (const :tag "Always case-insensitive" t)
+		 (const :tag "According to filesystem" filesystem))
+  :group 'dired-x
+  :version "26.1")
+
+(declare-function file-name-case-insensitive-p "fileio.c" (filename))
+(defun dired-omit-case-fold-p (dir)
+  "Non-nil if `dired-omit-mode' should be case-insensitive in DIR."
+  (if (eq dired-omit-case-fold 'filesystem)
+      (file-name-case-insensitive-p dir)
+    dired-omit-case-fold))
 
 ;; For backward compatibility
 (define-obsolete-variable-alias 'dired-omit-files-p 'dired-omit-mode "22.1")
@@ -333,8 +337,28 @@ See also the functions:
   "Mark all files with a certain EXTENSION for use in later commands.
 A `.' is *not* automatically prepended to the string entered.
 EXTENSION may also be a list of extensions instead of a single one.
-Optional MARKER-CHAR is marker to use."
-  (interactive "sMarking extension: \nP")
+Optional MARKER-CHAR is marker to use.
+Interactively, ask for EXTENSION.
+Prefixed with one C-u, unmark files instead.
+Prefixed with two C-u's, prompt for MARKER-CHAR and mark files with it."
+  (interactive
+   (let ((suffix
+          (read-string (format "%s extension: "
+                               (if (equal current-prefix-arg '(4))
+                                   "UNmarking"
+                                 "Marking"))))
+         (marker
+          (pcase current-prefix-arg
+            ('(4) ?\s)
+            ('(16)
+             (let* ((dflt (char-to-string dired-marker-char))
+                    (input (read-string
+                            (format
+                             "Marker character to use (default %s): " dflt)
+                            nil nil dflt)))
+               (aref input 0)))
+            (_ dired-marker-char))))
+     (list suffix marker)))
   (or (listp extension)
       (setq extension (list extension)))
   (dired-mark-files-regexp
@@ -413,14 +437,19 @@ If in Dired already, pop up a level and goto old directory's line.
 In case the proper Dired file line cannot be found, refresh the dired
 buffer and try again.
 When OTHER-WINDOW is non-nil, jump to Dired buffer in other window.
-Interactively with prefix argument, read FILE-NAME and
-move to its line in dired."
+When FILE-NAME is non-nil, jump to its line in Dired.
+Interactively with prefix argument, read FILE-NAME."
   (interactive
    (list nil (and current-prefix-arg
                   (read-file-name "Jump to Dired file: "))))
   (if (bound-and-true-p tar-subfile-mode)
       (switch-to-buffer tar-superior-buffer)
-    (let* ((file (or file-name buffer-file-name))
+    ;; Expand file-name before `dired-goto-file' call:
+    ;; `dired-goto-file' requires its argument to be an absolute
+    ;; file name; the result of `read-file-name' could be
+    ;; an abbreviated file name (Bug#24409).
+    (let* ((file (or (and file-name (expand-file-name file-name))
+                     buffer-file-name))
            (dir (if file (file-name-directory file) default-directory)))
       (if (and (eq major-mode 'dired-mode) (null file-name))
           (progn
@@ -482,7 +511,8 @@ Should never be used as marker by the user or other packages.")
   "Mark files matching `dired-omit-files' and `dired-omit-extensions'."
   (interactive)
   (let ((dired-omit-mode nil)) (revert-buffer)) ;; Show omitted files
-  (dired-mark-unmarked-files (dired-omit-regexp) nil nil dired-omit-localp))
+  (dired-mark-unmarked-files (dired-omit-regexp) nil nil dired-omit-localp
+                             (dired-omit-case-fold-p dired-directory)))
 
 (defcustom dired-omit-extensions
   (append completion-ignored-extensions
@@ -526,7 +556,8 @@ This functions works by temporarily binding `dired-marker-char' to
         (or (string= omit-re "")
             (let ((dired-marker-char dired-omit-marker-char))
               (when dired-omit-verbose (message "Omitting..."))
-              (if (dired-mark-unmarked-files omit-re nil nil dired-omit-localp)
+              (if (dired-mark-unmarked-files omit-re nil nil dired-omit-localp
+                                             (dired-omit-case-fold-p dired-directory))
                   (progn
                     (setq count (dired-do-kill-lines
 				 nil
@@ -552,12 +583,14 @@ This functions works by temporarily binding `dired-marker-char' to
             "")))
 
 ;; Returns t if any work was done, nil otherwise.
-(defun dired-mark-unmarked-files (regexp msg &optional unflag-p localp)
+(defun dired-mark-unmarked-files (regexp msg &optional unflag-p localp case-fold-p)
   "Mark unmarked files matching REGEXP, displaying MSG.
 REGEXP is matched against the entire file name.  When called
 interactively, prompt for REGEXP.
 With prefix argument, unflag all those files.
-Optional fourth argument LOCALP is as in `dired-get-filename'."
+Optional fourth argument LOCALP is as in `dired-get-filename'.
+Optional fifth argument CASE-FOLD-P specifies the value of
+`case-fold-search' used for matching REGEXP."
   (interactive
    (list (read-regexp
 	  "Mark unmarked files matching regexp (default all): "
@@ -569,7 +602,10 @@ Optional fourth argument LOCALP is as in `dired-get-filename'."
       ;; not already marked
       (looking-at-p " ")
       ;; uninteresting
-      (let ((fn (dired-get-filename localp t)))
+      (let ((fn (dired-get-filename localp t))
+            ;; Match patterns case-insensitively on case-insensitive
+            ;; systems
+            (case-fold-search case-fold-p))
         (and fn (string-match-p regexp fn))))
      msg)))
 
@@ -1054,17 +1090,7 @@ and the rest will be added temporarily to the history and can be retrieved
 with \\[previous-history-element] (M-p) .
 
 The variable `dired-guess-shell-case-fold-search' controls whether
-REGEXP is matched case-sensitively.
-
-You can set this variable in your ~/.emacs.  For example, to add rules for
-`.foo' and `.bar' files, write
-
- (setq dired-guess-shell-alist-user
-        '((\"\\\\.foo\\\\'\" \"FOO-COMMAND\")
-          (\"\\\\.bar\\\\'\"
-           (if condition
-              \"BAR-COMMAND-1\"
-            \"BAR-COMMAND-2\"))))"
+REGEXP is matched case-sensitively."
   :group 'dired-x
   :type '(alist :key-type regexp :value-type (repeat sexp)))
 
@@ -1372,29 +1398,6 @@ Considers buffers closer to the car of `buffer-list' to be more recent."
        (memq buffer1 (buffer-list))
        (not (memq buffer1 (memq buffer2 (buffer-list))))))
 
-;; Same thing as `dired-buffers-for-dir' of dired.el? - lrd 11/23/93
-;; (defun dired-buffers-for-dir-exact (dir)
-;; ;; Return a list of buffers that dired DIR (a directory or wildcard)
-;; ;; at top level, or as subdirectory.
-;; ;; Top level matches must match the wildcard part too, if any.
-;; ;; The list is in reverse order of buffer creation, most recent last.
-;; ;; As a side effect, killed dired buffers for DIR are removed from
-;; ;; dired-buffers.
-;;   (let ((alist dired-buffers) result elt)
-;;     (while alist
-;;       (setq elt (car alist)
-;;             alist (cdr alist))
-;;       (let ((buf (cdr elt)))
-;;         (if (buffer-name buf)
-;;             ;; Top level must match exactly against dired-directory in
-;;             ;; case one of them is a wildcard.
-;;             (if (or (equal dir (with-current-buffer buf dired-directory))
-;;                     (assoc dir (with-current-buffer buf dired-subdir-alist)))
-;;                 (setq result (cons buf result)))
-;;           ;; else buffer is killed - clean up:
-;;           (setq dired-buffers (delq elt dired-buffers)))))
-;;     result))
-
 
 ;; Needed if ls -lh is supported and also for GNU ls -ls.
 (defun dired-x--string-to-number (str)
@@ -1411,9 +1414,6 @@ sure that a trailing letter in STR is one of BKkMGTPEZY."
         (while (and units (/= (pop units) u))
           (setq val (* 1024.0 val)))))
     val))
-
-;; Does anyone use this? - lrd 6/29/93.
-;; Apparently people do use it. - lrd 12/22/97.
 
 (defun dired-mark-sexp (predicate &optional unflag-p)
   "Mark files for which PREDICATE returns non-nil.
@@ -1455,7 +1455,13 @@ refer at all to the underlying file system.  Contrast this with
   ;; (string-match "foo" sym) into which a user would soon fall.
   ;; Give `equal' instead of `=' in the example, as this works on
   ;; integers and strings.
-  (interactive "xMark if (lisp expr): \nP")
+  (interactive
+   (list (read--expression
+          (format "%s if (lisp expr): "
+                  (if current-prefix-arg
+                      "UNmark"
+                    "Mark")))
+         current-prefix-arg))
   (message "%s" predicate)
   (let ((dired-marker-char (if unflag-p ?\040 dired-marker-char))
         inode s mode nlink uid gid size time name sym)
@@ -1666,7 +1672,7 @@ If `current-prefix-arg' is non-nil, uses name at point as guess."
 
 ;; Local Variables:
 ;; byte-compile-dynamic: t
-;; generated-autoload-file: "dired.el"
+;; generated-autoload-file: "dired-loaddefs.el"
 ;; End:
 
 ;;; dired-x.el ends here

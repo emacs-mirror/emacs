@@ -877,21 +877,25 @@ features of Electric Pair mode:
 
 @itemize @bullet
 @item
+@vindex electric-pair-preserve-balance
 @code{electric-pair-preserve-balance}, when non-@code{nil}, makes the
 default pairing logic balance out the number of opening and closing
 delimiters.
 
 @item
+@vindex electric-pair-delete-adjacent-pairs
 @code{electric-pair-delete-adjacent-pairs}, when non-@code{nil}, makes
 backspacing between two adjacent delimiters also automatically delete
 the closing delimiter.
 
 @item
+@vindex electric-pair-open-newline-between-pairs
 @code{electric-pair-open-newline-between-pairs}, when non-@code{nil},
-makes inserting inserting a newline between two adjacent pairs also
-automatically open and extra newline after point.
+makes inserting a newline between two adjacent pairs also
+automatically open an extra newline after point.
 
 @item
+@vindex electric-pair-skip-whitespace
 @code{electric-pair-skip-whitespace}, when non-@code{nil}, causes the minor
 mode to skip whitespace forward before deciding whether to skip over
 the closing delimiter.
@@ -1189,7 +1193,7 @@ replace man pages with better-organized manuals that you can browse
 with Info (@pxref{Misc Help}).  This process is not finished, so it is
 still useful to read manual pages.
 
-@findex manual-entry
+@findex man
   You can read the man page for an operating system command, library
 function, or system call, with the @kbd{M-x man} command.  This
 prompts for a topic, with completion (@pxref{Completion}), and runs
@@ -1206,11 +1210,11 @@ mode buffer.
 named by a digit or by a digit and a letter.  Sometimes there are man
 pages with the same name in different sections.  To read a man page
 from a specific section, type @samp{@var{topic}(@var{section})} or
-@samp{@var{section} @var{topic}} when @kbd{M-x manual-entry} prompts
-for the topic.  For example, the man page for the C library function
+@samp{@var{section} @var{topic}} when @kbd{M-x man} prompts for the
+topic.  For example, the man page for the C library function
 @code{chmod} is in section 2, but there is a shell command of the same
 name, whose man page is in section 1; to view the former, type
-@kbd{M-x manual-entry @key{RET} chmod(2) @key{RET}}.
+@w{@kbd{M-x man @key{RET} chmod(2) @key{RET}}}.
 
 @vindex Man-switches
 @kindex M-n @r{(Man mode)}

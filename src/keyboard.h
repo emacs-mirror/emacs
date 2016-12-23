@@ -415,9 +415,6 @@ extern void unuse_menu_items (void);
 #define EVENT_HEAD_KIND(event_head) \
   (Fget ((event_head), Qevent_kind))
 
-/* True while doing kbd input.  */
-extern bool waiting_for_input;
-
 /* Address (if not 0) of struct timespec to zero out if a SIGIO interrupt
    happens.  */
 extern struct timespec *input_available_clear_time;
@@ -495,6 +492,8 @@ extern void mark_kboards (void);
 #ifdef HAVE_NTGUI
 extern const char *const lispy_function_keys[];
 #endif
+
+extern char const DEV_TTY[];
 
 INLINE_HEADER_END
 

@@ -25,6 +25,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 extern void init_signals (bool);
 extern void block_child_signal (sigset_t *);
 extern void unblock_child_signal (sigset_t const *);
+extern void block_interrupt_signal (sigset_t *);
+extern void restore_signal_mask (sigset_t const *);
 extern void block_tty_out_signal (sigset_t *);
 extern void unblock_tty_out_signal (sigset_t const *);
 

@@ -48,16 +48,18 @@
     (define-key map " " 'self-insert-command)
     map))
 
-(defvar mh-alias-system-aliases
+(defcustom mh-alias-system-aliases
   '("/etc/nmh/MailAliases" "/etc/mh/MailAliases"
     "/usr/lib/mh/MailAliases" "/usr/share/mailutils/mh/MailAliases"
     "/etc/passwd")
-  "*A list of system files which are a source of aliases.
+  "A list of system files which are a source of aliases.
 If these files are modified, they are automatically reread. This list
 need include only system aliases and the passwd file, since personal
 alias files listed in your \"Aliasfile:\" MH profile component are
 automatically included. You can update the alias list manually using
-\\[mh-alias-reload].")
+\\[mh-alias-reload]."
+  :type '(repeat file)
+  :group 'mh-alias)
 
 
 

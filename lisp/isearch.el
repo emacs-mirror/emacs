@@ -1,4 +1,4 @@
-;;; isearch.el --- incremental search minor mode
+;;; isearch.el --- incremental search minor mode -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1992-1997, 1999-2016 Free Software Foundation, Inc.
 
@@ -354,11 +354,7 @@ A value of nil means highlight all matches."
   "Face for lazy highlighting of matches other than the current one."
   :group 'lazy-highlight
   :group 'basic-faces)
-(define-obsolete-face-alias 'isearch-lazy-highlight-face 'lazy-highlight "22.1")
-(define-obsolete-variable-alias 'isearch-lazy-highlight-face
-                                'lazy-highlight-face
-                                "22.1")
-(defvar lazy-highlight-face 'lazy-highlight)
+
 
 ;; Define isearch help map.
 
@@ -562,7 +558,7 @@ The symbol property `isearch-message-prefix' put on this function
 specifies the prefix string displayed in the search message.
 
 This variable is set and changed during isearch.  To change the
-default behaviour used for searches, see `search-default-mode'
+default behavior used for searches, see `search-default-mode'
 instead.")
 ;; We still support setting this to t for backwards compatibility.
 (define-obsolete-variable-alias 'isearch-word
@@ -1012,7 +1008,8 @@ The last thing is to trigger a new round of lazy highlighting."
 		    ;; pos-visible-in-window-group-p returns non-nil, but
 		    ;; the X coordinate it returns is 1 pixel beyond
 		    ;; the last visible one.
-		    (>= (car visible-p) (window-body-width nil t)))
+		    (>= (car visible-p)
+                        (* (window-max-chars-per-line) (frame-char-width))))
 		(set-window-hscroll (selected-window) current-scroll))))
 	(if isearch-other-end
             (if (< isearch-other-end (point)) ; isearch-forward?
@@ -1049,9 +1046,10 @@ NOPUSH is t and EDIT is t."
   (remove-hook 'mouse-leave-buffer-hook 'isearch-done)
   (remove-hook 'kbd-macro-termination-hook 'isearch-done)
   (setq isearch-lazy-highlight-start nil)
-  (with-current-buffer isearch--current-buffer
-    (setq isearch--current-buffer nil)
-    (setq cursor-sensor-inhibit (delq 'isearch cursor-sensor-inhibit)))
+  (when (buffer-live-p isearch--current-buffer)
+    (with-current-buffer isearch--current-buffer
+      (setq isearch--current-buffer nil)
+      (setq cursor-sensor-inhibit (delq 'isearch cursor-sensor-inhibit))))
 
   ;; Called by all commands that terminate isearch-mode.
   ;; If NOPUSH is non-nil, we don't push the string on the search ring.
@@ -1147,18 +1145,18 @@ REGEXP if non-nil says use the regexp search ring."
                  (case-fold-search isearch-case-fold-search)
                  (pop-fun (if isearch-push-state-function
                               (funcall isearch-push-state-function))))))
-  (string :read-only t)
-  (message :read-only t)
-  (point :read-only t)
-  (success :read-only t)
-  (forward :read-only t)
-  (other-end :read-only t)
-  (word :read-only t)
-  (error :read-only t)
-  (wrapped :read-only t)
-  (barrier :read-only t)
-  (case-fold-search :read-only t)
-  (pop-fun :read-only t))
+  (string nil :read-only t)
+  (message nil :read-only t)
+  (point nil :read-only t)
+  (success nil :read-only t)
+  (forward nil :read-only t)
+  (other-end nil :read-only t)
+  (word nil :read-only t)
+  (error nil :read-only t)
+  (wrapped nil :read-only t)
+  (barrier nil :read-only t)
+  (case-fold-search nil :read-only t)
+  (pop-fun nil :read-only t))
 
 (defun isearch--set-state (cmd)
   (setq isearch-string (isearch--state-string cmd)
@@ -1259,6 +1257,11 @@ You can update the global isearch variables by setting new values to
 	      (isearch-adjusted isearch-adjusted)
 	      (isearch-yank-flag isearch-yank-flag)
 	      (isearch-error isearch-error)
+
+	      (multi-isearch-file-list-new multi-isearch-file-list)
+	      (multi-isearch-buffer-list-new multi-isearch-buffer-list)
+	      (multi-isearch-next-buffer-function multi-isearch-next-buffer-current-function)
+	      (multi-isearch-current-buffer-new multi-isearch-current-buffer)
   ;;; Don't bind this.  We want isearch-search, below, to set it.
   ;;; And the old value won't matter after that.
   ;;;	    (isearch-other-end isearch-other-end)
@@ -1313,7 +1316,10 @@ You can update the global isearch variables by setting new values to
 		  isearch-message isearch-new-message
 		  isearch-forward isearch-new-forward
 		  isearch-regexp-function isearch-new-regexp-function
-		  isearch-case-fold-search isearch-new-case-fold)
+		  isearch-case-fold-search isearch-new-case-fold
+		  multi-isearch-current-buffer multi-isearch-current-buffer-new
+		  multi-isearch-file-list multi-isearch-file-list-new
+		  multi-isearch-buffer-list multi-isearch-buffer-list-new)
 
 	    ;; Restore the minibuffer message before moving point.
             (funcall (or isearch-message-function #'isearch-message) nil t)
@@ -3279,7 +3285,7 @@ Attempt to do the search exactly the way the pending Isearch would."
 			  ;; 1000 is higher than ediff's 100+,
 			  ;; but lower than isearch main overlay's 1001
 			  (overlay-put ov 'priority 1000)
-			  (overlay-put ov 'face lazy-highlight-face)))
+			  (overlay-put ov 'face 'lazy-highlight)))
 			  ;(overlay-put ov 'window (selected-window))))
 		      ;; Remember the current position of point for
 		      ;; the next call of `isearch-lazy-highlight-update'
@@ -3321,5 +3327,7 @@ CASE-FOLD non-nil means the search was case-insensitive."
 	isearch-case-fold-search case-fold)
   (isearch-search)
   (isearch-update))
+
+(provide 'isearch)
 
 ;;; isearch.el ends here

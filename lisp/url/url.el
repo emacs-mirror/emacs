@@ -221,17 +221,20 @@ URL-encoded before it's used."
     buffer))
 
 ;;;###autoload
-(defun url-retrieve-synchronously (url &optional silent inhibit-cookies)
+(defun url-retrieve-synchronously (url &optional silent inhibit-cookies timeout)
   "Retrieve URL synchronously.
 Return the buffer containing the data, or nil if there are no data
 associated with it (the case for dired, info, or mailto URLs that need
 no further processing).  URL is either a string or a parsed URL.
-If SILENT is non-nil, don't display progress reports and similar messages.
-If INHIBIT-COOKIES is non-nil, cookies will neither be stored nor sent
-to the server."
+
+If SILENT is non-nil, don't do any messaging while retrieving.
+If INHIBIT-COOKIES is non-nil, refuse to store cookies.  If
+TIMEOUT is passed, it should be a number that says (in seconds)
+how long to wait for a response before giving up."
   (url-do-setup)
 
   (let ((retrieval-done nil)
+	(start-time (current-time))
         (asynch-buffer nil))
     (setq asynch-buffer
 	  (url-retrieve url (lambda (&rest ignored)
@@ -253,7 +256,11 @@ to the server."
 	;; buffer-local variable so we can find the exact process that we
 	;; should be waiting for.  In the mean time, we'll just wait for any
 	;; process output.
-	(while (not retrieval-done)
+	(while (and (not retrieval-done)
+                    (or (not timeout)
+                        (< (float-time (time-subtract
+                                        (current-time) start-time))
+                           timeout)))
 	  (url-debug 'retrieval
 		     "Spinning in url-retrieve-synchronously: %S (%S)"
 		     retrieval-done asynch-buffer)
@@ -284,7 +291,7 @@ to the server."
             ;; `sleep-for' was tried but it lead to other forms of
             ;; hanging.  --Stef
             (unless (or (with-local-quit
-			  (accept-process-output proc))
+			  (accept-process-output proc 1))
 			(null proc))
               ;; accept-process-output returned nil, maybe because the process
               ;; exited (and may have been replaced with another).  If we got

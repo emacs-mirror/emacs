@@ -1,0 +1,4247 @@
+
+ada-src/etags-test-for.ada,1969
+   type LL_Task_Procedure_Access LL_Task_Procedure_Access/t1,0
+   function Body_RequiredBody_Required/f3,78
+   type Type_Specific_Data Type_Specific_Data/t11,280
+   function "abs"abs/f19,504
+   type Barrier_Function_Pointer Barrier_Function_Pointer/t21,577
+   function "="=/f27,722
+   type usfreelock_ptr usfreelock_ptr/t30,803
+   function p p/f33,891
+   procedure LL_Wrapper LL_Wrapper/p37,1054
+function p p/f39,1094
+package Pkg1 Pkg1/s44,1203
+  type Private_T Private_T/t46,1220
+  package Inner1 Inner1/s48,1250
+    procedure Private_T;Private_T/p49,1270
+  package Inner2 Inner2/s52,1310
+    task Private_T;Private_T/k53,1330
+  type Public_T Public_T/t56,1365
+  procedure Pkg1_Proc1;Pkg1_Proc1/p62,1450
+  procedure Pkg1_Proc2 Pkg1_Proc2/p64,1475
+  function Pkg1_Func1 Pkg1_Func1/f66,1514
+  function Pkg1_Func2 Pkg1_Func2/f68,1553
+  package Pkg1_Pkg1 Pkg1_Pkg1/s71,1622
+    procedure Pkg1_Pkg1_Proc1;Pkg1_Pkg1_Proc1/p72,1645
+  task type Task_Type Task_Type/k75,1694
+  type Private_T Private_T/t82,1786
+package body Pkg1 Pkg1/b89,1882
+  procedure Pkg1_Proc1 Pkg1_Proc1/p91,1904
+  package body Inner1 Inner1/b96,1956
+    procedure Private_T Private_T/p97,1981
+  package body Inner2 Inner2/b103,2054
+    task body Private_T Private_T/b104,2079
+  task body Task_Type Task_Type/b112,2181
+  procedure Pkg1_Proc2 Pkg1_Proc2/p126,2367
+  function Pkg1_Func1 Pkg1_Func1/f132,2445
+  function Pkg1_Func2 Pkg1_Func2/f134,2496
+  package body Pkg1_Pkg1 Pkg1_Pkg1/b140,2596
+package body Pkg1_Pkg1 Pkg1_Pkg1/b146,2663
+  procedure Pkg1_Pkg1_Proc1 Pkg1_Pkg1_Proc1/p147,2689
+function  Pkg1_Func1 Pkg1_Func1/f155,2778
+package Truc Truc/s162,2887
+package Truc.Bidule Truc.Bidule/s166,2929
+  protected Bidule Bidule/t168,2953
+  protected type Machin_T Machin_T/t172,3007
+package body Truc.Bidule Truc.Bidule/b178,3087
+  protected body Bidule Bidule/b179,3115
+  protected Machin_T Machin_T/t186,3207
+
+ada-src/2ataspri.adb,2190
+package body System.Task_Primitives System.Task_Primitives/b64,2603
+   package RTE RTE/s69,2712
+   package TSL TSL/s70,2759
+   function To_void_ptr To_void_ptr/f86,3287
+   function To_TCB_Ptr To_TCB_Ptr/f89,3366
+   function pthread_mutexattr_setprotocolpthread_mutexattr_setprotocol/f92,3444
+   function pthread_mutexattr_setprio_ceilingpthread_mutexattr_setprio_ceiling/f99,3728
+   procedure Abort_WrapperAbort_Wrapper/p115,4302
+   procedure LL_Wrapper LL_Wrapper/p122,4526
+   procedure Initialize_LL_Tasks Initialize_LL_Tasks/p131,4830
+   function Self Self/f160,5586
+   procedure Initialize_LockInitialize_Lock/p174,5958
+   procedure Finalize_Lock Finalize_Lock/p210,6927
+   procedure Write_Lock Write_Lock/p226,7338
+   procedure Read_Lock Read_Lock/p239,7700
+   procedure Unlock Unlock/p246,7850
+   procedure Initialize_Cond Initialize_Cond/p258,8160
+   procedure Finalize_Cond Finalize_Cond/p286,8979
+   procedure Cond_Wait Cond_Wait/p300,9303
+   procedure Cond_Timed_WaitCond_Timed_Wait/p312,9661
+   procedure Cond_Signal Cond_Signal/p343,10510
+   procedure Set_PrioritySet_Priority/p355,10836
+   procedure Set_Own_Priority Set_Own_Priority/p372,11243
+   function Get_Priority Get_Priority/f385,11598
+   function Get_Own_Priority Get_Own_Priority/f398,12023
+   procedure Create_LL_TaskCreate_LL_Task/p412,12438
+      function To_Start_Addr To_Start_Addr/f426,12873
+   procedure Exit_LL_Task Exit_LL_Task/p491,14995
+   procedure Abort_Task Abort_Task/p500,15158
+   procedure Test_Abort Test_Abort/p518,15716
+   procedure Install_Abort_Handler Install_Abort_Handler/p527,15878
+   procedure Abort_WrapperAbort_Wrapper/p557,16939
+      function Address_To_Call_State Address_To_Call_State/f562,17062
+   procedure Install_Error_Handler Install_Error_Handler/p573,17351
+   procedure LL_Assert LL_Assert/p599,18146
+   procedure LL_Wrapper LL_Wrapper/p608,18299
+   procedure Initialize_TAS_Cell Initialize_TAS_Cell/p630,19010
+   procedure Finalize_TAS_Cell Finalize_TAS_Cell/p635,19129
+   procedure Clear Clear/p640,19236
+   procedure Test_And_Set Test_And_Set/p645,19330
+   function  Is_Set Is_Set/f659,19676
+
+ada-src/2ataspri.ads,2313
+package System.Task_Primitives System.Task_Primitives/s58,3169
+   type LL_Task_Procedure_Access LL_Task_Procedure_Access/t62,3253
+   type Pre_Call_State Pre_Call_State/t64,3331
+   type Task_Storage_Size Task_Storage_Size/t66,3378
+   type Machine_Exceptions Machine_Exceptions/t68,3433
+   type Error_Information Error_Information/t70,3499
+   type Lock Lock/t72,3569
+   type Condition_Variable Condition_Variable/t73,3594
+   type Task_Control_Block Task_Control_Block/t81,3955
+   type TCB_Ptr TCB_Ptr/t89,4241
+   function Address_To_TCB_Ptr Address_To_TCB_Ptr/f93,4333
+   procedure Initialize_LL_Tasks Initialize_LL_Tasks/p96,4425
+   function Self Self/f100,4602
+   procedure Initialize_Lock Initialize_Lock/p103,4707
+   procedure Finalize_Lock Finalize_Lock/p107,4879
+   procedure Write_Lock Write_Lock/p111,5034
+   procedure Read_Lock Read_Lock/p118,5428
+   procedure Unlock Unlock/p128,5995
+   procedure Initialize_Cond Initialize_Cond/p135,6300
+   procedure Finalize_Cond Finalize_Cond/p138,6413
+   procedure Cond_Wait Cond_Wait/p142,6591
+   procedure Cond_Timed_WaitCond_Timed_Wait/p155,7396
+   procedure Cond_Signal Cond_Signal/p164,7812
+   procedure Set_Priority Set_Priority/p169,8040
+   procedure Set_Own_Priority Set_Own_Priority/p173,8200
+   function Get_Priority Get_Priority/f177,8348
+   function Get_Own_Priority Get_Own_Priority/f181,8504
+   procedure Create_LL_TaskCreate_LL_Task/p185,8647
+   procedure Exit_LL_Task;Exit_LL_Task/p198,9282
+   procedure Abort_Task Abort_Task/p203,9516
+   procedure Test_Abort;Test_Abort/p210,9878
+   type Abort_Handler_Pointer Abort_Handler_Pointer/t217,10233
+   procedure Install_Abort_Handler Install_Abort_Handler/p219,10312
+   procedure Install_Error_Handler Install_Error_Handler/p226,10741
+   procedure LL_Assert LL_Assert/p231,10983
+   type Proc Proc/t238,11240
+   type TAS_Cell TAS_Cell/t242,11328
+   procedure Initialize_TAS_Cell Initialize_TAS_Cell/p249,11670
+   procedure Finalize_TAS_Cell Finalize_TAS_Cell/p255,11941
+   procedure Clear Clear/p260,12157
+   procedure Test_And_Set Test_And_Set/p267,12462
+   function  Is_Set Is_Set/f275,12877
+   type Lock Lock/t283,13155
+   type Condition_Variable Condition_Variable/t288,13267
+   type TAS_Cell TAS_Cell/t293,13389
+
+ada-src/waroquiers.ada,1503
+package Pkg1 Pkg1/s3,89
+  type Private_T Private_T/t5,106
+  package Inner1 Inner1/s7,136
+    procedure Private_T;Private_T/p8,156
+  package Inner2 Inner2/s11,196
+    task Private_T;Private_T/k12,216
+  type Public_T Public_T/t15,251
+  procedure Pkg1_Proc1;Pkg1_Proc1/p21,336
+  procedure Pkg1_Proc2 Pkg1_Proc2/p23,361
+  function Pkg1_Func1 Pkg1_Func1/f25,400
+  function Pkg1_Func2 Pkg1_Func2/f27,439
+  package Pkg1_Pkg1 Pkg1_Pkg1/s30,508
+    procedure Pkg1_Pkg1_Proc1;Pkg1_Pkg1_Proc1/p31,531
+  task type Task_Type Task_Type/k34,580
+  type Private_T Private_T/t40,671
+package body Pkg1 Pkg1/b46,766
+  procedure Pkg1_Proc1 Pkg1_Proc1/p48,788
+  package body Inner1 Inner1/b53,840
+    procedure Private_T Private_T/p54,865
+  package body Inner2 Inner2/b60,938
+    task body Private_T Private_T/b61,963
+  task body Task_Type Task_Type/b68,1064
+  procedure Pkg1_Proc2 Pkg1_Proc2/p82,1250
+  function Pkg1_Func1 Pkg1_Func1/f88,1328
+  function Pkg1_Func2 Pkg1_Func2/f90,1379
+  package body Pkg1_Pkg1 Pkg1_Pkg1/b96,1479
+package body Pkg1_Pkg1 Pkg1_Pkg1/b100,1544
+  procedure Pkg1_Pkg1_Proc1 Pkg1_Pkg1_Proc1/p101,1570
+function  Pkg1_Func1 Pkg1_Func1/f107,1657
+package Truc Truc/s112,1764
+package Truc.Bidule Truc.Bidule/s116,1816
+  protected Bidule Bidule/t125,1964
+  protected type Machin_T Machin_T/t131,2046
+package body Truc.Bidule Truc.Bidule/b138,2153
+  protected body Bidule Bidule/b139,2181
+  protected body Machin_T Machin_T/b146,2281
+
+c-src/abbrev.c,2072
+Lisp_Object Vabbrev_table_name_list;43,1424
+Lisp_Object Vglobal_abbrev_table;48,1569
+Lisp_Object Vfundamental_mode_abbrev_table;52,1680
+int abbrevs_changed;56,1781
+int abbrev_all_caps;58,1803
+Lisp_Object Vabbrev_start_location;63,1952
+Lisp_Object Vabbrev_start_location_buffer;66,2041
+Lisp_Object Vlast_abbrev;70,2150
+Lisp_Object Vlast_abbrev_text;75,2319
+int last_abbrev_point;79,2409
+Lisp_Object Vpre_abbrev_expand_hook,83,2482
+Lisp_Object Vpre_abbrev_expand_hook, Qpre_abbrev_expand_hook;83,2482
+DEFUN ("make-abbrev-table", Fmake_abbrev_table,85,2546
+DEFUN ("make-abbrev-table", Fmake_abbrev_table,make-abbrev-table85,2546
+DEFUN ("clear-abbrev-table", Fclear_abbrev_table,92,2738
+DEFUN ("clear-abbrev-table", Fclear_abbrev_table,clear-abbrev-table92,2738
+DEFUN ("define-abbrev", Fdefine_abbrev,107,3119
+DEFUN ("define-abbrev", Fdefine_abbrev,define-abbrev107,3119
+DEFUN ("define-global-abbrev", Fdefine_global_abbrev,149,4438
+DEFUN ("define-global-abbrev", Fdefine_global_abbrev,define-global-abbrev149,4438
+DEFUN ("define-mode-abbrev", Fdefine_mode_abbrev,160,4809
+DEFUN ("define-mode-abbrev", Fdefine_mode_abbrev,define-mode-abbrev160,4809
+DEFUN ("abbrev-symbol", Fabbrev_symbol,174,5277
+DEFUN ("abbrev-symbol", Fabbrev_symbol,abbrev-symbol174,5277
+DEFUN ("abbrev-expansion", Fabbrev_expansion,202,6241
+DEFUN ("abbrev-expansion", Fabbrev_expansion,abbrev-expansion202,6241
+DEFUN ("expand-abbrev", Fexpand_abbrev,218,6756
+DEFUN ("expand-abbrev", Fexpand_abbrev,expand-abbrev218,6756
+DEFUN ("unexpand-abbrev", Funexpand_abbrev,389,11677
+DEFUN ("unexpand-abbrev", Funexpand_abbrev,unexpand-abbrev389,11677
+write_abbrev 426,12884
+describe_abbrev 445,13319
+DEFUN ("insert-abbrev-table-description", Finsert_abbrev_table_description,466,13834
+DEFUN ("insert-abbrev-table-description", Finsert_abbrev_table_description,insert-abbrev-table-description466,13834
+DEFUN ("define-abbrev-table", Fdefine_abbrev_table,506,14990
+DEFUN ("define-abbrev-table", Fdefine_abbrev_table,define-abbrev-table506,14990
+syms_of_abbrev 540,16067
+
+c-src/torture.c,197
+(*tag1 tag118,452
+#define notag2 26,553
+(*tag2 tag229,630
+(*tag3 tag339,772
+#define notag4 45,861
+(*tag4 tag448,955
+tag5 57,1081
+tag6 66,1208
+int pp1(74,1317
+pp287,1419
+pp3(100,1518
+
+c-src/getopt.h,147
+#define _GETOPT_H 19,794
+struct option73,2790
+#define	no_argument	89,3117
+#define required_argument	90,3140
+#define optional_argument	91,3168
+
+c-src/etags.c,10045
+char pot_etags_version[pot_etags_version81,3470
+#  undef DEBUG84,3552
+#  define DEBUG 85,3567
+#  define DEBUG 87,3594
+#  define NDEBUG	88,3617
+# define _GNU_SOURCE 94,3705
+# undef MSDOS100,3876
+# undef  WINDOWSNT101,3890
+# define WINDOWSNT102,3909
+# undef MSDOS106,3968
+# define MSDOS 107,3982
+# define MSDOS 110,4032
+# define MAXPATHLEN 115,4111
+# undef HAVE_NTGUI116,4141
+# undef  DOS_NT117,4160
+# define DOS_NT118,4176
+# undef  assert	135,4482
+# define assert(136,4541
+# undef  CTAGS146,4857
+# define CTAGS 147,4872
+# define CTAGS 149,4898
+#define streq(152,4927
+#define strcaseeq(153,4996
+#define strneq(154,5075
+#define strncaseeq(155,5151
+#define CHARS 157,5238
+#define CHAR(158,5278
+#define	iswhite(159,5329
+#define notinname(160,5394
+#define	begtoken(161,5469
+#define	intoken(162,5542
+#define	endtoken(163,5614
+#define ISALNUM(165,5684
+#define ISALPHA(166,5722
+#define ISDIGIT(167,5760
+#define ISLOWER(168,5798
+#define lowcase(170,5837
+#define xnew(179,6015
+#define xrnew(180,6083
+typedef void Lang_function 182,6164
+} compressor;188,6365
+} language;199,6835
+typedef struct fdesc201,6848
+} fdesc;212,7366
+typedef struct node_st214,7376
+} node;225,7894
+} linebuffer;239,8248
+    at_language,245,8344
+    at_regexp,246,8393
+    at_filename,247,8437
+    at_stdin,248,8473
+    at_end	249,8516
+} argument;253,8698
+typedef struct regexp256,8758
+} regexp;268,9325
+static void error 311,10780
+# undef STDIN408,15073
+#define STDIN 411,15095
+static compressor compressors[compressors457,17664
+static const char *Ada_suffixes Ada_suffixes473,17907
+static const char Ada_help 475,17977
+static const char *Asm_suffixes Asm_suffixes493,18580
+static const char Asm_help 504,18976
+static const char *default_C_suffixes default_C_suffixes512,19312
+static const char default_C_help 515,19413
+static const char default_C_help 523,19850
+static const char *Cplusplus_suffixes Cplusplus_suffixes535,20460
+static const char Cplusplus_help 540,20658
+static const char *Cjava_suffixes Cjava_suffixes549,21113
+static char Cjava_help 551,21172
+static const char *Cobol_suffixes Cobol_suffixes556,21337
+static char Cobol_help 558,21402
+static const char *Cstar_suffixes Cstar_suffixes562,21543
+static const char *Erlang_suffixes Erlang_suffixes565,21607
+static const char Erlang_help 567,21673
+const char *Forth_suffixes Forth_suffixes571,21799
+static const char Forth_help 573,21857
+static const char *Fortran_suffixes Fortran_suffixes577,22008
+static const char Fortran_help 579,22085
+static const char *HTML_suffixes HTML_suffixes582,22190
+static const char HTML_help 584,22264
+static const char *Lisp_suffixes Lisp_suffixes589,22452
+static const char Lisp_help 591,22556
+static const char *Lua_suffixes Lua_suffixes598,22871
+static const char Lua_help 600,22934
+static const char *Makefile_filenames Makefile_filenames603,23010
+static const char Makefile_help 605,23133
+static const char *Objc_suffixes Objc_suffixes609,23277
+static const char Objc_help 613,23399
+static const char *Pascal_suffixes Pascal_suffixes619,23714
+static const char Pascal_help 621,23778
+static const char *Perl_suffixes Perl_suffixes626,23966
+static const char *Perl_interpreters Perl_interpreters628,24028
+static const char Perl_help 630,24100
+static const char *PHP_suffixes PHP_suffixes637,24451
+static const char PHP_help 639,24523
+static const char *plain_C_suffixes plain_C_suffixes643,24678
+static const char *PS_suffixes PS_suffixes647,24762
+static const char PS_help 649,24848
+static const char *Prolog_suffixes Prolog_suffixes652,24931
+static const char Prolog_help 654,24993
+static const char *Python_suffixes Python_suffixes658,25107
+static const char Python_help 660,25165
+static const char *Scheme_suffixes Scheme_suffixes665,25347
+static const char Scheme_help 667,25460
+static const char *TeX_suffixes TeX_suffixes672,25683
+static const char TeX_help 674,25781
+static const char *Texinfo_suffixes Texinfo_suffixes686,26316
+static const char Texinfo_help 688,26395
+static const char *Yacc_suffixes Yacc_suffixes691,26492
+static const char Yacc_help 693,26606
+static const char auto_help 699,26856
+static const char none_help 703,27020
+static const char no_lang_help 707,27143
+static language lang_names 718,27355
+print_language_names 753,29532
+# define EMACS_NAME 786,30755
+# define VERSION 789,30811
+print_version 792,30869
+# define PRINT_UNDOCUMENTED_OPTIONS_HELP 804,31173
+print_help 808,31250
+main 981,37438
+get_compressor_from_suffix 1319,46217
+get_language_from_langname 1355,47158
+get_language_from_interpreter 1377,47545
+get_language_from_filename 1399,47976
+process_file_name 1433,48834
+process_file 1555,51665
+init 1632,54150
+find_entries 1656,54901
+make_tag 1814,59707
+pfnote 1856,60942
+free_tree 1917,62744
+free_fdesc 1935,63029
+add_node 1955,63472
+invalidate_nodes 2035,65537
+static int number_len 2068,66193
+total_size_of_entries 2087,66694
+put_entries 2107,67154
+#define C_EXT	2193,68995
+#define C_PLAIN 2194,69037
+#define C_PLPL	2195,69070
+#define C_STAR	2196,69104
+#define C_JAVA	2197,69137
+#define C_AUTO 2198,69172
+#define YACC	2199,69242
+enum sym_type2204,69312
+  st_none,2206,69328
+  st_C_objprot,2207,69339
+  st_C_objprot, st_C_objimpl,2207,69339
+  st_C_objprot, st_C_objimpl, st_C_objend,2207,69339
+  st_C_gnumacro,2208,69382
+  st_C_ignore,2209,69399
+  st_C_ignore, st_C_attribute,2209,69399
+  st_C_javastruct,2210,69430
+  st_C_operator,2211,69449
+  st_C_class,2212,69466
+  st_C_class, st_C_template,2212,69466
+  st_C_struct,2213,69495
+  st_C_struct, st_C_extern,2213,69495
+  st_C_struct, st_C_extern, st_C_enum,2213,69495
+  st_C_struct, st_C_extern, st_C_enum, st_C_define,2213,69495
+  st_C_struct, st_C_extern, st_C_enum, st_C_define, st_C_typedef2213,69495
+struct C_stab_entry 2271,71278
+hash 2275,71409
+in_word_set 2321,72937
+      TOTAL_KEYWORDS 2325,73018
+      MIN_WORD_LENGTH 2326,73045
+      MAX_WORD_LENGTH 2327,73072
+      MIN_HASH_VALUE 2328,73100
+      MAX_HASH_VALUE 2329,73126
+C_symtype 2387,74985
+static bool inattribute;2400,75234
+  fvnone,2408,75435
+  fdefunkey,2409,75466
+  fdefunname,2410,75512
+  foperator,2411,75556
+  fvnameseen,2412,75613
+  fstartlist,2413,75666
+  finlist,2414,75722
+  flistseen,2415,75765
+  fignore,2416,75813
+  vignore	2417,75856
+} fvdef;2418,75901
+static bool fvextern;2420,75911
+  tnone,2428,76089
+  tkeyseen,2429,76119
+  ttypeseen,2430,76160
+  tinbody,2431,76199
+  tend,2432,76238
+  tignore	2433,76279
+} typdef;2434,76320
+  snone,2443,76499
+  skeyseen,2445,76575
+  stagseen,2446,76620
+  scolonseen	2447,76661
+} structdef;2448,76715
+static const char *objtag objtag2453,76809
+  dnone,2460,76942
+  dsharpseen,2461,76972
+  ddefineseen,2462,77025
+  dignorerest	2463,77070
+} definedef;2464,77112
+  onone,2472,77267
+  oprotocol,2473,77297
+  oimplementation,2474,77347
+  otagseen,2475,77395
+  oparenseen,2476,77431
+  ocatseen,2477,77486
+  oinbody,2478,77525
+  omethodsign,2479,77568
+  omethodtag,2480,77626
+  omethodcolon,2481,77666
+  omethodparm,2482,77709
+  oignore	2483,77755
+} objdef;2484,77787
+static struct tok2491,77944
+} token;2508,78626
+} cstack;2523,79136
+#define nestlev	2525,79264
+#define instruct	2527,79369
+pushclass_above 2531,79489
+popclass_above 2550,79948
+write_classname 2564,80162
+consider_token 2613,81341
+} lbs[lbs2924,88532
+#define current_lb_is_new 2926,88543
+#define switch_line_buffers(2927,88588
+#define curlb 2929,88641
+#define newlb 2930,88672
+#define curlinepos 2931,88703
+#define newlinepos 2932,88744
+#define plainc 2934,88786
+#define cplpl 2935,88830
+#define cjava 2936,88861
+#define CNL_SAVE_DEFINEDEF(2938,88905
+#define CNL(2947,89117
+make_C_tag 2960,89375
+C_entries 2986,90194
+default_C_entries 3833,110156
+plain_C_entries 3840,110276
+Cplusplus_entries 3847,110364
+Cjava_entries 3854,110460
+Cstar_entries 3861,110550
+Yacc_entries 3868,110642
+#define LOOP_ON_INPUT_LINES(3875,110720
+#define LOOKING_AT(3884,111056
+#define LOOKING_AT_NOCASE(3891,111461
+just_read_file 3901,111861
+F_takeprec 3914,112039
+F_getit 3937,112366
+Fortran_functions 3961,112840
+Ada_getit 4052,114669
+Ada_funcs 4115,116044
+Asm_labels 4228,118582
+Perl_functions 4261,119549
+Python_functions 4357,122057
+PHP_functions 4387,122684
+Cobol_paragraphs 4466,124471
+Makefile_targets 4494,125029
+Pascal_functions 4529,125950
+L_getit 4709,130318
+Lisp_functions 4725,130664
+Lua_functions 4785,131850
+PS_functions 4811,132385
+Forth_words 4841,133053
+Scheme_functions 4877,134092
+static linebuffer *TEX_toktab TEX_toktab4908,134781
+static const char *TEX_defenv TEX_defenv4912,134974
+static char TEX_esc 4920,135261
+static char TEX_opgrp 4921,135289
+static char TEX_clgrp 4922,135318
+TeX_commands 4928,135395
+#define TEX_LESC 4986,136652
+#define TEX_SESC 4987,136674
+TEX_mode 4992,136804
+TEX_decode_env 5026,137509
+Texinfo_nodes 5071,138554
+HTML_labels 5094,139013
+Prolog_functions 5219,142347
+prolog_skip_comment 5255,143128
+prolog_pr 5281,143736
+prolog_atom 5319,144628
+Erlang_functions 5379,145666
+erlang_func 5438,146965
+erlang_attribute 5476,147642
+erlang_atom 5496,148061
+scan_separators 5534,149080
+analyze_regex 5586,150460
+add_regex 5654,152050
+substitute 5767,154797
+free_regexps 5814,155837
+regex_tag_multiline 5836,156291
+nocase_tail 5913,158263
+get_tag 5928,158519
+readline_internal 5959,159455
+readline 6037,161296
+savestr 6230,167243
+savenstr 6240,167473
+skip_spaces 6249,167679
+skip_non_spaces 6258,167833
+skip_name 6267,167983
+fatal 6277,168156
+pfatal 6284,168253
+suggest_asking_for_help 6291,168332
+error 6300,168554
+concat 6313,168846
+etags_getcwd 6329,169259
+relative_filename 6350,169725
+absolute_filename 6389,170751
+absolute_dirname 6453,172416
+filename_is_absolute 6472,172845
+canonicalize_filename 6484,173096
+# define ISUPPER(6491,173235
+linebuffer_init 6514,173656
+linebuffer_setlen 6524,173887
+xmalloc 6536,174148
+xrealloc 6545,174314
+
+c-src/exit.c,47
+  } __libc_atexit;30,1017
+DEFUN(exit,38,1258
+
+c-src/exit.strange_suffix,47
+  } __libc_atexit;30,1017
+DEFUN(exit,38,1258
+
+c-src/sysdep.h,491
+#define	ENTRY(21,870
+#define	PSEUDO(26,977
+    movl $SYS_##syscall_nam$SYS_##syscall_na31,1137
+    movl $SYS_##syscall_name, %eax;eax31,1137
+    int $0x80;32,1185
+    test %eax,eax33,1215
+    test %eax, %eax;eax33,1215
+    jl syscall_error;34,1250
+#define	XCHG_0	47,1567
+#define	XCHG_1	48,1611
+#define	XCHG_2	49,1653
+#define	XCHG_3	50,1696
+#define	XCHG_4	51,1739
+#define	XCHG_5	52,1782
+#define	r0	54,1826
+#define	r1	55,1880
+#define scratch 56,1937
+#define MOVE(57,2006
+
+c-src/tab.c,196
+static int		count_words(15,263
+static char		*get_word(get_word35,553
+void			tab_free(59,966
+char			**tab_fill(tab_fill70,1129
+int			tab_delete_first(91,1638
+int			tab_count_words(103,1820
+
+c-src/dostorture.c,198
+(*tag1 tag118,468
+#define notag2 26,577
+(*tag2 tag229,657
+(*tag3 tag339,809
+#define notag4 45,904
+(*tag4 tag448,1001
+tag5 57,1136
+tag6 66,1272
+int pp1(74,1389
+pp287,1504
+pp3(100,1616
+
+c-src/emacs/src/gmalloc.c,3539
+#define USE_PTHREAD25,1002
+#undef get_current_dir_name33,1126
+#undef malloc64,2110
+#undef realloc65,2124
+#undef calloc66,2139
+#undef free67,2153
+#define malloc 68,2165
+#define realloc 69,2188
+#define calloc 70,2213
+#define aligned_alloc 71,2236
+#define free 72,2273
+#define DUMPED 80,2472
+#define ALLOCATED_BEFORE_DUMPING(81,2507
+extern void *malloc malloc94,2718
+#define INT_BIT	124,3934
+#define BLOCKLOG	125,3977
+#define BLOCKSIZE	126,4018
+#define BLOCKIFY(127,4052
+#define HEAP	131,4215
+#define FINAL_FREE_BLOCKS	135,4391
+  } malloc_info;167,5388
+#define BLOCK(176,5620
+#define ADDRESS(177,5682
+struct list186,5939
+struct alignlist196,6153
+#define LOCK(223,7064
+#define UNLOCK(228,7195
+#define LOCK_ALIGNED_BLOCKS(233,7329
+#define UNLOCK_ALIGNED_BLOCKS(238,7484
+#define LOCK(244,7649
+#define UNLOCK(245,7664
+#define LOCK_ALIGNED_BLOCKS(246,7681
+#define UNLOCK_ALIGNED_BLOCKS(247,7711
+enum mcheck_status283,9092
+    MCHECK_DISABLED 285,9115
+    MCHECK_OK,286,9187
+    MCHECK_FREE,287,9226
+    MCHECK_HEAD,288,9270
+    MCHECK_TAIL	289,9334
+struct mstats308,10153
+char *_heapbase;_heapbase355,11829
+malloc_info *_heapinfo;_heapinfo358,11927
+static size_t heapsize;361,11983
+size_t _heapindex;364,12047
+size_t _heaplimit;367,12109
+struct list _fraghead[_fraghead370,12171
+size_t _chunks_used;373,12229
+size_t _bytes_used;374,12250
+size_t _chunks_free;375,12270
+size_t _bytes_free;376,12291
+int __malloc_initialized;379,12340
+size_t __malloc_extra_blocks;381,12367
+static int state_protected_p;400,12912
+static size_t last_state_size;401,12942
+static malloc_info *last_heapinfo;last_heapinfo402,12973
+protect_malloc_state 405,13014
+#define PROTECT_MALLOC_STATE(426,13627
+#define PROTECT_MALLOC_STATE(429,13697
+align 435,13794
+get_contiguous_space 466,14616
+register_heapinfo 497,15325
+pthread_mutex_t _malloc_mutex 517,15879
+pthread_mutex_t _aligned_blocks_mutex 518,15938
+int _malloc_thread_enabled_p;519,16005
+malloc_atfork_handler_prepare 522,16048
+malloc_atfork_handler_parent 529,16139
+malloc_atfork_handler_child 536,16233
+malloc_enable_thread 544,16375
+malloc_initialize_1 563,16961
+__malloc_initialize 594,17793
+static int morecore_recursing;604,17926
+morecore_nolock 609,18066
+_malloc_internal_nolock 722,21584
+_malloc_internal 920,28102
+malloc 932,28247
+_malloc 961,29140
+_free 967,29196
+_realloc 973,29240
+struct alignlist *_aligned_blocks _aligned_blocks1004,30345
+_free_internal_nolock 1009,30474
+_free_internal 1255,38476
+free 1265,38603
+weak_alias 1277,38799
+#define min(1306,39813
+_realloc_internal_nolock 1319,40309
+_realloc_internal 1435,43563
+realloc 1447,43726
+calloc 1478,44894
+#define	__sbrk	1513,46042
+__default_morecore 1525,46511
+aligned_alloc 1557,47522
+memalign 1647,49704
+posix_memalign 1656,49909
+static size_t pagesize;1703,51317
+valloc 1706,51349
+#undef malloc1715,51490
+#undef realloc1716,51504
+#undef calloc1717,51519
+#undef aligned_alloc1718,51533
+#undef free1719,51554
+hybrid_malloc 1736,52083
+hybrid_calloc 1744,52188
+hybrid_free 1752,52319
+hybrid_aligned_alloc 1765,52626
+hybrid_realloc 1780,52984
+hybrid_get_current_dir_name 1811,53797
+#define MAGICWORD	1854,55206
+#define MAGICFREE	1855,55261
+#define MAGICBYTE	1856,55316
+#define MALLOCFLOOD	1857,55348
+#define FREEFLOOD	1858,55382
+struct hdr1860,55415
+checkhdr 1867,55581
+freehook 1891,56022
+mallochook 1927,56804
+reallochook 1944,57143
+mabort 1978,57901
+static int mcheck_used 2012,58586
+mcheck 2015,58619
+mprobe 2035,59138
+
+c-src/emacs/src/regex.h,3761
+#define _REGEX_H 21,836
+typedef unsigned long reg_syntax_t;43,1577
+#define RE_BACKSLASH_ESCAPE_IN_LISTS 47,1749
+#define RE_BK_PLUS_QM 52,1969
+#define RE_CHAR_CLASSES 58,2298
+#define RE_CONTEXT_INDEP_ANCHORS 72,3032
+#define RE_CONTEXT_INDEP_OPS 80,3458
+#define RE_CONTEXT_INVALID_OPS 84,3658
+#define RE_DOT_NEWLINE 88,3801
+#define RE_DOT_NOT_NULL 92,3937
+#define RE_HAT_LISTS_NOT_NEWLINE 96,4082
+#define RE_INTERVALS 101,4292
+#define RE_LIMITED_OPS 105,4441
+#define RE_NEWLINE_ALT 109,4583
+#define RE_NO_BK_BRACES 114,4773
+#define RE_NO_BK_PARENS 118,4964
+#define RE_NO_BK_REFS 122,5120
+#define RE_NO_BK_VBAR 126,5316
+#define RE_NO_EMPTY_RANGES 132,5610
+#define RE_UNMATCHED_RIGHT_PAREN_ORD 136,5766
+#define RE_NO_POSIX_BACKTRACKING 140,5937
+#define RE_NO_GNU_OPS 144,6133
+#define RE_FRUGAL 147,6253
+#define RE_SHY_GROUPS 150,6360
+#define RE_NO_NEWLINE_ANCHOR 153,6468
+#define RE_DEBUG 161,6884
+#define RE_SYNTAX_EMACS	183,7684
+#define RE_SYNTAX_AWK	186,7780
+#define RE_SYNTAX_GNU_AWK	193,8084
+#define RE_SYNTAX_POSIX_AWK 197,8255
+#define RE_SYNTAX_GREP	201,8393
+#define RE_SYNTAX_EGREP	206,8549
+#define RE_SYNTAX_POSIX_EGREP	212,8765
+#define RE_SYNTAX_ED 216,8910
+#define RE_SYNTAX_SED 218,8954
+#define _RE_SYNTAX_POSIX_COMMON	221,9072
+#define RE_SYNTAX_POSIX_BASIC	225,9215
+#define RE_SYNTAX_POSIX_MINIMAL_BASIC	231,9508
+#define RE_SYNTAX_POSIX_EXTENDED	234,9598
+#define RE_SYNTAX_POSIX_MINIMAL_EXTENDED	242,9967
+# undef RE_DUP_MAX253,10454
+#define RE_DUP_MAX 256,10540
+#define REG_EXTENDED 263,10762
+#define REG_ICASE 267,10886
+#define REG_NEWLINE 272,11070
+#define REG_NOSUB 276,11248
+#define REG_NOTBOL 286,11614
+#define REG_NOTEOL 289,11688
+  REG_ENOSYS 297,11859
+  REG_NOERROR 300,11941
+  REG_NOMATCH,301,11976
+  REG_BADPAT,305,12123
+  REG_ECOLLATE,306,12162
+  REG_ECTYPE,307,12203
+  REG_EESCAPE,308,12255
+  REG_ESUBREG,309,12298
+  REG_EBRACK,310,12345
+  REG_EPAREN,311,12391
+  REG_EBRACE,312,12436
+  REG_BADBR,313,12472
+  REG_ERANGE,314,12519
+  REG_ESPACE,315,12560
+  REG_BADRPT,316,12601
+  REG_EEND,319,12693
+  REG_ESIZE,320,12728
+  REG_ERPAREN,321,12790
+  REG_ERANGEX	322,12859
+} reg_errcode_t;323,12911
+# define RE_TRANSLATE_TYPE 332,13273
+struct re_pattern_buffer335,13315
+#define REGS_UNALLOCATED 376,14889
+#define REGS_REALLOCATE 377,14916
+#define REGS_FIXED 378,14942
+typedef struct re_pattern_buffer regex_t;416,16098
+typedef ssize_t regoff_t;423,16492
+struct re_registers428,16652
+# define RE_NREGS 440,16942
+} regmatch_t;451,17317
+#  define _Restrict_ 540,20886
+#  define _Restrict_ 542,20979
+#  define _Restrict_544,21018
+#  define _Restrict_arr_ 555,21418
+#  define _Restrict_arr_557,21461
+#  define CHAR_CLASS_MAX_LENGTH 593,22470
+#  define CHAR_CLASS_MAX_LENGTH 597,22648
+typedef wctype_t re_wctype_t;599,22692
+typedef wchar_t re_wchar_t;600,22722
+# define re_wctype 601,22750
+# define re_iswctype 602,22776
+# define re_wctype_to_bit(603,22806
+# define CHAR_CLASS_MAX_LENGTH 605,22844
+# define btowc(606,22906
+typedef enum { RECC_ERROR 609,22953
+	       RECC_ALNUM,610,22984
+	       RECC_ALNUM, RECC_ALPHA,610,22984
+	       RECC_ALNUM, RECC_ALPHA, RECC_WORD,610,22984
+	       RECC_GRAPH,611,23027
+	       RECC_GRAPH, RECC_PRINT,611,23027
+	       RECC_LOWER,612,23059
+	       RECC_LOWER, RECC_UPPER,612,23059
+	       RECC_PUNCT,613,23091
+	       RECC_PUNCT, RECC_CNTRL,613,23091
+	       RECC_DIGIT,614,23123
+	       RECC_DIGIT, RECC_XDIGIT,614,23123
+	       RECC_BLANK,615,23156
+	       RECC_BLANK, RECC_SPACE,615,23156
+	       RECC_MULTIBYTE,616,23188
+	       RECC_MULTIBYTE, RECC_NONASCII,616,23188
+	       RECC_ASCII,617,23227
+	       RECC_ASCII, RECC_UNIBYTE617,23227
+} re_wctype_t;618,23260
+typedef int re_wchar_t;623,23387
+
+c-src/emacs/src/keyboard.c,15539
+volatile int interrupt_input_blocked;76,1808
+volatile bool pending_signals;80,1944
+#define KBD_BUFFER_SIZE 82,1976
+KBOARD *initial_kboard;initial_kboard84,2006
+KBOARD *current_kboard;current_kboard85,2030
+static KBOARD *all_kboards;all_kboards86,2054
+static bool single_kboard;89,2154
+#define NUM_RECENT_KEYS 91,2182
+static int recent_keys_index;94,2269
+static int total_keys;97,2357
+static Lisp_Object recent_keys;100,2443
+Lisp_Object this_command_keys;107,2777
+ptrdiff_t this_command_key_count;108,2808
+static bool this_command_key_count_reset;112,2922
+static Lisp_Object raw_keybuf;116,3074
+static int raw_keybuf_count;117,3105
+#define GROW_RAW_KEYBUF	119,3135
+static ptrdiff_t this_single_command_key_start;125,3350
+static ptrdiff_t before_command_key_count;129,3498
+static ptrdiff_t before_command_echo_length;130,3541
+sigjmp_buf return_to_command_loop;135,3677
+static Lisp_Object recover_top_level_message;138,3791
+static Lisp_Object regular_top_level_message;143,3930
+static sys_jmp_buf getcjmp;147,4031
+bool waiting_for_input;150,4095
+static bool echoing;154,4186
+static struct kboard *ok_to_echo_at_next_pause;ok_to_echo_at_next_pause159,4328
+struct kboard *echo_kboard;echo_kboard166,4632
+Lisp_Object echo_message_buffer;171,4744
+bool immediate_quit;174,4837
+int quit_char;192,5623
+EMACS_INT command_loop_level;195,5680
+Lisp_Object unread_switch_frame;204,6108
+static ptrdiff_t last_non_minibuf_size;207,6216
+uintmax_t num_input_events;210,6334
+static EMACS_INT last_auto_save;214,6428
+static ptrdiff_t last_point_position;217,6523
+Lisp_Object internal_last_event_frame;228,7028
+static Lisp_Object read_key_sequence_cmd;232,7168
+static Lisp_Object read_key_sequence_remapped;233,7210
+static FILE *dribble;dribble236,7310
+bool input_pending;239,7368
+static bool input_was_pending;287,10022
+static struct input_event kbd_buffer[kbd_buffer291,10107
+static struct input_event *kbd_fetch_ptr;kbd_fetch_ptr297,10386
+static struct input_event * volatile kbd_store_ptr;302,10601
+unsigned timers_run;320,11296
+struct timespec *input_available_clear_time;input_available_clear_time324,11408
+bool interrupt_input;328,11573
+bool interrupts_deferred;331,11671
+static struct timespec timer_idleness_start_time;335,11746
+static struct timespec timer_last_idleness_start_time;340,11916
+#define READABLE_EVENTS_DO_TIMERS_NOW	346,12046
+#define READABLE_EVENTS_FILTER_EVENTS	347,12094
+#define READABLE_EVENTS_IGNORE_SQUEEZABLES	348,12142
+kset_echo_string 392,14088
+kset_kbd_queue 397,14184
+kset_keyboard_translate_table 402,14276
+kset_last_prefix_arg 407,14399
+kset_last_repeatable_command 412,14504
+kset_local_function_key_map 417,14625
+kset_overriding_terminal_local_map 422,14744
+kset_real_last_command 427,14877
+kset_system_key_syms 432,14986
+echo_add_key 443,15249
+echo_char 527,17527
+echo_dash 541,17813
+echo_now 586,19140
+cancel_echoing 635,20614
+echo_length 648,20922
+echo_truncate 660,21253
+add_command_key 672,21582
+recursive_edit_1 697,22406
+record_auto_save 742,23848
+force_auto_save_soon 751,24016
+DEFUN ("recursive-edit", Frecursive_edit,759,24137
+DEFUN ("recursive-edit", Frecursive_edit,recursive-edit759,24137
+recursive_edit_unwind 804,25747
+any_kboard_state 817,26013
+single_kboard_state 838,26665
+not_single_kboard_state 848,26803
+struct kboard_stack858,27065
+static struct kboard_stack *kboard_stack;kboard_stack864,27138
+push_kboard 867,27186
+pop_kboard 879,27375
+temporarily_switch_to_single_kboard 914,28263
+record_single_kboard_state 943,29437
+restore_kboard_configuration 952,29621
+cmd_error 970,30077
+cmd_error_internal 1024,31510
+DEFUN ("command-error-default-function", Fcommand_error_default_function,1043,32030
+DEFUN ("command-error-default-function", Fcommand_error_default_function,command-error-default-function1043,32030
+command_loop 1094,33916
+command_loop_2 1134,35135
+top_level_2 1146,35339
+top_level_1 1152,35417
+DEFUN ("top-level", Ftop_level,1164,35787
+DEFUN ("top-level", Ftop_level,top-level1164,35787
+user_error 1183,36288
+DEFUN ("exit-recursive-edit", Fexit_recursive_edit,1189,36429
+DEFUN ("exit-recursive-edit", Fexit_recursive_edit,exit-recursive-edit1189,36429
+DEFUN ("abort-recursive-edit", Fabort_recursive_edit,1201,36819
+DEFUN ("abort-recursive-edit", Fabort_recursive_edit,abort-recursive-edit1201,36819
+tracking_off 1216,37281
+DEFUN ("internal--track-mouse", Ftrack_mouse,1234,37816
+DEFUN ("internal--track-mouse", Ftrack_mouse,track-mouse1234,37816
+bool ignore_mouse_drag_p;1256,38392
+some_mouse_moved 1259,38441
+Lisp_Object last_undo_boundary;1287,39032
+command_loop_1 1294,39273
+read_menu_command 1649,50889
+adjust_point_for_property 1678,51617
+safe_run_hooks_1 1831,57339
+safe_run_hooks_error 1841,57569
+safe_run_hook_funcall 1878,58576
+safe_run_hooks 1893,59058
+int poll_suppress_count;1908,59397
+static struct atimer *poll_timer;poll_timer1915,59487
+poll_for_input_1 1919,59589
+poll_for_input 1930,59789
+start_polling 1942,60053
+input_polling_used 1979,61091
+stop_polling 1994,61390
+set_poll_suppress_count 2009,61759
+bind_polling_period 2029,62141
+make_ctrl_char 2048,62492
+show_help_echo 2113,64455
+static Lisp_Object help_form_saved_window_configs;2156,65638
+read_char_help_form_unwind 2158,65701
+#define STOP_POLLING	2166,65959
+#define RESUME_POLLING	2170,66084
+read_event_from_main_queue 2175,66229
+read_decoded_event_from_main_queue 2249,68417
+#define MAX_ENCODED_BYTES 2254,68664
+echo_keystrokes_p 2342,71556
+read_char 2376,72848
+record_menu_key 3225,98949
+help_char_p 3258,99674
+record_char 3273,99953
+save_getcjmp 3412,104235
+restore_getcjmp 3418,104326
+readable_events 3430,104697
+int stop_character EXTERNALLY_VISIBLE;3497,106437
+event_to_kboard 3500,106493
+kbd_buffer_nr_stored 3522,107142
+kbd_buffer_store_event 3534,107483
+kbd_buffer_store_event_hold 3550,108025
+kbd_buffer_unget_event 3684,111617
+#define INPUT_EVENT_POS_MAX 3698,112018
+#define INPUT_EVENT_POS_MIN 3701,112147
+position_to_Time 3706,112287
+Time_to_position 3716,112514
+gen_help_event 3738,113171
+kbd_buffer_store_help_event 3756,113611
+discard_mouse_events 3773,113976
+kbd_buffer_events_waiting 3803,114711
+clear_event 3823,115068
+kbd_buffer_get_event 3836,115408
+process_special_events 4258,127881
+swallow_events 4322,129705
+timer_start_idle 4339,130098
+timer_stop_idle 4355,130576
+timer_resume_idle 4363,130720
+struct input_event last_timer_event EXTERNALLY_VISIBLE;4372,130912
+Lisp_Object pending_funcalls;4377,131172
+decode_timer 4381,131293
+timer_check_2 4414,132246
+timer_check 4572,136817
+DEFUN ("current-idle-time", Fcurrent_idle_time,4607,137662
+DEFUN ("current-idle-time", Fcurrent_idle_time,current-idle-time4607,137662
+static Lisp_Object accent_key_syms;4625,138239
+static Lisp_Object func_key_syms;4626,138275
+static Lisp_Object mouse_syms;4627,138309
+static Lisp_Object wheel_syms;4628,138340
+static Lisp_Object drag_n_drop_syms;4629,138371
+static const int lispy_accent_codes[lispy_accent_codes4634,138516
+static const char *const lispy_accent_keys[lispy_accent_keys4741,139878
+#define FUNCTION_KEY_OFFSET 4766,140314
+const char *const lispy_function_keys[lispy_function_keys4768,140347
+static const char *const lispy_multimedia_keys[lispy_multimedia_keys4962,148901
+static const char *const lispy_kana_keys[lispy_kana_keys5026,150135
+#define FUNCTION_KEY_OFFSET 5061,151751
+static const char *const lispy_function_keys[lispy_function_keys5065,151894
+#define ISO_FUNCTION_KEY_OFFSET 5149,154429
+static const char *const iso_lispy_function_keys[iso_lispy_function_keys5151,154469
+static Lisp_Object Vlispy_mouse_stem;5172,155328
+static const char *const lispy_wheel_names[lispy_wheel_names5174,155367
+static const char *const lispy_drag_n_drop_names[lispy_drag_n_drop_names5181,155619
+static short const scroll_bar_parts[scroll_bar_parts5189,155885
+static Lisp_Object button_down_location;5210,156910
+static int last_mouse_button;5215,157065
+static int last_mouse_x;5216,157095
+static int last_mouse_y;5217,157120
+static Time button_down_time;5218,157145
+static int double_click_count;5222,157229
+make_lispy_position 5228,157390
+toolkit_menubar_in_use 5456,163953
+make_scroll_bar_position 5469,164321
+make_lispy_event 5485,164967
+make_lispy_movement 6104,183531
+make_lispy_switch_frame 6131,184262
+make_lispy_focus_in 6137,184369
+make_lispy_focus_out 6145,184495
+parse_modifiers_uncached 6163,184945
+#define SINGLE_LETTER_MOD(6185,185465
+#undef SINGLE_LETTER_MOD6212,185906
+#define MULTI_LETTER_MOD(6214,185932
+#undef MULTI_LETTER_MOD6231,186400
+apply_modifiers_uncached 6273,187574
+static const char *const modifier_names[modifier_names6319,189193
+#define NUM_MOD_NAMES 6325,189399
+static Lisp_Object modifier_symbols;6327,189449
+lispy_modifier_list 6331,189586
+#define KEY_TO_CHAR(6353,190252
+parse_modifiers 6356,190328
+DEFUN ("internal-event-symbol-parse-modifiers", Fevent_symbol_parse_modifiers,6399,191517
+DEFUN ("internal-event-symbol-parse-modifiers", Fevent_symbol_parse_modifiers,event-symbol-parse-modifiers6399,191517
+apply_modifiers 6422,192391
+reorder_modifiers 6491,194720
+modify_event_symbol 6536,196528
+DEFUN ("event-convert-list", Fevent_convert_list,6628,199244
+DEFUN ("event-convert-list", Fevent_convert_list,event-convert-list6628,199244
+parse_solitary_modifier 6695,201135
+#define SINGLE_LETTER_MOD(6701,201258
+#define MULTI_LETTER_MOD(6705,201343
+#undef SINGLE_LETTER_MOD6763,202641
+#undef MULTI_LETTER_MOD6764,202666
+lucid_event_type_list_p 6775,202889
+get_input_pending 6814,203960
+record_asynch_buffer_change 6834,204579
+gobble_input 6872,205702
+tty_read_avail_input 6967,208310
+handle_async_input 7149,214039
+process_pending_signals 7165,214359
+unblock_input_to 7177,214645
+unblock_input 7200,215277
+totally_unblock_input 7209,215445
+handle_input_available_signal 7217,215529
+deliver_input_available_signal 7226,215700
+struct user_signal_info7235,215865
+static struct user_signal_info *user_signals user_signals7250,216090
+add_user_signal 7253,216149
+handle_user_signal 7275,216598
+deliver_user_signal 7316,217558
+find_user_signal_name 7322,217659
+store_user_signal_events 7334,217841
+static Lisp_Object menu_bar_one_keymap_changed_items;7363,218416
+static Lisp_Object menu_bar_items_vector;7368,218630
+static int menu_bar_items_index;7369,218672
+static const char *separator_names[separator_names7372,218707
+menu_separator_name_p 7393,219148
+menu_bar_items 7426,219852
+Lisp_Object item_properties;7568,224603
+menu_bar_item 7571,224645
+menu_item_eval_property_1 7647,227175
+eval_dyn 7658,227465
+menu_item_eval_property 7666,227675
+parse_menu_item 7686,228341
+static Lisp_Object tool_bar_items_vector;7965,236336
+static Lisp_Object tool_bar_item_properties;7970,236510
+static int ntool_bar_items;7974,236606
+tool_bar_items 7990,237083
+process_tool_bar_item 8075,239892
+#define PROP(8112,240969
+set_prop 8114,241038
+parse_tool_bar_item 8167,242453
+#undef PROP8379,248844
+init_tool_bar_items 8387,248969
+append_tool_bar_item 8401,249261
+read_char_x_menu_prompt 8443,250771
+read_char_minibuf_menu_prompt 8503,252445
+#define PUSH_C_STR(8527,253014
+follow_key 8726,258553
+active_maps 8733,258695
+typedef struct keyremap8742,259021
+} keyremap;8754,259464
+access_keymap_keyremap 8764,259808
+keyremap_step 8811,261450
+test_undefined 8867,262934
+read_key_sequence 8916,264861
+read_key_sequence_vs 9826,295821
+DEFUN ("read-key-sequence", Fread_key_sequence,9885,297294
+DEFUN ("read-key-sequence", Fread_key_sequence,read-key-sequence9885,297294
+DEFUN ("read-key-sequence-vector", Fread_key_sequence_vector,9938,299982
+DEFUN ("read-key-sequence-vector", Fread_key_sequence_vector,read-key-sequence-vector9938,299982
+detect_input_pending 9950,300488
+detect_input_pending_ignore_squeezables 9959,300654
+detect_input_pending_run_timers 9967,300870
+clear_input_pending 9985,301362
+requeued_events_pending_p 9997,301732
+DEFUN ("input-pending-p", Finput_pending_p,10002,301813
+DEFUN ("input-pending-p", Finput_pending_p,input-pending-p10002,301813
+DEFUN ("recent-keys", Frecent_keys,10024,302596
+DEFUN ("recent-keys", Frecent_keys,recent-keys10024,302596
+DEFUN ("this-command-keys", Fthis_command_keys,10055,303517
+DEFUN ("this-command-keys", Fthis_command_keys,this-command-keys10055,303517
+DEFUN ("this-command-keys-vector", Fthis_command_keys_vector,10068,303958
+DEFUN ("this-command-keys-vector", Fthis_command_keys_vector,this-command-keys-vector10068,303958
+DEFUN ("this-single-command-keys", Fthis_single_command_keys,10080,304380
+DEFUN ("this-single-command-keys", Fthis_single_command_keys,this-single-command-keys10080,304380
+DEFUN ("this-single-command-raw-keys", Fthis_single_command_raw_keys,10096,304955
+DEFUN ("this-single-command-raw-keys", Fthis_single_command_raw_keys,this-single-command-raw-keys10096,304955
+DEFUN ("reset-this-command-lengths", Freset_this_command_lengths,10109,305495
+DEFUN ("reset-this-command-lengths", Freset_this_command_lengths,reset-this-command-lengths10109,305495
+DEFUN ("clear-this-command-keys", Fclear_this_command_keys,10136,306510
+DEFUN ("clear-this-command-keys", Fclear_this_command_keys,clear-this-command-keys10136,306510
+DEFUN ("recursion-depth", Frecursion_depth,10158,307069
+DEFUN ("recursion-depth", Frecursion_depth,recursion-depth10158,307069
+DEFUN ("open-dribble-file", Fopen_dribble_file,10169,307406
+DEFUN ("open-dribble-file", Fopen_dribble_file,open-dribble-file10169,307406
+DEFUN ("discard-input", Fdiscard_input,10203,308447
+DEFUN ("discard-input", Fdiscard_input,discard-input10203,308447
+DEFUN ("suspend-emacs", Fsuspend_emacs,10225,308949
+DEFUN ("suspend-emacs", Fsuspend_emacs,suspend-emacs10225,308949
+stuff_buffered_input 10285,311045
+set_waiting_for_input 10323,312016
+clear_waiting_for_input 10337,312390
+handle_interrupt_signal 10351,312754
+deliver_interrupt_signal 10378,313642
+static int volatile force_quit_count;10387,313932
+handle_interrupt 10401,314414
+quit_throw_to_read_char 10541,318711
+DEFUN ("set-input-interrupt-mode", Fset_input_interrupt_mode,10562,319288
+DEFUN ("set-input-interrupt-mode", Fset_input_interrupt_mode,set-input-interrupt-mode10562,319288
+DEFUN ("set-output-flow-control", Fset_output_flow_control,10609,320516
+DEFUN ("set-output-flow-control", Fset_output_flow_control,set-output-flow-control10609,320516
+DEFUN ("set-input-meta-mode", Fset_input_meta_mode,10643,321432
+DEFUN ("set-input-meta-mode", Fset_input_meta_mode,set-input-meta-mode10643,321432
+DEFUN ("set-quit-char", Fset_quit_char,10694,322706
+DEFUN ("set-quit-char", Fset_quit_char,set-quit-char10694,322706
+DEFUN ("set-input-mode", Fset_input_mode,10729,323570
+DEFUN ("set-input-mode", Fset_input_mode,set-input-mode10729,323570
+DEFUN ("current-input-mode", Fcurrent_input_mode,10750,324459
+DEFUN ("current-input-mode", Fcurrent_input_mode,current-input-mode10750,324459
+DEFUN ("posn-at-x-y", Fposn_at_x_y,10787,325837
+DEFUN ("posn-at-x-y", Fposn_at_x_y,posn-at-x-y10787,325837
+DEFUN ("posn-at-point", Fposn_at_point,10824,327060
+DEFUN ("posn-at-point", Fposn_at_point,posn-at-point10824,327060
+init_kboard 10861,328214
+allocate_kboard 10893,329284
+wipe_kboard 10909,329637
+delete_kboard 10917,329751
+init_keyboard 10942,330281
+struct event_head11021,332696
+static const struct event_head head_table[head_table11027,332747
+syms_of_keyboard 11045,333577
+keys_of_keyboard 11841,367115
+mark_kboards 11916,370434
+
+c-src/emacs/src/lisp.h,20567
+#define EMACS_LISP_H22,800
+#define DECLARE_GDB_SYM(47,1421
+# define DEFINE_GDB_SYMBOL_BEGIN(49,1508
+# define DEFINE_GDB_SYMBOL_END(50,1578
+# define DEFINE_GDB_SYMBOL_BEGIN(52,1625
+# define DEFINE_GDB_SYMBOL_END(53,1702
+#undef min57,1790
+#undef max58,1801
+#define max(59,1812
+#define min(60,1854
+#define ARRAYELTS(63,1936
+#define GCTYPEBITS 67,2079
+DEFINE_GDB_SYMBOL_BEGIN GCTYPEBITS66,2037
+# define NONPOINTER_BITS 78,2567
+# define NONPOINTER_BITS 80,2600
+typedef int EMACS_INT;91,3023
+typedef unsigned int EMACS_UINT;92,3046
+#  define EMACS_INT_MAX 93,3079
+#  define pI 94,3111
+typedef long int EMACS_INT;96,3203
+typedef unsigned long EMACS_UINT;97,3231
+#  define EMACS_INT_MAX 98,3265
+#  define pI 99,3298
+typedef long long int EMACS_INT;103,3477
+typedef unsigned long long int EMACS_UINT;104,3510
+#  define EMACS_INT_MAX 105,3553
+#  define pI 106,3587
+enum {  BOOL_VECTOR_BITS_PER_CHAR 114,3804
+#define BOOL_VECTOR_BITS_PER_CHAR 115,3840
+typedef size_t bits_word;123,4165
+# define BITS_WORD_MAX 124,4191
+enum { BITS_PER_BITS_WORD 125,4223
+typedef unsigned char bits_word;127,4290
+# define BITS_WORD_MAX 128,4323
+enum { BITS_PER_BITS_WORD 129,4386
+    BITS_PER_CHAR 136,4570
+    BITS_PER_SHORT 137,4605
+    BITS_PER_LONG 138,4657
+    BITS_PER_EMACS_INT 139,4712
+typedef intmax_t printmax_t;148,5089
+typedef uintmax_t uprintmax_t;149,5118
+# define pMd 150,5149
+# define pMu 151,5170
+typedef EMACS_INT printmax_t;153,5197
+typedef EMACS_UINT uprintmax_t;154,5227
+# define pMd 155,5259
+# define pMu 156,5278
+# define pD 165,5664
+# define pD 167,5709
+# define pD 169,5756
+# define pD 171,5779
+# define eassert(200,7062
+# define eassume(201,7140
+# define eassert(208,7319
+# define eassume(212,7450
+enum Lisp_Bits239,8519
+#define GCALIGNMENT 243,8647
+    VALBITS 246,8742
+    INTTYPEBITS 249,8838
+    FIXNUM_BITS 252,8945
+#define VAL_MAX 263,9327
+#define USE_LSB_TAG 271,9777
+DEFINE_GDB_SYMBOL_BEGIN USE_LSB_TAG270,9733
+# define alignas(281,10077
+# define GCALIGNED 288,10227
+# define GCALIGNED 290,10292
+# define lisp_h_XLI(327,11642
+# define lisp_h_XIL(328,11673
+# define lisp_h_XLI(330,11724
+# define lisp_h_XIL(331,11751
+#define lisp_h_CHECK_LIST_CONS(333,11785
+#define lisp_h_CHECK_NUMBER(334,11856
+#define lisp_h_CHECK_SYMBOL(335,11927
+#define lisp_h_CHECK_TYPE(336,11996
+#define lisp_h_CONSP(338,12107
+#define lisp_h_EQ(339,12156
+#define lisp_h_FLOATP(340,12201
+#define lisp_h_INTEGERP(341,12252
+#define lisp_h_MARKERP(342,12333
+#define lisp_h_MISCP(343,12408
+#define lisp_h_NILP(344,12457
+#define lisp_h_SET_SYMBOL_VAL(345,12493
+#define lisp_h_SYMBOL_CONSTANT_P(347,12607
+#define lisp_h_SYMBOL_VAL(348,12671
+#define lisp_h_SYMBOLP(350,12772
+#define lisp_h_VECTORLIKEP(351,12825
+#define lisp_h_XCAR(352,12886
+#define lisp_h_XCDR(353,12924
+#define lisp_h_XCONS(354,12964
+#define lisp_h_XHASH(356,13059
+#define lisp_h_XPNTR(357,13093
+# define lisp_h_check_cons_list(360,13221
+# define lisp_h_make_number(363,13289
+# define lisp_h_XFASTINT(365,13392
+# define lisp_h_XINT(366,13429
+# define lisp_h_XSYMBOL(367,13478
+# define lisp_h_XTYPE(371,13631
+# define lisp_h_XUNTAG(372,13696
+# define XLI(381,14086
+# define XIL(382,14117
+# define CHECK_LIST_CONS(383,14148
+# define CHECK_NUMBER(384,14209
+# define CHECK_SYMBOL(385,14258
+# define CHECK_TYPE(386,14307
+# define CONSP(387,14382
+# define EQ(388,14417
+# define FLOATP(389,14452
+# define INTEGERP(390,14489
+# define MARKERP(391,14530
+# define MISCP(392,14569
+# define NILP(393,14604
+# define SET_SYMBOL_VAL(394,14637
+# define SYMBOL_CONSTANT_P(395,14700
+# define SYMBOL_VAL(396,14763
+# define SYMBOLP(397,14812
+# define VECTORLIKEP(398,14851
+# define XCAR(399,14898
+# define XCDR(400,14931
+# define XCONS(401,14964
+# define XHASH(402,14999
+# define XPNTR(403,15034
+#  define check_cons_list(405,15097
+#  define make_number(408,15176
+#  define XFASTINT(409,15224
+#  define XINT(410,15266
+#  define XSYMBOL(411,15300
+#  define XTYPE(412,15340
+#  define XUNTAG(413,15376
+#define LISP_MACRO_DEFUN(421,15672
+#define LISP_MACRO_DEFUN_VOID(425,15845
+#define INTMASK 437,16289
+#define case_Lisp_Int 438,16342
+#define ENUM_BF(445,16681
+#define ENUM_BF(447,16722
+enum Lisp_Type451,16763
+    Lisp_Symbol 454,16851
+    Lisp_Misc 458,16993
+    Lisp_Int0 461,17067
+    Lisp_Int1 462,17086
+    Lisp_String 466,17264
+    Lisp_Vectorlike 472,17543
+    Lisp_Cons 475,17632
+    Lisp_Float 477,17670
+enum Lisp_Misc_Type485,18016
+    Lisp_Misc_Free 487,18040
+    Lisp_Misc_Marker,488,18069
+    Lisp_Misc_Overlay,489,18091
+    Lisp_Misc_Save_Value,490,18114
+    Lisp_Misc_Finalizer,491,18140
+    Lisp_Misc_Float,494,18275
+    Lisp_Misc_Limit496,18359
+enum Lisp_Fwd_Type502,18543
+    Lisp_Fwd_Int,504,18566
+    Lisp_Fwd_Bool,505,18619
+    Lisp_Fwd_Obj,506,18670
+    Lisp_Fwd_Buffer_Obj,507,18729
+    Lisp_Fwd_Kboard_Obj	508,18800
+typedef struct { EMACS_INT i; } Lisp_Object;567,21781
+#define LISP_INITIALLY(569,21827
+#undef CHECK_LISP_OBJECT_TYPE571,21858
+enum CHECK_LISP_OBJECT_TYPE 572,21888
+enum CHECK_LISP_OBJECT_TYPE { CHECK_LISP_OBJECT_TYPE 572,21888
+typedef EMACS_INT Lisp_Object;577,22064
+#define LISP_INITIALLY(578,22095
+enum CHECK_LISP_OBJECT_TYPE 579,22125
+enum CHECK_LISP_OBJECT_TYPE { CHECK_LISP_OBJECT_TYPE 579,22125
+#define LISP_INITIALLY_ZERO 582,22226
+enum symbol_interned639,24199
+  SYMBOL_UNINTERNED 641,24222
+  SYMBOL_INTERNED 642,24247
+  SYMBOL_INTERNED_IN_INITIAL_OBARRAY 643,24270
+enum symbol_redirect646,24315
+  SYMBOL_PLAINVAL 648,24338
+  SYMBOL_VARALIAS 649,24362
+  SYMBOL_LOCALIZED 650,24386
+  SYMBOL_FORWARDED 651,24410
+struct Lisp_Symbol654,24437
+  ENUM_BF 663,24793
+#define EXFUN(707,26252
+#define DEFUN_ARGS_MANY	712,26446
+#define DEFUN_ARGS_UNEVALLED	713,26498
+#define DEFUN_ARGS_0	714,26541
+#define DEFUN_ARGS_1	715,26569
+#define DEFUN_ARGS_2	716,26604
+#define DEFUN_ARGS_3	717,26652
+#define DEFUN_ARGS_4	718,26713
+#define DEFUN_ARGS_5	719,26787
+#define DEFUN_ARGS_6	721,26880
+#define DEFUN_ARGS_7	723,26986
+#define DEFUN_ARGS_8	725,27105
+#define TAG_PTR(729,27296
+#define TAG_SYMOFFSET(734,27543
+#define XLI_BUILTIN_LISPSYM(741,27842
+#define DEFINE_LISP_SYMBOL(746,28101
+# define DEFINE_NON_NIL_Q_SYMBOL_MACROS 755,28572
+LISP_MACRO_DEFUN 762,28777
+# define ARRAY_MARK_FLAG 768,29024
+# define PSEUDOVECTOR_FLAG 774,29267
+enum pvec_type780,29568
+  PVEC_NORMAL_VECTOR,782,29585
+  PVEC_FREE,783,29607
+  PVEC_PROCESS,784,29620
+  PVEC_FRAME,785,29636
+  PVEC_WINDOW,786,29650
+  PVEC_BOOL_VECTOR,787,29665
+  PVEC_BUFFER,788,29685
+  PVEC_HASH_TABLE,789,29700
+  PVEC_TERMINAL,790,29719
+  PVEC_WINDOW_CONFIGURATION,791,29736
+  PVEC_SUBR,792,29765
+  PVEC_OTHER,793,29778
+  PVEC_COMPILED,795,29856
+  PVEC_CHAR_TABLE,796,29873
+  PVEC_SUB_CHAR_TABLE,797,29892
+  PVEC_FONT 798,29915
+enum More_Lisp_Bits801,29991
+    PSEUDOVECTOR_SIZE_BITS 808,30382
+    PSEUDOVECTOR_SIZE_MASK 809,30415
+    PSEUDOVECTOR_REST_BITS 813,30625
+    PSEUDOVECTOR_REST_MASK 814,30658
+    PSEUDOVECTOR_AREA_BITS 818,30823
+    PVEC_TYPE_MASK 819,30901
+# define VALMASK 829,31302
+DEFINE_GDB_SYMBOL_BEGIN VALMASK828,31257
+#define MOST_POSITIVE_FIXNUM 834,31532
+#define MOST_NEGATIVE_FIXNUM 835,31592
+XINT 874,32684
+XFASTINT 889,33035
+XSYMBOL 899,33263
+XTYPE 910,33481
+XUNTAG 918,33661
+LISP_MACRO_DEFUN 927,33857
+LISP_MACRO_DEFUN 940,34242
+#define FIXNUM_OVERFLOW_P(958,34855
+LISP_MACRO_DEFUN FIXNUM_OVERFLOW_P952,34632
+LISP_MACRO_DEFUN 970,35171
+XSTRING 980,35391
+#define SYMBOL_INDEX(988,35575
+XFLOAT 991,35636
+XPROCESS 1000,35778
+XWINDOW 1007,35895
+XTERMINAL 1014,36012
+XSUBR 1021,36134
+XBUFFER 1028,36245
+XCHAR_TABLE 1035,36369
+XSUB_CHAR_TABLE 1042,36506
+XBOOL_VECTOR 1049,36648
+make_lisp_ptr 1058,36827
+make_lisp_symbol 1066,37013
+builtin_lisp_symbol 1074,37197
+#define XSETINT(1079,37279
+#define XSETFASTINT(1080,37325
+#define XSETCONS(1081,37375
+#define XSETVECTOR(1082,37435
+#define XSETSTRING(1083,37503
+#define XSETSYMBOL(1084,37567
+#define XSETFLOAT(1085,37621
+#define XSETMISC(1086,37683
+#define XSETPVECTYPE(1090,37772
+#define XSETPVECTYPESIZE(1092,37888
+#define XSETPSEUDOVECTOR(1099,38185
+#define XSETTYPED_PSEUDOVECTOR(1105,38369
+#define XSETWINDOW_CONFIGURATION(1110,38579
+#define XSETPROCESS(1112,38675
+#define XSETWINDOW(1113,38741
+#define XSETTERMINAL(1114,38805
+#define XSETSUBR(1115,38873
+#define XSETCOMPILED(1116,38933
+#define XSETBUFFER(1117,39001
+#define XSETCHAR_TABLE(1118,39065
+#define XSETBOOL_VECTOR(1119,39137
+#define XSETSUB_CHAR_TABLE(1120,39211
+XINTPTR 1128,39581
+make_pointer_integer 1134,39661
+LISP_MACRO_DEFUN_VOID 1143,39826
+typedef struct interval *INTERVAL;INTERVAL1149,39987
+xcar_addr 1174,40760
+xcdr_addr 1179,40837
+LISP_MACRO_DEFUN 1185,40931
+XSETCDR 1198,41307
+CAR 1205,41457
+CDR 1212,41591
+CAR_SAFE 1221,41791
+CDR_SAFE 1226,41877
+STRING_MULTIBYTE 1243,42250
+#define STRING_BYTES_BOUND 1261,43057
+#define STRING_SET_UNIBYTE(1265,43201
+#define STRING_SET_MULTIBYTE(1275,43516
+SDATA 1286,43830
+SSDATA 1291,43908
+SREF 1297,44037
+SSET 1302,44128
+SCHARS 1307,44242
+STRING_BYTES 1316,44415
+SBYTES 1326,44595
+STRING_SET_CHARS 1331,44681
+struct vectorlike_header1343,45232
+struct Lisp_Vector1369,46482
+    ALIGNOF_STRUCT_LISP_VECTOR1378,46681
+struct Lisp_Bool_Vector1384,46864
+bool_vector_size 1399,47385
+bool_vector_data 1407,47523
+bool_vector_uchar_data 1413,47617
+bool_vector_words 1421,47803
+bool_vector_bytes 1428,47998
+bool_vector_bitref 1437,48238
+bool_vector_ref 1445,48478
+bool_vector_set 1453,48618
+    header_size 1471,49047
+    bool_header_size 1472,49106
+    word_size 1473,49171
+AREF 1479,49284
+aref_addr 1485,49391
+ASIZE 1491,49501
+ASET 1497,49583
+gc_aset 1504,49742
+enum { NIL_IS_ZERO 1515,50269
+memclear 1520,50464
+#define VECSIZE(1531,50762
+#define PSEUDOVECSIZE(1538,51047
+#define UNSIGNED_CMP(1546,51480
+#define ASCII_CHAR_P(1552,51734
+enum CHARTAB_SIZE_BITS1565,52489
+    CHARTAB_SIZE_BITS_0 1567,52516
+    CHARTAB_SIZE_BITS_1 1568,52545
+    CHARTAB_SIZE_BITS_2 1569,52574
+    CHARTAB_SIZE_BITS_3 1570,52603
+struct Lisp_Char_Table1575,52672
+struct Lisp_Sub_Char_Table1606,53752
+CHAR_TABLE_REF_ASCII 1628,54566
+CHAR_TABLE_REF 1648,55113
+CHAR_TABLE_SET 1658,55402
+struct Lisp_Subr1670,55786
+enum char_table_specials1692,56798
+    CHAR_TABLE_STANDARD_SLOTS 1697,56993
+    SUB_CHAR_TABLE_OFFSET 1701,57214
+CHAR_TABLE_EXTRA_SLOTS 1707,57377
+LISP_MACRO_DEFUN 1723,57921
+SYMBOL_BLV 1732,58181
+SYMBOL_FWD 1738,58316
+LISP_MACRO_DEFUN_VOID 1744,58428
+SET_SYMBOL_BLV 1754,58691
+SET_SYMBOL_FWD 1760,58850
+SYMBOL_NAME 1767,59001
+SYMBOL_INTERNED_P 1775,59130
+SYMBOL_INTERNED_IN_INITIAL_OBARRAY_P 1783,59299
+#define DEFSYM(1796,59809
+LISP_MACRO_DEFUN DEFSYM1792,59630
+struct hash_table_test1805,60062
+struct Lisp_Hash_Table1823,60555
+XHASH_TABLE 1880,62531
+#define XSET_HASH_TABLE(1885,62602
+HASH_TABLE_P 1889,62703
+HASH_KEY 1896,62860
+HASH_VALUE 1903,63040
+HASH_NEXT 1911,63254
+HASH_HASH 1918,63431
+HASH_INDEX 1926,63677
+HASH_TABLE_SIZE 1933,63826
+enum DEFAULT_HASH_SIZE 1940,63956
+enum DEFAULT_HASH_SIZE { DEFAULT_HASH_SIZE 1940,63956
+static double const DEFAULT_REHASH_THRESHOLD 1946,64176
+static double const DEFAULT_REHASH_SIZE 1950,64299
+sxhash_combine 1956,64465
+SXHASH_REDUCE 1964,64648
+struct Lisp_Misc_Any	1971,64806
+  ENUM_BF 1973,64866
+struct Lisp_Marker1978,64980
+  ENUM_BF 1980,65001
+struct Lisp_Overlay2021,66841
+    ENUM_BF 2034,67349
+    SAVE_UNUSED,2047,67644
+    SAVE_INTEGER,2048,67661
+    SAVE_FUNCPOINTER,2049,67679
+    SAVE_POINTER,2050,67701
+    SAVE_OBJECT2051,67719
+enum { SAVE_SLOT_BITS 2055,67804
+enum { SAVE_VALUE_SLOTS 2058,67901
+enum { SAVE_TYPE_BITS 2062,68009
+enum Lisp_Save_Type2064,68075
+    SAVE_TYPE_INT_INT 2066,68099
+    SAVE_TYPE_INT_INT_INT2067,68172
+    SAVE_TYPE_OBJ_OBJ 2069,68262
+    SAVE_TYPE_OBJ_OBJ_OBJ 2070,68333
+    SAVE_TYPE_OBJ_OBJ_OBJ_OBJ2071,68414
+    SAVE_TYPE_PTR_INT 2073,68509
+    SAVE_TYPE_PTR_OBJ 2074,68582
+    SAVE_TYPE_PTR_PTR 2075,68654
+    SAVE_TYPE_FUNCPTR_PTR_OBJ2076,68727
+    SAVE_TYPE_MEMORY 2080,68885
+typedef void (*voidfuncptr)voidfuncptr2108,69839
+struct Lisp_Save_Value2110,69876
+    ENUM_BF 2112,69903
+save_type 2134,70755
+XSAVE_POINTER 2143,70985
+set_save_pointer 2149,71147
+XSAVE_FUNCPOINTER 2155,71329
+XSAVE_INTEGER 2164,71549
+set_save_integer 2170,71711
+XSAVE_OBJECT 2179,71932
+struct Lisp_Finalizer2186,72109
+struct Lisp_Free2201,72584
+    ENUM_BF 2203,72605
+union Lisp_Misc2212,72885
+XMISC 2223,73184
+XMISCANY 2229,73273
+XMISCTYPE 2236,73382
+XMARKER 2242,73470
+XOVERLAY 2249,73585
+XSAVE_VALUE 2256,73706
+XFINALIZER 2263,73835
+struct Lisp_Intfwd2274,74120
+struct Lisp_Boolfwd2284,74414
+struct Lisp_Objfwd2294,74705
+struct Lisp_Buffer_Objfwd2302,74937
+struct Lisp_Buffer_Local_Value2334,76473
+struct Lisp_Kboard_Objfwd2362,77732
+union Lisp_Fwd2368,77841
+XFWDTYPE 2378,78087
+XBUFFER_OBJFWD 2384,78183
+struct Lisp_Float2391,78319
+XFLOAT_DATA 2401,78437
+    IEEE_FLOATING_POINT2415,78946
+#define _UCHAR_T2423,79269
+typedef unsigned char UCHAR;2424,79286
+enum Lisp_Compiled2429,79369
+    COMPILED_ARGLIST 2431,79392
+    COMPILED_BYTECODE 2432,79418
+    COMPILED_CONSTANTS 2433,79445
+    COMPILED_STACK_DEPTH 2434,79473
+    COMPILED_DOC_STRING 2435,79503
+    COMPILED_INTERACTIVE 2436,79532
+enum char_bits2443,79834
+    CHAR_ALT 2445,79853
+    CHAR_SUPER 2446,79879
+    CHAR_HYPER 2447,79907
+    CHAR_SHIFT 2448,79935
+    CHAR_CTL 2449,79963
+    CHAR_META 2450,79989
+    CHAR_MODIFIER_MASK 2452,80017
+    CHARACTERBITS 2457,80212
+LISP_MACRO_DEFUN 2462,80270
+NATNUMP 2470,80412
+RANGED_INTEGERP 2476,80493
+#define TYPE_RANGED_INTEGERP(2481,80615
+LISP_MACRO_DEFUN 2486,80800
+VECTORP 2500,81273
+OVERLAYP 2505,81376
+SAVE_VALUEP 2510,81475
+FINALIZERP 2516,81581
+AUTOLOADP 2522,81685
+BUFFER_OBJFWDP 2528,81776
+PSEUDOVECTOR_TYPEP 2534,81874
+PSEUDOVECTORP 2542,82127
+WINDOW_CONFIGURATIONP 2558,82479
+PROCESSP 2564,82589
+WINDOWP 2570,82673
+TERMINALP 2576,82755
+SUBRP 2582,82841
+COMPILEDP 2588,82919
+BUFFERP 2594,83005
+CHAR_TABLE_P 2600,83087
+SUB_CHAR_TABLE_P 2606,83178
+BOOL_VECTOR_P 2612,83277
+FRAMEP 2618,83370
+IMAGEP 2625,83487
+ARRAYP 2632,83592
+CHECK_LIST 2638,83711
+LISP_MACRO_DEFUN_VOID 2643,83792
+CHECK_STRING_CAR 2653,84089
+CHECK_CONS 2658,84193
+CHECK_VECTOR 2663,84273
+CHECK_BOOL_VECTOR 2668,84359
+CHECK_VECTOR_OR_STRING 2674,84536
+CHECK_ARRAY 2683,84710
+CHECK_BUFFER 2688,84818
+CHECK_WINDOW 2693,84904
+CHECK_PROCESS 2699,85010
+CHECK_NATNUM 2705,85106
+#define CHECK_RANGED_INTEGER(2710,85183
+#define CHECK_TYPE_RANGED_INTEGER(2721,85566
+#define CHECK_NUMBER_COERCE_MARKER(2729,85836
+XFLOATINT 2738,86089
+CHECK_NUMBER_OR_FLOAT 2744,86160
+#define CHECK_NUMBER_OR_FLOAT_COERCE_MARKER(2749,86259
+CHECK_NUMBER_CAR 2760,86669
+CHECK_NUMBER_CDR 2768,86791
+#define DEFUN(2803,88386
+#define DEFUN(2812,88854
+FUNCTIONP 2822,89209
+enum maxargs2831,89404
+    MANY 2833,89421
+    UNEVALLED 2834,89436
+#define CALLMANY(2838,89539
+#define CALLN(2844,89892
+#define DEFVAR_LISP(2869,91097
+#define DEFVAR_LISP_NOPRO(2874,91269
+#define DEFVAR_BOOL(2879,91451
+#define DEFVAR_INT(2884,91624
+#define DEFVAR_BUFFER_DEFAULTS(2890,91795
+#define DEFVAR_KBOARD(2896,91999
+typedef jmp_buf sys_jmp_buf;2906,92323
+# define sys_setjmp(2907,92352
+# define sys_longjmp(2908,92387
+typedef sigjmp_buf sys_jmp_buf;2910,92459
+# define sys_setjmp(2911,92491
+# define sys_longjmp(2912,92531
+typedef jmp_buf sys_jmp_buf;2916,92690
+# define sys_setjmp(2917,92719
+# define sys_longjmp(2918,92753
+enum specbind_tag 2943,93805
+  SPECPDL_UNWIND,2944,93825
+  SPECPDL_UNWIND_PTR,2945,93894
+  SPECPDL_UNWIND_INT,2946,93945
+  SPECPDL_UNWIND_VOID,2947,93993
+  SPECPDL_BACKTRACE,2948,94047
+  SPECPDL_LET,2949,94105
+  SPECPDL_LET_LOCAL,2951,94235
+  SPECPDL_LET_DEFAULT	2952,94292
+union specbinding2955,94364
+    ENUM_BF 2957,94386
+      ENUM_BF 2959,94443
+      ENUM_BF 2964,94573
+      ENUM_BF 2969,94696
+      ENUM_BF 2974,94814
+      ENUM_BF 2978,94919
+      ENUM_BF 2983,95094
+enum handlertype 3021,96410
+enum handlertype { CATCHER,3021,96410
+enum handlertype { CATCHER, CONDITION_CASE 3021,96410
+struct handler3023,96457
+#define PUSH_HANDLER(3053,97446
+#define QUIT	3101,99223
+#define QUITP 3112,99473
+struct gcpro3132,100316
+#define GC_USE_GCPROS_AS_BEFORE	3171,101297
+#define GC_MAKE_GCPROS_NOOPS	3172,101332
+#define GC_MARK_STACK_CHECK_GCPROS	3173,101364
+#define GC_USE_GCPROS_CHECK_ZOMBIES	3174,101401
+#define GC_MARK_STACK 3177,101462
+#define BYTE_MARK_STACK 3181,101562
+#define GCPRO1(3190,101833
+#define GCPRO2(3191,101873
+#define GCPRO3(3192,101939
+#define GCPRO4(3194,102034
+#define GCPRO5(3196,102154
+#define GCPRO6(3198,102299
+#define GCPRO7(3201,102474
+#define UNGCPRO 3202,102553
+#define GCPRO1(3208,102653
+#define GCPRO2(3212,102775
+#define GCPRO3(3217,102967
+#define GCPRO4(3223,103229
+#define GCPRO5(3230,103560
+#define GCPRO6(3238,103961
+#define GCPRO7(3247,104431
+#define UNGCPRO 3257,104971
+#define GCPRO1(3263,105065
+#define GCPRO2(3269,105299
+#define GCPRO3(3278,105717
+#define GCPRO4(3289,106274
+#define GCPRO5(3302,106972
+#define GCPRO6(3317,107812
+#define GCPRO7(3334,108793
+#define UNGCPRO	3353,109916
+#define RETURN_UNGCPRO(3363,110183
+vcopy 3384,110657
+set_hash_key_slot 3393,110932
+set_hash_value_slot 3399,111071
+set_symbol_function 3408,111306
+set_symbol_plist 3414,111421
+set_symbol_next 3420,111524
+blv_found 3428,111697
+set_overlay_plist 3437,111880
+string_intervals 3445,112031
+set_string_intervals 3453,112153
+set_char_table_defalt 3462,112355
+set_char_table_purpose 3467,112467
+set_char_table_extras 3475,112636
+set_char_table_contents 3482,112845
+set_sub_char_table_contents 3489,113040
+enum Arith_Comparison 3497,113303
+  ARITH_EQUAL,3498,113327
+  ARITH_NOTEQUAL,3499,113342
+  ARITH_LESS,3500,113360
+  ARITH_GRTR,3501,113374
+  ARITH_LESS_OR_EQUAL,3502,113388
+  ARITH_GRTR_OR_EQUAL3503,113411
+#define INTEGER_TO_CONS(3511,113762
+#define CONS_TO_INTEGER(3529,114625
+enum { NEXT_ALMOST_PRIME_LIMIT 3573,116329
+extern EMACS_INT next_almost_prime 3574,116368
+enum constype 3739,123820
+enum constype {CONSTYPE_HEAP,CONSTYPE_HEAP3739,123820
+enum constype {CONSTYPE_HEAP, CONSTYPE_PURE}CONSTYPE_PURE3739,123820
+list2i 3745,124010
+list3i 3751,124119
+list4i 3757,124258
+extern Lisp_Object make_formatted_string 3767,124634
+build_pure_c_string 3792,125662
+build_string 3801,125867
+make_uninit_vector 3820,126438
+make_uninit_sub_char_table 3833,126657
+#define ALLOCATE_PSEUDOVECTOR(3850,127201
+#define ALLOCATE_ZEROED_PSEUDOVECTOR(3858,127537
+INLINE void 3890,128943
+extern void *r_alloc r_alloc3895,129064
+#define FLOAT_TO_STRING_BUFSIZE 3927,130527
+intern 3968,132134
+intern_c_string 3974,132222
+extern _Noreturn void error 4034,135601
+fast_string_match_ignore_case 4136,140089
+INLINE void fixup_locale 4241,143854
+INLINE void synchronize_system_messages_locale 4242,143889
+INLINE void synchronize_system_time_locale 4243,143946
+#define IS_DAEMON 4257,144419
+#define DAEMON_RUNNING 4258,144459
+#define IS_DAEMON 4261,144558
+#define DAEMON_RUNNING 4262,144603
+# define WAIT_READING_MAX 4281,145422
+# define WAIT_READING_MAX 4283,145494
+extern _Noreturn void emacs_abort 4374,148386
+egetenv 4532,152809
+#define eabs(4545,153305
+#define make_fixnum_or_float(4550,153438
+enum MAX_ALLOCA 4556,153689
+enum MAX_ALLOCA { MAX_ALLOCA 4556,153689
+extern void *record_xmalloc record_xmalloc4558,153734
+#define USE_SAFE_ALLOCA	4560,153800
+#define AVAIL_ALLOCA(4564,153933
+#define SAFE_ALLOCA(4568,154044
+#define SAFE_NALLOCA(4576,154385
+#define SAFE_ALLOCA_STRING(4590,154861
+#define SAFE_FREE(4598,155113
+#define SAFE_ALLOCA_LISP(4625,155691
+# define USE_STACK_LISP_OBJECTS 4652,156813
+# undef USE_STACK_LISP_OBJECTS4658,156979
+# define USE_STACK_LISP_OBJECTS 4659,157010
+enum { defined_GC_CHECK_STRING_BYTES 4663,157085
+enum { defined_GC_CHECK_STRING_BYTES 4665,157138
+union Aligned_Cons4670,157272
+union Aligned_String4676,157352
+    USE_STACK_CONS 4689,157707
+    USE_STACK_STRING 4691,157813
+#define STACK_CONS(4699,158150
+#define AUTO_CONS_EXPR(4701,158247
+#define AUTO_CONS(4709,158610
+#define AUTO_LIST1(4710,158681
+#define AUTO_LIST2(4712,158789
+#define AUTO_LIST3(4716,158944
+#define AUTO_LIST4(4720,159119
+# define verify_ascii(4732,159510
+#define AUTO_STRING(4740,159818
+#define FOR_EACH_TAIL(4752,160282
+#define FOR_EACH_ALIST_VALUE(4766,160773
+maybe_gc 4774,161060
+functionp 4784,161299
+
+c-src/machsyscalls.c,23
+#define	SYSCALL(6,113
+
+c-src/machsyscalls.h,159
+SYSCALL (mach_msg_trap,1,0
+SYSCALL (mach_reply_port,13,314
+SYSCALL (mach_thread_self,18,377
+SYSCALL (mach_task_self,23,441
+SYSCALL (mach_host_self,28,503
+
+c-src/h.h,1850
+   ELEM_I/ELEM_I3,15
+} Fails_t;5,85
+typedef void Lang_function 6,96
+typedef struct tpcmd8,147
+#define ggg 10,170
+tpcmd;15,209
+typedef struct foobar2_ 16,216
+} foobar2;20,307
+    DEVICE_SWP,23,333
+    DEVICE_LAST24,349
+} bsp_DevId;25,365
+  struct constant_args 27,394
+} args;30,457
+typedef int *regset;regset31,465
+typedef int INT;32,486
+typedef union abc33,503
+} ghi1;36,534
+typedef union abc 37,542
+} ghi2;39,573
+typedef struct a 40,581
+} b;41,600
+#define c(42,605
+typedef struct an_extern_linkage *an_extern_linkage_ptr;an_extern_linkage_ptr43,619
+typedef struct an_extern_linkage 44,676
+} an_extern_linkage;56,1054
+typedef struct pollfd   pfdset[pfdset57,1075
+typedef union rtunion_def58,1119
+  } womboid 63,1206
+typedef union rtunion_def64,1220
+womboid75,1330
+enum {dog,dog81,1416
+enum {dog, cat}cat81,1416
+enum {dog, cat} animals;81,1416
+typedef void (_CALLBACK_ *signal_handler)signal_handler82,1441
+typedef void (_CALLBACK_ *signal_handler1)signal_handler183,1489
+/* comment */ #define ANSIC84,1538
+ #define ANSIC85,1566
+typedef void (proc)87,1588
+typedef void OperatorFun(88,1612
+typedef int f(89,1648
+struct my_struct 91,1691
+typedef struct my_struct my_typedef;93,1713
+typedef RETSIGTYPE (*signal_handler_t)signal_handler_t94,1750
+  Date 04 May 87 235311 PDT 96,1802
+typedef unsigned char unchar;99,1880
+typedef int X,100,1910
+typedef int X, Y,100,1910
+typedef int X, Y, Z;100,1910
+typedef mio mao;101,1931
+typedef struct a 103,1966
+typedef struct a { } b;103,1966
+typedef struct b104,1990
+} c;106,2009
+int extvar;109,2053
+#define tag1110,2065
+#define aaaaaa 111,2078
+#define bbbbbb\bbbbbb113,2102
+#define cccccccccc115,2125
+#define enter_critical_section	116,2144
+#define exit_critical_to_previous	117,2199
+#define UNDEFINED118,2259
+struct re_pattern_buffer 119,2277
+
+cp-src/c.C,2094
+template <typename ipc3dIslandHierarchy,1,0
+template <typename ipc3dIslandHierarchy, typename ipc3dChannelType,1,0
+template <typename ipc3dIslandHierarchy, typename ipc3dChannelType, unsigned numOfChannels,1,0
+template <typename ipc3dIslandHierarchy, typename ipc3dChannelType, unsigned numOfChannels, typename ipc3dLinkControl,1,0
+class CMultiChannelCSC19_3D2,151
+        void execute(11,493
+int main 25,1026
+double base 26,1088
+typedef struct s1 32,1251
+} t1;34,1287
+struct s2 35,1293
+typedef struct s2 t2;38,1324
+class A 39,1346
+  enum { rosso,40,1356
+  enum { rosso, giallo,40,1356
+  enum { rosso, giallo, verde 40,1356
+const A& A::operator+(operator+43,1431
+void operator+(44,1467
+void operator -(operator -45,1495
+void operator int(operator int46,1524
+A<int>* f(48,1556
+int f(49,1571
+int A<int>::f(f50,1590
+A<float,B<int> > A<B<float>,int>::f(f51,1618
+template <class C, int n> class AT 52,1668
+class AU 53,1716
+class B<B54,1735
+class B<int> { void f(54,1735
+const A::B::T& abt 55,1766
+class A 56,1792
+class A { class B 56,1792
+class A 57,1827
+  A operator+(59,1861
+is_muldiv_operation(61,1888
+domain foo 68,1956
+     void f(69,1969
+void A::A(A72,1990
+struct A 73,2005
+struct B 74,2023
+void B::B(B75,2042
+void BE_Node::BE_Node(BE_Node76,2057
+class BE_Node 77,2084
+struct foo 79,2103
+class test 86,2157
+  int f(87,2170
+  int ff(89,2232
+  int g(90,2255
+class	AST_Root 92,2279
+AST_ConcreteType::AST_ConcreteType(99,2394
+AST_Array::AST_Array(107,2533
+     void f(115,2734
+struct A 117,2754
+A::~A(~A120,2778
+struct B 122,2790
+    ~B(123,2801
+enum {dog,dog126,2818
+enum {dog, cat}cat126,2818
+enum {dog, cat} animals;126,2818
+struct {int teats;} cow;127,2843
+class Boo 129,2869
+    enum {dog,dog130,2881
+    enum {dog, cat}cat130,2881
+    foo(133,2955
+    Boo(137,2996
+Boo::Boo(141,3071
+typedef int should_see_this_one_enclosed_in_extern_C;149,3156
+typedef int (*should_see_this_function_pointer)should_see_this_function_pointer153,3229
+typedef int should_see_this_array_type[should_see_this_array_type156,3311
+
+cp-src/x.cc,63
+class XX1,0
+XX::foo(foo9,60
+XX::bar(bar15,95
+main(21,126
+
+cp-src/burton.cpp,124
+::dummy::dummy test::dummy1(dummy11,0
+::dummy::dummy test::dummy2(dummy26,64
+::dummy::dummy test::dummy3(dummy311,143
+
+cp-src/functions.cpp,778
+void Date::setDate setDate5,148
+void Date::plus plus32,939
+void Date::minus minus42,1229
+void Date::shift shift52,1407
+Date & Date::operator = operator =62,1628
+Date & Date::operator += operator +=69,1789
+Date & Date::operator -= operator -=78,1939
+Date & Date::operator ++ operator ++87,2080
+Date & Date::operator -- operator --96,2216
+int Date::operator - operator -104,2331
+int Date::operator < operator <112,2483
+int Date::operator > operator >116,2557
+int Date::operator == operator ==120,2631
+ostream& operator << operator <<124,2707
+istream& operator >> operator >>133,2943
+bool isLeap 159,3543
+bool isHoliday 163,3629
+void asort(173,3865
+void ReadVacation 186,4064
+void Debug 201,4523
+int WorkingDays(211,4867
+Date StartDay(226,5129
+
+cp-src/MDiagArray2.h,482
+#define octave_MDiagArray2_h 29,870
+#undef LTGT35,967
+#define LTGT39,1031
+#define LTGT 42,1051
+class MDiagArray2 78,2022
+  MDiagArray2 82,2077
+  MDiagArray2 86,2154
+  MDiagArray2 87,2198
+  MDiagArray2 88,2254
+  MDiagArray2 89,2329
+  MDiagArray2 90,2387
+  MDiagArray2 91,2450
+  ~MDiagArray2 93,2515
+  MDiagArray2<T>& operator = operator =95,2542
+  operator MArray2<T> operator MArray2<T>101,2667
+#undef LTGT144,3874
+#define INSTANTIATE_MDIAGARRAY_FRIENDS(146,3887
+
+cp-src/Range.h,275
+#define octave_Range_h 24,765
+Range35,891
+  Range 39,909
+  Range 42,995
+  Range 46,1130
+  Range 50,1248
+  double base 54,1376
+  double limit 55,1425
+  double inc 56,1475
+  int nelem 57,1523
+  void set_base 68,1728
+  void set_limit 69,1774
+  void set_inc 70,1821
+
+cp-src/screen.cpp,228
+unsigned char cursor_x,15,548
+unsigned char cursor_x, cursor_y;15,548
+static union REGS regs;16,582
+void goto_xy(18,607
+void hide_cursor(27,774
+void cursor_position(32,836
+void clear_screen(41,997
+void write_xyc(55,1247
+
+cp-src/screen.hpp,414
+#define __COLORS9,401
+enum COLORS 11,419
+    BLACK,12,433
+    BLUE,13,471
+    GREEN,14,481
+    CYAN,15,492
+    RED,16,502
+    MAGENTA,17,511
+    BROWN,18,524
+    LIGHTGRAY,19,535
+    DARKGRAY,20,550
+    LIGHTBLUE,21,589
+    LIGHTGREEN,22,604
+    LIGHTCYAN,23,620
+    LIGHTRED,24,635
+    LIGHTMAGENTA,25,649
+    YELLOW,26,667
+    WHITE27,679
+#define SCREEN_FP(31,700
+#define SCREEN_START 33,795
+
+cp-src/conway.cpp,288
+#define max(12,357
+#define min(13,393
+const int num_rows 15,430
+const int num_columns 16,470
+class site *field_of_play[field_of_play18,499
+int site::total_surrounding(total_surrounding20,550
+void display(37,958
+void glider(50,1239
+void traffic_light(59,1478
+void main(67,1633
+
+cp-src/conway.hpp,164
+class site:site5,235
+    site(10,344
+    char read(12,410
+    void set(13,444
+    void clear(14,478
+    void compute_next_state(15,514
+    void step(22,717
+
+cp-src/clheir.cpp,359
+const int max_num_generic_objects 9,298
+generic_object * object_registry[object_registry10,340
+void init_registry(12,400
+void step_everybody(19,527
+void discrete_location::clear_neighbors(clear_neighbors31,852
+generic_object::generic_object(generic_object36,981
+generic_object::~generic_object(~generic_object48,1255
+void agent::move(move53,1353
+
+cp-src/clheir.hpp,423
+class generic_object13,520
+    virtual void compute_next_state(21,843
+    virtual void step(22,889
+const int max_num_directions 31,1220
+class location:location33,1290
+    location(43,1643
+class irregular_location:irregular_location47,1687
+    irregular_location(51,1763
+class discrete_location:discrete_location56,1890
+    discrete_location(62,2045
+    void assign_neighbor(66,2185
+class agent:agent75,2509
+
+cp-src/fail.C,294
+struct A 7,263
+	   struct B 8,274
+		   struct C 9,289
+			   C(11,318
+			   operator int(operator int12,342
+		   typedef C T;14,389
+	   typedef B T2;16,414
+class A 23,453
+	class B 24,463
+		class C 25,474
+		int f(26,488
+int A::B::f(f31,521
+main(37,571
+	class D 41,622
+		D(43,659
+
+el-src/TAGTEST.EL,148
+(foo::defmumble bletch 1,0
+(defalias 'pending-delete-mode pending-delete-mode5,102
+(defalias (quote explicitly-quoted-pending-delete-mode)8,175
+
+el-src/emacs/lisp/progmodes/etags.el,5069
+(defvar tags-file-name 34,1034
+(defgroup etags 43,1498
+(defcustom tags-case-fold-search 47,1566
+(defcustom tags-table-list 59,2051
+(defcustom tags-compression-info-list69,2449
+(defcustom tags-add-tables 88,3231
+(defcustom tags-revert-without-query 98,3627
+(defvar tags-table-computed-list 103,3778
+(defvar tags-table-computed-list-for 112,4262
+(defvar tags-table-list-pointer 117,4510
+(defvar tags-table-list-started-at 121,4701
+(defvar tags-table-set-list 124,4821
+(defcustom find-tag-hook 129,5000
+(defcustom find-tag-default-function 137,5263
+(define-obsolete-variable-alias 'find-tag-marker-ring-lengthfind-tag-marker-ring-length145,5602
+(defcustom tags-tag-face 148,5699
+(defcustom tags-apropos-verbose 154,5834
+(defcustom tags-apropos-additional-actions 160,5998
+(defvaralias 'find-tag-marker-ring find-tag-marker-ring183,6917
+(defvar default-tags-table-function 189,7097
+(defvar tags-location-ring 194,7323
+(defvar tags-table-files 201,7599
+(defvar tags-completion-table 206,7766
+(defvar tags-included-tables 209,7858
+(defvar next-file-list 212,7953
+(defvar tags-table-format-functions 217,8059
+(defvar file-of-tag-function 224,8440
+(defvar tags-table-files-function 228,8634
+(defvar tags-completion-table-function 230,8745
+(defvar snarf-tag-function 232,8840
+(defvar goto-tag-location-function 236,9049
+(defvar find-tag-regexp-search-function 239,9222
+(defvar find-tag-regexp-tag-order 241,9343
+(defvar find-tag-regexp-next-line-after-failure-p 243,9452
+(defvar find-tag-search-function 245,9572
+(defvar find-tag-tag-order 247,9679
+(defvar find-tag-next-line-after-failure-p 249,9774
+(defvar list-tags-function 251,9880
+(defvar tags-apropos-function 253,9968
+(defvar tags-included-tables-function 255,10062
+(defvar verify-tags-table-function 257,10181
+(defun initialize-new-tags-table 260,10292
+(defun tags-table-mode 276,10980
+(defun visit-tags-table 285,11245
+(defun tags-table-check-computed-list 321,12783
+(defun tags-table-extend-computed-list 360,14654
+(defun tags-expand-table-name 400,16367
+(defun tags-table-list-member 409,16710
+(defun tags-verify-table 421,17182
+(defun tags-table-including 470,19302
+(defun tags-next-table 522,21346
+(defun visit-tags-table-buffer 543,22203
+(defun tags-reset-tags-tables 712,28513
+(defun file-of-tag 731,29170
+(defun tags-table-files 740,29519
+(defun tags-included-tables 749,29869
+(defun tags-completion-table 755,30115
+(defun tags-lazy-completion-table 783,31309
+(defun tags-completion-at-point-function 799,31944
+(defun find-tag-tag 818,32694
+(defvar last-tag 837,33367
+(defun find-tag-interactive 840,33426
+(defvar find-tag-history 852,33841
+(defun find-tag-noselect 860,34011
+(defun find-tag 932,37125
+(defun find-tag-other-window 959,38341
+(defun find-tag-other-frame 1000,40269
+(defun find-tag-regexp 1025,41443
+(defalias 'pop-tag-mark pop-tag-mark1049,42605
+(defvar tag-lines-already-matched 1052,42656
+(defun find-tag-in-order 1055,42763
+(defun tag-find-file-of-tag-noselect 1167,47109
+(defun tag-find-file-of-tag 1200,48955
+(defun etags-recognize-tags-table 1208,49181
+(defun etags-verify-tags-table 1241,50812
+(defun etags-file-of-tag 1246,51010
+(defun etags-tags-completion-table 1256,51345
+(defun etags-snarf-tag 1286,52551
+(defun etags-goto-tag-location 1324,54120
+(defun etags-list-tags 1388,56563
+(defmacro tags-with-face 1423,57838
+(defun etags-tags-apropos-additional 1431,58171
+(defun etags-tags-apropos 1465,59408
+(defun etags-tags-table-files 1527,61617
+(defun etags-tags-included-tables 1542,62053
+(defun tags-recognize-empty-tags-table 1559,62593
+(defun tag-exact-file-name-match-p 1587,63739
+(defun tag-file-name-match-p 1596,64132
+(defun tag-exact-match-p 1609,64688
+(defun tag-implicit-name-match-p 1620,65256
+(defun tag-symbol-match-p 1633,65856
+(defun tag-word-match-p 1643,66292
+(defun tag-partial-file-name-match-p 1652,66690
+(defun tag-any-match-p 1662,67134
+(defun tag-re-match-p 1667,67318
+(defcustom tags-loop-revert-buffers 1675,67567
+(defun next-file 1685,67976
+(defvar tags-loop-operate 1760,70890
+(defvar tags-loop-scan1763,70984
+(defun tags-loop-eval 1771,71313
+(defun tags-loop-continue 1782,71642
+(defun tags-search 1850,73948
+(defun tags-query-replace 1871,74774
+(defun tags-complete-tags-table-file 1896,75998
+(defun list-tags 1906,76377
+(defun tags-apropos 1934,77330
+(define-button-type 'tags-select-tags-tabletags-select-tags-table1957,78156
+(defun select-tags-table 1964,78395
+(defvar select-tags-table-mode-map 2019,80522
+(define-derived-mode select-tags-table-mode 2030,80905
+(defun select-tags-table-select 2034,81089
+(defun select-tags-table-quit 2043,81455
+(defun complete-tag 2049,81610
+(defconst etags--xref-limit 2074,82551
+(defvar etags-xref-find-definitions-tag-order 2076,82586
+(defun etags-xref-find 2082,82876
+(defun etags--xref-find-definitions 2096,83405
+(defclass xref-etags-location 2129,85119
+(defun xref-make-etags-location 2135,85342
+(cl-defmethod xref-location-marker 2139,85497
+(cl-defmethod xref-location-line 2146,85741
+
+erl-src/gs_dialog.erl,98
+-define(VERSION2,32
+behaviour_info(51,2177
+show(124,5458
+dialog_loop(219,9529
+test(252,10806
+
+f-src/entry.for,172
+      LOGICAL FUNCTION PRTPKG 3,75
+       ENTRY  SETPRT 194,3866
+       ENTRY  MSGSEL 395,8478
+     & intensity1(577,12231
+       character*(*) function foo(579,12307
+
+f-src/entry.strange_suffix,172
+      LOGICAL FUNCTION PRTPKG 3,75
+       ENTRY  SETPRT 194,3866
+       ENTRY  MSGSEL 395,8478
+     & intensity1(577,12231
+       character*(*) function foo(579,12307
+
+f-src/entry.strange,172
+      LOGICAL FUNCTION PRTPKG 3,75
+       ENTRY  SETPRT 194,3866
+       ENTRY  MSGSEL 395,8478
+     & intensity1(577,12231
+       character*(*) function foo(579,12307
+
+forth-src/test-forth.fth,733
+: a-forth-word20,301
+99 constant a-forth-constant!22,343
+55 value a-forth-value?23,373
+create :a-forth-dictionary-entry24,397
+defer #a-defer-word27,460
+: (another-forth-word)(another-forth-word)29,481
+   9   field   >field136,582
+   5   field   >field237,605
+constant (a-forth-constant(a-forth-constant38,628
+2000 buffer: #some-storage41,657
+code assemby-code-word43,685
+: a-forth-word50,870
+: (foo)(foo)55,988
+: foo56,1000
+: create-bar58,1015
+3 4 2constant 2const61,1074
+2const 2value 2val62,1095
+2variable 2var63,1114
+3.1415e fconstant fconst65,1130
+fconst fvalue fval66,1155
+fvariable fvar67,1174
+synonym mypi69,1190
+BEGIN-STRUCTURE point71,1211
+  1 CELLS +FIELD p.x72,1262
+  1 CELLS +FIELD p.y73,1318
+
+go-src/test.go,48
+package main1,0
+func say(5,28
+func main(9,72
+
+go-src/test1.go,119
+package main1,0
+func (s str) PrintAdd(17,136
+func (n intNumber) PrintAdd(21,189
+func test(25,248
+func main(29,285
+
+html-src/softwarelibero.html,200
+Cos'è il software libero?4,38
+Licenze d'uso di un programmalicenze65,2500
+Sfatiamo alcuni miti138,6118
+Il movimento open sourceoss191,8037
+Impatto pratico del software liberoimpatto231,10066
+
+html-src/index.shtml,104
+&nbsp;8,281
+In evidenza15,447
+Comunicati e iniziative32,976
+Ultime notizie dall'associazione63,2030
+
+html-src/algrthms.html,467
+Tutorial on Convolutional Coding with Viterbi Decoding--Description of the Data Generation, Convolutional Encoding, Channel Mapping and AWGN, and Quantizing Algorithms7,277
+Descriptionalgorithms10,481
+Generating the Datagenalgorithm48,1995
+Convolutionallyconalgorithm55,2512
+Nextstatetable262,11587
+Outputoutputtable350,13915
+Mapping the Channel Symbolsmapping433,16213
+Adding Noise to theaddnoise439,16607
+Quantizing the Receivedquantizing469,19100
+
+html-src/software.html,439
+Francesco Potortì Software Page9,280
+Software that I wrote for supporting my research activitysimulation36,1398
+MTGmtg41,1482
+Fracasfracas65,2624
+GaliLEOgalileo101,4232
+Leasqrleasqr114,4677
+Free software that I wrote for the GNU project or for my personal or workgnu142,6065
+Etagsetags148,6180
+checkiso161,6729
+cgrep178,7547
+debian-bug.eldebian-bug190,7979
+tcpdump205,8564
+Links to interesting softwarelinks216,8891
+
+lua-src/allegro.lua,400
+local function get_layer_by_name 7,175
+local function count_layers 33,621
+function GetLayerByName 54,980
+function GetUniqueLayerName 65,1204
+function SelectLayer 76,1415
+function NewLayer 86,1773
+function NewLayerSet 144,3226
+function RemoveLayer 170,3750
+function MoveLayerTop 211,4767
+function MoveLayerBottom 223,5079
+function MoveLayerBefore 236,5457
+function MoveLayerAfter 258,6090
+
+lua-src/test.lua,442
+function Rectangle.getPos 2,15
+function Rectangle.getPos getPos2,15
+function Circle.getPos 6,61
+function Circle.getPos getPos6,61
+function Cube.data.getFoo 10,102
+function Cube.data.getFoo getFoo10,102
+function Square.something:Bar 14,148
+function Square.something:Bar Bar14,148
+   function test.me_22a(22,241
+   function test.me_22a(me_22a22,241
+   local function test.me22b 25,297
+   local function test.me22b me22b25,297
+
+make-src/Makefile,2175
+LATEST=1,0
+RELEASELIST=2,10
+ADASRC=4,104
+ASRC=5,171
+CSRC=6,197
+CPSRC=10,423
+ELSRC=13,614
+ERLSRC=14,661
+FORTHSRC=15,702
+FSRC=16,726
+HTMLSRC=17,776
+JAVASRC=18,844
+LUASRC=19,907
+MAKESRC=20,926
+OBJCSRC=21,943
+OBJCPPSRC=22,999
+PASSRC=23,1035
+PERLSRC=24,1053
+PHPSRC=25,1108
+PSSRC=26,1156
+PROLSRC=27,1173
+PYTSRC=28,1210
+TEXSRC=29,1227
+YSRC=30,1282
+SRCS=31,1325
+NONSRCS=35,1577
+VHDLFLAGS=37,1624
+COBOLFLAGS=38,1827
+POSTSCRIPTFLAGS=39,1889
+TCLFLAGS=40,1943
+GETOPTOBJS=42,2002
+RXINCLUDE=43,2034
+REGEXOBJS=44,2056
+CHECKOBJS=46,2075
+CHECKFLAGS=47,2105
+OBJS=48,2145
+CPPFLAGS=49,2190
+LDFLAGS=50,2259
+WARNINGS=51,2282
+CFLAGS=52,2466
+FASTCFLAGS=55,2530
+FASTCFLAGSWARN=56,2591
+FILTER=58,2641
+REGEX=59,2695
+xx=60,2741
+MAKE:MAKE62,2790
+RUN=63,2825
+RUN=64,2865
+OPTIONS=65,2870
+ARGS=66,2922
+infiles 68,2940
+quiettest:quiettest70,3002
+test:test79,3409
+${CHECKOBJS}:${CHECKOBJS}88,3805
+checker:checker90,3849
+standalone:standalone96,4062
+prof:prof101,4168
+fastetags:fastetags104,4198
+fastctags:fastctags108,4322
+staticetags:staticetags112,4446
+rsynctofly:rsynctofly116,4608
+rsyncfromfly:rsyncfromfly119,4698
+web ftp publish:web ftp publish122,4794
+release distrib:release distrib129,5115
+tags:tags134,5255
+clean:clean136,5267
+srclist:srclist139,5302
+regexfile:regexfile143,5391
+/home/www/pub/etags.c.gz:/home/www/pub/etags.c.gz149,5566
+/home/www/pub/software/unix/etags.tar.gz:/home/www/pub/software/unix/etags.tar.gz156,5825
+regex.o:regex.o159,6031
+getopt.o:getopt.o162,6086
+getopt1.o:getopt1.o165,6147
+etags:etags168,6210
+ctags:ctags171,6299
+man manpage:man manpage174,6396
+etags.1.man:etags.1.man176,6422
+maintaining.info:maintaining.info179,6475
+TAGS:TAGS182,6557
+%ediff:%ediff185,6587
+oediff:oediff188,6677
+%cdiff:%cdiff191,6764
+xdiff:xdiff194,6854
+ETAGS:ETAGS197,6942
+ETAGS%:ETAGS%200,7012
+ETAGS13 ETAGS14 ETAGS15:ETAGS13 ETAGS14 ETAGS15203,7084
+ETAGS12:ETAGS12206,7216
+OTAGS:OTAGS209,7304
+CTAGS:CTAGS212,7369
+CTAGS%:CTAGS%215,7443
+CTAGS13 CTAGS14 CTAGS15:CTAGS13 CTAGS14 CTAGS15218,7545
+EXTAGS:EXTAGS221,7680
+.PRECIOUS:.PRECIOUS224,7838
+FRC:FRC226,7894
+
+objc-src/Subprocess.h,98
+#define Subprocess 41,1217
+#define BUFFERSIZE 43,1267
+@interface Subprocess:Subprocess45,1292
+
+objc-src/Subprocess.m,446
+#define	PTY_TEMPLATE 20,494
+#define	PTY_LENGTH 21,528
+@interface Subprocess(Private)32,737
+- childDidExit39,851
+- fdHandler:fdHandler67,1589
+showError 98,2360
+fdHandler 112,2785
+getptys 119,2907
+- init:init183,4815
+    andStdErr:init197,5147
+- send:(const char *)string withNewline:send300,7436
+- send:send308,7599
+- terminateInput314,7689
+- terminate:terminate321,7810
+- setDelegate:setDelegate332,7961
+- delegate338,8031
+
+objc-src/PackInsp.h,109
+#define NUMSTATS	36,1101
+#define TYPESTOSTAT	37,1120
+@interface PackageInspector:PackageInspector39,1172
+
+objc-src/PackInsp.m,1322
+static const char RCSid[RCSid30,1032
+#define VERSION	34,1116
+#   define DEBUG 37,1155
+#define LISTCONTENTS	39,1181
+#define OPENBUTTON	47,1352
+#define LISTCONTENTSBUTTON	48,1449
+#define LISTDESCRIPTIONBUTTON	49,1562
+#define STATE_UNINSTALLED	52,1687
+#define STATE_INSTALLED	53,1807
+#define STATE_COMPRESSD	54,1948
+#define SIZEFORMAT	57,2152
+#define KBYTES	58,2362
+#define MBYTES	59,2473
+#define LOCALIZE(61,2585
+#define LOCALIZE_ARCH(62,2668
++newnew67,2802
+-showInfo:showInfo93,3417
+-revert:revert107,3737
+-ok:ok136,4297
+-loadload143,4424
+#define LOOKUP(156,4826
+#undef LOOKUP176,5694
+-loadKeyValuesFrom:(const char *)type inTable:loadKeyValuesFrom186,5852
+-loadContentsOf:(const char *)type inTable:loadContentsOf238,7079
+-loadImageloadImage257,7552
+#define STAT_EQ(275,7940
+-(BOOL)shouldLoad280,8116
+-toggleDescriptiontoggleDescription301,8626
+-(const char *)getPath:(char *)buf forType:getPath317,8899
+-setRevertButtonTitlesetRevertButtonTitle333,9320
+-(const char *)formatSize:(const char *)size inBuf:formatSize344,9525
+#define WORKING	368,10045
+-(void)getArchs370,10100
+-(void)addArchs:addArchs385,10520
+-subprocess:(Subprocess *)sender output:subprocess428,11351
+-subprocessDone:subprocessDone436,11484
+static void openInWorkspace(446,11634
+-open:open464,12063
+
+objcpp-src/SimpleCalc.H,41
+@interface SimpleCalc:SimpleCalc14,400
+
+objcpp-src/SimpleCalc.M,445
+- init52,1747
+- appendToDisplay:appendToDisplay60,1933
+- registerAction:registerAction70,2210
+- decimalKey:decimalKey77,2348
+- numberKeys:numberKeys91,2661
+- equalsKey:equalsKey112,3192
+- operationKeys:operationKeys131,3680
+- clearKey:clearKey153,4301
+- clearAllKey:clearAllKey160,4410
+- appDidInit:appDidInit168,4591
+- windowWillClose:windowWillClose178,4882
+- infoPanel:infoPanel186,5132
+- helpPanel:helpPanel198,5482
+
+pas-src/common.pas,1875
+procedure InitializeStringPackage;26,527
+function newtextstring;34,874
+procedure disposetextstring;52,1404
+function ConcatT;78,2066
+function AppendTextString;112,3238
+function CopyTextString;132,3947
+procedure CONVERT_CHARSTRING_TO_VALUE;151,4505
+procedure append_string;172,5166
+function To_Upper;186,5462
+function To_Lower;194,5617
+function EmptyNmStr(209,6213
+function chartonmstr;219,6436
+function LowerCaseNmStr;230,6682
+function concatenatenamestrings;242,7007
+procedure writenamestring;263,7517
+function IsControlChar;277,7928
+function namestringequal;283,8079
+function NameStringLess;302,8539
+function IsControlCharName(343,9710
+function SubString;358,10208
+function SkipChars;379,10791
+function RemoveUnderlineControl;397,11311
+procedure First100Chars;427,12162
+procedure SkipSpaces;462,13298
+function SkipBlanks;477,13782
+function stripname;505,14595
+function Locate;522,15039
+function NameHasChar;543,15581
+function integertonmstr;561,16134
+function NmStrToInteger;585,16901
+function AddNullToNmStr;600,17317
+function ValToNmStr;611,17585
+function ChangeFileType;625,18037
+function StripPath;647,18734
+function ReprOfChar;675,19343
+procedure ExtractCommentInfo;702,20749
+procedure INSERT_TREE_NODE;784,24053
+function GetNameList;920,27926
+procedure DisposeANameList(925,28010
+procedure DisposeNameList;938,28340
+function GetNewNameListNode;943,28409
+function insertname;972,29051
+procedure InitNameList;988,29471
+procedure InitNameStringPool;998,29767
+procedure NewNameString;1004,29867
+procedure ReleaseNameString;1022,30232
+procedure SDTrefStringToRec 1045,30741
+procedure SDTrefSkipSpaces;1059,31092
+function SDTrefIsEnd 1070,31323
+function SDTrefGetInteger 1082,31529
+procedure SDTrefRecToString 1303,37546
+function NmStrToErrStr;1497,42305
+function ErrStrToNmStr;1509,42557
+function GetTextRef;1529,43112
+
+php-src/lce_functions.php,2152
+  define("LCE_FUNCTIONS"LCE_FUNCTIONS4,38
+  define("LCE_UNKNOWN"LCE_UNKNOWN9,145
+  define("LCE_WS"LCE_WS11,194
+  define("LCE_COMMENT"LCE_COMMENT13,244
+  define("LCE_COMMENT_USER"LCE_COMMENT_USER15,303
+  define("LCE_COMMENT_TOOL"LCE_COMMENT_TOOL17,366
+  define("LCE_MSGID"LCE_MSGID19,430
+  define("LCE_MSGSTR"LCE_MSGSTR21,488
+  define("LCE_TEXT"LCE_TEXT23,541
+  define("STATE_ABORT"STATE_ABORT25,567
+  define("STATE_OK"STATE_OK26,595
+  define("STATE_LOOP"STATE_LOOP27,620
+  class POEntryAD 29,648
+      function validate(31,683
+      function checkQuotation(59,1384
+  class CommentAD 70,1639
+      function CommentAD(73,1693
+      function validate(83,1944
+  class POEntry 105,2410
+      function POEntry(119,2711
+      function lineCount(135,3255
+      function serializeToVars(141,3365
+      function write(151,3800
+  class POReader 163,4178
+      function gettext(177,4457
+      function parseFromVars(189,4705
+      function serializeToVars(215,5331
+      function POReader(229,5613
+      function read(243,5983
+      function write(259,6307
+      function isComment(277,6645
+      function comment(284,6822
+      function msgid(304,7247
+      function msgstr(320,7574
+      function start(340,8232
+      function createPOEntries(360,8644
+      function stripLine(394,9472
+      function printClassification(421,10056
+      function classifyLine(432,10301
+  function getTextDomains(471,11094
+  class PORManager 498,11756
+      function PORManager(502,11822
+      function addPOReader(507,11896
+      function &getPOReader(getPOReader512,11992
+      function getDomainNames(517,12081
+  function &loadPORManager(loadPORManager523,12174
+  function fileJoin(536,12436
+      function lce_bindtextdomain(557,12839
+      function lce_textdomain(614,14530
+      function lce_gettext(620,14641
+      function lce_dgettext(626,14767
+      function lce(634,14966
+      function lce_bindtextdomain(651,15488
+      function lce_textdomain(656,15592
+      function lce_gettext(661,15674
+      function lce_dgettext(666,15755
+      function lce(670,15855
+  function lce_geteditcode(676,15898
+
+php-src/ptest.php,46
+define("TEST"TEST1,0
+test 4,26
+foo(16,200
+
+perl-src/htlmify-cystic,1197
+my @section_name;section_name12,236
+my @appendix_name;appendix_name13,254
+my @section_toc;section_toc15,274
+my @appendix_toc;appendix_toc16,291
+my $new_tag new_tag18,310
+my $appendix;appendix24,409
+my $section;section25,423
+my $subsection;subsection26,436
+my $subsubsection;subsubsection27,452
+my $this_file_toc this_file_toc29,472
+my %file_tocs;file_tocs30,496
+my @output_files output_files32,512
+my $file_index file_index33,535
+my $output_file;output_file35,556
+my $line;line37,574
+my $subsection_marker;subsection_marker161,3883
+my $new;new163,3907
+sub read_toc 165,3917
+	  my $entry entry218,5621
+	  my $entry entry234,6077
+	      my $entry entry245,6351
+	  my $entry entry252,6536
+	  my $entry entry268,7010
+	      my $entry entry276,7204
+	  my $entry entry281,7328
+      my $entry entry296,7698
+sub finish_subsubsections 302,7805
+sub finish_subsections 309,7987
+sub finish_sections 320,8310
+sub finish_appendices 331,8599
+sub section_url_base 337,8724
+sub section_url_name 342,8922
+sub section_url 355,9284
+  my $name name357,9336
+sub section_href 364,9452
+sub section_name 368,9551
+sub toc_line 372,9655
+sub file_end 375,9750
+
+perl-src/yagrip.pl,233
+sub getopt 7,156
+	local($_,$flag,$opt,$f,$r,@temp)($_,$flag,$opt,$f,$r,@temp8,169
+sub usage 38,856
+	local($prog,$_,@list)($prog,$_,@list39,868
+	local($string,$flag,@string,@temp,@last)($string,$flag,@string,@temp,@last40,897
+
+perl-src/kai-test.pl,203
+sub f1 2,16
+sub main::f2 f26,50
+package Foo;10,90
+sub f3 12,104
+sub Bar::f4 f416,138
+package Bar;20,177
+sub f5 22,191
+package Foo::Bar;26,225
+sub f6 28,244
+package main;32,278
+sub f7 34,293
+
+ps-src/rfc1245.ps,2478
+/FMversion 12,311
+/FrameDict 17,500
+/FMVERSION 47,1307
+/FMLOCAL 56,1494
+/FMDOCUMENT 73,1766
+/FMBEGINPAGE 95,2279
+/FMENDPAGE 109,2516
+/FMDEFINEFONT 115,2582
+/FMNORMALIZEGRAPHICS 126,2725
+/FMBEGINEPSF 142,2955
+/FMENDEPSF 153,3207
+/setmanualfeed 158,3283
+/max 163,3386
+/min 164,3426
+/inch 165,3466
+/pagedimen 166,3485
+/setpapername 172,3629
+/papersize 190,4214
+/manualpapersize 211,4789
+/desperatepapersize 230,5211
+/savematrix 239,5370
+/restorematrix 242,5425
+/dmatrix 245,5475
+/dpi 246,5495
+/freq 248,5583
+/sangle 249,5658
+/DiacriticEncoding 250,5717
+/.notdef 251,5738
+/.notdef 252,5801
+/.notdef 253,5864
+/.notdef 254,5927
+/.notdef 255,5990
+/numbersign 256,6051
+/parenright 257,6115
+/two 258,6184
+/less 259,6251
+/L 260,6320
+/bracketright 261,6389
+/i 262,6459
+/braceright 263,6529
+/Ntilde 264,6598
+/atilde 265,6668
+/iacute 266,6733
+/ocircumflex 267,6797
+/udieresis 268,6858
+/paragraph 269,6919
+/dieresis 270,6983
+/yen 271,7050
+/ordfeminine 272,7109
+/exclamdown 273,7171
+/guillemotleft 274,7230
+/Otilde 275,7296
+/quoteleft 276,7357
+/fraction 277,7420
+/periodcentered 278,7490
+/Acircumflex 279,7549
+/Icircumflex 280,7610
+/Uacute 281,7680
+/breve 282,7746
+/ReEncode 284,7814
+/graymode 300,8020
+/setpattern 310,8184
+/grayness 331,8725
+/normalize 394,9873
+/dnormalize 397,9942
+/lnormalize 400,10014
+/H 403,10104
+/Z 406,10147
+/X 409,10176
+/V 412,10219
+/N 415,10260
+/M 418,10286
+/E 419,10315
+/D 420,10336
+/O 421,10358
+/L 423,10394
+/Y 430,10489
+/R 439,10588
+/RR 450,10696
+/C 467,10959
+/U 473,11004
+/F 477,11039
+/T 481,11084
+/RF 484,11115
+/TF 488,11164
+/P 495,11219
+/PF 499,11270
+/S 506,11344
+/SF 510,11384
+/B 517,11446
+/BF 521,11505
+/W 538,11714
+/G 573,12382
+/A 582,12525
+/BEGINPRINTCODE 606,12918
+/ENDPRINTCODE 615,13131
+/gn 620,13259
+/cfs 631,13384
+/ic 636,13473
+/ms 658,14285
+/ip 668,14395
+/wh 678,14492
+/bl 684,14607
+/s1 690,14722
+/fl 691,14739
+/hx 698,14887
+/wbytes 709,15055
+/BEGINBITMAPBWc 713,15147
+/BEGINBITMAPGRAYc 716,15198
+/BEGINBITMAP2BITc 719,15251
+/COMMONBITMAPc 722,15304
+/BEGINBITMAPBW 739,15660
+/BEGINBITMAPGRAY 742,15709
+/BEGINBITMAP2BIT 745,15760
+/COMMONBITMAP 748,15811
+/Fmcc 765,16156
+/ngrayt 773,16371
+/nredt 774,16393
+/nbluet 775,16414
+/ngreent 776,16436
+/colorsetup 787,16603
+/fakecolorsetup 814,17370
+/BITMAPCOLOR 826,17636
+/BITMAPCOLORc 839,17926
+/BITMAPGRAY 855,18275
+/BITMAPGRAYc 858,18335
+/ENDBITMAP 861,18397
+/fillprocs 868,18497
+
+prol-src/ordsets.prolog,525
+is_ordset(47,1310
+list_to_ord_set(63,1688
+ord_add_element(71,1867
+ord_del_element(85,2344
+ord_disjoint(100,2783
+ord_intersect(108,2953
+ord_intersection(126,3552
+ord_intersection3(130,3691
+ord_intersection(150,4531
+ord_intersection4(154,4703
+ord_intersection(176,5664
+ord_intersection2(181,5812
+ord_member(200,6318
+ord_seteq(216,6683
+ord_setproduct(225,6971
+ord_subset(240,7377
+ord_subtract(257,7861
+ord_symdiff(265,8054
+ord_union(288,8887
+ord_union4(303,9352
+ord_union(324,10171
+ord_union_all(329,10313
+
+prol-src/natded.prolog,2319
+expandmng(100,2879
+normalize(116,3359
+fresh_vars(125,3716
+subst(138,4134
+normalize_fresh(159,4660
+reduce_subterm(171,5112
+reduce(185,5559
+free_var(196,5903
+free_for(209,6246
+compile_lex(231,6875
+consult_lex:-consult_lex248,7384
+lex(259,7754
+expandsyn(267,8068
+bas_syn(292,8897
+compile_empty:-compile_empty310,9376
+complete(328,10055
+add_active(340,10527
+parse(353,10949
+derived_analyses(364,11341
+build(378,11965
+buildact(392,12521
+mapsyn(412,13542
+add_edge(434,14278
+findcats(447,14758
+normalize_tree(465,15478
+normalize_trees(475,15856
+expandmng_tree(486,16248
+expandmng_trees(496,16614
+cat(511,17013
+subtree(644,21266
+hypothetical_mem(653,21565
+make_coor(667,22130
+start_up:-start_up688,23013
+tokenizeatom(710,23921
+tokenize(720,24348
+isoperator(752,25377
+isoptab(756,25431
+specialsymbol(765,25756
+sstab(771,25861
+parse_cgi(787,26347
+keyvalseq(792,26510
+andkeyvalseq(796,26609
+keyval(799,26688
+valseq(807,26920
+plusvalseq(810,27007
+val(816,27109
+argvals(824,27426
+commaargvals(828,27503
+atomval(833,27578
+atom(836,27640
+action(846,28004
+keyvalcgi(864,28649
+keyvalscgi(865,28670
+outsyn(868,28726
+act(876,29060
+actout(901,29906
+texttreelist(912,30089
+htmltreelist(918,30190
+fitchtreelist(924,30304
+pp_html_table_tree(938,30759
+pp_html_tree(949,31113
+pp_html_trees(988,32381
+pp_html_table_fitch_tree(999,32769
+pp_html_fitch_tree(1017,33672
+removeexp(1129,39002
+splitexp(1142,39490
+pp_exp(1155,39990
+map_word(1168,40249
+pp_exps(1180,40474
+pp_tree(1188,40777
+pp_trees(1216,41807
+pp_word_list(1225,42128
+pp_word(1231,42262
+pp_word_list_rest(1238,42569
+pp_cat(1248,42929
+pp_syn(1255,43196
+pp_syn_paren(1276,43899
+pp_paren(1293,44377
+pp_syn_back(1300,44661
+pp_bas_cat(1311,45001
+writecat(1322,45409
+writesubs(1351,46455
+writesups(1361,46757
+writelistsubs(1371,47090
+pp_lam(1380,47408
+pp_lam_bracket(1398,48022
+pp_lam_paren(1407,48338
+pp_rule(1429,49238
+member(1447,49866
+append_list(1451,49919
+append(1456,50010
+at_least_one_member(1460,50076
+numbervars(1464,50171
+reverse(1467,50209
+select(1471,50290
+select_last(1475,50357
+cat_atoms(1479,50436
+writelist(1485,50524
+write_lex_cat(1492,50676
+writebreaklex(1500,50988
+write_lex(1513,51265
+writebreak(1521,51541
+tt:-tt1531,51713
+mt:-mt1534,51784
+cmt:-cmt1537,51878
+
+pyt-src/server.py,1438
+class Controls:Controls17,358
+    def __init__(18,374
+    def __repr__(24,590
+    def __str__(34,871
+class Server:Server37,934
+    def __init__(38,948
+    def dump(73,2198
+    def __repr__(125,3896
+    def __str__(128,3945
+class User:User131,4014
+    def __init__(132,4026
+    def __repr__(172,5445
+    def __str__(206,6883
+def flag2str(223,7212
+class LabeledEntry(232,7442
+    def bind(234,7525
+    def focus_set(236,7584
+    def __init__(238,7629
+def ButtonBar(245,7909
+def helpwin(255,8280
+class ListEdit(267,8707
+    def __init__(269,8808
+    def handleList(303,10042
+    def handleNew(306,10094
+    def editItem(314,10426
+    def deleteItem(320,10596
+def ConfirmQuit(326,10760
+class ControlEdit(375,12377
+    def PostControls(376,12403
+    def GatherControls(421,13530
+class ServerEdit(512,16264
+    def __init__(513,16289
+    def post(525,16629
+    def gather(543,17191
+    def nosave(547,17304
+    def save(551,17408
+    def refreshPort(556,17509
+    def createWidgets(561,17663
+    def edituser(631,20708
+class UserEdit(645,20921
+    def __init__(646,20944
+    def post(658,21283
+    def gather(676,21841
+    def nosave(680,21950
+    def save(684,22052
+    def createWidgets(689,22151
+class Configure(760,24879
+    def __init__(761,24916
+    def MakeDispose(772,25211
+    def MakeSitelist(786,25706
+    def editsite(794,25949
+    def save(797,26022
+    def nosave(807,26310
+
+ruby-src/test.rb,637
+module ModuleExample1,0
+    class ClassExample2,21
+        def instance_method3,44
+        def ClassExample.class_methodclass_method6,121
+        def instance_method_exclamation!9,206
+        def instance_method_question?12,310
+        def instance_method_equals=instance_method_equals=15,408
+        def `(18,502
+        def +(21,592
+        def [](24,640
+        def []=([]=27,690
+        def <<(30,752
+        def ==(==33,802
+        def <=(<=36,872
+        def <=>(<=>39,943
+        def ===(===42,990
+    def module_instance_method46,1051
+    def ModuleExample.module_class_methodmodule_class_method49,1131
+
+ruby-src/test1.ru,935
+class A1,0
+ def a(2,8
+ def b(5,38
+module A9,57
+  class B10,66
+    ABC 11,76
+    Def_ 12,88
+    Xyzzy 13,106
+    def foo!15,121
+    def self._bar?(_bar?18,143
+      def qux=(qux=22,194
+    attr_reader :foofoo26,233
+    attr_reader :read1 read127,254
+    attr_reader :read1 , :read2;read227,254
+    attr_reader :read1 , :read2; attr_writer :write1,write1=27,254
+    attr_reader :read1 , :read2; attr_writer :write1, :write2write2=27,254
+    attr_writer :bar,bar=28,316
+                :baz,baz=29,338
+                :moremore=30,360
+    attr_accessor :teetee31,382
+    attr_accessor :teetee=31,382
+    alias_method :qux,qux32,405
+    alias_method :xyz,xyz33,456
+                 :tee ; attr_reader :subtlesubtle34,479
+    attr_reader(:foo1,foo135,523
+    attr_reader(:foo1, :bar1,bar135,523
+                :qux1)qux136,563
+    alias_method ( :foo2,foo237,586
+A::Constant Constant42,655
+
+tex-src/testenv.tex,52
+\newcommand{\nm}\nm4,77
+\section{blah}blah8,139
+
+tex-src/gzip.texi,303
+@node Top,62,2139
+@node Copying,80,2652
+@node Overview,83,2705
+@node Sample,166,7272
+@node Invoking gzip,Invoking gzip210,8828
+@node Advanced usage,Advanced usage357,13495
+@node Environment,420,15207
+@node Tapes,437,15768
+@node Problems,460,16767
+@node Concept Index,Concept Index473,17287
+
+tex-src/texinfo.tex,30627
+\def\texinfoversion{\texinfoversion26,1027
+\def\tie{\tie49,1518
+\def\gloggingall{\gloggingall72,2268
+\def\loggingall{\loggingall73,2337
+\def\onepageout#1{\onepageout99,3274
+\def\croppageout#1{\croppageout115,4024
+\def\cropmarks{\cropmarks142,5084
+\def\pagebody#1{\pagebody144,5131
+\def\ewtop{\ewtop157,5586
+\def\nstop{\nstop158,5650
+\def\ewbot{\ewbot160,5733
+\def\nsbot{\nsbot161,5797
+\def\parsearg #1{\parsearg170,6096
+\def\parseargx{\parseargx172,6174
+\def\parseargline{\parseargline182,6414
+\def\flushcr{\flushcr186,6535
+\newif\ifENV \ENVfalse \def\inENV{\inENV190,6734
+\def\ENVcheck{\ENVcheck191,6798
+\outer\def\begin{\begin198,7045
+\def\beginxxx #1{\beginxxx200,7083
+\def\end{\end208,7338
+\def\endxxx #1{\endxxx210,7366
+\def\errorE#1{\errorE216,7555
+\def\singlespace{\singlespace222,7749
+\def\@{\@232,7972
+\def\`{\`236,8072
+\def\'{\'237,8084
+\def\mylbrace {\mylbrace241,8132
+\def\myrbrace {\myrbrace242,8165
+\def\:{\:247,8279
+\def\*{\*250,8333
+\def\.{\.253,8409
+\def\w#1{\w258,8640
+\def\group{\group268,9123
+  \def\Egroup{\Egroup273,9287
+\def\need{\need289,9729
+\def\needx#1{\needx300,10006
+\def\dots{\dots339,11392
+\def\page{\page343,11456
+\def\exdent{\exdent353,11783
+\def\exdentyyy #1{\exdentyyy354,11816
+\def\nofillexdent{\nofillexdent357,11960
+\def\nofillexdentyyy #1{\nofillexdentyyy358,12005
+\def\include{\include365,12189
+\def\includezzz #1{\includezzz366,12224
+\def\thisfile{\thisfile369,12275
+\def\center{\center373,12338
+\def\centerzzz #1{\centerzzz374,12371
+\def\sp{\sp380,12513
+\def\spxxx #1{\spxxx381,12538
+\def\comment{\comment387,12712
+\def\commentxxx #1{\commentxxx390,12809
+\def\ignoresections{\ignoresections396,12978
+\let\chapter=\relax=\relax397,13000
+\let\section=\relax=\relax406,13245
+\let\subsection=\relax=\relax409,13306
+\let\subsubsection=\relax=\relax410,13329
+\let\appendix=\relax=\relax411,13355
+\let\appendixsec=\relaxsec=\relax412,13376
+\let\appendixsection=\relaxsection=\relax413,13400
+\let\appendixsubsec=\relaxsubsec=\relax414,13428
+\let\appendixsubsection=\relaxsubsection=\relax415,13455
+\let\appendixsubsubsec=\relaxsubsubsec=\relax416,13486
+\let\appendixsubsubsection=\relaxsubsubsection=\relax417,13516
+\def\ignore{\ignore423,13618
+\long\def\ignorexxx #1\end ignore{\ignorexxx427,13758
+\def\direntry{\direntry429,13817
+\long\def\direntryxxx #1\end direntry{\direntryxxx430,13856
+\def\ifset{\ifset434,13966
+\def\ifsetxxx #1{\ifsetxxx436,14024
+\def\Eifset{\Eifset440,14151
+\def\ifsetfail{\ifsetfail441,14165
+\long\def\ifsetfailxxx #1\end ifset{\ifsetfailxxx442,14221
+\def\ifclear{\ifclear444,14282
+\def\ifclearxxx #1{\ifclearxxx446,14344
+\def\Eifclear{\Eifclear450,14475
+\def\ifclearfail{\ifclearfail451,14491
+\long\def\ifclearfailxxx #1\end ifclear{\ifclearfailxxx452,14551
+\def\set{\set456,14702
+\def\setxxx #1{\setxxx457,14729
+\def\clear{\clear460,14791
+\def\clearxxx #1{\clearxxx461,14822
+\def\iftex{\iftex466,14939
+\def\Eiftex{\Eiftex467,14952
+\def\ifinfo{\ifinfo468,14966
+\long\def\ifinfoxxx #1\end ifinfo{\ifinfoxxx469,15016
+\long\def\menu #1\end menu{\menu471,15075
+\def\asis#1{\asis472,15104
+\def\math#1{\math485,15647
+\def\node{\node487,15691
+\def\nodezzz#1{\nodezzz488,15729
+\def\nodexxx[#1,#2]{\nodexxx[489,15760
+\def\donoderef{\donoderef492,15822
+\def\unnumbnoderef{\unnumbnoderef496,15943
+\def\appendixnoderef{\appendixnoderef500,16074
+\expandafter\expandafter\expandafter\appendixsetref{setref501,16120
+\let\refill=\relaxill=\relax504,16209
+\def\setfilename{\setfilename509,16423
+\outer\def\bye{\bye518,16669
+\def\inforef #1{\inforef520,16725
+\def\inforefzzz #1,#2,#3,#4**{\inforefzzz521,16763
+\def\losespace #1{\losespace523,16860
+\def\sf{\sf532,17064
+\font\defbf=cmbx10 scaled \magstep1 %was 1314bf=cmbx10558,17859
+\font\deftt=cmtt10 scaled \magstep1tt=cmtt10559,17905
+\def\df{\df560,17941
+\def\resetmathfonts{\resetmathfonts635,20535
+\def\textfonts{\textfonts648,21124
+\def\chapfonts{\chapfonts653,21339
+\def\secfonts{\secfonts658,21555
+\def\subsecfonts{\subsecfonts663,21760
+\def\indexfonts{\indexfonts668,21977
+\def\smartitalicx{\smartitalicx691,22709
+\def\smartitalic#1{\smartitalic692,22785
+\let\cite=\smartitalic=\smartitalic698,22930
+\def\b#1{\b700,22954
+\def\t#1{\t703,22989
+\def\samp #1{\samp706,23141
+\def\key #1{\key707,23174
+\def\ctrl #1{\ctrl708,23235
+\def\tclose#1{\tclose716,23437
+\def\ {\720,23603
+\def\xkey{\xkey728,23872
+\def\kbdfoo#1#2#3\par{\kbdfoo729,23888
+\def\dmn#1{\dmn738,24189
+\def\kbd#1{\kbd740,24216
+\def\l#1{\l742,24273
+\def\r#1{\r744,24302
+\def\sc#1{\sc746,24370
+\def\ii#1{\ii747,24413
+\def\titlefont#1{\titlefont755,24646
+\def\titlepage{\titlepage761,24749
+   \def\subtitlefont{\subtitlefont766,24976
+   \def\authorfont{\authorfont768,25060
+   \def\title{\title774,25270
+   \def\titlezzz##1{\titlezzz775,25305
+   \def\subtitle{\subtitle783,25620
+   \def\subtitlezzz##1{\subtitlezzz784,25661
+   \def\author{\author787,25779
+   \def\authorzzz##1{\authorzzz788,25816
+   \def\page{\page794,26107
+\def\Etitlepage{\Etitlepage804,26276
+\def\finishtitlepage{\finishtitlepage817,26664
+\def\evenheading{\evenheading846,27672
+\def\oddheading{\oddheading847,27715
+\def\everyheading{\everyheading848,27756
+\def\evenfooting{\evenfooting850,27802
+\def\oddfooting{\oddfooting851,27845
+\def\everyfooting{\everyfooting852,27886
+\def\headings #1 {\headings893,29578
+\def\HEADINGSoff{\HEADINGSoff895,29627
+\def\HEADINGSdouble{\HEADINGSdouble904,30054
+\def\HEADINGSsingle{\HEADINGSsingle914,30374
+\def\HEADINGSon{\HEADINGSon922,30595
+\def\HEADINGSafter{\HEADINGSafter924,30629
+\def\HEADINGSdoublex{\HEADINGSdoublex926,30724
+\def\HEADINGSsingleafter{\HEADINGSsingleafter933,30912
+\def\HEADINGSsinglex{\HEADINGSsinglex934,30973
+\def\today{\today943,31248
+\def\thistitle{\thistitle958,31793
+\def\settitle{\settitle959,31818
+\def\settitlezzz #1{\settitlezzz960,31855
+\def\internalBitem{\internalBitem992,32785
+\def\internalBitemx{\internalBitemx993,32835
+\def\internalBxitem "#1"{\internalBxitem995,32880
+\def\internalBxitemx "#1"{\internalBxitemx996,32960
+\def\internalBkitem{\internalBkitem998,33035
+\def\internalBkitemx{\internalBkitemx999,33087
+\def\kitemzzz #1{\kitemzzz1001,33134
+\def\xitemzzz #1{\xitemzzz1004,33236
+\def\itemzzz #1{\itemzzz1007,33339
+\def\item{\item1037,34410
+\def\itemx{\itemx1038,34461
+\def\kitem{\kitem1039,34514
+\def\kitemx{\kitemx1040,34567
+\def\xitem{\xitem1041,34622
+\def\xitemx{\xitemx1042,34675
+\def\description{\description1045,34785
+\def\table{\table1047,34835
+\def\ftable{\ftable1052,34979
+\def\Eftable{\Eftable1056,35125
+\def\vtable{\vtable1059,35194
+\def\Evtable{\Evtable1063,35340
+\def\dontindex #1{\dontindex1066,35409
+\def\fnitemindex #1{\fnitemindex1067,35429
+\def\vritemindex #1{\vritemindex1068,35474
+\def\tablez #1#2#3#4#5#6{\tablez1074,35623
+\def\Edescription{\Edescription1077,35681
+\def\itemfont{\itemfont1082,35883
+\def\Etable{\Etable1090,36109
+\def\itemize{\itemize1103,36433
+\def\itemizezzz #1{\itemizezzz1105,36469
+\def\itemizey #1#2{\itemizey1110,36564
+\def#2{1119,36810
+\def\itemcontents{\itemcontents1120,36851
+\def\bullet{\bullet1123,36899
+\def\minus{\minus1124,36926
+\def\frenchspacing{\frenchspacing1128,37034
+\def\splitoff#1#2\endmark{\splitoff1134,37259
+\def\enumerate{\enumerate1140,37489
+\def\enumeratezzz #1{\enumeratezzz1141,37528
+\def\enumeratey #1 #2\endenumeratey{\enumeratey1142,37581
+  \def\thearg{\thearg1146,37728
+  \ifx\thearg\empty \def\thearg{\thearg1147,37747
+\def\numericenumerate{\numericenumerate1184,39081
+\def\lowercaseenumerate{\lowercaseenumerate1190,39211
+\def\uppercaseenumerate{\uppercaseenumerate1203,39558
+\def\startenumeration#1{\startenumeration1219,40048
+\def\alphaenumerate{\alphaenumerate1227,40230
+\def\capsenumerate{\capsenumerate1228,40265
+\def\Ealphaenumerate{\Ealphaenumerate1229,40299
+\def\Ecapsenumerate{\Ecapsenumerate1230,40333
+\def\itemizeitem{\itemizeitem1234,40413
+\def\newindex #1{\newindex1259,41270
+\def\defindex{\defindex1268,41559
+\def\newcodeindex #1{\newcodeindex1272,41667
+\def\defcodeindex{\defcodeindex1279,41927
+\def\synindex #1 #2 {\synindex1283,42107
+\def\syncodeindex #1 #2 {\syncodeindex1292,42447
+\def\doindex#1{\doindex1309,43126
+\def\singleindexer #1{\singleindexer1310,43185
+\def\docodeindex#1{\docodeindex1313,43297
+\def\singlecodeindexer #1{\singlecodeindexer1314,43364
+\def\indexdummies{\indexdummies1316,43422
+\def\_{\_1317,43442
+\def\w{\w1318,43470
+\def\bf{\bf1319,43497
+\def\rm{\rm1320,43526
+\def\sl{\sl1321,43555
+\def\sf{\sf1322,43584
+\def\tt{\tt1323,43612
+\def\gtr{\gtr1324,43640
+\def\less{\less1325,43670
+\def\hat{\hat1326,43702
+\def\char{\char1327,43732
+\def\TeX{\TeX1328,43764
+\def\dots{\dots1329,43794
+\def\copyright{\copyright1330,43827
+\def\tclose##1{\tclose1331,43870
+\def\code##1{\code1332,43915
+\def\samp##1{\samp1333,43956
+\def\t##1{\t1334,43997
+\def\r##1{\r1335,44032
+\def\i##1{\i1336,44067
+\def\b##1{\b1337,44102
+\def\cite##1{\cite1338,44137
+\def\key##1{\key1339,44178
+\def\file##1{\file1340,44217
+\def\var##1{\var1341,44258
+\def\kbd##1{\kbd1342,44297
+\def\indexdummyfont#1{\indexdummyfont1347,44453
+\def\indexdummytex{\indexdummytex1348,44479
+\def\indexdummydots{\indexdummydots1349,44503
+\def\indexnofonts{\indexnofonts1351,44529
+\let\w=\indexdummyfontdummyfont1352,44549
+\let\t=\indexdummyfontdummyfont1353,44572
+\let\r=\indexdummyfontdummyfont1354,44595
+\let\i=\indexdummyfontdummyfont1355,44618
+\let\b=\indexdummyfontdummyfont1356,44641
+\let\emph=\indexdummyfontdummyfont1357,44664
+\let\strong=\indexdummyfontdummyfont1358,44690
+\let\cite=\indexdummyfont=\indexdummyfont1359,44718
+\let\sc=\indexdummyfontdummyfont1360,44744
+\let\tclose=\indexdummyfontdummyfont1364,44916
+\let\code=\indexdummyfontdummyfont1365,44944
+\let\file=\indexdummyfontdummyfont1366,44970
+\let\samp=\indexdummyfontdummyfont1367,44996
+\let\kbd=\indexdummyfontdummyfont1368,45022
+\let\key=\indexdummyfontdummyfont1369,45047
+\let\var=\indexdummyfontdummyfont1370,45072
+\let\TeX=\indexdummytexdummytex1371,45097
+\let\dots=\indexdummydotsdummydots1372,45121
+\let\indexbackslash=0  %overridden during \printindex.backslash=01382,45373
+\def\doind #1#2{\doind1384,45429
+{\indexdummies % Must do this here, since \bf, etc expand at this stagedummies1386,45472
+\def\rawbackslashxx{\rawbackslashxx1389,45612
+{\indexnofontsnofonts1394,45874
+\def\dosubind #1#2#3{\dosubind1405,46185
+{\indexdummies % Must do this here, since \bf, etc expand at this stagedummies1407,46233
+\def\rawbackslashxx{\rawbackslashxx1410,46337
+{\indexnofontsnofonts1414,46491
+\def\findex {\findex1443,47422
+\def\kindex {\kindex1444,47445
+\def\cindex {\cindex1445,47468
+\def\vindex {\vindex1446,47491
+\def\tindex {\tindex1447,47514
+\def\pindex {\pindex1448,47537
+\def\cindexsub {\cindexsub1450,47561
+\def\printindex{\printindex1462,47888
+\def\doprintindex#1{\doprintindex1464,47929
+  \def\indexbackslash{\indexbackslash1481,48414
+  \indexfonts\rm \tolerance=9500 \advance\baselineskip -1ptfonts\rm1482,48453
+\def\initial #1{\initial1517,49525
+\def\entry #1#2{\entry1523,49732
+  \null\nobreak\indexdotfill % Have leaders before the page number.dotfill1540,50379
+\def\indexdotfill{\indexdotfill1549,50707
+\def\primary #1{\primary1552,50813
+\def\secondary #1#2{\secondary1556,50895
+\noindent\hskip\secondaryindent\hbox{#1}\indexdotfill #2\pardotfill1559,50977
+\newbox\partialpageialpage1566,51150
+\def\begindoublecolumns{\begindoublecolumns1572,51308
+  \output={\global\setbox\partialpage=ialpage=1573,51344
+\def\enddoublecolumns{\enddoublecolumns1577,51532
+\def\doublecolumnout{\doublecolumnout1580,51617
+  \dimen@=\pageheight \advance\dimen@ by-\ht\partialpageialpage1581,51686
+\def\pagesofar{\pagesofar1584,51864
+\def\balancecolumns{\balancecolumns1588,52101
+  \availdimen@=\pageheight \advance\availdimen@ by-\ht\partialpageialpage1594,52272
+     \dimen@=\pageheight \advance\dimen@ by-\ht\partialpageialpage1600,52533
+\newcount \appendixno  \appendixno = `\@no1627,53438
+\def\appendixletter{\appendixletter1628,53479
+\def\opencontents{\opencontents1632,53582
+\def\thischapter{\thischapter1637,53763
+\def\seccheck#1{\seccheck1638,53801
+\def\chapternofonts{\chapternofonts1643,53905
+\def\result{\result1646,53980
+\def\equiv{\equiv1647,54015
+\def\expansion{\expansion1648,54048
+\def\print{\print1649,54089
+\def\TeX{\TeX1650,54122
+\def\dots{\dots1651,54151
+\def\copyright{\copyright1652,54182
+\def\tt{\tt1653,54223
+\def\bf{\bf1654,54250
+\def\w{\w1655,54278
+\def\less{\less1656,54303
+\def\gtr{\gtr1657,54334
+\def\hat{\hat1658,54363
+\def\char{\char1659,54392
+\def\tclose##1{\tclose1660,54423
+\def\code##1{\code1661,54467
+\def\samp##1{\samp1662,54507
+\def\r##1{\r1663,54547
+\def\b##1{\b1664,54581
+\def\key##1{\key1665,54615
+\def\file##1{\file1666,54653
+\def\kbd##1{\kbd1667,54693
+\def\i##1{\i1669,54801
+\def\cite##1{\cite1670,54835
+\def\var##1{\var1671,54875
+\def\emph##1{\emph1672,54913
+\def\dfn##1{\dfn1673,54953
+\def\thischaptername{\thischaptername1676,54994
+\outer\def\chapter{\chapter1677,55033
+\def\chapterzzz #1{\chapterzzz1678,55074
+{\chapternofonts%nofonts%1687,55470
+\global\let\section = \numberedsec=1692,55623
+\global\let\subsection = \numberedsubsec=1693,55658
+\global\let\subsubsection = \numberedsubsubsec=1694,55699
+\outer\def\appendix{\appendix1697,55750
+\def\appendixzzz #1{\appendixzzz1698,55793
+\global\advance \appendixno by 1 \message{no1700,55870
+\chapmacro {#1}{Appendix \appendixletter}letter1701,55939
+\xdef\thischapter{Appendix \appendixletter: \noexpand\thischaptername}letter:1704,56032
+{\chapternofonts%nofonts%1705,56104
+  {#1}{Appendix \appendixletter}letter1707,56160
+\appendixnoderef %noderef1710,56260
+\global\let\section = \appendixsec=1711,56279
+\global\let\subsection = \appendixsubsec=1712,56314
+\global\let\subsubsection = \appendixsubsubsec=1713,56355
+\outer\def\top{\top1716,56406
+\outer\def\unnumbered{\unnumbered1717,56446
+\def\unnumberedzzz #1{\unnumberedzzz1718,56493
+{\chapternofonts%nofonts%1722,56656
+\global\let\section = \unnumberedsec=1727,56806
+\global\let\subsection = \unnumberedsubsec=1728,56843
+\global\let\subsubsection = \unnumberedsubsubsec=1729,56886
+\outer\def\numberedsec{\numberedsec1732,56939
+\def\seczzz #1{\seczzz1733,56980
+{\chapternofonts%nofonts%1736,57136
+\outer\def\appendixsection{\appendixsection1745,57322
+\outer\def\appendixsec{\appendixsec1746,57379
+\def\appendixsectionzzz #1{\appendixsectionzzz1747,57432
+\gdef\thissection{#1}\secheading {#1}{\appendixletter}letter1749,57544
+{\chapternofonts%nofonts%1750,57612
+{#1}{\appendixletter}letter1752,57668
+\appendixnoderef %noderef1755,57768
+\outer\def\unnumberedsec{\unnumberedsec1759,57808
+\def\unnumberedseczzz #1{\unnumberedseczzz1760,57861
+{\chapternofonts%nofonts%1762,57956
+\outer\def\numberedsubsec{\numberedsubsec1770,58124
+\def\numberedsubseczzz #1{\numberedsubseczzz1771,58179
+{\chapternofonts%nofonts%1774,58358
+\outer\def\appendixsubsec{\appendixsubsec1783,58562
+\def\appendixsubseczzz #1{\appendixsubseczzz1784,58617
+\subsecheading {#1}{\appendixletter}letter1786,58739
+{\chapternofonts%nofonts%1787,58804
+{#1}{\appendixletter}letter1789,58863
+\appendixnoderef %noderef1792,58978
+\outer\def\unnumberedsubsec{\unnumberedsubsec1796,59018
+\def\unnumberedsubseczzz #1{\unnumberedsubseczzz1797,59077
+{\chapternofonts%nofonts%1799,59178
+\outer\def\numberedsubsubsec{\numberedsubsubsec1807,59349
+\def\numberedsubsubseczzz #1{\numberedsubsubseczzz1808,59410
+{\chapternofonts%nofonts%1812,59607
+\outer\def\appendixsubsubsec{\appendixsubsubsec1823,59840
+\def\appendixsubsubseczzz #1{\appendixsubsubseczzz1824,59901
+  {\appendixletter}letter1827,60040
+{\chapternofonts%nofonts%1828,60106
+  {\appendixletter}letter1830,60171
+\appendixnoderef %noderef1834,60305
+\outer\def\unnumberedsubsubsec{\unnumberedsubsubsec1838,60345
+\def\unnumberedsubsubseczzz #1{\unnumberedsubsubseczzz1839,60410
+{\chapternofonts%nofonts%1841,60517
+\def\infotop{\infotop1851,60846
+\def\infounnumbered{\infounnumbered1852,60884
+\def\infounnumberedsec{\infounnumberedsec1853,60929
+\def\infounnumberedsubsec{\infounnumberedsubsec1854,60980
+\def\infounnumberedsubsubsec{\infounnumberedsubsubsec1855,61037
+\def\infoappendix{\infoappendix1857,61101
+\def\infoappendixsec{\infoappendixsec1858,61142
+\def\infoappendixsubsec{\infoappendixsubsec1859,61189
+\def\infoappendixsubsubsec{\infoappendixsubsubsec1860,61242
+\def\infochapter{\infochapter1862,61302
+\def\infosection{\infosection1863,61341
+\def\infosubsection{\infosubsection1864,61380
+\def\infosubsubsection{\infosubsubsection1865,61425
+\global\let\section = \numberedsec=1870,61662
+\global\let\subsection = \numberedsubsec=1871,61697
+\global\let\subsubsection = \numberedsubsubsec=1872,61738
+\def\majorheading{\majorheading1886,62245
+\def\majorheadingzzz #1{\majorheadingzzz1887,62290
+\def\chapheading{\chapheading1893,62523
+\def\chapheadingzzz #1{\chapheadingzzz1894,62566
+\def\heading{\heading1899,62761
+\def\subheading{\subheading1901,62798
+\def\subsubheading{\subsubheading1903,62841
+\def\dobreak#1#2{\dobreak1910,63118
+\def\setchapterstyle #1 {\setchapterstyle1912,63196
+\def\chapbreak{\chapbreak1919,63451
+\def\chappager{\chappager1920,63501
+\def\chapoddpage{\chapoddpage1921,63539
+\def\setchapternewpage #1 {\setchapternewpage1923,63618
+\def\CHAPPAGoff{\CHAPPAGoff1925,63675
+\def\CHAPPAGon{\CHAPPAGon1929,63769
+\global\def\HEADINGSon{\HEADINGSon1932,63860
+\def\CHAPPAGodd{\CHAPPAGodd1934,63902
+\global\def\HEADINGSon{\HEADINGSon1937,63998
+\def\CHAPFplain{\CHAPFplain1941,64052
+\def\chfplain #1#2{\chfplain1945,64144
+\def\unnchfplain #1{\unnchfplain1956,64367
+\def\unnchfopen #1{\unnchfopen1964,64596
+\def\chfopen #1#2{\chfopen1970,64804
+\def\CHAPFopen{\CHAPFopen1975,64948
+\def\subsecheadingbreak{\subsecheadingbreak1982,65166
+\def\secheadingbreak{\secheadingbreak1985,65295
+\def\secheading #1#2#3{\secheading1993,65577
+\def\plainsecheading #1{\plainsecheading1994,65633
+\def\secheadingi #1{\secheadingi1995,65676
+\def\subsecheading #1#2#3#4{\subsecheading2006,66044
+\def\subsecheadingi #1{\subsecheadingi2007,66111
+\def\subsubsecfonts{\subsubsecfonts2014,66408
+\def\subsubsecheading #1#2#3#4#5{\subsubsecheading2017,66531
+\def\subsubsecheadingi #1{\subsubsecheadingi2018,66609
+\def\startcontents#1{\startcontents2032,67081
+   \unnumbchapmacro{#1}\def\thischapter{\thischapter2040,67354
+\outer\def\contents{\contents2049,67713
+\outer\def\summarycontents{\summarycontents2057,67857
+      \def\secentry ##1##2##3##4{\secentry2067,68228
+      \def\unnumbsecentry ##1##2{\unnumbsecentry2068,68263
+      \def\subsecentry ##1##2##3##4##5{\subsecentry2069,68298
+      \def\unnumbsubsecentry ##1##2{\unnumbsubsecentry2070,68339
+      \def\subsubsecentry ##1##2##3##4##5##6{\subsubsecentry2071,68377
+      \def\unnumbsubsubsecentry ##1##2{\unnumbsubsubsecentry2072,68424
+\def\chapentry#1#2#3{\chapentry2085,68858
+\def\shortchapentry#1#2#3{\shortchapentry2088,68975
+    {#2\labelspace #1}space2091,69085
+\def\unnumbchapentry#1#2{\unnumbchapentry2094,69139
+\def\shortunnumberedentry#1#2{\shortunnumberedentry2095,69186
+\def\secentry#1#2#3#4{\secentry2102,69350
+\def\unnumbsecentry#1#2{\unnumbsecentry2103,69409
+\def\subsecentry#1#2#3#4#5{\subsecentry2106,69470
+\def\unnumbsubsecentry#1#2{\unnumbsubsecentry2107,69540
+\def\subsubsecentry#1#2#3#4#5#6{\subsubsecentry2110,69614
+  \dosubsubsecentry{#2.#3.#4.#5\labelspace#1}space2111,69648
+\def\unnumbsubsubsecentry#1#2{\unnumbsubsubsecentry2112,69699
+\def\dochapentry#1#2{\dochapentry2123,70073
+\def\dosecentry#1#2{\dosecentry2138,70678
+\def\dosubsecentry#1#2{\dosubsecentry2145,70856
+\def\dosubsubsecentry#1#2{\dosubsubsecentry2152,71041
+\def\labelspace{\labelspace2160,71292
+\def\dopageno#1{\dopageno2162,71327
+\def\doshortpageno#1{\doshortpageno2163,71353
+\def\chapentryfonts{\chapentryfonts2165,71385
+\def\secentryfonts{\secentryfonts2166,71420
+\def\point{\point2192,72379
+\def\result{\result2194,72400
+\def\expansion{\expansion2195,72473
+\def\print{\print2196,72544
+\def\equiv{\equiv2198,72611
+\def\error{\error2218,73384
+\def\tex{\tex2224,73613
+\def\@{\@2242,73996
+\gdef\sepspaces{\def {\ }}}\2265,74728
+\def\aboveenvbreak{\aboveenvbreak2268,74810
+\def\afterenvbreak{\afterenvbreak2272,74976
+\def\ctl{\ctl2286,75487
+\def\ctr{\ctr2287,75559
+\def\cbl{\cbl2288,75598
+\def\cbr{\cbr2289,75638
+\def\carttop{\carttop2290,75677
+\def\cartbot{\cartbot2293,75785
+\long\def\cartouche{\cartouche2299,75925
+\def\Ecartouche{\Ecartouche2326,76713
+\def\lisp{\lisp2338,76848
+\def\Elisp{\Elisp2348,77195
+\def\next##1{\next2360,77521
+\def\Eexample{\Eexample2364,77563
+\def\Esmallexample{\Esmallexample2367,77610
+\def\smalllispx{\smalllispx2373,77788
+\def\Esmalllisp{\Esmalllisp2383,78142
+\obeyspaces \obeylines \ninett \indexfonts \rawbackslashfonts2396,78498
+\def\next##1{\next2397,78555
+\def\display{\display2401,78635
+\def\Edisplay{\Edisplay2410,78954
+\def\next##1{\next2422,79265
+\def\format{\format2426,79368
+\def\Eformat{\Eformat2434,79664
+\def\next##1{\next2437,79753
+\def\flushleft{\flushleft2441,79805
+\def\Eflushleft{\Eflushleft2451,80176
+\def\next##1{\next2454,80269
+\def\flushright{\flushright2456,80291
+\def\Eflushright{\Eflushright2466,80663
+\def\next##1{\next2470,80794
+\def\quotation{\quotation2474,80852
+\def\Equotation{\Equotation2480,81044
+\def\setdeffont #1 {\setdeffont2493,81442
+\newskip\defbodyindent \defbodyindent=.4inbodyindent2495,81488
+\newskip\defargsindent \defargsindent=50ptargsindent2496,81531
+\newskip\deftypemargin \deftypemargin=12pttypemargin2497,81574
+\newskip\deflastargmargin \deflastargmargin=18ptlastargmargin2498,81617
+\def\activeparens{\activeparens2503,81815
+\def\opnr{\opnr2529,83027
+\def\lbrb{\lbrb2530,83092
+\def\defname #1#2{\defname2536,83293
+\advance\dimen2 by -\defbodyindentbodyindent2540,83411
+\advance\dimen3 by -\defbodyindentbodyindent2542,83465
+\setbox0=\hbox{\hskip \deflastargmargin{lastargmargin2544,83519
+\dimen1=\hsize \advance \dimen1 by -\defargsindent %size for continuationsargsindent2546,83661
+\parshape 2 0in \dimen0 \defargsindent \dimen1     %argsindent2547,83736
+\rlap{\rightline{{\rm #2}\hskip \deftypemargin}typemargin2554,84105
+\advance\leftskip by -\defbodyindentbodyindent2557,84239
+\exdentamount=\defbodyindentbodyindent2558,84276
+\def\defparsebody #1#2#3{\defparsebody2568,84635
+\def#1{2572,84819
+\def#2{2573,84855
+\advance\leftskip by \defbodyindent \advance \rightskip by \defbodyindentbodyindent2575,84927
+\exdentamount=\defbodyindentbodyindent2576,85001
+\def\defmethparsebody #1#2#3#4 {\defmethparsebody2581,85105
+\def#1{2585,85266
+\def#2##1 {2586,85302
+\advance\leftskip by \defbodyindent \advance \rightskip by \defbodyindentbodyindent2588,85385
+\exdentamount=\defbodyindentbodyindent2589,85459
+\def\defopparsebody #1#2#3#4#5 {\defopparsebody2592,85544
+\def#1{2596,85705
+\def#2##1 ##2 {2597,85741
+\advance\leftskip by \defbodyindent \advance \rightskip by \defbodyindentbodyindent2600,85841
+\exdentamount=\defbodyindentbodyindent2601,85915
+\def\defvarparsebody #1#2#3{\defvarparsebody2608,86186
+\def#1{2612,86373
+\def#2{2613,86409
+\advance\leftskip by \defbodyindent \advance \rightskip by \defbodyindentbodyindent2615,86468
+\exdentamount=\defbodyindentbodyindent2616,86542
+\def\defvrparsebody #1#2#3#4 {\defvrparsebody2621,86633
+\def#1{2625,86792
+\def#2##1 {2626,86828
+\advance\leftskip by \defbodyindent \advance \rightskip by \defbodyindentbodyindent2628,86898
+\exdentamount=\defbodyindentbodyindent2629,86972
+\def\defopvarparsebody #1#2#3#4#5 {\defopvarparsebody2632,87044
+\def#1{2636,87208
+\def#2##1 ##2 {2637,87244
+\advance\leftskip by \defbodyindent \advance \rightskip by \defbodyindentbodyindent2640,87331
+\exdentamount=\defbodyindentbodyindent2641,87405
+\def\defunargs #1{\defunargs2664,88165
+\def\deftypefunargs #1{\deftypefunargs2676,88547
+\def\deffn{\deffn2690,88929
+\def\deffnheader #1#2#3{\deffnheader2692,88986
+\begingroup\defname {name2693,89034
+\def\defun{\defun2699,89179
+\def\defunheader #1#2{\defunheader2701,89232
+\begingroup\defname {name2702,89307
+\defunargs {unargs2703,89343
+\def\deftypefun{\deftypefun2709,89491
+\def\deftypefunheader #1#2{\deftypefunheader2712,89613
+\def\deftypefunheaderx #1#2 #3\relax{\deftypefunheaderx2714,89722
+\begingroup\defname {name2716,89814
+\deftypefunargs {typefunargs2717,89860
+\def\deftypefn{\deftypefn2723,90031
+\def\deftypefnheader #1#2#3{\deftypefnheader2726,90180
+\def\deftypefnheaderx #1#2#3 #4\relax{\deftypefnheaderx2728,90316
+\begingroup\defname {name2730,90409
+\deftypefunargs {typefunargs2731,90449
+\def\defmac{\defmac2737,90570
+\def\defmacheader #1#2{\defmacheader2739,90627
+\begingroup\defname {name2740,90703
+\defunargs {unargs2741,90736
+\def\defspec{\defspec2747,90860
+\def\defspecheader #1#2{\defspecheader2749,90921
+\begingroup\defname {name2750,90998
+\defunargs {unargs2751,91038
+\def\deffnx #1 {\deffnx2758,91233
+\def\defunx #1 {\defunx2759,91290
+\def\defmacx #1 {\defmacx2760,91347
+\def\defspecx #1 {\defspecx2761,91406
+\def\deftypefnx #1 {\deftypefnx2762,91467
+\def\deftypeunx #1 {\deftypeunx2763,91532
+\def\defop #1 {\defop2769,91678
+\defopparsebody\Edefop\defopx\defopheader\defoptype}opparsebody\Edefop\defopx\defopheader\defoptype2770,91713
+\def\defopheader #1#2#3{\defopheader2772,91767
+\begingroup\defname {name2774,91856
+\defunargs {unargs2775,91902
+\def\defmethod{\defmethod2780,91963
+\def\defmethodheader #1#2#3{\defmethodheader2782,92036
+\begingroup\defname {name2784,92124
+\defunargs {unargs2785,92164
+\def\defcv #1 {\defcv2790,92238
+\defopvarparsebody\Edefcv\defcvx\defcvarheader\defcvtype}opvarparsebody\Edefcv\defcvx\defcvarheader\defcvtype2791,92273
+\def\defcvarheader #1#2#3{\defcvarheader2793,92332
+\begingroup\defname {name2795,92418
+\defvarargs {varargs2796,92464
+\def\defivar{\defivar2801,92537
+\def\defivarheader #1#2#3{\defivarheader2803,92600
+\begingroup\defname {name2805,92686
+\defvarargs {varargs2806,92737
+\def\defopx #1 {\defopx2812,92886
+\def\defmethodx #1 {\defmethodx2813,92943
+\def\defcvx #1 {\defcvx2814,93008
+\def\defivarx #1 {\defivarx2815,93065
+\def\defvarargs #1{\defvarargs2822,93336
+\def\defvr{\defvr2828,93480
+\def\defvrheader #1#2#3{\defvrheader2830,93535
+\begingroup\defname {name2831,93583
+\def\defvar{\defvar2835,93668
+\def\defvarheader #1#2{\defvarheader2837,93728
+\begingroup\defname {name2838,93799
+\defvarargs {varargs2839,93835
+\def\defopt{\defopt2844,93901
+\def\defoptheader #1#2{\defoptheader2846,93961
+\begingroup\defname {name2847,94032
+\defvarargs {varargs2848,94071
+\def\deftypevar{\deftypevar2853,94128
+\def\deftypevarheader #1#2{\deftypevarheader2856,94244
+\begingroup\defname {name2858,94327
+\def\deftypevr{\deftypevr2865,94501
+\def\deftypevrheader #1#2#3{\deftypevrheader2867,94572
+\begingroup\defname {name2868,94624
+\def\defvrx #1 {\defvrx2876,94861
+\def\defvarx #1 {\defvarx2877,94918
+\def\defoptx #1 {\defoptx2878,94977
+\def\deftypevarx #1 {\deftypevarx2879,95036
+\def\deftypevrx #1 {\deftypevrx2880,95103
+\def\deftpargs #1{\deftpargs2885,95252
+\def\deftp{\deftp2889,95332
+\def\deftpheader #1#2#3{\deftpheader2891,95387
+\begingroup\defname {name2892,95435
+\def\deftpx #1 {\deftpx2897,95594
+\def\setref#1{\setref2908,95915
+\def\unnumbsetref#1{\unnumbsetref2913,96029
+\def\appendixsetref#1{\appendixsetref2918,96136
+\def\pxref#1{\pxref2929,96547
+\def\xref#1{\xref2930,96583
+\def\ref#1{\ref2931,96618
+\def\xrefX[#1,#2,#3,#4,#5,#6]{\xrefX[2932,96648
+\def\printedmanual{\printedmanual2933,96691
+\def\printednodename{\printednodename2934,96729
+\def\printednodename{\printednodename2939,96854
+section ``\printednodename'' in \cite{\printedmanual}\printedmanual2954,97487
+\refx{x2957,97565
+\def\dosetq #1#2{\dosetq2965,97785
+\def\internalsetq #1#2{\internalsetq2973,98043
+\def\Ypagenumber{\Ypagenumber2977,98144
+\def\Ytitle{\Ytitle2979,98170
+\def\Ynothing{\Ynothing2981,98197
+\def\Ysectionnumberandtype{\Ysectionnumberandtype2983,98214
+\def\Yappendixletterandtype{\Yappendixletterandtype2992,98530
+\ifnum\secno=0 Appendix\xreftie'char\the\appendixno{no2993,98560
+\else \ifnum \subsecno=0 Section\xreftie'char\the\appendixno.\the\secno %no.\the\secno2994,98615
+Section\xreftie'char\the\appendixno.\the\secno.\the\subsecno %no.\the\secno.\the\subsecno2996,98719
+Section\xreftie'char\the\appendixno.\the\secno.\the\subsecno.\the\subsubsecno %no.\the\secno.\the\subsecno.\the\subsubsecno2998,98790
+  \def\linenumber{\linenumber3009,99129
+\def\refx#1#2{\refx3015,99313
+\def\xrdef #1#2{\xrdef3037,99939
+\def\readauxfile{\readauxfile3040,100024
+\def\supereject{\supereject3110,101805
+\footstrut\parindent=\defaultparindent\hang\textindent{aultparindent\hang\textindent3131,102490
+\def\openindices{\openindices3139,102676
+\newdimen\defaultparindent \defaultparindent = 15ptaultparindent3151,102901
+\parindent = \defaultparindentaultparindent3152,102953
+\def\smallbook{\smallbook3175,103677
+\global\def\Esmallexample{\Esmallexample3192,104104
+\def\afourpaper{\afourpaper3196,104195
+\def\finalout{\finalout3224,105003
+\def\normaldoublequote{\normaldoublequote3235,105264
+\def\normaltilde{\normaltilde3236,105290
+\def\normalcaret{\normalcaret3237,105310
+\def\normalunderscore{\normalunderscore3238,105330
+\def\normalverticalbar{\normalverticalbar3239,105355
+\def\normalless{\normalless3240,105381
+\def\normalgreater{\normalgreater3241,105400
+\def\normalplus{\normalplus3242,105422
+\def\ifusingtt#1#2{\ifusingtt3253,105914
+\def\activedoublequote{\activedoublequote3261,106242
+\def~{~3264,106328
+\def^{^3267,106389
+\def_{_3270,106428
+\def\_{\_3272,106502
+\def\lvvmode{\lvvmode3279,106839
+\def|{|3282,106889
+\def<{<3285,106952
+\def>{>3288,107009
+\def+{+3290,107047
+\def\turnoffactive{\turnoffactive3296,107208
+\global\def={=3307,107494
+\def\normalbackslash{\normalbackslash3321,107876
+
+c-src/c.c,76
+T f(1,0
+}T i;2,14
+void bar(5,69
+int foobar(6,94
+interface_locate(9,131
+
+c.c,1807
+my_printf 135,
+void fatala 138,
+max 141,
+struct bar 143,
+__attribute__ ((always_inline)) max 147,
+struct foo150,
+char stack[stack155,
+struct S 156,
+} wait_status_ptr_t 161,
+Some_Class  A 162,
+typedef T1 T3 163,
+T3 z 164,
+typedef int more_aligned_int 165,
+struct S  __attribute__ ((vector_size (16))) foo;166,
+int foo 167,
+char *__attribute__((aligned(8))) *f;f168,
+int i 169,
+extern void foobar 170,
+typedef struct cacheLRUEntry_s172,
+__attribute__ ((packed)) cacheLRUEntry_t;177,
+struct foo 178,
+     f1 183,
+void f2 184,
+int x 188,
+struct foo 189,
+short array[array190,
+int f193,
+DEAFUN 196,
+XDEFUN 203,
+DEFUN ("x-get-selection-internal", Fx_get_selection_internal,206,
+DEFUN ("x-get-selection-internal", Fx_get_selection_internal,x-get-selection-internal206,
+       Fx_get_selection_internal,212,
+       Fx_get_selection_internal,x-get-selection-internal212,
+      Fy_get_selection_internal,216,
+      Fy_get_selection_internal,y-get-selection-internal216,
+defun_func1(218,
+DEFUN_func2(220,
+typedef int bool;222,
+bool funcboo 223,
+struct my_struct 226,
+typedef struct my_struct my_typedef;228,
+int bla 229,
+a(234,
+int func1237,
+static struct cca_control init_control 239,
+static tpcmd rbtp 240,
+static byte ring1 241,
+static byte ring2 242,
+request request 243,
+int func2 246,
+  aaa;249,
+  bbb;251,
+struct sss1 252,
+struct sss2253,
+  struct ss3255,
+struct a b;259,
+struct aa *b;b260,
+  **b;b262,
+caccacacca 263,
+a 267,
+  typedef struct aa 269,
+  typedef struct aa {} aaa;269,
+static void inita 271,
+node *lasta lasta272,
+b 273,
+  typedef  int bb;275,
+static void initb 277,
+node *lastb lastb278,
+typedef enum { REG_ENOSYS 279,
+typedef enum { REG_ENOSYS = -1, aa 279,
+typedef enum { REG_ENOSYS = -1, aa } reg_errcode_t;279,
+
+c-src/a/b/b.c,18
+#define this 1,0
+
+../c/c.web,20
+#define questo 34,
+
+y-src/parse.y,738
+#define obstack_chunk_alloc 46,1116
+#define obstack_chunk_free 47,1154
+VOIDSTAR parse_hash;63,1405
+unsigned char fnin[fnin67,1524
+#define YYSTYPE 71,1622
+typedef struct node *YYSTYPE;YYSTYPE72,1653
+YYSTYPE parse_return;73,1683
+char *instr;instr80,1795
+int parse_error 81,1808
+line:line86,1867
+exp:exp94,1980
+exp_list:exp_list262,5647
+range_exp:range_exp268,5745
+range_exp_list:range_exp_list272,5775
+cell:cell278,5893
+yyerror FUN1(285,5940
+make_list FUN2(292,6020
+#define ERROR 303,6220
+yylex FUN0(314,6397
+parse_cell_or_range FUN2(586,11763
+#define CK_ABS_R(670,13205
+#define CK_REL_R(674,13284
+#define CK_ABS_C(679,13413
+#define CK_REL_C(683,13492
+#define MAYBEREL(688,13621
+str_to_col FUN1(846,16822
+
+y-src/parse.c,520
+#define YYBISON 4,64
+# define	NE	6,114
+# define	LE	7,130
+# define	GE	8,146
+# define	NEG	9,162
+# define	L_CELL	10,179
+# define	L_RANGE	11,199
+# define	L_VAR	12,220
+# define	L_CONST	13,239
+# define	L_FN0	14,260
+# define	L_FN1	15,279
+# define	L_FN2	16,298
+# define	L_FN3	17,317
+# define	L_FN4	18,336
+# define	L_FNN	19,355
+# define	L_FN1R	20,374
+# define	L_FN2R	21,394
+# define	L_FN3R	22,414
+# define	L_FN4R	23,434
+# define	L_FNNR	24,454
+# define	L_LE	25,474
+# define	L_NE	26,492
+# define	L_GE	27,510
+
+/usr/share/bison/bison.simple,1693
+# define YYSTD(40,
+# define YYSTD(42,
+#  define YYSTACK_ALLOC 50,
+#  define YYSIZE_T 51,
+#    define YYSTACK_ALLOC 55,
+#    define YYSIZE_T 56,
+#     define YYSTACK_ALLOC 59,
+#  define YYSTACK_FREE(67,
+#   define YYSIZE_T 71,
+#    define YYSIZE_T 75,
+#  define YYSTACK_ALLOC 78,
+#  define YYSTACK_FREE 79,
+union yyalloc83,
+# define YYSTACK_GAP_MAX 93,
+#  define YYSTACK_BYTES(98,
+#  define YYSTACK_BYTES(102,
+# define YYSTACK_RELOCATE(112,
+# define YYSIZE_T 128,
+# define YYSIZE_T 131,
+#  define YYSIZE_T 136,
+#   define YYSIZE_T 140,
+# define YYSIZE_T 145,
+#define yyerrok	148,
+#define yyclearin	149,
+#define YYEMPTY	150,
+#define YYEOF	151,
+#define YYACCEPT	152,
+#define YYABORT 153,
+#define YYERROR	154,
+#define YYFAIL	158,
+#define YYRECOVERING(159,
+#define YYBACKUP(160,
+#define YYTERROR	177,
+#define YYERRCODE	178,
+# define YYLLOC_DEFAULT(189,
+#   define YYLEX	200,
+#   define YYLEX	202,
+#   define YYLEX	206,
+#   define YYLEX	208,
+# define YYLEX	212,
+#  define YYFPRINTF 225,
+# define YYDPRINTF(228,
+int yydebug;237,
+# define YYDPRINTF(239,
+# define YYINITDEPTH 244,
+# undef YYMAXDEPTH255,
+# define YYMAXDEPTH 259,
+#  define yymemcpy 264,
+yymemcpy 271,
+#   define yystrlen 293,
+yystrlen 298,
+#   define yystpcpy 316,
+yystpcpy 322,
+#  define YYPARSE_PARAM_ARG 351,
+#  define YYPARSE_PARAM_DECL352,
+#  define YYPARSE_PARAM_ARG 354,
+#  define YYPARSE_PARAM_DECL 355,
+# define YYPARSE_PARAM_ARG358,
+# define YYPARSE_PARAM_DECL359,
+#define YY_DECL_NON_LSP_VARIABLES	374,
+# define YY_DECL_VARIABLES	385,
+# define YY_DECL_VARIABLES	391,
+yyparse 403,
+# define YYPOPSTACK 445,
+# define YYPOPSTACK 447,
+# undef YYSTACK_RELOCATE548,
+
+y-src/atest.y,9
+exp	2,3
+
+y-src/cccp.c,303
+#define YYBISON 4,63
+# define	INT	6,113
+# define	CHAR	7,130
+# define	NAME	8,148
+# define	ERROR	9,166
+# define	OR	10,185
+# define	AND	11,201
+# define	EQUAL	12,218
+# define	NOTEQUAL	13,237
+# define	LEQ	14,259
+# define	GEQ	15,276
+# define	LSH	16,293
+# define	RSH	17,310
+# define	UNARY	18,327
+
+/usr/share/bison/bison.simple,2110
+# define YYSTD(41,
+# define YYSTD(43,
+#  define YYSTACK_ALLOC 51,
+#  define YYSIZE_T 52,
+#    define YYSTACK_ALLOC 56,
+#    define YYSIZE_T 57,
+#     define YYSTACK_ALLOC 60,
+#  define YYSTACK_FREE(68,
+#   define YYSIZE_T 72,
+#    define YYSIZE_T 76,
+#  define YYSTACK_ALLOC 79,
+#  define YYSTACK_FREE 80,
+union yyalloc84,
+# define YYSTACK_GAP_MAX 94,
+#  define YYSTACK_BYTES(99,
+#  define YYSTACK_BYTES(103,
+# define YYSTACK_RELOCATE(113,
+# define YYSIZE_T 129,
+# define YYSIZE_T 132,
+#  define YYSIZE_T 137,
+#   define YYSIZE_T 141,
+# define YYSIZE_T 146,
+#define yyerrok	149,
+#define yyclearin	150,
+#define YYEMPTY	151,
+#define YYEOF	152,
+#define YYACCEPT	153,
+#define YYABORT 154,
+#define YYERROR	155,
+#define YYFAIL	159,
+#define YYRECOVERING(160,
+#define YYBACKUP(161,
+#define YYTERROR	178,
+#define YYERRCODE	179,
+# define YYLLOC_DEFAULT(190,
+#   define YYLEX	201,
+#   define YYLEX	203,
+#   define YYLEX	207,
+#   define YYLEX	209,
+# define YYLEX	213,
+#  define YYFPRINTF 226,
+# define YYDPRINTF(229,
+int yydebug;238,
+# define YYDPRINTF(240,
+# define YYINITDEPTH 245,
+# undef YYMAXDEPTH256,
+# define YYMAXDEPTH 260,
+#  define yymemcpy 265,
+yymemcpy 272,
+#   define yystrlen 294,
+yystrlen 299,
+#   define yystpcpy 317,
+yystpcpy 323,
+#  define YYPARSE_PARAM_ARG 351,
+#  define YYPARSE_PARAM_DECL352,
+#  define YYPARSE_PARAM_ARG 354,
+#  define YYPARSE_PARAM_DECL 355,
+# define YYPARSE_PARAM_ARG358,
+# define YYPARSE_PARAM_DECL359,
+#define YY_DECL_NON_LSP_VARIABLES	374,
+# define YY_DECL_VARIABLES	385,
+# define YY_DECL_VARIABLES	391,
+yyparse 403,
+# define YYPOPSTACK 445,
+# define YYPOPSTACK 447,
+# undef YYSTACK_RELOCATE548,
+  *++yyvsp yyvsp746,
+  *++yylsp yylsp748,
+  yyn 755,
+  yystate 757,
+    yystate 761,
+  goto yynewstate;763,
+  goto yyerrlab1;823,
+  yyerrstatus 846,
+  goto yyerrhandle;848,
+  yyn 861,
+  yystate 875,
+  yyn 895,
+  yyn 903,
+  *++yyvsp yyvsp919,
+  *++yylsp yylsp921,
+  yystate 924,
+  goto yynewstate;925,
+  yyresult 932,
+  goto yyreturn;933,
+  yyresult 939,
+  goto yyreturn;940,
+  yyresult 947,
+
+y-src/cccp.y,1107
+typedef unsigned char U_CHAR;38,1201
+struct arglist 41,1301
+#define NULL 51,1468
+#define GENERIC_PTR 56,1578
+#define GENERIC_PTR 58,1611
+#define NULL_PTR 63,1670
+int expression_value;68,1743
+static jmp_buf parse_return_error;70,1766
+static int keyword_parsing 73,1865
+#define CHAR_TYPE_SIZE 87,2162
+#define INT_TYPE_SIZE 91,2229
+#define LONG_TYPE_SIZE 95,2296
+#define WCHAR_TYPE_SIZE 99,2365
+#define possible_sum_sign(104,2556
+  struct constant 112,2733
+  struct name 113,2789
+start 143,3226
+exp1	148,3330
+exp	156,3505
+exp	185,4295
+keywords 306,7835
+static char *lexptr;lexptr332,8579
+parse_number 341,8842
+struct token 437,11038
+static struct token tokentab2[tokentab2442,11088
+yylex 459,11367
+parse_escape 740,17718
+yyerror 836,19599
+integer_overflow 844,19690
+left_shift 851,19804
+right_shift 873,20194
+parse_c_expression 893,20732
+main 923,21483
+unsigned char is_idchar[is_idchar948,21901
+unsigned char is_idstart[is_idstart950,21996
+char is_hor_space[is_hor_space953,22160
+initialize_random_junk 958,22259
+error 988,22915
+warning 993,22963
+lookup 999,23033
+
+tex-src/nonewline.tex,0
+
+php-src/sendmail.php,0
+
+c-src/fail.c,0
+
+a-src/empty.zz,0

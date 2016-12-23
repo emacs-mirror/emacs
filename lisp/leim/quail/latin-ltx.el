@@ -239,10 +239,15 @@ system, including many technical ones.  Examples:
   "\\`\\([^- ]+\\) SIGN\\'")
 
  ((lambda (name char)
-    (concat "\\" (funcall (if (match-end 1) #' capitalize #'downcase)
-                          (match-string 2 name))))
+    ;; "GREEK SMALL LETTER PHI" (which is \phi) and "GREEK PHI SYMBOL"
+    ;; (which is \varphi) are reversed in `ucs-names', so we define
+    ;; them manually.
+    (unless (string-match-p "\\<PHI\\>" name)
+      (concat "\\" (funcall (if (match-end 1) #' capitalize #'downcase)
+                            (match-string 2 name)))))
   "\\`GREEK \\(?:SMALL\\|CAPITA\\(L\\)\\) LETTER \\([^- ]+\\)\\'")
 
+ ("\\phi" ?ϕ)
  ("\\Box" ?□)
  ("\\Bumpeq" ?≎)
  ("\\Cap" ?⋒)
@@ -628,12 +633,17 @@ system, including many technical ones.  Examples:
  ("\\vDash" ?⊨)
 
  ((lambda (name char)
-    (concat "\\var" (downcase (match-string 1 name))))
+    ;; "GREEK SMALL LETTER PHI" (which is \phi) and "GREEK PHI SYMBOL"
+    ;; (which is \varphi) are reversed in `ucs-names', so we define
+    ;; them manually.
+    (unless (string-match-p "\\<PHI\\>" name)
+      (concat "\\var" (downcase (match-string 1 name)))))
   "\\`GREEK \\([^- ]+\\) SYMBOL\\'")
 
+ ("\\varphi" ?φ)
  ("\\varprime" ?′)
  ("\\varpropto" ?∝)
- ("\\varsigma" ?ς)                     ;FIXME: Looks reversed with the non\var.
+ ("\\varsigma" ?ς)
  ("\\vartriangleleft" ?⊲)
  ("\\vartriangleright" ?⊳)
  ("\\vdash" ?⊢)

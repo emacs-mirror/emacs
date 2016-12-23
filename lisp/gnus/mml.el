@@ -29,13 +29,9 @@
 (require 'mml-sec)
 (eval-when-compile (require 'cl))
 (eval-when-compile (require 'url))
-(eval-when-compile
-  (when (featurep 'xemacs)
-    (require 'easy-mmode))) ; for `define-minor-mode'
 
 (autoload 'message-make-message-id "message")
 (declare-function gnus-setup-posting-charset "gnus-msg" (group))
-(autoload 'gnus-make-local-hook "gnus-util")
 (autoload 'gnus-completing-read "gnus-util")
 (autoload 'message-fetch-field "message")
 (autoload 'message-mark-active-p "message")
@@ -50,7 +46,6 @@
 (autoload 'message-mail-p         "message")
 
 (defvar gnus-article-mime-handles)
-(defvar gnus-mouse-2)
 (defvar gnus-newsrc-hashtb)
 (defvar message-default-charset)
 (defvar message-deletable-headers)
@@ -63,7 +58,7 @@
 
 (defcustom mml-content-type-parameters
   '(name access-type expiration size permission format)
-  "*A list of acceptable parameters in MML tag.
+  "A list of acceptable parameters in MML tag.
 These parameters are generated in Content-Type header if exists."
   :version "22.1"
   :type '(repeat (symbol :tag "Parameter"))
@@ -71,7 +66,7 @@ These parameters are generated in Content-Type header if exists."
 
 (defcustom mml-content-disposition-parameters
   '(filename creation-date modification-date read-date)
-  "*A list of acceptable parameters in MML tag.
+  "A list of acceptable parameters in MML tag.
 These parameters are generated in Content-Disposition header if exists."
   :version "22.1"
   :type '(repeat (symbol :tag "Parameter"))
@@ -153,17 +148,19 @@ is called.  FUNCTION is a Lisp function which is called with the MML
 handle to tweak the part.")
 
 (defvar mml-externalize-attachments nil
-  "*If non-nil, local-file attachments are generated as external parts.")
+  "If non-nil, local-file attachments are generated as external parts.")
 
-(defvar mml-generate-multipart-alist nil
-  "*Alist of multipart generation functions.
+(defcustom mml-generate-multipart-alist nil
+  "Alist of multipart generation functions.
 Each entry has the form (NAME . FUNCTION), where
 NAME is a string containing the name of the part (without the
 leading \"/multipart/\"),
 FUNCTION is a Lisp function which is called to generate the part.
 
 The Lisp function has to supply the appropriate MIME headers and the
-contents of this part.")
+contents of this part."
+  :group 'message
+  :type '(alist :key-type string :value-type function))
 
 (defvar mml-syntax-table
   (let ((table (copy-syntax-table emacs-lisp-mode-syntax-table)))
@@ -418,12 +415,21 @@ A message part needs to be split into %d charset parts.  Really send? "
     (setq contents (append (list (cons 'tag-location orig-point)) contents))
     (cons (intern name) (nreverse contents))))
 
-(defun mml-buffer-substring-no-properties-except-hard-newlines (start end)
+(defun mml-buffer-substring-no-properties-except-some (start end)
   (let ((str (buffer-substring-no-properties start end))
-	(bufstart start) tmp)
-    (while (setq tmp (text-property-any start end 'hard 't))
-      (set-text-properties (- tmp bufstart) (- tmp bufstart -1)
-			   '(hard t) str)
+	(bufstart start)
+	tmp)
+    ;; Copy over all hard newlines.
+    (while (setq tmp (text-property-any start end 'hard t))
+      (put-text-property (- tmp bufstart) (- tmp bufstart -1)
+			 'hard t str)
+      (setq start (1+ tmp)))
+    ;; Copy over all `display' properties (which are usually images).
+    (setq start bufstart)
+    (while (setq tmp (text-property-not-all start end 'display nil))
+      (put-text-property (- tmp bufstart) (- tmp bufstart -1)
+			 'display (get-text-property tmp 'display)
+			 str)
       (setq start (1+ tmp)))
     str))
 
@@ -440,21 +446,21 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 	    (if (re-search-forward "<#\\(/\\)?mml." nil t)
 		(setq count (+ count (if (match-beginning 1) -1 1)))
 	      (goto-char (point-max))))
-	  (mml-buffer-substring-no-properties-except-hard-newlines
+	  (mml-buffer-substring-no-properties-except-some
 	   beg (if (> count 0)
 		   (point)
 		 (match-beginning 0))))
       (if (re-search-forward
 	   "<#\\(/\\)?\\(multipart\\|part\\|external\\|mml\\)." nil t)
 	  (prog1
-	      (mml-buffer-substring-no-properties-except-hard-newlines
+	      (mml-buffer-substring-no-properties-except-some
 	       beg (match-beginning 0))
 	    (if (or (not (match-beginning 1))
 		    (equal (match-string 2) "multipart"))
 		(goto-char (match-beginning 0))
 	      (when (looking-at "[ \t]*\n")
 		(forward-line 1))))
-	(mml-buffer-substring-no-properties-except-hard-newlines
+	(mml-buffer-substring-no-properties-except-some
 	 beg (goto-char (point-max)))))))
 
 (defvar mml-boundary nil)
@@ -519,7 +525,9 @@ be \"related\" or \"alternate\"."
 	      (when (search-forward (url-filename parsed) end t)
 		(let ((cid (format "fsf.%d" cid)))
 		  (replace-match (concat "cid:" cid) t t)
-		  (push (list cid (url-filename parsed)) new-parts))
+		  (push (list cid (url-filename parsed)
+			      (get-text-property start 'display))
+			new-parts))
 		(setq cid (1+ cid)))))))
       ;; We have local images that we want to include.
       (if (not new-parts)
@@ -532,10 +540,40 @@ be \"related\" or \"alternate\"."
 	  (setq cont
 		(nconc cont
 		       (list `(part (type . "image/png")
-				    (filename . ,(nth 1 new-part))
+				    ,@(mml--possibly-alter-image
+				       (nth 1 new-part)
+				       (nth 2 new-part))
 				    (id . ,(concat "<" (nth 0 new-part)
 						   ">")))))))
 	cont))))
+
+(defun mml--possibly-alter-image (file-name image)
+  (if (or (null image)
+	  (not (consp image))
+	  (not (eq (car image) 'image))
+	  (not (image-property image :rotation))
+	  (not (executable-find "exiftool")))
+      `((filename . ,file-name))
+    `((filename . ,file-name)
+      (buffer
+       .
+       ,(with-current-buffer (mml-generate-new-buffer " *mml rotation*")
+	  (set-buffer-multibyte nil)
+	  (call-process "exiftool"
+			file-name
+			(list (current-buffer) nil)
+			nil
+			(format "-Orientation#=%d"
+				(cl-case (truncate
+					  (image-property image :rotation))
+				  (0 0)
+				  (90 6)
+				  (180 3)
+				  (270 8)
+				  (otherwise 0)))
+			"-o" "-"
+			"-")
+	  (current-buffer))))))
 
 (defun mml-generate-mime-1 (cont)
   (let ((mm-use-ultra-safe-encoding
@@ -636,6 +674,7 @@ be \"related\" or \"alternate\"."
 		      (let ((mm-coding-system-priorities
 			     (cons 'utf-8 mm-coding-system-priorities)))
 			(setq charset (mm-encode-body))))
+		    (mm-disable-multibyte)
 		    (setq encoding (mm-body-encoding
 				    charset (cdr (assq 'encoding cont))))))
 		  (setq coded (buffer-string)))
@@ -645,7 +684,7 @@ be \"related\" or \"alternate\"."
 	    (mm-with-unibyte-buffer
 	      (cond
 	       ((cdr (assq 'buffer cont))
-		(insert (mm-string-as-unibyte
+		(insert (string-as-unibyte
 			 (with-current-buffer (cdr (assq 'buffer cont))
 			   (buffer-string)))))
 	       ((and filename
@@ -658,9 +697,7 @@ be \"related\" or \"alternate\"."
 				  filename)))))
 	       (t
 		(let ((contents (cdr (assq 'contents cont))))
-		  (if (if (featurep 'xemacs)
-			  (string-match "[^\000-\377]" contents)
-			(mm-multibyte-string-p contents))
+		  (if (multibyte-string-p contents)
 		      (progn
 			(mm-enable-multibyte)
 			(insert contents)
@@ -670,7 +707,7 @@ be \"related\" or \"alternate\"."
 	      (if (setq encoding (cdr (assq 'encoding cont)))
 		  (setq encoding (intern (downcase encoding))))
 	      (setq encoding (mm-encode-buffer type encoding)
-		    coded (mm-string-as-multibyte (buffer-string))))
+		    coded (string-as-multibyte (buffer-string))))
 	    (mml-insert-mime-headers cont type charset encoding nil)
 	    (insert "\n" coded))))
        ((eq (car cont) 'external)
@@ -1109,57 +1146,42 @@ If HANDLES is non-nil, use it instead reparsing the buffer."
 (easy-menu-define
   mml-menu mml-mode-map ""
   `("Attachments"
-    ["Attach File..." mml-attach-file
-     ,@(if (featurep 'xemacs) '(t)
-	 '(:help "Attach a file at point"))]
+    ["Attach File..." mml-attach-file :help "Attach a file at point"]
     ["Attach Buffer..." mml-attach-buffer
-     ,@(if (featurep 'xemacs) '(t)
-	 '(:help "Attach a buffer to the outgoing message"))]
+     :help "Attach a buffer to the outgoing message"]
     ["Attach External..." mml-attach-external
-     ,@(if (featurep 'xemacs) '(t)
-	 '(:help "Attach reference to an external file"))]
+     :help "Attach reference to an external file"]
     ;; FIXME: Is it possible to do this without using
     ;; `gnus-gcc-externalize-attachments'?
     ["Externalize Attachments"
      (lambda ()
        (interactive)
-       (if (not (and (boundp 'gnus-gcc-externalize-attachments)
-		     (memq gnus-gcc-externalize-attachments
-			   '(all t nil))))
-	   ;; Stupid workaround for XEmacs not honoring :visible.
-	   (message "Can't handle this value of `gnus-gcc-externalize-attachments'")
-	 (setq gnus-gcc-externalize-attachments
-	       (not gnus-gcc-externalize-attachments))
-	 (message "gnus-gcc-externalize-attachments is `%s'."
-		  gnus-gcc-externalize-attachments)))
-     ;; XEmacs barfs on :visible.
-     ,@(if (featurep 'xemacs) nil
-	 '(:visible (and (boundp 'gnus-gcc-externalize-attachments)
-			 (memq gnus-gcc-externalize-attachments
-			       '(all t nil)))))
+       (setq gnus-gcc-externalize-attachments
+	     (not gnus-gcc-externalize-attachments))
+       (message "gnus-gcc-externalize-attachments is `%s'."
+		gnus-gcc-externalize-attachments))
+     :visible (and (boundp 'gnus-gcc-externalize-attachments)
+		   (memq gnus-gcc-externalize-attachments
+			 '(all t nil)))
      :style toggle
      :selected gnus-gcc-externalize-attachments
-     ,@(if (featurep 'xemacs) nil
-	 '(:help "Save attachments as external parts in Gcc copies"))]
+     :help "Save attachments as external parts in Gcc copies"]
     "----"
     ;;
     ("Change Security Method"
      ["PGP/MIME"
       (lambda () (interactive) (setq mml-secure-method "pgpmime"))
-      ,@(if (featurep 'xemacs) nil
-	  '(:help "Set Security Method to PGP/MIME"))
+      :help "Set Security Method to PGP/MIME"
       :style radio
       :selected (equal mml-secure-method "pgpmime") ]
      ["S/MIME"
       (lambda () (interactive) (setq mml-secure-method "smime"))
-      ,@(if (featurep 'xemacs) nil
-	  '(:help "Set Security Method to S/MIME"))
+      :help "Set Security Method to S/MIME"
       :style radio
       :selected (equal mml-secure-method "smime") ]
      ["Inline PGP"
       (lambda () (interactive) (setq mml-secure-method "pgp"))
-      ,@(if (featurep 'xemacs) nil
-	  '(:help "Set Security Method to inline PGP"))
+      :help "Set Security Method to inline PGP"
       :style radio
       :selected (equal mml-secure-method "pgp") ] )
     ;;
@@ -1167,8 +1189,7 @@ If HANDLES is non-nil, use it instead reparsing the buffer."
     ["Encrypt Message" mml-secure-message-encrypt t]
     ["Sign and Encrypt Message" mml-secure-message-sign-encrypt t]
     ["Encrypt/Sign off" mml-unsecure-message
-     ,@(if (featurep 'xemacs) '(t)
-	 '(:help "Don't Encrypt/Sign Message"))]
+     :help "Don't Encrypt/Sign Message"]
     ;; Do we have separate encrypt and encrypt/sign commands for parts?
     ["Sign Part" mml-secure-sign t]
     ["Encrypt Part" mml-secure-encrypt t]
@@ -1183,26 +1204,18 @@ If HANDLES is non-nil, use it instead reparsing the buffer."
     ;;["Narrow" mml-narrow-to-part t]
     ["Quote MML in region" mml-quote-region
      :active (message-mark-active-p)
-     ,@(if (featurep 'xemacs) nil
-	 '(:help "Quote MML tags in region"))]
+     :help "Quote MML tags in region"]
     ["Validate MML" mml-validate t]
     ["Preview" mml-preview t]
     "----"
     ["Emacs MIME manual" (lambda () (interactive) (message-info 4))
-     ,@(if (featurep 'xemacs) '(t)
-	 '(:help "Display the Emacs MIME manual"))]
+     :help "Display the Emacs MIME manual"]
     ["PGG manual" (lambda () (interactive) (message-info mml2015-use))
-     ;; XEmacs barfs on :visible.
-     ,@(if (featurep 'xemacs) nil
-	 '(:visible (and (boundp 'mml2015-use) (equal mml2015-use 'pgg))))
-     ,@(if (featurep 'xemacs) '(t)
-	 '(:help "Display the PGG manual"))]
+     :visible (and (boundp 'mml2015-use) (equal mml2015-use 'pgg))
+     :help "Display the PGG manual"]
     ["EasyPG manual" (lambda () (interactive) (require 'mml2015) (message-info mml2015-use))
-     ;; XEmacs barfs on :visible.
-     ,@(if (featurep 'xemacs) nil
-	 '(:visible (and (boundp 'mml2015-use) (equal mml2015-use 'epg))))
-     ,@(if (featurep 'xemacs) '(t)
-	 '(:help "Display the EasyPG manual"))]))
+     :visible (and (boundp 'mml2015-use) (equal mml2015-use 'epg))
+     :help "Display the EasyPG manual"]))
 
 (define-minor-mode mml-mode
   "Minor mode for editing MML.
@@ -1379,7 +1392,7 @@ body) or \"attachment\" (separate from the body)."
 			  'type type
 			  ;; icicles redefines read-file-name and returns a
 			  ;; string w/ text properties :-/
-			  'filename (mm-substring-no-properties file)
+			  'filename (substring-no-properties file)
 			  'disposition (or disposition "attachment")
 			  'description description)
     ;; When using Mail mode, make sure it does the mime encoding
@@ -1575,12 +1588,11 @@ or the `pop-to-buffer' function."
 	(message-sort-headers)
 	(mml-to-mime))
       (if raw
-	  (when (fboundp 'set-buffer-multibyte)
-	    (let ((s (buffer-string)))
-	      ;; Insert the content into unibyte buffer.
-	      (erase-buffer)
-	      (mm-disable-multibyte)
-	      (insert s)))
+	  (let ((s (buffer-string)))
+	    ;; Insert the content into unibyte buffer.
+	    (erase-buffer)
+	    (mm-disable-multibyte)
+	    (insert s))
 	(let ((gnus-newsgroup-charset (car message-posting-charset))
 	      gnus-article-prepare-hook gnus-original-article-buffer
 	      gnus-displaying-mime)
@@ -1591,7 +1603,6 @@ or the `pop-to-buffer' function."
 	    (gnus-article-prepare-display))))
       ;; Disable article-mode-map.
       (use-local-map nil)
-      (gnus-make-local-hook 'kill-buffer-hook)
       (add-hook 'kill-buffer-hook
 		(lambda ()
 		  (mm-destroy-parts gnus-article-mime-handles)) nil t)
@@ -1602,14 +1613,14 @@ or the `pop-to-buffer' function."
 		     (lambda ()
 		       (interactive)
 		       (widget-button-press (point))))
-      (local-set-key gnus-mouse-2
+      (local-set-key [mouse-2]
 		     (lambda (event)
 		       (interactive "@e")
 		       (widget-button-press (widget-event-point event) event)))
       ;; FIXME: Buffer is in article mode, but most tool bar commands won't
       ;; work.  Maybe only keep the following icons: search, print, quit
       (goto-char (point-min))))
-  (if (and (not (mm-special-display-p (buffer-name mml-preview-buffer)))
+  (if (and (not (special-display-p (buffer-name mml-preview-buffer)))
 	   (boundp 'gnus-buffer-configuration)
 	   (assq 'mml-preview gnus-buffer-configuration))
       (let ((gnus-message-buffer (current-buffer)))

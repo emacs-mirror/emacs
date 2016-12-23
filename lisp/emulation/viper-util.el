@@ -1332,7 +1332,7 @@ Works best when set in the hooks to various major modes.
 `reformed-vi' means Viper words are like Emacs words \(as determined using
 Emacs syntax tables, which are different for different major modes) with two
 exceptions: the symbol `_' is always part of a word and typical Vi non-word
-symbols, such as `,',:,\",),{, etc., are excluded.
+symbols like `\\=`', `\\='', `:', `\"', `)', and `{' are excluded.
 This behaves very close to `strict-vi', but also works well with non-ASCII
 characters from various alphabets.
 

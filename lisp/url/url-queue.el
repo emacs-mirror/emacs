@@ -1,4 +1,4 @@
-;;; url-queue.el --- Fetching web pages in parallel
+;;; url-queue.el --- Fetching web pages in parallel   -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2011-2016 Free Software Foundation, Inc.
 
@@ -47,6 +47,7 @@
 ;;; Internal variables.
 
 (defvar url-queue nil)
+(defvar url-queue-progress-timer nil)
 
 (cl-defstruct url-queue
   url callback cbargs silentp
@@ -90,7 +91,13 @@ The variable `url-queue-timeout' sets a timeout."
     (when (and waiting
 	       (< running url-queue-parallel-processes))
       (setf (url-queue-pre-triggered waiting) t)
-      (run-with-idle-timer 0.01 nil 'url-queue-run-queue))))
+      ;; We start fetching from this idle timer...
+      (run-with-idle-timer 0.01 nil #'url-queue-run-queue)
+      ;; And then we set up a separate timer to ensure progress when a
+      ;; web server is unresponsive.
+      (unless url-queue-progress-timer
+        (setq url-queue-progress-timer
+              (run-with-idle-timer 1 1 #'url-queue-check-progress))))))
 
 (defun url-queue-run-queue ()
   (url-queue-prune-old-entries)
@@ -106,6 +113,13 @@ The variable `url-queue-timeout' sets a timeout."
 	       (< running url-queue-parallel-processes))
       (setf (url-queue-start-time waiting) (float-time))
       (url-queue-start-retrieve waiting))))
+
+(defun url-queue-check-progress ()
+  (when url-queue-progress-timer
+    (if url-queue
+        (url-queue-run-queue)
+      (cancel-timer url-queue-progress-timer)
+      (setq url-queue-progress-timer nil))))
 
 (defun url-queue-callback-function (status job)
   (setq url-queue (delq job url-queue))

@@ -136,13 +136,6 @@ If NO-DISPLAY is nil, display it. Otherwise, do nothing after replacing."
 	   handle
 	   `(lambda ()
 	      (let (buffer-read-only)
-		(condition-case nil
-		    ;; This is only valid on XEmacs.
-		    (mapcar (lambda (prop)
-			    (remove-specifier
-			     (face-property 'default prop) (current-buffer)))
-			    '(background background-pixmap foreground))
-		  (error nil))
 		(delete-region ,(point-min-marker) ,(point-max-marker))))))))))
 
 (provide 'mm-partial)

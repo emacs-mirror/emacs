@@ -81,23 +81,23 @@ AUTOGENEL = loaddefs.el \
 	cus-load.el \
 	finder-inf.el \
 	subdirs.el \
+	ps-print-loaddefs.el \
 	emacs-lisp/cl-loaddefs.el \
 	calc/calc-loaddefs.el \
 	eshell/esh-groups.el \
 	cedet/semantic/loaddefs.el \
 	cedet/ede/loaddefs.el \
 	cedet/srecode/loaddefs.el \
-	org/org-loaddefs.el
-
-# Value of max-lisp-eval-depth when compiling initially.
-# During bootstrapping the byte-compiler is run interpreted when compiling
-# itself, and uses more stack than usual.
-#
-BIG_STACK_DEPTH = 2200
-BIG_STACK_OPTS = --eval "(setq max-lisp-eval-depth $(BIG_STACK_DEPTH))"
+	org/org-loaddefs.el \
+	textmodes/reftex-loaddefs.el \
+	mail/rmail-loaddefs.el \
+	ibuffer-loaddefs.el \
+	htmlfontify-loaddefs \
+	emacs-lisp/eieio-loaddefs.el \
+	dired-loaddefs.el
 
 # Set load-prefer-newer for the benefit of the non-bootstrappers.
-BYTE_COMPILE_FLAGS = $(BIG_STACK_OPTS) \
+BYTE_COMPILE_FLAGS = \
   --eval '(setq load-prefer-newer t)' $(BYTE_COMPILE_EXTRA_FLAGS)
 
 # Files to compile before others during a bootstrap.  This is done to
@@ -185,6 +185,13 @@ $(lisp)/loaddefs.el: $(LOADDEFS)
 	    --eval '(setq generated-autoload-file (expand-file-name (unmsys--file-name "$@")))' \
 	    -f batch-update-autoloads ${SUBDIRS_ALMOST}
 
+# autoloads only runs when loaddefs.el is nonexistent, although it
+# generates a number of different files. Provide a force option to enable
+# regeneration of all these files.
+autoloads-force .PHONY:
+	rm loaddefs.el
+	$(MAKE) autoloads
+
 # This is required by the bootstrap-emacs target in ../src/Makefile, so
 # we know that if we have an emacs executable, we also have a subdirs.el.
 $(lisp)/subdirs.el:
@@ -218,25 +225,28 @@ update-gnus-news:
 	  "$(top_srcdir)/doc/misc/gnus-news.texi" \
 	  "$(top_srcdir)/etc/GNUS-NEWS"
 
-ETAGS = ../lib-src/etags
+FORCE:
+.PHONY: FORCE
 
-lisptagsfiles1 = $(srcdir)/*.el
-lisptagsfiles2 = $(srcdir)/*/*.el
-lisptagsfiles3 = $(srcdir)/*/*/*.el
-lisptagsfiles4 = $(srcdir)/*/*/*/*.el
+tagsfiles = $(shell find ${srcdir} -name '*.el')
+tagsfiles := $(filter-out ${srcdir}/%loaddefs.el,${tagsfiles})
+tagsfiles := $(filter-out ${srcdir}/ldefs-boot%.el,${tagsfiles})
+tagsfiles := $(filter-out ${srcdir}/eshell/esh-groups.el,${tagsfiles})
 
-## The ls | sed | xargs is to stop the command line getting too long
+ETAGS = ../lib-src/etags${EXEEXT}
+
+${ETAGS}: FORCE
+	${MAKE} -C ../lib-src $(notdir $@)
+
+## The use of xargs is to stop the command line getting too long
 ## on MS Windows, when the MSYS Bash passes it to a MinGW compiled
 ## etags.  It might be better to use find in a similar way to
 ## compile-main.  But maybe this is not even necessary any more now
 ## that this uses relative filenames.
-TAGS: $(lisptagsfiles1) $(lisptagsfiles2) $(lisptagsfiles3) $(lisptagsfiles4)
+TAGS: ${ETAGS} ${tagsfiles}
 	rm -f $@
 	touch $@
-	ls $(lisptagsfiles1) $(lisptagsfiles2) \
-	   $(lisptagsfiles3) $(lisptagsfiles4) | \
-	    sed -e '/loaddefs/d; /\/ldefs-boot/d; /esh-groups\.el/d' | \
-	    xargs $(XARGS_LIMIT) "$(ETAGS)" -a -o $@
+	ls ${tagsfiles} | xargs $(XARGS_LIMIT) "${ETAGS}" -a -o $@
 
 
 # The src/Makefile.in has its own set of dependencies and when they decide
@@ -273,7 +283,7 @@ $(THEFILE)c:
 
 .PHONY: compile-first compile-main compile compile-always
 
-compile-first: $(COMPILE_FIRST)
+compile-first: loaddefs.el $(COMPILE_FIRST)
 
 # In 'compile-main' we could directly do
 #    ... | xargs $(MAKE)
@@ -399,7 +409,7 @@ $(TRAMP_DIR)/tramp-loaddefs.el: $(TRAMP_SRC)
 CAL_DIR = $(lisp)/calendar
 ## Those files that may contain internal calendar autoload cookies.
 CAL_SRC = $(addprefix ${CAL_DIR}/,diary-lib.el holidays.el lunar.el solar.el)
-CAL_SRC := $(sort ${CAL_SRC} $(wildcard ${CAL_DIR}/cal*.el))
+CAL_SRC := $(sort ${CAL_SRC} $(wildcard ${CAL_DIR}/cal-*.el))
 CAL_SRC := $(filter-out ${CAL_DIR}/cal-loaddefs.el,${CAL_SRC})
 
 $(CAL_DIR)/cal-loaddefs.el: $(CAL_SRC)
@@ -440,7 +450,7 @@ check-declare:
 check-defun-dups:
 	sed -n -e '/^(defun /s/\(.\)(.*/\1/p' \
 	  $$(find . -name '*.el' -print | \
-	  grep -Ev '(loaddefs|ldefs-boot)\.el') | sort | uniq -d
+	  grep -Ev '(loaddefs|ldefs-boot*)\.el') | sort | uniq -d
 
 # Dependencies
 

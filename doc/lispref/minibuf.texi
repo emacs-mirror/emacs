@@ -170,6 +170,23 @@ non-@code{nil}, then the string that is returned includes whatever text
 properties were present in the minibuffer.  Otherwise all the text
 properties are stripped when the value is returned.
 
+@vindex minibuffer-prompt-properties
+The text properties in @code{minibuffer-prompt-properties} are applied
+to the prompt.  By default, this property list defines a face to use
+for the prompt.  This face, if present, is applied to the end of the
+face list and merged before display.
+
+If the user wants to completely control the look of the prompt, the
+most convenient way to do that is to specify the @code{default} face
+at the end of all face lists.  For instance:
+
+@lisp
+(read-from-minibuffer
+ (concat
+  (propertize "Bold" 'face '(bold default))
+  (propertize " and normal: " 'face '(default))))
+@end lisp
+
 If the argument @var{inherit-input-method} is non-@code{nil}, then the
 minibuffer inherits the current input method (@pxref{Input Methods}) and
 the setting of @code{enable-multibyte-characters} (@pxref{Text

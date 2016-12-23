@@ -24,7 +24,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 (declare-function texmathp "ext:texmathp" ())
 
 (require 'reftex)
@@ -128,7 +128,7 @@ will prompt for other arguments."
 
     ;; Insert the macro and ask for any additional args
     (insert macro)
-    (loop for i from 1 to nargs do
+    (cl-loop for i from 1 to nargs do
       (setq opt (member i opt-args)
             value (cond ((= nindex i) key)
                         ((equal ntag i) tag1)
@@ -214,16 +214,16 @@ will prompt for other arguments."
                 i -1
                 val nil)
           (catch 'exit
-            (while (and (< (incf i) len) (null val))
+            (while (and (< (cl-incf i) len) (null val))
               (unless (assq (aref tag i) tag-alist)
                 (push (list (aref tag i)
                             tag
                             (concat (substring tag 0 i)
-                                    "[" (substring tag i (incf i)) "]"
+                                    "[" (substring tag i (cl-incf i)) "]"
                                     (substring tag i)))
                       tag-alist)
                 (throw 'exit t)))
-            (push (list (+ ?0 (incf cnt)) tag
+            (push (list (+ ?0 (cl-incf cnt)) tag
                         (concat "[" (int-to-string cnt) "]:" tag))
                   tag-alist)))
         (setq tag-alist (nreverse tag-alist))
@@ -287,46 +287,40 @@ will prompt for other arguments."
     (substitute-key-definition
      'previous-line 'reftex-index-previous map global-map)
 
-    (loop for x in
-          '(("n"    . reftex-index-next)
-            ("p"    . reftex-index-previous)
-            ("?"    . reftex-index-show-help)
-            (" "    . reftex-index-view-entry)
-            ("\C-m" . reftex-index-goto-entry-and-hide)
-            ("\C-i" . reftex-index-goto-entry)
-            ("\C-k" . reftex-index-kill)
-            ("r"    . reftex-index-rescan)
-            ("R"    . reftex-index-Rescan)
-            ("g"    . revert-buffer)
-            ("q"    . reftex-index-quit)
-            ("k"    . reftex-index-quit-and-kill)
-            ("f"    . reftex-index-toggle-follow)
-            ("s"    . reftex-index-switch-index-tag)
-            ("e"    . reftex-index-edit)
-            ("^"    . reftex-index-level-up)
-            ("_"    . reftex-index-level-down)
-            ("}"    . reftex-index-restrict-to-section)
-            ("{"    . reftex-index-widen)
-            (">"    . reftex-index-restriction-forward)
-            ("<"    . reftex-index-restriction-backward)
-            ("("    . reftex-index-toggle-range-beginning)
-            (")"    . reftex-index-toggle-range-end)
-            ("|"    . reftex-index-edit-attribute)
-            ("@"    . reftex-index-edit-visual)
-            ("*"    . reftex-index-edit-key)
-            ("\C-c=". reftex-index-goto-toc)
-            ("c"    . reftex-index-toggle-context))
-          do (define-key map (car x) (cdr x)))
-
-    (loop for key across "0123456789" do
-          (define-key map (vector (list key)) 'digit-argument))
-    (define-key map "-" 'negative-argument)
+    (define-key map "n" 'reftex-index-next)
+    (define-key map "p" 'reftex-index-previous)
+    (define-key map "?" 'reftex-index-show-help)
+    (define-key map " " 'reftex-index-view-entry)
+    (define-key map "\C-m" 'reftex-index-goto-entry-and-hide)
+    (define-key map "\C-i" 'reftex-index-goto-entry)
+    (define-key map "\C-k" 'reftex-index-kill)
+    (define-key map "r" 'reftex-index-rescan)
+    (define-key map "R" 'reftex-index-Rescan)
+    (define-key map "g" 'revert-buffer)
+    (define-key map "q" 'reftex-index-quit)
+    (define-key map "k" 'reftex-index-quit-and-kill)
+    (define-key map "f" 'reftex-index-toggle-follow)
+    (define-key map "s" 'reftex-index-switch-index-tag)
+    (define-key map "e" 'reftex-index-edit)
+    (define-key map "^" 'reftex-index-level-up)
+    (define-key map "_" 'reftex-index-level-down)
+    (define-key map "}" 'reftex-index-restrict-to-section)
+    (define-key map "{" 'reftex-index-widen)
+    (define-key map ">" 'reftex-index-restriction-forward)
+    (define-key map "<" 'reftex-index-restriction-backward)
+    (define-key map "(" 'reftex-index-toggle-range-beginning)
+    (define-key map ")" 'reftex-index-toggle-range-end)
+    (define-key map "|" 'reftex-index-edit-attribute)
+    (define-key map "@" 'reftex-index-edit-visual)
+    (define-key map "*" 'reftex-index-edit-key)
+    (define-key map "\C-c=" 'reftex-index-goto-toc)
+    (define-key map "c" 'reftex-index-toggle-context)
 
     ;; The capital letters and the exclamation mark
-    (loop for key across (concat "!" reftex-index-section-letters) do
-          (define-key map (vector (list key))
-            (list 'lambda '() '(interactive)
-                  (list 'reftex-index-goto-letter key))))
+    (cl-loop for key across (concat "!" reftex-index-section-letters) do
+             (define-key map (vector (list key))
+               (list 'lambda '() '(interactive)
+                     (list 'reftex-index-goto-letter key))))
 
     (easy-menu-define reftex-index-menu map
       "Menu for Index buffer"
@@ -392,7 +386,7 @@ will prompt for other arguments."
 (defvar reftex-index-restriction-indicator nil)
 (defvar reftex-index-restriction-data nil)
 
-(define-derived-mode reftex-index-mode fundamental-mode "RefTeX Index"
+(define-derived-mode reftex-index-mode special-mode "RefTeX Index"
   "Major mode for managing Index buffers for LaTeX files.
 This buffer was created with RefTeX.
 Press `?' for a summary of important key bindings, or check the menu.
@@ -1194,20 +1188,18 @@ This gets refreshed in every phrases command.")
 (defvar reftex-index-phrases-mode-map
   (let ((map (make-sparse-keymap)))
     ;; Keybindings and Menu for phrases buffer
-    (loop for x in
-          '(("\C-c\C-c" . reftex-index-phrases-save-and-return)
-            ("\C-c\C-x" . reftex-index-this-phrase)
-            ("\C-c\C-f" . reftex-index-next-phrase)
-            ("\C-c\C-r" . reftex-index-region-phrases)
-            ("\C-c\C-a" . reftex-index-all-phrases)
-            ("\C-c\C-d" . reftex-index-remaining-phrases)
-            ("\C-c\C-s" . reftex-index-sort-phrases)
-            ("\C-c\C-n" . reftex-index-new-phrase)
-            ("\C-c\C-m" . reftex-index-phrases-set-macro-key)
-            ("\C-c\C-i" . reftex-index-phrases-info)
-            ("\C-c\C-t" . reftex-index-find-next-conflict-phrase)
-            ("\C-i"     . self-insert-command))
-          do (define-key map (car x) (cdr x)))
+    (define-key map "\C-c\C-c" 'reftex-index-phrases-save-and-return)
+    (define-key map "\C-c\C-x" 'reftex-index-this-phrase)
+    (define-key map "\C-c\C-f" 'reftex-index-next-phrase)
+    (define-key map "\C-c\C-r" 'reftex-index-region-phrases)
+    (define-key map "\C-c\C-a" 'reftex-index-all-phrases)
+    (define-key map "\C-c\C-d" 'reftex-index-remaining-phrases)
+    (define-key map "\C-c\C-s" 'reftex-index-sort-phrases)
+    (define-key map "\C-c\C-n" 'reftex-index-new-phrase)
+    (define-key map "\C-c\C-m" 'reftex-index-phrases-set-macro-key)
+    (define-key map "\C-c\C-i" 'reftex-index-phrases-info)
+    (define-key map "\C-c\C-t" 'reftex-index-find-next-conflict-phrase)
+    (define-key map "\C-i" 'self-insert-command)
 
     (easy-menu-define reftex-index-phrases-menu map
       "Menu for Phrases buffer"
@@ -1255,7 +1247,7 @@ This gets refreshed in every phrases command.")
         ["Save and Return" reftex-index-phrases-save-and-return t]))
 
     map)
-  "Keymap used for *toc* buffer.")
+  "Keymap used for index phrases buffer.")
 (defvar reftex-index-phrases-syntax-table
   (let ((table (make-syntax-table)))
     (modify-syntax-entry ?\" "." table)
@@ -1434,7 +1426,7 @@ Here are all local bindings.
   (interactive "p")
   (reftex-index-phrases-parse-header t)
   (while (> arg 0)
-    (decf arg)
+    (cl-decf arg)
     (end-of-line)
     (if (re-search-forward reftex-index-phrases-phrase-regexp12 nil t)
         (progn
@@ -1663,11 +1655,11 @@ this function repeatedly."
           (widen)
           (goto-char (point-min))
           (while (re-search-forward re1 nil t)
-            (incf ntimes1))
+            (cl-incf ntimes1))
           (goto-char (point-min))
           (while (re-search-forward re2 nil t)
             (push (cons (count-lines 1 (point)) (match-string 1)) superphrases)
-            (incf ntimes2))))
+            (cl-incf ntimes2))))
       (save-current-buffer
         (while (setq file (pop files))
           (setq buf (reftex-get-file-buffer-force file))
@@ -1680,7 +1672,7 @@ this function repeatedly."
                 (let ((case-fold-search reftex-index-phrases-case-fold-search))
                   (while (re-search-forward re nil t)
                     (or (reftex-in-comment)
-                        (incf nmatches)))))))))
+                        (cl-incf nmatches)))))))))
       (with-output-to-temp-buffer "*Help*"
         (princ (format "       Phrase:  %s\n" phrase))
         (princ (format "    Macro key:  %s\n" char))
@@ -1690,7 +1682,7 @@ this function repeatedly."
          (index-key
           (let ((iks index-keys) (cnt 0) ik)
             (while (setq ik (pop iks))
-              (princ (format "Index entry %d:  %s\n" (incf cnt) ik)))))
+              (princ (format "Index entry %d:  %s\n" (cl-incf cnt) ik)))))
          (repeat
           (princ (format "  Index entry:  %s\n" phrase)))
          (t
@@ -1951,7 +1943,7 @@ both ends."
                    (cond ((member char '(?y ?Y ?\ ))
                           ;; Yes!
                           (replace-match rpl t t)
-                          (incf replace-count)
+                          (cl-incf replace-count)
                           ;; See if we should insert newlines to shorten lines
                           (and reftex-index-phrases-wrap-long-lines
                                (reftex-index-phrases-fixup-line beg end))
@@ -2119,5 +2111,5 @@ Does not do a save-excursion."
 ;;; reftex-index.el ends here
 
 ;; Local Variables:
-;; generated-autoload-file: "reftex.el"
+;; generated-autoload-file: "reftex-loaddefs.el"
 ;; End:

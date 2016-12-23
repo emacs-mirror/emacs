@@ -56,9 +56,6 @@ struct xwidget
   GtkWidget *widget_osr;
   GtkWidget *widgetwindow_osr;
 
-  /* Used if the widget (webkit) is to be wrapped in a scrolled window.  */
-  GtkWidget *widgetscrolledwindow_osr;
-
   /* Kill silently if Emacs is exited.  */
   bool_bf kill_without_query : 1;
 };

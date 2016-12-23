@@ -25,6 +25,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'subr-x)
 
 (defvar nsm-permanent-host-settings nil)
 (defvar nsm-temporary-host-settings nil)
@@ -297,19 +298,30 @@ unencrypted."
       nil
     (let ((response
 	   (condition-case nil
-	       (nsm-query-user message args (nsm-format-certificate status))
+               (intern
+                (car (split-string
+                      (nsm-query-user message args
+                                      (nsm-format-certificate status))))
+                obarray)
 	     ;; Make sure we manage to close the process if the user hits
 	     ;; `C-g'.
 	     (quit 'no)
 	     (error 'no))))
       (if (eq response 'no)
-	  nil
+          (progn
+            (message "Aborting connection to %s:%s" host port)
+            nil)
+        (message (if (eq response 'session)
+                     "Accepting certificate for %s:%s this session only"
+                   "Permanently accepting certificate for %s:%s")
+                 host port)
 	(nsm-save-host host port status what response)
 	t))))
 
 (defun nsm-query-user (message args cert)
   (let ((buffer (get-buffer-create "*Network Security Manager*")))
     (save-window-excursion
+      ;; First format the certificate and warnings.
       (with-help-window buffer
         (with-current-buffer buffer
           (erase-buffer)
@@ -321,28 +333,15 @@ unencrypted."
             ;; Fill the first line of the message, which usually
             ;; contains lots of explanatory text.
             (fill-region (point) (line-end-position)))))
-      (let ((responses '((?n . no)
-                         (?s . session)
-                         (?a . always)))
-            (prefix "")
-            (cursor-in-echo-area t)
-            response)
-        (while (not response)
-          (setq response
-                (cdr
-                 (assq (downcase
-                        (read-char
-                         (concat prefix
-                                 "Continue connecting? (No, Session only, Always) ")))
-                       responses)))
-          (unless response
-            (ding)
-            (setq prefix "Invalid choice.  ")))
-        (kill-buffer buffer)
-        ;; If called from a callback, `read-char' will insert things
-        ;; into the pending input.  Clear that.
-        (clear-this-command-keys)
-        response))))
+      ;; Then ask the user what to do about it.
+      (unwind-protect
+          (cadr
+           (read-multiple-choice
+            "Continue connecting?"
+            '((?a "always" "Accept this certificate this session and for all future sessions.")
+              (?s "session only" "Accept this certificate this session only.")
+              (?n "no" "Refuse to use this certificate, and close the connection."))))
+        (kill-buffer buffer)))))
 
 (defun nsm-save-host (host port status what permanency)
   (let* ((id (nsm-id host port))

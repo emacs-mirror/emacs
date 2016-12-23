@@ -29,6 +29,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "keyboard.h"
 #include "process.h"
 
+#ifdef HAVE_SYS_RESOURCE_H
+#include <sys/resource.h>
+#endif /* HAVE_SYS_RESOURCE_H  */
+
 
 /* File handle for kqueue.  */
 static int kqueuefd = -1;
@@ -264,8 +268,6 @@ kqueue_compare_dir_list (Lisp_Object watch_object)
     report_file_error ("New list not empty", new_dl);
   if (! NILP (pending_dl))
     report_file_error ("Pending events list not empty", pending_dl);
-  //  if (! NILP (deleted_dl))
-  //    report_file_error ("Deleted events list not empty", deleted_dl);
 
   /* Replace old directory listing with the new one.  */
   XSETCDR (Fnthcdr (make_number (3), watch_object),
@@ -366,9 +368,12 @@ only when the upper directory of the renamed file is watched.  */)
   (Lisp_Object file, Lisp_Object flags, Lisp_Object callback)
 {
   Lisp_Object watch_object, dir_list;
-  int fd, oflags;
+  int maxfd, fd, oflags;
   u_short fflags = 0;
   struct kevent kev;
+#ifdef HAVE_GETRLIMIT
+  struct rlimit rlim;
+#endif /* HAVE_GETRLIMIT  */
 
   /* Check parameters.  */
   CHECK_STRING (file);
@@ -380,6 +385,21 @@ only when the upper directory of the renamed file is watched.  */)
 
   if (! FUNCTIONP (callback))
     wrong_type_argument (Qinvalid_function, callback);
+
+  /* Check available file descriptors.  */
+#ifdef HAVE_GETRLIMIT
+  if (! getrlimit (RLIMIT_NOFILE, &rlim))
+    maxfd = rlim.rlim_cur;
+  else
+#endif /* HAVE_GETRLIMIT  */
+    maxfd = 256;
+
+  /* We assume 50 file descriptors are sufficient for the rest of Emacs.  */
+  if ((maxfd - 50) < XINT (Flength (watch_list)))
+    xsignal2
+      (Qfile_notify_error,
+       build_string ("File watching not possible, no file descriptor left"),
+       Flength (watch_list));
 
   if (kqueuefd < 0)
     {

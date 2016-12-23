@@ -50,7 +50,7 @@ static int CALLBACK ALIGN_STACK add_opentype_font_name_to_list (ENUMLOGFONTEX *,
 								NEWTEXTMETRICEX *,
 								DWORD, LPARAM);
 /* Used by uniscribe_otf_capability.  */
-static Lisp_Object otf_features (HDC context, char *table);
+static Lisp_Object otf_features (HDC context, const char *table);
 
 static int
 memq_no_quit (Lisp_Object elt, Lisp_Object list)
@@ -1042,7 +1042,7 @@ uniscribe_check_otf (LOGFONT *font, Lisp_Object otf_spec)
 }
 
 static Lisp_Object
-otf_features (HDC context, char *table)
+otf_features (HDC context, const char *table)
 {
   Lisp_Object script_list = Qnil;
   unsigned short scriptlist_table, n_scripts, feature_table;
@@ -1135,7 +1135,7 @@ font_table_error:
 
 struct font_driver uniscribe_font_driver =
   {
-    LISP_INITIALLY_ZERO, /* Quniscribe */
+    LISPSYM_INITIALLY (Quniscribe),
     0, /* case insensitive */
     w32font_get_cache,
     uniscribe_list,
@@ -1166,6 +1166,8 @@ struct font_driver uniscribe_font_driver =
 
 /* Note that this should be called at every startup, not just when dumping,
    as it needs to test for the existence of the Uniscribe library.  */
+void syms_of_w32uniscribe (void);
+
 void
 syms_of_w32uniscribe (void)
 {
@@ -1180,7 +1182,6 @@ syms_of_w32uniscribe (void)
   if (!uniscribe)
     return;
 
-  uniscribe_font_driver.type = Quniscribe;
   uniscribe_available = 1;
 
   register_font_driver (&uniscribe_font_driver, NULL);

@@ -621,9 +621,10 @@ This is *not* a user option, since Emerge uses it for its own processing.")
    (erase-buffer)
    (shell-command
     (format "%s %s %s %s"
-	    emerge-diff-program emerge-diff-options
-	    (emerge-protect-metachars file-A)
-	    (emerge-protect-metachars file-B))
+	    (shell-quote-argument emerge-diff-program)
+            emerge-diff-options
+	    (shell-quote-argument file-A)
+	    (shell-quote-argument file-B))
     t))
   (emerge-prepare-error-list emerge-diff-ok-lines-regexp)
   (emerge-convert-diffs-to-markers
@@ -792,10 +793,11 @@ This is *not* a user option, since Emerge uses it for its own processing.")
    (erase-buffer)
    (shell-command
     (format "%s %s %s %s %s"
-	    emerge-diff3-program emerge-diff-options
-	    (emerge-protect-metachars file-A)
-	    (emerge-protect-metachars file-ancestor)
-	    (emerge-protect-metachars file-B))
+	    (shell-quote-argument emerge-diff3-program)
+            emerge-diff-options
+	    (shell-quote-argument file-A)
+	    (shell-quote-argument file-ancestor)
+	    (shell-quote-argument file-B))
     t))
   (emerge-prepare-error-list emerge-diff3-ok-lines-regexp)
   (emerge-convert-diffs-to-markers
@@ -3171,26 +3173,11 @@ See also `auto-save-file-name-p'."
 
 ;; Metacharacters that have to be protected from the shell when executing
 ;; a diff/diff3 command.
-(defcustom emerge-metachars
-  (if (memq system-type '(ms-dos windows-nt))
-      "[ \t\"<>|?*^&=]"
-    "[ \t\n!\"#$&'()*;<=>?[\\^`{|~]")
-  "Characters that must be quoted when used in a shell command line.
-More precisely, a [...] regexp to match any one such character."
+(defcustom emerge-metachars nil
+  "Obsolete, emerge now uses `shell-quote-argument'."
   :type 'regexp
   :group 'emerge)
-
-;; Quote metacharacters (using \) when executing a diff/diff3 command.
-(defun emerge-protect-metachars (s)
-  (if (memq system-type '(ms-dos windows-nt))
-      (shell-quote-argument s)
-    (let ((limit 0))
-      (while (string-match emerge-metachars s limit)
-	(setq s (concat (substring s 0 (match-beginning 0))
-			"\\"
-			(substring s (match-beginning 0))))
-	(setq limit (1+ (match-end 0)))))
-    s))
+(make-obsolete-variable 'emerge-metachars nil "26.1")
 
 (provide 'emerge)
 

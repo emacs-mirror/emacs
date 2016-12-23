@@ -614,6 +614,28 @@ method and applying Turkish case rules for the characters i, I, ı, İ.")))
 	    (documentation . "Support for Brazilian Portuguese."))
  '("European"))
 
+(set-language-info-alist
+ "Catalan" '((charset iso-8859-1)
+	     (coding-system iso-8859-1 iso-8859-15)
+	     (coding-priority iso-8859-1)
+	     (input-method . "catalan-prefix")
+	     (nonascii-translation . iso-8859-1)
+	     (unibyte-display . iso-8859-1)
+	     (setup-function
+	      . (lambda ()
+		  (modify-syntax-entry ?· "w" (standard-syntax-table))))
+	     (exit-function
+	      . (lambda ()
+		  (modify-syntax-entry ?· "_" (standard-syntax-table))))
+	     (sample-text . "\
+Catalan (Català)  Avui demà i ahir s'esfullarà una rosa.")
+	     (documentation . "\
+This language environment uses the ISO-8859-1 character set,
+sets the default input method to \"catalan-prefix\", and sets
+the syntax of the middle dot character `·' to word."))
+  '("European"))
+
+
 
 (define-coding-system 'mac-roman
   "Mac Roman Encoding (MIME:MACINTOSH)."

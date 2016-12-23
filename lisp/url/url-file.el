@@ -27,6 +27,7 @@
 (require 'url-vars)
 (require 'url-parse)
 (require 'url-dired)
+(declare-function mm-disable-multibyte "mm-util" ())
 
 (defconst url-file-default-port 21 "Default FTP port.")
 (defconst url-file-asynchronous-p t "FTP transfers are asynchronous.")

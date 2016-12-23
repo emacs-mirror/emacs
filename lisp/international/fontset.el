@@ -812,10 +812,11 @@
              (#x1F700 . #x1F77F)	;; Alchemical Symbols
              (#x1F780 . #x1F7FF)	;; Geometric Shapes Extended
              (#x1F800 . #x1F8FF)))	;; Supplemental Arrows-C
-    (set-fontset-font "fontset-default" symbol-subgroup "Symbola" nil 'prepend))
+    (set-fontset-font "fontset-default" symbol-subgroup
+                      '("Symbola" . "iso10646-1") nil 'prepend))
   ;; Box Drawing and Block Elements
   (set-fontset-font "fontset-default" '(#x2500 . #x259F)
-                    "FreeMono" nil 'prepend)
+                    '("FreeMono" . "iso10646-1") nil 'prepend)
 
   ;; Since standard-fontset-spec on X uses fixed-medium font, which
   ;; gets mapped to a iso8859-1 variant, we would like to prefer its

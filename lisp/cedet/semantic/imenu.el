@@ -57,7 +57,7 @@
 
 ;;;###autoload
 (defcustom semantic-imenu-summary-function 'semantic-format-tag-abbreviate
-  "*Function to use when creating items in Imenu.
+  "Function to use when creating items in Imenu.
 Some useful functions are found in `semantic-format-tag-functions'."
   :group 'semantic-imenu
   :type semantic-format-tag-custom-list)
@@ -65,20 +65,20 @@ Some useful functions are found in `semantic-format-tag-functions'."
 
 ;;;###autoload
 (defcustom semantic-imenu-bucketize-file t
-  "*Non-nil if tags in a file are to be grouped into buckets."
+  "Non-nil if tags in a file are to be grouped into buckets."
   :group 'semantic-imenu
   :type 'boolean)
 (make-variable-buffer-local 'semantic-imenu-bucketize-file)
 
 (defcustom semantic-imenu-adopt-external-members t
-  "*Non-nil if types in a file should adopt externally defined members.
+  "Non-nil if types in a file should adopt externally defined members.
 C++ and CLOS can define methods that are not in the body of a class
 definition."
   :group 'semantic-imenu
   :type 'boolean)
 
 (defcustom semantic-imenu-buckets-to-submenu t
-  "*Non-nil if buckets of tags are to be turned into submenus.
+  "Non-nil if buckets of tags are to be turned into submenus.
 This option is ignored if `semantic-imenu-bucketize-file' is nil."
   :group 'semantic-imenu
   :type 'boolean)
@@ -86,7 +86,7 @@ This option is ignored if `semantic-imenu-bucketize-file' is nil."
 
 ;;;###autoload
 (defcustom semantic-imenu-expand-type-members t
-  "*Non-nil if types should have submenus with members in them."
+  "Non-nil if types should have submenus with members in them."
   :group 'semantic-imenu
   :type 'boolean)
 (make-variable-buffer-local 'semantic-imenu-expand-type-members)
@@ -94,7 +94,7 @@ This option is ignored if `semantic-imenu-bucketize-file' is nil."
                             'semantic-imenu-expand-type-members "23.2")
 
 (defcustom semantic-imenu-bucketize-type-members t
-  "*Non-nil if members of a type should be grouped into buckets.
+  "Non-nil if members of a type should be grouped into buckets.
 A nil value means to keep them in the same order.
 Overridden to nil if `semantic-imenu-bucketize-file' is nil."
   :group 'semantic-imenu
@@ -104,7 +104,7 @@ Overridden to nil if `semantic-imenu-bucketize-file' is nil."
                             'semantic-imenu-bucketize-type-members "23.2")
 
 (defcustom semantic-imenu-sort-bucket-function nil
-  "*Function to use when sorting tags in the buckets of functions.
+  "Function to use when sorting tags in the buckets of functions.
 See `semantic-bucketize' and the FILTER argument for more details on this function."
   :group 'semantic-imenu
   :type '(radio (const :tag "No Sorting" nil)
@@ -120,7 +120,7 @@ See `semantic-bucketize' and the FILTER argument for more details on this functi
 (make-variable-buffer-local 'semantic-imenu-sort-bucket-function)
 
 (defcustom semantic-imenu-index-directory nil
-  "*Non nil to index the entire directory for tags.
+  "Non nil to index the entire directory for tags.
 Doesn't actually parse the entire directory, but displays tags for all files
 currently listed in the current Semantic database.
 This variable has no meaning if semanticdb is not active."
@@ -128,7 +128,7 @@ This variable has no meaning if semanticdb is not active."
   :type 'boolean)
 
 (defcustom semantic-imenu-auto-rebuild-directory-indexes nil
-  "*If non-nil automatically rebuild directory index imenus.
+  "If non-nil automatically rebuild directory index imenus.
 That is when a directory index imenu is updated, automatically rebuild
 other buffer local ones based on the same semanticdb."
   :group 'semantic-imenu
@@ -498,7 +498,7 @@ Clears all imenu menus that may be depending on the database."
   "Function to convert semantic tags into `which-function' text.")
 
 (defcustom semantic-which-function-use-color nil
-  "*Use color when displaying the current function with `which-function'."
+  "Use color when displaying the current function with `which-function'."
   :group 'semantic-imenu
   :type 'boolean)
 

@@ -1871,7 +1871,7 @@ the summary is only showing a subset of messages."
 (provide 'rmailsum)
 
 ;; Local Variables:
-;; generated-autoload-file: "rmail.el"
+;; generated-autoload-file: "rmail-loaddefs.el"
 ;; End:
 
 ;;; rmailsum.el ends here

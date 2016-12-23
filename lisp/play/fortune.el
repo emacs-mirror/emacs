@@ -303,6 +303,19 @@ specifies the file to choose the fortune from."
                          fortune-program-options) (list fort-file)))))))
 
 ;;;###autoload
+(defun fortune-message (&optional file)
+  "Display a fortune cookie to the mini-buffer.
+If called with a prefix, it has the same behavior as `fortune'.
+Optional FILE is a fortune file from which a cookie will be selected."
+  (interactive (list (if current-prefix-arg
+                         (fortune-ask-file)
+                       fortune-file)))
+  (with-temp-buffer
+    (let ((fortune-buffer-name (current-buffer)))
+      (fortune-in-buffer t file)
+      (message "%s" (buffer-string)))))
+
+;;;###autoload
 (defun fortune (&optional file)
   "Display a fortune cookie.
 If called with a prefix asks for the FILE to choose the fortune from,

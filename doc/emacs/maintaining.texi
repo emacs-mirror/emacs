@@ -223,7 +223,7 @@ basic editing operations under Bazaar.
 @cindex SRC
 @cindex src
 @item
-SRC (src) is RCS, reloaded - a specialized version-control system
+SRC (src) is RCS, reloaded---a specialized version-control system
 designed for single-file projects worked on by only one person.  It
 allows multiple files with independent version-control histories to
 exist in one directory, and is thus particularly well suited for
@@ -1590,6 +1590,13 @@ also creates a new item for the current file.  For many languages, it
 can even guess the name of the function or other object that was
 changed.
 
+@c Not worth it.
+@c @vindex change-log-directory-files
+To find the change log file, Emacs searches up the directory tree from
+the file you are editing.  By default, it stops if it finds a
+directory that seems to be the root of a version-control repository.
+To change this, customize @code{change-log-directory-files}.
+
 @vindex add-log-keep-changes-together
   When the variable @code{add-log-keep-changes-together} is
 non-@code{nil}, @kbd{C-x 4 a} adds to any existing item for the file
@@ -2545,10 +2552,10 @@ directory as the default.
 @vindex tags-file-name
   Emacs does not actually read in the tags table contents until you
 try to use them; all @code{visit-tags-table} does is store the file
-name in the variable @code{tags-file-name}, and setting the variable
-yourself is just as good.  The variable's initial value is @code{nil};
-that value tells all the commands for working with tags tables that
-they must ask for a tags table file name to use.
+name in the variable @code{tags-file-name}, and not much more.  The
+variable's initial value is @code{nil}; that value tells all the
+commands for working with tags tables that they must ask for a tags
+table file name to use.
 
   Using @code{visit-tags-table} when a tags table is already loaded
 gives you a choice: you can add the new tags table to the current list
@@ -2573,7 +2580,7 @@ current list, it is used @emph{as well as} the others.
 This tells the tags commands to look at the @file{TAGS} files in your
 @file{~/emacs} directory and in the @file{/usr/local/lib/emacs/src}
 directory.  The order depends on which file you are in and which tags
-table mentions that file, as explained above.
+table mentions that file.
 
   Do not set both @code{tags-file-name} and @code{tags-table-list}.
 

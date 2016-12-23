@@ -24,7 +24,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (require 'reftex)
 
@@ -32,6 +32,7 @@
 ;; and reftex-select-bib-mode-map.
 (defvar reftex-select-shared-map
   (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map special-mode-map)
     (substitute-key-definition
      'next-line 'reftex-select-next                      map global-map)
     (substitute-key-definition
@@ -41,31 +42,23 @@
     (substitute-key-definition
      'newline 'reftex-select-accept                      map global-map)
 
-    (loop for x in
-          '((" "        . reftex-select-callback)
-            ("n"        . reftex-select-next)
-            ([(down)]   . reftex-select-next)
-            ("p"        . reftex-select-previous)
-            ([(up)]     . reftex-select-previous)
-            ("f"        . reftex-select-toggle-follow)
-            ("\C-m"     . reftex-select-accept)
-            ([(return)] . reftex-select-accept)
-            ("q"        . reftex-select-quit)
-            ("."        . reftex-select-show-insertion-point)
-            ("?"        . reftex-select-help))
-          do (define-key map (car x) (cdr x)))
+    (define-key map " " 'reftex-select-callback)
+    (define-key map "n" 'reftex-select-next)
+    (define-key map [(down)] 'reftex-select-next)
+    (define-key map "p" 'reftex-select-previous)
+    (define-key map [(up)] 'reftex-select-previous)
+    (define-key map "f" 'reftex-select-toggle-follow)
+    (define-key map "\C-m" 'reftex-select-accept)
+    (define-key map [(return)] 'reftex-select-accept)
+    (define-key map "q" 'reftex-select-quit)
+    (define-key map "." 'reftex-select-show-insertion-point)
+    (define-key map "?" 'reftex-select-help)
 
     ;; The mouse-2 binding
     (if (featurep 'xemacs)
         (define-key map [(button2)] 'reftex-select-mouse-accept)
       (define-key map [(mouse-2)] 'reftex-select-mouse-accept)
       (define-key map [follow-link] 'mouse-face))
-
-
-    ;; Digit arguments
-    (loop for key across "0123456789" do
-          (define-key map (vector (list key)) 'digit-argument))
-    (define-key map "-" 'negative-argument)
     map))
 
 (define-obsolete-variable-alias
@@ -74,28 +67,25 @@
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map reftex-select-shared-map)
 
-    (loop for key across "aAcgFlrRstx#%" do
-          (define-key map (vector (list key))
-            (list 'lambda '()
-                  "Press `?' during selection to find out about this key."
-                  '(interactive) (list 'throw '(quote myexit) key))))
+    (cl-loop for key across "aAcgFlrRstx#%" do
+             (define-key map (vector (list key))
+               (list 'lambda '()
+                     "Press `?' during selection to find out about this key."
+                     '(interactive) (list 'throw '(quote myexit) key))))
 
-    (loop for x in
-          '(("b"        . reftex-select-jump-to-previous)
-            ("z"        . reftex-select-jump)
-            ("v"        . reftex-select-cycle-ref-style-forward)
-            ("V"        . reftex-select-cycle-ref-style-backward)
-            ("m"        . reftex-select-mark)
-            ("u"        . reftex-select-unmark)
-            (","        . reftex-select-mark-comma)
-            ("-"        . reftex-select-mark-to)
-            ("+"        . reftex-select-mark-and)
-            ([(tab)]    . reftex-select-read-label)
-            ("\C-i"     . reftex-select-read-label)
-            ("\C-c\C-n" . reftex-select-next-heading)
-            ("\C-c\C-p" . reftex-select-previous-heading))
-          do
-          (define-key map (car x) (cdr x)))
+    (define-key map "b" 'reftex-select-jump-to-previous)
+    (define-key map "z" 'reftex-select-jump)
+    (define-key map "v" 'reftex-select-cycle-ref-style-forward)
+    (define-key map "V" 'reftex-select-cycle-ref-style-backward)
+    (define-key map "m" 'reftex-select-mark)
+    (define-key map "u" 'reftex-select-unmark)
+    (define-key map "," 'reftex-select-mark-comma)
+    (define-key map "-" 'reftex-select-mark-to)
+    (define-key map "+" 'reftex-select-mark-and)
+    (define-key map [(tab)] 'reftex-select-read-label)
+    (define-key map "\C-i" 'reftex-select-read-label)
+    (define-key map "\C-c\C-n" 'reftex-select-next-heading)
+    (define-key map "\C-c\C-p" 'reftex-select-previous-heading)
 
     map)
   "Keymap used for *RefTeX Select* buffer, when selecting a label.
@@ -130,18 +120,16 @@ During a selection process, these are the local bindings.
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map reftex-select-shared-map)
 
-    (loop for key across "grRaAeE" do
-          (define-key map (vector (list key))
-            (list 'lambda '()
-                  "Press `?' during selection to find out about this key."
-                  '(interactive) (list 'throw '(quote myexit) key))))
+    (cl-loop for key across "grRaAeE" do
+             (define-key map (vector (list key))
+               (list 'lambda '()
+                     "Press `?' during selection to find out about this key."
+                     '(interactive) (list 'throw '(quote myexit) key))))
 
-    (loop for x in
-          '(("\C-i"  . reftex-select-read-cite)
-            ([(tab)] . reftex-select-read-cite)
-            ("m"     . reftex-select-mark)
-            ("u"     . reftex-select-unmark))
-          do (define-key map (car x) (cdr x)))
+    (define-key map "\C-i" 'reftex-select-read-cite)
+    (define-key map [(tab)] 'reftex-select-read-cite)
+    (define-key map "m" 'reftex-select-mark)
+    (define-key map "u" 'reftex-select-unmark)
 
     map)
   "Keymap used for *RefTeX Select* buffer, when selecting a BibTeX entry.
@@ -272,7 +260,7 @@ During a selection process, these are the local bindings.
     ;; Walk the docstruct and insert the appropriate stuff
     (while (setq cell (pop all))
 
-      (incf index)
+      (cl-incf index)
       (setq from (point))
 
       (cond
@@ -342,7 +330,7 @@ During a selection process, these are the local bindings.
                    (or show-commented (null comment)))
 
           ;; Yes we want this one
-          (incf cnt)
+          (cl-incf cnt)
           (setq prev-inserted cell)
 ;         (if (eq offset 'attention) (setq offset cell))
 
@@ -728,8 +716,8 @@ Cycle in reverse order if optional argument REVERSE is non-nil."
             (setq sep (nth 2 c))
             (reftex-overlay-put (nth 1 c) 'before-string
                                 (if sep
-                                    (format "*%c%d* " sep (decf cnt))
-                                  (format "*%d*  " (decf cnt)))))
+                                    (format "*%c%d* " sep (cl-decf cnt))
+                                  (format "*%d*  " (cl-decf cnt)))))
           reftex-select-marked)
     (message "Entry no longer marked")))
 
@@ -745,5 +733,5 @@ Cycle in reverse order if optional argument REVERSE is non-nil."
 ;;; reftex-sel.el ends here
 
 ;; Local Variables:
-;; generated-autoload-file: "reftex.el"
+;; generated-autoload-file: "reftex-loaddefs.el"
 ;; End:

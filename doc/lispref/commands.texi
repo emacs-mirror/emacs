@@ -2618,6 +2618,31 @@ causes it to evaluate @code{help-form} and display the result.  It
 then continues to wait for a valid input character, or keyboard-quit.
 @end defun
 
+@defun read-multiple-choice prompt choices
+Ask user a multiple choice question.  @var{prompt} should be a string
+that will be displayed as the prompt.
+
+@var{choices} is an alist where the first element in each entry is a
+character to be entered, the second element is a short name for the
+entry to be displayed while prompting (if there's room, it might be
+shortened), and the third, optional entry is a longer explanation that
+will be displayed in a help buffer if the user requests more help.
+
+The return value is the matching value from @var{choices}.
+
+@lisp
+(read-multiple-choice
+ "Continue connecting?"
+ '((?a "always" "Accept this certificate this session and for all future sessions.")
+   (?s "session only" "Accept this certificate this session only.")
+   (?n "no" "Refuse to use this certificate, and close the connection.")))
+@end lisp
+
+The @code{read-multiple-choice-face} face is used to highlight the
+matching characters in the name string on graphical terminals.
+
+@end defun
+
 @node Event Mod
 @subsection Modifying and Translating Input Events
 @cindex modifiers of events
@@ -2891,6 +2916,12 @@ like this:
     (progn . @var{body})))
 @end example
 @end defmac
+
+@defvar while-no-input-ignore-events
+This variable allow setting which special events @code{while-no-input}
+should ignore.  It is a list of symbols.
+
+@end defvar
 
 @defun discard-input
 @cindex flushing input

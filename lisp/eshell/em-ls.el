@@ -101,46 +101,36 @@ faster and conserves more memory."
     (((class color) (background dark)) (:foreground "SkyBlue" :weight bold))
     (t (:weight bold)))
   "The face used for highlighting directories.")
-(define-obsolete-face-alias 'eshell-ls-directory-face
-  'eshell-ls-directory "22.1")
 
 (defface eshell-ls-symlink
   '((((class color) (background light)) (:foreground "Dark Cyan" :weight bold))
     (((class color) (background dark)) (:foreground "Cyan" :weight bold)))
   "The face used for highlighting symbolic links.")
-(define-obsolete-face-alias 'eshell-ls-symlink-face 'eshell-ls-symlink "22.1")
 
 (defface eshell-ls-executable
   '((((class color) (background light)) (:foreground "ForestGreen" :weight bold))
     (((class color) (background dark)) (:foreground "Green" :weight bold)))
   "The face used for highlighting executables (not directories, though).")
-(define-obsolete-face-alias 'eshell-ls-executable-face
-  'eshell-ls-executable "22.1")
 
 (defface eshell-ls-readonly
   '((((class color) (background light)) (:foreground "Brown"))
     (((class color) (background dark)) (:foreground "Pink")))
   "The face used for highlighting read-only files.")
-(define-obsolete-face-alias 'eshell-ls-readonly-face 'eshell-ls-readonly "22.1")
 
 (defface eshell-ls-unreadable
   '((((class color) (background light)) (:foreground "Grey30"))
     (((class color) (background dark)) (:foreground "DarkGrey")))
   "The face used for highlighting unreadable files.")
-(define-obsolete-face-alias 'eshell-ls-unreadable-face
-  'eshell-ls-unreadable "22.1")
 
 (defface eshell-ls-special
   '((((class color) (background light)) (:foreground "Magenta" :weight bold))
     (((class color) (background dark)) (:foreground "Magenta" :weight bold)))
   "The face used for highlighting non-regular files.")
-(define-obsolete-face-alias 'eshell-ls-special-face 'eshell-ls-special "22.1")
 
 (defface eshell-ls-missing
   '((((class color) (background light)) (:foreground "Red" :weight bold))
     (((class color) (background dark)) (:foreground "Red" :weight bold)))
   "The face used for highlighting non-existent file names.")
-(define-obsolete-face-alias 'eshell-ls-missing-face 'eshell-ls-missing "22.1")
 
 (defcustom eshell-ls-archive-regexp
   (concat "\\.\\(t\\(a[rz]\\|gz\\)\\|arj\\|lzh\\|"
@@ -155,7 +145,6 @@ files."
   '((((class color) (background light)) (:foreground "Orchid" :weight bold))
     (((class color) (background dark)) (:foreground "Orchid" :weight bold)))
   "The face used for highlighting archived and compressed file names.")
-(define-obsolete-face-alias 'eshell-ls-archive-face 'eshell-ls-archive "22.1")
 
 (defcustom eshell-ls-backup-regexp
   "\\(\\`\\.?#\\|\\(\\.bak\\|~\\)\\'\\)"
@@ -166,7 +155,6 @@ files."
   '((((class color) (background light)) (:foreground "OrangeRed"))
     (((class color) (background dark)) (:foreground "LightSalmon")))
   "The face used for highlighting backup file names.")
-(define-obsolete-face-alias 'eshell-ls-backup-face 'eshell-ls-backup "22.1")
 
 (defcustom eshell-ls-product-regexp
   "\\.\\(elc\\|o\\(bj\\)?\\|a\\|lib\\|res\\)\\'"
@@ -179,7 +167,6 @@ ought to be recreatable if they are deleted."
   '((((class color) (background light)) (:foreground "OrangeRed"))
     (((class color) (background dark)) (:foreground "LightSalmon")))
   "The face used for highlighting files that are build products.")
-(define-obsolete-face-alias 'eshell-ls-product-face 'eshell-ls-product "22.1")
 
 (defcustom eshell-ls-clutter-regexp
   "\\(^texput\\.log\\|^core\\)\\'"
@@ -192,7 +179,6 @@ really need to stick around for very long."
   '((((class color) (background light)) (:foreground "OrangeRed" :weight bold))
     (((class color) (background dark)) (:foreground "OrangeRed" :weight bold)))
   "The face used for highlighting junk file names.")
-(define-obsolete-face-alias 'eshell-ls-clutter-face 'eshell-ls-clutter "22.1")
 
 (defsubst eshell-ls-filetype-p (attrs type)
   "Test whether ATTRS specifies a directory."

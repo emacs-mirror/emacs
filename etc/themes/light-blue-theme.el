@@ -48,6 +48,7 @@
    `(mode-line-inactive ((,class (:inherit mode-line :background "LightGray" :foreground "grey20" :box (:line-width -1 :color "grey75") :weight light))))
    ;; Escape and prompt faces
    `(escape-glyph ((,class (:background "gold" :foreground "blue" :box (:line-width 1 :color "blue" :style released-button)))))
+   `(homoglyph ((,class (:background "gold" :foreground "blue" :box (:line-width 1 :color "blue" :style released-button)))))
    ;; Font lock faces
    `(font-lock-builtin-face ((,class (:foreground "#b35caf"))))
    `(font-lock-constant-face ((,class (:foreground "#00006DE06DE0"))))

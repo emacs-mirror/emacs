@@ -34,10 +34,12 @@ representing the variable.
 * Accessing Variables::         Examining values of variables whose names
                             are known only at run time.
 * Setting Variables::           Storing new values in variables.
+* Watching Variables::          Running a function when a variable is changed.
 * Variable Scoping::            How Lisp chooses among local and global values.
 * Buffer-Local Variables::      Variable values in effect only in one buffer.
 * File Local Variables::        Handling local variable lists in files.
 * Directory Local Variables::   Local variables common to all files in a directory.
+* Connection Local Variables::  Local variables common for remote connections.
 * Variable Aliases::            Variables that are aliases for other variables.
 * Variables with Restricted Values::  Non-constant variables whose value can
                                         @emph{not} be an arbitrary Lisp object.
@@ -764,6 +766,66 @@ error is signaled.
 @error{} Wrong type argument: symbolp, (x y)
 @end example
 @end defun
+
+@node Watching Variables
+@section Running a function when a variable is changed.
+@cindex variable watchpoints
+@cindex watchpoints for Lisp variables
+
+It is sometimes useful to take some action when a variable changes its
+value.  The watchpoint facility provides the means to do so.  Some
+possible uses for this feature include keeping display in sync with
+variable settings, and invoking the debugger to track down unexpected
+changes to variables (@pxref{Variable Debugging}).
+
+The following functions may be used to manipulate and query the watch
+functions for a variable.
+
+@defun add-variable-watcher symbol watch-function
+This function arranges for @var{watch-function} to be called whenever
+@var{symbol} is modified.  Modifications through aliases
+(@pxref{Variable Aliases}) will have the same effect.
+
+@var{watch-function} will be called with 4 arguments: (@var{symbol}
+@var{newval} @var{operation} @var{where}).
+
+@var{symbol} is the variable being changed.
+@var{newval} is the value it will be changed to.
+@var{operation} is a symbol representing the kind of change, one of:
+`set', `let', `unlet', `makunbound', and `defvaralias'.
+@var{where} is a buffer if the buffer-local value of the variable is
+being changed, nil otherwise.
+@end defun
+
+@defun remove-variable-watch symbol watch-function
+This function removes @var{watch-function} from @var{symbol}'s list of
+watchers.
+@end defun
+
+@defun get-variable-watchers symbol
+This function returns the list of @var{symbol}'s active watcher
+functions.
+@end defun
+
+@subsection Limitations
+
+There are a couple of ways in which a variable could be modifed (or at
+least appear to be modified) without triggering a watchpoint.
+
+Since watchpoints are attached to symbols, modification to the
+objects contained within variables (e.g., by a list modification
+function @pxref{Modifying Lists}) is not caught by this mechanism.
+
+Additionally, C code can modify the value of variables directly,
+bypassing the watchpoint mechanism.
+
+A minor limitation of this feature, again because it targets symbols,
+is that only variables of dynamic scope may be watched.  This poses
+little difficulty, since modifications to lexical variables can be
+discovered easily by inspecting the code within the scope of the
+variable (unlike dynamic variables, which can be modified by any code
+at all, @pxref{Variable Scoping}).
+
 
 @node Variable Scoping
 @section Scoping Rules for Variable Bindings
@@ -1615,7 +1677,7 @@ any form of file-local variable.  For examples of why you might want
 to use this, @pxref{Auto Major Mode}.
 @end defvar
 
-@defun hack-local-variables &optional mode-only
+@defun hack-local-variables &optional handle-mode
 This function parses, and binds or evaluates as appropriate, any local
 variables specified by the contents of the current buffer.  The variable
 @code{enable-local-variables} has its effect here.  However, this
@@ -1632,11 +1694,15 @@ is non-@code{nil}; it always calls the other hook.  This
 function ignores a @samp{mode} element if it specifies the same major
 mode as the buffer already has.
 
-If the optional argument @var{mode-only} is non-@code{nil}, then all
-this function does is return a symbol specifying the major mode,
-if the @w{@samp{-*-}} line or the local variables list specifies one,
-and @code{nil} otherwise.  It does not set the mode nor any other
-file-local variable.
+If the optional argument @var{handle-mode} is @code{t}, then all this
+function does is return a symbol specifying the major mode, if the
+@w{@samp{-*-}} line or the local variables list specifies one, and
+@code{nil} otherwise.  It does not set the mode or any other
+file-local variable.  If @var{handle-mode} has any value other than
+@code{nil} or @code{t}, any settings of @samp{mode} in the
+@w{@samp{-*-}} line or the local variables list are ignored, and the
+other settings are applied.  If @var{handle-mode} is @code{nil}, all
+the file local variables are set.
 @end defun
 
 @defvar file-local-variables-alist
@@ -1856,6 +1922,170 @@ updates this list.
 If @code{nil}, directory-local variables are ignored.  This variable
 may be useful for modes that want to ignore directory-locals while
 still respecting file-local variables (@pxref{File Local Variables}).
+@end defvar
+
+@node Connection Local Variables
+@section Connection Local Variables
+@cindex connection local variables
+
+  Connection-local variables provide a general mechanism for
+different variable settings in buffers with a remote default
+directory.  They are bound and set depending on the remote connection
+a buffer is dedicated to.  Per default, they are set in all process
+buffers for a remote connection, but they could be applied also in
+other buffers with a remote directory.
+
+@defun connection-local-set-class-variables class variables
+This function defines a set of variable settings for the named
+@var{class}, which is a symbol.  You can later assign the class to one
+or more remote connections, and Emacs will apply those variable
+settings to all process buffers for those connections.  The list in
+@var{variables} is an alist of the form @code{(@var{name}
+. @var{value})}.  Example:
+
+@example
+@group
+(connection-local-set-class-variables
+  'remote-bash
+  '((shell-file-name . "/bin/bash")
+    (shell-command-switch . "-c")
+    (shell-interactive-switch . "-i")
+    (shell-login-switch . "-l")))
+@end group
+
+@group
+(connection-local-set-class-variables
+  'remote-ksh
+  '((shell-file-name . "/bin/ksh")
+    (shell-command-switch . "-c")
+    (shell-interactive-switch . "-i")
+    (shell-login-switch . "-l")))
+@end group
+
+@group
+(connection-local-set-class-variables
+  'remote-null-device
+  '((null-device . "/dev/null")))
+@end group
+@end example
+@end defun
+
+@defvar connection-local-class-alist
+This alist holds the class symbols and the associated variable
+settings.  It is updated by @code{connection-local-set-class-variables}.
+@end defvar
+
+@defun connection-local-set-classes criteria &rest classes
+This function assigns @var{classes}, which are symbols, to all remote
+connections identified by @var{criteria}.  @var{criteria} is either a
+regular expression identifying a remote server, or a function with one
+argument @var{identification}, which must return non-nil when a remote
+server shall apply @var{classes} variables, or @code{nil}.
+
+If @var{criteria} is a regexp, is must match the result of
+@code{(file-remote-p default-directory)} of a buffer in order to apply
+the variables setting.  Example:
+
+@example
+@group
+(connection-local-set-classes
+  "^/ssh:" 'remote-bash 'remote-null-device)
+@end group
+
+@group
+(connection-local-set-classes
+  "^/sudo:" 'remote-ksh 'remote-null-device)
+@end group
+@end example
+
+  If @var{criteria} is nil, it applies for all remote connections.
+Therefore, the example above would be equivalent to
+
+@example
+(connection-local-set-classes "^/ssh:" 'remote-bash)
+(connection-local-set-classes "^/sudo:" 'remote-ksh)
+(connection-local-set-classes nil 'remote-null-device)
+@end example
+
+  If @var{criteria} is a lambda function it must accept one parameter,
+the identification.  The example above could be rewritten as
+
+@example
+@group
+(connection-local-set-classes
+  (lambda (identification)
+    (string-equal (file-remote-p identification 'method) "ssh"))
+  'remote-bash)
+@end group
+
+@group
+(connection-local-set-classes
+  (lambda (identification)
+    (string-equal (file-remote-p identification 'method) "sudo"))
+  'remote-ksh)
+@end group
+
+@group
+(connection-local-set-classes
+  (lambda (identification) t)
+  'remote-null-device)
+@end group
+@end example
+
+  Thereafter, all the variable settings specified for @var{classes}
+will be applied to any buffer with a matching remote directory, when
+activated by @code{hack-connection-local-variables-apply}.  Any class
+of @var{classes} must have been already defined by
+@code{connection-local-set-class-variables}.
+@end defun
+
+@defvar connection-local-criteria-alist
+This alist contains remote server identifications and their assigned
+class names.  The function @code{connection-local-set-classes} updates
+this list.
+@end defvar
+
+@defun hack-connection-local-variables
+This function collects applicable connection-local variables in
+@code{connection-local-variables-alist} that is local to the buffer,
+without applying them.  Whether a connection-local variable is
+applicable is specified by the remote identifier of a buffer,
+evaluated by @code{(file-remote-p default-directory)}.
+@end defun
+
+@defun hack-connection-local-variables-apply
+This function looks for connection-local variables, and immediately
+applies them in the current buffer.  It is called per default for
+every process-buffer related to a remote connection.  For other remote
+buffers, it could be called by any mode.
+@end defun
+
+@defmac with-connection-local-classes classes &rest body
+All connection-local variables, which are specified by a class in
+@var{classes}, are applied.  An implicit binding of the classes to the
+remote connection is enabled.
+
+After that, @var{body} is executed, and the connection-local variables
+are unwound.  Example:
+
+@example
+@group
+(connection-local-set-class-variables
+  'remote-perl
+  '((perl-command-name . "/usr/local/bin/perl")
+    (perl-command-switch . "-e %s")))
+@end group
+
+@group
+(with-connection-local-classes '(remote-perl)
+  do something useful)
+@end group
+@end example
+@end defmac
+
+@defvar enable-connection-local-variables
+If @code{nil}, connection-local variables are ignored.  This variable
+shall be changed temporarily only in special modes.
 @end defvar
 
 @node Variable Aliases

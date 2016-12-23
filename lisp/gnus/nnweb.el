@@ -103,10 +103,9 @@ Valid types include `google', `dejanews', and `gmane'.")
   (with-current-buffer nntp-server-buffer
     (erase-buffer)
     (let (article header)
-      (mm-with-unibyte-current-buffer
-	(while (setq article (pop articles))
-	  (when (setq header (cadr (assq article nnweb-articles)))
-	    (nnheader-insert-nov header))))
+      (while (setq article (pop articles))
+	(when (setq header (cadr (assq article nnweb-articles)))
+	  (nnheader-insert-nov header)))
       'nov)))
 
 (deffoo nnweb-request-scan (&optional group server)
@@ -153,8 +152,7 @@ Valid types include `google', `dejanews', and `gmane'.")
     (let* ((header (cadr (assq article nnweb-articles)))
 	   (url (and header (mail-header-xref header))))
       (when (or (and url
-		     (mm-with-unibyte-current-buffer
-		       (mm-url-insert url)))
+		     (mm-url-insert url))
 		(and (stringp article)
 		     (nnweb-definition 'id t)
 		     (let ((fetch (nnweb-definition 'id))
@@ -164,8 +162,7 @@ Valid types include `google', `dejanews', and `gmane'.")
 		       (when (and fetch art)
 			 (setq url (format fetch
 					   (mm-url-form-encode-xwfu art)))
-			 (mm-with-unibyte-current-buffer
-			   (mm-url-insert url))
+			 (mm-url-insert url)
 			 (if (nnweb-definition 'reference t)
 			     (setq article
 				   (funcall (nnweb-definition
@@ -215,17 +212,16 @@ Valid types include `google', `dejanews', and `gmane'.")
 (defun nnweb-read-overview (group)
   "Read the overview of GROUP and build the map."
   (when (file-exists-p (nnweb-overview-file group))
-    (mm-with-unibyte-buffer
-      (nnheader-insert-file-contents (nnweb-overview-file group))
-      (goto-char (point-min))
-      (let (header)
-	(while (not (eobp))
-	  (setq header (nnheader-parse-nov))
-	  (forward-line 1)
-	  (push (list (mail-header-number header)
-		      header (mail-header-xref header))
-		nnweb-articles)
-	  (nnweb-set-hashtb header (car nnweb-articles)))))))
+    (nnheader-insert-file-contents (nnweb-overview-file group))
+    (goto-char (point-min))
+    (let (header)
+      (while (not (eobp))
+	(setq header (nnheader-parse-nov))
+	(forward-line 1)
+	(push (list (mail-header-number header)
+		    header (mail-header-xref header))
+	      nnweb-articles)
+	(nnweb-set-hashtb header (car nnweb-articles))))))
 
 (defun nnweb-write-overview (group)
   "Write the overview file for GROUP."
@@ -386,8 +382,7 @@ Valid types include `google', `dejanews', and `gmane'.")
     (setq nnweb-articles
 	  (nconc nnweb-articles map))
     (when (setq header (cadar map))
-      (mm-with-unibyte-current-buffer
-	(mm-url-insert (mail-header-xref header)))
+      (mm-url-insert (mail-header-xref header))
       (caar map))))
 
 (defun nnweb-google-create-mapping ()
@@ -513,8 +508,8 @@ Valid types include `google', `dejanews', and `gmane'.")
        ;;("TOPDOC" . "1000")
        ))))
   (setq buffer-file-name nil)
-  (unless (featurep 'xemacs) (set-buffer-multibyte t))
-  (mm-decode-coding-region (point-min) (point-max) 'utf-8)
+  (set-buffer-multibyte t)
+  (decode-coding-region (point-min) (point-max) 'utf-8)
   t)
 
 (defun nnweb-gmane-identity (url)

@@ -97,7 +97,7 @@ them for `find-ls-option'."
 
 (defcustom find-grep-options
   (if (or (eq system-type 'berkeley-unix)
-	  (string-match "solaris2\\|irix" system-configuration))
+	  (string-match "solaris2" system-configuration))
       "-s" "-q")
   "Option to grep to be as silent as possible.
 On Berkeley systems, this is `-s'; on Posix, and with GNU grep, `-q' does it.

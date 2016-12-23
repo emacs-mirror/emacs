@@ -24,8 +24,8 @@
 ;;; Commentary:
 
 ;; Defines a major mode for visiting image files
-;; that allows conversion between viewing the text of the file
-;; and viewing the file as an image.  Viewing the image
+;; that allows conversion between viewing the text of the file,
+;; hex of the file and viewing the file as an image.  Viewing the image
 ;; works by putting a `display' text-property on the
 ;; image data, with the image-data still present underneath; if the
 ;; resulting buffer file is saved to another name it will correctly save
@@ -43,7 +43,10 @@
 
 ;;; Image mode window-info management.
 
-(defvar-local image-mode-winprops-alist t)
+(defvar-local image-mode-winprops-alist t
+  "Alist of windows to window properties.
+Each element has the form (WINDOW . ALIST).
+See `image-mode-winprops'.")
 
 (defvar image-mode-new-window-functions nil
   "Special hook run when image data is requested in a new window.
@@ -270,6 +273,48 @@ When calling from a program, supply as argument a number, nil, or `-'."
 	    (max 0 (- win-height next-screen-context-lines)))))
 	(t (image-next-line (- (prefix-numeric-value n))))))
 
+(defun image-scroll-left (&optional n)
+  "Scroll image in current window leftward by N character widths.
+Stop if the right edge of the image is reached.
+If ARG is omitted or nil, scroll leftward by a near full screen.
+A near full screen is 2 columns less than a full screen.
+Negative ARG means scroll rightward.
+If ARG is the atom `-', scroll rightward by nearly full screen.
+When calling from a program, supply as argument a number, nil, or `-'."
+  (interactive "P")
+  (cond ((null n)
+	 (let* ((edges (window-inside-edges))
+		(win-width (- (nth 2 edges) (nth 0 edges))))
+	   (image-forward-hscroll
+	    (max 0 (- win-width 2)))))
+	((eq n '-)
+	 (let* ((edges (window-inside-edges))
+		(win-width (- (nth 2 edges) (nth 0 edges))))
+	   (image-forward-hscroll
+	    (min 0 (- 2 win-width)))))
+	(t (image-forward-hscroll (prefix-numeric-value n)))))
+
+(defun image-scroll-right (&optional n)
+  "Scroll image in current window rightward by N character widths.
+Stop if the left edge of the image is reached.
+If ARG is omitted or nil, scroll downward by a near full screen.
+A near full screen is 2 less than a full screen.
+Negative ARG means scroll leftward.
+If ARG is the atom `-', scroll leftward by nearly full screen.
+When calling from a program, supply as argument a number, nil, or `-'."
+  (interactive "P")
+  (cond ((null n)
+	 (let* ((edges (window-inside-edges))
+		(win-width (- (nth 2 edges) (nth 0 edges))))
+	   (image-forward-hscroll
+	    (min 0 (- 2 win-width)))))
+	((eq n '-)
+	 (let* ((edges (window-inside-edges))
+		(win-width (- (nth 2 edges) (nth 0 edges))))
+	   (image-forward-hscroll
+	    (max 0 (- win-width 2)))))
+	(t (image-forward-hscroll (- (prefix-numeric-value n))))))
+
 (defun image-bol (arg)
   "Scroll horizontally to the left edge of the image in the current window.
 With argument ARG not nil or 1, move forward ARG - 1 lines first,
@@ -372,8 +417,8 @@ call."
 
 (defvar image-mode-map
   (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map special-mode-map)
     (define-key map "\C-c\C-c" 'image-toggle-display)
+    (define-key map "\C-c\C-x" 'image-toggle-hex-display)
     (define-key map (kbd "SPC")       'image-scroll-up)
     (define-key map (kbd "S-SPC")     'image-scroll-down)
     (define-key map (kbd "DEL")       'image-scroll-down)
@@ -398,6 +443,8 @@ call."
     (define-key map [remap scroll-down] 'image-scroll-down)
     (define-key map [remap scroll-up-command] 'image-scroll-up)
     (define-key map [remap scroll-down-command] 'image-scroll-down)
+    (define-key map [remap scroll-left] 'image-scroll-left)
+    (define-key map [remap scroll-right] 'image-scroll-right)
     (define-key map [remap move-beginning-of-line] 'image-bol)
     (define-key map [remap move-end-of-line] 'image-eol)
     (define-key map [remap beginning-of-buffer] 'image-bob)
@@ -406,6 +453,8 @@ call."
       '("Image"
 	["Show as Text" image-toggle-display :active t
 	 :help "Show image as text"]
+    ["Show as Hex" image-toggle-hex-display :active t
+     :help "Show image as hex"]
 	"--"
 	["Fit to Window Height" image-transform-fit-to-height
 	 :visible (eq image-type 'imagemagick)
@@ -474,12 +523,13 @@ call."
 	["Goto Frame..." image-goto-frame :active image-multi-frame
 	 :help "Show a specific frame of this image"]
 	))
-    map)
+    (make-composed-keymap (list map image-map) special-mode-map))
   "Mode keymap for `image-mode'.")
 
 (defvar image-minor-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "\C-c\C-c" 'image-toggle-display)
+    (define-key map "\C-c\C-x" 'image-toggle-hex-display)
     map)
   "Mode keymap for `image-minor-mode'.")
 
@@ -490,8 +540,8 @@ call."
 ;;;###autoload
 (defun image-mode ()
   "Major mode for image files.
-You can use \\<image-mode-map>\\[image-toggle-display]
-to toggle between display as an image and display as text.
+You can use \\<image-mode-map>\\[image-toggle-display] or \\<image-mode-map>\\[image-toggle-hex-display]
+to toggle between display as an image and display as text or hex.
 
 Key bindings:
 \\{image-mode-map}"
@@ -530,7 +580,7 @@ Key bindings:
 	(run-mode-hooks 'image-mode-hook)
 	(let ((image (image-get-display-property))
 	      (msg1 (substitute-command-keys
-		     "Type \\[image-toggle-display] to view the image as "))
+             "Type \\[image-toggle-display] or \\[image-toggle-hex-display] to view the image as "))
 	      animated)
 	  (cond
 	   ((null image)
@@ -559,7 +609,7 @@ mouse-3: Previous frame"
 ;;;			     (substitute-command-keys
 ;;;			      "\\[image-toggle-animation] to animate."))))
 	   (t
-	    (message "%s" (concat msg1 "text."))))))
+        (message "%s" (concat msg1 "text or hex."))))))
 
     (error
      (image-mode-as-text)
@@ -585,19 +635,10 @@ actual image."
       (add-hook 'change-major-mode-hook (lambda () (image-minor-mode -1)) nil t)))
 
 ;;;###autoload
-(defun image-mode-as-text ()
+(defun image-mode-to-text ()
   "Set a non-image mode as major mode in combination with image minor mode.
-A non-image major mode found from `auto-mode-alist' or Fundamental mode
-displays an image file as text.  `image-minor-mode' provides the key
-\\<image-mode-map>\\[image-toggle-display] to switch back to `image-mode'
-to display an image file as the actual image.
-
-You can use `image-mode-as-text' in `auto-mode-alist' when you want
-to display an image file as text initially.
-
-See commands `image-mode' and `image-minor-mode' for more information
-on these modes."
-  (interactive)
+A non-mage major mode found from `auto-mode-alist' or fundamental mode
+displays an image file as text."
   ;; image-mode-as-text = normal-mode + image-minor-mode
   (let ((previous-image-type image-type)) ; preserve `image-type'
     (if image-mode-previous-major-mode
@@ -625,12 +666,49 @@ on these modes."
     ;; Enable image minor mode with `C-c C-c'.
     (image-minor-mode 1)
     ;; Show the image file as text.
-    (image-toggle-display-text)
-    (message "%s" (concat
-		   (substitute-command-keys
-		    "Type \\[image-toggle-display] to view the image as ")
-		   (if (image-get-display-property)
-		       "text" "an image") "."))))
+    (image-toggle-display-text)))
+
+(defun image-mode-as-hex ()
+  "Set a non-image mode as major mode in combination with image minor mode.
+A non-mage major mode found from `auto-mode-alist' or fundamental mode
+displays an image file as hex.  `image-minor-mode' provides the key
+\\<image-mode-map>\\[image-toggle-hex-display] to switch back to `image-mode'
+to display an image file as the actual image.
+
+You can use `image-mode-as-hex' in `auto-mode-alist' when you want to
+to display an image file as hex initially.
+
+See commands `image-mode' and `image-minor-mode' for more information
+on these modes."
+  (interactive)
+  (image-mode-to-text)
+  ;; Turn on hexl-mode
+  (hexl-mode)
+  (message "%s" (concat
+                 (substitute-command-keys
+                  "Type \\[image-toggle-hex-display] or \\[image-toggle-display] to view the image as ")
+                 (if (image-get-display-property)
+                     "hex" "an image or text") ".")))
+
+(defun image-mode-as-text ()
+  "Set a non-image mode as major mode in combination with image minor mode.
+A non-image major mode found from `auto-mode-alist' or Fundamental mode
+displays an image file as text.  `image-minor-mode' provides the key
+\\<image-mode-map>\\[image-toggle-display] to switch back to `image-mode'
+to display an image file as the actual image.
+
+You can use `image-mode-as-text' in `auto-mode-alist' when you want
+to display an image file as text initially.
+
+See commands `image-mode' and `image-minor-mode' for more information
+on these modes."
+  (interactive)
+  (image-mode-to-text)
+  (message "%s" (concat
+                 (substitute-command-keys
+                  "Type \\[image-toggle-display] or \\[image-toggle-hex-display] to view the image as ")
+                 (if (image-get-display-property)
+                     "text" "an image or hex") ".")))
 
 (define-obsolete-function-alias 'image-mode-maybe 'image-mode "23.2")
 
@@ -725,15 +803,27 @@ was inserted."
     (if (called-interactively-p 'any)
 	(message "Repeat this command to go back to displaying the file as text"))))
 
+(defun image-toggle-hex-display ()
+  "Toggle between image and hex display."
+  (interactive)
+  (if (image-get-display-property)
+      (image-mode-as-hex)
+    (if (eq major-mode 'fundamental-mode)
+        (image-mode-as-hex)
+      (image-mode))))
+
 (defun image-toggle-display ()
   "Toggle between image and text display.
+
 If the current buffer is displaying an image file as an image,
-call `image-mode-as-text' to switch to text.  Otherwise, display
-the image by calling `image-mode'."
+call `image-mode-as-text' to switch to text or hex display.
+Otherwise, display the image by calling `image-mode'"
   (interactive)
   (if (image-get-display-property)
       (image-mode-as-text)
-    (image-mode)))
+    (if (eq major-mode 'hexl-mode)
+        (image-mode-as-text)
+      (image-mode))))
 
 (defun image-kill-buffer ()
   "Kill the current buffer."
@@ -741,6 +831,9 @@ the image by calling `image-mode'."
   (kill-buffer (current-buffer)))
 
 (defun image-after-revert-hook ()
+  ;; Fixes bug#21598
+  (when (not (image-get-display-property))
+    (image-toggle-display-image))
   (when (image-get-display-property)
     (image-toggle-display-text)
     ;; Update image display.

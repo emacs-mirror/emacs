@@ -110,11 +110,12 @@ nocrash_init (void)
 #else
 /* Avoid a crash on POSIX systems.  */
 #include <signal.h>
+#include <unistd.h>
 /* A POSIX signal handler.  */
 static void
 exception_handler (int sig)
 {
-  exit (1);
+  _exit (1);
 }
 static void
 nocrash_init (void)

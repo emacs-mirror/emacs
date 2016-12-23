@@ -87,21 +87,21 @@ If a file with the `.el' or `.elc' suffixes exists, it will be read instead."
   :type '(choice file (const nil)))
 
 (defcustom gnus-use-dribble-file t
-  "*Non-nil means that Gnus will use a dribble file to store user updates.
+  "Non-nil means that Gnus will use a dribble file to store user updates.
 If Emacs should crash without saving the .newsrc files, complete
 information can be restored from the dribble file."
   :group 'gnus-dribble-file
   :type 'boolean)
 
 (defcustom gnus-dribble-directory nil
-  "*The directory where dribble files will be saved.
+  "The directory where dribble files will be saved.
 If this variable is nil, the directory where the .newsrc files are
 saved will be used."
   :group 'gnus-dribble-file
   :type '(choice directory (const nil)))
 
 (defcustom gnus-check-new-newsgroups 'ask-server
-  "*Non-nil means that Gnus will run `gnus-find-new-newsgroups' at startup.
+  "Non-nil means that Gnus will run `gnus-find-new-newsgroups' at startup.
 This normally finds new newsgroups by comparing the active groups the
 servers have already reported with those Gnus already knows, either alive
 or killed.
@@ -138,14 +138,14 @@ check for new newsgroups with \\<gnus-group-mode-map>\\[gnus-find-new-newsgroups
 			 (sexp :format "%v"))))
 
 (defcustom gnus-check-bogus-newsgroups nil
-  "*Non-nil means that Gnus will check and remove bogus newsgroup at startup.
+  "Non-nil means that Gnus will check and remove bogus newsgroup at startup.
 If this variable is nil, then you have to tell Gnus explicitly to
 check for bogus newsgroups with \\<gnus-group-mode-map>\\[gnus-group-check-bogus-groups]."
   :group 'gnus-start-server
   :type 'boolean)
 
 (defcustom gnus-read-active-file 'some
-  "*Non-nil means that Gnus will read the entire active file at startup.
+  "Non-nil means that Gnus will read the entire active file at startup.
 If this variable is nil, Gnus will only know about the groups in your
 `.newsrc' file.
 
@@ -183,24 +183,24 @@ Levels' for details.")
   "Groups with this level are killed.")
 
 (defcustom gnus-level-default-subscribed 3
-  "*New subscribed groups will be subscribed at this level."
+  "New subscribed groups will be subscribed at this level."
   :group 'gnus-group-levels
   :type 'integer)
 
 (defcustom gnus-level-default-unsubscribed 6
-  "*New unsubscribed groups will be unsubscribed at this level."
+  "New unsubscribed groups will be unsubscribed at this level."
   :group 'gnus-group-levels
   :type 'integer)
 
 (defcustom gnus-activate-level (1+ gnus-level-subscribed)
-  "*Groups higher than this level won't be activated on startup.
+  "Groups higher than this level won't be activated on startup.
 Setting this variable to something low might save lots of time when
 you have many groups that you aren't interested in."
   :group 'gnus-group-levels
   :type 'integer)
 
 (defcustom gnus-activate-foreign-newsgroups 4
-  "*If nil, Gnus will not check foreign newsgroups at startup.
+  "If nil, Gnus will not check foreign newsgroups at startup.
 If it is non-nil, it should be a number between one and nine.  Foreign
 newsgroups that have a level lower or equal to this number will be
 activated on startup.  For instance, if you want to active all
@@ -216,7 +216,7 @@ groups."
 		 (const :tag "none" nil)))
 
 (defcustom gnus-read-newsrc-file t
-  "*Non-nil means that Gnus will read the `.newsrc' file.
+  "Non-nil means that Gnus will read the `.newsrc' file.
 Gnus always reads its own startup file, which is called
 \".newsrc.eld\".  The file called \".newsrc\" is in a format that can
 be readily understood by other newsreaders.  If you don't plan on
@@ -227,7 +227,7 @@ entry."
   :type 'boolean)
 
 (defcustom gnus-save-newsrc-file t
-  "*Non-nil means that Gnus will save the `.newsrc' file.
+  "Non-nil means that Gnus will save the `.newsrc' file.
 Gnus always saves its own startup file, which is called
 \".newsrc.eld\".  The file called \".newsrc\" is in a format that can
 be readily understood by other newsreaders.  If you don't plan on
@@ -237,7 +237,7 @@ exit."
   :type 'boolean)
 
 (defcustom gnus-save-killed-list t
-  "*If non-nil, save the list of killed groups to the startup file.
+  "If non-nil, save the list of killed groups to the startup file.
 If you set this variable to nil, you'll save both time (when starting
 and quitting) and space (both memory and disk), but it will also mean
 that Gnus has no record of which groups are new and which are old, so
@@ -263,7 +263,7 @@ not match this regexp will be removed before saving the list."
 	       "^[\"][\"#'()]"	; bogus characters
 	       )
 	     "\\|")
-  "*A regexp to match uninteresting newsgroups in the active file.
+  "A regexp to match uninteresting newsgroups in the active file.
 Any lines in the active file matching this regular expression are
 removed from the newsgroup list before anything else is done to it,
 thus making them effectively non-existent."
@@ -271,7 +271,7 @@ thus making them effectively non-existent."
   :type 'regexp)
 
 (defcustom gnus-subscribe-newsgroup-method 'gnus-subscribe-zombies
-  "*Function(s) called with a group name when new group is detected.
+  "Function(s) called with a group name when new group is detected.
 A few pre-made functions are supplied: `gnus-subscribe-randomly'
 inserts new groups at the beginning of the list of groups;
 `gnus-subscribe-alphabetically' inserts new groups in strict
@@ -295,7 +295,7 @@ claim them."
 (define-obsolete-variable-alias 'gnus-subscribe-newsgroup-hooks
   'gnus-subscribe-newsgroup-functions "24.3")
 (defcustom gnus-subscribe-newsgroup-functions nil
-  "*Hooks run after you subscribe to a new group.
+  "Hooks run after you subscribe to a new group.
 The hooks will be called with new group's name as argument."
   :version "22.1"
   :group 'gnus-group-new
@@ -303,7 +303,7 @@ The hooks will be called with new group's name as argument."
 
 (defcustom gnus-subscribe-options-newsgroup-method
   'gnus-subscribe-alphabetically
-  "*Function(s) called to subscribe newsgroups mentioned on \"options -n\" lines.
+  "Function(s) called to subscribe newsgroups mentioned on \"options -n\" lines.
 If, for instance, you want to subscribe to all newsgroups in the
 \"no\" and \"alt\" hierarchies, you'd put the following in your
 .newsrc file:
@@ -324,7 +324,7 @@ with the subscription method in this variable."
 		(repeat function)))
 
 (defcustom gnus-subscribe-hierarchical-interactive nil
-  "*If non-nil, Gnus will offer to subscribe hierarchically.
+  "If non-nil, Gnus will offer to subscribe hierarchically.
 When a new hierarchy appears, Gnus will ask the user:
 
 'alt.binaries': Do you want to subscribe to this hierarchy? ([d]ys):
@@ -336,7 +336,7 @@ hierarchy in its entirety."
   :type 'boolean)
 
 (defcustom gnus-auto-subscribed-categories '(mail post-mail)
-  "*New groups from methods of these categories will be subscribed automatically.
+  "New groups from methods of these categories will be subscribed automatically.
 Note that this variable only deals with new groups.  It has no
 effect whatsoever on old groups.  The default is to automatically
 subscribe all groups from mail-like backends."
@@ -346,7 +346,7 @@ subscribe all groups from mail-like backends."
 
 (defcustom gnus-auto-subscribed-groups
   "^nnml\\|^nnfolder\\|^nnmbox\\|^nnmh\\|^nnbabyl\\|^nnmaildir\\|^nnimap"
-  "*All new groups that match this regexp will be subscribed automatically.
+  "All new groups that match this regexp will be subscribed automatically.
 Note that this variable only deals with new groups.  It has no effect
 whatsoever on old groups.
 
@@ -357,7 +357,7 @@ be subscribed using `gnus-subscribe-options-newsgroup-method'."
   :type 'regexp)
 
 (defcustom gnus-options-subscribe nil
-  "*All new groups matching this regexp will be subscribed unconditionally.
+  "All new groups matching this regexp will be subscribed unconditionally.
 Note that this variable deals only with new newsgroups.  This variable
 does not affect old newsgroups.
 
@@ -369,7 +369,7 @@ be subscribed using `gnus-subscribe-options-newsgroup-method'."
 		 (const :tag "none" nil)))
 
 (defcustom gnus-options-not-subscribe nil
-  "*All new groups matching this regexp will be ignored.
+  "All new groups matching this regexp will be ignored.
 Note that this variable deals only with new newsgroups.  This variable
 does not affect old (already subscribed) newsgroups."
   :group 'gnus-group-new
@@ -377,7 +377,7 @@ does not affect old (already subscribed) newsgroups."
 		 (const :tag "none" nil)))
 
 (defcustom gnus-modtime-botch nil
-  "*Non-nil means .newsrc should be deleted prior to save.
+  "Non-nil means .newsrc should be deleted prior to save.
 Its use is due to the bogus appearance that .newsrc was modified on
 disc."
   :group 'gnus-newsrc
@@ -432,7 +432,7 @@ See also `gnus-before-startup-hook'."
 
 (defcustom gnus-after-getting-new-news-hook
   '(gnus-display-time-event-handler)
-  "*A hook run after Gnus checks for new news when Gnus is already running."
+  "A hook run after Gnus checks for new news when Gnus is already running."
   :version "24.1"
   :group 'gnus-group-new
   :type 'hook)
@@ -865,11 +865,6 @@ If REGEXP is given, lines that match it will be deleted."
       ;; Make sure that each dribble entry is a single line, so that
       ;; the "remove" code above works.
       (insert (replace-regexp-in-string "\n" "\\\\n" string) "\n")
-      ;; This has been commented by Josh Huber <huber@alum.wpi.edu>
-      ;; It causes problems with both XEmacs and Emacs 21, and doesn't
-      ;; seem to be of much value. (FIXME: remove this after we make sure
-      ;; it's not needed).
-      ;; (set-window-point (get-buffer-window (current-buffer)) (point-max))
       (bury-buffer gnus-dribble-buffer)
       (with-current-buffer gnus-group-buffer
 	(gnus-group-set-mode-line))
@@ -893,9 +888,7 @@ If REGEXP is given, lines that match it will be deleted."
       (setq buffer-file-name dribble-file)
       ;; The buffer may be shrunk a lot when deleting old entries.
       ;; It caused the auto-saving to stop.
-      (if (featurep 'emacs)
-	  (set (make-local-variable 'auto-save-include-big-deletions) t)
-	(set (make-local-variable 'disable-auto-save-when-buffer-shrinks) nil))
+      (set (make-local-variable 'auto-save-include-big-deletions) t)
       (auto-save-mode t)
       (buffer-disable-undo)
       (bury-buffer (current-buffer))
@@ -1675,10 +1668,10 @@ backend check whether the group actually exists."
 	      type-cache))
       ;; Only add groups that need updating.
       (if (or (and foreign-level (null (numberp foreign-level)))
-	      (funcall (if one-level #'= #'<=) (gnus-info-level info)
-		       (if (eq (cadr method-group-list) 'foreign)
-			   foreign-level
-			 alevel)))
+	   (funcall (if one-level #'= #'<=) (gnus-info-level info)
+		    (if (eq (cadr method-group-list) 'foreign)
+			foreign-level
+		      alevel)))
 	  (setcar (nthcdr 2 method-group-list)
 		  (cons info (nth 2 method-group-list)))
 	;; The group is inactive, so we nix out the number of unread articles.
@@ -1997,7 +1990,7 @@ backend check whether the group actually exists."
     (while lists
       (setq killed (car lists))
       (while killed
-	(gnus-sethash (mm-string-as-unibyte (car killed)) nil hashtb)
+	(gnus-sethash (string-as-unibyte (car killed)) nil hashtb)
 	(setq killed (cdr killed)))
       (setq lists (cdr lists)))))
 
@@ -2393,8 +2386,8 @@ If FORCE is non-nil, the .newsrc file is read."
 
               (funcall func convert-to)))
           (gnus-dribble-enter
-           (gnus-format-message ";Converted gnus from version `%s' to `%s'."
-				gnus-newsrc-file-version gnus-version)))))))
+           (format-message ";Converted gnus from version `%s' to `%s'."
+			   gnus-newsrc-file-version gnus-version)))))))
 
 (defun gnus-convert-mark-converter-prompt (converter no-prompt)
   "Indicate whether CONVERTER requires gnus-convert-old-newsrc to
@@ -2460,7 +2453,7 @@ If FORCE is non-nil, the .newsrc file is read."
     (dolist (elem gnus-newsrc-alist)
       ;; Protect against broken .newsrc.el files.
       (when (car elem)
-	(setcar elem (mm-string-as-unibyte (car elem)))))
+	(setcar elem (string-as-unibyte (car elem)))))
     (gnus-make-hashtable-from-newsrc-alist)
     (when (file-newer-than-file-p file ding-file)
       ;; Old format quick file
@@ -3032,7 +3025,7 @@ If FORCE is non-nil, the .newsrc file is read."
 (defun gnus-slave-save-newsrc ()
   (with-current-buffer gnus-dribble-buffer
     (let ((slave-name
-	   (mm-make-temp-file (concat gnus-current-startup-file "-slave-")))
+	   (make-temp-file (concat gnus-current-startup-file "-slave-")))
 	  (modes (ignore-errors
 		   (file-modes (concat gnus-current-startup-file ".eld")))))
       (let ((coding-system-for-write gnus-ding-file-coding-system))
@@ -3164,8 +3157,8 @@ If FORCE is non-nil, the .newsrc file is read."
 			  (gnus-parameter-charset name)
 			  gnus-default-charset)))
 		;; Fixme: Don't decode in unibyte mode.
-		(when (and str charset (featurep 'mule))
-		  (setq str (mm-decode-coding-string str charset)))
+		(when (and str charset)
+		  (setq str (decode-coding-string str charset)))
 		(set group str)))
 	    (forward-line 1))))
       (gnus-message 5 "Reading descriptions file...done")
@@ -3203,26 +3196,7 @@ If this variable is nil, don't do anything."
 
 (defun gnus-check-reasonable-setup ()
   ;; Check whether nnml and nnfolder share a directory.
-  (let ((display-warn
-	 (if (fboundp 'display-warning)
-	     'display-warning
-	   (lambda (type message)
-	     (if noninteractive
-		 (message "Warning (%s): %s" type message)
-	       (let (window)
-		 (with-current-buffer (get-buffer-create "*Warnings*")
-		   (goto-char (point-max))
-		   (unless (bolp)
-		     (insert "\n"))
-		   (insert (format "Warning (%s): %s\n" type message))
-		   (setq window (display-buffer (current-buffer)))
-		   (set-window-start
-		    window
-		    (prog2
-			(forward-line (- 1 (window-height window)))
-			(point)
-		      (goto-char (point-max))))))))))
-	method active actives match)
+  (let (method active actives match)
     (dolist (server gnus-server-alist)
       (setq method (gnus-server-to-method server)
 	    active (intern (format "%s-active-file" (car method))))
@@ -3230,11 +3204,11 @@ If this variable is nil, don't do anything."
 		 (gnus-server-opened method)
 		 (boundp active))
 	(when (setq match (assoc (symbol-value active) actives))
-	  (funcall display-warn 'gnus-server
-		   (format "%s and %s share the same active file %s"
-			   (car method)
-			   (cadr match)
-			   (car match))))
+	  (display-warning 'gnus-server
+			   (format "%s and %s share the same active file %s"
+				   (car method)
+				   (cadr match)
+				   (car match))))
 	(push (list (symbol-value active) method) actives)))))
 
 (provide 'gnus-start)

@@ -1,4 +1,4 @@
-;;; rng-cmpct.el --- parsing of RELAX NG Compact Syntax schemas
+;;; rng-cmpct.el --- parsing of RELAX NG Compact Syntax schemas  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2003, 2007-2016 Free Software Foundation, Inc.
 
@@ -674,13 +674,7 @@ the primary expression."
      (substring rng-c-current-token n (- n)))))
 
 (defun rng-c-fix-escaped-newlines (str)
-  (let ((pos 0))
-    (while (progn
-	     (let ((n (string-match "\C-@" str pos)))
-	       (and n
-		    (aset str n ?\n)
-		    (setq pos (1+ n)))))))
-  str)
+  (subst-char-in-string ?\C-@ ?\n str))
 
 (defun rng-c-parse-identifier-or-keyword ()
   (cond ((rng-c-current-token-ncname-p)

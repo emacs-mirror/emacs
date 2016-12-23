@@ -122,7 +122,7 @@ END-OF-LINE FORMAT
   How text end-of-line is encoded depends on operating system.  For
   instance, Unix's format is just one byte of LF (line-feed) code,
   whereas DOS's format is two-byte sequence of `carriage-return' and
-  `line-feed' codes.  MacOS's format is usually one byte of
+  `line-feed' codes.  Classic Mac OS's format is usually one byte of
   `carriage-return'.
 
   Since text character encoding and end-of-line encoding are
@@ -2365,7 +2365,8 @@ decode_coding_emacs_mule (struct coding_system *coding)
 
   while (1)
     {
-      int c, id IF_LINT (= 0);
+      int c;
+      int id UNINIT;
 
       src_base = src;
       consumed_chars_base = consumed_chars;
@@ -2410,7 +2411,7 @@ decode_coding_emacs_mule (struct coding_system *coding)
 	}
       else
 	{
-	  int nchars IF_LINT (= 0), nbytes IF_LINT (= 0);
+	  int nchars UNINIT, nbytes UNINIT;
 	  /* emacs_mule_char can load a charset map from a file, which
 	     allocates a large structure and might cause buffer text
 	     to be relocated as result.  Thus, we need to remember the
@@ -6814,39 +6815,33 @@ decode_eol (struct coding_system *coding)
   else if (EQ (eol_type, Qdos))
     {
       ptrdiff_t n = 0;
+      ptrdiff_t pos = coding->dst_pos;
+      ptrdiff_t pos_byte = coding->dst_pos_byte;
+      ptrdiff_t pos_end = pos_byte + coding->produced - 1;
 
-      if (NILP (coding->dst_object))
-	{
-	  /* Start deleting '\r' from the tail to minimize the memory
-	     movement.  */
-	  for (p = pend - 2; p >= pbeg; p--)
-	    if (*p == '\r')
-	      {
-		memmove (p, p + 1, pend-- - p - 1);
-		n++;
-	      }
-	}
-      else
-	{
-	  ptrdiff_t pos = coding->dst_pos;
-	  ptrdiff_t pos_byte = coding->dst_pos_byte;
-	  ptrdiff_t pos_end = pos_byte + coding->produced - 1;
+      /* This assertion is here instead of code, now deleted, that
+	 handled the NILP case, which no longer happens with the
+	 current codebase.  */
+      eassert (!NILP (coding->dst_object));
 
-	  while (pos_byte < pos_end)
+      while (pos_byte < pos_end)
+	{
+	  int incr;
+
+	  p = BYTE_POS_ADDR (pos_byte);
+	  if (coding->dst_multibyte)
+	    incr = BYTES_BY_CHAR_HEAD (*p);
+	  else
+	    incr = 1;
+
+	  if (*p == '\r' && p[1] == '\n')
 	    {
-	      p = BYTE_POS_ADDR (pos_byte);
-	      if (*p == '\r' && p[1] == '\n')
-		{
-		  del_range_2 (pos, pos_byte, pos + 1, pos_byte + 1, 0);
-		  n++;
-		  pos_end--;
-		}
-	      pos++;
-	      if (coding->dst_multibyte)
-		pos_byte += BYTES_BY_CHAR_HEAD (*p);
-	      else
-		pos_byte++;
+	      del_range_2 (pos, pos_byte, pos + 1, pos_byte + 1, 0);
+	      n++;
+	      pos_end--;
 	    }
+	  pos++;
+	  pos_byte += incr;
 	}
       coding->produced -= n;
       coding->produced_char -= n;
@@ -6957,18 +6952,21 @@ get_translation_table (Lisp_Object attrs, bool encodep, int *max_lookup)
 
 
 /* Return a translation of character(s) at BUF according to TRANS.
-   TRANS is TO-CHAR or ((FROM .  TO) ...) where
-   FROM = [FROM-CHAR ...], TO is TO-CHAR or [TO-CHAR ...].
-   The return value is TO-CHAR or ([FROM-CHAR ...] . TO) if a
-   translation is found, and Qnil if not found..
-   If BUF is too short to lookup characters in FROM, return Qt.  */
+   TRANS is TO-CHAR, [TO-CHAR ...], or ((FROM .  TO) ...) where FROM =
+   [FROM-CHAR ...], TO is TO-CHAR or [TO-CHAR ...].  The return value
+   is TO-CHAR or [TO-CHAR ...] if a translation is found, Qnil if not
+   found, or Qt if BUF is too short to lookup characters in FROM.  As
+   a side effect, if a translation is found, *NCHARS is set to the
+   number of characters being translated.  */
 
 static Lisp_Object
-get_translation (Lisp_Object trans, int *buf, int *buf_end)
+get_translation (Lisp_Object trans, int *buf, int *buf_end, ptrdiff_t *nchars)
 {
-
-  if (INTEGERP (trans))
-    return trans;
+  if (INTEGERP (trans) || VECTORP (trans))
+    {
+      *nchars = 1;
+      return trans;
+    }
   for (; CONSP (trans); trans = XCDR (trans))
     {
       Lisp_Object val = XCAR (trans);
@@ -6984,7 +6982,10 @@ get_translation (Lisp_Object trans, int *buf, int *buf_end)
 	    break;
 	}
       if (i == len)
-	return val;
+	{
+	  *nchars = len;
+	  return XCDR (val);
+	}
     }
   return Qnil;
 }
@@ -7027,20 +7028,13 @@ produce_chars (struct coding_system *coding, Lisp_Object translation_table,
 	      LOOKUP_TRANSLATION_TABLE (translation_table, c, trans);
 	      if (! NILP (trans))
 		{
-		  trans = get_translation (trans, buf, buf_end);
+		  trans = get_translation (trans, buf, buf_end, &from_nchars);
 		  if (INTEGERP (trans))
 		    c = XINT (trans);
-		  else if (CONSP (trans))
+		  else if (VECTORP (trans))
 		    {
-		      from_nchars = ASIZE (XCAR (trans));
-		      trans = XCDR (trans);
-		      if (INTEGERP (trans))
-			c = XINT (trans);
-		      else
-			{
-			  to_nchars = ASIZE (trans);
-			  c = XINT (AREF (trans, 0));
-			}
+		      to_nchars = ASIZE (trans);
+		      c = XINT (AREF (trans, 0));
 		    }
 		  else if (EQ (trans, Qt) && ! last_block)
 		    break;
@@ -7681,22 +7675,16 @@ consume_chars (struct coding_system *coding, Lisp_Object translation_table,
 	  for (i = 1; i < max_lookup && p < src_end; i++)
 	    lookup_buf[i] = STRING_CHAR_ADVANCE (p);
 	  lookup_buf_end = lookup_buf + i;
-	  trans = get_translation (trans, lookup_buf, lookup_buf_end);
+	  trans = get_translation (trans, lookup_buf, lookup_buf_end,
+				   &from_nchars);
 	  if (INTEGERP (trans))
 	    c = XINT (trans);
-	  else if (CONSP (trans))
+	  else if (VECTORP (trans))
 	    {
-	      from_nchars = ASIZE (XCAR (trans));
-	      trans = XCDR (trans);
-	      if (INTEGERP (trans))
-		c = XINT (trans);
-	      else
-		{
-		  to_nchars = ASIZE (trans);
-		  if (buf_end - buf < to_nchars)
-		    break;
-		  c = XINT (AREF (trans, 0));
-		}
+	      to_nchars = ASIZE (trans);
+	      if (buf_end - buf < to_nchars)
+		break;
+	      c = XINT (AREF (trans, 0));
 	    }
 	  else
 	    break;
@@ -7863,6 +7851,15 @@ code_conversion_save (bool with_work_buf, bool multibyte)
   return workbuf;
 }
 
+static void
+coding_restore_undo_list (Lisp_Object arg)
+{
+  Lisp_Object undo_list = XCAR (arg);
+  struct buffer *buf = XBUFFER (XCDR (arg));
+
+  bset_undo_list (buf, undo_list);
+}
+
 void
 decode_coding_gap (struct coding_system *coding,
 		   ptrdiff_t chars, ptrdiff_t bytes)
@@ -7975,13 +7972,19 @@ decode_coding_gap (struct coding_system *coding,
     {
       ptrdiff_t prev_Z = Z, prev_Z_BYTE = Z_BYTE;
       Lisp_Object val;
+      Lisp_Object undo_list = BVAR (current_buffer, undo_list);
+      ptrdiff_t count1 = SPECPDL_INDEX ();
 
+      record_unwind_protect (coding_restore_undo_list,
+			     Fcons (undo_list, Fcurrent_buffer ()));
+      bset_undo_list (current_buffer, Qt);
       TEMP_SET_PT_BOTH (coding->dst_pos, coding->dst_pos_byte);
       val = call1 (CODING_ATTR_POST_READ (attrs),
 		   make_number (coding->produced_char));
       CHECK_NATNUM (val);
       coding->produced_char += Z - prev_Z;
       coding->produced += Z_BYTE - prev_Z_BYTE;
+      unbind_to (count1, Qnil);
     }
 
   unbind_to (count, Qnil);
@@ -8025,12 +8028,12 @@ decode_coding_object (struct coding_system *coding,
 		      Lisp_Object dst_object)
 {
   ptrdiff_t count = SPECPDL_INDEX ();
-  unsigned char *destination IF_LINT (= NULL);
-  ptrdiff_t dst_bytes IF_LINT (= 0);
+  unsigned char *destination;
+  ptrdiff_t dst_bytes;
   ptrdiff_t chars = to - from;
   ptrdiff_t bytes = to_byte - from_byte;
   Lisp_Object attrs;
-  ptrdiff_t saved_pt = -1, saved_pt_byte IF_LINT (= 0);
+  ptrdiff_t saved_pt = -1, saved_pt_byte;
   bool need_marker_adjustment = 0;
   Lisp_Object old_deactivate_mark;
 
@@ -8122,13 +8125,19 @@ decode_coding_object (struct coding_system *coding,
     {
       ptrdiff_t prev_Z = Z, prev_Z_BYTE = Z_BYTE;
       Lisp_Object val;
+      Lisp_Object undo_list = BVAR (current_buffer, undo_list);
+      ptrdiff_t count1 = SPECPDL_INDEX ();
 
+      record_unwind_protect (coding_restore_undo_list,
+			     Fcons (undo_list, Fcurrent_buffer ()));
+      bset_undo_list (current_buffer, Qt);
       TEMP_SET_PT_BOTH (coding->dst_pos, coding->dst_pos_byte);
       val = safe_call1 (CODING_ATTR_POST_READ (attrs),
 			make_number (coding->produced_char));
       CHECK_NATNUM (val);
       coding->produced_char += Z - prev_Z;
       coding->produced += Z_BYTE - prev_Z_BYTE;
+      unbind_to (count1, Qnil);
     }
 
   if (EQ (dst_object, Qt))
@@ -8208,7 +8217,7 @@ encode_coding_object (struct coding_system *coding,
   ptrdiff_t chars = to - from;
   ptrdiff_t bytes = to_byte - from_byte;
   Lisp_Object attrs;
-  ptrdiff_t saved_pt = -1, saved_pt_byte IF_LINT (= 0);
+  ptrdiff_t saved_pt = -1, saved_pt_byte;
   bool need_marker_adjustment = 0;
   bool kill_src_buffer = 0;
   Lisp_Object old_deactivate_mark;
@@ -8429,11 +8438,10 @@ from_unicode (Lisp_Object str)
 Lisp_Object
 from_unicode_buffer (const wchar_t *wstr)
 {
-    return from_unicode (
-        make_unibyte_string (
-            (char *) wstr,
-            /* we get one of the two final 0 bytes for free. */
-            1 + sizeof (wchar_t) * wcslen (wstr)));
+  /* We get one of the two final null bytes for free.  */
+  ptrdiff_t len = 1 + sizeof (wchar_t) * wcslen (wstr);
+  AUTO_STRING_WITH_LEN (str, (char *) wstr, len);
+  return from_unicode (str);
 }
 
 wchar_t *
@@ -8583,8 +8591,8 @@ detect_coding_system (const unsigned char *src,
   base_category = XINT (CODING_ATTR_CATEGORY (attrs));
   if (base_category == coding_category_undecided)
     {
-      enum coding_category category IF_LINT (= 0);
-      struct coding_system *this IF_LINT (= NULL);
+      enum coding_category category UNINIT;
+      struct coding_system *this UNINIT;
       int c, i;
       bool inhibit_nbd = inhibit_flag (coding.spec.undecided.inhibit_nbd,
 				       inhibit_null_byte_detection);
@@ -9854,7 +9862,8 @@ usage: (find-operation-coding-system OPERATION ARGUMENTS...)  */)
   if (!(STRINGP (target)
 	|| (EQ (operation, Qinsert_file_contents) && CONSP (target)
 	    && STRINGP (XCAR (target)) && BUFFERP (XCDR (target)))
-	|| (EQ (operation, Qopen_network_stream) && INTEGERP (target))))
+	|| (EQ (operation, Qopen_network_stream)
+	    && (INTEGERP (target) || EQ (target, Qt)))))
     error ("Invalid argument %"pI"d of operation `%s'",
 	   XFASTINT (target_idx) + 1, SDATA (SYMBOL_NAME (operation)));
   if (CONSP (target))
@@ -10558,9 +10567,9 @@ usage: (define-coding-system-internal ...)  */)
   return Qnil;
 
  short_args:
-  return Fsignal (Qwrong_number_of_arguments,
-		  Fcons (intern ("define-coding-system-internal"),
-			 make_number (nargs)));
+  Fsignal (Qwrong_number_of_arguments,
+	   Fcons (intern ("define-coding-system-internal"),
+		  make_number (nargs)));
 }
 
 
@@ -11319,24 +11328,4 @@ internal character representation.  */);
 #endif
   staticpro (&system_eol_type);
 }
-
-char *
-emacs_strerror (int error_number)
-{
-  char *str;
-
-  synchronize_system_messages_locale ();
-  str = strerror (error_number);
-
-  if (! NILP (Vlocale_coding_system))
-    {
-      Lisp_Object dec = code_convert_string_norecord (build_string (str),
-						      Vlocale_coding_system,
-						      0);
-      str = SSDATA (dec);
-    }
-
-  return str;
-}
-
 #endif /* emacs */

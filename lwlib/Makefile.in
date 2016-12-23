@@ -44,6 +44,7 @@ RANLIB=@RANLIB@
 AR = @AR@
 ARFLAGS = @ARFLAGS@
 MKDIR_P = @MKDIR_P@
+EXEEXT = @EXEEXT@
 
 LUCID_OBJS = lwlib-Xlw.o xlwmenu.o lwlib-Xaw.o
 MOTIF_OBJS = lwlib-Xm.o
@@ -128,15 +129,17 @@ distclean: clean
 bootstrap-clean maintainer-clean: distclean
 	rm -f TAGS
 
+ETAGS = ../lib-src/etags${EXEEXT}
 
-ETAGS = ../lib-src/etags
+${ETAGS}: FORCE
+	${MAKE} -C ../lib-src $(notdir $@)
 
-ctagsfiles= $(srcdir)/*.[ch]
+ctagsfiles= $(wildcard ${srcdir}/*.[ch])
 
-TAGS: $(ctagsfiles)
-	"$(ETAGS)" $(ctagsfiles)
+FORCE:
+.PHONY: tags FORCE
 tags: TAGS
-.PHONY: tags
-
+TAGS: ${ETAGS} $(ctagsfiles)
+	${ETAGS} $(ctagsfiles)
 
 ### Makefile.in ends here

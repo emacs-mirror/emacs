@@ -368,7 +368,7 @@ UPattern.  For example:
 @item (app @var{function} @var{upattern})
 Matches if @var{function} applied to the value being matched returns a
 value that matches @var{upattern}.  This is like the @code{pred}
-UPattern, except that it tests the result against @var{UPattern},
+UPattern, except that it tests the result against @var{upattern},
 rather than against a boolean truth value.  The @var{function} call can
 use one of the forms described below.
 @item (or @var{upattern1} @var{upattern2}@dots{})
@@ -805,6 +805,7 @@ The following piece of code demonstrates some important principles of
 working with iterators.
 
 @example
+(require 'generator)
 (iter-defun my-iter (x)
   (iter-yield (1+ (iter-yield (1+ x))))
    ;; Return normally

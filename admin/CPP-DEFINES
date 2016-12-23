@@ -13,7 +13,6 @@ CYGWIN		Compiling the Cygwin port.
 __CYGWIN__	Ditto
 GNU_LINUX
 HPUX
-IRIX6_5
 MSDOS		Compiling the MS-DOS port.
 __MSDOS__	Ditto.
 __DJGPP_MINOR__ Minor version number of the DJGPP library; used only in msdos.c and dosfns.c.
@@ -22,7 +21,7 @@ WINDOWSNT	Compiling the native MS-Windows (W32) port.
 __MINGW32__	Compiling the W32 port with the MinGW or MinGW-w64 ports of GCC.
 _MSC_VER	Compiling the W32 port with the Microsoft C compiler.
 MINGW_W64	Compiling the W32 port with the MinGW-w64 port of GCC.
-DARWIN_OS	Compiling on Mac OS X or pure Darwin (and using s/darwin.h).
+DARWIN_OS	Compiling on macOS or pure Darwin (and using s/darwin.h).
 SOLARIS2
 USG
 USG5_4
@@ -30,7 +29,7 @@ USG5_4
 ** Distinguishing GUIs **
 
 HAVE_NTGUI	Use the native W32 GUI for windows, frames, menus&scrollbars.
-HAVE_NS		Use the NeXT/OpenStep/Cocoa UI under Mac OS X or GNUstep.
+HAVE_NS		Use the NeXT/OpenStep/Cocoa UI under macOS or GNUstep.
 NS_IMPL_GNUSTEP	Compile support for GNUstep implementation of NS GUI API.
 NS_IMPL_COCOA	Compile support for Cocoa (Apple) implementation of NS GUI API.
 HAVE_X11	Compile support for the X11 GUI.
@@ -148,7 +147,6 @@ HAVE_FUTIMES
 HAVE_FUTIMESAT
 HAVE_GAI_STRERROR
 HAVE_GCONF
-HAVE_GETADDRINFO
 HAVE_GETDELIM
 HAVE_GETGRENT
 HAVE_GETHOSTNAME
@@ -158,7 +156,6 @@ HAVE_GETLOADAVG
 HAVE_GETOPT_H
 HAVE_GETOPT_LONG_ONLY
 HAVE_GETPAGESIZE
-HAVE_GETPEERNAME
 HAVE_GETPT
 HAVE_GETPWENT
 HAVE_GETRLIMIT
@@ -185,7 +182,6 @@ HAVE_GTK_WIDGET_GET_WINDOW
 HAVE_GTK_WIDGET_SET_HAS_WINDOW
 HAVE_GTK_WINDOW_SET_HAS_RESIZE_GRIP
 HAVE_G_TYPE_INIT
-HAVE_H_ERRNO
 HAVE_IFADDRS_H
 HAVE_IMAGEMAGICK
 HAVE_INET_SOCKETS
@@ -237,7 +233,7 @@ HAVE_NET_IF_DL_H
 HAVE_NET_IF_H
 HAVE_NLIST_H
 HAVE_OTF_GET_VARIATION_GLYPHS
-HAVE_PERSONALITY_LINUX32
+HAVE_PERSONALITY_ADDR_NO_RANDOMIZE
 HAVE_PNG
 HAVE_PNG_H
 HAVE_POSIX_MEMALIGN
@@ -254,7 +250,6 @@ HAVE_RANDOM
 HAVE_READLINK
 HAVE_READLINKAT
 HAVE_RECVFROM
-HAVE_RES_INIT
 HAVE_RINT
 HAVE_RSVG
 HAVE_SELECT
@@ -379,7 +374,6 @@ NSIG
 NSIG_MINIMUM
 NULL_DEVICE
 PAGESIZE
-PREFER_VSUSP
 PTY_ITERATION
 PTY_NAME_SPRINTF
 PTY_OPEN

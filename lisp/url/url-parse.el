@@ -1,4 +1,4 @@
-;;; url-parse.el --- Uniform Resource Locator parser
+;;; url-parse.el --- Uniform Resource Locator parser -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1996-1999, 2004-2016 Free Software Foundation, Inc.
 
@@ -224,7 +224,7 @@ parses to
 				 fragment nil full))))))
 
 (defmacro url-bit-for-url (method lookfor url)
-  `(let* ((urlobj (url-generic-parse-url url))
+  `(let* ((urlobj (url-generic-parse-url ,url))
           (bit (funcall ,method urlobj))
           (methods (list 'url-recreate-url
                          'url-host))

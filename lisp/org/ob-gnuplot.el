@@ -41,9 +41,10 @@
 (require 'ob)
 (eval-when-compile (require 'cl))
 
-(declare-function org-time-string-to-time "org" (s))
+(declare-function org-time-string-to-time "org" (s &optional buffer pos))
 (declare-function org-combine-plists "org" (&rest plists))
-(declare-function orgtbl-to-generic "org-table" (table params))
+(declare-function orgtbl-to-generic "org-table"
+                  (table params &optional backend))
 (declare-function gnuplot-mode "ext:gnuplot-mode" ())
 (declare-function gnuplot-send-string-to-gnuplot "ext:gnuplot-mode" (str txt))
 (declare-function gnuplot-send-buffer-to-gnuplot "ext:gnuplot-mode" ())

@@ -837,7 +837,10 @@ invoke it.  If KEYS is omitted or nil, the return value of
   kset_last_command (current_kboard, save_last_command);
 
   {
-    Lisp_Object val = Ffuncall (nargs, args);
+    Lisp_Object val;
+    specbind (Qcommand_debug_status, Qnil);
+
+    val = Ffuncall (nargs, args);
     val = unbind_to (speccount, val);
     SAFE_FREE ();
     return val;
@@ -894,6 +897,7 @@ syms_of_callint (void)
   DEFSYM (Qhandle_shift_selection, "handle-shift-selection");
   DEFSYM (Qread_number, "read-number");
   DEFSYM (Qfuncall_interactively, "funcall-interactively");
+  DEFSYM (Qcommand_debug_status, "command-debug-status");
   DEFSYM (Qenable_recursive_minibuffers, "enable-recursive-minibuffers");
   DEFSYM (Qmouse_leave_buffer_hook, "mouse-leave-buffer-hook");
 

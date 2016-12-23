@@ -37,7 +37,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Fetch the next byte from the bytecode stream.  */
 
-#ifdef BYTE_CODE_SAFE
+#if BYTE_CODE_SAFE
 #define FETCH (eassert (stack.byte_string_start == SDATA (stack.byte_string)), *stack.pc++)
 #else
 #define FETCH *stack.pc++
@@ -75,7 +75,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Check for jumping out of range.  */
 
-#ifdef BYTE_CODE_SAFE
+#if BYTE_CODE_SAFE
 
 #define CHECK_RANGE(ARG) \
   if (ARG >= bytestr_length) emacs_abort ()
@@ -675,7 +675,7 @@ jit_byte_code__ (Lisp_Object byte_code)
   ptrdiff_t count = SPECPDL_INDEX ();
   int op;
   Lisp_Object *vectorp;
-#ifdef BYTE_CODE_SAFE
+#if BYTE_CODE_SAFE
   ptrdiff_t const_length;
   Lisp_Object *stacke;
 #endif
@@ -715,7 +715,7 @@ jit_byte_code__ (Lisp_Object byte_code)
   CHECK_VECTOR (vector);
   CHECK_NATNUM (maxdepth);
 
-#ifdef BYTE_CODE_SAFE
+#if BYTE_CODE_SAFE
   const_length = ASIZE (vector);
 #endif
 
@@ -1982,7 +1982,7 @@ jit_byte_code__ (Lisp_Object byte_code)
 	    NEXT;
 	  }
 
-#ifdef BYTE_CODE_SAFE
+#if BYTE_CODE_SAFE
 	  /* These are intentionally written using 'case' syntax,
 	     because they are incompatible with the threaded
 	     interpreter.  */
@@ -2065,7 +2065,7 @@ jit_byte_code__ (Lisp_Object byte_code)
 	CASE (Bconstant):
 	  {
 	    jit_value_t c;
-#ifdef BYTE_CODE_SAFE
+#if BYTE_CODE_SAFE
 	    if (op < Bconstant)
 	      {
 		emacs_abort ();

@@ -198,8 +198,13 @@ operation is complete, in the form:
 ACTIVE-OPSTRING is a string which will be displayed to the user in a
 confirmation message, in the form:
  \"Really ACTIVE-OPSTRING x buffers?\"
-COMPLEX means this function is special; see the source code of this
-macro for exactly what it does.
+COMPLEX means this function is special; if COMPLEX is nil BODY
+evaluates once for each marked buffer, MBUF, with MBUF current
+and saving the point.  If COMPLEX is non-nil, BODY evaluates
+without requiring MBUF current.
+BODY define the operation; they are forms to evaluate per each
+marked buffer.  BODY is evaluated with `buf' bound to the
+buffer object.
 
 \(fn OP ARGS DOCUMENTATION (&key INTERACTIVE MARK MODIFIER-P DANGEROUS OPSTRING ACTIVE-OPSTRING COMPLEX) &rest BODY)"
   (declare (indent 2) (doc-string 3))
@@ -297,8 +302,13 @@ bound to the current value of the filter.
 			  qualifier))
 	 (ibuffer-update nil t))
        (push (list ',name ,description
-		   #'(lambda (buf qualifier)
-		       ,@body))
+		   (lambda (buf qualifier)
+                     (condition-case nil
+                         (progn ,@body)
+                       (error (ibuffer-pop-filter)
+                              (when (eq ',name 'predicate)
+                                (error "Wrong filter predicate: %S"
+                                       qualifier))))))
 	     ibuffer-filtering-alist)
        :autoload-end)))
 

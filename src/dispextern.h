@@ -82,6 +82,7 @@ typedef XImagePtr XImagePtr_or_DC;
 
 #ifdef HAVE_WINDOW_SYSTEM
 # include <time.h>
+# include "fontset.h"
 #endif
 
 #ifndef HAVE_WINDOW_SYSTEM
@@ -1275,7 +1276,6 @@ struct glyph_string
 
   /* X display and window for convenience.  */
   Display *display;
-  Window window;
 
   /* The glyph row for which this string was built.  It determines the
      y-origin and height of the string.  */
@@ -1812,36 +1812,46 @@ struct face_cache
   bool_bf menu_face_changed_p : 1;
 };
 
+/* Return a non-null pointer to the cached face with ID on frame F.  */
+
+#define FACE_FROM_ID(F, ID)					\
+  (eassert (UNSIGNED_CMP (ID, <, FRAME_FACE_CACHE (F)->used)),	\
+   FRAME_FACE_CACHE (F)->faces_by_id[ID])
+
 /* Return a pointer to the face with ID on frame F, or null if such a
    face doesn't exist.  */
 
-#define FACE_FROM_ID(F, ID)				\
-     (UNSIGNED_CMP (ID, <, FRAME_FACE_CACHE (F)->used)	\
-      ? FRAME_FACE_CACHE (F)->faces_by_id[ID]		\
-      : NULL)
+#define FACE_FROM_ID_OR_NULL(F, ID)			\
+  (UNSIGNED_CMP (ID, <, FRAME_FACE_CACHE (F)->used)	\
+   ? FRAME_FACE_CACHE (F)->faces_by_id[ID]		\
+   : NULL)
 
+/* True if FACE is suitable for displaying ASCII characters.  */
+INLINE bool
+FACE_SUITABLE_FOR_ASCII_CHAR_P (struct face *face)
+{
 #ifdef HAVE_WINDOW_SYSTEM
-
-/* Non-zero if FACE is suitable for displaying character CHAR.  */
-
-#define FACE_SUITABLE_FOR_ASCII_CHAR_P(FACE, CHAR)	\
-  ((FACE) == (FACE)->ascii_face)
+  return face == face->ascii_face;
+#else
+  return true;
+#endif
+}
 
 /* Return the id of the realized face on frame F that is like the face
-   FACE, but is suitable for displaying character CHAR at buffer or
+   FACE, but is suitable for displaying character CHARACTER at buffer or
    string position POS.  OBJECT is the string object, or nil for
    buffer.  This macro is only meaningful for multibyte character
    CHAR.  */
-
-#define FACE_FOR_CHAR(F, FACE, CHAR, POS, OBJECT)	\
-  face_for_char ((F), (FACE), (CHAR), (POS), (OBJECT))
-
-#else /* not HAVE_WINDOW_SYSTEM */
-
-#define FACE_SUITABLE_FOR_ASCII_CHAR_P(FACE, CHAR) true
-#define FACE_FOR_CHAR(F, FACE, CHAR, POS, OBJECT) ((FACE)->id)
-
-#endif /* not HAVE_WINDOW_SYSTEM */
+INLINE int
+FACE_FOR_CHAR (struct frame *f, struct face *face, int character,
+	       ptrdiff_t pos, Lisp_Object object)
+{
+#ifdef HAVE_WINDOW_SYSTEM
+  return face_for_char (f, face, character, pos, object);
+#else
+  return face->id;
+#endif
+}
 
 /* Return true if G contains a valid character code.  */
 INLINE bool
@@ -2226,7 +2236,7 @@ struct composition_it
   /* Indices of the glyphs for the current grapheme cluster.  */
   int from, to;
   /* Width of the current grapheme cluster in units of columns it will
-     occupy on display; see CHAR_WIDTH.  */
+     occupy on display; see CHARACTER_WIDTH.  */
   int width;
 };
 
@@ -3083,13 +3093,19 @@ struct image_cache
 };
 
 
+/* A non-null pointer to the image with id ID on frame F.  */
+
+#define IMAGE_FROM_ID(F, ID)					\
+  (eassert (UNSIGNED_CMP (ID, <, FRAME_IMAGE_CACHE (F)->used)),	\
+   FRAME_IMAGE_CACHE (F)->images[ID])
+
 /* Value is a pointer to the image with id ID on frame F, or null if
    no image with that id exists.  */
 
-#define IMAGE_FROM_ID(F, ID)					\
-     (((ID) >= 0 && (ID) < (FRAME_IMAGE_CACHE (F)->used))	\
-      ? FRAME_IMAGE_CACHE (F)->images[ID]			\
-      : NULL)
+#define IMAGE_OPT_FROM_ID(F, ID)				\
+  (UNSIGNED_CMP (ID, <, FRAME_IMAGE_CACHE (F)->used)		\
+   ? FRAME_IMAGE_CACHE (F)->images[ID]				\
+   : NULL)
 
 /* Size of bucket vector of image caches.  Should be prime.  */
 
@@ -3339,6 +3355,8 @@ void x_cr_init_fringe (struct redisplay_interface *);
 #endif
 
 extern unsigned row_hash (struct glyph_row *);
+
+extern bool buffer_flipping_blocked_p (void);
 
 /* Defined in image.c */
 

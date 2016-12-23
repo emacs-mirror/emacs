@@ -740,7 +740,7 @@ These mean that the FTP process should be (or already has been) killed."
   :type 'regexp)
 
 (defcustom ange-ftp-potential-error-msgs
-  ;; On Mac OS X we sometimes get things like:
+  ;; On macOS we sometimes get things like:
   ;;
   ;;     ftp> open ftp.nluug.nl
   ;;     Trying 2001:610:1:80aa:192:87:102:36...
@@ -1533,12 +1533,11 @@ then kill the related FTP process."
 
 (defun ange-ftp-barf-if-not-directory (directory)
   (or (file-directory-p directory)
-      (signal 'file-error
-	      (list "Opening directory"
-		    (if (file-exists-p directory)
-			"Not a directory"
-		      "No such file or directory")
-		    directory))))
+      (let ((exists (file-exists-p directory)))
+	(signal (if exists 'file-error 'file-missing)
+		(list "Opening directory"
+		      (if exists "Not a directory" "No such file or directory")
+		      directory)))))
 
 ;;;; ------------------------------------------------------------
 ;;;; FTP process filter support.
@@ -3352,9 +3351,10 @@ system TYPE.")
 		      (setq buffer-file-name filename)))
 		(setq last-coding-system-used coding-system-used)
 		(list filename size))
-	    (signal 'file-error
+	    (signal 'file-missing
 		    (list
 		     "Opening input file"
+		     "No such file or directory"
 		     filename))))
       (ange-ftp-real-insert-file-contents filename visit beg end replace))))
 
@@ -3663,7 +3663,7 @@ so return the size on the remote host exactly. See RFC 3659."
 	newname (expand-file-name newname))
 
   (or (file-exists-p filename)
-      (signal 'file-error
+      (signal 'file-missing
 	      (list "Copy file" "No such file or directory" filename)))
 
   ;; canonicalize newname if a directory.

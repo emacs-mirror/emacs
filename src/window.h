@@ -214,6 +214,11 @@ struct window
     int pixel_width;
     int pixel_height;
 
+    /* The pixel sizes of the window at the last time
+       `window-size-change-functions' was run.  */
+    int pixel_width_before_size_change;
+    int pixel_height_before_size_change;
+
     /* The size of the window.  */
     int total_cols;
     int total_lines;
@@ -499,15 +504,17 @@ wset_next_buffers (struct window *w, Lisp_Object val)
 #define WINDOW_LEAF_P(W) \
   (BUFFERP ((W)->contents))
 
-/* True if W is a member of horizontal combination.  */
+/* Non-nil if W is internal.  */
+#define WINDOW_INTERNAL_P(W) \
+  (WINDOWP ((W)->contents))
 
+/* True if W is a member of horizontal combination.  */
 #define WINDOW_HORIZONTAL_COMBINATION_P(W) \
-  (WINDOWP ((W)->contents) && (W)->horizontal)
+  (WINDOW_INTERNAL_P (W) && (W)->horizontal)
 
 /* True if W is a member of vertical combination.  */
-
 #define WINDOW_VERTICAL_COMBINATION_P(W) \
-  (WINDOWP ((W)->contents) && !(W)->horizontal)
+  (WINDOW_INTERNAL_P (W) && !(W)->horizontal)
 
 /* WINDOW's XFRAME.  */
 #define WINDOW_XFRAME(W) (XFRAME (WINDOW_FRAME ((W))))
@@ -786,7 +793,7 @@ wset_next_buffers (struct window *w, Lisp_Object val)
    || WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_RIGHT (W))
 
 #if (defined (HAVE_WINDOW_SYSTEM)					\
-     && ((defined (USE_TOOLKIT_SCROLL_BARS) && !defined (HAVE_NS))	\
+     && ((defined (USE_TOOLKIT_SCROLL_BARS))	\
 	 || defined (HAVE_NTGUI)))
 # define USE_HORIZONTAL_SCROLL_BARS true
 #else
@@ -1013,7 +1020,7 @@ extern void grow_mini_window (struct window *, int, bool);
 extern void shrink_mini_window (struct window *, bool);
 extern int window_relative_x_coord (struct window *, enum window_part, int);
 
-void run_window_configuration_change_hook (struct frame *f);
+void run_window_size_change_functions (Lisp_Object);
 
 /* Make WINDOW display BUFFER.  RUN_HOOKS_P means it's allowed
    to run hooks.  See make_frame for a case where it's not allowed.  */
@@ -1056,7 +1063,6 @@ extern void wset_redisplay (struct window *w);
 extern void fset_redisplay (struct frame *f);
 extern void bset_redisplay (struct buffer *b);
 extern void bset_update_mode_line (struct buffer *b);
-extern void maybe_set_redisplay (Lisp_Object);
 /* Call this to tell redisplay to look for other windows than selected-window
    that need to be redisplayed.  Calling one of the *set_redisplay functions
    above already does it, so it's only needed in unusual cases.  */
@@ -1098,7 +1104,7 @@ extern int window_body_width (struct window *w, bool);
 extern void temp_output_buffer_show (Lisp_Object);
 extern void replace_buffer_in_windows (Lisp_Object);
 extern void replace_buffer_in_windows_safely (Lisp_Object);
-extern Lisp_Object sanitize_window_sizes (Lisp_Object, Lisp_Object);
+extern void sanitize_window_sizes (Lisp_Object horizontal);
 /* This looks like a setter, but it is a bit special.  */
 extern void wset_buffer (struct window *, Lisp_Object);
 extern bool window_outdated (struct window *);

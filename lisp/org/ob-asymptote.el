@@ -45,7 +45,8 @@
 (require 'ob)
 (eval-when-compile (require 'cl))
 
-(declare-function orgtbl-to-generic "org-table" (table params))
+(declare-function orgtbl-to-generic "org-table"
+                  (table params &optional backend))
 (declare-function org-combine-plists "org" (&rest plists))
 
 (defvar org-babel-tangle-lang-exts)

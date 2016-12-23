@@ -26,6 +26,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <sys/types.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "lwlib-int.h"
 #include "lwlib-utils.h"
 #include <X11/StringDefs.h>
@@ -1042,11 +1043,13 @@ widget_value*
 lw_get_all_values (LWLIB_ID id)
 {
   widget_info* info = get_widget_info (id, False);
-  widget_value* val = info->val;
-  if (lw_get_some_values (id, val))
-    return val;
-  else
-    return NULL;
+  if (info)
+    {
+      widget_value* val = info->val;
+      if (lw_get_some_values (id, val))
+	return val;
+    }
+  return NULL;
 }
 
 /* internal function used by the library dependent implementation to get the

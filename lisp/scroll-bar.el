@@ -148,8 +148,7 @@ created in the future."
   "Return non-nil when horizontal scroll bars are available on this system."
   (and (display-graphic-p)
        (boundp 'x-toolkit-scroll-bars)
-       x-toolkit-scroll-bars
-       (not (eq (window-system) 'ns))))
+       x-toolkit-scroll-bars))
 
 (define-minor-mode horizontal-scroll-bar-mode
   "Toggle horizontal scroll bars on all frames (Horizontal Scroll Bar mode).
@@ -184,9 +183,7 @@ when they are turned on; if it is nil, they go on the left."
   (interactive "P")
   (if (null arg)
       (setq arg
-	    (if (cdr (assq 'vertical-scroll-bars
-			   (frame-parameters (selected-frame))))
-		-1 1))
+	    (if (frame-parameter nil 'vertical-scroll-bars) -1 1))
     (setq arg (prefix-numeric-value arg)))
   (modify-frame-parameters
    (selected-frame)
@@ -200,9 +197,7 @@ With ARG, turn vertical scroll bars on if and only if ARG is positive."
   (interactive "P")
   (if (null arg)
       (setq arg
-	    (if (cdr (assq 'horizontal-scroll-bars
-			   (frame-parameters (selected-frame))))
-		-1 1))
+	    (if (frame-parameter nil 'horizontal-scroll-bars) -1 1))
     (setq arg (prefix-numeric-value arg)))
   (modify-frame-parameters
    (selected-frame)

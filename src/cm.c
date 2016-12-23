@@ -321,7 +321,7 @@ cmgoto (struct tty_display_info *tty, int row, int col)
             llcost,
             relcost,
             directcost;
-    int     use IF_LINT (= 0);
+    int use UNINIT;
     char *p;
     const char *dcm;
 

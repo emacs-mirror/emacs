@@ -745,7 +745,7 @@ exactly what to do for end-of-line conversion:
 @item @dots{}-unix
 Don't do any end-of-line conversion; assume the file uses
 newline to separate lines.  (This is the convention normally used
-on Unix and GNU systems, and Mac OS X.)
+on Unix and GNU systems, and macOS.)
 
 @item @dots{}-dos
 Assume the file uses carriage-return linefeed to separate lines, and do
@@ -757,8 +757,8 @@ Emacs doesn't support directly.})
 
 @item @dots{}-mac
 Assume the file uses carriage-return to separate lines, and do the
-appropriate conversion.  (This was the convention used on the
-Macintosh system prior to OS X.)
+appropriate conversion.  (This was the convention used in Classic Mac
+OS.)
 @end table
 
   These variant coding systems are omitted from the
@@ -1393,7 +1393,7 @@ of @code{standard-fontset-spec}.  This fontset's name is
 @noindent
 or just @samp{fontset-standard} for short.
 
-  On GNUstep and Mac OS X, the standard fontset is created using the value of
+  On GNUstep and macOS, the standard fontset is created using the value of
 @code{ns-standard-fontset-spec}, and on MS Windows it is
 created using the value of @code{w32-standard-fontset-spec}.
 

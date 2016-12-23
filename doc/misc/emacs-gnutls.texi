@@ -173,13 +173,17 @@ Just use @code{open-protocol-stream} or @code{open-network-stream}
 You should not have to use the @file{gnutls.el} functions directly.
 But you can test them with @code{open-gnutls-stream}.
 
-@defun open-gnutls-stream name buffer host service
+@defun open-gnutls-stream name buffer host service &optional nowait
 This function creates a buffer connected to a specific @var{host} and
 @var{service} (port number or service name).  The parameters and their
 syntax are the same as those given to @code{open-network-stream}
 (@pxref{Network,, Network Connections, elisp, The Emacs Lisp Reference
 Manual}).  The connection process is called @var{name} (made unique if
 necessary).  This function returns the connection process.
+
+The @var{nowait} parameter means that the socket should be
+asynchronous, and the connection process will be returned to the
+caller before TLS negotiation has happened.
 
 @lisp
 ;; open a HTTPS connection
@@ -190,6 +194,12 @@ necessary).  This function returns the connection process.
 @end lisp
 
 @end defun
+
+@findex gnutls-asynchronous-parameters
+If called with @var{nowait}, the process is returned immediately
+(before connecting to the server).  In that case, the process object
+is told what parameters to use when negotiating the connection
+by using the @code{gnutls-asynchronous-parameters} function.
 
 The function @code{gnutls-negotiate} is not generally useful and it
 may change as needed, so please see @file{gnutls.el} for the details.

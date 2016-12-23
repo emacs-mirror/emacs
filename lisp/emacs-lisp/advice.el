@@ -1832,7 +1832,7 @@ Redefining advices affect the construction of an advised definition."
 ;; @@ Interactive input functions:
 ;; ===============================
 
-(declare-function 'function-called-at-point "help")
+(declare-function function-called-at-point "help")
 
 (defun ad-read-advised-function (&optional prompt predicate default)
   "Read name of advised function with completion from the minibuffer.
@@ -2830,7 +2830,7 @@ advised definition from scratch."
 		    (ad-get-cache-id function))))
       (ad-set-advice-info function old-advice-info)
       (advice-remove function advicefunname)
-      (fset advicefunname old-advice)
+      (if advicefunname (fset advicefunname old-advice))
       (if old-advice (advice-add function :around advicefunname)))))
 
 

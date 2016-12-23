@@ -25,12 +25,6 @@
 
 ;;; Code:
 
-(eval-and-compile
-  ;; In Emacs 24, `open-protocol-stream' is an autoloaded alias for
-  ;; `make-network-stream'.
-  (unless (fboundp 'open-protocol-stream)
-    (require 'proto-stream)))
-
 (require 'nnheader)
 (require 'nnoo)
 (require 'gnus-util)
@@ -244,8 +238,7 @@ server there that you can connect to.  See also
 
 (defvoo nntp-connection-timeout nil
   "*Number of seconds to wait before an nntp connection times out.
-If this variable is nil, which is the default, no timers are set.
-NOTE: This variable is never seen to work in Emacs 20 and XEmacs 21.")
+If this variable is nil, which is the default, no timers are set.")
 
 (defvoo nntp-prepare-post-hook nil
   "*Hook run just before posting an article.  It is supposed to be used
@@ -259,8 +252,10 @@ update their active files often, this can help.")
 ;;; Internal variables.
 
 (defvoo nntp-retrieval-in-progress nil)
-(defvar nntp-record-commands nil
-  "*If non-nil, nntp will record all commands in the \"*nntp-log*\" buffer.")
+(defcustom nntp-record-commands nil
+  "If non-nil, nntp will record all commands in the \"*nntp-log*\" buffer."
+  :group 'nntp
+  :type 'boolean)
 
 (defvar nntp-have-messaged nil)
 
@@ -344,16 +339,14 @@ retried once before actually displaying the error report."
 
 (defmacro nntp-copy-to-buffer (buffer start end)
   "Copy string from unibyte current buffer to multibyte buffer."
-  (if (featurep 'xemacs)
-      `(copy-to-buffer ,buffer ,start ,end)
-    `(let ((string (buffer-substring ,start ,end)))
-       (with-current-buffer ,buffer
-	 (erase-buffer)
-	 (insert (if enable-multibyte-characters
-		     (mm-string-to-multibyte string)
-		   string))
-	 (goto-char (point-min))
-	 nil))))
+  `(let ((string (buffer-substring ,start ,end)))
+     (with-current-buffer ,buffer
+       (erase-buffer)
+       (insert (if enable-multibyte-characters
+		   (string-to-multibyte string)
+		 string))
+       (goto-char (point-min))
+       nil)))
 
 (defsubst nntp-wait-for (process wait-for buffer &optional decode discard)
   "Wait for WAIT-FOR to arrive from PROCESS."
@@ -1269,7 +1262,7 @@ If SEND-IF-FORCE, only send authinfo to the server if the
 			   (nntp-open-ssl-stream tls)
 			   (nntp-open-tls-stream tls))))
 		(if (assoc nntp-open-connection-function map)
-		    (open-protocol-stream
+		    (open-network-stream
 		     "nntpd" pbuffer nntp-address nntp-port-number
 		     :type (cadr (assoc nntp-open-connection-function map))
 		     :end-of-command "^\\([2345]\\|[.]\\).*\n"
@@ -1301,13 +1294,11 @@ If SEND-IF-FORCE, only send authinfo to the server if the
       (nntp-kill-buffer pbuffer))
     (when (and (buffer-name pbuffer)
 	       process)
-      (when (and (fboundp 'set-network-process-option) ;; Unavailable in XEmacs.
-		 (fboundp 'process-type) ;; Emacs 22 doesn't provide it.
-                 (eq (process-type process) 'network))
+      (when (eq (process-type process) 'network)
         ;; Use TCP-keepalive so that connections that pass through a NAT router
         ;; don't hang when left idle.
         (set-network-process-option process :keepalive t))
-      (gnus-set-process-query-on-exit-flag process nil)
+      (set-process-query-on-exit-flag process nil)
       (if (and (nntp-wait-for process "^2.*\n" buffer nil t)
 	       (memq (process-status process) '(open run)))
 	  (prog1

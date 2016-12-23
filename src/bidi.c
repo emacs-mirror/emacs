@@ -1107,15 +1107,9 @@ bidi_initialize (void)
     emacs_abort ();
   staticpro (&bidi_brackets_table);
 
-  DEFSYM (Qparagraph_start, "paragraph-start");
-  paragraph_start_re = Fsymbol_value (Qparagraph_start);
-  if (!STRINGP (paragraph_start_re))
-    paragraph_start_re = build_string ("\f\\|[ \t]*$");
+  paragraph_start_re = build_string ("^\\(\f\\|[ \t]*\\)$");
   staticpro (&paragraph_start_re);
-  DEFSYM (Qparagraph_separate, "paragraph-separate");
-  paragraph_separate_re = Fsymbol_value (Qparagraph_separate);
-  if (!STRINGP (paragraph_separate_re))
-    paragraph_separate_re = build_string ("[ \t\f]*$");
+  paragraph_separate_re = build_string ("^[ \t\f]*$");
   staticpro (&paragraph_separate_re);
 
   bidi_cache_sp = 0;

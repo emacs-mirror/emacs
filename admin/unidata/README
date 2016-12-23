@@ -20,3 +20,7 @@ http://www.unicode.org/Public/UNIDATA/UnicodeData.txt
 Blocks.txt
 http://www.unicode.org/Public/8.0.0/ucd/Blocks.txt
 2014-11-10
+
+NormalizationTest.txt
+http://www.unicode.org/Public/UNIDATA/NormalizationTest.txt
+2016-07-16

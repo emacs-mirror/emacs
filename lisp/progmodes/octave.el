@@ -34,31 +34,6 @@
 ;;; Code:
 (require 'comint)
 
-;;; For emacs < 24.3.
-(require 'newcomment)
-(eval-and-compile
-  (unless (fboundp 'user-error)
-    (defalias 'user-error 'error))
-  (unless (fboundp 'delete-consecutive-dups)
-    (defalias 'delete-consecutive-dups 'delete-dups))
-  (unless (fboundp 'completion-table-with-cache)
-    (defun completion-table-with-cache (fun &optional ignore-case)
-      ;; See eg bug#11906.
-      (let* (last-arg last-result
-             (new-fun
-              (lambda (arg)
-                (if (and last-arg (string-prefix-p last-arg arg ignore-case))
-                    last-result
-                  (prog1
-                      (setq last-result (funcall fun arg))
-                    (setq last-arg arg))))))
-        (completion-table-dynamic new-fun)))))
-(eval-when-compile
-  (unless (fboundp 'setq-local)
-    (defmacro setq-local (var val)
-      "Set variable VAR to value VAL in current buffer."
-      (list 'set (list 'make-local-variable (list 'quote var)) val))))
-
 (defgroup octave nil
   "Editing Octave code."
   :link '(custom-manual "(octave-mode)Top")
@@ -605,13 +580,8 @@ Key bindings:
 
   (setq-local fill-nobreak-predicate
               (lambda () (eq (octave-in-string-p) ?')))
-  (with-no-warnings
-    (if (fboundp 'add-function)         ; new in 24.4
-        (add-function :around (local 'comment-line-break-function)
-                      #'octave--indent-new-comment-line)
-      (setq-local comment-line-break-function
-                  (apply-partially #'octave--indent-new-comment-line
-                                   #'comment-indent-new-line))))
+  (add-function :around (local 'comment-line-break-function)
+                #'octave--indent-new-comment-line)
 
   (setq font-lock-defaults '(octave-font-lock-keywords))
 
@@ -908,9 +878,6 @@ startup file, `~/.emacs-octave'."
                        (inferior-octave-completion-table)
                        'comint-completion-file-name-table))))))
 
-(define-obsolete-function-alias 'inferior-octave-complete
-  'completion-at-point "24.1")
-
 (defun inferior-octave-dynamic-list-input-ring ()
   "List the buffer's input history in a help buffer."
   ;; We cannot use `comint-dynamic-list-input-ring', because it replaces
@@ -1060,8 +1027,7 @@ directory and makes this the current buffer's default directory."
                    (skip-syntax-backward "-(")
                    (thing-at-point 'symbol)))))
     (completing-read
-     (format (if def "Function (default %s): "
-               "Function: ") def)
+     (format (if def "Function (default %s): " "Function: ") def)
      (inferior-octave-completion-table)
      nil nil nil nil def)))
 
@@ -1447,9 +1413,6 @@ The block marked is the one that contains point or follows point."
       (list beg end (or (and (inferior-octave-process-live-p)
                              (inferior-octave-completion-table))
                         octave-reserved-words)))))
-
-(define-obsolete-function-alias 'octave-complete-symbol
-  'completion-at-point "24.1")
 
 (defun octave-add-log-current-defun ()
   "A function for `add-log-current-defun-function' (which see)."

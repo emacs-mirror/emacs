@@ -102,8 +102,6 @@ This exists as a variable so it can be set locally in certain buffers.")
   "Face used for documentation text."
   :group 'widget-documentation
   :group 'widget-faces)
-(define-obsolete-face-alias 'widget-documentation-face
-  'widget-documentation "22.1")
 
 (defvar widget-button-face 'widget-button
   "Face used for buttons in widgets.
@@ -112,7 +110,6 @@ This exists as a variable so it can be set locally in certain buffers.")
 (defface widget-button '((t (:weight bold)))
   "Face used for widget buttons."
   :group 'widget-faces)
-(define-obsolete-face-alias 'widget-button-face 'widget-button "22.1")
 
 (defcustom widget-mouse-face 'highlight
   "Face used for widget buttons when the mouse is above them."
@@ -135,7 +132,6 @@ This exists as a variable so it can be set locally in certain buffers.")
 			 :slant italic))
   "Face used for editable fields."
   :group 'widget-faces)
-(define-obsolete-face-alias 'widget-field-face 'widget-field "22.1")
 
 (defface widget-single-line-field '((((type tty))
 				     :background "green3"
@@ -150,8 +146,6 @@ This exists as a variable so it can be set locally in certain buffers.")
 				     :slant italic))
   "Face used for editable fields spanning only a single line."
   :group 'widget-faces)
-(define-obsolete-face-alias 'widget-single-line-field-face
-  'widget-single-line-field "22.1")
 
 ;;; This causes display-table to be loaded, and not usefully.
 ;;;(defvar widget-single-line-display-table
@@ -427,8 +421,6 @@ the :notify function can't know the new value.")
   '((t :inherit shadow))
   "Face used for inactive widgets."
   :group 'widget-faces)
-(define-obsolete-face-alias 'widget-inactive-face
-  'widget-inactive "22.1")
 
 (defun widget-specify-inactive (widget from to)
   "Make WIDGET inactive for user modifications."
@@ -905,8 +897,6 @@ Note that such modes will need to require wid-edit.")
      (:weight bold :underline t)))
   "Face used for pressed buttons."
   :group 'widget-faces)
-(define-obsolete-face-alias 'widget-button-pressed-face
-  'widget-button-pressed "22.1")
 
 (defvar widget-button-click-moves-point nil
   "If non-nil, `widget-button-click' moves point to a button after invoking it.
@@ -1789,7 +1779,13 @@ If END is omitted, it defaults to the length of LIST."
   "An embedded link."
   :button-prefix 'widget-link-prefix
   :button-suffix 'widget-link-suffix
-  :follow-link 'mouse-face
+  ;; The `follow-link' property should only be used in those contexts where the
+  ;; mouse-1 event normally doesn't follow the link, yet the `link' widget
+  ;; seems to almost always be used in contexts where (down-)mouse-1 is bound
+  ;; to `widget-button-click' and hence the "mouse-1 to mouse-2" remapping is
+  ;; not necessary (and can even be harmful).  So let's not add a :follow-link
+  ;; by default.  See (bug#22434).
+  ;; :follow-link 'mouse-face
   :help-echo "Follow the link."
   :format "%[%t%]")
 

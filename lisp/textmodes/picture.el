@@ -33,7 +33,7 @@
 (defgroup picture nil
   "Editing text-based pictures (\"ASCII art\")."
   :prefix "picture-"
-  :group 'wp)
+  :group 'text)
 
 (defcustom picture-rectangle-ctl ?+
   "Character `picture-draw-rectangle' uses for top left corners."

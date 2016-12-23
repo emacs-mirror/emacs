@@ -6,4 +6,6 @@
   "Terminal initialization function for cygwin."
   (tty-no-underline))
 
+(provide 'term/cygwin)
+
 ;;; cygwin.el ends here

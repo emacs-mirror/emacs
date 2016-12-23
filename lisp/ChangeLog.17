@@ -1254,7 +1254,7 @@
 2015-03-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/shr.el (shr-insert): Remove soft hyphens.
-	(shr-insert): Also remove soft hypens from non-folded text.
+	(shr-insert): Also remove soft hyphens from non-folded text.
 
 2015-02-28  Eli Zaretskii  <eliz@gnu.org>
 
@@ -8033,7 +8033,7 @@
 2014-08-24  Alan Mackenzie  <acm@muc.de>
 
 	Handle C++11's "auto" and "decltype" constructions.
-	* progmodes/cc-engine.el (c-forward-type): Enhance to recognise
+	* progmodes/cc-engine.el (c-forward-type): Enhance to recognize
 	and return 'decltype.
 	(c-forward-decl-or-cast-1): New let variables backup-kwd-sym,
 	prev-kwd-sym, new-style-auto.  Enhance to handle the new "auto"
@@ -13542,7 +13542,7 @@
 
 	c-parse-state.  Don't "append-lower-brace-pair" in certain
 	circumstances.  Also fix an obscure bug where "\\s!" shouldn't be
-	recognised as a comment.
+	recognized as a comment.
 
 	* progmodes/cc-engine.el (c-state-pp-to-literal): Check for "\\s!"
 	as well as normal comment starter.
@@ -17480,7 +17480,7 @@
 	after a function declaration with only types (no identifiers) in
 	the parentheses.  Also, accept a function declaration with just a
 	type inside the parentheses, if this type can be positively
-	recognised as such, or if a prefix keyword like "explicit" nails
+	recognized as such, or if a prefix keyword like "explicit" nails
 	down the construct as a declaration.
 
 2013-10-19  Eli Zaretskii  <eliz@gnu.org>

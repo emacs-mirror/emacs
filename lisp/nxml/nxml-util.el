@@ -36,20 +36,6 @@
     `(nxml-debug "%s: %S" ,name
                 (buffer-substring-no-properties ,start ,end))))
 
-(defmacro nxml-debug-set-inside (start end)
-  (when nxml-debug
-    `(let ((overlay (make-overlay ,start ,end)))
-       (overlay-put overlay 'face '(:background "red"))
-       (overlay-put overlay 'nxml-inside-debug t)
-       (nxml-debug-change "nxml-set-inside" ,start ,end))))
-
-(defmacro nxml-debug-clear-inside (start end)
-  (when nxml-debug
-    `(cl-loop for overlay in (overlays-in ,start ,end)
-           if (overlay-get overlay 'nxml-inside-debug)
-           do (delete-overlay overlay)
-           finally (nxml-debug-change "nxml-clear-inside" ,start ,end))))
-
 (defun nxml-make-namespace (str)
   "Return a symbol for the namespace URI STR.
 STR must be a string.  If STR is the empty string, return nil.

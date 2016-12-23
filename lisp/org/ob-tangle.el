@@ -31,13 +31,13 @@
   (require 'cl))
 
 (declare-function org-edit-special "org" (&optional arg))
-(declare-function org-link-escape "org" (text &optional table))
+(declare-function org-link-escape "org" (text &optional table merge))
 (declare-function org-store-link "org" (arg))
 (declare-function org-open-link-from-string "org" (s &optional arg reference-buffer))
 (declare-function org-heading-components "org" ())
-(declare-function org-back-to-heading "org" (invisible-ok))
+(declare-function org-back-to-heading "org" (&optional invisible-ok))
 (declare-function org-fill-template "org" (template alist))
-(declare-function org-babel-update-block-body "org" (new-body))
+(declare-function org-babel-update-block-body "ob-core" (new-body))
 (declare-function make-directory "files" (dir &optional parents))
 
 (defcustom org-babel-tangle-lang-exts

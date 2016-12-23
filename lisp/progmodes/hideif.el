@@ -1114,8 +1114,8 @@ preprocessing token"
       result)))
 
 (defun hif-delimit (lis atom)
-  (nconc (cl-mapcan (lambda (l) (list l atom))
-                    (butlast lis))
+  (nconc (mapcan (lambda (l) (list l atom))
+                 (butlast lis))
          (last lis)))
 
 ;; Perform token replacement:

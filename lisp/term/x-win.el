@@ -1487,5 +1487,6 @@ This uses `icon-map-list' to map icon file names to stock icon names."
 (global-set-key [XF86WakeUp] 'ignore)
 
 (provide 'x-win)
+(provide 'term/x-win)
 
 ;;; x-win.el ends here

@@ -93,4 +93,6 @@
   (tty-set-up-initial-frame-faces)
   (run-hooks 'terminal-init-w32-hook))
 
+(provide 'term/w32console)
+
 ;;; w32console.el ends here

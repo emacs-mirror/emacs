@@ -384,11 +384,15 @@ Thus, this does not include the shell's current directory.")
        ((eq (aref qstr match) ?\") (setq dquotes (not dquotes)))
        ((eq (aref qstr match) ?\')
         (cond
+         ;; Treat single quote as text if inside double quotes.
          (dquotes (funcall push "'" (match-end 0)))
-         ((< match (1+ (length qstr)))
+         ((< (1+ match) (length qstr))
           (let ((end (string-match "'" qstr (1+ match))))
-            (funcall push (substring qstr (1+ match) end)
-                     (or end (length qstr)))))
+            (unless end
+              (setq end (length qstr))
+              (set-match-data (list match (length qstr))))
+            (funcall push (substring qstr (1+ match) end) end)))
+         ;; Ignore if at the end of string.
          (t nil)))
        (t (error "Unexpected case in shell--unquote&requote-argument!")))
       (setq qpos (match-end 0)))
@@ -586,6 +590,7 @@ buffer."
 		  ((string-equal shell "ksh") "echo $PWD ~-")
 		  ;; Bypass any aliases.  TODO all shells could use this.
 		  ((string-equal shell "bash") "command dirs")
+		  ((string-equal shell "zsh") "dirs -l")
 		  (t "dirs")))
       ;; Bypass a bug in certain versions of bash.
       (when (string-equal shell "bash")
@@ -710,12 +715,11 @@ Otherwise, one argument `-i' is passed to the shell.
 	   (null (getenv "ESHELL")))
       (with-current-buffer buffer
 	(set (make-local-variable 'explicit-shell-file-name)
-	     (file-remote-p
-	      (expand-file-name
+             (expand-file-name
+              (file-local-name
 	       (read-file-name
 		"Remote shell path: " default-directory shell-file-name
-		t shell-file-name))
-	      'localname))))
+		t shell-file-name))))))
 
   ;; The buffer's window must be correctly set when we call comint (so
   ;; that comint sets the COLUMNS env var properly).

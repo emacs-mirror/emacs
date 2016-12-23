@@ -1,4 +1,4 @@
-;;; nxml-parse.el --- XML parser, sharing infrastructure with nxml-mode
+;;; nxml-parse.el --- XML parser, sharing infrastructure with nxml-mode  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2003, 2007-2016 Free Software Foundation, Inc.
 

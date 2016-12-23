@@ -103,6 +103,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <float.h>
 #include <unistd.h>
 #include <limits.h>
@@ -133,8 +134,11 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
   const char *fmt = format;	/* Pointer into format string.  */
   char *bufptr = buffer;	/* Pointer into output buffer.  */
 
+  /* Enough to handle floating point formats with large numbers.  */
+  enum { SIZE_BOUND_EXTRA = DBL_MAX_10_EXP + 50 };
+
   /* Use this for sprintf unless we need something really big.  */
-  char tembuf[DBL_MAX_10_EXP + 100];
+  char tembuf[SIZE_BOUND_EXTRA + 50];
 
   /* Size of sprintf_buffer.  */
   ptrdiff_t size_allocated = sizeof (tembuf);
@@ -196,21 +200,19 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 		     This might be a field width or a precision; e.g.
 		     %1.1000f and %1000.1f both might need 1000+ bytes.
 		     Parse the width or precision, checking for overflow.  */
-		  ptrdiff_t n = *fmt - '0';
+		  int n = *fmt - '0';
+		  bool overflow = false;
 		  while (fmt + 1 < format_end
 			 && '0' <= fmt[1] && fmt[1] <= '9')
 		    {
-		      /* Avoid ptrdiff_t, size_t, and int overflow, as
-			 many sprintfs mishandle widths greater than INT_MAX.
-			 This test is simple but slightly conservative: e.g.,
-			 (INT_MAX - INT_MAX % 10) is reported as an overflow
-			 even when it's not.  */
-		      if (n >= min (INT_MAX, min (PTRDIFF_MAX, SIZE_MAX)) / 10)
-			error ("Format width or precision too large");
-		      n = n * 10 + fmt[1] - '0';
+		      overflow |= INT_MULTIPLY_WRAPV (n, 10, &n);
+		      overflow |= INT_ADD_WRAPV (n, fmt[1] - '0', &n);
 		      *string++ = *++fmt;
 		    }
 
+		  if (overflow
+		      || min (PTRDIFF_MAX, SIZE_MAX) - SIZE_BOUND_EXTRA < n)
+		    error ("Format width or precision too large");
 		  if (size_bound < n)
 		    size_bound = n;
 		}
@@ -244,9 +246,7 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 
 	  /* Make the size bound large enough to handle floating point formats
 	     with large numbers.  */
-	  if (size_bound > min (PTRDIFF_MAX, SIZE_MAX) - DBL_MAX_10_EXP - 50)
-	    error ("Format width or precision too large");
-	  size_bound += DBL_MAX_10_EXP + 50;
+	  size_bound += SIZE_BOUND_EXTRA;
 
 	  /* Make sure we have that much.  */
 	  if (size_bound > size_allocated)

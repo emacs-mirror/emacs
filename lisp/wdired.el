@@ -1,4 +1,4 @@
-;;; wdired.el --- Rename files editing their names in dired buffers
+;;; wdired.el --- Rename files editing their names in dired buffers -*- coding: utf-8; -*-
 
 ;; Copyright (C) 2004-2016 Free Software Foundation, Inc.
 
@@ -150,6 +150,16 @@ renamed by `dired-do-rename' and `dired-do-rename-regexp'."
   :type '(choice (const :tag "Keep" t)
 		 (character :tag "Mark" :value ?R))
   :version "24.3"
+  :group 'wdired)
+
+(defcustom wdired-create-parent-directories t
+  "If non-nil, create parent directories of destination files.
+If non-nil, when you rename a file to a destination path within a
+nonexistent directory, wdired will create any parent directories
+necessary.  When nil, attempts to rename a file into a
+nonexistent directory will fail."
+  :version "26.1"
+  :type 'boolean
   :group 'wdired)
 
 (defvar wdired-mode-map
@@ -492,6 +502,8 @@ non-nil means return old filename."
               (require 'dired-aux)
               (condition-case err
                   (let ((dired-backup-overwrite nil))
+                    (and wdired-create-parent-directories
+                         (wdired-create-parentdirs file-new))
                     (dired-rename-file file-ori file-new
                                        overwrite))
                 (error
@@ -501,6 +513,11 @@ non-nil means return old filename."
                             err)))))))))
     errors))
 
+(defun wdired-create-parentdirs (file-new)
+  "Create parent directories for FILE-NEW if they don't exist."
+  (and (not (file-exists-p (file-name-directory file-new)))
+       (message "Creating directory for file %s" file-new)
+       (make-directory (file-name-directory file-new) t)))
 
 (defun wdired-exit ()
   "Exit wdired and return to dired mode.
@@ -573,7 +590,7 @@ Optional arguments are ignored."
   "Move down lines then position at filename or the current column.
 See `wdired-use-dired-vertical-movement'.  Optional prefix ARG
 says how many lines to move; default is one line."
-  (interactive "p")
+  (interactive "^p")
   (with-no-warnings (next-line arg))
   (if (or (eq wdired-use-dired-vertical-movement t)
 	  (and wdired-use-dired-vertical-movement
@@ -586,7 +603,7 @@ says how many lines to move; default is one line."
   "Move up lines then position at filename or the current column.
 See `wdired-use-dired-vertical-movement'.  Optional prefix ARG
 says how many lines to move; default is one line."
-  (interactive "p")
+  (interactive "^p")
   (with-no-warnings (previous-line arg))
   (if (or (eq wdired-use-dired-vertical-movement t)
 	  (and wdired-use-dired-vertical-movement

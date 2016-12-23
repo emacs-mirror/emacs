@@ -323,12 +323,6 @@ file cannot be run simultaneously.
 If any changes are made to the buffer, syntax check is automatically
 started after @code{flymake-no-changes-timeout} seconds.
 
-@item flymake-gui-warnings-enabled
-A boolean flag indicating whether Flymake will show message boxes for
-non-recoverable errors.  If @code{flymake-gui-warnings-enabled} is
-@code{nil}, these errors will only be logged to the @file{*Messages*}
-buffer.
-
 @item flymake-start-syntax-check-on-newline
 A boolean flag indicating whether to start syntax check after a
 newline character is added to the buffer.
@@ -697,7 +691,8 @@ The command line (command name and the list of arguments) for launching a proces
 initialization function.  Flymake then just calls @code{start-process}
 to start an asynchronous process and configures a process filter and
 sentinel, which are used for processing the output of the syntax check
-tool.
+tool.  When exiting Emacs, running Flymake processes will be killed
+without prompting the user.
 
 @node Parsing the output
 @section Parsing the output

@@ -195,9 +195,11 @@ the variable `jit-lock-stealth-nice'.
 If you need to debug code run from jit-lock, see `jit-lock-debug-mode'."
   (setq jit-lock-mode arg)
   (cond
-   ((buffer-base-buffer)
-    ;; We're in an indirect buffer.  This doesn't work because jit-lock relies
-    ;; on the `fontified' text-property which is shared with the base buffer.
+   ((and (buffer-base-buffer)
+         jit-lock-mode)
+    ;; We're in an indirect buffer, and we're turning the mode on.
+    ;; This doesn't work because jit-lock relies on the `fontified'
+    ;; text-property which is shared with the base buffer.
     (setq jit-lock-mode nil)
     (message "Not enabling jit-lock: it does not work in indirect buffer"))
 
@@ -392,58 +394,62 @@ Defaults to the whole buffer.  END can be out of bounds."
 	   (setq next (or (text-property-any start end 'fontified t)
 			  end))
 
-	   ;; Fontify the chunk, and mark it as fontified.
-	   ;; We mark it first, to make sure that we don't indefinitely
-	   ;; re-execute this fontification if an error occurs.
-	   (put-text-property start next 'fontified t)
-           (pcase-let
-               ;; `tight' is the part we've fully refontified, and `loose'
-               ;; is the part we've partly refontified (some of the
-               ;; functions have refontified it but maybe not all).
-               ((`(,tight-beg ,tight-end ,loose-beg ,_loose-end)
-                 (condition-case err
-                     (jit-lock--run-functions start next)
-                   ;; If the user quits (which shouldn't happen in normal
-                   ;; on-the-fly jit-locking), make sure the fontification
-                   ;; will be performed before displaying the block again.
-                   (quit (put-text-property start next 'fontified nil)
-                         (signal (car err) (cdr err))))))
+           ;; Avoid unnecessary work if the chunk is empty (bug#23278).
+           (when (> next start)
+             ;; Fontify the chunk, and mark it as fontified.
+             ;; We mark it first, to make sure that we don't indefinitely
+             ;; re-execute this fontification if an error occurs.
+             (put-text-property start next 'fontified t)
+             (pcase-let
+                 ;; `tight' is the part we've fully refontified, and `loose'
+                 ;; is the part we've partly refontified (some of the
+                 ;; functions have refontified it but maybe not all).
+                 ((`(,tight-beg ,tight-end ,loose-beg ,_loose-end)
+                   (condition-case err
+                       (jit-lock--run-functions start next)
+                     ;; If the user quits (which shouldn't happen in normal
+                     ;; on-the-fly jit-locking), make sure the fontification
+                     ;; will be performed before displaying the block again.
+                     (quit (put-text-property start next 'fontified nil)
+                           (signal (car err) (cdr err))))))
 
-             ;; In case we fontified more than requested, take advantage of the
-             ;; good news.
-             (when (or (< tight-beg start) (> tight-end next))
-               (put-text-property tight-beg tight-end 'fontified t))
+               ;; In case we fontified more than requested, take advantage of the
+               ;; good news.
+               (when (or (< tight-beg start) (> tight-end next))
+                 (put-text-property tight-beg tight-end 'fontified t))
 
-             ;; Make sure the contextual refontification doesn't re-refontify
-             ;; what's already been refontified.
-             (when (and jit-lock-context-unfontify-pos
-                        (< jit-lock-context-unfontify-pos tight-end)
-                        (>= jit-lock-context-unfontify-pos tight-beg)
-                        ;; Don't move boundary forward if we have to
-                        ;; refontify previous text.  Otherwise, we risk moving
-                        ;; it past the end of the multiline property and thus
-                        ;; forget about this multiline region altogether.
-                        (not (get-text-property tight-beg
-                                                'jit-lock-defer-multiline)))
-               (setq jit-lock-context-unfontify-pos tight-end))
+               ;; Make sure the contextual refontification doesn't re-refontify
+               ;; what's already been refontified.
+               (when (and jit-lock-context-unfontify-pos
+                          (< jit-lock-context-unfontify-pos tight-end)
+                          (>= jit-lock-context-unfontify-pos tight-beg)
+                          ;; Don't move boundary forward if we have to
+                          ;; refontify previous text.  Otherwise, we risk moving
+                          ;; it past the end of the multiline property and thus
+                          ;; forget about this multiline region altogether.
+                          (not (get-text-property tight-beg
+                                                  'jit-lock-defer-multiline)))
+                 (setq jit-lock-context-unfontify-pos tight-end))
 
-             ;; The redisplay engine has already rendered the buffer up-to
-             ;; `orig-start' and won't notice if the above jit-lock-functions
-             ;; changed the appearance of any part of the buffer prior
-             ;; to that.  So if `loose-beg' is before `orig-start', we need to
-             ;; cause a new redisplay cycle after this one so that the changes
-             ;; are properly reflected on screen.
-             ;; To make such repeated redisplay happen less often, we can
-             ;; eagerly extend the refontified region with
-             ;; jit-lock-after-change-extend-region-functions.
-             (when (< loose-beg orig-start)
-               (run-with-timer 0 nil #'jit-lock-force-redisplay
-                               (copy-marker loose-beg)
-                               (copy-marker orig-start)))
+               ;; The redisplay engine has already rendered the buffer up-to
+               ;; `orig-start' and won't notice if the above jit-lock-functions
+               ;; changed the appearance of any part of the buffer prior
+               ;; to that.  So if `loose-beg' is before `orig-start', we need to
+               ;; cause a new redisplay cycle after this one so that the changes
+               ;; are properly reflected on screen.
+               ;; To make such repeated redisplay happen less often, we can
+               ;; eagerly extend the refontified region with
+               ;; jit-lock-after-change-extend-region-functions.
+               (when (< loose-beg orig-start)
+                 (run-with-timer 0 nil #'jit-lock-force-redisplay
+                                 (copy-marker loose-beg)
+                                 (copy-marker orig-start)))
 
-             ;; Find the start of the next chunk, if any.
-             (setq start
-                   (text-property-any tight-end end 'fontified nil)))))))))
+               ;; Skip to the end of the fully refontified part.
+               (setq start tight-end)))
+           ;; Find the start of the next chunk, if any.
+           (setq start
+                 (text-property-any start end 'fontified nil))))))))
 
 (defun jit-lock-force-redisplay (start end)
   "Force the display engine to re-render START's buffer from START to END.

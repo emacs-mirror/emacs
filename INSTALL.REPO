@@ -15,12 +15,13 @@ automake  - at least the version specified near the start of
 git - at least Git 1.7.1.  If your repository was created by an older
   Git version, you may need to reclone it.
 makeinfo  - not strictly necessary, but highly recommended, so that
-  you can build the manuals.
+  you can build the manuals.  GNU Texinfo 4.13 or later should work.
 
 To use the autotools, run the following shell command to generate the
-'configure' script and some related files:
+'configure' script and some related files, and to set up your git
+configuration:
 
-  $ ./autogen.sh
+  $ ./autogen.sh all
 
 You can then configure your build as follows:
 

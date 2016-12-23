@@ -66,4 +66,6 @@
     (define-key news-fkey-prefix "x" [kp-8])
     ))
 
+(provide 'term/news)
+
 ;;; news.el ends here

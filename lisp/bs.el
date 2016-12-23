@@ -491,6 +491,8 @@ Used internally, only.")
     (define-key map "t"       'bs-visit-tags-table)
     (define-key map "m"       'bs-mark-current)
     (define-key map "u"       'bs-unmark-current)
+    (define-key map "U"       'bs-unmark-all)
+    (define-key map "\177"    'bs-unmark-previous)
     (define-key map ">"       'scroll-right)
     (define-key map "<"       'scroll-left)
     (define-key map "?"       'bs-help)
@@ -635,6 +637,8 @@ For faster navigation each digit key is a digit argument.
 \\[bs-clear-modified] -- clear modified-flag on that buffer.
 \\[bs-mark-current] -- mark current line's buffer to be displayed.
 \\[bs-unmark-current] -- unmark current line's buffer to be displayed.
+\\[bs-unmark-all] -- unmark all buffer lines.
+\\[bs-unmark-previous] -- unmark previous line's buffer to be displayed.
 \\[bs-show-sorted] -- display buffer list sorted by next sort aspect.
 \\[bs-set-configuration-and-refresh] -- ask user for a configuration and \
 apply selected configuration.
@@ -867,7 +871,7 @@ the status of buffer on current line."
 (defun bs-mark-current (count)
   "Mark buffers.
 COUNT is the number of buffers to mark.
-Move cursor vertically down COUNT lines."
+Move point vertically down COUNT lines."
   (interactive "p")
   (bs--mark-unmark count
 		   (lambda (buf)
@@ -876,11 +880,38 @@ Move cursor vertically down COUNT lines."
 (defun bs-unmark-current (count)
   "Unmark buffers.
 COUNT is the number of buffers to unmark.
-Move cursor vertically down COUNT lines."
+Move point vertically down COUNT lines."
   (interactive "p")
   (bs--mark-unmark count
 		   (lambda (buf)
 		     (setq bs--marked-buffers (delq buf bs--marked-buffers)))))
+
+(defun bs-unmark-previous (count)
+  "Unmark previous COUNT buffers.
+Move point vertically up COUNT lines.
+When called interactively a numeric prefix argument sets COUNT."
+  (interactive "p")
+  (forward-line (- count))
+  (save-excursion (bs-unmark-current count)))
+
+(defun bs-unmark-all ()
+  "Unmark all buffers."
+  (interactive)
+  (let ((marked (string-to-char bs-string-marked))
+        (current (string-to-char bs-string-current))
+        (marked-cur (string-to-char bs-string-current-marked))
+        (unmarked (string-to-char bs-string-show-normally))
+        (inhibit-read-only t))
+    (save-excursion
+      (goto-char (point-min))
+      (forward-line 2)
+      (while (not (eobp))
+        (if (eq (char-after) marked)
+            (subst-char-in-region (point) (1+ (point)) marked unmarked)
+          (when (eq (char-after) marked-cur)
+            (subst-char-in-region (point) (1+ (point)) marked-cur current)))
+        (forward-line 1))
+      (setq bs--marked-buffers nil))))
 
 (defun bs--show-config-message (what)
   "Show message indicating the new showing status WHAT.
@@ -973,14 +1004,14 @@ Uses function `read-only-mode'."
     (apply fun args)))
 
 (defun bs-up (arg)
-  "Move cursor vertically up ARG lines in Buffer Selection Menu."
+  "Move point vertically up ARG lines in Buffer Selection Menu."
   (interactive "p")
   (if (and arg (numberp arg) (< arg 0))
       (bs--nth-wrapper (- arg) 'bs--down)
     (bs--nth-wrapper arg 'bs--up)))
 
 (defun bs--up ()
-  "Move cursor vertically up one line.
+  "Move point vertically up one line.
 If on top of buffer list go to last line."
   (if (> (count-lines 1 (point)) bs-header-lines-length)
       (forward-line -1)
@@ -989,14 +1020,14 @@ If on top of buffer list go to last line."
     (recenter -1)))
 
 (defun bs-down (arg)
-  "Move cursor vertically down ARG lines in Buffer Selection Menu."
+  "Move point vertically down ARG lines in Buffer Selection Menu."
   (interactive "p")
   (if (and arg (numberp arg) (< arg 0))
       (bs--nth-wrapper (- arg) 'bs--up)
     (bs--nth-wrapper arg 'bs--down)))
 
 (defun bs--down ()
-  "Move cursor vertically down one line.
+  "Move point vertically down one line.
 If at end of buffer list go to first line."
   (if (eq (line-end-position) (point-max))
       (progn

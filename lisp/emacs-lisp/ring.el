@@ -1,4 +1,4 @@
-;;; ring.el --- handle rings of items
+;;; ring.el --- handle rings of items   -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1992, 2001-2016 Free Software Foundation, Inc.
 
@@ -160,14 +160,15 @@ will be performed."
 	(size (ring-size ring))
 	(vect (cddr ring))
 	lst)
-    (dotimes (var (cadr ring) lst)
-      (push (aref vect (mod (+ start var) size)) lst))))
+    (dotimes (var (cadr ring))
+      (push (aref vect (mod (+ start var) size)) lst))
+    lst))
 
 (defun ring-member (ring item)
   "Return index of ITEM if on RING, else nil.
 Comparison is done via `equal'.  The index is 0-based."
   (catch 'found
-    (dotimes (ind (ring-length ring) nil)
+    (dotimes (ind (ring-length ring))
       (when (equal item (ring-ref ring ind))
 	(throw 'found ind)))))
 

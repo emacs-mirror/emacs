@@ -265,10 +265,7 @@ defaults to 6600 and HOST defaults to localhost."
       (let ((v (match-string 3 host)))
         (setq host (match-string 2 host))
         (when (and (stringp v) (not (string= "" v)))
-          (setq port
-                (if (string-match "[^[:digit:]]" v)
-                    (string-to-number v)
-                  v)))))
+          (setq port v))))
     (when (file-name-absolute-p host)
       ;; Expand file name because `file-name-absolute-p'
       ;; considers paths beginning with "~" as absolute

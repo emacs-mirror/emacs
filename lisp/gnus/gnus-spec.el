@@ -29,19 +29,6 @@
 
 (require 'gnus)
 
-(defcustom gnus-use-correct-string-widths (featurep 'xemacs)
-  "*If non-nil, use correct functions for dealing with wide characters."
-  :version "22.1"
-  :group 'gnus-format
-  :type 'boolean)
-
-(defcustom gnus-make-format-preserve-properties (featurep 'xemacs)
-  "*If non-nil, use a replacement `format' function which preserves
-text properties. This is only needed on XEmacs, as Emacs does this anyway."
-  :version "22.1"
-  :group 'gnus-format
-  :type 'boolean)
-
 ;;; Internal variables.
 
 (defvar gnus-summary-mark-positions nil)
@@ -79,7 +66,6 @@ text properties. This is only needed on XEmacs, as Emacs does this anyway."
 (defvar gnus-tmp-news-method)
 (defvar gnus-tmp-news-server)
 (defvar gnus-mouse-face)
-(defvar gnus-mouse-face-prop)
 (defvar gnus-tmp-header)
 (defvar gnus-tmp-from)
 
@@ -87,11 +73,9 @@ text properties. This is only needed on XEmacs, as Emacs does this anyway."
                   (header gnus-tmp-from))
 
 (defmacro gnus-lrm-string-p (string)
-  (if (fboundp 'bidi-string-mark-left-to-right)
-      ;; LRM, RLM, PDF characters as integers to avoid breaking Emacs
-      ;; 23.
-      `(memq (aref ,string (1- (length ,string))) '(8206 8207 8236))
-    nil))
+  ;; LRM, RLM, PDF characters as integers to avoid breaking Emacs
+  ;; 23.
+  `(memq (aref ,string (1- (length ,string))) '(8206 8207 8236)))
 
 (defvar gnus-lrm-string (if (ignore-errors (string 8206))
 			    (propertize (string 8206) 'invisible t)
@@ -226,9 +210,9 @@ Return a list of updated types."
   :type 'face)
 
 (defun gnus-mouse-face-function (form type)
-  `(gnus-put-text-property
+  `(put-text-property
     (point) (progn ,@form (point))
-    gnus-mouse-face-prop
+    'mouse-face
     ,(if (equal type 0)
 	 'gnus-mouse-face
        `(quote ,(symbol-value (intern (format "gnus-mouse-face-%d" type)))))))
@@ -259,23 +243,20 @@ Return a list of updated types."
   :type 'face)
 
 (defun gnus-face-face-function (form type)
-  `(gnus-add-text-properties
+  `(add-text-properties
     (point) (progn ,@form (point))
     (cons 'face
 	  (cons
 	   ;; Delay consing the value of the `face' property until
-	   ;; `gnus-add-text-properties' runs, since it will be modified
-	   ;; by `gnus-put-text-property-excluding-characters-with-faces'.
+	   ;; `add-text-properties' runs, since it will be modified
+	   ;; by `put-text-property-excluding-characters-with-faces'.
 	   (list ',(symbol-value (intern (format "gnus-face-%d" type))) 'default)
 	   ;; Redundant now, but still convenient.
 	   '(gnus-face t)))))
 
 (defun gnus-balloon-face-function (form type)
-  `(gnus-put-text-property
-    (point) (progn ,@form (point))
-    ,(if (fboundp 'balloon-help-mode)
-	 ''balloon-help
-       ''help-echo)
+  `(put-text-property
+    (point) (progn ,@form (point)) 'help-echo
     ,(intern (format "gnus-balloon-face-%d" type))))
 
 (defun gnus-spec-tab (column)
@@ -316,62 +297,42 @@ Return a list of updated types."
     (setq wend seek)
     (substring string wstart (1- wend))))
 
-(defun gnus-string-width-function ()
-  (cond
-   (gnus-use-correct-string-widths
-    'gnus-correct-length)
-   ((fboundp 'string-width)
-    'string-width)
-   (t
-    'length)))
-
-(defun gnus-substring-function ()
-  (cond
-   (gnus-use-correct-string-widths
-    'gnus-correct-substring)
-   ((fboundp 'string-width)
-    'gnus-correct-substring)
-   (t
-    'substring)))
-
 (defun gnus-tilde-max-form (el max-width)
   "Return a form that limits EL to MAX-WIDTH."
-  (let ((max (abs max-width))
-	(length-fun (gnus-string-width-function))
-	(substring-fun (gnus-substring-function)))
+  (let ((max (abs max-width)))
     (if (symbolp el)
-	`(if (> (,length-fun ,el) ,max)
+	`(if (> (string-width ,el) ,max)
 	     ,(if (< max-width 0)
-		  `(,substring-fun ,el (- (,length-fun ,el) ,max))
+		  `(gnus-correct-substring ,el (- (string-width ,el) ,max))
 		`(if (gnus-lrm-string-p ,el)
-		     (concat (,substring-fun ,el 0 ,max) ,gnus-lrm-string)
-		   (,substring-fun ,el 0 ,max)))
+		     (concat (gnus-correct-substring ,el 0 ,max)
+			     ,gnus-lrm-string)
+		   (gnus-correct-substring ,el 0 ,max)))
 	   ,el)
       `(let ((val (eval ,el)))
-	 (if (> (,length-fun val) ,max)
+	 (if (> (string-width val) ,max)
 	     ,(if (< max-width 0)
-		  `(,substring-fun val (- (,length-fun val) ,max))
+		  `(gnus-correct-substring val (- (string-width val) ,max))
 		`(if (gnus-lrm-string-p val)
-		     (concat (,substring-fun val 0 ,max) ,gnus-lrm-string)
-		   (,substring-fun val 0 ,max)))
+		     (concat (gnus-correct-substring val 0 ,max)
+			     ,gnus-lrm-string)
+		   (gnus-correct-substring val 0 ,max)))
 	   val)))))
 
 (defun gnus-tilde-cut-form (el cut-width)
   "Return a form that cuts CUT-WIDTH off of EL."
-  (let ((cut (abs cut-width))
-	(length-fun (gnus-string-width-function))
-	(substring-fun (gnus-substring-function)))
+  (let ((cut (abs cut-width)))
     (if (symbolp el)
-	`(if (> (,length-fun ,el) ,cut)
+	`(if (> (string-width ,el) ,cut)
 	     ,(if (< cut-width 0)
-		  `(,substring-fun ,el 0 (- (,length-fun ,el) ,cut))
-		`(,substring-fun ,el ,cut))
+		  `(gnus-correct-substring ,el 0 (- (string-width ,el) ,cut))
+		`(gnus-correct-substring ,el ,cut))
 	   ,el)
       `(let ((val (eval ,el)))
-	 (if (> (,length-fun val) ,cut)
+	 (if (> (string-width val) ,cut)
 	     ,(if (< cut-width 0)
-		  `(,substring-fun val 0 (- (,length-fun val) ,cut))
-		`(,substring-fun val ,cut))
+		  `(gnus-correct-substring val 0 (- (string-width val) ,cut))
+		`(gnus-correct-substring val ,cut))
 	   val)))))
 
 (defun gnus-tilde-ignore-form (el ignore-value)
@@ -388,17 +349,16 @@ Return a list of updated types."
 characters correctly. This is because `format' may pad to columns or to
 characters when given a pad value."
   (let ((pad (abs pad-width))
-	(side (< 0 pad-width))
-	(length-fun (gnus-string-width-function)))
+	(side (< 0 pad-width)))
     (if (symbolp el)
-	`(let ((need (- ,pad (,length-fun ,el))))
+	`(let ((need (- ,pad (string-width ,el))))
 	   (if (> need 0)
 	       (concat ,(when side '(make-string need ?\ ))
 		       ,el
 		       ,(when (not side) '(make-string need ?\ )))
 	     ,el))
       `(let* ((val (eval ,el))
-	      (need (- ,pad (,length-fun val))))
+	      (need (- ,pad (string-width val))))
 	 (if (> need 0)
 	     (concat ,(when side '(make-string need ?\ ))
 		     val
@@ -464,7 +424,7 @@ characters when given a pad value."
 	    `(let (gnus-position)
 	       ,@(gnus-complex-form-to-spec form spec-alist)
 	       (if gnus-position
-		   (gnus-put-text-property gnus-position (1+ gnus-position)
+		   (put-text-property gnus-position (1+ gnus-position)
 					   'gnus-position t)))
 	  `(progn
 	     ,@(gnus-complex-form-to-spec form spec-alist)))))))
@@ -485,42 +445,6 @@ characters when given a pad value."
 		      (gnus-complex-form-to-spec (cddr sform) spec-alist)
 		      (nth 1 sform)))))
 	 form)))
-
-
-(defun gnus-xmas-format (fstring &rest args)
-  "A version of `format' which preserves text properties.
-
-Required for XEmacs, where the built in `format' function strips all text
-properties from both the format string and any inserted strings.
-
-Only supports the format sequence %s, and %% for inserting
-literal % characters. A pad width and an optional - (to right pad)
-are supported for %s."
-  (let ((re "%%\\|%\\(-\\)?\\([1-9][0-9]*\\)?s")
-	(n (length args)))
-    (with-temp-buffer
-      (insert fstring)
-      (goto-char (point-min))
-      (while (re-search-forward re nil t)
-	(goto-char (match-end 0))
-	(cond
-	 ((string= (match-string 0) "%%")
-	  (delete-char -1))
-	 (t
-	  (if (null args)
-	      (signal 'wrong-number-of-arguments
-		      (list #'gnus-xmas-format n fstring)))
-	  (let* ((minlen (string-to-number (or (match-string 2) "")))
-		 (arg (car args))
-		 (str (if (stringp arg) arg (format "%s" arg)))
-		 (lpad (null (match-string 1)))
-		 (padlen (max 0 (- minlen (length str)))))
-	    (replace-match "")
-	    (if lpad (insert-char ?\  padlen))
-	    (insert str)
-	    (unless lpad (insert-char ?\  padlen))
-	    (setq args (cdr args))))))
-      (buffer-string))))
 
 (defun gnus-parse-simple-format (format spec-alist &optional insert)
   ;; This function parses the FORMAT string with the help of the
@@ -628,14 +552,10 @@ are supported for %s."
 	    (setq elem '("*" ?s))))
 	  (setq elem-type (cadr elem))
 	  ;; Insert the new format elements.
-	  (when (and pad-width
-		     (not (and (featurep 'xemacs)
-			       gnus-use-correct-string-widths)))
+	  (when pad-width
 	    (insert (number-to-string pad-width)))
 	  ;; Create the form to be evalled.
-	  (if (or max-width cut-width ignore-value
-		  (and (featurep 'xemacs)
-		       gnus-use-correct-string-widths))
+	  (if (or max-width cut-width ignore-value)
 	      (progn
 		(insert ?s)
 		(let ((el (car elem)))
@@ -690,13 +610,6 @@ are supported for %s."
       ;; A single string spec in the end of the spec.
       ((string-match "\\`\\([^%]+\\)%[sc]\\'" fstring)
        (list (match-string 1 fstring) (car flist)))
-      ;; Only string (and %) specs (XEmacs only!)
-      ((and (featurep 'xemacs)
-	    gnus-make-format-preserve-properties
-	    (string-match
-	     "\\`\\([^%]*\\(%%\\|%-?\\([1-9][0-9]*\\)?s\\)\\)*[^%]*\\'"
-	     fstring))
-       (list (cons 'gnus-xmas-format (cons fstring (nreverse flist)))))
       ;; A more complex spec.
       (t
        (list (cons 'format (cons fstring (nreverse flist)))))))
@@ -717,7 +630,7 @@ are supported for %s."
 If PROPS, insert the result."
   (let ((form (gnus-parse-format format alist props)))
     (if props
-	(gnus-add-text-properties (point) (progn (eval form) (point)) props)
+	(add-text-properties (point) (progn (eval form) (point)) props)
       (eval form))))
 
 (defun gnus-set-format (type &optional insertable)
@@ -726,6 +639,25 @@ If PROPS, insert the result."
 	(symbol-value (intern (format "gnus-%s-line-format" type)))
 	(symbol-value (intern (format "gnus-%s-line-format-alist" type)))
 	insertable)))
+
+
+    (defun gnus-summary-line-format-spec ()
+      (insert gnus-tmp-unread gnus-tmp-replied
+	      gnus-tmp-score-char gnus-tmp-indentation)
+      (put-text-property
+       (point)
+       (progn
+	 (insert
+	  gnus-tmp-opening-bracket
+	  (format "%4d: %-20s"
+		  gnus-tmp-lines
+		  (if (> (length gnus-tmp-name) 20)
+		      (truncate-string-to-width gnus-tmp-name 20)
+		    gnus-tmp-name))
+	  gnus-tmp-closing-bracket)
+	 (point))
+       'mouse-face gnus-mouse-face)
+      (insert " " gnus-tmp-subject-or-nil "\n"))
 
 (provide 'gnus-spec)
 

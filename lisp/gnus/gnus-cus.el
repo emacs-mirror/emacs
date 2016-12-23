@@ -416,7 +416,7 @@ category."))
       ;; Decode values posting-style holds.
       (dolist (style (cdr (assq 'posting-style values)))
 	(when (stringp (cadr style))
-	  (setcdr style (list (mm-decode-coding-string (cadr style) 'utf-8)))))
+	  (setcdr style (list (decode-coding-string (cadr style) 'utf-8)))))
 
       (setq gnus-custom-params
             (apply 'widget-create 'group
@@ -492,7 +492,7 @@ form, but who cares?"
     ;; Encode values posting-style holds.
     (dolist (style (cdr (assq 'posting-style params)))
       (when (stringp (cadr style))
-	(setcdr style (list (mm-encode-coding-string (cadr style) 'utf-8)))))
+	(setcdr style (list (encode-coding-string (cadr style) 'utf-8)))))
     (if gnus-custom-topic
 	(gnus-topic-set-parameters gnus-custom-topic params)
       (gnus-group-edit-group-done 'params gnus-custom-group params)

@@ -75,7 +75,7 @@ Interactive Data Language (IDL), and running IDL as an inferior shell.
 * Sources of Routine Info::     How does IDLWAVE know about routine XYZ
 * HTML Help Browser Tips::
 * Configuration Examples::      The user is king
-* Windows and MacOS::           What still works, and how
+* Windows and macOS::           What still works, and how
 * Troubleshooting::             When good computers turn bad
 * GNU Free Documentation License:: The license for this documentation.
 * Index::                       Fast access
@@ -2372,7 +2372,7 @@ Normal hook.  Executed when @file{idlwave.el} is loaded.
 @cindex Subprocess of Emacs, IDL
 @cindex Comint, Emacs package
 @cindex Windows
-@cindex MacOS
+@cindex macOS
 
 The IDLWAVE shell is an Emacs major mode which permits running the IDL
 program as an inferior process of Emacs, and works closely with the
@@ -2382,7 +2382,7 @@ debug these programs.  The IDLWAVE shell is built on @file{comint}, an
 Emacs packages which handles the communication with the IDL program.
 Unfortunately, IDL for Windows does not have command-prompt versions and
 thus do not allow the interaction with Emacs, so the IDLWAVE shell
-currently only works under Unix and MacOSX.
+currently works under only Unix and macOS.
 
 @menu
 * Starting the Shell::          How to launch IDL as a subprocess
@@ -3533,14 +3533,14 @@ to locate library catalogs.
 @end defopt
 
 @defopt idlwave-library-path
-IDL library path for Windows and MacOS@.  Under Unix/MacOSX, will be
+IDL library path for Windows and macOS@.  Under Unix/macOS, will be
 obtained from the Shell when run.
 @end defopt
 
 @defopt idlwave-system-directory
-The IDL system directory for Windows and MacOS@.  Also needed for
+The IDL system directory for Windows and macOS@.  Also needed for
 locating HTML help and the IDL Assistant for IDL v6.2 and later.  Under
-Unix/MacOSX, will be obtained from the Shell and recorded, if run.
+Unix/macOS, will be obtained from the Shell and recorded, if run.
 @end defopt
 
 @defopt idlwave-config-directory (@file{~/.emacs.d/idlwave})
@@ -3626,7 +3626,7 @@ performance is a problem and/or the catalogs are not needed.
 @cindex User catalog
 @cindex IDL library routine info
 @cindex Windows
-@cindex MacOS
+@cindex macOS
 @cindex IDL variable @code{!DIR}
 @cindex @code{!DIR}, IDL variable
 
@@ -3651,7 +3651,7 @@ catalog must be rescanned to update it.  Creating the user catalog is
 also much slower than scanning library catalogs.
 
 You can scan any of the directories on the currently known path.  Under
-Windows and MacOS (not OSX), you need to specify the IDL search path in
+Windows, you need to specify the IDL search path in
 the variable @code{idlwave-library-path}, and the location of the IDL
 directory (the value of the @code{!DIR} system variable) in the variable
 @code{idlwave-system-directory}, like this@footnote{The initial @samp{+}
@@ -3742,10 +3742,9 @@ files.  Therefore, such local files should not be installed inside the
 many other reasons.
 
 @cindex Windows
-@cindex MacOS
 @cindex IDL variable @code{!DIR}
 @cindex @code{!DIR}, IDL variable
-Users of Windows and MacOS (not X) also must set the variable
+Users of Windows also must set the variable
 @code{idlwave-system-directory} to the value of the @code{!DIR} system
 variable in IDL@.  IDLWAVE appends @file{lib} to the value of this
 variable and assumes that all files found on that path are system
@@ -3822,7 +3821,7 @@ etc.).
 @noindent Individual platform recommendations:
 
 @itemize @bullet
-@item Unix/MacOSX: The @uref{http://www.w3m.org,@code{w3m}} browser
+@item Unix/macOS: The @uref{http://www.w3m.org,@code{w3m}} browser
 and its associated
 @uref{http://emacs-w3m.namazu.org/,@code{emacs-w3m}} emacs mode
 provide in-buffer browsing with image display, and excellent speed and
@@ -4020,18 +4019,17 @@ user is King!
 @html
 <A NAME="WINDOWS_MAC"></A>
 @end html
-@node Windows and MacOS
-@appendix Windows and MacOS
+@node Windows and macOS
+@appendix Windows and macOS
 @cindex Windows
-@cindex MacOS
-@cindex MacOSX
+@cindex macOS
 
 IDLWAVE was developed on a UNIX system.  However, thanks to the
 portability of Emacs, much of IDLWAVE does also work under different
-operating systems like Windows (with NTEmacs or NTXEmacs) or MacOS.
+operating systems like Windows (with NTEmacs or NTXEmacs).
 
 The only real problem is that there is no command-line version of IDL
-for Windows or MacOS(<=9) with which IDLWAVE can interact.  As a
+for Windows with which IDLWAVE can interact.  As a
 result, the IDLWAVE Shell does not work and you have to rely on IDLDE
 to run and debug your programs.  However, editing IDL source files
 with Emacs/IDLWAVE works with all bells and whistles, including
@@ -4112,10 +4110,10 @@ ensure @samp{idl} is on your @samp{$PATH}, or specify the full
 pathname to the idl program with the variable
 @code{idlwave-shell-explicit-file-name}.  Note that you may need to
 set your shell search path in two places when running Emacs as an Aqua
-application with MacOSX; see the next topic.
+application with macOS; see the next topic.
 
 @item @strong{IDLWAVE is disregarding my @samp{IDL_PATH} which I set
-under MacOSX}
+under macOS}
 
 If you run Emacs directly as an Aqua application, rather than from the
 console shell, the environment is set not from your usual shell

@@ -350,7 +350,21 @@ lots of bindings; for just a few, the sparse keymap is better.
 @end defun
 
 @defun copy-keymap keymap
-This function returns a copy of @var{keymap}.  Any keymaps that
+This function returns a copy of @var{keymap}.  This is almost never
+needed.  If you want a keymap that's like another yet with a few
+changes, you should use map inheritance rather than copying.
+I.e., something like:
+
+@example
+@group
+(let ((map (make-sparse-keymap)))
+  (set-keymap-parent map <theirmap>)
+  (define-key map ...)
+  ...)
+@end group
+@end example
+
+When performing @code{copy-keymap}, any keymaps that
 appear directly as bindings in @var{keymap} are also copied recursively,
 and so on to any number of levels.  However, recursive copying does not
 take place when the definition of a character is a symbol whose function

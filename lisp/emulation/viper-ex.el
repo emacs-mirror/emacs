@@ -1250,7 +1250,7 @@ reversed."
 	(kill-region (point) (mark t))))))
 
 
-(declare-function viper-change-state-to-vi "viper-cmd" ())
+(declare-function viper-change-state-to-vi "viper-cmd" (&rest _))
 
 ;; Ex edit command
 ;; In Viper, `e' and `e!' behave identically.  In both cases, the user is
@@ -1998,7 +1998,7 @@ Please contact your system administrator. "
     (beginning-of-line)
     (if opt-c (message "done"))))
 
-(declare-function viper-change-state-to-emacs "viper-cmd" ())
+(declare-function viper-change-state-to-emacs "viper-cmd" (&rest _))
 
 ;; Ex tag command
 (defun ex-tag ()

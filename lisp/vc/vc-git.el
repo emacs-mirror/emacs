@@ -704,8 +704,10 @@ It is based on `log-edit-mode', and has Git-specific extensions.")
           ;; file, to work around the limitation that command-line
           ;; arguments must be in the system codepage, and therefore
           ;; might not support the non-ASCII characters in the log
-          ;; message.
-          (if (eq system-type 'windows-nt) (make-temp-file "git-msg"))))
+          ;; message.  Handle also remote files.
+          (if (eq system-type 'windows-nt)
+              (let ((default-directory (file-name-directory file1)))
+                (file-local-name (make-nearby-temp-file "git-msg"))))))
     (cl-flet ((boolean-arg-fn
                (argument)
                (lambda (value) (when (equal value "yes") (list argument)))))
@@ -790,7 +792,12 @@ If PROMPT is non-nil, prompt for the Git command to run."
 	    args        (cddr args)))
     (require 'vc-dispatcher)
     (apply 'vc-do-async-command buffer root git-program command args)
-    (with-current-buffer buffer (vc-run-delayed (vc-compilation-mode 'git)))
+    (with-current-buffer buffer
+      (vc-run-delayed
+        (vc-compilation-mode 'git)
+        (setq-local compile-command
+                    (concat git-program " " command " "
+                            (if args (mapconcat 'identity args " ") "")))))
     (vc-set-async-update buffer)))
 
 (defun vc-git-pull (prompt)
@@ -881,6 +888,11 @@ This prompts for a branch to merge from."
 
 (autoload 'vc-setup-buffer "vc-dispatcher")
 
+(defcustom vc-git-print-log-follow nil
+  "If true, follow renames in Git logs for files."
+  :type 'boolean
+  :version "26.1")
+
 (defun vc-git-print-log (files buffer &optional shortlog start-revision limit)
   "Print commit log associated with FILES into specified BUFFER.
 If SHORTLOG is non-nil, use a short format based on `vc-git-root-log-format'.
@@ -901,6 +913,12 @@ If LIMIT is non-nil, show no more than this many entries."
 	       'async files
 	       (append
 		'("log" "--no-color")
+                (when (and vc-git-print-log-follow
+                           (not (cl-some #'file-directory-p files)))
+                  ;; "--follow" on directories is broken
+                  ;; https://debbugs.gnu.org/cgi/bugreport.cgi?bug=8756
+                  ;; https://debbugs.gnu.org/cgi/bugreport.cgi?bug=16422
+                  (list "--follow"))
 		(when shortlog
 		  `("--graph" "--decorate" "--date=short"
                     ,(format "--pretty=tformat:%s"
@@ -1005,7 +1023,9 @@ or BRANCH^ (where \"^\" can be repeated)."
     (goto-char (point-min))
     (unless (eobp)
       ;; Indent the expanded log entry.
-      (indent-region (point-min) (point-max) 2)
+      (while (re-search-forward "^  " nil t)
+        (replace-match "")
+        (forward-line))
       (buffer-string))))
 
 (defun vc-git-region-history (file buffer lfrom lto)
@@ -1082,6 +1102,13 @@ or BRANCH^ (where \"^\" can be repeated)."
               (cons 'vc-git-region-history-font-lock-keywords
                     (cdr font-lock-defaults))))
 
+(defun vc-git--asciify-coding-system ()
+  ;; Try to reconcile the content encoding with the encoding of Git's
+  ;; auxiliary output (which is ASCII or ASCII-compatible), bug#23595.
+  (unless (let ((samp "Binary files differ"))
+            (string-equal samp (decode-coding-string
+                                samp coding-system-for-read t)))
+    (setq coding-system-for-read 'undecided)))
 
 (autoload 'vc-switches "vc")
 
@@ -1089,6 +1116,7 @@ or BRANCH^ (where \"^\" can be repeated)."
   "Get a difference report using Git between two revisions of FILES."
   (let (process-file-side-effects
         (command "diff-tree"))
+    (vc-git--asciify-coding-system)
     (if rev2
         ;; Diffing against the empty tree.
         (unless rev1 (setq rev1 "4b825dc642cb6eb9a060e54bf8d69288fbee4904"))
@@ -1127,6 +1155,7 @@ or BRANCH^ (where \"^\" can be repeated)."
     table))
 
 (defun vc-git-annotate-command (file buf &optional rev)
+  (vc-git--asciify-coding-system)
   (let ((name (file-relative-name file)))
     (apply #'vc-git-command buf 'async nil "blame" "--date=short"
 	   (append (vc-switches 'git 'annotate)

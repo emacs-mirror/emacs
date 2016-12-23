@@ -60,6 +60,7 @@ Ansi-Color faces are included.")
    ;; Escape and prompt faces
    `(minibuffer-prompt ((,class (:weight bold :foreground ,blue))))
    `(escape-glyph ((,class (:foreground ,vermillion))))
+   `(homoglyph ((,class (:foreground ,vermillion))))
    `(error ((,class (:weight bold :slant italic
 			     :foreground ,vermillion))))
    `(warning ((,class (:foreground ,orange))))

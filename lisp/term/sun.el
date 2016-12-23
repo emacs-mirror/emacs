@@ -158,4 +158,6 @@
 	(eval (car hooks))
 	(setq hooks (cdr hooks))))))
 
+(provide 'term/sun)
+
 ;;; sun.el ends here

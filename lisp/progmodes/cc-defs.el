@@ -206,7 +206,7 @@ This variant works around bugs in `eval-when-compile' in various
 (eval-and-compile
   (defmacro c--macroexpand-all (form &optional environment)
     ;; Macro to smooth out the renaming of `cl-macroexpand-all' in Emacs 24.3.
-    (if (eq c--mapcan-status 'cl-mapcan)
+    (if (fboundp 'macroexpand-all)
 	`(macroexpand-all ,form ,environment)
       `(cl-macroexpand-all ,form ,environment)))
 
@@ -493,19 +493,21 @@ must not be within a `c-save-buffer-state', since the user then
 wouldn't be able to undo them.
 
 The return value is the value of the last form in BODY."
-  `(let* ((modified (buffer-modified-p)) (buffer-undo-list t)
-	  (inhibit-read-only t) (inhibit-point-motion-hooks t)
-	  before-change-functions after-change-functions
-	  deactivate-mark
-	  buffer-file-name buffer-file-truename ; Prevent primitives checking
-						; for file modification
-	  ,@varlist)
-     (unwind-protect
-	 (progn ,@body)
-       (and (not modified)
-	    (buffer-modified-p)
-	    (set-buffer-modified-p nil)))))
-(put 'c-save-buffer-state 'lisp-indent-function 1)
+  (declare (debug t) (indent 1))
+  (if (fboundp 'with-silent-modifications)
+      `(with-silent-modifications (let* ,varlist ,@body))
+    `(let* ((modified (buffer-modified-p)) (buffer-undo-list t)
+	    (inhibit-read-only t) (inhibit-point-motion-hooks t)
+	    before-change-functions after-change-functions
+	    deactivate-mark
+	    buffer-file-name buffer-file-truename ; Prevent primitives checking
+						  ; for file modification
+	    ,@varlist)
+       (unwind-protect
+	   (progn ,@body)
+	 (and (not modified)
+	      (buffer-modified-p)
+	      (set-buffer-modified-p nil))))))
 
 (defmacro c-tentative-buffer-changes (&rest body)
   "Eval BODY and optionally restore the buffer contents to the state it
@@ -640,13 +642,14 @@ right side of it."
 	       `(c-safe (scan-lists ,from ,count ,depth)))))
     (if limit
 	`(save-restriction
-	   ,(if (numberp count)
-		(if (< count 0)
-		    `(narrow-to-region ,limit (point-max))
-		  `(narrow-to-region (point-min) ,limit))
-	      `(if (< ,count 0)
-		   (narrow-to-region ,limit (point-max))
-		 (narrow-to-region (point-min) ,limit)))
+	   (when ,limit
+	     ,(if (numberp count)
+		  (if (< count 0)
+		      `(narrow-to-region ,limit (point-max))
+		    `(narrow-to-region (point-min) ,limit))
+		`(if (< ,count 0)
+		     (narrow-to-region ,limit (point-max))
+		   (narrow-to-region (point-min) ,limit))))
 	   ,res)
       res)))
 
@@ -661,13 +664,8 @@ leave point unmoved.
 
 A LIMIT for the search may be given.  The start position is assumed to be
 before it."
-  (let ((res `(c-safe (goto-char (scan-lists ,(or pos `(point)) 1 0)) (point))))
-    (if limit
-	`(save-restriction
-	   (if ,limit
-	       (narrow-to-region (point-min) ,limit))
-	   ,res)
-      res)))
+  `(let ((dest (c-safe-scan-lists ,(or pos `(point)) 1 0 ,limit)))
+     (when dest (goto-char dest) dest)))
 
 (defmacro c-go-list-backward (&optional pos limit)
   "Move backward across one balanced group of parentheses starting at POS or
@@ -676,13 +674,8 @@ leave point unmoved.
 
 A LIMIT for the search may be given.  The start position is assumed to be
 after it."
-  (let ((res `(c-safe (goto-char (scan-lists ,(or pos `(point)) -1 0)) (point))))
-    (if limit
-	`(save-restriction
-	   (if ,limit
-	       (narrow-to-region ,limit (point-max)))
-	   ,res)
-      res)))
+  `(let ((dest (c-safe-scan-lists ,(or pos `(point)) -1 0 ,limit)))
+     (when dest (goto-char dest) dest)))
 
 (defmacro c-up-list-forward (&optional pos limit)
   "Return the first position after the list sexp containing POS,
@@ -723,12 +716,8 @@ position exists, otherwise nil is returned and the point isn't moved.
 
 A limit for the search may be given.  The start position is assumed to
 be before it."
-  (let ((res `(c-safe (goto-char (scan-lists ,(or pos `(point)) 1 1)) t)))
-    (if limit
-	`(save-restriction
-	   (narrow-to-region (point-min) ,limit)
-	   ,res)
-      res)))
+  `(let ((dest (c-up-list-forward ,pos ,limit)))
+     (when dest (goto-char dest) t)))
 
 (defmacro c-go-up-list-backward (&optional pos limit)
   "Move the point to the position of the start of the list sexp containing POS,
@@ -737,12 +726,8 @@ position exists, otherwise nil is returned and the point isn't moved.
 
 A limit for the search may be given.  The start position is assumed to
 be after it."
-  (let ((res `(c-safe (goto-char (scan-lists ,(or pos `(point)) -1 1)) t)))
-    (if limit
-	`(save-restriction
-	   (narrow-to-region ,limit (point-max))
-	   ,res)
-      res)))
+  `(let ((dest (c-up-list-backward ,pos ,limit)))
+     (when dest (goto-char dest) t)))
 
 (defmacro c-go-down-list-forward (&optional pos limit)
   "Move the point to the first position inside the first list sexp after POS,
@@ -751,12 +736,8 @@ exists, otherwise nil is returned and the point isn't moved.
 
 A limit for the search may be given.  The start position is assumed to
 be before it."
-  (let ((res `(c-safe (goto-char (scan-lists ,(or pos `(point)) 1 -1)) t)))
-    (if limit
-	`(save-restriction
-	   (narrow-to-region (point-min) ,limit)
-	   ,res)
-      res)))
+  `(let ((dest (c-down-list-forward ,pos ,limit)))
+     (when dest (goto-char dest) t)))
 
 (defmacro c-go-down-list-backward (&optional pos limit)
   "Move the point to the last position inside the last list sexp before POS,
@@ -765,13 +746,8 @@ exists, otherwise nil is returned and the point isn't moved.
 
 A limit for the search may be given.  The start position is assumed to
 be after it."
-  (let ((res `(c-safe (goto-char (scan-lists ,(or pos `(point)) -1 -1)) t)))
-    (if limit
-	`(save-restriction
-	   (narrow-to-region ,limit (point-max))
-	   ,res)
-      res)))
-
+  `(let ((dest (c-down-list-backward ,pos ,limit)))
+     (when dest (goto-char dest) t)))
 
 (defmacro c-beginning-of-defun-1 ()
   ;; Wrapper around beginning-of-defun.

@@ -366,7 +366,7 @@ Emulate @sc{gnu} systems; this is the default.  This sets
 Emulate Unix systems.  Like @code{GNU}, but sets
 @code{ls-lisp-verbosity} to @code{(links uid)}.
 @item MacOS
-Emulate MacOS@.  Sets @code{ls-lisp-ignore-case} to @code{t}, and
+Emulate macOS@.  Sets @code{ls-lisp-ignore-case} to @code{t}, and
 @code{ls-lisp-dirs-first} and @code{ls-lisp-verbosity} to @code{nil}.
 @item MS-Windows
 Emulate MS-Windows.  Sets @code{ls-lisp-ignore-case} and
@@ -507,32 +507,64 @@ the variable @code{w32-alt-is-meta} to a @code{nil} value.
 @findex w32-register-hot-key
 @findex w32-unregister-hot-key
   MS-Windows reserves certain key combinations, such as
-@kbd{@key{Alt}-@key{TAB}}, for its own use.  These key combinations are
-intercepted by the system before Emacs can see them.  You can use the
-@code{w32-register-hot-key} function to allow a key sequence to be
-seen by Emacs instead of being grabbed by Windows.  This function
-registers a key sequence as a @dfn{hot key}, overriding the special
-meaning of that key sequence for Windows.  (MS-Windows is told that
-the key sequence is a hot key only when one of the Emacs windows has
-focus, so that the special keys still have their usual meaning for
-other Windows applications.)
+@kbd{@key{Alt}-@key{TAB}} and a number of Windows key combinations,
+for its own use.  These key combinations are intercepted by the system
+before Emacs can see them.  Also, on Windows 10, all Windows key
+combinations are reserved by the system in such a way that they are
+never propagated to applications, even if the system does not
+currently define a hotkey on the specific combination.  You can use
+the @code{w32-register-hot-key} function to allow a key sequence to be
+seen by Emacs instead of being grabbed by Windows.  When registered as
+a hot key, the key combination is pulled out of the system's input
+queue before it is handled by Windows, effectively overriding the
+special meaning of that key sequence for Windows.  The override is
+only effective when Emacs is active; with other applications on the
+foreground the keys behave normally.
 
-  The argument to @code{w32-register-hot-key} must be a single key,
-with or without modifiers, in vector form that would be acceptable to
-@code{define-key}.  The meta modifier is interpreted as the @key{Alt}
-key if @code{w32-alt-is-meta} is @code{t} (the default), and the hyper
-modifier is always interpreted as the Windows key (usually labeled
-with @key{start} and the Windows logo).  If the function succeeds in
-registering the key sequence, it returns the hotkey ID, a number;
-otherwise it returns @code{nil}.
+  The argument to @code{w32-register-hot-key} must be a single key with a
+single modifier, in vector form that would be acceptable to
+@code{define-key}.  The control and shift modifiers have no effect on the
+argument.  The meta modifier is interpreted as the @key{Alt} key if
+@code{w32-alt-is-meta} is @code{t} (the default), and the super and hyper
+modifiers are interpreted according to the bindings of
+@code{w32-lwindow-modifier} and @code{w32-rwindow-modifier}.  Additionally, a
+modifier with the trailing dash but with no key indicates that all
+Windows defined hotkeys for that modifier are to be overridden in the
+favor of Emacs.
 
 @kindex M-TAB@r{, (MS-Windows)}
 @cindex @kbd{M-@key{TAB}} vs @kbd{@key{Alt}-@key{TAB}} (MS-Windows)
 @cindex @kbd{@key{Alt}-@key{TAB}} vs @kbd{M-@key{TAB}} (MS-Windows)
   For example, @code{(w32-register-hot-key [M-tab])} lets you use
-@kbd{M-@key{TAB}} normally in Emacs; for instance, to complete the word or
-symbol at point at top level, or to complete the current search string
-against previously sought strings during incremental search.
+@kbd{M-@key{TAB}} normally in Emacs; for instance, to complete the
+word or symbol at point at top level, or to complete the current
+search string against previously sought strings during incremental
+search.  @code{(w32-register-hot-key [s-])} with
+@code{w32-lwindow-modifier} bound to @code{super} disables all the
+Windows' own Windows key based shortcuts.@footnote{There is one known
+exception: The combination @kbd{@key{Windows}-@key{L}} that locks the
+workstation is handled by the system on a lower level.  For this
+reason, @code{w32-register-hot-key} cannot override this key
+combination - it always locks the computer.}
+
+  Note that @code{w32-register-hot-key} checks the
+@code{w32-[lr]window-modifier} values at the time of the function
+call.  Thus, you can set @code{w32-lwindow-modifier} as @code{super},
+then call @code{(w32-register-hot-key [s-r])}, and finally set
+@code{w32-rwindow-modifier} as @code{super} as well.  The result is
+that the left Windows key together with @key{R} invokes whichever
+function you have bound for the combination in Emacs, and the right
+Windows key and @key{R} opens the Windows @code{Run} dialog.
+
+  The hotkey registrations always also include all the shift and
+control modifier combinations for the given hotkey; that is,
+registering @kbd{s-@key{a}} as a hotkey gives you @kbd{S-s-@key{a}},
+@kbd{C-s-@key{a}} and @kbd{C-S-s-@key{a}} as well.
+
+  On Windows 98 and ME, the hotkey registration is more restricted.
+The desired hotkey must always be fully specified, and
+@code{w32-phantom-key-code} can be customized to achieve desired
+results.
 
   The function @code{w32-unregister-hot-key} reverses the effect of
 @code{w32-register-hot-key} for its argument key sequence.
@@ -607,12 +639,7 @@ keys are passed to Windows or swallowed by Emacs.  If the value is
 otherwise it is passed to Windows.  The default is @code{t} for both
 of these variables.  Passing each of these keys to Windows produces
 its normal effect: for example, @kbd{@key{Lwindow}} opens the
-@code{Start} menu, etc.@footnote{
-Some combinations of the ``Windows'' keys with other keys are caught
-by Windows at a low level in a way that Emacs currently cannot prevent.
-For example, @kbd{@key{Lwindow} r} always pops up the Windows
-@samp{Run} dialog.  Customizing the value of
-@code{w32-phantom-key-code} might help in some cases, though.}
+@code{Start} menu, etc.
 
 @vindex w32-recognize-altgr
 @kindex AltGr @r{(MS-Windows)}

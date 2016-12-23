@@ -191,7 +191,8 @@ PARSED is an `erc-parsed' response struct."
                  (re-search-forward (regexp-quote nickname) nil t))
         (goto-char (match-beginning 0))
         (insert (erc-propertize erc-capab-identify-prefix
-                                'face 'erc-capab-identify-unidentified))))))
+                                'font-lock-face
+                                'erc-capab-identify-unidentified))))))
 
 (defun erc-capab-identify-get-unidentified-nickname (parsed)
   "Return the nickname of the user if unidentified.

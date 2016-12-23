@@ -119,17 +119,17 @@
   nil
   "iCalendar class for REPLY events")
 
-(defmethod gnus-icalendar-event:recurring-p ((event gnus-icalendar-event))
+(cl-defmethod gnus-icalendar-event:recurring-p ((event gnus-icalendar-event))
   "Return t if EVENT is recurring."
   (not (null (gnus-icalendar-event:recur event))))
 
-(defmethod gnus-icalendar-event:recurring-freq ((event gnus-icalendar-event))
+(cl-defmethod gnus-icalendar-event:recurring-freq ((event gnus-icalendar-event))
   "Return recurring frequency of EVENT."
   (let ((rrule (gnus-icalendar-event:recur event)))
     (string-match "FREQ=\\([[:alpha:]]+\\)" rrule)
     (match-string 1 rrule)))
 
-(defmethod gnus-icalendar-event:recurring-interval ((event gnus-icalendar-event))
+(cl-defmethod gnus-icalendar-event:recurring-interval ((event gnus-icalendar-event))
   "Return recurring interval of EVENT."
   (let ((rrule (gnus-icalendar-event:recur event))
         (default-interval 1))
@@ -138,7 +138,7 @@
     (or (match-string 1 rrule)
         default-interval)))
 
-(defmethod gnus-icalendar-event:start ((event gnus-icalendar-event))
+(cl-defmethod gnus-icalendar-event:start ((event gnus-icalendar-event))
   (format-time-string "%Y-%m-%d %H:%M" (gnus-icalendar-event:start-time event)))
 
 (defun gnus-icalendar-event--decode-datefield (event field zone-map)
@@ -152,17 +152,19 @@
 (defun gnus-icalendar-event--find-attendee (ical name-or-email)
   (let* ((event (car (icalendar--all-events ical)))
          (event-props (caddr event)))
-    (gmm-labels ((attendee-name (att) (plist-get (cadr att) 'CN))
-                 (attendee-email (att)
-                   (replace-regexp-in-string "^.*MAILTO:" "" (caddr att)))
-                 (attendee-prop-matches-p (prop)
-                   (and (eq (car prop) 'ATTENDEE)
-                        (or (member (attendee-name prop) name-or-email)
-                            (let ((att-email (attendee-email prop)))
-                              (gnus-icalendar-find-if (lambda (email)
-                                                        (string-match email att-email))
-                                                      name-or-email))))))
-
+    (cl-labels ((attendee-name (att) (plist-get (cadr att) 'CN))
+		(attendee-email
+		 (att)
+		 (replace-regexp-in-string "^.*MAILTO:" "" (caddr att)))
+		(attendee-prop-matches-p
+		 (prop)
+		 (and (eq (car prop) 'ATTENDEE)
+		      (or (member (attendee-name prop) name-or-email)
+			  (let ((att-email (attendee-email prop)))
+			    (gnus-icalendar-find-if
+			     (lambda (email)
+			       (string-match email att-email))
+			     name-or-email))))))
       (gnus-icalendar-find-if #'attendee-prop-matches-p event-props))))
 
 (defun gnus-icalendar-event--get-attendee-names (ical)
@@ -171,17 +173,19 @@
                           (lambda (p) (eq (car p) 'ATTENDEE))
                           (caddr event))))
 
-    (gmm-labels ((attendee-role (prop) (plist-get (cadr prop) 'ROLE))
-                 (attendee-name (prop)
-                                (or (plist-get (cadr prop) 'CN)
-                                    (replace-regexp-in-string "^.*MAILTO:" "" (caddr prop))))
-                 (attendees-by-type (type)
-                   (gnus-remove-if-not
-                    (lambda (p) (string= (attendee-role p) type))
-                    attendee-props))
-                 (attendee-names-by-type (type)
-                    (mapcar #'attendee-name (attendees-by-type type))))
-
+    (cl-labels
+	((attendee-role (prop) (plist-get (cadr prop) 'ROLE))
+	 (attendee-name
+	  (prop)
+	  (or (plist-get (cadr prop) 'CN)
+	      (replace-regexp-in-string "^.*MAILTO:" "" (caddr prop))))
+	 (attendees-by-type (type)
+			    (gnus-remove-if-not
+			     (lambda (p) (string= (attendee-role p) type))
+			     attendee-props))
+	 (attendee-names-by-type
+	  (type)
+	  (mapcar #'attendee-name (attendees-by-type type))))
       (list
        (attendee-names-by-type "REQ-PARTICIPANT")
        (attendee-names-by-type "OPT-PARTICIPANT")))))
@@ -220,23 +224,25 @@
                        ((string= method "REPLY") 'gnus-icalendar-event-reply)
                        (t 'gnus-icalendar-event))))
 
-    (gmm-labels ((map-property (prop)
-                   (let ((value (icalendar--get-event-property event prop)))
-                     (when value
-                       ;; ugly, but cannot get
-                       ;;replace-regexp-in-string work with "\\" as
-                       ;;REP, plus we should also handle "\\;"
-                       (replace-regexp-in-string
-                        "\\\\," ","
-                        (replace-regexp-in-string
-                         "\\\\n" "\n" (substring-no-properties value))))))
-                 (accumulate-args (mapping)
-                   (destructuring-bind (slot . ical-property) mapping
-                     (setq args (append (list
-                                         (intern (concat ":" (symbol-name slot)))
-                                         (map-property ical-property))
-                                        args)))))
-
+    (cl-labels
+	((map-property
+	  (prop)
+	  (let ((value (icalendar--get-event-property event prop)))
+	    (when value
+	      ;; ugly, but cannot get
+	      ;;replace-regexp-in-string work with "\\" as
+	      ;;REP, plus we should also handle "\\;"
+	      (replace-regexp-in-string
+	       "\\\\," ","
+	       (replace-regexp-in-string
+		"\\\\n" "\n" (substring-no-properties value))))))
+	 (accumulate-args
+	  (mapping)
+	  (destructuring-bind (slot . ical-property) mapping
+	    (setq args (append (list
+				(intern (concat ":" (symbol-name slot)))
+				(map-property ical-property))
+			       args)))))
       (mapc #'accumulate-args prop-map)
       (apply 'make-instance event-class args))))
 
@@ -264,41 +270,46 @@ status will be retrieved from the first matching attendee record."
   (let ((summary-status (capitalize (symbol-name status)))
         (attendee-status (upcase (symbol-name status)))
         reply-event-lines)
-    (gmm-labels ((update-summary (line)
-                   (if (string-match "^[^:]+:" line)
-                       (replace-match (format "\\&%s: " summary-status) t nil line)
-                     line))
-                 (update-dtstamp ()
-                   (format-time-string "DTSTAMP:%Y%m%dT%H%M%SZ" nil t))
-                 (attendee-matches-identity (line)
-                   (gnus-icalendar-find-if (lambda (name) (string-match-p name line))
-                                           identities))
-                 (update-attendee-status (line)
-                   (when (and (attendee-matches-identity line)
-                              (string-match "\\(PARTSTAT=\\)[^;]+" line))
-                     (replace-match (format "\\1%s" attendee-status) t nil line)))
-                 (process-event-line (line)
-                   (when (string-match "^\\([^;:]+\\)" line)
-                     (let* ((key (match-string 0 line))
-                            ;; NOTE: not all of the below fields are mandatory,
-                            ;; but they are often present in other clients'
-                            ;; replies. Can be helpful for debugging, too.
-                            (new-line
-                             (cond
-                              ((string= key "ATTENDEE") (update-attendee-status line))
-                              ((string= key "SUMMARY") (update-summary line))
-                              ((string= key "DTSTAMP") (update-dtstamp))
-                              ((member key '("ORGANIZER" "DTSTART" "DTEND"
-                                             "LOCATION" "DURATION" "SEQUENCE"
-                                             "RECURRENCE-ID" "UID")) line)
-                              (t nil))))
-                       (when new-line
-                         (push new-line reply-event-lines))))))
+    (cl-labels
+	((update-summary
+	  (line)
+	  (if (string-match "^[^:]+:" line)
+	      (replace-match (format "\\&%s: " summary-status) t nil line)
+	    line))
+	 (update-dtstamp ()
+			 (format-time-string "DTSTAMP:%Y%m%dT%H%M%SZ" nil t))
+	 (attendee-matches-identity
+	  (line)
+	  (gnus-icalendar-find-if (lambda (name) (string-match-p name line))
+				  identities))
+	 (update-attendee-status
+	  (line)
+	  (when (and (attendee-matches-identity line)
+		     (string-match "\\(PARTSTAT=\\)[^;]+" line))
+	    (replace-match (format "\\1%s" attendee-status) t nil line)))
+	 (process-event-line
+	  (line)
+	  (when (string-match "^\\([^;:]+\\)" line)
+	    (let* ((key (match-string 0 line))
+		   ;; NOTE: not all of the below fields are mandatory,
+		   ;; but they are often present in other clients'
+		   ;; replies. Can be helpful for debugging, too.
+		   (new-line
+		    (cond
+		     ((string= key "ATTENDEE") (update-attendee-status line))
+		     ((string= key "SUMMARY") (update-summary line))
+		     ((string= key "DTSTAMP") (update-dtstamp))
+		     ((member key '("ORGANIZER" "DTSTART" "DTEND"
+				    "LOCATION" "DURATION" "SEQUENCE"
+				    "RECURRENCE-ID" "UID")) line)
+		     (t nil))))
+	      (when new-line
+		(push new-line reply-event-lines))))))
 
       (mapc #'process-event-line (split-string ical-request "\n"))
 
       (unless (gnus-icalendar-find-if (lambda (x) (string-match "^ATTENDEE" x))
-                          reply-event-lines)
+				      reply-event-lines)
         (error "Could not find an event attendee matching given identity"))
 
       (mapconcat #'identity `("BEGIN:VEVENT"
@@ -311,16 +322,17 @@ status will be retrieved from the first matching attendee record."
 The reply will have STATUS (`accepted', `tentative' or  `declined').
 The reply will be composed for attendees matching any entry
 on the IDENTITIES list."
-  (gmm-labels ((extract-block (blockname)
-               (save-excursion
-                 (let ((block-start-re (format "^BEGIN:%s" blockname))
-                       (block-end-re (format "^END:%s" blockname))
-                       start)
-                   (when (re-search-forward block-start-re nil t)
-                     (setq start (line-beginning-position))
-                     (re-search-forward block-end-re)
-                     (buffer-substring-no-properties start (line-end-position)))))))
-
+  (cl-labels
+      ((extract-block
+	(blockname)
+	(save-excursion
+	  (let ((block-start-re (format "^BEGIN:%s" blockname))
+		(block-end-re (format "^END:%s" blockname))
+		start)
+	    (when (re-search-forward block-start-re nil t)
+	      (setq start (line-beginning-position))
+	      (re-search-forward block-end-re)
+	      (buffer-substring-no-properties start (line-end-position)))))))
     (let (zone event)
       (with-current-buffer (icalendar--get-unfolded-buffer (get-buffer buf))
         (goto-char (point-min))
@@ -376,7 +388,7 @@ on the IDENTITIES list."
 (defvar gnus-icalendar-org-enabled-p nil)
 
 
-(defmethod gnus-icalendar-event:org-repeat ((event gnus-icalendar-event))
+(cl-defmethod gnus-icalendar-event:org-repeat ((event gnus-icalendar-event))
   "Return `org-mode' timestamp repeater string for recurring EVENT.
 Return nil for non-recurring EVENT."
   (when (gnus-icalendar-event:recurring-p event)
@@ -390,14 +402,14 @@ Return nil for non-recurring EVENT."
       (when org-freq
         (format "+%s%s" (gnus-icalendar-event:recurring-interval event) org-freq)))))
 
-(defmethod gnus-icalendar-event:org-timestamp ((event gnus-icalendar-event))
+(cl-defmethod gnus-icalendar-event:org-timestamp ((event gnus-icalendar-event))
   "Build `org-mode' timestamp from EVENT start/end dates and recurrence info."
   (let* ((start (gnus-icalendar-event:start-time event))
          (end (gnus-icalendar-event:end-time event))
-         (start-date (format-time-string "%Y-%m-%d %a" start))
+         (start-date (format-time-string "%Y-%m-%d" start))
          (start-time (format-time-string "%H:%M" start))
          (start-at-midnight (string= start-time "00:00"))
-         (end-date (format-time-string "%Y-%m-%d %a" end))
+         (end-date (format-time-string "%Y-%m-%d" end))
          (end-time (format-time-string "%H:%M" end))
          (end-at-midnight (string= end-time "00:00"))
          (start-end-date-diff
@@ -417,7 +429,7 @@ Return nil for non-recurring EVENT."
      ;; A 0:0 - A+1 0:0 -> A
      ;; A 0:0 - A+n 0:0 -> A - A+n-1
      ((and start-at-midnight end-at-midnight) (if (> start-end-date-diff 1)
-                                                  (let ((end-ts (format-time-string "%Y-%m-%d %a" (time-subtract end time-1-day))))
+                                                  (let ((end-ts (format-time-string "%Y-%m-%d" (time-subtract end time-1-day))))
                                                     (format "<%s>--<%s>" start-date end-ts))
                                                 (format "<%s%s>" start-date repeat)))
      ;; end midnight
@@ -425,7 +437,7 @@ Return nil for non-recurring EVENT."
      ;; A .:. - A+n 0:0 -> A .:. - A_n-1
      (end-at-midnight (if (= start-end-date-diff 1)
                           (format "<%s %s-23:59%s>" start-date start-time repeat)
-                        (let ((end-ts (format-time-string "%Y-%m-%d %a" (time-subtract end time-1-day))))
+                        (let ((end-ts (format-time-string "%Y-%m-%d" (time-subtract end time-1-day))))
                           (format "<%s %s>--<%s>" start-date start-time end-ts))))
      ;; start midnight
      ;; A 0:0 - A .:. -> A 0:0-.:. (default 1)
@@ -448,7 +460,7 @@ Return nil for non-recurring EVENT."
   (mapconcat #'identity participants ", "))
 
 ;; TODO: make the template customizable
-(defmethod gnus-icalendar-event->org-entry ((event gnus-icalendar-event) reply-status)
+(cl-defmethod gnus-icalendar-event->org-entry ((event gnus-icalendar-event) reply-status)
   "Return string with new `org-mode' entry describing EVENT."
   (with-temp-buffer
     (org-mode)
@@ -498,16 +510,17 @@ the optional ORG-FILE argument is specified, only that one file
 is searched."
   (let ((uid (gnus-icalendar-event:uid event))
         (files (or org-file (org-agenda-files t 'ifmode))))
-    (gmm-labels
-        ((find-event-in (file)
-           (org-check-agenda-file file)
-           (with-current-buffer (find-file-noselect file)
-             (let ((event-pos (org-find-entry-with-id uid)))
-               (when (and event-pos
-                          (string= (cdr (assoc "ICAL_EVENT" (org-entry-properties event-pos)))
-                                   "t"))
-                 (throw 'found file))))))
-
+    (cl-labels
+        ((find-event-in
+	  (file)
+	  (org-check-agenda-file file)
+	  (with-current-buffer (find-file-noselect file)
+	    (let ((event-pos (org-find-entry-with-id uid)))
+	      (when (and event-pos
+			 (string= (cdr (assoc "ICAL_EVENT"
+					      (org-entry-properties event-pos)))
+				  "t"))
+		(throw 'found file))))))
       (gnus-icalendar-find-if #'find-event-in files))))
 
 
@@ -567,22 +580,29 @@ is searched."
                     (fill-region (point-min) (point-max))))
 
                 ;; update entry properties
-                (gmm-labels
-                    ((update-org-entry (position property value)
-                                       (if (or (null value)
-                                               (string= value ""))
-                                           (org-entry-delete position property)
-                                         (org-entry-put position property value))))
+                (cl-labels
+                    ((update-org-entry
+		      (position property value)
+		      (if (or (null value)
+			      (string= value ""))
+			  (org-entry-delete position property)
+			(org-entry-put position property value))))
 
                   (update-org-entry event-pos "ORGANIZER" organizer)
                   (update-org-entry event-pos "LOCATION" location)
-                  (update-org-entry event-pos "PARTICIPATION_TYPE" (symbol-name participation-type))
-                  (update-org-entry event-pos "REQ_PARTICIPANTS" (gnus-icalendar--format-participant-list req-participants))
-                  (update-org-entry event-pos "OPT_PARTICIPANTS" (gnus-icalendar--format-participant-list opt-participants))
+                  (update-org-entry event-pos "PARTICIPATION_TYPE"
+				    (symbol-name participation-type))
+                  (update-org-entry event-pos "REQ_PARTICIPANTS"
+				    (gnus-icalendar--format-participant-list
+				     req-participants))
+                  (update-org-entry event-pos "OPT_PARTICIPANTS"
+				    (gnus-icalendar--format-participant-list
+				     opt-participants))
                   (update-org-entry event-pos "RRULE" recur)
-                  (update-org-entry event-pos "REPLY"
-                                    (if reply-status (capitalize (symbol-name reply-status))
-                                      "Not replied yet")))
+                  (update-org-entry
+		   event-pos "REPLY"
+		   (if reply-status (capitalize (symbol-name reply-status))
+		     "Not replied yet")))
                 (save-buffer)))))))))
 
 
@@ -641,12 +661,12 @@ is searched."
 
     (org-agenda-list nil (gnus-icalendar-event:start event) duration-days)))
 
-(defmethod gnus-icalendar-event:sync-to-org ((event gnus-icalendar-event-request) reply-status)
+(cl-defmethod gnus-icalendar-event:sync-to-org ((event gnus-icalendar-event-request) reply-status)
   (if (gnus-icalendar-find-org-event-file event)
       (gnus-icalendar--update-org-event event reply-status)
     (gnus-icalendar:org-event-save event reply-status)))
 
-(defmethod gnus-icalendar-event:sync-to-org ((event gnus-icalendar-event-cancel) reply-status)
+(cl-defmethod gnus-icalendar-event:sync-to-org ((event gnus-icalendar-event-cancel) reply-status)
   (when (gnus-icalendar-find-org-event-file event)
     (gnus-icalendar--cancel-org-event event)))
 
@@ -703,40 +723,43 @@ only makes sense to define names or email addresses."
 
 These will be used to retrieve the RSVP information from ical events."
   (apply #'append
-         (mapcar (lambda (x) (if (listp x) x (list x)))
-                 (list user-full-name (regexp-quote user-mail-address)
-                       ; NOTE: these can be lists
-                       gnus-ignored-from-addresses ; already regexp-quoted
-                       message-alternative-emails  ;
-                       (mapcar #'regexp-quote gnus-icalendar-additional-identities)))))
+         (mapcar
+	  (lambda (x) (if (listp x) x (list x)))
+	  (list user-full-name (regexp-quote user-mail-address)
+		;; NOTE: these can be lists
+		gnus-ignored-from-addresses ; already regexp-quoted
+		(unless (functionp message-alternative-emails) ; String or function.
+		  message-alternative-emails)
+		(mapcar #'regexp-quote gnus-icalendar-additional-identities)))))
 
 ;; TODO: make the template customizable
-(defmethod gnus-icalendar-event->gnus-calendar ((event gnus-icalendar-event) &optional reply-status)
+(cl-defmethod gnus-icalendar-event->gnus-calendar ((event gnus-icalendar-event) &optional reply-status)
   "Format an overview of EVENT details."
-  (gmm-labels ((format-header (x)
-            (format "%-12s%s"
-                    (propertize (concat (car x) ":") 'face 'bold)
-                    (cadr x))))
+  (cl-labels
+      ((format-header (x)
+		      (format "%-12s%s"
+			      (propertize (concat (car x) ":") 'face 'bold)
+			      (cadr x))))
 
     (with-slots (organizer summary description location recur uid
                            method rsvp participation-type) event
       (let ((headers `(("Summary" ,summary)
-                      ("Location" ,(or location ""))
-                      ("Time" ,(gnus-icalendar-event:org-timestamp event))
-                      ("Organizer" ,organizer)
-                      ("Attendance" ,(if (eq participation-type 'non-participant)
-                                         "You are not listed as an attendee"
-                                       (capitalize (symbol-name participation-type))))
-                      ("Method" ,method))))
+		       ("Location" ,(or location ""))
+		       ("Time" ,(gnus-icalendar-event:org-timestamp event))
+		       ("Organizer" ,organizer)
+		       ("Attendance" ,(if (eq participation-type 'non-participant)
+					  "You are not listed as an attendee"
+					(capitalize (symbol-name participation-type))))
+		       ("Method" ,method))))
 
-       (when (and (not (gnus-icalendar-event-reply-p event)) rsvp)
-         (setq headers (append headers
-                               `(("Status" ,(or reply-status "Not replied yet"))))))
+	(when (and (not (gnus-icalendar-event-reply-p event)) rsvp)
+	  (setq headers (append headers
+				`(("Status" ,(or reply-status "Not replied yet"))))))
 
-       (concat
-        (mapconcat #'format-header headers "\n")
-        "\n\n"
-        description)))))
+	(concat
+	 (mapconcat #'format-header headers "\n")
+	 "\n\n"
+	 description)))))
 
 (defmacro gnus-icalendar-with-decoded-handle (handle &rest body)
   "Execute BODY in buffer containing the decoded contents of HANDLE."
@@ -745,8 +768,7 @@ These will be used to retrieve the RSVP information from ical events."
        (with-temp-buffer
          (mm-insert-part ,handle)
          (when (string= ,charset "utf-8")
-           (mm-decode-coding-region (point-min) (point-max) 'utf-8))
-
+           (decode-coding-region (point-min) (point-max) 'utf-8))
          ,@body))))
 
 
@@ -758,7 +780,7 @@ These will be used to retrieve the RSVP information from ical events."
   ;; FIXME: the gnus-mime-button-map keymap does not make sense for this kind
   ;; of button.
   (let ((start (point)))
-    (gnus-add-text-properties
+    (add-text-properties
      start
      (progn
        (insert "[ " text " ]")
@@ -769,8 +791,7 @@ These will be used to retrieve the RSVP information from ical events."
        face ,gnus-article-button-face
        gnus-data ,data))
     (widget-convert-button 'link start (point)
-                           :action 'gnus-widget-press-button
-                           :button-keymap gnus-widget-button-keymap)))
+                           :action 'gnus-widget-press-button)))
 
 (defun gnus-icalendar-send-buffer-by-mail (buffer-name subject)
   (let ((message-signature nil))
@@ -794,11 +815,13 @@ These will be used to retrieve the RSVP information from ical events."
                    (current-buffer) status (gnus-icalendar-identities)))))
 
     (when reply
-      (gmm-labels ((fold-icalendar-buffer ()
-               (goto-char (point-min))
-               (while (re-search-forward "^\\(.\\{72\\}\\)\\(.+\\)$" nil t)
-                 (replace-match "\\1\n \\2")
-                 (goto-char (line-beginning-position)))))
+      (cl-labels
+	  ((fold-icalendar-buffer
+	    ()
+	    (goto-char (point-min))
+	    (while (re-search-forward "^\\(.\\{72\\}\\)\\(.+\\)$" nil t)
+	      (replace-match "\\1\n \\2")
+	      (goto-char (line-beginning-position)))))
         (let ((subject (concat (capitalize (symbol-name status))
                                ": " (gnus-icalendar-event:summary event))))
 
@@ -819,27 +842,27 @@ These will be used to retrieve the RSVP information from ical events."
 (defun gnus-icalendar-sync-event-to-org (event)
   (gnus-icalendar-event:sync-to-org event gnus-icalendar-reply-status))
 
-(defmethod gnus-icalendar-event:inline-reply-buttons ((event gnus-icalendar-event) handle)
+(cl-defmethod gnus-icalendar-event:inline-reply-buttons ((event gnus-icalendar-event) handle)
   (when (gnus-icalendar-event:rsvp event)
     `(("Accept" gnus-icalendar-reply (,handle accepted ,event))
       ("Tentative" gnus-icalendar-reply (,handle tentative ,event))
       ("Decline" gnus-icalendar-reply (,handle declined ,event)))))
 
-(defmethod gnus-icalendar-event:inline-reply-buttons ((event gnus-icalendar-event-reply) handle)
+(cl-defmethod gnus-icalendar-event:inline-reply-buttons ((event gnus-icalendar-event-reply) handle)
   "No buttons for REPLY events."
   nil)
 
-(defmethod gnus-icalendar-event:inline-reply-status ((event gnus-icalendar-event))
+(cl-defmethod gnus-icalendar-event:inline-reply-status ((event gnus-icalendar-event))
   (or (when gnus-icalendar-org-enabled-p
         (gnus-icalendar--get-org-event-reply-status event))
       "Not replied yet"))
 
-(defmethod gnus-icalendar-event:inline-reply-status ((event gnus-icalendar-event-reply))
+(cl-defmethod gnus-icalendar-event:inline-reply-status ((event gnus-icalendar-event-reply))
   "No reply status for REPLY events."
   nil)
 
 
-(defmethod gnus-icalendar-event:inline-org-buttons ((event gnus-icalendar-event))
+(cl-defmethod gnus-icalendar-event:inline-org-buttons ((event gnus-icalendar-event))
   (let* ((org-entry-exists-p (gnus-icalendar-find-org-event-file event))
          (export-button-text (if org-entry-exists-p "Update Org Entry" "Export to Org")))
 
@@ -851,7 +874,7 @@ These will be used to retrieve the RSVP information from ical events."
                  `("Show Org Entry" gnus-icalendar--show-org-event ,event))))))
 
 
-(defmethod gnus-icalendar-event:inline-org-buttons ((event gnus-icalendar-event-cancel))
+(cl-defmethod gnus-icalendar-event:inline-org-buttons ((event gnus-icalendar-event-cancel))
   (let ((org-entry-exists-p (gnus-icalendar-find-org-event-file event)))
 
     (delq nil (list
@@ -868,13 +891,15 @@ These will be used to retrieve the RSVP information from ical events."
     (setq gnus-icalendar-reply-status nil)
 
     (when event
-      (gmm-labels ((insert-button-group (buttons)
-                (when buttons
-                  (mapc (lambda (x)
-                          (apply 'gnus-icalendar-insert-button x)
-                          (insert "    "))
-                        buttons)
-                  (insert "\n\n"))))
+      (cl-labels
+	  ((insert-button-group
+	    (buttons)
+	    (when buttons
+	      (mapc (lambda (x)
+		      (apply 'gnus-icalendar-insert-button x)
+		      (insert "    "))
+		    buttons)
+	      (insert "\n\n"))))
 
         (insert-button-group
 	 (gnus-icalendar-event:inline-reply-buttons event handle))

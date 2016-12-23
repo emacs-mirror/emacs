@@ -171,56 +171,55 @@ Note: The search is conducted only within 10%, at the beginning of the file."
   :type '(repeat regexp)
   :group 'change-log)
 
+(defcustom change-log-directory-files '(".bzr" ".git" ".hg" ".svn")
+  "List of files that cause `find-change-log' to stop in containing directory.
+This applies if no pre-existing ChangeLog is found.  If nil, then in such
+a case simply use the directory containing the changed file."
+  :version "26.1"
+  :type '(repeat file)
+  :group 'change-log)
+
 (defface change-log-date
   '((t (:inherit font-lock-string-face)))
   "Face used to highlight dates in date lines."
   :version "21.1"
   :group 'change-log)
-(define-obsolete-face-alias 'change-log-date-face 'change-log-date "22.1")
 
 (defface change-log-name
   '((t (:inherit font-lock-constant-face)))
   "Face for highlighting author names."
   :version "21.1"
   :group 'change-log)
-(define-obsolete-face-alias 'change-log-name-face 'change-log-name "22.1")
 
 (defface change-log-email
   '((t (:inherit font-lock-variable-name-face)))
   "Face for highlighting author email addresses."
   :version "21.1"
   :group 'change-log)
-(define-obsolete-face-alias 'change-log-email-face 'change-log-email "22.1")
 
 (defface change-log-file
   '((t (:inherit font-lock-function-name-face)))
   "Face for highlighting file names."
   :version "21.1"
   :group 'change-log)
-(define-obsolete-face-alias 'change-log-file-face 'change-log-file "22.1")
 
 (defface change-log-list
   '((t (:inherit font-lock-keyword-face)))
   "Face for highlighting parenthesized lists of functions or variables."
   :version "21.1"
   :group 'change-log)
-(define-obsolete-face-alias 'change-log-list-face 'change-log-list "22.1")
 
 (defface change-log-conditionals
   '((t (:inherit font-lock-variable-name-face)))
   "Face for highlighting conditionals of the form `[...]'."
   :version "21.1"
   :group 'change-log)
-(define-obsolete-face-alias 'change-log-conditionals-face
-  'change-log-conditionals "22.1")
 
 (defface change-log-function
   '((t (:inherit font-lock-variable-name-face)))
   "Face for highlighting items of the form `<....>'."
   :version "21.1"
   :group 'change-log)
-(define-obsolete-face-alias 'change-log-function-face
-  'change-log-function "22.1")
 
 (defface change-log-acknowledgment
   '((t (:inherit font-lock-comment-face)))
@@ -229,8 +228,6 @@ Note: The search is conducted only within 10%, at the beginning of the file."
   :group 'change-log)
 (define-obsolete-face-alias 'change-log-acknowledgement
   'change-log-acknowledgment "24.3")
-(define-obsolete-face-alias 'change-log-acknowledgement-face
-  'change-log-acknowledgment "22.1")
 
 (defconst change-log-file-names-re "^\\( +\\|\t\\)\\* \\([^ ,:([\n]+\\)")
 (defconst change-log-start-entry-re "^\\sw.........[0-9:+ ]*")
@@ -582,25 +579,14 @@ If a string, interpret as the ZONE argument of `format-time-string'.")
      (lambda (x) (or (booleanp x) (stringp x))))
 
 (defun add-log-iso8601-time-zone (&optional time zone)
-  (let* ((utc-offset (or (car (current-time-zone time zone)) 0))
-	 (sign (if (< utc-offset 0) ?- ?+))
-	 (sec (abs utc-offset))
-	 (ss (% sec 60))
-	 (min (/ sec 60))
-	 (mm (% min 60))
-	 (hh (/ min 60)))
-    (format (cond ((not (zerop ss)) "%c%02d:%02d:%02d")
-		  ((not (zerop mm)) "%c%02d:%02d")
-		  (t "%c%02d"))
-	    sign hh mm ss)))
+  (declare (obsolete nil "26.1"))
+  (format-time-string "%:::z" time zone))
 
 (defvar add-log-iso8601-with-time-zone nil)
 
 (defun add-log-iso8601-time-string (&optional time zone)
-  (let ((date (format-time-string "%Y-%m-%d" time zone)))
-    (if add-log-iso8601-with-time-zone
-        (concat date " " (add-log-iso8601-time-zone time zone))
-      date)))
+  (format-time-string
+   (if add-log-iso8601-with-time-zone "%Y-%m-%d %:::z" "%Y-%m-%d") time zone))
 
 (defun change-log-name ()
   "Return (system-dependent) default name for a change log file."
@@ -690,7 +676,11 @@ If `change-log-default-name' is nil, behave as though it were \"ChangeLog\"
 
 If `change-log-default-name' contains a leading directory component, then
 simply find it in the current directory.  Otherwise, search in the current
-directory and its successive parents for a file so named.
+directory and its successive parents for a file so named.  Stop at the first
+such file that exists (or has a buffer visiting it), or the first directory
+that contains any of `change-log-directory-files'.  If no match is found,
+use the current directory.  To override the choice of this function,
+simply create an empty ChangeLog file first by hand in the desired place.
 
 Once a file is found, `change-log-default-name' is set locally in the
 current buffer to the complete file name.
@@ -723,24 +713,27 @@ Optional arg BUFFER-FILE overrides `buffer-file-name'."
 	  ;; for several related directories.
 	  (setq file-name (file-chase-links file-name))
 	  (setq file-name (expand-file-name file-name))
-	  ;; Move up in the dir hierarchy till we find a change log file.
-	  (let ((file1 file-name)
-		parent-dir)
-	    (while (and (not (or (get-file-buffer file1) (file-exists-p file1)))
-			(progn (setq parent-dir
-				     (file-name-directory
-				      (directory-file-name
-				       (file-name-directory file1))))
-			       ;; Give up if we are already at the root dir.
-			       (not (string= (file-name-directory file1)
-					     parent-dir))))
-	      ;; Move up to the parent dir and try again.
-	      (setq file1 (expand-file-name
-			   (file-name-nondirectory (change-log-name))
-			   parent-dir)))
-	    ;; If we found a change log in a parent, use that.
-	    (if (or (get-file-buffer file1) (file-exists-p file1))
-		(setq file-name file1)))))
+	  (let* ((cbase (file-name-nondirectory (change-log-name)))
+		 (root
+		  (locate-dominating-file
+		   file-name
+		   (lambda (dir)
+		     (or
+		      (let ((clog (expand-file-name cbase dir)))
+			(or (get-file-buffer clog) (file-exists-p clog)))
+		      ;; Stop at VCS root?
+		      (and change-log-directory-files
+			   (let ((files change-log-directory-files)
+				 found)
+			     (while
+				 (and
+				  (not
+				   (setq found
+					 (file-exists-p
+					  (expand-file-name (car files) dir))))
+				  (setq files (cdr files))))
+			     found)))))))
+	    (if root (setq file-name (expand-file-name cbase root))))))
     ;; Make a local variable in this buffer so we needn't search again.
     (set (make-local-variable 'change-log-default-name) file-name))
   file-name)
@@ -895,8 +888,10 @@ non-nil, otherwise in local time."
                              "\\(\\s \\|[(),:]\\)")
                      bound t)))
              ;; Add to the existing item for the same file.
-             (re-search-forward "^\\s *$\\|^\\s \\*")
-             (goto-char (match-beginning 0))
+             (if (re-search-forward "^\\s *$\\|^\\s \\*" nil t)
+                 (goto-char (match-beginning 0))
+               (goto-char (point-max))
+               (insert "\n"))
              ;; Delete excess empty lines; make just 2.
              (while (and (not (eobp)) (looking-at "^\\s *$"))
                (delete-region (point) (line-beginning-position 2)))

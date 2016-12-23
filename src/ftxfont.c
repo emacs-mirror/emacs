@@ -31,8 +31,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* FTX font driver.  */
 
-struct font_driver ftxfont_driver;
-
 struct ftxfont_frame_data
 {
   /* Background and foreground colors.  */
@@ -95,7 +93,7 @@ ftxfont_get_gcs (struct frame *f, unsigned long foreground, unsigned long backgr
       if (! x_alloc_nearest_color (f, FRAME_X_COLORMAP (f), &color))
 	break;
       xgcv.foreground = color.pixel;
-      new->gcs[i - 1] = XCreateGC (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+      new->gcs[i - 1] = XCreateGC (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f),
 				   GCForeground, &xgcv);
     }
   unblock_input ();
@@ -125,7 +123,7 @@ ftxfont_draw_bitmap (struct frame *f, GC gc_fore, GC *gcs, struct font *font,
   unsigned char *b;
   int i, j;
 
-  if (ftfont_driver.get_bitmap (font, code, &bitmap, size > 0x100 ? 1 : 8) < 0)
+  if (ftfont_get_bitmap (font, code, &bitmap, size > 0x100 ? 1 : 8) < 0)
     return 0;
   if (size > 0x100)
     {
@@ -139,14 +137,14 @@ ftxfont_draw_bitmap (struct frame *f, GC gc_fore, GC *gcs, struct font *font,
 		p[n[0]].y = y - bitmap.top + i;
 		if (++n[0] == size)
 		  {
-		    XDrawPoints (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+                    XDrawPoints (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f),
 				 gc_fore, p, size, CoordModeOrigin);
 		    n[0] = 0;
 		  }
 	      }
 	}
       if (flush && n[0] > 0)
-	XDrawPoints (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+        XDrawPoints (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f),
 		     gc_fore, p, n[0], CoordModeOrigin);
     }
   else
@@ -168,7 +166,7 @@ ftxfont_draw_bitmap (struct frame *f, GC gc_fore, GC *gcs, struct font *font,
 		  pp[n[idx]].y = y - bitmap.top + i;
 		  if (++(n[idx]) == size)
 		    {
-		      XDrawPoints (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+                      XDrawPoints (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f),
 				   idx == 6 ? gc_fore : gcs[idx], pp, size,
 				   CoordModeOrigin);
 		      n[idx] = 0;
@@ -180,16 +178,15 @@ ftxfont_draw_bitmap (struct frame *f, GC gc_fore, GC *gcs, struct font *font,
 	{
 	  for (i = 0; i < 6; i++)
 	    if (n[i] > 0)
-	      XDrawPoints (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+              XDrawPoints (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f),
 			   gcs[i], p + 0x100 * i, n[i], CoordModeOrigin);
 	  if (n[6] > 0)
-	    XDrawPoints (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+            XDrawPoints (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f),
 			 gc_fore, p + 0x600, n[6], CoordModeOrigin);
 	}
     }
 
-  if (ftfont_driver.free_bitmap)
-    ftfont_driver.free_bitmap (font, &bitmap);
+  /* There is no ftfont_free_bitmap, so do not try to free BITMAP.  */
 
   return bitmap.advance;
 }
@@ -203,7 +200,7 @@ ftxfont_draw_background (struct frame *f, struct font *font, GC gc, int x, int y
   XGetGCValues (FRAME_X_DISPLAY (f), gc,
 		GCForeground | GCBackground, &xgcv);
   XSetForeground (FRAME_X_DISPLAY (f), gc, xgcv.background);
-  XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), gc,
+  XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f), gc,
 		  x, y - FONT_BASE (font), width, FONT_HEIGHT (font));
   XSetForeground (FRAME_X_DISPLAY (f), gc, xgcv.foreground);
 }
@@ -211,7 +208,7 @@ ftxfont_draw_background (struct frame *f, struct font *font, GC gc, int x, int y
 static Lisp_Object
 ftxfont_list (struct frame *f, Lisp_Object spec)
 {
-  Lisp_Object list = ftfont_driver.list (f, spec), tail;
+  Lisp_Object list = ftfont_list (f, spec), tail;
 
   for (tail = list; CONSP (tail); tail = XCDR (tail))
     ASET (XCAR (tail), FONT_TYPE_INDEX, Qftx);
@@ -221,7 +218,7 @@ ftxfont_list (struct frame *f, Lisp_Object spec)
 static Lisp_Object
 ftxfont_match (struct frame *f, Lisp_Object spec)
 {
-  Lisp_Object entity = ftfont_driver.match (f, spec);
+  Lisp_Object entity = ftfont_match (f, spec);
 
   if (VECTORP (entity))
     ASET (entity, FONT_TYPE_INDEX, Qftx);
@@ -231,13 +228,10 @@ ftxfont_match (struct frame *f, Lisp_Object spec)
 static Lisp_Object
 ftxfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
 {
-  Lisp_Object font_object;
-  struct font *font;
-
-  font_object = ftfont_driver.open (f, entity, pixel_size);
+  Lisp_Object font_object = ftfont_open (f, entity, pixel_size);
   if (NILP (font_object))
     return Qnil;
-  font = XFONT_OBJECT (font_object);
+  struct font *font = XFONT_OBJECT (font_object);
   font->driver = &ftxfont_driver;
   return font_object;
 }
@@ -245,7 +239,7 @@ ftxfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
 static void
 ftxfont_close (struct font *font)
 {
-  ftfont_driver.close (font);
+  ftfont_close (font);
 }
 
 static int
@@ -345,18 +339,39 @@ ftxfont_end_for_frame (struct frame *f)
 
 
 
+struct font_driver const ftxfont_driver =
+  {
+  /* We can't draw a text without device dependent functions.  */
+  .type = LISPSYM_INITIALLY (Qftx),
+  .get_cache = ftfont_get_cache,
+  .list = ftxfont_list,
+  .match = ftxfont_match,
+  .list_family = ftfont_list_family,
+  .open = ftxfont_open,
+  .close = ftxfont_close,
+  .has_char = ftfont_has_char,
+  .encode_char = ftfont_encode_char,
+  .text_extents = ftfont_text_extents,
+  .draw = ftxfont_draw,
+  .get_bitmap = ftfont_get_bitmap,
+  .anchor_point = ftfont_anchor_point,
+#ifdef HAVE_LIBOTF
+  .otf_capability = ftfont_otf_capability,
+#endif
+  .end_for_frame = ftxfont_end_for_frame,
+#if defined HAVE_M17N_FLT && defined HAVE_LIBOTF
+  .shape = ftfont_shape,
+#endif
+#ifdef HAVE_OTF_GET_VARIATION_GLYPHS
+  .get_variation_glyphs = ftfont_variation_glyphs,
+#endif
+  .filter_properties = ftfont_filter_properties,
+  .combining_capability = ftfont_combining_capability,
+  };
+
 void
 syms_of_ftxfont (void)
 {
   DEFSYM (Qftx, "ftx");
-
-  ftxfont_driver = ftfont_driver;
-  ftxfont_driver.type = Qftx;
-  ftxfont_driver.list = ftxfont_list;
-  ftxfont_driver.match = ftxfont_match;
-  ftxfont_driver.open = ftxfont_open;
-  ftxfont_driver.close = ftxfont_close;
-  ftxfont_driver.draw = ftxfont_draw;
-  ftxfont_driver.end_for_frame = ftxfont_end_for_frame;
   register_font_driver (&ftxfont_driver, NULL);
 }

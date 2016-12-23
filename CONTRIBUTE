@@ -189,7 +189,13 @@ If you are fixing a bug that exists in the current release, be sure to
 commit it to the release branch; it will be merged to the master
 branch later by the gitmerge function.
 
-However, if you know that the change will be difficult to merge to the
+Documentation fixes (in doc strings, in manuals, and in comments)
+should always go to the release branch, if the documentation to be
+fixed exists and is relevant to the release-branch codebase.  Doc
+fixes are always considered "safe" -- even when a release branch is in
+feature freeze, it can still receive doc fixes.
+
+When you know that the change will be difficult to merge to the
 master (e.g., because the code on master has changed a lot), you can
 apply the change to both master and branch yourself.  It could also
 happen that a change is cherry-picked from master to the release
@@ -233,6 +239,17 @@ above, are recorded by the tracker with the corresponding bugs/issues.
 GNU ELPA has a 'debbugs' package that allows accessing the tracker
 database from Emacs.
 
+Bugs needs regular attention.  A large backlog of bugs is
+disheartening to the developers, and a culture of ignoring bugs is
+harmful to users, who expect software that works.  Bugs have to be
+regularly looked at and acted upon.  Not all bugs are critical, but at
+the least, each bug needs to be regularly re-reviewed to make sure it
+is still reproducible.
+
+The process of going through old or new bugs and acting on them is
+called bug triage.  This process is described in the file
+admin/notes/bug-triage.
+
 ** Documenting your changes
 
 Any change that matters to end-users should have an entry in etc/NEWS.
@@ -264,10 +281,9 @@ If your test lasts longer than some few seconds, mark it in its
 'ert-deftest' definition with ":tags '(:expensive-test)".
 
 To run tests on the entire Emacs tree, run "make check" from the
-top-level directory.  Most tests are in the directory
-"test/automated".  From the "test/automated" directory, run "make
-<filename>" to run the tests for <filename>.el(c).  See "test/README"
-for more information.
+top-level directory.  Most tests are in the directory "test/".  From
+the "test/" directory, run "make <filename>" to run the tests for
+<filename>.el(c).  See "test/README" for more information.
 
 ** Understanding Emacs internals
 

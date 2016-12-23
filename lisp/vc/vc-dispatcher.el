@@ -669,7 +669,7 @@ BACKEND, if non-nil, specifies a VC backend for the Log Edit buffer."
     (make-local-variable 'vc-log-after-operation-hook)
     (when after-hook
       (setq vc-log-after-operation-hook after-hook))
-    (setq vc-log-operation action)
+    (set (make-local-variable 'vc-log-operation) action)
     (when comment
       (erase-buffer)
       (when (stringp comment) (insert comment)))
@@ -711,6 +711,7 @@ the buffer contents as a comment."
       (funcall log-operation
 	       log-fileset
 	       log-entry))
+    (setq vc-log-operation nil)
 
     ;; Quit windows on logbuf.
     (cond

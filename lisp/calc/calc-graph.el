@@ -908,9 +908,9 @@
 (defun calc-graph-show-tty (output)
   "Default calc-gnuplot-plot-command for \"tty\" output mode.
 This is useful for tek40xx and other graphics-terminal types."
-  (call-process-region 1 1 shell-file-name
-		       nil calc-gnuplot-buffer nil
-		       "-c" (format "cat %s >/dev/tty; rm %s" output output)))
+  (call-process shell-file-name nil calc-gnuplot-buffer nil
+                shell-command-switch
+                (format "cat %s >/dev/tty; rm %s" output output)))
 
 (defvar calc-dumb-map nil
   "The keymap for the \"dumb\" terminal plot.")

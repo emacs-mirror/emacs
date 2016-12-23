@@ -227,6 +227,22 @@ to determine whether cdr should not be excluded."
 		 (const :tag "No ignored files" nil))
   :group 'grep)
 
+(defcustom grep-save-buffers 'ask
+  "If non-nil, save buffers before running the grep commands.
+If `ask', ask before saving.  If a function, call it with no arguments
+with each buffer current, as a predicate to determine whether that
+buffer should be saved or not.  E.g., one can set this to
+  (lambda ()
+    (string-prefix-p my-grep-root (file-truename (buffer-file-name))))
+to limit saving to files located under `my-grep-root'."
+  :version "26.1"
+  :type '(choice
+          (const :tag "Ask before saving" ask)
+          (const :tag "Don't save buffers" nil)
+          function
+          (other :tag "Save all buffers" t))
+  :group 'grep)
+
 (defcustom grep-error-screen-columns nil
   "If non-nil, column numbers in grep hits are screen columns.
 See `compilation-error-screen-columns'"
@@ -527,7 +543,9 @@ This function is called from `compilation-filter-hook'."
   (let* ((host-id
 	  (intern (or (file-remote-p default-directory) "localhost")))
 	 (host-defaults (assq host-id grep-host-defaults-alist))
-	 (defaults (assq nil grep-host-defaults-alist)))
+	 (defaults (assq nil grep-host-defaults-alist))
+         (quot-braces (shell-quote-argument "{}"))
+         (quot-scolon (shell-quote-argument ";")))
     ;; There are different defaults on different hosts.  They must be
     ;; computed for every host once.
     (dolist (setting '(grep-command grep-template
@@ -621,9 +639,8 @@ This function is called from `compilation-filter-hook'."
 				     "")))
 			 (cons
 			  (if (eq grep-find-use-xargs 'exec-plus)
-			      (format "%s %s{} +" cmd0 null)
-			    (format "%s {} %s%s" cmd0 null
-				    (shell-quote-argument ";")))
+			      (format "%s %s%s +" cmd0 null quot-braces)
+			    (format "%s %s %s%s" cmd0 quot-braces null quot-scolon))
 			  (1+ (length cmd0)))))
 		      (t
 		       (format "%s . -type f -print | \"%s\" %s"
@@ -639,12 +656,11 @@ This function is called from `compilation-filter-hook'."
 			 (format "%s <D> <X> -type f <F> -print0 | \"%s\" -0 %s"
 				 find-program xargs-program gcmd))
 			((eq grep-find-use-xargs 'exec)
-			 (format "%s <D> <X> -type f <F> -exec %s {} %s%s"
-				 find-program gcmd null
-				 (shell-quote-argument ";")))
+			 (format "%s <D> <X> -type f <F> -exec %s %s %s%s"
+				 find-program gcmd quot-braces null quot-scolon))
 			((eq grep-find-use-xargs 'exec-plus)
-			 (format "%s <D> <X> -type f <F> -exec %s %s{} +"
-				 find-program gcmd null))
+			 (format "%s <D> <X> -type f <F> -exec %s %s%s +"
+				 find-program gcmd null quot-braces))
 			(t
 			 (format "%s <D> <X> -type f <F> -print | \"%s\" %s"
 				 find-program xargs-program gcmd))))))))
@@ -728,6 +744,12 @@ This function is called from `compilation-filter-hook'."
        grep-error-screen-columns)
   (add-hook 'compilation-filter-hook 'grep-filter nil t))
 
+(defun grep--save-buffers ()
+  (when grep-save-buffers
+    (save-some-buffers (and (not (eq grep-save-buffers 'ask))
+                            (not (functionp grep-save-buffers)))
+                       (and (functionp grep-save-buffers)
+                            grep-save-buffers))))
 
 ;;;###autoload
 (defun grep (command-args)
@@ -759,6 +781,7 @@ list is empty)."
                                  'grep-history
                                  (if current-prefix-arg nil default))))))
 
+  (grep--save-buffers)
   ;; Setting process-setup-function makes exit-message-function work
   ;; even when async processes aren't supported.
   (compilation-start (if (and grep-use-null-device null-device)
@@ -952,6 +975,7 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
 	(let ((default-directory dir))
 	  ;; Setting process-setup-function makes exit-message-function work
 	  ;; even when async processes aren't supported.
+          (grep--save-buffers)
 	  (compilation-start (if (and grep-use-null-device null-device)
 				 (concat command " " null-device)
 			       command)
@@ -1014,6 +1038,7 @@ to specify a command to run."
 		    (read-from-minibuffer "Confirm: "
 					  command nil nil 'grep-find-history))
 	    (add-to-history 'grep-find-history command))
+          (grep--save-buffers)
 	  (let ((default-directory dir))
 	    (compilation-start command 'grep-mode))
 	  ;; Set default-directory if we started rgrep in the *grep* buffer.

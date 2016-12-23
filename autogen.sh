@@ -103,16 +103,37 @@ check_version ()
     return 2
 }
 
+do_autoconf=false
+test $# -eq 0 && do_autoconf=true
+do_git=false
 
-cat <<EOF
-Checking whether you have the necessary tools...
-(Read INSTALL.REPO for more details on building Emacs)
+for arg; do
+    case $arg in
+      --help)
+	exec echo "$0: usage: $0 [all|autoconf|git]";;
+      all)
+	do_autoconf=true
+	test -e .git && do_git=true;;
+      autoconf)
+	do_autoconf=true;;
+      git)
+	do_git=true;;
+      *)
+	echo >&2 "$0: $arg: unknown argument"; exit 1;;
+    esac
+done
 
-EOF
 
-missing=
+# Generate Autoconf and Automake related files, if requested.
 
-for prog in $progs; do
+if $do_autoconf; then
+
+  echo 'Checking whether you have the necessary tools...
+(Read INSTALL.REPO for more details on building Emacs)'
+
+  missing=
+
+  for prog in $progs; do
 
     sprog=`echo "$prog" | sed 's/-/_/g'`
 
@@ -138,15 +159,13 @@ for prog in $progs; do
         eval ${sprog}_why=\""$stat"\"
     fi
 
-done
+  done
 
 
-if [ x"$missing" != x ]; then
+  if [ x"$missing" != x ]; then
 
-    cat <<EOF
-
-Building Emacs from the repository requires the following specialized programs:
-EOF
+    echo '
+Building Emacs from the repository requires the following specialized programs:'
 
     for prog in $progs; do
         sprog=`echo "$prog" | sed 's/-/_/g'`
@@ -157,10 +176,8 @@ EOF
     done
 
 
-    cat <<EOF
-
-Your system seems to be missing the following tool(s):
-EOF
+    echo '
+Your system seems to be missing the following tool(s):'
 
     for prog in $missing; do
         sprog=`echo "$prog" | sed 's/-/_/g'`
@@ -170,8 +187,7 @@ EOF
         echo "$prog ($why)"
     done
 
-    cat <<EOF
-
+    echo '
 If you think you have the required tools, please add them to your PATH
 and re-run this script.
 
@@ -198,78 +214,139 @@ autoreconf -fi -I m4
 
 instead of this script.
 
-Please report any problems with this script to bug-gnu-emacs@gnu.org .
-EOF
+Please report any problems with this script to bug-gnu-emacs@gnu.org .'
 
     exit 1
+  fi
+
+  echo 'Your system has the required tools.'
+  echo "Running 'autoreconf -fi -I m4' ..."
+
+
+  ## Let autoreconf figure out what, if anything, needs doing.
+  ## Use autoreconf's -f option in case autoreconf itself has changed.
+  autoreconf -fi -I m4 || exit $?
+
+  ## Create a timestamp, so that './autogen.sh; make' doesn't
+  ## cause 'make' to needlessly run 'autoheader'.
+  echo timestamp > src/stamp-h.in || exit
 fi
 
-echo 'Your system has the required tools.'
-echo "Running 'autoreconf -fi -I m4' ..."
+
+# True if the Git setup was OK before autogen.sh was run.
+
+git_was_ok=true
+
+if $do_git; then
+    case `cp --help 2>/dev/null` in
+      *--backup*--verbose*)
+	cp_options='--backup=numbered --verbose';;
+      *)
+	cp_options='-f';;
+    esac
+fi
 
 
-## Let autoreconf figure out what, if anything, needs doing.
-## Use autoreconf's -f option in case autoreconf itself has changed.
-autoreconf -fi -I m4 || exit $?
+# Like 'git config NAME VALUE' but verbose on change and exiting on failure.
+# Also, do not configure unless requested.
 
-## Create a timestamp, so that './autogen.sh; make' doesn't
-## cause 'make' to needlessly run 'autoheader'.
-echo timestamp > src/stamp-h.in || exit
+git_config ()
+{
+    name=$1
+    value=$2
+
+    ovalue=`git config --get "$name"` && test "$ovalue" = "$value" || {
+	if $do_git; then
+	    if $git_was_ok; then
+		echo 'Configuring local git repository...'
+		case $cp_options in
+		  --backup=*)
+		    config=$git_common_dir/config
+		    cp $cp_options --force -- "$config" "$config" || exit;;
+		esac
+	    fi
+	    echo "git config $name '$value'"
+	    git config "$name" "$value" || exit
+	fi
+	git_was_ok=false
+    }
+}
+
+## Configure Git, if requested.
+
+# Get location of Git's common configuration directory.  For older Git
+# versions this is just '.git'.  Newer Git versions support worktrees.
+
+{ test -e .git &&
+  git_common_dir=`git rev-parse --no-flags --git-common-dir 2>/dev/null` &&
+  test -n "$git_common_dir"
+} || git_common_dir=.git
+hooks=$git_common_dir/hooks
+
+# Check hashes when transferring objects among repositories.
+
+git_config transfer.fsckObjects true
 
 
-## Configure Git, if using Git.
-if test -d .git && (git status -s) >/dev/null 2>&1; then
+# Configure 'git diff' hunk header format.
 
-    # Configure 'git diff' hunk header format.
+git_config diff.elisp.xfuncname \
+	   '^\(def[^[:space:]]+[[:space:]]+([^()[:space:]]+)'
+git_config 'diff.m4.xfuncname' '^((m4_)?define|A._DEFUN(_ONCE)?)\([^),]*'
+git_config 'diff.make.xfuncname' \
+	   '^([$.[:alnum:]_].*:|[[:alnum:]_]+[[:space:]]*([*:+]?[:?]?|!?)=|define .*)'
+git_config 'diff.shell.xfuncname' \
+	   '^([[:space:]]*[[:alpha:]_][[:alnum:]_]*[[:space:]]*\(\)|[[:alpha:]_][[:alnum:]_]*=)'
+git_config diff.texinfo.xfuncname \
+	   '^@node[[:space:]]+([^,[:space:]][^,]+)'
 
-    git config 'diff.elisp.xfuncname' \
-	'^\(def[^[:space:]]+[[:space:]]+([^()[:space:]]+)' || exit
-    git config 'diff.texinfo.xfuncname' \
-	'^@node[[:space:]]+([^,[:space:]][^,]+)' || exit
 
+# Install Git hooks.
 
-    # Install Git hooks.
+tailored_hooks=
+sample_hooks=
 
-    tailored_hooks=
-    sample_hooks=
-
-    for hook in commit-msg pre-commit; do
-	cmp build-aux/git-hooks/$hook .git/hooks/$hook >/dev/null 2>&1 ||
+for hook in commit-msg pre-commit; do
+    cmp -- build-aux/git-hooks/$hook "$hooks/$hook" >/dev/null 2>&1 ||
 	tailored_hooks="$tailored_hooks $hook"
-    done
-    for hook in applypatch-msg pre-applypatch; do
-	test ! -r .git/hooks/$hook.sample ||
-	cmp .git/hooks/$hook.sample .git/hooks/$hook >/dev/null 2>&1 ||
+done
+for hook in applypatch-msg pre-applypatch; do
+    cmp -- "$hooks/$hook.sample" "$hooks/$hook" >/dev/null 2>&1 ||
 	sample_hooks="$sample_hooks $hook"
-    done
+done
 
-    if test -n "$tailored_hooks$sample_hooks"; then
+if test -n "$tailored_hooks$sample_hooks"; then
+    if $do_git; then
 	echo "Installing git hooks..."
-
-	case `cp --help 2>/dev/null` in
-	  *--backup*--verbose*)
-	    cp_options='--backup=numbered --verbose';;
-	  *)
-	    cp_options='-f';;
-	esac
 
 	if test -n "$tailored_hooks"; then
 	    for hook in $tailored_hooks; do
-		cp $cp_options build-aux/git-hooks/$hook .git/hooks || exit
-		chmod a-w .git/hooks/$hook || exit
+		dst=$hooks/$hook
+		cp $cp_options -- build-aux/git-hooks/$hook "$dst" || exit
+		chmod -- a-w "$dst" || exit
 	    done
 	fi
 
 	if test -n "$sample_hooks"; then
 	    for hook in $sample_hooks; do
-		cp $cp_options .git/hooks/$hook.sample .git/hooks/$hook || exit
-		chmod a-w .git/hooks/$hook || exit
+		dst=$hooks/$hook
+		cp $cp_options -- "$dst.sample" "$dst" || exit
+		chmod -- a-w "$dst" || exit
 	    done
 	fi
+    else
+	git_was_ok=false
     fi
 fi
 
-echo "You can now run './configure'."
+if test ! -f configure; then
+    echo "You can now run '$0 autoconf'."
+elif test -e .git && test $git_was_ok = false && test $do_git = false; then
+    echo "You can now run '$0 git'."
+elif test ! -f config.status ||
+	test -n "`find src/stamp-h.in -newer config.status`"; then
+    echo "You can now run './configure'."
+fi
 
 exit 0
 

@@ -1556,15 +1556,15 @@ keys may not be symbols:
 @end smallexample
 @end defun
 
-@defun alist-get key value &optional default remove
+@defun alist-get key alist &optional default remove
 This function is like @code{assq}, but instead of returning the entire
-association for @var{key}, @code{(@var{key} . @var{value})}, it
-returns just the @var{value}.  If @var{key} is not found in
-@var{alist} it returns @var{default}.
+association for @var{key} in @var{alist},
+@w{@code{(@var{key} . @var{value})}}, it returns just the @var{value}.
+If @var{key} is not found in @var{alist}, it returns @var{default}.
 
 This is a generalized variable (@pxref{Generalized Variables}) that
 can be used to change a value with @code{setf}.  When using it to set
-a value, optional argument @var{remove} non-nil means to remove
+a value, optional argument @var{remove} non-@code{nil} means to remove
 @var{key} from @var{alist} if the new value is @code{eql} to @var{default}.
 @end defun
 

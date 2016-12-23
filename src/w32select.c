@@ -76,7 +76,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 #include "w32common.h"	/* os_subtype */
 #include "w32term.h"	/* for all of the w32 includes */
-#include "keyboard.h"	/* for waiting_for_input */
+#include "w32select.h"
 #include "blockinput.h"
 #include "coding.h"
 
@@ -256,7 +256,7 @@ render (Lisp_Object oformat)
 	switch (format)
 	  {
 	  case CF_UNICODETEXT:
-	    htext = convert_to_handle_as_coded (QUNICODE);
+	    htext = convert_to_handle_as_coded (Qutf_16le_dos);
 	    break;
 	  case CF_TEXT:
 	  case CF_OEMTEXT:
@@ -1051,6 +1051,113 @@ frame's display, or the first available X display.  */)
   return Qnil;
 }
 
+/* Support enumerating available clipboard selection formats.  */
+
+DEFUN ("w32-selection-targets", Fw32_selection_targets, Sw32_selection_targets,
+       0, 2, 0,
+       doc: /* Return a vector of data formats available in the specified SELECTION.
+SELECTION should be the name of the selection in question, typically
+one of the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.
+The symbol nil is the same as `PRIMARY', and t is the same as `SECONDARY'.
+
+TERMINAL should be a terminal object or a frame specifying the X
+server to query.  If omitted or nil, that stands for the selected
+frame's display, or the first available X display.
+
+This function currently ignores TERMINAL, and only returns non-nil
+for `CLIPBOARD'.  The return value is a vector of symbols, each symbol
+representing a data format that is currently available in the clipboard.  */)
+  (Lisp_Object selection, Lisp_Object terminal)
+{
+  /* Xlib-like names for standard Windows clipboard data formats.
+     They are in upper-case to mimic xselect.c.  A couple of the names
+     were changed to be more like their X counterparts.  */
+  static const char *stdfmt_name[] = {
+    "UNDEFINED",
+    "STRING",
+    "BITMAP",
+    "METAFILE",
+    "SYMLINK",
+    "DIF",
+    "TIFF",
+    "OEM_STRING",
+    "DIB",
+    "PALETTE",
+    "PENDATA",
+    "RIFF",
+    "WAVE",
+    "UTF8_STRING",
+    "ENHMETAFILE",
+    "FILE_NAMES", /* DND */
+    "LOCALE", /* not used */
+    "DIBV5"
+  };
+  CHECK_SYMBOL (selection);
+
+  /* Return nil for PRIMARY and SECONDARY selections; for CLIPBOARD, check
+     if the clipboard currently has valid text format contents.  */
+
+  if (EQ (selection, QCLIPBOARD))
+    {
+      Lisp_Object val = Qnil;
+
+      setup_config ();
+
+      if (OpenClipboard (NULL))
+	{
+	  UINT format = 0;
+
+	  /* Count how many formats are available.  We ignore the
+	     CF_LOCALE format, and don't put it into the vector we
+	     return, because CF_LOCALE is automatically created by
+	     Windows for any text in the clipboard, so its presence in
+	     the value will simply confuse.  */
+	  int fmtcount = 0;
+	  while ((format = EnumClipboardFormats (format)))
+	    if (format != CF_LOCALE)
+	      fmtcount++;
+
+	  if (fmtcount > 0)
+	    {
+	      int i;
+
+	      /* We generate a vector because that's what xselect.c
+		 does in this case.  */
+	      val = Fmake_vector (make_number (fmtcount), Qnil);
+	      /* Note: when stepping with GDB through this code, the
+		 loop below terminates immediately because
+		 EnumClipboardFormats for some reason returns with
+		 "Thread does not have a clipboard open" error.  */
+	      for (i = 0, format = 0;
+		   (format = EnumClipboardFormats (format)) != 0; )
+		{
+		  const char *name;
+
+		  if (format == CF_LOCALE)
+		    continue;
+		  else if (format < CF_MAX)
+		    name = stdfmt_name[format];
+		  else
+		    {
+		      char fmt_name[256];
+
+		      if (!GetClipboardFormatName (format, fmt_name,
+						   sizeof (fmt_name)))
+			continue;
+		      name = fmt_name;
+		    }
+		  ASET (val, i, intern (name));
+		  i++;
+		}
+	    }
+	  CloseClipboard ();
+	}
+      return val;
+    }
+  /* For PRIMARY and SECONDARY we cons the values in w32--get-selection.  */
+  return Qnil;
+}
+
 /* One-time init.  Called in the un-dumped Emacs, but not in the
    dumped version.  */
 
@@ -1060,6 +1167,7 @@ syms_of_w32select (void)
   defsubr (&Sw32_set_clipboard_data);
   defsubr (&Sw32_get_clipboard_data);
   defsubr (&Sw32_selection_exists_p);
+  defsubr (&Sw32_selection_targets);
 
   DEFVAR_LISP ("selection-coding-system", Vselection_coding_system,
 	       doc: /* Coding system for communicating with other programs.
@@ -1109,7 +1217,7 @@ After the communication, this variable is set to nil.  */);
   current_text = Qnil;		staticpro (&current_text);
   current_coding_system = Qnil; staticpro (&current_coding_system);
 
-  DEFSYM (QUNICODE, "utf-16le-dos");
+  DEFSYM (Qutf_16le_dos, "utf-16le-dos");
   QANSICP = Qnil; staticpro (&QANSICP);
   QOEMCP = Qnil;  staticpro (&QOEMCP);
 }
@@ -1132,7 +1240,7 @@ globals_of_w32select (void)
   QOEMCP = coding_from_cp (OEMCP);
 
   if (os_subtype == OS_NT)
-    Vselection_coding_system = QUNICODE;
+    Vselection_coding_system = Qutf_16le_dos;
   else if (inhibit_window_system)
     Vselection_coding_system = QOEMCP;
   else

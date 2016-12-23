@@ -21,6 +21,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 
 #include "sysstdio.h"
+#include <stdlib.h>
 #include <unistd.h>
 
 #include "lisp.h"
@@ -5177,8 +5178,8 @@ buffer_posn_from_coords (struct window *w, int *x, int *y, struct display_pos *p
 #ifdef HAVE_WINDOW_SYSTEM
   if (it.what == IT_IMAGE)
     {
-      if ((img = IMAGE_FROM_ID (it.f, it.image_id)) != NULL
-	  && !NILP (img->spec))
+      img = IMAGE_OPT_FROM_ID (it.f, it.image_id);
+      if (img && !NILP (img->spec))
 	*object = img->spec;
     }
 #endif
@@ -5275,7 +5276,7 @@ mode_line_string (struct window *w, enum window_part part,
 	  if (glyph->type == IMAGE_GLYPH)
 	    {
 	      struct image *img;
-	      img = IMAGE_FROM_ID (WINDOW_XFRAME (w), glyph->u.img_id);
+	      img = IMAGE_OPT_FROM_ID (WINDOW_XFRAME (w), glyph->u.img_id);
 	      if (img != NULL)
 		*object = img->spec;
 	      y0 -= row->ascent - glyph->ascent;
@@ -5362,7 +5363,7 @@ marginal_area_string (struct window *w, enum window_part part,
 	  if (glyph->type == IMAGE_GLYPH)
 	    {
 	      struct image *img;
-	      img = IMAGE_FROM_ID (WINDOW_XFRAME (w), glyph->u.img_id);
+	      img = IMAGE_OPT_FROM_ID (WINDOW_XFRAME (w), glyph->u.img_id);
 	      if (img != NULL)
 		*object = img->spec;
 	      y0 -= row->ascent - glyph->ascent;
@@ -6038,11 +6039,11 @@ init_display (void)
 #endif
 
   /* If no window system has been specified, try to use the terminal.  */
-  if (! isatty (0))
+  if (! isatty (STDIN_FILENO))
     fatal ("standard input is not a tty");
 
 #ifdef WINDOWSNT
-  terminal_type = "w32console";
+  terminal_type = (char *)"w32console";
 #else
   terminal_type = getenv ("TERM");
 #endif

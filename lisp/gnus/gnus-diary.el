@@ -50,19 +50,19 @@
   :group 'gnus)
 
 (defcustom gnus-diary-summary-line-format "%U%R%z %uD: %(%s%) (%ud)\n"
-  "*Summary line format for nndiary groups."
+  "Summary line format for nndiary groups."
   :type 'string
   :group 'gnus-diary
   :group 'gnus-summary-format)
 
 (defcustom gnus-diary-time-format "%a, %b %e %y, %H:%M"
-  "*Time format to display appointments in nndiary summary buffers.
+  "Time format to display appointments in nndiary summary buffers.
 Please refer to `format-time-string' for information on possible values."
   :type 'string
   :group 'gnus-diary)
 
 (defcustom gnus-diary-delay-format-function 'gnus-diary-delay-format-english
-  "*Function called to format a diary delay string.
+  "Function called to format a diary delay string.
 It is passed two arguments.  The first one is non-nil if the delay is in
 the past.  The second one is of the form ((NUM . UNIT) ...) where NUM is
 an integer and UNIT is one of 'year 'month 'week 'day 'hour or 'minute.
@@ -83,13 +83,10 @@ There are currently two built-in format functions:
 
 ;; Compatibility functions ==================================================
 
-(eval-and-compile
-  (if (fboundp 'kill-entire-line)
-      (defalias 'gnus-diary-kill-entire-line 'kill-entire-line)
-    (defun gnus-diary-kill-entire-line ()
-      (beginning-of-line)
-      (let ((kill-whole-line t))
-	(kill-line)))))
+(defun gnus-diary-kill-entire-line ()
+  (beginning-of-line)
+  (let ((kill-whole-line t))
+    (kill-line)))
 
 
 ;; Summary line format ======================================================
@@ -164,7 +161,7 @@ There are currently two built-in format functions:
 	 (sched (gnus-diary-header-schedule extras))
 	 (occur (nndiary-next-occurence sched (current-time)))
 	 (now (current-time))
-	 (real-time (subtract-time occur now)))
+	 (real-time (time-subtract occur now)))
     (if (null real-time)
 	"?????"
       (let* ((sec (+ (* (float (car real-time)) 65536) (cadr real-time)))

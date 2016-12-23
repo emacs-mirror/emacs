@@ -120,11 +120,12 @@ patch.  So, don't change these variables, unless the default doesn't work."
 ;; This context diff does not recognize spaces inside files, but removing ' '
 ;; from [^ \t] breaks normal patches for some reason
 (defcustom ediff-context-diff-label-regexp
-  (concat "\\(" 	; context diff 2-liner
-	  "^\\*\\*\\* +\\([^ \t]+\\)[^*]+[\t ]*\n--- +\\([^ \t]+\\)"
-	  "\\|" 	; unified format diff 2-liner
-	  "^--- +\\([^ \t]+\\).*\n\\+\\+\\+ +\\([^ \t]+\\)"
-	  "\\)")
+  (let ((stuff "\\([^ \t\n]+\\)"))
+    (concat "\\(" 	; context diff 2-liner
+            "^\\*\\*\\* +" stuff "[^*]+[\t ]*\n--- +" stuff
+            "\\|" 	; unified format diff 2-liner
+            "^--- +" stuff ".*\n\\+\\+\\+ +" stuff
+            "\\)"))
   "Regexp matching filename 2-liners at the start of each context diff.
 You probably don't want to change that, unless you are using an obscure patch
 program."
@@ -268,6 +269,7 @@ program."
 			;; directory part of filename
 			(file-name-as-directory filename)
 		      (file-name-directory filename)))
+        (multi-patch-p (cdr ediff-patch-map))
 	;; In case 2 files are possible patch targets, the user will be offered
 	;; to choose file1 or file2.  In a multifile patch, if the user chooses
 	;; 1 or 2, this choice is preserved to decide future alternatives.
@@ -429,6 +431,16 @@ Please advise:
 		 (f2-exists (setcar session-file-object file2))
 		 (f1-exists (setcar session-file-object file1))
 		 (t
+                  ;; TODO: Often for multipaches the file doesn't exist because the
+                  ;; directory part is wrong; for instance, if the patch need to
+                  ;; be applied into
+                  ;; (expand-file-name "lisp/vc/ediff-ptch.el" source-directory)
+                  ;; and default-directory is
+                  ;; (expand-file-name "lisp" source-directory)
+                  ;; then Ediff assumes the wrong file:
+                  ;; (expand-file-name "lisp/ediff-ptch.el" source-directory).
+                  ;; We might identify these common failoures and suggest
+                  ;; in the prompt the possible corrected file. --Tino
 		  (with-output-to-temp-buffer ediff-msg-buffer
 		    (ediff-with-current-buffer standard-output
 		      (fundamental-mode))
@@ -436,13 +448,15 @@ Please advise:
 		    (if (string= file1 file2)
 			(princ (format "
 	%s
-is assumed to be the target for this patch.  However, this file does not exist."
-				       file1))
+is assumed to be %s target for this %spatch.  However, this file does not exist."
+                           file1
+                           (if multi-patch-p "one" "the")
+                           (if multi-patch-p "multi-" "")))
 		      (princ (format "
 	%s
 	%s
-are two possible targets for this patch.  However, these files do not exist."
-				     file1 file2)))
+are two possible targets for this %spatch.  However, these files do not exist."
+				     file1 file2 (if multi-patch-p "multi-" ""))))
 		    (princ "
 \nPlease enter an alternative patch target ...\n"))
 		  (let ((directory t)

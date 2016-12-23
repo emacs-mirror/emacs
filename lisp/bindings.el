@@ -338,6 +338,10 @@ mouse-3: Toggle minor modes"
 (defvar mode-line-column-line-number-mode-map
   (let ((map (make-sparse-keymap))
 	(menu-map (make-sparse-keymap "Toggle Line and Column Number Display")))
+    (bindings--define-key menu-map [size-indication-mode]
+      '(menu-item "Display Size Indication" size-indication-mode
+		  :help "Toggle displaying a size indication in the mode-line"
+		  :button (:toggle . size-indication-mode)))
     (bindings--define-key menu-map [line-number-mode]
       '(menu-item "Display Line Numbers" line-number-mode
 		  :help "Toggle displaying line numbers in the mode-line"
@@ -430,11 +434,9 @@ Major modes that edit things other than ordinary files may change this
 (make-variable-buffer-local 'mode-line-buffer-identification)
 
 (defvar mode-line-misc-info
-  '((which-func-mode ("" which-func-format " "))
-    (global-mode-string ("" global-mode-string " ")))
+  '((global-mode-string ("" global-mode-string " ")))
   "Mode line construct for miscellaneous information.
-By default, this shows the information specified by
-`which-func-mode' and `global-mode-string'.")
+By default, this shows the information specified by `global-mode-string'.")
 (put 'mode-line-misc-info 'risky-local-variable t)
 
 (defvar mode-line-end-spaces '(:eval (unless (display-graphic-p) "-%-"))

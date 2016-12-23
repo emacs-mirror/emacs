@@ -51,6 +51,8 @@ extern "C"
 void *_alloca (unsigned short);
 #  pragma intrinsic (_alloca)
 #  define alloca _alloca
+# elif defined __MVS__
+#  include <stdlib.h>
 # else
 #  include <stddef.h>
 #  ifdef  __cplusplus

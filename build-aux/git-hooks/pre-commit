@@ -45,4 +45,12 @@ for new_name in `$git_diff HEAD`; do
   esac
 done
 
+# The '--check' option of git diff-index makes Git complain if changes
+# introduce whitespace errors.  This can be a pain when editing test
+# files that deliberately contain lines with trailing whitespace.
+# To work around the problem you can run a command like 'git config
+# core.whitespace -trailing-space'.  It may be better to revamp the
+# tests so that trailing spaces are generated on the fly rather than
+# being committed as source.
+
 exec git diff-index --check --cached HEAD --

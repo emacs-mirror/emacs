@@ -1710,8 +1710,8 @@ non-nil, means add to end of buffer without erasing current contents."
   (cal-tex-cmd "\\hspace*" space))
 
 (defun cal-tex-comment (&optional comment)
-  "Insert `% ', followed by optional string COMMENT, followed by newline.
-COMMENT may contain newlines, which are prefixed by `% ' in the output."
+  "Insert \"% \", followed by optional string COMMENT, followed by newline.
+COMMENT may contain newlines, which are prefixed by \"% \" in the output."
   (insert (format "%% %s\n"
                   (if comment
                       (replace-regexp-in-string "\n" "\n% " comment)

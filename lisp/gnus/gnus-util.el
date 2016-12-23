@@ -44,24 +44,18 @@
   :type `(radio (function-item
                  :doc "Use Emacs standard `completing-read' function."
                  gnus-emacs-completing-read)
-		;; iswitchb.el is very old and ido.el is unavailable
-		;; in XEmacs, so we exclude those function items.
-		,@(unless (featurep 'xemacs)
-		    '((function-item
-		       :doc "Use `ido-completing-read' function."
-		       gnus-ido-completing-read)
-		      (function-item
-		       :doc "Use iswitchb based completing-read function."
-		       gnus-iswitchb-completing-read)))))
+		(function-item
+		 :doc "Use `ido-completing-read' function."
+		 gnus-ido-completing-read)
+		(function-item
+		 :doc "Use iswitchb based completing-read function."
+		 gnus-iswitchb-completing-read)))
 
 (defcustom gnus-completion-styles
-  (if (and (boundp 'completion-styles-alist)
-           (boundp 'completion-styles))
-      (append (when (and (assq 'substring completion-styles-alist)
-                         (not (memq 'substring completion-styles)))
-                (list 'substring))
-              completion-styles)
-    nil)
+  (append (when (and (assq 'substring completion-styles-alist)
+		     (not (memq 'substring completion-styles)))
+	    (list 'substring))
+	  completion-styles)
   "Value of `completion-styles' to use when completing."
   :version "24.1"
   :group 'gnus-meta
@@ -81,23 +75,14 @@
 (autoload 'nnheader-replace-chars-in-string "nnheader")
 (autoload 'mail-header-remove-comments "mail-parse")
 
-(eval-and-compile
-  (cond
-   ;; Prefer `replace-regexp-in-string' (present in Emacs, XEmacs 21.5,
-   ;; SXEmacs 22.1.4) over `replace-in-string'.  The latter leads to inf-loops
-   ;; on empty matches:
-   ;;   (replace-in-string "foo" "/*$" "/")
-   ;;   (replace-in-string "xe" "\\(x\\)?" "")
-   ((fboundp 'replace-regexp-in-string)
-    (defun gnus-replace-in-string  (string regexp newtext &optional literal)
-      "Replace all matches for REGEXP with NEWTEXT in STRING.
+(defun gnus-replace-in-string  (string regexp newtext &optional literal)
+  "Replace all matches for REGEXP with NEWTEXT in STRING.
 If LITERAL is non-nil, insert NEWTEXT literally.  Return a new
 string containing the replacements.
 
 This is a compatibility function for different Emacsen."
-      (replace-regexp-in-string regexp newtext string nil literal)))
-   ((fboundp 'replace-in-string)
-    (defalias 'gnus-replace-in-string 'replace-in-string))))
+  (declare (obsolete replace-regexp-in-string "26.1"))
+  (replace-regexp-in-string regexp newtext string nil literal))
 
 (defun gnus-boundp (variable)
   "Return non-nil if VARIABLE is bound and non-nil."
@@ -140,14 +125,6 @@ This is a compatibility function for different Emacsen."
      (when buffer
        (funcall (if (stringp buffer) 'get-buffer 'buffer-name)
 		buffer))))
-
-;; The LOCAL arg to `add-hook' is interpreted differently in Emacs and
-;; XEmacs.  In Emacs we don't need to call `make-local-hook' first.
-;; It's harmless, though, so the main purpose of this alias is to shut
-;; up the byte compiler.
-(defalias 'gnus-make-local-hook (if (featurep 'xemacs)
-                                    'make-local-hook
-                                  'ignore))
 
 (defun gnus-delete-first (elt list)
   "Delete by side effect the first occurrence of ELT as a member of LIST."
@@ -311,13 +288,6 @@ Symbols are also allowed; their print names are used instead."
 	(and (= (car fdate) (car date))
 	     (> (nth 1 fdate) (nth 1 date))))))
 
-;; Every version of Emacs Gnus supports has built-in float-time.
-;; The featurep test silences an irritating compiler warning.
-(defalias 'gnus-float-time
-  (if (or (featurep 'emacs)
-	  (fboundp 'float-time))
-      'float-time 'time-to-seconds))
-
 ;;; Keymap macros.
 
 (defmacro gnus-local-set-keys (&rest plist)
@@ -326,13 +296,6 @@ Symbols are also allowed; their print names are used instead."
 
 (defmacro gnus-define-keys (keymap &rest plist)
   "Define all keys in PLIST in KEYMAP."
-  ;; Convert the key [?\S-\ ] to [(shift space)] for XEmacs.
-  (when (featurep 'xemacs)
-    (let ((bindings plist))
-      (while bindings
-	(when (equal (car bindings) [?\S-\ ])
-	  (setcar bindings [(shift space)]))
-	(setq bindings (cddr bindings)))))
   `(gnus-define-keys-1 (quote ,keymap) (quote ,plist)))
 
 (defmacro gnus-define-keys-safe (keymap &rest plist)
@@ -434,7 +397,7 @@ Cache the result as a text property stored in DATE."
 
 (defun gnus-mode-string-quote (string)
   "Quote all \"%\"'s in STRING."
-  (gnus-replace-in-string string "%" "%%"))
+  (replace-regexp-in-string "%" "%%" string))
 
 ;; Make a hash table (default and minimum size is 256).
 ;; Optional argument HASHSIZE specifies the table size.
@@ -454,7 +417,7 @@ Cache the result as a text property stored in DATE."
     i))
 
 (defcustom gnus-verbose 6
-  "*Integer that says how verbose Gnus should be.
+  "Integer that says how verbose Gnus should be.
 The higher the number, the more messages Gnus will flash to say what
 it's doing.  At zero, Gnus will be totally mute; at five, Gnus will
 display most important messages; and at ten, Gnus will keep on
@@ -465,10 +428,10 @@ jabbering all the time."
 
 (defcustom gnus-add-timestamp-to-message nil
   "Non-nil means add timestamps to messages that Gnus issues.
-If it is `log', add timestamps to only the messages that go into the
-\"*Messages*\" buffer (in XEmacs, it is the \" *Message-Log*\" buffer).
-If it is neither nil nor `log', add timestamps not only to log messages
-but also to the ones displayed in the echo area."
+If it is `log', add timestamps to only the messages that go into
+the \"*Messages*\" buffer.  If it is neither nil nor `log', add
+timestamps not only to log messages but also to the ones
+displayed in the echo area."
   :version "23.1" ;; No Gnus
   :group  'gnus-various
   :type '(choice :format "%{%t%}:\n %[Value Menu%] %v"
@@ -481,56 +444,37 @@ but also to the ones displayed in the echo area."
 (eval-when-compile
   (defmacro gnus-message-with-timestamp-1 (format-string args)
     (let ((timestamp '(format-time-string "%Y%m%dT%H%M%S.%3N> " time)))
-      (if (featurep 'xemacs)
-	  `(let (str time)
-	     (if (or (and (null ,format-string) (null ,args))
-		     (progn
-		       (setq str (apply 'format ,format-string ,args))
-		       (zerop (length str))))
-		 (prog1
-		     (and ,format-string str)
-		   (clear-message nil))
-	       (cond ((eq gnus-add-timestamp-to-message 'log)
-		      (setq time (current-time))
-		      (display-message 'no-log str)
-		      (log-message 'message (concat ,timestamp str)))
-		     (gnus-add-timestamp-to-message
-		      (setq time (current-time))
-		      (display-message 'message (concat ,timestamp str)))
-		     (t
-		      (display-message 'message str))))
-	     str)
-	`(let (str time)
-	   (cond ((eq gnus-add-timestamp-to-message 'log)
-		  (setq str (let (message-log-max)
-			      (apply 'message ,format-string ,args)))
-		  (when (and message-log-max
-			     (> message-log-max 0)
-			     (/= (length str) 0))
-		    (setq time (current-time))
-		    (with-current-buffer (if (fboundp 'messages-buffer)
-					     (messages-buffer)
-					   (get-buffer-create "*Messages*"))
-		      (goto-char (point-max))
-		      (let ((inhibit-read-only t))
-			(insert ,timestamp str "\n")
-			(forward-line (- message-log-max))
-			(delete-region (point-min) (point)))
-		      (goto-char (point-max))))
-		  str)
-		 (gnus-add-timestamp-to-message
-		  (if (or (and (null ,format-string) (null ,args))
-			  (progn
-			    (setq str (apply 'format ,format-string ,args))
-			    (zerop (length str))))
-		      (prog1
-			  (and ,format-string str)
-			(message nil))
-		    (setq time (current-time))
-		    (message "%s" (concat ,timestamp str))
-		    str))
-		 (t
-		  (apply 'message ,format-string ,args))))))))
+      `(let (str time)
+	 (cond ((eq gnus-add-timestamp-to-message 'log)
+		(setq str (let (message-log-max)
+			    (apply 'message ,format-string ,args)))
+		(when (and message-log-max
+			   (> message-log-max 0)
+			   (/= (length str) 0))
+		  (setq time (current-time))
+		  (with-current-buffer (if (fboundp 'messages-buffer)
+					   (messages-buffer)
+					 (get-buffer-create "*Messages*"))
+		    (goto-char (point-max))
+		    (let ((inhibit-read-only t))
+		      (insert ,timestamp str "\n")
+		      (forward-line (- message-log-max))
+		      (delete-region (point-min) (point)))
+		    (goto-char (point-max))))
+		str)
+	       (gnus-add-timestamp-to-message
+		(if (or (and (null ,format-string) (null ,args))
+			(progn
+			  (setq str (apply 'format ,format-string ,args))
+			  (zerop (length str))))
+		    (prog1
+			(and ,format-string str)
+		      (message nil))
+		  (setq time (current-time))
+		  (message "%s" (concat ,timestamp str))
+		  str))
+	       (t
+		(apply 'message ,format-string ,args)))))))
 
 (defvar gnus-action-message-log nil)
 
@@ -646,7 +590,6 @@ If N, return the Nth ancestor instead."
 (defun gnus-read-event-char (&optional prompt)
   "Get the next event."
   (let ((event (read-event prompt)))
-    ;; should be gnus-characterp, but this can't be called in XEmacs anyway
     (cons (and (numberp event) event) event)))
 
 (defun gnus-copy-file (file &optional to)
@@ -839,9 +782,6 @@ If there's no subdirectory, delete DIRECTORY as well."
     (setq string (replace-match "" t t string)))
   string)
 
-(declare-function gnus-put-text-property "gnus"
-                  (start end property value &optional object))
-
 (defsubst gnus-put-text-property-excluding-newlines (beg end prop val)
   "The same as `put-text-property', but don't put this prop on any newlines in the region."
   (save-match-data
@@ -849,9 +789,9 @@ If there's no subdirectory, delete DIRECTORY as well."
       (save-restriction
 	(goto-char beg)
 	(while (re-search-forward gnus-emphasize-whitespace-regexp end 'move)
-	  (gnus-put-text-property beg (match-beginning 0) prop val)
+	  (put-text-property beg (match-beginning 0) prop val)
 	  (setq beg (point)))
-	(gnus-put-text-property beg (point) prop val)))))
+	(put-text-property beg (point) prop val)))))
 
 (defsubst gnus-put-overlay-excluding-newlines (beg end prop val)
   "The same as `put-text-property', but don't put this prop on any newlines in the region."
@@ -875,7 +815,7 @@ Otherwise, do nothing."
 	  (when (eq prop 'face)
 	    (setcar (cdr (get-text-property beg 'face)) (or val 'default)))
 	(inline
-	  (gnus-put-text-property beg stop prop val)))
+	  (put-text-property beg stop prop val)))
       (setq beg stop))))
 
 (defun gnus-get-text-property-excluding-characters-with-faces (pos prop)
@@ -890,39 +830,12 @@ Otherwise, return the value."
 
 (defmacro gnus-faces-at (position)
   "Return a list of faces at POSITION."
-  (if (featurep 'xemacs)
-      `(let ((pos ,position))
-	 (mapcar-extents 'extent-face
-			 nil (current-buffer) pos pos nil 'face))
-    `(let ((pos ,position))
-       (delq nil (cons (get-text-property pos 'face)
-		       (mapcar
-			(lambda (overlay)
-			  (overlay-get overlay 'face))
-			(overlays-at pos)))))))
-
-(if (fboundp 'invisible-p)
-    (defalias 'gnus-invisible-p 'invisible-p)
-  ;; for Emacs < 22.2, and XEmacs.
-  (defun gnus-invisible-p (pos)
-    "Return non-nil if the character after POS is currently invisible."
-    (let ((prop (get-char-property pos 'invisible)))
-      (if (eq buffer-invisibility-spec t)
-	  prop
-	(or (memq prop buffer-invisibility-spec)
-	    (assq prop buffer-invisibility-spec))))))
-
-;; Note: the optional 2nd argument has a different meaning between
-;; Emacs and XEmacs.
-;; (next-char-property-change POSITION &optional LIMIT)
-;; (next-extent-change        POS      &optional OBJECT)
-(defalias 'gnus-next-char-property-change
-  (if (fboundp 'next-extent-change)
-      'next-extent-change 'next-char-property-change))
-
-(defalias 'gnus-previous-char-property-change
-  (if (fboundp 'previous-extent-change)
-      'previous-extent-change 'previous-char-property-change))
+  `(let ((pos ,position))
+     (delq nil (cons (get-text-property pos 'face)
+		     (mapcar
+		      (lambda (overlay)
+			(overlay-get overlay 'face))
+		      (overlays-at pos))))))
 
 ;;; Protected and atomic operations.  dmoore@ucsd.edu 21.11.1996
 ;; The primary idea here is to try to protect internal data structures
@@ -1001,16 +914,8 @@ with potentially long computations."
 
 ;;; Functions for saving to babyl/mail files.
 
-(eval-when-compile
-  (if (featurep 'xemacs)
-      ;; Don't load tm and apel XEmacs packages that provide some
-      ;; Emacs emulating functions and variables.
-      (let ((features features))
-	(provide 'tm-view)
-	(unless (fboundp 'set-alist) (defalias 'set-alist 'ignore))
-	(require 'rmail)) ;; It requires tm-view that loads apel.
-    (require 'rmail))
-  (autoload 'rmail-update-summary "rmailsum"))
+(require 'rmail)
+(autoload 'rmail-update-summary "rmailsum")
 
 (defvar mm-text-coding-system)
 
@@ -1207,11 +1112,8 @@ ARG is passed to the first function."
     (apply 'run-hook-with-args hook args)))
 
 (defun gnus-run-mode-hooks (&rest funcs)
-  "Run `run-mode-hooks' if it is available, otherwise `run-hooks'.
-This function saves the current buffer."
-  (if (fboundp 'run-mode-hooks)
-      (save-current-buffer (apply 'run-mode-hooks funcs))
-    (save-current-buffer (apply 'run-hooks funcs))))
+  "Run `run-mode-hooks', saving the current buffer."
+  (save-current-buffer (apply 'run-mode-hooks funcs)))
 
 ;;; Various
 
@@ -1258,16 +1160,6 @@ If HASH-TABLE-P is non-nil, regards SEQUENCE as a hash table."
 	  (push (car sequence) out))
 	(setq sequence (cdr sequence))))
     (nreverse out)))
-
-(if (fboundp 'assq-delete-all)
-    (defalias 'gnus-delete-alist 'assq-delete-all)
-  (defun gnus-delete-alist (key alist)
-    "Delete from ALIST all elements whose car is KEY.
-Return the modified alist."
-    (let (entry)
-      (while (setq entry (assq key alist))
-	(setq alist (delq entry alist)))
-      alist)))
 
 (defun gnus-grep-in-list (word list)
   "Find if a WORD matches any regular expression in the given LIST."
@@ -1370,43 +1262,17 @@ Return the modified alist."
 (put 'gnus-with-output-to-file 'lisp-indent-function 1)
 (put 'gnus-with-output-to-file 'edebug-form-spec '(form body))
 
-(if (fboundp 'union)
-    (defalias 'gnus-union 'union)
-  (defun gnus-union (l1 l2 &rest keys)
-    "Set union of lists L1 and L2.
-If KEYS contains the `:test' and `equal' pair, use `equal' to compare
-items in lists, otherwise use `eq'."
-    (cond ((null l1) l2)
-	  ((null l2) l1)
-	  ((equal l1 l2) l1)
-	  (t
-	   (or (>= (length l1) (length l2))
-	       (setq l1 (prog1 l2 (setq l2 l1))))
-	   (if (eq 'equal (plist-get keys :test))
-	       (while l2
-		 (or (member (car l2) l1)
-		     (push (car l2) l1))
-		 (pop l2))
-	     (while l2
-	       (or (memq (car l2) l1)
-		   (push (car l2) l1))
-	       (pop l2)))
-	   l1))))
-
-(declare-function gnus-add-text-properties "gnus"
-                  (start end properties &optional object))
-
 (defun gnus-add-text-properties-when
   (property value start end properties &optional object)
-  "Like `gnus-add-text-properties', only applied on where PROPERTY is VALUE."
+  "Like `add-text-properties', only applied on where PROPERTY is VALUE."
   (let (point)
     (while (and start
 		(< start end) ;; XEmacs will loop for every when start=end.
 		(setq point (text-property-not-all start end property value)))
-      (gnus-add-text-properties start point properties object)
+      (add-text-properties start point properties object)
       (setq start (text-property-any point end property value)))
     (if start
-	(gnus-add-text-properties start end properties object))))
+	(add-text-properties start end properties object))))
 
 (defun gnus-remove-text-properties-when
   (property value start end properties &optional object)
@@ -1449,10 +1315,6 @@ is run."
   "Byte-compile FORM if `gnus-use-byte-compile' is non-nil."
   (if gnus-use-byte-compile
       (progn
-	(condition-case nil
-	    ;; Work around a bug in XEmacs 21.4
-	    (require 'byte-optimize)
-	  (error))
 	(require 'bytecomp)
 	(defalias 'gnus-byte-compile
 	  (lambda (form)
@@ -1555,16 +1417,7 @@ SPEC is a predicate specifier that contains stuff like `or', `and',
                                           initial-input history def)
   "Call standard `completing-read-function'."
   (let ((completion-styles gnus-completion-styles))
-    (completing-read prompt
-		     (if (featurep 'xemacs)
-			 ;; Old XEmacs (at least 21.4) expect an alist,
-			 ;; in which the car of each element is a string,
-			 ;; for collection.
-			 (mapcar
-			  (lambda (elem)
-			    (list (format "%s" (or (car-safe elem) elem))))
-			  collection)
-		       collection)
+    (completing-read prompt collection
                      nil require-match initial-input history def)))
 
 (autoload 'ido-completing-read "ido")
@@ -1604,11 +1457,6 @@ SPEC is a predicate specifier that contains stuff like `or', `and',
           (iswitchb-read-buffer prompt def require-match))
       (or iswitchb-mode
 	  (remove-hook 'minibuffer-setup-hook 'iswitchb-minibuffer-setup)))))
-
-(defun gnus-graphic-display-p ()
-  (if (featurep 'xemacs)
-      (device-on-window-system-p)
-    (display-graphic-p)))
 
 (put 'gnus-parse-without-error 'lisp-indent-function 0)
 (put 'gnus-parse-without-error 'edebug-form-spec '(body))
@@ -1655,7 +1503,7 @@ CHOICE is a list of the choice char and help message at IDX."
 	    (setq tchar nil)
 	    (setq buf (get-buffer-create "*Gnus Help*"))
 	    (pop-to-buffer buf)
-	    (fundamental-mode)		; for Emacs 20.4+
+	    (fundamental-mode)
 	    (buffer-disable-undo)
 	    (erase-buffer)
 	    (insert prompt ":\n\n")
@@ -1690,31 +1538,18 @@ CHOICE is a list of the choice char and help message at IDX."
 	(kill-buffer buf))
     tchar))
 
-(if (featurep 'emacs)
-    (defalias 'gnus-select-frame-set-input-focus 'select-frame-set-input-focus)
-  (if (fboundp 'select-frame-set-input-focus)
-      (defalias 'gnus-select-frame-set-input-focus 'select-frame-set-input-focus)
-    ;; XEmacs 21.4, SXEmacs
-    (defun gnus-select-frame-set-input-focus (frame)
-      "Select FRAME, raise it, and set input focus, if possible."
-      (raise-frame frame)
-      (select-frame frame)
-      (focus-frame frame))))
-
 (defun gnus-frame-or-window-display-name (object)
   "Given a frame or window, return the associated display name.
 Return nil otherwise."
-  (if (featurep 'xemacs)
-      (device-connection (dfw-device object))
-    (if (or (framep object)
-	    (and (windowp object)
-		 (setq object (window-frame object))))
-	(let ((display (frame-parameter object 'display)))
-	  (if (and (stringp display)
-		   ;; Exclude invalid display names.
-		   (string-match "\\`[^:]*:[0-9]+\\(\\.[0-9]+\\)?\\'"
-				 display))
-	      display)))))
+  (if (or (framep object)
+	  (and (windowp object)
+	       (setq object (window-frame object))))
+      (let ((display (frame-parameter object 'display)))
+	(if (and (stringp display)
+		 ;; Exclude invalid display names.
+		 (string-match "\\`[^:]*:[0-9]+\\(\\.[0-9]+\\)?\\'"
+			       display))
+	    display))))
 
 (defvar tool-bar-mode)
 
@@ -1723,9 +1558,7 @@ Return nil otherwise."
   (when (and (boundp 'tool-bar-mode)
 	     tool-bar-mode)
     (let* ((args nil)
-	   (func (cond ((featurep 'xemacs)
-			'ignore)
-		       ((fboundp 'tool-bar-update)
+	   (func (cond ((fboundp 'tool-bar-update)
 			'tool-bar-update)
 		       ((fboundp 'force-window-update)
 			'force-window-update)
@@ -1766,28 +1599,9 @@ sequence, this is like `mapcar'.  With several, it is like the Common Lisp
 							   heads))
 					nil))
 	     (setq ,result-tail (cdr ,result-tail)
-		   ,@(apply 'nconc (mapcar (lambda (h) (list h (list 'cdr h))) heads))))
+		   ,@(mapcan (lambda (h) (list h (list 'cdr h))) heads)))
 	   (cdr ,result)))
     `(mapcar ,function ,seq1)))
-
-(if (fboundp 'merge)
-    (defalias 'gnus-merge 'merge)
-  ;; Adapted from cl-seq.el
-  (defun gnus-merge (type list1 list2 pred)
-    "Destructively merge lists LIST1 and LIST2 to produce a new list.
-Argument TYPE is for compatibility and ignored.
-Ordering of the elements is preserved according to PRED, a `less-than'
-predicate on the elements."
-    (let ((res nil))
-      (while (and list1 list2)
-	(if (funcall pred (car list2) (car list1))
-	    (push (pop list2) res)
-	  (push (pop list1) res)))
-      (nconc (nreverse res) list1 list2))))
-
-(defvar xemacs-codename)
-(defvar sxemacs-codename)
-(defvar emacs-program-version)
 
 (defun gnus-emacs-version ()
   "Stringified Emacs version."
@@ -1799,37 +1613,15 @@ predicate on the elements."
 			 ((memq 'type lst)
 			  (symbol-name system-type))
 			 (t nil)))
-	 codename emacsname)
-    (cond ((featurep 'sxemacs)
-	   (setq emacsname "SXEmacs"
-		 codename sxemacs-codename))
-	  ((featurep 'xemacs)
-	   (setq emacsname "XEmacs"
-		 codename xemacs-codename))
-	  (t
-	   (setq emacsname "Emacs")))
+	 codename)
     (cond
      ((not (memq 'emacs lst))
       nil)
      ((string-match "^\\(\\([.0-9]+\\)*\\)\\.[0-9]+$" emacs-version)
-      ;; Emacs:
       (concat "Emacs/" (match-string 1 emacs-version)
 	      (if system-v
 		  (concat " (" system-v ")")
 		"")))
-     ((or (featurep 'sxemacs) (featurep 'xemacs))
-      ;; XEmacs or SXEmacs:
-      (concat emacsname "/" emacs-program-version
-	      (let (plst)
-		(when (memq 'codename lst)
-		  (push codename plst))
-		(when system-v
-		  (push system-v plst))
-		(unless (featurep 'mule)
-		  (push "no MULE" plst))
-		(when (> (length plst) 0)
-		  (concat
-		   " (" (mapconcat 'identity (reverse plst) ", ") ")")))))
      (t emacs-version))))
 
 (defun gnus-rename-file (old-path new-path &optional trim)
@@ -1858,36 +1650,6 @@ empty directories from OLD-PATH."
   (ignore-errors
     (set-file-modes filename mode)))
 
-(if (fboundp 'set-process-query-on-exit-flag)
-    (defalias 'gnus-set-process-query-on-exit-flag
-      'set-process-query-on-exit-flag)
-  (defalias 'gnus-set-process-query-on-exit-flag
-    'process-kill-without-query))
-
-(defalias 'gnus-read-shell-command
-  (if (fboundp 'read-shell-command) 'read-shell-command 'read-string))
-
-(defmacro gnus-put-display-table (range value display-table)
-  "Set the value for char RANGE to VALUE in DISPLAY-TABLE.  "
-  (if (featurep 'xemacs)
-      (progn
-        `(if (fboundp 'put-display-table)
-          (put-display-table ,range ,value ,display-table)
-          (if (sequencep ,display-table)
-              (aset ,display-table ,range ,value)
-            (put-char-table ,range ,value ,display-table))))
-    `(aset ,display-table ,range ,value)))
-
-(defmacro gnus-get-display-table (character display-table)
-  "Find value for CHARACTER in DISPLAY-TABLE.  "
-  (if (featurep 'xemacs)
-      `(if (fboundp 'get-display-table)
-          (get-display-table ,character ,display-table)
-          (if (sequencep ,display-table)
-              (aref ,display-table ,character)
-            (get-char-table ,character ,display-table)))
-    `(aref ,display-table ,character)))
-
 (declare-function image-size "image.c" (spec &optional pixels frame))
 
 (defun gnus-rescale-image (image size)
@@ -1910,12 +1672,11 @@ Sizes are in pixels."
                    image)))
       image)))
 
-(eval-when-compile (require 'gmm-utils))
 (defun gnus-recursive-directory-files (dir)
   "Return all regular files below DIR.
 The first found will be returned if a file has hard or symbolic links."
   (let (files attr attrs)
-    (gmm-labels
+    (cl-labels
 	((fn (directory)
 	     (dolist (file (directory-files directory t))
 	       (setq attr (file-attributes (file-truename file)))
@@ -1938,63 +1699,6 @@ The first found will be returned if a file has hard or symbolic links."
       (setq found (or found
 		      (memq elem list))))
     found))
-
-(eval-and-compile
-  (cond
-   ((fboundp 'match-substitute-replacement)
-    (defalias 'gnus-match-substitute-replacement 'match-substitute-replacement))
-   (t
-    (defun gnus-match-substitute-replacement (replacement &optional fixedcase literal string subexp)
-      "Return REPLACEMENT as it will be inserted by `replace-match'.
-In other words, all back-references in the form `\\&' and `\\N'
-are substituted with actual strings matched by the last search.
-Optional FIXEDCASE, LITERAL, STRING and SUBEXP have the same
-meaning as for `replace-match'.
-
-This is the definition of match-substitute-replacement in subr.el from GNU Emacs."
-      (let ((match (match-string 0 string)))
-	(save-match-data
-	  (set-match-data (mapcar (lambda (x)
-				    (if (numberp x)
-					(- x (match-beginning 0))
-				      x))
-				  (match-data t)))
-	  (replace-match replacement fixedcase literal match subexp)))))))
-
-(if (fboundp 'string-match-p)
-    (defalias 'gnus-string-match-p 'string-match-p)
-  (defsubst gnus-string-match-p (regexp string &optional start)
-    "\
-Same as `string-match' except this function does not change the match data."
-    (save-match-data
-      (string-match regexp string start))))
-
-(if (fboundp 'string-prefix-p)
-    (defalias 'gnus-string-prefix-p 'string-prefix-p)
-  (defun gnus-string-prefix-p (str1 str2 &optional ignore-case)
-    "Return non-nil if STR1 is a prefix of STR2.
-If IGNORE-CASE is non-nil, the comparison is done without paying attention
-to case differences."
-    (and (<= (length str1) (length str2))
-	 (let ((prefix (substring str2 0 (length str1))))
-	   (if ignore-case
-	       (string-equal (downcase str1) (downcase prefix))
-	     (string-equal str1 prefix))))))
-
-(defalias 'gnus-format-message
-  (if (fboundp 'format-message) 'format-message
-    ;; for Emacs < 25, and XEmacs, don't worry about quote translation.
-    'format))
-
-;; Simple check: can be a macro but this way, although slow, it's really clear.
-;; We don't use `bound-and-true-p' because it's not in XEmacs.
-(defun gnus-bound-and-true-p (sym)
-  (and (boundp sym) (symbol-value sym)))
-
-(if (fboundp 'timer--function)
-    (defalias 'gnus-timer--function 'timer--function)
-  (defun gnus-timer--function (timer)
-    (elt timer 5)))
 
 (defun gnus-test-list (list predicate)
   "To each element of LIST apply PREDICATE.
@@ -2020,6 +1724,59 @@ lists of strings."
     (if (member (car list1) list2)
 	(gnus-setdiff (cdr list1) list2)
       (cons (car list1) (gnus-setdiff (cdr list1) list2)))))
+
+;;; Image functions.
+
+(defun gnus-image-type-available-p (type)
+  (and (display-images-p)
+       (image-type-available-p type)))
+
+(defun gnus-create-image (file &optional type data-p &rest props)
+  (let ((face (plist-get props :face)))
+    (when face
+      (setq props (plist-put props :foreground (face-foreground face)))
+      (setq props (plist-put props :background (face-background face))))
+    (ignore-errors
+      (apply 'create-image file type data-p props))))
+
+(defun gnus-put-image (glyph &optional string category)
+  (let ((point (point)))
+    (insert-image glyph (or string " "))
+    (put-text-property point (point) 'gnus-image-category category)
+    (unless string
+      (put-text-property (1- (point)) (point)
+			 'gnus-image-text-deletable t))
+    glyph))
+
+(defun gnus-remove-image (image &optional category)
+  "Remove the image matching IMAGE and CATEGORY found first."
+  (let ((start (point-min))
+	val end)
+    (while (and (not end)
+		(or (setq val (get-text-property start 'display))
+		    (and (setq start
+			       (next-single-property-change start 'display))
+			 (setq val (get-text-property start 'display)))))
+      (setq end (or (next-single-property-change start 'display)
+		    (point-max)))
+      (if (and (equal val image)
+	       (equal (get-text-property start 'gnus-image-category)
+		      category))
+	  (progn
+	    (put-text-property start end 'display nil)
+	    (when (get-text-property start 'gnus-image-text-deletable)
+	      (delete-region start end)))
+	(unless (= end (point-max))
+	  (setq start end
+		end nil))))))
+
+(defun gnus-kill-all-overlays ()
+  "Delete all overlays in the current buffer."
+  (let* ((overlayss (overlay-lists))
+	 (buffer-read-only nil)
+	 (overlays (delq nil (nconc (car overlayss) (cdr overlayss)))))
+    (while overlays
+      (delete-overlay (pop overlays)))))
 
 (provide 'gnus-util)
 

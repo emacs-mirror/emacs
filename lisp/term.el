@@ -834,6 +834,10 @@ is buffer-local."
     (define-key map [down] 'term-send-down)
     (define-key map [right] 'term-send-right)
     (define-key map [left] 'term-send-left)
+    (define-key map [C-up] 'term-send-ctrl-up)
+    (define-key map [C-down] 'term-send-ctrl-down)
+    (define-key map [C-right] 'term-send-ctrl-right)
+    (define-key map [C-left] 'term-send-ctrl-left)
     (define-key map [delete] 'term-send-del)
     (define-key map [deletechar] 'term-send-del)
     (define-key map [backspace] 'term-send-backspace)
@@ -845,6 +849,7 @@ is buffer-local."
     (define-key map [S-insert] 'term-paste)
     (define-key map [prior] 'term-send-prior)
     (define-key map [next] 'term-send-next)
+    (define-key map [xterm-paste] #'term--xterm-paste)
     map)
   "Keyboard map for sending characters directly to the inferior process.")
 
@@ -1098,17 +1103,6 @@ Entry to this mode runs the hooks on `term-mode-hook'."
                     (term-reset-size (cdr size) (car size)))
                   size))
 
-  ;; Without the below setting, term-mode and ansi-term behave
-  ;; sluggishly when the buffer includes a lot of whitespace
-  ;; characters.
-  ;;
-  ;; There's a larger problem here with supporting bidirectional text:
-  ;; the application that writes to the terminal could have its own
-  ;; ideas about displaying bidirectional text, and might not want us
-  ;; reordering the text or deciding on base paragraph direction.  One
-  ;; such application is Emacs in TTY mode...  FIXME.
-  (setq bidi-paragraph-direction 'left-to-right)
-
   (easy-menu-add term-terminal-menu)
   (easy-menu-add term-signals-menu)
   (or term-input-ring
@@ -1116,12 +1110,16 @@ Entry to this mode runs the hooks on `term-mode-hook'."
   (term-update-mode-line))
 
 (defun term-reset-size (height width)
-  (setq term-height height)
-  (setq term-width width)
-  (setq term-start-line-column nil)
-  (setq term-current-row nil)
-  (setq term-current-column nil)
-  (term-set-scroll-region 0 height))
+  (when (or (/= height term-height)
+            (/= width term-width))
+    (let ((point (point)))
+      (setq term-height height)
+      (setq term-width width)
+      (setq term-start-line-column nil)
+      (setq term-current-row nil)
+      (setq term-current-column nil)
+      (term-set-scroll-region 0 height)
+      (goto-char point))))
 
 ;; Recursive routine used to check if any string in term-kill-echo-list
 ;; matches part of the buffer before point.
@@ -1207,6 +1205,13 @@ without any interpretation."
   (interactive)
    (term-send-raw-string (current-kill 0)))
 
+(defun term--xterm-paste ()
+  "Insert the text pasted in an XTerm bracketed paste operation."
+  (interactive)
+  (term-send-raw-string (xterm--pasted-text)))
+
+(declare-function xterm--pasted-text "term/xterm" ())
+
 ;; Which would be better:  "\e[A" or "\eOA"? readline accepts either.
 ;; For my configuration it's definitely better \eOA but YMMV. -mm
 ;; For example: vi works with \eOA while elm wants \e[A ...
@@ -1215,6 +1220,10 @@ without any interpretation."
 (defun term-send-down  () (interactive) (term-send-raw-string "\eOB"))
 (defun term-send-right () (interactive) (term-send-raw-string "\eOC"))
 (defun term-send-left  () (interactive) (term-send-raw-string "\eOD"))
+(defun term-send-ctrl-up    () (interactive) (term-send-raw-string "\e[1;5A"))
+(defun term-send-ctrl-down  () (interactive) (term-send-raw-string "\e[1;5B"))
+(defun term-send-ctrl-right () (interactive) (term-send-raw-string "\e[1;5C"))
+(defun term-send-ctrl-left  () (interactive) (term-send-raw-string "\e[1;5D"))
 (defun term-send-home  () (interactive) (term-send-raw-string "\e[1~"))
 (defun term-send-insert() (interactive) (term-send-raw-string "\e[2~"))
 (defun term-send-end   () (interactive) (term-send-raw-string "\e[4~"))
@@ -3250,6 +3259,10 @@ See `term-prompt-regexp'."
    ;; \E[D - cursor left (terminfo: cub)
    ((eq char ?D)
     (term-move-columns (- (max 1 term-terminal-parameter))))
+   ;; \E[G - cursor motion to absolute column (terminfo: hpa)
+   ((eq char ?G)
+    (term-move-columns (- (max 0 (min term-width term-terminal-parameter))
+                          (term-current-column))))
    ;; \E[J - clear to end of screen (terminfo: ed, clear)
    ((eq char ?J)
     (term-erase-in-display term-terminal-parameter))

@@ -296,7 +296,7 @@ skip_invisible (ptrdiff_t pos, ptrdiff_t *next_boundary_p, ptrdiff_t to, Lisp_Ob
 	if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, ch)))		\
 	  width = sanitize_char_width (ASIZE (DISP_CHAR_VECTOR (dp, ch))); \
 	else								\
-	  width = CHAR_WIDTH (ch);					\
+	  width = CHARACTER_WIDTH (ch);					\
       }									\
   } while (0)
 
@@ -1162,7 +1162,7 @@ compute_motion (ptrdiff_t from, ptrdiff_t frombyte, EMACS_INT fromvpos,
   int prev_tab_offset;		/* Previous tab offset.  */
   int continuation_glyph_width;
   struct buffer *cache_buffer = current_buffer;
-  struct region_cache *width_cache;
+  struct region_cache *width_cache = NULL;
 
   struct composition_it cmp_it;
 
@@ -1170,11 +1170,14 @@ compute_motion (ptrdiff_t from, ptrdiff_t frombyte, EMACS_INT fromvpos,
 
   if (cache_buffer->base_buffer)
     cache_buffer = cache_buffer->base_buffer;
-  width_cache = width_run_cache_on_off ();
   if (dp == buffer_display_table ())
-    width_table = (VECTORP (BVAR (current_buffer, width_table))
-                   ? XVECTOR (BVAR (current_buffer, width_table))->contents
-                   : 0);
+    {
+      width_table = (VECTORP (BVAR (current_buffer, width_table))
+		     ? XVECTOR (BVAR (current_buffer, width_table))->contents
+		     : 0);
+      if (width_table)
+	width_cache = width_run_cache_on_off ();
+    }
   else
     /* If the window has its own display table, we can't use the width
        run cache, because that's based on the buffer's display table.  */
@@ -1873,9 +1876,9 @@ vmotion (register ptrdiff_t from, register ptrdiff_t from_byte,
 	    }
 	  pos = *compute_motion (prevline, bytepos, 0, lmargin, 0, from,
 				 /* Don't care for VPOS...  */
-				 1 << (BITS_PER_SHORT - 1),
+				 1 << (SHRT_WIDTH - 1),
 				 /* ... nor HPOS.  */
-				 1 << (BITS_PER_SHORT - 1),
+				 1 << (SHRT_WIDTH - 1),
 				 -1, hscroll, 0, w);
 	  vpos -= pos.vpos;
 	  first = 0;
@@ -1923,9 +1926,9 @@ vmotion (register ptrdiff_t from, register ptrdiff_t from_byte,
 	}
       pos = *compute_motion (prevline, bytepos, 0, lmargin, 0, from,
 			     /* Don't care for VPOS...  */
-			     1 << (BITS_PER_SHORT - 1),
+			     1 << (SHRT_WIDTH - 1),
 			     /* ... nor HPOS.  */
-			     1 << (BITS_PER_SHORT - 1),
+			     1 << (SHRT_WIDTH - 1),
 			     -1, hscroll, 0, w);
       did_motion = 1;
     }
@@ -1936,7 +1939,7 @@ vmotion (register ptrdiff_t from, register ptrdiff_t from_byte,
       did_motion = 0;
     }
   return compute_motion (from, from_byte, vpos, pos.hpos, did_motion,
-			 ZV, vtarget, - (1 << (BITS_PER_SHORT - 1)),
+			 ZV, vtarget, - (1 << (SHRT_WIDTH - 1)),
 			 -1, hscroll, 0, w);
 }
 
@@ -1953,6 +1956,20 @@ window_column_x (struct window *w, Lisp_Object window,
     args_out_of_range (window, column);
 
   return x;
+}
+
+/* Restore window's buffer and point.  */
+
+static void
+restore_window_buffer (Lisp_Object list)
+{
+  struct window *w = decode_live_window (XCAR (list));
+  list = XCDR (list);
+  wset_buffer (w, XCAR (list));
+  list = XCDR (list);
+  set_marker_both (w->pointm, w->contents,
+		   XFASTINT (XCAR (list)),
+		   XFASTINT (XCAR (XCDR (list))));
 }
 
 DEFUN ("vertical-motion", Fvertical_motion, Svertical_motion, 1, 3, 0,
@@ -1994,10 +2011,9 @@ whether or not it is currently displayed in some window.  */)
   struct it it;
   struct text_pos pt;
   struct window *w;
-  Lisp_Object old_buffer;
-  EMACS_INT old_charpos IF_LINT (= 0), old_bytepos IF_LINT (= 0);
   Lisp_Object lcols;
   void *itdata = NULL;
+  ptrdiff_t count = SPECPDL_INDEX ();
 
   /* Allow LINES to be of the form (HPOS . VPOS) aka (COLUMNS . LINES).  */
   bool lcols_given = CONSP (lines);
@@ -2010,13 +2026,13 @@ whether or not it is currently displayed in some window.  */)
   CHECK_NUMBER (lines);
   w = decode_live_window (window);
 
-  old_buffer = Qnil;
   if (XBUFFER (w->contents) != current_buffer)
     {
       /* Set the window's buffer temporarily to the current buffer.  */
-      old_buffer = w->contents;
-      old_charpos = marker_position (w->pointm);
-      old_bytepos = marker_byte_position (w->pointm);
+      Lisp_Object old = list4 (window, w->contents,
+			       make_number (marker_position (w->pointm)),
+			       make_number (marker_byte_position (w->pointm)));
+      record_unwind_protect (restore_window_buffer, old);
       wset_buffer (w, Fcurrent_buffer ());
       set_marker_both (w->pointm, w->contents,
 		       BUF_PT (current_buffer), BUF_PT_BYTE (current_buffer));
@@ -2037,8 +2053,8 @@ whether or not it is currently displayed in some window.  */)
       bool disp_string_at_start_p = 0;
       ptrdiff_t nlines = XINT (lines);
       int vpos_init = 0;
-      double start_col IF_LINT (= 0);
-      int start_x IF_LINT (= 0);
+      double start_col UNINIT;
+      int start_x UNINIT;
       int to_x = -1;
 
       bool start_x_given = !NILP (cur_col);
@@ -2179,6 +2195,7 @@ whether or not it is currently displayed in some window.  */)
       if (nlines <= 0)
 	{
 	  it.vpos = vpos_init;
+	  it.current_y = 0;
 	  /* Do this even if LINES is 0, so that we move back to the
 	     beginning of the current line as we ought.  */
 	  if ((nlines < 0 && IT_CHARPOS (it) > 0)
@@ -2188,6 +2205,7 @@ whether or not it is currently displayed in some window.  */)
       else if (overshoot_handled)
 	{
 	  it.vpos = vpos_init;
+	  it.current_y = 0;
 	  move_it_by_lines (&it, min (PTRDIFF_MAX, nlines));
 	}
       else
@@ -2201,6 +2219,7 @@ whether or not it is currently displayed in some window.  */)
 	      while (IT_CHARPOS (it) <= it_start)
 		{
 		  it.vpos = 0;
+		  it.current_y = 0;
 		  move_it_by_lines (&it, 1);
 		}
 	      if (nlines > 1)
@@ -2209,6 +2228,7 @@ whether or not it is currently displayed in some window.  */)
 	  else	/* it_start = ZV */
 	    {
 	      it.vpos = 0;
+	      it.current_y = 0;
 	      move_it_by_lines (&it, min (PTRDIFF_MAX, nlines));
 	      /* We could have some display or overlay string at ZV,
 		 in which case it.vpos will be nonzero now, while
@@ -2248,12 +2268,7 @@ whether or not it is currently displayed in some window.  */)
       bidi_unshelve_cache (itdata, 0);
     }
 
-  if (BUFFERP (old_buffer))
-    {
-      wset_buffer (w, old_buffer);
-      set_marker_both (w->pointm, w->contents,
-		       old_charpos, old_bytepos);
-    }
+  unbind_to (count, Qnil);
 
   return make_number (it.vpos);
 }

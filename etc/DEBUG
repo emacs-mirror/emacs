@@ -144,8 +144,8 @@ These are displayed as integer values (or structures, if you used the
 "--enable-check-lisp-object-type" option at configure time) that are
 hard to interpret, especially if they represent long lists.  You can
 use the 'pp' command to display them in their Lisp form.  That command
-displays its output on the standard error stream (on GNU/Linux, you
-can redirect that to a file using "M-x redirect-debugging-output").
+displays its output on the standard error stream, which you
+can redirect to a file using "M-x redirect-debugging-output".
 This means that if you attach GDB to a running Emacs that was invoked
 from a desktop icon, chances are you will not see the output at all,
 or it will wind up in an obscure place (check the documentation of
@@ -281,8 +281,8 @@ To see the current value of a Lisp Variable, use 'pv variable'.
 These commands send their output to stderr; if that is closed or
 redirected to some file you don't know, you won't see their output.
 This is particularly so for Emacs invoked on MS-Windows from the
-desktop shortcut.  On GNU/Linux, you can use the command
-'redirect-debugging-output' to redirect stderr to a file.
+desktop shortcut.  You can use the command 'redirect-debugging-output'
+to redirect stderr to a file.
 
 Note: It is not a good idea to try 'pr', 'pp', or 'pv' if you know that Emacs
 is in deep trouble: its stack smashed (e.g., if it encountered SIGSEGV

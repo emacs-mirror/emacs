@@ -78,9 +78,6 @@ the external command (usually \"kill\")."
     ("KILL" . "  (9.  Kill - cannot be caught or ignored)")
     ("ALRM" . "  (14. Alarm Clock)")
     ("TERM" . "  (15. Termination)")
-    ;; POSIX 1003.1-2001
-    ;; Which systems do not support these signals so that we can
-    ;; exclude them from `proced-signal-list'?
     ("CONT" . "  (Continue executing)")
     ("STOP" . "  (Stop executing / pause - cannot be caught or ignored)")
     ("TSTP" . "  (Terminal stop / pause)"))
@@ -643,6 +640,10 @@ mode line, using \"+\" or \"-\" for ascending or descending sort order.
 
 Type \\[proced-toggle-tree] to toggle whether the listing is
 displayed as process tree.
+
+Type \\[proced-toggle-auto-update] to automatically update the
+process list.  The time interval for updates can be configured
+via `proced-auto-update-interval'.
 
 An existing Proced listing can be refined by typing \\[proced-refine].
 Refining an existing listing does not update the variable `proced-filter'.

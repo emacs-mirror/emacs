@@ -733,8 +733,7 @@ upon an inline expansion request.  It is a list whose first element is a
 string passed to @code{format}.  Remaining elements are symbols
 corresponding to directory attribute names.  The corresponding attribute
 values are passed as additional arguments to @code{format}.  Default is
-@code{("%s" email)} but you may want to consider a value like @code{("%s
-<%s>" name email)}
+@code{("%s %s <%s>" firstname name email)}.
 @end defvar
 
 @defvar eudc-multiple-match-handling-method
@@ -784,12 +783,11 @@ Add the current server to the hotlist of servers
 @end deffn
 
 @defvar eudc-options-file
-The name of a file where EUDC stores its internal variables
-(the hotlist and the current server).  EUDC will try to load
-that file upon initialization so, if you choose a file name
-different from the defaults @file{~/.eudc-options}, be sure to set this
-variable to the appropriate value @emph{before} EUDC is itself
-loaded.
+The name of a file where EUDC stores its internal variables (the
+hotlist and the current server).  EUDC will try to load that file upon
+initialization so, if you choose a file name different from the
+defaults @file{~/.emacs.d/eudc-options}, be sure to set this variable
+to the appropriate value @emph{before} EUDC is itself loaded.
 @end defvar
 
 @menu

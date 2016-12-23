@@ -102,6 +102,8 @@ It is called with two arguments, ID and COLS.  ID is a Lisp
 object identifying the entry, and COLS is a vector of column
 descriptors, as documented in `tabulated-list-entries'.")
 
+(defvar tabulated-list--near-rows)
+
 (defvar-local tabulated-list-sort-key nil
   "Sort key for the current Tabulated List mode buffer.
 If nil, no additional sorting is performed.
@@ -257,6 +259,12 @@ Do nothing if `tabulated-list--header-string' is nil."
                     (make-overlay (point-min) (point))))
       (overlay-put tabulated-list--header-overlay 'face 'underline))))
 
+(defsubst tabulated-list-header-overlay-p (&optional pos)
+  "Return non-nil if there is a fake header.
+Optional arg POS is a buffer position where to look for a fake header;
+defaults to `point-min'."
+  (overlays-at (or pos (point-min))))
+
 (defun tabulated-list-revert (&rest ignored)
   "The `revert-buffer-function' for `tabulated-list-mode'.
 It runs `tabulated-list-revert-hook', then calls `tabulated-list-print'."
@@ -297,6 +305,14 @@ column.  Negate the predicate that would be returned if
       (if (cdr tabulated-list-sort-key)
           (lambda (a b) (not (funcall sorter a b)))
         sorter))))
+
+(defsubst tabulated-list--col-local-max-widths (col)
+   "Return maximum entry widths at column COL around current row.
+Check the current row, the previous one and the next row."
+  (apply #'max (mapcar (lambda (x)
+                         (let ((nt (elt x col)))
+                           (string-width (if (stringp nt) nt (car nt)))))
+                       tabulated-list--near-rows)))
 
 (defun tabulated-list-print (&optional remember-pos update)
   "Populate the current Tabulated List mode buffer.
@@ -340,8 +356,14 @@ changing `tabulated-list-sort-key'."
       (unless tabulated-list-use-header-line
         (tabulated-list-print-fake-header)))
     ;; Finally, print the resulting list.
-    (dolist (elt entries)
-      (let ((id (car elt)))
+    (while entries
+      (let* ((elt (car entries))
+             (tabulated-list--near-rows
+              (list
+               (or (tabulated-list-get-entry (point-at-bol 0)) (cadr elt))
+               (cadr elt)
+               (or (cadr (cadr entries)) (cadr elt))))
+             (id (car elt)))
         (and entry-id
              (equal entry-id id)
              (setq entry-id nil
@@ -368,7 +390,8 @@ changing `tabulated-list-sort-key'."
                          (t t)))
             (let ((old (point)))
               (forward-line 1)
-              (delete-region old (point)))))))
+              (delete-region old (point))))))
+      (setq entries (cdr entries)))
     (set-buffer-modified-p nil)
     ;; If REMEMBER-POS was specified, move to the "old" location.
     (if saved-pt
@@ -402,8 +425,6 @@ of column descriptors."
 N is the column number, COL-DESC is a column descriptor (see
 `tabulated-list-entries'), and X is the column number at point.
 Return the column number after insertion."
-  ;; TODO: don't truncate to `width' if the next column is align-right
-  ;; and has some space left.
   (let* ((format    (aref tabulated-list-format n))
 	 (name      (nth 0 format))
 	 (width     (nth 1 format))
@@ -414,12 +435,29 @@ Return the column number after insertion."
          (label-width (string-width label))
 	 (help-echo (concat (car format) ": " label))
 	 (opoint (point))
-	 (not-last-col (< (1+ n) (length tabulated-list-format))))
+	 (not-last-col (< (1+ n) (length tabulated-list-format)))
+	  available-space)
+    (when not-last-col
+      (let* ((next-col-format (aref tabulated-list-format (1+ n)))
+             (next-col-right-align (plist-get (nthcdr 3 next-col-format)
+                                              :right-align))
+             (next-col-width (nth 1 next-col-format)))
+        (setq available-space
+              (if (and (not right-align)
+                       next-col-right-align)
+                  (-
+                   (+ width next-col-width)
+                   (min next-col-width
+                        (tabulated-list--col-local-max-widths (1+ n))))
+                width))))
     ;; Truncate labels if necessary (except last column).
-    (and not-last-col
-	 (> label-width width)
-	 (setq label (truncate-string-to-width label width nil nil t)
-               label-width width))
+    ;; Don't truncate to `width' if the next column is align-right
+    ;; and has some space left, truncate to `available-space' instead.
+    (when (and not-last-col
+               (> label-width available-space)
+               (setq label (truncate-string-to-width
+                            label available-space nil nil t)
+                     label-width available-space)))
     (setq label (bidi-string-mark-left-to-right label))
     (when (and right-align (> width label-width))
       (let ((shift (- width label-width)))
@@ -437,7 +475,7 @@ Return the column number after insertion."
       (when not-last-col
         (when (> pad-right 0) (insert (make-string pad-right ?\s)))
         (insert (propertize
-                 (make-string (- next-x x label-width pad-right) ?\s)
+                 (make-string (- width (min width label-width)) ?\s)
                  'display `(space :align-to ,next-x))))
       (put-text-property opoint (point) 'tabulated-list-column-name name)
       next-x)))
@@ -494,7 +532,12 @@ this is the vector stored within it."
     (when (< pos eol)
       (delete-region pos (next-single-property-change pos prop nil eol))
       (goto-char pos)
-      (tabulated-list-print-col col desc (current-column))
+      (let ((tabulated-list--near-rows
+             (list
+              (tabulated-list-get-entry (point-at-bol 0))
+              entry
+              (or (tabulated-list-get-entry (point-at-bol 2)) entry))))
+        (tabulated-list-print-col col desc (current-column)))
       (if change-entry-data
 	  (aset entry col desc))
       (put-text-property pos (point) 'tabulated-list-id id)

@@ -641,7 +641,7 @@
   "Text based table manipulation utilities."
   :tag "Table"
   :prefix "table-"
-  :group 'wp
+  :group 'text
   :version "22.1")
 
 (defgroup table-hooks nil
@@ -936,6 +936,7 @@ This is always set to nil at the entry to `table-with-cache-buffer' before execu
     ([(shift backtab)]	. table-backward-cell) ; for HPUX console keyboard
     ([(shift iso-lefttab)]    . table-backward-cell) ; shift-tab on a microsoft natural keyboard and redhat linux
     ([(shift tab)]	. table-backward-cell)
+    ([backtab]          . table-backward-cell) ; for terminals (e.g., xterm)
     ([return]		. *table--cell-newline)
     ([(control m)]	. *table--cell-newline)
     ([(control j)]	. *table--cell-newline-and-indent)
@@ -2967,8 +2968,7 @@ CALS (DocBook DTD):
 	  (default (car table-source-language-history))
 	  (language (downcase (completing-read
 			       (format "Language (default %s): " default)
-			       (mapcar (lambda (s) (list (symbol-name s)))
-				       table-source-languages)
+			       table-source-languages
 			       nil t nil 'table-source-language-history default))))
      (list
       (intern language)

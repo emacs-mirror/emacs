@@ -1,4 +1,4 @@
-;;; json.el --- JavaScript Object Notation parser / generator
+;;; json.el --- JavaScript Object Notation parser / generator -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2006-2016 Free Software Foundation, Inc.
 

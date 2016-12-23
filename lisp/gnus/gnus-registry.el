@@ -87,12 +87,6 @@
 (require 'easymenu)
 (require 'registry)
 
-;; Silence XEmacs byte compiler, which will otherwise complain about
-;; call to `eieio-persistent-read'.
-(when (featurep 'xemacs)
-   (byte-compiler-options
-     (warnings (- callargs))))
-
 (defvar gnus-adaptive-word-syntax-table)
 
 (defvar gnus-registry-dirty t
@@ -832,8 +826,7 @@ Addresses without a name will say \"noname\"."
 
 (defun gnus-registry-sort-addresses (&rest addresses)
   "Return a normalized and sorted list of ADDRESSES."
-  (sort (apply 'nconc (mapcar 'gnus-registry-extract-addresses addresses))
-        'string-lessp))
+  (sort (mapcan 'gnus-registry-extract-addresses addresses) 'string-lessp))
 
 (defun gnus-registry-simplify-subject (subject)
   (if (stringp subject)
@@ -1036,7 +1029,7 @@ only the last one's marks are returned."
   (let* ((article (last articles))
          (id (gnus-registry-fetch-message-id-fast article))
          (marks (when id (gnus-registry-get-id-key id 'mark))))
-    (when (gmm-called-interactively-p 'any)
+    (when (called-interactively-p 'any)
       (gnus-message 1 "Marks are %S" marks))
     marks))
 

@@ -858,8 +858,6 @@ Returns an error if the server cannot be contacted."
 	    ;; Send the contents.
 	    (smtpmail-command-or-throw process "DATA")
 	    (smtpmail-send-data process smtpmail-text-buffer)
-	    ;; DATA end "."
-	    (smtpmail-command-or-throw process ".")
 	    ;; Return success.
 	    nil))
       (when (and process
@@ -957,10 +955,11 @@ Returns an error if the server cannot be contacted."
   (process-send-string process "\r\n"))
 
 (defun smtpmail-send-data (process buffer)
-  (let ((data-continue t) sending-data
+  (let ((data-continue t)
         (pr (with-current-buffer buffer
               (make-progress-reporter "Sending email "
-                                      (point-min) (point-max)))))
+                                      (point-min) (point-max))))
+        sending-data)
     (with-current-buffer buffer
       (goto-char (point-min)))
     (while data-continue
@@ -970,6 +969,8 @@ Returns an error if the server cannot be contacted."
 	(end-of-line 2)
         (setq data-continue (not (eobp))))
       (smtpmail-send-data-1 process sending-data))
+    ;; DATA end "."
+    (smtpmail-command-or-throw process ".")
     (progress-reporter-done pr)))
 
 (defun smtpmail-deduce-address-list (smtpmail-text-buffer header-start header-end)

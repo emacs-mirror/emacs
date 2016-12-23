@@ -97,34 +97,6 @@ ARGS are passed to `message'."
 (autoload 'widget-convert "wid-edit")
 (autoload 'widget-default-get "wid-edit")
 
-;; Copy of the `nnmail-lazy' code from `nnmail.el':
-(define-widget 'gmm-lazy 'default
-  "Base widget for recursive data structures.
-
-This is a copy of the `lazy' widget in Emacs 22.1 provided for compatibility."
-  :format "%{%t%}: %v"
-  :convert-widget 'widget-value-convert-widget
-  :value-create (lambda (widget)
-                  (let ((value (widget-get widget :value))
-                        (type (widget-get widget :type)))
-                    (widget-put widget :children
-                                (list (widget-create-child-value
-                                       widget (widget-convert type) value)))))
-  :value-delete 'widget-children-value-delete
-  :value-get (lambda (widget)
-               (widget-value (car (widget-get widget :children))))
-  :value-inline (lambda (widget)
-                  (widget-apply (car (widget-get widget :children))
-                                :value-inline))
-  :default-get (lambda (widget)
-                 (widget-default-get
-                  (widget-convert (widget-get widget :type))))
-  :match (lambda (widget value)
-           (widget-apply (widget-convert (widget-get widget :type))
-                         :match value))
-  :validate (lambda (widget)
-              (widget-apply (car (widget-get widget :children)) :validate)))
-
 ;; Note: The format of `gmm-tool-bar-item' may change if some future Emacs
 ;; version will provide customizable tool bar buttons using a different
 ;; interface.
@@ -144,7 +116,7 @@ This is a copy of the `lazy' widget in Emacs 22.1 provided for compatibility."
 ;;
 ;; Then use (plist-get rs-command :none), (plist-get rs-command :shift)
 
-(define-widget 'gmm-tool-bar-item (if (gmm-widget-p 'lazy) 'lazy 'gmm-lazy)
+(define-widget 'gmm-tool-bar-item 'lazy
   "Tool bar list item."
   :tag "Tool bar item"
   :type '(choice
@@ -163,7 +135,7 @@ This is a copy of the `lazy' widget in Emacs 22.1 provided for compatibility."
 		(const :tag "No map")
 		(plist :inline t :tag "Properties"))))
 
-(define-widget 'gmm-tool-bar-zap-list (if (gmm-widget-p 'lazy) 'lazy 'gmm-lazy)
+(define-widget 'gmm-tool-bar-zap-list 'lazy
   "Tool bar zap list."
   :tag "Tool bar zap list"
   :type '(choice (const :tag "Zap all" t)
@@ -193,28 +165,12 @@ This is a copy of the `lazy' widget in Emacs 22.1 provided for compatibility."
 			  :tag "Other"
 			  (symbol :tag "Icon item")))))
 
-;; (defun gmm-color-cells (&optional display)
-;;   "Return the number of color cells supported by DISPLAY.
-;; Compatibility function."
-;;   ;; `display-color-cells' doesn't return more than 256 even if color depth is
-;;   ;; > 8 in Emacs 21.
-;;   ;;
-;;   ;; Feel free to add proper XEmacs support.
-;;   (let* ((cells (and (fboundp 'display-color-cells)
-;; 		     (display-color-cells display)))
-;; 	 (plane (and (fboundp 'x-display-planes)
-;; 		     (ash 1 (x-display-planes))))
-;; 	 (none -1))
-;;     (max (if (integerp cells) cells none)
-;; 	 (if (integerp plane) plane none))))
-
 (defcustom gmm-tool-bar-style
   (if (and (boundp 'tool-bar-mode)
 	   tool-bar-mode
-	   (and (fboundp 'display-visual-class)
-		(not (memq (display-visual-class)
-			   (list 'static-gray 'gray-scale
-				 'static-color 'pseudo-color)))))
+	   (memq (display-visual-class)
+		 (list 'static-gray 'gray-scale
+		       'static-color 'pseudo-color)))
       'gnome
     'retro)
   "Preferred tool bar style."
@@ -242,15 +198,13 @@ item.  When \\[describe-key] <icon> shows \"<tool-bar> <new-file>
 runs the command find-file\", then use `new-file' in ZAP-LIST.
 
 DEFAULT-MAP specifies the default key map for ICON-LIST."
-  (let (;; For Emacs 21, we must let-bind `tool-bar-map'.  In Emacs 22, we
-	;; could use some other local variable.
-	(tool-bar-map (if (eq zap-list t)
-			  (make-sparse-keymap)
-			(copy-keymap tool-bar-map))))
+  (let ((map (if (eq zap-list t)
+		 (make-sparse-keymap)
+	       (copy-keymap tool-bar-map))))
     (when (listp zap-list)
       ;; Zap some items which aren't relevant for this mode and take up space.
       (dolist (key zap-list)
-	(define-key tool-bar-map (vector key) nil)))
+	(define-key map (vector key) nil)))
     (mapc (lambda (el)
 	    (let ((command (car el))
 		  (icon (nth 1 el))
@@ -262,7 +216,7 @@ DEFAULT-MAP specifies the default key map for ICON-LIST."
 		     ;; widget.  Suppress tooltip by adding `:enable nil'.
 		     (if (fboundp 'tool-bar-local-item)
 			 (apply 'tool-bar-local-item icon nil nil
-				tool-bar-map :enable nil props)
+				map :enable nil props)
 		       ;; (tool-bar-local-item ICON DEF KEY MAP &rest PROPS)
 		       ;; (tool-bar-add-item ICON DEF KEY &rest PROPS)
 		       (apply 'tool-bar-add-item icon nil nil :enable nil props)))
@@ -270,18 +224,18 @@ DEFAULT-MAP specifies the default key map for ICON-LIST."
 		     (apply 'tool-bar-local-item
 			    icon command
 			    (intern icon) ;; reuse icon or fmap here?
-			    tool-bar-map props))
+			    map props))
 		    (t ;; A menu command
 		     (apply 'tool-bar-local-item-from-menu
 			    ;; (apply 'tool-bar-local-item icon def key
 			    ;; tool-bar-map props)
-			    command icon tool-bar-map (symbol-value fmap)
+			    command icon map (symbol-value fmap)
 			    props)))
 	      t))
 	  (if (symbolp icon-list)
 	      (eval icon-list)
 	    icon-list))
-    tool-bar-map))
+    map))
 
 (defmacro defun-gmm (name function arg-list &rest body)
   "Create function NAME.
@@ -291,109 +245,6 @@ Otherwise, create function NAME with ARG-LIST and BODY."
     (if defined-p
         `(defalias ',name ',function)
       `(defun ,name ,arg-list ,@body))))
-
-(defun-gmm gmm-image-search-load-path
-  image-search-load-path (file &optional path)
-  "Emacs 21 and XEmacs don't have `image-search-load-path'.
-This function returns nil on those systems."
-  nil)
-
-;; Cf. `mh-image-load-path-for-library' in `mh-compat.el'.
-
-(defun-gmm gmm-image-load-path-for-library
-  image-load-path-for-library (library image &optional path no-error)
-  "Return a suitable search path for images used by LIBRARY.
-
-It searches for IMAGE in `image-load-path' (excluding
-\"`data-directory'/images\") and `load-path', followed by a path
-suitable for LIBRARY, which includes \"../../etc/images\" and
-\"../etc/images\" relative to the library file itself, and then
-in \"`data-directory'/images\".
-
-Then this function returns a list of directories which contains
-first the directory in which IMAGE was found, followed by the
-value of `load-path'.  If PATH is given, it is used instead of
-`load-path'.
-
-If NO-ERROR is non-nil and a suitable path can't be found, don't
-signal an error.  Instead, return a list of directories as before,
-except that nil appears in place of the image directory.
-
-Here is an example that uses a common idiom to provide
-compatibility with versions of Emacs that lack the variable
-`image-load-path':
-
-    ;; Shush compiler.
-    (defvar image-load-path)
-
-    (let* ((load-path (image-load-path-for-library \"mh-e\" \"mh-logo.xpm\"))
-           (image-load-path (cons (car load-path)
-                                  (when (boundp \\='image-load-path)
-                                    image-load-path))))
-      (mh-tool-bar-folder-buttons-init))"
-  (unless library (error "No library specified"))
-  (unless image   (error "No image specified"))
-  (let (image-directory image-directory-load-path)
-    ;; Check for images in image-load-path or load-path.
-    (let ((img image)
-          (dir (or
-                ;; Images in image-load-path.
-                (gmm-image-search-load-path image) ;; "gmm-" prefix!
-                ;; Images in load-path.
-                (locate-library image)))
-          parent)
-      ;; Since the image might be in a nested directory (for
-      ;; example, mail/attach.pbm), adjust `image-directory'
-      ;; accordingly.
-      (when dir
-        (setq dir (file-name-directory dir))
-        (while (setq parent (file-name-directory img))
-          (setq img (directory-file-name parent)
-                dir (expand-file-name "../" dir))))
-      (setq image-directory-load-path dir))
-
-    ;; If `image-directory-load-path' isn't Emacs's image directory,
-    ;; it's probably a user preference, so use it.  Then use a
-    ;; relative setting if possible; otherwise, use
-    ;; `image-directory-load-path'.
-    (cond
-     ;; User-modified image-load-path?
-     ((and image-directory-load-path
-           (not (equal image-directory-load-path
-                       (file-name-as-directory
-                        (expand-file-name "images" data-directory)))))
-      (setq image-directory image-directory-load-path))
-     ;; Try relative setting.
-     ((let (library-name d1ei d2ei)
-        ;; First, find library in the load-path.
-        (setq library-name (locate-library library))
-        (if (not library-name)
-            (error "Cannot find library %s in load-path" library))
-        ;; And then set image-directory relative to that.
-        (setq
-         ;; Go down 2 levels.
-         d2ei (file-name-as-directory
-               (expand-file-name
-                (concat (file-name-directory library-name) "../../etc/images")))
-         ;; Go down 1 level.
-         d1ei (file-name-as-directory
-               (expand-file-name
-                (concat (file-name-directory library-name) "../etc/images"))))
-        (setq image-directory
-              ;; Set it to nil if image is not found.
-              (cond ((file-exists-p (expand-file-name image d2ei)) d2ei)
-                    ((file-exists-p (expand-file-name image d1ei)) d1ei)))))
-     ;; Use Emacs's image directory.
-     (image-directory-load-path
-      (setq image-directory image-directory-load-path))
-     (no-error
-      (message "Could not find image %s for library %s" image library))
-     (t
-      (error "Could not find image %s for library %s" image library)))
-
-    ;; Return an augmented `path' or `load-path'.
-    (nconc (list image-directory)
-           (delete image-directory (copy-sequence (or path load-path))))))
 
 (defun gmm-customize-mode (&optional mode)
   "Customize customization group for MODE.
@@ -405,75 +256,8 @@ If mode is nil, use `major-mode' of the current buffer."
 		 (string-match "^\\(.+\\)-mode$" mode)
 		 (match-string 1 mode))))))
 
-(defun gmm-write-region (start end filename &optional append visit
-			       lockname mustbenew)
-  "Compatibility function for `write-region'.
-
-In XEmacs, the seventh argument of `write-region' specifies the
-coding-system."
-  (if (and mustbenew (featurep 'xemacs))
-      (if (file-exists-p filename)
-	  (signal 'file-already-exists (list "File exists" filename))
-	(write-region start end filename append visit lockname))
-    (write-region start end filename append visit lockname mustbenew)))
-
-;; `interactive-p' is obsolete since Emacs 23.2.
-(defmacro gmm-called-interactively-p (kind)
-  (condition-case nil
-      (progn
-	(eval '(called-interactively-p 'any))
-	;; Emacs >=23.2
-	`(called-interactively-p ,kind))
-    ;; Emacs <23.2
-    (wrong-number-of-arguments '(called-interactively-p))
-    ;; XEmacs
-    (void-function '(interactive-p))))
-
-;; `labels' is obsolete since Emacs 24.3.
-(defmacro gmm-labels (bindings &rest body)
-  "Make temporary function bindings.
-The bindings can be recursive and the scoping is lexical, but capturing
-them in closures will only work if `lexical-binding' is in use.  But in
-Emacs 24.2 and older, the lexical scoping is handled via `lexical-let'
-rather than relying on `lexical-binding'.
-
-\(fn ((FUNC ARGLIST BODY...) ...) FORM...)"
-  `(,(progn (require 'cl) (if (fboundp 'cl-labels) 'cl-labels 'labels))
-    ,bindings ,@body))
-(put 'gmm-labels 'lisp-indent-function 1)
-(put 'gmm-labels 'edebug-form-spec '((&rest (sexp sexp &rest form)) &rest form))
-
-(defun gmm-format-time-string (format-string &optional time tz)
-  "Use FORMAT-STRING to format the time TIME, or now if omitted.
-The optional TZ specifies the time zone in a number of seconds; any
-other non-nil value will be treated as 0.  Note that both the format
-specifiers `%Z' and `%z' will be replaced with a numeric form. "
-;; FIXME: is there a smart way to replace %Z with a time zone name?
-  (if (and (numberp tz) (not (zerop tz)))
-      (let ((st 0)
-	    (case-fold-search t)
-	    ls nd rest)
-	(setq time (if time
-		       (copy-sequence time)
-		     (current-time)))
-	(if (>= (setq ls (- (cadr time) (car (current-time-zone)) (- tz))) 0)
-	    (setcar (cdr time) ls)
-	  (setcar (cdr time) (+ ls 65536))
-	  (setcar time (1- (car time))))
-	(setq tz (format "%s%02d%02d"
-			 (if (>= tz 0) "+" "-")
-			 (/ (abs tz) 3600)
-			 (/ (% (abs tz) 3600) 60)))
-	(while (string-match "%+z" format-string st)
-	  (if (zerop (% (- (setq nd (match-end 0)) (match-beginning 0)) 2))
-	      (progn
-		(push (substring format-string st (- nd 2)) rest)
-		(push tz rest))
-	    (push (substring format-string st nd) rest))
-	  (setq st nd))
-	(push (substring format-string st) rest)
-	(format-time-string (apply 'concat (nreverse rest)) time))
-    (format-time-string format-string time t)))
+(define-obsolete-function-alias 'gmm-format-time-string 'format-time-string
+  "26.1")
 
 (provide 'gmm-utils)
 

@@ -61,7 +61,7 @@ Michael Albinus
             lisp/net/tramp*.el
             lisp/url/url-tramp.el
             doc/misc/tramp*.texi
-            test/automated/tramp-tests.el
+            test/lisp/net/tramp-tests.el
 
         D-Bus
 	    src/dbusbind.c
@@ -69,13 +69,13 @@ Michael Albinus
 	    lisp/net/secrets.el
             lisp/net/zeroconf.el
 	    doc/misc/dbus.texi
-            test/automated/dbus-tests.el
+            test/lisp/net/dbus-tests.el
 
         File Notifications
 	    src/gfilenotify.c
 	    src/kqueue.c
 	    lisp/filenotify.el
-	    test/automated/file-notify-tests.el
+	    test/lisp/filenotify-tests.el
 
 Simen Heggestøyl
 	lisp/textmodes/css-mode.el
@@ -211,9 +211,8 @@ Michael Albinus
         lisp/autorevert.el
 	lisp/eshell/em-tramp.el
 	lisp/notifications.el
-        test/automated/auto-revert-tests.el
-	test/automated/inotify-test.el
-	test/automated/vc-tests.el
+        test/lisp/autorevert-tests.el
+	test/src/inotify-test.el
 
 Nicolas Petton
 	lisp/emacs-lisp/subr-x.el

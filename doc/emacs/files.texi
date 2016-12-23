@@ -1554,8 +1554,8 @@ delete-file}.  @xref{VC Delete/Rename}.
 
 @findex copy-file
 @cindex copying files
-  @kbd{M-x copy-file} reads the file @var{old} and writes a new file
-named @var{new} with the same contents.
+  @kbd{M-x copy-file} copies the contents of the file @var{old} to the
+file @var{new}.
 
 @findex copy-directory
   @kbd{M-x copy-directory} copies directories, similar to the
@@ -1870,6 +1870,11 @@ prevent it from being treated as a remote file name.  Thus, if you have
 a directory named @file{/foo:} and a file named @file{bar} in it, you
 can refer to that file in Emacs as @samp{/:/foo:/bar}.
 
+  If you want to quote only special characters in the local part of a
+remote file name, you can quote just the local part.
+@samp{/baz:/:/foo:/bar} refers to the file @file{bar} of directory
+@file{/foo:} on the host @file{baz}.
+
   @samp{/:} can also prevent @samp{~} from being treated as a special
 character for a user's home directory.  For example, @file{/:/tmp/~hack}
 refers to a file whose name is @file{~hack} in directory @file{/tmp}.
@@ -1968,6 +1973,9 @@ point.  Partial Completion mode offers other features extending
 major mode, you can type @kbd{C-c C-c} (@code{image-toggle-display})
 to toggle between displaying the file as an image in the Emacs buffer,
 and displaying its underlying text (or raw byte) representation.
+Additionally you can type @kbd{C-c C-x} (@code{image-toggle-hex-display})
+to toggle between displaying the file as an image in the Emacs buffer,
+and displaying it in hex representation.
 Displaying the file as an image works only if Emacs is compiled with
 support for displaying such images.  If the displayed image is wider
 or taller than the frame, the usual point motion keys (@kbd{C-f},

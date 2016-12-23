@@ -26,14 +26,10 @@
 
 ;;; Code:
 
-(when (featurep 'mucs)
-  (error "nxml-mode is not compatible with Mule-UCS"))
-
 (eval-when-compile (require 'cl-lib))
 
 (require 'xmltok)
 (require 'nxml-enc)
-(require 'nxml-glyph)
 (require 'nxml-util)
 (require 'nxml-rap)
 (require 'nxml-outln)
@@ -41,6 +37,7 @@
 ;; So we might as well just require it and silence the compiler.
 (provide 'nxml-mode)			; avoid recursive require
 (require 'rng-nxml)
+(require 'sgml-mode)
 
 ;;; Customization
 
@@ -55,9 +52,7 @@
 
 (defcustom nxml-char-ref-display-glyph-flag t
   "Non-nil means display glyph following character reference.
-The glyph is displayed in face `nxml-glyph'.  The abnormal hook
-`nxml-glyph-set-functions' can be used to change the characters
-for which glyphs are displayed."
+The glyph is displayed in face `nxml-glyph'."
   :group 'nxml
   :type 'boolean)
 
@@ -151,16 +146,6 @@ This is not used directly, but only via inheritance by other faces."
 (defface nxml-text
   nil
   "Face used to highlight text."
-  :group 'nxml-faces)
-
-(defface nxml-comment-content
-  '((t (:inherit font-lock-comment-face)))
-  "Face used to highlight the content of comments."
-  :group 'nxml-faces)
-
-(defface nxml-comment-delimiter
-  '((t (:inherit font-lock-comment-delimiter-face)))
-  "Face used for the delimiters of comments, i.e., <!-- and -->."
   :group 'nxml-faces)
 
 (defface nxml-processing-instruction-delimiter
@@ -280,15 +265,6 @@ This includes ths `x' in hex references."
   "Face used for the delimiters of attribute values."
   :group 'nxml-faces)
 
-(defface nxml-namespace-attribute-value
-  '((t (:inherit nxml-attribute-value)))
-  "Face used for the value of namespace attributes."
-  :group 'nxml-faces)
-
-(defface nxml-namespace-attribute-value-delimiter
-  '((t (:inherit nxml-attribute-value-delimiter)))
-  "Face used for the delimiters of namespace attribute values."
-  :group 'nxml-faces)
 
 (defface nxml-prolog-literal-delimiter
   '((t (:inherit nxml-delimited-data)))
@@ -342,22 +318,19 @@ The delimiters are <! and >."
 
 ;;; Global variables
 
-(defvar nxml-parent-document nil
+(defvar-local nxml-parent-document nil
   "The parent document for a part of a modular document.
 Use `nxml-parent-document-set' to set it.")
-(make-variable-buffer-local 'nxml-parent-document)
 (put 'nxml-parent-document 'safe-local-variable 'stringp)
 
-(defvar nxml-prolog-regions nil
+(defvar-local nxml-prolog-regions nil
   "List of regions in the prolog to be fontified.
 See the function `xmltok-forward-prolog' for more information.")
-(make-variable-buffer-local 'nxml-prolog-regions)
 
-(defvar nxml-degraded nil
+(defvar-local nxml-degraded nil
   "Non-nil if currently operating in degraded mode.
 Degraded mode is enabled when an internal error is encountered in the
 fontification or after-change functions.")
-(make-variable-buffer-local 'nxml-degraded)
 
 (defvar nxml-completion-hook nil
   "Hook run by `nxml-complete'.
@@ -375,13 +348,12 @@ one of the functions returns nil.")
 (defvar nxml-end-tag-indent-scan-distance 4000
   "Maximum distance from point to scan backwards when indenting end-tag.")
 
-(defvar nxml-char-ref-extra-display t
+(defvar-local nxml-char-ref-extra-display t
   "Non-nil means display extra information for character references.
 The extra information consists of a tooltip with the character name
 and, if `nxml-char-ref-display-glyph-flag' is non-nil, a glyph
 corresponding to the referenced character following the character
 reference.")
-(make-variable-buffer-local 'nxml-char-ref-extra-display)
 
 (defvar nxml-mode-map
   (let ((map (make-sparse-keymap)))
@@ -415,7 +387,9 @@ reference.")
 
 (defsubst nxml-set-face (start end face)
   (when (and face (< start end))
-    (font-lock-append-text-property start end 'face face)))
+    ;; Prepend, so the character reference highlighting takes precedence over
+    ;; the string highlighting applied syntactically.
+    (font-lock-prepend-text-property start end 'face face)))
 
 (defun nxml-parent-document-set (parent-document)
   "Set `nxml-parent-document' and inherit the DTD &c."
@@ -519,53 +493,39 @@ Many aspects this mode can be customized using
   ;; FIXME: Use the fact that we're parsing the document already
   ;; rather than using regex-based filtering.
   (setq-local tildify-foreach-region-function
-              (apply-partially 'tildify-foreach-ignore-environments
+              (apply-partially #'tildify-foreach-ignore-environments
                                '(("<! *--" . "-- *>") ("<" . ">"))))
-  (set (make-local-variable 'mode-line-process) '((nxml-degraded "/degraded")))
+  (setq-local mode-line-process '((nxml-degraded "/degraded")))
   ;; We'll determine the fill prefix ourselves
-  (make-local-variable 'adaptive-fill-mode)
-  (setq adaptive-fill-mode nil)
-  (make-local-variable 'forward-sexp-function)
-  (setq forward-sexp-function 'nxml-forward-balanced-item)
-  (make-local-variable 'indent-line-function)
-  (setq indent-line-function 'nxml-indent-line)
-  (make-local-variable 'fill-paragraph-function)
-  (setq fill-paragraph-function 'nxml-do-fill-paragraph)
+  (setq-local adaptive-fill-mode nil)
+  (setq-local forward-sexp-function #'nxml-forward-balanced-item)
+  (setq-local indent-line-function #'nxml-indent-line)
+  (setq-local fill-paragraph-function #'nxml-do-fill-paragraph)
   ;; Comment support
   ;; This doesn't seem to work too well;
   ;; I think we should probably roll our own nxml-comment-dwim function.
-  (make-local-variable 'comment-indent-function)
-  (setq comment-indent-function 'nxml-indent-line)
-  (make-local-variable 'comment-start)
-  (setq comment-start "<!--")
-  (make-local-variable 'comment-start-skip)
-  (setq comment-start-skip "<!--[ \t\r\n]*")
-  (make-local-variable 'comment-end)
-  (setq comment-end "-->")
-  (make-local-variable 'comment-end-skip)
-  (setq comment-end-skip "[ \t\r\n]*-->")
-  (make-local-variable 'comment-line-break-function)
-  (setq comment-line-break-function 'nxml-newline-and-indent)
-  (setq-local comment-quote-nested-function 'nxml-comment-quote-nested)
-  (use-local-map nxml-mode-map)
+  (setq-local comment-indent-function #'nxml-indent-line)
+  (setq-local comment-start "<!--")
+  (setq-local comment-start-skip "<!--[ \t\r\n]*")
+  (setq-local comment-end "-->")
+  (setq-local comment-end-skip "[ \t\r\n]*-->")
+  (setq-local comment-line-break-function #'nxml-newline-and-indent)
+  (setq-local comment-quote-nested-function #'nxml-comment-quote-nested)
   (save-excursion
     (save-restriction
       (widen)
-      (setq nxml-scan-end (copy-marker (point-min) nil))
       (with-silent-modifications
-        (nxml-clear-inside (point-min) (point-max))
 	(nxml-with-invisible-motion
 	  (nxml-scan-prolog)))))
-  (add-hook 'completion-at-point-functions
-            #'nxml-completion-at-point-function nil t)
-  (setq-local syntax-propertize-function #'nxml-after-change)
-  (add-hook 'change-major-mode-hook 'nxml-cleanup nil t)
+  (setq-local syntax-ppss-table sgml-tag-syntax-table)
+  (setq-local syntax-propertize-function sgml-syntax-propertize-function)
+  (add-hook 'change-major-mode-hook #'nxml-cleanup nil t)
 
   ;; Emacs 23 handles the encoding attribute on the xml declaration
   ;; transparently to nxml-mode, so there is no longer a need for the below
   ;; hook. The hook also had the drawback of overriding explicit user
   ;; instruction to save as some encoding other than utf-8.
-  ;;(add-hook 'write-contents-hooks 'nxml-prepare-to-save)
+  ;;(add-hook 'write-contents-hooks #'nxml-prepare-to-save)
   (when (not (and (buffer-file-name) (file-exists-p (buffer-file-name))))
     (when (and nxml-default-buffer-file-coding-system
 	       (not (local-variable-p 'buffer-file-coding-system)))
@@ -575,16 +535,14 @@ Many aspects this mode can be customized using
 
   (setq font-lock-defaults
         '(nxml-font-lock-keywords
-          t    ; keywords-only; we highlight comments and strings here
+          nil  ; highlight comments and strings based on syntax-tables
           nil  ; font-lock-keywords-case-fold-search. XML is case sensitive
           nil  ; no special syntax table
-          nil  ; no automatic syntactic fontification
           (font-lock-extend-region-functions . (nxml-extend-region))
           (jit-lock-contextually . t)
           (font-lock-unfontify-region-function . nxml-unfontify-region)))
 
-  (rng-nxml-mode-init)
-  (nxml-enable-unicode-char-name-sets))
+  (with-demoted-errors (rng-nxml-mode-init)))
 
 (defun nxml-cleanup ()
   "Clean up after nxml-mode."
@@ -596,7 +554,7 @@ Many aspects this mode can be customized using
     (with-silent-modifications
       (nxml-with-invisible-motion
        (remove-text-properties (point-min) (point-max) '(face)))))
-  (remove-hook 'change-major-mode-hook 'nxml-cleanup t))
+  (remove-hook 'change-major-mode-hook #'nxml-cleanup t))
 
 (defun nxml-degrade (context err)
   (message "Internal nXML mode error in %s (%s), degrading"
@@ -604,12 +562,7 @@ Many aspects this mode can be customized using
 	   (error-message-string err))
   (ding)
   (setq nxml-degraded t)
-  (setq nxml-prolog-end 1)
-  (save-excursion
-    (save-restriction
-      (widen)
-      (with-silent-modifications
-	(nxml-clear-inside (point-min) (point-max))))))
+  (setq nxml-prolog-end 1))
 
 ;;; Change management
 
@@ -621,41 +574,6 @@ Many aspects this mode can be customized using
     (nxml-extend-region)
     (goto-char font-lock-beg)
     (set-mark font-lock-end)))
-
-(defun nxml-after-change (start end)
-  ;; Called via syntax-propertize-function.
-  (unless nxml-degraded
-    (nxml-with-degradation-on-error 'nxml-after-change
-      (save-restriction
-        (widen)
-        (nxml-with-invisible-motion
-         (nxml-after-change1 start end))))))
-
-(defun nxml-after-change1 (start end)
-  "After-change bookkeeping.
-Returns a cons cell containing a possibly-enlarged change region.
-You must call `nxml-extend-region' on this expanded region to obtain
-the full extent of the area needing refontification.
-
-For bookkeeping, call this function even when fontification is
-disabled."
-  ;; If the prolog might have changed, rescan the prolog.
-  (when (<= start
-            ;; Add 2 so as to include the < and following char that
-            ;; start the instance (document element), since changing
-            ;; these can change where the prolog ends.
-            (+ nxml-prolog-end 2))
-    (nxml-scan-prolog)
-    (setq start (point-min)))
-
-  (when (> end nxml-prolog-end)
-    (goto-char start)
-    (nxml-move-tag-backwards (point-min))
-    (setq start (point))
-    (setq end (max (nxml-scan-after-change start end)
-                   end)))
-
-  (nxml-debug-change "nxml-after-change1" start end))
 
 ;;; Encodings
 
@@ -982,11 +900,11 @@ faces appropriately."
        [1 -1 nxml-entity-ref-name]
        [-1 nil nxml-entity-ref-delimiter]))
 
-(put 'comment
-     'nxml-fontify-rule
-     '([nil 4 nxml-comment-delimiter]
-       [4 -3 nxml-comment-content]
-       [-3 nil nxml-comment-delimiter]))
+;; (put 'comment
+;;      'nxml-fontify-rule
+;;      '([nil 4 nxml-comment-delimiter]
+;;        [4 -3 nxml-comment-content]
+;;        [-3 nil nxml-comment-delimiter]))
 
 (put 'processing-instruction
      'nxml-fontify-rule
@@ -1018,7 +936,7 @@ faces appropriately."
      'nxml-fontify-rule
      '([nil nil nxml-attribute-local-name]))
 
-(put 'xml-declaration-attribute-value
+(put 'xml-declaration-attribute-value   ;FIXME: What is this for?
      'nxml-fontify-rule
      '([nil 1 nxml-attribute-value-delimiter]
        [1 -1 nxml-attribute-value]
@@ -1137,28 +1055,11 @@ faces appropriately."
 			'nxml-attribute-prefix
 			'nxml-attribute-colon
 			'nxml-attribute-local-name))
-  (let ((start (xmltok-attribute-value-start att))
-	(end (xmltok-attribute-value-end att))
-	(refs (xmltok-attribute-refs att))
-	(delimiter-face (if namespace-declaration
-			    'nxml-namespace-attribute-value-delimiter
-			  'nxml-attribute-value-delimiter))
-	(value-face (if namespace-declaration
-			'nxml-namespace-attribute-value
-		      'nxml-attribute-value)))
-    (when start
-      (nxml-set-face (1- start) start delimiter-face)
-      (nxml-set-face end (1+ end) delimiter-face)
-      (while refs
-	(let* ((ref (car refs))
-	       (ref-type (aref ref 0))
-	       (ref-start (aref ref 1))
-	       (ref-end (aref ref 2)))
-	  (nxml-set-face start ref-start value-face)
-	  (nxml-apply-fontify-rule ref-type ref-start ref-end)
-	  (setq start ref-end))
-	(setq refs (cdr refs)))
-      (nxml-set-face start end value-face))))
+  (dolist (ref (xmltok-attribute-refs att))
+    (let* ((ref-type (aref ref 0))
+           (ref-start (aref ref 1))
+           (ref-end (aref ref 2)))
+      (nxml-apply-fontify-rule ref-type ref-start ref-end))))
 
 (defun nxml-fontify-qname (start
 			   colon
@@ -1599,30 +1500,7 @@ of the line.  This expects the xmltok-* variables to be set up as by
 	(t (back-to-indentation)))
   (current-column))
 
-;;; Completion
-
-(defun nxml-complete ()
-  "Perform completion on the symbol preceding point.
-
-Inserts as many characters as can be completed.  However, if not even
-one character can be completed, then a buffer with the possibilities
-is popped up and the symbol is read from the minibuffer with
-completion.  If the symbol is complete, then any characters that must
-follow the symbol are also inserted.
-
-The name space used for completion and what is treated as a symbol
-depends on the context.  The contexts in which completion is performed
-depend on `nxml-completion-hook'."
-  (interactive)
-  (unless (run-hook-with-args-until-success 'nxml-completion-hook)
-    ;; Eventually we will complete on entity names here.
-    (ding)
-    (message "Cannot complete in this context")))
-
-(defun nxml-completion-at-point-function ()
-  "Call `nxml-complete' to perform completion at point."
-  (when nxml-bind-meta-tab-to-complete-flag
-    #'nxml-complete))
+(define-obsolete-function-alias 'nxml-complete #'completion-at-point "26.1")
 
 ;;; Movement
 
@@ -1643,7 +1521,7 @@ references and character references.  A processing instruction
 consists of a target and a content string.  A comment or a CDATA
 section contains a single string.  An entity reference contains a
 single name.  A character reference contains a character number."
-  (interactive "p")
+  (interactive "^p")
   (or arg (setq arg 1))
   (cond ((> arg 0)
 	 (while (progn
@@ -1674,7 +1552,7 @@ single name.  A character reference contains a character number."
 			   (t end)))))
     (nxml-scan-error
      (goto-char (cadr err))
-     (apply 'error (cddr err)))))
+     (apply #'error (cddr err)))))
 
 (defun nxml-backward-single-balanced-item ()
   (condition-case err
@@ -1696,7 +1574,7 @@ single name.  A character reference contains a character number."
 			   (t xmltok-start)))))
     (nxml-scan-error
      (goto-char (cadr err))
-     (apply 'error (cddr err)))))
+     (apply #'error (cddr err)))))
 
 (defun nxml-scan-forward-within (end)
   (setq end (- end (nxml-end-delimiter-length xmltok-type)))
@@ -1855,7 +1733,7 @@ single name.  A character reference contains a character number."
     ret))
 
 (defun nxml-up-element (&optional arg)
-  (interactive "p")
+  (interactive "^p")
   (or arg (setq arg 1))
   (if (< arg 0)
       (nxml-backward-up-element (- arg))
@@ -1880,10 +1758,10 @@ single name.  A character reference contains a character number."
 	  (setq arg (1- arg)))
       (nxml-scan-error
        (goto-char (cadr err))
-       (apply 'error (cddr err))))))
+       (apply #'error (cddr err))))))
 
 (defun nxml-backward-up-element (&optional arg)
-  (interactive "p")
+  (interactive "^p")
   (or arg (setq arg 1))
   (if (< arg 0)
       (nxml-up-element (- arg))
@@ -1909,13 +1787,13 @@ single name.  A character reference contains a character number."
 	  (setq arg (1- arg)))
       (nxml-scan-error
        (goto-char (cadr err))
-       (apply 'error (cddr err))))))
+       (apply #'error (cddr err))))))
 
 (defun nxml-down-element (&optional arg)
   "Move forward down into the content of an element.
 With ARG, do this that many times.
 Negative ARG means move backward but still down."
-  (interactive "p")
+  (interactive "^p")
   (or arg (setq arg 1))
   (if (< arg 0)
       (nxml-backward-down-element (- arg))
@@ -1933,7 +1811,7 @@ Negative ARG means move backward but still down."
       (setq arg (1- arg)))))
 
 (defun nxml-backward-down-element (&optional arg)
-  (interactive "p")
+  (interactive "^p")
   (or arg (setq arg 1))
   (if (< arg 0)
       (nxml-down-element (- arg))
@@ -1961,7 +1839,7 @@ Negative ARG means move backward but still down."
   "Move forward over one element.
 With ARG, do it that many times.
 Negative ARG means move backward."
-  (interactive "p")
+  (interactive "^p")
   (or arg (setq arg 1))
   (if (< arg 0)
       (nxml-backward-element (- arg))
@@ -1974,13 +1852,13 @@ Negative ARG means move backward."
 	  (setq arg (1- arg)))
     (nxml-scan-error
      (goto-char (cadr err))
-     (apply 'error (cddr err))))))
+     (apply #'error (cddr err))))))
 
 (defun nxml-backward-element (&optional arg)
   "Move backward over one element.
 With ARG, do it that many times.
 Negative ARG means move forward."
-  (interactive "p")
+  (interactive "^p")
   (or arg (setq arg 1))
   (if (< arg 0)
       (nxml-forward-element (- arg))
@@ -1996,7 +1874,7 @@ Negative ARG means move forward."
 	  (setq arg (1- arg)))
     (nxml-scan-error
      (goto-char (cadr err))
-     (apply 'error (cddr err))))))
+     (apply #'error (cddr err))))))
 
 (defun nxml-mark-token-after ()
   (interactive)
@@ -2015,7 +1893,7 @@ The paragraph marked is the one that contains point or follows point."
   (nxml-backward-paragraph))
 
 (defun nxml-forward-paragraph (&optional arg)
-  (interactive "p")
+  (interactive "^p")
   (or arg (setq arg 1))
   (cond ((< arg 0)
 	 (nxml-backward-paragraph (- arg)))
@@ -2025,7 +1903,7 @@ The paragraph marked is the one that contains point or follows point."
 		     (> (setq arg (1- arg)) 0))))))
 
 (defun nxml-backward-paragraph (&optional arg)
-  (interactive "p")
+  (interactive "^p")
   (or arg (setq arg 1))
   (cond ((< arg 0)
 	 (nxml-forward-paragraph (- arg)))
@@ -2477,116 +2355,15 @@ and attempts to find another possible way to do the markup."
 
 ;;; Character names
 
-(defvar nxml-char-name-ignore-case t)
-
-(defvar nxml-char-name-alist nil
-  "Alist of character names.
-Each member of the list has the form (NAME CODE . NAMESET),
-where NAME is a string naming a character, NAMESET is a symbol
-identifying a set of names and CODE is an integer specifying the
-Unicode scalar value of the named character.
-The NAME will only be used for completion if NAMESET has
-a non-nil `nxml-char-name-set-enabled' property.
-If NAMESET does does not have `nxml-char-name-set-defined' property,
-then it must have a `nxml-char-name-set-file' property and `load'
-will be applied to the value of this property if the nameset
-is enabled.")
-
-(defvar nxml-char-name-table (make-hash-table :test 'eq)
-  "Hash table for mapping char codes to names.
-Each key is a Unicode scalar value.
-Each value is a list of pairs of the form (NAMESET . NAME),
-where NAMESET is a symbol identifying a set of names,
-and NAME is a string naming a character.")
-
-(defvar nxml-autoload-char-name-set-list nil
-  "List of char namesets that can be autoloaded.")
-
-(defun nxml-enable-char-name-set (nameset)
-  (put nameset 'nxml-char-name-set-enabled t))
-
-(defun nxml-disable-char-name-set (nameset)
-  (put nameset 'nxml-char-name-set-enabled nil))
-
-(defun nxml-char-name-set-enabled-p (nameset)
-  (get nameset 'nxml-char-name-set-enabled))
-
-(defun nxml-autoload-char-name-set (nameset file)
-  (unless (memq nameset nxml-autoload-char-name-set-list)
-    (setq nxml-autoload-char-name-set-list
-	  (cons nameset nxml-autoload-char-name-set-list)))
-  (put nameset 'nxml-char-name-set-file file))
-
-(defun nxml-define-char-name-set (nameset alist)
-  "Define a set of character names.
-NAMESET is a symbol identifying the set.
-ALIST is a list where each member has the form (NAME CODE),
-where NAME is a string naming a character and code is an
-integer giving the Unicode scalar value of the character."
-  (when (get nameset 'nxml-char-name-set-defined)
-    (error "Nameset `%s' already defined" nameset))
-  (let ((iter alist))
-    (while iter
-      (let* ((name-code (car iter))
-	     (name (car name-code))
-	     (code (cadr name-code)))
-	(puthash code
-		 (cons (cons nameset name)
-		       (gethash code nxml-char-name-table))
-		 nxml-char-name-table))
-      (setcdr (cdr (car iter)) nameset)
-      (setq iter (cdr iter))))
-  (setq nxml-char-name-alist
-	(nconc alist nxml-char-name-alist))
-  (put nameset 'nxml-char-name-set-defined t))
-
-(defun nxml-get-char-name (code)
-  (mapc 'nxml-maybe-load-char-name-set nxml-autoload-char-name-set-list)
-  (let ((names (gethash code nxml-char-name-table))
-	name)
-    (while (and names (not name))
-      (if (nxml-char-name-set-enabled-p (caar names))
-	  (setq name (cdar names))
-	(setq names (cdr names))))
-    name))
-
-(defvar nxml-named-char-history nil)
-
 (defun nxml-insert-named-char (arg)
   "Insert a character using its name.
 The name is read from the minibuffer.
 Normally, inserts the character as a numeric character reference.
 With a prefix argument, inserts the character directly."
   (interactive "*P")
-  (mapc 'nxml-maybe-load-char-name-set nxml-autoload-char-name-set-list)
-  (let ((name
-	 (let ((completion-ignore-case nxml-char-name-ignore-case))
-	   (completing-read "Character name: "
-			    nxml-char-name-alist
-			    (lambda (member)
-			      (get (cddr member) 'nxml-char-name-set-enabled))
-			    t
-			    nil
-			    'nxml-named-char-history)))
-	(alist nxml-char-name-alist)
-	elt code)
-    (while (and alist (not code))
-      (setq elt (assoc name alist))
-      (if (get (cddr elt) 'nxml-char-name-set-enabled)
-	  (setq code (cadr elt))
-	(setq alist (cdr (member elt alist)))))
+  (let ((code (read-char-by-name "Character name: ")))
     (when code
-      (insert (if arg
-		  (or (decode-char 'ucs code)
-		      (error "Character %x is not supported by Emacs"
-			     code))
-		(format "&#x%X;" code))))))
-
-(defun nxml-maybe-load-char-name-set (sym)
-  (when (and (get sym 'nxml-char-name-set-enabled)
-	     (not (get sym 'nxml-char-name-set-defined))
-	     (stringp (get sym 'nxml-char-name-set-file)))
-    (load (get sym 'nxml-char-name-set-file))))
+      (insert (if arg code (format "&#x%X;" code))))))
 
 (defun nxml-toggle-char-ref-extra-display (arg)
   "Toggle the display of extra information for character references."
@@ -2602,9 +2379,11 @@ With a prefix argument, inserts the character directly."
 
 (defun nxml-char-ref-display-extra (start end n)
   (when nxml-char-ref-extra-display
-    (let ((name (nxml-get-char-name n))
+    (let ((name (or (get-char-code-property n 'name)
+                    (get-char-code-property n 'old-name)))
 	  (glyph-string (and nxml-char-ref-display-glyph-flag
-			     (nxml-glyph-display-string n 'nxml-glyph)))
+                             (char-displayable-p n)
+                             (string n)))
 	  ov)
     (when (or name glyph-string)
       (setq ov (make-overlay start end nil t))

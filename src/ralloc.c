@@ -22,31 +22,15 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    rather than all of them.  This means allowing for a possible
    hole between the first bloc and the end of malloc storage.  */
 
-#ifdef emacs
-
 #include <config.h>
 
-#include "lisp.h"		/* Needed for VALBITS.  */
-#include "blockinput.h"
-
-#include <unistd.h>
-
-#ifdef DOUG_LEA_MALLOC
-#define M_TOP_PAD           -2
-extern int mallopt (int, int);
-#else /* not DOUG_LEA_MALLOC */
-#if !defined SYSTEM_MALLOC && !defined HYBRID_MALLOC
-extern size_t __malloc_extra_blocks;
-#endif /* not SYSTEM_MALLOC and not HYBRID_MALLOC */
-#endif /* not DOUG_LEA_MALLOC */
-
-#else /* not emacs */
-
 #include <stddef.h>
-#include <malloc.h>
 
-#endif	/* not emacs */
-
+#ifdef emacs
+# include "lisp.h"
+# include "blockinput.h"
+# include <unistd.h>
+#endif
 
 #include "getpagesize.h"
 
@@ -95,7 +79,10 @@ static int extra_bytes;
 /* The hook `malloc' uses for the function which gets more space
    from the system.  */
 
-#if !defined SYSTEM_MALLOC && !defined HYBRID_MALLOC
+#ifdef HAVE_MALLOC_H
+# include <malloc.h>
+#endif
+#ifndef DOUG_LEA_MALLOC
 extern void *(*__morecore) (ptrdiff_t);
 #endif
 

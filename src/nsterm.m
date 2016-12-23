@@ -1,4 +1,4 @@
-/* NeXT/Open/GNUstep / MacOSX communication module.      -*- coding: utf-8 -*-
+/* NeXT/Open/GNUstep / macOS communication module.      -*- coding: utf-8 -*-
 
 Copyright (C) 1989, 1993-1994, 2005-2006, 2008-2016 Free Software
 Foundation, Inc.
@@ -22,7 +22,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 Originally by Carl Edman
 Updated by Christian Limpach (chris@nice.ch)
 OpenStep/Rhapsody port by Scott Bender (sbender@harmony-ds.com)
-MacOSX/Aqua port by Christophe de Dinechin (descubes@earthlink.net)
+macOS/Aqua port by Christophe de Dinechin (descubes@earthlink.net)
 GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 */
 
@@ -68,9 +68,10 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 #include "macfont.h"
 #endif
 
-
-extern NSString *NSMenuDidBeginTrackingNotification;
-
+static EmacsMenu *dockMenu;
+#ifdef NS_IMPL_COCOA
+static EmacsMenu *mainMenu;
+#endif
 
 /* ==========================================================================
 
@@ -230,32 +231,33 @@ static unsigned convert_ns_to_X_keysym[] =
   NSNewlineCharacter,		0x0D,
   NSEnterCharacter,		0x8D,
 
-  0x41|NSNumericPadKeyMask,	0xAE,  /* KP_Decimal */
-  0x43|NSNumericPadKeyMask,	0xAA,  /* KP_Multiply */
-  0x45|NSNumericPadKeyMask,	0xAB,  /* KP_Add */
-  0x4B|NSNumericPadKeyMask,	0xAF,  /* KP_Divide */
-  0x4E|NSNumericPadKeyMask,	0xAD,  /* KP_Subtract */
-  0x51|NSNumericPadKeyMask,	0xBD,  /* KP_Equal */
-  0x52|NSNumericPadKeyMask,	0xB0,  /* KP_0 */
-  0x53|NSNumericPadKeyMask,	0xB1,  /* KP_1 */
-  0x54|NSNumericPadKeyMask,	0xB2,  /* KP_2 */
-  0x55|NSNumericPadKeyMask,	0xB3,  /* KP_3 */
-  0x56|NSNumericPadKeyMask,	0xB4,  /* KP_4 */
-  0x57|NSNumericPadKeyMask,	0xB5,  /* KP_5 */
-  0x58|NSNumericPadKeyMask,	0xB6,  /* KP_6 */
-  0x59|NSNumericPadKeyMask,	0xB7,  /* KP_7 */
-  0x5B|NSNumericPadKeyMask,	0xB8,  /* KP_8 */
-  0x5C|NSNumericPadKeyMask,	0xB9,  /* KP_9 */
+  0x41|NSEventModifierFlagNumericPad,	0xAE,  /* KP_Decimal */
+  0x43|NSEventModifierFlagNumericPad,	0xAA,  /* KP_Multiply */
+  0x45|NSEventModifierFlagNumericPad,	0xAB,  /* KP_Add */
+  0x4B|NSEventModifierFlagNumericPad,	0xAF,  /* KP_Divide */
+  0x4E|NSEventModifierFlagNumericPad,	0xAD,  /* KP_Subtract */
+  0x51|NSEventModifierFlagNumericPad,	0xBD,  /* KP_Equal */
+  0x52|NSEventModifierFlagNumericPad,	0xB0,  /* KP_0 */
+  0x53|NSEventModifierFlagNumericPad,	0xB1,  /* KP_1 */
+  0x54|NSEventModifierFlagNumericPad,	0xB2,  /* KP_2 */
+  0x55|NSEventModifierFlagNumericPad,	0xB3,  /* KP_3 */
+  0x56|NSEventModifierFlagNumericPad,	0xB4,  /* KP_4 */
+  0x57|NSEventModifierFlagNumericPad,	0xB5,  /* KP_5 */
+  0x58|NSEventModifierFlagNumericPad,	0xB6,  /* KP_6 */
+  0x59|NSEventModifierFlagNumericPad,	0xB7,  /* KP_7 */
+  0x5B|NSEventModifierFlagNumericPad,	0xB8,  /* KP_8 */
+  0x5C|NSEventModifierFlagNumericPad,	0xB9,  /* KP_9 */
 
   0x1B,				0x1B   /* escape */
 };
 
-/* On OS X picks up the default NSGlobalDomain AppleAntiAliasingThreshold,
+/* On macOS picks up the default NSGlobalDomain AppleAntiAliasingThreshold,
    the maximum font size to NOT antialias.  On GNUstep there is currently
    no way to control this behavior. */
 float ns_antialias_threshold;
 
-NSArray *ns_send_types =0, *ns_return_types =0, *ns_drag_types =0;
+NSArray *ns_send_types = 0, *ns_return_types = 0;
+static NSArray *ns_drag_types = 0;
 NSString *ns_app_name = @"Emacs";  /* default changed later */
 
 /* Display variables */
@@ -333,28 +335,28 @@ static CGPoint menu_mouse_point;
 
 /* Convert modifiers in a NeXTstep event to emacs style modifiers.  */
 #define NS_FUNCTION_KEY_MASK 0x800000
-#define NSLeftControlKeyMask    (0x000001 | NSControlKeyMask)
-#define NSRightControlKeyMask   (0x002000 | NSControlKeyMask)
-#define NSLeftCommandKeyMask    (0x000008 | NSCommandKeyMask)
-#define NSRightCommandKeyMask   (0x000010 | NSCommandKeyMask)
-#define NSLeftAlternateKeyMask  (0x000020 | NSAlternateKeyMask)
-#define NSRightAlternateKeyMask (0x000040 | NSAlternateKeyMask)
+#define NSLeftControlKeyMask    (0x000001 | NSEventModifierFlagControl)
+#define NSRightControlKeyMask   (0x002000 | NSEventModifierFlagControl)
+#define NSLeftCommandKeyMask    (0x000008 | NSEventModifierFlagCommand)
+#define NSRightCommandKeyMask   (0x000010 | NSEventModifierFlagCommand)
+#define NSLeftAlternateKeyMask  (0x000020 | NSEventModifierFlagOption)
+#define NSRightAlternateKeyMask (0x000040 | NSEventModifierFlagOption)
 #define EV_MODIFIERS2(flags)                          \
-    (((flags & NSHelpKeyMask) ?           \
+    (((flags & NSEventModifierFlagHelp) ?           \
            hyper_modifier : 0)                        \
      | (!EQ (ns_right_alternate_modifier, Qleft) && \
         ((flags & NSRightAlternateKeyMask) \
          == NSRightAlternateKeyMask) ? \
            parse_solitary_modifier (ns_right_alternate_modifier) : 0) \
-     | ((flags & NSAlternateKeyMask) ?                 \
+     | ((flags & NSEventModifierFlagOption) ?                 \
            parse_solitary_modifier (ns_alternate_modifier) : 0)   \
-     | ((flags & NSShiftKeyMask) ?     \
+     | ((flags & NSEventModifierFlagShift) ?     \
            shift_modifier : 0)                        \
      | (!EQ (ns_right_control_modifier, Qleft) && \
         ((flags & NSRightControlKeyMask) \
          == NSRightControlKeyMask) ? \
            parse_solitary_modifier (ns_right_control_modifier) : 0) \
-     | ((flags & NSControlKeyMask) ?      \
+     | ((flags & NSEventModifierFlagControl) ?      \
            parse_solitary_modifier (ns_control_modifier) : 0)     \
      | ((flags & NS_FUNCTION_KEY_MASK) ?  \
            parse_solitary_modifier (ns_function_modifier) : 0)    \
@@ -362,24 +364,24 @@ static CGPoint menu_mouse_point;
         ((flags & NSRightCommandKeyMask) \
          == NSRightCommandKeyMask) ? \
            parse_solitary_modifier (ns_right_command_modifier) : 0) \
-     | ((flags & NSCommandKeyMask) ?      \
+     | ((flags & NSEventModifierFlagCommand) ?      \
            parse_solitary_modifier (ns_command_modifier):0))
 #define EV_MODIFIERS(e) EV_MODIFIERS2 ([e modifierFlags])
 
 #define EV_UDMODIFIERS(e)                                      \
-    ((([e type] == NSLeftMouseDown) ? down_modifier : 0)       \
-     | (([e type] == NSRightMouseDown) ? down_modifier : 0)    \
-     | (([e type] == NSOtherMouseDown) ? down_modifier : 0)    \
-     | (([e type] == NSLeftMouseDragged) ? down_modifier : 0)  \
-     | (([e type] == NSRightMouseDragged) ? down_modifier : 0) \
-     | (([e type] == NSOtherMouseDragged) ? down_modifier : 0) \
-     | (([e type] == NSLeftMouseUp)   ? up_modifier   : 0)     \
-     | (([e type] == NSRightMouseUp)   ? up_modifier   : 0)    \
-     | (([e type] == NSOtherMouseUp)   ? up_modifier   : 0))
+    ((([e type] == NSEventTypeLeftMouseDown) ? down_modifier : 0)       \
+     | (([e type] == NSEventTypeRightMouseDown) ? down_modifier : 0)    \
+     | (([e type] == NSEventTypeOtherMouseDown) ? down_modifier : 0)    \
+     | (([e type] == NSEventTypeLeftMouseDragged) ? down_modifier : 0)  \
+     | (([e type] == NSEventTypeRightMouseDragged) ? down_modifier : 0) \
+     | (([e type] == NSEventTypeOtherMouseDragged) ? down_modifier : 0) \
+     | (([e type] == NSEventTypeLeftMouseUp)   ? up_modifier   : 0)     \
+     | (([e type] == NSEventTypeRightMouseUp)   ? up_modifier   : 0)    \
+     | (([e type] == NSEventTypeOtherMouseUp)   ? up_modifier   : 0))
 
 #define EV_BUTTON(e)                                                         \
-    ((([e type] == NSLeftMouseDown) || ([e type] == NSLeftMouseUp)) ? 0 :    \
-      (([e type] == NSRightMouseDown) || ([e type] == NSRightMouseUp)) ? 2 : \
+    ((([e type] == NSEventTypeLeftMouseDown) || ([e type] == NSEventTypeLeftMouseUp)) ? 0 :    \
+      (([e type] == NSEventTypeRightMouseDown) || ([e type] == NSEventTypeRightMouseUp)) ? 2 : \
      [e buttonNumber] - 1)
 
 /* Convert the time field to a timestamp in milliseconds. */
@@ -413,7 +415,6 @@ static CGPoint menu_mouse_point;
 /* TODO: get rid of need for these forward declarations */
 static void ns_condemn_scroll_bars (struct frame *f);
 static void ns_judge_scroll_bars (struct frame *f);
-void x_set_frame_alpha (struct frame *f);
 
 
 /* ==========================================================================
@@ -437,7 +438,7 @@ ns_init_events (struct input_event* ev)
 }
 
 void
-ns_finish_events ()
+ns_finish_events (void)
 {
   emacs_event = NULL;
 }
@@ -587,7 +588,7 @@ ns_load_path (void)
 
 void
 ns_init_locale (void)
-/* OS X doesn't set any environment variables for the locale when run
+/* macOS doesn't set any environment variables for the locale when run
    from the GUI. Get the locale from the OS and set LANG. */
 {
   NSLocale *locale = [NSLocale currentLocale];
@@ -596,7 +597,7 @@ ns_init_locale (void)
 
   @try
     {
-      /* It seems OS X should probably use UTF-8 everywhere.
+      /* It seems macOS should probably use UTF-8 everywhere.
          'localeIdentifier' does not specify the encoding, and I can't
          find any way to get the OS to tell us which encoding to use,
          so hard-code '.UTF-8'. */
@@ -718,7 +719,7 @@ ns_screen_margins (NSScreen *screen)
 
 
 /* A screen margin between 1 and DOCK_IGNORE_LIMIT (inclusive) is
-   assumed to contain a hidden dock.  OS X currently use 4 pixels for
+   assumed to contain a hidden dock.  macOS currently use 4 pixels for
    this, however, to be future compatible, a larger value is used.  */
 #define DOCK_IGNORE_LIMIT 6
 
@@ -731,7 +732,7 @@ reserved for an hidden dock.  */
 
   struct EmacsMargins margins = ns_screen_margins(screen);
 
-  /* OS X (currently) reserved 4 pixels along the edge where a hidden
+  /* macOS (currently) reserved 4 pixels along the edge where a hidden
      dock is located.  Unfortunately, it's not possible to find the
      location and information about if the dock is hidden.  Instead,
      it is assumed that if the margin of an edge is less than
@@ -748,7 +749,7 @@ reserved for an hidden dock.  */
     {
       margins.top = 0;
     }
-  /* Note: This doesn't occur in current versions of OS X, but
+  /* Note: This doesn't occur in current versions of macOS, but
      included for completeness and future compatibility.  */
   if (margins.bottom <= DOCK_IGNORE_LIMIT)
     {
@@ -1027,7 +1028,7 @@ ns_update_begin (struct frame *f)
 #ifdef NS_IMPL_COCOA
   if ([view isFullscreen] && [view fsIsNative])
   {
-    // Fix reappearing tool bar in fullscreen for OSX 10.7
+    // Fix reappearing tool bar in fullscreen for Mac OS X 10.7
     BOOL tbar_visible = FRAME_EXTERNAL_TOOL_BAR (f) ? YES : NO;
     NSToolbar *toolbar = [FRAME_NS_VIEW (f) toolbar];
     if (! tbar_visible != ! [toolbar isVisible])
@@ -1423,7 +1424,8 @@ ns_ring_bell (struct frame *f)
 }
 
 
-static void hide_bell ()
+static void
+hide_bell (void)
 /* --------------------------------------------------------------------------
      Ensure the bell is hidden.
    -------------------------------------------------------------------------- */
@@ -1806,23 +1808,6 @@ x_set_window_size (struct frame *f,
 
   [window setFrame: wr display: YES];
 
-  /* This is a trick to compensate for Emacs' managing the scrollbar area
-     as a fixed number of standard character columns.  Instead of leaving
-     blank space for the extra, we chopped it off above.  Now for
-     left-hand scrollbars, we shift all rendering to the left by the
-     difference between the real width and Emacs' imagined one.  For
-     right-hand bars, don't worry about it since the extra is never used.
-     (Obviously doesn't work for vertically split windows tho..) */
-  {
-    NSPoint origin = FRAME_HAS_VERTICAL_SCROLL_BARS_ON_LEFT (f)
-      ? NSMakePoint (FRAME_SCROLL_BAR_COLS (f) * FRAME_COLUMN_WIDTH (f)
-                     - NS_SCROLL_BAR_WIDTH (f), 0)
-      : NSMakePoint (0, 0);
-
-    [view setFrame: NSMakeRect (0, 0, pixelwidth, pixelheight)];
-    [view setBoundsOrigin: origin];
-  }
-
   [view updateFrameSize: NO];
   unblock_input ();
 }
@@ -1914,37 +1899,6 @@ ns_index_color (NSColor *color, struct frame *f)
 }
 
 
-void
-ns_free_indexed_color (unsigned long idx, struct frame *f)
-{
-  struct ns_color_table *color_table;
-  NSColor *color;
-  NSNumber *index;
-
-  if (!f)
-    return;
-
-  color_table = FRAME_DISPLAY_INFO (f)->color_table;
-
-  if (idx <= 0 || idx >= color_table->size) {
-    message1 ("ns_free_indexed_color: Color index out of range.\n");
-    return;
-  }
-
-  index = [NSNumber numberWithUnsignedInt: idx];
-  if ([color_table->empty_indices containsObject: index]) {
-    message1 ("ns_free_indexed_color: attempt to free already freed color.\n");
-    return;
-  }
-
-  color = color_table->colors[idx];
-  [color release];
-  color_table->colors[idx] = nil;
-  [color_table->empty_indices addObject: index];
-/*fprintf(stderr, "color_table: FREED %d\n",idx);*/
-}
-
-
 static int
 ns_get_color (const char *name, NSColor **col)
 /* --------------------------------------------------------------------------
@@ -1986,8 +1940,8 @@ ns_get_color (const char *name, NSColor **col)
     }
   else if ([nsname isEqualToString: @"ns_selection_fg_color"])
     {
-      /* NOTE: OSX applications normally don't set foreground selection, but
-         text may be unreadable if we don't.
+      /* NOTE: macOS applications normally don't set foreground
+         selection, but text may be unreadable if we don't.
       */
       if ((new = [NSColor selectedTextColor]) != nil)
         {
@@ -2026,7 +1980,7 @@ ns_get_color (const char *name, NSColor **col)
 
   if (hex[0])
     {
-      int rr, gg, bb;
+      unsigned int rr, gg, bb;
       float fscale = scaling == 4 ? 65535.0 : (scaling == 2 ? 255.0 : 15.0);
       if (sscanf (hex, "%x/%x/%x", &rr, &gg, &bb))
         {
@@ -2088,46 +2042,6 @@ ns_lisp_to_color (Lisp_Object color, NSColor **col)
   else if (SYMBOLP (color))
     return ns_get_color (SSDATA (SYMBOL_NAME (color)), col);
   return 1;
-}
-
-
-Lisp_Object
-ns_color_to_lisp (NSColor *col)
-/* --------------------------------------------------------------------------
-     Convert a color to a lisp string with the RGB equivalent
-   -------------------------------------------------------------------------- */
-{
-  EmacsCGFloat red, green, blue, alpha, gray;
-  char buf[1024];
-  const char *str;
-  NSTRACE ("ns_color_to_lisp");
-
-  block_input ();
-  if ([[col colorSpaceName] isEqualToString: NSNamedColorSpace])
-
-      if ((str =[[col colorNameComponent] UTF8String]))
-        {
-          unblock_input ();
-          return build_string ((char *)str);
-        }
-
-    [[col colorUsingDefaultColorSpace]
-        getRed: &red green: &green blue: &blue alpha: &alpha];
-  if (red == green && red == blue)
-    {
-      [[col colorUsingColorSpaceName: NSCalibratedWhiteColorSpace]
-            getWhite: &gray alpha: &alpha];
-      snprintf (buf, sizeof (buf), "#%2.2lx%2.2lx%2.2lx",
-		lrint (gray * 0xff), lrint (gray * 0xff), lrint (gray * 0xff));
-      unblock_input ();
-      return build_string (buf);
-    }
-
-  snprintf (buf, sizeof (buf), "#%2.2lx%2.2lx%2.2lx",
-            lrint (red*0xff), lrint (green*0xff), lrint (blue*0xff));
-
-  unblock_input ();
-  return build_string (buf);
 }
 
 
@@ -2479,7 +2393,8 @@ ns_clear_frame (struct frame *f)
 
   block_input ();
   ns_focus (f, &r, 1);
-  [ns_lookup_indexed_color (NS_FACE_BACKGROUND (FRAME_DEFAULT_FACE (f)), f) set];
+  [ns_lookup_indexed_color (NS_FACE_BACKGROUND
+			    (FACE_FROM_ID (f, DEFAULT_FACE_ID)), f) set];
   NSRectFill (r);
   ns_unfocus (f);
 
@@ -2804,7 +2719,7 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
 
       [img drawInRect: r
               fromRect: fromRect
-             operation: NSCompositeSourceOver
+             operation: NSCompositingOperationSourceOver
               fraction: 1.0
            respectFlipped: YES
                 hints: nil];
@@ -2812,7 +2727,7 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
       {
         NSPoint pt = r.origin;
         pt.y += p->h;
-        [img compositeToPoint: pt operation: NSCompositeSourceOver];
+        [img compositeToPoint: pt operation: NSCompositingOperationSourceOver];
       }
 #endif
     }
@@ -2878,7 +2793,10 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
     {
       if (cursor_width < 1)
 	cursor_width = max (FRAME_CURSOR_WIDTH (f), 1);
-      w->phys_cursor_width = cursor_width;
+
+      /* The bar cursor should never be wider than the glyph. */
+      if (cursor_width < w->phys_cursor_width)
+        w->phys_cursor_width = cursor_width;
     }
   /* If we have an HBAR, "cursor_width" MAY specify height. */
   else if (cursor_type == HBAR_CURSOR)
@@ -2895,12 +2813,11 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
   r.size.height = h;
   r.size.width = w->phys_cursor_width;
 
-  /* TODO: only needed in rare cases with last-resort font in HELLO..
-     should we do this more efficiently? */
-  ns_clip_to_row (w, glyph_row, ANY_AREA, NO); /* do ns_focus(f, &r, 1); if remove */
+  /* Prevent the cursor from being drawn outside the text area. */
+  ns_clip_to_row (w, glyph_row, TEXT_AREA, NO); /* do ns_focus(f, &r, 1); if remove */
 
 
-  face = FACE_FROM_ID (f, phys_cursor_glyph->face_id);
+  face = FACE_FROM_ID_OR_NULL (f, phys_cursor_glyph->face_id);
   if (face && NS_FACE_BACKGROUND (face)
       == ns_index_color (FRAME_CURSOR_COLOR (f), f))
     {
@@ -2972,11 +2889,12 @@ ns_draw_vertical_window_border (struct window *w, int x, int y0, int y1)
 
   NSTRACE ("ns_draw_vertical_window_border");
 
-  face = FACE_FROM_ID (f, VERTICAL_BORDER_FACE_ID);
-  if (face)
-      [ns_lookup_indexed_color(face->foreground, f) set];
+  face = FACE_FROM_ID_OR_NULL (f, VERTICAL_BORDER_FACE_ID);
 
   ns_focus (f, &r, 1);
+  if (face)
+    [ns_lookup_indexed_color(face->foreground, f) set];
+
   NSRectFill(r);
   ns_unfocus (f);
 }
@@ -2994,11 +2912,12 @@ ns_draw_window_divider (struct window *w, int x0, int x1, int y0, int y1)
 
   NSTRACE ("ns_draw_window_divider");
 
-  face = FACE_FROM_ID (f, WINDOW_DIVIDER_FACE_ID);
-  if (face)
-      [ns_lookup_indexed_color(face->foreground, f) set];
+  face = FACE_FROM_ID_OR_NULL (f, WINDOW_DIVIDER_FACE_ID);
 
   ns_focus (f, &r, 1);
+  if (face)
+    [ns_lookup_indexed_color(face->foreground, f) set];
+
   NSRectFill(r);
   ns_unfocus (f);
 }
@@ -3087,7 +3006,7 @@ ns_draw_underwave (struct glyph_string *s, EmacsCGFloat width, EmacsCGFloat x)
 
 
 
-void
+static void
 ns_draw_text_decoration (struct glyph_string *s, struct face *face,
                          NSColor *defaultCol, CGFloat width, CGFloat x)
 /* --------------------------------------------------------------------------
@@ -3327,7 +3246,8 @@ ns_dumpglyphs_box_or_relief (struct glyph_string *s)
 
   if (s->hl == DRAW_MOUSE_FACE)
     {
-      face = FACE_FROM_ID (s->f, MOUSE_HL_INFO (s->f)->mouse_face_face_id);
+      face = FACE_FROM_ID_OR_NULL (s->f,
+				   MOUSE_HL_INFO (s->f)->mouse_face_face_id);
       if (!face)
         face = FACE_FROM_ID (s->f, MOUSE_FACE_ID);
     }
@@ -3394,8 +3314,9 @@ ns_maybe_dumpglyphs_background (struct glyph_string *s, char force_p)
           struct face *face;
           if (s->hl == DRAW_MOUSE_FACE)
             {
-              face = FACE_FROM_ID (s->f,
-				   MOUSE_HL_INFO (s->f)->mouse_face_face_id);
+              face
+		= FACE_FROM_ID_OR_NULL (s->f,
+					MOUSE_HL_INFO (s->f)->mouse_face_face_id);
               if (!face)
                 face = FACE_FROM_ID (s->f, MOUSE_FACE_ID);
             }
@@ -3461,7 +3382,8 @@ ns_dumpglyphs_image (struct glyph_string *s, NSRect r)
      with its background color), we must clear just the image area. */
   if (s->hl == DRAW_MOUSE_FACE)
     {
-      face = FACE_FROM_ID (s->f, MOUSE_HL_INFO (s->f)->mouse_face_face_id);
+      face = FACE_FROM_ID_OR_NULL (s->f,
+				   MOUSE_HL_INFO (s->f)->mouse_face_face_id);
       if (!face)
        face = FACE_FROM_ID (s->f, MOUSE_FACE_ID);
     }
@@ -3488,17 +3410,18 @@ ns_dumpglyphs_image (struct glyph_string *s, NSRect r)
     {
 #ifdef NS_IMPL_COCOA
       NSRect dr = NSMakeRect (x, y, s->slice.width, s->slice.height);
-      NSRect ir = NSMakeRect (s->slice.x, s->slice.y,
+      NSRect ir = NSMakeRect (s->slice.x,
+                              s->img->height - s->slice.y - s->slice.height,
                               s->slice.width, s->slice.height);
       [img drawInRect: dr
              fromRect: ir
-             operation: NSCompositeSourceOver
+             operation: NSCompositingOperationSourceOver
               fraction: 1.0
            respectFlipped: YES
                 hints: nil];
 #else
       [img compositeToPoint: NSMakePoint (x, y + s->slice.height)
-                  operation: NSCompositeSourceOver];
+                  operation: NSCompositingOperationSourceOver];
 #endif
     }
 
@@ -3578,7 +3501,8 @@ ns_dumpglyphs_stretch (struct glyph_string *s)
 
       if (s->hl == DRAW_MOUSE_FACE)
        {
-         face = FACE_FROM_ID (s->f, MOUSE_HL_INFO (s->f)->mouse_face_face_id);
+         face = FACE_FROM_ID_OR_NULL (s->f,
+				      MOUSE_HL_INFO (s->f)->mouse_face_face_id);
          if (!face)
            face = FACE_FROM_ID (s->f, MOUSE_FACE_ID);
        }
@@ -3652,6 +3576,32 @@ ns_dumpglyphs_stretch (struct glyph_string *s)
       ns_unfocus (s->f);
       s->background_filled_p = 1;
     }
+}
+
+
+static void
+ns_draw_glyph_string_foreground (struct glyph_string *s)
+{
+  int x, flags;
+  struct font *font = s->font;
+
+  /* If first glyph of S has a left box line, start drawing the text
+     of S to the right of that box line.  */
+  if (s->face && s->face->box != FACE_NO_BOX
+      && s->first_glyph->left_box_line_p)
+    x = s->x + eabs (s->face->box_line_width);
+  else
+    x = s->x;
+
+  flags = s->hl == DRAW_CURSOR ? NS_DUMPGLYPH_CURSOR :
+    (s->hl == DRAW_MOUSE_FACE ? NS_DUMPGLYPH_MOUSEFACE :
+     (s->for_overlaps ? NS_DUMPGLYPH_FOREGROUND :
+      NS_DUMPGLYPH_NORMAL));
+
+  font->driver->draw
+    (s, s->cmp_from, s->nchars, x, s->ybase,
+     (flags == NS_DUMPGLYPH_NORMAL && !s->background_filled_p)
+     || flags == NS_DUMPGLYPH_MOUSEFACE);
 }
 
 
@@ -3753,7 +3703,7 @@ ns_draw_glyph_string (struct glyph_string *s)
 {
   /* TODO (optimize): focus for box and contents draw */
   NSRect r[2];
-  int n, flags;
+  int n;
   char box_drawn_p = 0;
   struct font *font = s->face->font;
   if (! font) font = FRAME_FONT (s->f);
@@ -3823,11 +3773,6 @@ ns_draw_glyph_string (struct glyph_string *s)
         ns_maybe_dumpglyphs_background
           (s, s->first_glyph->type == COMPOSITE_GLYPH);
 
-      flags = s->hl == DRAW_CURSOR ? NS_DUMPGLYPH_CURSOR :
-        (s->hl == DRAW_MOUSE_FACE ? NS_DUMPGLYPH_MOUSEFACE :
-         (s->for_overlaps ? NS_DUMPGLYPH_FOREGROUND :
-          NS_DUMPGLYPH_NORMAL));
-
       if (s->hl == DRAW_CURSOR && s->w->phys_cursor_type == FILLED_BOX_CURSOR)
         {
           unsigned long tmp = NS_FACE_BACKGROUND (s->face);
@@ -3841,10 +3786,7 @@ ns_draw_glyph_string (struct glyph_string *s)
         if (isComposite)
           ns_draw_composite_glyph_string_foreground (s);
         else
-          font->driver->draw
-            (s, s->cmp_from, s->nchars, s->x, s->ybase,
-             (flags == NS_DUMPGLYPH_NORMAL && !s->background_filled_p)
-             || flags == NS_DUMPGLYPH_MOUSEFACE);
+          ns_draw_glyph_string_foreground (s);
       }
 
       {
@@ -3937,10 +3879,10 @@ ns_send_appdefined (int value)
 #ifdef NS_IMPL_COCOA
   if (! send_appdefined)
     {
-      /* OSX 10.10.1 swallows the AppDefined event we are sending ourselves
+      /* OS X 10.10.1 swallows the AppDefined event we are sending ourselves
          in certain situations (rapid incoming events).
          So check if we have one, if not add one.  */
-      NSEvent *appev = [NSApp nextEventMatchingMask:NSApplicationDefinedMask
+      NSEvent *appev = [NSApp nextEventMatchingMask:NSEventMaskApplicationDefined
                                           untilDate:[NSDate distantPast]
                                              inMode:NSDefaultRunLoopMode
                                             dequeue:NO];
@@ -3963,7 +3905,7 @@ ns_send_appdefined (int value)
           timed_entry = nil;
         }
 
-      nxev = [NSEvent otherEventWithType: NSApplicationDefined
+      nxev = [NSEvent otherEventWithType: NSEventTypeApplicationDefined
                                 location: NSMakePoint (0, 0)
                            modifierFlags: 0
                                timestamp: 0
@@ -4091,6 +4033,9 @@ ns_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 
   NSTRACE_WHEN (NSTRACE_GROUP_EVENTS, "ns_read_socket");
 
+  if (apploopnr > 0)
+    return -1; /* Already within event loop. */
+
 #ifdef HAVE_NATIVE_FS
   check_native_fs ();
 #endif
@@ -4174,6 +4119,9 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
   char c;
 
   NSTRACE_WHEN (NSTRACE_GROUP_EVENTS, "ns_select");
+
+  if (apploopnr > 0)
+    return -1; /* Already within event loop. */
 
 #ifdef HAVE_NATIVE_FS
   check_native_fs ();
@@ -4355,7 +4303,7 @@ ns_set_vertical_scroll_bar (struct window *window,
   window_box (window, ANY_AREA, 0, &window_y, 0, &window_height);
   top = window_y;
   height = window_height;
-  width = WINDOW_CONFIG_SCROLL_BAR_COLS (window) * FRAME_COLUMN_WIDTH (f);
+  width = NS_SCROLL_BAR_WIDTH (f);
   left = WINDOW_SCROLL_BAR_AREA_X (window);
 
   r = NSMakeRect (left, top, width, height);
@@ -4446,33 +4394,19 @@ ns_set_horizontal_scroll_bar (struct window *window,
   NSTRACE ("ns_set_horizontal_scroll_bar");
 
   /* Get dimensions.  */
-  window_box (window, ANY_AREA, 0, &window_x, &window_width, 0);
+  window_box (window, ANY_AREA, &window_x, 0, &window_width, 0);
   left = window_x;
   width = window_width;
-  height = WINDOW_CONFIG_SCROLL_BAR_LINES (window) * FRAME_LINE_HEIGHT (f);
+  height = NS_SCROLL_BAR_HEIGHT (f);
   top = WINDOW_SCROLL_BAR_AREA_Y (window);
 
   r = NSMakeRect (left, top, width, height);
   /* the parent view is flipped, so we need to flip y value */
   v = [view frame];
-  /* ??????? PXW/scrollbars !!!!!!!!!!!!!!!!!!!! */
   r.origin.y = (v.size.height - r.size.height - r.origin.y);
 
   XSETWINDOW (win, window);
   block_input ();
-
-  if (WINDOW_TOTAL_COLS (window) < 5)
-    {
-      if (!NILP (window->horizontal_scroll_bar))
-        {
-          bar = XNS_SCROLL_BAR (window->horizontal_scroll_bar);
-          [bar removeFromSuperview];
-          wset_horizontal_scroll_bar (window, Qnil);
-        }
-      ns_clear_frame_area (f, left, top, width, height);
-      unblock_input ();
-      return;
-    }
 
   if (NILP (window->horizontal_scroll_bar))
     {
@@ -4488,15 +4422,21 @@ ns_set_horizontal_scroll_bar (struct window *window,
       NSRect oldRect;
       bar = XNS_SCROLL_BAR (window->horizontal_scroll_bar);
       oldRect = [bar frame];
-      r.size.width = oldRect.size.width;
       if (FRAME_LIVE_P (f) && !NSEqualRects (oldRect, r))
         {
-          if (oldRect.origin.x != r.origin.x)
-              ns_clear_frame_area (f, left, top, width, height);
+          if (oldRect.origin.y != r.origin.y)
+            ns_clear_frame_area (f, left, top, width, height);
           [bar setFrame: r];
           update_p = YES;
         }
     }
+
+  /* If there are both horizontal and vertical scroll-bars they leave
+     a square that belongs to neither. We need to clear it otherwise
+     it fills with junk. */
+  if (!NILP (window->vertical_scroll_bar))
+    ns_clear_frame_area (f, WINDOW_SCROLL_BAR_AREA_X (window), top,
+                         NS_SCROLL_BAR_HEIGHT (f), height);
 
   if (update_p)
     [bar setPosition: position portion: portion whole: whole];
@@ -4535,13 +4475,15 @@ ns_redeem_scroll_bar (struct window *window)
 {
   id bar;
   NSTRACE ("ns_redeem_scroll_bar");
-  if (!NILP (window->vertical_scroll_bar))
+  if (!NILP (window->vertical_scroll_bar)
+      && WINDOW_HAS_VERTICAL_SCROLL_BAR (window))
     {
       bar = XNS_SCROLL_BAR (window->vertical_scroll_bar);
       [bar reprieve];
     }
 
-  if (!NILP (window->horizontal_scroll_bar))
+  if (!NILP (window->horizontal_scroll_bar)
+      && WINDOW_HAS_HORIZONTAL_SCROLL_BAR (window))
     {
       bar = XNS_SCROLL_BAR (window->horizontal_scroll_bar);
       [bar reprieve];
@@ -4816,7 +4758,7 @@ ns_term_init (Lisp_Object display_name)
   [outerpool release];
   outerpool = [[NSAutoreleasePool alloc] init];
 
-  /* count object allocs (About, click icon); on OS X use ObjectAlloc tool */
+  /* count object allocs (About, click icon); on macOS use ObjectAlloc tool */
   /*GSDebugAllocationActive (YES); */
   block_input ();
 
@@ -4945,7 +4887,7 @@ ns_term_init (Lisp_Object display_name)
 
   ns_app_name = [[NSProcessInfo processInfo] processName];
 
-  /* Set up OS X app menu */
+  /* Set up macOS app menu */
 
   NSTRACE_MSG ("Menu init");
 
@@ -4985,7 +4927,7 @@ ns_term_init (Lisp_Object display_name)
                           action: @selector (hideOtherApplications:)
                    keyEquivalent: @"h"
                          atIndex: 7];
-    [item setKeyEquivalentModifierMask: NSCommandKeyMask | NSAlternateKeyMask];
+    [item setKeyEquivalentModifierMask: NSEventModifierFlagCommand | NSEventModifierFlagOption];
     [appMenu insertItem: [NSMenuItem separatorItem] atIndex: 8];
     [appMenu insertItemWithTitle: @"Quit Emacs"
                           action: @selector (terminate:)
@@ -5017,7 +4959,7 @@ ns_term_init (Lisp_Object display_name)
          selector: @selector (trackingNotification:)
              name: NSMenuDidEndTrackingNotification object: mainMenu];
   }
-#endif /* MAC OS X menu setup */
+#endif /* macOS menu setup */
 
   /* Register our external input/output types, used for determining
      applicable services and also drag/drop eligibility. */
@@ -5129,7 +5071,7 @@ ns_term_shutdown (int sig)
       pool = [[NSAutoreleasePool alloc] init];
 
       NSEvent *event =
-        [self nextEventMatchingMask:NSAnyEventMask
+        [self nextEventMatchingMask:NSEventMaskAny
                           untilDate:[NSDate distantFuture]
                              inMode:NSDefaultRunLoopMode
                             dequeue:YES];
@@ -5178,7 +5120,7 @@ ns_term_shutdown (int sig)
 #ifdef NS_IMPL_GNUSTEP
   // Keyboard events aren't propagated to file dialogs for some reason.
   if ([NSApp modalWindow] != nil &&
-      (type == NSKeyDown || type == NSKeyUp || type == NSFlagsChanged))
+      (type == NSEventTypeKeyDown || type == NSEventTypeKeyUp || type == NSEventTypeFlagsChanged))
     {
       [[NSApp modalWindow] sendEvent: theEvent];
       return;
@@ -5202,7 +5144,7 @@ ns_term_shutdown (int sig)
       represented_frame = NULL;
     }
 
-  if (type == NSApplicationDefined)
+  if (type == NSEventTypeApplicationDefined)
     {
       switch ([theEvent data2])
         {
@@ -5219,13 +5161,13 @@ ns_term_shutdown (int sig)
         }
     }
 
-  if (type == NSCursorUpdate && window == nil)
+  if (type == NSEventTypeCursorUpdate && window == nil)
     {
       fprintf (stderr, "Dropping external cursor update event.\n");
       return;
     }
 
-  if (type == NSApplicationDefined)
+  if (type == NSEventTypeApplicationDefined)
     {
       /* Events posted by ns_send_appdefined interrupt the run loop here.
          But, if a modal window is up, an appdefined can still come through,
@@ -5245,10 +5187,10 @@ ns_term_shutdown (int sig)
 
 #ifdef NS_IMPL_COCOA
   /* If no dialog and none of our frames have focus and it is a move, skip it.
-     It is a mouse move in an auxiliary menu, i.e. on the top right on OSX,
+     It is a mouse move in an auxiliary menu, i.e. on the top right on macOS,
      such as Wifi, sound, date or similar.
      This prevents "spooky" highlighting in the frame under the menu.  */
-  if (type == NSMouseMoved && [NSApp modalWindow] == nil)
+  if (type == NSEventTypeMouseMoved && [NSApp modalWindow] == nil)
     {
       struct ns_display_info *di;
       BOOL has_focus = NO;
@@ -5403,7 +5345,7 @@ runAlertPanel(NSString *title,
     == NSAlertDefaultReturn;
 #else
   NSAlert *alert = [[NSAlert alloc] init];
-  [alert setAlertStyle: NSCriticalAlertStyle];
+  [alert setAlertStyle: NSAlertStyleCritical];
   [alert setMessageText: msgFormat];
   [alert addButtonWithTitle: defaultButton];
   [alert addButtonWithTitle: alternateButton];
@@ -5423,15 +5365,11 @@ runAlertPanel(NSString *title,
   if (NILP (ns_confirm_quit)) //   || ns_shutdown_properly  --> TO DO
     return NSTerminateNow;
 
-    ret = runAlertPanel(ns_app_name,
-                        @"Exit requested.  Would you like to Save Buffers and Exit, or Cancel the request?",
-                        @"Save Buffers and Exit", @"Cancel");
+  ret = runAlertPanel(ns_app_name,
+		      @"Exit requested.  Would you like to Save Buffers and Exit, or Cancel the request?",
+		      @"Save Buffers and Exit", @"Cancel");
 
-    if (ret)
-        return NSTerminateNow;
-    else
-        return NSTerminateCancel;
-    return NSTerminateNow;  /* just in case */
+  return ret ? NSTerminateNow : NSTerminateCancel;
 }
 
 static int
@@ -5712,7 +5650,7 @@ not_in_argv (NSString *arg)
 - (void)changeFont: (id)sender
 {
   NSEvent *e = [[self window] currentEvent];
-  struct face *face = FRAME_DEFAULT_FACE (emacsframe);
+  struct face *face = FACE_FROM_ID (emacsframe, DEFAULT_FACE_ID);
   struct font *font = face->font;
   id newFont;
   CGFloat size;
@@ -5784,10 +5722,10 @@ not_in_argv (NSString *arg)
 
   NSTRACE ("[EmacsView keyDown:]");
 
-  /* Rhapsody and OS X give up and down events for the arrow keys */
+  /* Rhapsody and macOS give up and down events for the arrow keys */
   if (ns_fake_keydown == YES)
     ns_fake_keydown = NO;
-  else if ([theEvent type] != NSKeyDown)
+  else if ([theEvent type] != NSEventTypeKeyDown)
     return;
 
   if (!emacs_event)
@@ -5831,12 +5769,12 @@ not_in_argv (NSString *arg)
       /* (Carbon way: [theEvent keyCode]) */
 
       /* is it a "function key"? */
-      /* Note: Sometimes a plain key will have the NSNumericPadKeyMask
+      /* Note: Sometimes a plain key will have the NSEventModifierFlagNumericPad
          flag set (this is probably a bug in the OS).
       */
-      if (code < 0x00ff && (flags&NSNumericPadKeyMask))
+      if (code < 0x00ff && (flags&NSEventModifierFlagNumericPad))
         {
-          fnKeysym = ns_convert_key ([theEvent keyCode] | NSNumericPadKeyMask);
+          fnKeysym = ns_convert_key ([theEvent keyCode] | NSEventModifierFlagNumericPad);
         }
       if (fnKeysym == 0)
         {
@@ -5865,15 +5803,15 @@ not_in_argv (NSString *arg)
       /* are there modifiers? */
       emacs_event->modifiers = 0;
 
-      if (flags & NSHelpKeyMask)
+      if (flags & NSEventModifierFlagHelp)
           emacs_event->modifiers |= hyper_modifier;
 
-      if (flags & NSShiftKeyMask)
+      if (flags & NSEventModifierFlagShift)
         emacs_event->modifiers |= shift_modifier;
 
       is_right_key = (flags & NSRightCommandKeyMask) == NSRightCommandKeyMask;
       is_left_key = (flags & NSLeftCommandKeyMask) == NSLeftCommandKeyMask
-        || (! is_right_key && (flags & NSCommandKeyMask) == NSCommandKeyMask);
+        || (! is_right_key && (flags & NSEventModifierFlagCommand) == NSEventModifierFlagCommand);
 
       if (is_right_key)
         emacs_event->modifiers |= parse_solitary_modifier
@@ -5894,7 +5832,7 @@ not_in_argv (NSString *arg)
             {
               /* XXX: the code we get will be unshifted, so if we have
                  a shift modifier, must convert ourselves */
-              if (!(flags & NSShiftKeyMask))
+              if (!(flags & NSEventModifierFlagShift))
                 code = [[theEvent characters] characterAtIndex: 0];
 #if 0
               /* this is ugly and also requires linking w/Carbon framework
@@ -5909,7 +5847,7 @@ not_in_argv (NSString *arg)
                   UCKeyTranslate ((UCKeyboardLayout*)*uchrHandle,
                                  [[theEvent characters] characterAtIndex: 0],
                                  kUCKeyActionDisplay,
-                                 (flags & ~NSCommandKeyMask) >> 8,
+                                 (flags & ~NSEventModifierFlagCommand) >> 8,
                                  LMGetKbdType (), kUCKeyTranslateNoDeadKeysMask,
                                  &dummy, 1, &dummy, &code);
                   code &= 0xFF;
@@ -5920,7 +5858,7 @@ not_in_argv (NSString *arg)
 
       is_right_key = (flags & NSRightControlKeyMask) == NSRightControlKeyMask;
       is_left_key = (flags & NSLeftControlKeyMask) == NSLeftControlKeyMask
-        || (! is_right_key && (flags & NSControlKeyMask) == NSControlKeyMask);
+        || (! is_right_key && (flags & NSEventModifierFlagControl) == NSEventModifierFlagControl);
 
       if (is_right_key)
           emacs_event->modifiers |= parse_solitary_modifier
@@ -5943,7 +5881,7 @@ not_in_argv (NSString *arg)
         == NSRightAlternateKeyMask;
       is_left_key = (flags & NSLeftAlternateKeyMask) == NSLeftAlternateKeyMask
         || (! is_right_key
-            && (flags & NSAlternateKeyMask) == NSAlternateKeyMask);
+            && (flags & NSEventModifierFlagOption) == NSEventModifierFlagOption);
 
       if (is_right_key)
         {
@@ -5982,7 +5920,7 @@ not_in_argv (NSString *arg)
 
   if (NS_KEYLOG)
     fprintf (stderr, "keyDown: code =%x\tfnKey =%x\tflags = %x\tmods = %x\n",
-             code, fnKeysym, flags, emacs_event->modifiers);
+             (unsigned) code, fnKeysym, flags, emacs_event->modifiers);
 
       /* if it was a function key or had modifiers, pass it directly to emacs */
       if (fnKeysym || (emacs_event->modifiers
@@ -6018,7 +5956,7 @@ not_in_argv (NSString *arg)
 
 
 #ifdef NS_IMPL_COCOA
-/* Needed to pick up Ctrl-tab and possibly other events that OS X has
+/* Needed to pick up Ctrl-tab and possibly other events that Mac OS X
    decided not to send key-down for.
    See http://osdir.com/ml/editors.vim.mac/2007-10/msg00141.html
    This only applies on Tiger and earlier.
@@ -6031,7 +5969,7 @@ not_in_argv (NSString *arg)
   NSTRACE ("[EmacsView keyUp:]");
 
   if (floor (NSAppKitVersionNumber) <= 824 /*NSAppKitVersionNumber10_4*/ &&
-      code == 0x30 && (flags & NSControlKeyMask) && !(flags & NSCommandKeyMask))
+      code == 0x30 && (flags & NSEventModifierFlagControl) && !(flags & NSEventModifierFlagCommand))
     {
       if (NS_KEYLOG)
         fprintf (stderr, "keyUp: passed test");
@@ -6188,8 +6126,14 @@ not_in_argv (NSString *arg)
                                        +FRAME_LINE_HEIGHT (emacsframe));
 
   pt = [self convertPoint: pt toView: nil];
+#if !defined (NS_IMPL_COCOA) || \
+  MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_7
   pt = [[self window] convertBaseToScreen: pt];
   rect.origin = pt;
+#else
+  rect.origin = pt;
+  rect = [[self window] convertRectToScreen: rect];
+#endif
   return rect;
 }
 
@@ -6278,7 +6222,7 @@ not_in_argv (NSString *arg)
      button clicks */
   emacsframe->mouse_moved = 0;
 
-  if ([theEvent type] == NSScrollWheel)
+  if ([theEvent type] == NSEventTypeScrollWheel)
     {
       CGFloat delta = [theEvent deltaY];
       /* Mac notebooks send wheel events w/delta =0 when trackpad scrolling */
@@ -6833,12 +6777,12 @@ not_in_argv (NSString *arg)
 
   win = [[EmacsWindow alloc]
             initWithContentRect: r
-                      styleMask: (NSResizableWindowMask |
+                      styleMask: (NSWindowStyleMaskResizable |
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
-                                  NSTitledWindowMask |
+                                  NSWindowStyleMaskTitled |
 #endif
-                                  NSMiniaturizableWindowMask |
-                                  NSClosableWindowMask)
+                                  NSWindowStyleMaskMiniaturizable |
+                                  NSWindowStyleMaskClosable)
                         backing: NSBackingStoreBuffered
                           defer: YES];
 
@@ -6914,7 +6858,8 @@ not_in_argv (NSString *arg)
   [win makeFirstResponder: self];
 
   col = ns_lookup_indexed_color (NS_FACE_BACKGROUND
-                                  (FRAME_DEFAULT_FACE (emacsframe)), emacsframe);
+				 (FACE_FROM_ID (emacsframe, DEFAULT_FACE_ID)),
+				 emacsframe);
   [win setBackgroundColor: col];
   if ([col alphaComponent] != (EmacsCGFloat) 1.0)
     [win setOpaque: NO];
@@ -7176,8 +7121,8 @@ not_in_argv (NSString *arg)
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
       unsigned val = (unsigned)[NSApp presentationOptions];
 
-      // OSX 10.7 bug fix, the menu won't appear without this.
-      // val is non-zero on other OSX versions.
+      // Mac OS X 10.7 bug fix, the menu won't appear without this.
+      // val is non-zero on other macOS versions.
       if (val == 0)
         {
           NSApplicationPresentationOptions options
@@ -7261,7 +7206,7 @@ not_in_argv (NSString *arg)
   else
     {
 #ifdef HAVE_NATIVE_FS
-      res = (([[self window] styleMask] & NSFullScreenWindowMask) != 0);
+      res = (([[self window] styleMask] & NSWindowStyleMaskFullScreen) != 0);
 #else
       res = NO;
 #endif
@@ -7316,7 +7261,7 @@ not_in_argv (NSString *arg)
   f = emacsframe;
   wr = [w frame];
   col = ns_lookup_indexed_color (NS_FACE_BACKGROUND
-                                 (FRAME_DEFAULT_FACE (f)),
+				 (FACE_FROM_ID (f, DEFAULT_FACE_ID)),
                                  f);
 
   if (fs_state != FULLSCREEN_BOTH)
@@ -7345,7 +7290,7 @@ not_in_argv (NSString *arg)
 
       fw = [[EmacsFSWindow alloc]
                        initWithContentRect:[w contentRectForFrameRect:wr]
-                                 styleMask:NSBorderlessWindowMask
+                                 styleMask:NSWindowStyleMaskBorderless
                                    backing:NSBackingStoreBuffered
                                      defer:YES
                                     screen:screen];
@@ -7601,7 +7546,7 @@ not_in_argv (NSString *arg)
   unblock_input ();
 
   /*
-    drawRect: may be called (at least in OS X 10.5) for invisible
+    drawRect: may be called (at least in Mac OS X 10.5) for invisible
     views as well for some reason.  Thus, do not infer visibility
     here.
 
@@ -7653,11 +7598,11 @@ not_in_argv (NSString *arg)
       (op & 0xf) != 0xf)
     {
       if (op & NSDragOperationLink)
-        modifiers |= NSControlKeyMask;
+        modifiers |= NSEventModifierFlagControl;
       if (op & NSDragOperationCopy)
-        modifiers |= NSAlternateKeyMask;
+        modifiers |= NSEventModifierFlagOption;
       if (op & NSDragOperationGeneric)
-        modifiers |= NSCommandKeyMask;
+        modifiers |= NSEventModifierFlagCommand;
     }
 
   modifiers = EV_MODIFIERS2 (modifiers);
@@ -8106,24 +8051,27 @@ not_in_argv (NSString *arg)
   MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_7
   r = [NSScroller scrollerWidth];
 #else
-  r = [NSScroller scrollerWidthForControlSize: NSRegularControlSize
+  r = [NSScroller scrollerWidthForControlSize: NSControlSizeRegular
                                 scrollerStyle: NSScrollerStyleLegacy];
 #endif
   return r;
 }
 
-
 - initFrame: (NSRect )r window: (Lisp_Object)nwin
 {
   NSTRACE ("[EmacsScroller initFrame: window:]");
 
-  r.size.width = [EmacsScroller scrollerWidth];
+  if (r.size.width > r.size.height)
+      horizontal = YES;
+  else
+      horizontal = NO;
+
   [super initWithFrame: r/*NSMakeRect (0, 0, 0, 0)*/];
   [self setContinuous: YES];
   [self setEnabled: YES];
 
   /* Ensure auto resizing of scrollbars occurs within the emacs frame's view
-     locked against the top and bottom edges, and right edge on OS X, where
+     locked against the top and bottom edges, and right edge on macOS, where
      scrollers are on right. */
 #ifdef NS_IMPL_GNUSTEP
   [self setAutoresizingMask: NSViewMaxXMargin | NSViewHeightSizable];
@@ -8133,9 +8081,12 @@ not_in_argv (NSString *arg)
 
   window = XWINDOW (nwin);
   condemned = NO;
-  pixel_height = NSHeight (r);
-  if (pixel_height == 0) pixel_height = 1;
-  min_portion = 20 / pixel_height;
+  if (horizontal)
+    pixel_length = NSWidth (r);
+  else
+    pixel_length = NSHeight (r);
+  if (pixel_length == 0) pixel_length = 1;
+  min_portion = 20 / pixel_length;
 
   frame = XFRAME (window->frame);
   if (FRAME_LIVE_P (frame))
@@ -8164,9 +8115,12 @@ not_in_argv (NSString *arg)
   NSTRACE ("[EmacsScroller setFrame:]");
 
 /*  block_input (); */
-  pixel_height = NSHeight (newRect);
-  if (pixel_height == 0) pixel_height = 1;
-  min_portion = 20 / pixel_height;
+  if (horizontal)
+    pixel_length = NSWidth (newRect);
+  else
+    pixel_length = NSHeight (newRect);
+  if (pixel_length == 0) pixel_length = 1;
+  min_portion = 20 / pixel_length;
   [super setFrame: newRect];
 /*  unblock_input (); */
 }
@@ -8176,7 +8130,12 @@ not_in_argv (NSString *arg)
 {
   NSTRACE ("[EmacsScroller dealloc]");
   if (window)
-    wset_vertical_scroll_bar (window, Qnil);
+    {
+      if (horizontal)
+        wset_horizontal_scroll_bar (window, Qnil);
+      else
+        wset_vertical_scroll_bar (window, Qnil);
+    }
   window = 0;
   [super dealloc];
 }
@@ -8211,7 +8170,12 @@ not_in_argv (NSString *arg)
       if (view != nil)
         view->scrollbarsNeedingUpdate++;
       if (window)
-        wset_vertical_scroll_bar (window, Qnil);
+        {
+          if (horizontal)
+            wset_horizontal_scroll_bar (window, Qnil);
+          else
+            wset_vertical_scroll_bar (window, Qnil);
+        }
       window = 0;
       [self removeFromSuperview];
       [self release];
@@ -8261,7 +8225,7 @@ not_in_argv (NSString *arg)
     {
       float pos;
       CGFloat por;
-      portion = max ((float)whole*min_portion/pixel_height, portion);
+      portion = max ((float)whole*min_portion/pixel_length, portion);
       pos = (float)position / (whole - portion);
       por = (CGFloat)portion/whole;
 #ifdef NS_IMPL_COCOA
@@ -8291,10 +8255,20 @@ not_in_argv (NSString *arg)
   XSETWINDOW (win, window);
   emacs_event->frame_or_window = win;
   emacs_event->timestamp = EV_TIMESTAMP (e);
-  emacs_event->kind = SCROLL_BAR_CLICK_EVENT;
   emacs_event->arg = Qnil;
-  XSETINT (emacs_event->x, loc * pixel_height);
-  XSETINT (emacs_event->y, pixel_height-20);
+
+  if (horizontal)
+    {
+      emacs_event->kind = HORIZONTAL_SCROLL_BAR_CLICK_EVENT;
+      XSETINT (emacs_event->x, em_whole * loc / pixel_length);
+      XSETINT (emacs_event->y, em_whole);
+    }
+  else
+    {
+      emacs_event->kind = SCROLL_BAR_CLICK_EVENT;
+      XSETINT (emacs_event->x, loc);
+      XSETINT (emacs_event->y, pixel_length-20);
+    }
 
   if (q_event_ptr)
     {
@@ -8349,7 +8323,7 @@ not_in_argv (NSString *arg)
   NSRect sr, kr;
   /* hitPart is only updated AFTER event is passed on */
   NSScrollerPart part = [self testPart: [e locationInWindow]];
-  CGFloat inc = 0.0, loc, kloc, pos;
+  CGFloat loc, kloc, pos UNINIT;
   int edge = 0;
 
   NSTRACE ("[EmacsScroller mouseDown:]");
@@ -8357,15 +8331,15 @@ not_in_argv (NSString *arg)
   switch (part)
     {
     case NSScrollerDecrementPage:
-        last_hit_part = scroll_bar_above_handle; inc = -1.0; break;
+      last_hit_part = horizontal ? scroll_bar_before_handle : scroll_bar_above_handle; break;
     case NSScrollerIncrementPage:
-        last_hit_part = scroll_bar_below_handle; inc = 1.0; break;
+      last_hit_part = horizontal ? scroll_bar_after_handle : scroll_bar_below_handle; break;
     case NSScrollerDecrementLine:
-      last_hit_part = scroll_bar_up_arrow; inc = -0.1; break;
+      last_hit_part = horizontal ? scroll_bar_left_arrow : scroll_bar_up_arrow; break;
     case NSScrollerIncrementLine:
-      last_hit_part = scroll_bar_down_arrow; inc = 0.1; break;
+      last_hit_part = horizontal ? scroll_bar_right_arrow : scroll_bar_down_arrow; break;
     case NSScrollerKnob:
-      last_hit_part = scroll_bar_handle; break;
+      last_hit_part = horizontal ? scroll_bar_horizontal_handle : scroll_bar_handle; break;
     case NSScrollerKnobSlot:  /* GNUstep-only */
       last_hit_part = scroll_bar_move_ratio; break;
     default:  /* NSScrollerNoPart? */
@@ -8374,7 +8348,67 @@ not_in_argv (NSString *arg)
       return;
     }
 
-  if (inc != 0.0)
+  if (part == NSScrollerKnob || part == NSScrollerKnobSlot)
+    {
+      /* handle, or on GNUstep possibly slot */
+      NSEvent *fake_event;
+      int length;
+
+      /* compute float loc in slot and mouse offset on knob */
+      sr = [self convertRect: [self rectForPart: NSScrollerKnobSlot]
+                      toView: nil];
+      if (horizontal)
+        {
+          length = NSWidth (sr);
+          loc = ([e locationInWindow].x - NSMinX (sr));
+        }
+      else
+        {
+          length = NSHeight (sr);
+          loc = length - ([e locationInWindow].y - NSMinY (sr));
+        }
+
+      if (loc <= 0.0)
+        {
+          loc = 0.0;
+          edge = -1;
+        }
+      else if (loc >= length)
+        {
+          loc = length;
+          edge = 1;
+        }
+
+      if (edge)
+        kloc = 0.5 * edge;
+      else
+        {
+          kr = [self convertRect: [self rectForPart: NSScrollerKnob]
+                          toView: nil];
+          if (horizontal)
+            kloc = ([e locationInWindow].x - NSMinX (kr));
+          else
+            kloc = NSHeight (kr) - ([e locationInWindow].y - NSMinY (kr));
+        }
+      last_mouse_offset = kloc;
+
+      if (part != NSScrollerKnob)
+        /* this is a slot click on GNUstep: go straight there */
+        pos = loc;
+
+      /* send a fake mouse-up to super to preempt modal -trackKnob: mode */
+      fake_event = [NSEvent mouseEventWithType: NSEventTypeLeftMouseUp
+                                      location: [e locationInWindow]
+                                 modifierFlags: [e modifierFlags]
+                                     timestamp: [e timestamp]
+                                  windowNumber: [e windowNumber]
+                                       context: [e context]
+                                   eventNumber: [e eventNumber]
+                                    clickCount: [e clickCount]
+                                      pressure: [e pressure]];
+      [super mouseUp: fake_event];
+    }
+  else
     {
       pos = 0;      /* ignored */
 
@@ -8387,56 +8421,6 @@ not_in_argv (NSString *arg)
                                            repeats: YES]
 	    retain];
     }
-  else
-    {
-      /* handle, or on GNUstep possibly slot */
-      NSEvent *fake_event;
-
-      /* compute float loc in slot and mouse offset on knob */
-      sr = [self convertRect: [self rectForPart: NSScrollerKnobSlot]
-                      toView: nil];
-      loc = NSHeight (sr) - ([e locationInWindow].y - NSMinY (sr));
-      if (loc <= 0.0)
-        {
-          loc = 0.0;
-          edge = -1;
-        }
-      else if (loc >= NSHeight (sr))
-        {
-          loc = NSHeight (sr);
-          edge = 1;
-        }
-
-      if (edge)
-        kloc = 0.5 * edge;
-      else
-        {
-          kr = [self convertRect: [self rectForPart: NSScrollerKnob]
-                          toView: nil];
-          kloc = NSHeight (kr) - ([e locationInWindow].y - NSMinY (kr));
-        }
-      last_mouse_offset = kloc;
-
-      /* if knob, tell emacs a location offset by knob pos
-         (to indicate top of handle) */
-      if (part == NSScrollerKnob)
-          pos = (loc - last_mouse_offset) / NSHeight (sr);
-      else
-        /* else this is a slot click on GNUstep: go straight there */
-        pos = loc / NSHeight (sr);
-
-      /* send a fake mouse-up to super to preempt modal -trackKnob: mode */
-      fake_event = [NSEvent mouseEventWithType: NSLeftMouseUp
-                                      location: [e locationInWindow]
-                                 modifierFlags: [e modifierFlags]
-                                     timestamp: [e timestamp]
-                                  windowNumber: [e windowNumber]
-                                       context: [e context]
-                                   eventNumber: [e eventNumber]
-                                    clickCount: [e clickCount]
-                                      pressure: [e pressure]];
-      [super mouseUp: fake_event];
-    }
 
   if (part != NSScrollerKnob)
     [self sendScrollEventAtLoc: pos fromEvent: e];
@@ -8448,23 +8432,34 @@ not_in_argv (NSString *arg)
 {
     NSRect sr;
     double loc, pos;
+    int length;
 
     NSTRACE ("[EmacsScroller mouseDragged:]");
 
       sr = [self convertRect: [self rectForPart: NSScrollerKnobSlot]
                       toView: nil];
-      loc = NSHeight (sr) - ([e locationInWindow].y - NSMinY (sr));
+
+      if (horizontal)
+        {
+          length = NSWidth (sr);
+          loc = ([e locationInWindow].x - NSMinX (sr));
+        }
+      else
+        {
+          length = NSHeight (sr);
+          loc = length - ([e locationInWindow].y - NSMinY (sr));
+        }
 
       if (loc <= 0.0)
         {
           loc = 0.0;
         }
-      else if (loc >= NSHeight (sr) + last_mouse_offset)
+      else if (loc >= length + last_mouse_offset)
         {
-          loc = NSHeight (sr) + last_mouse_offset;
+          loc = length + last_mouse_offset;
         }
 
-      pos = (loc - last_mouse_offset) / NSHeight (sr);
+      pos = (loc - last_mouse_offset);
       [self sendScrollEventAtLoc: pos fromEvent: e];
 }
 
@@ -8674,14 +8669,16 @@ syms_of_nsterm (void)
 
   DEFVAR_LISP ("ns-alternate-modifier", ns_alternate_modifier,
                "This variable describes the behavior of the alternate or option key.\n\
-Set to control, meta, alt, super, or hyper means it is taken to be that key.\n\
+Set to the symbol control, meta, alt, super, or hyper means it is taken to be\n\
+that key.\n\
 Set to none means that the alternate / option key is not interpreted by Emacs\n\
 at all, allowing it to be used at a lower level for accented character entry.");
   ns_alternate_modifier = Qmeta;
 
   DEFVAR_LISP ("ns-right-alternate-modifier", ns_right_alternate_modifier,
                "This variable describes the behavior of the right alternate or option key.\n\
-Set to control, meta, alt, super, or hyper means it is taken to be that key.\n\
+Set to the symbol control, meta, alt, super, or hyper means it is taken to be\n\
+that key.\n\
 Set to left means be the same key as `ns-alternate-modifier'.\n\
 Set to none means that the alternate / option key is not interpreted by Emacs\n\
 at all, allowing it to be used at a lower level for accented character entry.");
@@ -8689,12 +8686,14 @@ at all, allowing it to be used at a lower level for accented character entry.");
 
   DEFVAR_LISP ("ns-command-modifier", ns_command_modifier,
                "This variable describes the behavior of the command key.\n\
-Set to control, meta, alt, super, or hyper means it is taken to be that key.");
+Set to the symbol control, meta, alt, super, or hyper means it is taken to be\n\
+that key.");
   ns_command_modifier = Qsuper;
 
   DEFVAR_LISP ("ns-right-command-modifier", ns_right_command_modifier,
                "This variable describes the behavior of the right command key.\n\
-Set to control, meta, alt, super, or hyper means it is taken to be that key.\n\
+Set to the symbol control, meta, alt, super, or hyper means it is taken to be\n\
+that key.\n\
 Set to left means be the same key as `ns-command-modifier'.\n\
 Set to none means that the command / option key is not interpreted by Emacs\n\
 at all, allowing it to be used at a lower level for accented character entry.");
@@ -8702,12 +8701,14 @@ at all, allowing it to be used at a lower level for accented character entry.");
 
   DEFVAR_LISP ("ns-control-modifier", ns_control_modifier,
                "This variable describes the behavior of the control key.\n\
-Set to control, meta, alt, super, or hyper means it is taken to be that key.");
+Set to the symbol control, meta, alt, super, or hyper means it is taken to be\n\
+that key.");
   ns_control_modifier = Qcontrol;
 
   DEFVAR_LISP ("ns-right-control-modifier", ns_right_control_modifier,
                "This variable describes the behavior of the right control key.\n\
-Set to control, meta, alt, super, or hyper means it is taken to be that key.\n\
+Set to the symbol control, meta, alt, super, or hyper means it is taken to be\n\
+that key.\n\
 Set to left means be the same key as `ns-control-modifier'.\n\
 Set to none means that the control / option key is not interpreted by Emacs\n\
 at all, allowing it to be used at a lower level for accented character entry.");
@@ -8715,7 +8716,8 @@ at all, allowing it to be used at a lower level for accented character entry.");
 
   DEFVAR_LISP ("ns-function-modifier", ns_function_modifier,
                "This variable describes the behavior of the function key (on laptops).\n\
-Set to control, meta, alt, super, or hyper means it is taken to be that key.\n\
+Set to the symbol control, meta, alt, super, or hyper means it is taken to be\n\
+that key.\n\
 Set to none means that the function key is not interpreted by Emacs at all,\n\
 allowing it to be used at a lower level for accented character entry.");
   ns_function_modifier = Qnone;
@@ -8730,14 +8732,14 @@ allowing it to be used at a lower level for accented character entry.");
 
   DEFVAR_LISP ("ns-auto-hide-menu-bar", ns_auto_hide_menu_bar,
                doc: /* Non-nil means that the menu bar is hidden, but appears when the mouse is near.
-Only works on OSX 10.6 or later.  */);
+Only works on Mac OS X 10.6 or later.  */);
   ns_auto_hide_menu_bar = Qnil;
 
   DEFVAR_BOOL ("ns-use-native-fullscreen", ns_use_native_fullscreen,
-     doc: /*Non-nil means to use native fullscreen on OSX >= 10.7.
+     doc: /*Non-nil means to use native fullscreen on Mac OS X 10.7 and later.
 Nil means use fullscreen the old (< 10.7) way.  The old way works better with
-multiple monitors, but lacks tool bar.  This variable is ignored on OSX < 10.7.
-Default is t for OSX >= 10.7, nil otherwise.  */);
+multiple monitors, but lacks tool bar.  This variable is ignored on
+Mac OS X < 10.7.  Default is t for 10.7 and later, nil otherwise.  */);
 #ifdef HAVE_NATIVE_FS
   ns_use_native_fullscreen = YES;
 #else
@@ -8752,9 +8754,9 @@ Default is nil.  */);
   ns_use_fullscreen_animation = NO;
 
   DEFVAR_BOOL ("ns-use-srgb-colorspace", ns_use_srgb_colorspace,
-     doc: /*Non-nil means to use sRGB colorspace on OSX >= 10.7.
+     doc: /*Non-nil means to use sRGB colorspace on Mac OS X 10.7 and later.
 Note that this does not apply to images.
-This variable is ignored on OSX < 10.7 and GNUstep.  */);
+This variable is ignored on Mac OS X < 10.7 and GNUstep.  */);
   ns_use_srgb_colorspace = YES;
 
   /* TODO: move to common code */

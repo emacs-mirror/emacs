@@ -475,7 +475,7 @@ to a region in the current buffer."
   (font-lock-prepend-text-property
    from
    to
-   'face
+   'font-lock-face
    (append (if boldp
                '(erc-bold-face)
              nil)

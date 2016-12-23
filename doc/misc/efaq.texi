@@ -1206,7 +1206,7 @@ Emacs can be started as a daemon in the background.
 
 @cindex NeXTstep port
 @cindex GNUstep port
-@cindex Mac OS X Cocoa
+@cindex macOS Cocoa
 @item
 There is a new NeXTstep port of Emacs.  This supports GNUstep and Mac OS
 X (via the Cocoa libraries).  The Carbon port of Emacs, which supported
@@ -3341,7 +3341,7 @@ problem (@pxref{Reporting bugs}).
 * Emacs for MS-DOS::
 * Emacs for MS-Windows::
 * Emacs for GNUstep::
-* Emacs for Mac OS X::
+* Emacs for macOS::
 @end menu
 
 @node Finding Emacs on the Internet
@@ -3561,13 +3561,13 @@ For MS-DOS, @pxref{Emacs for MS-DOS}.
 Beginning with version 23.1, Emacs supports GNUstep natively.
 See the file @file{nextstep/INSTALL} in the distribution.
 
-@node Emacs for Mac OS X
-@section Where can I get Emacs for Mac OS X?
+@node Emacs for macOS
+@section Where can I get Emacs for macOS?
 @cindex Apple computers, Emacs for
 @cindex Macintosh, Emacs for
-@cindex Mac OS X, Emacs for
+@cindex macOS, Emacs for
 
-Beginning with version 22.1, Emacs supports Mac OS X natively.
+Beginning with version 22.1, Emacs supports macOS natively.
 See the file @file{nextstep/INSTALL} in the distribution.
 
 @c ------------------------------------------------------------

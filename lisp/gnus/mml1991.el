@@ -195,17 +195,20 @@ Whether the passphrase is cached at all is controlled by
       (pop-to-buffer pgg-errors-buffer)
       (error "Encrypt error"))
     (delete-region (point-min) (point-max))
-    (mm-with-unibyte-current-buffer
-      (insert-buffer-substring pgg-output-buffer)
-      (goto-char (point-min))
-      (while (re-search-forward "\r+$" nil t)
-	(replace-match "" t t))
-      (when cte
-	(mm-encode-content-transfer-encoding cte))
-      (goto-char (point-min))
-      (when headers
-	(insert headers))
-      (insert "\n"))
+    (insert
+     (with-temp-buffer
+       (set-buffer-multibyte nil)
+       (insert-buffer-substring pgg-output-buffer)
+       (goto-char (point-min))
+       (while (re-search-forward "\r+$" nil t)
+	 (replace-match "" t t))
+       (when cte
+	 (mm-encode-content-transfer-encoding cte))
+       (goto-char (point-min))
+       (when headers
+	 (insert headers))
+       (insert "\n")
+       (buffer-string)))
     t))
 
 (defun mml1991-pgg-encrypt (cont &optional sign)
@@ -275,17 +278,20 @@ Whether the passphrase is cached at all is controlled by
     (let* ((pair (mml-secure-epg-sign 'OpenPGP 'clear))
 	   (signature (car pair)))
       (delete-region (point-min) (point-max))
-      (mm-with-unibyte-current-buffer
-	(insert signature)
-	(goto-char (point-min))
-	(while (re-search-forward "\r+$" nil t)
-	  (replace-match "" t t))
-	(when cte
-	  (mm-encode-content-transfer-encoding cte))
-	(goto-char (point-min))
-	(when headers
-	  (insert headers))
-	(insert "\n"))
+      (insert
+       (with-temp-buffer
+	 (set-buffer-multibyte nil)
+	 (insert signature)
+	 (goto-char (point-min))
+	 (while (re-search-forward "\r+$" nil t)
+	   (replace-match "" t t))
+	 (when cte
+	   (mm-encode-content-transfer-encoding cte))
+	 (goto-char (point-min))
+	 (when headers
+	   (insert headers))
+	 (insert "\n")
+	 (buffer-string)))
       t)))
 
 (defun mml1991-epg-encrypt (cont &optional sign)

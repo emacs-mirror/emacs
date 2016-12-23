@@ -44,19 +44,19 @@
    )
   "A table for returning search results from Emacs.")
 
-(cl-defmethod semanticdb-refresh-table ((obj semanticdb-table-emacs-lisp) &optional force)
+(cl-defmethod semanticdb-refresh-table ((_obj semanticdb-table-emacs-lisp) &optional _force)
   "Do not refresh Emacs Lisp table.
 It does not need refreshing."
   nil)
 
-(cl-defmethod semanticdb-needs-refresh-p ((obj semanticdb-table-emacs-lisp))
+(cl-defmethod semanticdb-needs-refresh-p ((_obj semanticdb-table-emacs-lisp))
   "Return nil, we never need a refresh."
   nil)
 
 (cl-defmethod object-print ((obj semanticdb-table-emacs-lisp) &rest strings)
   "Pretty printer extension for `semanticdb-table-emacs-lisp'.
 Adds the number of tags in this file to the object print name."
-  (apply 'call-next-method obj (cons " (proxy)" strings)))
+  (apply #'cl-call-next-method obj (cons " (proxy)" strings)))
 
 (defclass semanticdb-project-database-emacs-lisp
   (semanticdb-project-database eieio-singleton)
@@ -71,15 +71,15 @@ Adds the number of tags in this file to the object print name."
   "Pretty printer extension for `semanticdb-table-emacs-lisp'.
 Adds the number of tags in this file to the object print name."
   (let ((count 0))
-    (mapatoms (lambda (sym) (setq count (1+ count))))
-    (apply 'call-next-method obj (cons 
-				  (format " (%d known syms)" count)
-				  strings))))
+    (mapatoms (lambda (_sym) (setq count (1+ count))))
+    (apply #'cl-call-next-method obj (cons
+                                      (format " (%d known syms)" count)
+                                      strings))))
 
 ;; Create the database, and add it to searchable databases for Emacs Lisp mode.
 (defvar-mode-local emacs-lisp-mode semanticdb-project-system-databases
   (list
-   (semanticdb-project-database-emacs-lisp "Emacs"))
+   (make-instance 'semanticdb-project-database-emacs-lisp))
   "Search Emacs core for symbols.")
 
 (defvar-mode-local emacs-lisp-mode semanticdb-find-default-throttle
@@ -96,32 +96,32 @@ Create one of our special tables that can act as an intermediary."
   ;; We need to return something since there is always the "master table"
   ;; The table can then answer file name type questions.
   (when (not (slot-boundp obj 'tables))
-    (let ((newtable (semanticdb-table-emacs-lisp "Emacs System Table")))
+    (let ((newtable (make-instance 'semanticdb-table-emacs-lisp)))
       (oset obj tables (list newtable))
       (oset newtable parent-db obj)
       (oset newtable tags nil)
       ))
   (cl-call-next-method))
 
-(cl-defmethod semanticdb-file-table ((obj semanticdb-project-database-emacs-lisp) filename)
+(cl-defmethod semanticdb-file-table ((obj semanticdb-project-database-emacs-lisp) _filename)
   "From OBJ, return FILENAME's associated table object.
 For Emacs Lisp, creates a specialized table."
   (car (semanticdb-get-database-tables obj))
   )
 
-(cl-defmethod semanticdb-get-tags ((table semanticdb-table-emacs-lisp ))
+(cl-defmethod semanticdb-get-tags ((_table semanticdb-table-emacs-lisp ))
   "Return the list of tags belonging to TABLE."
   ;; specialty table ?  Probably derive tags at request time.
   nil)
 
-(cl-defmethod semanticdb-equivalent-mode ((table semanticdb-table-emacs-lisp) &optional buffer)
+(cl-defmethod semanticdb-equivalent-mode ((_table semanticdb-table-emacs-lisp) &optional buffer)
   "Return non-nil if TABLE's mode is equivalent to BUFFER.
 Equivalent modes are specified by the `semantic-equivalent-major-modes'
 local variable."
   (with-current-buffer buffer
     (eq (or mode-local-active-mode major-mode) 'emacs-lisp-mode)))
 
-(cl-defmethod semanticdb-full-filename ((obj semanticdb-table-emacs-lisp))
+(cl-defmethod semanticdb-full-filename ((_obj semanticdb-table-emacs-lisp))
   "Fetch the full filename that OBJ refers to.
 For Emacs Lisp system DB, there isn't one."
   nil)
@@ -151,7 +151,7 @@ If Emacs cannot resolve this symbol to a particular file, then return nil."
 		      'defvar)
 		     ))
 	 (sym (intern (semantic-tag-name tag)))
-	 (file (condition-case err
+	 (file (condition-case nil
 		   (symbol-file sym type)
 		 ;; Older [X]Emacs don't have a 2nd argument.
 		 (error (symbol-file sym))))
@@ -169,7 +169,6 @@ If Emacs cannot resolve this symbol to a particular file, then return nil."
 	  (setq file (concat file ".gz"))))
 
       (let* ((tab (semanticdb-file-table-object file))
-	     (alltags (when tab (semanticdb-get-tags tab)))
 	     (newtags (when tab (semanticdb-find-tags-by-name-method
 				 tab (semantic-tag-name tag))))
 	     (match nil))
@@ -248,7 +247,7 @@ TOKTYPE is a hint to the type of tag desired."
   "Variable used to collect `mapatoms' output.")
 
 (cl-defmethod semanticdb-find-tags-by-name-method
-  ((table semanticdb-table-emacs-lisp) name &optional tags)
+  ((_table semanticdb-table-emacs-lisp) name &optional tags)
   "Find all tags named NAME in TABLE.
 Uses `intern-soft' to match NAME to Emacs symbols.
 Return a list of tags."
@@ -269,26 +268,26 @@ Return a list of tags."
 	))))
 
 (cl-defmethod semanticdb-find-tags-by-name-regexp-method
-  ((table semanticdb-table-emacs-lisp) regex &optional tags)
+  ((_table semanticdb-table-emacs-lisp) regex &optional tags)
   "Find all tags with name matching REGEX in TABLE.
 Optional argument TAGS is a list of tags to search.
 Uses `apropos-internal' to find matches.
 Return a list of tags."
   (if tags (cl-call-next-method)
-    (delq nil (mapcar 'semanticdb-elisp-sym->tag
+    (delq nil (mapcar #'semanticdb-elisp-sym->tag
 		      (apropos-internal regex)))))
 
 (cl-defmethod semanticdb-find-tags-for-completion-method
-  ((table semanticdb-table-emacs-lisp) prefix &optional tags)
+  ((_table semanticdb-table-emacs-lisp) prefix &optional tags)
   "In TABLE, find all occurrences of tags matching PREFIX.
 Optional argument TAGS is a list of tags to search.
 Returns a table of all matching tags."
   (if tags (cl-call-next-method)
-    (delq nil (mapcar 'semanticdb-elisp-sym->tag
+    (delq nil (mapcar #'semanticdb-elisp-sym->tag
 		      (all-completions prefix obarray)))))
 
 (cl-defmethod semanticdb-find-tags-by-class-method
-  ((table semanticdb-table-emacs-lisp) class &optional tags)
+  ((_table semanticdb-table-emacs-lisp) _class &optional tags)
   "In TABLE, find all occurrences of tags of CLASS.
 Optional argument TAGS is a list of tags to search.
 Returns a table of all matching tags."
@@ -323,7 +322,7 @@ Like `semanticdb-find-tags-for-completion-method' for Emacs Lisp."
 ;;; Advanced Searches
 ;;
 (cl-defmethod semanticdb-find-tags-external-children-of-type-method
-  ((table semanticdb-table-emacs-lisp) type &optional tags)
+  ((_table semanticdb-table-emacs-lisp) type &optional tags)
   "Find all nonterminals which are child elements of TYPE
 Optional argument TAGS is a list of tags to search.
 Return a list of tags."
@@ -333,7 +332,7 @@ Return a list of tags."
       (let* ((class (intern-soft type))
 	     (taglst (when class
 		       (delq nil
-			     (mapcar 'semanticdb-elisp-sym->tag
+			     (mapcar #'semanticdb-elisp-sym->tag
 				     ;; Fancy eieio function that knows all about
 				     ;; built in methods belonging to CLASS.
 				     (cl-generic-all-functions class)))))

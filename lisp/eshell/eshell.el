@@ -308,9 +308,9 @@ With prefix ARG, insert output into the current buffer at point."
 			  (eshell-parse-command command))))
 	     intr
 	     (bufname (if (and proc (listp proc))
-			  "*EShell Async Command Output*"
+			  "*Eshell Async Command Output*"
 			(setq intr t)
-			"*EShell Command Output*")))
+			"*Eshell Command Output*")))
 	(if (buffer-live-p (get-buffer bufname))
 	    (kill-buffer bufname))
 	(rename-buffer bufname)

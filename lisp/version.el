@@ -38,13 +38,11 @@ This variable first existed in version 19.23.")
   "Minor version number of this version of Emacs.
 This variable first existed in version 19.23.")
 
-(defconst emacs-build-time (current-time)
-  "Time at which Emacs was dumped out.")
-
-;; I think this should be obsoleted/removed.  It's just one more meaningless
-;; difference between different builds.  It's usually not even an fqdn.
 (defconst emacs-build-system (system-name)
-  "Name of the system on which Emacs was built.")
+  "Name of the system on which Emacs was built, or nil if not available.")
+
+(defconst emacs-build-time (if emacs-build-system (current-time))
+  "Time at which Emacs was dumped out, or nil if not available.")
 
 (defvar motif-version-string)
 (defvar gtk-version-string)
@@ -58,9 +56,7 @@ Don't use this function in programs to choose actions according
 to the system configuration; look at `system-configuration' instead."
   (interactive "P")
   (let ((version-string
-         (format (if (not (called-interactively-p 'interactive))
-		     "GNU Emacs %s (%s%s%s%s)\n of %s"
-		   "GNU Emacs %s (%s%s%s%s) of %s")
+         (format "GNU Emacs %s (%s%s%s%s)%s"
                  emacs-version
 		 system-configuration
 		 (cond ((featurep 'motif)
@@ -79,7 +75,14 @@ to the system configuration; look at `system-configuration' instead."
 		     (format ", %s scroll bars"
 			     (capitalize (symbol-name x-toolkit-scroll-bars)))
 		   "")
-		 (format-time-string "%Y-%m-%d" emacs-build-time))))
+		 (if emacs-build-time
+		     (format-time-string (concat
+					  (if (called-interactively-p
+					       'interactive)
+					      "" "\n")
+					  " of %Y-%m-%d")
+					 emacs-build-time)
+		   ""))))
     (if here
         (insert version-string)
       (if (called-interactively-p 'interactive)
@@ -113,18 +116,6 @@ or if we could not determine the revision.")
 		  (looking-at "[0-9a-fA-F]\\{40\\}"))
 	   (match-string 0)))))
 
-(defun emacs-repository--version-git-1 (file dir)
-  "Internal subroutine of `emacs-repository-get-version'."
-  (when (file-readable-p file)
-    (with-temp-buffer
-      (insert-file-contents file)
-      (cond ((looking-at "[0-9a-fA-F]\\{40\\}")
-             (match-string 0))
-            ((looking-at "ref: \\(.*\\)")
-             (emacs-repository--version-git-1
-              (expand-file-name (match-string 1) dir)
-              dir))))))
-
 (defun emacs-repository-get-version (&optional dir external)
   "Try to return as a string the repository revision of the Emacs sources.
 The format of the returned string is dependent on the VCS in use.
@@ -134,42 +125,8 @@ this reports on the current state of the sources, which may not
 correspond to the running Emacs.
 
 Optional argument DIR is a directory to use instead of `source-directory'.
-Optional argument EXTERNAL non-nil means to just ask the VCS itself,
-if the sources appear to be under version control.  Otherwise only ask
-the VCS if we cannot find any information ourselves."
-  (or dir (setq dir source-directory))
-  (let* ((base-dir (expand-file-name ".git" dir))
-         (in-main-worktree (file-directory-p base-dir))
-         (in-linked-worktree nil)
-         sub-dir)
-    ;; If the sources are in a linked worktree, .git is a file that points to
-    ;; the location of the main worktree and the repo's administrative files.
-    (when (and (not in-main-worktree)
-               (file-regular-p base-dir)
-               (file-readable-p base-dir))
-      (with-temp-buffer
-        (insert-file-contents base-dir)
-        (when (looking-at "gitdir: \\(.*\.git\\)\\(.*\\)$")
-          (setq base-dir (match-string 1)
-                sub-dir (concat base-dir (match-string 2))
-                in-linked-worktree t))))
-    ;; We've found a worktree, either main or linked.
-    (when (or in-main-worktree in-linked-worktree)
-      (if external
-          (emacs-repository-version-git dir)
-        (or (if in-linked-worktree
-                (emacs-repository--version-git-1
-                 (expand-file-name "HEAD" sub-dir) base-dir)
-              (let ((files '("HEAD" "refs/heads/master"))
-                    file rev)
-                (while (and (not rev)
-                            (setq file (car files)))
-                  (setq file (expand-file-name file base-dir)
-                        files (cdr files)
-                        rev (emacs-repository--version-git-1 file base-dir)))
-                rev))
-            ;; AFAICS this doesn't work during dumping (bug#20799).
-            (emacs-repository-version-git dir))))))
+Optional argument EXTERNAL is ignored."
+  (emacs-repository-version-git (or dir source-directory)))
 
 ;; We put version info into the executable in the form that `ident' uses.
 (purecopy (concat "\n$Id: " (subst-char-in-string ?\n ?\s (emacs-version))

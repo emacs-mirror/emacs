@@ -70,7 +70,8 @@ To read about advanced Info commands, type @kbd{n} twice.  This
 brings you to @cite{Advanced Info Commands}, skipping over the ``Getting
 Started'' chapter.
 
-Type @kbd{H} to see a summary of all available commands.
+If you are using Emacs, type @kbd{?} to see a summary of all available
+commands.  In the stand-alone Info reader, type @kbd{H} instead.
 @end ifinfo
 @end ifnottex
 
@@ -393,16 +394,18 @@ the @key{BACKSPACE} key (or @key{DEL}) many times.  You can also type
 @end format
 
 @kindex ? @r{(Info mode)}
+@kindex H @r{(stand-alone Info reader)}
 @findex Info-summary
   You have just learned a considerable number of commands.  If you
 want to use one but have trouble remembering which, you should type
-@kbd{?}, which displays a brief list of commands.  When you are
-finished looking at the list, make it go away by typing @key{SPC}
-repeatedly.
+@kbd{?} (@kbd{H} in the stand-alone Info reader), which displays a
+brief list of commands.  When you are finished looking at the list,
+make it go away by typing @key{SPC} repeatedly.
 
 @format
->> Type a @key{?} now.  Press @key{SPC} to see consecutive screenfuls of
-   the list until finished.  Then type @key{SPC} several times.  If
+>> Type a @key{?} (or @key{H} in the stand-alone Info reader) now.
+   Press @key{SPC} to see consecutive screenfuls of the list
+   until finished.  Then type @key{SPC} several times.  If
    you are using Emacs, the help will then go away automatically.
    If you are using the stand-alone Info reader, type @kbd{x} to
    return here.

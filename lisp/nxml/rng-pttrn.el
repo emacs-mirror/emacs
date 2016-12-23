@@ -1,4 +1,4 @@
-;;; rng-pttrn.el --- RELAX NG patterns
+;;; rng-pttrn.el --- RELAX NG patterns  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2003, 2007-2016 Free Software Foundation, Inc.
 

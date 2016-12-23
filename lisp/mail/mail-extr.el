@@ -234,7 +234,7 @@ we will act as though we couldn't find a full name in the address."
   :group 'mail-extr)
 
 (defcustom mail-extr-ignore-realname-equals-mailbox-name t
-"*Whether to ignore a name that is equal to the mailbox name.
+"Whether to ignore a name that is equal to the mailbox name.
 If true, then when the address is like \"Single <single@address.com>\"
 we will act as though we couldn't find a full name in the address."
   :type 'boolean
@@ -1406,25 +1406,26 @@ consing a string.)"
 	      (insert (upcase mi) ". ")))
 
 	  ;; Nuke name if it is the same as mailbox name.
-	  (let ((buffer-length (- (point-max) (point-min)))
-		(i 0)
-		(names-match-flag t))
-	    (when (and (> buffer-length 0)
-		       (eq buffer-length (- mbox-end mbox-beg)))
-	      (goto-char (point-max))
-	      (insert-buffer-substring canonicalization-buffer
-				       mbox-beg mbox-end)
-	      (while (and names-match-flag
-			  (< i buffer-length))
-		(or (eq (downcase (char-after (+ i (point-min))))
-			(downcase
-			 (char-after (+ i buffer-length (point-min)))))
-		    (setq names-match-flag nil))
-		(setq i (1+ i)))
-	      (delete-region (+ (point-min) buffer-length) (point-max))
-	      (and names-match-flag
-			   mail-extr-ignore-realname-equals-mailbox-name
-			   (narrow-to-region (point) (point)))))
+          (when mail-extr-ignore-single-names
+            (let ((buffer-length (- (point-max) (point-min)))
+                  (i 0)
+                  (names-match-flag t))
+              (when (and (> buffer-length 0)
+                         (eq buffer-length (- mbox-end mbox-beg)))
+                (goto-char (point-max))
+                (insert-buffer-substring canonicalization-buffer
+                                         mbox-beg mbox-end)
+                (while (and names-match-flag
+                            (< i buffer-length))
+                  (or (eq (downcase (char-after (+ i (point-min))))
+                          (downcase
+                           (char-after (+ i buffer-length (point-min)))))
+                      (setq names-match-flag nil))
+                  (setq i (1+ i)))
+                (delete-region (+ (point-min) buffer-length) (point-max))
+                (and names-match-flag
+                     mail-extr-ignore-realname-equals-mailbox-name
+                     (narrow-to-region (point) (point))))))
 
 	  ;; Nuke name if it's just one word.
 	  (goto-char (point-min))

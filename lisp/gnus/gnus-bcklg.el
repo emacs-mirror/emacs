@@ -83,7 +83,7 @@
 	    (insert-buffer-substring buffer)
 	    ;; Tag the beginning of the article with the ident.
 	    (if (> (point-max) b)
-	      (gnus-put-text-property b (1+ b) 'gnus-backlog ident)
+	      (put-text-property b (1+ b) 'gnus-backlog ident)
 	      (gnus-error 3 "Article %d is blank" number))))))))
 
 (defun gnus-backlog-remove-oldest-article ()

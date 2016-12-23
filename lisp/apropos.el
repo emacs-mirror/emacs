@@ -867,19 +867,23 @@ Returns list of symbols and documentation found."
 	      symbol)))))
 
 (defun apropos-documentation-internal (doc)
-  (if (consp doc)
-      (apropos-documentation-check-elc-file (car doc))
-    (if (and doc
-	     (string-match apropos-all-words-regexp doc)
-	     (apropos-true-hit-doc doc))
-	(when apropos-match-face
-	  (setq doc (substitute-command-keys (copy-sequence doc)))
-	  (if (or (string-match apropos-pattern-quoted doc)
-		  (string-match apropos-all-words-regexp doc))
-	      (put-text-property (match-beginning 0)
-				 (match-end 0)
-				 'face apropos-match-face doc))
-	  doc))))
+  (cond
+   ((consp doc)
+    (apropos-documentation-check-elc-file (car doc)))
+   ((and doc
+         ;; Sanity check in case bad data sneaked into the
+         ;; documentation slot.
+         (stringp doc)
+         (string-match apropos-all-words-regexp doc)
+         (apropos-true-hit-doc doc))
+    (when apropos-match-face
+      (setq doc (substitute-command-keys (copy-sequence doc)))
+      (if (or (string-match apropos-pattern-quoted doc)
+              (string-match apropos-all-words-regexp doc))
+          (put-text-property (match-beginning 0)
+                             (match-end 0)
+                             'face apropos-match-face doc))
+      doc))))
 
 (defun apropos-format-plist (pl sep &optional compare)
   (setq pl (symbol-plist pl))

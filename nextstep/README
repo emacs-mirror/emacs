@@ -1,8 +1,8 @@
-  NS -- the Cocoa interface for OS X and compatible systems
-  ---------------------------------------------------------
+  NS -- the Cocoa interface for macOS and compatible systems
+  ----------------------------------------------------------
 
 This directory contains files needed to build Emacs on system based on
-NextStep (NS), including OS X (Mac) and GNUstep, using the Cocoa API.
+NextStep (NS), including macOS and GNUstep, using the Cocoa API.
 
 
   HISTORY
@@ -14,14 +14,14 @@ OpenStep and then Rhapsody, which became Mac OS X.  In 2004 it was
 adapted to GNUstep, a free OpenStep implementation, and in 2008 it was
 merged to the GNU Emacs trunk and released with Emacs 23.  Around the
 same time a separate Mac-only port using the Carbon APIs and
-descending from a 2001 MacOS 8/9 port of Emacs 21 was removed. (It
+descending from a 2001 Mac OS 8/9 port of Emacs 21 was removed. (It
 remains available externally under the name "mac".)
 
 
   OVERVIEW OF COCOA AND OBJECTIVE-C
 
 Cocoa is an API for the Objective-C language, an objective oriented
-superset of C.  Anybody with experience with iOS or modern OS X
+superset of C.  Anybody with experience with iOS or modern macOS
 application development should feel at home.
 
 A method call in Objective-C differs from most other languages in the
@@ -58,11 +58,11 @@ Classes are declared like the following:
 * Don't use macros and types intended for the XCode Interface Builder,
   like 'IBAction'.
 
-* The NS interface should work on all version of OS X from 10.6.8
-  (Snow Leopard) to the latest official release.
+* The NS interface should work on all version of macOS from Mac OS X
+  10.6.8 (Snow Leopard) to the latest official release.
 
-* Under OS X, it is possible to build Emacs using NS, X11, or console
-  only.  A new OS X feature should work in all appropriate builds.
+* Under macOS, it is possible to build Emacs using NS, X11, or console
+  only.  A new macOS feature should work in all appropriate builds.
 
 
   TRACING SUPPORT
@@ -76,7 +76,7 @@ uncomment the lines defining symbols starting with 'NSTRACE_GROUP'.
 
   GNUSTEP AND OTHER COMPATIBLE SYSTEMS
 
-The NS interface works on system compatible with OS X, for example
+The NS interface works on systems compatible with macOS, for example
 GNUstep.  Even though they are less frequently used, this is important
 for a number of reasons:
 
@@ -84,7 +84,7 @@ for a number of reasons:
   look-and-feel as the rest of the system.
 
 * This allows other Emacs developers to test their changes on the NS
-  interface without having access to an OS X machine.
+  interface without having access to a macOS machine.
 
 * If a feature in the NS interface work on free systems like GNUstep,
   this meets the FSF requirement that features in GNU software should

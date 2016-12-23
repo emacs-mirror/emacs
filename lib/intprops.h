@@ -21,6 +21,11 @@
 #define _GL_INTPROPS_H
 
 #include <limits.h>
+#include <verify.h>
+
+#ifndef __has_builtin
+# define __has_builtin(x) 0
+#endif
 
 /* Return a value with the common real type of E and V and the value of V.  */
 #define _GL_INT_CONVERT(e, v) (0 * (e) + (v))
@@ -36,17 +41,6 @@
    an integer.  */
 #define TYPE_IS_INTEGER(t) ((t) 1.5 == 1)
 
-/* True if negative values of the signed integer type T use two's
-   complement, ones' complement, or signed magnitude representation,
-   respectively.  Much GNU code assumes two's complement, but some
-   people like to be portable to all possible C hosts.  */
-#define TYPE_TWOS_COMPLEMENT(t) ((t) ~ (t) 0 == (t) -1)
-#define TYPE_ONES_COMPLEMENT(t) ((t) ~ (t) 0 == 0)
-#define TYPE_SIGNED_MAGNITUDE(t) ((t) ~ (t) 0 < (t) -1)
-
-/* True if the signed integer expression E uses two's complement.  */
-#define _GL_INT_TWOS_COMPLEMENT(e) (~ _GL_INT_CONVERT (e, 0) == -1)
-
 /* True if the real type T is signed.  */
 #define TYPE_SIGNED(t) (! ((t) 0 < (t) -1))
 
@@ -55,40 +49,64 @@
 #define EXPR_SIGNED(e) (_GL_INT_NEGATE_CONVERT (e, 1) < 0)
 
 
-/* Minimum and maximum values for integer types and expressions.  These
-   macros have undefined behavior if T is signed and has padding bits.
-   If this is a problem for you, please let us know how to fix it for
-   your host.  */
+/* Minimum and maximum values for integer types and expressions.  */
+
+/* The width in bits of the integer type or expression T.
+   Padding bits are not supported; this is checked at compile-time below.  */
+#define TYPE_WIDTH(t) (sizeof (t) * CHAR_BIT)
 
 /* The maximum and minimum values for the integer type T.  */
-#define TYPE_MINIMUM(t)                                                 \
-  ((t) (! TYPE_SIGNED (t)                                               \
-        ? (t) 0                                                         \
-        : TYPE_SIGNED_MAGNITUDE (t)                                     \
-        ? ~ (t) 0                                                       \
-        : ~ TYPE_MAXIMUM (t)))
+#define TYPE_MINIMUM(t) ((t) ~ TYPE_MAXIMUM (t))
 #define TYPE_MAXIMUM(t)                                                 \
   ((t) (! TYPE_SIGNED (t)                                               \
         ? (t) -1                                                        \
-        : ((((t) 1 << (sizeof (t) * CHAR_BIT - 2)) - 1) * 2 + 1)))
+        : ((((t) 1 << (TYPE_WIDTH (t) - 2)) - 1) * 2 + 1)))
 
 /* The maximum and minimum values for the type of the expression E,
    after integer promotion.  E should not have side effects.  */
 #define _GL_INT_MINIMUM(e)                                              \
   (EXPR_SIGNED (e)                                                      \
-   ? - _GL_INT_TWOS_COMPLEMENT (e) - _GL_SIGNED_INT_MAXIMUM (e)         \
+   ? ~ _GL_SIGNED_INT_MAXIMUM (e)                                       \
    : _GL_INT_CONVERT (e, 0))
 #define _GL_INT_MAXIMUM(e)                                              \
   (EXPR_SIGNED (e)                                                      \
    ? _GL_SIGNED_INT_MAXIMUM (e)                                         \
    : _GL_INT_NEGATE_CONVERT (e, 1))
 #define _GL_SIGNED_INT_MAXIMUM(e)                                       \
-  (((_GL_INT_CONVERT (e, 1) << (sizeof ((e) + 0) * CHAR_BIT - 2)) - 1) * 2 + 1)
+  (((_GL_INT_CONVERT (e, 1) << (TYPE_WIDTH ((e) + 0) - 2)) - 1) * 2 + 1)
 
+/* Work around OpenVMS incompatibility with C99.  */
+#if !defined LLONG_MAX && defined __INT64_MAX
+# define LLONG_MAX __INT64_MAX
+# define LLONG_MIN __INT64_MIN
+#endif
 
-/* Return 1 if the __typeof__ keyword works.  This could be done by
+/* This include file assumes that signed types are two's complement without
+   padding bits; the above macros have undefined behavior otherwise.
+   If this is a problem for you, please let us know how to fix it for your host.
+   As a sanity check, test the assumption for some signed types that
+   <limits.h> bounds.  */
+verify (TYPE_MINIMUM (signed char) == SCHAR_MIN);
+verify (TYPE_MAXIMUM (signed char) == SCHAR_MAX);
+verify (TYPE_MINIMUM (short int) == SHRT_MIN);
+verify (TYPE_MAXIMUM (short int) == SHRT_MAX);
+verify (TYPE_MINIMUM (int) == INT_MIN);
+verify (TYPE_MAXIMUM (int) == INT_MAX);
+verify (TYPE_MINIMUM (long int) == LONG_MIN);
+verify (TYPE_MAXIMUM (long int) == LONG_MAX);
+#ifdef LLONG_MAX
+verify (TYPE_MINIMUM (long long int) == LLONG_MIN);
+verify (TYPE_MAXIMUM (long long int) == LLONG_MAX);
+#endif
+/* Similarly, sanity-check one ISO/IEC TS 18661-1:2014 macro if defined.  */
+#ifdef UINT_WIDTH
+verify (TYPE_WIDTH (unsigned int) == UINT_WIDTH);
+#endif
+
+/* Does the __typeof__ keyword work?  This could be done by
    'configure', but for now it's easier to do it by hand.  */
-#if (2 <= __GNUC__ || defined __IBM__TYPEOF__ \
+#if (2 <= __GNUC__ \
+     || (1210 <= __IBMC__ && defined __IBM__TYPEOF__) \
      || (0x5110 <= __SUNPRO_C && !__STDC__))
 # define _GL_HAVE___TYPEOF__ 1
 #else
@@ -117,8 +135,7 @@
    signed, this macro may overestimate the true bound by one byte when
    applied to unsigned types of size 2, 4, 16, ... bytes.  */
 #define INT_STRLEN_BOUND(t)                                     \
-  (INT_BITS_STRLEN_BOUND (sizeof (t) * CHAR_BIT                 \
-                          - _GL_SIGNED_TYPE_OR_EXPR (t))        \
+  (INT_BITS_STRLEN_BOUND (TYPE_WIDTH (t) - _GL_SIGNED_TYPE_OR_EXPR (t)) \
    + _GL_SIGNED_TYPE_OR_EXPR (t))
 
 /* Bound on buffer size needed to represent an integer type or expression T,
@@ -223,24 +240,40 @@
    ? (a) < (min) >> (b)                                 \
    : (max) >> (b) < (a))
 
+/* True if __builtin_add_overflow (A, B, P) works when P is non-null.  */
+#define _GL_HAS_BUILTIN_OVERFLOW \
+  (5 <= __GNUC__ || __has_builtin (__builtin_add_overflow))
+
+/* True if __builtin_add_overflow_p (A, B, C) works.  */
+#define _GL_HAS_BUILTIN_OVERFLOW_P \
+  (7 <= __GNUC__ || __has_builtin (__builtin_add_overflow_p))
 
 /* The _GL*_OVERFLOW macros have the same restrictions as the
    *_RANGE_OVERFLOW macros, except that they do not assume that operands
    (e.g., A and B) have the same type as MIN and MAX.  Instead, they assume
    that the result (e.g., A + B) has that type.  */
-#define _GL_ADD_OVERFLOW(a, b, min, max)                                \
-  ((min) < 0 ? INT_ADD_RANGE_OVERFLOW (a, b, min, max)                  \
-   : (a) < 0 ? (b) <= (a) + (b)                                         \
-   : (b) < 0 ? (a) <= (a) + (b)                                         \
-   : (a) + (b) < (b))
-#define _GL_SUBTRACT_OVERFLOW(a, b, min, max)                           \
-  ((min) < 0 ? INT_SUBTRACT_RANGE_OVERFLOW (a, b, min, max)             \
-   : (a) < 0 ? 1                                                        \
-   : (b) < 0 ? (a) - (b) <= (a)                                         \
-   : (a) < (b))
-#define _GL_MULTIPLY_OVERFLOW(a, b, min, max)                           \
-  (((min) == 0 && (((a) < 0 && 0 < (b)) || ((b) < 0 && 0 < (a))))       \
-   || INT_MULTIPLY_RANGE_OVERFLOW (a, b, min, max))
+#if _GL_HAS_BUILTIN_OVERFLOW_P
+# define _GL_ADD_OVERFLOW(a, b, min, max)                               \
+   __builtin_add_overflow_p (a, b, (__typeof__ ((a) + (b))) 0)
+# define _GL_SUBTRACT_OVERFLOW(a, b, min, max)                          \
+   __builtin_sub_overflow_p (a, b, (__typeof__ ((a) - (b))) 0)
+# define _GL_MULTIPLY_OVERFLOW(a, b, min, max)                          \
+   __builtin_mul_overflow_p (a, b, (__typeof__ ((a) * (b))) 0)
+#else
+# define _GL_ADD_OVERFLOW(a, b, min, max)                                \
+   ((min) < 0 ? INT_ADD_RANGE_OVERFLOW (a, b, min, max)                  \
+    : (a) < 0 ? (b) <= (a) + (b)                                         \
+    : (b) < 0 ? (a) <= (a) + (b)                                         \
+    : (a) + (b) < (b))
+# define _GL_SUBTRACT_OVERFLOW(a, b, min, max)                           \
+   ((min) < 0 ? INT_SUBTRACT_RANGE_OVERFLOW (a, b, min, max)             \
+    : (a) < 0 ? 1                                                        \
+    : (b) < 0 ? (a) - (b) <= (a)                                         \
+    : (a) < (b))
+# define _GL_MULTIPLY_OVERFLOW(a, b, min, max)                           \
+   (((min) == 0 && (((a) < 0 && 0 < (b)) || ((b) < 0 && 0 < (a))))       \
+    || INT_MULTIPLY_RANGE_OVERFLOW (a, b, min, max))
+#endif
 #define _GL_DIVIDE_OVERFLOW(a, b, min, max)                             \
   ((min) < 0 ? (b) == _GL_INT_NEGATE_CONVERT (min, 1) && (a) < - (max)  \
    : (a) < 0 ? (b) <= (a) + (b) - 1                                     \
@@ -305,8 +338,12 @@
   _GL_BINARY_OP_OVERFLOW (a, b, _GL_ADD_OVERFLOW)
 #define INT_SUBTRACT_OVERFLOW(a, b) \
   _GL_BINARY_OP_OVERFLOW (a, b, _GL_SUBTRACT_OVERFLOW)
-#define INT_NEGATE_OVERFLOW(a) \
-  INT_NEGATE_RANGE_OVERFLOW (a, _GL_INT_MINIMUM (a), _GL_INT_MAXIMUM (a))
+#if _GL_HAS_BUILTIN_OVERFLOW_P
+# define INT_NEGATE_OVERFLOW(a) INT_SUBTRACT_OVERFLOW (0, a)
+#else
+# define INT_NEGATE_OVERFLOW(a) \
+   INT_NEGATE_RANGE_OVERFLOW (a, _GL_INT_MINIMUM (a), _GL_INT_MAXIMUM (a))
+#endif
 #define INT_MULTIPLY_OVERFLOW(a, b) \
   _GL_BINARY_OP_OVERFLOW (a, b, _GL_MULTIPLY_OVERFLOW)
 #define INT_DIVIDE_OVERFLOW(a, b) \
@@ -326,7 +363,7 @@
                       _GL_INT_MINIMUM (0 * (b) + (a)),          \
                       _GL_INT_MAXIMUM (0 * (b) + (a)))
 
-/* Compute A + B, A - B, A * B, respectively, storing the result into *R.
+/* Store the low-order bits of A + B, A - B, A * B, respectively, into *R.
    Return 1 if the result overflows.  See above for restrictions.  */
 #define INT_ADD_WRAPV(a, b, r) \
   _GL_INT_OP_WRAPV (a, b, r, +, __builtin_add_overflow, INT_ADD_OVERFLOW)
@@ -334,10 +371,6 @@
   _GL_INT_OP_WRAPV (a, b, r, -, __builtin_sub_overflow, INT_SUBTRACT_OVERFLOW)
 #define INT_MULTIPLY_WRAPV(a, b, r) \
   _GL_INT_OP_WRAPV (a, b, r, *, __builtin_mul_overflow, INT_MULTIPLY_OVERFLOW)
-
-#ifndef __has_builtin
-# define __has_builtin(x) 0
-#endif
 
 /* Nonzero if this compiler has GCC bug 68193 or Clang bug 25390.  See:
    https://gcc.gnu.org/bugzilla/show_bug.cgi?id=68193
@@ -351,10 +384,11 @@
 # define _GL__GENERIC_BOGUS 0
 #endif
 
-/* Store A <op> B into *R, where OP specifies the operation.
-   BUILTIN is the builtin operation, and OVERFLOW the overflow predicate.
-   See above for restrictions.  */
-#if 5 <= __GNUC__ || __has_builtin (__builtin_add_overflow)
+/* Store the low-order bits of A <op> B into *R, where OP specifies
+   the operation.  BUILTIN is the builtin operation, and OVERFLOW the
+   overflow predicate.  Return 1 if the result overflows.  See above
+   for restrictions.  */
+#if _GL_HAS_BUILTIN_OVERFLOW
 # define _GL_INT_OP_WRAPV(a, b, r, op, builtin, overflow) builtin (a, b, r)
 #elif 201112 <= __STDC_VERSION__ && !_GL__GENERIC_BOGUS
 # define _GL_INT_OP_WRAPV(a, b, r, op, builtin, overflow) \
@@ -397,14 +431,15 @@
 # else
 #  define _GL_INT_OP_WRAPV_LONGISH(a, b, r, op, overflow) \
     _GL_INT_OP_CALC (a, b, r, op, overflow, unsigned long int, \
-                     long int, LONG_MIN, LONG_MAX))
+                     long int, LONG_MIN, LONG_MAX)
 # endif
 #endif
 
 /* Store the low-order bits of A <op> B into *R, where the operation
    is given by OP.  Use the unsigned type UT for calculation to avoid
    overflow problems.  *R's type is T, with extremal values TMIN and
-   TMAX.  T must be a signed integer type.  */
+   TMAX.  T must be a signed integer type.  Return 1 if the result
+   overflows.  */
 #define _GL_INT_OP_CALC(a, b, r, op, overflow, ut, t, tmin, tmax) \
   (sizeof ((a) op (b)) < sizeof (t) \
    ? _GL_INT_OP_CALC1 ((t) (a), (t) (b), r, op, overflow, ut, t, tmin, tmax) \

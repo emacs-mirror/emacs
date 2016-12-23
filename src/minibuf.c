@@ -194,7 +194,7 @@ read_minibuf_noninteractive (Lisp_Object map, Lisp_Object initial,
   int c;
   unsigned char hide_char = 0;
   struct emacs_tty etty;
-  bool etty_valid;
+  bool etty_valid UNINIT;
 
   /* Check, whether we need to suppress echoing.  */
   if (CHARACTERP (Vread_hide_char))
@@ -203,10 +203,10 @@ read_minibuf_noninteractive (Lisp_Object map, Lisp_Object initial,
   /* Manipulate tty.  */
   if (hide_char)
     {
-      etty_valid = emacs_get_tty (fileno (stdin), &etty) == 0;
+      etty_valid = emacs_get_tty (STDIN_FILENO, &etty) == 0;
       if (etty_valid)
-	set_binary_mode (fileno (stdin), O_BINARY);
-      suppress_echo_on_tty (fileno (stdin));
+	set_binary_mode (STDIN_FILENO, O_BINARY);
+      suppress_echo_on_tty (STDIN_FILENO);
     }
 
   fwrite (SDATA (prompt), 1, SBYTES (prompt), stdout);
@@ -240,8 +240,8 @@ read_minibuf_noninteractive (Lisp_Object map, Lisp_Object initial,
       fprintf (stdout, "\n");
       if (etty_valid)
 	{
-	  emacs_set_tty (fileno (stdin), &etty, 0);
-	  set_binary_mode (fileno (stdin), O_TEXT);
+	  emacs_set_tty (STDIN_FILENO, &etty, 0);
+	  set_binary_mode (STDIN_FILENO, O_TEXT);
 	}
     }
 
@@ -630,8 +630,31 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
 			    Qrear_nonsticky, Qt, Qnil);
 	Fput_text_property (make_number (BEG), make_number (PT),
 			    Qfield, Qt, Qnil);
-	Fadd_text_properties (make_number (BEG), make_number (PT),
-			      Vminibuffer_prompt_properties, Qnil);
+	if (CONSP (Vminibuffer_prompt_properties))
+	  {
+	    /* We want to apply all properties from
+	       `minibuffer-prompt-properties' to the region normally,
+	       but if the `face' property is present, add that
+	       property to the end of the face properties to avoid
+	       overwriting faces. */
+	    Lisp_Object list = Vminibuffer_prompt_properties;
+	    while (CONSP (list))
+	      {
+		Lisp_Object key = XCAR (list);
+		list = XCDR (list);
+		if (CONSP (list))
+		  {
+		    Lisp_Object val = XCAR (list);
+		    list = XCDR (list);
+		    if (EQ (key, Qface))
+		      Fadd_face_text_property (make_number (BEG),
+					       make_number (PT), val, Qt, Qnil);
+		    else
+		      Fput_text_property (make_number (BEG), make_number (PT),
+					  key, val, Qnil);
+		  }
+	      }
+	  }
       }
     unbind_to (count1, Qnil);
   }
@@ -742,27 +765,25 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
 }
 
 /* Return a buffer to be used as the minibuffer at depth `depth'.
- depth = 0 is the lowest allowed argument, and that is the value
- used for nonrecursive minibuffer invocations.  */
+   depth = 0 is the lowest allowed argument, and that is the value
+   used for nonrecursive minibuffer invocations.  */
 
 Lisp_Object
 get_minibuffer (EMACS_INT depth)
 {
-  Lisp_Object tail, num, buf;
-  char name[sizeof " *Minibuf-*" + INT_STRLEN_BOUND (EMACS_INT)];
-
-  XSETFASTINT (num, depth);
-  tail = Fnthcdr (num, Vminibuffer_list);
+  Lisp_Object tail = Fnthcdr (make_number (depth), Vminibuffer_list);
   if (NILP (tail))
     {
       tail = list1 (Qnil);
       Vminibuffer_list = nconc2 (Vminibuffer_list, tail);
     }
-  buf = Fcar (tail);
+  Lisp_Object buf = Fcar (tail);
   if (NILP (buf) || !BUFFER_LIVE_P (XBUFFER (buf)))
     {
-      buf = Fget_buffer_create
-	(make_formatted_string (name, " *Minibuf-%"pI"d*", depth));
+      static char const name_fmt[] = " *Minibuf-%"pI"d*";
+      char name[sizeof name_fmt + INT_STRLEN_BOUND (EMACS_INT)];
+      AUTO_STRING_WITH_LEN (lname, name, sprintf (name, name_fmt, depth));
+      buf = Fget_buffer_create (lname);
 
       /* Although the buffer's name starts with a space, undo should be
 	 enabled in it.  */
@@ -1715,26 +1736,27 @@ the values STRING, PREDICATE and `lambda'.  */)
   else if (HASH_TABLE_P (collection))
     {
       struct Lisp_Hash_Table *h = XHASH_TABLE (collection);
-      Lisp_Object key = Qnil;
       i = hash_lookup (h, string, NULL);
       if (i >= 0)
-	tem = HASH_KEY (h, i);
+        {
+          tem = HASH_KEY (h, i);
+          goto found_matching_key;
+        }
       else
 	for (i = 0; i < HASH_TABLE_SIZE (h); ++i)
-	  if (!NILP (HASH_HASH (h, i))
-	      && (key = HASH_KEY (h, i),
-		  SYMBOLP (key) ? key = Fsymbol_name (key) : key,
-		  STRINGP (key))
-	      && EQ (Fcompare_strings (string, make_number (0), Qnil,
-				       key, make_number (0) , Qnil,
-				       completion_ignore_case ? Qt : Qnil),
-		     Qt))
-	    {
-	      tem = key;
-	      break;
-	    }
-      if (!STRINGP (tem))
-	return Qnil;
+          {
+            if (NILP (HASH_HASH (h, i))) continue;
+            tem = HASH_KEY (h, i);
+            Lisp_Object strkey = (SYMBOLP (tem) ? Fsymbol_name (tem) : tem);
+            if (!STRINGP (strkey)) continue;
+            if (EQ (Fcompare_strings (string, Qnil, Qnil,
+                                      strkey, Qnil, Qnil,
+                                      completion_ignore_case ? Qt : Qnil),
+                    Qt))
+              goto found_matching_key;
+          }
+      return Qnil;
+    found_matching_key: ;
     }
   else
     return call3 (collection, string, predicate, Qlambda);
@@ -1747,9 +1769,9 @@ the values STRING, PREDICATE and `lambda'.  */)
       for (regexps = Vcompletion_regexp_list; CONSP (regexps);
 	   regexps = XCDR (regexps))
 	{
-	  if (NILP (Fstring_match (XCAR (regexps),
-				   SYMBOLP (tem) ? string : tem,
-				   Qnil)))
+          /* We can test against STRING, because if we got here, then
+             the element is equivalent to it.  */
+          if (NILP (Fstring_match (XCAR (regexps), string, Qnil)))
 	    return unbind_to (count, Qnil);
 	}
       unbind_to (count, Qnil);

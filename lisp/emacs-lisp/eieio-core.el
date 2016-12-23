@@ -33,6 +33,7 @@
 
 (require 'cl-lib)
 (require 'pcase)
+(require 'eieio-loaddefs)
 
 ;;;
 ;; A few functions that are better in the official EIEIO src, but
@@ -459,7 +460,7 @@ See `defclass' for more information."
                           (cl--slot-descriptor-initform (aref slots i)))))
       (setf (eieio--class-class-allocation-values newc) v))
 
-    ;; Attach slot symbols into a hashtable, and store the index of
+    ;; Attach slot symbols into a hash table, and store the index of
     ;; this slot as the value this table.
     (let* ((slots (eieio--class-slots newc))
 	   ;; (cslots (eieio--class-class-slots newc))
@@ -756,9 +757,7 @@ Argument FN is the function calling this verifier."
 	  ;; The slot-missing method is a cool way of allowing an object author
 	  ;; to intercept missing slot definitions.  Since it is also the LAST
 	  ;; thing called in this fn, its return value would be retrieved.
-	  (slot-missing obj slot 'oref)
-	  ;;(signal 'invalid-slot-name (list (eieio-object-name obj) slot))
-	  )
+	  (slot-missing obj slot 'oref))
       (cl-check-type obj eieio-object)
       (eieio-barf-if-slot-unbound (aref obj c) obj slot 'oref))))
 
@@ -780,9 +779,7 @@ Fills in OBJ's SLOT with its default value."
 	    ;; Oref that slot.
 	    (aref (eieio--class-class-allocation-values cl)
 		  c)
-	  (slot-missing obj slot 'oref-default)
-	  ;;(signal 'invalid-slot-name (list (class-name cl) slot))
-	  )
+	  (slot-missing obj slot 'oref-default))
       (eieio-barf-if-slot-unbound
        (let ((val (cl--slot-descriptor-initform
                    (aref (eieio--class-slots cl)
@@ -822,9 +819,7 @@ Fills in OBJ's SLOT with VALUE."
 	      (aset (eieio--class-class-allocation-values class)
 		    c value))
 	  ;; See oref for comment on `slot-missing'
-	  (slot-missing obj slot 'oset value)
-	  ;;(signal 'invalid-slot-name (list (eieio-object-name obj) slot))
-	  )
+	  (slot-missing obj slot 'oset value))
       (eieio--validate-slot-value class c value slot)
       (aset obj c value))))
 
@@ -1070,6 +1065,7 @@ method invocation orders of the involved classes."
                  (eieio--class-precedence-list (symbol-value tag))))))
 
 (cl-defmethod cl-generic-generalizers :extra "class" (specializer)
+  "Support for dispatch on types defined by EIEIO's `defclass'."
   ;; CLHS says:
   ;;    A class must be defined before it can be used as a parameter
   ;;    specializer in a defmethod form.
@@ -1098,99 +1094,9 @@ method invocation orders of the involved classes."
   #'eieio--generic-subclass-specializers)
 
 (cl-defmethod cl-generic-generalizers ((_specializer (head subclass)))
+  "Support for (subclass CLASS) specializers.
+These match if the argument is the name of a subclass of CLASS."
   (list eieio--generic-subclass-generalizer))
-
-
-;;;### (autoloads nil "eieio-compat" "eieio-compat.el" "dba4205b1a0d7133f1311d975b4d0ebe")
-;;; Generated autoloads from eieio-compat.el
-
-(autoload 'eieio--defalias "eieio-compat" "\
-Like `defalias', but with less side-effects.
-More specifically, it has no side-effects at all when the new function
-definition is the same (`eq') as the old one.
-
-\(fn NAME BODY)" nil nil)
-
-(autoload 'defgeneric "eieio-compat" "\
-Create a generic function METHOD.
-DOC-STRING is the base documentation for this class.  A generic
-function has no body, as its purpose is to decide which method body
-is appropriate to use.  Uses `defmethod' to create methods, and calls
-`defgeneric' for you.  With this implementation the ARGS are
-currently ignored.  You can use `defgeneric' to apply specialized
-top level documentation to a method.
-
-\(fn METHOD ARGS &optional DOC-STRING)" nil t)
-
-(function-put 'defgeneric 'doc-string-elt '3)
-
-(make-obsolete 'defgeneric 'cl-defgeneric '"25.1")
-
-(autoload 'defmethod "eieio-compat" "\
-Create a new METHOD through `defgeneric' with ARGS.
-
-The optional second argument KEY is a specifier that
-modifies how the method is called, including:
-   :before  - Method will be called before the :primary
-   :primary - The default if not specified
-   :after   - Method will be called after the :primary
-   :static  - First arg could be an object or class
-The next argument is the ARGLIST.  The ARGLIST specifies the arguments
-to the method as with `defun'.  The first argument can have a type
-specifier, such as:
-  ((VARNAME CLASS) ARG2 ...)
-where VARNAME is the name of the local variable for the method being
-created.  The CLASS is a class symbol for a class made with `defclass'.
-A DOCSTRING comes after the ARGLIST, and is optional.
-All the rest of the args are the BODY of the method.  A method will
-return the value of the last form in the BODY.
-
-Summary:
-
- (defmethod mymethod [:before | :primary | :after | :static]
-                     ((typearg class-name) arg2 &optional opt &rest rest)
-    \"doc-string\"
-     body)
-
-\(fn METHOD &rest ARGS)" nil t)
-
-(function-put 'defmethod 'doc-string-elt '3)
-
-(make-obsolete 'defmethod 'cl-defmethod '"25.1")
-
-(autoload 'eieio--defgeneric-init-form "eieio-compat" "\
-
-
-\(fn METHOD DOC-STRING)" nil nil)
-
-(autoload 'eieio--defmethod "eieio-compat" "\
-
-
-\(fn METHOD KIND ARGCLASS CODE)" nil nil)
-
-(autoload 'eieio-defmethod "eieio-compat" "\
-Obsolete work part of an old version of the `defmethod' macro.
-
-\(fn METHOD ARGS)" nil nil)
-
-(make-obsolete 'eieio-defmethod 'cl-defmethod '"24.1")
-
-(autoload 'eieio-defgeneric "eieio-compat" "\
-Obsolete work part of an old version of the `defgeneric' macro.
-
-\(fn METHOD DOC-STRING)" nil nil)
-
-(make-obsolete 'eieio-defgeneric 'cl-defgeneric '"24.1")
-
-(autoload 'eieio-defclass "eieio-compat" "\
-
-
-\(fn CNAME SUPERCLASSES SLOTS OPTIONS)" nil nil)
-
-(make-obsolete 'eieio-defclass 'eieio-defclass-internal '"25.1")
-
-;;;***
-
 
 (provide 'eieio-core)
 

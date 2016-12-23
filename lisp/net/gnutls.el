@@ -26,7 +26,7 @@
 
 ;; This package provides language bindings for the GnuTLS library
 ;; using the corresponding core functions in gnutls.c.  It should NOT
-;; be used directly, only through open-protocol-stream.
+;; be used directly, only through open-network-stream.
 
 ;; Simple test:
 ;;
@@ -95,7 +95,7 @@ A value of nil says to use the default GnuTLS value."
                  (integer :tag "Number of bits" 512))
   :group 'gnutls)
 
-(defun open-gnutls-stream (name buffer host service)
+(defun open-gnutls-stream (name buffer host service &optional nowait)
   "Open a SSL/TLS connection for a service to a host.
 Returns a subprocess-object to represent the connection.
 Input and output work as for subprocesses; `delete-process' closes it.
@@ -109,6 +109,9 @@ BUFFER is the buffer (or `buffer-name') to associate with the process.
 Third arg is name of the host to connect to, or its IP address.
 Fourth arg SERVICE is name of the service desired, or an integer
 specifying a port number to connect to.
+Fifth arg NOWAIT (which is optional) means that the socket should
+be opened asynchronously.  The connection process will be
+returned to the caller before TLS negotiation has happened.
 
 Usage example:
 
@@ -122,9 +125,20 @@ This is a very simple wrapper around `gnutls-negotiate'.  See its
 documentation for the specific parameters you can use to open a
 GnuTLS connection, including specifying the credential type,
 trust and key files, and priority string."
-  (gnutls-negotiate :process (open-network-stream name buffer host service)
-                    :type 'gnutls-x509pki
-                    :hostname host))
+  (let ((process (open-network-stream
+                  name buffer host service
+                  :nowait nowait
+                  :tls-parameters
+                  (and nowait
+                       (cons 'gnutls-x509pki
+                             (gnutls-boot-parameters
+                              :type 'gnutls-x509pki
+                              :hostname host))))))
+    (if nowait
+        process
+      (gnutls-negotiate :process process
+                        :type 'gnutls-x509pki
+                        :hostname host))))
 
 (define-error 'gnutls-error "GnuTLS error")
 
@@ -140,10 +154,47 @@ trust and key files, and priority string."
            &allow-other-keys)
   "Negotiate a SSL/TLS connection.  Returns proc.  Signals gnutls-error.
 
-Note arguments are passed CL style, :type TYPE instead of just TYPE.
+Note that arguments are passed CL style, :type TYPE instead of just TYPE.
+
+PROCESS is a process returned by `open-network-stream'.
+For the meaning of the rest of the parameters, see `gnutls-boot-parameters'."
+  (let* ((type (or type 'gnutls-x509pki))
+	 ;; The gnutls library doesn't understand files delivered via
+	 ;; the special handlers, so ignore all files found via those.
+	 (file-name-handler-alist nil)
+         (params (gnutls-boot-parameters
+                  :type type
+                  :hostname hostname
+                  :priority-string priority-string
+                  :trustfiles trustfiles
+                  :crlfiles crlfiles
+                  :keylist keylist
+                  :min-prime-bits min-prime-bits
+                  :verify-flags verify-flags
+                  :verify-error verify-error
+                  :verify-hostname-error verify-hostname-error))
+         ret)
+    (gnutls-message-maybe
+     (setq ret (gnutls-boot process type
+                            (append (list :complete-negotiation t)
+                                    params)))
+     "boot: %s" params)
+
+    (when (gnutls-errorp ret)
+      ;; This is a error from the underlying C code.
+      (signal 'gnutls-error (list process ret)))
+
+    process))
+
+(cl-defun gnutls-boot-parameters
+    (&rest spec
+           &key type hostname priority-string
+           trustfiles crlfiles keylist min-prime-bits
+           verify-flags verify-error verify-hostname-error
+           &allow-other-keys)
+  "Return a keyword list of parameters suitable for passing to `gnutls-boot'.
 
 TYPE is `gnutls-x509pki' (default) or `gnutls-anon'.  Use nil for the default.
-PROCESS is a process returned by `open-network-stream'.
 HOSTNAME is the remote hostname.  It must be a valid string.
 PRIORITY-STRING is as per the GnuTLS docs, default is \"NORMAL\".
 TRUSTFILES is a list of CA bundles.  It defaults to `gnutls-trustfiles'.
@@ -189,62 +240,47 @@ here's a recent version of the list.
 
 It must be omitted, a number, or nil; if omitted or nil it
 defaults to GNUTLS_VERIFY_ALLOW_X509_V1_CA_CRT."
-  (let* ((type (or type 'gnutls-x509pki))
-	 ;; The gnutls library doesn't understand files delivered via
-	 ;; the special handlers, so ignore all files found via those.
-	 (file-name-handler-alist nil)
-         (trustfiles (or trustfiles (gnutls-trustfiles)))
-         (priority-string (or priority-string
-                              (cond
-                               ((eq type 'gnutls-anon)
-                                "NORMAL:+ANON-DH:!ARCFOUR-128")
-                               ((eq type 'gnutls-x509pki)
-                                (if gnutls-algorithm-priority
-                                    (upcase gnutls-algorithm-priority)
-                                  "NORMAL")))))
-         (verify-error (or verify-error
-                           ;; this uses the value of `gnutls-verify-error'
-                           (cond
-                            ;; if t, pass it on
-                            ((eq gnutls-verify-error t)
-                             t)
-                            ;; if a list, look for hostname matches
-                            ((listp gnutls-verify-error)
-                             (apply 'append
-                                    (mapcar
-                                     (lambda (check)
-                                       (when (string-match (nth 0 check)
-                                                           hostname)
-                                         (nth 1 check)))
-                                     gnutls-verify-error)))
-                            ;; else it's nil
-                            (t nil))))
-         (min-prime-bits (or min-prime-bits gnutls-min-prime-bits))
-         params ret)
+  (let ((trustfiles (or trustfiles (gnutls-trustfiles)))
+        (priority-string (or priority-string
+                             (cond
+                              ((eq type 'gnutls-anon)
+                               "NORMAL:+ANON-DH:!ARCFOUR-128")
+                              ((eq type 'gnutls-x509pki)
+                               (if gnutls-algorithm-priority
+                                   (upcase gnutls-algorithm-priority)
+                                 "NORMAL")))))
+        (verify-error (or verify-error
+                          ;; this uses the value of `gnutls-verify-error'
+                          (cond
+                           ;; if t, pass it on
+                           ((eq gnutls-verify-error t)
+                            t)
+                           ;; if a list, look for hostname matches
+                           ((listp gnutls-verify-error)
+                            (apply 'append
+                                   (mapcar
+                                    (lambda (check)
+                                      (when (string-match (nth 0 check)
+                                                          hostname)
+                                        (nth 1 check)))
+                                    gnutls-verify-error)))
+                           ;; else it's nil
+                           (t nil))))
+        (min-prime-bits (or min-prime-bits gnutls-min-prime-bits)))
 
     (when verify-hostname-error
       (push :hostname verify-error))
 
-    (setq params `(:priority ,priority-string
-                             :hostname ,hostname
-                             :loglevel ,gnutls-log-level
-                             :min-prime-bits ,min-prime-bits
-                             :trustfiles ,trustfiles
-                             :crlfiles ,crlfiles
-                             :keylist ,keylist
-                             :verify-flags ,verify-flags
-                             :verify-error ,verify-error
-                             :callbacks nil))
-
-    (gnutls-message-maybe
-     (setq ret (gnutls-boot process type params))
-     "boot: %s" params)
-
-    (when (gnutls-errorp ret)
-      ;; This is a error from the underlying C code.
-      (signal 'gnutls-error (list process ret)))
-
-    process))
+    `(:priority ,priority-string
+                :hostname ,hostname
+                :loglevel ,gnutls-log-level
+                :min-prime-bits ,min-prime-bits
+                :trustfiles ,trustfiles
+                :crlfiles ,crlfiles
+                :keylist ,keylist
+                :verify-flags ,verify-flags
+                :verify-error ,verify-error
+                :callbacks nil)))
 
 (defun gnutls-trustfiles ()
   "Return a list of usable trustfiles."

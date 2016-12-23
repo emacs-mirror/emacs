@@ -1,4 +1,4 @@
-;;; rng-parse.el --- parse an XML file and validate it against a schema
+;;; rng-parse.el --- parse an XML file and validate it against a schema  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2003, 2007-2016 Free Software Foundation, Inc.
 

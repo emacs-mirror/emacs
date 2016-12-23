@@ -56,9 +56,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 */
 
 static char *
-w32_get_rdb_resource (char *rdb, const char *resource)
+w32_get_rdb_resource (const char *rdb, const char *resource)
 {
-  char *value = rdb;
+  char *value = (char *)rdb;
   int len = strlen (resource);
 
   while (*value)

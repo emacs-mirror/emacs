@@ -48,7 +48,7 @@
 ;; - dir-printer (fileinfo)                    OK
 ;; * working-revision (file)                   OK
 ;; * checkout-model (files)                    OK
-;; - mode-line-string (file)                   NOT NEEDED
+;; - mode-line-string (file)                   OK
 ;; STATE-CHANGING FUNCTIONS
 ;; * register (files &optional rev comment)    OK
 ;; * create-repo ()                            OK
@@ -105,6 +105,8 @@
   (require 'cl-lib)
   (require 'vc)
   (require 'vc-dir))
+
+(declare-function vc-compilation-mode "vc-dispatcher" (backend))
 
 ;;; Customization options
 
@@ -197,6 +199,11 @@ highlighting the Log View buffer."
 
 (defun vc-hg-state (file)
   "Hg-specific version of `vc-state'."
+  (let ((state (vc-hg-state-fast file)))
+    (if (eq state 'unsupported) (vc-hg-state-slow file) state)))
+
+(defun vc-hg-state-slow (file)
+  "Determine status of FILE by running hg."
   (setq file (expand-file-name file))
   (let*
       ((status nil)
@@ -244,6 +251,130 @@ highlighting the Log View buffer."
           (vc-hg-command standard-output 0 file
                          "parent" "--template" "{rev}")))
       "0"))
+
+(defcustom vc-hg-symbolic-revision-styles
+  '(builtin-active-bookmark
+    "{if(bookmarks,sub(' ',',',bookmarks),if(phabdiff,phabdiff,shortest(node,6)))}")
+  "List of ways to present versions symbolically.  The version
+that we use is the first one that successfully produces a
+non-empty string.
+
+Each entry in the list can be either:
+
+- The symbol `builtin-active-bookmark', which indicates that we
+should use the active bookmark if one exists.  A template can
+supply this information as well, but `builtin-active-bookmark' is
+handled entirely inside Emacs and so is more efficient than using
+the generic Mercurial mechanism.
+
+- A string giving the Mercurial template to supply to \"hg
+parent\".  \"hg help template\" may be useful reading.
+
+- A function to call; it should accept two arguments (a revision
+and an optional path to which to limit history) and produce a
+string.  The function is called with `default-directory' set to
+within the repository.
+
+If no list entry produces a useful revision, return `nil'."
+  :type '(repeat (choice
+                  (const :tag "Active bookmark" 'bookmark)
+                  (string :tag "Hg template")
+                  (function :tag "Custom")))
+  :version "26.1"
+  :group 'vc-hg)
+
+(defcustom vc-hg-use-file-version-for-mode-line-version nil
+  "When enabled, the modeline contains revision information for the visited file.
+When not, the revision in the modeline is for the repository
+working copy.  `nil' is the much faster setting for
+large repositories."
+  :type 'boolean
+  :version "26.1"
+  :group 'vc-hg)
+
+(defun vc-hg--active-bookmark-internal (rev)
+  (when (equal rev ".")
+    (let* ((current-bookmarks-file ".hg/bookmarks.current"))
+      (when (file-exists-p current-bookmarks-file)
+        (ignore-errors
+          (with-temp-buffer
+            (insert-file-contents current-bookmarks-file)
+            (buffer-substring-no-properties
+             (point-min) (point-max))))))))
+
+(defun vc-hg--run-log (template rev path)
+  (ignore-errors
+    (with-output-to-string
+      (if path
+          (vc-hg-command
+           standard-output 0 nil
+           "log" "-f" "-l1" "--template" template path)
+        (vc-hg-command
+         standard-output 0 nil
+         "log" "-r" rev "-l1" "--template" template)))))
+
+(defun vc-hg--symbolic-revision (rev &optional path)
+  "Make a Mercurial revision human-readable.
+REV is a Mercurial revision.  `default-directory' is assumed to
+be in the repository root of interest.  PATH, if set, is a
+specific file to query."
+  (let ((symbolic-revision nil)
+        (styles vc-hg-symbolic-revision-styles))
+    (while (and (not symbolic-revision) styles)
+      (let ((style (pop styles)))
+        (setf symbolic-revision
+              (cond ((and (null path) (eq style 'builtin-active-bookmark))
+                     (vc-hg--active-bookmark-internal rev))
+                    ((stringp style)
+                     (vc-hg--run-log style rev path))
+                    ((functionp style)
+                     (funcall style rev path))))))
+    symbolic-revision))
+
+(defun vc-hg-mode-line-string (file)
+  "Hg-specific version of `vc-mode-line-string'."
+  (let* ((backend-name "Hg")
+         (truename (file-truename file))
+         (state (vc-state truename))
+         (state-echo nil)
+         (face nil)
+         (rev (and state
+                   (let ((default-directory
+                          (expand-file-name (vc-hg-root truename))))
+                     (vc-hg--symbolic-revision
+                      "."
+                      (and vc-hg-use-file-version-for-mode-line-version
+                           truename)))))
+         (rev (or rev "???")))
+    (propertize
+     (cond ((or (eq state 'up-to-date)
+                (eq state 'needs-update))
+            (setq state-echo "Up to date file")
+            (setq face 'vc-up-to-date-state)
+            (concat backend-name "-" rev))
+           ((eq state 'added)
+            (setq state-echo "Locally added file")
+            (setq face 'vc-locally-added-state)
+            (concat backend-name "@" rev))
+           ((eq state 'conflict)
+            (setq state-echo "File contains conflicts after the last merge")
+            (setq face 'vc-conflict-state)
+            (concat backend-name "!" rev))
+           ((eq state 'removed)
+            (setq state-echo "File removed from the VC system")
+            (setq face 'vc-removed-state)
+            (concat backend-name "!" rev))
+           ((eq state 'missing)
+            (setq state-echo "File tracked by the VC system, but missing from the file system")
+            (setq face 'vc-missing-state)
+            (concat backend-name "?" rev))
+           (t
+            (setq state-echo "Locally modified file")
+            (setq face 'vc-edited-state)
+            (concat backend-name ":" rev)))
+     'face face
+     'help-echo (concat state-echo " under the " backend-name
+                        " version control system"))))
 
 ;;; History functions
 
@@ -434,6 +565,488 @@ Optional arg REVISION is a revision to annotate from."
     ;; FIXME: update buffers if `update' is true
     ;; TODO: update *vc-change-log* buffer so can see @ if --graph
     ))
+
+;;; Native data structure reading
+
+(defcustom vc-hg-parse-hg-data-structures t
+  "If true, try directly parsing Mercurial data structures
+directly instead of always running Mercurial.  We try to be safe
+against Mercurial data structure format changes and always fall
+back to running Mercurial directly."
+  :type 'boolean
+  :version "26.1"
+  :group 'vc-hg)
+
+(defsubst vc-hg--read-u8 ()
+  "Read and advance over an unsigned byte.
+Return a fixnum."
+  (prog1 (char-after)
+    (forward-char)))
+
+(defsubst vc-hg--read-u32-be ()
+  "Read and advance over a big-endian unsigned 32-bit integer.
+Return a fixnum; on overflow, result is undefined."
+  ;; Because elisp bytecode has an instruction for multiply and
+  ;; doesn't have one for lsh, it's somewhat counter-intuitively
+  ;; faster to multiply than to shift.
+  (+ (* (vc-hg--read-u8) (* 256 256 256))
+     (* (vc-hg--read-u8) (* 256 256))
+     (* (vc-hg--read-u8) 256)
+     (identity (vc-hg--read-u8))))
+
+(defun vc-hg--raw-dirstate-search (dirstate fname)
+  (with-temp-buffer
+    (set-buffer-multibyte nil)
+    (insert-file-contents-literally dirstate)
+    (let* ((result nil)
+           (flen (length fname))
+           (case-fold-search nil)
+           (inhibit-changing-match-data t)
+           ;; Find a conservative bound for the loop below by using
+           ;; Boyer-Moore on the raw dirstate without parsing it; we
+           ;; know we can't possibly find fname _after_ the last place
+           ;; it appears, so we can bail out early if we try to parse
+           ;; past it, which especially helps when the file we're
+           ;; trying to find isn't in dirstate at all.  There's no way
+           ;; to similarly bound the starting search position, since
+           ;; the file format is such that we need to parse it from
+           ;; the beginning to find record boundaries.
+           (search-limit
+            (progn
+              (goto-char (point-max))
+              (or (search-backward fname (+ (point-min) 40) t)
+                  (point-min)))))
+      ;; 40 is just after the header, which contains the working
+      ;; directory parents
+      (goto-char (+ (point-min) 40))
+      ;; Iterate over all dirstate entries; we might run this loop
+      ;; hundreds of thousands of times, so performance is important
+      ;; here
+      (while (< (point) search-limit)
+        ;; 1+4*4 is the length of the dirstate item header, which we
+        ;; spell as a literal for performance, since the elisp
+        ;; compiler lacks constant propagation
+        (forward-char (1+ (* 3 4)))
+        (let ((this-flen (vc-hg--read-u32-be)))
+          (if (and (or (eq this-flen flen)
+                       (and (> this-flen flen)
+                            (eq (char-after (+ (point) flen)) 0)))
+                   (search-forward fname (+ (point) flen) t))
+              (progn
+                (backward-char (+ flen (1+ (* 4 4))))
+                (setf result
+                      (list (vc-hg--read-u8)     ; status
+                            (vc-hg--read-u32-be) ; mode
+                            (vc-hg--read-u32-be) ; size (of file)
+                            (vc-hg--read-u32-be) ; mtime
+                            ))
+                (goto-char (point-max)))
+            (forward-char this-flen))))
+      result)))
+
+(define-error 'vc-hg-unsupported-syntax "unsupported hgignore syntax")
+
+(defconst vc-hg--pcre-c-escapes
+  '((?a . ?\a)
+    (?b . ?\b)
+    (?f . ?\f)
+    (?n . ?\n)
+    (?r . ?\r)
+    (?t . ?\t)
+    (?n . ?\n)
+    (?r . ?\r)
+    (?t . ?\t)
+    (?v . ?\v)))
+
+(defconst vc-hg--pcre-metacharacters
+  '(?. ?^ ?$ ?* ?+ ?? ?{ ?\\ ?\[ ?\| ?\())
+
+(defconst vc-hg--elisp-metacharacters
+  '(?. ?* ?+ ?? ?\[ ?$ ?\\))
+
+(defun vc-hg--escape-for-pcre (c)
+  (if (memq c vc-hg--pcre-metacharacters)
+      (string ?\\ c)
+    c))
+
+(defun vc-hg--parts-to-string (parts)
+  "Build a string from list PARTS.  Each element is a character or string."
+  (let ((parts2 nil))
+    (while parts
+      (let* ((partcell (prog1 parts (setf parts (cdr parts))))
+             (part (car partcell)))
+        (if (stringp part)
+            (setf parts2 (nconc (append part nil) parts2))
+          (setcdr partcell parts2)
+          (setf parts2 partcell))))
+    (apply #'string parts2)))
+
+(defun vc-hg--pcre-to-elisp-re (pcre prefix)
+  "Transform PCRE, a Mercurial file PCRE, into an elisp RE against PREFIX.
+PREFIX is the directory name of the directory against which these
+patterns are rooted.  We understand only a subset of PCRE syntax;
+if we don't understand a construct, we signal
+`vc-hg-unsupported-syntax'."
+  (cl-assert (string-match "^/\\(.*/\\)?$" prefix))
+  (let ((parts nil)
+        (i 0)
+        (anchored nil)
+        (state 'normal)
+        (pcrelen (length pcre)))
+    (while (< i pcrelen)
+      (let ((c (aref pcre i)))
+        (cond ((eq state 'normal)
+               (cond ((string-match
+                       (rx (| "}\\?" (: "(?" (not (any ":")))))
+                       pcre i)
+                      (signal 'vc-hg-unsupported-syntax (list pcre)))
+                     ((eq c ?\\)
+                      (setf state 'backslash))
+                     ((eq c ?\[)
+                      (setf state 'charclass-enter)
+                      (push c parts))
+                     ((eq c ?^)
+                      (if (eq i 0) (setf anchored t)
+                        (signal 'vc-hg-unsupported-syntax (list pcre))))
+                     ((eq c ?$)
+                      ;; Patterns can also match directories exactly,
+                      ;; ignoring everything under a matched directory
+                      (push "\\(?:$\\|/\\)" parts))
+                     ((memq c '(?| ?\( ?\)))
+                      (push ?\\ parts)
+                      (push c parts))
+                     (t (push c parts))))
+              ((eq state 'backslash)
+               (cond ((memq c '(?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9
+                                ?A ?b ?B ?d ?D ?s ?S ?w ?W ?Z ?x))
+                      (signal 'vc-hg-unsupported-syntax (list pcre)))
+                     ((memq c vc-hg--elisp-metacharacters)
+                      (push ?\\ parts)
+                      (push c parts))
+                     (t (push (or (cdr (assq c vc-hg--pcre-c-escapes)) c) parts)))
+               (setf state 'normal))
+              ((eq state 'charclass-enter)
+               (push c parts)
+               (setf state
+                     (if (eq c ?\\)
+                         'charclass
+                       'charclass-backslash)))
+              ((eq state 'charclass-backslash)
+               (if (memq c '(?0 ?x))
+                   (signal 'vc-hg-unsupported-syntax (list pcre)))
+               (push (or (cdr (assq c vc-hg--pcre-c-escapes)) c) parts)
+               (setf state 'charclass))
+              ((eq state 'charclass)
+               (push c parts)
+               (cond ((eq c ?\\) (setf state 'charclass-backslash))
+                     ((eq c ?\]) (setf state 'normal))))
+              (t (error "invalid state")))
+        (setf i (1+ i))))
+    (unless (eq state 'normal)
+      (signal 'vc-hg-unsupported-syntax (list pcre)))
+    (concat
+     "^"
+     prefix
+     (if anchored "" "\\(?:.*/\\)?")
+     (vc-hg--parts-to-string parts))))
+
+(defun vc-hg--glob-to-pcre (glob)
+  "Transform a glob pattern into a Mercurial file pattern regex."
+  (let ((parts nil) (i 0) (n (length glob)) (group 0) c)
+    (cl-macrolet ((peek () '(and (< i n) (aref glob i))))
+      (while (< i n)
+        (setf c (aref glob i))
+        (cl-incf i)
+        (cond ((not (memq c '(?* ?? ?\[ ?\{ ?\} ?, ?\\)))
+               (push (vc-hg--escape-for-pcre c) parts))
+              ((eq c ?*)
+               (cond ((eq (peek) ?*)
+                      (cl-incf i)
+                      (cond ((eq (peek) ?/)
+                             (cl-incf i)
+                             (push "(?:.*/)?" parts))
+                            (t
+                             (push ".*" parts))))
+                     (t (push "[^/]*" parts))))
+              ((eq c ??)
+               (push ?. parts))
+              ((eq c ?\[)
+               (let ((j i))
+                 (when (and (< j n) (memq (aref glob j) '(?! ?\])))
+                   (cl-incf j))
+                 (while (and (< j n) (not (eq (aref glob j) ?\])))
+                   (cl-incf j))
+                 (cond ((>= j n)
+                        (push "\\[" parts))
+                       (t
+                        (let ((x (substring glob i j)))
+                          (setf x (replace-regexp-in-string
+                                   "\\\\" "\\\\" x t t))
+                          (setf i (1+ j))
+                          (cond ((eq (aref x 0) ?!)
+                                 (setf (aref x 0) ?^))
+                                ((eq (aref x 0) ?^)
+                                 (setf x (concat "\\" x))))
+                          (push ?\[ parts)
+                          (push x parts)
+                          (push ?\] parts))))))
+              ((eq c ?\{)
+               (cl-incf group)
+               (push "(?:" parts))
+              ((eq c ?\})
+               (push ?\) parts)
+               (cl-decf group))
+              ((and (eq c ?,) (> group 0))
+               (push ?| parts))
+              ((eq c ?\\)
+               (if (eq i n)
+                   (push "\\\\" parts)
+                 (cl-incf i)
+                 (push ?\\ parts)
+                 (push c parts)))
+              (t
+               (push (vc-hg--escape-for-pcre c) parts)))))
+    (concat (vc-hg--parts-to-string parts) "$")))
+
+(defvar vc-hg--hgignore-patterns)
+(defvar vc-hg--hgignore-filenames)
+
+(defun vc-hg--hgignore-add-pcre (pcre prefix)
+  (push (vc-hg--pcre-to-elisp-re pcre prefix) vc-hg--hgignore-patterns))
+
+(defun vc-hg--hgignore-add-glob (glob prefix)
+  (push (vc-hg--pcre-to-elisp-re (vc-hg--glob-to-pcre glob) prefix)
+        vc-hg--hgignore-patterns))
+
+(defun vc-hg--hgignore-add-path (path prefix)
+  (let ((parts nil))
+    (dotimes (i (length path))
+      (push (vc-hg--escape-for-pcre (aref path i)) parts))
+    (vc-hg--hgignore-add-pcre
+     (concat "^" (vc-hg--parts-to-string parts) "$")
+     prefix)))
+
+(defun vc-hg--slurp-hgignore-1 (hgignore prefix)
+  (let ((default-syntax 'vc-hg--hgignore-add-glob))
+    (with-temp-buffer
+      (let ((attr (file-attributes hgignore)))
+        (when attr (insert-file-contents hgignore))
+        (push (list hgignore (nth 5 attr) (nth 7 attr))
+              vc-hg--hgignore-filenames))
+      (while (not (eobp))
+        ;; This list of pattern-file commands isn't complete, but it
+        ;; should cover the common cases.  Remember that we fall back
+        ;; to regular hg commands if we see something we don't like.
+        (save-restriction
+          (narrow-to-region (point) (point-at-eol))
+          (cond ((looking-at "[ \t]*\\(?:#.*\\)?$"))
+                ((looking-at "syntax:[ \t]*re[ \t]*$")
+                 (setf default-syntax 'vc-hg--hgignore-add-pcre))
+                ((looking-at "syntax:[ \t]*glob[ \t]*$")
+                 (setf default-syntax 'vc-hg--hgignore-add-glob))
+                ((looking-at "path:\\(.+?\\)[ \t]*$")
+                 (vc-hg--hgignore-add-path (match-string 1) prefix))
+                ((looking-at "glob:\\(.+?\\)[ \t]*$")
+                 (vc-hg--hgignore-add-glob (match-string 1) prefix))
+                ((looking-at "re:\\(.+?\\)[ \t]*$")
+                 (vc-hg--hgignore-add-pcre (match-string 1) prefix))
+                ((looking-at "\\(sub\\)?include:\\(.+?\\)[ \t]*$")
+                 (let* ((sub (equal (match-string 1) "sub"))
+                        (arg (match-string 2))
+                        (included-file
+                         (if (string-match "^/" arg) arg
+                           (concat (file-name-directory hgignore) arg))))
+                   (vc-hg--slurp-hgignore-1
+                    included-file
+                    (if sub (file-name-directory included-file) prefix))))
+                ((looking-at "[a-zA-Z0-9_]*:")
+                 (signal 'vc-hg-unsupported-syntax (list (match-string 0))))
+                ((looking-at ".*$")
+                 (funcall default-syntax (match-string 0) prefix))))
+        (forward-line 1)))))
+
+(cl-defstruct (vc-hg--ignore-patterns
+                (:copier nil)
+                (:constructor vc-hg--ignore-patterns-make))
+  repo
+  ignore-patterns
+  file-sources)
+
+(defun vc-hg--slurp-hgignore (repo)
+  "Read hg ignore patterns from REPO.
+REPO must be the directory name of an hg repository."
+  (cl-assert (string-match "^/\\(.*/\\)?$" repo))
+  (let* ((hgignore (concat repo ".hgignore"))
+         (vc-hg--hgignore-patterns nil)
+         (vc-hg--hgignore-filenames nil))
+    (vc-hg--slurp-hgignore-1 hgignore repo)
+    (vc-hg--ignore-patterns-make
+     :repo repo
+     :ignore-patterns (nreverse vc-hg--hgignore-patterns)
+     :file-sources (nreverse vc-hg--hgignore-filenames))))
+
+(defun vc-hg--ignore-patterns-valid-p (hgip)
+  "Return whether the cached ignore patterns in HGIP are still valid"
+  (let ((valid t)
+        (file-sources (vc-hg--ignore-patterns-file-sources hgip)))
+    (while (and file-sources valid)
+      (let* ((fs (pop file-sources))
+             (saved-mtime (nth 1 fs))
+             (saved-size (nth 2 fs))
+             (attr (file-attributes (nth 0 fs)))
+             (current-mtime (nth 5 attr))
+             (current-size (nth 7 attr)))
+        (unless (and (equal saved-mtime current-mtime)
+                     (equal saved-size current-size))
+          (setf valid nil))))
+    valid))
+
+(defun vc-hg--ignore-patterns-ignored-p (hgip filename)
+  "Test whether the ignore pattern set HGIP says to ignore FILENAME.
+FILENAME must be the file's true absolute name."
+  (let ((patterns (vc-hg--ignore-patterns-ignore-patterns hgip))
+        (inhibit-changing-match-data t)
+        (ignored nil))
+    (while (and patterns (not ignored))
+      (setf ignored (string-match (pop patterns) filename)))
+    ignored))
+
+(defun vc-hg--time-to-fixnum (ts)
+  (+ (* 65536 (car ts)) (cadr ts)))
+
+(defvar vc-hg--cached-ignore-patterns nil
+  "Cached pre-parsed hg ignore patterns.")
+
+(defun vc-hg--file-ignored-p (repo repo-relative-filename)
+  (let ((hgip vc-hg--cached-ignore-patterns))
+    (unless (and hgip
+                 (equal repo (vc-hg--ignore-patterns-repo hgip))
+                 (vc-hg--ignore-patterns-valid-p hgip))
+      (setf vc-hg--cached-ignore-patterns nil)
+      (setf hgip (vc-hg--slurp-hgignore repo))
+      (setf vc-hg--cached-ignore-patterns hgip))
+    (vc-hg--ignore-patterns-ignored-p
+     hgip
+     (concat repo repo-relative-filename))))
+
+(defun vc-hg--read-repo-requirements (repo)
+  (cl-assert (string-match "^/\\(.*/\\)?$" repo))
+  (let* ((requires-filename (concat repo ".hg/requires")))
+    (and (file-exists-p requires-filename)
+         (with-temp-buffer
+           (set-buffer-multibyte nil)
+           (insert-file-contents-literally requires-filename)
+           (split-string (buffer-substring-no-properties
+                          (point-min) (point-max)))))))
+
+(defconst vc-hg-supported-requirements
+  '("dotencode"
+    "fncache"
+    "generaldelta"
+    "lz4revlog"
+    "remotefilelog"
+    "revlogv1"
+    "store")
+  "List of Mercurial repository requirements we understand; if a
+repository requires features not present in this list, we avoid
+attempting to parse Mercurial data structures.")
+
+(defun vc-hg--requirements-understood-p (repo)
+  "Check that we understand the format of the given repository.
+REPO is the directory name of a Mercurial repository."
+  (null (cl-set-difference (vc-hg--read-repo-requirements repo)
+                           vc-hg-supported-requirements
+                           :test #'equal)))
+
+(defvar vc-hg--dirstate-scan-cache nil
+  "Cache of the last result of `vc-hg--raw-dirstate-search'.
+Avoids the need to repeatedly scan dirstate on repeated calls to
+`vc-hg-state', as we see during registration queries.")
+
+(defun vc-hg--cached-dirstate-search (dirstate dirstate-attr ascii-fname)
+  (let* ((mtime (nth 5 dirstate-attr))
+         (size (nth 7 dirstate-attr))
+         (cache vc-hg--dirstate-scan-cache)
+         )
+    (if (and cache
+             (equal dirstate (pop cache))
+             (equal mtime (pop cache))
+             (equal size (pop cache))
+             (equal ascii-fname (pop cache)))
+        (pop cache)
+      (let ((result (vc-hg--raw-dirstate-search dirstate ascii-fname)))
+        (setf vc-hg--dirstate-scan-cache
+              (list dirstate mtime size ascii-fname result))
+        result))))
+
+(defun vc-hg-state-fast (filename)
+  "Like `vc-hg-state', but parse internal data structures directly.
+Returns one of the usual `vc-state' enumeration values or
+`unsupported' if we need to take the slow path and run the
+hg binary."
+  (let* (truename
+         repo
+         dirstate
+         dirstate-attr
+         repo-relative-filename
+         ascii-fname)
+    (if (or
+         ;; Explicit user disable
+         (not vc-hg-parse-hg-data-structures)
+         ;; It'll probably be faster to run hg remotely
+         (file-remote-p filename)
+         (progn
+           (setf truename (file-truename filename))
+           (file-remote-p truename))
+         (not (setf repo (vc-hg-root truename)))
+         ;; dirstate must exist
+         (not (progn
+                (setf repo (expand-file-name repo))
+                (cl-assert (string-match "^/\\(.*/\\)?$" repo))
+                (setf dirstate (concat repo ".hg/dirstate"))
+                (setf dirstate-attr (file-attributes dirstate))))
+         ;; Repository must be in an understood format
+         (not (vc-hg--requirements-understood-p repo))
+         ;; Dirstate too small to be valid
+         (< (nth 7 dirstate-attr) 40)
+         ;; We want to store 32-bit unsigned values in fixnums
+         (< most-positive-fixnum 4294967295)
+         (progn
+           (setf repo-relative-filename
+                 (file-relative-name truename repo))
+           (setf ascii-fname
+                 (string-as-unibyte
+                  (let (last-coding-system-used)
+                    (encode-coding-string
+                     repo-relative-filename
+                     'us-ascii t))))
+           ;; We only try dealing with ASCII filenames
+           (not (equal ascii-fname repo-relative-filename))))
+        'unsupported
+      (let* ((dirstate-entry
+              (vc-hg--cached-dirstate-search
+               dirstate dirstate-attr ascii-fname))
+             (state (car dirstate-entry))
+             (stat (file-attributes
+                    (concat repo repo-relative-filename))))
+        (cond ((eq state ?r) 'removed)
+              ((and (not state) stat)
+               (condition-case nil
+                   (if (vc-hg--file-ignored-p repo repo-relative-filename)
+                       'ignored
+                     'unregistered)
+                 (vc-hg-unsupported-syntax 'unsupported)))
+              ((and state (not stat)) 'missing)
+              ((eq state ?n)
+               (let ((vc-hg-size (nth 2 dirstate-entry))
+                     (vc-hg-mtime (nth 3 dirstate-entry))
+                     (fs-size (nth 7 stat))
+                     (fs-mtime (vc-hg--time-to-fixnum (nth 5 stat))))
+                 (if (and (eql vc-hg-size fs-size) (eql vc-hg-mtime fs-mtime))
+                     'up-to-date
+                   'edited)))
+              ((eq state ?a) 'added)
+              (state 'unsupported))))))
 
 ;;; Miscellaneous
 
@@ -734,7 +1347,11 @@ commands, which only operated on marked files."
 		args       (cddr args)))
 	(apply 'vc-do-async-command buffer root hg-program command args)
         (with-current-buffer buffer
-          (vc-run-delayed (vc-compilation-mode 'hg)))
+          (vc-run-delayed
+            (vc-compilation-mode 'hg)
+            (setq-local compile-command
+                        (concat hg-program " " command " "
+                                (if args (mapconcat 'identity args " ") "")))))
 	(vc-set-async-update buffer)))))
 
 (defun vc-hg-pull (prompt)

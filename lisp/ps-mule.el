@@ -1232,7 +1232,7 @@ V%s 0 /%s-latin1 /%s Latin1Encoding put\n"
 (provide 'ps-mule)
 
 ;; Local Variables:
-;; generated-autoload-file: "ps-print.el"
+;; generated-autoload-file: "ps-print-loaddefs.el"
 ;; End:
 
 ;;; ps-mule.el ends here

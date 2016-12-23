@@ -236,6 +236,8 @@ IMAGEMAGICK_CFLAGS= @IMAGEMAGICK_CFLAGS@
 LIBXML2_LIBS = @LIBXML2_LIBS@
 LIBXML2_CFLAGS = @LIBXML2_CFLAGS@
 
+GETADDRINFO_A_LIBS = @GETADDRINFO_A_LIBS@
+
 LIBZ = @LIBZ@
 
 LIBJIT = @LIBJIT_LIBS@
@@ -255,10 +257,15 @@ XINERAMA_CFLAGS = @XINERAMA_CFLAGS@
 XFIXES_LIBS = @XFIXES_LIBS@
 XFIXES_CFLAGS = @XFIXES_CFLAGS@
 
+XDBE_LIBS = @XDBE_LIBS@
+XDBE_CFLAGS = @XDBE_CFLAGS@
+
 ## widget.o if USE_X_TOOLKIT, otherwise empty.
 WIDGET_OBJ=@WIDGET_OBJ@
 
-## sheap.o if CYGWIN, otherwise empty.
+HYBRID_MALLOC = @HYBRID_MALLOC@
+
+## cygw32.o if CYGWIN, otherwise empty.
 CYGWIN_OBJ=@CYGWIN_OBJ@
 
 ## fontset.o fringe.o image.o if we have any window system
@@ -302,19 +309,22 @@ CM_OBJ=@CM_OBJ@
 
 LIBGPM = @LIBGPM@
 
-## -lresolv, or empty.
-LIBRESOLV = @LIBRESOLV@
-
 LIBSELINUX_LIBS = @LIBSELINUX_LIBS@
 
 LIBGNUTLS_LIBS = @LIBGNUTLS_LIBS@
 LIBGNUTLS_CFLAGS = @LIBGNUTLS_CFLAGS@
+
+LIBSYSTEMD_LIBS = @LIBSYSTEMD_LIBS@
+LIBSYSTEMD_CFLAGS = @LIBSYSTEMD_CFLAGS@
 
 INTERVALS_H = dispextern.h intervals.h composite.h
 
 GETLOADAVG_LIBS = @GETLOADAVG_LIBS@
 
 RUN_TEMACS = ./temacs
+
+# Whether builds should contain details. '--no-build-details' or empty.
+BUILD_DETAILS = @BUILD_DETAILS@
 
 UNEXEC_OBJ = @UNEXEC_OBJ@
 
@@ -354,28 +364,28 @@ DEPFLAGS =
 MKDEPDIR = :
 endif
 
-## DO NOT use -R.  There is a special hack described in lastfile.c
-## which is used instead.  Some initialized data areas are modified
-## at initial startup, then labeled as part of the text area when
-## Emacs is dumped for the first time, and never changed again.
-##
-## -Demacs is needed to make some files produce the correct version
-## for use in Emacs.
-##
-## FIXME? MYCPPFLAGS only referenced in etc/DEBUG.
-ALL_CFLAGS=-Demacs $(MYCPPFLAGS) -I. -I$(srcdir) \
+# Flags that might be in WARN_CFLAGS but are not valid for Objective C.
+NON_OBJC_CFLAGS = -Wignored-attributes -Wignored-qualifiers -Wopenmp-simd
+
+# -Demacs makes some files produce the correct version for use in Emacs.
+# MYCPPFLAGS is for by-hand Emacs-specific overrides, e.g.,
+# "make MYCPPFLAGS='-DDBUS_DEBUG'".
+EMACS_CFLAGS=-Demacs $(MYCPPFLAGS) -I. -I$(srcdir) \
   -I$(lib) -I$(top_srcdir)/lib \
   $(C_SWITCH_MACHINE) $(C_SWITCH_SYSTEM) $(C_SWITCH_X_SITE) \
   $(GNUSTEP_CFLAGS) $(CFLAGS_SOUND) $(RSVG_CFLAGS) $(IMAGEMAGICK_CFLAGS) \
   $(PNG_CFLAGS) $(LIBXML2_CFLAGS) $(DBUS_CFLAGS) \
-  $(XRANDR_CFLAGS) $(XINERAMA_CFLAGS) $(XFIXES_CFLAGS) \
+  $(XRANDR_CFLAGS) $(XINERAMA_CFLAGS) $(XFIXES_CFLAGS) $(XDBE_CFLAGS) \
   $(WEBKIT_CFLAGS) \
   $(SETTINGS_CFLAGS) $(FREETYPE_CFLAGS) $(FONTCONFIG_CFLAGS) \
   $(LIBOTF_CFLAGS) $(M17N_FLT_CFLAGS) $(DEPFLAGS) \
+  $(LIBSYSTEMD_CFLAGS) \
   $(LIBGNUTLS_CFLAGS) $(NOTIFY_CFLAGS) $(CAIRO_CFLAGS) \
-  $(LIBJIT_CFLAGS) \
-  $(WARN_CFLAGS) $(WERROR_CFLAGS) $(CFLAGS)
-ALL_OBJC_CFLAGS=$(ALL_CFLAGS) $(GNU_OBJC_CFLAGS)
+  $(WERROR_CFLAGS) $(LIBJIT_CFLAGS)
+ALL_CFLAGS = $(EMACS_CFLAGS) $(WARN_CFLAGS) $(CFLAGS)
+ALL_OBJC_CFLAGS = $(EMACS_CFLAGS) \
+  $(filter-out $(NON_OBJC_CFLAGS),$(WARN_CFLAGS)) $(CFLAGS) \
+  $(GNU_OBJC_CFLAGS)
 
 .SUFFIXES: .m
 .c.o:
@@ -402,6 +412,8 @@ base_obj = dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
 	doprnt.o intervals.o textprop.o composite.o xml.o $(NOTIFY_OBJ) \
 	$(XWIDGETS_OBJ) \
 	profiler.o decompress.o \
+	thread.o systhread.o \
+	$(if $(HYBRID_MALLOC),sheap.o) \
 	$(MSDOS_OBJ) $(MSDOS_X_OBJ) $(NS_OBJ) $(CYGWIN_OBJ) $(FONT_OBJ) \
 	$(W32_OBJ) $(WINDOW_SYSTEM_OBJ) $(XGSELOBJ)
 obj = $(base_obj) $(NS_OBJC_OBJ)
@@ -484,11 +496,13 @@ LIBES = $(LIBS) $(W32_LIBS) $(LIBS_GNUSTEP) $(LIBX_BASE) $(LIBIMAGE) \
    $(WEBKIT_LIBS) \
    $(LIB_EACCESS) $(LIB_FDATASYNC) $(LIB_TIMER_TIME) $(DBUS_LIBS) \
    $(LIB_EXECINFO) $(XRANDR_LIBS) $(XINERAMA_LIBS) $(XFIXES_LIBS) \
-   $(LIBXML2_LIBS) $(LIBGPM) $(LIBRESOLV) $(LIBS_SYSTEM) $(CAIRO_LIBS) \
+   $(XDBE_LIBS) \
+   $(LIBXML2_LIBS) $(LIBGPM) $(LIBS_SYSTEM) $(CAIRO_LIBS) \
    $(LIBS_TERMCAP) $(GETLOADAVG_LIBS) $(SETTINGS_LIBS) $(LIBSELINUX_LIBS) \
    $(FREETYPE_LIBS) $(FONTCONFIG_LIBS) $(LIBOTF_LIBS) $(M17N_FLT_LIBS) \
-   $(LIBGNUTLS_LIBS) $(LIB_PTHREAD) \
-   $(NOTIFY_LIBS) $(LIB_MATH) $(LIBZ) $(LIBJIT) $(LIBMODULES)
+   $(LIBGNUTLS_LIBS) $(LIB_PTHREAD) $(GETADDRINFO_A_LIBS) \
+   $(NOTIFY_LIBS) $(LIB_MATH) $(LIBZ) $(LIBMODULES) $(LIBSYSTEMD_LIBS) \
+   $(LIBJIT)
 
 $(leimdir)/leim-list.el: bootstrap-emacs$(EXEEXT)
 	$(MAKE) -C ../leim leim-list.el EMACS="$(bootstrap_exe)"
@@ -536,7 +550,7 @@ emacs$(EXEEXT): temacs$(EXEEXT) \
 ifeq ($(CANNOT_DUMP),yes)
 	ln -f temacs$(EXEEXT) $@
 else
-	LC_ALL=C $(RUN_TEMACS) -batch -l loadup dump
+	LC_ALL=C $(RUN_TEMACS) -batch $(BUILD_DETAILS) -l loadup dump
   ifneq ($(PAXCTL_dumped),)
 	$(PAXCTL_dumped) $@
   endif
@@ -588,7 +602,9 @@ globals.h: gl-stamp; @true
 
 $(ALLOBJS): globals.h
 
-$(lib)/libgnu.a: $(config_h)
+LIBEGNU_ARCHIVE = $(lib)/lib$(if $(HYBRID_MALLOC),e)gnu.a
+
+$(LIBEGNU_ARCHIVE): $(config_h)
 	$(MAKE) -C $(lib) all
 
 ## We have to create $(etc) here because init_cmdargs tests its
@@ -596,9 +612,9 @@ $(lib)/libgnu.a: $(config_h)
 ## This goes on to affect various things, and the emacs binary fails
 ## to start if Vinstallation_directory has the wrong value.
 temacs$(EXEEXT): $(LIBXMENU) $(ALLOBJS) \
-	         $(lib)/libgnu.a $(EMACSRES) ${charsets} ${charscript}
+	         $(LIBEGNU_ARCHIVE) $(EMACSRES) ${charsets} ${charscript}
 	$(AM_V_CCLD)$(CC) $(ALL_CFLAGS) $(TEMACS_LDFLAGS) $(LDFLAGS) \
-	  -o temacs $(ALLOBJS) $(lib)/libgnu.a $(W32_RES_LINK) $(LIBES)
+	  -o temacs $(ALLOBJS) $(LIBEGNU_ARCHIVE) $(W32_RES_LINK) $(LIBES)
 	$(MKDIR_P) $(etc)
 ifneq ($(CANNOT_DUMP),yes)
   ifneq ($(PAXCTL_notdumped),)
@@ -671,32 +687,34 @@ extraclean: distclean
 	-rm -f *~ \#*
 
 
-ETAGS = ../lib-src/etags
+ETAGS = ../lib-src/etags${EXEEXT}
 
-ctagsfiles1 = [xyzXYZ]*.[hc]
-ctagsfiles2 = [a-wA-W]*.[hc]
-ctagsfiles3 = [a-zA-Z]*.m
+${ETAGS}: FORCE
+	${MAKE} -C ../lib-src $(notdir $@)
+
+ctagsfiles1 = $(wildcard ${srcdir}/*.[hc])
+ctagsfiles2 = $(wildcard ${srcdir}/*.m)
 
 ## FIXME? In out-of-tree builds, should TAGS be generated in srcdir?
 
 ## This does not need to depend on ../lisp and ../lwlib TAGS files,
 ## because etags "--include" only includes a pointer to the file,
 ## rather than the file contents.
-TAGS: $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2) $(srcdir)/$(ctagsfiles3)
-	"$(ETAGS)" --include=../lisp/TAGS --include=$(lwlibdir)/TAGS \
+TAGS: ${ETAGS} $(ctagsfiles1) $(ctagsfiles2)
+	${ETAGS} --include=../lisp/TAGS --include=$(lwlibdir)/TAGS \
 	  --regex='{c}/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/\1/' \
 	  --regex='{c}/[ 	]*DEFVAR_[A-Z_ 	(]+"[^"]+",[ 	]\([A-Za-z0-9_]+\)/\1/' \
-	  $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2) \
+	  $(ctagsfiles1) \
 	  --regex='{objc}/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/\1/' \
 	  --regex='{objc}/[ 	]*DEFVAR_[A-Z_ 	(]+"[^"]+",[ 	]\([A-Za-z0-9_]+\)/\1/' \
-	  $(srcdir)/$(ctagsfiles3)
+	  $(ctagsfiles2)
 
 ## Arrange to make tags tables for ../lisp and ../lwlib,
 ## which the above TAGS file for the C files includes by reference.
-../lisp/TAGS:
+../lisp/TAGS: FORCE
 	$(MAKE) -C ../lisp TAGS ETAGS="$(ETAGS)"
 
-$(lwlibdir)/TAGS:
+$(lwlibdir)/TAGS: FORCE
 	$(MAKE) -C $(lwlibdir) TAGS ETAGS="$(ETAGS)"
 
 tags: TAGS ../lisp/TAGS $(lwlibdir)/TAGS
@@ -741,7 +759,7 @@ bootstrap-emacs$(EXEEXT): temacs$(EXEEXT)
 ifeq ($(CANNOT_DUMP),yes)
 	ln -f temacs$(EXEEXT) $@
 else
-	$(RUN_TEMACS) --batch --load loadup bootstrap
+	$(RUN_TEMACS) --batch $(BUILD_DETAILS) --load loadup bootstrap
   ifneq ($(PAXCTL_dumped),)
 	$(PAXCTL_dumped) emacs$(EXEEXT)
   endif
@@ -749,6 +767,10 @@ else
 endif
 	@: Compile some files earlier to speed up further compilation.
 	$(MAKE) -C ../lisp compile-first EMACS="$(bootstrap_exe)"
+
+
+generate-ldefs-boot: bootstrap-emacs$(EXEEXT)
+	$(RUN_TEMACS) --batch $(BUILD_DETAILS) --load loadup bootstrap
 
 ifeq ($(AUTO_DEPEND),yes)
 -include $(ALLOBJS:%.o=${DEPDIR}/%.d)

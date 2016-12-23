@@ -20,4 +20,6 @@ it runs, which can change when the screen session is moved to another tty."
   (let ((xterm-extra-capabilities xterm-screen-extra-capabilities))
     (tty-run-terminal-initialization (selected-frame) "xterm")))
 
+(provide 'term/screen)
+
 ;; screen.el ends here

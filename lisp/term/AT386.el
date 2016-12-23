@@ -54,4 +54,6 @@
     (define-key local-function-key-map [ALT] [27])
     ))
 
+(provide 'term/AT386)
+
 ;;; AT386.el ends here

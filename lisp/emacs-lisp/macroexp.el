@@ -103,7 +103,7 @@ each clause."
 (defun macroexp--funcall-if-compiled (_form)
   "Pseudo function used internally by macroexp to delay warnings.
 The purpose is to delay warnings to bytecomp.el, so they can use things
-like `byte-compile-log-warning' to get better file-and-line-number data
+like `byte-compile-warn' to get better file-and-line-number data
 and also to avoid outputting the warning during normal execution."
   nil)
 (put 'macroexp--funcall-if-compiled 'byte-compile
@@ -122,7 +122,7 @@ and also to avoid outputting the warning during normal execution."
 (defvar macroexp--warned (make-hash-table :test #'equal :weakness 'key))
 
 (defun macroexp--warn-and-return (msg form &optional compile-only)
-  (let ((when-compiled (lambda () (byte-compile-log-warning msg t))))
+  (let ((when-compiled (lambda () (byte-compile-warn "%s" msg))))
     (cond
      ((null msg) form)
      ((macroexp--compiling-p)

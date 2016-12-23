@@ -161,8 +161,8 @@ load was done for the sake of @code{autoload}, any function definitions
 made during the loading are undone.
 
 @kindex file-error
-If @code{load} can't find the file to load, then normally it signals the
-error @code{file-error} (with @samp{Cannot open load file
+If @code{load} can't find the file to load, then normally it signals a
+@code{file-error} (with @samp{Cannot open load file
 @var{filename}}).  But if @var{missing-ok} is non-@code{nil}, then
 @code{load} just returns @code{nil}.
 
@@ -610,8 +610,8 @@ and @code{define-global-minor-mode}.
 
 @item Other definition types:
 @code{defcustom}, @code{defgroup}, @code{defclass}
-(@pxref{Top,EIEIO,,eieio,EIEIO}), and @code{define-skeleton} (see the
-commentary in @file{skeleton.el}).
+(@pxref{Top,EIEIO,,eieio,EIEIO}), and @code{define-skeleton}
+(@pxref{Top,Autotyping,,autotype,Autotyping}).
 @end table
 
   You can also use a magic comment to execute a form at build time

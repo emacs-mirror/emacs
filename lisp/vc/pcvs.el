@@ -551,7 +551,7 @@ If non-nil, NEW means to create a new buffer no matter what."
 	       ;; is accessed via SSH, a bad interaction between libc,
 	       ;; CVS and SSH can lead to garbled output.
 	       ;; It might be a glibc-specific problem (but it can also happens
-	       ;; under Mac OS X, it seems).
+	       ;; under macOS, it seems).
 	       ;; It seems that using a pty can help circumvent the problem,
 	       ;; but at the cost of screwing up when the process thinks it
 	       ;; can ask for user input (such as password or host-key
@@ -696,7 +696,7 @@ SUBDIR is the subdirectory (if any) where this command was run.
 OLD-FIS is the list of fileinfos on which the cvs command was applied and
   which should be considered up-to-date if they are missing from the output."
   (when (eq system-type 'darwin)
-    ;; Fixup the ^D^H^H inserted at beginning of buffer sometimes on MacOSX
+    ;; Fixup the ^D^H^H inserted at beginning of buffer sometimes on macOS
     ;; because of the call to `process-send-eof'.
     (save-excursion
       (goto-char (point-min))

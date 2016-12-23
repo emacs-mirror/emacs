@@ -278,7 +278,7 @@ If the multibyte character does not represent a byte, return -1.  */)
 static ptrdiff_t
 char_width (int c, struct Lisp_Char_Table *dp)
 {
-  ptrdiff_t width = CHAR_WIDTH (c);
+  ptrdiff_t width = CHARACTER_WIDTH (c);
 
   if (dp)
     {
@@ -291,7 +291,7 @@ char_width (int c, struct Lisp_Char_Table *dp)
 	    ch = AREF (disp, i);
 	    if (CHARACTERP (ch))
 	      {
-		int w = CHAR_WIDTH (XFASTINT (ch));
+		int w = CHARACTER_WIDTH (XFASTINT (ch));
 		if (INT_ADD_WRAPV (width, w, &width))
 		  string_overflow ();
 	      }
@@ -983,17 +983,26 @@ alphabeticp (int c)
 	  || gen_cat == UNICODE_CATEGORY_Nl);
 }
 
-/* Return true if C is a decimal-number character.  */
+/* Return true if C is a alphabetic or decimal-number character.  */
 bool
-decimalnump (int c)
+alphanumericp (int c)
 {
   Lisp_Object category = CHAR_TABLE_REF (Vunicode_category_table, c);
   if (! INTEGERP (category))
     return false;
   EMACS_INT gen_cat = XINT (category);
 
-  /* See UTS #18.  */
-  return gen_cat == UNICODE_CATEGORY_Nd;
+  /* See UTS #18.  Same comment as for alphabeticp applies.  FIXME. */
+  return (gen_cat == UNICODE_CATEGORY_Lu
+	  || gen_cat == UNICODE_CATEGORY_Ll
+	  || gen_cat == UNICODE_CATEGORY_Lt
+	  || gen_cat == UNICODE_CATEGORY_Lm
+	  || gen_cat == UNICODE_CATEGORY_Lo
+	  || gen_cat == UNICODE_CATEGORY_Mn
+	  || gen_cat == UNICODE_CATEGORY_Mc
+	  || gen_cat == UNICODE_CATEGORY_Me
+	  || gen_cat == UNICODE_CATEGORY_Nl
+	  || gen_cat == UNICODE_CATEGORY_Nd);
 }
 
 /* Return true if C is a graphic character.  */

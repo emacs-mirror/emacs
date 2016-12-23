@@ -69,7 +69,6 @@ to confuse some users sometimes."
     (t (:weight bold)))
   "PCL-CVS face used to highlight directory changes."
   :group 'pcl-cvs)
-(define-obsolete-face-alias 'cvs-header-face 'cvs-header "22.1")
 
 (defface cvs-filename
   '((((class color) (background dark))
@@ -79,7 +78,6 @@ to confuse some users sometimes."
     (t ()))
   "PCL-CVS face used to highlight file names."
   :group 'pcl-cvs)
-(define-obsolete-face-alias 'cvs-filename-face 'cvs-filename "22.1")
 
 (defface cvs-unknown
   '((((class color) (background dark))
@@ -89,7 +87,6 @@ to confuse some users sometimes."
     (t (:slant italic)))
   "PCL-CVS face used to highlight unknown file status."
   :group 'pcl-cvs)
-(define-obsolete-face-alias 'cvs-unknown-face 'cvs-unknown "22.1")
 
 (defface cvs-handled
   '((((class color) (background dark))
@@ -99,7 +96,6 @@ to confuse some users sometimes."
     (t ()))
   "PCL-CVS face used to highlight handled file status."
   :group 'pcl-cvs)
-(define-obsolete-face-alias 'cvs-handled-face 'cvs-handled "22.1")
 
 (defface cvs-need-action
   '((((class color) (background dark))
@@ -109,7 +105,6 @@ to confuse some users sometimes."
     (t (:slant italic)))
   "PCL-CVS face used to highlight status of files needing action."
   :group 'pcl-cvs)
-(define-obsolete-face-alias 'cvs-need-action-face 'cvs-need-action "22.1")
 
 (defface cvs-marked
   '((((min-colors 88) (class color) (background dark))
@@ -121,13 +116,11 @@ to confuse some users sometimes."
     (t (:weight bold)))
   "PCL-CVS face used to highlight marked file indicator."
   :group 'pcl-cvs)
-(define-obsolete-face-alias 'cvs-marked-face 'cvs-marked "22.1")
 
 (defface cvs-msg
   '((t :slant italic))
   "PCL-CVS face used to highlight CVS messages."
   :group 'pcl-cvs)
-(define-obsolete-face-alias 'cvs-msg-face 'cvs-msg "22.1")
 
 (defvar cvs-fi-up-to-date-face 'cvs-handled)
 (defvar cvs-fi-unknown-face 'cvs-unknown)

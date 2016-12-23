@@ -39,7 +39,7 @@
 ;;
 ;; To turn Font Lock mode on automatically, add this to your init file:
 ;;
-;;  (add-hook 'emacs-lisp-mode-hook 'turn-on-font-lock)
+;;  (add-hook 'emacs-lisp-mode-hook #'turn-on-font-lock)
 ;;
 ;; Or if you want to turn Font Lock mode on in many modes:
 ;;
@@ -582,11 +582,11 @@ When called with no args it should leave point at the beginning of any
 enclosing textual block and mark at the end.
 This is normally set via `font-lock-defaults'.")
 
-(defvar font-lock-fontify-buffer-function 'font-lock-default-fontify-buffer
+(defvar font-lock-fontify-buffer-function #'font-lock-default-fontify-buffer
   "Function to use for fontifying the buffer.
 This is normally set via `font-lock-defaults'.")
 
-(defvar font-lock-unfontify-buffer-function 'font-lock-default-unfontify-buffer
+(defvar font-lock-unfontify-buffer-function #'font-lock-default-unfontify-buffer
   "Function to use for unfontifying the buffer.
 This is used when turning off Font Lock mode.
 This is normally set via `font-lock-defaults'.")
@@ -600,7 +600,7 @@ If it fontifies a larger region, it should ideally return a list of the form
 \(jit-lock-bounds BEG . END) indicating the bounds of the region actually
 fontified.")
 
-(defvar font-lock-unfontify-region-function 'font-lock-default-unfontify-region
+(defvar font-lock-unfontify-region-function #'font-lock-default-unfontify-region
   "Function to use for unfontifying a region.
 It should take two args, the beginning and end of the region.
 This is normally set via `font-lock-defaults'.")
@@ -667,12 +667,12 @@ be enabled."
 (defun font-lock-mode-internal (arg)
   ;; Turn on Font Lock mode.
   (when arg
-    (add-hook 'after-change-functions 'font-lock-after-change-function t t)
+    (add-hook 'after-change-functions #'font-lock-after-change-function t t)
     (font-lock-set-defaults)
     (font-lock-turn-on-thing-lock))
   ;; Turn off Font Lock mode.
   (unless font-lock-mode
-    (remove-hook 'after-change-functions 'font-lock-after-change-function t)
+    (remove-hook 'after-change-functions #'font-lock-after-change-function t)
     (font-lock-unfontify-buffer)
     (font-lock-turn-off-thing-lock)))
 
@@ -934,17 +934,17 @@ The value of this variable is used when Font Lock mode is turned on."
     (`jit-lock-mode
      ;; Prepare for jit-lock
      (remove-hook 'after-change-functions
-                  'font-lock-after-change-function t)
+                  #'font-lock-after-change-function t)
      (set (make-local-variable 'font-lock-flush-function)
-          'jit-lock-refontify)
+          #'jit-lock-refontify)
      (set (make-local-variable 'font-lock-ensure-function)
-          'jit-lock-fontify-now)
+          #'jit-lock-fontify-now)
      ;; Prevent font-lock-fontify-buffer from fontifying eagerly the whole
      ;; buffer.  This is important for things like CWarn mode which
      ;; adds/removes a few keywords and does a refontify (which takes ages on
      ;; large files).
      (set (make-local-variable 'font-lock-fontify-buffer-function)
-          'jit-lock-refontify)
+          #'jit-lock-refontify)
      ;; Don't fontify eagerly (and don't abort if the buffer is large).
      (set (make-local-variable 'font-lock-fontified) t)
      ;; Use jit-lock.
@@ -952,7 +952,7 @@ The value of this variable is used when Font Lock mode is turned on."
                         (not font-lock-keywords-only))
      ;; Tell jit-lock how we extend the region to refontify.
      (add-hook 'jit-lock-after-change-extend-region-functions
-               'font-lock-extend-jit-lock-region-after-change
+               #'font-lock-extend-jit-lock-region-after-change
                nil t))))
 
 (defun font-lock-turn-off-thing-lock ()
@@ -1593,6 +1593,7 @@ START should be at the beginning of a line."
   "Put proper face on each string and comment between START and END.
 START should be at the beginning of a line."
   (syntax-propertize end)  ; Apply any needed syntax-table properties.
+  (with-syntax-table (or syntax-ppss-table (syntax-table))
   (let ((comment-end-regexp
 	 (or font-lock-comment-end-skip
 	     (regexp-quote
@@ -1627,7 +1628,7 @@ START should be at the beginning of a line."
 				     font-lock-comment-delimiter-face))))
 	  (< (point) end))
       (setq state (parse-partial-sexp (point) end nil nil state
-				      'syntax-table)))))
+				      'syntax-table))))))
 
 ;;; End of Syntactic fontification functions.
 
@@ -1787,7 +1788,7 @@ If SYNTACTIC-KEYWORDS is non-nil, it means these keywords are used for
 			(mapcar #'font-lock-compile-keyword keywords))))
     (if (and (not syntactic-keywords)
 	     (let ((beg-function syntax-begin-function))
-	       (or (eq beg-function 'beginning-of-defun)
+	       (or (eq beg-function #'beginning-of-defun)
                    (if (symbolp beg-function)
                        (get beg-function 'font-lock-syntax-paren-check))))
 	     (not beginning-of-defun-function))
@@ -1908,7 +1909,7 @@ Sets various variables using `font-lock-defaults' and
 	  (let ((syntax (cdr selem)))
 	    (dolist (char (if (numberp (car selem))
 			      (list (car selem))
-			    (mapcar 'identity (car selem))))
+			    (mapcar #'identity (car selem))))
 	      (modify-syntax-entry char syntax font-lock-syntax-table)))))
       ;; (nth 4 defaults) used to hold `font-lock-beginning-of-syntax-function',
       ;; but that was removed in 25.1, so if it's a cons cell, we assume that
@@ -2171,7 +2172,7 @@ Sets various variables using `font-lock-defaults' and
 ;;	     ;; The default level is usually, but not necessarily, level 1.
 ;;	     (setq level (- (length keywords)
 ;;			    (length (member (eval (car keywords))
-;;					    (mapcar 'eval (cdr keywords))))))))
+;;					    (mapcar #'eval (cdr keywords))))))))
 ;;      (setq font-lock-fontify-level (list level (> level 1)
 ;;					  (< level (1- (length keywords))))))))
 ;;

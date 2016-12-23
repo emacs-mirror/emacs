@@ -41,6 +41,11 @@ You can alternatively request numbered backups; then each new backup
 file gets a new name.  You can delete old numbered backups when you
 don't want them any more, or Emacs can delete them automatically.
 
+  For performance, the operating system may not write the backup
+file's contents to secondary storage immediately, or may alias the
+backup data with the original until one or the other is later
+modified.  @xref{Files and Storage}.
+
 @menu
 * Making Backups::     How Emacs makes backup files, and when.
 * Rename or Copy::     Two alternatives: renaming the old file or copying it.

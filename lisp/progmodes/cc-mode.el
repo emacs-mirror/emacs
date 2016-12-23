@@ -71,6 +71,19 @@
 ;;
 ;;    http://lists.sourceforge.net/mailman/listinfo/cc-mode-announce
 
+;; Externally maintained major modes which use CC-mode's engine include:
+;; - cuda-mode
+;; - csharp-mode (https://github.com/josteink/csharp-mode)
+;; - haxe-mode
+;; - d-mode
+;; - dart-mode
+;; - cc-php-js-cs.el
+;; - php-mode
+;; - yang-mode
+;; - math-mode (mathematica)
+;; - unrealscript-mode
+;; - groovy-mode
+
 ;;; Code:
 
 ;; For Emacs < 22.2.
@@ -141,7 +154,18 @@
 ;; derived-mode-ex.el>.
 
 (defun c-leave-cc-mode-mode ()
-  (setq c-buffer-is-cc-mode nil))
+  (when c-buffer-is-cc-mode
+    (save-restriction
+      (widen)
+      (c-save-buffer-state ()
+	(c-clear-char-properties (point-min) (point-max) 'category)
+	(c-clear-char-properties (point-min) (point-max) 'syntax-table)
+	(c-clear-char-properties (point-min) (point-max) 'c-is-sws)
+	(c-clear-char-properties (point-min) (point-max) 'c-in-sws)
+	(c-clear-char-properties (point-min) (point-max) 'c-type)
+	(if (c-major-mode-is 'awk-mode)
+	    (c-clear-char-properties (point-min) (point-max) 'c-awk-NL-prop))))
+    (setq c-buffer-is-cc-mode nil)))
 
 (defun c-init-language-vars-for (mode)
   "Initialize the language variables for one of the language modes
@@ -468,10 +492,15 @@ preferably use the `c-mode-menu' language constant directly."
 (defvar c-just-done-before-change nil)
 (make-variable-buffer-local 'c-just-done-before-change)
 ;; This variable is set to t by `c-before-change' and to nil by
-;; `c-after-change'.  It is used to detect a spurious invocation of
-;; `before-change-functions' directly following on from a correct one.  This
-;; happens in some Emacsen, for example when `basic-save-buffer' does (insert
-;; ?\n) when `require-final-newline' is non-nil.
+;; `c-after-change'.  It is used for two purposes: (i) to detect a spurious
+;; invocation of `before-change-functions' directly following on from a
+;; correct one.  This happens in some Emacsen, for example when
+;; `basic-save-buffer' does (insert ?\n) when `require-final-newline' is
+;; non-nil; (ii) to detect when Emacs fails to invoke
+;; `before-change-functions'.  This can happen when reverting a buffer - see
+;; bug #24094.  It seems these failures happen only in GNU Emacs; XEmacs
+;; seems to maintain the strict alternation of calls to
+;; `before-change-functions' and `after-change-functions'.
 
 (defun c-basic-common-init (mode default-style)
   "Do the necessary initialization for the syntax handling routines
@@ -528,6 +557,8 @@ that requires a literal mode spec at compile time."
 
   ;; Initialize the cache of brace pairs, and opening braces/brackets/parens.
   (c-state-cache-init)
+  ;; Initialize the "brace stack" cache.
+  (c-init-bs-cache)
 
   (when (or c-recognize-<>-arglists
 	    (c-major-mode-is 'awk-mode)
@@ -641,6 +672,14 @@ that requires a literal mode spec at compile time."
 (make-variable-buffer-local 'c-new-BEG)
 (defvar c-new-END 0)
 (make-variable-buffer-local 'c-new-END)
+;; The following two variables record the values of `c-new-BEG' and
+;; `c-new-END' just after `c-new-END' has been adjusted for the length of text
+;; inserted or removed.  They may be read by any after-change function (but
+;; should not be altered by one).
+(defvar c-old-BEG 0)
+(make-variable-buffer-local 'c-old-BEG)
+(defvar c-old-END 0)
+(make-variable-buffer-local 'c-old-END)
 
 (defun c-common-init (&optional mode)
   "Common initialization for all CC Mode modes.
@@ -674,9 +713,8 @@ compatible with old code; callers should always specify it."
 		(funcall fn (point-min) (point-max)))
 	      c-get-state-before-change-functions)
 	(mapc (lambda (fn)
-		(if (not (eq fn 'c-restore-<>-properties))
-		    (funcall fn (point-min) (point-max)
-			     (- (point-max) (point-min)))))
+		(funcall fn (point-min) (point-max)
+			 (- (point-max) (point-min))))
 	      c-before-font-lock-functions))))
 
   (set (make-local-variable 'outline-regexp) "[^#\n\^M]")
@@ -842,14 +880,6 @@ Note that the style variables are always made local to the buffer."
 
 ;;; Change hooks, linking with Font Lock and electric-indent-mode.
 
-;; Buffer local variables recording Beginning/End-of-Macro position before a
-;; change, when a macro straddles, respectively, the BEG or END (or both) of
-;; the change region.  Otherwise these have the values BEG/END.
-(defvar c-old-BOM 0)
-(make-variable-buffer-local 'c-old-BOM)
-(defvar c-old-EOM 0)
-(make-variable-buffer-local 'c-old-EOM)
-
 (defun c-called-from-text-property-change-p ()
   ;; Is the primitive which invoked `before-change-functions' or
   ;; `after-change-functions' one which merely changes text properties?  This
@@ -862,9 +892,42 @@ Note that the style variables are always made local to the buffer."
   (memq (cadr (backtrace-frame 3))
 	'(put-text-property remove-list-of-text-properties)))
 
+(defun c-depropertize-CPP (beg end)
+  ;; Remove the punctuation syntax-table text property from the CPP parts of
+  ;; (c-new-BEG c-new-END).
+  ;;
+  ;; This function is in the C/C++/ObjC values of
+  ;; `c-get-state-before-change-functions' and is called exclusively as a
+  ;; before change function.
+  (c-save-buffer-state (m-beg ss-found)
+    (goto-char c-new-BEG)
+    (while (and (< (point) beg)
+		(search-forward-regexp c-anchored-cpp-prefix beg 'bound))
+      (goto-char (match-beginning 1))
+      (setq m-beg (point))
+      (c-end-of-macro)
+      (c-clear-char-property-with-value m-beg (point) 'syntax-table '(1)))
+
+    (while (and (< (point) end)
+		(setq ss-found
+		      (search-forward-regexp c-anchored-cpp-prefix end 'bound)))
+      (goto-char (match-beginning 1))
+      (setq m-beg (point))
+      (c-end-of-macro))
+    (if (and ss-found (> (point) end))
+	(c-clear-char-property-with-value m-beg (point) 'syntax-table '(1)))
+
+    (while (and (< (point) c-new-END)
+		(search-forward-regexp c-anchored-cpp-prefix c-new-END 'bound))
+      (goto-char (match-beginning 1))
+      (setq m-beg (point))
+      (c-end-of-macro)
+      (c-clear-char-property-with-value
+       m-beg (point) 'syntax-table '(1)))))
+
 (defun c-extend-region-for-CPP (beg end)
-  ;; Set c-old-BOM or c-old-EOM respectively to BEG, END, each extended to the
-  ;; beginning/end of any preprocessor construct they may be in.
+  ;; Adjust `c-new-BEG', `c-new-END' respectively to the beginning and end of
+  ;; any preprocessor construct they may be in.
   ;;
   ;; Point is undefined both before and after this function call; the buffer
   ;; has already been widened, and match-data saved.  The return value is
@@ -873,45 +936,56 @@ Note that the style variables are always made local to the buffer."
   ;; This function is in the C/C++/ObjC values of
   ;; `c-get-state-before-change-functions' and is called exclusively as a
   ;; before change function.
-  (goto-char beg)
+  (goto-char c-new-BEG)
   (c-beginning-of-macro)
-  (setq c-old-BOM (point))
+  (when (< (point) c-new-BEG)
+    (setq c-new-BEG (max (point) (c-determine-limit 500 c-new-BEG))))
 
-  (goto-char end)
+  (goto-char c-new-END)
   (when (c-beginning-of-macro)
     (c-end-of-macro)
     (or (eobp) (forward-char)))	 ; Over the terminating NL which may be marked
 				 ; with a c-cpp-delimiter category property
-  (setq c-old-EOM (point)))
+  (when (> (point) c-new-END)
+    (setq c-new-END (min (point) (c-determine-+ve-limit 500 c-new-END)))))
 
-(defun c-extend-font-lock-region-for-macros (begg endd &optional old-len)
-  ;; Extend the region (BEGG ENDD) to cover all (possibly changed)
-  ;; preprocessor macros; return the cons (new-BEG . new-END).  OLD-LEN should
-  ;; be either the old length parameter when called from an
-  ;; after-change-function, or nil otherwise.  This defun uses the variables
-  ;; c-old-BOM, c-new-BOM.
+(defun c-depropertize-new-text (beg end old-len)
+  ;; Remove from the new text in (BEG END) any and all text properties which
+  ;; might interfere with CC Mode's proper working.
+  ;;
+  ;; This function is called exclusively as an after-change function.  It
+  ;; appears in the value (for all languages) of
+  ;; `c-before-font-lock-functions'.  The value of point is undefined both on
+  ;; entry and exit, and the return value has no significance.  The parameters
+  ;; BEG, END, and OLD-LEN are the standard ones supplied to all after-change
+  ;; functions.
+  (c-save-buffer-state ()
+    (when (> end beg)
+      (c-clear-char-properties beg end 'syntax-table)
+      (c-clear-char-properties beg end 'category)
+      (c-clear-char-properties beg end 'c-is-sws)
+      (c-clear-char-properties beg end 'c-in-sws)
+      (c-clear-char-properties beg end 'c-type)
+      (c-clear-char-properties beg end 'c-awk-NL-prop))))
+
+(defun c-extend-font-lock-region-for-macros (begg endd old-len)
+  ;; Extend the region (c-new-BEG c-new-END) to cover all (possibly changed)
+  ;; preprocessor macros; The return value has no significance.
   ;;
   ;; Point is undefined on both entry and exit to this function.  The buffer
   ;; will have been widened on entry.
-  (let (limits new-beg new-end)
-    (goto-char c-old-BOM)	  ; already set to old start of macro or begg.
-    (setq new-beg
-	  (min begg
-	       (if (setq limits (c-state-literal-at (point)))
-		   (cdr limits)	    ; go forward out of any string or comment.
-		 (point))))
-
-    (goto-char endd)
-    (if (setq limits (c-state-literal-at (point)))
-	(goto-char (car limits)))  ; go backward out of any string or comment.
-    (if (c-beginning-of-macro)
-	(c-end-of-macro))
-    (setq new-end (max endd
-		       (if old-len
-			   (+ (- c-old-EOM old-len) (- endd begg))
-			 c-old-EOM)
-		       (point)))
-    (cons new-beg new-end)))
+  ;;
+  ;; c-new-BEG has already been extended in `c-extend-region-for-CPP' so we
+  ;; don't need to repeat the exercise here.
+  ;;
+  ;; This function is in the C/C++/ObjC value of `c-before-font-lock-functions'.
+  (goto-char endd)
+  (when (c-beginning-of-macro)
+    (c-end-of-macro)
+    ;; Determine the region, (c-new-BEG c-new-END), which will get font
+    ;; locked.  This restricts the region should there be long macros.
+    (setq c-new-END (min (max c-new-END (point))
+			 (c-determine-+ve-limit 500 c-new-END)))))
 
 (defun c-neutralize-CPP-line (beg end)
   ;; BEG and END bound a region, typically a preprocessor line.  Put a
@@ -940,19 +1014,14 @@ Note that the style variables are always made local to the buffer."
 	     (t nil)))))))
 
 (defun c-neutralize-syntax-in-and-mark-CPP (begg endd old-len)
-  ;; (i) Extend the font lock region to cover all changed preprocessor
-  ;; regions; it does this by setting the variables `c-new-BEG' and
-  ;; `c-new-END' to the new boundaries.
+  ;; (i) "Neutralize" every preprocessor line wholly or partially in the
+  ;; changed region.  "Restore" lines which were CPP lines before the change
+  ;; and are no longer so.
   ;;
-  ;; (ii) "Neutralize" every preprocessor line wholly or partially in the
-  ;; extended changed region.  "Restore" lines which were CPP lines before the
-  ;; change and are no longer so; these can be located from the Buffer local
-  ;; variables `c-old-BOM' and `c-old-EOM'.
-  ;;
-  ;; (iii) Mark every CPP construct by placing a `category' property value
+  ;; (ii) Mark each CPP construct by placing a `category' property value
   ;; `c-cpp-delimiter' at its start and end.  The marked characters are the
   ;; opening # and usually the terminating EOL, but sometimes the character
-  ;; before a comment/string delimiter.
+  ;; before a comment delimiter.
   ;;
   ;; That is, set syntax-table properties on characters that would otherwise
   ;; interact syntactically with those outside the CPP line(s).
@@ -969,16 +1038,9 @@ Note that the style variables are always made local to the buffer."
   ;; Note: SPEED _MATTERS_ IN THIS FUNCTION!!!
   ;;
   ;; This function might make hidden buffer changes.
-  (c-save-buffer-state (new-bounds)
-    ;; First determine the region, (c-new-BEG c-new-END), which will get font
-    ;; locked.  It might need "neutralizing".  This region may not start
-    ;; inside a string, comment, or macro.
-    (setq new-bounds (c-extend-font-lock-region-for-macros
-		      c-new-BEG c-new-END old-len))
-    (setq c-new-BEG (max (car new-bounds) (c-determine-limit 500 begg))
-	  c-new-END (min (cdr new-bounds) (c-determine-+ve-limit 500 endd)))
-    ;; Clear all old relevant properties.
-    (c-clear-char-property-with-value c-new-BEG c-new-END 'syntax-table '(1))
+  (c-save-buffer-state (limits)
+    ;; Clear 'syntax-table properties "punctuation":
+    ;; (c-clear-char-property-with-value c-new-BEG c-new-END 'syntax-table '(1))
 
     ;; CPP "comment" markers:
     (if (eval-when-compile (memq 'category-properties c-emacs-features));Emacs.
@@ -988,6 +1050,8 @@ Note that the style variables are always made local to the buffer."
 
     ;; Add needed properties to each CPP construct in the region.
     (goto-char c-new-BEG)
+    (if (setq limits (c-literal-limits)) ; Go past any literal.
+	(goto-char (cdr limits)))
     (skip-chars-backward " \t")
     (let ((pps-position (point))  pps-state mbeg)
       (while (and (< (point) c-new-END)
@@ -1007,7 +1071,7 @@ Note that the style variables are always made local to the buffer."
 		      (nth 4 pps-state)))) ; in a comment?
 	  (goto-char (match-beginning 1))
 	  (setq mbeg (point))
-	  (if (> (c-syntactic-end-of-macro) mbeg)
+	  (if (> (c-no-comment-end-of-macro) mbeg)
 	      (progn
 		(c-neutralize-CPP-line mbeg (point)) ; "punctuation" properties
 		(if (eval-when-compile
@@ -1015,6 +1079,102 @@ Note that the style variables are always made local to the buffer."
 		    (c-set-cpp-delimiters mbeg (point)))) ; "comment" markers
 	    (forward-line))	      ; no infinite loop with, e.g., "#//"
 	  )))))
+
+(defun c-before-after-change-digit-quote (beg end &optional old-len)
+  ;; This function either removes or applies the punctuation value ('(1)) of
+  ;; the `syntax-table' text property on single quote marks which are
+  ;; separator characters in long integer literals, e.g. "4'294'967'295".  It
+  ;; applies to both decimal/octal and hex literals.  (FIXME (2016-06-10): it
+  ;; should also apply to binary literals.)
+  ;;
+  ;; In both uses of the function, the `syntax-table' properties are
+  ;; removed/applied only on quote marks which appear to be digit separators.
+  ;;
+  ;; Point is undefined on both entry and exit to this function, and the
+  ;; return value has no significance.  The function is called solely as a
+  ;; before-change function (see `c-get-state-before-change-functions') and as
+  ;; an after change function (see `c-before-font-lock-functions', with the
+  ;; parameters BEG, END, and (optionally) OLD-LEN being given the standard
+  ;; values for before/after-change functions.
+  (c-save-buffer-state ((num-begin c-new-BEG) digit-re try-end)
+    (goto-char c-new-END)
+    (when (looking-at "\\(x\\)?[0-9a-fA-F']+")
+      (setq c-new-END (match-end 0)))
+    (goto-char c-new-BEG)
+    (when (looking-at "\\(x?\\)[0-9a-fA-F']")
+      (if (re-search-backward "\\(0x\\)?[0-9a-fA-F]*\\=" nil t)
+	  (setq c-new-BEG (point))))
+
+    (while
+	(re-search-forward "[0-9a-fA-F]'[0-9a-fA-F]" c-new-END t)
+      (setq try-end (1- (point)))
+      (re-search-backward "[^0-9a-fA-F']" num-begin t)
+      (setq digit-re
+	    (cond
+	     ((and (not (bobp)) (eq (char-before) ?0) (memq (char-after) '(?x ?X)))
+	      "[0-9a-fA-F]")
+	     ((and (eq (char-after (1+ (point))) ?0)
+		   (memq (char-after (+ 2 (point))) '(?b ?B)))
+	      "[01]")
+	     ((memq (char-after (1+ (point))) '(?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9))
+	      "[0-9]")
+	     (t nil)))
+      (when digit-re
+	(cond ((eq (char-after) ?x) (forward-char))
+	      ((looking-at ".?0[Bb]") (goto-char (match-end 0)))
+	      ((looking-at digit-re))
+	      (t (forward-char)))
+	(when (not (c-in-literal))
+	  (let ((num-end	     ; End of valid sequence of digits/quotes.
+		 (save-excursion
+		   (re-search-forward
+		    (concat "\\=\\(" digit-re "+'\\)*" digit-re "+") nil t)
+		   (point))))
+	    (setq try-end		; End of sequence of digits/quotes
+		  (save-excursion
+		    (re-search-forward
+		     (concat "\\=\\(" digit-re "\\|'\\)+") nil t)
+		    (point)))
+	    (while (re-search-forward
+		    (concat digit-re "\\('\\)" digit-re) num-end t)
+	      (if old-len	    ; i.e. are we in an after-change function?
+		  (c-put-char-property (match-beginning 1) 'syntax-table '(1))
+		(c-clear-char-property (match-beginning 1) 'syntax-table))
+	      (backward-char)))))
+      (goto-char try-end)
+      (setq num-begin (point)))))
+
+;; The following doesn't seem needed at the moment (2016-08-15).
+;; (defun c-before-after-change-extend-region-for-lambda-capture
+;;     (_beg _end &optional _old-len)
+;;   ;; In C++ Mode, extend the region (c-new-BEG c-new-END) to cover any lambda
+;;   ;; function capture lists we happen to be inside.  This function is expected
+;;   ;; to be called both as a before-change and after change function.
+;;   ;;
+;;   ;; Note that these things _might_ be nested, with a capture list looking
+;;   ;; like:
+;;   ;;
+;;   ;;     [ ...., &foo = [..](){...}(..), ... ]
+;;   ;;
+;;   ;; .  What a wonderful language is C++.  ;-)
+;;   (c-save-buffer-state (paren-state pos)
+;;     (goto-char c-new-BEG)
+;;     (setq paren-state (c-parse-state))
+;;     (while (setq pos (c-pull-open-brace paren-state))
+;;       (goto-char pos)
+;;       (when (c-looking-at-c++-lambda-capture-list)
+;; 	(setq c-new-BEG (min c-new-BEG pos))
+;; 	(if (c-go-list-forward)
+;; 	    (setq c-new-END (max c-new-END (point))))))
+
+;;     (goto-char c-new-END)
+;;     (setq paren-state (c-parse-state))
+;;     (while (setq pos (c-pull-open-brace paren-state))
+;;       (goto-char pos)
+;;       (when (c-looking-at-c++-lambda-capture-list)
+;; 	(setq c-new-BEG (min c-new-BEG pos))
+;; 	(if (c-go-list-forward)
+;; 	    (setq c-new-END (max c-new-END (point))))))))
 
 (defun c-before-change (beg end)
   ;; Function to be put on `before-change-functions'.  Primarily, this calls
@@ -1130,10 +1290,22 @@ Note that the style variables are always made local to the buffer."
   ;; This calls the language variable c-before-font-lock-functions, if non nil.
   ;; This typically sets `syntax-table' properties.
 
+  ;; We can sometimes get two consecutive calls to `after-change-functions'
+  ;; without an intervening call to `before-change-functions' when reverting
+  ;; the buffer (see bug #24094).  Whatever the cause, assume that the entire
+  ;; buffer has changed.
+  (when (not c-just-done-before-change)
+    (save-restriction
+      (widen)
+      (c-before-change (point-min) (point-max))
+      (setq beg (point-min)
+	    end (point-max)
+	    old-len (- end beg))))
+
   ;; (c-new-BEG c-new-END) will be the region to fontify.  It may become
   ;; larger than (beg end).
-  ;; (setq c-new-BEG beg  c-new-END end)
   (setq c-new-END (- (+ c-new-END (- end beg)) old-len))
+  (setq c-old-BEG c-new-BEG  c-old-END c-new-END)
 
   (unless (c-called-from-text-property-change-p)
     (setq c-just-done-before-change nil)
@@ -1181,28 +1353,41 @@ Note that the style variables are always made local to the buffer."
 
 (defun c-fl-decl-start (pos)
   ;; If the beginning of the line containing POS is in the middle of a "local"
-  ;; declaration (i.e. one which does not start outside of braces enclosing
-  ;; POS, such as a struct), return the beginning of that declaration.
-  ;; Otherwise return nil.  Note that declarations, in this sense, can be
-  ;; nested.
+  ;; declaration, return the beginning of that declaration.  Otherwise return
+  ;; nil.  Note that declarations, in this sense, can be nested.  (A local
+  ;; declaration is one which does not start outside of struct braces (and
+  ;; similar) enclosing POS.  Brace list braces here are not "similar".
   ;;
   ;; This function is called indirectly from font locking stuff - either from
   ;; c-after-change (to prepare for after-change font-locking) or from font
   ;; lock context (etc.) fontification.
-  (let ((lit-limits (c-literal-limits))
+  (let ((lit-start (c-literal-start))
 	(new-pos pos)
+	capture-opener
 	bod-lim bo-decl)
     (goto-char (c-point 'bol new-pos))
-    (when lit-limits			; Comment or string.
-      (goto-char (car lit-limits)))
+    (when lit-start			; Comment or string.
+      (goto-char lit-start))
     (setq bod-lim (c-determine-limit 500))
+
+    ;; In C++ Mode, first check if we are within a (possibly nested) lambda
+    ;; form capture list.
+    (when (c-major-mode-is 'c++-mode)
+      (let ((paren-state (c-parse-state))
+	    opener)
+	(save-excursion
+	  (while (setq opener (c-pull-open-brace paren-state))
+	    (goto-char opener)
+	    (if (c-looking-at-c++-lambda-capture-list)
+		(setq capture-opener (point)))))))
 
     (while
 	;; Go to a less nested declaration each time round this loop.
 	(and
-	 (eq (car (c-beginning-of-decl-1 bod-lim)) 'same)
+	 (c-syntactic-skip-backward "^;{}" bod-lim t)
 	 (> (point) bod-lim)
-	 (progn (setq bo-decl (point))
+	 (progn (c-forward-syntactic-ws)
+		(setq bo-decl (point))
 		;; Are we looking at a keyword such as "template" or
 		;; "typedef" which can decorate a type, or the type itself?
 		(when (or (looking-at c-prefix-spec-kwds-re)
@@ -1219,12 +1404,19 @@ Note that the style variables are always made local to the buffer."
 		    (and (eq (char-before) ?\<)
 			 (eq (c-get-char-property
 			      (1- (point)) 'syntax-table)
-			     c-<-as-paren-syntax)))))
+			     c-<-as-paren-syntax))
+		    (and (eq (char-before) ?{)
+			 (save-excursion
+			   (backward-char)
+			   (consp (c-looking-at-or-maybe-in-bracelist))))
+		    )))
 	 (not (bobp)))
       (backward-char))			; back over (, [, <.
+    (when (and capture-opener (< capture-opener new-pos))
+      (setq new-pos capture-opener))
     (and (/= new-pos pos) new-pos)))
 
-(defun c-change-expand-fl-region (beg end old-len)
+(defun c-change-expand-fl-region (_beg _end _old-len)
   ;; Expand the region (c-new-BEG c-new-END) to an after-change font-lock
   ;; region.  This will usually be the smallest sequence of whole lines
   ;; containing `c-new-BEG' and `c-new-END', but if `c-new-BEG' is in a
@@ -1233,10 +1425,15 @@ Note that the style variables are always made local to the buffer."
   ;;
   ;; This is called from an after-change-function, but the parameters BEG END
   ;; and OLD-LEN are not used.
-   (if font-lock-mode
-       (setq c-new-BEG
-	     (or (c-fl-decl-start c-new-BEG) (c-point 'bol c-new-BEG))
-	     c-new-END (c-point 'bonl c-new-END))))
+  (if font-lock-mode
+      (setq c-new-BEG
+	    (or (c-fl-decl-start c-new-BEG) (c-point 'bol c-new-BEG))
+	    c-new-END
+	    (save-excursion
+	      (goto-char c-new-END)
+	      (if (bolp)
+		  (point)
+		(c-point 'bonl c-new-END))))))
 
 (defun c-context-expand-fl-region (beg end)
   ;; Return a cons (NEW-BEG . NEW-END), where NEW-BEG is the beginning of a
@@ -1446,7 +1643,8 @@ This function is called from `c-common-init', once per mode initialization."
 ;;;###autoload (add-to-list 'auto-mode-alist '("\\.[ch]\\(pp\\|xx\\|\\+\\+\\)\\'" . c++-mode))
 ;;;###autoload (add-to-list 'auto-mode-alist '("\\.\\(CC?\\|HH?\\)\\'" . c++-mode))
 
-;;;###autoload (add-to-list 'auto-mode-alist '("\\.[ch]\\'" . c-mode))
+;;;###autoload (add-to-list 'auto-mode-alist '("\\.c\\'" . c-mode))
+;;;###autoload (add-to-list 'auto-mode-alist '("\\.h\\'" . c-or-c++-mode))
 
 ;; NB: The following two associate yacc and lex files to C Mode, which
 ;; is not really suitable for those formats.  Anyway, afaik there's
@@ -1476,18 +1674,50 @@ initialization, then `c-mode-hook'.
 
 Key bindings:
 \\{c-mode-map}"
+  :after-hook (progn (c-make-noise-macro-regexps)
+		     (c-make-macro-with-semi-re)
+		     (c-update-modeline))
   (c-initialize-cc-mode t)
-  (set-syntax-table c-mode-syntax-table)
-  (setq local-abbrev-table c-mode-abbrev-table
-	abbrev-mode t)
-  (use-local-map c-mode-map)
+  (setq abbrev-mode t)
   (c-init-language-vars-for 'c-mode)
-  (c-make-macro-with-semi-re) ; matches macro names whose expansion ends with ;
   (c-common-init 'c-mode)
   (easy-menu-add c-c-menu)
   (cc-imenu-init cc-imenu-c-generic-expression)
-  (c-run-mode-hooks 'c-mode-common-hook 'c-mode-hook)
-  (c-update-modeline))
+  (c-run-mode-hooks 'c-mode-common-hook))
+
+(defconst c-or-c++-mode--regexp
+  (eval-when-compile
+    (let ((id "[a-zA-Z0-9_]+") (ws "[ \t\r]+") (ws-maybe "[ \t\r]*"))
+      (concat "^" ws-maybe "\\(?:"
+                    "using"     ws "\\(?:namespace" ws "std;\\|std::\\)"
+              "\\|" "namespace" "\\(:?" ws id "\\)?" ws-maybe "{"
+              "\\|" "class"     ws id ws-maybe "[:{\n]"
+              "\\|" "template"  ws-maybe "<.*>"
+              "\\|" "#include"  ws-maybe "<\\(?:string\\|iostream\\|map\\)>"
+              "\\)")))
+  "A regexp applied to C header files to check if they are really C++.")
+
+;;;###autoload
+(defun c-or-c++-mode ()
+  "Analyse buffer and enable either C or C++ mode.
+
+Some people and projects use .h extension for C++ header files
+which is also the one used for C header files.  This makes
+matching on file name insufficient for detecting major mode that
+should be used.
+
+This function attempts to use file contents to determine whether
+the code is C or C++ and based on that chooses whether to enable
+`c-mode' or `c++-mode'."
+  (if (save-excursion
+        (save-restriction
+          (save-match-data
+            (widen)
+            (goto-char (point-min))
+            (re-search-forward c-or-c++-mode--regexp
+                               (+ (point) c-guess-region-max) t))))
+      (c++-mode)
+    (c-mode)))
 
 
 ;; Support for C++
@@ -1531,18 +1761,16 @@ initialization, then `c++-mode-hook'.
 
 Key bindings:
 \\{c++-mode-map}"
+  :after-hook (progn (c-make-noise-macro-regexps)
+		     (c-make-macro-with-semi-re)
+		     (c-update-modeline))
   (c-initialize-cc-mode t)
-  (set-syntax-table c++-mode-syntax-table)
-  (setq local-abbrev-table c++-mode-abbrev-table
-	abbrev-mode t)
-  (use-local-map c++-mode-map)
+  (setq abbrev-mode t)
   (c-init-language-vars-for 'c++-mode)
-  (c-make-macro-with-semi-re) ; matches macro names whose expansion ends with ;
   (c-common-init 'c++-mode)
   (easy-menu-add c-c++-menu)
   (cc-imenu-init cc-imenu-c++-generic-expression)
-  (c-run-mode-hooks 'c-mode-common-hook 'c++-mode-hook)
-  (c-update-modeline))
+  (c-run-mode-hooks 'c-mode-common-hook))
 
 
 ;; Support for Objective-C
@@ -1584,18 +1812,16 @@ initialization, then `objc-mode-hook'.
 
 Key bindings:
 \\{objc-mode-map}"
+  :after-hook (progn (c-make-noise-macro-regexps)
+		     (c-make-macro-with-semi-re)
+		     (c-update-modeline))
   (c-initialize-cc-mode t)
-  (set-syntax-table objc-mode-syntax-table)
-  (setq local-abbrev-table objc-mode-abbrev-table
-	abbrev-mode t)
-  (use-local-map objc-mode-map)
+  (setq abbrev-mode t)
   (c-init-language-vars-for 'objc-mode)
-  (c-make-macro-with-semi-re) ; matches macro names whose expansion ends with ;
   (c-common-init 'objc-mode)
   (easy-menu-add c-objc-menu)
   (cc-imenu-init nil 'cc-imenu-objc-function)
-  (c-run-mode-hooks 'c-mode-common-hook 'objc-mode-hook)
-  (c-update-modeline))
+  (c-run-mode-hooks 'c-mode-common-hook))
 
 
 ;; Support for Java
@@ -1645,17 +1871,14 @@ initialization, then `java-mode-hook'.
 
 Key bindings:
 \\{java-mode-map}"
+  :after-hook (c-update-modeline)
   (c-initialize-cc-mode t)
-  (set-syntax-table java-mode-syntax-table)
-  (setq local-abbrev-table java-mode-abbrev-table
-	abbrev-mode t)
-  (use-local-map java-mode-map)
+  (setq abbrev-mode t)
   (c-init-language-vars-for 'java-mode)
   (c-common-init 'java-mode)
   (easy-menu-add c-java-menu)
   (cc-imenu-init cc-imenu-java-generic-expression)
-  (c-run-mode-hooks 'c-mode-common-hook 'java-mode-hook)
-  (c-update-modeline))
+  (c-run-mode-hooks 'c-mode-common-hook))
 
 
 ;; Support for CORBA's IDL language
@@ -1694,16 +1917,13 @@ initialization, then `idl-mode-hook'.
 
 Key bindings:
 \\{idl-mode-map}"
+  :after-hook (c-update-modeline)
   (c-initialize-cc-mode t)
-  (set-syntax-table idl-mode-syntax-table)
-  (setq local-abbrev-table idl-mode-abbrev-table)
-  (use-local-map idl-mode-map)
   (c-init-language-vars-for 'idl-mode)
   (c-common-init 'idl-mode)
   (easy-menu-add c-idl-menu)
   ;;(cc-imenu-init cc-imenu-idl-generic-expression) ;TODO
-  (c-run-mode-hooks 'c-mode-common-hook 'idl-mode-hook)
-  (c-update-modeline))
+  (c-run-mode-hooks 'c-mode-common-hook))
 
 
 ;; Support for Pike
@@ -1746,17 +1966,14 @@ initialization, then `pike-mode-hook'.
 
 Key bindings:
 \\{pike-mode-map}"
+  :after-hook (c-update-modeline)
   (c-initialize-cc-mode t)
-  (set-syntax-table pike-mode-syntax-table)
-  (setq local-abbrev-table pike-mode-abbrev-table
-	abbrev-mode t)
-  (use-local-map pike-mode-map)
+  (setq	abbrev-mode t)
   (c-init-language-vars-for 'pike-mode)
   (c-common-init 'pike-mode)
   (easy-menu-add c-pike-menu)
   ;;(cc-imenu-init cc-imenu-pike-generic-expression) ;TODO
-  (c-run-mode-hooks 'c-mode-common-hook 'pike-mode-hook)
-  (c-update-modeline))
+  (c-run-mode-hooks 'c-mode-common-hook))
 
 
 ;; Support for AWK
@@ -1775,9 +1992,9 @@ Key bindings:
 (defvar awk-mode-map
   (let ((map (c-make-inherited-keymap)))
     ;; Add bindings which are only useful for awk.
-    (define-key map "#" 'self-insert-command)
-    (define-key map "/" 'self-insert-command)
-    (define-key map "*" 'self-insert-command)
+    (define-key map "#" 'self-insert-command);Overrides electric parent binding.
+    (define-key map "/" 'self-insert-command);Overrides electric parent binding.
+    (define-key map "*" 'self-insert-command);Overrides electric parent binding.
     (define-key map "\C-c\C-n" 'undefined) ; #if doesn't exist in awk.
     (define-key map "\C-c\C-p" 'undefined)
     (define-key map "\C-c\C-u" 'undefined)
@@ -1810,22 +2027,18 @@ initialization, then `awk-mode-hook'.
 
 Key bindings:
 \\{awk-mode-map}"
+  :after-hook (c-update-modeline)
   ;; We need the next line to stop the macro defining
   ;; `awk-mode-syntax-table'.  This would mask the real table which is
   ;; declared in cc-awk.el and hasn't yet been loaded.
   :syntax-table nil
   (require 'cc-awk)			; Added 2003/6/10.
   (c-initialize-cc-mode t)
-  (set-syntax-table awk-mode-syntax-table)
-  (setq local-abbrev-table awk-mode-abbrev-table
-	abbrev-mode t)
-  (use-local-map awk-mode-map)
+  (setq	abbrev-mode t)
   (c-init-language-vars-for 'awk-mode)
   (c-common-init 'awk-mode)
   (c-awk-unstick-NL-prop)
-
-  (c-run-mode-hooks 'c-mode-common-hook 'awk-mode-hook)
-  (c-update-modeline))
+  (c-run-mode-hooks 'c-mode-common-hook))
 
 
 ;; bug reporting

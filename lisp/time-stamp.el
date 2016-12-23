@@ -43,10 +43,7 @@
 
 (defcustom time-stamp-format "%:y-%02m-%02d %02H:%02M:%02S %u"
   "Format of the string inserted by \\[time-stamp].
-The value may be a string or a list.  Lists are supported only for
-backward compatibility; see variable `time-stamp-old-format-warn'.
-
-A string is used verbatim except for character sequences beginning
+This is a string, used verbatim except for character sequences beginning
 with %, as follows.  The values of non-numeric formatted items depend
 on the locale setting recorded in `system-time-locale' and
 `locale-coding-system'.  The examples here are for the default
@@ -106,17 +103,6 @@ otherwise would have been updated."
   :type 'boolean
   :group 'time-stamp
   :version "19.29")
-
-(defcustom time-stamp-old-format-warn 'ask
-  "Action if `time-stamp-format' is an old-style list.
-If `error', the format is not used.  If `ask', the user is queried about
-using the time-stamp-format.  If `warn', a warning is displayed.
-If nil, no notification is given."
-  :type '(choice (const :tag "Don't use the format" error)
-                 (const ask)
-                 (const warn)
-		 (const :tag "No notification" nil))
-  :group 'time-stamp)
 
 (defcustom time-stamp-time-zone nil
   "The time zone to be used by \\[time-stamp].
@@ -420,26 +406,14 @@ With ARG, turn time stamping on if and only if arg is positive."
   "Generate the new string to be inserted by \\[time-stamp].
 Optionally use format TS-FORMAT instead of `time-stamp-format' to
 format the string."
-  (or ts-format
-      (setq ts-format time-stamp-format))
-  (if (stringp ts-format)
-      (time-stamp--format (time-stamp-string-preprocess ts-format) nil)
-    ;; handle version 1 compatibility
-    (cond ((or (eq time-stamp-old-format-warn 'error)
-	       (and (eq time-stamp-old-format-warn 'ask)
-		    (not (y-or-n-p "Use non-string time-stamp-format? "))))
-	   (message "Warning: no time-stamp: time-stamp-format not a string")
-	   (sit-for 1)
-	   nil)
-	  (t
-	   (cond ((eq time-stamp-old-format-warn 'warn)
-		  (message "Obsolescent time-stamp-format type; should be string")
-		  (sit-for 1)))
-	   (time-stamp-fconcat ts-format " ")))))
+  (if (stringp (or ts-format (setq ts-format time-stamp-format)))
+      (time-stamp--format (time-stamp-string-preprocess ts-format) nil)))
+
 
 (defconst time-stamp-no-file "(no file)"
   "String to use when the buffer is not associated with a file.")
 
+;;; FIXME This comment was written in 1996!
 ;;; time-stamp is transitioning to using the new, expanded capabilities
 ;;; of format-time-string.  During the process, this function implements
 ;;; intermediate, compatible formats and complains about old, soon to
@@ -675,28 +649,6 @@ otherwise the value of the function `system-name'."
 	   (stringp mail-host-address)
 	   mail-host-address)
       (system-name)))
-
-;;; the rest of this file is for version 1 compatibility
-
-(defun time-stamp-fconcat (list sep)
-  "Similar to (mapconcat \\='funcall LIST SEP) but LIST allows literals.
-If an element of LIST is a symbol, it is funcalled to get the string to use;
-the separator SEP is used between two strings obtained by funcalling a
-symbol.  Otherwise the element itself is inserted; no separator is used
-around literals."
-  (let ((return-string "")
-	(insert-sep-p nil))
-    (while list
-      (cond ((symbolp (car list))
-	     (if insert-sep-p
-		 (setq return-string (concat return-string sep)))
-	     (setq return-string (concat return-string (funcall (car list))))
-	     (setq insert-sep-p t))
-	    (t
-	     (setq return-string (concat return-string (car list)))
-	     (setq insert-sep-p nil)))
-      (setq list (cdr list)))
-    return-string))
 
 (provide 'time-stamp)
 

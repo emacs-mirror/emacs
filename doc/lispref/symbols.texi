@@ -157,7 +157,7 @@ that cell can hold only one Lisp object at any given time.
 both as a variable (e.g., with @code{defvar}) and as a function or
 macro (e.g., with @code{defun}).  Such definitions do not conflict.
 
-  These definition also act as guides for programming tools.  For
+  These definitions also act as guides for programming tools.  For
 example, the @kbd{C-h f} and @kbd{C-h v} commands create help buffers
 containing links to the relevant variable, function, or macro
 definitions.  @xref{Name Help,,, emacs, The GNU Emacs Manual}.

@@ -242,8 +242,8 @@ as unread by Gnus.")
 	      (file-truename (file-name-as-directory
 			      (expand-file-name nnmh-toplev))))
 	     dir)
-	    (mm-string-to-multibyte ;Why?  Isn't it multibyte already?
-	     (mm-encode-coding-string
+	    (string-to-multibyte ;Why?  Isn't it multibyte already?
+	     (encode-coding-string
 	      (nnheader-replace-chars-in-string
 	       (substring dir (match-end 0))
 	       ?/ ?.)

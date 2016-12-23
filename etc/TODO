@@ -38,7 +38,7 @@ stay within exec_byte_code.
 ** Add new 'switch' byte-code
 This byte-code would take one argument from the stack (the object to test)
 and one argument from the constant-pool (a switch table, implemented as an
-eq-hashtable) and would jump to the "label" contained in the hashtable.
+'eq' hash table) and would jump to the "label" contained in the hash table.
 
 Then add a 'case' special-form that can be compiled to this byte-code.
 This would behave just like cl-case, but instead of expanding to cond+eq it
@@ -700,7 +700,7 @@ resize the frame.
 **** Support 'proced' (implement 'process-attributes')
 
 Unfortunately, a user-level process like Emacs does not have the
-privileges to get information about other processes under OS X.
+privileges to get information about other processes under macOS.
 
 There are other ways to do this:
 
@@ -711,7 +711,7 @@ There are other ways to do this:
  3) Ask the user to self-sign Emacs, if this feature is of interest.
 
 Anders Lindgren <andlind@gmail.com> has implemented
-'process-attributes' for OS X, which currently only work when
+'process-attributes' for macOS, which currently only work when
 running Emacs as root.
 
 See this article by Bozhidar Batsov for an overview of Proced:
@@ -724,11 +724,11 @@ even though Emacs allows a user to customize such features.
 
 *** New features
 
-This section contains features unique to Nextstep and/or OS X.
+This section contains features unique to Nextstep and/or macOS.
 
 **** PressAndHold for writing accented character
 
-On OS X, many application support the press and hold pattern to
+On macOS, many application support the press and hold pattern to
 invoke a menu of accented characters.  (See example at
 https://support.apple.com/en-us/HT201586 .)
 
@@ -741,7 +741,7 @@ implemented in Emacs for a free system.
 
 **** Floating scroll bars
 
-In modern OS X applications, the scroll bar often floats over the
+In modern macOS applications, the scroll bar often floats over the
 content, and is invisible unless actually used.  This makes the user
 interface less cluttered and more area could be used to contain text.
 
@@ -804,7 +804,7 @@ This section contains issues where there is an ongoing debate.
 **** Key bindings of CMD and ALT
 
 Currently in the "ns" port, ALT is bound to Meta and CMD is bound to
-Super -- allowing the user to use typical OS X commands like CMD-A to
+Super -- allowing the user to use typical macOS commands like CMD-A to
 mark everything.
 
 Unfortunately, when using an international keyboard, you can't type
@@ -852,9 +852,10 @@ Emacs can be build in a number of different ways.  For each feature,
 consider if is really is "NS" specific, or if it should be applied to
 all build versions.
 
-- With the "NS" interface.  This is the normal way to build Emacs on OS X.
+- With the "NS" interface.  This is the normal way to build Emacs on
+  macOS.
 
-- With the "X11" interface.  On OS X, this is mainly of interest to
+- With the "X11" interface.  On macOS, this is mainly of interest to
   developers of Emacs to get a "reference" interface implementations.
   However, it might be of interest for people working remotely, as X11
   applications can be used over a network connection.
@@ -863,12 +864,12 @@ all build versions.
 
 *** Bugs
 
-**** Incorrect translation of Super modifier with Ctrl or Meta on OS X
+**** Incorrect translation of Super modifier with Ctrl or Meta on macOS
 
 When pressing 'M-s-a', Emacs replies "M-s-å is undefined".  What
 happened is a mix of Emacs view that Meta and Super has been pressed,
-and OS X view that ALT-a should yield "å" (U+00E5 LATIN SMALL LETTER A
-WITH RING ABOVE).
+and macOS view that ALT-a should yield "å" (U+00E5 LATIN SMALL LETTER
+A WITH RING ABOVE).
 
 The bug reports suggest two different patches; unfortunately, neither
 works properly.  For example:

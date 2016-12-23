@@ -1425,7 +1425,7 @@ local mailbox.
 @end table
 
 @noindent
-@var{Proto} can be one of:
+@var{proto} can be one of:
 
 @table @code
 @item mbox
@@ -1434,12 +1434,12 @@ Usual Unix mailbox format.  In this case, neither @var{user} nor
 of the mailbox file, e.g., @code{mbox://var/spool/mail/smith}.
 
 @item mh
-A local mailbox in the @acronym{MH} format.  @var{User} and
-@var{pass} are not used.  @var{Host-or-file-name} denotes the name of
+A local mailbox in the @acronym{MH} format.  @var{user} and
+@var{pass} are not used.  @var{host-or-file-name} denotes the name of
 @acronym{MH} folder, e.g., @code{mh://Mail/inbox}.
 
 @item maildir
-A local mailbox in the @acronym{maildir} format.  @var{User} and
+A local mailbox in the @acronym{maildir} format.  @var{user} and
 @var{pass} are not used, and @var{host-or-file-name} denotes the name of
 @code{maildir} mailbox, e.g., @code{maildir://mail/inbox}.
 
@@ -1448,14 +1448,14 @@ Any local mailbox format.  Its actual format is detected automatically
 by @code{movemail}.
 
 @item pop
-A remote mailbox to be accessed via POP3 protocol.  @var{User}
+A remote mailbox to be accessed via POP3 protocol.  @var{user}
 specifies the remote user name to use, @var{pass} may be used to
 specify the user password, @var{host-or-file-name} is the name or IP
 address of the remote mail server to connect to; e.g.,
 @code{pop://smith:guessme@@remote.server.net}.
 
 @item imap
-A remote mailbox to be accessed via IMAP4 protocol.  @var{User}
+A remote mailbox to be accessed via IMAP4 protocol.  @var{user}
 specifies the remote user name to use, @var{pass} may be used to
 specify the user password, @var{host-or-file-name} is the name or IP
 address of the remote mail server to connect to;

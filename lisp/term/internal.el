@@ -606,4 +606,6 @@ list.  You can (and should) also run it if and when the value of
     (run-hooks 'dos-codepage-setup-hook)
     ))
 
+(provide 'term/internal)
+
 ;;; internal.el ends here

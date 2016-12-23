@@ -156,7 +156,7 @@ TAGS tags:	lib-src FRC
 	cd lib-src
 	if exist etags.exe mv -f etags.exe ../bin
 	cd ..
-	- find $(CURDIR)/lisp -iname "*.el" -a -! -( -iname "*loaddefs.el" -o -iname "ldefs-boot.el" -) | ./bin/etags -o lisp/TAGS -
+	- find $(CURDIR)/lisp -iname "*.el" -a -! -( -iname "*loaddefs.el" -o -iname "ldefs-boot-auto.el" -) | ./bin/etags -o lisp/TAGS -
 	cd $(CURDIR)
 	cd src
 	../bin/etags --include=../lisp/TAGS \

@@ -82,69 +82,6 @@ LIST is not modified."
 				    (cons item nil))))))))
 	 list)))
 
-(defun rng-complete-before-point (start table prompt &optional predicate hist)
-  "Complete text between START and point.
-Replaces the text between START and point with a string chosen using a
-completion table and, when needed, input read from the user with the
-minibuffer.
-Returns the new string if either a complete and unique completion was
-determined automatically or input was read from the user.  Otherwise,
-returns nil.
-TABLE is an alist, a symbol bound to a function or an obarray as with
-the function `completing-read'.
-PROMPT is the string to prompt with if user input is needed.
-PREDICATE is nil or a function as with `completing-read'.
-HIST, if non-nil, specifies a history list as with `completing-read'."
-  (let* ((orig (buffer-substring-no-properties start (point)))
-	 (completion (try-completion orig table predicate)))
-    (cond ((not completion)
-	   (if (string= orig "")
-	       (message "No completions available")
-	     (message "No completion for %s" (rng-quote-string orig)))
-	   (ding)
-	   nil)
-	  ((eq completion t) orig)
-	  ((not (string= completion orig))
-	   (delete-region start (point))
-	   (insert completion)
-	   (cond ((not (rng-completion-exact-p completion table predicate))
-		  (message "Incomplete")
-		  nil)
-		 ((eq (try-completion completion table predicate) t)
-		  completion)
-		 (t
-		  (message "Complete but not unique")
-		  nil)))
-	  (t
-	   (setq completion
-		 (let ((saved-minibuffer-setup-hook
-			(default-value 'minibuffer-setup-hook)))
-		   (add-hook 'minibuffer-setup-hook
-			     'minibuffer-completion-help
-			     t)
-		   (unwind-protect
-		       (completing-read prompt
-					table
-					predicate
-					nil
-					orig
-					hist)
-		     (setq-default minibuffer-setup-hook
-				   saved-minibuffer-setup-hook))))
-	   (delete-region start (point))
-	   (insert completion)
-	   completion))))
-
-(defun rng-completion-exact-p (string table predicate)
-  (cond ((symbolp table)
-	 (funcall table string predicate 'lambda))
-	((vectorp table)
-	 (intern-soft string table))
-	(t (assoc string table))))
-
-(defun rng-quote-string (s)
-  (concat "\"" s "\""))
-
 (defun rng-escape-string (s)
   (replace-regexp-in-string "[&\"<>]"
 			    (lambda (match)

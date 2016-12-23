@@ -521,7 +521,7 @@ ARG is optional."
 	     (setq args (nconc (delq ?- args) (list ?-))))
 	    ((setq m (assq ?- args))
 	     ;; next to the bracket's range, make the second range
-	     (setcdr args (cons m (delq m args))))))
+	     (setcdr args (cons m (delq m (cdr args)))))))
      ;; bracket in the end range
      ;;	 => "[]...-]"
      ((setq m (rassq ?\] args))

@@ -37,7 +37,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <errno.h>
 #include <inttypes.h>
 #include <limits.h>
-#include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>

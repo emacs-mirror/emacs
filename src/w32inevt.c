@@ -41,6 +41,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "termchar.h"	/* for Mouse_HLInfo, tty_display_info */
 #include "w32term.h"
 #include "w32inevt.h"
+#include "w32common.h"
 
 /* stdin, from w32console.c */
 extern HANDLE keyboard_handle;
@@ -148,10 +149,12 @@ key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev, int *isdead)
       switch (event->wVirtualKeyCode)
 	{
 	case VK_LWIN:
-	  mod_key_state &= ~LEFT_WIN_PRESSED;
+          if (!w32_kbdhook_active)
+            mod_key_state &= ~LEFT_WIN_PRESSED;
 	  break;
 	case VK_RWIN:
-	  mod_key_state &= ~RIGHT_WIN_PRESSED;
+          if (!w32_kbdhook_active)
+            mod_key_state &= ~RIGHT_WIN_PRESSED;
 	  break;
 	case VK_APPS:
 	  mod_key_state &= ~APPS_PRESSED;
@@ -185,7 +188,8 @@ key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev, int *isdead)
 	      keybd_event (faked_key, (BYTE) MapVirtualKey (faked_key, 0), 0, 0);
 	    }
 	}
-      mod_key_state |= LEFT_WIN_PRESSED;
+      if (!w32_kbdhook_active)
+        mod_key_state |= LEFT_WIN_PRESSED;
       if (!NILP (Vw32_lwindow_modifier))
 	return 0;
       break;
@@ -201,7 +205,8 @@ key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev, int *isdead)
 	      keybd_event (faked_key, (BYTE) MapVirtualKey (faked_key, 0), 0, 0);
 	    }
 	}
-      mod_key_state |= RIGHT_WIN_PRESSED;
+      if (!w32_kbdhook_active)
+        mod_key_state |= RIGHT_WIN_PRESSED;
       if (!NILP (Vw32_rwindow_modifier))
 	return 0;
       break;
@@ -267,6 +272,13 @@ key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev, int *isdead)
 
   /* Recognize state of Windows and Apps keys.  */
   event->dwControlKeyState |= mod_key_state;
+  if (w32_kbdhook_active)
+    {
+      if (check_w32_winkey_state (VK_LWIN))
+        event->dwControlKeyState |= LEFT_WIN_PRESSED;
+      if (check_w32_winkey_state (VK_RWIN))
+        event->dwControlKeyState |= RIGHT_WIN_PRESSED;
+    }
 
   /* Distinguish numeric keypad keys from extended keys.  */
   event->wVirtualKeyCode =
@@ -608,70 +620,89 @@ maybe_generate_resize_event (void)
 int
 handle_file_notifications (struct input_event *hold_quit)
 {
-  BYTE *p = file_notifications;
-  FILE_NOTIFY_INFORMATION *fni = (PFILE_NOTIFY_INFORMATION)p;
-  const DWORD min_size
-    = offsetof (FILE_NOTIFY_INFORMATION, FileName) + sizeof(wchar_t);
-  struct input_event inev;
+  struct notifications_set *ns = NULL;
   int nevents = 0;
+  int done = 0;
 
   /* We cannot process notification before Emacs is fully initialized,
      since we need the UTF-16LE coding-system to be set up.  */
   if (!initialized)
     {
-      notification_buffer_in_use = 0;
       return nevents;
     }
 
-  enter_crit ();
-  if (notification_buffer_in_use)
+  while (!done)
     {
-      DWORD info_size = notifications_size;
-      Lisp_Object cs = Qutf_16le;
-      Lisp_Object obj = w32_get_watch_object (notifications_desc);
+      ns = NULL;
 
-      /* notifications_size could be zero when the buffer of
-	 notifications overflowed on the OS level, or when the
-	 directory being watched was itself deleted.  Do nothing in
-	 that case.  */
-      if (info_size
-	  && !NILP (obj) && CONSP (obj))
+      /* Find out if there is a record available in the linked list of
+	 notifications sets.  If so, unlink te set from the linked list.
+	 Use the critical section.  */
+      enter_crit ();
+      if (notifications_set_head->next != notifications_set_head)
 	{
-	  Lisp_Object callback = XCDR (obj);
-
-	  EVENT_INIT (inev);
-
-	  while (info_size >= min_size)
-	    {
-	      Lisp_Object utf_16_fn
-		= make_unibyte_string ((char *)fni->FileName,
-				       fni->FileNameLength);
-	      /* Note: mule-conf is preloaded, so utf-16le must
-		 already be defined at this point.  */
-	      Lisp_Object fname
-		= code_convert_string_norecord (utf_16_fn, cs, 0);
-	      Lisp_Object action = lispy_file_action (fni->Action);
-
-	      inev.kind = FILE_NOTIFY_EVENT;
-	      inev.timestamp = GetTickCount ();
-	      inev.modifiers = 0;
-	      inev.frame_or_window = callback;
-	      inev.arg = Fcons (action, fname);
-	      inev.arg = list3 (make_pointer_integer (notifications_desc),
-				action, fname);
-	      kbd_buffer_store_event_hold (&inev, hold_quit);
-	      nevents++;
-
-	      if (!fni->NextEntryOffset)
-		break;
-	      p += fni->NextEntryOffset;
-	      fni = (PFILE_NOTIFY_INFORMATION)p;
-	      info_size -= fni->NextEntryOffset;
-	    }
+	  ns = notifications_set_head->next;
+	  ns->prev->next = ns->next;
+	  ns->next->prev = ns->prev;
 	}
-      notification_buffer_in_use = 0;
+      else
+	done = 1;
+      leave_crit();
+
+      if (ns)
+	{
+	  BYTE *p = ns->notifications;
+	  FILE_NOTIFY_INFORMATION *fni = (PFILE_NOTIFY_INFORMATION)p;
+	  const DWORD min_size
+	    = offsetof (FILE_NOTIFY_INFORMATION, FileName) + sizeof(wchar_t);
+	  struct input_event inev;
+	  DWORD info_size = ns->size;
+	  Lisp_Object cs = Qutf_16le;
+	  Lisp_Object obj = w32_get_watch_object (ns->desc);
+
+	  /* notifications size could be zero when the buffer of
+	     notifications overflowed on the OS level, or when the
+	     directory being watched was itself deleted.  Do nothing in
+	     that case.  */
+	  if (info_size
+	      && !NILP (obj) && CONSP (obj))
+	    {
+	      Lisp_Object callback = XCDR (obj);
+
+	      EVENT_INIT (inev);
+
+	      while (info_size >= min_size)
+		{
+		  Lisp_Object utf_16_fn
+		    = make_unibyte_string ((char *)fni->FileName,
+					   fni->FileNameLength);
+		  /* Note: mule-conf is preloaded, so utf-16le must
+		     already be defined at this point.  */
+		  Lisp_Object fname
+		    = code_convert_string_norecord (utf_16_fn, cs, 0);
+		  Lisp_Object action = lispy_file_action (fni->Action);
+
+		  inev.kind = FILE_NOTIFY_EVENT;
+		  inev.timestamp = GetTickCount ();
+		  inev.modifiers = 0;
+		  inev.frame_or_window = callback;
+		  inev.arg = Fcons (action, fname);
+		  inev.arg = list3 (make_pointer_integer (ns->desc),
+				    action, fname);
+		  kbd_buffer_store_event_hold (&inev, hold_quit);
+		  nevents++;
+		  if (!fni->NextEntryOffset)
+		    break;
+		  p += fni->NextEntryOffset;
+		  fni = (PFILE_NOTIFY_INFORMATION)p;
+		  info_size -= fni->NextEntryOffset;
+		}
+	    }
+	  /* Free this notification set.  */
+	  free (ns->notifications);
+	  free (ns);
+	}
     }
-  leave_crit ();
   return nevents;
 }
 #else  /* !HAVE_W32NOTIFY */

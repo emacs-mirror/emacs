@@ -227,7 +227,7 @@
     table))
 
 (defvar ucs-normalize-decomposition-pair-to-primary-composite nil
-  "Hashtable of decomposed pair to primary composite.
+  "Hash table of decomposed pair to primary composite.
 Note that Hangul are excluded.")
   (setq ucs-normalize-decomposition-pair-to-primary-composite
         (ucs-normalize-make-hash-table-from-alist
@@ -263,7 +263,7 @@ Note that Hangul are excluded.")
 (defvar ucs-normalize-combining-chars-regexp nil
   "Regular expression to match sequence of combining characters.")
   (setq ucs-normalize-combining-chars-regexp
-  (eval-when-compile (concat (regexp-opt (mapcar 'char-to-string combining-chars)) "+")))
+        (eval-when-compile (concat (regexp-opt-charset combining-chars) "+")))
 
 (declare-function decomposition-translation-alist "ucs-normalize"
                   (decomposition-function))
@@ -396,20 +396,22 @@ If COMPOSITION-PREDICATE is not given, then do nothing."
 It includes Singletons, CompositionExclusions, and Non-Starter
 decomposition."
     (let (entries decomposition composition)
-      (mapc
-       (lambda (start-end)
-         (cl-do ((i (car start-end) (+ i 1))) ((> i (cdr start-end)))
-           (setq decomposition
-                 (string-to-list
-                  (with-temp-buffer
-                    (insert i)
-                    (translate-region 1 2 decomposition-translation)
-                    (buffer-string))))
-           (setq composition
-                 (ucs-normalize-block-compose-chars decomposition composition-predicate))
-           (when (not (equal composition (list i)))
-             (setq entries (cons i entries)))))
-       check-range)
+      (with-temp-buffer
+        (mapc
+         (lambda (start-end)
+           (cl-do ((i (car start-end) (+ i 1))) ((> i (cdr start-end)))
+             (setq decomposition
+                   (string-to-list
+                    (progn
+                      (erase-buffer)
+                      (insert i)
+                      (translate-region 1 2 decomposition-translation)
+                      (buffer-string))))
+             (setq composition
+                   (ucs-normalize-block-compose-chars decomposition composition-predicate))
+             (when (not (equal composition (list i)))
+               (setq entries (cons i entries)))))
+         check-range))
       ;;(remove-duplicates
        (append entries
                ucs-normalize-composition-exclusions
@@ -431,7 +433,7 @@ decomposition."
     (setq hfs-nfc-quick-check-list (quick-check-list 'ucs-normalize-hfs-nfd-table t ))
 
   (defun quick-check-list-to-regexp (quick-check-list)
-    (regexp-opt (mapcar 'char-to-string (append quick-check-list combining-chars))))
+    (regexp-opt-charset (append quick-check-list combining-chars)))
 
   (defun quick-check-decomposition-list-to-regexp (quick-check-list)
     (concat (quick-check-list-to-regexp quick-check-list) "\\|[가-힣]"))
@@ -613,18 +615,13 @@ COMPOSITION-PREDICATE will be used to compose region."
       (- (point-max) (point-min)))))
 
 ;; Pre-write conversion for `utf-8-hfs'.
-(defun ucs-normalize-hfs-nfd-pre-write-conversion (from to)
-  (let ((old-buf (current-buffer)))
-    (set-buffer (generate-new-buffer " *temp*"))
-    (if (stringp from)
-        (insert from)
-      (insert-buffer-substring old-buf from to))
-    (ucs-normalize-HFS-NFD-region (point-min) (point-max))
-    nil))
+;; _from and _to are legacy arguments (see `define-coding-system').
+(defun ucs-normalize-hfs-nfd-pre-write-conversion (_from _to)
+  (ucs-normalize-HFS-NFD-region (point-min) (point-max)))
 
 ;;; coding-system definition
 (define-coding-system 'utf-8-hfs
-  "UTF-8 based coding system for MacOS HFS file names.
+  "UTF-8 based coding system for macOS HFS file names.
 The singleton characters in HFS normalization exclusion will not
 be decomposed."
   :coding-type 'utf-8

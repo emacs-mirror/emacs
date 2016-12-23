@@ -748,7 +748,12 @@ external command."
 	     (cmd (progn
 		    (set-text-properties 0 (length args)
 					 '(invisible t) args)
-		    (format "%s -n %s" command args)))
+		    (format "%s -n %s"
+			    (pcase command
+			      ("egrep" "grep -E")
+			      ("fgrep" "grep -F")
+			      (x x))
+			    args)))
 	     compilation-scroll-output)
 	(grep cmd)))))
 
@@ -757,11 +762,11 @@ external command."
   (eshell-grep "grep" args t))
 
 (defun eshell/egrep (&rest args)
-  "Use Emacs grep facility instead of calling external egrep."
+  "Use Emacs grep facility instead of calling external grep -E."
   (eshell-grep "egrep" args t))
 
 (defun eshell/fgrep (&rest args)
-  "Use Emacs grep facility instead of calling external fgrep."
+  "Use Emacs grep facility instead of calling external grep -F."
   (eshell-grep "fgrep" args t))
 
 (defun eshell/agrep (&rest args)

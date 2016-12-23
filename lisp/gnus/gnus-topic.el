@@ -44,9 +44,6 @@
   :type 'hook
   :group 'gnus-topic)
 
-(when (featurep 'xemacs)
-  (add-hook 'gnus-topic-mode-hook 'gnus-xmas-topic-menu-add))
-
 (defcustom gnus-topic-line-format "%i[ %(%{%n%}%) -- %A ]%v\n"
   "Format of topic lines.
 It works along the same lines as a normal formatting string,
@@ -66,12 +63,12 @@ See Info node `(gnus)Formatting Variables'."
   :group 'gnus-topic)
 
 (defcustom gnus-topic-indent-level 2
-  "*How much each subtopic should be indented."
+  "How much each subtopic should be indented."
   :type 'integer
   :group 'gnus-topic)
 
 (defcustom gnus-topic-display-empty-topics t
-  "*If non-nil, display the topic lines even of topics that have no unread articles."
+  "If non-nil, display the topic lines even of topics that have no unread articles."
   :type 'boolean
   :group 'gnus-topic)
 
@@ -575,7 +572,6 @@ articles in the topic and its subtopics."
 		   (not (zerop unread))	;Non-empty
 		   tick			;Ticked articles
 		   (/= point-max (point-max)))) ;Inactive groups
-      (gnus-extent-start-open (point))
       (gnus-topic-insert-topic-line
        (car type) visiblep
        (not (eq (nth 2 type) 'hidden))
@@ -644,7 +640,7 @@ articles in the topic and its subtopics."
     (beginning-of-line)
     ;; Insert the text.
     (if shownp
-	(gnus-add-text-properties
+	(add-text-properties
 	 (point)
 	 (prog1 (1+ (point))
 	   (eval gnus-topic-line-format-spec))
@@ -1065,7 +1061,7 @@ articles in the topic and its subtopics."
     [(meta tab)] gnus-topic-unindent
     "\C-i" gnus-topic-indent
     "\M-\C-i" gnus-topic-unindent
-    gnus-mouse-2 gnus-mouse-pick-topic)
+    [mouse-2] gnus-mouse-pick-topic)
 
   ;; Define a new submap.
   (gnus-define-keys (gnus-group-topic-map "T" gnus-group-mode-map)
@@ -1153,7 +1149,6 @@ articles in the topic and its subtopics."
 	   'gnus-group-sort-topic)
       (setq gnus-group-change-level-function 'gnus-topic-change-level)
       (setq gnus-goto-missing-group-function 'gnus-topic-goto-missing-group)
-      (gnus-make-local-hook 'gnus-check-bogus-groups-hook)
       (add-hook 'gnus-check-bogus-groups-hook 'gnus-topic-clean-alist
 		nil 'local)
       (setq gnus-topology-checked-p nil)
@@ -1167,7 +1162,7 @@ articles in the topic and its subtopics."
       (remove-hook 'gnus-check-bogus-groups-hook 'gnus-topic-clean-alist)
       (setq gnus-group-prepare-function 'gnus-group-prepare-flat)
       (setq gnus-group-sort-alist-function 'gnus-group-sort-flat))
-    (when (gmm-called-interactively-p 'any)
+    (when (called-interactively-p 'any)
       (gnus-group-list-groups))))
 
 (defun gnus-topic-select-group (&optional all)
@@ -1294,7 +1289,7 @@ If COPYP, copy the groups instead."
    (list current-prefix-arg
 	 (gnus-completing-read "Move to topic" (mapcar 'car gnus-topic-alist) t
 			       nil 'gnus-topic-history)))
-  (let ((use-marked (and (not n) (not (gnus-region-active-p))
+  (let ((use-marked (and (not n) (not (and transient-mark-mode mark-active))
 			 gnus-group-marked t))
 	(groups (gnus-group-process-prefix n))
 	(topicl (assoc topic gnus-topic-alist))
@@ -1319,7 +1314,7 @@ If COPYP, copy the groups instead."
 (defun gnus-topic-remove-group (&optional n)
   "Remove the current group from the topic."
   (interactive "P")
-  (let ((use-marked (and (not n) (not (gnus-region-active-p))
+  (let ((use-marked (and (not n) (not (and transient-mark-mode mark-active))
 			 gnus-group-marked t))
 	(groups (gnus-group-process-prefix n)))
     (mapc
@@ -1615,8 +1610,8 @@ If performed on a topic, edit the topic parameters instead."
       (let ((topic (gnus-group-topic-name)))
 	(gnus-edit-form
 	 (gnus-topic-parameters topic)
-	 (gnus-format-message "Editing the topic parameters for `%s'."
-			      (or group topic))
+	 (format-message "Editing the topic parameters for `%s'."
+			 (or group topic))
 	 `(lambda (form)
 	    (gnus-topic-set-parameters ,topic form)))))))
 

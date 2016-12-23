@@ -550,13 +550,16 @@ Mark (with @samp{*}) all files whose @emph{contents} contain a match for
 the regular expression @var{regexp}
 (@code{dired-mark-files-containing-regexp}).  This command is like
 @kbd{% m}, except that it searches the file contents instead of the file
-name.  Note that if a file is visited in an Emacs buffer, this command
-will look in the buffer without revisiting the file, so the results
+name.  Note that if a file is visited in an Emacs buffer,
+and @code{dired-always-read-filesystem} is @code{nil} (the default), this
+command will look in the buffer without revisiting the file, so the results
 might be inconsistent with the file on disk if its contents has changed
 since it was last visited.  If you don't want this, you may wish
 reverting the files you have visited in your buffers, or turning on
 the @code{auto-revert} mode in those buffers, before invoking this
-command.  @xref{Reverting}.
+command.  @xref{Reverting}.  If you prefer that this command always revisit
+the file, without having to revert the file or enable @code{auto-revert}
+mode, you might want to set @code{dired-always-read-filesystem} to non-@code{nil}.
 
 @item C-/
 @itemx C-x u
@@ -1314,6 +1317,10 @@ relative).  To mark a file for deletion, delete the entire file name.
 To change the target of a symbolic link, edit the link target name
 which appears next to the link name.
 
+  If you edit the file names to create a new subdirectory, Wdired will
+automatically create these new directories.  To inhibit this behavior,
+set @code{wdired-create-parent-directories} to @code{nil}.
+
   The rest of the text in the buffer, such as the file sizes and
 modification dates, is marked read-only, so you can't edit it.
 However, if you set @code{wdired-allow-to-change-permissions} to
@@ -1437,6 +1444,13 @@ ignored in this case.
 names into arguments for other Emacs commands.  It also displays what
 it added to the kill ring, so you can use it to display the list of
 currently marked files in the echo area.
+
+@kindex W @r{(Dired)}
+@findex browse-url-of-dired-file
+  If you have an HTML file in the file listing, it can be useful to
+view that file with a browser.  The @kbd{W}
+(@code{browse-url-of-dired-file}) command will use the standard
+configured browser to view that file.
 
 @kindex ( @r{(Dired)}
 @findex dired-hide-details-mode

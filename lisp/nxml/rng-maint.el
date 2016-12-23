@@ -1,4 +1,4 @@
-;;; rng-maint.el --- commands for RELAX NG maintainers
+;;; rng-maint.el --- commands for RELAX NG maintainers  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2003, 2007-2016 Free Software Foundation, Inc.
 

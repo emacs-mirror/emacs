@@ -1,4 +1,4 @@
-;;; xt-mouse.el --- support the mouse when emacs run in an xterm
+;;; xt-mouse.el --- support the mouse when emacs run in an xterm -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1994, 2000-2016 Free Software Foundation, Inc.
 
@@ -70,7 +70,11 @@ http://invisible-island.net/xterm/ctlseqs/ctlseqs.html)."
       (cond
        ((null event) nil)		;Unknown/bogus byte sequence!
        (is-down
-	(setf (terminal-parameter nil 'xterm-mouse-last-down) event)
+	(setf (terminal-parameter nil 'xterm-mouse-last-down)
+              ;; EVENT might be handed back to the input queue, which
+              ;; might modify it.  Copy it into the terminal parameter
+              ;; to guard against that.
+              (copy-sequence event))
 	vec)
        (is-move vec)
        (t

@@ -88,43 +88,34 @@ Return the length of resulting text."
       (let (pos ch)
 	(narrow-to-region beg end)
 
-	;; We, at first, convert HZ/ZW to `euc-china',
+	;; We, at first, convert HZ/ZW to `iso-2022-7bit',
 	;; then decode it.
 
-	;; "~\n" -> "\n", "~~" -> "~"
+	;; "~\n" -> "", "~~" -> "~"
 	(goto-char (point-min))
 	(while (search-forward "~" nil t)
 	  (setq ch (following-char))
-	  (if (or (= ch ?\n) (= ch ?~)) (delete-char -1)))
+	  (cond ((= ch ?{)
+		 (delete-region (1- (point)) (1+ (point)))
+		 (setq pos (point))
+		 (insert iso2022-gb-designation)
+		 (if (looking-at "\\([!-}][!-~]\\)*")
+		     (goto-char (match-end 0)))
+		 (if (looking-at hz-ascii-designation)
+		     (delete-region (match-beginning 0) (match-end 0)))
+		 (insert iso2022-ascii-designation)
+		 (decode-coding-region pos (point) 'iso-2022-7bit))
 
-	;; "^zW...\n" -> Chinese GB2312
-	;; "~{...~}"  -> Chinese GB2312
-	(goto-char (point-min))
-	(setq beg nil)
-	(while (re-search-forward hz/zw-start-gb nil t)
-	  (setq pos (match-beginning 0)
-		ch (char-after pos))
-	  ;; Record the first position to start conversion.
-	  (or beg (setq beg pos))
-	  (end-of-line)
-	  (setq end (point))
-	  (if (>= ch 128)		; 8bit GB2312
-	      nil
-	    (goto-char pos)
-	    (delete-char 2)
-	    (setq end (- end 2))
-	    (if (= ch ?z)			; ZW -> euc-china
-		(progn
-		  (translate-region (point) end hz-set-msb-table)
-		  (goto-char end))
-	      (if (search-forward hz-ascii-designation
-				  (if decode-hz-line-continuation nil end)
-				  t)
-		  (delete-char -2))
-	      (setq end (point))
-	      (translate-region pos (point) hz-set-msb-table))))
-	(if beg
-	    (decode-coding-region beg end 'euc-china)))
+		((= ch ?~)
+		 (delete-char 1))
+
+		((and (= ch ?\n)
+		      decode-hz-line-continuation)
+		 (delete-region (1- (point)) (1+ (point))))
+
+		(t
+		 (forward-char 1)))))
+
       (- (point-max) (point-min)))))
 
 ;;;###autoload
@@ -133,33 +124,57 @@ Return the length of resulting text."
   (interactive)
   (decode-hz-region (point-min) (point-max)))
 
+(defvar hz-category-table nil)
+
 ;;;###autoload
 (defun encode-hz-region (beg end)
   "Encode the text in the current region to HZ.
 Return the length of resulting text."
   (interactive "r")
+  (unless hz-category-table
+    (setq hz-category-table (make-category-table))
+    (with-category-table hz-category-table
+      (define-category ?c "hz encodable")
+      (map-charset-chars #'modify-category-entry 'ascii ?c)
+      (map-charset-chars #'modify-category-entry 'chinese-gb2312 ?c)))
   (save-excursion
     (save-restriction
       (narrow-to-region beg end)
+      (with-category-table hz-category-table
+	;; ~ -> ~~
+	(goto-char (point-min))
+	(while (search-forward "~" nil t) (insert ?~))
 
-      ;; "~" -> "~~"
-      (goto-char (point-min))
-      (while (search-forward "~" nil t)	(insert ?~))
+	;; ESC -> ESC ESC
+	(goto-char (point-min))
+	(while (search-forward "\e" nil t) (insert ?\e))
 
-      ;; Chinese GB2312 -> "~{...~}"
-      (goto-char (point-min))
-      (if (re-search-forward "\\cc" nil t)
-	  (let (pos)
-	    (goto-char (setq pos (match-beginning 0)))
-	    (encode-coding-region pos (point-max) 'iso-2022-7bit)
-	    (goto-char pos)
-	    (while (search-forward iso2022-gb-designation nil t)
-	      (delete-char -3)
-	      (insert hz-gb-designation))
-	    (goto-char pos)
-	    (while (search-forward iso2022-ascii-designation nil t)
-	      (delete-char -3)
-	      (insert hz-ascii-designation))))
+	;; Non-ASCII-GB2312 -> \uXXXX
+	(goto-char (point-min))
+	(while (re-search-forward "\\Cc" nil t)
+	  (let ((ch (preceding-char)))
+	    (delete-char -1)
+	    (insert (format (if (< ch #x10000) "\\u%04X" "\\U%08X") ch))))
+
+	;; Prefer chinese-gb2312 for Chinese characters.
+	(put-text-property (point-min) (point-max) 'charset 'chinese-gb2312)
+	(encode-coding-region (point-min) (point-max) 'iso-2022-7bit)
+
+	;; ESC $ B ... ESC ( B  -> ~{ ... ~}
+	;; ESC ESC -> ESC
+	(goto-char (point-min))
+	(while (search-forward "\e" nil t)
+	  (if (= (following-char) ?\e)
+	      ;; ESC ESC -> ESC
+	      (delete-char 1)
+	    (forward-char -1)
+	    (if (looking-at iso2022-gb-designation)
+		(progn
+		  (delete-region (match-beginning 0) (match-end 0))
+		  (insert hz-gb-designation)
+		  (search-forward iso2022-ascii-designation nil 'move)
+		  (delete-region (match-beginning 0) (match-end 0))
+		  (insert hz-ascii-designation))))))
       (- (point-max) (point-min)))))
 
 ;;;###autoload

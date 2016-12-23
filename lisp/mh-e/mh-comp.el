@@ -916,14 +916,14 @@ CONFIG is the window configuration before sending mail."
   ;; use it as the drafts folder.  Then copy the skeleton to a regular
   ;; temp file, and return the regular temp file.
   (let (new
-        (temp-folder (mm-make-temp-file
+        (temp-folder (make-temp-file
                       (concat mh-user-path "draftfolder.") t)))
     (mh-exec-cmd "comp" "-nowhatnowproc"
                  "-draftfolder" (format "+%s"
                                         (file-name-nondirectory temp-folder))
                  (if (stringp mh-comp-formfile)
                      (list "-form" mh-comp-formfile)))
-    (setq new (mm-make-temp-file "comp."))
+    (setq new (make-temp-file "comp."))
     (rename-file (concat temp-folder "/" "1") new t)
     (delete-file (concat temp-folder "/" ".mh_sequences"))
     (delete-directory temp-folder)

@@ -154,7 +154,7 @@ all: ${module}.so ${module}.doc
 int plugin_is_GPL_compatible;
 
 static emacs_value
-${c_func} (emacs_env *env, int nargs, emacs_value args[], void *data)
+${c_func} (emacs_env *env, ptrdiff_t nargs, emacs_value args[], void *data)
 {
   return env->intern (env, "t");
 }

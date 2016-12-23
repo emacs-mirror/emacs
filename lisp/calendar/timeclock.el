@@ -532,18 +532,17 @@ non-nil, the amount returned will be relative to past time worked."
 	(message "%s" string)
       string)))
 
-(defalias 'timeclock-time-to-seconds (if (fboundp 'float-time) 'float-time
-				       'time-to-seconds))
-
-(defalias 'timeclock-seconds-to-time 'seconds-to-time)
+(define-obsolete-function-alias 'timeclock-time-to-seconds 'float-time "26.1")
+(define-obsolete-function-alias 'timeclock-seconds-to-time 'seconds-to-time
+  "26.1")
 
 ;; Should today-only be removed in favor of timeclock-relative? - gm
 (defsubst timeclock-when-to-leave (&optional today-only)
   "Return a time value representing the end of today's workday.
 If TODAY-ONLY is non-nil, the value returned will be relative only to
 the time worked today, and not to past time."
-  (timeclock-seconds-to-time
-   (- (timeclock-time-to-seconds)
+  (seconds-to-time
+   (- (float-time)
       (let ((discrep (timeclock-find-discrep)))
 	(if discrep
 	    (if today-only
@@ -686,9 +685,8 @@ being logged for.  Normally only \"in\" events specify a project."
 		    "\n")
 	    (if (equal (downcase code) "o")
 		(setq timeclock-last-period
-		      (- (timeclock-time-to-seconds now)
-			 (timeclock-time-to-seconds
-			  (cadr timeclock-last-event)))
+		      (- (float-time now)
+			 (float-time (cadr timeclock-last-event)))
 		      timeclock-discrepancy
 		      (+ timeclock-discrepancy
 			 timeclock-last-period)))
@@ -723,14 +721,14 @@ recorded to disk.  If MOMENT is non-nil, use that as the current time.
 This is only provided for coherency when used by
 `timeclock-discrepancy'."
   (if (equal (car timeclock-last-event) "i")
-      (- (timeclock-time-to-seconds moment)
-	 (timeclock-time-to-seconds (cadr timeclock-last-event)))
+      (- (float-time moment)
+	 (float-time (cadr timeclock-last-event)))
     timeclock-last-period))
 
 (defsubst timeclock-entry-length (entry)
   "Return the length of ENTRY in seconds."
-  (- (timeclock-time-to-seconds (cadr entry))
-     (timeclock-time-to-seconds (car entry))))
+  (- (float-time (cadr entry))
+     (float-time (car entry))))
 
 (defsubst timeclock-entry-begin (entry)
   "Return the start time of ENTRY."
@@ -765,8 +763,8 @@ This is only provided for coherency when used by
 
 (defsubst timeclock-entry-list-span (entry-list)
   "Return the total time in seconds spanned by ENTRY-LIST."
-  (- (timeclock-time-to-seconds (timeclock-entry-list-end entry-list))
-     (timeclock-time-to-seconds (timeclock-entry-list-begin entry-list))))
+  (- (float-time (timeclock-entry-list-end entry-list))
+     (float-time (timeclock-entry-list-begin entry-list))))
 
 (defsubst timeclock-entry-list-break (entry-list)
   "Return the total break time (span - length) in ENTRY-LIST."
@@ -1137,7 +1135,7 @@ discrepancy, today's discrepancy, and the time worked today."
 			   last-date-limited nil)
 		     (if beg
 			 (error "Error in format of timelog file!")
-		       (setq beg (timeclock-time-to-seconds (cadr event))))))
+		       (setq beg (float-time (cadr event))))))
 		  ((equal (downcase (car event)) "o")
 		   (if (and (nth 2 event)
 			    (> (length (nth 2 event)) 0))
@@ -1145,7 +1143,7 @@ discrepancy, today's discrepancy, and the time worked today."
 		   (if (not beg)
 		       (error "Error in format of timelog file!")
 		     (setq timeclock-last-period
-			   (- (timeclock-time-to-seconds (cadr event)) beg)
+			   (- (float-time (cadr event)) beg)
 			   accum (+ timeclock-last-period accum)
 			   beg nil))
 		   (if (equal last-date todays-date)
@@ -1225,8 +1223,8 @@ HTML-P is non-nil, HTML markup is added."
 	    (insert project "</b><br>\n")
 	  (insert project "*\n"))
 	(let ((proj-data (cdr (assoc project (timeclock-project-alist log))))
-	      (two-weeks-ago (timeclock-seconds-to-time
-			      (- (timeclock-time-to-seconds today)
+	      (two-weeks-ago (seconds-to-time
+			      (- (float-time today)
 				 (* 2 7 24 60 60))))
 	      two-week-len today-len)
 	  (while proj-data
@@ -1278,17 +1276,17 @@ HTML-P is non-nil, HTML markup is added."
     <th>-1 year</th>
 </tr>")
 	(let* ((day-list (timeclock-day-list))
-	       (thirty-days-ago (timeclock-seconds-to-time
-				 (- (timeclock-time-to-seconds today)
+	       (thirty-days-ago (seconds-to-time
+				 (- (float-time today)
 				    (* 30 24 60 60))))
-	       (three-months-ago (timeclock-seconds-to-time
-				  (- (timeclock-time-to-seconds today)
+	       (three-months-ago (seconds-to-time
+				  (- (float-time today)
 				     (* 90 24 60 60))))
-	       (six-months-ago (timeclock-seconds-to-time
-				(- (timeclock-time-to-seconds today)
+	       (six-months-ago (seconds-to-time
+				(- (float-time today)
 				   (* 180 24 60 60))))
-	       (one-year-ago (timeclock-seconds-to-time
-			      (- (timeclock-time-to-seconds today)
+	       (one-year-ago (seconds-to-time
+			      (- (float-time today)
 				 (* 365 24 60 60))))
 	       (time-in  (vector (list t) (list t) (list t) (list t) (list t)))
 	       (time-out (vector (list t) (list t) (list t) (list t) (list t)))
@@ -1303,12 +1301,11 @@ HTML-P is non-nil, HTML markup is added."
 		(unless (time-less-p
 			 (timeclock-day-begin day)
 			 (aref lengths i))
-		  (let ((base (timeclock-time-to-seconds
+		  (let ((base (float-time
 			       (timeclock-day-base
 				(timeclock-day-begin day)))))
 		    (nconc (aref time-in i)
-			   (list (- (timeclock-time-to-seconds
-				     (timeclock-day-begin day))
+			   (list (- (float-time (timeclock-day-begin day))
 				    base)))
 		    (let ((span (timeclock-day-span day))
 			  (len (timeclock-day-length day))
@@ -1320,8 +1317,7 @@ HTML-P is non-nil, HTML markup is added."
 		      (when (and (> span 0)
 				 (> (/ (float len) (float span)) 0.70))
 			(nconc (aref time-out i)
-			       (list (- (timeclock-time-to-seconds
-					 (timeclock-day-end day))
+			       (list (- (float-time (timeclock-day-end day))
 					base)))
 			(nconc (aref breaks i) (list (- span len))))
 		      (if req

@@ -32,17 +32,17 @@
 (autoload 'message-narrow-to-headers "message")
 (autoload 'message-fetch-field "message")
 
-;; Prefer epg over openssl if it is available as epg uses GnuPG's gpgsm,
+;; Prefer epg over openssl as epg uses GnuPG's gpgsm,
 ;; which features full-fledged certificate management, while openssl requires
 ;; major manual efforts for certificate revocation and expiry and has bugs
 ;; as documented under man smime(1).
-(ignore-errors (require 'epg))
+(require 'epg)
 
-(defcustom mml-smime-use (if (featurep 'epg) 'epg 'openssl)
+(defcustom mml-smime-use 'epg
   "Whether to use OpenSSL or EasyPG (EPG) to handle S/MIME messages.
-Defaults to EPG if it's available.
-If you think about using OpenSSL, please read the BUGS section in the manual
-for the `smime' command coming with OpenSSL first.  EasyPG is recommended."
+If you're thinking about using OpenSSL, please first read the BUGS section
+in the manual for the `smime' command that comes with OpenSSL.
+We recommend EasyPG."
   :group 'mime-security
   :type '(choice (const :tag "EPG" epg)
                  (const :tag "OpenSSL" openssl)))
@@ -149,8 +149,7 @@ Whether the passphrase is cached at all is controlled by
       (if (not (and (not (file-exists-p tmp))
 		    (get-buffer tmp)))
 	  (push tmp certfiles)
-	(setq file (mm-make-temp-file (expand-file-name "mml."
-							mm-tmp-directory)))
+	(setq file (make-temp-file (expand-file-name "mml." mm-tmp-directory)))
 	(with-current-buffer tmp
 	  (write-region (point-min) (point-max) file))
 	(push file certfiles)
@@ -176,15 +175,12 @@ Whether the passphrase is cached at all is controlled by
   (list 'keyfile
 	(if (= (length smime-keys) 1)
 	    (cadar smime-keys)
-	  (or (let ((from (cadr (funcall (if (boundp
-					      'gnus-extract-address-components)
-					     gnus-extract-address-components
-					   'mail-extract-address-components)
-					 (or (save-excursion
-					       (save-restriction
-						 (message-narrow-to-headers)
-						 (message-fetch-field "from")))
-					     "")))))
+	  (or (let ((from (cadr (mail-extract-address-components
+				 (or (save-excursion
+				       (save-restriction
+					 (message-narrow-to-headers)
+					 (message-fetch-field "from")))
+				     "")))))
 		(and from (smime-get-key-by-email from)))
 	      (smime-get-key-by-email
 	       (gnus-completing-read "Sign this part with what signature"
@@ -205,18 +201,15 @@ Whether the passphrase is cached at all is controlled by
 	(while (not result)
 	  (setq who (read-from-minibuffer
 		     (format "%sLookup certificate for: " (or bad ""))
-		     (cadr (funcall (if (boundp
-					 'gnus-extract-address-components)
-					gnus-extract-address-components
-				      'mail-extract-address-components)
-				    (or (save-excursion
-					  (save-restriction
-					    (message-narrow-to-headers)
-					    (message-fetch-field "to")))
-					"")))))
+		     (cadr (mail-extract-address-components
+			    (or (save-excursion
+				  (save-restriction
+				    (message-narrow-to-headers)
+				    (message-fetch-field "to")))
+				"")))))
 	  (if (setq cert (smime-cert-by-dns who))
 	      (setq result (list 'certfile (buffer-name cert)))
-	    (setq bad (gnus-format-message "`%s' not found. " who))))
+	    (setq bad (format-message "`%s' not found. " who))))
       (quit))
     result))
 
@@ -235,7 +228,7 @@ Whether the passphrase is cached at all is controlled by
 					"")))))
 	  (if (setq cert (smime-cert-by-ldap who))
 	      (setq result (list 'certfile (buffer-name cert)))
-	    (setq bad (gnus-format-message "`%s' not found. " who))))
+	    (setq bad (format-message "`%s' not found. " who))))
       (quit))
     result))
 
@@ -421,7 +414,7 @@ Content-Disposition: attachment; filename=smime.p7m
 	(mm-set-handle-multipart-parameter
 	 mm-security-handle 'gnus-info "Corrupted")
 	(throw 'error handle))
-      (setq part (mm-replace-in-string part "\n" "\r\n")
+      (setq part (replace-regexp-in-string "\n" "\r\n" part)
 	    context (epg-make-context 'CMS))
       (condition-case error
 	  (setq plain (epg-verify-string context (mm-get-part signature) part))

@@ -1239,7 +1239,7 @@ of type `spp-macro-undef' is to be created."
 ;; written yet.
 ;;
 (defcustom semantic-lex-spp-use-headers-flag nil
-  "*Non-nil means to pre-parse headers as we go.
+  "Non-nil means to pre-parse headers as we go.
 For languages that use the Semantic pre-processor, this can
 improve the accuracy of parsed files where include files
 can change the state of what's parsed in the current file.
@@ -1306,8 +1306,10 @@ where a valid symbol is 'system, or nil."
 ;;
 ;; These routines are for saving macro lists into an EIEIO persistent
 ;; file.
-(defvar semantic-lex-spp-macro-max-length-to-save 200
-  "*Maximum length of an SPP macro before we opt to not save it.")
+(defcustom semantic-lex-spp-macro-max-length-to-save 200
+  "Maximum length of an SPP macro before we opt to not save it."
+  :type 'integer
+  :group 'semantic)
 
 ;;;###autoload
 (defun semantic-lex-spp-table-write-slot-value (value)

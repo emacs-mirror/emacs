@@ -81,7 +81,7 @@ Optional argument MODE specifies the `major-mode' to test."
         (if (null (cdr args))
             args
           `("(" ,@args
-            ,@(apply #'nconc (mapcar (lambda (s) `("-o" "-name" ,s)) pat))
+            ,@(mapcan (lambda (s) `("-o" "-name" ,s)) pat)
             ")"))))))
 
 (defvar grepflags)

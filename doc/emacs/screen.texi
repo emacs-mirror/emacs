@@ -216,6 +216,11 @@ changes to either a forward slash (@samp{/}) or @samp{(Mac)}.  On some
 systems, Emacs displays @samp{(Unix)} instead of the colon for files
 that use newline as the line separator.
 
+  On frames created for @command{emacsclient} (@pxref{Invoking
+emacsclient}), the next character is @samp{@@}.  This indication is
+typical for frames of an Emacs process running as a daemon
+(@pxref{Emacs Server}).
+
   The next element on the mode line is the string indicated by
 @var{ch}.  This shows two dashes (@samp{--}) if the buffer displayed
 in the window has the same contents as the corresponding file on the
@@ -225,7 +230,7 @@ shows @samp{%*} if the buffer is modified, and @samp{%%} otherwise.
 
   The character after @var{ch} is normally a dash (@samp{-}).
 However, if the default-directory for the current buffer is on a
-remote machine, @samp{@@} is displayed instead (@pxref{File Names}).
+remote machine (@pxref{File Names}), @samp{@@} is displayed instead.
 
   @var{fr} gives the selected frame name (@pxref{Frames}).  It appears
 only on text terminals.  The initial frame's name is @samp{F1}.
@@ -304,7 +309,10 @@ the usual way (@pxref{Key Help}).
 item by pressing @key{F10} (to run the command @code{menu-bar-open}).
 You can then navigate the menus with the arrow keys.  To activate a
 selected menu item, press @key{RET}; to cancel menu navigation, press
-@kbd{C-g} or @kbd{@key{ESC} @key{ESC} @key{ESC}}.
+@kbd{C-g} or @kbd{@key{ESC} @key{ESC} @key{ESC}}.  (However, note that
+when Emacs was built with a GUI toolkit, the menus are drawn and
+controlled by the toolkit, and the key sequences to cancel menu
+navigation might be different from the above description.)
 
 @kindex M-`
 @findex tmm-menubar

@@ -1,6 +1,7 @@
 # BidiBrackets-9.0.0.txt
-# Date: 2016-01-21, 22:00:00 GMT [AG, LI, KW]
+# Date: 2016-06-07, 22:30:00 GMT [AG, LI, KW]
 # © 2016 Unicode®, Inc.
+# Unicode and the Unicode Logo are registered trademarks of Unicode, Inc. in the U.S. and other countries.
 # For terms of use, see http://www.unicode.org/terms_of_use.html
 #
 # Unicode Character Database
@@ -27,6 +28,12 @@
 # Bidi_M=Y, and bmg of A is B. Bidi_Paired_Bracket (bpb) maps A to B and
 # vice versa, and their Bidi_Paired_Bracket_Type (bpt) property values are
 # Open (o) and Close (c), respectively.
+#
+# The brackets with ticks U+298D LEFT SQUARE BRACKET WITH TICK IN TOP CORNER
+# through U+2990 RIGHT SQUARE BRACKET WITH TICK IN TOP CORNER are paired the
+# same way their glyphs form mirror pairs, according to their bmg property
+# values. They are not paired on the basis of a diagonal or antidiagonal
+# matching of the corner ticks inferred from code point order.
 #
 # For legacy reasons, the characters U+FD3E ORNATE LEFT PARENTHESIS and
 # U+FD3F ORNATE RIGHT PARENTHESIS do not mirror in bidirectional display

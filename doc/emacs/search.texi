@@ -1714,15 +1714,21 @@ a multi-file incremental search is activated automatically.
 @cindex mode, Occur
 @cindex match (face name)
 @vindex list-matching-lines-default-context-lines
+@kindex M-s o
 @item M-x occur
+@itemx M-s o
 Prompt for a regexp, and display a list showing each line in the
-buffer that contains a match for it.  The text that matched is
-highlighted using the @code{match} face.  To limit the search to part
-of the buffer, narrow to that part (@pxref{Narrowing}).  A numeric
-argument @var{n} specifies that @var{n} lines of context are to be
-displayed before and after each matching line.  The default number of
-context lines is specified by the variable
-@code{list-matching-lines-default-context-lines}.
+buffer that contains a match for it.  If you type @kbd{M-n} at the
+prompt, you can reuse search strings from previous incremental
+searches.  The text that matched is highlighted using the @code{match}
+face.  To limit the search to part of the buffer, narrow to that part
+(@pxref{Narrowing}).  A numeric argument @var{n} specifies that
+@var{n} lines of context are to be displayed before and after each
+matching line.  The default number of context lines is specified by
+the variable @code{list-matching-lines-default-context-lines}.
+
+You can also run @kbd{M-s o} when an incremental search is active;
+this uses the current search string.
 
 @kindex RET @r{(Occur mode)}
 @kindex o @r{(Occur mode)}
@@ -1743,12 +1749,6 @@ mode.
 
 The command @kbd{M-x list-matching-lines} is a synonym for @kbd{M-x
 occur}.
-
-@kindex M-s o
-@item M-s o
-Run @code{occur} using the search string of the last incremental
-string search.  You can also run @kbd{M-s o} when an incremental
-search is active; this uses the current search string.
 
 @item M-x multi-occur
 This command is just like @code{occur}, except it is able to search

@@ -1035,4 +1035,6 @@ A color is considered gray if the 3 components of its RGB value are equal."
       (setq colors (cdr colors)))
     count))
 
+(provide 'term/tty-colors)
+
 ;;; tty-colors.el ends here

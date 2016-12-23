@@ -203,7 +203,7 @@ all the output from the remote command, and sends it all at once,
 causing the user to wonder if anything's really going on..."
   (let ((outbuf (generate-new-buffer " *eshell remote output*"))
 	(errbuf (generate-new-buffer " *eshell remote error*"))
-	(command (or (file-remote-p command 'localname) command))
+	(command (file-local-name command))
 	(exitcode 1))
     (unwind-protect
 	(progn

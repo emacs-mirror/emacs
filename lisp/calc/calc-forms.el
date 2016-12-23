@@ -317,7 +317,9 @@
 	 (list 'calcFunc-hms a))
 	((math-negp a)
 	 (math-neg (math-to-hms (math-neg a) ang)))
-	((eq (or ang calc-angle-mode) 'rad)
+	((eq (or ang
+                 (and (not math-simplifying-units) calc-angle-mode))
+                 'rad)
 	 (math-to-hms (math-div a (math-pi-over-180)) 'deg))
 	((memq (car-safe a) '(cplx polar)) a)
 	(t
@@ -354,12 +356,16 @@
 	   (if (eq (car-safe a) 'sdev)
 	       (math-make-sdev (math-from-hms (nth 1 a) ang)
 			       (math-from-hms (nth 2 a) ang))
-	     (if (eq (or ang calc-angle-mode) 'rad)
+	     (if (eq (or ang
+                         (and (not math-simplifying-units) calc-angle-mode))
+                     'rad)
 		 (list 'calcFunc-rad a)
 	       (list 'calcFunc-deg a)))))
 	((math-negp a)
 	 (math-neg (math-from-hms (math-neg a) ang)))
-	((eq (or ang calc-angle-mode) 'rad)
+	((eq (or ang
+                 (and (not math-simplifying-units) calc-angle-mode))
+             'rad)
 	 (math-mul (math-from-hms a 'deg) (math-pi-over-180)))
 	(t
 	 (math-add (math-div (math-add (math-div (nth 3 a)

@@ -66,6 +66,16 @@ into the dumped Emacs.  If you port Emacs to a new operating system,
 and are not able to implement dumping, then Emacs must load
 @file{loadup.el} each time it starts.
 
+@cindex build details
+@cindex deterministic build
+@cindex @option{--disable-build-details} option to @command{configure}
+  By default the dumped @file{emacs} executable records details such
+as the build time and host name.  Use the
+@option{--disable-build-details} option of @command{configure} to
+suppress these details, so that building and installing Emacs twice
+from the same sources is more likely to result in identical copies of
+Emacs.
+
 @cindex @file{site-load.el}
   You can specify additional files to preload by writing a library named
 @file{site-load.el} that loads them.  You may need to rebuild Emacs

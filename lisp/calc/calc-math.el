@@ -763,12 +763,14 @@ If this can't be done, return NIL."
 (defun math-to-radians (a)   ; [N N]
   (cond ((eq (car-safe a) 'hms)
 	 (math-from-hms a 'rad))
-	((memq calc-angle-mode '(deg hms))
+	((and (not math-simplifying-units)
+              (memq calc-angle-mode '(deg hms)))
 	 (math-mul a (math-pi-over-180)))
 	(t a)))
 
 (defun math-from-radians (a)   ; [N N]
-  (cond ((eq calc-angle-mode 'deg)
+  (cond ((and (not math-simplifying-units)
+              (eq calc-angle-mode 'deg))
 	 (if (math-constp a)
 	     (math-div a (math-pi-over-180))
 	   (list 'calcFunc-deg a)))
@@ -779,14 +781,16 @@ If this can't be done, return NIL."
 (defun math-to-radians-2 (a &optional force-symbolic)   ; [N N]
   (cond ((eq (car-safe a) 'hms)
 	 (math-from-hms a 'rad))
-	((memq calc-angle-mode '(deg hms))
+	((and (not math-simplifying-units)
+              (memq calc-angle-mode '(deg hms)))
 	 (if (or calc-symbolic-mode force-symbolic)
 	     (math-div (math-mul a '(var pi var-pi)) 180)
 	   (math-mul a (math-pi-over-180))))
 	(t a)))
 
 (defun math-from-radians-2 (a &optional force-symbolic)   ; [N N]
-  (cond ((memq calc-angle-mode '(deg hms))
+  (cond ((and (not math-simplifying-units)
+              (memq calc-angle-mode '(deg hms)))
 	 (if (or calc-symbolic-mode force-symbolic)
 	     (math-div (math-mul 180 a) '(var pi var-pi))
 	   (math-div a (math-pi-over-180))))

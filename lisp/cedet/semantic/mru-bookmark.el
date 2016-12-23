@@ -263,7 +263,7 @@ If ARG is positive or nil, enable, if it is negative, disable."
    'semantic-mru-bookmark-mode (if global-semantic-mru-bookmark-mode 1 -1)))
 
 (defcustom semantic-mru-bookmark-mode-hook nil
-  "*Hook run at the end of function `semantic-mru-bookmark-mode'."
+  "Hook run at the end of function `semantic-mru-bookmark-mode'."
   :group 'semantic
   :type 'hook)
 

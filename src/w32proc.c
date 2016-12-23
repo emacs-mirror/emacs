@@ -22,6 +22,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
      Adapted from alarm.c by Tim Fleehart
 */
 
+#define DEFER_MS_W32_H
+#include <config.h>
+
 #include <mingw_time.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,8 +38,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <mbstring.h>
 #include <locale.h>
 
-/* must include CRT headers *before* config.h */
-#include <config.h>
+/* Include CRT headers *before* ms-w32.h.  */
+#include <ms-w32.h>
 
 #undef signal
 #undef wait
@@ -45,11 +48,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef kill
 
 #include <windows.h>
-#if defined(__GNUC__) && !defined(__MINGW64__)
-/* This definition is missing from mingw.org headers, but not MinGW64
-   headers. */
-extern BOOL WINAPI IsValidLocale (LCID, DWORD);
-#endif
 
 #ifdef HAVE_LANGINFO_CODESET
 #include <nl_types.h>
@@ -70,6 +68,12 @@ extern BOOL WINAPI IsValidLocale (LCID, DWORD);
 	    + ((DWORD_PTR)(var) - (section)->VirtualAddress)		\
 	    + (filedata).file_base))
 
+extern BOOL g_b_init_compare_string_w;
+extern BOOL g_b_init_debug_break_process;
+
+int sys_select (int, SELECT_TYPE *, SELECT_TYPE *, SELECT_TYPE *,
+		const struct timespec *, const sigset_t *);
+
 /* Signal handlers...SIG_DFL == 0 so this is initialized correctly.  */
 static signal_handler sig_handlers[NSIG];
 
@@ -87,9 +91,9 @@ sys_signal (int sig, signal_handler handler)
   /* SIGCHLD is needed for supporting subprocesses, see sys_kill
      below.  SIGALRM and SIGPROF are used by setitimer.  All the
      others are the only ones supported by the MS runtime.  */
-  if (!(sig == SIGCHLD || sig == SIGSEGV || sig == SIGILL
+  if (!(sig == SIGINT || sig == SIGSEGV || sig == SIGILL
 	|| sig == SIGFPE || sig == SIGABRT || sig == SIGTERM
-	|| sig == SIGALRM || sig == SIGPROF))
+	|| sig == SIGCHLD || sig == SIGALRM || sig == SIGPROF))
     {
       errno = EINVAL;
       return SIG_ERR;
@@ -225,7 +229,7 @@ sigismember (const sigset_t *set, int signo)
       errno = EINVAL;
       return -1;
     }
-  if (signo > sizeof (*set) * BITS_PER_CHAR)
+  if (signo > sizeof (*set) * CHAR_BIT)
     emacs_abort ();
 
   return (*set & (1U << signo)) != 0;
@@ -845,8 +849,8 @@ alarm (int seconds)
    stream is terminated, terminates the reader thread as part of
    deleting the child_process object.
 
-   The sys_select function emulates the Posix 'pselect' function; it
-   is needed because the Windows 'select' function supports only
+   The sys_select function emulates the Posix 'pselect' functionality;
+   it is needed because the Windows 'select' function supports only
    network sockets, while Emacs expects 'pselect' to work for any file
    descriptor, including pipes and serial streams.
 
@@ -1728,7 +1732,7 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
      are not expanded if we run the program directly without a shell.
      Some extra whitespace characters need quoting in Cygwin/MSYS programs,
      so this list is conditionally modified below.  */
-  char *sepchars = " \t*?";
+  const char *sepchars = " \t*?";
   /* This is for native w32 apps; modified below for Cygwin/MSUS apps.  */
   char escape_char = '\\';
   char cmdname_a[MAX_PATH];
@@ -2092,7 +2096,7 @@ extern int proc_buffered_char[];
 
 int
 sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
-	    struct timespec *timeout, void *ignored)
+	    const struct timespec *timeout, const sigset_t *ignored)
 {
   SELECT_TYPE orfds, owfds;
   DWORD timeout_ms, start_time;
@@ -2495,6 +2499,9 @@ find_child_console (HWND hwnd, LPARAM arg)
   return TRUE;
 }
 
+typedef BOOL (WINAPI * DebugBreakProcess_Proc) (
+    HANDLE hProcess);
+
 /* Emulate 'kill', but only for other processes.  */
 int
 sys_kill (pid_t pid, int sig)
@@ -2508,9 +2515,9 @@ sys_kill (pid_t pid, int sig)
   if (pid < 0)
     pid = -pid;
 
-  /* Only handle signals that will result in the process dying */
+  /* Only handle signals that can be mapped to a similar behavior on Windows */
   if (sig != 0
-      && sig != SIGINT && sig != SIGKILL && sig != SIGQUIT && sig != SIGHUP)
+      && sig != SIGINT && sig != SIGKILL && sig != SIGQUIT && sig != SIGHUP && sig != SIGTRAP)
     {
       errno = EINVAL;
       return -1;
@@ -2553,7 +2560,11 @@ sys_kill (pid_t pid, int sig)
 	 close the selected frame, which does not necessarily
 	 terminates Emacs.  But then we are not supposed to call
 	 sys_kill with our own PID.  */
-      proc_hand = OpenProcess (PROCESS_TERMINATE, 0, pid);
+
+      DWORD desiredAccess =
+	(sig == SIGTRAP) ? PROCESS_ALL_ACCESS : PROCESS_TERMINATE;
+
+      proc_hand = OpenProcess (desiredAccess, 0, pid);
       if (proc_hand == NULL)
         {
 	  errno = EPERM;
@@ -2646,6 +2657,43 @@ sys_kill (pid_t pid, int sig)
 	  DebPrint (("sys_kill.GenerateConsoleCtrlEvent return %d "
 		     "for pid %lu\n", GetLastError (), pid));
 	  errno = EINVAL;
+	  rc = -1;
+	}
+    }
+  else if (sig == SIGTRAP)
+    {
+      static DebugBreakProcess_Proc s_pfn_Debug_Break_Process = NULL;
+
+      if (g_b_init_debug_break_process == 0)
+	{
+	  g_b_init_debug_break_process = 1;
+	  s_pfn_Debug_Break_Process = (DebugBreakProcess_Proc)
+	    GetProcAddress (GetModuleHandle ("kernel32.dll"),
+			    "DebugBreakProcess");
+	}
+
+      if (s_pfn_Debug_Break_Process == NULL)
+	{
+	  errno = ENOTSUP;
+	  rc = -1;
+	}
+      else if (!s_pfn_Debug_Break_Process (proc_hand))
+	{
+	  DWORD err = GetLastError ();
+
+	  DebPrint (("sys_kill.DebugBreakProcess return %d "
+		     "for pid %lu\n", err, pid));
+
+	  switch (err)
+	    {
+	    case ERROR_ACCESS_DENIED:
+	      errno = EPERM;
+	      break;
+	    default:
+	      errno = EINVAL;
+	      break;
+	    }
+
 	  rc = -1;
 	}
     }
@@ -2815,7 +2863,6 @@ set_process_dir (char * dir)
 /* From w32.c */
 extern HANDLE winsock_lib;
 extern BOOL term_winsock (void);
-extern BOOL init_winsock (int load_now);
 
 DEFUN ("w32-has-winsock", Fw32_has_winsock, Sw32_has_winsock, 0, 1, 0,
        doc: /* Test for presence of the Windows socket library `winsock'.
@@ -3522,7 +3569,6 @@ w32_compare_strings (const char *s1, const char *s2, char *locname,
   LCID lcid = GetThreadLocale ();
   wchar_t *string1_w, *string2_w;
   int val, needed;
-  extern BOOL g_b_init_compare_string_w;
   static CompareStringW_Proc pCompareStringW;
   DWORD flags = 0;
 

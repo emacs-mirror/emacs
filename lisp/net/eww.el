@@ -24,13 +24,14 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(require 'cl-lib)
 (require 'format-spec)
 (require 'shr)
 (require 'url)
 (require 'url-queue)
 (require 'url-util)			; for url-get-url-at-point
 (require 'mm-url)
+(require 'puny)
 (eval-when-compile (require 'subr-x)) ;; for string-trim
 
 (defgroup eww nil
@@ -73,8 +74,8 @@ duplicate entries (if any) removed."
   :group 'eww
   :type 'hook
   :options '(eww-links-at-point
-	     url-get-url-at-point
-	     eww-current-url))
+             url-get-url-at-point
+             eww-current-url))
 
 (defcustom eww-bookmarks-directory user-emacs-directory
   "Directory where bookmark files will be stored."
@@ -222,7 +223,7 @@ See also `eww-form-checkbox-selected-symbol'."
   "When this regex is found in the URL, it's not a keyword but an address.")
 
 (defvar eww-link-keymap
-  (let ((map (copy-keymap shr-map)))
+  (let ((map (copy-keymap shr-image-map)))
     (define-key map "\r" 'eww-follow-link)
     map))
 
@@ -279,6 +280,13 @@ word(s) will be searched for via `eww-search-prefix'."
        (current-buffer)
      (get-buffer-create "*eww*")))
   (eww-setup-buffer)
+  ;; Check whether the domain only uses "Highly Restricted" Unicode
+  ;; IDNA characters.  If not, transform to punycode to indicate that
+  ;; there may be funny business going on.
+  (let ((parsed (url-generic-parse-url url)))
+    (unless (puny-highly-restrictive-domain-p (url-host parsed))
+      (setf (url-host parsed) (puny-encode-domain (url-host parsed)))
+      (setq url (url-recreate-url parsed))))
   (plist-put eww-data :url url)
   (plist-put eww-data :title "")
   (eww-update-header-line-format)
@@ -305,6 +313,20 @@ word(s) will be searched for via `eww-search-prefix'."
 See the `eww-search-prefix' variable for the search engine used."
   (interactive "r")
   (eww (buffer-substring beg end)))
+
+(defun eww-open-in-new-buffer ()
+  "Fetch link at point in a new EWW buffer."
+  (interactive)
+  (let ((url (eww-suggested-uris)))
+    (if (null url) (user-error "No link at point")
+      ;; clone useful to keep history, but
+      ;; should not clone from non-eww buffer
+      (with-current-buffer
+          (if (eq major-mode 'eww-mode) (clone-buffer)
+            (generate-new-buffer "*eww*"))
+        (unless (equal url (eww-current-url))
+          (eww-mode)
+          (eww (if (consp url) (car url) url)))))))
 
 (defun eww-html-p (content-type)
   "Return non-nil if CONTENT-TYPE designates an HTML content type.
@@ -410,7 +432,7 @@ Currently this means either text/html or application/xhtml+xml."
 	(source (and (null document)
 		     (buffer-substring (point) (point-max)))))
     (with-current-buffer buffer
-      (setq bidi-paragraph-direction 'left-to-right)
+      (setq bidi-paragraph-direction nil)
       (plist-put eww-data :source source)
       (plist-put eww-data :dom document)
       (let ((inhibit-read-only t)
@@ -418,9 +440,11 @@ Currently this means either text/html or application/xhtml+xml."
 	    (shr-target-id (url-target (url-generic-parse-url url)))
 	    (shr-external-rendering-functions
              (append
+              shr-external-rendering-functions
               '((title . eww-tag-title)
                 (form . eww-tag-form)
                 (input . eww-tag-input)
+                (button . eww-form-submit)
                 (textarea . eww-tag-textarea)
                 (select . eww-tag-select)
                 (link . eww-tag-link)
@@ -570,7 +594,7 @@ Currently this means either text/html or application/xhtml+xml."
   (let ((inhibit-read-only t))
     (remove-overlays)
     (erase-buffer))
-  (setq bidi-paragraph-direction 'left-to-right)
+  (setq bidi-paragraph-direction nil)
   (unless (eq major-mode 'eww-mode)
     (eww-mode)))
 
@@ -659,11 +683,13 @@ the like."
       (setq score (- (length (split-string (dom-text node))))))
      (t
       (dolist (elem (dom-children node))
-	(if (stringp elem)
-	    (setq score (+ score (length (split-string elem))))
+	(cond
+         ((stringp elem)
+          (setq score (+ score (length (split-string elem)))))
+         ((consp elem)
 	  (setq score (+ score
 			 (or (cdr (assoc :eww-readability-score (cdr elem)))
-			     (eww-score-readability elem))))))))
+			     (eww-score-readability elem)))))))))
     ;; Cache the score of the node to avoid recomputing all the time.
     (dom-set-attribute node :eww-readability-score score)
     score))
@@ -685,6 +711,7 @@ the like."
   (let ((map (make-sparse-keymap)))
     (define-key map "g" 'eww-reload) ;FIXME: revert-buffer-function instead!
     (define-key map "G" 'eww)
+    (define-key map [?\M-\r] 'eww-open-in-new-buffer)
     (define-key map [?\t] 'shr-next-link)
     (define-key map [?\M-\t] 'shr-previous-link)
     (define-key map [backtab] 'shr-previous-link)
@@ -703,9 +730,11 @@ the like."
     (define-key map "R" 'eww-readable)
     (define-key map "H" 'eww-list-histories)
     (define-key map "E" 'eww-set-character-encoding)
+    (define-key map "s" 'eww-switch-to-buffer)
     (define-key map "S" 'eww-list-buffers)
     (define-key map "F" 'eww-toggle-fonts)
     (define-key map "D" 'eww-toggle-paragraph-direction)
+    (define-key map [(meta C)] 'eww-toggle-colors)
 
     (define-key map "b" 'eww-add-bookmark)
     (define-key map "B" 'eww-list-bookmarks)
@@ -717,6 +746,7 @@ the like."
 	["Exit" quit-window t]
 	["Close browser" quit-window t]
 	["Reload" eww-reload t]
+	["Follow URL in new buffer" eww-open-in-new-buffer]
 	["Back to previous page" eww-back-url
 	 :active (not (zerop (length eww-history)))]
 	["Forward to next page" eww-forward-url
@@ -726,10 +756,13 @@ the like."
 	["View page source" eww-view-source]
 	["Copy page URL" eww-copy-page-url t]
 	["List histories" eww-list-histories t]
+	["Switch to buffer" eww-switch-to-buffer t]
 	["List buffers" eww-list-buffers t]
 	["Add bookmark" eww-add-bookmark t]
 	["List bookmarks" eww-list-bookmarks t]
 	["List cookies" url-cookie-list t]
+	["Toggle fonts" eww-toggle-fonts t]
+	["Toggle colors" eww-toggle-colors t]
         ["Character Encoding" eww-set-character-encoding]
         ["Toggle Paragraph Direction" eww-toggle-paragraph-direction]))
     map))
@@ -1516,6 +1549,24 @@ If CHARSET is nil then use UTF-8."
       (eww-reload nil 'utf-8)
     (eww-reload nil charset)))
 
+(defun eww-switch-to-buffer ()
+  "Prompt for an EWW buffer to display in the selected window."
+  (interactive)
+  (let ((completion-extra-properties
+         '(:annotation-function (lambda (buf)
+                                  (with-current-buffer buf
+                                    (format " %s" (eww-current-url)))))))
+    (pop-to-buffer-same-window
+     (read-buffer "Switch to EWW buffer: "
+                  (cl-loop for buf in (nreverse (buffer-list))
+                           if (with-current-buffer buf (derived-mode-p 'eww-mode))
+                           return buf)
+                  t
+                  (lambda (bufn)
+                    (with-current-buffer
+                        (if (consp bufn) (cdr bufn) (get-buffer bufn))
+                      (derived-mode-p 'eww-mode)))))))
+
 (defun eww-toggle-fonts ()
   "Toggle whether to use monospaced or font-enabled layouts."
   (interactive)
@@ -1523,6 +1574,15 @@ If CHARSET is nil then use UTF-8."
   (eww-reload)
   (message "Proportional fonts are now %s"
            (if shr-use-fonts "on" "off")))
+
+(defun eww-toggle-colors ()
+  "Toggle whether to use HTML-specified colors or not."
+  (interactive)
+  (message "Colors are now %s"
+	   (if (setq shr-use-colors (not shr-use-colors))
+	       "on"
+	     "off"))
+  (eww-reload))
 
 ;;; Bookmarks code
 
@@ -1964,7 +2024,7 @@ Otherwise, the restored buffer will contain a prompt to do so by using
 			    (list :url (plist-get misc-data :uri))))
     (unless file-name
       (when (plist-get eww-data :url)
-	(case eww-restore-desktop
+	(cl-case eww-restore-desktop
 	  ((t auto) (eww (plist-get eww-data :url)))
 	  ((zerop (buffer-size))
 	   (let ((inhibit-read-only t))

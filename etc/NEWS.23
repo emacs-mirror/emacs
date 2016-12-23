@@ -551,7 +551,7 @@ System (CLOS).  It is used by the other CEDET packages.
 
 ** js.el is a new major mode for JavaScript files.
 
-** imap-hash.el is a new library to address IMAP mailboxes as hashtables.
+** imap-hash.el is a new library to address IMAP mailboxes as hash tables.
 
 
 * Incompatible Lisp Changes in Emacs 23.2

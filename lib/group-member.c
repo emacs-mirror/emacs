@@ -97,14 +97,10 @@ group_member (gid_t gid)
 
 #ifdef TEST
 
-char *program_name;
-
 int
 main (int argc, char **argv)
 {
   int i;
-
-  program_name = argv[0];
 
   for (i = 1; i < argc; i++)
     {

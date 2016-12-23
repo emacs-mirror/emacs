@@ -137,6 +137,9 @@ BODY can start with a bunch of keyword arguments.  The following keyword
 :abbrev-table TABLE
 	Use TABLE instead of the default (CHILD-abbrev-table).
 	A nil value means to simply use the same abbrev-table as the parent.
+:after-hook FORM
+	A single lisp form which is evaluated after the mode hooks have been
+	run.  It should not be quoted.
 
 Here is how you could define LaTeX-Thesis mode as a variant of LaTeX mode:
 
@@ -184,7 +187,8 @@ See Info node `(elisp)Derived Modes' for more details."
 	(declare-abbrev t)
 	(declare-syntax t)
 	(hook (derived-mode-hook-name child))
-	(group nil))
+	(group nil)
+        (after-hook nil))
 
     ;; Process the keyword args.
     (while (keywordp (car body))
@@ -192,6 +196,7 @@ See Info node `(elisp)Derived Modes' for more details."
 	(`:group (setq group (pop body)))
 	(`:abbrev-table (setq abbrev (pop body)) (setq declare-abbrev nil))
 	(`:syntax-table (setq syntax (pop body)) (setq declare-syntax nil))
+        (`:after-hook (setq after-hook (pop body)))
 	(_ (pop body))))
 
     (setq docstring (derived-mode-make-docstring
@@ -212,16 +217,17 @@ No problems result if this variable is not bound.
        ,(if declare-syntax
 	    `(progn
 	       (unless (boundp ',syntax)
-		 (put ',syntax 'definition-name ',child))
-	       (defvar ,syntax (make-syntax-table))
+		 (put ',syntax 'definition-name ',child)
+		 (defvar ,syntax (make-syntax-table)))
 	       (unless (get ',syntax 'variable-documentation)
 		 (put ',syntax 'variable-documentation
 		      (purecopy ,(format "Syntax table for `%s'." child))))))
        ,(if declare-abbrev
 	    `(progn
-	       (put ',abbrev 'definition-name ',child)
-	       (defvar ,abbrev
-		 (progn (define-abbrev-table ',abbrev nil) ,abbrev))
+	       (unless (boundp ',abbrev)
+		 (put ',abbrev 'definition-name ',child)
+		 (defvar ,abbrev
+		   (progn (define-abbrev-table ',abbrev nil) ,abbrev)))
 	       (unless (get ',abbrev 'variable-documentation)
 		 (put ',abbrev 'variable-documentation
 		      (purecopy ,(format "Abbrev table for `%s'." child))))))
@@ -272,7 +278,11 @@ No problems result if this variable is not bound.
 	  ,@body
 	  )
 	 ;; Run the hooks, if any.
-         (run-mode-hooks ',hook)))))
+         (run-mode-hooks ',hook)
+         ,@(when after-hook
+             `((if delay-mode-hooks
+                   (push ',after-hook delayed-after-hook-forms)
+                 ,after-hook)))))))
 
 ;; PUBLIC: find the ultimate class of a derived mode.
 
@@ -344,7 +354,7 @@ which more-or-less shadow%s %s's corresponding table%s."
 			 (format "`%s' " parent))
 		       "might have run,\nthis mode "))
 		    (format "runs the hook `%s'" hook)
-		    ", as the final step\nduring initialization.")))
+		    ", as the final or penultimate step\nduring initialization.")))
 
     (unless (string-match "\\\\[{[]" docstring)
       ;; And don't forget to put the mode's keymap.

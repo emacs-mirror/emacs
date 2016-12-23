@@ -39,7 +39,8 @@
 (require 'xml)
 (require 'browse-url)
 (require 'mm-util)
-(eval-and-compile (unless (featurep 'xemacs) (require 'help-fns)))
+(require 'help-fns)
+(require 'url-queue)
 
 (defcustom gnus-html-image-cache-ttl (days-to-time 7)
   "Time used to determine if we should use images from the cache."
@@ -88,27 +89,9 @@ fit these criteria."
     (define-key map [tab] 'widget-forward)
     map))
 
-(eval-and-compile
-  (defalias 'gnus-html-encode-url-chars
-    (if (fboundp 'browse-url-url-encode-chars)
-	'browse-url-url-encode-chars
-      (lambda (text chars)
-	"URL-encode the chars in TEXT that match CHARS.
-CHARS is a regexp-like character alternative (e.g., \"[)$]\")."
-	(let ((encoded-text (copy-sequence text))
-	      (s 0))
-	  (while (setq s (string-match chars encoded-text s))
-	    (setq encoded-text
-		  (replace-match (format "%%%x"
-					 (string-to-char
-					  (match-string 0 encoded-text)))
-				 t t encoded-text)
-		  s (1+ s)))
-	  encoded-text)))))
-
 (defun gnus-html-encode-url (url)
   "Encode URL."
-  (gnus-html-encode-url-chars url "[)$ ]"))
+  (browse-url-url-encode-chars url "[)$ ]"))
 
 (defun gnus-html-cache-expired (url ttl)
   "Check if URL is cached for more than TTL."
@@ -143,7 +126,7 @@ CHARS is a regexp-like character alternative (e.g., \"[)$]\")."
 				      charset nil t))
 		       (not (eq charset 'ascii)))
 	      (insert (prog1
-			  (mm-decode-coding-string (buffer-string) charset)
+			  (decode-coding-string (buffer-string) charset)
 			(erase-buffer)
 			(mm-enable-multibyte))))
 	    (call-process-region (point-min) (point-max)
@@ -197,7 +180,7 @@ CHARS is a regexp-like character alternative (e.g., \"[)$]\")."
 	      alt-text (when (string-match "\\(alt\\|title\\)=\"\\([^\"]+\\)"
 					   parameters)
 			 (xml-substitute-special (match-string 2 parameters))))
-	(gnus-add-text-properties
+	(add-text-properties
 	 start end
 	 (list 'image-url url
 	       'image-displayer `(lambda (url start end)
@@ -310,7 +293,7 @@ Use ALT-TEXT for the image string."
 	  (let ((overlay (make-overlay start end)))
 	    (overlay-put overlay 'evaporate t)
 	    (overlay-put overlay 'gnus-button-url url)
-	    (gnus-put-text-property start end 'gnus-string url)
+	    (put-text-property start end 'gnus-string url)
 	    (when gnus-article-mouse-face
 	      (overlay-put overlay 'mouse-face gnus-article-mouse-face)))))
        ;; The upper-case IMG_ALT is apparently just an artifact that
@@ -391,14 +374,9 @@ Use ALT-TEXT for the image string."
   "Retrieve IMAGE, and place it into BUFFER on arrival."
   (gnus-message 8 "gnus-html-schedule-image-fetching: buffer %s, image %s"
                 buffer image)
-  (if (fboundp 'url-queue-retrieve)
-      (url-queue-retrieve (car image)
-			  'gnus-html-image-fetched
-			  (list buffer image) t t)
-    (ignore-errors
-      (url-retrieve (car image)
-		    'gnus-html-image-fetched
-		    (list buffer image)))))
+  (url-queue-retrieve (car image)
+		      'gnus-html-image-fetched
+		      (list buffer image) t t))
 
 (defun gnus-html-image-fetched (status buffer image)
   "Callback function called when image has been fetched."
@@ -427,7 +405,7 @@ Return a string with image data."
 
 (defun gnus-html-maximum-image-size ()
   "Return the maximum size of an image according to `gnus-max-image-proportion'."
-  (let ((edges (gnus-window-inside-pixel-edges
+  (let ((edges (window-inside-pixel-edges
                 (get-buffer-window (current-buffer)))))
     ;; (width . height)
     (cons
@@ -444,7 +422,7 @@ Return a string with image data."
 
 (defun gnus-html-put-image (data url &optional alt-text)
   "Put an image with DATA from URL and optional ALT-TEXT."
-  (when (gnus-graphic-display-p)
+  (when (display-graphic-p)
     (let* ((start (text-property-any (point-min) (point-max)
 				     'image-url url))
            (end (when start
@@ -454,10 +432,7 @@ Return a string with image data."
         (let* ((image
                 (ignore-errors
                   (gnus-create-image data nil t)))
-               (size (and image
-                          (if (featurep 'xemacs)
-                              (cons (glyph-width image) (glyph-height image))
-                            (image-size image t)))))
+               (size (and image (image-size image t))))
           (save-excursion
             (goto-char start)
             (let ((alt-text (or alt-text
@@ -466,16 +441,8 @@ Return a string with image data."
               (if (and image
                        ;; Kludge to avoid displaying 30x30 gif images, which
                        ;; seems to be a signal of a broken image.
-                       (not (and (if (featurep 'xemacs)
-                                     (glyphp image)
-                                   (listp image))
-                                 (eq (if (featurep 'xemacs)
-                                         (let ((d (cdadar
-						   (specifier-spec-list
-						    (glyph-image image)))))
-                                           (and (vectorp d)
-                                                (aref d 0)))
-                                       (plist-get (cdr image) :type))
+                       (not (and (listp image)
+                                 (eq (plist-get (cdr image) :type)
                                      'gif)
                                  (= (car size) 30)
                                  (= (cdr size) 30))))
@@ -488,10 +455,9 @@ Return a string with image data."
 		     :help-echo alt-text
 		     :keymap gnus-html-displayed-image-map
 		     url)
-                    (gnus-put-text-property start (point)
-					    'gnus-alt-text alt-text)
+                    (put-text-property start (point) 'gnus-alt-text alt-text)
                     (when url
-		      (gnus-add-text-properties
+		      (add-text-properties
 		       start (point)
 		       `(image-url
 			 ,url

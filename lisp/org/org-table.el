@@ -303,7 +303,7 @@ The car of each element is a name of a constant, without the `$' before it.
 The cdr is the value as a string.  For example, if you'd like to use the
 speed of light in a formula, you would configure
 
-  (setq org-table-formula-constants '((\"c\" . \"299792458.\")))
+  (setq org-table-formula-constants \\='((\"c\" . \"299792458.\")))
 
 and then use it in an equation like `$1*$c'.
 

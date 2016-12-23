@@ -34,10 +34,7 @@
 ;; preceding part of the instance.  This allows the instance to be
 ;; parsed incrementally.  The main entry point is `xmltok-forward':
 ;; this can be called at any point in the instance provided it is
-;; between tokens.  The other entry point is `xmltok-forward-special'
-;; which skips over tokens other comments, processing instructions or
-;; CDATA sections (i.e. the constructs in an instance that can contain
-;; less than signs that don't start a token).
+;; between tokens.
 ;;
 ;; This is a non-validating XML 1.0 processor.  It does not resolve
 ;; parameter entities (including the external DTD subset) and it does
@@ -262,11 +259,10 @@ and VALUE-END, otherwise a STRING giving the value."
   (vector message start end))
 
 (defun xmltok-add-error (message &optional start end)
-  (setq xmltok-errors
-	(cons (xmltok-make-error message
-				 (or start xmltok-start)
-				 (or end (point)))
-	      xmltok-errors)))
+  (push (xmltok-make-error message
+                           (or start xmltok-start)
+                           (or end (point)))
+        xmltok-errors))
 
 (defun xmltok-forward ()
   (setq xmltok-start (point))
@@ -307,18 +303,6 @@ and VALUE-END, otherwise a STRING giving the value."
 	  (t
 	   (goto-char (point-max))
 	   (setq xmltok-type 'data)))))
-
-(defun xmltok-forward-special (bound)
-  "Scan forward past the first special token starting at or after point.
-Return nil if there is no special token that starts before BOUND.
-CDATA sections, processing instructions and comments (and indeed
-anything starting with < following by ? or !) count as special.
-Return the type of the token."
-  (when (re-search-forward "<[?!]" (1+ bound) t)
-    (setq xmltok-start (match-beginning 0))
-    (goto-char (1+ xmltok-start))
-    (let ((case-fold-search nil))
-      (xmltok-scan-after-lt))))
 
 (eval-when-compile
 
@@ -739,19 +723,10 @@ Return the type of the token."
   (setq xmltok-type 'processing-instruction))
 
 (defun xmltok-scan-after-comment-open ()
-  (let ((found-- (search-forward "--" nil 'move)))
-    (setq xmltok-type
-          (cond ((or (eq (char-after) ?>) (not found--))
-                 (goto-char (1+ (point)))
-                 'comment)
-                (t
-                 ;; just include the <!-- in the token
-                 (goto-char (+ xmltok-start 4))
-                 ;; Need do this after the goto-char because
-                 ;; marked error should just apply to <!--
-                 (xmltok-add-error "First following `--' not followed by `>'")
-                 (goto-char (point-max))
-                 'comment)))))
+  (while (and (re-search-forward "--\\(>\\)?" nil 'move)
+              (not (match-end 1)))
+    (xmltok-add-error "`--' not followed by `>'" (match-beginning 0)))
+  (setq xmltok-type 'comment))
 
 (defun xmltok-scan-attributes ()
   (let ((recovering nil)

@@ -669,8 +669,9 @@ reason.
 This function is used to ask a user how to proceed after an attempt to
 modify an buffer visiting file @var{filename} when the file is newer
 than the buffer text.  Emacs detects this because the modification
-time of the file on disk is newer than the last save-time of the
-buffer.  This means some other program has probably altered the file.
+time of the file on disk is newer than the last save-time and its contents
+have changed.
+This means some other program has probably altered the file.
 
 @kindex file-supersession
 Depending on the user's answer, the function may return normally, in

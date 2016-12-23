@@ -70,13 +70,6 @@ buffer does not look like a news message."
   :type 'boolean
   :group 'canlock)
 
-(eval-when-compile
-  (defmacro canlock-string-as-unibyte (string)
-    "Return a unibyte string with the same individual bytes as STRING."
-    (if (fboundp 'string-as-unibyte)
-	(list 'string-as-unibyte string)
-      string)))
-
 (defun canlock-sha1 (message)
   "Make a SHA-1 digest of MESSAGE as a unibyte string of length 20 bytes."
   (let (sha1-maximum-internal-length)
@@ -97,7 +90,7 @@ buffer does not look like a news message."
      (canlock-sha1
       (concat opad
 	      (canlock-sha1
-	       (concat ipad (canlock-string-as-unibyte message-id))))))))
+	       (concat ipad (string-as-unibyte message-id))))))))
 
 (defun canlock-narrow-to-header ()
   "Narrow the buffer to the head of the message."

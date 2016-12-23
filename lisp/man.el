@@ -1,4 +1,4 @@
-;;; man.el --- browse UNIX manual pages
+;;; man.el --- browse UNIX manual pages -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1993-1994, 1996-1997, 2001-2016 Free Software
 ;; Foundation, Inc.
@@ -308,7 +308,7 @@ This regular expression should start with a `^' character.")
 
 (defvar Man-reference-regexp
   (concat "\\(" Man-name-regexp
-	  "\\(\n[ \t]+" Man-name-regexp "\\)*\\)[ \t]*(\\("
+	  "\\(‐?\n[ \t]+" Man-name-regexp "\\)*\\)[ \t]*(\\("
 	  Man-section-regexp "\\))")
   "Regular expression describing a reference to another manpage.")
 
@@ -432,29 +432,23 @@ Otherwise, the value is whatever the function
 (defvar Man-mode-map
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map)
-    (set-keymap-parent map button-buffer-map)
+    (set-keymap-parent map
+      (make-composed-keymap button-buffer-map special-mode-map))
 
-    (define-key map [?\S-\ ] 'scroll-down-command)
-    (define-key map " "    'scroll-up-command)
-    (define-key map "\177" 'scroll-down-command)
     (define-key map "n"    'Man-next-section)
     (define-key map "p"    'Man-previous-section)
     (define-key map "\en"  'Man-next-manpage)
     (define-key map "\ep"  'Man-previous-manpage)
-    (define-key map ">"    'end-of-buffer)
-    (define-key map "<"    'beginning-of-buffer)
     (define-key map "."    'beginning-of-buffer)
     (define-key map "r"    'Man-follow-manual-reference)
     (define-key map "g"    'Man-goto-section)
     (define-key map "s"    'Man-goto-see-also-section)
     (define-key map "k"    'Man-kill)
-    (define-key map "q"    'Man-quit)
     (define-key map "u"    'Man-update-manpage)
     (define-key map "m"    'man)
     ;; Not all the man references get buttons currently.  The text in the
     ;; manual page can contain references to other man pages
     (define-key map "\r"   'man-follow)
-    (define-key map "?"    'describe-mode)
 
     (easy-menu-define nil map
       "`Man-mode' menu."
@@ -476,7 +470,7 @@ Otherwise, the value is whatever the function
         "--"
         ["Man..." man t]
         ["Kill Buffer" Man-kill t]
-        ["Quit" Man-quit t]))
+        ["Quit" quit-window t]))
     map)
   "Keymap for Man mode.")
 
@@ -779,7 +773,7 @@ POS defaults to `point'."
       ;;     see this-
       ;;     command-here(1)
       ;; Note: This code gets executed iff our entry is after POS.
-      (when (looking-at "[ \t\r\n]+\\([-a-zA-Z0-9._+:]+\\)([0-9])")
+      (when (looking-at "‐?[ \t\r\n]+\\([-a-zA-Z0-9._+:]+\\)([0-9])")
 	(setq word (concat word (match-string-no-properties 1)))
 	;; Make sure the section number gets included by the code below.
 	(goto-char (match-end 1)))
@@ -887,7 +881,7 @@ test/automated/man-tests.el in the emacs repository."
           (setq default-directory "/") ;; in case inherited doesn't exist
           ;; Actually for my `man' the arg is a regexp.
           ;; POSIX says it must be ERE and "man-db" seems to agree,
-          ;; whereas under MacOSX it seems to be BRE-style and doesn't
+          ;; whereas under macOS it seems to be BRE-style and doesn't
           ;; accept backslashes at all.  Let's not bother to
           ;; quote anything.
           (let ((process-environment (copy-sequence process-environment)))
@@ -1430,8 +1424,17 @@ manpage command."
 			(quit-restore-window
 			 (get-buffer-window (current-buffer) t) 'kill)
 		      (kill-buffer (current-buffer)))
-		    (message "Can't find the %s manpage"
-			     (Man-page-from-arguments args)))
+                    ;; Entries hyphenated due to the window's width
+                    ;; won't be found in the man database, so remove
+                    ;; the hyphenation -- assuming Groff hyphenates
+                    ;; either with hyphen-minus (ASCII 45, #x2d),
+                    ;; hyphen (#x2010) or soft hyphen (#xad) -- and
+                    ;; look again.
+		    (if (string-match "[-‐­]" args)
+			(let ((str (replace-match "" nil nil args)))
+			  (Man-getpage-in-background str))
+                      (message "Can't find the %s manpage"
+                               (Man-page-from-arguments args))))
 
 		(if Man-fontify-manpage-flag
 		    (message "%s man page formatted"
@@ -1465,9 +1468,7 @@ manpage command."
 
 (defvar bookmark-make-record-function)
 
-(put 'Man-mode 'mode-class 'special)
-
-(define-derived-mode Man-mode fundamental-mode "Man"
+(define-derived-mode Man-mode special-mode "Man"
   "A mode for browsing Un*x manual pages.
 
 The following man commands are available in the buffer.  Try
@@ -1481,7 +1482,7 @@ The following man commands are available in the buffer.  Try
 \\[Man-previous-section]       Jump to previous manpage section.
 \\[Man-goto-section]       Go to a manpage section.
 \\[Man-goto-see-also-section]       Jumps to the SEE ALSO manpage section.
-\\[Man-quit]       Deletes the manpage window, bury its buffer.
+\\[quit-window]       Deletes the manpage window, bury its buffer.
 \\[Man-kill]       Deletes the manpage window, kill its buffer.
 \\[describe-mode]       Prints this help text.
 
@@ -1508,8 +1509,7 @@ The following key bindings are currently in effect in the buffer:
 	mode-line-buffer-identification
 	(list (default-value 'mode-line-buffer-identification)
 	      " {" 'Man-page-mode-string "}")
-	truncate-lines t
-	buffer-read-only t)
+	truncate-lines t)
   (buffer-disable-undo)
   (auto-fill-mode -1)
   (setq imenu-generic-expression (list (list nil Man-heading-regexp 0)))
@@ -1784,11 +1784,6 @@ Specify which REFERENCE to use; default is based on word at point."
   "Kill the buffer containing the manpage."
   (interactive)
   (quit-window t))
-
-(defun Man-quit ()
-  "Bury the buffer containing the manpage."
-  (interactive)
-  (quit-window))
 
 (defun Man-goto-page (page &optional noerror)
   "Go to the manual page on page PAGE."

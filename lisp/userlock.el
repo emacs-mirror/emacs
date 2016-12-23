@@ -97,6 +97,41 @@ You can <q>uit; don't modify this file.")
 
 (define-error 'file-supersession nil 'file-error)
 
+(defun userlock--check-content-unchanged (fn)
+  (with-demoted-errors "Unchanged content check: %S"
+    ;; Even tho we receive `fn', we know that `fn' refers to the current
+    ;; buffer's file.
+    (cl-assert (equal fn (expand-file-name buffer-file-truename)))
+    ;; Note: rather than read the file and compare to the buffer, we could save
+    ;; the buffer and compare to the file, but for encrypted data this
+    ;; wouldn't work well (and would risk exposing the data).
+    (save-restriction
+      (widen)
+      (let ((buf (current-buffer))
+            (cs buffer-file-coding-system)
+            (start (point-min))
+            (end (point-max)))
+        ;; FIXME: To avoid a slow `insert-file-contents' on large or
+        ;; remote files, it'd be good to include file size in the
+        ;; "visited-modtime" check.
+        (when (with-temp-buffer
+                (let ((coding-system-for-read cs)
+                      (non-essential t))
+                  (insert-file-contents fn))
+                (when (= (buffer-size) (- end start)) ;Minor optimization.
+                  (= 0 (let ((case-fold-search nil))
+                         (compare-buffer-substrings
+                          buf start end
+                          (current-buffer) (point-min) (point-max))))))
+          (set-visited-file-modtime)
+          'unchanged)))))
+
+;;;###autoload
+(defun userlock--ask-user-about-supersession-threat (fn)
+  ;; Called from filelock.c.
+  (unless (userlock--check-content-unchanged fn)
+    (ask-user-about-supersession-threat fn)))
+
 ;;;###autoload
 (defun ask-user-about-supersession-threat (fn)
   "Ask a user who is about to modify an obsolete buffer what to do.

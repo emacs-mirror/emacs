@@ -613,6 +613,9 @@ This face underlines text.
 This face forces use of a fixed-width font.  It's reasonable to
 customize this face to use a different fixed-width font, if you like,
 but you should not make it a variable-width font.
+@item fixed-pitch-serif
+This face is like @code{fixed-pitch}, except the font has serifs and
+looks more like traditional typewriting.
 @cindex variable-pitch face
 @item variable-pitch
 This face forces use of a variable-width font.
@@ -654,8 +657,15 @@ Whitespace}).
 @item escape-glyph
 The face for displaying control characters and escape sequences
 (@pxref{Text Display}).
+@item homoglyph
+The face for displaying lookalike characters, i.e., characters that
+look like but are not the characters being represented
+(@pxref{Text Display}).
 @item nobreak-space
 The face for displaying no-break space characters (@pxref{Text
+Display}).
+@item nobreak-hyphen
+The face for displaying no-break hyphen characters (@pxref{Text
 Display}).
 @end table
 
@@ -1487,7 +1497,7 @@ characters.  To deal with this problem, Emacs displays such characters
 specially: it displays @code{U+00A0} (no-break space) with the
 @code{nobreak-space} face, and it displays @code{U+00AD} (soft
 hyphen), @code{U+2010} (hyphen), and @code{U+2011} (non-breaking
-hyphen) with the @code{escape-glyph} face.  To disable this, change
+hyphen) with the @code{nobreak-hyphen} face.  To disable this, change
 the variable @code{nobreak-char-display} to @code{nil}.  If you give
 this variable a non-@code{nil} and non-@code{t} value, Emacs instead
 displays such characters as a highlighted backslash followed by a
@@ -1514,12 +1524,12 @@ for details.
 
 @cindex curly quotes
 @cindex curved quotes
-@cindex escape-glyph face
+@cindex homoglyph face
   If the curved quotes @samp{‘}, @samp{’}, @samp{“}, and @samp{”} are
 known to look just like @acronym{ASCII} characters, they are shown
-with the @code{escape-glyph} face.  Curved quotes that cannot be
+with the @code{homoglyph} face.  Curved quotes that cannot be
 displayed are shown as their @acronym{ASCII} approximations @samp{`},
-@samp{'}, and @samp{"} with the @code{escape-glyph} face.
+@samp{'}, and @samp{"} with the @code{homoglyph} face.
 
 @node Cursor Display
 @section Displaying the Cursor

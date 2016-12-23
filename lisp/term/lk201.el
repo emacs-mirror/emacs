@@ -80,4 +80,6 @@
     (set-keymap-parent m (keymap-parent input-decode-map))
     (set-keymap-parent input-decode-map m)))
 
+(provide 'term/lk201)
+
 ;;; lk201.el ends here

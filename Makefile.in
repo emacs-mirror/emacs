@@ -113,7 +113,7 @@ am__v_at_1 =
 
 # ==================== Where To Install Things ====================
 
-# Location to install Emacs.app under GNUstep / Mac OS X.
+# Location to install Emacs.app under GNUstep / macOS.
 # Later values may use these.
 ns_appbindir=@ns_appbindir@
 ns_appresdir=@ns_appresdir@
@@ -152,6 +152,9 @@ sharedstatedir=@sharedstatedir@
 # are actually installed in ${archlibdir}, which is (normally)
 # a subdirectory of this.
 libexecdir=@libexecdir@
+
+# Currently only used for the systemd service file.
+libdir=@libdir@
 
 # Where to install Emacs's man pages.
 # Note they contain cross-references that expect them to be in section 1.
@@ -195,6 +198,17 @@ desktopdir=$(datarootdir)/applications
 
 # Where the etc/emacs.appdata.xml file is to be installed.
 appdatadir=$(datarootdir)/appdata
+
+# Where the etc/emacs.service file is to be installed.
+# The system value (typically /usr/lib/systemd/user) can be
+# obtained with: pkg-config --variable=systemduserunitdir systemd
+# but that does not respect configure's prefix.
+# It is not clear where we should install this file when
+# prefix != /usr (or /usr/local?) (eg for non-root installs).
+# Other options include ~/.config/systemd/user/,
+# $XDG_RUNTIME_DIR/systemd/user/
+# It seems the user may end up having to make a manual link...
+systemdunitdir=$(libdir)/systemd/user
 
 # Where the etc/images/icons/hicolor directory is to be installed.
 icondir=$(datarootdir)/icons
@@ -584,7 +598,7 @@ install-arch-indep: lisp install-info install-man ${INSTALL_ARCH_INDEP_EXTRA}
 	  if [ "$${dir}" = "${srcdir}/etc" ]; then \
 	      rm -f "$${dest}/DOC"* ; \
 	      rm -f "$${dest}/refcards"/*.aux "$${dest}/refcards"/*.dvi; \
-	      rm -f "$${dest}/refcards"/*.log; \
+	      rm -f "$${dest}/refcards"/*.log "$${dest}/refcards"/*.in; \
 	  else true; \
 	  fi; \
 	  (cd "$${dest}" || exit 1; \
@@ -714,6 +728,18 @@ install-etc:
 	  ${srcdir}/etc/emacs.appdata.xml > $${tmp}; \
 	${INSTALL_DATA} $${tmp} "$(DESTDIR)${appdatadir}/${EMACS_NAME}.appdata.xml"; \
 	rm -f $${tmp}
+	umask 022; $(MKDIR_P) "$(DESTDIR)$(systemdunitdir)"
+	tmp=etc/emacs.tmpservice; rm -f $${tmp}; \
+	emacs_name=`echo emacs | sed '$(TRANSFORM)'`; \
+	exe_name=$${emacs_name}${EXEEXT}; \
+	client_name=`echo emacsclient | sed '$(TRANSFORM)'`${EXEEXT}; \
+	sed -e '/^##/d' \
+	  -e "/^Documentation/ s/emacs(1)/$${emacs_name}(1)/" \
+	  -e "/^ExecStart/ s|emacs|${bindir}/$${exe_name}|" \
+	  -e "/^ExecStop/ s|emacsclient|${bindir}/$${client_name}|" \
+	  ${srcdir}/etc/emacs.service > $${tmp}; \
+	$(INSTALL_DATA) $${tmp} "$(DESTDIR)$(systemdunitdir)/${EMACS_NAME}.service"; \
+	rm -f $${tmp}
 	thisdir=`/bin/pwd`; \
 	cd ${iconsrcdir} || exit 1; umask 022 ; \
 	for dir in */*/apps */*/mimetypes; do \
@@ -779,6 +805,7 @@ uninstall: uninstall-$(NTDIR) uninstall-doc
 	fi)
 	-rm -f "$(DESTDIR)${desktopdir}/${EMACS_NAME}.desktop"
 	-rm -f "$(DESTDIR)${appdatadir}/${EMACS_NAME}.appdata.xml"
+	-rm -f "$(DESTDIR)$(systemdunitdir)/${EMACS_NAME}.service"
 	for file in snake-scores tetris-scores; do \
 	  file="$(DESTDIR)${gamedir}/$${file}"; \
 	  [ -s "$${file}" ] || rm -f "$$file"; \
@@ -925,13 +952,16 @@ extraclean: $(extraclean_dirs:=_extraclean)
 TAGS tags: lib lib-src src
 	$(MAKE) -C src tags
 
-check check-expensive: all
-	@if test ! -d test/automated; then \
+.PHONY: have-tests
+have-tests:
+	@if test ! -d test; then \
 	  echo "You do not seem to have the test/ directory."; \
 	  echo "Maybe you are using a release tarfile, rather than a repository checkout."; \
-	else \
-	  $(MAKE) -C test/automated $@; \
+	 exit 1; \
 	fi
+
+check check-maybe check-expensive: have-tests all
+	$(MAKE) -C test $@
 
 dist:
 	cd ${srcdir}; ./make-dist
@@ -947,7 +977,7 @@ $(DOCS):
 	$(MAKE) -C doc/$(subst -, ,$@)
 
 .PHONY: $(DOCS) docs pdf ps
-.PHONY: info dvi dist check check-expensive html info-real info-dir check-info
+.PHONY: info dvi dist check check-maybe check-expensive html info-real info-dir check-info
 
 ## TODO add etc/refcards.
 docs: $(DOCS)
@@ -1087,20 +1117,22 @@ check-info: info
 #  * Run autogen.sh.
 #  * Rebuild Makefile, to update the build procedure itself.
 #  * Do the actual build.
-bootstrap: bootstrap-clean
+bootstrap: | bootstrap-clean bootstrap-build
+
+bootstrap-build:
 	cd $(srcdir) && ./autogen.sh
 	$(MAKE) MAKEFILE_NAME=force-Makefile force-Makefile
 	$(MAKE) all
 
 .PHONY: ChangeLog change-history change-history-commit change-history-nocommit
-.PHONY: emacs-25-branch-is-current unchanged-history-files
+.PHONY: preferred-branch-is-current unchanged-history-files
 
 CHANGELOG = ChangeLog
 emacslog = build-aux/gitlog-to-emacslog
 # The ChangeLog history files are called ChangeLog.1, ChangeLog.2, ...,
 # ChangeLog.$(CHANGELOG_HISTORY_INDEX_MAX).  $(CHANGELOG_N) stands for
 # the newest (highest-numbered) ChangeLog history file.
-CHANGELOG_HISTORY_INDEX_MAX = 2
+CHANGELOG_HISTORY_INDEX_MAX = 3
 CHANGELOG_N = ChangeLog.$(CHANGELOG_HISTORY_INDEX_MAX)
 
 # Convert git commit log to ChangeLog file.  make-dist uses this.
@@ -1110,8 +1142,9 @@ ChangeLog:
 	  ./$(emacslog) -o $(CHANGELOG) -n $(CHANGELOG_HISTORY_INDEX_MAX)
 
 # Check that we are in a good state for changing history.
-emacs-25-branch-is-current:
-	git branch | grep -q '^\* emacs-25$$'
+PREFERRED_BRANCH = master
+preferred-branch-is-current:
+	git branch | grep -q '^\* $(PREFERRED_BRANCH)$$'
 unchanged-history-files:
 	x=$$(git diff-files --name-only $(CHANGELOG_N) $(emacslog)) && \
 	  test -z "$$x"
@@ -1121,7 +1154,7 @@ new_commit_regexp = ^commit [0123456789abcdef]* (inclusive)
 
 # Copy newer commit messages to the start of the ChangeLog history file,
 # and consider them to be older.
-change-history-nocommit: emacs-25-branch-is-current unchanged-history-files
+change-history-nocommit: preferred-branch-is-current unchanged-history-files
 	-rm -f ChangeLog.tmp
 	$(MAKE) ChangeLog CHANGELOG=ChangeLog.tmp
 	sed '/^This file records repository revisions/,$$d' \
@@ -1149,3 +1182,18 @@ check-declare:
 	  exit 1; \
 	fi
 	$(MAKE) -C lisp $@
+
+## Generating ldefs-boot-auto.el requires a completely clean build so
+## that we can see which autoloads are actually called.  The build has
+## to complete because we use Emacs to clean the results up!  We use
+## loaddefs.el in place of ldefs-boot-auto, because if we are running
+## this there is the possibility that ldefs-boot-auto is not
+## sufficient for bootstrap.
+generate-ldefs-boot: all
+	echo "Generating Bootstrap ldefs"
+	cp lisp/loaddefs.el lisp/ldefs-boot-auto.el
+	$(MAKE) -j 1 bootstrap \
+	GENERATE_LDEFS_BOOT="generate-ldefs-boot" \
+	2>&1 | tee lisp/ldefs-boot-auto.temp
+	$(EMACS) -batch --load admin/ldefs-clean.el --funcall ldefs-clean
+	rm lisp/ldefs-boot-auto.temp

@@ -112,8 +112,8 @@ compiled into the Emacs executable when it was built.
 It runs the normal hook @code{before-init-hook}.
 
 @item
-If appropriate, it creates a graphical frame.  This is not done if the
-options @samp{--batch} or @samp{--daemon} were specified.
+If appropriate, it creates a graphical frame.  This is not done in
+batch (noninteractive) or daemon mode.
 
 @item
 It initializes the initial frame's faces, and sets up the menu bar
@@ -256,10 +256,10 @@ options were specified.
 @c last few bits of command-line-1 are not done in batch mode.
 
 @item
-If the option @code{--daemon} was specified, it calls
-@code{server-start}, and on Posix systems also detaches from the
-controlling terminal.  @xref{Emacs Server,,, emacs, The GNU Emacs
-Manual}.
+If a daemon was requested, it calls @code{server-start}.
+(On Posix systems, if a background daemon was requested, it then
+detaches from the controlling terminal.)  @xref{Emacs
+Server,,, emacs, The GNU Emacs Manual}.
 
 @item
 If started by the X session manager, it calls
@@ -337,7 +337,10 @@ Do not display a splash screen.
 Run without an interactive terminal.  @xref{Batch Mode}.
 
 @item --daemon
-Do not initialize any display; just start a server in the background.
+@itemx --old-daemon
+@itemx --new-daemon
+Do not initialize any display; just start a server.
+(An ``old-style'' daemon automatically runs in the background.)
 
 @item --no-init-file
 @itemx -q
@@ -888,7 +891,7 @@ Berkeley BSD and its variants.
 Cygwin, a Posix layer on top of MS-Windows.
 
 @item darwin
-Darwin (Mac OS X).
+Darwin (macOS).
 
 @item gnu
 The GNU system (using the GNU kernel, which consists of the HURD and Mach).
@@ -903,9 +906,6 @@ A GNU (glibc-based) system with a FreeBSD kernel.
 
 @item hpux
 Hewlett-Packard HPUX operating system.
-
-@item irix
-Silicon Graphics Irix system.
 
 @item nacl
 Google Native Client (@acronym{NaCl}) sandboxing system.
@@ -1057,8 +1057,9 @@ value is a string, and does not include a directory name.
 @end defvar
 
 @defvar invocation-directory
-This variable holds the directory from which the Emacs executable was
-invoked, or @code{nil} if that directory cannot be determined.
+This variable holds the directory in which the Emacs executable was
+located when it was run, or @code{nil} if that directory cannot be
+determined.
 @end defvar
 
 @defvar installation-directory
@@ -1332,7 +1333,13 @@ omitted or @code{nil}, the conversion uses Emacs's default time zone.
 If it is @code{t}, the conversion uses Universal Time.  If it is
 @code{wall}, the conversion uses the system wall clock time.  If it is
 a string, the conversion uses the time zone rule equivalent to setting
-@env{TZ} to that string.
+@env{TZ} to that string.  If it is an integer @var{offset}, the
+conversion uses a fixed time zone with the given offset and a numeric
+abbreviation on POSIX-compatible platforms and an unspecified abbreviation
+on MS-Windows.  If it is a list (@var{offset} @var{abbr}), where
+@var{offset} is an integer number of seconds east of Universal Time
+and @var{abbr} is a string, the conversion uses a fixed time zone with
+the given offset and abbreviation.
 
 @defun current-time-zone &optional time zone
 @cindex time zone, current
@@ -1430,10 +1437,6 @@ yourself before you call @code{encode-time}.
 
 The optional argument @var{zone} defaults to the current time zone rule.
 @xref{Time Zone Rules}.
-In addition to the usual time zone rule values, it can also be a list
-(as you would get from @code{current-time-zone}) or an integer (as
-from @code{decode-time}), applied without any further alteration for
-daylight saving time.
 
 If you pass more than seven arguments to @code{encode-time}, the first
 six are used as @var{seconds} through @var{year}, the last argument is
@@ -1472,7 +1475,7 @@ corresponding time value.
 @defun format-time-string format-string &optional time zone
 
 This function converts @var{time} (or the current time, if
-@var{time} is omitted) to a string according to
+@var{time} is omitted or @code{nil}) to a string according to
 @var{format-string}.  The conversion uses the time zone rule @var{zone}, which
 defaults to the current time zone rule.  @xref{Time Zone Rules}.  The argument
 @var{format-string} may contain @samp{%}-sequences which say to
@@ -1499,6 +1502,12 @@ This stands for the day of month, zero-padded.
 This is a synonym for @samp{%m/%d/%y}.
 @item %e
 This stands for the day of month, blank-padded.
+@item %F
+This stands for the ISO 8601 date format, i.e., @samp{"%Y-%m-%d"}.
+@item %g
+This stands for the year corresponding to the ISO week within the century.
+@item %G
+This stands for the year corresponding to the ISO week.
 @item %h
 This is a synonym for @samp{%b}.
 @item %H
@@ -1523,6 +1532,8 @@ fewer digits, use @samp{%3N} for milliseconds, @samp{%6N} for
 microseconds, etc.  Any excess digits are discarded, without rounding.
 @item %p
 This stands for @samp{AM} or @samp{PM}, as appropriate.
+@item %q
+This stands for the calendar quarter (1--4).
 @item %r
 This is a synonym for @samp{%I:%M:%S %p}.
 @item %R
@@ -1533,9 +1544,13 @@ This stands for the seconds (00--59).
 This stands for a tab character.
 @item %T
 This is a synonym for @samp{%H:%M:%S}.
+@item %u
+This stands for the numeric day of week (1--7).  Monday is day 1.
 @item %U
 This stands for the week of the year (01--52), assuming that weeks
 start on Sunday.
+@item %V
+This stands for the week of the year according to ISO 8601.
 @item %w
 This stands for the numeric day of week (0--6).  Sunday is day 0.
 @item %W
@@ -1690,7 +1705,9 @@ interactively, it prints the duration in the echo area.
 @cindex calendrical computations
 
   These functions perform calendrical computations using time values
-(@pxref{Time of Day}).
+(@pxref{Time of Day}).  A value of @code{nil} for any of their
+time-value arguments stands for the current system time, and a single
+integer number stands for the number of seconds since the epoch.
 
 @defun time-less-p t1 t2
 This returns @code{t} if time value @var{t1} is less than time value
@@ -1699,12 +1716,15 @@ This returns @code{t} if time value @var{t1} is less than time value
 
 @defun time-subtract t1 t2
 This returns the time difference @var{t1} @minus{} @var{t2} between
-two time values, as a time value.
+two time values, as a time value.  If you need the difference in units
+of elapsed seconds, use @code{float-time} (@pxref{Time of Day,
+float-time}) to convert the result into seconds.
 @end defun
 
 @defun time-add t1 t2
 This returns the sum of two time values, as a time value.
-One argument should represent a time difference rather than a point in time.
+One argument should represent a time difference rather than a point in time,
+either as a list or as a single number of elapsed seconds.
 Here is how to add a number of seconds to a time value:
 
 @example
@@ -1727,10 +1747,17 @@ This function returns @code{t} if @var{year} is a leap year.
 
 @node Timers
 @section Timers for Delayed Execution
-@cindex timer
+@cindex timers
 
   You can set up a @dfn{timer} to call a function at a specified
-future time or after a certain length of idleness.
+future time or after a certain length of idleness.  A timer is a
+special object that stores the information about the next invocation
+times and the function to invoke.
+
+@defun timerp object
+This predicate function returns non-@code{nil} of @code{object} is a
+timer.
+@end defun
 
   Emacs cannot run timers at any arbitrary point in a Lisp program; it
 can run them only when Emacs could accept output from a subprocess:
@@ -1865,6 +1892,12 @@ timer---usually, one previously returned by @code{run-at-time} or
 one of these functions; the arrival of the specified time will not
 cause anything special to happen.
 @end defun
+
+@findex timer-list
+The @code{timer-list} command lists all the currently active timers.
+There's only one command available in the buffer displayed: @kbd{c}
+(@code{timer-list-cancel}) that will cancel the timer on the line
+under point.
 
 @node Idle Timers
 @section Idle Timers
@@ -2242,14 +2275,16 @@ The variable is always local to the current terminal, and cannot be
 buffer-local.  @xref{Multiple Terminals}.
 @end defvar
 
-You can specify which keysyms Emacs should use for the Meta, Alt, Hyper, and Super modifiers by setting these variables:
+You can specify which keysyms Emacs should use for the Control, Meta,
+Alt, Hyper, and Super modifiers by setting these variables:
 
-@defvar x-alt-keysym
+@defvar x-ctrl-keysym
+@defvarx x-alt-keysym
 @defvarx x-meta-keysym
 @defvarx x-hyper-keysym
 @defvarx x-super-keysym
-The name of the keysym that should stand for the Alt modifier
-(respectively, for Meta, Hyper, and Super).  For example, here is
+The name of the keysym that should stand for the Control modifier
+(respectively, for Alt, Meta, Hyper, and Super).  For example, here is
 how to swap the Meta and Alt modifiers within Emacs:
 @lisp
 (setq x-alt-keysym 'meta)

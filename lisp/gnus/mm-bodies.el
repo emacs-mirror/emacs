@@ -86,15 +86,15 @@ If no encoding was done, nil is returned."
 		    (message-options-get 'mm-body-charset-encoding-alist)
 		    (message-options-set
 		     'mm-body-charset-encoding-alist
-		     (mm-read-coding-system "Charset used in the article: ")))
+		     (read-coding-system "Charset used in the article: ")))
 	      ;; The logic in `mml-generate-mime-1' confirms that it's OK
 	      ;; to return nil here.
 	      nil)))
     (save-excursion
       (if charset
 	  (progn
-	    (mm-encode-coding-region (point-min) (point-max)
-				     (mm-charset-to-coding-system charset))
+	    (encode-coding-region (point-min) (point-max)
+				  (mm-charset-to-coding-system charset))
 	    charset)
 	(goto-char (point-min))
 	(let ((charsets (mm-find-mime-charset-region (point-min) (point-max)
@@ -110,8 +110,8 @@ If no encoding was done, nil is returned."
 	   (t
 	    (prog1
 		(setq charset (car charsets))
-	      (mm-encode-coding-region (point-min) (point-max)
-				       (mm-charset-to-coding-system charset))))
+	      (encode-coding-region (point-min) (point-max)
+				    (mm-charset-to-coding-system charset))))
 	   ))))))
 
 (defun mm-long-lines-p (length)
@@ -243,8 +243,7 @@ decoding.  If it is nil, default to `mail-parse-charset'."
   (save-excursion
     (when encoding
       (mm-decode-content-transfer-encoding encoding type))
-    (when (and (featurep 'mule) ;; Fixme: Wrong test for unibyte session.
-	       (not (eq charset 'gnus-decoded)))
+    (when (not (eq charset 'gnus-decoded))
       (let ((coding-system (mm-charset-to-coding-system
 			    ;; Allow overwrite using
 			    ;; `mm-charset-override-alist'.
@@ -255,18 +254,11 @@ decoding.  If it is nil, default to `mail-parse-charset'."
 	    (setq coding-system
 		  (mm-charset-to-coding-system mail-parse-charset)))
 	(when (and charset coding-system
-		   ;; buffer-file-coding-system
-		   ;;Article buffer is nil coding system
-		   ;;in XEmacs
 		   (mm-multibyte-p)
 		   (or (not (eq coding-system 'ascii))
 		       (setq coding-system mail-parse-charset)))
-	  (mm-decode-coding-region (point-min) (point-max)
-				   coding-system))
-	(setq buffer-file-coding-system
-	      (if (boundp 'last-coding-system-used)
-		  (symbol-value 'last-coding-system-used)
-		coding-system))))))
+	  (decode-coding-region (point-min) (point-max) coding-system))
+	(setq buffer-file-coding-system last-coding-system-used)))))
 
 (defun mm-decode-string (string charset)
   "Decode STRING with CHARSET."
@@ -278,22 +270,21 @@ decoding.  If it is nil, default to `mail-parse-charset'."
 	    (memq charset mail-parse-ignored-charsets))
     (setq charset mail-parse-charset))
   (or
-   (when (featurep 'mule)
-     (let ((coding-system (mm-charset-to-coding-system
-			   charset
-			   ;; Allow overwrite using
-			   ;; `mm-charset-override-alist'.
-			   nil t)))
-       (if (and (not coding-system)
-		(listp mail-parse-ignored-charsets)
-		(memq 'gnus-unknown mail-parse-ignored-charsets))
-	   (setq coding-system
-		 (mm-charset-to-coding-system mail-parse-charset)))
-       (when (and charset coding-system
-		  (mm-multibyte-p)
-		  (or (not (eq coding-system 'ascii))
-		      (setq coding-system mail-parse-charset)))
-	 (mm-decode-coding-string string coding-system))))
+   (let ((coding-system (mm-charset-to-coding-system
+			 charset
+			 ;; Allow overwrite using
+			 ;; `mm-charset-override-alist'.
+			 nil t)))
+     (if (and (not coding-system)
+	      (listp mail-parse-ignored-charsets)
+	      (memq 'gnus-unknown mail-parse-ignored-charsets))
+	 (setq coding-system
+	       (mm-charset-to-coding-system mail-parse-charset)))
+     (when (and charset coding-system
+		(mm-multibyte-p)
+		(or (not (eq coding-system 'ascii))
+		    (setq coding-system mail-parse-charset)))
+       (decode-coding-string string coding-system)))
    string))
 
 (provide 'mm-bodies)

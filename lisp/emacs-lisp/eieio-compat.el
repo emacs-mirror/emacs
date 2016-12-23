@@ -266,7 +266,7 @@ Summary:
 
 
 ;; Local Variables:
-;; generated-autoload-file: "eieio-core.el"
+;; generated-autoload-file: "eieio-loaddefs.el"
 ;; End:
 
 (provide 'eieio-compat)

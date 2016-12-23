@@ -327,4 +327,6 @@
     (set-keymap-parent m (keymap-parent input-decode-map))
     (set-keymap-parent input-decode-map m)))
 
+(provide 'term/iris-ansi)
+
 ;;; iris-ansi.el ends here

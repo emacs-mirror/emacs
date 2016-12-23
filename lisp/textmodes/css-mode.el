@@ -29,10 +29,13 @@
 
 ;; - electric ; and }
 ;; - filling code with auto-fill-mode
-;; - attribute value completion
 ;; - fix font-lock errors with multi-line selectors
 
 ;;; Code:
+
+(require 'seq)
+(require 'sgml-mode)
+(require 'smie)
 
 (defgroup css nil
   "Cascading Style Sheets (CSS) editing mode."
@@ -51,8 +54,19 @@
   "Identifiers for pseudo-elements.")
 
 (defconst css-at-ids
-  '("charset" "font-face" "import" "media" "namespace" "page")
+  '("charset" "font-face" "import" "keyframes" "media" "namespace"
+    "page" "supports")
   "Identifiers that appear in the form @foo.")
+
+(defconst scss-at-ids
+  '("at-root" "content" "debug" "each" "else" "else if" "error" "extend"
+    "for" "function" "if" "import" "include" "mixin" "return" "warn"
+    "while")
+  "Additional identifiers that appear in the form @foo in SCSS.")
+
+(defvar css--at-ids css-at-ids
+  "List of at-rules for the current mode.")
+(make-variable-buffer-local 'css--at-ids)
 
 (defconst css-bang-ids
   '("important")
@@ -61,6 +75,10 @@
 (defconst scss-bang-ids
   '("default" "global" "optional")
   "Additional identifiers that appear in the form !foo in SCSS.")
+
+(defvar css--bang-ids css-bang-ids
+  "List of bang-rules for the current mode.")
+(make-variable-buffer-local 'css--bang-ids)
 
 (defconst css-descriptor-ids
   '("ascent" "baseline" "bbox" "cap-height" "centerline" "definition-src"
@@ -74,109 +92,503 @@
     "visual")
   "Identifiers for types of media.")
 
-(defconst css-property-ids
-  '(;; CSS 2.1 properties (http://www.w3.org/TR/CSS21/propidx.html).
-    ;;
-    ;; Properties duplicated by any of the CSS3 modules below have
-    ;; been removed.
-    "azimuth" "border-collapse" "border-spacing" "bottom"
-    "caption-side" "clear" "clip" "content" "counter-increment"
-    "counter-reset" "cue" "cue-after" "cue-before" "direction" "display"
-    "elevation" "empty-cells" "float" "height" "left" "line-height"
-    "list-style" "list-style-image" "list-style-position"
-    "list-style-type" "margin" "margin-bottom" "margin-left"
-    "margin-right" "margin-top" "max-height" "max-width" "min-height"
-    "min-width" "orphans" "padding" "padding-bottom" "padding-left"
-    "padding-right" "padding-top" "page-break-after"
-    "page-break-before" "page-break-inside" "pause" "pause-after"
-    "pause-before" "pitch" "pitch-range" "play-during" "position"
-    "quotes" "richness" "right" "speak" "speak-header" "speak-numeral"
-    "speak-punctuation" "speech-rate" "stress" "table-layout" "top"
-    "unicode-bidi" "vertical-align" "visibility" "voice-family" "volume"
-    "widows" "width" "z-index"
+(defconst css-property-alist
+  ;; CSS 2.1 properties (http://www.w3.org/TR/CSS21/propidx.html).
+  ;;
+  ;; Properties duplicated by any of the CSS3 modules below have been
+  ;; removed.
+  '(("azimuth" angle "left-side" "far-left" "left" "center-left"
+     "center" "center-right" "right" "far-right" "right-side" "behind"
+     "leftwards" "rightwards")
+    ("border-collapse" "collapse" "separate")
+    ("border-spacing" length)
+    ("bottom" length percentage "auto")
+    ("caption-side" "top" "bottom")
+    ("clear" "none" "left" "right" "both")
+    ("clip" shape "auto")
+    ("content" "normal" "none" string uri counter "attr()"
+     "open-quote" "close-quote" "no-open-quote" "no-close-quote")
+    ("counter-increment" identifier integer "none")
+    ("counter-reset" identifier integer "none")
+    ("cue" cue-before cue-after)
+    ("cue-after" uri "none")
+    ("cue-before" uri "none")
+    ("direction" "ltr" "rtl")
+    ("display" "inline" "block" "list-item" "inline-block" "table"
+     "inline-table" "table-row-group" "table-header-group"
+     "table-footer-group" "table-row" "table-column-group"
+     "table-column" "table-cell" "table-caption" "none"
+     ;; CSS Flexible Box Layout Module Level 1
+     ;; (https://www.w3.org/TR/css3-flexbox/#valdef-display-flex)
+     "flex" "inline-flex")
+    ("elevation" angle "below" "level" "above" "higher" "lower")
+    ("empty-cells" "show" "hide")
+    ("float" "left" "right" "none")
+    ("height" length percentage "auto")
+    ("left" length percentage "auto")
+    ("line-height" "normal" number length percentage)
+    ("list-style" list-style-type list-style-position
+     list-style-image)
+    ("list-style-image" uri "none")
+    ("list-style-position" "inside" "outside")
+    ("list-style-type" "disc" "circle" "square" "decimal"
+     "decimal-leading-zero" "lower-roman" "upper-roman" "lower-greek"
+     "lower-latin" "upper-latin" "armenian" "georgian" "lower-alpha"
+     "upper-alpha" "none")
+    ("margin" margin-width)
+    ("margin-bottom" margin-width)
+    ("margin-left" margin-width)
+    ("margin-right" margin-width)
+    ("margin-top" margin-width)
+    ("max-height" length percentage "none")
+    ("max-width" length percentage "none")
+    ("min-height" length percentage)
+    ("min-width" length percentage)
+    ("padding" padding-width)
+    ("padding-bottom" padding-width)
+    ("padding-left" padding-width)
+    ("padding-right" padding-width)
+    ("padding-top" padding-width)
+    ("page-break-after" "auto" "always" "avoid" "left" "right")
+    ("page-break-before" "auto" "always" "avoid" "left" "right")
+    ("page-break-inside" "avoid" "auto")
+    ("pause" time percentage)
+    ("pause-after" time percentage)
+    ("pause-before" time percentage)
+    ("pitch" frequency "x-low" "low" "medium" "high" "x-high")
+    ("pitch-range" number)
+    ("play-during" uri "mix" "repeat" "auto" "none")
+    ("position" "static" "relative" "absolute" "fixed")
+    ("quotes" string "none")
+    ("richness" number)
+    ("right" length percentage "auto")
+    ("speak" "normal" "none" "spell-out")
+    ("speak-header" "once" "always")
+    ("speak-numeral" "digits" "continuous")
+    ("speak-punctuation" "code" "none")
+    ("speech-rate" number "x-slow" "slow" "medium" "fast" "x-fast"
+     "faster" "slower")
+    ("stress" number)
+    ("table-layout" "auto" "fixed")
+    ("top" length percentage "auto")
+    ("unicode-bidi" "normal" "embed" "bidi-override")
+    ("vertical-align" "baseline" "sub" "super" "top" "text-top"
+     "middle" "bottom" "text-bottom" percentage length)
+    ("visibility" "visible" "hidden" "collapse")
+    ("voice-family" specific-voice generic-voice specific-voice
+     generic-voice)
+    ("volume" number percentage "silent" "x-soft" "soft" "medium"
+     "loud" "x-loud")
+    ("width" length percentage "auto")
+    ("z-index" "auto" integer)
 
     ;; CSS Animations
     ;; (http://www.w3.org/TR/css3-animations/#property-index)
-    "animation" "animation-delay" "animation-direction"
-    "animation-duration" "animation-fill-mode"
-    "animation-iteration-count" "animation-name"
-    "animation-play-state" "animation-timing-function"
+    ("animation" single-animation-name time single-timing-function
+     single-animation-iteration-count single-animation-direction
+     single-animation-fill-mode single-animation-play-state)
+    ("animation-delay" time)
+    ("animation-direction" single-animation-direction)
+    ("animation-duration" time)
+    ("animation-fill-mode" single-animation-fill-mode)
+    ("animation-iteration-count" single-animation-iteration-count)
+    ("animation-name" single-animation-name)
+    ("animation-play-state" single-animation-play-state)
+    ("animation-timing-function" single-timing-function)
 
     ;; CSS Backgrounds and Borders Module Level 3
     ;; (http://www.w3.org/TR/css3-background/#property-index)
-    "background" "background-attachment" "background-clip"
-    "background-color" "background-image" "background-origin"
-    "background-position" "background-repeat" "background-size"
-    "border" "border-bottom" "border-bottom-color"
-    "border-bottom-left-radius" "border-bottom-right-radius"
-    "border-bottom-style" "border-bottom-width" "border-color"
-    "border-image" "border-image-outset" "border-image-repeat"
-    "border-image-slice" "border-image-source" "border-image-width"
-    "border-left" "border-left-color" "border-left-style"
-    "border-left-width" "border-radius" "border-right"
-    "border-right-color" "border-right-style" "border-right-width"
-    "border-style" "border-top" "border-top-color"
-    "border-top-left-radius" "border-top-right-radius"
-    "border-top-style" "border-top-width" "border-width" "box-shadow"
+    ("background" bg-layer final-bg-layer)
+    ("background-attachment" attachment)
+    ("background-clip" box)
+    ("background-color" color)
+    ("background-image" bg-image)
+    ("background-origin" box)
+    ("background-position" position)
+    ("background-repeat" repeat-style)
+    ("background-size" bg-size)
+    ("border" line-width line-style color)
+    ("border-bottom" line-width line-style color)
+    ("border-bottom-color" color)
+    ("border-bottom-left-radius" length percentage)
+    ("border-bottom-right-radius" length percentage)
+    ("border-bottom-style" line-style)
+    ("border-bottom-width" line-width)
+    ("border-color" color)
+    ("border-image" border-image-source border-image-slice
+     border-image-width border-image-outset border-image-repeat)
+    ("border-image-outset" length number)
+    ("border-image-repeat" "stretch" "repeat" "round" "space")
+    ("border-image-slice" number percentage "fill")
+    ("border-image-source" "none" image)
+    ("border-image-width" length percentage number "auto")
+    ("border-left" line-width line-style color)
+    ("border-left-color" color)
+    ("border-left-style" line-style)
+    ("border-left-width" line-width)
+    ("border-radius" length percentage)
+    ("border-right" line-width line-style color)
+    ("border-right-color" color)
+    ("border-right-style" line-style)
+    ("border-right-width" line-width)
+    ("border-style" line-style)
+    ("border-top" line-width line-style color)
+    ("border-top-color" color)
+    ("border-top-left-radius" length percentage)
+    ("border-top-right-radius" length percentage)
+    ("border-top-style" line-style)
+    ("border-top-width" line-width)
+    ("border-width" line-width)
+    ("box-shadow" "none" shadow)
 
     ;; CSS Basic User Interface Module Level 3 (CSS3 UI)
     ;; (http://www.w3.org/TR/css3-ui/#property-index)
-    "box-sizing" "caret-color" "cursor" "nav-down" "nav-left"
-    "nav-right" "nav-up" "outline" "outline-color" "outline-offset"
-    "outline-style" "outline-width" "resize" "text-overflow"
+    ("box-sizing" "content-box" "border-box")
+    ("caret-color" "auto" color)
+    ("cursor" uri x y "auto" "default" "none" "context-menu" "help"
+     "pointer" "progress" "wait" "cell" "crosshair" "text"
+     "vertical-text" "alias" "copy" "move" "no-drop" "not-allowed"
+     "grab" "grabbing" "e-resize" "n-resize" "ne-resize" "nw-resize"
+     "s-resize" "se-resize" "sw-resize" "w-resize" "ew-resize"
+     "ns-resize" "nesw-resize" "nwse-resize" "col-resize" "row-resize"
+     "all-scroll" "zoom-in" "zoom-out")
+    ("nav-down" "auto" id "current" "root" target-name)
+    ("nav-left" "auto" id "current" "root" target-name)
+    ("nav-right" "auto" id "current" "root" target-name)
+    ("nav-up" "auto" id "current" "root" target-name)
+    ("outline" outline-color outline-style outline-width)
+    ("outline-color" color "invert")
+    ("outline-offset" length)
+    ("outline-style" "auto" border-style)
+    ("outline-width" border-width)
+    ("resize" "none" "both" "horizontal" "vertical")
+    ("text-overflow" "clip" "ellipsis" string)
 
     ;; CSS Color Module Level 3
     ;; (http://www.w3.org/TR/css3-color/#property)
-    "color" "opacity"
+    ("color" color)
+    ("opacity" alphavalue)
 
     ;; CSS Flexible Box Layout Module Level 1
     ;; (http://www.w3.org/TR/css-flexbox-1/#property-index)
-    "align-content" "align-items" "align-self" "flex" "flex-basis"
-    "flex-direction" "flex-flow" "flex-grow" "flex-shrink" "flex-wrap"
-    "justify-content" "order"
+    ("align-content" "flex-start" "flex-end" "center" "space-between"
+     "space-around" "stretch")
+    ("align-items" "flex-start" "flex-end" "center" "baseline"
+     "stretch")
+    ("align-self" "auto" "flex-start" "flex-end" "center" "baseline"
+     "stretch")
+    ("flex" "none" flex-grow flex-shrink flex-basis)
+    ("flex-basis" "auto" "content" width)
+    ("flex-direction" "row" "row-reverse" "column" "column-reverse")
+    ("flex-flow" flex-direction flex-wrap)
+    ("flex-grow" number)
+    ("flex-shrink" number)
+    ("flex-wrap" "nowrap" "wrap" "wrap-reverse")
+    ("justify-content" "flex-start" "flex-end" "center"
+     "space-between" "space-around")
+    ("order" integer)
 
     ;; CSS Fonts Module Level 3
     ;; (http://www.w3.org/TR/css3-fonts/#property-index)
-    "font" "font-family" "font-feature-settings" "font-kerning"
-    "font-language-override" "font-size" "font-size-adjust"
-    "font-stretch" "font-style" "font-synthesis" "font-variant"
-    "font-variant-alternates" "font-variant-caps"
-    "font-variant-east-asian" "font-variant-ligatures"
-    "font-variant-numeric" "font-variant-position" "font-weight"
+    ("font" font-style font-variant-css21 font-weight font-stretch
+     font-size line-height font-family "caption" "icon" "menu"
+     "message-box" "small-caption" "status-bar")
+    ("font-family" family-name generic-family)
+    ("font-feature-settings" "normal" feature-tag-value)
+    ("font-kerning" "auto" "normal" "none")
+    ("font-language-override" "normal" string)
+    ("font-size" absolute-size relative-size length percentage)
+    ("font-size-adjust" "none" number)
+    ("font-stretch" "normal" "ultra-condensed" "extra-condensed"
+     "condensed" "semi-condensed" "semi-expanded" "expanded"
+     "extra-expanded" "ultra-expanded")
+    ("font-style" "normal" "italic" "oblique")
+    ("font-synthesis" "none" "weight" "style")
+    ("font-variant" "normal" "none" common-lig-values
+     discretionary-lig-values historical-lig-values
+     contextual-alt-values "stylistic()" "historical-forms"
+     "styleset()" "character-variant()" "swash()" "ornaments()"
+     "annotation()" "small-caps" "all-small-caps" "petite-caps"
+     "all-petite-caps" "unicase" "titling-caps" numeric-figure-values
+     numeric-spacing-values numeric-fraction-values "ordinal"
+     "slashed-zero" east-asian-variant-values east-asian-width-values
+     "ruby")
+    ("font-variant-alternates" "normal" "stylistic()"
+     "historical-forms" "styleset()" "character-variant()" "swash()"
+     "ornaments()" "annotation()")
+    ("font-variant-caps" "normal" "small-caps" "all-small-caps"
+     "petite-caps" "all-petite-caps" "unicase" "titling-caps")
+    ("font-variant-east-asian" "normal" east-asian-variant-values
+     east-asian-width-values "ruby")
+    ("font-variant-ligatures" "normal" "none" common-lig-values
+     discretionary-lig-values historical-lig-values
+     contextual-alt-values)
+    ("font-variant-numeric" "normal" numeric-figure-values
+     numeric-spacing-values numeric-fraction-values "ordinal"
+     "slashed-zero")
+    ("font-variant-position" "normal" "sub" "super")
+    ("font-weight" "normal" "bold" "bolder" "lighter" "100" "200"
+     "300" "400" "500" "600" "700" "800" "900")
+
+    ;; CSS Fragmentation Module Level 3
+    ;; (https://www.w3.org/TR/css-break-3/#property-index)
+    ("box-decoration-break" "slice" "clone")
+    ("break-after" "auto" "avoid" "avoid-page" "page" "left" "right"
+     "recto" "verso" "avoid-column" "column" "avoid-region" "region")
+    ("break-before" "auto" "avoid" "avoid-page" "page" "left" "right"
+     "recto" "verso" "avoid-column" "column" "avoid-region" "region")
+    ("break-inside" "auto" "avoid" "avoid-page" "avoid-column"
+     "avoid-region")
+    ("orphans" integer)
+    ("widows" integer)
+
+    ;; CSS Multi-column Layout Module
+    ;; (https://www.w3.org/TR/css3-multicol/#property-index)
+    ;; "break-after", "break-before", and "break-inside" are left out
+    ;; below, because they're already included in CSS Fragmentation
+    ;; Module Level 3.
+    ("column-count" integer "auto")
+    ("column-fill" "auto" "balance")
+    ("column-gap" length "normal")
+    ("column-rule" column-rule-width column-rule-style
+     column-rule-color "transparent")
+    ("column-rule-color" color)
+    ("column-rule-style" border-style)
+    ("column-rule-width" border-width)
+    ("column-span" "none" "all")
+    ("column-width" length "auto")
+    ("columns" column-width column-count)
 
     ;; CSS Overflow Module Level 3
     ;; (http://www.w3.org/TR/css-overflow-3/#property-index)
-    "max-lines" "overflow" "overflow-x" "overflow-y"
+    ("max-lines" "none" integer)
+    ("overflow" "visible" "hidden" "scroll" "auto" "paged-x" "paged-y"
+     "paged-x-controls" "paged-y-controls" "fragments")
+    ("overflow-x" "visible" "hidden" "scroll" "auto" "paged-x"
+     "paged-y" "paged-x-controls" "paged-y-controls" "fragments")
+    ("overflow-y" "visible" "hidden" "scroll" "auto" "paged-x"
+     "paged-y" "paged-x-controls" "paged-y-controls" "fragments")
 
     ;; CSS Text Decoration Module Level 3
     ;; (http://dev.w3.org/csswg/css-text-decor-3/#property-index)
-    "text-decoration" "text-decoration-color" "text-decoration-line"
-    "text-decoration-skip" "text-decoration-style" "text-emphasis"
-    "text-emphasis-color" "text-emphasis-position" "text-emphasis-style"
-    "text-shadow" "text-underline-position"
+    ("text-decoration" text-decoration-line text-decoration-style
+     text-decoration-color)
+    ("text-decoration-color" color)
+    ("text-decoration-line" "none" "underline" "overline"
+     "line-through" "blink")
+    ("text-decoration-skip" "none" "objects" "spaces" "ink" "edges"
+     "box-decoration")
+    ("text-decoration-style" "solid" "double" "dotted" "dashed"
+     "wavy")
+    ("text-emphasis" text-emphasis-style text-emphasis-color)
+    ("text-emphasis-color" color)
+    ("text-emphasis-position" "over" "under" "right" "left")
+    ("text-emphasis-style" "none" "filled" "open" "dot" "circle"
+     "double-circle" "triangle" "sesame" string)
+    ("text-shadow" "none" length color)
+    ("text-underline-position" "auto" "under" "left" "right")
 
     ;; CSS Text Module Level 3
     ;; (http://www.w3.org/TR/css3-text/#property-index)
-    "hanging-punctuation" "hyphens" "letter-spacing" "line-break"
-    "overflow-wrap" "tab-size" "text-align" "text-align-last"
-    "text-indent" "text-justify" "text-transform" "white-space"
-    "word-break" "word-spacing" "word-wrap"
+    ("hanging-punctuation" "none" "first" "force-end" "allow-end"
+     "last")
+    ("hyphens" "none" "manual" "auto")
+    ("letter-spacing" "normal" length)
+    ("line-break" "auto" "loose" "normal" "strict")
+    ("overflow-wrap" "normal" "break-word")
+    ("tab-size" integer length)
+    ("text-align" "start" "end" "left" "right" "center" "justify"
+     "match-parent")
+    ("text-align-last" "auto" "start" "end" "left" "right" "center"
+     "justify")
+    ("text-indent" length percentage)
+    ("text-justify" "auto" "none" "inter-word" "distribute")
+    ("text-transform" "none" "capitalize" "uppercase" "lowercase"
+     "full-width")
+    ("white-space" "normal" "pre" "nowrap" "pre-wrap" "pre-line")
+    ("word-break" "normal" "keep-all" "break-all")
+    ("word-spacing" "normal" length percentage)
+    ("word-wrap" "normal" "break-word")
 
     ;; CSS Transforms Module Level 1
     ;; (http://www.w3.org/TR/css3-2d-transforms/#property-index)
-    "backface-visibility" "perspective" "perspective-origin"
-    "transform" "transform-origin" "transform-style"
+    ("backface-visibility" "visible" "hidden")
+    ("perspective" "none" length)
+    ("perspective-origin" "left" "center" "right" "top" "bottom"
+     percentage length)
+    ("transform" "none" transform-list)
+    ("transform-origin" "left" "center" "right" "top" "bottom"
+     percentage length)
+    ("transform-style" "flat" "preserve-3d")
 
     ;; CSS Transitions
     ;; (http://www.w3.org/TR/css3-transitions/#property-index)
-    "transition" "transition-delay" "transition-duration"
-    "transition-property" "transition-timing-function"
+    ("transition" single-transition)
+    ("transition-delay" time)
+    ("transition-duration" time)
+    ("transition-property" "none" single-transition-property "all")
+    ("transition-timing-function" single-transition-timing-function)
+
+    ;; CSS Will Change Module Level 1
+    ;; (https://www.w3.org/TR/css-will-change-1/#property-index)
+    ("will-change" "auto" animateable-feature)
 
     ;; Filter Effects Module Level 1
     ;; (http://www.w3.org/TR/filter-effects/#property-index)
-    "color-interpolation-filters" "filter" "flood-color"
-    "flood-opacity" "lighting-color")
+    ("color-interpolation-filters" "auto" "sRGB" "linearRGB")
+    ("filter" "none" filter-function-list)
+    ("flood-color" color)
+    ("flood-opacity" number percentage)
+    ("lighting-color" color))
+  "Identifiers for properties and their possible values.
+The CAR of each entry is the name of a property, while the CDR is
+a list of possible values for that property.  String values in
+the CDRs represent literal values, while symbols represent one of
+the value classes found in `css-value-class-alist'.  If a symbol
+is not found in `css-value-class-alist', it's interpreted as a
+reference back to one of the properties in this list.  Some
+symbols, such as `number' or `identifier', don't produce any
+further value candidates, since that list would be infinite.")
+
+(defconst css-property-ids
+  (mapcar #'car css-property-alist)
   "Identifiers for properties.")
+
+(defconst css-value-class-alist
+  '((absolute-size
+     "xx-small" "x-small" "small" "medium" "large" "x-large"
+     "xx-large")
+    (alphavalue number)
+    (angle "calc()")
+    (animateable-feature "scroll-position" "contents" custom-ident)
+    (attachment "scroll" "fixed" "local")
+    (bg-image image "none")
+    (bg-layer bg-image position repeat-style attachment box)
+    (bg-size length percentage "auto" "cover" "contain")
+    (box "border-box" "padding-box" "content-box")
+    (color
+     "rgb()" "rgba()" "hsl()" "hsla()" named-color "transparent"
+     "currentColor")
+    (common-lig-values "common-ligatures" "no-common-ligatures")
+    (contextual-alt-values "contextual" "no-contextual")
+    (counter "counter()" "counters()")
+    (discretionary-lig-values
+     "discretionary-ligatures" "no-discretionary-ligatures")
+    (east-asian-variant-values
+     "jis78" "jis83" "jis90" "jis04" "simplified" "traditional")
+    (east-asian-width-values "full-width" "proportional-width")
+    (family-name "Courier" "Helvetica" "Times")
+    (feature-tag-value string integer "on" "off")
+    (filter-function
+     "blur()" "brightness()" "contrast()" "drop-shadow()"
+     "grayscale()" "hue-rotate()" "invert()" "opacity()" "sepia()"
+     "saturate()")
+    (filter-function-list filter-function uri)
+    (final-bg-layer
+     bg-image position repeat-style attachment box color)
+    (font-variant-css21 "normal" "small-caps")
+    (frequency "calc()")
+    (generic-family
+     "serif" "sans-serif" "cursive" "fantasy" "monospace")
+    (generic-voice "male" "female" "child")
+    (gradient
+     linear-gradient radial-gradient repeating-linear-gradient
+     repeating-radial-gradient)
+    (historical-lig-values
+     "historical-ligatures" "no-historical-ligatures")
+    (image uri image-list element-reference gradient)
+    (image-list "image()")
+    (integer "calc()")
+    (length "calc()" number)
+    (line-height "normal" number length percentage)
+    (line-style
+     "none" "hidden" "dotted" "dashed" "solid" "double" "groove"
+     "ridge" "inset" "outset")
+    (line-width length "thin" "medium" "thick")
+    (linear-gradient "linear-gradient()")
+    (margin-width "auto" length percentage)
+    (named-color
+     "aliceblue" "antiquewhite" "aqua" "aquamarine" "azure" "beige"
+     "bisque" "black" "blanchedalmond" "blue" "blueviolet" "brown"
+     "burlywood" "cadetblue" "chartreuse" "chocolate" "coral"
+     "cornflowerblue" "cornsilk" "crimson" "cyan" "darkblue"
+     "darkcyan" "darkgoldenrod" "darkgray" "darkgreen" "darkkhaki"
+     "darkmagenta" "darkolivegreen" "darkorange" "darkorchid"
+     "darkred" "darksalmon" "darkseagreen" "darkslateblue"
+     "darkslategray" "darkturquoise" "darkviolet" "deeppink"
+     "deepskyblue" "dimgray" "dodgerblue" "firebrick" "floralwhite"
+     "forestgreen" "fuchsia" "gainsboro" "ghostwhite" "gold"
+     "goldenrod" "gray" "green" "greenyellow" "honeydew" "hotpink"
+     "indianred" "indigo" "ivory" "khaki" "lavender" "lavenderblush"
+     "lawngreen" "lemonchiffon" "lightblue" "lightcoral" "lightcyan"
+     "lightgoldenrodyellow" "lightgray" "lightgreen" "lightpink"
+     "lightsalmon" "lightseagreen" "lightskyblue" "lightslategray"
+     "lightsteelblue" "lightyellow" "lime" "limegreen" "linen"
+     "magenta" "maroon" "mediumaquamarine" "mediumblue" "mediumorchid"
+     "mediumpurple" "mediumseagreen" "mediumslateblue"
+     "mediumspringgreen" "mediumturquoise" "mediumvioletred"
+     "midnightblue" "mintcream" "mistyrose" "moccasin" "navajowhite"
+     "navy" "oldlace" "olive" "olivedrab" "orange" "orangered"
+     "orchid" "palegoldenrod" "palegreen" "paleturquoise"
+     "palevioletred" "papayawhip" "peachpuff" "peru" "pink" "plum"
+     "powderblue" "purple" "rebeccapurple" "red" "rosybrown"
+     "royalblue" "saddlebrown" "salmon" "sandybrown" "seagreen"
+     "seashell" "sienna" "silver" "skyblue" "slateblue" "slategray"
+     "snow" "springgreen" "steelblue" "tan" "teal" "thistle" "tomato"
+     "turquoise" "violet" "wheat" "white" "whitesmoke" "yellow"
+     "yellowgreen")
+    (number "calc()")
+    (numeric-figure-values "lining-nums" "oldstyle-nums")
+    (numeric-fraction-values "diagonal-fractions" "stacked-fractions")
+    (numeric-spacing-values "proportional-nums" "tabular-nums")
+    (padding-width length percentage)
+    (position
+     "left" "center" "right" "top" "bottom" percentage length)
+    (radial-gradient "radial-gradient()")
+    (relative-size "larger" "smaller")
+    (repeat-style
+     "repeat-x" "repeat-y" "repeat" "space" "round" "no-repeat")
+    (repeating-linear-gradient "repeating-linear-gradient()")
+    (repeating-radial-gradient "repeating-radial-gradient()")
+    (shadow "inset" length color)
+    (shape "rect()")
+    (single-animation-direction
+     "normal" "reverse" "alternate" "alternate-reverse")
+    (single-animation-fill-mode "none" "forwards" "backwards" "both")
+    (single-animation-iteration-count "infinite" number)
+    (single-animation-name "none" identifier)
+    (single-animation-play-state "running" "paused")
+    (single-timing-function single-transition-timing-function)
+    (single-transition
+     "none" single-transition-property time
+     single-transition-timing-function)
+    (single-transition-property "all" identifier)
+    (single-transition-timing-function
+     "ease" "linear" "ease-in" "ease-out" "ease-in-out" "step-start"
+     "step-end" "steps()" "cubic-bezier()")
+    (specific-voice identifier)
+    (target-name string)
+    (time "calc()")
+    (transform-list
+     "matrix()" "translate()" "translateX()" "translateY()" "scale()"
+     "scaleX()" "scaleY()" "rotate()" "skew()" "skewX()" "skewY()"
+     "matrix3d()" "translate3d()" "translateZ()" "scale3d()"
+     "scaleZ()" "rotate3d()" "rotateX()" "rotateY()" "rotateZ()"
+     "perspective()")
+    (uri "url()")
+    (width length percentage "auto")
+    (x number)
+    (y number))
+  "Property value classes and their values.
+The format is similar to that of `css-property-alist', except
+that the CARs aren't actual CSS properties, but rather a name for
+a class of values, and that symbols in the CDRs always refer to
+other entries in this list, not to properties.
+
+The following classes have been left out above because they
+cannot be completed sensibly: `custom-ident',
+`element-reference', `id', `identifier', `percentage', and
+`string'.")
 
 (defcustom css-electric-keys '(?\} ?\;) ;; '()
   "Self inserting keys which should trigger re-indentation."
@@ -243,9 +655,7 @@
   "Face to use for vendor-specific properties.")
 
 (defun css--font-lock-keywords (&optional sassy)
-  `((,(concat "!\\s-*"
-              (regexp-opt (append (if sassy scss-bang-ids)
-                                  css-bang-ids)))
+  `((,(concat "!\\s-*" (regexp-opt css--bang-ids))
      (0 font-lock-builtin-face))
     ;; Atrules keywords.  IDs not in css-at-ids are valid (ignored).
     ;; In fact the regexp should probably be
@@ -321,8 +731,6 @@
   :type 'integer
   :safe 'integerp)
 
-(require 'smie)
-
 (defconst css-smie-grammar
   (smie-prec2->grammar
    (smie-precs->prec2 '((assoc ";") (assoc ",") (left ":")))))
@@ -377,6 +785,14 @@
         (when (memq (char-before) '(?\{ ?\;))
           (list start pos css-property-ids))))))
 
+(defun css--complete-bang-rule ()
+  "Complete bang-rule at point."
+  (save-excursion
+    (let ((pos (point)))
+      (skip-chars-backward "-[:alnum:]")
+      (when (eq (char-before) ?\!)
+        (list (point) pos css--bang-ids)))))
+
 (defun css--complete-pseudo-element-or-class ()
   "Complete pseudo-element or pseudo-class at point."
   (save-excursion
@@ -394,15 +810,121 @@
     (let ((pos (point)))
       (skip-chars-backward "-[:alnum:]")
       (when (eq (char-before) ?\@)
-        (list (point) pos css-at-ids)))))
+        (list (point) pos css--at-ids)))))
+
+(defvar css--property-value-cache
+  (make-hash-table :test 'equal :size (length css-property-alist))
+  "Cache of previously completed property values.")
+
+(defun css--value-class-lookup (value-class)
+  "Return a list of value completion candidates for VALUE-CLASS.
+Completion candidates are looked up in `css-value-class-alist' by
+the symbol VALUE-CLASS."
+  (seq-uniq
+   (seq-mapcat
+    (lambda (value)
+      (if (stringp value)
+          (list value)
+        (css--value-class-lookup value)))
+    (cdr (assq value-class css-value-class-alist)))))
+
+(defun css--property-values (property)
+  "Return a list of value completion candidates for PROPERTY.
+Completion candidates are looked up in `css-property-alist' by
+the string PROPERTY."
+  (or (gethash property css--property-value-cache)
+      (let ((values
+             (seq-uniq
+              (seq-mapcat
+               (lambda (value)
+                 (if (stringp value)
+                     (list value)
+                   (or (css--value-class-lookup value)
+                       (css--property-values (symbol-name value)))))
+               (cdr (assoc property css-property-alist))))))
+        (puthash property values css--property-value-cache))))
+
+(defun css--complete-property-value ()
+  "Complete property value at point."
+  (let ((property
+         (save-excursion
+           (re-search-backward ":[^/]" (line-beginning-position) t)
+           (let ((property-end (point)))
+             (skip-chars-backward "-[:alnum:]")
+             (let ((property (buffer-substring (point) property-end)))
+               (car (member property css-property-ids)))))))
+    (when property
+      (let ((end (point)))
+        (save-excursion
+          (skip-chars-backward "[:graph:]")
+          (list (point) end
+                (append '("inherit" "initial" "unset")
+                        (css--property-values property))))))))
+
+(defvar css--html-tags (mapcar #'car html-tag-alist)
+  "List of HTML tags.
+Used to provide completion of HTML tags in selectors.")
+
+(defvar css--nested-selectors-allowed nil
+  "Non-nil if nested selectors are allowed in the current mode.")
+(make-variable-buffer-local 'css--nested-selectors-allowed)
+
+(defvar css-class-list-function #'ignore
+  "Called to provide completions of class names.
+This can be bound by buffers that are able to suggest class name
+completions, such as HTML mode buffers.")
+
+(defvar css-id-list-function #'ignore
+  "Called to provide completions of IDs.
+This can be bound by buffers that are able to suggest ID
+completions, such as HTML mode buffers.")
+
+(defun css--foreign-completions (extractor)
+  "Return a list of completions provided by other buffers.
+EXTRACTOR should be the name of a function that may be defined in
+one or more buffers.  In each of the buffers where EXTRACTOR is
+defined, EXTRACTOR is called and the results are accumulated into
+a list of completions."
+  (delete-dups
+   (seq-mapcat
+    (lambda (buf)
+      (with-current-buffer buf
+        (funcall (symbol-value extractor))))
+    (buffer-list))))
+
+(defun css--complete-selector ()
+  "Complete part of a CSS selector at point."
+  (when (or (= (nth 0 (syntax-ppss)) 0) css--nested-selectors-allowed)
+    (let ((end (point)))
+      (save-excursion
+        (skip-chars-backward "-[:alnum:]")
+        (let ((start-char (char-before)))
+          (list
+           (point) end
+           (completion-table-dynamic
+            (lambda (_)
+              (cond
+               ((eq start-char ?.)
+                (css--foreign-completions 'css-class-list-function))
+               ((eq start-char ?#)
+                (css--foreign-completions 'css-id-list-function))
+               (t css--html-tags))))))))))
 
 (defun css-completion-at-point ()
   "Complete current symbol at point.
-Currently supports completion of CSS properties, pseudo-elements,
-pseudo-classes, and at-rules."
-  (or (css--complete-property)
+Currently supports completion of CSS properties, property values,
+pseudo-elements, pseudo-classes, at-rules, and bang-rules."
+  (or (css--complete-bang-rule)
+      (css--complete-property-value)
       (css--complete-pseudo-element-or-class)
-      (css--complete-at-rule)))
+      (css--complete-at-rule)
+      (seq-let (prop-beg prop-end prop-table) (css--complete-property)
+        (seq-let (sel-beg sel-end sel-table) (css--complete-selector)
+          (when (or prop-table sel-table)
+            `(,@(if prop-table
+                    (list prop-beg prop-end)
+                  (list sel-beg sel-end))
+              ,(completion-table-merge prop-table sel-table)))))))
 
 ;;;###autoload
 (define-derived-mode css-mode prog-mode "CSS"
@@ -533,9 +1055,11 @@ pseudo-classes, and at-rules."
   (let ((st (make-syntax-table css-mode-syntax-table)))
     (modify-syntax-entry ?/ ". 124" st)
     (modify-syntax-entry ?\n ">" st)
+    ;; Variable names are prefixed by $.
+    (modify-syntax-entry ?$ "'" st)
     st))
 
-(defvar scss-font-lock-keywords
+(defun scss-font-lock-keywords ()
   (append `((,(concat "$" css-ident-re) (0 font-lock-variable-name-face)))
           (css--font-lock-keywords 'sassy)
           `((,(concat "@mixin[ \t]+\\(" css-ident-re "\\)[ \t]*(")
@@ -556,7 +1080,11 @@ pseudo-classes, and at-rules."
   (setq-local comment-continue " *")
   (setq-local comment-start-skip "/[*/]+[ \t]*")
   (setq-local comment-end-skip "[ \t]*\\(?:\n\\|\\*+/\\)")
-  (setq-local font-lock-defaults '(scss-font-lock-keywords nil t)))
+  (setq-local css--at-ids (append css-at-ids scss-at-ids))
+  (setq-local css--bang-ids (append css-bang-ids scss-bang-ids))
+  (setq-local css--nested-selectors-allowed t)
+  (setq-local font-lock-defaults
+              (list (scss-font-lock-keywords) nil t)))
 
 (provide 'css-mode)
 ;;; css-mode.el ends here

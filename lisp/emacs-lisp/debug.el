@@ -274,13 +274,14 @@ That buffer should be current already."
   (let ((standard-output (current-buffer))
 	(print-escape-newlines t)
 	(print-level 8)
-	(print-length 50))
-    (backtrace))
+        (print-length 50))
+    ;; FIXME the debugger could pass a custom callback to mapbacktrace
+    ;; instead of manipulating printed results.
+    (mapbacktrace #'backtrace--print-frame 'debug))
   (goto-char (point-min))
   (delete-region (point)
 		 (progn
-		   (search-forward "\n  debug(")
-		   (forward-line (if (eq (car args) 'debug)
+                   (forward-line (if (eq (car args) 'debug)
                                      ;; Remove debug--implement-debug-on-entry
                                      ;; and the advice's `apply' frame.
 				     3
@@ -304,6 +305,24 @@ That buffer should be current already."
        (delete-char 1)
        (insert ? )
        (beginning-of-line))
+      ;; Watchpoint triggered.
+      ((and `watchpoint (let `(,symbol ,newval . ,details) (cdr args)))
+       (insert
+        "--"
+        (pcase details
+          (`(makunbound nil) (format "making %s void" symbol))
+          (`(makunbound ,buffer) (format "killing local value of %s in buffer %s"
+                                         symbol buffer))
+          (`(defvaralias ,_) (format "aliasing %s to %s" symbol newval))
+          (`(let ,_) (format "let-binding %s to %S" symbol newval))
+          (`(unlet ,_) (format "ending let-binding of %s" symbol))
+          (`(set nil) (format "setting %s to %S" symbol newval))
+          (`(set ,buffer) (format "setting %s in buffer %s to %S"
+                                  symbol buffer newval))
+          (_ (error "unrecognized watchpoint triggered %S" (cdr args))))
+        ": ")
+       (setq pos (point))
+       (insert ?\n))
       ;; Debugger entered for an error.
       (`error
        (insert "--Lisp error: ")
@@ -847,6 +866,79 @@ To specify a nil argument interactively, exit with an empty minibuffer."
           (terpri)
           (princ "Note: if you have redefined a function, then it may no longer\n")
           (princ "be set to debug on entry, even if it is in the list."))))))
+
+(defun debug--implement-debug-watch (symbol newval op where)
+  "Conditionally call the debugger.
+This function is called when SYMBOL's value is modified."
+  (if (or inhibit-debug-on-entry debugger-jumping-flag)
+      nil
+    (let ((inhibit-debug-on-entry t))
+      (funcall debugger 'watchpoint symbol newval op where))))
+
+;;;###autoload
+(defun debug-on-variable-change (variable)
+  "Trigger a debugger invocation when VARIABLE is changed.
+
+When called interactively, prompt for VARIABLE in the minibuffer.
+
+This works by calling `add-variable-watch' on VARIABLE.  If you
+quit from the debugger, this will abort the change (unless the
+change is caused by the termination of a let-binding).
+
+The watchpoint may be circumvented by C code that changes the
+variable directly (i.e., not via `set').  Changing the value of
+the variable (e.g., `setcar' on a list variable) will not trigger
+watchpoint.
+
+Use \\[cancel-debug-on-variable-change] to cancel the effect of
+this command.  Uninterning VARIABLE or making it an alias of
+another symbol also cancels it."
+  (interactive
+   (let* ((var-at-point (variable-at-point))
+          (var (and (symbolp var-at-point) var-at-point))
+          (val (completing-read
+                (concat "Debug when setting variable"
+                        (if var (format " (default %s): " var) ": "))
+                obarray #'boundp
+                t nil nil (and var (symbol-name var)))))
+     (list (if (equal val "") var (intern val)))))
+  (add-variable-watcher variable #'debug--implement-debug-watch))
+
+;;;###autoload
+(defalias 'debug-watch #'debug-on-variable-change)
+
+
+(defun debug--variable-list ()
+  "List of variables currently set for debug on set."
+  (let ((vars '()))
+    (mapatoms
+     (lambda (s)
+       (when (memq #'debug--implement-debug-watch
+                   (get s 'watchers))
+         (push s vars))))
+    vars))
+
+;;;###autoload
+(defun cancel-debug-on-variable-change (&optional variable)
+  "Undo effect of \\[debug-on-variable-change] on VARIABLE.
+If VARIABLE is nil, cancel debug-on-variable-change for all variables.
+When called interactively, prompt for VARIABLE in the minibuffer.
+To specify a nil argument interactively, exit with an empty minibuffer."
+  (interactive
+   (list (let ((name
+                (completing-read
+                 "Cancel debug on set for variable (default all variables): "
+                 (mapcar #'symbol-name (debug--variable-list)) nil t)))
+           (when name
+             (unless (string= name "")
+               (intern name))))))
+  (if variable
+      (remove-variable-watcher variable #'debug--implement-debug-watch)
+    (message "Canceling debug-watch for all variables")
+    (mapc #'cancel-debug-watch (debug--variable-list))))
+
+;;;###autoload
+(defalias 'cancel-debug-watch #'cancel-debug-on-variable-change)
 
 (provide 'debug)
 

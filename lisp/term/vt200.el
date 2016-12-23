@@ -7,4 +7,6 @@
   (define-key input-decode-map "\e[23~" [f11]) ;Probably redundant.
   (define-key local-function-key-map [f11] [?\e]))
 
+(provide 'term/vt200)
+
 ;;; vt200.el ends here

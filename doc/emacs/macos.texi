@@ -3,19 +3,19 @@
 @c See file emacs.texi for copying conditions.
 @node Mac OS / GNUstep
 @appendix Emacs and Mac OS / GNUstep
-@cindex Mac OS X
+@cindex macOS
 @cindex Macintosh
 @cindex GNUstep
 
   This section describes the peculiarities of using Emacs built with
 the GNUstep libraries on GNU/Linux or other operating systems, or on
-Mac OS X with native window system support.  On Mac OS X, Emacs can be
+macOS with native window system support.  On macOS, Emacs can be
 built either without window system support, with X11, or with the
 Cocoa interface; this section only applies to the Cocoa build.  This
-does not support versions of Mac OS X earlier than 10.6.
+does not support versions before Mac OS X 10.6.
 
   For various historical and technical reasons, Emacs uses the term
-@samp{Nextstep} internally, instead of ``Cocoa'' or ``Mac OS X''; for
+@samp{Nextstep} internally, instead of ``Cocoa'' or ``macOS''; for
 instance, most of the commands and variables described in this section
 begin with @samp{ns-}, which is short for @samp{Nextstep}.  NeXTstep
 was an application interface released by NeXT Inc during the 1980s, of
@@ -84,7 +84,7 @@ set, which often causes the subprocesses it launches to behave differently than
 they would when launched from the shell.
 
 For the PATH and MANPATH variables, a system-wide method
-of setting PATH is recommended on Mac OS X, using the
+of setting PATH is recommended on macOS, using the
 @file{/etc/paths} files and the @file{/etc/paths.d} directory.
 
 @node Mac / GNUstep Customization
@@ -117,8 +117,8 @@ close the altered one.
 Useful in this context is the listing of all faces obtained by
 @kbd{M-x list-faces-display}.
 
-@cindex Core Text, on Mac OS X
-In Mac OS X, Emacs uses a Core Text based font backend
+@cindex Core Text, on macOS
+In macOS, Emacs uses a Core Text based font backend
 by default.  If you prefer the older font style, enter the following
 at the command-line before starting Emacs:
 

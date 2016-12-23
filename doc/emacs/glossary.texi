@@ -338,8 +338,8 @@ or by rebinding key sequences (@pxref{Keymaps}).
 @item Daemon
 A daemon is a standard term for a system-level process that runs in the
 background.  Daemons are often started when the system first starts up.
-When Emacs runs in daemon-mode, it runs in the background and does not
-open a display.  You can then connect to it with the
+When Emacs runs in daemon-mode, it does not
+open a display.  You connect to it with the
 @command{emacsclient} program.  @xref{Emacs Server}.
 
 @item Default Argument

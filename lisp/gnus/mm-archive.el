@@ -37,7 +37,7 @@
 (defun mm-dissect-archive (handle)
   (let ((decoder (cddr (assoc (car (mm-handle-type handle))
 			      mm-archive-decoders)))
-	(dir (mm-make-temp-file
+	(dir (make-temp-file
 	      (expand-file-name "emm." mm-tmp-directory) 'dir)))
     (set-file-modes dir #o700)
     (unwind-protect

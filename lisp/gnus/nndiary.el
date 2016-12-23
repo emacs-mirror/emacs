@@ -88,16 +88,6 @@
 (require 'gnus-start)
 (require 'gnus-sum)
 
-;; Compatibility Functions  =================================================
-
-(eval-and-compile
-  (if (fboundp 'signal-error)
-      (defun nndiary-error (&rest args)
-	(apply #'signal-error 'nndiary args))
-    (defun nndiary-error (&rest args)
-      (apply #'error args))))
-
-
 ;; Back End behavior customization ===========================================
 
 (defgroup nndiary nil
@@ -107,7 +97,7 @@
 
 (defcustom nndiary-mail-sources
   `((file :path ,(expand-file-name "~/.nndiary")))
-  "*NNDiary specific mail sources.
+  "NNDiary specific mail sources.
 This variable is used by nndiary in place of the standard `mail-sources'
 variable when `nndiary-get-new-mail' is set to non-nil.  These sources
 must contain diary messages ONLY."
@@ -116,7 +106,7 @@ must contain diary messages ONLY."
   :type 'sexp)
 
 (defcustom nndiary-split-methods '(("diary" ""))
-  "*NNDiary specific split methods.
+  "NNDiary specific split methods.
 This variable is used by nndiary in place of the standard
 `nnmail-split-methods' variable when `nndiary-get-new-mail' is set to
 non-nil."
@@ -128,7 +118,7 @@ non-nil."
 
 
 (defcustom nndiary-reminders '((0 . day))
-  "*Different times when you want to be reminded of your appointments.
+  "Different times when you want to be reminded of your appointments.
 Diary articles will appear again, as if they'd been just received.
 
 Entries look like (3 . day) which means something like \"Please
@@ -174,7 +164,7 @@ In order to make this clear, here are some examples:
 			       (const :format "%v" year)))))
 
 (defcustom nndiary-week-starts-on-monday nil
-  "*Whether a week starts on monday (otherwise, sunday)."
+  "Whether a week starts on monday (otherwise, sunday)."
   :type 'boolean
   :group 'nndiary)
 
@@ -182,7 +172,7 @@ In order to make this clear, here are some examples:
 (define-obsolete-variable-alias 'nndiary-request-create-group-hooks
   'nndiary-request-create-group-functions "24.3")
 (defcustom nndiary-request-create-group-functions nil
-  "*Hook run after `nndiary-request-create-group' is executed.
+  "Hook run after `nndiary-request-create-group' is executed.
 The hook functions will be called with the full group name as argument."
   :group 'nndiary
   :type 'hook)
@@ -190,7 +180,7 @@ The hook functions will be called with the full group name as argument."
 (define-obsolete-variable-alias 'nndiary-request-update-info-hooks
   'nndiary-request-update-info-functions "24.3")
 (defcustom nndiary-request-update-info-functions nil
-  "*Hook run after `nndiary-request-update-info-group' is executed.
+  "Hook run after `nndiary-request-update-info-group' is executed.
 The hook functions will be called with the full group name as argument."
   :group 'nndiary
   :type 'hook)
@@ -198,14 +188,14 @@ The hook functions will be called with the full group name as argument."
 (define-obsolete-variable-alias 'nndiary-request-accept-article-hooks
   'nndiary-request-accept-article-functions "24.3")
 (defcustom nndiary-request-accept-article-functions nil
-  "*Hook run before accepting an article.
+  "Hook run before accepting an article.
 Executed near the beginning of `nndiary-request-accept-article'.
 The hook functions will be called with the article in the current buffer."
   :group 'nndiary
   :type 'hook)
 
 (defcustom nndiary-check-directory-twice t
-  "*If t, check directories twice to avoid NFS failures."
+  "If t, check directories twice to avoid NFS failures."
   :group 'nndiary
   :type 'boolean)
 
@@ -1157,12 +1147,12 @@ all.  This may very well take some time.")
   ;; within the specified bounds.
   ;; Signals are caught by `nndiary-schedule'.
   (if (not (string-match "^[ \t]*[0-9]+[ \t]*$" str))
-      (nndiary-error "not an integer value")
+      (error "Not an integer value")
     ;; else
     (let ((val (string-to-number str)))
       (and (or (< val min)
 	       (and max (> val max)))
-	   (nndiary-error "value out of range"))
+	   (error "Value out of range"))
       val)))
 
 (defun nndiary-parse-schedule-value (str min-or-values max)
@@ -1179,7 +1169,7 @@ all.  This may very well take some time.")
 			(match-string 1 str))))
 	  (if (and val (setq val (assoc val min-or-values)))
 	      (list (cadr val))
-	    (nndiary-error "invalid syntax")))
+	    (error "Invalid syntax")))
       ;; min-or-values is min
       (mapcar
        (lambda (val)
@@ -1199,7 +1189,7 @@ all.  This may very well take some time.")
 		     (t
 		      (cons end beg)))))
 	    (t
-	     (nndiary-error "invalid syntax")))
+	     (error "Invalid syntax")))
 	   ))
        (split-string str ",")))
     ))
@@ -1214,7 +1204,7 @@ all.  This may very well take some time.")
   (let ((header (format "^X-Diary-%s: \\(.*\\)$" head)))
     (goto-char (point-min))
     (if (not (re-search-forward header nil t))
-	(nndiary-error "header missing")
+	(error "Header missing")
       ;; else
       (nndiary-parse-schedule-value (match-string 1) min-or-values max))
     ))
@@ -1288,27 +1278,27 @@ all.  This may very well take some time.")
     (while (setq reminder (pop reminders))
       (push
        (cond ((eq (cdr reminder) 'minute)
-	      (subtract-time
+	      (time-subtract
 	       (apply 'encode-time 0 (nthcdr 1 date-elts))
 	       (seconds-to-time (* (car reminder) 60.0))))
 	     ((eq (cdr reminder) 'hour)
-	      (subtract-time
+	      (time-subtract
 	       (apply 'encode-time 0 0 (nthcdr 2 date-elts))
 	       (seconds-to-time (* (car reminder) 3600.0))))
 	     ((eq (cdr reminder) 'day)
-	      (subtract-time
+	      (time-subtract
 	       (apply 'encode-time 0 0 0 (nthcdr 3 date-elts))
 	       (seconds-to-time (* (car reminder) 86400.0))))
 	     ((eq (cdr reminder) 'week)
-	      (subtract-time
+	      (time-subtract
 	       (apply 'encode-time 0 0 0 monday (nthcdr 4 date-elts))
 	       (seconds-to-time (* (car reminder) 604800.0))))
 	     ((eq (cdr reminder) 'month)
-	      (subtract-time
+	      (time-subtract
 	       (apply 'encode-time 0 0 0 1 (nthcdr 4 date-elts))
 	       (seconds-to-time (* (car reminder) 18748800.0))))
 	     ((eq (cdr reminder) 'year)
-	      (subtract-time
+	      (time-subtract
 	       (apply 'encode-time 0 0 0 1 1 (nthcdr 5 date-elts))
 	       (seconds-to-time (* (car reminder) 400861056.0)))))
        res))

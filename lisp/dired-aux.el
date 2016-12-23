@@ -54,19 +54,23 @@ into this list; they also should call `dired-log' to log the errors.")
 
 ;;;###autoload
 (defun dired-diff (file &optional switches)
-  "Compare file at point with file FILE using `diff'.
-If called interactively, prompt for FILE.  If the file at point
-has a backup file, use that as the default.  If the file at point
-is a backup file, use its original.  If the mark is active
-in Transient Mark mode, use the file at the mark as the default.
-\(That's the mark set by \\[set-mark-command], not by Dired's
-\\[dired-mark] command.)
+  "Compare file at point with FILE using `diff'.
+If called interactively, prompt for FILE.
+If the mark is active in Transient Mark mode, use the file at the mark
+as the default for FILE.  (That's the mark set by \\[set-mark-command],
+not by Dired's \\[dired-mark] command.)
+If the file at point has a backup file, use that as the default FILE.
+If the file at point is a backup file, use its original, if that exists
+and can be found.  Note that customizations of `backup-directory-alist'
+and `make-backup-file-name-function' change where this function searches
+for the backup file, and affect its ability to find the original of a
+backup file.
 
-FILE is the first file given to `diff'.  The file at point
-is the second file given to `diff'.
+FILE is the first argument given to the `diff' function.  The file at
+point is the second argument given to `diff'.
 
 With prefix arg, prompt for second argument SWITCHES, which is
-the string of command switches for the third argument of `diff'."
+the string of command switches used as the third argument of `diff'."
   (interactive
    (let* ((current (dired-get-filename t))
 	  ;; Get the latest existing backup file or its original.
@@ -77,8 +81,20 @@ the string of command switches for the third argument of `diff'."
 	  (file-at-mark (if (and transient-mark-mode mark-active)
 			    (save-excursion (goto-char (mark t))
 					    (dired-get-filename t t))))
+          (separate-dir (and oldf
+                             (not (equal (file-name-directory oldf)
+                                         (dired-current-directory)))))
 	  (default-file (or file-at-mark
-			    (and oldf (file-name-nondirectory oldf))))
+                            ;; If the file with which to compare
+                            ;; doesn't exist, or we cannot intuit it,
+                            ;; we forget that name and don't show it
+                            ;; as the default, as an indication to the
+                            ;; user that she should type the file
+                            ;; name.
+			    (and (if (and oldf (file-readable-p oldf)) oldf)
+                                 (if separate-dir
+                                     oldf
+                                   (file-name-nondirectory oldf)))))
 	  ;; Use it as default if it's not the same as the current file,
 	  ;; and the target dir is current or there is a default file.
 	  (default (if (and (not (equal default-file current))
@@ -87,7 +103,9 @@ the string of command switches for the third argument of `diff'."
 				default-file))
 		       default-file))
 	  (target-dir (if default
-			  (dired-current-directory)
+                          (if separate-dir
+                              (file-name-directory default)
+                            (dired-current-directory))
 			(dired-dwim-target-directory)))
 	  (defaults (dired-dwim-target-defaults (list current) target-dir)))
      (list
@@ -279,6 +297,14 @@ List has a form of (file-name full-file-name (attribute-list))."
 						      ((eq op-symbol 'chgrp)
 						       (system-groups)))))
 	 (operation (concat program " " new-attribute))
+         ;; When file-name-coding-system is set to something different
+         ;; from locale-coding-system, leaving the encoding
+         ;; determination to call-process will do the wrong thing,
+         ;; because the arguments in this case are file names, not
+         ;; just some arbitrary text.  (This must be bound last, to
+         ;; avoid adverse effects on any of the preceding forms.)
+         (coding-system-for-write (or file-name-coding-system
+                                      default-file-name-coding-system))
 	 failures)
     (setq failures
 	  (dired-bunch-files 10000
@@ -729,26 +755,52 @@ can be produced by `dired-get-marked-files', for example."
 	 (command (if sequentially
 		      (substring command 0 (match-beginning 0))
 		    command))
+         (parallel-in-background
+          (and in-background (not sequentially) (not (eq system-type 'ms-dos))))
+         (w32-shell (and (fboundp 'w32-shell-dos-semantics)
+                         (w32-shell-dos-semantics)))
+         ;; The way to run a command in background in Windows shells
+         ;; is to use the START command.  The /B switch means not to
+         ;; create a new window for the command.
+         (cmd-prefix (if w32-shell "start /b " ""))
+         ;; Windows shells don't support chaining with ";", they use
+         ;; "&" instead.
+         (cmd-sep (if (and (not w32-shell) (not parallel-in-background))
+                      ";"
+                    "&"))
 	 (stuff-it
 	  (if (or (string-match-p dired-star-subst-regexp command)
 		  (string-match-p dired-quark-subst-regexp command))
 	      (lambda (x)
-		(let ((retval command))
+		(let ((retval (concat cmd-prefix command)))
 		  (while (string-match
 			  "\\(^\\|[ \t]\\)\\([*?]\\)\\([ \t]\\|$\\)" retval)
 		    (setq retval (replace-match x t t retval 2)))
 		  retval))
-	    (lambda (x) (concat command dired-mark-separator x)))))
+	    (lambda (x) (concat cmd-prefix command dired-mark-separator x)))))
     (concat
-     (if on-each
-	 (mapconcat stuff-it (mapcar 'shell-quote-argument file-list)
-		    (if (and in-background (not sequentially)) "&" ";"))
-       (let ((files (mapconcat 'shell-quote-argument
-			       file-list dired-mark-separator)))
-	 (if (> (length file-list) 1)
-	     (setq files (concat dired-mark-prefix files dired-mark-postfix)))
-	 (funcall stuff-it files)))
-     (if in-background "&" ""))))
+     (cond (on-each
+            (format "%s%s"
+                    (mapconcat stuff-it (mapcar 'shell-quote-argument file-list)
+                               cmd-sep)
+                    ;; POSIX shells running a list of commands in the background
+                    ;; (LIST = cmd_1 & [cmd_2 & ... cmd_i & ... cmd_N &])
+                    ;; return once cmd_N ends, i.e., the shell does not
+                    ;; wait for cmd_i to finish before executing cmd_i+1.
+                    ;; That means, running (shell-command LIST) may not show
+                    ;; the output of all the commands (Bug#23206).
+                    ;; Add 'wait' to force those POSIX shells to wait until
+                    ;; all commands finish.
+                    (or (and parallel-in-background (not w32-shell)
+                             "&wait")
+                        "")))
+           (t
+            (let ((files (mapconcat 'shell-quote-argument
+                                    file-list dired-mark-separator)))
+              (when (cdr file-list)
+                (setq files (concat dired-mark-prefix files dired-mark-postfix)))
+              (funcall stuff-it files))))
+     (or (and in-background "&") ""))))
 
 ;; This is an extra function so that it can be redefined by ange-ftp.
 ;;;###autoload
@@ -890,8 +942,8 @@ command with a prefix argument (the value does not matter)."
     ;; Solaris10 version of tar. Solaris10 becomes obsolete in 2021.
     ;; Same thing on AIX 7.1.
     ("\\.tar\\.gz\\'" "" "gzip -dc %i | tar -xv")
+    ("\\.tgz\\'" "" "gzip -dc %i | tar -xv")
     ("\\.gz\\'" "" "gunzip")
-    ("\\.tgz\\'" ".tar" "gunzip")
     ("\\.Z\\'" "" "uncompress")
     ;; For .z, try gunzip.  It might be an old gzip file,
     ;; or it might be from compact? pack? (which?) but gunzip handles both.
@@ -901,6 +953,7 @@ command with a prefix argument (the value does not matter)."
     ("\\.bz2\\'" "" "bunzip2")
     ("\\.xz\\'" "" "unxz")
     ("\\.zip\\'" "" "unzip -o -d %o %i")
+    ("\\.7z\\'" "" "7z x -aoa -o%o %i")
     ;; This item controls naming for compression.
     ("\\.tar\\'" ".tgz" nil)
     ;; This item controls the compression of directories
@@ -937,12 +990,12 @@ output file. %i path(s) are relative, while %o is absolute.")
 ;;;###autoload
 (defun dired-do-compress-to ()
   "Compress selected files and directories to an archive.
-You are prompted for the archive name.
-The archiving command is chosen based on the archive name extension and
-`dired-compress-files-alist'."
+Prompt for the archive file name.
+Choose the archiving command based on the archive file-name extension
+and `dired-compress-files-alist'."
   (interactive)
   (let* ((in-files (dired-get-marked-files))
-         (out-file (read-file-name "Compress to: "))
+         (out-file (expand-file-name (read-file-name "Compress to: ")))
          (rule (cl-find-if
                 (lambda (x)
                   (string-match (car x) out-file))
@@ -959,11 +1012,13 @@ The archiving command is chosen based on the archive name extension and
           (t
            (when (zerop
                   (dired-shell-command
-                   (replace-regexp-in-string
-                    "%o" out-file
-                    (replace-regexp-in-string
-                     "%i" (mapconcat #'file-name-nondirectory in-files " ")
-                     (cdr rule)))))
+                   (format-spec (cdr rule)
+                                `((?\o . ,(shell-quote-argument out-file))
+                                  (?\i . ,(mapconcat
+                                           (lambda (file-desc)
+                                             (shell-quote-argument (file-name-nondirectory
+                                                                    file-desc)))
+                                           in-files " "))))))
              (message "Compressed %d file(s) to %s"
                       (length in-files)
                       (file-name-nondirectory out-file)))))))
@@ -996,10 +1051,12 @@ Return nil if no change in files."
                (prog1 (setq newname (file-name-as-directory newname))
                  (dired-shell-command
                   (replace-regexp-in-string
-                   "%o" newname
+                   "%o" (shell-quote-argument newname)
                    (replace-regexp-in-string
-                    "%i" file
-                    command))))
+                    "%i" (shell-quote-argument file)
+                    command
+                    nil t)
+                   nil t)))
              ;; We found an uncompression rule.
              (when (not
                     (dired-check-process
@@ -1019,10 +1076,12 @@ Return nil if no change in files."
                              (default-directory (file-name-directory file)))
                          (dired-shell-command
                           (replace-regexp-in-string
-                           "%o" out-name
+                           "%o" (shell-quote-argument out-name)
                            (replace-regexp-in-string
-                            "%i" (file-name-nondirectory file)
-                            (cadr suffix))))
+                            "%i" (shell-quote-argument (file-name-nondirectory file))
+                            (cadr suffix)
+                            nil t)
+                           nil t))
                          out-name)))
                  (let ((out-name (concat file ".gz")))
                    (and (or (not (file-exists-p out-name))
@@ -1742,13 +1801,14 @@ Optional arg HOW-TO determines how to treat the target.
 		     (concat (if dired-one-file op1 operation) " %s to: ")
 		     target-dir op-symbol arg rfn-list default))))
 	 (into-dir (cond ((null how-to)
-			  ;; Allow DOS/Windows users to change the letter
-			  ;; case of a directory.  If we don't test these
-			  ;; conditions up front, file-directory-p below
-			  ;; will return t because the filesystem is
-			  ;; case-insensitive, and Emacs will try to move
+			  ;; Allow users to change the letter case of
+			  ;; a directory on a case-insensitive
+			  ;; filesystem.  If we don't test these
+			  ;; conditions up front, file-directory-p
+			  ;; below will return t on a case-insensitive
+			  ;; filesystem, and Emacs will try to move
 			  ;; foo -> foo/foo, which fails.
-			  (if (and (memq system-type '(ms-dos windows-nt cygwin))
+			  (if (and (file-name-case-insensitive-p (car fn-list))
 				   (eq op-symbol 'move)
 				   dired-one-file
 				   (string= (downcase
@@ -2735,7 +2795,7 @@ REGEXP should use constructs supported by your local `grep' command."
                           (lambda (s) (concat s "/"))
                           grep-find-ignored-directories)
                          grep-find-ignored-files))
-         (xrefs (cl-mapcan
+         (xrefs (mapcan
                  (lambda (file)
                    (xref-collect-matches regexp "*" file
                                          (and (file-directory-p file)
@@ -2785,7 +2845,7 @@ instead."
 
 ;; Local Variables:
 ;; byte-compile-dynamic: t
-;; generated-autoload-file: "dired.el"
+;; generated-autoload-file: "dired-loaddefs.el"
 ;; End:
 
 ;;; dired-aux.el ends here

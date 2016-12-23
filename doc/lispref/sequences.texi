@@ -576,6 +576,21 @@ element of @var{sequence}.  The returned value is a list.
 @end example
 @end defun
 
+@defun seq-map-indexed function sequence
+  This function returns the result of applying @var{function} to each
+element of @var{sequence} and its index within @var{seq}.  The
+returned value is a list.
+
+@example
+@group
+(seq-map-indexed (lambda (elt idx)
+                   (list idx elt))
+                 '(a b c))
+@result{} ((0 a) (b 1) (c 2))
+@end group
+@end example
+@end defun
+
 @defun seq-mapn function &rest sequences
   This function returns the result of applying @var{function} to each
 element of @var{sequences}.  The arity (@pxref{What Is a Function,
@@ -748,6 +763,18 @@ according to @var{function}, a function of two arguments that returns
 non-@code{nil} if the first argument should sort before the second.
 @end defun
 
+@defun seq-sort-by function predicate sequence
+  This function is similar to @code{seq-sort}, but the elements of
+@var{sequence} are transformed by applying @var{function} on them
+before being sorted.  @var{function} is a function of one argument.
+
+@example
+(seq-sort-by #'seq-length #'> ["a" "ab" "abc"])
+@result{} ["abc" "ab" "a"]
+@end example
+@end defun
+
+
 @defun seq-contains sequence elt &optional function
   This function returns the first element in @var{sequence} that is equal to
 @var{elt}.  If the optional argument @var{function} is non-@code{nil},
@@ -832,7 +859,7 @@ concatenation of @var{sequences}.  @var{type} may be: @code{vector},
 @example
 @group
 (seq-concatenate 'list '(1 2) '(3 4) [5 6])
-@result{} (1 2 3 5 6)
+@result{} (1 2 3 4 5 6)
 @end group
 @group
 (seq-concatenate 'string "Hello " "world")
@@ -1010,6 +1037,26 @@ followed by a variable name to be bound to the rest of
 @end example
 @end defmac
 
+@defun seq-random-elt sequence
+  This function returns an element of @var{sequence} taken at random.
+
+@example
+@group
+(seq-random-elt [1 2 3 4])
+@result{} 3
+(seq-random-elt [1 2 3 4])
+@result{} 2
+(seq-random-elt [1 2 3 4])
+@result{} 4
+(seq-random-elt [1 2 3 4])
+@result{} 2
+(seq-random-elt [1 2 3 4])
+@result{} 1
+@end group
+@end example
+
+  If @var{sequence} is empty, this function signals an error.
+@end defun
 
 @node Arrays
 @section Arrays

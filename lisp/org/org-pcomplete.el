@@ -258,7 +258,7 @@ When completing for #+STARTUP, for example, this function returns
 	       (buffer-name (buffer-base-buffer)))))))
 
 
-(declare-function org-export-backend-options "org-export" (cl-x))
+(declare-function org-export-backend-options "ox" (cl-x) t)
 (defun pcomplete/org-mode/file-option/options ()
   "Complete arguments for the #+OPTIONS file option."
   (while (pcomplete-here

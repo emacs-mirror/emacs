@@ -310,12 +310,13 @@ sound_perror (const char *msg)
   }
 #endif
   if (saved_errno != 0)
-    error ("%s: %s", msg, strerror (saved_errno));
+    error ("%s: %s", msg, emacs_strerror (saved_errno));
   else
     error ("%s", msg);
 }
 
 
+#ifndef WINDOWSNT
 /* Display a warning message.  */
 
 static void
@@ -323,6 +324,7 @@ sound_warning (const char *msg)
 {
   message1 (msg);
 }
+#endif	/* !WINDOWSNT */
 
 
 /* Parse sound specification SOUND, and fill ATTRS with what is

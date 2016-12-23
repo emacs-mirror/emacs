@@ -593,10 +593,12 @@ any buffer, whether or not it is currently displayed in some window.
 @deffn Command move-to-window-line count
 This function moves point with respect to the text currently displayed
 in the selected window.  It moves point to the beginning of the screen
-line @var{count} screen lines from the top of the window.  If
-@var{count} is negative, that specifies a position
-@w{@minus{}@var{count}} lines from the bottom (or the last line of the
-buffer, if the buffer ends above the specified screen position).
+line @var{count} screen lines from the top of the window; zero means
+the topmost line.  If @var{count} is negative, that specifies a
+position @w{@minus{}@var{count}} lines from the bottom (or the last
+line of the buffer, if the buffer ends above the specified screen
+position); thus, @var{count} of -1 specifies the last fully visible
+screen line of the window.
 
 If @var{count} is @code{nil}, then point moves to the beginning of the
 line in the middle of the window.  If the absolute value of @var{count}
@@ -607,8 +609,8 @@ location onto the screen.
 
 In an interactive call, @var{count} is the numeric prefix argument.
 
-The value returned is the window line number point has moved to, with
-the top line in the window numbered 0.
+The value returned is the screen line number point has moved to,
+relative to the top line of the window.
 @end deffn
 
 @vindex move-to-window-group-line-function

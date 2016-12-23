@@ -32,6 +32,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "flexmember.h"
 #include "time-internal.h"
 
 #if !HAVE_TZSET
@@ -94,7 +95,7 @@ tzalloc (char const *name)
 {
   size_t name_size = name ? strlen (name) + 1 : 0;
   size_t abbr_size = name_size < ABBR_SIZE_MIN ? ABBR_SIZE_MIN : name_size + 1;
-  timezone_t tz = malloc (offsetof (struct tm_zone, abbrs) + abbr_size);
+  timezone_t tz = malloc (FLEXSIZEOF (struct tm_zone, abbrs, abbr_size));
   if (tz)
     {
       tz->next = NULL;

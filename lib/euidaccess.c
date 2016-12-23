@@ -197,8 +197,6 @@ weak_alias (__euidaccess, euidaccess)
 # include <stdio.h>
 # include <stdlib.h>
 
-char *program_name;
-
 int
 main (int argc, char **argv)
 {
@@ -206,7 +204,6 @@ main (int argc, char **argv)
   int mode;
   int err;
 
-  program_name = argv[0];
   if (argc < 3)
     abort ();
   file = argv[1];

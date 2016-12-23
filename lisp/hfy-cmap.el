@@ -845,7 +845,7 @@ Loads the variable `hfy-rgb-txt-colour-map', which is used by
 (provide 'hfy-cmap)
 
 ;; Local Variables:
-;; generated-autoload-file: "htmlfontify.el"
+;; generated-autoload-file: "htmlfontify-loaddefs.el"
 ;; End:
 
 ;;; hfy-cmap.el ends here

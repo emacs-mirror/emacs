@@ -93,7 +93,8 @@
 (require 'org)
 (require 'sha1)
 
-(declare-function url-retrieve-synchronously "url" (url))
+(declare-function url-retrieve-synchronously "url"
+                  (url &optional silent inhibit-cookies timeout))
 (declare-function xml-node-children "xml" (node))
 (declare-function xml-get-children "xml" (node child-name))
 (declare-function xml-get-attribute "xml" (node attribute))

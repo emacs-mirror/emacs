@@ -113,7 +113,7 @@ When the figure is finished these values should be replaced."
 (defcustom ps-mode-print-function
   (lambda ()
      (let ((lpr-switches nil)
-	   (lpr-command (if (memq system-type '(usg-unix-v hpux irix))
+	   (lpr-command (if (memq system-type '(usg-unix-v hpux))
 			    "lp" "lpr")))
        (lpr-buffer)))
   "Lisp function to print current buffer as PostScript."

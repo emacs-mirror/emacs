@@ -1826,6 +1826,11 @@ matching types.
 @vindex mailcap-mime-data
 This variable is an alist of alists containing backup viewing rules.
 
+@item mailcap-user-mime-data
+@vindex mailcap-user-mime-data
+A customizable list of viewers that take preference over
+@code{mailcap-mime-data}.
+
 @end table
 
 Interface functions:

@@ -206,17 +206,17 @@ VC commands are globally reachable under the prefix `\\[vc-prefix-map]':
 	   (not (memq property vc-touched-properties)))
       (setq vc-touched-properties (append (list property)
 					  vc-touched-properties)))
-  (put (intern file vc-file-prop-obarray) property value))
+  (put (intern (expand-file-name file) vc-file-prop-obarray) property value))
 
 (defun vc-file-getprop (file property)
   "Get per-file VC PROPERTY for FILE."
-  (get (intern file vc-file-prop-obarray) property))
+  (get (intern (expand-file-name file) vc-file-prop-obarray) property))
 
 (defun vc-file-clearprops (file)
   "Clear all VC properties of FILE."
   (if (boundp 'vc-parent-buffer)
       (kill-local-variable 'vc-parent-buffer))
-  (setplist (intern file vc-file-prop-obarray) nil))
+  (setplist (intern (expand-file-name file) vc-file-prop-obarray) nil))
 
 
 ;; We keep properties on each symbol naming a backend as follows:
@@ -394,7 +394,7 @@ For registered files, the possible values are:
 
 (defun vc-user-login-name (file)
   "Return the name under which the user accesses the given FILE."
-  (or (and (eq (string-match tramp-file-name-regexp file) 0)
+  (or (and (file-remote-p file)
            ;; tramp case: execute "whoami" via tramp
            (let ((default-directory (file-name-directory file))
 		 process-file-side-effects)
@@ -468,16 +468,20 @@ status of this file.  Otherwise, the value returned is one of:
 
   `unregistered'     The file is not under version control."
 
-  ;; Note: in Emacs 22 and older, return of nil meant the file was
-  ;; unregistered.  This is potentially a source of
-  ;; backward-compatibility bugs.
+  ;; Note: we usually return nil here for unregistered files anyway
+  ;; when called with only one argument.  This doesn't seem to cause
+  ;; any problems.  But if we wanted to change that, we should
+  ;; probably opt for redefining the `registered' command to return
+  ;; non-nil even for unregistered files (maybe also rename it), and
+  ;; then make sure that all `state' implementations handle
+  ;; unregistered file appropriately.
 
   ;; FIXME: New (sub)states needed (?):
   ;; - `copied' and `moved' (might be handled by `removed' and `added')
   (or (vc-file-getprop file 'vc-state)
       (when (> (length file) 0)         ;Why??  --Stef
-	(setq backend (or backend (vc-backend file)))
-	(when backend
+        (setq backend (or backend (vc-backend file)))
+        (when backend
           (vc-state-refresh file backend)))))
 
 (defun vc-state-refresh (file backend)
@@ -495,10 +499,11 @@ status of this file.  Otherwise, the value returned is one of:
 If FILE is not registered, this function always returns nil."
   (or (vc-file-getprop file 'vc-working-revision)
       (progn
-	(setq backend (or backend (vc-backend file)))
-	(when backend
-	  (vc-file-setprop file 'vc-working-revision
-			   (vc-call-backend backend 'working-revision file))))))
+        (setq backend (or backend (vc-backend file)))
+        (when backend
+          (vc-file-setprop file 'vc-working-revision
+                           (vc-call-backend
+                            backend 'working-revision file))))))
 
 ;; Backward compatibility.
 (define-obsolete-function-alias
@@ -807,15 +812,15 @@ In the latter case, VC mode is deactivated for this buffer."
     (add-hook 'vc-mode-line-hook 'vc-mode-line nil t)
     (let (backend)
       (cond
-       ((setq backend (with-demoted-errors (vc-backend buffer-file-name)))
+        ((setq backend (with-demoted-errors (vc-backend buffer-file-name)))
+         ;; Let the backend setup any buffer-local things he needs.
+         (vc-call-backend backend 'find-file-hook)
 	;; Compute the state and put it in the mode line.
 	(vc-mode-line buffer-file-name backend)
 	(unless vc-make-backup-files
 	  ;; Use this variable, not make-backup-files,
 	  ;; because this is for things that depend on the file name.
-	  (set (make-local-variable 'backup-inhibited) t))
-	;; Let the backend setup any buffer-local things he needs.
-	(vc-call-backend backend 'find-file-hook))
+          (set (make-local-variable 'backup-inhibited) t)))
        ((let* ((truename (and buffer-file-truename
 			      (expand-file-name buffer-file-truename)))
 	       (link-type (and truename

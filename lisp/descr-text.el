@@ -277,12 +277,12 @@ This function is semi-obsolete.  Use `get-char-code-property'."
 			    'general-category (intern val))
 			   val)))
 	       (list "Combining class"
-		     (let ((val (nth 1 fields)))
+		     (let ((val (nth 2 fields)))
 		       (or (char-code-property-description
 			    'canonical-combining-class (intern val))
 			   val)))
 	       (list "Bidi category"
-		     (let ((val (nth 1 fields)))
+		     (let ((val (nth 3 fields)))
 		       (or (char-code-property-description
 			    'bidi-class (intern val))
 			   val)))

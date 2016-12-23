@@ -97,7 +97,8 @@ ring; on a second click, kill it (@code{mouse-save-then-kill}).
 invoked by clicking with the left mouse button, @kbd{mouse-1}, in the
 text area of a window.  This moves point to the position where you
 clicked.  If that window was not the selected window, it becomes the
-selected window.
+selected window.  You can also activate a region by double-clicking
+mouse-1 (@pxref{Word and Line Mouse}).
 
 @vindex x-mouse-click-focus-ignore-position
   Normally, if the frame you clicked in was not the selected frame, it
@@ -215,7 +216,7 @@ also copied to the kill ring.
 
 @table @kbd
 @item Double-mouse-1
-Select the text around the word which you click on.
+Select the text around the word or character which you click on.
 
 Double-clicking on a character with symbol syntax (such as
 underscore, in C mode) selects the symbol surrounding that character.
@@ -225,6 +226,17 @@ ends.  Double-clicking on a character with string-delimiter syntax
 (such as a single-quote or double-quote in C) selects the string
 constant (Emacs uses heuristics to figure out whether that character
 is the beginning or the end of it).
+
+Double-clicking on the beginning of a parenthetical grouping or
+beginning string-delimiter moves point to the end of the region,
+scrolling the buffer display forward if necessary to show the new
+location of point.  Double-clicking on the end of a parenthetical
+grouping or end string-delimiter keeps point at the end of the region
+by default, so the beginning of the region will not be visible if it
+is above the top of the window; setting the user option
+@code{mouse-select-region-move-to-beginning} to non-nil changes this
+to move point to the beginning of the region, scrolling the display
+backward if necessary.
 
 @item Double-Drag-mouse-1
 Select the text you drag across, in the form of whole words.
@@ -912,6 +924,14 @@ the initial frame, by customizing the variable
   If Emacs is compiled to use an X toolkit, frame parameters that
 specify colors and fonts don't affect menus and the menu bar, since
 those are drawn by the toolkit and not directly by Emacs.
+
+  Note that if you are using the desktop library to save and restore
+your sessions, the frames to be restored are recorded in the desktop
+file, together with their parameters.  When these frames are restored,
+the recorded parameters take precedence over the frame parameters
+specified by @code{default-frame-alist} and @code{initial-frame-alist}
+in your init file.  @xref{Saving Emacs Sessions}, for how to avoid
+that.
 
 @node Scroll Bars
 @section Scroll Bars

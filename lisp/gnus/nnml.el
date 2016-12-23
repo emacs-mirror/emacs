@@ -128,13 +128,13 @@ non-nil.")
   "Return a decoded group name of GROUP on SERVER-OR-METHOD."
   (if nnmail-group-names-not-encoded-p
       group
-    (mm-decode-coding-string
+    (decode-coding-string
      group
      (nnml-group-name-charset group server-or-method))))
 
 (defun nnml-encoded-group-name (group &optional server-or-method)
   "Return an encoded group name of GROUP on SERVER-OR-METHOD."
-  (mm-encode-coding-string
+  (encode-coding-string
    group
    (nnml-group-name-charset group server-or-method)))
 
@@ -1077,8 +1077,7 @@ Use the nov database for the current group if available."
 		;; 1/ Move the article to a new file:
 		(let* ((oldfile (nnml-article-to-file old-number))
 		       (newfile
-			(gnus-replace-in-string
-			 oldfile
+			(replace-regexp-in-string
 			 ;; nnml-use-compressed-files might be any string, but
 			 ;; probably it's sufficient to take into account only
 			 ;; "\\.[a-z0-9]+".  Note that we can't only use the
@@ -1087,7 +1086,8 @@ Use the nov database for the current group if available."
 			 ;; value.
 			 (concat
 			  "\\(" old-number-string "\\)\\(\\(\\.[a-z0-9]+\\)?\\)$")
-			 (concat new-number-string "\\2"))))
+			 (concat new-number-string "\\2")
+			 oldfile)))
 		  (with-current-buffer nntp-server-buffer
 		    (nnmail-find-file oldfile)
 		    ;; Update the Xref header in the article itself:

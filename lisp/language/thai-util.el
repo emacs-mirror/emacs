@@ -55,100 +55,100 @@
   "\\cc\\(\\cu\\|\\cI\\cU\\|\\cv\\ct?\\)\\|\\cv\\ct\\|\\cI\\cU"
   "Regular expression matching a Thai composite sequence.")
 
-(let ((l '((?ก consonant "LETTER KO KAI")				; 0xA1
-	   (?ข consonant "LETTER KHO KHAI")				; 0xA2
-	   (?ฃ consonant "LETTER KHO KHUAT")				; 0xA3
-	   (?ค consonant "LETTER KHO KHWAI")				; 0xA4
-	   (?ฅ consonant "LETTER KHO KHON")				; 0xA5
-	   (?ฆ consonant "LETTER KHO RAKHANG")				; 0xA6
-	   (?ง consonant "LETTER NGO NGU")				; 0xA7
-	   (?จ consonant "LETTER CHO CHAN")				; 0xA8
-	   (?ฉ consonant "LETTER CHO CHING")				; 0xA9
-	   (?ช consonant "LETTER CHO CHANG")				; 0xAA
-	   (?ซ consonant "LETTER SO SO")				; 0xAB
-	   (?ฌ consonant "LETTER CHO CHOE")				; 0xAC
-	   (?ญ consonant "LETTER YO YING")				; 0xAD
-	   (?ฎ consonant "LETTER DO CHADA")				; 0xAE
-	   (?ฏ consonant "LETTER TO PATAK")				; 0xAF
-	   (?ฐ consonant "LETTER THO THAN")				; 0xB0
-	   (?ฑ consonant "LETTER THO NANGMONTHO")			; 0xB1
-	   (?ฒ consonant "LETTER THO PHUTHAO")				; 0xB2
-	   (?ณ consonant "LETTER NO NEN")				; 0xB3
-	   (?ด consonant "LETTER DO DEK")				; 0xB4
-	   (?ต consonant "LETTER TO TAO")				; 0xB5
-	   (?ถ consonant "LETTER THO THUNG")				; 0xB6
-	   (?ท consonant "LETTER THO THAHAN")				; 0xB7
-	   (?ธ consonant "LETTER THO THONG")				; 0xB8
-	   (?น consonant "LETTER NO NU")				; 0xB9
-	   (?บ consonant "LETTER BO BAIMAI")				; 0xBA
-	   (?ป consonant "LETTER PO PLA")				; 0xBB
-	   (?ผ consonant "LETTER PHO PHUNG")				; 0xBC
-	   (?ฝ consonant "LETTER FO FA")				; 0xBD
-	   (?พ consonant "LETTER PHO PHAN")				; 0xBE
-	   (?ฟ consonant "LETTER FO FAN")				; 0xBF
-	   (?ภ consonant "LETTER PHO SAMPHAO")				; 0xC0
-	   (?ม consonant "LETTER MO MA")				; 0xC1
-	   (?ย consonant "LETTER YO YAK")				; 0xC2
-	   (?ร consonant "LETTER RO RUA")				; 0xC3
-	   (?ฤ vowel-base "LETTER RU (Pali vowel letter)")		; 0xC4
-	   (?ล consonant "LETTER LO LING")				; 0xC5
-	   (?ฦ vowel-base "LETTER LU (Pali vowel letter)")		; 0xC6
-	   (?ว consonant "LETTER WO WAEN")				; 0xC7
-	   (?ศ consonant "LETTER SO SALA")				; 0xC8
-	   (?ษ consonant "LETTER SO RUSI")				; 0xC9
-	   (?ส consonant "LETTER SO SUA")				; 0xCA
-	   (?ห consonant "LETTER HO HIP")				; 0xCB
-	   (?ฬ consonant "LETTER LO CHULA")				; 0xCC
-	   (?อ consonant "LETTER O ANG")				; 0xCD
-	   (?ฮ consonant "LETTER HO NOK HUK")				; 0xCE
-	   (?ฯ special "PAI YAN NOI (abbreviation)")			; 0xCF
-	   (?ะ vowel-base "VOWEL SIGN SARA A")				; 0xD0
-	   (?ั vowel-upper "VOWEL SIGN MAI HAN-AKAT N/S-T")		; 0xD1
-	   (?า vowel-base "VOWEL SIGN SARA AA")				; 0xD2
-	   (?ำ vowel-base "VOWEL SIGN SARA AM")				; 0xD3
-	   (?ิ vowel-upper "VOWEL SIGN SARA I N/S-T")			; 0xD4
-	   (?ี vowel-upper "VOWEL SIGN SARA II N/S-T")			; 0xD5
-	   (?ึ vowel-upper "VOWEL SIGN SARA UE N/S-T")			; 0xD6
-	   (?ื vowel-upper "VOWEL SIGN SARA UEE N/S-T")			; 0xD7
-	   (?ุ vowel-lower "VOWEL SIGN SARA U N/S-B")			; 0xD8
-	   (?ู vowel-lower "VOWEL SIGN SARA UU N/S-B")			; 0xD9
-	   (?ฺ vowel-lower "VOWEL SIGN PHINTHU N/S-B (Pali virama)")	; 0xDA
-	   (?฻ invalid nil)						; 0xDA
-	   (?฼ invalid nil)						; 0xDC
-	   (?฽ invalid nil)						; 0xDC
-	   (?฾ invalid nil)						; 0xDC
-	   (?฿ special "BAHT SIGN (currency symbol)")			; 0xDF
-	   (?เ vowel-base "VOWEL SIGN SARA E")				; 0xE0
-	   (?แ vowel-base "VOWEL SIGN SARA AE")				; 0xE1
-	   (?โ vowel-base "VOWEL SIGN SARA O")				; 0xE2
-	   (?ใ vowel-base "VOWEL SIGN SARA MAI MUAN")			; 0xE3
-	   (?ไ vowel-base "VOWEL SIGN SARA MAI MALAI")			; 0xE4
-	   (?ๅ vowel-base "LAK KHANG YAO")				; 0xE5
-	   (?ๆ special "MAI YAMOK (repetition)")			; 0xE6
-	   (?็ sign-upper "VOWEL SIGN MAI TAI KHU N/S-T")		; 0xE7
-	   (?่ tone "TONE MAI EK N/S-T")				; 0xE8
-	   (?้ tone "TONE MAI THO N/S-T")				; 0xE9
-	   (?๊ tone "TONE MAI TRI N/S-T")				; 0xEA
-	   (?๋ tone "TONE MAI CHATTAWA N/S-T")				; 0xEB
-	   (?์ sign-upper "THANTHAKHAT N/S-T (cancellation mark)")	; 0xEC
-	   (?ํ sign-upper "NIKKHAHIT N/S-T (final nasal)")		; 0xED
-	   (?๎ sign-upper "YAMAKKAN N/S-T")				; 0xEE
-	   (?๏ special "FONRMAN")					; 0xEF
-	   (?๐ special "DIGIT ZERO")					; 0xF0
-	   (?๑ special "DIGIT ONE")					; 0xF1
-	   (?๒ special "DIGIT TWO")					; 0xF2
-	   (?๓ special "DIGIT THREE")					; 0xF3
-	   (?๔ special "DIGIT FOUR")					; 0xF4
-	   (?๕ special "DIGIT FIVE")					; 0xF5
-	   (?๖ special "DIGIT SIX")					; 0xF6
-	   (?๗ special "DIGIT SEVEN")					; 0xF7
-	   (?๘ special "DIGIT EIGHT")					; 0xF8
-	   (?๙ special "DIGIT NINE")					; 0xF9
-	   (?๚ special "ANGKHANKHU (ellipsis)")				; 0xFA
-	   (?๛ special "KHOMUT (beginning of religious texts)")		; 0xFB
-	   (?๜ invalid nil)						; 0xFC
-	   (?๝ invalid nil)						; 0xFD
-	   (?๞ invalid nil)						; 0xFE
+(let ((l '((?ก consonant)	; 0xA1
+	   (?ข consonant)	; 0xA2
+	   (?ฃ consonant)	; 0xA3
+	   (?ค consonant)	; 0xA4
+	   (?ฅ consonant)	; 0xA5
+	   (?ฆ consonant)	; 0xA6
+	   (?ง consonant)	; 0xA7
+	   (?จ consonant)	; 0xA8
+	   (?ฉ consonant)	; 0xA9
+	   (?ช consonant)	; 0xAA
+	   (?ซ consonant)	; 0xAB
+	   (?ฌ consonant)	; 0xAC
+	   (?ญ consonant)	; 0xAD
+	   (?ฎ consonant)	; 0xAE
+	   (?ฏ consonant)	; 0xAF
+	   (?ฐ consonant)	; 0xB0
+	   (?ฑ consonant)	; 0xB1
+	   (?ฒ consonant)	; 0xB2
+	   (?ณ consonant)	; 0xB3
+	   (?ด consonant)	; 0xB4
+	   (?ต consonant)	; 0xB5
+	   (?ถ consonant)	; 0xB6
+	   (?ท consonant)	; 0xB7
+	   (?ธ consonant)	; 0xB8
+	   (?น consonant)	; 0xB9
+	   (?บ consonant)	; 0xBA
+	   (?ป consonant)	; 0xBB
+	   (?ผ consonant)	; 0xBC
+	   (?ฝ consonant)	; 0xBD
+	   (?พ consonant)	; 0xBE
+	   (?ฟ consonant)	; 0xBF
+	   (?ภ consonant)	; 0xC0
+	   (?ม consonant)	; 0xC1
+	   (?ย consonant)	; 0xC2
+	   (?ร consonant)	; 0xC3
+	   (?ฤ vowel-base)	; 0xC4
+	   (?ล consonant)	; 0xC5
+	   (?ฦ vowel-base)	; 0xC6
+	   (?ว consonant)	; 0xC7
+	   (?ศ consonant)	; 0xC8
+	   (?ษ consonant)	; 0xC9
+	   (?ส consonant)	; 0xCA
+	   (?ห consonant)	; 0xCB
+	   (?ฬ consonant)	; 0xCC
+	   (?อ consonant)	; 0xCD
+	   (?ฮ consonant)	; 0xCE
+	   (?ฯ special)	; 0xCF
+	   (?ะ vowel-base)	; 0xD0
+	   (?ั vowel-upper)	; 0xD1
+	   (?า vowel-base)	; 0xD2
+	   (?ำ vowel-base)	; 0xD3
+	   (?ิ vowel-upper)	; 0xD4
+	   (?ี vowel-upper)	; 0xD5
+	   (?ึ vowel-upper)	; 0xD6
+	   (?ื vowel-upper)	; 0xD7
+	   (?ุ vowel-lower)	; 0xD8
+	   (?ู vowel-lower)	; 0xD9
+	   (?ฺ vowel-lower)	; 0xDA
+	   (?฻ invalid)	; 0xDA
+	   (?฼ invalid)	; 0xDC
+	   (?฽ invalid)	; 0xDC
+	   (?฾ invalid)	; 0xDC
+	   (?฿ special)	; 0xDF
+	   (?เ vowel-base)	; 0xE0
+	   (?แ vowel-base)	; 0xE1
+	   (?โ vowel-base)	; 0xE2
+	   (?ใ vowel-base)	; 0xE3
+	   (?ไ vowel-base)	; 0xE4
+	   (?ๅ vowel-base)	; 0xE5
+	   (?ๆ special)	; 0xE6
+	   (?็ sign-upper)	; 0xE7
+	   (?่ tone)		; 0xE8
+	   (?้ tone)		; 0xE9
+	   (?๊ tone)		; 0xEA
+	   (?๋ tone)		; 0xEB
+	   (?์ sign-upper)	; 0xEC
+	   (?ํ sign-upper)	; 0xED
+	   (?๎ sign-upper)	; 0xEE
+	   (?๏ special)	; 0xEF
+	   (?๐ special)	; 0xF0
+	   (?๑ special)	; 0xF1
+	   (?๒ special)	; 0xF2
+	   (?๓ special)	; 0xF3
+	   (?๔ special)	; 0xF4
+	   (?๕ special)	; 0xF5
+	   (?๖ special)	; 0xF6
+	   (?๗ special)	; 0xF7
+	   (?๘ special)	; 0xF8
+	   (?๙ special)	; 0xF9
+	   (?๚ special)	; 0xFA
+	   (?๛ special)	; 0xFB
+	   (?๜ invalid)	; 0xFC
+	   (?๝ invalid)	; 0xFD
+	   (?๞ invalid)	; 0xFE
 	   ))
       elm)
   (while l
@@ -170,8 +170,7 @@
 	     (modify-category-entry char ?u thai-category-table)
 	     (if (= char ?์)
 		 ;; Give category `U' to "THANTHAKHAT".
-		 (modify-category-entry char ?U thai-category-table))))
-      (put-char-code-property char 'name (nth 2 elm)))))
+		 (modify-category-entry char ?U thai-category-table)))))))
 
 (defun thai-compose-syllable (beg end &optional category-set string)
   (or category-set

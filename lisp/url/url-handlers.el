@@ -262,14 +262,16 @@ Fifth arg PRESERVE-UID-GID is ignored.
 A prefix arg makes KEEP-TIME non-nil."
   (if (and (file-exists-p newname)
 	   (not ok-if-already-exists))
-      (error "Opening output file: File already exists, %s" newname))
+      (signal 'file-already-exists (list "File exists" newname)))
   (let ((buffer (url-retrieve-synchronously url))
 	(handle nil))
     (if (not buffer)
-	(error "Opening input file: No such file or directory, %s" url))
+        (signal 'file-missing (list "Opening URL" "No such file or directory"
+                                    url)))
     (with-current-buffer buffer
       (setq handle (mm-dissect-buffer t)))
-    (mm-save-part-to-file handle newname)
+    (let ((mm-attachment-file-modes (default-file-modes)))
+      (mm-save-part-to-file handle newname))
     (kill-buffer buffer)
     (mm-destroy-parts handle)))
 (put 'copy-file 'url-file-handlers 'url-copy-file)

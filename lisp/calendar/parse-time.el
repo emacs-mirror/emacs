@@ -48,7 +48,9 @@
         ((eq char ?:) ?d)))
 
 (defun parse-time-tokenize (string)
-  "Tokenize STRING into substrings."
+  "Tokenize STRING into substrings.
+Each substring is a run of \"valid\" characters, i.e., lowercase
+letters, digits, plus or minus signs or colons."
   (let ((start nil)
 	(end (length string))
 	(all-digits nil)
@@ -59,7 +61,8 @@
       (while (and (< index end)		;Skip invalid characters.
 		  (not (setq c (parse-time-string-chars (aref string index)))))
 	(cl-incf index))
-      (setq start index all-digits (eq c ?0))
+      (setq start index
+            all-digits (eq c ?0))
       (while (and (< (cl-incf index) end)	;Scan valid characters.
 		  (setq c (parse-time-string-chars (aref string index))))
 	(setq all-digits (and all-digits (eq c ?0))))
@@ -143,8 +146,12 @@
 ;;;###autoload
 (defun parse-time-string (string)
   "Parse the time-string STRING into (SEC MIN HOUR DAY MON YEAR DOW DST TZ).
-The values are identical to those of `decode-time', but any values that are
-unknown are returned as nil."
+STRING should be on something resembling an RFC2822 string, a la
+\"Fri, 25 Mar 2016 16:24:56 +0100\", but this function is
+somewhat liberal in what format it accepts, and will attempt to
+return a \"likely\" value even for somewhat malformed strings.
+The values returned are identical to those of `decode-time', but
+any values that are unknown are returned as nil."
   (let ((time (list nil nil nil nil nil nil nil nil nil))
 	(temp (parse-time-tokenize (downcase string))))
     (while temp

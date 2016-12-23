@@ -1864,7 +1864,7 @@ files.")
 (defun auto-coding-alist-lookup (filename)
   "Return the coding system specified by `auto-coding-alist' for FILENAME."
   (let ((alist auto-coding-alist)
-	(case-fold-search (memq system-type '(windows-nt ms-dos cygwin)))
+	(case-fold-search (file-name-case-insensitive-p filename))
 	coding-system)
     (while (and alist (not coding-system))
       (if (string-match (car (car alist)) filename)

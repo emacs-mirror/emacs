@@ -67,16 +67,16 @@
     (let ((dir (car load-path)))
       ;; We'll probably overflow the pure space.
       (setq purify-flag nil)
+      ;; Value of max-lisp-eval-depth when compiling initially.
+      ;; During bootstrapping the byte-compiler is run interpreted when
+      ;; compiling itself, which uses a lot more stack than usual.
+      (setq max-lisp-eval-depth 2200)
       (setq load-path (list (expand-file-name "." dir)
 			    (expand-file-name "emacs-lisp" dir)
 			    (expand-file-name "language" dir)
 			    (expand-file-name "international" dir)
 			    (expand-file-name "textmodes" dir)
 			    (expand-file-name "vc" dir)))))
-
-;; Prevent build-time PATH getting stored in the binary.
-;; Mainly cosmetic, but helpful for Guix.  (Bug#20330)
-(setq exec-path nil)
 
 (if (eq t purify-flag)
     ;; Hash consing saved around 11% of pure space in my tests.
@@ -143,23 +143,32 @@
 (load "button")
 
 ;; We don't want to store loaddefs.el in the repository because it is
-;; a generated file; but it is required in order to compile the lisp files.
-;; When bootstrapping, we cannot generate loaddefs.el until an
-;; emacs binary has been built.  We therefore compromise and keep
-;; ldefs-boot.el in the repository.  This does not need to be updated
-;; as often as the real loaddefs.el would.  Bootstrap should always
-;; work with ldefs-boot.el.  Therefore, Whenever a new autoload cookie
-;; gets added that is necessary during bootstrapping, ldefs-boot.el
-;; should be updated by overwriting it with an up-to-date copy of
-;; loaddefs.el that is uncorrupted by local changes.
-;; autogen/update_autogen can be used to periodically update ldefs-boot.
+;; a generated file; but it is required in order to compile the lisp
+;; files.  When bootstrapping, we cannot generate loaddefs.el until an
+;; emacs binary has been built.  We therefore support the build with
+;; two files, ldefs-boot-manual.el and ldefs-boot-auto.el, which
+;; contain the autoloads that are actually called during bootstrap.
+;; These do not need to be updated as often as the real loaddefs.el
+;; would.  Bootstrap should always work with ldefs-boot-manual.el.
+;; Therefore, Whenever a new autoload cookie gets added that is
+;; necessary during bootstrapping, ldefs-boot-auto.el should be
+;; updated using the "generate-ldefs-boot" make target.
+;; autogen/update_autogen can be used to periodically update
+;; ldefs-boot.
 (condition-case nil (load "loaddefs.el")
   ;; In case loaddefs hasn't been generated yet.
-  (file-error (load "ldefs-boot.el")))
+  (file-error (load "ldefs-boot-manual.el")))
+
+(let ((new (make-hash-table :test 'equal)))
+  ;; Now that loaddefs has populated definition-prefixes, purify its contents.
+  (maphash (lambda (k v) (puthash (purecopy k) (purecopy v) new))
+           definition-prefixes)
+  (setq definition-prefixes new))
 
 (load "emacs-lisp/nadvice")
 (load "emacs-lisp/cl-preloaded")
 (load "minibuffer")            ;After loaddefs, for define-minor-mode.
+(load "obarray")        ;abbrev.el is implemented in terms of obarrays.
 (load "abbrev")         ;lisp-mode.el and simple.el use define-abbrev-table.
 (load "simple")
 
@@ -292,6 +301,7 @@
       ;; already produced, because it needs uni-*.el files that might
       ;; not be built early enough during bootstrap.
       (when (load-history-filename-element "charprop\\.el")
+        (load "international/mule-util")
         (load "international/ucs-normalize")
         (load "term/ns-win"))))
 (if (fboundp 'x-create-frame)
@@ -419,6 +429,12 @@ lost after dumping")))
              purify-flag)
     (message "Pure-hashed: %d strings, %d vectors, %d conses, %d bytecodes, %d others"
              strings vectors conses bytecodes others)))
+
+;; Prevent build-time PATH getting stored in the binary.
+;; Mainly cosmetic, but helpful for Guix.  (Bug#20330)
+;; Do this here, rather than earlier, so that the above code
+;; can invoke Git commands and the like.
+(setq exec-path nil)
 
 ;; Avoid error if user loads some more libraries now and make sure the
 ;; hash-consing hash table is GC'd.

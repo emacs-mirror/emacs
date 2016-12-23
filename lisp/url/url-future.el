@@ -1,4 +1,4 @@
-;;; url-future.el --- general futures facility for url.el
+;;; url-future.el --- general futures facility for url.el -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2011-2016 Free Software Foundation, Inc.
 

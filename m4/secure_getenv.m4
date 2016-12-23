@@ -22,4 +22,5 @@ AC_DEFUN([gl_PREREQ_SECURE_GETENV], [
   if test $ac_cv_func___secure_getenv = no; then
     AC_CHECK_FUNCS([issetugid])
   fi
+  AC_CHECK_FUNCS_ONCE([getuid geteuid getgid getegid])
 ])

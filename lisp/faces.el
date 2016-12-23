@@ -1,4 +1,4 @@
-;;; faces.el --- Lisp faces
+;;; faces.el --- Lisp faces -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1992-1996, 1998-2016 Free Software Foundation, Inc.
 
@@ -98,7 +98,31 @@ a font height that isn't optimal."
 (defcustom face-font-family-alternatives
   (mapcar (lambda (arg) (mapcar 'purecopy arg))
   '(("Monospace" "courier" "fixed")
+
+    ;; Monospace Serif is an Emacs invention, intended to work around
+    ;; portability problems when using Courier.  It should work well
+    ;; when combined with Monospaced and with other standard fonts.
+    ("Monospace Serif"
+
+     ;; This looks good on GNU/Linux.
+     "Courier 10 Pitch"
+     ;; This looks good on MS-Windows and OS X.
+     "Consolas"
+     ;; This looks good on macOS.  "Courier" looks good too, but is
+     ;; jagged on GNU/Linux and so is listed later as "courier".
+     "Courier Std"
+     ;; Although these are anti-aliased, they are a bit faint compared
+     ;; to the above.
+     "FreeMono" "Nimbus Mono L"
+     ;; These are aliased and look jagged.
+     "courier" "fixed"
+     ;; Omit Courier New, as it is the default MS-Windows font and so
+     ;; would look no different, and is pretty faint on other platforms.
+     )
+
+    ;; This is present for backward compatibility.
     ("courier" "CMU Typewriter Text" "fixed")
+
     ("Sans Serif" "helv" "helvetica" "arial" "fixed")
     ("helv" "helvetica" "arial" "fixed")))
   "Alist of alternative font family names.
@@ -979,31 +1003,41 @@ of the default face.  Value is FACE."
   "Read one or more face names, prompting with PROMPT.
 PROMPT should not end in a space or a colon.
 
-Return DEFAULT if the user enters the empty string.
-If DEFAULT is non-nil, it should be a single face or a list of face names
-\(symbols or strings).  In the latter case, return the `car' of DEFAULT
-\(if MULTIPLE is nil, see below), or DEFAULT (if MULTIPLE is non-nil).
+If DEFAULT is non-nil, it should be a face (a symbol) or a face
+name (a string).  It can also be a list of faces or face names.
 
-If MULTIPLE is non-nil, this function uses `completing-read-multiple'
-to read multiple faces with \"[ \\t]*,[ \\t]*\" as the separator regexp
-and it returns a list of face names.  Otherwise, it reads and returns
-a single face name."
-  (if (and default (not (stringp default)))
-      (setq default
-            (cond ((symbolp default)
-                   (symbol-name default))
-                  (multiple
-                   (mapconcat (lambda (f) (if (symbolp f) (symbol-name f) f))
-                              default ", "))
-                  ;; If we only want one, and the default is more than one,
-                  ;; discard the unwanted ones.
-                  (t (symbol-name (car default))))))
+If MULTIPLE is non-nil, the return value from this function is a
+list of faces.  Otherwise a single face is returned.
+
+If the user enter the empty string at the prompt, DEFAULT is
+returned after a possible transformation according to MULTIPLE.
+That is, if DEFAULT is a list and MULTIPLE is nil, the first
+element of DEFAULT is returned.  If DEFAULT isn't a list, but
+MULTIPLE is non-nil, a one-element list containing DEFAULT is
+returned.  Otherwise, DEFAULT is returned verbatim."
+  (unless (listp default)
+    (setq default (list default)))
+  (when default
+    (setq default
+          (if multiple
+              (mapconcat (lambda (f) (if (symbolp f) (symbol-name f) f))
+                         default ", ")
+            ;; If we only want one, and the default is more than one,
+            ;; discard the unwanted ones.
+            (setq default (car default))
+            (if (symbolp default)
+                (symbol-name default)
+              default))))
   (when (and default (not multiple))
     (require 'crm)
     ;; For compatibility with `completing-read-multiple' use `crm-separator'
     ;; to define DEFAULT if MULTIPLE is nil.
     (setq default (car (split-string default crm-separator t))))
 
+  ;; Older versions of `read-face-name' did not append ": " to the
+  ;; prompt, so there are third party libraries that have that in the
+  ;; prompt.  If so, remove it.
+  (setq prompt (replace-regexp-in-string ": ?\\'" "" prompt))
   (let ((prompt (if default
                     (format-message "%s (default `%s'): " prompt default)
                   (format "%s: " prompt)))
@@ -1792,6 +1826,32 @@ If FRAME is nil, that stands for the selected frame."
     (mapcar 'car (tty-color-alist frame))))
 (defalias 'x-defined-colors 'defined-colors)
 
+(defun defined-colors-with-face-attributes (&optional frame)
+  "Return a list of colors supported for a particular frame.
+See `defined-colors' for arguments and return value. In contrast
+to `define-colors' the elements of the returned list are color
+strings with text properties, that make the color names render
+with the color they represent as background color."
+  (mapcar
+   (lambda (color-name)
+     (let ((foreground (readable-foreground-color color-name))
+	   (color      (copy-sequence color-name)))
+       (propertize color 'face (list :foreground foreground
+				     :background color))))
+   (defined-colors frame)))
+
+(defun readable-foreground-color (color)
+  "Return a readable foreground color for background COLOR."
+  (let* ((rgb   (color-values color))
+	 (max   (apply #'max rgb))
+	 (black (car (color-values "black")))
+	 (white (car (color-values "white"))))
+    ;; Select black or white depending on which one is less similar to
+    ;; the brightest component.
+    (if (> (abs (- max black)) (abs (- max white)))
+	"black"
+      "white")))
+
 (declare-function xw-color-defined-p "xfns.c" (color &optional frame))
 
 (defun color-defined-p (color &optional frame)
@@ -1896,22 +1956,24 @@ resulting color name in the echo area."
 	 (colors (or facemenu-color-alist
 		     (append '("foreground at point" "background at point")
 			     (if allow-empty-name '(""))
-			     (defined-colors))))
+                             (if (display-color-p)
+                                 (defined-colors-with-face-attributes)
+                               (defined-colors)))))
 	 (color (completing-read
 		 (or prompt "Color (name or #RGB triplet): ")
 		 ;; Completing function for reading colors, accepting
 		 ;; both color names and RGB triplets.
 		 (lambda (string pred flag)
 		   (cond
-		    ((null flag) ; Try completion.
+		    ((null flag)        ; Try completion.
 		     (or (try-completion string colors pred)
 			 (if (color-defined-p string)
 			     string)))
-		    ((eq flag t) ; List all completions.
+		    ((eq flag t)        ; List all completions.
 		     (or (all-completions string colors pred)
 			 (if (color-defined-p string)
 			     (list string))))
-		    ((eq flag 'lambda) ; Test completion.
+		    ((eq flag 'lambda)  ; Test completion.
 		     (or (member string colors)
 			 (color-defined-p string)))))
 		 nil t)))
@@ -2280,6 +2342,11 @@ If you set `term-file-prefix' to nil, this function does nothing."
   "The basic fixed-pitch face."
   :group 'basic-faces)
 
+(defface fixed-pitch-serif
+  '((t :family "Monospace Serif"))
+  "The basic fixed-pitch face with serifs."
+  :group 'basic-faces)
+
 (defface variable-pitch
   '((((type w32))
      ;; This is a kludgy workaround for an issue discussed in
@@ -2403,6 +2470,14 @@ If you set `term-file-prefix' to nil, this function does nothing."
   :group 'basic-faces
   :version "22.1")
 
+(defface homoglyph
+  '((((background dark)) :foreground "cyan")
+    (((type pc)) :foreground "magenta")
+    (t :foreground "brown"))
+  "Face for lookalike characters."
+  :group 'basic-faces
+  :version "26.1")
+
 (defface nobreak-space
   '((((class color) (min-colors 88)) :inherit escape-glyph :underline t)
     (((class color) (min-colors 8)) :background "magenta")
@@ -2410,6 +2485,14 @@ If you set `term-file-prefix' to nil, this function does nothing."
   "Face for displaying nobreak space."
   :group 'basic-faces
   :version "22.1")
+
+(defface nobreak-hyphen
+  '((((background dark)) :foreground "cyan")
+    (((type pc)) :foreground "magenta")
+    (t :foreground "brown"))
+  "Face for displaying nobreak hyphens."
+  :group 'basic-faces
+  :version "26.1")
 
 (defgroup mode-line-faces nil
   "Faces used in the mode line."
@@ -2443,7 +2526,6 @@ If you set `term-file-prefix' to nil, this function does nothing."
   :version "22.1"
   :group 'mode-line-faces
   :group 'basic-faces)
-(define-obsolete-face-alias 'modeline-inactive 'mode-line-inactive "22.1")
 
 (defface mode-line-highlight
   '((((class color) (min-colors 88))
@@ -2454,7 +2536,6 @@ If you set `term-file-prefix' to nil, this function does nothing."
   :version "22.1"
   :group 'mode-line-faces
   :group 'basic-faces)
-(define-obsolete-face-alias 'modeline-highlight 'mode-line-highlight "22.1")
 
 (defface mode-line-emphasis
   '((t (:weight bold)))
@@ -2470,7 +2551,6 @@ Use the face `mode-line-highlight' for features that can be selected."
   :version "22.1"
   :group 'mode-line-faces
   :group 'basic-faces)
-(define-obsolete-face-alias 'modeline-buffer-id 'mode-line-buffer-id "22.1")
 
 (defface header-line
   '((default
@@ -2674,6 +2754,13 @@ It is used for characters of no fonts too."
   :version "24.1"
   :group 'basic-faces)
 
+(defface read-multiple-choice-face
+  '((t (:inherit underline
+        :weight bold)))
+  "Face for the symbol name in `read-multiple-choice' output."
+  :group 'basic-faces
+  :version "26.1")
+
 ;; Faces for TTY menus.
 (defface tty-menu-enabled-face
   '((t
@@ -2802,7 +2889,7 @@ also the same size as FACE on FRAME, or fail."
 			   pattern face)))
 	      (error "No fonts match `%s'" pattern)))
 	(car fonts))
-    (cdr (assq 'font (frame-parameters (selected-frame))))))
+    (frame-parameter nil 'font)))
 
 (defcustom font-list-limit 100
   "This variable is obsolete and has no effect."

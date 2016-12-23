@@ -48,7 +48,7 @@
   "Peruse file or buffer without editing."
   :link '(function-link view-mode)
   :link '(custom-manual "(emacs)Misc File Ops")
-  :group 'wp)
+  :group 'text)
 
 (defcustom view-highlight-face 'highlight
    "The face used for highlighting the match found by View mode search."

@@ -67,34 +67,34 @@
   (append '("-d" "-b")
 	  (if (listp diff-switches) diff-switches (list diff-switches)))
   "A list of strings specifying switches to be passed to diff.
-Used in `smerge-diff-base-mine' and related functions."
+Used in `smerge-diff-base-upper' and related functions."
   :type '(repeat string))
 
 (defcustom smerge-auto-leave t
   "Non-nil means to leave `smerge-mode' when the last conflict is resolved."
   :type 'boolean)
 
-(defface smerge-mine
+(defface smerge-upper
   '((((class color) (min-colors 88) (background light))
      :background "#ffdddd")
     (((class color) (min-colors 88) (background dark))
      :background "#553333")
     (((class color))
      :foreground "red"))
-  "Face for your code.")
-(define-obsolete-face-alias 'smerge-mine-face 'smerge-mine "22.1")
-(defvar smerge-mine-face 'smerge-mine)
+  "Face for the `upper' version of a conflict.")
+(define-obsolete-face-alias 'smerge-mine 'smerge-upper "26.1")
+(defvar smerge-upper-face 'smerge-upper)
 
-(defface smerge-other
+(defface smerge-lower
   '((((class color) (min-colors 88) (background light))
      :background "#ddffdd")
     (((class color) (min-colors 88) (background dark))
      :background "#335533")
     (((class color))
      :foreground "green"))
-  "Face for the other code.")
-(define-obsolete-face-alias 'smerge-other-face 'smerge-other "22.1")
-(defvar smerge-other-face 'smerge-other)
+  "Face for the `lower' version of a conflict.")
+(define-obsolete-face-alias 'smerge-other 'smerge-lower "26.1")
+(defvar smerge-lower-face 'smerge-lower)
 
 (defface smerge-base
   '((((class color) (min-colors 88) (background light))
@@ -149,16 +149,18 @@ Used in `smerge-diff-base-mine' and related functions."
     ("r" . smerge-resolve)
     ("a" . smerge-keep-all)
     ("b" . smerge-keep-base)
-    ("o" . smerge-keep-other)
-    ("m" . smerge-keep-mine)
+    ("o" . smerge-keep-lower)           ; for the obsolete keep-other
+    ("l" . smerge-keep-lower)
+    ("m" . smerge-keep-upper)           ; for the obsolete keep-mine
+    ("u" . smerge-keep-upper)
     ("E" . smerge-ediff)
     ("C" . smerge-combine-with-next)
     ("R" . smerge-refine)
     ("\C-m" . smerge-keep-current)
     ("=" . ,(make-sparse-keymap "Diff"))
-    ("=<" "base-mine" . smerge-diff-base-mine)
-    ("=>" "base-other" . smerge-diff-base-other)
-    ("==" "mine-other" . smerge-diff-mine-other))
+    ("=<" "base-upper" . smerge-diff-base-upper)
+    ("=>" "base-lower" . smerge-diff-base-lower)
+    ("==" "upper-lower" . smerge-diff-upper-lower))
   "The base keymap for `smerge-mode'.")
 
 (defcustom smerge-command-prefix "\C-c^"
@@ -196,19 +198,19 @@ Used in `smerge-diff-base-mine' and related functions."
     "--"
     ["Revert to Base" smerge-keep-base :help "Revert to base version"
      :active (smerge-check 2)]
-    ["Keep Other" smerge-keep-other :help "Keep `other' version"
-     :active (smerge-check 3)]
-    ["Keep Yours" smerge-keep-mine :help "Keep your version"
+    ["Keep Upper" smerge-keep-upper :help "Keep `upper' version"
      :active (smerge-check 1)]
+    ["Keep Lower" smerge-keep-lower :help "Keep `lower' version"
+     :active (smerge-check 3)]
     "--"
-    ["Diff Base/Mine" smerge-diff-base-mine
-     :help "Diff `base' and `mine' for current conflict"
+    ["Diff Base/Upper" smerge-diff-base-upper
+     :help "Diff `base' and `upper' for current conflict"
      :active (smerge-check 2)]
-    ["Diff Base/Other" smerge-diff-base-other
-     :help "Diff `base' and `other' for current conflict"
+    ["Diff Base/Lower" smerge-diff-base-lower
+     :help "Diff `base' and `lower' for current conflict"
      :active (smerge-check 2)]
-    ["Diff Mine/Other" smerge-diff-mine-other
-     :help "Diff `mine' and `other' for current conflict"
+    ["Diff Upper/Lower" smerge-diff-upper-lower
+     :help "Diff `upper' and `lower' for current conflict"
      :active (smerge-check 1)]
     "--"
     ["Invoke Ediff" smerge-ediff
@@ -223,7 +225,7 @@ Used in `smerge-diff-base-mine' and related functions."
     ))
 
 (easy-menu-define smerge-context-menu nil
-  "Context menu for mine area in `smerge-mode'."
+  "Context menu for upper area in `smerge-mode'."
   '(nil
     ["Keep Current" smerge-keep-current :help "Use current (at point) version"]
     ["Kill Current" smerge-kill-current :help "Remove current (at point) version"]
@@ -234,9 +236,9 @@ Used in `smerge-diff-base-mine' and related functions."
 
 (defconst smerge-font-lock-keywords
   '((smerge-find-conflict
-     (1 smerge-mine-face prepend t)
+     (1 smerge-upper-face prepend t)
      (2 smerge-base-face prepend t)
-     (3 smerge-other-face prepend t)
+     (3 smerge-lower-face prepend t)
      ;; FIXME: `keep' doesn't work right with syntactic fontification.
      (0 smerge-markers-face keep)
      (4 nil t t)
@@ -246,7 +248,7 @@ Used in `smerge-diff-base-mine' and related functions."
 (defconst smerge-begin-re "^<<<<<<< \\(.*\\)\n")
 (defconst smerge-end-re "^>>>>>>> \\(.*\\)\n")
 (defconst smerge-base-re "^||||||| \\(.*\\)\n")
-(defconst smerge-other-re "^=======\n")
+(defconst smerge-lower-re "^=======\n")
 
 (defvar smerge-conflict-style nil
   "Keep track of which style of conflict is in use.
@@ -267,7 +269,7 @@ Can be nil if the style is undecided, or else:
   (if diff-auto-refine-mode
       (condition-case nil (smerge-refine) (error nil))))
 
-(defconst smerge-match-names ["conflict" "mine" "base" "other"])
+(defconst smerge-match-names ["conflict" "upper" "base" "lower"])
 
 (defun smerge-ensure-match (n)
   (unless (match-end n)
@@ -570,7 +572,7 @@ major modes.  Uses `smerge-resolve-function' to do the actual work."
               (zerop (call-process diff-command nil buf nil "-bc" b m)))
             (set-match-data md)
 	    (smerge-keep-n 3))
-	   ;; Try "diff -b BASE MINE | patch OTHER".
+	   ;; Try "diff -b BASE UPPER | patch LOWER".
 	   ((when (and (not safe) m2e b
                        ;; If the BASE is empty, this would just concatenate
                        ;; the two, which is rarely right.
@@ -585,7 +587,7 @@ major modes.  Uses `smerge-resolve-function' to do the actual work."
 	      (narrow-to-region m0b m0e)
               (smerge-remove-props m0b m0e)
 	      (insert-file-contents o nil nil nil t)))
-	   ;; Try "diff -b BASE OTHER | patch MINE".
+	   ;; Try "diff -b BASE LOWER | patch UPPER".
 	   ((when (and (not safe) m2e b
                        ;; If the BASE is empty, this would just concatenate
                        ;; the two, which is rarely right.
@@ -685,21 +687,39 @@ major modes.  Uses `smerge-resolve-function' to do the actual work."
   (smerge-keep-n 2)
   (smerge-auto-leave))
 
-(defun smerge-keep-other ()
-  "Use \"other\" version."
+(defun smerge-keep-lower ()
+  "Keep the \"lower\" version of a merge conflict.
+In a conflict that looks like:
+  <<<<<<<
+  UUU
+  =======
+  LLL
+  >>>>>>>
+this keeps \"LLL\"."
   (interactive)
   (smerge-match-conflict)
   ;;(smerge-ensure-match 3)
   (smerge-keep-n 3)
   (smerge-auto-leave))
 
-(defun smerge-keep-mine ()
-  "Keep your version."
+(define-obsolete-function-alias 'smerge-keep-other 'smerge-keep-lower "26.1")
+
+(defun smerge-keep-upper ()
+  "Keep the \"upper\" version of a merge conflict.
+In a conflict that looks like:
+  <<<<<<<
+  UUU
+  =======
+  LLL
+  >>>>>>>
+this keeps \"UUU\"."
   (interactive)
   (smerge-match-conflict)
   ;;(smerge-ensure-match 1)
   (smerge-keep-n 1)
   (smerge-auto-leave))
+
+(define-obsolete-function-alias 'smerge-keep-mine 'smerge-keep-upper "26.1")
 
 (defun smerge-get-current ()
   (let ((i 3))
@@ -734,28 +754,37 @@ major modes.  Uses `smerge-resolve-function' to do the actual work."
 	  (smerge-keep-n (car left))
 	  (smerge-auto-leave))))))
 
-(defun smerge-diff-base-mine ()
-  "Diff `base' and `mine' version in current conflict region."
+(defun smerge-diff-base-upper ()
+  "Diff `base' and `upper' version in current conflict region."
   (interactive)
   (smerge-diff 2 1))
 
-(defun smerge-diff-base-other ()
-  "Diff `base' and `other' version in current conflict region."
+(define-obsolete-function-alias 'smerge-diff-base-mine
+  'smerge-diff-base-upper "26.1")
+
+(defun smerge-diff-base-lower ()
+  "Diff `base' and `lower' version in current conflict region."
   (interactive)
   (smerge-diff 2 3))
 
-(defun smerge-diff-mine-other ()
-  "Diff `mine' and `other' version in current conflict region."
+(define-obsolete-function-alias 'smerge-diff-base-other
+  'smerge-diff-base-lower "26.1")
+
+(defun smerge-diff-upper-lower ()
+  "Diff `upper' and `lower' version in current conflict region."
   (interactive)
   (smerge-diff 1 3))
+
+(define-obsolete-function-alias 'smerge-diff-mine-other
+  'smerge-diff-upper-lower "26.1")
 
 (defun smerge-match-conflict ()
   "Get info about the conflict.  Puts the info in the `match-data'.
 The submatches contain:
  0:  the whole conflict.
- 1:  your code.
- 2:  the base code.
- 3:  other code.
+ 1:  upper version of the code.
+ 2:  base version of the code.
+ 3:  lower version of the code.
 An error is raised if not inside a conflict."
   (save-excursion
     (condition-case nil
@@ -765,26 +794,26 @@ An error is raised if not inside a conflict."
 	       (_ (re-search-backward smerge-begin-re))
 
 	       (start (match-beginning 0))
-	       (mine-start (match-end 0))
+	       (upper-start (match-end 0))
 	       (filename (or (match-string 1) ""))
 
 	       (_ (re-search-forward smerge-end-re))
 	       (_ (cl-assert (< orig-point (match-end 0))))
 
-	       (other-end (match-beginning 0))
+	       (lower-end (match-beginning 0))
 	       (end (match-end 0))
 
-	       (_ (re-search-backward smerge-other-re start))
+	       (_ (re-search-backward smerge-lower-re start))
 
-	       (mine-end (match-beginning 0))
-	       (other-start (match-end 0))
+	       (upper-end (match-beginning 0))
+	       (lower-start (match-end 0))
 
 	       base-start base-end)
 
 	  ;; handle the various conflict styles
 	  (cond
 	   ((save-excursion
-	      (goto-char mine-start)
+	      (goto-char upper-start)
 	      (re-search-forward smerge-begin-re end t))
 	    ;; There's a nested conflict and we're after the beginning
 	    ;; of the outer one but before the beginning of the inner one.
@@ -797,8 +826,8 @@ An error is raised if not inside a conflict."
 	   ((re-search-backward smerge-base-re start t)
 	    ;; a 3-parts conflict
 	    (set (make-local-variable 'smerge-conflict-style) 'diff3-A)
-	    (setq base-end mine-end)
-	    (setq mine-end (match-beginning 0))
+	    (setq base-end upper-end)
+	    (setq upper-end (match-beginning 0))
 	    (setq base-start (match-end 0)))
 
 	   ((string= filename (file-name-nondirectory
@@ -811,17 +840,17 @@ An error is raised if not inside a conflict."
 		     (equal filename "ANCESTOR")
 		     (string-match "\\`[.0-9]+\\'" filename)))
 	    ;; a same-diff conflict
-	    (setq base-start mine-start)
-	    (setq base-end   mine-end)
-	    (setq mine-start other-start)
-	    (setq mine-end   other-end)))
+	    (setq base-start upper-start)
+	    (setq base-end   upper-end)
+	    (setq upper-start lower-start)
+	    (setq upper-end   lower-end)))
 
 	  (store-match-data (list start end
-				  mine-start mine-end
+				  upper-start upper-end
 				  base-start base-end
-				  other-start other-end
+				  lower-start lower-end
 				  (when base-start (1- base-start)) base-start
-				  (1- other-start) other-start))
+				  (1- lower-start) lower-start))
 	  t)
       (search-failed (user-error "Point not in conflict region")))))
 
@@ -1133,10 +1162,10 @@ repeating the command will highlight other two parts."
 			   '((smerge . refine) (face . smerge-refined-added))))))
 
 (defun smerge-swap ()
-  "Swap the \"Mine\" and the \"Other\" chunks.
+  "Swap the \"Upper\" and the \"Lower\" chunks.
 Can be used before things like `smerge-keep-all' or `smerge-resolve' where the
 ordering can have some subtle influence on the result, such as preferring the
-spacing of the \"Other\" chunk."
+spacing of the \"Lower\" chunk."
   (interactive)
   (smerge-match-conflict)
   (goto-char (match-beginning 3))
@@ -1205,9 +1234,9 @@ spacing of the \"Other\" chunk."
       default)))
 
 ;;;###autoload
-(defun smerge-ediff (&optional name-mine name-other name-base)
+(defun smerge-ediff (&optional name-upper name-lower name-base)
   "Invoke ediff to resolve the conflicts.
-NAME-MINE, NAME-OTHER, and NAME-BASE, if non-nil, are used for the
+NAME-UPPER, NAME-LOWER, and NAME-BASE, if non-nil, are used for the
 buffer names."
   (interactive)
   (let* ((buf (current-buffer))
@@ -1215,18 +1244,18 @@ buffer names."
 	 ;;(ediff-default-variant 'default-B)
 	 (config (current-window-configuration))
 	 (filename (file-name-nondirectory (or buffer-file-name "-")))
-	 (mine (generate-new-buffer
-		(or name-mine
+	 (upper (generate-new-buffer
+		(or name-upper
                     (concat "*" filename " "
-                            (smerge--get-marker smerge-begin-re "MINE")
+                            (smerge--get-marker smerge-begin-re "UPPER")
                             "*"))))
-	 (other (generate-new-buffer
-		 (or name-other
+	 (lower (generate-new-buffer
+		 (or name-lower
                      (concat "*" filename " "
-                             (smerge--get-marker smerge-end-re "OTHER")
+                             (smerge--get-marker smerge-end-re "LOWER")
                              "*"))))
 	 base)
-    (with-current-buffer mine
+    (with-current-buffer upper
       (buffer-disable-undo)
       (insert-buffer-substring buf)
       (goto-char (point-min))
@@ -1237,7 +1266,7 @@ buffer names."
       (set-buffer-modified-p nil)
       (funcall mode))
 
-    (with-current-buffer other
+    (with-current-buffer lower
       (buffer-disable-undo)
       (insert-buffer-substring buf)
       (goto-char (point-min))
@@ -1269,9 +1298,9 @@ buffer names."
     ;; Fire up ediff.
     (set-buffer
      (if base
-	 (ediff-merge-buffers-with-ancestor mine other base)
+	 (ediff-merge-buffers-with-ancestor upper lower base)
 	  ;; nil 'ediff-merge-revisions-with-ancestor buffer-file-name)
-       (ediff-merge-buffers mine other)))
+       (ediff-merge-buffers upper lower)))
         ;; nil 'ediff-merge-revisions buffer-file-name)))
 
     ;; Ediff is now set up, and we are in the control buffer.
@@ -1313,21 +1342,21 @@ with a \\[universal-argument] prefix, makes up a 3-way conflict."
   (pcase-let ((`(,pt1 ,pt2 ,pt3 ,pt4)
                (sort `(,pt1 ,pt2 ,pt3 ,@(if pt4 (list pt4))) '>=)))
     (goto-char pt1) (beginning-of-line)
-    (insert ">>>>>>> OTHER\n")
+    (insert ">>>>>>> LOWER\n")
     (goto-char pt2) (beginning-of-line)
     (insert "=======\n")
     (goto-char pt3) (beginning-of-line)
     (when pt4
       (insert "||||||| BASE\n")
       (goto-char pt4) (beginning-of-line))
-    (insert "<<<<<<< MINE\n"))
+    (insert "<<<<<<< UPPER\n"))
   (if smerge-mode nil (smerge-mode 1))
   (smerge-refine))
 
 
 (defconst smerge-parsep-re
   (concat smerge-begin-re "\\|" smerge-end-re "\\|"
-          smerge-base-re "\\|" smerge-other-re "\\|"))
+          smerge-base-re "\\|" smerge-lower-re "\\|"))
 
 ;;;###autoload
 (define-minor-mode smerge-mode

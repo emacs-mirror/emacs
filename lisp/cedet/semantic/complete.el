@@ -568,7 +568,7 @@ if INLINE, then completion is happening inline in a buffer."
      (:underline "yellow"))
     (((class color) (background light))
      (:underline "brown")))
-  "*Face used to show the region being completed inline.
+  "Face used to show the region being completed inline.
 The face is used in `semantic-complete-inline-tag-engine'."
   :group 'semantic-faces)
 
@@ -1370,7 +1370,7 @@ This object type doesn't do focus, so will never have a focus object."
 ;; Traditional displayor
 (defcustom semantic-completion-displayor-format-tag-function
   #'semantic-format-tag-name
-  "*A Tag format function to use when showing completions."
+  "A Tag format function to use when showing completions."
   :group 'semantic
   :type semantic-format-tag-custom-list)
 
@@ -1871,7 +1871,7 @@ Use this to enable custom editing.")
 
 (defcustom semantic-complete-inline-analyzer-displayor-class
   'semantic-displayor-traditional
-  "*Class for displayor to use with inline completion."
+  "Class for displayor to use with inline completion."
   :group 'semantic
   :type semantic-complete-inline-custom-type
   )
@@ -2075,7 +2075,7 @@ completion works."
 
 (defcustom semantic-complete-inline-analyzer-idle-displayor-class
   'semantic-displayor-ghost
-  "*Class for displayor to use with inline completion at idle time."
+  "Class for displayor to use with inline completion at idle time."
   :group 'semantic
   :type semantic-complete-inline-custom-type
   )

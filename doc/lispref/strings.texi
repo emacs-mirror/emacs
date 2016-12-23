@@ -508,20 +508,6 @@ filesystems generally don't honor linguistic equivalence of strings
 that collation implements.
 @end defun
 
-@defun string-prefix-p string1 string2 &optional ignore-case
-This function returns non-@code{nil} if @var{string1} is a prefix of
-@var{string2}; i.e., if @var{string2} starts with @var{string1}.  If
-the optional argument @var{ignore-case} is non-@code{nil}, the
-comparison ignores case differences.
-@end defun
-
-@defun string-suffix-p suffix string &optional ignore-case
-This function returns non-@code{nil} if @var{suffix} is a suffix of
-@var{string}; i.e., if @var{string} ends with @var{suffix}.  If the
-optional argument @var{ignore-case} is non-@code{nil}, the comparison
-ignores case differences.
-@end defun
-
 @cindex lexical comparison of strings
 @defun string< string1 string2
 @c (findex string< causes problems for permuted index!!)
@@ -632,6 +618,14 @@ the codeset part of the locale cannot be @code{"UTF-8"} on MS-Windows.
 
 If your system does not support a locale environment, this function
 behaves like @code{string-lessp}.
+@end defun
+
+@defun string-version-lessp string1 string2
+This function compares strings lexicographically, except it treats
+sequences of numerical characters as if they comprised a base-ten
+number, and then compares the numbers.  So @samp{foo2.png} is
+``smaller'' than @samp{foo12.png} according to this predicate, even if
+@samp{12} is lexicographically ``smaller'' than @samp{2}.
 @end defun
 
 @defun string-prefix-p string1 string2 &optional ignore-case
@@ -827,16 +821,16 @@ arguments @var{objects} are the computed values to be formatted.
 
 The characters in @var{string}, other than the format specifications,
 are copied directly into the output, including their text properties,
-if any.
+if any.  Any text properties of the format specifications are copied
+to the produced string representations of the argument @var{objects}.
 @end defun
 
 @defun format-message string &rest objects
 @cindex curved quotes
 @cindex curly quotes
 This function acts like @code{format}, except it also converts any
-curved single quotes in @var{string} as per the value of
-@code{text-quoting-style}, and treats grave accent (@t{`}) and
-apostrophe (@t{'}) as if they were curved single quotes.
+grave accents (@t{`}) and apostrophes (@t{'}) in @var{string} as per the
+value of @code{text-quoting-style}.
 
 A format that quotes with grave accents and apostrophes @t{`like
 this'} typically generates curved quotes @t{‘like this’}.  In

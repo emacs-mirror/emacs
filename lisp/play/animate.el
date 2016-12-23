@@ -44,6 +44,11 @@
 ;;; in the string when the whole string finally reaches its
 ;;; specified position.
 
+(defgroup animate nil
+  "Make text dance."
+  :group 'games
+  :prefix "animate-")
+
 (defun animate-initialize (string vpos hpos)
   (let ((characters nil))
     (dotimes (i (length string))
@@ -88,8 +93,9 @@
   (unless (eolp) (delete-char 1))
   (insert-char char 1))
 
-(defvar animate-n-steps 10
-"*Number of steps `animate-string' will place a char before its last position.")
+(defcustom animate-n-steps 10
+  "Number of steps `animate-string' will place a char before its last position."
+  :type 'integer)
 
 (defvar animation-buffer-name nil
   "String naming the default buffer for animations.

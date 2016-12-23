@@ -150,6 +150,7 @@
 
 (require 'tabulated-list)
 (require 'macroexp)
+(require 'url-handlers)
 
 (defgroup package nil
   "Manager for Emacs Lisp packages."
@@ -302,7 +303,7 @@ contrast, `package-user-dir' contains packages for personal use."
   :version "24.1")
 
 (declare-function epg-find-configuration "epg-config"
-                  (protocol &optional force))
+                  (protocol &optional no-cache program-alist))
 
 (defcustom package-check-signature
   (if (and (require 'epg-config)
@@ -791,7 +792,7 @@ untar into a directory named DIR; otherwise, signal an error."
   (tar-mode)
   ;; Make sure everything extracts into DIR.
   (let ((regexp (concat "\\`" (regexp-quote (expand-file-name dir)) "/"))
-        (case-fold-search (memq system-type '(windows-nt ms-dos cygwin))))
+        (case-fold-search (file-name-case-insensitive-p dir)))
     (dolist (tar-data tar-parse-info)
       (let ((name (expand-file-name (tar-header-name tar-data))))
         (or (string-match regexp name)
@@ -907,12 +908,15 @@ untar into a directory named DIR; otherwise, signal an error."
   file)
 
 (defvar generated-autoload-file)
+(defvar autoload-timestamps)
 (defvar version-control)
 
 (defun package-generate-autoloads (name pkg-dir)
   (let* ((auto-name (format "%s-autoloads.el" name))
          ;;(ignore-name (concat name "-pkg.el"))
          (generated-autoload-file (expand-file-name auto-name pkg-dir))
+         ;; We don't need 'em, and this makes the output reproducible.
+         (autoload-timestamps nil)
          ;; Silence `autoload-generate-file-autoloads'.
          (noninteractive inhibit-message)
          (backup-inhibited t)
@@ -1077,6 +1081,8 @@ The return result is a `package-desc'."
               (setq files nil)
               ;; set the 'dir kind,
               (setf (package-desc-kind info) 'dir))))
+        (unless info
+          (error "No .el files with package headers in `%s'" default-directory))
         ;; and return the info.
         info))))
 
@@ -2304,7 +2310,7 @@ Otherwise no newline is inserted."
     (insert "\n")
     (unless (and pkg-dir (not archive)) ; Installed pkgs don't have archive.
       (package--print-help-section "Archive"
-        (or archive "n/a") "\n"))
+        (or archive "n/a")))
     (and version
          (package--print-help-section "Version"
            (package-version-join version)))

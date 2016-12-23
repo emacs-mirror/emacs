@@ -288,8 +288,8 @@
            (if (eq (car-safe newfn) 'function)
                (byte-compile-unfold-lambda `(,(cadr newfn) ,@(cdr form)))
              ;; This can happen because of macroexp-warn-and-return &co.
-             (byte-compile-log-warning
-              (format "Inlining closure %S failed" name))
+             (byte-compile-warn
+              "Inlining closure %S failed" name)
              form))))
 
       (_ ;; Give up on inlining.
@@ -1209,8 +1209,9 @@
 	 radians-to-degrees rassq rassoc read-from-string regexp-quote
 	 region-beginning region-end reverse round
 	 sin sqrt string string< string= string-equal string-lessp string-to-char
-	 string-to-int string-to-number substring sxhash symbol-function
-	 symbol-name symbol-plist symbol-value string-make-unibyte
+	 string-to-int string-to-number substring
+	 sxhash sxhash-equal sxhash-eq sxhash-eql
+	 symbol-function symbol-name symbol-plist symbol-value string-make-unibyte
 	 string-make-multibyte string-as-multibyte string-as-unibyte
 	 string-to-multibyte
 	 tan truncate

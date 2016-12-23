@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2016-04-14.07}
+\def\texinfoversion{2016-09-18.18}
 %
 % Copyright 1985, 1986, 1988, 1990, 1991, 1992, 1993, 1994, 1995,
 % 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
@@ -66,6 +66,10 @@
 % they might have appeared in the input file name.
 \everyjob{\message{[Texinfo version \texinfoversion]}%
   \catcode`+=\active \catcode`\_=\active}
+
+% LaTeX's \typeout.  This ensures that the messages it is used for
+% are identical in format to the corresponding ones from latex/pdflatex.
+\def\typeout{\immediate\write17}%
 
 \chardef\other=12
 
@@ -858,36 +862,6 @@ where each line of input produces a line of output.}
   \temp
 }
 
-% @| inserts a changebar to the left of the current line.  It should
-% surround any changed text.  This approach does *not* work if the
-% change spans more than two lines of output.  To handle that, we would
-% have adopt a much more difficult approach (putting marks into the main
-% vertical list for the beginning and end of each change).  This command
-% is not documented, not supported, and doesn't work.
-%
-\def\|{%
-  % \vadjust can only be used in horizontal mode.
-  \leavevmode
-  %
-  % Append this vertical mode material after the current line in the output.
-  \vadjust{%
-    % We want to insert a rule with the height and depth of the current
-    % leading; that is exactly what \strutbox is supposed to record.
-    \vskip-\baselineskip
-    %
-    % \vadjust-items are inserted at the left edge of the type.  So
-    % the \llap here moves out into the left-hand margin.
-    \llap{%
-      %
-      % For a thicker or thinner bar, change the `1pt'.
-      \vrule height\baselineskip width1pt
-      %
-      % This is the space between the bar and the text.
-      \hskip 12pt
-    }%
-  }%
-}
-
 % @include FILE -- \input text of FILE.
 %
 \def\include{\parseargusing\filenamecatcodes\includezzz}
@@ -1104,9 +1078,14 @@ where each line of input produces a line of output.}
 % For LuaTeX
 %
 
+\newif\iftxiuseunicodedestname
+\txiuseunicodedestnamefalse % For pdfTeX etc.
+
 \ifx\luatexversion\thisisundefined
 \else
-  % Escape PDF strings UTF-8 to UTF-16
+  % Use Unicode destination names
+  \txiuseunicodedestnametrue
+  % Escape PDF strings with converting UTF-16 from UTF-8
   \begingroup
     \catcode`\%=12
     \directlua{
@@ -1134,7 +1113,24 @@ where each line of input produces a line of output.}
       end
     }
   \endgroup
-  \def\pdfescapestring#1{\directlua{UTF16oct('\luaescapestring{#1}')}}
+  \def\pdfescapestrutfsixteen#1{\directlua{UTF16oct('\luaescapestring{#1}')}}
+  % Escape PDF strings without converting
+  \begingroup
+    \directlua{
+      function PDFescstr(str)
+        for c in string.bytes(str) do
+          if c <= 0x20 or c >= 0x80 or c == 0x28 or c == 0x29 or c == 0x5c then
+            tex.sprint(
+              string.format(string.char(0x5c) .. string.char(0x25) .. '03o',
+                            c))
+          else
+            tex.sprint(string.char(c))
+          end
+        end
+      end
+    }
+  \endgroup
+  \def\pdfescapestring#1{\directlua{PDFescstr('\luaescapestring{#1}')}}
   \ifnum\luatexversion>84
     % For LuaTeX >= 0.85
     \def\pdfdest{\pdfextension dest}
@@ -1188,10 +1184,19 @@ where each line of input produces a line of output.}
   \ifx\pdfescapestring\thisisundefined
     % No primitive available; should we give a warning or log?
     % Many times it won't matter.
+    \xdef#1{#1}%
   \else
     % The expandable \pdfescapestring primitive escapes parentheses,
     % backslashes, and other special chars.
     \xdef#1{\pdfescapestring{#1}}%
+  \fi
+}
+\def\txiescapepdfutfsixteen#1{%
+  \ifx\pdfescapestrutfsixteen\thisisundefined
+    % No UTF-16 converting macro available.
+    \txiescapepdf{#1}%
+  \else
+    \xdef#1{\pdfescapestrutfsixteen{#1}}%
   \fi
 }
 
@@ -1303,16 +1308,76 @@ output) for that.)}
       \pdfrefximage \pdflastximage
     \fi}
   %
-  \def\pdfmkdest#1{{%
+  \def\setpdfdestname#1{{%
     % We have to set dummies so commands such as @code, and characters
     % such as \, aren't expanded when present in a section title.
     \indexnofonts
-    \turnoffactive
     \makevalueexpandable
+    \turnoffactive
+    \iftxiuseunicodedestname
+      \ifx \declaredencoding \latone
+        % Pass through Latin-1 characters.
+        % LuaTeX with byte wise I/O converts Latin-1 characters to Unicode.
+      \else
+        \ifx \declaredencoding \utfeight
+          % Pass through Unicode characters.
+        \else
+          % Use ASCII approximations in destination names.
+          \passthroughcharsfalse
+        \fi
+      \fi
+    \else
+      % Use ASCII approximations in destination names.
+      \passthroughcharsfalse
+    \fi
     \def\pdfdestname{#1}%
     \txiescapepdf\pdfdestname
-    \safewhatsit{\pdfdest name{\pdfdestname} xyz}%
   }}
+  %
+  \def\setpdfoutlinetext#1{{%
+    \indexnofonts
+    \makevalueexpandable
+    \turnoffactive
+    \ifx \declaredencoding \latone
+      % The PDF format can use an extended form of Latin-1 in bookmark
+      % strings.  See Appendix D of the PDF Reference, Sixth Edition, for
+      % the "PDFDocEncoding".
+      \passthroughcharstrue
+      % Pass through Latin-1 characters.
+      %   LuaTeX: Convert to Unicode
+      %   pdfTeX: Use Latin-1 as PDFDocEncoding
+      \def\pdfoutlinetext{#1}%
+    \else
+      \ifx \declaredencoding \utfeight
+        \ifx\luatexversion\thisisundefined
+          % For pdfTeX  with UTF-8.
+          % TODO: the PDF format can use UTF-16 in bookmark strings,
+          % but the code for this isn't done yet.
+          % Use ASCII approximations.
+          \passthroughcharsfalse
+          \def\pdfoutlinetext{#1}%
+        \else
+          % For LuaTeX with UTF-8.
+          % Pass through Unicode characters for title texts.
+          \passthroughcharstrue
+          \def\pdfoutlinetext{#1}%
+        \fi
+      \else
+        % For non-Latin-1 or non-UTF-8 encodings.
+        % Use ASCII approximations.
+        \passthroughcharsfalse
+        \def\pdfoutlinetext{#1}%
+      \fi
+    \fi
+    % LuaTeX: Convert to UTF-16
+    % pdfTeX: Use Latin-1 as PDFDocEncoding
+    \txiescapepdfutfsixteen\pdfoutlinetext
+  }}
+  %
+  \def\pdfmkdest#1{%
+    \setpdfdestname{#1}%
+    \safewhatsit{\pdfdest name{\pdfdestname} xyz}%
+  }
   %
   % used to mark target names; must be expandable.
   \def\pdfmkpgn#1{#1}
@@ -1341,23 +1406,13 @@ output) for that.)}
     % page number.  We could generate a destination for the section
     % text in the case where a section has no node, but it doesn't
     % seem worth the trouble, since most documents are normally structured.
-    {
-      \ifx\luatexversion\thisisundefined \else
-        \turnoffactive % LuaTeX can use Unicode strings for PDF
-      \fi
-      \edef\pdfoutlinedest{#3}%
-      \ifx\pdfoutlinedest\empty
-        \def\pdfoutlinedest{#4}%
-      \else
-        \txiescapepdf\pdfoutlinedest
-      \fi
-      %
-      % Also escape PDF chars in the display string.
-      \edef\pdfoutlinetext{#1}%
-      \txiescapepdf\pdfoutlinetext
-      %
-      \pdfoutline goto name{\pdfmkpgn{\pdfoutlinedest}}#2{\pdfoutlinetext}%
-    }
+    \setpdfoutlinetext{#1}
+    \setpdfdestname{#3}
+    \ifx\pdfdestname\empty
+      \def\pdfdestname{#4}%
+    \fi
+    %
+    \pdfoutline goto name{\pdfmkpgn{\pdfdestname}}#2{\pdfoutlinetext}%
   }
   %
   \def\pdfmakeoutlines{%
@@ -1515,72 +1570,132 @@ output) for that.)}
 %
 % For XeTeX
 %
-\newif\iftxiuseunicodedestname
 \ifx\XeTeXrevision\thisisundefined
 \else
   %
   % XeTeX version check
   %
-  \ifnum\strcmp{\the\XeTeXversion\XeTeXrevision}{0.99995}>-1
-    % XeTeX 0.99995+ contains xdvipdfmx 20160307+.
-    % It can handle Unicode destination name for PDF.
+  \ifnum\strcmp{\the\XeTeXversion\XeTeXrevision}{0.99996}>-1
+    % TeX Live 2016 contains XeTeX 0.99996 and xdvipdfmx 20160307.
+    % It can use the `dvipdfmx:config' special (from TeX Live SVN r40941).
+    % For avoiding PDF destination name replacement, we use this special
+    % instead of xdvipdfmx's command line option `-C 0x0010'.
+    \special{dvipdfmx:config C 0x0010}
+    % XeTeX 0.99995+ comes with xdvipdfmx 20160307+.
+    % It can handle Unicode destination names for PDF.
     \txiuseunicodedestnametrue
   \else
-    % XeTeX < 0.99995 can not handle Unicode destination name for PDF
-    % because xdvipdfmx 20150315 has UTF-16 convert issue.
-    % It fixed by xdvipdfmx 20160106 (TeX Live SVN r39753).
+    % XeTeX < 0.99996 (TeX Live < 2016) cannot use the
+    % `dvipdfmx:config' special.
+    % So for avoiding PDF destination name replacement,
+    % xdvipdfmx's command line option `-C 0x0010' is necessary.
+    %
+    % XeTeX < 0.99995 can not handle Unicode destination names for PDF
+    % because xdvipdfmx 20150315 has a UTF-16 conversion issue.
+    % It is fixed by xdvipdfmx 20160106 (TeX Live SVN r39753).
     \txiuseunicodedestnamefalse
   \fi
   %
+  % Color support
+  %
+  \def\rgbDarkRed{0.50 0.09 0.12}
+  \def\rgbBlack{0 0 0}
+  %
+  \def\pdfsetcolor#1{\special{pdf:scolor [#1]}}
+  %
+  % Set color, and create a mark which defines \thiscolor accordingly,
+  % so that \makeheadline knows which color to restore.
+  \def\setcolor#1{%
+    \xdef\lastcolordefs{\gdef\noexpand\thiscolor{#1}}%
+    \domark
+    \pdfsetcolor{#1}%
+  }
+  %
+  \def\maincolor{\rgbBlack}
+  \pdfsetcolor{\maincolor}
+  \edef\thiscolor{\maincolor}
+  \def\lastcolordefs{}
+  %
+  \def\makefootline{%
+    \baselineskip24pt
+    \line{\pdfsetcolor{\maincolor}\the\footline}%
+  }
+  %
+  \def\makeheadline{%
+    \vbox to 0pt{%
+      \vskip-22.5pt
+      \line{%
+        \vbox to8.5pt{}%
+        % Extract \thiscolor definition from the marks.
+        \getcolormarks
+        % Typeset the headline with \maincolor, then restore the color.
+        \pdfsetcolor{\maincolor}\the\headline\pdfsetcolor{\thiscolor}%
+      }%
+      \vss
+    }%
+    \nointerlineskip
+  }
+  %
   % PDF outline support
   %
-  \pdfmakepagedesttrue \relax
-  % Emulate the primitive of pdfTeX
+  % Emulate pdfTeX primitive
   \def\pdfdest name#1 xyz{%
-    \special{pdf:dest (name#1) [@thispage /XYZ @xpos @ypos]}%
+    \special{pdf:dest (#1) [@thispage /XYZ @xpos @ypos null]}%
   }
-  \def\pdfmkdest#1{{%
+  %
+  \def\setpdfdestname#1{{%
     % We have to set dummies so commands such as @code, and characters
     % such as \, aren't expanded when present in a section title.
     \indexnofonts
-    \iftxiuseunicodedestname
-      \def\pdfdestname{#1}% Pass through Unicode characters.
-    \else
-      \edef\pdfdestname{#1}% Replace Unicode characters to ASCII.
-    \fi
-    \turnoffactive
     \makevalueexpandable
+    \turnoffactive
+    \iftxiuseunicodedestname
+      % Pass through Unicode characters.
+    \else
+      % Use ASCII approximations in destination names.
+      \passthroughcharsfalse
+    \fi
+    \def\pdfdestname{#1}%
     \txiescapepdf\pdfdestname
-    \safewhatsit{\pdfdest name{\pdfdestname} xyz}%
   }}
   %
+  \def\setpdfoutlinetext#1{{%
+    \turnoffactive
+    % Always use Unicode characters in title texts.
+    \def\pdfoutlinetext{#1}%
+    % For XeTeX, xdvipdfmx converts to UTF-16.
+    % So we do not convert.
+    \txiescapepdf\pdfoutlinetext
+  }}
+  %
+  \def\pdfmkdest#1{%
+    \setpdfdestname{#1}%
+    \safewhatsit{\pdfdest name{\pdfdestname} xyz}%
+  }
+  %
+  % by default, use black for everything.
+  \def\urlcolor{\rgbBlack}
+  \def\linkcolor{\rgbBlack}
+  \def\endlink{\setcolor{\maincolor}\pdfendlink}
+  %
   \def\dopdfoutline#1#2#3#4{%
-    \iftxiuseunicodedestname
-      \def\pdfoutlinedest{#3}% Pass through Unicode characters.
-    \else
-      \edef\pdfoutlinedest{#3}% Replace Unicode characters to ASCII.
+    \setpdfoutlinetext{#1}
+    \setpdfdestname{#3}
+    \ifx\pdfdestname\empty
+      \def\pdfdestname{#4}%
     \fi
-    \ifx\pdfoutlinedest\empty
-      \def\pdfoutlinedest{#4}%
-    \fi
-    {
-      \turnoffactive
-      \txiescapepdf\pdfoutlinedest
-      \edef\pdfoutlinetext{#1}%
-      \txiescapepdf\pdfoutlinetext
-      %
-      \special{pdf:out [-] #2 << /Title (\pdfoutlinetext) /A
-        << /S /GoTo /D (name\pdfoutlinedest) >> >> }%
-    }
+    %
+    \special{pdf:out [-] #2 << /Title (\pdfoutlinetext) /A
+      << /S /GoTo /D (\pdfdestname) >> >> }%
   }
   %
   \def\pdfmakeoutlines{%
     \begingroup
       %
-      % In the case of XeTeX, counts of subentries is not necesary.
-      % Therefore, read toc only once.
+      % For XeTeX, counts of subentries are not necessary.
+      % Therefore, we read toc only once.
       %
-      % We use the node names as the destinations.
+      % We use node names as destinations.
       \def\partentry##1##2##3##4{}% ignore parts in the outlines
       \def\numchapentry##1##2##3##4{%
         \dopdfoutline{##1}{1}{##3}{##4}}%
@@ -1600,7 +1715,7 @@ output) for that.)}
       \let\unnsubsecentry\numsubsecentry%
       \let\unnsubsubsecentry\numsubsubsecentry%
       %
-      % In the case of XeTeX, xdvipdfmx converts strings to UTF-16.
+      % For XeTeX, xdvipdfmx converts strings to UTF-16.
       % Therefore, the encoding and the language may not be considered.
       %
       \indexnofonts
@@ -1622,9 +1737,9 @@ output) for that.)}
   \special{pdf:docview << /PageMode /UseOutlines >> }
   % ``\special{pdf:tounicode ...}'' is not necessary
   % because xdvipdfmx converts strings from UTF-8 to UTF-16 without it.
-  % However, due to UTF-16 convert issue of xdvipdfmx 20150315,
-  % ``\special{pdf:dest ...}'' can not handle non-ASCII strings.
-  % It fixed by xdvipdfmx 20160106 (TeX Live SVN r39753).
+  % However, due to a UTF-16 conversion issue of xdvipdfmx 20150315,
+  % ``\special{pdf:dest ...}'' cannot handle non-ASCII strings.
+  % It is fixed by xdvipdfmx 20160106 (TeX Live SVN r39753).
 %
   \def\skipspaces#1{\def\PP{#1}\def\D{|}%
     \ifx\PP\D\let\nextsp\relax
@@ -1684,7 +1799,7 @@ output) for that.)}
     {\noexpand\pdflink{\the\toksC}}\toksC={}\global\countA=0}
   \def\pdflink#1{%
     \special{pdf:bann << /Border [0 0 0]
-      /Type /Annot /Subtype /Link /A << /S /GoTo /D (name#1) >> >>}%
+      /Type /Annot /Subtype /Link /A << /S /GoTo /D (#1) >> >>}%
     \setcolor{\linkcolor}#1\endlink}
   \def\done{\edef\st{\global\noexpand\toksA={\the\toksB}}\st}
 %
@@ -1696,7 +1811,7 @@ output) for that.)}
     \def\xeteximagewidth{#2}\setbox0 = \hbox{\ignorespaces #2}%
     \def\xeteximageheight{#3}\setbox2 = \hbox{\ignorespaces #3}%
     %
-    % XeTeX (and the PDF format) support .pdf, .png, .jpg (among
+    % XeTeX (and the PDF format) supports .pdf, .png, .jpg (among
     % others).  Let's try in that order, PDF first since if
     % someone has a scalable image, presumably better to use that than a
     % bitmap.
@@ -1740,40 +1855,9 @@ output) for that.)}
   }
 \fi
 
+
+%
 \message{fonts,}
-
-% Change the current font style to #1, remembering it in \curfontstyle.
-% For now, we do not accumulate font styles: @b{@i{foo}} prints foo in
-% italics, not bold italics.
-%
-\def\setfontstyle#1{%
-  \def\curfontstyle{#1}% not as a control sequence, because we are \edef'd.
-  \csname ten#1\endcsname  % change the current font
-}
-
-% Select #1 fonts with the current style.
-%
-\def\selectfonts#1{\csname #1fonts\endcsname \csname\curfontstyle\endcsname}
-
-\def\rm{\fam=0 \setfontstyle{rm}}
-\def\it{\fam=\itfam \setfontstyle{it}}
-\def\sl{\fam=\slfam \setfontstyle{sl}}
-\def\bf{\fam=\bffam \setfontstyle{bf}}\def\bfstylename{bf}
-\def\tt{\fam=\ttfam \setfontstyle{tt}}
-
-% Unfortunately, we have to override this for titles and the like, since
-% in those cases "rm" is bold.  Sigh.
-\def\rmisbold{\rm\def\curfontstyle{bf}}
-
-% Texinfo sort of supports the sans serif font style, which plain TeX does not.
-% So we set up a \sf.
-\newfam\sffam
-\def\sf{\fam=\sffam \setfontstyle{sf}}
-\let\li = \sf % Sometimes we call it \li, not \sf.
-
-% We don't need math for this font style.
-\def\ttsl{\setfontstyle{ttsl}}
-
 
 % Set the baselineskip to #1, and the lineskip and strut size
 % correspondingly.  There is no deep meaning behind these magic numbers
@@ -2124,8 +2208,8 @@ end
 \setfont\deftt\ttshape{10}{\magstep1}{OT1TT}
 \setfont\defsl\slshape{10}{\magstep1}{OT1TT}
 \setfont\defttsl\ttslshape{10}{\magstep1}{OT1TT}
-\def\df{\let\tentt=\deftt \let\tenbf = \defbf
-\let\tenttsl=\defttsl \let\tensl=\defsl \bf}
+\def\df{\let\ttfont=\deftt \let\bffont = \defbf
+\let\ttslfont=\defttsl \let\slfont=\defsl \bf}
 
 % Fonts for indices, footnotes, small examples (9pt).
 \def\smallnominalsize{9pt}
@@ -2212,7 +2296,7 @@ end
 \font\ssecsy=cmsy10 scaled 1315
 \def\ssececsize{1200}
 
-% Reduced fonts for @acro in text (10pt).
+% Reduced fonts for @acronym in text (10pt).
 \def\reducednominalsize{10pt}
 \setfont\reducedrm\rmshape{10}{1000}{OT1}
 \setfont\reducedtt\ttshape{10}{1000}{OT1TT}
@@ -2258,8 +2342,8 @@ end
 \setfont\deftt\ttshape{10}{\magstephalf}{OT1TT}
 \setfont\defsl\slshape{10}{\magstephalf}{OT1TT}
 \setfont\defttsl\ttslshape{10}{\magstephalf}{OT1TT}
-\def\df{\let\tentt=\deftt \let\tenbf = \defbf
-\let\tensl=\defsl \let\tenttsl=\defttsl \bf}
+\def\df{\let\ttfont=\deftt \let\bffont = \defbf
+\let\slfont=\defsl \let\ttslfont=\defttsl \bf}
 
 % Fonts for indices, footnotes, small examples (9pt).
 \def\smallnominalsize{9pt}
@@ -2345,7 +2429,7 @@ end
 \font\ssecsy=cmsy10
 \def\ssececsize{1000}
 
-% Reduced fonts for @acro in text (9pt).
+% Reduced fonts for @acronym in text (9pt).
 \def\reducednominalsize{9pt}
 \setfont\reducedrm\rmshape{9}{1000}{OT1}
 \setfont\reducedtt\ttshape{9}{1000}{OT1TT}
@@ -2364,6 +2448,12 @@ end
 \textfonts            % reset the current fonts
 \rm
 } % end of 10pt text font size definitions, \definetextfontsizex
+
+% Fonts for short table of contents.
+\setfont\shortcontrm\rmshape{12}{1000}{OT1}
+\setfont\shortcontbf\bfshape{10}{\magstep1}{OT1}  % no cmb12
+\setfont\shortcontsl\slshape{12}{1000}{OT1}
+\setfont\shortconttt\ttshape{12}{1000}{OT1TT}
 
 
 % We provide the user-level command
@@ -2391,20 +2481,47 @@ end
  \endgroup
 }
 
+%
+% Change the current font style to #1, remembering it in \curfontstyle.
+% For now, we do not accumulate font styles: @b{@i{foo}} prints foo in
+% italics, not bold italics.
+%
+\def\setfontstyle#1{%
+  \def\curfontstyle{#1}% not as a control sequence, because we are \edef'd.
+  \csname #1font\endcsname  % change the current font
+}
+
+\def\rm{\fam=0 \setfontstyle{rm}}
+\def\it{\fam=\itfam \setfontstyle{it}}
+\def\sl{\fam=\slfam \setfontstyle{sl}}
+\def\bf{\fam=\bffam \setfontstyle{bf}}\def\bfstylename{bf}
+\def\tt{\fam=\ttfam \setfontstyle{tt}}
+
+% Texinfo sort of supports the sans serif font style, which plain TeX does not.
+% So we set up a \sf.
+\newfam\sffam
+\def\sf{\fam=\sffam \setfontstyle{sf}}
+
+% We don't need math for this font style.
+\def\ttsl{\setfontstyle{ttsl}}
+
+
 % In order for the font changes to affect most math symbols and letters,
 % we have to define the \textfont of the standard families.  We don't
 % bother to reset \scriptfont and \scriptscriptfont; awaiting user need.
 %
 \def\resetmathfonts{%
-  \textfont0=\tenrm \textfont1=\teni \textfont2=\tensy
-  \textfont\itfam=\tenit \textfont\slfam=\tensl \textfont\bffam=\tenbf
-  \textfont\ttfam=\tentt \textfont\sffam=\tensf
+  \textfont0=\rmfont \textfont1=\ifont \textfont2=\syfont
+  \textfont\itfam=\itfont \textfont\slfam=\slfont \textfont\bffam=\bffont
+  \textfont\ttfam=\ttfont \textfont\sffam=\sffont
 }
 
-% The font-changing commands redefine the meanings of \tenSTYLE, instead
-% of just \STYLE.  We do this because \STYLE needs to also set the
-% current \fam for math mode.  Our \STYLE (e.g., \rm) commands hardwire
-% \tenSTYLE to set the current font.
+%
+
+% The font-changing commands (all called \...fonts) redefine the meanings
+% of \STYLEfont, instead of just \STYLE.  We do this because \STYLE needs
+% to also set the current \fam for math mode.  Our \STYLE (e.g., \rm)
+% commands hardwire \STYLEfont to set the current font.
 %
 % Each font-changing command also sets the names \lsize (one size lower)
 % and \lllsize (three sizes lower).  These relative commands are used
@@ -2412,78 +2529,63 @@ end
 %
 % This all needs generalizing, badly.
 %
-\def\textfonts{%
-  \let\tenrm=\textrm \let\tenit=\textit \let\tensl=\textsl
-  \let\tenbf=\textbf \let\tentt=\texttt \let\smallcaps=\textsc
-  \let\tensf=\textsf \let\teni=\texti \let\tensy=\textsy
-  \let\tenttsl=\textttsl
-  \def\curfontsize{text}%
-  \def\lsize{reduced}\def\lllsize{smaller}%
-  \resetmathfonts \setleading{\textleading}}
-\def\titlefonts{%
-  \let\tenrm=\titlerm \let\tenit=\titleit \let\tensl=\titlesl
-  \let\tenbf=\titlebf \let\tentt=\titlett \let\smallcaps=\titlesc
-  \let\tensf=\titlesf \let\teni=\titlei \let\tensy=\titlesy
-  \let\tenttsl=\titlettsl
-  \def\curfontsize{title}%
-  \def\lsize{chap}\def\lllsize{subsec}%
-  \resetmathfonts \setleading{27pt}}
-\def\titlefont#1{{\titlefonts\rmisbold #1}}
-\def\chapfonts{%
-  \let\tenrm=\chaprm \let\tenit=\chapit \let\tensl=\chapsl
-  \let\tenbf=\chapbf \let\tentt=\chaptt \let\smallcaps=\chapsc
-  \let\tensf=\chapsf \let\teni=\chapi \let\tensy=\chapsy
-  \let\tenttsl=\chapttsl
-  \def\curfontsize{chap}%
-  \def\lsize{sec}\def\lllsize{text}%
-  \resetmathfonts \setleading{19pt}}
-\def\secfonts{%
-  \let\tenrm=\secrm \let\tenit=\secit \let\tensl=\secsl
-  \let\tenbf=\secbf \let\tentt=\sectt \let\smallcaps=\secsc
-  \let\tensf=\secsf \let\teni=\seci \let\tensy=\secsy
-  \let\tenttsl=\secttsl
-  \def\curfontsize{sec}%
-  \def\lsize{subsec}\def\lllsize{reduced}%
-  \resetmathfonts \setleading{17pt}}
-\def\subsecfonts{%
-  \let\tenrm=\ssecrm \let\tenit=\ssecit \let\tensl=\ssecsl
-  \let\tenbf=\ssecbf \let\tentt=\ssectt \let\smallcaps=\ssecsc
-  \let\tensf=\ssecsf \let\teni=\sseci \let\tensy=\ssecsy
-  \let\tenttsl=\ssecttsl
-  \def\curfontsize{ssec}%
-  \def\lsize{text}\def\lllsize{small}%
-  \resetmathfonts \setleading{15pt}}
-\let\subsubsecfonts = \subsecfonts
-\def\reducedfonts{%
-  \let\tenrm=\reducedrm \let\tenit=\reducedit \let\tensl=\reducedsl
-  \let\tenbf=\reducedbf \let\tentt=\reducedtt \let\reducedcaps=\reducedsc
-  \let\tensf=\reducedsf \let\teni=\reducedi \let\tensy=\reducedsy
-  \let\tenttsl=\reducedttsl
-  \def\curfontsize{reduced}%
-  \def\lsize{small}\def\lllsize{smaller}%
-  \resetmathfonts \setleading{10.5pt}}
-\def\smallfonts{%
-  \let\tenrm=\smallrm \let\tenit=\smallit \let\tensl=\smallsl
-  \let\tenbf=\smallbf \let\tentt=\smalltt \let\smallcaps=\smallsc
-  \let\tensf=\smallsf \let\teni=\smalli \let\tensy=\smallsy
-  \let\tenttsl=\smallttsl
-  \def\curfontsize{small}%
-  \def\lsize{smaller}\def\lllsize{smaller}%
-  \resetmathfonts \setleading{10.5pt}}
-\def\smallerfonts{%
-  \let\tenrm=\smallerrm \let\tenit=\smallerit \let\tensl=\smallersl
-  \let\tenbf=\smallerbf \let\tentt=\smallertt \let\smallcaps=\smallersc
-  \let\tensf=\smallersf \let\teni=\smalleri \let\tensy=\smallersy
-  \let\tenttsl=\smallerttsl
-  \def\curfontsize{smaller}%
-  \def\lsize{smaller}\def\lllsize{smaller}%
-  \resetmathfonts \setleading{9.5pt}}
 
-% Fonts for short table of contents.
-\setfont\shortcontrm\rmshape{12}{1000}{OT1}
-\setfont\shortcontbf\bfshape{10}{\magstep1}{OT1}  % no cmb12
-\setfont\shortcontsl\slshape{12}{1000}{OT1}
-\setfont\shortconttt\ttshape{12}{1000}{OT1TT}
+\def\assignfonts#1{%
+  \expandafter\let\expandafter\rmfont\csname #1rm\endcsname
+  \expandafter\let\expandafter\itfont\csname #1it\endcsname
+  \expandafter\let\expandafter\slfont\csname #1sl\endcsname
+  \expandafter\let\expandafter\bffont\csname #1bf\endcsname
+  \expandafter\let\expandafter\ttfont\csname #1tt\endcsname
+  \expandafter\let\expandafter\smallcaps\csname #1sc\endcsname
+  \expandafter\let\expandafter\sffont  \csname #1sf\endcsname
+  \expandafter\let\expandafter\ifont   \csname #1i\endcsname
+  \expandafter\let\expandafter\syfont  \csname #1sy\endcsname
+  \expandafter\let\expandafter\ttslfont\csname #1ttsl\endcsname
+}
+
+\newif\ifrmisbold
+
+% Select smaller font size with the current style.  Used to change font size
+% in, e.g., the LaTeX logo and acronyms.  If we are using bold fonts for
+% normal roman text, also use bold fonts for roman text in the smaller size.
+\def\switchtolllsize{%
+   \expandafter\assignfonts\expandafter{\lllsize}%
+   \ifrmisbold
+     \let\rmfont\bffont
+   \fi
+   \csname\curfontstyle\endcsname
+}%
+
+\def\switchtolsize{%
+   \expandafter\assignfonts\expandafter{\lsize}%
+   \ifrmisbold
+     \let\rmfont\bffont
+   \fi
+   \csname\curfontstyle\endcsname
+}%
+
+\def\definefontsetatsize#1#2#3#4#5{%
+\expandafter\def\csname #1fonts\endcsname{%
+  \def\curfontsize{#1}%
+  \def\lsize{#2}\def\lllsize{#3}%
+  \csname rmisbold#5\endcsname
+  \assignfonts{#1}%
+  \resetmathfonts
+  \setleading{#4}%
+}}
+
+\definefontsetatsize{text}   {reduced}{smaller}{\textleading}{false}
+\definefontsetatsize{title}  {chap}   {subsec} {27pt}  {true}
+\definefontsetatsize{chap}   {sec}    {text}   {19pt}  {true}
+\definefontsetatsize{sec}    {subsec} {reduced}{17pt}  {true}
+\definefontsetatsize{ssec}   {text}   {small}  {15pt}  {true}
+\definefontsetatsize{reduced}{small}  {smaller}{10.5pt}{false}
+\definefontsetatsize{small}  {smaller}{smaller}{10.5pt}{false}
+\definefontsetatsize{smaller}{smaller}{smaller}{9.5pt} {false}
+
+\def\titlefont#1{{\titlefonts\rm #1}}
+\let\subsecfonts = \ssecfonts
+\let\subsubsecfonts = \ssecfonts
 
 % Define these just so they can be easily changed for other fonts.
 \def\angleleft{$\langle$}
@@ -3108,7 +3210,7 @@ end
 %
 \def\acronym#1{\doacronym #1,,\finish}
 \def\doacronym#1,#2,#3\finish{%
-  {\selectfonts\lsize #1}%
+  {\switchtolsize #1}%
   \def\temp{#2}%
   \ifx\temp\empty \else
     \space ({\unsepspaces \ignorespaces \temp \unskip})%
@@ -3201,10 +3303,10 @@ end
 % fix it (significant additions to font machinery) until someone notices.
 %
 \def\sub{\ifmmode \expandafter\sb \else \expandafter\finishsub\fi}
-\def\finishsub#1{$\sb{\hbox{\selectfonts\lllsize #1}}$}%
+\def\finishsub#1{$\sb{\hbox{\switchtolllsize #1}}$}%
 %
 \def\sup{\ifmmode \expandafter\ptexsp \else \expandafter\finishsup\fi}
-\def\finishsup#1{$\ptexsp{\hbox{\selectfonts\lllsize #1}}$}%
+\def\finishsup#1{$\ptexsp{\hbox{\switchtolllsize #1}}$}%
 
 % @inlinefmt{FMTNAME,PROCESSED-TEXT} and @inlineraw{FMTNAME,RAW-TEXT}.
 % Ignore unless FMTNAME == tex; then it is like @iftex and @tex,
@@ -3268,23 +3370,10 @@ end
 \let\atchar=\@
 
 % @{ @} @lbracechar{} @rbracechar{} all generate brace characters.
-% Unless we're in typewriter, use \ecfont because the CM text fonts do
-% not have braces, and we don't want to switch into math.
-\def\mylbrace{{\ifmonospace\else\ecfont\fi \char123}}
-\def\myrbrace{{\ifmonospace\else\ecfont\fi \char125}}
-\let\{=\mylbrace \let\lbracechar=\{
-\let\}=\myrbrace \let\rbracechar=\}
-\begingroup
-  % Definitions to produce \{ and \} commands for indices,
-  % and @{ and @} for the aux/toc files.
-  \catcode`\{ = \other \catcode`\} = \other
-  \catcode`\[ = 1 \catcode`\] = 2
-  \catcode`\! = 0 \catcode`\\ = \other
-  !gdef!lbracecmd[\{]%
-  !gdef!rbracecmd[\}]%
-  !gdef!lbraceatcmd[@{]%
-  !gdef!rbraceatcmd[@}]%
-!endgroup
+\def\lbracechar{{\ifmonospace\char123\else\ensuremath\lbrace\fi}}
+\def\rbracechar{{\ifmonospace\char125\else\ensuremath\rbrace\fi}}
+\let\{=\lbracechar
+\let\}=\rbracechar
 
 % @comma{} to avoid , parsing problems.
 \let\comma = ,
@@ -3302,8 +3391,8 @@ end
 % Plain TeX defines: @AA @AE @O @OE @L (plus lowercase versions) @ss.
 \def\questiondown{?`}
 \def\exclamdown{!`}
-\def\ordf{\leavevmode\raise1ex\hbox{\selectfonts\lllsize \underbar{a}}}
-\def\ordm{\leavevmode\raise1ex\hbox{\selectfonts\lllsize \underbar{o}}}
+\def\ordf{\leavevmode\raise1ex\hbox{\switchtolllsize \underbar{a}}}
+\def\ordm{\leavevmode\raise1ex\hbox{\switchtolllsize \underbar{o}}}
 
 % Dotless i and dotless j, used for accents.
 \def\imacro{i}
@@ -3332,12 +3421,12 @@ end
   {\setbox0=\hbox{T}%
    \vbox to \ht0{\hbox{%
      \ifx\textnominalsize\xwordpt
-       % for 10pt running text, \lllsize (8pt) is too small for the A in LaTeX.
+       % for 10pt running text, lllsize (8pt) is too small for the A in LaTeX.
        % Revert to plain's \scriptsize, which is 7pt.
        \count255=\the\fam $\fam\count255 \scriptstyle A$%
      \else
        % For 11pt, we can use our lllsize.
-       \selectfonts\lllsize A%
+       \switchtolllsize A%
      \fi
      }%
      \vss
@@ -3403,7 +3492,7 @@ end
 %
 \newbox\errorbox
 %
-{\tentt \global\dimen0 = 3em}% Width of the box.
+{\ttfont \global\dimen0 = 3em}% Width of the box.
 \dimen2 = .55pt % Thickness of rules
 % The text. (`r' is open on the right, `e' somewhat less so on the left.)
 \setbox0 = \hbox{\kern-.75pt \reducedsf \putworderror\kern-1.5pt}
@@ -3554,7 +3643,7 @@ end
 % Adapted from the plain.tex definition of \copyright.
 %
 \def\registeredsymbol{%
-  $^{{\ooalign{\hfil\raise.07ex\hbox{\selectfonts\lllsize R}%
+  $^{{\ooalign{\hfil\raise.07ex\hbox{\switchtolllsize R}%
                \hfil\crcr\Orb}}%
     }$%
 }
@@ -3648,12 +3737,11 @@ end
 
 % Settings used for typesetting titles: no hyphenation, no indentation,
 % don't worry much about spacing, ragged right.  This should be used
-% inside a \vbox, and fonts need to be set appropriately first.  Because
-% it is always used for titles, nothing else, we call \rmisbold.  \par
-% should be specified before the end of the \vbox, since a vbox is a group.
+% inside a \vbox, and fonts need to be set appropriately first. \par should
+% be specified before the end of the \vbox, since a vbox is a group.
 % 
 \def\raggedtitlesettings{%
-  \rmisbold
+  \rm
   \hyphenpenalty=10000
   \parindent=0pt
   \tolerance=5000
@@ -3662,7 +3750,7 @@ end
 
 % Macros to be used within @titlepage:
 
-\let\subtitlerm=\tenrm
+\let\subtitlerm=\rmfont
 \def\subtitlefont{\subtitlerm \normalbaselineskip = 13pt \normalbaselines}
 
 \parseargdef\title{%
@@ -3688,7 +3776,7 @@ end
   \else
     \checkenv\titlepage
     \ifseenauthor\else \vskip 0pt plus 1filll \seenauthortrue \fi
-    {\secfonts\rmisbold \leftline{#1}}%
+    {\secfonts\rm \leftline{#1}}%
   \fi
 }
 
@@ -4603,6 +4691,31 @@ end
   \fi
 }
 
+% Like \expandablevalue, but completely expandable (the \message in the
+% definition above operates at the execution level of TeX).  Used when
+% writing to auxiliary files, due to the expansion that \write does.
+% If flag is undefined, pass through an unexpanded @value command: maybe it 
+% will be set by the time it is read back in.
+%
+% NB flag names containing - or _ may not work here.
+\def\dummyvalue#1{%
+  \expandafter\ifx\csname SET#1\endcsname\relax
+    \noexpand\value{#1}%
+  \else
+    \csname SET#1\endcsname
+  \fi
+}
+
+% Used for @value's in index entries to form the sort key: expand the @value
+% if possible, otherwise sort late.
+\def\indexnofontsvalue#1{%
+  \expandafter\ifx\csname SET#1\endcsname\relax
+    ZZZZZZZ
+  \else
+    \csname SET#1\endcsname
+  \fi
+}
+
 % @ifset VAR ... @end ifset reads the `...' iff VAR has been defined
 % with @set.
 % 
@@ -4727,14 +4840,7 @@ end
 % #1 is \doindex or \docodeindex, #2 the index getting redefined (foo),
 % #3 the target index (bar).
 \def\dosynindex#1#2#3{%
-  % Only do \closeout if we haven't already done it, else we'll end up
-  % closing the target index.
-  \expandafter \ifx\csname donesynindex#2\endcsname \relax
-    % The \closeout helps reduce unnecessary open files; the limit on the
-    % Acorn RISC OS is a mere 16 files.
-    \expandafter\closeout\csname#2indfile\endcsname
-    \expandafter\let\csname donesynindex#2\endcsname = 1
-  \fi
+  \requireopenindexfile{#3}%
   % redefine \fooindfile:
   \expandafter\let\expandafter\temp\expandafter=\csname#3indfile\endcsname
   \expandafter\let\csname#2indfile\endcsname=\temp
@@ -4744,7 +4850,7 @@ end
 
 % Define \doindex, the driver for all index macros.
 % Argument #1 is generated by the calling \fooindex macro,
-% and it the two-letter name of the index.
+% and it is the two-letter name of the index.
 
 \def\doindex#1{\edef\indexname{#1}\parsearg\doindexxxx}
 \def\doindexxxx #1{\doind{\indexname}{#1}}
@@ -4753,63 +4859,61 @@ end
 \def\docodeindex#1{\edef\indexname{#1}\parsearg\docodeindexxxx}
 \def\docodeindexxxx #1{\doind{\indexname}{\code{#1}}}
 
-% Used when writing an index entry out to an index file, to prevent
+
+% Used when writing an index entry out to an index file to prevent
 % expansion of Texinfo commands that can appear in an index entry.
 %
 \def\indexdummies{%
   \escapechar = `\\     % use backslash in output files.
-  \def\@{@}% change to @@ when we switch to @ as escape char in index files.
-  \def\ {\realbackslash\space }%
+  \definedummyletter\@%
+  \definedummyletter\ %
   %
-  % Need these unexpandable (because we define \tt as a dummy)
-  % definitions when @{ or @} appear in index entry text.  Also, more
-  % complicated, when \tex is in effect and \{ is a \delimiter again.
-  % We can't use \lbracecmd and \rbracecmd because texindex assumes
-  % braces and backslashes are used only as delimiters.  Perhaps we
-  % should use @lbracechar and @rbracechar?
-  \def\{{{\tt\char123}}%
-  \def\}{{\tt\char125}}%
+  % For texindex which always views { and } as separators.
+  \def\{{\lbracechar{}}%
+  \def\}{\rbracechar{}}%
   %
   % Do the redefinitions.
-  \commondummies
+  \definedummies
 }
 
-% For the aux and toc files, @ is the escape character.  So we want to
-% redefine everything using @ as the escape character (instead of
-% \realbackslash, still used for index files).  When everything uses @,
-% this will be simpler.
+% Used for the aux and toc files, where @ is the escape character.
 %
 \def\atdummies{%
-  \def\@{@@}%
-  \def\ {@ }%
-  \let\{ = \lbraceatcmd
-  \let\} = \rbraceatcmd
+  \definedummyletter\@%
+  \definedummyletter\ %
+  \definedummyletter\{%
+  \definedummyletter\}%
   %
   % Do the redefinitions.
-  \commondummies
+  \definedummies
   \otherbackslash
 }
 
-% Called from \indexdummies and \atdummies.
+% \definedummyword defines \#1 as \string\#1\space, thus effectively
+% preventing its expansion.  This is used only for control words,
+% not control letters, because the \space would be incorrect for
+% control characters, but is needed to separate the control word
+% from whatever follows.
 %
-\def\commondummies{%
-  % \definedummyword defines \#1 as \string\#1\space, thus effectively
-  % preventing its expansion.  This is used only for control words,
-  % not control letters, because the \space would be incorrect for
-  % control characters, but is needed to separate the control word
-  % from whatever follows.
+% These can be used both for control words that take an argument and
+% those that do not.  If it is followed by {arg} in the input, then
+% that will dutifully get written to the index (or wherever).
+%
+% For control letters, we have \definedummyletter, which omits the
+% space.
+%
+\def\definedummyword  #1{\def#1{\string#1\space}}%
+\def\definedummyletter#1{\def#1{\string#1}}%
+\let\definedummyaccent\definedummyletter
+
+% Called from \indexdummies and \atdummies, to effectively prevent
+% the expansion of commands.
+%
+\def\definedummies{%
   %
-  % For control letters, we have \definedummyletter, which omits the
-  % space.
-  %
-  % These can be used both for control words that take an argument and
-  % those that do not.  If it is followed by {arg} in the input, then
-  % that will dutifully get written to the index (or wherever).
-  %
-  \def\definedummyword  ##1{\def##1{\string##1\space}}%
-  \def\definedummyletter##1{\def##1{\string##1}}%
-  \let\definedummyaccent\definedummyletter
-  %
+  \let\commondummyword\definedummyword
+  \let\commondummyletter\definedummyletter
+  \let\commondummyaccent\definedummyaccent
   \commondummiesnofonts
   %
   \definedummyletter\_%
@@ -4850,6 +4954,7 @@ end
   \definedummyword\TeX
   %
   % Assorted special characters.
+  \definedummyword\atchar
   \definedummyword\arrow
   \definedummyword\bullet
   \definedummyword\comma
@@ -4889,85 +4994,82 @@ end
   %
   % We want to disable all macros so that they are not expanded by \write.
   \macrolist
+  \let\value\dummyvalue
   %
   \normalturnoffactive
-  %
-  % Handle some cases of @value -- where it does not contain any
-  % (non-fully-expandable) commands.
-  \makevalueexpandable
 }
 
-% \commondummiesnofonts: common to \commondummies and \indexnofonts.
-% Define \definedumyletter, \definedummyaccent and \definedummyword before
-% using.
+% \commondummiesnofonts: common to \definedummies and \indexnofonts.
+% Define \commondummyletter, \commondummyaccent and \commondummyword before
+% using.  Used for accents, font commands, and various control letters.
 %
 \def\commondummiesnofonts{%
   % Control letters and accents.
-  \definedummyletter\!%
-  \definedummyaccent\"%
-  \definedummyaccent\'%
-  \definedummyletter\*%
-  \definedummyaccent\,%
-  \definedummyletter\.%
-  \definedummyletter\/%
-  \definedummyletter\:%
-  \definedummyaccent\=%
-  \definedummyletter\?%
-  \definedummyaccent\^%
-  \definedummyaccent\`%
-  \definedummyaccent\~%
-  \definedummyword\u
-  \definedummyword\v
-  \definedummyword\H
-  \definedummyword\dotaccent
-  \definedummyword\ogonek
-  \definedummyword\ringaccent
-  \definedummyword\tieaccent
-  \definedummyword\ubaraccent
-  \definedummyword\udotaccent
-  \definedummyword\dotless
+  \commondummyletter\!%
+  \commondummyaccent\"%
+  \commondummyaccent\'%
+  \commondummyletter\*%
+  \commondummyaccent\,%
+  \commondummyletter\.%
+  \commondummyletter\/%
+  \commondummyletter\:%
+  \commondummyaccent\=%
+  \commondummyletter\?%
+  \commondummyaccent\^%
+  \commondummyaccent\`%
+  \commondummyaccent\~%
+  \commondummyword\u
+  \commondummyword\v
+  \commondummyword\H
+  \commondummyword\dotaccent
+  \commondummyword\ogonek
+  \commondummyword\ringaccent
+  \commondummyword\tieaccent
+  \commondummyword\ubaraccent
+  \commondummyword\udotaccent
+  \commondummyword\dotless
   %
   % Texinfo font commands.
-  \definedummyword\b
-  \definedummyword\i
-  \definedummyword\r
-  \definedummyword\sansserif
-  \definedummyword\sc
-  \definedummyword\slanted
-  \definedummyword\t
+  \commondummyword\b
+  \commondummyword\i
+  \commondummyword\r
+  \commondummyword\sansserif
+  \commondummyword\sc
+  \commondummyword\slanted
+  \commondummyword\t
   %
   % Commands that take arguments.
-  \definedummyword\abbr
-  \definedummyword\acronym
-  \definedummyword\anchor
-  \definedummyword\cite
-  \definedummyword\code
-  \definedummyword\command
-  \definedummyword\dfn
-  \definedummyword\dmn
-  \definedummyword\email
-  \definedummyword\emph
-  \definedummyword\env
-  \definedummyword\file
-  \definedummyword\image
-  \definedummyword\indicateurl
-  \definedummyword\inforef
-  \definedummyword\kbd
-  \definedummyword\key
-  \definedummyword\math
-  \definedummyword\option
-  \definedummyword\pxref
-  \definedummyword\ref
-  \definedummyword\samp
-  \definedummyword\strong
-  \definedummyword\tie
-  \definedummyword\U
-  \definedummyword\uref
-  \definedummyword\url
-  \definedummyword\var
-  \definedummyword\verb
-  \definedummyword\w
-  \definedummyword\xref
+  \commondummyword\abbr
+  \commondummyword\acronym
+  \commondummyword\anchor
+  \commondummyword\cite
+  \commondummyword\code
+  \commondummyword\command
+  \commondummyword\dfn
+  \commondummyword\dmn
+  \commondummyword\email
+  \commondummyword\emph
+  \commondummyword\env
+  \commondummyword\file
+  \commondummyword\image
+  \commondummyword\indicateurl
+  \commondummyword\inforef
+  \commondummyword\kbd
+  \commondummyword\key
+  \commondummyword\math
+  \commondummyword\option
+  \commondummyword\pxref
+  \commondummyword\ref
+  \commondummyword\samp
+  \commondummyword\strong
+  \commondummyword\tie
+  \commondummyword\U
+  \commondummyword\uref
+  \commondummyword\url
+  \commondummyword\var
+  \commondummyword\verb
+  \commondummyword\w
+  \commondummyword\xref
 }
 
 % For testing: output @{ and @} in index sort strings as \{ and \}.
@@ -5023,11 +5125,11 @@ end
 %
 \def\indexnofonts{%
   % Accent commands should become @asis.
-  \def\definedummyaccent##1{\let##1\asis}%
+  \def\commondummyaccent##1{\let##1\asis}%
   % We can just ignore other control letters.
-  \def\definedummyletter##1{\let##1\empty}%
+  \def\commondummyletter##1{\let##1\empty}%
   % All control words become @asis by default; overrides below.
-  \let\definedummyword\definedummyaccent
+  \let\commondummyword\commondummyaccent
   \commondummiesnofonts
   %
   % Don't no-op \tt, since it isn't a user-level command
@@ -5069,37 +5171,40 @@ end
   \def\LaTeX{LaTeX}%
   \def\TeX{TeX}%
   %
-  % Assorted special characters.
-  % (The following {} will end up in the sort string, but that's ok.)
-  \def\arrow{->}%
-  \def\bullet{bullet}%
-  \def\comma{,}%
-  \def\copyright{copyright}%
-  \def\dots{...}%
-  \def\enddots{...}%
-  \def\equiv{==}%
-  \def\error{error}%
-  \def\euro{euro}%
-  \def\expansion{==>}%
-  \def\geq{>=}%
-  \def\guillemetleft{<<}%
-  \def\guillemetright{>>}%
-  \def\guilsinglleft{<}%
-  \def\guilsinglright{>}%
-  \def\leq{<=}%
-  \def\minus{-}%
-  \def\point{.}%
-  \def\pounds{pounds}%
-  \def\print{-|}%
-  \def\quotedblbase{"}%
-  \def\quotedblleft{"}%
-  \def\quotedblright{"}%
-  \def\quoteleft{`}%
-  \def\quoteright{'}%
-  \def\quotesinglbase{,}%
-  \def\registeredsymbol{R}%
-  \def\result{=>}%
-  \def\textdegree{o}%
+  % Assorted special characters.  \defglyph gives the control sequence a
+  % definition that removes the {} that follows its use.
+  \defglyph\atchar{@}%
+  \defglyph\arrow{->}%
+  \defglyph\bullet{bullet}%
+  \defglyph\comma{,}%
+  \defglyph\copyright{copyright}%
+  \defglyph\dots{...}%
+  \defglyph\enddots{...}%
+  \defglyph\equiv{==}%
+  \defglyph\error{error}%
+  \defglyph\euro{euro}%
+  \defglyph\expansion{==>}%
+  \defglyph\geq{>=}%
+  \defglyph\guillemetleft{<<}%
+  \defglyph\guillemetright{>>}%
+  \defglyph\guilsinglleft{<}%
+  \defglyph\guilsinglright{>}%
+  \defglyph\leq{<=}%
+  \defglyph\lbracechar{\{}%
+  \defglyph\minus{-}%
+  \defglyph\point{.}%
+  \defglyph\pounds{pounds}%
+  \defglyph\print{-|}%
+  \defglyph\quotedblbase{"}%
+  \defglyph\quotedblleft{"}%
+  \defglyph\quotedblright{"}%
+  \defglyph\quoteleft{`}%
+  \defglyph\quoteright{'}%
+  \defglyph\quotesinglbase{,}%
+  \defglyph\rbracechar{\}}%
+  \defglyph\registeredsymbol{R}%
+  \defglyph\result{=>}%
+  \defglyph\textdegree{o}%
   %
   % We need to get rid of all macros, leaving only the arguments (if present).
   % Of course this is not nearly correct, but it is the best we can do for now.
@@ -5112,7 +5217,11 @@ end
   % goes to end-of-line is not handled.
   %
   \macrolist
+  \let\value\indexnofontsvalue
 }
+\def\defglyph#1#2{\def#1##1{#2}} % see above
+
+
 
 
 \let\SETmarginindex=\relax % put index entries in margin (undocumented)?
@@ -5159,9 +5268,10 @@ end
   \ifx\suffix\indexisfl\def\suffix{f1}\fi
   % Open the file
   \immediate\openout\csname#1indfile\endcsname \jobname.\suffix
-  % Using \immediate here prevents an object entering into the current box,
-  % which could confound checks such as those in \safewhatsit for preceding
-  % skips.
+  % Using \immediate above here prevents an object entering into the current 
+  % box, which could confound checks such as those in \safewhatsit for
+  % preceding skips.
+  \typeout{Writing index file \jobname.\suffix}%
 \fi}
 \def\indexisfl{fl}
 
@@ -5359,7 +5469,7 @@ end
   % \initial {@}
   % as its first line, TeX doesn't complain about mismatched braces
   % (because it thinks @} is a control sequence).
-  \catcode`\@ = 11
+  \catcode`\@ = 12
   % See comment in \requireopenindexfile.
   \def\indexname{#1}\ifx\indexname\indexisfl\def\indexname{f1}\fi
   \openin 1 \jobname.\indexname s
@@ -5369,6 +5479,7 @@ end
     % index.  The easiest way to prevent this problem is to make sure
     % there is some text.
     \putwordIndexNonexistent
+    \typeout{No file \jobname.\indexname s.}%
   \else
     \catcode`\\ = 0
     %
@@ -5386,7 +5497,7 @@ end
       \let\indexlbrace\{   % Likewise, set these sequences for braces
       \let\indexrbrace\}   % used in the sort key.
       \begindoublecolumns
-      \let\entryorphanpenalty=\indexorphanpenalty
+      \let\entrywidowpenalty=\indexwidowpenalty
       %
       % Read input from the index file line by line.
       \loopdo
@@ -5487,6 +5598,12 @@ end
 \def\entry{%
   \begingroup
     %
+    % For pdfTeX and XeTeX.
+    % The redefinition of \domark stops marks being added in \pdflink to 
+    % preserve coloured links across page boundaries.  Otherwise the marks
+    % would get in the way of \lastbox in \insertindexentrybox.
+    \let\domark\relax
+    %
     % Start a new paragraph if necessary, so our assignments below can't
     % affect previous text.
     \par
@@ -5499,10 +5616,6 @@ end
     % titles, for instance.
     \def\*{\unskip\space\ignorespaces}%
     \def\entrybreak{\hfil\break}% An undocumented command
-    %
-    % A bit of stretch before each entry for the benefit of balancing
-    % columns.
-    \vskip 0pt plus0.5pt
     %
     % Swallow the left brace of the text (first parameter):
     \afterassignment\doentry
@@ -5537,20 +5650,13 @@ end
       %
       \ifpdf
         \pdfgettoks#1.%
-        \bgroup\let\domark\relax
-          \hskip\skip\thinshrinkable\the\toksA
-        \egroup
-        % The redefinion of \domark stops marks being added in \pdflink to 
-        % preserve coloured links across page boundaries.  Otherwise the marks
-        % would get in the way of \lastbox in \insertindexentrybox.
+        \hskip\skip\thinshrinkable\the\toksA
       \else
         \ifx\XeTeXrevision\thisisundefined
           \hskip\skip\thinshrinkable #1%
         \else
           \pdfgettoks#1.%
-          \bgroup\let\domark\relax
-            \hskip\skip\thinshrinkable\the\toksA
-          \egroup
+          \hskip\skip\thinshrinkable\the\toksA
         \fi
       \fi
     \fi
@@ -5559,11 +5665,10 @@ end
       \global\setbox\entryindexbox=\vbox{\unhbox\boxA}%
     \else
     \global\setbox\entryindexbox=\vbox\bgroup
-      \prevdepth=\entrylinedepth
-      \noindent
       % We want the text of the entries to be aligned to the left, and the
       % page numbers to be aligned to the right.
       %
+      \parindent = 0pt
       \advance\leftskip by 0pt plus 1fil
       \advance\leftskip by 0pt plus -1fill
       \rightskip = 0pt plus -1fil
@@ -5571,8 +5676,6 @@ end
       % Cause last line, which could consist of page numbers on their own
       % if the list of page numbers is long, to be aligned to the right.
       \parfillskip=0pt plus -1fill
-      %
-      \hangindent=1em
       %
       \advance\rightskip by \entryrightmargin
       % Determine how far we can stretch into the margin.
@@ -5593,17 +5696,21 @@ end
       \ifdim\dimen@ > 0.8\dimen@ii   % due to long index text
         \dimen@ = 0.7\dimen@ % Try to split the text roughly evenly
         \dimen@ii = \hsize
-        \advance \dimen@ii by -1em
         \ifnum\dimen@>\dimen@ii
           % If the entry is too long, use the whole line
           \dimen@ = \dimen@ii
         \fi
         \advance\leftskip by 0pt plus 1fill % ragged right
         \advance \dimen@ by 1\rightskip
-        \parshape = 2 0pt \dimen@ 1em \dimen@ii
-        % Ideally we'd add a finite glue at the end of the first line only, but
-        % TeX doesn't seem to provide a way to do such a thing.
+        \parshape = 2 0pt \dimen@ 0em \dimen@ii
+        % Ideally we'd add a finite glue at the end of the first line only,
+        % instead of using \parshape with explicit line lengths, but TeX
+        % doesn't seem to provide a way to do such a thing.
+        %
+        \leftskip = 1em
+        \parindent = -1em
       \fi\fi
+      \indent % start paragraph
       \unhbox\boxA
       %
       % Do not prefer a separate line ending with a hyphen to fewer lines.
@@ -5621,7 +5728,7 @@ end
   \endgroup
   % delay text of entry until after penalty
   \bgroup\aftergroup\insertindexentrybox
-  \entryorphanpenalty
+  \entrywidowpenalty
 }}
 
 \newskip\thinshrinkable
@@ -5629,40 +5736,43 @@ end
 
 \newbox\entryindexbox
 \def\insertindexentrybox{%
-  \copy\entryindexbox
-  % The following gets the depth of the last box.  This is for even
-  % line spacing when entries span several lines.
-  \setbox\dummybox\vbox{%
-    \unvbox\entryindexbox
-    \nointerlineskip
-    \lastbox
-    \global\entrylinedepth=\prevdepth
-  }%
-  % Note that we couldn't simply \unvbox\entryindexbox followed by 
-  % \nointerlineskip\lastbox to remove the last box and then reinstate it, 
-  % because this resets how far the box has been \moveleft'ed to 0.  \unvbox
-  % doesn't affect \prevdepth either.
+  \ourunvbox\entryindexbox
 }
-\newdimen\entrylinedepth
+
+% Use \lastbox to take apart vbox box by box, and add each sub-box
+% to the current vertical list.
+\def\ourunvbox#1{%
+\bgroup % for local binding of \delayedbox
+  % Remove the last box from box #1
+  \global\setbox#1=\vbox{%
+    \unvbox#1%
+    \unskip % remove any glue
+    \unpenalty
+    \global\setbox\interbox=\lastbox
+  }%
+  \setbox\delayedbox=\box\interbox
+  \ifdim\ht#1=0pt\else
+    \ourunvbox#1 % Repeat on what's left of the box
+    \nobreak
+  \fi
+  \box\delayedbox
+\egroup
+}
+\newbox\delayedbox
+\newbox\interbox
 
 % Default is no penalty
-\let\entryorphanpenalty\egroup
+\let\entrywidowpenalty\egroup
 
 % Used from \printindex.  \firsttoken should be the first token
 % after the \entry.  If it's not another \entry, we are at the last
 % line of a group of index entries, so insert a penalty to discourage
-% orphaned index entries.
-\long\def\indexorphanpenalty{%
+% widowed index entries.
+\long\def\indexwidowpenalty{%
   \def\isentry{\entry}%
   \ifx\firsttoken\isentry
   \else
-    \unskip\penalty 9000
-    % The \unskip here stops breaking before the glue.  It relies on the
-    % \vskip above being there, otherwise there is an error
-    % "You can't use `\unskip' in vertical mode".  There has to be glue
-    % in the current vertical list that hasn't been added to the
-    % "current page".  See Chapter 24 of the TeXbook.  This contradicts
-    % Section 8.3.7 in "TeX by Topic," though.
+    \penalty 9000
   \fi
   \egroup % now comes the box added with \aftergroup
 }
@@ -5702,8 +5812,6 @@ end
 
 \newbox\partialpage
 \newdimen\doublecolumnhsize
-\newdimen\doublecolumntopgap
-\doublecolumntopgap = 0pt
 
 % Use inside an output routine to save \topmark and \firstmark
 \def\savemarks{%
@@ -5786,12 +5894,10 @@ end
   %
   % Double the \vsize as well.  (We don't need a separate register here,
   % since nobody clobbers \vsize.)
-  \global\doublecolumntopgap = \topskip
-  \global\advance\doublecolumntopgap by -1\baselineskip
-  \advance\vsize by -1\doublecolumntopgap
   \vsize = 2\vsize
-  \topskip=0pt
-  \global\entrylinedepth=0pt\relax
+  %
+  % For the benefit of balancing columns
+  \advance\baselineskip by 0pt plus 0.5pt
 }
 
 % The double-column output routine for all double-column pages except
@@ -5821,9 +5927,7 @@ end
   %
   \hsize = \doublecolumnhsize
   \wd0=\hsize \wd2=\hsize
-  \vbox{%
-    \vskip\doublecolumntopgap
-    \hbox to\txipagewidth{\box0\hfil\box2}}%
+  \hbox to\txipagewidth{\box0\hfil\box2}%
 }
 
 
@@ -5890,38 +5994,45 @@ end
   \dimen@ = \ht0
   \advance\dimen@ by \topskip
   \advance\dimen@ by-\baselineskip
-  \ifdim\dimen@<14\baselineskip
+  \ifdim\dimen@<5\baselineskip
     % Don't split a short final column in two.
     \setbox2=\vbox{}%
   \else
     \divide\dimen@ by 2 % target to split to
     \dimen@ii = \dimen@
     \splittopskip = \topskip
-    % Loop until the second column is no higher than the first
+    % Loop until left column is at least as high as the right column.
     {%
       \vbadness = 10000
       \loop
         \global\setbox3 = \copy0
         \global\setbox1 = \vsplit3 to \dimen@
-        % Remove glue from bottom of first column to
-        % make sure it is higher than the second.
-        \global\setbox1 = \vbox{\unvbox1\unpenalty\unskip}%
-      \ifdim\ht3>\ht1
+      \ifdim\ht1<\ht3
         \global\advance\dimen@ by 1pt
       \repeat
     }%
-    \multiply\dimen@ii by 4
-    \divide\dimen@ii by 5
-    \ifdim\ht3<\dimen@ii
-      % Column heights are too different, so don't make their bottoms
-      % flush with each other.  The glue at the end of the second column
-      % allows a second column to stretch, reducing the difference in
-      % height between the two.
-      \setbox0=\vbox to\dimen@{\unvbox1\vfill}%
-      \setbox2=\vbox to\dimen@{\unvbox3\vskip 0pt plus 0.3\ht0}%
+    % Now the left column is in box 1, and the right column in box 3.
+    % Check whether the left column has come out higher than the page itself.  
+    % (Note that we have doubled \vsize for the double columns, so
+    % the actual height of the page is 0.5\vsize).
+    \ifdim2\ht1>\vsize
+      % Just split the last of the double column material roughly in half.
+      \setbox2=\box0
+      \setbox0 = \vsplit2 to \dimen@ii
+      \setbox0=\vbox to \dimen@ii {\unvbox0\vfill}%
+      \setbox2=\vbox to \dimen@ii {\unvbox2\vfill}%
     \else
-      \setbox0=\vbox to\dimen@{\unvbox1}%
-      \setbox2=\vbox to\dimen@{\unvbox3}%
+      % Compare the heights of the two columns.
+      \ifdim4\ht1>5\ht3
+        % Column heights are too different, so don't make their bottoms
+        % flush with each other.
+        \setbox2=\vbox to \ht1 {\unvbox3\vfill}%
+        \setbox0=\vbox to \ht1 {\unvbox1\vfill}%
+      \else
+        % Make column bottoms flush with each other.
+        \setbox2=\vbox to\ht1{\unvbox3\unskip}%
+        \setbox0=\vbox to\ht1{\unvbox1\unskip}%
+      \fi
     \fi
   \fi
   %
@@ -5940,7 +6051,7 @@ end
   \null
   \vskip.3\vsize  % move it down on the page a bit
   \begingroup
-    \noindent \titlefonts\rmisbold #1\par % the text
+    \noindent \titlefonts\rm #1\par % the text
     \let\lastnode=\empty      % no node to associate with
     \writetocentry{part}{#1}{}% but put it in the toc
     \headingsoff              % no headline or footline on the part page
@@ -6426,7 +6537,7 @@ end
   \domark
   %
   {%
-    \chapfonts \rmisbold
+    \chapfonts \rm
     \let\footnote=\errfootnoteheading % give better error message
     %
     % Have to define \lastsection before calling \donoderef, because the
@@ -6518,7 +6629,7 @@ end
     \let\footnote=\errfootnoteheading
     %
     % Switch to the right set of fonts.
-    \csname #2fonts\endcsname \rmisbold
+    \csname #2fonts\endcsname \rm
     %
     % Insert first mark before the heading break (see notes for \domark).
     \let\prevsectiondefs=\lastsectiondefs
@@ -6682,7 +6793,14 @@ end
   % 1 and 2 (the page numbers aren't printed), and so are the first
   % two pages of the document.  Thus, we'd have two destinations named
   % `1', and two named `2'.
-  \ifpdf \global\pdfmakepagedesttrue \fi
+  \ifpdf
+    \global\pdfmakepagedesttrue
+  \else
+    \ifx\XeTeXrevision\thisisundefined
+    \else
+      \global\pdfmakepagedesttrue
+    \fi
+  \fi
 }
 
 
@@ -7784,7 +7902,7 @@ end
     \fi           % no return type
     #3% output function name
   }%
-  {\rm\enskip}% hskip 0.5 em of \tenrm
+  {\rm\enskip}% hskip 0.5 em of \rmfont
   %
   \boldbrax
   % arguments will be output next, if any.
@@ -7963,7 +8081,7 @@ end
 \newif\ifrecursive  % Is it recursive?
 
 % List of all defined macros in the form
-%    \definedummyword\macro1\definedummyword\macro2...
+%    \commondummyword\macro1\commondummyword\macro2...
 % Currently is also contains all @aliases; the list can be split
 % if there is a need.
 \def\macrolist{}
@@ -7971,7 +8089,7 @@ end
 % Add the macro to \macrolist
 \def\addtomacrolist#1{\expandafter \addtomacrolistxxx \csname#1\endcsname}
 \def\addtomacrolistxxx#1{%
-     \toks0 = \expandafter{\macrolist\definedummyword#1}%
+     \toks0 = \expandafter{\macrolist\commondummyword#1}%
      \xdef\macrolist{\the\toks0}%
 }
 
@@ -8112,7 +8230,7 @@ end
     % Remove the macro name from \macrolist:
     \begingroup
       \expandafter\let\csname#1\endcsname \relax
-      \let\definedummyword\unmacrodo
+      \let\commondummyword\unmacrodo
       \xdef\macrolist{\macrolist}%
     \endgroup
   \else
@@ -8127,7 +8245,7 @@ end
   \ifx #1\relax
     % remove this
   \else
-    \noexpand\definedummyword \noexpand#1%
+    \noexpand\commondummyword \noexpand#1%
   \fi
 }
 
@@ -8402,8 +8520,7 @@ end
 % its parameters, looking like "\xeatspaces{\hash 1}".
 %    \paramno is the number of parameters
 %    \paramlist is a TeX parameter text, e.g. "#1,#2,#3,"
-% There are eight cases: recursive and nonrecursive macros of zero, one,
-% up to nine, and many arguments.
+% There are four cases: macros of zero, one, up to nine, and many arguments.
 % \xdef is used so that macro definitions will survive the file
 % they're defined in: @include reads the file inside a group.
 %
@@ -8418,91 +8535,48 @@ end
   \else
     \let\xeatspaces\relax % suppress expansion
   \fi
-  \ifrecursive   %%%%%%%%%%%%%% Recursive %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    \ifcase\paramno
-    % 0
+  \ifcase\paramno
+  % 0
+    \expandafter\xdef\csname\the\macname\endcsname{%
+      \noexpand\scanmacro{\macrobody}}%
+  \or % 1
+    \expandafter\xdef\csname\the\macname\endcsname{%
+       \bgroup
+       \noexpand\braceorline
+       \expandafter\noexpand\csname\the\macname @@@\endcsname}%
+    \expandafter\xdef\csname\the\macname @@@\endcsname##1{%
+      \egroup
+      \noexpand\scanmacro{\macrobody}%
+      }%
+  \else % at most 9
+    \ifnum\paramno<10\relax
+      % @MACNAME sets the context for reading the macro argument
+      % @MACNAME@@ gets the argument, processes backslashes and appends a 
+      % comma.
+      % @MACNAME@@@ removes braces surrounding the argument list.
+      % @MACNAME@@@@ scans the macro body with arguments substituted.
       \expandafter\xdef\csname\the\macname\endcsname{%
-        \noexpand\scanmacro{\macrobody}}%
-    \or % 1
-      \expandafter\xdef\csname\the\macname\endcsname{%
-         \bgroup
-         \noexpand\braceorline
-         \expandafter\noexpand\csname\the\macname @@@\endcsname}%
+        \bgroup
+        \noexpand\expandafter  % This \expandafter skip any spaces after the
+        \noexpand\macroargctxt % macro before we change the catcode of space.
+        \noexpand\expandafter
+        \expandafter\noexpand\csname\the\macname @@\endcsname}%
+      \expandafter\xdef\csname\the\macname @@\endcsname##1{%
+          \noexpand\passargtomacro
+          \expandafter\noexpand\csname\the\macname @@@\endcsname{##1,}}%
       \expandafter\xdef\csname\the\macname @@@\endcsname##1{%
-        \egroup
-        \noexpand\scanmacro{\macrobody}%
-        }%
-    \else
-      \ifnum\paramno<10\relax % at most 9
-        % See non-recursive section below for comments
-        \expandafter\xdef\csname\the\macname\endcsname{%
-          \bgroup
-          \noexpand\expandafter
-          \noexpand\macroargctxt
-          \noexpand\expandafter
-          \expandafter\noexpand\csname\the\macname @@\endcsname}%
-        \expandafter\xdef\csname\the\macname @@\endcsname##1{%
-            \noexpand\passargtomacro
-            \expandafter\noexpand\csname\the\macname @@@\endcsname{##1,}}%
-        \expandafter\xdef\csname\the\macname @@@\endcsname##1{%
-            \expandafter\noexpand\csname\the\macname @@@@\endcsname ##1}%
-        \expandafter\expandafter
-        \expandafter\xdef
-        \expandafter\expandafter
-          \csname\the\macname @@@@\endcsname\paramlist{%
-            \egroup\noexpand\scanmacro{\macrobody}}%
-      \else % 10 or more
-        \expandafter\xdef\csname\the\macname\endcsname{%
-          \noexpand\getargvals@{\the\macname}{\argl}%
-        }%    
-        \global\expandafter\let\csname mac.\the\macname .body\endcsname\macrobody
-        \global\expandafter\let\csname mac.\the\macname .recurse\endcsname\gobble
-      \fi
-    \fi
-  \else  %%%%%%%%%%%%%%%%%%%%%% Non-recursive %%%%%%%%%%%%%%%%%%%%%%%%%%
-    \ifcase\paramno
-    % 0
+          \expandafter\noexpand\csname\the\macname @@@@\endcsname ##1}%
+      \expandafter\expandafter
+      \expandafter\xdef
+      \expandafter\expandafter
+        \csname\the\macname @@@@\endcsname\paramlist{%
+          \egroup\noexpand\scanmacro{\macrobody}}%
+    \else % 10 or more:
       \expandafter\xdef\csname\the\macname\endcsname{%
-        \noexpand\scanmacro{\macrobody}}%
-    \or % 1
-      \expandafter\xdef\csname\the\macname\endcsname{%
-         \bgroup
-         \noexpand\braceorline
-         \expandafter\noexpand\csname\the\macname @@@\endcsname}%
-      \expandafter\xdef\csname\the\macname @@@\endcsname##1{%
-        \egroup
-        \noexpand\scanmacro{\macrobody}%
-        }%
-    \else % at most 9
-      \ifnum\paramno<10\relax
-        % @MACNAME sets the context for reading the macro argument
-        % @MACNAME@@ gets the argument, processes backslashes and appends a 
-        % comma.
-        % @MACNAME@@@ removes braces surrounding the argument list.
-        % @MACNAME@@@@ scans the macro body with arguments substituted.
-        \expandafter\xdef\csname\the\macname\endcsname{%
-          \bgroup
-          \noexpand\expandafter  % This \expandafter skip any spaces after the
-          \noexpand\macroargctxt % macro before we change the catcode of space.
-          \noexpand\expandafter
-          \expandafter\noexpand\csname\the\macname @@\endcsname}%
-        \expandafter\xdef\csname\the\macname @@\endcsname##1{%
-            \noexpand\passargtomacro
-            \expandafter\noexpand\csname\the\macname @@@\endcsname{##1,}}%
-        \expandafter\xdef\csname\the\macname @@@\endcsname##1{%
-            \expandafter\noexpand\csname\the\macname @@@@\endcsname ##1}%
-        \expandafter\expandafter
-        \expandafter\xdef
-        \expandafter\expandafter
-          \csname\the\macname @@@@\endcsname\paramlist{%
-            \egroup\noexpand\scanmacro{\macrobody}}%
-      \else % 10 or more:
-        \expandafter\xdef\csname\the\macname\endcsname{%
-          \noexpand\getargvals@{\the\macname}{\argl}%
-        }%
-        \global\expandafter\let\csname mac.\the\macname .body\endcsname\macrobody
-        \global\expandafter\let\csname mac.\the\macname .recurse\endcsname\norecurse
-      \fi
+        \noexpand\getargvals@{\the\macname}{\argl}%
+      }%
+      \global\expandafter\let\csname mac.\the\macname .body\endcsname\macrobody
+      \global\expandafter\let\csname mac.\the\macname .recurse\endcsname\gobble
     \fi
   \fi}
 
@@ -8698,6 +8772,8 @@ end
     {%
       \requireauxfile
       \atdummies  % preserve commands, but don't expand them
+      % match definition in \xrdef, \refx, \xrefX.
+      \def\value##1{##1}%
       \edef\writexrdef##1##2{%
 	\write\auxfile{@xrdef{#1-% #1 of \setref, expanded by the \edef
 	  ##1}{##2}}% these are parameters of \writexrdef
@@ -8790,8 +8866,8 @@ end
   \ifpdf
     % For pdfTeX and LuaTeX
     {\indexnofonts
-     \turnoffactive
      \makevalueexpandable
+     \turnoffactive
      % This expands tokens, so do it after making catcode changes, so _
      % etc. don't get their TeX definitions.  This ignores all spaces in
      % #4, including (wrongly) those in the middle of the filename.
@@ -8799,19 +8875,18 @@ end
      %
      % This (wrongly) does not take account of leading or trailing
      % spaces in #1, which should be ignored.
-     \edef\pdfxrefdest{#1}%
-     \ifx\pdfxrefdest\empty
-       \def\pdfxrefdest{Top}% no empty targets
-     \else
-       \txiescapepdf\pdfxrefdest  % escape PDF special chars
+     \setpdfdestname{#1}%
+     %
+     \ifx\pdfdestname\empty
+       \def\pdfdestname{Top}% no empty targets
      \fi
      %
      \leavevmode
      \startlink attr{/Border [0 0 0]}%
      \ifnum\filenamelength>0
-       goto file{\the\filename.pdf} name{\pdfxrefdest}%
+       goto file{\the\filename.pdf} name{\pdfdestname}%
      \else
-       goto name{\pdfmkpgn{\pdfxrefdest}}%
+       goto name{\pdfmkpgn{\pdfdestname}}%
      \fi
     }%
     \setcolor{\linkcolor}%
@@ -8820,8 +8895,8 @@ end
     \else
       % For XeTeX
       {\indexnofonts
-       \turnoffactive
        \makevalueexpandable
+       \turnoffactive
        % This expands tokens, so do it after making catcode changes, so _
        % etc. don't get their TeX definitions.  This ignores all spaces in
        % #4, including (wrongly) those in the middle of the filename.
@@ -8829,29 +8904,27 @@ end
        %
        % This (wrongly) does not take account of leading or trailing
        % spaces in #1, which should be ignored.
-       \iftxiuseunicodedestname
-         \def\pdfxrefdest{#1}% Pass through Unicode characters.
-       \else
-         \edef\pdfxrefdest{#1}% Replace Unicode characters to ASCII.
-       \fi
-       \ifx\pdfxrefdest\empty
-         \def\pdfxrefdest{Top}% no empty targets
-       \else
-         \txiescapepdf\pdfxrefdest  % escape PDF special chars
+       \setpdfdestname{#1}%
+       %
+       \ifx\pdfdestname\empty
+         \def\pdfdestname{Top}% no empty targets
        \fi
        %
        \leavevmode
        \ifnum\filenamelength>0
-         % By the default settings,
+         % With default settings,
          % XeTeX (xdvipdfmx) replaces link destination names with integers.
          % In this case, the replaced destination names of
-         % remote PDF cannot be known. In order to avoid replacement,
-         % you can use commandline option `-C 0x0010' for xdvipdfmx.
+         % remote PDFs are no longer known.  In order to avoid a replacement,
+         % you can use xdvipdfmx's command line option `-C 0x0010'.
+         % If you use XeTeX 0.99996+ (TeX Live 2016+),
+         % this command line option is no longer necessary
+         % because we can use the `dvipdfmx:config' special.
          \special{pdf:bann << /Border [0 0 0] /Type /Annot /Subtype /Link /A
-           << /S /GoToR /F (\the\filename.pdf) /D (name\pdfxrefdest) >> >>}%
+           << /S /GoToR /F (\the\filename.pdf) /D (\pdfdestname) >> >>}%
        \else
          \special{pdf:bann << /Border [0 0 0] /Type /Annot /Subtype /Link /A
-           << /S /GoTo /D (name\pdfxrefdest) >> >>}%
+           << /S /GoTo /D (\pdfdestname) >> >>}%
        \fi
       }%
       \setcolor{\linkcolor}%
@@ -8862,6 +8935,7 @@ end
     % include an _ in the xref name, etc.
     \indexnofonts
     \turnoffactive
+    \def\value##1{##1}%
     \expandafter\global\expandafter\let\expandafter\Xthisreftitle
       \csname XR#1-title\endcsname
   }%
@@ -9002,14 +9076,14 @@ end
   \fi\fi\fi
 }
 
-% Define \refx{NAME}{SUFFIX} to reference a cross-reference string named NAME.
-% If its value is nonempty, SUFFIX is output afterward.
-%
+% \refx{NAME}{SUFFIX} - reference a cross-reference string named NAME.  SUFFIX 
+% is output afterwards if non-empty.
 \def\refx#1#2{%
   \requireauxfile
   {%
     \indexnofonts
     \otherbackslash
+    \def\value##1{##1}%
     \expandafter\global\expandafter\let\expandafter\thisrefX
       \csname XR#1\endcsname
   }%
@@ -9034,16 +9108,18 @@ end
   #2% Output the suffix in any case.
 }
 
-% This is the macro invoked by entries in the aux file.  Usually it's
-% just a \def (we prepend XR to the control sequence name to avoid
-% collisions).  But if this is a float type, we have more work to do.
+% This is the macro invoked by entries in the aux file.  Define a control 
+% sequence for a cross-reference target (we prepend XR to the control sequence 
+% name to avoid collisions).  The value is the page number.  If this is a float 
+% type, we have more work to do.
 %
 \def\xrdef#1#2{%
-  {% The node name might contain 8-bit characters, which in our current
-   % implementation are changed to commands like @'e.  Don't let these
-   % mess up the control sequence name.
+  {% Expand the node or anchor name to remove control sequences.
+   % \turnoffactive stops 8-bit characters being changed to commands
+   % like @'e.  \refx does the same to retrieve the value in the definition.
     \indexnofonts
     \turnoffactive
+    \def\value##1{##1}%
     \xdef\safexrefname{#1}%
   }%
   %
@@ -9755,9 +9831,9 @@ directory should work if nowhere else does.}
   \global\righthyphenmin = #3\relax
 }
 
-% XeTeX and LuaTeX can handle native Unicode.
-% Their default I/O is UTF-8 sequence instead of byte-wise.
-% Other TeX engine (pdfTeX etc.) I/O is byte-wise.
+% XeTeX and LuaTeX can handle Unicode natively.
+% Their default I/O uses UTF-8 sequences instead of a byte-wise operation.
+% Other TeX engines' I/O (pdfTeX, etc.) is byte-wise.
 %
 \newif\iftxinativeunicodecapable
 \newif\iftxiusebytewiseio
@@ -9881,14 +9957,15 @@ directory should work if nowhere else does.}
   %
   \else \ifx \declaredencoding \utfeight
      \iftxinativeunicodecapable
-       % For native Unicode (XeTeX and LuaTeX)
+       % For native Unicode handling (XeTeX and LuaTeX)
        \nativeunicodechardefs
      \else
-       % For UTF-8 byte sequence (TeX, eTeX and pdfTeX)
+       % For treating UTF-8 as byte sequences (TeX, eTeX and pdfTeX)
        \setnonasciicharscatcode\active
        % since we already invoked \utfeightchardefs at the top level
-       % (below), do not re-invoke it, then our check for duplicated
-       % definitions triggers.  Making non-ascii chars active is enough.
+       % (below), do not re-invoke it, otherwise our check for duplicated
+       % definitions gets triggered.  Making non-ascii chars active is
+       % sufficient.
      \fi
   %
   \else
@@ -9899,6 +9976,18 @@ directory should work if nowhere else does.}
   \fi % latone
   \fi % lattwo
   \fi % ascii
+  %
+  \ifx\XeTeXrevision\thisisundefined
+  \else
+    \ifx \declaredencoding \utfeight
+    \else
+      \ifx \declaredencoding \ascii
+      \else
+        \message{Warning: XeTeX with non-UTF-8 encodings cannot handle %
+        non-ASCII characters in auxiliary files.}%
+      \fi
+    \fi
+  \fi
 }
 
 % emacs-page
@@ -9930,18 +10019,18 @@ directory should work if nowhere else does.}
   \gdefchar^^a0{\tie}
   \gdefchar^^a1{\exclamdown}
   \gdefchar^^a2{{\tcfont \char162}} % cent
-  \gdefchar^^a3{\pounds}
+  \gdefchar^^a3{\pounds{}}
   \gdefchar^^a4{{\tcfont \char164}} % currency
   \gdefchar^^a5{{\tcfont \char165}} % yen
   \gdefchar^^a6{{\tcfont \char166}} % broken bar
   \gdefchar^^a7{\S}
   \gdefchar^^a8{\"{}}
-  \gdefchar^^a9{\copyright}
+  \gdefchar^^a9{\copyright{}}
   \gdefchar^^aa{\ordf}
-  \gdefchar^^ab{\guillemetleft}
+  \gdefchar^^ab{\guillemetleft{}}
   \gdefchar^^ac{\ensuremath\lnot}
   \gdefchar^^ad{\-}
-  \gdefchar^^ae{\registeredsymbol}
+  \gdefchar^^ae{\registeredsymbol{}}
   \gdefchar^^af{\={}}
   %
   \gdefchar^^b0{\textdegree}
@@ -9955,7 +10044,7 @@ directory should work if nowhere else does.}
   \gdefchar^^b8{\cedilla\ }
   \gdefchar^^b9{$^1$}
   \gdefchar^^ba{\ordm}
-  \gdefchar^^bb{\guillemetright}
+  \gdefchar^^bb{\guillemetright{}}
   \gdefchar^^bc{$1\over4$}
   \gdefchar^^bd{$1\over2$}
   \gdefchar^^be{$3\over4$}
@@ -10035,7 +10124,7 @@ directory should work if nowhere else does.}
   % Encoding is almost identical to Latin1.
   \latonechardefs
   %
-  \gdefchar^^a4{\euro}
+  \gdefchar^^a4{\euro{}}
   \gdefchar^^a6{\v S}
   \gdefchar^^a8{\v s}
   \gdefchar^^b4{\v Z}
@@ -10064,7 +10153,7 @@ directory should work if nowhere else does.}
   \gdefchar^^ae{\v Z}
   \gdefchar^^af{\dotaccent Z}
   %
-  \gdefchar^^b0{\textdegree}
+  \gdefchar^^b0{\textdegree{}}
   \gdefchar^^b1{\ogonek{a}}
   \gdefchar^^b2{\ogonek{ }}
   \gdefchar^^b3{\l}
@@ -10200,7 +10289,7 @@ directory should work if nowhere else does.}
   \countUTFx = "80
   \countUTFy = "C2
   \def\UTFviiiTmp{%
-    \gdef~{
+    \gdef~{%
         \ifpassthroughchars $\fi}}%
   \UTFviiiLoop
 
@@ -10236,8 +10325,9 @@ directory should work if nowhere else does.}
 \def\U#1{%
   \expandafter\ifx\csname uni:#1\endcsname \relax
     \iftxinativeunicodecapable
-      % Any Unicode characters can be used by native Unicode.
-      % However, if the font does not have the glyph, the letter will miss.
+      % All Unicode characters can be used if native Unicode handling is
+      % active.  However, if the font does not have the glyph,
+      % letters are missing.
       \begingroup
         \uccode`\.="#1\relax
         \uppercase{.}
@@ -10251,9 +10341,18 @@ directory should work if nowhere else does.}
   \fi
 }
 
-% For UTF-8 byte sequence (TeX, e-TeX and pdfTeX)
-% Definition macro to replace the Unicode character
-% Definition macro that is used by @U command
+% These macros are used here to construct the name of a control
+% sequence to be defined.
+\def\UTFviiiTwoOctetsName#1#2{%
+  \csname u8:#1\string #2\endcsname}%
+\def\UTFviiiThreeOctetsName#1#2#3{%
+  \csname u8:#1\string #2\string #3\endcsname}%
+\def\UTFviiiFourOctetsName#1#2#3#4{%
+  \csname u8:#1\string #2\string #3\string #4\endcsname}%
+
+% For UTF-8 byte sequences (TeX, e-TeX and pdfTeX),
+% provide a definition macro to replace a Unicode character;
+% this gets used by the @U command
 %
 \begingroup
   \catcode`\"=12
@@ -10267,17 +10366,18 @@ directory should work if nowhere else does.}
     \countUTFz = "#1\relax
     \begingroup
       \parseXMLCharref
+    
+      % Give \u8:... its definition.  The sequence of seven \expandafter's
+      % expands after the \gdef three times, e.g.
       %
-      % Access definitions of characters given UTF-8 sequences
-      \def\UTFviiiTwoOctets##1##2{%
-        \csname u8:##1\string ##2\endcsname}%
-      \def\UTFviiiThreeOctets##1##2##3{%
-        \csname u8:##1\string ##2\string ##3\endcsname}%
-      \def\UTFviiiFourOctets##1##2##3##4{%
-        \csname u8:##1\string ##2\string ##3\string ##4\endcsname}%
-      \expandafter\expandafter\expandafter\expandafter
-       \expandafter\expandafter\expandafter
-       \gdef\UTFviiiTmp{#2}%
+      % 1.  \UTFviiTwoOctetsName B1 B2
+      % 2.  \csname u8:B1 \string B2 \endcsname
+      % 3.  \u8: B1 B2  (a single control sequence token)
+      %
+      \expandafter\expandafter
+      \expandafter\expandafter
+      \expandafter\expandafter
+      \expandafter\gdef       \UTFviiiTmp{#2}%
       % 
       \expandafter\ifx\csname uni:#1\endcsname \relax \else
        \message{Internal error, already defined: #1}%
@@ -10287,45 +10387,61 @@ directory should work if nowhere else does.}
       \expandafter\globallet\csname uni:#1\endcsname \UTFviiiTmp
     \endgroup}
   %
-  % Given the value in \countUTFz as a Unicode code point, set \UTFviiiTmp.
+  % Given the value in \countUTFz as a Unicode code point, set \UTFviiiTmp
+  % to the corresponding UTF-8 sequence.
   \gdef\parseXMLCharref{%
     \ifnum\countUTFz < "A0\relax
       \errhelp = \EMsimple
       \errmessage{Cannot define Unicode char value < 00A0}%
     \else\ifnum\countUTFz < "800\relax
       \parseUTFviiiA,%
-      \parseUTFviiiB C\UTFviiiTwoOctets.,%
+      \parseUTFviiiB C\UTFviiiTwoOctetsName.,%
     \else\ifnum\countUTFz < "10000\relax
       \parseUTFviiiA;%
       \parseUTFviiiA,%
-      \parseUTFviiiB E\UTFviiiThreeOctets.{,;}%
+      \parseUTFviiiB E\UTFviiiThreeOctetsName.{,;}%
     \else
       \parseUTFviiiA;%
       \parseUTFviiiA,%
       \parseUTFviiiA!%
-      \parseUTFviiiB F\UTFviiiFourOctets.{!,;}%
+      \parseUTFviiiB F\UTFviiiFourOctetsName.{!,;}%
     \fi\fi\fi
   }
 
+  % Extract a byte from the end of the UTF-8 representation of \countUTFx.
+  % It must be a non-initial byte in the sequence.
+  % Change \uccode of #1 for it to be used in \parseUTFviiiB as one
+  % of the bytes.
   \gdef\parseUTFviiiA#1{%
     \countUTFx = \countUTFz
     \divide\countUTFz by 64
-    \countUTFy = \countUTFz
+    \countUTFy = \countUTFz  % Save to be the future value of \countUTFz.
     \multiply\countUTFz by 64
+    
+    % \countUTFz is now \countUTFx with the last 5 bits cleared.  Subtract
+    % in order to get the last five bits.
     \advance\countUTFx by -\countUTFz
+
+    % Convert this to the byte in the UTF-8 sequence.
     \advance\countUTFx by 128
     \uccode `#1\countUTFx
     \countUTFz = \countUTFy}
 
-  % Used to set \UTFviiiTmp to a UTF-8 byte sequence
+  % Used to put a UTF-8 byte sequence into \UTFviiiTmp
+  % #1 is the increment for \countUTFz to yield a the first byte of the UTF-8
+  %    sequence.
+  % #2 is one of the \UTFviii*OctetsName macros.
+  % #3 is always a full stop (.)
+  % #4 is a template for the other bytes in the sequence.  The values for these
+  %    bytes is substituted in here with \uppercase using the \uccode's.
   \gdef\parseUTFviiiB#1#2#3#4{%
     \advance\countUTFz by "#10\relax
     \uccode `#3\countUTFz
     \uppercase{\gdef\UTFviiiTmp{#2#3#4}}}
 \endgroup
 
-% For native Unicode (XeTeX and LuaTeX)
-% Definition macro that is set catcode other non global
+% For native Unicode handling (XeTeX and LuaTeX),
+% provide a definition macro that sets a catcode to `other' non-globally
 %
 \def\DeclareUnicodeCharacterNativeOther#1#2{%
   \catcode"#1=\other
@@ -10349,18 +10465,18 @@ directory should work if nowhere else does.}
   \DeclareUnicodeCharacter{00A0}{\tie}%
   \DeclareUnicodeCharacter{00A1}{\exclamdown}%
   \DeclareUnicodeCharacter{00A2}{{\tcfont \char162}}% 0242=cent
-  \DeclareUnicodeCharacter{00A3}{\pounds}%
+  \DeclareUnicodeCharacter{00A3}{\pounds{}}%
   \DeclareUnicodeCharacter{00A4}{{\tcfont \char164}}% 0244=currency
   \DeclareUnicodeCharacter{00A5}{{\tcfont \char165}}% 0245=yen
   \DeclareUnicodeCharacter{00A6}{{\tcfont \char166}}% 0246=brokenbar
   \DeclareUnicodeCharacter{00A7}{\S}%
   \DeclareUnicodeCharacter{00A8}{\"{ }}%
-  \DeclareUnicodeCharacter{00A9}{\copyright}%
+  \DeclareUnicodeCharacter{00A9}{\copyright{}}%
   \DeclareUnicodeCharacter{00AA}{\ordf}%
-  \DeclareUnicodeCharacter{00AB}{\guillemetleft}%
+  \DeclareUnicodeCharacter{00AB}{\guillemetleft{}}%
   \DeclareUnicodeCharacter{00AC}{\ensuremath\lnot}%
   \DeclareUnicodeCharacter{00AD}{\-}%
-  \DeclareUnicodeCharacter{00AE}{\registeredsymbol}%
+  \DeclareUnicodeCharacter{00AE}{\registeredsymbol{}}%
   \DeclareUnicodeCharacter{00AF}{\={ }}%
   %
   \DeclareUnicodeCharacter{00B0}{\ringaccent{ }}%
@@ -10374,7 +10490,7 @@ directory should work if nowhere else does.}
   \DeclareUnicodeCharacter{00B8}{\cedilla{ }}%
   \DeclareUnicodeCharacter{00B9}{$^1$}%
   \DeclareUnicodeCharacter{00BA}{\ordm}%
-  \DeclareUnicodeCharacter{00BB}{\guillemetright}%
+  \DeclareUnicodeCharacter{00BB}{\guillemetright{}}%
   \DeclareUnicodeCharacter{00BC}{$1\over4$}%
   \DeclareUnicodeCharacter{00BD}{$1\over2$}%
   \DeclareUnicodeCharacter{00BE}{$3\over4$}%
@@ -10846,36 +10962,36 @@ directory should work if nowhere else does.}
   % Punctuation
   \DeclareUnicodeCharacter{2013}{--}%
   \DeclareUnicodeCharacter{2014}{---}%
-  \DeclareUnicodeCharacter{2018}{\quoteleft}%
-  \DeclareUnicodeCharacter{2019}{\quoteright}%
-  \DeclareUnicodeCharacter{201A}{\quotesinglbase}%
-  \DeclareUnicodeCharacter{201C}{\quotedblleft}%
-  \DeclareUnicodeCharacter{201D}{\quotedblright}%
-  \DeclareUnicodeCharacter{201E}{\quotedblbase}%
+  \DeclareUnicodeCharacter{2018}{\quoteleft{}}%
+  \DeclareUnicodeCharacter{2019}{\quoteright{}}%
+  \DeclareUnicodeCharacter{201A}{\quotesinglbase{}}%
+  \DeclareUnicodeCharacter{201C}{\quotedblleft{}}%
+  \DeclareUnicodeCharacter{201D}{\quotedblright{}}%
+  \DeclareUnicodeCharacter{201E}{\quotedblbase{}}%
   \DeclareUnicodeCharacter{2020}{\ensuremath\dagger}%
   \DeclareUnicodeCharacter{2021}{\ensuremath\ddagger}%
-  \DeclareUnicodeCharacter{2022}{\bullet}%
+  \DeclareUnicodeCharacter{2022}{\bullet{}}%
   \DeclareUnicodeCharacter{202F}{\thinspace}%
-  \DeclareUnicodeCharacter{2026}{\dots}%
-  \DeclareUnicodeCharacter{2039}{\guilsinglleft}%
-  \DeclareUnicodeCharacter{203A}{\guilsinglright}%
+  \DeclareUnicodeCharacter{2026}{\dots{}}%
+  \DeclareUnicodeCharacter{2039}{\guilsinglleft{}}%
+  \DeclareUnicodeCharacter{203A}{\guilsinglright{}}%
   %
-  \DeclareUnicodeCharacter{20AC}{\euro}%
+  \DeclareUnicodeCharacter{20AC}{\euro{}}%
   %
-  \DeclareUnicodeCharacter{2192}{\expansion}%
-  \DeclareUnicodeCharacter{21D2}{\result}%
+  \DeclareUnicodeCharacter{2192}{\expansion{}}%
+  \DeclareUnicodeCharacter{21D2}{\result{}}%
   %
   % Mathematical symbols
   \DeclareUnicodeCharacter{2200}{\ensuremath\forall}%
   \DeclareUnicodeCharacter{2203}{\ensuremath\exists}%
   \DeclareUnicodeCharacter{2208}{\ensuremath\in}%
-  \DeclareUnicodeCharacter{2212}{\minus}%
+  \DeclareUnicodeCharacter{2212}{\minus{}}%
   \DeclareUnicodeCharacter{2217}{\ast}%
   \DeclareUnicodeCharacter{221E}{\ensuremath\infty}%
   \DeclareUnicodeCharacter{2225}{\ensuremath\parallel}%
   \DeclareUnicodeCharacter{2227}{\ensuremath\wedge}%
   \DeclareUnicodeCharacter{2229}{\ensuremath\cap}%
-  \DeclareUnicodeCharacter{2261}{\equiv}%
+  \DeclareUnicodeCharacter{2261}{\equiv{}}%
   \DeclareUnicodeCharacter{2264}{\ensuremath\leq}%
   \DeclareUnicodeCharacter{2265}{\ensuremath\geq}%
   \DeclareUnicodeCharacter{2282}{\ensuremath\subset}%
@@ -11031,8 +11147,8 @@ directory should work if nowhere else does.}
 \newif\ifpassthroughchars
 \passthroughcharsfalse
 
-% For native Unicode (XeTeX and LuaTeX)
-% Definition macro to replace / pass-through the Unicode character
+% For native Unicode handling (XeTeX and LuaTeX),
+% provide a definition macro to replace/pass-through a Unicode character
 %
 \def\DeclareUnicodeCharacterNative#1#2{%
   \catcode"#1=\active
@@ -11055,21 +11171,22 @@ directory should work if nowhere else does.}
   \endgroup
 }
 
-% Native Unicode (XeTeX and LuaTeX) character replacing definitions
-% It makes the setting that replace the Unicode characters.
+% Native Unicode handling (XeTeX and LuaTeX) character replacing definition.
+% It activates the setting that replaces Unicode characters.
 \def\nativeunicodechardefs{%
   \let\DeclareUnicodeCharacter\DeclareUnicodeCharacterNative
   \unicodechardefs
 }
 
-% For native Unicode (XeTeX and LuaTeX).  Make the character token expand
+% For native Unicode handling (XeTeX and LuaTeX),
+% make the character token expand
 % to the sequences given in \unicodechardefs for printing.
 \def\DeclareUnicodeCharacterNativeAtU#1#2{%
   \def\UTFAtUTmp{#2}
   \expandafter\globallet\csname uni:#1\endcsname \UTFAtUTmp
 }
 
-% Native Unicode (XeTeX and LuaTeX) @U command definitions
+% @U command definitions for native Unicode handling (XeTeX and LuaTeX).
 \def\nativeunicodechardefsatu{%
   \let\DeclareUnicodeCharacter\DeclareUnicodeCharacterNativeAtU
   \unicodechardefs
@@ -11080,7 +11197,7 @@ directory should work if nowhere else does.}
    \relax
 }
 
-% define all the unicode characters we know about, for the sake of @U.
+% define all Unicode characters we know about, for the sake of @U.
 \iftxinativeunicodecapable
   \nativeunicodechardefsatu
 \else
@@ -11556,7 +11673,4 @@ directory should work if nowhere else does.}
 
 @c vim:sw=2:
 
-@ignore
-   arch-tag: e1b36e32-c96e-4135-a41a-0b2efa2ea115
-@end ignore
 @enablebackslashhack

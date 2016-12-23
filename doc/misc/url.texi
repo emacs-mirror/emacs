@@ -289,7 +289,7 @@ string or a parsed URL structure.  If it is a string, that string is
 passed through @code{url-encode-url} before using it, to ensure that
 it is properly URI-encoded (@pxref{URI Encoding}).
 
-@defun url-retrieve-synchronously url silent no-cookies
+@defun url-retrieve-synchronously url &optional silent no-cookies timeout
 This function synchronously retrieves the data specified by @var{url},
 and returns a buffer containing the data.  The return value is
 @code{nil} if there is no data associated with the URL (as is the case
@@ -297,7 +297,9 @@ for @code{dired}, @code{info}, and @code{mailto} URLs).
 
 If the optional argument @var{silent} is non-@code{nil}, progress
 messages are suppressed.  If the optional argument @var{no-cookies} is
-non-@code{nil}, cookies are not stored or sent.
+non-@code{nil}, cookies are not stored or sent.  If the optional
+argument @var{timeout} is non-@code{nil}, it should be a number that
+says (in seconds) how long to wait for a response before giving up.
 @end defun
 
 @defun url-retrieve url callback &optional cbargs silent no-cookies
@@ -419,6 +421,12 @@ ignored; any other value means to ask the user on each request.
 This command creates a @file{*url cookies*} buffer listing the current
 cookies, if there are any.  You can remove a cookie using the
 @kbd{C-k} (@code{url-cookie-delete}) command.
+@end defun
+
+@defun url-cookie-delete-cookies &optional regexp
+This function takes a regular expression as its parameters and deletes
+all cookies from that domain.  If @var{regexp} is @code{nil}, delete
+all cookies.
 @end defun
 
 @defopt url-cookie-file
@@ -1335,10 +1343,16 @@ Connect directly.
 @end defopt
 
 @defopt url-user-agent
-The User Agent string used for sending HTTP/HTTPS requests.  The value
-should be a string or a function of no arguments that returns a
-string.  The default value is @w{@samp{User-Agent: @var{package-name}
-URL/Emacs}}, where @var{package-name} is the value of
+The User Agent string used for sending @acronym{HTTP}/@acronym{HTTPS}
+requests.  The value should be @code{nil}, which means that no
+@samp{User-Agent} header is generated, @code{default}, which means
+that a string is generated based on the setting of
+@code{url-privacy-leve}, a string or a function of no arguments that
+returns a string.
+
+The default is @code{default}, which means that the
+@w{@samp{User-Agent: @var{package-name} URL/Emacs}} string will be
+generated, where @var{package-name} is the value of
 @code{url-package-name} and its version, if they are non-@code{nil}.
 @end defopt
 

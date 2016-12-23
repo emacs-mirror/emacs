@@ -367,6 +367,7 @@ these won't be deleted."
     column-number-mode
     size-indication-mode
     buffer-file-coding-system
+    buffer-display-time
     indent-tabs-mode
     tab-width
     indicate-buffer-boundaries
@@ -1233,8 +1234,8 @@ Using it may cause conflicts.  Use it anyway? " owner)))))
 		  (memq 'desktop-auto-save-set-timer window-configuration-change-hook))
 	    (desktop-auto-save-disable)
 	    ;; Evaluate desktop buffer and remember when it was modified.
-	    (load (desktop-full-file-name) t t t)
 	    (setq desktop-file-modtime (nth 5 (file-attributes (desktop-full-file-name))))
+	    (load (desktop-full-file-name) t t t)
 	    ;; If it wasn't already, mark it as in-use, to bother other
 	    ;; desktop instances.
 	    (unless (eq (emacs-pid) owner)
@@ -1402,7 +1403,7 @@ after that many seconds of idle time."
 		(or coding-system-for-read
 		    (cdr (assq 'buffer-file-coding-system
 			       desktop-buffer-locals))))
-	       (buf (find-file-noselect buffer-filename)))
+	       (buf (find-file-noselect buffer-filename :nowarn)))
 	  (condition-case nil
 	      (switch-to-buffer buf)
 	    (error (pop-to-buffer buf)))
@@ -1536,6 +1537,19 @@ and try to load that."
 	      ;; An entry of the form `symbol'.
 	      (make-local-variable this)
 	      (makunbound this)))
+          ;; adjust `buffer-display-time' for the downtime. e.g.,
+          ;; * if `buffer-display-time' was 8:00
+          ;; * and emacs stopped at `desktop-file-modtime' == 11:00
+          ;; * and we are loading the desktop file at (current-time) 12:30,
+          ;; -> then we restore `buffer-display-time' as 9:30,
+          ;; for the sake of `clean-buffer-list': preserving the invariant
+          ;; "how much time the user spent in Emacs without looking at this buffer".
+          (setq buffer-display-time
+                (if buffer-display-time
+                    (time-add buffer-display-time
+                              (time-subtract (current-time)
+                                             desktop-file-modtime))
+                  (current-time)))
 	  (unless (< desktop-file-version 208) ; Don't misinterpret any old custom args
 	    (dolist (record compacted-vars)
 	      (let*

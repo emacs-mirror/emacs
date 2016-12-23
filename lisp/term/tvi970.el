@@ -115,4 +115,6 @@ which the keypad's keys act as ordinary digits."
   (send-string-to-terminal
    (if (terminal-parameter nil 'tvi970-keypad-numeric) "\e=" "\e>")))
 
+(provide 'term/tvi970)
+
 ;;; tvi970.el ends here

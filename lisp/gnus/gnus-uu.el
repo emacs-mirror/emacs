@@ -73,7 +73,7 @@
     ("\\.\\(flc\\|fli\\|rle\\|iff\\|pfx\\|avi\\|sme\\|rpza\\|dl\\|qt\\|rsrc\\|mov\\)$" "xanim")
     ("\\.\\(tar\\|arj\\|zip\\|zoo\\|arc\\|gz\\|Z\\|lzh\\|ar\\|lha\\)$"
      "gnus-uu-archive"))
-  "*Default actions to be taken when the user asks to view a file.
+  "Default actions to be taken when the user asks to view a file.
 To change the behavior, you can either edit this variable or set
 `gnus-uu-user-view-rules' to something useful.
 
@@ -113,7 +113,7 @@ details."
 
 (defcustom gnus-uu-user-view-rules-end
   '(("" "file"))
-  "*What actions are to be taken if no rule matched the file name.
+  "What actions are to be taken if no rule matched the file name.
 See the documentation on the `gnus-uu-default-view-rules' variable for
 details."
   :group 'gnus-extract-view
@@ -131,7 +131,7 @@ details."
     ("\\.Z$" "uncompress")
     ("\\.gz$" "gunzip")
     ("\\.arc$" "arc -x"))
-  "*See `gnus-uu-user-archive-rules'."
+  "See `gnus-uu-user-archive-rules'."
   :group 'gnus-extract-archive
   :type '(repeat (group regexp (string :tag "Command"))))
 
@@ -149,7 +149,7 @@ unpack zip files, say the following:
   :type '(repeat (group regexp (string :tag "Command"))))
 
 (defcustom gnus-uu-ignore-files-by-name nil
-  "*A regular expression saying what files should not be viewed based on name.
+  "A regular expression saying what files should not be viewed based on name.
 If, for instance, you want gnus-uu to ignore all .au and .wav files,
 you could say something like
 
@@ -162,7 +162,7 @@ Note that this variable can be used in conjunction with the
 		 (regexp :format "%v")))
 
 (defcustom gnus-uu-ignore-files-by-type nil
-  "*A regular expression saying what files that shouldn't be viewed, based on MIME file type.
+  "A regular expression saying what files that shouldn't be viewed, based on MIME file type.
 If, for instance, you want gnus-uu to ignore all audio files and all mpegs,
 you could say something like
 
@@ -217,23 +217,20 @@ Note that this variable can be used in conjunction with the
 
 ;; Various variables users may set
 
-(defcustom gnus-uu-tmp-dir
-  (cond ((fboundp 'temp-directory) (temp-directory))
-	((boundp 'temporary-file-directory) temporary-file-directory)
-	("/tmp/"))
-  "*Variable saying where gnus-uu is to do its work.
+(defcustom gnus-uu-tmp-dir temporary-file-directory
+  "Variable saying where gnus-uu is to do its work.
 Default is \"/tmp/\"."
   :group 'gnus-extract
   :type 'directory)
 
 (defcustom gnus-uu-do-not-unpack-archives nil
-  "*Non-nil means that gnus-uu won't peek inside archives looking for files to display.
+  "Non-nil means that gnus-uu won't peek inside archives looking for files to display.
 Default is nil."
   :group 'gnus-extract-archive
   :type 'boolean)
 
 (defcustom gnus-uu-ignore-default-view-rules nil
-  "*Non-nil means that gnus-uu will ignore the default viewing rules.
+  "Non-nil means that gnus-uu will ignore the default viewing rules.
 Only the user viewing rules will be consulted.  Default is nil."
   :group 'gnus-extract-view
   :type 'boolean)
@@ -248,19 +245,19 @@ and `gnus-uu-grab-move'."
   :type 'hook)
 
 (defcustom gnus-uu-ignore-default-archive-rules nil
-  "*Non-nil means that gnus-uu will ignore the default archive unpacking commands.
+  "Non-nil means that gnus-uu will ignore the default archive unpacking commands.
 Only the user unpacking commands will be consulted.  Default is nil."
   :group 'gnus-extract-archive
   :type 'boolean)
 
 (defcustom gnus-uu-kill-carriage-return t
-  "*Non-nil means that gnus-uu will strip all carriage returns from articles.
+  "Non-nil means that gnus-uu will strip all carriage returns from articles.
 Default is t."
   :group 'gnus-extract
   :type 'boolean)
 
 (defcustom gnus-uu-view-with-metamail nil
-  "*Non-nil means that files will be viewed with metamail.
+  "Non-nil means that files will be viewed with metamail.
 The gnus-uu viewing functions will be ignored and gnus-uu will try
 to guess at a content-type based on file name suffixes.  Default
 it nil."
@@ -268,19 +265,19 @@ it nil."
   :type 'boolean)
 
 (defcustom gnus-uu-unmark-articles-not-decoded nil
-  "*Non-nil means that gnus-uu will mark articles that were unsuccessfully decoded as unread.
+  "Non-nil means that gnus-uu will mark articles that were unsuccessfully decoded as unread.
 Default is nil."
   :group 'gnus-extract
   :type 'boolean)
 
 (defcustom gnus-uu-correct-stripped-uucode nil
-  "*Non-nil means that gnus-uu will *try* to fix uuencoded files that have had trailing spaces deleted.
+  "Non-nil means that gnus-uu will *try* to fix uuencoded files that have had trailing spaces deleted.
 Default is nil."
   :group 'gnus-extract
   :type 'boolean)
 
 (defcustom gnus-uu-save-in-digest nil
-  "*Non-nil means that gnus-uu, when asked to save without decoding, will save in digests.
+  "Non-nil means that gnus-uu, when asked to save without decoding, will save in digests.
 If this variable is nil, gnus-uu will just save everything in a
 file without any embellishments.  The digesting almost conforms to RFC1153 -
 no easy way to specify any meaningful volume and issue numbers were found,
@@ -298,19 +295,19 @@ so I simply dropped them."
     "^Summary:" "^References:" "^Content-Type:" "^Content-Transfer-Encoding:"
     "^MIME-Version:" "^Content-Disposition:" "^Content-Description:"
     "^Content-ID:")
-  "*List of regexps to match headers included in digested messages.
+  "List of regexps to match headers included in digested messages.
 The headers will be included in the sequence they are matched.  If nil
 include all headers."
   :group 'gnus-extract
   :type '(repeat regexp))
 
 (defcustom gnus-uu-save-separate-articles nil
-  "*Non-nil means that gnus-uu will save articles in separate files."
+  "Non-nil means that gnus-uu will save articles in separate files."
   :group 'gnus-extract
   :type 'boolean)
 
 (defcustom gnus-uu-be-dangerous 'ask
-  "*Specifies what to do if unusual situations arise during decoding.
+  "Specifies what to do if unusual situations arise during decoding.
 If nil, be as conservative as possible.  If t, ignore things that
 didn't work, and overwrite existing files.  Otherwise, ask each time."
   :group 'gnus-extract
@@ -408,7 +405,7 @@ didn't work, and overwrite existing files.  Otherwise, ask each time."
 			  gnus-uu-default-dir))))
   (gnus-uu-initialize)
   (setq gnus-uu-binhex-article-name
-	(mm-make-temp-file (expand-file-name "binhex" gnus-uu-work-dir)))
+	(make-temp-file (expand-file-name "binhex" gnus-uu-work-dir)))
   (gnus-uu-decode-with-method 'gnus-uu-binhex-article n dir))
 
 (defun gnus-uu-decode-yenc (n dir)
@@ -474,7 +471,7 @@ didn't work, and overwrite existing files.  Otherwise, ask each time."
 			 gnus-uu-default-dir gnus-uu-default-dir)))
   (gnus-uu-initialize)
   (setq gnus-uu-binhex-article-name
-	(mm-make-temp-file (expand-file-name "binhex" gnus-uu-work-dir)))
+	(make-temp-file (expand-file-name "binhex" gnus-uu-work-dir)))
   (let ((gnus-view-pseudos (or gnus-view-pseudos 'automatic)))
     (gnus-uu-decode-binhex n file)))
 
@@ -486,7 +483,7 @@ didn't work, and overwrite existing files.  Otherwise, ask each time."
   (interactive "P")
   (gnus-uu-initialize)
   (let ((gnus-uu-save-in-digest t)
-	(file (mm-make-temp-file (nnheader-concat gnus-uu-work-dir "forward")))
+	(file (make-temp-file (nnheader-concat gnus-uu-work-dir "forward")))
 	(message-forward-as-mime message-forward-as-mime)
 	(mail-parse-charset gnus-newsgroup-charset)
 	(mail-parse-ignored-charsets gnus-newsgroup-ignored-charsets)
@@ -876,10 +873,7 @@ When called interactively, prompt for REGEXP."
 	(with-current-buffer buffer
 	  (save-restriction
 	    (let ((inhibit-read-only t))
-	      (set-text-properties (point-min) (point-max) nil)
-	      ;; These two are necessary for XEmacs 19.12 fascism.
-	      (put-text-property (point-min) (point-max) 'invisible nil)
-	      (put-text-property (point-min) (point-max) 'intangible nil))
+	      (set-text-properties (point-min) (point-max) nil))
 	    (when (and message-forward-as-mime
 		       message-forward-show-mml
 		       gnus-uu-digest-buffer)
@@ -1787,7 +1781,7 @@ Gnus might fail to display all of it.")
 		 gnus-uu-tmp-dir)))
 
       (setq gnus-uu-work-dir
-	    (mm-make-temp-file (concat gnus-uu-tmp-dir "gnus") 'dir))
+	    (make-temp-file (concat gnus-uu-tmp-dir "gnus") 'dir))
       (gnus-set-file-modes gnus-uu-work-dir 448)
       (setq gnus-uu-work-dir (file-name-as-directory gnus-uu-work-dir))
       (push (cons gnus-newsgroup-name gnus-uu-work-dir)

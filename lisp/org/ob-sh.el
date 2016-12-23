@@ -30,11 +30,10 @@
 (require 'shell)
 (eval-when-compile (require 'cl))
 
-(declare-function org-babel-comint-in-buffer "ob-comint" (buffer &rest body))
 (declare-function org-babel-comint-wait-for-output "ob-comint" (buffer))
 (declare-function org-babel-comint-buffer-livep "ob-comint" (buffer))
-(declare-function org-babel-comint-with-output "ob-comint" (meta &rest body))
-(declare-function orgtbl-to-generic "org-table" (table params))
+(declare-function orgtbl-to-generic "org-table"
+                  (table params &optional backend))
 
 (defvar org-babel-default-header-args:sh '())
 

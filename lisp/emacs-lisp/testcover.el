@@ -184,6 +184,7 @@ call to one of the `testcover-1value-functions'."
 ;;; Add instrumentation to your module
 ;;;=========================================================================
 
+;;;###autoload
 (defun testcover-start (filename &optional byte-compile)
   "Uses edebug to instrument all macros and functions in FILENAME, then
 changes the instrumentation from edebug to testcover--much faster, no

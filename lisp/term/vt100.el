@@ -48,4 +48,6 @@ switch to 132-column mode if ARG is omitted or nil."
   (send-string-to-terminal (if vt100-wide-mode "\e[?3h" "\e[?3l"))
   (set-frame-width terminal-frame (if vt100-wide-mode 132 80)))
 
+(provide 'term/vt100)
+
 ;;; vt100.el ends here

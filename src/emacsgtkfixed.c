@@ -27,7 +27,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "emacsgtkfixed.h"
 
 /* Silence a bogus diagnostic; see GNOME bug 683906.  */
-#if 4 < __GNUC__ + (7 <= __GNUC_MINOR__) && ! GLIB_CHECK_VERSION (2, 35, 7)
+#if GNUC_PREREQ (4, 7, 0) && ! GLIB_CHECK_VERSION (2, 35, 7)
 # pragma GCC diagnostic push
 # pragma GCC diagnostic ignored "-Wunused-local-typedefs"
 #endif

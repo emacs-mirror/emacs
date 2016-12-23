@@ -155,4 +155,6 @@ M-r	M-x move-to-window-line, Funct up-arrow or down-arrow are similar"
   ;;                   (nth 1 key-definition)))
   (fset 'enable-arrow-keys nil))
 
+(provide 'term/wyse50)
+
 ;;; wyse50.el ends here

@@ -1,4 +1,4 @@
-;;; dom.el --- XML/HTML (etc.) DOM manipulation and searching functions
+;;; dom.el --- XML/HTML (etc.) DOM manipulation and searching functions -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2014-2016 Free Software Foundation, Inc.
 
@@ -139,6 +139,16 @@ ATTRIBUTE would typically be `class', `id' or the like."
 	(cons dom matches)
       matches)))
 
+(defun dom-remove-node (dom node)
+  "Remove NODE from DOM."
+  ;; If we're removing the top level node, just return nil.
+  (dolist (child (dom-children dom))
+    (cond
+     ((eq node child)
+      (delq node dom))
+     ((not (stringp child))
+      (dom-remove-node child node)))))
+
 (defun dom-parent (dom node)
   "Return the parent of NODE in DOM."
   (if (memq node (dom-children dom))
@@ -151,6 +161,7 @@ ATTRIBUTE would typically be `class', `id' or the like."
       result)))
 
 (defun dom-previous-sibling (dom node)
+  "Return the previous sibling of NODE in DOM."
   (when-let (parent (dom-parent dom node))
     (let ((siblings (dom-children parent))
 	  (previous nil))

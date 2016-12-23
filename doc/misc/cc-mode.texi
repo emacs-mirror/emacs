@@ -338,14 +338,15 @@ Line-Up Functions
 * Comment Line-Up::
 * Misc Line-Up::
 
+
 Customizing Macros
 
 * Macro Backslashes::
 * Macros with ;::
+* Noise Macros::
 
 @end detailmenu
 @end menu
-
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 @node    Introduction, Overview, Top, Top
 @comment node-name, next, previous, up
@@ -2553,7 +2554,9 @@ for C code in GNU programs.
 
 @item k&r
 @cindex K&R style
-The classic Kernighan and Ritchie style for C code.
+The classic Kernighan and Ritchie style for C code. If you're looking
+for the style used in the 2nd edition of their book ``The C
+Programming Language'', then check out the @code{stroustrup} style.
 
 @item bsd
 @cindex BSD style
@@ -3541,10 +3544,11 @@ use, add this function to the front of the
 @example
 (defun c-semi&comma-no-newlines-before-nonblanks ()
   (save-excursion
-    (if (and (eq last-command-char ?\;)
-             (zerop (forward-line 1))
-             (not (looking-at "^[ \t]*$")))
-        'stop
+    (if (and (= (c-last-command-char) ?\;)
+	     (zerop (forward-line 1))
+	     (bolp)      ; forward-line has funny behavior at eob.
+	     (not (looking-at "^[ \t]*$")))
+	'stop
       nil)))
 @end example
 @end defun
@@ -6654,15 +6658,18 @@ Because a macro can expand into anything at all, near where one is
 invoked @ccmode{} can only indent and fontify code heuristically.
 Sometimes it gets it wrong.  Usually you should try to design your
 macros so that they ''look like ordinary code'' when you invoke them.
-However, one situation is so common that @ccmode{} handles it
+However, two situations are so common that @ccmode{} handles them
 specially: that is when certain macros needn't (or mustn't) be
-followed by a @samp{;}.  You need to configure @ccmode{} to handle
-these macros properly, see @ref{Macros with ;}.
+followed by a @samp{;}, and when certain macros (or compiler
+directives) expand to nothing.  You need to configure @ccmode{} to
+handle these macros properly, see @ref{Macros with ;} and @ref{Noise
+Macros}.
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 @menu
 * Macro Backslashes::
 * Macros with ;::
+* Noise Macros::
 @end menu
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -6714,7 +6721,7 @@ get aligned only when you explicitly invoke the command
 @end defopt
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node Macros with ;,  , Macro Backslashes, Custom Macros
+@node Macros with ;, Noise Macros, Macro Backslashes, Custom Macros
 @comment  node-name,  next,  previous,  up
 @section Macros with semicolons
 @cindex macros with semicolons
@@ -6723,9 +6730,11 @@ Macros which needn't (or mustn't) be followed by a semicolon when you
 invoke them, @dfn{macros with semicolons}, are very common.  These can
 cause @ccmode{} to parse the next line wrongly as a
 @code{statement-cont} (@pxref{Function Symbols}) and thus mis-indent
-it.
+it.  At the top level, a macro invocation before a defun start can
+cause, for example, @code{c-beginning-of-defun} (@kbd{C-M-a}) not to
+find the correct start of the current function.
 
-You can prevent this by specifying which macros have semicolons.  It
+You can prevent these by specifying which macros have semicolons.  It
 doesn't matter whether or not such a macro has a parameter list:
 
 @defopt c-macro-names-with-semicolon
@@ -6763,10 +6772,65 @@ example:
 @defun c-make-macro-with-semi-re
 @findex make-macro-with-semi-re (c-)
 Call this (non-interactive) function, which sets internal variables,
-each time you change the value of
-@code{c-macro-names-with-semicolon}.  It takes no arguments, and its
+each time you change the value of @code{c-macro-names-with-semicolon}
+after the major mode function has run.  It takes no arguments, and its
 return value has no meaning.  This function is called by @ccmode{}'s
-initialization code.
+initialization code, after the mode hooks have run.
+@end defun
+
+@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+@node    Noise Macros,  , Macros with ;, Custom Macros
+@comment node-name, next, previous, up
+@section Noise Macros
+@cindex noise macros
+@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+In @ccmode{}, @dfn{noise macros} are macros which expand to nothing,
+or compiler directives (such as GCC's @code{__attribute__}) which play
+no part in the syntax of the C (etc.) language.  Some noise macros are
+followed by arguments in parentheses (possibly optionally), others
+are not.
+
+Noise macros can easily confuse @ccmode{}'s analysis of function
+headers, causing them to be mis-fontified, or even mis-indented.  You
+can prevent this confusion by specifying the identifiers which
+constitute noise macros.
+
+@defopt c-noise-macro-names
+@vindex noise-macro-names (c-)
+This variable is a list of names of noise macros which never have
+parenthesized arguments.  Each element is a string, and must be a
+valid identifier.  An element in @code{c-noise-macro-names} must not
+also be in @code{c-noise-macro-with-parens-names}.  Such an element is
+treated as whitespace by @ccmode{}.
+@end defopt
+
+@defopt c-noise-macro-with-parens-names
+@vindex noise-macro-with-parens-names (c-)
+This variable is a list of names of noise macros which optionally have
+arguments in parentheses.  Each element of the list is a string, and
+must be a valid identifier.  An element in
+@code{c-noise-macro-with-parens-names} must not also be in
+@code{c-noise-macro-names}.  For performance reasons, such an element,
+together with the optional parenthesized arguments, is specially
+handled, but it is only handled when used in declaration
+contexts@footnote{If this restriction causes your project
+difficulties, please get in touch with @email{bug-cc-mode@@gnu.org}.}.
+
+The two compiler directives @code{__attribute__} and @code{__declspec}
+have traditionally been handled specially in @ccmode{}; for example
+they are fontified with font-lock-keyword-face.  You don't need to
+include these directives in @code{c-noise-macro-with-parens-names},
+but doing so is OK.
+@end defopt
+
+@defun c-make-noise-macro-regexps
+@findex make-noise-macro-regexps (c-)
+Call this (non-interactive) function, which sets internal variables,
+on changing the value of @code{c-noise-macro-names} or
+@code{c-noise-macro-with-parens-names} after the major mode's function
+has run.  This function is called by @ccmode{}'s initialization code,
+after the mode hooks have run.
 @end defun
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

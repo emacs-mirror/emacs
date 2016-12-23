@@ -246,8 +246,8 @@ overriding the value of `url-gateway-method'."
 			   :type gw-method
 			   ;; Use non-blocking socket if we can.
 			   :nowait (featurep 'make-network-process
-					     '(:nowait t))))
-			 (`socks
+                                             '(:nowait t))))
+                         (`socks
 			  (socks-open-network-stream name buffer host service))
 			 (`telnet
 			  (url-open-telnet name buffer host service))

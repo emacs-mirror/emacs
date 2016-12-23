@@ -1,4 +1,4 @@
-;;; xml.el --- XML parser
+;;; xml.el --- XML parser -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2000-2016 Free Software Foundation, Inc.
 
@@ -401,9 +401,9 @@ Both features can be combined by providing a cons cell
 		     parse-dtd)
 		(setq dtd (car result))
 		(if (cdr result)	; possible leading comment
-		    (add-to-list 'xml (cdr result))))
+		    (push (cdr result) xml)))
 	       (t
-		(add-to-list 'xml result))))
+		(push result xml))))
 	  (goto-char (point-max))))
       (if parse-dtd
 	  (cons dtd (nreverse xml))

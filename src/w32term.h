@@ -230,25 +230,14 @@ extern struct frame *x_window_to_frame (struct w32_display_info *, HWND);
 
 struct w32_display_info *x_display_info_for_name (Lisp_Object);
 
-Lisp_Object display_x_get_resource (struct w32_display_info *,
-                                    Lisp_Object, Lisp_Object,
-                                    Lisp_Object, Lisp_Object);
-
 /* also defined in xterm.h XXX: factor out to common header */
 
 extern struct w32_display_info *w32_term_init (Lisp_Object,
 					       char *, char *);
 extern int w32_defined_color (struct frame *f, const char *color,
                               XColor *color_def, bool alloc_p);
-extern void x_set_window_size (struct frame *f, bool change_gravity,
-			       int width, int height, bool pixelwise);
 extern int x_display_pixel_height (struct w32_display_info *);
 extern int x_display_pixel_width (struct w32_display_info *);
-extern Lisp_Object x_get_focus_frame (struct frame *);
-extern void x_make_frame_visible (struct frame *f);
-extern void x_make_frame_invisible (struct frame *f);
-extern void x_iconify_frame (struct frame *f);
-extern void x_set_frame_alpha (struct frame *f);
 extern void x_set_menu_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
 extern void x_set_tool_bar_lines (struct frame *f,
                                   Lisp_Object value,
@@ -256,18 +245,11 @@ extern void x_set_tool_bar_lines (struct frame *f,
 extern void x_set_internal_border_width (struct frame *f,
 					 Lisp_Object value,
 					 Lisp_Object oldval);
-extern void x_activate_menubar (struct frame *);
-extern bool x_bitmap_icon (struct frame *, Lisp_Object);
 extern void initialize_frame_menubar (struct frame *);
-extern void x_free_frame_resources (struct frame *);
-extern void x_real_positions (struct frame *, int *, int *);
 
 /* w32inevt.c */
 extern int w32_kbd_patch_key (KEY_EVENT_RECORD *event, int cpId);
 extern int w32_kbd_mods_to_emacs (DWORD mods, WORD key);
-
-
-extern Lisp_Object x_get_focus_frame (struct frame *);
 
 /* w32console.c */
 extern void w32con_hide_cursor (void);
@@ -417,7 +399,7 @@ extern struct w32_output w32term_display;
 #define FRAME_BASELINE_OFFSET(f) ((f)->output_data.w32->baseline_offset)
 
 /* This gives the w32_display_info structure for the display F is on.  */
-#define FRAME_DISPLAY_INFO(f) (&one_w32_display_info)
+#define FRAME_DISPLAY_INFO(f) ((void) (f), (&one_w32_display_info))
 
 /* This is the `Display *' which frame F is on.  */
 #define FRAME_X_DISPLAY(f) (0)
@@ -727,16 +709,34 @@ extern void x_delete_display (struct w32_display_info *dpyinfo);
 
 extern void x_query_color (struct frame *, XColor *);
 
-extern volatile int notification_buffer_in_use;
-extern BYTE file_notifications[16384];
-extern DWORD notifications_size;
-extern void *notifications_desc;
+#define FILE_NOTIFICATIONS_SIZE 16384
+/* Notifications come in sets.  We use a doubly linked list with a
+   sentinel to communicate those sets from the watching threads to the
+   main thread.  */
+struct notifications_set {
+  LPBYTE notifications;
+  DWORD size;
+  void *desc;
+  struct notifications_set *next;
+  struct notifications_set *prev;
+};
+extern struct notifications_set *notifications_set_head;
 extern Lisp_Object w32_get_watch_object (void *);
 extern Lisp_Object lispy_file_action (DWORD);
 extern int handle_file_notifications (struct input_event *);
 
 extern void w32_initialize_display_info (Lisp_Object);
 extern void initialize_w32_display (struct terminal *, int *, int *);
+
+#ifdef WINDOWSNT
+/* Keyboard hooks.  */
+extern void setup_w32_kbdhook (void);
+extern void remove_w32_kbdhook (void);
+extern int check_w32_winkey_state (int);
+#define w32_kbdhook_active (os_subtype != OS_9X)
+#else
+#define w32_kbdhook_active 0
+#endif
 
 /* Keypad command key support.  W32 doesn't have virtual keys defined
    for the function keys on the keypad (they are mapped to the standard
@@ -790,7 +790,7 @@ typedef struct tagTRACKMOUSEEVENT
 struct image;
 struct face;
 
-XGCValues *XCreateGC (void *, Window, unsigned long, XGCValues *);
+XGCValues *XCreateGC (void *, HWND, unsigned long, XGCValues *);
 
 typedef DWORD (WINAPI * ClipboardSequence_Proc) (void);
 typedef BOOL (WINAPI * AppendMenuW_Proc) (

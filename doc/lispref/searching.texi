@@ -950,37 +950,41 @@ more efficient, but is almost never worth the effort.}.
 
 The optional argument @var{paren} can be any of the following:
 
-a string
-    the resulting regexp is preceded by @var{paren} and followed by
-    @samp{\)}, e.g. use @samp{"\\(?1:"} to produce an explicitly
-    numbered group.
+@table @asis
+@item a string
+The resulting regexp is preceded by @var{paren} and followed by
+@samp{\)}, e.g. use @samp{"\\(?1:"} to produce an explicitly
+numbered group.
 
-@code{words}
-    the resulting regexp is surrounded by @samp{\<\(} and @samp{\)\>}.
+@item @code{words}
+The resulting regexp is surrounded by @samp{\<\(} and @samp{\)\>}.
 
-@code{symbols}
-    the resulting regexp is surrounded by @samp{\_<\(} and @samp{\)\_>}
-    (this is often appropriate when maching programming-language
-    keywords and the like).
+@item @code{symbols}
+The resulting regexp is surrounded by @samp{\_<\(} and @samp{\)\_>}
+(this is often appropriate when matching programming-language
+keywords and the like).
 
-non-@code{nil}
-    the resulting regexp is surrounded by @samp{\(} and @samp{\)}.
+@item non-@code{nil}
+The resulting regexp is surrounded by @samp{\(} and @samp{\)}.
 
-@code{nil}
-    the resulting regexp is surrounded by @samp{\(?:} and @samp{\)},
-    if it is necessary to ensure that a postfix operator appended to
-    it will apply to the whole expression.
+@item @code{nil}
+The resulting regexp is surrounded by @samp{\(?:} and @samp{\)},
+if it is necessary to ensure that a postfix operator appended to
+it will apply to the whole expression.
+@end table
 
 The resulting regexp of @code{regexp-opt} is equivalent to but usually
 more efficient than that of a simplified version:
 
 @example
 (defun simplified-regexp-opt (strings &optional paren)
- (let ((parens (cond ((stringp paren)       (cons paren "\\)"))
-                     ((eq paren 'words)    '("\\<\\(" . "\\)\\>"))
-                     ((eq paren 'symbols) '("\\_<\\(" . "\\)\\_>"))
-                     ((null paren)          '("\\(?:" . "\\)"))
-                     (t                       '("\\(" . "\\)")))))
+ (let ((parens
+        (cond
+         ((stringp paren)       (cons paren "\\)"))
+         ((eq paren 'words)    '("\\<\\(" . "\\)\\>"))
+         ((eq paren 'symbols) '("\\_<\\(" . "\\)\\_>"))
+         ((null paren)          '("\\(?:" . "\\)"))
+         (t                       '("\\(" . "\\)")))))
    (concat (car paren)
            (mapconcat 'regexp-quote strings "\\|")
            (cdr paren))))
@@ -1833,6 +1837,14 @@ Answer this question and all subsequent questions in the series with
 
 @item backup
 Move back to the previous place that a question was asked about.
+
+@item undo
+Undo last replacement and move back to the place where that
+replacement was performed.
+
+@item undo-all
+Undo all replacements and move back to the place where the first
+replacement was performed.
 
 @item edit
 Enter a recursive edit to deal with this question---instead of any

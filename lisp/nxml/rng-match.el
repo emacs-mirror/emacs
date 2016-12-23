@@ -56,9 +56,8 @@ Used to detect invalid recursive references.")
 ;;; Inline functions
 
 (defsubst rng-update-match-state (new-state)
-  (if (and (eq new-state rng-not-allowed-ipattern)
-	   (not (eq rng-match-state rng-not-allowed-ipattern)))
-      nil
+  (if (eq new-state rng-not-allowed-ipattern)
+      (eq rng-match-state rng-not-allowed-ipattern)
     (setq rng-match-state new-state)
     t))
 

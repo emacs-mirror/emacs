@@ -61,10 +61,10 @@ int open_output_file (file_data *p_file, char *name, unsigned long size);
 void close_file_data (file_data *p_file);
 
 /* Return pointer to section header for named section.  */
-IMAGE_SECTION_HEADER * find_section (char * name, IMAGE_NT_HEADERS * nt_header);
+IMAGE_SECTION_HEADER * find_section (const char *, IMAGE_NT_HEADERS *);
 
 /* Return pointer to section header for section containing the given
    relative virtual address.  */
-IMAGE_SECTION_HEADER * rva_to_section (DWORD_PTR rva, IMAGE_NT_HEADERS * nt_header);
+IMAGE_SECTION_HEADER * rva_to_section (DWORD_PTR, IMAGE_NT_HEADERS *);
 
 #endif /* NTHEAP_H_ */

@@ -843,6 +843,8 @@ For more information on Auto Composition mode, see
 
 (defalias 'toggle-auto-composition 'auto-composition-mode)
 
+(provide 'composite)
+
 
 
 ;;; composite.el ends here

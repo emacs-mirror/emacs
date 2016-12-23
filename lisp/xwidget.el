@@ -36,14 +36,13 @@
 
 (declare-function make-xwidget "xwidget.c"
                   (type title width height arguments &optional buffer))
-(declare-function xwidget-set-adjustment "xwidget.c"
-                  (xwidget axis relative value))
 (declare-function xwidget-buffer "xwidget.c" (xwidget))
-(declare-function xwidget-webkit-get-title "xwidget.c" (xwidget))
 (declare-function xwidget-size-request "xwidget.c" (xwidget))
 (declare-function xwidget-resize "xwidget.c" (xwidget new-width new-height))
-(declare-function xwidget-webkit-execute-script "xwidget.c" (xwidget script))
+(declare-function xwidget-webkit-execute-script "xwidget.c"
+                  (xwidget script &optional callback))
 (declare-function xwidget-webkit-goto-uri "xwidget.c" (xwidget uri))
+(declare-function xwidget-webkit-zoom "xwidget.c" (xwidget factor))
 (declare-function xwidget-plist "xwidget.c" (xwidget))
 (declare-function set-xwidget-plist "xwidget.c" (xwidget plist))
 (declare-function xwidget-view-window "xwidget.c" (xwidget-view))
@@ -108,6 +107,8 @@ Interactively, URL defaults to the string looking like a url around point."
     (define-key map "t" (lambda () (interactive) (message "o"))) ;FIXME: ?!?
     (define-key map "\C-m" 'xwidget-webkit-insert-string)
     (define-key map "w" 'xwidget-webkit-current-url)
+    (define-key map "+" 'xwidget-webkit-zoom-in)
+    (define-key map "-" 'xwidget-webkit-zoom-out)
 
     ;;similar to image mode bindings
     (define-key map (kbd "SPC")                 'xwidget-webkit-scroll-up)
@@ -123,36 +124,67 @@ Interactively, URL defaults to the string looking like a url around point."
     (define-key map [remap backward-char]       'xwidget-webkit-scroll-backward)
     (define-key map [remap right-char]          'xwidget-webkit-scroll-forward)
     (define-key map [remap left-char]           'xwidget-webkit-scroll-backward)
-    ;; (define-key map [remap previous-line]          'image-previous-line)
-    ;; (define-key map [remap next-line]              'image-next-line)
+    (define-key map [remap previous-line]       'xwidget-webkit-scroll-down)
+    (define-key map [remap next-line]           'xwidget-webkit-scroll-up)
 
     ;; (define-key map [remap move-beginning-of-line] 'image-bol)
     ;; (define-key map [remap move-end-of-line]       'image-eol)
-    ;; (define-key map [remap beginning-of-buffer]    'image-bob)
-    ;; (define-key map [remap end-of-buffer]          'image-eob)
+    (define-key map [remap beginning-of-buffer] 'xwidget-webkit-scroll-top)
+    (define-key map [remap end-of-buffer]       'xwidget-webkit-scroll-bottom)
     map)
   "Keymap for `xwidget-webkit-mode'.")
+
+(defun xwidget-webkit-zoom-in ()
+  "Increase webkit view zoom factor."
+  (interactive)
+  (xwidget-webkit-zoom (xwidget-webkit-current-session) 0.1))
+
+(defun xwidget-webkit-zoom-out ()
+  "Decrease webkit view zoom factor."
+  (interactive)
+  (xwidget-webkit-zoom (xwidget-webkit-current-session) -0.1))
 
 (defun xwidget-webkit-scroll-up ()
   "Scroll webkit up."
   (interactive)
-  (xwidget-set-adjustment (xwidget-webkit-last-session) 'vertical t 50))
+  (xwidget-webkit-execute-script
+   (xwidget-webkit-current-session)
+   "window.scrollBy(0, 50);"))
 
 (defun xwidget-webkit-scroll-down ()
   "Scroll webkit down."
   (interactive)
-  (xwidget-set-adjustment (xwidget-webkit-last-session) 'vertical t -50))
+  (xwidget-webkit-execute-script
+   (xwidget-webkit-current-session)
+   "window.scrollBy(0, -50);"))
 
 (defun xwidget-webkit-scroll-forward ()
   "Scroll webkit forwards."
   (interactive)
-  (xwidget-set-adjustment (xwidget-webkit-last-session) 'horizontal t 50))
+  (xwidget-webkit-execute-script
+   (xwidget-webkit-current-session)
+   "window.scrollBy(50, 0);"))
 
 (defun xwidget-webkit-scroll-backward ()
   "Scroll webkit backwards."
   (interactive)
-  (xwidget-set-adjustment (xwidget-webkit-last-session) 'horizontal t -50))
+  (xwidget-webkit-execute-script
+   (xwidget-webkit-current-session)
+   "window.scrollBy(-50, 0);"))
 
+(defun xwidget-webkit-scroll-top ()
+  "Scroll webkit to the very top."
+  (interactive)
+  (xwidget-webkit-execute-script
+   (xwidget-webkit-current-session)
+   "window.scrollTo(pageXOffset, 0);"))
+
+(defun xwidget-webkit-scroll-bottom ()
+  "Scroll webkit to the very bottom."
+  (interactive)
+  (xwidget-webkit-execute-script
+   (xwidget-webkit-current-session)
+   "window.scrollTo(pageXOffset, window.document.body.clientHeight);"))
 
 ;; The xwidget event needs to go into a higher level handler
 ;; since the xwidget can generate an event even if it's offscreen.
@@ -186,23 +218,27 @@ XWIDGET instance, XWIDGET-EVENT-TYPE depends on the originating xwidget."
       (xwidget-log
        "error: callback called for xwidget with dead buffer")
     (with-current-buffer (xwidget-buffer xwidget)
-      (let* ((strarg  (nth 3 last-input-event)))
-        (cond ((eq xwidget-event-type 'document-load-finished)
-               (xwidget-log "webkit finished loading: '%s'"
-                            (xwidget-webkit-get-title xwidget))
-               ;;TODO - check the native/internal scroll
-               ;;(xwidget-adjust-size-to-content xwidget)
-               (xwidget-webkit-adjust-size-dispatch) ;;TODO xwidget arg
-               (rename-buffer (format "*xwidget webkit: %s *"
-                                      (xwidget-webkit-get-title xwidget)))
-               (pop-to-buffer (current-buffer)))
-              ((eq xwidget-event-type
-                   'navigation-policy-decision-requested)
+      (cond ((eq xwidget-event-type 'load-changed)
+             (xwidget-webkit-execute-script
+              xwidget "document.title"
+              (lambda (title)
+                (xwidget-log "webkit finished loading: '%s'" title)
+                ;;TODO - check the native/internal scroll
+                ;;(xwidget-adjust-size-to-content xwidget)
+                (xwidget-webkit-adjust-size-to-window xwidget)
+                (rename-buffer (format "*xwidget webkit: %s *" title))))
+             (pop-to-buffer (current-buffer)))
+            ((eq xwidget-event-type 'decide-policy)
+             (let ((strarg  (nth 3 last-input-event)))
                (if (string-match ".*#\\(.*\\)" strarg)
                    (xwidget-webkit-show-id-or-named-element
                     xwidget
-                    (match-string 1 strarg))))
-              (t (xwidget-log "unhandled event:%s" xwidget-event-type)))))))
+                    (match-string 1 strarg)))))
+            ((eq xwidget-event-type 'javascript-callback)
+             (let ((proc (nth 3 last-input-event))
+                   (arg  (nth 4 last-input-event)))
+               (funcall proc arg)))
+            (t (xwidget-log "unhandled event:%s" xwidget-event-type))))))
 
 (defvar bookmark-make-record-function)
 (define-derived-mode xwidget-webkit-mode
@@ -276,31 +312,30 @@ function findactiveelement(doc){
   ;;TODO the activeelement type needs to be examined, for iframe, etc.
   )
 
-(defun xwidget-webkit-insert-string (xw str)
-  "Insert string STR in the active field in the webkit XW."
+(defun xwidget-webkit-insert-string ()
+  "Prompt for a string and insert it in the active field in the
+current webkit widget."
   ;; Read out the string in the field first and provide for edit.
-  (interactive
-   (let* ((xww (xwidget-webkit-current-session))
-
-          (field-value
-           (progn
-             (xwidget-webkit-execute-script xww xwidget-webkit-activeelement-js)
-             (xwidget-webkit-execute-script-rv
-              xww
-              "findactiveelement(document).value;")))
-          (field-type (xwidget-webkit-execute-script-rv
-                       xww
-                       "findactiveelement(document).type;")))
-     (list xww
-           (cond ((equal "text" field-type)
-                  (read-string "Text: " field-value))
-                 ((equal "password" field-type)
-                  (read-passwd "Password: " nil field-value))
-                 ((equal "textarea" field-type)
-                  (xwidget-webkit-begin-edit-textarea xww field-value))))))
-  (xwidget-webkit-execute-script
-   xw
-   (format "findactiveelement(document).value='%s'" str)))
+  (interactive)
+  (let ((xww (xwidget-webkit-current-session)))
+    (xwidget-webkit-execute-script
+     xww
+     (concat xwidget-webkit-activeelement-js "
+(function () {
+  var res = findactiveelement(document);
+  return [res.value, res.type];
+})();")
+     (lambda (field)
+       (let ((str (pcase field
+                    (`[,val "text"]
+                     (read-string "Text: " val))
+                    (`[,val "password"]
+                     (read-passwd "Password: " nil val))
+                    (`[,val "textarea"]
+                     (xwidget-webkit-begin-edit-textarea xww val)))))
+         (xwidget-webkit-execute-script
+          xww
+          (format "findactiveelement(document).value='%s'" str)))))))
 
 (defvar xwidget-xwbl)
 (defun xwidget-webkit-begin-edit-textarea (xw text)
@@ -324,67 +359,75 @@ XW is the xwidget identifier, TEXT is retrieved from the webkit."
   ;;TODO convert linefeed to \n
   )
 
+(defun xwidget-webkit-show-element (xw element-selector)
+  "Make webkit xwidget XW show a named element ELEMENT-SELECTOR.
+The ELEMENT-SELECTOR must be a valid CSS selector.  For example,
+use this to display an anchor."
+  (interactive (list (xwidget-webkit-current-session)
+                     (read-string "Element selector: ")))
+  (xwidget-webkit-execute-script
+   xw
+   (format "
+(function (query) {
+  var el = document.querySelector(query);
+  if (el !== null) {
+    window.scrollTo(0, el.offsetTop);
+  }
+})('%s');"
+    element-selector)))
+
 (defun xwidget-webkit-show-named-element (xw element-name)
   "Make webkit xwidget XW show a named element ELEMENT-NAME.
 For example, use this to display an anchor."
   (interactive (list (xwidget-webkit-current-session)
                      (read-string "Element name: ")))
-  ;;TODO since an xwidget is an Emacs object, it is not trivial to do
-  ;; some things that are taken for granted in a normal browser.
-  ;; scrolling an anchor/named-element into view is one such thing.
-  ;; This function implements a proof-of-concept for this.  Problems
-  ;; remaining: - The selected window is scrolled but this is not
-  ;; always correct - This needs to be interfaced into browse-url
-  ;; somehow.  The tricky part is that we need to do this in two steps:
-  ;; A: load the base url, wait for load signal to arrive B: navigate
-  ;; to the anchor when the base url is finished rendering
-
-  ;; This part figures out the Y coordinate of the element
-  (let ((y (string-to-number
-            (xwidget-webkit-execute-script-rv
-             xw
-             (format
-              "document.getElementsByName('%s')[0].getBoundingClientRect().top"
-              element-name)
-             0))))
-    ;; Now we need to tell Emacs to scroll the element into view.
-    (xwidget-log "scroll: %d" y)
-    (set-window-vscroll (selected-window) y t)))
+  ;; TODO: This needs to be interfaced into browse-url somehow.  The
+  ;; tricky part is that we need to do this in two steps: A: load the
+  ;; base url, wait for load signal to arrive B: navigate to the
+  ;; anchor when the base url is finished rendering
+  (xwidget-webkit-execute-script
+   xw
+   (format "
+(function (query) {
+  var el = document.getElementsByName(query)[0];
+  if (el !== undefined) {
+    window.scrollTo(0, el.offsetTop);
+  }
+})('%s');"
+    element-name)))
 
 (defun xwidget-webkit-show-id-element (xw element-id)
   "Make webkit xwidget XW show an id-element ELEMENT-ID.
 For example, use this to display an anchor."
   (interactive (list (xwidget-webkit-current-session)
                      (read-string "Element id: ")))
-  (let ((y (string-to-number
-            (xwidget-webkit-execute-script-rv
-             xw
-             (format "document.getElementById('%s').getBoundingClientRect().top"
-                     element-id)
-             0))))
-    ;; Now we need to tell Emacs to scroll the element into view.
-    (xwidget-log "scroll: %d" y)
-    (set-window-vscroll (selected-window) y t)))
+  (xwidget-webkit-execute-script
+   xw
+   (format "
+(function (query) {
+  var el = document.getElementById(query);
+  if (el !== null) {
+    window.scrollTo(0, el.offsetTop);
+  }
+})('%s');"
+    element-id)))
 
 (defun xwidget-webkit-show-id-or-named-element (xw element-id)
    "Make webkit xwidget XW show a name or element id ELEMENT-ID.
 For example, use this to display an anchor."
   (interactive (list (xwidget-webkit-current-session)
                      (read-string "Name or element id: ")))
-  (let* ((y1 (string-to-number
-              (xwidget-webkit-execute-script-rv
-               xw
-               (format "document.getElementsByName('%s')[0].getBoundingClientRect().top" element-id)
-               "0")))
-         (y2 (string-to-number
-              (xwidget-webkit-execute-script-rv
-               xw
-               (format "document.getElementById('%s').getBoundingClientRect().top" element-id)
-               "0")))
-         (y3 (max y1 y2)))
-    ;; Now we need to tell Emacs to scroll the element into view.
-    (xwidget-log "scroll: %d" y3)
-    (set-window-vscroll (selected-window) y3 t)))
+  (xwidget-webkit-execute-script
+   xw
+   (format "
+(function (query) {
+  var el = document.getElementById(query) ||
+           document.getElementsByName(query)[0];
+  if (el !== undefined) {
+    window.scrollTo(0, el.offsetTop);
+  }
+})('%s');"
+    element-id)))
 
 (defun xwidget-webkit-adjust-size-to-content ()
   "Adjust webkit to content size."
@@ -394,18 +437,18 @@ For example, use this to display an anchor."
 (defun xwidget-webkit-adjust-size-dispatch ()
   "Adjust size according to mode."
   (interactive)
-  (xwidget-webkit-adjust-size-to-window)
+  (xwidget-webkit-adjust-size-to-window (xwidget-webkit-current-session))
   ;; The recenter is intended to correct a visual glitch.
   ;; It errors out if the buffer isn't visible, but then we don't get
   ;; the glitch, so silence errors.
   (ignore-errors
     (recenter-top-bottom)))
 
-(defun xwidget-webkit-adjust-size-to-window ()
-  "Adjust webkit to window."
-  (interactive)
-  (xwidget-resize (xwidget-webkit-current-session) (window-pixel-width)
-                  (window-pixel-height)))
+(defun xwidget-webkit-adjust-size-to-window (xwidget &optional window)
+  "Adjust the size of the webkit XWIDGET to fit the WINDOW."
+  (xwidget-resize xwidget
+                  (window-pixel-width window)
+                  (window-pixel-height window)))
 
 (defun xwidget-webkit-adjust-size (w h)
   "Manually set webkit size to width W, height H."
@@ -420,6 +463,21 @@ For example, use this to display an anchor."
                                  (car (window-inside-pixel-edges)))
                               1000))
 
+(defun xwidget-webkit-auto-adjust-size (window)
+  "Adjust the size of the webkit widget in the given WINDOW."
+  (with-current-buffer (window-buffer window)
+    (when (eq major-mode 'xwidget-webkit-mode)
+      (let ((xwidget (xwidget-webkit-current-session)))
+        (xwidget-webkit-adjust-size-to-window xwidget window)))))
+
+(defun xwidget-webkit-adjust-size-in-frame (frame)
+  "Dynamically adjust webkit widget for all windows of the FRAME."
+  (walk-windows 'xwidget-webkit-auto-adjust-size 'no-minibuf frame))
+
+(eval-after-load 'xwidget-webkit-mode
+  (add-to-list 'window-size-change-functions
+               'xwidget-webkit-adjust-size-in-frame))
+
 (defun xwidget-webkit-new-session (url)
   "Create a new webkit session buffer with URL."
   (let*
@@ -427,8 +485,12 @@ For example, use this to display an anchor."
        xw)
     (setq xwidget-webkit-last-session-buffer (switch-to-buffer
                                               (get-buffer-create bufname)))
-    (insert " 'a' adjusts the xwidget size.")
-    (setq xw (xwidget-insert 1 'webkit  bufname 1000 1000))
+    ;; The xwidget id is stored in a text property, so we need to have
+    ;; at least character in this buffer.
+    (insert " ")
+    (setq xw (xwidget-insert 1 'webkit bufname
+                             (window-pixel-width)
+                             (window-pixel-height)))
     (xwidget-put xw 'callback 'xwidget-webkit-callback)
     (xwidget-webkit-mode)
     (xwidget-webkit-goto-uri (xwidget-webkit-last-session) url)))
@@ -456,45 +518,24 @@ For example, use this to display an anchor."
 (defun xwidget-webkit-current-url ()
   "Get the webkit url and place it on the kill-ring."
   (interactive)
-  (let* ((rv (xwidget-webkit-execute-script-rv (xwidget-webkit-current-session)
-                                               "document.URL"))
-         (url (kill-new (or rv ""))))
-    (message "url: %s" url)
-    url))
-
-(defun xwidget-webkit-execute-script-rv (xw script &optional default)
-  "Same as `xwidget-webkit-execute-script' but with return value.
-XW is the webkit instance.  SCRIPT is the script to execute.
-DEFAULT is the default return value."
-  ;; Notice the ugly "title" hack.  It is needed because the Webkit
-  ;; API at the time of writing didn't support returning values.  This
-  ;; is a wrapper for the title hack so it's easy to remove should
-  ;; Webkit someday support JS return values or we find some other way
-  ;; to access the DOM.
-
-  ;; Reset webkit title.  Not very nice.
-  (let* ((emptytag "titlecantbewhitespaceohthehorror")
-         title)
-    (xwidget-webkit-execute-script xw (format "document.title=\"%s\";"
-                                              (or default emptytag)))
-    (xwidget-webkit-execute-script xw (format "document.title=%s;" script))
-    (setq title (xwidget-webkit-get-title xw))
-    (if (equal emptytag title)
-        (setq title ""))
-    (unless title
-      (setq title default))
-    title))
+  (xwidget-webkit-execute-script
+   (xwidget-webkit-current-session)
+   "document.URL" (lambda (rv)
+                    (let ((url (kill-new (or rv ""))))
+                      (message "url: %s" url)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defun xwidget-webkit-get-selection ()
-  "Get the webkit selection."
-  (xwidget-webkit-execute-script-rv (xwidget-webkit-current-session)
-                                    "window.getSelection().toString();"))
+(defun xwidget-webkit-get-selection (proc)
+  "Get the webkit selection and pass it to PROC."
+  (xwidget-webkit-execute-script
+   (xwidget-webkit-current-session)
+   "window.getSelection().toString();"
+   proc))
 
 (defun xwidget-webkit-copy-selection-as-kill ()
   "Get the webkit selection and put it on the kill-ring."
   (interactive)
-  (kill-new (xwidget-webkit-get-selection)))
+  (xwidget-webkit-get-selection (lambda (selection) (kill-new selection))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

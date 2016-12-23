@@ -271,6 +271,9 @@
 (require 'easymenu)
 (require 'align)
 
+(eval-when-compile
+  (or (fboundp 'use-region-p)
+      (defsubst use-region-p () (region-exists-p))))
 
 (defgroup prolog nil
   "Editing and running Prolog and Mercury files."
@@ -1271,7 +1274,7 @@ Actually this is just customized `prolog-mode'."
         (comint-send-string proc (string last-command-event))
       (call-interactively 'self-insert-command))))
 
-(declare-function 'compilation-shell-minor-mode "compile" (&optional arg))
+(declare-function compilation-shell-minor-mode "compile" (&optional arg))
 (defvar compilation-error-regexp-alist)
 
 (define-derived-mode prolog-inferior-mode comint-mode "Inferior Prolog"
@@ -3329,12 +3332,6 @@ PREFIX is the prefix of the search regexp."
 ;; prolog buffer)
 ;;-------------------------------------------------------------------
 
-(unless (fboundp 'region-exists-p)
-  (defun region-exists-p ()
-    "Non-nil if the mark is set.  Lobotomized version for Emacsen that do not provide their own."
-    (mark)))
-
-
 ;; GNU Emacs ignores `easy-menu-add' so the order in which the menus
 ;; are defined _is_ important!
 
@@ -3368,7 +3365,7 @@ PREFIX is the prefix of the search regexp."
      :included (not (eq prolog-system 'mercury))]
     ["Consult buffer" prolog-consult-buffer
      :included (not (eq prolog-system 'mercury))]
-    ["Consult region" prolog-consult-region :active (region-exists-p)
+    ["Consult region" prolog-consult-region :active (use-region-p)
      :included (not (eq prolog-system 'mercury))]
     ["Consult predicate" prolog-consult-predicate
      :included (not (eq prolog-system 'mercury))]
@@ -3380,7 +3377,7 @@ PREFIX is the prefix of the search regexp."
      :included (eq prolog-system 'sicstus)]
     ["Compile buffer" prolog-compile-buffer
      :included (eq prolog-system 'sicstus)]
-    ["Compile region" prolog-compile-region :active (region-exists-p)
+    ["Compile region" prolog-compile-region :active (use-region-p)
      :included (eq prolog-system 'sicstus)]
     ["Compile predicate" prolog-compile-predicate
      :included (eq prolog-system 'sicstus)]
@@ -3418,11 +3415,11 @@ PREFIX is the prefix of the search regexp."
   prolog-edit-menu-insert-move prolog-mode-map
   "Commands for Prolog code manipulation."
   '("Prolog"
-    ["Comment region" comment-region (region-exists-p)]
-    ["Uncomment region" prolog-uncomment-region (region-exists-p)]
+    ["Comment region" comment-region (use-region-p)]
+    ["Uncomment region" prolog-uncomment-region (use-region-p)]
     ["Add comment/move to comment" indent-for-comment t]
     ["Convert variables in region to '_'" prolog-variables-to-anonymous
-     :active (region-exists-p) :included (not (eq prolog-system 'mercury))]
+     :active (use-region-p) :included (not (eq prolog-system 'mercury))]
     "---"
     ["Insert predicate template" prolog-insert-predicate-template t]
     ["Insert next clause head" prolog-insert-next-clause t]
@@ -3435,10 +3432,10 @@ PREFIX is the prefix of the search regexp."
     ["End of predicate" prolog-end-of-predicate t]
     "---"
     ["Indent line" indent-according-to-mode t]
-    ["Indent region" indent-region (region-exists-p)]
+    ["Indent region" indent-region (use-region-p)]
     ["Indent predicate" prolog-indent-predicate t]
     ["Indent buffer" prolog-indent-buffer t]
-    ["Align region" align (region-exists-p)]
+    ["Align region" align (use-region-p)]
     "---"
     ["Mark clause" prolog-mark-clause t]
     ["Mark predicate" prolog-mark-predicate t]

@@ -1646,7 +1646,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
         ;;   converts "\" to "/".
         ;; - For 0 generic: generic_to_unix_filename() downcases if there's
         ;;   no lower case already present, and converts "\" to "/".
-        ;; - For 'm' MacOS: macos_to_unix_filename() changes "/" to ":" and
+        ;; - For 'm' macOS: macos_to_unix_filename() changes "/" to ":" and
         ;;   ":" to "/"
 	(setq fiddle (cond ((= ?M osid) t)
                            ((= 0 osid)  (string= efnname (upcase efnname)))))

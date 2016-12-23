@@ -31,8 +31,8 @@ manuals, including the Emacs manual, are available from the FSF's
 online store at http://shop.fsf.org.
 
 Emacs has been run on GNU/Linux, FreeBSD, NetBSD, OpenBSD, and on many
-Unix systems, on a variety of types of cpu, as well as on MSDOS,
-Windows and MacOS.  See the file 'etc/MACHINES' in the Emacs
+Unix systems, on a variety of types of CPU, as well as on MS-DOS,
+MS-Windows and macOS.  See the file 'etc/MACHINES' in the Emacs
 distribution for a full list of machines that GNU Emacs has been tested
 on, with machine-specific installation notes and warnings.
 

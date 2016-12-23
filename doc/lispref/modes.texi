@@ -445,7 +445,8 @@ other packages would interfere with them.
 Each major mode should have a normal @dfn{mode hook} named
 @code{@var{modename}-mode-hook}.  The very last thing the major mode command
 should do is to call @code{run-mode-hooks}.  This runs the normal
-hook @code{change-major-mode-after-body-hook}, the mode hook,
+hook @code{change-major-mode-after-body-hook}, the mode hook, the
+function @code{hack-local-variables} (when the buffer is visiting a file),
 and then the normal hook @code{after-change-major-mode-hook}.
 @xref{Mode Hooks}.
 
@@ -525,11 +526,12 @@ the buffer based on information in the file name or in the file itself.
 It also processes local variables specified in the file text.
 
 @deffn Command normal-mode &optional find-file
-This function establishes the proper major mode and buffer-local variable
-bindings for the current buffer.  First it calls @code{set-auto-mode}
-(see below), then it runs @code{hack-local-variables} to parse, and
-bind or evaluate as appropriate, the file's local variables
-(@pxref{File Local Variables}).
+This function establishes the proper major mode and buffer-local
+variable bindings for the current buffer.  It calls
+@code{set-auto-mode} (see below).  As of Emacs 26.1, it no longer
+runs @code{hack-local-variables}, this now being done in
+@code{run-mode-hooks} at the initialization of major modes
+(@pxref{Mode Hooks}).
 
 If the @var{find-file} argument to @code{normal-mode} is non-@code{nil},
 @code{normal-mode} assumes that the @code{find-file} function is calling
@@ -543,9 +545,9 @@ If you run @code{normal-mode} interactively, the argument
 @var{find-file} is normally @code{nil}.  In this case,
 @code{normal-mode} unconditionally processes any file local variables.
 
-The function calls @code{set-auto-mode} to choose a major mode.  If this
-does not specify a mode, the buffer stays in the major mode determined
-by the default value of @code{major-mode} (see below).
+The function calls @code{set-auto-mode} to choose and set a major
+mode.  If this does not specify a mode, the buffer stays in the major
+mode determined by the default value of @code{major-mode} (see below).
 
 @cindex file mode specification error
 @code{normal-mode} uses @code{condition-case} around the call to the
@@ -555,16 +557,17 @@ mode specification error}, followed by the original error message.
 
 @defun set-auto-mode &optional keep-mode-if-same
 @cindex visited file mode
-  This function selects the major mode that is appropriate for the
-current buffer.  It bases its decision (in order of precedence) on the
-@w{@samp{-*-}} line, on any @samp{mode:} local variable near the end of
-a file, on the @w{@samp{#!}} line (using @code{interpreter-mode-alist}),
-on the text at the beginning of the buffer (using
-@code{magic-mode-alist}), and finally on the visited file name (using
-@code{auto-mode-alist}).  @xref{Choosing Modes, , How Major Modes are
-Chosen, emacs, The GNU Emacs Manual}.  If @code{enable-local-variables}
-is @code{nil}, @code{set-auto-mode} does not check the @w{@samp{-*-}}
-line, or near the end of the file, for any mode tag.
+  This function selects and sets the major mode that is appropriate
+for the current buffer.  It bases its decision (in order of
+precedence) on the @w{@samp{-*-}} line, on any @samp{mode:} local
+variable near the end of a file, on the @w{@samp{#!}} line (using
+@code{interpreter-mode-alist}), on the text at the beginning of the
+buffer (using @code{magic-mode-alist}), and finally on the visited
+file name (using @code{auto-mode-alist}).  @xref{Choosing Modes, , How
+Major Modes are Chosen, emacs, The GNU Emacs Manual}.  If
+@code{enable-local-variables} is @code{nil}, @code{set-auto-mode} does
+not check the @w{@samp{-*-}} line, or near the end of the file, for
+any mode tag.
 
 @vindex inhibit-local-variables-regexps
 There are some file types where it is not appropriate to scan the file
@@ -749,7 +752,8 @@ The new mode has its own abbrev table, kept in the variable
 @item
 The new mode has its own mode hook, @code{@var{variant}-hook}.  It
 runs this hook, after running the hooks of its ancestor modes, with
-@code{run-mode-hooks}, as the last thing it does.  @xref{Mode Hooks}.
+@code{run-mode-hooks}, as the last thing it does, apart from running
+any @code{:after-hook} form it may have.  @xref{Mode Hooks}.
 @end itemize
 
 In addition, you can specify how to override other aspects of
@@ -773,8 +777,9 @@ about the mode's hook, followed by the mode's keymap, at the end of this
 documentation string.  If you omit @var{docstring},
 @code{define-derived-mode} generates a documentation string.
 
-The @var{keyword-args} are pairs of keywords and values.  The values
-are evaluated.  The following keywords are currently supported:
+The @var{keyword-args} are pairs of keywords and values.  The values,
+except for @code{:after-hook}'s, are evaluated.  The following
+keywords are currently supported:
 
 @table @code
 @item :syntax-table
@@ -797,6 +802,15 @@ If this is specified, the value should be the customization group for
 this mode.  (Not all major modes have one.)  The command
 @code{customize-mode} uses this.  @code{define-derived-mode} does
 @emph{not} automatically define the specified customization group.
+
+@item :after-hook
+This optional keyword specifies a single Lisp form to evaluate as the
+final act of the mode function, after the mode hooks have been run.
+It should not be quoted.  Since the form might be evaluated after the
+mode function has terminated, it should not access any element of the
+mode function's local state.  An @code{:after-hook} form is useful for
+setting up aspects of the mode which depend on the user's settings,
+which in turn may have been changed in a mode hook.
 @end table
 
 Here is a hypothetical example:
@@ -906,11 +920,15 @@ use the following functions to handle these conventions automatically.
 @defun run-mode-hooks &rest hookvars
 Major modes should run their mode hook using this function.  It is
 similar to @code{run-hooks} (@pxref{Hooks}), but it also runs
-@code{change-major-mode-after-body-hook} and
-@code{after-change-major-mode-hook}.
+@code{change-major-mode-after-body-hook}, @code{hack-local-variables}
+(when the buffer is visiting a file) (@pxref{File Local Variables}),
+and @code{after-change-major-mode-hook}.  The last thing it does is to
+evaluate any @code{:after-hook} forms declared by parent modes
+(@pxref{Derived Modes}).
 
 When this function is called during the execution of a
-@code{delay-mode-hooks} form, it does not run the hooks immediately.
+@code{delay-mode-hooks} form, it does not run the hooks or
+@code{hack-local-variables} or evaluate the forms immediately.
 Instead, it arranges for the next call to @code{run-mode-hooks} to run
 them.
 @end defun
@@ -2916,7 +2934,9 @@ This function removes @var{keywords} from @code{font-lock-keywords}
 for the current buffer or for major mode @var{mode}.  As in
 @code{font-lock-add-keywords}, @var{mode} should be a major mode
 command name or @code{nil}.  All the caveats and requirements for
-@code{font-lock-add-keywords} apply here too.
+@code{font-lock-add-keywords} apply here too.  The argument
+@var{keywords} must exactly match the one used by the corresponding
+@code{font-lock-add-keywords}.
 @end defun
 
   For example, the following code adds two fontification patterns for C

@@ -390,9 +390,9 @@ REGEXP is the regular expression which matched for this button."
   ;; merged correctly.  If we use overlays, then redisplay will be
   ;; very slow with lots of buttons.  This is why we manually merge
   ;; face text properties.
-  (let ((old (erc-list (get-text-property from 'face)))
+  (let ((old (erc-list (get-text-property from 'font-lock-face)))
         (pos from)
-        (end (next-single-property-change from 'face nil to))
+        (end (next-single-property-change from 'font-lock-face nil to))
         new)
     ;; old is the face at pos, in list form.  It is nil if there is no
     ;; face at pos.  If nil, the new face is FACE.  If not nil, the
@@ -400,10 +400,10 @@ REGEXP is the regular expression which matched for this button."
     ;; where this face changes.
     (while (< pos to)
       (setq new (if old (cons face old) face))
-      (put-text-property pos end 'face new)
+      (put-text-property pos end 'font-lock-face new)
       (setq pos end
-            old (erc-list (get-text-property pos 'face))
-            end (next-single-property-change pos 'face nil to)))))
+            old (erc-list (get-text-property pos 'font-lock-face))
+            end (next-single-property-change pos 'font-lock-face nil to)))))
 
 ;; widget-button-click calls with two args, we ignore the first.
 ;; Since Emacs runs this directly, rather than with

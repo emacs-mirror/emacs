@@ -266,6 +266,9 @@ on your Emacs version.
 
 * Miscellaneous changes
 
+** New user option 'gnus-rcvstore-options' provides a way to
+specify additional options when saving messages to an MH folder.
+
 ** Having edited the select-method for the foreign server in the server
 buffer is immediately reflected to the subscription of the groups which
 use the server in question.  For instance, if you change

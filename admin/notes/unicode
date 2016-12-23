@@ -14,11 +14,13 @@ Emacs uses the following files from the Unicode Character Database
   . BidiMirroring.txt
   . BidiBrackets.txt
   . IVD_Sequences.txt
+  . NormalizationTest.txt
+  . BidiCharacterTest.txt
 
-First, these files need to be copied into admin/unidata/, and then
-Emacs should be rebuilt for them to take effect.  Rebuilding Emacs
-updates several derived files elsewhere in the Emacs source tree,
-mainly in lisp/international/.
+First, the first 6 files need to be copied into admin/unidata/, and
+then Emacs should be rebuilt for them to take effect.  Rebuilding
+Emacs updates several derived files elsewhere in the Emacs source
+tree, mainly in lisp/international/.
 
 When Emacs is rebuilt for the first time after importing the new
 files, pay attention to any warning or error messages.  In particular,
@@ -35,6 +37,10 @@ and char-width-table.  The additional scripts should cause automatic
 updates in charscript.el, but it is a good idea to look at the results
 and see if any changes in admin/unidata/blocks.awk are required.
 
+The setting of char-width-table around line 1200 of characters.el
+should be checked against the latest version of the Unicode file
+EastAsianWidth.txt, and any discrepancies fixed.
+
 Any new scripts added by UnicodeData.txt will also need updates to
 script-representative-chars defined in fontset.el, and also the list
 of OTF script tags in otf-script-alist, whose source is on this page:
@@ -47,6 +53,18 @@ The function 'ucs-names', defined in lisp/international/mule-cmds.el,
 might need to be updated because it knows about used and unused ranges
 of Unicode codepoints, which a new release of the Unicode Standard
 could change.
+
+Next, test normalization functions against NormalizationTests.txt,
+in the test/ directory run:
+
+  make lisp/international/ucs-normalize-tests
+
+See commentary in test/lisp/international/ucs-normalize-tests.el
+regarding failing lines.
+
+The file BidiCharacterTest.txt should be copied to the test suite, and
+if its format has changed, the file biditest.el there should be
+modified to follow suit.
 
 Problems, fixmes and other unicode-related issues
 -------------------------------------------------------------
@@ -130,8 +148,6 @@ regard to completeness.
 
  * Need multibyte text in menus, e.g. for the above.  (Not specific to
    Unicode -- see Emacs etc/TODO, but now mostly works with gtk.)
-
- * There's currently no support for Unicode normalization.
 
  * Populate char-width-table correctly for Unicode characters and
    worry about what happens when double-width charsets covering

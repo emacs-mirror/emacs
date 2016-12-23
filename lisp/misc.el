@@ -28,6 +28,7 @@
 (eval-when-compile
   (require 'tabulated-list))
 
+;;;###autoload
 (defun copy-from-above-command (&optional arg)
   "Copy characters from previous nonblank line, starting just above point.
 Copy ARG characters, but not past the end of that line.
@@ -62,6 +63,7 @@ The characters copied are inserted in the buffer before point."
 
 ;; Variation of `zap-to-char'.
 
+;;;###autoload
 (defun zap-up-to-char (arg char)
   "Kill up to, but not including ARGth occurrence of CHAR.
 Case is ignored if `case-fold-search' is non-nil in the current buffer.
@@ -80,22 +82,26 @@ Ignores CHAR at point."
 ;; These were added with an eye to making possible a more CCA-compatible
 ;; command set; but that turned out not to be interesting.
 
+;;;###autoload
 (defun mark-beginning-of-buffer ()
   "Set mark at the beginning of the buffer."
   (interactive)
   (push-mark (point-min)))
 
+;;;###autoload
 (defun mark-end-of-buffer ()
   "Set mark at the end of the buffer."
   (interactive)
   (push-mark (point-max)))
 
+;;;###autoload
 (defun upcase-char (arg)
   "Uppercasify ARG chars starting from point.  Point doesn't move."
   (interactive "p")
   (save-excursion
     (upcase-region (point) (progn (forward-char arg) (point)))))
 
+;;;###autoload
 (defun forward-to-word (arg)
   "Move forward until encountering the beginning of a word.
 With argument, do this that many times."
@@ -103,6 +109,7 @@ With argument, do this that many times."
   (or (re-search-forward (if (> arg 0) "\\W\\b" "\\b\\W") nil t arg)
       (goto-char (if (> arg 0) (point-max) (point-min)))))
 
+;;;###autoload
 (defun backward-to-word (arg)
   "Move backward until encountering the end of a word.
 With argument, do this that many times."

@@ -41,6 +41,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "lisp.h"
 #include "commands.h"
@@ -971,8 +972,18 @@ copy_keymap_1 (Lisp_Object chartable, Lisp_Object idx, Lisp_Object elt)
 
 DEFUN ("copy-keymap", Fcopy_keymap, Scopy_keymap, 1, 1, 0,
        doc: /* Return a copy of the keymap KEYMAP.
-The copy starts out with the same definitions of KEYMAP,
-but changing either the copy or KEYMAP does not affect the other.
+
+Note that this is almost never needed.  If you want a keymap that's like
+another yet with a few changes, you should use map inheritance rather
+than copying.  I.e. something like:
+
+    (let ((map (make-sparse-keymap)))
+      (set-keymap-parent map <theirmap>)
+      (define-key map ...)
+      ...)
+
+After performing `copy-keymap', the copy starts out with the same definitions
+of KEYMAP, but changing either the copy or KEYMAP does not affect the other.
 Any key definitions that are subkeymaps are recursively copied.
 However, a key definition which is a symbol whose definition is a keymap
 is not copied.  */)
@@ -1303,7 +1314,7 @@ silly_event_symbol_error (Lisp_Object c)
       *p = 0;
 
       c = reorder_modifiers (c);
-      AUTO_STRING (new_mods_string, new_mods);
+      AUTO_STRING_WITH_LEN (new_mods_string, new_mods, p - new_mods);
       keystring = concat2 (new_mods_string, XCDR (assoc));
 
       error ("To bind the key %s, use [?%s], not [%s]",

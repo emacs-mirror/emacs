@@ -388,6 +388,9 @@ matches exist."
 	(progn ;;(debug (format "Candidates=%S field=%S" candidates name))
 	       (format " %sNo matches%s" open-bracket close-bracket))
       (if last (setcdr last nil))
+      (when (and minibuffer-completing-file-name
+                 icomplete-with-completion-tables)
+        (setq comps (completion-pcm--filename-try-filter comps)))
       (let* ((most-try
               (if (and base-size (> base-size 0))
                   (completion-try-completion

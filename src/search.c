@@ -40,7 +40,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 struct regexp_cache
 {
   struct regexp_cache *next;
-  Lisp_Object regexp, whitespace_regexp;
+  Lisp_Object regexp, f_whitespace_regexp;
   /* Syntax table for which the regexp applies.  We need this because
      of character classes.  If this is t, then the compiled pattern is valid
      for any syntax-table.  */
@@ -75,12 +75,12 @@ static struct regexp_cache *searchbuf_head;
    to call re_set_registers after compiling a new pattern or after
    setting the match registers, so that the regex functions will be
    able to free or re-allocate it properly.  */
-static struct re_registers search_regs;
+/* static struct re_registers search_regs; */
 
 /* The buffer in which the last search was performed, or
    Qt if the last search was done in a string;
    Qnil if no searching has been done yet.  */
-static Lisp_Object last_thing_searched;
+/* static Lisp_Object last_thing_searched; */
 
 static void set_search_regs (ptrdiff_t, ptrdiff_t);
 static void save_search_regs (void);
@@ -113,8 +113,8 @@ static void
 compile_pattern_1 (struct regexp_cache *cp, Lisp_Object pattern,
 		   Lisp_Object translate, bool posix)
 {
+  const char *whitespace_regexp;
   char *val;
-  reg_syntax_t old;
 
   cp->regexp = Qnil;
   cp->buf.translate = (! NILP (translate) ? translate : make_number (0));
@@ -122,33 +122,26 @@ compile_pattern_1 (struct regexp_cache *cp, Lisp_Object pattern,
   cp->buf.multibyte = STRING_MULTIBYTE (pattern);
   cp->buf.charset_unibyte = charset_unibyte;
   if (STRINGP (Vsearch_spaces_regexp))
-    cp->whitespace_regexp = Vsearch_spaces_regexp;
+    cp->f_whitespace_regexp = Vsearch_spaces_regexp;
   else
-    cp->whitespace_regexp = Qnil;
+    cp->f_whitespace_regexp = Qnil;
 
   /* rms: I think BLOCK_INPUT is not needed here any more,
      because regex.c defines malloc to call xmalloc.
      Using BLOCK_INPUT here means the debugger won't run if an error occurs.
      So let's turn it off.  */
   /*  BLOCK_INPUT;  */
-  old = re_set_syntax (RE_SYNTAX_EMACS
-		       | (posix ? 0 : RE_NO_POSIX_BACKTRACKING));
 
-  if (STRINGP (Vsearch_spaces_regexp))
-    re_set_whitespace_regexp (SSDATA (Vsearch_spaces_regexp));
-  else
-    re_set_whitespace_regexp (NULL);
+  whitespace_regexp = STRINGP (Vsearch_spaces_regexp) ?
+    SSDATA (Vsearch_spaces_regexp) : NULL;
 
-  val = (char *) re_compile_pattern (SSDATA (pattern),
-				     SBYTES (pattern), &cp->buf);
+  val = (char *) re_compile_pattern (SSDATA (pattern), SBYTES (pattern),
+				     posix, whitespace_regexp, &cp->buf);
 
   /* If the compiled pattern hard codes some of the contents of the
      syntax-table, it can only be reused with *this* syntax table.  */
   cp->syntax_table = cp->buf.used_syntax ? BVAR (current_buffer, syntax_table) : Qt;
 
-  re_set_whitespace_regexp (NULL);
-
-  re_set_syntax (old);
   /* unblock_input ();  */
   if (val)
     xsignal1 (Qinvalid_regexp, build_string (val));
@@ -224,7 +217,7 @@ compile_pattern (Lisp_Object pattern, struct re_registers *regp,
 	  && cp->posix == posix
 	  && (EQ (cp->syntax_table, Qt)
 	      || EQ (cp->syntax_table, BVAR (current_buffer, syntax_table)))
-	  && !NILP (Fequal (cp->whitespace_regexp, Vsearch_spaces_regexp))
+	  && !NILP (Fequal (cp->f_whitespace_regexp, Vsearch_spaces_regexp))
 	  && cp->buf.charset_unibyte == charset_unibyte)
 	break;
 
@@ -308,12 +301,20 @@ looking_at_1 (Lisp_Object string, bool posix)
 
   re_match_object = Qnil;
 
+#ifdef REL_ALLOC
+  /* Prevent ralloc.c from relocating the current buffer while
+     searching it.  */
+  r_alloc_inhibit_buffer_relocation (1);
+#endif
   i = re_match_2 (bufp, (char *) p1, s1, (char *) p2, s2,
 		  PT_BYTE - BEGV_BYTE,
 		  (NILP (Vinhibit_changing_match_data)
 		   ? &search_regs : NULL),
 		  ZV_BYTE - BEGV_BYTE);
   immediate_quit = 0;
+#ifdef REL_ALLOC
+  r_alloc_inhibit_buffer_relocation (0);
+#endif
 
   if (i == -2)
     matcher_overflow ();
@@ -561,8 +562,16 @@ fast_looking_at (Lisp_Object regexp, ptrdiff_t pos, ptrdiff_t pos_byte,
 
   buf = compile_pattern (regexp, 0, Qnil, 0, multibyte);
   immediate_quit = 1;
+#ifdef REL_ALLOC
+  /* Prevent ralloc.c from relocating the current buffer while
+     searching it.  */
+  r_alloc_inhibit_buffer_relocation (1);
+#endif
   len = re_match_2 (buf, (char *) p1, s1, (char *) p2, s2,
 		    pos_byte, NULL, limit_byte);
+#ifdef REL_ALLOC
+  r_alloc_inhibit_buffer_relocation (0);
+#endif
   immediate_quit = 0;
 
   return len;
@@ -1213,6 +1222,12 @@ search_buffer (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 	}
       re_match_object = Qnil;
 
+#ifdef REL_ALLOC
+  /* Prevent ralloc.c from relocating the current buffer while
+     searching it.  */
+  r_alloc_inhibit_buffer_relocation (1);
+#endif
+
       while (n < 0)
 	{
 	  ptrdiff_t val;
@@ -1254,6 +1269,9 @@ search_buffer (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 	  else
 	    {
 	      immediate_quit = 0;
+#ifdef REL_ALLOC
+              r_alloc_inhibit_buffer_relocation (0);
+#endif
 	      return (n);
 	    }
 	  n++;
@@ -1296,11 +1314,17 @@ search_buffer (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 	  else
 	    {
 	      immediate_quit = 0;
+#ifdef REL_ALLOC
+              r_alloc_inhibit_buffer_relocation (0);
+#endif
 	      return (0 - n);
 	    }
 	  n--;
 	}
       immediate_quit = 0;
+#ifdef REL_ALLOC
+      r_alloc_inhibit_buffer_relocation (0);
+#endif
       return (pos);
     }
   else				/* non-RE case */
@@ -1999,12 +2023,26 @@ boyer_moore (EMACS_INT n, unsigned char *base_pat,
 	      if (i + direction == 0)
 		{
 		  ptrdiff_t position, start, end;
+#ifdef REL_ALLOC
+		  ptrdiff_t cursor_off;
+#endif
 
 		  cursor -= direction;
 
 		  position = pos_byte + cursor - p2 + ((direction > 0)
 						       ? 1 - len_byte : 0);
+#ifdef REL_ALLOC
+		  /* set_search_regs might call malloc, which could
+		     cause ralloc.c relocate buffer text.  We need to
+		     update pointers into buffer text due to that.  */
+		  cursor_off = cursor - p2;
+#endif
 		  set_search_regs (position, len_byte);
+#ifdef REL_ALLOC
+		  p_limit = BYTE_POS_ADDR (limit);
+		  p2 = BYTE_POS_ADDR (pos_byte);
+		  cursor = p2 + cursor_off;
+#endif
 
 		  if (NILP (Vinhibit_changing_match_data))
 		    {
@@ -2624,6 +2662,7 @@ since only regular expressions have distinguished subexpressions.  */)
 	  const unsigned char *add_stuff = NULL;
 	  ptrdiff_t add_len = 0;
 	  ptrdiff_t idx = -1;
+	  ptrdiff_t begbyte;
 
 	  if (str_multibyte)
 	    {
@@ -2686,11 +2725,10 @@ since only regular expressions have distinguished subexpressions.  */)
 	     set up ADD_STUFF and ADD_LEN to point to it.  */
 	  if (idx >= 0)
 	    {
-	      ptrdiff_t begbyte = CHAR_TO_BYTE (search_regs.start[idx]);
+	      begbyte = CHAR_TO_BYTE (search_regs.start[idx]);
 	      add_len = CHAR_TO_BYTE (search_regs.end[idx]) - begbyte;
 	      if (search_regs.start[idx] < GPT && GPT < search_regs.end[idx])
 		move_gap_both (search_regs.start[idx], begbyte);
-	      add_stuff = BYTE_POS_ADDR (begbyte);
 	    }
 
 	  /* Now the stuff we want to add to SUBSTED
@@ -2702,6 +2740,11 @@ since only regular expressions have distinguished subexpressions.  */)
 	      xpalloc (substed, &substed_alloc_size,
 		       add_len - (substed_alloc_size - substed_len),
 		       STRING_BYTES_BOUND, 1);
+
+	  /* We compute this after the call to xpalloc, because that
+	     could cause buffer text be relocated when ralloc.c is used.  */
+	  if (idx >= 0)
+	    add_stuff = BYTE_POS_ADDR (begbyte);
 
 	  /* Now add to the end of SUBSTED.  */
 	  if (add_stuff)
@@ -2739,7 +2782,8 @@ since only regular expressions have distinguished subexpressions.  */)
 
   if (case_action == all_caps)
     Fupcase_region (make_number (search_regs.start[sub]),
-		    make_number (newpoint));
+		    make_number (newpoint),
+		    Qnil);
   else if (case_action == cap_initial)
     Fupcase_initials_region (make_number (search_regs.start[sub]),
 			     make_number (newpoint));
@@ -3045,9 +3089,9 @@ If optional arg RESEAT is non-nil, make markers on LIST point nowhere.  */)
 
 /* If true the match data have been saved in saved_search_regs
    during the execution of a sentinel or filter. */
-static bool search_regs_saved;
-static struct re_registers saved_search_regs;
-static Lisp_Object saved_last_thing_searched;
+/* static bool search_regs_saved; */
+/* static struct re_registers saved_search_regs; */
+/* static Lisp_Object saved_last_thing_searched; */
 
 /* Called from Flooking_at, Fstring_match, search_buffer, Fstore_match_data
    if asynchronous code (filter or sentinel) is running. */
@@ -3357,10 +3401,10 @@ syms_of_search (void)
       searchbufs[i].buf.buffer = xmalloc (100);
       searchbufs[i].buf.fastmap = searchbufs[i].fastmap;
       searchbufs[i].regexp = Qnil;
-      searchbufs[i].whitespace_regexp = Qnil;
+      searchbufs[i].f_whitespace_regexp = Qnil;
       searchbufs[i].syntax_table = Qnil;
       staticpro (&searchbufs[i].regexp);
-      staticpro (&searchbufs[i].whitespace_regexp);
+      staticpro (&searchbufs[i].f_whitespace_regexp);
       staticpro (&searchbufs[i].syntax_table);
       searchbufs[i].next = (i == REGEXP_CACHE_SIZE-1 ? 0 : &searchbufs[i+1]);
     }
@@ -3396,6 +3440,7 @@ or other such regexp constructs are not replaced with this.
 A value of nil (which is the normal value) means treat spaces literally.  */);
   Vsearch_spaces_regexp = Qnil;
 
+  DEFSYM (Qinhibit_changing_match_data, "inhibit-changing-match-data");
   DEFVAR_LISP ("inhibit-changing-match-data", Vinhibit_changing_match_data,
       doc: /* Internal use only.
 If non-nil, the primitive searching and matching functions

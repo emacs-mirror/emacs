@@ -795,8 +795,8 @@ static void
 IT_set_face (int face)
 {
   struct frame *sf = SELECTED_FRAME ();
-  struct face *fp  = FACE_FROM_ID (sf, face);
-  struct face *dfp = FACE_FROM_ID (sf, DEFAULT_FACE_ID);
+  struct face *fp  = FACE_FROM_ID_OR_NULL (sf, face);
+  struct face *dfp = FACE_FROM_ID_OR_NULL (sf, DEFAULT_FACE_ID);
   unsigned long fg, bg, dflt_fg, dflt_bg;
   struct tty_display_info *tty = FRAME_TTY (sf);
 
@@ -1076,7 +1076,7 @@ IT_clear_screen (struct frame *f)
      any valid faces and will abort.  Instead, use the initial screen
      colors; that should mimic what a Unix tty does, which simply clears
      the screen with whatever default colors are in use.  */
-  if (FACE_FROM_ID (SELECTED_FRAME (), DEFAULT_FACE_ID) == NULL)
+  if (FACE_FROM_ID_OR_NULL (SELECTED_FRAME (), DEFAULT_FACE_ID) == NULL)
     ScreenAttrib = (initial_screen_colors[0] << 4) | initial_screen_colors[1];
   else
     IT_set_face (0);
@@ -1791,7 +1791,7 @@ internal_terminal_init (void)
 	}
 
       Vinitial_window_system = Qpc;
-      Vwindow_system_version = make_number (25); /* RE Emacs version */
+      Vwindow_system_version = make_number (26); /* RE Emacs version */
       tty->terminal->type = output_msdos_raw;
 
       /* If Emacs was dumped on DOS/V machine, forget the stale VRAM

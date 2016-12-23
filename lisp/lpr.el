@@ -36,13 +36,13 @@
 
 ;;;###autoload
 (defvar lpr-lp-system
-  (memq system-type '(usg-unix-v hpux irix))
+  (memq system-type '(usg-unix-v hpux))
   "Non-nil if running on a system type that uses the \"lp\" command.")
 
 
 (defgroup lpr nil
   "Print Emacs buffer on line printer."
-  :group 'wp)
+  :group 'text)
 
 
 ;;;###autoload

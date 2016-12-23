@@ -25,8 +25,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "lisp.h"
 
-/* This limits the attempts to handshake per process (connection).  */
-#define GNUTLS_EMACS_HANDSHAKES_LIMIT 100
+/* This limits the attempts to handshake per process (connection).  It
+   should work out to about one minute in asynchronous cases. */
+#define GNUTLS_EMACS_HANDSHAKES_LIMIT 6000
 
 typedef enum
 {
@@ -70,7 +71,7 @@ typedef enum
 #define GNUTLS_LOG2i(level, max, string, extra)			\
   do {								\
     if ((level) <= (max))					\
-      gnutls_log_function2i (level, "(Emacs) " string, extra);	\
+      message ("gnutls.c: [%d] %s %d", level, string, extra);	\
   } while (false)
 
 extern ptrdiff_t
@@ -84,6 +85,8 @@ extern void emacs_gnutls_transport_set_errno (gnutls_session_t state, int err);
 #endif
 extern Lisp_Object emacs_gnutls_deinit (Lisp_Object);
 extern Lisp_Object emacs_gnutls_global_init (void);
+extern int gnutls_try_handshake (struct Lisp_Process *p);
+extern Lisp_Object gnutls_verify_boot (Lisp_Object proc, Lisp_Object proplist);
 
 #endif
 

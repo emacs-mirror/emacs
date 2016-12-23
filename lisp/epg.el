@@ -604,9 +604,13 @@ callback data (if any)."
       (setq process-environment
 	    (cons (concat "GPG_TTY=" terminal-name)
 		  (cons "TERM=xterm" process-environment))))
-    ;; Start the Emacs Pinentry server if allow-emacs-pinentry is set
-    ;; in ~/.gnupg/gpg-agent.conf.
+    ;; Automatically start the Emacs Pinentry server if appropriate.
     (when (and (fboundp 'pinentry-start)
+               ;; Emacs Pinentry is useless if Emacs has no interactive session.
+               (not noninteractive)
+               ;; Prefer pinentry-mode over Emacs Pinentry.
+               (null (epg-context-pinentry-mode context))
+               ;; Check if the allow-emacs-pinentry option is set.
 	       (executable-find epg-gpgconf-program)
 	       (with-temp-buffer
 		 (when (= (call-process epg-gpgconf-program nil t nil
@@ -1749,12 +1753,7 @@ If optional 3rd argument MODE is t or `detached', it makes a detached signature.
 If it is nil or `normal', it makes a normal signature.
 Otherwise, it makes a cleartext signature."
   (let ((input-file
-	 (unless (or (eq (epg-context-protocol context) 'CMS)
-		     (condition-case nil
-			 (progn
-			   (epg-check-configuration (epg-configuration))
-			   t)
-		       (error)))
+	 (unless (eq (epg-context-protocol context) 'CMS)
 	   (epg--make-temp-file "epg-input")))
 	(coding-system-for-write 'binary))
     (unwind-protect
@@ -1861,12 +1860,7 @@ If RECIPIENTS is nil, it performs symmetric encryption."
 If RECIPIENTS is nil, it performs symmetric encryption."
   (let ((input-file
 	 (unless (or (not sign)
-		     (eq (epg-context-protocol context) 'CMS)
-		     (condition-case nil
-			 (progn
-			   (epg-check-configuration (epg-configuration))
-			   t)
-		       (error)))
+		     (eq (epg-context-protocol context) 'CMS))
 	   (epg--make-temp-file "epg-input")))
 	(coding-system-for-write 'binary))
     (unwind-protect

@@ -120,7 +120,7 @@
 (declare-function bibtex-generate-autokey "bibtex" ())
 (declare-function bibtex-parse-entry "bibtex" (&optional content))
 (declare-function bibtex-url "bibtex" (&optional pos no-browse))
-(declare-function org-babel-trim "ob" (string &optional regexp))
+(declare-function org-babel-trim "ob-core" (string &optional regexp))
 
 
 ;;; Bibtex data

@@ -55,7 +55,7 @@ Once an insertion set is done, these fields will be activated.")
      (:underline "green"))
     (((class color) (background light))
      (:underline "green4")))
-  "*Face used to specify editable fields from a template."
+  "Face used to specify editable fields from a template."
   :group 'semantic-faces)
 
 (defcustom srecode-fields-exit-confirmation nil

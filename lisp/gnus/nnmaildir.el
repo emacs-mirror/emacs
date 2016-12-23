@@ -97,14 +97,14 @@ See `nnmaildir-flag-mark-mapping'."
 
 (defun nnmaildir--ensure-suffix (filename)
   "Ensure that FILENAME contains the suffix \":2,\"."
-  (if (gnus-string-match-p ":2," filename)
+  (if (string-match-p ":2," filename)
       filename
     (concat filename ":2,")))
 
 (defun nnmaildir--add-flag (flag suffix)
   "Return a copy of SUFFIX where FLAG is set.
 SUFFIX should start with \":2,\"."
-  (unless (gnus-string-match-p "^:2," suffix)
+  (unless (string-match-p "^:2," suffix)
     (error "Invalid suffix `%s'" suffix))
   (let* ((flags (substring suffix 3))
 	 (flags-as-list (append flags nil))
@@ -117,7 +117,7 @@ SUFFIX should start with \":2,\"."
 (defun nnmaildir--remove-flag (flag suffix)
   "Return a copy of SUFFIX where FLAG is cleared.
 SUFFIX should start with \":2,\"."
-  (unless (gnus-string-match-p "^:2," suffix)
+  (unless (string-match-p "^:2," suffix)
     (error "Invalid suffix `%s'" suffix))
   (let* ((flags (substring suffix 3))
 	 (flags-as-list (append flags nil))
@@ -125,8 +125,8 @@ SUFFIX should start with \":2,\"."
     (concat ":2," new-flags)))
 
 (defvar nnmaildir-article-file-name nil
-  "*The filename of the most recently requested article.  This variable is set
-by nnmaildir-request-article.")
+  "The filename of the most recently requested article.
+This variable is set by `nnmaildir-request-article'.")
 
 ;; The filename of the article being moved/copied:
 (defvar nnmaildir--file nil)
@@ -371,8 +371,7 @@ by nnmaildir-request-article.")
        (string= (downcase (caddr err)) "too many links")))
 
 (defun nnmaildir--enoent-p (err)
-  (and (eq (car err) 'file-error)
-       (string= (downcase (caddr err)) "no such file or directory")))
+  (eq (car err) 'file-missing))
 
 (defun nnmaildir--eexist-p (err)
   (eq (car err) 'file-already-exists))
@@ -537,8 +536,8 @@ by nnmaildir-request-article.")
 	(prin1 (vector storage-version num msgid nov) (current-buffer))
 	(setq file (concat novfile ":"))
 	(nnmaildir--unlink file)
-	(gmm-write-region (point-min) (point-max) file nil 'no-message nil
-			  'excl))
+	(write-region (point-min) (point-max) file nil 'no-message nil
+		      'excl))
       (rename-file file novfile 'replace)
       (setf (nnmaildir--art-msgid article) msgid)
       nov)))
@@ -656,13 +655,13 @@ by nnmaildir-request-article.")
   (if (zerop n) 1 (1- (lsh 1 (1+ (logb n))))))
 
 (defun nnmaildir--system-name ()
-  (gnus-replace-in-string
-   (gnus-replace-in-string
-    (gnus-replace-in-string
-     (system-name)
-     "\\\\" "\\134" 'literal)
-    "/" "\\057" 'literal)
-   ":" "\\072" 'literal))
+  (replace-regexp-in-string
+   ":" "\\072"
+   (replace-regexp-in-string
+    "/" "\\057"
+    (replace-regexp-in-string "\\\\" "\\134" (system-name) nil 'literal)
+    nil 'literal)
+   nil 'literal))
 
 (defun nnmaildir-request-type (_group &optional _article)
   'mail)
@@ -848,11 +847,11 @@ by nnmaildir-request-article.")
 	      (when (or
 		     ;; first look for marks in suffix, if it's valid...
 		     (when (and (stringp suffix)
-				(gnus-string-prefix-p ":2," suffix))
+				(string-prefix-p ":2," suffix))
 		       (or
-			(not (gnus-string-match-p
+			(not (string-match-p
 			      (string (nnmaildir--mark-to-flag 'read)) suffix))
-			(gnus-string-match-p
+			(string-match-p
 			 (string (nnmaildir--mark-to-flag 'tick)) suffix)))
 		     ;; then look in marks directories
 		     (not (file-exists-p (concat cdir prefix)))
@@ -955,8 +954,9 @@ by nnmaildir-request-article.")
 			pgname (nnmaildir--pgname nnmaildir--cur-server pgname)
 			group (symbol-value group)
 			ro (nnmaildir--param pgname 'read-only))
-		  (insert (gnus-replace-in-string
-			   (nnmaildir--grp-name group) " " "\\ " t)
+		  (insert (replace-regexp-in-string
+			   " " "\\ "
+			   (nnmaildir--grp-name group) nil t)
 			  " ")
                   (princ (nnmaildir--group-maxnum nnmaildir--cur-server group)
 			 nntp-server-buffer)
@@ -985,7 +985,7 @@ by nnmaildir-request-article.")
 	  (princ (nnmaildir--group-maxnum nnmaildir--cur-server group)
 		 nntp-server-buffer)
 	  (insert " "
-		  (gnus-replace-in-string gname " " "\\ " t)
+		  (replace-regexp-in-string " " "\\ " gname nil t)
 		  "\n")))))
   'group)
 
@@ -1116,7 +1116,7 @@ by nnmaildir-request-article.")
 	(insert " ")
 	(princ (nnmaildir--group-maxnum nnmaildir--cur-server group)
 	       nntp-server-buffer)
-	(insert " " (gnus-replace-in-string gname " " "\\ " t) "\n")
+	(insert " " (replace-regexp-in-string " " "\\ " gname nil t) "\n")
 	t))))
 
 (defun nnmaildir-request-create-group (gname &optional server _args)
@@ -1278,7 +1278,7 @@ by nnmaildir-request-article.")
 	      (insert "\t" (nnmaildir--nov-get-beg nov) "\t"
 		      (nnmaildir--art-msgid article) "\t"
 		      (nnmaildir--nov-get-mid nov) "\tXref: nnmaildir "
-		      (gnus-replace-in-string gname " " "\\ " t) ":")
+		      (replace-regexp-in-string " " "\\ " gname nil t) ":")
 	      (princ num nntp-server-buffer)
 	      (insert "\t" (nnmaildir--nov-get-end nov) "\n"))))
     (catch 'return
@@ -1396,8 +1396,8 @@ by nnmaildir-request-article.")
 	      (concat "File exists: " tmpfile))
 	(throw 'return nil))
       (with-current-buffer buffer
-	(gmm-write-region (point-min) (point-max) tmpfile nil 'no-message nil
-			  'excl))
+	(write-region (point-min) (point-max) tmpfile nil 'no-message nil
+		      'excl))
       (unix-sync) ;; no fsync :(
       (rename-file tmpfile (concat (nnmaildir--cur dir) file suffix) 'replace)
       t)))
@@ -1490,8 +1490,8 @@ by nnmaildir-request-article.")
 				  (throw 'return nil))))
       (condition-case nil (add-name-to-file nnmaildir--file tmpfile)
 	(error
-	 (gmm-write-region (point-min) (point-max) tmpfile nil 'no-message nil
-			   'excl)
+	 (write-region (point-min) (point-max) tmpfile nil 'no-message nil
+		       'excl)
 	 (when (fboundp 'unix-sync)
 	   (unix-sync)))) ;; no fsync :(
       (nnheader-cancel-timer 24h)

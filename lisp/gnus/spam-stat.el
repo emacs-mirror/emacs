@@ -493,18 +493,6 @@ where DIFF is the difference between SCORE and 0.5."
     (setcdr (nthcdr 14 result) nil)
     result))
 
-(eval-when-compile
-  (defmacro spam-stat-called-interactively-p (kind)
-    (condition-case nil
-	(progn
-	  (eval '(called-interactively-p 'any))
-	  ;; Emacs >=23.2
-	  `(called-interactively-p ,kind))
-      ;; Emacs <23.2
-      (wrong-number-of-arguments '(called-interactively-p))
-      ;; XEmacs
-      (void-function '(interactive-p)))))
-
 (defun spam-stat-score-buffer ()
   "Return a score describing the spam-probability for this buffer.
 Add user supplied modifications if supplied."
@@ -522,7 +510,7 @@ Add user supplied modifications if supplied."
 	    (error nil)))
 	 (ans
 	  (if score1s (+ score0 score1s) score0)))
-    (when (spam-stat-called-interactively-p 'any)
+    (when (called-interactively-p 'any)
       (message "%S" ans))
     ans))
 

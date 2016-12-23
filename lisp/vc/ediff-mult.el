@@ -1846,9 +1846,9 @@ all marked sessions must be active."
 		     (read-string
 		      (if (stringp default-regexp)
 			  (format
-			   "Filter through regular expression (default %s): "
+			   "Filter filenames through regular expression (default %s): "
 			   default-regexp)
-			"Filter through regular expression: ")
+			"Filter filenames through regular expression: ")
 		      nil
 		      'ediff-filtering-regexp-history
 		      (eval ediff-default-filtering-regexp)))
@@ -1872,7 +1872,7 @@ all marked sessions must be active."
 		  (file-directory-p file1))
 	     (if (ediff-buffer-live-p session-buf)
 		 (ediff-show-meta-buffer session-buf)
-	       (setq regexp (read-string "Filter through regular expression: "
+	       (setq regexp (read-string "Filter filenames through regular expression: "
 					 nil 'ediff-filtering-regexp-history))
 	       (ediff-directory-revisions-internal
 		file1 regexp

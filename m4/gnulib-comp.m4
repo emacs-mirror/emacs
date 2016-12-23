@@ -78,6 +78,8 @@ AC_DEFUN([gl_EARLY],
   # Code from module fdatasync:
   # Code from module fdopendir:
   # Code from module filemode:
+  # Code from module filevercmp:
+  # Code from module flexmember:
   # Code from module fpending:
   # Code from module fstatat:
   # Code from module fsync:
@@ -97,6 +99,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module inttypes-incomplete:
   # Code from module largefile:
   AC_REQUIRE([AC_SYS_LARGEFILE])
+  # Code from module limits-h:
   # Code from module lstat:
   # Code from module manywarnings:
   # Code from module memrchr:
@@ -126,6 +129,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module ssize_t:
   # Code from module stat:
   # Code from module stat-time:
+  # Code from module std-gnu11:
   # Code from module stdalign:
   # Code from module stddef:
   # Code from module stdint:
@@ -230,10 +234,10 @@ AC_DEFUN([gl_INIT],
   gl_DIRENT_MODULE_INDICATOR([fdopendir])
   gl_MODULE_INDICATOR([fdopendir])
   gl_FILEMODE
+  AC_C_FLEXIBLE_ARRAY_MEMBER
   gl_FUNC_FPENDING
   if test $gl_cv_func___fpending = no; then
     AC_LIBOBJ([fpending])
-    gl_PREREQ_FPENDING
   fi
   gl_FUNC_FSTATAT
   if test $HAVE_FSTATAT = 0 || test $REPLACE_FSTATAT = 1; then
@@ -280,6 +284,7 @@ AC_DEFUN([gl_INIT],
   gl_SYS_TIME_MODULE_INDICATOR([gettimeofday])
   gl_INTTYPES_INCOMPLETE
   AC_REQUIRE([gl_LARGEFILE])
+  gl_LIMITS_H
   gl_FUNC_LSTAT
   if test $REPLACE_LSTAT = 1; then
     AC_LIBOBJ([lstat])
@@ -888,6 +893,9 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/fdopendir.c
   lib/filemode.c
   lib/filemode.h
+  lib/filevercmp.c
+  lib/filevercmp.h
+  lib/flexmember.h
   lib/fpending.c
   lib/fpending.h
   lib/fstatat.c
@@ -910,6 +918,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/ignore-value.h
   lib/intprops.h
   lib/inttypes.in.h
+  lib/limits.in.h
   lib/lstat.c
   lib/md5.c
   lib/md5.h
@@ -946,6 +955,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/stdalign.in.h
   lib/stddef.in.h
   lib/stdint.in.h
+  lib/stdio-impl.h
   lib/stdio.in.h
   lib/stdlib.in.h
   lib/stpcpy.c
@@ -1009,6 +1019,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/fdatasync.m4
   m4/fdopendir.m4
   m4/filemode.m4
+  m4/flexmember.m4
   m4/fpending.m4
   m4/fstatat.m4
   m4/fsync.m4
@@ -1024,6 +1035,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/include_next.m4
   m4/inttypes.m4
   m4/largefile.m4
+  m4/limits-h.m4
   m4/longlong.m4
   m4/lstat.m4
   m4/manywarnings.m4
@@ -1052,6 +1064,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/st_dm_mode.m4
   m4/stat-time.m4
   m4/stat.m4
+  m4/std-gnu11.m4
   m4/stdalign.m4
   m4/stddef_h.m4
   m4/stdint.m4

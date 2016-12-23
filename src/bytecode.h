@@ -1,20 +1,21 @@
 #include "lisp.h"
 
-/*
- * define BYTE_CODE_SAFE to enable some minor sanity checking (useful for
- * debugging the byte compiler...)
- *
- * define BYTE_CODE_METER to enable generation of a byte-op usage histogram.
- */
-/* #define BYTE_CODE_SAFE */
+/* Define BYTE_CODE_SAFE true to enable some minor sanity checking,
+   useful for debugging the byte compiler.  It defaults to false.  */
+
+#ifndef BYTE_CODE_SAFE
+# define BYTE_CODE_SAFE false
+#endif
+
+/* Define BYTE_CODE_METER to generate a byte-op usage histogram.  */
 /* #define BYTE_CODE_METER */
 
 /* If BYTE_CODE_THREADED is defined, then the interpreter will be
    indirect threaded, using GCC's computed goto extension.  This code,
    as currently implemented, is incompatible with BYTE_CODE_SAFE and
    BYTE_CODE_METER.  */
-#if (defined __GNUC__ && !defined __STRICT_ANSI__ \
-     && !defined BYTE_CODE_SAFE && !defined BYTE_CODE_METER)
+#if (defined __GNUC__ && !defined __STRICT_ANSI__ && !defined __CHKP__ \
+     && !BYTE_CODE_SAFE && !defined BYTE_CODE_METER)
 #define BYTE_CODE_THREADED
 #endif
 
@@ -217,7 +218,7 @@ enum byte_code_op
     BYTE_CODES
 #undef DEFINE
 
-#ifdef BYTE_CODE_SAFE
+#if BYTE_CODE_SAFE
     Bscan_buffer = 0153, /* No longer generated as of v18.  */
     Bset_mark = 0163, /* this loser is no longer generated as of v18 */
 #endif
@@ -225,7 +226,7 @@ enum byte_code_op
 
 /* Whether to maintain a `top' and `bottom' field in the stack frame.  */
 #define BYTE_MAINTAIN_TOP BYTE_CODE_SAFE
-
+
 /* Structure describing a value stack used during byte-code execution
    in Fbyte_code.  */
 
@@ -254,9 +255,10 @@ struct byte_stack
 /* A list of currently active byte-code execution value stacks.
    Fbyte_code adds an entry to the head of this list before it starts
    processing byte-code, and it removes the entry again when it is
-   done.  Signaling an error truncates the list.  */
+   done.  Signaling an error truncates the list.
 
-extern struct byte_stack *byte_stack_list;
+   byte_stack_list is a macro defined in thread.h.  */
+/* struct byte_stack *byte_stack_list; */
 
 /* Actions that must be performed before and after calling a function
    that might GC.  */

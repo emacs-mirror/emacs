@@ -38,6 +38,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <float.h>
 #include <ftoastr.h>
 
+#ifdef WINDOWSNT
+# include <sys/socket.h> /* for F_DUPFD_CLOEXEC */
+#endif
+
 struct terminal;
 
 /* Avoid actual stack overflow in print.  */
@@ -199,7 +203,7 @@ print_unwind (Lisp_Object saved_text)
 static void
 printchar_to_stream (unsigned int ch, FILE *stream)
 {
-  Lisp_Object dv IF_LINT (= Qnil);
+  Lisp_Object dv UNINIT;
   ptrdiff_t i = 0, n = 1;
   Lisp_Object coding_system = Vlocale_coding_system;
   bool encode_p = false;
@@ -660,8 +664,6 @@ A printed representation of an object is text which describes that object.  */)
      but we don't want to deactivate the mark just for that.
      No need for specbind, since errors deactivate the mark.  */
   Lisp_Object save_deactivate_mark = Vdeactivate_mark;
-  bool prev_abort_on_gc = abort_on_gc;
-  abort_on_gc = true;
 
   Lisp_Object printcharfun = Vprin1_to_string_buffer;
   PRINTPREPARE;
@@ -683,7 +685,6 @@ A printed representation of an object is text which describes that object.  */)
 
   Vdeactivate_mark = save_deactivate_mark;
 
-  abort_on_gc = prev_abort_on_gc;
   return unbind_to (count, object);
 }
 
@@ -775,15 +776,6 @@ debug_output_compilation_hack (bool x)
   print_output_debug_flag = x;
 }
 
-#if defined (GNU_LINUX)
-
-/* This functionality is not vitally important in general, so we rely on
-   non-portable ability to use stderr as lvalue.  */
-
-#define WITH_REDIRECT_DEBUGGING_OUTPUT 1
-
-static FILE *initial_stderr_stream = NULL;
-
 DEFUN ("redirect-debugging-output", Fredirect_debugging_output, Sredirect_debugging_output,
        1, 2,
        "FDebug output file: \nP",
@@ -793,30 +785,38 @@ Optional arg APPEND non-nil (interactively, with prefix arg) means
 append to existing target file.  */)
   (Lisp_Object file, Lisp_Object append)
 {
-  if (initial_stderr_stream != NULL)
-    {
-      block_input ();
-      fclose (stderr);
-      unblock_input ();
-    }
-  stderr = initial_stderr_stream;
-  initial_stderr_stream = NULL;
+  /* If equal to STDERR_FILENO, stderr has not been duplicated and is OK as-is.
+     Otherwise, this is a close-on-exec duplicate of the original stderr. */
+  static int stderr_dup = STDERR_FILENO;
+  int fd = stderr_dup;
 
-  if (STRINGP (file))
+  if (! NILP (file))
     {
       file = Fexpand_file_name (file, Qnil);
-      initial_stderr_stream = stderr;
-      stderr = emacs_fopen (SSDATA (file), NILP (append) ? "w" : "a");
-      if (stderr == NULL)
+
+      if (stderr_dup == STDERR_FILENO)
 	{
-	  stderr = initial_stderr_stream;
-	  initial_stderr_stream = NULL;
-	  report_file_error ("Cannot open debugging output stream", file);
+	  int n = fcntl (STDERR_FILENO, F_DUPFD_CLOEXEC, STDERR_FILENO + 1);
+	  if (n < 0)
+	    report_file_error ("dup", file);
+	  stderr_dup = n;
 	}
+
+      fd = emacs_open (SSDATA (ENCODE_FILE (file)),
+		       (O_WRONLY | O_CREAT
+			| (! NILP (append) ? O_APPEND : O_TRUNC)),
+		       0666);
+      if (fd < 0)
+	report_file_error ("Cannot open debugging output stream", file);
     }
+
+  fflush (stderr);
+  if (dup2 (fd, STDERR_FILENO) < 0)
+    report_file_error ("dup2", file);
+  if (fd != stderr_dup)
+    emacs_close (fd);
   return Qnil;
 }
-#endif /* GNU_LINUX */
 
 
 /* This is the interface for debugging printing.  */
@@ -917,7 +917,7 @@ print_error_message (Lisp_Object data, Lisp_Object stream, const char *context,
   else
     {
       Lisp_Object error_conditions = Fget (errname, Qerror_conditions);
-      errmsg = Fget (errname, Qerror_message);
+      errmsg = Fsubstitute_command_keys (Fget (errname, Qerror_message));
       file_error = Fmemq (Qfile_error, error_conditions);
     }
 
@@ -936,7 +936,7 @@ print_error_message (Lisp_Object data, Lisp_Object stream, const char *context,
     if (!STRINGP (errmsg))
       write_string_1 ("peculiar error", stream);
     else if (SCHARS (errmsg))
-      Fprinc (Fsubstitute_command_keys (errmsg), stream);
+      Fprinc (errmsg, stream);
     else
       sep = NULL;
 
@@ -1911,6 +1911,42 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	    }
 	  printchar ('>', printcharfun);
 	}
+      else if (THREADP (obj))
+	{
+	  print_c_string ("#<thread ", printcharfun);
+	  if (STRINGP (XTHREAD (obj)->name))
+	    print_string (XTHREAD (obj)->name, printcharfun);
+	  else
+	    {
+	      int len = sprintf (buf, "%p", XTHREAD (obj));
+	      strout (buf, len, len, printcharfun);
+	    }
+	  printchar ('>', printcharfun);
+	}
+      else if (MUTEXP (obj))
+	{
+	  print_c_string ("#<mutex ", printcharfun);
+	  if (STRINGP (XMUTEX (obj)->name))
+	    print_string (XMUTEX (obj)->name, printcharfun);
+	  else
+	    {
+	      int len = sprintf (buf, "%p", XMUTEX (obj));
+	      strout (buf, len, len, printcharfun);
+	    }
+	  printchar ('>', printcharfun);
+	}
+      else if (CONDVARP (obj))
+	{
+	  print_c_string ("#<condvar ", printcharfun);
+	  if (STRINGP (XCONDVAR (obj)->name))
+	    print_string (XCONDVAR (obj)->name, printcharfun);
+	  else
+	    {
+	      int len = sprintf (buf, "%p", XCONDVAR (obj));
+	      strout (buf, len, len, printcharfun);
+	    }
+	  printchar ('>', printcharfun);
+	}
       else
 	{
 	  ptrdiff_t size = ASIZE (obj);
@@ -2305,9 +2341,7 @@ priorities.  */);
   defsubr (&Sprint);
   defsubr (&Sterpri);
   defsubr (&Swrite_char);
-#ifdef WITH_REDIRECT_DEBUGGING_OUTPUT
   defsubr (&Sredirect_debugging_output);
-#endif
 
   DEFSYM (Qprint_escape_newlines, "print-escape-newlines");
   DEFSYM (Qprint_escape_multibyte, "print-escape-multibyte");

@@ -330,6 +330,8 @@ The marking symbol is specified by the variable `calendar-holiday-marker'."
 This is the place to add key bindings to `calendar-mode-map'."
   :type 'hook
   :group 'calendar-hooks)
+(make-obsolete-variable 'calendar-load-hook
+                        "use `with-eval-after-load' instead." "26.1")
 
 (defcustom calendar-initial-window-hook nil
   "List of functions to be called when the calendar window is created.
@@ -1257,7 +1259,6 @@ diary entries can also be marked on the calendar (see
 
 Runs the following hooks:
 
-`calendar-load-hook' - after loading calendar.el
 `calendar-today-visible-hook', `calendar-today-invisible-hook' - after
    generating a calendar, if today's date is visible or not, respectively
 `calendar-initial-window-hook' - after first creating a calendar

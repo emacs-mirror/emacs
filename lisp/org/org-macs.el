@@ -45,7 +45,8 @@
       (string (decode-char 'ucs c)))))
 
 (declare-function org-add-props "org-compat" (string plist &rest props))
-(declare-function org-string-match-p "org-compat" (&rest args))
+(declare-function org-string-match-p "org-compat"
+                  (regexp string &optional start))
 
 (defmacro org-with-gensyms (symbols &rest body)
   (declare (debug (sexp body)) (indent 1))

@@ -54,10 +54,10 @@ See `erc-encoding-coding-alist'."
   (set (make-local-variable 'write-file-functions) new-val))
 
 (defvar erc-emacs-build-time
-  (if (stringp emacs-build-time)
+  (if (or (stringp emacs-build-time) (not emacs-build-time))
       emacs-build-time
     (format-time-string "%Y-%m-%d" emacs-build-time))
-  "Time at which Emacs was dumped out.")
+  "Time at which Emacs was dumped out, or nil if not available.")
 
 ;; Emacs 21 and XEmacs do not have user-emacs-directory, but XEmacs
 ;; has user-init-directory.
@@ -164,4 +164,3 @@ If START or END is negative, it counts from the end."
 ;; indent-tabs-mode: t
 ;; tab-width: 8
 ;; End:
-

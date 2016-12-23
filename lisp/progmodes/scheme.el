@@ -54,7 +54,7 @@
 
 (defvar scheme-mode-syntax-table
   (let ((st (make-syntax-table))
-	(i 0))
+        (i 0))
     ;; Symbol constituents
     ;; We used to treat chars 128-256 as symbol-constituent, but they
     ;; should be valid word constituents (Bug#8843).  Note that valid
@@ -116,11 +116,11 @@
 
 (defvar scheme-imenu-generic-expression
       '((nil
-	 "^(define\\(\\|-\\(generic\\(\\|-procedure\\)\\|method\\)\\)*\\s-+(?\\(\\sw+\\)" 4)
-	("Types"
-	 "^(define-class\\s-+(?\\(\\sw+\\)" 1)
-	("Macros"
-	 "^(\\(defmacro\\|define-macro\\|define-syntax\\)\\s-+(?\\(\\sw+\\)" 2))
+         "^(define\\(\\|-\\(generic\\(\\|-procedure\\)\\|method\\)\\)*\\s-+(?\\(\\sw+\\)" 4)
+        ("Types"
+         "^(define-class\\s-+(?\\(\\sw+\\)" 1)
+        ("Macros"
+         "^(\\(defmacro\\|define-macro\\|define-syntax\\)\\s-+(?\\(\\sw+\\)" 2))
   "Imenu generic expression for Scheme mode.  See `imenu-generic-expression'.")
 
 (defun scheme-mode-variables ()
@@ -151,18 +151,19 @@
   (setq-local imenu-syntax-alist '(("+-*/.<>=?!$%_&~^:" . "w")))
   (setq-local syntax-propertize-function #'scheme-syntax-propertize)
   (setq font-lock-defaults
-	'((scheme-font-lock-keywords
-	   scheme-font-lock-keywords-1 scheme-font-lock-keywords-2)
-	  nil t (("+-*/.<>=!?$%_&~^:" . "w") (?#. "w 14"))
-	  beginning-of-defun
-	  (font-lock-mark-block-function . mark-defun)))
+        '((scheme-font-lock-keywords
+           scheme-font-lock-keywords-1 scheme-font-lock-keywords-2)
+          nil t (("+-*/.<>=!?$%_&~^:" . "w") (?#. "w 14"))
+          beginning-of-defun
+          (font-lock-mark-block-function . mark-defun)))
+  (setq-local prettify-symbols-alist lisp-prettify-symbols-alist)
   (setq-local lisp-doc-string-elt-property 'scheme-doc-string-elt))
 
 (defvar scheme-mode-line-process "")
 
 (defvar scheme-mode-map
   (let ((smap (make-sparse-keymap))
-	(map (make-sparse-keymap "Scheme")))
+        (map (make-sparse-keymap "Scheme")))
     (set-keymap-parent smap lisp-mode-shared-map)
     (define-key smap [menu-bar scheme] (cons "Scheme" map))
     (define-key map [run-scheme] '("Run Inferior Scheme" . run-scheme))
@@ -270,25 +271,25 @@ See `run-hooks'."
      ;; Declarations.  Hannes Haug <hannes.haug@student.uni-tuebingen.de> says
      ;; this works for SOS, STklos, SCOOPS, Meroon and Tiny CLOS.
      (list (concat "(\\(define\\*?\\("
-		   ;; Function names.
-		   "\\(\\|-public\\|-method\\|-generic\\(-procedure\\)?\\)\\|"
-		   ;; Macro names, as variable names.  A bit dubious, this.
-		   "\\(-syntax\\|-macro\\)\\|"
-		   ;; Class names.
-		   "-class"
+                   ;; Function names.
+                   "\\(\\|-public\\|-method\\|-generic\\(-procedure\\)?\\)\\|"
+                   ;; Macro names, as variable names.  A bit dubious, this.
+                   "\\(-syntax\\|-macro\\)\\|"
+                   ;; Class names.
+                   "-class"
                    ;; Guile modules.
                    "\\|-module"
-		   "\\)\\)\\>"
-		   ;; Any whitespace and declared object.
-		   ;; The "(*" is for curried definitions, e.g.,
-		   ;;  (define ((sum a) b) (+ a b))
-		   "[ \t]*(*"
-		   "\\(\\sw+\\)?")
-	   '(1 font-lock-keyword-face)
-	   '(6 (cond ((match-beginning 3) font-lock-function-name-face)
-		     ((match-beginning 5) font-lock-variable-name-face)
-		     (t font-lock-type-face))
-	       nil t))
+                   "\\)\\)\\>"
+                   ;; Any whitespace and declared object.
+                   ;; The "(*" is for curried definitions, e.g.,
+                   ;;  (define ((sum a) b) (+ a b))
+                   "[ \t]*(*"
+                   "\\(\\sw+\\)?")
+           '(1 font-lock-keyword-face)
+           '(6 (cond ((match-beginning 3) font-lock-function-name-face)
+                     ((match-beginning 5) font-lock-variable-name-face)
+                     (t font-lock-type-face))
+               nil t))
      ))
   "Subdued expressions to highlight in Scheme modes.")
 
@@ -300,21 +301,30 @@ See `run-hooks'."
       ;; Control structures.
       (cons
        (concat
-	"(" (regexp-opt
-	     '("begin" "call-with-current-continuation" "call/cc"
-	       "call-with-input-file" "call-with-output-file" "case" "cond"
-	       "do" "else" "for-each" "if" "lambda" "λ"
-	       "let" "let*" "let-syntax" "letrec" "letrec-syntax"
-	       ;; R6RS library subforms.
-	       "export" "import"
-	       ;; SRFI 11 usage comes up often enough.
-	       "let-values" "let*-values"
-	       ;; Hannes Haug <hannes.haug@student.uni-tuebingen.de> wants:
-	       "and" "or" "delay" "force"
-	       ;; Stefan Monnier <stefan.monnier@epfl.ch> says don't bother:
-	       ;;"quasiquote" "quote" "unquote" "unquote-splicing"
-	       "map" "syntax" "syntax-rules") t)
-	"\\>") 1)
+        "(" (regexp-opt
+             '("begin" "call-with-current-continuation" "call/cc"
+               "call-with-input-file" "call-with-output-file" "case" "cond"
+               "do" "else" "for-each" "if" "lambda" "λ"
+               "let" "let*" "let-syntax" "letrec" "letrec-syntax"
+               ;; R6RS library subforms.
+               "export" "import"
+               ;; SRFI 11 usage comes up often enough.
+               "let-values" "let*-values"
+               ;; Hannes Haug <hannes.haug@student.uni-tuebingen.de> wants:
+               "and" "or" "delay" "force"
+               ;; Stefan Monnier <stefan.monnier@epfl.ch> says don't bother:
+               ;;"quasiquote" "quote" "unquote" "unquote-splicing"
+	       "map" "syntax" "syntax-rules"
+	       ;; For R7RS
+	       "when" "unless" "letrec*" "include" "include-ci" "cond-expand"
+	       "delay-force" "parameterize" "guard" "case-lambda"
+	       "syntax-error" "only" "except" "prefix" "rename" "define-values"
+	       "define-record-type" "define-library"
+	       "include-library-declarations"
+	       ;; SRFI-8
+	       "receive"
+	       ) t)
+        "\\>") 1)
       ;;
       ;; It wouldn't be Scheme w/o named-let.
       '("(let\\s-+\\(\\sw+\\)"
@@ -327,8 +337,8 @@ See `run-hooks'."
       '("\\<#?:\\sw+\\>" . font-lock-builtin-face)
       ;; R6RS library declarations.
       '("(\\(\\<library\\>\\)\\s-*(?\\(\\sw+\\)?"
-	(1 font-lock-keyword-face)
-	(2 font-lock-type-face))
+        (1 font-lock-keyword-face)
+        (2 font-lock-type-face))
       )))
   "Gaudy expressions to highlight in Scheme modes.")
 
@@ -393,9 +403,9 @@ that variable's value is a string."
        (not buffer-read-only)
        (insert dsssl-sgml-declaration))
   (setq font-lock-defaults '(dsssl-font-lock-keywords
-			     nil t (("+-*/.<>=?$%_&~^:" . "w"))
-			     beginning-of-defun
-			     (font-lock-mark-block-function . mark-defun)))
+                             nil t (("+-*/.<>=?$%_&~^:" . "w"))
+                             beginning-of-defun
+                             (font-lock-mark-block-function . mark-defun)))
   (setq-local add-log-current-defun-function #'lisp-current-defun-name)
   (setq-local imenu-case-fold-search nil)
   (setq imenu-generic-expression dsssl-imenu-generic-expression)
@@ -415,22 +425,22 @@ that variable's value is a string."
   (eval-when-compile
     (list
      ;; Similar to Scheme
-     (list "(\\(define\\(-\\w+\\)?\\)\\>[ 	]*\\((?\\)\\(\\sw+\\)\\>"
-	   '(1 font-lock-keyword-face)
-	   '(4 font-lock-function-name-face))
+     (list "(\\(define\\(-\\w+\\)?\\)\\>[ \t]*\\((?\\)\\(\\sw+\\)\\>"
+           '(1 font-lock-keyword-face)
+           '(4 font-lock-function-name-face))
      (cons
       (concat "(\\("
-	      ;; (make-regexp '("case" "cond" "else" "if" "lambda"
-	      ;; "let" "let*" "letrec" "and" "or" "map" "with-mode"))
-	      "and\\|c\\(ase\\|ond\\)\\|else\\|if\\|"
-	      "l\\(ambda\\|et\\(\\|*\\|rec\\)\\)\\|map\\|or\\|with-mode"
-	      "\\)\\>")
+              ;; (make-regexp '("case" "cond" "else" "if" "lambda"
+              ;; "let" "let*" "letrec" "and" "or" "map" "with-mode"))
+              "and\\|c\\(ase\\|ond\\)\\|else\\|if\\|"
+              "l\\(ambda\\|et\\(\\|*\\|rec\\)\\)\\|map\\|or\\|with-mode"
+              "\\)\\>")
       1)
      ;; DSSSL syntax
-     '("(\\(element\\|mode\\|declare-\\w+\\)\\>[ 	]*\\(\\sw+\\)"
+     '("(\\(element\\|mode\\|declare-\\w+\\)\\>[ \t]*\\(\\sw+\\)"
        (1 font-lock-keyword-face)
        (2 font-lock-type-face))
-     '("(\\(element\\)\\>[ 	]*(\\(\\S)+\\))"
+     '("(\\(element\\)\\>[ \t]*(\\(\\S)+\\))"
        (1 font-lock-keyword-face)
        (2 font-lock-type-face))
      '("\\<\\sw+:\\>" . font-lock-constant-face) ; trailing `:' c.f. scheme
@@ -467,7 +477,7 @@ indentation."
               (progn (goto-char calculate-lisp-indent-last-sexp)
                      (beginning-of-line)
                      (parse-partial-sexp (point)
-					 calculate-lisp-indent-last-sexp 0 t)))
+                                         calculate-lisp-indent-last-sexp 0 t)))
           ;; Indent under the list or under the first sexp on the same
           ;; line as calculate-lisp-indent-last-sexp.  Note that first
           ;; thing on that line has to be complete sexp since we are
@@ -475,20 +485,20 @@ indentation."
           (backward-prefix-chars)
           (current-column))
       (let ((function (buffer-substring (point)
-					(progn (forward-sexp 1) (point))))
-	    method)
-	(setq method (or (get (intern-soft function) 'scheme-indent-function)
-			 (get (intern-soft function) 'scheme-indent-hook)))
-	(cond ((or (eq method 'defun)
-		   (and (null method)
-			(> (length function) 3)
-			(string-match "\\`def" function)))
-	       (lisp-indent-defform state indent-point))
-	      ((integerp method)
-	       (lisp-indent-specform method state
-				     indent-point normal-indent))
-	      (method
-		(funcall method state indent-point normal-indent)))))))
+                                        (progn (forward-sexp 1) (point))))
+            method)
+        (setq method (or (get (intern-soft function) 'scheme-indent-function)
+                         (get (intern-soft function) 'scheme-indent-hook)))
+        (cond ((or (eq method 'defun)
+                   (and (null method)
+                        (> (length function) 3)
+                        (string-match "\\`def" function)))
+               (lisp-indent-defform state indent-point))
+              ((integerp method)
+               (lisp-indent-specform method state
+                                     indent-point normal-indent))
+              (method
+                (funcall method state indent-point normal-indent)))))))
 
 
 ;;; Let is different in Scheme
@@ -545,6 +555,18 @@ indentation."
 (put 'with-output-to-port 'scheme-indent-function 1)
 (put 'call-with-values 'scheme-indent-function 1) ; r5rs?
 (put 'dynamic-wind 'scheme-indent-function 3) ; r5rs?
+
+;; R7RS
+(put 'when 'scheme-indent-function 1)
+(put 'unless 'scheme-indent-function 1)
+(put 'letrec* 'scheme-indent-function 1)
+(put 'parameterize 'scheme-indent-function 1)
+(put 'define-values 'scheme-indent-function 1)
+(put 'define-record-type 'scheme-indent-function 1) ;; is 1 correct?
+(put 'define-library 'scheme-indent-function 1)
+
+;; SRFI-8
+(put 'receive 'scheme-indent-function 2)
 
 ;;;; MIT Scheme specific indentation.
 

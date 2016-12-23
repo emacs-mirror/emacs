@@ -165,10 +165,10 @@ follow the naming conventions for hooks.  @xref{Hooks}.
 @item
 @cindex unloading packages, preparing for
 If loading the file adds functions to hooks, define a function
-@code{@var{feature}-unload-hook}, where @var{feature} is the name of
-the feature the package provides, and make it undo any such changes.
-Using @code{unload-feature} to unload the file will run this function.
-@xref{Unloading}.
+@code{@var{feature}-unload-function}, where @var{feature} is the name
+of the feature the package provides, and make it undo any such
+changes.  Using @code{unload-feature} to unload the file will run this
+function.  @xref{Unloading}.
 
 @item
 It is a bad idea to define aliases for the Emacs primitives.  Normally
@@ -679,8 +679,7 @@ which quotes symbols with grave accent @t{`} and apostrophe
 @t{'}: @t{`like-this'} rather than @t{‘like-this’}.  This
 older convention was designed for now-obsolete displays in which grave
 accent and apostrophe were mirror images.
-
-Documentation using either convention is converted to the user's
+Documentation using this convention is converted to the user's
 preferred format when it is copied into a help buffer.  @xref{Keys in
 Documentation}.
 

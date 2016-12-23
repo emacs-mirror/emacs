@@ -43,10 +43,12 @@
   "Where nndraft will store its files."
   nnmh-directory)
 
-(defvar nndraft-required-headers '(Date)
-  "*Headers to be generated when saving a draft message.
+(defcustom nndraft-required-headers '(Date)
+  "Headers to be generated when saving a draft message.
 The headers in this variable and the ones in `message-required-headers'
-are generated if and only if they are also in `message-draft-headers'.")
+are generated if and only if they are also in `message-draft-headers'."
+  :type '(repeat sexp)
+  :group 'message-headers)		; FIXME wrong group
 
 
 
@@ -203,12 +205,7 @@ are generated if and only if they are also in `message-draft-headers'.")
     (setq buffer-file-name (expand-file-name file)
 	  buffer-auto-save-file-name (make-auto-save-file-name))
     (clear-visited-file-modtime)
-    (let ((hook (if (boundp 'write-contents-functions)
-		    'write-contents-functions
-		  'write-contents-hooks)))
-      (gnus-make-local-hook hook)
-      (add-hook hook 'nndraft-generate-headers nil t))
-    (gnus-make-local-hook 'after-save-hook)
+    (add-hook 'write-contents-functions 'nndraft-generate-headers nil t)
     (add-hook 'after-save-hook 'nndraft-update-unread-articles nil t)
     (message-add-action '(nndraft-update-unread-articles)
 			'exit 'postpone 'kill)

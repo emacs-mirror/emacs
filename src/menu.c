@@ -42,12 +42,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif /* HAVE_WINDOW_SYSTEM */
 
 #ifdef HAVE_NTGUI
-# ifdef NTGUI_UNICODE
-# define unicode_append_menu AppendMenuW
-# else /* !NTGUI_UNICODE */
 extern AppendMenuW_Proc unicode_append_menu;
-# endif /* NTGUI_UNICODE */
-extern HMENU current_popup_menu;
 #endif /* HAVE_NTGUI  */
 
 #include "menu.h"
@@ -408,7 +403,7 @@ single_menu_item (Lisp_Object key, Lisp_Object item, Lisp_Object dummy, void *sk
 
       if (prefix)
 	{
-	  AUTO_STRING (prefix_obj, prefix);
+	  AUTO_STRING_WITH_LEN (prefix_obj, prefix, 4);
 	  item_string = concat2 (prefix_obj, item_string);
 	}
   }
@@ -1050,7 +1045,7 @@ menu_item_width (const unsigned char *str)
       int ch_len;
       int ch = STRING_CHAR_AND_LENGTH (p, ch_len);
 
-      len += CHAR_WIDTH (ch);
+      len += CHARACTER_WIDTH (ch);
       p += ch_len;
     }
   return len;
@@ -1545,7 +1540,7 @@ for instance using the window manager, then this produces a quit and
 
   /* Note that xw_popup_dialog can call menu code, so
      Vmenu_updating_frame should be set (Bug#17891).  */
-  eassert (f && FRAME_LIVE_P (f));
+  eassume (f && FRAME_LIVE_P (f));
   XSETFRAME (Vmenu_updating_frame, f);
 
   /* Force a redisplay before showing the dialog.  If a frame is created

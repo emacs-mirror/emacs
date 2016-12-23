@@ -380,7 +380,7 @@ struct font
 #endif /* HAVE_WINDOW_SYSTEM */
 
   /* Font-driver for the font.  */
-  struct font_driver *driver;
+  struct font_driver const *driver;
 
   /* There are more members in this structure, but they are private
      to the font-driver.  */
@@ -763,6 +763,13 @@ struct font_driver
      Return non-nil if the driver support rendering of combining
      characters for FONT according to Unicode combining class.  */
   Lisp_Object (*combining_capability) (struct font *font);
+
+  /* Optional
+
+     Called when frame F is double-buffered and its size changes; Xft
+     relies on this hook to throw away its old XftDraw (which won't
+     work after the size change) and get a new one.  */
+  void (*drop_xrender_surfaces) (struct frame *f);
 };
 
 
@@ -776,7 +783,7 @@ struct font_driver_list
      font driver list.*/
   bool on;
   /* Pointer to the font driver.  */
-  struct font_driver *driver;
+  struct font_driver const *driver;
   /* Pointer to the next element of the chain.  */
   struct font_driver_list *next;
 };
@@ -834,13 +841,13 @@ extern void font_parse_family_registry (Lisp_Object family,
 extern int font_parse_xlfd (char *name, ptrdiff_t len, Lisp_Object font);
 extern ptrdiff_t font_unparse_xlfd (Lisp_Object font, int pixel_size,
 				    char *name, int bytes);
-extern void register_font_driver (struct font_driver *driver, struct frame *f);
+extern void register_font_driver (struct font_driver const *, struct frame *);
 extern void free_font_driver_list (struct frame *f);
 #ifdef ENABLE_CHECKING
-extern bool valid_font_driver (struct font_driver *);
+extern bool valid_font_driver (struct font_driver const *);
 #else
 INLINE bool
-valid_font_driver (struct font_driver *d)
+valid_font_driver (struct font_driver const *d)
 {
   return true;
 }
@@ -862,21 +869,42 @@ extern void *font_get_frame_data (struct frame *f, Lisp_Object);
 extern void font_filter_properties (Lisp_Object font,
 				    Lisp_Object alist,
 				    const char *const boolean_properties[],
-				    const char *const non_boolean_properties[]);
+                                    const char *const non_boolean_properties[]);
+
+extern void font_drop_xrender_surfaces (struct frame *f);
 
 #ifdef HAVE_FREETYPE
-extern struct font_driver ftfont_driver;
+extern int ftfont_anchor_point (struct font *, unsigned int, int,
+				int *, int *);
+extern int ftfont_get_bitmap (struct font *, unsigned int,
+			      struct font_bitmap *, int);
+extern int ftfont_has_char (Lisp_Object, int);
+extern int ftfont_variation_glyphs (struct font *, int, unsigned[256]);
+extern Lisp_Object ftfont_combining_capability (struct font *);
+extern Lisp_Object ftfont_get_cache (struct frame *);
+extern Lisp_Object ftfont_list (struct frame *, Lisp_Object);
+extern Lisp_Object ftfont_list_family (struct frame *);
+extern Lisp_Object ftfont_match (struct frame *, Lisp_Object);
+extern Lisp_Object ftfont_open (struct frame *, Lisp_Object, int);
+extern Lisp_Object ftfont_otf_capability (struct font *);
+extern Lisp_Object ftfont_shape (Lisp_Object);
+extern unsigned ftfont_encode_char (struct font *, int);
+extern void ftfont_close (struct font *);
+extern void ftfont_filter_properties (Lisp_Object, Lisp_Object);
+extern void ftfont_text_extents (struct font *, unsigned *, int,
+				 struct font_metrics *);
 extern void syms_of_ftfont (void);
 #endif	/* HAVE_FREETYPE */
 #ifdef HAVE_X_WINDOWS
-extern struct font_driver xfont_driver;
+extern struct font_driver const xfont_driver;
+extern Lisp_Object xfont_get_cache (struct frame *);
 extern void syms_of_xfont (void);
 extern void syms_of_ftxfont (void);
 #ifdef HAVE_XFT
-extern struct font_driver xftfont_driver;
+extern struct font_driver const xftfont_driver;
 #endif
 #if defined HAVE_FREETYPE || defined HAVE_XFT
-extern struct font_driver ftxfont_driver;
+extern struct font_driver const ftxfont_driver;
 extern void syms_of_xftfont (void);
 #endif
 #ifdef HAVE_BDFFONT
@@ -889,12 +917,12 @@ extern struct font_driver uniscribe_font_driver;
 extern void syms_of_w32font (void);
 #endif	/* HAVE_NTGUI */
 #ifdef HAVE_NS
-extern struct font_driver nsfont_driver;
+extern struct font_driver const nsfont_driver;
 extern void syms_of_nsfont (void);
 extern void syms_of_macfont (void);
 #endif	/* HAVE_NS */
 #ifdef USE_CAIRO
-extern struct font_driver ftcrfont_driver;
+extern struct font_driver const ftcrfont_driver;
 extern void syms_of_ftcrfont (void);
 #endif
 

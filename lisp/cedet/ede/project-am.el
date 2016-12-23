@@ -53,17 +53,17 @@
   )
 
 (defcustom project-am-compile-project-command nil
-  "*Default command used to compile a project."
+  "Default command used to compile a project."
   :group 'project-am
   :type '(choice (const nil) string))
 
 (defcustom project-am-compile-target-command (concat ede-make-command " -k %s")
-  "*Default command used to compile a project."
+  "Default command used to compile a project."
   :group 'project-am
   :type 'string)
 
 (defcustom project-am-debug-target-function 'gdb
-  "*Default Emacs command used to debug a target."
+  "Default Emacs command used to debug a target."
   :group 'project-am
   :type 'function) ; make this be a list some day
 

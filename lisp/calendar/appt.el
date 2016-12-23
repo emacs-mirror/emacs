@@ -482,7 +482,9 @@ Usually just deletes the appointment buffer."
     (and window
          (or (eq window (frame-root-window (window-frame window)))
              (delete-window window))))
-  (kill-buffer appt-buffer-name)
+  (let ((buffer (get-buffer appt-buffer-name)))
+    (when buffer
+      (kill-buffer buffer)))
   (if appt-audible
       (beep 1)))
 

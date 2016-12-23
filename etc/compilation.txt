@@ -84,6 +84,32 @@ Warning: this expression should have type unit.
   File "/tmp/foo.py", line 10
 
 
+* CMake
+
+symbols: cmake cmake-info
+
+CMake Error at CMakeLists.txt:19 (hurz):
+  Unknown CMake command "hurz".
+CMake Warning at cmake/modules/UseUG.cmake:73 (find_package):
+  Could not find a package configuration file provided by "UG" (requested
+  version 3.11.0) with any of the following names:
+
+    UGConfig.cmake
+    ug-config.cmake
+
+  Add the installation prefix of "UG" to CMAKE_PREFIX_PATH or set "UG_DIR" to
+  a directory containing one of the above files.  If "UG" provides a separate
+  development package or SDK, be sure it has been installed.
+Call Stack (most recent call first):
+  cmake/modules/DuneGridMacros.cmake:19 (include)
+  /home/joe/Project/EXA-DUNE/patches/dune-common/cmake/modules/DuneMacros.cmake:556 (include)
+  /home/joe/Project/EXA-DUNE/patches/dune-common/cmake/modules/DuneMacros.cmake:694 (dune_process_dependency_macros)
+  CMakeLists.txt:22 (dune_project)
+
+
+-- Could NOT find UG (missing:  UG_DIR HAVE_UG)
+
+
 * Apollo cc, 4.3BSD fc & IBM RS6000/AIX xlc compiler & Microtec mcc68k & GNAT (July 94)
 
 symbol: comma

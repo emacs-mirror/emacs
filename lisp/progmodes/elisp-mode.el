@@ -245,11 +245,8 @@ Blank lines separate paragraphs.  Semicolons start comments.
 ;; Font-locking support.
 
 (defun elisp--font-lock-flush-elisp-buffers (&optional file)
-  ;; FIXME: Aren't we only ever called from after-load-functions?
-  ;; Don't flush during load unless called from after-load-functions.
-  ;; In that case, FILE is non-nil.  It's somehow strange that
-  ;; load-in-progress is t when an after-load-function is called since
-  ;; that should run *after* the load...
+  ;; We're only ever called from after-load-functions, load-in-progress can
+  ;; still be t in case of nested loads.
   (when (or (not load-in-progress) file)
     ;; FIXME: If the loaded file did not define any macros, there shouldn't
     ;; be any need to font-lock-flush all the Elisp buffers.
@@ -721,7 +718,10 @@ non-nil result supercedes the xrefs produced by
                 (let* ((info (cl--generic-method-info method));; qual-string combined-args doconly
                        (specializers (cl--generic-method-specializers method))
                        (non-default nil)
-                       (met-name (cons symbol specializers))
+                       (met-name (cl--generic-load-hist-format
+                                  symbol
+                                  (cl--generic-method-qualifiers method)
+                                  specializers))
                        (file (find-lisp-object-file-name met-name 'cl-defmethod)))
                   (dolist (item specializers)
                     ;; default method has all 't' in specializers
@@ -1061,6 +1061,17 @@ If CHAR is not a character, return nil."
 	      ((or (eq (following-char) ?\')
 		   (eq (preceding-char) ?\'))
 	       (setq left-quote ?\`)))
+
+        ;; When after a named character literal, skip over the entire
+        ;; literal, not only its last word.
+        (when (= (preceding-char) ?})
+          (let ((begin (save-excursion
+                         (backward-char)
+                         (skip-syntax-backward "w-")
+                         (backward-char 3)
+                         (when (looking-at-p "\\\\N{") (point)))))
+            (when begin (goto-char begin))))
+
 	(forward-sexp -1)
 	;; If we were after `?\e' (or similar case),
 	;; use the whole thing, not just the `e'.

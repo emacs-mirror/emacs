@@ -1,0 +1,106 @@
+HOW TO TRIAGE EMACS BUGS  -*- outline -*-
+
+This document just describes the procedure of triaging bugs, for information on
+how to work with the bug tracker, see the bugtracker file in this same directory
+for the basics.  You can also install the debbugs ELPA package for access to M-x
+debbugs-gnu, an emacs interface to debbugs, and M-x debbugs-org, an emacs
+interface via org-mode.
+
+* Bug backlog triage procedure
+
+The goal of this triage is to prune down the list of old bugs, closing
+the ones that are not reproducible on the current release.
+
+  1. To start, enter debbugs mode (either debbugs-gnu, debbugs-org, or via the
+     web browser), and accept the default list option of bugs that have severity
+     serious, important, or normal.
+  2. For each bug, we want to primarily make sure it is still
+     reproducible.  A bug can and should stay open as long as it is
+     still a bug and no one has fixed it.  The following is a
+     suggested checklist to follow for handling these bugs, along with
+     example replies.  Closing, tagging, etc., are done
+     with debbugs control messages, which in debbugs-gnu is initiated
+     with a "C".
+     [ ] Read the mail thread for the bug.  Find out if anyone has
+         been able to reproduce this on the current release.  If
+         someone has been able to, then your work is finished for this
+         bug.
+     [ ] Make sure there's enough information to reproduce the bug.
+         It should be very clear how to reproduce.  If not, please ask
+         for specific steps to reproduce.  If you don't get them, and
+         you can't reproduce without them, you can tag the bug report
+         as "unreproducible" and close the bug report.  Sometimes this
+         involves specific hardware such as particular models of
+         keyboards, or it may simply involve a platform you don't have
+         access to.  It's fine to ignore those, and let a future
+         triager that is better equipped to reproduce it handle it.
+
+         An example reply asking for clear reproduction steps would be
+         something like: "Hi!  In the interest of seeing whether this
+         is reproducible, and to aid anyone who will look at this bug
+         in the future, can you please give instructions on how to
+         reproduce this bug starting from an emacs without
+         configuration ("emacs -Q")?
+     [ ] If there is enough detail to reproduce, but no one has
+         mentioned being able to reproduce on the current release,
+         read the bug description and attempt to reproduce on an emacs
+         started with "emacs -Q" (the goal is to not let our personal
+         configs interfere with bug testing).
+
+         If you can reproduce, then reply on the thread (either on the
+         original message, or anywhere you find appropriate) that you
+         can reproduce this on the current release. If your
+         reproduction gives additional info (such as a backtrace),
+         then add that as well, since it will help whoever attempts to
+         fix it.
+
+         Example reply: "I'd just like to add that I can reproduce
+         this on the latest version of Emacs, Emacs 25."
+
+         If you can't reproduce, state that you can't reproduce it on
+         the current release, ask if they can try again against the
+         current release.  Tag the bug as "unreproducible".  Wait a
+         few weeks for their reply - if they can reproduce it, then
+         that's great, otherwise close the bug report.
+
+         Example reply: "I've attempted to reproduce this on the
+         latest version of emacs, Emacs 25, but haven't been able to.
+         Can you try to reproduce this on this version, and let us
+         know if you are able to?  If I don't hear back in a few
+         weeks, I'll just close this bug as unreproducible."
+     [ ] Check that the priority is reasonable.  Most bugs should be
+         marked as normal, but crashers and security issues can be
+         marked as serious.
+  3. Your changes will take some time to take effect.  After a period of minutes
+     to hours, you will get a mail telling you the control message has been
+     processed.  At this point, if there were no errors detected, you and
+     everyone else can see your changes. If there are errors, read the error
+     text - if you need help, consulting the bugtracker documentation in this
+     same directory.
+
+* New bug triage process
+
+The goal of the new bug triage process is similar to the backlog triage process,
+except that the focus is on prioritizing the bug, and making sure it is has
+necessary information for others to act on.
+
+For each new bug, ask the following questions:
+
+  1. Is the bug report written in a way to be easy to reproduce (starts from
+     emacs -Q, etc.)?  If not, ask the reporter to try and reproduce it on an
+     emacs without customization.
+  2. Is the bug report written against the latest emacs?  If not, try to
+     reproduce on the latest version, and if it can't be reproduced, ask the
+     reporter to try again with the latest version.
+  3. Is the bug the same as another bug?  If so, merge the bugs.
+  4. What is the priority of the bug?  Add a priority: serious, important,
+     normal, minor, or wishlist.
+  5. Who should be the owner?  This depends on what component the bug is part
+     of.  You can look at the admin/MAINTAINERS file (then you can just search
+     emacs-devel to match the name with an email address).
+
+In the debbugs-gnu buffer, bugs are marked in the "State" column
+according to the communication flow.  Red bugs mean that nobody has
+answered, these bugs need primary attention.  Green bugs flag that
+there is a recent communication about, and orange bugs flag that the
+bug hasn't been touched for at least two weeks.

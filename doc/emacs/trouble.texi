@@ -417,19 +417,22 @@ first @kbd{C-g} properly, then the second one will get you back to the
 shell.
 
   When you resume Emacs after a suspension caused by emergency escape,
-it asks two questions before going back to what it had been doing:
+it reports the resumption and asks a question or two before going back
+to what it had been doing:
 
 @example
+Emacs is resuming after an emergency escape.
 Auto-save? (y or n)
 Abort (and dump core)? (y or n)
 @end example
 
 @noindent
-Answer each one with @kbd{y} or @kbd{n} followed by @key{RET}.
+Answer each question with @kbd{y} or @kbd{n} followed by @key{RET}.
 
   Saying @kbd{y} to @samp{Auto-save?} causes immediate auto-saving of
 all modified buffers in which auto-saving is enabled.  Saying @kbd{n}
-skips this.
+skips this.  This question is omitted if Emacs is in a state where
+auto-saving cannot be done safely.
 
   Saying @kbd{y} to @samp{Abort (and dump core)?} causes Emacs to
 crash, dumping core.  This is to enable a wizard to figure out why

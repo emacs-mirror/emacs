@@ -17584,11 +17584,10 @@ file that set values:
 
 @group
 ;; Set calendar highlighting colors
-(add-hook 'calendar-load-hook
-      (lambda ()
-        (set-face-foreground 'diary-face   "skyblue")
-        (set-face-background 'holiday-face "slate blue")
-        (set-face-foreground 'holiday-face "white")))
+(with-eval-after-load 'calendar
+  (set-face-foreground 'diary   "skyblue")
+  (set-face-background 'holiday "slate blue")
+  (set-face-foreground 'holiday "white"))
 @end group
 @end smallexample
 
@@ -17647,7 +17646,7 @@ Set the shape and color of the mouse cursor:
       (setq mpointer "132")) ; top_left_arrow
 @end group
 @group
-  (setq x-pointer-shape (string-to-int mpointer))
+  (setq x-pointer-shape (string-to-number mpointer))
   (set-mouse-color "white"))
 @end group
 @end smallexample

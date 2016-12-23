@@ -219,22 +219,17 @@ The bounds of THING are determined by `bounds-of-thing-at-point'."
 
 (defun thing-at-point-bounds-of-list-at-point ()
   "Return the bounds of the list at point.
-[Internal function used by `bounds-of-thing-at-point'.]"
+\[Internal function used by `bounds-of-thing-at-point'.]"
   (save-excursion
-    (let ((opoint (point))
-	  (beg (ignore-errors
-		 (up-list -1)
-		 (point))))
-      (ignore-errors
-	(if beg
-	    (progn (forward-sexp)
-		   (cons beg (point)))
-	  ;; Are we are at the beginning of a top-level sexp?
-	  (forward-sexp)
-	  (let ((end (point)))
-	    (backward-sexp)
-	    (if (>= opoint (point))
-		(cons opoint end))))))))
+    (let* ((st (parse-partial-sexp (point-min) (point)))
+           (beg (or (and (eq 4 (car (syntax-after (point))))
+                         (not (nth 8 st))
+                         (point))
+                    (nth 1 st))))
+      (when beg
+        (goto-char beg)
+        (forward-sexp)
+        (cons beg (point))))))
 
 ;; Defuns
 
@@ -586,9 +581,11 @@ Signal an error if the entire string was not used."
   "This is an internal thingatpt function and should not be used.")
 
 (defun form-at-point (&optional thing pred)
-  (let ((sexp (ignore-errors
-		(thing-at-point--read-from-whole-string
-		 (thing-at-point (or thing 'sexp))))))
+  (let* ((obj (thing-at-point (or thing 'sexp)))
+         (sexp (if (stringp obj)
+                   (ignore-errors
+                     (thing-at-point--read-from-whole-string obj))
+                 obj)))
     (if (or (not pred) (funcall pred sexp)) sexp)))
 
 ;;;###autoload
@@ -603,7 +600,10 @@ Signal an error if the entire string was not used."
 ;;;###autoload
 (defun number-at-point ()
   "Return the number at point, or nil if none is found."
-  (form-at-point 'sexp 'numberp))
+  (when (thing-at-point-looking-at "-?[0-9]+\\.?[0-9]*" 500)
+    (string-to-number
+     (buffer-substring (match-beginning 0) (match-end 0)))))
+
 (put 'number 'thing-at-point 'number-at-point)
 ;;;###autoload
 (defun list-at-point ()

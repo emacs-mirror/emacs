@@ -218,7 +218,6 @@ gnus.pdf: $(gnus_deps)
 	cp gnustmppdf.pdf $@
 	rm gnustmppdf.*
 
-${buildinfodir}/tramp.info tramp.html: EXTRA_OPTS = -D emacs
 ${buildinfodir}/tramp.info tramp.html: ${srcdir}/trampver.texi
 
 

@@ -219,6 +219,7 @@ To view this manual in other formats, click
 * Syntax Tables::           The syntax table controls word and list parsing.
 * Abbrevs::                 How Abbrev mode works, and its data structures.
 
+* Threads::                 Concurrency in Emacs Lisp.
 * Processes::               Running and communicating with subprocesses.
 * Display::                 Features for controlling the screen display.
 * System Interface::        Getting the user id, system type, environment
@@ -348,6 +349,9 @@ Editing Types
 * Window Configuration Type::  Recording the way a frame is subdivided.
 * Frame Configuration Type::   Recording the status of all frames.
 * Process Type::            A subprocess of Emacs running on the underlying OS.
+* Thread Type::             A thread of Emacs Lisp execution.
+* Mutex Type::              An exclusive lock for thread synchronization.
+* Condition Variable Type::    Condition variable for thread synchronization.
 * Stream Type::             Receive or send characters.
 * Keymap Type::             What function a keystroke invokes.
 * Overlay Type::            How an overlay is represented.
@@ -498,11 +502,13 @@ Variables
 * Accessing Variables::     Examining values of variables whose names
                               are known only at run time.
 * Setting Variables::       Storing new values in variables.
+* Watching Variables::      Running a function when a variable is changed.
 * Variable Scoping::        How Lisp chooses among local and global values.
 * Buffer-Local Variables::  Variable values in effect only in one buffer.
 * File Local Variables::    Handling local variable lists in files.
 * Directory Local Variables:: Local variables common to all files in a
                                 directory.
+* Connection Local Variables::  Local variables common for remote connections.
 * Variable Aliases::        Variables that are aliases for other variables.
 * Variables with Restricted Values::  Non-constant variables whose value can
                                         @emph{not} be an arbitrary Lisp object.
@@ -641,6 +647,7 @@ The Lisp Debugger
 * Error Debugging::         Entering the debugger when an error happens.
 * Infinite Loops::          Stopping and debugging a program that doesn't exit.
 * Function Debugging::      Entering it when a certain function is called.
+* Variable Debugging::      Entering it when a variable is modified.
 * Explicit Debug::          Entering it at a certain point in the program.
 * Using Debugger::          What the debugger does; what you see while in it.
 * Debugger Commands::       Commands used while in the debugger.
@@ -1038,6 +1045,8 @@ Windows
                               a specific window.
 * Quitting Windows::        How to restore the state prior to displaying a
                               buffer.
+* Side Windows::            Special windows on a frame's sides.
+* Atomic Windows::          Preserving parts of the window layout.
 * Window Point::            Each window has its own location of point.
 * Window Start and End::    Buffer positions indicating which text is
                               on-screen in a window.
@@ -1050,6 +1059,14 @@ Windows
 * Window Hooks::            Hooks for scrolling, window size changes,
                               redisplay going past a certain point,
                               or window configuration changes.
+
+Side Windows
+
+* Displaying Buffers in Side Windows:: An action function for displaying
+                              buffers in side windows.
+* Side Window Options and Functions:: Further tuning of side windows.
+* Frame Layouts with Side Windows:: Setting up frame layouts with side
+                              windows.
 
 Frames
 
@@ -1309,6 +1326,12 @@ Abbrevs and Abbrev Expansion
 * Abbrev Table Properties:: How to read and set abbrev table properties.
                             Which properties have which effect.
 
+Threads
+
+* Basic Thread Functions::  Basic thread functions.
+* Mutexes::                 Mutexes allow exclusive access to data.
+* Condition Variables::     Inter-thread events.
+
 Processes
 
 * Subprocess Creation::     Functions that start subprocesses.
@@ -1449,7 +1472,6 @@ Images
 * Image Descriptors::       How to specify an image for use in @code{:display}.
 * XBM Images::              Special features for XBM format.
 * XPM Images::              Special features for XPM format.
-* PostScript Images::       Special features for PostScript format.
 * ImageMagick Images::      Special features available through ImageMagick.
 * Other Image Types::       Various other formats are supported.
 * Defining Images::         Convenient ways to define an image for later use.
@@ -1615,6 +1637,7 @@ Object Internals
 @include searching.texi
 @include syntax.texi
 @include abbrevs.texi
+@include threads.texi
 @include processes.texi
 
 @include display.texi

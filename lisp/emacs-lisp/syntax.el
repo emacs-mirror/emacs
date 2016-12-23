@@ -316,6 +316,9 @@ END) suitable for `syntax-propertize-function'."
                   (unless (eq funs
                               (cdr syntax-propertize-extend-region-functions))
                     (setq funs syntax-propertize-extend-region-functions)))))
+            ;; Flush ppss cache between the original value of `start' and that
+            ;; set above by syntax-propertize-extend-region-functions.
+            (syntax-ppss-flush-cache start)
             ;; Move the limit before calling the function, so the function
             ;; can use syntax-ppss.
             (setq syntax-propertize--done end)
@@ -417,6 +420,9 @@ point (where the PPSS is equivalent to nil).")
 	      (error nil)))
 	  syntax-ppss-stats))
 
+(defvar-local syntax-ppss-table nil
+  "Syntax-table to use during `syntax-ppss', if any.")
+
 (defun syntax-ppss (&optional pos)
   "Parse-Partial-Sexp State at POS, defaulting to point.
 The returned value is the same as that of `parse-partial-sexp'
@@ -432,6 +438,7 @@ running the hook."
   (unless pos (setq pos (point)))
   (syntax-propertize pos)
   ;;
+  (with-syntax-table (or syntax-ppss-table (syntax-table))
   (let ((old-ppss (cdr syntax-ppss-last))
 	(old-pos (car syntax-ppss-last))
 	(ppss nil)
@@ -568,7 +575,7 @@ running the hook."
        ;; we may end up calling parse-partial-sexp with a position before
        ;; point-min.  In that case, just parse from point-min assuming
        ;; a nil state.
-       (parse-partial-sexp (point-min) pos)))))
+       (parse-partial-sexp (point-min) pos))))))
 
 ;; Debugging functions
 

@@ -494,7 +494,8 @@ giving a prefix argument makes @var{here} non-@code{nil}.
 @defvar emacs-build-time
 The value of this variable indicates the time at which Emacs was
 built.  It is a list of four integers, like the value of
-@code{current-time} (@pxref{Time of Day}).
+@code{current-time} (@pxref{Time of Day}), or is @code{nil}
+if the information is not available.
 
 @example
 @group

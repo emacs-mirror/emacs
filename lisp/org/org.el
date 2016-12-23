@@ -127,7 +127,7 @@ Stars are put in group 1 and the trimmed body in group 2.")
 
 (declare-function orgtbl-mode "org-table" (&optional arg))
 (declare-function org-clock-out "org-clock" (&optional switch-to-state fail-quietly at-time))
-(declare-function org-beamer-mode "ox-beamer" ())
+(declare-function org-beamer-mode "ox-beamer" (&optional prefix) t)
 (declare-function org-table-edit-field "org-table" (arg))
 (declare-function org-table-justify-field-maybe "org-table" (&optional new))
 (declare-function org-table-set-constants "org-table" ())
@@ -135,7 +135,8 @@ Stars are put in group 1 and the trimmed body in group 2.")
 (declare-function org-id-get-create "org-id" (&optional force))
 (declare-function org-id-find-id-file "org-id" (id))
 (declare-function org-tags-view "org-agenda" (&optional todo-only match))
-(declare-function org-agenda-list "org-agenda" (&optional arg start-day span))
+(declare-function org-agenda-list "org-agenda"
+                  (&optional arg start-day span with-hour))
 (declare-function org-agenda-redo "org-agenda" (&optional all))
 (declare-function org-table-align "org-table" ())
 (declare-function org-table-begin "org-table" (&optional table-type))
@@ -154,7 +155,8 @@ Stars are put in group 1 and the trimmed body in group 2.")
 (declare-function org-element-interpret-data "org-element"
 		  (data &optional parent))
 (declare-function org-element-map "org-element"
-		  (data types fun &optional info first-match no-recursion))
+                  (data types fun &optional
+                        info first-match no-recursion with-affiliated))
 (declare-function org-element-nested-p "org-element" (elem-a elem-b))
 (declare-function org-element-parse-buffer "org-element"
 		  (&optional granularity visible-only))
@@ -448,7 +450,8 @@ For export specific modules, see also `org-export-backends'."
 
 (defvar org-export--registered-backends) ; From ox.el.
 (declare-function org-export-derived-backend-p "ox" (backend &rest backends))
-(declare-function org-export-backend-name "ox" (backend))
+(declare-function org-export-backend-name "ox" (backend) t)
+(declare-function org-export-backend-options "ox" (cl-x) t)
 (defcustom org-export-backends '(ascii html icalendar latex)
   "List of export back-ends that should be always available.
 
@@ -1937,7 +1940,7 @@ See `org-file-apps'.")
     ("eps.gz" . "gv %s")
     ("dvi"    . "xdvi %s")
     ("fig"    . "xfig %s"))
-  "Default file applications on a MacOS X system.
+  "Default file applications on a macOS system.
 The system \"open\" is known as a default, but we use X11 applications
 for some files for which the OS does not have a good default.
 See `org-file-apps'.")
@@ -2012,7 +2015,7 @@ file identifier are
                (\"html\" . default) to the list as well.
  t             Default for files not matched by any of the other options.
  `system'      The system command to open files, like `open' on Windows
-               and Mac OS X, and mailcap under GNU/Linux.  This is the command
+               and macOS, and mailcap under GNU/Linux.  This is the command
                that will be selected if you call `C-c C-o' with a double
                \\[universal-argument] \\[universal-argument] prefix.
 
@@ -4213,7 +4216,7 @@ Normal means, no org-mode-specific context."
 (defvar mark-active)
 
 ;; Various packages
-(declare-function calendar-absolute-from-iso    "cal-iso"    (date))
+(declare-function calendar-iso-to-absolute      "cal-iso"    (date))
 (declare-function calendar-forward-day          "cal-move"   (arg))
 (declare-function calendar-goto-date            "cal-move"   (date))
 (declare-function calendar-goto-today           "cal-move"   ())
@@ -4225,14 +4228,15 @@ Normal means, no org-mode-specific context."
 (declare-function dired-get-filename "dired" (&optional localp no-error-if-not-filep))
 (defvar font-lock-unfontify-region-function)
 (declare-function iswitchb-read-buffer "iswitchb"
-                  (prompt &optional default require-match start matches-set))
+                  (prompt &optional
+                          default require-match _predicate start matches-set))
 (defvar iswitchb-temp-buflist)
 (declare-function org-gnus-follow-link "org-gnus" (&optional group article))
 (defvar org-agenda-tags-todo-honor-ignore-options)
 (declare-function org-agenda-skip "org-agenda" ())
 (declare-function
  org-agenda-format-item "org-agenda"
- (extra txt &optional level category tags dotime noprefix remove-re habitp))
+ (extra txt &optional level category tags dotime remove-re habitp))
 (declare-function org-agenda-new-marker "org-agenda" (&optional pos))
 (declare-function org-agenda-change-all-lines "org-agenda"
 		  (newhead hdmarker &optional fixface just-this))
@@ -5280,7 +5284,6 @@ This variable is set by `org-before-change-function'.
 
 ;; Other stuff we need.
 (require 'time-date)
-(unless (fboundp 'time-subtract) (defalias 'time-subtract 'subtract-time))
 (require 'easymenu)
 (require 'overlay)
 
@@ -5514,8 +5517,8 @@ the rounding returns a past time."
 	    (apply 'encode-time
 		   (append (list 0 (* r (floor (+ .5 (/ (float (nth 1 time)) r)))))
 			   (nthcdr 2 time))))
-      (if (and past (< (org-float-time (time-subtract (current-time) res)) 0))
-	  (seconds-to-time (- (org-float-time res) (* r 60)))
+      (if (and past (< (float-time (time-subtract (current-time) res)) 0))
+	  (seconds-to-time (- (float-time res) (* r 60)))
 	res))))
 
 (defun org-today ()
@@ -8779,24 +8782,24 @@ links."
 	       (if (or (re-search-forward org-ts-regexp end t)
 		       (re-search-forward org-ts-regexp-both end t))
 		   (org-time-string-to-seconds (match-string 0))
-		 (org-float-time now))))
+		 (float-time now))))
 	    ((= dcst ?c)
 	     (let ((end (save-excursion (outline-next-heading) (point))))
 	       (if (re-search-forward
 		    (concat "^[ \t]*\\[" org-ts-regexp1 "\\]")
 		    end t)
 		   (org-time-string-to-seconds (match-string 0))
-		 (org-float-time now))))
+		 (float-time now))))
 	    ((= dcst ?s)
 	     (let ((end (save-excursion (outline-next-heading) (point))))
 	       (if (re-search-forward org-scheduled-time-regexp end t)
 		   (org-time-string-to-seconds (match-string 1))
-		 (org-float-time now))))
+		 (float-time now))))
 	    ((= dcst ?d)
 	     (let ((end (save-excursion (outline-next-heading) (point))))
 	       (if (re-search-forward org-deadline-time-regexp end t)
 		   (org-time-string-to-seconds (match-string 1))
-		 (org-float-time now))))
+		 (float-time now))))
 	    ((= dcst ?p)
 	     (if (re-search-forward org-priority-regexp (point-at-eol) t)
 		 (string-to-char (match-string 2))
@@ -8860,7 +8863,7 @@ If WITH-CASE is non-nil, the sorting will be case-sensitive."
 	    (lambda (x)
 	      (if (or (string-match org-ts-regexp x)
 		      (string-match org-ts-regexp-both x))
-		  (org-float-time
+		  (float-time
 		   (org-time-string-to-time (match-string 0 x)))
 		0))
 	    comparefun (if (= dcst sorting-type) '< '>)))
@@ -12039,8 +12042,6 @@ This function can be used in a hook."
 
 ;;;; Completion
 
-(declare-function org-export-backend-name "org-export" (cl-x))
-(declare-function org-export-backend-options "org-export" (cl-x))
 (defun org-get-export-keywords ()
   "Return a list of all currently understood export keywords.
 Export keywords include options, block names, attributes and
@@ -16886,7 +16887,7 @@ Don't touch the rest."
 (defun org-time-stamp-to-now (timestamp-string &optional seconds)
   "Difference between TIMESTAMP-STRING and now in days.
 If SECONDS is non-nil, return the difference in seconds."
-  (let ((fdiff (if seconds 'org-float-time 'time-to-days)))
+  (let ((fdiff (if seconds 'float-time 'time-to-days)))
     (- (funcall fdiff (org-time-string-to-time timestamp-string))
        (funcall fdiff (current-time)))))
 
@@ -17041,8 +17042,8 @@ days in order to avoid rounding problems."
 	  (match-end (match-end 0))
 	  (time1 (org-time-string-to-time ts1))
 	  (time2 (org-time-string-to-time ts2))
-	  (t1 (org-float-time time1))
-	  (t2 (org-float-time time2))
+	  (t1 (float-time time1))
+	  (t2 (float-time time2))
 	  (diff (abs (- t2 t1)))
 	  (negative (< (- t2 t1) 0))
 	  ;; (ys (floor (* 365 24 60 60)))
@@ -17107,7 +17108,7 @@ days in order to avoid rounding problems."
 
 (defun org-time-string-to-seconds (s)
   "Convert a timestamp string to a number of seconds."
-  (org-float-time (org-time-string-to-time s)))
+  (float-time (org-time-string-to-time s)))
 
 (defun org-time-string-to-absolute (s &optional daynr prefer show-all buffer pos)
   "Convert a time stamp to an absolute day number.
@@ -17459,8 +17460,7 @@ When SUPPRESS-TMP-DELAY is non-nil, suppress delays like \"--2d\"."
 			 (+ (if (eq org-ts-what 'hour) n 0)   (nth 2 time0))
 			 (+ (if (eq org-ts-what 'day) n 0)    (nth 3 time0))
 			 (+ (if (eq org-ts-what 'month) n 0)  (nth 4 time0))
-			 (+ (if (eq org-ts-what 'year) n 0)   (nth 5 time0))
-			 (nthcdr 6 time0)))
+			 (+ (if (eq org-ts-what 'year) n 0)   (nth 5 time0))))
       (when (and (member org-ts-what '(hour minute))
 		 extra
 		 (string-match "-\\([012][0-9]\\):\\([0-5][0-9]\\)" extra))
@@ -22673,8 +22673,10 @@ When optional argument END is non-nil, use end of date-range or
 time-range, if possible.
 
 The optional ZONE is omitted or nil for Emacs local time, t for
-Universal Time, `wall' for system wall clock time, or a string as in
-the TZ environment variable."
+Universal Time, `wall' for system wall clock time, or a string as
+in the TZ environment variable.  It can also be a list (as from
+`current-time-zone') or an integer (as from `decode-time')
+applied without consideration for daylight saving time."
   (format-time-string
    format
    (apply 'encode-time

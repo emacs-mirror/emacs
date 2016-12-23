@@ -207,7 +207,7 @@ It is used during export of src blocks by the listings and
 man packages.  For example,
 
   (setq org-man-custom-lang-environments
-     '((python \"pythoncode\")))
+     \\='((python \"pythoncode\")))
 
 would have the effect that if org encounters begin_src python
 during man export."

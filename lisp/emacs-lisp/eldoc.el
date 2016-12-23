@@ -197,7 +197,10 @@ expression point is on."
    (t
     (kill-local-variable 'eldoc-message-commands)
     (remove-hook 'post-command-hook 'eldoc-schedule-timer t)
-    (remove-hook 'pre-command-hook 'eldoc-pre-command-refresh-echo-area t))))
+    (remove-hook 'pre-command-hook 'eldoc-pre-command-refresh-echo-area t)
+    (when eldoc-timer
+      (cancel-timer eldoc-timer)
+      (setq eldoc-timer nil)))))
 
 ;;;###autoload
 (define-minor-mode global-eldoc-mode

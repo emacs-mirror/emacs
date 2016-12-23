@@ -232,7 +232,9 @@ using a function specified by the variable
 @code{filter-buffer-substring-function}, and returns the result.
 
 The default filter function consults the obsolete wrapper hook
-@code{filter-buffer-substring-functions}, and the obsolete variable
+@code{filter-buffer-substring-functions} (see the documentation string
+of the macro @code{with-wrapper-hook} for the details about this
+obsolete facility), and the obsolete variable
 @code{buffer-substring-filters}.  If both of these are @code{nil}, it
 returns the unaltered text from the buffer, i.e., what
 @code{buffer-substring} would return.
@@ -2362,6 +2364,83 @@ already indented, it calls @code{completion-at-point} to complete the
 text at point (@pxref{Completion in Buffers}).
 @end defopt
 
+@cindex literate programming
+@cindex multi-mode indentation
+  Some major modes need to support embedded regions of text whose
+syntax belongs to a different major mode.  Examples include
+@dfn{literate programming} source files that combine documentation and
+snippets of source code, Yacc/Bison programs that include snippets of
+plain C code, etc.  To correctly indent the embedded chunks, the major
+mode needs to delegate the indentation to another mode's indentation
+engine (e.g., call @code{c-indent-defun} for C code or
+@code{python-indent-line} for Python), while providing it with some
+context to guide the indentation.  The following facilities support
+such multi-mode indentation.
+
+@defvar prog-indentation-context
+This variable, when non-@code{nil}, holds the indentation context for
+the sub-mode's indentation engine provided by the superior major mode.
+The value should be a list of the form @code{(@var{first-column}
+@w{(@var{start} . @var{end})} @code{prev-chunk})}.  The members of the
+list have the following meaning:
+
+@table @var
+@item first-column
+The column to be used for top-level constructs.  This replaces the
+default value of the top-level column used by the sub-mode, usually
+zero.
+@item start
+@itemx end
+The region of the code chunk to be indented by the sub-mode.  The
+value of @var{end} can be @code{nil}, which stands for the value of
+@code{point-max}.
+@item prev-chunk
+If this is non-@code{nil}, it should provide the sub-mode's
+indentation engine with a virtual context of the code chunk.  Valid
+values include:
+
+@itemize @minus
+@item
+A string whose contents is the text the sub-mode's indentation engine
+should consider to precede the code chunk.  The sub-mode's indentation
+engine can add text properties to that string, to be reused in
+repeated calls with the same string, thus using it as a cache.  An
+example where this is useful is code chunks that need to be indented
+as function bodies, but lack the function's preamble---the string
+could then include that missing preamble.
+@item
+A function.  It is expected to be called with the start position of
+the current chunk, and should return a cons cell
+@w{@code{(@var{prev-start} . @var{prev-end})}} that specifies the
+region of the previous code chunk, or @code{nil} if there is no previous
+chunk.  This is useful in literate-programming sources, where code is
+split into chunks, and correct indentation needs to access previous
+chunks.
+@end itemize
+@end table
+@end defvar
+
+The following convenience functions should be used by major mode's
+indentation engine in support of invocations as sub-modes of another
+major mode.
+
+@defun prog-first-column
+Call this function instead of using a literal value (usually, zero) of
+the column number for indenting top-level program constructs.  The
+function's value is the column number to use for top-level constructs.
+When no superior mode is in effect, this function returns zero.
+@end defun
+
+@defun prog-widen
+Call this function instead of @code{widen} to remove any restrictions
+imposed by the mode's indentation engine and restore the restrictions
+recorded in @code{prog-indentation-context}.  This prevents the
+indentation engine of a sub-mode from inadvertently operating on text
+outside of the chunk it was supposed to indent, and preserves the
+restriction imposed by the superior mode.  When no superior mode is in
+effect, this function just calls @code{widen}.
+@end defun
+
 
 @node Region Indent
 @subsection Indenting an Entire Region
@@ -4394,6 +4473,20 @@ using the specified or chosen coding system.  However, if
 coding instead.
 @end defun
 
+@defun buffer-hash &optional buffer-or-name
+Return a hash of @var{buffer-or-name}.  If @code{nil}, this defaults
+to the current buffer.  As opposed to @code{secure-hash}, this
+function computes the hash based on the internal representation of the
+buffer, disregarding any coding systems.  It's therefore only useful
+when comparing two buffers running in the same Emacs, and is not
+guaranteed to return the same hash between different Emacs versions.
+It should be somewhat more efficient on larger buffers than
+@code{secure-hash} is, and should not allocate more memory.
+@c Note that we do not document what hashing function we're using, or
+@c even whether it's a cryptographic hash, since that may change
+@c according to what we find useful.
+@end defun
+
 @node Parsing HTML/XML
 @section Parsing HTML and XML
 @cindex parsing html
@@ -4525,6 +4618,9 @@ to be inserted between the textual elements.
 
 @item dom-parent @var{dom} @var{node}
 Return the parent of @var{node} in @var{dom}.
+
+@item dom-remove @var{dom} @var{node}
+Remove @var{node} from @var{dom}.
 @end table
 
 The following are functions for altering the @acronym{DOM}.
@@ -4570,7 +4666,7 @@ Return all nodes in @var{dom} that have IDs that match @var{match},
 which is a regular expression.
 
 @item dom-strings @var{dom}
-Return all strings in @var{DOM}.
+Return all strings in @var{dom}.
 
 @end table
 

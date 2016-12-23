@@ -174,17 +174,6 @@ where each BMK is of the form
 
 So the cdr of each bookmark is an alist too.")
 
-(defmacro gnus-bookmark-mouse-available-p ()
-  "Return non-nil if a mouse is available."
-  (if (featurep 'xemacs)
-      '(device-on-window-system-p)
-    '(display-mouse-p)))
-
-(defun gnus-bookmark-remove-properties (string)
-  "Remove all text properties from STRING."
-  (set-text-properties 0 (length string) nil string)
-  string)
-
 ;;;###autoload
 (defun gnus-bookmark-set ()
   "Set a bookmark for this article."
@@ -209,7 +198,7 @@ So the cdr of each bookmark is an alist too.")
       ;; Set the bookmark list
       (setq gnus-bookmark-alist
 	    (cons
-	     (list (gnus-bookmark-remove-properties bmk-name)
+	     (list (substring-no-properties bmk-name)
 		   (gnus-bookmark-make-record
 		    group message-id author date subject annotation))
 	     gnus-bookmark-alist))))
@@ -220,12 +209,12 @@ So the cdr of each bookmark is an alist too.")
   (group message-id author date subject annotation)
   "Return the record part of a new bookmark, given GROUP MESSAGE-ID AUTHOR DATE SUBJECT and ANNOTATION."
   (let ((the-record
-	 `((group . ,(gnus-bookmark-remove-properties group))
-	   (message-id . ,(gnus-bookmark-remove-properties message-id))
-	   (author . ,(gnus-bookmark-remove-properties author))
-	   (date . ,(gnus-bookmark-remove-properties date))
-	   (subject . ,(gnus-bookmark-remove-properties subject))
-	   (annotation . ,(gnus-bookmark-remove-properties annotation)))))
+	 `((group . ,(substring-no-properties group))
+	   (message-id . ,(substring-no-properties message-id))
+	   (author . ,(substring-no-properties author))
+	   (date . ,(substring-no-properties date))
+	   (subject . ,(substring-no-properties subject))
+	   (annotation . ,(substring-no-properties annotation)))))
     the-record))
 
 (defun gnus-bookmark-set-bookmark-name (group author subject)
@@ -237,7 +226,7 @@ So the cdr of each bookmark is an alist too.")
 		   "-" (car subject) "-" (cadr subject)))
 	 (default-name-1
 	   ;; Strip "[]" chars from the bookmark name:
-	   (gnus-replace-in-string default-name-0 "[]_[]" ""))
+	   (replace-regexp-in-string "[]_[]" "" default-name-0))
 	 (name (read-from-minibuffer
 		(format "Set bookmark (%s): " default-name-1)
 		nil nil nil nil
@@ -367,7 +356,7 @@ The leftmost column displays a D if the bookmark is flagged for
 deletion, or > if it is flagged for displaying."
   (interactive)
   (gnus-bookmark-maybe-load-default-file)
-  (if (gmm-called-interactively-p 'any)
+  (if (called-interactively-p 'any)
       (switch-to-buffer (get-buffer-create "*Gnus Bookmark List*"))
     (set-buffer (get-buffer-create "*Gnus Bookmark List*")))
   (let ((inhibit-read-only t)
@@ -387,7 +376,7 @@ deletion, or > if it is flagged for displaying."
       (insert (if (member (gnus-bookmark-get-annotation name) (list nil ""))
 		  "  "
 		" *"))
-      (if (gnus-bookmark-mouse-available-p)
+      (if (display-mouse-p)
 	  (add-text-properties
 	   (prog1
 	       (point)
@@ -400,7 +389,7 @@ deletion, or > if it is flagged for displaying."
 	       (insert "\n")))
 	   `(mouse-face highlight follow-link t
 			help-echo ,(format "%s: go to this article"
-					   (aref gnus-mouse-2 0))))
+					   'mouse-2)))
 	(insert name "\n")))
     (goto-char (point-min))
     (forward-line 2)
@@ -443,9 +432,7 @@ That is, all information but the name."
     nil
   (setq gnus-bookmark-bmenu-mode-map (make-keymap))
   (suppress-keymap gnus-bookmark-bmenu-mode-map t)
-  (define-key gnus-bookmark-bmenu-mode-map "q" (if (fboundp 'quit-window)
-						   'quit-window
-						 'bury-buffer))
+  (define-key gnus-bookmark-bmenu-mode-map "q" 'quit-window)
   (define-key gnus-bookmark-bmenu-mode-map "\C-m" 'gnus-bookmark-bmenu-select)
   (define-key gnus-bookmark-bmenu-mode-map "v" 'gnus-bookmark-bmenu-select)
   (define-key gnus-bookmark-bmenu-mode-map "d" 'gnus-bookmark-bmenu-delete)
@@ -463,7 +450,7 @@ That is, all information but the name."
   (define-key gnus-bookmark-bmenu-mode-map "s" 'gnus-bookmark-bmenu-save)
   (define-key gnus-bookmark-bmenu-mode-map "t" 'gnus-bookmark-bmenu-toggle-infos)
   (define-key gnus-bookmark-bmenu-mode-map "a" 'gnus-bookmark-bmenu-show-details)
-  (define-key gnus-bookmark-bmenu-mode-map gnus-mouse-2
+  (define-key gnus-bookmark-bmenu-mode-map [mouse-2]
     'gnus-bookmark-bmenu-select-by-mouse))
 
 ;; Bookmark Buffer Menu mode is suitable only for specially formatted
@@ -536,7 +523,7 @@ Optional argument SHOW means show them unconditionally."
 	      (let ((start (point-at-eol)))
 		(move-to-column gnus-bookmark-bmenu-file-column t)
 		;; Strip off `mouse-face' from the white spaces region.
-		(if (gnus-bookmark-mouse-available-p)
+		(if (display-mouse-p)
 		    (remove-text-properties start (point)
 					    '(mouse-face nil help-echo nil))))
 	      (delete-region (point) (progn (end-of-line) (point)))
@@ -552,7 +539,7 @@ Optional argument SHOW means show them unconditionally."
 	(insert (gnus-bookmark-get-details
 		 bmk-name
 		 gnus-bookmark-bookmark-inline-details))
-      (if (gnus-bookmark-mouse-available-p)
+      (if (display-mouse-p)
 	  (add-text-properties
 	   start
 	   (save-excursion (re-search-backward
@@ -561,7 +548,7 @@ Optional argument SHOW means show them unconditionally."
 	   `(mouse-face highlight
 	     follow-link t
 	     help-echo ,(format "%s: go to this article"
-				(aref gnus-mouse-2 0))))))))
+				'mouse-2)))))))
 
 (defun gnus-bookmark-kill-line (&optional newline-too)
   "Kill from point to end of line.
@@ -601,7 +588,7 @@ Does not affect the kill ring."
                 (gnus-bookmark-kill-line)
 		(let ((start (point)))
 		  (insert (car gnus-bookmark-bmenu-hidden-bookmarks))
-		  (if (gnus-bookmark-mouse-available-p)
+		  (if (display-mouse-p)
 		      (add-text-properties
 		       start
 		       (save-excursion (re-search-backward
@@ -611,7 +598,7 @@ Does not affect the kill ring."
 			 follow-link t
 			 help-echo
 			 ,(format "%s: go to this bookmark in other window"
-				  (aref gnus-mouse-2 0))))))
+				  'mouse-2)))))
                 (setq gnus-bookmark-bmenu-hidden-bookmarks
                       (cdr gnus-bookmark-bmenu-hidden-bookmarks))
                 (forward-line 1))))))))
