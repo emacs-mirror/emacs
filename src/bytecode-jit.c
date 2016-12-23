@@ -1,6 +1,5 @@
 /* JIT compilation of byte code produced by bytecomp.el.
-   Copyright (C) 1985-1988, 1993, 2000-2016 Free Software Foundation,
-   Inc.
+   Copyright (C) 2016 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
