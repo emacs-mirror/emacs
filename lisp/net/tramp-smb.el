@@ -1525,8 +1525,7 @@ errors for shares like \"C$/\", which are common in Microsoft Windows."
 (defun tramp-smb-get-share (vec)
   "Returns the share name of LOCALNAME."
   (save-match-data
-    (let ((localname
-	   (tramp-compat-file-name-unquote (tramp-file-name-localname vec))))
+    (let ((localname (tramp-file-name-unquote-localname vec)))
       (when (string-match "^/?\\([^/]+\\)/" localname)
 	(match-string 1 localname)))))
 
@@ -1534,8 +1533,7 @@ errors for shares like \"C$/\", which are common in Microsoft Windows."
   "Returns the file name of LOCALNAME.
 If VEC has no cifs capabilities, exchange \"/\" by \"\\\\\"."
   (save-match-data
-    (let ((localname
-	   (tramp-compat-file-name-unquote (tramp-file-name-localname vec))))
+    (let ((localname (tramp-file-name-unquote-localname vec)))
       (setq
        localname
        (if (string-match "^/?[^/]+\\(/.*\\)" localname)

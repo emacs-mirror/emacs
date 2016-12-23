@@ -217,16 +217,17 @@ No problems result if this variable is not bound.
        ,(if declare-syntax
 	    `(progn
 	       (unless (boundp ',syntax)
-		 (put ',syntax 'definition-name ',child))
-	       (defvar ,syntax (make-syntax-table))
+		 (put ',syntax 'definition-name ',child)
+		 (defvar ,syntax (make-syntax-table)))
 	       (unless (get ',syntax 'variable-documentation)
 		 (put ',syntax 'variable-documentation
 		      (purecopy ,(format "Syntax table for `%s'." child))))))
        ,(if declare-abbrev
 	    `(progn
-	       (put ',abbrev 'definition-name ',child)
-	       (defvar ,abbrev
-		 (progn (define-abbrev-table ',abbrev nil) ,abbrev))
+	       (unless (boundp ',abbrev)
+		 (put ',abbrev 'definition-name ',child)
+		 (defvar ,abbrev
+		   (progn (define-abbrev-table ',abbrev nil) ,abbrev)))
 	       (unless (get ',abbrev 'variable-documentation)
 		 (put ',abbrev 'variable-documentation
 		      (purecopy ,(format "Abbrev table for `%s'." child))))))

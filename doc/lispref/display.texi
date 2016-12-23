@@ -4779,7 +4779,6 @@ displayed (@pxref{Display Feature Testing}).
 * Image Descriptors::   How to specify an image for use in @code{:display}.
 * XBM Images::          Special features for XBM format.
 * XPM Images::          Special features for XPM format.
-* PostScript Images::   Special features for PostScript format.
 * ImageMagick Images::  Special features available through ImageMagick.
 * SVG Images::          Creating and manipulating SVG images.
 * Other Image Types::   Various other formats are supported.
@@ -4804,12 +4803,12 @@ to modify the set of known names for these dynamic libraries.
   Supported image formats (and the required support libraries) include
 PBM and XBM (which do not depend on support libraries and are always
 available), XPM (@code{libXpm}), GIF (@code{libgif} or
-@code{libungif}), PostScript (@code{gs}), JPEG (@code{libjpeg}), TIFF
+@code{libungif}), JPEG (@code{libjpeg}), TIFF
 (@code{libtiff}), PNG (@code{libpng}), and SVG (@code{librsvg}).
 
   Each of these image formats is associated with an @dfn{image type
 symbol}.  The symbols for the above formats are, respectively,
-@code{pbm}, @code{xbm}, @code{xpm}, @code{gif}, @code{postscript},
+@code{pbm}, @code{xbm}, @code{xpm}, @code{gif},
 @code{jpeg}, @code{tiff}, @code{png}, and @code{svg}.
 
   Furthermore, if you build Emacs with ImageMagick
@@ -5120,33 +5119,6 @@ The value, @var{symbols}, should be an alist whose elements have the
 form @code{(@var{name} . @var{color})}.  In each element, @var{name} is
 the name of a color as it appears in the image file, and @var{color}
 specifies the actual color to use for displaying that name.
-@end table
-
-@node PostScript Images
-@subsection PostScript Images
-@cindex postscript images
-
-  To use PostScript for an image, specify image type @code{postscript}.
-This works only if you have Ghostscript installed.  You must always use
-these three properties:
-
-@table @code
-@item :pt-width @var{width}
-The value, @var{width}, specifies the width of the image measured in
-points (1/72 inch).  @var{width} must be an integer.
-
-@item :pt-height @var{height}
-The value, @var{height}, specifies the height of the image in points
-(1/72 inch).  @var{height} must be an integer.
-
-@item :bounding-box @var{box}
-The value, @var{box}, must be a list or vector of four integers, which
-specifying the bounding box of the PostScript image, analogous to the
-@samp{BoundingBox} comment found in PostScript files.
-
-@example
-%%BoundingBox: 22 171 567 738
-@end example
 @end table
 
 @node ImageMagick Images

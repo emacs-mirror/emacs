@@ -2113,13 +2113,17 @@ If NOT-ALL is non-nil, save the `.dvi' file."
   :group 'tex)
 
 (defvar tex-compile-commands
-  '(((concat "pdf" tex-command
-	     " " (if (< 0 (length tex-start-commands))
-		     (shell-quote-argument tex-start-commands)) " %f")
-     t "%r.pdf")
+  `(,@(mapcar (lambda (prefix)
+                `((concat ,prefix tex-command
+                          " " (if (< 0 (length tex-start-commands))
+                                  (shell-quote-argument tex-start-commands))
+                          " %f")
+                  t "%r.pdf"))
+              '("pdf" "xe" "lua"))
     ((concat tex-command
 	     " " (if (< 0 (length tex-start-commands))
-		     (shell-quote-argument tex-start-commands)) " %f")
+		     (shell-quote-argument tex-start-commands))
+             " %f")
      t "%r.dvi")
     ("xdvi %r &" "%r.dvi")
     ("\\doc-view \"%r.pdf\"" "%r.pdf")

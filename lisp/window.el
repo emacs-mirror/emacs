@@ -2797,7 +2797,7 @@ instead."
 		window delta horizontal ignore nil nil nil t)))
       (window--resize-reset frame horizontal)
       (window--resize-this-window window delta horizontal ignore t)
-      (if (and (not window-combination-resize)
+      (if (and (not (eq window-combination-resize t))
 	       (window-combined-p window horizontal)
 	       (setq sibling (or (window-right window) (window-left window)))
 	       (window-sizable-p
@@ -4049,7 +4049,7 @@ that is its frame's root window."
 	     (sibling (or (window-left window) (window-right window))))
 	(window--resize-reset frame horizontal)
 	(cond
-	 ((and (not window-combination-resize)
+	 ((and (not (eq window-combination-resize t))
 	       sibling (window-sizable-p sibling size horizontal nil t))
 	  ;; Resize WINDOW's sibling.
 	  (window--resize-this-window sibling size horizontal nil t)

@@ -4,6 +4,7 @@
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
+;; Obsolete-since: 26.1
 
 ;; This file is part of GNU Emacs.
 
@@ -22,7 +23,9 @@
 
 ;;; Commentary:
 
-;; This code is experimental.  Don't use it.
+;; This code is experimental.  Don't use it.  Try imagemagick images instead.
+;; When this file is removed from Emacs, associated code in image.c
+;; can be removed too (HAVE_GHOSTSCRIPT).
 
 ;;; Code:
 

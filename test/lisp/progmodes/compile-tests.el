@@ -1,4 +1,4 @@
-;;; compile-tests.el --- Test suite for compile.el.
+;;; compile-tests.el --- Test suite for compile.el.  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2011-2016 Free Software Foundation, Inc.
 
@@ -20,6 +20,10 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
+;; Unit tests for lisp/progmodes/compile.el.
 
 ;;; Code:
 
@@ -79,6 +83,9 @@
      1 nil 302 "\\lib\\python\\Products\\PythonScripts\\PythonScript.py")
     ("File \"/tmp/foo.py\", line 10"
      1 nil 10 "/tmp/foo.py")
+    ;; clang-include
+    ("In file included from foo.cpp:2:"
+     1 nil 2 "foo.cpp" 0)
     ;; cmake cmake-info
     ("CMake Error at CMakeLists.txt:23 (hurz):"
      1 nil 23 "CMakeLists.txt")
@@ -323,15 +330,18 @@
     ("index.html (13:1) Unknown element <fdjsk>"
      1 1 13 "index.html"))
   "List of tests for `compilation-error-regexp-alist'.
-Each element has the form (STR POS COLUMN LINE FILENAME), where
-STR is an error string, POS is the position of the error in STR,
-COLUMN and LINE are the reported column and line numbers (or nil)
-for that error, and FILENAME is the reported filename.
+Each element has the form (STR POS COLUMN LINE FILENAME [TYPE]),
+where STR is an error string, POS is the position of the error in
+STR, COLUMN and LINE are the reported column and line numbers (or
+nil) for that error, FILENAME is the reported filename, and TYPE
+is 0 for an information message, 1 for a warning, and 2 for an
+error.
 
 LINE can also be of the form (LINE . END-LINE) meaning a range of
 lines.  COLUMN can also be of the form (COLUMN . END-COLUMN)
 meaning a range of columns starting on LINE and ending on
-END-LINE, if that matched.")
+END-LINE, if that matched.  TYPE can be left out, in which case
+any message type is accepted.")
 
 (defun compile--test-error-line (test)
   (erase-buffer)
@@ -339,35 +349,34 @@ END-LINE, if that matched.")
   (insert (car test))
   (compilation-parse-errors (point-min) (point-max))
   (let ((msg (get-text-property (nth 1 test) 'compilation-message)))
-    (when msg
-      (let ((loc (compilation--message->loc msg))
-	    (col  (nth 2 test))
-	    (line (nth 3 test))
-	    (file (nth 4 test))
-            (type (nth 5 test))
-	    end-col end-line)
-	(if (consp col)
-	    (setq end-col (cdr col) col (car col)))
-	(if (consp line)
-	    (setq end-line (cdr line) line (car line)))
-	(and (equal (compilation--loc->col loc) col)
-	     (equal (compilation--loc->line loc) line)
-             (or (not file)
-                 (equal (caar (compilation--loc->file-struct loc)) file))
-	     (or (null end-col)
-	     	 (equal (car (cadr (nth 2 (compilation--loc->file-struct loc))))
-	     		end-col))
-	     (equal (car (nth 2 (compilation--loc->file-struct loc)))
-                    (or end-line line))
-             (or (null type)
-                 (equal type (compilation--message->type msg))))))))
+    (should msg)
+    (let ((loc (compilation--message->loc msg))
+          (col  (nth 2 test))
+          (line (nth 3 test))
+          (file (nth 4 test))
+          (type (nth 5 test))
+          end-col end-line)
+      (if (consp col)
+          (setq end-col (cdr col) col (car col)))
+      (if (consp line)
+          (setq end-line (cdr line) line (car line)))
+      (should (equal (compilation--loc->col loc) col))
+      (should (equal (compilation--loc->line loc) line))
+      (when file
+        (should (equal (caar (compilation--loc->file-struct loc)) file)))
+      (when end-col
+        (should (equal (car (cadr (nth 2 (compilation--loc->file-struct loc))))
+                       end-col)))
+      (should (equal (car (nth 2 (compilation--loc->file-struct loc)))
+                     (or end-line line)))
+      (when type
+        (should (equal type (compilation--message->type msg)))))))
 
 (ert-deftest compile-test-error-regexps ()
   "Test the `compilation-error-regexp-alist' regexps.
 The test data is in `compile-tests--test-regexps-data'."
   (with-temp-buffer
     (font-lock-mode -1)
-    (dolist (test compile-tests--test-regexps-data)
-      (should (compile--test-error-line test)))))
+    (mapc #'compile--test-error-line compile-tests--test-regexps-data)))
 
-;;; compile-tests.el ends here.
+;;; compile-tests.el ends here

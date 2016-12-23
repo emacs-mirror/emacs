@@ -1416,8 +1416,10 @@ If set will become buffer local.")
     (define-key map "\M-\C-b"  'electric-verilog-backward-sexp)
     (define-key map "\M-\C-f"  'electric-verilog-forward-sexp)
     (define-key map "\M-\r"    `electric-verilog-terminate-and-indent)
-    (define-key map "\M-\t"    'verilog-complete-word)
-    (define-key map "\M-?"     'verilog-show-completions)
+    (define-key map "\M-\t"    (if (fboundp 'completion-at-point)
+                                   'completion-at-point 'verilog-complete-word))
+    (define-key map "\M-?"     (if (fboundp 'completion-help-at-point)
+                                   'completion-help-at-point 'verilog-show-completions))
     ;; Note \C-c and letter are reserved for users
     (define-key map "\C-c`"    'verilog-lint-off)
     (define-key map "\C-c*"    'verilog-delete-auto-star-implicit)
@@ -1448,7 +1450,7 @@ If set will become buffer local.")
 (easy-menu-define
   verilog-menu verilog-mode-map "Menu for Verilog mode"
   (verilog-easy-menu-filter
-   '("Verilog"
+   `("Verilog"
      ("Choose Compilation Action"
       ["None"
        (progn
@@ -1540,7 +1542,8 @@ If set will become buffer local.")
       :help		"Take a signal vector on the current line and expand it to multiple lines"]
      ["Insert begin-end block"		verilog-insert-block
       :help		"Insert begin ... end"]
-     ["Complete word"			verilog-complete-word
+     ["Complete word" ,(if (fboundp 'completion-at-point)
+                           'completion-at-point 'verilog-complete-word)
       :help		"Complete word at point"]
      "----"
      ["Recompute AUTOs"			verilog-auto
@@ -3806,7 +3809,7 @@ AUTO expansion functions are, in part:
 
 Some other functions are:
 
-    \\[verilog-complete-word]    Complete word with appropriate possibilities.
+    \\[completion-at-point]    Complete word with appropriate possibilities.
     \\[verilog-mark-defun]  Mark function.
     \\[verilog-beg-of-defun]  Move to beginning of current function.
     \\[verilog-end-of-defun]  Move to end of current function.
@@ -3919,6 +3922,9 @@ Key bindings specific to `verilog-mode-map' are:
 	    (cons '(verilog-mode-mode  "\\<begin\\>" "\\<end\\>" nil
 				       verilog-forward-sexp-function)
 		  hs-special-modes-alist))))
+
+  (add-hook 'completion-at-point-functions
+            #'verilog-completion-at-point nil 'local)
 
   ;; Stuff for autos
   (add-hook 'write-contents-hooks 'verilog-auto-save-check nil 'local)
@@ -7198,6 +7204,9 @@ Region is defined by B and EDPOS."
 Repeated use of \\[verilog-complete-word] will show you all of them.
 Normally, when there is more than one possible completion,
 it displays a list of all possible completions.")
+(when (boundp 'completion-cycle-threshold)
+  (make-obsolete-variable
+   'verilog-toggle-completions 'completion-cycle-threshold "26.1"))
 
 
 (defvar verilog-type-keywords
@@ -7480,21 +7489,33 @@ exact match, nil otherwise."
 (defvar verilog-last-word-shown nil)
 (defvar verilog-last-completions nil)
 
+(defun verilog-completion-at-point ()
+  "Used as an element of `completion-at-point-functions'.
+\(See also `verilog-type-keywords' and
+`verilog-separator-keywords'.)"
+  (let* ((b (save-excursion (skip-chars-backward "a-zA-Z0-9_") (point)))
+         (e (save-excursion (skip-chars-forward "a-zA-Z0-9_") (point)))
+         (verilog-str (buffer-substring b e))
+         ;; The following variable is used in verilog-completion
+         (verilog-buffer-to-use (current-buffer))
+         (allcomp (if (and verilog-toggle-completions
+                           (string= verilog-last-word-shown verilog-str))
+                      verilog-last-completions
+                    (all-completions verilog-str 'verilog-completion))))
+    (list b e allcomp)))
+
 (defun verilog-complete-word ()
   "Complete word at current point.
 \(See also `verilog-toggle-completions', `verilog-type-keywords',
 and `verilog-separator-keywords'.)"
-  ;; FIXME: Provide completion-at-point-function.
+  ;; NOTE: This is just a fallback for Emacs versions lacking
+  ;; `completion-at-point'.
   (interactive)
-  (let* ((b (save-excursion (skip-chars-backward "a-zA-Z0-9_") (point)))
-	 (e (save-excursion (skip-chars-forward "a-zA-Z0-9_") (point)))
+  (let* ((comp-info (verilog-completion-at-point))
+         (b (nth 0 comp-info))
+	 (e (nth 1 comp-info))
 	 (verilog-str (buffer-substring b e))
-	 ;; The following variable is used in verilog-completion
-	 (verilog-buffer-to-use (current-buffer))
-	 (allcomp (if (and verilog-toggle-completions
-			   (string= verilog-last-word-shown verilog-str))
-		      verilog-last-completions
-		    (all-completions verilog-str 'verilog-completion)))
+	 (allcomp (nth 2 comp-info))
 	 (match (if verilog-toggle-completions
 		    "" (try-completion
 			verilog-str (mapcar (lambda (elm)
@@ -7542,23 +7563,15 @@ and `verilog-separator-keywords'.)"
 
 (defun verilog-show-completions ()
   "Show all possible completions at current point."
+  ;; NOTE: This is just a fallback for Emacs versions lacking
+  ;; `completion-help-at-point'.
   (interactive)
-  (let* ((b (save-excursion (skip-chars-backward "a-zA-Z0-9_") (point)))
-	 (e (save-excursion (skip-chars-forward "a-zA-Z0-9_") (point)))
-	 (verilog-str (buffer-substring b e))
-	 ;; The following variable is used in verilog-completion
-	 (verilog-buffer-to-use (current-buffer))
-	 (allcomp (if (and verilog-toggle-completions
-			   (string= verilog-last-word-shown verilog-str))
-		      verilog-last-completions
-		    (all-completions verilog-str 'verilog-completion))))
-    ;; Show possible completions in a temporary buffer.
-    (with-output-to-temp-buffer "*Completions*"
-      (display-completion-list allcomp))
-    ;; Wait for a key press. Then delete *Completion*  window
-    (momentary-string-display "" (point))
-    (delete-window (get-buffer-window (get-buffer "*Completions*")))))
-
+  ;; Show possible completions in a temporary buffer.
+  (with-output-to-temp-buffer "*Completions*"
+    (display-completion-list (nth 2 (verilog-completion-at-point))))
+  ;; Wait for a key press. Then delete *Completion*  window
+  (momentary-string-display "" (point))
+  (delete-window (get-buffer-window (get-buffer "*Completions*"))))
 
 (defun verilog-get-default-symbol ()
   "Return symbol around current point as a string."

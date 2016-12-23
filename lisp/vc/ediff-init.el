@@ -318,7 +318,7 @@ It needs to be killed when we quit the session.")
 (defsubst ediff-patch-metajob (&optional metajob)
   (memq (or metajob ediff-metajob-name)
 	'(ediff-multifile-patch)))
-;; metajob involving only one group of files, such as multipatch or directory
+;; metajob involving only one group of files, such as multi-patch or directory
 ;; revision
 (defsubst ediff-one-filegroup-metajob (&optional metajob)
   (or (ediff-revision-metajob metajob)

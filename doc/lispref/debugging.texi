@@ -727,7 +727,7 @@ invocation.
 This variable is obsolete and will be removed in future versions.
 @end defvar
 
-@defun backtrace-frame frame-number
+@defun backtrace-frame frame-number &optional base
 The function @code{backtrace-frame} is intended for use in Lisp
 debuggers.  It returns information about what computation is happening
 in the stack frame @var{frame-number} levels down.
@@ -744,8 +744,29 @@ In the return value, @var{function} is whatever was supplied as the
 case of a macro call.  If the function has a @code{&rest} argument, that
 is represented as the tail of the list @var{arg-values}.
 
+If @var{base} is specified, @var{frame-number} counts relative to
+the topmost frame whose @var{function} is @var{base}.
+
 If @var{frame-number} is out of range, @code{backtrace-frame} returns
 @code{nil}.
+@end defun
+
+@defun mapbacktrace function &optional base
+The function @code{mapbacktrace} calls @var{function} once for each
+frame in the backtrace, starting at the first frame whose function is
+@var{base} (or from the top if @var{base} is omitted or @code{nil}).
+
+@var{function} is called with four arguments: @var{evald}, @var{func},
+@var{args}, and @var{flags}.
+
+If a frame has not evaluated its arguments yet or is a special form,
+@var{evald} is @code{nil} and @var{args} is a list of forms.
+
+If a frame has evaluated its arguments and called its function
+already, @var{evald} is @code{t} and @var{args} is a list of values.
+@var{flags} is a plist of properties of the current frame: currently,
+the only supported property is @code{:debug-on-exit}, which is
+@code{t} if the stack frame's @code{debug-on-exit} flag is set.
 @end defun
 
 @include edebug.texi

@@ -258,6 +258,12 @@ for example, (type-of 1) returns `integer'.  */)
 	return Qfont_entity;
       if (FONT_OBJECT_P (object))
 	return Qfont_object;
+      if (THREADP (object))
+	return Qthread;
+      if (MUTEXP (object))
+	return Qmutex;
+      if (CONDVARP (object))
+	return Qcondition_variable;
       return Qvector;
 
     case Lisp_Float:
@@ -528,6 +534,33 @@ DEFUN ("floatp", Ffloatp, Sfloatp, 1, 1, 0,
   return Qnil;
 }
 
+DEFUN ("threadp", Fthreadp, Sthreadp, 1, 1, 0,
+       doc: /* Return t if OBJECT is a thread.  */)
+  (Lisp_Object object)
+{
+  if (THREADP (object))
+    return Qt;
+  return Qnil;
+}
+
+DEFUN ("mutexp", Fmutexp, Smutexp, 1, 1, 0,
+       doc: /* Return t if OBJECT is a mutex.  */)
+  (Lisp_Object object)
+{
+  if (MUTEXP (object))
+    return Qt;
+  return Qnil;
+}
+
+DEFUN ("condition-variable-p", Fcondition_variable_p, Scondition_variable_p,
+       1, 1, 0,
+       doc: /* Return t if OBJECT is a condition variable.  */)
+  (Lisp_Object object)
+{
+  if (CONDVARP (object))
+    return Qt;
+  return Qnil;
+}
 
 /* Extract and set components of lists.  */
 
@@ -700,6 +733,9 @@ DEFUN ("fset", Ffset, Sfset, 2, 2, 0,
 {
   register Lisp_Object function;
   CHECK_SYMBOL (symbol);
+  /* Perhaps not quite the right error signal, but seems good enough.  */
+  if (NILP (symbol))
+    xsignal1 (Qsetting_constant, symbol);
 
   function = XSYMBOL (symbol)->function;
 
@@ -1140,9 +1176,7 @@ swap_in_symval_forwarding (struct Lisp_Symbol *symbol, struct Lisp_Buffer_Local_
   tem1 = blv->where;
 
   if (NILP (tem1)
-      || (blv->frame_local
-	  ? !EQ (selected_frame, tem1)
-	  : current_buffer != XBUFFER (tem1)))
+      || current_buffer != XBUFFER (tem1))
     {
 
       /* Unload the previously loaded binding.  */
@@ -1153,16 +1187,8 @@ swap_in_symval_forwarding (struct Lisp_Symbol *symbol, struct Lisp_Buffer_Local_
       {
 	Lisp_Object var;
 	XSETSYMBOL (var, symbol);
-	if (blv->frame_local)
-	  {
-	    tem1 = assq_no_quit (var, XFRAME (selected_frame)->param_alist);
-	    set_blv_where (blv, selected_frame);
-	  }
-	else
-	  {
-	    tem1 = assq_no_quit (var, BVAR (current_buffer, local_var_alist));
-	    set_blv_where (blv, Fcurrent_buffer ());
-	  }
+	tem1 = assq_no_quit (var, BVAR (current_buffer, local_var_alist));
+	set_blv_where (blv, Fcurrent_buffer ());
       }
       if (!(blv->found = !NILP (tem1)))
 	tem1 = blv->defcell;
@@ -1230,7 +1256,7 @@ DEFUN ("set", Fset, Sset, 2, 2, 0,
 }
 
 /* Store the value NEWVAL into SYMBOL.
-   If buffer/frame-locality is an issue, WHERE specifies which context to use.
+   If buffer-locality is an issue, WHERE specifies which context to use.
    (nil stands for the current buffer/frame).
 
    If BINDFLAG is SET_INTERNAL_SET, then if this symbol is supposed to
@@ -1263,11 +1289,13 @@ set_internal (Lisp_Object symbol, Lisp_Object newval, Lisp_Object where,
         return;
 
     case SYMBOL_TRAPPED_WRITE:
-      notify_variable_watchers (symbol, voide? Qnil : newval,
-                                (bindflag == SET_INTERNAL_BIND? Qlet :
-                                 bindflag == SET_INTERNAL_UNBIND? Qunlet :
-                                 voide? Qmakunbound : Qset),
-                                where);
+      /* Setting due to thread-switching doesn't count.  */
+      if (bindflag != SET_INTERNAL_THREAD_SWITCH)
+        notify_variable_watchers (symbol, voide? Qnil : newval,
+                                  (bindflag == SET_INTERNAL_BIND? Qlet :
+                                   bindflag == SET_INTERNAL_UNBIND? Qunlet :
+                                   voide? Qmakunbound : Qset),
+                                  where);
       /* FALLTHROUGH!  */
     case SYMBOL_UNTRAPPED_WRITE:
         break;
@@ -1284,15 +1312,10 @@ set_internal (Lisp_Object symbol, Lisp_Object newval, Lisp_Object where,
       {
 	struct Lisp_Buffer_Local_Value *blv = SYMBOL_BLV (sym);
 	if (NILP (where))
-	  {
-	    if (blv->frame_local)
-	      where = selected_frame;
-	    else
-	      XSETBUFFER (where, current_buffer);
-	  }
+	  XSETBUFFER (where, current_buffer);
+
 	/* If the current buffer is not the buffer whose binding is
-	   loaded, or if there may be frame-local bindings and the frame
-	   isn't the right one, or if it's a Lisp_Buffer_Local_Value and
+	   loaded, or if it's a Lisp_Buffer_Local_Value and
 	   the default binding is loaded, the loaded binding may be the
 	   wrong one.  */
 	if (!EQ (blv->where, where)
@@ -1309,9 +1332,7 @@ set_internal (Lisp_Object symbol, Lisp_Object newval, Lisp_Object where,
 	    /* Find the new binding.  */
 	    XSETSYMBOL (symbol, sym); /* May have changed via aliasing.  */
 	    tem1 = assq_no_quit (symbol,
-				 (blv->frame_local
-				  ? XFRAME (where)->param_alist
-				  : BVAR (XBUFFER (where), local_var_alist)));
+				 BVAR (XBUFFER (where), local_var_alist));
 	    set_blv_where (blv, where);
 	    blv->found = 1;
 
@@ -1338,9 +1359,6 @@ set_internal (Lisp_Object symbol, Lisp_Object newval, Lisp_Object where,
 		   and load that binding.  */
 		else
 		  {
-		    /* local_if_set is only supported for buffer-local
-		       bindings, not for frame-local bindings.  */
-		    eassert (!blv->frame_local);
 		    tem1 = Fcons (symbol, XCDR (blv->defcell));
 		    bset_local_var_alist
 		      (XBUFFER (where),
@@ -1378,7 +1396,7 @@ set_internal (Lisp_Object symbol, Lisp_Object newval, Lisp_Object where,
 	    int offset = XBUFFER_OBJFWD (innercontents)->offset;
 	    int idx = PER_BUFFER_IDX (offset);
 	    if (idx > 0
-		&& !bindflag
+                && bindflag == SET_INTERNAL_SET
 		&& !let_shadows_buffer_binding_p (sym))
 	      SET_PER_BUFFER_VALUE_P (buf, idx, 1);
 	  }
@@ -1404,9 +1422,6 @@ set_symbol_trapped_write (Lisp_Object symbol, enum symbol_trapped_write trap)
   struct Lisp_Symbol* sym = XSYMBOL (symbol);
   if (sym->trapped_write == SYMBOL_NOWRITE)
     xsignal1 (Qtrapping_constant, symbol);
-  else if (sym->redirect == SYMBOL_LOCALIZED
-           && SYMBOL_BLV (sym)->frame_local)
-    xsignal1 (Qtrapping_frame_local, symbol);
   sym->trapped_write = trap;
 }
 
@@ -1598,11 +1613,9 @@ local bindings in certain buffers.  */)
   xsignal1 (Qvoid_variable, symbol);
 }
 
-DEFUN ("set-default", Fset_default, Sset_default, 2, 2, 0,
-       doc: /* Set SYMBOL's default value to VALUE.  SYMBOL and VALUE are evaluated.
-The default value is seen in buffers that do not have their own values
-for this variable.  */)
-  (Lisp_Object symbol, Lisp_Object value)
+void
+set_default_internal (Lisp_Object symbol, Lisp_Object value,
+                      enum Set_Internal_Bind bindflag)
 {
   struct Lisp_Symbol *sym;
 
@@ -1616,11 +1629,13 @@ for this variable.  */)
         xsignal1 (Qsetting_constant, symbol);
       else
         /* Allow setting keywords to their own value.  */
-        return value;
+        return;
 
     case SYMBOL_TRAPPED_WRITE:
       /* Don't notify here if we're going to call Fset anyway.  */
-      if (sym->redirect != SYMBOL_PLAINVAL)
+      if (sym->redirect != SYMBOL_PLAINVAL
+          /* Setting due to thread switching doesn't count.  */
+          && bindflag != SET_INTERNAL_THREAD_SWITCH)
         notify_variable_watchers (symbol, value, Qset_default, Qnil);
       /* FALLTHROUGH!  */
     case SYMBOL_UNTRAPPED_WRITE:
@@ -1633,7 +1648,7 @@ for this variable.  */)
   switch (sym->redirect)
     {
     case SYMBOL_VARALIAS: sym = indirect_variable (sym); goto start;
-    case SYMBOL_PLAINVAL: return Fset (symbol, value);
+    case SYMBOL_PLAINVAL: set_internal (symbol, value, Qnil, bindflag); return;
     case SYMBOL_LOCALIZED:
       {
 	struct Lisp_Buffer_Local_Value *blv = SYMBOL_BLV (sym);
@@ -1644,7 +1659,7 @@ for this variable.  */)
 	/* If the default binding is now loaded, set the REALVALUE slot too.  */
 	if (blv->fwd && EQ (blv->defcell, blv->valcell))
 	  store_symval_forwarding (blv->fwd, value, NULL);
-	return value;
+        return;
       }
     case SYMBOL_FORWARDED:
       {
@@ -1670,13 +1685,23 @@ for this variable.  */)
 		  if (!PER_BUFFER_VALUE_P (b, idx))
 		    set_per_buffer_value (b, offset, value);
 	      }
-	    return value;
 	  }
 	else
-	  return Fset (symbol, value);
+          set_internal (symbol, value, Qnil, bindflag);
+        return;
       }
     default: emacs_abort ();
     }
+}
+
+DEFUN ("set-default", Fset_default, Sset_default, 2, 2, 0,
+       doc: /* Set SYMBOL's default value to VALUE.  SYMBOL and VALUE are evaluated.
+The default value is seen in buffers that do not have their own values
+for this variable.  */)
+  (Lisp_Object symbol, Lisp_Object value)
+{
+  set_default_internal (symbol, value, SET_INTERNAL_SET);
+  return value;
 }
 
 DEFUN ("setq-default", Fsetq_default, Ssetq_default, 0, UNEVALLED, 0,
@@ -1736,7 +1761,6 @@ make_blv (struct Lisp_Symbol *sym, bool forwarded,
   eassert (!(forwarded && KBOARD_OBJFWDP (valcontents.fwd)));
   blv->fwd = forwarded ? valcontents.fwd : NULL;
   set_blv_where (blv, Qnil);
-  blv->frame_local = 0;
   blv->local_if_set = 0;
   set_blv_defcell (blv, tem);
   set_blv_valcell (blv, tem);
@@ -1783,9 +1807,6 @@ The function `default-value' gets the default value and `set-default' sets it.  
       break;
     case SYMBOL_LOCALIZED:
       blv = SYMBOL_BLV (sym);
-      if (blv->frame_local)
-	error ("Symbol %s may not be buffer-local",
-	       SDATA (SYMBOL_NAME (variable)));
       break;
     case SYMBOL_FORWARDED:
       forwarded = 1; valcontents.fwd = SYMBOL_FWD (sym);
@@ -1860,9 +1881,6 @@ Instead, use `add-hook' and specify t for the LOCAL argument.  */)
       forwarded = 0; valcontents.value = SYMBOL_VAL (sym); break;
     case SYMBOL_LOCALIZED:
       blv = SYMBOL_BLV (sym);
-      if (blv->frame_local)
-	error ("Symbol %s may not be buffer-local",
-	       SDATA (SYMBOL_NAME (variable)));
       break;
     case SYMBOL_FORWARDED:
       forwarded = 1; valcontents.fwd = SYMBOL_FWD (sym);
@@ -1979,8 +1997,6 @@ From now on the default value will apply in this buffer.  Return VARIABLE.  */)
       }
     case SYMBOL_LOCALIZED:
       blv = SYMBOL_BLV (sym);
-      if (blv->frame_local)
-	return variable;
       break;
     default: emacs_abort ();
     }
@@ -2014,81 +2030,6 @@ From now on the default value will apply in this buffer.  Return VARIABLE.  */)
 
 /* Lisp functions for creating and removing buffer-local variables.  */
 
-/* Obsolete since 22.2.  NB adjust doc of modify-frame-parameters
-   when/if this is removed.  */
-
-DEFUN ("make-variable-frame-local", Fmake_variable_frame_local, Smake_variable_frame_local,
-       1, 1, "vMake Variable Frame Local: ",
-       doc: /* Enable VARIABLE to have frame-local bindings.
-This does not create any frame-local bindings for VARIABLE,
-it just makes them possible.
-
-A frame-local binding is actually a frame parameter value.
-If a frame F has a value for the frame parameter named VARIABLE,
-that also acts as a frame-local binding for VARIABLE in F--
-provided this function has been called to enable VARIABLE
-to have frame-local bindings at all.
-
-The only way to create a frame-local binding for VARIABLE in a frame
-is to set the VARIABLE frame parameter of that frame.  See
-`modify-frame-parameters' for how to set frame parameters.
-
-Note that since Emacs 23.1, variables cannot be both buffer-local and
-frame-local any more (buffer-local bindings used to take precedence over
-frame-local bindings).  */)
-  (Lisp_Object variable)
-{
-  bool forwarded;
-  union Lisp_Val_Fwd valcontents;
-  struct Lisp_Symbol *sym;
-  struct Lisp_Buffer_Local_Value *blv = NULL;
-
-  CHECK_SYMBOL (variable);
-  sym = XSYMBOL (variable);
-
- start:
-  switch (sym->redirect)
-    {
-    case SYMBOL_VARALIAS: sym = indirect_variable (sym); goto start;
-    case SYMBOL_PLAINVAL:
-      forwarded = 0; valcontents.value = SYMBOL_VAL (sym);
-      if (EQ (valcontents.value, Qunbound))
-	valcontents.value = Qnil;
-      break;
-    case SYMBOL_LOCALIZED:
-      if (SYMBOL_BLV (sym)->frame_local)
-	return variable;
-      else
-	error ("Symbol %s may not be frame-local",
-	       SDATA (SYMBOL_NAME (variable)));
-    case SYMBOL_FORWARDED:
-      forwarded = 1; valcontents.fwd = SYMBOL_FWD (sym);
-      if (KBOARD_OBJFWDP (valcontents.fwd) || BUFFER_OBJFWDP (valcontents.fwd))
-	error ("Symbol %s may not be frame-local",
-	       SDATA (SYMBOL_NAME (variable)));
-      break;
-    default: emacs_abort ();
-    }
-
-  if (SYMBOL_TRAPPED_WRITE_P (variable))
-    error ("Symbol %s may not be frame-local", SDATA (SYMBOL_NAME (variable)));
-
-  blv = make_blv (sym, forwarded, valcontents);
-  blv->frame_local = 1;
-  sym->redirect = SYMBOL_LOCALIZED;
-  SET_SYMBOL_BLV (sym, blv);
-  {
-    Lisp_Object symbol;
-    XSETSYMBOL (symbol, sym); /* In case `variable' is aliased.  */
-    if (let_shadows_global_binding_p (symbol))
-      {
-	AUTO_STRING (format, "Making %s frame-local while let-bound!");
-	CALLN (Fmessage, format, SYMBOL_NAME (variable));
-      }
-  }
-  return variable;
-}
-
 DEFUN ("local-variable-p", Flocal_variable_p, Slocal_variable_p,
        1, 2, 0,
        doc: /* Non-nil if VARIABLE has a local binding in buffer BUFFER.
@@ -2120,10 +2061,7 @@ BUFFER defaults to the current buffer.  */)
 	    {
 	      elt = XCAR (tail);
 	      if (EQ (variable, XCAR (elt)))
-		{
-		  eassert (!blv->frame_local);
-		  return Qt;
-		}
+		return Qt;
 	    }
 	return Qnil;
       }
@@ -2182,7 +2120,6 @@ DEFUN ("variable-binding-locus", Fvariable_binding_locus, Svariable_binding_locu
        1, 1, 0,
        doc: /* Return a value indicating where VARIABLE's current binding comes from.
 If the current binding is buffer-local, the value is the current buffer.
-If the current binding is frame-local, the value is the selected frame.
 If the current binding is global (the default), the value is nil.  */)
   (register Lisp_Object variable)
 {
@@ -3616,7 +3553,6 @@ syms_of_data (void)
   DEFSYM (Qvoid_variable, "void-variable");
   DEFSYM (Qsetting_constant, "setting-constant");
   DEFSYM (Qtrapping_constant, "trapping-constant");
-  DEFSYM (Qtrapping_frame_local, "trapping-frame-local");
   DEFSYM (Qinvalid_read_syntax, "invalid-read-syntax");
 
   DEFSYM (Qinvalid_function, "invalid-function");
@@ -3697,8 +3633,6 @@ syms_of_data (void)
 	     "Attempt to set a constant symbol");
   PUT_ERROR (Qtrapping_constant, error_tail,
              "Attempt to trap writes to a constant symbol");
-  PUT_ERROR (Qtrapping_frame_local, error_tail,
-             "Attempt to trap writes to a frame local variable");
   PUT_ERROR (Qinvalid_read_syntax, error_tail, "Invalid read syntax");
   PUT_ERROR (Qinvalid_function, error_tail, "Invalid function");
   PUT_ERROR (Qwrong_number_of_arguments, error_tail,
@@ -3756,6 +3690,9 @@ syms_of_data (void)
   DEFSYM (Qchar_table, "char-table");
   DEFSYM (Qbool_vector, "bool-vector");
   DEFSYM (Qhash_table, "hash-table");
+  DEFSYM (Qthread, "thread");
+  DEFSYM (Qmutex, "mutex");
+  DEFSYM (Qcondition_variable, "condition-variable");
 
   DEFSYM (Qdefun, "defun");
 
@@ -3796,6 +3733,9 @@ syms_of_data (void)
   defsubr (&Ssubrp);
   defsubr (&Sbyte_code_function_p);
   defsubr (&Schar_or_string_p);
+  defsubr (&Sthreadp);
+  defsubr (&Smutexp);
+  defsubr (&Scondition_variable_p);
   defsubr (&Scar);
   defsubr (&Scdr);
   defsubr (&Scar_safe);
@@ -3822,7 +3762,6 @@ syms_of_data (void)
   defsubr (&Smake_variable_buffer_local);
   defsubr (&Smake_local_variable);
   defsubr (&Skill_local_variable);
-  defsubr (&Smake_variable_frame_local);
   defsubr (&Slocal_variable_p);
   defsubr (&Slocal_variable_if_set_p);
   defsubr (&Svariable_binding_locus);

@@ -313,7 +313,7 @@ type.  Here are these commands:
     xbufobjfwd xkbobjfwd xbuflocal xbuffer xsymbol xstring xvector xframe
     xwinconfig xcompiled xcons xcar xcdr xsubr xprocess xfloat xscrollbar
     xchartable xsubchartable xboolvector xhashtable xlist xcoding
-    xcharset xfontset xfont
+    xcharset xfontset xfont xbytecode
 
 Each one of them applies to a certain type or class of types.
 (Some of these types are not visible in Lisp, because they exist only

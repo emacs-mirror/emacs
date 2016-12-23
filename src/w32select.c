@@ -77,7 +77,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "w32common.h"	/* os_subtype */
 #include "w32term.h"	/* for all of the w32 includes */
 #include "w32select.h"
-#include "keyboard.h"	/* for waiting_for_input */
 #include "blockinput.h"
 #include "coding.h"
 

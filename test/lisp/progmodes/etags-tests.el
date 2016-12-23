@@ -37,7 +37,9 @@
         xref-buf)
     (set-buffer buf-with-global-tags)
     (setq default-directory (expand-file-name "."))
-    (visit-tags-table "./manual/etags/ETAGS.good_1")
+    (visit-tags-table
+     (expand-file-name "manual/etags/ETAGS.good_1"
+                       (getenv "EMACS_TEST_DIRECTORY")))
     ;; Check that tags in ETAGS.good_1 are recognized.
     (setq xref-buf (xref-find-definitions "LL_Task_Procedure_Access/t"))
     (should (bufferp xref-buf))
@@ -52,7 +54,10 @@
     (set-buffer buf-with-local-tags)
     (setq default-directory (expand-file-name "."))
     (let (his-masters-voice)
-      (visit-tags-table "./manual/etags/ETAGS.good_3" t))
+      (visit-tags-table
+       (expand-file-name "manual/etags/ETAGS.good_3"
+                         (getenv "EMACS_TEST_DIRECTORY"))
+       t))
     ;; Check that tags in ETAGS.good_1 are recognized.
     (setq xref-buf (xref-find-definitions "LL_Task_Procedure_Access/t"))
     (should (bufferp xref-buf))
@@ -78,6 +83,9 @@
   "Test that setting a local value of tags table doesn't signal errors."
   (set-buffer (get-buffer-create "*foobar*"))
   (fundamental-mode)
-  (visit-tags-table "./manual/etags/ETAGS.good_3" t)
+  (visit-tags-table
+   (expand-file-name "manual/etags/ETAGS.good_3"
+                     (getenv "EMACS_TEST_DIRECTORY"))
+   t)
   (should (equal (should-error (xref-find-definitions "foobar123"))
                  '(user-error "No definitions found for: foobar123"))))

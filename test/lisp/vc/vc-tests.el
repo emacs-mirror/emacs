@@ -206,7 +206,7 @@ For backends which dont support it, it is emulated."
 ;; FIXME: Why isn't there `vc-unregister'?
 (defun vc-test--unregister-function (backend file)
   "Run the `vc-unregister' backend function.
-For backends which don't support it, `vc-not-supported' is signalled."
+For backends which don't support it, `vc-not-supported' is signaled."
   ;; CVS, SVN, SCCS, SRC and Mtn are not supported, and will signal
   ;; `vc-not-supported'.
   (prog1

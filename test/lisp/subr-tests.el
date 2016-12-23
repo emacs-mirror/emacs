@@ -224,5 +224,52 @@
               (error-message-string (should-error (version-to-list "beta22_8alpha3")))
               "Invalid version syntax: `beta22_8alpha3' (must start with a number)"))))
 
+(defun subr-test--backtrace-frames-with-backtrace-frame (base)
+  "Reference implementation of `backtrace-frames'."
+  (let ((idx 0)
+        (frame nil)
+        (frames nil))
+    (while (setq frame (backtrace-frame idx base))
+      (push frame frames)
+      (setq idx (1+ idx)))
+    (nreverse frames)))
+
+(defun subr-test--frames-2 (base)
+  (let ((_dummy nil))
+    (progn ;; Add a few frames to top of stack
+      (unwind-protect
+          (cons (mapcar (pcase-lambda (`(,evald ,func ,args ,_))
+                          `(,evald ,func ,@args))
+                        (backtrace-frames base))
+                (subr-test--backtrace-frames-with-backtrace-frame base))))))
+
+(defun subr-test--frames-1 (base)
+  (subr-test--frames-2 base))
+
+(ert-deftest subr-test-backtrace-simple-tests ()
+  "Test backtrace-related functions (simple tests).
+This exercises `backtrace-frame', and indirectly `mapbacktrace'."
+  ;; `mapbacktrace' returns nil
+  (should (equal (mapbacktrace #'ignore) nil))
+  ;; Unbound BASE is silently ignored
+  (let ((unbound (make-symbol "ub")))
+    (should (equal (backtrace-frame 0 unbound) nil))
+    (should (equal (mapbacktrace #'error unbound) nil)))
+  ;; First frame is backtrace-related function
+  (should (equal (backtrace-frame 0) '(t backtrace-frame 0)))
+  (should (equal (catch 'ret
+                   (mapbacktrace (lambda (&rest args) (throw 'ret args))))
+                 '(t mapbacktrace ((lambda (&rest args) (throw 'ret args))) nil)))
+  ;; Past-end NFRAMES is silently ignored
+  (should (equal (backtrace-frame most-positive-fixnum) nil)))
+
+(ert-deftest subr-test-backtrace-integration-test ()
+  "Test backtrace-related functions (integration test).
+This exercises `backtrace-frame', `backtrace-frames', and
+indirectly `mapbacktrace'."
+  ;; Compare two implementations of backtrace-frames
+  (let ((frame-lists (subr-test--frames-1 'subr-test--frames-2)))
+    (should (equal (car frame-lists) (cdr frame-lists)))))
+
 (provide 'subr-tests)
 ;;; subr-tests.el ends here

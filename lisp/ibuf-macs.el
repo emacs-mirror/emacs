@@ -304,7 +304,7 @@ bound to the current value of the filter.
        (push (list ',name ,description
 		   (lambda (buf qualifier)
                      (condition-case nil
-                         ,@body
+                         (progn ,@body)
                        (error (ibuffer-pop-filter)
                               (when (eq ',name 'predicate)
                                 (error "Wrong filter predicate: %S"

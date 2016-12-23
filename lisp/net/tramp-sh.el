@@ -32,8 +32,6 @@
 (eval-when-compile
   (require 'cl)
   (require 'dired))
-(defvar tramp-gw-tunnel-method)
-(defvar tramp-gw-socks-method)
 (defvar vc-handled-backends)
 (defvar vc-bzr-program)
 (defvar vc-git-program)
@@ -172,11 +170,7 @@ The string is used in `tramp-methods'.")
     (tramp-copy-program         "scp")
     (tramp-copy-args            (("-P" "%p") ("-p" "%k") ("-q") ("-r") ("%c")))
     (tramp-copy-keep-date       t)
-    (tramp-copy-recursive       t)
-    (tramp-gw-args              (("-o" "GlobalKnownHostsFile=/dev/null")
-				 ("-o" "UserKnownHostsFile=/dev/null")
-				 ("-o" "StrictHostKeyChecking=no")))
-    (tramp-default-port         22)))
+    (tramp-copy-recursive       t)))
 ;;;###tramp-autoload
 (add-to-list 'tramp-methods
   '("scpx"
@@ -191,11 +185,7 @@ The string is used in `tramp-methods'.")
     (tramp-copy-args            (("-P" "%p") ("-p" "%k")
 				 ("-q") ("-r") ("%c")))
     (tramp-copy-keep-date       t)
-    (tramp-copy-recursive       t)
-    (tramp-gw-args              (("-o" "GlobalKnownHostsFile=/dev/null")
-				 ("-o" "UserKnownHostsFile=/dev/null")
-				 ("-o" "StrictHostKeyChecking=no")))
-    (tramp-default-port         22)))
+    (tramp-copy-recursive       t)))
 ;;;###tramp-autoload
 (add-to-list 'tramp-methods
   '("rsync"
@@ -237,11 +227,7 @@ The string is used in `tramp-methods'.")
     (tramp-async-args           (("-q")))
     (tramp-remote-shell         "/bin/sh")
     (tramp-remote-shell-login   ("-l"))
-    (tramp-remote-shell-args    ("-c"))
-    (tramp-gw-args              (("-o" "GlobalKnownHostsFile=/dev/null")
-				 ("-o" "UserKnownHostsFile=/dev/null")
-				 ("-o" "StrictHostKeyChecking=no")))
-    (tramp-default-port         22)))
+    (tramp-remote-shell-args    ("-c"))))
 ;;;###tramp-autoload
 (add-to-list 'tramp-methods
   '("sshx"
@@ -251,11 +237,7 @@ The string is used in `tramp-methods'.")
     (tramp-async-args           (("-q")))
     (tramp-remote-shell         "/bin/sh")
     (tramp-remote-shell-login   ("-l"))
-    (tramp-remote-shell-args    ("-c"))
-    (tramp-gw-args              (("-o" "GlobalKnownHostsFile=/dev/null")
-				 ("-o" "UserKnownHostsFile=/dev/null")
-				 ("-o" "StrictHostKeyChecking=no")))
-    (tramp-default-port         22)))
+    (tramp-remote-shell-args    ("-c"))))
 ;;;###tramp-autoload
 (add-to-list 'tramp-methods
   '("telnet"
@@ -263,8 +245,7 @@ The string is used in `tramp-methods'.")
     (tramp-login-args           (("%h") ("%p") ("2>/dev/null")))
     (tramp-remote-shell         "/bin/sh")
     (tramp-remote-shell-login   ("-l"))
-    (tramp-remote-shell-args    ("-c"))
-    (tramp-default-port         23)))
+    (tramp-remote-shell-args    ("-c"))))
 ;;;###tramp-autoload
 (add-to-list 'tramp-methods
   '("nc"
@@ -280,8 +261,7 @@ The string is used in `tramp-methods'.")
     ;; We use "-p" as required for newer busyboxes.  For older
     ;; busybox/nc versions, the value must be (("-l") ("%r")).  This
     ;; can be achieved by tweaking `tramp-connection-properties'.
-    (tramp-remote-copy-args     (("-l") ("-p" "%r") ("2>/dev/null")))
-    (tramp-default-port         23)))
+    (tramp-remote-copy-args     (("-l") ("-p" "%r") ("2>/dev/null")))))
 ;;;###tramp-autoload
 (add-to-list 'tramp-methods
   '("su"
@@ -353,8 +333,7 @@ The string is used in `tramp-methods'.")
 				 ("/bin/sh") ("\"")))
     (tramp-remote-shell         "/bin/sh")
     (tramp-remote-shell-login   ("-l"))
-    (tramp-remote-shell-args    ("-c"))
-    (tramp-default-port         22)))
+    (tramp-remote-shell-args    ("-c"))))
 ;;;###tramp-autoload
 (add-to-list 'tramp-methods
   `("plinkx"
@@ -386,8 +365,7 @@ The string is used in `tramp-methods'.")
     (tramp-copy-args            (("-l" "%u") ("-P" "%p") ("-scp") ("-p" "%k")
 				 ("-q") ("-r")))
     (tramp-copy-keep-date       t)
-    (tramp-copy-recursive       t)
-    (tramp-default-port         22)))
+    (tramp-copy-recursive       t)))
 ;;;###tramp-autoload
 (add-to-list 'tramp-methods
   `("psftp"
@@ -2227,14 +2205,8 @@ the uid and gid from FILENAME."
 			    v 'file-error
 			    "Unknown operation `%s', must be `copy' or `rename'"
 			    op))))
-	     (localname1
-	      (if t1
-		  (file-remote-p filename 'localname)
-		filename))
-	     (localname2
-	      (if t2
-		  (file-remote-p newname 'localname)
-		newname))
+	     (localname1 (if t1 (file-remote-p filename 'localname) filename))
+	     (localname2 (if t2 (file-remote-p newname 'localname) newname))
 	     (prefix (file-remote-p (if t1 filename newname)))
              cmd-result)
 
@@ -2324,11 +2296,9 @@ the uid and gid from FILENAME."
 		     (t2
 		      (if (eq op 'copy)
 			  (copy-file
-			   localname1 tmpfile t
-			   keep-date preserve-uid-gid)
+			   localname1 tmpfile t keep-date preserve-uid-gid)
 			(tramp-run-real-handler
-			 'rename-file
-			 (list localname1 tmpfile t)))
+			 'rename-file (list localname1 tmpfile t)))
 		      ;; We must change the ownership as local user.
 		      ;; Since this does not work reliable, we also
 		      ;; give read permissions.
@@ -2403,10 +2373,6 @@ The method used must be an out-of-band method."
 				      v "login-as" nil))
 	      tramp-current-host (tramp-file-name-real-host v))
 
-	;; Expand hops.  Might be necessary for gateway methods.
-	(setq v (car (tramp-compute-multi-hops v)))
-	(aset v 3 localname)
-
 	;; Check which ones of source and target are Tramp files.
 	(setq source (funcall
 		      (if (and (file-directory-p filename)
@@ -2420,15 +2386,9 @@ The method used must be an out-of-band method."
 			 (tramp-make-copy-program-file-name v)
 		       (tramp-unquote-shell-quote-argument newname)))
 
-	;; Check for host and port number.  We cannot use
-	;; `tramp-file-name-port', because this returns also
-	;; `tramp-default-port', which might clash with settings in
-	;; "~/.ssh/config".
-	(setq host (tramp-file-name-host v)
-	      port "")
-	(when (string-match tramp-host-with-port-regexp host)
-	  (setq port (string-to-number (match-string 2 host))
-		host (string-to-number (match-string 1 host))))
+	;; Check for host and port number.
+	(setq host (tramp-file-name-real-host v)
+	      port (tramp-file-name-port v))
 
 	;; Check for user.  There might be an interactive setting.
 	(setq user (or (tramp-file-name-user v)
@@ -4209,10 +4169,11 @@ process to set up.  VEC specifies the connection."
       (when vars
 	(tramp-send-command
 	 vec
-	 (format "while read var val; do export $var=$val; done <<'%s'\n%s\n%s"
-		 tramp-end-of-heredoc
-		 (mapconcat 'identity vars "\n")
-		 tramp-end-of-heredoc)
+	 (format
+	  "while read var val; do export $var=\"$val\"; done <<'%s'\n%s\n%s"
+	  tramp-end-of-heredoc
+	  (mapconcat 'identity vars "\n")
+	  tramp-end-of-heredoc)
 	 t))
       (when unset
 	(tramp-send-command
@@ -4511,8 +4472,7 @@ Goes through the list `tramp-inline-compress-commands'."
 	 vec 2 "Couldn't find an inline transfer compress command")))))
 
 (defun tramp-compute-multi-hops (vec)
-  "Expands VEC according to `tramp-default-proxies-alist'.
-Gateway hops are already opened."
+  "Expands VEC according to `tramp-default-proxies-alist'."
   (let ((target-alist `(,vec))
 	(hops (or (tramp-file-name-hop vec) ""))
 	(item vec)
@@ -4568,32 +4528,6 @@ Gateway hops are already opened."
 	    (push l target-alist)
 	    ;; Start next search.
 	    (setq choices tramp-default-proxies-alist)))))
-
-    ;; Handle gateways.
-    (when (and (boundp 'tramp-gw-tunnel-method) (boundp 'tramp-gw-socks-method)
-	       (string-match
-		(format
-		 "^\\(%s\\|%s\\)$" tramp-gw-tunnel-method tramp-gw-socks-method)
-		(tramp-file-name-method (car target-alist))))
-      (let ((gw (pop target-alist))
-	    (hop (pop target-alist)))
-	;; Is the method prepared for gateways?
-	(unless (tramp-file-name-port hop)
-	  (tramp-error
-	   vec 'file-error
-	   "Connection `%s' is not supported for gateway access." hop))
-	;; Open the gateway connection.
-	(push
-	 (vector
-	  (tramp-file-name-method hop) (tramp-file-name-user hop)
-	  (tramp-gw-open-connection vec gw hop) nil nil)
-	 target-alist)
-	;; For the password prompt, we need the correct values.
-	;; Therefore, we must remember the gateway vector.  But we
-	;; cannot do it as connection property, because it shouldn't
-	;; be persistent.  And we have no started process yet either.
-	(let ((tramp-verbose 0))
-	  (tramp-set-file-property (car target-alist) "" "gateway" hop))))
 
     ;; Foreign and out-of-band methods are not supported for multi-hops.
     (when (cdr target-alist)
@@ -4809,13 +4743,6 @@ connection if a previous connection has died for some reason."
 			 (connection-timeout
 			  (tramp-get-method-parameter
 			   hop 'tramp-connection-timeout))
-			 (gw-args
-			  (tramp-get-method-parameter hop 'tramp-gw-args))
-			 (gw (let ((tramp-verbose 0))
-			       (tramp-get-file-property hop "" "gateway" nil)))
-			 (g-method (and gw (tramp-file-name-method gw)))
-			 (g-user (and gw (tramp-file-name-user gw)))
-			 (g-host (and gw (tramp-file-name-real-host gw)))
 			 (command login-program)
 			 ;; We don't create the temporary file.  In
 			 ;; fact, it is just a prefix for the
@@ -4839,12 +4766,6 @@ connection if a previous connection has died for some reason."
 		    (when (and process-name async-args)
 		      (setq login-args (append async-args login-args)))
 
-		    ;; Add gateway arguments if necessary.
-		    (when gw
-		      (tramp-set-connection-property p "gateway" t)
-		      (when gw-args
-			(setq login-args (append gw-args login-args))))
-
 		    ;; Check for port number.  Until now, there's no
 		    ;; need for handling like method, user, host.
 		    (when (string-match tramp-host-with-port-regexp l-host)
@@ -4857,11 +4778,10 @@ connection if a previous connection has died for some reason."
 			(setq r-shell t)))
 
 		    ;; Set variables for computing the prompt for
-		    ;; reading password.  They can also be derived
-		    ;; from a gateway.
-		    (setq tramp-current-method (or g-method l-method)
-			  tramp-current-user   (or g-user   l-user)
-			  tramp-current-host   (or g-host   l-host))
+		    ;; reading password.
+		    (setq tramp-current-method l-method
+			  tramp-current-user   l-user
+			  tramp-current-host   l-host)
 
 		    ;; Add login environment.
 		    (when login-env
@@ -5166,8 +5086,8 @@ Return ATTR."
   (let ((method (tramp-file-name-method vec))
 	(user (tramp-file-name-user vec))
 	(host (tramp-file-name-real-host vec))
-	(localname (tramp-compat-file-name-unquote
-		    (directory-file-name (tramp-file-name-localname vec)))))
+	(localname
+	 (directory-file-name (tramp-file-name-unquote-localname vec))))
     (when (string-match tramp-ipv6-regexp host)
       (setq host (format "[%s]" host)))
     (unless (string-match "ftp$" method)
@@ -5176,8 +5096,8 @@ Return ATTR."
      ((tramp-get-method-parameter vec 'tramp-remote-copy-program)
       localname)
      ((not (zerop (length user)))
-      (tramp-shell-quote-argument (format "%s@%s:%s" user host localname)))
-     (t (tramp-shell-quote-argument (format "%s:%s" host localname))))))
+      (format "%s@%s:%s" user host (shell-quote-argument localname)))
+     (t (format "%s:%s" host (shell-quote-argument localname))))))
 
 (defun tramp-method-out-of-band-p (vec size)
   "Return t if this is an out-of-band method, nil otherwise."

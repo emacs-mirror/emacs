@@ -5683,7 +5683,7 @@ and redisplay normally--don't erase and redraw the frame.  */)
   struct buffer *buf = XBUFFER (w->contents);
   bool center_p = false;
   ptrdiff_t charpos, bytepos;
-  EMACS_INT iarg;
+  EMACS_INT iarg UNINIT;
   int this_scroll_margin;
 
   if (buf != current_buffer)
@@ -6008,7 +6008,7 @@ struct save_window_data
     struct vectorlike_header header;
     Lisp_Object selected_frame;
     Lisp_Object current_window;
-    Lisp_Object current_buffer;
+    Lisp_Object f_current_buffer;
     Lisp_Object minibuf_scroll_window;
     Lisp_Object minibuf_selected_window;
     Lisp_Object root_window;
@@ -6098,7 +6098,7 @@ the return value is nil.  Otherwise the value is t.  */)
   data = (struct save_window_data *) XVECTOR (configuration);
   saved_windows = XVECTOR (data->saved_windows);
 
-  new_current_buffer = data->current_buffer;
+  new_current_buffer = data->f_current_buffer;
   if (!BUFFER_LIVE_P (XBUFFER (new_current_buffer)))
     new_current_buffer = Qnil;
   else
@@ -6750,7 +6750,7 @@ saved by this function.  */)
   data->frame_tool_bar_height = FRAME_TOOL_BAR_HEIGHT (f);
   data->selected_frame = selected_frame;
   data->current_window = FRAME_SELECTED_WINDOW (f);
-  XSETBUFFER (data->current_buffer, current_buffer);
+  XSETBUFFER (data->f_current_buffer, current_buffer);
   data->minibuf_scroll_window = minibuf_level > 0 ? Vminibuf_scroll_window : Qnil;
   data->minibuf_selected_window = minibuf_level > 0 ? minibuf_selected_window : Qnil;
   data->root_window = FRAME_ROOT_WINDOW (f);
@@ -7205,7 +7205,7 @@ compare_window_configurations (Lisp_Object configuration1,
       || d1->frame_lines != d2->frame_lines
       || d1->frame_menu_bar_lines != d2->frame_menu_bar_lines
       || !EQ (d1->selected_frame, d2->selected_frame)
-      || !EQ (d1->current_buffer, d2->current_buffer)
+      || !EQ (d1->f_current_buffer, d2->f_current_buffer)
       || (!ignore_positions
 	  && (!EQ (d1->minibuf_scroll_window, d2->minibuf_scroll_window)
 	      || !EQ (d1->minibuf_selected_window, d2->minibuf_selected_window)))

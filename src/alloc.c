@@ -438,10 +438,6 @@ struct mem_node
   enum mem_type type;
 };
 
-/* Base address of stack.  Set in main.  */
-
-Lisp_Object *stack_base;
-
 /* Root of the tree describing allocated Lisp memory.  */
 
 static struct mem_node *mem_root;
@@ -3190,8 +3186,7 @@ vector_nbytes (struct Lisp_Vector *v)
 }
 
 /* Release extra resources still in use by VECTOR, which may be any
-   vector-like object.  For now, this is used just to free data in
-   font objects.  */
+   vector-like object.  */
 
 static void
 cleanup_vector (struct Lisp_Vector *vector)
@@ -3212,6 +3207,13 @@ cleanup_vector (struct Lisp_Vector *vector)
 	  drv->close ((struct font *) vector);
 	}
     }
+
+  if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_THREAD))
+    finalize_one_thread ((struct thread_state *) vector);
+  else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_MUTEX))
+    finalize_one_mutex ((struct Lisp_Mutex *) vector);
+  else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_CONDVAR))
+    finalize_one_condvar ((struct Lisp_CondVar *) vector);
 }
 
 /* Reclaim space used by unmarked vectors.  */
@@ -5047,20 +5049,94 @@ test_setjmp (void)
    would be necessary, each one starting with one byte more offset
    from the stack start.  */
 
-static void
-mark_stack (void *end)
+void
+mark_stack (char *bottom, char *end)
 {
-
   /* This assumes that the stack is a contiguous region in memory.  If
      that's not the case, something has to be done here to iterate
      over the stack segments.  */
-  mark_memory (stack_base, end);
+  mark_memory (bottom, end);
 
   /* Allow for marking a secondary stack, like the register stack on the
      ia64.  */
 #ifdef GC_MARK_SECONDARY_STACK
   GC_MARK_SECONDARY_STACK ();
 #endif
+}
+
+/* This is a trampoline function that flushes registers to the stack,
+   and then calls FUNC.  ARG is passed through to FUNC verbatim.
+
+   This function must be called whenever Emacs is about to release the
+   global interpreter lock.  This lets the garbage collector easily
+   find roots in registers on threads that are not actively running
+   Lisp.
+
+   It is invalid to run any Lisp code or to allocate any GC memory
+   from FUNC.  */
+
+void
+flush_stack_call_func (void (*func) (void *arg), void *arg)
+{
+  void *end;
+  struct thread_state *self = current_thread;
+
+#ifdef HAVE___BUILTIN_UNWIND_INIT
+  /* Force callee-saved registers and register windows onto the stack.
+     This is the preferred method if available, obviating the need for
+     machine dependent methods.  */
+  __builtin_unwind_init ();
+  end = &end;
+#else /* not HAVE___BUILTIN_UNWIND_INIT */
+#ifndef GC_SAVE_REGISTERS_ON_STACK
+  /* jmp_buf may not be aligned enough on darwin-ppc64 */
+  union aligned_jmpbuf {
+    Lisp_Object o;
+    sys_jmp_buf j;
+  } j;
+  volatile bool stack_grows_down_p = (char *) &j > (char *) stack_bottom;
+#endif
+  /* This trick flushes the register windows so that all the state of
+     the process is contained in the stack.  */
+  /* Fixme: Code in the Boehm GC suggests flushing (with `flushrs') is
+     needed on ia64 too.  See mach_dep.c, where it also says inline
+     assembler doesn't work with relevant proprietary compilers.  */
+#ifdef __sparc__
+#if defined (__sparc64__) && defined (__FreeBSD__)
+  /* FreeBSD does not have a ta 3 handler.  */
+  asm ("flushw");
+#else
+  asm ("ta 3");
+#endif
+#endif
+
+  /* Save registers that we need to see on the stack.  We need to see
+     registers used to hold register variables and registers used to
+     pass parameters.  */
+#ifdef GC_SAVE_REGISTERS_ON_STACK
+  GC_SAVE_REGISTERS_ON_STACK (end);
+#else /* not GC_SAVE_REGISTERS_ON_STACK */
+
+#ifndef GC_SETJMP_WORKS  /* If it hasn't been checked yet that
+			    setjmp will definitely work, test it
+			    and print a message with the result
+			    of the test.  */
+  if (!setjmp_tested_p)
+    {
+      setjmp_tested_p = 1;
+      test_setjmp ();
+    }
+#endif /* GC_SETJMP_WORKS */
+
+  sys_setjmp (j.j);
+  end = stack_grows_down_p ? (char *) &j + sizeof j : (char *) &j;
+#endif /* not GC_SAVE_REGISTERS_ON_STACK */
+#endif /* not HAVE___BUILTIN_UNWIND_INIT */
+
+  self->stack_top = end;
+  (*func) (arg);
+
+  eassert (current_thread == self);
 }
 
 static bool
@@ -5768,24 +5844,14 @@ garbage_collect_1 (void *end)
     mark_object (*staticvec[i]);
 
   mark_pinned_symbols ();
-  mark_specpdl ();
   mark_terminals ();
   mark_kboards ();
+  mark_threads ();
 
 #ifdef USE_GTK
   xg_mark_data ();
 #endif
 
-  mark_stack (end);
-
-  {
-    struct handler *handler;
-    for (handler = handlerlist; handler; handler = handler->next)
-      {
-	mark_object (handler->tag_or_ch);
-	mark_object (handler->val);
-      }
-  }
 #ifdef HAVE_WINDOW_SYSTEM
   mark_fringe_data ();
 #endif
@@ -5816,6 +5882,8 @@ garbage_collect_1 (void *end)
   mark_finalizer_list (&doomed_finalizers);
 
   gc_sweep ();
+
+  unmark_threads ();
 
   /* Clear the mark bits that we set in certain root slots.  */
   VECTOR_UNMARK (&buffer_defaults);
@@ -6338,7 +6406,7 @@ mark_object (Lisp_Object arg)
 
 #ifdef GC_CHECK_MARKED_OBJECTS
 	m = mem_find (po);
-	if (m == MEM_NIL && !SUBRP (obj))
+	if (m == MEM_NIL && !SUBRP (obj) && !primary_thread_p (po))
 	  emacs_abort ();
 #endif /* GC_CHECK_MARKED_OBJECTS */
 
@@ -6348,7 +6416,9 @@ mark_object (Lisp_Object arg)
 	else
 	  pvectype = PVEC_NORMAL_VECTOR;
 
-	if (pvectype != PVEC_SUBR && pvectype != PVEC_BUFFER)
+	if (pvectype != PVEC_SUBR
+	    && pvectype != PVEC_BUFFER
+	    && !primary_thread_p (po))
 	  CHECK_LIVE (live_vector_p);
 
 	switch (pvectype)

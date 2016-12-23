@@ -43,7 +43,10 @@
 
 ;;; Image mode window-info management.
 
-(defvar-local image-mode-winprops-alist t)
+(defvar-local image-mode-winprops-alist t
+  "Alist of windows to window properties.
+Each element has the form (WINDOW . ALIST).
+See `image-mode-winprops'.")
 
 (defvar image-mode-new-window-functions nil
   "Special hook run when image data is requested in a new window.
@@ -270,6 +273,48 @@ When calling from a program, supply as argument a number, nil, or `-'."
 	    (max 0 (- win-height next-screen-context-lines)))))
 	(t (image-next-line (- (prefix-numeric-value n))))))
 
+(defun image-scroll-left (&optional n)
+  "Scroll image in current window leftward by N character widths.
+Stop if the right edge of the image is reached.
+If ARG is omitted or nil, scroll leftward by a near full screen.
+A near full screen is 2 columns less than a full screen.
+Negative ARG means scroll rightward.
+If ARG is the atom `-', scroll rightward by nearly full screen.
+When calling from a program, supply as argument a number, nil, or `-'."
+  (interactive "P")
+  (cond ((null n)
+	 (let* ((edges (window-inside-edges))
+		(win-width (- (nth 2 edges) (nth 0 edges))))
+	   (image-forward-hscroll
+	    (max 0 (- win-width 2)))))
+	((eq n '-)
+	 (let* ((edges (window-inside-edges))
+		(win-width (- (nth 2 edges) (nth 0 edges))))
+	   (image-forward-hscroll
+	    (min 0 (- 2 win-width)))))
+	(t (image-forward-hscroll (prefix-numeric-value n)))))
+
+(defun image-scroll-right (&optional n)
+  "Scroll image in current window rightward by N character widths.
+Stop if the left edge of the image is reached.
+If ARG is omitted or nil, scroll downward by a near full screen.
+A near full screen is 2 less than a full screen.
+Negative ARG means scroll leftward.
+If ARG is the atom `-', scroll leftward by nearly full screen.
+When calling from a program, supply as argument a number, nil, or `-'."
+  (interactive "P")
+  (cond ((null n)
+	 (let* ((edges (window-inside-edges))
+		(win-width (- (nth 2 edges) (nth 0 edges))))
+	   (image-forward-hscroll
+	    (min 0 (- 2 win-width)))))
+	((eq n '-)
+	 (let* ((edges (window-inside-edges))
+		(win-width (- (nth 2 edges) (nth 0 edges))))
+	   (image-forward-hscroll
+	    (max 0 (- win-width 2)))))
+	(t (image-forward-hscroll (- (prefix-numeric-value n))))))
+
 (defun image-bol (arg)
   "Scroll horizontally to the left edge of the image in the current window.
 With argument ARG not nil or 1, move forward ARG - 1 lines first,
@@ -398,6 +443,8 @@ call."
     (define-key map [remap scroll-down] 'image-scroll-down)
     (define-key map [remap scroll-up-command] 'image-scroll-up)
     (define-key map [remap scroll-down-command] 'image-scroll-down)
+    (define-key map [remap scroll-left] 'image-scroll-left)
+    (define-key map [remap scroll-right] 'image-scroll-right)
     (define-key map [remap move-beginning-of-line] 'image-bol)
     (define-key map [remap move-end-of-line] 'image-eol)
     (define-key map [remap beginning-of-buffer] 'image-bob)

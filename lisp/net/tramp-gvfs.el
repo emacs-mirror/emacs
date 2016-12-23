@@ -901,6 +901,7 @@ file names."
   "Return GVFS attributes association list of FILENAME."
   (setq filename (directory-file-name (expand-file-name filename)))
   (with-parsed-tramp-file-name filename nil
+    (setq localname (tramp-compat-file-name-unquote localname))
     (if (or
 	 (and (string-match "^\\(afp\\|smb\\)$" method)
 	      (string-match "^/?\\([^/]+\\)$" localname))
@@ -1511,7 +1512,7 @@ ADDRESS can have the form \"xx:xx:xx:xx:xx:xx\" or \"[xx:xx:xx:xx:xx:xx]\"."
 		(string-equal user (or (tramp-file-name-user vec) ""))
 		(string-equal host (tramp-file-name-host vec))
 		(string-match (concat "^" (regexp-quote prefix))
-			      (tramp-file-name-localname vec)))
+			      (tramp-file-name-unquote-localname vec)))
 	   ;; Set prefix, mountpoint and location.
 	   (unless (string-equal prefix "/")
 	     (tramp-set-file-property vec "/" "prefix" prefix))
@@ -1535,7 +1536,7 @@ It was \"a(say)\", but has changed to \"a{sv})\"."
 	 (domain (tramp-file-name-domain vec))
 	 (host (tramp-file-name-real-host vec))
 	 (port (tramp-file-name-port vec))
-	 (localname (tramp-file-name-localname vec))
+	 (localname (tramp-file-name-unquote-localname vec))
 	 (share (when (string-match "^/?\\([^/]+\\)" localname)
 		  (match-string 1 localname)))
 	 (ssl (if (string-match "^davs" method) "true" "false"))
@@ -1645,7 +1646,7 @@ connection if a previous connection has died for some reason."
     (let* ((method (tramp-file-name-method vec))
 	   (user (tramp-file-name-user vec))
 	   (host (tramp-file-name-host vec))
-	   (localname (tramp-file-name-localname vec))
+	   (localname (tramp-file-name-unquote-localname vec))
 	   (object-path
 	    (tramp-gvfs-object-path
 	     (tramp-make-tramp-file-name method user host ""))))

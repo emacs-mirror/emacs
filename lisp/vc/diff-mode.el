@@ -1884,7 +1884,7 @@ With a prefix argument, REVERSE the hunk."
       ;; Advance to the next hunk with skip-hunk-start set to t
       ;; because we want the behavior of moving to the next logical
       ;; hunk, not the original behavior where were would sometimes
-      ;; stay on the curent hunk.  This is the behavior we get when
+      ;; stay on the current hunk.  This is the behavior we get when
       ;; navigating through hunks interactively, and we want it when
       ;; applying hunks too (see http://debbugs.gnu.org/17544).
       (when diff-advance-after-apply-hunk

@@ -292,7 +292,7 @@ Returns non-nil if conflicts remain."
             ))
           ;; Try to resolve the conflicts.
           (cond
-           ((member file '("configure" "lisp/ldefs-boot.el"
+           ((member file '("configure" "lisp/ldefs-boot-auto.el"
                            "lisp/emacs-lisp/cl-loaddefs.el"))
             ;; We are in the file's buffer, so names are relative.
             (call-process "git" nil t nil "checkout" "--"

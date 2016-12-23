@@ -1485,18 +1485,18 @@ ns_dump_glyphstring (struct glyph_string *s)
 
 struct font_driver const nsfont_driver =
   {
-  type: LISPSYM_INITIALLY (Qns),
-  case_sensitive: true,
-  get_cache: nsfont_get_cache,
-  list: nsfont_list,
-  match: nsfont_match,
-  list_family: nsfont_list_family,
-  open: nsfont_open,
-  close: nsfont_close,
-  has_char: nsfont_has_char,
-  encode_char: nsfont_encode_char,
-  text_extents: nsfont_text_extents,
-  draw: nsfont_draw,
+  .type = LISPSYM_INITIALLY (Qns),
+  .case_sensitive = true,
+  .get_cache = nsfont_get_cache,
+  .list = nsfont_list,
+  .match = nsfont_match,
+  .list_family = nsfont_list_family,
+  .open = nsfont_open,
+  .close = nsfont_close,
+  .has_char = nsfont_has_char,
+  .encode_char = nsfont_encode_char,
+  .text_extents = nsfont_text_extents,
+  .draw = nsfont_draw,
   };
 
 void

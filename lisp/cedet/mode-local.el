@@ -31,7 +31,7 @@
 ;; This library permits the setting of override functions for tasks of
 ;; that nature, and also provides reasonable defaults.
 ;;
-;; There are buffer local variables, and frame local variables.
+;; There are buffer local variables (and there were frame local variables).
 ;; This library gives the illusion of mode specific variables.
 ;;
 ;; You should use a mode-local variable or override to allow extension

@@ -274,15 +274,14 @@ That buffer should be current already."
   (let ((standard-output (current-buffer))
 	(print-escape-newlines t)
 	(print-level 8)
-	(print-length 50))
-    (backtrace))
+        (print-length 50))
+    ;; FIXME the debugger could pass a custom callback to mapbacktrace
+    ;; instead of manipulating printed results.
+    (mapbacktrace #'backtrace--print-frame 'debug))
   (goto-char (point-min))
   (delete-region (point)
 		 (progn
-		   (search-forward (if debugger-stack-frame-as-list
-                                       "\n  (debug "
-                                     "\n  debug("))
-		   (forward-line (if (eq (car args) 'debug)
+                   (forward-line (if (eq (car args) 'debug)
                                      ;; Remove debug--implement-debug-on-entry
                                      ;; and the advice's `apply' frame.
 				     3

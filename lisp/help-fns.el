@@ -863,8 +863,6 @@ it is displayed along with the global value."
                ((bufferp locus)
                 (princ (format "Local in buffer %s; "
                                (buffer-name buffer))))
-               ((framep locus)
-                (princ (format "It is a frame-local variable; ")))
                ((terminal-live-p locus)
                 (princ (format "It is a terminal-local variable; ")))
                (t

@@ -2123,7 +2123,7 @@ To carry out the deletions that you've marked, use \\<bookmark-bmenu-mode-map>\\
                            (current-buffer))))
           (read-string "Pattern: ")
           (when timer (cancel-timer timer) (setq timer nil)))
-      (when timer ;; Signalled an error or a `quit'.
+      (when timer ;; Signaled an error or a `quit'.
         (cancel-timer timer)
         (bookmark-bmenu-list)
         (bookmark-bmenu-goto-bookmark bmk)))))

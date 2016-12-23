@@ -1911,6 +1911,42 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	    }
 	  printchar ('>', printcharfun);
 	}
+      else if (THREADP (obj))
+	{
+	  print_c_string ("#<thread ", printcharfun);
+	  if (STRINGP (XTHREAD (obj)->name))
+	    print_string (XTHREAD (obj)->name, printcharfun);
+	  else
+	    {
+	      int len = sprintf (buf, "%p", XTHREAD (obj));
+	      strout (buf, len, len, printcharfun);
+	    }
+	  printchar ('>', printcharfun);
+	}
+      else if (MUTEXP (obj))
+	{
+	  print_c_string ("#<mutex ", printcharfun);
+	  if (STRINGP (XMUTEX (obj)->name))
+	    print_string (XMUTEX (obj)->name, printcharfun);
+	  else
+	    {
+	      int len = sprintf (buf, "%p", XMUTEX (obj));
+	      strout (buf, len, len, printcharfun);
+	    }
+	  printchar ('>', printcharfun);
+	}
+      else if (CONDVARP (obj))
+	{
+	  print_c_string ("#<condvar ", printcharfun);
+	  if (STRINGP (XCONDVAR (obj)->name))
+	    print_string (XCONDVAR (obj)->name, printcharfun);
+	  else
+	    {
+	      int len = sprintf (buf, "%p", XCONDVAR (obj));
+	      strout (buf, len, len, printcharfun);
+	    }
+	  printchar ('>', printcharfun);
+	}
       else
 	{
 	  ptrdiff_t size = ASIZE (obj);

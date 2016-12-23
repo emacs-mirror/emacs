@@ -431,15 +431,15 @@ Please advise:
 		 (f2-exists (setcar session-file-object file2))
 		 (f1-exists (setcar session-file-object file1))
 		 (t
-                  ;; TODO: Often for multipaches the file doesn't exist because the
-                  ;; directory part is wrong; for instance, if the patch need to
-                  ;; be applied into
+                  ;; TODO: Often for multi-patches the file doesn't exist
+                  ;; because the directory part is wrong; for instance, if the
+                  ;; patch needs to be applied into
                   ;; (expand-file-name "lisp/vc/ediff-ptch.el" source-directory)
                   ;; and default-directory is
                   ;; (expand-file-name "lisp" source-directory)
                   ;; then Ediff assumes the wrong file:
                   ;; (expand-file-name "lisp/ediff-ptch.el" source-directory).
-                  ;; We might identify these common failoures and suggest
+                  ;; We might identify these common failures and suggest
                   ;; in the prompt the possible corrected file. --Tino
 		  (with-output-to-temp-buffer ediff-msg-buffer
 		    (ediff-with-current-buffer standard-output

@@ -74,6 +74,23 @@ for '--daemon'.
 * Changes in Emacs 26.1
 
 +++
+** The new function 'mapbacktrace' applies a function to all frames of
+the current stack trace.
+
++++
+** Emacs now provides a limited form of concurrency with Lisp threads.
+Concurrency in Emacs Lisp is "mostly cooperative", meaning that
+Emacs will only switch execution between threads at well-defined
+times: when Emacs waits for input, during blocking operations related
+to threads (such as mutex locking), or when the current thread
+explicitly yields.  Global variables are shared among all threads, but
+a 'let' binding is thread-local.  Each thread also has its own current
+buffer and its own match data.
+
+See the chapter "Threads" in the ELisp manual for full documentation
+of these facilities.
+
++++
 ** The new function 'file-name-case-insensitive-p' tests whether a
 given file is on a case-insensitive filesystem.
 
@@ -295,6 +312,8 @@ the file's actual content before prompting the user.
 
 * Changes in Specialized Modes and Packages in Emacs 26.1
 
+** TeX: Add luatex and xetex as alternatives to pdftex
+
 ** Electric-Buffer-menu
 
 +++
@@ -314,6 +333,27 @@ bound to 'Buffer-menu-unmark-all-buffers'.
 'Buffer-menu-unmark-all-buffers', bound to 'M-DEL'.
 
 ** Ibuffer
+
+---
+*** New filter commands `ibuffer-filter-by-basename',
+`ibuffer-filter-by-file-extension', `ibuffer-filter-by-directory',
+`ibuffer-filter-by-starred-name', `ibuffer-filter-by-modified'
+and `ibuffer-filter-by-visiting-file'; bound respectively
+to '/b', '/.', '//', '/*', '/i' and '/v'.
+
+---
+*** Two new commands 'ibuffer-filter-chosen-by-completion'
+and `ibuffer-and-filter', the second bound to '/&'.
+
+---
+*** The commands `ibuffer-pop-filter', `ibuffer-pop-filter-group',
+`ibuffer-or-filter' and `ibuffer-filter-disable' have the alternative
+bindings '/<up>', '/S-<up>', '/|' and '/DEL', respectively.
+
+---
+*** The data format specifying filters has been extended to allow
+explicit logical 'and', and a more flexible form for logical 'not'.
+See 'ibuffer-filtering-qualifiers' doc string for full details.
 
 ---
 *** A new command 'ibuffer-copy-buffername-as-kill'; bound
@@ -440,6 +480,45 @@ details.
 provided: 'image-property'.
 
 ---
+*** New commands 'image-scroll-left' and 'image-scroll-right'
+for 'image-mode' that complement 'image-scroll-up' and
+'image-scroll-down': they have the same prefix arg behavior and stop
+at image boundaries.
+
+** Image-Dired
+
+*** Now provides a minor mode 'image-dired-minor-mode' which replaces
+the function 'image-dired-setup-dired-keybindings'.
+
+*** Thumbnail generation is now asynchronous
+The number of concurrent processes is limited by the variable
+'image-dired-thumb-job-limit'.
+
+*** 'image-dired-thumbnail-storage' has a new option 'standard-large'
+for generating 256x256 thumbnails according to the Thumbnail Managing
+Standard.
+
+*** Inherits movement keys from 'image-mode' for viewing full images.
+This includes the usual char, line, and page movement commands.
+
+*** All the -options types have been changed to argument lists
+instead of shell command strings.  This change affects
+'image-dired-cmd-create-thumbnail-options',
+'image-dired-cmd-create-temp-image-options',
+'image-dired-cmd-rotate-thumbnail-options',
+'image-dired-cmd-rotate-original-options',
+'image-dired-cmd-write-exif-data-options',
+'image-dired-cmd-read-exif-data-options', and introduces
+'image-dired-cmd-pngnq-options', 'image-dired-cmd-pngcrush-options',
+'image-dired-cmd-create-standard-thumbnail-options'
+
+*** Recognizes more tools by default, including pngnq-s9 and OptiPNG
+
+*** 'find-file' and related commands now work on thumbnails and
+displayed images, providing a default argument of the original file name
+via an addition to 'file-name-at-point-functions'.
+
+---
 ** The default 'Info-default-directory-list' no longer checks some obsolete
 directory suffixes (gnu, gnu/lib, gnu/lib/emacs, emacs, lib, lib/emacs)
 when searching for info directories.
@@ -488,6 +567,10 @@ different group ID.
 +++
 *** New connection method "gdrive", which allows to access Google
 Drive onsite repositories.
+
++++
+*** Gateway methods in Tramp have been removed.  Instead, the Tramp
+manual documents how to configure ssh and PuTTY accordingly.
 
 +++
 Setting the "ENV" environment variable in 'tramp-remote-process-environment'
@@ -588,6 +671,7 @@ before running.  This is controlled by the 'grep-save-buffers'
 variable.
 
 ** Some obsolete functions, variables, and faces have been removed:
+*** make-variable-frame-local.  Variables cannot be frame-local any more.
 *** From subr.el: window-dot, set-window-dot, read-input, show-buffer,
 eval-current-buffer, string-to-int
 *** All the default-FOO variables that hold the default value of the

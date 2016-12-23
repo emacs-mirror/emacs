@@ -3505,7 +3505,7 @@ This is to make them appear as if they were \"virtual buffers\"."
       (when (equal name "")
 	(setq name head))
       (and (not (equal name ""))
-	   (null (get-file-buffer head))
+           (null (let (file-name-handler-alist) (get-file-buffer head)))
            (not (assoc name ido-virtual-buffers))
            (not (member name ido-temp-list))
            (not (ido-ignore-item-p name ido-ignore-buffers))

@@ -219,6 +219,7 @@ To view this manual in other formats, click
 * Syntax Tables::           The syntax table controls word and list parsing.
 * Abbrevs::                 How Abbrev mode works, and its data structures.
 
+* Threads::                 Concurrency in Emacs Lisp.
 * Processes::               Running and communicating with subprocesses.
 * Display::                 Features for controlling the screen display.
 * System Interface::        Getting the user id, system type, environment
@@ -348,6 +349,9 @@ Editing Types
 * Window Configuration Type::  Recording the way a frame is subdivided.
 * Frame Configuration Type::   Recording the status of all frames.
 * Process Type::            A subprocess of Emacs running on the underlying OS.
+* Thread Type::             A thread of Emacs Lisp execution.
+* Mutex Type::              An exclusive lock for thread synchronization.
+* Condition Variable Type::    Condition variable for thread synchronization.
 * Stream Type::             Receive or send characters.
 * Keymap Type::             What function a keystroke invokes.
 * Overlay Type::            How an overlay is represented.
@@ -1322,6 +1326,12 @@ Abbrevs and Abbrev Expansion
 * Abbrev Table Properties:: How to read and set abbrev table properties.
                             Which properties have which effect.
 
+Threads
+
+* Basic Thread Functions::  Basic thread functions.
+* Mutexes::                 Mutexes allow exclusive access to data.
+* Condition Variables::     Inter-thread events.
+
 Processes
 
 * Subprocess Creation::     Functions that start subprocesses.
@@ -1462,7 +1472,6 @@ Images
 * Image Descriptors::       How to specify an image for use in @code{:display}.
 * XBM Images::              Special features for XBM format.
 * XPM Images::              Special features for XPM format.
-* PostScript Images::       Special features for PostScript format.
 * ImageMagick Images::      Special features available through ImageMagick.
 * Other Image Types::       Various other formats are supported.
 * Defining Images::         Convenient ways to define an image for later use.
@@ -1628,6 +1637,7 @@ Object Internals
 @include searching.texi
 @include syntax.texi
 @include abbrevs.texi
+@include threads.texi
 @include processes.texi
 
 @include display.texi

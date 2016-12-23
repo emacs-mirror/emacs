@@ -125,6 +125,7 @@ srcs = \
   $(srcdir)/symbols.texi \
   $(srcdir)/syntax.texi \
   $(srcdir)/text.texi \
+  $(srcdir)/threads.texi \
   $(srcdir)/tips.texi \
   $(srcdir)/variables.texi \
   $(srcdir)/windows.texi \

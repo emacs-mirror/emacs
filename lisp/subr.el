@@ -1310,8 +1310,7 @@ be a list of the form returned by `event-start' and `event-end'."
 (make-obsolete 'focus-frame "it does nothing." "22.1")
 (defalias 'unfocus-frame 'ignore "")
 (make-obsolete 'unfocus-frame "it does nothing." "22.1")
-(make-obsolete 'make-variable-frame-local
-	       "explicitly check for a frame-parameter instead." "22.2")
+
 (set-advertised-calling-convention
  'all-completions '(string collection &optional predicate) "23.1")
 (set-advertised-calling-convention 'unintern '(name obarray) "23.3")
@@ -4334,6 +4333,51 @@ The properties used on SYMBOL are `composefunc', `sendfunc',
   (put symbol 'sendfunc sendfunc)
   (put symbol 'abortfunc (or abortfunc 'kill-buffer))
   (put symbol 'hookvar (or hookvar 'mail-send-hook)))
+
+
+(defun backtrace--print-frame (evald func args flags)
+  "Print a trace of a single stack frame to `standard-output'.
+EVALD, FUNC, ARGS, FLAGS are as in `mapbacktrace'."
+  (princ (if (plist-get flags :debug-on-exit) "* " "  "))
+  (cond
+   ((and evald (not debugger-stack-frame-as-list))
+    (prin1 func)
+    (if args (prin1 args) (princ "()")))
+   (t
+    (prin1 (cons func args))))
+  (princ "\n"))
+
+(defun backtrace ()
+  "Print a trace of Lisp function calls currently active.
+Output stream used is value of `standard-output'."
+  (let ((print-level (or print-level 8)))
+    (mapbacktrace #'backtrace--print-frame 'backtrace)))
+
+(defun backtrace-frames (&optional base)
+  "Collect all frames of current backtrace into a list.
+If non-nil, BASE should be a function, and frames before its
+nearest activation frames are discarded."
+  (let ((frames nil))
+    (mapbacktrace (lambda (&rest frame) (push frame frames))
+                  (or base 'backtrace-frames))
+    (nreverse frames)))
+
+(defun backtrace-frame (nframes &optional base)
+  "Return the function and arguments NFRAMES up from current execution point.
+If non-nil, BASE should be a function, and NFRAMES counts from its
+nearest activation frame.
+If the frame has not evaluated the arguments yet (or is a special form),
+the value is (nil FUNCTION ARG-FORMS...).
+If the frame has evaluated its arguments and called its function already,
+the value is (t FUNCTION ARG-VALUES...).
+A &rest arg is represented as the tail of the list ARG-VALUES.
+FUNCTION is whatever was supplied as car of evaluated list,
+or a lambda expression for macro calls.
+If NFRAMES is more than the number of frames, the value is nil."
+  (backtrace-frame--internal
+   (lambda (evald func args _) `(,evald ,func ,@args))
+   nframes (or base 'backtrace-frame)))
+
 
 (defvar called-interactively-p-functions nil
   "Special hook called to skip special frames in `called-interactively-p'.
@@ -4951,6 +4995,20 @@ as a list.")
             (if (string-match "\\([^.].*?\\)-\\([0-9]+\\(?:[.][0-9]+\\|\\(?:pre\\|beta\\|alpha\\)[0-9]+\\)*\\)" subdir)
                 (match-string 1 subdir) subdir))
           "-pkg.el"))
+
+
+;;; Thread support.
+
+(defmacro with-mutex (mutex &rest body)
+  "Invoke BODY with MUTEX held, releasing MUTEX when done.
+This is the simplest safe way to acquire and release a mutex."
+  (declare (indent 1) (debug t))
+  (let ((sym (make-symbol "mutex")))
+    `(let ((,sym ,mutex))
+       (mutex-lock ,sym)
+       (unwind-protect
+	   (progn ,@body)
+	 (mutex-unlock ,sym)))))
 
 
 ;;; Misc.

@@ -212,16 +212,6 @@ mark_shell_size_user_specified (Widget wmshell)
 #endif
 
 
-/* Can't have static frame locals because of some broken compilers.
-   Normally, initializing a variable like this doesn't work in emacs,
-   but it's ok in this file because it must come after lastfile (and
-   thus have its data not go into text space) because Xt needs to
-   write to initialized data objects too.
- */
-#if 0
-static Boolean first_frame_p = True;
-#endif
-
 static void
 set_frame_size (EmacsFrame ew)
 {

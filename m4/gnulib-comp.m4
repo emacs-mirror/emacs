@@ -238,7 +238,6 @@ AC_DEFUN([gl_INIT],
   gl_FUNC_FPENDING
   if test $gl_cv_func___fpending = no; then
     AC_LIBOBJ([fpending])
-    gl_PREREQ_FPENDING
   fi
   gl_FUNC_FSTATAT
   if test $HAVE_FSTATAT = 0 || test $REPLACE_FSTATAT = 1; then
@@ -956,6 +955,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/stdalign.in.h
   lib/stddef.in.h
   lib/stdint.in.h
+  lib/stdio-impl.h
   lib/stdio.in.h
   lib/stdlib.in.h
   lib/stpcpy.c

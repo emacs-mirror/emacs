@@ -40,7 +40,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 struct regexp_cache
 {
   struct regexp_cache *next;
-  Lisp_Object regexp, whitespace_regexp;
+  Lisp_Object regexp, f_whitespace_regexp;
   /* Syntax table for which the regexp applies.  We need this because
      of character classes.  If this is t, then the compiled pattern is valid
      for any syntax-table.  */
@@ -75,12 +75,12 @@ static struct regexp_cache *searchbuf_head;
    to call re_set_registers after compiling a new pattern or after
    setting the match registers, so that the regex functions will be
    able to free or re-allocate it properly.  */
-static struct re_registers search_regs;
+/* static struct re_registers search_regs; */
 
 /* The buffer in which the last search was performed, or
    Qt if the last search was done in a string;
    Qnil if no searching has been done yet.  */
-static Lisp_Object last_thing_searched;
+/* static Lisp_Object last_thing_searched; */
 
 static void set_search_regs (ptrdiff_t, ptrdiff_t);
 static void save_search_regs (void);
@@ -122,9 +122,9 @@ compile_pattern_1 (struct regexp_cache *cp, Lisp_Object pattern,
   cp->buf.multibyte = STRING_MULTIBYTE (pattern);
   cp->buf.charset_unibyte = charset_unibyte;
   if (STRINGP (Vsearch_spaces_regexp))
-    cp->whitespace_regexp = Vsearch_spaces_regexp;
+    cp->f_whitespace_regexp = Vsearch_spaces_regexp;
   else
-    cp->whitespace_regexp = Qnil;
+    cp->f_whitespace_regexp = Qnil;
 
   /* rms: I think BLOCK_INPUT is not needed here any more,
      because regex.c defines malloc to call xmalloc.
@@ -217,7 +217,7 @@ compile_pattern (Lisp_Object pattern, struct re_registers *regp,
 	  && cp->posix == posix
 	  && (EQ (cp->syntax_table, Qt)
 	      || EQ (cp->syntax_table, BVAR (current_buffer, syntax_table)))
-	  && !NILP (Fequal (cp->whitespace_regexp, Vsearch_spaces_regexp))
+	  && !NILP (Fequal (cp->f_whitespace_regexp, Vsearch_spaces_regexp))
 	  && cp->buf.charset_unibyte == charset_unibyte)
 	break;
 
@@ -3089,9 +3089,9 @@ If optional arg RESEAT is non-nil, make markers on LIST point nowhere.  */)
 
 /* If true the match data have been saved in saved_search_regs
    during the execution of a sentinel or filter. */
-static bool search_regs_saved;
-static struct re_registers saved_search_regs;
-static Lisp_Object saved_last_thing_searched;
+/* static bool search_regs_saved; */
+/* static struct re_registers saved_search_regs; */
+/* static Lisp_Object saved_last_thing_searched; */
 
 /* Called from Flooking_at, Fstring_match, search_buffer, Fstore_match_data
    if asynchronous code (filter or sentinel) is running. */
@@ -3401,10 +3401,10 @@ syms_of_search (void)
       searchbufs[i].buf.buffer = xmalloc (100);
       searchbufs[i].buf.fastmap = searchbufs[i].fastmap;
       searchbufs[i].regexp = Qnil;
-      searchbufs[i].whitespace_regexp = Qnil;
+      searchbufs[i].f_whitespace_regexp = Qnil;
       searchbufs[i].syntax_table = Qnil;
       staticpro (&searchbufs[i].regexp);
-      staticpro (&searchbufs[i].whitespace_regexp);
+      staticpro (&searchbufs[i].f_whitespace_regexp);
       staticpro (&searchbufs[i].syntax_table);
       searchbufs[i].next = (i == REGEXP_CACHE_SIZE-1 ? 0 : &searchbufs[i+1]);
     }

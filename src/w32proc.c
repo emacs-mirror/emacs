@@ -72,7 +72,7 @@ extern BOOL g_b_init_compare_string_w;
 extern BOOL g_b_init_debug_break_process;
 
 int sys_select (int, SELECT_TYPE *, SELECT_TYPE *, SELECT_TYPE *,
-		struct timespec *, void *);
+		const struct timespec *, const sigset_t *);
 
 /* Signal handlers...SIG_DFL == 0 so this is initialized correctly.  */
 static signal_handler sig_handlers[NSIG];
@@ -849,8 +849,8 @@ alarm (int seconds)
    stream is terminated, terminates the reader thread as part of
    deleting the child_process object.
 
-   The sys_select function emulates the Posix 'pselect' function; it
-   is needed because the Windows 'select' function supports only
+   The sys_select function emulates the Posix 'pselect' functionality;
+   it is needed because the Windows 'select' function supports only
    network sockets, while Emacs expects 'pselect' to work for any file
    descriptor, including pipes and serial streams.
 
@@ -2096,7 +2096,7 @@ extern int proc_buffered_char[];
 
 int
 sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
-	    struct timespec *timeout, void *ignored)
+	    const struct timespec *timeout, const sigset_t *ignored)
 {
   SELECT_TYPE orfds, owfds;
   DWORD timeout_ms, start_time;

@@ -130,6 +130,8 @@ Lisp_Object Vlibrary_cache;
    on subsequent starts.  */
 bool initialized;
 
+bool generating_ldefs_boot;
+
 #ifndef CANNOT_DUMP
 /* Set to true if this instance of Emacs might dump.  */
 # ifndef DOUG_LEA_MALLOC
@@ -154,10 +156,6 @@ bool running_asynch_code;
 /* If true, -d was specified, meaning we're using some window system.  */
 bool display_arg;
 #endif
-
-/* An address near the bottom of the stack.
-   Tells GC how to save a copy of the stack.  */
-char *stack_bottom;
 
 #if defined GNU_LINUX && !defined CANNOT_DUMP
 /* The gap between BSS end and heap start as far as we can tell.  */
@@ -670,7 +668,6 @@ close_output_streams (void)
 int
 main (int argc, char **argv)
 {
-  Lisp_Object dummy;
   char stack_bottom_variable;
   bool do_initial_setlocale;
   bool dumping;
@@ -686,10 +683,14 @@ main (int argc, char **argv)
   /* If we use --chdir, this records the original directory.  */
   char *original_pwd = 0;
 
-  stack_base = &dummy;
+  /* Record (approximately) where the stack begins.  */
+  stack_bottom = &stack_bottom_variable;
 
   dumping = !initialized && (strcmp (argv[argc - 1], "dump") == 0
-			     || strcmp (argv[argc - 1], "bootstrap") == 0);
+			     || strcmp (argv[argc - 1], "bootstrap") == 0 );
+
+  generating_ldefs_boot = getenv ("GENERATE_LDEFS_BOOT");
+
 
   /* True if address randomization interferes with memory allocation.  */
 # ifdef __PPC64__
@@ -880,9 +881,6 @@ main (int argc, char **argv)
       re_max_failures = lim < extra ? 0 : min (lim - extra, SIZE_MAX) / ratio;
     }
 #endif /* HAVE_SETRLIMIT and RLIMIT_STACK and not CYGWIN */
-
-  /* Record (approximately) where the stack begins.  */
-  stack_bottom = &stack_bottom_variable;
 
   clearerr (stdin);
 
@@ -1197,6 +1195,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   if (!initialized)
     {
       init_alloc_once ();
+      init_threads_once ();
       init_obarray ();
       init_eval_once ();
       init_charset_once ();
@@ -1243,6 +1242,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
     }
 
   init_alloc ();
+  init_threads ();
 
   if (do_initial_setlocale)
     {
@@ -1585,6 +1585,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #endif /* HAVE_W32NOTIFY */
 #endif /* WINDOWSNT */
 
+      syms_of_threads ();
       syms_of_profiler ();
 
       keys_of_casefiddle ();

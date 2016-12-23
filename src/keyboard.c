@@ -148,9 +148,6 @@ static Lisp_Object regular_top_level_message;
 
 static sys_jmp_buf getcjmp;
 
-/* True while doing kbd input.  */
-bool waiting_for_input;
-
 /* True while displaying for echoing.   Delays C-g throwing.  */
 
 static bool echoing;
@@ -2574,6 +2571,9 @@ read_char (int commandflag, Lisp_Object map,
 	 so restore it now.  */
       restore_getcjmp (save_jump);
       pthread_sigmask (SIG_SETMASK, &empty_mask, 0);
+#if THREADS_ENABLED
+      maybe_reacquire_global_lock ();
+#endif
       unbind_to (jmpcount, Qnil);
       XSETINT (c, quit_char);
       internal_last_event_frame = selected_frame;

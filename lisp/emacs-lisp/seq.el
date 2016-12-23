@@ -178,7 +178,8 @@ Return a list of the results.
 
 \(fn FUNCTION SEQUENCES...)"
   (let ((result nil)
-        (sequences (seq-map (lambda (s) (seq-into s 'list))
+        (sequences (seq-map (lambda (s)
+                              (seq-into s 'list))
                             (cons sequence sequences))))
     (while (not (memq nil sequences))
       (push (apply function (seq-map #'car sequences)) result)
@@ -272,9 +273,9 @@ of sequence."
 TYPE can be one of the following symbols: vector, string or
 list."
   (pcase type
-    (`vector (vconcat sequence))
-    (`string (concat sequence))
-    (`list (append sequence nil))
+    (`vector (seq--into-vector sequence))
+    (`string (seq--into-string sequence))
+    (`list (seq--into-list sequence))
     (_ (error "Not a sequence type name: %S" type))))
 
 (cl-defgeneric seq-filter (pred sequence)
@@ -510,6 +511,24 @@ Signal an error if SEQUENCE is empty."
   "Optimized implementation of `seq-empty-p' for lists."
   (null list))
 
+
+(defun seq--into-list (sequence)
+  "Concatenate the elements of SEQUENCE into a list."
+  (if (listp sequence)
+      sequence
+    (append sequence nil)))
+
+(defun seq--into-vector (sequence)
+  "Concatenate the elements of SEQUENCE into a vector."
+  (if (vectorp sequence)
+      sequence
+    (vconcat sequence)))
+
+(defun seq--into-string (sequence)
+  "Concatenate the elements of SEQUENCE into a string."
+  (if (stringp sequence)
+      sequence
+    (concat sequence)))
 
 (defun seq--activate-font-lock-keywords ()
   "Activate font-lock keywords for some symbols defined in seq."

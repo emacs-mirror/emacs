@@ -19,32 +19,36 @@
 #define XALLOC_OVERSIZED_H_
 
 #include <stddef.h>
+#include <stdint.h>
 
 /* Default for (non-Clang) compilers that lack __has_builtin.  */
 #ifndef __has_builtin
 # define __has_builtin(x) 0
 #endif
 
-/* True if N * S would overflow in a size calculation.
+/* True if N * S would overflow in a size_t calculation,
+   or would generate a value larger than PTRDIFF_MAX.
    This expands to a constant expression if N and S are both constants.
    By gnulib convention, SIZE_MAX represents overflow in size
-   calculations, so the conservative dividend to use here is
-   SIZE_MAX - 1, since SIZE_MAX might represent an overflowed value.
-   However, malloc (SIZE_MAX) fails on all known hosts where
-   sizeof (ptrdiff_t) <= sizeof (size_t), so do not bother to test for
-   exactly-SIZE_MAX allocations on such hosts; this avoids a test and
-   branch when S is known to be 1.  */
+   calculations, so the conservative size_t-based dividend to use here
+   is SIZE_MAX - 1.  */
 #define __xalloc_oversized(n, s) \
-    ((size_t) (sizeof (ptrdiff_t) <= sizeof (size_t) ? -1 : -2) / (s) < (n))
+  ((size_t) (PTRDIFF_MAX < SIZE_MAX ? PTRDIFF_MAX : SIZE_MAX - 1) / (s) < (n))
 
+#if PTRDIFF_MAX < SIZE_MAX
+typedef ptrdiff_t __xalloc_count_type;
+#else
+typedef size_t __xalloc_count_type;
+#endif
 
-/* Return 1 if an array of N objects, each of size S, cannot exist due
-   to size arithmetic overflow.  S must be positive and N must be
-   nonnegative.  This is a macro, not a function, so that it
-   works correctly even when SIZE_MAX < N.  */
+/* Return 1 if an array of N objects, each of size S, cannot exist
+   reliably due to size or ptrdiff_t arithmetic overflow.  S must be
+   positive and N must be nonnegative.  This is a macro, not a
+   function, so that it works correctly even when SIZE_MAX < N.  */
 
 #if 7 <= __GNUC__ || __has_builtin (__builtin_add_overflow_p)
-# define xalloc_oversized(n, s) __builtin_mul_overflow_p (n, s, (size_t) 1)
+# define xalloc_oversized(n, s) \
+   __builtin_mul_overflow_p (n, s, (__xalloc_count_type) 1)
 #elif ((5 <= __GNUC__ \
         || (__has_builtin (__builtin_mul_overflow) \
             && __has_builtin (__builtin_constant_p))) \
@@ -52,7 +56,8 @@
 # define xalloc_oversized(n, s) \
    (__builtin_constant_p (n) && __builtin_constant_p (s) \
     ? __xalloc_oversized (n, s) \
-    : ({ size_t __xalloc_size; __builtin_mul_overflow (n, s, &__xalloc_size); }))
+    : ({ __xalloc_count_type __xalloc_count; \
+         __builtin_mul_overflow (n, s, &__xalloc_count); }))
 
 /* Other compilers use integer division; this may be slower but is
    more portable.  */

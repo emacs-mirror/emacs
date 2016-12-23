@@ -1958,6 +1958,20 @@ window_column_x (struct window *w, Lisp_Object window,
   return x;
 }
 
+/* Restore window's buffer and point.  */
+
+static void
+restore_window_buffer (Lisp_Object list)
+{
+  struct window *w = decode_live_window (XCAR (list));
+  list = XCDR (list);
+  wset_buffer (w, XCAR (list));
+  list = XCDR (list);
+  set_marker_both (w->pointm, w->contents,
+		   XFASTINT (XCAR (list)),
+		   XFASTINT (XCAR (XCDR (list))));
+}
+
 DEFUN ("vertical-motion", Fvertical_motion, Svertical_motion, 1, 3, 0,
        doc: /* Move point to start of the screen line LINES lines down.
 If LINES is negative, this means moving up.
@@ -1997,10 +2011,9 @@ whether or not it is currently displayed in some window.  */)
   struct it it;
   struct text_pos pt;
   struct window *w;
-  Lisp_Object old_buffer;
-  EMACS_INT old_charpos UNINIT, old_bytepos UNINIT;
   Lisp_Object lcols;
   void *itdata = NULL;
+  ptrdiff_t count = SPECPDL_INDEX ();
 
   /* Allow LINES to be of the form (HPOS . VPOS) aka (COLUMNS . LINES).  */
   bool lcols_given = CONSP (lines);
@@ -2013,13 +2026,13 @@ whether or not it is currently displayed in some window.  */)
   CHECK_NUMBER (lines);
   w = decode_live_window (window);
 
-  old_buffer = Qnil;
   if (XBUFFER (w->contents) != current_buffer)
     {
       /* Set the window's buffer temporarily to the current buffer.  */
-      old_buffer = w->contents;
-      old_charpos = marker_position (w->pointm);
-      old_bytepos = marker_byte_position (w->pointm);
+      Lisp_Object old = list4 (window, w->contents,
+			       make_number (marker_position (w->pointm)),
+			       make_number (marker_byte_position (w->pointm)));
+      record_unwind_protect (restore_window_buffer, old);
       wset_buffer (w, Fcurrent_buffer ());
       set_marker_both (w->pointm, w->contents,
 		       BUF_PT (current_buffer), BUF_PT_BYTE (current_buffer));
@@ -2255,12 +2268,7 @@ whether or not it is currently displayed in some window.  */)
       bidi_unshelve_cache (itdata, 0);
     }
 
-  if (BUFFERP (old_buffer))
-    {
-      wset_buffer (w, old_buffer);
-      set_marker_both (w->pointm, w->contents,
-		       old_charpos, old_bytepos);
-    }
+  unbind_to (count, Qnil);
 
   return make_number (it.vpos);
 }

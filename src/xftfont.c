@@ -752,35 +752,35 @@ xftfont_cached_font_ok (struct frame *f, Lisp_Object font_object,
 struct font_driver const xftfont_driver =
   {
     /* We can't draw a text without device dependent functions.  */
-  type: LISPSYM_INITIALLY (Qxft),
-  get_cache: xfont_get_cache,
-  list: xftfont_list,
-  match: xftfont_match,
-  list_family: ftfont_list_family,
-  open: xftfont_open,
-  close: xftfont_close,
-  prepare_face: xftfont_prepare_face,
-  done_face: xftfont_done_face,
-  has_char: xftfont_has_char,
-  encode_char: xftfont_encode_char,
-  text_extents: xftfont_text_extents,
-  draw: xftfont_draw,
-  get_bitmap: ftfont_get_bitmap,
-  anchor_point: ftfont_anchor_point,
+  .type = LISPSYM_INITIALLY (Qxft),
+  .get_cache = xfont_get_cache,
+  .list = xftfont_list,
+  .match = xftfont_match,
+  .list_family = ftfont_list_family,
+  .open = xftfont_open,
+  .close = xftfont_close,
+  .prepare_face = xftfont_prepare_face,
+  .done_face = xftfont_done_face,
+  .has_char = xftfont_has_char,
+  .encode_char = xftfont_encode_char,
+  .text_extents = xftfont_text_extents,
+  .draw = xftfont_draw,
+  .get_bitmap = ftfont_get_bitmap,
+  .anchor_point = ftfont_anchor_point,
 #ifdef HAVE_LIBOTF
-  otf_capability: ftfont_otf_capability,
+  .otf_capability = ftfont_otf_capability,
 #endif
-  end_for_frame: xftfont_end_for_frame,
+  .end_for_frame = xftfont_end_for_frame,
 #if defined HAVE_M17N_FLT && defined HAVE_LIBOTF
-  shape: xftfont_shape,
+  .shape = xftfont_shape,
 #endif
 #ifdef HAVE_OTF_GET_VARIATION_GLYPHS
-  get_variation_glyphs: ftfont_variation_glyphs,
+  .get_variation_glyphs = ftfont_variation_glyphs,
 #endif
-  filter_properties: ftfont_filter_properties,
-  cached_font_ok: xftfont_cached_font_ok,
-  combining_capability: ftfont_combining_capability,
-  drop_xrender_surfaces: xftfont_drop_xrender_surfaces,
+  .filter_properties = ftfont_filter_properties,
+  .cached_font_ok = xftfont_cached_font_ok,
+  .combining_capability = ftfont_combining_capability,
+  .drop_xrender_surfaces = xftfont_drop_xrender_surfaces,
   };
 
 void

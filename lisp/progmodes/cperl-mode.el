@@ -4,7 +4,7 @@
 
 ;; Author: Ilya Zakharevich
 ;;	Bob Olson
-;; Maintainer: Ilya Zakharevich <ilyaz@cpan.org>
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: languages, Perl
 
 ;; This file is part of GNU Emacs.
@@ -1126,7 +1126,28 @@ versions of Emacs."
   ;; expansion manually.  Any other suggestions?
   (require 'cl))
 
-(defvar cperl-mode-abbrev-table nil
+(define-abbrev-table 'cperl-mode-abbrev-table
+  '(
+    ("if" "if" cperl-electric-keyword :system t)
+    ("elsif" "elsif" cperl-electric-keyword :system t)
+    ("while" "while" cperl-electric-keyword :system t)
+    ("until" "until" cperl-electric-keyword :system t)
+    ("unless" "unless" cperl-electric-keyword :system t)
+    ("else" "else" cperl-electric-else :system t)
+    ("continue" "continue" cperl-electric-else :system t)
+    ("for" "for" cperl-electric-keyword :system t)
+    ("foreach" "foreach" cperl-electric-keyword :system t)
+    ("formy" "formy" cperl-electric-keyword :system t)
+    ("foreachmy" "foreachmy" cperl-electric-keyword :system t)
+    ("do" "do" cperl-electric-keyword :system t)
+    ("=pod" "=pod" cperl-electric-pod :system t)
+    ("=over" "=over" cperl-electric-pod :system t)
+    ("=head1" "=head1" cperl-electric-pod :system t)
+    ("=head2" "=head2" cperl-electric-pod :system t)
+    ("pod" "pod" cperl-electric-pod :system t)
+    ("over" "over" cperl-electric-pod :system t)
+    ("head1" "head1" cperl-electric-pod :system t)
+    ("head2" "head2" cperl-electric-pod :system t))
   "Abbrev table in use in CPerl mode buffers.")
 
 (add-hook 'edit-var-mode-alist '(perl-mode (regexp . "^cperl-")))
@@ -1708,29 +1729,6 @@ or as help on variables `cperl-tips', `cperl-problems',
 	(cperl-define-key "\C-hf" 'cperl-info-on-current-command [(control h) f])
 	(cperl-define-key "\C-c\C-hf" 'cperl-info-on-command
 			  [(control c) (control h) f])))
-  (let ((prev-a-c abbrevs-changed))
-    (define-abbrev-table 'cperl-mode-abbrev-table '(
-		("if" "if" cperl-electric-keyword 0)
-		("elsif" "elsif" cperl-electric-keyword 0)
-		("while" "while" cperl-electric-keyword 0)
-		("until" "until" cperl-electric-keyword 0)
-		("unless" "unless" cperl-electric-keyword 0)
-		("else" "else" cperl-electric-else 0)
-		("continue" "continue" cperl-electric-else 0)
-		("for" "for" cperl-electric-keyword 0)
-		("foreach" "foreach" cperl-electric-keyword 0)
-		("formy" "formy" cperl-electric-keyword 0)
-		("foreachmy" "foreachmy" cperl-electric-keyword 0)
-		("do" "do" cperl-electric-keyword 0)
-		("=pod" "=pod" cperl-electric-pod 0)
-		("=over" "=over" cperl-electric-pod 0)
-		("=head1" "=head1" cperl-electric-pod 0)
-		("=head2" "=head2" cperl-electric-pod 0)
-		("pod" "pod" cperl-electric-pod 0)
-		("over" "over" cperl-electric-pod 0)
-		("head1" "head1" cperl-electric-pod 0)
-		("head2" "head2" cperl-electric-pod 0)))
-	(setq abbrevs-changed prev-a-c))
   (setq local-abbrev-table cperl-mode-abbrev-table)
   (if (cperl-val 'cperl-electric-keywords)
       (abbrev-mode 1))

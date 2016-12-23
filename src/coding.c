@@ -8028,12 +8028,12 @@ decode_coding_object (struct coding_system *coding,
 		      Lisp_Object dst_object)
 {
   ptrdiff_t count = SPECPDL_INDEX ();
-  unsigned char *destination;
-  ptrdiff_t dst_bytes;
+  unsigned char *destination UNINIT;
+  ptrdiff_t dst_bytes UNINIT;
   ptrdiff_t chars = to - from;
   ptrdiff_t bytes = to_byte - from_byte;
   Lisp_Object attrs;
-  ptrdiff_t saved_pt = -1, saved_pt_byte;
+  ptrdiff_t saved_pt = -1, saved_pt_byte UNINIT;
   bool need_marker_adjustment = 0;
   Lisp_Object old_deactivate_mark;
 

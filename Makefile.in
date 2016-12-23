@@ -735,8 +735,8 @@ install-etc:
 	client_name=`echo emacsclient | sed '$(TRANSFORM)'`${EXEEXT}; \
 	sed -e '/^##/d' \
 	  -e "/^Documentation/ s/emacs(1)/$${emacs_name}(1)/" \
-	  -e "/^ExecStart/ s|emacs|$(DESTDIR)${bindir}/$${exe_name}|" \
-	  -e "/^ExecStop/ s|emacsclient|$(DESTDIR)${bindir}/$${client_name}|" \
+	  -e "/^ExecStart/ s|emacs|${bindir}/$${exe_name}|" \
+	  -e "/^ExecStop/ s|emacsclient|${bindir}/$${client_name}|" \
 	  ${srcdir}/etc/emacs.service > $${tmp}; \
 	$(INSTALL_DATA) $${tmp} "$(DESTDIR)$(systemdunitdir)/${EMACS_NAME}.service"; \
 	rm -f $${tmp}
@@ -1117,7 +1117,9 @@ check-info: info
 #  * Run autogen.sh.
 #  * Rebuild Makefile, to update the build procedure itself.
 #  * Do the actual build.
-bootstrap: bootstrap-clean
+bootstrap: | bootstrap-clean bootstrap-build
+
+bootstrap-build:
 	cd $(srcdir) && ./autogen.sh
 	$(MAKE) MAKEFILE_NAME=force-Makefile force-Makefile
 	$(MAKE) all
@@ -1180,3 +1182,18 @@ check-declare:
 	  exit 1; \
 	fi
 	$(MAKE) -C lisp $@
+
+## Generating ldefs-boot-auto.el requires a completely clean build so
+## that we can see which autoloads are actually called.  The build has
+## to complete because we use Emacs to clean the results up!  We use
+## loaddefs.el in place of ldefs-boot-auto, because if we are running
+## this there is the possibility that ldefs-boot-auto is not
+## sufficient for bootstrap.
+generate-ldefs-boot: all
+	echo "Generating Bootstrap ldefs"
+	cp lisp/loaddefs.el lisp/ldefs-boot-auto.el
+	$(MAKE) -j 1 bootstrap \
+	GENERATE_LDEFS_BOOT="generate-ldefs-boot" \
+	2>&1 | tee lisp/ldefs-boot-auto.temp
+	$(EMACS) -batch --load admin/ldefs-clean.el --funcall ldefs-clean
+	rm lisp/ldefs-boot-auto.temp

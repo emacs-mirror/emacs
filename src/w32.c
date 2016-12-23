@@ -272,7 +272,7 @@ static BOOL WINAPI revert_to_self (void);
 static int sys_access (const char *, int);
 extern void *e_malloc (size_t);
 extern int sys_select (int, SELECT_TYPE *, SELECT_TYPE *, SELECT_TYPE *,
-		       struct timespec *, void *);
+		       const struct timespec *, const sigset_t *);
 extern int sys_dup (int);
 
 

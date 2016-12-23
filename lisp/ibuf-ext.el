@@ -28,6 +28,13 @@
 ;; These functions should be automatically loaded when called, but you
 ;; can explicitly (require 'ibuf-ext) in your ~/.emacs to have them
 ;; preloaded.
+;;
+;; For details on the structure of ibuffer filters and filter groups,
+;; see the documentation for variables `ibuffer-filtering-qualifiers',
+;; `ibuffer-filter-groups', and `ibuffer-saved-filters' in that order.
+;; The variable `ibuffer-filtering-alist' contains names and
+;; descriptions of the currently defined filters; also see the macro
+;; `define-ibuffer-filter'.
 
 ;;; Code:
 
@@ -139,19 +146,33 @@ Returns (OLD-FORMAT-DETECTED . UPDATED-SAVED-FILTERS-LIST)."
            (fixed (mapcar fix-filter filters)))
       (cons old-format-detected fixed))))
 
-(defcustom ibuffer-saved-filters '(("gnus"
+(defcustom ibuffer-saved-filters '(("programming"
+                                    (or (derived-mode . prog-mode)
+                                        (mode         . ess-mode)
+                                        (mode         . compilation-mode)))
+                                   ("text document"
+                                    (and (derived-mode . text-mode)
+                                         (not (starred-name))))
+                                   ("TeX"
+                                    (or (derived-mode . tex-mode)
+                                        (mode         . latex-mode)
+                                        (mode         . context-mode)
+                                        (mode         . ams-tex-mode)
+                                        (mode         . bibtex-mode)))
+                                   ("web"
+                                    (or (derived-mode . sgml-mode)
+                                        (derived-mode . css-mode)
+                                        (mode         . javascript-mode)
+                                        (mode         . js2-mode)
+                                        (mode         . scss-mode)
+                                        (derived-mode . haml-mode)
+                                        (mode         . sass-mode)))
+                                   ("gnus"
                                     (or (mode . message-mode)
                                         (mode . mail-mode)
                                         (mode . gnus-group-mode)
                                         (mode . gnus-summary-mode)
-                                        (mode . gnus-article-mode)))
-                                   ("programming"
-                                    (or (mode . emacs-lisp-mode)
-                                        (mode . cperl-mode)
-                                        (mode . c-mode)
-                                        (mode . java-mode)
-                                        (mode . idl-mode)
-                                        (mode . lisp-mode))))
+                                        (mode . gnus-article-mode))))
 
   "An alist mapping saved filter names to filter specifications.
 
@@ -214,8 +235,48 @@ Alternative ways to save the repaired value:
 "))
 
 (defvar ibuffer-filtering-qualifiers nil
-  "A list like (SYMBOL . QUALIFIER) which filters the current buffer list.
-See also `ibuffer-filtering-alist'.")
+  "A list specifying the filters currently acting on the buffer list.
+
+If this list is nil, then no filters are currently in
+effect. Otherwise, each element of this list specifies a single
+filter, and all of the specified filters in the list are applied
+successively to the buffer list.
+
+Each filter specification can be of two types: simple or compound.
+
+A simple filter specification has the form (SYMBOL . QUALIFIER),
+where SYMBOL is a key in the alist `ibuffer-filtering-alist' that
+determines the filter function to use and QUALIFIER is the data
+passed to that function (along with the buffer being considered).
+
+A compound filter specification can have one of four forms:
+
+-- (not FILTER-SPEC)
+
+   Represents the logical complement of FILTER-SPEC, which
+   is any single filter specification, simple or compound.
+   The form (not . FILTER-SPEC) is also accepted here.
+
+-- (and FILTER-SPECS...)
+
+   Represents the logical-and of the filters defined by one or
+   more filter specifications FILTER-SPECS..., where each
+   specification can be simple or compound.  Note that and is
+   implicitly applied to the filters in the top-level list.
+
+-- (or FILTER-SPECS...)
+
+   Represents the logical-or of the filters defined by one or
+   more filter specifications FILTER-SPECS..., where each
+   specification can be simple or compound.
+
+-- (saved . \"NAME\")
+
+   Represents the filter saved under the string NAME
+   in the alist `ibuffer-saved-filters'. It is an
+   error to name a filter that has not been saved.
+
+This variable is local to each ibuffer buffer.")
 
 ;; This is now frobbed by `define-ibuffer-filter'.
 (defvar ibuffer-filtering-alist nil
@@ -247,10 +308,18 @@ to this variable."
 (defvar ibuffer-compiled-filter-formats nil)
 
 (defvar ibuffer-filter-groups nil
-  "A list like ((\"NAME\" ((SYMBOL . QUALIFIER) ...) ...) which groups buffers.
-The SYMBOL should be one from `ibuffer-filtering-alist'.
-The QUALIFIER should be the same as QUALIFIER in
-`ibuffer-filtering-qualifiers'.")
+  "An alist giving this buffer's active filter groups, or nil if none.
+
+This alist maps filter group labels to filter specification
+lists.  Each element has the form (\"LABEL\" FILTER-SPECS...),
+where FILTER-SPECS... represents one or more filter
+specifications of the same form as allowed as elements of
+`ibuffer-filtering-qualifiers'.
+
+Each filter group is displayed as a separate section in the
+ibuffer list, headed by LABEL and displaying only the buffers
+that pass through all the filters associated with NAME in this
+list.")
 
 (defcustom ibuffer-show-empty-filter-groups t
   "If non-nil, then show the names of filter groups which are empty."
@@ -260,20 +329,21 @@ The QUALIFIER should be the same as QUALIFIER in
 (defcustom ibuffer-saved-filter-groups nil
   "An alist of filtering groups to switch between.
 
-This variable should look like ((\"STRING\" QUALIFIERS)
-                                (\"STRING\" QUALIFIERS) ...), where
-QUALIFIERS is a list of the same form as
-`ibuffer-filtering-qualifiers'.
+Each element is of the form (\"NAME\" . FILTER-GROUP-LIST),
+where NAME is a unique but arbitrary name and FILTER-GROUP-LIST
+is a list of filter groups with the same structure as
+allowed for `ibuffer-filter-groups'.
 
-See also the variables `ibuffer-filter-groups',
-`ibuffer-filtering-qualifiers', `ibuffer-filtering-alist', and the
-functions `ibuffer-switch-to-saved-filter-groups',
-`ibuffer-save-filter-groups'."
+See also the functions `ibuffer-save-filter-groups' and
+`ibuffer-switch-to-saved-filter-groups' for saving and switching
+between sets of filter groups, and the variable
+`ibuffer-save-with-custom' that affects how this information is
+saved."
   :type '(repeat sexp)
   :group 'ibuffer)
 
 (defvar ibuffer-hidden-filter-groups nil
-  "A list of filtering groups which are currently hidden.")
+  "The list of filter groups that are currently hidden.")
 
 (defvar ibuffer-filter-group-kill-ring nil)
 
@@ -602,18 +672,38 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
 
 ;;;###autoload
 (defun ibuffer-included-in-filters-p (buf filters)
+  "Return non-nil if BUF passes all FILTERS.
+
+BUF is a lisp buffer object, and FILTERS is a list of filter
+specifications with the same structure as
+`ibuffer-filtering-qualifiers'."
   (not
    (memq nil ;; a filter will return nil if it failed
-	 (mapcar
-	  ;; filter should be like (TYPE . QUALIFIER), or
-	  ;; (or (TYPE . QUALIFIER) (TYPE . QUALIFIER) ...)
-	  #'(lambda (qual)
-	      (ibuffer-included-in-filter-p buf qual))
-	  filters))))
+	 (mapcar #'(lambda (filter)
+                     (ibuffer-included-in-filter-p buf filter))
+                 filters))))
+
+(defun ibuffer-unary-operand (filter)
+  "Extracts operand from a unary compound FILTER specification.
+
+FILTER should be a cons cell of either form (f . d) or (f d),
+where operand d is itself a cons cell, or nil. Returns d."
+  (let* ((tail (cdr filter))
+         (maybe-q (car-safe tail)))
+    (if (consp maybe-q) maybe-q tail)))
 
 (defun ibuffer-included-in-filter-p (buf filter)
+  "Return non-nil if BUF pass FILTER.
+
+BUF is a lisp buffer object, and FILTER is a filter
+specification, with the same structure as an element of the list
+`ibuffer-filtering-qualifiers'."
   (if (eq (car filter) 'not)
-      (not (ibuffer-included-in-filter-p-1 buf (cdr filter)))
+      (let ((inner (ibuffer-unary-operand filter)))
+        ;; Allows (not (not ...)) etc, which may be overkill
+        (if (eq (car inner) 'not)
+            (ibuffer-included-in-filter-p buf (ibuffer-unary-operand inner))
+          (not (ibuffer-included-in-filter-p-1 buf inner))))
     (ibuffer-included-in-filter-p-1 buf filter)))
 
 (defun ibuffer-included-in-filter-p-1 (buf filter)
@@ -621,9 +711,19 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
    (not
     (pcase (car filter)
       (`or
+       ;;; ATTN: Short-circuiting alternative with parallel structure w/`and
+       ;;(catch 'has-match
+       ;;  (dolist (filter-spec (cdr filter) nil)
+       ;;    (when (ibuffer-included-in-filter-p buf filter-spec)
+       ;;      (throw 'has-match t))))
        (memq t (mapcar #'(lambda (x)
-			   (ibuffer-included-in-filter-p buf x))
-		       (cdr filter))))
+                           (ibuffer-included-in-filter-p buf x))
+                       (cdr filter))))
+      (`and
+       (catch 'no-match
+         (dolist (filter-spec (cdr filter) t)
+           (unless (ibuffer-included-in-filter-p buf filter-spec)
+             (throw 'no-match nil)))))
       (`saved
        (let ((data (assoc (cdr filter) ibuffer-saved-filters)))
 	 (unless data
@@ -916,17 +1016,17 @@ group definitions by setting `ibuffer-filter-groups' to nil."
     (when buf
       (ibuffer-jump-to-buffer (buffer-name buf)))))
 
-(defun ibuffer-push-filter (qualifier)
-  "Add QUALIFIER to `ibuffer-filtering-qualifiers'."
-  (push qualifier ibuffer-filtering-qualifiers))
+(defun ibuffer-push-filter (filter-specification)
+  "Add FILTER-SPECIFICATION to `ibuffer-filtering-qualifiers'."
+  (push filter-specification ibuffer-filtering-qualifiers))
 
 ;;;###autoload
 (defun ibuffer-decompose-filter ()
-  "Separate the top compound filter (OR, NOT, or SAVED) in this buffer.
+  "Separate this buffer's top compound filter (AND, OR, NOT, or SAVED).
 
 This means that the topmost filter on the filtering stack, which must
 be a complex filter like (OR [name: foo] [mode: bar-mode]), will be
-turned into two separate filters [name: foo] and [mode: bar-mode]."
+turned into separate filters, like [name: foo] and [mode: bar-mode]."
   (interactive)
   (unless ibuffer-filtering-qualifiers
     (error "No filters in effect"))
@@ -935,14 +1035,14 @@ turned into two separate filters [name: foo] and [mode: bar-mode]."
          (tail (cdr filters))
          (value
           (pcase (caar filters)
-            (`or (nconc head tail))
+            ((or `or 'and) (nconc head tail))
             (`saved
              (let ((data (assoc head ibuffer-saved-filters)))
                (unless data
                  (ibuffer-filter-disable)
                  (error "Unknown saved filter %s" head))
                (append (cdr data) tail)))
-            (`not (cons head tail))
+            (`not (cons (ibuffer-unary-operand (car filters)) tail))
             (_
              (error "Filter type %s is not compound" (caar filters))))))
     (setq ibuffer-filtering-qualifiers value))
@@ -971,31 +1071,36 @@ turned into two separate filters [name: foo] and [mode: bar-mode]."
 	  ibuffer-filtering-qualifiers))
   (ibuffer-update nil t))
 
+(defun ibuffer--or-and-filter (op decompose)
+  (if decompose
+      (if (eq op (caar ibuffer-filtering-qualifiers))
+          (ibuffer-decompose-filter)
+        (error "Top filter is not an %s" (upcase (symbol-name op))))
+    (when (< (length ibuffer-filtering-qualifiers) 2)
+      (error "Need two filters to %s" (upcase (symbol-name op))))
+    ;; If either filter is an op, eliminate unnecessary nesting.
+    (let ((first (pop ibuffer-filtering-qualifiers))
+          (second (pop ibuffer-filtering-qualifiers)))
+      (push (nconc (if (eq op (car first)) first (list op first))
+                   (if (eq op (car second)) (cdr second) (list second)))
+            ibuffer-filtering-qualifiers)))
+  (ibuffer-update nil t))
+
 ;;;###autoload
-(defun ibuffer-or-filter (&optional reverse)
+(defun ibuffer-or-filter (&optional decompose)
   "Replace the top two filters in this buffer with their logical OR.
-If optional argument REVERSE is non-nil, instead break the top OR
+If optional argument DECOMPOSE is non-nil, instead break the top OR
 filter into parts."
   (interactive "P")
-  (if reverse
-      (progn
-	(when (or (null ibuffer-filtering-qualifiers)
-		  (not (eq 'or (caar ibuffer-filtering-qualifiers))))
-	  (error "Top filter is not an OR"))
-	(let ((lim (pop ibuffer-filtering-qualifiers)))
-	  (setq ibuffer-filtering-qualifiers
-		(nconc (cdr lim) ibuffer-filtering-qualifiers))))
-    (when (< (length ibuffer-filtering-qualifiers) 2)
-      (error "Need two filters to OR"))
-    ;; If the second filter is an OR, just add to it.
-    (let ((first (pop ibuffer-filtering-qualifiers))
-	  (second (pop ibuffer-filtering-qualifiers)))
-      (if (eq 'or (car second))
-	  (push (nconc (list 'or first) (cdr second))
-		ibuffer-filtering-qualifiers)
-	(push (list 'or first second)
-	      ibuffer-filtering-qualifiers))))
-  (ibuffer-update nil t))
+  (ibuffer--or-and-filter 'or decompose))
+
+;;;###autoload
+(defun ibuffer-and-filter (&optional decompose)
+  "Replace the top two filters in this buffer with their logical AND.
+If optional argument DECOMPOSE is non-nil, instead break the top AND
+filter into parts."
+  (interactive "P")
+  (ibuffer--or-and-filter 'and decompose))
 
 (defun ibuffer-maybe-save-stuff ()
   (when ibuffer-save-with-custom
@@ -1069,7 +1174,9 @@ Interactively, prompt for NAME, and use the current filters."
 
 (defun ibuffer-format-qualifier (qualifier)
   (if (eq (car-safe qualifier) 'not)
-      (concat " [NOT" (ibuffer-format-qualifier-1 (cdr qualifier)) "]")
+      (concat " [NOT"
+              (ibuffer-format-qualifier-1 (ibuffer-unary-operand qualifier))
+              "]")
     (ibuffer-format-qualifier-1 qualifier)))
 
 (defun ibuffer-format-qualifier-1 (qualifier)
@@ -1078,13 +1185,15 @@ Interactively, prompt for NAME, and use the current filters."
      (concat " [filter: " (cdr qualifier) "]"))
     (`or
      (concat " [OR" (mapconcat #'ibuffer-format-qualifier
-			       (cdr qualifier) "") "]"))
+                               (cdr qualifier) "") "]"))
+    (`and
+     (concat " [AND" (mapconcat #'ibuffer-format-qualifier
+                                (cdr qualifier) "") "]"))
     (_
      (let ((type (assq (car qualifier) ibuffer-filtering-alist)))
        (unless qualifier
-	 (error "Ibuffer: bad qualifier %s" qualifier))
+         (error "Ibuffer: bad qualifier %s" qualifier))
        (concat " [" (cadr type) ": " (format "%s]" (cdr qualifier)))))))
-
 
 (defun ibuffer-list-buffer-modes (&optional include-parents)
   "Create a completion table of buffer modes currently in use.
@@ -1103,7 +1212,7 @@ If INCLUDE-PARENTS is non-nil then include parent modes."
 
 ;;;###autoload (autoload 'ibuffer-filter-by-mode "ibuf-ext")
 (define-ibuffer-filter mode
-  "Toggle current view to buffers with major mode QUALIFIER."
+  "Limit current view to buffers with major mode QUALIFIER."
   (:description "major mode"
    :reader
    (let* ((buf (ibuffer-current-buffer))
@@ -1123,7 +1232,7 @@ If INCLUDE-PARENTS is non-nil then include parent modes."
 
 ;;;###autoload (autoload 'ibuffer-filter-by-used-mode "ibuf-ext")
 (define-ibuffer-filter used-mode
-  "Toggle current view to buffers with major mode QUALIFIER.
+  "Limit current view to buffers with major mode QUALIFIER.
 Called interactively, this function allows selection of modes
 currently used by buffers."
   (:description "major mode in use"
@@ -1142,7 +1251,7 @@ currently used by buffers."
 
 ;;;###autoload (autoload 'ibuffer-filter-by-derived-mode "ibuf-ext")
 (define-ibuffer-filter derived-mode
-    "Toggle current view to buffers whose major mode inherits from QUALIFIER."
+    "Limit current view to buffers whose major mode inherits from QUALIFIER."
   (:description "derived mode"
 		:reader
 		(intern
@@ -1153,22 +1262,73 @@ currently used by buffers."
 
 ;;;###autoload (autoload 'ibuffer-filter-by-name "ibuf-ext")
 (define-ibuffer-filter name
-  "Toggle current view to buffers with name matching QUALIFIER."
+  "Limit current view to buffers with name matching QUALIFIER."
   (:description "buffer name"
    :reader (read-from-minibuffer "Filter by name (regexp): "))
   (string-match qualifier (buffer-name buf)))
 
+;;;###autoload (autoload 'ibuffer-filter-by-starred-name "ibuf-ext")
+(define-ibuffer-filter starred-name
+    "Limit current view to buffers with name beginning and ending
+with *, along with an optional suffix of the form digits or
+<digits>."
+  (:description "starred buffer name"
+   :reader nil)
+  (string-match "\\`\\*[^*]+\\*\\(?:<[[:digit:]]+>\\)?\\'" (buffer-name buf)))
+
 ;;;###autoload (autoload 'ibuffer-filter-by-filename "ibuf-ext")
 (define-ibuffer-filter filename
-  "Toggle current view to buffers with filename matching QUALIFIER."
-  (:description "filename"
-   :reader (read-from-minibuffer "Filter by filename (regexp): "))
+    "Limit current view to buffers with full file name matching QUALIFIER.
+
+For example, for a buffer associated with file '/a/b/c.d', this
+matches against '/a/b/c.d'."
+  (:description "full file name"
+   :reader (read-from-minibuffer "Filter by full file name (regexp): "))
   (ibuffer-awhen (with-current-buffer buf (ibuffer-buffer-file-name))
     (string-match qualifier it)))
 
+;;;###autoload (autoload 'ibuffer-filter-by-basename "ibuf-ext")
+(define-ibuffer-filter basename
+    "Limit current view to buffers with file basename matching QUALIFIER.
+
+For example, for a buffer associated with file '/a/b/c.d', this
+matches against 'c.d'."
+  (:description "file basename"
+   :reader (read-from-minibuffer
+            "Filter by file name, without directory part (regex): "))
+  (ibuffer-awhen (with-current-buffer buf (ibuffer-buffer-file-name))
+    (string-match qualifier (file-name-nondirectory it))))
+
+;;;###autoload (autoload 'ibuffer-filter-by-file-extension "ibuf-ext")
+(define-ibuffer-filter file-extension
+    "Limit current view to buffers with filename extension matching QUALIFIER.
+
+The separator character (typically `.') is not part of the
+pattern. For example, for a buffer associated with file
+'/a/b/c.d', this matches against 'd'."
+  (:description "filename extension"
+   :reader (read-from-minibuffer
+            "Filter by filename extension without separator (regex): "))
+  (ibuffer-awhen (with-current-buffer buf (ibuffer-buffer-file-name))
+    (string-match qualifier (or (file-name-extension it) ""))))
+
+;;;###autoload (autoload 'ibuffer-filter-by-directory "ibuf-ext")
+(define-ibuffer-filter directory
+    "Limit current view to buffers with directory matching QUALIFIER.
+
+For a buffer associated with file '/a/b/c.d', this matches
+against '/a/b'. For a buffer not associated with a file, this
+matches against the value of `default-directory' in that buffer."
+  (:description "directory name"
+   :reader (read-from-minibuffer "Filter by directory name (regex): "))
+  (ibuffer-aif (with-current-buffer buf (ibuffer-buffer-file-name))
+      (let ((dirname (file-name-directory it)))
+        (when dirname (string-match qualifier dirname)))
+    (when default-directory (string-match qualifier default-directory))))
+
 ;;;###autoload (autoload 'ibuffer-filter-by-size-gt  "ibuf-ext")
 (define-ibuffer-filter size-gt
-  "Toggle current view to buffers with size greater than QUALIFIER."
+  "Limit current view to buffers with size greater than QUALIFIER."
   (:description "size greater than"
    :reader
    (string-to-number (read-from-minibuffer "Filter by size greater than: ")))
@@ -1177,16 +1337,30 @@ currently used by buffers."
 
 ;;;###autoload (autoload 'ibuffer-filter-by-size-lt  "ibuf-ext")
 (define-ibuffer-filter size-lt
-   "Toggle current view to buffers with size less than QUALIFIER."
+    "Limit current view to buffers with size less than QUALIFIER."
   (:description "size less than"
    :reader
    (string-to-number (read-from-minibuffer "Filter by size less than: ")))
   (< (with-current-buffer buf (buffer-size))
      qualifier))
 
+;;;###autoload (autoload 'ibuffer-filter-by-modified "ibuf-ext")
+(define-ibuffer-filter modified
+    "Limit current view to buffers that are marked as modified."
+  (:description "modified"
+   :reader nil)
+  (buffer-modified-p buf))
+
+;;;###autoload (autoload 'ibuffer-filter-by-visiting-file "ibuf-ext")
+(define-ibuffer-filter visiting-file
+    "Limit current view to buffers that are visiting a file."
+  (:description "visiting a file"
+   :reader nil)
+  (with-current-buffer buf (buffer-file-name)))
+
 ;;;###autoload (autoload 'ibuffer-filter-by-content "ibuf-ext")
 (define-ibuffer-filter content
-   "Toggle current view to buffers whose contents match QUALIFIER."
+   "Limit current view to buffers whose contents match QUALIFIER."
   (:description "content"
    :reader (read-from-minibuffer "Filter by content (regexp): "))
   (with-current-buffer buf
@@ -1196,11 +1370,32 @@ currently used by buffers."
 
 ;;;###autoload (autoload 'ibuffer-filter-by-predicate "ibuf-ext")
 (define-ibuffer-filter predicate
-   "Toggle current view to buffers for which QUALIFIER returns non-nil."
+   "Limit current view to buffers for which QUALIFIER returns non-nil."
   (:description "predicate"
    :reader (read-minibuffer "Filter by predicate (form): "))
   (with-current-buffer buf
     (eval qualifier)))
+
+;;;###autoload (autoload 'ibuffer-filter-chosen-by-completion "ibuf-ext")
+(defun ibuffer-filter-chosen-by-completion ()
+  "Select and apply filter chosen by completion against available filters.
+Indicates corresponding key sequences in echo area after filtering.
+
+The completion matches against the filter description text of
+each filter in `ibuffer-filtering-alist'."
+  (interactive)
+  (let* ((filters (mapcar (lambda (x) (cons (cadr x) (car x)))
+                          ibuffer-filtering-alist))
+         (match (completing-read "Filter by: " filters nil t))
+         (filter (cdr (assoc match filters)))
+         (command (intern (concat "ibuffer-filter-by-" (symbol-name filter)))))
+    (call-interactively command)
+    (message "%s can be run with key sequences: %s"
+             command
+             (mapconcat #'key-description
+                        (where-is-internal command ibuffer-mode-map nil t)
+                        "or "))))
+
 
 ;;; Sorting
 

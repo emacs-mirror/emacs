@@ -47,7 +47,7 @@ in a GNU Global supported hierarchy.
 
 Two sanity checks are performed to assure (a) that GNU global program exists
 and (b) that the GNU global program version is compatibility with the database
-version.  If optional NOERROR is nil, then an error may be signalled on version
+version.  If optional NOERROR is nil, then an error may be signaled on version
 mismatch.  If NOERROR is not nil, then no error will be signaled.  Instead
 return value will indicate success or failure with non-nil or nil respective
 values."

@@ -1663,21 +1663,21 @@ static void macfont_filter_properties (Lisp_Object, Lisp_Object);
 
 static struct font_driver const macfont_driver =
   {
-  type: LISPSYM_INITIALLY (Qmac_ct),
-  get_cache: macfont_get_cache,
-  list: macfont_list,
-  match: macfont_match,
-  list_family: macfont_list_family,
-  free_entity: macfont_free_entity,
-  open: macfont_open,
-  close: macfont_close,
-  has_char: macfont_has_char,
-  encode_char: macfont_encode_char,
-  text_extents: macfont_text_extents,
-  draw: macfont_draw,
-  shape: macfont_shape,
-  get_variation_glyphs: macfont_variation_glyphs,
-  filter_properties: macfont_filter_properties,
+  .type = LISPSYM_INITIALLY (Qmac_ct),
+  .get_cache = macfont_get_cache,
+  .list = macfont_list,
+  .match = macfont_match,
+  .list_family = macfont_list_family,
+  .free_entity = macfont_free_entity,
+  .open = macfont_open,
+  .close = macfont_close,
+  .has_char = macfont_has_char,
+  .encode_char = macfont_encode_char,
+  .text_extents = macfont_text_extents,
+  .draw = macfont_draw,
+  .shape = macfont_shape,
+  .get_variation_glyphs = macfont_variation_glyphs,
+  .filter_properties = macfont_filter_properties,
   };
 
 static Lisp_Object

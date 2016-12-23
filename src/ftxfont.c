@@ -342,31 +342,31 @@ ftxfont_end_for_frame (struct frame *f)
 struct font_driver const ftxfont_driver =
   {
   /* We can't draw a text without device dependent functions.  */
-  type: LISPSYM_INITIALLY (Qftx),
-  get_cache: ftfont_get_cache,
-  list: ftxfont_list,
-  match: ftxfont_match,
-  list_family: ftfont_list_family,
-  open: ftxfont_open,
-  close: ftxfont_close,
-  has_char: ftfont_has_char,
-  encode_char: ftfont_encode_char,
-  text_extents: ftfont_text_extents,
-  draw: ftxfont_draw,
-  get_bitmap: ftfont_get_bitmap,
-  anchor_point: ftfont_anchor_point,
+  .type = LISPSYM_INITIALLY (Qftx),
+  .get_cache = ftfont_get_cache,
+  .list = ftxfont_list,
+  .match = ftxfont_match,
+  .list_family = ftfont_list_family,
+  .open = ftxfont_open,
+  .close = ftxfont_close,
+  .has_char = ftfont_has_char,
+  .encode_char = ftfont_encode_char,
+  .text_extents = ftfont_text_extents,
+  .draw = ftxfont_draw,
+  .get_bitmap = ftfont_get_bitmap,
+  .anchor_point = ftfont_anchor_point,
 #ifdef HAVE_LIBOTF
-  otf_capability: ftfont_otf_capability,
+  .otf_capability = ftfont_otf_capability,
 #endif
-  end_for_frame: ftxfont_end_for_frame,
+  .end_for_frame = ftxfont_end_for_frame,
 #if defined HAVE_M17N_FLT && defined HAVE_LIBOTF
-  shape: ftfont_shape,
+  .shape = ftfont_shape,
 #endif
 #ifdef HAVE_OTF_GET_VARIATION_GLYPHS
-  get_variation_glyphs: ftfont_variation_glyphs,
+  .get_variation_glyphs = ftfont_variation_glyphs,
 #endif
-  filter_properties: ftfont_filter_properties,
-  combining_capability: ftfont_combining_capability,
+  .filter_properties = ftfont_filter_properties,
+  .combining_capability = ftfont_combining_capability,
   };
 
 void

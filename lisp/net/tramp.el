@@ -241,12 +241,7 @@ pair of the form (KEY VALUE).  The following KEYs are defined:
   * `tramp-copy-recursive'
     Whether the operation copies directories recursively.
   * `tramp-default-port'
-    The default port of a method is needed in case of gateway connections.
-    Additionally, it is used as indication which method is prepared for
-    passing gateways.
-  * `tramp-gw-args'
-    As the attribute name says, additional arguments are specified here
-    when a method is applied via a gateway.
+    The default port of a method.
   * `tramp-tmpdir'
     A directory on the remote host for temporary files.  If not
     specified, \"/tmp\" is taken as default.
@@ -277,8 +272,7 @@ See the variables `tramp-local-coding-commands' and
 
 So, to summarize: if the method is an out-of-band method, then you
 must specify `tramp-copy-program' and `tramp-copy-args'.  If it is an
-inline method, then these two parameters should be nil.  Methods which
-are fit for gateways must have `tramp-default-port' at least.
+inline method, then these two parameters should be nil.
 
 Notes:
 
@@ -1139,12 +1133,16 @@ entry does not exist, return nil."
 (defun tramp-file-name-port (vec)
   "Return the port number of VEC."
   (save-match-data
-    (let ((method (tramp-file-name-method vec))
-	  (host (tramp-file-name-host vec)))
+    (let ((host (tramp-file-name-host vec)))
       (or (and (stringp host)
 	       (string-match tramp-host-with-port-regexp host)
 	       (string-to-number (match-string 2 host)))
 	  (tramp-get-method-parameter vec 'tramp-default-port)))))
+
+;; The localname can be quoted with "/:".  Extract this.
+(defun tramp-file-name-unquote-localname (vec)
+  "Return unquoted localname component of VEC."
+  (tramp-compat-file-name-unquote (tramp-file-name-localname vec)))
 
 ;;;###tramp-autoload
 (defun tramp-tramp-file-p (name)
@@ -1262,9 +1260,6 @@ values."
 
 (defun tramp-buffer-name (vec)
   "A name for the connection buffer VEC."
-  ;; We must use `tramp-file-name-real-host', because for gateway
-  ;; methods the default port will be expanded later on, which would
-  ;; tamper the name.
   (let ((method (tramp-file-name-method vec))
 	(user   (tramp-file-name-user vec))
 	(host   (tramp-file-name-real-host vec)))
@@ -1354,9 +1349,6 @@ version, the function does nothing."
 
 (defun tramp-debug-buffer-name (vec)
   "A name for the debug buffer for VEC."
-  ;; We must use `tramp-file-name-real-host', because for gateway
-  ;; methods the default port will be expanded later on, which would
-  ;; tamper the name.
   (let ((method (tramp-file-name-method vec))
 	(user   (tramp-file-name-user vec))
 	(host   (tramp-file-name-real-host vec)))
@@ -1686,9 +1678,13 @@ locally on a remote file name.  When the local system is a W32 system
 but the remote system is Unix, this introduces a superfluous drive
 letter into the file name.  This function removes it."
   (save-match-data
-    (if (string-match "\\`[a-zA-Z]:/" name)
-	(replace-match "/" nil t name)
-      name)))
+    (funcall
+     (if (tramp-compat-file-name-quoted-p name)
+	 'tramp-compat-file-name-quote 'identity)
+     (let ((name (tramp-compat-file-name-unquote name)))
+       (if (string-match "\\`[a-zA-Z]:/" name)
+	   (replace-match "/" nil t name)
+	 name)))))
 
 ;;; Config Manipulation Functions:
 
@@ -2910,7 +2906,9 @@ User is always nil."
           (with-tramp-connection-property v "case-insensitive"
             ;; The idea is to compare a file with lower case letters
             ;; with the same file with upper case letters.
-            (let ((candidate (directory-file-name filename))
+            (let ((candidate
+		   (tramp-compat-file-name-unquote
+		    (directory-file-name filename)))
                   tmpfile)
               ;; Check, whether we find an existing file with lower case
               ;; letters.  This avoids us to create a temporary file.
@@ -3621,17 +3619,13 @@ connection buffer."
 This is needed in order to hide `last-coding-system-used', which is set
 for process communication also."
   (with-current-buffer (process-buffer proc)
-    ;; FIXME: If there is a gateway process, we need communication
-    ;; between several processes.  Too complicate to implement, so we
-    ;; read output from all processes.
-    (let ((p (if (tramp-get-connection-property proc "gateway" nil) nil proc))
-	  buffer-read-only last-coding-system-used)
+    (let (buffer-read-only last-coding-system-used)
       ;; Under Windows XP, accept-process-output doesn't return
       ;; sometimes.  So we add an additional timeout.
       (with-timeout ((or timeout 1))
-	(accept-process-output p timeout timeout-msecs (and proc t)))
-      (tramp-message proc 10 "%s %s %s\n%s"
-		     proc (process-status proc) p (buffer-string)))))
+	(accept-process-output proc timeout timeout-msecs (and proc t)))
+      (tramp-message proc 10 "%s %s\n%s"
+		     proc (process-status proc) (buffer-string)))))
 
 (defun tramp-check-for-regexp (proc regexp)
   "Check, whether REGEXP is contained in process buffer of PROC.

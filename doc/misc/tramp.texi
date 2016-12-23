@@ -143,11 +143,11 @@ Configuring @value{tramp} for use
 * Inline methods::              Inline methods.
 * External methods::            External methods.
 * GVFS based methods::          GVFS based external methods.
-* Gateway methods::             Gateway methods.
 * Default Method::              Selecting a default method.
 * Default User::                Selecting a default user.
 * Default Host::                Selecting a default host.
 * Multi-hops::                  Connecting to a remote host using multiple hops.
+* Firewalls::                   Passing firewalls.
 * Customizing Methods::         Using Non-Standard Methods.
 * Customizing Completion::      Selecting config files for user/host name completion.
 * Password handling::           Reusing passwords for several connections.
@@ -406,10 +406,11 @@ April 2000 was the first time when multi-hop methods were added.  In
 July 2002, @value{tramp} unified file names with Ange-FTP@.  In July
 2004, proxy hosts replaced multi-hop methods.  Running commands on
 remote hosts was introduced in December 2005.  Support for gateways
-since April 2007.  GVFS integration started in February 2009.  Remote
-commands on Windows hosts since September 2011.  Ad-hoc multi-hop
-methods (with a changed syntax) re-enabled in November 2011.  In
-November 2012, added Juergen Hoetzel's @file{tramp-adb.el}.
+since April 2007 (and removed in December 2016).  GVFS integration
+started in February 2009.  Remote commands on Windows hosts since
+September 2011.  Ad-hoc multi-hop methods (with a changed syntax)
+re-enabled in November 2011.  In November 2012, added Juergen
+Hoetzel's @file{tramp-adb.el}.
 
 XEmacs support has been stopped in January 2016.
 
@@ -453,7 +454,6 @@ installed and loaded:
 * Inline methods::              Inline methods.
 * External methods::            External methods.
 * GVFS based methods::          GVFS based external methods.
-* Gateway methods::             Gateway methods.
 * Default Method::              Selecting a default method.
                                   Here we also try to help those who
                                   don't have the foggiest which method
@@ -461,6 +461,7 @@ installed and loaded:
 * Default User::                Selecting a default user.
 * Default Host::                Selecting a default host.
 * Multi-hops::                  Connecting to a remote host using multiple hops.
+* Firewalls::                   Passing firewalls.
 * Customizing Methods::         Using Non-Standard Methods.
 * Customizing Completion::      Selecting config files for user/host name completion.
 * Password handling::           Reusing passwords for several connections.
@@ -997,51 +998,6 @@ Other methods to include are: @option{ftp} and @option{smb}.
 @end defopt
 
 
-@node Gateway methods
-@section Gateway methods
-@cindex methods, gateway
-@cindex gateway methods
-
-Gateway methods are for proxy host declarations (@pxref{Multi-hops})
-so as to pass through firewalls and proxy servers.  They are not like
-the other methods that declare direct connections to a remote host.
-
-A gateway method always comes with a port setting.  @value{tramp}
-targets the port number with the gateway method
-@file{localhost#random_port} from where the firewall or proxy server
-is accessed.
-
-Gateway methods support user name and password declarations for
-authenticating the corresponding firewall or proxy server.  Such
-authentication can be passed through only if granted access by system
-administrators.
-
-@table @asis
-@item @option{tunnel}
-@cindex method tunnel
-@cindex tunnel method
-
-This method implements an HTTP tunnel via the @command{CONNECT}
-command (conforming to RFC 2616, 2817 specifications).  Proxy servers
-using HTTP version 1.1 or later protocol support this command.
-
-For authentication, this protocol uses only @option{Basic
-Authentication} (see RFC 2617).  When no port number is specified, this
-protocol defaults to @option{8080}.
-
-@item @option{socks}
-@cindex method socks
-@cindex socks method
-
-The @option{socks} method connects to SOCKSv5 servers (see RFC 1928)
-and supports @option{Username/Password Authentication}.
-
-The default port number for the socks server is @option{1080}, if not
-specified otherwise.
-
-@end table
-
-
 @node Default Method
 @section Selecting a default method
 @cindex default method
@@ -1244,9 +1200,8 @@ regular expression which always matches.
 @var{proxy} is a literal @value{tramp} file name whose local name part
 is ignored, and the method and user name parts are optional.
 
-The method must be an inline or gateway method (@pxref{Inline
-methods}, @pxref{Gateway methods}).
-If @var{proxy} is @code{nil}, no additional hop is required reaching
+The method must be an inline method (@pxref{Inline methods}).  If
+@var{proxy} is @code{nil}, no additional hop is required reaching
 @var{user}@@@var{host}.
 
 For example, to pass through the host @samp{bastion.your.domain} as
@@ -1313,32 +1268,6 @@ local one, first connect via @command{ssh}, and then apply
              '((regexp-quote (system-name)) nil nil))
 @end group
 @end lisp
-
-The above configuration allows @value{tramp} connection as @samp{root}
-to remote Ubuntu hosts.
-
-@option{tramp-default-proxies-alist} is also used for passing through
-firewalls or proxy servers.
-
-For example, the local host @samp{proxy.your.domain} on port 3128
-serves as HTTP proxy to the outer world.  User has access rights to
-another proxy server on @samp{host.other.domain}.@footnote{HTTP tunnels
-are intended for secure SSL/TLS communication.  Therefore, many proxy
-servers restrict the tunnels to related target ports.  You might need
-to run your ssh server on your target host @samp{host.other.domain} on
-such a port, like 443 (https).  See
-@uref{http://savannah.gnu.org/maintenance/CvsFromBehindFirewall} for
-discussion of ethical issues.}  Then the configuration is:
-
-@lisp
-@group
-(add-to-list 'tramp-default-proxies-alist
-             '("\\`host\\.other\\.domain\\'" nil
-             "@trampfn{tunnel,proxy.your.domain#3128,}"))
-@end group
-@end lisp
-
-Gateway methods in a multiple hop chain can be declared only as the first hop.
 @end defopt
 
 Passing through hops involves dealing with restricted shells, such as
@@ -1360,6 +1289,50 @@ restricted shell:
 @end group
 @end lisp
 @end defopt
+
+
+@node Firewalls
+@section Passing firewalls
+@cindex HTTP tunnel
+@cindex proxy hosts, HTTP tunnel
+
+Sometimes, it is not possible to reach a remote host directly.  A
+firewall might be in the way, which could be passed via a proxy
+server.
+
+Both ssh and PuTTY support such proxy settings, using an HTTP tunnel
+via the @command{CONNECT} command (conforming to RFC 2616, 2817
+specifications).  Proxy servers using HTTP version 1.1 or later
+protocol support this command.
+
+@subsection Tunneling with ssh
+
+With ssh, you could use the @code{ProxyCommand} entry in the
+@file{~/.ssh/config}:
+
+@example
+@group
+Host host.other.domain
+     ProxyCommand nc -X connect -x proxy.your.domain:3128 %h %p
+@end group
+@end example
+
+@code{nc} is BSD's netcat program, which establishes HTTP tunnels. Any
+other program with such a feature could be used as well.
+
+In the example, opening @file{@trampfn{ssh,host.your.domain,}} passes
+the HTTP proxy server @samp{proxy.your.domain} on port 3128.
+
+@subsection Tunneling with PuTTY
+
+PuTTY does not need an external program, HTTP tunnel support is
+built-in.  In the PuTTY config program, create a session for
+@samp{host.your.domain}.  In the @option{Connection/Data} entry,
+select the @option{HTTP} option, and add @samp{proxy.your.domain} as
+@option{Proxy hostname}, and 3128 as @option{Port}.
+
+Opening @file{@trampfn{plinkx,host.your.domain,}} passes the HTTP
+proxy server @samp{proxy.your.domain} on port 3128.
 
 
 @node Customizing Methods
@@ -3618,14 +3591,12 @@ have to be specifically enabled as shown in this code:
 (dolist (elt (all-completions "tramp-" obarray 'functionp))
   (trace-function-background (intern elt)))
 (untrace-function 'tramp-read-passwd)
-(untrace-function 'tramp-gw-basic-authentication)
 @end group
 @end lisp
 
 The buffer @file{*trace-output*} contains the output from the function
-call traces.  Disable @code{tramp-read-passwd} and
-@code{tramp-gw-basic-authentication} to stop password strings from
-being written to @file{*trace-output*}.
+call traces.  Disable @code{tramp-read-passwd} to stop password
+strings from being written to @file{*trace-output*}.
 
 
 @node GNU Free Documentation License

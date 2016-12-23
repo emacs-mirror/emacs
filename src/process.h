@@ -115,6 +115,9 @@ struct Lisp_Process
     /* Pipe process attached to the standard error of this process.  */
     Lisp_Object stderrproc;
 
+    /* The thread a process is linked to, or nil for any thread.  */
+    Lisp_Object thread;
+
     /* After this point, there are no Lisp_Objects any more.  */
     /* alloc.c assumes that `pid' is the first such non-Lisp slot.  */
 
@@ -273,6 +276,8 @@ extern Lisp_Object network_interface_info (Lisp_Object);
 #endif
 
 extern Lisp_Object remove_slash_colon (Lisp_Object);
+
+extern void update_processes_for_thread_death (Lisp_Object);
 
 INLINE_HEADER_END
 

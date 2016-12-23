@@ -4885,12 +4885,6 @@ re_match (struct re_pattern_buffer *bufp, const char *string,
 WEAK_ALIAS (__re_match, re_match)
 #endif /* not emacs */
 
-#ifdef emacs
-/* In Emacs, this is the string or buffer in which we are matching.
-   See the declaration in regex.h for details.  */
-Lisp_Object re_match_object;
-#endif
-
 /* re_match_2 matches the compiled pattern in BUFP against the
    the (virtual) concatenation of STRING1 and STRING2 (of length SIZE1
    and SIZE2, respectively).  We start matching at POS, and stop

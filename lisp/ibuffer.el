@@ -518,26 +518,37 @@ directory, like `default-directory'."
     (define-key map (kbd "s f") 'ibuffer-do-sort-by-filename/process)
     (define-key map (kbd "s m") 'ibuffer-do-sort-by-major-mode)
 
+    (define-key map (kbd "/ RET") 'ibuffer-filter-by-mode)
     (define-key map (kbd "/ m") 'ibuffer-filter-by-used-mode)
     (define-key map (kbd "/ M") 'ibuffer-filter-by-derived-mode)
     (define-key map (kbd "/ n") 'ibuffer-filter-by-name)
+    (define-key map (kbd "/ *") 'ibuffer-filter-by-starred-name)
+    (define-key map (kbd "/ f") 'ibuffer-filter-by-filename)
+    (define-key map (kbd "/ b") 'ibuffer-filter-by-basename)
+    (define-key map (kbd "/ .") 'ibuffer-filter-by-file-extension)
+    (define-key map (kbd "/ <") 'ibuffer-filter-by-size-lt)
+    (define-key map (kbd "/ >") 'ibuffer-filter-by-size-gt)
+    (define-key map (kbd "/ i") 'ibuffer-filter-by-modified)
+    (define-key map (kbd "/ v") 'ibuffer-filter-by-visiting-file)
     (define-key map (kbd "/ c") 'ibuffer-filter-by-content)
     (define-key map (kbd "/ e") 'ibuffer-filter-by-predicate)
-    (define-key map (kbd "/ f") 'ibuffer-filter-by-filename)
-    (define-key map (kbd "/ >") 'ibuffer-filter-by-size-gt)
-    (define-key map (kbd "/ <") 'ibuffer-filter-by-size-lt)
+
     (define-key map (kbd "/ r") 'ibuffer-switch-to-saved-filters)
     (define-key map (kbd "/ a") 'ibuffer-add-saved-filters)
     (define-key map (kbd "/ x") 'ibuffer-delete-saved-filters)
     (define-key map (kbd "/ d") 'ibuffer-decompose-filter)
     (define-key map (kbd "/ s") 'ibuffer-save-filters)
     (define-key map (kbd "/ p") 'ibuffer-pop-filter)
+    (define-key map (kbd "/ <up>") 'ibuffer-pop-filter)
     (define-key map (kbd "/ !") 'ibuffer-negate-filter)
     (define-key map (kbd "/ t") 'ibuffer-exchange-filters)
     (define-key map (kbd "/ TAB") 'ibuffer-exchange-filters)
     (define-key map (kbd "/ o") 'ibuffer-or-filter)
+    (define-key map (kbd "/ |") 'ibuffer-or-filter)
+    (define-key map (kbd "/ &") 'ibuffer-and-filter)
     (define-key map (kbd "/ g") 'ibuffer-filters-to-filter-group)
     (define-key map (kbd "/ P") 'ibuffer-pop-filter-group)
+    (define-key map (kbd "/ S-<up>") 'ibuffer-pop-filter-group)
     (define-key map (kbd "/ D") 'ibuffer-decompose-filter-group)
     (define-key map (kbd "/ /") 'ibuffer-filter-disable)
 
@@ -657,13 +668,43 @@ directory, like `default-directory'."
                   ibuffer-filter-by-derived-mode))
     (define-key-after map [menu-bar view filter filter-by-name]
       '(menu-item "Add filter by buffer name..." ibuffer-filter-by-name))
+    (define-key-after map [menu-bar view filter filter-by-starred-name]
+      '(menu-item "Add filter by starred buffer name..."
+                  ibuffer-filter-by-starred-name
+                  :help "List buffers whose names begin with a star"))
     (define-key-after map [menu-bar view filter filter-by-filename]
-      '(menu-item "Add filter by filename..." ibuffer-filter-by-filename))
+      '(menu-item "Add filter by full filename..." ibuffer-filter-by-filename
+                  :help
+                  (concat "For a buffer associated with file '/a/b/c.d', "
+                          "list buffer if a given pattern matches '/a/b/c.d'")))
+    (define-key-after map [menu-bar view filter filter-by-basename]
+      '(menu-item "Add filter by file basename..."
+                  ibuffer-filter-by-basename
+                  :help (concat "For a buffer associated with file '/a/b/c.d', "
+                                "list buffer if a given pattern matches 'c.d'")))
+    (define-key-after map [menu-bar view filter filter-by-file-extension]
+      '(menu-item "Add filter by file name extension..."
+                  ibuffer-filter-by-file-extension
+                  :help (concat "For a buffer associated with file '/a/b/c.d', "
+                                "list buffer if a given pattern matches 'd'")))
+    (define-key-after map [menu-bar view filter filter-by-directory]
+      '(menu-item "Add filter by filename's directory..."
+                  ibuffer-filter-by-directory
+                  :help
+                  (concat "For a buffer associated with file '/a/b/c.d', "
+                          "list buffer if a given pattern matches '/a/b'")))
     (define-key-after map [menu-bar view filter filter-by-size-lt]
       '(menu-item "Add filter by size less than..." ibuffer-filter-by-size-lt))
     (define-key-after map [menu-bar view filter filter-by-size-gt]
       '(menu-item "Add filter by size greater than..."
         ibuffer-filter-by-size-gt))
+    (define-key-after map [menu-bar view filter filter-by-modified]
+      '(menu-item "Add filter by modified buffer" ibuffer-filter-by-modified
+                  :help "List buffers that are marked as modified"))
+    (define-key-after map [menu-bar view filter filter-by-visiting-file]
+      '(menu-item "Add filter by buffer visiting a file"
+                  ibuffer-filter-by-visiting-file
+                  :help "List buffers that are visiting files"))
     (define-key-after map [menu-bar view filter filter-by-content]
       '(menu-item "Add filter by content (regexp)..."
         ibuffer-filter-by-content))
@@ -673,6 +714,12 @@ directory, like `default-directory'."
     (define-key-after map [menu-bar view filter pop-filter]
       '(menu-item "Remove top filter" ibuffer-pop-filter
         :enable (and (featurep 'ibuf-ext) ibuffer-filtering-qualifiers)))
+    (define-key-after map [menu-bar view filter and-filter]
+      '(menu-item "AND top two filters" ibuffer-and-filter
+        :enable (and (featurep 'ibuf-ext) ibuffer-filtering-qualifiers
+                     (cdr ibuffer-filtering-qualifiers))
+        :help
+        "Create a new filter which is the logical AND of the top two filters"))
     (define-key-after map [menu-bar view filter or-filter]
       '(menu-item "OR top two filters" ibuffer-or-filter
         :enable (and (featurep 'ibuf-ext) ibuffer-filtering-qualifiers

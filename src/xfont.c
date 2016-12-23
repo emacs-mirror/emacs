@@ -1079,19 +1079,19 @@ xfont_check (struct frame *f, struct font *font)
 
 struct font_driver const xfont_driver =
   {
-  type: LISPSYM_INITIALLY (Qx),
-  get_cache: xfont_get_cache,
-  list: xfont_list,
-  match: xfont_match,
-  list_family: xfont_list_family,
-  open: xfont_open,
-  close: xfont_close,
-  prepare_face: xfont_prepare_face,
-  has_char: xfont_has_char,
-  encode_char: xfont_encode_char,
-  text_extents: xfont_text_extents,
-  draw: xfont_draw,
-  check: xfont_check,
+  .type = LISPSYM_INITIALLY (Qx),
+  .get_cache = xfont_get_cache,
+  .list = xfont_list,
+  .match = xfont_match,
+  .list_family = xfont_list_family,
+  .open = xfont_open,
+  .close = xfont_close,
+  .prepare_face = xfont_prepare_face,
+  .has_char = xfont_has_char,
+  .encode_char = xfont_encode_char,
+  .text_extents = xfont_text_extents,
+  .draw = xfont_draw,
+  .check = xfont_check,
   };
 
 void

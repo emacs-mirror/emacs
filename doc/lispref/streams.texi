@@ -639,7 +639,7 @@ spacing between calls.
 This function outputs a newline to @var{stream}.  The name stands for
 ``terminate print''.  If @var{ensure} is non-@code{nil} no newline is printed
 if @var{stream} is already at the beginning of a line.  Note in this
-case @var{stream} can not be a function and an error is signalled if
+case @var{stream} can not be a function and an error is signaled if
 it is.  This function returns @code{t} if a newline is printed.
 @end defun
 

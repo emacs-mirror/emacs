@@ -2536,7 +2536,7 @@ read_integer (Lisp_Object readcharfun, EMACS_INT radix)
       *p = '\0';
     }
 
-  if (! valid)
+  if (valid != 1)
     {
       sprintf (buf, "integer, radix %"pI"d", radix);
       invalid_syntax (buf);
@@ -4271,7 +4271,9 @@ load_path_check (Lisp_Object lpath)
    are running uninstalled.
 
    Uses the following logic:
-   If CANNOT_DUMP: Use PATH_LOADSEARCH.
+   If CANNOT_DUMP:
+     If Vinstallation_directory is not nil (ie, running uninstalled),
+     use PATH_DUMPLOADSEARCH (ie, build path).  Else use PATH_LOADSEARCH.
    The remainder is what happens when dumping works:
    If purify-flag (ie dumping) just use PATH_DUMPLOADSEARCH.
    Otherwise use PATH_LOADSEARCH.
@@ -4305,6 +4307,8 @@ load_path_default (void)
 #endif
 
   normal = PATH_LOADSEARCH;
+  if (!NILP (Vinstallation_directory)) normal = PATH_DUMPLOADSEARCH;
+
 #ifdef HAVE_NS
   lpath = decode_env_path (0, loadpath ? loadpath : normal, 0);
 #else

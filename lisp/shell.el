@@ -590,6 +590,7 @@ buffer."
 		  ((string-equal shell "ksh") "echo $PWD ~-")
 		  ;; Bypass any aliases.  TODO all shells could use this.
 		  ((string-equal shell "bash") "command dirs")
+		  ((string-equal shell "zsh") "dirs -l")
 		  (t "dirs")))
       ;; Bypass a bug in certain versions of bash.
       (when (string-equal shell "bash")

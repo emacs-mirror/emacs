@@ -459,7 +459,7 @@ EXTRA_DIST += flexmember.h
 ## begin gnulib module fpending
 
 
-EXTRA_DIST += fpending.c fpending.h
+EXTRA_DIST += fpending.c fpending.h stdio-impl.h
 
 EXTRA_libgnu_a_SOURCES += fpending.c
 

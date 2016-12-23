@@ -48,8 +48,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "w32heap.h"		/* for mmap_* */
 #endif
 
-struct buffer *current_buffer;		/* The current buffer.  */
-
 /* First buffer in chain of all buffers (in reverse order of creation).
    Threaded through ->header.next.buffer.  */
 
@@ -1659,6 +1657,9 @@ cleaning up all windows currently displaying the buffer to be killed. */)
   if (!BUFFER_LIVE_P (b))
     return Qnil;
 
+  if (thread_check_current_buffer (b))
+    return Qnil;
+
   /* Run hooks with the buffer to be killed the current buffer.  */
   {
     ptrdiff_t count = SPECPDL_INDEX ();
@@ -2037,9 +2038,6 @@ DEFUN ("current-buffer", Fcurrent_buffer, Scurrent_buffer, 0, 0, 0,
 void
 set_buffer_internal_1 (register struct buffer *b)
 {
-  register struct buffer *old_buf;
-  register Lisp_Object tail;
-
 #ifdef USE_MMAP_FOR_BUFFERS
   if (b->text->beg == NULL)
     enlarge_buffer_text (b, 0);
@@ -2047,6 +2045,17 @@ set_buffer_internal_1 (register struct buffer *b)
 
   if (current_buffer == b)
     return;
+
+  set_buffer_internal_2 (b);
+}
+
+/* Like set_buffer_internal_1, but doesn't check whether B is already
+   the current buffer.  Called upon switch of the current thread, see
+   post_acquire_global_lock.  */
+void set_buffer_internal_2 (register struct buffer *b)
+{
+  register struct buffer *old_buf;
+  register Lisp_Object tail;
 
   BUFFER_CHECK_INDIRECTION (b);
 

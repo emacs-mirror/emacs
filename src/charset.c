@@ -241,7 +241,7 @@ struct charset_map_entries
 static void
 load_charset_map (struct charset *charset, struct charset_map_entries *entries, int n_entries, int control_flag)
 {
-  Lisp_Object vec;
+  Lisp_Object vec UNINIT;
   Lisp_Object table UNINIT;
   unsigned max_code = CHARSET_MAX_CODE (charset);
   bool ascii_compatible_p = charset->ascii_compatible_p;

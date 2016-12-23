@@ -465,6 +465,7 @@ get_section_info (file_data *p_infile)
       bss_start = min (bss_start, bss_start_static);
       bss_size = max (my_endbss, my_endbss_static) - bss_start;
       bss_section_static = 0;
+      extra_bss_size = max (extra_bss_size, extra_bss_size_static);
       extra_bss_size_static = 0;
     }
 }

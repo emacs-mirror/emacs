@@ -1400,6 +1400,7 @@ Emacs tries to read it.
 * Filter Functions::        Filter functions accept output from the process.
 * Decoding Output::         Filters can get unibyte or multibyte strings.
 * Accepting Output::        How to wait until process output arrives.
+* Processes and Threads::   How processes and threads interact.
 @end menu
 
 @node Process Buffers
@@ -1789,6 +1790,35 @@ The function @code{accept-process-output} returns non-@code{nil} if it
 got output from @var{process}, or from any process if @var{process} is
 @code{nil}.  It returns @code{nil} if the timeout expired before output
 arrived.
+@end defun
+
+@node Processes and Threads
+@subsection Processes and Threads
+@cindex processes, threads
+
+  Because threads were a relatively late addition to Emacs Lisp, and
+due to the way dynamic binding was sometimes used in conjunction with
+@code{accept-process-output}, by default a process is locked to the
+thread that created it.  When a process is locked to a thread, output
+from the process can only be accepted by that thread.
+
+  A Lisp program can specify to which thread a process is to be
+locked, or instruct Emacs to unlock a process, in which case its
+output can be processed by any thread.  Only a single thread will wait
+for output from a given process at one time---once one thread begins
+waiting for output, the process is temporarily locked until
+@code{accept-process-output} or @code{sit-for} returns.
+
+  If the thread exits, all the processes locked to it are unlocked.
+
+@defun process-thread process
+Return the thread to which @var{process} is locked.  If @var{process}
+is unlocked, return @code{nil}.
+@end defun
+
+@defun set-process-thread process thread
+Set the locking thread of @var{process} to @var{thread}.  @var{thread}
+may be @code{nil}, in which case the process is unlocked.
 @end defun
 
 @node Sentinels

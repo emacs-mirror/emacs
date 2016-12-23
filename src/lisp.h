@@ -34,6 +34,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <intprops.h>
 #include <verify.h>
 
+#include "systhread.h"
+
 INLINE_HEADER_BEGIN
 
 /* Define a TYPE constant ID as an externally visible name.  Use like this:
@@ -588,6 +590,9 @@ INLINE bool (SYMBOLP) (Lisp_Object);
 INLINE bool (VECTORLIKEP) (Lisp_Object);
 INLINE bool WINDOWP (Lisp_Object);
 INLINE bool TERMINALP (Lisp_Object);
+INLINE bool THREADP (Lisp_Object);
+INLINE bool MUTEXP (Lisp_Object);
+INLINE bool CONDVARP (Lisp_Object);
 INLINE struct Lisp_Save_Value *XSAVE_VALUE (Lisp_Object);
 INLINE struct Lisp_Finalizer *XFINALIZER (Lisp_Object);
 INLINE struct Lisp_Symbol *(XSYMBOL) (Lisp_Object);
@@ -613,6 +618,8 @@ extern bool might_dump;
 /* True means Emacs has already been initialized.
    Used during startup to detect startup of dumped Emacs.  */
 extern bool initialized;
+
+extern bool generating_ldefs_boot;
 
 /* Defined in floatfns.c.  */
 extern double extract_float (Lisp_Object);
@@ -756,6 +763,39 @@ struct Lisp_Symbol
 
 #include "globals.h"
 
+/* Header of vector-like objects.  This documents the layout constraints on
+   vectors and pseudovectors (objects of PVEC_xxx subtype).  It also prevents
+   compilers from being fooled by Emacs's type punning: XSETPSEUDOVECTOR
+   and PSEUDOVECTORP cast their pointers to struct vectorlike_header *,
+   because when two such pointers potentially alias, a compiler won't
+   incorrectly reorder loads and stores to their size fields.  See
+   Bug#8546.  */
+struct vectorlike_header
+  {
+    /* The only field contains various pieces of information:
+       - The MSB (ARRAY_MARK_FLAG) holds the gcmarkbit.
+       - The next bit (PSEUDOVECTOR_FLAG) indicates whether this is a plain
+         vector (0) or a pseudovector (1).
+       - If PSEUDOVECTOR_FLAG is 0, the rest holds the size (number
+         of slots) of the vector.
+       - If PSEUDOVECTOR_FLAG is 1, the rest is subdivided into three fields:
+	 - a) pseudovector subtype held in PVEC_TYPE_MASK field;
+	 - b) number of Lisp_Objects slots at the beginning of the object
+	   held in PSEUDOVECTOR_SIZE_MASK field.  These objects are always
+	   traced by the GC;
+	 - c) size of the rest fields held in PSEUDOVECTOR_REST_MASK and
+	   measured in word_size units.  Rest fields may also include
+	   Lisp_Objects, but these objects usually needs some special treatment
+	   during GC.
+	 There are some exceptions.  For PVEC_FREE, b) is always zero.  For
+	 PVEC_BOOL_VECTOR and PVEC_SUBR, both b) and c) are always zero.
+	 Current layout limits the pseudovectors to 63 PVEC_xxx subtypes,
+	 4095 Lisp_Objects in GC-ed area and 4095 word-sized other slots.  */
+    ptrdiff_t size;
+  };
+
+#include "thread.h"
+
 /* Convert a Lisp_Object to the corresponding EMACS_INT and vice versa.
    At the machine level, these operations are no-ops.  */
 
@@ -802,6 +842,9 @@ enum pvec_type
   PVEC_OTHER,
   PVEC_XWIDGET,
   PVEC_XWIDGET_VIEW,
+  PVEC_THREAD,
+  PVEC_MUTEX,
+  PVEC_CONDVAR,
 
   /* These should be last, check internal_equal to see why.  */
   PVEC_COMPILED,
@@ -1105,6 +1148,27 @@ XBOOL_VECTOR (Lisp_Object a)
   return XUNTAG (a, Lisp_Vectorlike);
 }
 
+INLINE struct thread_state *
+XTHREAD (Lisp_Object a)
+{
+  eassert (THREADP (a));
+  return XUNTAG (a, Lisp_Vectorlike);
+}
+
+INLINE struct Lisp_Mutex *
+XMUTEX (Lisp_Object a)
+{
+  eassert (MUTEXP (a));
+  return XUNTAG (a, Lisp_Vectorlike);
+}
+
+INLINE struct Lisp_CondVar *
+XCONDVAR (Lisp_Object a)
+{
+  eassert (CONDVARP (a));
+  return XUNTAG (a, Lisp_Vectorlike);
+}
+
 /* Construct a Lisp_Object from a value or address.  */
 
 INLINE Lisp_Object
@@ -1171,6 +1235,9 @@ builtin_lisp_symbol (int index)
 #define XSETCHAR_TABLE(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_CHAR_TABLE))
 #define XSETBOOL_VECTOR(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_BOOL_VECTOR))
 #define XSETSUB_CHAR_TABLE(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_SUB_CHAR_TABLE))
+#define XSETTHREAD(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_THREAD))
+#define XSETMUTEX(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_MUTEX))
+#define XSETCONDVAR(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_CONDVAR))
 
 /* Efficiently convert a pointer to a Lisp object and back.  The
    pointer is represented as a Lisp integer, so the garbage collector
@@ -1401,37 +1468,6 @@ STRING_SET_CHARS (Lisp_Object string, ptrdiff_t newsize)
 {
   XSTRING (string)->size = newsize;
 }
-
-/* Header of vector-like objects.  This documents the layout constraints on
-   vectors and pseudovectors (objects of PVEC_xxx subtype).  It also prevents
-   compilers from being fooled by Emacs's type punning: XSETPSEUDOVECTOR
-   and PSEUDOVECTORP cast their pointers to struct vectorlike_header *,
-   because when two such pointers potentially alias, a compiler won't
-   incorrectly reorder loads and stores to their size fields.  See
-   Bug#8546.  */
-struct vectorlike_header
-  {
-    /* The only field contains various pieces of information:
-       - The MSB (ARRAY_MARK_FLAG) holds the gcmarkbit.
-       - The next bit (PSEUDOVECTOR_FLAG) indicates whether this is a plain
-         vector (0) or a pseudovector (1).
-       - If PSEUDOVECTOR_FLAG is 0, the rest holds the size (number
-         of slots) of the vector.
-       - If PSEUDOVECTOR_FLAG is 1, the rest is subdivided into three fields:
-	 - a) pseudovector subtype held in PVEC_TYPE_MASK field;
-	 - b) number of Lisp_Objects slots at the beginning of the object
-	   held in PSEUDOVECTOR_SIZE_MASK field.  These objects are always
-	   traced by the GC;
-	 - c) size of the rest fields held in PSEUDOVECTOR_REST_MASK and
-	   measured in word_size units.  Rest fields may also include
-	   Lisp_Objects, but these objects usually needs some special treatment
-	   during GC.
-	 There are some exceptions.  For PVEC_FREE, b) is always zero.  For
-	 PVEC_BOOL_VECTOR and PVEC_SUBR, both b) and c) are always zero.
-	 Current layout limits the pseudovectors to 63 PVEC_xxx subtypes,
-	 4095 Lisp_Objects in GC-ed area and 4095 word-sized other slots.  */
-    ptrdiff_t size;
-  };
 
 /* A regular vector is just a header plus an array of Lisp_Objects.  */
 
@@ -1801,19 +1837,19 @@ INLINE Lisp_Object
 INLINE struct Lisp_Symbol *
 SYMBOL_ALIAS (struct Lisp_Symbol *sym)
 {
-  eassert (sym->redirect == SYMBOL_VARALIAS);
+  eassume (sym->redirect == SYMBOL_VARALIAS && sym->val.alias);
   return sym->val.alias;
 }
 INLINE struct Lisp_Buffer_Local_Value *
 SYMBOL_BLV (struct Lisp_Symbol *sym)
 {
-  eassert (sym->redirect == SYMBOL_LOCALIZED);
+  eassume (sym->redirect == SYMBOL_LOCALIZED && sym->val.blv);
   return sym->val.blv;
 }
 INLINE union Lisp_Fwd *
 SYMBOL_FWD (struct Lisp_Symbol *sym)
 {
-  eassert (sym->redirect == SYMBOL_FORWARDED);
+  eassume (sym->redirect == SYMBOL_FORWARDED && sym->val.fwd);
   return sym->val.fwd;
 }
 
@@ -1826,19 +1862,19 @@ INLINE void
 INLINE void
 SET_SYMBOL_ALIAS (struct Lisp_Symbol *sym, struct Lisp_Symbol *v)
 {
-  eassert (sym->redirect == SYMBOL_VARALIAS);
+  eassume (sym->redirect == SYMBOL_VARALIAS && v);
   sym->val.alias = v;
 }
 INLINE void
 SET_SYMBOL_BLV (struct Lisp_Symbol *sym, struct Lisp_Buffer_Local_Value *v)
 {
-  eassert (sym->redirect == SYMBOL_LOCALIZED);
+  eassume (sym->redirect == SYMBOL_LOCALIZED && v);
   sym->val.blv = v;
 }
 INLINE void
 SET_SYMBOL_FWD (struct Lisp_Symbol *sym, union Lisp_Fwd *v)
 {
-  eassert (sym->redirect == SYMBOL_FORWARDED);
+  eassume (sym->redirect == SYMBOL_FORWARDED && v);
   sym->val.fwd = v;
 }
 
@@ -2430,7 +2466,7 @@ struct Lisp_Buffer_Objfwd
   };
 
 /* struct Lisp_Buffer_Local_Value is used in a symbol value cell when
-   the symbol has buffer-local or frame-local bindings.  (Exception:
+   the symbol has buffer-local bindings.  (Exception:
    some buffer-local variables are built-in, with their values stored
    in the buffer structure itself.  They are handled differently,
    using struct Lisp_Buffer_Objfwd.)
@@ -2458,9 +2494,6 @@ struct Lisp_Buffer_Local_Value
     /* True means that merely setting the variable creates a local
        binding for the current buffer.  */
     bool_bf local_if_set : 1;
-    /* True means this variable can have frame-local bindings, otherwise, it is
-       can have buffer-local bindings.  The two cannot be combined.  */
-    bool_bf frame_local : 1;
     /* True means that the binding now loaded was found.
        Presumably equivalent to (defcell!=valcell).  */
     bool_bf found : 1;
@@ -2782,6 +2815,24 @@ FRAMEP (Lisp_Object a)
   return PSEUDOVECTORP (a, PVEC_FRAME);
 }
 
+INLINE bool
+THREADP (Lisp_Object a)
+{
+  return PSEUDOVECTORP (a, PVEC_THREAD);
+}
+
+INLINE bool
+MUTEXP (Lisp_Object a)
+{
+  return PSEUDOVECTORP (a, PVEC_MUTEX);
+}
+
+INLINE bool
+CONDVARP (Lisp_Object a)
+{
+  return PSEUDOVECTORP (a, PVEC_CONDVAR);
+}
+
 /* Test for image (image . spec)  */
 INLINE bool
 IMAGEP (Lisp_Object x)
@@ -2929,6 +2980,25 @@ CHECK_NUMBER_OR_FLOAT (Lisp_Object x)
     else								\
       CHECK_TYPE (NUMBERP (x), Qnumber_or_marker_p, x);			\
   } while (false)
+
+
+INLINE void
+CHECK_THREAD (Lisp_Object x)
+{
+  CHECK_TYPE (THREADP (x), Qthreadp, x);
+}
+
+INLINE void
+CHECK_MUTEX (Lisp_Object x)
+{
+  CHECK_TYPE (MUTEXP (x), Qmutexp, x);
+}
+
+INLINE void
+CHECK_CONDVAR (Lisp_Object x)
+{
+  CHECK_TYPE (CONDVARP (x), Qcondition_variable_p, x);
+}
 
 /* Since we can't assign directly to the CAR or CDR fields of a cons
    cell, use these when checking that those fields contain numbers.  */
@@ -3141,6 +3211,9 @@ union specbinding
       ENUM_BF (specbind_tag) kind : CHAR_BIT;
       /* `where' is not used in the case of SPECPDL_LET.  */
       Lisp_Object symbol, old_value, where;
+      /* Normally this is unused; but it is set to the symbol's
+	 current value when a thread is swapped out.  */
+      Lisp_Object saved_value;
     } let;
     struct {
       ENUM_BF (specbind_tag) kind : CHAR_BIT;
@@ -3151,9 +3224,10 @@ union specbinding
     } bt;
   };
 
-extern union specbinding *specpdl;
-extern union specbinding *specpdl_ptr;
-extern ptrdiff_t specpdl_size;
+/* These 3 are defined as macros in thread.h.  */
+/* extern union specbinding *specpdl; */
+/* extern union specbinding *specpdl_ptr; */
+/* extern ptrdiff_t specpdl_size; */
 
 INLINE ptrdiff_t
 SPECPDL_INDEX (void)
@@ -3204,17 +3278,14 @@ struct handler
   /* Most global vars are reset to their value via the specpdl mechanism,
      but a few others are handled by storing their value here.  */
   sys_jmp_buf jmp;
-  EMACS_INT lisp_eval_depth;
+  EMACS_INT f_lisp_eval_depth;
   ptrdiff_t pdlcount;
   int poll_suppress_count;
   int interrupt_input_blocked;
+  struct byte_stack *byte_stack;
 };
 
 extern Lisp_Object memory_signal_data;
-
-/* An address near the bottom of the stack.
-   Tells GC how to save a copy of the stack.  */
-extern char *stack_bottom;
 
 /* Check quit-flag and quit if it is non-nil.
    Typing C-g does not directly cause a quit; it only sets Vquit_flag.
@@ -3310,7 +3381,7 @@ make_symbol_constant (Lisp_Object sym)
   XSYMBOL (sym)->trapped_write = SYMBOL_NOWRITE;
 }
 
-/* Buffer-local (also frame-local) variable access functions.  */
+/* Buffer-local variable access functions.  */
 
 INLINE int
 blv_found (struct Lisp_Buffer_Local_Value *blv)
@@ -3421,10 +3492,14 @@ extern Lisp_Object do_symval_forwarding (union Lisp_Fwd *);
 enum Set_Internal_Bind {
   SET_INTERNAL_SET,
   SET_INTERNAL_BIND,
-  SET_INTERNAL_UNBIND
+  SET_INTERNAL_UNBIND,
+  SET_INTERNAL_THREAD_SWITCH
 };
 extern void set_internal (Lisp_Object, Lisp_Object, Lisp_Object,
                           enum Set_Internal_Bind);
+extern void set_default_internal (Lisp_Object, Lisp_Object,
+                                  enum Set_Internal_Bind bindflag);
+
 extern void syms_of_data (void);
 extern void swap_in_global_binding (struct Lisp_Symbol *);
 
@@ -3617,9 +3692,10 @@ extern void refill_memory_reserve (void);
 #endif
 extern void alloc_unexec_pre (void);
 extern void alloc_unexec_post (void);
+extern void mark_stack (char *, char *);
+extern void flush_stack_call_func (void (*func) (void *arg), void *arg);
 extern const char *pending_malloc_warning;
 extern Lisp_Object zero_vector;
-extern Lisp_Object *stack_base;
 extern EMACS_INT consing_since_gc;
 extern EMACS_INT gc_relative_threshold;
 extern EMACS_INT memory_full_cons_threshold;
@@ -3881,7 +3957,6 @@ extern Lisp_Object Vautoload_queue;
 extern Lisp_Object Vrun_hooks;
 extern Lisp_Object Vsignaling_function;
 extern Lisp_Object inhibit_lisp_code;
-extern struct handler *handlerlist;
 
 /* To run a normal hook, use the appropriate function from the list below.
    The calling convention:
@@ -3939,6 +4014,8 @@ extern void clear_unwind_protect (ptrdiff_t);
 extern void set_unwind_protect (ptrdiff_t, void (*) (Lisp_Object), Lisp_Object);
 extern void set_unwind_protect_ptr (ptrdiff_t, void (*) (void *), void *);
 extern Lisp_Object unbind_to (ptrdiff_t, Lisp_Object);
+extern void rebind_for_thread_switch (void);
+extern void unbind_for_thread_switch (struct thread_state *);
 extern _Noreturn void error (const char *, ...) ATTRIBUTE_FORMAT_PRINTF (1, 2);
 extern _Noreturn void verror (const char *, va_list)
   ATTRIBUTE_FORMAT_PRINTF (1, 0);
@@ -3955,7 +4032,7 @@ extern void init_eval (void);
 extern void syms_of_eval (void);
 extern void unwind_body (Lisp_Object);
 extern ptrdiff_t record_in_backtrace (Lisp_Object, Lisp_Object *, ptrdiff_t);
-extern void mark_specpdl (void);
+extern void mark_specpdl (union specbinding *first, union specbinding *ptr);
 extern void get_backtrace (Lisp_Object array);
 Lisp_Object backtrace_top_function (void);
 extern bool let_shadows_buffer_binding_p (struct Lisp_Symbol *symbol);
@@ -3969,6 +4046,9 @@ extern Lisp_Object make_user_ptr (void (*finalizer) (void *), void *p);
 extern void module_init (void);
 extern void syms_of_module (void);
 #endif
+
+/* Defined in thread.c.  */
+extern void mark_threads (void);
 
 /* Defined in editfns.c.  */
 extern void insert1 (Lisp_Object);
@@ -4250,6 +4330,7 @@ extern int read_bytecode_char (bool);
 
 /* Defined in bytecode.c.  */
 extern void syms_of_bytecode (void);
+extern void relocate_byte_stack (struct byte_stack *);
 extern Lisp_Object exec_byte_code (Lisp_Object, Lisp_Object, Lisp_Object,
 				   Lisp_Object, ptrdiff_t, Lisp_Object *);
 extern Lisp_Object get_byte_code_arity (Lisp_Object);

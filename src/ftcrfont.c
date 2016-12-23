@@ -280,30 +280,30 @@ ftcrfont_draw (struct glyph_string *s,
 
 struct font_driver const ftcrfont_driver =
   {
-  type: LISPSYM_INITIALLY (Qftcr),
-  get_cache: ftfont_get_cache,
-  list: ftcrfont_list,
-  match: ftcrfont_match,
-  list_family: ftfont_list_family,
-  open: ftcrfont_open,
-  close: ftcrfont_close,
-  has_char: ftfont_has_char,
-  encode_char: ftfont_encode_char,
-  text_extents: ftcrfont_text_extents,
-  draw: ftcrfont_draw,
-  get_bitmap: ftfont_get_bitmap,
-  anchor_point: ftfont_anchor_point,
+  .type = LISPSYM_INITIALLY (Qftcr),
+  .get_cache = ftfont_get_cache,
+  .list = ftcrfont_list,
+  .match = ftcrfont_match,
+  .list_family = ftfont_list_family,
+  .open = ftcrfont_open,
+  .close = ftcrfont_close,
+  .has_char = ftfont_has_char,
+  .encode_char = ftfont_encode_char,
+  .text_extents = ftcrfont_text_extents,
+  .draw = ftcrfont_draw,
+  .get_bitmap = ftfont_get_bitmap,
+  .anchor_point = ftfont_anchor_point,
 #ifdef HAVE_LIBOTF
-  otf_capability: ftfont_otf_capability,
+  .otf_capability = ftfont_otf_capability,
 #endif
 #if defined HAVE_M17N_FLT && defined HAVE_LIBOTF
-  shape: ftfont_shape,
+  .shape = ftfont_shape,
 #endif
 #ifdef HAVE_OTF_GET_VARIATION_GLYPHS
-  get_variation_glyphs: ftfont_variation_glyphs,
+  .get_variation_glyphs = ftfont_variation_glyphs,
 #endif
-  filter_properties: ftfont_filter_properties,
-  combining_capability: ftfont_combining_capability,
+  .filter_properties = ftfont_filter_properties,
+  .combining_capability = ftfont_combining_capability,
   };
 
 void

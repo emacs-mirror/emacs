@@ -4206,14 +4206,14 @@ not have PROP."
     (nreverse regions)))
 
 (defcustom message-bogus-addresses
-  '("noreply" "nospam" "invalid" "@@" "[^[:ascii:]].*@" "[ \t]")
+  '("noreply" "nospam" "invalid" "@.*@" "[^[:ascii:]].*@" "[ \t]")
   "List of regexps of potentially bogus mail addresses.
 See `message-check-recipients' how to setup checking.
 
 This list should make it possible to catch typos or warn about
 spam-trap addresses.  It doesn't aim to verify strict RFC
 conformance."
-  :version "23.1" ;; No Gnus
+  :version "26.1"			; @@ -> @.*@
   :group 'message-headers
   :type '(choice
 	  (const :tag "None" nil)
@@ -4222,7 +4222,7 @@ conformance."
 		(const "noreply")
 		(const "nospam")
 		(const "invalid")
-		(const :tag "duplicate @" "@@")
+		(const :tag "duplicate @" "@.*@")
 		(const :tag "non-ascii local part" "[^[:ascii:]].*@")
 		(const :tag "`_' in domain part" "@.*_")
 		(const :tag "whitespace" "[ \t]"))
@@ -4339,8 +4339,6 @@ An address might be bogus if if there's a matching entry in
     (mapc (lambda (address)
 	    (setq address (or (cadr address) ""))
 	    (when (or (string= "" address)
-		      (not (string-match "@" address))
-		      (string-match "@.*@" address)
 		      (and message-bogus-addresses
 			   (let ((re
 				  (if (listp message-bogus-addresses)

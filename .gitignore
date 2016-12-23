@@ -71,6 +71,7 @@ lib/limits.h
 lib/signal.h
 lib/std*.h
 !lib/std*.in.h
+!lib/stdio-impl.h
 lib/string.h
 lib/sys/
 lib/time.h

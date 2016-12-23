@@ -1,4 +1,4 @@
-;;; buff-menu-tests.el --- Test suite for buff-menu-tests.el -*- lexical-binding: t -*-
+;;; buff-menu-tests.el --- Test suite for buff-menu.el -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2016 Free Software Foundation, Inc.
 
