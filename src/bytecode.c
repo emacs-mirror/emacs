@@ -66,6 +66,10 @@ relocate_byte_stack (struct byte_stack *stack)
 {
   for (; stack; stack = stack->next)
     {
+#ifdef HAVE_LIBJIT
+      if (!stack->byte_string_start)
+	continue;
+#endif
       if (stack->byte_string_start != SDATA (stack->byte_string))
 	{
 	  ptrdiff_t offset = stack->pc - stack->byte_string_start;

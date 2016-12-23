@@ -32,11 +32,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Fetch the next byte from the bytecode stream.  */
 
-#if BYTE_CODE_SAFE
-#define FETCH (eassert (stack.byte_string_start == SDATA (stack.byte_string)), *stack.pc++)
-#else
-#define FETCH *stack.pc++
-#endif
+#define FETCH *pc++
 
 /* Fetch two bytes from the bytecode stream and make a 16-bit number
    out of them.  */
@@ -660,7 +656,15 @@ jit_exec (Lisp_Object byte_code, Lisp_Object args_template, ptrdiff_t nargs, Lis
   {
     Lisp_Object (*func)(Lisp_Object *) =
       (Lisp_Object (*)(Lisp_Object *))AREF (byte_code, COMPILED_JIT_ID);
-    return func (top);
+    /* We don't actually need to use this structure to keep track of a
+       stack, since our stack isn't GCed.  We just need to use it as a
+       placeholder in `byte_stack_list' to facilitate proper unwinding. */
+    struct byte_stack stack = {};
+    stack.next = byte_stack_list;
+    byte_stack_list = &stack;
+    Lisp_Object ret = func (top);
+    byte_stack_list = byte_stack_list->next;
+    return ret;
   }
 }
 
@@ -675,12 +679,13 @@ jit_byte_code__ (Lisp_Object byte_code)
   Lisp_Object *stacke;
 #endif
   ptrdiff_t bytestr_length;
-  struct byte_stack stack;
   Lisp_Object bytestr;
   Lisp_Object vector;
   Lisp_Object maxdepth;
   Lisp_Object *top;
   enum handlertype type;
+
+  unsigned char *byte_string_start, *pc;
 
   /* jit-specific variables */
   jit_function_t this_func;
@@ -725,15 +730,9 @@ jit_byte_code__ (Lisp_Object byte_code)
   bytestr_length = SBYTES (bytestr);
   vectorp = XVECTOR (vector)->contents;
 
-  stack.byte_string = bytestr;
-  stack.pc = stack.byte_string_start = SDATA (bytestr);
+  pc = byte_string_start = SDATA (bytestr);
   if (MAX_ALLOCA / word_size <= XFASTINT (maxdepth))
     memory_full (SIZE_MAX);
-#if BYTE_MAINTAIN_TOP
-  stack.top = NULL;
-#endif
-  stack.next = byte_stack_list;
-  byte_stack_list = &stack;
 
   /* prepare for jit */
   jit_context_build_start (jit_context);
@@ -752,7 +751,7 @@ jit_byte_code__ (Lisp_Object byte_code)
       labels[i] = jit_label_undefined;
   }
 
-  while (stack.pc < stack.byte_string_start + bytestr_length)
+  while (pc < byte_string_start + bytestr_length)
     {
 #ifndef BYTE_CODE_THREADED
       op = FETCH;
@@ -773,7 +772,7 @@ jit_byte_code__ (Lisp_Object byte_code)
 	 plain break.  */
 #define NEXT								\
       do {								\
-	if (stack.pc >= stack.byte_string_start + bytestr_length)	\
+	if (pc >= byte_string_start + bytestr_length)			\
 	  goto exit;							\
 	else								\
 	  {								\
@@ -837,7 +836,7 @@ jit_byte_code__ (Lisp_Object byte_code)
 
 #endif
 
-#define JIT_PC (stack.pc - stack.byte_string_start)
+#define JIT_PC (pc - byte_string_start)
 #define JIT_NEED_STACK jit_value_ref (this_func, stackv)
 #define JIT_NEXT				\
       do {					\
@@ -1175,7 +1174,7 @@ jit_byte_code__ (Lisp_Object byte_code)
 	    else
 	      {
 		op = FETCH - 128;
-		op += (stack.pc - stack.byte_string_start);
+		op += (pc - byte_string_start);
 	      }
 	    CHECK_RANGE (op);
 	    JIT_NEED_STACK;
@@ -1202,7 +1201,7 @@ jit_byte_code__ (Lisp_Object byte_code)
 	CASE (BRgoto):
 	  {
 	    op = FETCH - 128;
-	    const int dest = (stack.pc - stack.byte_string_start) + op;
+	    const int dest = (pc - byte_string_start) + op;
 	    JIT_CALL (byte_code_quit, NULL, 0);
 	    jit_insn_branch (
 	      this_func,
@@ -1997,7 +1996,7 @@ jit_byte_code__ (Lisp_Object byte_code)
 	  call3 (Qerror,
 		 build_string ("Invalid byte opcode: op=%s, ptr=%d"),
 		 make_number (op),
-		 make_number ((stack.pc - 1) - stack.byte_string_start));
+		 make_number (pc - 1 - byte_string_start));
 
 	  /* Handy byte-codes for lexical binding.  */
 	CASE (Bstack_ref1):
@@ -2079,7 +2078,6 @@ jit_byte_code__ (Lisp_Object byte_code)
     }
 
  exit:
-  byte_stack_list = byte_stack_list->next;
 
   {
     int err = !jit_function_compile (this_func);
