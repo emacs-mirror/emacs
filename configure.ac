@@ -356,7 +356,7 @@ OPTION_DEFAULT_ON([gnutls],[don't use -lgnutls for SSL/TLS support])
 OPTION_DEFAULT_ON([zlib],[don't compile with zlib decompression support])
 OPTION_DEFAULT_OFF([modules],[compile with dynamic modules support])
 OPTION_DEFAULT_ON([threads],[don't compile with elisp threading support])
-OPTION_DEFAULT_ON([libjit],[compile with emacs lisp jit support])
+OPTION_DEFAULT_OFF([libjit],[compile with emacs lisp jit support])
 
 AC_ARG_WITH([file-notification],[AS_HELP_STRING([--with-file-notification=LIB],
  [use a file notification library (LIB one of: yes, inotify, kqueue, gfile, w32, no)])],
@@ -3420,7 +3420,6 @@ AC_SUBST(LIBZ)
 HAVE_LIBJIT=no
 LIBJIT=
 if test "${with_libjit}" != "no"; then
-  OLIBS=$LIBS
   LIBJIT_REQUIRED=0.0.1
   LIBJIT_MODULES="libjit >= $LIBJIT_REQUIRED"
   EMACS_CHECK_MODULES([LIBJIT], [$LIBJIT_MODULES])
@@ -5345,6 +5344,7 @@ AS_ECHO(["  Does Emacs use -lXaw3d?                                 ${HAVE_XAW3D
   Does Emacs use toolkit scroll bars?                     ${USE_TOOLKIT_SCROLL_BARS}
   Does Emacs support Xwidgets (requires gtk3)?            ${HAVE_XWIDGETS}
   Does Emacs have threading support in lisp?              ${threads_enabled}
+  Does Emacs have lisp JIT support?                       ${HAVE_LIBJIT}
 "])
 
 if test -n "${EMACSDATA}"; then
