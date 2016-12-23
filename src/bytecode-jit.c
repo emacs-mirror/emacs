@@ -30,11 +30,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <jit.h>
 
-#ifdef CHECK_FRAME_FONT
-#include "frame.h"
-#include "xterm.h"
-#endif
-
 /* Fetch the next byte from the bytecode stream.  */
 
 #if BYTE_CODE_SAFE
