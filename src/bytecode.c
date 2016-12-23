@@ -1287,19 +1287,22 @@ Lisp_Object
 exec_byte_code (Lisp_Object byte_code, Lisp_Object args_template,
 		ptrdiff_t nargs, Lisp_Object *args)
 {
+#ifdef HAVE_LIBJIT
   if (AREF (byte_code, COMPILED_JIT_ID))
     return jit_exec (byte_code, args_template, nargs, args);
-  else if (!byte_code_jit_on)
-    return exec_byte_code__ (AREF (byte_code, COMPILED_BYTECODE),
-			     AREF (byte_code, COMPILED_CONSTANTS),
-			     AREF (byte_code, COMPILED_STACK_DEPTH),
-			     args_template, nargs, args);
-  else
+  else if (byte_code_jit_on)
     {
       jit_byte_code__ (byte_code);
       return jit_exec (byte_code, args_template, nargs, args);
     }
+  else
+#endif
+    return exec_byte_code__ (AREF (byte_code, COMPILED_BYTECODE),
+			     AREF (byte_code, COMPILED_CONSTANTS),
+			     AREF (byte_code, COMPILED_STACK_DEPTH),
+			     args_template, nargs, args);
 }
+
 
 /* `args_template' has the same meaning as in exec_byte_code() above.  */
 Lisp_Object

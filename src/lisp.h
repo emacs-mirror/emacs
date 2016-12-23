@@ -4344,7 +4344,9 @@ extern Lisp_Object exec_byte_code (Lisp_Object, Lisp_Object, ptrdiff_t, Lisp_Obj
 extern Lisp_Object get_byte_code_arity (Lisp_Object);
 
 /* Defined in bytecode-jit.c  */
+#ifdef HAVE_LIBJIT
 extern void syms_of_bytecode_jit (void);
+#endif
 
 /* Defined in macros.c.  */
 extern void init_macros (void);

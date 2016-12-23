@@ -16,6 +16,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
+#include <config.h>
+
 #include "lisp.h"
 
 /* Define BYTE_CODE_SAFE true to enable some minor sanity checking,
@@ -302,12 +304,14 @@ struct byte_stack
 extern void
 bcall0 (Lisp_Object f);
 
+extern Lisp_Object
+exec_byte_code__ (Lisp_Object, Lisp_Object, Lisp_Object,
+		  Lisp_Object, ptrdiff_t, Lisp_Object *);
+
+#ifdef HAVE_LIBJIT
 extern void
 jit_byte_code__ (Lisp_Object);
 
 extern Lisp_Object
 jit_exec (Lisp_Object, Lisp_Object, ptrdiff_t, Lisp_Object *);
-
-extern Lisp_Object
-exec_byte_code__ (Lisp_Object, Lisp_Object, Lisp_Object,
-		  Lisp_Object, ptrdiff_t, Lisp_Object *);
+#endif

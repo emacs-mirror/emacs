@@ -18,6 +18,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
+#ifdef HAVE_LIBJIT
 #include "bytecode.h"
 #include "lisp.h"
 #include "blockinput.h"
@@ -2112,3 +2113,4 @@ syms_of_bytecode_jit (void)
 		       before execution. */);
   byte_code_jit_on = 0;
 }
+#endif  /* HAVE_LIBJIT */
