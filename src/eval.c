@@ -2954,8 +2954,8 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs,
 	     and constants vector yet, fetch them from the file.  */
 	  if (CONSP (AREF (fun, COMPILED_BYTECODE)))
 	    Ffetch_bytecode (fun);
-	  return jit_byte_code (fun, syms_left,
-				nargs, arg_vector);
+	  return exec_byte_code (fun, syms_left,
+				 nargs, arg_vector);
 	}
       lexenv = Qnil;
     }
@@ -3029,7 +3029,7 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs,
 	 and constants vector yet, fetch them from the file.  */
       if (CONSP (AREF (fun, COMPILED_BYTECODE)))
 	Ffetch_bytecode (fun);
-      val = jit_byte_code (fun, Qnil, 0, 0);
+      val = exec_byte_code (fun, Qnil, 0, 0);
     }
 
   return unbind_to (count, val);

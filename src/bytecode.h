@@ -301,3 +301,13 @@ struct byte_stack
 
 extern void
 bcall0 (Lisp_Object f);
+
+extern void
+jit_byte_code__ (Lisp_Object);
+
+extern Lisp_Object
+jit_exec (Lisp_Object, Lisp_Object, ptrdiff_t, Lisp_Object *);
+
+extern Lisp_Object
+exec_byte_code__ (Lisp_Object, Lisp_Object, Lisp_Object,
+		  Lisp_Object, ptrdiff_t, Lisp_Object *);

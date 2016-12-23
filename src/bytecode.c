@@ -137,7 +137,7 @@ the third, MAXDEPTH, the maximum stack depth used in this function.
 If the third argument is incorrect, Emacs may crash.  */)
   (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth)
 {
-  return exec_byte_code (bytestr, vector, maxdepth, Qnil, 0, NULL);
+  return exec_byte_code__ (bytestr, vector, maxdepth, Qnil, 0, NULL);
 }
 
 void
@@ -155,8 +155,8 @@ bcall0 (Lisp_Object f)
    executing BYTESTR.  */
 
 Lisp_Object
-exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
-		Lisp_Object args_template, ptrdiff_t nargs, Lisp_Object *args)
+exec_byte_code__ (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
+		  Lisp_Object args_template, ptrdiff_t nargs, Lisp_Object *args)
 {
 #ifdef BYTE_CODE_METER
   int volatile this_op = 0;
@@ -1281,6 +1281,24 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
   Lisp_Object result = TOP;
   SAFE_FREE ();
   return result;
+}
+
+Lisp_Object
+exec_byte_code (Lisp_Object byte_code, Lisp_Object args_template,
+		ptrdiff_t nargs, Lisp_Object *args)
+{
+  if (AREF (byte_code, COMPILED_JIT_ID))
+    return jit_exec (byte_code, args_template, nargs, args);
+  else if (!byte_code_jit_on)
+    return exec_byte_code__ (AREF (byte_code, COMPILED_BYTECODE),
+			     AREF (byte_code, COMPILED_CONSTANTS),
+			     AREF (byte_code, COMPILED_STACK_DEPTH),
+			     args_template, nargs, args);
+  else
+    {
+      jit_byte_code__ (byte_code);
+      return jit_exec (byte_code, args_template, nargs, args);
+    }
 }
 
 /* `args_template' has the same meaning as in exec_byte_code() above.  */

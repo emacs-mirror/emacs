@@ -4340,13 +4340,11 @@ extern int read_bytecode_char (bool);
 /* Defined in bytecode.c.  */
 extern void syms_of_bytecode (void);
 extern void relocate_byte_stack (struct byte_stack *);
-extern Lisp_Object exec_byte_code (Lisp_Object, Lisp_Object, Lisp_Object,
-				   Lisp_Object, ptrdiff_t, Lisp_Object *);
+extern Lisp_Object exec_byte_code (Lisp_Object, Lisp_Object, ptrdiff_t, Lisp_Object *);
 extern Lisp_Object get_byte_code_arity (Lisp_Object);
 
 /* Defined in bytecode-jit.c  */
 extern void syms_of_bytecode_jit (void);
-extern Lisp_Object jit_byte_code (Lisp_Object, Lisp_Object, ptrdiff_t, Lisp_Object *);
 
 /* Defined in macros.c.  */
 extern void init_macros (void);

@@ -605,7 +605,7 @@ emacs_jit_init (void)
   JIT_SIG (native_integer_p, jit_type_Lisp_Object, jit_type_Lisp_Object);
 }
 
-static Lisp_Object
+Lisp_Object
 jit_exec (Lisp_Object byte_code, Lisp_Object args_template, ptrdiff_t nargs, Lisp_Object *args)
 {
   Lisp_Object *top;
@@ -668,7 +668,7 @@ jit_exec (Lisp_Object byte_code, Lisp_Object args_template, ptrdiff_t nargs, Lis
   }
 }
 
-static void
+void
 jit_byte_code__ (Lisp_Object byte_code)
 {
   ptrdiff_t count = SPECPDL_INDEX ();
@@ -2092,24 +2092,6 @@ jit_byte_code__ (Lisp_Object byte_code)
       emacs_abort ();
     ASET (byte_code, COMPILED_JIT_ID, (Lisp_Object )jit_function_to_closure (this_func));
   }
-}
-
-Lisp_Object
-jit_byte_code (Lisp_Object byte_code, Lisp_Object args_template,
-	       ptrdiff_t nargs, Lisp_Object *args)
-{
-  if (AREF (byte_code, COMPILED_JIT_ID))
-    return jit_exec (byte_code, args_template, nargs, args);
-  else if (!byte_code_jit_on)
-    return exec_byte_code (AREF (byte_code, COMPILED_BYTECODE),
-			   AREF (byte_code, COMPILED_CONSTANTS),
-			   AREF (byte_code, COMPILED_STACK_DEPTH),
-			   args_template, nargs, args);
-  else
-    {
-      jit_byte_code__ (byte_code);
-      return jit_exec (byte_code, args_template, nargs, args);
-    }
 }
 
 DEFUN ("jit-compile", Fjit_compile, Sjit_compile, 1, 1, 0,
