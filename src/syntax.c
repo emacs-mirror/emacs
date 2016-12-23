@@ -189,6 +189,7 @@ static void scan_sexps_forward (struct lisp_parse_state *,
 static void internalize_parse_state (Lisp_Object, struct lisp_parse_state *);
 static bool in_classes (int, Lisp_Object);
 static void parse_sexp_propertize (ptrdiff_t charpos);
+static void check_syntax_table (Lisp_Object obj);
 
 /* This setter is used only in this file, so it can be private.  */
 static void
@@ -577,84 +578,6 @@ dec_bytepos (ptrdiff_t bytepos)
   return bytepos;
 }
 
-/* Return a defun-start position before POS and not too far before.
-   It should be the last one before POS, or nearly the last.
-
-   When open_paren_in_column_0_is_defun_start is nonzero,
-   only the beginning of the buffer is treated as a defun-start.
-
-   We record the information about where the scan started
-   and what its result was, so that another call in the same area
-   can return the same value very quickly.
-
-   There is no promise at which position the global syntax data is
-   valid on return from the subroutine, so the caller should explicitly
-   update the global data.  */
-
-static ptrdiff_t
-find_defun_start (ptrdiff_t pos, ptrdiff_t pos_byte)
-{
-  ptrdiff_t opoint = PT, opoint_byte = PT_BYTE;
-
-  /* Use previous finding, if it's valid and applies to this inquiry.  */
-  if (current_buffer == find_start_buffer
-      /* Reuse the defun-start even if POS is a little farther on.
-	 POS might be in the next defun, but that's ok.
-	 Our value may not be the best possible, but will still be usable.  */
-      && pos <= find_start_pos + 1000
-      && pos >= find_start_value
-      && BEGV == find_start_begv
-      && MODIFF == find_start_modiff)
-    return find_start_value;
-
-  if (!open_paren_in_column_0_is_defun_start)
-    {
-      find_start_value = BEGV;
-      find_start_value_byte = BEGV_BYTE;
-      goto found;
-    }
-
-  /* Back up to start of line.  */
-  scan_newline (pos, pos_byte, BEGV, BEGV_BYTE, -1, 1);
-
-  /* We optimize syntax-table lookup for rare updates.  Thus we accept
-     only those `^\s(' which are good in global _and_ text-property
-     syntax-tables.  */
-  SETUP_BUFFER_SYNTAX_TABLE ();
-  while (PT > BEGV)
-    {
-      int c;
-
-      /* Open-paren at start of line means we may have found our
-	 defun-start.  */
-      c = FETCH_CHAR_AS_MULTIBYTE (PT_BYTE);
-      if (SYNTAX (c) == Sopen)
-	{
-	  SETUP_SYNTAX_TABLE (PT + 1, -1);	/* Try again... */
-	  c = FETCH_CHAR_AS_MULTIBYTE (PT_BYTE);
-	  if (SYNTAX (c) == Sopen)
-	    break;
-	  /* Now fallback to the default value.  */
-	  SETUP_BUFFER_SYNTAX_TABLE ();
-	}
-      /* Move to beg of previous line.  */
-      scan_newline (PT, PT_BYTE, BEGV, BEGV_BYTE, -2, 1);
-    }
-
-  /* Record what we found, for the next try.  */
-  find_start_value = PT;
-  find_start_value_byte = PT_BYTE;
-  TEMP_SET_PT_BOTH (opoint, opoint_byte);
-
- found:
-  find_start_buffer = current_buffer;
-  find_start_modiff = MODIFF;
-  find_start_begv = BEGV;
-  find_start_pos = pos;
-
-  return find_start_value;
-}
-
 /* Return the SYNTAX_COMEND_FIRST of the character before POS, POS_BYTE.  */
 
 static bool
@@ -669,302 +592,6 @@ prev_char_comend_first (ptrdiff_t pos, ptrdiff_t pos_byte)
   val = SYNTAX_COMEND_FIRST (c);
   UPDATE_SYNTAX_TABLE_FORWARD (pos + 1);
   return val;
-}
-
-/* Check whether charpos FROM is at the end of a comment.
-   FROM_BYTE is the bytepos corresponding to FROM.
-   Do not move back before STOP.
-
-   Return true if we find a comment ending at FROM/FROM_BYTE.
-
-   If successful, store the charpos of the comment's beginning
-   into *CHARPOS_PTR, and the bytepos into *BYTEPOS_PTR.
-
-   Global syntax data remains valid for backward search starting at
-   the returned value (or at FROM, if the search was not successful).  */
-
-
-static bool
-old_back_comment (ptrdiff_t from, ptrdiff_t from_byte, ptrdiff_t stop,
-                  bool comnested, int comstyle, ptrdiff_t *charpos_ptr,
-                  ptrdiff_t *bytepos_ptr)
-{
-  /* Look back, counting the parity of string-quotes,
-     and recording the comment-starters seen.
-     When we reach a safe place, assume that's not in a string;
-     then step the main scan to the earliest comment-starter seen
-     an even number of string quotes away from the safe place.
-
-     OFROM[I] is position of the earliest comment-starter seen
-     which is I+2X quotes from the comment-end.
-     PARITY is current parity of quotes from the comment end.  */
-  int string_style = -1;	/* Presumed outside of any string.  */
-  bool string_lossage = 0;
-  /* Not a real lossage: indicates that we have passed a matching comment
-     starter plus a non-matching comment-ender, meaning that any matching
-     comment-starter we might see later could be a false positive (hidden
-     inside another comment).
-     Test case:  { a (* b } c (* d *) */
-  bool comment_lossage = 0;
-  ptrdiff_t comment_end = from;
-  ptrdiff_t comment_end_byte = from_byte;
-  ptrdiff_t comstart_pos = 0;
-  ptrdiff_t comstart_byte;
-  /* Place where the containing defun starts,
-     or 0 if we didn't come across it yet.  */
-  ptrdiff_t defun_start = 0;
-  ptrdiff_t defun_start_byte = 0;
-  enum syntaxcode code;
-  ptrdiff_t nesting = 1;		/* Current comment nesting.  */
-  int c;
-  int syntax = 0;
-
-  /* FIXME: A }} comment-ender style leads to incorrect behavior
-     in the case of {{ c }}} because we ignore the last two chars which are
-     assumed to be comment-enders although they aren't.  */
-
-  /* At beginning of range to scan, we're outside of strings;
-     that determines quote parity to the comment-end.  */
-  while (from != stop)
-    {
-      ptrdiff_t temp_byte;
-      int prev_syntax;
-      bool com2start, com2end, comstart;
-
-      /* Move back and examine a character.  */
-      DEC_BOTH (from, from_byte);
-      UPDATE_SYNTAX_TABLE_BACKWARD (from);
-
-      prev_syntax = syntax;
-      c = FETCH_CHAR_AS_MULTIBYTE (from_byte);
-      syntax = SYNTAX_WITH_FLAGS (c);
-      code = SYNTAX (c);
-
-      /* Check for 2-char comment markers.  */
-      com2start = (SYNTAX_FLAGS_COMSTART_FIRST (syntax)
-		   && SYNTAX_FLAGS_COMSTART_SECOND (prev_syntax)
-		   && (comstyle
-		       == SYNTAX_FLAGS_COMMENT_STYLE (prev_syntax, syntax))
-		   && (SYNTAX_FLAGS_COMMENT_NESTED (prev_syntax)
-		       || SYNTAX_FLAGS_COMMENT_NESTED (syntax)) == comnested);
-      com2end = (SYNTAX_FLAGS_COMEND_FIRST (syntax)
-		 && SYNTAX_FLAGS_COMEND_SECOND (prev_syntax));
-      comstart = (com2start || code == Scomment);
-
-      /* Nasty cases with overlapping 2-char comment markers:
-	 - snmp-mode: -- c -- foo -- c --
-	              --- c --
-		      ------ c --
-	 - c-mode:    *||*
-		      |* *|* *|
-		      |*| |* |*|
-		      ///   */
-
-      /* If a 2-char comment sequence partly overlaps with another,
-	 we don't try to be clever.  E.g. |*| in C, or }% in modes that
-	 have %..\n and %{..}%.  */
-      if (from > stop && (com2end || comstart))
-	{
-	  ptrdiff_t next = from, next_byte = from_byte;
-	  int next_c, next_syntax;
-	  DEC_BOTH (next, next_byte);
-	  UPDATE_SYNTAX_TABLE_BACKWARD (next);
-	  next_c = FETCH_CHAR_AS_MULTIBYTE (next_byte);
-	  next_syntax = SYNTAX_WITH_FLAGS (next_c);
-	  if (((comstart || comnested)
-	       && SYNTAX_FLAGS_COMEND_SECOND (syntax)
-	       && SYNTAX_FLAGS_COMEND_FIRST (next_syntax))
-	      || ((com2end || comnested)
-		  && SYNTAX_FLAGS_COMSTART_SECOND (syntax)
-		  && (comstyle
-		      == SYNTAX_FLAGS_COMMENT_STYLE (syntax, prev_syntax))
-		  && SYNTAX_FLAGS_COMSTART_FIRST (next_syntax)))
-	    goto lossage;
-	  /* UPDATE_SYNTAX_TABLE_FORWARD (next + 1); */
-	}
-
-      if (com2start && comstart_pos == 0)
-	/* We're looking at a comment starter.  But it might be a comment
-	   ender as well (see snmp-mode).  The first time we see one, we
-	   need to consider it as a comment starter,
-	   and the subsequent times as a comment ender.  */
-	com2end = 0;
-
-      /* Turn a 2-char comment sequences into the appropriate syntax.  */
-      if (com2end)
-	code = Sendcomment;
-      else if (com2start)
-	code = Scomment;
-      /* Ignore comment starters of a different style.  */
-      else if (code == Scomment
-	       && (comstyle != SYNTAX_FLAGS_COMMENT_STYLE (syntax, 0)
-		   || SYNTAX_FLAGS_COMMENT_NESTED (syntax) != comnested))
-	continue;
-
-      /* Ignore escaped characters, except comment-enders which cannot
-         be escaped.  */
-      if ((Vcomment_end_can_be_escaped || code != Sendcomment)
-          && char_quoted (from, from_byte))
-	continue;
-
-      switch (code)
-	{
-	case Sstring_fence:
-	case Scomment_fence:
-	  c = (code == Sstring_fence ? ST_STRING_STYLE : ST_COMMENT_STYLE);
-	case Sstring:
-	  /* Track parity of quotes.  */
-	  if (string_style == -1)
-	    /* Entering a string.  */
-	    string_style = c;
-	  else if (string_style == c)
-	    /* Leaving the string.  */
-	    string_style = -1;
-	  else
-	    /* If we have two kinds of string delimiters.
-	       There's no way to grok this scanning backwards.  */
-	    string_lossage = 1;
-	  break;
-
-	case Scomment:
-	  /* We've already checked that it is the relevant comstyle.  */
-	  if (string_style != -1 || comment_lossage || string_lossage)
-	    /* There are odd string quotes involved, so let's be careful.
-	       Test case in Pascal: " { " a { " } */
-	    goto lossage;
-
-	  if (!comnested)
-	    {
-	      /* Record best comment-starter so far.  */
-	      comstart_pos = from;
-	      comstart_byte = from_byte;
-	    }
-	  else if (--nesting <= 0)
-	    /* nested comments have to be balanced, so we don't need to
-	       keep looking for earlier ones.  We use here the same (slightly
-	       incorrect) reasoning as below:  since it is followed by uniform
-	       paired string quotes, this comment-start has to be outside of
-	       strings, else the comment-end itself would be inside a string. */
-	    goto done;
-	  break;
-
-	case Sendcomment:
-	  if (SYNTAX_FLAGS_COMMENT_STYLE (syntax, 0) == comstyle
-	      && ((com2end && SYNTAX_FLAGS_COMMENT_NESTED (prev_syntax))
-		  || SYNTAX_FLAGS_COMMENT_NESTED (syntax)) == comnested)
-	    /* This is the same style of comment ender as ours. */
-	    {
-	      if (comnested)
-		nesting++;
-	      else
-		/* Anything before that can't count because it would match
-		   this comment-ender rather than ours.  */
-		from = stop;	/* Break out of the loop.  */
-	    }
-	  else if (comstart_pos != 0 || c != '\n')
-	    /* We're mixing comment styles here, so we'd better be careful.
-	       The (comstart_pos != 0 || c != '\n') check is not quite correct
-	       (we should just always set comment_lossage), but removing it
-	       would imply that any multiline comment in C would go through
-	       lossage, which seems overkill.
-	       The failure should only happen in the rare cases such as
-	         { (* } *)   */
-	    comment_lossage = 1;
-	  break;
-
-	case Sopen:
-	  /* Assume a defun-start point is outside of strings.  */
-	  if (open_paren_in_column_0_is_defun_start
-	      && (from == stop
-		  || (temp_byte = dec_bytepos (from_byte),
-		      FETCH_CHAR (temp_byte) == '\n')))
-	    {
-	      defun_start = from;
-	      defun_start_byte = from_byte;
-	      from = stop;	/* Break out of the loop.  */
-	    }
-	  break;
-
-	default:
-	  break;
-	}
-    }
-
-  if (comstart_pos == 0)
-    {
-      from = comment_end;
-      from_byte = comment_end_byte;
-      UPDATE_SYNTAX_TABLE_FORWARD (comment_end);
-    }
-  /* If comstart_pos is set and we get here (ie. didn't jump to `lossage'
-     or `done'), then we've found the beginning of the non-nested comment.  */
-  else if (1)	/* !comnested */
-    {
-      from = comstart_pos;
-      from_byte = comstart_byte;
-      UPDATE_SYNTAX_TABLE_FORWARD (from - 1);
-    }
-  else lossage:
-    {
-      struct lisp_parse_state state;
-      bool adjusted = true;
-      /* We had two kinds of string delimiters mixed up
-	 together.  Decode this going forwards.
-	 Scan fwd from a known safe place (beginning-of-defun)
-	 to the one in question; this records where we
-	 last passed a comment starter.  */
-      /* If we did not already find the defun start, find it now.  */
-      if (defun_start == 0)
-	{
-	  defun_start = find_defun_start (comment_end, comment_end_byte);
-	  defun_start_byte = find_start_value_byte;
-	  adjusted = (defun_start > BEGV);
-	}
-      do
-	{
-          internalize_parse_state (Qnil, &state);
-	  scan_sexps_forward (&state,
-			      defun_start, defun_start_byte,
-			      comment_end, TYPE_MINIMUM (EMACS_INT),
-			      0, 0);
-	  defun_start = comment_end;
-	  if (!adjusted)
-	    {
-	      adjusted = true;
-	      find_start_value
-		= CONSP (state.levelstarts) ? XINT (XCAR (state.levelstarts))
-		: state.thislevelstart >= 0 ? state.thislevelstart
-		: find_start_value;
-	      find_start_value_byte = CHAR_TO_BYTE (find_start_value);
-	    }
-
-	  if (state.incomment == (comnested ? 1 : -1)
-	      && state.comstyle == comstyle)
-	    from = state.comstr_start;
-	  else
-	    {
-	      from = comment_end;
-	      if (state.incomment)
-		/* If comment_end is inside some other comment, maybe ours
-		   is nested, so we need to try again from within the
-		   surrounding comment.  Example: { a (* " *)  */
-		{
-		  /* FIXME: We should advance by one or two chars.  */
-		  defun_start = state.comstr_start + 2;
-		  defun_start_byte = CHAR_TO_BYTE (defun_start);
-		}
-	    }
-	} while (defun_start < comment_end);
-
-      from_byte = CHAR_TO_BYTE (from);
-      UPDATE_SYNTAX_TABLE_FORWARD (from - 1);
-    }
-
- done:
-  *charpos_ptr = from;
-  *bytepos_ptr = from_byte;
-
-  return from != comment_end;
 }
 
 /* `literal-cache' text properties
@@ -1015,6 +642,49 @@ effect.  The return value is the new bound.  */)
   return BVAR (current_buffer, literal_cache_hwm);
 }
 
+/* Empty the literal-cache of every buffer whose syntax table is
+   currently set to SYNTAB. */
+void
+empty_syntax_tables_buffers_literal_caches (Lisp_Object syntab)
+{
+  Lisp_Object buf, buf_list;
+  Lisp_Object one = make_number (1);
+  struct buffer *b;
+
+  buf_list = Fbuffer_list (Qnil);
+  while (!NILP (buf_list))
+    {
+      buf = XCAR (buf_list);
+      b = XBUFFER (buf);
+      if (EQ (BVAR (b, syntax_table), syntab))
+        BVAR (b, literal_cache_hwm) = one;
+      buf_list = XCDR (buf_list);
+    }
+}
+
+#define LITERAL_MASK ((1 << Sstring)            \
+                      | (1 << Sescape)          \
+                      | (1 << Scharquote)       \
+                      | (1 << Scomment)         \
+                      | (1 << Sendcomment)      \
+                      | (1 << Scomment_fence)   \
+                      | (1 << Sstring_fence))
+
+/* The following returns true if ELT (which will be a raw syntax
+   descriptor (see page "Syntax Table Internals" in the Elisp manual)
+   or nil) represents a syntax which is (potentially) relevant to
+   strings or comments.  */
+INLINE bool
+SYNTAB_LITERAL (Lisp_Object elt)
+{
+  int ielt;
+  if (!CONSP (elt))
+    return false;
+  ielt = XINT (XCAR (elt));
+  return (ielt & 0xF0000)       /* a comment flag is set */
+    || ((1 << (ielt & 0xFF)) & LITERAL_MASK); /* One of Sstring, .... */
+}
+
 static
 bool syntax_table_value_is_interesting_for_literals (Lisp_Object val)
 {
@@ -1022,17 +692,7 @@ bool syntax_table_value_is_interesting_for_literals (Lisp_Object val)
   if (!CONSP (val)
       || !INTEGERP (XCAR (val)))
     return false;
-  syntax = XINT (XCAR (val));
-  code = syntax & 0xff;
-  return (code == Sstring
-          || code == Sescape
-          || code == Scharquote /* Check this!  2016-03-06. */
-          || code == Scomment
-          || code == Sendcomment
-          /* || (code == Sinherit && ....) This isn't implemented in syntax.c. */
-          || code == Scomment_fence
-          || code == Sstring_fence
-          || (syntax & 0xF0000) != 0); /* Flags `1', `2', `3', '4'. */
+  return SYNTAB_LITERAL (XCAR (val));
 }
 
 /* The text property PROP is having its value VAL at position POS in buffer BUF
@@ -1137,8 +797,6 @@ scan_nested_comments_forward (ptrdiff_t from, ptrdiff_t from_byte,
         }
     }
 }
-
-
 
 /* Scan forward over all text between literal-cache-hwm and TO,
    marking literals (strings and comments) with the `literal-cache'
@@ -1301,72 +959,252 @@ back_comment (ptrdiff_t from, ptrdiff_t from_byte, ptrdiff_t stop,
   int c;
   int syntax, code;
 
-  if (literal_cacheing_flag)
+  scan_comments_forward_to (from, from_byte);
+  if (from <= stop)
+    return false;
+  depth = Fget_text_property (make_number (from - 1), Qliteral_cache, Qnil);
+  if (!CONSP (depth)               /* nil, not in a literal. */
+      || !INTEGERP (XCAR (depth))) /* A string. */
+    return false;
+  literal_cache = XINT (XCAR (depth));
+  comment_style = XINT (XCDR (depth));
+  if (comment_style != comstyle) /* Wrong sort of comment.  This
+                                    can happen with "*|" at the
+                                    end of a "||" line comment. */
+    return false;
+
+  /* literal_cache: -1 is a non-nested comment, otherwise it's
+     the depth of nesting of nested comments. */
+  target_depth = literal_cache < 0 ? 0 : literal_cache - 1;
+  do
     {
-      scan_comments_forward_to (from, from_byte);
+      temp = Fprevious_single_property_change (make_number (from),
+                                               Qliteral_cache, Qnil, Qnil);
+      if (NILP (temp))
+        return false;
+      from = XINT (temp);
+    }
+  while (from > stop
+         && (depth = Fget_text_property (make_number (from - 1),
+                                         Qliteral_cache, Qnil),
+             !NILP (depth))
+         && XINT (XCAR (depth)) > target_depth);
+  if (from <= stop)
+    return false;
+  from_byte = CHAR_TO_BYTE (from);
+
+  /* Having passed back over the body of the comment, we should now find a
+     comment opener.  */
+  DEC_BOTH (from, from_byte);
+  UPDATE_SYNTAX_TABLE_BACKWARD (from);
+
+  c = FETCH_CHAR_AS_MULTIBYTE (from_byte);
+  syntax = SYNTAX_WITH_FLAGS (c);
+  code = SYNTAX (c);
+  if (code != Scomment && code != Scomment_fence)
+    {
       if (from <= stop)
         return false;
-      depth = Fget_text_property (make_number (from - 1), Qliteral_cache, Qnil);
-      if (!CONSP (depth)               /* nil, not in a literal. */
-          || !INTEGERP (XCAR (depth))) /* A string. */
+      if (!SYNTAX_FLAGS_COMSTART_SECOND (syntax))
         return false;
-      literal_cache = XINT (XCAR (depth));
-      comment_style = XINT (XCDR (depth));
-      if (comment_style != comstyle) /* Wrong sort of comment.  This
-                                        can happen with "*|" at the
-                                        end of a "||" line comment. */
-        return false;
-
-      /* literal_cache: -1 is a non-nested comment, otherwise it's
-         the depth of nesting of nested comments. */
-      target_depth = literal_cache < 0 ? 0 : literal_cache - 1;
-      do
-        {
-          temp = Fprevious_single_property_change (make_number (from),
-                                                   Qliteral_cache, Qnil, Qnil);
-          if (NILP (temp))
-            return false;
-          from = XINT (temp);
-        }
-      while (from > stop
-             && (depth = Fget_text_property (make_number (from - 1),
-                                             Qliteral_cache, Qnil),
-                 !NILP (depth))
-             && XINT (XCAR (depth)) > target_depth);
-      if (from <= stop)
-        return false;
-      from_byte = CHAR_TO_BYTE (from);
-
-      /* Having passed back over the body of the comment, we should now find a
-         comment opener.  */
       DEC_BOTH (from, from_byte);
       UPDATE_SYNTAX_TABLE_BACKWARD (from);
-
       c = FETCH_CHAR_AS_MULTIBYTE (from_byte);
       syntax = SYNTAX_WITH_FLAGS (c);
-      code = SYNTAX (c);
-      if (code != Scomment && code != Scomment_fence)
-        {
-          if (from <= stop)
-            return false;
-          if (!SYNTAX_FLAGS_COMSTART_SECOND (syntax))
-            return false;
-          DEC_BOTH (from, from_byte);
-          UPDATE_SYNTAX_TABLE_BACKWARD (from);
-          c = FETCH_CHAR_AS_MULTIBYTE (from_byte);
-          syntax = SYNTAX_WITH_FLAGS (c);
-          if (!SYNTAX_FLAGS_COMSTART_FIRST (syntax))
-            return false;
-        }
-      *charpos_ptr = from;
-      *bytepos_ptr = from_byte;
-      return true;
+      if (!SYNTAX_FLAGS_COMSTART_FIRST (syntax))
+        return false;
     }
-
-  else
-    return old_back_comment (from, from_byte, stop, comnested, comstyle,
-                             charpos_ptr, bytepos_ptr);
+  *charpos_ptr = from;
+  *bytepos_ptr = from_byte;
+  return true;
 }
+
+/* If the two syntax entries OLD_SYN and NEW_SYN would parse strings
+   or comments differently return true, otherwise return nil. */
+INLINE bool
+literally_different (Lisp_Object old_syn, Lisp_Object new_syn)
+{
+  bool old_literality = SYNTAB_LITERAL (old_syn),
+    new_literality = SYNTAB_LITERAL (new_syn);
+  return (old_literality != new_literality)
+    || (old_literality
+        && (!EQ (XCAR (old_syn), XCAR (new_syn))));
+}
+
+/* If there is a character position in the range [START, END] for
+   whose syntaxes in syntax tables OLD and NEW strings or comments
+   might be parsed differently, return the lowest character for which
+   this holds.  Otherwise, return -1.  */
+int
+syntax_table_ranges_differ_literally_p (Lisp_Object old, Lisp_Object new,
+                                              int start, int end)
+{
+  int old_from, new_from, old_to, new_to;
+  Lisp_Object old_syn, new_syn;
+  bool old_literality, new_literality;
+
+  new_from = old_from = start;
+  new_to = old_to = -1;
+
+  while ((old_from < end) && (new_from < end))
+    {
+      if (old_from == new_from)
+        {
+          old_syn = char_table_ref_and_range_with_parents (old, old_from,
+                                                           &old_from, &old_to);
+          new_syn = char_table_ref_and_range_with_parents (new, new_from,
+                                                           &new_from, &new_to);
+          if (literally_different (old_syn, new_syn))
+            return old_from;
+          old_from = old_to + 1;
+          new_from = new_to + 1;
+          old_to = -1;
+          new_to = -1;
+        }
+      else if (old_from < new_from)
+        {
+          old_syn = char_table_ref_and_range_with_parents (old, old_from,
+                                                           &old_from, &old_to);
+          if (literally_different (old_syn, new_syn))
+            return old_from;
+          old_from = old_to + 1;
+          old_to = -1;
+        }
+      else
+        {
+          new_syn = char_table_ref_and_range_with_parents (new, new_from,
+                                                           &new_from, &new_to);
+          if (literally_different (old_syn, new_syn))
+            return new_from;
+          new_from = new_to + 1;
+          new_to = -1;
+        }
+    }
+  return -1;
+}
+
+DEFUN ("least-literal-difference-between-syntax-tables",
+       Fleast_literal_difference_between_syntax_tables,
+       Sleast_literal_difference_between_syntax_tables,
+       2, 2, 0,
+       doc: /* Lowest char whose different syntaxes in OLD and NEW parse literals differently.
+               OLD and NEW are syntax tables.  */)
+       (Lisp_Object old, Lisp_Object new)
+{
+  int c;
+
+  check_syntax_table (old);
+  check_syntax_table (new);
+  c = syntax_table_ranges_differ_literally_p (old, new, 0, MAX_CHAR + 1);
+  if (c >= 0)
+    return make_number (c);
+  return Qnil;
+}
+
+DEFUN ("syntax-tables-literally-different-p",
+       Fsyntax_tables_literally_different_p,
+       Ssyntax_tables_literally_different_p,
+       2, 2, 0,
+       doc: /* Will syntax tables OLD and NEW parse literals differently?
+Return t when OLD and NEW might parse comments and strings differently,
+otherwise nil.  (Use `least-literal-difference-between-syntax-tables'
+to locate a character position where the tables differ.)  */)
+     (Lisp_Object old, Lisp_Object new)
+{
+  Lisp_Object extra;
+
+  check_syntax_table (old);
+  check_syntax_table (new);
+  /* Check to see if there is a cached relationship between the tables. */
+  if (Fmemq (new, XCHAR_TABLE (old)->extras[0]))
+    return Qnil;
+  if (Fmemq (new, XCHAR_TABLE (old)->extras[1]))
+    return Qt;
+  /* the two tables have no known relationship, so we'll have
+     laboriously to compare them. */
+  if (syntax_table_ranges_differ_literally_p (old, new, 0, MAX_CHAR + 1) >= 0)
+    {
+      /* mark the "literally different" relationship between the OLD and
+         NEW syntax tables. */
+      extra = Fcons (new, XCHAR_TABLE (old)->extras[1]);
+      XCHAR_TABLE (old)->extras[1] = extra;
+      extra = Fcons (old, XCHAR_TABLE (new)->extras[1]);
+      XCHAR_TABLE (new)->extras[1] = extra;
+      return Qt;
+    }
+  else
+    {
+      /* mark the "not literally different" relationship between the OLD
+         and NEW syntax tables. */
+      extra = Fcons (new, XCHAR_TABLE (old)->extras[0]);
+      XCHAR_TABLE (old)->extras[0] = extra;
+      extra = Fcons (old, XCHAR_TABLE (new)->extras[0]);
+      XCHAR_TABLE (new)->extras[0] = extra;
+      return Qnil;
+    }
+}
+
+/* If any character in the range [START, END) has an entry in syntax
+   table SYNTAB which is relevant to literal parsing, return true,
+   else return false. */
+bool
+syntax_table_value_range_is_interesting_for_literals (Lisp_Object syntab,
+                                                      int start, int end)
+{
+  int from, to;
+  Lisp_Object syn;
+
+  from = start;
+  to = end;
+  while (from < to)
+    {
+      syn = char_table_ref_and_range_with_parents (syntab, from, &from, &to);
+      if (SYNTAB_LITERAL (syn))
+        return true;
+      from = to + 1;
+      to = end;
+    }
+  return false;
+}
+
+
+/* In the syntax table SYNTAB, in the 0th and 1st extra slots are
+   lists of other syntax tables which are known to be "literally the
+   same" and "literally different" respectively.  Those other tables
+   will each contain SYNTAB in their extra slots.  Remove all these
+   syntax tables from all these extra slots; this will leave both of
+   the slots on SYNTAB nil. */
+void
+break_off_syntax_tables_literal_relations (Lisp_Object syntab)
+{
+  struct Lisp_Char_Table *c = XCHAR_TABLE (syntab);
+  Lisp_Object remote_tab;
+  struct Lisp_Char_Table *r;
+  Lisp_Object syntab_extra, remote_extra;
+
+  syntab_extra = c->extras[0];
+  while (!NILP (syntab_extra))
+    {
+      remote_tab = XCAR (syntab_extra);
+      r = XCHAR_TABLE (remote_tab);
+      remote_extra = r->extras[0];
+      r->extras[0] = Fdelq (syntab, remote_extra);
+      syntab_extra = XCDR (syntab_extra);
+    }
+  c->extras[0] = Qnil;
+
+  syntab_extra = c->extras[1];
+  while (!NILP (syntab_extra))
+    {
+      remote_tab = XCAR (syntab_extra);
+      r = XCHAR_TABLE (remote_tab);
+      remote_extra = r->extras[1];
+      r->extras[1] = Fdelq (syntab, remote_extra);
+      syntab_extra = XCDR (syntab_extra);
+    }
+  c->extras[1] = Qnil;
+}
+
 
 DEFUN ("syntax-table-p", Fsyntax_table_p, Ssyntax_table_p, 1, 1, 0,
        doc: /* Return t if OBJECT is a syntax table.
@@ -1436,6 +1274,10 @@ One argument, a syntax table.  */)
 {
   int idx;
   check_syntax_table (table);
+  if (Fsyntax_table_p (BVAR (current_buffer, syntax_table))
+      && !NILP (Fsyntax_tables_literally_different_p
+                (BVAR (current_buffer, syntax_table), table)))
+    Ftrim_literal_cache (Qnil);
   bset_syntax_table (current_buffer, table);
   /* Indicate that this buffer now has a specified syntax table.  */
   idx = PER_BUFFER_VAR_IDX (syntax_table);
@@ -1648,6 +1490,16 @@ usage: (modify-syntax-entry CHAR NEWENTRY &optional SYNTAX-TABLE)  */)
     check_syntax_table (syntax_table);
 
   newentry = Fstring_to_syntax (newentry);
+  if (SYNTAB_LITERAL (newentry)
+      || (CONSP (c)
+          ? syntax_table_value_range_is_interesting_for_literals
+          (syntax_table, XINT (XCAR(c)), XINT (XCDR (c)))
+          : (SYNTAB_LITERAL (c))))
+    {
+      empty_syntax_tables_buffers_literal_caches (syntax_table);
+      break_off_syntax_tables_literal_relations (syntax_table);
+    }
+
   if (CONSP (c))
     SET_RAW_SYNTAX_ENTRY_RANGE (syntax_table, c, newentry);
   else
@@ -1659,6 +1511,7 @@ usage: (modify-syntax-entry CHAR NEWENTRY &optional SYNTAX-TABLE)  */)
 
   return Qnil;
 }
+
 
 /* Dump syntax table to buffer in human-readable format */
 
@@ -4001,6 +3854,7 @@ init_syntax_once (void)
 
   /* This has to be done here, before we call Fmake_char_table.  */
   DEFSYM (Qsyntax_table, "syntax-table");
+  Fput (Qsyntax_table, Qchar_table_extra_slots, make_number (2));
 
   /* Create objects which can be shared among syntax tables.  */
   Vsyntax_code_object = make_uninit_vector (Smax);
@@ -4009,7 +3863,7 @@ init_syntax_once (void)
 
   /* Now we are ready to set up this property, so we can
      create syntax tables.  */
-  Fput (Qsyntax_table, Qchar_table_extra_slots, make_number (0));
+  /* Fput (Qsyntax_table, Qchar_table_extra_slots, make_number (0)); */
 
   temp = AREF (Vsyntax_code_object, Swhitespace);
 
@@ -4098,10 +3952,6 @@ syms_of_syntax (void)
 	build_pure_c_string ("Scan error"));
 
   DEFSYM (Qliteral_cache, "literal-cache");
-  DEFVAR_BOOL ("literal-cacheing-flag", literal_cacheing_flag,
-               doc: /* Non-nil means use new style comment handling.  */);
-  literal_cacheing_flag = 1;
-
   DEFVAR_LISP ("literal-cache-values", Vliteral_cache_values,
                doc: /* A list of values which the text property `literal-cache' can assume.
 This is to ensure that any values which are `equal' are also `eq', as required by the text
@@ -4164,6 +4014,8 @@ In both cases, LIMIT bounds the search. */);
   Fmake_variable_buffer_local (Qcomment_end_can_be_escaped);
 
   defsubr (&Strim_literal_cache);
+  defsubr (&Sleast_literal_difference_between_syntax_tables);
+  defsubr (&Ssyntax_tables_literally_different_p);
   defsubr (&Ssyntax_table_p);
   defsubr (&Ssyntax_table);
   defsubr (&Sstandard_syntax_table);
