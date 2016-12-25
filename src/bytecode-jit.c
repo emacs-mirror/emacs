@@ -47,19 +47,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define PUSH(x) (top++, *top = (x))
 
-/* Pop a value off the execution stack.  */
-
-#define POP (*top--)
-
-/* Discard n values from the execution stack.  */
-
-#define DISCARD(n) (top -= (n))
-
-/* Get the value which is at the top of the execution stack, but don't
-   pop it.  */
-
-#define TOP (*top)
-
 #undef BEFORE_POTENTIAL_GC
 #undef AFTER_POTENTIAL_GC
 #define BEFORE_POTENTIAL_GC() ((void )0)
@@ -789,7 +776,6 @@ jit_byte_code__ (Lisp_Object byte_code)
   Lisp_Object bytestr;
   Lisp_Object vector;
   Lisp_Object maxdepth;
-  Lisp_Object *top;
   enum handlertype type;
 
   unsigned char *byte_string_start, *pc;
@@ -1177,7 +1163,6 @@ jit_byte_code__ (Lisp_Object byte_code)
 
 	CASE (Bgoto):
 	  {
-	    jit_value_t v;
 	    op = FETCH2;
 	    CHECK_RANGE (op);
 	    JIT_CALL (byte_code_quit, NULL, 0);
@@ -1307,7 +1292,6 @@ jit_byte_code__ (Lisp_Object byte_code)
 	  type = CONDITION_CASE;
 	pushhandler:
 	  {
-	    jit_label_t new_label;
 	    jit_value_t tag, stackp, jmp, result, result2, typev;
 	    int dest = FETCH2;
 	    JIT_NEED_STACK;
