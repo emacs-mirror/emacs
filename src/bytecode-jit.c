@@ -28,6 +28,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "syntax.h"
 #include "window.h"
 
+#include <stdarg.h>
 #include <jit.h>
 
 /* Fetch the next byte from the bytecode stream.  */
@@ -668,6 +669,112 @@ jit_exec (Lisp_Object byte_code, Lisp_Object args_template, ptrdiff_t nargs, Lis
   }
 }
 
+static inline
+void jit_inc (jit_function_t f, jit_value_t v, long n)
+{
+  jit_value_t i = jit_insn_add_relative (f, v, (jit_nint )n);
+  if (!i || !jit_insn_store (f, v, i))
+    emacs_abort ();
+}
+
+static inline
+void jit_push (jit_function_t f, jit_value_t stack, jit_value_t v)
+{
+  jit_inc (f, stack, sizeof (Lisp_Object));
+  if (!jit_insn_store_relative (f, stack, (jit_nint )0, v))
+    emacs_abort ();
+}
+
+static inline
+jit_value_t jit_top (jit_function_t f, jit_value_t stack)
+{
+  jit_value_t v = jit_insn_load_relative (f, stack, (jit_nint )0,
+					  jit_type_Lisp_Object);
+  if (!v)
+    emacs_abort ();
+  return v;
+}
+
+static inline
+jit_value_t jit_pop (jit_function_t f, jit_value_t stack)
+{
+  jit_value_t v = jit_top (f, stack);
+  jit_inc (f, stack, -sizeof (Lisp_Object));
+  return v;
+}
+
+static inline
+jit_value_t jit_call (jit_function_t f, void *g, const char *name,
+		      jit_type_t g_sig, jit_value_t *args, size_t nargs)
+{
+  return jit_insn_call_native (f, name, g, g_sig, args, nargs,
+			       JIT_CALL_NOTHROW);
+}
+
+static inline
+jit_value_t jit_call_vaarg (jit_function_t f, void *g, const char *name,
+			    jit_type_t g_sig, ...)
+{
+  jit_value_t *args;
+  int i, count;
+  va_list ap;
+
+  /* Determine the number of passed arguments. */
+  va_start (ap, g_sig);
+  for (count = 0; va_arg (ap, jit_value_t) != NULL; count++);
+  va_end (ap);
+
+  /* Collect args and setup the call */
+  if (!(args = alloca (count * sizeof (*args))))
+    emacs_abort ();
+  va_start (ap, g_sig);
+  for (i = 0; i < count; i++)
+    args[i] = va_arg (ap, jit_value_t);
+  va_end (ap);
+
+  return jit_call (f, g, name, g_sig, args, count);
+}
+
+static inline
+void jit_call_with_stack_n (jit_function_t f, jit_value_t stack,
+			    void *g, const char *name, int n)
+{
+  jit_type_t *params = alloca (n * sizeof (*params));
+  jit_value_t *args = alloca (n * sizeof (*args));
+  jit_type_t g_sig;
+  int i;
+
+  if (!params || !args)
+    emacs_abort ();
+
+  for (i = 0; i < n; i++)
+    params[i] = jit_type_Lisp_Object;
+
+  g_sig = jit_type_create_signature (jit_abi_cdecl, jit_type_Lisp_Object,
+				     params, n, 1);
+  for (i = 1; i <= n; i++)
+    args[n-i] = jit_pop (f, stack);
+  jit_push (f, stack, jit_call (f, g, name, g_sig, args, n));
+}
+
+#define JIT_CONSTANT(f, t, v)			\
+  jit_value_create_nint_constant (f, t, v)
+
+static inline
+void jit_call_with_stack_many (jit_function_t f, jit_value_t stack,
+			       void *g, const char *name, int n)
+{
+  jit_type_t g_sig;
+  JIT_SIG (g, jit_type_Lisp_Object, jit_type_nuint, jit_type_void_ptr);
+  jit_inc (f, stack, -(n - 1) * sizeof (Lisp_Object));
+  jit_insn_store_relative (f, stack, (jit_nint )0,
+			   jit_call_vaarg (f, g, name, g_sig,
+					   JIT_CONSTANT (f, jit_type_nuint, n),
+					   stack, NULL));
+}
+
+#undef JIT_CONSTANT
+
 void
 jit_byte_code__ (Lisp_Object byte_code)
 {
@@ -847,70 +954,23 @@ jit_byte_code__ (Lisp_Object byte_code)
       } while (0)
 
 #define JIT_INC(v, n)				\
-  do {						\
-    jit_value_t i =				\
-      jit_insn_add_relative (			\
-        this_func,		                \
-        v,					\
-        (jit_nint )n);				\
-    if (!i)					\
-      emacs_abort ();				\
-    else if (!jit_insn_store (			\
-                this_func,			\
-		v,				\
-		i))				\
-      emacs_abort ();				\
-  } while (0)
+      jit_inc (this_func, v, n)
 
 #define JIT_PUSH(v)				\
-      do {					\
-	JIT_INC (stackv, sizeof (Lisp_Object));	\
-	if (!jit_insn_store_relative (		\
-	      this_func,			\
-	      stackv,				\
-	      (jit_nint )0, 			\
-	      v))				\
-	  emacs_abort ();			\
-      } while (0)
+      jit_push (this_func, stackv, v)
 
 #define JIT_TOP(v)				\
-      do {					\
-	v = jit_insn_load_relative (		\
-	      this_func,			\
-	      stackv,				\
-	      (jit_nint )0,			\
-	      jit_type_Lisp_Object);		\
-	if (!v)					\
-	  emacs_abort ();			\
-      } while (0)
+      (v = jit_top (this_func, stackv))
 
 #define JIT_POP(v)					\
-      do {						\
-	JIT_TOP (v);					\
-	JIT_INC (stackv, -sizeof (Lisp_Object));	\
-      } while (0)
+      (v = jit_pop (this_func, stackv))
 
 #define JIT_CALL(f, args, n)				\
-      jit_insn_call_native (				\
-	this_func,					\
-	#f,						\
-	(void*)&f,					\
-	f##_sig,					\
-	args,						\
-	n,						\
-	JIT_CALL_NOTHROW)
+      jit_call (this_func, (void *)&f, #f, f##_sig, args, n)
 
-#define JIT_CALL_ARGS(r, f, ...)			\
-      do {						\
-	jit_value_t params[] =				\
-	  {						\
-	    __VA_ARGS__					\
-	  };						\
-	r = JIT_CALL (					\
-	      f,				        \
-	      params,					\
-	      sizeof (params) / sizeof (params[0]));	\
-      } while (0)
+#define JIT_CALL_ARGS(r, f, ...)				\
+      (r = jit_call_vaarg (this_func, (void *)&f, #f, f##_sig,	\
+			   __VA_ARGS__, NULL))
 
 #define JIT_CONSTANT(t, v)			\
       jit_value_create_nint_constant (		\
@@ -919,41 +979,10 @@ jit_byte_code__ (Lisp_Object byte_code)
 	v)
 
 #define JIT_CALL_WITH_STACK_N(f, n)			\
-      do {						\
-	jit_type_t params[n];				\
-	jit_value_t args[n];				\
-	jit_value_t ret;				\
-	jit_type_t f##_sig;				\
-	int i;						\
-	for (i = 0; i < n; i++)				\
-	  params[i] = jit_type_Lisp_Object;		\
-	JIT_SIG_ (f, jit_type_Lisp_Object, params);	\
-	JIT_NEED_STACK;					\
-	for (i = 1; i <= n; i++)			\
-	  JIT_POP (args[n-i]);				\
-	ret = JIT_CALL (f, args, n);			\
-	JIT_PUSH (ret);					\
-      } while (0)
+      jit_call_with_stack_n (this_func, stackv, (void *)&f, #f, n)
 
 #define JIT_CALL_WITH_STACK_MANY(f, n)				\
-      do {							\
-	jit_value_t ret;					\
-	jit_type_t f##_sig;					\
-	JIT_SIG (						\
-	  f,						        \
-	  jit_type_Lisp_Object,					\
-	  jit_type_nuint,					\
-	  jit_type_void_ptr);					\
-	JIT_NEED_STACK;						\
-	JIT_INC (stackv, -(n - 1) * sizeof (Lisp_Object));	\
-	JIT_CALL_ARGS (						\
-	  ret,					                \
-	  f,							\
-	  JIT_CONSTANT (jit_type_nuint, n),			\
-	  stackv);						\
-	JIT_INC (stackv, -sizeof (Lisp_Object));		\
-	JIT_PUSH (ret);						\
-      } while (0)
+      jit_call_with_stack_many (this_func, stackv, (void *)&f, #f, n)
 
 #ifndef BYTE_CODE_THREADED
       /* create a new block and attach a label to it */
