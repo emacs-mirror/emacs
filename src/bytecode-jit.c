@@ -948,18 +948,17 @@ jit_byte_code__ (Lisp_Object byte_code)
 #define JIT_PUSH(v)				\
       jit_push (&ctxt, v)
 
-#define JIT_TOP(v)				\
-      (v = jit_top (&ctxt))
+#define JIT_TOP()				\
+      jit_top (&ctxt)
 
-#define JIT_POP(v)					\
-      (v = jit_pop (&ctxt))
+#define JIT_POP()					\
+      jit_pop (&ctxt)
 
 #define JIT_CALL(f, args, n)				\
       jit_call (&ctxt, (void *)&f, #f, f##_sig, args, n)
 
-#define JIT_CALL_ARGS(r, f, ...)				\
-      (r = jit_call_vaarg (&ctxt, (void *)&f, #f, f##_sig,	\
-			   __VA_ARGS__, NULL))
+#define JIT_CALL_ARGS(f, ...)					\
+      jit_call_vaarg (&ctxt, (void *)&f, #f, f##_sig, __VA_ARGS__, NULL)
 
 #define JIT_CONSTANT(t, v)			\
       jit_value_create_nint_constant (		\
@@ -1051,21 +1050,19 @@ jit_byte_code__ (Lisp_Object byte_code)
 	  op = FETCH;
 	varset:
 	  {
-	    jit_value_t sym, val, x;
 	    JIT_NEED_STACK;
-	    sym = JIT_CONSTANT (jit_type_Lisp_Object, vectorp[op]);
-	    JIT_POP (val);
-	    JIT_CALL_ARGS (x, native_varset, sym, val);
+	    JIT_CALL_ARGS (native_varset, JIT_CONSTANT (jit_type_Lisp_Object,
+							vectorp[op]),
+			   JIT_POP ());
+
 	    JIT_NEXT;
 	    NEXT;
 	  }
 
 	CASE (Bdup):
 	  {
-	    jit_value_t x;
 	    JIT_NEED_STACK;
-	    JIT_TOP (x);
-	    JIT_PUSH (x);
+	    JIT_PUSH (JIT_TOP ());
 	    JIT_NEXT;
 	    NEXT;
 	  }
@@ -1089,11 +1086,11 @@ jit_byte_code__ (Lisp_Object byte_code)
 	  op -= Bvarbind;
 	varbind:
 	  {
-	    jit_value_t v1, v2, x;
 	    JIT_NEED_STACK;
-	    v1 = JIT_CONSTANT (jit_type_Lisp_Object, vectorp[op]);
-	    JIT_POP (v2);
-	    JIT_CALL_ARGS (x, specbind, v1, v2);
+	    JIT_CALL_ARGS (specbind,
+			   JIT_CONSTANT (jit_type_Lisp_Object,
+					 vectorp[op]),
+			   JIT_POP ());
 	    JIT_NEXT;
 	    NEXT;
 	  }
@@ -1195,12 +1192,12 @@ jit_byte_code__ (Lisp_Object byte_code)
 	      }
 	    CHECK_RANGE (op);
 	    JIT_NEED_STACK;
-	    JIT_POP (v2);
+	    v2 = JIT_POP ();
 	    if (insn == Bgotoifnil || insn == BRgotoifnil
 		|| insn == Bgotoifnilelsepop || insn == BRgotoifnilelsepop)
-	      JIT_CALL_ARGS (v3, native_ifnil, v2);
+	      v3 = JIT_CALL_ARGS (native_ifnil, v2);
 	    else
-	      JIT_CALL_ARGS (v3, native_ifnonnil, v2);
+	      v3 = JIT_CALL_ARGS (native_ifnonnil, v2);
 	    if (insn == Bgotoifnilelsepop || insn == Bgotoifnonnilelsepop
 		|| insn == BRgotoifnilelsepop || insn == BRgotoifnonnilelsepop)
 	      JIT_PUSH (v2);
@@ -1228,10 +1225,8 @@ jit_byte_code__ (Lisp_Object byte_code)
 
 	CASE (Breturn):
 	  {
-	    jit_value_t v;
 	    JIT_NEED_STACK;
-	    JIT_POP (v);
-	    jit_insn_return (ctxt.func, v);
+	    jit_insn_return (ctxt.func, JIT_POP ());
 	    NEXT;
 	  }
 
@@ -1245,9 +1240,8 @@ jit_byte_code__ (Lisp_Object byte_code)
 
 	CASE (Bconstant2):
 	  {
-	    jit_value_t v = JIT_CONSTANT (jit_type_Lisp_Object, vectorp[FETCH2]);
 	    JIT_NEED_STACK;
-	    JIT_PUSH (v);
+	    JIT_PUSH (JIT_CONSTANT (jit_type_Lisp_Object, vectorp[FETCH2]));
 	    JIT_NEXT;
 	    NEXT;
 	  }
@@ -1295,13 +1289,12 @@ jit_byte_code__ (Lisp_Object byte_code)
 	  type = CONDITION_CASE;
 	pushhandler:
 	  {
-	    jit_value_t tag, stackp, jmp, result, result2, typev;
+	    jit_value_t stackp, jmp, result, result2;
 	    int dest = FETCH2;
 	    JIT_NEED_STACK;
-	    JIT_POP (tag);
 	    stackp = jit_insn_address_of (ctxt.func, ctxt.stack);
-	    typev = JIT_CONSTANT (jit_type_nint, type);
-	    JIT_CALL_ARGS (jmp, native_pushhandler1, stackp, tag, typev);
+	    jmp = JIT_CALL_ARGS (native_pushhandler1, stackp, JIT_POP (),
+				 JIT_CONSTANT (jit_type_nint, type));
 	    do {
 	      void *f;
 	      int n;
@@ -1338,7 +1331,7 @@ jit_byte_code__ (Lisp_Object byte_code)
 	  {
 	    jit_value_t handler;
 	    JIT_NEED_STACK;
-	    JIT_POP (handler);
+	    handler = JIT_POP ();
 	    JIT_CALL (native_unwind_protect, &handler, 1);
 	    JIT_NEXT;
 	    NEXT;
@@ -1362,18 +1355,18 @@ jit_byte_code__ (Lisp_Object byte_code)
 	CASE (Btemp_output_buffer_show): /* Obsolete since 24.1.  */
 	  {
 	    jit_type_t temp_output_buffer_show_sig;
-	    jit_value_t v1, v2, c, q, x;
+	    jit_value_t v1, v2, c, q;
 	    JIT_NEED_STACK;
 	    JIT_SIG (temp_output_buffer_show,
 		     jit_type_void,
 		     jit_type_Lisp_Object);
-	    JIT_POP (v1);
-	    JIT_POP (v2);
+	    v1 = JIT_POP ();
+	    v2 = JIT_POP ();
 	    JIT_CALL (temp_output_buffer_show, &v2, 1);
 	    JIT_PUSH (v1);
 	    c = JIT_CONSTANT (jit_type_nuint, 1);
 	    q = JIT_CONSTANT (jit_type_Lisp_Object, Qnil);
-	    JIT_CALL_ARGS (x, native_unbind_to, c, q);
+	    JIT_CALL_ARGS (native_unbind_to, c, q);
 	    JIT_NEXT;
 	    NEXT;
 	  }
@@ -1536,22 +1529,18 @@ jit_byte_code__ (Lisp_Object byte_code)
 
 	CASE (Bsub1):
 	  {
-	    jit_value_t v1, v2;
 	    JIT_NEED_STACK;
-	    JIT_POP (v1);
-	    JIT_CALL_ARGS (v2, native_add1, v1, JIT_CONSTANT (jit_type_sys_bool, 0));
-	    JIT_PUSH (v2);
+	    JIT_PUSH (JIT_CALL_ARGS (native_add1, JIT_POP (),
+				     JIT_CONSTANT (jit_type_sys_bool, 0)));
 	    JIT_NEXT;
 	    NEXT;
 	  }
 
 	CASE (Badd1):
 	  {
-	    jit_value_t v1, v2;
 	    JIT_NEED_STACK;
-	    JIT_POP (v1);
-	    JIT_CALL_ARGS (v2, native_add1, v1, JIT_CONSTANT (jit_type_sys_bool, 1));
-	    JIT_PUSH (v2);
+	    JIT_PUSH (JIT_CALL_ARGS (native_add1, JIT_POP (),
+				     JIT_CONSTANT (jit_type_sys_bool, 1)));
 	    JIT_NEXT;
 	    NEXT;
 	  }
@@ -1568,7 +1557,7 @@ jit_byte_code__ (Lisp_Object byte_code)
 	CASE (Bleq):
 	CASE (Bgeq):
 	  {
-	    jit_value_t v1, v2, v3, c;
+	    jit_value_t v1, v2, c;
 	    enum Arith_Comparison v[] =
 	      {
 		ARITH_GRTR,
@@ -1578,10 +1567,9 @@ jit_byte_code__ (Lisp_Object byte_code)
 	      };
 	    JIT_NEED_STACK;
 	    c = JIT_CONSTANT (jit_type_nuint, v[op-Bgtr]);
-	    JIT_POP (v2);
-	    JIT_POP (v1);
-	    JIT_CALL_ARGS (v3, arithcompare, v1, v2, c);
-	    JIT_PUSH (v3);
+	    v2 = JIT_POP ();
+	    v1 = JIT_POP ();
+	    JIT_PUSH (JIT_CALL_ARGS (arithcompare, v1, v2, c));
 	    JIT_NEXT;
 	    NEXT;
 	  }
@@ -2029,7 +2017,7 @@ jit_byte_code__ (Lisp_Object byte_code)
 
 	    JIT_NEED_STACK;
 	    JIT_INC (ctxt.stack, -offs * sizeof (Lisp_Object));
-	    JIT_TOP (v1);
+	    v1 = JIT_TOP ();
 	    JIT_INC (ctxt.stack, offs * sizeof (Lisp_Object));
 	    JIT_PUSH (v1);
 	    JIT_NEXT;
@@ -2042,7 +2030,7 @@ jit_byte_code__ (Lisp_Object byte_code)
 	    jit_value_t v1;
 	    int offs = (op == Bstack_set) ? FETCH : FETCH2;
 	    JIT_NEED_STACK;
-	    JIT_TOP (v1);
+	    v1 = JIT_TOP ();
 	    if (offs != 0)
 	      JIT_INC (ctxt.stack, -(offs + 1) * sizeof (Lisp_Object));
 	    JIT_PUSH (v1);
@@ -2058,7 +2046,7 @@ jit_byte_code__ (Lisp_Object byte_code)
 	      {
 		jit_value_t v1;
 		op &= 0x7F;
-		JIT_TOP (v1);
+		v1 = JIT_TOP ();
 		JIT_INC (ctxt.stack, -(op + 1) * sizeof (Lisp_Object));
 		JIT_PUSH (v1);
 	      }
