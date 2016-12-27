@@ -498,6 +498,62 @@ native_integer_p (Lisp_Object v)
 
 jit_type_t setjmp_sig;
 
+struct emacs_jit_context
+{
+  jit_context_t libjit_ctxt;
+  jit_function_t func;
+  jit_type_t stack_many;
+  jit_type_t stack_n[4];
+  jit_value_t stack;
+};
+
+static bool jit_initialized = false;
+
+static void
+emacs_jit_start (struct emacs_jit_context *ctxt)
+{
+#define JIT_SIG_(f, ret, params)					\
+  f = jit_type_create_signature (jit_abi_cdecl, ret, params,		\
+				 sizeof (params) / sizeof (params[0]), 1);
+#define JIT_SIG(f, ret, ...)			\
+  do {						\
+    jit_type_t params[] =			\
+      {						\
+        __VA_ARGS__				\
+      };					\
+    JIT_SIG_ (f, ret, params);			\
+  } while (0)
+
+  ctxt->libjit_ctxt = jit_context_create ();
+  jit_type_t jit_type_Lisp_Object_ptr =
+    jit_type_create_pointer (jit_type_Lisp_Object, 1);
+  jit_type_t func_sig;
+  JIT_SIG (func_sig, jit_type_Lisp_Object, jit_type_Lisp_Object_ptr);
+  ctxt->func = jit_function_create (ctxt->libjit_ctxt, func_sig);
+  jit_function_set_optimization_level (ctxt->func,
+				       jit_function_get_max_optimization_level ());
+  ctxt->stack = jit_value_get_param (ctxt->func, 0);
+
+  JIT_SIG (ctxt->stack_many, jit_type_Lisp_Object,
+	   jit_type_nuint, jit_type_Lisp_Object_ptr);
+
+  jit_type_t params[] = {
+    jit_type_Lisp_Object,
+    jit_type_Lisp_Object,
+    jit_type_Lisp_Object,
+    jit_type_Lisp_Object
+  };
+  int i;
+  for (i = 0; i < sizeof (params) / sizeof (params[0]); i++)
+    {
+      ctxt->stack_n[i] =
+	jit_type_create_signature (jit_abi_cdecl, jit_type_Lisp_Object,
+				   params, i, 1);
+    }
+#undef JIT_SIG
+#undef JIT_SIG_
+}
+
 static void
 emacs_jit_init (void)
 {
@@ -520,8 +576,6 @@ emacs_jit_init (void)
     JIT_SIG_ (f, ret, params);			\
   } while (0)
 
-  jit_context = jit_context_create();
-
   do {
     jit_type_t params[] =
       {
@@ -539,50 +593,22 @@ emacs_jit_init (void)
 #endif
 					    1);
   } while (0);
-
-  JIT_SIG (native_varref, jit_type_Lisp_Object, jit_type_Lisp_Object);
   JIT_SIG (native_ifnil, jit_type_sys_bool, jit_type_Lisp_Object);
   JIT_SIG (native_ifnonnil, jit_type_sys_bool, jit_type_Lisp_Object);
-  JIT_SIG (native_car, jit_type_Lisp_Object, jit_type_Lisp_Object);
-  JIT_SIG (native_eq, jit_type_Lisp_Object, jit_type_Lisp_Object, jit_type_Lisp_Object);
-  JIT_SIG (native_memq, jit_type_Lisp_Object, jit_type_Lisp_Object, jit_type_Lisp_Object);
-  JIT_SIG (native_cdr, jit_type_Lisp_Object, jit_type_Lisp_Object);
   JIT_SIG (native_varset, jit_type_void, jit_type_Lisp_Object, jit_type_Lisp_Object);
   JIT_SIG (specbind, jit_type_void, jit_type_Lisp_Object, jit_type_Lisp_Object);
   JIT_SIG (Ffuncall, jit_type_Lisp_Object, jit_type_nuint, jit_type_void_ptr);
-  JIT_SIG (native_unbind_to, jit_type_Lisp_Object, jit_type_nuint, jit_type_Lisp_Object);
-  JIT_SIG (unbind_to, jit_type_Lisp_Object, jit_type_nuint, jit_type_Lisp_Object);
   JIT_SIG (byte_code_quit, jit_type_void);
   JIT_SIG (native_save_excursion, jit_type_void);
-  JIT_SIG (native_save_window_excursion, jit_type_Lisp_Object, jit_type_Lisp_Object);
   JIT_SIG (native_save_restriction, jit_type_void);
-  JIT_SIG (native_catch, jit_type_Lisp_Object, jit_type_Lisp_Object, jit_type_Lisp_Object);
   JIT_SIG (native_pophandler, jit_type_void);
   JIT_SIG (native_pushhandler1, jit_type_void_ptr, jit_type_create_pointer (jit_type_void_ptr, 1), jit_type_Lisp_Object, jit_type_nint);
   JIT_SIG (native_pushhandler2, jit_type_void, jit_type_create_pointer (jit_type_void_ptr, 1));
   JIT_SIG (native_unwind_protect, jit_type_void, jit_type_Lisp_Object);
-  JIT_SIG (native_temp_output_buffer_setup, jit_type_Lisp_Object, jit_type_Lisp_Object);
-  JIT_SIG (native_nth, jit_type_Lisp_Object, jit_type_Lisp_Object, jit_type_Lisp_Object);
-  JIT_SIG (native_symbolp, jit_type_Lisp_Object, jit_type_Lisp_Object);
-  JIT_SIG (native_consp, jit_type_Lisp_Object, jit_type_Lisp_Object);
-  JIT_SIG (native_stringp, jit_type_Lisp_Object, jit_type_Lisp_Object);
-  JIT_SIG (native_listp, jit_type_Lisp_Object, jit_type_Lisp_Object);
-  JIT_SIG (native_not, jit_type_Lisp_Object, jit_type_Lisp_Object);
   JIT_SIG (native_add1, jit_type_Lisp_Object, jit_type_Lisp_Object, jit_type_sys_bool);
-  JIT_SIG (native_eqlsign, jit_type_Lisp_Object, jit_type_Lisp_Object, jit_type_Lisp_Object);
   JIT_SIG (arithcompare, jit_type_Lisp_Object, jit_type_Lisp_Object, jit_type_Lisp_Object, jit_type_nuint);
-  JIT_SIG (native_negate, jit_type_Lisp_Object, jit_type_Lisp_Object);
-  JIT_SIG (native_point, jit_type_Lisp_Object);
-  JIT_SIG (native_point_max, jit_type_Lisp_Object);
-  JIT_SIG (native_point_min, jit_type_Lisp_Object);
-  JIT_SIG (native_current_column, jit_type_Lisp_Object);
-  JIT_SIG (native_interactive_p, jit_type_Lisp_Object);
-  JIT_SIG (native_char_syntax, jit_type_Lisp_Object, jit_type_Lisp_Object);
-  JIT_SIG (native_elt, jit_type_Lisp_Object, jit_type_Lisp_Object, jit_type_Lisp_Object);
-  JIT_SIG (native_car_safe, jit_type_Lisp_Object, jit_type_Lisp_Object);
-  JIT_SIG (native_cdr_safe, jit_type_Lisp_Object, jit_type_Lisp_Object);
-  JIT_SIG (native_number_p, jit_type_Lisp_Object, jit_type_Lisp_Object);
-  JIT_SIG (native_integer_p, jit_type_Lisp_Object, jit_type_Lisp_Object);
+
+  jit_initialized = true;
 }
 
 Lisp_Object
@@ -642,14 +668,14 @@ jit_exec (Lisp_Object byte_code, Lisp_Object args_template, ptrdiff_t nargs, Lis
     }
 
   {
-    Lisp_Object (*func)(Lisp_Object *) =
-      (Lisp_Object (*)(Lisp_Object *))AREF (byte_code, COMPILED_JIT_ID);
     /* We don't actually need to use this structure to keep track of a
        stack, since our stack isn't GCed.  We just need to use it as a
        placeholder in `byte_stack_list' to facilitate proper unwinding. */
     struct byte_stack stack = {};
     stack.next = byte_stack_list;
     byte_stack_list = &stack;
+    Lisp_Object (*func)(Lisp_Object *) =
+      (Lisp_Object (*)(Lisp_Object *))AREF (byte_code, COMPILED_JIT_ID);
     Lisp_Object ret = func (top);
     byte_stack_list = byte_stack_list->next;
     return ret;
@@ -657,107 +683,96 @@ jit_exec (Lisp_Object byte_code, Lisp_Object args_template, ptrdiff_t nargs, Lis
 }
 
 static inline
-void jit_inc (jit_function_t f, jit_value_t v, long n)
+void jit_inc (struct emacs_jit_context *ctxt, jit_value_t v, long n)
 {
-  jit_value_t i = jit_insn_add_relative (f, v, (jit_nint )n);
-  if (!i || !jit_insn_store (f, v, i))
+  jit_value_t i = jit_insn_add_relative (ctxt->func, v, (jit_nint )n);
+  if (!i || !jit_insn_store (ctxt->func, v, i))
     emacs_abort ();
 }
 
 static inline
-void jit_push (jit_function_t f, jit_value_t stack, jit_value_t v)
+void jit_push (struct emacs_jit_context *ctxt, jit_value_t v)
 {
-  jit_inc (f, stack, sizeof (Lisp_Object));
-  if (!jit_insn_store_relative (f, stack, (jit_nint )0, v))
+  jit_inc (ctxt, ctxt->stack, sizeof (Lisp_Object));
+  if (!jit_insn_store_relative (ctxt->func, ctxt->stack, (jit_nint )0, v))
     emacs_abort ();
 }
 
 static inline
-jit_value_t jit_top (jit_function_t f, jit_value_t stack)
+jit_value_t jit_top (struct emacs_jit_context *ctxt)
 {
-  jit_value_t v = jit_insn_load_relative (f, stack, (jit_nint )0,
-					  jit_type_Lisp_Object);
+  jit_value_t v = jit_insn_load_relative (ctxt->func, ctxt->stack,
+					  (jit_nint )0, jit_type_Lisp_Object);
   if (!v)
     emacs_abort ();
   return v;
 }
 
 static inline
-jit_value_t jit_pop (jit_function_t f, jit_value_t stack)
+jit_value_t jit_pop (struct emacs_jit_context *ctxt)
 {
-  jit_value_t v = jit_top (f, stack);
-  jit_inc (f, stack, -sizeof (Lisp_Object));
+  jit_value_t v = jit_top (ctxt);
+  jit_inc (ctxt, ctxt->stack, -sizeof (Lisp_Object));
   return v;
 }
 
 static inline
-jit_value_t jit_call (jit_function_t f, void *g, const char *name,
-		      jit_type_t g_sig, jit_value_t *args, size_t nargs)
+jit_value_t jit_call (struct emacs_jit_context *ctxt, void *f,
+		      const char *name, jit_type_t sig, jit_value_t *args,
+		      size_t nargs)
 {
-  return jit_insn_call_native (f, name, g, g_sig, args, nargs,
+  return jit_insn_call_native (ctxt->func, name, f, sig, args, nargs,
 			       JIT_CALL_NOTHROW);
 }
 
 static inline
-jit_value_t jit_call_vaarg (jit_function_t f, void *g, const char *name,
-			    jit_type_t g_sig, ...)
+jit_value_t jit_call_vaarg (struct emacs_jit_context *ctxt, void *f,
+			    const char *name, jit_type_t sig, ...)
 {
   jit_value_t *args;
   int i, count;
   va_list ap;
 
   /* Determine the number of passed arguments. */
-  va_start (ap, g_sig);
+  va_start (ap, sig);
   for (count = 0; va_arg (ap, jit_value_t) != NULL; count++);
   va_end (ap);
 
   /* Collect args and setup the call */
-  if (!(args = alloca (count * sizeof (*args))))
-    emacs_abort ();
-  va_start (ap, g_sig);
+  args = (count > 0) ? alloca (count * sizeof (*args)) : NULL;
+  va_start (ap, sig);
   for (i = 0; i < count; i++)
     args[i] = va_arg (ap, jit_value_t);
   va_end (ap);
 
-  return jit_call (f, g, name, g_sig, args, count);
+  return jit_call (ctxt, f, name, sig, args, count);
 }
 
 static inline
-void jit_call_with_stack_n (jit_function_t f, jit_value_t stack,
-			    void *g, const char *name, int n)
+void jit_call_with_stack_n (struct emacs_jit_context *ctxt, void *f,
+			    const char *name, int n)
 {
-  jit_type_t *params = alloca (n * sizeof (*params));
-  jit_value_t *args = alloca (n * sizeof (*args));
-  jit_type_t g_sig;
+  jit_value_t *args = (n > 0) ? alloca (n * sizeof (*args)) : NULL;
   int i;
 
-  if (!params || !args)
-    emacs_abort ();
-
-  for (i = 0; i < n; i++)
-    params[i] = jit_type_Lisp_Object;
-
-  g_sig = jit_type_create_signature (jit_abi_cdecl, jit_type_Lisp_Object,
-				     params, n, 1);
   for (i = 1; i <= n; i++)
-    args[n-i] = jit_pop (f, stack);
-  jit_push (f, stack, jit_call (f, g, name, g_sig, args, n));
+    args[n-i] = jit_pop (ctxt);
+  jit_push (ctxt, jit_call (ctxt, f, name, ctxt->stack_n[n], args, n));
 }
 
 #define JIT_CONSTANT(f, t, v)			\
   jit_value_create_nint_constant (f, t, v)
 
 static inline
-void jit_call_with_stack_many (jit_function_t f, jit_value_t stack,
-			       void *g, const char *name, int n)
+void jit_call_with_stack_many (struct emacs_jit_context *ctxt, void *f,
+			       const char *name, int n)
 {
-  jit_type_t g_sig;
-  JIT_SIG (g, jit_type_Lisp_Object, jit_type_nuint, jit_type_void_ptr);
-  jit_inc (f, stack, -(n - 1) * sizeof (Lisp_Object));
-  jit_insn_store_relative (f, stack, (jit_nint )0,
-			   jit_call_vaarg (f, g, name, g_sig,
-					   JIT_CONSTANT (f, jit_type_nuint, n),
-					   stack, NULL));
+  jit_inc (ctxt, ctxt->stack, -(n - 1) * sizeof (Lisp_Object));
+  jit_insn_store_relative (ctxt->func, ctxt->stack, (jit_nint )0,
+			   jit_call_vaarg (ctxt, f, name, ctxt->stack_many,
+					   JIT_CONSTANT (ctxt->func,
+							 jit_type_nuint, n),
+					   ctxt->stack, NULL));
 }
 
 #undef JIT_CONSTANT
@@ -781,25 +796,19 @@ jit_byte_code__ (Lisp_Object byte_code)
   unsigned char *byte_string_start, *pc;
 
   /* jit-specific variables */
-  jit_function_t this_func;
-  jit_type_t params[1];
-  jit_type_t signature;
+  struct emacs_jit_context ctxt;
   jit_label_t *labels;
-  jit_value_t stackv;
 
   /* ensure this is a byte-coded function _before_ doing anything else */
   CHECK_COMPILED (byte_code);
 
   /* check if function has already been compiled */
   if (XVECTOR (byte_code)->contents[COMPILED_JIT_ID])
-    {
-      return;
-    }
-  else if (!jit_context)
-    {
-      /* jit is not yet initialized */
-      emacs_jit_init ();
-    }
+    return;
+  if (!jit_initialized)
+    emacs_jit_init ();
+
+  emacs_jit_start (&ctxt);
 
   bytestr = XVECTOR (byte_code)->contents[COMPILED_BYTECODE];
   vector = XVECTOR (byte_code)->contents[COMPILED_CONSTANTS];
@@ -828,13 +837,7 @@ jit_byte_code__ (Lisp_Object byte_code)
     memory_full (SIZE_MAX);
 
   /* prepare for jit */
-  jit_context_build_start (jit_context);
-  params[0] = jit_type_void_ptr;
-  signature = jit_type_create_signature (jit_abi_cdecl, jit_type_nuint, params, 1, 1);
-  this_func = jit_function_create (jit_context, signature);
-  jit_function_set_optimization_level (this_func,
-				       jit_function_get_max_optimization_level ());
-  stackv = jit_value_get_param (this_func, 0);
+  jit_context_build_start (ctxt.libjit_ctxt);
   labels = alloca (sizeof (*labels) * SBYTES (bytestr));
   {
     /* give each instruction a label.  the labels won't be initialized
@@ -872,7 +875,7 @@ jit_byte_code__ (Lisp_Object byte_code)
 	    /* Create a new block and attach a label to it.  */		\
 	    /* Since fetching the instruction incrememnts pc, do  */	\
 	    /* this before we fetch the instruction, so pc is right. */	\
-	    jit_insn_label (this_func, &labels[JIT_PC]);		\
+	    jit_insn_label (ctxt.func, &labels[JIT_PC]);		\
 	    op = FETCH;							\
 	    goto *(targets[op]);					\
 	  }								\
@@ -930,49 +933,49 @@ jit_byte_code__ (Lisp_Object byte_code)
 #endif
 
 #define JIT_PC (pc - byte_string_start)
-#define JIT_NEED_STACK jit_value_ref (this_func, stackv)
+#define JIT_NEED_STACK jit_value_ref (ctxt.func, ctxt.stack)
 #define JIT_NEXT				\
       do {					\
         if (!jit_insn_branch (			\
-              this_func,		        \
+              ctxt.func,		        \
 	      &labels[JIT_PC]))			\
 	  emacs_abort ();			\
       } while (0)
 
 #define JIT_INC(v, n)				\
-      jit_inc (this_func, v, n)
+      jit_inc (&ctxt, v, n)
 
 #define JIT_PUSH(v)				\
-      jit_push (this_func, stackv, v)
+      jit_push (&ctxt, v)
 
 #define JIT_TOP(v)				\
-      (v = jit_top (this_func, stackv))
+      (v = jit_top (&ctxt))
 
 #define JIT_POP(v)					\
-      (v = jit_pop (this_func, stackv))
+      (v = jit_pop (&ctxt))
 
 #define JIT_CALL(f, args, n)				\
-      jit_call (this_func, (void *)&f, #f, f##_sig, args, n)
+      jit_call (&ctxt, (void *)&f, #f, f##_sig, args, n)
 
 #define JIT_CALL_ARGS(r, f, ...)				\
-      (r = jit_call_vaarg (this_func, (void *)&f, #f, f##_sig,	\
+      (r = jit_call_vaarg (&ctxt, (void *)&f, #f, f##_sig,	\
 			   __VA_ARGS__, NULL))
 
 #define JIT_CONSTANT(t, v)			\
       jit_value_create_nint_constant (		\
-	this_func,				\
+	ctxt.func,				\
 	t,					\
 	v)
 
 #define JIT_CALL_WITH_STACK_N(f, n)			\
-      jit_call_with_stack_n (this_func, stackv, (void *)&f, #f, n)
+      jit_call_with_stack_n (&ctxt, (void *)&f, #f, n)
 
 #define JIT_CALL_WITH_STACK_MANY(f, n)				\
-      jit_call_with_stack_many (this_func, stackv, (void *)&f, #f, n)
+      jit_call_with_stack_many (&ctxt, (void *)&f, #f, n)
 
 #ifndef BYTE_CODE_THREADED
       /* create a new block and attach a label to it */
-      jit_insn_label (this_func, &labels[JIT_PC]);
+      jit_insn_label (ctxt.func, &labels[JIT_PC]);
 #endif
 
       FIRST
@@ -996,11 +999,9 @@ jit_byte_code__ (Lisp_Object byte_code)
 	  op = FETCH;
 	varref:
 	  {
-	    jit_value_t v1, v2;
 	    JIT_NEED_STACK;
-	    v1 = JIT_CONSTANT (jit_type_nuint, vectorp[op]);
-	    JIT_CALL_ARGS (v2, native_varref, v1);
-	    JIT_PUSH (v2);
+	    JIT_PUSH (JIT_CONSTANT (jit_type_nuint, vectorp[op]));
+	    JIT_CALL_WITH_STACK_N (native_varref, 1);
 	    JIT_NEXT;
 	    NEXT;
 	  }
@@ -1142,7 +1143,8 @@ jit_byte_code__ (Lisp_Object byte_code)
 		JIT_CONSTANT (jit_type_nuint, op),
 		JIT_CONSTANT (jit_type_Lisp_Object, Qnil)
 	      };
-	    JIT_CALL (native_unbind_to, args, 2);
+	    jit_call (&ctxt, (void *)&native_unbind_to, "native_unbind_to",
+		      ctxt.stack_many, args, 2);
 	    JIT_NEXT;
 	    NEXT;
 	  }
@@ -1156,7 +1158,8 @@ jit_byte_code__ (Lisp_Object byte_code)
 		JIT_CONSTANT (jit_type_nuint, count),
 		JIT_CONSTANT (jit_type_Lisp_Object, Qnil)
 	      };
-	    JIT_CALL (unbind_to, args, 2);
+	    jit_call (&ctxt, (void *)&unbind_to, "unbind_to",
+		      ctxt.stack_many, args, 2);
 	    JIT_NEXT;
 	    NEXT;
 	  }
@@ -1167,7 +1170,7 @@ jit_byte_code__ (Lisp_Object byte_code)
 	    CHECK_RANGE (op);
 	    JIT_CALL (byte_code_quit, NULL, 0);
 	    jit_insn_branch (
-	      this_func,
+	      ctxt.func,
 	      &labels[op]);
 	    NEXT;
 	  }
@@ -1202,12 +1205,12 @@ jit_byte_code__ (Lisp_Object byte_code)
 		|| insn == BRgotoifnilelsepop || insn == BRgotoifnonnilelsepop)
 	      JIT_PUSH (v2);
 	    jit_insn_branch_if (
-	      this_func,
+	      ctxt.func,
 	      v3,
 	      &labels[op]);
 	    if (insn == Bgotoifnilelsepop || insn == Bgotoifnonnilelsepop
 		|| insn == BRgotoifnilelsepop || insn == BRgotoifnonnilelsepop)
-	      JIT_INC (stackv, -sizeof (Lisp_Object));
+	      JIT_INC (ctxt.stack, -sizeof (Lisp_Object));
 	    JIT_NEXT;
 	    NEXT;
 	  }
@@ -1218,7 +1221,7 @@ jit_byte_code__ (Lisp_Object byte_code)
 	    const int dest = (pc - byte_string_start) + op;
 	    JIT_CALL (byte_code_quit, NULL, 0);
 	    jit_insn_branch (
-	      this_func,
+	      ctxt.func,
 	      &labels[dest]);
 	    NEXT;
 	  }
@@ -1228,14 +1231,14 @@ jit_byte_code__ (Lisp_Object byte_code)
 	    jit_value_t v;
 	    JIT_NEED_STACK;
 	    JIT_POP (v);
-	    jit_insn_return (this_func, v);
+	    jit_insn_return (ctxt.func, v);
 	    NEXT;
 	  }
 
 	CASE (Bdiscard):
 	  {
 	    JIT_NEED_STACK;
-	    JIT_INC (stackv, -sizeof (Lisp_Object));
+	    JIT_INC (ctxt.stack, -sizeof (Lisp_Object));
 	    JIT_NEXT;
 	    NEXT;
 	  }
@@ -1296,7 +1299,7 @@ jit_byte_code__ (Lisp_Object byte_code)
 	    int dest = FETCH2;
 	    JIT_NEED_STACK;
 	    JIT_POP (tag);
-	    stackp = jit_insn_address_of (this_func, stackv);
+	    stackp = jit_insn_address_of (ctxt.func, ctxt.stack);
 	    typev = JIT_CONSTANT (jit_type_nint, type);
 	    JIT_CALL_ARGS (jmp, native_pushhandler1, stackp, tag, typev);
 	    do {
@@ -1314,13 +1317,13 @@ jit_byte_code__ (Lisp_Object byte_code)
 	      f = (void *)&setjmp;
 	      n = 1;
 #endif
-	      result = jit_insn_call_native (this_func, "setjmp", f,
+	      result = jit_insn_call_native (ctxt.func, "setjmp", f,
 					     setjmp_sig, args, n,
 					     JIT_CALL_NOTHROW);
 	    } while (0);
-	    jit_insn_branch_if_not (this_func, result, &labels[JIT_PC]);
+	    jit_insn_branch_if_not (ctxt.func, result, &labels[JIT_PC]);
 	    JIT_CALL (native_pushhandler2, &stackp, 1);
-	    jit_insn_branch (this_func, &labels[dest]);
+	    jit_insn_branch (ctxt.func, &labels[dest]);
 	    NEXT;
 	  }
 
@@ -1388,29 +1391,26 @@ jit_byte_code__ (Lisp_Object byte_code)
 	CASE (Blistp):
 	CASE (Bnot):
 	  {
-	    jit_value_t v1, v2;
 	    JIT_NEED_STACK;
-	    JIT_POP (v1);
 	    switch (op)
 	      {
 	      case Bsymbolp:
-		JIT_CALL_ARGS (v2, native_symbolp, v1);
+		JIT_CALL_WITH_STACK_N (native_symbolp, 1);
 		break;
 	      case Bconsp:
-		JIT_CALL_ARGS (v2, native_consp, v1);
+		JIT_CALL_WITH_STACK_N (native_consp, 1);
 		break;
 	      case Bstringp:
-		JIT_CALL_ARGS (v2, native_stringp, v1);
+		JIT_CALL_WITH_STACK_N (native_stringp, 1);
 		break;
 	      case Blistp:
-		JIT_CALL_ARGS (v2, native_listp, v1);
+		JIT_CALL_WITH_STACK_N (native_listp, 1);
 		break;
 	      case Bnot:
 	      default:
-		JIT_CALL_ARGS (v2, native_not, v1);
+		JIT_CALL_WITH_STACK_N (native_not, 1);
 		break;
 	      }
-	    JIT_PUSH (v2);
 	    JIT_NEXT;
 	    NEXT;
 	  }
@@ -2028,9 +2028,9 @@ jit_byte_code__ (Lisp_Object byte_code)
 	      offs = FETCH2;
 
 	    JIT_NEED_STACK;
-	    JIT_INC (stackv, -offs * sizeof (Lisp_Object));
+	    JIT_INC (ctxt.stack, -offs * sizeof (Lisp_Object));
 	    JIT_TOP (v1);
-	    JIT_INC (stackv, offs * sizeof (Lisp_Object));
+	    JIT_INC (ctxt.stack, offs * sizeof (Lisp_Object));
 	    JIT_PUSH (v1);
 	    JIT_NEXT;
 	    NEXT;
@@ -2044,9 +2044,9 @@ jit_byte_code__ (Lisp_Object byte_code)
 	    JIT_NEED_STACK;
 	    JIT_TOP (v1);
 	    if (offs != 0)
-	      JIT_INC (stackv, -(offs + 1) * sizeof (Lisp_Object));
+	      JIT_INC (ctxt.stack, -(offs + 1) * sizeof (Lisp_Object));
 	    JIT_PUSH (v1);
-	    JIT_INC (stackv, (offs - 1) * sizeof (Lisp_Object));
+	    JIT_INC (ctxt.stack, (offs - 1) * sizeof (Lisp_Object));
 	    JIT_NEXT;
 	    NEXT;
 	  }
@@ -2059,11 +2059,11 @@ jit_byte_code__ (Lisp_Object byte_code)
 		jit_value_t v1;
 		op &= 0x7F;
 		JIT_TOP (v1);
-		JIT_INC (stackv, -(op + 1) * sizeof (Lisp_Object));
+		JIT_INC (ctxt.stack, -(op + 1) * sizeof (Lisp_Object));
 		JIT_PUSH (v1);
 	      }
 	    else
-	      JIT_INC (stackv, -op * sizeof (Lisp_Object));
+	      JIT_INC (ctxt.stack, -op * sizeof (Lisp_Object));
 	    JIT_NEXT;
 	    NEXT;
 	  }
@@ -2093,11 +2093,11 @@ jit_byte_code__ (Lisp_Object byte_code)
  exit:
 
   {
-    int err = !jit_function_compile (this_func);
-    jit_context_build_end (jit_context);
+    int err = !jit_function_compile (ctxt.func);
+    jit_context_build_end (ctxt.libjit_ctxt);
     if (err)
       emacs_abort ();
-    ASET (byte_code, COMPILED_JIT_ID, (Lisp_Object )jit_function_to_closure (this_func));
+    ASET (byte_code, COMPILED_JIT_ID, (Lisp_Object )jit_function_to_closure (ctxt.func));
   }
 }
 
