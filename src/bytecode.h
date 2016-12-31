@@ -42,198 +42,201 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /*  Byte codes: */
 
 #define BYTE_CODES							\
-DEFINE (Bstack_ref, 0) /* Actually, Bstack_ref+0 is not implemented: use dup.  */ \
-DEFINE (Bstack_ref1, 1)							\
-DEFINE (Bstack_ref2, 2)							\
-DEFINE (Bstack_ref3, 3)							\
-DEFINE (Bstack_ref4, 4)							\
-DEFINE (Bstack_ref5, 5)							\
-DEFINE (Bstack_ref6, 6)							\
-DEFINE (Bstack_ref7, 7)							\
-DEFINE (Bvarref, 010)							\
-DEFINE (Bvarref1, 011)							\
-DEFINE (Bvarref2, 012)							\
-DEFINE (Bvarref3, 013)							\
-DEFINE (Bvarref4, 014)							\
-DEFINE (Bvarref5, 015)							\
-DEFINE (Bvarref6, 016)							\
-DEFINE (Bvarref7, 017)							\
-DEFINE (Bvarset, 020)							\
-DEFINE (Bvarset1, 021)							\
-DEFINE (Bvarset2, 022)							\
-DEFINE (Bvarset3, 023)							\
-DEFINE (Bvarset4, 024)							\
-DEFINE (Bvarset5, 025)							\
-DEFINE (Bvarset6, 026)							\
-DEFINE (Bvarset7, 027)							\
-DEFINE (Bvarbind, 030)							\
-DEFINE (Bvarbind1, 031)							\
-DEFINE (Bvarbind2, 032)							\
-DEFINE (Bvarbind3, 033)							\
-DEFINE (Bvarbind4, 034)							\
-DEFINE (Bvarbind5, 035)							\
-DEFINE (Bvarbind6, 036)							\
-DEFINE (Bvarbind7, 037)							\
-DEFINE (Bcall, 040)							\
-DEFINE (Bcall1, 041)							\
-DEFINE (Bcall2, 042)							\
-DEFINE (Bcall3, 043)							\
-DEFINE (Bcall4, 044)							\
-DEFINE (Bcall5, 045)							\
-DEFINE (Bcall6, 046)							\
-DEFINE (Bcall7, 047)							\
-DEFINE (Bunbind, 050)							\
-DEFINE (Bunbind1, 051)							\
-DEFINE (Bunbind2, 052)							\
-DEFINE (Bunbind3, 053)							\
-DEFINE (Bunbind4, 054)							\
-DEFINE (Bunbind5, 055)							\
-DEFINE (Bunbind6, 056)							\
-DEFINE (Bunbind7, 057)							\
+  DEFINE (Bstack_ref, 0) /* Actually, Bstack_ref+0 is not implemented: use dup.  */ \
+  DEFINE (Bstack_ref1, 1)						\
+  DEFINE (Bstack_ref2, 2)						\
+  DEFINE (Bstack_ref3, 3)						\
+  DEFINE (Bstack_ref4, 4)						\
+  DEFINE (Bstack_ref5, 5)						\
+  DEFINE (Bstack_ref6, 6)						\
+  DEFINE (Bstack_ref7, 7)						\
+  DEFINE (Bvarref, 010)							\
+  DEFINE (Bvarref1, 011)						\
+  DEFINE (Bvarref2, 012)						\
+  DEFINE (Bvarref3, 013)						\
+  DEFINE (Bvarref4, 014)						\
+  DEFINE (Bvarref5, 015)						\
+  DEFINE (Bvarref6, 016)						\
+  DEFINE (Bvarref7, 017)						\
+  DEFINE (Bvarset, 020)							\
+  DEFINE (Bvarset1, 021)						\
+  DEFINE (Bvarset2, 022)						\
+  DEFINE (Bvarset3, 023)						\
+  DEFINE (Bvarset4, 024)						\
+  DEFINE (Bvarset5, 025)						\
+  DEFINE (Bvarset6, 026)						\
+  DEFINE (Bvarset7, 027)						\
+  DEFINE (Bvarbind, 030)						\
+  DEFINE (Bvarbind1, 031)						\
+  DEFINE (Bvarbind2, 032)						\
+  DEFINE (Bvarbind3, 033)						\
+  DEFINE (Bvarbind4, 034)						\
+  DEFINE (Bvarbind5, 035)						\
+  DEFINE (Bvarbind6, 036)						\
+  DEFINE (Bvarbind7, 037)						\
+  DEFINE_MANY (Bcall, 040, Ffuncall, 1)					\
+  DEFINE_MANY (Bcall1, 041, Ffuncall, 2)				\
+  DEFINE_MANY (Bcall2, 042, Ffuncall, 3)				\
+  DEFINE_MANY (Bcall3, 043, Ffuncall, 4)				\
+  DEFINE_MANY (Bcall4, 044, Ffuncall, 5)				\
+  DEFINE_MANY (Bcall5, 045, Ffuncall, 6)				\
+  DEFINE_MANY (Bcall6, 046, Ffuncall, -1)				\
+  DEFINE_MANY (Bcall7, 047, Ffuncall, -2)				\
+  DEFINE (Bunbind, 050)							\
+  DEFINE (Bunbind1, 051)						\
+  DEFINE (Bunbind2, 052)						\
+  DEFINE (Bunbind3, 053)						\
+  DEFINE (Bunbind4, 054)						\
+  DEFINE (Bunbind5, 055)						\
+  DEFINE (Bunbind6, 056)						\
+  DEFINE (Bunbind7, 057)						\
 									\
-DEFINE (Bpophandler, 060)						\
-DEFINE (Bpushconditioncase, 061)					\
-DEFINE (Bpushcatch, 062)						\
+  DEFINE (Bpophandler, 060)						\
+  DEFINE (Bpushconditioncase, 061)					\
+  DEFINE (Bpushcatch, 062)						\
 									\
-DEFINE (Bnth, 070)							\
-DEFINE (Bsymbolp, 071)							\
-DEFINE (Bconsp, 072)							\
-DEFINE (Bstringp, 073)							\
-DEFINE (Blistp, 074)							\
-DEFINE (Beq, 075)							\
-DEFINE (Bmemq, 076)							\
-DEFINE (Bnot, 077)							\
-DEFINE (Bcar, 0100)							\
-DEFINE (Bcdr, 0101)							\
-DEFINE (Bcons, 0102)							\
-DEFINE (Blist1, 0103)							\
-DEFINE (Blist2, 0104)							\
-DEFINE (Blist3, 0105)							\
-DEFINE (Blist4, 0106)							\
-DEFINE (Blength, 0107)							\
-DEFINE (Baref, 0110)							\
-DEFINE (Baset, 0111)							\
-DEFINE (Bsymbol_value, 0112)						\
-DEFINE (Bsymbol_function, 0113)						\
-DEFINE (Bset, 0114)							\
-DEFINE (Bfset, 0115)							\
-DEFINE (Bget, 0116)							\
-DEFINE (Bsubstring, 0117)						\
-DEFINE (Bconcat2, 0120)							\
-DEFINE (Bconcat3, 0121)							\
-DEFINE (Bconcat4, 0122)							\
-DEFINE (Bsub1, 0123)							\
-DEFINE (Badd1, 0124)							\
-DEFINE (Beqlsign, 0125)							\
-DEFINE (Bgtr, 0126)							\
-DEFINE (Blss, 0127)							\
-DEFINE (Bleq, 0130)							\
-DEFINE (Bgeq, 0131)							\
-DEFINE (Bdiff, 0132)							\
-DEFINE (Bnegate, 0133)							\
-DEFINE (Bplus, 0134)							\
-DEFINE (Bmax, 0135)							\
-DEFINE (Bmin, 0136)							\
-DEFINE (Bmult, 0137)							\
+  DEFINE_FIXED (Bnth, 070, native_nth, 2)				\
+  DEFINE_FIXED (Bsymbolp, 071, native_symbolp, 1)			\
+  DEFINE_FIXED (Bconsp, 072, native_consp, 1)				\
+  DEFINE_FIXED (Bstringp, 073, native_stringp, 1)			\
+  DEFINE_FIXED (Blistp, 074, native_listp, 1)				\
+  DEFINE_FIXED (Beq, 075, native_eq, 2)					\
+  DEFINE_FIXED (Bmemq, 076, native_memq, 2)				\
+  DEFINE_FIXED (Bnot, 077, native_not, 1)				\
+  DEFINE_FIXED (Bcar, 0100, native_car, 1)				\
+  DEFINE_FIXED (Bcdr, 0101, native_cdr, 1)				\
+  DEFINE_FIXED (Bcons, 0102, Fcons, 2)					\
+  DEFINE_FIXED (Blist1, 0103, list1, 1)					\
+  DEFINE_FIXED (Blist2, 0104, list2, 2)					\
+  DEFINE_MANY (Blist3, 0105, Flist, 3)					\
+  DEFINE_MANY (Blist4, 0106, Flist, 4)					\
+  DEFINE_FIXED (Blength, 0107, Flength, 1)				\
+  DEFINE_FIXED (Baref, 0110, Faref, 2)					\
+  DEFINE_FIXED (Baset, 0111, Faset, 3)					\
+  DEFINE_FIXED (Bsymbol_value, 0112, Fsymbol_value, 1)			\
+  DEFINE_FIXED (Bsymbol_function, 0113, Fsymbol_function, 1)		\
+  DEFINE_FIXED (Bset, 0114, Fset, 2)					\
+  DEFINE_FIXED (Bfset, 0115, Ffset, 2)					\
+  DEFINE_FIXED (Bget, 0116, Fget, 2)					\
+  DEFINE_FIXED (Bsubstring, 0117, Fsubstring, 3)			\
+  DEFINE_MANY (Bconcat2, 0120, Fconcat, 2)				\
+  DEFINE_MANY (Bconcat3, 0121, Fconcat, 3)				\
+  DEFINE_MANY (Bconcat4, 0122, Fconcat, 4)				\
+  DEFINE (Bsub1, 0123)							\
+  DEFINE (Badd1, 0124)							\
+  DEFINE_FIXED (Beqlsign, 0125, native_eqlsign, 2)			\
+  DEFINE (Bgtr, 0126)							\
+  DEFINE (Blss, 0127)							\
+  DEFINE (Bleq, 0130)							\
+  DEFINE (Bgeq, 0131)							\
+  DEFINE_MANY (Bdiff, 0132, Fminus, 2)					\
+  DEFINE_FIXED (Bnegate, 0133, native_negate, 1)			\
+  DEFINE_MANY (Bplus, 0134, Fplus, 2)					\
+  DEFINE_MANY (Bmax, 0135, Fmax, 2)					\
+  DEFINE_MANY (Bmin, 0136, Fmin, 2)					\
+  DEFINE_MANY (Bmult, 0137, Ftimes, 2)					\
 									\
-DEFINE (Bpoint, 0140)							\
-/* Was Bmark in v17.  */						\
-DEFINE (Bsave_current_buffer, 0141) /* Obsolete.  */			\
-DEFINE (Bgoto_char, 0142)						\
-DEFINE (Binsert, 0143)							\
-DEFINE (Bpoint_max, 0144)						\
-DEFINE (Bpoint_min, 0145)						\
-DEFINE (Bchar_after, 0146)						\
-DEFINE (Bfollowing_char, 0147)						\
-DEFINE (Bpreceding_char, 0150)						\
-DEFINE (Bcurrent_column, 0151)						\
-DEFINE (Bindent_to, 0152)						\
-DEFINE (Beolp, 0154)							\
-DEFINE (Beobp, 0155)							\
-DEFINE (Bbolp, 0156)							\
-DEFINE (Bbobp, 0157)							\
-DEFINE (Bcurrent_buffer, 0160)						\
-DEFINE (Bset_buffer, 0161)						\
-DEFINE (Bsave_current_buffer_1, 0162) /* Replacing Bsave_current_buffer.  */ \
-DEFINE (Binteractive_p, 0164) /* Obsolete since Emacs-24.1.  */		\
+  DEFINE_FIXED (Bpoint, 0140, native_point, 0)				\
+  /* Was Bmark in v17.  */						\
+  DEFINE (Bsave_current_buffer, 0141) /* Obsolete.  */			\
+  DEFINE_FIXED (Bgoto_char, 0142, Fgoto_char, 1)			\
+  DEFINE_MANY (Binsert, 0143, Finsert, 1)				\
+  DEFINE_FIXED (Bpoint_max, 0144, native_point_max, 0)			\
+  DEFINE_FIXED (Bpoint_min, 0145, native_point_min, 0)			\
+  DEFINE_FIXED (Bchar_after, 0146, Fchar_after, 1)			\
+  DEFINE_FIXED (Bfollowing_char, 0147, Ffollowing_char, 0)		\
+  DEFINE_FIXED (Bpreceding_char, 0150, Fprevious_char, 0)		\
+  DEFINE_FIXED (Bcurrent_column, 0151, native_current_column, 0)	\
+  DEFINE (Bindent_to, 0152)						\
+  DEFINE_FIXED (Beolp, 0154, Feolp, 0)					\
+  DEFINE_FIXED (Beobp, 0155, Feobp, 0)					\
+  DEFINE_FIXED (Bbolp, 0156, Fbolp, 0)					\
+  DEFINE_FIXED (Bbobp, 0157, Fbobp, 0)					\
+  DEFINE_FIXED (Bcurrent_buffer, 0160, Fcurrent_buffer, 0)		\
+  DEFINE_FIXED (Bset_buffer, 0161, Fset_buffer, 1)			\
+  DEFINE (Bsave_current_buffer_1, 0162) /* Replacing Bsave_current_buffer.  */ \
+  DEFINE_FIXED (Binteractive_p, 0164, native_interactive_p, 0) /* Obsolete since Emacs-24.1.  */ \
 									\
-DEFINE (Bforward_char, 0165)						\
-DEFINE (Bforward_word, 0166)						\
-DEFINE (Bskip_chars_forward, 0167)					\
-DEFINE (Bskip_chars_backward, 0170)					\
-DEFINE (Bforward_line, 0171)						\
-DEFINE (Bchar_syntax, 0172)						\
-DEFINE (Bbuffer_substring, 0173)					\
-DEFINE (Bdelete_region, 0174)						\
-DEFINE (Bnarrow_to_region, 0175)					\
-DEFINE (Bwiden, 0176)							\
-DEFINE (Bend_of_line, 0177)						\
+  DEFINE_FIXED (Bforward_char, 0165, Fforward_char, 1)			\
+  DEFINE_FIXED (Bforward_word, 0166, Fforward_word, 1)			\
+  DEFINE_FIXED (Bskip_chars_forward, 0167, Fskip_chars_forward, 2)	\
+  DEFINE_FIXED (Bskip_chars_backward, 0170, Fskip_chars_backward, 2)	\
+  DEFINE_FIXED (Bforward_line, 0171, Fforward_line, 1)			\
+  DEFINE_FIXED (Bchar_syntax, 0172, native_char_syntax, 1)		\
+  DEFINE_FIXED (Bbuffer_substring, 0173, Fbuffer_substring, 2)		\
+  DEFINE_FIXED (Bdelete_region, 0174, Fdelete_region, 2)			\
+  DEFINE_FIXED (Bnarrow_to_region, 0175, Fnarrow_to_region, 2)		\
+  DEFINE_FIXED (Bwiden, 0176, Fwiden, 0)					\
+  DEFINE_FIXED (Bend_of_line, 0177, Fend_of_line, 1)			\
 									\
-DEFINE (Bconstant2, 0201)						\
-DEFINE (Bgoto, 0202)							\
-DEFINE (Bgotoifnil, 0203)						\
-DEFINE (Bgotoifnonnil, 0204)						\
-DEFINE (Bgotoifnilelsepop, 0205)					\
-DEFINE (Bgotoifnonnilelsepop, 0206)					\
-DEFINE (Breturn, 0207)							\
-DEFINE (Bdiscard, 0210)							\
-DEFINE (Bdup, 0211)							\
+  DEFINE (Bconstant2, 0201)						\
+  DEFINE (Bgoto, 0202)							\
+  DEFINE (Bgotoifnil, 0203)						\
+  DEFINE (Bgotoifnonnil, 0204)						\
+  DEFINE (Bgotoifnilelsepop, 0205)					\
+  DEFINE (Bgotoifnonnilelsepop, 0206)					\
+  DEFINE (Breturn, 0207)						\
+  DEFINE (Bdiscard, 0210)						\
+  DEFINE (Bdup, 0211)							\
 									\
-DEFINE (Bsave_excursion, 0212)						\
-DEFINE (Bsave_window_excursion, 0213) /* Obsolete since Emacs-24.1.  */	\
-DEFINE (Bsave_restriction, 0214)					\
-DEFINE (Bcatch, 0215)							\
+  DEFINE (Bsave_excursion, 0212)					\
+  DEFINE_FIXED (Bsave_window_excursion, 0213, native_save_window_excursion, 1) /* Obsolete since Emacs-24.1.  */ \
+  DEFINE (Bsave_restriction, 0214)					\
+  DEFINE_FIXED (Bcatch, 0215, native_catch, 2)				\
 									\
-DEFINE (Bunwind_protect, 0216)						\
-DEFINE (Bcondition_case, 0217)						\
-DEFINE (Btemp_output_buffer_setup, 0220) /* Obsolete since Emacs-24.1.  */ \
-DEFINE (Btemp_output_buffer_show, 0221)  /* Obsolete since Emacs-24.1.  */ \
+  DEFINE (Bunwind_protect, 0216)					\
+  DEFINE_FIXED (Bcondition_case, 0217, internal_lisp_condition_case, 3) \
+  DEFINE_FIXED (Btemp_output_buffer_setup, 0220, native_temp_output_buffer_setup, 1) /* Obsolete since Emacs-24.1.  */ \
+  DEFINE (Btemp_output_buffer_show, 0221)  /* Obsolete since Emacs-24.1.  */ \
 									\
-DEFINE (Bunbind_all, 0222)	/* Obsolete.  Never used.  */		\
+  DEFINE (Bunbind_all, 0222)	/* Obsolete.  Never used.  */		\
 									\
-DEFINE (Bset_marker, 0223)						\
-DEFINE (Bmatch_beginning, 0224)						\
-DEFINE (Bmatch_end, 0225)						\
-DEFINE (Bupcase, 0226)							\
-DEFINE (Bdowncase, 0227)						\
+  DEFINE_FIXED (Bset_marker, 0223, Fset_marker, 3)			\
+  DEFINE_FIXED (Bmatch_beginning, 0224, Fmatch_beginning, 1)		\
+  DEFINE_FIXED (Bmatch_end, 0225, Fmatch_end, 1)				\
+  DEFINE_FIXED (Bupcase, 0226, Fupcase, 1)				\
+  DEFINE_FIXED (Bdowncase, 0227, Fdowncase, 1)				\
 									\
-DEFINE (Bstringeqlsign, 0230)						\
-DEFINE (Bstringlss, 0231)						\
-DEFINE (Bequal, 0232)							\
-DEFINE (Bnthcdr, 0233)							\
-DEFINE (Belt, 0234)							\
-DEFINE (Bmember, 0235)							\
-DEFINE (Bassq, 0236)							\
-DEFINE (Bnreverse, 0237)						\
-DEFINE (Bsetcar, 0240)							\
-DEFINE (Bsetcdr, 0241)							\
-DEFINE (Bcar_safe, 0242)						\
-DEFINE (Bcdr_safe, 0243)						\
-DEFINE (Bnconc, 0244)							\
-DEFINE (Bquo, 0245)							\
-DEFINE (Brem, 0246)							\
-DEFINE (Bnumberp, 0247)							\
-DEFINE (Bintegerp, 0250)						\
+  DEFINE_FIXED (Bstringeqlsign, 0230, Fstring_equal, 2)			\
+  DEFINE_FIXED (Bstringlss, 0231, Fstring_lessp, 2)			\
+  DEFINE_FIXED (Bequal, 0232, Fequal, 2)					\
+  DEFINE_FIXED (Bnthcdr, 0233, Fnthcdr, 2)				\
+  DEFINE_FIXED (Belt, 0234, native_elt, 2)				\
+  DEFINE_FIXED (Bmember, 0235, Fmember, 2)				\
+  DEFINE_FIXED (Bassq, 0236, Fassq, 2)					\
+  DEFINE_FIXED (Bnreverse, 0237, Fnreverse, 1)				\
+  DEFINE_FIXED (Bsetcar, 0240, Fsetcar, 2)				\
+  DEFINE_FIXED (Bsetcdr, 0241, Fsetcdr, 2)				\
+  DEFINE_FIXED (Bcar_safe, 0242, native_car_safe, 1)			\
+  DEFINE_FIXED (Bcdr_safe, 0243, native_cdr_safe, 1)			\
+  DEFINE_MANY (Bnconc, 0244, Fnconc, 2)					\
+  DEFINE_MANY (Bquo, 0245, Fquo, 2)					\
+  DEFINE_FIXED (Brem, 0246, Frem, 2)					\
+  DEFINE_FIXED (Bnumberp, 0247, native_number_p, 1)			\
+  DEFINE_FIXED (Bintegerp, 0250, native_integer_p, 1)			\
 									\
-DEFINE (BRgoto, 0252)							\
-DEFINE (BRgotoifnil, 0253)						\
-DEFINE (BRgotoifnonnil, 0254)						\
-DEFINE (BRgotoifnilelsepop, 0255)					\
-DEFINE (BRgotoifnonnilelsepop, 0256)					\
+  DEFINE (BRgoto, 0252)							\
+  DEFINE (BRgotoifnil, 0253)						\
+  DEFINE (BRgotoifnonnil, 0254)						\
+  DEFINE (BRgotoifnilelsepop, 0255)					\
+  DEFINE (BRgotoifnonnilelsepop, 0256)					\
 									\
-DEFINE (BlistN, 0257)							\
-DEFINE (BconcatN, 0260)							\
-DEFINE (BinsertN, 0261)							\
+  DEFINE_MANY (BlistN, 0257, Flist, -1)					\
+  DEFINE_MANY (BconcatN, 0260, Fconcat, -1)				\
+  DEFINE_MANY (BinsertN, 0261, Finsert, -1)				\
 									\
-/* Bstack_ref is code 0.  */						\
-DEFINE (Bstack_set,  0262)						\
-DEFINE (Bstack_set2, 0263)						\
-DEFINE (BdiscardN,   0266)						\
+  /* Bstack_ref is code 0.  */						\
+  DEFINE (Bstack_set,  0262)						\
+  DEFINE (Bstack_set2, 0263)						\
+  DEFINE (BdiscardN,   0266)						\
 									\
-DEFINE (Bconstant, 0300)
+  DEFINE (Bconstant, 0300)
 
 enum byte_code_op
 {
+#define DEFINE_FIXED(bname, value, fname, num) DEFINE (bname, value)
+#define DEFINE_MANY(bname, value, fname, num) \
+  DEFINE_FIXED (bname, value, fname, num)
 #define DEFINE(name, value) name = value,
     BYTE_CODES
 #undef DEFINE

@@ -289,7 +289,6 @@ exec_byte_code__ (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	{
 	  [0 ... (Bconstant - 1)] = &&insn_default,
 	  [Bconstant ... 255] = &&insn_Bconstant,
-
 #define DEFINE(name, value) LABEL (name) ,
 	  BYTE_CODES
 #undef DEFINE

@@ -777,6 +777,23 @@ void jit_call_with_stack_many (struct emacs_jit_context *ctxt, void *f,
 
 #undef JIT_CONSTANT
 
+struct {
+  void * const ptr;
+  const char * const name;
+  int n;
+} functions[256] = {
+#undef DEFINE_FIXED
+#define DEFINE_FIXED(bname, value, fname, num) \
+  [value] = { .ptr = (void *)(&fname), .name = #fname, .n = num },
+#define DEFINE(bname, value)
+
+  BYTE_CODES
+
+#undef DEFINE_FIXED
+#undef DEFINE
+#define DEFINE_FIXED(bname, value, fname, num) DEFINE (bname, value)
+};
+
 void
 jit_byte_code__ (Lisp_Object byte_code)
 {
@@ -979,6 +996,129 @@ jit_byte_code__ (Lisp_Object byte_code)
 
       FIRST
 	{
+	CASE (Bcall):
+	CASE (Bcall1):
+	CASE (Bcall2):
+	CASE (Bcall3):
+	CASE (Bcall4):
+	CASE (Bcall5):
+	CASE (Bcall6):
+	CASE (Bcall7):
+	CASE (Blist3):
+	CASE (Blist4):
+	CASE (BlistN):
+	CASE (Bconcat2):
+	CASE (Bconcat3):
+	CASE (Bconcat4):
+	CASE (BconcatN):
+	CASE (Bdiff):
+	CASE (Bplus):
+	CASE (Bmax):
+	CASE (Bmin):
+	CASE (Bmult):
+	CASE (Bquo):
+	CASE (Binsert):
+	CASE (BinsertN):
+	CASE (Bnconc):
+	  {
+	    int args = functions[op].n;
+	    if (args < 0)
+	      {
+		if (args == -1)
+		  args = FETCH;
+		else if (args == -2)
+		  args = FETCH2;
+		if (op == Bcall6 || op == Bcall7)
+		  args += 1;
+	      }
+	    JIT_NEED_STACK;
+	    jit_call_with_stack_many (&ctxt, functions[op].ptr,
+				      functions[op].name, args);
+	    JIT_NEXT;
+	    NEXT;
+	  }
+	CASE (Blist1):
+	CASE (Blist2):
+	CASE (Bcar):
+	CASE (Beq):
+	CASE (Bmemq):
+	CASE (Bcdr):
+	CASE (Bsave_window_excursion): /* Obsolete since 24.1.  */
+	CASE (Bcatch):		/* Obsolete since 24.4.  */
+	CASE (Bcondition_case):		/* Obsolete since 24.4.  */
+	CASE (Btemp_output_buffer_setup): /* Obsolete since 24.1.  */
+	CASE (Bnth):
+	CASE (Bsymbolp):
+	CASE (Bconsp):
+	CASE (Bstringp):
+	CASE (Blistp):
+	CASE (Bnot):
+	CASE (Bcons):
+	CASE (Blength):
+	CASE (Baref):
+	CASE (Baset):
+	CASE (Bsymbol_value):
+	CASE (Bsymbol_function):
+	CASE (Bset):
+	CASE (Bfset):
+	CASE (Bget):
+	CASE (Bsubstring):
+	CASE (Beqlsign):
+	CASE (Bnegate):
+	CASE (Brem):
+	CASE (Bpoint):
+	CASE (Bgoto_char):
+	CASE (Bpoint_max):
+	CASE (Bpoint_min):
+	CASE (Bchar_after):
+	CASE (Bfollowing_char):
+	CASE (Bpreceding_char):
+	CASE (Bcurrent_column):
+	CASE (Beolp):
+	CASE (Beobp):
+	CASE (Bbolp):
+	CASE (Bbobp):
+	CASE (Bcurrent_buffer):
+	CASE (Bset_buffer):
+	CASE (Binteractive_p):	/* Obsolete since 24.1.  */
+	CASE (Bforward_char):
+	CASE (Bforward_word):
+	CASE (Bskip_chars_forward):
+	CASE (Bskip_chars_backward):
+	CASE (Bforward_line):
+	CASE (Bchar_syntax):
+	CASE (Bbuffer_substring):
+	CASE (Bdelete_region):
+	CASE (Bnarrow_to_region):
+	CASE (Bwiden):
+	CASE (Bend_of_line):
+	CASE (Bset_marker):
+	CASE (Bmatch_beginning):
+	CASE (Bmatch_end):
+	CASE (Bupcase):
+	CASE (Bdowncase):
+	CASE (Bstringeqlsign):
+	CASE (Bstringlss):
+	CASE (Bequal):
+	CASE (Bnthcdr):
+	CASE (Belt):
+	CASE (Bmember):
+	CASE (Bassq):
+	CASE (Bnreverse):
+	CASE (Bsetcar):
+	CASE (Bsetcdr):
+	CASE (Bcar_safe):
+	CASE (Bcdr_safe):
+	CASE (Bnumberp):
+	CASE (Bintegerp):
+	  {
+	    JIT_NEED_STACK;
+	    jit_call_with_stack_n (&ctxt, functions[op].ptr,
+				   functions[op].name, functions[op].n);
+	    JIT_NEXT;
+	    NEXT;
+	  }
+
 	CASE (Bvarref7):
 	  op = FETCH2;
 	  goto varref;
@@ -1001,34 +1141,6 @@ jit_byte_code__ (Lisp_Object byte_code)
 	    JIT_NEED_STACK;
 	    JIT_PUSH (JIT_CONSTANT (jit_type_nuint, vectorp[op]));
 	    JIT_CALL_WITH_STACK_N (native_varref, 1);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bcar):
-	  {
-	    JIT_CALL_WITH_STACK_N (native_car, 1);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Beq):
-	  {
-	    JIT_CALL_WITH_STACK_N (native_eq, 2);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bmemq):
-	  {
-	    JIT_CALL_WITH_STACK_N (native_memq, 2);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bcdr):
-	  {
-	    JIT_CALL_WITH_STACK_N (native_cdr, 1);
 	    JIT_NEXT;
 	    NEXT;
 	  }
@@ -1095,28 +1207,6 @@ jit_byte_code__ (Lisp_Object byte_code)
 	    NEXT;
 	  }
 
-	CASE (Bcall6):
-	  op = FETCH;
-	  goto docall;
-
-	CASE (Bcall7):
-	  op = FETCH2;
-	  goto docall;
-
-	CASE (Bcall):
-	CASE (Bcall1):
-	CASE (Bcall2):
-	CASE (Bcall3):
-	CASE (Bcall4):
-	CASE (Bcall5):
-	  op -= Bcall;
-	docall:
-	  {
-	    JIT_NEED_STACK;
-	    JIT_CALL_WITH_STACK_MANY (Ffuncall, op + 1);
-	    JIT_NEXT;
-	    NEXT;
-	  }
 
 	CASE (Bunbind6):
 	  op = FETCH;
@@ -1263,24 +1353,10 @@ jit_byte_code__ (Lisp_Object byte_code)
 	    NEXT;
 	  }
 
-	CASE (Bsave_window_excursion): /* Obsolete since 24.1.  */
-	  {
-	    JIT_CALL_WITH_STACK_N (native_save_window_excursion, 1);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
 	CASE (Bsave_restriction):
 	  JIT_CALL (native_save_restriction, NULL, 0);
 	  JIT_NEXT;
 	  NEXT;
-
-	CASE (Bcatch):		/* Obsolete since 24.4.  */
-	  {
-	    JIT_CALL_WITH_STACK_N (native_catch, 2);
-	    JIT_NEXT;
-	    NEXT;
-	  }
 
 	CASE (Bpushcatch):	/* New in 24.4.  */
 	  type = CATCHER;
@@ -1337,21 +1413,6 @@ jit_byte_code__ (Lisp_Object byte_code)
 	    NEXT;
 	  }
 
-	CASE (Bcondition_case):		/* Obsolete since 24.4.  */
-	  {
-	    JIT_CALL_WITH_STACK_N (internal_lisp_condition_case, 3);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Btemp_output_buffer_setup): /* Obsolete since 24.1.  */
-	  {
-	    JIT_NEED_STACK;
-	    JIT_CALL_WITH_STACK_N (native_temp_output_buffer_setup, 1);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
 	CASE (Btemp_output_buffer_show): /* Obsolete since 24.1.  */
 	  {
 	    jit_type_t temp_output_buffer_show_sig;
@@ -1371,162 +1432,6 @@ jit_byte_code__ (Lisp_Object byte_code)
 	    NEXT;
 	  }
 
-	CASE (Bnth):
-	  {
-	    JIT_CALL_WITH_STACK_N (native_nth, 2);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bsymbolp):
-	CASE (Bconsp):
-	CASE (Bstringp):
-	CASE (Blistp):
-	CASE (Bnot):
-	  {
-	    JIT_NEED_STACK;
-	    switch (op)
-	      {
-	      case Bsymbolp:
-		JIT_CALL_WITH_STACK_N (native_symbolp, 1);
-		break;
-	      case Bconsp:
-		JIT_CALL_WITH_STACK_N (native_consp, 1);
-		break;
-	      case Bstringp:
-		JIT_CALL_WITH_STACK_N (native_stringp, 1);
-		break;
-	      case Blistp:
-		JIT_CALL_WITH_STACK_N (native_listp, 1);
-		break;
-	      case Bnot:
-	      default:
-		JIT_CALL_WITH_STACK_N (native_not, 1);
-		break;
-	      }
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bcons):
-	  {
-	    JIT_CALL_WITH_STACK_N (Fcons, 2);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Blist1):
-	  {
-	    JIT_CALL_WITH_STACK_N (list1, 1);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Blist2):
-	  {
-	    JIT_CALL_WITH_STACK_N (list2, 2);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Blist3):
-	CASE (Blist4):
-	CASE (BlistN):
-	  {
-	    size_t temp;
-	    if (op == BlistN)
-	      {
-		temp = FETCH;
-	      }
-	    else
-	      {
-		if (op == Blist3)
-		  temp = 3;
-		else
-		  temp = 4;
-	      }
-	    JIT_CALL_WITH_STACK_MANY (Flist, temp);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Blength):
-	  {
-	    JIT_CALL_WITH_STACK_N (Flength, 1);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Baref):
-	  {
-	    JIT_CALL_WITH_STACK_N (Faref, 2);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Baset):
-	  {
-	    JIT_CALL_WITH_STACK_N (Faset, 3);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bsymbol_value):
-	  {
-	    JIT_CALL_WITH_STACK_N (Fsymbol_value, 1);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-	CASE (Bsymbol_function):
-	  {
-	    JIT_CALL_WITH_STACK_N (Fsymbol_function, 1);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bset):
-	  {
-	    JIT_CALL_WITH_STACK_N (Fset, 2);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bfset):
-	  {
-	    JIT_CALL_WITH_STACK_N (Ffset, 2);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bget):
-	  {
-	    JIT_CALL_WITH_STACK_N (Fget, 2);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bsubstring):
-	  {
-	    JIT_CALL_WITH_STACK_N (Fsubstring, 3);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bconcat2):
-	CASE (Bconcat3):
-	CASE (Bconcat4):
-	CASE (BconcatN):
-	  {
-	    size_t n;
-	    if (op == BconcatN)
-	      n = FETCH;
-	    else
-	      n = op - Bconcat2 + 2;
-	    JIT_CALL_WITH_STACK_MANY (Fconcat, n);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
 	CASE (Bsub1):
 	  {
 	    JIT_NEED_STACK;
@@ -1541,13 +1446,6 @@ jit_byte_code__ (Lisp_Object byte_code)
 	    JIT_NEED_STACK;
 	    JIT_PUSH (JIT_CALL_ARGS (native_add1, JIT_POP (),
 				     JIT_CONSTANT (jit_type_sys_bool, 1)));
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Beqlsign):
-	  {
-	    JIT_CALL_WITH_STACK_N (native_eqlsign, 2);
 	    JIT_NEXT;
 	    NEXT;
 	  }
@@ -1574,405 +1472,10 @@ jit_byte_code__ (Lisp_Object byte_code)
 	    NEXT;
 	  }
 
-	CASE (Bdiff):
-	  {
-	    JIT_CALL_WITH_STACK_MANY (Fminus, 2);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bnegate):
-	  {
-	    JIT_CALL_WITH_STACK_N (native_negate, 1);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bplus):
-	  {
-	    JIT_CALL_WITH_STACK_MANY (Fplus, 2);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bmax):
-	  {
-	    JIT_CALL_WITH_STACK_MANY (Fmax, 2);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bmin):
-	  {
-	    JIT_CALL_WITH_STACK_MANY (Fmin, 2);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bmult):
-	  {
-	    JIT_CALL_WITH_STACK_MANY (Ftimes, 2);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bquo):
-	  {
-	    JIT_CALL_WITH_STACK_MANY (Fquo, 2);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Brem):
-	  {
-	    JIT_CALL_WITH_STACK_N (Frem, 2);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bpoint):
-	  {
-	    JIT_CALL_WITH_STACK_N (native_point, 0);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bgoto_char):
-	  {
-	    JIT_CALL_WITH_STACK_N (Fgoto_char, 1);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Binsert):
-	  {
-	    JIT_CALL_WITH_STACK_MANY (Finsert, 1);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (BinsertN):
-	  {
-	    /* FETCH must not appear in the macro reference below, otherwise
-	       the macro expansion will contain multiple instances OF FETCH */
-	    Lisp_Object n = FETCH;
-	    JIT_CALL_WITH_STACK_MANY (Finsert, n);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bpoint_max):
-	  {
-	    JIT_CALL_WITH_STACK_N (native_point_max, 0);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bpoint_min):
-	  {
-	    JIT_CALL_WITH_STACK_N (native_point_min, 0);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bchar_after):
-	  {
-	    JIT_CALL_WITH_STACK_N (Fchar_after, 1);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bfollowing_char):
-	  {
-	    JIT_CALL_WITH_STACK_N (Ffollowing_char, 0);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bpreceding_char):
-	  {
-	    JIT_CALL_WITH_STACK_N (Fprevious_char, 0);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bcurrent_column):
-	  {
-	    JIT_CALL_WITH_STACK_N (native_current_column, 0);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
 	CASE (Bindent_to):
 	  {
 	    JIT_PUSH (JIT_CONSTANT (jit_type_Lisp_Object, Qnil));
 	    JIT_CALL_WITH_STACK_N (Findent_to, 2);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Beolp):
-	  {
-	    JIT_CALL_WITH_STACK_N (Feolp, 0);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Beobp):
-	  {
-	    JIT_CALL_WITH_STACK_N (Feobp, 0);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bbolp):
-	  {
-	    JIT_CALL_WITH_STACK_N (Fbolp, 0);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bbobp):
-	  {
-	    JIT_CALL_WITH_STACK_N (Fbobp, 0);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bcurrent_buffer):
-	  {
-	    JIT_CALL_WITH_STACK_N (Fcurrent_buffer, 0);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bset_buffer):
-	  {
-	    JIT_CALL_WITH_STACK_N (Fset_buffer, 1);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Binteractive_p):	/* Obsolete since 24.1.  */
-	  {
-	    JIT_CALL_WITH_STACK_N (native_interactive_p, 0);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bforward_char):
-	  {
-	    JIT_CALL_WITH_STACK_N (Fforward_char, 1);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bforward_word):
-	  {
-	    JIT_CALL_WITH_STACK_N (Fforward_word, 1);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bskip_chars_forward):
-	  {
-	    JIT_CALL_WITH_STACK_N (Fskip_chars_forward, 2);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bskip_chars_backward):
-	  {
-	    JIT_CALL_WITH_STACK_N (Fskip_chars_backward, 2);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bforward_line):
-	  {
-	    JIT_CALL_WITH_STACK_N (Fforward_line, 1);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bchar_syntax):
-	  {
-	    JIT_CALL_WITH_STACK_N (native_char_syntax, 1);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bbuffer_substring):
-	  {
-	    JIT_CALL_WITH_STACK_N (Fbuffer_substring, 2);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bdelete_region):
-	  {
-	    JIT_CALL_WITH_STACK_N (Fdelete_region, 2);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bnarrow_to_region):
-	  {
-	    JIT_CALL_WITH_STACK_N (Fnarrow_to_region, 2);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bwiden):
-	  {
-	    JIT_CALL_WITH_STACK_N (Fwiden, 0);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bend_of_line):
-	  {
-	    JIT_CALL_WITH_STACK_N (Fend_of_line, 1);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bset_marker):
-	  {
-	    JIT_CALL_WITH_STACK_N (Fset_marker, 3);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bmatch_beginning):
-	  {
-	    JIT_CALL_WITH_STACK_N (Fmatch_beginning, 1);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bmatch_end):
-	  {
-	    JIT_CALL_WITH_STACK_N (Fmatch_end, 1);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bupcase):
-	  {
-	    JIT_CALL_WITH_STACK_N (Fupcase, 1);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bdowncase):
-	  {
-	    JIT_CALL_WITH_STACK_N (Fdowncase, 1);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-      CASE (Bstringeqlsign):
-	  {
-	    JIT_CALL_WITH_STACK_N (Fstring_equal, 2);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bstringlss):
-	  {
-	    JIT_CALL_WITH_STACK_N (Fstring_lessp, 2);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bequal):
-	  {
-	    JIT_CALL_WITH_STACK_N (Fequal, 2);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bnthcdr):
-	  {
-	    JIT_CALL_WITH_STACK_N (Fnthcdr, 2);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Belt):
-	  {
-	    JIT_CALL_WITH_STACK_N (native_elt, 2);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bmember):
-	  {
-	    JIT_CALL_WITH_STACK_N (Fmember, 2);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bassq):
-	  {
-	    JIT_CALL_WITH_STACK_N (Fassq, 2);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bnreverse):
-	  {
-	    JIT_CALL_WITH_STACK_N (Fnreverse, 1);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bsetcar):
-	  {
-	    JIT_CALL_WITH_STACK_N (Fsetcar, 2);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bsetcdr):
-	  {
-	    JIT_CALL_WITH_STACK_N (Fsetcdr, 2);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bcar_safe):
-	  {
-	    JIT_CALL_WITH_STACK_N (native_car_safe, 1);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bcdr_safe):
-	  {
-	    JIT_CALL_WITH_STACK_N (native_cdr_safe, 1);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bnconc):
-	  {
-	    JIT_CALL_WITH_STACK_MANY (Fnconc, 2);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bnumberp):
-	  {
-	    JIT_CALL_WITH_STACK_N (native_number_p, 1);
-	    JIT_NEXT;
-	    NEXT;
-	  }
-
-	CASE (Bintegerp):
-	  {
-	    JIT_CALL_WITH_STACK_N (native_integer_p, 1);
 	    JIT_NEXT;
 	    NEXT;
 	  }
