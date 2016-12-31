@@ -1131,16 +1131,19 @@ print (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
   print_object (obj, printcharfun, escapeflag);
 }
 
-#define PRINT_CIRCLE_CANDIDATE_P(obj)			   \
-  (STRINGP (obj) || CONSP (obj)				   \
-   || (VECTORLIKEP (obj)				   \
-       && (VECTORP (obj) || COMPILEDP (obj)		   \
-	   || CHAR_TABLE_P (obj) || SUB_CHAR_TABLE_P (obj) \
-	   || HASH_TABLE_P (obj) || FONTP (obj)		   \
-	   || RECORDP (obj)))				   \
-   || (! NILP (Vprint_gensym)				   \
-       && SYMBOLP (obj)					   \
-       && !SYMBOL_INTERNED_P (obj)))
+#define PRINT_CIRCLE_CANDIDATE_P(obj)				\
+  (STRINGP (obj) || CONSP (obj)					\
+   || (VECTORLIKEP (obj)					\
+      && (VECTORP (obj) || COMPILEDP (obj)			\
+	  || CHAR_TABLE_P (obj) || SUB_CHAR_TABLE_P (obj)	\
+	  || HASH_TABLE_P (obj) || FONTP (obj)			\
+	  || RECORDP (obj)))					\
+   || (SYMBOLP (obj)						\
+       && !SYMBOL_INTERNED_P (obj)				\
+       && ! NILP (Vprint_gensym))				\
+   || (SYMBOLP (obj)						\
+       && SYMBOL_INTERNED_P (obj)				\
+       && ! NILP (Vprint_symbols_as_references)))
 
 /* Construct Vprint_number_table according to the structure of OBJ.
    OBJ itself and all its elements will be added to Vprint_number_table
@@ -1181,8 +1184,9 @@ print_preprocess (Lisp_Object obj)
       if (!HASH_TABLE_P (Vprint_number_table))
 	Vprint_number_table = CALLN (Fmake_hash_table, QCtest, Qeq);
 
-      /* In case print-circle is nil and print-gensym is t,
-	 add OBJ to Vprint_number_table only when OBJ is a symbol.  */
+      /* In case print-circle is nil and print-gensym or
+	 print-symbols-as-references is t, add OBJ to Vprint_number_table only
+	 when OBJ is a symbol.  */
       if (! NILP (Vprint_circle) || SYMBOLP (obj))
 	{
 	  Lisp_Object num = Fgethash (obj, Vprint_number_table, Qnil);
@@ -2013,7 +2017,20 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 		   || EQ (XCAR (obj), Qcomma_at)
 		   || EQ (XCAR (obj), Qcomma_dot)))
 	{
-	  print_object (XCAR (obj), printcharfun, false);
+	  /* If print-symbols-as-references is enabled, symbols may
+	     print with "#N=" or "#N#" form.  When we print a cons
+	     cell with parens and separated elements, that's fine, but
+	     for comma symbols we depend on the reader to generate the
+	     cons cell from the special syntax.  The Lisp reader will
+	     treat "#1=,#2=foo" as setting reference 1 to ",foo", not
+	     to ",", so we can't use print_object to print out the
+	     comma symbols without breaking the ability to read the
+	     result back properly.  */
+	  printchar (',', printcharfun);
+	  if (EQ (XCAR (obj), Qcomma_at))
+	    printchar ('@', printcharfun);
+	  else if (EQ (XCAR (obj), Qcomma_dot))
+	    printchar ('.', printcharfun);
 	  new_backquote_output--;
 	  print_object (XCAR (XCDR (obj)), printcharfun, escapeflag);
 	  new_backquote_output++;
@@ -2421,6 +2438,15 @@ If the value is `default', print the text property `charset' only when
 the value is different from what is guessed in the current charset
 priorities.  */);
   Vprint_charset_text_property = Qdefault;
+
+  DEFVAR_LISP ("print-symbols-as-references", Vprint_symbols_as_references,
+	       doc: /* Non-nil means print interned symbols using #N= and #N# syntax.
+If nil, symbols are printed normally.
+
+Setting this true makes the output harder for a human to read, but may
+parse more efficiently as input to the Lisp reader if some symbols appear
+in the output many times.  */);
+  Vprint_symbols_as_references = Qnil;
 
   /* prin1_to_string_buffer initialized in init_buffer_once in buffer.c */
   staticpro (&Vprin1_to_string_buffer);
