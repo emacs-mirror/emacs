@@ -3219,11 +3219,12 @@ cleanup_vector (struct Lisp_Vector *vector)
   else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_CONDVAR))
     finalize_one_condvar ((struct Lisp_CondVar *) vector);
   else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_COMPILED)
-	   && (void *)vector->contents[COMPILED_JIT_ID] != NULL)
+	   && vector->contents[COMPILED_JIT_CTXT] != (Lisp_Object )NULL)
     {
-      jit_function_t func =
-	(jit_function_t )vector->contents[COMPILED_JIT_ID];
-      jit_context_destroy (jit_function_get_context (func));
+      jit_context_t ctxt = (jit_context_t )vector->contents[COMPILED_JIT_CTXT];
+      jit_context_destroy (ctxt);
+      vector->contents[COMPILED_JIT_CTXT] = (Lisp_Object )NULL;
+      vector->contents[COMPILED_JIT_CLOSURE] = (Lisp_Object )NULL;
     }
 }
 
@@ -3481,9 +3482,9 @@ stack before executing the byte-code.
 usage: (make-byte-code ARGLIST BYTE-CODE CONSTANTS DEPTH &optional DOCSTRING INTERACTIVE-SPEC &rest ELEMENTS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
-  Lisp_Object val = make_uninit_vector (max(nargs, COMPILED_JIT_ID + 1));
+  Lisp_Object val = make_uninit_vector (max(nargs, COMPILED_JIT_CLOSURE + 1));
   struct Lisp_Vector *p = XVECTOR (val);
-  size_t size = min(nargs, COMPILED_JIT_ID);
+  size_t size = min(nargs, COMPILED_JIT_CLOSURE);
 
   /* Don't allow the global zero_vector to become a byte code object.  */
   eassert (0 < nargs);
@@ -3507,9 +3508,10 @@ usage: (make-byte-code ARGLIST BYTE-CODE CONSTANTS DEPTH &optional DOCSTRING INT
        must convert them back to the original unibyte form.  */
     p->contents[COMPILED_BYTECODE] = Fstring_as_unibyte (p->contents[COMPILED_BYTECODE]);
 
-  /* set rest size so that total footprint = COMPILED_JIT_ID + 1 */
-  XSETPVECTYPESIZE (p, PVEC_COMPILED, size, COMPILED_JIT_ID + 1 - size);
-  p->contents[COMPILED_JIT_ID] = 0;
+  /* set rest size so that total footprint = COMPILED_JIT_CLOSURE + 1 */
+  XSETPVECTYPESIZE (p, PVEC_COMPILED, size, COMPILED_JIT_CLOSURE + 1 - size);
+  p->contents[COMPILED_JIT_CTXT] = (Lisp_Object )NULL;
+  p->contents[COMPILED_JIT_CLOSURE] = (Lisp_Object )NULL;
   XSETCOMPILED (val, p);
   return val;
 }

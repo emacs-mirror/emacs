@@ -1291,7 +1291,7 @@ exec_byte_code (Lisp_Object byte_code, Lisp_Object args_template,
 		ptrdiff_t nargs, Lisp_Object *args)
 {
 #ifdef HAVE_LIBJIT
-  if (AREF (byte_code, COMPILED_JIT_ID))
+  if (AREF (byte_code, COMPILED_JIT_CTXT) != (Lisp_Object )NULL)
     return jit_exec (byte_code, args_template, nargs, args);
   else if (byte_code_jit_on)
     {

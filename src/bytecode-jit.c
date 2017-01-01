@@ -675,7 +675,7 @@ jit_exec (Lisp_Object byte_code, Lisp_Object args_template, ptrdiff_t nargs, Lis
     stack.next = byte_stack_list;
     byte_stack_list = &stack;
     Lisp_Object (*func)(Lisp_Object *) =
-      (Lisp_Object (*)(Lisp_Object *))jit_function_to_closure ((void *)AREF (byte_code, COMPILED_JIT_ID));
+      (void *)AREF (byte_code, COMPILED_JIT_CLOSURE);
     Lisp_Object ret = func (top);
     byte_stack_list = byte_stack_list->next;
     return ret;
@@ -820,7 +820,7 @@ jit_byte_code__ (Lisp_Object byte_code)
   CHECK_COMPILED (byte_code);
 
   /* check if function has already been compiled */
-  if (XVECTOR (byte_code)->contents[COMPILED_JIT_ID])
+  if (XVECTOR (byte_code)->contents[COMPILED_JIT_CTXT] != (Lisp_Object )NULL)
     return;
   if (!jit_initialized)
     emacs_jit_init ();
@@ -1588,7 +1588,9 @@ jit_byte_code__ (Lisp_Object byte_code)
     jit_context_build_end (ctxt.libjit_ctxt);
     if (err)
       emacs_abort ();
-    ASET (byte_code, COMPILED_JIT_ID, (Lisp_Object )ctxt.func);
+    ASET (byte_code, COMPILED_JIT_CTXT, (Lisp_Object )ctxt.libjit_ctxt);
+    ASET (byte_code, COMPILED_JIT_CLOSURE,
+	  (Lisp_Object )jit_function_to_closure (ctxt.func));
   }
 }
 
