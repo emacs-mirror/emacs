@@ -140,7 +140,7 @@ Default is for no daylight saving time."
   :group 'calendar-chinese)
 
 (defcustom calendar-chinese-celestial-stem
-  ["Jia" "Yi" "Bing" "Ding" "Wu" "Ji" "Geng" "Xin" "Ren" "Gui"]
+  ["甲" "乙" "丙" "丁" "戊" "己" "庚" "辛" "壬" "癸"]
   "Prefixes used by `calendar-chinese-sexagesimal-name'."
   :group 'calendar-chinese
   :type '(vector (string :tag "甲")
