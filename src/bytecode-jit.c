@@ -781,7 +781,7 @@ struct {
   void * const ptr;
   const char * const name;
   int n;
-} functions[256] = {
+} static const functions[256] = {
 #undef DEFINE_FIXED
 #define DEFINE_FIXED(bname, value, fname, num) \
   [value] = { .ptr = (void *)(&fname), .name = #fname, .n = num },
