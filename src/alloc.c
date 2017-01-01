@@ -30,6 +30,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <pthread.h>
 #endif
 
+#ifdef HAVE_LIBJIT
+#include <jit.h>
+#endif
+
 #include "lisp.h"
 #include "dispextern.h"
 #include "intervals.h"
@@ -3214,6 +3218,13 @@ cleanup_vector (struct Lisp_Vector *vector)
     finalize_one_mutex ((struct Lisp_Mutex *) vector);
   else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_CONDVAR))
     finalize_one_condvar ((struct Lisp_CondVar *) vector);
+  else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_COMPILED)
+	   && (void *)vector->contents[COMPILED_JIT_ID] != NULL)
+    {
+      jit_function_t func =
+	(jit_function_t )vector->contents[COMPILED_JIT_ID];
+      jit_context_destroy (jit_function_get_context (func));
+    }
 }
 
 /* Reclaim space used by unmarked vectors.  */
