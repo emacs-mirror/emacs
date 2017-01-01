@@ -143,33 +143,33 @@ Default is for no daylight saving time."
   ["Jia" "Yi" "Bing" "Ding" "Wu" "Ji" "Geng" "Xin" "Ren" "Gui"]
   "Prefixes used by `calendar-chinese-sexagesimal-name'."
   :group 'calendar-chinese
-  :type '(vector (string :tag "Jia")
-                 (string :tag "Yi")
-                 (string :tag "Bing")
-                 (string :tag "Ding")
-                 (string :tag "Wu")
-                 (string :tag "Ji")
-                 (string :tag "Geng")
-                 (string :tag "Xin")
-                 (string :tag "Ren")
-                 (string :tag "Gui")))
+  :type '(vector (string :tag "甲")
+                 (string :tag "乙")
+                 (string :tag "丙")
+                 (string :tag "丁")
+                 (string :tag "戊")
+                 (string :tag "己")
+                 (string :tag "庚")
+                 (string :tag "辛")
+                 (string :tag "壬")
+                 (string :tag "癸")))
 
 (defcustom calendar-chinese-terrestrial-branch
-  ["Zi" "Chou" "Yin" "Mao" "Chen" "Si" "Wu" "Wei" "Shen" "You" "Xu" "Hai"]
+  ["子" "丑" "寅" "卯" "辰" "巳" "午" "未" "申" "酉" "戌" "亥"]
   "Suffixes used by `calendar-chinese-sexagesimal-name'."
   :group 'calendar-chinese
-  :type '(vector (string :tag "Zi")
-                 (string :tag "Chou")
-                 (string :tag "Yin")
-                 (string :tag "Mao")
-                 (string :tag "Chen")
-                 (string :tag "Si")
-                 (string :tag "Wu")
-                 (string :tag "Wei")
-                 (string :tag "Shen")
-                 (string :tag "You")
-                 (string :tag "Xu")
-                 (string :tag "Hai")))
+  :type '(vector (string :tag "子")
+                 (string :tag "丑")
+                 (string :tag "寅")
+                 (string :tag "卯")
+                 (string :tag "辰")
+                 (string :tag "巳")
+                 (string :tag "午")
+                 (string :tag "未")
+                 (string :tag "申")
+                 (string :tag "酉")
+                 (string :tag "戌")
+                 (string :tag "亥")))
 
 ;;; End of user options.
 
