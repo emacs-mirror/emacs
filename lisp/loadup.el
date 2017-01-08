@@ -461,27 +461,30 @@ lost after dumping")))
       ;; confused people installing Emacs (they'd install the file
       ;; under the name `xemacs'), and it's inconsistent with every
       ;; other GNU program's build process.
-      (dump-emacs "emacs" "temacs")
-      (message "%d pure bytes used" pure-bytes-used)
-      ;; Recompute NAME now, so that it isn't set when we dump.
-      (if (not (or (eq system-type 'ms-dos)
-                   ;; Don't bother adding another name if we're just
-                   ;; building bootstrap-emacs.
-                   (equal (last command-line-args) '("bootstrap"))))
-	  (let ((name (format "emacs-%s.%d" emacs-version emacs-build-number))
-		(exe (if (eq system-type 'windows-nt) ".exe" "")))
-	    (while (string-match "[^-+_.a-zA-Z0-9]+" name)
-	      (setq name (concat (downcase (substring name 0 (match-beginning 0)))
+      ;; (dump-emacs "emacs" "temacs")
+      ;; (message "%d pure bytes used" pure-bytes-used)
+      (let ((exe (if (memq system-type '(windows-nt ms-dos)) ".exe" "")))
+        (copy-file (expand-file-name (concat "temacs" exe) invocation-directory)
+                   (expand-file-name (concat "emacs" exe) invocation-directory)
+                   t)
+        ;; Recompute NAME now, so that it isn't set when we dump.
+        (if (not (or (eq system-type 'ms-dos)
+                     ;; Don't bother adding another name if we're just
+                     ;; building bootstrap-emacs.
+                     (equal (last command-line-args) '("bootstrap"))))
+            (let ((name (format "emacs-%s.%d" emacs-version emacs-build-number)))
+              (while (string-match "[^-+_.a-zA-Z0-9]+" name)
+                (setq name (concat (downcase (substring name 0 (match-beginning 0)))
 				 "-"
 				 (substring name (match-end 0)))))
-	    (setq name (concat name exe))
-            (message "Adding name %s" name)
-	    ;; When this runs on Windows, invocation-directory is not
-	    ;; necessarily the current directory.
-	    (add-name-to-file (expand-file-name (concat "emacs" exe)
-						invocation-directory)
-			      (expand-file-name name invocation-directory)
-			      t)))
+              (setq name (concat name exe))
+              (message "Adding name %s" name)
+              ;; When this runs on Windows, invocation-directory is not
+              ;; necessarily the current directory.
+              (add-name-to-file (expand-file-name (concat "emacs" exe)
+                                                  invocation-directory)
+                                (expand-file-name name invocation-directory)
+                                t))))
       (message "Dumping into dumped.elc...preparing...")
 
       ;; Dump the current state into a file so we can reload it!
@@ -558,6 +561,7 @@ lost after dumping")))
          obarray)
         (message "Dumping into dumped.elc...printing...")
         (with-current-buffer (generate-new-buffer "dumped.elc")
+          (setq default-directory invocation-directory)
           (insert ";ELC\^W\^@\^@\^@\n;;; Compiled\n;;; in Emacs version "
                   emacs-version "\n")
           (let ((print-circle t)
