@@ -182,6 +182,16 @@ Must be set before loading use-package."
   :type 'boolean
   :group 'use-package)
 
+(defcustom use-package-ensure-function 'use-package-ensure-elpa
+  "Function that ensures a package is installed.
+This function is called with one argument, the package name as a
+symbol, by the `:ensure' keyword.
+
+The default value uses package.el to install the package."
+  :type '(choice (const :tag "package.el" use-package-ensure-elpa)
+                 (function :tag "Custom"))
+  :group 'use-package)
+
 (when use-package-enable-imenu-support
   ;; Not defined in Emacs 24
   (defvar lisp-mode-symbol-regexp
@@ -504,6 +514,7 @@ manually updated package."
                    "(an unquoted symbol name)")))))))
 
 (defun use-package-ensure-elpa (package &optional no-refresh)
+  (require 'package)
   (if (package-installed-p package)
       t
     (if (and (not no-refresh)
@@ -518,9 +529,8 @@ manually updated package."
 (defun use-package-handler/:ensure (name keyword ensure rest state)
   (let* ((body (use-package-process-keywords name rest state))
          (package-name (or (and (eq ensure t) (use-package-as-symbol name)) ensure))
-         (ensure-form (if package-name
-                          `(progn (require 'package)
-                                  (use-package-ensure-elpa ',package-name)))))
+         (ensure-form (when package-name
+                        `(,use-package-ensure-function ',package-name))))
     ;; We want to avoid installing packages when the `use-package'
     ;; macro is being macro-expanded by elisp completion (see
     ;; `lisp--local-variables'), but still do install packages when
