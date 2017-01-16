@@ -192,6 +192,20 @@ The default value uses package.el to install the package."
                  (function :tag "Custom"))
   :group 'use-package)
 
+(defcustom use-package-defaults
+  '((:config '(t) t)
+    (:ensure use-package-always-ensure use-package-always-ensure)
+    (:pin use-package-always-pin use-package-always-pin))
+  "Alist of default values for `use-package' keywords.
+Each entry in the alist is a list of three elements. The first
+element is the `use-package' keyword and the second is a form
+that can be evaluated to get the default value. The third element
+is a form that can be evaluated to determine whether or not to
+assign a default value; if it evaluates to nil, then the default
+value is not assigned even if the keyword is not present in the
+`use-package' form."
+  :type '(repeat (list symbol sexp sexp)))
+
 (when use-package-enable-imenu-support
   ;; Not defined in Emacs 24
   (defvar lisp-mode-symbol-regexp
@@ -1153,43 +1167,41 @@ this file.  Usage:
 :pin           Pin the package to an archive."
   (declare (indent 1))
   (unless (member :disabled args)
-    (let* ((name-symbol (if (stringp name) (intern name) name))
-           (args0 (use-package-plist-maybe-put
-                   (use-package-normalize-plist name args)
-                   :config '(t)))
-           (args* (use-package-sort-keywords
-                   (if use-package-always-ensure
-                       (use-package-plist-maybe-put
-                        args0 :ensure use-package-always-ensure)
-                     args0)))
-           (args* (use-package-sort-keywords
-                   (if use-package-always-pin
-                       (use-package-plist-maybe-put
-                        args* :pin use-package-always-pin)
-                     args*))))
+    (let ((name-symbol (if (stringp name) (intern name) name))
+          (args (use-package-normalize-plist name args)))
+      (let ((first-spec (car use-package-defaults))
+            (rest-specs (cdr use-package-defaults)))
+        (when (eval (nth 2 first-spec))
+          (setq args (use-package-plist-maybe-put
+                      args (nth 0 first-spec) (eval (nth 1 first-spec)))))
+        (dolist (spec rest-specs)
+          (when (eval (nth 2 spec))
+            (setq args (use-package-sort-keywords
+                        (use-package-plist-maybe-put
+                         args (nth 0 spec) (eval (nth 1 spec))))))))
 
       ;; When byte-compiling, pre-load the package so all its symbols are in
       ;; scope.
       (if (bound-and-true-p byte-compile-current-file)
-          (setq args*
+          (setq args
                 (use-package-plist-cons
-                 args* :preface
+                 args :preface
                  `(eval-when-compile
                     ,@(mapcar #'(lambda (var) `(defvar ,var))
-                              (plist-get args* :defines))
+                              (plist-get args :defines))
                     (with-demoted-errors
                         ,(format "Cannot load %s: %%S" name)
                       ,(if (eq use-package-verbose 'debug)
                            `(message "Compiling package %s" ',name-symbol))
-                      ,(unless (plist-get args* :no-require)
+                      ,(unless (plist-get args :no-require)
                          (use-package-load-name name)))))))
 
       (let ((body
              (macroexp-progn
               (use-package-process-keywords name
                 (if use-package-always-demand
-                    (append args* '(:demand t))
-                  args*)
+                    (append args '(:demand t))
+                  args)
                 (and use-package-always-defer (list :deferred t))))))
         (if use-package-debug
             (display-buffer
