@@ -230,8 +230,11 @@
 (load "jit-lock")
 
 (load "mouse")
-(if (boundp 'x-toolkit-scroll-bars)
-    (load "scroll-bar"))
+
+(unless (equal (member "bootstrap" command-line-args) '("bootstrap"))
+  (if (boundp 'x-toolkit-scroll-bars)
+      (load "scroll-bar")))
+
 (load "select")
 (load "emacs-lisp/timer")
 (load "isearch")
@@ -253,61 +256,62 @@
 (load "emacs-lisp/tabulated-list")
 (load "buff-menu")
 
-(if (fboundp 'x-create-frame)
-    (progn
-      (load "fringe")
-      ;; Needed by `imagemagick-register-types'
-      (load "emacs-lisp/regexp-opt")
-      (load "image")
-      (load "international/fontset")
-      (load "dnd")
-      (load "tool-bar")))
+(unless (equal (member "bootstrap" command-line-args) '("bootstrap"))
+  (if (fboundp 'x-create-frame)
+      (progn
+        (load "fringe")
+        ;; Needed by `imagemagick-register-types'
+        (load "emacs-lisp/regexp-opt")
+        (load "image")
+        (load "international/fontset")
+        (load "dnd")
+        (load "tool-bar")))
 
-(if (featurep 'dynamic-setting)
-    (load "dynamic-setting"))
+  (if (featurep 'dynamic-setting)
+      (load "dynamic-setting"))
 
-(if (featurep 'x)
-    (progn
-      (load "x-dnd")
-      (load "term/common-win")
-      (load "term/x-win")))
+  (if (featurep 'x)
+      (progn
+        (load "x-dnd")
+        (load "term/common-win")
+        (load "term/x-win")))
 
-(if (or (eq system-type 'windows-nt)
-        (featurep 'w32))
-    (progn
-      (load "term/common-win")
-      (load "w32-vars")
-      (load "term/w32-win")
-      (load "disp-table")
-      (when (eq system-type 'windows-nt)
-        (load "w32-fns")
+  (if (or (eq system-type 'windows-nt)
+          (featurep 'w32))
+      (progn
+        (load "term/common-win")
+        (load "w32-vars")
+        (load "term/w32-win")
+        (load "disp-table")
+        (when (eq system-type 'windows-nt)
+          (load "w32-fns")
+          (load "ls-lisp")
+          (load "dos-w32"))))
+  (if (eq system-type 'ms-dos)
+      (progn
+        (load "dos-w32")
+        (load "dos-fns")
+        (load "dos-vars")
+        ;; Don't load term/common-win: it isn't appropriate for the `pc'
+        ;; ``window system'', which generally behaves like a terminal.
+        (load "term/internal")
+        (load "term/pc-win")
         (load "ls-lisp")
-        (load "dos-w32"))))
-(if (eq system-type 'ms-dos)
-    (progn
-      (load "dos-w32")
-      (load "dos-fns")
-      (load "dos-vars")
-      ;; Don't load term/common-win: it isn't appropriate for the `pc'
-      ;; ``window system'', which generally behaves like a terminal.
-      (load "term/internal")
-      (load "term/pc-win")
-      (load "ls-lisp")
-      (load "disp-table"))) ; needed to setup ibm-pc char set, see internal.el
-(if (featurep 'ns)
-    (progn
-      (load "term/common-win")
-      ;; Don't load ucs-normalize.el unless uni-*.el files were
-      ;; already produced, because it needs uni-*.el files that might
-      ;; not be built early enough during bootstrap.
-      (when (load-history-filename-element "charprop\\.el")
-        (load "international/mule-util")
-        (load "international/ucs-normalize")
-        (load "term/ns-win"))))
-(if (fboundp 'x-create-frame)
-    ;; Do it after loading term/foo-win.el since the value of the
-    ;; mouse-wheel-*-event vars depends on those files being loaded or not.
-    (load "mwheel"))
+        (load "disp-table"))) ; needed to setup ibm-pc char set, see internal.el
+  (if (featurep 'ns)
+      (progn
+        (load "term/common-win")
+        ;; Don't load ucs-normalize.el unless uni-*.el files were
+        ;; already produced, because it needs uni-*.el files that might
+        ;; not be built early enough during bootstrap.
+        (when (load-history-filename-element "charprop\\.el")
+          (load "international/mule-util")
+          (load "international/ucs-normalize")
+          (load "term/ns-win"))))
+  (if (fboundp 'x-create-frame)
+      ;; Do it after loading term/foo-win.el since the value of the
+      ;; mouse-wheel-*-event vars depends on those files being loaded or not.
+      (load "mwheel")))
 ;; Preload some constants and floating point functions.
 (load "emacs-lisp/float-sup")
 
@@ -317,8 +321,10 @@
 (load "electric")
 (load "emacs-lisp/eldoc")
 (load "cus-start") ;Late to reduce customize-rogue (needs loaddefs.el anyway)
-(if (not (eq system-type 'ms-dos))
-    (load "tooltip"))
+
+(unless (equal (member "bootstrap" command-line-args) '("bootstrap"))
+  (if (not (eq system-type 'ms-dos))
+      (load "tooltip")))
 
 ;; This file doesn't exist when building a development version of Emacs
 ;; from the repository.  It is generated just after temacs is built.
