@@ -3212,6 +3212,13 @@ FRAME 0 means change the face on all frames, and change the default
 	      cons = XCAR (Vparam_value_alist);
 	      XSETCAR (cons, param);
 	      XSETCDR (cons, value);
+
+	      /* Fmodify_frame_parameters may update faces and use the
+		 cache.  */
+	      struct frame *f = XFRAME (frame);
+	      if (FRAME_FACE_CACHE (f) == NULL)
+		FRAME_FACE_CACHE (f) = make_face_cache (f);
+
 	      Fmodify_frame_parameters (frame, Vparam_value_alist);
 	    }
 	}
