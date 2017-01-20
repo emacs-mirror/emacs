@@ -1167,11 +1167,14 @@ the generated Quail package is saved."
 		    (if (eq coding 'iso-2022-cn-ext) "Chinese-CNS"
 		      "Chinese-GB"))
 		  "\" \"" title "\" t\n")
-	  (let* ((coding-system-for-read
-		  (coding-system-change-eol-conversion coding 'unix))
-		 (dicbuf (find-file-noselect filename)))
-	    (funcall converter dicbuf name title)
-	    (kill-buffer dicbuf))
+          (let ((coding-system-for-read
+                 (coding-system-change-eol-conversion coding 'unix))
+                (dstbuf (current-buffer)))
+            (with-temp-buffer
+              (insert-file-contents filename)
+              (let ((dicbuf (current-buffer)))
+                (with-current-buffer dstbuf
+                  (funcall converter dicbuf name title)))))
 	  (insert ";; Local Variables:\n"
 		  ";; version-control: never\n"
 		  ";; no-update-autoloads: t\n"
