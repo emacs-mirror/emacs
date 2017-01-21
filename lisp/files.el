@@ -2911,9 +2911,15 @@ we don't actually set it to the same mode the buffer already has."
 						(+ (point-min) magic-mode-regexp-match-limit)))
 			 (assoc-default nil magic-mode-alist
 					(lambda (re _dummy)
-					  (if (functionp re)
-					      (funcall re)
-					    (looking-at re)))))))
+					  (cond
+                                           ((functionp re)
+                                            (funcall re))
+                                           ((stringp re)
+                                            (looking-at re))
+                                           (t
+                                            (error
+                                             "Problem in magic-mode-alist with element %s" re))
+                                           ))))))
 	  (set-auto-mode-0 done keep-mode-if-same)))
     ;; Next compare the filename against the entries in auto-mode-alist.
     (unless done
@@ -2965,10 +2971,17 @@ we don't actually set it to the same mode the buffer already has."
 					   (min (point-max)
 						(+ (point-min) magic-mode-regexp-match-limit)))
 			 (assoc-default nil magic-fallback-mode-alist
-					(lambda (re _dummy)
-					  (if (functionp re)
-					      (funcall re)
-					    (looking-at re)))))))
+                                        (lambda (re _dummy)
+                                          (cond
+                                           ((functionp re)
+                                            (funcall re))
+                                           ((stringp re)
+                                            (looking-at re))
+                                           (t
+                                            (error
+                                             "Problem with magic-fallback-mode-alist element: %s"
+                                             re))
+                                           ))))))
 	  (set-auto-mode-0 done keep-mode-if-same)))
     (unless done
       (set-buffer-major-mode (current-buffer)))))
