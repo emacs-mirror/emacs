@@ -11,6 +11,10 @@
 (defvar electric-pair-text-pairs '((34 . 34)))
 
 
+(autoload 'dos-convert-standard-filename "dos-fns.el" nil nil nil)
+(autoload ' w32-convert-standard-filename "w32-fns.el" nil nil nil)
+
+
 (load "ldefs-boot-auto.el")
 
 ;; Local Variables:
