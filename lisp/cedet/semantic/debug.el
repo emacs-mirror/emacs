@@ -361,7 +361,6 @@ Argument ONOFF is non-nil when we are entering debug mode.
 	(semantic-debug-current-interface
 	 (let ((parserb  (semantic-debug-find-parser-source)))
 	   (semantic-debug-interface
-	    "Debug Interface"
 	    :parser-buffer parserb
 	    :parser-local-map (with-current-buffer parserb
 				(current-local-map))

@@ -98,7 +98,7 @@ See bottom of this file for instructions on managing this list.")
 ;; Create the database, and add it to searchable databases for javascript mode.
 (defvar-mode-local javascript-mode semanticdb-project-system-databases
   (list
-   (semanticdb-project-database-javascript "Javascript"))
+   (semanticdb-project-database-javascript))
   "Search javascript for symbols.")
 
 ;; NOTE: Be sure to modify this to the best advantage of your
@@ -121,7 +121,7 @@ Create one of our special tables that can act as an intermediary."
   ;; We need to return something since there is always the "master table"
   ;; The table can then answer file name type questions.
   (when (not (slot-boundp obj 'tables))
-    (let ((newtable (semanticdb-table-javascript "tmp")))
+    (let ((newtable (semanticdb-table-javascript)))
       (oset obj tables (list newtable))
       (oset newtable parent-db obj)
       (oset newtable tags nil)

@@ -95,7 +95,7 @@ if optional DONT-ERR-IF-NOT-AVAILABLE is non-nil; else throw an error."
       (setq
        ;; Add to the system database list.
        semanticdb-project-system-databases
-       (cons (semanticdb-project-database-global "global")
+       (cons (semanticdb-project-database-global)
 	     semanticdb-project-system-databases)
        ;; Apply the throttle.
        semanticdb-find-default-throttle
@@ -133,7 +133,7 @@ For each file hit, get the traditional semantic table from that file."
   ;; We need to return something since there is always the "master table"
   ;; The table can then answer file name type questions.
   (when (not (slot-boundp obj 'tables))
-    (let ((newtable (semanticdb-table-global "GNU Global Search Table")))
+    (let ((newtable (semanticdb-table-global :name "GNU Global Search Table")))
       (oset obj tables (list newtable))
       (oset newtable parent-db obj)
       (oset newtable tags nil)

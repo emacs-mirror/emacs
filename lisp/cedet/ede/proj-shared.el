@@ -75,7 +75,6 @@ Use ldlibs to add addition libraries.")
 		      ("LTLINK" . "$(LIBTOOL) --mode=link $(CC) $(CFLAGS) $(LDFLAGS) -L. -o $@")
 		      )
 	 :rules (list (ede-makefile-rule
-		       "cc-inference-rule-libtool"
 		       :target "%.o"
 		       :dependencies "%.c"
 		       :rules '("@echo '$(LTCOMPILE) -o $@ $<'; \\"
@@ -122,7 +121,6 @@ Use ldlibs to add addition libraries.")
 		      ("LTCOMPILE" . "$(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)")
 		      )
 	 :rules (list (ede-makefile-rule
-		       "c++-inference-rule-libtool"
 		       :target "%.o"
 		       :dependencies "%.cpp"
 		       :rules '("@echo '$(LTCOMPILE) -o $@ $<'; \\"

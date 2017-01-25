@@ -156,8 +156,7 @@ Used to guess header files, but uses the auxsource regular expression."
 ;;
 ;; This must appear at the end so that the init method will work.
 (defvar ede-source-scheme
-  (ede-sourcecode "ede-source-scheme"
-		  :name "Scheme"
+  (ede-sourcecode :name "Scheme"
 		  :sourcepattern "\\.scm$")
   "Scheme source code definition.")
 

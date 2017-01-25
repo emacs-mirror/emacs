@@ -162,8 +162,7 @@ refreshed before dumping the result."
   (let* ((tab semanticdb-current-table)
 	 (myrefs (oref tab db-refs))
 	 (myinc (semanticdb-includes-in-table tab))
-	 (adbc (semanticdb-ref-adebug "DEBUG"
-				      :i-depend-on myrefs
+	 (adbc (semanticdb-ref-adebug :i-depend-on myrefs
 				      :local-table tab
 				      :i-include myinc)))
     (data-debug-new-buffer "*References ADEBUG*")

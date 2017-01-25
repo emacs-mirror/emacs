@@ -1896,7 +1896,7 @@ If INITIAL-INPUT is non-nil, insert it in the minibuffer initially.
 HISTORY is a symbol representing a variable to store the history in."
   (semantic-complete-read-tag-engine
    (semantic-collector-buffer-deep prompt :buffer (current-buffer))
-   (semantic-displayor-traditional-with-focus-highlight "simple")
+   (semantic-displayor-traditional-with-focus-highlight :name "simple")
    ;;(semantic-displayor-tooltip "simple")
    prompt
    default-tag
@@ -1918,7 +1918,7 @@ If INITIAL-INPUT is non-nil, insert it in the minibuffer initially.
 HISTORY is a symbol representing a variable to store the history in."
   (semantic-complete-read-tag-engine
    (semantic-collector-local-members prompt :buffer (current-buffer))
-   (semantic-displayor-traditional-with-focus-highlight "simple")
+   (semantic-displayor-traditional-with-focus-highlight :name "simple")
    ;;(semantic-displayor-tooltip "simple")
    prompt
    default-tag
@@ -1943,7 +1943,7 @@ HISTORY is a symbol representing a variable to store the history in."
 				       :buffer (current-buffer)
 				       :path (current-buffer)
 				       )
-   (semantic-displayor-traditional-with-focus-highlight "simple")
+   (semantic-displayor-traditional-with-focus-highlight :name "simple")
    prompt
    default-tag
    initial-input
@@ -1960,7 +1960,7 @@ to control how completion options are displayed.
 See `semantic-complete-inline-tag-engine' for details on how
 completion works."
   (let* ((collector (semantic-collector-project-brutish
-		     "inline"
+		     :name "inline"
 		     :buffer (current-buffer)
 		     :path (current-buffer)))
 	 (sbounds (semantic-ctxt-current-symbol-and-bounds))
@@ -2019,7 +2019,7 @@ prompts.  these are calculated from the CONTEXT variable passed in."
       prompt
       :buffer (oref context buffer)
       :context context)
-     (semantic-displayor-traditional-with-focus-highlight "simple")
+     (semantic-displayor-traditional-with-focus-highlight :name "simple")
      (with-current-buffer (oref context buffer)
        (goto-char (cdr (oref context bounds)))
        (concat prompt (mapconcat 'identity syms ".")
@@ -2043,7 +2043,7 @@ completion works."
   (if (not context) (setq context (semantic-analyze-current-context (point))))
   (if (not context) (error "Nothing to complete on here"))
   (let* ((collector (semantic-collector-analyze-completions
-		     "inline"
+		     :name "inline"
 		     :buffer (oref context buffer)
 		     :context context))
 	 (syms (semantic-ctxt-current-symbol (point)))
