@@ -30,9 +30,7 @@
 (require 'inversion-utest)
 (require 'pulse-utest)
 (require 'cedet-files-utests)
-(require 'cedet-compat)
 (require 'cedet/ede/detect-utest)
-(require 'cedet/ede/compdb-utest)
 (require 'cedet/ede/secure-utest)
 (require 'cedet/semantic/lex-utest)
 (require 'cedet/semantic/lex-spp-utest)
@@ -47,9 +45,6 @@
 (require 'cedet/srecode/test)
 (require 'cedet/srecode/fields-utest)
 (require 'cedet/srecode/test-getset)
-(require 'cedet/cogre/utest)
-(require 'cedet/cogre/periodic-utest)
-(require 'cedet/cogre/convert-utest)
 (require 'chart)
 
 ;;; Code:
@@ -67,24 +62,20 @@
     ("ezimage associations" . ezimage-image-association-dump)
     ("ezimage images" . ezimage-image-dump)
 
+    ;; Workging interactive tests.
+    ("working: wait-for-keypress" .
+     (lambda ()
+       (if (cedet-utest-noninteractive)
+	   (message " ** Skipping test in noninteractive mode.")
+	 (working-wait-for-keypress))))
+    ;("working: sleep" . working-verify-sleep)
+
     ;; Pulse
     ("pulse interactive test" . (lambda () (pulse-test t)))
 
     ;; Files
     ("cedet file conversion" . cedet-files-utest)
 
-    ;;
-    ;; EIEIO
-    ;;
-    ("eieio" . cedet-utest-eieio-classloader)
-    ("eieio: browser" . eieio-browse)
-    ("eieio: custom" . (lambda ()
-			 (require 'eieio-custom)
-			 (customize-variable 'eieio-widget-test)))
-    ("eieio: chart" . (lambda ()
-			(if (cedet-utest-noninteractive)
-			    (message " ** Skipping test in noninteractive mode.")
-			  (chart-test-it-all))))
     ;;
     ;; EDE
     ;;
@@ -100,6 +91,7 @@
     ("semantic: multi-lang parsing" . semantic-utest-main)
     ("semantic: C parser (ERT)" . semantic-c-parser-test-ert)
     ("semantic: C preprocessor" . semantic-utest-c)
+    ("semantic: format tests" . semantic-fmt-utest)
     ("semantic: analyzer tests" . semantic-ia-utest)
     ("semanticdb: data cache" . semantic-test-data-cache)
     ("semantic: throw-on-input" .
@@ -109,6 +101,7 @@
 	 (semantic-test-throw-on-input))))
 
     ("semantic: gcc: output parse test" . semantic-gcc-test-output-parser)
+    ("wisent calculator" . wisent-calc-utest)
     ;;
     ;; SRECODE
     ;;
@@ -122,7 +115,7 @@
 
 ;;;###autoload
 (defun cedet-utest (&optional exit-on-error)
-  "Run the CEDET unit tests.
+  "Run the CEDET unittests.
 EXIT-ON-ERROR causes the test suite to exit on an error, instead
 of just logging the error."
   (interactive)
@@ -152,7 +145,7 @@ of just logging the error."
       ;; Cleanup stray input and events that are in the way.
       ;; Not doing this causes sit-for to not refresh the screen.
       ;; Doing this causes the user to need to press keys more frequently.
-      (when (and (interactive-p) (input-pending-p))
+      (when (and (called-interactively-p 'any) (input-pending-p))
 	(if (fboundp 'read-event)
 	    (read-event)
 	  (read-char)))
@@ -182,10 +175,10 @@ of just logging the error."
   (condition-case err
       (when (catch 'cedet-utest-exit-on-error
 	      ;; Get basic semantic features up.
-              ;; OLD (semantic-load-enable-minimum-features)
-              ;; NEW
-              (semantic-mode 1)
-              ;(global-semanticdb-minor-mode 1)
+	      ;; OLD (semantic-load-enable-minimum-features)
+	      ;; NEW
+	      (semantic-mode 1)
+	      ;(global-semanticdb-minor-mode 1)
 	      ;; Disables all caches related to semantic DB so all
 	      ;; tests run as if we have bootstrapped CEDET for the
 	      ;; first time.
@@ -196,8 +189,8 @@ of just logging the error."
 	      ;; and will be forced to bootstrap a new one.
 	      (setq srecode-map-save-file nil)
 
-              ;; Disable saving EDE's cache file.
-              (setq ede-project-placeholder-cache-file nil)
+	      ;; Disable saving EDE's cache file.
+	      (setq ede-project-placeholder-cache-file nil)
 
 	      ;; Run the tests
 	      (cedet-utest t)

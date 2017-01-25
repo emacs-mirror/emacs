@@ -144,8 +144,6 @@ It is passed the root project found.")
 		     :classp 'project-am-makefile-p)
    (ede-detect-entry "android sub" :file "src/android/AndroidManifest.xml"
 		     :classp 'ede-android-project-p)
-   (ede-detect-entry "android" :file "src/android/src/test.java"
-		     :classp 'ede-android-project-p)
    (ede-detect-entry "emacs" :file "src/emacs/Makefile"
 		     :classp 'ede-emacs-project-p)
    (ede-detect-entry "emacs sub" :file "src/emacs/src/emacs.c"
@@ -156,21 +154,6 @@ It is passed the root project found.")
 		     :classp 'ede-linux-project-p)
    (ede-detect-entry "linux sub" :file "src/linux/scripts/ver_linux"
 		     :classp 'ede-linux-project-p)
-   (ede-detect-entry "compdb" :file "src/compdb/detect/main.cpp"
-		     :classp 'ede-compdb-project-p)
-   (ede-detect-entry "compdb sub" :file "src/compdb/detect/includes/foo.h"
-		     :classp 'ede-compdb-project-p)
-   (ede-detect-entry "ninja" :file "src/compdb/detect-ninja/main.cpp"
-		     :classp 'ede-ninja-project-p)
-   (ede-detect-entry "ninja sub" :file "src/compdb/detect-ninja/includes/foo.h"
-		     :classp 'ede-ninja-project-p)
-   ;; jvm-base based projects.
-   (ede-detect-entry "ant" :file "src/jvm/ant/build.xml"
-		     :classp 'ede-ant-project-p)
-   (ede-detect-entry "lein" :file "src/jvm/lein/project.clj"
-		     :classp 'ede-lein2-project-p)
-   (ede-detect-entry "maven" :file "src/jvm/maven/pom.xml"
-		     :classp 'ede-maven2-project-p)
    ;; Generic project types just key of Makefile, SCons, etc.
    (ede-detect-entry "generic make" :file "src/generic/gen_make/sub/test.cpp"
 		     :classp 'ede-generic-makefile-project-p
@@ -192,12 +175,6 @@ It is passed the root project found.")
 		     :dorescan nil)
    (ede-detect-entry "cpp-root" :file "src/cpproot/README"
 		     :classp 'ede-cpp-root-project-p
-		     :dorescan nil)
-   (ede-detect-entry "java-root sub" :file "src/javaroot/com/test/Foo.Java"
-		     :classp 'ede-java-root-project-p
-		     :dorescan nil)
-   (ede-detect-entry "java-root" :file "src/javaroot/README"
-		     :classp 'ede-java-root-project-p
 		     :dorescan nil)
    )
   "List of testing entries that do not use `diretest' feature.")
@@ -252,11 +229,6 @@ It is passed the root project found.")
 		      :name "cpp root test"
 		      :file (expand-file-name "cpproot/README"
 					      (ede-detect-utest-basedir)))
-
-(ede-java-root-project "UTESTJAVA"
-		       :name "java root test"
-		       :file (expand-file-name "javaroot/README"
-					       (ede-detect-utest-basedir)))
 
 ;;;###autoload
 (defun ede-detect-utest (&optional FLAG)

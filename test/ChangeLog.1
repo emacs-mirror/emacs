@@ -1,3 +1,2207 @@
+2017-01-25 Edward John Steere <edward.steere@gmail.com>
+
+	Remove tests and redundant resources not destined for merge
+
+	Many of the resource files are in another location after the merge and
+	the patches did not cover that movement.  Other files are not
+	appropriate for Emacs core; such as the ede and README files.  Even
+	more still relate to Java, COGRE and other such features not destined
+	for merging.  Files with modifications were those were many patches
+	failed and I decided to follow up the merge with a diff to their
+	counterpart in upstream.
+	* test/manual/cedet/Makefile: deleted
+	* test/manual/cedet/Project.ede: deleted
+	* test/manual/cedet/README: deleted
+	* test/manual/cedet/cedet-integ-test.el: (ede-make, cogre, cit-uml)
+	(cit-android, cit-gnustep, cedet-integ-test-android)
+	(cedet-integ-test-GNUStep): deleted.  (cedet-integ-base,
+	cit-checkenv, cit-projvar, cit-cpproot, cit-globalref): new
+	requires.  (cedet-integ-test-Make): merged diffs from
+	upstream.  (cedet-integ-test-cpproot): added from
+	upstream.  (cedet-integ-test-globalref): added from
+	upstream. (cit-finish-message): merged diffs from
+	upstream.  (cit-srecode-fill-with-stuff-notest): added from
+	upstream.  (cit-srecode-insert-taglist): added from
+	upstream.  (cit-tag-verify-error-debug): merged diffs from
+	upstream.  (cit-compile-and-wait): merged diffs from
+	upstream.  (cit-compile-and-wait-using-ede-command): merged diffs
+	from upstream.  (cit-wait-for-compilation): merged diffs from
+	upstream.  (cit-check-compilation-for-error): merged diffs from
+	upstream.  (cit-run-target): merged diffs from upstream.
+	* test/manual/cedet/cedet-utests.el: (cedet-compat)
+	(cedet/ede/compdb-utest, cedet/cogre/utestcedet/cogre/utest)
+	(cedet/cogre/periodic-utest, cedet/cogre/convert-utest):
+	deleted.  (cit-utest-alist): Merged diffs from
+	upstream.  (cedet-utest): merged diffs from upstream.
+	* test/manual/cedet/cedet/ede/detect-utest.el:
+	(ede-detect-utest-project-entries): removed android, compdb, ninja,
+	lein, maven and java-root detection.  (ede-java-root-project):
+	deleted.
+	* test/manual/cedet/cedet/semantic/utest-parse.el:
+	(semantic-utest-C-buffer-contents, semantic-utest-C-name-contents)
+	(semantic-utest-Python-buffer-contents)
+	(semantic-utest-Python-name-contents)
+	(semantic-utest-Scheme-buffer-contents, semantic-utest-Makefile):
+	merged diffs from.
+	* test/manual/cedet/cit-checkenv.el: (cedet-java):
+	deleted.  (cit-checkenv-test): merged diffs from upstream.
+	* test/manual/cedet/cit-cpp.el: (cit-remove-add-to-project-cpp)
+	(cit-remove-and-do-shared-lib): merged diffs from upstream.
+	* test/manual/cedet/cit-cpproot.el: (cit-src-cpproot-main-tags)
+	(cit-cpproot-depfiles, cit-ede-cpproot-test):  merged diffs from
+	upstream.
+	* test/manual/cedet/cit-javaroot.el: deleted
+	* test/manual/cedet/cit-test.sh: deleted
+	* test/manual/cedet/ede-tests.el: deleted
+	* test/manual/cedet/semantic-ia-utest.el: deleted
+	* test/manual/cedet/semantic-tests.el: deleted
+	* test/manual/cedet/semantic-utest-c.el: deleted
+	* test/manual/cedet/semantic-utest.el: deleted
+	* test/manual/cedet/srecode-tests.el: deleted
+	* test/manual/cedet/tests/test.c: deleted
+	* test/manual/cedet/tests/test.el: deleted
+	* test/manual/cedet/tests/test.make: deleted
+	* test/manual/cedet/tests/testdoublens.cpp: deleted
+	* test/manual/cedet/tests/testdoublens.hpp: deleted
+	* test/manual/cedet/tests/testfriends.cpp: deleted
+	* test/manual/cedet/tests/testjavacomp.java: deleted
+	* test/manual/cedet/tests/testnsp.cpp: deleted
+	* test/manual/cedet/tests/testpolymorph.cpp: deleted
+	* test/manual/cedet/tests/testspp.c: deleted
+	* test/manual/cedet/tests/testsppcomplete.c: deleted
+	* test/manual/cedet/tests/testsppreplace.c: deleted
+	* test/manual/cedet/tests/testsppreplaced.c: deleted
+	* test/manual/cedet/tests/testsubclass.cpp: deleted
+	* test/manual/cedet/tests/testsubclass.hh: deleted
+	* test/manual/cedet/tests/testtypedefs.cpp: deleted
+	* test/manual/cedet/tests/testvarnames.c: deleted
+
+2011-04-29 xscript <xscript@users.sourceforge.net>
+
+	Move tests in cedet/semantic
+
+2011-08-20 Eric Ludlam <zappo@gnu.org>
+
+	Add header comments and provide.
+
+2013-04-01 Eric Ludlam <zappo@gnu.org>
+
+	New Tests for ede-java-root-project type.
+
+2013-08-02 David Engster <dengste@eml.cc>
+
+	Revert rev. 6995
+
+	(semantic-analyze-find-tag-sequence-default): Always add scope to the
+	local miniscope for each type.  Otherwise, structure tags are not
+	analyzed correctly.  Also, always search the extended miniscope even
+	when not dealing with types.
+
+	* tests/cedet/semantic/test/manual/cedet/testdoublens.cpp: Add test
+	case for the
+
+	above change.
+
+2013-07-29 David Engster <dengste@eml.cc>
+
+	Return fully qualified types if necessary.
+
+	* semantic/analyze/fcn.el (semantic-analyze-type-to-name): If TYPE has
+	a parent, return a fully qualified name.
+
+	* tests/cedet/semantic/test/manual/cedet/testdoublens.cpp: Add test
+	case for the above.
+
+2011-04-29 xscript <xscript@users.sourceforge.net>
+
+	Move tests in cedet/semantic
+
+2011-08-16 xscript <xscript@users.sourceforge.net>
+
+	Fix typo
+
+	* test/manual/cedet/cedet/semantic/idle.el: Fix typo due to automated
+	file rename ('semantic.elapsed-time' -> 'semantic-elapsed-time).
+
+2011-05-15 xscript <xscript@users.sourceforge.net>
+
+	Synchronize cedet/semantic with Emacs.
+
+2014-10-24 Eric Ludlam <zappo@gnu.org>
+
+	(cit-globalref-test): Note where the test is occuring.
+
+2014-04-20 Eric Ludlam <zappo@gnu.org>
+
+	Don't scan other files because Util.cc is already in a buffer
+
+	* test/manual/cedet/cit-globalref.el (cit-globalref-test): Final test,
+	Util.cc is already in a buffer, so we shouldn't scan any other files.
+
+2014-01-01 Eric Ludlam <zappo@gnu.org>
+
+	Add test code for use with sources in globalref
+
+	* test/manual/cedet/cit-globalref.el: New test code for use with
+	sources in tests/integ_src/globalref.  Makes sure GNU Global will
+	create tags database, jump to correct impl from a prototype, and
+	also checks how many buffers are opened along the way to make sure
+	the expected number are found.
+
+2014-04-20 Eric Ludlam <zappo@gnu.org>
+
+	Fake ver_linux for project detection purposes.
+
+2015-04-11 Eric Ludlam <eric@siege-engine.com>
+
+	New tests.
+
+2015-10-18 Eric Ludlam <eric@siege-engine.com>
+
+	Improve test output
+
+	* test/manual/cedet/cedet/semantic/ia-utest.el:
+	(semantic-ia-utest-file-list): Add commented out poly
+	test. (semantic-ia-utest-buffer): Improve visibility of failed lines.
+
+2015-04-22 Eric Ludlam <eric@siege-engine.com>
+
+	(semantic-ia-utest-file-list): Add testunion.cpp.
+
+2015-04-11 Eric Ludlam <eric@siege-engine.com>
+
+	Test refactor/move
+
+	* test/manual/cedet/cedet/semantic/ia-utest.el:
+	(semantic-ia-utest-file-list): Add tests/test.texi, test.mk, and
+	test.srt (semantic-ia-utest-buffer, semantic-ia-utest-buffer-refs)
+	(semantic-sr-utest-buffer-refs, semantic-src-utest-buffer-refs): When
+	scanning for comments, wrap comment-start-skip to handle modes that
+	have an unbound or in them. Skip back over whitespace from in front
+	of found test point comments.
+
+2014-11-26 Eric Ludlam <zappo@gnu.org>
+
+	(semantic-ia-utest-file-list): add testwisent.wy
+
+2014-02-17 Eric Ludlam <zappo@gnu.org>
+
+	Improve test utilities
+
+	* lisp/cedet/semantic/analyze.el:
+	(semantic-analyze-find-tag-sequence-default): If first entry in
+	sequence is the only one, apply tagclass
+	filter. (semantic-analyze-princ-sequence): Show slot even if empty.
+	* tests/cedet/semantic/ia-utest.el: (semantic-ia-utest-file-list): Add
+	testvarnames.java.
+	* tests/cedet/semantic/test/manual/cedet/Project.ede:
+	("semantic/tests"): Add testvarnames.java
+	* tests/cedet/semantic/test/manual/cedet/testvarnames.java: New test
+	file
+
+2014-02-02 David Engster <dengste@eml.cc>
+
+	Add test for parsing local variables
+
+	* tests/cedet/semantic/test/manual/cedet/testlocalvars.cpp: New file.
+	* tests/cedet/semantic/test/manual/cedet/Project.ede: Add above.
+	* tests/cedet/semantic/test/manual/cedet/Makefile: Regenerate.
+	* tests/cedet/semantic/ia-utest.el (semantic-ia-utest-file-list): Add
+	new test file.
+
+2013-07-28 David Engster <dengste@eml.cc>
+
+	Remove compatibility function `cedet-called-interactively-p'.
+
+	* lisp/cedet/cedet-compat.el (cedet-called-interactively-p): Remove.
+	It is no longer needed since our minimum version is now 23.2, which
+	has `called-interactively-p'.  Also, remove corresponding unit
+	tests.
+
+	* tests/cedet-utests.el (cedet-utest-test-alist): Remove cedet-compat
+	unit tests.
+
+	* All files: Replace `cedet-called-interactively-p' with
+	`called-interactively-p', providing 'any as argument where it was
+	still missing.
+
+2011-08-20 Eric Ludlam <zappo@gnu.org>
+
+	Moved tests about
+
+	* test/manual/cedet/cedet/semantic/ia-utest.el: (cedet-uutil): New
+	require. (semantic-ia-utest): Fix where the test sources are loaded
+	from.  (semantic-symref-test-count-hits-in-tag): Copied from other
+	related src file.
+
+2011-04-29 xscript <xscript@users.sourceforge.net>
+
+	Move tests in cedet/semantic
+
+2013-03-27 Eric Ludlam <zappo@gnu.org>
+
+	(priority): Set to a low number. (cit-project-template): New template.
+
+2010-09-15 xscript <xscript@users.sourceforge.net>
+
+	Remove obsolete cvs-auto-updated 'X-RCS' line.
+
+2008-02-24 zappo <zappo@users.sourceforge.net>
+
+	Base template for cit testing.
+
+2013-11-04 David Engster <dengste@eml.cc>
+
+	Make unit tests use randomized file names
+
+	* tests/cedet/semantic/stltest.el:
+	* tests/cedet/semantic/utest-parse.el:
+	* tests/cedet/srecode/fields-utest.el:
+	* tests/cedet/srecode/test-getset.el:
+	* tests/cedet/srecode/test.el:
+	* tests/eieio/eieio-test-persist.el: Make all those tests use
+	`make-temp-name' for their test files, so that tests can run in
+	parallel.
+
+2011-08-20 Eric Ludlam <zappo@gnu.org>
+
+	Fix provide. (cedet-utests): Remove.
+
+2015-04-11 Eric Ludlam <eric@siege-engine.com>
+
+	New tests.
+
+2011-04-29 xscript <xscript@users.sourceforge.net>
+
+	Move tests in cedet/semantic
+
+2014-10-24 Eric Ludlam <zappo@gnu.org>
+
+	Don't fail the test for errors which don't mean a failure
+
+	* test/manual/cedet/cit-externaldb.el: (cit-externaldb-test): Catch
+	failures that shouldn't fail tests.  (cit-externaldb-cleanup): New
+	(cit-gnu-externaldb-test-one): Catch if the create fails from the
+	external program, cleanup, and throw.  Improve fail messages to help
+	identify problems.
+
+2014-10-15 Eric Ludlam <zappo@gnu.org>
+
+	(cit-gnu-externaldb-test-one): Improve test for bad search result.
+
+2014-01-01 Eric Ludlam <zappo@gnu.org>
+
+	Better skip message
+
+	* test/manual/cedet/cit-externaldb.el: (cit-externaldb-test): Better
+	skip message.  (cit-gnu-externaldb-test-one): Better skip mesasges.
+
+2011-11-07 David Engster <dengste@eml.cc>
+
+	* tests/cit-externaldb.el: Fix requires.
+
+	* tests/cit-uml.el: Add require for cogre/uml.
+
+2011-10-06 Darren Hoo <darren.hoo@gmail.com>
+
+	Don't set :filename if it's already set
+
+	* test/manual/cedet/cit-externaldb.el:
+	(semanticdb-strip-find-results): Check if there already is a
+	:filename attribute set, so that file information from GNU Global
+	will not be lost.
+
+	* tests/cit-externaldb.el: New test for :filename property.  Make
+	doc-string and comments generic, since this is not specific to GNU
+	global.
+
+2010-09-15 xscript <xscript@users.sourceforge.net>
+
+	Remove obsolete cvs-auto-updated 'X-RCS' line.
+
+2010-07-25 zappo <zappo@users.sourceforge.net>
+
+	Use new create functions for db tools
+
+	* test/manual/cedet/cit-externaldb.el: (cit-external-db-tool-list):
+	Change all create fcns for db tools to use new create fcns added for
+	each project type.  (cit-gnu-externaldb-test-one): Change calling
+	convention to create a db to conform to new fcns.
+
+2010-06-13 zappo <zappo@users.sourceforge.net>
+
+	Fixes for external db tests
+
+	* test/manual/cedet/cit-externaldb.el: (cit-externaldb-files-to-find):
+	Change files to those common between Make and AutoMake.
+	(cit-gnu-externaldb-test-one): Require ede-locate Call
+	`ede-enable-locate-on-project' to start/end the test so that the
+	locate system is available for the project later.
+
+2010-06-13 zappo <zappo@users.sourceforge.net>
+
+	Test external database tools.
+
+2011-08-20 Eric Ludlam <zappo@gnu.org>
+
+	Add header comments and provide.
+
+2011-04-29 xscript <xscript@users.sourceforge.net>
+
+	Move tests in cedet/semantic
+
+2011-08-20 Eric Ludlam <zappo@gnu.org>
+
+	Add header comments and provide.
+
+2012-04-22 David Engster <dengste@eml.cc>
+
+	(cit-srecode-fill-el): Insert classes before methods.
+
+2010-09-15 xscript <xscript@users.sourceforge.net>
+
+	Remove obsolete cvs-auto-updated 'X-RCS' line.
+
+2009-10-15 zappo <zappo@users.sourceforge.net>
+
+	Remove eieio bits and only use eieio bits for make types
+
+	* test/manual/cedet/cit-el.el (cit-el-tags): Removed eieio
+	bits. (cit-el-tags-eieio): New, from above. (cit-srecode-fill-el):
+	Only use eieio bits for Make types.
+
+2009-08-08 zappo <zappo@users.sourceforge.net>
+
+	Accept the make-tipe argument to control tests
+
+	* test/manual/cedet/cit-el.el (cit-srecode-fill-el): Accept make-type
+	argument.  Don't do autoloads with automake.
+
+2008-02-24 zappo <zappo@users.sourceforge.net>
+
+	Emacs Lisp support for cedet integration tests.
+
+2015-04-11 Eric Ludlam <eric@siege-engine.com>
+
+	Added test functions
+
+	* test/manual/cedet/cedet/semantic/utest-c.el: (semantic-utest-c-ede):
+	New (semantic-utest-c): Add call to
+	below. (semantic-utest-c-with-ede): New test function
+	(semantic-utest-c-setup-ede): New.
+
+2011-12-01 David Engster <dengste@eml.cc>
+
+	Fix unit testing for several tests and do better error checking.
+
+	* semantic/lex-spp-utests.el (semantic-lex-spp-write-utest):
+	* tests/cedet-utests.el (cedet-utest-eieio-classloader): Throw
+	error if we cannot locate test files.
+
+	* semantic/utest-c.el (semantic-utest-c-compare)
+	(semantic-utest-c-conditionals):
+	* semantic/lex-spp-utest.el (semantic-lex-spp-write-utest): Adapt
+	to new directory structure and do better error checking to avoid
+	silent failures in the future.
+
+2011-08-20 Eric Ludlam <zappo@gnu.org>
+
+	Fix provide.
+
+2011-04-29 xscript <xscript@users.sourceforge.net>
+
+	Move tests in cedet/semantic
+
+2015-04-11 Eric Ludlam <eric@siege-engine.com>
+
+	New tests.
+
+2011-05-15 xscript <xscript@users.sourceforge.net>
+
+	Synchronize cedet/semantic with Emacs.
+
+2010-09-15 xscript <xscript@users.sourceforge.net>
+
+	Remove obsolete cvs-auto-updated 'X-RCS' line.
+
+2010-03-16 zappo <zappo@users.sourceforge.net>
+
+	(cit-make-dist): Use cit-check-compilation-for-error.
+
+2009-12-27 zappo <zappo@users.sourceforge.net>
+
+	Test updating the project version
+
+	* test/manual/cedet/cit-dist.el: (cit-make-dist): Test w/ default
+	version, then update and test again. (cit-update-version): Force
+	rebuild of Makefile.
+
+2009-12-26 zappo <zappo@users.sourceforge.net>
+
+	First pass of creating a distribution.
+
+2014-06-21 Eric Ludlam <zappo@gnu.org>
+
+	New test C file for linux.
+
+2011-04-29 xscript <xscript@users.sourceforge.net>
+
+	Move tests in cedet/semantic
+
+2012-04-22 David Engster <dengste@eml.cc>
+
+	Fix EIEIO methodinvoke-utest and semantic-fmt-utest.
+
+	* Makefile: Add tests/eieio to path for unit tests.
+
+	* tests/cedet-utest.el (cedet/semantic/fmt-utest): Require.
+
+	* tests/cedet/semantic/fmt-utest.el: Fix requires and rename
+	accordingly.
+
+2012-04-21 David Engster <dengste@eml.cc>
+
+	Remove useless generated skeleton and old NEWS
+
+	* test/manual/cedet/cedet/semantic/fmt-utest.el Removed useless
+	generated skeleton grammar.  Move old NEWS files and
+	semantic-fmt-utest.
+
+2013-04-01 Eric Ludlam <zappo@gnu.org>
+
+	Fix documentation
+
+	* test/manual/cedet/cit-cpproot.el: (cedet-android, ede/android):
+	Deleted useless includes.  (cit-integ-cpproot-srcdir): Doc fix.
+
+2013-03-31 Eric Ludlam <zappo@gnu.org>
+
+	Added cpproot tests
+
+	* test/manual/cedet/cit-cpproot.el: (cit-integ-cpproot-sys-subdir):
+	New.  (cit-integ-cpproot-sys-srcdir):
+	New. (cit-src-cpproot-main-tags): Added 3 new
+	tags. (cit-cpproot-depfiles): New. (cit-ede-cpproot-test): Make copy
+	work in emacs 23&24. Add new include dirs Add more spp files. Check
+	all includes that they are found in the expected directories.
+
+2012-12-31 Eric Ludlam <zappo@gnu.org>
+
+	New test for testing ede/cpp-root projects.
+
+2014-11-26 Eric Ludlam <zappo@gnu.org>
+
+	Tests for completiong symbols in wisent grammars.
+
+2012-12-31 Eric Ludlam <zappo@gnu.org>
+
+	New test file.
+
+2011-05-15 xscript <xscript@users.sourceforge.net>
+
+	Synchronize cedet/semantic with Emacs.
+
+2012-09-12 Eric Ludlam <zappo@gnu.org>
+
+	etc/srecode/c.srt: New file, contents from cpp.srt
+
+	etc/srecode/cpp.srt: Delete parts moved to c.srt
+
+	lisp/cedet/ede.el:
+	(ede-configuration-forms-menu): Make robust to cases where there is no
+	current project.
+
+	lisp/cedet/srecode/cpp.el:
+	(srecode-semantic-handle-:c): Renamed from the srecode-semantic-handle-:cpp.
+	(srecode-semantic-handle-:cpp): Calls above.
+	(c-mode::srecode-semantic-apply-tag-to-dict): Moved from a cpp-mode
+	function to a c-mode function.  Note this in doc.
+	(srecode-c-apply-templates): Renamed from srecode-cpp-apply-templates
+
+	tests/cit-cpp.el:
+	(cit-plain-c-tags): New variable
+	(cit-srecode-fill-cpp): Insert above into a new file as part of a new program.
+
+2011-06-23 David Engster <dengste@eml.cc>
+
+	Ensure that the correct buffer is active when
+
+	getting the EDE object
+
+	* test/manual/cedet/cit-cpp.el: (cit-remove-and-do-shared-lib): Make
+	sure we are in the right buffer before getting the current EDE
+	object.
+
+2010-09-15 xscript <xscript@users.sourceforge.net>
+
+	Remove obsolete cvs-auto-updated 'X-RCS' line.
+
+2010-06-13 zappo <zappo@users.sourceforge.net>
+
+	Enable global to find hh and hpp files
+
+	* test/manual/cedet/cit-cpp.el: (cit-src-cpp-tags, cit-main-cpp-tags)
+	(cit-srecode-fill-cpp): Switch .hh to .hpp so gnu global can find it.
+
+2010-05-16 zappo <zappo@users.sourceforge.net>
+
+	(cit-remove-and-do-shared-lib): Add ldlibs-local test.
+
+2010-05-16 zappo <zappo@users.sourceforge.net>
+
+	Use ldflags and libs for in project libraries
+
+	for automake
+
+	* test/manual/cedet/cit-cpp.el: (cit-remove-and-do-shared-lib): For
+	automake, use ldflags, and ldlibs for in project libraries.
+
+2010-04-18 zappo <zappo@users.sourceforge.net>
+
+	Added code for test tags
+
+	* test/manual/cedet/cit-cpp.el: (cit-header-cpp-tags): Add some code
+	to foo constructor. (cit-src-cpp-tags): Add stdio.h include. Add code
+	to the methods to call through the class and eventually print
+	MOOSE. (cit-main-cpp-tags): Remove stdio.h include. Replace print
+	code with call to the foo class to print
+	MOOSE. (cit-symref-operations): New variable.
+	(cit-remove-add-to-project-cpp): Delete .o files also.
+	(cit-remove-and-do-shared-lib): Specify the compiler to use.
+
+2010-03-16 zappo <zappo@users.sourceforge.net>
+
+	Improve compilation active detection
+
+	* test/manual/cedet/cit-cpp.el: (cit-remove-add-to-project-cpp)
+	(cit-remove-and-do-shared-lib): Use cit-wait-for-compilation and
+	cit-check-compilation-for-error.
+
+2009-10-18 zappo <zappo@users.sourceforge.net>
+
+	Run the code for the compiled binary
+
+	* test/manual/cedet/cit-cpp.el: (cit-main-cpp-tags): Add code to main.
+	(cit-srecode-fill-cpp): Run the compiled program.
+
+2009-10-15 zappo <zappo@users.sourceforge.net>
+
+	(cit-remove-and-do-shared-lib): Enable for use with Make projects too. Create the srcs in a new lib directory.
+
+2009-09-14 zappo <zappo@users.sourceforge.net>
+
+	(cit-remove-and-do-shared-lib): New.
+
+2009-08-08 zappo <zappo@users.sourceforge.net>
+
+	New make-type argument to control which include
+
+	variable is used
+
+	* test/manual/cedet/cit-cpp.el: (cit-srecode-fill-cpp): Accept
+	make-type argument.  Control how projects are made based on what
+	include variable is used based on above.
+
+2009-03-12 zappo <zappo@users.sourceforge.net>
+
+	Patch from David Engster
+
+	* test/manual/cedet/cit-cpp.el: (cit-remove-add-to-project-cpp): Use
+	ede-make-command
+
+2009-03-06 zappo <zappo@users.sourceforge.net>
+
+	(cit-remove-add-to-project-cpp): Wait for make to finish.
+
+2009-01-10 zappo <zappo@users.sourceforge.net>
+
+	(cit-srecode-fill-cpp): Fixed misspelling of target name.
+
+2008-02-24 zappo <zappo@users.sourceforge.net>
+
+	CPP integration support. Core bits copied originally from cedet-integ-test.el
+
+2013-12-30 Eric Ludlam <zappo@gnu.org>
+
+	Added more test data
+
+	* test/manual/cedet/cedet/semantic/tests/testvarnames.c:
+	(varorstruct): New struct and variable.  (assigntovarorstruct): New
+	variable that doesn't start with 'var'. (test_1): Add test when
+	assigning into varorstruct that we get a match.
+
+2011-04-29 xscript <xscript@users.sourceforge.net>
+
+	Move tests in cedet/semantic
+
+2013-11-04 David Engster <dengste@eml.cc>
+
+	Make unit tests use randomized file names
+
+	* tests/cedet/semantic/stltest.el:
+	* tests/cedet/semantic/utest-parse.el:
+	* tests/cedet/srecode/fields-utest.el:
+	* tests/cedet/srecode/test-getset.el:
+	* tests/cedet/srecode/test.el:
+	* tests/eieio/eieio-test-persist.el: Make all those tests use
+	`make-temp-name' for their test files, so that tests can run in
+	parallel.
+
+2011-08-20 Eric Ludlam <zappo@gnu.org>
+
+	Force srecode repo location and add decorations to debug output
+
+	* test/manual/cedet/cedet/srecode/test.el: (cl, cedet-uutil): New
+	require (cedet-utests): Deleted require. (srecode-map-load-path):
+	Force the srecode repository location in.  (srecode-utest-map-reset):
+	New test fcn. (srecode-utest-test): Add decorations to debug
+	output. (cedet/srecode/test): Fix require.
+
+2011-06-01 xscript <xscript@users.sourceforge.net>
+
+	Synchronize cedet/srecode with Emacs.
+
+2013-11-04 David Engster <dengste@eml.cc>
+
+	Make unit tests use randomized file names
+
+	* tests/cedet/semantic/stltest.el:
+	* tests/cedet/semantic/utest-parse.el:
+	* tests/cedet/srecode/fields-utest.el:
+	* tests/cedet/srecode/test-getset.el:
+	* tests/cedet/srecode/test.el:
+	* tests/eieio/eieio-test-persist.el: Make all those tests use
+	`make-temp-name' for their test files, so that tests can run in
+	parallel.
+
+2011-08-20 Eric Ludlam <zappo@gnu.org>
+
+	Add header comments and provide.
+
+	* test/manual/cedet/cedet/srecode/fields-utest.el:
+	(srecode-field-utest-impl): Use standard Emacs overlay commands.
+
+2014-10-24 Eric Ludlam <zappo@gnu.org>
+
+	New setup testing.
+
+2013-11-18 David Engster <dengste@eml.cc>
+
+	C++: Deal with 'using' statements when calculating scope
+
+	* semantic/bovine/c.el (semantic-ctxt-scoped-types): Go through all
+	tags around point and search them for using statements.  Before, we
+	skipped the last one thinking that it would have to be function, but
+	it could also be a type.
+
+	* semantic/scope.el (semantic-completable-tags-from-type): When
+	creating the list of completable types, pull in types which are
+	referenced through 'using' statements.
+
+	* tests/cedet/semantic/test/manual/cedet/testusing.cpp:
+	* tests/cedet/semantic/test/manual/cedet/testusing.hh: Add tests for
+	the above.
+
+2011-04-29 xscript <xscript@users.sourceforge.net>
+
+	Move tests in cedet/semantic
+
+2015-01-21 Ramkumar Ramachandra <artagnon@gmail.com>
+
+	semantic/bovine/c: Parse C++11 strongly typed enum
+
+	* semantic/bovine/c.by (ENUM, opt-enum-type): Add opt-enum-type argument
+	to ENUM, that matches either a colon + typeformbase or nothing.
+
+	* semantic/bovine/c.el (semantic-c-reconstitute token): Add :enum-type.
+
+2015-01-17 Ramkumar Ramachandra <artagnon@gmail.com>
+
+	semantic/bovine/c: Parse C++ override/final correctly
+
+	override and final are a perfectly good opt-post-fcn-modifiers in
+	C++. Parse them correctly.  (Tiny change)
+
+	* semantic/bovine/c.by (post-fcn-modifiers): Add tokens OVERRIDE and
+	FINAL.
+
+	* semantic/bovine/c.el (semantic-c-reconstitute-token): Add
+	:override-flag and :final-flag.
+
+2011-04-29 xscript <xscript@users.sourceforge.net>
+
+	Move tests in cedet/semantic
+
+2014-04-20 Eric Ludlam <zappo@gnu.org>
+
+	Fake emacs.c for project detection purposes.
+
+2014-06-03 Eric Ludlam <zappo@gnu.org>
+
+	Erorr when appropriate
+
+	* test/manual/cedet/cedet-uutil.el: (cedet-utest-log-shutdown): This
+	should error when there are errors. (cedet-utest-log): Doc fix.
+
+2011-08-20 Eric Ludlam <zappo@gnu.org>
+
+	New file, derived from logging functions in cedet-utest.el
+
+2013-11-18 David Engster <dengste@eml.cc>
+
+	C++: Deal with 'using' statements when calculating scope
+
+	* semantic/bovine/c.el (semantic-ctxt-scoped-types): Go through all
+	tags around point and search them for using statements.  Before, we
+	skipped the last one thinking that it would have to be function, but
+	it could also be a type.
+
+	* semantic/scope.el (semantic-completable-tags-from-type): When
+	creating the list of completable types, pull in types which are
+	referenced through 'using' statements.
+
+	* tests/cedet/semantic/test/manual/cedet/testusing.cpp:
+	* tests/cedet/semantic/test/manual/cedet/testusing.hh: Add tests for
+	the above.
+
+2013-09-18 David Engster <dengste@eml.cc>
+
+	C/C++: Parse 'using' statements in the correct order.
+
+	(c++-mode:semantic-ctxt-scoped-types): In the case for using
+	statements outside of function scope, append them in the correct order
+	instead of using 'cons'.  This is important since using statements may
+	depend on previous ones.
+
+	* tests/cedet/semantic/test/manual/cedet/testusing.cpp: Add test for
+	the above.
+
+2013-09-15 David Engster <dengste@eml.cc>
+
+	Another 'using namespace' fix
+
+	(semantic-analyze-scoped-types-default): If we cannot find a type in
+	the typecache, also look into the the types we already found.  This is
+	necessary since in C++, a 'using namespace' can be dependend on a
+	previous one.
+
+	* testusing.cpp: Add test for the above.
+
+2012-10-25 David Engster <dengste@eml.cc>
+
+	Simplify alias referencing and add tests.
+
+	* lisp/cedet/semantic/analyze.el (semantic-analyze-dereference-alias):
+	Only dereference first tag, since at least for C++ this is enough.
+	(semantic-analyze-current-context-default): Adapt comment.
+
+	* tests/cedet/semantic/test/manual/cedet/testusing.cpp: Add tests for
+	the above.
+
+2011-04-29 xscript <xscript@users.sourceforge.net>
+
+	Move tests in cedet/semantic
+
+2011-04-29 xscript <xscript@users.sourceforge.net>
+
+	Move tests in cedet/semantic
+
+2015-04-11 Eric Ludlam <eric@siege-engine.com>
+
+	New test files combining macros and EDE
+
+2015-03-08 Alastair Rankine <alastair@girtby.net>
+
+	Add compdb EDE project
+
+	- Unit tests incorporated into cedet-utest, all passing
+	- Documentation still pending
+
+2015-01-31 David Engster <deng@randomsample.de>
+
+	eieio: Move to obsolete and use the one that ships with Emacs
+
+	* lisp/eieio: Move to obsolete.
+
+	* etc/fallback-libraries: Add eieio fallback libraries.
+
+	* Makefile (top-level): Remove eieio compilation and add compilation of
+	fallback eieio for Emacs 24.1 and 24.2. Throw error for Emacs 23.x.
+
+	* cedet-devel-load.el: Always require eieio at the top.  Load
+	cedet-compat earlier.  Remove advices for eieio helpers.
+
+	* cedet-remove-builtin.el: eieio must not be removed anymore.
+
+	* semantic/ede-grammar.el (semantic-ede-proj-target-grammar): Remove
+	cedet-compat from aux-packages initform, as it will be loaded by
+	cedet-devel-load anyway.
+	(ede-proj-makefile-insert-variables): Remove eieio from load-path.
+
+	* lisp/cedet/cedet-compat.el: Load fallback eieio for Emacs 24.1 and
+	24.2.  Add new aliases for Emacs 24.3.
+
+	* Project.ede, Makefiles: Remove eieio and regenerate.
+
+	* tests: Remove eieio tests.
+
+2015-01-26 Eric Ludlam <eric@siege-engine.com>
+
+	(cedet-utest-test-alist): Add ede-detect-linux-utest.
+
+2015-01-25 David Engster <deng@randomsample.de>
+
+	Tests: Add ERT test for the C Bovinator
+
+	* tests/cedet-utests.el (cedet/semantic/ert/test-c-parser): Require.
+	(cedet-utest-test-alist): Add new ERT test.
+
+	* tests/cedet/semantic/ert/test-c-parser.el: New file for testing the C
+	Bovinator. This tests the newly added typed enum rule.
+
+2014-10-21 Eric Ludlam <zappo@gnu.org>
+
+	Added security test
+
+	* test/manual/cedet/cedet-utests.el: (cedet/ede/secure-utest): New
+	require (cedet-utest-test-alist): Add ede-security-utest
+
+2014-05-21 Eric Ludlam <zappo@gnu.org>
+
+	(cedet-utest): Add EDE sanity check to the end.
+
+2014-04-20 Eric Ludlam <zappo@gnu.org>
+
+	Adedd `ede-detect-utest'
+
+	* test/manual/cedet/cedet-utests.el: (cedet/ede/detect-utest): New
+	require.  (cedet-utest-test-alist): Add ede-detect-utest.
+
+2013-04-06 Eric Ludlam <zappo@gnu.org>
+
+	(cedet-utest-batch): Disable saving EDE's cache file.
+
+2012-04-22 David Engster <dengste@eml.cc>
+
+	Fix EIEIO methodinvoke-utest and semantic-fmt-utest.
+
+	* Makefile: Add tests/eieio to path for unit tests.
+
+	* tests/cedet-utest.el (cedet/semantic/fmt-utest): Require.
+
+	* tests/cedet/semantic/fmt-utest.el: Fix requires and rename
+	accordingly.
+
+2012-04-22 David Engster <dengste@eml.cc>
+
+	Fix merge error in unit tests.
+
+2011-12-01 David Engster <dengste@eml.cc>
+
+	Fix unit testing for several tests and do better error checking.
+
+	* semantic/lex-spp-utests.el (semantic-lex-spp-write-utest):
+	* tests/cedet-utests.el (cedet-utest-eieio-classloader): Throw
+	error if we cannot locate test files.
+
+	* semantic/utest-c.el (semantic-utest-c-compare)
+	(semantic-utest-c-conditionals):
+	* semantic/lex-spp-utest.el (semantic-lex-spp-write-utest): Adapt
+	to new directory structure and do better error checking to avoid
+	silent failures in the future.
+
+2011-11-27 David Engster <dengste@eml.cc>
+
+	Fix interactive unit tests.
+
+	* pulse-utest.el (pulse-test): Use normal overlay functions.
+
+	* cedet-utests.el (chart): Require.
+
+2011-11-01 David Engster <dengste@eml.cc>
+
+	Use `cedet-version' instead of `cedet-version-print'
+
+	* tests/cedet-utest.el: (cedet-utest-test-alist): Replace
+	`cedet-version-print' with `cedet-version.
+
+2011-08-20 Eric Ludlam <zappo@gnu.org>
+
+	Refactor tests
+
+	* test/manual/cedet/cedet-utests.el: (cedet-uutil): New require, plus
+	all other unit test files. (cedet-utest-test-alist): eieio now has
+	loader test fcn (below) Re-order srecode
+	tests. (cedet-running-master-tests): Move to cedet-uutil.
+	(cedet-utest): Fix symbol names for initializing the test suite.
+	(cedet-utest-noninteractive): Move to
+	cedet-uutil. (cedet-utest-batch): Init semantic the new
+	way. (cedet-utest-frame, cedet-utest-last-log-item,
+	cedet-utest-log-timer) (cedet-utest-log-setup,
+	cedet-utest-elapsed-time) (cedet-utest-log-shutdown,
+	cedet=utest-log-shutdown-msg) (cedet-utest-show-log-end,
+	cedet-utest-post-command-hook) (cedet-utest-add-log-item-start,
+	cedet-utest-add-log-item-done) (cedet-utest-log-start,
+	cedet-utest-log): Moved to cedet-util.el
+	(cedet-utest-eieio-classloader): New loader for the EIEIO tests.
+
+2015-04-22 Eric Ludlam <eric@siege-engine.com>
+
+	New test file for unions.
+
+2013-11-04 David Engster <dengste@eml.cc>
+
+	Make unit tests use randomized file names
+
+	* tests/cedet/semantic/stltest.el:
+	* tests/cedet/semantic/utest-parse.el:
+	* tests/cedet/srecode/fields-utest.el:
+	* tests/cedet/srecode/test-getset.el:
+	* tests/cedet/srecode/test.el:
+	* tests/eieio/eieio-test-persist.el: Make all those tests use
+	`make-temp-name' for their test files, so that tests can run in
+	parallel.
+
+2011-08-20 Eric Ludlam <zappo@gnu.org>
+
+	Fix provide. (cedet-uutil, srecode/semantic): New requires.
+
+2011-06-01 xscript <xscript@users.sourceforge.net>
+
+	Synchronize cedet/srecode with Emacs.
+
+2011-06-01 xscript <xscript@users.sourceforge.net>
+
+	Synchronize cedet/srecode with Emacs.
+
+2011-08-02 Eric Ludlam <Zappo@Gnu.Org>
+
+	(Cit-Android): New Require. (Cedet-Integ-Test-Gnustep): Fix Typo. (Cedet-Integ-Test-Android): New Build Type Support For Android. (Cit-Make-Dir): Allow Making Trees Of Directories. (Cit-Compile-And-Wait): Only Regenerate The Project If That Project Type Can Be Regenerated. (Cit-Compile-And-Wait-Using-Ede-Command): New Way To Build That Uses Ede Commands Instead Of Hard-Coded Make Commands.
+
+2010-10-19 David Engster <Dengste@Eml.Cc>
+
+	Ignore Members On Extra Tags
+
+	* Test/Manual/Cedet/Cedet-Integ-Test.El (Cit-Srecode-Verify-Tags):
+	Ignore Members Attribute For Extra Tags.  Necessary Because Of The
+	Latest Changes To Semantic-Tag-Similar-P.
+
+2010-10-18 Eric Ludlam <Zappo@Gnu.Org>
+
+	Compare Code And Documtation For Tags
+
+	* Test/Manual/Cedet/Cedet-Integ-Test.El (Cit-Srecode-Verify-Tags):
+	When Comparing Tags, Add To Ignored Attribs, :Code And
+	:Documentation.
+
+2010-06-13 zappo <zappo@users.sourceforge.net>
+
+	Call external db testing suite
+
+	* test/manual/cedet/cedet-integ-test.el (Cit-Externaldb): New Require
+	(Cedet-Integ-Test-Proj): Call To Externaldb Testing Suite.
+
+2010-04-18 zappo <zappo@users.sourceforge.net>
+
+	Disable auto add, do shared-library-only test
+
+	for automake and show output
+
+	* test/manual/cedet/cedet-integ-test.el (cit-symref): New require.
+	(cedet-integ-test-proj): Disable auto add.  Only do shared library
+	test with automake.  (cit-run-target): Don't kill the buffer, wait
+	and show program output instead.
+
+2010-03-16 zappo <zappo@users.sourceforge.net>
+
+	Improve compilation error checking
+
+	* test/manual/cedet/cedet-integ-test.el (cit-compile-and-wait): Pull
+	out error checking. Add support for stripping erroneous
+	events. (cit-check-compilation-for-error): New, from above.
+
+2009-12-26 zappo <zappo@users.sourceforge.net>
+
+	Move compilation error handling to new function
+
+	* test/manual/cedet/cedet-integ-test.el (cit-dist): New require.
+	(cedet-integ-test-proj): Call new cit-dist tests.
+	(cit-compile-and-wait): Split part out to...
+	(cit-wait-for-compilation): New.
+
+2009-10-18 zappo <zappo@users.sourceforge.net>
+
+	Insert tag's code if it's there
+
+	* test/manual/cedet/cedet-integ-test.el (cit-srecode-fill-with-stuff):
+	If a tag has :code, insert it. (cit-run-target): New.
+
+2009-10-15 zappo <zappo@users.sourceforge.net>
+
+	Added lib dir and make-type argument
+
+	* test/manual/cedet/cedet-integ-test.el (cedet-integ-test-proj): Add a
+	lib dir.  Add make-type arg to cit-remove-and-do-shared-lib call.
+	(cit-compile-and-wait): Accept an optional argument.
+
+2009-09-14 zappo <zappo@users.sourceforge.net>
+
+	(cedet-integ-test-proj): Add cit-remove-and-do-shared-lib.
+
+2009-08-08 zappo <zappo@users.sourceforge.net>
+
+	(cit-finish-message): Add a pause, then exit with a status of "1".
+
+2009-08-08 zappo <zappo@users.sourceforge.net>
+
+	(cedet-integ-test-Make,cedet-integ-test-Automake,cedet-integ-test-GNUStep): New (cedet-integ-test-proj): Take a make-type argumemt. Misc tests needed on new argument. Change how ede creates projects based on make-type. Remove spaces from the project name. (cit-finish-message): Ending message now includes the make type.
+
+2009-05-30 zappo <zappo@users.sourceforge.net>
+
+	Added cit uml
+
+	* test/manual/cedet/cedet-integ-test.el (cit-uml): New require
+	(cogre): New require (cedet-integ-test): Make a UML test dir. Call
+	`cit-fill-uml'.  (cit-compile-and-wait): Kill Project.ede buffer
+	after compilation.
+
+2009-03-12 zappo <zappo@users.sourceforge.net>
+
+	Added new subdir and ensure that the base dir
+
+	is made first
+
+	* test/manual/cedet/cedet-integ-test.el (cedet-integ-base): New, using
+	old target value.  (cedet-integ-target): Subdir under base
+	(cedet-integ-test): Make the base dir first.
+	(cit-srecode-verify-tags): Fix paren typos on error condition.
+
+2009-03-12 zappo <zappo@users.sourceforge.net>
+
+	Set the auto-add-method to always during test
+
+	steps
+
+	* test/manual/cedet/cedet-integ-test.el
+	(cit-remove-add-to-project-cpp): Set auto-add-method to always during
+	step test.
+
+2009-03-12 zappo <zappo@users.sourceforge.net>
+
+	(ede, ede-make): New require (cit-srecode-verify-tags): Fix debugging output on failure. Patch from David Engster (cit-compile-and-wait): Use ede-make-command
+
+2009-01-24 zappo <zappo@users.sourceforge.net>
+
+	(cit-version): New variable. (semantic): New require
+
+2008-08-28 safanaj <safanaj@users.sourceforge.net>
+
+	Added gnustep tests
+
+	* test/manual/cedet/cedet-integ-test.el Added stuff to test
+	ede-gnustep via `cit-ede-step-test' defined in cit-gnustep.el.
+	Something is not clear (ede-auto-add-method ???)
+
+2008-08-23 zappo <zappo@users.sourceforge.net>
+
+	Add whitespace at the end of a filled buffer
+
+	* test/manual/cedet/cedet-integ-test.el (cit-srecode-fill-with-stuff):
+	Protect erase-buffer call. Add extra whitespace at end of empty
+	filled buffers.
+
+2008-03-11 zappo <zappo@users.sourceforge.net>
+
+	(cedet-integ-test): Post a PASSED message.
+
+2008-02-24 zappo <zappo@users.sourceforge.net>
+
+	(cit-srec): New require (cedet-integ-test): Call srec test.
+
+2008-02-24 zappo <zappo@users.sourceforge.net>
+
+	Restructure and improve output
+
+	* test/manual/cedet/cedet-integ-test.el (cit-cpp,-el,-texi): Added
+	requires.  (cedet-integ-test): Add in new calls to test support
+	files. (cit-header-tags, cit-src-tags, cit-main-tags,
+	cit-srecode-fill): Moved to cit-cpp.el (cit-srecode-fill-with-stuff):
+	Add empty-dict-entries argument. Add pauses for visual
+	effect. (cit-srecode-verify-tags): Fix to work, and actually throw an
+	error if things don't match up. (cit-tag-verify-error-debug): New
+	support class. (cit-compile-and-wait): New fcn.  Error if compilation
+	fails.
+
+2008-02-19 zappo <zappo@users.sourceforge.net>
+
+	Update comments
+
+	* test/manual/cedet/cedet-integ-test.el (cedet-integ-test)
+	(cit-srecode-fill, cit-srecode-fill-with-stuff): Updated comments.
+
+2008-02-19 zappo <zappo@users.sourceforge.net>
+
+	Integration Tests.
+
+2014-11-24 Eric Ludlam <zappo@gnu.org>
+
+	Test typedef which has the keyword "class" included
+
+	* test/manual/cedet/cedet/semantic/tests/testtypedefs.cpp:
+	(NS2::Myclass, MyClassHandle, dixon): New test w/ a typedef that has
+	keyword "class" included, instead of omitted as with other tests.
+
+2011-04-29 xscript <xscript@users.sourceforge.net>
+
+	Move tests in cedet/semantic
+
+2014-05-23 Eric Ludlam <zappo@gnu.org>
+
+	sample lib srces for dirmatch tests.
+
+2011-08-20 Eric Ludlam <zappo@gnu.org>
+
+	Add comments, require cedet-files.
+
+2011-04-19 xscript <xscript@users.sourceforge.net>
+
+	Synchronize base 'cedet' with Emacs
+
+2015-10-18 Eric Ludlam <eric@siege-engine.com>
+
+	(isFooLike, A, B, main2): New test tweaked from example by Liang Wang
+
+2011-04-29 xscript <xscript@users.sourceforge.net>
+
+	Move tests in cedet/semantic
+
+2013-09-20 David Engster <dengste@eml.cc>
+
+	Fix parsing of default values and display them in default formatter
+
+	* semantic/bovine/c.by (variablearg, varnamelist): Add default values
+	so that it can be later expanded into the tag.
+	(opt-stuff-after-symbol): Rename to 'brackets-after-symbol' and
+	remove empty match.
+	(multi-stage-dereference): Adapt to above rename.
+	(unaryexpression): Use 'symbol' instead of 'namespace-symbol', since
+	the latter also leads to an empty match at the end which would make
+	this too greedy.
+
+	* semantic/format.el (semantic-format-tag-prototype-default):
+	Display default values if available.
+
+	* semantic/test/manual/cedet/test-fmt.cpp: Add default values.
+
+	Parsing of default values for variables and function arguments was
+	broken with the refactoring done in rev. 7622.  While fixing this, it
+	turned out that our parser for expressions like
+
+	char *foo = NULL;
+
+	was too greedy and also covered the semicolon because of empty matches
+	in rules 'opt-stuff-after-symbol' and 'opt-template-specifier',
+	leading to a variable with a default-value of "NULL;". This was fixed
+	by removing the empty match in 'opt-stuff-after-symbol' and using
+	'symbol' instead of 'namespace-symbol'.
+
+2015-04-03 Alastair Rankine <alastair@girtby.net>
+
+	compdb: add project detection tests
+
+2015-03-22 Eric Ludlam <eric@siege-engine.com>
+
+	(ede-detect-utest-init-dirmatch): Force the dirmatch configdatastash to be unbound to force arduino to flush any cached values.
+
+2015-02-15 David Engster <deng@randomsample.de>
+
+	tests: Fix typo in ede/detect-utest
+
+	This worked by chance on Emacs 24.x, but breaks on Emacs 25.
+	*  test/manual/cedet/cedet/ede/detect-utest.el
+
+2014-10-18 Eric Ludlam <zappo@gnu.org>
+
+	Add a final call to ede list sanity check
+
+	* test/manual/cedet/cedet/ede/detect-utest.el:
+	(ede-detect-utest-loop): Add a final call to
+	`ede-global-list-sanity-check'.
+
+2014-08-24 Eric Ludlam <zappo@gnu.org>
+
+	detect-utest.el: (ede-detect-utest-configdir): New fcn (ede-detect-utest-arduino-install): New faux install dir (ede-detect-utest-init-dirmatch): Point at fake intalldir to get fake board.
+
+2014-06-21 Eric Ludlam <zappo@gnu.org>
+
+	Fixes for test execution
+
+	* test/manual/cedet/cedet/ede/detect-utest.el: (ede-detect-entry):
+	Remove `found-state' slot as it was unused. (ede-detect-show-state):
+	When an error in init, show it.  (ede-detect-utest-project-entries):
+	Add a linux driver test added where this dir would detect as generic
+	makefile, but it is in Linux.  (ede-detect-utest-loop): Add better
+	failed load message.
+
+2014-06-05 Eric Ludlam <zappo@gnu.org>
+
+	(ede-detect-utest): Re-run tests with inode optimization disabled.
+
+2014-06-03 Eric Ludlam <zappo@gnu.org>
+
+	Major test restructure
+
+	* test/manual/cedet/cedet/ede/detect-utest.el:
+	(ede-ditect-utest-project-list): Deleted.  Replaced
+	with... (ede-detect-utest-project-entries): New list of entries to
+	test.  (ede-detect-utest-project-dirmatch-list): Deleted.  Replaced
+	with ...  (ede-detect-utest-project-dirmatch-entries): New list of
+	entries to test dirmatch with. (ede-detect-entry): New class for
+	storing test points.  (ede-detect-entry::ede-detect-do-test)
+	(ede-detect-show-state, ede-detect-entry::ede-detect-state)
+	(ede-detect-entry::ede-detect-show-progress): New. ("UTESTCPP",
+	"UTESTJAVA"): Add :name to these projects. (ede-detect-utest):
+	Replace feature unloaded/loaded with calls to
+	`ede-detect-utest-validate-loadstate'. Change variables passed to
+	utest-loop. (ede-detect-utest-loop): Replace old refs into cons cells
+	with refs into the class.  Replace all bit warnings by pushing text
+	into the test entry objects.  Add double-initialze test.  Add call to
+	project rescan.  At end, dump out the state captured during testing.
+	(ede-detect-utest-rescan):
+	New. (ede-detect-utest-validate-loadstate): New, content copied from
+	`ede-detect-utest'. (dirmatchtest autoload): Add root-only as nil.
+
+2014-05-31 Eric Ludlam <zappo@gnu.org>
+
+	(ede-detect-utest-project-list): Add test for generic VC type project. (ede-detect-utest): Add fake autoloader for VC. (ede-detect-utest-generic-vc-p): New.
+
+2014-05-31 Eric Ludlam <zappo@gnu.org>
+
+	(ede-detect-utest-project-list): Add jvm-base projects for ant, lein, maven
+
+2014-05-30 Eric Ludlam <zappo@gnu.org>
+
+	Additions to generic project testing
+
+	* test/manual/cedet/cedet/ede/detect-utest.el:
+	(ede-detect-utest-project-list): Add 3 generic project detection
+	tests. (ede-detect-utest): Enable generic project types.
+	(ede-detect-utest-generic-p): New predicate.
+
+2014-05-23 Eric Ludlam <zappo@gnu.org>
+
+	Added arduino project detection
+
+	* test/manual/cedet/cedet/ede/detect-utest.el:
+	(ede-detect-utest-project-dirmatch-list): Add arduino.  Add subdir
+	tests for dirmatch and arudino. (ede-detect-utest): Also test for
+	arduino lib not loading/loading. (ede-detect-utest-arduino-fname):
+	New.  (ede-detect-utest-init-dirmatch): Reconfigure for reading
+	arduino data out of temp created config files.
+
+2014-05-23 Eric Ludlam <zappo@gnu.org>
+
+	Additions to detection testing
+
+	* test/manual/cedet/cedet/ede/detect-utest.el:
+	(ede-detect-utest-project-list): Doc fix
+	(ede-detect-utest-project-dirmatch-list): New (ede-detect-utest):
+	Split out body.  Pull up start/end logging. Add testing for dirmatch
+	not loaded/loaded.  Add testing for the dirmatch project.
+	(ede-detect-utest-loop): Previous content of above.
+
+2014-05-21 Eric Ludlam <zappo@gnu.org>
+
+	(ede-detect-utest): Change message formatting.
+
+2014-05-18 Eric Ludlam <zappo@gnu.org>
+
+	Added cpproot and java root to detection tests
+
+	* test/manual/cedet/cedet/ede/detect-utest.el:
+	(ede-detect-utest-project-list): Add cpproot and javaroot. Add sub
+	dirs under project and automake types.  (ede-detect-utest-basedir):
+	New function (UTESTCPP, UTESTJAVA): New.  (ede-detect-utest): Improve
+	debug output for failed tests.  (ede-detect-utest-subproj-p,
+	ede-detect-utest-subautomake-p): New.
+
+2014-04-20 Eric Ludlam <zappo@gnu.org>
+
+	New unit test for EDE project detection.
+
+2014-05-31 Eric Ludlam <zappo@gnu.org>
+
+	Test project file.
+
+2011-04-29 xscript <xscript@users.sourceforge.net>
+
+	Move tests in cedet/semantic
+
+2015-01-25 David Engster <deng@randomsample.de>
+
+	semantic/bovine/c: Add support for typedef references
+
+	* semantic/bovine/c.by (typedefname): Also parse optional
+	reference qualifier.
+
+	* semantic/bovine/c.el (semantic-expand-c-tag-namelist): Add :reference
+	attribute for typedefs.
+
+	* tests/cedet/semantic/ert/test-c-parser.el: Add tests for typedefs.
+
+2015-01-25 David Engster <deng@randomsample.de>
+
+	Tests: Add ERT test for the C Bovinator
+
+	* tests/cedet-utests.el (cedet/semantic/ert/test-c-parser): Require.
+	(cedet-utest-test-alist): Add new ERT test.
+
+	* tests/cedet/semantic/ert/test-c-parser.el: New file for testing the C
+	Bovinator. This tests the newly added typed enum rule.
+
+2014-06-03 Eric Ludlam <zappo@gnu.org>
+
+	Fix how the target file name is created
+
+	* test/manual/cedet/cedet/ede/detect-dirtest.el (ede-dirmatch-load):
+	Fix how target file name was created. (project-rescan): New.
+
+2014-05-23 Eric Ludlam <zappo@gnu.org>
+
+	New EDE project for testing dirmatch features.
+
+2014-01-01 Eric Ludlam <zappo@gnu.org>
+
+	Test files contributed by Barry OReilly
+
+	* test/manual/cedet/integ_src/globalref/inc/Util.hh: These test files
+	contributed by Barry OReilly, modified for use in the automated tests
+	for CEDET, and with additional comments.  inc/Util.hh, src/Util.cc:
+	Search symbol both in and outside of namespaces.
+
+2013-02-28 David Engster <dengste@eml.cc>
+
+	Test `this' from in inline member functions
+
+	* tests/cedet/semantic/test/manual/cedet/testsubclass.cpp: Add test
+	for 'this' in inline member function.
+
+2013-02-28 David Engster <dengste@eml.cc>
+
+	Make 'this' a pointer.
+
+	* semantic/bovine/c.el (semantic-get-local-variables): The variable
+	'this' has to be a pointer.
+
+	* tests/cedet/semantic/test/manual/cedet/testsubclass.cpp: Adapt test
+	accordingly.
+
+2011-04-29 xscript <xscript@users.sourceforge.net>
+
+	Move tests in cedet/semantic
+
+2011-04-29 xscript <xscript@users.sourceforge.net>
+
+	Move tests in cedet/semantic
+
+2011-05-15 xscript <xscript@users.sourceforge.net>
+
+	Synchronize cedet/semantic with Emacs.
+
+2014-01-01 Eric Ludlam <zappo@gnu.org>
+
+	Tests contributed by Barry OReilly
+
+	* test/manual/cedet/integ_src/globalref/src/Util.cc: These test files
+	contributed by Barry OReilly, modified for use in the automated tests
+	for CEDET, and with additional comments.  inc/Util.hh, src/Util.cc:
+	Search symbol both in and outside of namespaces.
+
+2011-04-29 xscript <xscript@users.sourceforge.net>
+
+	Move tests in cedet/semantic
+
+2011-05-15 xscript <xscript@users.sourceforge.net>
+
+	Synchronize cedet/semantic with Emacs.
+
+2011-05-15 xscript <xscript@users.sourceforge.net>
+
+	Synchronize cedet/semantic with Emacs.
+
+2014-05-18 Eric Ludlam <zappo@gnu.org>
+
+	Test file for Project.ede proj.
+
+2013-10-27 David Engster <dengste@eml.cc>
+
+	Expand preprocessor to handle macros which open or close scope.
+
+	* semantic/lex-spp.el (semantic-c-end-of-macro): Declare.
+	(semantic-lex-spp-token-macro-to-macro-stream): Deal with macros which
+	open/close a scope.  For this, leave an overlay if we encounter a
+	single open paren and return a semantic-list in the lexer.  When this
+	list gets expanded, retrieve the old position from the overlay.  See
+	the comments in the function for further details.
+	(semantic-lex-spp-find-closing-macro): New function to find the next
+	macro which closes scope (i.e., has a closing paren).
+	(semantic-lex-spp-replace-or-symbol-or-keyword): Go to end of closing
+	macro if necessary.
+	(semantic-lex-spp-paren-or-list): New lexer to specially deal with
+	parens in macro definitions.
+
+	* bovine/c.el (semantic-cpp-lexer): Use new
+	`semantic-lex-spp-paren-or-list'.
+
+	* tests/cedet/semantic/test/manual/cedet/testsppreplace.c:
+	* tests/cedet/semantic/test/manual/cedet/testsppreplaced.c: Add tests for the
+	above.
+
+2013-10-19 David Engster <dengste@eml.cc>
+
+	C/C++: Fix function pointer parsing
+
+	* semantic/bovine/c.by (variablearg-opt-name): Support parsing of
+	function pointers inside an argument list.
+
+	* semantic/bovine/c.el (semantic-c-reconstitute-token): Change
+	handling of function pointers; instead of seeing them as variables,
+	handle them as functions with a 'function-pointer' attribute.  Also,
+	correctly deal with function pointers as function arguments.
+	(semantic-c-reconstitute-function-arglist): New function to parse
+	function pointers inside an argument list.
+	(semantic-format-tag-name): Use 'function-pointer' attribute instead
+	of the old 'functionpointer-flag'.
+
+	* tests/cedet/semantic/test/manual/cedet/testsppreplace.c:
+	* tests/cedet/semantic/test/manual/cedet/testsppreplaced.c: Disable
+	test which now breaks due to improved function pointer parsing.
+	This test is broken anyway, since it just succeeded because the
+	argument list was not parsed at all before this commit.  The
+	underlying bug was always present in the semantic preprocessor.
+
+2011-04-29 xscript <xscript@users.sourceforge.net>
+
+	Move tests in cedet/semantic
+
+2013-11-04 David Engster <dengste@eml.cc>
+
+	Improve test utilities re complation and deletion
+
+	* tests/cedet-integ-test.el (cit-check-compilation-for-error): Use
+	correct format-string.
+	* cedet/semantic/stltest.el: Only delete test file if it exists (which
+	it shouldn't do, but still...).
+
+2013-11-04 David Engster <dengste@eml.cc>
+
+	Make unit tests use randomized file names
+
+	* tests/cedet/semantic/stltest.el:
+	* tests/cedet/semantic/utest-parse.el:
+	* tests/cedet/srecode/fields-utest.el:
+	* tests/cedet/srecode/test-getset.el:
+	* tests/cedet/srecode/test.el:
+	* tests/eieio/eieio-test-persist.el: Make all those tests use
+	`make-temp-name' for their test files, so that tests can run in
+	parallel.
+
+2012-10-27 David Engster <dengste@eml.cc>
+
+	Added new file to test completion on STL classes and namespace.
+
+	* tests/cedet/semantic/stltest.el: New file to test completion on STL
+	classes and namespace.
+
+2011-05-15 xscript <xscript@users.sourceforge.net>
+
+	Synchronize cedet/semantic with Emacs.
+
+2014-05-30 Eric Ludlam <zappo@gnu.org>
+
+	New test file.
+
+2013-10-27 David Engster <dengste@eml.cc>
+
+	Expand preprocessor to handle macros which open or close scope.
+
+	* semantic/lex-spp.el (semantic-c-end-of-macro): Declare.
+	(semantic-lex-spp-token-macro-to-macro-stream): Deal with macros which
+	open/close a scope.  For this, leave an overlay if we encounter a
+	single open paren and return a semantic-list in the lexer.  When this
+	list gets expanded, retrieve the old position from the overlay.  See
+	the comments in the function for further details.
+	(semantic-lex-spp-find-closing-macro): New function to find the next
+	macro which closes scope (i.e., has a closing paren).
+	(semantic-lex-spp-replace-or-symbol-or-keyword): Go to end of closing
+	macro if necessary.
+	(semantic-lex-spp-paren-or-list): New lexer to specially deal with
+	parens in macro definitions.
+
+	* bovine/c.el (semantic-cpp-lexer): Use new
+	`semantic-lex-spp-paren-or-list'.
+
+	* tests/cedet/semantic/test/manual/cedet/testsppreplace.c:
+	* tests/cedet/semantic/test/manual/cedet/testsppreplaced.c: Add tests for the
+	above.
+
+2013-10-19 David Engster <dengste@eml.cc>
+
+	C/C++: Fix function pointer parsing
+
+	* semantic/bovine/c.by (variablearg-opt-name): Support parsing of
+	function pointers inside an argument list.
+
+	* semantic/bovine/c.el (semantic-c-reconstitute-token): Change
+	handling of function pointers; instead of seeing them as variables,
+	handle them as functions with a 'function-pointer' attribute.  Also,
+	correctly deal with function pointers as function arguments.
+	(semantic-c-reconstitute-function-arglist): New function to parse
+	function pointers inside an argument list.
+	(semantic-format-tag-name): Use 'function-pointer' attribute instead
+	of the old 'functionpointer-flag'.
+
+	* tests/cedet/semantic/test/manual/cedet/testsppreplace.c:
+	* tests/cedet/semantic/test/manual/cedet/testsppreplaced.c: Disable
+	test which now breaks due to improved function pointer parsing.
+	This test is broken anyway, since it just succeeded because the
+	argument list was not parsed at all before this commit.  The
+	underlying bug was always present in the semantic preprocessor.  ---
+	tests/cedet/semantic/test/manual/cedet/testsppreplace.c | 8 ++++++++
+	1 file changed, 8 insertions(+)
+
+2011-04-29 xscript <xscript@users.sourceforge.net>
+
+	Move tests in cedet/semantic
+
+2012-12-31 Eric Ludlam <zappo@gnu.org>
+
+	New test file.
+
+2013-03-31 Eric Ludlam <zappo@gnu.org>
+
+	New pretend system include for cpproot test.
+
+2008-08-23 zappo <zappo@users.sourceforge.net>
+
+	How to use the cit-test.sh script.
+
+2011-04-29 xscript <xscript@users.sourceforge.net>
+
+	Move tests in cedet/semantic
+
+2014-10-22 Eric Ludlam <zappo@gnu.org>
+
+	Added arduino and better suggestions
+
+	* test/manual/cedet/cedet/ede/secure-utest.el:
+	(ede-security-project-entries): Add arduino.
+	(ede-security-test-one-entry): Improve an error w/ suggestion on a
+	thing to fix.
+
+2014-10-21 Eric Ludlam <zappo@gnu.org>
+
+	Fixes for security tests
+
+	* test/manual/cedet/cedet/ede/secure-utest.el: (ede-security-entry):
+	Remove init-state, with[out]-permission
+	slots. (ede-security-project-entries): Add generic config based
+	projects. (ede-security-test-one-entry): Add long test for
+	configuration loading, and the security steps involved in making the
+	config load.
+
+2014-10-18 Eric Ludlam <zappo@gnu.org>
+
+	EDE security tests
+
+	Tests for the security system in EDE that marks some project types as
+	unsafe.  This makes sure that the user isn't pestered too much, and
+	that if they say yes or no the right thing happens.
+
+2014-04-20 Eric Ludlam <zappo@gnu.org>
+
+	Fake configure.in for project detection purposes.
+
+2015-01-31 David Engster <deng@randomsample.de>
+
+	eieio: Move to obsolete and use the one that ships with Emacs
+
+	* lisp/eieio: Move to obsolete.
+
+	* etc/fallback-libraries: Add eieio fallback libraries.
+
+	* Makefile (top-level): Remove eieio compilation and add compilation of
+	fallback eieio for Emacs 24.1 and 24.2. Throw error for Emacs 23.x.
+
+	* cedet-devel-load.el: Always require eieio at the top.  Load
+	cedet-compat earlier.  Remove advices for eieio helpers.
+
+	* cedet-remove-builtin.el: eieio must not be removed anymore.
+
+	* semantic/ede-grammar.el (semantic-ede-proj-target-grammar): Remove
+	cedet-compat from aux-packages initform, as it will be loaded by
+	cedet-devel-load anyway.
+	(ede-proj-makefile-insert-variables): Remove eieio from load-path.
+
+	* lisp/cedet/cedet-compat.el: Load fallback eieio for Emacs 24.1 and
+	24.2.  Add new aliases for Emacs 24.3.
+
+	* Project.ede, Makefiles: Remove eieio and regenerate.
+
+	* tests: Remove eieio tests.
+
+2014-01-01 Eric Ludlam <zappo@gnu.org>
+
+	(cit): Add "cit-projvar.el".
+
+2012-09-13 David Engster <dengste@eml.cc>
+
+	Move Speedbar development to Emacs trunk.
+
+	Moved Speedbar, dframe, sb-image and documentation to obsolete.
+	Development of Speedbar now happens solely in Emacs trunk.  This also
+	means that all other CEDET packages now depend on Speedbar from Emacs
+	proper.
+
+2012-03-12 Eric Ludlam <zappo@gnu.org>
+
+	(cit/Lisp): Add cit-projvar.el
+
+2012-02-24 Eric Ludlam <zappo@gnu.org>
+
+	(Lisp): Add cit-arduino
+
+2011-08-02 Eric Ludlam <zappo@gnu.org>
+
+	(Lisp): Add cit-android.el
+
+2010-06-13 zappo <zappo@users.sourceforge.net>
+
+	(Lisp): Add cit-externaldb.el
+
+2010-04-18 zappo <zappo@users.sourceforge.net>
+
+	(Lisp): Add cit-symref.el.
+
+2009-12-26 zappo <zappo@users.sourceforge.net>
+
+	("cit"): Add cit-dist.el
+
+2009-10-16 zappo <zappo@users.sourceforge.net>
+
+	(Lisp): Use preload compiler.
+
+2009-05-30 zappo <zappo@users.sourceforge.net>
+
+	("Lisp"): Added cogre as an aux package.
+
+2009-05-30 zappo <zappo@users.sourceforge.net>
+
+	(Lisp): Add cit-uml.el (Misc): Add cit-uml.cgr
+
+2009-03-01 zappo <zappo@users.sourceforge.net>
+
+	Merge from 1.0pre6 branch
+
+2009-02-24 zappo <zappo@users.sourceforge.net>
+
+	("cit"): Add speedbar aux package.
+
+2009-01-28 zappo <zappo@users.sourceforge.net>
+
+	("cit"): Give it a new name. (Misc): New target.
+
+2009-01-24 zappo <zappo@users.sourceforge.net>
+
+	("Lisp"): Add :versionsource, and :aux-packages
+
+2008-09-04 zappo <zappo@users.sourceforge.net>
+
+	("Lisp"): Add cit-gnustep.el
+
+2008-08-23 zappo <zappo@users.sourceforge.net>
+
+	("ede-proj-project"): Add scripts/cit-test.sh
+
+2008-02-24 zappo <zappo@users.sourceforge.net>
+
+	(Lisp): Add cit-srec.el (templates): New
+
+2008-02-24 zappo <zappo@users.sourceforge.net>
+
+	("Lisp"): Add cit-cpp, cit-el, cit-texi, cit-load
+
+2008-02-19 zappo <zappo@users.sourceforge.net>
+
+	New metaproject
+
+2011-04-29 xscript <xscript@users.sourceforge.net>
+
+	Move tests in cedet/semantic
+
+2011-04-29 xscript <xscript@users.sourceforge.net>
+
+	Move tests in cedet/semantic
+
+2014-04-20 Eric Ludlam <zappo@gnu.org>
+
+	Fake config.h for project detection purposes.
+
+2014-05-23 Eric Ludlam <zappo@gnu.org>
+
+	Test src file for a dirmatch.
+
+2011-04-29 xscript <xscript@users.sourceforge.net>
+
+	Move tests in cedet/semantic
+
+2011-04-29 xscript <xscript@users.sourceforge.net>
+
+	Move tests in cedet/semantic
+
+2011-05-15 xscript <xscript@users.sourceforge.net>
+
+	Synchronize cedet/semantic with Emacs.
+
+2014-01-01 Eric Ludlam <zappo@gnu.org>
+
+	Test files contributed by Barry OReilly
+
+	* test/manual/cedet/integ_src/globalref/test/ManagerTest.hh: These
+	test files contributed by Barry OReilly, modified for use in the
+	automated tests for CEDET, and with additional comments.
+	inc/Util.hh, src/Util.cc: Search symbol both in and outside of
+	namespaces.
+
+2011-04-29 xscript <xscript@users.sourceforge.net>
+
+	Move tests in cedet/semantic
+
+2013-07-28 David Engster <dengste@eml.cc>
+
+	Remove compatibility function `cedet-called-interactively-p'.
+
+	* lisp/cedet/cedet-compat.el (cedet-called-interactively-p): Remove.
+	It is no longer needed since our minimum version is now 23.2, which
+	has `called-interactively-p'.  Also, remove corresponding unit
+	tests.
+
+	* tests/cedet-utests.el (cedet-utest-test-alist): Remove cedet-compat
+	unit tests.
+
+	* All files: Replace `cedet-called-interactively-p' with
+	`called-interactively-p', providing 'any as argument where it was
+	still missing.
+
+2011-11-27 David Engster <dengste@eml.cc>
+
+	Fix interactive unit tests.
+
+	* pulse-utest.el (pulse-test): Use normal overlay functions.
+
+	* cedet-utests.el (chart): Require.
+
+2011-08-20 Eric Ludlam <zappo@gnu.org>
+
+	Add header comments and provide.
+
+2013-03-31 Eric Ludlam <zappo@gnu.org>
+
+	Don't check contents after initial fil
+
+	* test/manual/cedet/cit-texi.el: (cit-srecode-fill-texi): Do not check
+	contents after initial fill.  See comment for why.
+
+2010-09-15 xscript <xscript@users.sourceforge.net>
+
+	Remove obsolete cvs-auto-updated 'X-RCS' line.
+
+2008-02-24 zappo <zappo@users.sourceforge.net>
+
+	Texinfo support for cedet integration tests.
+
+2014-01-01 Eric Ludlam <zappo@gnu.org>
+
+	Test files contributed by Barry OReilly
+
+	* test/manual/cedet/integ_src/globalref/test/ManagerTest.cc: These
+	test files contributed by Barry OReilly, modified for use in the
+	automated tests for CEDET, and with additional comments.
+	inc/Util.hh, src/Util.cc: Search symbol both in and outside of
+	namespaces.
+
+2015-10-18 Eric Ludlam <eric@siege-engine.com>
+
+	Tests for polymorphism
+
+	* test/manual/cedet/cedet/semantic/tests/testpoly.cpp
+	Tests for polymorphism with a couple examples where we could try to
+	disambiguate.
+
+2013-03-31 Eric Ludlam <zappo@gnu.org>
+
+	New include for cpproot test that is in a subdirectory.
+
+2013-11-04 David Engster <dengste@eml.cc>
+
+	Use random temporary directory for integration tests
+
+	* tests/cedet-integ-test.el (cedet-integ-base): Use `make-temp-name'
+	so that integrations tests can run in parallel.
+	(cedet-integ-test-proj): Delete it after usage.
+	(cit-check-compilation-for-error): Show compilation output in
+	batch-mode.
+	* tests/cit-test.sh: Do not remove temporary directory.
+
+2012-01-09 David Engster <dengste@eml.cc>
+
+	Accept any potential project directory during testing
+
+	* tests/cit-test.sh: Set `ede-project-directories' to t during
+	integration tests.
+
+2011-11-15 David Engster <dengste@eml.cc>
+
+	* tests/cit-test.sh: Fix filename for integration test.
+
+2011-11-07 David Engster <dengste@eml.cc>
+
+	* cedet-load.el: Load cogre autoloads.
+
+	* tests/cedet-integ-test.el: Remove gnustep require.
+
+	* tests/cit-android.el: Fix require.
+
+	* tests/cit-test.sh: Fix paths when calling integration test.
+
+2010-10-19 David Engster <dengste@eml.cc>
+
+	* cit-test.sh: Add support for running in batch mode.
+
+2009-08-08 zappo <zappo@users.sourceforge.net>
+
+	Reverse the exist status of Emacs.
+
+2009-08-08 zappo <zappo@users.sourceforge.net>
+
+	Determine the STYLE of test to run. If none passed in, use Make.
+
+2009-05-30 zappo <zappo@users.sourceforge.net>
+
+	Add -f toggle-debug-on-quit flag
+
+2009-02-24 zappo <zappo@users.sourceforge.net>
+
+	Patch from Marcus Harnisch
+
+	* test/manual/cedet/cit-test.sh: (EMACS): Use conditional value from
+	the environment.
+
+2008-08-28 safanaj <safanaj@users.sourceforge.net>
+
+	Remove more temporary directories
+
+	* test/manual/cedet/cit-test.sh: remove more dirs because to test
+	ede-gnustep we need another dir, this is because `ede-new' check the
+	:class-sym that don't match in /tmp/CEDET_INTEG (that contain a
+	ede-proj-project).
+
+2008-03-23 zappo <zappo@users.sourceforge.net>
+
+	Run the tests.
+
+2014-01-01 Eric Ludlam <zappo@gnu.org>
+
+	Test files contributed by Barry OReilly
+
+	These test files contributed by Barry OReilly, modified for use in the
+	automated tests for CEDET, and with additional comments.  inc/Util.hh,
+	src/Util.cc: Search symbol both in and outside of namespaces.
+
+2015-04-07 Eric Ludlam <eric@siege-engine.com>
+
+	Uniquafy names from last example from Martin to include ms_ prefix.
+
+2015-03-22 Eric Ludlam <eric@siege-engine.com>
+
+	(ms_structs, fun): New test example from Marting Stein.
+
+2011-04-29 xscript <xscript@users.sourceforge.net>
+
+	Move tests in cedet/semantic
+
+2013-03-31 Eric Ludlam <zappo@gnu.org>
+
+	(cpprootsys.h, projincmacros.h): New includes (projmacro_a): New fcn.
+
+2012-12-31 Eric Ludlam <zappo@gnu.org>
+
+	New test file.
+
+2010-09-15 xscript <xscript@users.sourceforge.net>
+
+	Remove obsolete cvs-auto-updated 'X-RCS' line.
+
+2010-06-13 zappo <zappo@users.sourceforge.net>
+
+	(cit-symref-quick-find-test): New. (cit-symref-count): Add a small wait of .1.
+
+2010-04-18 zappo <zappo@users.sourceforge.net>
+
+	Semantic Symref testing.
+
+2014-01-01 Eric Ludlam <zappo@gnu.org>
+
+	Add test files
+
+	* test/manual/cedet/integ_src/globalref/src/Manager.cc: These test
+	files contributed by Barry OReilly, modified for use in the automated
+	tests for CEDET, and with additional comments.  inc/Util.hh,
+	src/Util.cc: Search symbol both in and outside of namespaces.
+
+2014-04-18 Eric Ludlam <zappo@gnu.org>
+
+	(func): Add local8 with a ternary conditional.
+
+2014-02-02 David Engster <dengste@eml.cc>
+
+	Fix typo in last commit.
+
+2014-02-02 David Engster <dengste@eml.cc>
+
+	Add test for parsing local variables
+
+	* tests/cedet/semantic/test/manual/cedet/testlocalvars.cpp: New file.
+	* tests/cedet/semantic/test/manual/cedet/Project.ede: Add above.
+	* tests/cedet/semantic/test/manual/cedet/Makefile: Regenerate.
+	* tests/cedet/semantic/ia-utest.el (semantic-ia-utest-file-list): Add
+	new test file.
+
+2011-04-26 xscript <xscript@users.sourceforge.net>
+
+	Synchronize base 'cedet/ede' with Emacs
+
+2013-03-27 Eric Ludlam <zappo@gnu.org>
+
+	Validate project overrides
+
+	* test/manual/cedet/cit-srec.el: (cit-srecode-map-test): Expand tests
+	to validate that project settings correctly override system level
+	templates.
+
+2010-09-15 xscript <xscript@users.sourceforge.net>
+
+	Remove obsolete cvs-auto-updated 'X-RCS' line.
+
+2008-02-24 zappo <zappo@users.sourceforge.net>
+
+	SRecoder feature testing.
+
+2010-09-15 xscript <xscript@users.sourceforge.net>
+
+	Fix paths to current code location.
+
+	* Makefile (CEDET_ELISP_PACKAGES, CEDET_VERSION, recompile)
+	(utest): Fix paths to current code location.
+
+	* cedet-build.el: Idem.
+
+	* tests/Makefile (LOADPATH): Idem.
+
+2010-06-13 zappo <zappo@users.sourceforge.net>
+
+	(Lisp_LISP): Add cit-externaldb.el
+
+2010-04-18 zappo <zappo@users.sourceforge.net>
+
+	(Lisp_LISP): Add cit-symref.el
+
+2009-12-26 zappo <zappo@users.sourceforge.net>
+
+	(Lisp_LISP): Add cit-dist.el
+
+2009-10-16 zappo <zappo@users.sourceforge.net>
+
+	(ELISPPRELOAD): New (Lisp): Use preloads.
+
+2009-05-30 zappo <zappo@users.sourceforge.net>
+
+	(LOADPATH): Add cogre to the load path.
+
+2009-05-30 zappo <zappo@users.sourceforge.net>
+
+	(Lisp_LISP): Add cit-uml.el (Misc_MISC): Add cit-uml.cgr
+
+2009-03-01 zappo <zappo@users.sourceforge.net>
+
+	Merge from 1.0pre6 branch
+
+2009-02-24 zappo <zappo@users.sourceforge.net>
+
+	(LOADPATH): Add speedbar. (EMACSFLAGS): New variable (Lisp): Use above.
+
+2009-01-28 zappo <zappo@users.sourceforge.net>
+
+	(LOADPATH): Add contrib. (Misc): New (dist): Add Misc
+
+2009-01-24 zappo <zappo@users.sourceforge.net>
+
+	(LOADPATH): Added
+
+2008-09-04 zappo <zappo@users.sourceforge.net>
+
+	(Lisp_LISP): Add cit-gnustep.el
+
+2008-08-23 zappo <zappo@users.sourceforge.net>
+
+	(all, dist): Add scripts (scripts): New
+
+2008-02-24 zappo <zappo@users.sourceforge.net>
+
+	(templates_MISC, tempaltes): New (all, dist): add templates
+
+2008-02-24 zappo <zappo@users.sourceforge.net>
+
+	(Lisp_LISP): Add cit-srec.el
+
+2008-02-24 zappo <zappo@users.sourceforge.net>
+
+	(Lisp_LISP): Add cit-cpp, cit-el, cit-texi, cit-load
+
+2008-02-19 zappo <zappo@users.sourceforge.net>
+
+	New Makefile.
+
+2014-11-26 Eric Ludlam <zappo@gnu.org>
+
+	Test friends
+
+	* test/manual/cedet/cedet/semantic/tests/testfriends.cpp:
+	(Af): Add a friend of C w/out the CLASS token. (C): New.  (scA, scB,
+	scC, scD): New test classes. (main): New (scA::PublicMethod,
+	scB::b_pub_method, scC::c_pub_method) (scD::d_pub_method): New.
+
+2011-04-29 xscript <xscript@users.sourceforge.net>
+
+	Move tests in cedet/semantic
+
+2014-04-20 Eric Ludlam <zappo@gnu.org>
+
+	Fake lisp.h for project detection purposes.
+
+2012-03-12 Eric Ludlam <zappo@gnu.org>
+
+	New test for project variables.
+
+2014-05-18 Eric Ludlam <zappo@gnu.org>
+
+	Test Makefile.am for subdir in project-am detector.
+
+2015-04-11 Eric Ludlam <eric@siege-engine.com>
+
+	New test files combining macros and EDE
+
+2011-08-20 Eric Ludlam <zappo@gnu.org>
+
+	Add header comments and provide.
+
+2013-03-27 Eric Ludlam <zappo@gnu.org>
+
+	New template file testing the PROJECT variable setting.
+
+2014-05-31 Eric Ludlam <zappo@gnu.org>
+
+	Test project configuration file.
+
+2015-04-11 Eric Ludlam <eric@siege-engine.com>
+
+	New test files combining macros and EDE
+
+2011-12-01 David Engster <dengste@eml.cc>
+
+	Fix unit testing for several tests and do better error checking.
+
+	* semantic/lex-spp-utests.el (semantic-lex-spp-write-utest):
+	* tests/cedet-utests.el (cedet-utest-eieio-classloader): Throw
+	error if we cannot locate test files.
+
+	* semantic/utest-c.el (semantic-utest-c-compare)
+	(semantic-utest-c-conditionals):
+	* semantic/lex-spp-utest.el (semantic-lex-spp-write-utest): Adapt
+	to new directory structure and do better error checking to avoid
+	silent failures in the future.
+
+2011-08-20 Eric Ludlam <zappo@gnu.org>
+
+	Add header comments and provide.
+
+2013-04-06 Eric Ludlam <zappo@gnu.org>
+
+	Disable saving EDE's cache file.
+
+2012-09-16 Eric Ludlam <zappo@gnu.org>
+
+	Don't init semantic mode at this point
+
+	* test/manual/cedet/cit-load.el: cedet-integ-test.el
+	(cit-srecode-fill-with-stuff): Stop initializing semantic-mode.
+
+	cit-load.el
+	Turn on semantic-mode.
+
+2012-01-16 Eric Ludlam <zappo@gnu.org>
+
+	Disable `ede-project-directories' checking during tests.
+
+2011-11-01 David Engster <dengste@eml.cc>
+
+	First changes to make them work.
+
+	* srecode/filters.el: Remove requires for `srecode/table' and
+	`srecode/insert'. Instead, declare variables and functions
+	explicitly.
+
+	* srecode/insert.el: Add require for `srecode/filters'.
+
+	* tests/cedet-integ-test.el: Fix require `ede/make'. Add
+	`srecode/find', remove cit/gnustep.
+	(cedet-integ-test-GNUStep): Removed for now.
+	(cit-srecode-fill-with-stuff): Activate `semantic-mode'.
+
+	* tests/cit-gnustep.el: Fix require.
+
+	* tests/cit-load.el: Remove Emacs22 compat.
+
+	* tests/cit-test.sh: Fix test call.
+
+2010-09-15 xscript <xscript@users.sourceforge.net>
+
+	Remove obsolete cvs-auto-updated 'X-RCS' line.
+
+2009-10-18 zappo <zappo@users.sourceforge.net>
+
+	(semantic-c): Hack for Emacs 21 to get things running.
+
+2009-03-14 zappo <zappo@users.sourceforge.net>
+
+	Disable semanticdb-file saving. Disable srecode map saving.
+
+2008-03-11 zappo <zappo@users.sourceforge.net>
+
+	(inhibit-splash-screen): Set this.
+
+2008-02-24 zappo <zappo@users.sourceforge.net>
+
+	(cit-src-dir): New var.
+
+2008-02-24 zappo <zappo@users.sourceforge.net>
+
+	Test system load file.
+
+2014-05-30 Eric Ludlam <zappo@gnu.org>
+
+	New test file.
+
 2015-04-06  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
 	* automated/python-tests.el (python-info-assignment-statement-p-1)

@@ -256,7 +256,7 @@ If the error occurs w/ a C or C++ file, rethrow the error."
       (semantic-ia-utest-log "    Unit tests (completions) passed (%d total)"
 			     (- idx 1)))
 
-    ))
+    )))
 
 (defun semantic-ia-utest-buffer-refs ()
   "Run a analyze-refs unit-test pass in the current buffer."
@@ -368,7 +368,7 @@ If the error occurs w/ a C or C++ file, rethrow the error."
       (semantic-ia-utest-log "    Unit tests (refs) passed (%d total)"
 			     (- idx 1)))
 
-    ))
+    )))
 
 (defun semantic-sr-utest-buffer-refs ()
   "Run a symref unit-test pass in the current buffer."
@@ -544,7 +544,7 @@ If the error occurs w/ a C or C++ file, rethrow the error."
       (semantic-ia-utest-log "    Unit tests (symrefs counter) passed (%d total)"
 			     (- idx 1)))
 
-    ))
+    ))))
 
 ;;;###autoload
 (defun semantic-symref-test-count-hits-in-tag ()

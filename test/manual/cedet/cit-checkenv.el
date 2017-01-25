@@ -29,7 +29,6 @@
 (require 'cedet-global)
 (require 'cedet-idutils)
 (require 'cedet-cscope)
-(require 'cedet-java)
 
 (defclass cit-checkenv-test (eieio-named)
   ((testgroup :initarg :testgroup
@@ -115,13 +114,6 @@ If :test is a string, then this is a version string to look for.")
    (cit-checkenv-test "cpp" :testgroup '("Make" "Automake" "cpp") :test "cpp")
    ;; Texinfo
    (cit-checkenv-test "texinfo" :testgroup '("Make" "Automake") :test "makeinfo")
-   ;; Java stuff
-   (cit-checkenv-test "java"
-		      :testgroup "Java"
-		      :test (lambda () (cedet-java-version-check t))
-		      :result t)
-   (cit-checkenv-test "jar" :testgroup "Java" :test "jar")
-   (cit-checkenv-test "javap" :testgroup "Java" :test "javap")
    ;; arduino
    (cit-checkenv-test "arduino" :testgroup "Arduino"
 		      :test (lambda ()
@@ -133,11 +125,6 @@ If :test is a string, then this is a version string to look for.")
 			      (require 'ede/arduino)
 			      (stringp (ede-arduino-Arduino.mk)))
 		      :result t)
-   ;; android
-   (cit-checkenv-test "android-sdk" :testgroup "Android"
-		      :test (lambda () (cedet-android-adb-version-check t))
-		      :result t)
-   (cit-checkenv-test "ant" :testgroup "Android" :test "ant") ;; may be moving off this soon.
     )
   "List of checks to perform to see if this system can run the tests.
 Each entry is a `cit-checkenv-test' object.  See the doc for that

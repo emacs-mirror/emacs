@@ -65,10 +65,10 @@
    (semantic-tag-new-function
     "main" "int"
     (list (semantic-tag-new-variable "argc" "int")
-	  (semantic-tag-new-variable "argv" "char"
-				     nil
-				     :pointer 1
-				     :dereference 1)))
+          (semantic-tag-new-variable "argv" "char"
+                                     nil
+                                     :pointer 1
+                                     :dereference 1)))
    (semantic-tag-new-function "feature1" "int" nil)
    (semantic-tag-new-function "feature2" "int" nil)
    (semantic-tag-new-function "feature3" "int" nil)
@@ -79,9 +79,9 @@
 
 (defvar cit-cpproot-depfiles
   (list (expand-file-name "cpprootsys.h" cit-integ-cpproot-sys-srcdir)
-	(expand-file-name "sppmacros.h" cit-integ-target-cpproot)
-	(expand-file-name "projinc/projincmacros.h" cit-integ-target-cpproot)
-	(expand-file-name "test.h" cit-integ-target-cpproot))
+        (expand-file-name "sppmacros.h" cit-integ-target-cpproot)
+        (expand-file-name "projinc/projincmacros.h" cit-integ-target-cpproot)
+        (expand-file-name "test.h" cit-integ-target-cpproot))
   "List of expected path names to include files found in main.cpp")
 
 (defun cit-ede-cpproot-test ()
@@ -93,7 +93,7 @@
   ;; Copy source files into the cpproot directory
   (condition-case nil
       ;; Emacs 24.2
-	(copy-directory (file-name-as-directory cit-integ-cpproot-srcdir) cit-integ-target-cpproot t t t)
+      (copy-directory (file-name-as-directory cit-integ-cpproot-srcdir) cit-integ-target-cpproot t t t)
 
     ;; Emacs 23
     (error
@@ -106,7 +106,7 @@
    :system-include-path (list cit-integ-cpproot-sys-srcdir)
    :include-path '( "/projinc" )
    :spp-table '( ("FEATURE3" . "1")
-		 ("RANDOM" . "random") )
+                 ("RANDOM" . "random") )
    ;; Note: projincmacros is in the include path and will be found there.
    :spp-files '( "sppmacros.h" "projincmacros.h"))
 
@@ -123,18 +123,18 @@
 
   ;; Test out the include paths by checking the discovered file names for the includes.
   (let ((itag (semantic-find-tags-included (current-buffer)))
-	(expected cit-cpproot-depfiles))
+        (expected cit-cpproot-depfiles))
     (while (and itag expected)
 
       (when (not (string= (car expected)
-			  (semantic-dependency-tag-file (car itag))))
-	(error "Tag: %s found at %s, expected %s"
-	       (semantic-format-tag-name (car itag))
-	       (semantic-dependency-tag-file (car itag))
-	       (car expected)))
+                          (semantic-dependency-tag-file (car itag))))
+        (error "Tag: %s found at %s, expected %s"
+               (semantic-format-tag-name (car itag))
+               (semantic-dependency-tag-file (car itag))
+               (car expected)))
 
       (setq itag (cdr itag)
-	    expected (cdr expected)))
+            expected (cdr expected)))
     (when (or itag expected)
       (error "Number of found include tags does not match number of expected tags.")))
   )

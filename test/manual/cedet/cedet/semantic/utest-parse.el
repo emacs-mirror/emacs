@@ -53,9 +53,13 @@ struct mystruct1 {
   float slot13;
 };
 
-int var1;
+typedef mystruct1 td_name1, td_name2;
 
+extern static inline int var1;
+
+extern \"C\" {
 float funp1(char arg11, char arg12);
+}
 
 char fun2(int arg_21, int arg_22) /*1*/
 {
@@ -123,20 +127,32 @@ int calc_sv(int);
 	(overlay 138 151 "sutest.c")))
       :type "struct")
      nil (overlay 88 154 "sutest.c"))
+    ("td_name2" type
+     (:typedef
+      ("mystruct1" type (:type "class") nil nil)
+      :type "typedef"))
+    ("td_name1" type
+     (:typedef
+      ("mystruct1" type (:type "class") nil nil)
+      :type "typedef"))
     ("var1" variable
-     (:type "int")
+     (:typemodifiers ("extern" "static" "inline")
+      :type "int")
      nil (overlay 156 165 "sutest.c"))
     ("funp1" function
-     (:prototype-flag t :arguments
-		      (("arg11" variable
-			(:type "char")
-			(reparse-symbol arg-sub-list)
-			(overlay 179 190 "sutest.c"))
-		       ("arg12" variable
-			(:type "char")
-			(reparse-symbol arg-sub-list)
-			(overlay 191 202 "sutest.c")))
-		      :type "float")
+     (:typemodifiers ("extern" "\"C\"")
+      :type "float"
+      :arguments
+      (("arg11" variable
+	(:type "char")
+	(reparse-symbol arg-sub-list)
+	(overlay 179 190 "sutest.c"))
+       ("arg12" variable
+	(:type "char")
+	(reparse-symbol arg-sub-list)
+	(overlay 191 202 "sutest.c")))
+      :prototype-flag t
+      )
      nil (overlay 167 203 "sutest.c"))
     ("fun2" function
      (:arguments
@@ -254,6 +270,32 @@ if x:
 x = 2
 y = 3
 r, s, t = 1, 2, '3'
+
+# Test string corner cases.  Note that triple-quoted strings used
+# to depend on font-lock to apply syntax properties to them.
+# Code in the Python lexer that depended on scan-sexps and the
+# like has been replaced with more manual methods to work around
+# this problem.
+def str_test_1():
+    '''This might trip up wisent-python-forward-string: \\''' '''
+
+def str_test_2():
+    ('''Internal apostrophe in PAREN_BLOCK doesn't end this
+    string literal.  If you're using forward-sexp to skip this
+    parenthetical expression, and syntax properties from
+    python-mode haven't been applied, you'll fail to recognize
+    the end of this triple-quoted string because this last
+    apostrophe makes an odd number of apostrophes: ' Now it would
+    look like you have an unterminated string literal starting at
+    the last of these three apostrophes:''')
+
+def str_test_3():
+    \"don't\" \"trip\" \"on\" \"adjacent\" \"strings\"
+
+# str_test_4 is only here to make sure that we're still correctly
+# finding tags after all the preceding tests.
+def str_test_4():
+    pass
 "
 
 
@@ -286,11 +328,9 @@ r, s, t = 1, 2, '3'
       :type "class")
      nil nil)
     ("DocString" type
-     (:members
-      (("\"\"\"Documentation string\"\"\"" code
-	nil (reparse-symbol indented_block_body) nil))
-      :type "class")
-     nil nil) ;; doc "Documentation string"
+     (:documentation "Documentation string"
+      :type          "class")
+     nil nil)
     ("MultipleInheritance" type
      (:superclasses ("Parent1" "Parent2")
       :members
@@ -302,15 +342,21 @@ r, s, t = 1, 2, '3'
       (("method" function
 	(:arguments
 	 (("this" variable
-	   nil (reparse-symbol function_parameters) nil)))
+	   nil (reparse-symbol function_parameters) nil))
+	 :parent
+	 "dummy")
 	(reparse-symbol indented_block_body) nil)
        ("method2" function
-	(:arguments
+	(:parent
+	 "dummy"
+	 :arguments
 	 (("self" variable
 	   nil (reparse-symbol function_parameters) nil)))
 	(reparse-symbol indented_block_body) nil)
        ("method3" function
-	(:arguments
+	(:parent
+	 "dummy"
+	 :arguments
 	 (("self" variable
 	   nil (reparse-symbol function_parameters) nil)
 	  ("a" variable
@@ -400,63 +446,15 @@ r, s, t = 1, 2, '3'
     ("if"      code     nil nil nil)
     ("x"       variable nil nil nil)
     ("y"       variable nil nil nil)
-    ("r, s, t" code     nil nil nil) ;; TODO should be multiple variable tags
+    ("r, s, t" code nil nil nil) ;; TODO should be multiple variable tags
+
+    ;; String tests
+    ("str_test_1" function nil nil nil)
+    ("str_test_2" function nil nil nil)
+    ("str_test_3" function nil nil nil)
+    ("str_test_4" function nil nil nil)
     )
   "List of expected tag names for Python.")
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Data for Java tests
-
-(defvar semantic-utest-Java-buffer-contents
-"
-class JavaTest{
-  void fun1(int a,int b){
-    return a;
-  }
-
-  void fun2(int a,int b){ //1
-    return b;
-  }
-
-}
-"
-)
-
-(defvar semantic-utest-Java-name-contents
-  '(("JavaTest" type
-     (:members
-      (("fun1" function
-        (:arguments
-         (("a" variable
-           (:type "int")
-           (reparse-symbol formal_parameters)
-           (overlay 30 35 "JavaTest.java"))
-	  ("b" variable
-	   (:type "int")
-	   (reparse-symbol formal_parameters)
-	   (overlay 36 41 "JavaTest.java")))
-         :type "void")
-        (reparse-symbol class_member_declaration)
-        (overlay 20 61 "JavaTest.java"))
-       ("fun2" function
-	(:arguments
-	 (("a" variable
-	   (:type "int")
-	   (reparse-symbol formal_parameters)
-	   (overlay 75 80 "JavaTest.java"))
-	  ("b" variable
-	   (:type "int")
-	   (reparse-symbol formal_parameters)
-	   (overlay 81 86 "JavaTest.java")))
-	 :type "void")
-	(reparse-symbol class_member_declaration)
-	(overlay 65 110 "JavaTest.java")))
-      :type "class")
-     nil (overlay 2 113 "JavaTest.java")))
-  "List of expected tag names for Java."
-  )
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -533,16 +531,16 @@ t2:t1 #1
   "
  (define fun1 2)
 
- (define fun2 3  ;1
-              )
+ (define (fun2 n) 3 ) ;1
+
 ")
 
 (defvar semantic-utest-Scheme-name-contents
   '(("fun1" variable
      (:default-value ("2"))
      nil (overlay 3 18 "tst.scm"))
-    ("fun2" variable
-     (:default-value ("3"))
+    ("fun2" function
+     (:arguments ("n"))
      nil (overlay 21 55 "tst.scm")))
   )
 
@@ -808,7 +806,7 @@ INSERTME is the text to be inserted after the deletion."
 
 (defun semantic-utest-Makefile()
   (interactive)
-  (semantic-utest-generic "Makefile" (semantic-utest-fname "Makefile") semantic-utest-Makefile-buffer-contents  semantic-utest-Makefile-name-contents   '("fun2") "#1" "#deleted line")
+  (semantic-utest-generic "Makefile" (semantic-utest-fname "Makefile") semantic-utest-Makefile-buffer-contents  semantic-utest-Makefile-name-contents   '("t2") "#1" "#deleted line")
   )
 
 (defun semantic-utest-Scheme()
@@ -931,21 +929,25 @@ SKIPNAMES includes lists of possible child nodes that should be missing."
 (defun semantic-utest-taglists-equivalent-p (table names skipnames)
   "Compare TABLE and NAMES, where skipnames allow list1 to be different.
 SKIPNAMES is a list of names that should be skipped in the NAMES list."
-  (let ((SN skipnames))
-    (while SN
-      (setq names (remove (car SN) names))
-      (setq SN (cdr SN))))
-  (while (and names table)
-    (if (not (semantic-utest-equivalent-tag-p (car names)
-					      (car table)
-					      skipnames))
-	(error "Expected %s, found %s"
-	       (semantic-format-tag-prototype (car names))
-	       (semantic-format-tag-prototype (car table))))
-    (setq names (cdr names)
-	  table (cdr table)))
-  (when names (error "Items forgotten: %S"
+  (while (or names table)
+    (if (member (semantic-tag-name (car names)) skipnames)
+	(setq names (cdr names)) ;; Skip that name from the list
+
+      (if (not (semantic-utest-equivalent-tag-p (car names)
+						(car table)
+						skipnames))
+	  (progn
+	    (message "In Buffer: %S" (current-buffer))
+	    (message "Content:\n%S" (buffer-string))
+
+	    (error "Expected %s, found %s"
+		   (semantic-format-tag-summarize (car names))
+		   (semantic-format-tag-summarize (car table))))
+	(setq names (cdr names)
+	      table (cdr table)))))
+  (when names (error "Items forgotten: %S\nSkipnames: %S"
 		     (mapcar 'semantic-tag-name names)
+		     skipnames
 		     ))
   (when table (error "Items extra: %S"
 		     (mapcar 'semantic-tag-name table)))
@@ -1023,7 +1025,7 @@ SKIPNAMES is a list of names to remove from NAME-CONTENTS"
 (defun semantic-utest-last-invalid (name-contents names-removed killme insertme)
   "Make the last fcn invalid."
   (semantic-utest-kill-indicator killme insertme)
-;  (semantic-utest-verify-names name-contents names-removed); verify its gone ;new validator doesnt handle skipnames yet
+  (semantic-utest-verify-names name-contents names-removed); verify its gone ;new validator doesnt handle skipnames yet
   (semantic-utest-unkill-indicator);put back killed stuff
   )
 

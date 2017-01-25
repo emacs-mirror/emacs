@@ -185,8 +185,32 @@ MAKE-TYPE is the type of make process to use."
   (cit-run-target "./Prog")
   )
 
-(defun cit-remove-add-to-project-cpp (make-type)
-  "Remve bar.cpp from the current project.
+(defun cit-remove-add-to-project-cpp ()
+  "Remve foo.cpp from the current project.  Add in a new generated file."
+
+  (find-file (cit-file "src/foo.cpp"))
+  ;; Whack the file
+  (ede-remove-file t)
+  (kill-buffer (current-buffer))
+  (delete-file (cit-file "src/foo.cpp"))
+  (delete-file (cit-file "src/foo.o"))
+
+  ;; Make a new one
+  (cit-srecode-fill-with-stuff "src/bar.cpp" cit-src-cpp-tags)
+  (ede-add-file "Prog")
+
+  ;; 1 g) build the sources.
+  ;; Direct compile to test that make fails properly.
+  (compile ede-make-command)
+
+  (cit-wait-for-compilation)
+  (cit-check-compilation-for-error t) ;; That should have errored.
+
+  (cit-compile-and-wait)
+  )
+
+(defun cit-remove-and-do-shared-lib (make-type)
+  "Remove bar.cpp from the current project.
 Create a new shared lib with bar.cpp in it.
 Argument MAKE-TYPE is the type of make project to create."
   (find-file (cit-file "src/bar.cpp"))
@@ -207,13 +231,13 @@ Argument MAKE-TYPE is the type of make project to create."
     (oset mt :linker 'ede-g++-linker-libtool)
     )
 
+
   ;; 1 g) build the sources.
   ;; Direct compile to test that make fails properly.
   (compile ede-make-command)
 
-
   (cit-wait-for-compilation)
-  (cit-check-compilation-for-error t) ;; That should have errored.
+  (cit-check-compilation-for-error t) ;; that should have errored.
 
   (let ((p (ede-current-project)))
     (if (string= make-type "Automake")
@@ -221,43 +245,22 @@ Argument MAKE-TYPE is the type of make project to create."
       (oset p :variables '( ( "CPPFLAGS" . "-I../include") )))
     (ede-commit-project p)
     )
+
   ;; Flip back over to main, and add our new testlib.
-  (find-file (cit-file "src/main.cpp"))
-  (let ((mt ede-object))
+
+  (let* ((buffer (find-file (cit-file "src/main.cpp")))
+	 (mt ede-object))
     (if (string= make-type "Automake")
 	(progn
 	  (oset mt :ldflags '("-L../lib"))
 	  (oset mt :ldlibs '("testlib")))
       ;; FIX THIS
       (oset mt :ldflags '("../lib/bar.o"));;HACK for libtool!
-      ))
-  (cit-compile-and-wait)
-  )
+      )
+    (cit-compile-and-wait)
 
-(defun cit-remove-and-do-shared-lib ()
-  "Remove bar.cpp from the current project.
-Create a new shared lib with bar.cpp in it."
-  (when (string= make-type "Automake")
-
-    (find-file (cit-file "src/bar.cpp"))
-    ;; Whack the file
-    (ede-remove-file t)
-
-    ;; Create a new shared lib target, and add bar.cpp to it.
-    (ede-new-target "testlib" "sharedobject" "n")
-    (ede-add-file "testlib")
-
-    ;; 1 g) build the sources.
-    ;; Direct compile to test that make fails properly.
-    (compile ede-make-command)
-
-  (cit-wait-for-compilation)
-  (cit-check-compilation-for-error t) ;; that should have errored.
-
-  (cit-compile-and-wait)
-
-  ;; Use the local libs version also to make sure it works.
-  (pop-to-buffer "main.cpp")
+    ;; Use the local libs version also to make sure it works.
+    (pop-to-buffer buffer))
   (let ((mt ede-object))
     (if (string= make-type "Automake")
 	(progn
@@ -268,7 +271,7 @@ Create a new shared lib with bar.cpp in it."
       (oset mt :ldflags '("../lib/bar.o"));;HACK for libtool!
       ))
   (cit-compile-and-wait)
-    )
+  )
 
 (provide 'cit-cpp)
 ;;; cit-cpp.el ends here
