@@ -201,8 +201,8 @@ INIT are the initialization parameters for the new template table."
     ;; into the search table first, allowing lower priority items
     ;; to be the items found in the search table.
     (object-sort-list mt 'modetables (lambda (a b)
-				       (> (oref a :priority)
-					  (oref b :priority))))
+				       (> (slot-value a 'priority)
+					  (slot-value b 'priority))))
     ;; Return it.
     new))
 
@@ -239,9 +239,9 @@ Use PREDICATE is the same as for the `sort' function."
 (cl-defmethod srecode-dump ((tab srecode-mode-table))
   "Dump the contents of the SRecode mode table TAB."
   (princ "MODE TABLE FOR ")
-  (princ (oref tab :major-mode))
+  (princ (slot-value tab 'major-mode))
   (princ "\n--------------------------------------------\n\nNumber of tables: ")
-  (let ((subtab (oref tab :tables)))
+  (let ((subtab (slot-value tab 'tables)))
     (princ (length subtab))
     (princ "\n\n")
     (while subtab
@@ -254,17 +254,17 @@ Use PREDICATE is the same as for the `sort' function."
   (princ "Template Table for ")
   (princ (eieio-object-name-string tab))
   (princ "\nPriority: ")
-  (prin1 (oref tab :priority))
-  (when (oref tab :application)
+  (prin1 (slot-value tab 'priority))
+  (when (slot-value tab 'application)
     (princ "\nApplication: ")
-    (princ (oref tab :application)))
-  (when (oref tab :framework)
+    (princ (slot-value tab 'application)))
+  (when (slot-value tab 'framework)
     (princ "\nFramework: ")
-    (princ (oref tab :framework)))
-  (when (oref tab :project)
+    (princ (slot-value tab 'framework)))
+  (when (slot-value tab 'project)
     (require 'srecode/find) ; For srecode-template-table-in-project-p
     (princ "\nProject Directory: ")
-    (princ (oref tab :project))
+    (princ (slot-value tab 'project))
     (when (not (srecode-template-table-in-project-p tab))
       (princ "\n   ** Not Usable in this file. **")))
   (princ "\n\nVariables:\n")

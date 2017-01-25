@@ -548,8 +548,8 @@ A list of defined variables VARS provides a variable table."
 
     (while lp
 
-      (let* ((objname (oref (car lp) :object-name))
-	     (context (oref (car lp) :context))
+      (let* ((objname (slot-value (car lp) 'object-name))
+	     (context (slot-value (car lp) 'context))
 	     (globalname (concat context ":" objname))
 	     )
 
@@ -645,9 +645,9 @@ Argument INDENT specifies the indentation level for the list."
   "Dump the state of the SRecode template inserter INS."
   (princ "INS: \"")
   (princ (eieio-object-name-string ins))
-  (when (oref ins :secondname)
+  (when (slot-value ins 'secondname)
     (princ "\" : \"")
-    (princ (oref ins :secondname)))
+    (princ (slot-value ins 'secondname)))
   (princ "\" type \"")
   (let* ((oc (symbol-name (eieio-object-class ins)))
 	 (junk (string-match "srecode-template-inserter-" oc))

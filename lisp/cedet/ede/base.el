@@ -628,15 +628,15 @@ instead of the current project."
 The other slot will be used to calculate values.
 PROJECT-FILE-NAME is a name of project file (short name, like `pom.xml', etc."
   (when (and (or (not (slot-boundp this :file))
-		 (not (oref this :file)))
+		 (not (slot-value this 'file)))
 	     (slot-boundp this :directory)
-	     (oref this :directory))
-    (oset this :file (expand-file-name project-file-name (oref this :directory))))
+	     (slot-value this 'directory))
+    (oset this :file (expand-file-name project-file-name (slot-value this 'directory))))
   (when (and (or (not (slot-boundp this :directory))
-		 (not (oref this :directory)))
+		 (not (slot-value this 'directory)))
 	     (slot-boundp this :file)
-	     (oref this :file))
-    (oset this :directory (file-name-directory (oref this :file))))
+	     (slot-value this 'file))
+    (oset this :directory (file-name-directory (slot-value this 'file))))
   )
 
 

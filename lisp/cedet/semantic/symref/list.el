@@ -210,7 +210,7 @@ Some useful functions are found in `semantic-format-tag-functions'."
     (erase-buffer)
     ;; Insert the contents.
     (let ((lastfile nil))
-      (dolist (T (oref results :hit-tags))
+      (dolist (T (slot-value results 'hit-tags))
 	(unless (equal lastfile (semantic-tag-file-name T))
 	  (setq lastfile (semantic-tag-file-name T))
 	  (insert-button lastfile

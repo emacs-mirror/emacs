@@ -156,7 +156,7 @@ Adds the following:
       (error "No tag to insert for :texitag template argument"))
 
     ;; Extract the tag out of the compound object.
-    (setq tag (oref tag :prime))
+    (setq tag (slot-value tag 'prime))
 
     ;; Extract the doc string
     (setq doc (semantic-documentation-for-tag tag))

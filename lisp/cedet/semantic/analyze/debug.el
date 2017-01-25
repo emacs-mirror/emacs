@@ -478,7 +478,7 @@ variable `semantic-dependency-system-include-path'."))
 (defun semantic-analyzer-debug-describe-scope (ctxt &optional classconstraint)
   "Describe the scope in CTXT for finding a global symbol.
 Optional argument CLASSCONSTRAINT says to output to tags of that class."
-  (let* ((scope (oref ctxt :scope))
+  (let* ((scope (slot-value ctxt 'scope))
 	 (parents (oref scope parents))
 	 (cc (or classconstraint (oref ctxt prefixclass)))
 	 )

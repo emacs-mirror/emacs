@@ -63,9 +63,9 @@ If FUNCTION is non-nil, then FUNCTION is somehow applied to an
 aspect of the compound value."
   (if (not function)
       ;; Just format it in some handy dandy way.
-      (semantic-format-tag-prototype (oref cp :prime))
+      (semantic-format-tag-prototype (slot-value cp 'prime))
     ;; Otherwise, apply the function to the tag itself.
-    (funcall function (oref cp :prime))
+    (funcall function (slot-value cp 'prime))
     ))
 
 
@@ -106,7 +106,7 @@ variable default values, and other things."
   (srecode-dictionary-set-value dict "TAG" tagobj)
 
   ;; Pull out the tag for the individual pieces.
-  (let ((tag (oref tagobj :prime)))
+  (let ((tag (slot-value tagobj 'prime)))
 
     (srecode-dictionary-set-value dict "NAME" (semantic-tag-name tag))
     (srecode-dictionary-set-value dict "TYPE" (semantic-format-tag-type tag nil))

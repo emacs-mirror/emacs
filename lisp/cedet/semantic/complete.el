@@ -1288,7 +1288,7 @@ Uses semanticdb for searching all tags in the current project."
 	 (localstuff (oref scope scope)))
     (list
      (cons
-      (oref scope :table)
+      (slot-value scope 'table)
       (semantic-find-tags-for-completion prefix localstuff)))))
     ;(semanticdb-brute-deep-find-tags-for-completion prefix (oref obj path))))
 

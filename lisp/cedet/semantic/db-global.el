@@ -192,7 +192,7 @@ Returns a table of all matching tags."
 	   (faketags nil)
 	   )
       (when result
-	(dolist (T (oref result :hit-text))
+	(dolist (T (slot-value result 'hit-text))
 	  ;; We should look up each tag one at a time, but I'm lazy!
 	  ;; Doing this may be good enough.
 	  (setq faketags (cons

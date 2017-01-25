@@ -72,9 +72,9 @@ the current EDE project."
   (interactive)
   (let ((scanned nil))
     (dolist (P ede-projects)
-      (if (member (oref P :directory) scanned)
-	  (error "Duplicate project (by dir) found in %s!" (oref P :directory))
-	(push (oref P :directory) scanned)))
+      (if (member (slot-value P 'directory) scanned)
+	  (error "Duplicate project (by dir) found in %s!" (slot-value P 'directory))
+	(push (slot-value P 'directory) scanned)))
     (unless ede--disable-inode
       (setq scanned nil)
       (dolist (P ede-projects)
@@ -136,7 +136,7 @@ of the anchor file for the project."
   "Get the inode of the directory project PROJ is in."
   (if (slot-boundp proj 'dirinode)
       (oref proj dirinode)
-    (oset proj dirinode (ede--inode-for-dir (oref proj :directory)))))
+    (oset proj dirinode (ede--inode-for-dir (slot-value proj 'directory)))))
 
 (defun ede--inode-get-toplevel-open-project (inode)
   "Return an already open toplevel project that is managing INODE.
@@ -175,7 +175,7 @@ If DIR is the root project, then it is the same."
     (when rootreturn (set rootreturn proj))
     ;; Find subprojects.
     (when (and proj (if ede--disable-inode
-			(not (string= ft (expand-file-name (oref proj :directory))))
+			(not (string= ft (expand-file-name (slot-value proj 'directory))))
 		      (not (equal inode (ede--project-inode proj)))))
       (setq ans (ede-find-subproject-for-directory proj ft)))
     ans))
@@ -191,7 +191,7 @@ If optional EXACT is non-nil, only return exact matches for DIR."
 	(shortans nil))
     (while (and all (not ans))
       ;; Do the check.
-      (let ((pd (expand-file-name (oref (car all) :directory)))
+      (let ((pd (expand-file-name (slot-value (car all) 'directory)))
 	    )
 	(cond
 	 ;; Exact text match.
@@ -203,7 +203,7 @@ If optional EXACT is non-nil, only return exact matches for DIR."
 	      (setq shortans (car all))
 	    ;; We already have a short answer, so see if pd (the match we found)
 	    ;; is longer.  If it is longer, then it is more precise.
-	    (when (< (length (oref shortans :directory))
+	    (when (< (length (slot-value shortans 'directory))
 		     (length pd))
 	      (setq shortans (car all))))
 	  )
@@ -224,7 +224,7 @@ If optional EXACT is non-nil, only return exact matches for DIR."
 	      (setq shortans (car all))
 	    ;; We already have a short answer, so see if pd (the match we found)
 	    ;; is longer.  If it is longer, then it is more precise.
-	    (when (< (length (expand-file-name (oref shortans :directory)))
+	    (when (< (length (expand-file-name (slot-value shortans 'directory)))
 		     (length pd))
 	      (setq shortans (car all))))
 	  )))
@@ -244,7 +244,7 @@ If optional EXACT is non-nil, only return exact matches for DIR."
 	 proj
 	 (lambda (SP)
 	   (when (not ans)
-	     (if (string= fulldir (file-truename (oref SP :directory)))
+	     (if (string= fulldir (file-truename (slot-value SP 'directory)))
 		 (setq ans SP)
 	       (ede-find-subproject-for-directory SP dir)))))
 	ans)
@@ -374,11 +374,11 @@ If DIR is not part of a project, return nil."
      ((and (string= dir default-directory)
 	   ede-object-root-project)
       ;; Try the local buffer cache first.
-      (oref ede-object-root-project :directory))
+      (slot-value ede-object-root-project 'directory))
 
      ;; See if there is an existing project in DIR.
      ((setq ans (ede-directory-get-toplevel-open-project dir))
-      (oref ans :directory))
+      (slot-value ans 'directory))
 
      ;; Detect using our file system detector.
      ((setq ans (ede-detect-directory-for-project dir))

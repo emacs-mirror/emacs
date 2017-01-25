@@ -556,7 +556,7 @@ If there isn't one, create it.
 	(stream nil)
 	)
     (dolist (table (semanticdb-get-database-tables db))
-      (when (eq lmode (oref table :major-mode))
+      (when (eq lmode (slot-value table 'major-mode))
 	(setq stream
 	      (semanticdb-typecache-merge-streams
 	       stream

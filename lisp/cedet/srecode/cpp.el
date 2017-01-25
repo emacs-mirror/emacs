@@ -122,7 +122,7 @@ specified in a C file."
   (srecode-semantic-apply-tag-to-dict-default tag-wrapper dict)
 
   ;; Pull out the tag for the individual pieces.
-  (let* ((tag   (oref tag-wrapper :prime))
+  (let* ((tag   (slot-value tag-wrapper 'prime))
 	 (class (semantic-tag-class tag)))
 
     ;; Add additional information based on the class of the tag.

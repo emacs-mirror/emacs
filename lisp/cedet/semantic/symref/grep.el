@@ -137,7 +137,7 @@ This shell should support pipe redirect syntax."
 (cl-defmethod semantic-symref-perform-search ((tool semantic-symref-tool-grep))
   "Perform a search with Grep."
   ;; Grep doesn't support some types of searches.
-  (let ((st (oref tool :searchtype)))
+  (let ((st (slot-value tool 'searchtype)))
     (when (not (memq st '(symbol regexp)))
       (error "Symref impl GREP does not support searchtype of %s" st))
     )
@@ -147,13 +147,13 @@ This shell should support pipe redirect syntax."
 	 (filepatterns (semantic-symref-derive-find-filepatterns))
          (filepattern (mapconcat #'shell-quote-argument filepatterns " "))
 	 ;; Grep based flags.
-	 (grepflags (cond ((eq (oref tool :resulttype) 'file)
+	 (grepflags (cond ((eq (slot-value tool 'resulttype) 'file)
                            "-l ")
-                          ((eq (oref tool :searchtype) 'regexp)
+                          ((eq (slot-value tool 'searchtype) 'regexp)
                            "-nE ")
                           (t "-n ")))
 	 (greppat (shell-quote-argument
-                   (cond ((eq (oref tool :searchtype) 'regexp)
+                   (cond ((eq (slot-value tool 'searchtype) 'regexp)
                           (oref tool searchfor))
                          (t
                           ;; Can't use the word boundaries: Grep
@@ -195,11 +195,11 @@ This shell should support pipe redirect syntax."
 (cl-defmethod semantic-symref-parse-tool-output-one-line ((tool semantic-symref-tool-grep))
   "Parse one line of grep output, and return it as a match list.
 Moves cursor to end of the match."
-  (cond ((eq (oref tool :resulttype) 'file)
+  (cond ((eq (slot-value tool 'resulttype) 'file)
 	 ;; Search for files
 	 (when (re-search-forward "^\\([^\n]+\\)$" nil t)
 	   (match-string 1)))
-        ((eq (oref tool :resulttype) 'line-and-text)
+        ((eq (slot-value tool 'resulttype) 'line-and-text)
          (when (re-search-forward semantic-symref-grep--line-re nil t)
            (list (string-to-number (match-string 2))
                  (match-string 1)

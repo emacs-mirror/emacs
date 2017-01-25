@@ -104,7 +104,7 @@ Use `semantic-analyze-current-tag' to debug this fcn."
   "Return the implementations derived in the reference analyzer REFS.
 Optional argument IN-BUFFER indicates that the returned tag should be in an active buffer."
   (let ((allhits (oref refs rawsearchdata))
-	(tag (oref refs :tag))
+	(tag (slot-value refs 'tag))
 	(impl nil)
 	)
     (semanticdb-find-result-mapc
@@ -129,7 +129,7 @@ Optional argument IN-BUFFER indicates that the returned tag should be in an acti
   "Return the prototypes derived in the reference analyzer REFS.
 Optional argument IN-BUFFER indicates that the returned tag should be in an active buffer."
   (let ((allhits (oref refs rawsearchdata))
-	(tag (oref refs :tag))
+	(tag (slot-value refs 'tag))
 	(proto nil))
     (semanticdb-find-result-mapc
      (lambda (T DB)

@@ -41,7 +41,7 @@ Argument NEWVERSION is the version number to use in the current project."
 				  v nil v))))
   (let ((ede-object (ede-toplevel)))
     ;; Don't update anything if there was no change.
-    (unless (string= (oref ede-object :version) newversion)
+    (unless (string= (slot-value ede-object 'version) newversion)
       (oset ede-object :version newversion)
       (project-update-version ede-object)
       (ede-update-version-in-source ede-object newversion))))

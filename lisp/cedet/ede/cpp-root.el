@@ -281,7 +281,7 @@ Each directory needs a project file to control it.")
   "Make sure the :file is fully expanded."
   ;; Add ourselves to the master list
   (cl-call-next-method)
-  (let ((f (expand-file-name (oref this :file))))
+  (let ((f (expand-file-name (slot-value this 'file))))
     ;; Remove any previous entries from the main list.
     (let ((old (eieio-instance-tracker-find (file-name-directory f)
 					    :directory 'ede-cpp-root-project-list)))
@@ -457,8 +457,8 @@ This is for project include paths and spp source files."
   "Compile the entire current project PROJ.
 Argument COMMAND is the command to use when compiling."
   ;; we need to be in the proj root dir for this to work
-  (let* ((cmd (oref proj :compile-command))
-	 (ov (oref proj :local-variables))
+  (let* ((cmd (slot-value proj 'compile-command))
+	 (ov (slot-value proj 'local-variables))
 	 (lcmd (when ov (cdr (assoc 'compile-command ov))))
 	 (cmd-str (cond
 		   ((stringp cmd) cmd)
@@ -472,8 +472,8 @@ Argument COMMAND is the command to use when compiling."
 (cl-defmethod project-compile-target ((obj ede-cpp-root-target) &optional command)
   "Compile the current target OBJ.
 Argument COMMAND is the command to use for compiling the target."
-  (when (oref obj :project)
-    (project-compile-project (oref obj :project) command)))
+  (when (slot-value obj 'project)
+    (project-compile-project (slot-value obj 'project) command)))
 
 
 (cl-defmethod project-rescan ((this ede-cpp-root-project))

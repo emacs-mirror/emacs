@@ -86,7 +86,7 @@ Calls `srecode-semantic-apply-tag-to-dict-default' first."
   (srecode-semantic-apply-tag-to-dict-default tagobj dict)
 
   ;; Pull out the tag for the individual pieces.
-  (let* ((tag (oref tagobj :prime))
+  (let* ((tag (slot-value tagobj 'prime))
 	 (doc (semantic-tag-docstring tag)))
 
     ;; It is much more common to have doc on ELisp.

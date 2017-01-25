@@ -161,7 +161,7 @@ Return nil as this inserter will extract nothing."
 Return t if something was extracted.
 Return nil if this inserter doesn't need to extract anything."
   (srecode-dictionary-set-value vdict
-				(oref ins :object-name)
+				(slot-value ins 'object-name)
 				(buffer-substring-no-properties
 				 start end)
 				)
@@ -178,7 +178,7 @@ Return nil if this inserter doesn't need to extract anything."
   "Extract text from START/END and store in INDICT.
 Return the starting location of the first plain-text match.
 Return nil if nothing was extracted."
-  (let ((name (oref ins :object-name))
+  (let ((name (slot-value ins 'object-name))
 	(subdict (srecode-create-dictionary indict))
 	(allsubdict nil)
 	)
@@ -217,10 +217,10 @@ Return nil if nothing was extracted."
   ;; There are two modes for includes.  One is with no dict,
   ;; so it is inserted straight.  If the dict has a name, then
   ;; we need to run once per dictionary occurrence.
-  (if (not (string= (oref ins :object-name) ""))
+  (if (not (string= (slot-value ins 'object-name) ""))
       ;; With a name, do the insertion.
       (let ((subdict (srecode-dictionary-add-section-dictionary
-		      dict (oref ins :object-name))))
+		      dict (slot-value ins 'object-name))))
 	(error "Need to implement include w/ name extractor")
 	;; Recurse into the new template while no errors.
 	(while (condition-case nil

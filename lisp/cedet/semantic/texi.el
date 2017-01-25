@@ -419,9 +419,9 @@ useful.  Instead, look at the current symbol.  If it is a command
 do primitive texinfo built ins.  If not, use ispell to lookup words
 that start with that symbol.
 Any extra FLAGS are currently ignored."
-  (let ((prefix (car (oref context :prefix)))
+  (let ((prefix (car (slot-value context 'prefix)))
 	)
-    (cond ((member 'function (oref context :prefixclass))
+    (cond ((member 'function (slot-value context 'prefixclass))
 	   ;; Do completion for texinfo commands
 	   (let* ((cmd (substring prefix 1))
 		  (lst (all-completions
@@ -429,7 +429,7 @@ Any extra FLAGS are currently ignored."
 	     (mapcar (lambda (f) (semantic-tag (concat "@" f) 'function))
 		     lst))
 	   )
-	  ((member 'word (oref context :prefixclass))
+	  ((member 'word (slot-value context 'prefixclass))
 	   ;; Do completion for words via ispell.
 	   (require 'ispell)
 	   (let ((word-list (ispell-lookup-words prefix)))

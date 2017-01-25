@@ -100,7 +100,7 @@ all template files for that application will be loaded."
   "Return non-nil if the table TAB can be used in the current project.
 If TAB has a :project set, check that the directories match.
 If TAB is nil, then always return t."
-  (let ((proj (oref tab :project)))
+  (let ((proj (slot-value tab 'project)))
     ;; Return t if the project wasn't set.
     (if (not proj) t
       ;; If the project directory was set, let's check it.
@@ -139,10 +139,10 @@ Optional argument APPLICATION restricts searches to only template tables
 belonging to a specific application.  If APPLICATION is nil, then only
 tables that do not belong to an application will be searched."
   (let* ((mt tab)
-	 (tabs (oref mt :tables))
+	 (tabs (slot-value mt 'tables))
 	 (ans nil))
     (while (and (not ans) tabs)
-      (let ((app (oref (car tabs) :application)))
+      (let ((app (slot-value (car tabs) 'application)))
 	(when (or (and (not application) (null app))
 		  (and application (eq app application)))
 	  (setq ans (srecode-template-get-table (car tabs) template-name
@@ -150,7 +150,7 @@ tables that do not belong to an application will be searched."
 	(setq tabs (cdr tabs))))
     (or ans
 	;; Recurse to the default.
-	(when (not (equal (oref tab :major-mode) 'default))
+	(when (not (equal (slot-value tab 'major-mode) 'default))
 	  (srecode-template-get-table (srecode-get-mode-table 'default)
 				      template-name context application)))))
 
@@ -199,10 +199,10 @@ Optional argument APPLICATION restricts searches to only template tables
 belonging to a specific application.  If APPLICATION is nil, then only
 tables that do not belong to an application will be searched."
   (let* ((mt tab)
-	 (tabs (oref mt :tables))
+	 (tabs (slot-value mt 'tables))
 	 (ans nil))
     (while (and (not ans) tabs)
-      (let ((app (oref (car tabs) :application)))
+      (let ((app (slot-value (car tabs) 'application)))
 	(when (or (and (not application) (null app))
 		  (and application (eq app application)))
 	  (setq ans (srecode-template-get-table-for-binding
@@ -210,7 +210,7 @@ tables that do not belong to an application will be searched."
 	(setq tabs (cdr tabs))))
     (or ans
 	;; Recurse to the default.
-	(when (not (equal (oref tab :major-mode) 'default))
+	(when (not (equal (slot-value tab 'major-mode) 'default))
 	  (srecode-template-get-table-for-binding
 	   (srecode-get-mode-table 'default) binding context)))))
 ;;; Interactive
@@ -241,10 +241,10 @@ templates."
 
     ;; Load up the hash table for our current mode.
     (let* ((mt   (srecode-get-mode-table mmode))
-	   (tabs (when mt (oref mt :tables))))
+	   (tabs (when mt (slot-value mt 'tables))))
       (dolist (tab tabs)
 	;; Exclude templates for a particular application.
-	(when (and (not (oref tab :application))
+	(when (and (not (slot-value tab 'application))
 		   (srecode-template-table-in-project-p tab))
 	  (maphash (lambda (key temp)
 		     (when (or (not predicate)

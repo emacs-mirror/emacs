@@ -1903,7 +1903,7 @@ Optional FLAGS are ignored."
       (with-mode-local emacs-lisp-mode
 	(semantic-analyze-possible-completions context))
     (with-current-buffer (oref context buffer)
-      (let* ((prefix (car (reverse (oref context :prefix))))
+      (let* ((prefix (car (reverse (slot-value context 'prefix))))
 	     (completetext (cond ((semantic-tag-p prefix)
 				  (semantic-tag-name prefix))
 				 ((stringp prefix)

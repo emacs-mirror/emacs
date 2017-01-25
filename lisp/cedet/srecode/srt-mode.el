@@ -502,10 +502,10 @@ section or ? for an ask variable."
 		 )
 	    (when inserter
 	      (let ((base
-		     (cons (oref inserter :object-name)
+		     (cons (slot-value inserter 'object-name)
 			   (if (and (slot-boundp inserter :secondname)
-				    (oref inserter :secondname))
-			       (split-string (oref inserter :secondname)
+				    (slot-value inserter 'secondname))
+			       (split-string (slot-value inserter 'secondname)
 					     ":")
 			     nil)))
 		    (key (oref inserter key)))
@@ -629,7 +629,7 @@ section or ? for an ask variable."
   "Return a list of possible completions based on NONTEXT.
 Any extra FLAGS are ignored."
   (with-current-buffer (oref context buffer)
-    (let* ((prefix (car (last (oref context :prefix))))
+    (let* ((prefix (car (last (slot-value context 'prefix))))
 	   (prefixstr (cond ((stringp prefix)
 			     prefix)
 			    ((semantic-tag-p prefix)
@@ -640,7 +640,7 @@ Any extra FLAGS are ignored."
 ;				prefix)
 ;			       ((stringp (car prefix))
 ;				(car prefix))))
-	   (argtype (car (oref context :argument)))
+	   (argtype (car (slot-value context 'argument)))
 	   (matches nil))
 
       ;; Depending on what the analyzer is, we have different ways
