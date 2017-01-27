@@ -507,7 +507,7 @@ lost after dumping")))
                    nil
                  (push `(fset ',s ,(macroexp-quote (symbol-function s)))
                        cmds))))
-           (when (and (boundp s)
+           (when (and (default-boundp s)
                       (not (macroexp--const-symbol-p s 'any-value))
                       ;; I think we don't need/want these!
                       (not (memq s '(terminal-frame obarray
@@ -518,7 +518,7 @@ lost after dumping")))
                                      process-environment
                                      command-line-args noninteractive))))
              ;; FIXME: Handle varaliases!
-             (let ((v (symbol-value s)))
+             (let ((v (default-value s)))
                (push `(set-default
                        ',s
                        ,(cond
@@ -539,6 +539,14 @@ lost after dumping")))
                              ol))
                          (v (macroexp-quote v))))
                      cmds)
+               ;; Local variables: make-variable-buffer-local,
+               ;; make-local-variable, and make-variable-frame-local.
+               ;;
+               ;; We may need better introspection facilities to get
+               ;; this right.  For now, assume only the first kind is
+               ;; in use during loadup.
+               (if (local-variable-if-set-p s)
+                   (push `(make-variable-buffer-local ',s) cmds))
                (if (special-variable-p s)
                    ;; A dummy initializer is needed for defvar to mark
                    ;; the variable as special.
