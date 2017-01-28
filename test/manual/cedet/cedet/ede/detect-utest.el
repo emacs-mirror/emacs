@@ -319,6 +319,10 @@ Optional FLAG is for re-running a subset of tests with an alternate config."
          (format "%s Failures found." (length errlog))))
       ))))
 
+(defun ede-detect-linux-utest ()
+  "Extra tests similar to ede-detect-utest, but by specifying a linux build dir."
+  (ede-detect-utest 'linux))
+
 (defun ede-detect-utest-loop (test-entries FLAG)
   "Test the primary EDE project types."
   (save-excursion

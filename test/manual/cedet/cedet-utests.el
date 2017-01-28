@@ -29,6 +29,7 @@
 (require 'cedet-uutil)
 (require 'inversion-utest)
 (require 'pulse-utest)
+(require 'semantic/fw)
 (require 'cedet-files-utests)
 (require 'cedet/ede/detect-utest)
 (require 'cedet/ede/secure-utest)
@@ -41,7 +42,6 @@
 (require 'cedet/semantic/utest-fw)
 (require 'cedet/semantic/gcc-utest)
 (require 'cedet/semantic/fmt-utest)
-(require 'semantic/wisent/calc)
 (require 'cedet/srecode/test)
 (require 'cedet/srecode/fields-utest)
 (require 'cedet/srecode/test-getset)
@@ -82,7 +82,6 @@
     ("ede: project detection tests" . ede-detect-utest) ;; NOTE: must be before other EDE tests.
     ("ede: project detect linux extra" . ede-detect-linux-utest)
     ("ede: security tests" . ede-security-utest)
-    ("ede: compdb project tests" . compdb-utest)
 
     ;;
     ;; SEMANTIC

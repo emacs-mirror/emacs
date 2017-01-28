@@ -1,0 +1,11 @@
+;; Object proj
+;; EDE Project Files are auto generated: Do Not Edit
+(ede-proj-project "proj"
+  :file "Project.ede"
+  :name "proj"
+  :targets
+  (list
+    (ede-proj-target-makefile-miscelaneous "misc"
+      :name "misc"
+      :path ""
+      :source '("TEST"))))

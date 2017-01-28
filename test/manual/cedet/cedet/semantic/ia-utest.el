@@ -192,10 +192,10 @@ If the error occurs w/ a C or C++ file, rethrow the error."
 	 )
     ;; Keep looking for test points until we run out.
     (while (save-excursion
-	     (setq regex-p ((concat "\\(" comment-start-skip "\\)\\s-*-"
-                                    (number-to-string idx) "-" )
-                            regex-a (concat "\\(" comment-start-skip "\\)\\s-*#"
-                                             (number-to-string idx) "#" ))
+	     (setq regex-p (concat "\\(" comment-start-skip "\\)\\s-*-"
+                                   (number-to-string idx) "-" )
+                   regex-a (concat "\\(" comment-start-skip "\\)\\s-*#"
+                                   (number-to-string idx) "#" ))
 	     (goto-char (point-min))
 	     (save-match-data
 	       (when (re-search-forward regex-p nil t)
@@ -256,7 +256,7 @@ If the error occurs w/ a C or C++ file, rethrow the error."
       (semantic-ia-utest-log "    Unit tests (completions) passed (%d total)"
 			     (- idx 1)))
 
-    )))
+    ))
 
 (defun semantic-ia-utest-buffer-refs ()
   "Run a analyze-refs unit-test pass in the current buffer."
