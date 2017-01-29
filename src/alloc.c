@@ -3221,8 +3221,10 @@ cleanup_vector (struct Lisp_Vector *vector)
   else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_COMPILED)
 	   && vector->contents[COMPILED_JIT_CTXT] != (Lisp_Object )NULL)
     {
+#if HAVE_LIBJIT
       jit_context_t ctxt = (jit_context_t )vector->contents[COMPILED_JIT_CTXT];
       jit_context_destroy (ctxt);
+#endif
       vector->contents[COMPILED_JIT_CTXT] = (Lisp_Object )NULL;
       vector->contents[COMPILED_JIT_CLOSURE] = (Lisp_Object )NULL;
     }
