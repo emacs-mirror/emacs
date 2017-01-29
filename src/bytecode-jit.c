@@ -1588,6 +1588,7 @@ jit_byte_code__ (Lisp_Object byte_code)
     jit_context_build_end (ctxt.libjit_ctxt);
     if (err)
       emacs_abort ();
+    ASET (byte_code, COMPILED_INTERPRETER, (Lisp_Object )jit_exec);
     ASET (byte_code, COMPILED_JIT_CTXT, (Lisp_Object )ctxt.libjit_ctxt);
     ASET (byte_code, COMPILED_JIT_CLOSURE,
 	  (Lisp_Object )jit_function_to_closure (ctxt.func));

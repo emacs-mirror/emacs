@@ -2592,8 +2592,9 @@ enum Lisp_Compiled
     COMPILED_STACK_DEPTH = 3,
     COMPILED_DOC_STRING = 4,
     COMPILED_INTERACTIVE = 5,
-    COMPILED_JIT_CTXT = 6,
-    COMPILED_JIT_CLOSURE = 7
+    COMPILED_INTERPRETER = 6,
+    COMPILED_JIT_CTXT = 7,
+    COMPILED_JIT_CLOSURE = 8
   };
 
 /* Flag bits in a character.  These also get used in termhooks.h.

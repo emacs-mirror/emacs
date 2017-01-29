@@ -3510,6 +3510,7 @@ usage: (make-byte-code ARGLIST BYTE-CODE CONSTANTS DEPTH &optional DOCSTRING INT
 
   /* set rest size so that total footprint = COMPILED_JIT_CLOSURE + 1 */
   XSETPVECTYPESIZE (p, PVEC_COMPILED, size, COMPILED_JIT_CLOSURE + 1 - size);
+  p->contents[COMPILED_INTERPRETER] = (Lisp_Object )exec_byte_code;
   p->contents[COMPILED_JIT_CTXT] = (Lisp_Object )NULL;
   p->contents[COMPILED_JIT_CLOSURE] = (Lisp_Object )NULL;
   XSETCOMPILED (val, p);
