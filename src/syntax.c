@@ -1029,6 +1029,18 @@ It is a copy of the TABLE, which defaults to the standard syntax table.  */)
   return copy;
 }
 
+DEFUN ("internal--set-standard-syntax-table",
+       Finternal_set_standard_syntax_table,
+       Sinternal_set_standard_syntax_table, 1, 1, 0,
+       doc: /* Replace the standard syntax table, used for new buffers.  */)
+  (Lisp_Object table)
+{
+  check_syntax_table (table);
+  Vstandard_syntax_table = table;
+  Fset_char_table_parent (table, Qnil);
+  return table;
+}
+
 DEFUN ("set-syntax-table", Fset_syntax_table, Sset_syntax_table, 1, 1, 0,
        doc: /* Select a new syntax table for the current buffer.
 One argument, a syntax table.  */)
@@ -3769,6 +3781,7 @@ In both cases, LIMIT bounds the search. */);
   defsubr (&Sstring_to_syntax);
   defsubr (&Smodify_syntax_entry);
   defsubr (&Sinternal_describe_syntax_value);
+  defsubr (&Sinternal_set_standard_syntax_table);
 
   defsubr (&Sforward_word);
 
