@@ -1,6 +1,6 @@
 ;;; python-tests.el --- Test suite for python.el
 
-;; Copyright (C) 2013-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2017 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -1155,6 +1155,27 @@ if do:
    (should (= (current-indentation) 6))
    (python-tests-look-at "that)")
    (should (= (current-indentation) 6))))
+
+(ert-deftest python-indent-electric-colon-4 ()
+  "Test indentation case where there is one more-indented previous open block."
+  (python-tests-with-temp-buffer
+   "
+def f():
+    if True:
+        a = 5
+
+        if True:
+            a = 10
+
+        b = 3
+
+else
+"
+   (python-tests-look-at "else")
+   (goto-char (line-end-position))
+   (python-tests-self-insert ":")
+   (python-tests-look-at "else" -1)
+   (should (= (current-indentation) 4))))
 
 (ert-deftest python-indent-region-1 ()
   "Test indentation case from Bug#18843."
@@ -2457,7 +2478,7 @@ if x:
   (python-tests-with-temp-buffer
       " \"\n"
     (goto-char (point-min))
-    (font-lock-fontify-buffer)))
+    (call-interactively 'font-lock-fontify-buffer)))
 
 
 ;;; Shell integration
@@ -3559,6 +3580,9 @@ class Baz(object):
 
         def c(self):
             pass
+
+        async def d(self):
+            pass
 "
    (goto-char (point-max))
    (should (equal
@@ -3580,7 +3604,8 @@ class Baz(object):
               (list
                "Frob (class)"
                (cons "*class definition*" (copy-marker 601))
-               (cons "c (def)" (copy-marker 626)))))
+               (cons "c (def)" (copy-marker 626))
+               (cons "d (async def)" (copy-marker 665)))))
             (python-imenu-create-index)))))
 
 (ert-deftest python-imenu-create-index-2 ()
@@ -3702,6 +3727,9 @@ class Baz(object):
 
         def c(self):
             pass
+
+        async def d(self):
+            pass
 "
    (goto-char (point-max))
    (should (equal
@@ -3714,7 +3742,8 @@ class Baz(object):
                   (cons "Baz.a" (copy-marker 539))
                   (cons "Baz.b" (copy-marker 570))
                   (cons "Baz.Frob" (copy-marker 601))
-                  (cons "Baz.Frob.c" (copy-marker 626)))
+                  (cons "Baz.Frob.c" (copy-marker 626))
+                  (cons "Baz.Frob.d" (copy-marker 665)))
             (python-imenu-create-flat-index)))))
 
 (ert-deftest python-imenu-create-flat-index-2 ()

@@ -1,6 +1,6 @@
 /* Graphical user interface functions for the Microsoft Windows API.
 
-Copyright (C) 1989, 1992-2016 Free Software Foundation, Inc.
+Copyright (C) 1989, 1992-2017 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -778,7 +778,7 @@ w32_color_map_lookup (const char *colorname)
 	  break;
 	}
 
-      QUIT;
+      maybe_quit ();
     }
 
   unblock_input ();
@@ -3166,7 +3166,7 @@ signal_user_input (void)
   if (!NILP (Vthrow_on_input))
     {
       Vquit_flag = Vthrow_on_input;
-      /* Doing a QUIT from this thread is a bad idea, since this
+      /* Calling maybe_quit from this thread is a bad idea, since this
 	 unwinds the stack of the Lisp thread, and the Windows runtime
 	 rightfully barfs.  Disabled.  */
 #if 0
@@ -3174,8 +3174,8 @@ signal_user_input (void)
 	 do it now.  */
       if (immediate_quit && NILP (Vinhibit_quit))
 	{
-	  immediate_quit = 0;
-	  QUIT;
+	  immediate_quit = false;
+	  maybe_quit ();
 	}
 #endif
     }
@@ -9900,7 +9900,8 @@ Set to nil to handle Caps Lock as the `capslock' key.  */);
 	       doc: /* Modifier to use for the Scroll Lock ON state.
 The value can be hyper, super, meta, alt, control or shift for the
 respective modifier, or nil to handle Scroll Lock as the `scroll' key.
-Any other value will cause the Scroll Lock key to be ignored.  */);
+Any other value will cause the Scroll Lock key to be ignored by Emacs,
+and it will have the same effect as in other applications.  */);
   Vw32_scroll_lock_modifier = Qnil;
 
   DEFVAR_LISP ("w32-lwindow-modifier",

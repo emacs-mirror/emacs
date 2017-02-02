@@ -1,6 +1,6 @@
 ;;; dabbrev.el --- dynamic abbreviation package  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1992, 1994, 1996-1997, 2000-2016 Free
+;; Copyright (C) 1985-1986, 1992, 1994, 1996-1997, 2000-2017 Free
 ;; Software Foundation, Inc.
 
 ;; Author: Don Morrison

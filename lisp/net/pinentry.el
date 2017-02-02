@@ -1,6 +1,6 @@
 ;;; pinentry.el --- GnuPG Pinentry server implementation -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2017 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@gnu.org>
 ;; Version: 0.1

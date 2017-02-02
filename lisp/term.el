@@ -1,6 +1,6 @@
 ;;; term.el --- general command interpreter in a window stuff
 
-;; Copyright (C) 1988, 1990, 1992, 1994-1995, 2001-2016 Free Software
+;; Copyright (C) 1988, 1990, 1992, 1994-1995, 2001-2017 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Per Bothner <per@bothner.com>
@@ -341,6 +341,7 @@
 (defconst term-protocol-version "0.96")
 
 (eval-when-compile (require 'ange-ftp))
+(eval-when-compile (require 'cl-lib))
 (require 'ring)
 (require 'ehelp)
 
@@ -404,6 +405,7 @@ state 4: term-terminal-parameter contains pending output.")
 (defvar term-kill-echo-list nil
   "A queue of strings whose echo we want suppressed.")
 (defvar term-terminal-parameter)
+(defvar term-terminal-undecoded-bytes nil)
 (defvar term-terminal-previous-parameter)
 (defvar term-current-face 'term)
 (defvar term-scroll-start 0 "Top-most line (inclusive) of scrolling region.")
@@ -1015,7 +1017,6 @@ Entry to this mode runs the hooks on `term-mode-hook'."
 
   ;; These local variables are set to their local values:
   (make-local-variable 'term-saved-home-marker)
-  (make-local-variable 'term-terminal-parameter)
   (make-local-variable 'term-saved-cursor)
   (make-local-variable 'term-prompt-regexp)
   (make-local-variable 'term-input-ring-size)
@@ -1052,6 +1053,7 @@ Entry to this mode runs the hooks on `term-mode-hook'."
   (make-local-variable 'term-ansi-current-invisible)
 
   (make-local-variable 'term-terminal-parameter)
+  (make-local-variable 'term-terminal-undecoded-bytes)
   (make-local-variable 'term-terminal-previous-parameter)
   (make-local-variable 'term-terminal-previous-parameter-2)
   (make-local-variable 'term-terminal-previous-parameter-3)
@@ -2748,6 +2750,10 @@ See `term-prompt-regexp'."
 
 	  (when term-log-buffer
 	    (princ str term-log-buffer))
+          (when term-terminal-undecoded-bytes
+            (setq str (concat term-terminal-undecoded-bytes str))
+            (setq str-length (length str))
+            (setq term-terminal-undecoded-bytes nil))
 	  (cond ((eq term-terminal-state 4) ;; Have saved pending output.
 		 (setq str (concat term-terminal-parameter str))
 		 (setq term-terminal-parameter nil)
@@ -2763,13 +2769,6 @@ See `term-prompt-regexp'."
 				       str i))
 		   (when (not funny) (setq funny str-length))
 		   (cond ((> funny i)
-			  ;; Decode the string before counting
-			  ;; characters, to avoid garbling of certain
-			  ;; multibyte characters (bug#1006).
-			  (setq decoded-substring
-				(decode-coding-string
-				 (substring str i funny)
-				 locale-coding-system))
 			  (cond ((eq term-terminal-state 1)
 				 ;; We are in state 1, we need to wrap
 				 ;; around.  Go to the beginning of
@@ -2778,7 +2777,31 @@ See `term-prompt-regexp'."
 				 (term-down 1 t)
 				 (term-move-columns (- (term-current-column)))
 				 (setq term-terminal-state 0)))
+			  ;; Decode the string before counting
+			  ;; characters, to avoid garbling of certain
+			  ;; multibyte characters (bug#1006).
+			  (setq decoded-substring
+				(decode-coding-string
+				 (substring str i funny)
+				 locale-coding-system))
 			  (setq count (length decoded-substring))
+                          ;; Check for multibyte characters that ends
+                          ;; before end of string, and save it for
+                          ;; next time.
+                          (when (= funny str-length)
+                            (let ((partial 0))
+                              (while (eq (char-charset (aref decoded-substring
+                                                             (- count 1 partial)))
+                                         'eight-bit)
+                                (cl-incf partial))
+                              (when (> partial 0)
+                                (setq term-terminal-undecoded-bytes
+                                      (substring decoded-substring (- partial)))
+                                (setq decoded-substring
+                                      (substring decoded-substring 0 (- partial)))
+                                (cl-decf str-length partial)
+                                (cl-decf count partial)
+                                (cl-decf funny partial))))
 			  (setq temp (- (+ (term-horizontal-column) count)
 					term-width))
 			  (cond ((or term-suppress-hard-newline (<= temp 0)))
@@ -2878,15 +2901,16 @@ See `term-prompt-regexp'."
 			 ((eq char ?\017))     ; Shift In - ignored
 			 ((eq char ?\^G) ;; (terminfo: bel)
 			  (beep t))
-			 ((and (eq char ?\032)
-                               (not handled-ansi-message))
-			  (let ((end (string-match "\r?$" str i)))
+			 ((eq char ?\032)
+			  (let ((end (string-match "\r?\n" str i)))
 			    (if end
-				(funcall term-command-hook
-					 (decode-coding-string
-					  (prog1 (substring str (1+ i) end)
-					    (setq i (match-end 0)))
-					  locale-coding-system))
+                                (progn
+                                  (unless handled-ansi-message
+                                    (funcall term-command-hook
+                                             (decode-coding-string
+                                              (substring str (1+ i) end)
+                                              locale-coding-system)))
+                                  (setq i (1- (match-end 0))))
 			      (setq term-terminal-parameter (substring str i))
 			      (setq term-terminal-state 4)
 			      (setq i str-length))))

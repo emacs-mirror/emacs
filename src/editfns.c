@@ -1,6 +1,6 @@
 /* Lisp functions pertaining to editing.                 -*- coding: utf-8 -*-
 
-Copyright (C) 1985-1987, 1989, 1993-2016 Free Software Foundation, Inc.
+Copyright (C) 1985-1987, 1989, 1993-2017 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -2136,7 +2136,7 @@ format_time_string (char const *format, ptrdiff_t formatlen,
 
 DEFUN ("decode-time", Fdecode_time, Sdecode_time, 0, 2, 0,
        doc: /* Decode a time value as (SEC MINUTE HOUR DAY MONTH YEAR DOW DST UTCOFF).
-The optional SPECIFIED-TIME should be a list of (HIGH LOW . IGNORED),
+The optional TIME should be a list of (HIGH LOW . IGNORED),
 as from `current-time' and `file-attributes', or nil to use the
 current time.  It can also be a single integer number of seconds since
 the epoch.  The obsolete form (HIGH . LOW) is also still accepted.
@@ -2695,7 +2695,7 @@ called interactively, INHERIT is t.  */)
     string[i] = str[i % len];
   while (n > stringlen)
     {
-      QUIT;
+      maybe_quit ();
       if (!NILP (inherit))
 	insert_and_inherit (string, stringlen);
       else
@@ -3053,14 +3053,13 @@ determines whether case is significant or ignored.  */)
   i2 = begp2;
   i1_byte = buf_charpos_to_bytepos (bp1, i1);
   i2_byte = buf_charpos_to_bytepos (bp2, i2);
+  immediate_quit = true;
 
   while (i1 < endp1 && i2 < endp2)
     {
       /* When we find a mismatch, we must compare the
 	 characters, not just the bytes.  */
       int c1, c2;
-
-      QUIT;
 
       if (! NILP (BVAR (bp1, enable_multibyte_characters)))
 	{
@@ -3093,13 +3092,16 @@ determines whether case is significant or ignored.  */)
 	  c1 = char_table_translate (trt, c1);
 	  c2 = char_table_translate (trt, c2);
 	}
-      if (c1 < c2)
-	return make_number (- 1 - chars);
-      if (c1 > c2)
-	return make_number (chars + 1);
+      if (c1 != c2)
+	{
+	  immediate_quit = false;
+	  return make_number (c1 < c2 ? -1 - chars : chars + 1);
+	}
 
       chars++;
     }
+
+  immediate_quit = false;
 
   /* The strings match as far as they go.
      If one is shorter, that one is less.  */

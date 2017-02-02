@@ -1,6 +1,6 @@
 ;;; dbus-tests.el --- Tests of D-Bus integration into Emacs
 
-;; Copyright (C) 2013-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2017 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 
@@ -22,7 +22,8 @@
 (require 'ert)
 (require 'dbus)
 
-(setq dbus-debug nil)
+(defvar dbus-debug nil)
+(declare-function dbus-get-unique-name "dbusbind.c" (bus))
 
 (defvar dbus--test-enabled-session-bus
   (and (featurep 'dbusbind)

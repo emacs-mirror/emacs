@@ -1,6 +1,6 @@
 ;;; cdl.el --- Common Data Language (CDL) utility functions for GNU Emacs
 
-;; Copyright (C) 1993, 2001-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2001-2017 Free Software Foundation, Inc.
 
 ;; Author: ATAE@spva.physics.imperial.ac.uk (Ata Etemadi)
 ;; Maintainer: emacs-devel@gnu.org

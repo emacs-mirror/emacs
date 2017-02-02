@@ -1,6 +1,6 @@
 ;;; tramp-tests.el --- Tests of remote file access
 
-;; Copyright (C) 2013-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2017 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 
@@ -1991,12 +1991,16 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		 (string-equal
 		  (make-auto-save-file-name)
 		  ;; This is taken from original `make-auto-save-file-name'.
-		  (expand-file-name
-		   (format
-		    "#%s#"
-		    (subst-char-in-string
-		     ?/ ?! (replace-regexp-in-string "!" "!!" tmp-name1)))
-		   temporary-file-directory)))))
+		  ;; We call `convert-standard-filename', because on
+		  ;; MS Windows the (local) colons must be replaced by
+		  ;; exclamation marks.
+		  (convert-standard-filename
+		   (expand-file-name
+		    (format
+		     "#%s#"
+		     (subst-char-in-string
+		      ?/ ?! (replace-regexp-in-string "!" "!!" tmp-name1)))
+		    temporary-file-directory))))))
 
 	    ;; No mapping.
 	    (let (tramp-auto-save-directory auto-save-file-name-transforms)
@@ -2138,7 +2142,7 @@ This does not support special file names."
 
 (defun tramp--test-windows-nt-and-batch ()
   "Check, whether the locale host runs MS Windows in batch mode.
-This does not support scpecial characters."
+This does not support special characters."
   (and (eq system-type 'windows-nt) noninteractive))
 
 (defun tramp--test-windows-nt-and-pscp-psftp-p ()
@@ -2169,18 +2173,6 @@ This requires restrictions of file name syntax."
 	   (process-environment process-environment))
       (unwind-protect
 	  (progn
-	    ;; Add environment variables.
-	    (dolist (elt files)
-	      ;; The check command (heredoc file) does not support
-	      ;; environment variables with leading spaces.
-	      (let* ((elt (replace-regexp-in-string "^\\s-+" "" elt))
-		     (envvar (concat "VAR_" (upcase (md5 elt)))))
-		(setenv envvar elt)))
-
-	    ;; We force a reconnect, in order to have a clean environment.
-	    (tramp-cleanup-connection
-	     (tramp-dissect-file-name tramp-test-temporary-file-directory)
-	     'keep-debug 'keep-password)
 	    (make-directory tmp-name1)
 	    (make-directory tmp-name2)
 
@@ -2310,30 +2302,23 @@ This requires restrictions of file name syntax."
 
 	    ;; Check, that environment variables are set correctly.
 	    (when (and tramp--test-expensive-test (tramp--test-sh-p))
-	      (dolist (elt process-environment)
-		(when (string-match "^VAR_" elt)
-		  (let* ((default-directory tramp-test-temporary-file-directory)
-			 (shell-file-name "/bin/sh")
-			 (heredoc (md5 (current-time-string)))
-			 (envvar (car (split-string elt "=" t)))
-			 (file1 (tramp-compat-file-name-unquote
-				 (expand-file-name "bar" tmp-name1))))
-		    ;; Cleanup.
-		    (ignore-errors (delete-file file1))
-		    ;; Save the variable in a file.  The echo command
-		    ;; does not work properly, it suppresses leading/
-		    ;; trailing spaces as well as tabs.
-		    (shell-command-to-string
-		     (format
-		      "cat <<%s >%s\n$%s\n%s"
-		      heredoc (file-remote-p file1 'localname) envvar heredoc))
-		    (with-temp-buffer
-		      (insert-file-contents file1)
-		      (should
-		       (string-equal
-			(buffer-string) (concat (getenv envvar) "\n"))))
-		    (delete-file file1)
-		    (should-not (file-exists-p file1)))))))
+	      (dolist (elt files)
+		(let ((envvar (concat "VAR_" (upcase (md5 elt))))
+		      (default-directory tramp-test-temporary-file-directory)
+		      (process-environment process-environment))
+		  (setenv envvar elt)
+		  ;; The value of PS1 could confuse Tramp's detection
+		  ;; of process output.  So we unset it temporarily.
+		  (setenv "PS1")
+		  (with-temp-buffer
+		    (should (zerop (process-file "env" nil t nil)))
+		    (goto-char (point-min))
+		    (should
+		     (re-search-forward
+		      (format
+		       "^%s=%s$"
+		       (regexp-quote envvar)
+		       (regexp-quote (getenv envvar))))))))))
 
 	;; Cleanup.
 	(ignore-errors (delete-directory tmp-name1 'recursive))

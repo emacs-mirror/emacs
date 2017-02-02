@@ -1,6 +1,6 @@
 ;;; mh-alias.el --- MH-E mail alias completion and expansion
 
-;; Copyright (C) 1994-1997, 2001-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1997, 2001-2017 Free Software Foundation, Inc.
 
 ;; Author: Peter S. Galbraith <psg@debian.org>
 ;; Maintainer: Bill Wohler <wohler@newt.com>

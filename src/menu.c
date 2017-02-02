@@ -1,6 +1,6 @@
 /* Platform-independent code for terminal communications.
 
-Copyright (C) 1986, 1988, 1993-1994, 1996, 1999-2016 Free Software
+Copyright (C) 1986, 1988, 1993-1994, 1996, 1999-2017 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.

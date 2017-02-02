@@ -1,6 +1,6 @@
 ;;; semantic/wisent/comp.el --- GNU Bison for Emacs - Grammar compiler
 
-;; Copyright (C) 1984, 1986, 1989, 1992, 1995, 2000-2007, 2009-2016 Free
+;; Copyright (C) 1984, 1986, 1989, 1992, 1995, 2000-2007, 2009-2017 Free
 ;; Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>

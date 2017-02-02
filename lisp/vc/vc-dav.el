@@ -1,6 +1,6 @@
 ;;; vc-dav.el --- vc.el support for WebDAV
 
-;; Copyright (C) 2001, 2004-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2004-2017 Free Software Foundation, Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Maintainer: Bill Perry <wmperry@gnu.org>

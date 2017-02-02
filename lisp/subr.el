@@ -1,6 +1,6 @@
 ;;; subr.el --- basic lisp subroutines for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1992, 1994-1995, 1999-2016 Free Software
+;; Copyright (C) 1985-1986, 1992, 1994-1995, 1999-2017 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -383,6 +383,126 @@ configuration."
   "Return the cdr of the cdr of X."
   (declare (compiler-macro internal--compiler-macro-cXXr))
   (cdr (cdr x)))
+
+(defun caaar (x)
+  "Return the `car' of the `car' of the `car' of X."
+  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (car (car (car x))))
+
+(defun caadr (x)
+  "Return the `car' of the `car' of the `cdr' of X."
+  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (car (car (cdr x))))
+
+(defun cadar (x)
+  "Return the `car' of the `cdr' of the `car' of X."
+  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (car (cdr (car x))))
+
+(defun caddr (x)
+  "Return the `car' of the `cdr' of the `cdr' of X."
+  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (car (cdr (cdr x))))
+
+(defun cdaar (x)
+  "Return the `cdr' of the `car' of the `car' of X."
+  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (cdr (car (car x))))
+
+(defun cdadr (x)
+  "Return the `cdr' of the `car' of the `cdr' of X."
+  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (cdr (car (cdr x))))
+
+(defun cddar (x)
+  "Return the `cdr' of the `cdr' of the `car' of X."
+  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (cdr (cdr (car x))))
+
+(defun cdddr (x)
+  "Return the `cdr' of the `cdr' of the `cdr' of X."
+  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (cdr (cdr (cdr x))))
+
+(defun caaaar (x)
+  "Return the `car' of the `car' of the `car' of the `car' of X."
+  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (car (car (car (car x)))))
+
+(defun caaadr (x)
+  "Return the `car' of the `car' of the `car' of the `cdr' of X."
+  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (car (car (car (cdr x)))))
+
+(defun caadar (x)
+  "Return the `car' of the `car' of the `cdr' of the `car' of X."
+  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (car (car (cdr (car x)))))
+
+(defun caaddr (x)
+  "Return the `car' of the `car' of the `cdr' of the `cdr' of X."
+  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (car (car (cdr (cdr x)))))
+
+(defun cadaar (x)
+  "Return the `car' of the `cdr' of the `car' of the `car' of X."
+  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (car (cdr (car (car x)))))
+
+(defun cadadr (x)
+  "Return the `car' of the `cdr' of the `car' of the `cdr' of X."
+  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (car (cdr (car (cdr x)))))
+
+(defun caddar (x)
+  "Return the `car' of the `cdr' of the `cdr' of the `car' of X."
+  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (car (cdr (cdr (car x)))))
+
+(defun cadddr (x)
+  "Return the `car' of the `cdr' of the `cdr' of the `cdr' of X."
+  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (car (cdr (cdr (cdr x)))))
+
+(defun cdaaar (x)
+  "Return the `cdr' of the `car' of the `car' of the `car' of X."
+  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (cdr (car (car (car x)))))
+
+(defun cdaadr (x)
+  "Return the `cdr' of the `car' of the `car' of the `cdr' of X."
+  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (cdr (car (car (cdr x)))))
+
+(defun cdadar (x)
+  "Return the `cdr' of the `car' of the `cdr' of the `car' of X."
+  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (cdr (car (cdr (car x)))))
+
+(defun cdaddr (x)
+  "Return the `cdr' of the `car' of the `cdr' of the `cdr' of X."
+  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (cdr (car (cdr (cdr x)))))
+
+(defun cddaar (x)
+  "Return the `cdr' of the `cdr' of the `car' of the `car' of X."
+  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (cdr (cdr (car (car x)))))
+
+(defun cddadr (x)
+  "Return the `cdr' of the `cdr' of the `car' of the `cdr' of X."
+  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (cdr (cdr (car (cdr x)))))
+
+(defun cdddar (x)
+  "Return the `cdr' of the `cdr' of the `cdr' of the `car' of X."
+  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (cdr (cdr (cdr (car x)))))
+
+(defun cddddr (x)
+  "Return the `cdr' of the `cdr' of the `cdr' of the `cdr' of X."
+  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (cdr (cdr (cdr (cdr x)))))
 
 (defun last (list &optional n)
   "Return the last link of LIST.  Its car is the last element.
@@ -1297,8 +1417,10 @@ be a list of the form returned by `event-start' and `event-end'."
 ;; bug#23850
 (make-obsolete 'string-to-unibyte   "use `encode-coding-string'." "26.1")
 (make-obsolete 'string-as-unibyte   "use `encode-coding-string'." "26.1")
+(make-obsolete 'string-make-unibyte   "use `encode-coding-string'." "26.1")
 (make-obsolete 'string-to-multibyte "use `decode-coding-string'." "26.1")
 (make-obsolete 'string-as-multibyte "use `decode-coding-string'." "26.1")
+(make-obsolete 'string-make-multibyte "use `decode-coding-string'." "26.1")
 
 (defun log10 (x)
   "Return (log X 10), the log base 10 of X."
@@ -1310,8 +1432,7 @@ be a list of the form returned by `event-start' and `event-end'."
 (make-obsolete 'focus-frame "it does nothing." "22.1")
 (defalias 'unfocus-frame 'ignore "")
 (make-obsolete 'unfocus-frame "it does nothing." "22.1")
-(make-obsolete 'make-variable-frame-local
-	       "explicitly check for a frame-parameter instead." "22.2")
+
 (set-advertised-calling-convention
  'all-completions '(string collection &optional predicate) "23.1")
 (set-advertised-calling-convention 'unintern '(name obarray) "23.3")

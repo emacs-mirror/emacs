@@ -1,6 +1,6 @@
 // testdoublens.cpp --- semantic-ia-utest completion engine unit tests
 
-// Copyright (C) 2008-2016 Free Software Foundation, Inc.
+// Copyright (C) 2008-2017 Free Software Foundation, Inc.
 
 // Author: Eric M. Ludlam <eric@siege-engine.com>
 

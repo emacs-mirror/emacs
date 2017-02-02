@@ -1,6 +1,6 @@
 /* NeXT/Open/GNUstep / macOS communication module.      -*- coding: utf-8 -*-
 
-Copyright (C) 1989, 1993-1994, 2005-2006, 2008-2016 Free Software
+Copyright (C) 1989, 1993-1994, 2005-2006, 2008-2017 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -290,7 +290,6 @@ static int select_nfds = 0, select_valid = 0;
 static struct timespec select_timeout = { 0, 0 };
 static int selfds[2] = { -1, -1 };
 static pthread_mutex_t select_mutex;
-static int apploopnr = 0;
 static NSAutoreleasePool *outerpool;
 static struct input_event *emacs_event = NULL;
 static struct input_event *q_event_ptr = NULL;
@@ -4011,15 +4010,6 @@ ns_check_pending_open_menu ()
 }
 #endif /* NS_IMPL_COCOA */
 
-static void
-unwind_apploopnr (Lisp_Object not_used)
-{
-  --apploopnr;
-  n_emacs_events_pending = 0;
-  ns_finish_events ();
-  q_event_ptr = NULL;
-}
-
 static int
 ns_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 /* --------------------------------------------------------------------------
@@ -4032,9 +4022,6 @@ ns_read_socket (struct terminal *terminal, struct input_event *hold_quit)
   int nevents;
 
   NSTRACE_WHEN (NSTRACE_GROUP_EVENTS, "ns_read_socket");
-
-  if (apploopnr > 0)
-    return -1; /* Already within event loop. */
 
 #ifdef HAVE_NATIVE_FS
   check_native_fs ();
@@ -4052,54 +4039,51 @@ ns_read_socket (struct terminal *terminal, struct input_event *hold_quit)
       return i;
     }
 
-  block_input ();
-  n_emacs_events_pending = 0;
-  ns_init_events (&ev);
-  q_event_ptr = hold_quit;
-
-  /* we manage autorelease pools by allocate/reallocate each time around
-     the loop; strict nesting is occasionally violated but seems not to
-     matter.. earlier methods using full nesting caused major memory leaks */
-  [outerpool release];
-  outerpool = [[NSAutoreleasePool alloc] init];
-
-  /* If have pending open-file requests, attend to the next one of those. */
-  if (ns_pending_files && [ns_pending_files count] != 0
-      && [(EmacsApp *)NSApp openFile: [ns_pending_files objectAtIndex: 0]])
+  if ([NSThread isMainThread])
     {
-      [ns_pending_files removeObjectAtIndex: 0];
-    }
-  /* Deal with pending service requests. */
-  else if (ns_pending_service_names && [ns_pending_service_names count] != 0
-    && [(EmacsApp *)
-         NSApp fulfillService: [ns_pending_service_names objectAtIndex: 0]
-                      withArg: [ns_pending_service_args objectAtIndex: 0]])
-    {
-      [ns_pending_service_names removeObjectAtIndex: 0];
-      [ns_pending_service_args removeObjectAtIndex: 0];
-    }
-  else
-    {
-      ptrdiff_t specpdl_count = SPECPDL_INDEX ();
-      /* Run and wait for events.  We must always send one NX_APPDEFINED event
-         to ourself, otherwise [NXApp run] will never exit.  */
-      send_appdefined = YES;
-      ns_send_appdefined (-1);
+      block_input ();
+      n_emacs_events_pending = 0;
+      ns_init_events (&ev);
+      q_event_ptr = hold_quit;
 
-      if (++apploopnr != 1)
+      /* we manage autorelease pools by allocate/reallocate each time around
+         the loop; strict nesting is occasionally violated but seems not to
+         matter.. earlier methods using full nesting caused major memory leaks */
+      [outerpool release];
+      outerpool = [[NSAutoreleasePool alloc] init];
+
+      /* If have pending open-file requests, attend to the next one of those. */
+      if (ns_pending_files && [ns_pending_files count] != 0
+          && [(EmacsApp *)NSApp openFile: [ns_pending_files objectAtIndex: 0]])
         {
-          emacs_abort ();
+          [ns_pending_files removeObjectAtIndex: 0];
         }
-      record_unwind_protect (unwind_apploopnr, Qt);
-      [NSApp run];
-      unbind_to (specpdl_count, Qnil);  /* calls unwind_apploopnr */
-    }
+      /* Deal with pending service requests. */
+      else if (ns_pending_service_names && [ns_pending_service_names count] != 0
+               && [(EmacsApp *)
+                    NSApp fulfillService: [ns_pending_service_names objectAtIndex: 0]
+                                 withArg: [ns_pending_service_args objectAtIndex: 0]])
+        {
+          [ns_pending_service_names removeObjectAtIndex: 0];
+          [ns_pending_service_args removeObjectAtIndex: 0];
+        }
+      else
+        {
+          ptrdiff_t specpdl_count = SPECPDL_INDEX ();
+          /* Run and wait for events.  We must always send one NX_APPDEFINED event
+             to ourself, otherwise [NXApp run] will never exit.  */
+          send_appdefined = YES;
+          ns_send_appdefined (-1);
 
-  nevents = n_emacs_events_pending;
-  n_emacs_events_pending = 0;
-  ns_finish_events ();
-  q_event_ptr = NULL;
-  unblock_input ();
+          [NSApp run];
+        }
+
+      nevents = n_emacs_events_pending;
+      n_emacs_events_pending = 0;
+      ns_finish_events ();
+      q_event_ptr = NULL;
+      unblock_input ();
+    }
 
   return nevents;
 }
@@ -4120,9 +4104,6 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
 
   NSTRACE_WHEN (NSTRACE_GROUP_EVENTS, "ns_select");
 
-  if (apploopnr > 0)
-    return -1; /* Already within event loop. */
-
 #ifdef HAVE_NATIVE_FS
   check_native_fs ();
 #endif
@@ -4142,6 +4123,7 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
     }
 
   if (NSApp == nil
+      || ![NSThread isMainThread]
       || (timeout && timeout->tv_sec == 0 && timeout->tv_nsec == 0))
     return pselect (nfds, readfds, writefds, exceptfds, timeout, sigmask);
 
@@ -4198,17 +4180,8 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
 
   block_input ();
   ns_init_events (&event);
-  if (++apploopnr != 1)
-    {
-      emacs_abort ();
-    }
 
-  {
-    ptrdiff_t specpdl_count = SPECPDL_INDEX ();
-    record_unwind_protect (unwind_apploopnr, Qt);
-    [NSApp run];
-    unbind_to (specpdl_count, Qnil);  /* calls unwind_apploopnr */
-  }
+  [NSApp run];
 
   ns_finish_events ();
   if (nr > 0 && readfds)

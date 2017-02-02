@@ -1,5 +1,5 @@
 /* Lisp functions for making directory listings.
-   Copyright (C) 1985-1986, 1993-1994, 1999-2016 Free Software
+   Copyright (C) 1985-1986, 1993-1994, 1999-2017 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -21,7 +21,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 
 #include <stdio.h>
-#include <sys/types.h>
 #include <sys/stat.h>
 
 #ifdef HAVE_PWD_H
@@ -140,7 +139,7 @@ read_dirent (DIR *dir, Lisp_Object dirname)
 #endif
 	  report_file_error ("Reading directory", dirname);
 	}
-      QUIT;
+      maybe_quit ();
     }
 }
 
@@ -249,13 +248,13 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
 
       /* Now that we have unwind_protect in place, we might as well
 	 allow matching to be interrupted.  */
-      immediate_quit = 1;
-      QUIT;
+      immediate_quit = true;
+      maybe_quit ();
 
       bool wanted = (NILP (match)
 		     || re_search (bufp, SSDATA (name), len, 0, len, 0) >= 0);
 
-      immediate_quit = 0;
+      immediate_quit = false;
 
       if (wanted)
 	{
@@ -509,7 +508,7 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
       ptrdiff_t len = dirent_namelen (dp);
       bool canexclude = 0;
 
-      QUIT;
+      maybe_quit ();
       if (len < SCHARS (encoded_file)
 	  || (scmp (dp->d_name, SSDATA (encoded_file),
 		    SCHARS (encoded_file))

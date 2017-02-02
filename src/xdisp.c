@@ -1,6 +1,6 @@
 /* Display generation from window structure and buffer text.
 
-Copyright (C) 1985-1988, 1993-1995, 1997-2016 Free Software Foundation,
+Copyright (C) 1985-1988, 1993-1995, 1997-2017 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -1250,27 +1250,18 @@ default_line_pixel_height (struct window *w)
 static Lisp_Object
 string_from_display_spec (Lisp_Object spec)
 {
-  if (CONSP (spec))
+  if (VECTORP (spec))
     {
-      while (CONSP (spec))
-	{
-	  if (STRINGP (XCAR (spec)))
-	    return XCAR (spec);
-	  spec = XCDR (spec);
-	}
+      for (ptrdiff_t i = 0; i < ASIZE (spec); i++)
+	if (STRINGP (AREF (spec, i)))
+	  return AREF (spec, i);
     }
-  else if (VECTORP (spec))
+  else
     {
-      ptrdiff_t i;
-
-      for (i = 0; i < ASIZE (spec); i++)
-	{
-	  if (STRINGP (AREF (spec, i)))
-	    return AREF (spec, i);
-	}
-      return Qnil;
+      for (; CONSP (spec); spec = XCDR (spec))
+	if (STRINGP (XCAR (spec)))
+	  return XCAR (spec);
     }
-
   return spec;
 }
 
@@ -13049,6 +13040,17 @@ hscroll_window_tree (Lisp_Object window)
 	      init_to_row_start (&it, w, cursor_row);
 	      it.last_visible_x = INFINITY;
 	      move_it_in_display_line_to (&it, pt, -1, MOVE_TO_POS);
+	      /* If the line ends in an overlay string with a newline,
+		 we might infloop, because displaying the window will
+		 want to put the cursor after the overlay, i.e. at X
+		 coordinate of zero on the next screen line.  So we
+		 use the buffer position prior to the overlay string
+		 instead.  */
+	      if (it.method == GET_FROM_STRING && pt > 1)
+		{
+		  init_to_row_start (&it, w, cursor_row);
+		  move_it_in_display_line_to (&it, pt - 1, -1, MOVE_TO_POS);
+		}
 	      current_buffer = saved_current_buffer;
 
 	      /* Position cursor in window.  */
@@ -22633,7 +22635,7 @@ move_elt_to_front (Lisp_Object elt, Lisp_Object list)
       else
 	prev = tail;
       tail = XCDR (tail);
-      QUIT;
+      maybe_quit ();
     }
 
   /* Not found--return unchanged LIST.  */

@@ -1,6 +1,6 @@
 ;;; ada-prj.el --- GUI editing of project files for the ada-mode
 
-;; Copyright (C) 1998-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2017 Free Software Foundation, Inc.
 
 ;; Author: Emmanuel Briot <briot@gnat.com>
 ;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
@@ -24,17 +24,13 @@
 
 ;;; Commentary:
 
-;;; This package provides a set of functions to easily edit the project
-;;; files used by the ada-mode.
-;;; The only function publicly available here is `ada-customize'.
-;;; See the documentation of the Ada mode for more information on the project
-;;; files.
-;;; Internally, a project file is represented as a property list, with each
-;;; field of the project file matching one property of the list.
-
-
-;;; History:
-;;
+;; This package provides a set of functions to easily edit the project
+;; files used by the ada-mode.
+;; The only function publicly available here is `ada-customize'.
+;; See the documentation of the Ada mode for more information on the project
+;; files.
+;; Internally, a project file is represented as a property list, with each
+;; field of the project file matching one property of the list.
 
 ;;; Code:
 
@@ -45,7 +41,8 @@
 (require 'ada-xref)
 
 (eval-when-compile
-   (require 'ada-mode))
+  (require 'ada-mode))
+(eval-when-compile (require 'cl-lib))
 
 ;; ----- Buffer local variables -------------------------------------------
 
@@ -125,7 +122,7 @@ If the current value of FIELD is the default value, return an empty string."
   (let ((file-name (or (plist-get ada-prj-current-values 'filename)
 		       (read-file-name "Save project as: ")))
 	output)
-    (set 'output
+    (setq output
 	 (concat
 
 	  ;;  Save the fields that do not depend on the current buffer
@@ -176,7 +173,7 @@ If the current value of FIELD is the default value, return an empty string."
     (kill-buffer "*Edit Ada Mode Project*")
 
     ;; automatically set the new project file as the active one
-    (set 'ada-prj-default-project-file file-name)
+    (setq ada-prj-default-project-file file-name)
 
     ;; force Emacs to reread the project files
     (ada-reread-prj-file file-name)
@@ -195,12 +192,12 @@ One item per line should be found in the file."
       (widen)
       (goto-char (point-min))
       (while (not (eobp))
-	(set 'line (buffer-substring-no-properties (point) (point-at-eol)))
-	(add-to-list 'list line)
+	(setq line (buffer-substring-no-properties (point) (point-at-eol)))
+	(cl-pushnew line list :test #'equal)
 	(forward-line 1))
       (kill-buffer nil)
       (set-buffer buffer)
-      (set 'ada-prj-current-values
+      (setq ada-prj-current-values
 	   (plist-put ada-prj-current-values
 		      symbol
 		      (append (plist-get ada-prj-current-values symbol)
@@ -215,8 +212,8 @@ One item per line should be found in the file."
       (if (file-directory-p (car subdirs))
 	  (let ((sub (ada-prj-subdirs-of (car subdirs))))
 	    (if sub
-		(set 'dirlist (append sub dirlist)))))
-      (set 'subdirs (cdr subdirs)))
+		(setq dirlist (append sub dirlist)))))
+      (setq subdirs (cdr subdirs)))
     dirlist))
 
 (defun ada-prj-load-directory (field &optional file-name)
@@ -227,9 +224,9 @@ If FILE-NAME is nil, ask the user for the name."
   ;;  the user to select a directory
   (let ((use-dialog-box nil))
     (unless file-name
-      (set 'file-name (read-directory-name "Root directory: " nil nil t))))
+      (setq file-name (read-directory-name "Root directory: " nil nil t))))
 
-  (set 'ada-prj-current-values
+  (setq ada-prj-current-values
        (plist-put ada-prj-current-values
 		  field
 		  (append (plist-get ada-prj-current-values field)
@@ -551,7 +548,7 @@ converted to a directory name."
 Remaining args DUMMY are ignored.
 Save the change in `ada-prj-current-values' so that selecting
 another page and coming back keeps the new value."
-  (set 'ada-prj-current-values
+  (setq ada-prj-current-values
        (plist-put ada-prj-current-values
 		  (widget-get widget ':prj-field)
 		  (widget-value widget))))
@@ -621,7 +618,7 @@ AFTER-TEXT is inserted just after the widget."
 	(inhibit-read-only t)
 	widget)
     (unless value
-      (set 'value
+      (setq value
 	   (if is-list  '() "")))
     (widget-insert text)
     (widget-insert ":")
@@ -649,7 +646,7 @@ AFTER-TEXT is inserted just after the widget."
 			 "Load Recursive Directory")
 	  (widget-insert "\n           ${build_dir}\n")))
 
-    (set 'widget
+    (setq widget
 	 (if is-list
 	     (if (< (length value) 15)
 		 (widget-create 'editable-list

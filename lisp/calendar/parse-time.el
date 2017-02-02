@@ -1,6 +1,6 @@
 ;;; parse-time.el --- parsing time strings
 
-;; Copyright (C) 1996, 2000-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2000-2017 Free Software Foundation, Inc.
 
 ;; Author: Erik Naggum <erik@naggum.no>
 ;; Keywords: util
@@ -202,7 +202,7 @@ any values that are unknown are returned as nil."
 	 (time-minute 2digit)
 	 (time-second 2digit)
 	 (time-secfrac "\\(\\.[0-9]+\\)?")
-	 (time-numoffset (concat "[-+]\\(" time-hour "\\):" time-minute))
+	 (time-numoffset (concat "\\([-+]\\)" time-hour ":?" time-minute "?"))
 	 (time-offset (concat "Z" time-numoffset))
 	 (partial-time (concat time-hour colon time-minute colon time-second
 			       time-secfrac))
@@ -211,19 +211,22 @@ any values that are unknown are returned as nil."
 	 (date-time (concat full-date "T" full-time)))
     (list (concat "^" full-date)
 	  (concat "T" partial-time)
-	  (concat "Z" time-numoffset)))
+	  (concat "\\(Z\\|" time-numoffset "\\)")))
   "List of regular expressions matching ISO 8601 dates.
 1st regular expression matches the date.
 2nd regular expression matches the time.
 3rd regular expression matches the (optional) timezone specification.")
 
 (defun parse-iso8601-time-string (date-string)
+  "Parse an ISO 8601 time string, such as 2016-12-01T23:35:06-05:00.
+If DATE-STRING cannot be parsed, it falls back to
+`parse-time-string'."
   (let* ((date-re (nth 0 parse-time-iso8601-regexp))
 	 (time-re (nth 1 parse-time-iso8601-regexp))
 	 (tz-re (nth 2 parse-time-iso8601-regexp))
-	 re-start
-	 time seconds minute hour fractional-seconds
-	 day month year day-of-week dst tz)
+         re-start
+         time seconds minute hour fractional-seconds
+         day month year day-of-week dst tz)
     ;; We need to populate 'time' with
     ;; (SEC MIN HOUR DAY MON YEAR DOW DST TZ)
 
@@ -242,10 +245,19 @@ any values that are unknown are returned as nil."
                                                     "0"))
 	      re-start (match-end 0))
 	(when (string-match tz-re date-string re-start)
-	  (setq tz (match-string 1 date-string)))
+          (if (string= "Z" (match-string 1 date-string))
+              (setq tz 0)  ;; UTC timezone indicated by Z
+            (setq tz (+
+                      (* 3600
+                         (string-to-number (match-string 3 date-string)))
+                      (* 60
+                         (string-to-number
+                          (or (match-string 4 date-string) "0")))))
+            (when (string= "-" (match-string 2 date-string))
+              (setq tz (- tz)))))
 	(setq time (list seconds minute hour day month year day-of-week dst tz))))
 
-    ;; Fall back to having Gnus do fancy things for us.
+    ;; Fall back to having `parse-time-string' do fancy things for us.
     (when (not time)
       (setq time (parse-time-string date-string)))
 

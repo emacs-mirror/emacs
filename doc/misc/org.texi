@@ -259,7 +259,7 @@
 @copying
 This manual is for Org version @value{VERSION}.
 
-Copyright @copyright{} 2004--2016 Free Software Foundation, Inc.
+Copyright @copyright{} 2004--2017 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -12955,7 +12955,7 @@ Copyright information is printed on the back of the title page.
 
   This is a short example of a complete Texinfo file, version 1.0.
 
-  Copyright \copy 2016 Free Software Foundation, Inc.
+  Copyright \copy 2017 Free Software Foundation, Inc.
 @end example
 
 @subsubheading The Top node

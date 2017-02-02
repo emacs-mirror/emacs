@@ -1,6 +1,6 @@
 /* X Communication module for terminals which understand the X protocol.
 
-Copyright (C) 1989, 1993-2016 Free Software Foundation, Inc.
+Copyright (C) 1989, 1993-2017 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -635,7 +635,7 @@ x_cr_export_frames (Lisp_Object frames, cairo_surface_type_t surface_type)
 	(*surface_set_size_func) (surface, width, height);
 
       unblock_input ();
-      QUIT;
+      maybe_quit ();
       block_input ();
     }
 
@@ -10993,19 +10993,12 @@ xembed_send_message (struct frame *f, Time t, enum xembed_message msg,
 
 /* Change of visibility.  */
 
-/* This tries to wait until the frame is really visible.
-   However, if the window manager asks the user where to position
-   the frame, this will return before the user finishes doing that.
-   The frame will not actually be visible at that time,
-   but it will become visible later when the window manager
-   finishes with it.  */
+/* This function sends the request to make the frame visible, but may
+   return before it the frame's visibility is changed.  */
 
 void
 x_make_frame_visible (struct frame *f)
 {
-  int original_top, original_left;
-  int tries = 0;
-
   block_input ();
 
   x_set_bitmap_icon (f);
@@ -11052,16 +11045,13 @@ x_make_frame_visible (struct frame *f)
      before we do anything else.  We do this loop with input not blocked
      so that incoming events are handled.  */
   {
-    Lisp_Object frame;
     /* This must be before UNBLOCK_INPUT
        since events that arrive in response to the actions above
        will set it when they are handled.  */
     bool previously_visible = f->output_data.x->has_been_visible;
 
-    XSETFRAME (frame, f);
-
-    original_left = f->left_pos;
-    original_top = f->top_pos;
+    int original_left = f->left_pos;
+    int original_top = f->top_pos;
 
     /* This must come after we set COUNT.  */
     unblock_input ();
@@ -11104,46 +11094,6 @@ x_make_frame_visible (struct frame *f)
 		       original_left, original_top);
 
 	unblock_input ();
-      }
-
-    /* Process X events until a MapNotify event has been seen.  */
-    while (!FRAME_VISIBLE_P (f))
-      {
-	/* Force processing of queued events.  */
-	x_sync (f);
-
-        /* If on another desktop, the deiconify/map may be ignored and the
-           frame never becomes visible.  XMonad does this.
-           Prevent an endless loop.  */
-        if (FRAME_ICONIFIED_P (f) &&  ++tries > 100)
-          break;
-
-       /* This hack is still in use at least for Cygwin.  See
-	   http://lists.gnu.org/archive/html/emacs-devel/2013-12/msg00351.html.
-
-	   Machines that do polling rather than SIGIO have been
-	   observed to go into a busy-wait here.  So we'll fake an
-	   alarm signal to let the handler know that there's something
-	   to be read.  We used to raise a real alarm, but it seems
-	   that the handler isn't always enabled here.  This is
-	   probably a bug.  */
-	if (input_polling_used ())
-	  {
-	    /* It could be confusing if a real alarm arrives while
-	       processing the fake one.  Turn it off and let the
-	       handler reset it.  */
-	    int old_poll_suppress_count = poll_suppress_count;
-	    poll_suppress_count = 1;
-	    poll_for_input_1 ();
-	    poll_suppress_count = old_poll_suppress_count;
-	  }
-
-	if (XPending (FRAME_X_DISPLAY (f)))
-	  {
-	    XEvent xev;
-	    XNextEvent (FRAME_X_DISPLAY (f), &xev);
-	    x_dispatch_event (&xev, FRAME_X_DISPLAY (f));
-	  }
       }
   }
 }
@@ -12762,6 +12712,13 @@ x_initialize (void)
   /* Try to use interrupt input; if we can't, then start polling.  */
   Fset_input_interrupt_mode (Qt);
 
+#if THREADS_ENABLED
+  /* This must be called before any other Xlib routines.  */
+  if (XInitThreads () == 0)
+    fprintf (stderr,
+	     "Warning: An error occurred initializing X11 thread support!\n");
+#endif
+
 #ifdef USE_X_TOOLKIT
   XtToolkitInitialize ();
 
@@ -12920,7 +12877,7 @@ keysyms.  The default is nil, which is the same as `super'.  */);
   Vx_keysym_table = make_hash_table (hashtest_eql, make_number (900),
 				     make_float (DEFAULT_REHASH_SIZE),
 				     make_float (DEFAULT_REHASH_THRESHOLD),
-				     Qnil);
+				     Qnil, Qnil);
 
   DEFVAR_BOOL ("x-frame-normalize-before-maximize",
 	       x_frame_normalize_before_maximize,

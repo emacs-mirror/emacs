@@ -1,6 +1,6 @@
 ;;; rcompile.el --- run a compilation on a remote machine
 
-;; Copyright (C) 1993-1994, 2001-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2017 Free Software Foundation, Inc.
 
 ;; Author: Alon Albert <alon@milcse.rtsg.mot.com>
 ;; Maintainer: emacs-devel@gnu.org

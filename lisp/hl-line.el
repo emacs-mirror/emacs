@@ -1,6 +1,6 @@
 ;;; hl-line.el --- highlight the current line  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998, 2000-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000-2017 Free Software Foundation, Inc.
 
 ;; Author:  Dave Love <fx@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -189,7 +189,8 @@ Specifically, when `hl-line-sticky-flag' is nil deactivate all
 such overlays in all buffers except the current one."
   (let ((hlob hl-line-overlay-buffer)
         (curbuf (current-buffer)))
-    (when (and (not hl-line-sticky-flag)
+    (when (and (buffer-live-p hlob)
+               (not hl-line-sticky-flag)
                (not (eq curbuf hlob))
                (not (minibufferp)))
       (with-current-buffer hlob

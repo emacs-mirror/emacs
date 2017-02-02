@@ -1,6 +1,6 @@
 ;;; completion-tests.el --- Tests for completion functions  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2013-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2017 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords:
@@ -28,7 +28,7 @@
 
 (ert-deftest completion-test1 ()
   (with-temp-buffer
-    (cl-flet* ((test/completion-table (string pred action)
+    (cl-flet* ((test/completion-table (_string _pred action)
                                       (if (eq action 'lambda)
                                           nil
                                         "test: "))

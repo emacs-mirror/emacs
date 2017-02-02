@@ -1,6 +1,6 @@
 ;;; tvi970.el --- terminal support for the Televideo 970
 
-;; Copyright (C) 1992, 2001-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 2001-2017 Free Software Foundation, Inc.
 
 ;; Author: Jim Blandy <jimb@occs.cs.oberlin.edu>
 ;; Keywords: terminals

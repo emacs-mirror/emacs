@@ -2,7 +2,7 @@
    Coded by Manabu Higashida, 1991.
    Modified by Morten Welinder, 1993-1994.
 
-Copyright (C) 1991, 1994-1995, 1997, 1999, 2001-2016 Free Software
+Copyright (C) 1991, 1994-1995, 1997, 1999, 2001-2017 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.

@@ -1,6 +1,6 @@
 /* Synchronous subprocess invocation for GNU Emacs.
 
-Copyright (C) 1985-1988, 1993-1995, 1999-2016 Free Software Foundation,
+Copyright (C) 1985-1988, 1993-1995, 1999-2017 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -32,7 +32,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 
 #ifdef WINDOWSNT
-#define NOMINMAX
 #include <sys/socket.h>	/* for fcntl */
 #include <windows.h>
 #include "w32.h"
@@ -199,11 +198,11 @@ call_process_cleanup (Lisp_Object buffer)
     {
       kill (-synch_process_pid, SIGINT);
       message1 ("Waiting for process to die...(type C-g again to kill it instantly)");
-      immediate_quit = 1;
-      QUIT;
+      immediate_quit = true;
+      maybe_quit ();
       wait_for_termination (synch_process_pid, 0, 1);
       synch_process_pid = 0;
-      immediate_quit = 0;
+      immediate_quit = false;
       message1 ("Waiting for process to die...done");
     }
 #endif	/* !MSDOS */
@@ -727,8 +726,8 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
       process_coding.src_multibyte = 0;
     }
 
-  immediate_quit = 1;
-  QUIT;
+  immediate_quit = true;
+  maybe_quit ();
 
   if (0 <= fd0)
     {
@@ -770,7 +769,7 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
 	    }
 
 	  /* Now NREAD is the total amount of data in the buffer.  */
-	  immediate_quit = 0;
+	  immediate_quit = false;
 
 	  if (!nread)
 	    ;
@@ -844,7 +843,7 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
 	      display_on_the_fly = true;
 	    }
 	  immediate_quit = true;
-	  QUIT;
+	  maybe_quit ();
 	}
     give_up: ;
 
@@ -861,7 +860,7 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
   wait_for_termination (pid, &status, fd0 < 0);
 #endif
 
-  immediate_quit = 0;
+  immediate_quit = false;
 
   /* Don't kill any children that the subprocess may have left behind
      when exiting.  */

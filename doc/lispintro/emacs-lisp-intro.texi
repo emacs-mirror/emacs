@@ -113,7 +113,7 @@ Edition @value{edition-number}, @value{update-date}
 Distributed with Emacs version @value{EMACSVER}.
 @end ifnottex
 @sp 1
-Copyright @copyright{} 1990--1995, 1997, 2001--2016 Free Software
+Copyright @copyright{} 1990--1995, 1997, 2001--2017 Free Software
 Foundation, Inc.
 @sp 1
 

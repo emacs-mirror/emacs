@@ -1,6 +1,6 @@
 /* Lisp parsing and input streams.
 
-Copyright (C) 1985-1989, 1993-1995, 1997-2016 Free Software Foundation,
+Copyright (C) 1985-1989, 1993-1995, 1997-2017 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -451,7 +451,7 @@ readbyte_from_file (int c, Lisp_Object readcharfun)
   while (c == EOF && ferror (instream) && errno == EINTR)
     {
       unblock_input ();
-      QUIT;
+      maybe_quit ();
       block_input ();
       clearerr (instream);
       c = getc (instream);
@@ -1702,14 +1702,14 @@ build_load_history (Lisp_Object filename, bool entire)
 		     			  Fcons (newelt, XCDR (tem))));
 
 		  tem2 = XCDR (tem2);
-		  QUIT;
+		  maybe_quit ();
 		}
 	    }
 	}
       else
 	prev = tail;
       tail = XCDR (tail);
-      QUIT;
+      maybe_quit ();
     }
 
   /* If we're loading an entire file, cons the new assoc onto the
@@ -2536,7 +2536,7 @@ read_integer (Lisp_Object readcharfun, EMACS_INT radix)
       *p = '\0';
     }
 
-  if (! valid)
+  if (valid != 1)
     {
       sprintf (buf, "integer, radix %"pI"d", radix);
       invalid_syntax (buf);
@@ -2599,7 +2599,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 	      Lisp_Object val = Qnil;
 	      /* The size is 2 * number of allowed keywords to
 		 make-hash-table.  */
-	      Lisp_Object params[10];
+	      Lisp_Object params[12];
 	      Lisp_Object ht;
 	      Lisp_Object key = Qnil;
 	      int param_count = 0;
@@ -2635,6 +2635,11 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 	      params[param_count + 1] = Fplist_get (tmp, Qrehash_threshold);
 	      if (!NILP (params[param_count + 1]))
 		param_count += 2;
+
+              params[param_count] = QCpurecopy;
+              params[param_count + 1] = Fplist_get (tmp, Qpurecopy);
+              if (!NILP (params[param_count + 1]))
+                param_count += 2;
 
 	      /* This is the hash table data.  */
 	      data = Fplist_get (tmp, Qdata);
@@ -4116,7 +4121,7 @@ OBARRAY defaults to the value of `obarray'.  */)
   return Qnil;
 }
 
-#define OBARRAY_SIZE 1511
+#define OBARRAY_SIZE 15121
 
 void
 init_obarray (void)
@@ -4849,6 +4854,7 @@ that are loaded before your customizations are read!  */);
   DEFSYM (Qdata, "data");
   DEFSYM (Qtest, "test");
   DEFSYM (Qsize, "size");
+  DEFSYM (Qpurecopy, "purecopy");
   DEFSYM (Qweakness, "weakness");
   DEFSYM (Qrehash_size, "rehash-size");
   DEFSYM (Qrehash_threshold, "rehash-threshold");

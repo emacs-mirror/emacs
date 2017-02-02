@@ -488,6 +488,8 @@ Bob Rogers: changed vc-dir.el vc-svn.el cperl-mode.el diff.el ewoc.el
 
 Bob Weiner: changed info.el quail.el
 
+Bogdan Creanga: changed sequences.texi strings.texi symbols.texi
+
 Bojan Petrovic: changed pop3.el
 
 Boris Goldowsky: wrote avoid.el descr-text.el enriched.el facemenu.el
@@ -2943,7 +2945,7 @@ Martin Pohlack: changed iimage.el pc-select.el
 Martin Rudalics: changed window.el window.c windows.texi frame.c w32fns.c
   xdisp.c w32term.c xterm.c frames.texi xfns.c frame.el help.el buffer.c
   display.texi cus-start.el dispnew.c mouse.el window.h dired.el nsfns.m
-  frame.h and 177 other files
+  frame.h and 178 other files
 
 Martin Stjernholm: wrote cc-bytecomp.el
 and co-wrote cc-align.el cc-cmds.el cc-compat.el cc-defs.el cc-engine.el
@@ -3054,7 +3056,7 @@ Michael Albinus: wrote auto-revert-tests.el dbus-tests.el dbus.el
   tramp-tests.el url-tramp.el vc-tests.el xesam.el zeroconf.el
 and co-wrote tramp-cache.el tramp-sh.el tramp.el
 and changed tramp.texi dbusbind.c trampver.el trampver.texi tramp-adb.el
-  ange-ftp.el dbus.texi files.el tramp-fish.el autorevert.el files.texi
+  ange-ftp.el dbus.texi files.el autorevert.el tramp-fish.el files.texi
   tramp-imap.el notifications.el os.texi configure.ac lisp.h
   gfilenotify.c tramp-vc.el keyboard.c lisp/Makefile.in simple.el
   and 125 other files

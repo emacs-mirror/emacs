@@ -1,6 +1,6 @@
 # Files that Git should ignore in the Emacs source directory.
 
-# Copyright 2009-2016 Free Software Foundation, Inc.
+# Copyright 2009-2017 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -288,5 +288,6 @@ lib/SYS/
 /site-lisp/
 nt/emacs.rc
 nt/emacsclient.rc
+nt/gnulib.mk
 src/gdb.ini
 /var/

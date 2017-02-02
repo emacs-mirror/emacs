@@ -1,6 +1,6 @@
 /* xalloc-oversized.h -- memory allocation size checking
 
-   Copyright (C) 1990-2000, 2003-2004, 2006-2016 Free Software Foundation, Inc.
+   Copyright (C) 1990-2000, 2003-2004, 2006-2017 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -20,11 +20,6 @@
 
 #include <stddef.h>
 #include <stdint.h>
-
-/* Default for (non-Clang) compilers that lack __has_builtin.  */
-#ifndef __has_builtin
-# define __has_builtin(x) 0
-#endif
 
 /* True if N * S would overflow in a size_t calculation,
    or would generate a value larger than PTRDIFF_MAX.
@@ -46,13 +41,10 @@ typedef size_t __xalloc_count_type;
    positive and N must be nonnegative.  This is a macro, not a
    function, so that it works correctly even when SIZE_MAX < N.  */
 
-#if 7 <= __GNUC__ || __has_builtin (__builtin_add_overflow_p)
+#if 7 <= __GNUC__
 # define xalloc_oversized(n, s) \
    __builtin_mul_overflow_p (n, s, (__xalloc_count_type) 1)
-#elif ((5 <= __GNUC__ \
-        || (__has_builtin (__builtin_mul_overflow) \
-            && __has_builtin (__builtin_constant_p))) \
-       && !__STRICT_ANSI__)
+#elif 5 <= __GNUC__ && !__STRICT_ANSI__
 # define xalloc_oversized(n, s) \
    (__builtin_constant_p (n) && __builtin_constant_p (s) \
     ? __xalloc_oversized (n, s) \

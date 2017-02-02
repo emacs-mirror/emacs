@@ -1,6 +1,6 @@
 ;;; mm-uu.el --- Return uu stuff as mm handles
 
-;; Copyright (C) 1998-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2017 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 ;; Keywords: postscript uudecode binhex shar forward gnatsweb pgp
@@ -711,6 +711,7 @@ Assume text has been decoded if DECODED is non-nil."
 		    ;; Mutt still uses application/pgp even though
 		    ;; it has already been withdrawn.
 		    (string-match "\\`text/\\|\\`application/pgp\\'" type)
+		    (not (string-match "/x-\\(?:diff\\|patch\\)\\'" type))
                     (equal (car (mm-handle-disposition handle))
                            "inline")
 		    (setq

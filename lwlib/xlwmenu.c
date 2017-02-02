@@ -1,7 +1,7 @@
 /* Implements a lightweight menubar widget.
 
 Copyright (C) 1992 Lucid, Inc.
-Copyright (C) 1994-1995, 1997, 1999-2016 Free Software Foundation, Inc.
+Copyright (C) 1994-1995, 1997, 1999-2017 Free Software Foundation, Inc.
 
 This file is part of the Lucid Widget Library.
 

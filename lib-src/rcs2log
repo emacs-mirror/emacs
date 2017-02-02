@@ -2,7 +2,7 @@
 
 # RCS to ChangeLog generator
 
-# Copyright (C) 1992-1998, 2001-2016 Free Software Foundation, Inc.
+# Copyright (C) 1992-1998, 2001-2017 Free Software Foundation, Inc.
 
 # Author: Paul Eggert <eggert@twinsun.com>
 
@@ -20,7 +20,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-Copyright='Copyright (C) 2016 Free Software Foundation, Inc.
+Copyright='Copyright (C) 2017 Free Software Foundation, Inc.
 This program comes with NO WARRANTY, to the extent permitted by law.
 You may redistribute copies of this program
 under the terms of the GNU General Public License.

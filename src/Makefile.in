@@ -1,6 +1,6 @@
 ### @configure_input@
 
-# Copyright (C) 1985, 1987-1988, 1993-1995, 1999-2016 Free Software
+# Copyright (C) 1985, 1987-1988, 1993-1995, 1999-2017 Free Software
 # Foundation, Inc.
 
 # This file is part of GNU Emacs.
@@ -38,9 +38,6 @@ CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 EXEEXT = @EXEEXT@
 version = @version@
-# Substitute an assignment for the MAKE variable, because
-# BSD doesn't have it as a default.
-@SET_MAKE@
 MKDIR_P = @MKDIR_P@
 # Don't use LIBS.  configure puts stuff in it that either shouldn't be
 # linked with Emacs or is duplicated by the other stuff below.

@@ -1,6 +1,6 @@
 ;;; nndoc.el --- single file access for Gnus
 
-;; Copyright (C) 1995-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2017 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -356,14 +356,18 @@ from the document.")
       (setq nndoc-dissection-alist nil)
       (with-current-buffer nndoc-current-buffer
 	(erase-buffer)
-	(if (and (stringp nndoc-address)
-		 (string-match nndoc-binary-file-names nndoc-address))
-	    (let ((coding-system-for-read 'binary))
-	      (mm-insert-file-contents nndoc-address))
-	  (if (stringp nndoc-address)
-	      (nnheader-insert-file-contents nndoc-address)
-	    (insert-buffer-substring nndoc-address))
-	  (run-hooks 'nndoc-open-document-hook)))))
+	(condition-case error
+	    (if (and (stringp nndoc-address)
+		     (string-match nndoc-binary-file-names nndoc-address))
+		(let ((coding-system-for-read 'binary))
+		  (mm-insert-file-contents nndoc-address))
+	      (if (stringp nndoc-address)
+		  (nnheader-insert-file-contents nndoc-address)
+		(insert-buffer-substring nndoc-address))
+	      (run-hooks 'nndoc-open-document-hook))
+	  (file-error
+	   (nnheader-report 'nndoc "Couldn't open %s: %s"
+			    group error))))))
     ;; Initialize the nndoc structures according to this new document.
     (when (and nndoc-current-buffer
 	       (not nndoc-dissection-alist))
@@ -495,7 +499,7 @@ from the document.")
       (save-restriction
 	(narrow-to-region (point) (point-max))
 	(mm-decode-content-transfer-encoding
-	 (intern (downcase (mail-header-strip encoding))))))))
+	 (intern (downcase (mail-header-strip-cte encoding))))))))
 
 (defun nndoc-babyl-type-p ()
   (when (re-search-forward "\^_\^L *\n" nil t)
@@ -558,7 +562,7 @@ from the document.")
       (save-restriction
 	(narrow-to-region begin (point-max))
 	(mm-decode-content-transfer-encoding
-	 (intern (downcase (mail-header-strip encoding))))))
+	 (intern (downcase (mail-header-strip-cte encoding))))))
     (when head
       (goto-char begin)
       (when (search-forward "\n\n" nil t)

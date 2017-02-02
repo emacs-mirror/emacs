@@ -2,7 +2,7 @@
    0.12.  (Implements POSIX draft P1003.2/D11.2, except for some of the
    internationalization features.)
 
-   Copyright (C) 1993-2016 Free Software Foundation, Inc.
+   Copyright (C) 1993-2017 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -310,10 +310,11 @@ enum syntaxcode { Swhitespace = 0, Sword = 1, Ssymbol = 2 };
 		     || ((c) >= 'a' && (c) <= 'f')	\
 		     || ((c) >= 'A' && (c) <= 'F'))
 
-/* This is only used for single-byte characters.  */
-# define ISBLANK(c) ((c) == ' ' || (c) == '\t')
-
 /* The rest must handle multibyte characters.  */
+
+# define ISBLANK(c) (IS_REAL_ASCII (c)                  \
+                     ? ((c) == ' ' || (c) == '\t')      \
+                     : blankp (c))
 
 # define ISGRAPH(c) (SINGLE_BYTE_CHAR_P (c)				\
 		     ? (c) > ' ' && !((c) >= 0177 && (c) <= 0240)	\
@@ -430,9 +431,12 @@ init_syntax_once (void)
 
 /* Should we use malloc or alloca?  If REGEX_MALLOC is not defined, we
    use `alloca' instead of `malloc'.  This is because using malloc in
-   re_search* or re_match* could cause memory leaks when C-g is used in
-   Emacs; also, malloc is slower and causes storage fragmentation.  On
-   the other hand, malloc is more portable, and easier to debug.
+   re_search* or re_match* could cause memory leaks when C-g is used
+   in Emacs (note that SAFE_ALLOCA could also call malloc, but does so
+   via `record_xmalloc' which uses `unwind_protect' to ensure the
+   memory is freed even in case of non-local exits); also, malloc is
+   slower and causes storage fragmentation.  On the other hand, malloc
+   is more portable, and easier to debug.
 
    Because we sometimes use alloca, some routines have to be macros,
    not functions -- `alloca'-allocated space disappears at the end of the
@@ -447,7 +451,13 @@ init_syntax_once (void)
 #else /* not REGEX_MALLOC  */
 
 # ifdef emacs
-#  define REGEX_USE_SAFE_ALLOCA USE_SAFE_ALLOCA
+/* This may be adjusted in main(), if the stack is successfully grown.  */
+ptrdiff_t emacs_re_safe_alloca = MAX_ALLOCA;
+/* Like USE_SAFE_ALLOCA, but use emacs_re_safe_alloca.  */
+#  define REGEX_USE_SAFE_ALLOCA                                        \
+  ptrdiff_t sa_avail = emacs_re_safe_alloca;                           \
+  ptrdiff_t sa_count = SPECPDL_INDEX (); bool sa_must_free = false
+
 #  define REGEX_SAFE_FREE() SAFE_FREE ()
 #  define REGEX_ALLOCATE SAFE_ALLOCA
 # else
@@ -1195,24 +1205,28 @@ static const char *re_error_msgid[] =
     gettext_noop ("Range striding over charsets") /* REG_ERANGEX  */
   };
 
-/* Avoiding alloca during matching, to placate r_alloc.  */
+/* Whether to allocate memory during matching.  */
 
-/* Define MATCH_MAY_ALLOCATE unless we need to make sure that the
-   searching and matching functions should not call alloca.  On some
-   systems, alloca is implemented in terms of malloc, and if we're
-   using the relocating allocator routines, then malloc could cause a
-   relocation, which might (if the strings being searched are in the
-   ralloc heap) shift the data out from underneath the regexp
-   routines.
+/* Define MATCH_MAY_ALLOCATE to allow the searching and matching
+   functions allocate memory for the failure stack and registers.
+   Normally should be defined, because otherwise searching and
+   matching routines will have much smaller memory resources at their
+   disposal, and therefore might fail to handle complex regexps.
+   Therefore undefine MATCH_MAY_ALLOCATE only in the following
+   exceptional situations:
 
-   Here's another reason to avoid allocation: Emacs
-   processes input from X in a signal handler; processing X input may
-   call malloc; if input arrives while a matching routine is calling
-   malloc, then we're scrod.  But Emacs can't just block input while
-   calling matching routines; then we don't notice interrupts when
-   they come in.  So, Emacs blocks input around all regexp calls
-   except the matching calls, which it leaves unprotected, in the
-   faith that they will not malloc.  */
+   . When running on a system where memory is at premium.
+   . When alloca cannot be used at all, perhaps due to bugs in
+     its implementation, or its being unavailable, or due to a
+     very small stack size.  This requires to define REGEX_MALLOC
+     to use malloc instead, which in turn could lead to memory
+     leaks if search is interrupted by a signal.  (For these
+     reasons, defining REGEX_MALLOC when building Emacs
+     automatically undefines MATCH_MAY_ALLOCATE, but outside
+     Emacs you may not care about memory leaks.)  If you want to
+     prevent the memory leaks, undefine MATCH_MAY_ALLOCATE.
+   . When code that calls the searching and matching functions
+     cannot allow memory allocation, for whatever reasons.  */
 
 /* Normally, this is fine.  */
 #define MATCH_MAY_ALLOCATE
@@ -1249,9 +1263,9 @@ static const char *re_error_msgid[] =
    whose default stack limit is 2mb.  In order for a larger
    value to work reliably, you have to try to make it accord
    with the process stack limit.  */
-size_t re_max_failures = 40000;
+size_t emacs_re_max_failures = 40000;
 # else
-size_t re_max_failures = 4000;
+size_t emacs_re_max_failures = 4000;
 # endif
 
 union fail_stack_elt
@@ -1304,7 +1318,7 @@ typedef struct
 
 
 /* Double the size of FAIL_STACK, up to a limit
-   which allows approximately `re_max_failures' items.
+   which allows approximately `emacs_re_max_failures' items.
 
    Return 1 if succeeds, and 0 if either ran out of memory
    allocating space for it or it was already too large.
@@ -1319,23 +1333,20 @@ typedef struct
 #define FAIL_STACK_GROWTH_FACTOR 4
 
 #define GROW_FAIL_STACK(fail_stack)					\
-  (((fail_stack).size * sizeof (fail_stack_elt_t)			\
-    >= re_max_failures * TYPICAL_FAILURE_SIZE)				\
+  (((fail_stack).size >= emacs_re_max_failures * TYPICAL_FAILURE_SIZE)        \
    ? 0									\
    : ((fail_stack).stack						\
       = REGEX_REALLOCATE_STACK ((fail_stack).stack,			\
 	  (fail_stack).size * sizeof (fail_stack_elt_t),		\
-	  min (re_max_failures * TYPICAL_FAILURE_SIZE,			\
-	       ((fail_stack).size * sizeof (fail_stack_elt_t)		\
-		* FAIL_STACK_GROWTH_FACTOR))),				\
+          min (emacs_re_max_failures * TYPICAL_FAILURE_SIZE,                  \
+               ((fail_stack).size * FAIL_STACK_GROWTH_FACTOR))          \
+          * sizeof (fail_stack_elt_t)),                                 \
 									\
       (fail_stack).stack == NULL					\
       ? 0								\
       : ((fail_stack).size						\
-	 = (min (re_max_failures * TYPICAL_FAILURE_SIZE,		\
-		 ((fail_stack).size * sizeof (fail_stack_elt_t)		\
-		  * FAIL_STACK_GROWTH_FACTOR))				\
-	    / sizeof (fail_stack_elt_t)),				\
+         = (min (emacs_re_max_failures * TYPICAL_FAILURE_SIZE,                \
+                 ((fail_stack).size * FAIL_STACK_GROWTH_FACTOR))),      \
 	 1)))
 
 
@@ -1718,12 +1729,9 @@ typedef struct
 /* Explicit quit checking is needed for Emacs, which uses polling to
    process input events.  */
 #ifdef emacs
-# define IMMEDIATE_QUIT_CHECK			\
-    do {					\
-      if (immediate_quit) QUIT;			\
-    } while (0)
+# define IMMEDIATE_QUIT_CHECK (immediate_quit ? maybe_quit () : (void) 0)
 #else
-# define IMMEDIATE_QUIT_CHECK    ((void)0)
+# define IMMEDIATE_QUIT_CHECK ((void) 0)
 #endif
 
 /* Structure to manage work area for range table.  */
@@ -1790,6 +1798,7 @@ struct range_table_work_area
 #define BIT_ALNUM	0x80
 #define BIT_GRAPH	0x100
 #define BIT_PRINT	0x200
+#define BIT_BLANK       0x400
 
 
 /* Set the bit for character C in a list.  */
@@ -2066,8 +2075,9 @@ re_wctype_to_bit (re_wctype_t cc)
     case RECC_SPACE: return BIT_SPACE;
     case RECC_GRAPH: return BIT_GRAPH;
     case RECC_PRINT: return BIT_PRINT;
+    case RECC_BLANK: return BIT_BLANK;
     case RECC_ASCII: case RECC_DIGIT: case RECC_XDIGIT: case RECC_CNTRL:
-    case RECC_BLANK: case RECC_UNIBYTE: case RECC_ERROR: return 0;
+    case RECC_UNIBYTE: case RECC_ERROR: return 0;
     default:
       abort ();
     }
@@ -3641,9 +3651,9 @@ regex_compile (const_re_char *pattern, size_t size,
   {
     int num_regs = bufp->re_nsub + 1;
 
-    if (fail_stack.size < re_max_failures * TYPICAL_FAILURE_SIZE)
+    if (fail_stack.size < emacs_re_max_failures * TYPICAL_FAILURE_SIZE)
       {
-	fail_stack.size = re_max_failures * TYPICAL_FAILURE_SIZE;
+	fail_stack.size = emacs_re_max_failures * TYPICAL_FAILURE_SIZE;
 	falk_stack.stack = realloc (fail_stack.stack,
 				    fail_stack.size * sizeof *falk_stack.stack);
       }
@@ -4658,6 +4668,7 @@ execute_charset (const_re_char **pp, unsigned c, unsigned corig, bool unibyte)
 	  (class_bits & BIT_ALNUM && ISALNUM (c)) ||
 	  (class_bits & BIT_ALPHA && ISALPHA (c)) ||
 	  (class_bits & BIT_SPACE && ISSPACE (c)) ||
+          (class_bits & BIT_BLANK && ISBLANK (c)) ||
 	  (class_bits & BIT_WORD  && ISWORD  (c)) ||
 	  ((class_bits & BIT_UPPER) &&
 	   (ISUPPER (c) || (corig != c &&

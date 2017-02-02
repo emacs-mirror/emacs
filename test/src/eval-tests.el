@@ -1,6 +1,6 @@
 ;;; eval-tests.el --- unit tests for src/eval.c      -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2017 Free Software Foundation, Inc.
 
 ;; Author: Philipp Stephani <phst@google.com>
 
@@ -46,5 +46,15 @@ Bug#24912 and Bug#24913."
     (should-error (byte-compile-check-lambda-list args))
     (let ((byte-compile-debug t))
       (should-error (eval `(byte-compile (lambda ,args)) t)))))
+
+
+(dolist (form '(let let*))
+  (dolist (arg '(1 "a" [a]))
+    (eval
+     `(ert-deftest ,(intern (format "eval-tests--%s--%s" form (type-of arg))) ()
+        ,(format "Check that the first argument of `%s' cannot be a %s"
+                 form (type-of arg))
+        (should-error (,form ,arg) :type 'wrong-type-argument))
+     t)))
 
 ;;; eval-tests.el ends here

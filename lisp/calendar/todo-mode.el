@@ -1,6 +1,6 @@
 ;;; todo-mode.el --- facilities for making and maintaining todo lists
 
-;; Copyright (C) 1997, 1999, 2001-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2001-2017 Free Software Foundation, Inc.
 
 ;; Author: Oliver Seidel <privat@os10000.net>
 ;;	Stephen Berman <stephen.berman@gmx.net>

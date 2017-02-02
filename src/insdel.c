@@ -1,5 +1,5 @@
 /* Buffer insertion/deletion and gap motion for GNU Emacs.
-   Copyright (C) 1985-1986, 1993-1995, 1997-2016 Free Software
+   Copyright (C) 1985-1986, 1993-1995, 1997-2017 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -129,7 +129,7 @@ gap_left (ptrdiff_t charpos, ptrdiff_t bytepos, bool newgap)
 	 Change BYTEPOS to be where we have actually moved the gap to.
 	 Note that this cannot happen when we are called to make the
 	 gap larger or smaller, since make_gap_larger and
-	 make_gap_smaller prevent QUIT by setting inhibit-quit.  */
+	 make_gap_smaller set inhibit-quit.  */
       if (QUITP)
 	{
 	  bytepos = new_s1;
@@ -151,7 +151,7 @@ gap_left (ptrdiff_t charpos, ptrdiff_t bytepos, bool newgap)
   GPT = charpos;
   eassert (charpos <= bytepos);
   if (GAP_SIZE > 0) *(GPT_ADDR) = 0; /* Put an anchor.  */
-  QUIT;
+  maybe_quit ();
 }
 
 /* Move the gap to a position greater than the current GPT.
@@ -185,7 +185,7 @@ gap_right (ptrdiff_t charpos, ptrdiff_t bytepos)
 	 Change BYTEPOS to be where we have actually moved the gap to.
 	 Note that this cannot happen when we are called to make the
 	 gap larger or smaller, since make_gap_larger and
-	 make_gap_smaller prevent QUIT by setting inhibit-quit.  */
+	 make_gap_smaller set inhibit-quit.  */
       if (QUITP)
 	{
 	  bytepos = new_s1;
@@ -204,7 +204,7 @@ gap_right (ptrdiff_t charpos, ptrdiff_t bytepos)
   GPT_BYTE = bytepos;
   eassert (charpos <= bytepos);
   if (GAP_SIZE > 0) *(GPT_ADDR) = 0; /* Put an anchor.  */
-  QUIT;
+  maybe_quit ();
 }
 
 /* If the selected window's old pointm is adjacent or covered by the
@@ -464,7 +464,7 @@ make_gap_larger (ptrdiff_t nbytes_added)
 
   enlarge_buffer_text (current_buffer, nbytes_added);
 
-  /* Prevent quitting in gap_left.  We cannot allow a QUIT there,
+  /* Prevent quitting in gap_left.  We cannot allow a quit there,
      because that would leave the buffer text in an inconsistent
      state, with 2 gap holes instead of just one.  */
   tem = Vinhibit_quit;
@@ -512,7 +512,7 @@ make_gap_smaller (ptrdiff_t nbytes_removed)
   if (GAP_SIZE - nbytes_removed < GAP_BYTES_MIN)
     nbytes_removed = GAP_SIZE - GAP_BYTES_MIN;
 
-  /* Prevent quitting in gap_right.  We cannot allow a QUIT there,
+  /* Prevent quitting in gap_right.  We cannot allow a quit there,
      because that would leave the buffer text in an inconsistent
      state, with 2 gap holes instead of just one.  */
   tem = Vinhibit_quit;

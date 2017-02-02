@@ -2,7 +2,7 @@
 # Build Emacs with various options for profiling, debugging,
 # with and without warnings enabled etc.
 
-# Copyright (C) 2001-2016 Free Software Foundation, Inc.
+# Copyright (C) 2001-2017 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 

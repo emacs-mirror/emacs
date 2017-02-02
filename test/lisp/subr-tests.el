@@ -1,6 +1,6 @@
 ;;; subr-tests.el --- Tests for subr.el
 
-;; Copyright (C) 2015-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2017 Free Software Foundation, Inc.
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>,
 ;;         Nicolas Petton <nicolas@petton.fr>
@@ -270,6 +270,16 @@ indirectly `mapbacktrace'."
   ;; Compare two implementations of backtrace-frames
   (let ((frame-lists (subr-test--frames-1 'subr-test--frames-2)))
     (should (equal (car frame-lists) (cdr frame-lists)))))
+
+(ert-deftest subr-tests--string-match-p--blank ()
+  "Test that [:blank:] matches horizontal whitespace, cf. Bug#25366."
+  (should (equal (string-match-p "\\`[[:blank:]]\\'" " ") 0))
+  (should (equal (string-match-p "\\`[[:blank:]]\\'" "\t") 0))
+  (should-not (string-match-p "\\`[[:blank:]]\\'" "\n"))
+  (should-not (string-match-p "\\`[[:blank:]]\\'" "a"))
+  (should (equal (string-match-p "\\`[[:blank:]]\\'" "\N{HAIR SPACE}") 0))
+  (should (equal (string-match-p "\\`[[:blank:]]\\'" "\u3000") 0))
+  (should-not (string-match-p "\\`[[:blank:]]\\'" "\N{LINE SEPARATOR}")))
 
 (provide 'subr-tests)
 ;;; subr-tests.el ends here

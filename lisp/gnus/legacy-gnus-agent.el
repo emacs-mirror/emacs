@@ -1,6 +1,6 @@
 ;;; gnus-agent.el --- Legacy unplugged support for Gnus
 
-;; Copyright (C) 2004-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2017 Free Software Foundation, Inc.
 
 ;; Author: Kevin Greiner <kgreiner@xpediantsolutions.com>
 ;; Keywords: news

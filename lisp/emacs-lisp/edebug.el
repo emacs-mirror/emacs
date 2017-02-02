@@ -1,6 +1,6 @@
 ;;; edebug.el --- a source-level debugger for Emacs Lisp  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1988-1995, 1997, 1999-2016 Free Software Foundation,
+;; Copyright (C) 1988-1995, 1997, 1999-2017 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Daniel LaLiberte <liberte@holonexus.org>
@@ -2170,8 +2170,7 @@ The purpose of this function is so you can properly undo
 subsequent changes to the same binding, by passing the status
 cons cell to `edebug-restore-status'.  The status cons cell
 has the form (LOCUS . VALUE), where LOCUS can be a buffer
-\(for a buffer-local binding), a frame (for a frame-local binding),
-or nil (if the default binding is current)."
+\(for a buffer-local binding), or nil (if the default binding is current)."
   (cons (variable-binding-locus var)
 	(symbol-value var)))
 

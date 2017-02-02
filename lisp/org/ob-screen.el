@@ -1,6 +1,6 @@
 ;;; ob-screen.el --- org-babel support for interactive terminal
 
-;; Copyright (C) 2009-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2017 Free Software Foundation, Inc.
 
 ;; Author: Benjamin Andresen
 ;; Keywords: literate programming, interactive shell

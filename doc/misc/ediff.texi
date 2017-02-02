@@ -26,7 +26,7 @@
 This file documents Ediff, a comprehensive visual interface to Unix diff
 and patch utilities.
 
-Copyright @copyright{} 1995--2016 Free Software Foundation, Inc.
+Copyright @copyright{} 1995--2017 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1247,9 +1247,14 @@ merged (see @code{ediff-cleanup-hook}, below).
 @vindex ediff-cleanup-hook
 This hook is run just before @code{ediff-quit-hook}.  This is a good
 place to do various cleanups, such as deleting the variant buffers.
-Ediff provides a function, @code{ediff-janitor}, as one such possible
-hook, which you can add to @code{ediff-cleanup-hook} with
-@code{add-hook}.
+Ediff provides a helper function, @code{ediff-janitor}, that you can
+invoke from a private hook function.  For example:
+
+@example
+(defun my-ediff-janitor ()
+  (ediff-janitor nil nil))
+(add-hook 'ediff-cleanup-hook #'my-ediff-janitor)
+@end example
 
 @findex ediff-janitor
 This function kills buffers A, B, and, possibly, C, if these buffers aren't

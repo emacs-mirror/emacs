@@ -1,6 +1,6 @@
 ;;; nnimap.el --- IMAP interface for Gnus
 
-;; Copyright (C) 2010-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2017 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;         Simon Josefsson <simon@josefsson.org>
@@ -67,7 +67,11 @@ back on `network'.")
 				 (if (listp imap-shell-program)
 				     (car imap-shell-program)
 				   imap-shell-program)
-			       "ssh %s imapd"))
+			       "ssh %s imapd")
+  "What command to execute to connect to an IMAP server.
+This will only be used if the connection type is `shell'.  See
+the `open-network-stream' documentation for an explanation of
+the format.")
 
 (defvoo nnimap-inbox nil
   "The mail box where incoming mail arrives and should be split out of.

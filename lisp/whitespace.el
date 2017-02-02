@@ -1,6 +1,6 @@
 ;;; whitespace.el --- minor mode to visualize TAB, (HARD) SPACE, NEWLINE
 
-;; Copyright (C) 2000-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2017 Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
@@ -729,7 +729,7 @@ Used when `whitespace-style' includes `empty'."
   :group 'whitespace)
 
 
-(defcustom whitespace-empty-at-eob-regexp "^\\([ \t\n]*\\(\n\\{2,\\}\\|[ \t]+\\)\\)\\'"
+(defcustom whitespace-empty-at-eob-regexp "^\\([ \t\n]+\\)\\'"
   "Specify regexp for empty lines at end of buffer.
 
 Used when `whitespace-style' includes `empty'."
@@ -1398,18 +1398,17 @@ documentation."
    ;; whole buffer
    (t
     (save-excursion
-      (save-match-data                ;FIXME: Why?
-	;; PROBLEM 1: empty lines at bob
-	;; PROBLEM 2: empty lines at eob
-	;; ACTION: remove all empty lines at bob and/or eob
-	(when (memq 'empty whitespace-style)
-	  (let (overwrite-mode)		; enforce no overwrite
-	    (goto-char (point-min))
-	    (when (looking-at whitespace-empty-at-bob-regexp)
-	      (delete-region (match-beginning 1) (match-end 1)))
-	    (when (re-search-forward
-                   whitespace-empty-at-eob-regexp nil t)
-	      (delete-region (match-beginning 1) (match-end 1)))))))
+      ;; PROBLEM 1: empty lines at bob
+      ;; PROBLEM 2: empty lines at eob
+      ;; ACTION: remove all empty lines at bob and/or eob
+      (when (memq 'empty whitespace-style)
+        (let (overwrite-mode)		; enforce no overwrite
+          (goto-char (point-min))
+          (when (looking-at whitespace-empty-at-bob-regexp)
+            (delete-region (match-beginning 1) (match-end 1)))
+          (when (re-search-forward
+                 whitespace-empty-at-eob-regexp nil t)
+            (delete-region (match-beginning 1) (match-end 1))))))
     ;; PROBLEM 3: `tab-width' or more SPACEs at bol
     ;; PROBLEM 4: SPACEs before TAB
     ;; PROBLEM 5: SPACEs or TABs at eol
@@ -1476,76 +1475,75 @@ documentation."
 	  overwrite-mode		; enforce no overwrite
 	  tmp)
       (save-excursion
-	(save-match-data                ;FIXME: Why?
-	  ;; PROBLEM 1: `tab-width' or more SPACEs at bol
-	  (cond
-	   ;; ACTION: replace `tab-width' or more SPACEs at bol by TABs, if
-	   ;; `indent-tabs-mode' is non-nil; otherwise, replace TABs
-	   ;; by SPACEs.
-	   ((memq 'indentation whitespace-style)
-	    (let ((regexp (whitespace-indentation-regexp)))
-	      (goto-char rstart)
-	      (while (re-search-forward regexp rend t)
-		(setq tmp (current-indentation))
-		(goto-char (match-beginning 0))
-		(delete-horizontal-space)
-		(unless (eolp)
-		  (indent-to tmp)))))
-	   ;; ACTION: replace `tab-width' or more SPACEs at bol by TABs.
-	   ((memq 'indentation::tab whitespace-style)
-	    (whitespace-replace-action
-	     'tabify rstart rend
-	     (whitespace-indentation-regexp 'tab) 0))
-	   ;; ACTION: replace TABs by SPACEs.
-	   ((memq 'indentation::space whitespace-style)
-	    (whitespace-replace-action
-	     'untabify rstart rend
-	     (whitespace-indentation-regexp 'space) 0)))
-	  ;; PROBLEM 3: SPACEs or TABs at eol
-	  ;; ACTION: remove all SPACEs or TABs at eol
-	  (when (memq 'trailing whitespace-style)
-	    (whitespace-replace-action
-	     'delete-region rstart rend
-	     whitespace-trailing-regexp 1))
-	  ;; PROBLEM 4: `tab-width' or more SPACEs after TAB
-	  (cond
-	   ;; ACTION: replace `tab-width' or more SPACEs by TABs, if
-	   ;; `indent-tabs-mode' is non-nil; otherwise, replace TABs
-	   ;; by SPACEs.
-	   ((memq 'space-after-tab whitespace-style)
-	    (whitespace-replace-action
-	     (if whitespace-indent-tabs-mode 'tabify 'untabify)
-	     rstart rend (whitespace-space-after-tab-regexp) 1))
-	   ;; ACTION: replace `tab-width' or more SPACEs by TABs.
-	   ((memq 'space-after-tab::tab whitespace-style)
-	    (whitespace-replace-action
-	     'tabify rstart rend
-	     (whitespace-space-after-tab-regexp 'tab) 1))
-	   ;; ACTION: replace TABs by SPACEs.
-	   ((memq 'space-after-tab::space whitespace-style)
-	    (whitespace-replace-action
-	     'untabify rstart rend
-	     (whitespace-space-after-tab-regexp 'space) 1)))
-	  ;; PROBLEM 2: SPACEs before TAB
-	  (cond
-	   ;; ACTION: replace SPACEs before TAB by TABs, if
-	   ;; `indent-tabs-mode' is non-nil; otherwise, replace TABs
-	   ;; by SPACEs.
-	   ((memq 'space-before-tab whitespace-style)
-	    (whitespace-replace-action
-	     (if whitespace-indent-tabs-mode 'tabify 'untabify)
-	     rstart rend whitespace-space-before-tab-regexp
-	     (if whitespace-indent-tabs-mode 0 2)))
-	   ;; ACTION: replace SPACEs before TAB by TABs.
-	   ((memq 'space-before-tab::tab whitespace-style)
-	    (whitespace-replace-action
-	     'tabify rstart rend
-	     whitespace-space-before-tab-regexp 0))
-	   ;; ACTION: replace TABs by SPACEs.
-	   ((memq 'space-before-tab::space whitespace-style)
-	    (whitespace-replace-action
-	     'untabify rstart rend
-	     whitespace-space-before-tab-regexp 2)))))
+        ;; PROBLEM 1: `tab-width' or more SPACEs at bol
+        (cond
+         ;; ACTION: replace `tab-width' or more SPACEs at bol by TABs, if
+         ;; `indent-tabs-mode' is non-nil; otherwise, replace TABs
+         ;; by SPACEs.
+         ((memq 'indentation whitespace-style)
+          (let ((regexp (whitespace-indentation-regexp)))
+            (goto-char rstart)
+            (while (re-search-forward regexp rend t)
+              (setq tmp (current-indentation))
+              (goto-char (match-beginning 0))
+              (delete-horizontal-space)
+              (unless (eolp)
+                (indent-to tmp)))))
+         ;; ACTION: replace `tab-width' or more SPACEs at bol by TABs.
+         ((memq 'indentation::tab whitespace-style)
+          (whitespace-replace-action
+           'tabify rstart rend
+           (whitespace-indentation-regexp 'tab) 0))
+         ;; ACTION: replace TABs by SPACEs.
+         ((memq 'indentation::space whitespace-style)
+          (whitespace-replace-action
+           'untabify rstart rend
+           (whitespace-indentation-regexp 'space) 0)))
+        ;; PROBLEM 3: SPACEs or TABs at eol
+        ;; ACTION: remove all SPACEs or TABs at eol
+        (when (memq 'trailing whitespace-style)
+          (whitespace-replace-action
+           'delete-region rstart rend
+           whitespace-trailing-regexp 1))
+        ;; PROBLEM 4: `tab-width' or more SPACEs after TAB
+        (cond
+         ;; ACTION: replace `tab-width' or more SPACEs by TABs, if
+         ;; `indent-tabs-mode' is non-nil; otherwise, replace TABs
+         ;; by SPACEs.
+         ((memq 'space-after-tab whitespace-style)
+          (whitespace-replace-action
+           (if whitespace-indent-tabs-mode 'tabify 'untabify)
+           rstart rend (whitespace-space-after-tab-regexp) 1))
+         ;; ACTION: replace `tab-width' or more SPACEs by TABs.
+         ((memq 'space-after-tab::tab whitespace-style)
+          (whitespace-replace-action
+           'tabify rstart rend
+           (whitespace-space-after-tab-regexp 'tab) 1))
+         ;; ACTION: replace TABs by SPACEs.
+         ((memq 'space-after-tab::space whitespace-style)
+          (whitespace-replace-action
+           'untabify rstart rend
+           (whitespace-space-after-tab-regexp 'space) 1)))
+        ;; PROBLEM 2: SPACEs before TAB
+        (cond
+         ;; ACTION: replace SPACEs before TAB by TABs, if
+         ;; `indent-tabs-mode' is non-nil; otherwise, replace TABs
+         ;; by SPACEs.
+         ((memq 'space-before-tab whitespace-style)
+          (whitespace-replace-action
+           (if whitespace-indent-tabs-mode 'tabify 'untabify)
+           rstart rend whitespace-space-before-tab-regexp
+           (if whitespace-indent-tabs-mode 0 2)))
+         ;; ACTION: replace SPACEs before TAB by TABs.
+         ((memq 'space-before-tab::tab whitespace-style)
+          (whitespace-replace-action
+           'tabify rstart rend
+           whitespace-space-before-tab-regexp 0))
+         ;; ACTION: replace TABs by SPACEs.
+         ((memq 'space-before-tab::space whitespace-style)
+          (whitespace-replace-action
+           'untabify rstart rend
+           whitespace-space-before-tab-regexp 2))))
       (set-marker rend nil))))		; point marker to nowhere
 
 
@@ -1710,74 +1708,73 @@ cleaning up these problems."
   (interactive "r")
   (setq force (or current-prefix-arg force))
   (save-excursion
-    (save-match-data                ;FIXME: Why?
-      (let* ((has-bogus nil)
-	     (rstart    (min start end))
-	     (rend      (max start end))
-             ;; Fall back to whitespace-style so we can run before
-             ;; before the mode is active.
-             (style     (copy-sequence
-                         (or whitespace-active-style whitespace-style)))
-	     (bogus-list
-	      (mapcar
-	       #'(lambda (option)
-		   (when force
-		     (add-to-list 'style (car option)))
-		   (goto-char rstart)
-		   (let ((regexp
-			  (cond
-			   ((eq (car option) 'indentation)
-			    (whitespace-indentation-regexp))
-			   ((eq (car option) 'indentation::tab)
-			    (whitespace-indentation-regexp 'tab))
-			   ((eq (car option) 'indentation::space)
-			    (whitespace-indentation-regexp 'space))
-			   ((eq (car option) 'space-after-tab)
-			    (whitespace-space-after-tab-regexp))
-			   ((eq (car option) 'space-after-tab::tab)
-			    (whitespace-space-after-tab-regexp 'tab))
-			   ((eq (car option) 'space-after-tab::space)
-			    (whitespace-space-after-tab-regexp 'space))
-			   (t
-			    (cdr option)))))
-		     (when (re-search-forward regexp rend t)
-                       (unless has-bogus
-                         (setq has-bogus (memq (car option) style)))
-                       t)))
-	       whitespace-report-list)))
-	(when (pcase report-if-bogus (`nil t) (`never nil) (_ has-bogus))
-	  (whitespace-kill-buffer whitespace-report-buffer-name)
-	  ;; `whitespace-indent-tabs-mode' is local to current buffer
-	  ;; `whitespace-tab-width' is local to current buffer
-	  (let ((ws-indent-tabs-mode whitespace-indent-tabs-mode)
-		(ws-tab-width whitespace-tab-width))
-	    (with-current-buffer (get-buffer-create
-				  whitespace-report-buffer-name)
-	      (erase-buffer)
-	      (insert (if ws-indent-tabs-mode
-			  (car whitespace-report-text)
-			(cdr whitespace-report-text)))
-	      (goto-char (point-min))
-	      (forward-line 3)
-	      (dolist (option whitespace-report-list)
-		(forward-line 1)
-		(whitespace-mark-x
-		 27 (memq (car option) style))
-		(whitespace-mark-x 7 (car bogus-list))
-		(setq bogus-list (cdr bogus-list)))
-	      (forward-line 1)
-	      (whitespace-insert-value ws-indent-tabs-mode)
-	      (whitespace-insert-value ws-tab-width)
-	      (when has-bogus
-		(goto-char (point-max))
-		(insert (substitute-command-keys
-                         " Type `\\[whitespace-cleanup]'")
-			" to cleanup the buffer.\n\n"
-			(substitute-command-keys
-                         " Type `\\[whitespace-cleanup-region]'")
-			" to cleanup a region.\n\n"))
-	      (whitespace-display-window (current-buffer)))))
-	has-bogus))))
+    (let* ((has-bogus nil)
+           (rstart    (min start end))
+           (rend      (max start end))
+           ;; Fall back to whitespace-style so we can run before
+           ;; before the mode is active.
+           (style     (copy-sequence
+                       (or whitespace-active-style whitespace-style)))
+           (bogus-list
+            (mapcar
+             #'(lambda (option)
+                 (when force
+                   (add-to-list 'style (car option)))
+                 (goto-char rstart)
+                 (let ((regexp
+                        (cond
+                         ((eq (car option) 'indentation)
+                          (whitespace-indentation-regexp))
+                         ((eq (car option) 'indentation::tab)
+                          (whitespace-indentation-regexp 'tab))
+                         ((eq (car option) 'indentation::space)
+                          (whitespace-indentation-regexp 'space))
+                         ((eq (car option) 'space-after-tab)
+                          (whitespace-space-after-tab-regexp))
+                         ((eq (car option) 'space-after-tab::tab)
+                          (whitespace-space-after-tab-regexp 'tab))
+                         ((eq (car option) 'space-after-tab::space)
+                          (whitespace-space-after-tab-regexp 'space))
+                         (t
+                          (cdr option)))))
+                   (when (re-search-forward regexp rend t)
+                     (unless has-bogus
+                       (setq has-bogus (memq (car option) style)))
+                     t)))
+             whitespace-report-list)))
+      (when (pcase report-if-bogus (`nil t) (`never nil) (_ has-bogus))
+        (whitespace-kill-buffer whitespace-report-buffer-name)
+        ;; `whitespace-indent-tabs-mode' is local to current buffer
+        ;; `whitespace-tab-width' is local to current buffer
+        (let ((ws-indent-tabs-mode whitespace-indent-tabs-mode)
+              (ws-tab-width whitespace-tab-width))
+          (with-current-buffer (get-buffer-create
+                                whitespace-report-buffer-name)
+            (erase-buffer)
+            (insert (if ws-indent-tabs-mode
+                        (car whitespace-report-text)
+                      (cdr whitespace-report-text)))
+            (goto-char (point-min))
+            (forward-line 3)
+            (dolist (option whitespace-report-list)
+              (forward-line 1)
+              (whitespace-mark-x
+               27 (memq (car option) style))
+              (whitespace-mark-x 7 (car bogus-list))
+              (setq bogus-list (cdr bogus-list)))
+            (forward-line 1)
+            (whitespace-insert-value ws-indent-tabs-mode)
+            (whitespace-insert-value ws-tab-width)
+            (when has-bogus
+              (goto-char (point-max))
+              (insert (substitute-command-keys
+                       " Type `\\[whitespace-cleanup]'")
+                      " to cleanup the buffer.\n\n"
+                      (substitute-command-keys
+                       " Type `\\[whitespace-cleanup-region]'")
+                      " to cleanup a region.\n\n"))
+            (whitespace-display-window (current-buffer)))))
+      has-bogus)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

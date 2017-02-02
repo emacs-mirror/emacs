@@ -1,6 +1,6 @@
 /* Function for handling the GLib event loop.
 
-Copyright (C) 2009-2016 Free Software Foundation, Inc.
+Copyright (C) 2009-2017 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -25,6 +25,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <glib.h>
 #include <errno.h>
+#include "lisp.h"
 #include "blockinput.h"
 #include "systime.h"
 
@@ -41,11 +42,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 int
 xg_select (int fds_lim, fd_set *rfds, fd_set *wfds, fd_set *efds,
-	   struct timespec const *timeout, sigset_t const *sigmask)
+	   struct timespec *timeout, sigset_t *sigmask)
 {
   fd_set all_rfds, all_wfds;
   struct timespec tmo;
-  struct timespec const *tmop = timeout;
+  struct timespec *tmop = timeout;
 
   GMainContext *context;
   bool have_wfds = wfds != NULL;
@@ -113,9 +114,9 @@ xg_select (int fds_lim, fd_set *rfds, fd_set *wfds, fd_set *efds,
     }
 
   fds_lim = max_fds + 1;
-  nfds = pselect (fds_lim, &all_rfds, have_wfds ? &all_wfds : NULL,
-		  efds, tmop, sigmask);
-
+  nfds = thread_select (pselect, fds_lim,
+			&all_rfds, have_wfds ? &all_wfds : NULL, efds,
+			tmop, sigmask);
   if (nfds < 0)
     retval = nfds;
   else if (nfds > 0)

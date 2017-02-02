@@ -1,6 +1,6 @@
 ;;; network-stream-tests.el --- tests for network processes       -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2017 Free Software Foundation, Inc.
 
 ;; Author: Lars Ingebrigtsen <larsi@gnus.org>
 
@@ -152,7 +152,7 @@
     (while (and (eq (process-status proc) 'connect)
                 (< (setq times (1+ times)) 10))
       (sit-for 0.1))
-    (should-not (eq (process-status proc) 'connect))
+    (skip-unless (not (eq (process-status proc) 'connect)))
     (with-current-buffer (process-buffer proc)
       (process-send-string proc "echo foo")
       (sleep-for 0.1)
@@ -240,7 +240,7 @@
           (while (and (eq (process-status proc) 'connect)
                       (< (setq times (1+ times)) 10))
             (sit-for 0.1))
-          (should-not (eq (process-status proc) 'connect)))
+          (skip-unless (not (eq (process-status proc) 'connect))))
       (if (process-live-p server) (delete-process server)))
     (setq status (gnutls-peer-status proc))
     (should (consp status))

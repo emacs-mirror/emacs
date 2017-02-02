@@ -1,6 +1,6 @@
 ;;; diff-mode.el --- a mode for viewing/editing context diffs -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2017 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: convenience patch diff vc
@@ -498,22 +498,57 @@ See http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg01990.html")
     ;; The return value is used by easy-mmode-define-navigation.
     (goto-char (or end (point-max)))))
 
+;; "index ", "old mode", "new mode", "new file mode" and
+;; "deleted file mode" are output by git-diff.
+(defconst diff-file-junk-re
+  (concat "Index: \\|=\\{20,\\}\\|" ; SVN
+          "diff \\|index \\|\\(?:deleted file\\|new\\(?: file\\)?\\|old\\) mode\\|=== modified file"))
+
+;; If point is in a diff header, then return beginning
+;; of hunk position otherwise return nil.
+(defun diff--at-diff-header-p ()
+  "Return non-nil if point is inside a diff header."
+  (let ((regexp-hunk diff-hunk-header-re)
+        (regexp-file diff-file-header-re)
+        (regexp-junk diff-file-junk-re)
+        (orig (point)))
+    (catch 'headerp
+      (save-excursion
+        (forward-line 0)
+        (when (looking-at regexp-hunk) ; Hunk header.
+          (throw 'headerp (point)))
+        (forward-line -1)
+        (when (re-search-forward regexp-file (point-at-eol 4) t) ; File header.
+          (forward-line 0)
+          (throw 'headerp (point)))
+        (goto-char orig)
+        (forward-line 0)
+        (when (looking-at regexp-junk) ; Git diff junk.
+          (while (and (looking-at regexp-junk)
+                      (not (bobp)))
+            (forward-line -1))
+          (re-search-forward regexp-file nil t)
+          (forward-line 0)
+          (throw 'headerp (point)))) nil)))
+
 (defun diff-beginning-of-hunk (&optional try-harder)
   "Move back to the previous hunk beginning, and return its position.
 If point is in a file header rather than a hunk, advance to the
 next hunk if TRY-HARDER is non-nil; otherwise signal an error."
   (beginning-of-line)
-  (if (looking-at diff-hunk-header-re)
+  (if (looking-at diff-hunk-header-re) ; At hunk header.
       (point)
-    (forward-line 1)
-    (condition-case ()
-	(re-search-backward diff-hunk-header-re)
-      (error
-       (unless try-harder
-	 (error "Can't find the beginning of the hunk"))
-       (diff-beginning-of-file-and-junk)
-       (diff-hunk-next)
-       (point)))))
+    (let ((pos (diff--at-diff-header-p))
+          (regexp diff-hunk-header-re))
+      (cond (pos ; At junk diff header.
+             (if try-harder
+                 (goto-char pos)
+               (error "Can't find the beginning of the hunk")))
+            ((re-search-backward regexp nil t)) ; In the middle of a hunk.
+            ((re-search-forward regexp nil t) ; At first hunk header.
+             (forward-line 0)
+             (point))
+            (t (error "Can't find the beginning of the hunk"))))))
 
 (defun diff-unified-hunk-p ()
   (save-excursion
@@ -551,7 +586,7 @@ next hunk if TRY-HARDER is non-nil; otherwise signal an error."
 
 ;; Define diff-{hunk,file}-{prev,next}
 (easy-mmode-define-navigation
- diff--internal-hunk diff-hunk-header-re "hunk" diff-end-of-hunk diff-restrict-view
+ diff-hunk diff-hunk-header-re "hunk" diff-end-of-hunk diff-restrict-view
  (when diff-auto-refine-mode
    (unless (prog1 diff--auto-refine-data
              (setq diff--auto-refine-data
@@ -570,102 +605,7 @@ next hunk if TRY-HARDER is non-nil; otherwise signal an error."
                                 (diff-refine-hunk))))))))))))
 
 (easy-mmode-define-navigation
- diff--internal-file diff-file-header-re "file" diff-end-of-file)
-
-(defun diff--wrap-navigation (skip-hunk-start
-                              what orig
-                              header-re goto-start-func count)
-  "Wrap diff-{hunk,file}-{next,prev} for more intuitive behavior.
-Override the default diff-{hunk,file}-{next,prev} implementation
-by skipping any lines that are associated with this hunk/file but
-precede the hunk-start marker.  For instance, a diff file could
-contain
-
-diff --git a/lisp/vc/diff-mode.el b/lisp/vc/diff-mode.el
-index 923de9a..6b1c24f 100644
---- a/lisp/vc/diff-mode.el
-+++ b/lisp/vc/diff-mode.el
-@@ -590,6 +590,22 @@
-.......
-
-If a point is on 'index', then the point is considered to be in
-this first hunk.  Move the point to the @@... marker before
-executing the default diff-hunk-next/prev implementation to move
-to the NEXT marker."
-  (if (not skip-hunk-start)
-      (funcall orig count)
-
-    (let ((start (point)))
-      (funcall goto-start-func)
-
-      ;; Trap the error.
-      (condition-case nil
-          (funcall orig count)
-        (error nil))
-
-      (when (not (looking-at header-re))
-        (goto-char start)
-        (user-error (format "No %s" what))))))
-
-;; These functions all take a skip-hunk-start argument which controls
-;; whether we skip pre-hunk-start text or not.  In interactive uses we
-;; always want to do this, but the simple behavior is still necessary
-;; to, for example, avoid an infinite loop:
-;;
-;;   diff-hunk-next         calls
-;;   diff--wrap-navigation  calls
-;;   diff-bounds-of-hunk    calls
-;;   diff-beginning-of-hunk calls
-;;   diff-hunk-next
-;;
-;; Here the outer diff-hunk-next has skip-hunk-start set to t, but the
-;; inner one does not, which breaks the loop.
-(defun diff-hunk-prev (&optional count skip-hunk-start)
-  "Go to the previous COUNT'th hunk."
-  (interactive (list (prefix-numeric-value current-prefix-arg) t))
-  (diff--wrap-navigation
-   skip-hunk-start
-   "prev hunk"
-   'diff--internal-hunk-prev
-   diff-hunk-header-re
-   (lambda () (goto-char (car (diff-bounds-of-hunk))))
-   count))
-
-(defun diff-hunk-next (&optional count skip-hunk-start)
-  "Go to the next COUNT'th hunk."
-  (interactive (list (prefix-numeric-value current-prefix-arg) t))
-  (diff--wrap-navigation
-   skip-hunk-start
-   "next hunk"
-   'diff--internal-hunk-next
-   diff-hunk-header-re
-   (lambda () (goto-char (car (diff-bounds-of-hunk))))
-   count))
-
-(defun diff-file-prev (&optional count skip-hunk-start)
-  "Go to the previous COUNT'th file."
-  (interactive (list (prefix-numeric-value current-prefix-arg) t))
-  (diff--wrap-navigation
-   skip-hunk-start
-   "prev file"
-   'diff--internal-file-prev
-   diff-file-header-re
-   (lambda () (goto-char (car (diff-bounds-of-file))) (diff--internal-hunk-next))
-   count))
-
-(defun diff-file-next (&optional count skip-hunk-start)
-  "Go to the next COUNT'th file."
-  (interactive (list (prefix-numeric-value current-prefix-arg) t))
-  (diff--wrap-navigation
-   skip-hunk-start
-   "next file"
-   'diff--internal-file-next
-   diff-file-header-re
-   (lambda () (goto-char (car (diff-bounds-of-file))) (diff--internal-hunk-next))
-   count))
-
-
-
+ diff-file diff-file-header-re "file" diff-end-of-file)
 
 (defun diff-bounds-of-hunk ()
   "Return the bounds of the diff hunk at point.
@@ -676,13 +616,12 @@ point is in a file header, return the bounds of the next hunk."
     (let ((pos (point))
 	  (beg (diff-beginning-of-hunk t))
 	  (end (diff-end-of-hunk)))
-      (cond ((> end pos)
+      (cond ((>= end pos)
 	     (list beg end))
 	    ;; If this hunk ends above POS, consider the next hunk.
 	    ((re-search-forward diff-hunk-header-re nil t)
 	     (list (match-beginning 0) (diff-end-of-hunk)))
-	    ;; There's no next hunk, so just take the one we have.
-	    (t (list beg end))))))
+	    (t (error "No hunk found"))))))
 
 (defun diff-bounds-of-file ()
   "Return the bounds of the file segment at point.
@@ -728,12 +667,8 @@ If the prefix ARG is given, restrict the view to the current file instead."
 		   hunk-bounds))
 	 (inhibit-read-only t))
     (apply 'kill-region bounds)
-    (goto-char (car bounds))))
-
-;; "index ", "old mode", "new mode", "new file mode" and
-;; "deleted file mode" are output by git-diff.
-(defconst diff-file-junk-re
-  "diff \\|index \\|\\(?:deleted file\\|new\\(?: file\\)?\\|old\\) mode\\|=== modified file")
+    (goto-char (car bounds))
+    (diff-beginning-of-hunk t)))
 
 (defun diff-beginning-of-file-and-junk ()
   "Go to the beginning of file-related diff-info.
@@ -786,7 +721,8 @@ data such as \"Index: ...\" and such."
   "Kill current file's hunks."
   (interactive)
   (let ((inhibit-read-only t))
-    (apply 'kill-region (diff-bounds-of-file))))
+    (apply 'kill-region (diff-bounds-of-file)))
+  (diff-beginning-of-hunk t))
 
 (defun diff-kill-junk ()
   "Kill spurious empty diffs."
@@ -1370,7 +1306,7 @@ See `after-change-functions' for the meaning of BEG, END and LEN."
 	;; it's safer not to do it on big changes, e.g. when yanking a big
 	;; diff, or when the user edits the header, since we might then
 	;; screw up perfectly correct values.  --Stef
-	(diff-beginning-of-hunk)
+	(diff-beginning-of-hunk t)
         (let* ((style (if (looking-at "\\*\\*\\*") 'context))
                (start (line-beginning-position (if (eq style 'context) 3 2)))
                (mid (if (eq style 'context)
@@ -1761,9 +1697,8 @@ SRC and DST are the two variants of text as returned by `diff-hunk-text'.
 SWITCHED is non-nil if the patch is already applied.
 NOPROMPT, if non-nil, means not to prompt the user."
   (save-excursion
-    (let* ((hunk-bounds (diff-bounds-of-hunk))
-           (other (diff-xor other-file diff-jump-to-old-file))
-           (char-offset (- (point) (goto-char (car hunk-bounds))))
+    (let* ((other (diff-xor other-file diff-jump-to-old-file))
+	   (char-offset (- (point) (diff-beginning-of-hunk t)))
            ;; Check that the hunk is well-formed.  Otherwise diff-mode and
            ;; the user may disagree on what constitutes the hunk
            ;; (e.g. because an empty line truncates the hunk mid-course),
@@ -1772,7 +1707,7 @@ NOPROMPT, if non-nil, means not to prompt the user."
 	   ;; Suppress check when NOPROMPT is non-nil (Bug#3033).
            (_ (unless noprompt (diff-sanity-check-hunk)))
 	   (hunk (buffer-substring
-                  (point) (cadr hunk-bounds)))
+                  (point) (save-excursion (diff-end-of-hunk) (point))))
 	   (old (diff-hunk-text hunk reverse char-offset))
 	   (new (diff-hunk-text hunk (not reverse) char-offset))
 	   ;; Find the location specification.
@@ -1835,6 +1770,7 @@ the value of this variable when given an appropriate prefix argument).
 
 With a prefix argument, REVERSE the hunk."
   (interactive "P")
+  (diff-beginning-of-hunk t)
   (pcase-let ((`(,buf ,line-offset ,pos ,old ,new ,switched)
                ;; Sometimes we'd like to have the following behavior: if
                ;; REVERSE go to the new file, otherwise go to the old.
@@ -1880,15 +1816,8 @@ With a prefix argument, REVERSE the hunk."
       ;; Display BUF in a window
       (set-window-point (display-buffer buf) (+ (car pos) (cdr new)))
       (diff-hunk-status-msg line-offset (diff-xor switched reverse) nil)
-
-      ;; Advance to the next hunk with skip-hunk-start set to t
-      ;; because we want the behavior of moving to the next logical
-      ;; hunk, not the original behavior where were would sometimes
-      ;; stay on the curent hunk.  This is the behavior we get when
-      ;; navigating through hunks interactively, and we want it when
-      ;; applying hunks too (see http://debbugs.gnu.org/17544).
       (when diff-advance-after-apply-hunk
-	(diff-hunk-next nil t))))))
+	(diff-hunk-next))))))
 
 
 (defun diff-test-hunk (&optional reverse)
@@ -1969,15 +1898,14 @@ For use in `add-log-current-defun-function'."
 (defun diff-ignore-whitespace-hunk ()
   "Re-diff the current hunk, ignoring whitespace differences."
   (interactive)
-  (let* ((hunk-bounds (diff-bounds-of-hunk))
-         (char-offset (- (point) (goto-char (car hunk-bounds))))
+  (let* ((char-offset (- (point) (diff-beginning-of-hunk t)))
 	 (opts (pcase (char-after) (?@ "-bu") (?* "-bc") (_ "-b")))
 	 (line-nb (and (or (looking-at "[^0-9]+\\([0-9]+\\)")
 			   (error "Can't find line number"))
 		       (string-to-number (match-string 1))))
 	 (inhibit-read-only t)
 	 (hunk (delete-and-extract-region
-	        (point) (cadr hunk-bounds)))
+		(point) (save-excursion (diff-end-of-hunk) (point))))
 	 (lead (make-string (1- line-nb) ?\n)) ;Line nums start at 1.
 	 (file1 (make-temp-file "diff1"))
 	 (file2 (make-temp-file "diff2"))
@@ -2059,35 +1987,48 @@ For use in `add-log-current-defun-function'."
 (declare-function smerge-refine-subst "smerge-mode"
                   (beg1 end1 beg2 end2 props-c &optional preproc props-r props-a))
 
+(defun diff--forward-while-leading-char (char bound)
+  "Move point until reaching a line not starting with CHAR.
+Return new point, if it was moved."
+  (let ((pt nil))
+    (while (and (< (point) bound) (eql (following-char) char))
+      (forward-line 1)
+      (setq pt (point)))
+    pt))
+
 (defun diff-refine-hunk ()
   "Highlight changes of hunk at point at a finer granularity."
   (interactive)
   (require 'smerge-mode)
   (save-excursion
-    (let* ((hunk-bounds (diff-bounds-of-hunk))
-           (style (progn (goto-char (car hunk-bounds))
-                         (diff-hunk-style))) ;Skips the hunk header as well.
+    (diff-beginning-of-hunk t)
+    (let* ((start (point))
+           (style (diff-hunk-style))    ;Skips the hunk header as well.
            (beg (point))
-           (end (cadr hunk-bounds))
            (props-c '((diff-mode . fine) (face diff-refine-changed)))
            (props-r '((diff-mode . fine) (face diff-refine-removed)))
-           (props-a '((diff-mode . fine) (face diff-refine-added))))
+           (props-a '((diff-mode . fine) (face diff-refine-added)))
+           ;; Be careful to go back to `start' so diff-end-of-hunk gets
+           ;; to read the hunk header's line info.
+           (end (progn (goto-char start) (diff-end-of-hunk) (point))))
 
       (remove-overlays beg end 'diff-mode 'fine)
 
       (goto-char beg)
       (pcase style
         (`unified
-         (while (re-search-forward
-                 (eval-when-compile
-                   (let ((no-LF-at-eol-re "\\(?:\\\\.*\n\\)?"))
-                     (concat "^\\(?:-.*\n\\)+" no-LF-at-eol-re
-                             "\\(\\)"
-                             "\\(?:\\+.*\n\\)+" no-LF-at-eol-re)))
-                 end t)
-           (smerge-refine-subst (match-beginning 0) (match-end 1)
-                                (match-end 1) (match-end 0)
-                                nil 'diff-refine-preproc props-r props-a)))
+         (while (re-search-forward "^-" end t)
+           (let ((beg-del (progn (beginning-of-line) (point)))
+                 beg-add end-add)
+             (when (and (diff--forward-while-leading-char ?- end)
+                        ;; Allow for "\ No newline at end of file".
+                        (progn (diff--forward-while-leading-char ?\\ end)
+                               (setq beg-add (point)))
+                        (diff--forward-while-leading-char ?+ end)
+                        (progn (diff--forward-while-leading-char ?\\ end)
+                               (setq end-add (point))))
+               (smerge-refine-subst beg-del beg-add beg-add end-add
+                                    nil 'diff-refine-preproc props-r props-a)))))
         (`context
          (let* ((middle (save-excursion (re-search-forward "^---")))
                 (other middle))

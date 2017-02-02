@@ -21,7 +21,7 @@
 @copying
 This is the manual for the @code{url} Emacs Lisp library.
 
-Copyright @copyright{} 1993--1999, 2002, 2004--2016 Free Software
+Copyright @copyright{} 1993--1999, 2002, 2004--2017 Free Software
 Foundation, Inc.
 
 @quotation

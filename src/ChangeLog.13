@@ -17073,7 +17073,7 @@
 2013-05-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuf.c (Fread_minibuffer, Feval_minibuffer): Move to Elisp.
-	(syms_of_minibuf): Adjust accodingly.
+	(syms_of_minibuf): Adjust accordingly.
 	* lread.c (Fread):
 	* callint.c (Fcall_interactively): Adjust calls accordingly.
 
@@ -17905,7 +17905,7 @@ See ChangeLog.12 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2011-2016 Free Software Foundation, Inc.
+  Copyright (C) 2011-2017 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

@@ -1,6 +1,6 @@
 ;;; comint.el --- general command interpreter in a window stuff -*- lexical-binding: t -*-
 
-;; Copyright (C) 1988, 1990, 1992-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1990, 1992-2017 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
 ;;	Simon Marshall <simon@gnu.org>
@@ -1879,6 +1879,7 @@ Similarly for Soar, Scheme, etc."
           (let ((echo-len (- comint-last-input-end
                              comint-last-input-start)))
             ;; Wait for all input to be echoed:
+            
             (while (and (> (+ comint-last-input-end echo-len)
                            (point-max))
                         (accept-process-output proc)
@@ -1890,6 +1891,7 @@ Similarly for Soar, Scheme, etc."
                           ;; (+ comint-last-input-start
                           ;;    (- (point-max) comint-last-input-end))
                           nil comint-last-input-end (point-max)))))
+            
             (if (and
                  (<= (+ comint-last-input-end echo-len)
                      (point-max))
@@ -1901,6 +1903,7 @@ Similarly for Soar, Scheme, etc."
                 ;; Certain parts of the text to be deleted may have
                 ;; been mistaken for prompts.  We have to prevent
                 ;; problems when `comint-prompt-read-only' is non-nil.
+                
                 (let ((inhibit-read-only t))
                   (delete-region comint-last-input-end
                                  (+ comint-last-input-end echo-len))
@@ -1909,6 +1912,7 @@ Similarly for Soar, Scheme, etc."
                       (goto-char comint-last-input-end)
                       (comint-update-fence)))))))
 
+        
         ;; This used to call comint-output-filter-functions,
         ;; but that scrolled the buffer in undesirable ways.
         (run-hook-with-args 'comint-output-filter-functions "")))))
@@ -2239,10 +2243,7 @@ the current line with any initial string matching the regexp
              (null (get-char-property (setq bof (field-beginning)) 'field)))
 	(field-string-no-properties bof)
       (comint-bol)
-      (buffer-substring-no-properties (point)
-				      (if comint-use-prompt-regexp
-					  (line-end-position)
-					(field-end))))))
+      (buffer-substring-no-properties (point) (line-end-position)))))
 
 (defun comint-copy-old-input ()
   "Insert after prompt old input at point as new input to be edited.
@@ -2669,7 +2670,7 @@ This command is like `M-.' in bash."
   (set-marker comint-insert-previous-argument-last-start-pos (point))
   ;; Insert the argument.
   (let ((input-string (comint-previous-input-string 0)))
-    (when (string-match "[ \t\n]*&" input-string)
+    (when (string-match "[ \t\n]*&[ \t\n]*$" input-string)
       ;; strip terminating '&'
       (setq input-string (substring input-string 0 (match-beginning 0))))
     (insert (comint-arguments input-string index index)))

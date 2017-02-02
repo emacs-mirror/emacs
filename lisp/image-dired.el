@@ -1,6 +1,6 @@
 ;;; image-dired.el --- use dired to browse and manipulate your images -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 2005-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2017 Free Software Foundation, Inc.
 ;;
 ;; Version: 0.4.11
 ;; Keywords: multimedia
@@ -262,7 +262,7 @@ is replaced by the file name of the temporary file."
       (executable-find "pngnq-s9"))
   "The file name of the `pngnq' program.
 It quantizes colors of PNG images down to 256 colors or fewer
-using the Neuquant procedure."
+using the NeuQuant algorithm."
   :version "26.1"
   :type '(choice (const :tag "Not Set" nil) file)
   :group 'image-dired)
@@ -702,7 +702,7 @@ Increase at own risk.")
     process))
 
 (defun image-dired-pngcrush-thumb (spec)
-  "Optimize thumbnail decsribed by format SPEC with pngcrush(1)."
+  "Optimize thumbnail described by format SPEC with pngcrush(1)."
   ;; If pngnq wasn't run, then the THUMB-nq8.png file does not exist.
   ;; pngcrush needs an infile and outfile, so we just copy THUMB to
   ;; THUMB-nq8.png and use the latter as a temp file.
@@ -727,7 +727,7 @@ Increase at own risk.")
     process))
 
 (defun image-dired-optipng-thumb (spec)
-  "Optimize thumbnail decsribed by format SPEC with optipng(1)."
+  "Optimize thumbnail described by format SPEC with optipng(1)."
   (let ((process
          (apply #'start-process "image-dired-optipng" nil
                 image-dired-cmd-optipng-program
@@ -765,7 +765,7 @@ Increase at own risk.")
       (make-directory thumbnail-dir t)
       (set-file-modes thumbnail-dir #o700))
 
-    ;; Thumbnail file creation processes begin here and are marshalled
+    ;; Thumbnail file creation processes begin here and are marshaled
     ;; in a queue by `image-dired-create-thumb'.
     (setq process
           (apply #'start-process "image-dired-create-thumbnail" nil

@@ -1,6 +1,6 @@
 ;;; x-win.el --- parse relevant switches and set up for X  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1993-1994, 2001-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2017 Free Software Foundation, Inc.
 
 ;; Author: FSF
 ;; Keywords: terminals, i18n

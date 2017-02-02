@@ -1,6 +1,6 @@
 ;;; xml.el --- XML parser -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2017 Free Software Foundation, Inc.
 
 ;; Author: Emmanuel Briot  <briot@gnat.com>
 ;; Maintainer: Mark A. Hershberger <mah@everybody.org>
@@ -646,8 +646,10 @@ surpassed `xml-entity-expansion-limit'"))))
 (defun xml-parse-attlist (&optional xml-ns)
   "Return the attribute-list after point.
 Leave point at the first non-blank character after the tag."
-  (let ((attlist ())
-	end-pos name)
+  (let* ((attlist ())
+	 (symbol-qnames (eq (car-safe xml-ns) 'symbol-qnames))
+	 (xml-ns (if symbol-qnames (cdr xml-ns) xml-ns))
+	 end-pos name)
     (skip-syntax-forward " ")
     (while (looking-at (eval-when-compile
 			 (concat "\\(" xml-name-re "\\)\\s-*=\\s-*")))

@@ -1,6 +1,6 @@
 ;;; gnus-art.el --- article mode commands for Gnus
 
-;; Copyright (C) 1996-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2017 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -251,7 +251,12 @@ This can also be a list of the above values."
 		 (integer :value 200)
 		 (number :value 4.0)
 		 function
-		 (regexp :value ".*"))
+		 (regexp :value ".*")
+		 (repeat (choice (const nil)
+				 (integer :value 200)
+				 (number :value 4.0)
+				 function
+				 (regexp :value ".*"))))
   :group 'gnus-article-signature)
 
 (defcustom gnus-hidden-properties
@@ -2508,7 +2513,7 @@ If PROMPT (the prefix), prompt for a coding system to use."
 			(mail-content-type-get ctl 'charset)))
 	      format (and ctl (mail-content-type-get ctl 'format)))
 	(when cte
-	  (setq cte (mail-header-strip cte)))
+	  (setq cte (mail-header-strip-cte cte)))
 	(if (and ctl (not (string-match "/" (car ctl))))
 	    (setq ctl nil))
 	(goto-char (point-max)))
@@ -2523,8 +2528,7 @@ If PROMPT (the prefix), prompt for a coding system to use."
 		       (equal (car ctl) "text/plain"))
 		   (not format)) ;; article with format will decode later.
 	  (mm-decode-body
-	   charset (and cte (intern (downcase
-				     (gnus-strip-whitespace cte))))
+	   charset (and cte (intern (downcase cte)))
 	   (car ctl)))))))
 
 (defun article-decode-encoded-words ()
@@ -6842,17 +6846,21 @@ then we display only bindings that start with that prefix."
   (let ((keymap (copy-keymap gnus-article-mode-map))
 	(map (copy-keymap gnus-article-send-map))
 	(sumkeys (where-is-internal 'gnus-article-read-summary-keys))
+	(summap (make-sparse-keymap))
 	parent agent draft)
     (define-key keymap "S" map)
     (define-key map [t] nil)
+    (define-key summap [t] 'undefined)
     (with-current-buffer gnus-article-current-summary
+      (dolist (key sumkeys)
+	(define-key summap key (key-binding key (current-local-map))))
       (set-keymap-parent
        keymap
        (if (setq parent (keymap-parent gnus-article-mode-map))
 	   (prog1
 	       (setq parent (copy-keymap parent))
-	     (set-keymap-parent parent (current-local-map)))
-	 (current-local-map)))
+	     (set-keymap-parent parent summap))
+	 summap))
       (set-keymap-parent map (key-binding "S"))
       (let (key def gnus-pick-mode)
 	(while sumkeys

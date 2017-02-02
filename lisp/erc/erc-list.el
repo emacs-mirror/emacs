@@ -1,6 +1,6 @@
 ;;; erc-list.el --- /list support for ERC  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2017 Free Software Foundation, Inc.
 
 ;; Author: Tom Tromey <tromey@redhat.com>
 ;; Maintainer: emacs-devel@gnu.org

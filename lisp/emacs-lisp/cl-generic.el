@@ -1,6 +1,6 @@
 ;;; cl-generic.el --- CLOS-style generic functions for Elisp  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2017 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Version: 1.0
@@ -226,7 +226,13 @@ DEFAULT-BODY, if present, is used as the body of a default method.
     (when (eq 'setf (car-safe name))
       (require 'gv)
       (setq name (gv-setter (cadr name))))
-    `(progn
+    `(prog1
+         (progn
+           (defalias ',name
+             (cl-generic-define ',name ',args ',(nreverse options))
+             ,(help-add-fundoc-usage doc args))
+           ,@(mapcar (lambda (method) `(cl-defmethod ,name ,@method))
+                     (nreverse methods)))
        ,@(mapcar (lambda (declaration)
                    (let ((f (cdr (assq (car declaration)
                                        defun-declarations-alist))))
@@ -235,12 +241,7 @@ DEFAULT-BODY, if present, is used as the body of a default method.
                       (t (message "Warning: Unknown defun property `%S' in %S"
                                   (car declaration) name)
                          nil))))
-                 (cdr declarations))
-       (defalias ',name
-         (cl-generic-define ',name ',args ',(nreverse options))
-         ,(help-add-fundoc-usage doc args))
-       ,@(mapcar (lambda (method) `(cl-defmethod ,name ,@method))
-                 (nreverse methods)))))
+                 (cdr declarations)))))
 
 ;;;###autoload
 (defun cl-generic-define (name args options)

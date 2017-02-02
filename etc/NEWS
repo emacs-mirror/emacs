@@ -1,6 +1,6 @@
 GNU Emacs NEWS -- history of user-visible changes.
 
-Copyright (C) 2014-2016 Free Software Foundation, Inc.
+Copyright (C) 2014-2017 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 Please send Emacs bug reports to bug-gnu-emacs@gnu.org.
@@ -20,6 +20,13 @@ Temporary note:
     (This means all relevant manuals in doc/ AND lisp doc-strings.)
 --- means no change in the manuals is needed.
 When you add a new item, use the appropriate mark if you are sure it applies,
+
++++
+** The version number of CC Mode has been changed from 5.33 to
+5.32.99, although the software itself hasn't changed.  This aims to
+reduce confusion with the standalone CC Mode 5.33 (available from
+http://cc-mode.sourceforge.net), which is a more mature version than
+the one in Emacs 25.2.
 
 
 * Installation Changes in Emacs 26.1
@@ -109,7 +116,16 @@ dired buffer.
 ** Emacs now uses double buffering to reduce flicker when editing and
 resizing graphical Emacs frames on the X Window System.  This support
 requires the DOUBLE-BUFFER extension, which major X servers have
-supported for many years.
+supported for many years.  If your system has this extension, but an
+Emacs built with double buffering misbehaves on some displays you use,
+you can disable the feature by adding
+
+  '(inhibit-double-buffering . t)
+
+to default-frame-parameters.  Or inject this parameter into the
+selected frame by evaluating this form:
+
+  (modify-frame-parameters nil '((inhibit-double-buffering . t)))
 
 ---
 The group 'wp', whose label was "text", is now deprecated.
@@ -312,6 +328,8 @@ the file's actual content before prompting the user.
 
 * Changes in Specialized Modes and Packages in Emacs 26.1
 
+** TeX: Add luatex and xetex as alternatives to pdftex
+
 ** Electric-Buffer-menu
 
 +++
@@ -329,6 +347,16 @@ bound to 'Buffer-menu-unmark-all-buffers'.
 +++
 *** Two new commands 'Buffer-menu-unmark-all', bound to 'U' and
 'Buffer-menu-unmark-all-buffers', bound to 'M-DEL'.
+
+** Gnus
+
+---
+*** The .newsrc file will now only be saved if the native select
+method is an NNTP select method.
+
++++
+*** A new command for sorting articles by readedness marks has been
+added: `C-c C-s C-m C-m'.
 
 ** Ibuffer
 
@@ -510,7 +538,7 @@ instead of shell command strings.  This change affects
 'image-dired-cmd-pngnq-options', 'image-dired-cmd-pngcrush-options',
 'image-dired-cmd-create-standard-thumbnail-options'
 
-*** Recognizes more tools by default, including pngnq-s9, optipng, and gm
+*** Recognizes more tools by default, including pngnq-s9 and OptiPNG
 
 *** 'find-file' and related commands now work on thumbnails and
 displayed images, providing a default argument of the original file name
@@ -584,6 +612,13 @@ enables reading of shell initialization files.
 HTML tags, classes and IDs using the 'completion-at-point' command.
 Completion candidates for HTML classes and IDs are retrieved from open
 HTML mode buffers.
+
+---
+*** CSS mode now binds 'C-h s' to a function that will show
+information about a CSS construct (an at-rule, property, pseudo-class,
+pseudo-element, with the default being guessed from context).  By
+default the information is looked up on the Mozilla Developer Network,
+but this can be customized using 'css-lookup-url-format'.
 
 +++
 ** Emacs now supports character name escape sequences in character and
@@ -669,6 +704,7 @@ before running.  This is controlled by the 'grep-save-buffers'
 variable.
 
 ** Some obsolete functions, variables, and faces have been removed:
+*** make-variable-frame-local.  Variables cannot be frame-local any more.
 *** From subr.el: window-dot, set-window-dot, read-input, show-buffer,
 eval-current-buffer, string-to-int
 *** All the default-FOO variables that hold the default value of the
@@ -700,9 +736,16 @@ of curved quotes in format arguments to functions like 'message' and
 now generate less chatter and more-compact diagnostics.  The auxiliary
 function 'check-declare-errmsg' has been removed.
 
++++
+** The regular expression character class [:blank:] now matches
+Unicode horizontal whitespace as defined in the Unicode Technical
+Standard #18.  If you only want to match space and tab, use [ \t]
+instead.
+
 
 * Lisp Changes in Emacs 26.1
 
+** string-(to|as|make)-(uni|multi)byte are now declared obsolete.
 ** New variable 'while-no-input-ignore-events' which allow
 setting which special events 'while-no-input' should ignore.
 It is a list of symbols.
@@ -762,6 +805,11 @@ of an arbitrary function.  This generalizes 'subr-arity' for functions
 that are not built-in primitives.  We recommend using this new
 function instead of 'subr-arity'.
 
+** New function 'region-bounds' can be used in the interactive spec
+to provide region boundaries (for rectangular regions more than one)
+to an interactively callable function as a single argument instead of
+two separate arguments region-beginning and region-end.
+
 +++
 ** 'parse-partial-sexp' state has a new element.  Element 10 is
 non-nil when the last character scanned might be the first character
@@ -820,6 +868,9 @@ ABBR is a time zone abbreviation.  The affected functions are
 
 ** New built-in function 'mapcan' which avoids unnecessary consing (and garbage
 collection).
+
++++
+** 'car' and 'cdr' compositions 'cXXXr' and 'cXXXXr' are now part of Elisp.
 
 +++
 ** The new functions 'make-nearby-temp-file' and 'temporary-file-directory'

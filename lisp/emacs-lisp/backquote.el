@@ -1,6 +1,6 @@
 ;;; backquote.el --- implement the ` Lisp construct
 
-;; Copyright (C) 1990, 1992, 1994, 2001-2016 Free Software Foundation,
+;; Copyright (C) 1990, 1992, 1994, 2001-2017 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Rick Sladkey <jrs@world.std.com>
@@ -246,5 +246,15 @@ LEVEL is only used internally and indicates the nesting level:
 		  (append heads (list tail))))
 	tail))
      (t (cons 'list heads)))))
+
+
+;; Give `,' and `,@' documentation strings which can be examined by C-h f.
+(put '\, 'function-documentation
+     "See `\\=`' (also `pcase') for the usage of `,'.")
+(put '\, 'reader-construct t)
+
+(put '\,@ 'function-documentation
+     "See `\\=`' for the usage of `,@'.")
+(put '\,@ 'reader-construct t)
 
 ;;; backquote.el ends here

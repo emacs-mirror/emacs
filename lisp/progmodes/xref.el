@@ -1,6 +1,6 @@
 ;; xref.el --- Cross-referencing commands              -*-lexical-binding:t-*-
 
-;; Copyright (C) 2014-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2017 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -918,6 +918,10 @@ IGNORES is a list of glob patterns."
   (grep-compute-defaults)
   (defvar grep-find-template)
   (defvar grep-highlight-matches)
+  ;; 'grep -E -foo' results in 'grep: oo: No such file or directory'.
+  ;; while 'grep -e -foo' inexplicably doesn't.
+  (when (eq (aref regexp 0) ?-)
+    (setq regexp (concat "\\" regexp)))
   (let* ((grep-find-template (replace-regexp-in-string "-e " "-E "
                                                        grep-find-template t t))
          (grep-highlight-matches nil)

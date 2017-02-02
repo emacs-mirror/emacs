@@ -1,5 +1,5 @@
 ;;; ox-publish.el --- Publish Related Org Mode Files as a Website
-;; Copyright (C) 2006-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2017 Free Software Foundation, Inc.
 
 ;; Author: David O'Toole <dto@gnu.org>
 ;; Maintainer: Carsten Dominik <carsten DOT dominik AT gmail DOT com>
@@ -662,6 +662,13 @@ See `org-publish-projects'."
 	 filename pub-dir publishing-function base-dir)))
     (unless no-cache (org-publish-write-cache-file))))
 
+(defun org-publish--run-functions (functions)
+  (cond
+   ((null functions) nil)
+   ((functionp functions) (funcall functions))
+   ((consp functions) (mapc #'funcall functions))
+   (t (error "Neither a function nor a list: %S" functions))))
+
 (defun org-publish-projects (projects)
   "Publish all files belonging to the PROJECTS alist.
 If `:auto-sitemap' is set, publish the sitemap too.  If
@@ -690,7 +697,7 @@ If `:auto-sitemap' is set, publish the sitemap too.  If
 	    (theindex
 	     (expand-file-name "theindex.org"
 			       (plist-get project-plist :base-directory))))
-       (when preparation-function (run-hooks 'preparation-function))
+       (org-publish--run-functions preparation-function)
        (if sitemap-p (funcall sitemap-function project sitemap-filename))
        ;; Publish all files from PROJECT excepted "theindex.org".  Its
        ;; publishing will be deferred until "theindex.inc" is
@@ -704,7 +711,7 @@ If `:auto-sitemap' is set, publish the sitemap too.  If
 	 (org-publish-index-generate-theindex
 	  project (plist-get project-plist :base-directory))
 	 (org-publish-file theindex project t))
-       (when completion-function (run-hooks 'completion-function))
+       (org-publish--run-functions completion-function)
        (org-publish-write-cache-file)))
    (org-publish-expand-projects projects)))
 
@@ -1171,9 +1178,13 @@ the file including them will be republished as well."
 	(goto-char (point-min))
 	(while (re-search-forward
 		"^#\\+INCLUDE:[ \t]+\"\\([^\t\n\r\"]*\\)\"[ \t]*.*$" nil t)
-	  (let* ((included-file (expand-file-name (match-string 1))))
-	    (add-to-list 'included-files-ctime
-			 (org-publish-cache-ctime-of-src included-file) t))))
+	  (let* ((included-file (expand-file-name (match-string 1)))
+                 (ctime (org-publish-cache-ctime-of-src included-file)))
+            (unless (member ctime included-files-ctime)
+              ;; FIXME: The original code insisted on appending this ctime
+              ;; to the end of the list, even tho the order seems irrelevant.
+              (setq included-files-ctime
+                    (append included-files-ctime (list ctime)))))))
       (unless visiting (kill-buffer buf)))
     (if (null pstamp) t
       (let ((ctime (org-publish-cache-ctime-of-src filename)))

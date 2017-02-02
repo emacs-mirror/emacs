@@ -1,6 +1,6 @@
 ;;; xml-parse-tests.el --- Test suite for XML parsing.
 
-;; Copyright (C) 2012-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2017 Free Software Foundation, Inc.
 
 ;; Author: Chong Yidong <cyd@stupidchicken.com>
 ;; Keywords:       internal
@@ -133,6 +133,21 @@ Parser is called with and without 'symbol-qnames argument.")
 		      (cons 'symbol-qnames
 			    (append xml-default-ns
 				    '(("F" . "FOOBAR:"))))))))))
+
+;; Test bug #23440 (proper expansion of default namespace)
+; Test data for default namespace
+(defvar xml-parse-test--default-namespace-qnames
+  (cons "<something xmlns=\"myns:\"><whatever></whatever></something>"
+        '((myns:something
+           ((("http://www.w3.org/2000/xmlns/" . "")
+             . "myns:"))
+           (myns:whatever nil)))))
+
+(ert-deftest xml-parse-test-default-namespace-qnames ()
+  (with-temp-buffer
+    (insert (car xml-parse-test--default-namespace-qnames))
+    (should (equal (cdr xml-parse-test--default-namespace-qnames)
+                   (xml-parse-region nil nil nil nil 'symbol-qnames)))))
 
 ;; Local Variables:
 ;; no-byte-compile: t

@@ -1,6 +1,6 @@
 ;;; bookmark.el --- set bookmarks, maybe annotate them, jump to them later
 
-;; Copyright (C) 1993-1997, 2001-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1997, 2001-2017 Free Software Foundation, Inc.
 
 ;; Author: Karl Fogel <kfogel@red-bean.com>
 ;; Maintainer: Karl Fogel <kfogel@red-bean.com>
@@ -267,6 +267,8 @@ or the deprecated form (BOOKMARK-NAME PARAM-ALIST).
 (defvar bookmarks-already-loaded nil
   "Non-nil if and only if bookmarks have been loaded from `bookmark-default-file'.")
 
+(defvar bookmark-file-coding-system nil
+  "The coding-system of the last loaded or saved bookmark file.")
 
 ;; more stuff added by db.
 
@@ -689,7 +691,7 @@ This expects to be called from `point-min' in a bookmark file."
   (let* ((old-list (bookmark-alist-from-buffer))
          (new-list (bookmark-upgrade-version-0-alist old-list)))
     (delete-region (point-min) (point-max))
-    (bookmark-insert-file-format-version-stamp)
+    (bookmark-insert-file-format-version-stamp buffer-file-coding-system)
     (pp new-list (current-buffer))
     (save-buffer))
   (goto-char (point-min))
@@ -726,11 +728,14 @@ This expects to be called from `point-min' in a bookmark file."
       (error "Bookmark file format version strangeness")))))
 
 
-(defun bookmark-insert-file-format-version-stamp ()
-  "Insert text indicating current version of bookmark file format."
+(defun bookmark-insert-file-format-version-stamp (coding)
+  "Insert text indicating current version of bookmark file format.
+CODING is the symbol of the coding-system in which the file is encoded."
+  (if (memq (coding-system-base coding) '(undecided prefer-utf-8))
+      (setq coding 'utf-8-emacs))
   (insert
-   (format ";;;; Emacs Bookmark Format Version %d ;;;;\n"
-           bookmark-file-format-version))
+   (format ";;;; Emacs Bookmark Format Version %d ;;;; -*- coding: %S -*- \n"
+           bookmark-file-format-version (coding-system-base coding)))
   (insert ";;; This format is meant to be slightly human-readable;\n"
           ";;; nevertheless, you probably don't want to edit it.\n"
           ";;; "
@@ -1417,20 +1422,30 @@ for a file, defaulting to the file defined by variable
   (with-current-buffer (get-buffer-create " *Bookmarks*")
     (goto-char (point-min))
     (delete-region (point-min) (point-max))
-    (let ((print-length nil)
+    (let ((coding-system-for-write
+           (or coding-system-for-write
+               bookmark-file-coding-system 'utf-8-emacs))
+          (print-length nil)
           (print-level nil)
           ;; See bug #12503 for why we bind `print-circle'.  Users
           ;; can define their own bookmark types, which can result in
           ;; arbitrary Lisp objects being stored in bookmark records,
           ;; and some users create objects containing circularities.
           (print-circle t))
-      (bookmark-insert-file-format-version-stamp)
       (insert "(")
       ;; Rather than a single call to `pp' we make one per bookmark.
       ;; Apparently `pp' has a poor algorithmic complexity, so this
       ;; scales a lot better.  bug#4485.
       (dolist (i bookmark-alist) (pp i (current-buffer)))
       (insert ")")
+      ;; Make sure the specified encoding can safely encode the
+      ;; bookmarks.  If it cannot, suggest utf-8-emacs as default.
+      (with-coding-priority '(utf-8-emacs)
+        (setq coding-system-for-write
+              (select-safe-coding-system (point-min) (point-max)
+                                         (list t coding-system-for-write))))
+      (goto-char (point-min))
+      (bookmark-insert-file-format-version-stamp coding-system-for-write)
       (let ((version-control
              (cond
               ((null bookmark-version-control) nil)
@@ -1440,6 +1455,7 @@ for a file, defaulting to the file defined by variable
         (condition-case nil
             (write-region (point-min) (point-max) file)
           (file-error (message "Can't write %s" file)))
+        (setq bookmark-file-coding-system coding-system-for-write)
         (kill-buffer (current-buffer))
         (bookmark-maybe-message
          "Saving bookmarks to file %s...done" file)))))
@@ -1521,7 +1537,8 @@ unique numeric suffixes \"<2>\", \"<3>\", etc."
                     (expand-file-name bookmark-default-file))
                    file)
                   (setq bookmarks-already-loaded t))
-              (bookmark-bmenu-surreptitiously-rebuild-list))
+              (bookmark-bmenu-surreptitiously-rebuild-list)
+              (setq bookmark-file-coding-system buffer-file-coding-system))
           (error "Invalid bookmark list in %s" file)))
       (kill-buffer (current-buffer)))
     (if (null no-msg)
@@ -2123,7 +2140,7 @@ To carry out the deletions that you've marked, use \\<bookmark-bmenu-mode-map>\\
                            (current-buffer))))
           (read-string "Pattern: ")
           (when timer (cancel-timer timer) (setq timer nil)))
-      (when timer ;; Signalled an error or a `quit'.
+      (when timer ;; Signaled an error or a `quit'.
         (cancel-timer timer)
         (bookmark-bmenu-list)
         (bookmark-bmenu-goto-bookmark bmk)))))

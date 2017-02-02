@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2016 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2017 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Processes
@@ -2413,6 +2413,14 @@ If non-@code{nil}, the host's capability string.
 @item :type @var{symbol}
 The connection type: @samp{plain} or @samp{tls}.
 @end table
+
+@item :shell-command @var{string-or-nil}
+If the connection @code{type} is @code{shell}, this parameter will be
+interpreted as a format-spec string that will be executed to make the
+connection.  The specs available are @samp{%s} for the host name and
+@samp{%p} for the port number.  For instance, if you want to first ssh
+to @samp{gateway} before making a plain connection, then this
+parameter could be something like @samp{ssh gateway nc %s %p}.
 
 @end table
 

@@ -1,6 +1,6 @@
 @c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
-@c Copyright (C) 1997, 1999-2016 Free Software Foundation, Inc.
+@c Copyright (C) 1997, 1999-2017 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node International
 @chapter International Character Set Support
@@ -1368,6 +1368,13 @@ Resources}).
 @acronym{ASCII} font, with @samp{fontset-default} as a fallback for
 characters the font does not cover.  The standard fontset is only used if
 explicitly requested, despite its name.
+
+@findex describe-fontset
+  To show the information about a specific fontset, use the
+@w{@kbd{M-x describe-fontset}} command.  It prompts for a fontset
+name, defaulting to the one used by the current frame, and then
+displays all the subranges of characters and the fonts assigned to
+them in that fontset.
 
   A fontset does not necessarily specify a font for every character
 code.  If a fontset specifies no font for a certain character, or if

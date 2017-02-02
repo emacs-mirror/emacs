@@ -1,6 +1,6 @@
 ;;; erc-xdcc.el --- XDCC file-server support for ERC
 
-;; Copyright (C) 2003-2004, 2006-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2004, 2006-2017 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
 ;; Maintainer: emacs-devel@gnu.org

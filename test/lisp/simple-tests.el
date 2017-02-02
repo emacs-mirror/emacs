@@ -1,6 +1,6 @@
 ;;; simple-test.el --- Tests for simple.el           -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2017 Free Software Foundation, Inc.
 
 ;; Author: Artur Malabarba <bruce.connor.am@gmail.com>
 
@@ -30,8 +30,9 @@
      (insert "(a b")
      (save-excursion (insert " c d)"))
      ,@body
-     (cons (buffer-substring (point-min) (point))
-           (buffer-substring (point) (point-max)))))
+     (with-no-warnings
+       (cons (buffer-substring (point-min) (point))
+             (buffer-substring (point) (point-max))))))
 
 
 (defmacro simple-test--transpositions (&rest body)
@@ -266,7 +267,6 @@
    (with-temp-buffer
      (setq buffer-undo-list nil)
      (insert "hello")
-     (car buffer-undo-list)
      (undo-auto--boundaries 'test))))
 
 ;;; Transposition with negative args (bug#20698, bug#21885)

@@ -1,6 +1,6 @@
 /* Replacement langinfo.h file for building GNU Emacs on Windows.
 
-Copyright (C) 2006-2016 Free Software Foundation, Inc.
+Copyright (C) 2006-2017 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

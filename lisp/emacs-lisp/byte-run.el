@@ -1,6 +1,6 @@
 ;;; byte-run.el --- byte-compiler support for inlining  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992, 2001-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 2001-2017 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>
@@ -474,7 +474,7 @@ load time.  In interpreted code, this is entirely equivalent to
 `progn', except that the value of the expression may be (but is
 not necessarily) computed at load time if eager macro expansion
 is enabled."
-  (declare (debug t) (indent 0))
+  (declare (debug (&rest def-form)) (indent 0))
   ;; When the byte-compiler expands code, this macro is not used, so we're
   ;; either about to run `body' (plain interpretation) or we're doing eager
   ;; macroexpansion.

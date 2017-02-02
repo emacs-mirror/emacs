@@ -1,6 +1,6 @@
 ;;; calendar.el --- calendar functions
 
-;; Copyright (C) 1988-1995, 1997, 2000-2016 Free Software Foundation,
+;; Copyright (C) 1988-1995, 1997, 2000-2017 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>

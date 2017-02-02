@@ -1,6 +1,6 @@
 ;;; dos-fns.el --- MS-Dos specific functions
 
-;; Copyright (C) 1991, 1993, 1995-1996, 2001-2016 Free Software
+;; Copyright (C) 1991, 1993, 1995-1996, 2001-2017 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: Morten Welinder <terra@diku.dk>

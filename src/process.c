@@ -1,6 +1,6 @@
 /* Asynchronous subprocess control for GNU Emacs.
 
-Copyright (C) 1985-1988, 1993-1996, 1998-1999, 2001-2016 Free Software
+Copyright (C) 1985-1988, 1993-1996, 1998-1999, 2001-2017 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -3431,8 +3431,8 @@ connect_network_socket (Lisp_Object proc, Lisp_Object addrinfos,
 	  break;
 	}
 
-      immediate_quit = 1;
-      QUIT;
+      immediate_quit = true;
+      maybe_quit ();
 
       ret = connect (s, sa, addrlen);
       xerrno = errno;
@@ -3459,7 +3459,7 @@ connect_network_socket (Lisp_Object proc, Lisp_Object addrinfos,
 	retry_select:
 	  FD_ZERO (&fdset);
 	  FD_SET (s, &fdset);
-	  QUIT;
+	  maybe_quit ();
 	  sc = pselect (s + 1, NULL, &fdset, NULL, NULL, NULL);
 	  if (sc == -1)
 	    {
@@ -3481,7 +3481,7 @@ connect_network_socket (Lisp_Object proc, Lisp_Object addrinfos,
 	}
 #endif /* !WINDOWSNT */
 
-      immediate_quit = 0;
+      immediate_quit = false;
 
       /* Discard the unwind protect closing S.  */
       specpdl_ptr = specpdl + count;
@@ -3539,7 +3539,7 @@ connect_network_socket (Lisp_Object proc, Lisp_Object addrinfos,
 #endif
     }
 
-  immediate_quit = 0;
+  immediate_quit = false;
 
   if (s < 0)
     {
@@ -4012,8 +4012,8 @@ usage: (make-network-process &rest ARGS)  */)
       struct addrinfo *res, *lres;
       int ret;
 
-      immediate_quit = 1;
-      QUIT;
+      immediate_quit = true;
+      maybe_quit ();
 
       struct addrinfo hints;
       memset (&hints, 0, sizeof hints);
@@ -4034,7 +4034,7 @@ usage: (make-network-process &rest ARGS)  */)
 #else
 	error ("%s/%s getaddrinfo error %d", SSDATA (host), portstring, ret);
 #endif
-      immediate_quit = 0;
+      immediate_quit = false;
 
       for (lres = res; lres; lres = lres->ai_next)
 	addrinfos = Fcons (conv_addrinfo_to_lisp (lres), addrinfos);
@@ -4557,23 +4557,22 @@ from PROCESS only, suspending reading output from other processes.
 If JUST-THIS-ONE is an integer, don't run any timers either.
 Return non-nil if we received any output from PROCESS (or, if PROCESS
 is nil, from any process) before the timeout expired.  */)
-  (register Lisp_Object process, Lisp_Object seconds, Lisp_Object millisec, Lisp_Object just_this_one)
+  (Lisp_Object process, Lisp_Object seconds, Lisp_Object millisec,
+   Lisp_Object just_this_one)
 {
   intmax_t secs;
   int nsecs;
 
   if (! NILP (process))
     {
-      struct Lisp_Process *procp;
-
       CHECK_PROCESS (process);
-      procp = XPROCESS (process);
+      struct Lisp_Process *proc = XPROCESS (process);
 
       /* Can't wait for a process that is dedicated to a different
 	 thread.  */
-      if (!EQ (procp->thread, Qnil) && !EQ (procp->thread, Fcurrent_thread ()))
+      if (!EQ (proc->thread, Qnil) && !EQ (proc->thread, Fcurrent_thread ()))
 	error ("Attempt to accept output from process %s locked to thread %s",
-	       SDATA (procp->name), SDATA (XTHREAD (procp->thread)->name));
+	       SDATA (proc->name), SDATA (XTHREAD (proc->thread)->name));
     }
   else
     just_this_one = Qnil;
@@ -5021,7 +5020,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	 since we want to return C-g as an input character.
 	 Otherwise, do pending quit if requested.  */
       if (read_kbd >= 0)
-	QUIT;
+	maybe_quit ();
       else if (pending_signals)
 	process_pending_signals ();
 
@@ -5342,18 +5341,23 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	    }
 #endif
 
+/* Non-macOS HAVE_GLIB builds call thread_select in xgselect.c.  */
+#if defined HAVE_GLIB && !defined HAVE_NS
+	  nfds = xg_select (max_desc + 1,
+			    &Available, (check_write ? &Writeok : 0),
+			    NULL, &timeout, NULL);
+#else  /* !HAVE_GLIB */
 	  nfds = thread_select (
-#if defined (HAVE_NS)
+# ifdef HAVE_NS
 				ns_select
-#elif defined (HAVE_GLIB)
-				xg_select
-#else
+# else
 				pselect
-#endif
+# endif
 				, max_desc + 1,
 				&Available,
 				(check_write ? &Writeok : 0),
 				NULL, &timeout, NULL);
+#endif	/* !HAVE_GLIB */
 
 #ifdef HAVE_GNUTLS
           /* GnuTLS buffers data internally.  In lowat mode it leaves
@@ -5744,7 +5748,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
     {
       /* Prevent input_pending from remaining set if we quit.  */
       clear_input_pending ();
-      QUIT;
+      maybe_quit ();
     }
 
   return got_some_output;
@@ -7482,7 +7486,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	 since we want to return C-g as an input character.
 	 Otherwise, do pending quit if requested.  */
       if (read_kbd >= 0)
-	QUIT;
+	maybe_quit ();
 
       /* Exit now if the cell we're waiting for became non-nil.  */
       if (! NILP (wait_for_cell) && ! NILP (XCAR (wait_for_cell)))

@@ -1,6 +1,6 @@
 ;;; dired-aux.el --- less commonly used parts of dired
 
-;; Copyright (C) 1985-1986, 1992, 1994, 1998, 2000-2016 Free Software
+;; Copyright (C) 1985-1986, 1992, 1994, 1998, 2000-2017 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>.
@@ -986,6 +986,8 @@ corresponding command.
 
 Within CMD, %i denotes the input file(s), and %o denotes the
 output file. %i path(s) are relative, while %o is absolute.")
+
+(declare-function format-spec "format-spec.el" (format specification))
 
 ;;;###autoload
 (defun dired-do-compress-to ()

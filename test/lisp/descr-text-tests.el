@@ -1,6 +1,6 @@
 ;;; descr-text-test.el --- ERT tests for descr-text.el -*- lexical-binding: t -*-
 
-;; Copyright (C) 2014, 2016 Free Software Foundation, Inc.
+;; Copyright (C) 2014, 2016-2017 Free Software Foundation, Inc.
 
 ;; Author:     Michal Nazarewicz <mina86@mina86.com>
 

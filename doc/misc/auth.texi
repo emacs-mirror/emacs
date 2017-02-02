@@ -11,7 +11,7 @@
 @copying
 This file describes the Emacs auth-source library.
 
-Copyright @copyright{} 2008--2016 Free Software Foundation, Inc.
+Copyright @copyright{} 2008--2017 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document

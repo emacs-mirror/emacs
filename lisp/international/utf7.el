@@ -1,6 +1,6 @@
 ;;; utf7.el --- UTF-7 encoding/decoding for Emacs   -*-coding: utf-8;-*-
 
-;; Copyright (C) 1999-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2017 Free Software Foundation, Inc.
 
 ;; Author: Jon K Hellan <hellan@acm.org>
 ;; Maintainer: bugs@gnus.org

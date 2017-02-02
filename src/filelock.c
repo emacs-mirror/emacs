@@ -1,6 +1,6 @@
 /* Lock files for editing.
 
-Copyright (C) 1985-1987, 1993-1994, 1996, 1998-2016 Free Software
+Copyright (C) 1985-1987, 1993-1994, 1996, 1998-2017 Free Software
 Foundation, Inc.
 
 Author: Richard King
@@ -505,7 +505,7 @@ read_lock_data (char *lfname, char lfinfo[MAX_LFINFO + 1])
       /* readlinkat saw a non-symlink, but emacs_open saw a symlink.
 	 The former must have been removed and replaced by the latter.
 	 Try again.  */
-      QUIT;
+      maybe_quit ();
     }
 
   return nbytes;

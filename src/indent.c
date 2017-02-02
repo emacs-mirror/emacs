@@ -1,5 +1,5 @@
 /* Indentation functions.
-   Copyright (C) 1985-1988, 1993-1995, 1998, 2000-2016 Free Software
+   Copyright (C) 1985-1988, 1993-1995, 1998, 2000-2017 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -1200,8 +1200,8 @@ compute_motion (ptrdiff_t from, ptrdiff_t frombyte, EMACS_INT fromvpos,
     continuation_glyph_width = 0;  /* In the fringe.  */
 #endif
 
-  immediate_quit = 1;
-  QUIT;
+  immediate_quit = true;
+  maybe_quit ();
 
   /* It's just impossible to be too paranoid here.  */
   eassert (from == BYTE_TO_CHAR (frombyte) && frombyte == CHAR_TO_BYTE (from));
@@ -1694,7 +1694,7 @@ compute_motion (ptrdiff_t from, ptrdiff_t frombyte, EMACS_INT fromvpos,
   /* Nonzero if have just continued a line */
   val_compute_motion.contin = (contin_hpos && prev_hpos == 0);
 
-  immediate_quit = 0;
+  immediate_quit = false;
   return &val_compute_motion;
 }
 

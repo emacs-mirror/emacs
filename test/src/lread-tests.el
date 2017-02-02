@@ -1,6 +1,6 @@
 ;;; lread-tests.el --- tests for lread.c -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2017 Free Software Foundation, Inc.
 
 ;; Author: Philipp Stephani <phst@google.com>
 
@@ -103,5 +103,13 @@
 
 (ert-deftest lread-string-char-name ()
   (should (equal (read "\"a\\N{SYLOTI NAGRI  LETTER DHO}b\"") "a\uA817b")))
+
+(ert-deftest lread-empty-int-literal ()
+  "Check that Bug#25120 is fixed."
+  (should-error (read "#b") :type 'invalid-read-syntax)
+  (should-error (read "#o") :type 'invalid-read-syntax)
+  (should-error (read "#x") :type 'invalid-read-syntax)
+  (should-error (read "#24r") :type 'invalid-read-syntax)
+  (should-error (read "#") :type 'invalid-read-syntax))
 
 ;;; lread-tests.el ends here

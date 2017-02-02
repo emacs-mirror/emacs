@@ -1,6 +1,6 @@
 ### @configure_input@
 
-# Copyright (C) 2013-2016 Free Software Foundation, Inc.
+# Copyright (C) 2013-2017 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -53,6 +53,11 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 =
+
+AM_V_GEN = $(am__v_GEN_@AM_V@)
+am__v_GEN_ = $(am__v_GEN_@AM_DEFAULT_V@)
+am__v_GEN_0 = @echo "  GEN     " $@;
+am__v_GEN_1 =
 
 AM_V_RC = $(am__v_RC_@AM_V@)
 am__v_RC_ = $(am__v_RC_@AM_DEFAULT_V@)
@@ -255,3 +260,8 @@ runemacs${EXEEXT}: ${srcdir}/runemacs.c $(EMACSRES)
 emacs.res ../src/emacs.res: emacs.rc ${srcdir}/icons/emacs.ico \
   ${srcdir}/icons/hand.cur ${srcdir}/$(EMACS_MANIFEST)
 	$(AM_V_RC)${WINDRES} -I ${srcdir} -O coff -o $@ $<
+
+${srcdir}/gnulib.mk: ${srcdir}/gnulib-modules-to-delete.cfg ${srcdir}/../lib/gnulib.mk
+	$(AM_V_GEN)sed '/^[^#]/s|^.*$$|/^## begin  *gnulib module &/,/^## end  *gnulib module &/d|' < $< | \
+	  sed -f- ${srcdir}/../lib/gnulib.mk > $@-t && \
+	  ${srcdir}/../build-aux/move-if-change $@-t $@

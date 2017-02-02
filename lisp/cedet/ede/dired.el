@@ -1,6 +1,6 @@
 ;;; ede/dired.el --- EDE extensions to dired.
 
-;; Copyright (C) 1998-2000, 2003, 2009-2016 Free Software Foundation,
+;; Copyright (C) 1998-2000, 2003, 2009-2017 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>

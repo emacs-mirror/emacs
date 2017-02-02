@@ -1,6 +1,6 @@
 ;;; rfc2047.el --- functions for encoding and decoding rfc2047 messages
 
-;; Copyright (C) 1998-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2017 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
@@ -281,17 +281,7 @@ Should be called narrowed to the head of the message."
 			(encode-coding-region
 			 (point-min) (point-max)
 			 (mm-charset-to-coding-system
-			  (car message-posting-charset))))
-		  ;; No encoding necessary, but folding is nice
-		  (when nil
-		    (rfc2047-fold-region
-		     (save-excursion
-		       (goto-char (point-min))
-		       (skip-chars-forward "^:")
-		       (when (looking-at ": ")
-			 (forward-char 2))
-		       (point))
-		     (point-max))))
+			  (car message-posting-charset)))))
 	      ;; We found something that may perhaps be encoded.
 	      (re-search-forward "^[^:]+: *" nil t)
 	      (cond

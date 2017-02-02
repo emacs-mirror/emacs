@@ -1,6 +1,6 @@
 ;;; semantic/db-global.el --- Semantic database extensions for GLOBAL
 
-;; Copyright (C) 2002-2006, 2008-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2006, 2008-2017 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: tags
@@ -47,7 +47,7 @@ in a GNU Global supported hierarchy.
 
 Two sanity checks are performed to assure (a) that GNU global program exists
 and (b) that the GNU global program version is compatibility with the database
-version.  If optional NOERROR is nil, then an error may be signalled on version
+version.  If optional NOERROR is nil, then an error may be signaled on version
 mismatch.  If NOERROR is not nil, then no error will be signaled.  Instead
 return value will indicate success or failure with non-nil or nil respective
 values."

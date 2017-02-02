@@ -1,6 +1,6 @@
 /* Basic character set support.
 
-Copyright (C) 2001-2016 Free Software Foundation, Inc.
+Copyright (C) 2001-2017 Free Software Foundation, Inc.
 
 Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
   2005, 2006, 2007, 2008, 2009, 2010, 2011
@@ -241,7 +241,7 @@ struct charset_map_entries
 static void
 load_charset_map (struct charset *charset, struct charset_map_entries *entries, int n_entries, int control_flag)
 {
-  Lisp_Object vec;
+  Lisp_Object vec UNINIT;
   Lisp_Object table UNINIT;
   unsigned max_code = CHARSET_MAX_CODE (charset);
   bool ascii_compatible_p = charset->ascii_compatible_p;

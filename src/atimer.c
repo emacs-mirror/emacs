@@ -1,5 +1,5 @@
 /* Asynchronous timers.
-   Copyright (C) 2000-2016 Free Software Foundation, Inc.
+   Copyright (C) 2000-2017 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -20,6 +20,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <stdio.h>
 
 #include "lisp.h"
+#include "keyboard.h"
 #include "syssignal.h"
 #include "systime.h"
 #include "atimer.h"

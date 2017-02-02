@@ -1,6 +1,6 @@
 /* Keyboard macros.
 
-Copyright (C) 1985-1986, 1993, 2000-2016 Free Software Foundation, Inc.
+Copyright (C) 1985-1986, 1993, 2000-2017 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -325,7 +325,7 @@ each iteration of the macro.  Iteration stops if LOOPFUNC returns nil.  */)
 
       executing_kbd_macro_iterations = ++success_count;
 
-      QUIT;
+      maybe_quit ();
     }
   while (--repeat
 	 && (STRINGP (Vexecuting_kbd_macro) || VECTORP (Vexecuting_kbd_macro)));

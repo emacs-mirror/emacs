@@ -1,6 +1,6 @@
 ;;; gnus-start.el --- startup functions for Gnus
 
-;; Copyright (C) 1996-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2017 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -2801,8 +2801,13 @@ If FORCE is non-nil, the .newsrc file is read."
 	(gnus-run-hooks 'gnus-save-newsrc-hook)
 	(if gnus-slave
 	    (gnus-slave-save-newsrc)
-	  ;; Save .newsrc.
-	  (when gnus-save-newsrc-file
+	  ;; Save .newsrc only if the select method is an NNTP method.
+	  ;; The .newsrc file is for interoperability with other
+	  ;; newsreaders, so saving non-NNTP groups there doesn't make
+	  ;; much sense.
+	  (when (and gnus-save-newsrc-file
+		     (eq (car (gnus-server-to-method gnus-select-method))
+			 'nntp))
 	    (gnus-message 8 "Saving %s..." gnus-current-startup-file)
 	    (gnus-gnus-to-newsrc-format)
 	    (gnus-message 8 "Saving %s...done" gnus-current-startup-file))

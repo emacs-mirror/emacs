@@ -1,6 +1,6 @@
 ;;; reftex-parse.el --- parser functions for RefTeX
 
-;; Copyright (C) 1997-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2017 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
@@ -270,7 +270,10 @@ of master file."
 		 (when (eq (char-before) ?\\) (backward-char))
                  ;; Insert in List
                  (setq toc-entry (funcall reftex-section-info-function file))
-                 (when toc-entry
+                 (when (and toc-entry
+                            (eq ;; Either both are t or both are nil.
+                             (= (char-after bound) ?%)
+                             (string-suffix-p ".dtx" file)))
                    ;; It can happen that section info returns nil
                    (setq level (nth 5 toc-entry))
                    (setq highest-level (min highest-level level))

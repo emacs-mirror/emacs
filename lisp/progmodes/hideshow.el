@@ -1,6 +1,6 @@
 ;;; hideshow.el --- minor mode cmds to selectively display code/comment blocks
 
-;; Copyright (C) 1994-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2017 Free Software Foundation, Inc.
 
 ;; Author: Thien-Thi Nguyen <ttn@gnu.org>
 ;;      Dan Nicolaescu <dann@ics.uci.edu>
@@ -582,7 +582,7 @@ and then further adjusted to be at the end of the line."
 	  (setq p (line-end-position)))
 	;; `q' is the point at the end of the block
 	(hs-forward-sexp mdata 1)
-	(setq q (if (looking-back hs-block-end-regexp)
+	(setq q (if (looking-back hs-block-end-regexp nil)
 		    (match-beginning 0)
 		  (point)))
         (when (and (< p q) (> (count-lines p q) 1))

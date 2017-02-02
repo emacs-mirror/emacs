@@ -1,6 +1,6 @@
 ;;; recentf.el --- setup a menu of recently opened files
 
-;; Copyright (C) 1999-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2017 Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Created: July 19 1999
@@ -82,7 +82,7 @@ See the command `recentf-save-list'."
                 recentf-mode
                 (recentf-load-list)))))
 
-(defcustom recentf-save-file-modes 384 ;; 0600
+(defcustom recentf-save-file-modes #o600
   "Mode bits of recentf save file, as an integer, or nil.
 If non-nil, after writing `recentf-save-file', set its mode bits to
 this value.  By default give R/W access only to the user who owns that

@@ -1,6 +1,6 @@
 ;;; menu-bar.el --- define a default menu bar
 
-;; Copyright (C) 1993-1995, 2000-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 2000-2017 Free Software Foundation, Inc.
 
 ;; Author: Richard M. Stallman
 ;; Maintainer: emacs-devel@gnu.org
@@ -530,14 +530,10 @@
                             (gui-backend-selection-exists-p 'CLIPBOARD))
                         (not buffer-read-only)))))
 
-(defvar gui-select-enable-clipboard)
-
 (defun clipboard-yank ()
   "Insert the clipboard contents, or the last stretch of killed text."
   (interactive "*")
-  (let ((gui-select-enable-clipboard t)
-        (interprogram-paste-function (or interprogram-paste-function
-                                         #'gui-selection-value)))
+  (let ((select-enable-clipboard t))
     (yank)))
 
 (defun clipboard-kill-ring-save (beg end &optional region)
@@ -545,9 +541,7 @@
 If the optional argument REGION is non-nil, the function ignores
 BEG and END, and saves the current region instead."
   (interactive "r\np")
-  (let ((gui-select-enable-clipboard t)
-        (interprogram-cut-function (or interprogram-cut-function
-                                       #'gui-select-text)))
+  (let ((select-enable-clipboard t))
     (kill-ring-save beg end region)))
 
 (defun clipboard-kill-region (beg end &optional region)
@@ -555,9 +549,7 @@ BEG and END, and saves the current region instead."
 If the optional argument REGION is non-nil, the function ignores
 BEG and END, and kills the current region instead."
   (interactive "r\np")
-  (let ((gui-select-enable-clipboard t)
-        (interprogram-cut-function (or interprogram-cut-function
-                                       #'gui-select-text)))
+  (let ((select-enable-clipboard t))
     (kill-region beg end region)))
 
 (defun menu-bar-enable-clipboard ()

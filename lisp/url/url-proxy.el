@@ -1,6 +1,6 @@
 ;;; url-proxy.el --- Proxy server support
 
-;; Copyright (C) 1999, 2004-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2004-2017 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 

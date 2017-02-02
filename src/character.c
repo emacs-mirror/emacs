@@ -1,6 +1,6 @@
 /* Basic character support.
 
-Copyright (C) 2001-2016 Free Software Foundation, Inc.
+Copyright (C) 2001-2017 Free Software Foundation, Inc.
 Copyright (C) 1995, 1997, 1998, 2001 Electrotechnical Laboratory, JAPAN.
   Licensed to the Free Software Foundation.
 Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
@@ -1036,6 +1036,18 @@ printablep (int c)
   return (!(gen_cat == UNICODE_CATEGORY_Cc /* control */
 	    || gen_cat == UNICODE_CATEGORY_Cs /* surrogate */
 	    || gen_cat == UNICODE_CATEGORY_Cn)); /* unassigned */
+}
+
+/* Return true if C is a horizontal whitespace character, as defined
+   by http://www.unicode.org/reports/tr18/tr18-19.html#blank.  */
+bool
+blankp (int c)
+{
+  Lisp_Object category = CHAR_TABLE_REF (Vunicode_category_table, c);
+  if (! INTEGERP (category))
+    return false;
+
+  return XINT (category) == UNICODE_CATEGORY_Zs; /* separator, space */
 }
 
 void

@@ -1,6 +1,6 @@
 ;;; tex-mode.el --- TeX, LaTeX, and SliTeX mode commands  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1989, 1992, 1994-1999, 2001-2016 Free
+;; Copyright (C) 1985-1986, 1989, 1992, 1994-1999, 2001-2017 Free
 ;; Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -2113,13 +2113,17 @@ If NOT-ALL is non-nil, save the `.dvi' file."
   :group 'tex)
 
 (defvar tex-compile-commands
-  '(((concat "pdf" tex-command
-	     " " (if (< 0 (length tex-start-commands))
-		     (shell-quote-argument tex-start-commands)) " %f")
-     t "%r.pdf")
+  `(,@(mapcar (lambda (prefix)
+                `((concat ,prefix tex-command
+                          " " (if (< 0 (length tex-start-commands))
+                                  (shell-quote-argument tex-start-commands))
+                          " %f")
+                  t "%r.pdf"))
+              '("pdf" "xe" "lua"))
     ((concat tex-command
 	     " " (if (< 0 (length tex-start-commands))
-		     (shell-quote-argument tex-start-commands)) " %f")
+		     (shell-quote-argument tex-start-commands))
+             " %f")
      t "%r.dvi")
     ("xdvi %r &" "%r.dvi")
     ("\\doc-view \"%r.pdf\"" "%r.pdf")

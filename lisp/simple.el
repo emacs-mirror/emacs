@@ -1,6 +1,6 @@
 ;;; simple.el --- basic editing commands for Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1987, 1993-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1993-2017 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
@@ -1699,6 +1699,7 @@ If the value is non-nil and not a number, we wait 2 seconds."
                   ;; Don't show the help message if the binding isn't
                   ;; significantly shorter than the M-x command the user typed.
                   (< len (- max 5))))
+      (input-pending-p)    ;Dummy call to trigger input-processing, bug#23002.
       (let ((candidate (pop candidates)))
         (when (equal name
                        (car-safe (completion-try-completion
@@ -5409,11 +5410,15 @@ also checks the value of `use-empty-active-region'."
        ;; region is active when there's no mark.
        (progn (cl-assert (mark)) t)))
 
+(defun region-bounds ()
+  "Return the boundaries of the region as a list of (START . END) positions."
+  (funcall region-extract-function 'bounds))
+
 (defun region-noncontiguous-p ()
   "Return non-nil if the region contains several pieces.
 An example is a rectangular region handled as a list of
 separate contiguous regions for each line."
-  (> (length (funcall region-extract-function 'bounds)) 1))
+  (> (length (region-bounds)) 1))
 
 (defvar redisplay-unhighlight-region-function
   (lambda (rol) (when (overlayp rol) (delete-overlay rol))))
@@ -7567,7 +7572,7 @@ More precisely, a char with closeparen syntax is self-inserted.")
 
 ;; This executes C-g typed while Emacs is waiting for a command.
 ;; Quitting out of a program does not go through here;
-;; that happens in the QUIT macro at the C code level.
+;; that happens in the maybe_quit function at the C code level.
 (defun keyboard-quit ()
   "Signal a `quit' condition.
 During execution of Lisp code, this character causes a quit directly.

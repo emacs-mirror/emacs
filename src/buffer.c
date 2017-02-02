@@ -1,6 +1,6 @@
 /* Buffer manipulation primitives for GNU Emacs.
 
-Copyright (C) 1985-1989, 1993-1995, 1997-2016 Free Software Foundation,
+Copyright (C) 1985-1989, 1993-1995, 1997-2017 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -32,6 +32,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "lisp.h"
 #include "intervals.h"
+#include "process.h"
 #include "systime.h"
 #include "window.h"
 #include "commands.h"
@@ -414,19 +415,16 @@ followed by the rest of the buffers.  */)
 }
 
 /* Like Fassoc, but use Fstring_equal to compare
-   (which ignores text properties),
-   and don't ever QUIT.  */
+   (which ignores text properties), and don't ever quit.  */
 
 static Lisp_Object
-assoc_ignore_text_properties (register Lisp_Object key, Lisp_Object list)
+assoc_ignore_text_properties (Lisp_Object key, Lisp_Object list)
 {
-  register Lisp_Object tail;
+  Lisp_Object tail;
   for (tail = list; CONSP (tail); tail = XCDR (tail))
     {
-      register Lisp_Object elt, tem;
-      elt = XCAR (tail);
-      tem = Fstring_equal (Fcar (elt), key);
-      if (!NILP (tem))
+      Lisp_Object elt = XCAR (tail);
+      if (!NILP (Fstring_equal (Fcar (elt), key)))
 	return elt;
     }
   return Qnil;

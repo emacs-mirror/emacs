@@ -1,6 +1,6 @@
 ;;; add-log-tests.el --- Test suite for add-log.
 
-;; Copyright (C) 2013-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2017 Free Software Foundation, Inc.
 
 ;; Author: Masatake YAMATO <yamato@redhat.com>
 ;; Keywords: vc tools

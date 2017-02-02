@@ -1,6 +1,6 @@
 /* Fundamental definitions for GNU Emacs Lisp interpreter. -*- coding: utf-8 -*-
 
-Copyright (C) 1985-1987, 1993-1995, 1997-2016 Free Software Foundation,
+Copyright (C) 1985-1987, 1993-1995, 1997-2017 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -33,8 +33,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <intprops.h>
 #include <verify.h>
-
-#include "systhread.h"
 
 INLINE_HEADER_BEGIN
 
@@ -260,6 +258,11 @@ DEFINE_GDB_SYMBOL_BEGIN (bool, USE_LSB_TAG)
 #define USE_LSB_TAG (VAL_MAX / 2 < INTPTR_MAX)
 DEFINE_GDB_SYMBOL_END (USE_LSB_TAG)
 
+/* Mask for the value (as opposed to the type bits) of a Lisp object.  */
+DEFINE_GDB_SYMBOL_BEGIN (EMACS_INT, VALMASK)
+# define VALMASK (USE_LSB_TAG ? - (1 << GCTYPEBITS) : VAL_MAX)
+DEFINE_GDB_SYMBOL_END (VALMASK)
+
 #if !USE_LSB_TAG && !defined WIDE_EMACS_INT
 # error "USE_LSB_TAG not supported on this platform; please report this." \
 	"Try 'configure --with-wide-int' to work around the problem."
@@ -307,7 +310,6 @@ error !;
 # define lisp_h_XLI(o) (o)
 # define lisp_h_XIL(i) (i)
 #endif
-#define lisp_h_CHECK_LIST_CONS(x, y) CHECK_TYPE (CONSP (x), Qlistp, y)
 #define lisp_h_CHECK_NUMBER(x) CHECK_TYPE (INTEGERP (x), Qintegerp, x)
 #define lisp_h_CHECK_SYMBOL(x) CHECK_TYPE (SYMBOLP (x), Qsymbolp, x)
 #define lisp_h_CHECK_TYPE(ok, predicate, x) \
@@ -364,7 +366,6 @@ error !;
 #if DEFINE_KEY_OPS_AS_MACROS
 # define XLI(o) lisp_h_XLI (o)
 # define XIL(i) lisp_h_XIL (i)
-# define CHECK_LIST_CONS(x, y) lisp_h_CHECK_LIST_CONS (x, y)
 # define CHECK_NUMBER(x) lisp_h_CHECK_NUMBER (x)
 # define CHECK_SYMBOL(x) lisp_h_CHECK_SYMBOL (x)
 # define CHECK_TYPE(ok, predicate, x) lisp_h_CHECK_TYPE (ok, predicate, x)
@@ -558,45 +559,8 @@ enum CHECK_LISP_OBJECT_TYPE { CHECK_LISP_OBJECT_TYPE = false };
 /* Forward declarations.  */
 
 /* Defined in this file.  */
-union Lisp_Fwd;
-INLINE bool BOOL_VECTOR_P (Lisp_Object);
-INLINE bool BUFFER_OBJFWDP (union Lisp_Fwd *);
-INLINE bool BUFFERP (Lisp_Object);
-INLINE bool CHAR_TABLE_P (Lisp_Object);
-INLINE Lisp_Object CHAR_TABLE_REF_ASCII (Lisp_Object, ptrdiff_t);
-INLINE bool (CONSP) (Lisp_Object);
-INLINE bool (FLOATP) (Lisp_Object);
-INLINE bool (INTEGERP) (Lisp_Object);
-INLINE bool (MARKERP) (Lisp_Object);
-INLINE bool (MISCP) (Lisp_Object);
-INLINE bool (NILP) (Lisp_Object);
-INLINE bool OVERLAYP (Lisp_Object);
-INLINE bool PROCESSP (Lisp_Object);
-INLINE bool PSEUDOVECTORP (Lisp_Object, int);
-INLINE bool SAVE_VALUEP (Lisp_Object);
-INLINE bool FINALIZERP (Lisp_Object);
-
-#ifdef HAVE_MODULES
-INLINE bool USER_PTRP (Lisp_Object);
-INLINE struct Lisp_User_Ptr *(XUSER_PTR) (Lisp_Object);
-#endif
-
 INLINE void set_sub_char_table_contents (Lisp_Object, ptrdiff_t,
 					      Lisp_Object);
-INLINE bool STRINGP (Lisp_Object);
-INLINE bool SUB_CHAR_TABLE_P (Lisp_Object);
-INLINE bool SUBRP (Lisp_Object);
-INLINE bool (SYMBOLP) (Lisp_Object);
-INLINE bool (VECTORLIKEP) (Lisp_Object);
-INLINE bool WINDOWP (Lisp_Object);
-INLINE bool TERMINALP (Lisp_Object);
-INLINE bool THREADP (Lisp_Object);
-INLINE bool MUTEXP (Lisp_Object);
-INLINE bool CONDVARP (Lisp_Object);
-INLINE struct Lisp_Save_Value *XSAVE_VALUE (Lisp_Object);
-INLINE struct Lisp_Finalizer *XFINALIZER (Lisp_Object);
-INLINE struct Lisp_Symbol *(XSYMBOL) (Lisp_Object);
-INLINE void *(XUNTAG) (Lisp_Object, int);
 
 /* Defined in chartab.c.  */
 extern Lisp_Object char_table_ref (Lisp_Object, int);
@@ -604,9 +568,6 @@ extern void char_table_set (Lisp_Object, int, Lisp_Object);
 
 /* Defined in data.c.  */
 extern _Noreturn void wrong_type_argument (Lisp_Object, Lisp_Object);
-extern _Noreturn void wrong_choice (Lisp_Object, Lisp_Object);
-extern void notify_variable_watchers (Lisp_Object symbol, Lisp_Object newval,
-                                      Lisp_Object operation, Lisp_Object where);
 
 
 #ifdef CANNOT_DUMP
@@ -623,6 +584,56 @@ extern bool generating_ldefs_boot;
 
 /* Defined in floatfns.c.  */
 extern double extract_float (Lisp_Object);
+
+
+/* Low-level conversion and type checking.  */
+
+/* Convert a Lisp_Object to the corresponding EMACS_INT and vice versa.
+   At the machine level, these operations are no-ops.  */
+
+INLINE EMACS_INT
+(XLI) (Lisp_Object o)
+{
+  return lisp_h_XLI (o);
+}
+
+INLINE Lisp_Object
+(XIL) (EMACS_INT i)
+{
+  return lisp_h_XIL (i);
+}
+
+/* Extract A's type.  */
+
+INLINE enum Lisp_Type
+(XTYPE) (Lisp_Object a)
+{
+#if USE_LSB_TAG
+  return lisp_h_XTYPE (a);
+#else
+  EMACS_UINT i = XLI (a);
+  return USE_LSB_TAG ? i & ~VALMASK : i >> VALBITS;
+#endif
+}
+
+INLINE void
+(CHECK_TYPE) (int ok, Lisp_Object predicate, Lisp_Object x)
+{
+  lisp_h_CHECK_TYPE (ok, predicate, x);
+}
+
+/* Extract A's pointer value, assuming A's type is TYPE.  */
+
+INLINE void *
+(XUNTAG) (Lisp_Object a, int type)
+{
+#if USE_LSB_TAG
+  return lisp_h_XUNTAG (a, type);
+#else
+  intptr_t i = USE_LSB_TAG ? XLI (a) - type : XLI (a) & VALMASK;
+  return (void *) i;
+#endif
+}
 
 
 /* Interned state of a symbol.  */
@@ -753,6 +764,10 @@ struct Lisp_Symbol
   DEFINE_GDB_SYMBOL_BEGIN (Lisp_Object, name) \
   DEFINE_GDB_SYMBOL_END (LISPSYM_INITIALLY (name))
 
+/* The index of the C-defined Lisp symbol SYM.
+   This can be used in a static initializer.  */
+#define SYMBOL_INDEX(sym) i##sym
+
 /* By default, define macros for Qt, etc., as this leads to a bit
    better performance in the core Emacs interpreter.  A plugin can
    define DEFINE_NON_NIL_Q_SYMBOL_MACROS to be false, to be portable to
@@ -794,21 +809,43 @@ struct vectorlike_header
     ptrdiff_t size;
   };
 
-#include "thread.h"
-
-/* Convert a Lisp_Object to the corresponding EMACS_INT and vice versa.
-   At the machine level, these operations are no-ops.  */
-
-INLINE EMACS_INT
-(XLI) (Lisp_Object o)
+INLINE bool
+(SYMBOLP) (Lisp_Object x)
 {
-  return lisp_h_XLI (o);
+  return lisp_h_SYMBOLP (x);
+}
+
+INLINE struct Lisp_Symbol *
+(XSYMBOL) (Lisp_Object a)
+{
+#if USE_LSB_TAG
+  return lisp_h_XSYMBOL (a);
+#else
+  eassert (SYMBOLP (a));
+  intptr_t i = (intptr_t) XUNTAG (a, Lisp_Symbol);
+  void *p = (char *) lispsym + i;
+  return p;
+#endif
 }
 
 INLINE Lisp_Object
-(XIL) (EMACS_INT i)
+make_lisp_symbol (struct Lisp_Symbol *sym)
 {
-  return lisp_h_XIL (i);
+  Lisp_Object a = XIL (TAG_SYMOFFSET ((char *) sym - (char *) lispsym));
+  eassert (XSYMBOL (a) == sym);
+  return a;
+}
+
+INLINE Lisp_Object
+builtin_lisp_symbol (int index)
+{
+  return make_lisp_symbol (lispsym + index);
+}
+
+INLINE void
+(CHECK_SYMBOL) (Lisp_Object x)
+{
+ lisp_h_CHECK_SYMBOL (x);
 }
 
 /* In the size word of a vector, this bit means the vector has been marked.  */
@@ -879,11 +916,6 @@ enum More_Lisp_Bits
    XCONS (tem) is the struct Lisp_Cons * pointing to the memory for
    that cons.  */
 
-/* Mask for the value (as opposed to the type bits) of a Lisp object.  */
-DEFINE_GDB_SYMBOL_BEGIN (EMACS_INT, VALMASK)
-# define VALMASK (USE_LSB_TAG ? - (1 << GCTYPEBITS) : VAL_MAX)
-DEFINE_GDB_SYMBOL_END (VALMASK)
-
 /* Largest and smallest representable fixnum values.  These are the C
    values.  They are macros for use in static initializers.  */
 #define MOST_POSITIVE_FIXNUM (EMACS_INT_MAX >> INTTYPEBITS)
@@ -909,24 +941,6 @@ INLINE EMACS_INT
   EMACS_INT n = lisp_h_XFASTINT (a);
   eassume (0 <= n);
   return n;
-}
-
-INLINE struct Lisp_Symbol *
-(XSYMBOL) (Lisp_Object a)
-{
-  return lisp_h_XSYMBOL (a);
-}
-
-INLINE enum Lisp_Type
-(XTYPE) (Lisp_Object a)
-{
-  return lisp_h_XTYPE (a);
-}
-
-INLINE void *
-(XUNTAG) (Lisp_Object a, int type)
-{
-  return lisp_h_XUNTAG (a, type);
 }
 
 #else /* ! USE_LSB_TAG */
@@ -980,32 +994,6 @@ XFASTINT (Lisp_Object a)
   return n;
 }
 
-/* Extract A's type.  */
-INLINE enum Lisp_Type
-XTYPE (Lisp_Object a)
-{
-  EMACS_UINT i = XLI (a);
-  return USE_LSB_TAG ? i & ~VALMASK : i >> VALBITS;
-}
-
-/* Extract A's value as a symbol.  */
-INLINE struct Lisp_Symbol *
-XSYMBOL (Lisp_Object a)
-{
-  eassert (SYMBOLP (a));
-  intptr_t i = (intptr_t) XUNTAG (a, Lisp_Symbol);
-  void *p = (char *) lispsym + i;
-  return p;
-}
-
-/* Extract A's pointer value, assuming A's type is TYPE.  */
-INLINE void *
-XUNTAG (Lisp_Object a, int type)
-{
-  intptr_t i = USE_LSB_TAG ? XLI (a) - type : XLI (a) & VALMASK;
-  return (void *) i;
-}
-
 #endif /* ! USE_LSB_TAG */
 
 /* Extract A's value as an unsigned integer.  */
@@ -1056,119 +1044,6 @@ clip_to_bounds (ptrdiff_t lower, EMACS_INT num, ptrdiff_t upper)
   return num < lower ? lower : num <= upper ? num : upper;
 }
 
-
-/* Extract a value or address from a Lisp_Object.  */
-
-INLINE struct Lisp_Cons *
-(XCONS) (Lisp_Object a)
-{
-  return lisp_h_XCONS (a);
-}
-
-INLINE struct Lisp_Vector *
-XVECTOR (Lisp_Object a)
-{
-  eassert (VECTORLIKEP (a));
-  return XUNTAG (a, Lisp_Vectorlike);
-}
-
-INLINE struct Lisp_String *
-XSTRING (Lisp_Object a)
-{
-  eassert (STRINGP (a));
-  return XUNTAG (a, Lisp_String);
-}
-
-/* The index of the C-defined Lisp symbol SYM.
-   This can be used in a static initializer.  */
-#define SYMBOL_INDEX(sym) i##sym
-
-INLINE struct Lisp_Float *
-XFLOAT (Lisp_Object a)
-{
-  eassert (FLOATP (a));
-  return XUNTAG (a, Lisp_Float);
-}
-
-/* Pseudovector types.  */
-
-INLINE struct Lisp_Process *
-XPROCESS (Lisp_Object a)
-{
-  eassert (PROCESSP (a));
-  return XUNTAG (a, Lisp_Vectorlike);
-}
-
-INLINE struct window *
-XWINDOW (Lisp_Object a)
-{
-  eassert (WINDOWP (a));
-  return XUNTAG (a, Lisp_Vectorlike);
-}
-
-INLINE struct terminal *
-XTERMINAL (Lisp_Object a)
-{
-  eassert (TERMINALP (a));
-  return XUNTAG (a, Lisp_Vectorlike);
-}
-
-INLINE struct Lisp_Subr *
-XSUBR (Lisp_Object a)
-{
-  eassert (SUBRP (a));
-  return XUNTAG (a, Lisp_Vectorlike);
-}
-
-INLINE struct buffer *
-XBUFFER (Lisp_Object a)
-{
-  eassert (BUFFERP (a));
-  return XUNTAG (a, Lisp_Vectorlike);
-}
-
-INLINE struct Lisp_Char_Table *
-XCHAR_TABLE (Lisp_Object a)
-{
-  eassert (CHAR_TABLE_P (a));
-  return XUNTAG (a, Lisp_Vectorlike);
-}
-
-INLINE struct Lisp_Sub_Char_Table *
-XSUB_CHAR_TABLE (Lisp_Object a)
-{
-  eassert (SUB_CHAR_TABLE_P (a));
-  return XUNTAG (a, Lisp_Vectorlike);
-}
-
-INLINE struct Lisp_Bool_Vector *
-XBOOL_VECTOR (Lisp_Object a)
-{
-  eassert (BOOL_VECTOR_P (a));
-  return XUNTAG (a, Lisp_Vectorlike);
-}
-
-INLINE struct thread_state *
-XTHREAD (Lisp_Object a)
-{
-  eassert (THREADP (a));
-  return XUNTAG (a, Lisp_Vectorlike);
-}
-
-INLINE struct Lisp_Mutex *
-XMUTEX (Lisp_Object a)
-{
-  eassert (MUTEXP (a));
-  return XUNTAG (a, Lisp_Vectorlike);
-}
-
-INLINE struct Lisp_CondVar *
-XCONDVAR (Lisp_Object a)
-{
-  eassert (CONDVARP (a));
-  return XUNTAG (a, Lisp_Vectorlike);
-}
-
 /* Construct a Lisp_Object from a value or address.  */
 
 INLINE Lisp_Object
@@ -1179,18 +1054,10 @@ make_lisp_ptr (void *ptr, enum Lisp_Type type)
   return a;
 }
 
-INLINE Lisp_Object
-make_lisp_symbol (struct Lisp_Symbol *sym)
+INLINE bool
+(INTEGERP) (Lisp_Object x)
 {
-  Lisp_Object a = XIL (TAG_SYMOFFSET ((char *) sym - (char *) lispsym));
-  eassert (XSYMBOL (a) == sym);
-  return a;
-}
-
-INLINE Lisp_Object
-builtin_lisp_symbol (int index)
-{
-  return make_lisp_symbol (lispsym + index);
+  return lisp_h_INTEGERP (x);
 }
 
 #define XSETINT(a, b) ((a) = make_number (b))
@@ -1258,14 +1125,6 @@ make_pointer_integer (void *p)
   return a;
 }
 
-/* Type checking.  */
-
-INLINE void
-(CHECK_TYPE) (int ok, Lisp_Object predicate, Lisp_Object x)
-{
-  lisp_h_CHECK_TYPE (ok, predicate, x);
-}
-
 /* See the macros in intervals.h.  */
 
 typedef struct interval *INTERVAL;
@@ -1284,6 +1143,30 @@ struct GCALIGNED Lisp_Cons
       struct Lisp_Cons *chain;
     } u;
   };
+
+INLINE bool
+(NILP) (Lisp_Object x)
+{
+  return lisp_h_NILP (x);
+}
+
+INLINE bool
+(CONSP) (Lisp_Object x)
+{
+  return lisp_h_CONSP (x);
+}
+
+INLINE void
+CHECK_CONS (Lisp_Object x)
+{
+  CHECK_TYPE (CONSP (x), Qconsp, x);
+}
+
+INLINE struct Lisp_Cons *
+(XCONS) (Lisp_Object a)
+{
+  return lisp_h_XCONS (a);
+}
 
 /* Take the car or cdr of something known to be a cons cell.  */
 /* The _addr functions shouldn't be used outside of the minimal set
@@ -1373,6 +1256,25 @@ struct GCALIGNED Lisp_String
     INTERVAL intervals;		/* Text properties in this string.  */
     unsigned char *data;
   };
+
+INLINE bool
+STRINGP (Lisp_Object x)
+{
+  return XTYPE (x) == Lisp_String;
+}
+
+INLINE void
+CHECK_STRING (Lisp_Object x)
+{
+  CHECK_TYPE (STRINGP (x), Qstringp, x);
+}
+
+INLINE struct Lisp_String *
+XSTRING (Lisp_Object a)
+{
+  eassert (STRINGP (a));
+  return XUNTAG (a, Lisp_String);
+}
 
 /* True if STR is a multibyte string.  */
 INLINE bool
@@ -1477,6 +1379,62 @@ struct Lisp_Vector
     Lisp_Object contents[FLEXIBLE_ARRAY_MEMBER];
   };
 
+INLINE bool
+(VECTORLIKEP) (Lisp_Object x)
+{
+  return lisp_h_VECTORLIKEP (x);
+}
+
+INLINE struct Lisp_Vector *
+XVECTOR (Lisp_Object a)
+{
+  eassert (VECTORLIKEP (a));
+  return XUNTAG (a, Lisp_Vectorlike);
+}
+
+INLINE ptrdiff_t
+ASIZE (Lisp_Object array)
+{
+  ptrdiff_t size = XVECTOR (array)->header.size;
+  eassume (0 <= size);
+  return size;
+}
+
+INLINE bool
+VECTORP (Lisp_Object x)
+{
+  return VECTORLIKEP (x) && ! (ASIZE (x) & PSEUDOVECTOR_FLAG);
+}
+
+INLINE void
+CHECK_VECTOR (Lisp_Object x)
+{
+  CHECK_TYPE (VECTORP (x), Qvectorp, x);
+}
+
+/* A pseudovector is like a vector, but has other non-Lisp components.  */
+
+INLINE bool
+PSEUDOVECTOR_TYPEP (struct vectorlike_header *a, int code)
+{
+  return ((a->size & (PSEUDOVECTOR_FLAG | PVEC_TYPE_MASK))
+	  == (PSEUDOVECTOR_FLAG | (code << PSEUDOVECTOR_AREA_BITS)));
+}
+
+/* True if A is a pseudovector whose code is CODE.  */
+INLINE bool
+PSEUDOVECTORP (Lisp_Object a, int code)
+{
+  if (! VECTORLIKEP (a))
+    return false;
+  else
+    {
+      /* Converting to struct vectorlike_header * avoids aliasing issues.  */
+      struct vectorlike_header *h = XUNTAG (a, Lisp_Vectorlike);
+      return PSEUDOVECTOR_TYPEP (h, code);
+    }
+}
+
 /* A boolvector is a kind of vectorlike, with contents like a string.  */
 
 struct Lisp_Bool_Vector
@@ -1492,6 +1450,51 @@ struct Lisp_Bool_Vector
        the bytes are in little-endian order in the words.  */
     bits_word data[FLEXIBLE_ARRAY_MEMBER];
   };
+
+/* Some handy constants for calculating sizes
+   and offsets, mostly of vectorlike objects.   */
+
+enum
+  {
+    header_size = offsetof (struct Lisp_Vector, contents),
+    bool_header_size = offsetof (struct Lisp_Bool_Vector, data),
+    word_size = sizeof (Lisp_Object)
+  };
+
+/* The number of data words and bytes in a bool vector with SIZE bits.  */
+
+INLINE EMACS_INT
+bool_vector_words (EMACS_INT size)
+{
+  eassume (0 <= size && size <= EMACS_INT_MAX - (BITS_PER_BITS_WORD - 1));
+  return (size + BITS_PER_BITS_WORD - 1) / BITS_PER_BITS_WORD;
+}
+
+INLINE EMACS_INT
+bool_vector_bytes (EMACS_INT size)
+{
+  eassume (0 <= size && size <= EMACS_INT_MAX - (BITS_PER_BITS_WORD - 1));
+  return (size + BOOL_VECTOR_BITS_PER_CHAR - 1) / BOOL_VECTOR_BITS_PER_CHAR;
+}
+
+INLINE bool
+BOOL_VECTOR_P (Lisp_Object a)
+{
+  return PSEUDOVECTORP (a, PVEC_BOOL_VECTOR);
+}
+
+INLINE void
+CHECK_BOOL_VECTOR (Lisp_Object x)
+{
+  CHECK_TYPE (BOOL_VECTOR_P (x), Qbool_vector_p, x);
+}
+
+INLINE struct Lisp_Bool_Vector *
+XBOOL_VECTOR (Lisp_Object a)
+{
+  eassert (BOOL_VECTOR_P (a));
+  return XUNTAG (a, Lisp_Vectorlike);
+}
 
 INLINE EMACS_INT
 bool_vector_size (Lisp_Object a)
@@ -1511,22 +1514,6 @@ INLINE unsigned char *
 bool_vector_uchar_data (Lisp_Object a)
 {
   return (unsigned char *) bool_vector_data (a);
-}
-
-/* The number of data words and bytes in a bool vector with SIZE bits.  */
-
-INLINE EMACS_INT
-bool_vector_words (EMACS_INT size)
-{
-  eassume (0 <= size && size <= EMACS_INT_MAX - (BITS_PER_BITS_WORD - 1));
-  return (size + BITS_PER_BITS_WORD - 1) / BITS_PER_BITS_WORD;
-}
-
-INLINE EMACS_INT
-bool_vector_bytes (EMACS_INT size)
-{
-  eassume (0 <= size && size <= EMACS_INT_MAX - (BITS_PER_BITS_WORD - 1));
-  return (size + BOOL_VECTOR_BITS_PER_CHAR - 1) / BOOL_VECTOR_BITS_PER_CHAR;
 }
 
 /* True if A's Ith bit is set.  */
@@ -1561,16 +1548,6 @@ bool_vector_set (Lisp_Object a, EMACS_INT i, bool b)
     *addr &= ~ (1 << (i % BOOL_VECTOR_BITS_PER_CHAR));
 }
 
-/* Some handy constants for calculating sizes
-   and offsets, mostly of vectorlike objects.   */
-
-enum
-  {
-    header_size = offsetof (struct Lisp_Vector, contents),
-    bool_header_size = offsetof (struct Lisp_Bool_Vector, data),
-    word_size = sizeof (Lisp_Object)
-  };
-
 /* Conveniences for dealing with Lisp arrays.  */
 
 INLINE Lisp_Object
@@ -1583,14 +1560,6 @@ INLINE Lisp_Object *
 aref_addr (Lisp_Object array, ptrdiff_t idx)
 {
   return & XVECTOR (array)->contents[idx];
-}
-
-INLINE ptrdiff_t
-ASIZE (Lisp_Object array)
-{
-  ptrdiff_t size = XVECTOR (array)->header.size;
-  eassume (0 <= size);
-  return size;
 }
 
 INLINE ptrdiff_t
@@ -1710,6 +1679,19 @@ struct Lisp_Char_Table
     Lisp_Object extras[FLEXIBLE_ARRAY_MEMBER];
   };
 
+INLINE bool
+CHAR_TABLE_P (Lisp_Object a)
+{
+  return PSEUDOVECTORP (a, PVEC_CHAR_TABLE);
+}
+
+INLINE struct Lisp_Char_Table *
+XCHAR_TABLE (Lisp_Object a)
+{
+  eassert (CHAR_TABLE_P (a));
+  return XUNTAG (a, Lisp_Vectorlike);
+}
+
 struct Lisp_Sub_Char_Table
   {
     /* HEADER.SIZE is the vector's size field, which also holds the
@@ -1730,6 +1712,19 @@ struct Lisp_Sub_Char_Table
     /* Use set_sub_char_table_contents to set this.  */
     Lisp_Object contents[FLEXIBLE_ARRAY_MEMBER];
   };
+
+INLINE bool
+SUB_CHAR_TABLE_P (Lisp_Object a)
+{
+  return PSEUDOVECTORP (a, PVEC_SUB_CHAR_TABLE);
+}
+
+INLINE struct Lisp_Sub_Char_Table *
+XSUB_CHAR_TABLE (Lisp_Object a)
+{
+  eassert (SUB_CHAR_TABLE_P (a));
+  return XUNTAG (a, Lisp_Vectorlike);
+}
 
 INLINE Lisp_Object
 CHAR_TABLE_REF_ASCII (Lisp_Object ct, ptrdiff_t idx)
@@ -1796,6 +1791,19 @@ struct Lisp_Subr
     EMACS_INT doc;
   };
 
+INLINE bool
+SUBRP (Lisp_Object a)
+{
+  return PSEUDOVECTORP (a, PVEC_SUBR);
+}
+
+INLINE struct Lisp_Subr *
+XSUBR (Lisp_Object a)
+{
+  eassert (SUBRP (a));
+  return XUNTAG (a, Lisp_Vectorlike);
+}
+
 enum char_table_specials
   {
     /* This is the number of slots that every char table must have.  This
@@ -1822,6 +1830,8 @@ verify (offsetof (struct Lisp_Sub_Char_Table, contents)
 	== (offsetof (struct Lisp_Vector, contents)
 	    + SUB_CHAR_TABLE_OFFSET * sizeof (Lisp_Object)));
 
+#include "thread.h"
+
 /***********************************************************************
 			       Symbols
  ***********************************************************************/
@@ -1837,19 +1847,19 @@ INLINE Lisp_Object
 INLINE struct Lisp_Symbol *
 SYMBOL_ALIAS (struct Lisp_Symbol *sym)
 {
-  eassert (sym->redirect == SYMBOL_VARALIAS);
+  eassume (sym->redirect == SYMBOL_VARALIAS && sym->val.alias);
   return sym->val.alias;
 }
 INLINE struct Lisp_Buffer_Local_Value *
 SYMBOL_BLV (struct Lisp_Symbol *sym)
 {
-  eassert (sym->redirect == SYMBOL_LOCALIZED);
+  eassume (sym->redirect == SYMBOL_LOCALIZED && sym->val.blv);
   return sym->val.blv;
 }
 INLINE union Lisp_Fwd *
 SYMBOL_FWD (struct Lisp_Symbol *sym)
 {
-  eassert (sym->redirect == SYMBOL_FORWARDED);
+  eassume (sym->redirect == SYMBOL_FORWARDED && sym->val.fwd);
   return sym->val.fwd;
 }
 
@@ -1862,19 +1872,19 @@ INLINE void
 INLINE void
 SET_SYMBOL_ALIAS (struct Lisp_Symbol *sym, struct Lisp_Symbol *v)
 {
-  eassert (sym->redirect == SYMBOL_VARALIAS);
+  eassume (sym->redirect == SYMBOL_VARALIAS && v);
   sym->val.alias = v;
 }
 INLINE void
 SET_SYMBOL_BLV (struct Lisp_Symbol *sym, struct Lisp_Buffer_Local_Value *v)
 {
-  eassert (sym->redirect == SYMBOL_LOCALIZED);
+  eassume (sym->redirect == SYMBOL_LOCALIZED && v);
   sym->val.blv = v;
 }
 INLINE void
 SET_SYMBOL_FWD (struct Lisp_Symbol *sym, union Lisp_Fwd *v)
 {
-  eassert (sym->redirect == SYMBOL_FORWARDED);
+  eassume (sym->redirect == SYMBOL_FORWARDED && v);
   sym->val.fwd = v;
 }
 
@@ -1984,6 +1994,10 @@ struct Lisp_Hash_Table
      a collision chain.  This vector's size can be larger than the
      hash table size to reduce collisions.  */
   Lisp_Object index;
+
+  /* Non-nil if the table can be purecopied. Any changes the table after
+     purecopy will result in an error.  */
+  Lisp_Object pure;
 
   /* Only the fields above are traced normally by the GC.  The ones below
      `count' are special and are either ignored by the GC or traced in
@@ -2105,6 +2119,25 @@ struct Lisp_Misc_Any		/* Supertype of all Misc types.  */
   bool_bf gcmarkbit : 1;
   unsigned spacer : 15;
 };
+
+INLINE bool
+(MISCP) (Lisp_Object x)
+{
+  return lisp_h_MISCP (x);
+}
+
+INLINE struct Lisp_Misc_Any *
+XMISCANY (Lisp_Object a)
+{
+  eassert (MISCP (a));
+  return XUNTAG (a, Lisp_Misc);
+}
+
+INLINE enum Lisp_Misc_Type
+XMISCTYPE (Lisp_Object a)
+{
+  return XMISCANY (a)->type;
+}
 
 struct Lisp_Marker
 {
@@ -2263,6 +2296,19 @@ struct Lisp_Save_Value
     } data[SAVE_VALUE_SLOTS];
   };
 
+INLINE bool
+SAVE_VALUEP (Lisp_Object x)
+{
+  return MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Save_Value;
+}
+
+INLINE struct Lisp_Save_Value *
+XSAVE_VALUE (Lisp_Object a)
+{
+  eassert (SAVE_VALUEP (a));
+  return XUNTAG (a, Lisp_Misc);
+}
+
 /* Return the type of V's Nth saved value.  */
 INLINE int
 save_type (struct Lisp_Save_Value *v, int n)
@@ -2343,6 +2389,19 @@ struct Lisp_Finalizer
     Lisp_Object function;
   };
 
+INLINE bool
+FINALIZERP (Lisp_Object x)
+{
+  return MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Finalizer;
+}
+
+INLINE struct Lisp_Finalizer *
+XFINALIZER (Lisp_Object a)
+{
+  eassert (FINALIZERP (a));
+  return XUNTAG (a, Lisp_Misc);
+}
+
 /* A miscellaneous object, when it's on the free list.  */
 struct Lisp_Free
   {
@@ -2374,53 +2433,44 @@ XMISC (Lisp_Object a)
   return XUNTAG (a, Lisp_Misc);
 }
 
-INLINE struct Lisp_Misc_Any *
-XMISCANY (Lisp_Object a)
+INLINE bool
+(MARKERP) (Lisp_Object x)
 {
-  eassert (MISCP (a));
-  return & XMISC (a)->u_any;
-}
-
-INLINE enum Lisp_Misc_Type
-XMISCTYPE (Lisp_Object a)
-{
-  return XMISCANY (a)->type;
+  return lisp_h_MARKERP (x);
 }
 
 INLINE struct Lisp_Marker *
 XMARKER (Lisp_Object a)
 {
   eassert (MARKERP (a));
-  return & XMISC (a)->u_marker;
+  return XUNTAG (a, Lisp_Misc);
+}
+
+INLINE bool
+OVERLAYP (Lisp_Object x)
+{
+  return MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Overlay;
 }
 
 INLINE struct Lisp_Overlay *
 XOVERLAY (Lisp_Object a)
 {
   eassert (OVERLAYP (a));
-  return & XMISC (a)->u_overlay;
-}
-
-INLINE struct Lisp_Save_Value *
-XSAVE_VALUE (Lisp_Object a)
-{
-  eassert (SAVE_VALUEP (a));
-  return & XMISC (a)->u_save_value;
-}
-
-INLINE struct Lisp_Finalizer *
-XFINALIZER (Lisp_Object a)
-{
-  eassert (FINALIZERP (a));
-  return & XMISC (a)->u_finalizer;
+  return XUNTAG (a, Lisp_Misc);
 }
 
 #ifdef HAVE_MODULES
+INLINE bool
+USER_PTRP (Lisp_Object x)
+{
+  return MISCP (x) && XMISCTYPE (x) == Lisp_Misc_User_Ptr;
+}
+
 INLINE struct Lisp_User_Ptr *
 XUSER_PTR (Lisp_Object a)
 {
   eassert (USER_PTRP (a));
-  return & XMISC (a)->u_user_ptr;
+  return XUNTAG (a, Lisp_Misc);
 }
 #endif
 
@@ -2466,7 +2516,7 @@ struct Lisp_Buffer_Objfwd
   };
 
 /* struct Lisp_Buffer_Local_Value is used in a symbol value cell when
-   the symbol has buffer-local or frame-local bindings.  (Exception:
+   the symbol has buffer-local bindings.  (Exception:
    some buffer-local variables are built-in, with their values stored
    in the buffer structure itself.  They are handled differently,
    using struct Lisp_Buffer_Objfwd.)
@@ -2494,9 +2544,6 @@ struct Lisp_Buffer_Local_Value
     /* True means that merely setting the variable creates a local
        binding for the current buffer.  */
     bool_bf local_if_set : 1;
-    /* True means this variable can have frame-local bindings, otherwise, it is
-       can have buffer-local bindings.  The two cannot be combined.  */
-    bool_bf frame_local : 1;
     /* True means that the binding now loaded was found.
        Presumably equivalent to (defcell!=valcell).  */
     bool_bf found : 1;
@@ -2538,6 +2585,12 @@ XFWDTYPE (union Lisp_Fwd *a)
   return a->u_intfwd.type;
 }
 
+INLINE bool
+BUFFER_OBJFWDP (union Lisp_Fwd *a)
+{
+  return XFWDTYPE (a) == Lisp_Fwd_Buffer_Obj;
+}
+
 INLINE struct Lisp_Buffer_Objfwd *
 XBUFFER_OBJFWD (union Lisp_Fwd *a)
 {
@@ -2554,6 +2607,19 @@ struct Lisp_Float
       struct Lisp_Float *chain;
     } u;
   };
+
+INLINE bool
+(FLOATP) (Lisp_Object x)
+{
+  return lisp_h_FLOATP (x);
+}
+
+INLINE struct Lisp_Float *
+XFLOAT (Lisp_Object a)
+{
+  eassert (FLOATP (a));
+  return XUNTAG (a, Lisp_Float);
+}
 
 INLINE double
 XFLOAT_DATA (Lisp_Object f)
@@ -2621,12 +2687,6 @@ enum char_bits
 /* Data type checking.  */
 
 INLINE bool
-(NILP) (Lisp_Object x)
-{
-  return lisp_h_NILP (x);
-}
-
-INLINE bool
 NUMBERP (Lisp_Object x)
 {
   return INTEGERP (x) || FLOATP (x);
@@ -2649,107 +2709,9 @@ RANGED_INTEGERP (intmax_t lo, Lisp_Object x, intmax_t hi)
    && XINT (x) <= TYPE_MAXIMUM (type))
 
 INLINE bool
-(CONSP) (Lisp_Object x)
-{
-  return lisp_h_CONSP (x);
-}
-INLINE bool
-(FLOATP) (Lisp_Object x)
-{
-  return lisp_h_FLOATP (x);
-}
-INLINE bool
-(MISCP) (Lisp_Object x)
-{
-  return lisp_h_MISCP (x);
-}
-INLINE bool
-(SYMBOLP) (Lisp_Object x)
-{
-  return lisp_h_SYMBOLP (x);
-}
-INLINE bool
-(INTEGERP) (Lisp_Object x)
-{
-  return lisp_h_INTEGERP (x);
-}
-INLINE bool
-(VECTORLIKEP) (Lisp_Object x)
-{
-  return lisp_h_VECTORLIKEP (x);
-}
-INLINE bool
-(MARKERP) (Lisp_Object x)
-{
-  return lisp_h_MARKERP (x);
-}
-
-INLINE bool
-STRINGP (Lisp_Object x)
-{
-  return XTYPE (x) == Lisp_String;
-}
-INLINE bool
-VECTORP (Lisp_Object x)
-{
-  return VECTORLIKEP (x) && ! (ASIZE (x) & PSEUDOVECTOR_FLAG);
-}
-INLINE bool
-OVERLAYP (Lisp_Object x)
-{
-  return MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Overlay;
-}
-INLINE bool
-SAVE_VALUEP (Lisp_Object x)
-{
-  return MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Save_Value;
-}
-
-INLINE bool
-FINALIZERP (Lisp_Object x)
-{
-  return MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Finalizer;
-}
-
-#ifdef HAVE_MODULES
-INLINE bool
-USER_PTRP (Lisp_Object x)
-{
-  return MISCP (x) && XMISCTYPE (x) == Lisp_Misc_User_Ptr;
-}
-#endif
-
-INLINE bool
 AUTOLOADP (Lisp_Object x)
 {
   return CONSP (x) && EQ (Qautoload, XCAR (x));
-}
-
-INLINE bool
-BUFFER_OBJFWDP (union Lisp_Fwd *a)
-{
-  return XFWDTYPE (a) == Lisp_Fwd_Buffer_Obj;
-}
-
-INLINE bool
-PSEUDOVECTOR_TYPEP (struct vectorlike_header *a, int code)
-{
-  return ((a->size & (PSEUDOVECTOR_FLAG | PVEC_TYPE_MASK))
-	  == (PSEUDOVECTOR_FLAG | (code << PSEUDOVECTOR_AREA_BITS)));
-}
-
-/* True if A is a pseudovector whose code is CODE.  */
-INLINE bool
-PSEUDOVECTORP (Lisp_Object a, int code)
-{
-  if (! VECTORLIKEP (a))
-    return false;
-  else
-    {
-      /* Converting to struct vectorlike_header * avoids aliasing issues.  */
-      struct vectorlike_header *h = XUNTAG (a, Lisp_Vectorlike);
-      return PSEUDOVECTOR_TYPEP (h, code);
-    }
 }
 
 
@@ -2762,81 +2724,15 @@ WINDOW_CONFIGURATIONP (Lisp_Object a)
 }
 
 INLINE bool
-PROCESSP (Lisp_Object a)
-{
-  return PSEUDOVECTORP (a, PVEC_PROCESS);
-}
-
-INLINE bool
-WINDOWP (Lisp_Object a)
-{
-  return PSEUDOVECTORP (a, PVEC_WINDOW);
-}
-
-INLINE bool
-TERMINALP (Lisp_Object a)
-{
-  return PSEUDOVECTORP (a, PVEC_TERMINAL);
-}
-
-INLINE bool
-SUBRP (Lisp_Object a)
-{
-  return PSEUDOVECTORP (a, PVEC_SUBR);
-}
-
-INLINE bool
 COMPILEDP (Lisp_Object a)
 {
   return PSEUDOVECTORP (a, PVEC_COMPILED);
 }
 
 INLINE bool
-BUFFERP (Lisp_Object a)
-{
-  return PSEUDOVECTORP (a, PVEC_BUFFER);
-}
-
-INLINE bool
-CHAR_TABLE_P (Lisp_Object a)
-{
-  return PSEUDOVECTORP (a, PVEC_CHAR_TABLE);
-}
-
-INLINE bool
-SUB_CHAR_TABLE_P (Lisp_Object a)
-{
-  return PSEUDOVECTORP (a, PVEC_SUB_CHAR_TABLE);
-}
-
-INLINE bool
-BOOL_VECTOR_P (Lisp_Object a)
-{
-  return PSEUDOVECTORP (a, PVEC_BOOL_VECTOR);
-}
-
-INLINE bool
 FRAMEP (Lisp_Object a)
 {
   return PSEUDOVECTORP (a, PVEC_FRAME);
-}
-
-INLINE bool
-THREADP (Lisp_Object a)
-{
-  return PSEUDOVECTORP (a, PVEC_THREAD);
-}
-
-INLINE bool
-MUTEXP (Lisp_Object a)
-{
-  return PSEUDOVECTORP (a, PVEC_MUTEX);
-}
-
-INLINE bool
-CONDVARP (Lisp_Object a)
-{
-  return PSEUDOVECTORP (a, PVEC_CONDVAR);
 }
 
 /* Test for image (image . spec)  */
@@ -2860,15 +2756,9 @@ CHECK_LIST (Lisp_Object x)
 }
 
 INLINE void
-(CHECK_LIST_CONS) (Lisp_Object x, Lisp_Object y)
+CHECK_LIST_END (Lisp_Object x, Lisp_Object y)
 {
-  lisp_h_CHECK_LIST_CONS (x, y);
-}
-
-INLINE void
-(CHECK_SYMBOL) (Lisp_Object x)
-{
- lisp_h_CHECK_SYMBOL (x);
+  CHECK_TYPE (NILP (x), Qlistp, y);
 }
 
 INLINE void
@@ -2878,24 +2768,9 @@ INLINE void
 }
 
 INLINE void
-CHECK_STRING (Lisp_Object x)
-{
-  CHECK_TYPE (STRINGP (x), Qstringp, x);
-}
-INLINE void
 CHECK_STRING_CAR (Lisp_Object x)
 {
   CHECK_TYPE (STRINGP (XCAR (x)), Qstringp, XCAR (x));
-}
-INLINE void
-CHECK_CONS (Lisp_Object x)
-{
-  CHECK_TYPE (CONSP (x), Qconsp, x);
-}
-INLINE void
-CHECK_VECTOR (Lisp_Object x)
-{
-  CHECK_TYPE (VECTORP (x), Qvectorp, x);
 }
 INLINE void
 CHECK_COMPILED (Lisp_Object x)
@@ -2922,23 +2797,6 @@ CHECK_ARRAY (Lisp_Object x, Lisp_Object predicate)
 {
   CHECK_TYPE (ARRAYP (x), predicate, x);
 }
-INLINE void
-CHECK_BUFFER (Lisp_Object x)
-{
-  CHECK_TYPE (BUFFERP (x), Qbufferp, x);
-}
-INLINE void
-CHECK_WINDOW (Lisp_Object x)
-{
-  CHECK_TYPE (WINDOWP (x), Qwindowp, x);
-}
-#ifdef subprocesses
-INLINE void
-CHECK_PROCESS (Lisp_Object x)
-{
-  CHECK_TYPE (PROCESSP (x), Qprocessp, x);
-}
-#endif
 INLINE void
 CHECK_NATNUM (Lisp_Object x)
 {
@@ -2991,25 +2849,6 @@ CHECK_NUMBER_OR_FLOAT (Lisp_Object x)
     else								\
       CHECK_TYPE (NUMBERP (x), Qnumber_or_marker_p, x);			\
   } while (false)
-
-
-INLINE void
-CHECK_THREAD (Lisp_Object x)
-{
-  CHECK_TYPE (THREADP (x), Qthreadp, x);
-}
-
-INLINE void
-CHECK_MUTEX (Lisp_Object x)
-{
-  CHECK_TYPE (MUTEXP (x), Qmutexp, x);
-}
-
-INLINE void
-CHECK_CONDVAR (Lisp_Object x)
-{
-  CHECK_TYPE (CONDVARP (x), Qcondition_variable_p, x);
-}
 
 /* Since we can't assign directly to the CAR or CDR fields of a cons
    cell, use these when checking that those fields contain numbers.  */
@@ -3294,39 +3133,29 @@ struct handler
   ptrdiff_t pdlcount;
   int poll_suppress_count;
   int interrupt_input_blocked;
-  struct byte_stack *byte_stack;
 };
 
 extern Lisp_Object memory_signal_data;
 
-/* Check quit-flag and quit if it is non-nil.
-   Typing C-g does not directly cause a quit; it only sets Vquit_flag.
-   So the program needs to do QUIT at times when it is safe to quit.
-   Every loop that might run for a long time or might not exit
-   ought to do QUIT at least once, at a safe place.
-   Unless that is impossible, of course.
-   But it is very desirable to avoid creating loops where QUIT is impossible.
+/* Check quit-flag and quit if it is non-nil.  Typing C-g does not
+   directly cause a quit; it only sets Vquit_flag.  So the program
+   needs to call maybe_quit at times when it is safe to quit.  Every
+   loop that might run for a long time or might not exit ought to call
+   maybe_quit at least once, at a safe place.  Unless that is
+   impossible, of course.  But it is very desirable to avoid creating
+   loops where maybe_quit is impossible.
 
-   Exception: if you set immediate_quit to true,
-   then the handler that responds to the C-g does the quit itself.
-   This is a good thing to do around a loop that has no side effects
-   and (in particular) cannot call arbitrary Lisp code.
+   Exception: if you set immediate_quit, the handler that responds to
+   the C-g does the quit itself.  This is a good thing to do around a
+   loop that has no side effects and (in particular) cannot call
+   arbitrary Lisp code.
 
    If quit-flag is set to `kill-emacs' the SIGINT handler has received
-   a request to exit Emacs when it is safe to do.  */
+   a request to exit Emacs when it is safe to do.
 
-extern void process_pending_signals (void);
-extern bool volatile pending_signals;
+   When not quitting, process any pending signals.  */
 
-extern void process_quit_flag (void);
-#define QUIT						\
-  do {							\
-    if (!NILP (Vquit_flag) && NILP (Vinhibit_quit))	\
-      process_quit_flag ();				\
-    else if (pending_signals)				\
-      process_pending_signals ();			\
-  } while (false)
-
+extern void maybe_quit (void);
 
 /* True if ought to quit now.  */
 
@@ -3393,7 +3222,7 @@ make_symbol_constant (Lisp_Object sym)
   XSYMBOL (sym)->trapped_write = SYMBOL_NOWRITE;
 }
 
-/* Buffer-local (also frame-local) variable access functions.  */
+/* Buffer-local variable access functions.  */
 
 INLINE int
 blv_found (struct Lisp_Buffer_Local_Value *blv)
@@ -3463,6 +3292,9 @@ set_sub_char_table_contents (Lisp_Object table, ptrdiff_t idx, Lisp_Object val)
 }
 
 /* Defined in data.c.  */
+extern _Noreturn void wrong_choice (Lisp_Object, Lisp_Object);
+extern void notify_variable_watchers (Lisp_Object, Lisp_Object,
+				      Lisp_Object, Lisp_Object);
 extern Lisp_Object indirect_function (Lisp_Object);
 extern Lisp_Object find_symbol_value (Lisp_Object);
 enum Arith_Comparison {
@@ -3550,7 +3382,7 @@ extern void sweep_weak_hash_tables (void);
 EMACS_UINT hash_string (char const *, ptrdiff_t);
 EMACS_UINT sxhash (Lisp_Object, int);
 Lisp_Object make_hash_table (struct hash_table_test, Lisp_Object, Lisp_Object,
-                             Lisp_Object, Lisp_Object);
+                             Lisp_Object, Lisp_Object, Lisp_Object);
 ptrdiff_t hash_lookup (struct Lisp_Hash_Table *, Lisp_Object, EMACS_UINT *);
 ptrdiff_t hash_put (struct Lisp_Hash_Table *, Lisp_Object, Lisp_Object,
 		    EMACS_UINT);
@@ -4041,7 +3873,7 @@ extern Lisp_Object safe_call1 (Lisp_Object, Lisp_Object);
 extern Lisp_Object safe_call2 (Lisp_Object, Lisp_Object, Lisp_Object);
 extern void init_eval (void);
 extern void syms_of_eval (void);
-extern void unwind_body (Lisp_Object);
+extern void prog_ignore (Lisp_Object);
 extern ptrdiff_t record_in_backtrace (Lisp_Object, Lisp_Object *, ptrdiff_t);
 extern void mark_specpdl (union specbinding *first, union specbinding *ptr);
 extern void get_backtrace (Lisp_Object array);
@@ -4054,7 +3886,6 @@ extern bool let_shadows_global_binding_p (Lisp_Object symbol);
 extern Lisp_Object make_user_ptr (void (*finalizer) (void *), void *p);
 
 /* Defined in emacs-module.c.  */
-extern void module_init (void);
 extern void syms_of_module (void);
 #endif
 
@@ -4285,6 +4116,7 @@ extern bool inhibit_window_system;
 extern bool running_asynch_code;
 
 /* Defined in process.c.  */
+struct Lisp_Process;
 extern void kill_buffer_processes (Lisp_Object);
 extern int wait_reading_process_output (intmax_t, int, int, bool, Lisp_Object,
 					struct Lisp_Process *, int);

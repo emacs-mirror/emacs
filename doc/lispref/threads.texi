@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 2012-2016 Free Software Foundation, Inc.
+@c Copyright (C) 2012-2017 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Threads
 @chapter Threads
@@ -125,6 +125,17 @@ Return the current thread.
 @defun all-threads
 Return a list of all the live thread objects.  A new list is returned
 by each invocation.
+@end defun
+
+When code run by a thread signals an error that is unhandled, the
+thread exits.  Other threads can access the error form which caused
+the thread to exit using the following function.
+
+@defun thread-last-error
+This function returns the last error form recorded when a thread
+exited due to an error.  Each thread that exits abnormally overwrites
+the form stored by the previous thread's error with a new value, so
+only the last one can be accessed.
 @end defun
 
 @node Mutexes

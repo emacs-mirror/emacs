@@ -1,6 +1,6 @@
 ;;; forms-d2.el --- demo forms-mode
 
-;; Copyright (C) 1991, 1994-1997, 2001-2016 Free Software Foundation,
+;; Copyright (C) 1991, 1994-1997, 2001-2017 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Johan Vromans <jvromans@squirrel.nl>

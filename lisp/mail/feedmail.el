@@ -3147,7 +3147,7 @@ been weeded out."
 		(setq simple-address (substring address-blob (match-beginning 2) (match-end 2)))
 		(setq address-blob (replace-match "" t t address-blob))
 		(if (not (member simple-address address-list))
-		    (add-to-list 'address-list simple-address)))
+		    (push simple-address address-list)))
 	      ))
 	  (kill-buffer nil)))
     (identity address-list)))

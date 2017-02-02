@@ -1,6 +1,6 @@
 ;;; newst-backend.el --- Retrieval backend for newsticker.
 
-;; Copyright (C) 2003-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2017 Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; Filename:    newst-backend.el
@@ -2124,15 +2124,12 @@ which the item got."
       (setq item (list title desc link time age position preformatted-contents
                        preformatted-title extra-elements))
       ;;(newsticker--debug-msg "Adding item %s" item)
-      (catch 'found
-        (mapc (lambda (this-feed)
-                (when (eq (car this-feed) feed-name-symbol)
-                  (setcdr this-feed (nconc (cdr this-feed) (list item)))
-                  (throw 'found this-feed)))
-              data)
-        ;; the feed is not contained
-        (add-to-list 'data (list feed-name-symbol item) t))))
-  data)
+      (let ((this-feed (assq feed-name-symbol data)))
+        (if this-feed
+            (setcdr this-feed (nconc (cdr this-feed) (list item)))
+          ;; The feed is not contained.
+          (setq data (append data (list (list feed-name-symbol item)))))))
+    data))
 
 (defun newsticker--cache-remove (data feed-symbol age)
   "Remove all entries from DATA in the feed FEED-SYMBOL with AGE.

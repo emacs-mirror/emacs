@@ -1,6 +1,6 @@
 ;;; ediff-init.el --- Macros, variables, and defsubsts used by Ediff
 
-;; Copyright (C) 1994-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2017 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -150,6 +150,26 @@ It needs to be killed when we quit the session.")
 (defsubst ediff-get-symbol-from-alist (buf-type alist)
   (cdr (assoc buf-type alist)))
 
+;; Vector of differences between the variants.  Each difference is
+;; represented by a vector of two overlays plus a vector of fine diffs,
+;; plus a no-fine-diffs flag.  The first overlay spans the
+;; difference region in the A buffer and the second overlays the diff in
+;; the B buffer.  If a difference section is empty, the corresponding
+;; overlay's endpoints coincide.
+;;
+;; The precise form of a Difference Vector for one buffer is:
+;; [diff diff diff ...]
+;; where each diff has the form:
+;; [diff-overlay fine-diff-vector no-fine-diffs-flag state-of-diff]
+;; fine-diff-vector is a vector [fine-diff-overlay fine-diff-overlay ...]
+;; no-fine-diffs-flag says if there are fine differences.
+;; state-of-difference is A, B, C, or nil, indicating which buffer is
+;;	different from the other two (used only in 3-way jobs.
+(ediff-defvar-local ediff-difference-vector-A nil "")
+(ediff-defvar-local ediff-difference-vector-B nil "")
+(ediff-defvar-local ediff-difference-vector-C nil "")
+(ediff-defvar-local ediff-difference-vector-Ancestor nil "")
+;; A-list of diff vector types associated with buffer types
 (defconst ediff-difference-vector-alist
   '((A . ediff-difference-vector-A)
     (B . ediff-difference-vector-B)
@@ -318,7 +338,7 @@ It needs to be killed when we quit the session.")
 (defsubst ediff-patch-metajob (&optional metajob)
   (memq (or metajob ediff-metajob-name)
 	'(ediff-multifile-patch)))
-;; metajob involving only one group of files, such as multipatch or directory
+;; metajob involving only one group of files, such as multi-patch or directory
 ;; revision
 (defsubst ediff-one-filegroup-metajob (&optional metajob)
   (or (ediff-revision-metajob metajob)
@@ -641,32 +661,6 @@ shown in brighter colors."
 (defconst ediff-protected-variables '(
 				      ;;buffer-read-only
 				      mode-line-format))
-
-;; Vector of differences between the variants.  Each difference is
-;; represented by a vector of two overlays plus a vector of fine diffs,
-;; plus a no-fine-diffs flag.  The first overlay spans the
-;; difference region in the A buffer and the second overlays the diff in
-;; the B buffer.  If a difference section is empty, the corresponding
-;; overlay's endpoints coincide.
-;;
-;; The precise form of a Difference Vector for one buffer is:
-;; [diff diff diff ...]
-;; where each diff has the form:
-;; [diff-overlay fine-diff-vector no-fine-diffs-flag state-of-diff]
-;; fine-diff-vector is a vector [fine-diff-overlay fine-diff-overlay ...]
-;; no-fine-diffs-flag says if there are fine differences.
-;; state-of-difference is A, B, C, or nil, indicating which buffer is
-;;	different from the other two (used only in 3-way jobs.
-(ediff-defvar-local ediff-difference-vector-A nil "")
-(ediff-defvar-local ediff-difference-vector-B nil "")
-(ediff-defvar-local ediff-difference-vector-C nil "")
-(ediff-defvar-local ediff-difference-vector-Ancestor nil "")
-;; A-list of diff vector types associated with buffer types
-(defconst ediff-difference-vector-alist
-  '((A . ediff-difference-vector-A)
-    (B . ediff-difference-vector-B)
-    (C . ediff-difference-vector-C)
-    (Ancestor . ediff-difference-vector-Ancestor)))
 
 ;; [ status status status ...]
 ;; Each status: [state-of-merge state-of-ancestor]

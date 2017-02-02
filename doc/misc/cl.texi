@@ -7,7 +7,7 @@
 @copying
 This file documents the GNU Emacs Common Lisp emulation package.
 
-Copyright @copyright{} 1993, 2001--2016 Free Software Foundation, Inc.
+Copyright @copyright{} 1993, 2001--2017 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1178,6 +1178,11 @@ a @code{cl-letf} of @code{(point-marker)} is much closer to this
 behavior.  (@code{point} and @code{point-marker} are equivalent
 as @code{setf} places; each will accept either an integer or a
 marker as the stored value.)
+
+Like in the case of @code{let}, the @var{value} forms are evaluated in
+the order they appear, but the order of bindings is unspecified.
+Therefore, avoid binding the same @var{place} more than once in a
+single @code{cl-letf} form.
 
 Since generalized variables look like lists, @code{let}'s shorthand
 of using @samp{foo} for @samp{(foo nil)} as a @var{binding} would
@@ -3689,7 +3694,7 @@ i.e., chains of cons cells.
 
 @defun cl-caddr x
 This function is equivalent to @code{(car (cdr (cdr @var{x})))}.
-Likewise, this package defines all 24 @code{c@var{xxx}r} functions
+Likewise, this package aliases all 24 @code{c@var{xxx}r} functions
 where @var{xxx} is up to four @samp{a}s and/or @samp{d}s.
 All of these functions are @code{setf}-able, and calls to them
 are expanded inline by the byte-compiler for maximum efficiency.

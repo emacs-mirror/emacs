@@ -1,6 +1,6 @@
 ;;; footnote.el --- footnote support for message mode
 
-;; Copyright (C) 1997, 2000-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2000-2017 Free Software Foundation, Inc.
 
 ;; Author: Steven L Baur <steve@xemacs.org>
 ;; Keywords: mail, news

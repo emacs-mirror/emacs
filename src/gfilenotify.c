@@ -1,5 +1,5 @@
 /* Filesystem notifications support with glib API.
-   Copyright (C) 2013-2016 Free Software Foundation, Inc.
+   Copyright (C) 2013-2017 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -27,7 +27,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "keyboard.h"
 
 
-/* This is a list, elements are triples (DESCRIPTOR FILE FLAGS CALLBACK)  */
+/* This is a list, elements are quadruples (DESCRIPTOR FILE FLAGS CALLBACK)  */
 static Lisp_Object watch_list;
 
 /* This is the callback function for arriving signals from
@@ -178,19 +178,17 @@ will be reported only in case of the `moved' event.  */)
   if (NILP (Ffile_exists_p (file)))
     report_file_error ("File does not exist", file);
 
-  CHECK_LIST (flags);
-
   if (!FUNCTIONP (callback))
     wrong_type_argument (Qinvalid_function, callback);
-
-  /* Create GFile name.  */
-  gfile = g_file_new_for_path (SSDATA (ENCODE_FILE (file)));
 
   /* Assemble flags.  */
   if (!NILP (Fmember (Qwatch_mounts, flags)))
     gflags |= G_FILE_MONITOR_WATCH_MOUNTS;
   if (!NILP (Fmember (Qsend_moved, flags)))
     gflags |= G_FILE_MONITOR_SEND_MOVED;
+
+  /* Create GFile name.  */
+  gfile = g_file_new_for_path (SSDATA (ENCODE_FILE (file)));
 
   /* Enable watch.  */
   monitor = g_file_monitor (gfile, gflags, NULL, &gerror);
@@ -258,7 +256,7 @@ WATCH-DESCRIPTOR should be an object returned by `gfile-add-watch'.  */)
 }
 
 DEFUN ("gfile-valid-p", Fgfile_valid_p, Sgfile_valid_p, 1, 1, 0,
-       doc: /* "Check a watch specified by its WATCH-DESCRIPTOR.
+       doc: /* Check a watch specified by its WATCH-DESCRIPTOR.
 
 WATCH-DESCRIPTOR should be an object returned by `gfile-add-watch'.
 
@@ -278,6 +276,25 @@ invalid.  */)
     }
 }
 
+DEFUN ("gfile-monitor-name", Fgfile_monitor_name, Sgfile_monitor_name, 1, 1, 0,
+       doc: /* Return the internal monitor name for WATCH-DESCRIPTOR.
+
+The result is a symbol, either `GInotifyFileMonitor',
+`GKqueueFileMonitor', `GFamFileMonitor', or `GPollFileMonitor'.
+
+WATCH-DESCRIPTOR should be an object returned by `gfile-add-watch'.
+If WATCH-DESCRIPTOR is not valid, nil is returned.  */)
+     (Lisp_Object watch_descriptor)
+{
+  if (NILP (Fgfile_valid_p (watch_descriptor)))
+    return Qnil;
+  else
+    {
+      GFileMonitor *monitor = XINTPTR (watch_descriptor);
+      return intern (G_OBJECT_TYPE_NAME (monitor));
+    }
+}
+
 
 void
 globals_of_gfilenotify (void)
@@ -294,6 +311,7 @@ syms_of_gfilenotify (void)
   defsubr (&Sgfile_add_watch);
   defsubr (&Sgfile_rm_watch);
   defsubr (&Sgfile_valid_p);
+  defsubr (&Sgfile_monitor_name);
 
   /* Filter objects.  */
   DEFSYM (Qchange, "change");

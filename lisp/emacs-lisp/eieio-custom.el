@@ -1,6 +1,6 @@
 ;;; eieio-custom.el -- eieio object customization  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2001, 2005, 2007-2016 Free Software Foundation,
+;; Copyright (C) 1999-2001, 2005, 2007-2017 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>

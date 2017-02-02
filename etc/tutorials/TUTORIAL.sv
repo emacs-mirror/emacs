@@ -1117,7 +1117,7 @@ Lidell översatte den till Svenska.
 This version of the tutorial, like GNU Emacs, is copyrighted, and
 comes with permission to distribute copies on certain conditions:
 
-Copyright (C) 1985, 1996, 1998, 2001-2016 Free Software Foundation, Inc.
+Copyright (C) 1985, 1996, 1998, 2001-2017 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

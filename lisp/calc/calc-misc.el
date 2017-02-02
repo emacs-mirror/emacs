@@ -1,6 +1,6 @@
 ;;; calc-misc.el --- miscellaneous functions for Calc
 
-;; Copyright (C) 1990-1993, 2001-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2017 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -623,7 +623,7 @@ loaded and the keystroke automatically re-typed."
       (unwind-protect
 	  (progn
 	    (sit-for 2)
-	    (identity 1)   ; this forces a call to QUIT; in bytecode.c.
+	    (identity 1)   ; This forces a call to maybe_quit in bytecode.c.
 	    (setq okay t))
 	(progn
 	  (delete-region savemax (point-max))

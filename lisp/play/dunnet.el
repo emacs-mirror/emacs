@@ -1,6 +1,6 @@
 ;;; dunnet.el --- text adventure for Emacs
 
-;; Copyright (C) 1992-1993, 2001-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1992-1993, 2001-2017 Free Software Foundation, Inc.
 
 ;; Author: Ron Schnell <ronnie@driver-aces.com>
 ;; Created: 25 Jul 1992
@@ -50,7 +50,7 @@
   (make-local-variable 'scroll-step)
   (setq scroll-step 2))
 
-(defun dun-parse (arg)
+(defun dun-parse (_arg)
   "Function called when return is pressed in interactive mode to parse line."
   (interactive "*p")
   (beginning-of-line)
@@ -210,13 +210,13 @@ disk bursts into flames, and disintegrates.")
   (dun-score nil)
   (setq dun-dead t))
 
-(defun dun-quit (args)
+(defun dun-quit (_args)
   (dun-die nil))
 
 ;;; Print every object in player's inventory.  Special case for the jar,
 ;;; as we must also print what is in it.
 
-(defun dun-inven (args)
+(defun dun-inven (_args)
   (dun-mprinc "You currently have:")
   (dun-mprinc "\n")
   (dolist (curobj dun-inventory)
@@ -265,9 +265,9 @@ on your head.")
 (defun dun-drop (obj)
   (if dun-inbus
       (dun-mprincl "You can't drop anything while on the bus.")
-  (let (objnum ptr)
+  (let (objnum)
     (when (setq objnum (dun-objnum-from-args-std obj))
-      (if (not (setq ptr (member objnum dun-inventory)))
+      (if (not (member objnum dun-inventory))
 	  (dun-mprincl "You don't have that.")
 	(progn
 	  (dun-remove-obj-from-inven objnum)
@@ -412,10 +412,10 @@ For an explosive time, go to Fourth St. and Vermont.")
 ;;; We try to take an object that is untakable.  Print a message
 ;;; depending on what it is.
 
-(defun dun-try-take (obj)
+(defun dun-try-take (_obj)
   (dun-mprinc "You cannot take that."))
 
-(defun dun-dig (args)
+(defun dun-dig (_args)
   (if dun-inbus
       (dun-mprincl "Digging here reveals nothing.")
   (if (not (member 0 dun-inventory))
@@ -557,7 +557,7 @@ with a bang.  The key seems to have vanished!")
 just try dropping it.")
 		    (dun-mprincl"You can't put that there.")))))))))))
 
-(defun dun-type (args)
+(defun dun-type (_args)
   (if (not (= dun-current-room computer-room))
       (dun-mprincl "There is nothing here on which you could type.")
     (if (not dun-computer)
@@ -567,40 +567,40 @@ just try dropping it.")
 
 ;;; Various movement directions
 
-(defun dun-n (args)
+(defun dun-n (_args)
   (dun-move north))
 
-(defun dun-s (args)
+(defun dun-s (_args)
   (dun-move south))
 
-(defun dun-e (args)
+(defun dun-e (_args)
   (dun-move east))
 
-(defun dun-w (args)
+(defun dun-w (_args)
   (dun-move west))
 
-(defun dun-ne (args)
+(defun dun-ne (_args)
   (dun-move northeast))
 
-(defun dun-se (args)
+(defun dun-se (_args)
   (dun-move southeast))
 
-(defun dun-nw (args)
+(defun dun-nw (_args)
   (dun-move northwest))
 
-(defun dun-sw (args)
+(defun dun-sw (_args)
   (dun-move southwest))
 
-(defun dun-up (args)
+(defun dun-up (_args)
   (dun-move up))
 
-(defun dun-down (args)
+(defun dun-down (_args)
   (dun-move down))
 
-(defun dun-in (args)
+(defun dun-in (_args)
   (dun-move in))
 
-(defun dun-out (args)
+(defun dun-out (_args)
   (dun-move out))
 
 (defun dun-go (args)
@@ -774,7 +774,7 @@ engulf you, and you burn to death.")
 huge rocks sliding down from the ceiling, and blocking your way out.\n")
 	  (setq dun-current-room misty-room)))))
 
-(defun dun-long (args)
+(defun dun-long (_args)
   (setq dun-mode "long"))
 
 (defun dun-turn (obj)
@@ -867,7 +867,7 @@ as you release it, the passageway closes."))
 		(dun-mprincl "The button is now in the on position.")
 		(setq dun-black t))))))))
 
-(defun dun-swim (args)
+(defun dun-swim (_args)
   (if (not (member dun-current-room (list lakefront-north lakefront-south)))
       (dun-mprincl "I see no water!")
     (if (not (member obj-life dun-inventory))
@@ -882,7 +882,7 @@ to swim.")
 	(setq dun-current-room lakefront-north)))))
 
 
-(defun dun-score (args)
+(defun dun-score (_args)
   (if (not dun-endgame)
       (let (total)
 	(setq total (dun-reg-score))
@@ -896,7 +896,7 @@ to swim.")
 	(dun-mprincl
 "\n\nCongratulations.  You have won.  The wizard password is ‘moby’"))))
 
-(defun dun-help (args)
+(defun dun-help (_args)
   (dun-mprincl
 "Welcome to dunnet (2.02), by Ron Schnell (ronnie@driver-aces.com - @RonnieSchnell).
 Here is some useful information (read carefully because there are one
@@ -937,14 +937,14 @@ If you have questions or comments, please contact ronnie@driver-aces.com
 My home page is http://www.driver-aces.com/ronnie.html
 "))
 
-(defun dun-flush (args)
+(defun dun-flush (_args)
   (if (not (= dun-current-room bathroom))
       (dun-mprincl "I see nothing to flush.")
     (dun-mprincl "Whoooosh!!")
     (dun-put-objs-in-treas (nth urinal dun-room-objects))
     (dun-replace dun-room-objects urinal nil)))
 
-(defun dun-piss (args)
+(defun dun-piss (_args)
   (if (not (= dun-current-room bathroom))
       (dun-mprincl "You can't do that here, don't even bother trying.")
     (if (not dun-gottago)
@@ -956,7 +956,7 @@ My home page is http://www.driver-aces.com/ronnie.html
 					    (list obj-URINE))))))
 
 
-(defun dun-sleep (args)
+(defun dun-sleep (_args)
   (if (not (= dun-current-room bedroom))
       (dun-mprincl
 "You try to go to sleep while standing up here, but can't seem to do it.")
@@ -1012,12 +1012,12 @@ for a moment, then straighten yourself up.
 		(dun-mprincl "Your axe breaks it into a million pieces.")
 		(dun-remove-obj-from-room dun-current-room objnum)))))))))
 
-(defun dun-drive (args)
+(defun dun-drive (_args)
   (if (not dun-inbus)
       (dun-mprincl "You cannot drive when you aren't in a vehicle.")
     (dun-mprincl "To drive while you are in the bus, just give a direction.")))
 
-(defun dun-superb (args)
+(defun dun-superb (_args)
   (setq dun-mode 'dun-superb))
 
 (defun dun-reg-score ()
@@ -1073,7 +1073,7 @@ for a moment, then straighten yourself up.
       (setq i (1+ i)))
     (setq dun-endgame-questions newques))))
 
-(defun dun-power (args)
+(defun dun-power (_args)
   (if (not (= dun-current-room pc-area))
       (dun-mprincl "That operation is not applicable here.")
     (if (not dun-floppy)
@@ -1113,7 +1113,7 @@ for a moment, then straighten yourself up.
 	  (dun-doverb dun-ignore dun-verblist (car rest) (cdr rest)))
       (if (not (cdr (assq (intern verb) dun-verblist))) -1
 	(setq dun-numcmds (1+ dun-numcmds))
-	(eval (list (cdr (assq (intern verb) dun-verblist)) (quote rest)))))))
+	(funcall (cdr (assq (intern verb) dun-verblist)) rest)))))
 
 
 ;;; Function to take a string and change it into a list of lowercase words.
@@ -1221,11 +1221,10 @@ for a moment, then straighten yourself up.
 ;;; words in the command, except for the verb.
 
 (defun dun-objnum-from-args (obj)
-  (let (objnum)
-    (setq obj (dun-firstword obj))
-    (if (not obj)
-	obj-special
-      (setq objnum (cdr (assq (intern obj) dun-objnames))))))
+  (setq obj (dun-firstword obj))
+  (if (not obj)
+      obj-special
+    (cdr (assq (intern obj) dun-objnames))))
 
 (defun dun-objnum-from-args-std (obj)
   (let (result)
@@ -1251,7 +1250,7 @@ for a moment, then straighten yourself up.
 ;;; Given a unix style pathname, build a list of path components (recursive)
 
 (defun dun-get-path (dirstring startlist)
-  (let (slash pos)
+  (let (slash)
     (if (= (length dirstring) 0)
 	startlist
       (if (string= (substring dirstring 0 1) "/")
@@ -2480,7 +2479,7 @@ treasures for points?" "4" "four")
 ;;;; This section defines the UNIX emulation functions for dunnet.
 ;;;;
 
-(defun dun-unix-parse (args)
+(defun dun-unix-parse (_args)
   (interactive "*p")
   (beginning-of-line)
   (let (beg esign)
@@ -2687,13 +2686,13 @@ drwxr-xr-x  3 root     staff          2048 Jan 1 1970 ..")
 			    (dun-mprinc var)
 			    (dun-mprinc ": Permission denied")
 			    (setq nomore t))
-			(eval (list 'dun-mprinc var))
+			(dun-mprinc var)
 			(dun-mprinc " ")))))))
 	    (dun-mprinc "\n")))
 
 
 (defun dun-ftp (args)
-  (let (host username passwd ident newlist)
+  (let (host username ident newlist)
     (if (not (car args))
 	(dun-mprincl "ftp: hostname required on command line.")
       (setq host (intern (car args)))
@@ -2768,15 +2767,15 @@ drwxr-xr-x  3 root     staff          2048 Jan 1 1970 ..")
 	  (dun-fascii 'nil)
 	(dun-mprincl "Unknown type.")))))
 
-(defun dun-bin (args)
+(defun dun-bin (_args)
   (dun-mprincl "Type set to binary.")
   (setq dun-ftptype 'binary))
 
-(defun dun-fascii (args)
+(defun dun-fascii (_args)
   (dun-mprincl "Type set to ascii.")
   (setq dun-ftptype 'ascii))
 
-(defun dun-ftpquit (args)
+(defun dun-ftpquit (_args)
   (setq dun-exitf t))
 
 (defun dun-send (args)
@@ -2831,18 +2830,18 @@ drwxr-xr-x  3 root     staff          2048 Jan 1 1970 ..")
 	(if (not foo)
 	    (dun-mprincl "No such file."))))))
 
-(defun dun-ftphelp (args)
+(defun dun-ftphelp (_args)
   (dun-mprincl
    "Possible commands are:\nsend    quit    type   ascii  binary   help"))
 
-(defun dun-uexit (args)
+(defun dun-uexit (_args)
   (setq dungeon-mode 'dungeon)
   (dun-mprincl "\nYou step back from the console.")
   (define-key dun-mode-map "\r" 'dun-parse)
   (if (not dun-batch-mode)
       (dun-messages)))
 
-(defun dun-pwd (args)
+(defun dun-pwd (_args)
   (dun-mprincl dun-cdpath))
 
 (defun dun-uncompress (args)
@@ -3009,7 +3008,7 @@ drwxr-xr-x  3 root     staff          2048 Jan 1 1970 ..")
 ;;;; This section defines the DOS emulation functions for dunnet
 ;;;;
 
-(defun dun-dos-parse (args)
+(defun dun-dos-parse (_args)
   (interactive "*p")
   (beginning-of-line)
   (let (beg)
@@ -3047,7 +3046,7 @@ drwxr-xr-x  3 root     staff          2048 Jan 1 1970 ..")
 	  (dun-mprincl (upcase args))))
     (dun-mprincl "Must supply file name")))
 
-(defun dun-dos-invd (args)
+(defun dun-dos-invd (_args)
   (sleep-for 1)
   (dun-mprincl "Invalid drive specification"))
 
@@ -3084,11 +3083,11 @@ File not found")))
   (if (not dun-batch-mode)
       (dun-mprinc "\n")))
 
-(defun dun-dos-spawn (args)
+(defun dun-dos-spawn (_args)
   (sleep-for 1)
   (dun-mprincl "Cannot spawn subshell"))
 
-(defun dun-dos-exit (args)
+(defun dun-dos-exit (_args)
   (setq dungeon-mode 'dungeon)
   (dun-mprincl "\nYou power down the machine and step back.")
   (define-key dun-mode-map "\r" 'dun-parse)
@@ -3106,7 +3105,7 @@ File not found")))
   (dun-mprinc dun-combination)
   (dun-mprinc ".\n"))
 
-(defun dun-dos-nil (args))
+(defun dun-dos-nil (_args))
 
 
 ;;;;
@@ -3177,9 +3176,7 @@ File not found")))
 
 
 (defun dun-save-val (varname)
-  (let (value)
-    (setq varname (intern varname))
-    (setq value (eval varname))
+  (let ((value (symbol-value (intern varname))))
     (dun-minsert "(setq ")
     (dun-minsert varname)
     (dun-minsert " ")
@@ -3205,7 +3202,7 @@ File not found")))
 
 
 (defun dun-do-logfile (type how)
-  (let (ferror newscore)
+  (let (ferror)
     (setq ferror nil)
     (switch-to-buffer (get-buffer-create "*score*"))
     (erase-buffer)
@@ -3231,8 +3228,8 @@ File not found")))
 	    (dun-minsert (cadr (nth (abs room) dun-rooms)))
 	    (dun-minsert ". score: ")
 	    (if (> (dun-endgame-score) 0)
-		(dun-minsert (setq newscore (+ 90 (dun-endgame-score))))
-	      (dun-minsert (setq newscore (dun-reg-score))))
+		(dun-minsert (+ 90 (dun-endgame-score)))
+	      (dun-minsert (dun-reg-score)))
 	    (dun-minsert " saves: ")
 	    (dun-minsert dun-numsaves)
 	    (dun-minsert " commands: ")
@@ -3318,7 +3315,7 @@ File not found")))
 	  (goto-char (point-max))
 	  (dun-mprinc "\n"))))
 
-(defun dungeon-nil (arg)
+(defun dungeon-nil (_arg)
   "noop"
   (interactive "*p")
   nil)
@@ -3329,7 +3326,7 @@ File not found")))
   (dun-mprinc "\n")
   (dun-batch-loop))
 
-(unless (not noninteractive)
+(when noninteractive
   (fset 'dun-mprinc 'dun-batch-mprinc)
   (fset 'dun-mprincl 'dun-batch-mprincl)
   (fset 'dun-vparse 'dun-batch-parse)
@@ -3343,8 +3340,8 @@ File not found")))
 
 (provide 'dunnet)
 
-;;; dunnet.el ends here
-
 ;; Local Variables:
 ;; byte-compile-warnings: (not free-vars lexical)
 ;; End:
+
+;;; dunnet.el ends here

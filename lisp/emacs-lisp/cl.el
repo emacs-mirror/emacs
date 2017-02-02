@@ -1,6 +1,6 @@
 ;;; cl.el --- Compatibility aliases for the old CL library.  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2012-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2017 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: extensions
@@ -258,30 +258,6 @@
                copy-list
                ldiff
                list*
-               cddddr
-               cdddar
-               cddadr
-               cddaar
-               cdaddr
-               cdadar
-               cdaadr
-               cdaaar
-               cadddr
-               caddar
-               cadadr
-               cadaar
-               caaddr
-               caadar
-               caaadr
-               caaaar
-               cdddr
-               cddar
-               cdadr
-               cdaar
-               caddr
-               cadar
-               caadr
-               caaar
                tenth
                ninth
                eighth

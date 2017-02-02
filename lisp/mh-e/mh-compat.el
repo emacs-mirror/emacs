@@ -1,6 +1,6 @@
 ;;; mh-compat.el --- make MH-E compatible with various versions of Emacs
 
-;; Copyright (C) 2006-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2017 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -277,16 +277,6 @@ DOCSTRING arguments."
   (if (featurep 'xemacs)
       `(define-obsolete-variable-alias ,obsolete-name ,current-name)
     `(define-obsolete-variable-alias ,obsolete-name ,current-name ,when ,docstring)))
-
-(defmacro mh-make-obsolete-variable (obsolete-name current-name &optional when access-type)
-  "Make the byte-compiler warn that OBSOLETE-NAME is obsolete.
-See documentation for `make-obsolete-variable' for a description
-of the arguments OBSOLETE-NAME, CURRENT-NAME, and perhaps WHEN
-and ACCESS-TYPE. This macro is used by XEmacs that lacks WHEN and
-ACCESS-TYPE arguments."
-  (if (featurep 'xemacs)
-      `(make-obsolete-variable ,obsolete-name ,current-name)
-    `(make-obsolete-variable ,obsolete-name ,current-name ,when ,access-type)))
 
 (defmacro mh-make-obsolete-variable (obsolete-name current-name &optional when access-type)
   "Make the byte-compiler warn that OBSOLETE-NAME is obsolete.

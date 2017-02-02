@@ -1,5 +1,5 @@
 /* Threading code.
-Copyright (C) 2012-2016 Free Software Foundation, Inc.
+Copyright (C) 2012-2017 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -26,11 +26,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "coding.h"
 #include "syssignal.h"
 
-static struct thread_state primary_thread;
+static struct thread_state main_thread;
 
-struct thread_state *current_thread = &primary_thread;
+struct thread_state *current_thread = &main_thread;
 
-static struct thread_state *all_threads = &primary_thread;
+static struct thread_state *all_threads = &main_thread;
 
 static sys_mutex_t global_lock;
 
@@ -128,25 +128,40 @@ lisp_mutex_init (lisp_mutex_t *mutex)
   sys_cond_init (&mutex->condition);
 }
 
+/* Lock MUTEX for thread LOCKER, setting its lock count to COUNT, if
+   non-zero, or to 1 otherwise.
+
+   If MUTEX is locked by LOCKER, COUNT must be zero, and the MUTEX's
+   lock count will be incremented.
+
+   If MUTEX is locked by another thread, this function will release
+   the global lock, giving other threads a chance to run, and will
+   wait for the MUTEX to become unlocked; when MUTEX becomes unlocked,
+   and will then re-acquire the global lock.
+
+   Return value is 1 if the function waited for the MUTEX to become
+   unlocked (meaning other threads could have run during the wait),
+   zero otherwise.  */
 static int
-lisp_mutex_lock (lisp_mutex_t *mutex, int new_count)
+lisp_mutex_lock_for_thread (lisp_mutex_t *mutex, struct thread_state *locker,
+			    int new_count)
 {
   struct thread_state *self;
 
   if (mutex->owner == NULL)
     {
-      mutex->owner = current_thread;
+      mutex->owner = locker;
       mutex->count = new_count == 0 ? 1 : new_count;
       return 0;
     }
-  if (mutex->owner == current_thread)
+  if (mutex->owner == locker)
     {
       eassert (new_count == 0);
       ++mutex->count;
       return 0;
     }
 
-  self = current_thread;
+  self = locker;
   self->wait_condvar = &mutex->condition;
   while (mutex->owner != NULL && (new_count != 0
 				  || NILP (self->error_symbol)))
@@ -163,6 +178,18 @@ lisp_mutex_lock (lisp_mutex_t *mutex, int new_count)
 }
 
 static int
+lisp_mutex_lock (lisp_mutex_t *mutex, int new_count)
+{
+  return lisp_mutex_lock_for_thread (mutex, current_thread, new_count);
+}
+
+/* Decrement MUTEX's lock count.  If the lock count becomes zero after
+   decrementing it, meaning the mutex is now unlocked, broadcast that
+   to all the threads that might be waiting to lock the mutex.  This
+   function signals an error if MUTEX is locked by a thread other than
+   the current one.  Return value is 1 if the mutex becomes unlocked,
+   zero otherwise.  */
+static int
 lisp_mutex_unlock (lisp_mutex_t *mutex)
 {
   if (mutex->owner != current_thread)
@@ -177,6 +204,8 @@ lisp_mutex_unlock (lisp_mutex_t *mutex)
   return 1;
 }
 
+/* Like lisp_mutex_unlock, but sets MUTEX's lock count to zero
+   regardless of its value.  Return the previous lock count.  */
 static unsigned int
 lisp_mutex_unlock_for_wait (lisp_mutex_t *mutex)
 {
@@ -241,6 +270,10 @@ mutex_lock_callback (void *arg)
   struct Lisp_Mutex *mutex = arg;
   struct thread_state *self = current_thread;
 
+  /* Calling lisp_mutex_lock might yield to other threads while this
+     one waits for the mutex to become unlocked, so we need to
+     announce us as the current thread by calling
+     post_acquire_global_lock.  */
   if (lisp_mutex_lock (&mutex->mutex, 0))
     post_acquire_global_lock (self);
 }
@@ -257,7 +290,7 @@ If the current thread already owns MUTEX, increment the count and
 return.
 Otherwise, if no thread owns MUTEX, make the current thread own it.
 Otherwise, block until MUTEX is available, or until the current thread
-is signalled using `thread-signal'.
+is signaled using `thread-signal'.
 Note that calls to `mutex-lock' and `mutex-unlock' must be paired.  */)
   (Lisp_Object mutex)
 {
@@ -280,7 +313,7 @@ mutex_unlock_callback (void *arg)
   struct thread_state *self = current_thread;
 
   if (lisp_mutex_unlock (&mutex->mutex))
-    post_acquire_global_lock (self);
+    post_acquire_global_lock (self); /* FIXME: is this call needed? */
 }
 
 DEFUN ("mutex-unlock", Fmutex_unlock, Smutex_unlock, 1, 1, 0,
@@ -363,16 +396,24 @@ condition_wait_callback (void *arg)
   XSETCONDVAR (cond, cvar);
   self->event_object = cond;
   saved_count = lisp_mutex_unlock_for_wait (&mutex->mutex);
-  /* If we were signalled while unlocking, we skip the wait, but we
-     still must reacquire our lock.  */
+  /* If signaled while unlocking, skip the wait but reacquire the lock.  */
   if (NILP (self->error_symbol))
     {
       self->wait_condvar = &cvar->cond;
+      /* This call could switch to another thread.  */
       sys_cond_wait (&cvar->cond, &global_lock);
       self->wait_condvar = NULL;
     }
-  lisp_mutex_lock (&mutex->mutex, saved_count);
   self->event_object = Qnil;
+  /* Since sys_cond_wait could switch threads, we need to lock the
+     mutex for the thread which was the current when we were called,
+     otherwise lisp_mutex_lock will record the wrong thread as the
+     owner of the mutex lock.  */
+  lisp_mutex_lock_for_thread (&mutex->mutex, self, saved_count);
+  /* Calling lisp_mutex_lock_for_thread might yield to other threads
+     while this one waits for the mutex to become unlocked, so we need
+     to announce us as the current thread by calling
+     post_acquire_global_lock.  */
   post_acquire_global_lock (self);
 }
 
@@ -384,7 +425,7 @@ The mutex associated with COND must be held when this is called.
 It is an error if it is not held.
 
 This releases the mutex and waits for COND to be notified or for
-this thread to be signalled with `thread-signal'.  When
+this thread to be signaled with `thread-signal'.  When
 `condition-wait' returns, COND's mutex will again be locked by
 this thread.  */)
   (Lisp_Object cond)
@@ -404,7 +445,7 @@ this thread.  */)
   return Qnil;
 }
 
-/* Used to communicate argumnets to condition_notify_callback.  */
+/* Used to communicate arguments to condition_notify_callback.  */
 struct notify_args
 {
   struct Lisp_CondVar *cvar;
@@ -426,6 +467,10 @@ condition_notify_callback (void *arg)
     sys_cond_broadcast (&na->cvar->cond);
   else
     sys_cond_signal (&na->cvar->cond);
+  /* Calling lisp_mutex_lock might yield to other threads while this
+     one waits for the mutex to become unlocked, so we need to
+     announce us as the current thread by calling
+     post_acquire_global_lock.  */
   lisp_mutex_lock (&mutex->mutex, saved_count);
   post_acquire_global_lock (self);
 }
@@ -596,16 +641,6 @@ mark_threads (void)
   flush_stack_call_func (mark_threads_callback, NULL);
 }
 
-void
-unmark_threads (void)
-{
-  struct thread_state *iter;
-
-  for (iter = all_threads; iter; iter = iter->next_thread)
-    if (iter->m_byte_stack_list)
-      relocate_byte_stack (iter->m_byte_stack_list);
-}
-
 
 
 static void
@@ -635,21 +670,26 @@ invoke_thread_function (void)
   return unbind_to (count, Qnil);
 }
 
+static Lisp_Object last_thread_error;
+
 static Lisp_Object
-do_nothing (Lisp_Object whatever)
+record_thread_error (Lisp_Object error_form)
 {
-  return whatever;
+  last_thread_error = error_form;
+  return error_form;
 }
 
 static void *
 run_thread (void *state)
 {
-  char stack_pos;
+  /* Make sure stack_top and m_stack_bottom are properly aligned as GC
+     expects.  */
+  max_align_t stack_pos;
+
   struct thread_state *self = state;
   struct thread_state **iter;
 
-  self->m_stack_bottom = &stack_pos;
-  self->stack_top = &stack_pos;
+  self->m_stack_bottom = self->stack_top = (char *) &stack_pos;
   self->thread_id = sys_thread_self ();
 
   acquire_global_lock (self);
@@ -665,7 +705,7 @@ run_thread (void *state)
   handlerlist_sentinel->next = NULL;
 
   /* It might be nice to do something with errors here.  */
-  internal_condition_case (invoke_thread_function, Qt, do_nothing);
+  internal_condition_case (invoke_thread_function, Qt, record_thread_error);
 
   update_processes_for_thread_death (Fcurrent_thread ());
 
@@ -715,7 +755,7 @@ If NAME is given, it must be a string; it names the new thread.  */)
   struct thread_state *new_thread;
   Lisp_Object result;
   const char *c_name = NULL;
-  size_t offset = offsetof (struct thread_state, m_byte_stack_list);
+  size_t offset = offsetof (struct thread_state, m_stack_bottom);
 
   /* Can't start a thread in temacs.  */
   if (!initialized)
@@ -724,7 +764,7 @@ If NAME is given, it must be a string; it names the new thread.  */)
   if (!NILP (name))
     CHECK_STRING (name);
 
-  new_thread = ALLOCATE_PSEUDOVECTOR (struct thread_state, m_byte_stack_list,
+  new_thread = ALLOCATE_PSEUDOVECTOR (struct thread_state, m_stack_bottom,
 				      PVEC_THREAD);
   memset ((char *) new_thread + offset, 0,
 	  sizeof (struct thread_state) - offset);
@@ -814,7 +854,7 @@ or `thread-join' in the target thread.  */)
   if (tstate == current_thread)
     Fsignal (error_symbol, data);
 
-  /* What to do if thread is already signalled?  */
+  /* What to do if thread is already signaled?  */
   /* What if error_symbol is Qnil?  */
   tstate->error_symbol = error_symbol;
   tstate->error_data = data;
@@ -914,6 +954,13 @@ DEFUN ("all-threads", Fall_threads, Sall_threads, 0, 0, 0,
   return result;
 }
 
+DEFUN ("thread-last-error", Fthread_last_error, Sthread_last_error, 0, 0, 0,
+       doc: /* Return the last error form recorded by a dying thread.  */)
+  (void)
+{
+  return last_thread_error;
+}
+
 
 
 bool
@@ -936,35 +983,41 @@ thread_check_current_buffer (struct buffer *buffer)
 
 
 static void
-init_primary_thread (void)
+init_main_thread (void)
 {
-  primary_thread.header.size
-    = PSEUDOVECSIZE (struct thread_state, m_byte_stack_list);
-  XSETPVECTYPE (&primary_thread, PVEC_THREAD);
-  primary_thread.m_last_thing_searched = Qnil;
-  primary_thread.m_saved_last_thing_searched = Qnil;
-  primary_thread.name = Qnil;
-  primary_thread.function = Qnil;
-  primary_thread.error_symbol = Qnil;
-  primary_thread.error_data = Qnil;
-  primary_thread.event_object = Qnil;
+  main_thread.header.size
+    = PSEUDOVECSIZE (struct thread_state, m_stack_bottom);
+  XSETPVECTYPE (&main_thread, PVEC_THREAD);
+  main_thread.m_last_thing_searched = Qnil;
+  main_thread.m_saved_last_thing_searched = Qnil;
+  main_thread.name = Qnil;
+  main_thread.function = Qnil;
+  main_thread.error_symbol = Qnil;
+  main_thread.error_data = Qnil;
+  main_thread.event_object = Qnil;
+}
+
+bool
+main_thread_p (void *ptr)
+{
+  return ptr == &main_thread;
 }
 
 void
 init_threads_once (void)
 {
-  init_primary_thread ();
+  init_main_thread ();
 }
 
 void
 init_threads (void)
 {
-  init_primary_thread ();
-  sys_cond_init (&primary_thread.thread_condvar);
+  init_main_thread ();
+  sys_cond_init (&main_thread.thread_condvar);
   sys_mutex_init (&global_lock);
   sys_mutex_lock (&global_lock);
-  current_thread = &primary_thread;
-  primary_thread.thread_id = sys_thread_self ();
+  current_thread = &main_thread;
+  main_thread.thread_id = sys_thread_self ();
 }
 
 void
@@ -992,6 +1045,10 @@ syms_of_threads (void)
       defsubr (&Scondition_notify);
       defsubr (&Scondition_mutex);
       defsubr (&Scondition_name);
+      defsubr (&Sthread_last_error);
+
+      staticpro (&last_thread_error);
+      last_thread_error = Qnil;
     }
 
   DEFSYM (Qthreadp, "threadp");

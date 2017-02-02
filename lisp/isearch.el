@@ -1,6 +1,6 @@
 ;;; isearch.el --- incremental search minor mode -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992-1997, 1999-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1992-1997, 1999-2017 Free Software Foundation, Inc.
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 ;; Maintainer: emacs-devel@gnu.org
@@ -2297,6 +2297,7 @@ to the barrier."
 
 ;; Universal argument commands
 (put 'universal-argument 'isearch-scroll t)
+(put 'universal-argument-more 'isearch-scroll t)
 (put 'negative-argument 'isearch-scroll t)
 (put 'digit-argument 'isearch-scroll t)
 
@@ -2389,7 +2390,7 @@ before the command is executed globally with terminated Isearch."
       (setq this-command 'isearch-edit-string))
      ;; Handle a scrolling function or prefix argument.
      ((or (and isearch-allow-prefix
-	       (memq this-command '(universal-argument
+               (memq this-command '(universal-argument universal-argument-more
 				    digit-argument negative-argument)))
 	  (and isearch-allow-scroll
 	       (symbolp this-command)

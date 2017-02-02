@@ -1,6 +1,6 @@
 /* Utility and Unix shadow routines for GNU Emacs on the Microsoft Windows API.
 
-Copyright (C) 1994-1995, 2000-2016 Free Software Foundation, Inc.
+Copyright (C) 1994-1995, 2000-2017 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -2154,17 +2154,40 @@ w32_init_random (void *buf, ptrdiff_t buflen)
   return -1;
 }
 
+/* MS-Windows 'rand' produces separate identical series for each
+   thread, so we replace it with our version.  */
+
+/* Algorithm AS183: An Efficient and Portable Pseudo-random Number
+   Generator, by B.A. Wichmann, I.D. Hill.  AS, v31, No. 2 (1982).  */
+static int ix = 3172, iy = 9814, iz = 20125;
+#define RAND_MAX_X  30269
+#define RAND_MAX_Y  30307
+#define RAND_MAX_Z  30323
+
+static int
+rand_as183 (void)
+{
+  ix = (171 * ix) % RAND_MAX_X;
+  iy = (172 * iy) % RAND_MAX_Y;
+  iz = (170 * iz) % RAND_MAX_Z;
+
+  return (ix + iy + iz) & 0x7fff;
+}
+
 int
 random (void)
 {
-  /* rand () on NT gives us 15 random bits...hack together 30 bits.  */
-  return ((rand () << 15) | rand ());
+  /* rand_as183 () gives us 15 random bits...hack together 30 bits.  */
+  return ((rand_as183 () << 15) | rand_as183 ());
 }
 
 void
 srandom (int seed)
 {
   srand (seed);
+  ix = rand () % RAND_MAX_X;
+  iy = rand () % RAND_MAX_Y;
+  iz = rand () % RAND_MAX_Z;
 }
 
 /* Return the maximum length in bytes of a multibyte character
@@ -6382,6 +6405,23 @@ acl_set_file (const char *fname, acl_type_t type, acl_t acl)
     }
 
   return retval;
+}
+
+/* Return true if errno value ERRNUM indicates that ACLs are well
+   supported on this system.  ERRNUM should be an errno value obtained
+   after an ACL-related system call fails.  */
+bool
+acl_errno_valid (int errnum)
+{
+  switch (errnum)
+    {
+    case EBUSY:
+    case EINVAL:
+    case ENOTSUP:
+      return false;
+    default:
+      return true;
+    }
 }
 
 

@@ -1,6 +1,6 @@
 ;;; disass.el --- disassembler for compiled Emacs Lisp code  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1986, 1991, 2002-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1991, 2002-2017 Free Software Foundation, Inc.
 
 ;; Author: Doug Cutting <doug@csli.stanford.edu>
 ;;	Jamie Zawinski <jwz@lucid.com>

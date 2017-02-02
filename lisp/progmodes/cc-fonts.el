@@ -1,6 +1,6 @@
 ;;; cc-fonts.el --- font lock support for CC Mode
 
-;; Copyright (C) 2002-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2017 Free Software Foundation, Inc.
 
 ;; Authors:    2003- Alan Mackenzie
 ;;             2002- Martin Stjernholm
@@ -1311,6 +1311,13 @@ casts and declarations are fontified.  Used on level 2 and higher."
 		     ;; multiline declaration.
 		     (c-put-char-property (1- match-pos)
 					  'c-type 'c-decl-arg-start))
+		    ;; Got an open paren preceded by an arith operator.
+		    ((and (eq (char-before match-pos) ?\()
+			  (save-excursion
+			    (and (zerop (c-backward-token-2 2))
+				 (looking-at c-arithmetic-op-regexp))))
+		     (setq context nil
+			   c-restricted-<>-arglists nil))
 		    (t (setq context 'arglist
 			     c-restricted-<>-arglists t))))
 
@@ -1485,6 +1492,22 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	    t))))
 
       nil)))
+
+(defun c-font-lock-enum-body (limit)
+  ;; Fontify the identifiers of each enum we find by searching forward.
+  ;;
+  ;; This function will be called from font-lock for a region bounded by POINT
+  ;; and LIMIT, as though it were to identify a keyword for
+  ;; font-lock-keyword-face.  It always returns NIL to inhibit this and
+  ;; prevent a repeat invocation.  See elisp/lispref page "Search-based
+  ;; Fontification".
+  (while (search-forward-regexp c-enum-clause-introduction-re limit t)
+    (when (save-excursion
+	    (backward-char)
+	    (c-backward-over-enum-header))
+      (c-forward-syntactic-ws)
+      (c-font-lock-declarators limit t nil t)))
+  nil)
 
 (defun c-font-lock-enum-tail (limit)
   ;; Fontify an enum's identifiers when POINT is within the enum's brace
@@ -2013,29 +2036,14 @@ on level 2 only and so aren't combined with `c-complex-decl-matchers'."
 generic casts and declarations are fontified.  Used on level 2 and
 higher."
 
-  t `(,@(when (c-lang-const c-brace-id-list-kwds)
+  t `(,@(when (c-lang-const c-brace-list-decl-kwds)
       ;; Fontify the remaining identifiers inside an enum list when we start
       ;; inside it.
 	  `(c-font-lock-enum-tail
       ;; Fontify the identifiers inside enum lists.  (The enum type
       ;; name is handled by `c-simple-decl-matchers' or
       ;; `c-complex-decl-matchers' below.
-	    (,(c-make-font-lock-search-function
-	       (concat
-		"\\<\\("
-		(c-make-keywords-re nil (c-lang-const c-brace-id-list-kwds))
-		"\\)\\>"
-		;; Disallow various common punctuation chars that can't come
-		;; before the '{' of the enum list, to avoid searching too far.
-		"[^][{};/#=]*"
-		"{")
-	       '((c-font-lock-declarators limit t nil t)
-		 (save-match-data
-		   (goto-char (match-end 0))
-		   (c-put-char-property (1- (point)) 'c-type
-					'c-decl-id-start)
-		   (c-forward-syntactic-ws))
-		 (goto-char (match-end 0)))))))
+	    c-font-lock-enum-body))
 
 	;; Fontify labels after goto etc.
 	,@(when (c-lang-const c-before-label-kwds)

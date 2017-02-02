@@ -1,6 +1,6 @@
 /* update-game-score.c --- Update a score file
 
-Copyright (C) 2002-2016 Free Software Foundation, Inc.
+Copyright (C) 2002-2017 Free Software Foundation, Inc.
 
 Author: Colin Walters <walters@debian.org>
 

@@ -1,6 +1,6 @@
 ;;; gnus-topic.el --- a folding minor mode for Gnus group buffers
 
-;; Copyright (C) 1995-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2017 Free Software Foundation, Inc.
 
 ;; Author: Ilja Weis <kult@uni-paderborn.de>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -1564,7 +1564,7 @@ If UNINDENT, remove an indentation."
 	 (parent (gnus-topic-parent-topic topic))
 	 (grandparent (gnus-topic-parent-topic parent)))
     (unless grandparent
-      (error "Nothing to indent %s into" topic))
+      (error "Can't unindent %s further" topic))
     (when topic
       (gnus-topic-goto-topic topic)
       (gnus-topic-kill-group)

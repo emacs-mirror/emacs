@@ -1,6 +1,6 @@
 /* Storage allocation and gc for GNU Emacs Lisp interpreter.
 
-Copyright (C) 1985-1986, 1988, 1993-1995, 1997-2016 Free Software
+Copyright (C) 1985-1986, 1988, 1993-1995, 1997-2017 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -2876,45 +2876,15 @@ usage: (list &rest OBJECTS)  */)
 
 DEFUN ("make-list", Fmake_list, Smake_list, 2, 2, 0,
        doc: /* Return a newly created list of length LENGTH, with each element being INIT.  */)
-  (register Lisp_Object length, Lisp_Object init)
+  (Lisp_Object length, Lisp_Object init)
 {
-  register Lisp_Object val;
-  register EMACS_INT size;
-
+  Lisp_Object val = Qnil;
   CHECK_NATNUM (length);
-  size = XFASTINT (length);
 
-  val = Qnil;
-  while (size > 0)
+  for (EMACS_INT size = XFASTINT (length); 0 < size; size--)
     {
       val = Fcons (init, val);
-      --size;
-
-      if (size > 0)
-	{
-	  val = Fcons (init, val);
-	  --size;
-
-	  if (size > 0)
-	    {
-	      val = Fcons (init, val);
-	      --size;
-
-	      if (size > 0)
-		{
-		  val = Fcons (init, val);
-		  --size;
-
-		  if (size > 0)
-		    {
-		      val = Fcons (init, val);
-		      --size;
-		    }
-		}
-	    }
-	}
-
-      QUIT;
+      maybe_quit ();
     }
 
   return val;
@@ -5479,6 +5449,37 @@ make_pure_vector (ptrdiff_t len)
   return new;
 }
 
+/* Copy all contents and parameters of TABLE to a new table allocated
+   from pure space, return the purified table.  */
+static struct Lisp_Hash_Table *
+purecopy_hash_table (struct Lisp_Hash_Table *table) {
+  eassert (NILP (table->weak));
+  eassert (!NILP (table->pure));
+
+  struct Lisp_Hash_Table *pure = pure_alloc (sizeof *pure, Lisp_Vectorlike);
+  struct hash_table_test pure_test = table->test;
+
+  /* Purecopy the hash table test.  */
+  pure_test.name = purecopy (table->test.name);
+  pure_test.user_hash_function = purecopy (table->test.user_hash_function);
+  pure_test.user_cmp_function = purecopy (table->test.user_cmp_function);
+
+  pure->test = pure_test;
+  pure->header = table->header;
+  pure->weak = purecopy (Qnil);
+  pure->rehash_size = purecopy (table->rehash_size);
+  pure->rehash_threshold = purecopy (table->rehash_threshold);
+  pure->hash = purecopy (table->hash);
+  pure->next = purecopy (table->next);
+  pure->next_free = purecopy (table->next_free);
+  pure->index = purecopy (table->index);
+  pure->count = table->count;
+  pure->key_and_value = purecopy (table->key_and_value);
+  pure->pure = purecopy (table->pure);
+
+  return pure;
+}
+
 DEFUN ("purecopy", Fpurecopy, Spurecopy, 1, 1, 0,
        doc: /* Make a copy of object OBJ in pure storage.
 Recursively copies contents of vectors and cons cells.
@@ -5487,13 +5488,21 @@ Does not copy symbols.  Copies strings without text properties.  */)
 {
   if (NILP (Vpurify_flag))
     return obj;
-  else if (MARKERP (obj) || OVERLAYP (obj)
-	   || HASH_TABLE_P (obj) || SYMBOLP (obj))
+  else if (MARKERP (obj) || OVERLAYP (obj) || SYMBOLP (obj))
     /* Can't purify those.  */
     return obj;
   else
     return purecopy (obj);
 }
+
+struct pinned_object
+{
+  Lisp_Object object;
+  struct pinned_object *next;
+};
+
+/* Pinned objects are marked before every GC cycle.  */
+static struct pinned_object *pinned_objects;
 
 static Lisp_Object
 purecopy (Lisp_Object obj)
@@ -5522,7 +5531,27 @@ purecopy (Lisp_Object obj)
     obj = make_pure_string (SSDATA (obj), SCHARS (obj),
 			    SBYTES (obj),
 			    STRING_MULTIBYTE (obj));
-  else if (COMPILEDP (obj) || VECTORP (obj) || HASH_TABLE_P (obj))
+  else if (HASH_TABLE_P (obj))
+    {
+      struct Lisp_Hash_Table *table = XHASH_TABLE (obj);
+      /* We cannot purify hash tables which haven't been defined with
+         :purecopy as non-nil or are weak - they aren't guaranteed to
+         not change.  */
+      if (!NILP (table->weak) || NILP (table->pure))
+        {
+          /* Instead, the hash table is added to the list of pinned objects,
+             and is marked before GC.  */
+          struct pinned_object *o = xmalloc (sizeof *o);
+          o->object = obj;
+          o->next = pinned_objects;
+          pinned_objects = o;
+          return obj; /* Don't hash cons it.  */
+        }
+
+      struct Lisp_Hash_Table *h = purecopy_hash_table (table);
+      XSET_HASH_TABLE (obj, h);
+    }
+  else if (COMPILEDP (obj) || VECTORP (obj))
     {
       struct Lisp_Vector *objp = XVECTOR (obj);
       ptrdiff_t nbytes = vector_nbytes (objp);
@@ -5739,6 +5768,16 @@ compact_undo_list (Lisp_Object list)
 }
 
 static void
+mark_pinned_objects (void)
+{
+  struct pinned_object *pobj;
+  for (pobj = pinned_objects; pobj; pobj = pobj->next)
+    {
+      mark_object (pobj->object);
+    }
+}
+
+static void
 mark_pinned_symbols (void)
 {
   struct symbol_block *sblk;
@@ -5858,6 +5897,7 @@ garbage_collect_1 (void *end)
   for (i = 0; i < staticidx; i++)
     mark_object (*staticvec[i]);
 
+  mark_pinned_objects ();
   mark_pinned_symbols ();
   mark_terminals ();
   mark_kboards ();
@@ -5897,8 +5937,6 @@ garbage_collect_1 (void *end)
   mark_finalizer_list (&doomed_finalizers);
 
   gc_sweep ();
-
-  unmark_threads ();
 
   /* Clear the mark bits that we set in certain root slots.  */
   VECTOR_UNMARK (&buffer_defaults);
@@ -6421,7 +6459,7 @@ mark_object (Lisp_Object arg)
 
 #ifdef GC_CHECK_MARKED_OBJECTS
 	m = mem_find (po);
-	if (m == MEM_NIL && !SUBRP (obj))
+	if (m == MEM_NIL && !SUBRP (obj) && !main_thread_p (po))
 	  emacs_abort ();
 #endif /* GC_CHECK_MARKED_OBJECTS */
 
@@ -6431,7 +6469,9 @@ mark_object (Lisp_Object arg)
 	else
 	  pvectype = PVEC_NORMAL_VECTOR;
 
-	if (pvectype != PVEC_SUBR && pvectype != PVEC_BUFFER)
+	if (pvectype != PVEC_SUBR
+	    && pvectype != PVEC_BUFFER
+	    && !main_thread_p (po))
 	  CHECK_LIVE (live_vector_p);
 
 	switch (pvectype)

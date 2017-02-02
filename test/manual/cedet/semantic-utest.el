@@ -1,6 +1,6 @@
 ;;; semantic-utest.el --- Tests for semantic's parsing system.
 
-;;; Copyright (C) 2003-2004, 2007-2016 Free Software Foundation, Inc.
+;;; Copyright (C) 2003-2004, 2007-2017 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 

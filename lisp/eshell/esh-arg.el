@@ -1,6 +1,6 @@
 ;;; esh-arg.el --- argument processing  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2017 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 

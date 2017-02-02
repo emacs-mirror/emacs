@@ -1,6 +1,6 @@
 /* Process support for GNU Emacs on the Microsoft Windows API.
 
-Copyright (C) 1992, 1995, 1999-2016 Free Software Foundation, Inc.
+Copyright (C) 1992, 1995, 1999-2017 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1449,7 +1449,7 @@ waitpid (pid_t pid, int *status, int options)
 
   do
     {
-      QUIT;
+      maybe_quit ();
       active = WaitForMultipleObjects (nh, wait_hnd, FALSE, timeout_ms);
     } while (active == WAIT_TIMEOUT && !dont_wait);
 

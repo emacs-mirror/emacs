@@ -1,5 +1,5 @@
 /* System thread definitions
-Copyright (C) 2012-2016 Free Software Foundation, Inc.
+Copyright (C) 2012-2017 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -219,7 +219,7 @@ void
 sys_mutex_lock (sys_mutex_t *mutex)
 {
   /* FIXME: What happens if the owning thread exits without releasing
-     the mutex?  Accoding to MSDN, the result is undefined behavior.  */
+     the mutex?  According to MSDN, the result is undefined behavior.  */
   EnterCriticalSection ((LPCRITICAL_SECTION)mutex);
 }
 

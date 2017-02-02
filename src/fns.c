@@ -1,6 +1,6 @@
 /* Random utility Lisp functions.
 
-Copyright (C) 1985-1987, 1993-1995, 1997-2016 Free Software Foundation,
+Copyright (C) 1985-1987, 1993-1995, 1997-2017 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -34,6 +34,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "buffer.h"
 #include "intervals.h"
 #include "window.h"
+#include "puresize.h"
 
 static void sort_vector_copy (Lisp_Object, ptrdiff_t,
 			      Lisp_Object *restrict, Lisp_Object *restrict);
@@ -84,16 +85,22 @@ See Info node `(elisp)Random Numbers' for more details.  */)
 }
 
 /* Heuristic on how many iterations of a tight loop can be safely done
-   before it's time to do a QUIT.  This must be a power of 2.  */
+   before it's time to do a quit.  This must be a power of 2.  It
+   is nice but not necessary for it to equal USHRT_MAX + 1.  */
 enum { QUIT_COUNT_HEURISTIC = 1 << 16 };
 
-/* Random data-structure functions.  */
+/* Process a quit, but do it only rarely, for efficiency.  "Rarely"
+   means once per QUIT_COUNT_HEURISTIC or per USHRT_MAX + 1 times,
+   whichever is smaller.  Use *QUIT_COUNT to count this.  */
 
 static void
-CHECK_LIST_END (Lisp_Object x, Lisp_Object y)
+rarely_quit (unsigned short int *quit_count)
 {
-  CHECK_TYPE (NILP (x), Qlistp, y);
+  if (! (++*quit_count & (QUIT_COUNT_HEURISTIC - 1)))
+    maybe_quit ();
 }
+
+/* Random data-structure functions.  */
 
 DEFUN ("length", Flength, Slength, 1, 1, 0,
        doc: /* Return the length of vector, list or string SEQUENCE.
@@ -126,7 +133,7 @@ To get the number of bytes, use `string-bytes'.  */)
 	    {
 	      if (MOST_POSITIVE_FIXNUM < i)
 		error ("List too long");
-	      QUIT;
+	      maybe_quit ();
 	    }
 	  sequence = XCDR (sequence);
 	}
@@ -172,7 +179,7 @@ which is at least the number of distinct elements.  */)
 	  halftail = XCDR (halftail);
 	  if ((lolen & (QUIT_COUNT_HEURISTIC - 1)) == 0)
 	    {
-	      QUIT;
+	      maybe_quit ();
 	      if (lolen == 0)
 		hilen += UINTMAX_MAX + 1.0;
 	    }
@@ -1202,17 +1209,12 @@ are shared, however.
 Elements of ALIST that are not conses are also shared.  */)
   (Lisp_Object alist)
 {
-  register Lisp_Object tem;
-
-  CHECK_LIST (alist);
   if (NILP (alist))
     return alist;
-  alist = concat (1, &alist, Lisp_Cons, 0);
-  for (tem = alist; CONSP (tem); tem = XCDR (tem))
+  alist = concat (1, &alist, Lisp_Cons, false);
+  for (Lisp_Object tem = alist; !NILP (tem); tem = XCDR (tem))
     {
-      register Lisp_Object car;
-      car = XCAR (tem);
-
+      Lisp_Object car = XCAR (tem);
       if (CONSP (car))
 	XSETCAR (tem, Fcons (XCAR (car), XCDR (car)));
     }
@@ -1356,16 +1358,22 @@ DEFUN ("nthcdr", Fnthcdr, Snthcdr, 2, 2, 0,
        doc: /* Take cdr N times on LIST, return the result.  */)
   (Lisp_Object n, Lisp_Object list)
 {
-  EMACS_INT i, num;
   CHECK_NUMBER (n);
-  num = XINT (n);
-  for (i = 0; i < num && !NILP (list); i++)
+  EMACS_INT num = XINT (n);
+  Lisp_Object tail = list;
+  immediate_quit = true;
+  for (EMACS_INT i = 0; i < num; i++)
     {
-      QUIT;
-      CHECK_LIST_CONS (list, list);
-      list = XCDR (list);
+      if (! CONSP (tail))
+	{
+	  immediate_quit = false;
+	  CHECK_LIST_END (tail, list);
+	  return Qnil;
+	}
+      tail = XCDR (tail);
     }
-  return list;
+  immediate_quit = false;
+  return tail;
 }
 
 DEFUN ("nth", Fnth, Snth, 2, 2, 0,
@@ -1392,66 +1400,61 @@ DEFUN ("elt", Felt, Selt, 2, 2, 0,
 DEFUN ("member", Fmember, Smember, 2, 2, 0,
        doc: /* Return non-nil if ELT is an element of LIST.  Comparison done with `equal'.
 The value is actually the tail of LIST whose car is ELT.  */)
-  (register Lisp_Object elt, Lisp_Object list)
+  (Lisp_Object elt, Lisp_Object list)
 {
-  register Lisp_Object tail;
-  for (tail = list; !NILP (tail); tail = XCDR (tail))
+  unsigned short int quit_count = 0;
+  Lisp_Object tail;
+  for (tail = list; CONSP (tail); tail = XCDR (tail))
     {
-      register Lisp_Object tem;
-      CHECK_LIST_CONS (tail, list);
-      tem = XCAR (tail);
-      if (! NILP (Fequal (elt, tem)))
+      if (! NILP (Fequal (elt, XCAR (tail))))
 	return tail;
-      QUIT;
+      rarely_quit (&quit_count);
     }
+  CHECK_LIST_END (tail, list);
   return Qnil;
 }
 
 DEFUN ("memq", Fmemq, Smemq, 2, 2, 0,
        doc: /* Return non-nil if ELT is an element of LIST.  Comparison done with `eq'.
 The value is actually the tail of LIST whose car is ELT.  */)
-  (register Lisp_Object elt, Lisp_Object list)
+  (Lisp_Object elt, Lisp_Object list)
 {
-  while (1)
+  immediate_quit = true;
+  Lisp_Object tail;
+  for (tail = list; CONSP (tail); tail = XCDR (tail))
     {
-      if (!CONSP (list) || EQ (XCAR (list), elt))
-	break;
-
-      list = XCDR (list);
-      if (!CONSP (list) || EQ (XCAR (list), elt))
-	break;
-
-      list = XCDR (list);
-      if (!CONSP (list) || EQ (XCAR (list), elt))
-	break;
-
-      list = XCDR (list);
-      QUIT;
+      if (EQ (XCAR (tail), elt))
+	{
+	  immediate_quit = false;
+	  return tail;
+	}
     }
-
-  CHECK_LIST (list);
-  return list;
+  immediate_quit = false;
+  CHECK_LIST_END (tail, list);
+  return Qnil;
 }
 
 DEFUN ("memql", Fmemql, Smemql, 2, 2, 0,
        doc: /* Return non-nil if ELT is an element of LIST.  Comparison done with `eql'.
 The value is actually the tail of LIST whose car is ELT.  */)
-  (register Lisp_Object elt, Lisp_Object list)
+  (Lisp_Object elt, Lisp_Object list)
 {
-  register Lisp_Object tail;
-
   if (!FLOATP (elt))
     return Fmemq (elt, list);
 
-  for (tail = list; !NILP (tail); tail = XCDR (tail))
+  immediate_quit = true;
+  Lisp_Object tail;
+  for (tail = list; CONSP (tail); tail = XCDR (tail))
     {
-      register Lisp_Object tem;
-      CHECK_LIST_CONS (tail, list);
-      tem = XCAR (tail);
+      Lisp_Object tem = XCAR (tail);
       if (FLOATP (tem) && internal_equal (elt, tem, 0, 0, Qnil))
-	return tail;
-      QUIT;
+	{
+	  immediate_quit = false;
+	  return tail;
+	}
     }
+  immediate_quit = false;
+  CHECK_LIST_END (tail, list);
   return Qnil;
 }
 
@@ -1461,44 +1464,29 @@ The value is actually the first element of LIST whose car is KEY.
 Elements of LIST that are not conses are ignored.  */)
   (Lisp_Object key, Lisp_Object list)
 {
-  while (1)
-    {
-      if (!CONSP (list)
-	  || (CONSP (XCAR (list))
-	      && EQ (XCAR (XCAR (list)), key)))
-	break;
-
-      list = XCDR (list);
-      if (!CONSP (list)
-	  || (CONSP (XCAR (list))
-	      && EQ (XCAR (XCAR (list)), key)))
-	break;
-
-      list = XCDR (list);
-      if (!CONSP (list)
-	  || (CONSP (XCAR (list))
-	      && EQ (XCAR (XCAR (list)), key)))
-	break;
-
-      list = XCDR (list);
-      QUIT;
-    }
-
-  return CAR (list);
+  immediate_quit = true;
+  Lisp_Object tail;
+  for (tail = list; CONSP (tail); tail = XCDR (tail))
+    if (CONSP (XCAR (tail)) && EQ (XCAR (XCAR (tail)), key))
+      {
+	immediate_quit = false;
+	return XCAR (tail);
+      }
+  immediate_quit = false;
+  CHECK_LIST_END (tail, list);
+  return Qnil;
 }
 
 /* Like Fassq but never report an error and do not allow quits.
-   Use only on lists known never to be circular.  */
+   Use only on objects known to be non-circular lists.  */
 
 Lisp_Object
 assq_no_quit (Lisp_Object key, Lisp_Object list)
 {
-  while (CONSP (list)
-	 && (!CONSP (XCAR (list))
-	     || !EQ (XCAR (XCAR (list)), key)))
-    list = XCDR (list);
-
-  return CAR_SAFE (list);
+  for (; ! NILP (list); list = XCDR (list))
+    if (CONSP (XCAR (list)) && EQ (XCAR (XCAR (list)), key))
+      return XCAR (list);
+  return Qnil;
 }
 
 DEFUN ("assoc", Fassoc, Sassoc, 2, 2, 0,
@@ -1506,81 +1494,52 @@ DEFUN ("assoc", Fassoc, Sassoc, 2, 2, 0,
 The value is actually the first element of LIST whose car equals KEY.  */)
   (Lisp_Object key, Lisp_Object list)
 {
-  Lisp_Object car;
-
-  while (1)
+  unsigned short int quit_count = 0;
+  Lisp_Object tail;
+  for (tail = list; CONSP (tail); tail = XCDR (tail))
     {
-      if (!CONSP (list)
-	  || (CONSP (XCAR (list))
-	      && (car = XCAR (XCAR (list)),
-		  EQ (car, key) || !NILP (Fequal (car, key)))))
-	break;
-
-      list = XCDR (list);
-      if (!CONSP (list)
-	  || (CONSP (XCAR (list))
-	      && (car = XCAR (XCAR (list)),
-		  EQ (car, key) || !NILP (Fequal (car, key)))))
-	break;
-
-      list = XCDR (list);
-      if (!CONSP (list)
-	  || (CONSP (XCAR (list))
-	      && (car = XCAR (XCAR (list)),
-		  EQ (car, key) || !NILP (Fequal (car, key)))))
-	break;
-
-      list = XCDR (list);
-      QUIT;
+      Lisp_Object car = XCAR (tail);
+      if (CONSP (car)
+	  && (EQ (XCAR (car), key) || !NILP (Fequal (XCAR (car), key))))
+	return car;
+      rarely_quit (&quit_count);
     }
-
-  return CAR (list);
+  CHECK_LIST_END (tail, list);
+  return Qnil;
 }
 
 /* Like Fassoc but never report an error and do not allow quits.
-   Use only on lists known never to be circular.  */
+   Use only on objects known to be non-circular lists.  */
 
 Lisp_Object
 assoc_no_quit (Lisp_Object key, Lisp_Object list)
 {
-  while (CONSP (list)
-	 && (!CONSP (XCAR (list))
-	     || (!EQ (XCAR (XCAR (list)), key)
-		 && NILP (Fequal (XCAR (XCAR (list)), key)))))
-    list = XCDR (list);
-
-  return CONSP (list) ? XCAR (list) : Qnil;
+  for (; ! NILP (list); list = XCDR (list))
+    {
+      Lisp_Object car = XCAR (list);
+      if (CONSP (car)
+	  && (EQ (XCAR (car), key) || !NILP (Fequal (XCAR (car), key))))
+	return car;
+    }
+  return Qnil;
 }
 
 DEFUN ("rassq", Frassq, Srassq, 2, 2, 0,
        doc: /* Return non-nil if KEY is `eq' to the cdr of an element of LIST.
 The value is actually the first element of LIST whose cdr is KEY.  */)
-  (register Lisp_Object key, Lisp_Object list)
+  (Lisp_Object key, Lisp_Object list)
 {
-  while (1)
-    {
-      if (!CONSP (list)
-	  || (CONSP (XCAR (list))
-	      && EQ (XCDR (XCAR (list)), key)))
-	break;
-
-      list = XCDR (list);
-      if (!CONSP (list)
-	  || (CONSP (XCAR (list))
-	      && EQ (XCDR (XCAR (list)), key)))
-	break;
-
-      list = XCDR (list);
-      if (!CONSP (list)
-	  || (CONSP (XCAR (list))
-	      && EQ (XCDR (XCAR (list)), key)))
-	break;
-
-      list = XCDR (list);
-      QUIT;
-    }
-
-  return CAR (list);
+  immediate_quit = true;
+  Lisp_Object tail;
+  for (tail = list; CONSP (tail); tail = XCDR (tail))
+    if (CONSP (XCAR (tail)) && EQ (XCDR (XCAR (tail)), key))
+      {
+	immediate_quit = false;
+	return XCAR (tail);
+      }
+  immediate_quit = false;
+  CHECK_LIST_END (tail, list);
+  return Qnil;
 }
 
 DEFUN ("rassoc", Frassoc, Srassoc, 2, 2, 0,
@@ -1588,35 +1547,18 @@ DEFUN ("rassoc", Frassoc, Srassoc, 2, 2, 0,
 The value is actually the first element of LIST whose cdr equals KEY.  */)
   (Lisp_Object key, Lisp_Object list)
 {
-  Lisp_Object cdr;
-
-  while (1)
+  unsigned short int quit_count = 0;
+  Lisp_Object tail;
+  for (tail = list; CONSP (tail); tail = XCDR (tail))
     {
-      if (!CONSP (list)
-	  || (CONSP (XCAR (list))
-	      && (cdr = XCDR (XCAR (list)),
-		  EQ (cdr, key) || !NILP (Fequal (cdr, key)))))
-	break;
-
-      list = XCDR (list);
-      if (!CONSP (list)
-	  || (CONSP (XCAR (list))
-	      && (cdr = XCDR (XCAR (list)),
-		  EQ (cdr, key) || !NILP (Fequal (cdr, key)))))
-	break;
-
-      list = XCDR (list);
-      if (!CONSP (list)
-	  || (CONSP (XCAR (list))
-	      && (cdr = XCDR (XCAR (list)),
-		  EQ (cdr, key) || !NILP (Fequal (cdr, key)))))
-	break;
-
-      list = XCDR (list);
-      QUIT;
+      Lisp_Object car = XCAR (tail);
+      if (CONSP (car)
+	  && (EQ (XCDR (car), key) || !NILP (Fequal (XCDR (car), key))))
+	return car;
+      rarely_quit (&quit_count);
     }
-
-  return CAR (list);
+  CHECK_LIST_END (tail, list);
+  return Qnil;
 }
 
 DEFUN ("delq", Fdelq, Sdelq, 2, 2, 0,
@@ -1647,6 +1589,7 @@ argument.  */)
       else
 	prev = tail;
     }
+  CHECK_LIST_END (tail, list);
   return list;
 }
 
@@ -1754,12 +1697,11 @@ changing the value of a sequence `foo'.  */)
     }
   else
     {
+      unsigned short int quit_count = 0;
       Lisp_Object tail, prev;
 
-      for (tail = seq, prev = Qnil; !NILP (tail); tail = XCDR (tail))
+      for (tail = seq, prev = Qnil; CONSP (tail); tail = XCDR (tail))
 	{
-	  CHECK_LIST_CONS (tail, seq);
-
 	  if (!NILP (Fequal (elt, XCAR (tail))))
 	    {
 	      if (NILP (prev))
@@ -1769,8 +1711,9 @@ changing the value of a sequence `foo'.  */)
 	    }
 	  else
 	    prev = tail;
-	  QUIT;
+	  rarely_quit (&quit_count);
 	}
+      CHECK_LIST_END (tail, seq);
     }
 
   return seq;
@@ -1788,16 +1731,17 @@ This function may destructively modify SEQ to produce the value.  */)
     return Freverse (seq);
   else if (CONSP (seq))
     {
+      unsigned short int quit_count = 0;
       Lisp_Object prev, tail, next;
 
-      for (prev = Qnil, tail = seq; !NILP (tail); tail = next)
+      for (prev = Qnil, tail = seq; CONSP (tail); tail = next)
 	{
-	  QUIT;
-	  CHECK_LIST_CONS (tail, tail);
+	  rarely_quit (&quit_count);
 	  next = XCDR (tail);
 	  Fsetcdr (tail, prev);
 	  prev = tail;
 	}
+      CHECK_LIST_END (tail, seq);
       seq = prev;
     }
   else if (VECTORP (seq))
@@ -1838,9 +1782,10 @@ See also the function `nreverse', which is used more often.  */)
     return Qnil;
   else if (CONSP (seq))
     {
+      unsigned short int quit_count = 0;
       for (new = Qnil; CONSP (seq); seq = XCDR (seq))
 	{
-	  QUIT;
+	  rarely_quit (&quit_count);
 	  new = Fcons (XCAR (seq), new);
 	}
       CHECK_LIST_END (seq, seq);
@@ -2130,28 +2075,28 @@ If PROP is already a property on the list, its value is set to VAL,
 otherwise the new PROP VAL pair is added.  The new plist is returned;
 use `(setq x (plist-put x prop val))' to be sure to use the new value.
 The PLIST is modified by side effects.  */)
-  (Lisp_Object plist, register Lisp_Object prop, Lisp_Object val)
+  (Lisp_Object plist, Lisp_Object prop, Lisp_Object val)
 {
-  register Lisp_Object tail, prev;
-  Lisp_Object newcell;
-  prev = Qnil;
-  for (tail = plist; CONSP (tail) && CONSP (XCDR (tail));
+  immediate_quit = true;
+  Lisp_Object prev = Qnil;
+  for (Lisp_Object tail = plist; CONSP (tail) && CONSP (XCDR (tail));
        tail = XCDR (XCDR (tail)))
     {
       if (EQ (prop, XCAR (tail)))
 	{
+	  immediate_quit = false;
 	  Fsetcar (XCDR (tail), val);
 	  return plist;
 	}
 
       prev = tail;
-      QUIT;
     }
-  newcell = Fcons (prop, Fcons (val, NILP (prev) ? plist : XCDR (XCDR (prev))));
+  immediate_quit = false;
+  Lisp_Object newcell
+    = Fcons (prop, Fcons (val, NILP (prev) ? plist : XCDR (XCDR (prev))));
   if (NILP (prev))
     return newcell;
-  else
-    Fsetcdr (XCDR (prev), newcell);
+  Fsetcdr (XCDR (prev), newcell);
   return plist;
 }
 
@@ -2174,6 +2119,7 @@ corresponding to the given PROP, or nil if PROP is not
 one of the properties on the list.  */)
   (Lisp_Object plist, Lisp_Object prop)
 {
+  unsigned short int quit_count = 0;
   Lisp_Object tail;
 
   for (tail = plist;
@@ -2182,8 +2128,7 @@ one of the properties on the list.  */)
     {
       if (! NILP (Fequal (prop, XCAR (tail))))
 	return XCAR (XCDR (tail));
-
-      QUIT;
+      rarely_quit (&quit_count);
     }
 
   CHECK_LIST_END (tail, prop);
@@ -2199,12 +2144,11 @@ If PROP is already a property on the list, its value is set to VAL,
 otherwise the new PROP VAL pair is added.  The new plist is returned;
 use `(setq x (lax-plist-put x prop val))' to be sure to use the new value.
 The PLIST is modified by side effects.  */)
-  (Lisp_Object plist, register Lisp_Object prop, Lisp_Object val)
+  (Lisp_Object plist, Lisp_Object prop, Lisp_Object val)
 {
-  register Lisp_Object tail, prev;
-  Lisp_Object newcell;
-  prev = Qnil;
-  for (tail = plist; CONSP (tail) && CONSP (XCDR (tail));
+  unsigned short int quit_count = 0;
+  Lisp_Object prev = Qnil;
+  for (Lisp_Object tail = plist; CONSP (tail) && CONSP (XCDR (tail));
        tail = XCDR (XCDR (tail)))
     {
       if (! NILP (Fequal (prop, XCAR (tail))))
@@ -2214,13 +2158,12 @@ The PLIST is modified by side effects.  */)
 	}
 
       prev = tail;
-      QUIT;
+      rarely_quit (&quit_count);
     }
-  newcell = list2 (prop, val);
+  Lisp_Object newcell = list2 (prop, val);
   if (NILP (prev))
     return newcell;
-  else
-    Fsetcdr (XCDR (prev), newcell);
+  Fsetcdr (XCDR (prev), newcell);
   return plist;
 }
 
@@ -2293,8 +2236,9 @@ internal_equal (Lisp_Object o1, Lisp_Object o2, int depth, bool props,
 	}
     }
 
+  unsigned short int quit_count = 0;
  tail_recurse:
-  QUIT;
+  rarely_quit (&quit_count);
   if (EQ (o1, o2))
     return 1;
   if (XTYPE (o1) != XTYPE (o2))
@@ -2483,14 +2427,12 @@ Only the last argument is not altered, and need not be a list.
 usage: (nconc &rest LISTS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
-  ptrdiff_t argnum;
-  register Lisp_Object tail, tem, val;
+  unsigned short int quit_count = 0;
+  Lisp_Object val = Qnil;
 
-  val = tail = Qnil;
-
-  for (argnum = 0; argnum < nargs; argnum++)
+  for (ptrdiff_t argnum = 0; argnum < nargs; argnum++)
     {
-      tem = args[argnum];
+      Lisp_Object tem = args[argnum];
       if (NILP (tem)) continue;
 
       if (NILP (val))
@@ -2498,14 +2440,19 @@ usage: (nconc &rest LISTS)  */)
 
       if (argnum + 1 == nargs) break;
 
-      CHECK_LIST_CONS (tem, tem);
+      CHECK_CONS (tem);
 
-      while (CONSP (tem))
+      immediate_quit = true;
+      Lisp_Object tail;
+      do
 	{
 	  tail = tem;
 	  tem = XCDR (tail);
-	  QUIT;
 	}
+      while (CONSP (tem));
+
+      immediate_quit = false;
+      rarely_quit (&quit_count);
 
       tem = args[argnum + 1];
       Fsetcdr (tail, tem);
@@ -2927,12 +2874,13 @@ property and a property with the value nil.
 The value is actually the tail of PLIST whose car is PROP.  */)
   (Lisp_Object plist, Lisp_Object prop)
 {
+  immediate_quit = true;
   while (CONSP (plist) && !EQ (XCAR (plist), prop))
     {
       plist = XCDR (plist);
       plist = CDR (plist);
-      QUIT;
     }
+  immediate_quit = false;
   return plist;
 }
 
@@ -3804,12 +3752,17 @@ allocate_hash_table (void)
    (table size) is >= REHASH_THRESHOLD.
 
    WEAK specifies the weakness of the table.  If non-nil, it must be
-   one of the symbols `key', `value', `key-or-value', or `key-and-value'.  */
+   one of the symbols `key', `value', `key-or-value', or `key-and-value'.
+
+   If PURECOPY is non-nil, the table can be copied to pure storage via
+   `purecopy' when Emacs is being dumped. Such tables can no longer be
+   changed after purecopy.  */
 
 Lisp_Object
 make_hash_table (struct hash_table_test test,
 		 Lisp_Object size, Lisp_Object rehash_size,
-		 Lisp_Object rehash_threshold, Lisp_Object weak)
+		 Lisp_Object rehash_threshold, Lisp_Object weak,
+                 Lisp_Object pure)
 {
   struct Lisp_Hash_Table *h;
   Lisp_Object table;
@@ -3850,6 +3803,7 @@ make_hash_table (struct hash_table_test test,
   h->hash = Fmake_vector (size, Qnil);
   h->next = Fmake_vector (size, Qnil);
   h->index = Fmake_vector (make_number (index_size), Qnil);
+  h->pure = pure;
 
   /* Set up the free list.  */
   for (i = 0; i < sz - 1; ++i)
@@ -4514,10 +4468,15 @@ key, value, one of key or value, or both key and value, depending on
 WEAK.  WEAK t is equivalent to `key-and-value'.  Default value of WEAK
 is nil.
 
+:purecopy PURECOPY -- If PURECOPY is non-nil, the table can be copied
+to pure storage when Emacs is being dumped, making the contents of the
+table read only. Any further changes to purified tables will result
+in an error.
+
 usage: (make-hash-table &rest KEYWORD-ARGS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
-  Lisp_Object test, size, rehash_size, rehash_threshold, weak;
+  Lisp_Object test, size, rehash_size, rehash_threshold, weak, pure;
   struct hash_table_test testdesc;
   ptrdiff_t i;
   USE_SAFE_ALLOCA;
@@ -4551,6 +4510,9 @@ usage: (make-hash-table &rest KEYWORD-ARGS)  */)
       testdesc.cmpfn = cmpfn_user_defined;
     }
 
+  /* See if there's a `:purecopy PURECOPY' argument.  */
+  i = get_key_arg (QCpurecopy, nargs, args, used);
+  pure = i ? args[i] : Qnil;
   /* See if there's a `:size SIZE' argument.  */
   i = get_key_arg (QCsize, nargs, args, used);
   size = i ? args[i] : Qnil;
@@ -4592,7 +4554,8 @@ usage: (make-hash-table &rest KEYWORD-ARGS)  */)
       signal_error ("Invalid argument list", args[i]);
 
   SAFE_FREE ();
-  return make_hash_table (testdesc, size, rehash_size, rehash_threshold, weak);
+  return make_hash_table (testdesc, size, rehash_size, rehash_threshold, weak,
+                          pure);
 }
 
 
@@ -4671,7 +4634,9 @@ DEFUN ("clrhash", Fclrhash, Sclrhash, 1, 1, 0,
        doc: /* Clear hash table TABLE and return it.  */)
   (Lisp_Object table)
 {
-  hash_clear (check_hash_table (table));
+  struct Lisp_Hash_Table *h = check_hash_table (table);
+  CHECK_IMPURE (table, h);
+  hash_clear (h);
   /* Be compatible with XEmacs.  */
   return table;
 }
@@ -4695,9 +4660,10 @@ VALUE.  In any case, return VALUE.  */)
   (Lisp_Object key, Lisp_Object value, Lisp_Object table)
 {
   struct Lisp_Hash_Table *h = check_hash_table (table);
+  CHECK_IMPURE (table, h);
+
   ptrdiff_t i;
   EMACS_UINT hash;
-
   i = hash_lookup (h, key, &hash);
   if (i >= 0)
     set_hash_value_slot (h, i, value);
@@ -4713,6 +4679,7 @@ DEFUN ("remhash", Fremhash, Sremhash, 2, 2, 0,
   (Lisp_Object key, Lisp_Object table)
 {
   struct Lisp_Hash_Table *h = check_hash_table (table);
+  CHECK_IMPURE (table, h);
   hash_remove_from_table (h, key);
   return Qnil;
 }
@@ -5083,6 +5050,7 @@ syms_of_fns (void)
   DEFSYM (Qequal, "equal");
   DEFSYM (QCtest, ":test");
   DEFSYM (QCsize, ":size");
+  DEFSYM (QCpurecopy, ":purecopy");
   DEFSYM (QCrehash_size, ":rehash-size");
   DEFSYM (QCrehash_threshold, ":rehash-threshold");
   DEFSYM (QCweakness, ":weakness");
@@ -5151,6 +5119,10 @@ invoked by mouse clicks and mouse menu items.
 On some platforms, file selection dialogs are also enabled if this is
 non-nil.  */);
   use_dialog_box = 1;
+
+  DEFVAR_LISP("watch-object", Vwatch_object,
+	       doc: /* Symbol to watch.  */);
+  Vwatch_object = Qnil;
 
   DEFVAR_BOOL ("use-file-dialog", use_file_dialog,
     doc: /* Non-nil means mouse commands use a file dialog to ask for files.

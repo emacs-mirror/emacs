@@ -1,6 +1,6 @@
 ;;; erc-track-tests.el --- Tests for erc-track.
 
-;; Copyright (C) 2016 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2017 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
 ;; Author: Vivek Dasmohapatra <vivek@etla.org>

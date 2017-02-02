@@ -1,6 +1,6 @@
 ;;; cl-macs.el --- Common Lisp macros  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993, 2001-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2001-2017 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Old-Version: 2.02
@@ -2708,6 +2708,14 @@ non-nil value, that slot cannot be set via `setf'.
 				   (= safety 1))
 			      (cons 'and (cl-cdddr pred-form))
                             `(,predicate cl-x))))
+    (when pred-form
+      (push `(cl-defsubst ,predicate (cl-x)
+               (declare (side-effect-free error-free))
+               ,(if (eq (car pred-form) 'and)
+                    (append pred-form '(t))
+                  `(and ,pred-form t)))
+            forms)
+      (push `(put ',name 'cl-deftype-satisfies ',predicate) forms))
     (let ((pos 0) (descp descs))
       (while descp
 	(let* ((desc (pop descp))
@@ -2737,7 +2745,23 @@ non-nil value, that slot cannot be set via `setf'.
                             `(nth ,pos cl-x))))
                     forms)
               (when (cl-oddp (length desc))
-                (error "Invalid options for slot %s in %s" slot name))
+                (push
+                 (macroexp--warn-and-return
+                  (format "Missing value for option `%S' of slot `%s' in struct %s!"
+                          (car (last desc)) slot name)
+                  'nil)
+                 forms)
+                (when (and (keywordp (car defaults))
+                           (not (keywordp (car desc))))
+                  (let ((kw (car defaults)))
+                    (push
+                     (macroexp--warn-and-return
+                      (format "  I'll take `%s' to be an option rather than a default value."
+                              kw)
+                      'nil)
+                     forms)
+                    (push kw desc)
+                    (setcar defaults nil))))
               (if (plist-get desc ':read-only)
                   (push `(gv-define-expander ,accessor
                            (lambda (_cl-do _cl-x)
@@ -2768,14 +2792,6 @@ non-nil value, that slot cannot be set via `setf'.
 	(setq pos (1+ pos))))
     (setq slots (nreverse slots)
 	  defaults (nreverse defaults))
-    (when pred-form
-      (push `(cl-defsubst ,predicate (cl-x)
-               (declare (side-effect-free error-free))
-               ,(if (eq (car pred-form) 'and)
-                    (append pred-form '(t))
-                  `(and ,pred-form t)))
-            forms)
-      (push `(put ',name 'cl-deftype-satisfies ',predicate) forms))
     (and copier
          (push `(defalias ',copier #'copy-sequence) forms))
     (if constructor

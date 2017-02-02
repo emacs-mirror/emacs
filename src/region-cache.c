@@ -1,6 +1,6 @@
 /* Caching facts about regions of the buffer, for optimization.
 
-Copyright (C) 1985-1989, 1993, 1995, 2001-2016 Free Software Foundation,
+Copyright (C) 1985-1989, 1993, 1995, 2001-2017 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.

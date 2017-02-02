@@ -1,6 +1,6 @@
 ;;; type-break.el --- encourage rests from typing at appropriate intervals  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1994-1995, 1997, 2000-2016 Free Software Foundation,
+;; Copyright (C) 1994-1995, 1997, 2000-2017 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Noah Friedman

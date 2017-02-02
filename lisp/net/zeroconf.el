@@ -1,6 +1,6 @@
-;;; zeroconf.el --- Service browser using Avahi.
+;;; zeroconf.el --- Service browser using Avahi.  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2017 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, hardware
@@ -99,10 +99,7 @@
 
 ;;; Code:
 
-;;  Pacify byte-compiler.  D-Bus support in the Emacs core can be
-;; disabled with configuration option "--without-dbus".  Declare used
-;; subroutines and variables of `dbus' therefore.
-(defvar dbus-debug)
+(eval-when-compile (require 'cl-lib))
 
 (require 'dbus)
 
@@ -259,7 +256,7 @@ supported keys depend on the service type.")
   "Returns all discovered Avahi service names as list."
   (let (result)
     (maphash
-     (lambda (key value) (add-to-list 'result (zeroconf-service-name value)))
+     (lambda (_key value) (add-to-list 'result (zeroconf-service-name value)))
      zeroconf-services-hash)
     result))
 
@@ -267,7 +264,7 @@ supported keys depend on the service type.")
   "Returns all discovered Avahi service types as list."
   (let (result)
     (maphash
-     (lambda (key value) (add-to-list 'result (zeroconf-service-type value)))
+     (lambda (_key value) (add-to-list 'result (zeroconf-service-type value)))
      zeroconf-services-hash)
     result))
 
@@ -279,7 +276,7 @@ The service type is one of the returned values of
 format of SERVICE."
   (let (result)
     (maphash
-     (lambda (key value)
+     (lambda (_key value)
        (when (equal type (zeroconf-service-type value))
 	 (add-to-list 'result value)))
      zeroconf-services-hash)
@@ -296,7 +293,7 @@ The key of an entry is a service type.")
 (defun zeroconf-service-add-hook (type event function)
   "Add FUNCTION to the hook of service type TYPE.
 
-EVENT must be either :new or :removed, indicating whether
+EVENT must be either `:new' or `:removed', indicating whether
 FUNCTION shall be called when a new service has been newly
 detected, or removed.
 
@@ -320,15 +317,13 @@ The attributes of SERVICE can be retrieved via the functions
 
   (cond
    ((equal event :new)
-    (let ((l-hook (gethash type zeroconf-service-added-hooks-hash nil)))
-      (add-hook 'l-hook function)
-      (puthash type l-hook zeroconf-service-added-hooks-hash)
-      (dolist (service (zeroconf-list-services type))
-	(funcall function service))))
+    (cl-pushnew function (gethash type zeroconf-service-added-hooks-hash)
+                :test #'equal)
+    (dolist (service (zeroconf-list-services type))
+      (funcall function service)))
    ((equal event :removed)
-    (let ((l-hook (gethash type zeroconf-service-removed-hooks-hash nil)))
-      (add-hook 'l-hook function)
-      (puthash type l-hook zeroconf-service-removed-hooks-hash)))
+    (cl-pushnew function (gethash type zeroconf-service-removed-hooks-hash)
+                :test #'equal))
    (t (error "EVENT must be either `:new' or `:removed'"))))
 
 (defun zeroconf-service-remove-hook (type event function)
@@ -336,16 +331,13 @@ The attributes of SERVICE can be retrieved via the functions
 
 EVENT must be either :new or :removed and has to match the event
 type used when registering FUNCTION."
-  (let* ((table (cond
-		 ((equal event :new)
-		  zeroconf-service-added-hooks-hash)
-		 ((equal event :removed)
-		  zeroconf-service-removed-hooks-hash)
-		 (t (error "EVENT must be either `:new' or `:removed'"))))
-	 (l-hook (gethash type table nil)))
-    (remove-hook 'l-hook function)
-    (if l-hook
-	(puthash type l-hook table)
+  (let* ((table (pcase event
+                  (:new zeroconf-service-added-hooks-hash)
+                  (:removed zeroconf-service-removed-hooks-hash)
+                  (_ (error "EVENT must be either `:new' or `:removed'"))))
+	 (functions (remove function (gethash type table))))
+    (if functions
+	(puthash type functions table)
       (remhash type table))))
 
 (defun zeroconf-get-host ()
@@ -580,13 +572,13 @@ DOMAIN is nil, the local domain is used."
      ((string-equal (dbus-event-member-name last-input-event) "ItemNew")
       ;; Add new service.
       (puthash key val zeroconf-services-hash)
-      (run-hook-with-args 'ahook val))
+      (dolist (f ahook) (funcall f val)))
 
      ((string-equal (dbus-event-member-name last-input-event) "ItemRemove")
       ;; Remove the service.
       (remhash key zeroconf-services-hash)
       (remhash key zeroconf-resolved-services-hash)
-      (run-hook-with-args 'rhook val)))))
+      (dolist (f rhook) (funcall f val))))))
 
 (defun zeroconf-register-service-resolver (name type)
   "Register a service resolver at the Avahi daemon."
@@ -653,7 +645,7 @@ For the description of arguments, see `zeroconf-resolved-services-hash'."
 
     ;; The TXT field has the signature "as".  Transform to "aay".
     (dolist (elt txt)
-      (add-to-list 'result (dbus-string-to-byte-array elt)))
+      (cl-pushnew (dbus-string-to-byte-array elt) result :test #'equal))
 
     ;; Add the service.
     (dbus-call-method

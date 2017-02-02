@@ -1,5 +1,5 @@
 /* Menu support for GNU Emacs on the Microsoft Windows API.
-   Copyright (C) 1986, 1988, 1993-1994, 1996, 1998-1999, 2001-2016 Free
+   Copyright (C) 1986, 1988, 1993-1994, 1996, 1998-1999, 2001-2017 Free
    Software Foundation, Inc.
 
 This file is part of GNU Emacs.

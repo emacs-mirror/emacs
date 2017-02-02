@@ -1,6 +1,6 @@
 ;;; solar.el --- calendar functions for solar events
 
-;; Copyright (C) 1992-1993, 1995, 1997, 2001-2016 Free Software
+;; Copyright (C) 1992-1993, 1995, 1997, 2001-2017 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>

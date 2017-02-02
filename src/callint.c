@@ -1,5 +1,5 @@
 /* Call a Lisp function interactively.
-   Copyright (C) 1985-1986, 1993-1995, 1997, 2000-2016 Free Software
+   Copyright (C) 1985-1986, 1993-1995, 1997, 2000-2017 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -794,7 +794,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
     }
   unbind_to (speccount, Qnil);
 
-  QUIT;
+  maybe_quit ();
 
   args[0] = Qfuncall_interactively;
   args[1] = function;

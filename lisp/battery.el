@@ -1,6 +1,6 @@
 ;;; battery.el --- display battery status information
 
-;; Copyright (C) 1997-1998, 2000-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2000-2017 Free Software Foundation, Inc.
 
 ;; Author: Ralph Schleicher <rs@nunatak.allgaeu.org>
 ;; Keywords: hardware
@@ -542,6 +542,9 @@ The following %-sequences are provided:
                     (t "N/A"))))))
 
 
+(declare-function dbus-get-property "dbus.el"
+                  (bus service path interface property))
+
 ;;; `upowerd' interface.
 (defsubst battery-upower-prop (pname &optional device)
   (dbus-get-property

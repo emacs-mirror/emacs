@@ -1,6 +1,6 @@
 ;;; faces-tests.el --- Tests for faces.el            -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2013-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2017 Free Software Foundation, Inc.
 
 ;; Author: Artur Malabarba <bruce.connor.am@gmail.com>
 ;; Keywords:
@@ -23,13 +23,18 @@
 (require 'ert)
 (require 'faces)
 
+(defgroup faces--test nil ""
+  :group 'faces--test)
+
 (defface faces--test1
   '((t :background "black" :foreground "black"))
-  "")
+  ""
+  :group 'faces--test)
 
 (defface faces--test2
   '((t :box 1))
-  "")
+  ""
+  :group 'faces--test)
 
 (ert-deftest faces--test-color-at-point ()
   (with-temp-buffer

@@ -1,6 +1,6 @@
 ;;; rmailmsc.el --- miscellaneous support functions for the RMAIL mail reader
 
-;; Copyright (C) 1985, 2001-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 2001-2017 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: mail

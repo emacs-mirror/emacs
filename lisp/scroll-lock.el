@@ -1,6 +1,6 @@
 ;;; scroll-lock.el --- Scroll lock scrolling.
 
-;; Copyright (C) 2005-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2017 Free Software Foundation, Inc.
 
 ;; Author: Ralf Angeli <angeli@iwi.uni-sb.de>
 ;; Maintainer: emacs-devel@gnu.org

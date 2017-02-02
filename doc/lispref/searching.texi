@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2016 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2017 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Searching and Matching
@@ -553,7 +553,11 @@ characters whose Unicode @samp{general-category} property
 (@pxref{Character Properties}) indicates they are alphabetic
 characters.
 @item [:blank:]
-This matches space and tab only.
+This matches horizontal whitespace, as defined by Annex C of the
+Unicode Technical Standard #18.  In particular, it matches spaces,
+tabs, and other characters whose Unicode @samp{general-category}
+property (@pxref{Character Properties}) indicates they are spacing
+separators.
 @item [:cntrl:]
 This matches any @acronym{ASCII} control character.
 @item [:digit:]

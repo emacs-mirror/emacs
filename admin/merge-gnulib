@@ -4,7 +4,7 @@
 #
 #	admin/merge-gnulib
 
-# Copyright 2012-2016 Free Software Foundation, Inc.
+# Copyright 2012-2017 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -96,7 +96,7 @@ test -x "$gnulib_srcdir"/gnulib-tool || {
 "$gnulib_srcdir"/gnulib-tool --dir="$src" $GNULIB_TOOL_FLAGS $GNULIB_MODULES &&
 rm -- "$src"lib/gl_openssl.h "$src"m4/fcntl-o.m4 \
       "$src"m4/gl-openssl.m4 \
-      "$src"m4/gnulib-cache.m4"$src" m4/warn-on-use.m4 &&
+      "$src"m4/gnulib-cache.m4 "$src"m4/warn-on-use.m4 "$src"m4/wint_t.m4 &&
 cp -- "$gnulib_srcdir"/build-aux/texinfo.tex "$src"doc/misc &&
 cp -- "$gnulib_srcdir"/build-aux/move-if-change "$src"build-aux &&
 { test -z "$src" || cd "$src"; } &&

@@ -1,6 +1,6 @@
 /* Window creation, deletion and examination for GNU Emacs.
    Does not include redisplay.
-   Copyright (C) 1985-1987, 1993-1998, 2000-2016 Free Software
+   Copyright (C) 1985-1987, 1993-1998, 2000-2017 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -521,9 +521,10 @@ select_window (Lisp_Object window, Lisp_Object norecord,
   bset_last_selected_window (XBUFFER (w->contents), window);
 
  record_and_return:
-  /* record_buffer can run QUIT, so make sure it is run only after we have
-     re-established the invariant between selected_window and selected_frame,
-     otherwise the temporary broken invariant might "escape" (bug#14161).  */
+  /* record_buffer can call maybe_quit, so make sure it is run only
+     after we have re-established the invariant between
+     selected_window and selected_frame, otherwise the temporary
+     broken invariant might "escape" (Bug#14161).  */
   if (NILP (norecord))
     {
       w->use_time = ++window_select_count;
@@ -5683,7 +5684,7 @@ and redisplay normally--don't erase and redraw the frame.  */)
   struct buffer *buf = XBUFFER (w->contents);
   bool center_p = false;
   ptrdiff_t charpos, bytepos;
-  EMACS_INT iarg;
+  EMACS_INT iarg UNINIT;
   int this_scroll_margin;
 
   if (buf != current_buffer)

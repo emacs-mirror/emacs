@@ -1,6 +1,6 @@
 ;;; json.el --- JavaScript Object Notation parser / generator -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2017 Free Software Foundation, Inc.
 
 ;; Author: Edward O'Connor <ted@oconnor.cx>
 ;; Version: 1.4
@@ -363,6 +363,10 @@ representation will be parsed correctly."
 
 ;; String parsing
 
+(defun json--decode-utf-16-surrogates (high low)
+  "Return the code point represented by the UTF-16 surrogates HIGH and LOW."
+  (+ (lsh (- high #xD800) 10) (- low #xDC00) #x10000))
+
 (defun json-read-escaped-char ()
   "Read the JSON string escaped character at point."
   ;; Skip over the '\'
@@ -372,6 +376,17 @@ representation will be parsed correctly."
     (cond
      (special (cdr special))
      ((not (eq char ?u)) char)
+     ;; Special-case UTF-16 surrogate pairs,
+     ;; cf. https://tools.ietf.org/html/rfc7159#section-7.  Note that
+     ;; this clause overlaps with the next one and therefore has to
+     ;; come first.
+     ((looking-at
+       (rx (group (any "Dd") (any "89ABab") (= 2 (any "0-9A-Fa-f")))
+           "\\u" (group (any "Dd") (any "C-Fc-f") (= 2 (any "0-9A-Fa-f")))))
+      (json-advance 10)
+      (json--decode-utf-16-surrogates
+       (string-to-number (match-string 1) 16)
+       (string-to-number (match-string 2) 16)))
      ((looking-at "[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f]")
       (let ((hex (match-string 0)))
         (json-advance 4)

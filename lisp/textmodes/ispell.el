@@ -1,6 +1,6 @@
 ;;; ispell.el --- interface to International Ispell Versions 3.1 and 3.2  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994-1995, 1997-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1995, 1997-2017 Free Software Foundation, Inc.
 
 ;; Author:           Ken Stevens <k.stevens@ieee.org>
 ;; Status          : Release with 3.1.12+ and 3.2.0+ ispell.
@@ -1290,8 +1290,8 @@ aspell is used along with Emacs).")
         (cl-pushnew (if (cadr adict) ;; Do not touch hunspell uninitialized entries
                         (list
                          (nth 0 adict)   ; dict name
-                         "[[:alpha:]]"   ; casechars
-                         "[^[:alpha:]]"  ; not-casechars
+                         (nth 1 adict)   ; casechars
+                         (nth 2 adict)   ; not-casechars
                          (nth 3 adict)   ; otherchars
                          (nth 4 adict)   ; many-otherchars-p
                          (nth 5 adict)   ; ispell-args
@@ -3133,7 +3133,14 @@ Must be called after `ispell-buffer-local-parsing' due to dependence on mode."
               (if (string= "" comment-end) "^" (regexp-quote comment-end)))
           (if (and (null ispell-check-comments) comment-start)
               (regexp-quote comment-start))
-          (ispell-begin-skip-region ispell-skip-region-alist)
+          ;; If they set ispell-skip-region-alist to nil, mapconcat
+          ;; will produce an empty string, which will then match
+          ;; anything without moving point, something
+          ;; ispell-skip-region doesn't expect.  Perhaps we should be
+          ;; more defensive and delq "" above as well, in addition to
+          ;; deleting nil elements.
+          (if ispell-skip-region-alist
+              (ispell-begin-skip-region ispell-skip-region-alist))
           (ispell--make-filename-or-URL-re)))
    "\\|"))
 

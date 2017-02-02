@@ -1,6 +1,6 @@
 ;;; cl-seq.el --- Common Lisp features, part 3  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993, 2001-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2001-2017 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Old-Version: 2.02

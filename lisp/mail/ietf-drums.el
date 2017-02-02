@@ -1,6 +1,6 @@
 ;;; ietf-drums.el --- Functions for parsing RFC822bis headers
 
-;; Copyright (C) 1998-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2017 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -143,7 +143,7 @@ backslash and doublequote.")
 	  (forward-sexp 1))
 	 ((eq c ?\()
 	  (forward-sexp 1))
-	 ((memq c '(?\  ?\t ?\n))
+	 ((memq c '(?\  ?\t ?\n ?\r))
 	  (delete-char 1))
 	 (t
 	  (forward-char 1))))
@@ -172,6 +172,19 @@ backslash and doublequote.")
   "Remove comments and whitespace from STRING."
   (ietf-drums-remove-whitespace (ietf-drums-remove-comments string)))
 
+(defun ietf-drums-remove-garbage (string)
+  "Remove some garbage from STRING."
+  (while (string-match "[][()<>@,;:\\\"/?=]+" string)
+    (setq string (concat (substring string 0 (match-beginning 0))
+			 (substring string (match-end 0)))))
+  string)
+
+(defun ietf-drums-strip-cte (string)
+  "Remove comments, whitespace and garbage from STRING.
+STRING is assumed to be a string that is extracted from
+the Content-Transfer-Encoding header of a mail."
+  (ietf-drums-remove-garbage (inline (ietf-drums-strip string))))
+
 (defun ietf-drums-parse-address (string)
   "Parse STRING and return a MAILBOX / DISPLAY-NAME pair."
   (with-temp-buffer
@@ -179,6 +192,17 @@ backslash and doublequote.")
       (ietf-drums-init string)
       (while (not (eobp))
 	(setq c (char-after))
+        ;; If we have an uneven number of quote characters,
+        ;; `forward-sexp' will fail.  In these cases, just delete the
+        ;; final of these quote characters.
+        (when (and (eq c ?\")
+                   (not
+                    (save-excursion
+                      (ignore-errors
+                        (forward-sexp 1)
+                        t))))
+          (delete-char 1)
+          (setq c (char-after)))
 	(cond
 	 ((or (eq c ? )
 	      (eq c ?\t))

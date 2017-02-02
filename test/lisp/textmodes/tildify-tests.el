@@ -1,6 +1,6 @@
 ;;; tildify-test.el --- ERT tests for tildify.el -*- lexical-binding: t -*-
 
-;; Copyright (C) 2014-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2017 Free Software Foundation, Inc.
 
 ;; Author:     Michal Nazarewicz <mina86@mina86.com>
 ;; Version:    4.5
@@ -226,7 +226,7 @@ The function must terminate as soon as callback returns nil."
 
 
 (defun tildify-space-undo-test--test
-    (modes nbsp env-open &optional set-space-string)
+    (modes nbsp _env-open &optional set-space-string)
   (with-temp-buffer
     (setq-local buffer-file-coding-system 'utf-8)
     (dolist (mode modes)

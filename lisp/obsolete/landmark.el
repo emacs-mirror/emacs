@@ -1,6 +1,6 @@
 ;;; landmark.el --- Neural-network robot that learns landmarks  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1996-1997, 2000-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 2000-2017 Free Software Foundation, Inc.
 
 ;; Author: Terrence Brannon (was: <brannon@rana.usc.edu>)
 ;; Created: December 16, 1996 - first release to usenet

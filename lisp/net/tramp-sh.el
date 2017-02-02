@@ -1,6 +1,6 @@
 ;;; tramp-sh.el --- Tramp access functions for (s)sh-like connections
 
-;; Copyright (C) 1998-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2017 Free Software Foundation, Inc.
 
 ;; (copyright statements below in code to be updated with the above notice)
 
@@ -794,7 +794,7 @@ on the remote host.")
 (defconst tramp-perl-encode
   "%s -e '
 # This script contributed by Juanma Barranquero <lektu@terra.es>.
-# Copyright (C) 2002-2016 Free Software Foundation, Inc.
+# Copyright (C) 2002-2017 Free Software Foundation, Inc.
 use strict;
 
 my %%trans = do {
@@ -832,7 +832,7 @@ This string is passed to `format', so percent characters need to be doubled.")
 (defconst tramp-perl-decode
   "%s -e '
 # This script contributed by Juanma Barranquero <lektu@terra.es>.
-# Copyright (C) 2002-2016 Free Software Foundation, Inc.
+# Copyright (C) 2002-2017 Free Software Foundation, Inc.
 use strict;
 
 my %%trans = do {
@@ -4655,7 +4655,11 @@ connection if a previous connection has died for some reason."
 
 	  ;; If `non-essential' is non-nil, don't reopen a new connection.
 	  ;; This variable has been introduced with Emacs 24.1.
-	  (when (and (boundp 'non-essential) (symbol-value 'non-essential))
+	  ;; We check this for the process related to
+	  ;; `tramp-buffer-name'; otherwise `start-file-process'
+	  ;; wouldn't run ever when `non-essential' is non-nil.
+	  (when (and (boundp 'non-essential) (symbol-value 'non-essential)
+		     (null (get-process (tramp-buffer-name vec))))
 	    (throw 'non-essential 'non-essential))
 
 	  (with-tramp-progress-reporter
@@ -5353,12 +5357,14 @@ Nonexistent directories are removed from spec."
       ;; work on older AIX systems.  Recent GNU stat versions (8.24?)
       ;; use shell quoted format for "%N", we check the boundaries "`"
       ;; and "'", therefore.  See Bug#23422 in coreutils.
+      ;; Since GNU stat 8.26, environment variable QUOTING_STYLE is
+      ;; supported.
       (when result
-	(setq tmp
-	      (tramp-send-command-and-read
-	       vec (format "%s -c '(\"%%N\" %%s)' /" result) 'noerror))
+	(setq result (concat "env QUOTING_STYLE=locale " result)
+	      tmp (tramp-send-command-and-read
+		   vec (format "%s -c '(\"%%N\" %%s)' /" result) 'noerror))
 	(unless (and (listp tmp) (stringp (car tmp))
-		     (string-match "^`/'$" (car tmp))
+		     (string-match "^\\(`/'\\|‘/’\\)$" (car tmp))
 		     (integerp (cadr tmp)))
 	  (setq result nil)))
       result)))
@@ -5409,8 +5415,13 @@ Nonexistent directories are removed from spec."
   "Determine remote `gvfs-monitor-dir' command."
   (with-tramp-connection-property vec "gvfs-monitor-dir"
     (tramp-message vec 5 "Finding a suitable `gvfs-monitor-dir' command")
-    (tramp-find-executable
-     vec "gvfs-monitor-dir" (tramp-get-remote-path vec) t t)))
+    ;; We distinguish "gvfs-monitor-dir.exe" from cygwin in order to
+    ;; establish better timeouts in filenotify-tests.el.  Any better
+    ;; distinction approach would be welcome!
+    (or (tramp-find-executable
+	 vec "gvfs-monitor-dir.exe" (tramp-get-remote-path vec) t t)
+	(tramp-find-executable
+	 vec "gvfs-monitor-dir" (tramp-get-remote-path vec) t t))))
 
 (defun tramp-get-remote-inotifywait (vec)
   "Determine remote `inotifywait' command."
