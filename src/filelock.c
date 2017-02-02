@@ -407,9 +407,7 @@ create_lock_file (char *lfname, char *lock_info_str, bool force)
 	    fcntl (fd, F_SETFD, FD_CLOEXEC);
 	  lock_info_len = strlen (lock_info_str);
 	  err = 0;
-	  /* Use 'write', not 'emacs_write', as garbage collection
-	     might signal an error, which would leak FD.  */
-	  if (write (fd, lock_info_str, lock_info_len) != lock_info_len
+	  if (emacs_write (fd, lock_info_str, lock_info_len) != lock_info_len
 	      || fchmod (fd, S_IRUSR | S_IRGRP | S_IROTH) != 0)
 	    err = errno;
 	  /* There is no need to call fsync here, as the contents of
@@ -490,8 +488,7 @@ read_lock_data (char *lfname, char lfinfo[MAX_LFINFO + 1])
       int fd = emacs_open (lfname, O_RDONLY | O_NOFOLLOW, 0);
       if (0 <= fd)
 	{
-	  /* Use read, not emacs_read, since FD isn't unwind-protected.  */
-	  ptrdiff_t read_bytes = read (fd, lfinfo, MAX_LFINFO + 1);
+	  ptrdiff_t read_bytes = emacs_read (fd, lfinfo, MAX_LFINFO + 1);
 	  int read_errno = errno;
 	  if (emacs_close (fd) != 0)
 	    return -1;

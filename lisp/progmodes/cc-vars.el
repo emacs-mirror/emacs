@@ -1115,7 +1115,7 @@ can always override the use of `c-default-style' by making calls to
        ;; Anchor pos: At the brace list decl start(*).
        (brace-list-intro      . +)
        ;; Anchor pos: At the brace list decl start(*).
-       (brace-list-entry      . 0)
+       (brace-list-entry      . c-lineup-under-anchor)
        ;; Anchor pos: At the first non-ws char after the open paren if
        ;; the first token is on the same line, otherwise boi at that
        ;; token.

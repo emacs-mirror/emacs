@@ -910,7 +910,7 @@ safe_to_load_version (int fd)
 
   /* Read the first few bytes from the file, and look for a line
      specifying the byte compiler version used.  */
-  nbytes = emacs_read (fd, buf, sizeof buf);
+  nbytes = emacs_read_quit (fd, buf, sizeof buf);
   if (nbytes > 0)
     {
       /* Skip to the next newline, skipping over the initial `ELC'

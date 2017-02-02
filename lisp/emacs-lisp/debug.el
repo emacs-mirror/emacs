@@ -816,60 +816,6 @@ Redefining FUNCTION also cancels it."
               '((depth . -100)))
   function)
 
-;;;###autoload
-;; (defun debug-on-set (symbol)
-;;   "Request FUNCTION to invoke debugger each time it is called.
-
-;; When called interactively, prompt for FUNCTION in the minibuffer.
-
-;; This works by modifying the definition of FUNCTION.  If you tell the
-;; debugger to continue, FUNCTION's execution proceeds.  If FUNCTION is a
-;; normal function or a macro written in Lisp, you can also step through
-;; its execution.  FUNCTION can also be a primitive that is not a special
-;; form, in which case stepping is not possible.  Break-on-entry for
-;; primitive functions only works when that function is called from Lisp.
-
-;; Use \\[cancel-debug-on-entry] to cancel the effect of this command.
-;; Redefining FUNCTION also cancels it."
-;;   (interactive
-;;    (let ((v (variable-at-point))
-;; 	 (enable-recursive-minibuffers t)
-;;          (orig-buffer (current-buffer))
-;; 	 val)
-;;      (setq val (completing-read
-;;                 (if (symbolp v)
-;;                     (format
-;;                      "Debug on set to symbol (default %s): " v)
-;;                   "Debug on set to symbol: ")
-;;                 #'help--symbol-completion-table
-;;                 (lambda (vv)
-;;                   ;; In case the variable only exists in the buffer
-;;                   ;; the command we switch back to that buffer before
-;;                   ;; we examine the variable.
-;;                   (with-current-buffer orig-buffer
-;;                     (or (get vv 'variable-documentation)
-;;                         (and (boundp vv) (not (keywordp vv))))))
-;;                 t nil nil
-;;                 (if (symbolp v) (symbol-name v))))
-;;      (list (if (equal val "")
-;; 	       v (intern val)))))
-
-
-
-;;   (interactive
-;;    (let* ((var-default (variable-at-point))
-;;           (var (completing-read
-;; 		(if var-default
-;; 		    (format "Debug on set to symbol (default %s): " var-default)
-;; 		  "Debug on set to symbol: ")
-;; 		nil
-;; 		#'boundp
-;; 		t nil nil (symbol-name var-default))))
-;;      (list (if (equal var "") var-default (intern var)))))
-;;   (advice-add function :before #'debug--implement-debug-on-entry
-;;               '((depth . -100)))
-;;   function)
-
 (defun debug--function-list ()
   "List of functions currently set for debug on entry."
   (let ((funs '()))

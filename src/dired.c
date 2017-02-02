@@ -248,13 +248,10 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
 
       /* Now that we have unwind_protect in place, we might as well
 	 allow matching to be interrupted.  */
-      immediate_quit = true;
       maybe_quit ();
 
       bool wanted = (NILP (match)
 		     || re_search (bufp, SSDATA (name), len, 0, len, 0) >= 0);
-
-      immediate_quit = false;
 
       if (wanted)
 	{

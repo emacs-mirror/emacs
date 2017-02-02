@@ -3614,18 +3614,36 @@ connection buffer."
 
 ;;; Utility functions:
 
-(defun tramp-accept-process-output (&optional proc timeout timeout-msecs)
+(defun tramp-accept-process-output (proc timeout)
   "Like `accept-process-output' for Tramp processes.
 This is needed in order to hide `last-coding-system-used', which is set
 for process communication also."
+  ;; FIXME: There are problems, when an asynchronous process runs in
+  ;; parallel, and also timers are active.  See
+  ;; <http://lists.gnu.org/archive/html/tramp-devel/2017-01/msg00010.html>.
+  (when (and timer-event-last
+	     (string-prefix-p "*tramp/" (process-name proc))
+	     (let (result)
+	       (maphash
+		(lambda (key _value)
+		  (and (processp key)
+		       (not (string-prefix-p "*tramp/" (process-name key)))
+		       (tramp-compat-process-live-p key)
+		       (setq result t)))
+		tramp-cache-data)
+	       result))
+    (sit-for 0.01 'nodisp))
   (with-current-buffer (process-buffer proc)
     (let (buffer-read-only last-coding-system-used)
       ;; Under Windows XP, accept-process-output doesn't return
-      ;; sometimes.  So we add an additional timeout.
-      (with-timeout ((or timeout 1))
-	(accept-process-output proc timeout timeout-msecs (and proc t)))
-      (tramp-message proc 10 "%s %s\n%s"
-		     proc (process-status proc) (buffer-string)))))
+      ;; sometimes.  So we add an additional timeout.  JUST-THIS-ONE
+      ;; is set due to Bug#12145.
+      (tramp-message
+       proc 10 "%s %s %s\n%s"
+       proc (process-status proc)
+       (with-timeout (timeout)
+	 (accept-process-output proc timeout nil t))
+       (buffer-string)))))
 
 (defun tramp-check-for-regexp (proc regexp)
   "Check, whether REGEXP is contained in process buffer of PROC.

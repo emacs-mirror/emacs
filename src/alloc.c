@@ -2884,7 +2884,7 @@ DEFUN ("make-list", Fmake_list, Smake_list, 2, 2, 0,
   for (EMACS_INT size = XFASTINT (length); 0 < size; size--)
     {
       val = Fcons (init, val);
-      maybe_quit ();
+      rarely_quit (size);
     }
 
   return val;
@@ -5452,7 +5452,8 @@ make_pure_vector (ptrdiff_t len)
 /* Copy all contents and parameters of TABLE to a new table allocated
    from pure space, return the purified table.  */
 static struct Lisp_Hash_Table *
-purecopy_hash_table (struct Lisp_Hash_Table *table) {
+purecopy_hash_table (struct Lisp_Hash_Table *table)
+{
   eassert (NILP (table->weak));
   eassert (!NILP (table->pure));
 
@@ -5495,14 +5496,12 @@ Does not copy symbols.  Copies strings without text properties.  */)
     return purecopy (obj);
 }
 
-struct pinned_object
+/* Pinned objects are marked before every GC cycle.  */
+static struct pinned_object
 {
   Lisp_Object object;
   struct pinned_object *next;
-};
-
-/* Pinned objects are marked before every GC cycle.  */
-static struct pinned_object *pinned_objects;
+} *pinned_objects;
 
 static Lisp_Object
 purecopy (Lisp_Object obj)
@@ -5534,13 +5533,13 @@ purecopy (Lisp_Object obj)
   else if (HASH_TABLE_P (obj))
     {
       struct Lisp_Hash_Table *table = XHASH_TABLE (obj);
-      /* We cannot purify hash tables which haven't been defined with
+      /* Do not purify hash tables which haven't been defined with
          :purecopy as non-nil or are weak - they aren't guaranteed to
          not change.  */
       if (!NILP (table->weak) || NILP (table->pure))
         {
-          /* Instead, the hash table is added to the list of pinned objects,
-             and is marked before GC.  */
+          /* Instead, add the hash table to the list of pinned objects,
+             so that it will be marked during GC.  */
           struct pinned_object *o = xmalloc (sizeof *o);
           o->object = obj;
           o->next = pinned_objects;
@@ -5770,11 +5769,8 @@ compact_undo_list (Lisp_Object list)
 static void
 mark_pinned_objects (void)
 {
-  struct pinned_object *pobj;
-  for (pobj = pinned_objects; pobj; pobj = pobj->next)
-    {
-      mark_object (pobj->object);
-    }
+  for (struct pinned_object *pobj = pinned_objects; pobj; pobj = pobj->next)
+    mark_object (pobj->object);
 }
 
 static void

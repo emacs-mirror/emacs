@@ -1713,9 +1713,10 @@ regexp."
     ;; (modify-syntax-entry ?- "w" table)
     (modify-syntax-entry ?> ")<" table)
     (modify-syntax-entry ?< "(>" table)
-    ;; make M-. in article buffers work for `foo' strings
-    (modify-syntax-entry ?' " " table)
-    (modify-syntax-entry ?` " " table)
+    ;; make M-. in article buffers work for `foo' strings,
+    ;; and still allow C-s C-w to yank ' to the search ring
+    (modify-syntax-entry ?' "'" table)
+    (modify-syntax-entry ?` "'" table)
     table)
   "Syntax table used in article mode buffers.
 Initialized from `text-mode-syntax-table'.")

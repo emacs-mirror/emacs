@@ -437,6 +437,9 @@ See http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg01990.html")
 (defconst diff-hunk-header-re
   (concat "^\\(?:" diff-hunk-header-re-unified ".*\\|\\*\\{15\\}.*\n\\*\\*\\* .+ \\*\\*\\*\\*\\|[0-9]+\\(,[0-9]+\\)?[acd][0-9]+\\(,[0-9]+\\)?\\)$"))
 (defconst diff-file-header-re (concat "^\\(--- .+\n\\+\\+\\+ \\|\\*\\*\\* .+\n--- \\|[^-+!<>0-9@* \n]\\).+\n" (substring diff-hunk-header-re 1)))
+
+(defconst diff-separator-re "^--+ ?$")
+
 (defvar diff-narrowed-to nil)
 
 (defun diff-hunk-style (&optional style)
@@ -1537,15 +1540,20 @@ Only works for unified diffs."
                 (pcase (char-after)
                   (?\s (cl-decf before) (cl-decf after) t)
                   (?-
-                   (if (and (looking-at diff-file-header-re)
-                            (zerop before) (zerop after))
-                       ;; No need to query: this is a case where two patches
-                       ;; are concatenated and only counting the lines will
-                       ;; give the right result.  Let's just add an empty
-                       ;; line so that our code which doesn't count lines
-                       ;; will not get confused.
-                       (progn (save-excursion (insert "\n")) nil)
-                     (cl-decf before) t))
+                   (cond
+                    ((and (looking-at diff-separator-re)
+                          (zerop before) (zerop after))
+                     nil)
+                    ((and (looking-at diff-file-header-re)
+                          (zerop before) (zerop after))
+                     ;; No need to query: this is a case where two patches
+                     ;; are concatenated and only counting the lines will
+                     ;; give the right result.  Let's just add an empty
+                     ;; line so that our code which doesn't count lines
+                     ;; will not get confused.
+                     (save-excursion (insert "\n")) nil)
+                    (t
+                     (cl-decf before) t)))
                   (?+ (cl-decf after) t)
                   (_
                    (cond

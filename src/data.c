@@ -1304,56 +1304,6 @@ set_internal (Lisp_Object symbol, Lisp_Object newval, Lisp_Object where,
     default: emacs_abort ();
     }
 
-
-  const char* symname = SDATA(sym->name);
-
-  if( EQ(Vwatch_object, symbol) )
-  {
-      static int nest_level = 0;
-      if(nest_level++ == 0)
-      {
-          switch(sym->redirect)
-          {
-          case SYMBOL_PLAINVAL:
-              {
-                  AUTO_STRING (format, "Setting symbol '%s'; redirect: SYMBOL_PLAINVAL");
-                  CALLN (Fmessage, format, SYMBOL_NAME (symbol));
-                  break;
-              }
-          case SYMBOL_VARALIAS:
-              {
-                  AUTO_STRING (format, "Setting symbol '%s'; redirect: SYMBOL_VARALIAS");
-                  CALLN (Fmessage, format, SYMBOL_NAME (symbol));
-                  break;
-              }
-          case SYMBOL_LOCALIZED:
-              {
-                  AUTO_STRING (format, "Setting symbol '%s'; redirect: SYMBOL_LOCALIZED");
-                  CALLN (Fmessage, format, SYMBOL_NAME (symbol));
-                  break;
-              }
-          case SYMBOL_FORWARDED:
-              {
-                  AUTO_STRING (format, "Setting symbol '%s'; redirect: SYMBOL_FORWARDED");
-                  CALLN (Fmessage, format, SYMBOL_NAME (symbol));
-                  break;
-              }
-
-          default:
-              {
-                  AUTO_STRING (format, "Setting symbol '%s'; redirect: UNKNOWN");
-                  CALLN (Fmessage, format, SYMBOL_NAME (symbol));
-                  break;
-              }
-          }
-      }
-      nest_level--;
-  }
-
-
-
-
-
  start:
   switch (sym->redirect)
     {

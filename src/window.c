@@ -4770,7 +4770,6 @@ window_scroll (Lisp_Object window, EMACS_INT n, bool whole, bool noerror)
 {
   ptrdiff_t count = SPECPDL_INDEX ();
 
-  immediate_quit = true;
   n = clip_to_bounds (INT_MIN, n, INT_MAX);
 
   wset_redisplay (XWINDOW (window));
@@ -4789,7 +4788,6 @@ window_scroll (Lisp_Object window, EMACS_INT n, bool whole, bool noerror)
 
   /* Bug#15957.  */
   XWINDOW (window)->window_end_valid = false;
-  immediate_quit = false;
 }
 
 

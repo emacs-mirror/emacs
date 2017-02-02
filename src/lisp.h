@@ -1995,8 +1995,8 @@ struct Lisp_Hash_Table
      hash table size to reduce collisions.  */
   Lisp_Object index;
 
-  /* Non-nil if the table can be purecopied. Any changes the table after
-     purecopy will result in an error.  */
+  /* Non-nil if the table can be purecopied.  The table cannot be
+     changed afterwards.  */
   Lisp_Object pure;
 
   /* Only the fields above are traced normally by the GC.  The ones below
@@ -3132,29 +3132,28 @@ struct handler
 
 extern Lisp_Object memory_signal_data;
 
-/* Check quit-flag and quit if it is non-nil.  Typing C-g does not
-   directly cause a quit; it only sets Vquit_flag.  So the program
-   needs to call maybe_quit at times when it is safe to quit.  Every
-   loop that might run for a long time or might not exit ought to call
-   maybe_quit at least once, at a safe place.  Unless that is
-   impossible, of course.  But it is very desirable to avoid creating
-   loops where maybe_quit is impossible.
-
-   Exception: if you set immediate_quit, the handler that responds to
-   the C-g does the quit itself.  This is a good thing to do around a
-   loop that has no side effects and (in particular) cannot call
-   arbitrary Lisp code.
-
-   If quit-flag is set to `kill-emacs' the SIGINT handler has received
-   a request to exit Emacs when it is safe to do.
-
-   When not quitting, process any pending signals.  */
-
 extern void maybe_quit (void);
 
 /* True if ought to quit now.  */
 
 #define QUITP (!NILP (Vquit_flag) && NILP (Vinhibit_quit))
+
+/* Heuristic on how many iterations of a tight loop can be safely done
+   before it's time to do a quit.  This must be a power of 2.  It
+   is nice but not necessary for it to equal USHRT_MAX + 1.  */
+
+enum { QUIT_COUNT_HEURISTIC = 1 << 16 };
+
+/* Process a quit rarely, based on a counter COUNT, for efficiency.
+   "Rarely" means once per QUIT_COUNT_HEURISTIC or per USHRT_MAX + 1
+   times, whichever is smaller (somewhat arbitrary, but often faster).  */
+
+INLINE void
+rarely_quit (unsigned short int count)
+{
+  if (! (count & (QUIT_COUNT_HEURISTIC - 1)))
+    maybe_quit ();
+}
 
 extern Lisp_Object Vascii_downcase_table;
 extern Lisp_Object Vascii_canon_table;
@@ -4233,8 +4232,10 @@ extern int emacs_open (const char *, int, int);
 extern int emacs_pipe (int[2]);
 extern int emacs_close (int);
 extern ptrdiff_t emacs_read (int, void *, ptrdiff_t);
+extern ptrdiff_t emacs_read_quit (int, void *, ptrdiff_t);
 extern ptrdiff_t emacs_write (int, void const *, ptrdiff_t);
 extern ptrdiff_t emacs_write_sig (int, void const *, ptrdiff_t);
+extern ptrdiff_t emacs_write_quit (int, void const *, ptrdiff_t);
 extern void emacs_perror (char const *);
 
 extern void unlock_all_files (void);
@@ -4359,9 +4360,6 @@ extern char *emacs_root_dir (void);
 extern char my_edata[];
 extern char my_endbss[];
 extern char *my_endbss_static;
-
-/* True means ^G can quit instantly.  */
-extern bool immediate_quit;
 
 extern void *xmalloc (size_t) ATTRIBUTE_MALLOC_SIZE ((1));
 extern void *xzalloc (size_t) ATTRIBUTE_MALLOC_SIZE ((1));

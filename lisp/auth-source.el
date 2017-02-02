@@ -2129,7 +2129,7 @@ MODE can be \"login\" or \"password\"."
                      (if user
                          (auth-source-search
                           :host host
-                          :user "yourusername"
+                          :user user
                           :max 1
                           :require '(:user :secret)
                           :create nil)

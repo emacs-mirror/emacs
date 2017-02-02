@@ -214,6 +214,11 @@ user enters `recenter', `scroll-up', or `scroll-down' responses,
 perform the requested window recentering or scrolling and ask
 again.
 
+When `use-dialog-box' is t (the default), this function can pop
+up a dialog window to collect the user input. That functionality
+requires `display-popup-menus-p' to return t. Otherwise, a text
+dialog will be used.
+
 The return value is the matching entry from the CHOICES list.
 
 Usage example:

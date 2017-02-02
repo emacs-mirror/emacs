@@ -1239,9 +1239,8 @@ DIARY OF CHANGES
    (Update: OK, it all seems so easy now (NOT).  Input could be done
    synchronously (with wait_reading_process_input), or asynchronously
    by SIGIO or polling (SIGALRM).  C-g either sets the Vquit_flag,
-   signals a 'quit condition (when immediate_quit), or throws to
-   'getcjmp' when Emacs was waiting for input when the C-g event
-   arrived.)
+   signals a 'quit condition, or throws to 'getcjmp' when Emacs was
+   waiting for input when the C-g event arrived.)
 
 -- Replace wrong_kboard_jmpbuf with a special return value of
    read_char.  It is absurd that we use setjmp/longjmp just to return

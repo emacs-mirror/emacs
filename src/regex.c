@@ -1728,10 +1728,8 @@ typedef struct
 
 /* Explicit quit checking is needed for Emacs, which uses polling to
    process input events.  */
-#ifdef emacs
-# define IMMEDIATE_QUIT_CHECK (immediate_quit ? maybe_quit () : (void) 0)
-#else
-# define IMMEDIATE_QUIT_CHECK ((void) 0)
+#ifndef emacs
+static void maybe_quit (void) {}
 #endif
 
 /* Structure to manage work area for range table.  */
@@ -5820,7 +5818,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp, const_re_char *string1,
 	/* Unconditionally jump (without popping any failure points).  */
 	case jump:
 	unconditional_jump:
-	  IMMEDIATE_QUIT_CHECK;
+	  maybe_quit ();
 	  EXTRACT_NUMBER_AND_INCR (mcnt, p);	/* Get the amount to jump.  */
 	  DEBUG_PRINT ("EXECUTING jump %d ", mcnt);
 	  p += mcnt;				/* Do the jump.  */
@@ -6168,7 +6166,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp, const_re_char *string1,
 
     /* We goto here if a matching operation fails. */
     fail:
-      IMMEDIATE_QUIT_CHECK;
+      maybe_quit ();
       if (!FAIL_STACK_EMPTY ())
 	{
 	  re_char *str, *pat;

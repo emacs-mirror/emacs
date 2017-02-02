@@ -10260,13 +10260,22 @@ comment at the start of cc-engine.el for more info."
 		      (t nil)))))
 
       (setq pos (point))
-      (if (and after-type-id-pos
-	       (goto-char after-type-id-pos)
-	       (setq res (c-back-over-member-initializers))
-	       (goto-char res)
-	       (eq (car (c-beginning-of-decl-1 lim)) 'same))
-	  (cons (point) nil)		; Return value.
-      
+      (cond
+       ((and after-type-id-pos
+	     (goto-char after-type-id-pos)
+	     (setq res (c-back-over-member-initializers))
+	     (goto-char res)
+	     (eq (car (c-beginning-of-decl-1 lim)) 'same))
+	(cons (point) nil))		; Return value.
+
+       ((and after-type-id-pos
+	     (progn
+	       (c-backward-syntactic-ws)
+	       (eq (char-before) ?\()))
+	;; Single identifier between '(' and '{'.  We have a bracelist.
+	(cons after-type-id-pos nil))
+
+       (t
 	(goto-char pos)
 	;; Checks to do on all sexps before the brace, up to the
 	;; beginning of the statement.
@@ -10368,7 +10377,7 @@ comment at the start of cc-engine.el for more info."
 					; languages where
 					; `c-opt-inexpr-brace-list-key' is
 					; non-nil and we have macros.
-	 (t t)))			;; The caller can go up one level.
+	 (t t))))			;; The caller can go up one level.
       )))
 
 (defun c-inside-bracelist-p (containing-sexp paren-state)
@@ -10492,6 +10501,30 @@ comment at the start of cc-engine.el for more info."
   ;; This function might do hidden buffer changes.
   (c-at-statement-start-p))
 (make-obsolete 'c-looking-at-bos 'c-at-statement-start-p "22.1")
+
+(defun c-looking-at-statement-block ()
+  ;; Point is at an opening brace.  If this is a statement block (i.e. the
+  ;; elements in it are terminated by semicolons) return t.  Otherwise, return
+  ;; nil.
+  (let ((here (point)))
+    (prog1
+	(if (c-go-list-forward)
+	    (let ((there (point)))
+	      (backward-char)
+	      (c-syntactic-skip-backward
+	       "^;," here t)
+	      (cond
+	       ((eq (char-before) ?\;) t)
+	       ((eq (char-before) ?,) nil)
+	       (t (goto-char here)
+		  (forward-char)
+		  (and (c-syntactic-re-search-forward "{" there t t)
+		       (progn (backward-char)
+			      (c-looking-at-statement-block))))))
+	  (forward-char)
+	  (and (c-syntactic-re-search-forward "[;,]" nil t t)
+	       (eq (char-before) ?\;)))
+      (goto-char here))))
 
 (defun c-looking-at-inexpr-block (lim containing-sexp &optional check-at-end)
   ;; Return non-nil if we're looking at the beginning of a block
@@ -10648,15 +10681,7 @@ comment at the start of cc-engine.el for more info."
 		    (and (c-major-mode-is 'c++-mode)
 			 (save-excursion
 			   (goto-char block-follows)
-			   (if (c-go-list-forward)
-			       (progn
-				 (backward-char)
-				 (c-syntactic-skip-backward
-				  "^;," block-follows t)
-				 (not (eq (char-before) ?\;)))
-			     (or (not (c-syntactic-re-search-forward
-				       "[;,]" nil t t))
-				 (not (eq (char-before) ?\;)))))))
+			   (not (c-looking-at-statement-block)))))
 		nil
 	      (cons 'inexpr-statement (point)))))
 
@@ -10792,17 +10817,20 @@ comment at the start of cc-engine.el for more info."
 			  syntax-extra-args
 			  stop-at-boi-only
 			  containing-sexp
-			  paren-state)
+			  paren-state
+			  &optional fixed-anchor)
   ;; Add the indicated SYNTAX-SYMBOL to `c-syntactic-context', extending it as
   ;; needed with further syntax elements of the types `substatement',
-  ;; `inexpr-statement', `arglist-cont-nonempty', `statement-block-intro', and
-  ;; `defun-block-intro'.
+  ;; `inexpr-statement', `arglist-cont-nonempty', `statement-block-intro',
+  ;; `defun-block-intro', and `brace-list-intro'.
   ;;
-  ;; Do the generic processing to anchor the given syntax symbol on
-  ;; the preceding statement: Skip over any labels and containing
-  ;; statements on the same line, and then search backward until we
-  ;; find a statement or block start that begins at boi without a
-  ;; label or comment.
+  ;; Do the generic processing to anchor the given syntax symbol on the
+  ;; preceding statement: First skip over any labels and containing statements
+  ;; on the same line.  If FIXED-ANCHOR is non-nil, use this as the
+  ;; anchor-point for the given syntactic symbol, and don't make syntactic
+  ;; entries for constructs beginning on lines before that containing
+  ;; ANCHOR-POINT.  Otherwise search backward until we find a statement or
+  ;; block start that begins at boi without a label or comment.
   ;;
   ;; Point is assumed to be at the prospective anchor point for the
   ;; given SYNTAX-SYMBOL.  More syntax entries are added if we need to
@@ -10831,6 +10859,7 @@ comment at the start of cc-engine.el for more info."
 
     (let ((syntax-last c-syntactic-context)
 	  (boi (c-point 'boi))
+	  (anchor-boi (c-point 'boi))
 	  ;; Set when we're on a label, so that we don't stop there.
 	  ;; FIXME: To be complete we should check if we're on a label
 	  ;; now at the start.
@@ -10908,7 +10937,9 @@ comment at the start of cc-engine.el for more info."
 			  (c-add-syntax 'substatement nil))))
 		 )))
 
-	   containing-sexp)
+	   containing-sexp
+	   (or (null fixed-anchor)
+	       (> containing-sexp anchor-boi)))
 
 	;; Now we have to go out of this block.
 	(goto-char containing-sexp)
@@ -10982,6 +11013,14 @@ comment at the start of cc-engine.el for more info."
 		     (cdr (assoc (match-string 1)
 				 c-other-decl-block-key-in-symbols-alist))
 		     (max (c-point 'boi paren-pos) (point))))
+		   ((save-excursion
+		      (goto-char paren-pos)
+		      (c-looking-at-or-maybe-in-bracelist containing-sexp))
+		    (if (save-excursion
+			  (goto-char paren-pos)
+			  (c-looking-at-statement-block))
+			(c-add-syntax 'defun-block-intro nil)
+		      (c-add-syntax 'brace-list-intro nil)))
 		   (t (c-add-syntax 'defun-block-intro nil))))
 
 	      (c-add-syntax 'statement-block-intro nil)))
@@ -11001,7 +11040,10 @@ comment at the start of cc-engine.el for more info."
 	  (setq q (cdr (car p))) ; e.g. (nil 28) [from (arglist-cont-nonempty nil 28)]
 	  (while q
 	    (unless (car q)
-	      (setcar q (point)))
+	      (setcar q (if (or (cdr p)
+				(null fixed-anchor))
+			    (point)
+			  fixed-anchor)))
 	    (setq q (cdr q)))
 	  (setq p (cdr p))))
       )))
@@ -12354,7 +12396,8 @@ comment at the start of cc-engine.el for more info."
 			     (c-forward-syntactic-ws (c-point 'eol))
 			     (c-looking-at-special-brace-list (point)))))
 		  (c-add-syntax 'brace-entry-open (point))
-		(c-add-syntax 'brace-list-entry (point))
+		(c-add-stmt-syntax 'brace-list-entry nil t containing-sexp
+				   paren-state (point))
 		))
 	   ))))
 
@@ -12848,7 +12891,7 @@ Cannot combine absolute offsets %S and %S in `add' method"
   ;;
   ;; Note that topmost-intro always has an anchor position at bol, for
   ;; historical reasons.  It's often used together with other symbols
-  ;; that has more sane positions.  Since we always use the first
+  ;; that have more sane positions.  Since we always use the first
   ;; found anchor position, we rely on that these other symbols always
   ;; precede topmost-intro in the LANGELEMS list.
   ;;

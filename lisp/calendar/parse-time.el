@@ -1,4 +1,4 @@
-;;; parse-time.el --- parsing time strings
+;;; parse-time.el --- parsing time strings -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1996, 2000-2017 Free Software Foundation, Inc.
 
@@ -203,12 +203,9 @@ any values that are unknown are returned as nil."
 	 (time-second 2digit)
 	 (time-secfrac "\\(\\.[0-9]+\\)?")
 	 (time-numoffset (concat "\\([-+]\\)" time-hour ":?" time-minute "?"))
-	 (time-offset (concat "Z" time-numoffset))
 	 (partial-time (concat time-hour colon time-minute colon time-second
 			       time-secfrac))
-	 (full-date (concat date-fullyear dash date-month dash date-mday))
-	 (full-time (concat partial-time time-offset))
-	 (date-time (concat full-date "T" full-time)))
+	 (full-date (concat date-fullyear dash date-month dash date-mday)))
     (list (concat "^" full-date)
 	  (concat "T" partial-time)
 	  (concat "\\(Z\\|" time-numoffset "\\)")))
@@ -225,7 +222,7 @@ If DATE-STRING cannot be parsed, it falls back to
 	 (time-re (nth 1 parse-time-iso8601-regexp))
 	 (tz-re (nth 2 parse-time-iso8601-regexp))
          re-start
-         time seconds minute hour fractional-seconds
+         time seconds minute hour
          day month year day-of-week dst tz)
     ;; We need to populate 'time' with
     ;; (SEC MIN HOUR DAY MON YEAR DOW DST TZ)
@@ -240,9 +237,6 @@ If DATE-STRING cannot be parsed, it falls back to
 	(setq hour (string-to-number (match-string 1 date-string))
 	      minute (string-to-number (match-string 2 date-string))
 	      seconds (string-to-number (match-string 3 date-string))
-	      fractional-seconds (string-to-number (or
-                                                    (match-string 4 date-string)
-                                                    "0"))
 	      re-start (match-end 0))
 	(when (string-match tz-re date-string re-start)
           (if (string= "Z" (match-string 1 date-string))

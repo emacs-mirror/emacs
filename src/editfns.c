@@ -3053,7 +3053,6 @@ determines whether case is significant or ignored.  */)
   i2 = begp2;
   i1_byte = buf_charpos_to_bytepos (bp1, i1);
   i2_byte = buf_charpos_to_bytepos (bp2, i2);
-  immediate_quit = true;
 
   while (i1 < endp1 && i2 < endp2)
     {
@@ -3092,16 +3091,13 @@ determines whether case is significant or ignored.  */)
 	  c1 = char_table_translate (trt, c1);
 	  c2 = char_table_translate (trt, c2);
 	}
+
       if (c1 != c2)
-	{
-	  immediate_quit = false;
-	  return make_number (c1 < c2 ? -1 - chars : chars + 1);
-	}
+	return make_number (c1 < c2 ? -1 - chars : chars + 1);
 
       chars++;
+      rarely_quit (chars);
     }
-
-  immediate_quit = false;
 
   /* The strings match as far as they go.
      If one is shorter, that one is less.  */

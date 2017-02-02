@@ -1000,8 +1000,6 @@ command again."
       (let ((pt (point))
 	    (regexp
 	     (concat
-              ;; comint-process-echoes is the thing that breaks the
-              ;; throbber
 	      (if comint-process-echoes
 		  ;; Skip command echo if the process echoes
 		  (concat "\\(" (regexp-quote shell-dirstack-query) "\n\\)")

@@ -67,6 +67,7 @@
 			 (arglist-close . c-lineup-arglist)
 			 (inline-open . 0)
 			 (brace-list-open . +)
+			 (brace-list-intro . c-lineup-arglist-intro-after-paren)
 			 (topmost-intro-cont
 			  . (first c-lineup-topmost-intro-cont
 				   c-lineup-gnu-DEFUN-intro-cont))))

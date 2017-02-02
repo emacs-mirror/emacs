@@ -382,19 +382,23 @@ get_child_status (pid_t child, int *status, int options, bool interruptible)
      so that another thread running glib won't find them.  */
   eassert (child > 0);
 
-  while ((pid = waitpid (child, status, options)) < 0)
+  while (true)
     {
+      /* Note: the MS-Windows emulation of waitpid calls maybe_quit
+	 internally.  */
+      if (interruptible)
+	maybe_quit ();
+
+      pid = waitpid (child, status, options);
+      if (0 <= pid)
+	break;
+
       /* Check that CHILD is a child process that has not been reaped,
 	 and that STATUS and OPTIONS are valid.  Otherwise abort,
 	 as continuing after this internal error could cause Emacs to
 	 become confused and kill innocent-victim processes.  */
       if (errno != EINTR)
 	emacs_abort ();
-
-      /* Note: the MS-Windows emulation of waitpid calls maybe_quit
-	 internally.  */
-      if (interruptible)
-	maybe_quit ();
     }
 
   /* If successful and status is requested, tell wait_reading_process_output
@@ -2503,78 +2507,113 @@ emacs_close (int fd)
 #define MAX_RW_COUNT (INT_MAX >> 18 << 18)
 #endif
 
-/* Read from FILEDESC to a buffer BUF with size NBYTE, retrying if interrupted.
+/* Read from FD to a buffer BUF with size NBYTE.
+   If interrupted, process any quits and pending signals immediately
+   if INTERRUPTIBLE, and then retry the read unless quitting.
    Return the number of bytes read, which might be less than NBYTE.
-   On error, set errno and return -1.  */
-ptrdiff_t
-emacs_read (int fildes, void *buf, ptrdiff_t nbyte)
+   On error, set errno to a value other than EINTR, and return -1.  */
+static ptrdiff_t
+emacs_intr_read (int fd, void *buf, ptrdiff_t nbyte, bool interruptible)
 {
-  ssize_t rtnval;
+  ssize_t result;
 
   /* There is no need to check against MAX_RW_COUNT, since no caller ever
      passes a size that large to emacs_read.  */
+  do
+    {
+      if (interruptible)
+	maybe_quit ();
+      result = read (fd, buf, nbyte);
+    }
+  while (result < 0 && errno == EINTR);
 
-  while ((rtnval = read (fildes, buf, nbyte)) == -1
-	 && (errno == EINTR))
-    maybe_quit ();
-  return (rtnval);
+  return result;
 }
 
-/* Write to FILEDES from a buffer BUF with size NBYTE, retrying if interrupted
-   or if a partial write occurs.  If interrupted, process pending
-   signals if PROCESS SIGNALS.  Return the number of bytes written, setting
-   errno if this is less than NBYTE.  */
+/* Read from FD to a buffer BUF with size NBYTE.
+   If interrupted, retry the read.  Return the number of bytes read,
+   which might be less than NBYTE.  On error, set errno to a value
+   other than EINTR, and return -1.  */
+ptrdiff_t
+emacs_read (int fd, void *buf, ptrdiff_t nbyte)
+{
+  return emacs_intr_read (fd, buf, nbyte, false);
+}
+
+/* Like emacs_read, but also process quits and pending signals.  */
+ptrdiff_t
+emacs_read_quit (int fd, void *buf, ptrdiff_t nbyte)
+{
+  return emacs_intr_read (fd, buf, nbyte, true);
+}
+
+/* Write to FILEDES from a buffer BUF with size NBYTE, retrying if
+   interrupted or if a partial write occurs.  Process any quits
+   immediately if INTERRUPTIBLE is positive, and process any pending
+   signals immediately if INTERRUPTIBLE is nonzero.  Return the number
+   of bytes written; if this is less than NBYTE, set errno to a value
+   other than EINTR.  */
 static ptrdiff_t
-emacs_full_write (int fildes, char const *buf, ptrdiff_t nbyte,
-		  bool process_signals)
+emacs_full_write (int fd, char const *buf, ptrdiff_t nbyte,
+		  int interruptible)
 {
   ptrdiff_t bytes_written = 0;
 
   while (nbyte > 0)
     {
-      ssize_t n = write (fildes, buf, min (nbyte, MAX_RW_COUNT));
+      ssize_t n = write (fd, buf, min (nbyte, MAX_RW_COUNT));
 
       if (n < 0)
 	{
-	  if (errno == EINTR)
-	    {
-	      /* I originally used maybe_quit but that might cause files to
-		 be truncated if you hit C-g in the middle of it.  --Stef  */
-	      if (process_signals && pending_signals)
-		process_pending_signals ();
-	      continue;
-	    }
-	  else
+	  if (errno != EINTR)
 	    break;
-	}
 
-      buf += n;
-      nbyte -= n;
-      bytes_written += n;
+	  if (interruptible)
+	    {
+	      if (0 < interruptible)
+		maybe_quit ();
+	      if (pending_signals)
+		process_pending_signals ();
+	    }
+	}
+      else
+	{
+	  buf += n;
+	  nbyte -= n;
+	  bytes_written += n;
+	}
     }
 
   return bytes_written;
 }
 
-/* Write to FILEDES from a buffer BUF with size NBYTE, retrying if
-   interrupted or if a partial write occurs.  Return the number of
-   bytes written, setting errno if this is less than NBYTE.  */
+/* Write to FD from a buffer BUF with size NBYTE, retrying if
+   interrupted or if a partial write occurs.  Do not process quits or
+   pending signals.  Return the number of bytes written, setting errno
+   if this is less than NBYTE.  */
 ptrdiff_t
-emacs_write (int fildes, void const *buf, ptrdiff_t nbyte)
+emacs_write (int fd, void const *buf, ptrdiff_t nbyte)
 {
-  return emacs_full_write (fildes, buf, nbyte, 0);
+  return emacs_full_write (fd, buf, nbyte, 0);
 }
 
-/* Like emacs_write, but also process pending signals if interrupted.  */
+/* Like emacs_write, but also process pending signals.  */
 ptrdiff_t
-emacs_write_sig (int fildes, void const *buf, ptrdiff_t nbyte)
+emacs_write_sig (int fd, void const *buf, ptrdiff_t nbyte)
 {
-  return emacs_full_write (fildes, buf, nbyte, 1);
+  return emacs_full_write (fd, buf, nbyte, -1);
+}
+
+/* Like emacs_write, but also process quits and pending signals.  */
+ptrdiff_t
+emacs_write_quit (int fd, void const *buf, ptrdiff_t nbyte)
+{
+  return emacs_full_write (fd, buf, nbyte, 1);
 }
 
 /* Write a diagnostic to standard error that contains MESSAGE and a
    string derived from errno.  Preserve errno.  Do not buffer stderr.
-   Do not process pending signals if interrupted.  */
+   Do not process quits or pending signals if interrupted.  */
 void
 emacs_perror (char const *message)
 {
@@ -3168,7 +3207,7 @@ system_process_attributes (Lisp_Object pid)
   else
     {
       record_unwind_protect_int (close_file_unwind, fd);
-      nread = emacs_read (fd, procbuf, sizeof procbuf - 1);
+      nread = emacs_read_quit (fd, procbuf, sizeof procbuf - 1);
     }
   if (0 < nread)
     {
@@ -3289,7 +3328,7 @@ system_process_attributes (Lisp_Object pid)
 	  /* Leave room even if every byte needs escaping below.  */
 	  readsize = (cmdline_size >> 1) - nread;
 
-	  nread_incr = emacs_read (fd, cmdline + nread, readsize);
+	  nread_incr = emacs_read_quit (fd, cmdline + nread, readsize);
 	  nread += max (0, nread_incr);
 	}
       while (nread_incr == readsize);
@@ -3402,7 +3441,7 @@ system_process_attributes (Lisp_Object pid)
   else
     {
       record_unwind_protect_int (close_file_unwind, fd);
-      nread = emacs_read (fd, &pinfo, sizeof pinfo);
+      nread = emacs_read_quit (fd, &pinfo, sizeof pinfo);
     }
 
   if (nread == sizeof pinfo)

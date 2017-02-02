@@ -614,7 +614,7 @@ Completion candidates for HTML classes and IDs are retrieved from open
 HTML mode buffers.
 
 ---
-*** CSS mode now binds 'C-h s' to a function that will show
+*** CSS mode now binds 'C-h S' to a function that will show
 information about a CSS construct (an at-rule, property, pseudo-class,
 pseudo-element, with the default being guessed from context).  By
 default the information is looked up on the Mozilla Developer Network,

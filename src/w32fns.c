@@ -3168,16 +3168,7 @@ signal_user_input (void)
       Vquit_flag = Vthrow_on_input;
       /* Calling maybe_quit from this thread is a bad idea, since this
 	 unwinds the stack of the Lisp thread, and the Windows runtime
-	 rightfully barfs.  Disabled.  */
-#if 0
-      /* If we're inside a function that wants immediate quits,
-	 do it now.  */
-      if (immediate_quit && NILP (Vinhibit_quit))
-	{
-	  immediate_quit = false;
-	  maybe_quit ();
-	}
-#endif
+	 rightfully barfs.  */
     }
 }
 

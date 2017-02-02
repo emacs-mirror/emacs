@@ -186,7 +186,7 @@ get_doc_string (Lisp_Object filepos, bool unibyte, bool definition)
          If we read the same block last time, maybe skip this?  */
       if (space_left > 1024 * 8)
 	space_left = 1024 * 8;
-      nread = emacs_read (fd, p, space_left);
+      nread = emacs_read_quit (fd, p, space_left);
       if (nread < 0)
 	report_file_error ("Read error on documentation file", file);
       p[nread] = 0;
@@ -590,16 +590,15 @@ the same file name is found in the `doc-directory'.  */)
   Vdoc_file_name = filename;
   filled = 0;
   pos = 0;
-  while (1)
+  while (true)
     {
-      register char *end;
       if (filled < 512)
-	filled += emacs_read (fd, &buf[filled], sizeof buf - 1 - filled);
+	filled += emacs_read_quit (fd, &buf[filled], sizeof buf - 1 - filled);
       if (!filled)
 	break;
 
       buf[filled] = 0;
-      end = buf + (filled < 512 ? filled : filled - 128);
+      char *end = buf + (filled < 512 ? filled : filled - 128);
       p = memchr (buf, '\037', end - buf);
       /* p points to ^_Ffunctionname\n or ^_Vvarname\n or ^_Sfilename\n.  */
       if (p)
