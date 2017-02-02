@@ -287,9 +287,7 @@ jit_type_t native_unwind_protect_sig;
 static void
 native_unwind_protect (Lisp_Object handler)
 {
-  record_unwind_protect (NILP (Ffunctionp (handler))
-			 ? unwind_body : bcall0,
-			 handler);
+  record_unwind_protect (FUNCTIONP (handler) ? bcall0 : prog_ignore, handler);
 }
 
 jit_type_t native_temp_output_buffer_setup_sig;
@@ -668,17 +666,9 @@ jit_exec (Lisp_Object byte_code, Lisp_Object args_template, ptrdiff_t nargs, Lis
     }
 
   {
-    /* We don't actually need to use this structure to keep track of a
-       stack, since our stack isn't GCed.  We just need to use it as a
-       placeholder in `byte_stack_list' to facilitate proper unwinding. */
-    struct byte_stack stack = {};
-    stack.next = byte_stack_list;
-    byte_stack_list = &stack;
     Lisp_Object (*func)(Lisp_Object *) =
       (void *)AREF (byte_code, COMPILED_JIT_CLOSURE);
-    Lisp_Object ret = func (top);
-    byte_stack_list = byte_stack_list->next;
-    return ret;
+    return func (top);
   }
 }
 

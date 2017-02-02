@@ -58,28 +58,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif /* BYTE_CODE_METER */
 
 
-/* Relocate program counters in the stacks on byte_stack_list.  Called
-   when GC has completed.  */
-
-void
-relocate_byte_stack (struct byte_stack *stack)
-{
-  for (; stack; stack = stack->next)
-    {
-#ifdef HAVE_LIBJIT
-      if (!stack->byte_string_start)
-	continue;
-#endif
-      if (stack->byte_string_start != SDATA (stack->byte_string))
-	{
-	  ptrdiff_t offset = stack->pc - stack->byte_string_start;
-	  stack->byte_string_start = SDATA (stack->byte_string);
-	  stack->pc = stack->byte_string_start + offset;
-	}
-    }
-}
-
-
 /* Fetch the next byte from the bytecode stream.  */
 
 #define FETCH (*pc++)

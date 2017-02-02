@@ -2777,11 +2777,6 @@ CHECK_COMPILED (Lisp_Object x)
 {
   CHECK_TYPE (COMPILEDP (x), Qcompiledp, x);
 }
-INLINE void
-CHECK_BOOL_VECTOR (Lisp_Object x)
-{
-  CHECK_TYPE (BOOL_VECTOR_P (x), Qbool_vector_p, x);
-}
 /* This is a bit special because we always need size afterwards.  */
 INLINE ptrdiff_t
 CHECK_VECTOR_OR_STRING (Lisp_Object x)
@@ -4173,7 +4168,6 @@ extern int read_bytecode_char (bool);
 
 /* Defined in bytecode.c.  */
 extern void syms_of_bytecode (void);
-extern void relocate_byte_stack (struct byte_stack *);
 extern Lisp_Object exec_byte_code (Lisp_Object, Lisp_Object, ptrdiff_t, Lisp_Object *);
 extern Lisp_Object get_byte_code_arity (Lisp_Object);
 
