@@ -32,6 +32,10 @@
 (defvar secrets-enabled t
   "Enable the secrets backend to test its features.")
 
+(defun auth-source-ensure-ignored-backend (source)
+    (auth-source-validate-backend source '((:source . "")
+                                           (:type . ignore))))
+
 (defun auth-source-validate-backend (source validation-alist)
   (let ((backend (auth-source-backend-parse source)))
     (should (auth-source-backend-p backend))
@@ -119,15 +123,6 @@
                                     (:search-function . auth-source-secrets-search)
                                     (:create-function . auth-source-secrets-create)))))
 
-(ert-deftest auth-source-backend-parse-secrets-nil-source ()
-  (provide 'secrets) ; simulates the presence of the `secrets' package
-  (let ((secrets-enabled t))
-    (auth-source-validate-backend '(:source (:secrets nil))
-                                  '((:source . "session")
-                                    (:type . secrets)
-                                    (:search-function . auth-source-secrets-search)
-                                    (:create-function . auth-source-secrets-create)))))
-
 (ert-deftest auth-source-backend-parse-secrets-alias ()
   (provide 'secrets) ; simulates the presence of the `secrets' package
   (let ((secrets-enabled t))
@@ -162,17 +157,12 @@
                                       (:search-function . auth-source-secrets-search)
                                       (:create-function . auth-source-secrets-create))))))
 
-;; TODO This test shows suspicious behavior of auth-source: the
-;; "secrets" source is used even though nothing in the input indicates
-;; that is what we want
-(ert-deftest auth-source-backend-parse-secrets-no-source ()
+(ert-deftest auth-source-backend-parse-invalid-or-nil-source ()
   (provide 'secrets) ; simulates the presence of the `secrets' package
   (let ((secrets-enabled t))
-    (auth-source-validate-backend '(:source '(foo))
-                                  '((:source . "session")
-                                    (:type . secrets)
-                                    (:search-function . auth-source-secrets-search)
-                                    (:create-function . auth-source-secrets-create)))))
+    (auth-source-ensure-ignored-backend nil)
+    (auth-source-ensure-ignored-backend '(:source '(foo)))
+    (auth-source-ensure-ignored-backend '(:source nil))))
 
 (defun auth-source--test-netrc-parse-entry (entry host user port)
   "Parse a netrc entry from buffer."
@@ -218,6 +208,25 @@
                     ("password" . "pass1")
                     ("login" . "user1")
                     ("machine" . "mymachine1"))))))
+
+(ert-deftest auth-source-test-format-prompt ()
+  (should (equal (auth-source-format-prompt "test %u %h %p" '((?u "user") (?h "host")))
+                 "test user host %p")))
+
+(ert-deftest auth-source-test-remembrances-of-things-past ()
+  (let ((password-cache t)
+        (password-data (make-vector 7 0)))
+    (auth-source-remember '(:host "wedd") '(4 5 6))
+    (should (auth-source-remembered-p '(:host "wedd")))
+    (should-not (auth-source-remembered-p '(:host "xedd")))
+    (auth-source-remember '(:host "xedd") '(1 2 3))
+    (should (auth-source-remembered-p '(:host "xedd")))
+    (should-not (auth-source-remembered-p '(:host "zedd")))
+    (should (auth-source-recall '(:host "xedd")))
+    (should-not (auth-source-recall nil))
+    (auth-source-forget+ :host t)
+    (should-not (auth-source-remembered-p '(:host "xedd")))
+    (should-not (auth-source-remembered-p '(:host t)))))
 
 (provide 'auth-source-tests)
 ;;; auth-source-tests.el ends here
