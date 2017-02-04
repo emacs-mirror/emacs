@@ -353,12 +353,15 @@ with \"[a/b/c] \" if CHOICES is \(?a ?b ?c)."
       k)))
 
 (defvar auth-source-backend-parser-functions nil
-  "List of auth-source parser functions
-These functions return backends from an entry in `auth-sources'.
-Add your backends to this list with `add-hook'.")
+  "List of auth-source parser functions.
+Each function takes an entry from `auth-sources' as parameter and
+returns a backend or nil if the entry is not supported.  Add a
+parser function to this list with `add-hook'.  Searching for a
+backend starts with the first element on the list and stops as
+soon as a function returns non-nil.")
 
 (defun auth-source-backend-parse (entry)
-  "Creates an auth-source-backend from an ENTRY in `auth-sources'."
+  "Create an auth-source-backend from an ENTRY in `auth-sources'."
 
   (let (backend)
     (dolist (f auth-source-backend-parser-functions)
