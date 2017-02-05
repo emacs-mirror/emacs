@@ -492,6 +492,7 @@ lost after dumping")))
       (let ((faces '())
             (coding-systems '()) (coding-system-aliases '())
             (charsets '()) (charset-aliases '())
+            (unified-charsets '())
             (cmds '()))
         (setcdr global-buffers-menu-map nil) ;; Get rid of buffer objects!
         (push `(internal--set-standard-syntax-table
@@ -565,7 +566,11 @@ lost after dumping")))
              (push (cons s (car (coding-system-aliases s)))
                    coding-system-aliases))
            (if (get s 'internal--charset-args)
-               (push s charsets)
+               (progn
+                 (push s charsets)
+                 (if (member :unify-map
+                             (nth 15 (get s 'internal--charset-args)))
+                     (push s unified-charsets)))
              (when (and (charsetp s)
                         (not (eq s (get-charset-property s :name))))
                (push (cons s (get-charset-property s :name))
@@ -620,6 +625,7 @@ lost after dumping")))
                              ;; (message "Defining coding-system %S...postponed"
                              ;;          cs)
                              (push cs css)))))))
+            (print `(mapcar 'unify-charset ',unified-charsets))
             (print `(dolist (f ',faces)
                       (face-spec-set f (get f 'face-defface-spec)
                                      'face-defface-spec)))
