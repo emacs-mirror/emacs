@@ -1,5 +1,5 @@
 /* Common functions for Microsoft Windows builds of Emacs
-   Copyright (C) 2012-2016 Free Software Foundation, Inc.
+   Copyright (C) 2012-2017 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

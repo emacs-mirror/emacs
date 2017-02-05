@@ -1,6 +1,6 @@
 /* A substitute for ISO C11 <stdalign.h>.
 
-   Copyright 2011-2016 Free Software Foundation, Inc.
+   Copyright 2011-2017 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by

@@ -1,6 +1,6 @@
 ;;; chart.el --- Draw charts (bar charts, etc)  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996, 1998-1999, 2001, 2004-2005, 2007-2016 Free
+;; Copyright (C) 1996, 1998-1999, 2001, 2004-2005, 2007-2017 Free
 ;; Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam  <zappo@gnu.org>

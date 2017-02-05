@@ -1,6 +1,6 @@
 ;;; semantic/sb.el --- Semantic tag display for speedbar
 
-;; Copyright (C) 1999-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2017 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax

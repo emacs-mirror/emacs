@@ -1,6 +1,6 @@
 /* Display generation from window structure and buffer text.
 
-Copyright (C) 1985-1988, 1993-1995, 1997-2016 Free Software Foundation,
+Copyright (C) 1985-1988, 1993-1995, 1997-2017 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -1250,27 +1250,18 @@ default_line_pixel_height (struct window *w)
 static Lisp_Object
 string_from_display_spec (Lisp_Object spec)
 {
-  if (CONSP (spec))
+  if (VECTORP (spec))
     {
-      while (CONSP (spec))
-	{
-	  if (STRINGP (XCAR (spec)))
-	    return XCAR (spec);
-	  spec = XCDR (spec);
-	}
+      for (ptrdiff_t i = 0; i < ASIZE (spec); i++)
+	if (STRINGP (AREF (spec, i)))
+	  return AREF (spec, i);
     }
-  else if (VECTORP (spec))
+  else
     {
-      ptrdiff_t i;
-
-      for (i = 0; i < ASIZE (spec); i++)
-	{
-	  if (STRINGP (AREF (spec, i)))
-	    return AREF (spec, i);
-	}
-      return Qnil;
+      for (; CONSP (spec); spec = XCDR (spec))
+	if (STRINGP (XCAR (spec)))
+	  return XCAR (spec);
     }
-
   return spec;
 }
 

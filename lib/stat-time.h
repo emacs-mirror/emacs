@@ -1,6 +1,6 @@
 /* stat-related time functions.
 
-   Copyright (C) 2005, 2007, 2009-2016 Free Software Foundation, Inc.
+   Copyright (C) 2005, 2007, 2009-2017 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -181,7 +181,7 @@ get_stat_birthtime (struct stat const *st)
      || defined HAVE_STRUCT_STAT_ST_BIRTHTIMENSEC)
   /* FreeBSD and NetBSD sometimes signal the absence of knowledge by
      using zero.  Attempt to work around this problem.  Alas, this can
-     report failure even for valid time stamps.  Also, NetBSD
+     report failure even for valid timestamps.  Also, NetBSD
      sometimes returns junk in the birth time fields; work around this
      bug if it is detected.  */
   if (! (t.tv_sec && 0 <= t.tv_nsec && t.tv_nsec < 1000000000))

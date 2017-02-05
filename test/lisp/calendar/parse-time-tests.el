@@ -1,6 +1,6 @@
 ;; parse-time-tests.el --- Test suite for parse-time.el
 
-;; Copyright (C) 2016 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2017 Free Software Foundation, Inc.
 
 ;; Author: Lars Ingebrigtsen <larsi@gnus.org>
 
@@ -42,7 +42,23 @@
   (should (equal (parse-time-string "Monday, 22 february 2016 19:35:42 +0100")
                  '(42 35 19 22 2 2016 1 nil 3600)))
   (should (equal (parse-time-string "Monday, 22 february 2016 19:35:42 PDT")
-                 '(42 35 19 22 2 2016 1 t -25200))))
+                 '(42 35 19 22 2 2016 1 t -25200)))
+  (should (equal (parse-iso8601-time-string "1998-09-12T12:21:54-0200")
+                 '(13818 33666)))
+  (should (equal (parse-iso8601-time-string "1998-09-12T12:21:54-0230")
+                 '(13818 35466)))
+  (should (equal (parse-iso8601-time-string "1998-09-12T12:21:54-02:00")
+                 '(13818 33666)))
+  (should (equal (parse-iso8601-time-string "1998-09-12T12:21:54-02")
+                 '(13818 33666)))
+  (should (equal (parse-iso8601-time-string "1998-09-12T12:21:54+0230")
+                 '(13818 17466)))
+  (should (equal (parse-iso8601-time-string "1998-09-12T12:21:54+02")
+                 '(13818 19266)))
+  (should (equal (parse-iso8601-time-string "1998-09-12T12:21:54Z")
+                 '(13818 26466)))
+  (should (equal (parse-iso8601-time-string "1998-09-12T12:21:54")
+                 (encode-time 54 21 12 12 9 1998))))
 
 (provide 'parse-time-tests)
 

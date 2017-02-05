@@ -1,6 +1,6 @@
 ;;; follow.el --- synchronize windows showing the same buffer
 
-;; Copyright (C) 1995-1997, 1999, 2001-2016 Free Software Foundation,
+;; Copyright (C) 1995-1997, 1999, 2001-2017 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Anders Lindgren

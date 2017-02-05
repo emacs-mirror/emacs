@@ -1,6 +1,6 @@
 ;;; inversion.el --- When you need something in version XX.XX
 
-;;; Copyright (C) 2002-2003, 2005-2016 Free Software Foundation, Inc.
+;;; Copyright (C) 2002-2003, 2005-2017 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 1.3

@@ -1,5 +1,5 @@
 /* pop.h: Header file for the "pop.c" client POP3 protocol.
-   Copyright (C) 1991, 1993, 2001-2016 Free Software Foundation, Inc.
+   Copyright (C) 1991, 1993, 2001-2017 Free Software Foundation, Inc.
 
 Author:  Jonathan Kamens <jik@security.ov.com>
 

@@ -1,7 +1,7 @@
 #!/bin/sh
 ### make-dist: create an Emacs distribution tar file from current srcdir
 
-## Copyright (C) 1995, 1997-1998, 2000-2016 Free Software Foundation,
+## Copyright (C) 1995, 1997-1998, 2000-2017 Free Software Foundation,
 ## Inc.
 
 ## This file is part of GNU Emacs.
@@ -101,7 +101,6 @@ while [ $# -gt 0 ]; do
       clean_up=yes
       make_tar=yes
       update=no
-      check=no
      ;;
 
     ## Include the test/ directory.
@@ -211,6 +210,11 @@ them, and try again." >&2
 fi
 
 if [ $check = yes ]; then
+
+  echo "Sanity checking (use --no-check to disable this)..."
+
+  error=no
+
   ls -1 lisp/[a-zA-Z]*.el lisp/[a-z]*/[a-zA-Z0-9]*.el \
 	lisp/[a-z]*/[a-z]*/[a-zA-Z0-9]*.el \
 	lisp/[a-z]*/[a-z]*/[a-z]*/[a-zA-Z0-9]*.el > /tmp/el
@@ -224,6 +228,7 @@ if [ $check = yes ]; then
 
   bogosities=`comm -13 /tmp/elelc /tmp/elc`
   if [ x"${bogosities}" != x"" ]; then
+    error=yes
     echo "The following .elc files have no corresponding .el files:"
     echo "${bogosities}"
   fi
@@ -231,6 +236,19 @@ if [ $check = yes ]; then
   ### Check for .el files with no corresponding .elc file.
   sed 's/\.elc$/.el/' /tmp/elc > /tmp/elcel
   losers=`comm -23 /tmp/el /tmp/elcel`
+
+  bogosities=
+  while read elc; do
+      el=`echo $elc | sed 's/c$//'`
+      [ -e $el ] || continue
+      [ $elc -nt $el ] || bogosities="$bogosities $elc"
+  done < /tmp/elc
+
+  if [ x"${bogosities}" != x"" ]; then
+      error=yes
+      echo "The following .elc files are older than their .el files:"
+      echo "${bogosities}"
+  fi
 
   rm -f /tmp/el /tmp/elc /tmp/elcel /tmp/elelc
 
@@ -245,9 +263,45 @@ if [ $check = yes ]; then
 
   done
   if [ x"${bogosities}" != x"" ]; then
+    error=yes
     echo "The following .el files have no corresponding .elc files:"
     echo "${bogosities}"
   fi
+
+
+  ## This is only a crude check, eg it does not handle .info
+  ## files with multiple .texi source files.
+  find doc -name '*.texi' > /tmp/el
+
+  bogosities=
+  while read texi; do
+      info=`sed -n 's/^@setfilename //p' $texi | sed 's|.*info/||'`
+      [ x"${info}" != x"" ] || continue
+      info=info/$info
+      [ -e $info ] || continue
+      [ $info -nt $texi ] || bogosities="$bogosities $info"
+  done < /tmp/el
+
+  rm -f /tmp/el
+
+  if [ x"${bogosities}" != x"" ]; then
+    error=yes
+    echo "The following .info files are older than their .texi files:"
+    echo "${bogosities}"
+  fi
+
+  ## This exits with non-zero status if any .info files need
+  ## rebuilding.
+  if [ -e Makefile ]; then
+      echo "Checking to see if info files are up-to-date..."
+      make --question info || error=yes
+  fi
+
+  if [ $error = yes ]; then
+      echo "Failed checks" >&2
+      exit 1
+  fi
+
 fi
 
 if [ $update = yes ]; then
@@ -428,7 +482,7 @@ echo "Making links to 'nt'"
 (cd nt
  ln emacs-x86.manifest emacs-x64.manifest ../${tempdir}/nt
  ln [a-z]*.bat [a-z]*.[ch] ../${tempdir}/nt
- ln *.in gnulib.mk ../${tempdir}/nt
+ ln *.in gnulib.mk gnulib-modules-to-delete.cfg ../${tempdir}/nt
  ln mingw-cfg.site epaths.nt INSTALL.W64 ../${tempdir}/nt
  ln ChangeLog.*[0-9] INSTALL README README.W32 ../${tempdir}/nt)
 

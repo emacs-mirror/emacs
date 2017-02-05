@@ -1,6 +1,6 @@
 ;;; cal-persia.el --- calendar functions for the Persian calendar
 
-;; Copyright (C) 1996-1997, 2001-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 2001-2017 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>

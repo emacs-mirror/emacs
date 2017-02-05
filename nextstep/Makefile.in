@@ -1,6 +1,6 @@
 ### @configure_input@
 
-## Copyright (C) 2012-2016 Free Software Foundation, Inc.
+## Copyright (C) 2012-2017 Free Software Foundation, Inc.
 
 ## This file is part of GNU Emacs.
 
@@ -30,7 +30,6 @@ EXEEXT = @EXEEXT@
 # abs_top_srcdir may contain ".."
 top_srcdir_abs = $(shell cd @top_srcdir@; pwd -P)
 
-@SET_MAKE@
 MKDIR_P = @MKDIR_P@
 
 ## Emacs.app.

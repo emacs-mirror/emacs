@@ -1,5 +1,5 @@
 /* Merge parameters into a termcap entry string.
-   Copyright (C) 1985, 1987, 1993, 1995, 2000-2008, 2013-2016 Free
+   Copyright (C) 1985, 1987, 1993, 1995, 2000-2008, 2013-2017 Free
    Software Foundation, Inc.
 
 This program is free software; you can redistribute it and/or modify

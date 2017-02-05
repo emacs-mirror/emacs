@@ -1,6 +1,6 @@
 ;;; todo-mode.el --- major mode for editing TODO list files
 
-;; Copyright (C) 1997, 1999, 2001-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2001-2017 Free Software Foundation, Inc.
 
 ;; Author: Oliver Seidel <privat@os10000.net>
 ;; Maintainer: Stephen Berman <stephen.berman@gmx.net>

@@ -1,6 +1,6 @@
 ;;; cedet-idutils.el --- ID Utils support for CEDET.
 
-;; Copyright (C) 2009-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2017 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 ;; Old-Version: 0.2

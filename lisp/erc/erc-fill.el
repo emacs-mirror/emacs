@@ -1,6 +1,6 @@
 ;;; erc-fill.el --- Filling IRC messages in various ways
 
-;; Copyright (C) 2001-2004, 2006-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2004, 2006-2017 Free Software Foundation, Inc.
 
 ;; Author: Andreas Fuchs <asf@void.at>
 ;;         Mario Lang <mlang@delysid.org>

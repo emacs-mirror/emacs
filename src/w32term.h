@@ -1,5 +1,5 @@
 /* Definitions and headers for communication on the Microsoft Windows API.
-   Copyright (C) 1995, 2001-2016 Free Software Foundation, Inc.
+   Copyright (C) 1995, 2001-2017 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

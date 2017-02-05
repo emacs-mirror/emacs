@@ -1,6 +1,6 @@
 ;;; org-archive.el --- Archiving for Org-mode
 
-;; Copyright (C) 2004-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2017 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -29,6 +29,7 @@
 ;;; Code:
 
 (require 'org)
+(eval-when-compile (require 'cl))
 
 (declare-function org-inlinetask-remove-END-maybe "org-inlinetask" ())
 (declare-function org-datetree-find-date-create "org-datetree" (date &optional keep-restriction))
@@ -163,11 +164,11 @@ archive file is."
 	  (setq file (org-extract-archive-file
 		      (org-match-string-no-properties 2)))
 	  (and file (> (length file) 0) (file-exists-p file)
-	       (add-to-list 'files file)))))
+	       (pushnew file files :test #'equal)))))
     (setq files (nreverse files))
     (setq file (org-extract-archive-file))
     (and file (> (length file) 0) (file-exists-p file)
-	 (add-to-list 'files file))
+	 (pushnew file files :test #'equal))
     files))
 
 (defun org-extract-archive-file (&optional location)

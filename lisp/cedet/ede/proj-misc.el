@@ -1,6 +1,6 @@
 ;;; ede-proj-misc.el --- EDE Generic Project Emacs Lisp support
 
-;; Copyright (C) 1998-2001, 2008-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2001, 2008-2017 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make

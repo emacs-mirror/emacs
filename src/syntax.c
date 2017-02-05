@@ -1,5 +1,5 @@
 /* GNU Emacs routines to deal with syntax tables; also word and list parsing.
-   Copyright (C) 1985, 1987, 1993-1995, 1997-1999, 2001-2016 Free
+   Copyright (C) 1985, 1987, 1993-1995, 1997-1999, 2001-2017 Free
    Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -19,8 +19,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
-
-#include <sys/types.h>
 
 #include "lisp.h"
 #include "character.h"

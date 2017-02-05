@@ -1,7 +1,7 @@
 /* Session management module for systems which understand the X Session
    management protocol.
 
-Copyright (C) 2002-2016 Free Software Foundation, Inc.
+Copyright (C) 2002-2017 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

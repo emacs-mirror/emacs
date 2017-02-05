@@ -1,6 +1,6 @@
 ;;; password-cache.el --- Read passwords, possibly using a password cache.
 
-;; Copyright (C) 1999-2000, 2003-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2000, 2003-2017 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;; Created: 2003-12-21

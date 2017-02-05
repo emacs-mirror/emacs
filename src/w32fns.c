@@ -1,6 +1,6 @@
 /* Graphical user interface functions for the Microsoft Windows API.
 
-Copyright (C) 1989, 1992-2016 Free Software Foundation, Inc.
+Copyright (C) 1989, 1992-2017 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -9900,7 +9900,8 @@ Set to nil to handle Caps Lock as the `capslock' key.  */);
 	       doc: /* Modifier to use for the Scroll Lock ON state.
 The value can be hyper, super, meta, alt, control or shift for the
 respective modifier, or nil to handle Scroll Lock as the `scroll' key.
-Any other value will cause the Scroll Lock key to be ignored.  */);
+Any other value will cause the Scroll Lock key to be ignored by Emacs,
+and it will have the same effect as in other applications.  */);
   Vw32_scroll_lock_modifier = Qnil;
 
   DEFVAR_LISP ("w32-lwindow-modifier",

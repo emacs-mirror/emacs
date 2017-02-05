@@ -1,6 +1,6 @@
 ;; erc-ring.el -- Command history handling for erc using ring.el
 
-;; Copyright (C) 2001-2004, 2006-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2004, 2006-2017 Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org

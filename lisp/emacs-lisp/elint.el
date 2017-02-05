@@ -1,6 +1,6 @@
 ;;; elint.el --- Lint Emacs Lisp
 
-;; Copyright (C) 1997, 2001-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2017 Free Software Foundation, Inc.
 
 ;; Author: Peter Liljenberg <petli@lysator.liu.se>
 ;; Created: May 1997

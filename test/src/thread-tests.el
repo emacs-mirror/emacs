@@ -1,6 +1,6 @@
 ;;; threads.el --- tests for threads.
 
-;; Copyright (C) 2012-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2017 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -222,8 +222,15 @@
 
 (ert-deftest thread-errors ()
   "Test what happens when a thread signals an error."
-    (should (threadp (make-thread #'call-error "call-error")))
-    (should (threadp (make-thread #'thread-custom "thread-custom"))))
+  (let (th1 th2)
+    (setq th1 (make-thread #'call-error "call-error"))
+    (should (threadp th1))
+    (while (thread-alive-p th1)
+      (thread-yield))
+    (should (equal (thread-last-error)
+                   '(error "Error is called")))
+    (setq th2 (make-thread #'thread-custom "thread-custom"))
+    (should (threadp th2))))
 
 (ert-deftest thread-sticky-point ()
   "Test bug #25165 with point movement in cloned buffer."
@@ -242,6 +249,53 @@
                           (while t (thread-yield))))))
     (thread-signal thread 'error nil)
     (sit-for 1)
-    (should-not (thread-alive-p thread))))
+    (should-not (thread-alive-p thread))
+    (should (equal (thread-last-error) '(error)))))
+
+(defvar threads-condvar nil)
+
+(defun threads-test-condvar-wait ()
+  ;; Wait for condvar to be notified.
+  (with-mutex (condition-mutex threads-condvar)
+    (condition-wait threads-condvar))
+  ;; Wait again, it will be signaled.
+  (with-mutex (condition-mutex threads-condvar)
+    (condition-wait threads-condvar)))
+
+(ert-deftest threads-condvar-wait ()
+  "test waiting on conditional variable"
+  (let ((cv-mutex (make-mutex))
+        new-thread)
+    ;; We could have spurious threads from the previous tests still
+    ;; running; wait for them to die.
+    (while (> (length (all-threads)) 1)
+      (thread-yield))
+    (setq threads-condvar (make-condition-variable cv-mutex))
+    (setq new-thread (make-thread #'threads-test-condvar-wait))
+
+    ;; Make sure new-thread is alive.
+    (should (thread-alive-p new-thread))
+    (should (= (length (all-threads)) 2))
+    ;; Wait for new-thread to become blocked on the condvar.
+    (while (not (eq (thread--blocker new-thread) threads-condvar))
+      (thread-yield))
+
+    ;; Notify the waiting thread.
+    (with-mutex cv-mutex
+      (condition-notify threads-condvar t))
+    ;; Allow new-thread to process the notification.
+    (sleep-for 0.1)
+    ;; Make sure the thread is still there.  This used to fail due to
+    ;; a bug in thread.c:condition_wait_callback.
+    (should (thread-alive-p new-thread))
+    (should (= (length (all-threads)) 2))
+    (should (eq (thread--blocker new-thread) threads-condvar))
+
+    ;; Signal the thread.
+    (thread-signal new-thread 'error '("Die, die, die!"))
+    (sleep-for 0.1)
+    ;; Make sure the thread died.
+    (should (= (length (all-threads)) 1))
+    (should (equal (thread-last-error) '(error "Die, die, die!")))))
 
 ;;; threads.el ends here

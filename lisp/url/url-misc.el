@@ -1,6 +1,6 @@
 ;;; url-misc.el --- Misc Uniform Resource Locator retrieval code
 
-;; Copyright (C) 1996-1999, 2002, 2004-2016 Free Software Foundation,
+;; Copyright (C) 1996-1999, 2002, 2004-2017 Free Software Foundation,
 ;; Inc.
 
 ;; Keywords: comm, data, processes

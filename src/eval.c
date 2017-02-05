@@ -1,6 +1,6 @@
 /* Evaluator for GNU Emacs Lisp interpreter.
 
-Copyright (C) 1985-1987, 1993-1995, 1999-2016 Free Software Foundation,
+Copyright (C) 1985-1987, 1993-1995, 1999-2017 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -239,7 +239,6 @@ init_eval_once (void)
 void
 init_eval (void)
 {
-  byte_stack_list = 0;
   specpdl_ptr = specpdl;
   { /* Put a dummy catcher at top-level so that handlerlist is never NULL.
        This is important since handlerlist->nextfree holds the freelist
@@ -454,11 +453,10 @@ usage: (progn BODY...)  */)
   return val;
 }
 
-/* Evaluate BODY sequentially, discarding its value.  Suitable for
-   record_unwind_protect.  */
+/* Evaluate BODY sequentially, discarding its value.  */
 
 void
-unwind_body (Lisp_Object body)
+prog_ignore (Lisp_Object body)
 {
   Fprogn (body);
 }
@@ -470,16 +468,8 @@ whose values are discarded.
 usage: (prog1 FIRST BODY...)  */)
   (Lisp_Object args)
 {
-  Lisp_Object val;
-  Lisp_Object args_left;
-
-  args_left = args;
-  val = args;
-
-  val = eval_sub (XCAR (args_left));
-  while (CONSP (args_left = XCDR (args_left)))
-    eval_sub (XCAR (args_left));
-
+  Lisp_Object val = eval_sub (XCAR (args));
+  prog_ignore (XCDR (args));
   return val;
 }
 
@@ -726,10 +716,11 @@ can be referred to by the Emacs help facilities and other programming
 tools.  The `defvar' form also declares the variable as \"special\",
 so that it is always dynamically bound even if `lexical-binding' is t.
 
-The optional argument INITVALUE is evaluated, and used to set SYMBOL,
-only if SYMBOL's value is void.  If SYMBOL is buffer-local, its
-default value is what is set; buffer-local values are not affected.
-If INITVALUE is missing, SYMBOL's value is not set.
+If SYMBOL's value is void and the optional argument INITVALUE is
+provided, INITVALUE is evaluated and the result used to set SYMBOL's
+value.  If SYMBOL is buffer-local, its default value is what is set;
+buffer-local values are not affected.  If INITVALUE is missing,
+SYMBOL's value is not set.
 
 If SYMBOL has a local binding, then this form affects the local
 binding.  This is usually not what you want.  Thus, if you need to
@@ -866,6 +857,7 @@ usage: (let* VARLIST BODY...)  */)
   lexenv = Vinternal_interpreter_environment;
 
   varlist = XCAR (args);
+  CHECK_LIST (varlist);
   while (CONSP (varlist))
     {
       QUIT;
@@ -926,6 +918,7 @@ usage: (let VARLIST BODY...)  */)
   USE_SAFE_ALLOCA;
 
   varlist = XCAR (args);
+  CHECK_LIST (varlist);
 
   /* Make space to hold the values to give the bound variables.  */
   elt = Flength (varlist);
@@ -989,7 +982,7 @@ usage: (while TEST BODY...)  */)
   while (!NILP (eval_sub (test)))
     {
       QUIT;
-      Fprogn (body);
+      prog_ignore (body);
     }
 
   return Qnil;
@@ -1099,8 +1092,8 @@ internal_catch (Lisp_Object tag,
   if (! sys_setjmp (c->jmp))
     {
       Lisp_Object val = func (arg);
-      clobbered_eassert (handlerlist == c);
-      handlerlist = handlerlist->next;
+      eassert (handlerlist == c);
+      handlerlist = c->next;
       return val;
     }
   else
@@ -1156,7 +1149,6 @@ unwind_to_catch (struct handler *catch, Lisp_Object value)
 
   eassert (handlerlist == catch);
 
-  byte_stack_list = catch->byte_stack;
   lisp_eval_depth = catch->f_lisp_eval_depth;
 
   sys_longjmp (catch->jmp, 1);
@@ -1193,7 +1185,7 @@ usage: (unwind-protect BODYFORM UNWINDFORMS...)  */)
   Lisp_Object val;
   ptrdiff_t count = SPECPDL_INDEX ();
 
-  record_unwind_protect (unwind_body, XCDR (args));
+  record_unwind_protect (prog_ignore, XCDR (args));
   val = eval_sub (XCAR (args));
   return unbind_to (count, val);
 }
@@ -1334,8 +1326,8 @@ internal_condition_case (Lisp_Object (*bfun) (void), Lisp_Object handlers,
   else
     {
       Lisp_Object val = bfun ();
-      clobbered_eassert (handlerlist == c);
-      handlerlist = handlerlist->next;
+      eassert (handlerlist == c);
+      handlerlist = c->next;
       return val;
     }
 }
@@ -1358,8 +1350,8 @@ internal_condition_case_1 (Lisp_Object (*bfun) (Lisp_Object), Lisp_Object arg,
   else
     {
       Lisp_Object val = bfun (arg);
-      clobbered_eassert (handlerlist == c);
-      handlerlist = handlerlist->next;
+      eassert (handlerlist == c);
+      handlerlist = c->next;
       return val;
     }
 }
@@ -1385,8 +1377,8 @@ internal_condition_case_2 (Lisp_Object (*bfun) (Lisp_Object, Lisp_Object),
   else
     {
       Lisp_Object val = bfun (arg1, arg2);
-      clobbered_eassert (handlerlist == c);
-      handlerlist = handlerlist->next;
+      eassert (handlerlist == c);
+      handlerlist = c->next;
       return val;
     }
 }
@@ -1414,8 +1406,8 @@ internal_condition_case_n (Lisp_Object (*bfun) (ptrdiff_t, Lisp_Object *),
   else
     {
       Lisp_Object val = bfun (nargs, args);
-      clobbered_eassert (handlerlist == c);
-      handlerlist = handlerlist->next;
+      eassert (handlerlist == c);
+      handlerlist = c->next;
       return val;
     }
 }
@@ -1451,7 +1443,6 @@ push_handler_nosignal (Lisp_Object tag_ch_val, enum handlertype handlertype)
   c->pdlcount = SPECPDL_INDEX ();
   c->poll_suppress_count = poll_suppress_count;
   c->interrupt_input_blocked = interrupt_input_blocked;
-  c->byte_stack = byte_stack_list;
   handlerlist = c;
   return c;
 }

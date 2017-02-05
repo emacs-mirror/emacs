@@ -1,6 +1,6 @@
 ;;; keymap-tests.el --- Test suite for src/keymap.c
 
-;; Copyright (C) 2015-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2017 Free Software Foundation, Inc.
 
 ;; Author: Juanma Barranquero <lekktu@gmail.com>
 

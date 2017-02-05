@@ -1,6 +1,6 @@
 ;;; newst-treeview.el --- Treeview frontend for newsticker.  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2017 Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; Filename:    newst-treeview.el

@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2016 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2017 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Files
@@ -937,6 +937,8 @@ discard your changes.)
 @findex auto-revert-mode
 @findex auto-revert-tail-mode
 @vindex auto-revert-interval
+@vindex auto-revert-remote-files
+@vindex auto-revert-verbose
   You can also tell Emacs to revert buffers periodically.  To do this
 for a specific buffer, enable the minor mode Auto-Revert mode by
 typing @kbd{M-x auto-revert-mode}.  This automatically reverts the
@@ -944,7 +946,8 @@ current buffer every five seconds; you can change the interval through
 the variable @code{auto-revert-interval}.  To do the same for all file
 buffers, type @kbd{M-x global-auto-revert-mode} to enable Global
 Auto-Revert mode.  These minor modes do not check or revert remote
-files, because that is usually too slow.
+files, because that is usually too slow.  This behavior can be changed
+by setting the variable @code{auto-revert-remote-files} to non-@code{nil}.
 
   One use of Auto-Revert mode is to ``tail'' a file such as a system
 log, so that changes made to that file by other programs are
@@ -954,6 +957,9 @@ However, if you are sure that the file will only change by growing at
 the end, use Auto-Revert Tail mode instead
 (@code{auto-revert-tail-mode}).  It is more efficient for this.
 Auto-Revert Tail mode works also for remote files.
+
+  When a buffer is auto-reverted, a message is generated.  This can be
+suppressed by setting @code{auto-revert-verbose} to @code{nil}.
 
   @xref{VC Undo}, for commands to revert to earlier versions of files
 under version control.  @xref{VC Mode Line}, for Auto Revert

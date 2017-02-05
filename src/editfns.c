@@ -1,6 +1,6 @@
 /* Lisp functions pertaining to editing.                 -*- coding: utf-8 -*-
 
-Copyright (C) 1985-1987, 1989, 1993-2016 Free Software Foundation, Inc.
+Copyright (C) 1985-1987, 1989, 1993-2017 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -2136,7 +2136,7 @@ format_time_string (char const *format, ptrdiff_t formatlen,
 
 DEFUN ("decode-time", Fdecode_time, Sdecode_time, 0, 2, 0,
        doc: /* Decode a time value as (SEC MINUTE HOUR DAY MONTH YEAR DOW DST UTCOFF).
-The optional SPECIFIED-TIME should be a list of (HIGH LOW . IGNORED),
+The optional TIME should be a list of (HIGH LOW . IGNORED),
 as from `current-time' and `file-attributes', or nil to use the
 current time.  It can also be a single integer number of seconds since
 the epoch.  The obsolete form (HIGH . LOW) is also still accepted.

@@ -1,6 +1,6 @@
 ;;; options.el --- edit Options command for Emacs
 
-;; Copyright (C) 1985, 2001-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 2001-2017 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Obsolete-since: 22.1

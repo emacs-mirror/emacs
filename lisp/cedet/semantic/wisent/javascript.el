@@ -1,6 +1,6 @@
 ;;; semantic/wisent/javascript.el --- javascript parser support
 
-;; Copyright (C) 2005, 2009-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2009-2017 Free Software Foundation, Inc.
 
 ;; Author: Eric Ludlam <zappo@gnu.org>
 ;; Keywords: syntax

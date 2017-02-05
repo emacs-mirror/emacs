@@ -1,6 +1,6 @@
 ;;; vc-bzr.el --- VC backend for the bzr revision control system  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2017 Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; 	   Riccardo Murri <riccardo.murri@gmail.com>
@@ -715,11 +715,11 @@ or a superior directory.")
        ;; value of log-view-message-re only since Emacs-23.
        (if (eq vc-log-view-type 'short)
 	 (append `((,log-view-message-re
-		    (1 'log-view-message-face)
+		    (1 'log-view-message)
 		    (2 'change-log-name)
 		    (3 'change-log-date)
 		    (4 'change-log-list nil lax))))
-	 (append `((,log-view-message-re . 'log-view-message-face))
+	 (append `((,log-view-message-re . 'log-view-message))
 		 ;; log-view-font-lock-keywords
 		 '(("^ *\\(?:committer\\|author\\): \
 \\([^<(]+?\\)[  ]*[(<]\\([[:alnum:]_.+-]+@[[:alnum:]_.-]+\\)[>)]"

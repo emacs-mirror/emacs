@@ -1,6 +1,6 @@
 ;;; semantic/tag-write.el --- Write tags to a text stream
 
-;; Copyright (C) 2008-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2017 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 

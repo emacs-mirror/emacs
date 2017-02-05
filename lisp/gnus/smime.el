@@ -1,6 +1,6 @@
-;;; smime.el --- S/MIME support library
+;;; smime.el --- S/MIME support library  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2000-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2017 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;; Keywords: SMIME X.509 PEM OpenSSL
@@ -122,7 +122,7 @@
 
 (require 'password-cache)
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defgroup smime nil
   "S/MIME configuration."
@@ -243,13 +243,13 @@ password under `cache-key'."
 ;; OpenSSL wrappers.
 
 (defun smime-call-openssl-region (b e buf &rest args)
-  (case (apply 'call-process-region b e smime-openssl-program nil buf nil args)
+  (pcase (apply #'call-process-region b e smime-openssl-program nil buf nil args)
     (0 t)
     (1 (message "OpenSSL: An error occurred parsing the command options.") nil)
     (2 (message "OpenSSL: One of the input files could not be read.") nil)
     (3 (message "OpenSSL: An error occurred creating the PKCS#7 file or when reading the MIME message.") nil)
     (4 (message "OpenSSL: An error occurred decrypting or verifying the message.") nil)
-    (t (error "Unknown OpenSSL exitcode") nil)))
+    (_ (error "Unknown OpenSSL exitcode"))))
 
 (defun smime-make-certfiles (certfiles)
   (if certfiles
@@ -373,7 +373,7 @@ Any details (stdout and stderr) are left in the buffer specified by
     (unless CAs
       (error "No CA configured"))
     (if smime-crl-check
-	(add-to-list 'CAs smime-crl-check))
+	(cl-pushnew smime-crl-check CAs :test #'equal))
     (if (apply 'smime-call-openssl-region b e (list smime-details-buffer t)
 	       "smime" "-verify" "-out" "/dev/null" CAs)
 	t
@@ -400,7 +400,7 @@ Any details (stderr on success, stdout and stderr on error) are left
 in the buffer specified by `smime-details-buffer'."
   (smime-new-details-buffer)
   (let ((buffer (generate-new-buffer " *smime*"))
-	CAs (passphrase (smime-ask-passphrase (expand-file-name keyfile)))
+	(passphrase (smime-ask-passphrase (expand-file-name keyfile)))
 	(tmpfile (make-temp-file "smime")))
     (if passphrase
 	(setenv "GNUS_SMIME_PASSPHRASE" passphrase))
@@ -507,7 +507,7 @@ A string or a list of strings is returned."
       (let ((curkey (car keys))
 	    (otherkeys (cdr keys)))
 	(if (string= keyfile (cadr curkey))
-	    (caddr curkey)
+	    (nth 2 curkey)
 	  (smime-get-certfiles keyfile otherkeys)))))
 
 (defun smime-buffer-as-string-region (b e)
@@ -564,25 +564,29 @@ A string or a list of strings is returned."
 	  (concat "mail=" mail)
 	  host '("userCertificate") nil))
 	(retbuf (generate-new-buffer (format "*certificate for %s*" mail)))
+        ldapstr
 	cert)
-    (if (and (>= (length ldapresult) 1)
-             (> (length (cadaar ldapresult)) 0))
+    (if (and (consp ldapresult)
+             ;; FIXME: This seems to expect a format rather different from
+             ;; the list of alists described in ldap.el.
+             (setq ldapstr (cadr (caar ldapresult)))
+             (> (length ldapstr) 0))
 	(with-current-buffer retbuf
 	  ;; Certificates on LDAP servers _should_ be in DER format,
 	  ;; but there are some servers out there that distributes the
 	  ;; certificates in PEM format (with or without
 	  ;; header/footer) so we try to handle them anyway.
-	  (if (or (string= (substring (cadaar ldapresult) 0 27)
+	  (if (or (string= (substring ldapstr 0 27)
 			   "-----BEGIN CERTIFICATE-----")
-		  (string= (substring (cadaar ldapresult) 0 3)
+		  (string= (substring ldapstr 0 3)
 			   "MII"))
 	      (setq cert
 		    (replace-regexp-in-string
 		     (concat "\\(\n\\|\r\\|-----BEGIN CERTIFICATE-----\\|"
 			     "-----END CERTIFICATE-----\\)")
 		     ""
-		     (cadaar ldapresult) nil t))
-	    (setq cert (base64-encode-string (cadaar ldapresult) t)))
+		     ldapstr nil t))
+	    (setq cert (base64-encode-string ldapstr t)))
 	  (insert "-----BEGIN CERTIFICATE-----\n")
 	  (let ((i 0) (len (length cert)))
 	    (while (> (- len 64) i)

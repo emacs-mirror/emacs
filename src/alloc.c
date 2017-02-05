@@ -1,6 +1,6 @@
 /* Storage allocation and gc for GNU Emacs Lisp interpreter.
 
-Copyright (C) 1985-1986, 1988, 1993-1995, 1997-2016 Free Software
+Copyright (C) 1985-1986, 1988, 1993-1995, 1997-2017 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -5883,8 +5883,6 @@ garbage_collect_1 (void *end)
 
   gc_sweep ();
 
-  unmark_threads ();
-
   /* Clear the mark bits that we set in certain root slots.  */
   VECTOR_UNMARK (&buffer_defaults);
   VECTOR_UNMARK (&buffer_local_symbols);
@@ -6406,7 +6404,7 @@ mark_object (Lisp_Object arg)
 
 #ifdef GC_CHECK_MARKED_OBJECTS
 	m = mem_find (po);
-	if (m == MEM_NIL && !SUBRP (obj) && !primary_thread_p (po))
+	if (m == MEM_NIL && !SUBRP (obj) && !main_thread_p (po))
 	  emacs_abort ();
 #endif /* GC_CHECK_MARKED_OBJECTS */
 
@@ -6418,7 +6416,7 @@ mark_object (Lisp_Object arg)
 
 	if (pvectype != PVEC_SUBR
 	    && pvectype != PVEC_BUFFER
-	    && !primary_thread_p (po))
+	    && !main_thread_p (po))
 	  CHECK_LIVE (live_vector_p);
 
 	switch (pvectype)

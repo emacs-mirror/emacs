@@ -1,6 +1,6 @@
 /* mktime variant that also uses an offset guess
 
-   Copyright 2016 Free Software Foundation, Inc.
+   Copyright 2016-2017 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public

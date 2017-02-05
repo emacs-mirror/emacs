@@ -4,7 +4,7 @@
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: mouse gpm linux
 
-;; Copyright (C) 1994-1995, 1998, 2006-2016 Free Software Foundation,
+;; Copyright (C) 1994-1995, 1998, 2006-2017 Free Software Foundation,
 ;; Inc.
 
 ;; This file is part of GNU Emacs.

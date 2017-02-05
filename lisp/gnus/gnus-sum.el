@@ -1,6 +1,6 @@
 ;;; gnus-sum.el --- summary mode commands for Gnus
 
-;; Copyright (C) 1996-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2017 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -9211,7 +9211,7 @@ To control what happens when you exit the group, see the
 	    (widen)
 	    (narrow-to-region (point) (point-max))
 	    (mm-decode-content-transfer-encoding
-	     (intern (downcase (mail-header-strip encoding))))))
+	     (intern (downcase (mail-header-strip-cte encoding))))))
 	(widen))
       (unwind-protect
 	  (if (let ((gnus-newsgroup-ephemeral-charset

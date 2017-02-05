@@ -1,6 +1,6 @@
 ;;; cc-mode-tests.el --- Test suite for cc-mode.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2017 Free Software Foundation, Inc.
 
 ;; Author: Michal Nazarewicz <mina86@mina86.com>
 ;; Keywords:       internal

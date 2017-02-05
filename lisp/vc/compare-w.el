@@ -1,6 +1,6 @@
 ;;; compare-w.el --- compare text between windows for Emacs
 
-;; Copyright (C) 1986, 1989, 1993, 1997, 2001-2016 Free Software
+;; Copyright (C) 1986, 1989, 1993, 1997, 2001-2017 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org

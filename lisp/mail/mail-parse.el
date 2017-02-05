@@ -1,6 +1,6 @@
 ;;; mail-parse.el --- Interface functions for parsing mail
 
-;; Copyright (C) 1998-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2017 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -49,6 +49,7 @@
 (defalias 'mail-header-remove-comments 'ietf-drums-remove-comments)
 (defalias 'mail-header-remove-whitespace 'ietf-drums-remove-whitespace)
 (defalias 'mail-header-strip 'ietf-drums-strip)
+(defalias 'mail-header-strip-cte 'ietf-drums-strip-cte)
 (defalias 'mail-header-get-comment 'ietf-drums-get-comment)
 (defalias 'mail-header-parse-address 'ietf-drums-parse-address)
 (defalias 'mail-header-parse-addresses 'ietf-drums-parse-addresses)

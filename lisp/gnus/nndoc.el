@@ -1,6 +1,6 @@
 ;;; nndoc.el --- single file access for Gnus
 
-;; Copyright (C) 1995-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2017 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -495,7 +495,7 @@ from the document.")
       (save-restriction
 	(narrow-to-region (point) (point-max))
 	(mm-decode-content-transfer-encoding
-	 (intern (downcase (mail-header-strip encoding))))))))
+	 (intern (downcase (mail-header-strip-cte encoding))))))))
 
 (defun nndoc-babyl-type-p ()
   (when (re-search-forward "\^_\^L *\n" nil t)
@@ -558,7 +558,7 @@ from the document.")
       (save-restriction
 	(narrow-to-region begin (point-max))
 	(mm-decode-content-transfer-encoding
-	 (intern (downcase (mail-header-strip encoding))))))
+	 (intern (downcase (mail-header-strip-cte encoding))))))
     (when head
       (goto-char begin)
       (when (search-forward "\n\n" nil t)

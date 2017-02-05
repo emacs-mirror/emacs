@@ -1,6 +1,6 @@
 ;;; vc-tests.el --- Tests of different backends of vc.el
 
-;; Copyright (C) 2014-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2017 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 

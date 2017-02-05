@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-2016 Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998-2017 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Variables
 @chapter Variables
@@ -223,6 +223,18 @@ Here is an example of this: @code{z} is bound to the old value of
      @result{} (1 2)
 @end group
 @end example
+
+On the other hand, the order of @emph{bindings} is unspecified: in the
+following example, either 1 or 2 might be printed.
+
+@example
+(let ((x 1)
+      (x 2))
+  (print x))
+@end example
+
+Therefore, avoid binding a variable more than once in a single
+@code{let} form.
 @end defspec
 
 @defspec let* (bindings@dots{}) forms@dots{}
@@ -1629,6 +1641,45 @@ an ordinary evaluated argument.
 @end group
 @end example
 @end defun
+
+  A variable can be let-bound (@pxref{Local Variables}) to a value.
+This makes its global value shadowed by the binding;
+@code{default-value} will then return the value from that binding, not
+the global value, and @code{set-default} will be prevented from
+setting the global value (it will change the let-bound value instead).
+The following two functions allow to reference the global value even
+if it's shadowed by a let-binding.
+
+@cindex top-level default value
+@defun default-toplevel-value symbol
+This function returns the @dfn{top-level} default value of
+@var{symbol}, which is its value outside of any let-binding.
+@end defun
+
+@example
+@group
+(defvar variable 'global-value)
+    @result{} variable
+@end group
+@group
+(let ((variable 'let-binding))
+  (default-value 'variable))
+    @result{} let-binding
+@end group
+@group
+(let ((variable 'let-binding))
+  (default-toplevel-value 'variable))
+    @result{} global-value
+@end group
+@end example
+
+@defun set-default-toplevel-value symbol value
+This function sets the top-level default value of @var{symbol} to the
+specified @var{value}.  This comes in handy when you want to set the
+global value of @var{symbol} regardless of whether your code runs in
+the context of @var{symbol}'s let-binding.
+@end defun
+
 
 @node File Local Variables
 @section File Local Variables

@@ -1,6 +1,6 @@
 ;;; tramp.el --- Transparent Remote Access, Multiple Protocol
 
-;; Copyright (C) 1998-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2017 Free Software Foundation, Inc.
 
 ;; Author: Kai Großjohann <kai.grossjohann@gmx.net>
 ;;         Michael Albinus <michael.albinus@gmx.de>
@@ -4063,7 +4063,11 @@ this file, if that variable is non-nil."
 	      (file-exists-p tramp-auto-save-directory))
     (make-directory tramp-auto-save-directory t))
 
-  (let ((system-type 'not-windows)
+  (let ((system-type
+	 (if (and (stringp tramp-auto-save-directory)
+		  (file-remote-p tramp-auto-save-directory))
+	     'not-windows
+	   system-type))
 	(auto-save-file-name-transforms
 	 (if (null tramp-auto-save-directory)
 	     auto-save-file-name-transforms))
@@ -4345,13 +4349,13 @@ Only works for Bourne-like shells."
 
 (eval-after-load "esh-util"
   '(progn
-     (add-hook 'eshell-first-time-mode-hook
+     (add-hook 'eshell-mode-hook
 	       'tramp-eshell-directory-change)
      (add-hook 'eshell-directory-change-hook
 	       'tramp-eshell-directory-change)
      (add-hook 'tramp-unload-hook
 	       (lambda ()
-		 (remove-hook 'eshell-first-time-mode-hook
+		 (remove-hook 'eshell-mode-hook
 			      'tramp-eshell-directory-change)
 		 (remove-hook 'eshell-directory-change-hook
 			      'tramp-eshell-directory-change)))))

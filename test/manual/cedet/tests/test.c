@@ -1,6 +1,6 @@
 /* test.c --- Semantic unit test for C.
 
-   Copyright (C) 2001-2016 Free Software Foundation, Inc.
+   Copyright (C) 2001-2017 Free Software Foundation, Inc.
 
    Author: Eric M. Ludlam <eric@siege-engine.com>
 

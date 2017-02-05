@@ -1,6 +1,6 @@
 ;;; locate.el --- interface to the locate command
 
-;; Copyright (C) 1996, 1998, 2001-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1998, 2001-2017 Free Software Foundation, Inc.
 
 ;; Author: Peter Breton <pbreton@cs.umb.edu>
 ;; Keywords: unix files

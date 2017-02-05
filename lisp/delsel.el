@@ -1,6 +1,6 @@
 ;;; delsel.el --- delete selection if you insert  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992, 1997-1998, 2001-2016 Free Software Foundation,
+;; Copyright (C) 1992, 1997-1998, 2001-2017 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Matthieu Devin <devin@lucid.com>

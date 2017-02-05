@@ -1,6 +1,6 @@
 // testsubclass.hh --- unit test for analyzer and complex C++ inheritance
 
-// Copyright (C) 2007-2016 Free Software Foundation, Inc.
+// Copyright (C) 2007-2017 Free Software Foundation, Inc.
 
 // Author: Eric M. Ludlam <eric@siege-engine.com>
 

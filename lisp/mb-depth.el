@@ -1,6 +1,6 @@
-;;; mb-depth.el --- Indicate minibuffer-depth in prompt
+;;; mb-depth.el --- Indicate minibuffer-depth in prompt -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 2006-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2017 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: convenience
@@ -45,13 +45,15 @@ and must return a string.")
 (defun minibuffer-depth-setup ()
   "Set up a minibuffer for `minibuffer-depth-indicate-mode'.
 The prompt should already have been inserted."
-  (when (> (minibuffer-depth) 1)
-    (setq minibuffer-depth-overlay (make-overlay (point-min) (1+ (point-min))))
-    (overlay-put minibuffer-depth-overlay 'before-string
-		 (if minibuffer-depth-indicator-function
-		     (funcall minibuffer-depth-indicator-function (minibuffer-depth))
-		   (propertize (format "[%d]" (minibuffer-depth)) 'face 'highlight)))
-    (overlay-put minibuffer-depth-overlay 'evaporate t)))
+  (let ((depth (minibuffer-depth)))
+    (when (> depth 1)
+      (let ((pos (point-min)))
+        (setq minibuffer-depth-overlay (make-overlay pos (1+ pos))))
+      (overlay-put minibuffer-depth-overlay 'before-string
+                   (if minibuffer-depth-indicator-function
+                       (funcall minibuffer-depth-indicator-function depth)
+                     (propertize (format "[%d]" depth) 'face 'highlight)))
+      (overlay-put minibuffer-depth-overlay 'evaporate t))))
 
 ;;;###autoload
 (define-minor-mode minibuffer-depth-indicate-mode

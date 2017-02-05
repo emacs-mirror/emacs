@@ -3,7 +3,7 @@ ORG NEWS -- history of user-visible changes.   -*- mode: org; coding: utf-8 -*-
 #+LINK: doc http://orgmode.org/worg/doc.html#%s
 #+LINK: git http://orgmode.org/w/?p=org-mode.git;a=commit;h=%s
 
-Copyright (C) 2012-2016 Free Software Foundation, Inc.
+Copyright (C) 2012-2017 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 Please send Org bug reports to emacs-orgmode@gnu.org.

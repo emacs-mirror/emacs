@@ -1,6 +1,6 @@
 ;;; ede/proj-obj.el --- EDE Generic Project Object code generation support
 
-;;; Copyright (C) 1998-2000, 2005, 2008-2016 Free Software Foundation,
+;;; Copyright (C) 1998-2000, 2005, 2008-2017 Free Software Foundation,
 ;;; Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>

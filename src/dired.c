@@ -1,5 +1,5 @@
 /* Lisp functions for making directory listings.
-   Copyright (C) 1985-1986, 1993-1994, 1999-2016 Free Software
+   Copyright (C) 1985-1986, 1993-1994, 1999-2017 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -21,7 +21,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 
 #include <stdio.h>
-#include <sys/types.h>
 #include <sys/stat.h>
 
 #ifdef HAVE_PWD_H

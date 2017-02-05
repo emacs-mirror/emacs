@@ -15,7 +15,7 @@ This manual documents Newsticker, a feed reader for Emacs.  It
 corresponds to Emacs version @value{EMACSVER}.
 
 @noindent
-Copyright @copyright{} 2004--2016 Free Software Foundation, Inc.
+Copyright @copyright{} 2004--2017 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document

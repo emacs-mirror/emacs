@@ -1,6 +1,6 @@
 ;;; reftex-ref.el --- code to create labels and references with RefTeX
 
-;; Copyright (C) 1997-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2017 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org

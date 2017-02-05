@@ -1,4 +1,4 @@
-# Copyright (C) 1992-1998, 2000-2016 Free Software Foundation, Inc.
+# Copyright (C) 1992-1998, 2000-2017 Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
 #
@@ -1213,21 +1213,6 @@ document xwhichsymbols
   either as its symbol value or symbol function.
   Call with two arguments: the lisp object and the
   maximum number of symbols referencing it to produce.
-end
-
-define xbytecode
-  set $bt = byte_stack_list
-  while $bt
-    xgetptr $bt->byte_string
-    set $ptr = (struct Lisp_String *) $ptr
-    xprintbytestr $ptr
-    printf "\n0x%x => ", $bt->byte_string
-    xwhichsymbols $bt->byte_string 5
-    set $bt = $bt->next
-  end
-end
-document xbytecode
-  Print a backtrace of the byte code stack.
 end
 
 # Show Lisp backtrace after normal backtrace.

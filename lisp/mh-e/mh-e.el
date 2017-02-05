@@ -1,6 +1,6 @@
 ;;; mh-e.el --- GNU Emacs interface to the MH mail system
 
-;; Copyright (C) 1985-1988, 1990, 1992-1995, 1997, 1999-2016 Free
+;; Copyright (C) 1985-1988, 1990, 1992-1995, 1997, 1999-2017 Free
 ;; Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
@@ -2330,7 +2330,7 @@ retracted--without question."
 (defcustom-mh mh-fetch-x-image-url nil
   "Control fetching of \"X-Image-URL:\" header field image.
 
-Ths option controls the fetching of the \"X-Image-URL:\" header
+This option controls the fetching of the \"X-Image-URL:\" header
 field image with the following values:
 
 Ask Before Fetching

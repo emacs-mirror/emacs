@@ -1,6 +1,6 @@
 /* Functions for the X window system.
 
-Copyright (C) 1989, 1992-2016 Free Software Foundation, Inc.
+Copyright (C) 1989, 1992-2017 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

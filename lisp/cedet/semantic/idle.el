@@ -1,6 +1,6 @@
 ;;; idle.el --- Schedule parsing tasks in idle time
 
-;; Copyright (C) 2003-2006, 2008-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2006, 2008-2017 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax

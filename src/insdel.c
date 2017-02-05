@@ -1,5 +1,5 @@
 /* Buffer insertion/deletion and gap motion for GNU Emacs.
-   Copyright (C) 1985-1986, 1993-1995, 1997-2016 Free Software
+   Copyright (C) 1985-1986, 1993-1995, 1997-2017 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.

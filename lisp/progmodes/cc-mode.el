@@ -1,6 +1,6 @@
 ;;; cc-mode.el --- major mode for editing C and similar languages
 
-;; Copyright (C) 1985, 1987, 1992-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2017 Free Software Foundation, Inc.
 
 ;; Authors:    2003- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -1068,7 +1068,8 @@ Note that the style variables are always made local to the buffer."
 			(parse-partial-sexp pps-position (point) nil nil pps-state)
 			pps-position (point))
 		  (or (nth 3 pps-state)	   ; in a string?
-		      (nth 4 pps-state)))) ; in a comment?
+		      (and (nth 4 pps-state)
+			   (not (eq (nth 7 pps-state) 'syntax-table)))))) ; in a comment?
 	  (goto-char (match-beginning 1))
 	  (setq mbeg (point))
 	  (if (> (c-no-comment-end-of-macro) mbeg)
@@ -1209,6 +1210,7 @@ Note that the style variables are always made local to the buffer."
 	  ;; Are we coalescing two tokens together, e.g. "fo o" -> "foo"?
 	  (when (< beg end)
 	    (c-unfind-coalesced-tokens beg end))
+	  (c-invalidate-sws-region-before end)
 	  ;; Are we (potentially) disrupting the syntactic context which
 	  ;; makes a type a type?  E.g. by inserting stuff after "foo" in
 	  ;; "foo bar;", or before "foo" in "typedef foo *bar;"?
@@ -1338,7 +1340,7 @@ Note that the style variables are always made local to the buffer."
 	      (c-clear-char-property-with-value beg end 'syntax-table nil)))
 
 	  (c-trim-found-types beg end old-len) ; maybe we don't need all of these.
-	  (c-invalidate-sws-region-after beg end)
+	  (c-invalidate-sws-region-after beg end old-len)
 	  ;; (c-invalidate-state-cache beg) ; moved to `c-before-change'.
 	  (c-invalidate-find-decl-cache beg)
 

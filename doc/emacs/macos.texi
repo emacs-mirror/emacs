@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 2000-2016 Free Software Foundation, Inc.
+@c Copyright (C) 2000-2017 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Mac OS / GNUstep
 @appendix Emacs and Mac OS / GNUstep

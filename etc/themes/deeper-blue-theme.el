@@ -1,6 +1,6 @@
 ;;; deeper-blue-theme.el --- Custom theme for faces
 
-;; Copyright (C) 2011-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2017 Free Software Foundation, Inc.
 
 ;; Author: Scott Frazer <frazer.scott@gmail.com>
 

@@ -1,6 +1,6 @@
 ;;; faces-tests.el --- Tests for faces.el            -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2013-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2017 Free Software Foundation, Inc.
 
 ;; Author: Artur Malabarba <bruce.connor.am@gmail.com>
 ;; Keywords:

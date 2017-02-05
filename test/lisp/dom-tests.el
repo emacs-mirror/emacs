@@ -1,6 +1,6 @@
 ;;; dom-tests.el --- Tests for dom.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2017 Free Software Foundation, Inc.
 
 ;; Author: Simen Heggestøyl <simenheg@gmail.com>
 ;; Keywords:

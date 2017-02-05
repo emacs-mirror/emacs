@@ -1,6 +1,6 @@
 ;;; textprop-tests.el --- Test suite for text properties.
 
-;; Copyright (C) 2015-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2017 Free Software Foundation, Inc.
 
 ;; Author: Wolfgang Jenkner <wjenkner@inode.at>
 ;; Keywords: internal

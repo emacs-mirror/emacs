@@ -1,6 +1,6 @@
 ;;; auto-revert-tests.el --- Tests of auto-revert
 
-;; Copyright (C) 2015-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2017 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 

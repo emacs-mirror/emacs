@@ -1,6 +1,6 @@
 /* Generate doc-string file for GNU Emacs from source files.
 
-Copyright (C) 1985-1986, 1992-1994, 1997, 1999-2016 Free Software
+Copyright (C) 1985-1986, 1992-1994, 1997, 1999-2017 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.

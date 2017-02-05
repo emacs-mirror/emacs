@@ -1,6 +1,6 @@
 ;;; tcl.el --- Tcl code editing commands for Emacs
 
-;; Copyright (C) 1994, 1998-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1998-2017 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Author: Tom Tromey <tromey@redhat.com>

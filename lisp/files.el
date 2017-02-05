@@ -1,6 +1,6 @@
 ;;; files.el --- file input and output commands for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1987, 1992-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1992-2017 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Package: emacs
@@ -716,13 +716,13 @@ The path separator is colon in GNU and GNU-like systems."
     ;; (which will lead to the use of B/a).
     (minibuffer-with-setup-hook
         (lambda ()
-          (setq minibuffer-completion-table
-                (apply-partially #'locate-file-completion-table
-                                 cd-path nil))
-          (setq minibuffer-completion-predicate
-                (lambda (dir)
-                  (locate-file dir cd-path nil
-                               (lambda (f) (and (file-directory-p f) 'dir-ok))))))
+          (setq-local minibuffer-completion-table
+		      (apply-partially #'locate-file-completion-table
+				       cd-path nil))
+          (setq-local minibuffer-completion-predicate
+		      (lambda (dir)
+			(locate-file dir cd-path nil
+				     (lambda (f) (and (file-directory-p f) 'dir-ok))))))
       (unless cd-path
         (setq cd-path (or (parse-colon-path (getenv "CDPATH"))
                           (list "./"))))
@@ -2543,6 +2543,7 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|CBR\\|7Z\\)\\'" . archive-mo
      ("\\.ds\\(ss\\)?l\\'" . dsssl-mode)
      ("\\.jsm?\\'" . javascript-mode)
      ("\\.json\\'" . javascript-mode)
+     ("\\.jsx\\'" . js-jsx-mode)
      ("\\.[ds]?vh?\\'" . verilog-mode)
      ("\\.by\\'" . bovine-grammar-mode)
      ("\\.wy\\'" . wisent-grammar-mode)
@@ -6073,8 +6074,8 @@ See also `auto-save-file-name-p'."
 	    ;; Make sure auto-save file names don't contain characters
 	    ;; invalid for the underlying filesystem.
 	    (if (and (memq system-type '(ms-dos windows-nt cygwin))
-		     ;; Don't modify remote (ange-ftp) filenames
-		     (not (string-match "^/\\w+@[-A-Za-z0-9._]+:" result)))
+		     ;; Don't modify remote filenames
+                     (not (file-remote-p result)))
 		(convert-standard-filename result)
 	      result))))
 
@@ -6111,8 +6112,8 @@ See also `auto-save-file-name-p'."
 		      ((file-writable-p "/var/tmp/") "/var/tmp/")
 		      ("~/")))))
 	       (if (and (memq system-type '(ms-dos windows-nt cygwin))
-			;; Don't modify remote (ange-ftp) filenames
-			(not (string-match "^/\\w+@[-A-Za-z0-9._]+:" fname)))
+			;; Don't modify remote filenames
+			(not (file-remote-p fname)))
 		   ;; The call to convert-standard-filename is in case
 		   ;; buffer-name includes characters not allowed by the
 		   ;; DOS/Windows filesystems.  make-temp-file writes to the

@@ -1,5 +1,5 @@
 /* Indentation functions.
-   Copyright (C) 1985-1988, 1993-1995, 1998, 2000-2016 Free Software
+   Copyright (C) 1985-1988, 1993-1995, 1998, 2000-2017 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.

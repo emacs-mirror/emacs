@@ -1,6 +1,6 @@
 ;;; doc-tests.el --- Tests for doc.c
 
-;; Copyright (C) 2016 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2017 Free Software Foundation, Inc.
 
 ;; Author: Eli Zaretskii <eliz@gnu.org>
 

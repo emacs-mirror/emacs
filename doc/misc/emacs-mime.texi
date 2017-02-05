@@ -12,7 +12,7 @@
 @copying
 This file documents the Emacs MIME interface functionality.
 
-Copyright @copyright{} 1998--2016 Free Software Foundation, Inc.
+Copyright @copyright{} 1998--2017 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1534,6 +1534,9 @@ Here's a bunch of time/date/second/day examples:
 @result{} (54 21 12 12 9 1998 6 nil 7200)
 
 (date-to-time "Sat Sep 12 12:21:54 1998 +0200")
+@result{} (13818 19266)
+
+(parse-iso8601-time-string "1998-09-12T12:21:54+0200")
 @result{} (13818 19266)
 
 (float-time '(13818 19266))

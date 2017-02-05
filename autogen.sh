@@ -1,7 +1,7 @@
 #!/bin/sh
 ### autogen.sh - tool to help build Emacs from a repository checkout
 
-## Copyright (C) 2011-2016 Free Software Foundation, Inc.
+## Copyright (C) 2011-2017 Free Software Foundation, Inc.
 
 ## Author: Glenn Morris <rgm@gnu.org>
 ## Maintainer: emacs-devel@gnu.org
@@ -103,14 +103,17 @@ check_version ()
     return 2
 }
 
+do_check=true
 do_autoconf=false
-test $# -eq 0 && do_autoconf=true
 do_git=false
 
 for arg; do
     case $arg in
       --help)
-	exec echo "$0: usage: $0 [all|autoconf|git]";;
+	exec echo "$0: usage: $0 [--no-check] [target...]
+  Targets are: all autoconf git";;
+      --no-check)
+        do_check=false;;
       all)
 	do_autoconf=true
 	test -e .git && do_git=true;;
@@ -123,71 +126,77 @@ for arg; do
     esac
 done
 
+case $do_autoconf,$do_git in
+  false,false)
+    do_autoconf=true;;
+esac
 
 # Generate Autoconf and Automake related files, if requested.
 
 if $do_autoconf; then
 
-  echo 'Checking whether you have the necessary tools...
+  if $do_check; then
+
+    echo 'Checking whether you have the necessary tools...
 (Read INSTALL.REPO for more details on building Emacs)'
 
-  missing=
-
-  for prog in $progs; do
-
-    sprog=`echo "$prog" | sed 's/-/_/g'`
-
-    eval min=\$${sprog}_min
-
-    echo "Checking for $prog (need at least version $min)..."
-
-    check_version $prog $min
-
-    retval=$?
-
-    case $retval in
-        0) stat="ok" ;;
-        1) stat="missing" ;;
-        2) stat="too old" ;;
-        *) stat="unable to check" ;;
-    esac
-
-    echo $stat
-
-    if [ $retval -ne 0 ]; then
-        missing="$missing $prog"
-        eval ${sprog}_why=\""$stat"\"
-    fi
-
-  done
-
-
-  if [ x"$missing" != x ]; then
-
-    echo '
-Building Emacs from the repository requires the following specialized programs:'
+    missing=
 
     for prog in $progs; do
-        sprog=`echo "$prog" | sed 's/-/_/g'`
 
-        eval min=\$${sprog}_min
+      sprog=`echo "$prog" | sed 's/-/_/g'`
 
-        echo "$prog (minimum version $min)"
+      eval min=\$${sprog}_min
+
+      printf '%s' "Checking for $prog (need at least version $min) ... "
+
+      check_version $prog $min
+
+      retval=$?
+
+      case $retval in
+          0) stat="ok" ;;
+          1) stat="missing" ;;
+          2) stat="too old" ;;
+          *) stat="unable to check" ;;
+      esac
+
+      echo $stat
+
+      if [ $retval -ne 0 ]; then
+          missing="$missing $prog"
+          eval ${sprog}_why=\""$stat"\"
+      fi
+
     done
 
 
-    echo '
+    if [ x"$missing" != x ]; then
+
+      echo '
+Building Emacs from the repository requires the following specialized programs:'
+
+      for prog in $progs; do
+          sprog=`echo "$prog" | sed 's/-/_/g'`
+
+          eval min=\$${sprog}_min
+
+          echo "$prog (minimum version $min)"
+      done
+
+
+      echo '
 Your system seems to be missing the following tool(s):'
 
-    for prog in $missing; do
-        sprog=`echo "$prog" | sed 's/-/_/g'`
+      for prog in $missing; do
+          sprog=`echo "$prog" | sed 's/-/_/g'`
 
-        eval why=\$${sprog}_why
+          eval why=\$${sprog}_why
 
-        echo "$prog ($why)"
-    done
+          echo "$prog ($why)"
+      done
 
-    echo '
+      echo '
 If you think you have the required tools, please add them to your PATH
 and re-run this script.
 
@@ -208,20 +217,27 @@ make install.  Add the installation directory to your PATH and re-run
 this script.
 
 If you know that the required versions are in your PATH, but this
-script has made an error, then you can simply run
-
-autoreconf -fi -I m4
-
-instead of this script.
+script has made an error, then you can simply re-run this script with
+the --no-check option.
 
 Please report any problems with this script to bug-gnu-emacs@gnu.org .'
 
-    exit 1
+      exit 1
+    fi
+
+    echo 'Your system has the required tools.'
+
+  fi                            # do_check
+
+  ## Create nt/gnulib.mk if it doesn't exist, as autoreconf will need it.
+  if test ! -f nt/gnulib.mk; then
+      echo 'Inferring nt/gnulib.mk from lib/gnulib.mk ...'
+      metascript='/^[^#]/s|^.*$|/^## begin  *gnulib module &/,/^## end  *gnulib module &/d|p'
+      script=`sed -n "$metascript" nt/gnulib-modules-to-delete.cfg` || exit
+      sed "$script" lib/gnulib.mk > nt/gnulib.mk || exit
   fi
 
-  echo 'Your system has the required tools.'
   echo "Running 'autoreconf -fi -I m4' ..."
-
 
   ## Let autoreconf figure out what, if anything, needs doing.
   ## Use autoreconf's -f option in case autoreconf itself has changed.

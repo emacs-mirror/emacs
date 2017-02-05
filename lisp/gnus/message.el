@@ -1,6 +1,6 @@
 ;;; message.el --- composing mail and news messages -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2017 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: mail, news
@@ -7946,7 +7946,7 @@ regular text mode tabbing command."
 		  (not (mail-abbrev-in-expansion-header-p))))
       (setq alist (cdr alist)))
     (when (cdar alist)
-      (lexical-let ((fun (cdar alist)))
+      (let ((fun (cdar alist)))
         ;; Even if completion fails, return a non-nil value, so as to avoid
         ;; falling back to message-tab-body-function.
         (lambda () (funcall fun) 'completion-attempted)))))

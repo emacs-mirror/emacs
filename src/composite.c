@@ -1,5 +1,5 @@
 /* Composite sequence support.
-   Copyright (C) 2001-2016 Free Software Foundation, Inc.
+   Copyright (C) 2001-2017 Free Software Foundation, Inc.
    Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H14PRO021
@@ -891,6 +891,8 @@ autocmp_chars (Lisp_Object rule, ptrdiff_t charpos, ptrdiff_t bytepos,
   if (len <= 0)
     return unbind_to (count, Qnil);
   to = limit = charpos + len;
+  font_object = win->frame;
+#ifdef HAVE_WINDOW_SYSTEM
   if (FRAME_WINDOW_P (f))
     {
       font_object = font_range (charpos, bytepos, &to, win, face, string);
@@ -900,8 +902,7 @@ autocmp_chars (Lisp_Object rule, ptrdiff_t charpos, ptrdiff_t bytepos,
 	      && (fast_looking_at (re, charpos, bytepos, to, -1, string) <= 0)))
 	return unbind_to (count, Qnil);
     }
-  else
-    font_object = win->frame;
+#endif
   lgstring = Fcomposition_get_gstring (pos, make_number (to), font_object,
 				       string);
   if (NILP (LGSTRING_ID (lgstring)))

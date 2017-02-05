@@ -1,6 +1,6 @@
 ;;; savehist.el --- Save minibuffer history
 
-;; Copyright (C) 1997, 2005-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2005-2017 Free Software Foundation, Inc.
 
 ;; Author: Hrvoje Niksic <hniksic@xemacs.org>
 ;; Maintainer: emacs-devel@gnu.org

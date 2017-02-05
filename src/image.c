@@ -1,6 +1,6 @@
 /* Functions for image support on window system.
 
-Copyright (C) 1989, 1992-2016 Free Software Foundation, Inc.
+Copyright (C) 1989, 1992-2017 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -36,6 +36,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "lisp.h"
 #include "frame.h"
+#include "process.h"
 #include "window.h"
 #include "buffer.h"
 #include "dispextern.h"

@@ -1,6 +1,6 @@
 ;;; python-tests.el --- Test suite for python.el
 
-;; Copyright (C) 2013-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2017 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -3559,6 +3559,9 @@ class Baz(object):
 
         def c(self):
             pass
+
+        async def d(self):
+            pass
 "
    (goto-char (point-max))
    (should (equal
@@ -3580,7 +3583,8 @@ class Baz(object):
               (list
                "Frob (class)"
                (cons "*class definition*" (copy-marker 601))
-               (cons "c (def)" (copy-marker 626)))))
+               (cons "c (def)" (copy-marker 626))
+               (cons "d (async def)" (copy-marker 665)))))
             (python-imenu-create-index)))))
 
 (ert-deftest python-imenu-create-index-2 ()
@@ -3702,6 +3706,9 @@ class Baz(object):
 
         def c(self):
             pass
+
+        async def d(self):
+            pass
 "
    (goto-char (point-max))
    (should (equal
@@ -3714,7 +3721,8 @@ class Baz(object):
                   (cons "Baz.a" (copy-marker 539))
                   (cons "Baz.b" (copy-marker 570))
                   (cons "Baz.Frob" (copy-marker 601))
-                  (cons "Baz.Frob.c" (copy-marker 626)))
+                  (cons "Baz.Frob.c" (copy-marker 626))
+                  (cons "Baz.Frob.d" (copy-marker 665)))
             (python-imenu-create-flat-index)))))
 
 (ert-deftest python-imenu-create-flat-index-2 ()

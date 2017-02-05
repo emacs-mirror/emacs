@@ -1,6 +1,6 @@
 /* Asynchronous subprocess control for GNU Emacs.
 
-Copyright (C) 1985-1988, 1993-1996, 1998-1999, 2001-2016 Free Software
+Copyright (C) 1985-1988, 1993-1996, 1998-1999, 2001-2017 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -5341,18 +5341,23 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	    }
 #endif
 
+/* Non-macOS HAVE_GLIB builds call thread_select in xgselect.c.  */
+#if defined HAVE_GLIB && !defined HAVE_NS
+	  nfds = xg_select (max_desc + 1,
+			    &Available, (check_write ? &Writeok : 0),
+			    NULL, &timeout, NULL);
+#else  /* !HAVE_GLIB */
 	  nfds = thread_select (
-#if defined (HAVE_NS)
+# ifdef HAVE_NS
 				ns_select
-#elif defined (HAVE_GLIB)
-				xg_select
-#else
+# else
 				pselect
-#endif
+# endif
 				, max_desc + 1,
 				&Available,
 				(check_write ? &Writeok : 0),
 				NULL, &timeout, NULL);
+#endif	/* !HAVE_GLIB */
 
 #ifdef HAVE_GNUTLS
           /* GnuTLS buffers data internally.  In lowat mode it leaves

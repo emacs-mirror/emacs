@@ -1,6 +1,6 @@
 ### Makefile for Emacs refcards
 
-## Copyright (C) 1993-1994, 2001-2016 Free Software Foundation, Inc.
+## Copyright (C) 1993-1994, 2001-2017 Free Software Foundation, Inc.
 
 ## This file is part of GNU Emacs.
 #

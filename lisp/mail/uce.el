@@ -1,6 +1,6 @@
 ;;; uce.el --- facilitate reply to unsolicited commercial email
 
-;; Copyright (C) 1996, 1998, 2000-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1998, 2000-2017 Free Software Foundation, Inc.
 
 ;; Author: stanislav shalunov <shalunov@mccme.ru>
 ;; Created: 10 Dec 1996

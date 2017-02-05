@@ -1,6 +1,6 @@
 ;;; buff-menu.el --- Interface for viewing and manipulating buffers
 
-;; Copyright (C) 1985-1987, 1993-1995, 2000-2016 Free Software
+;; Copyright (C) 1985-1987, 1993-1995, 2000-2017 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org

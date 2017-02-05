@@ -1,6 +1,6 @@
 /* Lock files for editing.
 
-Copyright (C) 1985-1987, 1993-1994, 1996, 1998-2016 Free Software
+Copyright (C) 1985-1987, 1993-1994, 1996, 1998-2017 Free Software
 Foundation, Inc.
 
 Author: Richard King

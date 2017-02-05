@@ -1,5 +1,5 @@
 /* Convert a 'struct tm' to a time_t value.
-   Copyright (C) 1993-2016 Free Software Foundation, Inc.
+   Copyright (C) 1993-2017 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Paul Eggert <eggert@twinsun.com>.
 
@@ -153,7 +153,7 @@ isdst_differ (int a, int b)
 
 /* Return an integer value measuring (YEAR1-YDAY1 HOUR1:MIN1:SEC1) -
    (YEAR0-YDAY0 HOUR0:MIN0:SEC0) in seconds, assuming that the clocks
-   were not adjusted between the time stamps.
+   were not adjusted between the timestamps.
 
    The YEAR values uses the same numbering as TP->tm_year.  Values
    need not be in the usual range.  However, YEAR1 must not overflow

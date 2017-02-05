@@ -1,6 +1,6 @@
 ;;; iimage.el --- Inline image minor mode.
 
-;; Copyright (C) 2004-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2017 Free Software Foundation, Inc.
 
 ;; Author: KOSEKI Yoshinori <kose@meadowy.org>
 ;; Maintainer: KOSEKI Yoshinori <kose@meadowy.org>

@@ -1,6 +1,6 @@
 ;;; jit-lock-tests.el --- tests for jit-lock
 
-;; Copyright (C) 2016 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2017 Free Software Foundation, Inc.
 
 ;; Author: Dmitry Gutov <dgutov@yandex.ru>
 

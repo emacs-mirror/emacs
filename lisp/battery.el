@@ -1,6 +1,6 @@
 ;;; battery.el --- display battery status information
 
-;; Copyright (C) 1997-1998, 2000-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2000-2017 Free Software Foundation, Inc.
 
 ;; Author: Ralph Schleicher <rs@nunatak.allgaeu.org>
 ;; Keywords: hardware

@@ -1,6 +1,6 @@
 ;;; cc-langs.el --- language specific settings for CC Mode -*- coding: utf-8 -*-
 
-;; Copyright (C) 1985, 1987, 1992-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2017 Free Software Foundation, Inc.
 
 ;; Authors:    2002- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -1248,6 +1248,22 @@ operators."
 (c-lang-defvar c-assignment-op-regexp
   (c-lang-const c-assignment-op-regexp))
 
+(c-lang-defconst c-arithmetic-operators
+  "List of all arithmetic operators, including \"+=\", etc."
+  ;; Note: in the following, there are too many operators for AWK and IDL.
+  t (append (c-lang-const c-assignment-operators)
+	    '("+" "-" "*" "/" "%"
+	      "<<" ">>"
+	      "<" ">" "<=" ">="
+	      "==" "!="
+	      "&" "^" "|"
+	      "&&" "||")))
+
+(c-lang-defconst c-arithmetic-op-regexp
+  t (c-make-keywords-re nil
+      (c-lang-const c-arithmetic-operators)))
+(c-lang-defvar c-arithmetic-op-regexp (c-lang-const c-arithmetic-op-regexp))
+
 (c-lang-defconst c-:$-multichar-token-regexp
   ;; Regexp matching all tokens ending in ":" which are longer than one char.
   ;; Currently (2016-01-07) only used in C++ Mode.
@@ -1428,6 +1444,15 @@ comment style.  Other stuff like the syntax table must also be set up
 properly."
   t    "*/"
   awk  nil)
+
+(c-lang-defconst c-block-comment-ender-regexp
+  ;; Regexp which matches the end of a block comment (if such exists in the
+  ;; language)
+  t (if (c-lang-const c-block-comment-ender)
+	(regexp-quote (c-lang-const c-block-comment-ender))
+      "\\<\\>"))
+(c-lang-defvar c-block-comment-ender-regexp
+	       (c-lang-const c-block-comment-ender-regexp))
 
 (c-lang-defconst c-comment-start-regexp
   ;; Regexp to match the start of any type of comment.
@@ -3275,6 +3300,24 @@ the invalidity of the putative template construct."
   t "[<;{},|+&->)]"
   c++ "[<;{},>()]")
 (c-lang-defvar c-<>-notable-chars-re (c-lang-const c-<>-notable-chars-re))
+
+(c-lang-defconst c-enum-clause-introduction-re
+  ;; A regexp loosely matching the start of an enum clause, starting at the
+  ;; keyword itself, and extending up to the "{".  It may match text which
+  ;; isn't such a construct; more accurate tests will rule these out when
+  ;; needed.
+  t (if (c-lang-const c-brace-list-decl-kwds)
+	(concat
+	 "\\<\\("
+	 (c-make-keywords-re nil (c-lang-const c-brace-list-decl-kwds))
+	 "\\)\\>"
+	 ;; Disallow various common punctuation chars that can't come
+	 ;; before the '{' of the enum list, to avoid searching too far.
+	 "[^][{};/#=]*"
+	 "{")
+      "\\<\\>"))
+(c-lang-defvar c-enum-clause-introduction-re
+	       (c-lang-const c-enum-clause-introduction-re))
 
 (c-lang-defconst c-enums-contain-decls
   "Non-nil means that an enum structure can contain declarations."

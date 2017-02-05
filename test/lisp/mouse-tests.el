@@ -1,6 +1,6 @@
 ;;; mouse-tests.el --- unit tests for mouse.el       -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2017 Free Software Foundation, Inc.
 
 ;; Author: Philipp Stephani <phst@google.com>
 

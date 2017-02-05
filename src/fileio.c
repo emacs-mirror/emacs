@@ -1,6 +1,6 @@
 /* File IO for GNU Emacs.
 
-Copyright (C) 1985-1988, 1993-2016 Free Software Foundation, Inc.
+Copyright (C) 1985-1988, 1993-2017 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -884,6 +884,11 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	/* Detect MSDOS file names with drive specifiers.  */
 	&& ! (IS_DRIVE (o[0]) && IS_DEVICE_SEP (o[1])
 	      && IS_DIRECTORY_SEP (o[2]))
+	/* Detect escaped file names without drive spec after "/:".
+	   These should not be recursively expanded, to avoid
+	   including the default directory twice in the expanded
+	   result.  */
+	&& ! (o[0] == '/' && o[1] == ':')
 #ifdef WINDOWSNT
 	/* Detect Windows file names in UNC format.  */
 	&& ! (IS_DIRECTORY_SEP (o[0]) && IS_DIRECTORY_SEP (o[1]))
@@ -1064,7 +1069,11 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 
   newdir = newdirlim = 0;
 
-  if (nm[0] == '~')		/* prefix ~ */
+  if (nm[0] == '~'		/* prefix ~ */
+#ifdef DOS_NT
+    && !is_escaped		/* don't expand ~ in escaped file names */
+#endif
+      )
     {
       if (IS_DIRECTORY_SEP (nm[1])
 	  || nm[1] == 0)	/* ~ by itself */
@@ -5133,19 +5142,26 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
   if (! ok)
     report_file_errno ("Write error", filename, save_errno);
 
+  bool auto_saving_into_visited_file =
+    auto_saving
+    && ! NILP (Fstring_equal (BVAR (current_buffer, filename),
+			      BVAR (current_buffer, auto_save_file_name)));
   if (visiting)
     {
       SAVE_MODIFF = MODIFF;
       XSETFASTINT (BVAR (current_buffer, save_length), Z - BEG);
       bset_filename (current_buffer, visit_file);
       update_mode_lines = 14;
+      if (auto_saving_into_visited_file)
+	unlock_file (lockname);
     }
   else if (quietly)
     {
-      if (auto_saving
-	  && ! NILP (Fstring_equal (BVAR (current_buffer, filename),
-				    BVAR (current_buffer, auto_save_file_name))))
-	SAVE_MODIFF = MODIFF;
+      if (auto_saving_into_visited_file)
+	{
+	  SAVE_MODIFF = MODIFF;
+	  unlock_file (lockname);
+	}
 
       return Qnil;
     }

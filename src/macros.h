@@ -1,5 +1,5 @@
 /* Definitions for keyboard macro interpretation in GNU Emacs.
-   Copyright (C) 1985, 2001-2016 Free Software Foundation, Inc.
+   Copyright (C) 1985, 2001-2017 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

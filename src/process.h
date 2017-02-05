@@ -1,5 +1,5 @@
 /* Definitions for asynchronous process control in GNU Emacs.
-   Copyright (C) 1985, 1994, 2001-2016 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1994, 2001-2017 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -201,6 +201,25 @@ struct Lisp_Process
     bool_bf gnutls_complete_negotiation_p : 1;
 #endif
 };
+
+INLINE bool
+PROCESSP (Lisp_Object a)
+{
+  return PSEUDOVECTORP (a, PVEC_PROCESS);
+}
+
+INLINE void
+CHECK_PROCESS (Lisp_Object x)
+{
+  CHECK_TYPE (PROCESSP (x), Qprocessp, x);
+}
+
+INLINE struct Lisp_Process *
+XPROCESS (Lisp_Object a)
+{
+  eassert (PROCESSP (a));
+  return XUNTAG (a, Lisp_Vectorlike);
+}
 
 /* Every field in the preceding structure except for the first two
    must be a Lisp_Object, for GC's sake.  */

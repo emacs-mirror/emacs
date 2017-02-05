@@ -1,6 +1,6 @@
 ;;; tar-mode.el --- simple editing of tar files from GNU Emacs
 
-;; Copyright (C) 1990-1991, 1993-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1991, 1993-2017 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;; Maintainer: emacs-devel@gnu.org
@@ -544,6 +544,7 @@ MODE should be an integer which is a file mode value."
                (dir (if (eq (tar-header-link-type descriptor) 5)
                         name
                       (file-name-directory name)))
+               (link-desc (tar--describe-as-link descriptor))
                (start (tar-header-data-start descriptor))
                (end (+ start (tar-header-size descriptor))))
           (unless (file-directory-p name)
@@ -552,6 +553,10 @@ MODE should be an integer which is a file mode value."
                 (make-directory dir t))
             (unless (file-directory-p name)
 	      (let ((coding-system-for-write 'no-conversion))
+                (when link-desc
+                  (lwarn '(tar link) :warning
+                         "Extracted `%s', %s, as a normal file"
+                         name link-desc))
 		(write-region start end name)))
             (set-file-modes name (tar-header-mode descriptor))))))))
 
@@ -816,19 +821,23 @@ tar-file's buffer."
 	  nil
 	  (error "This line does not describe a tar-file entry"))))
 
-(defun tar--check-descriptor (descriptor)
+(defun tar--describe-as-link (descriptor)
   (let ((link-p (tar-header-link-type descriptor)))
     (if link-p
-	(error "This is %s, not a real file"
-	       (cond ((eq link-p 5) "a directory")
-		     ((eq link-p 20) "a tar directory header")
-		     ((eq link-p 28) "a next has longname")
-		     ((eq link-p 29) "a multivolume-continuation")
-		     ((eq link-p 35) "a sparse entry")
-		     ((eq link-p 38) "a volume header")
-		     ((eq link-p 55) "a pax global extended header")
-		     ((eq link-p 72) "a pax extended header")
-		     (t "a link"))))))
+	(cond ((eq link-p 5) "a directory")
+              ((eq link-p 20) "a tar directory header")
+              ((eq link-p 28) "a next has longname")
+              ((eq link-p 29) "a multivolume-continuation")
+              ((eq link-p 35) "a sparse entry")
+              ((eq link-p 38) "a volume header")
+              ((eq link-p 55) "a pax global extended header")
+              ((eq link-p 72) "a pax extended header")
+              (t "a link")))))
+
+(defun tar--check-descriptor (descriptor)
+  (let ((link-desc (tar--describe-as-link descriptor)))
+    (when link-desc
+      (error "This is %s, not a real file" link-desc))))
 
 (defun tar-get-descriptor ()
   (let* ((descriptor (tar-current-descriptor))

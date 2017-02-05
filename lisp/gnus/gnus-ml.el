@@ -1,6 +1,6 @@
 ;;; gnus-ml.el --- Mailing list minor mode for Gnus
 
-;; Copyright (C) 2000-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2017 Free Software Foundation, Inc.
 
 ;; Author: Julien Gilles  <jgilles@free.fr>
 ;; Keywords: news, mail

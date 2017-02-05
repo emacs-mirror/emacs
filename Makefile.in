@@ -1,6 +1,6 @@
 ### @configure_input@
 
-# Copyright (C) 1992-2016 Free Software Foundation, Inc.
+# Copyright (C) 1992-2017 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -67,9 +67,6 @@ SHELL = @SHELL@
 # This only matters when inheriting a CDPATH not starting with the
 # current directory.
 CDPATH=
-
-# If Make doesn't predefine MAKE, set it here.
-@SET_MAKE@
 
 # ==================== Things 'configure' Might Edit ====================
 
@@ -451,9 +448,12 @@ $(srcdir)/aclocal.m4: $(ACLOCAL_INPUTS)
 	cd $(srcdir) && ACLOCAL_PATH='$(ACLOCAL_PATH)' $(ACLOCAL) -I m4
 
 AUTOMAKE_INPUTS = $(srcdir)/aclocal.m4 $(srcdir)/lib/Makefile.am \
-  $(srcdir)/lib/gnulib.mk
+  $(srcdir)/lib/gnulib.mk $(srcdir)/nt/gnulib.mk
 $(srcdir)/lib/Makefile.in: $(AUTOMAKE_INPUTS)
 	cd $(srcdir) && $(AUTOMAKE) --gnu -a -c lib/Makefile
+
+$(srcdir)/nt/gnulib.mk: $(srcdir)/lib/gnulib.mk
+	$(MAKE) -C $(srcdir)/nt gnulib.mk
 
 # Regenerate files that this makefile would have made, if this makefile
 # had been built by Automake.  The name 'am--refresh' is for

@@ -1,5 +1,5 @@
 /* Definitions and headers for communication with NeXT/Open/GNUstep API.
-   Copyright (C) 1989, 1993, 2005, 2008-2016 Free Software Foundation,
+   Copyright (C) 1989, 1993, 2005, 2008-2017 Free Software Foundation,
    Inc.
 
 This file is part of GNU Emacs.

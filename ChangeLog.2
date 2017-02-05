@@ -1,3 +1,306 @@
+2016-12-30  Alan Mackenzie  <acm@muc.de>
+
+	Backport: Remove an ambiguity from defvar's doc string.  Fixes bug #25292.
+
+	The ambiguity was whether INITVALUE is evaluated when it's not going to be
+	used to set SYMBOL's value.
+
+	* src/eval.c (defvar): Rewrite a paragraph of the doc string.
+
+	(cherry picked from commit 8295e97f18490a535d1188a3daf0b0fd1bf4fa0d)
+
+2016-12-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp/emacs-lisp/inline.el: Fix apply-conversion (bug#25280)
+
+	(inline--dont-quote): Quote the function with #' when passing it to `apply'.
+	Cherry picked from commit e6161f648903d821865b9610b3b6aa0f82a5dcb7.
+
+2016-12-26  Eli Zaretskii  <eliz@gnu.org>
+
+	Document 'default-toplevel-value' and 'set-default-toplevel-value'
+
+	* doc/lispref/variables.texi (Default Value): Document
+	'default-toplevel-value' and 'set-default-toplevel-value'.
+
+2016-12-25  Leo Liu  <sdl.web@gmail.com>
+
+	Don't modify minibuffer variables globally
+
+	* lisp/files.el (cd): Use setq-local instead.  (Bug#25260)
+
+2016-12-24  Eli Zaretskii  <eliz@gnu.org>
+
+	Revert to pre-25.1 behavior in ffap
+
+	* lisp/ffap.el (ffap-lax-url): Change the default to t, to produce
+	the same behavior as in Emacs 24.x.  (Bug#25264)
+	Explain the trade-offs of customizing this in the doc string.
+
+2016-12-24  Noam Postavsky  <npostavs@gmail.com>
+
+	* lisp/ffap.el: Fix obsolete comment referencing ffap-bug.
+
+2016-12-23  Eli Zaretskii  <eliz@gnu.org>
+
+	Attempt to fix 64-bit AIX build
+
+	* src/unexaix.c (make_hdr, copy_text_and_data, write_segment): Fix
+	type-casts that assumed 32-bit pointers.  (Bug#25141)
+
+2016-12-23  Philipp Stephani  <phst@google.com>
+
+	Clarify usage of 'ediff-cleanup-hook' (Bug#24675)
+
+	* doc/misc/ediff.texi (Hooks): Clarify usage of 'ediff-cleanup-hook'
+
+2016-12-23  Philipp Stephani  <phst@google.com>
+
+	Document that variable binding order is unspecified
+
+	* doc/lispref/variables.texi (Local Variables):
+	* doc/misc/cl.texi (Modify Macros): Document that binding order in 'let' and
+	'cl-letf' is unspecified.
+
+2016-12-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* lisp/desktop.el (desktop-buffers-not-to-save): Doc fix.
+
+2016-12-23  Stefan Monnier  <monnier@IRO.UMontreal.CA>
+
+	Fix M-x hints on Mac port
+
+	* lisp/simple.el (execute-extended-command--shorter): Call
+	input-pending-p to trigger input processing on some systems, such
+	as Mac port.  (Bug#23002)
+
+2016-12-22  Martin Rudalics  <rudalics@gmx.at>
+
+	Work around reporting a dpi change in apply_xft_settings
+
+	* src/xsettings.c (apply_xft_settings): Don't report a change
+	when dpi settings do not differ substantially.
+
+2016-12-20  Alan Mackenzie  <acm@muc.de>
+
+	Amend the version number of CC Mode 5.33 -> 5.32.99.  Don't merge to trunk.
+
+	lisp/progmodes/cc-defs.el: Amend the version number.
+	etc/NEWS: Add an item explaining the change.
+
+2016-12-20  Noam Postavsky  <npostavs@gmail.com>
+
+	Improve skeleton docstrings
+
+	* lisp/skeleton.el (skeleton-end-newline): Remove mention of
+	`skeleton-end-hook', its default code was moved into `skeleton-insert'.
+	(skeleton-insert): Mention `skeleton-end-newline' and move reference to
+	`skeleton-end-hook' above the explanation of skeleton syntax.
+
+2016-12-19  Eli Zaretskii  <eliz@gnu.org>
+
+	Improve documentation of 'w32-scroll-lock-modifier'
+
+	* doc/emacs/msdos.texi (Windows Keyboard): Document how to set up
+	w32-scroll-lock-modifier so that Scroll Lock toggles the LED.
+
+	* src/w32fns.c (syms_of_w32fns) <w32-scroll-lock-modifier>: Doc
+	fix.  (Bug#25204)
+
+2016-12-19  Eli Zaretskii  <eliz@gnu.org>
+
+	Document 'describe-fontset'
+
+	* doc/emacs/mule.texi (Fontsets): Document 'describe-fontset'.
+	(Bug#25216)
+
+2016-12-19  Eli Zaretskii  <eliz@gnu.org>
+
+	Document 'describe-fontset'
+
+	* doc/emacs/mule.texi (Fontsets): Document 'describe-fontset'.
+	(Bug#25216)
+
+2016-12-17  Eli Zaretskii  <eliz@gnu.org>
+
+	Repair desktop restoration on text terminals
+
+	* lisp/desktop.el (desktop-restoring-frameset-p): Test for the GUI
+	frame here, instead of in desktop-restoring-frameset.  That's
+	because desktop-read wants to know whether frameset will actually
+	be restored, and has fallback procedures up its sleeve when it
+	won't be; these fallbacks need to be invoked when the frameset is
+	not going to be restored.  (Bug#24298)
+
+2016-12-17  Dmitry Gutov  <dgutov@yandex.ru>
+
+	Ignore forward-sexp-function in js-mode indentation code
+
+	* lisp/progmodes/js.el (js--multi-line-declaration-indentation)
+	(js--maybe-goto-declaration-keyword-end):
+	Bind forward-sexp-function to nil (bug#25215).
+
+2016-12-16  Eli Zaretskii  <eliz@gnu.org>
+
+	Improve documentation of 'define-coding-system'
+
+	* lisp/international/mule.el (define-coding-system): Warn against
+	possible infinite recursion in pre-write-conversion and
+	post-read-conversion functions.  (Bug#25203)
+
+2016-12-11  Michael Albinus  <michael.albinus@gmx.de>
+
+	Fix Bug#25162
+
+	* doc/emacs/files.texi (Reverting): Document
+	auto-revert-remote-files and auto-revert-verbose.
+
+	* lisp/autorevert.el (auto-revert-verbose, auto-revert-mode)
+	(auto-revert-tail-mode, global-auto-revert-mode): Fix docstring.
+
+2016-12-11  Glenn Morris  <rgm@gnu.org>
+
+	Fix a typo in define-abbrev-table
+
+	* lisp/abbrev.el (define-abbrev-table): Fix typo in docstring handling.
+
+2016-12-11  Glenn Morris  <rgm@gnu.org>
+
+	Bump makeinfo requirement from 4.7 to 4.13
+
+	* configure.ac: Bump makeinfo version requirement from 4.7 to 4.13.
+	We need at least 4.8, and that may be buggy, so go for the last
+	of the 4 series, which is 8 years old.  (Bug#25108)
+
+2016-12-11  Glenn Morris  <rgm@gnu.org>
+
+	Fixes related to select-enable-clipboard
+
+	* lisp/menu-bar.el (clipboard-yank, clipboard-kill-ring-save)
+	(clipboard-kill-region):
+	* lisp/eshell/esh-io.el (eshell-virtual-targets)
+	(eshell-clipboard-append):
+	Replace option gui-select-enable-clipboard with
+	select-enable-clipboard; renamed October 2014.  (Bug#25145)
+
+2016-12-10  Noam Postavsky  <npostavs@gmail.com>
+
+	Define struct predicate before acccesors
+
+	The accessor functions use the predicate function, which causes problems
+	when reloading after unload-feature: the compiler-macro property is
+	still present on the predicate symbol, and the compiler fails to find
+	the definition when trying to inline it into the accessor
+	function (Bug#25088).
+
+	* lisp/emacs-lisp/cl-macs.el (cl-defstruct): Move predicate definition
+	before field accessor definitions.
+
+2016-12-08  Glenn Morris  <rgm@gnu.org>
+
+	Doc fix for vc-git
+
+	* lisp/vc/vc-git.el (vc-git-region-history): Add a doc string.
+
+2016-12-08  Glenn Morris  <rgm@gnu.org>
+
+	Further improve make-dist checking
+
+	* make-dist: Print status messages when checking.
+
+2016-12-08  Glenn Morris  <rgm@gnu.org>
+
+	Improve previous make-dist change
+
+	* make-dist: Let make check the info files more thoroughly.
+
+2016-12-08  Glenn Morris  <rgm@gnu.org>
+
+	Make make-dist --snapshot do some sanity checks
+
+	* make-dist: Snapshot mode no longer disables checks.
+	Checks now includes checks for freshness.  (Bug#25084)
+	Checks now exits with an error if problems were found.
+
+2016-12-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix minor quoting problems in doc strings
+
+2016-12-07  Philipp Stephani  <p.stephani2@gmail.com>
+
+	* lisp/emacs-lisp/easy-mmode.el (define-minor-mode): Fix docstring
+
+	so that it matches the actual implementation.
+	See https://lists.gnu.org/archive/html/help-gnu-emacs/2016-04/msg00071.html
+
+2016-12-07  Noam Postavsky  <npostavs@gmail.com>
+
+	Don't assume window-point and point are the same
+
+	The function `cursor-sensor--detect' calls `bobp' to decide whether to
+	check properties at (1- (window-point)).  However, (window-point) may be
+	at beginning of buffer, even if (point) is not.  In this case an
+	`args-out-of-range' error will be signaled (Bug#25104).
+
+	* lisp/emacs-lisp/cursor-sensor.el (cursor-sensor--detect): Check the
+	value of (window-point) against (point-min), rather than (bobp) to
+	decide if (1- (window-point)) is accessible.
+
+2016-12-02  Nicolas Petton  <nicolas@petton.fr>
+
+	Fix bug#25087
+
+	* etc/themes/manoj-dark-theme.el: Fix two typos.
+
+	(cherry picked from commit 66d6e7e9ecf5e481f8c2c3a4f88411f66c869a6e)
+
+2016-12-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* lisp/vc/ediff-util.el (ediff-janitor): Doc fix.  (Bug#25046)
+
+2016-12-02  Eli Zaretskii  <eliz@gnu.org>
+
+	Improve indexing of 'man'
+
+	* doc/emacs/programs.texi (Man Page): Index 'man', not
+	'manual-entry', as the latter is an alias for the former.
+	Suggested by Hong Xu <hong@topbug.net>.  (Bug#25033)
+
+2016-12-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port to Sun C 5.14
+
+	Backport from master.  Sun C 5.14 supports C11 but not GCC
+	extensions, and so refuses to compile Emacs without this patch.
+	* src/alloc.c (lmalloc, lrealloc): Don't use INT_ADD_WRAPV on
+	size_t, as in general this macro is restricted to signed types.
+
+2016-12-02  Richard Stallman  <rms@gnu.org>
+
+	Fix mail-combine-fields
+
+	* lisp/mail/sendmail.el (mail-combine-fields): Call `save-excursion' to
+	avoid losing our place in the search loop.
+
+	(cherry picked from commit 5fbba6cceaf843cfca449eb000a0a65243b61808)
+
+2016-12-01  Martin Rudalics  <rudalics@gmx.at>
+
+	Fix documentation of `window-combination-resize'
+
+	* src/window.c (Vwindow_combination_resize): Fix doc-string.
+	* doc/lispref/windows.texi (Recombining Windows): Fix
+	documentation of `window-combination-resize'.
+
+2016-11-29  Bogdan Creanga  <bogdan.creanga@gmail.com>  (tiny change)
+
+	Typo fixes in elisp manual
+
+	* doc/lispref/sequences.texi: Add missing '4' in result (Bug#25047).
+	* doc/lispref/strings.texi (Text Comparison): Avoid duplicate
+	definitions of 'string-prefix-p' and 'string-suffix-p'.
+	* doc/lispref/symbols.texi (Definitions): Pluralize 'definitions'.
+
 2016-11-28  Eli Zaretskii  <eliz@gnu.org>
 
 	Fix 'expand-file-name' during startup on MS-Windows
@@ -35010,14 +35313,14 @@
 
 This file records repository revisions from
 commit 9d56a21e6a696ad19ac65c4b405aeca44785884a (exclusive) to
-commit 5878abf87b6b3ead1367cbae5cc6b0743349f611 (inclusive).
+commit e8f0d7dcadd2b35f62f7a14b96df15e5314d7f6e (inclusive).
 See ChangeLog.1 for earlier changes.
 
 ;; Local Variables:
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2015-2016 Free Software Foundation, Inc.
+  Copyright (C) 2015-2017 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

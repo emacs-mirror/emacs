@@ -1,6 +1,6 @@
 ;;; marker-tests.el --- tests for marker.c functions -*- lexical-binding: t -*-
 
-;; Copyright (C) 2016 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2017 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

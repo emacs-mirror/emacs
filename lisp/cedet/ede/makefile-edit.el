@@ -1,6 +1,6 @@
 ;;; makefile-edit.el --- Makefile editing/scanning commands.
 
-;; Copyright (C) 2009-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2017 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 

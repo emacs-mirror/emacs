@@ -1,6 +1,6 @@
 ;;; cal-html.el --- functions for printing HTML calendars
 
-;; Copyright (C) 2002-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2017 Free Software Foundation, Inc.
 
 ;; Author: Anna M. Bigatti <bigatti@dima.unige.it>
 ;; Keywords: calendar

@@ -1,6 +1,6 @@
 ;;; hanja3.el --- Quail-package for Korean Hanja (KSC5601)  -*-coding: utf-8;-*-
 
-;; Copyright (C) 1997, 1999, 2001-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2001-2017 Free Software Foundation, Inc.
 
 ;; Author: Koaunghi Un <koaunghi.un@zdv.uni-tuebingen.de>
 ;; Keywords: mule, quail, multilingual, input method, Korean, Hanja

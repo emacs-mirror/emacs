@@ -1,6 +1,6 @@
 ;;; gssapi.el --- GSSAPI/Kerberos 5 interface for Emacs
 
-;; Copyright (C) 2011-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2017 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;;         Lars Magne Ingebrigtsen <larsi@gnus.org>

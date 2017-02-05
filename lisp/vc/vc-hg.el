@@ -1,6 +1,6 @@
 ;;; vc-hg.el --- VC backend for the mercurial version control system  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2017 Free Software Foundation, Inc.
 
 ;; Author: Ivan Kanis
 ;; Maintainer: emacs-devel@gnu.org
@@ -157,7 +157,7 @@ switches."
              "\\([0-9]+\\):\\([^:]*\\)"
              ":\\([^:]*\\):\\([^:]*\\):\\(.*?\\)"
              "[ \t]+\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}\\)")
-    ((1 'log-view-message-face)
+    ((1 'log-view-message)
      (2 'change-log-file)
      (3 'change-log-list)
      (4 'change-log-conditionals)

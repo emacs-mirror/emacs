@@ -1,6 +1,6 @@
-;;; nnir.el --- search mail with various search engines -*- coding: utf-8 -*-
+;;; nnir.el --- Search mail with various search engines  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2017 Free Software Foundation, Inc.
 
 ;; Author: Kai Großjohann <grossjohann@ls6.cs.uni-dortmund.de>
 ;; Swish-e and Swish++ backends by:
@@ -175,8 +175,7 @@
 (require 'gnus-group)
 (require 'message)
 (require 'gnus-util)
-(eval-when-compile
-  (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 ;;; Internal Variables:
 
@@ -686,18 +685,18 @@ skips all prompting."
 	       parsefunc)
 	  ;; (nnir-possibly-change-group nil server)
 	  (erase-buffer)
-	  (case (setq gnus-headers-retrieved-by
-		      (or
-		       (and
-			nnir-retrieve-headers-override-function
-			(funcall nnir-retrieve-headers-override-function
-				 artlist artgroup))
-		       (gnus-retrieve-headers artlist artgroup nil)))
-	    (nov
+	  (pcase (setq gnus-headers-retrieved-by
+                       (or
+                        (and
+                         nnir-retrieve-headers-override-function
+                         (funcall nnir-retrieve-headers-override-function
+                                  artlist artgroup))
+                        (gnus-retrieve-headers artlist artgroup nil)))
+	    ('nov
 	     (setq parsefunc 'nnheader-parse-nov))
-	    (headers
+	    ('headers
 	     (setq parsefunc 'nnheader-parse-head))
-	    (t (error "Unknown header type %s while requesting articles \
+	    (_ (error "Unknown header type %s while requesting articles \
                     of group %s" gnus-headers-retrieved-by artgroup)))
 	  (goto-char (point-min))
 	  (while (not (eobp))
@@ -831,7 +830,7 @@ skips all prompting."
   (nnir-possibly-change-group group server)
   (let (mlist)
     (dolist (action actions)
-      (destructuring-bind (range action marks) action
+      (cl-destructuring-bind (range action marks) action
         (let ((articles-by-group (nnir-categorize
                                   (gnus-uncompress-range range)
                                   nnir-article-group nnir-article-number)))
@@ -839,7 +838,9 @@ skips all prompting."
             (push (list
 		   (car artgroup)
 		   (list (gnus-compress-sequence
-			  (sort (cadr artgroup) '<)) action marks)) mlist)))))
+			  (sort (cadr artgroup) '<))
+                         action marks))
+                  mlist)))))
     (dolist (request (nnir-categorize  mlist car cadr))
       (gnus-request-set-mark (car request) (cadr request)))))
 
@@ -872,7 +873,7 @@ skips all prompting."
 		     (when (gnus-member-of-range (cdr art) read) (car art)))
 		   articleids))))
 	(dolist (mark marks)
-	  (destructuring-bind (type . range) mark
+	  (cl-destructuring-bind (type . range) mark
 	    (gnus-add-marked-articles
 	     group type
 	     (delq nil
@@ -955,7 +956,7 @@ details on the language and supported extensions."
   (save-excursion
     (let ((qstring (cdr (assq 'query query)))
           (server (cadr (gnus-server-to-method srv)))
-          (defs (caddr (gnus-server-to-method srv)))
+          (defs (nth 2 (gnus-server-to-method srv)))
           (criteria (or (cdr (assq 'criteria query))
                         (cdr (assoc nnir-imap-default-search-key
                                     nnir-imap-search-arguments))))
@@ -1056,13 +1057,13 @@ In future the following will be added to the language:
    ;; Composite term: or expression
    ((eq (car-safe expr) 'or)
     (format "OR %s %s"
-	    (nnir-imap-expr-to-imap criteria (second expr))
-	    (nnir-imap-expr-to-imap criteria (third expr))))
+	    (nnir-imap-expr-to-imap criteria (nth 1 expr))
+	    (nnir-imap-expr-to-imap criteria (nth 2 expr))))
    ;; Composite term: just the fax, mam
    ((eq (car-safe expr) 'not)
-    (format "NOT (%s)" (nnir-imap-query-to-imap criteria (rest expr))))
+    (format "NOT (%s)" (nnir-imap-query-to-imap criteria (cdr expr))))
    ;; Composite term: just expand it all.
-   ((and (not (null expr)) (listp expr))
+   ((consp expr)
     (format "(%s)" (nnir-imap-query-to-imap criteria expr)))
    ;; Complex value, give up for now.
    (t (error "Unhandled input: %S" expr))))
@@ -1223,8 +1224,8 @@ Windows NT 4.0."
              (exitstatus
               (progn
                 (message "%s args: %s" nnir-swish++-program
-                         (mapconcat 'identity (cddddr cp-list) " ")) ;; ???
-                (apply 'call-process cp-list))))
+                         (mapconcat #'identity (nthcdr 4 cp-list) " ")) ;; ???
+                (apply #'call-process cp-list))))
         (unless (or (null exitstatus)
                     (zerop exitstatus))
           (nnheader-report 'nnir "Couldn't run swish++: %s" exitstatus)
@@ -1259,7 +1260,7 @@ Windows NT 4.0."
       (message "Massaging swish++ output...done")
 
       ;; Sort by score
-      (apply 'vector
+      (apply #'vector
              (sort artlist
                    (function (lambda (x y)
                                (> (nnir-artitem-rsv x)
@@ -1310,8 +1311,8 @@ Tested with swish-e-2.0.1 on Windows NT 4.0."
              (exitstatus
               (progn
                 (message "%s args: %s" nnir-swish-e-program
-                         (mapconcat 'identity (cddddr cp-list) " "))
-                (apply 'call-process cp-list))))
+                         (mapconcat #'identity (nthcdr 4 cp-list) " "))
+                (apply #'call-process cp-list))))
         (unless (or (null exitstatus)
                     (zerop exitstatus))
           (nnheader-report 'nnir "Couldn't run swish-e: %s" exitstatus)
@@ -1354,7 +1355,7 @@ Tested with swish-e-2.0.1 on Windows NT 4.0."
       (message "Massaging swish-e output...done")
 
       ;; Sort by score
-      (apply 'vector
+      (apply #'vector
              (sort artlist
                    (function (lambda (x y)
                                (> (nnir-artitem-rsv x)
@@ -1387,8 +1388,8 @@ Tested with swish-e-2.0.1 on Windows NT 4.0."
              (exitstatus
               (progn
                 (message "%s args: %s" nnir-hyrex-program
-                         (mapconcat 'identity (cddddr cp-list) " "))
-                (apply 'call-process cp-list))))
+                         (mapconcat #'identity (nthcdr 4 cp-list) " "))
+                (apply #'call-process cp-list))))
         (unless (or (null exitstatus)
                     (zerop exitstatus))
           (nnheader-report 'nnir "Couldn't run hyrex-search: %s" exitstatus)
@@ -1421,7 +1422,7 @@ Tested with swish-e-2.0.1 on Windows NT 4.0."
 		      (string-to-number score))
 	      artlist))
       (message "Massaging hyrex-search output...done.")
-      (apply 'vector
+      (apply #'vector
 	     (sort artlist
                    (function (lambda (x y)
                                (if (string-lessp (nnir-artitem-group x)
@@ -1467,8 +1468,8 @@ Tested with Namazu 2.0.6 on a GNU/Linux system."
              (exitstatus
               (progn
                 (message "%s args: %s" nnir-namazu-program
-                         (mapconcat 'identity (cddddr cp-list) " "))
-                (apply 'call-process cp-list))))
+                         (mapconcat #'identity (nthcdr 4 cp-list) " "))
+                (apply #'call-process cp-list))))
         (unless (or (null exitstatus)
                     (zerop exitstatus))
           (nnheader-report 'nnir "Couldn't run namazu: %s" exitstatus)
@@ -1495,7 +1496,7 @@ Tested with Namazu 2.0.6 on a GNU/Linux system."
 	  (nnir-add-result group article score prefix server artlist)))
 
       ;; sort artlist by score
-      (apply 'vector
+      (apply #'vector
              (sort artlist
                    (function (lambda (x y)
                                (> (nnir-artitem-rsv x)
@@ -1543,8 +1544,8 @@ actually)."
              (exitstatus
               (progn
                 (message "%s args: %s" nnir-notmuch-program
-                         (mapconcat 'identity (cddddr cp-list) " ")) ;; ???
-                (apply 'call-process cp-list))))
+                         (mapconcat #'identity (nthcdr 4 cp-list) " ")) ;; ???
+                (apply #'call-process cp-list))))
         (unless (or (null exitstatus)
                     (zerop exitstatus))
           (nnheader-report 'nnir "Couldn't run notmuch: %s" exitstatus)
@@ -1639,7 +1640,7 @@ actually)."
 			    (art (string-to-number (car (last path)))))
 		       (while (string= "." (car path))
 			 (setq path (cdr path)))
-		       (let ((group (mapconcat 'identity
+		       (let ((group (mapconcat #'identity
 					       ;; Replace cl-func:
 					       ;; (subseq path 0 -1)
 					       (let ((end (1- (length path)))
@@ -1707,7 +1708,7 @@ actually)."
 		      (string-to-number (match-string 2 xref)) xscore)
 		     artlist)))))
 	    (forward-line 1)))
-	(apply 'vector (nreverse (delete-dups artlist)))))
+	(apply #'vector (nreverse (delete-dups artlist)))))
 
 ;;; Util Code:
 
@@ -1719,8 +1720,8 @@ actually)."
 
 (defun nnir-read-parms (nnir-search-engine)
   "Reads additional search parameters according to `nnir-engines'."
-  (let ((parmspec (caddr (assoc nnir-search-engine nnir-engines))))
-    (mapcar 'nnir-read-parm parmspec)))
+  (let ((parmspec (nth 2 (assoc nnir-search-engine nnir-engines))))
+    (mapcar #'nnir-read-parm parmspec)))
 
 (defun nnir-read-parm (parmspec)
   "Reads a single search parameter.
@@ -1728,7 +1729,7 @@ actually)."
   (let ((sym (car parmspec))
         (prompt (cdr parmspec)))
     (if (listp prompt)
-	(let* ((result (apply 'gnus-completing-read prompt))
+	(let* ((result (apply #'gnus-completing-read prompt))
 	       (mapping (or (assoc result nnir-imap-search-arguments)
 			    (cons nil nnir-imap-search-other))))
 	  (cons sym (format (cdr mapping) result)))
@@ -1736,7 +1737,7 @@ actually)."
 
 (defun nnir-run-query (specs)
   "Invoke appropriate search engine function (see `nnir-engines')."
-  (apply 'vconcat
+  (apply #'vconcat
 	 (mapcar
 	  (lambda (x)
 	    (let* ((server (car x))
@@ -1796,7 +1797,8 @@ article came from is also searched."
 	  (and registry-group
 	       (gnus-method-to-server
 		(gnus-find-method-for-group registry-group)))))
-    (when registry-server (add-to-list 'server (list registry-server)))
+    (when registry-server
+      (cl-pushnew (list registry-server) server :test #'equal))
     (gnus-group-make-nnir-group nil (list
 				     (cons 'nnir-query-spec query)
 				     (cons 'nnir-group-spec server)))

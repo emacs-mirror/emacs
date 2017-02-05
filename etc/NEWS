@@ -1,6 +1,6 @@
 GNU Emacs NEWS -- history of user-visible changes.
 
-Copyright (C) 2014-2016 Free Software Foundation, Inc.
+Copyright (C) 2014-2017 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 Please send Emacs bug reports to bug-gnu-emacs@gnu.org.
@@ -20,6 +20,13 @@ Temporary note:
     (This means all relevant manuals in doc/ AND lisp doc-strings.)
 --- means no change in the manuals is needed.
 When you add a new item, use the appropriate mark if you are sure it applies,
+
++++
+** The version number of CC Mode has been changed from 5.33 to
+5.32.99, although the software itself hasn't changed.  This aims to
+reduce confusion with the standalone CC Mode 5.33 (available from
+http://cc-mode.sourceforge.net), which is a more mature version than
+the one in Emacs 25.2.
 
 
 * Installation Changes in Emacs 26.1
@@ -702,6 +709,12 @@ of curved quotes in format arguments to functions like 'message' and
 ** Functions like 'check-declare-file' and 'check-declare-directory'
 now generate less chatter and more-compact diagnostics.  The auxiliary
 function 'check-declare-errmsg' has been removed.
+
++++
+** The regular expression character class [:blank:] now matches
+Unicode horizontal whitespace as defined in the Unicode Technical
+Standard #18.  If you only want to match space and tab, use [ \t]
+instead.
 
 
 * Lisp Changes in Emacs 26.1

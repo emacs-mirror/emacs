@@ -10,7 +10,7 @@
 @syncodeindex pg cp
 
 @copying
-Copyright @copyright{} 1995--2016 Free Software Foundation, Inc.
+Copyright @copyright{} 1995--2017 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -14656,7 +14656,7 @@ an additional mail source for a particular group by including the
 @code{group} mail specifier in @code{mail-sources}, and setting a
 @code{mail-source} group parameter (@pxref{Group Parameters}) specifying
 a single mail source.  When this is used, @code{mail-sources} is
-typically just @code{(group)}; the @code{mail-source} parameter for a
+typically just @code{((group))}; the @code{mail-source} parameter for a
 group might look like this:
 
 @lisp

@@ -1,7 +1,7 @@
 ;;; info-look.el --- major-mode-sensitive Info index lookup facility -*- lexical-binding: t -*-
 ;; An older version of this was known as libc.el.
 
-;; Copyright (C) 1995-1999, 2001-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1995-1999, 2001-2017 Free Software Foundation, Inc.
 
 ;; Author: Ralph Schleicher <rs@nunatak.allgaeu.org>
 ;;         (did not show signs of life (Nov 2001)  -stef)
@@ -43,6 +43,7 @@
 ;;; Code:
 
 (require 'info)
+(require 'subr-x)
 
 (defgroup info-lookup nil
   "Major mode sensitive help agent."
@@ -648,6 +649,26 @@ Return nil if there is nothing appropriate in the buffer near point."
 	    (buffer-substring-no-properties beg end)))))
     (error nil)))
 
+(defun info-lookup-guess-gdb-script-symbol ()
+  "Get symbol at point in GDB script buffers."
+  (condition-case nil
+      (save-excursion
+        (back-to-indentation)
+        ;; Try to find the current line's full command in the index;
+        ;; and default to the longest subset that is found.
+        (when (looking-at "[-a-z]+\\(\\s-[-a-z]+\\)*")
+          (let ((str-list (split-string (match-string-no-properties 0)
+                                        "\\s-+" t))
+                (completions (info-lookup->completions 'symbol
+                                                       'gdb-script-mode)))
+            (catch 'result
+              (while str-list
+                (let ((str (string-join str-list " ")))
+                  (when (assoc str completions)
+                    (throw 'result str))
+                  (nbutlast str-list)))))))
+    (error nil)))
+
 ;;;###autoload
 (defun info-complete-symbol (&optional mode)
   "Perform completion on symbol preceding point."
@@ -1051,6 +1072,14 @@ Return nil if there is nothing appropriate in the buffer near point."
  :mode 'help-mode
  :regexp "[^][()`'‘’,:\" \t\n]+"
  :other-modes '(emacs-lisp-mode))
+
+(info-lookup-maybe-add-help
+ :mode 'gdb-script-mode
+ :ignore-case nil
+ :regexp "\\([-a-z]+\\(\\s-+[-a-z]+\\)*\\)"
+ :doc-spec '(("(gdb)Command and Variable Index" nil
+              nil nil))
+ :parse-rule 'info-lookup-guess-gdb-script-symbol)
 
 (provide 'info-look)
 

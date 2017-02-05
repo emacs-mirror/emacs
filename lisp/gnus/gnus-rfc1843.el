@@ -1,6 +1,6 @@
 ;;; gnus-rfc1843.el --- HZ (rfc1843) decoding interface functions for Gnus
 
-;; Copyright (C) 1998-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2017 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 ;; Keywords: news HZ HZ+ mail i18n

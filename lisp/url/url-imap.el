@@ -1,6 +1,6 @@
 ;;; url-imap.el --- IMAP retrieval routines
 
-;; Copyright (C) 1999, 2004-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2004-2017 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <jas@pdc.kth.se>
 ;; Keywords: comm, data, processes

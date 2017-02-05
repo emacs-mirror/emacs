@@ -1,6 +1,6 @@
 ;;; mailalias.el --- expand and complete mailing address aliases -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985, 1987, 1995-1997, 2001-2016 Free Software
+;; Copyright (C) 1985, 1987, 1995-1997, 2001-2017 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org

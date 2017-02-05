@@ -1,6 +1,6 @@
 ;;; vnvni.el --- Quail package for Vietnamese by VNI method
 
-;; Copyright (C) 2001-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2017 Free Software Foundation, Inc.
 
 ;; Author:   Werner Lemberg <wl@gnu.org>
 ;;           Nguyen Thai Ngoc Duy <pclouds@gmail.com>

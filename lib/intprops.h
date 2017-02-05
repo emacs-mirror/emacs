@@ -1,6 +1,6 @@
 /* intprops.h -- properties of integer types
 
-   Copyright (C) 2001-2016 Free Software Foundation, Inc.
+   Copyright (C) 2001-2017 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published
@@ -22,10 +22,6 @@
 
 #include <limits.h>
 #include <verify.h>
-
-#ifndef __has_builtin
-# define __has_builtin(x) 0
-#endif
 
 /* Return a value with the common real type of E and V and the value of V.  */
 #define _GL_INT_CONVERT(e, v) (0 * (e) + (v))
@@ -241,12 +237,10 @@ verify (TYPE_WIDTH (unsigned int) == UINT_WIDTH);
    : (max) >> (b) < (a))
 
 /* True if __builtin_add_overflow (A, B, P) works when P is non-null.  */
-#define _GL_HAS_BUILTIN_OVERFLOW \
-  (5 <= __GNUC__ || __has_builtin (__builtin_add_overflow))
+#define _GL_HAS_BUILTIN_OVERFLOW (5 <= __GNUC__)
 
 /* True if __builtin_add_overflow_p (A, B, C) works.  */
-#define _GL_HAS_BUILTIN_OVERFLOW_P \
-  (7 <= __GNUC__ || __has_builtin (__builtin_add_overflow_p))
+#define _GL_HAS_BUILTIN_OVERFLOW_P (7 <= __GNUC__)
 
 /* The _GL*_OVERFLOW macros have the same restrictions as the
    *_RANGE_OVERFLOW macros, except that they do not assume that operands

@@ -1,6 +1,6 @@
 ;;; font-core.el --- Core interface to font-lock
 
-;; Copyright (C) 1992-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2017 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: languages, faces

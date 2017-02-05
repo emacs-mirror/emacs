@@ -1,6 +1,6 @@
 ;;; levents.el --- emulate the Lucid event data type and associated functions
 
-;; Copyright (C) 1993, 2001-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2001-2017 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: emulations

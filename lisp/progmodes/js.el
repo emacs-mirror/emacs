@@ -1,6 +1,6 @@
 ;;; js.el --- Major mode for editing JavaScript  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2008-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2017 Free Software Foundation, Inc.
 
 ;; Author: Karl Landstrom <karl.landstrom@brgeight.se>
 ;;         Daniel Colascione <dan.colascione@gmail.com>
@@ -550,6 +550,20 @@ don't indent the first one's initializer; otherwise, indent it.
   :version "25.1"
   :type '(choice (const nil) (const t) (const dynamic))
   :safe 'symbolp
+  :group 'js)
+
+(defcustom js-chain-indent nil
+  "Use \"chained\" indentation.
+Chained indentation applies when the current line starts with \".\".
+If the previous expression also contains a \".\" at the same level,
+then the \".\"s will be lined up:
+
+  let x = svg.mumble()
+             .chained;
+"
+  :version "26.1"
+  :type 'boolean
+  :safe 'booleanp
   :group 'js)
 
 ;;; KeyMap
@@ -1706,10 +1720,10 @@ This performs fontification according to `js--class-styles'."
     ;; Distinguish /-division from /-regexp chars (and from /-comment-starter).
     ;; FIXME: Allow regexps after infix ops like + ...
     ;; https://developer.mozilla.org/en/JavaScript/Reference/Operators
-    ;; We can probably just add +, -, !, <, >, %, ^, ~, |, &, ?, : at which
+    ;; We can probably just add +, -, <, >, %, ^, ~, ?, : at which
     ;; point I think only * and / would be missing which could also be added,
     ;; but need care to avoid affecting the // and */ comment markers.
-    ("\\(?:^\\|[=([{,:;]\\|\\_<return\\_>\\)\\(?:[ \t]\\)*\\(/\\)[^/*]"
+    ("\\(?:^\\|[=([{,:;|&!]\\|\\_<return\\_>\\)\\(?:[ \t]\\)*\\(/\\)[^/*]"
      (1 (ignore
 	 (forward-char -1)
          (when (or (not (memq (char-after (match-beginning 0)) '(?\s ?\t)))
@@ -1771,6 +1785,24 @@ This performs fontification according to `js--class-styles'."
                  ;; return NaN anyway.  Shouldn't be a problem.
                  (memq (char-before) '(?, ?} ?{))))))))
 
+(defun js--find-newline-backward ()
+  "Move backward to the nearest newline that is not in a block comment."
+  (let ((continue t)
+        (result t))
+    (while continue
+      (setq continue nil)
+      (if (search-backward "\n" nil t)
+          (let ((parse (syntax-ppss)))
+            ;; We match the end of a // comment but not a newline in a
+            ;; block comment.
+            (when (nth 4 parse)
+              (goto-char (nth 8 parse))
+              ;; If we saw a block comment, keep trying.
+              (unless (nth 7 parse)
+                (setq continue t))))
+        (setq result nil)))
+    result))
+
 (defun js--continued-expression-p ()
   "Return non-nil if the current line continues an expression."
   (save-excursion
@@ -1780,7 +1812,7 @@ This performs fontification according to `js--class-styles'."
             (progn
               (forward-comment (- (point)))
               (not (memq (char-before) '(?, ?\[ ?\()))))
-      (and (js--re-search-backward "\n" nil t)
+      (and (js--find-newline-backward)
            (progn
              (skip-chars-backward " \t")
              (or (bobp) (backward-char))
@@ -1790,6 +1822,63 @@ This performs fontification according to `js--class-styles'."
                   (and (progn (backward-char)
                               (not (looking-at "+\\+\\|--\\|/[/*]"))))))))))
 
+(defun js--skip-term-backward ()
+  "Skip a term before point; return t if a term was skipped."
+  (let ((term-skipped nil))
+    ;; Skip backward over balanced parens.
+    (let ((progress t))
+      (while progress
+        (setq progress nil)
+        ;; First skip whitespace.
+        (skip-syntax-backward " ")
+        ;; Now if we're looking at closing paren, skip to the opener.
+        ;; This doesn't strictly follow JS syntax, in that we might
+        ;; skip something nonsensical like "()[]{}", but it is enough
+        ;; if it works ok for valid input.
+        (when (memq (char-before) '(?\] ?\) ?\}))
+          (setq progress t term-skipped t)
+          (backward-list))))
+    ;; Maybe skip over a symbol.
+    (let ((save-point (point)))
+      (if (and (< (skip-syntax-backward "w_") 0)
+                 (looking-at js--name-re))
+          ;; Skipped.
+          (progn
+            (setq term-skipped t)
+            (skip-syntax-backward " "))
+        ;; Did not skip, so restore point.
+        (goto-char save-point)))
+    (when (and term-skipped (> (point) (point-min)))
+      (backward-char)
+      (eq (char-after) ?.))))
+
+(defun js--skip-terms-backward ()
+  "Skip any number of terms backward.
+Move point to the earliest \".\" without changing paren levels.
+Returns t if successful, nil if no term was found."
+  (when (js--skip-term-backward)
+    ;; Found at least one.
+    (let ((last-point (point)))
+      (while (js--skip-term-backward)
+        (setq last-point (point)))
+      (goto-char last-point)
+      t)))
+
+(defun js--chained-expression-p ()
+  "A helper for js--proper-indentation that handles chained expressions.
+A chained expression is when the current line starts with '.' and the
+previous line also has a '.' expression.
+This function returns the indentation for the current line if it is
+a chained expression line; otherwise nil.
+This should only be called while point is at the start of the line's content,
+as determined by `back-to-indentation'."
+  (when js-chain-indent
+    (save-excursion
+      (when (and (eq (char-after) ?.)
+                 (js--continued-expression-p)
+                 (js--find-newline-backward)
+                 (js--skip-terms-backward))
+        (current-column)))))
 
 (defun js--end-of-do-while-loop-p ()
   "Return non-nil if point is on the \"while\" of a do-while statement.
@@ -1852,7 +1941,8 @@ nil."
   "Helper function for `js--proper-indentation'.
 Return the proper indentation of the current line if it belongs to a declaration
 statement spanning multiple lines; otherwise, return nil."
-  (let (at-opening-bracket)
+  (let (forward-sexp-function ; Use Lisp version.
+        at-opening-bracket)
     (save-excursion
       (back-to-indentation)
       (when (not (looking-at js--declaration-keyword-re))
@@ -1929,6 +2019,7 @@ indentation is aligned to that column."
     (let ((bracket (nth 1 parse-status))
           declaration-keyword-end
           at-closing-bracket-p
+          forward-sexp-function ; Use Lisp version.
           comma-p)
       (when (looking-at js--declaration-keyword-re)
         (setq declaration-keyword-end (match-end 0))
@@ -1964,6 +2055,7 @@ indentation is aligned to that column."
                   ;; At or after the first loop?
                   (>= (point) beg)
                   (js--array-comp-indentation bracket beg))))
+          ((js--chained-expression-p))
           ((js--ctrl-statement-indentation))
           ((js--multi-line-declaration-indentation))
           ((nth 1 parse-status)
@@ -3758,6 +3850,8 @@ If one hasn't been set, or if it's stale, prompt for a new one."
         c-line-comment-starter "//"
         c-comment-start-regexp "/[*/]\\|\\s!"
         comment-start-skip "\\(//+\\|/\\*+\\)\\s *")
+  (setq-local comment-line-break-function #'c-indent-new-comment-line)
+  (setq-local c-block-comment-start-regexp "/\\*")
 
   (setq-local electric-indent-chars
 	      (append "{}():;," electric-indent-chars)) ;FIXME: js2-mode adds "[]*".

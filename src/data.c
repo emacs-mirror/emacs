@@ -1,5 +1,5 @@
 /* Primitive operations on Lisp data types for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985-1986, 1988, 1993-1995, 1997-2016 Free Software
+   Copyright (C) 1985-1986, 1988, 1993-1995, 1997-2017 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -31,6 +31,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "character.h"
 #include "buffer.h"
 #include "keyboard.h"
+#include "process.h"
 #include "frame.h"
 #include "keymap.h"
 

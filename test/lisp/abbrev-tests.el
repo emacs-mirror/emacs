@@ -1,6 +1,6 @@
 ;;; abbrev-tests.el --- Test suite for abbrevs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2017 Free Software Foundation, Inc.
 
 ;; Author: Eli Zaretskii <eliz@gnu.org>
 ;; Keywords: abbrevs

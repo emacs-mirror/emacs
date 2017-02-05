@@ -1,5 +1,5 @@
 /* Define frame-object for GNU Emacs.
-   Copyright (C) 1993-1994, 1999-2016 Free Software Foundation, Inc.
+   Copyright (C) 1993-1994, 1999-2017 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

@@ -1,6 +1,6 @@
 ;; ada-xref.el --- for lookup and completion in Ada mode
 
-;; Copyright (C) 1994-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2017 Free Software Foundation, Inc.
 
 ;; Author: Markus Heritsch <Markus.Heritsch@studbox.uni-stuttgart.de>
 ;;      Rolf Ebert <ebert@inf.enst.fr>
@@ -25,19 +25,14 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-;;; This Package provides a set of functions to use the output of the
-;;; cross reference capabilities of the GNAT Ada compiler
-;;; for lookup and completion in Ada mode.
-;;;
-;;; If a file *.`adp' exists in the ada-file directory, then it is
-;;; read for configuration information.  It is read only the first
-;;; time a cross-reference is asked for, and is not read later.
 
-;;; You need Emacs >= 20.2 to run this package
-
-
-;;; History:
+;; This Package provides a set of functions to use the output of the
+;; cross reference capabilities of the GNAT Ada compiler
+;; for lookup and completion in Ada mode.
 ;;
+;; If a file *.`adp' exists in the ada-file directory, then it is
+;; read for configuration information.  It is read only the first
+;; time a cross-reference is asked for, and is not read later.
 
 ;;; Code:
 
@@ -47,6 +42,7 @@
 (require 'comint)
 (require 'find-file)
 (require 'ada-mode)
+(eval-when-compile (require 'cl-lib))
 
 ;; ------ User variables
 (defcustom ada-xref-other-buffer t
@@ -318,9 +314,9 @@ CROSS-PREFIX is the prefix to use for the `gnatls' command."
 		(forward-line 1)
 		(while (not (looking-at "^$"))
 		  (back-to-indentation)
-		  (if (looking-at "<Current_Directory>")
-		      (add-to-list 'ada-xref-runtime-library-specs-path  ".")
-		    (add-to-list 'ada-xref-runtime-library-specs-path
+		  (add-to-list 'ada-xref-runtime-library-specs-path
+                               (if (looking-at "<Current_Directory>")
+                                   "."
 				 (buffer-substring-no-properties
 				  (point)
 				  (point-at-eol))))
@@ -332,9 +328,9 @@ CROSS-PREFIX is the prefix to use for the `gnatls' command."
 		(forward-line 1)
 		(while (not (looking-at "^$"))
 		  (back-to-indentation)
-		  (if (looking-at "<Current_Directory>")
-		      (add-to-list 'ada-xref-runtime-library-ali-path ".")
-		    (add-to-list 'ada-xref-runtime-library-ali-path
+		  (add-to-list 'ada-xref-runtime-library-ali-path
+                               (if (looking-at "<Current_Directory>")
+                                   "."
 				 (buffer-substring-no-properties
 				  (point)
 				  (point-at-eol))))
@@ -380,12 +376,12 @@ Assumes environment variable ADA_PROJECT_PATH is set properly."
 	  (forward-line 1) ; first directory in list
 	  (while (not (looking-at "^$")) ; terminate on blank line
 	    (back-to-indentation) ; skip whitespace
-	    (add-to-list 'src-dir
-                         (if (looking-at "<Current_Directory>")
-                             default-directory
-			   (expand-file-name
-			    (buffer-substring-no-properties
-			     (point) (line-end-position)))))
+	    (cl-pushnew (if (looking-at "<Current_Directory>")
+                            default-directory
+                          (expand-file-name
+                           (buffer-substring-no-properties
+                            (point) (line-end-position))))
+                        src-dir :test #'equal)
 	    (forward-line 1))
 
 	  ;;  Object path
@@ -394,12 +390,12 @@ Assumes environment variable ADA_PROJECT_PATH is set properly."
 	  (forward-line 1)
 	  (while (not (looking-at "^$"))
 	    (back-to-indentation)
-	    (add-to-list 'obj-dir
-                         (if (looking-at "<Current_Directory>")
-                             default-directory
-			   (expand-file-name
-			    (buffer-substring-no-properties
-			     (point) (line-end-position)))))
+	    (cl-pushnew (if (looking-at "<Current_Directory>")
+                            default-directory
+                          (expand-file-name
+                           (buffer-substring-no-properties
+                            (point) (line-end-position))))
+                        obj-dir :test #'equal)
 	    (forward-line 1))
 
 	  ;; Set properties
@@ -831,9 +827,9 @@ Return new value of PROJECT."
 	   ;; FIXME: strip trailing spaces
 	   ;; variable name alphabetical order
 	   ((string= (match-string 1) "ada_project_path")
-	    (add-to-list 'ada_project_path
-			 (expand-file-name
-			  (substitute-in-file-name (match-string 2)))))
+	    (cl-pushnew (expand-file-name
+                         (substitute-in-file-name (match-string 2)))
+                        ada_project_path :test #'equal))
 
 	   ((string= (match-string 1) "build_dir")
 	    (setq project
@@ -841,40 +837,40 @@ Return new value of PROJECT."
 			    (file-name-as-directory (match-string 2)))))
 
 	   ((string= (match-string 1) "casing")
-	    (add-to-list 'casing
-			 (expand-file-name (substitute-in-file-name (match-string 2)))))
+	    (cl-pushnew (expand-file-name (substitute-in-file-name (match-string 2)))
+                        casing :test #'equal))
 
 	   ((string= (match-string 1) "check_cmd")
-	    (add-to-list 'check_cmd (match-string 2)))
+	    (cl-pushnew (match-string 2) check_cmd :test #'equal))
 
 	   ((string= (match-string 1) "comp_cmd")
-	    (add-to-list 'comp_cmd (match-string 2)))
+	    (cl-pushnew (match-string 2) comp_cmd :test #'equal))
 
 	   ((string= (match-string 1) "debug_post_cmd")
-	    (add-to-list 'debug_post_cmd (match-string 2)))
+	    (cl-pushnew (match-string 2) debug_post_cmd :test #'equal))
 
 	   ((string= (match-string 1) "debug_pre_cmd")
-	    (add-to-list 'debug_pre_cmd (match-string 2)))
+	    (cl-pushnew (match-string 2) debug_pre_cmd :test #'equal))
 
 	   ((string= (match-string 1) "gpr_file")
 	    ;; expand now; path is relative to Emacs project file
 	    (setq gpr_file (expand-file-name (match-string 2))))
 
 	   ((string= (match-string 1) "make_cmd")
-	    (add-to-list 'make_cmd (match-string 2)))
+	    (cl-pushnew (match-string 2) make_cmd :test #'equal))
 
 	   ((string= (match-string 1) "obj_dir")
-	    (add-to-list 'obj_dir
-			 (file-name-as-directory
-			  (expand-file-name (match-string 2)))))
+	    (cl-pushnew (file-name-as-directory
+                         (expand-file-name (match-string 2)))
+                        obj_dir :test #'equal))
 
 	   ((string= (match-string 1) "run_cmd")
-	    (add-to-list 'run_cmd (match-string 2)))
+	    (cl-pushnew (match-string 2) run_cmd :test #'equal))
 
 	   ((string= (match-string 1) "src_dir")
-	    (add-to-list 'src_dir
-			 (file-name-as-directory
-			  (expand-file-name (match-string 2)))))
+	    (cl-pushnew (file-name-as-directory
+                         (expand-file-name (match-string 2)))
+                        src_dir :test #'equal))
 
 	   (t
 	    ;; any other field in the file is just copied
@@ -1866,8 +1862,8 @@ This function is disabled for operators, and only works for identifiers."
 		)
 	      ;; construct a list with the file names and the positions within
 	      (if (re-search-backward "^X [0-9]+ \\([a-zA-Z0-9._-]+\\)" nil t)
-		  (add-to-list
-		   'declist (list line-ali (match-string 1) line-ada col-ada))
+		  (cl-pushnew (list line-ali (match-string 1) line-ada col-ada)
+                              declist :test #'equal)
 		)
 	      )
 	    )

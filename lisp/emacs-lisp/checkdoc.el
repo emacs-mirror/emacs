@@ -1,6 +1,6 @@
 ;;; checkdoc.el --- check documentation strings for style requirements  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997-1998, 2001-2016 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2001-2017 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 0.6.2
@@ -293,12 +293,6 @@ problem discovered.  This is useful for adding additional checks.")
 
 (defvar checkdoc-diagnostic-buffer "*Style Warnings*"
   "Name of warning message buffer.")
-
-(defvar checkdoc-defun-regexp
-  "^(def\\(un\\|var\\|custom\\|macro\\|const\\|subst\\|advice\\)\
-\\s-+\\(\\(\\sw\\|\\s_\\)+\\)[ \t\n]+"
-  "Regular expression used to identify a defun.
-A search leaves the cursor in front of the parameter list.")
 
 (defcustom checkdoc-verb-check-experimental-flag t
   "Non-nil means to attempt to check the voice of the doc string.
@@ -938,13 +932,31 @@ is the starting location.  If this is nil, `point-min' is used instead."
 (defun checkdoc-next-docstring ()
   "Move to the next doc string after point, and return t.
 Return nil if there are no more doc strings."
-  (if (not (re-search-forward checkdoc-defun-regexp nil t))
-      nil
-    ;; search drops us after the identifier.  The next sexp is either
-    ;; the argument list or the value of the variable.  skip it.
-    (forward-sexp 1)
-    (skip-chars-forward " \n\t")
-    t))
+  (let (found)
+    (while (and (not (setq found (checkdoc--next-docstring)))
+                (beginning-of-defun -1)))
+    found))
+
+(defun checkdoc--next-docstring ()
+  "When looking at a definition with a doc string, find it.
+Move to the next doc string after point, and return t.  When not
+looking at a definition containing a doc string, return nil and
+don't move point."
+  (pcase (save-excursion (condition-case nil
+                             (read (current-buffer))
+                           ;; Conservatively skip syntax errors.
+                           (invalid-read-syntax)))
+    (`(,(or 'defun 'defvar 'defcustom 'defmacro 'defconst 'defsubst 'defadvice)
+       ,(pred symbolp)
+       ;; Require an initializer, i.e. ignore single-argument `defvar'
+       ;; forms, which never have a doc string.
+       ,_ . ,_)
+     (down-list)
+     ;; Skip over function or macro name, symbol to be defined, and
+     ;; initializer or argument list.
+     (forward-sexp 3)
+     (skip-chars-forward " \n\t")
+     t)))
 
 ;;;###autoload
 (defun checkdoc-comments (&optional take-notes)
@@ -1027,21 +1039,12 @@ space at the end of each line."
   (interactive)
   (save-excursion
     (beginning-of-defun)
-    (if (not (looking-at checkdoc-defun-regexp))
-	;; I found this more annoying than useful.
-	;;(if (not no-error)
-	;;    (message "Cannot check this sexp's doc string."))
-	nil
-      ;; search drops us after the identifier.  The next sexp is either
-      ;; the argument list or the value of the variable.  skip it.
-      (goto-char (match-end 0))
-      (forward-sexp 1)
-      (skip-chars-forward " \n\t")
+    (when (checkdoc--next-docstring)
       (let* ((checkdoc-spellcheck-documentation-flag
-	      (car (memq checkdoc-spellcheck-documentation-flag
+              (car (memq checkdoc-spellcheck-documentation-flag
                          '(defun t))))
-	     (beg (save-excursion (beginning-of-defun) (point)))
-	     (end (save-excursion (end-of-defun) (point))))
+             (beg (save-excursion (beginning-of-defun) (point)))
+             (end (save-excursion (end-of-defun) (point))))
         (dolist (fun (list #'checkdoc-this-string-valid
                            (lambda () (checkdoc-message-text-search beg end))
                            (lambda () (checkdoc-rogue-space-check-engine beg end))))
@@ -1049,8 +1052,8 @@ space at the end of each line."
             (if msg (if no-error
                         (message "%s" (checkdoc-error-text msg))
                       (user-error "%s" (checkdoc-error-text msg))))))
-	(if (called-interactively-p 'interactive)
-	    (message "Checkdoc: done."))))))
+        (if (called-interactively-p 'interactive)
+            (message "Checkdoc: done."))))))
 
 ;;; Ispell interface for forcing a spell check
 ;;

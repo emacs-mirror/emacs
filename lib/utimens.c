@@ -1,6 +1,6 @@
 /* Set file access and modification times.
 
-   Copyright (C) 2003-2016 Free Software Foundation, Inc.
+   Copyright (C) 2003-2017 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -154,14 +154,14 @@ update_timespec (struct stat const *statbuf, struct timespec *ts[2])
   return false;
 }
 
-/* Set the access and modification time stamps of FD (a.k.a. FILE) to be
+/* Set the access and modification timestamps of FD (a.k.a. FILE) to be
    TIMESPEC[0] and TIMESPEC[1], respectively.
    FD must be either negative -- in which case it is ignored --
    or a file descriptor that is open on FILE.
    If FD is nonnegative, then FILE can be NULL, which means
    use just futimes (or equivalent) instead of utimes (or equivalent),
    and fail if on an old system without futimes (or equivalent).
-   If TIMESPEC is null, set the time stamps to the current time.
+   If TIMESPEC is null, set the timestamps to the current time.
    Return 0 on success, -1 (setting errno) on failure.  */
 
 int
@@ -190,7 +190,7 @@ fdutimens (int fd, char const *file, struct timespec const timespec[2])
       return -1;
     }
 
-  /* Some Linux-based NFS clients are buggy, and mishandle time stamps
+  /* Some Linux-based NFS clients are buggy, and mishandle timestamps
      of files in NFS file systems in some cases.  We have no
      configure-time test for this, but please see
      <http://bugs.gentoo.org/show_bug.cgi?id=132673> for references to
@@ -411,7 +411,7 @@ fdutimens (int fd, char const *file, struct timespec const timespec[2])
   }
 }
 
-/* Set the access and modification time stamps of FILE to be
+/* Set the access and modification timestamps of FILE to be
    TIMESPEC[0] and TIMESPEC[1], respectively.  */
 int
 utimens (char const *file, struct timespec const timespec[2])
@@ -419,7 +419,7 @@ utimens (char const *file, struct timespec const timespec[2])
   return fdutimens (-1, file, timespec);
 }
 
-/* Set the access and modification time stamps of FILE to be
+/* Set the access and modification timestamps of FILE to be
    TIMESPEC[0] and TIMESPEC[1], respectively, without dereferencing
    symlinks.  Fail with ENOSYS if the platform does not support
    changing symlink timestamps, but FILE was a symlink.  */

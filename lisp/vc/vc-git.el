@@ -1,6 +1,6 @@
 ;;; vc-git.el --- VC backend for the git version control system -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2017 Free Software Foundation, Inc.
 
 ;; Author: Alexandre Julliard <julliard@winehq.org>
 ;; Keywords: vc tools
@@ -152,7 +152,7 @@ the staging area."
     ;; revision number to be group 1.
     "^\\(?:[*/\\| ]+ \\)?\\(?2: ([^)]+)\\)?\\(?1:[0-9a-z]+\\)..: \
 \\(?3:.*?\\)[ \t]+\\(?4:[0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}\\)"
-    ((1 'log-view-message-face)
+    ((1 'log-view-message)
      (2 'change-log-list nil lax)
      (3 'change-log-name)
      (4 'change-log-date)))
@@ -1029,6 +1029,8 @@ or BRANCH^ (where \"^\" can be repeated)."
       (buffer-string))))
 
 (defun vc-git-region-history (file buffer lfrom lto)
+  "Insert into BUFFER the history of FILE for lines LFROM to LTO.
+This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
   ;; The "git log" command below interprets the line numbers as applying
   ;; to the HEAD version of the file, not to the current state of the file.
   ;; So we need to look at all the local changes and adjust lfrom/lto

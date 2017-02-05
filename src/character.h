@@ -680,6 +680,7 @@ extern bool alphabeticp (int);
 extern bool alphanumericp (int);
 extern bool graphicp (int);
 extern bool printablep (int);
+extern bool blankp (int);
 
 /* Return a translation table of id number ID.  */
 #define GET_TRANSLATION_TABLE(id) \

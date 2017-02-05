@@ -1,6 +1,6 @@
 /* Convert UTC calendar time to simple time.  Like mktime but assumes UTC.
 
-   Copyright (C) 1994, 1997, 2003-2004, 2006-2007, 2009-2016 Free Software
+   Copyright (C) 1994, 1997, 2003-2004, 2006-2007, 2009-2017 Free Software
    Foundation, Inc.  This file is part of the GNU C Library.
 
    This program is free software; you can redistribute it and/or modify

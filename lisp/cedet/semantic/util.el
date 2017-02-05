@@ -1,6 +1,6 @@
 ;;; semantic/util.el --- Utilities for use with semantic tag tables
 
-;;; Copyright (C) 1999-2005, 2007-2016 Free Software Foundation, Inc.
+;;; Copyright (C) 1999-2005, 2007-2017 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax

@@ -1,6 +1,6 @@
 ;;; tramp-tests.el --- Tests of remote file access
 
-;; Copyright (C) 2013-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2017 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 
@@ -1991,12 +1991,16 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		 (string-equal
 		  (make-auto-save-file-name)
 		  ;; This is taken from original `make-auto-save-file-name'.
-		  (expand-file-name
-		   (format
-		    "#%s#"
-		    (subst-char-in-string
-		     ?/ ?! (replace-regexp-in-string "!" "!!" tmp-name1)))
-		   temporary-file-directory)))))
+		  ;; We call `convert-standard-filename', because on
+		  ;; MS Windows the (local) colons must be replaced by
+		  ;; exclamation marks.
+		  (convert-standard-filename
+		   (expand-file-name
+		    (format
+		     "#%s#"
+		     (subst-char-in-string
+		      ?/ ?! (replace-regexp-in-string "!" "!!" tmp-name1)))
+		    temporary-file-directory))))))
 
 	    ;; No mapping.
 	    (let (tramp-auto-save-directory auto-save-file-name-transforms)

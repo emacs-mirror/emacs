@@ -1,5 +1,5 @@
 /* Definitions and global variables for intervals.
-   Copyright (C) 1993-1994, 2000-2016 Free Software Foundation, Inc.
+   Copyright (C) 1993-1994, 2000-2017 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -18,6 +18,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifndef EMACS_INTERVALS_H
 #define EMACS_INTERVALS_H
+
+#include "buffer.h"
+#include "lisp.h"
 
 INLINE_HEADER_BEGIN
 

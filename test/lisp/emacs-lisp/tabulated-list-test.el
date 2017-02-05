@@ -1,6 +1,6 @@
 ;;; tabulated-list-test.el --- Tests for emacs-lisp/tabulated-list.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2016 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2017 Free Software Foundation, Inc.
 
 ;; Author: Artur Malabarba <bruce.connor.am@gmail.com>
 
