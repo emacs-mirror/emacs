@@ -518,6 +518,7 @@ lost after dumping")))
                                      initial-window-system window-system
                                      ;; custom-delayed-init-variables
                                      current-load-list
+                                     coding-system-list
                                      exec-path
                                      process-environment
                                      command-line-args noninteractive))))
