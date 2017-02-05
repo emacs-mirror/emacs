@@ -1677,7 +1677,9 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
         /* Unless next switch is -nl, load "dumped.elc" first thing.
 	   If it fails, we won't be able to run.  */
 	{
-	  Lisp_Object load = list2 (Qload, build_string ("../src/dumped.elc"));
+	  Lisp_Object load = list4 (Qload,
+				    build_string ("../src/dumped.elc"),
+				    Qnil, Qt);
 	  /* XXX We need a way for Lisp to cause Emacs to exit, with
 	     an error message to stderr after restoring tty modes.  */
 	  /* (condition-case nil bodyform (file-missing (kill-emacs 42)))  */
