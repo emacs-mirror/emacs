@@ -463,7 +463,7 @@ lost after dumping")))
       ;; other GNU program's build process.
       ;; (dump-emacs "emacs" "temacs")
       ;; (message "%d pure bytes used" pure-bytes-used)
-      (let ((exe (if (memq system-type '(windows-nt ms-dos)) ".exe" "")))
+      (let ((exe (if (memq system-type '(cygwin windows-nt ms-dos)) ".exe" "")))
         (copy-file (expand-file-name (concat "temacs" exe) invocation-directory)
                    (expand-file-name (concat "emacs" exe) invocation-directory)
                    t)

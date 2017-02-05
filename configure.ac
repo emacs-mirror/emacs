@@ -2204,9 +2204,7 @@ system_malloc=yes
 test "$CANNOT_DUMP" = yes ||
 case "$opsys" in
   ## darwin ld insists on the use of malloc routines in the System framework.
-  darwin | mingw32 | nacl | sol2-10) ;;
-  cygwin) hybrid_malloc=yes
-          system_malloc= ;;
+  cygwin | darwin | mingw32 | nacl | sol2-10) ;;
   *) test "$ac_cv_func_sbrk" = yes && system_malloc=$emacs_cv_sanitize_address;;
 esac
 
