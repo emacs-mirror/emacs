@@ -43,6 +43,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "frame.h"
 #include "blockinput.h"
 #include "termhooks.h"		/* For struct terminal.  */
+#include "itree.h"
 #ifdef HAVE_WINDOW_SYSTEM
 #include TERM_HEADER
 #endif /* HAVE_WINDOW_SYSTEM */
@@ -3835,16 +3836,19 @@ free_save_value (Lisp_Object save)
 /* Return a Lisp_Misc_Overlay object with specified START, END and PLIST.  */
 
 Lisp_Object
-build_overlay (Lisp_Object start, Lisp_Object end, Lisp_Object plist)
+build_overlay (ptrdiff_t begin, ptrdiff_t end,
+               bool front_advance, bool rear_advance,
+               Lisp_Object plist)
 {
-  register Lisp_Object overlay;
+  Lisp_Object ov = allocate_misc (Lisp_Misc_Overlay);
+  struct interval_node *node = xmalloc (sizeof (*node));
 
-  overlay = allocate_misc (Lisp_Misc_Overlay);
-  OVERLAY_START (overlay) = start;
-  OVERLAY_END (overlay) = end;
-  set_overlay_plist (overlay, plist);
-  XOVERLAY (overlay)->next = NULL;
-  return overlay;
+  interval_node_init (node, begin, end, front_advance,
+                      rear_advance, ov);
+  XOVERLAY (ov)->interval = node;
+  XOVERLAY (ov)->buffer = NULL;
+  set_overlay_plist (ov, plist);
+  return ov;
 }
 
 DEFUN ("make-marker", Fmake_marker, Smake_marker, 0, 0, 0,
@@ -6280,16 +6284,10 @@ mark_compiled (struct Lisp_Vector *ptr)
 /* Mark the chain of overlays starting at PTR.  */
 
 static void
-mark_overlay (struct Lisp_Overlay *ptr)
+mark_overlay (struct Lisp_Overlay *ov)
 {
-  for (; ptr && !ptr->gcmarkbit; ptr = ptr->next)
-    {
-      ptr->gcmarkbit = 1;
-      /* These two are always markers and can be marked fast.  */
-      XMARKER (ptr->start)->gcmarkbit = 1;
-      XMARKER (ptr->end)->gcmarkbit = 1;
-      mark_object (ptr->plist);
-    }
+  ov->gcmarkbit = 1;
+  mark_object (ov->plist);
 }
 
 /* Mark Lisp_Objects and special pointers in BUFFER.  */
@@ -6308,8 +6306,15 @@ mark_buffer (struct buffer *buffer)
      a special way just before the sweep phase, and after stripping
      some of its elements that are not needed any more.  */
 
-  mark_overlay (buffer->overlays_before);
-  mark_overlay (buffer->overlays_after);
+  if (buffer->overlays)
+    {
+      struct interval_node *node;
+      buffer_overlay_iter_start (buffer, PTRDIFF_MIN, PTRDIFF_MAX, ITREE_ASCENDING);
+
+      while ((node = buffer_overlay_iter_next (buffer)))
+        mark_overlay (XOVERLAY (node->data));
+      buffer_overlay_iter_finish (buffer);
+    }
 
   /* If this is an indirect buffer, mark its base buffer.  */
   if (buffer->base_buffer && !VECTOR_MARKED_P (buffer->base_buffer))
@@ -7090,6 +7095,11 @@ sweep_misc (void)
                 unchain_marker (&mblk->markers[i].m.u_marker);
               else if (mblk->markers[i].m.u_any.type == Lisp_Misc_Finalizer)
                 unchain_finalizer (&mblk->markers[i].m.u_finalizer);
+              else if (mblk->markers[i].m.u_any.type == Lisp_Misc_Overlay)
+                {
+                  xfree (mblk->markers[i].m.u_overlay.interval);
+                  mblk->markers[i].m.u_overlay.interval = NULL;
+                }
 #ifdef HAVE_MODULES
 	      else if (mblk->markers[i].m.u_any.type == Lisp_Misc_User_Ptr)
 		{
@@ -7145,6 +7155,7 @@ sweep_buffers (void)
     if (!VECTOR_MARKED_P (buffer))
       {
         *bprev = buffer->next;
+        free_buffer_overlays (buffer);
         lisp_free (buffer);
       }
     else

@@ -548,8 +548,7 @@ temp_output_buffer_setup (const char *bufname)
   bset_read_only (current_buffer, Qnil);
   bset_filename (current_buffer, Qnil);
   bset_undo_list (current_buffer, Qt);
-  eassert (current_buffer->overlays_before == NULL);
-  eassert (current_buffer->overlays_after == NULL);
+  eassert (current_buffer->overlays == NULL);
   bset_enable_multibyte_characters
     (current_buffer, BVAR (&buffer_defaults, enable_multibyte_characters));
   specbind (Qinhibit_read_only, Qt);
@@ -2074,7 +2073,7 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	      obj = XCDR (obj);
 	      if (!(i & 1))
 		halftail = XCDR (halftail);
-	  }
+            }
 
 	  /* OBJ non-nil here means it's the end of a dotted list.  */
 	  if (!NILP (obj))
@@ -2114,15 +2113,14 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 
 	case Lisp_Misc_Overlay:
 	  print_c_string ("#<overlay ", printcharfun);
-	  if (! XMARKER (OVERLAY_START (obj))->buffer)
+	  if (! OVERLAY_BUFFER (obj))
 	    print_c_string ("in no buffer", printcharfun);
 	  else
 	    {
 	      int len = sprintf (buf, "from %"pD"d to %"pD"d in ",
-				 marker_position (OVERLAY_START (obj)),
-				 marker_position (OVERLAY_END   (obj)));
+                                 OVERLAY_START (obj), OVERLAY_END (obj));
 	      strout (buf, len, len, printcharfun);
-	      print_string (BVAR (XMARKER (OVERLAY_START (obj))->buffer, name),
+	      print_string (BVAR (OVERLAY_BUFFER (obj), name),
 			    printcharfun);
 	    }
 	  printchar ('>', printcharfun);

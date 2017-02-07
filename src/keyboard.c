@@ -1668,8 +1668,8 @@ adjust_point_for_property (ptrdiff_t last_pt, bool modified)
 	  && display_prop_intangible_p (val, overlay, PT, PT_BYTE)
 	  && (!OVERLAYP (overlay)
 	      ? get_property_and_range (PT, Qdisplay, &val, &beg, &end, Qnil)
-	      : (beg = OVERLAY_POSITION (OVERLAY_START (overlay)),
-		 end = OVERLAY_POSITION (OVERLAY_END (overlay))))
+	      : (beg = OVERLAY_START (overlay),
+		 end = OVERLAY_END (overlay)))
 	  && (beg < PT /* && end > PT   <- It's always the case.  */
 	      || (beg <= PT && STRINGP (val) && SCHARS (val) == 0)))
 	{

@@ -873,7 +873,6 @@ static enum move_it_result
 static void get_visually_first_element (struct it *);
 static void compute_stop_pos (struct it *);
 static int face_before_or_after_it_pos (struct it *, bool);
-static ptrdiff_t next_overlay_change (ptrdiff_t);
 static int handle_display_spec (struct it *, Lisp_Object, Lisp_Object,
 				Lisp_Object, struct text_pos *, ptrdiff_t, bool);
 static int handle_single_display_spec (struct it *, Lisp_Object, Lisp_Object,
@@ -3606,39 +3605,6 @@ compute_stop_pos (struct it *it)
 	       && it->stop_charpos >= IT_CHARPOS (*it)));
 }
 
-
-/* Return the position of the next overlay change after POS in
-   current_buffer.  Value is point-max if no overlay change
-   follows.  This is like `next-overlay-change' but doesn't use
-   xmalloc.  */
-
-static ptrdiff_t
-next_overlay_change (ptrdiff_t pos)
-{
-  ptrdiff_t i, noverlays;
-  ptrdiff_t endpos;
-  Lisp_Object *overlays;
-  USE_SAFE_ALLOCA;
-
-  /* Get all overlays at the given position.  */
-  GET_OVERLAYS_AT (pos, overlays, noverlays, &endpos, true);
-
-  /* If any of these overlays ends before endpos,
-     use its ending point instead.  */
-  for (i = 0; i < noverlays; ++i)
-    {
-      Lisp_Object oend;
-      ptrdiff_t oendpos;
-
-      oend = OVERLAY_END (overlays[i]);
-      oendpos = OVERLAY_POSITION (oend);
-      endpos = min (endpos, oendpos);
-    }
-
-  SAFE_FREE ();
-  return endpos;
-}
-
 /* How many characters forward to search for a display property or
    display string.  Searching too far forward makes the bidi display
    sluggish, especially in small windows.  */
@@ -5071,7 +5037,7 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
 	 overlay's display string/image twice.  */
       if (!NILP (overlay))
 	{
-	  ptrdiff_t ovendpos = OVERLAY_POSITION (OVERLAY_END (overlay));
+	  ptrdiff_t ovendpos = OVERLAY_END (overlay);
 
 	  /* Some borderline-sane Lisp might call us with the current
 	     buffer narrowed so that overlay-end is outside the
@@ -5785,13 +5751,14 @@ static void
 load_overlay_strings (struct it *it, ptrdiff_t charpos)
 {
   Lisp_Object overlay, window, str, invisible;
-  struct Lisp_Overlay *ov;
   ptrdiff_t start, end;
   ptrdiff_t n = 0, i, j;
   int invis;
   struct overlay_entry entriesbuf[20];
   ptrdiff_t size = ARRAYELTS (entriesbuf);
   struct overlay_entry *entries = entriesbuf;
+  struct interval_node *node;
+
   USE_SAFE_ALLOCA;
 
   if (charpos <= 0)
@@ -5823,83 +5790,47 @@ load_overlay_strings (struct it *it, ptrdiff_t charpos)
     }									\
   while (false)
 
-  /* Process overlay before the overlay center.  */
-  for (ov = current_buffer->overlays_before; ov; ov = ov->next)
+  if (current_buffer->overlays)
     {
-      XSETMISC (overlay, ov);
-      eassert (OVERLAYP (overlay));
-      start = OVERLAY_POSITION (OVERLAY_START (overlay));
-      end = OVERLAY_POSITION (OVERLAY_END (overlay));
+      buffer_overlay_iter_start (current_buffer,
+                                 charpos - 1, charpos + 1, ITREE_DESCENDING);
+      /* Process overlays.  */
+      while ((node = buffer_overlay_iter_next (current_buffer)))
+        {
+          overlay = node->data;
+          eassert (OVERLAYP (overlay));
+          start = node->begin;
+          end = node->end;
 
-      if (end < charpos)
-	break;
+          /* Skip this overlay if it doesn't start or end at IT's current
+             position.  */
+          if (end != charpos && start != charpos)
+            continue;
 
-      /* Skip this overlay if it doesn't start or end at IT's current
-	 position.  */
-      if (end != charpos && start != charpos)
-	continue;
+          /* Skip this overlay if it doesn't apply to IT->w.  */
+          window = Foverlay_get (overlay, Qwindow);
+          if (WINDOWP (window) && XWINDOW (window) != it->w)
+            continue;
 
-      /* Skip this overlay if it doesn't apply to IT->w.  */
-      window = Foverlay_get (overlay, Qwindow);
-      if (WINDOWP (window) && XWINDOW (window) != it->w)
-	continue;
+          /* If the text ``under'' the overlay is invisible, both before-
+             and after-strings from this overlay are visible; start and
+             end position are indistinguishable.  */
+          invisible = Foverlay_get (overlay, Qinvisible);
+          invis = TEXT_PROP_MEANS_INVISIBLE (invisible);
 
-      /* If the text ``under'' the overlay is invisible, both before-
-	 and after-strings from this overlay are visible; start and
-	 end position are indistinguishable.  */
-      invisible = Foverlay_get (overlay, Qinvisible);
-      invis = TEXT_PROP_MEANS_INVISIBLE (invisible);
+          /* If overlay has a non-empty before-string, record it.  */
+          if ((start == charpos || (end == charpos && invis != 0))
+              && (str = Foverlay_get (overlay, Qbefore_string), STRINGP (str))
+              && SCHARS (str))
+            RECORD_OVERLAY_STRING (overlay, str, false);
 
-      /* If overlay has a non-empty before-string, record it.  */
-      if ((start == charpos || (end == charpos && invis != 0))
-	  && (str = Foverlay_get (overlay, Qbefore_string), STRINGP (str))
-	  && SCHARS (str))
-	RECORD_OVERLAY_STRING (overlay, str, false);
-
-      /* If overlay has a non-empty after-string, record it.  */
-      if ((end == charpos || (start == charpos && invis != 0))
-	  && (str = Foverlay_get (overlay, Qafter_string), STRINGP (str))
-	  && SCHARS (str))
-	RECORD_OVERLAY_STRING (overlay, str, true);
-    }
-
-  /* Process overlays after the overlay center.  */
-  for (ov = current_buffer->overlays_after; ov; ov = ov->next)
-    {
-      XSETMISC (overlay, ov);
-      eassert (OVERLAYP (overlay));
-      start = OVERLAY_POSITION (OVERLAY_START (overlay));
-      end = OVERLAY_POSITION (OVERLAY_END (overlay));
-
-      if (start > charpos)
-	break;
-
-      /* Skip this overlay if it doesn't start or end at IT's current
-	 position.  */
-      if (end != charpos && start != charpos)
-	continue;
-
-      /* Skip this overlay if it doesn't apply to IT->w.  */
-      window = Foverlay_get (overlay, Qwindow);
-      if (WINDOWP (window) && XWINDOW (window) != it->w)
-	continue;
-
-      /* If the text ``under'' the overlay is invisible, it has a zero
-	 dimension, and both before- and after-strings apply.  */
-      invisible = Foverlay_get (overlay, Qinvisible);
-      invis = TEXT_PROP_MEANS_INVISIBLE (invisible);
-
-      /* If overlay has a non-empty before-string, record it.  */
-      if ((start == charpos || (end == charpos && invis != 0))
-	  && (str = Foverlay_get (overlay, Qbefore_string), STRINGP (str))
-	  && SCHARS (str))
-	RECORD_OVERLAY_STRING (overlay, str, false);
-
-      /* If overlay has a non-empty after-string, record it.  */
-      if ((end == charpos || (start == charpos && invis != 0))
-	  && (str = Foverlay_get (overlay, Qafter_string), STRINGP (str))
-	  && SCHARS (str))
-	RECORD_OVERLAY_STRING (overlay, str, true);
+          /* If overlay has a non-empty after-string, record it.  */
+          if ((end == charpos || (start == charpos && invis != 0))
+              && (str = Foverlay_get (overlay, Qafter_string), STRINGP (str))
+              && SCHARS (str))
+            RECORD_OVERLAY_STRING (overlay, str, true);
+        }
+      buffer_overlay_iter_finish (current_buffer);
     }
 
 #undef RECORD_OVERLAY_STRING
@@ -6463,7 +6394,7 @@ back_to_previous_visible_line_start (struct it *it)
 	    && !NILP (val = get_char_property_and_overlay
 		      (make_number (pos), Qdisplay, Qnil, &overlay))
 	    && (OVERLAYP (overlay)
-		? (beg = OVERLAY_POSITION (OVERLAY_START (overlay)))
+		? (beg = OVERLAY_START (overlay))
 		: get_property_and_range (pos, Qdisplay, &val, &beg, &end, Qnil)))
 	  {
 	    RESTORE_IT (it, it, it2data);
@@ -9568,7 +9499,6 @@ move_it_to (struct it *it, ptrdiff_t to_charpos, int to_x, int to_y, int to_vpos
 	}
 
       /* Reset/increment for the next run.  */
-      recenter_overlay_lists (current_buffer, IT_CHARPOS (*it));
       it->current_x = line_start_x;
       line_start_x = 0;
       it->hpos = 0;
@@ -21212,13 +21142,6 @@ display_line (struct it *it, int cursor_vpos)
   row->starts_in_middle_of_char_p = it->starts_in_middle_of_char_p;
   it->starts_in_middle_of_char_p = false;
 
-  /* Arrange the overlays nicely for our purposes.  Usually, we call
-     display_line on only one line at a time, in which case this
-     can't really hurt too much, or we call it on lines which appear
-     one after another in the buffer, in which case all calls to
-     recenter_overlay_lists but the first will be pretty cheap.  */
-  recenter_overlay_lists (current_buffer, IT_CHARPOS (*it));
-
   /* If we are going to display the cursor's line, account for the
      hscroll of that line.  We subtract the window's min_hscroll,
      because that was already accounted for in init_iterator.  */
@@ -31212,7 +31135,7 @@ note_mouse_highlight (struct frame *f, int x, int y)
       if (BUFFERP (object))
 	{
 	  /* Put all the overlays we want in a vector in overlay_vec.  */
-	  GET_OVERLAYS_AT (pos, overlay_vec, noverlays, NULL, false);
+	  GET_OVERLAYS_AT (pos, overlay_vec, noverlays, NULL);
 	  /* Sort overlays into increasing priority order.  */
 	  noverlays = sort_overlays (overlay_vec, noverlays, w);
 	}

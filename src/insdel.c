@@ -276,7 +276,6 @@ adjust_markers_for_insert (ptrdiff_t from, ptrdiff_t from_byte,
 			   ptrdiff_t to, ptrdiff_t to_byte, bool before_markers)
 {
   struct Lisp_Marker *m;
-  bool adjusted = 0;
   ptrdiff_t nchars = to - from;
   ptrdiff_t nbytes = to_byte - from_byte;
 
@@ -292,8 +291,6 @@ adjust_markers_for_insert (ptrdiff_t from, ptrdiff_t from_byte,
 	    {
 	      m->bytepos = to_byte;
 	      m->charpos = to;
-	      if (m->insertion_type)
-		adjusted = 1;
 	    }
 	}
       else if (m->bytepos > from_byte)
@@ -301,15 +298,6 @@ adjust_markers_for_insert (ptrdiff_t from, ptrdiff_t from_byte,
 	  m->bytepos += nbytes;
 	  m->charpos += nchars;
 	}
-    }
-
-  /* Adjusting only markers whose insertion-type is t may result in
-     - disordered start and end in overlays, and
-     - disordered overlays in the slot `overlays_before' of current_buffer.  */
-  if (adjusted)
-    {
-      fix_start_end_in_overlays (from, to);
-      fix_overlays_before (current_buffer, from, to);
     }
 }
 

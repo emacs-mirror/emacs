@@ -5495,6 +5495,7 @@ if test -f "$srcdir/$opt_makefile.in"; then
   dnl Again, it's best not to use a variable.  Though you can add
   dnl ", [], [opt_makefile='$opt_makefile']" and it should work.
   AC_CONFIG_FILES([test/Makefile])
+  AC_CONFIG_FILES([test/manual/noverlay/Makefile])
 fi
 
 

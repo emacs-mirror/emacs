@@ -2217,15 +2217,14 @@ struct Lisp_Overlay
    - next fields of start and end markers (singly linked list of markers).
    I.e. 9words plus 2 bits, 3words of which are for external linked lists.
 */
-  {
-    ENUM_BF (Lisp_Misc_Type) type : 16;	/* = Lisp_Misc_Overlay */
-    bool_bf gcmarkbit : 1;
-    unsigned spacer : 15;
-    struct Lisp_Overlay *next;
-    Lisp_Object start;
-    Lisp_Object end;
-    Lisp_Object plist;
-  };
+{
+  ENUM_BF (Lisp_Misc_Type) type : 16;	/* = Lisp_Misc_Overlay */
+  bool_bf gcmarkbit : 1;
+  unsigned spacer : 15;
+  Lisp_Object plist;
+  struct buffer *buffer;        /* eassert (live buffer || NULL). */
+  struct interval_node *interval;
+};
 
 /* Number of bits needed to store one of the values
    SAVE_UNUSED..SAVE_OBJECT.  */
@@ -3704,7 +3703,7 @@ extern Lisp_Object make_save_funcptr_ptr_obj (void (*) (void), void *,
 					      Lisp_Object);
 extern Lisp_Object make_save_memory (Lisp_Object *, ptrdiff_t);
 extern void free_save_value (Lisp_Object);
-extern Lisp_Object build_overlay (Lisp_Object, Lisp_Object, Lisp_Object);
+extern Lisp_Object build_overlay (ptrdiff_t, ptrdiff_t, bool, bool, Lisp_Object);
 extern void free_marker (Lisp_Object);
 extern void free_cons (struct Lisp_Cons *);
 extern void init_alloc_once (void);

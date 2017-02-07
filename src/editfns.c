@@ -457,51 +457,9 @@ If you set the marker not to point anywhere, the buffer will have no mark.  */)
    of length LEN.  */
 
 static ptrdiff_t
-overlays_around (EMACS_INT pos, Lisp_Object *vec, ptrdiff_t len)
+overlays_around (ptrdiff_t pos, Lisp_Object *vec, ptrdiff_t len)
 {
-  Lisp_Object overlay, start, end;
-  struct Lisp_Overlay *tail;
-  ptrdiff_t startpos, endpos;
-  ptrdiff_t idx = 0;
-
-  for (tail = current_buffer->overlays_before; tail; tail = tail->next)
-    {
-      XSETMISC (overlay, tail);
-
-      end = OVERLAY_END (overlay);
-      endpos = OVERLAY_POSITION (end);
-      if (endpos < pos)
-	  break;
-      start = OVERLAY_START (overlay);
-      startpos = OVERLAY_POSITION (start);
-      if (startpos <= pos)
-	{
-	  if (idx < len)
-	    vec[idx] = overlay;
-	  /* Keep counting overlays even if we can't return them all.  */
-	  idx++;
-	}
-    }
-
-  for (tail = current_buffer->overlays_after; tail; tail = tail->next)
-    {
-      XSETMISC (overlay, tail);
-
-      start = OVERLAY_START (overlay);
-      startpos = OVERLAY_POSITION (start);
-      if (pos < startpos)
-	break;
-      end = OVERLAY_END (overlay);
-      endpos = OVERLAY_POSITION (end);
-      if (pos <= endpos)
-	{
-	  if (idx < len)
-	    vec[idx] = overlay;
-	  idx++;
-	}
-    }
-
-  return idx;
+  return overlays_in (pos - 1, pos, false, &vec, &len, false, NULL);
 }
 
 DEFUN ("get-pos-property", Fget_pos_property, Sget_pos_property, 2, 3, 0,
@@ -561,11 +519,10 @@ at POSITION.  */)
 	  if (!NILP (tem))
 	    {
 	      /* Check the overlay is indeed active at point.  */
-	      Lisp_Object start = OVERLAY_START (ol), finish = OVERLAY_END (ol);
-	      if ((OVERLAY_POSITION (start) == posn
-		   && XMARKER (start)->insertion_type == 1)
-		  || (OVERLAY_POSITION (finish) == posn
-		      && XMARKER (finish)->insertion_type == 0))
+	      if ((OVERLAY_START (ol) == posn
+		   && OVERLAY_FRONT_ADVANCE_P (ol))
+		  || (OVERLAY_END (ol) == posn
+		      && ! OVERLAY_REAR_ADVANCE_P (ol)))
 		; /* The overlay will not cover a char inserted at point.  */
 	      else
 		{
@@ -5385,7 +5342,6 @@ Transposing beyond buffer boundaries is an error.  */)
       transpose_markers (start1, end1, start2, end2,
 			 start1_byte, start1_byte + len1_byte,
 			 start2_byte, start2_byte + len2_byte);
-      fix_start_end_in_overlays (start1, end2);
     }
   else
     {

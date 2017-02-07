@@ -26,6 +26,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include "character.h"
 #include "lisp.h"
+#include "itree.h"
 
 INLINE_HEADER_BEGIN
 
@@ -877,16 +878,8 @@ struct buffer
   /* Non-zero whenever the narrowing is changed in this buffer.  */
   bool_bf clip_changed : 1;
 
-  /* List of overlays that end at or before the current center,
-     in order of end-position.  */
-  struct Lisp_Overlay *overlays_before;
-
-  /* List of overlays that end after  the current center,
-     in order of start-position.  */
-  struct Lisp_Overlay *overlays_after;
-
-  /* Position where the overlay lists are centered.  */
-  ptrdiff_t overlay_center;
+  /* The inveral tree containing this buffer's overlays. */
+  struct interval_tree *overlays;
 
   /* Changes in the buffer are recorded here for undo, and t means
      don't record anything.  This information belongs to the base
@@ -894,6 +887,14 @@ struct buffer
      struct buffer_text because local variables have to be right in
      the struct buffer. So we copy it around in set_buffer_internal.  */
   Lisp_Object undo_list_;
+};
+
+struct sortvec
+{
+  Lisp_Object overlay;
+  ptrdiff_t beg, end;
+  EMACS_INT priority;
+  EMACS_INT spriority;		/* Secondary priority.  */
 };
 
 INLINE bool
@@ -1109,8 +1110,11 @@ extern void delete_all_overlays (struct buffer *);
 extern void reset_buffer (struct buffer *);
 extern void compact_buffer (struct buffer *);
 extern void evaporate_overlays (ptrdiff_t);
-extern ptrdiff_t overlays_at (EMACS_INT, bool, Lisp_Object **,
-			      ptrdiff_t *, ptrdiff_t *, ptrdiff_t *, bool);
+extern ptrdiff_t overlays_at (ptrdiff_t, bool, Lisp_Object **, ptrdiff_t *, ptrdiff_t *);
+extern ptrdiff_t overlays_in (ptrdiff_t, ptrdiff_t, bool, Lisp_Object **,
+                              ptrdiff_t *,  bool, ptrdiff_t *);
+extern ptrdiff_t previous_overlay_change (ptrdiff_t);
+extern ptrdiff_t next_overlay_change (ptrdiff_t);
 extern ptrdiff_t sort_overlays (Lisp_Object *, ptrdiff_t, struct window *);
 extern void recenter_overlay_lists (struct buffer *, ptrdiff_t);
 extern ptrdiff_t overlay_strings (ptrdiff_t, struct window *, unsigned char **);
@@ -1162,18 +1166,16 @@ record_unwind_current_buffer (void)
    If NEXTP is non-NULL, return next overlay there.
    See overlay_at arg CHANGE_REQ for meaning of CHRQ arg.  */
 
-#define GET_OVERLAYS_AT(posn, overlays, noverlays, nextp, chrq)		\
+#define GET_OVERLAYS_AT(posn, overlays, noverlays, next)                \
   do {									\
     ptrdiff_t maxlen = 40;						\
     SAFE_NALLOCA (overlays, 1, maxlen);					\
-    (noverlays) = overlays_at (posn, false, &(overlays), &maxlen,	\
-			       nextp, NULL, chrq);			\
+    (noverlays) = overlays_at (posn, false, &(overlays), &maxlen, next); \
     if ((noverlays) > maxlen)						\
       {									\
 	maxlen = noverlays;						\
 	SAFE_NALLOCA (overlays, 1, maxlen);				\
-	(noverlays) = overlays_at (posn, false, &(overlays), &maxlen,	\
-				   nextp, NULL, chrq);			\
+	(noverlays) = overlays_at (posn, false, &(overlays), &maxlen, next); \
       }									\
   } while (false)
 
@@ -1208,7 +1210,8 @@ set_buffer_intervals (struct buffer *b, INTERVAL i)
 INLINE bool
 buffer_has_overlays (void)
 {
-  return current_buffer->overlays_before || current_buffer->overlays_after;
+  return current_buffer->overlays
+    && (interval_tree_size (current_buffer->overlays) > 0);
 }
 
 /* Return character code of multi-byte form at byte position POS.  If POS
@@ -1248,23 +1251,124 @@ buffer_window_count (struct buffer *b)
 
 /* Overlays */
 
-/* Return the marker that stands for where OV starts in the buffer.  */
+INLINE ptrdiff_t
+overlay_start (struct Lisp_Overlay *ov)
+{
+  if (! ov->buffer)
+    return -1;
+  return interval_node_begin (ov->buffer->overlays, ov->interval);
+}
 
-#define OVERLAY_START(OV) XOVERLAY (OV)->start
+INLINE ptrdiff_t
+overlay_end (struct Lisp_Overlay *ov)
+{
+  if (! ov->buffer)
+    return -1;
+  return interval_node_end (ov->buffer->overlays, ov->interval);
+}
 
-/* Return the marker that stands for where OV ends in the buffer.  */
+INLINE void
+set_overlay_region (struct Lisp_Overlay *ov, ptrdiff_t begin, ptrdiff_t end)
+{
+  eassert (ov->buffer);
+  begin = clip_to_bounds (BEG, begin, ov->buffer->text->z);
+  end = clip_to_bounds (begin, end, ov->buffer->text->z);
+  interval_node_set_region (ov->buffer->overlays, ov->interval, begin, end);
+}
 
-#define OVERLAY_END(OV) XOVERLAY (OV)->end
+INLINE void
+maybe_alloc_buffer_overlays (struct buffer *b)
+{
+  if (! b->overlays)
+    b->overlays = interval_tree_create ();
+}
+
+/* FIXME: Actually this does not free any overlay, but the tree
+   only. --ap */
+
+INLINE void
+free_buffer_overlays (struct buffer *b)
+{
+  eassert (! b->overlays || 0 == interval_tree_size (b->overlays));
+  if (b->overlays)
+    {
+      interval_tree_destroy (b->overlays);
+      b->overlays = NULL;
+    }
+}
+
+INLINE void
+add_buffer_overlay (struct buffer *b, struct Lisp_Overlay *ov)
+{
+  eassert (! ov->buffer);
+  maybe_alloc_buffer_overlays (b);
+  ov->buffer = b;
+  interval_tree_insert (b->overlays, ov->interval);
+}
+
+INLINE void
+remove_buffer_overlay (struct buffer *b, struct Lisp_Overlay *ov)
+{
+  eassert (b->overlays);
+  eassert (ov->buffer == b);
+  interval_tree_remove (ov->buffer->overlays, ov->interval);
+  ov->buffer = NULL;
+}
+
+INLINE void
+buffer_overlay_iter_start (struct buffer *b, ptrdiff_t begin, ptrdiff_t end,
+                           enum interval_tree_order order)
+{
+  if (b->overlays)
+    interval_tree_iter_start (b->overlays, begin, end, order);
+}
+
+INLINE struct interval_node*
+buffer_overlay_iter_next (struct buffer *b)
+{
+  if (! b->overlays)
+    return NULL;
+  return interval_tree_iter_next (b->overlays);
+}
+
+INLINE void
+buffer_overlay_iter_finish (struct buffer *b)
+{
+  if (b->overlays)
+    interval_tree_iter_finish (b->overlays);
+}
+
+INLINE void
+buffer_overlay_iter_narrow (struct buffer *b, ptrdiff_t begin, ptrdiff_t end)
+{
+  if (b->overlays)
+    interval_tree_iter_narrow (b->overlays, begin, end);
+}
+
+/* Return the start of OV in its buffer, or -1 if OV is not associated
+   with any buffer.  */
+
+#define OVERLAY_START(OV) (overlay_start (XOVERLAY (OV)))
+
+/* Return the end of OV in its buffer, or -1. */
+
+#define OVERLAY_END(OV) (overlay_end (XOVERLAY (OV)))
 
 /* Return the plist of overlay OV.  */
 
-#define OVERLAY_PLIST(OV) XOVERLAY (OV)->plist
+#define OVERLAY_PLIST(OV) (XOVERLAY (OV)->plist)
 
-/* Return the actual buffer position for the marker P.
-   We assume you know which buffer it's pointing into.  */
+/* Return the buffer of overlay OV. */
 
-#define OVERLAY_POSITION(P) \
- (MARKERP (P) ? marker_position (P) : (emacs_abort (), 0))
+#define OVERLAY_BUFFER(OV) (XOVERLAY (OV)->buffer)
+
+/* Return true, if OV's rear-advance is set. */
+
+#define OVERLAY_REAR_ADVANCE_P(OV) (XOVERLAY (OV)->interval->rear_advance)
+
+/* Return true, if OV's front-advance is set. */
+
+#define OVERLAY_FRONT_ADVANCE_P(OV) (XOVERLAY (OV)->interval->front_advance)
 
 
 /***********************************************************************
@@ -1404,5 +1508,8 @@ lowercasep (int c)
 }
 
 INLINE_HEADER_END
+
+int compare_overlays (const void *v1, const void *v2);
+void make_sortvec_item (struct sortvec *item, Lisp_Object overlay);
 
 #endif /* EMACS_BUFFER_H */

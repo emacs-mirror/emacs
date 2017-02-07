@@ -2240,10 +2240,9 @@ internal_equal (Lisp_Object o1, Lisp_Object o2, enum equal_kind equal_kind,
 	return false;
       if (OVERLAYP (o1))
 	{
-	  if (!internal_equal (OVERLAY_START (o1), OVERLAY_START (o2),
-			       equal_kind, depth + 1, ht)
-	      || !internal_equal (OVERLAY_END (o1), OVERLAY_END (o2),
-				  equal_kind, depth + 1, ht))
+	  if (OVERLAY_START (o1) != OVERLAY_START (o2)
+	      || OVERLAY_END (o1) != OVERLAY_END (o2)
+              || OVERLAY_BUFFER (o1) != OVERLAY_BUFFER (o2))
 	    return false;
 	  o1 = XOVERLAY (o1)->plist;
 	  o2 = XOVERLAY (o2)->plist;

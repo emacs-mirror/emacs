@@ -617,36 +617,42 @@ get_char_property_and_overlay (Lisp_Object position, register Lisp_Object prop, 
     }
   if (BUFFERP (object))
     {
-      ptrdiff_t noverlays;
-      Lisp_Object *overlay_vec;
-      struct buffer *obuf = current_buffer;
+      struct buffer *b = XBUFFER (object);
+      struct interval_node *node;
+      struct sortvec items[2];
+      struct sortvec *result = NULL;
+      Lisp_Object result_tem = Qnil;
 
-      if (XINT (position) < BUF_BEGV (XBUFFER (object))
-	  || XINT (position) > BUF_ZV (XBUFFER (object)))
+      if (XINT (position) < BUF_BEGV (b) || XINT (position) > BUF_ZV (b))
 	xsignal1 (Qargs_out_of_range, position);
 
-      set_buffer_temp (XBUFFER (object));
-
-      USE_SAFE_ALLOCA;
-      GET_OVERLAYS_AT (XINT (position), overlay_vec, noverlays, NULL, false);
-      noverlays = sort_overlays (overlay_vec, noverlays, w);
-
-      set_buffer_temp (obuf);
+      buffer_overlay_iter_start(b, XINT (position), XINT (position) + 1,
+                                ITREE_ASCENDING);
 
       /* Now check the overlays in order of decreasing priority.  */
-      while (--noverlays >= 0)
+      while ((node = buffer_overlay_iter_next (b)))
 	{
-	  Lisp_Object tem = Foverlay_get (overlay_vec[noverlays], prop);
-	  if (!NILP (tem))
-	    {
-	      if (overlay)
-		/* Return the overlay we got the property from.  */
-		*overlay = overlay_vec[noverlays];
-	      SAFE_FREE ();
-	      return tem;
-	    }
+	  Lisp_Object tem = Foverlay_get (node->data, prop);
+          struct sortvec *this;
+
+	  if (NILP (tem) || (w && ! overlay_matches_window (w, node->data)))
+	    continue;
+
+          this = (result == items ? items + 1 : items);
+          make_sortvec_item (this, node->data);
+          if (! result || (compare_overlays (result, this) < 0))
+            {
+              result = this;
+              result_tem = tem;
+            }
 	}
-      SAFE_FREE ();
+      buffer_overlay_iter_finish (b);
+      if (result)
+        {
+          if (overlay)
+            *overlay = result->overlay;
+          return result_tem;
+        }
     }
 
   if (overlay)
