@@ -634,6 +634,13 @@ lost after dumping")))
             (terpri)
             (print '(load "international/characters" nil t))
             (terpri)
+            ;; Lisp functions have their DOC file offsets stored
+            ;; already, but for a subr it's hidden away from Lisp.
+            (print '(condition-case nil
+                        (Snarf-documentation "DOC")
+                      (file-missing
+                       (message "Couldn't load DOC file"))))
+            (terpri)
             (print `(dolist (cs ',coding-system-aliases)
                       (define-coding-system-alias (car cs) (cdr cs))))
             (terpri)
