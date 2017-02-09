@@ -1439,6 +1439,14 @@ ORIGINAL-DESCRIPTION is the description given by
                             str))))))
     desc))
 
+(defun which-key--extract-key (key-str)
+  "Pull the last key (or key range) out of KEY-STR."
+  (save-match-data
+    (let ((key-range-regexp "\\`.*\\([^ \t]+ \\.\\. [^ \t]+\\)\\'"))
+      (if (string-match key-range-regexp key-str)
+          (match-string 1 key-str)
+        (car (last (split-string key-str " ")))))))
+
 (defun which-key--format-and-replace (unformatted)
   "Take a list of (key . desc) cons cells in UNFORMATTED, add
 faces and perform replacements according to the three replacement
@@ -1451,7 +1459,7 @@ alists. Returns a list (key separator description)."
       (let* ((key (car key-binding))
              (orig-desc (cdr key-binding))
              (group (which-key--group-p orig-desc))
-             (keys (which-key--current-key-string key))
+             (keys (concat (which-key--current-key-string) " " key))
              (local (eq (which-key--safe-lookup-key local-map (kbd keys))
                         (intern orig-desc)))
              (hl-face (which-key--highlight-face orig-desc))
@@ -1459,7 +1467,7 @@ alists. Returns a list (key separator description)."
         (when (consp key-binding)
           (push
            (list (which-key--propertize-key
-                  (car (last (split-string (car key-binding) " "))))
+                  (which-key--extract-key (car key-binding)))
                  sep-w-face
                  (which-key--propertize-description
                   (cdr key-binding) group local hl-face orig-desc))

@@ -99,7 +99,7 @@
              '("SPC t 2" . "[ ] test mode")))))
 
 (ert-deftest which-key-test--maybe-replace-multiple ()
-  "Test `which-key-allow-multiple-replacements'. See #156"
+  "Test `which-key-allow-multiple-replacements'. See #156."
   (let ((which-key-replacement-alist
          '(((nil . "helm") . (nil . "HLM"))
            ((nil . "projectile") . (nil . "PRJTL"))))
@@ -113,6 +113,14 @@
     (should (equal
              (which-key--maybe-replace '("C-c C-c" . "helm-projectile-x"))
              '("C-c C-c" . "HLM-PRJTL-x")))))
+
+(ert-deftest which-key-test--key-extraction ()
+  "Test `which-key--extract-key'. See #161."
+  (should (equal (which-key--extract-key "SPC a") "a"))
+  (should (equal (which-key--extract-key "C-x a") "a"))
+  (should (equal (which-key--extract-key "<left> b a") "a"))
+  (should (equal (which-key--extract-key "<left> a .. c") "a .. c"))
+  (should (equal (which-key--extract-key "M-a a .. c") "a .. c")))
 
 (provide 'which-key-tests)
 ;;; which-key-tests.el ends here
