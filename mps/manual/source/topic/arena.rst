@@ -763,7 +763,7 @@ can only be called in this state.
 
        1. After calling this function, memory managed by the arena is
           not in a consistent state, and so it is no longer safe to
-          continue running the client program. This functions is
+          continue running the client program. This function is
           intended for postmortem debugging only.
 
        2. This function must be called from the thread that holds the
