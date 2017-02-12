@@ -3263,6 +3263,7 @@ void move_it_past_eol (struct it *);
 void move_it_in_display_line (struct it *it,
 			      ptrdiff_t to_charpos, int to_x,
 			      enum move_operation_enum op);
+int partial_line_height (struct it *it_origin);
 bool in_display_vector_p (struct it *);
 int frame_mode_line_height (struct frame *);
 extern bool redisplaying_p;

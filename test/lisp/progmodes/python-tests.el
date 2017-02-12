@@ -1156,6 +1156,27 @@ if do:
    (python-tests-look-at "that)")
    (should (= (current-indentation) 6))))
 
+(ert-deftest python-indent-electric-colon-4 ()
+  "Test indentation case where there is one more-indented previous open block."
+  (python-tests-with-temp-buffer
+   "
+def f():
+    if True:
+        a = 5
+
+        if True:
+            a = 10
+
+        b = 3
+
+else
+"
+   (python-tests-look-at "else")
+   (goto-char (line-end-position))
+   (python-tests-self-insert ":")
+   (python-tests-look-at "else" -1)
+   (should (= (current-indentation) 4))))
+
 (ert-deftest python-indent-region-1 ()
   "Test indentation case from Bug#18843."
   (let ((contents "
@@ -2457,7 +2478,7 @@ if x:
   (python-tests-with-temp-buffer
       " \"\n"
     (goto-char (point-min))
-    (font-lock-fontify-buffer)))
+    (call-interactively 'font-lock-fontify-buffer)))
 
 
 ;;; Shell integration

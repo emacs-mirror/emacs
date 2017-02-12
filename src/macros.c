@@ -325,7 +325,7 @@ each iteration of the macro.  Iteration stops if LOOPFUNC returns nil.  */)
 
       executing_kbd_macro_iterations = ++success_count;
 
-      QUIT;
+      maybe_quit ();
     }
   while (--repeat
 	 && (STRINGP (Vexecuting_kbd_macro) || VECTORP (Vexecuting_kbd_macro)));

@@ -365,9 +365,15 @@ commands in `hfy-etags-cmd-alist'."
 
 (defun hfy-which-etags ()
   "Return a string indicating which flavor of etags we are using."
-  (let ((v (shell-command-to-string (concat hfy-etags-bin " --version"))))
-    (cond ((string-match "exube" v) "exuberant ctags")
-          ((string-match "GNU E" v) "emacs etags"    )) ))
+  (with-temp-buffer
+    (condition-case nil
+        (when (eq (call-process hfy-etags-bin nil t nil "--version") 0)
+          (goto-char (point-min))
+          (cond
+           ((looking-at-p "exube") "exuberant ctags")
+           ((looking-at-p "GNU E") "emacs etags")))
+      ;; Return nil if the etags binary isn't executable (Bug#25468).
+      (file-error nil))))
 
 (defcustom hfy-etags-cmd
   ;; We used to wrap this in a `eval-and-compile', but:

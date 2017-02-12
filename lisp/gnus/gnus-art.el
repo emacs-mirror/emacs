@@ -251,7 +251,12 @@ This can also be a list of the above values."
 		 (integer :value 200)
 		 (number :value 4.0)
 		 function
-		 (regexp :value ".*"))
+		 (regexp :value ".*")
+		 (repeat (choice (const nil)
+				 (integer :value 200)
+				 (number :value 4.0)
+				 function
+				 (regexp :value ".*"))))
   :group 'gnus-article-signature)
 
 (defcustom gnus-hidden-properties
@@ -1708,9 +1713,10 @@ regexp."
     ;; (modify-syntax-entry ?- "w" table)
     (modify-syntax-entry ?> ")<" table)
     (modify-syntax-entry ?< "(>" table)
-    ;; make M-. in article buffers work for `foo' strings
-    (modify-syntax-entry ?' " " table)
-    (modify-syntax-entry ?` " " table)
+    ;; make M-. in article buffers work for `foo' strings,
+    ;; and still allow C-s C-w to yank ' to the search ring
+    (modify-syntax-entry ?' "'" table)
+    (modify-syntax-entry ?` "'" table)
     table)
   "Syntax table used in article mode buffers.
 Initialized from `text-mode-syntax-table'.")
@@ -6841,17 +6847,21 @@ then we display only bindings that start with that prefix."
   (let ((keymap (copy-keymap gnus-article-mode-map))
 	(map (copy-keymap gnus-article-send-map))
 	(sumkeys (where-is-internal 'gnus-article-read-summary-keys))
+	(summap (make-sparse-keymap))
 	parent agent draft)
     (define-key keymap "S" map)
     (define-key map [t] nil)
+    (define-key summap [t] 'undefined)
     (with-current-buffer gnus-article-current-summary
+      (dolist (key sumkeys)
+	(define-key summap key (key-binding key (current-local-map))))
       (set-keymap-parent
        keymap
        (if (setq parent (keymap-parent gnus-article-mode-map))
 	   (prog1
 	       (setq parent (copy-keymap parent))
-	     (set-keymap-parent parent (current-local-map)))
-	 (current-local-map)))
+	     (set-keymap-parent parent summap))
+	 summap))
       (set-keymap-parent map (key-binding "S"))
       (let (key def gnus-pick-mode)
 	(while sumkeys

@@ -794,7 +794,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
     }
   unbind_to (speccount, Qnil);
 
-  QUIT;
+  maybe_quit ();
 
   args[0] = Qfuncall_interactively;
   args[1] = function;

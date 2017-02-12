@@ -2790,7 +2790,7 @@ local variable."
     ;; Iterate until we've moved the desired number of stmt ends
     (while (not (= (cl-signum arg) 0))
       ;; if we're looking at the terminator, jump by 2
-      (if (or (and (> 0 arg) (looking-back term))
+      (if (or (and (> 0 arg) (looking-back term nil))
               (and (< 0 arg) (looking-at term)))
           (setq n 2)
         (setq n 1))

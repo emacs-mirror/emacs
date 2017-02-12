@@ -218,5 +218,20 @@
       (should (member "body" completions))
       (should-not (member "article" completions)))))
 
+(ert-deftest css-mdn-symbol-guessing ()
+  (dolist (item '(("@med" "ia" "@media")
+                  ("@keyframes " "{" "@keyframes")
+                  ("p::after" "" "::after")
+                  ("p:before" "" ":before")
+                  ("a:v" "isited" ":visited")
+                  ("border-" "color: red" "border-color")
+                  ("border-color: red" ";" "border-color")
+                  ("border-color: red; color: green" ";" "color")))
+    (with-temp-buffer
+      (css-mode)
+      (insert (nth 0 item))
+      (save-excursion (insert (nth 1 item)))
+      (should (equal (nth 2 item) (css--mdn-find-symbol))))))
+
 (provide 'css-mode-tests)
 ;;; css-mode-tests.el ends here

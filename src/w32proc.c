@@ -1449,7 +1449,7 @@ waitpid (pid_t pid, int *status, int options)
 
   do
     {
-      QUIT;
+      maybe_quit ();
       active = WaitForMultipleObjects (nh, wait_hnd, FALSE, timeout_ms);
     } while (active == WAIT_TIMEOUT && !dont_wait);
 

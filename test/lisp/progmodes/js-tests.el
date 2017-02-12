@@ -85,6 +85,20 @@ if (!/[ (:,='\"]/.test(value)) {
       (should (= (current-column) x))
       (forward-line))))
 
+(ert-deftest js-mode-auto-fill ()
+  (with-temp-buffer
+    (js-mode)
+    (setq fill-column 70)
+    (insert "/* ")
+    (dotimes (_ 16)
+      (insert "test "))
+    (do-auto-fill)
+    ;; The bug is that, after auto-fill, the second line starts with
+    ;; "/*", whereas it should start with " * ".
+    (goto-char (point-min))
+    (forward-line)
+    (should (looking-at " \\* test"))))
+
 (provide 'js-tests)
 
 ;;; js-tests.el ends here

@@ -329,7 +329,7 @@ x_own_selection (Lisp_Object selection_name, Lisp_Object selection_value,
        Fcons (selection_data, dpyinfo->terminal->Vselection_alist));
 
     /* If we already owned the selection, remove the old selection
-       data.  Don't use Fdelq as that may QUIT.  */
+       data.  Don't use Fdelq as that may quit.  */
     if (!NILP (prev_value))
       {
 	/* We know it's not the CAR, so it's easy.  */
@@ -929,7 +929,7 @@ x_handle_selection_clear (struct selection_input_event *event)
       && local_selection_time > changed_owner_time)
     return;
 
-  /* Otherwise, really clear.  Don't use Fdelq as that may QUIT;.  */
+  /* Otherwise, really clear.  Don't use Fdelq as that may quit.  */
   Vselection_alist = dpyinfo->terminal->Vselection_alist;
   if (EQ (local_selection_data, CAR (Vselection_alist)))
     Vselection_alist = XCDR (Vselection_alist);

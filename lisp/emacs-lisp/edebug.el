@@ -112,6 +112,18 @@ and some not, use `def-edebug-spec' to specify an `edebug-form-spec'."
   :type 'boolean
   :group 'edebug)
 
+(defcustom edebug-max-depth 150
+  "Maximum recursion depth when instrumenting code.
+This limit is intended to stop recursion if an Edebug specification
+contains an infinite loop.  When Edebug is instrumenting code
+containing very large quoted lists, it may reach this limit and give
+the error message \"Too deep - perhaps infinite loop in spec?\".
+Make this limit larger to countermand that, but you may also need to
+increase `max-lisp-eval-depth' and `max-specpdl-size'."
+  :type 'integer
+  :group 'edebug
+  :version "26.1")
+
 (defcustom edebug-save-windows t
   "If non-nil, Edebug saves and restores the window configuration.
 That takes some time, so if your program does not care what happens to
@@ -1452,7 +1464,6 @@ expressions; a `progn' form will be returned enclosing these forms."
 (defvar edebug-after-dotted-spec nil)
 
 (defvar edebug-matching-depth 0)  ;; initial value
-(defconst edebug-max-depth 150)  ;; maximum number of matching recursions.
 
 
 ;;; Failure to match

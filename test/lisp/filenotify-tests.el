@@ -36,6 +36,7 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 (require 'filenotify)
 (require 'tramp)
 
@@ -703,21 +704,19 @@ delivered."
 	    (should auto-revert-notify-watch-descriptor)
 
 	    ;; Modify file.  We wait for a second, in order to have
-	    ;; another timestamp.
-            (with-current-buffer (get-buffer-create "*Messages*")
-              (narrow-to-region (point-max) (point-max)))
-	    (sleep-for 1)
-            (write-region
-             "another text" nil file-notify--test-tmpfile nil 'no-message)
+            ;; another timestamp.
+            (ert-with-message-capture captured-messages
+              (sleep-for 1)
+              (write-region
+               "another text" nil file-notify--test-tmpfile nil 'no-message)
 
-	    ;; Check, that the buffer has been reverted.
-	    (with-current-buffer (get-buffer-create "*Messages*")
-	      (file-notify--wait-for-events
-	       timeout
-	       (string-match
+              ;; Check, that the buffer has been reverted.
+              (file-notify--wait-for-events
+               timeout
+               (string-match
                 (format-message "Reverting buffer `%s'." (buffer-name buf))
-                (buffer-string))))
-	    (should (string-match "another text" (buffer-string)))
+                captured-messages))
+              (should (string-match "another text" (buffer-string))))
 
             ;; Stop file notification.  Autorevert shall still work via polling.
 	    (file-notify-rm-watch auto-revert-notify-watch-descriptor)
@@ -728,27 +727,24 @@ delivered."
 
 	    ;; Modify file.  We wait for two seconds, in order to
 	    ;; have another timestamp.  One second seems to be too
-	    ;; short.
-	    (with-current-buffer (get-buffer-create "*Messages*")
-	      (narrow-to-region (point-max) (point-max)))
-	    (sleep-for 2)
-	    (write-region
-	     "foo bla" nil file-notify--test-tmpfile nil 'no-message)
+            ;; short.
+            (ert-with-message-capture captured-messages
+              (sleep-for 2)
+              (write-region
+               "foo bla" nil file-notify--test-tmpfile nil 'no-message)
 
-	    ;; Check, that the buffer has been reverted.
-	    (with-current-buffer (get-buffer-create "*Messages*")
-	      (file-notify--wait-for-events
-	       timeout
-	       (string-match
-		(format-message "Reverting buffer `%s'." (buffer-name buf))
-		(buffer-string))))
-	    (should (string-match "foo bla" (buffer-string))))
+              ;; Check, that the buffer has been reverted.
+              (file-notify--wait-for-events
+               timeout
+               (string-match
+                (format-message "Reverting buffer `%s'." (buffer-name buf))
+                captured-messages))
+              (should (string-match "foo bla" (buffer-string)))))
 
           ;; The environment shall be cleaned up.
           (file-notify--test-cleanup-p))
 
       ;; Cleanup.
-      (with-current-buffer "*Messages*" (widen))
       (ignore-errors (kill-buffer buf))
       (file-notify--test-cleanup))))
 
@@ -850,6 +846,13 @@ delivered."
 	;; After deleting the parent directory, the descriptor must
 	;; not be valid anymore.
 	(should-not (file-notify-valid-p file-notify--test-desc))
+        ;; w32notify doesn't generate 'stopped' events when the parent
+        ;; directory is deleted, which doesn't provide a chance for
+        ;; filenotify.el to remove the descriptor from the internal
+        ;; hash table it maintains.  So we must remove the descriptor
+        ;; manually.
+        (if (string-equal (file-notify--test-library) "w32notify")
+            (file-notify--rm-descriptor file-notify--test-desc))
 
         ;; The environment shall be cleaned up.
         (file-notify--test-cleanup-p))
@@ -906,6 +909,8 @@ delivered."
 	 (file-notify--test-timeout)
 	 (not (file-notify-valid-p file-notify--test-desc)))
         (should-not (file-notify-valid-p file-notify--test-desc))
+        (if (string-equal (file-notify--test-library) "w32notify")
+            (file-notify--rm-descriptor file-notify--test-desc))
 
         ;; The environment shall be cleaned up.
         (file-notify--test-cleanup-p))
@@ -975,6 +980,8 @@ delivered."
             (file-notify--test-read-event)
             (delete-file file)))
         (delete-directory file-notify--test-tmpfile)
+        (if (string-equal (file-notify--test-library) "w32notify")
+            (file-notify--rm-descriptor file-notify--test-desc))
 
         ;; The environment shall be cleaned up.
         (file-notify--test-cleanup-p))
@@ -1184,6 +1191,9 @@ the file watch."
           (delete-directory file-notify--test-tmpfile 'recursive))
         (should-not (file-notify-valid-p file-notify--test-desc1))
         (should-not (file-notify-valid-p file-notify--test-desc2))
+        (when (string-equal (file-notify--test-library) "w32notify")
+          (file-notify--rm-descriptor file-notify--test-desc1)
+          (file-notify--rm-descriptor file-notify--test-desc2))
 
         ;; The environment shall be cleaned up.
         (file-notify--test-cleanup-p))

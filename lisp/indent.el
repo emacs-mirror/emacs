@@ -487,9 +487,9 @@ line, but does not move past any whitespace that was explicitly inserted
   (if (memq (current-justification) '(center right))
       (skip-chars-forward " \t")))
 
-(defvar indent-region-function nil
+(defvar indent-region-function #'indent-region-line-by-line
   "Short cut function to indent region using `indent-according-to-mode'.
-A value of nil means really run `indent-according-to-mode' on each line.")
+Default is to really run `indent-according-to-mode' on each line.")
 
 (defun indent-region (start end &optional column)
   "Indent each nonblank line in the region.
@@ -541,23 +541,25 @@ column to indent to; if it is nil, use one of the three methods above."
     (funcall indent-region-function start end))
    ;; Else, use a default implementation that calls indent-line-function on
    ;; each line.
-   (t
-    (save-excursion
-      (setq end (copy-marker end))
-      (goto-char start)
-      (let ((pr (unless (minibufferp)
-		  (make-progress-reporter "Indenting region..." (point) end))))
-	(while (< (point) end)
-	  (or (and (bolp) (eolp))
-	      (indent-according-to-mode))
-          (forward-line 1)
-          (and pr (progress-reporter-update pr (point))))
-	(and pr (progress-reporter-done pr))
-        (move-marker end nil)))))
+   (t (indent-region-line-by-line start end)))
   ;; In most cases, reindenting modifies the buffer, but it may also
   ;; leave it unmodified, in which case we have to deactivate the mark
   ;; by hand.
   (setq deactivate-mark t))
+
+(defun indent-region-line-by-line (start end)
+  (save-excursion
+    (setq end (copy-marker end))
+    (goto-char start)
+    (let ((pr (unless (minibufferp)
+                (make-progress-reporter "Indenting region..." (point) end))))
+      (while (< (point) end)
+        (or (and (bolp) (eolp))
+            (indent-according-to-mode))
+        (forward-line 1)
+        (and pr (progress-reporter-update pr (point))))
+      (and pr (progress-reporter-done pr))
+      (move-marker end nil))))
 
 (define-obsolete-function-alias 'indent-relative-maybe
   'indent-relative-first-indent-point "26.1")

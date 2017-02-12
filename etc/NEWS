@@ -116,7 +116,16 @@ dired buffer.
 ** Emacs now uses double buffering to reduce flicker when editing and
 resizing graphical Emacs frames on the X Window System.  This support
 requires the DOUBLE-BUFFER extension, which major X servers have
-supported for many years.
+supported for many years.  If your system has this extension, but an
+Emacs built with double buffering misbehaves on some displays you use,
+you can disable the feature by adding
+
+  '(inhibit-double-buffering . t)
+
+to default-frame-parameters.  Or inject this parameter into the
+selected frame by evaluating this form:
+
+  (modify-frame-parameters nil '((inhibit-double-buffering . t)))
 
 ---
 The group 'wp', whose label was "text", is now deprecated.
@@ -298,8 +307,21 @@ local part of a remote file name.  Thus, if you have a directory named
 "/~" on the remote host "foo", you can prevent it from being
 substituted by a home directory by writing it as "/foo:/:/~/file".
 
++++
+** The new variable 'maximum-scroll-margin' allows having effective
+settings of 'scroll-margin' up to half the window size, instead of
+always restricting the margin to a quarter of the window.
+
 
 * Editing Changes in Emacs 26.1
+
++++
+** Two new user options 'list-matching-lines-jump-to-current-line' and
+'list-matching-lines-current-line-face' to show highlighted the current
+line in *Occur* buffer.
+
++++
+** The 'occur' command can now operate on the region.
 
 +++
 ** New bindings for 'query-replace-map'.
@@ -338,6 +360,16 @@ bound to 'Buffer-menu-unmark-all-buffers'.
 +++
 *** Two new commands 'Buffer-menu-unmark-all', bound to 'U' and
 'Buffer-menu-unmark-all-buffers', bound to 'M-DEL'.
+
+** Gnus
+
+---
+*** The .newsrc file will now only be saved if the native select
+method is an NNTP select method.
+
++++
+*** A new command for sorting articles by readedness marks has been
+added: `C-c C-s C-m C-m'.
 
 ** Ibuffer
 
@@ -431,6 +463,11 @@ viewing HTML files and the like.
 *** Edebug can be prevented from pausing 1 second after reaching a
 breakpoint (e.g. with "f" and "o") by customizing the new option
 'edebug-sit-on-break'.
+
++++
+*** New customizable option 'edebug-max-depth'
+This allows to enlarge the maximum recursion depth when instrumenting
+code.
 
 ** Eshell
 
@@ -594,6 +631,13 @@ HTML tags, classes and IDs using the 'completion-at-point' command.
 Completion candidates for HTML classes and IDs are retrieved from open
 HTML mode buffers.
 
+---
+*** CSS mode now binds 'C-h S' to a function that will show
+information about a CSS construct (an at-rule, property, pseudo-class,
+pseudo-element, with the default being guessed from context).  By
+default the information is looked up on the Mozilla Developer Network,
+but this can be customized using 'css-lookup-url-format'.
+
 +++
 ** Emacs now supports character name escape sequences in character and
 string literals.  The syntax variants \N{character name} and
@@ -719,6 +763,13 @@ instead.
 
 * Lisp Changes in Emacs 26.1
 
++++
+** 'save-some-buffers' now uses 'save-some-buffers-default-predicate'
+to decide which buffers to ask about, if the PRED argument is nil.
+The default value of 'save-some-buffers-default-predicate' is nil,
+which means ask about all file-visiting buffers.
+
+** string-(to|as|make)-(uni|multi)byte are now declared obsolete.
 ** New variable 'while-no-input-ignore-events' which allow
 setting which special events 'while-no-input' should ignore.
 It is a list of symbols.
@@ -778,6 +829,11 @@ of an arbitrary function.  This generalizes 'subr-arity' for functions
 that are not built-in primitives.  We recommend using this new
 function instead of 'subr-arity'.
 
+** New function 'region-bounds' can be used in the interactive spec
+to provide region boundaries (for rectangular regions more than one)
+to an interactively callable function as a single argument instead of
+two separate arguments region-beginning and region-end.
+
 +++
 ** 'parse-partial-sexp' state has a new element.  Element 10 is
 non-nil when the last character scanned might be the first character
@@ -836,6 +892,13 @@ ABBR is a time zone abbreviation.  The affected functions are
 
 ** New built-in function 'mapcan' which avoids unnecessary consing (and garbage
 collection).
+
++++
+** 'car' and 'cdr' compositions 'cXXXr' and 'cXXXXr' are now part of Elisp.
+
+---
+** 'if-let*', 'when-let*', and 'and-let*' are new in subr-x.el.
+The incumbent 'if-let' and 'when-let' are now aliases.
 
 +++
 ** The new functions 'make-nearby-temp-file' and 'temporary-file-directory'

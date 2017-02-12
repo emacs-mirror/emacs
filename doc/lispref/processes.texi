@@ -2414,6 +2414,14 @@ If non-@code{nil}, the host's capability string.
 The connection type: @samp{plain} or @samp{tls}.
 @end table
 
+@item :shell-command @var{string-or-nil}
+If the connection @code{type} is @code{shell}, this parameter will be
+interpreted as a format-spec string that will be executed to make the
+connection.  The specs available are @samp{%s} for the host name and
+@samp{%p} for the port number.  For instance, if you want to first ssh
+to @samp{gateway} before making a plain connection, then this
+parameter could be something like @samp{ssh gateway nc %s %p}.
+
 @end table
 
 @end defun

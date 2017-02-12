@@ -285,13 +285,17 @@ multiple variables, the order of priority is:
 @code{scroll-up-aggressively} / @code{scroll-down-aggressively}.
 
 @vindex scroll-margin
+@vindex maximum-scroll-margin
   The variable @code{scroll-margin} restricts how close point can come
 to the top or bottom of a window (even if aggressive scrolling
 specifies a fraction @var{f} that is larger than the window portion
-between the top and the bottom margins).  Its value is a number of screen
-lines; if point comes within that many lines of the top or bottom of
-the window, Emacs performs automatic scrolling.  By default,
-@code{scroll-margin} is 0.
+between the top and the bottom margins).  Its value is a number of
+screen lines; if point comes within that many lines of the top or
+bottom of the window, Emacs performs automatic scrolling.  By default,
+@code{scroll-margin} is 0.  The effective margin size is limited to a
+quarter of the window height by default, but this limit can be
+increased up to half (or decreased down to zero) by customizing
+@code{maximum-scroll-margin}.
 
 @node Horizontal Scrolling
 @section Horizontal Scrolling

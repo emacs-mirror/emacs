@@ -23,13 +23,18 @@
 (require 'ert)
 (require 'faces)
 
+(defgroup faces--test nil ""
+  :group 'faces--test)
+
 (defface faces--test1
   '((t :background "black" :foreground "black"))
-  "")
+  ""
+  :group 'faces--test)
 
 (defface faces--test2
   '((t :box 1))
-  "")
+  ""
+  :group 'faces--test)
 
 (ert-deftest faces--test-color-at-point ()
   (with-temp-buffer

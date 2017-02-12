@@ -225,7 +225,7 @@ this command:
    handle SIGINT stop nopass
 
 After this 'handle' command, SIGINT will return control to GDB.  If
-you want the C-g to cause a QUIT within Emacs as well, omit the 'nopass'.
+you want the C-g to cause a quit within Emacs as well, omit the 'nopass'.
 See the GDB manual for more details about signal handling and the
 'handle' command.
 

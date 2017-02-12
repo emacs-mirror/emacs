@@ -115,12 +115,16 @@ threading."
                 binding))
             bindings)))
 
-(defmacro if-let (bindings then &rest else)
-  "Process BINDINGS and if all values are non-nil eval THEN, else ELSE.
-Argument BINDINGS is a list of tuples whose car is a symbol to be
-bound and (optionally) used in THEN, and its cadr is a sexp to be
-evalled to set symbol's value.  In the special case you only want
-to bind a single value, BINDINGS can just be a plain tuple."
+(defmacro if-let* (bindings then &rest else)
+  "Bind variables according to VARLIST and eval THEN or ELSE.
+Each binding is evaluated in turn with `let*', and evaluation
+stops if a binding value is nil.  If all are non-nil, the value
+of THEN is returned, or the last form in ELSE is returned.
+Each element of VARLIST is a symbol (which is bound to nil)
+or a list (SYMBOL VALUEFORM) (which binds SYMBOL to the value of VALUEFORM).
+In the special case you only want to bind a single value,
+VARLIST can just be a plain tuple.
+\n(fn VARLIST THEN ELSE...)"
   (declare (indent 2)
            (debug ([&or (&rest (symbolp form)) (symbolp form)] form body)))
   (when (and (<= (length bindings) 2)
@@ -132,14 +136,22 @@ to bind a single value, BINDINGS can just be a plain tuple."
          ,then
        ,@else)))
 
-(defmacro when-let (bindings &rest body)
-  "Process BINDINGS and if all values are non-nil eval BODY.
-Argument BINDINGS is a list of tuples whose car is a symbol to be
-bound and (optionally) used in BODY, and its cadr is a sexp to be
-evalled to set symbol's value.  In the special case you only want
-to bind a single value, BINDINGS can just be a plain tuple."
+(defmacro when-let* (bindings &rest body)
+  "Bind variables according to VARLIST and conditionally eval BODY.
+Each binding is evaluated in turn with `let*', and evaluation
+stops if a binding value is nil.  If all are non-nil, the value
+of the last form in BODY is returned.
+Each element of VARLIST is a symbol (which is bound to nil)
+or a list (SYMBOL VALUEFORM) (which binds SYMBOL to the value of VALUEFORM).
+In the special case you only want to bind a single value,
+VARLIST can just be a plain tuple.
+\n(fn VARLIST BODY...)"
   (declare (indent 1) (debug if-let))
   (list 'if-let bindings (macroexp-progn body)))
+
+(defalias 'if-let 'if-let*)
+(defalias 'when-let 'when-let*)
+(defalias 'and-let* 'when-let*)
 
 (defsubst hash-table-empty-p (hash-table)
   "Check whether HASH-TABLE is empty (has 0 elements)."
@@ -213,6 +225,11 @@ bindings are `recenter', `scroll-up', and `scroll-down'.  If the
 user enters `recenter', `scroll-up', or `scroll-down' responses,
 perform the requested window recentering or scrolling and ask
 again.
+
+When `use-dialog-box' is t (the default), this function can pop
+up a dialog window to collect the user input. That functionality
+requires `display-popup-menus-p' to return t. Otherwise, a text
+dialog will be used.
 
 The return value is the matching entry from the CHOICES list.
 

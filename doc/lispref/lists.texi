@@ -362,6 +362,39 @@ This is the same as @code{(cdr (cdr @var{cons-cell}))}
 or @code{(nthcdr 2 @var{cons-cell})}.
 @end defun
 
+@findex caaar
+@findex caadr
+@findex cadar
+@findex caddr
+@findex cdaar
+@findex cdadr
+@findex cddar
+@findex cdddr
+@findex caaaar
+@findex caaadr
+@findex caadar
+@findex caaddr
+@findex cadaar
+@findex cadadr
+@findex caddar
+@findex cadddr
+@findex cdaaar
+@findex cdaadr
+@findex cdadar
+@findex cdaddr
+@findex cddaar
+@findex cddadr
+@findex cdddar
+@findex cddddr
+In addition to the above, 24 additional compositions of @code{car} and
+@code{cdr} are defined as @code{c@var{xxx}r} and @code{c@var{xxxx}r},
+where each @code{@var{x}} is either @code{a} or @code{d}.  @code{cadr},
+@code{caddr}, and @code{cadddr} pick out the second, third or fourth
+elements of a list, respectively.  @file{cl-lib} provides the same
+under the names @code{cl-second}, @code{cl-third}, and
+@code{cl-fourth}.  @xref{List Functions,,, cl, Common Lisp
+Extensions}.
+
 @defun butlast x &optional n
 This function returns the list @var{x} with the last element,
 or the last @var{n} elements, removed.  If @var{n} is greater

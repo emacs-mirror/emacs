@@ -3924,6 +3924,21 @@ redisplay scrolls the text automatically (if possible) to move point
 out of the margin, closer to the center of the window.
 @end defopt
 
+@defopt maximum-scroll-margin
+This variable limits the effective value of @code{scroll-margin} to a
+fraction of the current window line height.  For example, if the
+current window has 20 lines and @code{maximum-scroll-margin} is 0.1,
+then the scroll margins will never be larger than 2 lines, no matter
+how big @code{scroll-margin} is.
+
+@code{maximum-scroll-margin} itself has a maximum value of 0.5, which
+allows setting margins large to keep the cursor at the middle line of
+the window (or two middle lines if the window has an even number of
+lines).  If it's set to a larger value (or any value other than a
+float between 0.0 and 0.5) then the default value of 0.25 will be used
+instead.
+@end defopt
+
 @defopt scroll-conservatively
 This variable controls how scrolling is done automatically when point
 moves off the screen (or into the scroll margin).  If the value is a

@@ -1670,8 +1670,9 @@ replacing regexp matches in file names.
   Here are some other commands that find matches for a regular
 expression.  They all ignore case in matching, if the pattern contains
 no upper-case letters and @code{case-fold-search} is non-@code{nil}.
-Aside from @code{occur} and its variants, all operate on the text from
-point to the end of the buffer, or on the region if it is active.
+Aside from @code{multi-occur} and @code{multi-occur-in-matching-buffers},
+which always search the whole buffer, all operate on the text from point
+to the end of the buffer, or on the region if it is active.
 
 @findex list-matching-lines
 @findex occur
@@ -1714,6 +1715,8 @@ a multi-file incremental search is activated automatically.
 @cindex mode, Occur
 @cindex match (face name)
 @vindex list-matching-lines-default-context-lines
+@vindex list-matching-lines-jump-to-current-line
+@cindex list-matching-lines-current-line-face (face name)
 @kindex M-s o
 @item M-x occur
 @itemx M-s o
@@ -1721,11 +1724,14 @@ Prompt for a regexp, and display a list showing each line in the
 buffer that contains a match for it.  If you type @kbd{M-n} at the
 prompt, you can reuse search strings from previous incremental
 searches.  The text that matched is highlighted using the @code{match}
-face.  To limit the search to part of the buffer, narrow to that part
-(@pxref{Narrowing}).  A numeric argument @var{n} specifies that
-@var{n} lines of context are to be displayed before and after each
-matching line.  The default number of context lines is specified by
-the variable @code{list-matching-lines-default-context-lines}.
+face.  A numeric argument @var{n} specifies that @var{n} lines of
+context are to be displayed before and after each matching line.
+The default number of context lines is specified by the variable
+@code{list-matching-lines-default-context-lines}.
+When @code{list-matching-lines-jump-to-current-line} is non-nil,
+the current line is shown highlighted with face
+@code{list-matching-lines-current-line-face} and the point is set
+at the first match after such line.
 
 You can also run @kbd{M-s o} when an incremental search is active;
 this uses the current search string.

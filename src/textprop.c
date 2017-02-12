@@ -212,7 +212,7 @@ validate_plist (Lisp_Object list)
 	  if (! CONSP (tail))
 	    error ("Odd length text property list");
 	  tail = XCDR (tail);
-	  QUIT;
+	  maybe_quit ();
 	}
       while (CONSP (tail));
 

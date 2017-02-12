@@ -523,7 +523,7 @@ access_keymap_1 (Lisp_Object map, Lisp_Object idx,
 		retval = Fcons (Qkeymap, Fcons (retval, retval_tail));
 	      }
 	  }
-	QUIT;
+	maybe_quit ();
       }
 
     return EQ (Qunbound, retval) ? get_keyelt (t_binding, autoload) : retval;
@@ -877,7 +877,7 @@ store_in_keymap (Lisp_Object keymap, register Lisp_Object idx, Lisp_Object def)
 	     should be inserted before it.  */
 	  goto keymap_end;
 
-	QUIT;
+	maybe_quit ();
       }
 
   keymap_end:
@@ -1250,7 +1250,7 @@ recognize the default bindings, just as `read-key-sequence' does.  */)
       if (!CONSP (keymap))
 	return make_number (idx);
 
-      QUIT;
+      maybe_quit ();
     }
 }
 
@@ -2466,7 +2466,7 @@ where_is_internal (Lisp_Object definition, Lisp_Object keymaps,
 	   non-ascii prefixes like `C-down-mouse-2'.  */
 	continue;
 
-      QUIT;
+      maybe_quit ();
 
       data.definition = definition;
       data.noindirect = noindirect;
@@ -3173,7 +3173,7 @@ describe_map (Lisp_Object map, Lisp_Object prefix,
 
   for (tail = map; CONSP (tail); tail = XCDR (tail))
     {
-      QUIT;
+      maybe_quit ();
 
       if (VECTORP (XCAR (tail))
 	  || CHAR_TABLE_P (XCAR (tail)))
@@ -3426,7 +3426,7 @@ describe_vector (Lisp_Object vector, Lisp_Object prefix, Lisp_Object args,
       int range_beg, range_end;
       Lisp_Object val;
 
-      QUIT;
+      maybe_quit ();
 
       if (i == stop)
 	{

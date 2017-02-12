@@ -417,6 +417,12 @@ changes you would be saving.  This calls the command
 Display a help message about these options.
 @end table
 
+@noindent
+@vindex save-some-buffers-default-predicate
+You can customize the value of
+@code{save-some-buffers-default-predicate} to control which buffers
+Emacs will ask about.
+
   @kbd{C-x C-c}, the key sequence to exit Emacs, invokes
 @code{save-some-buffers} and therefore asks the same questions.
 

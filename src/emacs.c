@@ -688,7 +688,7 @@ main (int argc, char **argv)
   dumping = !initialized && (strcmp (argv[argc - 1], "dump") == 0
 			     || strcmp (argv[argc - 1], "bootstrap") == 0 );
 
-  generating_ldefs_boot = getenv ("GENERATE_LDEFS_BOOT");
+  generating_ldefs_boot = !!getenv ("GENERATE_LDEFS_BOOT");
 
 
   /* True if address randomization interferes with memory allocation.  */

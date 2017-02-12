@@ -486,7 +486,8 @@ be \"related\" or \"alternate\"."
 		 (equal (cdr (assq 'type (car cont))) "text/html"))
 	(setq cont (mml-expand-html-into-multipart-related (car cont))))
       (prog1
-	  (mm-with-multibyte-buffer
+	  (with-temp-buffer
+	    (set-buffer-multibyte nil)
 	    (setq message-options options)
 	    (cond
 	     ((and (consp (car cont))
@@ -605,28 +606,38 @@ be \"related\" or \"alternate\"."
 				   (intern (downcase charset))))))
 	  (if (and (not raw)
 		   (member (car (split-string type "/")) '("text" "message")))
+	      ;; We have a text-like MIME part, so we need to do
+	      ;; charset encoding.
 	      (progn
 		(with-temp-buffer
-		  (cond
-		   ((cdr (assq 'buffer cont))
-		    (insert-buffer-substring (cdr (assq 'buffer cont))))
-		   ((and filename
-			 (not (equal (cdr (assq 'nofile cont)) "yes")))
-		    (let ((coding-system-for-read coding))
-		      (mm-insert-file-contents filename)))
-		   ((eq 'mml (car cont))
-		    (insert (cdr (assq 'contents cont))))
-		   (t
-		    (save-restriction
-		      (narrow-to-region (point) (point))
-		      (insert (cdr (assq 'contents cont)))
-		      ;; Remove quotes from quoted tags.
-		      (goto-char (point-min))
-		      (while (re-search-forward
-			      "<#!+/?\\(part\\|multipart\\|external\\|mml\\|secure\\)"
-			      nil t)
-			(delete-region (+ (match-beginning 0) 2)
-				       (+ (match-beginning 0) 3))))))
+		  (set-buffer-multibyte nil)
+		  ;; First insert the data into the buffer.
+		  (if  (and filename
+			    (not (equal (cdr (assq 'nofile cont)) "yes")))
+		      (mm-insert-file-contents filename)
+		    (insert
+		     (with-temp-buffer
+		       (cond
+			((cdr (assq 'buffer cont))
+			 (insert-buffer-substring (cdr (assq 'buffer cont))))
+			((eq 'mml (car cont))
+			 (insert (cdr (assq 'contents cont))))
+			(t
+			 (insert (cdr (assq 'contents cont)))
+			 ;; Remove quotes from quoted tags.
+			 (goto-char (point-min))
+			 (while (re-search-forward
+				 "<#!+/?\\(part\\|multipart\\|external\\|mml\\|secure\\)"
+				 nil t)
+			   (delete-region (+ (match-beginning 0) 2)
+					  (+ (match-beginning 0) 3)))))
+		       (setq charset
+			     (mm-coding-system-to-mime-charset
+			      (detect-coding-region
+			       (point-min) (point-max) t)))
+		       (encode-coding-region (point-min) (point-max)
+					     charset)
+		       (buffer-string))))
 		  (cond
 		   ((eq (car cont) 'mml)
 		    (let ((mml-boundary (mml-compute-boundary cont))
@@ -667,21 +678,22 @@ be \"related\" or \"alternate\"."
 			;; insert a "; format=flowed" string unless the
 			;; user has already specified it.
 			(setq flowed (null (assq 'format cont)))))
-		    ;; Prefer `utf-8' for text/calendar parts.
-		    (if (or charset
-			    (not (string= type "text/calendar")))
-			(setq charset (mm-encode-body charset))
-		      (let ((mm-coding-system-priorities
-			     (cons 'utf-8 mm-coding-system-priorities)))
-			(setq charset (mm-encode-body))))
-		    (mm-disable-multibyte)
+		    (unless charset
+		      (setq charset
+			    ;; Prefer `utf-8' for text/calendar parts.
+			    (if (string= type "text/calendar")
+				'utf-8
+			      (mm-coding-system-to-mime-charset
+			       (detect-coding-region
+				(point-min) (point-max) t)))))
 		    (setq encoding (mm-body-encoding
 				    charset (cdr (assq 'encoding cont))))))
 		  (setq coded (buffer-string)))
 		(mml-insert-mime-headers cont type charset encoding flowed)
 		(insert "\n")
 		(insert coded))
-	    (mm-with-unibyte-buffer
+	    (with-temp-buffer
+	      (set-buffer-multibyte nil)
 	      (cond
 	       ((cdr (assq 'buffer cont))
 		(insert (string-as-unibyte
@@ -690,11 +702,7 @@ be \"related\" or \"alternate\"."
 	       ((and filename
 		     (not (equal (cdr (assq 'nofile cont)) "yes")))
 		(let ((coding-system-for-read mm-binary-coding-system))
-		  (mm-insert-file-contents filename nil nil nil nil t))
-		(unless charset
-		  (setq charset (mm-coding-system-to-mime-charset
-				 (mm-find-buffer-file-coding-system
-				  filename)))))
+		  (mm-insert-file-contents filename nil nil nil nil t)))
 	       (t
 		(let ((contents (cdr (assq 'contents cont))))
 		  (if (multibyte-string-p contents)
@@ -1244,6 +1252,7 @@ If not set, `default-directory' will be used."
 
 (defun mml-minibuffer-read-file (prompt)
   (let* ((completion-ignored-extensions nil)
+	 (buffer-file-name nil)
 	 (file (read-file-name prompt
 			       (or mml-default-directory default-directory)
 			       nil t)))
@@ -1378,12 +1387,23 @@ content-type, a string of the form \"type/subtype\".  DESCRIPTION
 is a one-line description of the attachment.  The DISPOSITION
 specifies how the attachment is intended to be displayed.  It can
 be either \"inline\" (displayed automatically within the message
-body) or \"attachment\" (separate from the body)."
+body) or \"attachment\" (separate from the body).
+
+If given a prefix interactively, no prompting will be done for
+the TYPE, DESCRIPTION or DISPOSITION values.  Instead defaults
+will be computed and used."
   (interactive
    (let* ((file (mml-minibuffer-read-file "Attach file: "))
-	  (type (mml-minibuffer-read-type file))
-	  (description (mml-minibuffer-read-description))
-	  (disposition (mml-minibuffer-read-disposition type nil file)))
+	  (type (if current-prefix-arg
+		    (or (mm-default-file-encoding file)
+			"application/octet-stream")
+		  (mml-minibuffer-read-type file)))
+	  (description (if current-prefix-arg
+			   nil
+			 (mml-minibuffer-read-description)))
+	  (disposition (if current-prefix-arg
+			   (mml-content-disposition type file)
+			 (mml-minibuffer-read-disposition type nil file))))
      (list file type description disposition)))
   ;; If in the message header, attach at the end and leave point unchanged.
   (let ((head (unless (message-in-body-p) (point))))

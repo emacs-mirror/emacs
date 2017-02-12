@@ -256,7 +256,7 @@ supported keys depend on the service type.")
   "Returns all discovered Avahi service names as list."
   (let (result)
     (maphash
-     (lambda (key value) (add-to-list 'result (zeroconf-service-name value)))
+     (lambda (_key value) (add-to-list 'result (zeroconf-service-name value)))
      zeroconf-services-hash)
     result))
 
@@ -264,7 +264,7 @@ supported keys depend on the service type.")
   "Returns all discovered Avahi service types as list."
   (let (result)
     (maphash
-     (lambda (key value) (add-to-list 'result (zeroconf-service-type value)))
+     (lambda (_key value) (add-to-list 'result (zeroconf-service-type value)))
      zeroconf-services-hash)
     result))
 
@@ -276,7 +276,7 @@ The service type is one of the returned values of
 format of SERVICE."
   (let (result)
     (maphash
-     (lambda (key value)
+     (lambda (_key value)
        (when (equal type (zeroconf-service-type value))
 	 (add-to-list 'result value)))
      zeroconf-services-hash)

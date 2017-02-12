@@ -542,6 +542,9 @@ The following %-sequences are provided:
                     (t "N/A"))))))
 
 
+(declare-function dbus-get-property "dbus.el"
+                  (bus service path interface property))
+
 ;;; `upowerd' interface.
 (defsubst battery-upower-prop (pname &optional device)
   (dbus-get-property

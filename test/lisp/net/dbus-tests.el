@@ -22,7 +22,8 @@
 (require 'ert)
 (require 'dbus)
 
-(setq dbus-debug nil)
+(defvar dbus-debug nil)
+(declare-function dbus-get-unique-name "dbusbind.c" (bus))
 
 (defvar dbus--test-enabled-session-bus
   (and (featurep 'dbusbind)

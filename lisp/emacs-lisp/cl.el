@@ -258,30 +258,6 @@
                copy-list
                ldiff
                list*
-               cddddr
-               cdddar
-               cddadr
-               cddaar
-               cdaddr
-               cdadar
-               cdaadr
-               cdaaar
-               cadddr
-               caddar
-               cadadr
-               cadaar
-               caaddr
-               caadar
-               caaadr
-               caaaar
-               cdddr
-               cddar
-               cdadr
-               cdaar
-               caddr
-               cadar
-               caadr
-               caaar
                tenth
                ninth
                eighth

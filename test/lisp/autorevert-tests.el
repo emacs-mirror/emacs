@@ -24,24 +24,29 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 (require 'autorevert)
 (setq auto-revert-notify-exclude-dir-regexp "nothing-to-be-excluded"
       auto-revert-stop-on-user-input nil)
 
 (defconst auto-revert--timeout 10
-  "Time to wait until a message appears in the *Messages* buffer.")
+  "Time to wait for a message.")
+
+(defvar auto-revert--messages nil
+  "Used to collect messages issued during a section of a test.")
 
 (defun auto-revert--wait-for-revert (buffer)
-  "Wait until the *Messages* buffer reports reversion of BUFFER."
+  "Wait until a message reports reversion of BUFFER.
+This expects `auto-revert--messages' to be bound by
+`ert-with-message-capture' before calling."
   (with-timeout (auto-revert--timeout nil)
-    (with-current-buffer "*Messages*"
-      (while
-          (null (string-match
-                 (format-message "Reverting buffer `%s'." (buffer-name buffer))
-                 (buffer-string)))
-	(if (with-current-buffer buffer auto-revert-use-notify)
-	    (read-event nil nil 0.1)
-	  (sleep-for 0.1))))))
+    (while
+        (null (string-match
+               (format-message "Reverting buffer `%s'." (buffer-name buffer))
+               auto-revert--messages))
+      (if (with-current-buffer buffer auto-revert-use-notify)
+          (read-event nil nil 0.1)
+        (sleep-for 0.1)))))
 
 (ert-deftest auto-revert-test00-auto-revert-mode ()
   "Check autorevert for a file."
@@ -51,41 +56,38 @@
         buf)
     (unwind-protect
 	(progn
-          (with-current-buffer (get-buffer-create "*Messages*")
-            (narrow-to-region (point-max) (point-max)))
-	  (write-region "any text" nil tmpfile nil 'no-message)
+          (write-region "any text" nil tmpfile nil 'no-message)
 	  (setq buf (find-file-noselect tmpfile))
-	  (with-current-buffer buf
-	    (should (string-equal (buffer-string) "any text"))
-            ;; `buffer-stale--default-function' checks for
-            ;; `verify-visited-file-modtime'.  We must ensure that it
-            ;; returns nil.
-            (sleep-for 1)
-	    (auto-revert-mode 1)
-	    (should auto-revert-mode)
+          (with-current-buffer buf
+            (ert-with-message-capture auto-revert--messages
+              (should (string-equal (buffer-string) "any text"))
+              ;; `buffer-stale--default-function' checks for
+              ;; `verify-visited-file-modtime'.  We must ensure that it
+              ;; returns nil.
+              (sleep-for 1)
+              (auto-revert-mode 1)
+              (should auto-revert-mode)
 
-	    ;; Modify file.  We wait for a second, in order to have
-	    ;; another timestamp.
-	    (sleep-for 1)
-            (write-region "another text" nil tmpfile nil 'no-message)
+              ;; Modify file.  We wait for a second, in order to have
+              ;; another timestamp.
+              (sleep-for 1)
+              (write-region "another text" nil tmpfile nil 'no-message)
 
-	    ;; Check, that the buffer has been reverted.
-            (auto-revert--wait-for-revert buf)
+              ;; Check, that the buffer has been reverted.
+              (auto-revert--wait-for-revert buf))
             (should (string-match "another text" (buffer-string)))
 
             ;; When the buffer is modified, it shall not be reverted.
-            (with-current-buffer (get-buffer-create "*Messages*")
-              (narrow-to-region (point-max) (point-max)))
-            (set-buffer-modified-p t)
-	    (sleep-for 1)
-            (write-region "any text" nil tmpfile nil 'no-message)
+            (ert-with-message-capture auto-revert--messages
+              (set-buffer-modified-p t)
+              (sleep-for 1)
+              (write-region "any text" nil tmpfile nil 'no-message)
 
-	    ;; Check, that the buffer hasn't been reverted.
-            (auto-revert--wait-for-revert buf)
+              ;; Check, that the buffer hasn't been reverted.
+              (auto-revert--wait-for-revert buf))
             (should-not (string-match "any text" (buffer-string)))))
 
       ;; Exit.
-      (with-current-buffer "*Messages*" (widen))
       (ignore-errors
         (with-current-buffer buf (set-buffer-modified-p nil))
         (kill-buffer buf))
@@ -106,13 +108,11 @@
           (make-temp-file (expand-file-name "auto-revert-test" tmpdir1)))
          buf1 buf2)
     (unwind-protect
-	(progn
-          (with-current-buffer (get-buffer-create "*Messages*")
-            (narrow-to-region (point-max) (point-max)))
-	  (write-region "any text" nil tmpfile1 nil 'no-message)
-	  (setq buf1 (find-file-noselect tmpfile1))
-	  (write-region "any text" nil tmpfile2 nil 'no-message)
-	  (setq buf2 (find-file-noselect tmpfile2))
+        (ert-with-message-capture auto-revert--messages
+          (write-region "any text" nil tmpfile1 nil 'no-message)
+          (setq buf1 (find-file-noselect tmpfile1))
+          (write-region "any text" nil tmpfile2 nil 'no-message)
+          (setq buf2 (find-file-noselect tmpfile2))
 
           (dolist (buf (list buf1 buf2))
             (with-current-buffer buf
@@ -148,7 +148,6 @@
               (should (string-match "another text" (buffer-string))))))
 
       ;; Exit.
-      (with-current-buffer "*Messages*" (widen))
       (ignore-errors
         (dolist (buf (list buf1 buf2))
           (with-current-buffer buf (set-buffer-modified-p nil))
@@ -165,8 +164,6 @@
         buf)
     (unwind-protect
 	(progn
-          (with-current-buffer (get-buffer-create "*Messages*")
-            (narrow-to-region (point-max) (point-max)))
           (write-region "any text" nil tmpfile nil 'no-message)
 	  (setq buf (find-file-noselect tmpfile))
 	  (with-current-buffer buf
@@ -184,42 +181,38 @@
              'before-revert-hook
              (lambda () (delete-file buffer-file-name))
              nil t)
-            (with-current-buffer (get-buffer-create "*Messages*")
-              (narrow-to-region (point-max) (point-max)))
-	    (sleep-for 1)
-            (write-region "another text" nil tmpfile nil 'no-message)
 
-	    ;; Check, that the buffer hasn't been reverted.  File
-	    ;; notification should be disabled, falling back to
-	    ;; polling.
-            (auto-revert--wait-for-revert buf)
+            (ert-with-message-capture auto-revert--messages
+              (sleep-for 1)
+              (write-region "another text" nil tmpfile nil 'no-message)
+              (auto-revert--wait-for-revert buf))
+            ;; Check, that the buffer hasn't been reverted.  File
+            ;; notification should be disabled, falling back to
+            ;; polling.
             (should (string-match "any text" (buffer-string)))
-            (should-not auto-revert-use-notify)
+            ;; With w32notify, the 'stopped' events are not sent.
+            (or (eq file-notify--library 'w32notify)
+                (should-not auto-revert-use-notify))
 
             ;; Once the file has been recreated, the buffer shall be
             ;; reverted.
             (kill-local-variable 'before-revert-hook)
-            (with-current-buffer (get-buffer-create "*Messages*")
-              (narrow-to-region (point-max) (point-max)))
-	    (sleep-for 1)
-            (write-region "another text" nil tmpfile nil 'no-message)
-
-	    ;; Check, that the buffer has been reverted.
-            (auto-revert--wait-for-revert buf)
+            (ert-with-message-capture auto-revert--messages
+              (sleep-for 1)
+              (write-region "another text" nil tmpfile nil 'no-message)
+              (auto-revert--wait-for-revert buf))
+            ;; Check, that the buffer has been reverted.
             (should (string-match "another text" (buffer-string)))
 
             ;; An empty file shall still be reverted.
-            (with-current-buffer (get-buffer-create "*Messages*")
-              (narrow-to-region (point-max) (point-max)))
-	    (sleep-for 1)
-            (write-region "" nil tmpfile nil 'no-message)
-
-	    ;; Check, that the buffer has been reverted.
-            (auto-revert--wait-for-revert buf)
+            (ert-with-message-capture auto-revert--messages
+              (sleep-for 1)
+              (write-region "" nil tmpfile nil 'no-message)
+              (auto-revert--wait-for-revert buf))
+            ;; Check, that the buffer has been reverted.
             (should (string-equal "" (buffer-string)))))
 
       ;; Exit.
-      (with-current-buffer "*Messages*" (widen))
       (ignore-errors
         (with-current-buffer buf (set-buffer-modified-p nil))
         (kill-buffer buf))
@@ -232,9 +225,7 @@
   (let ((tmpfile (make-temp-file "auto-revert-test"))
         buf)
     (unwind-protect
-	(progn
-          (with-current-buffer (get-buffer-create "*Messages*")
-            (narrow-to-region (point-max) (point-max)))
+        (ert-with-message-capture auto-revert--messages
           (write-region "any text" nil tmpfile nil 'no-message)
 	  (setq buf (find-file-noselect tmpfile))
 	  (with-current-buffer buf
@@ -259,7 +250,6 @@
              (string-match "modified text\nanother text" (buffer-string)))))
 
       ;; Exit.
-      (with-current-buffer "*Messages*" (widen))
       (ignore-errors (kill-buffer buf))
       (ignore-errors (delete-file tmpfile)))))
 
@@ -283,33 +273,29 @@
 	    (should
              (string-match name (substring-no-properties (buffer-string))))
 
-	    ;; Delete file.  We wait for a second, in order to have
-	    ;; another timestamp.
-            (with-current-buffer (get-buffer-create "*Messages*")
-              (narrow-to-region (point-max) (point-max)))
-	    (sleep-for 1)
-            (delete-file tmpfile)
-
-	    ;; Check, that the buffer has been reverted.
-            (auto-revert--wait-for-revert buf)
+            (ert-with-message-capture auto-revert--messages
+              ;; Delete file.  We wait for a second, in order to have
+              ;; another timestamp.
+              (sleep-for 1)
+              (delete-file tmpfile)
+              (auto-revert--wait-for-revert buf))
+            ;; Check, that the buffer has been reverted.
             (should-not
              (string-match name (substring-no-properties (buffer-string))))
 
-            ;; Make dired buffer modified.  Check, that the buffer has
-            ;; been still reverted.
-            (with-current-buffer (get-buffer-create "*Messages*")
-              (narrow-to-region (point-max) (point-max)))
-            (set-buffer-modified-p t)
-	    (sleep-for 1)
-            (write-region "any text" nil tmpfile nil 'no-message)
+            (ert-with-message-capture auto-revert--messages
+              ;; Make dired buffer modified.  Check, that the buffer has
+              ;; been still reverted.
+              (set-buffer-modified-p t)
+              (sleep-for 1)
+              (write-region "any text" nil tmpfile nil 'no-message)
 
-	    ;; Check, that the buffer has been reverted.
-            (auto-revert--wait-for-revert buf)
+              (auto-revert--wait-for-revert buf))
+            ;; Check, that the buffer has been reverted.
             (should
              (string-match name (substring-no-properties (buffer-string))))))
 
       ;; Exit.
-      (with-current-buffer "*Messages*" (widen))
       (ignore-errors
         (with-current-buffer buf (set-buffer-modified-p nil))
         (kill-buffer buf))

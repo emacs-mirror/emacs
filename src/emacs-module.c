@@ -1016,7 +1016,7 @@ syms_of_module (void)
     = make_hash_table (hashtest_eq, make_number (DEFAULT_HASH_SIZE),
 		       make_float (DEFAULT_REHASH_SIZE),
 		       make_float (DEFAULT_REHASH_THRESHOLD),
-		       Qnil);
+		       Qnil, Qnil);
   Funintern (Qmodule_refs_hash, Qnil);
 
   DEFSYM (Qmodule_environments, "module-environments");

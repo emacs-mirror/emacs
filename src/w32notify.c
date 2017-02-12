@@ -664,7 +664,7 @@ w32_get_watch_object (void *desc)
   Lisp_Object descriptor = make_pointer_integer (desc);
 
   /* This is called from the input queue handling code, inside a
-     critical section, so we cannot possibly QUIT if watch_list is not
+     critical section, so we cannot possibly quit if watch_list is not
      in the right condition.  */
   return NILP (watch_list) ? Qnil : assoc_no_quit (descriptor, watch_list);
 }

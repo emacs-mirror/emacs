@@ -99,6 +99,25 @@ matcher_overflow (void)
   error ("Stack overflow in regexp matcher");
 }
 
+static void
+freeze_buffer_relocation (void)
+{
+#ifdef REL_ALLOC
+  /* Prevent ralloc.c from relocating the current buffer while
+     searching it.  */
+  r_alloc_inhibit_buffer_relocation (1);
+  record_unwind_protect_int (r_alloc_inhibit_buffer_relocation, 0);
+#endif
+}
+
+static void
+thaw_buffer_relocation (void)
+{
+#ifdef REL_ALLOC
+  unbind_to (SPECPDL_INDEX () - 1, Qnil);
+#endif
+}
+
 /* Compile a regexp and signal a Lisp error if anything goes wrong.
    PATTERN is the pattern to compile.
    CP is the place to put the result.
@@ -276,8 +295,8 @@ looking_at_1 (Lisp_Object string, bool posix)
 			  posix,
 			  !NILP (BVAR (current_buffer, enable_multibyte_characters)));
 
-  immediate_quit = 1;
-  QUIT;			/* Do a pending quit right away, to avoid paradoxical behavior */
+  /* Do a pending quit right away, to avoid paradoxical behavior */
+  maybe_quit ();
 
   /* Get pointers and sizes of the two strings
      that make up the visible portion of the buffer. */
@@ -300,20 +319,13 @@ looking_at_1 (Lisp_Object string, bool posix)
 
   re_match_object = Qnil;
 
-#ifdef REL_ALLOC
-  /* Prevent ralloc.c from relocating the current buffer while
-     searching it.  */
-  r_alloc_inhibit_buffer_relocation (1);
-#endif
+  freeze_buffer_relocation ();
   i = re_match_2 (bufp, (char *) p1, s1, (char *) p2, s2,
 		  PT_BYTE - BEGV_BYTE,
 		  (NILP (Vinhibit_changing_match_data)
 		   ? &search_regs : NULL),
 		  ZV_BYTE - BEGV_BYTE);
-  immediate_quit = 0;
-#ifdef REL_ALLOC
-  r_alloc_inhibit_buffer_relocation (0);
-#endif
+  thaw_buffer_relocation ();
 
   if (i == -2)
     matcher_overflow ();
@@ -398,7 +410,6 @@ string_match_1 (Lisp_Object regexp, Lisp_Object string, Lisp_Object start,
 			   ? BVAR (current_buffer, case_canon_table) : Qnil),
 			  posix,
 			  STRING_MULTIBYTE (string));
-  immediate_quit = 1;
   re_match_object = string;
 
   val = re_search (bufp, SSDATA (string),
@@ -406,7 +417,6 @@ string_match_1 (Lisp_Object regexp, Lisp_Object string, Lisp_Object start,
 		   SBYTES (string) - pos_byte,
 		   (NILP (Vinhibit_changing_match_data)
 		    ? &search_regs : NULL));
-  immediate_quit = 0;
 
   /* Set last_thing_searched only when match data is changed.  */
   if (NILP (Vinhibit_changing_match_data))
@@ -470,13 +480,11 @@ fast_string_match_internal (Lisp_Object regexp, Lisp_Object string,
 
   bufp = compile_pattern (regexp, 0, table,
 			  0, STRING_MULTIBYTE (string));
-  immediate_quit = 1;
   re_match_object = string;
 
   val = re_search (bufp, SSDATA (string),
 		   SBYTES (string), 0,
 		   SBYTES (string), 0);
-  immediate_quit = 0;
   return val;
 }
 
@@ -497,9 +505,7 @@ fast_c_string_match_ignore_case (Lisp_Object regexp,
   bufp = compile_pattern (regexp, 0,
 			  Vascii_canon_table, 0,
 			  0);
-  immediate_quit = 1;
   val = re_search (bufp, string, len, 0, len, 0);
-  immediate_quit = 0;
   return val;
 }
 
@@ -560,18 +566,10 @@ fast_looking_at (Lisp_Object regexp, ptrdiff_t pos, ptrdiff_t pos_byte,
     }
 
   buf = compile_pattern (regexp, 0, Qnil, 0, multibyte);
-  immediate_quit = 1;
-#ifdef REL_ALLOC
-  /* Prevent ralloc.c from relocating the current buffer while
-     searching it.  */
-  r_alloc_inhibit_buffer_relocation (1);
-#endif
+  freeze_buffer_relocation ();
   len = re_match_2 (buf, (char *) p1, s1, (char *) p2, s2,
 		    pos_byte, NULL, limit_byte);
-#ifdef REL_ALLOC
-  r_alloc_inhibit_buffer_relocation (0);
-#endif
-  immediate_quit = 0;
+  thaw_buffer_relocation ();
 
   return len;
 }
@@ -648,7 +646,7 @@ newline_cache_on_off (struct buffer *buf)
    If BYTEPOS is not NULL, set *BYTEPOS to the byte position corresponding
    to the returned character position.
 
-   If ALLOW_QUIT, set immediate_quit.  That's good to do
+   If ALLOW_QUIT, check for quitting.  That's good to do
    except when inside redisplay.  */
 
 ptrdiff_t
@@ -684,8 +682,6 @@ find_newline (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
   if (shortage != 0)
     *shortage = 0;
 
-  immediate_quit = allow_quit;
-
   if (count > 0)
     while (start != end)
       {
@@ -703,7 +699,6 @@ find_newline (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
             ptrdiff_t next_change;
 	    int result = 1;
 
-            immediate_quit = 0;
             while (start < end && result)
 	      {
 		ptrdiff_t lim1;
@@ -756,7 +751,6 @@ find_newline (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
 		start_byte = end_byte;
 		break;
 	      }
-            immediate_quit = allow_quit;
 
             /* START should never be after END.  */
             if (start_byte > ceiling_byte)
@@ -809,11 +803,12 @@ find_newline (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
 
 	      if (--count == 0)
 		{
-		  immediate_quit = 0;
 		  if (bytepos)
 		    *bytepos = lim_byte + next;
 		  return BYTE_TO_CHAR (lim_byte + next);
 		}
+	      if (allow_quit)
+		maybe_quit ();
             }
 
 	  start_byte = lim_byte;
@@ -832,7 +827,6 @@ find_newline (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
             ptrdiff_t next_change;
 	    int result = 1;
 
-            immediate_quit = 0;
             while (start > end && result)
 	      {
 		ptrdiff_t lim1;
@@ -869,7 +863,6 @@ find_newline (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
 		start_byte = end_byte;
 		break;
 	      }
-            immediate_quit = allow_quit;
 
             /* Start should never be at or before end.  */
             if (start_byte <= ceiling_byte)
@@ -917,11 +910,12 @@ find_newline (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
 
 	      if (++count >= 0)
 		{
-		  immediate_quit = 0;
 		  if (bytepos)
 		    *bytepos = ceiling_byte + prev + 1;
 		  return BYTE_TO_CHAR (ceiling_byte + prev + 1);
 		}
+	      if (allow_quit)
+		maybe_quit ();
             }
 
 	  start_byte = ceiling_byte;
@@ -929,7 +923,6 @@ find_newline (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
         }
       }
 
-  immediate_quit = 0;
   if (shortage)
     *shortage = count * direction;
   if (bytepos)
@@ -953,7 +946,7 @@ find_newline (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
    the number of line boundaries left unfound, and position at
    the limit we bumped up against.
 
-   If ALLOW_QUIT, set immediate_quit.  That's good to do
+   If ALLOW_QUIT, check for quitting.  That's good to do
    except in special cases.  */
 
 ptrdiff_t
@@ -1196,10 +1189,7 @@ search_buffer (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 			      trt, posix,
 			      !NILP (BVAR (current_buffer, enable_multibyte_characters)));
 
-      immediate_quit = 1;	/* Quit immediately if user types ^G,
-				   because letting this function finish
-				   can take too long. */
-      QUIT;			/* Do a pending quit right away,
+      maybe_quit ();		/* Do a pending quit right away,
 				   to avoid paradoxical behavior */
       /* Get pointers and sizes of the two strings
 	 that make up the visible portion of the buffer. */
@@ -1221,11 +1211,7 @@ search_buffer (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 	}
       re_match_object = Qnil;
 
-#ifdef REL_ALLOC
-  /* Prevent ralloc.c from relocating the current buffer while
-     searching it.  */
-  r_alloc_inhibit_buffer_relocation (1);
-#endif
+      freeze_buffer_relocation ();
 
       while (n < 0)
 	{
@@ -1267,13 +1253,11 @@ search_buffer (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 	    }
 	  else
 	    {
-	      immediate_quit = 0;
-#ifdef REL_ALLOC
-              r_alloc_inhibit_buffer_relocation (0);
-#endif
+	      thaw_buffer_relocation ();
 	      return (n);
 	    }
 	  n++;
+	  maybe_quit ();
 	}
       while (n > 0)
 	{
@@ -1312,18 +1296,13 @@ search_buffer (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 	    }
 	  else
 	    {
-	      immediate_quit = 0;
-#ifdef REL_ALLOC
-              r_alloc_inhibit_buffer_relocation (0);
-#endif
+	      thaw_buffer_relocation ();
 	      return (0 - n);
 	    }
 	  n--;
+	  maybe_quit ();
 	}
-      immediate_quit = 0;
-#ifdef REL_ALLOC
-      r_alloc_inhibit_buffer_relocation (0);
-#endif
+      thaw_buffer_relocation ();
       return (pos);
     }
   else				/* non-RE case */
@@ -1927,7 +1906,7 @@ boyer_moore (EMACS_INT n, unsigned char *base_pat,
 	  < 0)
 	return (n * (0 - direction));
       /* First we do the part we can by pointers (maybe nothing) */
-      QUIT;
+      maybe_quit ();
       pat = base_pat;
       limit = pos_byte - dirlen + direction;
       if (direction > 0)
@@ -3230,8 +3209,6 @@ find_newline1 (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
   if (shortage != 0)
     *shortage = 0;
 
-  immediate_quit = allow_quit;
-
   if (count > 0)
     while (start != end)
       {
@@ -3274,11 +3251,12 @@ find_newline1 (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
 
 	      if (--count == 0)
 		{
-		  immediate_quit = 0;
 		  if (bytepos)
 		    *bytepos = lim_byte + next;
 		  return BYTE_TO_CHAR (lim_byte + next);
 		}
+	      if (allow_quit)
+		maybe_quit ();
             }
 
 	  start_byte = lim_byte;
@@ -3286,7 +3264,6 @@ find_newline1 (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
         }
       }
 
-  immediate_quit = 0;
   if (shortage)
     *shortage = count;
   if (bytepos)

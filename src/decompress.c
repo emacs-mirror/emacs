@@ -186,7 +186,7 @@ This function can be called only in unibyte buffers.  */)
       decompressed = avail_out - stream.avail_out;
       insert_from_gap (decompressed, decompressed, 0);
       unwind_data.nbytes += decompressed;
-      QUIT;
+      maybe_quit ();
     }
   while (inflate_status == Z_OK);
 

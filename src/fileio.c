@@ -316,7 +316,7 @@ use the standard functions without calling themselves recursively.  */)
 	    }
 	}
 
-      QUIT;
+      maybe_quit ();
     }
   return result;
 }
@@ -1960,9 +1960,7 @@ permissions.  */)
       report_file_error ("Copying permissions to", newname);
     }
 #else /* not WINDOWSNT */
-  immediate_quit = 1;
   ifd = emacs_open (SSDATA (encoded_file), O_RDONLY, 0);
-  immediate_quit = 0;
 
   if (ifd < 0)
     report_file_error ("Opening input file", file);
@@ -2024,8 +2022,7 @@ permissions.  */)
 	oldsize = out_st.st_size;
     }
 
-  immediate_quit = 1;
-  QUIT;
+  maybe_quit ();
 
   if (clone_file (ofd, ifd))
     newsize = st.st_size;
@@ -2033,9 +2030,9 @@ permissions.  */)
     {
       char buf[MAX_ALLOCA];
       ptrdiff_t n;
-      for (newsize = 0; 0 < (n = emacs_read (ifd, buf, sizeof buf));
+      for (newsize = 0; 0 < (n = emacs_read_quit (ifd, buf, sizeof buf));
 	   newsize += n)
-	if (emacs_write_sig (ofd, buf, n) != n)
+	if (emacs_write_quit (ofd, buf, n) != n)
 	  report_file_error ("Write error", newname);
       if (n < 0)
 	report_file_error ("Read error", file);
@@ -2046,8 +2043,6 @@ permissions.  */)
      file system is out of space or the user is over disk quota.  */
   if (newsize < oldsize && ftruncate (ofd, newsize) != 0)
     report_file_error ("Truncating output file", newname);
-
-  immediate_quit = 0;
 
 #ifndef MSDOS
   /* Preserve the original file permissions, and if requested, also its
@@ -2682,7 +2677,7 @@ DEFUN ("file-writable-p", Ffile_writable_p, Sfile_writable_p, 1, 1, 0,
 
 DEFUN ("access-file", Faccess_file, Saccess_file, 2, 2, 0,
        doc: /* Access file FILENAME, and get an error if that does not work.
-The second argument STRING is used in the error message.
+The second argument STRING is prepended to the error message.
 If there is no error, returns nil.  */)
   (Lisp_Object filename, Lisp_Object string)
 {
@@ -2815,7 +2810,17 @@ really is a readable and searchable directory.  */)
   if (!NILP (handler))
     {
       Lisp_Object r = call2 (handler, Qfile_accessible_directory_p, absname);
-      errno = 0;
+
+      /* Set errno in case the handler failed.  EACCES might be a lie
+	 (e.g., the directory might not exist, or be a regular file),
+	 but at least it does TRT in the "usual" case of an existing
+	 directory that is not accessible by the current user, and
+	 avoids reporting "Success" for a failed operation.  Perhaps
+	 someday we can fix this in a better way, by improving
+	 file-accessible-directory-p's API; see Bug#25419.  */
+      if (!EQ (r, Qt))
+	errno = EACCES;
+
       return r;
     }
 
@@ -3391,15 +3396,10 @@ decide_coding_unwind (Lisp_Object unwind_data)
 static Lisp_Object
 read_non_regular (Lisp_Object state)
 {
-  int nbytes;
-
-  immediate_quit = 1;
-  QUIT;
-  nbytes = emacs_read (XSAVE_INTEGER (state, 0),
-		       ((char *) BEG_ADDR + PT_BYTE - BEG_BYTE
-			+ XSAVE_INTEGER (state, 1)),
-		       XSAVE_INTEGER (state, 2));
-  immediate_quit = 0;
+  int nbytes = emacs_read_quit (XSAVE_INTEGER (state, 0),
+				((char *) BEG_ADDR + PT_BYTE - BEG_BYTE
+				 + XSAVE_INTEGER (state, 1)),
+				XSAVE_INTEGER (state, 2));
   /* Fast recycle this object for the likely next call.  */
   free_misc (state);
   return make_number (nbytes);
@@ -3743,17 +3743,17 @@ by calling `format-decode', which see.  */)
 	      int nread;
 
 	      if (st.st_size <= (1024 * 4))
-		nread = emacs_read (fd, read_buf, 1024 * 4);
+		nread = emacs_read_quit (fd, read_buf, 1024 * 4);
 	      else
 		{
-		  nread = emacs_read (fd, read_buf, 1024);
+		  nread = emacs_read_quit (fd, read_buf, 1024);
 		  if (nread == 1024)
 		    {
 		      int ntail;
 		      if (lseek (fd, - (1024 * 3), SEEK_END) < 0)
 			report_file_error ("Setting file position",
 					   orig_filename);
-		      ntail = emacs_read (fd, read_buf + nread, 1024 * 3);
+		      ntail = emacs_read_quit (fd, read_buf + nread, 1024 * 3);
 		      nread = ntail < 0 ? ntail : nread + ntail;
 		    }
 		}
@@ -3858,15 +3858,11 @@ by calling `format-decode', which see.  */)
 	    report_file_error ("Setting file position", orig_filename);
 	}
 
-      immediate_quit = 1;
-      QUIT;
       /* Count how many chars at the start of the file
 	 match the text at the beginning of the buffer.  */
-      while (1)
+      while (true)
 	{
-	  int nread, bufpos;
-
-	  nread = emacs_read (fd, read_buf, sizeof read_buf);
+	  int nread = emacs_read_quit (fd, read_buf, sizeof read_buf);
 	  if (nread < 0)
 	    report_file_error ("Read error", orig_filename);
 	  else if (nread == 0)
@@ -3888,7 +3884,7 @@ by calling `format-decode', which see.  */)
 	      break;
 	    }
 
-	  bufpos = 0;
+	  int bufpos = 0;
 	  while (bufpos < nread && same_at_start < ZV_BYTE
 		 && FETCH_BYTE (same_at_start) == read_buf[bufpos])
 	    same_at_start++, bufpos++;
@@ -3897,7 +3893,6 @@ by calling `format-decode', which see.  */)
 	  if (bufpos != nread)
 	    break;
 	}
-      immediate_quit = false;
       /* If the file matches the buffer completely,
 	 there's no need to replace anything.  */
       if (same_at_start - BEGV_BYTE == end_offset - beg_offset)
@@ -3909,8 +3904,7 @@ by calling `format-decode', which see.  */)
 	  del_range_1 (same_at_start, same_at_end, 0, 0);
 	  goto handled;
 	}
-      immediate_quit = true;
-      QUIT;
+
       /* Count how many chars at the end of the file
 	 match the text at the end of the buffer.  But, if we have
 	 already found that decoding is necessary, don't waste time.  */
@@ -3932,7 +3926,8 @@ by calling `format-decode', which see.  */)
 	  total_read = nread = 0;
 	  while (total_read < trial)
 	    {
-	      nread = emacs_read (fd, read_buf + total_read, trial - total_read);
+	      nread = emacs_read_quit (fd, read_buf + total_read,
+				       trial - total_read);
 	      if (nread < 0)
 		report_file_error ("Read error", orig_filename);
 	      else if (nread == 0)
@@ -3967,7 +3962,6 @@ by calling `format-decode', which see.  */)
 	  if (nread == 0)
 	    break;
 	}
-      immediate_quit = 0;
 
       if (! giveup_match_end)
 	{
@@ -4059,18 +4053,13 @@ by calling `format-decode', which see.  */)
       inserted = 0;		/* Bytes put into CONVERSION_BUFFER so far.  */
       unprocessed = 0;		/* Bytes not processed in previous loop.  */
 
-      while (1)
+      while (true)
 	{
 	  /* Read at most READ_BUF_SIZE bytes at a time, to allow
 	     quitting while reading a huge file.  */
 
-	  /* Allow quitting out of the actual I/O.  */
-	  immediate_quit = 1;
-	  QUIT;
-	  this = emacs_read (fd, read_buf + unprocessed,
-			     READ_BUF_SIZE - unprocessed);
-	  immediate_quit = 0;
-
+	  this = emacs_read_quit (fd, read_buf + unprocessed,
+				  READ_BUF_SIZE - unprocessed);
 	  if (this <= 0)
 	    break;
 
@@ -4284,13 +4273,10 @@ by calling `format-decode', which see.  */)
 	    /* Allow quitting out of the actual I/O.  We don't make text
 	       part of the buffer until all the reading is done, so a C-g
 	       here doesn't do any harm.  */
-	    immediate_quit = 1;
-	    QUIT;
-	    this = emacs_read (fd,
-			       ((char *) BEG_ADDR + PT_BYTE - BEG_BYTE
-				+ inserted),
-			       trytry);
-	    immediate_quit = 0;
+	    this = emacs_read_quit (fd,
+				    ((char *) BEG_ADDR + PT_BYTE - BEG_BYTE
+				     + inserted),
+				    trytry);
 	  }
 
 	if (this <= 0)
@@ -4602,7 +4588,7 @@ by calling `format-decode', which see.  */)
 		}
 	    }
 
-	  QUIT;
+	  maybe_quit ();
 	  p = XCDR (p);
 	}
 
@@ -4992,8 +4978,6 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
 	}
     }
 
-  immediate_quit = 1;
-
   if (STRINGP (start))
     ok = a_write (desc, start, 0, SCHARS (start), &annotations, &coding);
   else if (XINT (start) != XINT (end))
@@ -5015,8 +4999,6 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
       ok = e_write (desc, Qnil, 1, 1, &coding);
       save_errno = errno;
     }
-
-  immediate_quit = 0;
 
   /* fsync is not crucial for temporary files.  Nor for auto-save
      files, since they might lose some work anyway.  */
@@ -5407,7 +5389,7 @@ e_write (int desc, Lisp_Object string, ptrdiff_t start, ptrdiff_t end,
 		       : (STRINGP (coding->dst_object)
 			  ? SSDATA (coding->dst_object)
 			  : (char *) BYTE_POS_ADDR (coding->dst_pos_byte)));
-	  coding->produced -= emacs_write_sig (desc, buf, coding->produced);
+	  coding->produced -= emacs_write_quit (desc, buf, coding->produced);
 
 	  if (coding->raw_destination)
 	    {

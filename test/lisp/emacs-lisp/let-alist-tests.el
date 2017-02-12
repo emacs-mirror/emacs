@@ -31,7 +31,7 @@
                    (.test-two (cdr (assq 'test-two symbol))))
                (list .test-one .test-two
                      .test-two .test-two)))
-          (cl-letf (((symbol-function #'make-symbol) (lambda (x) 'symbol)))
+          (cl-letf (((symbol-function #'make-symbol) (lambda (_x) 'symbol)))
             (macroexpand
              '(let-alist data (list .test-one .test-two
                                     .test-two .test-two))))))
@@ -51,8 +51,7 @@
 (ert-deftest let-alist-cons ()
   (should
    (equal
-    (let ((.external "ext")
-          (.external.too "et"))
+    (let ((.external "ext"))
       (let-alist '((test-two . 0)
                    (test-three . 1)
                    (sublist . ((foo . 2)

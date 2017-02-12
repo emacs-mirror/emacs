@@ -521,9 +521,10 @@ select_window (Lisp_Object window, Lisp_Object norecord,
   bset_last_selected_window (XBUFFER (w->contents), window);
 
  record_and_return:
-  /* record_buffer can run QUIT, so make sure it is run only after we have
-     re-established the invariant between selected_window and selected_frame,
-     otherwise the temporary broken invariant might "escape" (bug#14161).  */
+  /* record_buffer can call maybe_quit, so make sure it is run only
+     after we have re-established the invariant between
+     selected_window and selected_frame, otherwise the temporary
+     broken invariant might "escape" (Bug#14161).  */
   if (NILP (norecord))
     {
       w->use_time = ++window_select_count;
@@ -4769,7 +4770,6 @@ window_scroll (Lisp_Object window, EMACS_INT n, bool whole, bool noerror)
 {
   ptrdiff_t count = SPECPDL_INDEX ();
 
-  immediate_quit = true;
   n = clip_to_bounds (INT_MIN, n, INT_MAX);
 
   wset_redisplay (XWINDOW (window));
@@ -4788,7 +4788,36 @@ window_scroll (Lisp_Object window, EMACS_INT n, bool whole, bool noerror)
 
   /* Bug#15957.  */
   XWINDOW (window)->window_end_valid = false;
-  immediate_quit = false;
+}
+
+/* Compute scroll margin for WINDOW.
+   We scroll when point is within this distance from the top or bottom
+   of the window.  The result is measured in lines or in pixels
+   depending on the second parameter.  */
+int
+window_scroll_margin (struct window *window, enum margin_unit unit)
+{
+  if (scroll_margin > 0)
+    {
+      int frame_line_height = default_line_pixel_height (window);
+      int window_lines = window_box_height (window) / frame_line_height;
+
+      double ratio = 0.25;
+      if (FLOATP (Vmaximum_scroll_margin))
+        {
+          ratio = XFLOAT_DATA (Vmaximum_scroll_margin);
+          ratio = max (0.0, ratio);
+          ratio = min (ratio, 0.5);
+        }
+      int max_margin = min ((window_lines - 1)/2,
+                            (int) (window_lines * ratio));
+      int margin = clip_to_bounds (0, scroll_margin, max_margin);
+      return (unit == MARGIN_IN_PIXELS)
+        ? margin * frame_line_height
+        : margin;
+    }
+  else
+    return 0;
 }
 
 
@@ -4807,7 +4836,6 @@ window_scroll_pixel_based (Lisp_Object window, int n, bool whole, bool noerror)
   bool vscrolled = false;
   int x, y, rtop, rbot, rowh, vpos;
   void *itdata = NULL;
-  int window_total_lines;
   int frame_line_height = default_line_pixel_height (w);
   bool adjust_old_pointm = !NILP (Fequal (Fwindow_point (window),
 					  Fwindow_old_point (window)));
@@ -5063,12 +5091,7 @@ window_scroll_pixel_based (Lisp_Object window, int n, bool whole, bool noerror)
   /* Move PT out of scroll margins.
      This code wants current_y to be zero at the window start position
      even if there is a header line.  */
-  window_total_lines
-    = w->total_lines * WINDOW_FRAME_LINE_HEIGHT (w) / frame_line_height;
-  this_scroll_margin = max (0, scroll_margin);
-  this_scroll_margin
-    = min (this_scroll_margin, window_total_lines / 4);
-  this_scroll_margin *= frame_line_height;
+  this_scroll_margin = window_scroll_margin (w, MARGIN_IN_PIXELS);
 
   if (n > 0)
     {
@@ -5124,7 +5147,7 @@ window_scroll_pixel_based (Lisp_Object window, int n, bool whole, bool noerror)
 	 in the scroll margin at the bottom.  */
       move_it_to (&it, PT, -1,
 		  (it.last_visible_y - WINDOW_HEADER_LINE_HEIGHT (w)
-		   - this_scroll_margin - 1),
+                   - partial_line_height (&it) - this_scroll_margin - 1),
 		  -1,
 		  MOVE_TO_POS | MOVE_TO_Y);
 
@@ -5291,9 +5314,7 @@ window_scroll_line_based (Lisp_Object window, int n, bool whole, bool noerror)
 
   if (pos < ZV)
     {
-      /* Don't use a scroll margin that is negative or too large.  */
-      int this_scroll_margin =
-	max (0, min (scroll_margin, w->total_lines / 4));
+      int this_scroll_margin = window_scroll_margin (w, MARGIN_IN_LINES);
 
       set_marker_restricted_both (w->start, w->contents, pos, pos_byte);
       w->start_at_line_beg = !NILP (bolp);
@@ -5723,8 +5744,7 @@ and redisplay normally--don't erase and redraw the frame.  */)
 
   /* Do this after making BUF current
      in case scroll_margin is buffer-local.  */
-  this_scroll_margin
-    = max (0, min (scroll_margin, w->total_lines / 4));
+  this_scroll_margin = window_scroll_margin (w, MARGIN_IN_LINES);
 
   /* Don't use redisplay code for initial frames, as the necessary
      data structures might not be set up yet then.  */
@@ -5963,10 +5983,6 @@ from the top of the window.  */)
 
   lines = displayed_window_lines (w);
 
-#if false
-  this_scroll_margin = max (0, min (scroll_margin, lines / 4));
-#endif
-
   if (NILP (arg))
     XSETFASTINT (arg, lines / 2);
   else
@@ -5981,6 +5997,8 @@ from the top of the window.  */)
 	     next redisplay to scroll).  I wrote this code, but then concluded
 	     it is probably better not to install it.  However, it is here
 	     inside #if false so as not to lose it.  -- rms.  */
+
+      this_scroll_margin = window_scroll_margin (w, MARGIN_IN_LINES);
 
       /* Don't let it get into the margin at either top or bottom.  */
       iarg = max (iarg, this_scroll_margin);

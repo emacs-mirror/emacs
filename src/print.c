@@ -279,7 +279,7 @@ printchar (unsigned int ch, Lisp_Object fun)
       unsigned char str[MAX_MULTIBYTE_LENGTH];
       int len = CHAR_STRING (ch, str);
 
-      QUIT;
+      maybe_quit ();
 
       if (NILP (fun))
 	{
@@ -1352,7 +1352,7 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 		max (sizeof " . #" + INT_STRLEN_BOUND (printmax_t),
 		     40))];
 
-  QUIT;
+  maybe_quit ();
 
   /* Detect circularities and truncate them.  */
   if (NILP (Vprint_circle))
@@ -1446,7 +1446,7 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 
 	      FETCH_STRING_CHAR_ADVANCE (c, obj, i, i_byte);
 
-	      QUIT;
+	      maybe_quit ();
 
 	      if (multibyte
 		  ? (CHAR_BYTE8_P (c) && (c = CHAR_TO_BYTE8 (c), true))
@@ -1550,7 +1550,7 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	    /* Here, we must convert each multi-byte form to the
 	       corresponding character code before handing it to PRINTCHAR.  */
 	    FETCH_STRING_CHAR_ADVANCE (c, name, i, i_byte);
-	    QUIT;
+	    maybe_quit ();
 
 	    if (escapeflag)
 	      {
@@ -1707,7 +1707,7 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 
 	  for (i = 0; i < size_in_chars; i++)
 	    {
-	      QUIT;
+	      maybe_quit ();
 	      c = bool_vector_uchar_data (obj)[i];
 	      if (c == '\n' && print_escape_newlines)
 		print_c_string ("\\n", printcharfun);
@@ -1817,6 +1817,12 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	      print_c_string (" rehash-threshold ", printcharfun);
 	      print_object (h->rehash_threshold, printcharfun, escapeflag);
 	    }
+
+          if (!NILP (h->pure))
+            {
+              print_c_string (" purecopy ", printcharfun);
+	      print_object (h->pure, printcharfun, escapeflag);
+            }
 
 	  print_c_string (" data ", printcharfun);
 

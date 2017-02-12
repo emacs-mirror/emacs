@@ -390,7 +390,7 @@ gnutls_try_handshake (struct Lisp_Process *proc)
     {
       ret = gnutls_handshake (state);
       emacs_gnutls_handle_error (state, ret);
-      QUIT;
+      maybe_quit ();
     }
   while (ret < 0
 	 && gnutls_error_is_fatal (ret) == 0
@@ -582,8 +582,17 @@ emacs_gnutls_handle_error (gnutls_session_t session, int err)
 
   if (gnutls_error_is_fatal (err))
     {
+      int level = 1;
+      /* Mostly ignore "The TLS connection was non-properly
+	 terminated" message which just means that the peer closed the
+	 connection.  */
+#ifdef HAVE_GNUTLS3
+      if (err == GNUTLS_E_PREMATURE_TERMINATION)
+	level = 3;
+#endif
+
+      GNUTLS_LOG2 (level, max_log_level, "fatal error:", str);
       ret = 0;
-      GNUTLS_LOG2 (1, max_log_level, "fatal error:", str);
     }
   else
     {

@@ -226,7 +226,7 @@ The function must terminate as soon as callback returns nil."
 
 
 (defun tildify-space-undo-test--test
-    (modes nbsp env-open &optional set-space-string)
+    (modes nbsp _env-open &optional set-space-string)
   (with-temp-buffer
     (setq-local buffer-file-coding-system 'utf-8)
     (dolist (mode modes)

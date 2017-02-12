@@ -250,9 +250,9 @@ Body are forms defining the test."
     (should (= 0 (cl-count -5 list)))
     (should (= 0 (cl-count 2 list :start 2 :end 4)))
     (should (= 4 (cl-count 'foo list :key (lambda (x) (and (cl-evenp x) 'foo)))))
-    (should (= 4 (cl-count 'foo list :test (lambda (a b) (cl-evenp b)))))
-    (should (equal (cl-count 'foo list :test (lambda (a b) (cl-oddp b)))
-                   (cl-count 'foo list :test-not (lambda (a b) (cl-evenp b)))))))
+    (should (= 4 (cl-count 'foo list :test (lambda (_a b) (cl-evenp b)))))
+    (should (equal (cl-count 'foo list :test (lambda (_a b) (cl-oddp b)))
+                   (cl-count 'foo list :test-not (lambda (_a b) (cl-evenp b)))))))
 
 ;; keywords supported:  :test :test-not :key :start1 :end1 :start2 :end2 :from-end
 (ert-deftest cl-seq-mismatch-test ()

@@ -16,20 +16,20 @@ nav {
     }
 }
 nav ul {
-  margin: 0;
-  padding: 0;
-  list-style: none;
+    margin: 0;
+    padding: 0;
+    list-style: none;
 }
 
 nav li {
-  display: inline-block;
+    display: inline-block;
 }
 
 nav a var
 {
-  display: block;
-  padding: 6px 12px;
-  text-decoration: none;
+    display: block;
+    padding: 6px 12px;
+    text-decoration: none;
 }
 
 $name: foo;
@@ -67,10 +67,28 @@ button {
 
 // bug:21230
 $list: (
-   ('a', #000000, #fff)
-   ('b', #000000, #fff)
-   ('c', #000000, #fff)
-   ('d', #000000, #fff)
-   ('e', #000000, #fff)
-   ('f', #000000, #fff)
+    ('a', #000000, #fff)
+    ('b', #000000, #fff)
+    ('c', #000000, #fff)
+    ('d', #000000, #fff)
+    ('e', #000000, #fff)
+    ('f', #000000, #fff)
 );
+
+// bug:13425
+div:first-child,
+div:last-child {
+    @include foo-mixin(
+        $foo: 'foo',
+        $bar: 'bar',
+    );
+
+    font: 15px "Helvetica Neue", Helvetica, Arial,
+          "Nimbus Sans L", sans-serif;
+
+    div:first-child,
+    div:last-child {
+        font: 15px "Helvetica Neue", Helvetica, Arial,
+              "Nimbus Sans L", sans-serif;
+    }
+}

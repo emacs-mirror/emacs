@@ -139,6 +139,10 @@ a greeting from the server.
 :nowait, if non-nil, says the connection should be made
 asynchronously, if possible.
 
+:shell-command is a format-spec string that can be used if :type
+is `shell'.  It has two specs, %s for host and %p for port
+number.  Example: \"ssh gateway nc %s %p\".
+
 :tls-parameters is a list that should be supplied if you're
 opening a TLS connection.  The first element is the TLS
 type (either `gnutls-x509pki' or `gnutls-anon'), and the

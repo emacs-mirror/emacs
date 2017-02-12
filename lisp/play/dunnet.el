@@ -267,7 +267,7 @@ on your head.")
       (dun-mprincl "You can't drop anything while on the bus.")
   (let (objnum)
     (when (setq objnum (dun-objnum-from-args-std obj))
-      (if (not (setq ptr (member objnum dun-inventory)))
+      (if (not (member objnum dun-inventory))
 	  (dun-mprincl "You don't have that.")
 	(progn
 	  (dun-remove-obj-from-inven objnum)

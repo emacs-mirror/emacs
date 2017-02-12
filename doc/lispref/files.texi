@@ -368,17 +368,21 @@ asks the user about each buffer.  But if @var{save-silently-p} is
 non-@code{nil}, it saves all the file-visiting buffers without querying
 the user.
 
-The optional @var{pred} argument controls which buffers to ask about
-(or to save silently if @var{save-silently-p} is non-@code{nil}).
-If it is @code{nil}, that means to ask only about file-visiting buffers.
-If it is @code{t}, that means also offer to save certain other non-file
-buffers---those that have a non-@code{nil} buffer-local value of
-@code{buffer-offer-save} (@pxref{Killing Buffers}).  A user who says
-@samp{yes} to saving a non-file buffer is asked to specify the file
-name to use.  The @code{save-buffers-kill-emacs} function passes the
-value @code{t} for @var{pred}.
+@vindex save-some-buffers-default-predicate
+The optional @var{pred} argument provides a predicate that controls
+which buffers to ask about (or to save silently if
+@var{save-silently-p} is non-@code{nil}).  If @var{pred} is
+@code{nil}, that means to use the value of
+@code{save-some-buffers-default-predicate} instead of @var{pred}.  If
+the result is @code{nil}, it means ask only about file-visiting
+buffers.  If it is @code{t}, that means also offer to save certain
+other non-file buffers---those that have a non-@code{nil} buffer-local
+value of @code{buffer-offer-save} (@pxref{Killing Buffers}).  A user
+who says @samp{yes} to saving a non-file buffer is asked to specify
+the file name to use.  The @code{save-buffers-kill-emacs} function
+passes the value @code{t} for @var{pred}.
 
-If @var{pred} is neither @code{t} nor @code{nil}, then it should be
+If the predicate is neither @code{t} nor @code{nil}, then it should be
 a function of no arguments.  It will be called in each buffer to decide
 whether to offer to save that buffer.  If it returns a non-@code{nil}
 value in a certain buffer, that means do offer to save that buffer.

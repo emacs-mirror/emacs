@@ -987,6 +987,8 @@ corresponding command.
 Within CMD, %i denotes the input file(s), and %o denotes the
 output file. %i path(s) are relative, while %o is absolute.")
 
+(declare-function format-spec "format-spec.el" (format specification))
+
 ;;;###autoload
 (defun dired-do-compress-to ()
   "Compress selected files and directories to an archive.

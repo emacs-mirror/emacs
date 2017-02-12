@@ -739,11 +739,10 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
           /* The mask is not what you might think.
              When the ordinal i'th bit is set, insert a colon
              before the i'th digit of the time zone representation.  */
-#define DO_TZ_OFFSET(d, negative, mask, v) \
+#define DO_TZ_OFFSET(d, mask, v) \
           do                                                                  \
             {                                                                 \
               digits = d;                                                     \
-              negative_number = negative;                                     \
               tz_colon_mask = mask;                                           \
               u_number_value = v;                                             \
               goto do_tz_offset;                                              \
@@ -1444,6 +1443,7 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
               }
 #endif
 
+            negative_number = diff < 0 || (diff == 0 && *zone == '-');
             hour_diff = diff / 60 / 60;
             min_diff = diff / 60 % 60;
             sec_diff = diff % 60;
@@ -1451,13 +1451,13 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
             switch (colons)
               {
               case 0: /* +hhmm */
-                DO_TZ_OFFSET (5, diff < 0, 0, hour_diff * 100 + min_diff);
+                DO_TZ_OFFSET (5, 0, hour_diff * 100 + min_diff);
 
               case 1: tz_hh_mm: /* +hh:mm */
-                DO_TZ_OFFSET (6, diff < 0, 04, hour_diff * 100 + min_diff);
+                DO_TZ_OFFSET (6, 04, hour_diff * 100 + min_diff);
 
               case 2: tz_hh_mm_ss: /* +hh:mm:ss */
-                DO_TZ_OFFSET (9, diff < 0, 024,
+                DO_TZ_OFFSET (9, 024,
                               hour_diff * 10000 + min_diff * 100 + sec_diff);
 
               case 3: /* +hh if possible, else +hh:mm, else +hh:mm:ss */
@@ -1465,7 +1465,7 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
                   goto tz_hh_mm_ss;
                 if (min_diff != 0)
                   goto tz_hh_mm;
-                DO_TZ_OFFSET (3, diff < 0, 0, hour_diff);
+                DO_TZ_OFFSET (3, 0, hour_diff);
 
               default:
                 goto bad_format;

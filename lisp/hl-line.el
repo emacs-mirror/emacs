@@ -189,7 +189,8 @@ Specifically, when `hl-line-sticky-flag' is nil deactivate all
 such overlays in all buffers except the current one."
   (let ((hlob hl-line-overlay-buffer)
         (curbuf (current-buffer)))
-    (when (and (not hl-line-sticky-flag)
+    (when (and (buffer-live-p hlob)
+               (not hl-line-sticky-flag)
                (not (eq curbuf hlob))
                (not (minibufferp)))
       (with-current-buffer hlob

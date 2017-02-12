@@ -442,6 +442,9 @@ Typically \"page-%s.png\".")
 (defun doc-view-revert-buffer (&optional ignore-auto noconfirm)
   "Like `revert-buffer', but preserves the buffer's current modes."
   (interactive (list (not current-prefix-arg)))
+  (if (< undo-outer-limit (* 2 (buffer-size)))
+      ;; It's normal for this operation to result in a very large undo entry.
+      (setq-local undo-outer-limit (* 2 (buffer-size))))
   (cl-labels ((revert ()
                       (let (revert-buffer-function)
                         (revert-buffer ignore-auto noconfirm 'preserve-modes))))
@@ -1763,6 +1766,8 @@ toggle between displaying the document or editing it as text.
     (unless doc-view-doc-type
       (doc-view-set-doc-type))
     (doc-view-set-up-single-converter)
+    (unless (memq doc-view-doc-type '(ps))
+      (setq-local require-final-newline nil))
 
     (doc-view-make-safe-dir doc-view-cache-directory)
     ;; Handle compressed files, remote files, files inside archives

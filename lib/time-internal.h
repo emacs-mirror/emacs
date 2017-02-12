@@ -38,8 +38,8 @@ struct tm_zone
   /* A sequence of null-terminated strings packed next to each other.
      The strings are followed by an extra null byte.  If TZ_IS_SET,
      there must be at least one string and the first string (which is
-     actually a TZ environment value value) may be empty.  Otherwise
-     all strings must be nonempty.
+     actually a TZ environment value) may be empty.  Otherwise all
+     strings must be nonempty.
 
      Abbreviations are stored here because otherwise the values of
      tm_zone and/or tzname would be dead after changing TZ and calling

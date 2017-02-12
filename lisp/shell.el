@@ -544,11 +544,14 @@ control whether input and output cause the window to scroll to the end of the
 buffer."
   (setq comint-prompt-regexp shell-prompt-pattern)
   (shell-completion-vars)
-  (set (make-local-variable 'paragraph-separate) "\\'")
-  (set (make-local-variable 'paragraph-start) comint-prompt-regexp)
-  (set (make-local-variable 'font-lock-defaults) '(shell-font-lock-keywords t))
-  (set (make-local-variable 'shell-dirstack) nil)
-  (set (make-local-variable 'shell-last-dir) nil)
+  (setq-local paragraph-separate "\\'")
+  (setq-local paragraph-start comint-prompt-regexp)
+  (setq-local font-lock-defaults '(shell-font-lock-keywords t))
+  (setq-local shell-dirstack nil)
+  (setq-local shell-last-dir nil)
+  ;; People expect Shell mode to keep the last line of output at
+  ;; window bottom.
+  (setq-local scroll-conservatively 101)
   (shell-dirtrack-mode 1)
 
   ;; By default, ansi-color applies faces using overlays.  This is

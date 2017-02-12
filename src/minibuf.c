@@ -1865,7 +1865,7 @@ single string, rather than a cons cell whose car is a string.  */)
 			      case_fold);
       if (EQ (tem, Qt))
 	return elt;
-      QUIT;
+      maybe_quit ();
     }
   return Qnil;
 }

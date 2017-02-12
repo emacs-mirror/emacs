@@ -94,6 +94,7 @@
 ;; * WARNING: The "database" format used might be changed so keep a
 ;; backup of `image-dired-db-file' when testing new versions.
 ;;
+;; * `image-dired-display-image-mode' does not support animation
 ;;
 ;; TODO
 ;; ====
@@ -228,7 +229,7 @@ Used together with `image-dired-cmd-create-thumbnail-options'."
   :group 'image-dired)
 
 (defcustom image-dired-cmd-create-thumbnail-options
-  '("-size" "%wx%h" "%f" "-resize" "%wx%h>" "-strip" "jpeg:%t")
+  '("-size" "%wx%h" "%f[0]" "-resize" "%wx%h>" "-strip" "jpeg:%t")
   "Options of command used to create thumbnail image.
 Used with `image-dired-cmd-create-thumbnail-program'.
 Available format specifiers are: %w which is replaced by
@@ -246,7 +247,7 @@ Used together with `image-dired-cmd-create-temp-image-options'."
   :group 'image-dired)
 
 (defcustom image-dired-cmd-create-temp-image-options
-  '("-size" "%wx%h" "%f" "-resize" "%wx%h>" "-strip" "jpeg:%t")
+  '("-size" "%wx%h" "%f[0]" "-resize" "%wx%h>" "-strip" "jpeg:%t")
   "Options of command used to create temporary image for display window.
 Used together with `image-dired-cmd-create-temp-image-program',
 Available format specifiers are: %w and %h which are replaced by
@@ -316,7 +317,7 @@ Available format specifiers are described in
   :group 'image-dired)
 
 (defcustom image-dired-cmd-create-standard-thumbnail-options
-  (append '("-size" "%wx%h" "%f")
+  (append '("-size" "%wx%h" "%f[0]")
           (unless (or image-dired-cmd-pngcrush-program
                       image-dired-cmd-pngnq-program)
             (list
@@ -1626,6 +1627,7 @@ Resized or in full-size."
   :group 'image-dired
   (buffer-disable-undo)
   (image-mode-setup-winprops)
+  (setq cursor-type nil)
   (add-hook 'file-name-at-point-functions 'image-dired-file-name-at-point nil t))
 
 (defvar image-dired-minor-mode-map

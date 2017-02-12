@@ -574,8 +574,8 @@ then the \".\"s will be lined up:
     (define-key keymap [(control ?c) (control ?j)] #'js-set-js-context)
     (define-key keymap [(control meta ?x)] #'js-eval-defun)
     (define-key keymap [(meta ?.)] #'js-find-symbol)
-    (easy-menu-define nil keymap "Javascript Menu"
-      '("Javascript"
+    (easy-menu-define nil keymap "JavaScript Menu"
+      '("JavaScript"
         ["Select New Mozilla Context..." js-set-js-context
          (fboundp #'inferior-moz-process)]
         ["Evaluate Expression in Mozilla Context..." js-eval
@@ -1712,7 +1712,7 @@ This performs fontification according to `js--class-styles'."
               nil))))))
 
 (defun js-syntax-propertize (start end)
-  ;; Javascript allows immediate regular expression objects, written /.../.
+  ;; JavaScript allows immediate regular expression objects, written /.../.
   (goto-char start)
   (js-syntax-propertize-regexp end)
   (funcall
@@ -2710,7 +2710,7 @@ current buffer.  Pushes a mark onto the tag ring just like
 ;;; MozRepl integration
 
 (define-error 'js-moz-bad-rpc "Mozilla RPC Error") ;; '(timeout error))
-(define-error 'js-js-error "Javascript Error") ;; '(js-error error))
+(define-error 'js-js-error "JavaScript Error") ;; '(js-error error))
 
 (defun js--wait-for-matching-output
   (process regexp timeout &optional start)
@@ -3214,7 +3214,7 @@ with `js--js-encode-value'."
 Inside the lexical scope of `with-js', `js?', `js!',
 `js-new', `js-eval', `js-list', `js<', `js>', `js-get-service',
 `js-create-instance', and `js-qi' are defined."
-
+  (declare (indent 0) (debug t))
   `(progn
      (js--js-enter-repl)
      (unwind-protect
@@ -3391,7 +3391,7 @@ With argument, run even if no intervening GC has happened."
 
 (defun js-eval (js)
   "Evaluate the JavaScript in JS and return JSON-decoded result."
-  (interactive "MJavascript to evaluate: ")
+  (interactive "MJavaScript to evaluate: ")
   (with-js
    (let* ((content-window (js--js-content-window
                            (js--get-js-context)))
@@ -3431,11 +3431,8 @@ left-to-right."
                          (eq (cl-fifth window-info) 2))
               do (push window-info windows))
 
-     (cl-loop for window-info in windows
-              for window = (cl-first window-info)
-              collect (list (cl-second window-info)
-                            (cl-third window-info)
-                            window)
+     (cl-loop for (window title location) in windows
+              collect (list title location window)
 
               for gbrowser = (js< window "gBrowser")
               if (js-handle? gbrowser)
@@ -3668,7 +3665,7 @@ Change with `js-set-js-context'.")
 (defun js-set-js-context (context)
   "Set the JavaScript context to CONTEXT.
 When called interactively, prompt for CONTEXT."
-  (interactive (list (js--read-tab "Javascript Context: ")))
+  (interactive (list (js--read-tab "JavaScript Context: ")))
   (setq js--js-context context))
 
 (defun js--get-js-context ()
@@ -3682,7 +3679,7 @@ If one hasn't been set, or if it's stale, prompt for a new one."
                (`browser (not (js? (js< (cdr js--js-context)
                                         "contentDocument"))))
                (x (error "Unmatched case in js--get-js-context: %S" x))))
-     (setq js--js-context (js--read-tab "Javascript Context: ")))
+     (setq js--js-context (js--read-tab "JavaScript Context: ")))
    js--js-context))
 
 (defun js--js-content-window (context)
@@ -3852,6 +3849,7 @@ If one hasn't been set, or if it's stale, prompt for a new one."
         comment-start-skip "\\(//+\\|/\\*+\\)\\s *")
   (setq-local comment-line-break-function #'c-indent-new-comment-line)
   (setq-local c-block-comment-start-regexp "/\\*")
+  (setq-local comment-multi-line t)
 
   (setq-local electric-indent-chars
 	      (append "{}():;," electric-indent-chars)) ;FIXME: js2-mode adds "[]*".

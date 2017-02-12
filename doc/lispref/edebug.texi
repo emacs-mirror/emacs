@@ -979,9 +979,13 @@ program.
 
 @itemize @bullet
 @item
-@code{max-lisp-eval-depth} and @code{max-specpdl-size} are both
-increased to reduce Edebug's impact on the stack.  You could, however,
-still run out of stack space when using Edebug.
+@vindex edebug-max-depth
+@code{max-lisp-eval-depth} (@pxref{Eval}) and @code{max-specpdl-size}
+(@pxref{Local Variables}) are both increased to reduce Edebug's impact
+on the stack.  You could, however, still run out of stack space when
+using Edebug.  You can also enlarge the value of
+@code{edebug-max-depth} if Edebug reaches the limit of recursion depth
+instrumenting code that contains very large quoted lists.
 
 @item
 The state of keyboard macro execution is saved and restored.  While

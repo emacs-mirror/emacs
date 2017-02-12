@@ -45,8 +45,7 @@
   (should-not (abbrev-table-p []))
   ;; Missing :abbrev-table-modiff counter:
   (should-not (abbrev-table-p (obarray-make)))
-  (let* ((table (obarray-make)))
-    (should (abbrev-table-empty-p (make-abbrev-table)))))
+  (should (abbrev-table-empty-p (make-abbrev-table))))
 
 (ert-deftest abbrev-make-abbrev-table-test ()
   ;; Table without properties:

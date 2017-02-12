@@ -1564,7 +1564,7 @@ If UNINDENT, remove an indentation."
 	 (parent (gnus-topic-parent-topic topic))
 	 (grandparent (gnus-topic-parent-topic parent)))
     (unless grandparent
-      (error "Nothing to indent %s into" topic))
+      (error "Can't unindent %s further" topic))
     (when topic
       (gnus-topic-goto-topic topic)
       (gnus-topic-kill-group)

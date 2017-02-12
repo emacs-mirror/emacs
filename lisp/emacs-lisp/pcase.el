@@ -89,7 +89,8 @@
        (functionp &rest form)
        sexp))
 
-(def-edebug-spec pcase-MACRO pcase--edebug-match-macro)
+;; See bug#24717
+(put 'pcase-MACRO 'edebug-form-spec 'pcase--edebug-match-macro)
 
 ;; Only called from edebug.
 (declare-function get-edebug-spec "edebug" (symbol))

@@ -96,8 +96,9 @@ If nil, don't draw horizontal table lines."
 (defcustom shr-width nil
   "Frame width to use for rendering.
 May either be an integer specifying a fixed width in characters,
-or nil, meaning that the full width of the window should be
-used."
+or nil, meaning that the full width of the window should be used.
+If `shr-use-fonts' is set, the mean character width is used to
+compute the pixel width, which is used instead."
   :version "25.1"
   :type '(choice (integer :tag "Fixed width in characters")
 		 (const   :tag "Use the width of the window" nil))
@@ -978,7 +979,7 @@ element is the data blob and the second element is the content-type."
 		      (create-image data nil t :ascent 100
 				    :format content-type))
 		     ((eq content-type 'image/svg+xml)
-		      (create-image data 'svg t :ascent 100))
+		      (create-image data 'imagemagick t :ascent 100))
 		     ((eq size 'full)
 		      (ignore-errors
 			(shr-rescale-image data content-type
@@ -1011,18 +1012,25 @@ element is the data blob and the second element is the content-type."
 	image)
     (insert (or alt ""))))
 
-(defun shr-rescale-image (data content-type width height)
+(defun shr-rescale-image (data content-type width height
+                               &optional max-width max-height)
   "Rescale DATA, if too big, to fit the current buffer.
-WIDTH and HEIGHT are the sizes given in the HTML data, if any."
+WIDTH and HEIGHT are the sizes given in the HTML data, if any.
+
+The size of the displayed image will not exceed
+MAX-WIDTH/MAX-HEIGHT.  If not given, use the current window
+width/height instead."
   (if (or (not (fboundp 'imagemagick-types))
           (not (get-buffer-window (current-buffer))))
       (create-image data nil t :ascent 100)
     (let* ((edges (window-inside-pixel-edges
                    (get-buffer-window (current-buffer))))
            (max-width (truncate (* shr-max-image-proportion
-                                   (- (nth 2 edges) (nth 0 edges)))))
+                                   (or max-width
+                                       (- (nth 2 edges) (nth 0 edges))))))
            (max-height (truncate (* shr-max-image-proportion
-                                    (- (nth 3 edges) (nth 1 edges)))))
+                                    (or max-height
+                                        (- (nth 3 edges) (nth 1 edges))))))
            (scaling (image-compute-scaling-factor image-scaling-factor)))
       (when (or (and width
                      (> width max-width))
@@ -1059,8 +1067,7 @@ Return a string with image data."
     (when (ignore-errors
 	    (url-cache-extract (url-cache-create-filename (shr-encode-url url)))
 	    t)
-      (when (or (search-forward "\n\n" nil t)
-		(search-forward "\r\n\r\n" nil t))
+      (when (re-search-forward "\r?\n\r?\n" nil t)
 	(shr-parse-image-data)))))
 
 (declare-function libxml-parse-xml-region "xml.c"
@@ -1079,9 +1086,12 @@ Return a string with image data."
 			    obarray)))))))
     ;; SVG images may contain references to further images that we may
     ;; want to block.  So special-case these by parsing the XML data
-    ;; and remove the blocked bits.
-    (when (eq content-type 'image/svg+xml)
+    ;; and remove anything that looks like a blocked bit.
+    (when (and shr-blocked-images
+               (eq content-type 'image/svg+xml))
       (setq data
+            ;; Note that libxml2 doesn't parse everything perfectly,
+            ;; so glitches may occur during this transformation.
 	    (shr-dom-to-xml
 	     (libxml-parse-xml-region (point) (point-max)))))
     (list data content-type)))

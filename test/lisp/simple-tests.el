@@ -30,8 +30,9 @@
      (insert "(a b")
      (save-excursion (insert " c d)"))
      ,@body
-     (cons (buffer-substring (point-min) (point))
-           (buffer-substring (point) (point-max)))))
+     (with-no-warnings
+       (cons (buffer-substring (point-min) (point))
+             (buffer-substring (point) (point-max))))))
 
 
 (defmacro simple-test--transpositions (&rest body)
@@ -266,7 +267,6 @@
    (with-temp-buffer
      (setq buffer-undo-list nil)
      (insert "hello")
-     (car buffer-undo-list)
      (undo-auto--boundaries 'test))))
 
 ;;; Transposition with negative args (bug#20698, bug#21885)

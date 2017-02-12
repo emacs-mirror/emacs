@@ -178,19 +178,17 @@ will be reported only in case of the `moved' event.  */)
   if (NILP (Ffile_exists_p (file)))
     report_file_error ("File does not exist", file);
 
-  CHECK_LIST (flags);
-
   if (!FUNCTIONP (callback))
     wrong_type_argument (Qinvalid_function, callback);
-
-  /* Create GFile name.  */
-  gfile = g_file_new_for_path (SSDATA (ENCODE_FILE (file)));
 
   /* Assemble flags.  */
   if (!NILP (Fmember (Qwatch_mounts, flags)))
     gflags |= G_FILE_MONITOR_WATCH_MOUNTS;
   if (!NILP (Fmember (Qsend_moved, flags)))
     gflags |= G_FILE_MONITOR_SEND_MOVED;
+
+  /* Create GFile name.  */
+  gfile = g_file_new_for_path (SSDATA (ENCODE_FILE (file)));
 
   /* Enable watch.  */
   monitor = g_file_monitor (gfile, gflags, NULL, &gerror);

@@ -57,9 +57,9 @@
 ;;  Usage:
 
 ;;  Simply load this file into emacs (version 19 or higher)
-;;  using the following command.
+;;  and run the function edt-mapper, using the following command.
 
-;;    emacs -q -l edt-mapper.el
+;;    emacs -q -l edt-mapper -f edt-mapper
 
 ;;  The "-q" option prevents loading of your init file (commands
 ;;  therein might confuse this program).
@@ -96,10 +96,6 @@
 
 ;;; Code:
 
-;; Otherwise it just hangs.  This seems preferable.
-(if noninteractive
-    (error "edt-mapper cannot be loaded in batch mode"))
-
 ;;;
 ;;;  Decide Emacs Variant, GNU Emacs or XEmacs (aka Lucid Emacs).
 ;;;  Determine Window System, and X Server Vendor (if appropriate).
@@ -124,6 +120,8 @@
 ;;;
 ;;;  Key variables
 ;;;
+
+;; FIXME some/all of these should be let-bound, not global.
 (defvar edt-key nil)
 (defvar edt-enter nil)
 (defvar edt-return nil)
@@ -135,217 +133,6 @@
 ;; To silence the byte-compiler
 (defvar EDT-key-name)
 (defvar edt-save-function-key-map)
-
-;;;
-;;;  Determine Terminal Type (if appropriate).
-;;;
-
-(if (and edt-window-system (not (eq edt-window-system 'tty)))
-    (setq edt-term nil)
-  (setq edt-term (getenv "TERM")))
-
-;;;
-;;; Implements a workaround for a feature that was added to simple.el.
-;;;
-;;; Many function keys have no Emacs functions assigned to them by
-;;; default. A subset of these are typically assigned functions in the
-;;; EDT emulation. This includes all the keypad keys and a some others
-;;; like Delete.
-;;;
-;;; Logic in simple.el maps some of these unassigned function keys to
-;;; ordinary typing keys.  Where this is the case, a call to
-;;; read-key-sequence, below, does not return the name of the function
-;;; key pressed by the user but, instead, it returns the name of the
-;;; key to which it has been mapped.  It needs to know the name of the
-;;; key pressed by the user. As a workaround, we assign a function to
-;;; each of the unassigned function keys of interest, here.  These
-;;; assignments override the mapping to other keys and are only
-;;; temporary since, when edt-mapper is finished executing, it causes
-;;; Emacs to exit.
-;;;
-
-(mapc
- (lambda (function-key)
-   (if (not (lookup-key (current-global-map) function-key))
-       (define-key (current-global-map) function-key 'forward-char)))
- '([kp-0] [kp-1] [kp-2] [kp-3] [kp-4]
-   [kp-5] [kp-6] [kp-7] [kp-8] [kp-9]
-   [kp-space]
-   [kp-tab]
-   [kp-enter]
-   [kp-multiply]
-   [kp-add]
-   [kp-separator]
-   [kp-subtract]
-   [kp-decimal]
-   [kp-divide]
-   [kp-equal]
-   [backspace]
-   [delete]
-   [tab]
-   [linefeed]
-   [clear]))
-
-;;;
-;;;  Make sure the window is big enough to display the instructions,
-;;;  except where window cannot be re-sized.
-;;;
-
-(if (and edt-window-system (not (eq edt-window-system 'tty)))
-    (set-frame-size (selected-frame) 80 36))
-
-;;;
-;;;  Create buffers - Directions and Keys
-;;;
-(if (not (get-buffer "Directions")) (generate-new-buffer "Directions"))
-(if (not (get-buffer "Keys")) (generate-new-buffer "Keys"))
-
-;;;
-;;;  Put header in the Keys buffer
-;;;
-(set-buffer "Keys")
-(insert "\
-;;
-;;  Key definitions for the EDT emulation within GNU Emacs
-;;
-
-(defconst *EDT-keys*
-  '(
-")
-
-;;;
-;;;   Display directions
-;;;
-(switch-to-buffer "Directions")
-(if (and edt-window-system (not (eq edt-window-system 'tty)))
-    (insert "
-                                  EDT MAPPER
-
-    You will be asked to press keys to create a custom mapping (under a
-    Window Manager) of your keypad keys and function keys so that they can
-    emulate the LK-201 keypad and function keys or the subset of keys found
-    on a VT-100 series terminal keyboard.  (The LK-201 keyboard is the
-    standard keyboard attached to VT-200 series terminals, and above.)
-
-    Sometimes, edt-mapper will ignore a key you press, and just continue to
-    prompt for the same key.  This can happen when your window manager sucks
-    up the key and doesn't pass it on to Emacs, or it could be an Emacs bug.
-    Either way, there's nothing that edt-mapper can do about it.  You must
-    press RETURN, to skip the current key and continue.  Later, you and/or
-    your local system guru can try to figure out why the key is being ignored.
-
-    Start by pressing the RETURN key, and continue by pressing the keys
-    specified in the mini-buffer.  If you want to entirely omit a key,
-    because your keyboard does not have a corresponding key, for example,
-    just press RETURN at the prompt.
-
-")
-  (insert "
-                                  EDT MAPPER
-
-    You will be asked to press keys to create a custom mapping of your
-    keypad keys and function keys so that they can emulate the LK-201
-    keypad and function keys or the subset of keys found on a VT-100
-    series terminal keyboard.  (The LK-201 keyboard is the standard
-    keyboard attached to VT-200 series terminals, and above.)
-
-    If you are using a real LK-201 keyboard, you should map the keys
-    exactly as they are on the keyboard.
-
-    Start by pressing the RETURN key, and continue by pressing the keys
-    specified in the mini-buffer.  If you want to entirely omit a key,
-    because your keyboard does not have a corresponding key, for example,
-    just press RETURN at the prompt.
-
-"))
-
-(delete-other-windows)
-
-;;;
-;;;  Save <CR> for future reference.
-;;;
-;;;  For GNU Emacs, running in a Window System, first hide bindings in
-;;;  function-key-map.
-;;;
-(cond
- ((featurep 'xemacs)
-  (setq edt-return-seq (read-key-sequence "Hit carriage-return <CR> to continue "))
-  (setq edt-return (concat "[" (format "%s" (event-key (aref edt-return-seq 0))) "]")))
- (t
-  (if edt-window-system
-      (progn
-	(setq edt-save-function-key-map function-key-map)
-	(setq function-key-map (make-sparse-keymap))))
-  (setq edt-return (read-key-sequence "Hit carriage-return <CR> to continue "))))
-
-;;;
-;;;  Remove prefix-key bindings to F1 and F2 in global-map so they can be
-;;;  bound in the EDT Emulation mode.
-;;;
-(global-unset-key [f1])
-(global-unset-key [f2])
-
-;;;
-;;;   Display Keypad Diagram and Begin Prompting for Keys
-;;;
-(set-buffer "Directions")
-(delete-region (point-min) (point-max))
-(if (and edt-window-system (not (eq edt-window-system 'tty)))
-    (insert "
-
-          PRESS THE KEY SPECIFIED IN THE MINIBUFFER BELOW.
-
-    Here's a picture of the standard LK-201 keypad for reference:
-
-          ________________________    _______________________________
-         | HELP  |      DO        |  |  F17  |  F18  |  F19  |  F20  |
-         |       |                |  |       |       |       |       |
-         |_______|________________|  |_______|_______|_______|_______|
-          ________________________   _______________________________
-         | FIND  |INSERT  |REMOVE |  |  PF1  |  PF2  |  PF3  |  PF4  |
-         |       |        |       |  |       |       |       |       |
-         |_______|________|_______|  |_______|_______|_______|_______|
-         |SELECT |PREVIOUS|NEXT   |  |  KP7  |  KP8  |  KP9  |  KP-  |
-         |       |        |       |  |       |       |       |       |
-         |_______|________|_______|  |_______|_______|_______|_______|
-                 |   UP   |          |  KP4  |  KP5  |  KP6  |  KP,  |
-                 |        |          |       |       |       |       |
-          _______|________|_______   |_______|_______|_______|_______|
-         |  LEFT |  DOWN  | RIGHT |  |  KP1  |  KP2  |  KP3  |       |
-         |       |        |       |  |       |       |       |       |
-         |_______|________|_______|  |_______|_______|_______|  KPE  |
-                                     |      KP0      |  KPP  |       |
-                                     |               |       |       |
-                                     |_______________|_______|_______|
-
-         REMEMBER:  JUST PRESS RETURN TO SKIP MAPPING A KEY.
-
-")
-  (progn
-    (insert "
-    GENERATING A CUSTOM CONFIGURATION FILE FOR TERMINAL TYPE:  ")
-    (insert (format "%s." edt-term))
-    (insert "
-
-          PRESS THE KEY SPECIFIED IN THE MINIBUFFER BELOW.
-
-          ________________________    _______________________________
-         | HELP  |       DO       |  |  F17  |  F18  |  F19  |  F20  |
-         |_______|________________|  |_______|_______|_______|_______|
-          ________________________    _______________________________
-         | FIND  |INSERT  |REMOVE |  |  PF1  |  PF2  |  PF3  |  PF4  |
-         |_______|________|_______|  |_______|_______|_______|_______|
-         |SELECT |PREVIOUS| NEXT  |  |  KP7  |  KP8  |  KP9  |  KP-  |
-         |_______|________|_______|  |_______|_______|_______|_______|
-                 |   UP   |          |  KP4  |  KP5  |  KP6  |  KP,  |
-          _______|________|_______   |_______|_______|_______|_______|
-         |  LEFT |  DOWN  | RIGHT |  |  KP1  |  KP2  |  KP3  |       |
-         |_______|________|_______|  |_______|_______|_______|  KPE  |
-                                     |      KP0      |  KPP  |       |
-                                     |_______________|_______|_______|
-
-         REMEMBER:  JUST PRESS RETURN TO SKIP MAPPING A KEY.")))
-
 
 ;;;
 ;;;  Key mapping functions
@@ -381,108 +168,314 @@
 	   (set-buffer "Directions"))))
   edt-key)
 
-(set-buffer "Keys")
-(insert "
+(defun edt-mapper ()
+  (if noninteractive
+    (user-error "edt-mapper cannot be loaded in batch mode"))
+  ;;  Determine Terminal Type (if appropriate).
+  (if (and edt-window-system (not (eq edt-window-system 'tty)))
+      (setq edt-term nil)
+    (setq edt-term (getenv "TERM")))
+  ;;
+  ;; Implements a workaround for a feature that was added to simple.el.
+  ;;
+  ;; Many function keys have no Emacs functions assigned to them by
+  ;; default. A subset of these are typically assigned functions in the
+  ;; EDT emulation. This includes all the keypad keys and a some others
+  ;; like Delete.
+  ;;
+  ;; Logic in simple.el maps some of these unassigned function keys to
+  ;; ordinary typing keys.  Where this is the case, a call to
+  ;; read-key-sequence, below, does not return the name of the function
+  ;; key pressed by the user but, instead, it returns the name of the
+  ;; key to which it has been mapped.  It needs to know the name of the
+  ;; key pressed by the user. As a workaround, we assign a function to
+  ;; each of the unassigned function keys of interest, here.  These
+  ;; assignments override the mapping to other keys and are only
+  ;; temporary since, when edt-mapper is finished executing, it causes
+  ;; Emacs to exit.
+  ;;
+  (mapc
+   (lambda (function-key)
+     (if (not (lookup-key (current-global-map) function-key))
+	 (define-key (current-global-map) function-key 'forward-char)))
+   '([kp-0] [kp-1] [kp-2] [kp-3] [kp-4]
+     [kp-5] [kp-6] [kp-7] [kp-8] [kp-9]
+     [kp-space]
+     [kp-tab]
+     [kp-enter]
+     [kp-multiply]
+     [kp-add]
+     [kp-separator]
+     [kp-subtract]
+     [kp-decimal]
+     [kp-divide]
+     [kp-equal]
+     [backspace]
+     [delete]
+     [tab]
+     [linefeed]
+     [clear]))
+  ;;
+  ;;  Make sure the window is big enough to display the instructions,
+  ;;  except where window cannot be re-sized.
+  ;;
+  (if (and edt-window-system (not (eq edt-window-system 'tty)))
+      (set-frame-size (selected-frame) 80 36))
+  ;;
+  ;;  Create buffers - Directions and Keys
+  ;;
+  (if (not (get-buffer "Directions")) (generate-new-buffer "Directions"))
+  (if (not (get-buffer "Keys")) (generate-new-buffer "Keys"))
+  ;;
+  ;;  Put header in the Keys buffer
+  ;;
+  (set-buffer "Keys")
+  (insert "\
+;;
+;;  Key definitions for the EDT emulation within GNU Emacs
+;;
+
+\(defconst *EDT-keys*
+  '(
+    ")
+
+  ;;
+  ;;   Display directions
+  ;;
+  (switch-to-buffer "Directions")
+  (if (and edt-window-system (not (eq edt-window-system 'tty)))
+      (insert "
+                                  EDT MAPPER
+
+    You will be asked to press keys to create a custom mapping (under a
+    Window Manager) of your keypad keys and function keys so that they can
+    emulate the LK-201 keypad and function keys or the subset of keys found
+    on a VT-100 series terminal keyboard.  (The LK-201 keyboard is the
+    standard keyboard attached to VT-200 series terminals, and above.)
+
+    Sometimes, edt-mapper will ignore a key you press, and just continue to
+    prompt for the same key.  This can happen when your window manager sucks
+    up the key and doesn't pass it on to Emacs, or it could be an Emacs bug.
+    Either way, there's nothing that edt-mapper can do about it.  You must
+    press RETURN, to skip the current key and continue.  Later, you and/or
+    your local system guru can try to figure out why the key is being ignored.
+
+    Start by pressing the RETURN key, and continue by pressing the keys
+    specified in the mini-buffer.  If you want to entirely omit a key,
+    because your keyboard does not have a corresponding key, for example,
+    just press RETURN at the prompt.
+
+")
+    (insert "
+                                  EDT MAPPER
+
+    You will be asked to press keys to create a custom mapping of your
+    keypad keys and function keys so that they can emulate the LK-201
+    keypad and function keys or the subset of keys found on a VT-100
+    series terminal keyboard.  (The LK-201 keyboard is the standard
+    keyboard attached to VT-200 series terminals, and above.)
+
+    If you are using a real LK-201 keyboard, you should map the keys
+    exactly as they are on the keyboard.
+
+    Start by pressing the RETURN key, and continue by pressing the keys
+    specified in the mini-buffer.  If you want to entirely omit a key,
+    because your keyboard does not have a corresponding key, for example,
+    just press RETURN at the prompt.
+
+"))
+
+  (delete-other-windows)
+
+  ;;
+  ;;  Save <CR> for future reference.
+  ;;
+  ;;  For GNU Emacs, running in a Window System, first hide bindings in
+  ;;  function-key-map.
+  ;;
+  (cond
+   ((featurep 'xemacs)
+    (setq edt-return-seq (read-key-sequence "Hit carriage-return <CR> to continue "))
+    (setq edt-return (concat "[" (format "%s" (event-key (aref edt-return-seq 0))) "]")))
+   (t
+    (if edt-window-system
+	(progn
+	  (setq edt-save-function-key-map function-key-map)
+	  (setq function-key-map (make-sparse-keymap))))
+    (setq edt-return (read-key-sequence "Hit carriage-return <CR> to continue "))))
+
+  ;;
+  ;;  Remove prefix-key bindings to F1 and F2 in global-map so they can be
+  ;;  bound in the EDT Emulation mode.
+  ;;
+  (global-unset-key [f1])
+  (global-unset-key [f2])
+
+  ;;
+  ;;   Display Keypad Diagram and Begin Prompting for Keys
+  ;;
+  (set-buffer "Directions")
+  (delete-region (point-min) (point-max))
+  (if (and edt-window-system (not (eq edt-window-system 'tty)))
+      (insert "
+
+          PRESS THE KEY SPECIFIED IN THE MINIBUFFER BELOW.
+
+    Here's a picture of the standard LK-201 keypad for reference:
+
+          ________________________    _______________________________
+         | HELP  |      DO        |  |  F17  |  F18  |  F19  |  F20  |
+         |       |                |  |       |       |       |       |
+         |_______|________________|  |_______|_______|_______|_______|
+          ________________________   _______________________________
+         | FIND  |INSERT  |REMOVE |  |  PF1  |  PF2  |  PF3  |  PF4  |
+         |       |        |       |  |       |       |       |       |
+         |_______|________|_______|  |_______|_______|_______|_______|
+         |SELECT |PREVIOUS|NEXT   |  |  KP7  |  KP8  |  KP9  |  KP-  |
+         |       |        |       |  |       |       |       |       |
+         |_______|________|_______|  |_______|_______|_______|_______|
+                 |   UP   |          |  KP4  |  KP5  |  KP6  |  KP,  |
+                 |        |          |       |       |       |       |
+          _______|________|_______   |_______|_______|_______|_______|
+         |  LEFT |  DOWN  | RIGHT |  |  KP1  |  KP2  |  KP3  |       |
+         |       |        |       |  |       |       |       |       |
+         |_______|________|_______|  |_______|_______|_______|  KPE  |
+                                     |      KP0      |  KPP  |       |
+                                     |               |       |       |
+                                     |_______________|_______|_______|
+
+         REMEMBER:  JUST PRESS RETURN TO SKIP MAPPING A KEY.
+
+")
+    (progn
+      (insert "
+    GENERATING A CUSTOM CONFIGURATION FILE FOR TERMINAL TYPE:  ")
+      (insert (format "%s." edt-term))
+      (insert "
+
+          PRESS THE KEY SPECIFIED IN THE MINIBUFFER BELOW.
+
+          ________________________    _______________________________
+         | HELP  |       DO       |  |  F17  |  F18  |  F19  |  F20  |
+         |_______|________________|  |_______|_______|_______|_______|
+          ________________________    _______________________________
+         | FIND  |INSERT  |REMOVE |  |  PF1  |  PF2  |  PF3  |  PF4  |
+         |_______|________|_______|  |_______|_______|_______|_______|
+         |SELECT |PREVIOUS| NEXT  |  |  KP7  |  KP8  |  KP9  |  KP-  |
+         |_______|________|_______|  |_______|_______|_______|_______|
+                 |   UP   |          |  KP4  |  KP5  |  KP6  |  KP,  |
+          _______|________|_______   |_______|_______|_______|_______|
+         |  LEFT |  DOWN  | RIGHT |  |  KP1  |  KP2  |  KP3  |       |
+         |_______|________|_______|  |_______|_______|_______|  KPE  |
+                                     |      KP0      |  KPP  |       |
+                                     |_______________|_______|_______|
+
+         REMEMBER:  JUST PRESS RETURN TO SKIP MAPPING A KEY.")))
+
+
+
+  (set-buffer "Keys")
+  (insert "
 ;;
 ;;  Arrows
 ;;
 ")
-(set-buffer "Directions")
+  (set-buffer "Directions")
 
-(edt-map-key "UP"     " - The Up Arrow Key")
-(edt-map-key "DOWN"   " - The Down Arrow Key")
-(edt-map-key "LEFT"   " - The Left Arrow Key")
-(edt-map-key "RIGHT"  " - The Right Arrow Key")
+  (edt-map-key "UP"     " - The Up Arrow Key")
+  (edt-map-key "DOWN"   " - The Down Arrow Key")
+  (edt-map-key "LEFT"   " - The Left Arrow Key")
+  (edt-map-key "RIGHT"  " - The Right Arrow Key")
 
 
-(set-buffer "Keys")
-(insert "
+  (set-buffer "Keys")
+  (insert "
 ;;
 ;;  PF keys
 ;;
 ")
-(set-buffer "Directions")
+  (set-buffer "Directions")
 
-(edt-map-key "PF1"  " - The PF1 (GOLD) Key")
-(edt-map-key "PF2"  " - The Keypad PF2 Key")
-(edt-map-key "PF3"  " - The Keypad PF3 Key")
-(edt-map-key "PF4"  " - The Keypad PF4 Key")
+  (edt-map-key "PF1"  " - The PF1 (GOLD) Key")
+  (edt-map-key "PF2"  " - The Keypad PF2 Key")
+  (edt-map-key "PF3"  " - The Keypad PF3 Key")
+  (edt-map-key "PF4"  " - The Keypad PF4 Key")
 
-(set-buffer "Keys")
-(insert "
+  (set-buffer "Keys")
+  (insert "
 ;;
 ;;  KP0-9 KP- KP, KPP and KPE
 ;;
 ")
-(set-buffer "Directions")
+  (set-buffer "Directions")
 
-(edt-map-key "KP0"      " - The Keypad 0 Key")
-(edt-map-key "KP1"      " - The Keypad 1 Key")
-(edt-map-key "KP2"      " - The Keypad 2 Key")
-(edt-map-key "KP3"      " - The Keypad 3 Key")
-(edt-map-key "KP4"      " - The Keypad 4 Key")
-(edt-map-key "KP5"      " - The Keypad 5 Key")
-(edt-map-key "KP6"      " - The Keypad 6 Key")
-(edt-map-key "KP7"      " - The Keypad 7 Key")
-(edt-map-key "KP8"      " - The Keypad 8 Key")
-(edt-map-key "KP9"      " - The Keypad 9 Key")
-(edt-map-key "KP-"      " - The Keypad - Key")
-(edt-map-key "KP,"      " - The Keypad , Key")
-(edt-map-key "KPP"      " - The Keypad . Key")
-(edt-map-key "KPE"      " - The Keypad Enter Key")
-;; Save the enter key
-(setq edt-enter edt-key)
-(setq edt-enter-seq edt-key-seq)
+  (edt-map-key "KP0"      " - The Keypad 0 Key")
+  (edt-map-key "KP1"      " - The Keypad 1 Key")
+  (edt-map-key "KP2"      " - The Keypad 2 Key")
+  (edt-map-key "KP3"      " - The Keypad 3 Key")
+  (edt-map-key "KP4"      " - The Keypad 4 Key")
+  (edt-map-key "KP5"      " - The Keypad 5 Key")
+  (edt-map-key "KP6"      " - The Keypad 6 Key")
+  (edt-map-key "KP7"      " - The Keypad 7 Key")
+  (edt-map-key "KP8"      " - The Keypad 8 Key")
+  (edt-map-key "KP9"      " - The Keypad 9 Key")
+  (edt-map-key "KP-"      " - The Keypad - Key")
+  (edt-map-key "KP,"      " - The Keypad , Key")
+  (edt-map-key "KPP"      " - The Keypad . Key")
+  (edt-map-key "KPE"      " - The Keypad Enter Key")
+  ;; Save the enter key
+  (setq edt-enter edt-key)
+  (setq edt-enter-seq edt-key-seq)
 
 
-(set-buffer "Keys")
-(insert "
+  (set-buffer "Keys")
+  (insert "
 ;;
 ;;  Editing keypad (FIND, INSERT, REMOVE)
 ;;                 (SELECT, PREVIOUS, NEXT)
 ;;
 ")
-(set-buffer "Directions")
+  (set-buffer "Directions")
 
-(edt-map-key "FIND"      " - The Find key on the editing keypad")
-(edt-map-key "INSERT"    " - The Insert key on the editing keypad")
-(edt-map-key "REMOVE"    " - The Remove key on the editing keypad")
-(edt-map-key "SELECT"    " - The Select key on the editing keypad")
-(edt-map-key "PREVIOUS"  " - The Prev Scr key on the editing keypad")
-(edt-map-key "NEXT"      " - The Next Scr key on the editing keypad")
+  (edt-map-key "FIND"      " - The Find key on the editing keypad")
+  (edt-map-key "INSERT"    " - The Insert key on the editing keypad")
+  (edt-map-key "REMOVE"    " - The Remove key on the editing keypad")
+  (edt-map-key "SELECT"    " - The Select key on the editing keypad")
+  (edt-map-key "PREVIOUS"  " - The Prev Scr key on the editing keypad")
+  (edt-map-key "NEXT"      " - The Next Scr key on the editing keypad")
 
-(set-buffer "Keys")
-(insert "
+  (set-buffer "Keys")
+  (insert "
 ;;
 ;;  F1-14 Help Do F17-F20
 ;;
 ")
-(set-buffer "Directions")
+  (set-buffer "Directions")
 
-(edt-map-key "F1"        " - F1 Function Key")
-(edt-map-key "F2"        " - F2 Function Key")
-(edt-map-key "F3"        " - F3 Function Key")
-(edt-map-key "F4"        " - F4 Function Key")
-(edt-map-key "F5"        " - F5 Function Key")
-(edt-map-key "F6"        " - F6 Function Key")
-(edt-map-key "F7"        " - F7 Function Key")
-(edt-map-key "F8"        " - F8 Function Key")
-(edt-map-key "F9"        " - F9 Function Key")
-(edt-map-key "F10"       " - F10 Function Key")
-(edt-map-key "F11"       " - F11 Function Key")
-(edt-map-key "F12"       " - F12 Function Key")
-(edt-map-key "F13"       " - F13 Function Key")
-(edt-map-key "F14"       " - F14 Function Key")
-(edt-map-key "HELP"      " - HELP Function Key")
-(edt-map-key "DO"        " - DO Function Key")
-(edt-map-key "F17"       " - F17 Function Key")
-(edt-map-key "F18"       " - F18 Function Key")
-(edt-map-key "F19"       " - F19 Function Key")
-(edt-map-key "F20"       " - F20 Function Key")
+  (edt-map-key "F1"        " - F1 Function Key")
+  (edt-map-key "F2"        " - F2 Function Key")
+  (edt-map-key "F3"        " - F3 Function Key")
+  (edt-map-key "F4"        " - F4 Function Key")
+  (edt-map-key "F5"        " - F5 Function Key")
+  (edt-map-key "F6"        " - F6 Function Key")
+  (edt-map-key "F7"        " - F7 Function Key")
+  (edt-map-key "F8"        " - F8 Function Key")
+  (edt-map-key "F9"        " - F9 Function Key")
+  (edt-map-key "F10"       " - F10 Function Key")
+  (edt-map-key "F11"       " - F11 Function Key")
+  (edt-map-key "F12"       " - F12 Function Key")
+  (edt-map-key "F13"       " - F13 Function Key")
+  (edt-map-key "F14"       " - F14 Function Key")
+  (edt-map-key "HELP"      " - HELP Function Key")
+  (edt-map-key "DO"        " - DO Function Key")
+  (edt-map-key "F17"       " - F17 Function Key")
+  (edt-map-key "F18"       " - F18 Function Key")
+  (edt-map-key "F19"       " - F19 Function Key")
+  (edt-map-key "F20"       " - F20 Function Key")
 
-(set-buffer "Directions")
-(delete-region (point-min) (point-max))
-(insert "
+  (set-buffer "Directions")
+  (delete-region (point-min) (point-max))
+  (insert "
                        ADDITIONAL FUNCTION KEYS
 
     Your keyboard may have additional function keys which do not correspond
@@ -501,53 +494,53 @@
 
     When you are done, just press RETURN at the \"EDT Key Name:\" prompt.
 ")
-(switch-to-buffer "Directions")
-;;;
-;;;  Add support for extras keys
-;;;
-(set-buffer "Keys")
-(insert "\
+  (switch-to-buffer "Directions")
+  ;;
+  ;;  Add support for extras keys
+  ;;
+  (set-buffer "Keys")
+  (insert "\
 ;;
 ;;  Extra Keys
 ;;
 ")
-;;;
-;;;  Restore function-key-map.
-;;;
-(if (and edt-window-system (not (featurep 'xemacs)))
-    (setq function-key-map edt-save-function-key-map))
-(setq EDT-key-name "")
-(while (not
-        (string-equal (setq EDT-key-name (read-string "EDT Key Name: ")) ""))
-  (edt-map-key EDT-key-name ""))
+  ;;
+  ;;  Restore function-key-map.
+  ;;
+  (if (and edt-window-system (not (featurep 'xemacs)))
+      (setq function-key-map edt-save-function-key-map))
+  (setq EDT-key-name "")
+  (while (not
+	  (string-equal (setq EDT-key-name (read-string "EDT Key Name: ")) ""))
+    (edt-map-key EDT-key-name ""))
 
-;
-; No more keys to add, so wrap up.
-;
-(set-buffer "Keys")
-(insert "\
+  ;;
+  ;; No more keys to add, so wrap up.
+  ;;
+  (set-buffer "Keys")
+  (insert "\
     )
   )
 ")
 
-;;;
-;;;  Save the key mapping program
-;;;
-;;;
-;;;  Save the key mapping file
-;;;
-(let ((file (concat
-	     "~/.edt-" (if (featurep 'xemacs) "xemacs" "gnu")
-	     (if edt-term (concat "-" edt-term))
-	     (if edt-xserver (concat "-" edt-xserver))
-	     (if edt-window-system (concat "-" (upcase (symbol-name edt-window-system))))
-	     "-keys")))
-  (set-visited-file-name
-   (read-file-name (format "Save key mapping to file (default %s): " file) nil file)))
-(save-buffer)
+  ;;
+  ;;  Save the key mapping program
+  ;;
+  ;;
+  ;;  Save the key mapping file
+  ;;
+  (let ((file (concat
+	       "~/.edt-" (if (featurep 'xemacs) "xemacs" "gnu")
+	       (if edt-term (concat "-" edt-term))
+	       (if edt-xserver (concat "-" edt-xserver))
+	       (if edt-window-system (concat "-" (upcase (symbol-name edt-window-system))))
+	       "-keys")))
+    (set-visited-file-name
+     (read-file-name (format "Save key mapping to file (default %s): " file) nil file)))
+  (save-buffer)
 
-(message "That's it!  Press any key to exit")
-(sit-for 600)
-(kill-emacs t)
+  (message "That's it!  Press any key to exit")
+  (sit-for 600)
+  (kill-emacs t))
 
 ;;; edt-mapper.el ends here

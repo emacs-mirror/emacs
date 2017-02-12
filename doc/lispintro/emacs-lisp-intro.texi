@@ -17151,9 +17151,11 @@ Here is another keybinding, with a comment:
 
 @findex occur
 The @code{occur} command shows all the lines in the current buffer
-that contain a match for a regular expression.  Matching lines are
-shown in a buffer called @file{*Occur*}.  That buffer serves as a menu
-to jump to occurrences.
+that contain a match for a regular expression.  When the region is
+active, @code{occur} restricts matches to such region.  Otherwise it
+uses the entire buffer.
+Matching lines are shown in a buffer called @file{*Occur*}.
+That buffer serves as a menu to jump to occurrences.
 
 @findex global-unset-key
 @cindex Unbinding key

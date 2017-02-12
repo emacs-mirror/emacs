@@ -1319,13 +1319,14 @@ a new window in the current frame, splitting vertically."
   (cl-assert (derived-mode-p 'ibuffer-mode)))
 
 (defun ibuffer-buffer-file-name ()
-  (or buffer-file-name
-      (let ((dirname (or (and (boundp 'dired-directory)
-			      (if (stringp dired-directory)
-				  dired-directory
-				(car dired-directory)))
-			 (bound-and-true-p list-buffers-directory))))
-	(and dirname (expand-file-name dirname)))))
+  (cond
+   ((buffer-file-name))
+   ((bound-and-true-p list-buffers-directory))
+   ((let ((dirname (and (boundp 'dired-directory)
+                        (if (stringp dired-directory)
+                            dired-directory
+                          (car dired-directory)))))
+	(and dirname (expand-file-name dirname))))))
 
 (define-ibuffer-op ibuffer-do-save ()
   "Save marked buffers as with `save-buffer'."

@@ -192,6 +192,17 @@ the Content-Transfer-Encoding header of a mail."
       (ietf-drums-init string)
       (while (not (eobp))
 	(setq c (char-after))
+        ;; If we have an uneven number of quote characters,
+        ;; `forward-sexp' will fail.  In these cases, just delete the
+        ;; final of these quote characters.
+        (when (and (eq c ?\")
+                   (not
+                    (save-excursion
+                      (ignore-errors
+                        (forward-sexp 1)
+                        t))))
+          (delete-char 1)
+          (setq c (char-after)))
 	(cond
 	 ((or (eq c ? )
 	      (eq c ?\t))

@@ -635,7 +635,7 @@ x_cr_export_frames (Lisp_Object frames, cairo_surface_type_t surface_type)
 	(*surface_set_size_func) (surface, width, height);
 
       unblock_input ();
-      QUIT;
+      maybe_quit ();
       block_input ();
     }
 
@@ -12877,7 +12877,7 @@ keysyms.  The default is nil, which is the same as `super'.  */);
   Vx_keysym_table = make_hash_table (hashtest_eql, make_number (900),
 				     make_float (DEFAULT_REHASH_SIZE),
 				     make_float (DEFAULT_REHASH_THRESHOLD),
-				     Qnil);
+				     Qnil, Qnil);
 
   DEFVAR_BOOL ("x-frame-normalize-before-maximize",
 	       x_frame_normalize_before_maximize,

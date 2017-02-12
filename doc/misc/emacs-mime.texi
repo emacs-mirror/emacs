@@ -654,6 +654,10 @@ Each tag can contain zero or more parameters on the form
 but that's not necessary unless the value contains white space.  So
 @samp{filename=/home/user/#hello$^yes} is perfectly valid.
 
+If you want to talk about MML in a message, you need a way to
+``quote'' these tags.  The way to do that is to include an exclamation
+point after the opening two characters; i. e. @samp{<#!part ...>}.
+
 The following parameters have meaning in @acronym{MML}; parameters that have no
 meaning are ignored.  The @acronym{MML} parameter names are the same as the
 @acronym{MIME} parameter names; the things in the parentheses say which

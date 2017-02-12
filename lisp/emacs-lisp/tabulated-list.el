@@ -412,8 +412,13 @@ of column descriptors."
 	(inhibit-read-only t))
     (if (> tabulated-list-padding 0)
 	(insert (make-string x ?\s)))
-    (dotimes (n ncols)
-      (setq x (tabulated-list-print-col n (aref cols n) x)))
+    (let ((tabulated-list--near-rows ; Bind it if not bound yet (Bug#25506).
+           (or (bound-and-true-p tabulated-list--near-rows)
+               (list (or (tabulated-list-get-entry (point-at-bol 0))
+                         cols)
+                     cols))))
+      (dotimes (n ncols)
+        (setq x (tabulated-list-print-col n (aref cols n) x))))
     (insert ?\n)
     ;; Ever so slightly faster than calling `put-text-property' twice.
     (add-text-properties

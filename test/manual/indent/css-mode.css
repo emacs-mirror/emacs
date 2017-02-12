@@ -43,3 +43,30 @@ article:hover
 {
     color: black;
 }
+
+/* bug:13425 */
+div:first-child,
+div:last-child,
+div[disabled],
+div::before {
+    font: 15px "Helvetica Neue",
+          Helvetica,
+          Arial,
+          "Nimbus Sans L",
+          sans-serif;
+    font: 15px "Helvetica Neue", Helvetica, Arial,
+          "Nimbus Sans L", sans-serif;
+    transform: matrix(1.0, 2.0,
+                      3.0, 4.0,
+                      5.0, 6.0);
+    transform: matrix(
+        1.0, 2.0,
+        3.0, 4.0,
+        5.0, 6.0
+    );
+}
+@font-face {
+    src: url("Sans-Regular.eot") format("eot"),
+         url("Sans-Regular.woff") format("woff"),
+         url("Sans-Regular.ttf") format("truetype");
+}

@@ -2901,15 +2901,16 @@ See `term-prompt-regexp'."
 			 ((eq char ?\017))     ; Shift In - ignored
 			 ((eq char ?\^G) ;; (terminfo: bel)
 			  (beep t))
-			 ((and (eq char ?\032)
-                               (not handled-ansi-message))
+			 ((eq char ?\032)
 			  (let ((end (string-match "\r?\n" str i)))
 			    (if end
-				(funcall term-command-hook
-					 (decode-coding-string
-					  (prog1 (substring str (1+ i) end)
-					    (setq i (1- (match-end 0))))
-					  locale-coding-system))
+                                (progn
+                                  (unless handled-ansi-message
+                                    (funcall term-command-hook
+                                             (decode-coding-string
+                                              (substring str (1+ i) end)
+                                              locale-coding-system)))
+                                  (setq i (1- (match-end 0))))
 			      (setq term-terminal-parameter (substring str i))
 			      (setq term-terminal-state 4)
 			      (setq i str-length))))

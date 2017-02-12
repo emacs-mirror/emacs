@@ -131,9 +131,7 @@ It accepts the same format specs that `gnus-summary-line-format' does."
 (defvar gnus-pick-line-number 1)
 (defun gnus-pick-line-number ()
   "Return the current line number."
-  (if (bobp)
-      (setq gnus-pick-line-number 1)
-    (incf gnus-pick-line-number)))
+  (incf gnus-pick-line-number))
 
 (defun gnus-pick-start-reading (&optional catch-up)
   "Start reading the picked articles.

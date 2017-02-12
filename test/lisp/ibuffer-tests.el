@@ -23,6 +23,15 @@
 (eval-when-compile
   (require 'ibuf-macs))
 
+(defvar ibuffer-filter-groups)
+(defvar ibuffer-filtering-alist)
+(defvar ibuffer-filtering-qualifiers)
+(defvar ibuffer-save-with-custom)
+(defvar ibuffer-saved-filter-groups)
+(defvar ibuffer-saved-filters)
+(declare-function ibuffer-format-qualifier "ibuf-ext" (qualifier))
+(declare-function ibuffer-unary-operand "ibuf-ext" (filter))
+
 (ert-deftest ibuffer-autoload ()
   "Tests to see whether ibuffer has been autoloaded"
   (skip-unless (not (featurep 'ibuf-ext)))

@@ -4141,7 +4141,8 @@ Open brace of an enum or static array list.  @ref{Brace List Symbols}.
 @item brace-list-close
 Close brace of an enum or static array list.  @ref{Brace List Symbols}.
 @item brace-list-intro
-First line in an enum or static array list.  @ref{Brace List Symbols}.
+First line after the opening @samp{@{} in an enum or static array
+list.  @ref{Brace List Symbols}.
 @item brace-list-entry
 Subsequent lines in an enum or static array list.  @ref{Brace List
 Symbols}.
@@ -4635,11 +4636,18 @@ example:
 
 Here, you've already seen the analysis of lines 1, 2, 3, and 11.  On
 line 4, things get interesting; this line is assigned
-@code{brace-entry-open} syntactic symbol because it's a bracelist entry
-line that starts with an open brace.  Lines 5 and 6 (and line 9) are
-pretty standard, and line 7 is a @code{brace-list-close} as you'd
-expect.  Once again, line 8 is assigned as @code{brace-entry-open} as is
-line 10.
+@code{brace-entry-open} syntactic symbol because it's a bracelist
+entry line that starts with an open brace.  Lines 5 and 6 are pretty
+standard, and line 7 is a @code{brace-list-close} as you'd expect.
+Once again, line 8 is assigned as @code{brace-entry-open} as is line
+10.  Line 9 is assigned two syntactic elements, @code{brace-list-intro}
+with anchor point at the @samp{@{} of line 8@footnote{This extra
+syntactic element was introduced in @ccmode{} 5.33.1 to allow extra
+flexibility in indenting the second line of such a construct.  You can
+preserve the behaviour resulting from the former syntactic analysis by
+giving @code{brace-list-entry} an offset of
+@code{c-lineup-under-anchor} (@pxref{Misc Line-Up}).}, and
+@code{brace-list-entry} anchored on the @samp{1} of line 8.
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 @node    External Scope Symbols, Paren List Symbols, Brace List Symbols, Syntactic Symbols
@@ -6284,6 +6292,17 @@ This lineup function makes the line stay at whatever indentation it
 already has; think of it as an identity function for lineups.
 
 @workswith Any syntactic symbol.
+@end defun
+
+@comment ------------------------------------------------------------
+
+@defun c-lineup-under-anchor
+
+Line up a line directly underneath its anchor point.  This is like
+@samp{0}, except any previously calculated offset contributions are
+disregarded.
+
+@workswith Any syntactic symbol which has an anchor point.
 @end defun
 
 @comment ------------------------------------------------------------

@@ -511,6 +511,7 @@ since it could result in memory overflow and make Emacs crash."
 	     (scroll-step windows integer)
 	     (scroll-conservatively windows integer)
 	     (scroll-margin windows integer)
+             (maximum-scroll-margin windows float "26.1")
 	     (hscroll-margin windows integer "22.1")
 	     (hscroll-step windows number "22.1")
 	     (truncate-partial-width-windows

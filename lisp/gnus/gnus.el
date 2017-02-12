@@ -2654,10 +2654,6 @@ such as a mark that says whether an article is stored in the cache
   "submit@debbugs.gnu.org (The Gnus Bugfixing Girls + Boys)"
   "The mail address of the Gnus maintainers.")
 
-(defconst gnus-bug-package
-  "gnus"
-  "The package to use in the bug submission.")
-
 (defvar gnus-info-nodes
   '((gnus-group-mode "(gnus)Group Buffer")
     (gnus-summary-mode "(gnus)Summary Buffer")

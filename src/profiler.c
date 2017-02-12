@@ -48,7 +48,7 @@ make_log (EMACS_INT heap_size, EMACS_INT max_stack_depth)
 				     make_number (heap_size),
 				     make_float (DEFAULT_REHASH_SIZE),
 				     make_float (DEFAULT_REHASH_THRESHOLD),
-				     Qnil);
+				     Qnil, Qnil);
   struct Lisp_Hash_Table *h = XHASH_TABLE (log);
 
   /* What is special about our hash-tables is that the keys are pre-filled
@@ -174,8 +174,8 @@ record_backtrace (log_t *log, EMACS_INT count)
 	   some global flag so that some Elisp code can offload its
 	   data elsewhere, so as to avoid the eviction code.
 	   There are 2 ways to do that, AFAICT:
-	   - Set a flag checked in QUIT, such that QUIT can then call
-	     Fprofiler_cpu_log and stash the full log for later use.
+	   - Set a flag checked in maybe_quit, such that maybe_quit can then
+	     call Fprofiler_cpu_log and stash the full log for later use.
 	   - Set a flag check in post-gc-hook, so that Elisp code can call
 	     profiler-cpu-log.  That gives us more flexibility since that
 	     Elisp code can then do all kinds of fun stuff like write

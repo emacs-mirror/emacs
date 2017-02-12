@@ -672,7 +672,7 @@ usage: (or CONDITIONS...)  */)
       if (!NILP (val))
         break;
       args = XCDR (args);
-      QUIT;
+      maybe_quit ();
     @}
 @end group
 
@@ -792,8 +792,8 @@ their addresses after performing Lisp evaluation.  Lisp evaluation can
 occur via calls to @code{eval_sub} or @code{Feval}, either directly or
 indirectly.
 
-@cindex @code{QUIT}, use in Lisp primitives
-  Note the call to the @code{QUIT} macro inside the loop: this macro
+@cindex @code{maybe_quit}, use in Lisp primitives
+  Note the call to @code{maybe_quit} inside the loop: this function
 checks whether the user pressed @kbd{C-g}, and if so, aborts the
 processing.  You should do that in any loop that can potentially
 require a large number of iterations; in this case, the list of

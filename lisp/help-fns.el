@@ -115,13 +115,15 @@ When called from lisp, FUNCTION may also be a function object."
                 (if fn
                     (format "Describe function (default %s): " fn)
                   "Describe function: ")
-                #'help--symbol-completion-table #'fboundp t nil nil
+                #'help--symbol-completion-table
+                (lambda (f) (or (fboundp f) (get f 'function-documentation)))
+                t nil nil
                 (and fn (symbol-name fn)))))
      (unless (equal val "")
        (setq fn (intern val)))
      (unless (and fn (symbolp fn))
        (user-error "You didn't specify a function symbol"))
-     (unless (fboundp fn)
+     (unless (or (fboundp fn) (get fn 'function-documentation))
        (user-error "Symbol's function definition is void: %s" fn))
      (list fn)))
 
@@ -144,7 +146,9 @@ When called from lisp, FUNCTION may also be a function object."
 
     (save-excursion
       (with-help-window (help-buffer)
-        (prin1 function)
+        (if (get function 'reader-construct)
+            (princ function)
+          (prin1 function))
         ;; Use " is " instead of a colon so that
         ;; it is easier to get out the function name using forward-sexp.
         (princ " is ")
@@ -469,7 +473,8 @@ suitable file is found, return nil."
         (let ((fill-begin (point))
               (high-usage (car high))
               (high-doc (cdr high)))
-          (insert high-usage "\n")
+          (unless (get function 'reader-construct)
+            (insert high-usage "\n"))
           (fill-region fill-begin (point))
           high-doc)))))
 
@@ -565,18 +570,21 @@ FILE is the file where FUNCTION was probably defined."
 	  (or (and advised
                    (advice--cd*r (advice--symbol-function function)))
 	      function))
-	 ;; Get the real definition.
+	 ;; Get the real definition, if any.
 	 (def (if (symbolp real-function)
-		  (or (symbol-function real-function)
-		      (signal 'void-function (list real-function)))
+                  (cond ((symbol-function real-function))
+                        ((get real-function 'function-documentation)
+                         nil)
+                        (t (signal 'void-function (list real-function))))
 		real-function))
-	 (aliased (or (symbolp def)
-		      ;; Advised & aliased function.
-		      (and advised (symbolp real-function)
-			   (not (eq 'autoload (car-safe def))))
-                      (and (subrp def)
-                           (not (string= (subr-name def)
-                                         (symbol-name function))))))
+	 (aliased (and def
+                       (or (symbolp def)
+                           ;; Advised & aliased function.
+                           (and advised (symbolp real-function)
+                                (not (eq 'autoload (car-safe def))))
+                           (and (subrp def)
+                                (not (string= (subr-name def)
+                                              (symbol-name function)))))))
 	 (real-def (cond
                     ((and aliased (not (subrp def)))
                      (let ((f real-function))
@@ -605,6 +613,8 @@ FILE is the file where FUNCTION was probably defined."
     ;; Print what kind of function-like object FUNCTION is.
     (princ (cond ((or (stringp def) (vectorp def))
 		  "a keyboard macro")
+		 ((get function 'reader-construct)
+                  "a reader construct")
 		 ;; Aliases are Lisp functions, so we need to check
 		 ;; aliases before functions.
 		 (aliased
@@ -842,7 +852,7 @@ it is displayed along with the global value."
 		    (terpri)
 		    (pp val)
                     ;; Remove trailing newline.
-                    (delete-char -1))
+                    (and (= (char-before) ?\n) (delete-char -1)))
 		  (let* ((sv (get variable 'standard-value))
 			 (origval (and (consp sv)
 				       (condition-case nil

@@ -2691,9 +2691,7 @@ list, but are otherwise ignored.  */)
   (Lisp_Object frame, Lisp_Object alist)
 {
   struct frame *f = decode_live_frame (frame);
-  register Lisp_Object prop, val;
-
-  CHECK_LIST (alist);
+  Lisp_Object prop, val;
 
   /* I think this should be done with a hook.  */
 #ifdef HAVE_WINDOW_SYSTEM
@@ -3142,6 +3140,7 @@ x_set_frame_parameters (struct frame *f, Lisp_Object alist)
 
   for (size = 0, tail = alist; CONSP (tail); tail = XCDR (tail))
     size++;
+  CHECK_LIST_END (tail, alist);
 
   USE_SAFE_ALLOCA;
   SAFE_ALLOCA_LISP (parms, 2 * size);

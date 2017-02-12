@@ -20,6 +20,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <stdio.h>
 
 #include "lisp.h"
+#include "keyboard.h"
 #include "syssignal.h"
 #include "systime.h"
 #include "atimer.h"

@@ -1677,11 +1677,10 @@ FONT-SPEC is a vector, a cons, or a string.  See the documentation of
 `set-fontset-font' for the meaning.  */)
   (Lisp_Object name, Lisp_Object fontlist)
 {
-  Lisp_Object fontset;
+  Lisp_Object fontset, tail;
   int id;
 
   CHECK_STRING (name);
-  CHECK_LIST (fontlist);
 
   name = Fdowncase (name);
   id = fs_query_fontset (name, 0);
@@ -1714,11 +1713,11 @@ FONT-SPEC is a vector, a cons, or a string.  See the documentation of
       Fset_char_table_range (fontset, Qt, Qnil);
     }
 
-  for (; CONSP (fontlist); fontlist = XCDR (fontlist))
+  for (tail = fontlist; CONSP (tail); tail = XCDR (tail))
     {
       Lisp_Object elt, script;
 
-      elt = XCAR (fontlist);
+      elt = XCAR (tail);
       script = Fcar (elt);
       elt = Fcdr (elt);
       if (CONSP (elt) && (NILP (XCDR (elt)) || CONSP (XCDR (elt))))
@@ -1727,6 +1726,7 @@ FONT-SPEC is a vector, a cons, or a string.  See the documentation of
       else
 	Fset_fontset_font (name, script, elt, Qnil, Qappend);
     }
+  CHECK_LIST_END (tail, fontlist);
   return name;
 }
 

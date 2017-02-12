@@ -10197,6 +10197,11 @@ Sort by lines (@code{gnus-summary-sort-by-lines}).
 @findex gnus-summary-sort-by-chars
 Sort by article length (@code{gnus-summary-sort-by-chars}).
 
+@item C-c C-s C-m C-m
+@kindex C-c C-s C-m C-m (Summary)
+@findex gnus-summary-sort-by-marks
+Sort by article ``readedness'' marks (@code{gnus-summary-sort-by-marks}).
+
 @item C-c C-s C-i
 @kindex C-c C-s C-i (Summary)
 @findex gnus-summary-sort-by-score
@@ -13515,7 +13520,8 @@ Close the connection (if any) to the server
 @kindex D (Server)
 @findex gnus-server-deny-server
 Mark the current server as unreachable
-(@code{gnus-server-deny-server}).
+(@code{gnus-server-deny-server}).  This will effectively disable the
+server.
 
 @item M-o
 @kindex M-o (Server)
@@ -21857,37 +21863,37 @@ In summary mode:
 
 @table @kbd
 
-@item $ m
-@kindex $ m (Summary)
+@item G G m
+@kindex G G m (Summary)
 @findex nnmairix-widget-search-from-this-article
 Allows you to create a mairix query or group based on the current
 message using graphical widgets (same as @code{nnmairix-widget-search})
 (@code{nnmairix-widget-search-from-this-article}).
 
-@item $ g
-@kindex $ g (Summary)
+@item G G g
+@kindex G G g (Summary)
 @findex nnmairix-create-search-group-from-message
 Interactively creates a new search group with query based on the current
 message, but uses the minibuffer instead of graphical widgets
 (@code{nnmairix-create-search-group-from-message}).
 
-@item $ t
-@kindex $ t (Summary)
+@item G G t
+@kindex G G t (Summary)
 @findex nnmairix-search-thread-this-article
 Searches thread for the current article
 (@code{nnmairix-search-thread-this-article}).  This is effectively a
 shortcut for calling @code{nnmairix-search} with @samp{m:msgid} of the
 current article and enabled threads.
 
-@item $ f
-@kindex $ f (Summary)
+@item G G f
+@kindex G G f (Summary)
 @findex nnmairix-search-from-this-article
 Searches all messages from sender of the current article
 (@code{nnmairix-search-from-this-article}).  This is a shortcut for
 calling @code{nnmairix-search} with @samp{f:From}.
 
-@item $ o
-@kindex $ o (Summary)
+@item G G o
+@kindex G G o (Summary)
 @findex nnmairix-goto-original-article
 (Only in @code{nnmairix} groups!) Tries determine the group this article
 originally came from and displays the article in this group, so that,
@@ -21896,8 +21902,8 @@ parameters are applied (@code{nnmairix-goto-original-article}).  This
 function will use the registry if available, but can also parse the
 article file name as a fallback method.
 
-@item $ u
-@kindex $ u (Summary)
+@item G G u
+@kindex G G u (Summary)
 @findex nnmairix-remove-tick-mark-original-article
 Remove possibly existing tick mark from original article
 (@code{nnmairix-remove-tick-mark-original-article}).  (@pxref{nnmairix
@@ -22051,7 +22057,7 @@ activate the always-unread feature by using @kbd{G b r} twice.
 
 So far so good---but how do you remove the tick marks in the @code{nnmairix}
 group?  There are two options: You may simply use
-@code{nnmairix-remove-tick-mark-original-article} (bound to @kbd{$ u}) to remove
+@code{nnmairix-remove-tick-mark-original-article} (bound to @kbd{G G u}) to remove
 tick marks from the original article.  The other possibility is to set
 @code{nnmairix-propagate-marks-to-nnmairix-groups} to @code{t}, but see the above
 comments about this option.  If it works for you, the tick marks should

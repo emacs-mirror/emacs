@@ -28,7 +28,7 @@
 
 (ert-deftest completion-test1 ()
   (with-temp-buffer
-    (cl-flet* ((test/completion-table (string pred action)
+    (cl-flet* ((test/completion-table (_string _pred action)
                                       (if (eq action 'lambda)
                                           nil
                                         "test: "))

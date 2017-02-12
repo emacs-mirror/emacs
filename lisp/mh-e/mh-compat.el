@@ -283,16 +283,6 @@ DOCSTRING arguments."
 See documentation for `make-obsolete-variable' for a description
 of the arguments OBSOLETE-NAME, CURRENT-NAME, and perhaps WHEN
 and ACCESS-TYPE. This macro is used by XEmacs that lacks WHEN and
-ACCESS-TYPE arguments."
-  (if (featurep 'xemacs)
-      `(make-obsolete-variable ,obsolete-name ,current-name)
-    `(make-obsolete-variable ,obsolete-name ,current-name ,when ,access-type)))
-
-(defmacro mh-make-obsolete-variable (obsolete-name current-name &optional when access-type)
-  "Make the byte-compiler warn that OBSOLETE-NAME is obsolete.
-See documentation for `make-obsolete-variable' for a description
-of the arguments OBSOLETE-NAME, CURRENT-NAME, and perhaps WHEN
-and ACCESS-TYPE. This macro is used by XEmacs that lacks WHEN and
 ACCESS-TYPE arguments and by Emacs versions that lack ACCESS-TYPE,
 introduced in Emacs 24."
   (if (featurep 'xemacs)

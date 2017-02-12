@@ -1993,7 +1993,7 @@ programs.  */)
 		  : 0);
 
   ccl_driver (&ccl, NULL, NULL, 0, 0, Qnil);
-  QUIT;
+  maybe_quit ();
   if (ccl.status != CCL_STAT_SUCCESS)
     error ("Error in CCL program at %dth code", ccl.ic);
 

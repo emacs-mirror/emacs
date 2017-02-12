@@ -1304,6 +1304,19 @@ If the value is nil, don't highlight the buffer names specially."
   :type 'face
   :group 'matching)
 
+(defcustom list-matching-lines-current-line-face 'lazy-highlight
+  "Face used by \\[list-matching-lines] to highlight the current line."
+  :type 'face
+  :group 'matching
+  :version "26.1")
+
+(defcustom list-matching-lines-jump-to-current-line nil
+  "If non-nil, \\[list-matching-lines] shows the current line highlighted.
+Set the point right after such line when there are matches after it."
+:type 'boolean
+:group 'matching
+:version "26.1")
+
 (defcustom list-matching-lines-prefix-face 'shadow
   "Face used by \\[list-matching-lines] to show the prefix column.
 If the face doesn't differ from the default face,
@@ -1360,7 +1373,15 @@ invoke `occur'."
                            "*")
                    (or unique-p (not interactive-p)))))
 
-(defun occur (regexp &optional nlines)
+;; Region limits when `occur' applies on a region.
+(defvar occur--region-start nil)
+(defvar occur--region-end nil)
+(defvar occur--matches-threshold nil)
+(defvar occur--orig-line nil)
+(defvar occur--orig-line-str nil)
+(defvar occur--final-pos nil)
+
+(defun occur (regexp &optional nlines region)
   "Show all lines in the current buffer containing a match for REGEXP.
 If a match spreads across multiple lines, all those lines are shown.
 
@@ -1369,9 +1390,17 @@ before if NLINES is negative.
 NLINES defaults to `list-matching-lines-default-context-lines'.
 Interactively it is the prefix arg.
 
+Optional arg REGION, if non-nil, mean restrict search to the
+specified region.  Otherwise search the entire buffer.
+REGION must be a list of (START . END) positions as returned by
+`region-bounds'.
+
 The lines are shown in a buffer named `*Occur*'.
 It serves as a menu to find any of the occurrences in this buffer.
 \\<occur-mode-map>\\[describe-mode] in that buffer will explain how.
+If `list-matching-lines-jump-to-current-line' is non-nil, then show
+the current line highlighted with `list-matching-lines-current-line-face'
+and set point at the first match after such line.
 
 If REGEXP contains upper case characters (excluding those preceded by `\\')
 and `search-upper-case' is non-nil, the matching is case-sensitive.
@@ -1386,8 +1415,30 @@ For example, providing \"defun\\s +\\(\\S +\\)\" for REGEXP and
 program.  When there is no parenthesized subexpressions in REGEXP
 the entire match is collected.  In any case the searched buffer
 is not modified."
-  (interactive (occur-read-primary-args))
-  (occur-1 regexp nlines (list (current-buffer))))
+  (interactive
+   (nconc (occur-read-primary-args)
+          (and (use-region-p) (list (region-bounds)))))
+  (let* ((start (and (caar region) (max (caar region) (point-min))))
+         (end (and (cdar region) (min (cdar region) (point-max))))
+         (in-region-p (or start end)))
+    (when in-region-p
+      (or start (setq start (point-min)))
+      (or end (setq end (point-max))))
+    (let ((occur--region-start start)
+          (occur--region-end end)
+          (occur--matches-threshold
+           (and in-region-p
+                (line-number-at-pos (min start end))))
+          (occur--orig-line
+           (line-number-at-pos (point)))
+          (occur--orig-line-str
+           (buffer-substring-no-properties
+            (line-beginning-position)
+            (line-end-position))))
+      (save-excursion ; If no matches `occur-1' doesn't restore the point.
+        (and in-region-p (narrow-to-region start end))
+        (occur-1 regexp nlines (list (current-buffer)))
+        (and in-region-p (widen))))))
 
 (defvar ido-ignore-item-temp-list)
 
@@ -1482,7 +1533,8 @@ See also `multi-occur'."
 	(occur-mode))
       (let ((inhibit-read-only t)
 	    ;; Don't generate undo entries for creation of the initial contents.
-	    (buffer-undo-list t))
+	    (buffer-undo-list t)
+            (occur--final-pos nil))
 	(erase-buffer)
 	(let ((count
 	       (if (stringp nlines)
@@ -1534,6 +1586,10 @@ See also `multi-occur'."
           (if (= count 0)
               (kill-buffer occur-buf)
             (display-buffer occur-buf)
+            (when occur--final-pos
+              (set-window-point
+               (get-buffer-window occur-buf 'all-frames)
+               occur--final-pos))
             (setq next-error-last-buffer occur-buf)
             (setq buffer-read-only t)
             (set-buffer-modified-p nil)
@@ -1545,19 +1601,26 @@ See also `multi-occur'."
     (let ((global-lines 0)    ;; total count of matching lines
 	  (global-matches 0)  ;; total count of matches
 	  (coding nil)
-	  (case-fold-search case-fold))
+	  (case-fold-search case-fold)
+          (in-region-p (and occur--region-start occur--region-end))
+          (multi-occur-p (cdr buffers)))
       ;; Map over all the buffers
       (dolist (buf buffers)
 	(when (buffer-live-p buf)
 	  (let ((lines 0)               ;; count of matching lines
 		(matches 0)             ;; count of matches
-		(curr-line 1)           ;; line count
+		(curr-line              ;; line count
+                 (or occur--matches-threshold 1))
+                (orig-line occur--orig-line)
+                (orig-line-str occur--orig-line-str)
+                (orig-line-shown-p)
 		(prev-line nil)         ;; line number of prev match endpt
 		(prev-after-lines nil)  ;; context lines of prev match
 		(matchbeg 0)
 		(origpt nil)
 		(begpt nil)
 		(endpt nil)
+                (finalpt nil)
 		(marker nil)
 		(curstring "")
 		(ret nil)
@@ -1658,6 +1721,18 @@ See also `multi-occur'."
 			      (nth 0 ret))))
 		      ;; Actually insert the match display data
 		      (with-current-buffer out-buf
+                        (when (and list-matching-lines-jump-to-current-line
+                                   (not multi-occur-p)
+                                   (not orig-line-shown-p)
+                                   (>= curr-line orig-line))
+                          (insert
+                           (concat
+                            (propertize
+                             (format "%7d:%s" orig-line orig-line-str)
+                             'face list-matching-lines-current-line-face
+                             'mouse-face 'mode-line-highlight
+                             'help-echo "Current line") "\n"))
+                          (setq orig-line-shown-p t finalpt (point)))
 			(insert data)))
 		    (goto-char endpt))
 		  (if endpt
@@ -1671,6 +1746,18 @@ See also `multi-occur'."
 			(forward-line 1))
 		    (goto-char (point-max)))
 		  (setq prev-line (1- curr-line)))
+                ;; Insert original line if haven't done yet.
+                (when (and list-matching-lines-jump-to-current-line
+                           (not multi-occur-p)
+                           (not orig-line-shown-p))
+                  (with-current-buffer out-buf
+                    (insert
+                     (concat
+                      (propertize
+                       (format "%7d:%s" orig-line orig-line-str)
+                       'face list-matching-lines-current-line-face
+                       'mouse-face 'mode-line-highlight
+                       'help-echo "Current line") "\n"))))
 		;; Flush remaining context after-lines.
 		(when prev-after-lines
 		  (with-current-buffer out-buf
@@ -1684,7 +1771,7 @@ See also `multi-occur'."
 		(let ((beg (point))
 		      end)
 		  (insert (propertize
-			   (format "%d match%s%s%s in buffer: %s\n"
+			   (format "%d match%s%s%s in buffer: %s%s\n"
 				   matches (if (= matches 1) "" "es")
 				   ;; Don't display the same number of lines
 				   ;; and matches in case of 1 match per line.
@@ -1694,13 +1781,21 @@ See also `multi-occur'."
 				   ;; Don't display regexp for multi-buffer.
 				   (if (> (length buffers) 1)
 				       "" (occur-regexp-descr regexp))
-				   (buffer-name buf))
+				   (buffer-name buf)
+                                   (if in-region-p
+                                       (format " within region: %d-%d"
+                                               occur--region-start
+                                               occur--region-end)
+                                     ""))
 			   'read-only t))
 		  (setq end (point))
 		  (add-text-properties beg end `(occur-title ,buf))
 		  (when title-face
-		    (add-face-text-property beg end title-face)))
-		(goto-char (point-min)))))))
+		    (add-face-text-property beg end title-face))
+                  (goto-char (if finalpt
+                                 (setq occur--final-pos
+                                       (cl-incf finalpt (- end beg)))
+                               (point-min)))))))))
       ;; Display total match count and regexp for multi-buffer.
       (when (and (not (zerop global-lines)) (> (length buffers) 1))
 	(goto-char (point-min))
