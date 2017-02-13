@@ -219,6 +219,47 @@ value is not assigned even if the keyword is not present in the
                       "\\s-+\\(" sym-regexp "\\)")
               2)))))
 
+(defvar use-package-form-regexp "^\\s-*(\\s-*use-package\\s-+\\_<%s\\_>"
+  "Regexp used in `use-package-jump-to-package-form' to find use
+package forms in user files.")
+
+(defun use-package--find-require (package)
+  "Find file that required PACKAGE by searching
+`load-history'. Returns an absolute file path or nil if none is
+found."
+  (catch 'suspect
+    (dolist (filespec load-history)
+      (dolist (entry (cdr filespec))
+        (when (equal entry (cons 'require package))
+          (throw 'suspect (car filespec)))))))
+
+(defun use-package-jump-to-package-form (package)
+  "Attempt to find and jump to the `use-package' form that loaded
+PACKAGE. This will only find the form if that form actually
+required PACKAGE. If PACKAGE was previously required then this
+function will jump to the file that orginally required PACKAGE
+instead."
+  (interactive (list (completing-read "Package: " features)))
+  (let* ((package (if (stringp package) (intern package) package))
+         (requiring-file (use-package--find-require package))
+         file location)
+    (if (null requiring-file)
+        (user-error "Can't find file that requires this feature.")
+      (setq file (if (string= (file-name-extension requiring-file) "elc")
+                     (concat (file-name-sans-extension requiring-file) ".el")
+                   requiring-file))
+      (when (file-exists-p file)
+        (find-file-other-window file)
+        (save-excursion
+          (goto-char (point-min))
+          (setq location
+                (re-search-forward
+                 (format use-package-form-regexp package) nil t)))
+        (if (null location)
+            (message "No use-package form found.")
+          (goto-char location)
+          (beginning-of-line))))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;;; Utility functions
