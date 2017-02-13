@@ -1169,16 +1169,12 @@ this file.  Usage:
   (unless (member :disabled args)
     (let ((name-symbol (if (stringp name) (intern name) name))
           (args (use-package-normalize-plist name args)))
-      (let ((first-spec (car use-package-defaults))
-            (rest-specs (cdr use-package-defaults)))
-        (when (eval (nth 2 first-spec))
-          (setq args (use-package-plist-maybe-put
-                      args (nth 0 first-spec) (eval (nth 1 first-spec)))))
-        (dolist (spec rest-specs)
-          (when (eval (nth 2 spec))
-            (setq args (use-package-sort-keywords
+      (dolist (spec use-package-defaults)
+        (setq args (use-package-sort-keywords
+                    (if (eval (nth 2 spec))
                         (use-package-plist-maybe-put
-                         args (nth 0 spec) (eval (nth 1 spec))))))))
+                         args (nth 0 spec) (eval (nth 1 spec)))
+                      args))))
 
       ;; When byte-compiling, pre-load the package so all its symbols are in
       ;; scope.
