@@ -207,19 +207,17 @@ value is not assigned even if the keyword is not present in the
   :type '(repeat (list symbol sexp sexp)))
 
 (when use-package-enable-imenu-support
-  ;; Not defined in Emacs 24
-  (defvar lisp-mode-symbol-regexp
-    "\\(?:\\sw\\|\\s_\\|\\\\.\\)+")
-  (add-to-list
-   'lisp-imenu-generic-expression
-   (list "Package"
-         (purecopy (concat "^\\s-*("
-                           (eval-when-compile
-                             (regexp-opt
-                              '("use-package" "require")
-                              t))
-                           "\\s-+\\(" lisp-mode-symbol-regexp "\\)"))
-         2)))
+  (eval-after-load 'lisp-mode
+    `(let ((sym-regexp (or (bound-and-true-p lisp-mode-symbol-regexp)
+                           "\\(?:\\sw\\|\\s_\\|\\\\.\\)+")))
+       (add-to-list
+        'lisp-imenu-generic-expression
+        (list "Packages"
+              (concat "^\\s-*("
+                      ,(eval-when-compile
+                         (regexp-opt '("use-package" "require") t))
+                      "\\s-+\\(" sym-regexp "\\)")
+              2)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
