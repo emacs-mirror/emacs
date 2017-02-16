@@ -750,47 +750,44 @@ manually updated package."
 ;;; :bind, :bind*
 ;;
 
-(defsubst use-package-is-sympair (x &optional allow-vector)
-  "Return t if X has the type (STRING . SYMBOL)."
+(defsubst use-package-is-pair (x car-pred cdr-pred)
+  "Return non-nil if X is a cons satisfying the given predicates.
+CAR-PRED and CDR-PRED are applied to X's `car' and `cdr',
+respectively."
   (and (consp x)
-       (or (stringp (car x))
-           (and allow-vector (vectorp (car x))))
-       (symbolp (cdr x))))
-
-(defsubst use-package-is-string-pair (x)
-  "Return t if X has the type (STRING . STRING)."
-  (and (consp x)
-       (stringp (car x))
-       (stringp (cdr x))))
+       (funcall car-pred (car x))
+       (funcall cdr-pred (cdr x))))
 
 (defun use-package-normalize-pairs
-    (name label arg &optional recursed allow-vector allow-string-cdrs)
-  "Normalize a list of string/symbol pairs.
-If RECURSED is non-nil, recurse into sublists.
-If ALLOW-VECTOR is non-nil, then the key to bind may specify a
-vector of keys, as accepted by `define-key'.
-If ALLOW-STRING-CDRS is non-nil, then the command name to bind to
-may also be a string, as accepted by `define-key'."
+    (key-pred val-pred name label arg &optional recursed)
+  "Normalize a list of pairs.
+KEY-PRED and VAL-PRED are predicates recognizing valid keys and
+values, respectively.
+If RECURSED is non-nil, recurse into sublists."
   (cond
-   ((or (stringp arg) (and allow-vector (vectorp arg)))
+   ((funcall key-pred arg)
     (list (cons arg (use-package-as-symbol name))))
-   ((use-package-is-sympair arg allow-vector)
+   ((use-package-is-pair arg key-pred val-pred)
     (list arg))
    ((and (not recursed) (listp arg) (listp (cdr arg)))
     (mapcar #'(lambda (x)
                 (let ((ret (use-package-normalize-pairs
-                            name label x t allow-vector allow-string-cdrs)))
+                            key-pred val-pred name label x t)))
                   (if (listp ret)
                       (car ret)
                     ret))) arg))
-   ((and allow-string-cdrs (use-package-is-string-pair arg))
-    (list arg))
    (t arg)))
 
 (defun use-package-normalize-binder (name keyword args)
   (use-package-as-one (symbol-name keyword) args
     (lambda (label arg)
-      (use-package-normalize-pairs name label arg nil t t))))
+      (unless (consp arg)
+        (use-package-error
+         (concat label " a (<string or vector> . <symbol or string>)"
+                 " or list of these")))
+      (use-package-normalize-pairs (lambda (k) (or (stringp k) (vectorp k)))
+                                   (lambda (b) (or (symbolp b) (stringp b)))
+                                   name label arg))))
 
 (defalias 'use-package-normalize/:bind 'use-package-normalize-binder)
 (defalias 'use-package-normalize/:bind* 'use-package-normalize-binder)
@@ -878,7 +875,9 @@ deferred until the prefix key sequence is pressed."
 
 (defun use-package-normalize-mode (name keyword args)
   (use-package-as-one (symbol-name keyword) args
-    (apply-partially #'use-package-normalize-pairs name)))
+    (apply-partially #'use-package-normalize-pairs
+                     #'stringp (lambda (m) (and (not (null m)) (symbolp m)))
+                     name)))
 
 (defalias 'use-package-normalize/:interpreter 'use-package-normalize-mode)
 
