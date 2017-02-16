@@ -678,6 +678,22 @@ manually updated package."
   (use-package-as-one (symbol-name keyword) args
     #'use-package-normalize-symbols))
 
+(defun use-package-normalize-recursive-symbols (label arg)
+  "Normalize a list of symbols."
+  (cond
+   ((symbolp arg)
+    arg)
+   ((and (listp arg) (listp (cdr arg)))
+    (mapcar #'(lambda (x) (use-package-normalize-recursive-symbols label x))
+            arg))
+   (t
+    (use-package-error
+     (concat label " wants a symbol, or nested list of symbols")))))
+
+(defun use-package-normalize-recursive-symlist (name keyword args)
+  (use-package-as-one (symbol-name keyword) args
+    #'use-package-normalize-recursive-symbols))
+
 (defalias 'use-package-normalize/:requires 'use-package-normalize-symlist)
 
 (defun use-package-handler/:requires (name keyword requires rest state)
@@ -1023,25 +1039,44 @@ deferred until the prefix key sequence is pressed."
 ;;; :after
 ;;
 
-(defalias 'use-package-normalize/:after 'use-package-normalize-symlist)
+(defalias 'use-package-normalize/:after 'use-package-normalize-recursive-symlist)
 
-(defun use-package-require-after-load (features name)
+(defun use-package-require-after-load (features)
   "Return form for after any of FEATURES require NAME."
-  `(progn
-     ,@(mapcar
-        (lambda (feat)
-          `(eval-after-load
-               (quote ,feat)
-             (quote (require (quote ,name) nil t))))
-        features)))
+  (pcase features
+    ((and (pred symbolp) feat)
+     `(lambda (body)
+        (list 'eval-after-load (list 'quote ',feat)
+              (list 'quote body))))
+    (`(,(or :or  :any) . ,rest)
+     `(lambda (body)
+        (append (list 'progn)
+                (mapcar (lambda (form)
+                          (funcall form body))
+                        (list ,@(use-package-require-after-load rest))))))
+    (`(,(or :and :all) . ,rest)
+     `(lambda (body)
+        (let ((result body))
+          (dolist (form (list ,@(use-package-require-after-load rest)))
+            (setq result (funcall form result)))
+          result)))
+    (`(,feat . ,rest)
+     (if rest
+         (cons (use-package-require-after-load feat)
+               (use-package-require-after-load rest))
+       (list (use-package-require-after-load feat))))))
 
 (defun use-package-handler/:after (name keyword arg rest state)
   (let ((body (use-package-process-keywords name rest
                 (plist-put state :deferred t)))
         (name-string (use-package-as-string name)))
+    (if (and (consp arg)
+             (not (memq (car arg) '(:or :any :and :all))))
+        (setq arg (cons :all arg)))
     (use-package-concat
      (when arg
-       (list (use-package-require-after-load arg name)))
+       (list (funcall (use-package-require-after-load arg)
+                      `(require (quote ,name) nil t))))
      body)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
