@@ -819,6 +819,7 @@ If RECURSED is non-nil, recurse into sublists."
 (defalias 'use-package-normalize/:bind-keymap 'use-package-normalize-binder)
 (defalias 'use-package-normalize/:bind-keymap* 'use-package-normalize-binder)
 
+;;;###autoload
 (defun use-package-autoload-keymap (keymap-symbol package override)
   "Loads PACKAGE and then binds the key sequence used to invoke
 this function to KEYMAP-SYMBOL.  It then simulates pressing the
