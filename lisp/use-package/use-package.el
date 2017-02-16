@@ -427,6 +427,28 @@ This is in contrast to merely setting it to 0."
 ;;; Normalization functions
 ;;
 
+(defun use-package-regex-p (re)
+  "Return t if RE is some regexp-like thing."
+  (cond
+   ((and (listp re)
+         (eq (car re) 'rx))
+    t)
+   ((stringp re)
+    t)
+   (t
+    nil)))
+
+(defun use-package-normalize-regex (re)
+  "Given some regexp-like thing, resolve it down to a regular expression."
+  (cond
+   ((and (listp re)
+         (eq (car re) 'rx))
+    (eval re))
+   ((stringp re)
+    re)
+   (t
+    (error "Not recognized as regular expression: %s" re))))
+
 (defun use-package-normalize-plist (name input)
   "Given a pseudo-plist, normalize it to a regular plist."
   (unless (null input)
@@ -877,7 +899,8 @@ deferred until the prefix key sequence is pressed."
 (defun use-package-normalize-mode (name keyword args)
   (use-package-as-one (symbol-name keyword) args
     (apply-partially #'use-package-normalize-pairs
-                     #'stringp (lambda (m) (and (not (null m)) (symbolp m)))
+                     #'use-package-regex-p
+                     (lambda (m) (and (not (null m)) (symbolp m)))
                      name)))
 
 (defalias 'use-package-normalize/:interpreter 'use-package-normalize-mode)
@@ -886,6 +909,8 @@ deferred until the prefix key sequence is pressed."
   (let* (commands
          (form (mapcar #'(lambda (interpreter)
                            (push (cdr interpreter) commands)
+                           (setcar interpreter
+                                   (use-package-normalize-regex (car interpreter)))
                            `(add-to-list 'interpreter-mode-alist ',interpreter)) arg)))
     (use-package-concat
      (use-package-process-keywords name
@@ -905,6 +930,8 @@ deferred until the prefix key sequence is pressed."
   (let* (commands
          (form (mapcar #'(lambda (mode)
                            (push (cdr mode) commands)
+                           (setcar mode
+                                   (use-package-normalize-regex (car mode)))
                            `(add-to-list 'auto-mode-alist ',mode)) arg)))
     (use-package-concat
      (use-package-process-keywords name
