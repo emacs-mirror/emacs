@@ -206,25 +206,28 @@ often."
      (lambda (file) (file-name-sans-extension (file-relative-name file store-dir)))
      (directory-files-recursively store-dir "\.gpg$"))))
 
-(defun auth-source-pass--find-all-by-entry-name (name)
-  "Search the store for all entries matching NAME.
+(defun auth-source-pass--find-all-by-entry-name (entryname user)
+  "Search the store for all entries either matching ENTRYNAME/USER or ENTRYNAME.
 Only return valid entries as of `auth-source-pass--entry-valid-p'."
   (seq-filter (lambda (entry)
                 (and
-                 (string-equal
-                  name
-                  (auth-source-pass--remove-directory-name entry))
+                 (or
+                  (let ((components-host-user
+                         (member entryname (split-string entry "/"))))
+                    (and (= (length components-host-user) 2)
+                         (string-equal user (cadr components-host-user))))
+                  (string-equal entryname (auth-source-pass--remove-directory-name entry)))
                  (auth-source-pass--entry-valid-p entry)))
               (auth-source-pass-entries)))
 
-(defun auth-source-pass--find-one-by-entry-name (name user)
-  "Search the store for an entry matching NAME.
+(defun auth-source-pass--find-one-by-entry-name (entryname user)
+  "Search the store for an entry matching ENTRYNAME.
 If USER is non nil, give precedence to entries containing a user field
 matching USER."
   (auth-source-pass--do-debug "searching for '%s' in entry names (user: %s)"
-              name
+              entryname
               user)
-  (let ((matching-entries (auth-source-pass--find-all-by-entry-name name)))
+  (let ((matching-entries (auth-source-pass--find-all-by-entry-name entryname user)))
     (pcase (length matching-entries)
       (0 (auth-source-pass--do-debug "no match found")
          nil)
