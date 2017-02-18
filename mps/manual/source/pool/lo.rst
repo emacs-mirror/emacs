@@ -4,7 +4,7 @@
     `<https://info.ravenbrook.com/project/mps/master/design/poollo/>`_
 
 .. index::
-   single: LO
+   single: LO pool class
    single: pool class; LO
 
 .. _pool-lo:
@@ -39,7 +39,7 @@ and be protected, it is better to use :ref:`pool-amcz` instead.
 
 
 .. index::
-   single: LO; properties
+   single: LO pool class; properties
 
 LO properties
 -------------
@@ -94,7 +94,7 @@ LO properties
 
 
 .. index::
-   single: LO; interface
+   single: LO pool class; interface
 
 LO interface
 ------------

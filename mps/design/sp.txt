@@ -38,8 +38,8 @@ _`.req.complete`: In an application where the mutator might call into
 the MPS from a stack overflow fault handler, then whenever the MPS
 takes a lock, it must complete the operation and release the lock
 without running out of stack. (This is because running out of stack
-would cause a stack overflow fault, causing the mutator would enter
-the MPS recursively, which would fail because the lock is held.)
+would cause a stack overflow fault, causing the mutator to enter the
+MPS recursively, which would fail because the lock is held.)
 
 
 Design
@@ -186,7 +186,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2014-2017 Ravenbrook Limited <http://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
