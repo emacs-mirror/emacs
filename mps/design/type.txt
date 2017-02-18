@@ -303,7 +303,7 @@ range may be used instead.
 
 ``typedef int LocusPrefKind``
 
-_`.segprefkind`: The type ``LocusPrefKind`` expresses a preference for
+_`.locusprefkind`: The type ``LocusPrefKind`` expresses a preference for
 addresses within an address space. It takes one of the following
 values:
 
@@ -694,7 +694,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2013-2017 Ravenbrook Limited <http://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

@@ -1,5 +1,5 @@
 .. index::
-   single: MV
+   single: MV pool class
    single: pool class; MV
 
 .. _pool-mv:
@@ -13,7 +13,7 @@ variable size.
 
 
 .. index::
-   single: MV; properties
+   single: MV pool class; properties
 
 MV properties
 -------------
@@ -52,7 +52,7 @@ MV properties
 
 
 .. index::
-   single: MV; interface
+   single: MV pool class; interface
 
 MV interface
 ------------

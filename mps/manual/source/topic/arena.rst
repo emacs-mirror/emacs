@@ -478,9 +478,9 @@ Arena properties
     value is suitable for applications that require high
     responsiveness, but where overall run time is unimportant.
 
-    For interactive applications, set this to the maximum pause that a
-    human being might notice.  The default setting of 100ms is
-    intended for this.
+    For interactive applications, set this to the longest pause that a
+    user won't notice. The default setting of 100ms is intended for
+    this kind of application.
 
     The pause time may be set to infinity, in which case the MPS
     completes all outstanding :term:`garbage collection` work before
