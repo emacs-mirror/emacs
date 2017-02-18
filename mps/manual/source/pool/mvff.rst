@@ -3,7 +3,7 @@
     `<https://info.ravenbrook.com/project/mps/master/design/poolmvff/>`_
 
 .. index::
-   single: MVFF
+   single: MVFF pool class
    single: pool class; MVFF
 
 .. _pool-mvff:
@@ -44,7 +44,7 @@ need both forms of allocation, use two separate pools.
 
 
 .. index::
-   single: MVFF; properties
+   single: MVFF pool class; properties
 
 MVFF properties
 ---------------
@@ -88,7 +88,7 @@ MVFF properties
 
 
 .. index::
-   single: MVFF; interface
+   single: MVFF pool class; interface
 
 MVFF interface
 --------------

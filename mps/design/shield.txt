@@ -32,8 +32,8 @@ collector access and mutator (client) access to memory: the collector
 must be able to incrementally scan objects, without the mutator being
 able to see them yet.
 
-Unfortunately common OSs do not support different access levels
-(protection maps) for different parts of the same process.
+Unfortunately common operating systems do not support different access
+levels (protection maps) for different parts of the same process.
 
 The MPS Shield is an abstraction that does extra work to overcome this
 limitation, and give the rest of the MPS the illusion that we can
@@ -47,9 +47,9 @@ Interface
 Mutator access
 ..............
 
-The shield provides ``ShieldRaise`` and ``ShieldLower`` to forbid or
-permit the mutator access to object memory segments.  Between these
-two, a segment is said to have the shield "raised" (`.def.raised`_).
+The shield provides ``ShieldRaise()`` and ``ShieldLower()`` to forbid
+or permit the mutator access to object memory segments. Between these
+two, a segment is said to have the shield *raised* (`.def.raised`_).
 
 ``void ShieldRaise(Arena arena, Seg seg, AccessSet mode)``
 
@@ -63,41 +63,43 @@ two, a segment is said to have the shield "raised" (`.def.raised`_).
 
 If the mutator attempts an access that hits the shield, the MPS gets
 an OS-specific hardware protection fault which reaches
-``ArenaAccess``, does whatever work is necessary, then lowers the
+``ArenaAccess()``, does whatever work is necessary, then lowers the
 shield and returns to the mutator.
 
-``ShieldRaise`` and ``ShieldLower`` do *not* nest.
+``ShieldRaise()`` and ``ShieldLower()`` do *not* nest.
 
 
 Entering the shield
 ...................
 
-The MPS can only gain exclusive access from "inside" the shield
-(`.def.inside`_).  To enter the shield, the MPS must call
-``ShieldEnter``, and to leave it, the MPS must call ``ShieldLeave``.
+The MPS can only gain exclusive access from *inside* the shield
+(`.def.inside`_). To enter the shield, the MPS must call
+``ShieldEnter()``, and to leave it, the MPS must call
+``ShieldLeave()``.
 
-``ShieldEnter`` and ``ShieldLeave`` are called by ``ArenaEnter`` and
-``ArenaLeave`` so almost all of the MPS is is "inside" the shield.
+``ShieldEnter()`` and ``ShieldLeave()`` are called by ``ArenaEnter()``
+and ``ArenaLeave()`` so almost all of the MPS is is inside the
+shield.
 
 
 Collector access to segments
 ............................
 
 When the MPS wants to access object memory segments from inside the
-shield, it must wrap any accesses with a ``ShieldExpose`` and
-``ShieldCover`` pair.  These calls nest.  After a call to
-``ShieldExpose`` a segment is said to be "exposed" until the last
-nested call to ``ShieldCover``.  The shield arranges that the MPS can
+shield, it must wrap any accesses with a ``ShieldExpose()`` and
+``ShieldCover()`` pair. These calls nest. After a call to
+``ShieldExpose()`` a segment is said to be *exposed* until the last
+nested call to ``ShieldCover()``. The shield arranges that the MPS can
 access the memory while it is exposed.
 
 A segment might for example be exposed during:
 
   - format-scan (when scanning);
   - format-skip (when marking grains in a non-moving fix);
-  - format-isMoved and ``AddrCopy`` (during a copying fix);
+  - format-isMoved and ``AddrCopy()`` (during a copying fix);
   - format-pad (during reclaim).
 
-Note that there is no need to call ``ShieldExpose`` when accessing
+Note that there is no need to call ``ShieldExpose()`` when accessing
 pool management memory such as bit tables. This is not object memory,
 is never (legally) accessed by the mutator, and so is never shielded.
 
@@ -109,9 +111,9 @@ Collector access to the unprotectable
 .....................................
 
 When the MPS wants to access an unprotectable object from inside the
-shield, it must wrap any accesses with a ``ShieldHold`` and
-``ShieldRelease`` pair.  This allows access to objects which cannot be
-shielded by ``ShieldRaise``, such as:
+shield, it must wrap any accesses with a ``ShieldHold()`` and
+``ShieldRelease()`` pair. This allows access to objects which cannot
+be shielded by ``ShieldRaise()``, such as:
 
   - the stack and registers of mutator threads,
   - lockless allocation point structures,
@@ -132,23 +134,23 @@ Mechanism
 
 On common operating systems, the only way to allow the MPS access is
 to allow access from the whole process, including the mutator. So
-``ShieldExpose`` will suspend all mutator threads to prevent any mutator
-access, and so will ``ShieldRaise`` on an unexposed segment. The
-shield handles suspending and resuming threads, and so the rest of
+``ShieldExpose()`` will suspend all mutator threads to prevent any
+mutator access, and so will ``ShieldRaise()`` on an unexposed segment.
+The shield handles suspending and resuming threads, and so the rest of
 the MPS does not need to worry about it.
 
 The MPS can make multiple sequential, overlapping, or nested calls to
-``ShieldExpose`` on the same segment, as long as each is balanced by a
-corresponding ``ShieldCover`` before ``ShieldLeave`` is called. A
-usage count is maintained on each segment in ``seg->depth``.  When the
-usage count reaches zero, there is no longer any reason the segment
-should be unprotected, and the shield may reinstate hardware
+``ShieldExpose()`` on the same segment, as long as each is balanced by
+a corresponding ``ShieldCover()`` before ``ShieldLeave()`` is called.
+A usage count is maintained on each segment in ``seg->depth``. When
+the usage count reaches zero, there is no longer any reason the
+segment should be unprotected, and the shield may reinstate hardware
 protection at any time.
 
 However, as a performance-improving hysteresis, the shield defers
 re-protection, maintaining a queue of segments that require attention
-before mutator threads are resumed (`.impl.delay`_).  While a segment is
-in the queue, it has ``seg->queued`` set true.
+before mutator threads are resumed (`.impl.delay`_). While a segment
+is in the queue, it has ``seg->queued`` set true.
 
 This hysteresis allows the MPS to proceed with garbage collection
 during a pause without actually setting hardware protection until it
@@ -165,41 +167,41 @@ Implementation
 --------------
 
 _`.impl.delay`: The implementation of the shield avoids suspending
-threads for as long as possible.  When threads are suspended, it
+threads for as long as possible. When threads are suspended, it
 maintains a queue of segments where the desired and actual protection
-do not match.  This queue is flushed on leaving the shield.
+do not match. This queue is flushed on leaving the shield.
 
 
 Definitions
 ...........
 
-_`.def.raised`: A segment has the shield "raised" for an access mode
-after a call to ``ShieldRaise`` and before a call to ``ShieldLower``
-with that mode.
+_`.def.raised`: A segment has the shield *raised* for an access mode
+after a call to ``ShieldRaise()`` and before a call to
+``ShieldLower()`` with that mode.
 
-_`.def.exposed`: A segment is "exposed" after a call to ``ShieldExpose``
-and before a call to ``ShieldLower``.
+_`.def.exposed`: A segment is *exposed* after a call to
+``ShieldExpose()`` and before a call to ``ShieldLower()``.
 
-_`.def.synced`: A seg is synced if the prot and shield modes are the
-same, and unsynced otherwise.
+_`.def.synced`: A segment is *synced* if the prot and shield modes are
+the same, and unsynced otherwise.
 
-_`.def.depth`: The depth of a segment is defined as:
+_`.def.depth`: The *depth* of a segment is defined as:
 
   | depth ≔ #exposes − #covers, where
-  |    #exposes = the number of calls to ``ShieldExpose`` on the seg
-  |    #covers  = the number of calls to ``ShieldCover`` on the seg
+  |    #exposes = the number of calls to ``ShieldExpose()`` on the segment
+  |    #covers  = the number of calls to ``ShieldCover()`` on the segment
 
-``ShieldCover`` should not be called without a matching
-``ShieldExpose``, so this figure should always be non-negative.
+``ShieldCover()`` must not be called without a matching
+``ShieldExpose()``, so this figure must always be non-negative.
 
 _`.def.total.depth`: The total depth is the sum of the depth over all
 segments.
 
 _`.def.outside`: Being outside the shield is being between calls to
-``ShieldLeave`` and ``ShieldEnter``, and similarly _`.def.inside`: being
-inside the shield is being between calls to ``ShieldEnter`` and
-``ShieldLeave``.  [In a multi-threaded MPS this would be per-thread.
-RB 2016-03-18]
+``ShieldLeave()`` and ``ShieldEnter()``, and similarly _`.def.inside`:
+being inside the shield is being between calls to ``ShieldEnter()``
+and ``ShieldLeave()``. [In a multi-threaded MPS this would be
+per-thread. RB 2016-03-18]
 
 _`.def.shielded`: A segment is shielded if the shield mode is
 non-zero. [As set by ShieldRaise.]
@@ -212,7 +214,7 @@ _`.prop.outside.running`: The mutator may not be suspended while outside
 the shield.
 
 _`.prop.mutator.access`: An attempt by the mutator to access shielded
-memory be pre-empted by a call to ``ArenaAccess``.
+memory must be pre-empted by a call to ``ArenaAccess()``.
 
 _`.prop.inside.access`: Inside the shield the MPS must be able to access
 all unshielded segments and all exposed segments.
@@ -234,10 +236,10 @@ _`.inv.outside.depth`: The total depth is zero while outside the shield.
 
 _`.inv.prot.shield`: The prot mode is never more than the shield mode.
 
-_`.inv.expose.depth`: An exposed seg's depth is greater than zero.
+_`.inv.expose.depth`: An exposed segment's depth is greater than zero.
 
-_`.inv.expose.prot`: An exposed seg is not protected in the mode it was
-exposed with.
+_`.inv.expose.prot`: An exposed segment is not protected in the mode
+it was exposed with.
 
 
 Proof Hints
@@ -252,13 +254,14 @@ _`.proof.sync`: As the depth of a segment cannot be negative
 
   | total depth = 0
   |   ⇒ for all segments, depth = 0
-  |   ⇒ all segs are synced (by .inv.unsynced.depth)
+  |   ⇒ all segments are synced (by `.inv.unsynced.depth`_)
 
-_`.proof.access`: If the mutator is running then all segs must be
-synced (`.inv.unsynced.suspend`_).  Which means that the hardware
+_`.proof.access`: If the mutator is running then all segments must be
+synced (`.inv.unsynced.suspend`_). Which means that the hardware
 protection (protection mode) must reflect the software protection
-(shield mode).  Hence all shielded memory will be hardware protected
-while the mutator is running.  This ensures `.prop.mutator.access`_.
+(shield mode). Hence all shielded memory will be hardware protected
+while the mutator is running. This ensures `.prop.mutator.access`_.
+
 _`.proof.inside`: `.inv.prot.shield`_ and `.inv.expose.prot`_ ensure
 `.prop.inside.access`_.
 
@@ -288,25 +291,25 @@ exposed segments during a pause.
 Segment independence
 ....................
 
-_`.improve.noseg`: The shield is implemented in terms of segments, using
+_`.improv.noseg`: The shield is implemented in terms of segments, using
 fields in the segment structure to represent its state. This forces us
 to (for example) flush the shield queue when deleting a segment. The
 shield could keep track of protection and shielding independently,
 possibly allowing greater coalescing and more efficient and flexible
-use of system calls (see .improve.mass-expose).
+use of system calls (see `.improv.mass-expose`_).
 
 
 Concurrent collection
 .....................
 
-_`.improv.concurrent`: The MPS currently does not collect concurrently,
-however the only thing that makes it not-concurrent is a critical
-point in the Shield abstraction where the MPS seeks to gain privileged
-access to memory (usually in order to scan it for GC). The critical
-point is where ShieldExpose in shield.c has to call ShieldHold to
-preserve the shield invariants. This is the only point in the MPS that
-prevents concurrency, and the rest of the MPS is designed to support
-it.
+_`.improv.concurrent`: The MPS currently does not collect
+concurrently, however the only thing that makes it not-concurrent is a
+critical point in the Shield abstraction where the MPS seeks to gain
+privileged access to memory (usually in order to scan it). The
+critical point is where ``ShieldExpose()`` in shield.c has to call
+``ShieldHold()`` to preserve the shield invariants. This is the only
+point in the MPS that prevents concurrency, and the rest of the MPS is
+designed to support it.
 
 The restriction could be removed if either:
 
@@ -330,26 +333,27 @@ Early Resume
 
 _`.improv.resume`: There is a tradeoff between delaying flushing the
 shield queue (preventing unnecessary protection and allowing us to
-coalesce) and resuming mutator threads.  We could resume threads
+coalesce) and resuming mutator threads. We could resume threads
 earlier under some circumstances, such as before reclaim (which does
-not need to interact with the mutator).  Basically, it might be worth
+not need to interact with the mutator). Basically, it might be worth
 resuming the mutator early in a pause if we know that we're unlikely
-to suspend it again (no more calls to ``ShieldRaise`` or
-``ShieldExpose`` on shielded segments).
+to suspend it again (no more calls to ``ShieldRaise()`` or
+``ShieldExpose()`` on shielded segments).
 
 
 Expose modes
 ............
 
-_`.improv.expose-modes`: Would it be a good idea for ShieldExpose() to
-take an AccessSet? It might be good if we didn't have to raise a write
-barrier unless we want to write.  When scanning (for instance), we may
-not need to write, so when scanning a segment behind a write barrier
-we shouldn't have to call mprotect().  That's a bit speculative: how
-often do we scan a segment and not write to it.  Alternatively, and
-more speculatively, we could keep the write barrier up, handle the
-(possibly nested) trap and *then* expose the shield.  I'm just
-scraping around for ways to reduce calls to mprotect().
+_`.improv.expose-modes`: Would it be a good idea for
+``ShieldExpose()`` to take an ``AccessSet``? It might be good if we
+didn't have to raise a write barrier unless we want to write. When
+scanning (for instance), we may not need to write, so when scanning a
+segment behind a write barrier we shouldn't have to call
+``mprotect()``. That's a bit speculative: how often do we scan a
+segment and not write to it. Alternatively, and more speculatively, we
+could keep the write barrier up, handle the (possibly nested) trap and
+*then* expose the shield. I'm just scraping around for ways to reduce
+calls to ``mprotect()``.
 
 Theoretically we can do this, but:
 
@@ -402,7 +406,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2013-2017 Ravenbrook Limited <http://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

@@ -4,7 +4,7 @@
     `<https://info.ravenbrook.com/project/mps/master/design/poolamc/>`_
 
 .. index::
-   single: AMC
+   single: AMC pool class
    single: pool class; AMC
 
 .. _pool-amc:
@@ -33,7 +33,7 @@ the following tendencies will be efficiently exploited by an AMC pool:
 
 
 .. index::
-   single: AMC; properties
+   single: AMC pool class; properties
 
 AMC properties
 --------------
@@ -92,7 +92,7 @@ AMC properties
 
 
 .. index::
-   single: AMC; interface
+   single: AMC pool class; interface
 
 AMC interface
 -------------
@@ -142,7 +142,7 @@ AMC interface
 
 
 .. index::
-   pair: AMC; introspection
+   pair: AMC pool class; introspection
 
 .. _pool-amc-introspection:
 
