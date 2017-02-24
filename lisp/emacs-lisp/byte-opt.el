@@ -2148,6 +2148,97 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
     (setq byte-compile-maxdepth (+ byte-compile-maxdepth add-depth)))
   lap)
 
+;; Tail recursion optimization
+
+(defun byte-optimize-stack-adjustment (op)
+  (and (not (eq (car op) 'TAG))
+       (byte-compile-stack-adjustment
+        (car op)
+        (if (consp (cdr op)) (nth 1 op) (cdr op)))))
+
+(defun byte-optimize-conv-return-goto (lap n)
+  (let ((arglist (reverse byte-compile-current-arglist))
+        (args-copied 0)
+        args current-arg-lapcode op current-arg)
+    (while (/= args-copied (length arglist))
+      (cl-decf n)
+      (cl-multiple-value-setq (current-arg-lapcode n)
+        (byte-optimize-copy-ops lap n -1 nil))
+      (setq current-arg (assq (nth args-copied arglist)
+                              byte-compile-variables))
+      (cl-assert current-arg)
+      (push `(,@current-arg-lapcode (byte-varset ,@current-arg))
+            args)
+      (cl-incf args-copied))
+    (apply #'append args)))
+
+;; recursively copy ops from lap until depth is met
+(defun byte-optimize-copy-ops (lap n depth ops)
+  (let* ((op (nth n lap))
+         (depth-op (byte-optimize-stack-adjustment op))
+         (new-depth (and depth-op (+ depth depth-op))))
+    (push op ops)
+    (if (zerop new-depth)
+        (cl-values ops n)
+      (byte-optimize-copy-ops lap (1- n) (or new-depth depth) ops))))
+
+(defun byte-optimize-called-function (lap n)
+  "Return:
+The function name being called at N in LAP
+The index from where the call lapcode starts \(ie, where
+\(byte-constant <func-name>) is\).
+
+N should point to a `byte-call' op in LAP."
+  (let* ((op (nth n lap))
+         (depth (byte-compile-stack-adjustment (car op) (cdr op))))
+    (cl-assert (eq (car op) 'byte-call))
+    (while (/= depth 0)
+      (setq op (nth (cl-decf n) lap))
+      (cl-incf depth (or (byte-optimize-stack-adjustment op) 0)))
+    ;; we should be at (byte-constant . <func-name>)
+    (setq op (nth (cl-decf n) lap))
+    (cl-assert (eq (car op) 'byte-constant))
+    (cl-values (cadr op) n)))
+
+(defun byte-optimize-lapcode-tail-recursion (lap)
+  (let ((n (1- (length lap)))
+        (func-start-tag (nth 0 lap))
+        op)
+    (unless (eq (car func-start-tag) 'TAG)
+      (push (setq func-start-tag (byte-compile-make-tag)) lap)
+      (setcdr (cdr func-start-tag) 0)
+      (cl-incf n))
+    (while (>= n 0)
+      (setq op (nth n lap))
+      (when (eq (car op) 'byte-return)
+        ;; `byte-optimize-lapcode' merges redundant tags,
+        ;; so we only need to subtract once.
+        (let* ((call-op-n (if (eq (car (nth (1- n) lap)) 'TAG)
+                              (- n 2)
+                            (1- n))) ;; index of the potential `byte-call' op
+               (op-call (nth call-op-n lap)) ;; the op at call-op-n
+               func-name ;; name of the function being called
+               func-call-start-n) ;; from where the actual call lapcode start
+          (when (and (eq (car op-call) 'byte-call) ;; this is a tail call
+                     (progn
+                       (cl-multiple-value-setq (func-name func-call-start-n)
+                         (byte-optimize-called-function lap call-op-n))
+                       ;; this is a (tail) recursive call
+                       (eq byte-compile-current-defun func-name))
+                     (not (or (memq '&optional byte-compile-current-arglist)
+                              (memq '&rest byte-compile-current-arglist))))
+            ;; "Lift" the calling lapcode out of LAP, and replace it with
+            ;; our new tail call code.
+            (setq lap (append
+                       (cl-subseq lap 0 func-call-start-n)
+                       (byte-optimize-conv-return-goto lap call-op-n)
+                       `((byte-unbind-all)
+                         (byte-goto . ,func-start-tag))
+                       (cl-subseq lap (1+ n)))
+                  n (length lap)))))
+      (cl-decf n))
+    lap))
+
 (provide 'byte-opt)
 
 
