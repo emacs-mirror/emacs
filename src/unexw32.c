@@ -48,7 +48,7 @@ extern char *my_begbss_static;
 #include "w32heap.h"
 
 /* Basically, our "initialized" flag.  */
-BOOL using_dynamic_heap = FALSE;
+BOOL using_dynamic_heap = TRUE;
 
 void get_section_info (file_data *p_file);
 void copy_executable_and_dump_data (file_data *, file_data *);
