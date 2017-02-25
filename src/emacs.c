@@ -1610,20 +1610,17 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
       keys_of_keymap ();
       keys_of_window ();
     }
-  else
-    {
-      /* Initialization that must be done even if the global variable
-	 initialized is non zero.  */
+  /* Initialization that must be done even if the global variable
+     initialized is non zero.  */
 #ifdef HAVE_NTGUI
-      globals_of_w32font ();
-      globals_of_w32fns ();
-      globals_of_w32menu ();
+  globals_of_w32font ();
+  globals_of_w32fns ();
+  globals_of_w32menu ();
 #endif  /* HAVE_NTGUI */
 
 #if defined WINDOWSNT || defined HAVE_NTGUI
-      globals_of_w32select ();
+  globals_of_w32select ();
 #endif
-    }
 
   init_charset ();
 
