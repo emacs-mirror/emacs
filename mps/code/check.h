@@ -1,7 +1,7 @@
 /* check.h: ASSERTION INTERFACE
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2017 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .aver: This header defines a family of AVER and NOTREACHED macros.
@@ -56,9 +56,10 @@
       mps_lib_assert_fail(MPS_FILE, __LINE__, (condstring)); \
   END
 
-#define ASSERTP(cond, condstring, dflt) \
-  (LIKELY(cond) ? (dflt) : \
-   mps_lib_assert_fail_expr(MPS_FILE, __LINE__, condstring, dflt))
+#define ASSERTP(cond, condstring, default_) \
+  ((void)(LIKELY(cond) \
+          || (mps_lib_assert_fail(MPS_FILE, __LINE__, (condstring)), FALSE)), \
+   (default_))
 
 #define ASSERT_ISTYPE(type, val) (type ## Check(val))
 #define ASSERT_TYPECHECK(type, val) \
@@ -373,7 +374,7 @@ extern unsigned CheckLevel;
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2017 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
