@@ -1,7 +1,7 @@
 /* config.h: MPS CONFIGURATION
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2017 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (c) 2002 Global Graphics Software.
  *
  * PURPOSE
@@ -317,14 +317,6 @@
 #else
 #define LIKELY(exp) ((exp) != 0)
 #endif
-
-
-/* EPVMDefaultSubsequentSegSIZE is a default for the alignment of
- * subsequent segments (non-initial at each save level) in EPVM.  See
- * design.mps.poolepvm.arch.segment.size.
- */
-
-#define EPVMDefaultSubsequentSegSIZE ((Size)64 * 1024)
 
 
 /* Buffer Configuration -- see <code/buffer.c> */
@@ -720,7 +712,7 @@
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2017 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  *
