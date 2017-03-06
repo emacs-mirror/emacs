@@ -105,7 +105,7 @@ are as follows, and suppress messages about the indicated features:
   :version "23.2"
   :group 'elint)
 
-(defcustom elint-directory-skip-re "\\(ldefs-boot.*\\|loaddefs\\)\\.el\\'"
+(defcustom elint-directory-skip-re "\\(ldefs-boot\\|loaddefs\\)\\.el\\'"
   "If nil, a regexp matching files to skip when linting a directory."
   :type '(choice (const :tag "Lint all files" nil)
 		 (regexp :tag "Regexp to skip"))

@@ -45,9 +45,9 @@ available.
 
 The definition of triviality is a little vague, but a rule of thumb is
 that any file with less than 15 lines of actual content is trivial. If
-a file is auto-generated from another one in the repository, then it
-does not really matter about adding a copyright statement to the
-generated file.
+a file is auto-generated (eg ldefs-boot.el) from another one in the
+repository, then it does not really matter about adding a copyright
+statement to the generated file.
 
 Legal advice says that we could, if we wished, put a license notice
 even in trivial files, because copyright law in general looks at the

@@ -230,7 +230,7 @@ FORCE:
 
 tagsfiles = $(shell find ${srcdir} -name '*.el')
 tagsfiles := $(filter-out ${srcdir}/%loaddefs.el,${tagsfiles})
-tagsfiles := $(filter-out ${srcdir}/ldefs-boot%.el,${tagsfiles})
+tagsfiles := $(filter-out ${srcdir}/ldefs-boot.el,${tagsfiles})
 tagsfiles := $(filter-out ${srcdir}/eshell/esh-groups.el,${tagsfiles})
 
 ETAGS = ../lib-src/etags${EXEEXT}
@@ -283,7 +283,7 @@ $(THEFILE)c:
 
 .PHONY: compile-first compile-main compile compile-always
 
-compile-first: loaddefs.el $(COMPILE_FIRST)
+compile-first: $(COMPILE_FIRST)
 
 # In 'compile-main' we could directly do
 #    ... | xargs $(MAKE)
@@ -450,7 +450,7 @@ check-declare:
 check-defun-dups:
 	sed -n -e '/^(defun /s/\(.\)(.*/\1/p' \
 	  $$(find . -name '*.el' -print | \
-	  grep -Ev '(loaddefs|ldefs-boot*)\.el') | sort | uniq -d
+	  grep -Ev '(loaddefs|ldefs-boot)\.el') | sort | uniq -d
 
 # Dependencies
 

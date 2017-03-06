@@ -143,21 +143,19 @@
 (load "button")
 
 ;; We don't want to store loaddefs.el in the repository because it is
-;; a generated file; but it is required in order to compile the lisp
-;; files.  When bootstrapping, we cannot generate loaddefs.el until an
-;; emacs binary has been built.  We therefore support the build with
-;; two files, ldefs-boot-manual.el and ldefs-boot-auto.el, which
-;; contain the autoloads that are actually called during bootstrap.
-;; These do not need to be updated as often as the real loaddefs.el
-;; would.  Bootstrap should always work with ldefs-boot-manual.el.
-;; Therefore, Whenever a new autoload cookie gets added that is
-;; necessary during bootstrapping, ldefs-boot-auto.el should be
-;; updated using the "generate-ldefs-boot" make target.
-;; autogen/update_autogen can be used to periodically update
-;; ldefs-boot.
+;; a generated file; but it is required in order to compile the lisp files.
+;; When bootstrapping, we cannot generate loaddefs.el until an
+;; emacs binary has been built.  We therefore compromise and keep
+;; ldefs-boot.el in the repository.  This does not need to be updated
+;; as often as the real loaddefs.el would.  Bootstrap should always
+;; work with ldefs-boot.el.  Therefore, Whenever a new autoload cookie
+;; gets added that is necessary during bootstrapping, ldefs-boot.el
+;; should be updated by overwriting it with an up-to-date copy of
+;; loaddefs.el that is uncorrupted by local changes.
+;; autogen/update_autogen can be used to periodically update ldefs-boot.
 (condition-case nil (load "loaddefs.el")
   ;; In case loaddefs hasn't been generated yet.
-  (file-error (load "ldefs-boot-manual.el")))
+  (file-error (load "ldefs-boot.el")))
 
 (let ((new (make-hash-table :test 'equal)))
   ;; Now that loaddefs has populated definition-prefixes, purify its contents.

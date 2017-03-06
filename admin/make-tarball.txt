@@ -84,7 +84,9 @@ General steps (for each step, check for possible errors):
      make -C etc/refcards
      make -C etc/refcards clean
 
-5.  Commit ChangeLog.N, etc/AUTHORS, lisp/ldefs-boot.el, and the
+5.  Copy lisp/loaddefs.el to lisp/ldefs-boot.el.
+
+    Commit ChangeLog.N, etc/AUTHORS, lisp/ldefs-boot.el, and the
     files changed by M-x set-version.
 
     If someone else made a commit between step 1 and now,

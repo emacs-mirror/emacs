@@ -1976,28 +1976,6 @@ it defines a macro.  */)
   if (!CONSP (fundef) || !EQ (Qautoload, XCAR (fundef)))
     return fundef;
 
-  /* In the special case that we are generating ldefs-boot-auto.el,
-     then be noisy about the autoload. */
-  if( generating_ldefs_boot )
-    {
-      fprintf(stderr, "(autoload '");
-      Fprin1(funname,Qexternal_debugging_output);
-      fprintf(stderr, " ");
-      Fprin1(Fcar (Fcdr (fundef)),Qexternal_debugging_output);
-      fprintf(stderr, " nil nil ");
-
-      Lisp_Object kind = Fnth (make_number (4), fundef);
-      if (! (EQ (kind, Qt) || EQ (kind, Qmacro)))
-        {
-          fprintf(stderr, "nil");
-        }
-      else
-        {
-          fprintf(stderr, "t");
-        }
-      fprintf(stderr, ")\n");
-    }
-
   if (EQ (macro_only, Qmacro))
     {
       Lisp_Object kind = Fnth (make_number (4), fundef);

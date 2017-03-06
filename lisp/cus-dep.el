@@ -33,7 +33,7 @@
 
 ;; See finder-no-scan-regexp in finder.el.
 (defvar custom-dependencies-no-scan-regexp "\\(^\\.#\\|\\(loaddefs\\|\
-ldefs-boot.*\\|cus-load\\|finder-inf\\|esh-groups\\|subdirs\\)\\.el$\\)"
+ldefs-boot\\|cus-load\\|finder-inf\\|esh-groups\\|subdirs\\)\\.el$\\)"
   "Regexp matching file names not to scan for `custom-make-dependencies'.")
 
 (require 'autoload)

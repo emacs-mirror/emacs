@@ -130,8 +130,8 @@ Keywords and package names both should be symbols.")
 ;; useful, and because in parallel builds of Emacs they may get
 ;; modified while we are trying to read them.
 ;; http://lists.gnu.org/archive/html/emacs-pretest-bug/2007-01/msg00469.html
-;; ldefs-boot-* are not auto-generated during build, but has nothing useful.
-(defvar finder-no-scan-regexp "\\(^\\.#\\|\\(loaddefs\\|ldefs-boot-.*\\|\
+;; ldefs-boot is not auto-generated, but has nothing useful.
+(defvar finder-no-scan-regexp "\\(^\\.#\\|\\(loaddefs\\|ldefs-boot\\|\
 cus-load\\|finder-inf\\|esh-groups\\|subdirs\\|leim-list\\)\\.el$\\)"
   "Regexp matching file names not to scan for keywords.")
 

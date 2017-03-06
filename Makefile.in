@@ -1120,9 +1120,7 @@ check-info: info
 #  * Run autogen.sh.
 #  * Rebuild Makefile, to update the build procedure itself.
 #  * Do the actual build.
-bootstrap: | bootstrap-clean bootstrap-build
-
-bootstrap-build:
+bootstrap: bootstrap-clean
 	cd $(srcdir) && ./autogen.sh
 	$(MAKE) MAKEFILE_NAME=force-Makefile force-Makefile
 	$(MAKE) all
@@ -1185,18 +1183,3 @@ check-declare:
 	  exit 1; \
 	fi
 	$(MAKE) -C lisp $@
-
-## Generating ldefs-boot-auto.el requires a completely clean build so
-## that we can see which autoloads are actually called.  The build has
-## to complete because we use Emacs to clean the results up!  We use
-## loaddefs.el in place of ldefs-boot-auto, because if we are running
-## this there is the possibility that ldefs-boot-auto is not
-## sufficient for bootstrap.
-generate-ldefs-boot: all
-	echo "Generating Bootstrap ldefs"
-	cp lisp/loaddefs.el lisp/ldefs-boot-auto.el
-	$(MAKE) -j 1 bootstrap \
-	GENERATE_LDEFS_BOOT="generate-ldefs-boot" \
-	2>&1 | tee lisp/ldefs-boot-auto.temp
-	$(EMACS) -batch --load admin/ldefs-clean.el --funcall ldefs-clean
-	rm lisp/ldefs-boot-auto.temp

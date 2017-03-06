@@ -92,7 +92,7 @@ changelog_flag=
 
 ## Parameters.
 ldefs_in=lisp/loaddefs.el
-ldefs_boot=lisp/ldefs-boot.el
+ldefs_out=lisp/ldefs-boot.el
 changelog_n=$(sed -n 's/CHANGELOG_HISTORY_INDEX_MAX *= *//p' Makefile.in)
 changelog_files="ChangeLog.$changelog_n"
 sources="configure.ac lib/Makefile.am"
@@ -370,12 +370,19 @@ echo "Running lisp/ make..."
 
 make -C lisp "$@" autoloads EMACS=../src/bootstrap-emacs || die "make src error"
 
+
+## Ignore comment differences.
+[ ! "$lboot_flag" ] || \
+    diff -q -I '^;' $ldefs_in $ldefs_out || \
+    cp $ldefs_in $ldefs_out || die "cp ldefs_boot error"
+
+
 echo "Checking status of loaddef files..."
 
 ## It probably would be fine to just check+commit lisp/, since
 ## making autoloads should not effect any other files.  But better
 ## safe than sorry.
-modified=$(status $genfiles) || die
+modified=$(status $genfiles $ldefs_out) || die
 
 
 commit "loaddefs" $modified || die "commit error"
@@ -388,14 +395,6 @@ commit "loaddefs" $modified || die "commit error"
     commit "ChangeLog" $modified || die "commit error"
 }
 
-
-
-## Regenerate ldefs-boot if we are told to
-[ ! "$lboot_flag" ] || {
-   make generate-ldefs-boot || die
-   modified=$(status $ldefs_boot) || die
-   commit $ldefs_boot $modified || die "commit error"
-}
 
 exit 0
 

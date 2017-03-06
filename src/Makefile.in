@@ -761,10 +761,6 @@ endif
 	@: Compile some files earlier to speed up further compilation.
 	$(MAKE) -C ../lisp compile-first EMACS="$(bootstrap_exe)"
 
-
-generate-ldefs-boot: bootstrap-emacs$(EXEEXT)
-	$(RUN_TEMACS) --batch $(BUILD_DETAILS) --load loadup bootstrap
-
 ifeq ($(AUTO_DEPEND),yes)
 -include $(ALLOBJS:%.o=${DEPDIR}/%.d)
 else
