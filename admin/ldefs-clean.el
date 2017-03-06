@@ -37,11 +37,9 @@
   "Clean up output from build and turn it into ldefs-boot-auto.el."
   (interactive)
   (goto-char (point-max))
-  ;; We need to record autoloads till the point that emacs (as opposed
-  ;; to bootstrap-emacs) is dumped. After this point, we are not
-  ;; bootstrapping any more.
-  (search-backward "-l loadup dump")
-  (beginning-of-line)
+  ;; We only need the autoloads up till loaddefs.el is
+  ;; generated. After this, ldefs-boot.el is not needed
+  (search-backward "  GEN      loaddefs.el")
   (delete-region (point) (point-max))
   (keep-lines "(autoload" (point-min) (point-max))
   (sort-lines nil (point-min) (point-max))
