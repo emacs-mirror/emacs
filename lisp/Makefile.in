@@ -285,9 +285,6 @@ $(THEFILE)c:
 
 compile-first: loaddefs.el $(COMPILE_FIRST)
 
-compile-first-delete:
-	-for f in ${COMPILE_FIRST}; do test ! -f $$f || rm $$f; done
-
 # In 'compile-main' we could directly do
 #    ... | xargs $(MAKE)
 # and it works, but it generates a lot of messages like

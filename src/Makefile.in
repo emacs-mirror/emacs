@@ -761,30 +761,9 @@ endif
 	@: Compile some files earlier to speed up further compilation.
 	$(MAKE) -C ../lisp compile-first EMACS="$(bootstrap_exe)"
 
-shortlisp-keep=loadup.el loaddefs.el
 
-## Generating ldefs-boot-auto.el requires that we dump both emacs and
-## the bootstrap-emacs so that we can see which autoloads are actually
-## called.  This is a slightly messy affair as we must ensure that
-## they are build as if from clean, which means deleting all the build
-## files first.  We use loaddefs.el to make sure that we can build
-## from bootstrap; obviously, this assumes that loaddefs.el already
-## exists or we have a bootstrap problem!
-generate-ldefs-boot: $(lispsource)/loaddefs.el
-	echo Cleaning to enable generate-ldefs-boot
-	mv $(lispsource)/loaddefs.el $(lispsource)/ldefs-boot-auto.el
-	$(MAKE) -C $(lispsource) compile-first-delete
-	-for f in $(filter-out $(shortlisp-keep), $(shortlisp)); do test -e $(lispsource)/$$f && rm -v $(lispsource)/$$f; done
-	- rm bootstrap-emacs$(EXEEXT)
-	- rm emacs$(EXEEXT)
-	echo Building generate-ldefs-boot
-	$(MAKE) -j 1 emacs$(EXEEXT) \
-	GENERATE_LDEFS_BOOT="generate-ldefs-boot" \
-	2>&1 | tee $(lispsource)/ldefs-boot-auto.temp
-	echo Reformatting ldefs-boot-auto.el
-	emacs$(EXEEXT) -batch --load ../admin/ldefs-clean.el --funcall ldefs-clean
-	rm ../lisp/ldefs-boot-auto.temp
-
+generate-ldefs-boot: bootstrap-emacs$(EXEEXT)
+	$(RUN_TEMACS) --batch $(BUILD_DETAILS) --load loadup bootstrap
 
 ifeq ($(AUTO_DEPEND),yes)
 -include $(ALLOBJS:%.o=${DEPDIR}/%.d)
