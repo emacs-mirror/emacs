@@ -58,9 +58,6 @@
 
 
 (defun ldefs-clean ()
-  ;; Remove CR characters produced on MS-DOS/MS-Windows systems.
-  (let ((coding-system-for-read 'utf-8-dos))
-    (find-file "../lisp/ldefs-boot-auto.temp"))
+  (find-file "../lisp/ldefs-boot-auto.temp")
   (ldefs-clean-up)
-  (let ((coding-system-for-write 'utf-8-unix))
-    (write-file "ldefs-boot-auto.el")))
+  (write-file "ldefs-boot-auto.el"))

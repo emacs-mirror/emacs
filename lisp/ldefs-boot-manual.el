@@ -16,9 +16,6 @@
 (autoload 'dos-convert-standard-filename "dos-fns.el" nil nil nil)
 (autoload 'w32-convert-standard-filename "w32-fns.el" nil nil nil)
 
-;; This is needed on MS-Windows only, and won't be in
-;; ldefs-boot-auto.el on other platforms.
-(autoload 'image-type "image" nil nil nil)
 
 (load "ldefs-boot-auto.el")
 
