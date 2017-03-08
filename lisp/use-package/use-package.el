@@ -566,24 +566,26 @@ manually updated package."
            (concat ":ensure wants an optional package name "
                    "(an unquoted symbol name)")))))))
 
-(defun use-package-ensure-elpa (package &optional no-refresh)
-  (require 'package)
-  (if (package-installed-p package)
-      t
-    (if (and (not no-refresh)
-             (assoc package (bound-and-true-p package-pinned-packages)))
-        (package-read-all-archive-contents))
-    (if (or (assoc package package-archive-contents) no-refresh)
-        (package-install package)
-      (progn
-        (package-refresh-contents)
-        (use-package-ensure-elpa package t)))))
+(defun use-package-ensure-elpa (name ensure state &optional no-refresh)
+  (let ((package (or (and (eq ensure t) (use-package-as-symbol name))
+                     ensure)))
+    (when package
+      (require 'package)
+      (if (package-installed-p package)
+          t
+        (if (and (not no-refresh)
+                 (assoc package (bound-and-true-p package-pinned-packages)))
+            (package-read-all-archive-contents))
+        (if (or (assoc package package-archive-contents) no-refresh)
+            (package-install package)
+          (progn
+            (package-refresh-contents)
+            (use-package-ensure-elpa name ensure state t)))))))
 
 (defun use-package-handler/:ensure (name keyword ensure rest state)
   (let* ((body (use-package-process-keywords name rest state))
-         (package-name (or (and (eq ensure t) (use-package-as-symbol name)) ensure))
-         (ensure-form (when package-name
-                        `(,use-package-ensure-function ',package-name))))
+         (ensure-form `(,use-package-ensure-function
+                        ',name ',ensure ',state)))
     ;; We want to avoid installing packages when the `use-package'
     ;; macro is being macro-expanded by elisp completion (see
     ;; `lisp--local-variables'), but still do install packages when
