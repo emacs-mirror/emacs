@@ -133,6 +133,7 @@ the user specified."
   '(:disabled
     :preface
     :pin
+    :defer-install
     :ensure
     :if
     :when
@@ -552,6 +553,75 @@ manually updated package."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
+;;; :defer-install
+;;
+
+(defvar use-package--deferred-packages (make-hash-table)
+  "Hash mapping packages to forms which install them.
+If `use-package' needs to install one of the named packages, it
+will evaluate the corresponding form to do so.
+
+The keys are not actually symbols naming packages, but rather
+symbols naming the features which are the names of \"packages\"
+required by `use-package' forms. Since
+`use-package-ensure-function' could be set to anything, it is
+actually impossible for `use-package' to determine what package
+is supposed to provide the feature being ensured just based on
+the value of `:ensure'. The values are unevaluated Lisp forms. ")
+
+(defun use-package-install-deferred-package
+    (name &optional no-prompt)
+  "Install a package whose installation has been deferred.
+NAME should be a symbol naming a package (actually, a feature).
+The user is prompted for confirmation first, unless NO-PROMPT is
+non-nil."
+  (interactive
+   (let ((packages nil))
+     (maphash (lambda (package info)
+                (push package packages))
+              use-package--deferred-packages)
+     (if packages
+         (list
+          (completing-read
+           "Select package: "
+           packages
+           nil
+           'require-match)
+          'no-prompt)
+       (user-error "No packages with deferred installation"))))
+  (when (or no-prompt
+            (y-or-n-p (format "Install package %S? " name)))
+    (eval (gethash name use-package--deferred-packages))
+    (let ((features nil))
+      (maphash (lambda (feature package)
+                 (when (eq package name)
+                   (push feature features)))
+               use-package--deferred-features)
+      (dolist (feature features)
+        (remhash feature use-package--deferred-features)))
+    (remhash name use-package--deferred-packages)))
+
+(defun use-package--require-advice (require feature &optional
+                                            filename noerror)
+  "Advice for `require' to support `:defer-install'.
+If there is a package with deferred installation enabled that is
+expected to provide the requested feature, that package is
+installed first (if the user confirms it) and then the `require'
+proceeds."
+  (when (gethash feature use-package--deferred-packages)
+    (use-package-install-deferred-package feature))
+  (funcall require feature filename noerror))
+
+(advice-add #'require :around #'use-package--require-advice)
+
+(defalias 'use-package-normalize/:defer-install 'use-package-normalize-test)
+
+(defun use-package-handler/:defer-install (name keyword defer rest state)
+  (use-package-process-keywords name rest
+    (plist-put state :defer-install defer)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
 ;;; :ensure
 ;;
 (defvar package-archive-contents)
@@ -585,14 +655,21 @@ manually updated package."
 (defun use-package-handler/:ensure (name keyword ensure rest state)
   (let* ((body (use-package-process-keywords name rest state))
          (ensure-form `(,use-package-ensure-function
-                        ',name ',ensure ',state)))
+                        ',name ',ensure ',state))
+         (defer-install (plist-get state :defer-install)))
     ;; We want to avoid installing packages when the `use-package'
     ;; macro is being macro-expanded by elisp completion (see
     ;; `lisp--local-variables'), but still do install packages when
     ;; byte-compiling to avoid requiring `package' at runtime.
-    (if (bound-and-true-p byte-compile-current-file)
-        (eval ensure-form)              ; Eval when byte-compiling,
-      (push ensure-form body))          ; or else wait until runtime.
+    (cond
+     (defer-install
+       (push
+        `(puthash ',name ',ensure-form
+                  use-package--deferred-packages)
+        body))
+     ((bound-and-true-p byte-compile-current-file)
+      (eval ensure-form))         ; Eval when byte-compiling,
+     (t (push ensure-form body))) ; or else wait until runtime.
     body))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
