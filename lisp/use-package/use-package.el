@@ -184,8 +184,12 @@ Must be set before loading use-package."
 
 (defcustom use-package-ensure-function 'use-package-ensure-elpa
   "Function that ensures a package is installed.
-This function is called with one argument, the package name as a
-symbol, by the `:ensure' keyword.
+This function is called with three arguments: the name of the
+package declared in the `use-package' form; the argument passed
+to `:ensure'; and the current `state' plist created by previous
+handlers. Note that this function is called whenever `:ensure' is
+provided, even if it is nil. It is up to the function to decide
+on the semantics of the various values for `:ensure'.
 
 The default value uses package.el to install the package."
   :type '(choice (const :tag "package.el" use-package-ensure-elpa)
