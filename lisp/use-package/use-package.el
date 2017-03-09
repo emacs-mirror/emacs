@@ -197,6 +197,22 @@ The default value uses package.el to install the package."
                  (function :tag "Custom"))
   :group 'use-package)
 
+(defcustom use-package-pre-ensure-function 'ignore
+  "Function that is called upon installation deferral.
+It is called with the same arguments as
+`use-package-ensure-function', but only if installation has been
+deferred. It is intended for package managers other than
+package.el which might want to activate the autoloads of a
+package immediately, if it's installed, but otherwise defer
+installation until later (if `:defer-install' is specified). The
+reason it is set to `ignore' by default is that package.el
+activates the autoloads for all known packages at initialization
+time, rather than one by one when the packages are actually
+requested."
+  :type '(choice (const :tag "None" ignore)
+                 (function :tag "Custom"))
+  :group 'use-package)
+
 (defcustom use-package-defaults
   '((:config '(t) t)
     (:ensure use-package-always-ensure use-package-always-ensure)
@@ -596,33 +612,23 @@ non-nil."
   (when (or no-prompt
             (y-or-n-p (format "Install package %S? " name)))
     (eval (gethash name use-package--deferred-packages))
-    (let ((features nil))
-      (maphash (lambda (feature package)
-                 (when (eq package name)
-                   (push feature features)))
-               use-package--deferred-features)
-      (dolist (feature features)
-        (remhash feature use-package--deferred-features)))
     (remhash name use-package--deferred-packages)))
-
-(defun use-package--require-advice (require feature &optional
-                                            filename noerror)
-  "Advice for `require' to support `:defer-install'.
-If there is a package with deferred installation enabled that is
-expected to provide the requested feature, that package is
-installed first (if the user confirms it) and then the `require'
-proceeds."
-  (when (gethash feature use-package--deferred-packages)
-    (use-package-install-deferred-package feature))
-  (funcall require feature filename noerror))
-
-(advice-add #'require :around #'use-package--require-advice)
 
 (defalias 'use-package-normalize/:defer-install 'use-package-normalize-test)
 
 (defun use-package-handler/:defer-install (name keyword defer rest state)
   (use-package-process-keywords name rest
-    (plist-put state :defer-install defer)))
+    ;; Just specifying `:defer-install' does not do anything; this
+    ;; sets up a marker so that if `:ensure' is specified as well then
+    ;; it knows to set up deferred installation. But then later, when
+    ;; `:config' is processed, it might turn out that `:demand' was
+    ;; specified as well, and the deferred installation needs to be
+    ;; run immediately. For this we need to know if the deferred
+    ;; installation was actually set up or not, so we need to set one
+    ;; marker value in `:defer-install', and then change it to a
+    ;; different value in `:ensure', if the first one is present. (The
+    ;; first marker is `:ensure', and the second is `:defer'.)
+    (plist-put state :defer-install (when defer :defer-install))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -657,7 +663,17 @@ proceeds."
             (use-package-ensure-elpa name ensure state t)))))))
 
 (defun use-package-handler/:ensure (name keyword ensure rest state)
-  (let* ((body (use-package-process-keywords name rest state))
+  (let* ((body (use-package-process-keywords name rest
+                 ;; Here we are conditionally updating the marker
+                 ;; value for deferred installation; this will be
+                 ;; checked later by `:config'. For more information
+                 ;; see `use-package-handler/:defer-install'.
+                 (if (eq (plist-get state :defer-install)
+                         :defer-install)
+                     (plist-put state :defer-install :ensure)
+                   state)))
+         (pre-ensure-form `(,use-package-pre-ensure-function
+                            ',name ',ensure ',state))
          (ensure-form `(,use-package-ensure-function
                         ',name ',ensure ',state))
          (defer-install (plist-get state :defer-install)))
@@ -670,7 +686,8 @@ proceeds."
        (push
         `(puthash ',name ',ensure-form
                   use-package--deferred-packages)
-        body))
+        body)
+       (push pre-ensure-form body))
      ((bound-and-true-p byte-compile-current-file)
       (eval ensure-form))         ; Eval when byte-compiling,
      (t (push ensure-form body))) ; or else wait until runtime.
@@ -1047,6 +1064,19 @@ deferred until the prefix key sequence is pressed."
 
 (defalias 'use-package-normalize/:defer 'use-package-normalize-predicate)
 
+(defun use-package--autoload-with-deferred-install
+    (command package-name)
+  "Return a form defining an autoload supporting deferred install."
+  `(defun ,command (&rest args)
+     (if (bound-and-true-p use-package--recursive-autoload)
+         (use-package-error
+          (format "Autoloading failed to define function %S"
+                  command))
+       (use-package-install-deferred-package ',package-name)
+       (require ',package-name)
+       (let ((use-package--recursive-autoload t))
+         (funcall ',command args)))))
+
 (defun use-package-handler/:defer (name keyword arg rest state)
   (let ((body (use-package-process-keywords name rest
                 (plist-put state :deferred t)))
@@ -1061,15 +1091,24 @@ deferred until the prefix key sequence is pressed."
      ;; keep the byte-compiler happy.
      (apply
       #'nconc
-      (mapcar #'(lambda (command)
-                  (when (not (stringp command))
-                    (append
-                     `((unless (fboundp ',command)
-                         (autoload #',command ,name-string nil t)))
-                     (when (bound-and-true-p byte-compile-current-file)
-                       `((eval-when-compile
-                           (declare-function ,command ,name-string)))))))
-              (delete-dups (plist-get state :commands))))
+      (mapcar
+       #'(lambda (command)
+           (when (not (stringp command))
+             (append
+              `((unless (fboundp ',command)
+                  ;; Here we are checking the marker value set in
+                  ;; `use-package-handler/:ensure' to see if deferred
+                  ;; installation is actually happening. See
+                  ;; `use-package-handler/:defer-install' for more
+                  ;; information.
+                  ,(if (eq (plist-get state :defer-install) :ensure)
+                       (use-package--autoload-with-deferred-install
+                        ',command ',name)
+                     `(autoload #',command ,name-string nil t))))
+              (when (bound-and-true-p byte-compile-current-file)
+                `((eval-when-compile
+                    (declare-function ,command ,name-string)))))))
+       (delete-dups (plist-get state :commands))))
 
      body)))
 
@@ -1155,6 +1194,11 @@ deferred until the prefix key sequence is pressed."
         (unless (or (null config-body) (equal config-body '(t)))
           `((eval-after-load ,(if (symbolp name) `',name name)
               ',(macroexp-progn config-body))))
+      ;; Here we are checking the marker value for deferred
+      ;; installation set in `use-package-handler/:ensure'. See also
+      ;; `use-package-handler/:defer-install'.
+      (when (eq (plist-get state :defer-install) :ensure)
+        (use-package-install-deferred-package name 'no-prompt))
       (use-package--with-elapsed-timer
           (format "Loading package %s" name)
         (if use-package-expand-minimally
