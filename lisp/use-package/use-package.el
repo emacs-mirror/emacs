@@ -594,7 +594,7 @@ the value of `:ensure'. The values are unevaluated Lisp forms. ")
   "Install a package whose installation has been deferred.
 NAME should be a symbol naming a package (actually, a feature).
 The user is prompted for confirmation first, unless NO-PROMPT is
-non-nil."
+non-nil. Return t if the package is installed, nil otherwise."
   (interactive
    (let ((packages nil))
      (maphash (lambda (package info)
@@ -612,7 +612,8 @@ non-nil."
   (when (or no-prompt
             (y-or-n-p (format "Install package %S? " name)))
     (eval (gethash name use-package--deferred-packages))
-    (remhash name use-package--deferred-packages)))
+    (remhash name use-package--deferred-packages)
+    t))
 
 (defalias 'use-package-normalize/:defer-install 'use-package-normalize-test)
 
@@ -1067,15 +1068,30 @@ deferred until the prefix key sequence is pressed."
 (defun use-package--autoload-with-deferred-install
     (command package-name)
   "Return a form defining an autoload supporting deferred install."
-  `(defun ,command (&rest args)
-     (if (bound-and-true-p use-package--recursive-autoload)
-         (use-package-error
-          (format "Autoloading failed to define function %S"
-                  command))
-       (use-package-install-deferred-package ',package-name)
-       (require ',package-name)
-       (let ((use-package--recursive-autoload t))
-         (funcall ',command args)))))
+  `(let* ((load-list-item '(defun . ,command))
+          (already-loaded (member load-list-item current-load-list)))
+     (defun ,command (&rest args)
+       "[Arg list not available until function definition is loaded.]
+
+\(fn ...)"
+       (interactive)
+       (if (bound-and-true-p use-package--recursive-autoload)
+           (use-package-error
+            (format "Autoloading failed to define function %S"
+                    command))
+         (when (use-package-install-deferred-package ',package-name)
+           (require ',package-name)
+           (let ((use-package--recursive-autoload t))
+             (if (called-interactively-p 'any)
+                 (call-interactively ',command)
+               (apply ',command args))))))
+     ;; This prevents the user's init-file from being recorded as the
+     ;; definition location for the function before it is actually
+     ;; loaded. (Our goal is to leave the `current-load-list'
+     ;; unchanged, so we only remove the entry for this function if it
+     ;; was not already present.)
+     (unless already-loaded
+       (setq current-load-list (remove load-list-item current-load-list)))))
 
 (defun use-package-handler/:defer (name keyword arg rest state)
   (let ((body (use-package-process-keywords name rest
@@ -1103,7 +1119,7 @@ deferred until the prefix key sequence is pressed."
                   ;; information.
                   ,(if (eq (plist-get state :defer-install) :ensure)
                        (use-package--autoload-with-deferred-install
-                        ',command ',name)
+                        command name)
                      `(autoload #',command ,name-string nil t))))
               (when (bound-and-true-p byte-compile-current-file)
                 `((eval-when-compile
