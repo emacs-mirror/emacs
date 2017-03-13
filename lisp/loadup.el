@@ -497,6 +497,10 @@ lost after dumping")))
             (coding-systems '()) (coding-system-aliases '())
             (charsets '()) (charset-aliases '())
             (unified-charsets '())
+            (abbrev-tables (make-hash-table :test 'eq))
+            (abbrev-assign-cmds '())
+            (abbrev-make-cmds '())
+            (abbrev-counter 0)
             (cmds '()))
         (setcdr global-buffers-menu-map nil) ;; Get rid of buffer objects!
         (push `(internal--set-standard-syntax-table
@@ -547,6 +551,45 @@ lost after dumping")))
                           '(let ((ol (make-overlay (point-min) (point-min))))
                              (delete-overlay ol)
                              ol))
+                         ;; abbrev-table-p isn't very robust
+                         ((condition-case nil
+                              (abbrev-table-p v)
+                            (error nil))
+                          (cl-labels ((replace-abbrevs-for-dump
+                                       (table)
+                                       (or (abbrev-table-empty-p table)
+                                           (error "Non-empty abbrev tables not handled"))
+                                       (let ((newval (gethash table abbrev-tables)))
+                                         (if newval
+                                             `(aref scratch-abbrev-tables ,newval)
+                                           (let* ((props (symbol-plist (obarray-get table ""))))
+                                             (cond ((plist-get props :parents)
+                                                    (setq props (copy-sequence props))
+                                                    (plist-put props
+                                                               :parents
+                                                               (mapcar (lambda (value)
+                                                                         (list '\, (replace-abbrevs-for-dump value)))
+                                                                       (plist-get props :parents)))
+                                                    (setq props (list '\` props)))
+                                                   ((eq (length props) 2)
+                                                    ;; Only :abbrev-table-modiff, which gets added at creation anyway.
+                                                    (setq props nil)))
+                                             (push `(aset scratch-abbrev-tables
+                                                          ,abbrev-counter
+                                                          ,(if props
+                                                               `(make-abbrev-table ,props)
+                                                             '(make-abbrev-table)))
+                                                   abbrev-make-cmds)
+                                             (puthash table abbrev-counter abbrev-tables)
+                                             (prog1
+                                                 `(aref scratch-abbrev-tables ,abbrev-counter)
+                                               (setq abbrev-counter (1+ abbrev-counter))))))))
+                            (push `(set-default ',s
+                                                ,(replace-abbrevs-for-dump v))
+                                  abbrev-assign-cmds))
+                          ;; Placeholder to be used before we know
+                          ;; we've defined make-abbrev-table.
+                          0)
                          (v (macroexp-quote v))))
                      cmds)
                ;; Local variables: make-variable-buffer-local,
@@ -599,6 +642,10 @@ lost after dumping")))
             (print '(get-buffer-create "*Messages*"))
             (print `(progn . ,cmds))
             (terpri)
+            ;; Now that make-abbrev-table is defined, use it.
+            (print `(let ((scratch-abbrev-tables (make-vector ,abbrev-counter 0)))
+                      ,@(nreverse abbrev-make-cmds)
+                      ,@abbrev-assign-cmds))
             (print `(let ((css ',charsets))
                       (dotimes (i 3)
                         (dolist (cs (prog1 css (setq css nil)))
