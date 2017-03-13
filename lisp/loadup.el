@@ -530,7 +530,14 @@ lost after dumping")))
                                      internal--text-quoting-flag
                                      exec-path
                                      process-environment
-                                     command-line-args noninteractive))))
+                                     command-line-args noninteractive
+                                     ;; Any let-bound variables during
+                                     ;; dump process will be useless.
+                                     faces coding-systems coding-system-aliases
+                                     charsets charset-aliases unified-charsets
+                                     abbrev-tables abbrev-counter
+                                     abbrev-make-cmds abbrev-assign-cmds
+                                     cmds))))
              ;; FIXME: Handle varaliases!
              (let ((v (default-value s)))
                (push `(set-default
