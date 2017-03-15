@@ -1459,7 +1459,10 @@ alists. Returns a list (key separator description)."
       (let* ((key (car key-binding))
              (orig-desc (cdr key-binding))
              (group (which-key--group-p orig-desc))
-             (keys (concat (which-key--current-key-string) " " key))
+             ;; At top-level prefix is nil
+             (keys (if which-key--current-prefix
+                       (concat (which-key--current-key-string) " " key)
+                     key))
              (local (eq (which-key--safe-lookup-key local-map (kbd keys))
                         (intern orig-desc)))
              (hl-face (which-key--highlight-face orig-desc))
