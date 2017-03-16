@@ -8875,6 +8875,8 @@ to capitalize ARG words."
 
 
 
+(message "here simple")
+
 (provide 'simple)
 
 ;;; simple.el ends here

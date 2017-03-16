@@ -176,14 +176,19 @@ $(lisp)/finder-inf.el:
 # Note that we set no-update-autoloads in _generated_ leim files.
 # If you want to allow autoloads in such files, remove that,
 # and make this depend on leim.
-autoloads .PHONY: $(lisp)/loaddefs.el
-$(lisp)/loaddefs.el: $(LOADDEFS)
+autoloads .PHONY: $(lisp)/loaddefs.el $(LOADDEFS)
+
+$(lisp)/loaddefs.el:
 	@echo Directories for loaddefs: ${SUBDIRS_ALMOST}
 	$(AM_V_GEN)$(emacs) -l autoload \
 	    --eval '(setq autoload-ensure-writable t)' \
 	    --eval '(setq autoload-builtin-package-versions t)' \
 	    --eval '(setq generated-autoload-file (expand-file-name (unmsys--file-name "$@")))' \
 	    -f batch-update-autoloads ${SUBDIRS_ALMOST}
+
+
+temacs-loaddefs:
+	../src/temacs --load-temacs  ${SUBDIRS_ALMOST}
 
 # autoloads only runs when loaddefs.el is nonexistent, although it
 # generates a number of different files. Provide a force option to enable

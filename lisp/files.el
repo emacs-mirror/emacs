@@ -1972,9 +1972,11 @@ Optional fourth arg WILDCARDS non-nil means do wildcard processing
 and visit all the matching files.  When wildcards are actually
 used and expanded, return a list of buffers that are visiting
 the various files."
+  (message "18")
   (setq filename
 	(abbreviate-file-name
 	 (expand-file-name filename)))
+  (message "19")
   (if (file-directory-p filename)
       (or (and find-file-run-dired
 	       (run-hook-with-args-until-success
@@ -1994,6 +1996,7 @@ the various files."
 	  (if (null files)
 	      (find-file-noselect filename)
 	    (mapcar #'find-file-noselect files)))
+      (message "20")
       (let* ((buf (get-file-buffer filename))
 	     (truename (abbreviate-file-name (file-truename filename)))
 	     (attributes (file-attributes truename))
@@ -2015,9 +2018,11 @@ the various files."
 	(when (not (or buf nowarn))
 	  (abort-if-file-too-large (nth 7 attributes) "open" filename)
 	  (warn-maybe-out-of-memory (nth 7 attributes)))
+        (message "21")
 	(if buf
 	    ;; We are using an existing buffer.
 	    (let (nonexistent)
+              (message "23")
 	      (or nowarn
 		  (verify-visited-file-modtime buf)
 		  (cond ((not (file-exists-p filename))
@@ -2054,7 +2059,7 @@ the various files."
 			 (with-current-buffer buf
 			   (revert-buffer t t)))))
 	      (with-current-buffer buf
-
+                (message "22")
 		;; Check if a formerly read-only file has become
 		;; writable and vice versa, but if the buffer agrees
 		;; with the new state of the file, that is ok too.
@@ -2133,8 +2138,10 @@ Do you want to revisit the file normally now? ")
 			       "File already visited literally"))))))
 	      ;; Return the buffer we are using.
 	      buf)
+          (message "24")
 	  ;; Create a new buffer.
 	  (setq buf (create-file-buffer filename))
+          (message "25")
 	  ;; find-file-noselect-1 may use a different buffer.
 	  (find-file-noselect-1 buf filename nowarn
 				rawfile truename number))))))

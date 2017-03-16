@@ -30,6 +30,8 @@
 
 ;;; Code:
 
+(message "here autoload")
+
 (require 'lisp-mode)			;for `doc-string-elt' properties.
 (require 'lisp-mnt)
 (eval-when-compile (require 'cl-lib))
@@ -256,6 +258,7 @@ expression, in which case we want to handle forms differently."
 (defun autoload-find-generated-file ()
   "Visit the autoload file for the current buffer, and return its buffer.
 If a buffer is visiting the desired autoload file, return it."
+  (message "14")
   (let ((enable-local-variables :safe)
 	(enable-local-eval nil))
     ;; We used to use `raw-text' to read this file, but this causes
@@ -263,8 +266,10 @@ If a buffer is visiting the desired autoload file, return it."
     (let* ((delay-mode-hooks t)
            (file (autoload-generated-file))
            (file-missing (not (file-exists-p file))))
+      (message "15")
       (when file-missing
         (autoload-ensure-default-file file))
+      (message "16")
       (with-current-buffer
           (find-file-noselect
            (autoload-ensure-file-writeable
@@ -272,6 +277,7 @@ If a buffer is visiting the desired autoload file, return it."
         ;; block backups when the file has just been created, since
         ;; the backups will just be the auto-generated headers.
         ;; bug#23203
+        (message "17")
         (when file-missing
           (setq buffer-backed-up t)
           (save-buffer))
@@ -368,7 +374,9 @@ feature, otherwise it will be based on FILE's name.
 
 At present, a feature is in fact always provided, but this should
 not be relied upon."
+  (message "31")
   (let ((basename (file-name-nondirectory file)))
+    (message "32")
     (concat ";;; " basename
 	    " --- automatically extracted " (or type "autoloads") "\n"
 	    ";;\n"
@@ -411,6 +419,7 @@ not be relied upon."
   "Make sure that the autoload file FILE exists, creating it if needed.
 If the file already exists and `autoload-ensure-writable' is non-nil,
 make it writable."
+  (message "30")
   (write-region (autoload-rubric file) nil file))
 
 (defun autoload-insert-section-header (outbuf autoloads load-name file time)
@@ -1010,6 +1019,7 @@ use the existing value of `generated-autoload-file'.  If any Lisp
 file binds `generated-autoload-file' as a file-local variable,
 write its autoloads into the specified file instead."
   (interactive "DUpdate autoloads from directory: ")
+  (message "7")
   (let* ((files-re (let ((tmp nil))
 		     (dolist (suf (get-load-suffixes))
                        ;; We don't use module-file-suffix below because
@@ -1039,17 +1049,22 @@ write its autoloads into the specified file instead."
 	  (if (file-exists-p generated-autoload-file)
 	      (nth 5 (file-attributes generated-autoload-file)))))
 
+    (message "8")
+    (message "save-excursion %s" (fboundp 'save-excursion))
     (with-current-buffer (autoload-find-generated-file)
+      (message "12")
       (save-excursion
 	;; Canonicalize file names and remove the autoload file itself.
-	(setq files (delete (file-relative-name buffer-file-name)
+        (message "11")
+        (setq files (delete (file-relative-name buffer-file-name)
 			    (mapcar #'file-relative-name files)))
 
 	(goto-char (point-min))
 	(while (search-forward generate-autoload-section-header nil t)
 	  (let* ((form (autoload-read-section-header))
 		 (file (nth 3 form)))
-	    (cond ((and (consp file) (stringp (car file)))
+            (message "10")
+            (cond ((and (consp file) (stringp (car file)))
 		   ;; This is a list of files that have no autoload cookies.
 		   ;; There shouldn't be more than one such entry.
 		   ;; Remove the obsolete section.
@@ -1089,6 +1104,7 @@ write its autoloads into the specified file instead."
                        (push file no-autoloads))))
             (push file done)
 	    (setq files (delete file files)))))
+      (message "9")
       ;; Elements remaining in FILES have no existing autoload sections yet.
       (let ((no-autoloads-time (or last-time '(0 0 0 0))) file-time)
 	(dolist (file files)
@@ -1139,11 +1155,16 @@ should be non-nil)."
   ;; Exclude those files that are preloaded on ALL platforms.
   ;; These are the ones in loadup.el where "(load" is at the start
   ;; of the line (crude, but it works).
+  (message "1")
   (unless autoload-excludes
+    (message "2:%s" generated-autoload-file)
     (let ((default-directory (file-name-directory generated-autoload-file))
 	  file)
+      (message "3.1")
       (when (file-readable-p "loadup.el")
+        (message "4")
 	(with-temp-buffer
+          (message "5")
 	  (insert-file-contents "loadup.el")
 	  (while (re-search-forward "^(load \"\\([^\"]+\\)\"" nil t)
 	    (setq file (match-string 1))
@@ -1151,6 +1172,7 @@ should be non-nil)."
 		(setq file (format "%s.el" file)))
 	    (or (string-match "\\`site-" file)
 		(push (expand-file-name file) autoload-excludes)))))))
+  (message "6")
   (let ((args command-line-args-left))
     (setq command-line-args-left nil)
     (apply #'update-directory-autoloads args)))

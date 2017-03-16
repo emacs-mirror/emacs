@@ -56,6 +56,7 @@ lwlibdir = ../lwlib
 config_h = config.h $(srcdir)/conf_post.h
 
 bootstrap_exe = ../src/bootstrap-emacs$(EXEEXT)
+temacs_exe = ../src/temacs$(EXEEXT)
 
 ## ns-app if HAVE_NS, else empty.
 OTHER_FILES = @OTHER_FILES@
@@ -745,10 +746,18 @@ VCSWITNESS =
 $(lispsource)/loaddefs.el: $(VCSWITNESS) | bootstrap-emacs$(EXEEXT)
 	$(MAKE) -C ../lisp autoloads EMACS="$(bootstrap_exe)"
 
+temacs-loaddefs:
+	$(MAKE) -C ../lisp temacs-loaddefs
+
+.PHONY: temacs-loaddefs
+
 ## Dump an Emacs executable named bootstrap-emacs containing the
 ## files from loadup.el in source form.
 bootstrap-emacs$(EXEEXT): temacs$(EXEEXT)
 	$(MAKE) -C ../lisp update-subdirs
+	if test ! -f $(lispsource)/loaddefs.el; then \
+		$(MAKE) temacs-loaddefs; \
+	fi
 ifeq ($(CANNOT_DUMP),yes)
 	ln -f temacs$(EXEEXT) $@
 else

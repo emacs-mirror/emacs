@@ -670,6 +670,7 @@ main (int argc, char **argv)
   bool dumping;
   int skip_args = 0;
   bool no_loadup = false;
+  bool load_temacs = false;
   char *junk = 0;
   char *dname_arg = 0;
 #ifdef DAEMON_MUST_EXEC
@@ -1251,6 +1252,9 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   no_loadup
     = argmatch (argv, argc, "-nl", "--no-loadup", 6, NULL, &skip_args);
 
+  load_temacs
+    = argmatch (argv, argc, "-lt", "--load-temacs", 6, NULL, &skip_args);
+
   no_site_lisp
     = argmatch (argv, argc, "-nsl", "--no-site-lisp", 11, NULL, &skip_args);
 
@@ -1651,8 +1655,11 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 	  Vtop_level = list2 (Qload, build_unibyte_string (file));
 	}
       /* Unless next switch is -nl, load "loadup.el" first thing.  */
-      if (! no_loadup)
+      if (! (no_loadup || load_temacs))
 	Vtop_level = list2 (Qload, build_string ("loadup.el"));
+
+      if (load_temacs)
+        Vtop_level = list2 (Qload, build_string ("temacs.el"));
     }
 
   /* Set up for profiling.  This is known to work on FreeBSD,
