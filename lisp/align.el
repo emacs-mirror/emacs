@@ -1322,7 +1322,7 @@ aligner would have dealt with are."
 	     (modes (assq 'modes rule)))
 	;; unless the `run-if' form tells us not to, look for the
 	;; rule..
-	(unless (or (and modes (not (memq major-mode
+	(unless (or (and modes (not (cl-member-if #'derived-mode-p
 					  (eval (cdr modes)))))
 		    (and run-if (not (funcall (cdr run-if)))))
 	  (let* ((case-fold-search case-fold-search)
