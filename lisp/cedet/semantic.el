@@ -329,7 +329,7 @@ If the major mode is ready for Semantic, and no
 to use Semantic, and `semantic-init-hook' is run."
   ;; In upstream Semantic, the parser setup functions are called from
   ;; mode hooks.  In the version bundled with Emacs, we do it here.
-  (let ((entry (assq major-mode semantic-new-buffer-setup-functions)))
+  (let ((entry (cl-assoc-if #'derived-mode-p semantic-new-buffer-setup-functions)))
     (when entry
       (funcall (cdr entry))))
   ;; Do stuff if semantic was activated by a mode hook in this buffer,
