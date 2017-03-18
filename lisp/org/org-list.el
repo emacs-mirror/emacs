@@ -3035,7 +3035,7 @@ Point is left at list end."
 (defun org-list-insert-radio-list ()
   "Insert a radio list template appropriate for this major mode."
   (interactive)
-  (let* ((e (assq major-mode org-list-radio-list-templates))
+  (let* ((e (cl-assoc-if #'derived-mode-p org-list-radio-list-templates))
 	 (txt (nth 1 e))
 	 name pos)
     (unless e (error "No radio list setup defined for %s" major-mode))

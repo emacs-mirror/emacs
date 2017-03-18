@@ -4269,7 +4269,7 @@ to execute outside of tables."
 	"--"
 	("Radio tables"
 	 ["Insert table template" orgtbl-insert-radio-table
-	  (assq major-mode orgtbl-radio-table-templates)]
+	  (cl-assoc-if #'derived-mode-p orgtbl-radio-table-templates)]
 	 ["Comment/uncomment table" orgtbl-toggle-comment t])
 	"--"
 	["Set Column Formula" org-table-eval-formula :active (org-at-table-p) :keys "C-c ="]
@@ -4549,7 +4549,7 @@ First element has index 0, or I0 if given."
 (defun orgtbl-insert-radio-table ()
   "Insert a radio table template appropriate for this major mode."
   (interactive)
-  (let* ((e (assq major-mode orgtbl-radio-table-templates))
+  (let* ((e (cl-assoc-if #'derived-mode-p orgtbl-radio-table-templates))
 	 (txt (nth 1 e))
 	 name pos)
     (unless e (user-error "No radio table setup defined for %s" major-mode))
