@@ -592,8 +592,10 @@ This startup message appears whenever you load Viper, unless you type `y' now."
 		    ))
 	      (viper-set-expert-level 'dont-change-unless)))
 
-	(or (memq major-mode viper-emacs-state-mode-list) ; don't switch to Vi
-	    (memq major-mode viper-insert-state-mode-list) ; don't switch
+	(or (cl-member-if #'derived-mode-p
+                          viper-emacs-state-mode-list) ; don't switch to Vi
+	    (cl-member-if #'derived-mode-p
+                          viper-insert-state-mode-list) ; don't switch
 	    (viper-change-state-to-vi))
 	))
 
@@ -605,11 +607,15 @@ This startup message appears whenever you load Viper, unless you type `y' now."
 ;; Apply a little heuristic to invoke vi state on major-modes
 ;; that are not listed in viper-vi-state-mode-list
 (defun this-major-mode-requires-vi-state (mode)
-  (cond ((memq mode viper-vi-state-mode-list) t)
-	((memq mode viper-emacs-state-mode-list) nil)
-	((memq mode viper-insert-state-mode-list) nil)
-	(t (and (eq (key-binding "a") 'self-insert-command)
-		(eq (key-binding " ") 'self-insert-command)))))
+  (let ((check (lambda (one-mode)
+                 (provided-mode-derived-p mode one-mode))))
+    (cond ((cl-member-if check viper-vi-state-mode-list) t)
+          ((cl-member-if check viper-emacs-state-mode-list)
+           nil)
+          ((cl-member-if check viper-insert-state-mode-list)
+           nil)
+          (t (and (eq (key-binding "a") 'self-insert-command)
+                  (eq (key-binding " ") 'self-insert-command))))))
 
 
 ;; This hook designed to enable Vi-style editing in comint-based modes."
@@ -802,13 +808,14 @@ It also can't undo some Viper settings."
 	   (cond ((and (this-major-mode-requires-vi-state major-mode)
 		       (eq viper-current-state 'emacs-state))
 		  (viper-mode))
-		 ((memq major-mode viper-emacs-state-mode-list)
+		 ((cl-member-if #'derived-mode-p viper-emacs-state-mode-list)
 		  ;; not checking (eq viper-current-state 'emacs-state)
 		  ;; because viper-current-state could have gotten it by
 		  ;; default.  We need viper-change-state-to-emacs here to have
 		  ;; the keymaps take effect.
 		  (viper-change-state-to-emacs))
-		 ((and (memq major-mode viper-insert-state-mode-list)
+		 ((and (cl-member-if #'derived-mode-p
+                                     viper-insert-state-mode-list)
 		       (not (eq viper-current-state 'insert-state)))
 		  (viper-change-state-to-insert))
 		 )) ; with-current-buffer
