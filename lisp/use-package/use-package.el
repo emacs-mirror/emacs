@@ -221,16 +221,16 @@ with the appropriate value."
 
 (defcustom use-package-pre-ensure-function 'ignore
   "Function that is called upon installation deferral.
-It is called immediately with the same arguments as
-`use-package-ensure-function', but only if installation has been
-deferred. It is intended for package managers other than
-package.el which might want to activate the autoloads of a
-package immediately, if it's installed, but otherwise defer
-installation until later (if `:defer-install' is specified). The
-reason it is set to `ignore' by default is that package.el
-activates the autoloads for all known packages at initialization
-time, rather than one by one when the packages are actually
-requested."
+It is called immediately with the first three arguments that
+would be passed to `use-package-ensure-function' (the context
+keyword is omitted), but only if installation has been deferred.
+It is intended for package managers other than package.el which
+might want to activate the autoloads of a package immediately, if
+it's installed, but otherwise defer installation until later (if
+`:defer-install' is specified). The reason it is set to `ignore'
+by default is that package.el activates the autoloads for all
+known packages at initialization time, rather than one by one
+when the packages are actually requested."
   :type '(choice (const :tag "None" ignore)
                  (function :tag "Custom"))
   :group 'use-package)
@@ -695,7 +695,7 @@ If the package is installed, its entry is removed from
                 ;; Contexts in which the confirmation prompt is
                 ;; bypassed.
                 (member context '(:byte-compile :ensure :config))
-                (y-or-n-p (format "Install package %S?" name))))
+                (y-or-n-p (format "Install package %S?" package))))
           (progn
             (when (assoc package (bound-and-true-p package-pinned-packages))
               (package-read-all-archive-contents))
