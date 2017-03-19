@@ -1270,7 +1270,7 @@ deferred until the prefix key sequence is pressed."
                        `(,@(when (eq (plist-get state :defer-install) :ensure)
                              `((use-package-install-deferred-package
                                 'name :after)))
-                         '(require (quote ,name) nil t))))))
+                         (require (quote ,name) nil t))))))
      body)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
