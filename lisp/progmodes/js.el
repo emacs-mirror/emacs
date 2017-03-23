@@ -53,6 +53,7 @@
 (require 'moz nil t)
 (require 'json nil t)
 (require 'sgml-mode)
+(require 'prog-mode)
 
 (eval-when-compile
   (require 'cl-lib)
@@ -2124,7 +2125,7 @@ indentation is aligned to that column."
 
           ((js--continued-expression-p)
            (+ js-indent-level js-expr-indent-offset))
-          (t 0))))
+          (t (prog-first-column)))))
 
 ;;; JSX Indentation
 
