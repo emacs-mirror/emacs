@@ -755,6 +755,13 @@ processes on exit.
 
 ** New library 'xdg' with utilities for some XDG standards and specs.
 
+** HTML
+
++++
+*** A new submode of `html-mode', `mthml-mode', is now the default
+    mode for *.html files.  This mode handles indentation,
+    fontification, and commenting for embedded JavaScript and CSS.
+
 
 * Incompatible Lisp Changes in Emacs 26.1
 
