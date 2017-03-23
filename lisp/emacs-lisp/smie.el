@@ -123,6 +123,8 @@
 
 (eval-when-compile (require 'cl-lib))
 
+(require 'prog-mode)
+
 (defgroup smie nil
   "Simple Minded Indentation Engine."
   :group 'languages)
@@ -1455,7 +1457,7 @@ in order to figure out the indentation of some other (further down) point."
   ;; Start the file at column 0.
   (save-excursion
     (forward-comment (- (point)))
-    (if (bobp) 0)))
+    (if (bobp) (prog-first-column))))
 
 (defun smie-indent-close ()
   ;; Align close paren with opening paren.
