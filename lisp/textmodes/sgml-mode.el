@@ -341,26 +341,30 @@ Any terminating `>' or `/' is not matched.")
 (defvar sgml-font-lock-keywords sgml-font-lock-keywords-1
   "Rules for highlighting SGML code.  See also `sgml-tag-face-alist'.")
 
+(eval-and-compile
+  (defconst sgml-syntax-propertize-rules
+    (syntax-propertize-precompile-rules
+     ;; Use the `b' style of comments to avoid interference with the -- ... --
+     ;; comments recognized when `sgml-specials' includes ?-.
+     ;; FIXME: beware of <!--> blabla <!--> !!
+     ("\\(<\\)!--" (1 "< b"))
+     ("--[ \t\n]*\\(>\\)" (1 "> b"))
+     ("\\(<\\)[?!]" (1 (prog1 "|>"
+                         (sgml-syntax-propertize-inside end))))
+     ;; Double quotes outside of tags should not introduce strings.
+     ;; Be careful to call `syntax-ppss' on a position before the one we're
+     ;; going to change, so as not to need to flush the data we just computed.
+     ("\"" (0 (if (prog1 (zerop (car (syntax-ppss (match-beginning 0))))
+                    (goto-char (match-end 0)))
+                  (string-to-syntax ".")))))))
+
 (defun sgml-syntax-propertize (start end)
   "Syntactic keywords for `sgml-mode'."
   (goto-char start)
   (sgml-syntax-propertize-inside end)
   (funcall
-  (syntax-propertize-rules
-   ;; Use the `b' style of comments to avoid interference with the -- ... --
-   ;; comments recognized when `sgml-specials' includes ?-.
-   ;; FIXME: beware of <!--> blabla <!--> !!
-   ("\\(<\\)!--" (1 "< b"))
-   ("--[ \t\n]*\\(>\\)" (1 "> b"))
-   ("\\(<\\)[?!]" (1 (prog1 "|>"
-                       (sgml-syntax-propertize-inside end))))
-   ;; Double quotes outside of tags should not introduce strings.
-   ;; Be careful to call `syntax-ppss' on a position before the one we're
-   ;; going to change, so as not to need to flush the data we just computed.
-   ("\"" (0 (if (prog1 (zerop (car (syntax-ppss (match-beginning 0))))
-                  (goto-char (match-end 0)))
-                (string-to-syntax ".")))))
-  start end))
+   (syntax-propertize-rules sgml-syntax-propertize-rules)
+   start end))
 
 (defun sgml-syntax-propertize-inside (end)
   (let ((ppss (syntax-ppss)))
@@ -1304,13 +1308,24 @@ really isn't a tag after all."
       (let ((pps (parse-partial-sexp start end 2)))
 	(and (= (nth 0 pps) 0))))))
 
+(defun sgml--find-<>-backward (limit)
+  "Search backward for a '<' or '>' character.
+The character must have open or close syntax.
+Returns t if found, nil otherwise."
+  (catch 'found
+    (while (re-search-backward "[<>]" limit 'move)
+      ;; If this character has "open" or "close" syntax, then we've
+      ;; found the one we want.
+      (when (memq (syntax-class (syntax-after (point))) '(4 5))
+        (throw 'found t)))))
+
 (defun sgml-parse-tag-backward (&optional limit)
   "Parse an SGML tag backward, and return information about the tag.
 Assume that parsing starts from within a textual context.
 Leave point at the beginning of the tag."
   (catch 'found
     (let (tag-type tag-start tag-end name)
-      (or (re-search-backward "[<>]" limit 'move)
+      (or (sgml--find-<>-backward limit)
 	  (error "No tag found"))
       (when (eq (char-after) ?<)
 	;; Oops!! Looks like we were not in a textual context after all!.
