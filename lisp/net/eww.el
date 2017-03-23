@@ -641,8 +641,11 @@ Currently this means either text/html or application/xhtml+xml."
             (when (coding-system-p cs)
               (decode-coding-region (point-min) (point-max) cs)
               (setq buffer-file-coding-system last-coding-system-used))))
-	(when (fboundp 'html-mode)
-	  (html-mode))))
+        (cond
+         ((fboundp 'mhtml-mode)
+          (mhtml-mode))
+         ((fboundp 'html-mode)
+	  (html-mode)))))
     (view-buffer buf)))
 
 (defun eww-toggle-paragraph-direction ()
