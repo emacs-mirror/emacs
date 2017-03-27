@@ -57,6 +57,17 @@
 ;; Add subdirectories to the load-path for files that might get
 ;; autoloaded when bootstrapping.
 ;; This is because PATH_DUMPLOADSEARCH is just "../lisp".
+(let ((dir (car load-path)))
+  (message "load path is %S" load-path)
+  (setq load-path (list (expand-file-name "." dir)
+                        (expand-file-name "emacs-lisp" dir)
+                        (expand-file-name "language" dir)
+                        (expand-file-name "international" dir)
+                        (expand-file-name "textmodes" dir)
+                        (expand-file-name "vc" dir))))
+
+(setq purify-flag nil)
+
 (if (or (equal (member "bootstrap" command-line-args) '("bootstrap"))
 	;; FIXME this is irritatingly fragile.
 	(and (stringp (nth 4 command-line-args))
@@ -67,19 +78,10 @@
 	(if (fboundp 'dump-emacs)
 	    (string-match "src/bootstrap-emacs" (nth 0 command-line-args))
 	  t))
-    (let ((dir (car load-path)))
-      ;; We'll probably overflow the pure space.
-      (setq purify-flag nil)
-      ;; Value of max-lisp-eval-depth when compiling initially.
-      ;; During bootstrapping the byte-compiler is run interpreted when
-      ;; compiling itself, which uses a lot more stack than usual.
-      (setq max-lisp-eval-depth 2200)
-      (setq load-path (list (expand-file-name "." dir)
-			    (expand-file-name "emacs-lisp" dir)
-			    (expand-file-name "language" dir)
-			    (expand-file-name "international" dir)
-			    (expand-file-name "textmodes" dir)
-			    (expand-file-name "vc" dir)))))
+    ;; Value of max-lisp-eval-depth when compiling initially.
+    ;; During bootstrapping the byte-compiler is run interpreted when
+    ;; compiling itself, which uses a lot more stack than usual.
+    (setq max-lisp-eval-depth 2200))
 
 (if (eq t purify-flag)
     ;; Hash consing saved around 11% of pure space in my tests.
