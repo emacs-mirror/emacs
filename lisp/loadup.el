@@ -316,6 +316,8 @@
 ;; Preload some constants and floating point functions.
 (load "emacs-lisp/float-sup")
 
+(load "emacs-lisp/cl-macs")
+
 (load "vc/vc-hooks")
 (load "vc/ediff-hook")
 (load "uniquify")
