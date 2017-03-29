@@ -432,9 +432,9 @@ to grow very quickly.
 _`.finish`: Iterate over all the segments, returning all the segments
 to the arena.
 
-``Res MRGScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)``
+``Res mrgRefSegScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)``
 
-_`.scan`: ``MRGScan()`` scans a segment.
+_`.scan`: ``mrgRefSegScan()`` scans a segment of guardians.
 
 _`.scan.trivial`: Scan will do nothing (that is, return immediately)
 if the tracing rank is anything other than final.
@@ -451,10 +451,10 @@ scanning is detrimental, it will only delay finalization. If the rank
 is higher than final there is nothing to do, the pool only contains
 final references.
 
-_`.scan.guardians`: ``MRGScan()`` will iterate over all guardians in
-the segment. Every guardian's reference will be fixed (_`.scan.free`:
-note that guardians that are on the free list have ``NULL`` in their
-reference part).
+_`.scan.guardians`: ``mrgRefSegScan()`` will iterate over all
+guardians in the segment. Every guardian's reference will be fixed
+(_`.scan.free`: note that guardians that are on the free list have
+``NULL`` in their reference part).
 
 _`.scan.wasold`: If the object referred to had not been fixed
 previously (that is, was unmarked) then the object is not referenced
@@ -508,7 +508,7 @@ arena. A suggested strategy for this is as follows:
 
 - Add a free segment ring to the pool.
 
-- In ``MRGRefSegScan()``, if the segment is entirely free, don't scan
+- In ``mrgRefSegScan()``, if the segment is entirely free, don't scan
   it, but instead detach its links from the free ring, and move the
   segment to the free segment ring.
 

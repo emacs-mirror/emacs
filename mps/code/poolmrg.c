@@ -167,6 +167,7 @@ typedef struct MRGRefSegStruct {
 
 DECLARE_CLASS(Seg, MRGLinkSeg, Seg);
 DECLARE_CLASS(Seg, MRGRefSeg, GCSeg);
+static Res mrgRefSegScan(Bool *totalReturn, Seg seg, ScanState ss);
 
 
 /* MRGLinkSegCheck -- check a link segment
@@ -300,6 +301,7 @@ DEFINE_CLASS(Seg, MRGRefSeg, klass)
   SegClassMixInNoSplitMerge(klass);  /* no support for this */
   klass->size = sizeof(MRGRefSegStruct);
   klass->init = MRGRefSegInit;
+  klass->scan = mrgRefSegScan;
 }
 
 
@@ -558,21 +560,22 @@ static void MRGFinalize(Arena arena, MRGLinkSeg linkseg, Index indx)
 }
 
 
-static Res MRGRefSegScan(ScanState ss, MRGRefSeg refseg, MRG mrg)
+static Res mrgRefSegScan(Bool *totalReturn, Seg seg, ScanState ss)
 {
+  MRGRefSeg refseg = MustBeA(MRGRefSeg, seg);
+  Pool pool = SegPool(seg);
+  MRG mrg = MustBeA(MRGPool, pool);
+
   Res res;
   Arena arena;
   MRGLinkSeg linkseg;
-
   RefPart refPart;
   Index i;
   Count nGuardians;
 
   AVERT(ScanState, ss);
-  AVERT(MRGRefSeg, refseg);
-  AVERT(MRG, mrg);
 
-  arena = PoolArena(MustBeA(AbstractPool, mrg));
+  arena = PoolArena(pool);
   linkseg = refseg->linkSeg;
 
   nGuardians = MRGGuardiansPerSeg(mrg);
@@ -588,8 +591,10 @@ static Res MRGRefSegScan(ScanState ss, MRGRefSeg refseg, MRG mrg)
         /* because we are in a scan and the shield is exposed. */
         if (TRACE_FIX1(ss, refPart->ref)) {
           res = TRACE_FIX2(ss, &(refPart->ref));
-          if (res != ResOK)
+          if (res != ResOK) {
+            *totalReturn = FALSE;
             return res;
+          }
 
           if (ss->rank == RankFINAL && !ss->wasMarked) { /* .improve.rank */
             MRGFinalize(arena, linkseg, i);
@@ -600,6 +605,7 @@ static Res MRGRefSegScan(ScanState ss, MRGRefSeg refseg, MRG mrg)
     }
   } TRACE_SCAN_END(ss);
 
+  *totalReturn = TRUE;
   return ResOK;
 }
 
@@ -821,27 +827,6 @@ static Res MRGDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 }
 
 
-static Res MRGScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
-{
-  MRG mrg = MustBeA(MRGPool, pool);
-  MRGRefSeg refseg = MustBeA(MRGRefSeg, seg);
-  Res res;
-
-  AVERT(ScanState, ss);
-  AVER(SegRankSet(seg) == RankSetSingle(RankFINAL)); /* .improve.rank */
-  AVER(TraceSetInter(SegGrey(seg), ss->traces) != TraceSetEMPTY);
-
-  res = MRGRefSegScan(ss, refseg, mrg);
-  if (res != ResOK)  {
-    *totalReturn = FALSE;
-    return res;
-  }
-
-  *totalReturn = TRUE;
-  return ResOK;
-}
-
-
 DEFINE_CLASS(Pool, MRGPool, klass)
 {
   INHERIT_CLASS(klass, MRGPool, AbstractPool);
@@ -849,7 +834,6 @@ DEFINE_CLASS(Pool, MRGPool, klass)
   klass->instClassStruct.finish = MRGFinish;
   klass->size = sizeof(MRGStruct);
   klass->init = MRGInit;
-  klass->scan = MRGScan;
 }
 
 

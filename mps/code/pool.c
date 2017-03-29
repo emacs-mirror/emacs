@@ -48,7 +48,6 @@ Bool PoolClassCheck(PoolClass klass)
   CHECKL(FUNCHECK(klass->bufferFill));
   CHECKL(FUNCHECK(klass->bufferEmpty));
   CHECKL(FUNCHECK(klass->access));
-  CHECKL(FUNCHECK(klass->scan));
   CHECKL(FUNCHECK(klass->fix));
   CHECKL(FUNCHECK(klass->fixEmergency));
   CHECKL(FUNCHECK(klass->rampBegin));
@@ -283,32 +282,6 @@ Res PoolAccess(Pool pool, Seg seg, Addr addr,
   AVERT(MutatorContext, context);
 
   return Method(Pool, pool, access)(pool, seg, addr, mode, context);
-}
-
-
-/* PoolScan -- scan a segment in the pool */
-
-Res PoolScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
-{
-  AVER(totalReturn != NULL);
-  AVERT(ScanState, ss);
-  AVERT(Pool, pool);
-  AVERT(Seg, seg);
-  AVER(ss->arena == pool->arena);
-
-  /* The segment must belong to the pool. */
-  AVER(pool == SegPool(seg));
-
-  /* We check that either ss->rank is in the segment's
-   * ranks, or that ss->rank is exact.  The check is more complicated if
-   * we actually have multiple ranks in a seg.
-   * See <code/trace.c#scan.conservative> */
-  AVER(ss->rank == RankEXACT || RankSetIsMember(SegRankSet(seg), ss->rank));
-
-  /* Should only scan segments which contain grey objects. */
-  AVER(TraceSetInter(SegGrey(seg), ss->traces) != TraceSetEMPTY);
-
-  return Method(Pool, pool, scan)(totalReturn, ss, pool, seg);
 }
 
 

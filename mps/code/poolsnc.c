@@ -51,6 +51,7 @@ DECLARE_CLASS(Seg, SNCSeg, GCSeg);
 DECLARE_CLASS(Buffer, SNCBuf, RankBuf);
 static Bool SNCCheck(SNC snc);
 static void sncPopPartialSegChain(SNC snc, Buffer buf, Seg upTo);
+static Res sncSegScan(Bool *totalReturn, Seg seg, ScanState ss);
 
 
 /* Management of segment chains
@@ -233,6 +234,7 @@ DEFINE_CLASS(Seg, SNCSeg, klass)
   SegClassMixInNoSplitMerge(klass);  /* no support for this (yet) */
   klass->size = sizeof(SNCSegStruct);
   klass->init = sncSegInit;
+  klass->scan = sncSegScan;
 }
 
 
@@ -480,24 +482,20 @@ static void SNCBufferEmpty(Pool pool, Buffer buffer,
 }
 
 
-static Res SNCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
+static Res sncSegScan(Bool *totalReturn, Seg seg, ScanState ss)
 {
   Addr base, limit;
   Format format;
-  SNC snc;
   Res res;
 
   AVER(totalReturn != NULL);
   AVERT(ScanState, ss);
   AVERT(Seg, seg);
-  AVERT(Pool, pool);
-  snc = PoolSNC(pool);
-  AVERT(SNC, snc);
 
-  format = pool->format;
+  format = SegPool(seg)->format;
   base = SegBase(seg);
   limit = SegBufferScanLimit(seg);
- 
+
   if (base < limit) {
     res = FormatScan(format, ss, base, limit);
     if (res != ResOK) {
@@ -679,7 +677,6 @@ DEFINE_CLASS(Pool, SNCPool, klass)
   klass->init = SNCInit;
   klass->bufferFill = SNCBufferFill;
   klass->bufferEmpty = SNCBufferEmpty;
-  klass->scan = SNCScan;
   klass->framePush = SNCFramePush;
   klass->framePop = SNCFramePop;
   klass->walk = SNCWalk;
