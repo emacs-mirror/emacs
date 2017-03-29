@@ -84,7 +84,6 @@ void PoolClassMixInCollect(PoolClass klass)
 {
   /* Can't check klass because it's not initialized yet */
   klass->attr |= AttrGC;
-  klass->whiten = PoolTrivWhiten;
   /* fix, fixEmergency and reclaim are part of the collection
      protocol, but there are no useful default methods for them */
   klass->fix = PoolNoFix;
@@ -196,7 +195,6 @@ DEFINE_CLASS(Pool, AbstractPool, klass)
   klass->bufferFill = PoolNoBufferFill;
   klass->bufferEmpty = PoolNoBufferEmpty;
   klass->access = PoolNoAccess;
-  klass->whiten = PoolNoWhiten;
   klass->scan = PoolNoScan;
   klass->fix = PoolNoFix;
   klass->fixEmergency = PoolNoFix;
@@ -527,27 +525,6 @@ Res PoolSingleAccess(Pool pool, Seg seg, Addr addr,
     /* couldn't single-step instruction */
     return ResFAIL;
   }
-}
-
-
-Res PoolTrivWhiten(Pool pool, Trace trace, Seg seg)
-{
-  AVERT(Pool, pool);
-  AVERT(Trace, trace);
-  AVERT(Seg, seg);
-
-  SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace));
-
-  return ResOK;
-}
-
-Res PoolNoWhiten(Pool pool, Trace trace, Seg seg)
-{
-  AVERT(Pool, pool);
-  AVERT(Trace, trace);
-  AVERT(Seg, seg);
-  NOTREACHED;
-  return ResUNIMPL;
 }
 
 

@@ -63,6 +63,7 @@ typedef struct LOSegStruct {
 static Res loSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args);
 static void loSegFinish(Inst inst);
 static Count loSegGrains(LOSeg loseg);
+static Res loSegWhiten(Seg seg, Trace trace);
 
 
 /* LOSegClass -- Class definition for LO segments */
@@ -74,6 +75,7 @@ DEFINE_CLASS(Seg, LOSeg, klass)
   klass->instClassStruct.finish = loSegFinish;
   klass->size = sizeof(LOSegStruct);
   klass->init = loSegInit;
+  klass->whiten = loSegWhiten;
 }
 
 
@@ -646,12 +648,13 @@ static void LOBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
 }
 
 
-/* LOWhiten -- whiten a segment */
+/* loSegWhiten -- whiten a segment */
 
-static Res LOWhiten(Pool pool, Trace trace, Seg seg)
+static Res loSegWhiten(Seg seg, Trace trace)
 {
-  LO lo = MustBeA(LOPool, pool);
   LOSeg loseg = MustBeA(LOSeg, seg);
+  Pool pool = SegPool(seg);
+  LO lo = MustBeA(LOPool, pool);
   Buffer buffer;
   Count grains, agedGrains, uncondemnedGrains;
 
@@ -792,7 +795,6 @@ DEFINE_CLASS(Pool, LOPool, klass)
   klass->init = LOInit;
   klass->bufferFill = LOBufferFill;
   klass->bufferEmpty = LOBufferEmpty;
-  klass->whiten = LOWhiten;
   klass->fix = LOFix;
   klass->fixEmergency = LOFix;
   klass->reclaim = LOReclaim;
