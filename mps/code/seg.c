@@ -686,6 +686,16 @@ failControl:
 }
 
 
+/* SegBlacken -- blacken grey objects without scanning */
+
+void SegBlacken(Seg seg, TraceSet traceSet)
+{
+  AVERT(Seg, seg);
+  AVERT(TraceSet, traceSet);
+  Method(Seg, seg, blacken)(seg, traceSet);
+}
+
+
 /* Class Seg -- The most basic segment class
  *
  * .seg.method.check: Many seg methods are lightweight and used
@@ -1025,6 +1035,13 @@ static Res segTrivSplit(Seg seg, Seg segHi,
   RingAppend(&pool->segRing, SegPoolRing(segHi));
 
   return ResOK;
+}
+
+static void segNoBlacken(Seg seg, TraceSet traceSet)
+{
+  AVERT(Seg, seg);
+  AVERT(TraceSet, traceSet);
+  NOTREACHED;
 }
 
 
@@ -1551,6 +1568,19 @@ failSuper:
 }
 
 
+/* gcSegTrivBlacken -- GCSeg trivial blacken method
+ *
+ * For segments which do not keep additional colour information.
+ */
+
+static void gcSegTrivBlacken(Seg seg, TraceSet traceSet)
+{
+  AVERT(Seg, seg);
+  AVERT(TraceSet, traceSet);
+  NOOP;
+}
+
+
 /* gcSegDescribe -- GCSeg  description method */
 
 static Res gcSegDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
@@ -1599,6 +1629,7 @@ Bool SegClassCheck(SegClass klass)
   CHECKL(FUNCHECK(klass->setRankSummary));
   CHECKL(FUNCHECK(klass->merge));
   CHECKL(FUNCHECK(klass->split));
+  CHECKL(FUNCHECK(klass->blacken));
   CHECKS(SegClass, klass);
   return TRUE;
 }
@@ -1628,6 +1659,7 @@ DEFINE_CLASS(Seg, Seg, klass)
   klass->setRankSummary = segNoSetRankSummary;
   klass->merge = segTrivMerge;
   klass->split = segTrivSplit;
+  klass->blacken = segNoBlacken;
   klass->sig = SegClassSig;
   AVERT(SegClass, klass);
 }
@@ -1654,6 +1686,7 @@ DEFINE_CLASS(Seg, GCSeg, klass)
   klass->setRankSummary = gcSegSetRankSummary;
   klass->merge = gcSegMerge;
   klass->split = gcSegSplit;
+  klass->blacken = gcSegTrivBlacken;
   AVERT(SegClass, klass);
 }
 

@@ -164,6 +164,7 @@ typedef Res (*SegMergeMethod)(Seg seg, Seg segHi,
                               Addr base, Addr mid, Addr limit);
 typedef Res (*SegSplitMethod)(Seg seg, Seg segHi,
                               Addr base, Addr mid, Addr limit);
+typedef void (*SegBlackenMethod)(Seg seg, TraceSet traceSet);
 
 /* Buffer*Method -- see <design/buffer/> */
 
@@ -194,7 +195,6 @@ typedef Res (*PoolAccessMethod)(Pool pool, Seg seg, Addr addr,
                                 AccessSet mode, MutatorContext context);
 typedef Res (*PoolWhitenMethod)(Pool pool, Trace trace, Seg seg);
 typedef void (*PoolGreyMethod)(Pool pool, Trace trace, Seg seg);
-typedef void (*PoolBlackenMethod)(Pool pool, TraceSet traceSet, Seg seg);
 typedef Res (*PoolScanMethod)(Bool *totalReturn, ScanState ss,
                               Pool pool, Seg seg);
 typedef Res (*PoolFixMethod)(Pool pool, ScanState ss, Seg seg, Ref *refIO);

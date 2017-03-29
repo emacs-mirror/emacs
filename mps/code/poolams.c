@@ -26,6 +26,8 @@ SRCID(poolams, "$Id$");
 #define AMSSig          ((Sig)0x519A3599) /* SIGnature AMS */
 #define AMSSegSig       ((Sig)0x519A3559) /* SIGnature AMS SeG */
 
+static void AMSSegBlacken(Seg seg, TraceSet traceSet);
+
 
 /* AMSDebugStruct -- structure for a debug subclass */
 
@@ -605,6 +607,7 @@ DEFINE_CLASS(Seg, AMSSeg, klass)
   klass->init = AMSSegInit;
   klass->merge = AMSSegMerge;
   klass->split = AMSSegSplit;
+  klass->blacken = AMSSegBlacken;
   AVERT(SegClass, klass);
 }
 
@@ -1160,13 +1163,13 @@ typedef Res (*AMSObjectFunction)(
   ((f) != NULL) /* that's the best we can do */
 
 
-/* amsIterate -- applies a function to each object in a segment
+/* semSegIterate -- applies a function to each object in a segment
  *
- * amsIterate(seg, f, closure) applies f to all the objects in the
+ * semSegIterate(seg, f, closure) applies f to all the objects in the
  * segment.  It skips the buffer, if any (from BufferScanLimit to
  * BufferLimit).  */
 
-static Res amsIterate(Seg seg, AMSObjectFunction f, void *closure)
+static Res semSegIterate(Seg seg, AMSObjectFunction f, void *closure)
 {
   Res res;
   AMS ams;
@@ -1247,7 +1250,7 @@ static Res amsIterate(Seg seg, AMSObjectFunction f, void *closure)
 
 /* amsScanObject -- scan a single object
  *
- * This is the object function passed to amsIterate by AMSScan.  */
+ * This is the object function passed to semSegIterate by AMSScan.  */
 
 struct amsScanClosureStruct {
   ScanState ss;
@@ -1264,7 +1267,7 @@ static Res amsScanObject(Seg seg, Index i, Addr p, Addr next, void *clos)
   Res res;
 
   amsseg = Seg2AMSSeg(seg);
-  /* seg & amsseg have already been checked, in amsIterate. */
+  /* seg & amsseg have already been checked, in semSegIterate. */
   AVER(i < amsseg->grains);
   AVER(p != 0);
   AVER(p < next);
@@ -1331,7 +1334,7 @@ Res AMSScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
   /* @@@@ This isn't quite right for multiple traces. */
   if (closureStruct.scanAllObjects) {
     /* The whole seg (except the buffer) is grey for some trace. */
-    res = amsIterate(seg, amsScanObject, &closureStruct);
+    res = semSegIterate(seg, amsScanObject, &closureStruct);
     if (res != ResOK) {
       *totalReturn = FALSE;
       return res;
@@ -1347,7 +1350,7 @@ Res AMSScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
       amsseg->marksChanged = FALSE; /* <design/poolams/#marked.scan> */
       /* <design/poolams/#ambiguous.middle> */
       if (amsseg->ambiguousFixes) {
-        res = amsIterate(seg, amsScanObject, &closureStruct);
+        res = semSegIterate(seg, amsScanObject, &closureStruct);
         if (res != ResOK) {
           /* <design/poolams/#marked.scan.fail> */
           amsseg->marksChanged = TRUE;
@@ -1494,12 +1497,11 @@ static Res AMSFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
 }
 
 
-/* AMSBlacken -- the pool class blackening method
+/* AMSSegBlacken -- the segment blackening method
  *
  * Turn all grey objects black.  */
 
-
-static Res amsBlackenObject(Seg seg, Index i, Addr p, Addr next, void *clos)
+static Res amsSegBlackenObject(Seg seg, Index i, Addr p, Addr next, void *clos)
 {
   UNUSED(p);
   AVER(clos == NULL);
@@ -1514,15 +1516,10 @@ static Res amsBlackenObject(Seg seg, Index i, Addr p, Addr next, void *clos)
   return ResOK;
 }
 
-
-static void AMSBlacken(Pool pool, TraceSet traceSet, Seg seg)
+static void AMSSegBlacken(Seg seg, TraceSet traceSet)
 {
-  AMS ams;
   Res res;
 
-  AVERT(Pool, pool);
-  ams = PoolAMS(pool);
-  AVERT(AMS, ams);
   AVERT(TraceSet, traceSet);
   AVERT(Seg, seg);
 
@@ -1532,7 +1529,7 @@ static void AMSBlacken(Pool pool, TraceSet traceSet, Seg seg)
     AVERT(AMSSeg, amsseg);
     AVER(amsseg->marksChanged); /* there must be something grey */
     amsseg->marksChanged = FALSE;
-    res = amsIterate(seg, amsBlackenObject, NULL);
+    res = semSegIterate(seg, amsSegBlackenObject, NULL);
     AVER(res == ResOK);
   }
 }
@@ -1785,7 +1782,6 @@ DEFINE_CLASS(Pool, AMSPool, klass)
   klass->bufferFill = AMSBufferFill;
   klass->bufferEmpty = AMSBufferEmpty;
   klass->whiten = AMSWhiten;
-  klass->blacken = AMSBlacken;
   klass->scan = AMSScan;
   klass->fix = AMSFix;
   klass->fixEmergency = AMSFix;

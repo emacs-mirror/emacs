@@ -850,7 +850,6 @@ DEFINE_CLASS(Pool, MRGPool, klass)
   klass->size = sizeof(MRGStruct);
   klass->init = MRGInit;
   klass->grey = PoolTrivGrey;
-  klass->blacken = PoolTrivBlacken;
   klass->scan = MRGScan;
 }
 

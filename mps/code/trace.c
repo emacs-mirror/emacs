@@ -1099,7 +1099,7 @@ static Res traceScanSegRes(TraceSet ts, Rank rank, Arena arena, Seg seg)
 
   /* Only scan a segment if it refers to the white set. */
   if(ZoneSetInter(white, SegSummary(seg)) == ZoneSetEMPTY) {
-    PoolBlacken(SegPool(seg), ts, seg);
+    SegBlacken(seg, ts);
     /* Setup result code to return later. */
     res = ResOK;
   } else {      /* scan it */
