@@ -60,9 +60,6 @@ void PoolClassMixInScan(PoolClass klass)
 {
   /* Can't check klass because it's not initialized yet */
   klass->access = PoolSegAccess;
-  /* scan is part of the scanning protocol, but there is no useful
-     default method */
-  klass->scan = PoolNoScan;
 }
 
 
@@ -194,7 +191,6 @@ DEFINE_CLASS(Pool, AbstractPool, klass)
   klass->bufferFill = PoolNoBufferFill;
   klass->bufferEmpty = PoolNoBufferEmpty;
   klass->access = PoolNoAccess;
-  klass->scan = PoolNoScan;
   klass->fix = PoolNoFix;
   klass->fixEmergency = PoolNoFix;
   klass->rampBegin = PoolNoRampBegin;
@@ -525,16 +521,6 @@ Res PoolSingleAccess(Pool pool, Seg seg, Addr addr,
   }
 }
 
-
-Res PoolNoScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
-{
-  AVER(totalReturn != NULL);
-  AVERT(ScanState, ss);
-  AVERT(Pool, pool);
-  AVERT(Seg, seg);
-  NOTREACHED;
-  return ResUNIMPL;
-}
 
 Res PoolNoFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
 {

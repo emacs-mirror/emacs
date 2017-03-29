@@ -763,7 +763,7 @@ _`.fix.exact.grey`: The new copy must be at least as grey as the old
 as it may have been grey for some other collection.
 
 
-``Res AMCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)``
+``Res amcSegScan(Bool *totalReturn, Seg seg, ScanState ss1)``
 
 _`.scan`: Searches for a group which is grey for the trace and scans
 it. If there aren't any, it sets the finished flag to true.

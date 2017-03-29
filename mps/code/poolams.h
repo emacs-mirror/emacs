@@ -172,8 +172,6 @@ extern Res AMSInitInternal(AMS ams, Arena arena, PoolClass klass,
 extern void AMSFinish(Inst inst);
 extern Bool AMSCheck(AMS ams);
 
-extern Res AMSScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg);
-
 #define AMSChain(ams) ((ams)->chain)
 
 extern void AMSSegFreeWalk(AMSSeg amsseg, FreeBlockVisitor f, void *p);

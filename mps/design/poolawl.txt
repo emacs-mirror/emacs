@@ -287,12 +287,99 @@ allocation minus the ``lastRembemberedSize`` minus 10 MiB, so the pool
 becomes an increasingly good candidate for collection at a constant
 (mutator allocation) rate, crossing the 0 line when there has been
 10 MiB of allocation since the (beginning of the) last collection. So
-it gets collected approximately every 10 MiB of allocation. Note that
-it will also get collected by virtue of being in the same zone as some
-AMC generation (assuming there are instantiated AMC pools), see
-`.poolstruct.gen`_ above.
+it gets collected approximately every 10 MiB of allocation.
 
-``Res AWLScan(ScanState ss, Pool pool, Seg seg)``
+``Res AWLFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)``
+
+_`.fun.fix`: ``ss->wasMarked`` is set to ``TRUE`` (clear compliance
+with design.mps.fix.protocol.was-marked.conservative_).
+
+.. _design.mps.fix.protocol.was-marked.conservative: fix#protocol-was-marked-conservative
+
+If the rank (``ss->rank``) is ``RankAMBIG`` then fix returns
+immediately unless the reference is aligned to the pool alignment.
+
+If the rank (``ss->rank``) is ``RankAMBIG`` then fix returns
+immediately unless the referenced grain is allocated.
+
+The bit in the marked table corresponding to the referenced grain will
+be read. If it is already marked then fix returns. Otherwise (the
+grain is unmarked), ``ss->wasMarked`` is set to ``FALSE``, the
+remaining actions depend on whether the rank (``ss->rank``) is
+``RankWEAK`` or not. If the rank is weak then the reference is
+adjusted to 0 (see design.mps.weakness) and fix returns. If the rank
+is something else then the mark bit corresponding to the referenced
+grain is set, and the segment is greyed using ``TraceSegGreyen()``.
+
+Fix returns.
+
+
+``Res AWLDescribe(Pool pool, mps_lib_FILE *stream, Count depth)``
+
+_`.fun.describe`:
+
+
+Internal
+........
+
+``Res AWLSegCreate(AWLSeg *awlsegReturn, Size size)``
+
+_`.fun.awlsegcreate`: Creates a segment of class ``AWLSegClass`` of size at least ``size``.
+
+_`.fun.awlsegcreate.size.round`: ``size`` is rounded up to the arena
+grain size before requesting the segment.
+
+_`.fun.awlsegcreate.size.round.justify`: The arena requires that all
+segment sizes are rounded up to the arena grain size.
+
+_`.fun.awlsegcreate.where`: The segment is allocated using a
+generation preference, using the generation number stored in the
+``AWLStruct`` (the ``gen`` field), see `.poolstruct.gen`_ above.
+
+``Res awlSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)``
+
+_`.fun.awlseginit`: Init method for ``AWLSegClass``, called for
+``SegAlloc()`` whenever an ``AWLSeg`` is created (see
+`.fun.awlsegcreate`_ above).
+
+_`.fun.awlseginit.tables`: The segment's mark scanned and alloc tables
+(see `.awlseg.bt`_ above) are allocated and initialised. The segment's
+grains field is computed and stored.
+
+``void awlSegFinish(Seg seg)``
+
+_`.fun.awlsegfinish`: Finish method for ``AWLSegClass``, called from
+``SegFree()``. Will free the segment's tables (see `.awlseg.bt`_).
+
+``Bool AWLSegAlloc(Addr *baseReturn, Addr *limitReturn, AWLSeg awlseg, AWL awl, Size size)``
+
+_`.fun.awlsegalloc`: Will search for a free block in the segment that
+is at least size bytes long. The base address of the block is returned
+in ``*baseReturn``, the limit of the entire free block (which must be
+at least as large size and may be bigger) is returned in
+``*limitReturn``. The requested size is converted to a number of
+grains, ``BTFindResRange()`` is called to find a run of this length in
+the alloc bit-table (`.awlseg.alloc`_). The return results (if it is
+successful) from ``BTFindResRange()`` are in terms of grains, they are
+converted back to addresses before returning the relevant values from
+this function.
+
+``Res awlSegWhiten(Seg seg, Trace trace)``
+
+_`.fun.whiten`: The current design only permits each segment to be
+condemned for one trace (see `.awlseg.mark`_). This function checks
+that the segment is not white for any trace (``seg->white ==
+TraceSetEMPTY``). The segment's mark bit-table is reset, and the
+whiteness of the seg (``seg->white``) has the current trace added to
+it.
+
+``void awlSegGrey(Seg seg, Trace trace)``
+
+_`.fun.grey`: If the segment is not white for this trace, the
+segment's mark table is set to all 1s and the segment is recorded as
+being grey.
+
+``Res awlSegScan(ScanState ss, Pool pool, Seg seg)``
 
 _`.fun.scan`:
 
@@ -391,120 +478,11 @@ _`.fun.scan.pass.more`: At the end of a pass the finished flag is
 examined.
 
 _`.fun.scan.pass.more.not`: If the finished flag is set then we are
-done (see `.fun.scan.overview.finished-flag`_ above), ``AWLScan()``
+done (see `.fun.scan.overview.finished-flag`_ above), ``awlSegScan()``
 returns.
 
 _`.fun.scan.pass.more.so`: Otherwise (the finished flag is reset) we
 perform another pass (see `.fun.scan.pass`_ above).
-
-``Res AWLFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)``
-
-_`.fun.fix`: ``ss->wasMarked`` is set to ``TRUE`` (clear compliance
-with design.mps.fix.protocol.was-marked.conservative_).
-
-.. _design.mps.fix.protocol.was-marked.conservative: fix#protocol-was-marked-conservative
-
-If the rank (``ss->rank``) is ``RankAMBIG`` then fix returns
-immediately unless the reference is aligned to the pool alignment.
-
-If the rank (``ss->rank``) is ``RankAMBIG`` then fix returns
-immediately unless the referenced grain is allocated.
-
-The bit in the marked table corresponding to the referenced grain will
-be read. If it is already marked then fix returns. Otherwise (the
-grain is unmarked), ``ss->wasMarked`` is set to ``FALSE``, the
-remaining actions depend on whether the rank (``ss->rank``) is
-``RankWEAK`` or not. If the rank is weak then the reference is
-adjusted to 0 (see design.mps.weakness) and fix returns. If the rank
-is something else then the mark bit corresponding to the referenced
-grain is set, and the segment is greyed using ``TraceSegGreyen()``.
-
-Fix returns.
-
-
-``Res AWLDescribe(Pool pool, mps_lib_FILE *stream, Count depth)``
-
-_`.fun.describe`:
-
-
-Internal
-........
-
-``Res AWLSegCreate(AWLSeg *awlsegReturn, Size size)``
-
-_`.fun.awlsegcreate`: Creates a segment of class ``AWLSegClass`` of size at least ``size``.
-
-_`.fun.awlsegcreate.size.round`: ``size`` is rounded up to the arena
-grain size before requesting the segment.
-
-_`.fun.awlsegcreate.size.round.justify`: The arena requires that all
-segment sizes are rounded up to the arena grain size.
-
-_`.fun.awlsegcreate.where`: The segment is allocated using a
-generation preference, using the generation number stored in the
-``AWLStruct`` (the ``gen`` field), see `.poolstruct.gen`_ above.
-
-``Res awlSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)``
-
-_`.fun.awlseginit`: Init method for ``AWLSegClass``, called for
-``SegAlloc()`` whenever an ``AWLSeg`` is created (see
-`.fun.awlsegcreate`_ above).
-
-_`.fun.awlseginit.tables`: The segment's mark scanned and alloc tables
-(see `.awlseg.bt`_ above) are allocated and initialised. The segment's
-grains field is computed and stored.
-
-``void awlSegFinish(Seg seg)``
-
-_`.fun.awlsegfinish`: Finish method for ``AWLSegClass``, called from
-``SegFree()``. Will free the segment's tables (see `.awlseg.bt`_).
-
-``Bool AWLSegAlloc(Addr *baseReturn, Addr *limitReturn, AWLSeg awlseg, AWL awl, Size size)``
-
-_`.fun.awlsegalloc`: Will search for a free block in the segment that
-is at least size bytes long. The base address of the block is returned
-in ``*baseReturn``, the limit of the entire free block (which must be
-at least as large size and may be bigger) is returned in
-``*limitReturn``. The requested size is converted to a number of
-grains, ``BTFindResRange()`` is called to find a run of this length in
-the alloc bit-table (`.awlseg.alloc`_). The return results (if it is
-successful) from ``BTFindResRange()`` are in terms of grains, they are
-converted back to addresses before returning the relevant values from
-this function.
-
-``Res awlSegWhiten(Seg seg, Trace trace)``
-
-_`.fun.whiten`: The current design only permits each segment to be
-condemned for one trace (see `.awlseg.mark`_). This function checks
-that the segment is not white for any trace (``seg->white ==
-TraceSetEMPTY``). The segment's mark bit-table is reset, and the
-whiteness of the seg (``seg->white``) has the current trace added to
-it.
-
-``void awlSegGrey(Seg seg, Trace trace)``
-
-_`.fun.grey`: If the segment is not white for this trace, the
-segment's mark table is set to all 1s and the segment is recorded as
-being grey.
-
-``Bool AWLDependentObject(Addr *objReturn, Addr parent)``
-
-_`.fun.dependent-object`: This function abstracts the association
-between an object and its linked dependent (see `.req.obj-format`_).
-It currently assumes that objects are Dylan Object formatted according
-to design.dylan.container (see analysis.mps.poolawl.dependent.abstract
-for suggested improvements). An object has a dependent object iff the
-second word of the object, that is, ``((Word *)parent)[1]``, is
-non-``NULL``. The dependent object is the object referenced by the
-second word and must be a valid object.
-
-This function assumes objects are in Dylan Object Format (see
-design.dylan.container). It will check that the first word looks like
-a Dylan wrapper pointer. It will check that the wrapper indicates that
-the wrapper has a reasonable format (namely at least one fixed field).
-If the second word is ``NULL`` it will return ``FALSE``. If the second
-word is non-``NULL`` then the contents of it will be assigned to
-``*objReturn``, and it will return ``TRUE``.
 
 ``void awlSegReclaim(Seg seg, Trace trace)``
 
@@ -527,6 +505,25 @@ _`.fun.reclaim.improve.pad`: Consider filling free ranges with padding
 objects. Now reclaim doesn't need to check that the objects are
 allocated before skipping them. There may be a corresponding change
 for scan as well.
+
+``Bool AWLDependentObject(Addr *objReturn, Addr parent)``
+
+_`.fun.dependent-object`: This function abstracts the association
+between an object and its linked dependent (see `.req.obj-format`_).
+It currently assumes that objects are Dylan Object formatted according
+to design.dylan.container (see analysis.mps.poolawl.dependent.abstract
+for suggested improvements). An object has a dependent object iff the
+second word of the object, that is, ``((Word *)parent)[1]``, is
+non-``NULL``. The dependent object is the object referenced by the
+second word and must be a valid object.
+
+This function assumes objects are in Dylan Object Format (see
+design.dylan.container). It will check that the first word looks like
+a Dylan wrapper pointer. It will check that the wrapper indicates that
+the wrapper has a reasonable format (namely at least one fixed field).
+If the second word is ``NULL`` it will return ``FALSE``. If the second
+word is non-``NULL`` then the contents of it will be assigned to
+``*objReturn``, and it will return ``TRUE``.
 
 
 Test

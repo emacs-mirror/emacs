@@ -156,21 +156,6 @@ static Res NDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 }
 
 
-/* NScan -- scan method for class N */
-
-static Res NScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
-{
-  PoolN poolN = MustBeA(NPool, pool);
-
-  AVER(totalReturn != NULL);
-  AVERT(ScanState, ss);
-  AVERT(Seg, seg);
-  UNUSED(poolN);
-
-  return ResOK;
-}
-
-
 /* NFix -- fix method for class N */
 
 static Res NFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
@@ -201,7 +186,6 @@ DEFINE_CLASS(Pool, NPool, klass)
   klass->free = NFree;
   klass->bufferFill = NBufferFill;
   klass->bufferEmpty = NBufferEmpty;
-  klass->scan = NScan;
   klass->fix = NFix;
   klass->fixEmergency = NFix;
   AVERT(PoolClass, klass);

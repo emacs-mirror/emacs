@@ -24,6 +24,7 @@ typedef Bool (*amcPinnedFunction)(AMC amc, Nailboard board, Addr base, Addr limi
 /* forward declarations */
 
 static Res amcSegWhiten(Seg seg, Trace trace);
+static Res amcSegScan(Bool *totalReturn, Seg seg, ScanState ss);
 static void amcSegReclaim(Seg seg, Trace trace);
 static Bool amcSegHasNailboard(Seg seg);
 static Nailboard amcSegNailboard(Seg seg);
@@ -339,6 +340,7 @@ DEFINE_CLASS(Seg, amcSeg, klass)
   klass->size = sizeof(amcSegStruct);
   klass->init = AMCSegInit;
   klass->whiten = amcSegWhiten;
+  klass->scan = amcSegScan;
   klass->reclaim = amcSegReclaim;
 }
 
@@ -1221,16 +1223,15 @@ static Res amcSegWhiten(Seg seg, Trace trace)
 }
 
 
-/* amcScanNailedRange -- make one scanning pass over a range of
+/* amcSegScanNailedRange -- make one scanning pass over a range of
  * addresses in a nailed segment.
  *
  * *totalReturn is set to FALSE if not all the objects between base and
  * limit have been scanned.  It is not touched otherwise.
  */
-static Res amcScanNailedRange(Bool *totalReturn, Bool *moreReturn,
-                              ScanState ss,
-                              AMC amc, Nailboard board,
-                              Addr base, Addr limit)
+static Res amcSegScanNailedRange(Bool *totalReturn, Bool *moreReturn,
+                                 ScanState ss, AMC amc, Nailboard board,
+                                 Addr base, Addr limit)
 {
   Format format;
   Size headerSize;
@@ -1261,7 +1262,7 @@ static Res amcScanNailedRange(Bool *totalReturn, Bool *moreReturn,
 }
 
 
-/* amcScanNailedOnce -- make one scanning pass over a nailed segment
+/* amcSegScanNailedOnce -- make one scanning pass over a nailed segment
  *
  * *totalReturn is set to TRUE iff all objects in segment scanned.
  * *moreReturn is set to FALSE only if there are no more objects
@@ -1270,8 +1271,8 @@ static Res amcScanNailedRange(Bool *totalReturn, Bool *moreReturn,
  * also if during emergency fixing any new marks got added to the
  * nailboard.
  */
-static Res amcScanNailedOnce(Bool *totalReturn, Bool *moreReturn,
-                             ScanState ss, Seg seg, AMC amc)
+static Res amcSegScanNailedOnce(Bool *totalReturn, Bool *moreReturn,
+                                ScanState ss, Seg seg, AMC amc)
 {
   Addr p, limit;
   Nailboard board;
@@ -1291,8 +1292,8 @@ static Res amcScanNailedOnce(Bool *totalReturn, Bool *moreReturn,
       AVER(p == limit);
       goto returnGood;
     }
-    res = amcScanNailedRange(totalReturn, moreReturn,
-                             ss, amc, board, p, limit);
+    res = amcSegScanNailedRange(totalReturn, moreReturn,
+                                ss, amc, board, p, limit);
     if (res != ResOK)
       return res;
     p = limit;
@@ -1300,8 +1301,8 @@ static Res amcScanNailedOnce(Bool *totalReturn, Bool *moreReturn,
 
   limit = SegLimit(seg);
   /* @@@@ Shouldn't p be set to BufferLimit here?! */
-  res = amcScanNailedRange(totalReturn, moreReturn,
-                           ss, amc, board, p, limit);
+  res = amcSegScanNailedRange(totalReturn, moreReturn,
+                              ss, amc, board, p, limit);
   if (res != ResOK)
     return res;
 
@@ -1313,17 +1314,17 @@ returnGood:
 }
 
 
-/* amcScanNailed -- scan a nailed segment */
+/* amcSegScanNailed -- scan a nailed segment */
 
-static Res amcScanNailed(Bool *totalReturn, ScanState ss, Pool pool,
-                         Seg seg, AMC amc)
+static Res amcSegScanNailed(Bool *totalReturn, ScanState ss, Pool pool,
+                            Seg seg, AMC amc)
 {
   Bool total, moreScanning;
   size_t loops = 0;
 
   do {
     Res res;
-    res = amcScanNailedOnce(&total, &moreScanning, ss, seg, amc);
+    res = amcSegScanNailedOnce(&total, &moreScanning, ss, seg, amc);
     if(res != ResOK) {
       *totalReturn = FALSE;
       return res;
@@ -1359,27 +1360,29 @@ static Res amcScanNailed(Bool *totalReturn, ScanState ss, Pool pool,
 }
 
 
-/* AMCScan -- scan a single seg, turning it black
+/* amcSegScan -- scan a single seg, turning it black
  *
  * See <design/poolamc/#seg-scan>.
  */
-static Res AMCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
+static Res amcSegScan(Bool *totalReturn, Seg seg, ScanState ss)
 {
   Addr base, limit;
   Format format;
-  AMC amc = MustBeA(AMCZPool, pool);
+  Pool pool;
+  AMC amc;
   Res res;
   Buffer buffer;
 
   AVER(totalReturn != NULL);
-  AVERT(ScanState, ss);
   AVERT(Seg, seg);
+  AVERT(ScanState, ss);
 
-
+  pool = SegPool(seg);
+  amc = MustBeA(AMCZPool, pool);
   format = pool->format;
 
   if(amcSegHasNailboard(seg)) {
-    return amcScanNailed(totalReturn, ss, pool, seg, amc);
+    return amcSegScanNailed(totalReturn, ss, pool, seg, amc);
   }
 
   EVENT3(AMCScanBegin, amc, seg, ss);
@@ -2008,7 +2011,6 @@ DEFINE_CLASS(Pool, AMCPool, klass)
   INHERIT_CLASS(klass, AMCPool, AMCZPool);
   PoolClassMixInScan(klass);
   klass->init = AMCInit;
-  klass->scan = AMCScan;
 }
 
 

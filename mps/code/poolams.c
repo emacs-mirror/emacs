@@ -28,6 +28,7 @@ SRCID(poolams, "$Id$");
 
 static void amsSegBlacken(Seg seg, TraceSet traceSet);
 static Res amsSegWhiten(Seg seg, Trace trace);
+static Res amsSegScan(Bool *totalReturn, Seg seg, ScanState ss);
 static void amsSegReclaim(Seg seg, Trace trace);
 
 
@@ -611,6 +612,7 @@ DEFINE_CLASS(Seg, AMSSeg, klass)
   klass->split = AMSSegSplit;
   klass->whiten = amsSegWhiten;
   klass->blacken = amsSegBlacken;
+  klass->scan = amsSegScan;
   klass->reclaim = amsSegReclaim;
   AVERT(SegClass, klass);
 }
@@ -1246,7 +1248,7 @@ static Res semSegIterate(Seg seg, AMSObjectFunction f, void *closure)
 
 /* amsScanObject -- scan a single object
  *
- * This is the object function passed to semSegIterate by AMSScan.  */
+ * This is the object function passed to semSegIterate by amsSegScan.  */
 
 struct amsScanClosureStruct {
   ScanState ss;
@@ -1296,29 +1298,23 @@ static Res amsScanObject(Seg seg, Index i, Addr p, Addr next, void *clos)
 }
 
 
-/* AMSScan -- the pool class segment scanning method
+/* amsSegScan -- the segment scanning method
  *
  * See <design/poolams/#scan>
  */
-Res AMSScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
+static Res amsSegScan(Bool *totalReturn, Seg seg, ScanState ss)
 {
   Res res;
-  AMS ams;
-  Arena arena;
-  AMSSeg amsseg;
+  AMSSeg amsseg = MustBeA(AMSSeg, seg);
+  Pool pool = SegPool(seg);
+  AMS ams = MustBeA(AMSPool, pool);
+  Arena arena = PoolArena(pool);
   struct amsScanClosureStruct closureStruct;
   Format format;
   Align alignment;
 
   AVER(totalReturn != NULL);
   AVERT(ScanState, ss);
-  AVERT(Pool, pool);
-  ams = PoolAMS(pool);
-  AVERT(AMS, ams);
-  arena = PoolArena(pool);
-  AVERT(Seg, seg);
-  amsseg = Seg2AMSSeg(seg);
-  AVERT(AMSSeg, amsseg);
 
   /* Check that we're not in the grey mutator phase (see */
   /* <design/poolams/#not-req.grey>). */
@@ -1773,7 +1769,6 @@ DEFINE_CLASS(Pool, AMSPool, klass)
   klass->bufferClass = RankBufClassGet;
   klass->bufferFill = AMSBufferFill;
   klass->bufferEmpty = AMSBufferEmpty;
-  klass->scan = AMSScan;
   klass->fix = AMSFix;
   klass->fixEmergency = AMSFix;
   klass->walk = AMSWalk;

@@ -93,8 +93,9 @@ Args  Locals  Function
    3       5  ``TraceSegAccess()``
    4       1  ``traceScanSeg()``
    4       8  ``traceScanSegRes()``
-   4       0  ``PoolScan()``
-   4       5  ``AMCScan()``
+   4       0  ``SegScan()``
+   4       5  ``amcSegScan()``
+   4       0  ``FormatScan()``
    3     ≤64  ``format->scan()``
    4      15  ``AMCFix()``
    4       5  ``BufferFill()``
@@ -111,7 +112,7 @@ Args  Locals  Function
    3       7  ``SplaySplay()``
    4       8  ``SplaySplitDown()``
    3       0  ``SplayZig()``
- 109    ≤190  **Total**
+ 113    ≤190  **Total**
 ====  ======  ========================
 
 We expect that a compiler will often be able to share stack space

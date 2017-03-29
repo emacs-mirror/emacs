@@ -51,6 +51,7 @@ SRCID(poolawl, "$Id$");
 static Res awlSegWhiten(Seg seg, Trace trace);
 static void awlSegGreyen(Seg seg, Trace trace);
 static void awlSegBlacken(Seg seg, TraceSet traceSet);
+static Res awlSegScan(Bool *totalReturn, Seg seg, ScanState ss);
 static void awlSegReclaim(Seg seg, Trace trace);
 
 
@@ -291,6 +292,7 @@ DEFINE_CLASS(Seg, AWLSeg, klass)
   klass->whiten = awlSegWhiten;
   klass->greyen = awlSegGreyen;
   klass->blacken = awlSegBlacken;
+  klass->scan = awlSegScan;
   klass->reclaim = awlSegReclaim;
 }
 
@@ -304,7 +306,7 @@ DEFINE_CLASS(Seg, AWLSeg, klass)
  * AWLSegSALimit is the number of accesses for a single segment in a GC cycle.
  * AWLTotalSALimit is the total number of accesses during a GC cycle.
  *
- * These should be set in config.h, but are here in static variables so that
+ * These should be set in config.h, but are here in global variables so that
  * it's possible to tweak them in a debugger.
  */
 
@@ -384,11 +386,13 @@ static void AWLNoteRefAccess(AWL awl, Seg seg, Addr addr)
   AVER(addr != NULL);
 
   awlseg->singleAccesses++; /* increment seg count of ref accesses */
-  if (addr == awlseg->stats.lastAccess) {
-    /* If this is a repeated access, increment count  */
-    STATISTIC(awlseg->stats.sameAccesses++);
-  }
-  STATISTIC(awlseg->stats.lastAccess = addr);
+  STATISTIC({
+    if (addr == awlseg->stats.lastAccess) {
+      /* If this is a repeated access, increment count  */
+      ++ awlseg->stats.sameAccesses;
+    }
+    awlseg->stats.lastAccess = addr;
+  });
   awl->succAccesses++;  /* Note a new successive access */
 }
 
@@ -407,33 +411,35 @@ static void AWLNoteSegAccess(AWL awl, Seg seg, Addr addr)
 
 /* Record a scan of a segment which wasn't provoked by an access */
 
-static void AWLNoteScan(AWL awl, Seg seg, ScanState ss)
+static void AWLNoteScan(Seg seg, ScanState ss)
 {
   AWLSeg awlseg = MustBeA(AWLSeg, seg);
-
-  AVERT(AWL, awl);
+  UNUSED(ss);
 
   /* .assume.mixedrank */
   /* .assume.samerank */
-  /* If this segment has any RankWEAK references, then  */
-  /* record statistics about whether weak splatting is being lost. */
   if (RankSetIsMember(SegRankSet(seg), RankWEAK)) {
-    if (RankWEAK == ss->rank) {
-      /* This is "successful" scan at proper rank. */
-      STATISTIC(awl->stats.goodScans++);
-      if (0 < awlseg->singleAccesses) {
-        /* Accesses have been proceesed singly */
-        /* Record that we genuinely did save a protection-provoked scan */
-        STATISTIC(awl->stats.savedScans++);
-        STATISTIC(awl->stats.savedAccesses += awlseg->singleAccesses);
+    STATISTIC({
+      /* If this segment has any RankWEAK references, then record
+       * statistics about whether weak splatting is being lost. */
+      AWL awl = MustBeA(AWLPool, SegPool(seg));
+      if (RankWEAK == ss->rank) {
+        /* This is "successful" scan at proper rank. */
+        ++ awl->stats.goodScans;
+        if (0 < awlseg->singleAccesses) {
+          /* Accesses have been proceesed singly. Record that we
+           * genuinely did save a protection-provoked scan */
+          ++ awl->stats.savedScans;
+          awl->stats.savedAccesses += awlseg->singleAccesses;
+        }
+      } else {
+        /* This is "failed" scan at improper rank. */
+        ++ awl->stats.badScans;
       }
-    } else {
-      /* This is "failed" scan at improper rank. */
-      STATISTIC(awl->stats.badScans++);
-    }
+      awlStatSegInit(awlseg);
+    });
     /* Reinitialize the segment statistics */
     awlseg->singleAccesses = 0;
-    STATISTIC(awlStatSegInit(awlseg));
   }
 }
 
@@ -870,14 +876,14 @@ static Res awlScanObject(Arena arena, AWL awl, ScanState ss,
 }
 
 
-/* awlScanSinglePass -- a single scan pass over a segment */
+/* awlSegScanSinglePass -- a single scan pass over a segment */
 
-static Res awlScanSinglePass(Bool *anyScannedReturn,
-                             ScanState ss, Pool pool,
-                             Seg seg, Bool scanAllObjects)
+static Res awlSegScanSinglePass(Bool *anyScannedReturn, ScanState ss,
+                                Seg seg, Bool scanAllObjects)
 {
-  AWL awl = MustBeA(AWLPool, pool);
   AWLSeg awlseg = MustBeA(AWLSeg, seg);
+  Pool pool = SegPool(seg);
+  AWL awl = MustBeA(AWLPool, pool);
   Arena arena = PoolArena(pool);
   Buffer buffer;
   Format format = pool->format;
@@ -935,17 +941,17 @@ static Res awlScanSinglePass(Bool *anyScannedReturn,
 }
 
 
-/* AWLScan -- segment scan method for AWL */
+/* awlSegScan -- segment scan method for AWL */
 
-static Res AWLScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
+static Res awlSegScan(Bool *totalReturn, Seg seg, ScanState ss)
 {
-  AWL awl = MustBeA(AWLPool, pool);
   Bool anyScanned;
   Bool scanAllObjects;
   Res res;
 
   AVER(totalReturn != NULL);
   AVERT(ScanState, ss);
+  AVERT(Seg, seg);
 
   /* If the scanner isn't going to scan all the objects then the */
   /* summary of the unscanned objects must be added into the scan */
@@ -962,7 +968,7 @@ static Res AWLScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
     (TraceSetDiff(ss->traces, SegWhite(seg)) != TraceSetEMPTY);
 
   do {
-    res = awlScanSinglePass(&anyScanned, ss, pool, seg, scanAllObjects);
+    res = awlSegScanSinglePass(&anyScanned, ss, seg, scanAllObjects);
     if (res != ResOK) {
       *totalReturn = FALSE;
       return res;
@@ -973,7 +979,7 @@ static Res AWLScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
   } while(!scanAllObjects && anyScanned);
 
   *totalReturn = scanAllObjects;
-  AWLNoteScan(awl, seg, ss);
+  AWLNoteScan(seg, ss);
   return ResOK;
 }
 
@@ -1238,7 +1244,6 @@ DEFINE_CLASS(Pool, AWLPool, klass)
   klass->bufferFill = AWLBufferFill;
   klass->bufferEmpty = AWLBufferEmpty;
   klass->access = AWLAccess;
-  klass->scan = AWLScan;
   klass->fix = AWLFix;
   klass->fixEmergency = AWLFix;
   klass->walk = AWLWalk;

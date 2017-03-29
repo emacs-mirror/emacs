@@ -1109,7 +1109,7 @@ static Res traceScanSegRes(TraceSet ts, Rank rank, Arena arena, Seg seg)
 
     /* Expose the segment to make sure we can scan it. */
     ShieldExpose(arena, seg);
-    res = PoolScan(&wasTotal, ss, SegPool(seg), seg);
+    res = SegScan(&wasTotal, seg, ss);
     /* Cover, regardless of result */
     ShieldCover(arena, seg);
 

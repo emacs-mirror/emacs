@@ -718,7 +718,29 @@ void SegBlacken(Seg seg, TraceSet traceSet)
 }
 
 
-/* PoolReclaim -- reclaim a segment in the pool */
+/* SegScan -- scan a segment */
+
+Res SegScan(Bool *totalReturn, Seg seg, ScanState ss)
+{
+  AVER(totalReturn != NULL);
+  AVERT(Seg, seg);
+  AVERT(ScanState, ss);
+  AVER(PoolArena(SegPool(seg)) == ss->arena);
+
+  /* We check that either ss->rank is in the segment's
+   * ranks, or that ss->rank is exact.  The check is more complicated if
+   * we actually have multiple ranks in a seg.
+   * See <code/trace.c#scan.conservative> */
+  AVER(ss->rank == RankEXACT || RankSetIsMember(SegRankSet(seg), ss->rank));
+
+  /* Should only scan segments which contain grey objects. */
+  AVER(TraceSetInter(SegGrey(seg), ss->traces) != TraceSetEMPTY);
+
+  return Method(Seg, seg, scan)(totalReturn, seg, ss);
+}
+
+
+/* SegReclaim -- reclaim a segment */
 
 void SegReclaim(Seg seg, Trace trace)
 {
@@ -1107,6 +1129,19 @@ static void segNoBlacken(Seg seg, TraceSet traceSet)
   AVERT(Seg, seg);
   AVERT(TraceSet, traceSet);
   NOTREACHED;
+}
+
+
+/* segNoScan -- scan method for non-GC segs */
+
+static Res segNoScan(Bool *totalReturn, Seg seg, ScanState ss)
+{
+  AVER(totalReturn != NULL);
+  AVERT(Seg, seg);
+  AVERT(ScanState, ss);
+  AVER(PoolArena(SegPool(seg)) == ss->arena);
+  NOTREACHED;
+  return ResUNIMPL;
 }
 
 
@@ -1741,6 +1776,7 @@ Bool SegClassCheck(SegClass klass)
   CHECKL(FUNCHECK(klass->whiten));
   CHECKL(FUNCHECK(klass->greyen));
   CHECKL(FUNCHECK(klass->blacken));
+  CHECKL(FUNCHECK(klass->scan));
   CHECKL(FUNCHECK(klass->reclaim));
   CHECKS(SegClass, klass);
   return TRUE;
@@ -1774,6 +1810,7 @@ DEFINE_CLASS(Seg, Seg, klass)
   klass->whiten = segNoWhiten;
   klass->greyen = segNoGreyen;
   klass->blacken = segNoBlacken;
+  klass->scan = segNoScan;
   klass->reclaim = segNoReclaim;
   klass->sig = SegClassSig;
   AVERT(SegClass, klass);
@@ -1804,6 +1841,7 @@ DEFINE_CLASS(Seg, GCSeg, klass)
   klass->whiten = gcSegWhiten;
   klass->greyen = gcSegGreyen;
   klass->blacken = gcSegTrivBlacken;
+  klass->scan = segNoScan; /* no useful default method */
   klass->reclaim = segNoReclaim; /* no useful default method */
   AVERT(SegClass, klass);
 }

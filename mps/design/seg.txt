@@ -270,6 +270,19 @@ method, and not doing so indicates that all instances of this class
 will have no fixable or traceable references in them. This method is
 called via the generic function ``SegBlacken()``.
 
+``typedef Res (*SegScanMethod)(Bool *totalReturn, Seg seg, ScanState ss)``
+
+_`.method.scan`: The ``scan`` method scans all the grey objects on the
+segment ``seg``, passing the scan state ``ss`` to ``FormatScan``. The
+segment may additionally accumulate a summary of *all* its objects. If
+it succeeds in accumulating such a summary it must indicate that it
+has done so by setting the ``*totalReturn`` parameter to ``TRUE``.
+Otherwise it must set ``*totalReturn`` to ``FALSE``. Segment classes
+are not required to provide this method, and not doing so indicates
+that all instances of this class will have no fixable or traceable
+references in them. This method is called via the generic function
+``SegScan()``.
+
 ``typedef void (*SegReclaimMethod)(Seg seg, Trace trace)``
 
 _`.method.reclaim`: The ``reclaim`` method indicates that any
