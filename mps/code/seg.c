@@ -686,6 +686,17 @@ failControl:
 }
 
 
+/* SegGreyen -- greyen non-white objects */
+
+void SegGreyen(Seg seg, Trace trace)
+{
+  AVERT(Seg, seg);
+  AVERT(Trace, trace);
+  AVER(PoolArena(SegPool(seg)) == trace->arena);
+  Method(Seg, seg, greyen)(seg, trace);
+}
+
+
 /* SegBlacken -- blacken grey objects without scanning */
 
 void SegBlacken(Seg seg, TraceSet traceSet)
@@ -1035,6 +1046,14 @@ static Res segTrivSplit(Seg seg, Seg segHi,
   RingAppend(&pool->segRing, SegPoolRing(segHi));
 
   return ResOK;
+}
+
+static void segNoGreyen(Seg seg, Trace trace)
+{
+  AVERT(Seg, seg);
+  AVERT(Trace, trace);
+  AVER(PoolArena(SegPool(seg)) == trace->arena);
+  NOTREACHED;
 }
 
 static void segNoBlacken(Seg seg, TraceSet traceSet)
@@ -1568,6 +1587,25 @@ failSuper:
 }
 
 
+/* gcSegGreyen -- GCSeg greyen method
+ *
+ * If we had a (partially) white segment, then other parts of the same
+ * segment might need to get greyed. In fact, all current pools only
+ * ever whiten a whole segment, so we never need to greyen any part of
+ * an already whitened segment. So we exclude white segments.
+ */
+
+static void gcSegGreyen(Seg seg, Trace trace)
+{
+  AVERT(Seg, seg);
+  AVERT(Trace, trace);
+  AVER(PoolArena(SegPool(seg)) == trace->arena);
+
+  if (!TraceSetIsMember(SegWhite(seg), trace))
+    SegSetGrey(seg, TraceSetSingle(trace));
+}
+
+
 /* gcSegTrivBlacken -- GCSeg trivial blacken method
  *
  * For segments which do not keep additional colour information.
@@ -1659,6 +1697,7 @@ DEFINE_CLASS(Seg, Seg, klass)
   klass->setRankSummary = segNoSetRankSummary;
   klass->merge = segTrivMerge;
   klass->split = segTrivSplit;
+  klass->greyen = segNoGreyen;
   klass->blacken = segNoBlacken;
   klass->sig = SegClassSig;
   AVERT(SegClass, klass);
@@ -1686,6 +1725,7 @@ DEFINE_CLASS(Seg, GCSeg, klass)
   klass->setRankSummary = gcSegSetRankSummary;
   klass->merge = gcSegMerge;
   klass->split = gcSegSplit;
+  klass->greyen = gcSegGreyen;
   klass->blacken = gcSegTrivBlacken;
   AVERT(SegClass, klass);
 }

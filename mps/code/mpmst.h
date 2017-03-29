@@ -61,7 +61,6 @@ typedef struct mps_pool_class_s {
   PoolBufferEmptyMethod bufferEmpty;    /* out-of-line commit */
   PoolAccessMethod access;      /* handles read/write accesses */
   PoolWhitenMethod whiten;      /* whiten objects in a segment */
-  PoolGreyMethod grey;          /* grey non-white objects */
   PoolScanMethod scan;          /* find references during tracing */
   PoolFixMethod fix;            /* referent reachable during tracing */
   PoolFixMethod fixEmergency;   /* as fix, no failure allowed */
@@ -227,6 +226,7 @@ typedef struct SegClassStruct {
   SegSetRankSummaryMethod setRankSummary; /* change rank set & summary */
   SegMergeMethod merge;         /* merge two adjacent segments */
   SegSplitMethod split;         /* split a segment into two */
+  SegGreyenMethod greyen;       /* greyen non-white objects */
   SegBlackenMethod blacken;     /* blacken grey objects without scanning */
   Sig sig;                      /* .class.end-sig */
 } SegClassStruct;

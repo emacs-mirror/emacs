@@ -48,7 +48,8 @@ SRCID(poolawl, "$Id$");
 
 #define AWLSig ((Sig)0x519B7A37) /* SIGnature PooL AWL */
 
-static void AWLSegBlacken(Seg seg, TraceSet traceSet);
+static void awlsegGreyen(Seg seg, Trace trace);
+static void awlsegBlacken(Seg seg, TraceSet traceSet);
 
 
 /* awlStat* -- Statistics gathering about instruction emulation
@@ -285,7 +286,8 @@ DEFINE_CLASS(Seg, AWLSeg, klass)
   klass->instClassStruct.finish = AWLSegFinish;
   klass->size = sizeof(AWLSegStruct);
   klass->init = AWLSegInit;
-  klass->blacken = AWLSegBlacken;
+  klass->greyen = awlsegGreyen;
+  klass->blacken = awlsegBlacken;
 }
 
 
@@ -770,10 +772,10 @@ static Res AWLWhiten(Pool pool, Trace trace, Seg seg)
 }
 
 
-/* AWLGrey -- Grey method for AWL pools */
+/* awlsegGreyen -- Greyen method for AWL segments */
 
-/* AWLRangeGrey -- subroutine for AWLGrey */
-static void AWLRangeGrey(AWLSeg awlseg, Index base, Index limit)
+/* awlsegRangeGreyen -- subroutine for awlsegGreyen */
+static void awlsegRangeGreyen(AWLSeg awlseg, Index base, Index limit)
 {
   /* AWLSeg not checked as that's already been done */
   AVER(limit <= awlseg->grains);
@@ -786,38 +788,38 @@ static void AWLRangeGrey(AWLSeg awlseg, Index base, Index limit)
   }
 }
 
-static void AWLGrey(Pool pool, Trace trace, Seg seg)
+static void awlsegGreyen(Seg seg, Trace trace)
 {
   Buffer buffer;
   
-  AVERT(Pool, pool);
-  AVERT(Trace, trace);
   AVERT(Seg, seg);
+  AVERT(Trace, trace);
+  AVER(PoolArena(SegPool(seg)) == trace->arena);
 
   if (!TraceSetIsMember(SegWhite(seg), trace)) {
-    AWL awl = MustBeA(AWLPool, pool);
+    AWL awl = MustBeA(AWLPool, SegPool(seg));
     AWLSeg awlseg = MustBeA(AWLSeg, seg);
 
     SegSetGrey(seg, TraceSetAdd(SegGrey(seg), trace));
     if (SegBuffer(&buffer, seg)) {
       Addr base = SegBase(seg);
 
-      AWLRangeGrey(awlseg,
-                   0,
-                   awlIndexOfAddr(base, awl, BufferScanLimit(buffer)));
-      AWLRangeGrey(awlseg,
-                   awlIndexOfAddr(base, awl, BufferLimit(buffer)),
-                   awlseg->grains);
+      awlsegRangeGreyen(awlseg,
+                        0,
+                        awlIndexOfAddr(base, awl, BufferScanLimit(buffer)));
+      awlsegRangeGreyen(awlseg,
+                        awlIndexOfAddr(base, awl, BufferLimit(buffer)),
+                        awlseg->grains);
     } else {
-      AWLRangeGrey(awlseg, 0, awlseg->grains);
+      awlsegRangeGreyen(awlseg, 0, awlseg->grains);
     }
   }
 }
 
 
-/* AWLSegBlacken -- Blacken method for AWL segments */
+/* awlsegBlacken -- Blacken method for AWL segments */
 
-static void AWLSegBlacken(Seg seg, TraceSet traceSet)
+static void awlsegBlacken(Seg seg, TraceSet traceSet)
 {
   AWLSeg awlseg = MustBeA(AWLSeg, seg);
 
@@ -1231,7 +1233,6 @@ DEFINE_CLASS(Pool, AWLPool, klass)
   klass->bufferEmpty = AWLBufferEmpty;
   klass->access = AWLAccess;
   klass->whiten = AWLWhiten;
-  klass->grey = AWLGrey;
   klass->scan = AWLScan;
   klass->fix = AWLFix;
   klass->fixEmergency = AWLFix;

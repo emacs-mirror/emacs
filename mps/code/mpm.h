@@ -224,8 +224,6 @@ extern Res PoolTraceBegin(Pool pool, Trace trace);
 extern Res PoolAccess(Pool pool, Seg seg, Addr addr,
                       AccessSet mode, MutatorContext context);
 extern Res PoolWhiten(Pool pool, Trace trace, Seg seg);
-extern void PoolGrey(Pool pool, Trace trace, Seg seg);
-extern void PoolBlacken(Pool pool, TraceSet traceSet, Seg seg);
 extern Res PoolScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg);
 extern Res PoolFix(Pool pool, ScanState ss, Seg seg, Addr *refIO);
 extern Res PoolFixEmergency(Pool pool, ScanState ss, Seg seg, Addr *refIO);
@@ -261,8 +259,6 @@ extern Res PoolSingleAccess(Pool pool, Seg seg, Addr addr,
                             AccessSet mode, MutatorContext context);
 extern Res PoolNoWhiten(Pool pool, Trace trace, Seg seg);
 extern Res PoolTrivWhiten(Pool pool, Trace trace, Seg seg);
-extern void PoolNoGrey(Pool pool, Trace trace, Seg seg);
-extern void PoolTrivGrey(Pool pool, Trace trace, Seg seg);
 extern Res PoolNoScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg);
 extern Res PoolNoFix(Pool pool, ScanState ss, Seg seg, Ref *refIO);
 extern void PoolNoReclaim(Pool pool, Trace trace, Seg seg);
@@ -661,6 +657,7 @@ extern void SegSetRankSet(Seg seg, RankSet rankSet);
 extern void SegSetRankAndSummary(Seg seg, RankSet rankSet, RefSet summary);
 extern Res SegMerge(Seg *mergedSegReturn, Seg segLo, Seg segHi);
 extern Res SegSplit(Seg *segLoReturn, Seg *segHiReturn, Seg seg, Addr at);
+extern void SegGreyen(Seg seg, Trace trace);
 extern void SegBlacken(Seg seg, TraceSet traceSet);
 extern Res SegAbsDescribe(Inst seg, mps_lib_FILE *stream, Count depth);
 extern Res SegDescribe(Seg seg, mps_lib_FILE *stream, Count depth);
