@@ -365,7 +365,7 @@ Res TraceAddWhite(Trace trace, Seg seg)
 
   /* Give the pool the opportunity to turn the segment white. */
   /* If it fails, unwind. */
-  res = PoolWhiten(pool, trace, seg);
+  res = SegWhiten(seg, trace);
   if(res != ResOK)
     return res;
 

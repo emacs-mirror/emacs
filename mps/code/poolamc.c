@@ -23,6 +23,7 @@ typedef Bool (*amcPinnedFunction)(AMC amc, Nailboard board, Addr base, Addr limi
 
 /* forward declarations */
 
+static Res amcsegWhiten(Seg seg, Trace trace);
 static Bool amcSegHasNailboard(Seg seg);
 static Nailboard amcSegNailboard(Seg seg);
 static Bool AMCCheck(AMC amc);
@@ -336,6 +337,7 @@ DEFINE_CLASS(Seg, amcSeg, klass)
   klass->instClassStruct.describe = AMCSegDescribe;
   klass->size = sizeof(amcSegStruct);
   klass->init = AMCSegInit;
+  klass->whiten = amcsegWhiten;
 }
 
 
@@ -1101,18 +1103,19 @@ static void AMCRampEnd(Pool pool, Buffer buf)
 }
 
 
-/* AMCWhiten -- condemn the segment for the trace
+/* amcsegWhiten -- condemn the segment for the trace
  *
  * If the segment has a mutator buffer on it, we nail the buffer,
  * because we can't scan or reclaim uncommitted buffers.
  */
-static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
+static Res amcsegWhiten(Seg seg, Trace trace)
 {
   Size condemned = 0;
   amcGen gen;
-  AMC amc = MustBeA(AMCZPool, pool);
   Buffer buffer;
   amcSeg amcseg = MustBeA(amcSeg, seg);
+  Pool pool = SegPool(seg);
+  AMC amc = MustBeA(AMCZPool, pool);
   Res res;
 
   AVERT(Trace, trace);
@@ -1986,7 +1989,6 @@ DEFINE_CLASS(Pool, AMCZPool, klass)
   klass->init = AMCZInit;
   klass->bufferFill = AMCBufferFill;
   klass->bufferEmpty = AMCBufferEmpty;
-  klass->whiten = AMCWhiten;
   klass->fix = AMCFix;
   klass->fixEmergency = AMCFixEmergency;
   klass->reclaim = AMCReclaim;
