@@ -491,11 +491,7 @@ Provided for debugging only.
 
 _`.functions.unused`: All of these will be unused: ``BufferInit()``,
 ``BufferFill()``, ``BufferEmpty()``, ``BufferFinish()``,
-``TraceBegin()``, ``TraceCondemn()``, ``PoolFix()``, ``PoolReclaim()``, ``TraceEnd()``.
-
-_`.functions.trivial`: The Grey method of the pool class will be
-``PoolTrivGrey()``, this pool has no further bookkeeping to perform
-for grey segments.
+``TraceBegin()``, ``TraceCondemn()``, ``PoolFix()``, ``SegReclaim()``, ``TraceEnd()``.
 
 
 Transgressions

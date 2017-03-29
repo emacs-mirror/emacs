@@ -51,7 +51,6 @@ Bool PoolClassCheck(PoolClass klass)
   CHECKL(FUNCHECK(klass->scan));
   CHECKL(FUNCHECK(klass->fix));
   CHECKL(FUNCHECK(klass->fixEmergency));
-  CHECKL(FUNCHECK(klass->reclaim));
   CHECKL(FUNCHECK(klass->rampBegin));
   CHECKL(FUNCHECK(klass->rampEnd));
   CHECKL(FUNCHECK(klass->framePush));
@@ -79,7 +78,7 @@ Bool PoolClassCheck(PoolClass klass)
   if (klass != &CLASS_STATIC(AbstractCollectPool)) {
     CHECKL(((klass->attr & AttrGC) == 0) == (klass->fix == PoolNoFix));
     CHECKL(((klass->attr & AttrGC) == 0) == (klass->fixEmergency == PoolNoFix));
-    CHECKL(((klass->attr & AttrGC) == 0) == (klass->reclaim == PoolNoReclaim));
+    /* FIXME: if AttrGC, segments must be GCSeg */
   }
   
   CHECKS(PoolClass, klass);
@@ -348,25 +347,6 @@ Res PoolFixEmergency(Pool pool, ScanState ss, Seg seg, Addr *refIO)
   res = Method(Pool, pool, fixEmergency)(pool, ss, seg, refIO);
   AVER_CRITICAL(res == ResOK);
   return res;
-}
-
-
-/* PoolReclaim -- reclaim a segment in the pool */
-
-void PoolReclaim(Pool pool, Trace trace, Seg seg)
-{
-  AVERT_CRITICAL(Pool, pool);
-  AVERT_CRITICAL(Trace, trace);
-  AVERT_CRITICAL(Seg, seg);
-  AVER_CRITICAL(pool->arena == trace->arena);
-  AVER_CRITICAL(SegPool(seg) == pool);
-
-  /* There shouldn't be any grey things left for this trace. */
-  AVER_CRITICAL(!TraceSetIsMember(SegGrey(seg), trace));
-  /* Should only be reclaiming segments which are still white. */
-  AVER_CRITICAL(TraceSetIsMember(SegWhite(seg), trace));
-
-  Method(Pool, pool, reclaim)(pool, trace, seg);
 }
 
 

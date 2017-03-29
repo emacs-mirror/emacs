@@ -844,7 +844,7 @@ static void traceReclaim(Trace trace)
       if(TraceSetIsMember(SegWhite(seg), trace)) {
         AVER_CRITICAL(PoolHasAttr(pool, AttrGC));
         STATISTIC(++trace->reclaimCount);
-        PoolReclaim(pool, trace, seg);
+        SegReclaim(seg, trace);
 
         /* If the segment still exists, it should no longer be white. */
         /* Note that the seg returned by this SegOfAddr may not be */

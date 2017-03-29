@@ -292,21 +292,6 @@ it will also get collected by virtue of being in the same zone as some
 AMC generation (assuming there are instantiated AMC pools), see
 `.poolstruct.gen`_ above.
 
-``Res AWLCondemn(Pool pool, Trace trace, Seg seg)``
-
-_`.fun.condemn`: The current design only permits each segment to be
-condemned for one trace (see `.awlseg.mark`_). This function checks
-that the segment is not condemned for any trace (``seg->white ==
-TraceSetEMPTY``). The segment's mark bit-table is reset, and the
-whiteness of the seg (``seg->white``) has the current trace added to
-it.
-
-``void AWLGrey(Pool pool, Trace trace, Seg seg)``
-
-_`.fun.grey`: If the segment is not condemned for this trace the
-segment's mark table is set to all 1s and the segment is recorded as
-being grey.
-
 ``Res AWLScan(ScanState ss, Pool pool, Seg seg)``
 
 _`.fun.scan`:
@@ -437,28 +422,6 @@ grain is set, and the segment is greyed using ``TraceSegGreyen()``.
 Fix returns.
 
 
-``void AWLReclaim(Pool pool, Trace trace, Seg seg)``
-
-_`.fun.reclaim`: This iterates over all allocated objects in the
-segment and frees objects that are not marked. When this iteration is
-complete the marked array is completely reset.
-
-``p`` points to base of segment. Then::
-
-    while(p < SegLimit(seg) {
-      if(!alloc(p)) { ++p;continue; }
-      q = skip(p) /* q points to just past the object pointed at by p */
-      if !marked(p) free(p, q); /* reset the bits in the alloc table from p to q-1 inclusive. */
-      p = q
-    }
-
-Finally, reset the entire marked array using ``BTResRange()``.
-
-_`.fun.reclaim.improve.pad`: Consider filling free ranges with padding
-objects. Now reclaim doesn't need to check that the objects are
-allocated before skipping them. There may be a corresponding change
-for scan as well.
-
 ``Res AWLDescribe(Pool pool, mps_lib_FILE *stream, Count depth)``
 
 _`.fun.describe`:
@@ -509,6 +472,21 @@ successful) from ``BTFindResRange()`` are in terms of grains, they are
 converted back to addresses before returning the relevant values from
 this function.
 
+``Res awlSegWhiten(Seg seg, Trace trace)``
+
+_`.fun.whiten`: The current design only permits each segment to be
+condemned for one trace (see `.awlseg.mark`_). This function checks
+that the segment is not white for any trace (``seg->white ==
+TraceSetEMPTY``). The segment's mark bit-table is reset, and the
+whiteness of the seg (``seg->white``) has the current trace added to
+it.
+
+``void awlSegGrey(Seg seg, Trace trace)``
+
+_`.fun.grey`: If the segment is not white for this trace, the
+segment's mark table is set to all 1s and the segment is recorded as
+being grey.
+
 ``Bool AWLDependentObject(Addr *objReturn, Addr parent)``
 
 _`.fun.dependent-object`: This function abstracts the association
@@ -527,6 +505,28 @@ the wrapper has a reasonable format (namely at least one fixed field).
 If the second word is ``NULL`` it will return ``FALSE``. If the second
 word is non-``NULL`` then the contents of it will be assigned to
 ``*objReturn``, and it will return ``TRUE``.
+
+``void awlSegReclaim(Seg seg, Trace trace)``
+
+_`.fun.reclaim`: This iterates over all allocated objects in the
+segment and frees objects that are not marked. When this iteration is
+complete the marked array is completely reset.
+
+``p`` points to base of segment. Then::
+
+    while(p < SegLimit(seg) {
+      if(!alloc(p)) { ++p;continue; }
+      q = skip(p) /* q points to just past the object pointed at by p */
+      if !marked(p) free(p, q); /* reset the bits in the alloc table from p to q-1 inclusive. */
+      p = q
+    }
+
+Finally, reset the entire marked array using ``BTResRange()``.
+
+_`.fun.reclaim.improve.pad`: Consider filling free ranges with padding
+objects. Now reclaim doesn't need to check that the objects are
+allocated before skipping them. There may be a corresponding change
+for scan as well.
 
 
 Test
