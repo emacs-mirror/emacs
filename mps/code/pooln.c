@@ -184,18 +184,6 @@ static void NGrey(Pool pool, Trace trace, Seg seg)
 }
 
 
-/* NBlacken -- blacken method for class N */
-
-static void NBlacken(Pool pool, TraceSet traceSet, Seg seg)
-{
-  PoolN poolN = MustBeA(NPool, pool);
-
-  AVERT(TraceSet, traceSet);
-  AVERT(Seg, seg);
-  UNUSED(poolN);
-}
-
-
 /* NScan -- scan method for class N */
 
 static Res NScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
@@ -256,7 +244,6 @@ DEFINE_CLASS(Pool, NPool, klass)
   klass->bufferEmpty = NBufferEmpty;
   klass->whiten = NWhiten;
   klass->grey = NGrey;
-  klass->blacken = NBlacken;
   klass->scan = NScan;
   klass->fix = NFix;
   klass->fixEmergency = NFix;

@@ -50,7 +50,6 @@ Bool PoolClassCheck(PoolClass klass)
   CHECKL(FUNCHECK(klass->access));
   CHECKL(FUNCHECK(klass->whiten));
   CHECKL(FUNCHECK(klass->grey));
-  CHECKL(FUNCHECK(klass->blacken));
   CHECKL(FUNCHECK(klass->scan));
   CHECKL(FUNCHECK(klass->fix));
   CHECKL(FUNCHECK(klass->fixEmergency));
@@ -290,7 +289,7 @@ Res PoolAccess(Pool pool, Seg seg, Addr addr,
 }
 
 
-/* PoolWhiten, PoolGrey, PoolBlacken -- change color of a segment in the pool */
+/* PoolWhiten, PoolGrey -- change color of a segment in the pool */
 
 Res PoolWhiten(Pool pool, Trace trace, Seg seg)
 { 
@@ -310,15 +309,6 @@ void PoolGrey(Pool pool, Trace trace, Seg seg)
   AVER(pool->arena == trace->arena);
   AVER(SegPool(seg) == pool);
   Method(Pool, pool, grey)(pool, trace, seg);
-}
-
-void PoolBlacken(Pool pool, TraceSet traceSet, Seg seg)
-{
-  AVERT(Pool, pool);
-  AVERT(TraceSet, traceSet);
-  AVERT(Seg, seg);
-  AVER(SegPool(seg) == pool);
-  Method(Pool, pool, blacken)(pool, traceSet, seg);
 }
 
 

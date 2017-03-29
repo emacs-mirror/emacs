@@ -48,6 +48,8 @@ SRCID(poolawl, "$Id$");
 
 #define AWLSig ((Sig)0x519B7A37) /* SIGnature PooL AWL */
 
+static void AWLSegBlacken(Seg seg, TraceSet traceSet);
+
 
 /* awlStat* -- Statistics gathering about instruction emulation
  *
@@ -283,6 +285,7 @@ DEFINE_CLASS(Seg, AWLSeg, klass)
   klass->instClassStruct.finish = AWLSegFinish;
   klass->size = sizeof(AWLSegStruct);
   klass->init = AWLSegInit;
+  klass->blacken = AWLSegBlacken;
 }
 
 
@@ -812,13 +815,11 @@ static void AWLGrey(Pool pool, Trace trace, Seg seg)
 }
 
 
-/* AWLBlacken -- Blacken method for AWL pools */
+/* AWLSegBlacken -- Blacken method for AWL segments */
 
-static void AWLBlacken(Pool pool, TraceSet traceSet, Seg seg)
+static void AWLSegBlacken(Seg seg, TraceSet traceSet)
 {
   AWLSeg awlseg = MustBeA(AWLSeg, seg);
-
-  UNUSED(pool);
 
   AVERT(TraceSet, traceSet);
 
@@ -1231,7 +1232,6 @@ DEFINE_CLASS(Pool, AWLPool, klass)
   klass->access = AWLAccess;
   klass->whiten = AWLWhiten;
   klass->grey = AWLGrey;
-  klass->blacken = AWLBlacken;
   klass->scan = AWLScan;
   klass->fix = AWLFix;
   klass->fixEmergency = AWLFix;
