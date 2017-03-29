@@ -26,7 +26,8 @@ SRCID(poolams, "$Id$");
 #define AMSSig          ((Sig)0x519A3599) /* SIGnature AMS */
 #define AMSSegSig       ((Sig)0x519A3559) /* SIGnature AMS SeG */
 
-static void AMSSegBlacken(Seg seg, TraceSet traceSet);
+static void amsSegBlacken(Seg seg, TraceSet traceSet);
+static Res amsSegWhiten(Seg seg, Trace trace);
 
 
 /* AMSDebugStruct -- structure for a debug subclass */
@@ -607,7 +608,8 @@ DEFINE_CLASS(Seg, AMSSeg, klass)
   klass->init = AMSSegInit;
   klass->merge = AMSSegMerge;
   klass->split = AMSSegSplit;
-  klass->blacken = AMSSegBlacken;
+  klass->whiten = amsSegWhiten;
+  klass->blacken = amsSegBlacken;
   AVERT(SegClass, klass);
 }
 
@@ -1049,10 +1051,10 @@ static void AMSBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
 }
 
 
-/* amsRangeWhiten -- Condemn a part of an AMS segment
+/* amsSegRangeWhiten -- Condemn a part of an AMS segment
  * Allow calling it with base = limit, to simplify the callers.
  */
-static void amsRangeWhiten(Seg seg, Index base, Index limit)
+static void amsSegRangeWhiten(Seg seg, Index base, Index limit)
 {
   if (base != limit) {
     AMSSeg amsseg = Seg2AMSSeg(seg);
@@ -1065,24 +1067,17 @@ static void amsRangeWhiten(Seg seg, Index base, Index limit)
 }
 
 
-/* AMSWhiten -- the pool class segment condemning method */
+/* amsSegWhiten -- the pool class segment condemning method */
 
-static Res AMSWhiten(Pool pool, Trace trace, Seg seg)
+static Res amsSegWhiten(Seg seg, Trace trace)
 {
-  AMS ams;
-  AMSSeg amsseg;
   Buffer buffer;                /* the seg's buffer, if it has one */
   Count agedGrains, uncondemnedGrains;
-
-  AVERT(Pool, pool);
-  ams = PoolAMS(pool);
-  AVERT(AMS, ams);
+  AMSSeg amsseg = MustBeA(AMSSeg, seg);
+  Pool pool = SegPool(seg);
+  AMS ams = MustBeA(AMSPool, pool);
 
   AVERT(Trace, trace);
-  AVERT(Seg, seg);
-
-  amsseg = Seg2AMSSeg(seg);
-  AVERT(AMSSeg, amsseg);
 
   /* <design/poolams/#colour.single> */
   AVER(SegWhite(seg) == TraceSetEMPTY);
@@ -1116,14 +1111,14 @@ static Res AMSWhiten(Pool pool, Trace trace, Seg seg)
     scanLimitIndex = AMS_ADDR_INDEX(seg, BufferScanLimit(buffer));
     limitIndex = AMS_ADDR_INDEX(seg, BufferLimit(buffer));
 
-    amsRangeWhiten(seg, 0, scanLimitIndex);
+    amsSegRangeWhiten(seg, 0, scanLimitIndex);
     if (scanLimitIndex < limitIndex)
       AMS_RANGE_BLACKEN(seg, scanLimitIndex, limitIndex);
-    amsRangeWhiten(seg, limitIndex, amsseg->grains);
+    amsSegRangeWhiten(seg, limitIndex, amsseg->grains);
     /* We didn't condemn the buffer, subtract it from the count. */
     uncondemnedGrains = limitIndex - scanLimitIndex;
   } else { /* condemn whole seg */
-    amsRangeWhiten(seg, 0, amsseg->grains);
+    amsSegRangeWhiten(seg, 0, amsseg->grains);
     uncondemnedGrains = (Count)0;
   }
 
@@ -1497,7 +1492,7 @@ static Res AMSFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
 }
 
 
-/* AMSSegBlacken -- the segment blackening method
+/* amsSegBlacken -- the segment blackening method
  *
  * Turn all grey objects black.  */
 
@@ -1516,7 +1511,7 @@ static Res amsSegBlackenObject(Seg seg, Index i, Addr p, Addr next, void *clos)
   return ResOK;
 }
 
-static void AMSSegBlacken(Seg seg, TraceSet traceSet)
+static void amsSegBlacken(Seg seg, TraceSet traceSet)
 {
   Res res;
 
@@ -1781,7 +1776,6 @@ DEFINE_CLASS(Pool, AMSPool, klass)
   klass->bufferClass = RankBufClassGet;
   klass->bufferFill = AMSBufferFill;
   klass->bufferEmpty = AMSBufferEmpty;
-  klass->whiten = AMSWhiten;
   klass->scan = AMSScan;
   klass->fix = AMSFix;
   klass->fixEmergency = AMSFix;

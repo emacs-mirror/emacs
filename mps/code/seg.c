@@ -686,6 +686,17 @@ failControl:
 }
 
 
+/* SegWhiten -- whiten objects */
+
+Res SegWhiten(Seg seg, Trace trace)
+{ 
+  AVERT(Seg, seg);
+  AVERT(Trace, trace);
+  AVER(PoolArena(SegPool(seg)) == trace->arena);
+  return Method(Seg, seg, whiten)(seg, trace);
+}
+
+
 /* SegGreyen -- greyen non-white objects */
 
 void SegGreyen(Seg seg, Trace trace)
@@ -1048,6 +1059,21 @@ static Res segTrivSplit(Seg seg, Seg segHi,
   return ResOK;
 }
 
+
+/* segNoWhiten -- whiten method for non-GC segs */
+
+static Res segNoWhiten(Seg seg, Trace trace)
+{
+  AVERT(Seg, seg);
+  AVERT(Trace, trace);
+  AVER(PoolArena(SegPool(seg)) == trace->arena);
+  NOTREACHED;
+  return ResUNIMPL;
+}
+
+
+/* segNoGreyen -- greyen method for non-GC segs */
+
 static void segNoGreyen(Seg seg, Trace trace)
 {
   AVERT(Seg, seg);
@@ -1055,6 +1081,9 @@ static void segNoGreyen(Seg seg, Trace trace)
   AVER(PoolArena(SegPool(seg)) == trace->arena);
   NOTREACHED;
 }
+
+
+/* segNoGreyen -- blacken method for non-GC segs */
 
 static void segNoBlacken(Seg seg, TraceSet traceSet)
 {
@@ -1587,6 +1616,20 @@ failSuper:
 }
 
 
+/* gcSegWhiten -- GCSeg white method */
+
+static Res gcSegWhiten(Seg seg, Trace trace)
+{
+  AVERT(Seg, seg);
+  AVERT(Trace, trace);
+  AVER(PoolArena(SegPool(seg)) == trace->arena);
+
+  SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace));
+
+  return ResOK;
+}
+
+
 /* gcSegGreyen -- GCSeg greyen method
  *
  * If we had a (partially) white segment, then other parts of the same
@@ -1667,6 +1710,8 @@ Bool SegClassCheck(SegClass klass)
   CHECKL(FUNCHECK(klass->setRankSummary));
   CHECKL(FUNCHECK(klass->merge));
   CHECKL(FUNCHECK(klass->split));
+  CHECKL(FUNCHECK(klass->whiten));
+  CHECKL(FUNCHECK(klass->greyen));
   CHECKL(FUNCHECK(klass->blacken));
   CHECKS(SegClass, klass);
   return TRUE;
@@ -1697,6 +1742,7 @@ DEFINE_CLASS(Seg, Seg, klass)
   klass->setRankSummary = segNoSetRankSummary;
   klass->merge = segTrivMerge;
   klass->split = segTrivSplit;
+  klass->whiten = segNoWhiten;
   klass->greyen = segNoGreyen;
   klass->blacken = segNoBlacken;
   klass->sig = SegClassSig;
@@ -1725,6 +1771,7 @@ DEFINE_CLASS(Seg, GCSeg, klass)
   klass->setRankSummary = gcSegSetRankSummary;
   klass->merge = gcSegMerge;
   klass->split = gcSegSplit;
+  klass->whiten = gcSegWhiten;
   klass->greyen = gcSegGreyen;
   klass->blacken = gcSegTrivBlacken;
   AVERT(SegClass, klass);

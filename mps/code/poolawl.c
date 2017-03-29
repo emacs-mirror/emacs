@@ -48,8 +48,9 @@ SRCID(poolawl, "$Id$");
 
 #define AWLSig ((Sig)0x519B7A37) /* SIGnature PooL AWL */
 
-static void awlsegGreyen(Seg seg, Trace trace);
-static void awlsegBlacken(Seg seg, TraceSet traceSet);
+static Res awlSegWhiten(Seg seg, Trace trace);
+static void awlSegGreyen(Seg seg, Trace trace);
+static void awlSegBlacken(Seg seg, TraceSet traceSet);
 
 
 /* awlStat* -- Statistics gathering about instruction emulation
@@ -286,8 +287,9 @@ DEFINE_CLASS(Seg, AWLSeg, klass)
   klass->instClassStruct.finish = AWLSegFinish;
   klass->size = sizeof(AWLSegStruct);
   klass->init = AWLSegInit;
-  klass->greyen = awlsegGreyen;
-  klass->blacken = awlsegBlacken;
+  klass->whiten = awlSegWhiten;
+  klass->greyen = awlSegGreyen;
+  klass->blacken = awlSegBlacken;
 }
 
 
@@ -703,13 +705,13 @@ static void AWLBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
 }
 
 
-/* AWLWhiten -- segment condemning method */
+/* awlSegWhiten -- segment condemning method */
 
-/* awlRangeWhiten -- helper function that works on a range.
+/* awlSegRangeWhiten -- helper function that works on a range.
  *
- * This function abstracts common code from AWLWhiten.
+ * This function abstracts common code from awlSegWhiten.
  */
-static void awlRangeWhiten(AWLSeg awlseg, Index base, Index limit)
+static void awlSegRangeWhiten(AWLSeg awlseg, Index base, Index limit)
 {
   if(base != limit) {
     AVER(base < limit);
@@ -719,21 +721,22 @@ static void awlRangeWhiten(AWLSeg awlseg, Index base, Index limit)
   }
 }
 
-static Res AWLWhiten(Pool pool, Trace trace, Seg seg)
+static Res awlSegWhiten(Seg seg, Trace trace)
 {
-  AWL awl = MustBeA(AWLPool, pool);
   AWLSeg awlseg = MustBeA(AWLSeg, seg);
+  Pool pool = SegPool(seg);
+  AWL awl = MustBeA(AWLPool, pool);
   Buffer buffer;
   Count agedGrains, uncondemnedGrains;
 
-  /* All parameters checked by generic PoolWhiten. */
+  /* All parameters checked by generic SegWhiten. */
 
   /* Can only whiten for a single trace, */
   /* see <design/poolawl/#fun.condemn> */
   AVER(SegWhite(seg) == TraceSetEMPTY);
 
   if (!SegBuffer(&buffer, seg)) {
-    awlRangeWhiten(awlseg, 0, awlseg->grains);
+    awlSegRangeWhiten(awlseg, 0, awlseg->grains);
     uncondemnedGrains = (Count)0;
   } else {
     /* Whiten everything except the buffer. */
@@ -741,8 +744,8 @@ static Res AWLWhiten(Pool pool, Trace trace, Seg seg)
     Index scanLimitIndex = awlIndexOfAddr(base, awl, BufferScanLimit(buffer));
     Index limitIndex = awlIndexOfAddr(base, awl, BufferLimit(buffer));
     uncondemnedGrains = limitIndex - scanLimitIndex;
-    awlRangeWhiten(awlseg, 0, scanLimitIndex);
-    awlRangeWhiten(awlseg, limitIndex, awlseg->grains);
+    awlSegRangeWhiten(awlseg, 0, scanLimitIndex);
+    awlSegRangeWhiten(awlseg, limitIndex, awlseg->grains);
 
     /* Check the buffer is black. */
     /* This really ought to change when we have a non-trivial */
@@ -772,9 +775,9 @@ static Res AWLWhiten(Pool pool, Trace trace, Seg seg)
 }
 
 
-/* awlsegGreyen -- Greyen method for AWL segments */
+/* awlSegGreyen -- Greyen method for AWL segments */
 
-/* awlsegRangeGreyen -- subroutine for awlsegGreyen */
+/* awlsegRangeGreyen -- subroutine for awlSegGreyen */
 static void awlsegRangeGreyen(AWLSeg awlseg, Index base, Index limit)
 {
   /* AWLSeg not checked as that's already been done */
@@ -788,7 +791,7 @@ static void awlsegRangeGreyen(AWLSeg awlseg, Index base, Index limit)
   }
 }
 
-static void awlsegGreyen(Seg seg, Trace trace)
+static void awlSegGreyen(Seg seg, Trace trace)
 {
   Buffer buffer;
   
@@ -817,9 +820,9 @@ static void awlsegGreyen(Seg seg, Trace trace)
 }
 
 
-/* awlsegBlacken -- Blacken method for AWL segments */
+/* awlSegBlacken -- Blacken method for AWL segments */
 
-static void awlsegBlacken(Seg seg, TraceSet traceSet)
+static void awlSegBlacken(Seg seg, TraceSet traceSet)
 {
   AWLSeg awlseg = MustBeA(AWLSeg, seg);
 
@@ -1232,7 +1235,6 @@ DEFINE_CLASS(Pool, AWLPool, klass)
   klass->bufferFill = AWLBufferFill;
   klass->bufferEmpty = AWLBufferEmpty;
   klass->access = AWLAccess;
-  klass->whiten = AWLWhiten;
   klass->scan = AWLScan;
   klass->fix = AWLFix;
   klass->fixEmergency = AWLFix;
