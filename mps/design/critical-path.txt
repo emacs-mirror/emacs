@@ -322,7 +322,7 @@ segment base address and shifts the result to get an index into a mark
 bit table. If the object wasn't marked and the pointer is weak, then
 it sets the pointer to zero, since the object is about to be recycled.
 Otherwise, the mark bit is set, which preserves the object from
-recycling when ``LOReclaim()`` is called later on. ``LOFix()``
+recycling when ``loSegReclaim()`` is called later on. ``LOFix()``
 illustrates about the minimum and most efficient thing a pool fix
 method can do.
 

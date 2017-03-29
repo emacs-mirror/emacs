@@ -23,7 +23,8 @@ typedef Bool (*amcPinnedFunction)(AMC amc, Nailboard board, Addr base, Addr limi
 
 /* forward declarations */
 
-static Res amcsegWhiten(Seg seg, Trace trace);
+static Res amcSegWhiten(Seg seg, Trace trace);
+static void amcSegReclaim(Seg seg, Trace trace);
 static Bool amcSegHasNailboard(Seg seg);
 static Nailboard amcSegNailboard(Seg seg);
 static Bool AMCCheck(AMC amc);
@@ -337,7 +338,8 @@ DEFINE_CLASS(Seg, amcSeg, klass)
   klass->instClassStruct.describe = AMCSegDescribe;
   klass->size = sizeof(amcSegStruct);
   klass->init = AMCSegInit;
-  klass->whiten = amcsegWhiten;
+  klass->whiten = amcSegWhiten;
+  klass->reclaim = amcSegReclaim;
 }
 
 
@@ -1103,12 +1105,12 @@ static void AMCRampEnd(Pool pool, Buffer buf)
 }
 
 
-/* amcsegWhiten -- condemn the segment for the trace
+/* amcSegWhiten -- condemn the segment for the trace
  *
  * If the segment has a mutator buffer on it, we nail the buffer,
  * because we can't scan or reclaim uncommitted buffers.
  */
-static Res amcsegWhiten(Seg seg, Trace trace)
+static Res amcSegWhiten(Seg seg, Trace trace)
 {
   Size condemned = 0;
   amcGen gen;
@@ -1173,7 +1175,7 @@ static Res amcsegWhiten(Seg seg, Trace trace)
         /* Move the buffer's base up to the scan limit, so that we can
          * detect allocation that happens during the trace, and
          * account for it correctly in AMCBufferEmpty and
-         * amcReclaimNailed. */
+         * amcSegReclaimNailed. */
         buffer->base = bufferScanLimit;
         /* We didn't condemn the buffer, subtract it from the count. */
         /* Relies on unsigned arithmetic wrapping round */
@@ -1663,9 +1665,9 @@ returnRes:
 }
 
 
-/* amcReclaimNailed -- reclaim what you can from a nailed segment */
+/* amcSegReclaimNailed -- reclaim what you can from a nailed segment */
 
-static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
+static void amcSegReclaimNailed(Pool pool, Trace trace, Seg seg)
 {
   Addr p, limit;
   Arena arena;
@@ -1771,19 +1773,18 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
 }
 
 
-/* AMCReclaim -- recycle a segment if it is still white
+/* amcSegReclaim -- recycle a segment if it is still white
  *
  * See <design/poolamc/#reclaim>.
  */
-static void AMCReclaim(Pool pool, Trace trace, Seg seg)
+static void amcSegReclaim(Seg seg, Trace trace)
 {
+  amcSeg amcseg = MustBeA_CRITICAL(amcSeg, seg);
+  Pool pool = SegPool(seg);
   AMC amc = MustBeA_CRITICAL(AMCZPool, pool);
   amcGen gen;
-  amcSeg amcseg;
 
   AVERT_CRITICAL(Trace, trace);
-  AVERT_CRITICAL(Seg, seg);
-  amcseg = MustBeA_CRITICAL(amcSeg, seg);
   gen = amcSegGen(seg);
   AVERT_CRITICAL(amcGen, gen);
 
@@ -1801,7 +1802,7 @@ static void AMCReclaim(Pool pool, Trace trace, Seg seg)
   }
 
   if(SegNailed(seg) != TraceSetEMPTY) {
-    amcReclaimNailed(pool, trace, seg);
+    amcSegReclaimNailed(pool, trace, seg);
     return;
   }
 
@@ -1991,7 +1992,6 @@ DEFINE_CLASS(Pool, AMCZPool, klass)
   klass->bufferEmpty = AMCBufferEmpty;
   klass->fix = AMCFix;
   klass->fixEmergency = AMCFixEmergency;
-  klass->reclaim = AMCReclaim;
   klass->rampBegin = AMCRampBegin;
   klass->rampEnd = AMCRampEnd;
   klass->walk = AMCWalk;

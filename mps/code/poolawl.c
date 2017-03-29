@@ -51,6 +51,7 @@ SRCID(poolawl, "$Id$");
 static Res awlSegWhiten(Seg seg, Trace trace);
 static void awlSegGreyen(Seg seg, Trace trace);
 static void awlSegBlacken(Seg seg, TraceSet traceSet);
+static void awlSegReclaim(Seg seg, Trace trace);
 
 
 /* awlStat* -- Statistics gathering about instruction emulation
@@ -290,6 +291,7 @@ DEFINE_CLASS(Seg, AWLSeg, klass)
   klass->whiten = awlSegWhiten;
   klass->greyen = awlSegGreyen;
   klass->blacken = awlSegBlacken;
+  klass->reclaim = awlSegReclaim;
 }
 
 
@@ -1031,12 +1033,13 @@ static Res AWLFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
 }
 
 
-/* AWLReclaim -- reclaim dead objects in an AWL segment */
+/* awlSegReclaim -- reclaim dead objects in an AWL segment */
 
-static void AWLReclaim(Pool pool, Trace trace, Seg seg)
+static void awlSegReclaim(Seg seg, Trace trace)
 {
-  AWL awl = MustBeA(AWLPool, pool);
   AWLSeg awlseg = MustBeA(AWLSeg, seg);
+  Pool pool = SegPool(seg);
+  AWL awl = MustBeA(AWLPool, pool);
   Addr base = SegBase(seg);
   Buffer buffer;
   Bool hasBuffer = SegBuffer(&buffer, seg);
@@ -1238,7 +1241,6 @@ DEFINE_CLASS(Pool, AWLPool, klass)
   klass->scan = AWLScan;
   klass->fix = AWLFix;
   klass->fixEmergency = AWLFix;
-  klass->reclaim = AWLReclaim;
   klass->walk = AWLWalk;
   klass->totalSize = AWLTotalSize;
   klass->freeSize = AWLFreeSize;

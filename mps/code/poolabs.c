@@ -84,11 +84,10 @@ void PoolClassMixInCollect(PoolClass klass)
 {
   /* Can't check klass because it's not initialized yet */
   klass->attr |= AttrGC;
-  /* fix, fixEmergency and reclaim are part of the collection
+  /* fix, fixEmergency are part of the collection
      protocol, but there are no useful default methods for them */
   klass->fix = PoolNoFix;
   klass->fixEmergency = PoolNoFix;
-  klass->reclaim = PoolNoReclaim;
   klass->rampBegin = PoolTrivRampBegin;
   klass->rampEnd = PoolTrivRampEnd;
 }
@@ -198,7 +197,6 @@ DEFINE_CLASS(Pool, AbstractPool, klass)
   klass->scan = PoolNoScan;
   klass->fix = PoolNoFix;
   klass->fixEmergency = PoolNoFix;
-  klass->reclaim = PoolNoReclaim;
   klass->rampBegin = PoolNoRampBegin;
   klass->rampEnd = PoolNoRampEnd;
   klass->framePush = PoolNoFramePush;
@@ -546,14 +544,6 @@ Res PoolNoFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   AVER(refIO != NULL);
   NOTREACHED;
   return ResUNIMPL;
-}
-
-void PoolNoReclaim(Pool pool, Trace trace, Seg seg)
-{
-  AVERT(Pool, pool);
-  AVERT(Trace, trace);
-  AVERT(Seg, seg);
-  NOTREACHED;
 }
 
 

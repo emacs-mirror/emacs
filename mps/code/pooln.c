@@ -187,19 +187,6 @@ static Res NFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
 }
 
 
-/* NReclaim -- reclaim method for class N */
-
-static void NReclaim(Pool pool, Trace trace, Seg seg)
-{
-  PoolN poolN = MustBeA(NPool, pool);
-
-  AVERT(Trace, trace);
-  AVERT(Seg, seg);
-  UNUSED(poolN);
-  /* all unmarked and white objects reclaimed */
-}
-
-
 /* NPoolClass -- pool class definition for N */
 
 DEFINE_CLASS(Pool, NPool, klass)
@@ -217,7 +204,6 @@ DEFINE_CLASS(Pool, NPool, klass)
   klass->scan = NScan;
   klass->fix = NFix;
   klass->fixEmergency = NFix;
-  klass->reclaim = NReclaim;
   AVERT(PoolClass, klass);
 }
 

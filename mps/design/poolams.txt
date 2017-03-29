@@ -285,9 +285,9 @@ nothing marked as grey, so the ``marksChanged`` flag must already be
 ``FALSE``.
 
 _`.marked.blacken`: When the tracer decides not to scan, but to call
-``PoolBlacken()``, we know that any greyness can be removed.
-``AMSBlacken()`` does this and resets the ``marksChanged`` flag, if it
-finds that the segment has been condemned.
+``SegBlacken()``, we know that any greyness can be removed.
+``amsSegBlacken()`` does this and resets the ``marksChanged`` flag, if
+it finds that the segment has been condemned.
 
 _`.marked.clever`: AMS could be clever about not setting the
 ``marksChanged`` flag, if the fixed object is ahead of the current
@@ -325,7 +325,7 @@ current (2002-01) implementation of buffers assumes buffers are black,
 so they'd better.
 
 _`.fill.colour.reclaim`: In fact, putting a buffer on a condemned
-segment will screw up the accounting in ``AMCReclaim()``, so it's
+segment will screw up the accounting in ``amsSegReclaim()``, so it's
 disallowed.
 
 _`.fill.slow`: ``AMSBufferFill()`` gets progressively slower as more

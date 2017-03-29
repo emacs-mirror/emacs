@@ -718,6 +718,23 @@ void SegBlacken(Seg seg, TraceSet traceSet)
 }
 
 
+/* PoolReclaim -- reclaim a segment in the pool */
+
+void SegReclaim(Seg seg, Trace trace)
+{
+  AVERT_CRITICAL(Seg, seg);
+  AVERT_CRITICAL(Trace, trace);
+  AVER_CRITICAL(PoolArena(SegPool(seg)) == trace->arena);
+
+  /* There shouldn't be any grey things left for this trace. */
+  AVER_CRITICAL(!TraceSetIsMember(SegGrey(seg), trace));
+  /* Should only be reclaiming segments which are still white. */
+  AVER_CRITICAL(TraceSetIsMember(SegWhite(seg), trace));
+
+  Method(Seg, seg, reclaim)(seg, trace);
+}
+
+
 /* Class Seg -- The most basic segment class
  *
  * .seg.method.check: Many seg methods are lightweight and used
@@ -1089,6 +1106,17 @@ static void segNoBlacken(Seg seg, TraceSet traceSet)
 {
   AVERT(Seg, seg);
   AVERT(TraceSet, traceSet);
+  NOTREACHED;
+}
+
+
+/* segNoReclaim -- reclaim method for non-GC segs */
+
+static void segNoReclaim(Seg seg, Trace trace)
+{
+  AVERT(Seg, seg);
+  AVERT(Trace, trace);
+  AVER(PoolArena(SegPool(seg)) == trace->arena);
   NOTREACHED;
 }
 
@@ -1713,6 +1741,7 @@ Bool SegClassCheck(SegClass klass)
   CHECKL(FUNCHECK(klass->whiten));
   CHECKL(FUNCHECK(klass->greyen));
   CHECKL(FUNCHECK(klass->blacken));
+  CHECKL(FUNCHECK(klass->reclaim));
   CHECKS(SegClass, klass);
   return TRUE;
 }
@@ -1745,6 +1774,7 @@ DEFINE_CLASS(Seg, Seg, klass)
   klass->whiten = segNoWhiten;
   klass->greyen = segNoGreyen;
   klass->blacken = segNoBlacken;
+  klass->reclaim = segNoReclaim;
   klass->sig = SegClassSig;
   AVERT(SegClass, klass);
 }
@@ -1774,6 +1804,7 @@ DEFINE_CLASS(Seg, GCSeg, klass)
   klass->whiten = gcSegWhiten;
   klass->greyen = gcSegGreyen;
   klass->blacken = gcSegTrivBlacken;
+  klass->reclaim = segNoReclaim; /* no useful default method */
   AVERT(SegClass, klass);
 }
 

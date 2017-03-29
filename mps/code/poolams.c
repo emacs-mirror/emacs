@@ -28,6 +28,7 @@ SRCID(poolams, "$Id$");
 
 static void amsSegBlacken(Seg seg, TraceSet traceSet);
 static Res amsSegWhiten(Seg seg, Trace trace);
+static void amsSegReclaim(Seg seg, Trace trace);
 
 
 /* AMSDebugStruct -- structure for a debug subclass */
@@ -610,6 +611,7 @@ DEFINE_CLASS(Seg, AMSSeg, klass)
   klass->split = AMSSegSplit;
   klass->whiten = amsSegWhiten;
   klass->blacken = amsSegBlacken;
+  klass->reclaim = amsSegReclaim;
   AVERT(SegClass, klass);
 }
 
@@ -1017,14 +1019,13 @@ static void AMSBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
       } else if (ams->shareAllocTable && amsseg->colourTablesInUse) {
         /* The nonwhiteTable is shared with allocTable and in use, so we
          * mustn't start using allocTable. In this case we know: 1. the
-         * segment has been condemned (because colour tables are turned
-         * on in AMSWhiten); 2. the segment has not yet been reclaimed
-         * (because colour tables are turned off in AMSReclaim); 3. the
-         * unused portion of the buffer is black (see AMSWhiten). So we
-         * need to whiten the unused portion of the buffer. The
-         * allocTable will be turned back on (if necessary) in
-         * AMSReclaim, when we know that the nonwhite grains are exactly
-         * the allocated grains.
+         * segment has been condemned (because colour tables are turned on
+         * in amsSegWhiten); 2. the segment has not yet been reclaimed
+         * (because colour tables are turned off in amsSegReclaim); 3. the
+         * unused portion of the buffer is black (see amsSegWhiten). So we
+         * need to whiten the unused portion of the buffer. The allocTable
+         * will be turned back on (if necessary) in amsSegReclaim, when we
+         * know that the nonwhite grains are exactly the allocated grains.
          */
       } else {
         /* start using allocTable */
@@ -1530,23 +1531,19 @@ static void amsSegBlacken(Seg seg, TraceSet traceSet)
 }
 
 
-/* AMSReclaim -- the pool class reclamation method */
+/* amsSegReclaim -- the segment reclamation method */
 
-static void AMSReclaim(Pool pool, Trace trace, Seg seg)
+static void amsSegReclaim(Seg seg, Trace trace)
 {
-  AMS ams;
-  AMSSeg amsseg;
+  AMSSeg amsseg = MustBeA(AMSSeg, seg);
+  Pool pool = SegPool(seg);
+  AMS ams = MustBeA(AMSPool, pool);
   Count nowFree, grains, reclaimedGrains;
   Size preservedInPlaceSize;
   PoolDebugMixin debug;
 
-  AVERT(Pool, pool);
-  ams = PoolAMS(pool);
-  AVERT(AMS, ams);
   AVERT(Trace, trace);
-  AVERT(Seg, seg);
 
-  amsseg = Seg2AMSSeg(seg);
   /* It's a white seg, so it must have colour tables. */
   AVER(amsseg->colourTablesInUse);
   AVER(!amsseg->marksChanged); /* there must be nothing grey */
@@ -1779,7 +1776,6 @@ DEFINE_CLASS(Pool, AMSPool, klass)
   klass->scan = AMSScan;
   klass->fix = AMSFix;
   klass->fixEmergency = AMSFix;
-  klass->reclaim = AMSReclaim;
   klass->walk = AMSWalk;
   klass->freewalk = AMSFreeWalk;
   klass->totalSize = AMSTotalSize;
