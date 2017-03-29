@@ -60,7 +60,6 @@ void PoolClassMixInScan(PoolClass klass)
 {
   /* Can't check klass because it's not initialized yet */
   klass->access = PoolSegAccess;
-  klass->blacken = PoolTrivBlacken;
   klass->grey = PoolTrivGrey;
   /* scan is part of the scanning protocol, but there is no useful
      default method */
@@ -200,7 +199,6 @@ DEFINE_CLASS(Pool, AbstractPool, klass)
   klass->access = PoolNoAccess;
   klass->whiten = PoolNoWhiten;
   klass->grey = PoolNoGrey;
-  klass->blacken = PoolNoBlacken;
   klass->scan = PoolNoScan;
   klass->fix = PoolNoFix;
   klass->fixEmergency = PoolNoFix;
@@ -578,27 +576,6 @@ void PoolTrivGrey(Pool pool, Trace trace, Seg seg)
   if(!TraceSetIsMember(SegWhite(seg), trace))
     SegSetGrey(seg, TraceSetSingle(trace));
 }
-
-
-void PoolNoBlacken(Pool pool, TraceSet traceSet, Seg seg)
-{
-  AVERT(Pool, pool);
-  AVERT(TraceSet, traceSet);
-  AVERT(Seg, seg);
-  NOTREACHED;
-}
-
-void PoolTrivBlacken(Pool pool, TraceSet traceSet, Seg seg)
-{
-  AVERT(Pool, pool);
-  AVERT(TraceSet, traceSet);
-  AVERT(Seg, seg);
-
-  /* The trivial blacken method does nothing; for pool classes which do */
-  /* not keep additional colour information. */
-  NOOP;
-}
-
 
 Res PoolNoScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 {
