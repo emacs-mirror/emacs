@@ -213,16 +213,11 @@ been marked otherwise nothing happens. Note that there is no check
 that the reference refers to a valid object boundary (which wouldn't
 be a valid check in the case of ambiguous references anyway).
 
-``void LOReclaim(Pool pool, Trace trace, Seg seg)``
-
-_`.fun.reclaim`: Derives the loseg from the seg, and calls
-``loSegReclaim()`` (see `.fun.segreclaim`_ below).
-
 
 Internal
 ........
 
-``void loSegReclaim(LOSeg loseg, Trace trace)``
+``void loSegReclaim(Seg seg, Trace trace)``
 
 _`.fun.segreclaim`: For all the contiguous allocated regions in the
 segment it locates the boundaries of all the objects in that region by

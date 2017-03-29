@@ -39,6 +39,7 @@ DECLARE_CLASS(Seg, LOSeg, GCSeg);
 
 /* forward declaration */
 static Bool LOCheck(LO lo);
+static void loSegReclaim(Seg seg, Trace trace);
 
 
 /* LOGSegStruct -- LO segment structure */
@@ -76,6 +77,7 @@ DEFINE_CLASS(Seg, LOSeg, klass)
   klass->size = sizeof(LOSegStruct);
   klass->init = loSegInit;
   klass->whiten = loSegWhiten;
+  klass->reclaim = loSegReclaim;
 }
 
 
@@ -285,12 +287,12 @@ static Res loSegCreate(LOSeg *loSegReturn, Pool pool, Size size)
  * Could consider implementing this using Walk.
  */
 
-static void loSegReclaim(LOSeg loseg, Trace trace)
+static void loSegReclaim(Seg seg, Trace trace)
 {
   Addr p, base, limit;
   Bool marked;
   Count reclaimedGrains = (Count)0;
-  Seg seg = MustBeA(Seg, loseg);
+  LOSeg loseg = MustBeA(LOSeg, seg);
   Pool pool = SegPool(seg);
   LO lo = MustBeA(LOPool, pool);
   Format format = NULL; /* supress "may be used uninitialized" warning */
@@ -750,18 +752,6 @@ static Res LOFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
 }
 
 
-static void LOReclaim(Pool pool, Trace trace, Seg seg)
-{
-  LOSeg loseg = MustBeA(LOSeg, seg);
-
-  AVERT(Trace, trace);
-  AVER(TraceSetIsMember(SegWhite(seg), trace));
-  UNUSED(pool);
-
-  loSegReclaim(loseg, trace);
-}
-
-
 /* LOTotalSize -- total memory allocated from the arena */
 /* TODO: This code is repeated in AMS */
 
@@ -797,7 +787,6 @@ DEFINE_CLASS(Pool, LOPool, klass)
   klass->bufferEmpty = LOBufferEmpty;
   klass->fix = LOFix;
   klass->fixEmergency = LOFix;
-  klass->reclaim = LOReclaim;
   klass->walk = LOWalk;
   klass->totalSize = LOTotalSize;
   klass->freeSize = LOFreeSize;
