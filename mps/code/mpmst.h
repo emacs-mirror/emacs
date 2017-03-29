@@ -60,7 +60,6 @@ typedef struct mps_pool_class_s {
   PoolBufferFillMethod bufferFill;      /* out-of-line reserve */
   PoolBufferEmptyMethod bufferEmpty;    /* out-of-line commit */
   PoolAccessMethod access;      /* handles read/write accesses */
-  PoolScanMethod scan;          /* find references during tracing */
   PoolFixMethod fix;            /* referent reachable during tracing */
   PoolFixMethod fixEmergency;   /* as fix, no failure allowed */
   PoolRampBeginMethod rampBegin;/* begin a ramp pattern */
@@ -227,6 +226,7 @@ typedef struct SegClassStruct {
   SegWhitenMethod whiten;       /* whiten objects */
   SegGreyenMethod greyen;       /* greyen non-white objects */
   SegBlackenMethod blacken;     /* blacken grey objects without scanning */
+  SegScanMethod scan;           /* find references during tracing */
   SegReclaimMethod reclaim;     /* reclaim dead objects after tracing */
   Sig sig;                      /* .class.end-sig */
 } SegClassStruct;
