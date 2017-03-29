@@ -60,7 +60,6 @@ void PoolClassMixInScan(PoolClass klass)
 {
   /* Can't check klass because it's not initialized yet */
   klass->access = PoolSegAccess;
-  klass->grey = PoolTrivGrey;
   /* scan is part of the scanning protocol, but there is no useful
      default method */
   klass->scan = PoolNoScan;
@@ -198,7 +197,6 @@ DEFINE_CLASS(Pool, AbstractPool, klass)
   klass->bufferEmpty = PoolNoBufferEmpty;
   klass->access = PoolNoAccess;
   klass->whiten = PoolNoWhiten;
-  klass->grey = PoolNoGrey;
   klass->scan = PoolNoScan;
   klass->fix = PoolNoFix;
   klass->fixEmergency = PoolNoFix;
@@ -552,30 +550,6 @@ Res PoolNoWhiten(Pool pool, Trace trace, Seg seg)
   return ResUNIMPL;
 }
 
-
-void PoolNoGrey(Pool pool, Trace trace, Seg seg)
-{
-  AVERT(Pool, pool);
-  AVERT(Trace, trace);
-  AVERT(Seg, seg);
-  NOTREACHED;
-}
-
-void PoolTrivGrey(Pool pool, Trace trace, Seg seg)
-{
-  AVERT(Pool, pool);
-  AVERT(Trace, trace);
-  AVERT(Seg, seg);
-
-  /* If we had a (partially) white seg, then other parts of the */
-  /* same seg might need to get greyed. In fact, all current pools */
-  /* only ever Whiten a whole seg, so we never need to Greyen any */
-  /* part of an already Whitened seg.  So we hereby exclude white */
-  /* segs. */
-  /* @@@@ This should not really be called 'trivial'! */
-  if(!TraceSetIsMember(SegWhite(seg), trace))
-    SegSetGrey(seg, TraceSetSingle(trace));
-}
 
 Res PoolNoScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 {

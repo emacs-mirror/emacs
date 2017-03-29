@@ -849,7 +849,6 @@ DEFINE_CLASS(Pool, MRGPool, klass)
   klass->instClassStruct.finish = MRGFinish;
   klass->size = sizeof(MRGStruct);
   klass->init = MRGInit;
-  klass->grey = PoolTrivGrey;
   klass->scan = MRGScan;
 }
 

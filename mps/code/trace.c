@@ -1610,7 +1610,7 @@ Res TraceStart(Trace trace, double mortality, double finishingTime)
           /* Note: can a white seg get greyed as well?  At this point */
           /* we still assume it may.  (This assumption runs out in */
           /* PoolTrivGrey). */
-          PoolGrey(SegPool(seg), trace, seg);
+          SegGreyen(seg, trace);
           if(TraceSetIsMember(SegGrey(seg), trace)) {
             trace->foundation += size;
           }
