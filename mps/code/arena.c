@@ -156,6 +156,15 @@ Bool ArenaClassCheck(ArenaClass klass)
   CHECKL(FUNCHECK(klass->compact));
   CHECKL(FUNCHECK(klass->pagesMarkAllocated));
   CHECKL(FUNCHECK(klass->chunkPageMapped));
+
+  /* Check that arena classes override sets of related methods. */
+  CHECKL((klass->init == ArenaAbsInit)
+         == (klass->instClassStruct.finish == ArenaAbsFinish));
+  CHECKL((klass->create == ArenaNoCreate)
+         == (klass->destroy == ArenaNoDestroy));
+  CHECKL((klass->chunkInit == ArenaNoChunkInit)
+         == (klass->chunkFinish == ArenaNoChunkFinish));
+
   CHECKS(ArenaClass, klass);
   return TRUE;
 }
