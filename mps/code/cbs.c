@@ -1151,18 +1151,21 @@ DEFINE_CLASS(Land, CBS, klass)
   klass->findLast = cbsFindLast;
   klass->findLargest = cbsFindLargest;
   klass->findInZones = cbsFindInZones;
+  AVERT(LandClass, klass);
 }
 
 DEFINE_CLASS(Land, CBSFast, klass)
 {
   INHERIT_CLASS(klass, CBSFast, CBS);
   klass->init = cbsInitFast;
+  AVERT(LandClass, klass);
 }
 
 DEFINE_CLASS(Land, CBSZoned, klass)
 {
   INHERIT_CLASS(klass, CBSZoned, CBSFast);
   klass->init = cbsInitZoned;
+  AVERT(LandClass, klass);
 }
 
 

@@ -873,6 +873,7 @@ DEFINE_CLASS(Pool, MVPool, klass)
   klass->free = MVFree;
   klass->totalSize = MVTotalSize;
   klass->freeSize = MVFreeSize;
+  AVERT(PoolClass, klass);
 }
 
 
@@ -891,6 +892,7 @@ DEFINE_CLASS(Pool, MVDebugPool, klass)
   klass->size = sizeof(MVDebugStruct);
   klass->varargs = MVDebugVarargs;
   klass->debugMixin = MVDebugMixin;
+  AVERT(PoolClass, klass);
 }
 
 

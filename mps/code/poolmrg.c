@@ -234,6 +234,20 @@ static Res MRGLinkSegInit(Seg seg, Pool pool, Addr base, Size size,
 }
 
 
+/* MRGLinkSegFinish -- finish a link segment */
+
+static void mrgLinkSegFinish(Inst inst)
+{
+  Seg seg = MustBeA(Seg, inst);
+  MRGLinkSeg linkseg = MustBeA(MRGLinkSeg, seg);
+
+  linkseg->sig = SigInvalid;
+
+  /* finish the superclass fields last */
+  NextMethod(Inst, MRGLinkSeg, finish)(inst);
+}
+
+
 /* MRGRefSegInit -- initialise a ref segment */
 
 ARG_DEFINE_KEY(mrg_seg_link_seg, Pointer);
@@ -282,14 +296,30 @@ static Res MRGRefSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 }
 
 
+/* MRGRefSegFinish -- finish a ref segment */
+
+static void mrgRefSegFinish(Inst inst)
+{
+  Seg seg = MustBeA(Seg, inst);
+  MRGRefSeg refseg = MustBeA(MRGRefSeg, seg);
+
+  refseg->sig = SigInvalid;
+
+  /* finish the superclass fields last */
+  NextMethod(Inst, MRGRefSeg, finish)(inst);
+}
+
+
 /* MRGLinkSegClass -- Class definition */
 
 DEFINE_CLASS(Seg, MRGLinkSeg, klass)
 {
   INHERIT_CLASS(klass, MRGLinkSeg, Seg);
   SegClassMixInNoSplitMerge(klass);  /* no support for this */
+  klass->instClassStruct.finish = mrgLinkSegFinish;
   klass->size = sizeof(MRGLinkSegStruct);
   klass->init = MRGLinkSegInit;
+  AVERT(SegClass, klass);
 }
 
 
@@ -299,9 +329,11 @@ DEFINE_CLASS(Seg, MRGRefSeg, klass)
 {
   INHERIT_CLASS(klass, MRGRefSeg, GCSeg);
   SegClassMixInNoSplitMerge(klass);  /* no support for this */
+  klass->instClassStruct.finish = mrgRefSegFinish;
   klass->size = sizeof(MRGRefSegStruct);
   klass->init = MRGRefSegInit;
   klass->scan = mrgRefSegScan;
+  AVERT(SegClass, klass);
 }
 
 
@@ -472,7 +504,6 @@ static void MRGSegPairDestroy(MRGRefSeg refseg)
 {
   RingRemove(&refseg->mrgRing);
   RingFinish(&refseg->mrgRing);
-  refseg->sig = SigInvalid;
   SegFree(MustBeA(Seg, refseg->linkSeg));
   SegFree(MustBeA(Seg, refseg));
 }
@@ -834,6 +865,7 @@ DEFINE_CLASS(Pool, MRGPool, klass)
   klass->instClassStruct.finish = MRGFinish;
   klass->size = sizeof(MRGStruct);
   klass->init = MRGInit;
+  AVERT(PoolClass, klass);
 }
 
 

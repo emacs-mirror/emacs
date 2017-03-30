@@ -167,6 +167,20 @@ static Res AMCSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 }
 
 
+/* amcSegFinish -- finish an AMC segment */
+
+static void amcSegFinish(Inst inst)
+{
+  Seg seg = MustBeA(Seg, inst);
+  amcSeg amcseg = MustBeA(amcSeg, seg);
+
+  amcseg->sig = SigInvalid;
+
+  /* finish the superclass fields last */
+  NextMethod(Inst, amcSeg, finish)(inst);
+}
+
+
 /* AMCSegSketch -- summarise the segment state for a human reader
  *
  * Write a short human-readable text representation of the segment 
@@ -339,6 +353,7 @@ DEFINE_CLASS(Seg, amcSeg, klass)
   INHERIT_CLASS(klass, amcSeg, GCSeg);
   SegClassMixInNoSplitMerge(klass);  /* no support for this (yet) */
   klass->instClassStruct.describe = AMCSegDescribe;
+  klass->instClassStruct.finish = amcSegFinish;
   klass->size = sizeof(amcSegStruct);
   klass->init = AMCSegInit;
   klass->whiten = amcSegWhiten;
@@ -347,6 +362,7 @@ DEFINE_CLASS(Seg, amcSeg, klass)
   klass->fixEmergency = amcSegFixEmergency;
   klass->reclaim = amcSegReclaim;
   klass->walk = amcSegWalk;
+  AVERT(SegClass, klass);
 }
 
 
@@ -538,6 +554,7 @@ DEFINE_CLASS(Buffer, amcBuf, klass)
   klass->instClassStruct.finish = AMCBufFinish;
   klass->size = sizeof(amcBufStruct);
   klass->init = AMCBufInit;
+  AVERT(BufferClass, klass);
 }
 
 
@@ -1999,6 +2016,7 @@ DEFINE_CLASS(Pool, AMCZPool, klass)
   klass->bufferClass = amcBufClassGet;
   klass->totalSize = AMCTotalSize;
   klass->freeSize = AMCFreeSize;  
+  AVERT(PoolClass, klass);
 }
 
 
@@ -2008,6 +2026,7 @@ DEFINE_CLASS(Pool, AMCPool, klass)
 {
   INHERIT_CLASS(klass, AMCPool, AMCZPool);
   klass->init = AMCInit;
+  AVERT(PoolClass, klass);
 }
 
 
