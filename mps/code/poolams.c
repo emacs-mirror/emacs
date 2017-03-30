@@ -29,6 +29,7 @@ SRCID(poolams, "$Id$");
 static void amsSegBlacken(Seg seg, TraceSet traceSet);
 static Res amsSegWhiten(Seg seg, Trace trace);
 static Res amsSegScan(Bool *totalReturn, Seg seg, ScanState ss);
+static Res amsSegFix(Seg seg, ScanState ss, Ref *refIO);
 static void amsSegReclaim(Seg seg, Trace trace);
 
 
@@ -613,6 +614,8 @@ DEFINE_CLASS(Seg, AMSSeg, klass)
   klass->whiten = amsSegWhiten;
   klass->blacken = amsSegBlacken;
   klass->scan = amsSegScan;
+  klass->fix = amsSegFix;
+  klass->fixEmergency = amsSegFix;
   klass->reclaim = amsSegReclaim;
   AVERT(SegClass, klass);
 }
@@ -1390,24 +1393,22 @@ static Res amsSegScan(Bool *totalReturn, Seg seg, ScanState ss)
 }
 
 
-/* AMSFix -- the pool class fixing method */
+/* amsSegFix -- the segment fixing method */
 
-static Res AMSFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
+static Res amsSegFix(Seg seg, ScanState ss, Ref *refIO)
 {
-  AMSSeg amsseg;
+  AMSSeg amsseg = MustBeA_CRITICAL(AMSSeg, seg);
+  Pool pool = SegPool(seg);
   Index i;                      /* the index of the fixed grain */
   Addr base;
   Ref clientRef;
   Format format;
 
-  AVERT_CRITICAL(Pool, pool);
-  AVER_CRITICAL(TESTT(AMS, PoolAMS(pool)));
   AVERT_CRITICAL(ScanState, ss);
-  AVERT_CRITICAL(Seg, seg);
   AVER_CRITICAL(refIO != NULL);
 
   format = pool->format;
-  AVERT(Format, format);
+  AVERT_CRITICAL(Format, format);
 
   amsseg = Seg2AMSSeg(seg);
   AVERT_CRITICAL(AMSSeg, amsseg);
@@ -1769,8 +1770,6 @@ DEFINE_CLASS(Pool, AMSPool, klass)
   klass->bufferClass = RankBufClassGet;
   klass->bufferFill = AMSBufferFill;
   klass->bufferEmpty = AMSBufferEmpty;
-  klass->fix = AMSFix;
-  klass->fixEmergency = AMSFix;
   klass->walk = AMSWalk;
   klass->freewalk = AMSFreeWalk;
   klass->totalSize = AMSTotalSize;

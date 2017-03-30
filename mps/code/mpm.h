@@ -223,8 +223,6 @@ extern void PoolFree(Pool pool, Addr old, Size size);
 extern Res PoolTraceBegin(Pool pool, Trace trace);
 extern Res PoolAccess(Pool pool, Seg seg, Addr addr,
                       AccessSet mode, MutatorContext context);
-extern Res PoolFix(Pool pool, ScanState ss, Seg seg, Addr *refIO);
-extern Res PoolFixEmergency(Pool pool, ScanState ss, Seg seg, Addr *refIO);
 extern void PoolWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
                      void *v, size_t s);
 extern void PoolFreeWalk(Pool pool, FreeBlockVisitor f, void *p);
@@ -255,7 +253,6 @@ extern Res PoolSegAccess(Pool pool, Seg seg, Addr addr,
 extern Res PoolSingleAccess(Pool pool, Seg seg, Addr addr,
                             AccessSet mode, MutatorContext context);
 extern Res PoolNoScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg);
-extern Res PoolNoFix(Pool pool, ScanState ss, Seg seg, Ref *refIO);
 extern void PoolNoRampBegin(Pool pool, Buffer buf, Bool collectAll);
 extern void PoolTrivRampBegin(Pool pool, Buffer buf, Bool collectAll);
 extern void PoolNoRampEnd(Pool pool, Buffer buf);
@@ -655,6 +652,8 @@ extern Res SegWhiten(Seg seg, Trace trace);
 extern void SegGreyen(Seg seg, Trace trace);
 extern void SegBlacken(Seg seg, TraceSet traceSet);
 extern Res SegScan(Bool *totalReturn, Seg seg, ScanState ss);
+extern Res SegFix(Seg seg, ScanState ss, Addr *refIO);
+extern Res SegFixEmergency(Seg seg, ScanState ss, Addr *refIO);
 extern void SegReclaim(Seg seg, Trace trace);
 extern Res SegAbsDescribe(Inst seg, mps_lib_FILE *stream, Count depth);
 extern Res SegDescribe(Seg seg, mps_lib_FILE *stream, Count depth);
