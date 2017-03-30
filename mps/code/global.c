@@ -614,7 +614,7 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorContext context)
        * thread. */
       mode &= SegPM(seg);
       if (mode != AccessSetEMPTY) {
-        res = PoolAccess(SegPool(seg), seg, addr, mode, context);
+        res = SegAccess(seg, arena, addr, mode, context);
         AVER(res == ResOK); /* Mutator can't continue unless this succeeds */
       } else {
         /* Protection was already cleared, for example by another thread

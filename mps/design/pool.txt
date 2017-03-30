@@ -182,32 +182,6 @@ part between init and limit). This method must be provided if and only
 if ``bufferFill`` is provided. This method is called by the generic
 function ``BufferDetach()``.
 
-``typedef Res (*PoolAccessMethod)(Pool pool, Seg seg, Addr addr, AccessSet mode, MutatorContext context)``
-
-_`.method.access`: The ``access`` method indicates that the client
-program attempted to access the address ``addr``, but has been denied
-due to a protection fault. The ``mode`` indicates whether the client
-program was trying to read (``AccessREAD``) or write (``AccessWRITE``)
-the address. If this can't be determined, ``mode`` is ``AccessREAD |
-AccessWRITE``. The pool should perform any work necessary to remove
-the protection whilst still preserving appropriate invariants (this
-might scanning the region containing ``addr``). Pool classes are not
-required to provide this method, and not doing so indicates they never
-protect any memory managed by the pool. This method is called via the
-generic function ``PoolAccess()``.
-
-``typedef void (*PoolWalkMethod)(Pool pool, Seg seg, FormattedObjectsVisitor f, void *v, size_t s)``
-
-_`.method.walk`: The ``walk`` method must call the visitor function
-``f`` (along with its closure parameters ``v`` and ``s`` and the
-appropriate object format) once for each of the *black* objects in the
-segment ``seg``. Padding objects may or may not be included in the
-walk, at the pool's discretion: it is the responsibility of the client
-program to handle them. Forwarding objects must not be included in the
-walk. Pool classes need not provide this method. If they do, they must
-set the ``AttrFMT`` attribute. This method is called by the heap
-walker ``mps_arena_formatted_objects_walk()``.
-
 ``typedef Size (*PoolSizeMethod)(Pool pool)``
 
 _`.method.totalSize`: The ``totalSize`` method must return the total

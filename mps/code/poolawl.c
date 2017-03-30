@@ -48,6 +48,8 @@ SRCID(poolawl, "$Id$");
 
 #define AWLSig ((Sig)0x519B7A37) /* SIGnature PooL AWL */
 
+static Res awlSegAccess(Seg seg, Arena arena, Addr addr,
+                        AccessSet mode, MutatorContext context);
 static Res awlSegWhiten(Seg seg, Trace trace);
 static void awlSegGreyen(Seg seg, Trace trace);
 static void awlSegBlacken(Seg seg, TraceSet traceSet);
@@ -291,6 +293,7 @@ DEFINE_CLASS(Seg, AWLSeg, klass)
   klass->instClassStruct.finish = AWLSegFinish;
   klass->size = sizeof(AWLSegStruct);
   klass->init = AWLSegInit;
+  klass->access = awlSegAccess;
   klass->whiten = awlSegWhiten;
   klass->greyen = awlSegGreyen;
   klass->blacken = awlSegBlacken;
@@ -328,11 +331,12 @@ Bool AWLHaveTotalSALimit = AWL_HAVE_TOTAL_SA_LIMIT;
 
 /* Determine whether to permit scanning a single ref. */
 
-static Bool AWLCanTrySingleAccess(Arena arena, AWL awl, Seg seg, Addr addr)
+static Bool awlSegCanTrySingleAccess(Arena arena, Seg seg, Addr addr)
 {
   AWLSeg awlseg;
+  AWL awl;
 
-  AVERT(AWL, awl);
+  AVERT(Arena, arena);
   AVERT(Seg, seg);
   AVER(addr != NULL);
 
@@ -355,6 +359,7 @@ static Bool AWLCanTrySingleAccess(Arena arena, AWL awl, Seg seg, Addr addr)
     return FALSE;
 
   awlseg = MustBeA(AWLSeg, seg);
+  awl = MustBeA(AWLPool, SegPool(seg));
 
   /* If there have been too many single accesses in a row then don't
      keep trying them, even if it means retaining objects. */
@@ -1124,24 +1129,25 @@ static void awlSegReclaim(Seg seg, Trace trace)
 }
 
 
-/* AWLAccess -- handle a barrier hit */
+/* awlSegAccess -- handle a barrier hit */
 
-static Res AWLAccess(Pool pool, Seg seg, Addr addr,
-                     AccessSet mode, MutatorContext context)
+static Res awlSegAccess(Seg seg, Arena arena, Addr addr,
+                        AccessSet mode, MutatorContext context)
 {
-  AWL awl = MustBeA(AWLPool, pool);
+  AWL awl;
   Res res;
 
   AVERT(Seg, seg);
   AVER(SegBase(seg) <= addr);
   AVER(addr < SegLimit(seg));
-  AVER(SegPool(seg) == pool);
   AVERT(AccessSet, mode);
   AVERT(MutatorContext, context);
 
+  awl = MustBeA(AWLPool, SegPool(seg));
+
   /* Attempt scanning a single reference if permitted */
-  if(AWLCanTrySingleAccess(PoolArena(pool), awl, seg, addr)) {
-    res = PoolSingleAccess(pool, seg, addr, mode, context);
+  if(awlSegCanTrySingleAccess(arena, seg, addr)) {
+    res = SegSingleAccess(seg, arena, addr, mode, context);
     switch(res) {
       case ResOK:
         AWLNoteRefAccess(awl, seg, addr);
@@ -1155,7 +1161,7 @@ static Res AWLAccess(Pool pool, Seg seg, Addr addr,
   }
 
   /* Have to scan the entire seg anyway. */
-  res = PoolSegAccess(pool, seg, addr, mode, context);
+  res = SegWholeAccess(seg, arena, addr, mode, context);
   if(ResOK == res) {
     AWLNoteSegAccess(awl, seg, addr);
   }
@@ -1249,7 +1255,6 @@ DEFINE_CLASS(Pool, AWLPool, klass)
   klass->bufferClass = RankBufClassGet;
   klass->bufferFill = AWLBufferFill;
   klass->bufferEmpty = AWLBufferEmpty;
-  klass->access = AWLAccess;
   klass->totalSize = AWLTotalSize;
   klass->freeSize = AWLFreeSize;
 }

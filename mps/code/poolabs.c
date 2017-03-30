@@ -59,7 +59,8 @@ void PoolClassMixInBuffer(PoolClass klass)
 void PoolClassMixInScan(PoolClass klass)
 {
   /* Can't check klass because it's not initialized yet */
-  klass->access = PoolSegAccess;
+  /* FIXME: check that segment class has access != NoAcess */
+  UNUSED(klass);
 }
 
 
@@ -180,7 +181,6 @@ DEFINE_CLASS(Pool, AbstractPool, klass)
   klass->free = PoolNoFree;
   klass->bufferFill = PoolNoBufferFill;
   klass->bufferEmpty = PoolNoBufferEmpty;
-  klass->access = PoolNoAccess;
   klass->rampBegin = PoolNoRampBegin;
   klass->rampEnd = PoolNoRampEnd;
   klass->framePush = PoolNoFramePush;
@@ -369,129 +369,6 @@ Res PoolTrivTraceBegin(Pool pool, Trace trace)
   AVER(PoolArena(pool) == trace->arena);
   return ResOK;
 }
-
-/* NoAccess
- *
- * Should be used (for the access method) by Pool Classes which do
- * not expect to ever have pages which the mutator will fault on.
- * That is, no protected pages, or only pages which are inaccessible
- * by the mutator are protected.
- */
-Res PoolNoAccess(Pool pool, Seg seg, Addr addr,
-                 AccessSet mode, MutatorContext context)
-{
-  AVERT(Pool, pool);
-  AVERT(Seg, seg);
-  AVER(SegBase(seg) <= addr);
-  AVER(addr < SegLimit(seg));
-  AVERT(AccessSet, mode);
-  AVERT(MutatorContext, context);
-  UNUSED(mode);
-  UNUSED(context);
-
-  NOTREACHED;
-  return ResUNIMPL;
-}
-
-
-/* SegAccess
- *
- * See also PoolSingleAccess
- *
- * Should be used (for the access method) by Pool Classes which intend
- * to handle page faults by scanning the entire segment and lowering
- * the barrier.
- */
-Res PoolSegAccess(Pool pool, Seg seg, Addr addr,
-                  AccessSet mode, MutatorContext context)
-{
-  AVERT(Pool, pool);
-  AVERT(Seg, seg);
-  AVER(SegBase(seg) <= addr);
-  AVER(addr < SegLimit(seg));
-  AVER(SegPool(seg) == pool);
-  AVERT(AccessSet, mode);
-  AVERT(MutatorContext, context);
-
-  UNUSED(addr);
-  UNUSED(context);
-  TraceSegAccess(PoolArena(pool), seg, mode);
-  return ResOK;
-}
-
-
-/* SingleAccess
- *
- * See also ArenaRead, and PoolSegAccess.
- *
- * Handles page faults by attempting emulation.  If the faulting
- * instruction cannot be emulated then this function returns ResFAIL.
- *
- * Due to the assumptions made below, pool classes should only use
- * this function if all words in an object are tagged or traceable.
- *
- * .single-access.assume.ref: It currently assumes that the address
- * being faulted on contains a plain reference or a tagged non-reference.
- * .single-access.improve.format: Later this will be abstracted
- * through the cleint object format interface, so that
- * no such assumption is necessary.
- */
-Res PoolSingleAccess(Pool pool, Seg seg, Addr addr,
-                     AccessSet mode, MutatorContext context)
-{
-  Arena arena;
-
-  AVERT(Pool, pool);
-  AVERT(Seg, seg);
-  AVER(SegBase(seg) <= addr);
-  AVER(addr < SegLimit(seg));
-  AVER(SegPool(seg) == pool);
-  AVERT(AccessSet, mode);
-  AVERT(MutatorContext, context);
-
-  arena = PoolArena(pool);
-
-  if (MutatorContextCanStepInstruction(context)) {
-    Ref ref;
-    Res res;
-
-    ShieldExpose(arena, seg);
-
-    if(mode & SegSM(seg) & AccessREAD) {
-      /* Read access. */
-      /* .single-access.assume.ref */
-      /* .single-access.improve.format */
-      ref = *(Ref *)addr;
-      /* .tagging: Check that the reference is aligned to a word boundary */
-      /* (we assume it is not a reference otherwise). */
-      if(WordIsAligned((Word)ref, sizeof(Word))) {
-        Rank rank;
-        /* See the note in TraceRankForAccess */
-        /* (<code/trace.c#scan.conservative>). */
-        
-        rank = TraceRankForAccess(arena, seg);
-        TraceScanSingleRef(arena->flippedTraces, rank, arena,
-                           seg, (Ref *)addr);
-      }
-    }
-    res = MutatorContextStepInstruction(context);
-    AVER(res == ResOK);
-
-    /* Update SegSummary according to the possibly changed reference. */
-    ref = *(Ref *)addr;
-    /* .tagging: ought to check the reference for a tag.  But
-     * this is conservative. */
-    SegSetSummary(seg, RefSetAdd(arena, SegSummary(seg), ref));
-
-    ShieldCover(arena, seg);
-
-    return ResOK;
-  } else {
-    /* couldn't single-step instruction */
-    return ResFAIL;
-  }
-}
-
 
 void PoolNoRampBegin(Pool pool, Buffer buf, Bool collectAll)
 {
