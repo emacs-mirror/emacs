@@ -45,7 +45,7 @@ typedef struct SNCStruct {
 
 typedef SNC SNCPool;
 #define SNCPoolCheck SNCCheck
-DECLARE_CLASS(Pool, SNCPool, AbstractScanPool);
+DECLARE_CLASS(Pool, SNCPool, AbstractSegBufPool);
 
 DECLARE_CLASS(Seg, SNCSeg, GCSeg);
 DECLARE_CLASS(Buffer, SNCBuf, RankBuf);
@@ -668,7 +668,7 @@ static Size SNCFreeSize(Pool pool)
 
 DEFINE_CLASS(Pool, SNCPool, klass)
 {
-  INHERIT_CLASS(klass, SNCPool, AbstractScanPool);
+  INHERIT_CLASS(klass, SNCPool, AbstractSegBufPool);
   klass->instClassStruct.finish = SNCFinish;
   klass->size = sizeof(SNCStruct);
   klass->varargs = SNCVarargs;

@@ -2007,7 +2007,6 @@ DEFINE_CLASS(Pool, AMCZPool, klass)
 DEFINE_CLASS(Pool, AMCPool, klass)
 {
   INHERIT_CLASS(klass, AMCPool, AMCZPool);
-  PoolClassMixInScan(klass);
   klass->init = AMCInit;
 }
 

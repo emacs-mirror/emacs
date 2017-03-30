@@ -259,16 +259,14 @@ extern Size PoolNoSize(Pool pool);
 
 /* Abstract Pool Classes Interface -- see <code/poolabs.c> */
 extern void PoolClassMixInBuffer(PoolClass klass);
-extern void PoolClassMixInScan(PoolClass klass);
 extern void PoolClassMixInCollect(PoolClass klass);
 DECLARE_CLASS(Inst, PoolClass, InstClass);
 DECLARE_CLASS(Pool, AbstractPool, Inst);
 DECLARE_CLASS(Pool, AbstractBufferPool, AbstractPool);
 DECLARE_CLASS(Pool, AbstractSegBufPool, AbstractBufferPool);
-DECLARE_CLASS(Pool, AbstractScanPool, AbstractSegBufPool);
 typedef Pool AbstractCollectPool;
 #define AbstractCollectPoolCheck PoolCheck
-DECLARE_CLASS(Pool, AbstractCollectPool, AbstractScanPool);
+DECLARE_CLASS(Pool, AbstractCollectPool, AbstractSegBufPool);
 
 
 /* Message Interface -- see <design/message/> */
