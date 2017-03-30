@@ -170,6 +170,8 @@ typedef void (*SegBlackenMethod)(Seg seg, TraceSet traceSet);
 typedef Res (*SegScanMethod)(Bool *totalReturn, Seg seg, ScanState ss);
 typedef Res (*SegFixMethod)(Seg seg, ScanState ss, Ref *refIO);
 typedef void (*SegReclaimMethod)(Seg seg, Trace trace);
+typedef void (*SegWalkMethod)(Seg seg, FormattedObjectsVisitor f,
+                              void *v, size_t s);
 
 
 /* Buffer*Method -- see <design/buffer/> */
@@ -205,8 +207,6 @@ typedef Res (*PoolFramePushMethod)(AllocFrame *frameReturn,
                                    Pool pool, Buffer buf);
 typedef Res (*PoolFramePopMethod)(Pool pool, Buffer buf,
                                   AllocFrame frame);
-typedef void (*PoolWalkMethod)(Pool pool, Seg seg, FormattedObjectsVisitor f,
-                               void *v, size_t s);
 typedef void (*PoolFreeWalkMethod)(Pool pool, FreeBlockVisitor f, void *p);
 typedef BufferClass (*PoolBufferClassMethod)(void);
 typedef PoolDebugMixin (*PoolDebugMixinMethod)(Pool pool);

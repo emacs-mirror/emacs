@@ -31,6 +31,7 @@ static Nailboard amcSegNailboard(Seg seg);
 static Bool AMCCheck(AMC amc);
 static Res amcSegFix(Seg seg, ScanState ss, Ref *refIO);
 static Res amcSegFixEmergency(Seg seg, ScanState ss, Ref *refIO);
+static void amcSegWalk(Seg seg, FormattedObjectsVisitor f, void *p, size_t s);
 
 /* local class declations */
 
@@ -345,6 +346,7 @@ DEFINE_CLASS(Seg, amcSeg, klass)
   klass->fix = amcSegFix;
   klass->fixEmergency = amcSegFixEmergency;
   klass->reclaim = amcSegReclaim;
+  klass->walk = amcSegWalk;
 }
 
 
@@ -1823,15 +1825,10 @@ static void amcSegReclaim(Seg seg, Trace trace)
 }
 
 
-/* AMCWalk -- Apply function to (black) objects in segment */
+/* amcSegWalk -- Apply function to (black) objects in segment */
 
-static void AMCWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
-                    void *p, size_t s)
+static void amcSegWalk(Seg seg, FormattedObjectsVisitor f, void *p, size_t s)
 {
-  Addr object, nextObject, limit;
-  Format format;
-
-  AVERC(AMCZPool, pool);
   AVERT(Seg, seg);
   AVER(FUNCHECK(f));
   /* p and s are arbitrary closures so can't be checked */
@@ -1846,15 +1843,17 @@ static void AMCWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
   if(SegWhite(seg) == TraceSetEMPTY && SegGrey(seg) == TraceSetEMPTY
      && SegNailed(seg) == TraceSetEMPTY)
   {
-    format = pool->format;
+    Addr object, nextObject, limit;
+    Pool pool = SegPool(seg);
+    Format format = pool->format;
 
     limit = AddrAdd(SegBufferScanLimit(seg), format->headerSize);
     object = AddrAdd(SegBase(seg), format->headerSize);
     while(object < limit) {
       /* Check not a broken heart. */
       AVER((*format->isMoved)(object) == NULL);
-      (*f)(object, pool->format, pool, p, s);
-      nextObject = (*pool->format->skip)(object);
+      (*f)(object, format, pool, p, s);
+      nextObject = (*format->skip)(object);
       AVER(nextObject > object);
       object = nextObject;
     }
@@ -1879,7 +1878,7 @@ static void amcWalkAll(Pool pool, FormattedObjectsVisitor f, void *p, size_t s)
     Seg seg = SegOfPoolRing(node);
 
     ShieldExpose(arena, seg);
-    AMCWalk(pool, seg, f, p, s);
+    amcSegWalk(seg, f, p, s);
     ShieldCover(arena, seg);
   }
 }
@@ -1998,7 +1997,6 @@ DEFINE_CLASS(Pool, AMCZPool, klass)
   klass->bufferEmpty = AMCBufferEmpty;
   klass->rampBegin = AMCRampBegin;
   klass->rampEnd = AMCRampEnd;
-  klass->walk = AMCWalk;
   klass->bufferClass = amcBufClassGet;
   klass->totalSize = AMCTotalSize;
   klass->freeSize = AMCFreeSize;  

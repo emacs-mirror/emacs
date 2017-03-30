@@ -54,6 +54,7 @@ static void awlSegBlacken(Seg seg, TraceSet traceSet);
 static Res awlSegScan(Bool *totalReturn, Seg seg, ScanState ss);
 static Res awlSegFix(Seg seg, ScanState ss, Ref *refIO);
 static void awlSegReclaim(Seg seg, Trace trace);
+static void awlSegWalk(Seg seg, FormattedObjectsVisitor f, void *p, size_t s);
 
 
 /* awlStat* -- Statistics gathering about instruction emulation
@@ -297,6 +298,7 @@ DEFINE_CLASS(Seg, AWLSeg, klass)
   klass->fix = awlSegFix;
   klass->fixEmergency = awlSegFix;
   klass->reclaim = awlSegReclaim;
+  klass->walk = awlSegWalk;
 }
 
 
@@ -1162,13 +1164,13 @@ static Res AWLAccess(Pool pool, Seg seg, Addr addr,
 }
 
 
-/* AWLWalk -- walk all objects */
+/* awlSegWalk -- walk all objects */
 
-static void AWLWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
-                    void *p, size_t s)
+static void awlSegWalk(Seg seg, FormattedObjectsVisitor f, void *p, size_t s)
 {
-  AWL awl = MustBeA(AWLPool, pool);
   AWLSeg awlseg = MustBeA(AWLSeg, seg);
+  Pool pool = SegPool(seg);
+  AWL awl = MustBeA(AWLPool, pool);
   Format format = pool->format;
   Addr object, base, limit;
 
@@ -1248,7 +1250,6 @@ DEFINE_CLASS(Pool, AWLPool, klass)
   klass->bufferFill = AWLBufferFill;
   klass->bufferEmpty = AWLBufferEmpty;
   klass->access = AWLAccess;
-  klass->walk = AWLWalk;
   klass->totalSize = AWLTotalSize;
   klass->freeSize = AWLFreeSize;
 }
