@@ -38,7 +38,6 @@ Bool ScanStateCheck(ScanState ss)
 
   CHECKS(ScanState, ss);
   CHECKL(FUNCHECK(ss->fix));
-  /* Can't check ss->fixClosure. */
   CHECKL(ScanStateZoneShift(ss) == ss->arena->zoneShift);
   white = ZoneSetEMPTY;
   TRACE_SET_ITER(ti, trace, ss->traces, ss->arena)
@@ -69,19 +68,16 @@ void ScanStateInit(ScanState ss, TraceSet ts, Arena arena,
   AVERT(Rank, rank);
   /* white is arbitrary and can't be checked */
 
-  /* NOTE: We can only currently support scanning for a set of traces with
-     the same fix method and closure.  To remove this restriction,
-     it would be necessary to dispatch to the fix methods of sets of traces
-     in TraceFix. */
+  /* NOTE: We can only currently support scanning for a set of traces
+     with the same fix method. To remove this restriction, it would be
+     necessary to dispatch to the fix methods of sets of traces in
+     TraceFix. */
   ss->fix = NULL;
-  ss->fixClosure = NULL;
   TRACE_SET_ITER(ti, trace, ts, arena) {
     if (ss->fix == NULL) {
       ss->fix = trace->fix;
-      ss->fixClosure = trace->fixClosure;
     } else {
       AVER(ss->fix == trace->fix);
-      AVER(ss->fixClosure == trace->fixClosure);
     }
   } TRACE_SET_ITER_END(ti, trace, ts, arena);
   AVER(ss->fix != NULL);
@@ -192,7 +188,6 @@ Bool TraceCheck(Trace trace)
     CHECKU(Chain, trace->chain);
   }
   CHECKL(FUNCHECK(trace->fix));
-  /* Can't check trace->fixClosure. */
 
   /* @@@@ checks for counts missing */
 
@@ -674,7 +669,6 @@ found:
   trace->state = TraceINIT;
   trace->band = RankMIN;
   trace->fix = PoolFix;
-  trace->fixClosure = NULL;
   trace->chain = NULL;
   STATISTIC(trace->preTraceArenaReserved = ArenaReserved(arena));
   trace->condemned = (Size)0;   /* nothing condemned yet */

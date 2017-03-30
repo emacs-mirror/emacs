@@ -418,7 +418,6 @@ typedef struct ScanStateStruct {
   struct mps_ss_s ss_s;         /* .ss <http://bash.org/?400459> */
   Arena arena;                  /* owning arena */
   PoolFixMethod fix;            /* third stage fix function */
-  void *fixClosure;             /* closure data for fix */
   TraceSet traces;              /* traces to scan for */
   Rank rank;                    /* reference rank of scanning */
   Bool wasMarked;               /* design.mps.fix.protocol.was-ready */
@@ -450,7 +449,6 @@ typedef struct TraceStruct {
   Rank band;                    /* current band */
   Bool firstStretch;            /* in first stretch of band (see accessor) */
   PoolFixMethod fix;            /* fix method to apply to references */
-  void *fixClosure;             /* closure information for fix method */
   Chain chain;                  /* chain being incrementally collected */
   STATISTIC_DECL(Size preTraceArenaReserved) /* ArenaReserved before this trace */
   Size condemned;               /* condemned bytes */
