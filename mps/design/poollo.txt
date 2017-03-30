@@ -160,7 +160,7 @@ but might be inefficient in terms of space in some circumstances.
 
 _`.loseg.mark`: This is a Bit Table that is used to mark objects
 during a trace. Each grain in the segment is associated with 1 bit in
-this table. When ``LOFix()`` (see `.fun.fix`_ below) is called the
+this table. When ``loSegFix()`` (see `.fun.fix`_ below) is called the
 address is converted to a grain within the segment and the
 corresponding bit in this table is set.
 
@@ -198,7 +198,11 @@ _`.fun.buffer-empty`:
 
 _`.fun.condemn`:
 
-``Res LOFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)``
+
+Internal
+........
+
+``Res loSegFix(Seg seg, ScanState ss, Ref *refIO)``
 
 _`.fun.fix`: Fix treats references of most ranks much the same. There
 is one mark table that records all marks. A reference of rank
@@ -213,10 +217,6 @@ been marked otherwise nothing happens. Note that there is no check
 that the reference refers to a valid object boundary (which wouldn't
 be a valid check in the case of ambiguous references anyway).
 
-
-Internal
-........
-
 ``void loSegReclaim(Seg seg, Trace trace)``
 
 _`.fun.segreclaim`: For all the contiguous allocated regions in the
@@ -226,7 +226,7 @@ of the region (the beginning of the region is guaranteed to coincide
 with the beginning of an object). For each object it examines the bit
 in the mark bit table that corresponds to the beginning of the object.
 If that bit is set then the object has been marked as a result of a
-previous call to ``LOFix()``, the object is preserved by doing
+previous call to ``loSegFix()``, the object is preserved by doing
 nothing. If that bit is not set then the object has not been marked
 and should be reclaimed; the object is reclaimed by resetting the
 appropriate range of bits in the segment's free bit table.

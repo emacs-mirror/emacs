@@ -196,34 +196,6 @@ required to provide this method, and not doing so indicates they never
 protect any memory managed by the pool. This method is called via the
 generic function ``PoolAccess()``.
 
-``typedef Res (*PoolFixMethod)(Pool pool, ScanState ss, Seg seg, Ref *refIO)``
-
-_`.method.fix`: The ``fix`` method indicates that the reference
-``*refIO`` has been discovered at rank ``ss->rank`` by the traces in
-``ss->traces``, and the pool must handle this discovery according to
-the fix protocol (design.mps.fix_). If the pool moves the object, it
-must update ``*refIO`` to refer to the new location of the object. If
-the pool determines that the referenced object died (for example,
-because the highest-ranking references to the object were weak), it
-must update ``*refIO`` to ``NULL``. Pool classes that automatically
-reclaim dead objects must provide this method, and must additionally
-set the ``AttrGC`` attribute. Pool classes that may move objects must
-also set the ``AttrMOVINGGC`` attribute. The ``fix`` method is on the
-critical path (see design.mps.critical-path_) and so must be fast.
-This method is called via the function ``TraceFix()``.
-
-.. _design.mps.fix: fix
-.. _design.mps.critical-path: critical-path
-
-_`.method.fixEmergency`: The ``fixEmergency`` method is used to
-perform fixing in "emergency" situations. Its specification is
-identical to the ``fix`` method, but it must complete its work without
-allocating memory (perhaps by using some approximation, or by running
-more slowly). Pool classes must provide this method if and only if
-they provide the ``fix`` method. If the ``fix`` method does not need
-to allocate memory, then it is acceptable for ``fix`` and
-``fixEmergency`` to be the same.
-
 ``typedef void (*PoolWalkMethod)(Pool pool, Seg seg, FormattedObjectsVisitor f, void *v, size_t s)``
 
 _`.method.walk`: The ``walk`` method must call the visitor function

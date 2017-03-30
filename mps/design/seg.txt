@@ -236,15 +236,12 @@ _`.method.whiten`: The ``whiten`` method requests that the segment
 ``seg`` condemn (a subset of, but typically all) its objects for the
 trace ``trace``. That is, prepare them for participation in the trace
 to determine their liveness. The segment should expect fix requests
-(`design.mps.pool.method.fix`_) during the trace and a reclaim request
-(`design.mps.pool.method.reclaim`_) at the end of the trace. Segment
+(`.method.fix`_) during the trace and a reclaim request
+(`.method.reclaim`_) at the end of the trace. Segment
 classes that automatically reclaim dead objects must provide this
 method, and pools that use these segment classes must additionally set
 the ``AttrGC`` attribute. This method is called via the generic
 function ``SegWhiten()``.
-
-.. _design.mps.pool.method.fix: pool#method.fix
-.. _design.mps.pool.method.reclaim: pool#method.reclaim
 
 ``typedef void (*SegGreyenMethod)(Seg seg, Trace trace)``
 
@@ -282,6 +279,35 @@ are not required to provide this method, and not doing so indicates
 that all instances of this class will have no fixable or traceable
 references in them. This method is called via the generic function
 ``SegScan()``.
+
+``typedef Res (*SegFixMethod)(Seg seg, ScanState ss, Ref *refIO)``
+
+_`.method.fix`: The ``fix`` method indicates that the reference
+``*refIO`` has been discovered at rank ``ss->rank`` by the traces in
+``ss->traces``, and the sgment must handle this discovery according to
+the fix protocol (design.mps.fix_). If the method moves the object, it
+must update ``*refIO`` to refer to the new location of the object. If
+the method determines that the referenced object died (for example,
+because the highest-ranking references to the object were weak), it
+must update ``*refIO`` to ``NULL``. Segment classes that automatically
+reclaim dead objects must provide this method, and pools that use
+these classes must additionally set the ``AttrGC`` attribute. Pool
+classes that use segment classes that may move objects must also set
+the ``AttrMOVINGGC`` attribute. The ``fix`` method is on the critical
+path (see design.mps.critical-path_) and so must be fast. This method
+is called via the function ``TraceFix()``.
+
+.. _design.mps.fix: fix
+.. _design.mps.critical-path: critical-path
+
+_`.method.fixEmergency`: The ``fixEmergency`` method is used to
+perform fixing in "emergency" situations. Its specification is
+identical to the ``fix`` method, but it must complete its work without
+allocating memory (perhaps by using some approximation, or by running
+more slowly). Segment classes must provide this method if and only if
+they provide the ``fix`` method. If the ``fix`` method does not need
+to allocate memory, then it is acceptable for ``fix`` and
+``fixEmergency`` to be the same.
 
 ``typedef void (*SegReclaimMethod)(Seg seg, Trace trace)``
 
