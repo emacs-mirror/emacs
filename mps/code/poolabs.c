@@ -20,8 +20,7 @@
  *    AbstractPoolClass     - implements init, finish, describe
  *     AbstractBufferPoolClass - implements the buffer protocol
  *      AbstractSegBufPoolClass - uses SegBuf buffer class
- *       AbstractScanPoolClass - implements basic scanning
- *        AbstractCollectPoolClass - implements basic GC
+ *       AbstractCollectPoolClass - implements basic GC
  */
 
 #include "mpm.h"
@@ -51,16 +50,6 @@ void PoolClassMixInBuffer(PoolClass klass)
   klass->framePush = PoolTrivFramePush;
   klass->framePop = PoolTrivFramePop;
   klass->bufferClass = BufferClassGet;
-}
-
-
-/* PoolClassMixInScan -- mix in the protocol for scanning */
-
-void PoolClassMixInScan(PoolClass klass)
-{
-  /* Can't check klass because it's not initialized yet */
-  /* FIXME: check that segment class has access != NoAcess */
-  UNUSED(klass);
 }
 
 
@@ -196,15 +185,9 @@ DEFINE_CLASS(Pool, AbstractSegBufPool, klass)
   klass->bufferClass = SegBufClassGet;
 }
 
-DEFINE_CLASS(Pool, AbstractScanPool, klass)
-{
-  INHERIT_CLASS(klass, AbstractScanPool, AbstractSegBufPool);
-  PoolClassMixInScan(klass);
-}
-
 DEFINE_CLASS(Pool, AbstractCollectPool, klass)
 {
-  INHERIT_CLASS(klass, AbstractCollectPool, AbstractScanPool);
+  INHERIT_CLASS(klass, AbstractCollectPool, AbstractSegBufPool);
   PoolClassMixInCollect(klass);
 }
 
