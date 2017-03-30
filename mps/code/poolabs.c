@@ -146,6 +146,7 @@ void PoolAbsFinish(Inst inst)
 DEFINE_CLASS(Inst, PoolClass, klass)
 {
   INHERIT_CLASS(klass, PoolClass, InstClass);
+  AVERT(InstClass, klass);
 }
 
 DEFINE_CLASS(Pool, AbstractPool, klass)
@@ -171,24 +172,28 @@ DEFINE_CLASS(Pool, AbstractPool, klass)
   klass->totalSize = PoolNoSize;
   klass->freeSize = PoolNoSize;
   klass->sig = PoolClassSig;
+  AVERT(PoolClass, klass);
 }
 
 DEFINE_CLASS(Pool, AbstractBufferPool, klass)
 {
   INHERIT_CLASS(klass, AbstractBufferPool, AbstractPool);
   PoolClassMixInBuffer(klass);
+  AVERT(PoolClass, klass);
 }
 
 DEFINE_CLASS(Pool, AbstractSegBufPool, klass)
 {
   INHERIT_CLASS(klass, AbstractSegBufPool, AbstractBufferPool);
   klass->bufferClass = SegBufClassGet;
+  AVERT(PoolClass, klass);
 }
 
 DEFINE_CLASS(Pool, AbstractCollectPool, klass)
 {
   INHERIT_CLASS(klass, AbstractCollectPool, AbstractSegBufPool);
   PoolClassMixInCollect(klass);
+  AVERT(PoolClass, klass);
 }
 
 

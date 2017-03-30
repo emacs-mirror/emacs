@@ -528,6 +528,7 @@ static Res LandAbsDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 DEFINE_CLASS(Inst, LandClass, klass)
 {
   INHERIT_CLASS(klass, LandClass, InstClass);
+  AVERT(InstClass, klass);
 }
 
 DEFINE_CLASS(Land, Land, klass)
@@ -547,6 +548,7 @@ DEFINE_CLASS(Land, Land, klass)
   klass->findLargest = landNoFind;
   klass->findInZones = landNoFindInZones;
   klass->sig = LandClassSig;
+  AVERT(LandClass, klass);
 }
 
 

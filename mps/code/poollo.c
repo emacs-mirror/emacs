@@ -83,6 +83,7 @@ DEFINE_CLASS(Seg, LOSeg, klass)
   klass->fixEmergency = loSegFix;
   klass->reclaim = loSegReclaim;
   klass->walk = loSegWalk;
+  AVERT(SegClass, klass);
 }
 
 
@@ -792,6 +793,7 @@ DEFINE_CLASS(Pool, LOPool, klass)
   klass->bufferEmpty = LOBufferEmpty;
   klass->totalSize = LOTotalSize;
   klass->freeSize = LOFreeSize;
+  AVERT(PoolClass, klass);
 }
 
 

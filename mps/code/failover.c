@@ -286,6 +286,7 @@ DEFINE_CLASS(Land, Failover, klass)
   klass->findLast = failoverFindLast;
   klass->findLargest = failoverFindLargest;
   klass->findInZones = failoverFindInZones;
+  AVERT(LandClass, klass);
 }
 
 

@@ -149,6 +149,7 @@ DEFINE_CLASS(Pool, MVTPool, klass)
   klass->bufferEmpty = MVTBufferEmpty;
   klass->totalSize = MVTTotalSize;
   klass->freeSize = MVTFreeSize;
+  AVERT(PoolClass, klass);
 }
 
 /* Macros */

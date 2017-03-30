@@ -741,6 +741,7 @@ DEFINE_CLASS(Pool, MVFFPool, klass)
   klass->bufferEmpty = MVFFBufferEmpty;
   klass->totalSize = MVFFTotalSize;
   klass->freeSize = MVFFFreeSize;
+  AVERT(PoolClass, klass);
 }
 
 
@@ -759,6 +760,7 @@ DEFINE_CLASS(Pool, MVFFDebugPool, klass)
   klass->size = sizeof(MVFFDebugStruct);
   klass->varargs = MVFFDebugVarargs;
   klass->debugMixin = MVFFDebugMixin;
+  AVERT(PoolClass, klass);
 }
 
 

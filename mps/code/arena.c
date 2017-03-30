@@ -107,6 +107,7 @@ static void ArenaNoDestroy(Arena arena)
 DEFINE_CLASS(Inst, ArenaClass, klass)
 {
   INHERIT_CLASS(klass, ArenaClass, InstClass);
+  AVERT(InstClass, klass);
 }
 
 
@@ -132,6 +133,7 @@ DEFINE_CLASS(Arena, AbstractArena, klass)
   klass->pagesMarkAllocated = ArenaNoPagesMarkAllocated;
   klass->chunkPageMapped = ArenaNoChunkPageMapped;
   klass->sig = ArenaClassSig;
+  AVERT(ArenaClass, klass);
 }
 
 

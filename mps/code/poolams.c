@@ -1793,6 +1793,7 @@ DEFINE_CLASS(Pool, AMSDebugPool, klass)
   klass->size = sizeof(AMSDebugStruct);
   klass->varargs = AMSDebugVarargs;
   klass->debugMixin = AMSDebugMixin;
+  AVERT(PoolClass, klass);
 }
 
 
