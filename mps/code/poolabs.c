@@ -64,15 +64,6 @@ void PoolClassMixInScan(PoolClass klass)
 }
 
 
-/* PoolClassMixInFormat -- mix in the protocol for formatted pools */
-
-void PoolClassMixInFormat(PoolClass klass)
-{
-  /* Can't check klass because it's not initialized yet */
-  klass->attr |= AttrFMT;
-}
-
-
 /* PoolClassMixInCollect -- mix in the protocol for GC */
 
 void PoolClassMixInCollect(PoolClass klass)

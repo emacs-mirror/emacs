@@ -94,7 +94,7 @@ typedef struct mps_pool_s {     /* generic structure */
   Serial bufferSerial;          /* serial of next buffer */
   RingStruct segRing;           /* segs are attached to pool */
   Align alignment;              /* alignment for units */
-  Format format;                /* format only if class->attr&AttrFMT */
+  Format format;                /* format or NULL */
 } PoolStruct;
 
 

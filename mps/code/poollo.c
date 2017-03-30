@@ -783,7 +783,6 @@ static Size LOFreeSize(Pool pool)
 DEFINE_CLASS(Pool, LOPool, klass)
 {
   INHERIT_CLASS(klass, LOPool, AbstractSegBufPool);
-  PoolClassMixInFormat(klass);
   PoolClassMixInCollect(klass);
   klass->instClassStruct.finish = LOFinish;
   klass->size = sizeof(LOStruct);
