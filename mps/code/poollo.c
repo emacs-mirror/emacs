@@ -39,6 +39,7 @@ DECLARE_CLASS(Seg, LOSeg, GCSeg);
 
 /* forward declaration */
 static Bool LOCheck(LO lo);
+static Res loSegFix(Seg seg, ScanState ss, Ref *refIO);
 static void loSegReclaim(Seg seg, Trace trace);
 
 
@@ -77,6 +78,8 @@ DEFINE_CLASS(Seg, LOSeg, klass)
   klass->size = sizeof(LOSegStruct);
   klass->init = loSegInit;
   klass->whiten = loSegWhiten;
+  klass->fix = loSegFix;
+  klass->fixEmergency = loSegFix;
   klass->reclaim = loSegReclaim;
 }
 
@@ -698,10 +701,11 @@ static Res loSegWhiten(Seg seg, Trace trace)
 }
 
 
-static Res LOFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
+static Res loSegFix(Seg seg, ScanState ss, Ref *refIO)
 {
-  LO lo = MustBeA_CRITICAL(LOPool, pool);
   LOSeg loseg = MustBeA_CRITICAL(LOSeg, seg);
+  Pool pool = SegPool(seg);
+  LO lo = MustBeA_CRITICAL(LOPool, pool);
   Ref clientRef;
   Addr base;
 
@@ -785,8 +789,6 @@ DEFINE_CLASS(Pool, LOPool, klass)
   klass->init = LOInit;
   klass->bufferFill = LOBufferFill;
   klass->bufferEmpty = LOBufferEmpty;
-  klass->fix = LOFix;
-  klass->fixEmergency = LOFix;
   klass->walk = LOWalk;
   klass->totalSize = LOTotalSize;
   klass->freeSize = LOFreeSize;

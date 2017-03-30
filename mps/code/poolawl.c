@@ -52,6 +52,7 @@ static Res awlSegWhiten(Seg seg, Trace trace);
 static void awlSegGreyen(Seg seg, Trace trace);
 static void awlSegBlacken(Seg seg, TraceSet traceSet);
 static Res awlSegScan(Bool *totalReturn, Seg seg, ScanState ss);
+static Res awlSegFix(Seg seg, ScanState ss, Ref *refIO);
 static void awlSegReclaim(Seg seg, Trace trace);
 
 
@@ -293,6 +294,8 @@ DEFINE_CLASS(Seg, AWLSeg, klass)
   klass->greyen = awlSegGreyen;
   klass->blacken = awlSegBlacken;
   klass->scan = awlSegScan;
+  klass->fix = awlSegFix;
+  klass->fixEmergency = awlSegFix;
   klass->reclaim = awlSegReclaim;
 }
 
@@ -984,19 +987,20 @@ static Res awlSegScan(Bool *totalReturn, Seg seg, ScanState ss)
 }
 
 
-/* AWLFix -- Fix method for AWL */
+/* awlSegFix -- Fix method for AWL segments */
 
-static Res AWLFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
+static Res awlSegFix(Seg seg, ScanState ss, Ref *refIO)
 {
-  AWL awl = MustBeA(AWLPool, pool);
-  AWLSeg awlseg = MustBeA(AWLSeg, seg);
+  AWLSeg awlseg = MustBeA_CRITICAL(AWLSeg, seg);
+  Pool pool = SegPool(seg);
+  AWL awl = MustBeA_CRITICAL(AWLPool, pool);
   Ref clientRef;
   Addr base;
   Index i;
 
-  AVERT(ScanState, ss);
-  AVER(TraceSetInter(SegWhite(seg), ss->traces) != TraceSetEMPTY);
-  AVER(refIO != NULL);
+  AVERT_CRITICAL(ScanState, ss);
+  AVER_CRITICAL(TraceSetInter(SegWhite(seg), ss->traces) != TraceSetEMPTY);
+  AVER_CRITICAL(refIO != NULL);
 
   clientRef = *refIO;
   ss->wasMarked = TRUE;
@@ -1244,8 +1248,6 @@ DEFINE_CLASS(Pool, AWLPool, klass)
   klass->bufferFill = AWLBufferFill;
   klass->bufferEmpty = AWLBufferEmpty;
   klass->access = AWLAccess;
-  klass->fix = AWLFix;
-  klass->fixEmergency = AWLFix;
   klass->walk = AWLWalk;
   klass->totalSize = AWLTotalSize;
   klass->freeSize = AWLFreeSize;

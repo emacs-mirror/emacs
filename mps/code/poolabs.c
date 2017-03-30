@@ -81,10 +81,6 @@ void PoolClassMixInCollect(PoolClass klass)
 {
   /* Can't check klass because it's not initialized yet */
   klass->attr |= AttrGC;
-  /* fix, fixEmergency are part of the collection
-     protocol, but there are no useful default methods for them */
-  klass->fix = PoolNoFix;
-  klass->fixEmergency = PoolNoFix;
   klass->rampBegin = PoolTrivRampBegin;
   klass->rampEnd = PoolTrivRampEnd;
 }
@@ -94,8 +90,6 @@ void PoolClassMixInCollect(PoolClass klass)
 
 
 /* PoolAbsInit -- initialize an abstract pool instance */
-
-static Res PoolAutoSetFix(Pool pool, ScanState ss, Seg seg, Ref *refIO);
 
 Res PoolAbsInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
 {
@@ -116,7 +110,6 @@ Res PoolAbsInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
   pool->bufferSerial = (Serial)0;
   pool->alignment = MPS_PF_ALIGN;
   pool->format = NULL;
-  pool->fix = PoolAutoSetFix;
 
   if (ArgPick(&arg, args, MPS_KEY_FORMAT)) {
     Format format = arg.val.format;
@@ -191,8 +184,6 @@ DEFINE_CLASS(Pool, AbstractPool, klass)
   klass->bufferFill = PoolNoBufferFill;
   klass->bufferEmpty = PoolNoBufferEmpty;
   klass->access = PoolNoAccess;
-  klass->fix = PoolNoFix;
-  klass->fixEmergency = PoolNoFix;
   klass->rampBegin = PoolNoRampBegin;
   klass->rampEnd = PoolNoRampEnd;
   klass->framePush = PoolNoFramePush;
@@ -228,22 +219,6 @@ DEFINE_CLASS(Pool, AbstractCollectPool, klass)
 {
   INHERIT_CLASS(klass, AbstractCollectPool, AbstractScanPool);
   PoolClassMixInCollect(klass);
-}
-
-
-/* PoolAutoSetFix -- set fix method on first call
- *
- * The pool structure has a shortcut to the class fix method to avoid
- * an indirection on the critical path.  This is the default value of
- * that shortcut, which replaces itself on the first call.  This
- * avoids some tricky initialization.
- */
-
-static Res PoolAutoSetFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
-{
-  AVERC(AbstractCollectPool, pool);
-  pool->fix = ClassOfPoly(Pool, pool)->fix;
-  return pool->fix(pool, ss, seg, refIO);
 }
 
 
@@ -519,17 +494,6 @@ Res PoolSingleAccess(Pool pool, Seg seg, Addr addr,
     /* couldn't single-step instruction */
     return ResFAIL;
   }
-}
-
-
-Res PoolNoFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
-{
-  AVERT(Pool, pool);
-  AVERT(ScanState, ss);
-  AVERT(Seg, seg);
-  AVER(refIO != NULL);
-  NOTREACHED;
-  return ResUNIMPL;
 }
 
 

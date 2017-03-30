@@ -184,7 +184,7 @@ static Bool rootsStepClosureCheck(rootsStepClosure rsc)
 
 static void rootsStepClosureInit(rootsStepClosure rsc,
                                  Globals arena, Trace trace,
-                                 PoolFixMethod rootFix,
+                                 SegFixMethod rootFix,
                                  mps_roots_stepper_t f, void *p, size_t s)
 {
   ScanState ss;
@@ -228,12 +228,10 @@ static void rootsStepClosureFinish(rootsStepClosure rsc)
  * This doesn't cause further scanning of transitive references, it just
  * calls the client closure.  */
 
-static Res RootsWalkFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
+static Res RootsWalkFix(Seg seg, ScanState ss, Ref *refIO)
 {
   rootsStepClosure rsc;
   Ref ref;
-        
-  UNUSED(pool);
 
   AVERT(ScanState, ss);
   AVER(refIO != NULL);

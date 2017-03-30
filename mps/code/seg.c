@@ -740,6 +740,40 @@ Res SegScan(Bool *totalReturn, Seg seg, ScanState ss)
 }
 
 
+/* SegFix* -- fix a reference to an object in this segment
+ *
+ * See <design/pool/#req.fix>.
+ */
+
+Res SegFix(Seg seg, ScanState ss, Addr *refIO)
+{
+  AVERT_CRITICAL(Seg, seg);
+  AVERT_CRITICAL(ScanState, ss);
+  AVER_CRITICAL(refIO != NULL);
+
+  /* Should only be fixing references to white segments. */
+  AVER_CRITICAL(TraceSetInter(SegWhite(seg), ss->traces) != TraceSetEMPTY);
+
+  return Method(Seg, seg, fix)(seg, ss, refIO);
+}
+
+Res SegFixEmergency(Seg seg, ScanState ss, Addr *refIO)
+{
+  Res res;
+
+  AVERT_CRITICAL(Seg, seg);
+  AVERT_CRITICAL(ScanState, ss);
+  AVER_CRITICAL(refIO != NULL);
+
+  /* Should only be fixing references to white segments. */
+  AVER_CRITICAL(TraceSetInter(SegWhite(seg), ss->traces) != TraceSetEMPTY);
+
+  res = Method(Seg, seg, fixEmergency)(seg, ss, refIO);
+  AVER_CRITICAL(res == ResOK);
+  return res;
+}
+
+
 /* SegReclaim -- reclaim a segment */
 
 void SegReclaim(Seg seg, Trace trace)
@@ -1140,6 +1174,18 @@ static Res segNoScan(Bool *totalReturn, Seg seg, ScanState ss)
   AVERT(Seg, seg);
   AVERT(ScanState, ss);
   AVER(PoolArena(SegPool(seg)) == ss->arena);
+  NOTREACHED;
+  return ResUNIMPL;
+}
+
+
+/* segNoFix -- fix method for non-GC segs */
+
+static Res segNoFix(Seg seg, ScanState ss, Ref *refIO)
+{
+  AVERT(Seg, seg);
+  AVERT(ScanState, ss);
+  AVER(refIO != NULL);
   NOTREACHED;
   return ResUNIMPL;
 }
@@ -1777,6 +1823,8 @@ Bool SegClassCheck(SegClass klass)
   CHECKL(FUNCHECK(klass->greyen));
   CHECKL(FUNCHECK(klass->blacken));
   CHECKL(FUNCHECK(klass->scan));
+  CHECKL(FUNCHECK(klass->fix));
+  CHECKL(FUNCHECK(klass->fixEmergency));
   CHECKL(FUNCHECK(klass->reclaim));
   CHECKS(SegClass, klass);
   return TRUE;
@@ -1811,6 +1859,8 @@ DEFINE_CLASS(Seg, Seg, klass)
   klass->greyen = segNoGreyen;
   klass->blacken = segNoBlacken;
   klass->scan = segNoScan;
+  klass->fix = segNoFix;
+  klass->fixEmergency = segNoFix;
   klass->reclaim = segNoReclaim;
   klass->sig = SegClassSig;
   AVERT(SegClass, klass);
@@ -1842,6 +1892,8 @@ DEFINE_CLASS(Seg, GCSeg, klass)
   klass->greyen = gcSegGreyen;
   klass->blacken = gcSegTrivBlacken;
   klass->scan = segNoScan; /* no useful default method */
+  klass->fix = segNoFix; /* no useful default method */
+  klass->fixEmergency = segNoFix; /* no useful default method */
   klass->reclaim = segNoReclaim; /* no useful default method */
   AVERT(SegClass, klass);
 }

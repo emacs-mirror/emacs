@@ -60,8 +60,6 @@ typedef struct mps_pool_class_s {
   PoolBufferFillMethod bufferFill;      /* out-of-line reserve */
   PoolBufferEmptyMethod bufferEmpty;    /* out-of-line commit */
   PoolAccessMethod access;      /* handles read/write accesses */
-  PoolFixMethod fix;            /* referent reachable during tracing */
-  PoolFixMethod fixEmergency;   /* as fix, no failure allowed */
   PoolRampBeginMethod rampBegin;/* begin a ramp pattern */
   PoolRampEndMethod rampEnd;    /* end a ramp pattern */
   PoolFramePushMethod framePush; /* push an allocation frame */
@@ -99,7 +97,6 @@ typedef struct mps_pool_s {     /* generic structure */
   RingStruct segRing;           /* segs are attached to pool */
   Align alignment;              /* alignment for units */
   Format format;                /* format only if class->attr&AttrFMT */
-  PoolFixMethod fix;            /* fix method */
 } PoolStruct;
 
 
@@ -227,6 +224,8 @@ typedef struct SegClassStruct {
   SegGreyenMethod greyen;       /* greyen non-white objects */
   SegBlackenMethod blacken;     /* blacken grey objects without scanning */
   SegScanMethod scan;           /* find references during tracing */
+  SegFixMethod fix;             /* referent reachable during tracing */
+  SegFixMethod fixEmergency;    /* as fix, no failure allowed */
   SegReclaimMethod reclaim;     /* reclaim dead objects after tracing */
   Sig sig;                      /* .class.end-sig */
 } SegClassStruct;
@@ -417,7 +416,7 @@ typedef struct ScanStateStruct {
   Sig sig;                      /* <design/sig/> */
   struct mps_ss_s ss_s;         /* .ss <http://bash.org/?400459> */
   Arena arena;                  /* owning arena */
-  PoolFixMethod fix;            /* third stage fix function */
+  SegFixMethod fix;             /* third stage fix function */
   TraceSet traces;              /* traces to scan for */
   Rank rank;                    /* reference rank of scanning */
   Bool wasMarked;               /* design.mps.fix.protocol.was-ready */
@@ -448,7 +447,7 @@ typedef struct TraceStruct {
   TraceState state;             /* current state of trace */
   Rank band;                    /* current band */
   Bool firstStretch;            /* in first stretch of band (see accessor) */
-  PoolFixMethod fix;            /* fix method to apply to references */
+  SegFixMethod fix;             /* fix method to apply to references */
   Chain chain;                  /* chain being incrementally collected */
   STATISTIC_DECL(Size preTraceArenaReserved) /* ArenaReserved before this trace */
   Size condemned;               /* condemned bytes */

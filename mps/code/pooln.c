@@ -156,22 +156,6 @@ static Res NDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 }
 
 
-/* NFix -- fix method for class N */
-
-static Res NFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
-{
-  PoolN poolN = MustBeA(NPool, pool);
-
-  AVERT(ScanState, ss);
-  UNUSED(refIO);
-  AVERT(Seg, seg);
-  UNUSED(poolN);
-  NOTREACHED;  /* Since we don't allocate any objects, should never */
-               /* be called upon to fix a reference. */
-  return ResFAIL;
-}
-
-
 /* NPoolClass -- pool class definition for N */
 
 DEFINE_CLASS(Pool, NPool, klass)
@@ -186,8 +170,6 @@ DEFINE_CLASS(Pool, NPool, klass)
   klass->free = NFree;
   klass->bufferFill = NBufferFill;
   klass->bufferEmpty = NBufferEmpty;
-  klass->fix = NFix;
-  klass->fixEmergency = NFix;
   AVERT(PoolClass, klass);
 }
 
