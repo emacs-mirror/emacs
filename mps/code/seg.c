@@ -791,6 +791,18 @@ void SegReclaim(Seg seg, Trace trace)
 }
 
 
+/* SegWalk -- walk objects in this segment */
+
+void SegWalk(Seg seg, FormattedObjectsVisitor f, void *p, size_t s)
+{
+  AVERT(Seg, seg);
+  AVER(FUNCHECK(f));
+  /* p and s are arbitrary values, hence can't be checked. */
+
+  Method(Seg, seg, walk)(seg, f, p, s);
+}
+
+
 /* Class Seg -- The most basic segment class
  *
  * .seg.method.check: Many seg methods are lightweight and used
@@ -1198,6 +1210,20 @@ static void segNoReclaim(Seg seg, Trace trace)
   AVERT(Seg, seg);
   AVERT(Trace, trace);
   AVER(PoolArena(SegPool(seg)) == trace->arena);
+  NOTREACHED;
+}
+
+
+/* segNoWalk -- walk method for non-formatted segs */
+
+static void segNoWalk(Seg seg, FormattedObjectsVisitor f, void *p, size_t s)
+{
+  AVERT(Seg, seg);
+  AVER(FUNCHECK(f));
+  /* p and s are arbitrary, hence can't be checked */
+  UNUSED(p);
+  UNUSED(s);
+
   NOTREACHED;
 }
 
@@ -1826,6 +1852,7 @@ Bool SegClassCheck(SegClass klass)
   CHECKL(FUNCHECK(klass->fix));
   CHECKL(FUNCHECK(klass->fixEmergency));
   CHECKL(FUNCHECK(klass->reclaim));
+  CHECKL(FUNCHECK(klass->walk));
   CHECKS(SegClass, klass);
   return TRUE;
 }
@@ -1862,6 +1889,7 @@ DEFINE_CLASS(Seg, Seg, klass)
   klass->fix = segNoFix;
   klass->fixEmergency = segNoFix;
   klass->reclaim = segNoReclaim;
+  klass->walk = segNoWalk;
   klass->sig = SegClassSig;
   AVERT(SegClass, klass);
 }
@@ -1895,6 +1923,7 @@ DEFINE_CLASS(Seg, GCSeg, klass)
   klass->fix = segNoFix; /* no useful default method */
   klass->fixEmergency = segNoFix; /* no useful default method */
   klass->reclaim = segNoReclaim; /* no useful default method */
+  klass->walk = segNoWalk; /* no useful default method */
   AVERT(SegClass, klass);
 }
 

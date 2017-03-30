@@ -66,6 +66,7 @@ static Res loSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args);
 static void loSegFinish(Inst inst);
 static Count loSegGrains(LOSeg loseg);
 static Res loSegWhiten(Seg seg, Trace trace);
+static void loSegWalk(Seg seg, FormattedObjectsVisitor f, void *p, size_t s);
 
 
 /* LOSegClass -- Class definition for LO segments */
@@ -81,6 +82,7 @@ DEFINE_CLASS(Seg, LOSeg, klass)
   klass->fix = loSegFix;
   klass->fixEmergency = loSegFix;
   klass->reclaim = loSegReclaim;
+  klass->walk = loSegWalk;
 }
 
 
@@ -380,20 +382,20 @@ static void loSegReclaim(Seg seg, Trace trace)
   }
 }
 
-/* This walks over _all_ objects in the heap, whether they are */
-/* black or white, they are still validly formatted as this is */
-/* a leaf pool, so there can't be any dangling references */
-static void LOWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
-                   void *p, size_t s)
+/* Walks over _all_ objects in the segnent: whether they are black or
+ * white, they are still validly formatted as this is a leaf pool, so
+ * there can't be any dangling references.
+ */
+static void loSegWalk(Seg seg, FormattedObjectsVisitor f, void *p, size_t s)
 {
   Addr base;
-  LO lo = MustBeA(LOPool, pool);
   LOSeg loseg = MustBeA(LOSeg, seg);
+  Pool pool = SegPool(seg);
+  LO lo = MustBeA(LOPool, pool);
   Index i, grains;
   Format format = NULL; /* suppress "may be used uninitialized" warning */
   Bool b;
 
-  AVERT(Pool, pool);
   AVERT(Seg, seg);
   AVER(FUNCHECK(f));
   /* p and s are arbitrary closures and can't be checked */
@@ -789,7 +791,6 @@ DEFINE_CLASS(Pool, LOPool, klass)
   klass->init = LOInit;
   klass->bufferFill = LOBufferFill;
   klass->bufferEmpty = LOBufferEmpty;
-  klass->walk = LOWalk;
   klass->totalSize = LOTotalSize;
   klass->freeSize = LOFreeSize;
 }
