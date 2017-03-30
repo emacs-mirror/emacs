@@ -1991,6 +1991,16 @@ Bool SegClassCheck(SegClass klass)
   CHECKL(FUNCHECK(klass->fixEmergency));
   CHECKL(FUNCHECK(klass->reclaim));
   CHECKL(FUNCHECK(klass->walk));
+
+  /* Check that segment classes override sets of related methods. */
+  AVER((klass->init == SegAbsInit)
+       == (klass->instClassStruct.finish == SegAbsFinish));
+  AVER((klass->init == gcSegInit)
+       == (klass->instClassStruct.finish == gcSegFinish));
+  AVER((klass->merge == segTrivMerge) == (klass->split == segTrivSplit));
+  AVER((klass->fix == segNoFix) == (klass->fixEmergency == segNoFix));
+  AVER((klass->fix == segNoFix) == (klass->reclaim == segNoReclaim));
+
   CHECKS(SegClass, klass);
   return TRUE;
 }
@@ -2001,6 +2011,7 @@ Bool SegClassCheck(SegClass klass)
 DEFINE_CLASS(Inst, SegClass, klass)
 {
   INHERIT_CLASS(klass, SegClass, InstClass);
+  AVERT(InstClass, klass);
 }
 
 DEFINE_CLASS(Seg, Seg, klass)

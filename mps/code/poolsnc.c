@@ -163,6 +163,7 @@ DEFINE_CLASS(Buffer, SNCBuf, klass)
   klass->instClassStruct.finish = SNCBufFinish;
   klass->size = sizeof(SNCBufStruct);
   klass->init = SNCBufInit;
+  AVERT(BufferClass, klass);
 }
 
 
@@ -227,16 +228,32 @@ static Res sncSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 }
 
 
+/* sncSegFinish -- finish an SNC segment */
+
+static void sncSegFinish(Inst inst)
+{
+  Seg seg = MustBeA(Seg, inst);
+  SNCSeg sncseg = MustBeA(SNCSeg, seg);
+
+  sncseg->sig = SigInvalid;
+
+  /* finish the superclass fields last */
+  NextMethod(Inst, SNCSeg, finish)(inst);
+}
+
+
 /* SNCSegClass -- Class definition for SNC segments */
 
 DEFINE_CLASS(Seg, SNCSeg, klass)
 {
   INHERIT_CLASS(klass, SNCSeg, GCSeg);
   SegClassMixInNoSplitMerge(klass);  /* no support for this (yet) */
+  klass->instClassStruct.finish = sncSegFinish;
   klass->size = sizeof(SNCSegStruct);
   klass->init = sncSegInit;
   klass->scan = sncSegScan;
   klass->walk = sncSegWalk;
+  AVERT(SegClass, klass);
 }
 
 
@@ -680,6 +697,7 @@ DEFINE_CLASS(Pool, SNCPool, klass)
   klass->bufferClass = SNCBufClassGet;
   klass->totalSize = SNCTotalSize;
   klass->freeSize = SNCFreeSize;
+  AVERT(PoolClass, klass);
 }
 
 

@@ -302,6 +302,7 @@ DEFINE_CLASS(Seg, AWLSeg, klass)
   klass->fixEmergency = awlSegFix;
   klass->reclaim = awlSegReclaim;
   klass->walk = awlSegWalk;
+  AVERT(SegClass, klass);
 }
 
 
@@ -1256,6 +1257,7 @@ DEFINE_CLASS(Pool, AWLPool, klass)
   klass->bufferEmpty = AWLBufferEmpty;
   klass->totalSize = AWLTotalSize;
   klass->freeSize = AWLFreeSize;
+  AVERT(PoolClass, klass);
 }
 
 

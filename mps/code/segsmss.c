@@ -655,6 +655,7 @@ DEFINE_CLASS(Pool, AMSTPool, klass)
   klass->size = sizeof(AMSTStruct);
   klass->init = AMSTInit;
   klass->bufferFill = AMSTBufferFill;
+  AVERT(PoolClass, klass);
 }
 
 

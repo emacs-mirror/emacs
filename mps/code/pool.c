@@ -66,13 +66,6 @@ Bool PoolClassCheck(PoolClass klass)
          (klass->framePop == PoolNoFramePop));
   CHECKL((klass->rampBegin == PoolNoRampBegin) ==
          (klass->rampEnd == PoolNoRampEnd));
-
-  /* Check that pool classes that set attributes also override the
-     methods they imply. */
-  if (klass != &CLASS_STATIC(AbstractCollectPool)) {
-    /* FIXME: AttrGC iff segments are GCSeg with whiten, scan, fix,
-       reclaim methods. */
-  }
   
   CHECKS(PoolClass, klass);
   return TRUE;

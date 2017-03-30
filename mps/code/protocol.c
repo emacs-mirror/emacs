@@ -22,6 +22,7 @@ DEFINE_CLASS(Inst, Inst, klass)
 {
   InstClassInitInternal(klass);
   klass->instStruct.klass = CLASS(InstClass);
+  AVERT(InstClass, klass);
 }
 
 DEFINE_CLASS(Inst, InstClass, klass)
@@ -34,6 +35,7 @@ DEFINE_CLASS(Inst, InstClass, klass)
   klass->name = "InstClass";
   klass->level = ClassLevelInstClass;
   klass->display[ClassLevelInstClass] = CLASS_ID(InstClass);
+  AVERT(InstClass, klass);
 }
 
 static void InstClassInitInternal(InstClass klass)
