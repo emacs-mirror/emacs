@@ -686,6 +686,23 @@ failControl:
 }
 
 
+/* SegAccess -- mutator read/write access to a segment */
+
+Res SegAccess(Seg seg, Arena arena, Addr addr,
+              AccessSet mode, MutatorContext context)
+{
+  AVERT(Seg, seg);
+  AVERT(Arena, arena);
+  AVER(arena == PoolArena(SegPool(seg)));
+  AVER(SegBase(seg) <= addr);
+  AVER(addr < SegLimit(seg));
+  AVERT(AccessSet, mode);
+  AVERT(MutatorContext, context);
+
+  return Method(Seg, seg, access)(seg, arena, addr, mode, context);
+}
+
+
 /* SegWhiten -- whiten objects */
 
 Res SegWhiten(Seg seg, Trace trace)
@@ -1142,6 +1159,127 @@ static Res segTrivSplit(Seg seg, Seg segHi,
   RingAppend(&pool->segRing, SegPoolRing(segHi));
 
   return ResOK;
+}
+
+
+/* segNoAccess -- access method for non-GC segs
+ *
+ * Should be used (for the access method) by segment classes which do
+ * not expect to ever have pages which the mutator will fault on. That
+ * is, no protected pages, or only pages which are inaccessible by the
+ * mutator are protected.
+ */
+static Res segNoAccess(Seg seg, Arena arena, Addr addr,
+                       AccessSet mode, MutatorContext context)
+{
+  AVERT(Seg, seg);
+  AVERT(Arena, arena);
+  AVER(SegBase(seg) <= addr);
+  AVER(addr < SegLimit(seg));
+  AVERT(AccessSet, mode);
+  AVERT(MutatorContext, context);
+  UNUSED(mode);
+  UNUSED(context);
+
+  NOTREACHED;
+  return ResUNIMPL;
+}
+
+
+/* SegWholeAccess
+ *
+ * See also SegSingleAccess
+ *
+ * Should be used (for the access method) by segment classes which
+ * intend to handle page faults by scanning the entire segment and
+ * lowering the barrier.
+ */
+Res SegWholeAccess(Seg seg, Arena arena, Addr addr,
+                   AccessSet mode, MutatorContext context)
+{
+  AVERT(Seg, seg);
+  AVERT(Arena, arena);
+  AVER(arena == PoolArena(SegPool(seg)));
+  AVER(SegBase(seg) <= addr);
+  AVER(addr < SegLimit(seg));
+  AVERT(AccessSet, mode);
+  AVERT(MutatorContext, context);
+
+  UNUSED(addr);
+  UNUSED(context);
+  TraceSegAccess(arena, seg, mode);
+  return ResOK;
+}
+
+
+/* SegSingleAccess
+ *
+ * See also ArenaRead, and SegWhileAccess.
+ *
+ * Handles page faults by attempting emulation.  If the faulting
+ * instruction cannot be emulated then this function returns ResFAIL.
+ *
+ * Due to the assumptions made below, segment classes should only use
+ * this function if all words in an object are tagged or traceable.
+ *
+ * .single-access.assume.ref: It currently assumes that the address
+ * being faulted on contains a plain reference or a tagged
+ * non-reference.
+ *
+ * .single-access.improve.format: Later this will be abstracted
+ * through the client object format interface, so that no such
+ * assumption is necessary.
+ */
+Res SegSingleAccess(Seg seg, Arena arena, Addr addr,
+                    AccessSet mode, MutatorContext context)
+{
+  AVERT(Seg, seg);
+  AVERT(Arena, arena);
+  AVER(arena == PoolArena(SegPool(seg)));
+  AVER(SegBase(seg) <= addr);
+  AVER(addr < SegLimit(seg));
+  AVERT(AccessSet, mode);
+  AVERT(MutatorContext, context);
+
+  if (MutatorContextCanStepInstruction(context)) {
+    Ref ref;
+    Res res;
+
+    ShieldExpose(arena, seg);
+
+    if(mode & SegSM(seg) & AccessREAD) {
+      /* Read access. */
+      /* .single-access.assume.ref */
+      /* .single-access.improve.format */
+      ref = *(Ref *)addr;
+      /* .tagging: Check that the reference is aligned to a word boundary */
+      /* (we assume it is not a reference otherwise). */
+      if(WordIsAligned((Word)ref, sizeof(Word))) {
+        Rank rank;
+        /* See the note in TraceRankForAccess */
+        /* (<code/trace.c#scan.conservative>). */
+        
+        rank = TraceRankForAccess(arena, seg);
+        TraceScanSingleRef(arena->flippedTraces, rank, arena,
+                           seg, (Ref *)addr);
+      }
+    }
+    res = MutatorContextStepInstruction(context);
+    AVER(res == ResOK);
+
+    /* Update SegSummary according to the possibly changed reference. */
+    ref = *(Ref *)addr;
+    /* .tagging: ought to check the reference for a tag.  But
+     * this is conservative. */
+    SegSetSummary(seg, RefSetAdd(arena, SegSummary(seg), ref));
+
+    ShieldCover(arena, seg);
+
+    return ResOK;
+  } else {
+    /* couldn't single-step instruction */
+    return ResFAIL;
+  }
 }
 
 
@@ -1845,6 +1983,7 @@ Bool SegClassCheck(SegClass klass)
   CHECKL(FUNCHECK(klass->setRankSummary));
   CHECKL(FUNCHECK(klass->merge));
   CHECKL(FUNCHECK(klass->split));
+  CHECKL(FUNCHECK(klass->access));
   CHECKL(FUNCHECK(klass->whiten));
   CHECKL(FUNCHECK(klass->greyen));
   CHECKL(FUNCHECK(klass->blacken));
@@ -1882,6 +2021,7 @@ DEFINE_CLASS(Seg, Seg, klass)
   klass->setRankSummary = segNoSetRankSummary;
   klass->merge = segTrivMerge;
   klass->split = segTrivSplit;
+  klass->access = segNoAccess;
   klass->whiten = segNoWhiten;
   klass->greyen = segNoGreyen;
   klass->blacken = segNoBlacken;
@@ -1916,6 +2056,7 @@ DEFINE_CLASS(Seg, GCSeg, klass)
   klass->setRankSummary = gcSegSetRankSummary;
   klass->merge = gcSegMerge;
   klass->split = gcSegSplit;
+  klass->access = SegWholeAccess;
   klass->whiten = gcSegWhiten;
   klass->greyen = gcSegGreyen;
   klass->blacken = gcSegTrivBlacken;

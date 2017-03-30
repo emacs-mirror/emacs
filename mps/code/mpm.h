@@ -221,8 +221,6 @@ extern BufferClass PoolDefaultBufferClass(Pool pool);
 extern Res PoolAlloc(Addr *pReturn, Pool pool, Size size);
 extern void PoolFree(Pool pool, Addr old, Size size);
 extern Res PoolTraceBegin(Pool pool, Trace trace);
-extern Res PoolAccess(Pool pool, Seg seg, Addr addr,
-                      AccessSet mode, MutatorContext context);
 extern void PoolFreeWalk(Pool pool, FreeBlockVisitor f, void *p);
 extern Size PoolTotalSize(Pool pool);
 extern Size PoolFreeSize(Pool pool);
@@ -244,12 +242,6 @@ extern void PoolTrivBufferEmpty(Pool pool, Buffer buffer,
 extern Res PoolAbsDescribe(Inst inst, mps_lib_FILE *stream, Count depth);
 extern Res PoolNoTraceBegin(Pool pool, Trace trace);
 extern Res PoolTrivTraceBegin(Pool pool, Trace trace);
-extern Res PoolNoAccess(Pool pool, Seg seg, Addr addr,
-                        AccessSet mode, MutatorContext context);
-extern Res PoolSegAccess(Pool pool, Seg seg, Addr addr,
-                         AccessSet mode, MutatorContext context);
-extern Res PoolSingleAccess(Pool pool, Seg seg, Addr addr,
-                            AccessSet mode, MutatorContext context);
 extern Res PoolNoScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg);
 extern void PoolNoRampBegin(Pool pool, Buffer buf, Bool collectAll);
 extern void PoolTrivRampBegin(Pool pool, Buffer buf, Bool collectAll);
@@ -644,6 +636,12 @@ extern void SegSetRankSet(Seg seg, RankSet rankSet);
 extern void SegSetRankAndSummary(Seg seg, RankSet rankSet, RefSet summary);
 extern Res SegMerge(Seg *mergedSegReturn, Seg segLo, Seg segHi);
 extern Res SegSplit(Seg *segLoReturn, Seg *segHiReturn, Seg seg, Addr at);
+extern Res SegAccess(Seg seg, Arena arena, Addr addr,
+                     AccessSet mode, MutatorContext context);
+extern Res SegWholeAccess(Seg seg, Arena arena, Addr addr,
+                          AccessSet mode, MutatorContext context);
+extern Res SegSingleAccess(Seg seg, Arena arena, Addr addr,
+                           AccessSet mode, MutatorContext context);
 extern Res SegWhiten(Seg seg, Trace trace);
 extern void SegGreyen(Seg seg, Trace trace);
 extern void SegBlacken(Seg seg, TraceSet traceSet);
