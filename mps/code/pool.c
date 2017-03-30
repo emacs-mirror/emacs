@@ -16,7 +16,7 @@
  * Pool and PoolClass objects (create, destroy, check, various
  * accessors, and other miscellaneous functions).
  * .purpose.dispatch: Dispatch functions that implement the generic
- * function dispatch mechanism for Pool Classes (PoolAlloc, PoolFix,
+ * function dispatch mechanism for Pool Classes (PoolAlloc, PoolFree,
  * etc.).
  *
  * SOURCES
@@ -48,8 +48,6 @@ Bool PoolClassCheck(PoolClass klass)
   CHECKL(FUNCHECK(klass->bufferFill));
   CHECKL(FUNCHECK(klass->bufferEmpty));
   CHECKL(FUNCHECK(klass->access));
-  CHECKL(FUNCHECK(klass->fix));
-  CHECKL(FUNCHECK(klass->fixEmergency));
   CHECKL(FUNCHECK(klass->rampBegin));
   CHECKL(FUNCHECK(klass->rampEnd));
   CHECKL(FUNCHECK(klass->framePush));
@@ -75,8 +73,6 @@ Bool PoolClassCheck(PoolClass klass)
      methods they imply. */
   CHECKL(((klass->attr & AttrFMT) == 0) == (klass->walk == PoolNoWalk));
   if (klass != &CLASS_STATIC(AbstractCollectPool)) {
-    CHECKL(((klass->attr & AttrGC) == 0) == (klass->fix == PoolNoFix));
-    CHECKL(((klass->attr & AttrGC) == 0) == (klass->fixEmergency == PoolNoFix));
     /* FIXME: if AttrGC, segments must be GCSeg */
   }
   
@@ -282,44 +278,6 @@ Res PoolAccess(Pool pool, Seg seg, Addr addr,
   AVERT(MutatorContext, context);
 
   return Method(Pool, pool, access)(pool, seg, addr, mode, context);
-}
-
-
-/* PoolFix* -- fix a reference to an object in this pool
- *
- * See <design/pool/#req.fix>.
- */
-
-Res PoolFix(Pool pool, ScanState ss, Seg seg, Addr *refIO)
-{
-  AVERT_CRITICAL(Pool, pool);
-  AVERT_CRITICAL(ScanState, ss);
-  AVERT_CRITICAL(Seg, seg);
-  AVER_CRITICAL(pool == SegPool(seg));
-  AVER_CRITICAL(refIO != NULL);
-
-  /* Should only be fixing references to white segments. */
-  AVER_CRITICAL(TraceSetInter(SegWhite(seg), ss->traces) != TraceSetEMPTY);
-
-  return pool->fix(pool, ss, seg, refIO);
-}
-
-Res PoolFixEmergency(Pool pool, ScanState ss, Seg seg, Addr *refIO)
-{
-  Res res;
-
-  AVERT_CRITICAL(Pool, pool);
-  AVERT_CRITICAL(ScanState, ss);
-  AVERT_CRITICAL(Seg, seg);
-  AVER_CRITICAL(pool == SegPool(seg));
-  AVER_CRITICAL(refIO != NULL);
-
-  /* Should only be fixing references to white segments. */
-  AVER_CRITICAL(TraceSetInter(SegWhite(seg), ss->traces) != TraceSetEMPTY);
-
-  res = Method(Pool, pool, fixEmergency)(pool, ss, seg, refIO);
-  AVER_CRITICAL(res == ResOK);
-  return res;
 }
 
 

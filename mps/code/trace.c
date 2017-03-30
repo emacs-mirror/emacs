@@ -84,8 +84,8 @@ void ScanStateInit(ScanState ss, TraceSet ts, Arena arena,
 
   /* If the fix method is the normal GC fix, then we optimise the test for
      whether it's an emergency or not by updating the dispatch here, once. */
-  if (ss->fix == PoolFix && ArenaEmergency(arena))
-        ss->fix = PoolFixEmergency;
+  if (ss->fix == SegFix && ArenaEmergency(arena))
+        ss->fix = SegFixEmergency;
 
   ss->rank = rank;
   ss->traces = ts;
@@ -668,7 +668,7 @@ found:
   trace->ti = ti;
   trace->state = TraceINIT;
   trace->band = RankMIN;
-  trace->fix = PoolFix;
+  trace->fix = SegFix;
   trace->chain = NULL;
   STATISTIC(trace->preTraceArenaReserved = ArenaReserved(arena));
   trace->condemned = (Size)0;   /* nothing condemned yet */
@@ -1350,10 +1350,10 @@ mps_res_t _mps_fix2(mps_ss_t mps_ss, mps_addr_t *mps_ref_io)
   EVENT1(TraceFixSeg, seg);
   EVENT0(TraceFixWhite);
   pool = TractPool(tract);
-  res = (*ss->fix)(pool, ss, seg, &ref);
+  res = (*ss->fix)(seg, ss, &ref);
   if (res != ResOK) {
-    /* PoolFixEmergency must not fail. */
-    AVER_CRITICAL(ss->fix != PoolFixEmergency);
+    /* SegFixEmergency must not fail. */
+    AVER_CRITICAL(ss->fix != SegFixEmergency);
     /* Fix protocol (de facto): if Fix fails, ref must be unchanged
      * Justification for this restriction:
      * A: it simplifies;

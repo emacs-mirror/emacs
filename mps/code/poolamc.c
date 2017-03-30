@@ -29,7 +29,8 @@ static void amcSegReclaim(Seg seg, Trace trace);
 static Bool amcSegHasNailboard(Seg seg);
 static Nailboard amcSegNailboard(Seg seg);
 static Bool AMCCheck(AMC amc);
-static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO);
+static Res amcSegFix(Seg seg, ScanState ss, Ref *refIO);
+static Res amcSegFixEmergency(Seg seg, ScanState ss, Ref *refIO);
 
 /* local class declations */
 
@@ -341,6 +342,8 @@ DEFINE_CLASS(Seg, amcSeg, klass)
   klass->init = AMCSegInit;
   klass->whiten = amcSegWhiten;
   klass->scan = amcSegScan;
+  klass->fix = amcSegFix;
+  klass->fixEmergency = amcSegFixEmergency;
   klass->reclaim = amcSegReclaim;
 }
 
@@ -628,9 +631,10 @@ static Res amcGenDescribe(amcGen gen, mps_lib_FILE *stream, Count depth)
 
 /* amcSegCreateNailboard -- create nailboard for segment */
 
-static Res amcSegCreateNailboard(Seg seg, Pool pool)
+static Res amcSegCreateNailboard(Seg seg)
 {
   amcSeg amcseg = MustBeA(amcSeg, seg);
+  Pool pool = SegPool(seg);
   Nailboard board;
   Arena arena;
   Res res;
@@ -1148,7 +1152,7 @@ static Res amcSegWhiten(Seg seg, Trace trace)
         /* There is an active buffer, make sure it's nailed. */
         if(!amcSegHasNailboard(seg)) {
           if(SegNailed(seg) == TraceSetEMPTY) {
-            res = amcSegCreateNailboard(seg, pool);
+            res = amcSegCreateNailboard(seg);
             if(res != ResOK) {
               /* Can't create nailboard, don't condemn. */
               return ResOK;
@@ -1434,11 +1438,9 @@ static Res amcSegScan(Bool *totalReturn, Seg seg, ScanState ss)
  * If the segment has a nailboard then we use that to record the fix.
  * Otherwise we simply grey and nail the entire segment.
  */
-static void amcFixInPlace(Pool pool, Seg seg, ScanState ss, Ref *refIO)
+static void amcFixInPlace(Seg seg, ScanState ss, Ref *refIO)
 {
   Addr ref;
-
-  UNUSED(pool);
 
   ref = (Addr)*refIO;
   /* An ambiguous reference can point before the header. */
@@ -1467,21 +1469,21 @@ static void amcFixInPlace(Pool pool, Seg seg, ScanState ss, Ref *refIO)
 }
 
 
-/* AMCFixEmergency -- fix a reference, without allocating
+/* amcSegFixEmergency -- fix a reference, without allocating
  *
  * See <design/poolamc/#emergency.fix>.
  */
-static Res AMCFixEmergency(Pool pool, ScanState ss, Seg seg,
-                           Ref *refIO)
+static Res amcSegFixEmergency(Seg seg, ScanState ss, Ref *refIO)
 {
   Arena arena;
   Addr newRef;
+  Pool pool;
 
-  AVERC(AMCZPool, pool);
-  AVERT(ScanState, ss);
   AVERT(Seg, seg);
+  AVERT(ScanState, ss);
   AVER(refIO != NULL);
 
+  pool = SegPool(seg);
   arena = PoolArena(pool);
 
   ss->wasMarked = TRUE;
@@ -1502,18 +1504,19 @@ static Res AMCFixEmergency(Pool pool, ScanState ss, Seg seg,
   }
 
 fixInPlace: /* see <design/poolamc/>.Nailboard.emergency */
-  amcFixInPlace(pool, seg, ss, refIO);
+  amcFixInPlace(seg, ss, refIO);
   return ResOK;
 }
 
 
-/* AMCFix -- fix a reference to the pool
+/* amcSegFix -- fix a reference to the segment
  *
  * See <design/poolamc/#fix>.
  */
-static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
+static Res amcSegFix(Seg seg, ScanState ss, Ref *refIO)
 {
   Arena arena;
+  Pool pool;
   AMC amc;
   Res res;
   Format format;       /* cache of pool->format */
@@ -1531,7 +1534,6 @@ static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   Trace trace;
 
   /* <design/trace/#fix.noaver> */
-  AVERT_CRITICAL(Pool, pool);
   AVERT_CRITICAL(ScanState, ss);
   AVERT_CRITICAL(Seg, seg);
   AVER_CRITICAL(refIO != NULL);
@@ -1550,20 +1552,21 @@ static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     /* rather than "!amcSegHasNailboard(seg)" because this avoids */
     /* setting up a new nailboard when the segment was nailed, but */
     /* had no nailboard.  This must be avoided because otherwise */
-    /* assumptions in AMCFixEmergency will be wrong (essentially */
+    /* assumptions in amcSegFixEmergency will be wrong (essentially */
     /* we will lose some pointer fixes because we introduced a */
     /* nailboard). */
     if(SegNailed(seg) == TraceSetEMPTY) {
-      res = amcSegCreateNailboard(seg, pool);
+      res = amcSegCreateNailboard(seg);
       if(res != ResOK)
         return res;
       STATISTIC(++ss->nailCount);
       SegSetNailed(seg, TraceSetUnion(SegNailed(seg), ss->traces));
     }
-    amcFixInPlace(pool, seg, ss, refIO);
+    amcFixInPlace(seg, ss, refIO);
     return ResOK;
   }
 
+  pool = SegPool(seg);
   amc = MustBeA_CRITICAL(AMCZPool, pool);
   AVERT_CRITICAL(AMC, amc);
   format = pool->format;
@@ -1993,8 +1996,6 @@ DEFINE_CLASS(Pool, AMCZPool, klass)
   klass->init = AMCZInit;
   klass->bufferFill = AMCBufferFill;
   klass->bufferEmpty = AMCBufferEmpty;
-  klass->fix = AMCFix;
-  klass->fixEmergency = AMCFixEmergency;
   klass->rampBegin = AMCRampBegin;
   klass->rampEnd = AMCRampEnd;
   klass->walk = AMCWalk;
