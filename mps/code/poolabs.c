@@ -69,9 +69,6 @@ void PoolClassMixInFormat(PoolClass klass)
 {
   /* Can't check klass because it's not initialized yet */
   klass->attr |= AttrFMT;
-  /* walk is part of the format protocol, but there is no useful
-     default method */
-  klass->walk = PoolNoWalk;
 }
 
 
@@ -188,7 +185,6 @@ DEFINE_CLASS(Pool, AbstractPool, klass)
   klass->rampEnd = PoolNoRampEnd;
   klass->framePush = PoolNoFramePush;
   klass->framePop = PoolNoFramePop;
-  klass->walk = PoolNoWalk;
   klass->freewalk = PoolTrivFreeWalk;
   klass->bufferClass = PoolNoBufferClass;
   klass->debugMixin = PoolNoDebugMixin;
@@ -566,20 +562,6 @@ Res PoolTrivFramePop(Pool pool, Buffer buf, AllocFrame frame)
   /* frame is of an abstract type & can't be checked */
   UNUSED(frame);
   return ResOK;
-}
-
-
-void PoolNoWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
-                void *p, size_t s)
-{
-  AVERT(Pool, pool);
-  AVERT(Seg, seg);
-  AVER(FUNCHECK(f));
-  /* p and s are arbitrary, hence can't be checked */
-  UNUSED(p);
-  UNUSED(s);
-
-  NOTREACHED;
 }
 
 

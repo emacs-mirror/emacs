@@ -64,7 +64,6 @@ typedef struct mps_pool_class_s {
   PoolRampEndMethod rampEnd;    /* end a ramp pattern */
   PoolFramePushMethod framePush; /* push an allocation frame */
   PoolFramePopMethod framePop;  /* pop an allocation frame */
-  PoolWalkMethod walk;          /* walk over a segment */
   PoolFreeWalkMethod freewalk;  /* walk over free blocks */
   PoolBufferClassMethod bufferClass; /* default BufferClass of pool */
   PoolDebugMixinMethod debugMixin; /* find the debug mixin, if any */
@@ -227,6 +226,7 @@ typedef struct SegClassStruct {
   SegFixMethod fix;             /* referent reachable during tracing */
   SegFixMethod fixEmergency;    /* as fix, no failure allowed */
   SegReclaimMethod reclaim;     /* reclaim dead objects after tracing */
+  SegWalkMethod walk;           /* walk over a segment */
   Sig sig;                      /* .class.end-sig */
 } SegClassStruct;
 

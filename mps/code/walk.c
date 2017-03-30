@@ -76,11 +76,9 @@ static void ArenaFormattedObjectsWalk(Arena arena, FormattedObjectsVisitor f,
 
   if (SegFirst(&seg, arena)) {
     do {
-      Pool pool;
-      pool = SegPool(seg);
-      if (PoolHasAttr(pool, AttrFMT)) {
+      if (PoolHasAttr(SegPool(seg), AttrFMT)) {
         ShieldExpose(arena, seg);
-        PoolWalk(pool, seg, f, p, s);
+        SegWalk(seg, f, p, s);
         ShieldCover(arena, seg);
       }
     } while(SegNext(&seg, arena, seg));

@@ -52,6 +52,7 @@ DECLARE_CLASS(Buffer, SNCBuf, RankBuf);
 static Bool SNCCheck(SNC snc);
 static void sncPopPartialSegChain(SNC snc, Buffer buf, Seg upTo);
 static Res sncSegScan(Bool *totalReturn, Seg seg, ScanState ss);
+static void sncSegWalk(Seg seg, FormattedObjectsVisitor f, void *p, size_t s);
 
 
 /* Management of segment chains
@@ -235,6 +236,7 @@ DEFINE_CLASS(Seg, SNCSeg, klass)
   klass->size = sizeof(SNCSegStruct);
   klass->init = sncSegInit;
   klass->scan = sncSegScan;
+  klass->walk = sncSegWalk;
 }
 
 
@@ -586,10 +588,8 @@ static Res SNCFramePop(Pool pool, Buffer buf, AllocFrame frame)
 }
 
 
-static void SNCWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
-                    void *p, size_t s)
+static void sncSegWalk(Seg seg, FormattedObjectsVisitor f, void *p, size_t s)
 {
-  AVERT(Pool, pool);
   AVERT(Seg, seg);
   AVER(FUNCHECK(f));
   /* p and s are arbitrary closures and can't be checked */
@@ -600,12 +600,11 @@ static void SNCWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
     Addr object = SegBase(seg);
     Addr nextObject;
     Addr limit;
-    SNC snc;
+    Pool pool = SegPool(seg);
     Format format;
+    Bool b = PoolFormat(&format, pool);
+    AVER(b);
 
-    snc = PoolSNC(pool);
-    AVERT(SNC, snc);
-    format = pool->format;
     limit = SegBufferScanLimit(seg);
 
     while(object < limit) {
@@ -679,7 +678,6 @@ DEFINE_CLASS(Pool, SNCPool, klass)
   klass->bufferEmpty = SNCBufferEmpty;
   klass->framePush = SNCFramePush;
   klass->framePop = SNCFramePop;
-  klass->walk = SNCWalk;
   klass->bufferClass = SNCBufClassGet;
   klass->totalSize = SNCTotalSize;
   klass->freeSize = SNCFreeSize;

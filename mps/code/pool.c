@@ -52,7 +52,6 @@ Bool PoolClassCheck(PoolClass klass)
   CHECKL(FUNCHECK(klass->rampEnd));
   CHECKL(FUNCHECK(klass->framePush));
   CHECKL(FUNCHECK(klass->framePop));
-  CHECKL(FUNCHECK(klass->walk));
   CHECKL(FUNCHECK(klass->freewalk));
   CHECKL(FUNCHECK(klass->bufferClass));
   CHECKL(FUNCHECK(klass->debugMixin));
@@ -71,9 +70,10 @@ Bool PoolClassCheck(PoolClass klass)
 
   /* Check that pool classes that set attributes also override the
      methods they imply. */
-  CHECKL(((klass->attr & AttrFMT) == 0) == (klass->walk == PoolNoWalk));
+  /* FIXME: AttrFMT iff segments have walk method. */
   if (klass != &CLASS_STATIC(AbstractCollectPool)) {
-    /* FIXME: if AttrGC, segments must be GCSeg */
+    /* FIXME: AttrGC iff segments are GCSeg with whiten, scan, fix,
+       reclaim methods. */
   }
   
   CHECKS(PoolClass, klass);
@@ -278,19 +278,6 @@ Res PoolAccess(Pool pool, Seg seg, Addr addr,
   AVERT(MutatorContext, context);
 
   return Method(Pool, pool, access)(pool, seg, addr, mode, context);
-}
-
-
-/* PoolWalk -- walk objects in this segment */
-
-void PoolWalk(Pool pool, Seg seg, FormattedObjectsVisitor f, void *p, size_t s)
-{
-  AVERT(Pool, pool);
-  AVERT(Seg, seg);
-  AVER(FUNCHECK(f));
-  /* p and s are arbitrary values, hence can't be checked. */
-
-  Method(Pool, pool, walk)(pool, seg, f, p, s);
 }
 
 

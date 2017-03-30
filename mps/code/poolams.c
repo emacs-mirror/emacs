@@ -31,6 +31,7 @@ static Res amsSegWhiten(Seg seg, Trace trace);
 static Res amsSegScan(Bool *totalReturn, Seg seg, ScanState ss);
 static Res amsSegFix(Seg seg, ScanState ss, Ref *refIO);
 static void amsSegReclaim(Seg seg, Trace trace);
+static void amsSegWalk(Seg seg, FormattedObjectsVisitor f, void *p, size_t s);
 
 
 /* AMSDebugStruct -- structure for a debug subclass */
@@ -617,6 +618,7 @@ DEFINE_CLASS(Seg, AMSSeg, klass)
   klass->fix = amsSegFix;
   klass->fixEmergency = amsSegFix;
   klass->reclaim = amsSegReclaim;
+  klass->walk = amsSegWalk;
   AVERT(SegClass, klass);
 }
 
@@ -1602,25 +1604,17 @@ static void amsSegReclaim(Seg seg, Trace trace)
 }
 
 
-/* AMSWalk -- walk formatted objects in AMC pool */
+/* amsSegWalk -- walk formatted objects in AMC segment */
 
-static void AMSWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
-                    void *p, size_t s)
+static void amsSegWalk(Seg seg, FormattedObjectsVisitor f, void *p, size_t s)
 {
-  AMS ams;
-  AMSSeg amsseg;
+  AMSSeg amsseg = MustBeA(AMSSeg, seg);
+  Pool pool = SegPool(seg);
   Addr object, base, limit;
   Format format;
 
-  AVERT(Pool, pool);
-  AVERT(Seg, seg);
   AVER(FUNCHECK(f));
   /* p and s are arbitrary closures and can't be checked */
-
-  ams = PoolAMS(pool);
-  AVERT(AMS, ams);
-  amsseg = Seg2AMSSeg(seg);
-  AVERT(AMSSeg, amsseg);
 
   format = pool->format;
 
@@ -1770,7 +1764,6 @@ DEFINE_CLASS(Pool, AMSPool, klass)
   klass->bufferClass = RankBufClassGet;
   klass->bufferFill = AMSBufferFill;
   klass->bufferEmpty = AMSBufferEmpty;
-  klass->walk = AMSWalk;
   klass->freewalk = AMSFreeWalk;
   klass->totalSize = AMSTotalSize;
   klass->freeSize = AMSFreeSize;
