@@ -1985,7 +1985,6 @@ static Res AMCDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 DEFINE_CLASS(Pool, AMCZPool, klass)
 {
   INHERIT_CLASS(klass, AMCZPool, AbstractSegBufPool);
-  PoolClassMixInFormat(klass);
   PoolClassMixInCollect(klass);
   klass->instClassStruct.describe = AMCDescribe;
   klass->instClassStruct.finish = AMCFinish;

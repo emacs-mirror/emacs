@@ -1352,17 +1352,16 @@ static void segNoReclaim(Seg seg, Trace trace)
 }
 
 
-/* segNoWalk -- walk method for non-formatted segs */
+/* segTrivWalk -- walk method for non-formatted segs */
 
-static void segNoWalk(Seg seg, FormattedObjectsVisitor f, void *p, size_t s)
+static void segTrivWalk(Seg seg, FormattedObjectsVisitor f, void *p, size_t s)
 {
   AVERT(Seg, seg);
   AVER(FUNCHECK(f));
   /* p and s are arbitrary, hence can't be checked */
   UNUSED(p);
   UNUSED(s);
-
-  NOTREACHED;
+  NOOP;
 }
 
 
@@ -2029,7 +2028,7 @@ DEFINE_CLASS(Seg, Seg, klass)
   klass->fix = segNoFix;
   klass->fixEmergency = segNoFix;
   klass->reclaim = segNoReclaim;
-  klass->walk = segNoWalk;
+  klass->walk = segTrivWalk;
   klass->sig = SegClassSig;
   AVERT(SegClass, klass);
 }
@@ -2064,7 +2063,7 @@ DEFINE_CLASS(Seg, GCSeg, klass)
   klass->fix = segNoFix; /* no useful default method */
   klass->fixEmergency = segNoFix; /* no useful default method */
   klass->reclaim = segNoReclaim; /* no useful default method */
-  klass->walk = segNoWalk; /* no useful default method */
+  klass->walk = segTrivWalk;
   AVERT(SegClass, klass);
 }
 

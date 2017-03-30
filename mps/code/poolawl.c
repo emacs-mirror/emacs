@@ -1247,7 +1247,6 @@ static Size AWLFreeSize(Pool pool)
 DEFINE_CLASS(Pool, AWLPool, klass)
 {
   INHERIT_CLASS(klass, AWLPool, AbstractCollectPool);
-  PoolClassMixInFormat(klass);
   klass->instClassStruct.finish = AWLFinish;
   klass->size = sizeof(AWLPoolStruct);
   klass->varargs = AWLVarargs;

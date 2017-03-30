@@ -1755,7 +1755,6 @@ static Res AMSDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 DEFINE_CLASS(Pool, AMSPool, klass)
 {
   INHERIT_CLASS(klass, AMSPool, AbstractCollectPool);
-  PoolClassMixInFormat(klass);
   klass->instClassStruct.describe = AMSDescribe;
   klass->instClassStruct.finish = AMSFinish;
   klass->size = sizeof(AMSStruct);
