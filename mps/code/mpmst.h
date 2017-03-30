@@ -59,7 +59,6 @@ typedef struct mps_pool_class_s {
   PoolFreeMethod free;          /* free memory to pool */
   PoolBufferFillMethod bufferFill;      /* out-of-line reserve */
   PoolBufferEmptyMethod bufferEmpty;    /* out-of-line commit */
-  PoolAccessMethod access;      /* handles read/write accesses */
   PoolRampBeginMethod rampBegin;/* begin a ramp pattern */
   PoolRampEndMethod rampEnd;    /* end a ramp pattern */
   PoolFramePushMethod framePush; /* push an allocation frame */
@@ -219,6 +218,7 @@ typedef struct SegClassStruct {
   SegSetRankSummaryMethod setRankSummary; /* change rank set & summary */
   SegMergeMethod merge;         /* merge two adjacent segments */
   SegSplitMethod split;         /* split a segment into two */
+  SegAccessMethod access;       /* handles read/write accesses */
   SegWhitenMethod whiten;       /* whiten objects */
   SegGreyenMethod greyen;       /* greyen non-white objects */
   SegBlackenMethod blacken;     /* blacken grey objects without scanning */

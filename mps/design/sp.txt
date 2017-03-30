@@ -88,8 +88,8 @@ documented in the manual.
 ====  ======  ========================
 Args  Locals  Function
 ====  ======  ========================
-   5       0  ``PoolAccess()``
-   5       0  ``PoolSegAccess()``
+   5       0  ``SegAccess()``
+   5       0  ``SegWholeAccess()``
    3       5  ``TraceSegAccess()``
    4       1  ``traceScanSeg()``
    4       8  ``traceScanSegRes()``

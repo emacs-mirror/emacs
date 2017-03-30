@@ -47,7 +47,6 @@ Bool PoolClassCheck(PoolClass klass)
   CHECKL(FUNCHECK(klass->free));
   CHECKL(FUNCHECK(klass->bufferFill));
   CHECKL(FUNCHECK(klass->bufferEmpty));
-  CHECKL(FUNCHECK(klass->access));
   CHECKL(FUNCHECK(klass->rampBegin));
   CHECKL(FUNCHECK(klass->rampEnd));
   CHECKL(FUNCHECK(klass->framePush));
@@ -264,20 +263,6 @@ void PoolFree(Pool pool, Addr old, Size size)
   Method(Pool, pool, free)(pool, old, size);
  
   EVENT3(PoolFree, pool, old, size);
-}
-
-
-Res PoolAccess(Pool pool, Seg seg, Addr addr,
-               AccessSet mode, MutatorContext context)
-{
-  AVERT(Pool, pool);
-  AVERT(Seg, seg);
-  AVER(SegBase(seg) <= addr);
-  AVER(addr < SegLimit(seg));
-  AVERT(AccessSet, mode);
-  AVERT(MutatorContext, context);
-
-  return Method(Pool, pool, access)(pool, seg, addr, mode, context);
 }
 
 
