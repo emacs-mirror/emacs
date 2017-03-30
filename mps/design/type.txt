@@ -97,8 +97,6 @@ are:
 ===================  ===================================================
 Attribute            Description
 ===================  ===================================================
-``AttrFMT``          Contains formatted objects.
-                     Used to decide which pools to walk.
 ``AttrGC``           Is garbage collecting, that is, parts may be
                      reclaimed. Used to decide which segments are
                      condemned.

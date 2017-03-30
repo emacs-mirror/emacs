@@ -69,7 +69,6 @@ Bool PoolClassCheck(PoolClass klass)
 
   /* Check that pool classes that set attributes also override the
      methods they imply. */
-  /* FIXME: AttrFMT iff segments have walk method. */
   if (klass != &CLASS_STATIC(AbstractCollectPool)) {
     /* FIXME: AttrGC iff segments are GCSeg with whiten, scan, fix,
        reclaim methods. */
@@ -98,9 +97,7 @@ Bool PoolCheck(Pool pool)
   /* Cannot check pool->bufferSerial */
   CHECKD_NOSIG(Ring, &pool->segRing);
   CHECKL(AlignCheck(pool->alignment));
-  /* Normally pool->format iff PoolHasAttr(pool, AttrFMT), but during
-     pool initialization the class may not yet be set. */
-  CHECKL(!PoolHasAttr(pool, AttrFMT) || pool->format != NULL);
+  /* Cannot check pool->format. */
   return TRUE;
 }
 

@@ -669,7 +669,6 @@ static Size SNCFreeSize(Pool pool)
 DEFINE_CLASS(Pool, SNCPool, klass)
 {
   INHERIT_CLASS(klass, SNCPool, AbstractScanPool);
-  PoolClassMixInFormat(klass);
   klass->instClassStruct.finish = SNCFinish;
   klass->size = sizeof(SNCStruct);
   klass->varargs = SNCVarargs;

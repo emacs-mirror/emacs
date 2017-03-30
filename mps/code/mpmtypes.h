@@ -272,10 +272,9 @@ typedef Res (*LandFindInZonesMethod)(Bool *foundReturn, Range rangeReturn, Range
 #define TraceSetUNIV    ((TraceSet)((1u << TraceLIMIT) - 1))
 #define RankSetEMPTY    BS_EMPTY(RankSet)
 #define RankSetUNIV     ((RankSet)((1u << RankLIMIT) - 1))
-#define AttrFMT         ((Attr)(1<<0))  /* <design/type/#attr> */
-#define AttrGC          ((Attr)(1<<1))
-#define AttrMOVINGGC    ((Attr)(1<<2))
-#define AttrMASK        (AttrFMT | AttrGC | AttrMOVINGGC)
+#define AttrGC          ((Attr)(1<<0))
+#define AttrMOVINGGC    ((Attr)(1<<1))
+#define AttrMASK        (AttrGC | AttrMOVINGGC)
 
 
 /* Locus preferences */

@@ -339,10 +339,9 @@ _`.method.walk`: The ``walk`` method must call the visitor function
 ``f`` (along with its closure parameters ``v`` and ``s`` and the
 appropriate object format) once for each of the *black* objects in the
 segment ``seg``. Padding objects may or may not be included in the
-walk, at the segmen's discretion: it is the responsibility of the
+walk, at the segment's discretion: it is the responsibility of the
 client program to handle them. Forwarding objects must not be included
-in the walk. Segment classes need not provide this method. If they do,
-pool classes that use them must set the ``AttrFMT`` attribute. This
+in the walk. Segment classes need not provide this method. This
 method is called by the genetic function ``SegWalk()``, which is
 called by the heap walker ``mps_arena_formatted_objects_walk()``.
 
