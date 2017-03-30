@@ -1014,6 +1014,13 @@ Bool BufferClassCheck(BufferClass klass)
   CHECKL(FUNCHECK(klass->rankSet));
   CHECKL(FUNCHECK(klass->setRankSet));
   CHECKL(FUNCHECK(klass->reassignSeg));
+
+  /* Check that buffer classes override sets of related methods. */
+  CHECKL((klass->init == BufferAbsInit)
+         == (klass->instClassStruct.finish == BufferAbsFinish));
+  CHECKL((klass->attach == bufferTrivAttach)
+         == (klass->detach == bufferTrivDetach));
+
   CHECKS(BufferClass, klass);
   return TRUE;
 }
