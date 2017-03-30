@@ -255,7 +255,7 @@ there are grey objects in the segment, because the grey objects might
 have been subsequently scanned and blackened.
 
 _`.marked.fix`: The ``marksChanged`` flag is set ``TRUE`` by
-``AMSFix()`` when an object is made grey.
+``amsSegFix()`` when an object is made grey.
 
 _`.marked.scan`: ``amsSegScan()`` must blacken all grey objects on the
 segment, so it must iterate over the segment until all grey objects
@@ -463,7 +463,7 @@ every translation -- we could cache that.
 
 _`.grey-mutator`: To enforce the restriction set in `.not-req.grey`_
 we check that all the traces are flipped in ``amsSegScan()``. It would
-be good to check in ``AMSFix()`` as well, but we can't do that,
+be good to check in ``amsSegFix()`` as well, but we can't do that,
 because it's called during the flip, and we can't tell the difference
 between the flip and the grey mutator phases with the current tracer
 interface.

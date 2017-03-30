@@ -439,8 +439,8 @@ segment to survive even though there are no surviving objects on it.
 Emergency tracing
 -----------------
 
-_`.emergency.fix`: ``AMCFixEmergency()`` is at the core of AMC's
-emergency tracing policy (unsurprisingly). ``AMCFixEmergency()``
+_`.emergency.fix`: ``amcSegFixEmergency()`` is at the core of AMC's
+emergency tracing policy (unsurprisingly). ``amcSegFixEmergency()``
 chooses exactly one of three options:
 
 #. use the existing nailboard structure to record the fix;
@@ -456,8 +456,8 @@ is used to snapout the pointer. Otherwise it is as for an
 
 _`.emergency.scan`: This is basically as before, the only complication
 is that when scanning a nailed segment we may need to do multiple
-passes, as ``FixEmergency()`` may introduce new marks into the nail
-board.
+passes, as ``amcSegFixEmergency()`` may introduce new marks into the
+nail board.
 
 
 Buffers
@@ -737,9 +737,9 @@ exposed, in which case the group attached to it should be exposed. See
 `.flush.cover`_.
 
 
-``Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)``
+``Res amcSegFix(Seg seg, ScanState ss, Ref *refIO)``
 
-_`.fix`: Fix a reference to the pool.
+_`.fix`: Fix a reference to an AMC segment.
 
 Ambiguous references lock down an entire segment by removing it
 from old-space and also marking it grey for future scanning.

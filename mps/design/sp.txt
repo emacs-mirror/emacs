@@ -97,7 +97,8 @@ Args  Locals  Function
    4       5  ``amcSegScan()``
    4       0  ``FormatScan()``
    3     ≤64  ``format->scan()``
-   4      15  ``AMCFix()``
+   3       0  ``SegFix()``
+   4      15  ``amcSegFix()``
    4       5  ``BufferFill()``
    6      10  ``AMCBufferFill()``
    6       9  ``PoolGenAlloc()``
@@ -112,13 +113,12 @@ Args  Locals  Function
    3       7  ``SplaySplay()``
    4       8  ``SplaySplitDown()``
    3       0  ``SplayZig()``
- 113    ≤190  **Total**
+ 116    ≤190  **Total**
 ====  ======  ========================
 
-We expect that a compiler will often be able to share stack space
-between function arguments and local variables, but in the worst case
-where it cannot, this call requires no more than 299 words of stack
-space.
+We expect that a compiler will not need to push all local variables
+onto the stack, but even in the case where it pushes all of them, this
+call requires no more than 306 words of stack space.
 
 This isn't necessarily the deepest call into the MPS (the MPS's
 modular design and class system makes it hard to do a complete

@@ -88,11 +88,11 @@ operation is to look up the segment pointed to by the pointer and see if
 it was condemned.  This is a fast lookup.
 
 After that, each pool class must decide whether the pointer is to a
-condemned object and do something to preserve it.  This code is still
-critical.  The MPS will have tried to condemn objects that are dead, but
-those objects are still likely to be in segments with other objects that
-must be preserved.  The pool class fix method must quickly distinguish
-between them.
+condemned object and do something to preserve it. This code is still
+critical. The MPS will have tried to condemn objects that are dead,
+but those objects are still likely to be in segments with other
+objects that must be preserved. The segment class fix method must
+quickly distinguish between them.
 
 Furthermore, many objects will be preserved at least once in their
 lifetime, so even the code that preserves an object needs to be highly
@@ -126,10 +126,10 @@ Very briefly, the critical path consists of five stages:
 
    .. _trace.c: ../code/trace.c
 
-#. The third-stage fix, which filters out pointers using pool-specific
-   information. Implemented in pool class functions called
-   ``AMCFix()``, ``LOFix()``, etc. in pool*.c.
-   
+#. The third-stage fix, which filters out pointers using
+   segment-specific information. Implemented in segment class
+   functions called ``amcSegFix()``, ``loSegFix()``, etc. in pool*.c.
+
 #. Preserving the object, which might entail:
 
    - marking_ it to prevent it being recycled; and/or
@@ -266,36 +266,30 @@ is with luck still in the processor cache. The reason there is a
 dispatch at all is to allow for a fast changeover to emergency garbage
 collection, or overriding of garbage collection with extra operations.
 Those are beyond the scope of this document. Normally, ``ss->fix``
-points at ``PoolFix()``, and we rely somewhat on modern processor
-`branch target prediction
-<https://en.wikipedia.org/wiki/Branch_target_predictor>`_).
-``PoolFix()`` is passed the pool, which is fetched from the tract
-table entry, and that should be in the cache.
+points at ``SegFix()``.
 
-``PoolFix()`` itself dispatches to the pool class. Normally, a
-dispatch to a pool class would indirect through the pool class object.
-That would be a double indirection from the tract, so instead we have
-a cache of the pool's fix method in the pool object. This also allows
-a pool class to vary its fix method per pool instance if that would
-improve performance.
+``SegFix()`` is passed the segment, which is fetched from the tract
+table entry, and that should be in the cache. ``SegFix()`` itself
+dispatches to the segment class.
 
 
-The third stage fix in the pool class
--------------------------------------
-The final stage of fixing is entirely dependent on the pool class.  The
-MPM can't, in general, know how the objects within a pool are arranged,
-so this is pool class specific code.
+The third stage fix in the segment class
+----------------------------------------
+The final stage of fixing is entirely dependent on the segment class.
+The MPM can't, in general, know how the objects within a segment are
+arranged, so this is segment class specific code.
 
-Furthermore, the pool class must make decisions based on the "reference
-rank" of the pointer.  If a pointer is ambiguous (``RankAMBIG``) then it
-can't be changed, so even a copying pool class can't move an object. 
-On the other hand, if the pointer is weak (``RankWEAK``) then the pool fix
-method shouldn't preserve the object at all, even if it's condemned.
+Furthermore, the segment class must make decisions based on the
+"reference rank" of the pointer. If a pointer is ambiguous
+(``RankAMBIG``) then it can't be changed, so even a copying segment
+class can't move an object. On the other hand, if the pointer is weak
+(``RankWEAK``) then the segment fix method shouldn't preserve the
+object at all, even if it's condemned.
 
-The exact details of the logic that the pool fix must implement in
+The exact details of the logic that the segment fix must implement in
 order to co-operate with the MPM and other pools are beyond the scope
 of this document, which is about the critical path.  Since it is on
-the critical path, it's important that whatever the pool fix does is
+the critical path, it's important that whatever the segment fix does is
 simple and fast and returns to scanning as soon as possible.
 
 The first step, though, is to further filter out pointers which aren't
@@ -308,23 +302,23 @@ implements a copying collector), or was already moved when fixing a
 previous reference to it, the reference being fixed must be updated
 (this is the origin of the term "fix").
 
-As a simple example, ``LOFix()`` is the pool fix method for the LO
-(Leaf Object) pool class. It implements a marking garbage collector,
-and does not have to worry about scanning preserved objects because it
-is used to store objects that don't contain pointers. (It is used in
-compiler run-time systems to store binary data such as character
-strings, thus avoiding any scanning, decoding, or remembered set
-overhead for them.)
+As a simple example, ``loSegFix()`` is the segment fix method for
+segments belonging to the LO (Leaf Object) pool class. It implements a
+marking garbage collector, and does not have to worry about scanning
+preserved objects because it is used to store objects that don't
+contain pointers. (It is used in compiler run-time systems to store
+binary data such as character strings, thus avoiding any scanning,
+decoding, or remembered set overhead for them.)
 
-``LOFix()`` filters any ambiguous pointers that aren't aligned, since
-they can't point to objects it allocated. Otherwise it subtracts the
-segment base address and shifts the result to get an index into a mark
-bit table. If the object wasn't marked and the pointer is weak, then
-it sets the pointer to zero, since the object is about to be recycled.
-Otherwise, the mark bit is set, which preserves the object from
-recycling when ``loSegReclaim()`` is called later on. ``LOFix()``
-illustrates about the minimum and most efficient thing a pool fix
-method can do.
+``loSegFix()`` filters any ambiguous pointers that aren't aligned,
+since they can't point to objects it allocated. Otherwise it subtracts
+the segment base address and shifts the result to get an index into a
+mark bit table. If the object wasn't marked and the pointer is weak,
+then it sets the pointer to zero, since the object is about to be
+recycled. Otherwise, the mark bit is set, which preserves the object
+from recycling when ``loSegReclaim()`` is called later on.
+``loSegFix()`` illustrates about the minimum and most efficient thing
+a segment fix method can do.
 
 
 Other considerations

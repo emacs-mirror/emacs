@@ -27,14 +27,14 @@ Architecture
 _`.protocol.was-marked`: The ``ScanState`` has a ``Bool``
 ``wasMarked`` field. This is used for finalization.
 
-_`.protocol.was-marked.set`: All pool-specific fix methods must set
+_`.protocol.was-marked.set`: All segment-specific fix methods must set
 the ``wasMarked`` field in the ``ScanState`` that they are passed.
 
-_`.protocol.was-marked.meaning`: If the pool-specific fix method sets
-the ``wasMarked`` field to ``FALSE`` it is indicating the object
+_`.protocol.was-marked.meaning`: If the segment-specific fix method
+sets the ``wasMarked`` field to ``FALSE`` it is indicating the object
 referred to by the ref (the one that it is supposed to be fixing) has
-not previously been marked (ie, this is the first reference to this
-object that has been fixed), and that the object was white (in
+not previously been marked (that is, this is the first reference to
+this object that has been fixed), and that the object was white (in
 condemned space).
 
 _`.protocol.was-marked.conservative`: It is always okay to set the
