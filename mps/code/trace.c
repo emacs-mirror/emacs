@@ -1286,7 +1286,6 @@ mps_res_t _mps_fix2(mps_ss_t mps_ss, mps_addr_t *mps_ref_io)
   Tract tract;
   Seg seg;
   Res res;
-  Pool pool;
 
   /* Special AVER macros are used on the critical path. */
   /* See <design/trace/#fix.noaver> */
@@ -1349,7 +1348,6 @@ mps_res_t _mps_fix2(mps_ss_t mps_ss, mps_addr_t *mps_ref_io)
   STATISTIC(++ss->whiteSegRefCount);
   EVENT1(TraceFixSeg, seg);
   EVENT0(TraceFixWhite);
-  pool = TractPool(tract);
   res = (*ss->fix)(seg, ss, &ref);
   if (res != ResOK) {
     /* SegFixEmergency must not fail. */
