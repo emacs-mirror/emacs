@@ -601,7 +601,7 @@ static void sncSegWalk(Seg seg, FormattedObjectsVisitor f, void *p, size_t s)
     Addr nextObject;
     Addr limit;
     Pool pool = SegPool(seg);
-    Format format;
+    Format format = NULL; /* Avoid "may be used uninitialized" */
     Bool b = PoolFormat(&format, pool);
     AVER(b);
 
