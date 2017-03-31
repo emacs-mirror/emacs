@@ -63,7 +63,8 @@ static Res loSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args);
 static void loSegFinish(Inst inst);
 static Count loSegGrains(LOSeg loseg);
 static Res loSegWhiten(Seg seg, Trace trace);
-static void loSegWalk(Seg seg, FormattedObjectsVisitor f, void *p, size_t s);
+static void loSegWalk(Seg seg, Format format, FormattedObjectsVisitor f,
+                      void *p, size_t s);
 
 
 /* LOSegClass -- Class definition for LO segments */
@@ -374,21 +375,17 @@ static void loSegReclaim(Seg seg, Trace trace)
  * white, they are still validly formatted as this is a leaf pool, so
  * there can't be any dangling references.
  */
-static void loSegWalk(Seg seg, FormattedObjectsVisitor f, void *p, size_t s)
+static void loSegWalk(Seg seg, Format format, FormattedObjectsVisitor f,
+                      void *p, size_t s)
 {
   Addr base;
   LOSeg loseg = MustBeA(LOSeg, seg);
   Pool pool = SegPool(seg);
   Index i, grains;
-  Format format = NULL; /* suppress "may be used uninitialized" warning */
-  Bool b;
 
-  AVERT(Seg, seg);
+  AVERT(Format, format);
   AVER(FUNCHECK(f));
   /* p and s are arbitrary closures and can't be checked */
-
-  b = PoolFormat(&format, pool);
-  AVER(b);
 
   base = SegBase(seg);
   grains = loSegGrains(loseg);

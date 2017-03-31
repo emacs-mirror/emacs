@@ -31,7 +31,8 @@ static Res amsSegWhiten(Seg seg, Trace trace);
 static Res amsSegScan(Bool *totalReturn, Seg seg, ScanState ss);
 static Res amsSegFix(Seg seg, ScanState ss, Ref *refIO);
 static void amsSegReclaim(Seg seg, Trace trace);
-static void amsSegWalk(Seg seg, FormattedObjectsVisitor f, void *p, size_t s);
+static void amsSegWalk(Seg seg, Format format, FormattedObjectsVisitor f,
+                       void *p, size_t s);
 
 
 /* AMSDebugStruct -- structure for a debug subclass */
@@ -1607,17 +1608,16 @@ static void amsSegReclaim(Seg seg, Trace trace)
 
 /* amsSegWalk -- walk formatted objects in AMC segment */
 
-static void amsSegWalk(Seg seg, FormattedObjectsVisitor f, void *p, size_t s)
+static void amsSegWalk(Seg seg, Format format, FormattedObjectsVisitor f,
+                       void *p, size_t s)
 {
   AMSSeg amsseg = MustBeA(AMSSeg, seg);
   Pool pool = SegPool(seg);
   Addr object, base, limit;
-  Format format;
 
+  AVERT(Format, format);
   AVER(FUNCHECK(f));
   /* p and s are arbitrary closures and can't be checked */
-
-  format = pool->format;
 
   base = SegBase(seg);
   object = base;

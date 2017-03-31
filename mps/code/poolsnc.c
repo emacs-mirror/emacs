@@ -52,7 +52,8 @@ DECLARE_CLASS(Buffer, SNCBuf, RankBuf);
 static Bool SNCCheck(SNC snc);
 static void sncPopPartialSegChain(SNC snc, Buffer buf, Seg upTo);
 static Res sncSegScan(Bool *totalReturn, Seg seg, ScanState ss);
-static void sncSegWalk(Seg seg, FormattedObjectsVisitor f, void *p, size_t s);
+static void sncSegWalk(Seg seg, Format format, FormattedObjectsVisitor f,
+                       void *p, size_t s);
 
 
 /* Management of segment chains
@@ -606,9 +607,11 @@ static Res SNCFramePop(Pool pool, Buffer buf, AllocFrame frame)
 }
 
 
-static void sncSegWalk(Seg seg, FormattedObjectsVisitor f, void *p, size_t s)
+static void sncSegWalk(Seg seg, Format format, FormattedObjectsVisitor f,
+                       void *p, size_t s)
 {
   AVERT(Seg, seg);
+  AVERT(Format, format);
   AVER(FUNCHECK(f));
   /* p and s are arbitrary closures and can't be checked */
 
@@ -619,9 +622,6 @@ static void sncSegWalk(Seg seg, FormattedObjectsVisitor f, void *p, size_t s)
     Addr nextObject;
     Addr limit;
     Pool pool = SegPool(seg);
-    Format format = NULL; /* Avoid "may be used uninitialized" */
-    Bool b = PoolFormat(&format, pool);
-    AVER(b);
 
     limit = SegBufferScanLimit(seg);
 

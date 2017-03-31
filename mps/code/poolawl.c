@@ -56,7 +56,8 @@ static void awlSegBlacken(Seg seg, TraceSet traceSet);
 static Res awlSegScan(Bool *totalReturn, Seg seg, ScanState ss);
 static Res awlSegFix(Seg seg, ScanState ss, Ref *refIO);
 static void awlSegReclaim(Seg seg, Trace trace);
-static void awlSegWalk(Seg seg, FormattedObjectsVisitor f, void *p, size_t s);
+static void awlSegWalk(Seg seg, Format format, FormattedObjectsVisitor f,
+                       void *p, size_t s);
 
 
 /* awlStat* -- Statistics gathering about instruction emulation
@@ -1162,13 +1163,14 @@ static Res awlSegAccess(Seg seg, Arena arena, Addr addr,
 
 /* awlSegWalk -- walk all objects */
 
-static void awlSegWalk(Seg seg, FormattedObjectsVisitor f, void *p, size_t s)
+static void awlSegWalk(Seg seg, Format format, FormattedObjectsVisitor f,
+                       void *p, size_t s)
 {
   AWLSeg awlseg = MustBeA(AWLSeg, seg);
   Pool pool = SegPool(seg);
-  Format format = pool->format;
   Addr object, base, limit;
 
+  AVERT(Format, format);
   AVER(FUNCHECK(f));
   /* p and s are arbitrary closures and can't be checked */
 

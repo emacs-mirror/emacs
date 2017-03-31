@@ -810,13 +810,15 @@ void SegReclaim(Seg seg, Trace trace)
 
 /* SegWalk -- walk objects in this segment */
 
-void SegWalk(Seg seg, FormattedObjectsVisitor f, void *p, size_t s)
+void SegWalk(Seg seg, Format format, FormattedObjectsVisitor f,
+             void *p, size_t s)
 {
   AVERT(Seg, seg);
+  AVERT(Format, format);
   AVER(FUNCHECK(f));
   /* p and s are arbitrary values, hence can't be checked. */
 
-  Method(Seg, seg, walk)(seg, f, p, s);
+  Method(Seg, seg, walk)(seg, format, f, p, s);
 }
 
 
@@ -1354,9 +1356,11 @@ static void segNoReclaim(Seg seg, Trace trace)
 
 /* segTrivWalk -- walk method for non-formatted segs */
 
-static void segTrivWalk(Seg seg, FormattedObjectsVisitor f, void *p, size_t s)
+static void segTrivWalk(Seg seg, Format format, FormattedObjectsVisitor f,
+                        void *p, size_t s)
 {
   AVERT(Seg, seg);
+  AVERT(Format, format);
   AVER(FUNCHECK(f));
   /* p and s are arbitrary, hence can't be checked */
   UNUSED(p);
