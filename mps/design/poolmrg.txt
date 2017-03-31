@@ -432,7 +432,7 @@ to grow very quickly.
 _`.finish`: Iterate over all the segments, returning all the segments
 to the arena.
 
-``Res mrgRefSegScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)``
+``Res mrgRefSegScan(Bool *totalReturn, Pool pool, Seg seg, ScanState ss)``
 
 _`.scan`: ``mrgRefSegScan()`` scans a segment of guardians.
 
@@ -650,7 +650,7 @@ and haven't been finalized. This will test `.promise.unreachable`_ and
 Notes
 -----
 
-_`.access.inadequate`: ``PoolAccess()`` will scan segments at
+_`.access.inadequate`: ``SegAccess()`` will scan segments at
 `RankEXACT``. Really it should be scanned at whatever the minimum rank
 of all grey segments is (the trace rank phase), however there is no
 way to find this out. As a consequence we will sometimes scan pages at

@@ -354,7 +354,7 @@ _`.fun.grey`: If the segment is not white for this trace, the
 segment's mark table is set to all 1s and the segment is recorded as
 being grey.
 
-``Res awlSegScan(ScanState ss, Pool pool, Seg seg)``
+``Res awlSegScan(Bool *totalReturn, Seg seg, ScanState ss)``
 
 _`.fun.scan`:
 
