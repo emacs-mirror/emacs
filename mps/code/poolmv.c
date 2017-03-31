@@ -260,6 +260,7 @@ static Res MVInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
   mv = CouldBeA(MVPool, pool);
 
   pool->alignment = align;
+  pool->alignShift = SizeLog2(pool->alignment);
 
   /* At 100% fragmentation we will need one block descriptor for every other */
   /* allocated block, or (extendBy/avgSize)/2 descriptors.  See note 1. */

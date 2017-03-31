@@ -90,7 +90,10 @@ Bool PoolCheck(Pool pool)
   /* Cannot check pool->bufferSerial */
   CHECKD_NOSIG(Ring, &pool->segRing);
   CHECKL(AlignCheck(pool->alignment));
-  /* Cannot check pool->format. */
+  CHECKL(ShiftCheck(pool->alignShift));
+  CHECKL(pool->alignment == 1 << pool->alignShift);
+  if (pool->format != NULL)
+    CHECKD(Format, pool->format);
   return TRUE;
 }
 

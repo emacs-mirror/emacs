@@ -204,6 +204,11 @@ extern Res PoolDescribe(Pool pool, mps_lib_FILE *stream, Count depth);
 #define PoolArenaRing(pool) (&(pool)->arenaRing)
 #define PoolOfArenaRing(node) RING_ELT(Pool, arenaRing, node)
 #define PoolHasAttr(pool, Attr) ((ClassOfPoly(Pool, pool)->attr & (Attr)) != 0)
+#define PoolSizeGrains(pool, size) ((size) >> (pool)->alignShift)
+#define PoolGrainsSize(pool, grains) ((grains) << (pool)->alignShift)
+#define PoolIndexOfAddr(base, pool, p) \
+  (AddrOffset((base), (p)) >> (pool)->alignShift)
+#define PoolAddrOfIndex(base, pool, i) AddrAdd(base, PoolGrainsSize(pool, i))
 
 extern Bool PoolFormat(Format *formatReturn, Pool pool);
 

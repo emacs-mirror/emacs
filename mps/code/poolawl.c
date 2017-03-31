@@ -93,7 +93,6 @@ typedef Addr (*FindDependentFunction)(Addr object);
 
 typedef struct AWLPoolStruct {
   PoolStruct poolStruct;
-  Shift alignShift;
   PoolGenStruct pgenStruct; /* generation representing the pool */
   PoolGen pgen;             /* NULL or pointer to pgenStruct */
   Count succAccesses;       /* number of successive single accesses */
@@ -102,8 +101,6 @@ typedef struct AWLPoolStruct {
   Sig sig;
 } AWLPoolStruct, *AWL;
 
-#define AWLGrainsSize(awl, grains) ((grains) << (awl)->alignShift)
-
 
 static Bool AWLCheck(AWL awl);
 
@@ -111,13 +108,6 @@ static Bool AWLCheck(AWL awl);
 typedef AWL AWLPool;
 #define AWLPoolCheck AWLCheck
 DECLARE_CLASS(Pool, AWLPool, AbstractCollectPool);
-
-
-/* Conversion between indexes and Addrs */
-#define awlIndexOfAddr(base, awl, p) \
-  (AddrOffset((base), (p)) >> (awl)->alignShift)
-#define awlAddrOfIndex(base, awl, i) \
-  AddrAdd(base, AWLGrainsSize(awl, i))
 
 
 /* AWLSegStruct -- AWL segment subclass
@@ -186,7 +176,6 @@ ARG_DEFINE_KEY(awl_seg_rank_set, RankSet);
 static Res AWLSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 {
   AWLSeg awlseg;
-  AWL awl = MustBeA(AWLPool, pool);
   Arena arena;
   RankSet rankSet;
   Count bits;        /* number of grains */
@@ -213,7 +202,7 @@ static Res AWLSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   arena = PoolArena(pool);
   /* no useful checks for base and size */
 
-  bits = size >> awl->alignShift;
+  bits = PoolSizeGrains(pool, size);
   tableSize = BTSize(bits);
   res = ControlAlloc(&v, arena, tableSize);
   if (res != ResOK)
@@ -264,14 +253,13 @@ static void AWLSegFinish(Inst inst)
   Seg seg = MustBeA(Seg, inst);
   AWLSeg awlseg = MustBeA(AWLSeg, seg);
   Pool pool = SegPool(seg);
-  AWL awl = MustBeA(AWLPool, pool);
   Arena arena = PoolArena(pool);
   Size tableSize;
   Count segGrains;
 
   /* This is one of the few places where it is easy to check */
   /* awlseg->grains, so we do */
-  segGrains = SegSize(seg) >> awl->alignShift;
+  segGrains = PoolSizeGrains(pool, SegSize(seg));
   AVER(segGrains == awlseg->grains);
   tableSize = BTSize(segGrains);
   ControlFree(arena, awlseg->alloc, tableSize);
@@ -488,7 +476,7 @@ static Res AWLSegCreate(AWLSeg *awlsegReturn,
 /* AWLSegAlloc -- allocate an object in a given segment */
 
 static Bool AWLSegAlloc(Addr *baseReturn, Addr *limitReturn,
-                        AWLSeg awlseg, AWL awl, Size size)
+                        AWLSeg awlseg, Pool pool, Size size)
 {
   Count n;        /* number of grains equivalent to alloc size */
   Index i, j;
@@ -496,17 +484,17 @@ static Bool AWLSegAlloc(Addr *baseReturn, Addr *limitReturn,
 
   AVER(baseReturn != NULL);
   AVER(limitReturn != NULL);
-  AVERT(AWL, awl);
+  AVERT(Pool, pool);
   AVER(size > 0);
-  AVER(AWLGrainsSize(awl, size) >= size);
+  AVER(PoolGrainsSize(pool, size) >= size);
 
   if (size > SegSize(seg))
     return FALSE;
-  n = size >> awl->alignShift;
+  n = PoolSizeGrains(pool, size);
   if (!BTFindLongResRange(&i, &j, awlseg->alloc, 0, awlseg->grains, n))
     return FALSE;
-  *baseReturn = awlAddrOfIndex(SegBase(seg), awl, i);
-  *limitReturn = awlAddrOfIndex(SegBase(seg),awl, j);
+  *baseReturn = PoolAddrOfIndex(SegBase(seg), pool, i);
+  *limitReturn = PoolAddrOfIndex(SegBase(seg), pool, j);
   return TRUE;
 }
 
@@ -570,6 +558,7 @@ static Res AWLInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
   /* Ensure a format was supplied in the argument list. */
   AVER(pool->format != NULL);
   pool->alignment = pool->format->alignment;
+  pool->alignShift = SizeLog2(pool->alignment);
 
   AVER(FUNCHECK(findDependent));
   awl->findDependent = findDependent;
@@ -580,7 +569,6 @@ static Res AWLInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
 
   awl->pgen = NULL;
 
-  awl->alignShift = SizeLog2(PoolAlignment(pool));
   awl->succAccesses = 0;
   awlStatTotalInit(awl);
 
@@ -621,9 +609,9 @@ static void AWLFinish(Inst inst)
     AVERT(AWLSeg, awlseg);
     AVER(awlseg->bufferedGrains == 0);
     PoolGenFree(awl->pgen, seg,
-                AWLGrainsSize(awl, awlseg->freeGrains),
-                AWLGrainsSize(awl, awlseg->oldGrains),
-                AWLGrainsSize(awl, awlseg->newGrains),
+                PoolGrainsSize(pool, awlseg->freeGrains),
+                PoolGrainsSize(pool, awlseg->oldGrains),
+                PoolGrainsSize(pool, awlseg->newGrains),
                 FALSE);
   }
   awl->sig = SigInvalid;
@@ -638,7 +626,6 @@ static void AWLFinish(Inst inst)
 static Res AWLBufferFill(Addr *baseReturn, Addr *limitReturn,
                          Pool pool, Buffer buffer, Size size)
 {
-  AWL awl = MustBeA(AWLPool, pool);
   Addr base, limit;
   Res res;
   Ring node, nextNode;
@@ -646,6 +633,7 @@ static Res AWLBufferFill(Addr *baseReturn, Addr *limitReturn,
 
   AVER(baseReturn != NULL);
   AVER(limitReturn != NULL);
+  AVERC(Pool, pool);
   AVERC(Buffer, buffer);
   AVER(size > 0);
 
@@ -658,8 +646,8 @@ static Res AWLBufferFill(Addr *baseReturn, Addr *limitReturn,
     /* buffered, and has the same ranks as the buffer. */
     if (!SegHasBuffer(seg)
         && SegRankSet(seg) == BufferRankSet(buffer)
-        && AWLGrainsSize(awl, awlseg->freeGrains) >= size
-        && AWLSegAlloc(&base, &limit, awlseg, awl, size))
+        && PoolGrainsSize(pool, awlseg->freeGrains) >= size
+        && AWLSegAlloc(&base, &limit, awlseg, pool, size))
       goto found;
   }
 
@@ -674,9 +662,10 @@ static Res AWLBufferFill(Addr *baseReturn, Addr *limitReturn,
 found:
   {
     Index i, j;
+    AWL awl = MustBeA(AWLPool, pool);
     Seg seg = MustBeA(Seg, awlseg);
-    i = awlIndexOfAddr(SegBase(seg), awl, base);
-    j = awlIndexOfAddr(SegBase(seg), awl, limit);
+    i = PoolIndexOfAddr(SegBase(seg), pool, base);
+    j = PoolIndexOfAddr(SegBase(seg), pool, limit);
     AVER(i < j);
     BTSetRange(awlseg->alloc, i, j);
     /* Objects are allocated black. */
@@ -707,8 +696,8 @@ static void AWLBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
 
   AVER(init <= limit);
 
-  i = awlIndexOfAddr(segBase, awl, init);
-  j = awlIndexOfAddr(segBase, awl, limit);
+  i = PoolIndexOfAddr(segBase, pool, init);
+  j = PoolIndexOfAddr(segBase, pool, limit);
   AVER(i <= j);
   if (i < j)
     BTResRange(awlseg->alloc, i, j);
@@ -719,8 +708,8 @@ static void AWLBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
   awlseg->freeGrains += unusedGrains;
   awlseg->bufferedGrains = 0;
   awlseg->newGrains += usedGrains;
-  PoolGenAccountForEmpty(awl->pgen, AWLGrainsSize(awl, usedGrains),
-                         AWLGrainsSize(awl, unusedGrains), FALSE);
+  PoolGenAccountForEmpty(awl->pgen, PoolGrainsSize(pool, usedGrains),
+                         PoolGrainsSize(pool, unusedGrains), FALSE);
 }
 
 
@@ -760,8 +749,8 @@ static Res awlSegWhiten(Seg seg, Trace trace)
   } else {
     /* Whiten everything except the buffer. */
     Addr base = SegBase(seg);
-    Index scanLimitIndex = awlIndexOfAddr(base, awl, BufferScanLimit(buffer));
-    Index limitIndex = awlIndexOfAddr(base, awl, BufferLimit(buffer));
+    Index scanLimitIndex = PoolIndexOfAddr(base, pool, BufferScanLimit(buffer));
+    Index limitIndex = PoolIndexOfAddr(base, pool, BufferLimit(buffer));
     uncondemnedGrains = limitIndex - scanLimitIndex;
     awlSegRangeWhiten(awlseg, 0, scanLimitIndex);
     awlSegRangeWhiten(awlseg, limitIndex, awlseg->grains);
@@ -778,15 +767,15 @@ static Res awlSegWhiten(Seg seg, Trace trace)
   /* The unused part of the buffer remains buffered: the rest becomes old. */
   AVER(awlseg->bufferedGrains >= uncondemnedGrains);
   agedGrains = awlseg->bufferedGrains - uncondemnedGrains;
-  PoolGenAccountForAge(awl->pgen, AWLGrainsSize(awl, agedGrains),
-                       AWLGrainsSize(awl, awlseg->newGrains), FALSE);
+  PoolGenAccountForAge(awl->pgen, PoolGrainsSize(pool, agedGrains),
+                       PoolGrainsSize(pool, awlseg->newGrains), FALSE);
   awlseg->oldGrains += agedGrains + awlseg->newGrains;
   awlseg->bufferedGrains = uncondemnedGrains;
   awlseg->newGrains = 0;
 
   if (awlseg->oldGrains > 0) {
     GenDescCondemned(awl->pgen->gen, trace,
-                     AWLGrainsSize(awl, awlseg->oldGrains));
+                     PoolGrainsSize(pool, awlseg->oldGrains));
     SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace));
   }
   
@@ -813,13 +802,14 @@ static void awlsegRangeGreyen(AWLSeg awlseg, Index base, Index limit)
 static void awlSegGreyen(Seg seg, Trace trace)
 {
   Buffer buffer;
-  
+  Pool pool;
+
   AVERT(Seg, seg);
   AVERT(Trace, trace);
-  AVER(PoolArena(SegPool(seg)) == trace->arena);
+  pool = SegPool(seg);
+  AVER(PoolArena(pool) == trace->arena);
 
   if (!TraceSetIsMember(SegWhite(seg), trace)) {
-    AWL awl = MustBeA(AWLPool, SegPool(seg));
     AWLSeg awlseg = MustBeA(AWLSeg, seg);
 
     SegSetGrey(seg, TraceSetAdd(SegGrey(seg), trace));
@@ -828,9 +818,9 @@ static void awlSegGreyen(Seg seg, Trace trace)
 
       awlsegRangeGreyen(awlseg,
                         0,
-                        awlIndexOfAddr(base, awl, BufferScanLimit(buffer)));
+                        PoolIndexOfAddr(base, pool, BufferScanLimit(buffer)));
       awlsegRangeGreyen(awlseg,
-                        awlIndexOfAddr(base, awl, BufferLimit(buffer)),
+                        PoolIndexOfAddr(base, pool, BufferLimit(buffer)),
                         awlseg->grains);
     } else {
       awlsegRangeGreyen(awlseg, 0, awlseg->grains);
@@ -924,7 +914,7 @@ static Res awlSegScanSinglePass(Bool *anyScannedReturn, ScanState ss,
       continue;
     }
 
-    i = awlIndexOfAddr(base, awl, p);
+    i = PoolIndexOfAddr(base, pool, p);
     if (!BTGet(awlseg->alloc, i)) {
       p = AddrAdd(p, PoolAlignment(pool));
       continue;
@@ -1001,7 +991,6 @@ static Res awlSegFix(Seg seg, ScanState ss, Ref *refIO)
 {
   AWLSeg awlseg = MustBeA_CRITICAL(AWLSeg, seg);
   Pool pool = SegPool(seg);
-  AWL awl = MustBeA_CRITICAL(AWLPool, pool);
   Ref clientRef;
   Addr base;
   Index i;
@@ -1021,7 +1010,7 @@ static Res awlSegFix(Seg seg, ScanState ss, Ref *refIO)
   if (base < SegBase(seg)) {
     return ResOK;
   }
-  i = awlIndexOfAddr(SegBase(seg), awl, base);
+  i = PoolIndexOfAddr(SegBase(seg), pool, base);
 
   switch(ss->rank) {
   case RankAMBIG:
@@ -1078,18 +1067,18 @@ static void awlSegReclaim(Seg seg, Trace trace)
       ++i;
       continue;
     }
-    p = awlAddrOfIndex(base, awl, i);
+    p = PoolAddrOfIndex(base, pool, i);
     if (hasBuffer
         && p == BufferScanLimit(buffer)
         && BufferScanLimit(buffer) != BufferLimit(buffer))
     {
-      i = awlIndexOfAddr(base, awl, BufferLimit(buffer));
+      i = PoolIndexOfAddr(base, pool, BufferLimit(buffer));
       continue;
     }
     q = format->skip(AddrAdd(p, format->headerSize));
     q = AddrSub(q, format->headerSize);
     AVER(AddrIsAligned(q, PoolAlignment(pool)));
-    j = awlIndexOfAddr(base, awl, q);
+    j = PoolIndexOfAddr(base, pool, q);
     AVER(j <= awlseg->grains);
     if(BTGet(awlseg->mark, i)) {
       AVER(BTGet(awlseg->scanned, i));
@@ -1111,9 +1100,9 @@ static void awlSegReclaim(Seg seg, Trace trace)
   AVER(awlseg->oldGrains >= reclaimedGrains);
   awlseg->oldGrains -= reclaimedGrains;
   awlseg->freeGrains += reclaimedGrains;
-  PoolGenAccountForReclaim(awl->pgen, AWLGrainsSize(awl, reclaimedGrains), FALSE);
+  PoolGenAccountForReclaim(awl->pgen, PoolGrainsSize(pool, reclaimedGrains), FALSE);
 
-  STATISTIC(trace->reclaimSize += AWLGrainsSize(awl, reclaimedGrains));
+  STATISTIC(trace->reclaimSize += PoolGrainsSize(pool, reclaimedGrains));
   STATISTIC(trace->preservedInPlaceCount += preservedInPlaceCount);
   GenDescSurvived(awl->pgen->gen, trace, 0, preservedInPlaceSize);
   SegSetWhite(seg, TraceSetDel(SegWhite(seg), trace));
@@ -1122,9 +1111,9 @@ static void awlSegReclaim(Seg seg, Trace trace)
     /* No survivors */
     AVER(awlseg->bufferedGrains == 0);
     PoolGenFree(awl->pgen, seg,
-                AWLGrainsSize(awl, awlseg->freeGrains),
-                AWLGrainsSize(awl, awlseg->oldGrains),
-                AWLGrainsSize(awl, awlseg->newGrains),
+                PoolGrainsSize(pool, awlseg->freeGrains),
+                PoolGrainsSize(pool, awlseg->oldGrains),
+                PoolGrainsSize(pool, awlseg->newGrains),
                 FALSE);
   }
 }
@@ -1177,7 +1166,6 @@ static void awlSegWalk(Seg seg, FormattedObjectsVisitor f, void *p, size_t s)
 {
   AWLSeg awlseg = MustBeA(AWLSeg, seg);
   Pool pool = SegPool(seg);
-  AWL awl = MustBeA(AWLPool, pool);
   Format format = pool->format;
   Addr object, base, limit;
 
@@ -1206,7 +1194,7 @@ static void awlSegWalk(Seg seg, FormattedObjectsVisitor f, void *p, size_t s)
       /* either before the buffer, or after it, never in it */
       AVER(object < BufferGetInit(buffer) || BufferLimit(buffer) <= object);
     }
-    i = awlIndexOfAddr(base, awl, object);
+    i = PoolIndexOfAddr(base, pool, object);
     if (!BTGet(awlseg->alloc, i)) {
       /* This grain is free */
       object = AddrAdd(object, PoolAlignment(pool));
@@ -1275,7 +1263,6 @@ static Bool AWLCheck(AWL awl)
   CHECKS(AWL, awl);
   CHECKC(AWLPool, awl);
   CHECKD(Pool, CouldBeA(Pool, awl));
-  CHECKL(AWLGrainsSize(awl, (Count)1) == PoolAlignment(CouldBeA(Pool, awl)));
   /* Nothing to check about succAccesses. */
   CHECKL(FUNCHECK(awl->findDependent));
   /* Don't bother to check stats. */
