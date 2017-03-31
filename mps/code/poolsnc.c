@@ -388,6 +388,7 @@ static Res SNCInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
   AVER(pool->format != NULL);
 
   pool->alignment = pool->format->alignment;
+  pool->alignShift = SizeLog2(pool->alignment);
   snc->freeSegs = NULL;
 
   SetClassOfPoly(pool, CLASS(SNCPool));

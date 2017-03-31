@@ -519,6 +519,7 @@ static Res MVFFInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
     mvff->extendBy = ArenaGrainSize(arena);
   mvff->avgSize = avgSize;
   pool->alignment = align;
+  pool->alignShift = SizeLog2(pool->alignment);
   mvff->slotHigh = slotHigh;
   mvff->firstFit = firstFit;
   mvff->spare = spare;

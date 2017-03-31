@@ -760,6 +760,7 @@ static Res amcInitComm(Pool pool, Arena arena, PoolClass klass,
   AVER(pool->format != NULL);
 
   pool->alignment = pool->format->alignment;
+  pool->alignShift = SizeLog2(pool->alignment);
   amc->rankSet = rankSet;
 
   RingInit(&amc->genRing);

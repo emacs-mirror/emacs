@@ -87,6 +87,7 @@ Res PoolAbsInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
   RingInit(&pool->segRing);
   pool->bufferSerial = (Serial)0;
   pool->alignment = MPS_PF_ALIGN;
+  pool->alignShift = SizeLog2(pool->alignment);
   pool->format = NULL;
 
   if (ArgPick(&arg, args, MPS_KEY_FORMAT)) {
@@ -311,6 +312,7 @@ Res PoolAbsDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
                "arena $P ($U)\n",
                (WriteFP)pool->arena, (WriteFU)pool->arena->serial,
                "alignment $W\n", (WriteFW)pool->alignment,
+               "alignShift $W\n", (WriteFW)pool->alignShift,
                NULL);
   if (res != ResOK)
     return res;
