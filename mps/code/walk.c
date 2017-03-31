@@ -45,7 +45,7 @@ static void ArenaFormattedObjectsStep(Addr object, Format format, Pool pool,
   AVERT(Pool, pool);
   c = p;
   AVERT(FormattedObjectsStepClosure, c);
-  AVER(s == 0);
+  AVER(s == UNUSED_SIZE);
 
   (*c->f)((mps_addr_t)object, (mps_fmt_t)format, (mps_pool_t)pool,
           c->p, c->s);
@@ -61,24 +61,24 @@ static void ArenaFormattedObjectsWalk(Arena arena, FormattedObjectsVisitor f,
 {
   Seg seg;
   FormattedObjectsStepClosure c;
+  Format format;
 
   AVERT(Arena, arena);
   AVER(FUNCHECK(f));
   AVER(f == ArenaFormattedObjectsStep);
-  /* p and s are arbitrary closures. */
   /* Know that p is a FormattedObjectsStepClosure  */
-  /* Know that s is 0 */
-  AVER(p != NULL);
-  AVER(s == 0);
-
   c = p;
   AVERT(FormattedObjectsStepClosure, c);
+  /* Know that s is UNUSED_SIZE */
+  AVER(s == UNUSED_SIZE);
 
   if (SegFirst(&seg, arena)) {
     do {
-      ShieldExpose(arena, seg);
-      SegWalk(seg, f, p, s);
-      ShieldCover(arena, seg);
+      if (PoolFormat(&format, SegPool(seg))) {
+        ShieldExpose(arena, seg);
+        SegWalk(seg, f, p, s);
+        ShieldCover(arena, seg);
+      }
     } while(SegNext(&seg, arena, seg));
   }
 }
@@ -103,7 +103,7 @@ void mps_arena_formatted_objects_walk(mps_arena_t mps_arena,
   c.f = f;
   c.p = p;
   c.s = s;
-  ArenaFormattedObjectsWalk(arena, ArenaFormattedObjectsStep, &c, 0);
+  ArenaFormattedObjectsWalk(arena, ArenaFormattedObjectsStep, &c, UNUSED_SIZE);
   ArenaLeave(arena);
 }
 
