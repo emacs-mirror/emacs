@@ -796,6 +796,7 @@ static Res AMSInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
   /* Ensure a format was supplied in the argument list. */
   AVER(pool->format != NULL);
   pool->alignment = pool->format->alignment;
+  pool->alignShift = SizeLog2(pool->alignment);
   ams->grainShift = SizeLog2(PoolAlignment(pool));
   /* .ambiguous.noshare: If the pool is required to support ambiguous */
   /* references, the alloc and white tables cannot be shared. */
