@@ -98,7 +98,7 @@ typedef struct AWLPoolStruct {
   Count succAccesses;       /* number of successive single accesses */
   FindDependentFunction findDependent; /*  to find a dependent object */
   awlStatTotalStruct stats;
-  Sig sig;
+  Sig sig;                  /* <code/misc.h#sig> */
 } AWLPoolStruct, *AWL;
 
 
@@ -130,7 +130,7 @@ typedef struct AWLSegStruct {
   Count oldGrains;          /* grains allocated prior to last collection */
   Count singleAccesses;     /* number of accesses processed singly */
   awlStatSegStruct stats;
-  Sig sig;
+  Sig sig;                  /* <code/misc.h#sig> */
 } AWLSegStruct, *AWLSeg;
 
 DECLARE_CLASS(Seg, AWLSeg, GCSeg);
@@ -1263,6 +1263,8 @@ static Bool AWLCheck(AWL awl)
   CHECKS(AWL, awl);
   CHECKC(AWLPool, awl);
   CHECKD(Pool, CouldBeA(Pool, awl));
+  if (awl->pgen != NULL)
+    CHECKD(PoolGen, awl->pgen);
   /* Nothing to check about succAccesses. */
   CHECKL(FUNCHECK(awl->findDependent));
   /* Don't bother to check stats. */
