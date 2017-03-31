@@ -105,6 +105,7 @@ typedef struct LandClassStruct *LandClass; /* <design/land/> */
 typedef unsigned FindDelete;            /* <design/land/> */
 typedef struct ShieldStruct *Shield; /* design.mps.shield */
 typedef struct HistoryStruct *History;  /* design.mps.arena.ld */
+typedef struct PoolGenStruct *PoolGen;  /* <design/strategy/> */
 
 
 /* Arena*Method -- see <code/mpmst.h#ArenaClassStruct> */
@@ -197,6 +198,7 @@ typedef void (*PoolVarargsMethod)(ArgStruct args[], va_list varargs);
 typedef Res (*PoolInitMethod)(Pool pool, Arena arena, PoolClass klass, ArgList args);
 typedef Res (*PoolAllocMethod)(Addr *pReturn, Pool pool, Size size);
 typedef void (*PoolFreeMethod)(Pool pool, Addr old, Size size);
+typedef PoolGen (*PoolSegPoolGenMethod)(Pool pool, Seg seg);
 typedef Res (*PoolBufferFillMethod)(Addr *baseReturn, Addr *limitReturn,
                                     Pool pool, Buffer buffer, Size size);
 typedef void (*PoolBufferEmptyMethod)(Pool pool, Buffer buffer,

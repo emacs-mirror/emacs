@@ -1132,6 +1132,17 @@ static void AMCRampEnd(Pool pool, Buffer buf)
 }
 
 
+/* amcSegPoolGen -- get pool generation for a segment */
+
+static PoolGen amcSegPoolGen(Pool pool, Seg seg)
+{
+  amcSeg amcseg = MustBeA(amcSeg, seg);  
+  AVERT(Pool, pool);
+  AVER(pool == SegPool(seg));
+  return &amcseg->gen->pgen;
+}
+
+
 /* amcSegWhiten -- condemn the segment for the trace
  *
  * If the segment has a mutator buffer on it, we nail the buffer,
@@ -2020,6 +2031,7 @@ DEFINE_CLASS(Pool, AMCZPool, klass)
   klass->bufferEmpty = AMCBufferEmpty;
   klass->rampBegin = AMCRampBegin;
   klass->rampEnd = AMCRampEnd;
+  klass->segPoolGen = amcSegPoolGen;
   klass->bufferClass = amcBufClassGet;
   klass->totalSize = AMCTotalSize;
   klass->freeSize = AMCFreeSize;  

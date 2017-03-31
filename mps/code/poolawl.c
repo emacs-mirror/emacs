@@ -714,6 +714,16 @@ static void AWLBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
 }
 
 
+/* awlSegPoolGen -- get pool generation for an AWL segment */
+
+static PoolGen awlSegPoolGen(Pool pool, Seg seg)
+{
+  AWL awl = MustBeA(AWLPool, pool);
+  AVERT(Seg, seg);
+  return awl->pgen;
+}
+
+
 /* awlSegWhiten -- segment condemning method */
 
 /* awlSegRangeWhiten -- helper function that works on a range.
@@ -734,7 +744,7 @@ static Res awlSegWhiten(Seg seg, Trace trace)
 {
   AWLSeg awlseg = MustBeA(AWLSeg, seg);
   Pool pool = SegPool(seg);
-  AWL awl = MustBeA(AWLPool, pool);
+  PoolGen pgen = PoolSegPoolGen(pool, seg);
   Buffer buffer;
   Count agedGrains, uncondemnedGrains;
 
@@ -768,14 +778,14 @@ static Res awlSegWhiten(Seg seg, Trace trace)
   /* The unused part of the buffer remains buffered: the rest becomes old. */
   AVER(awlseg->bufferedGrains >= uncondemnedGrains);
   agedGrains = awlseg->bufferedGrains - uncondemnedGrains;
-  PoolGenAccountForAge(awl->pgen, PoolGrainsSize(pool, agedGrains),
+  PoolGenAccountForAge(pgen, PoolGrainsSize(pool, agedGrains),
                        PoolGrainsSize(pool, awlseg->newGrains), FALSE);
   awlseg->oldGrains += agedGrains + awlseg->newGrains;
   awlseg->bufferedGrains = uncondemnedGrains;
   awlseg->newGrains = 0;
 
   if (awlseg->oldGrains > 0) {
-    GenDescCondemned(awl->pgen->gen, trace,
+    GenDescCondemned(pgen->gen, trace,
                      PoolGrainsSize(pool, awlseg->oldGrains));
     SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace));
   }
@@ -1047,7 +1057,7 @@ static void awlSegReclaim(Seg seg, Trace trace)
 {
   AWLSeg awlseg = MustBeA(AWLSeg, seg);
   Pool pool = SegPool(seg);
-  AWL awl = MustBeA(AWLPool, pool);
+  PoolGen pgen = PoolSegPoolGen(pool, seg);
   Addr base = SegBase(seg);
   Buffer buffer;
   Bool hasBuffer = SegBuffer(&buffer, seg);
@@ -1101,17 +1111,17 @@ static void awlSegReclaim(Seg seg, Trace trace)
   AVER(awlseg->oldGrains >= reclaimedGrains);
   awlseg->oldGrains -= reclaimedGrains;
   awlseg->freeGrains += reclaimedGrains;
-  PoolGenAccountForReclaim(awl->pgen, PoolGrainsSize(pool, reclaimedGrains), FALSE);
+  PoolGenAccountForReclaim(pgen, PoolGrainsSize(pool, reclaimedGrains), FALSE);
 
   STATISTIC(trace->reclaimSize += PoolGrainsSize(pool, reclaimedGrains));
   STATISTIC(trace->preservedInPlaceCount += preservedInPlaceCount);
-  GenDescSurvived(awl->pgen->gen, trace, 0, preservedInPlaceSize);
+  GenDescSurvived(pgen->gen, trace, 0, preservedInPlaceSize);
   SegSetWhite(seg, TraceSetDel(SegWhite(seg), trace));
 
   if (awlseg->freeGrains == awlseg->grains && !hasBuffer) {
     /* No survivors */
     AVER(awlseg->bufferedGrains == 0);
-    PoolGenFree(awl->pgen, seg,
+    PoolGenFree(pgen, seg,
                 PoolGrainsSize(pool, awlseg->freeGrains),
                 PoolGrainsSize(pool, awlseg->oldGrains),
                 PoolGrainsSize(pool, awlseg->newGrains),
@@ -1245,6 +1255,7 @@ DEFINE_CLASS(Pool, AWLPool, klass)
   klass->bufferClass = RankBufClassGet;
   klass->bufferFill = AWLBufferFill;
   klass->bufferEmpty = AWLBufferEmpty;
+  klass->segPoolGen = awlSegPoolGen;
   klass->totalSize = AWLTotalSize;
   klass->freeSize = AWLFreeSize;
   AVERT(PoolClass, klass);

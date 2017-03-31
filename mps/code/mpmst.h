@@ -57,6 +57,7 @@ typedef struct mps_pool_class_s {
   PoolInitMethod init;          /* initialize the pool descriptor */
   PoolAllocMethod alloc;        /* allocate memory from pool */
   PoolFreeMethod free;          /* free memory to pool */
+  PoolSegPoolGenMethod segPoolGen; /* get pool generation of segment */
   PoolBufferFillMethod bufferFill;      /* out-of-line reserve */
   PoolBufferEmptyMethod bufferEmpty;    /* out-of-line commit */
   PoolRampBeginMethod rampBegin;/* begin a ramp pattern */

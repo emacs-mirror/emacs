@@ -167,6 +167,7 @@ DEFINE_CLASS(Pool, AbstractPool, klass)
   klass->rampEnd = PoolNoRampEnd;
   klass->framePush = PoolNoFramePush;
   klass->framePop = PoolNoFramePop;
+  klass->segPoolGen = PoolNoSegPoolGen;
   klass->freewalk = PoolTrivFreeWalk;
   klass->bufferClass = PoolNoBufferClass;
   klass->debugMixin = PoolNoDebugMixin;
@@ -236,6 +237,14 @@ void PoolTrivFree(Pool pool, Addr old, Size size)
   NOOP;                         /* trivial free has no effect */
 }
 
+PoolGen PoolNoSegPoolGen(Pool pool, Seg seg)
+{
+  AVERT(Pool, pool);
+  AVERT(Seg, seg);
+  AVER(pool == SegPool(seg));
+  NOTREACHED;
+  return NULL;
+}
 
 Res PoolNoBufferFill(Addr *baseReturn, Addr *limitReturn,
                      Pool pool, Buffer buffer, Size size)
