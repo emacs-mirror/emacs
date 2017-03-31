@@ -333,11 +333,11 @@ classes are not required to provide this method. If they do, pools
 that use them must set the ``AttrGC`` attribute. This method is called
 via the generic function ``SegReclaim()``.
 
-``typedef void (*SegWalkMethod)(Seg seg, FormattedObjectsVisitor f, void *v, size_t s)``
+``typedef void (*SegWalkMethod)(Seg seg, Format format, FormattedObjectsVisitor f, void *v, size_t s)``
 
 _`.method.walk`: The ``walk`` method must call the visitor function
 ``f`` (along with its closure parameters ``v`` and ``s`` and the
-appropriate object format) once for each of the *black* objects in the
+format ``format``) once for each of the *black* objects in the
 segment ``seg``. Padding objects may or may not be included in the
 walk, at the segment's discretion: it is the responsibility of the
 client program to handle them. Forwarding objects must not be included

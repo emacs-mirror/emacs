@@ -651,7 +651,8 @@ extern Res SegScan(Bool *totalReturn, Seg seg, ScanState ss);
 extern Res SegFix(Seg seg, ScanState ss, Addr *refIO);
 extern Res SegFixEmergency(Seg seg, ScanState ss, Addr *refIO);
 extern void SegReclaim(Seg seg, Trace trace);
-extern void SegWalk(Seg seg, FormattedObjectsVisitor f, void *v, size_t s);
+extern void SegWalk(Seg seg, Format format, FormattedObjectsVisitor f,
+                    void *v, size_t s);
 extern Res SegAbsDescribe(Inst seg, mps_lib_FILE *stream, Count depth);
 extern Res SegDescribe(Seg seg, mps_lib_FILE *stream, Count depth);
 extern void SegSetSummary(Seg seg, RefSet summary);

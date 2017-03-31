@@ -31,7 +31,8 @@ static Nailboard amcSegNailboard(Seg seg);
 static Bool AMCCheck(AMC amc);
 static Res amcSegFix(Seg seg, ScanState ss, Ref *refIO);
 static Res amcSegFixEmergency(Seg seg, ScanState ss, Ref *refIO);
-static void amcSegWalk(Seg seg, FormattedObjectsVisitor f, void *p, size_t s);
+static void amcSegWalk(Seg seg, Format format, FormattedObjectsVisitor f,
+                       void *p, size_t s);
 
 /* local class declations */
 
@@ -1845,9 +1846,11 @@ static void amcSegReclaim(Seg seg, Trace trace)
 
 /* amcSegWalk -- Apply function to (black) objects in segment */
 
-static void amcSegWalk(Seg seg, FormattedObjectsVisitor f, void *p, size_t s)
+static void amcSegWalk(Seg seg, Format format, FormattedObjectsVisitor f,
+                       void *p, size_t s)
 {
   AVERT(Seg, seg);
+  AVERT(Format, format);
   AVER(FUNCHECK(f));
   /* p and s are arbitrary closures so can't be checked */
 
@@ -1863,7 +1866,6 @@ static void amcSegWalk(Seg seg, FormattedObjectsVisitor f, void *p, size_t s)
   {
     Addr object, nextObject, limit;
     Pool pool = SegPool(seg);
-    Format format = pool->format;
 
     limit = AddrAdd(SegBufferScanLimit(seg), format->headerSize);
     object = AddrAdd(SegBase(seg), format->headerSize);
@@ -1886,8 +1888,12 @@ static void amcWalkAll(Pool pool, FormattedObjectsVisitor f, void *p, size_t s)
 {
   Arena arena;
   Ring ring, next, node;
+  Format format = NULL;
+  Bool b;
 
   AVER(IsA(AMCZPool, pool));
+  b = PoolFormat(&format, pool);
+  AVER(b);
 
   arena = PoolArena(pool);
   ring = PoolSegRing(pool);
@@ -1896,7 +1902,7 @@ static void amcWalkAll(Pool pool, FormattedObjectsVisitor f, void *p, size_t s)
     Seg seg = SegOfPoolRing(node);
 
     ShieldExpose(arena, seg);
-    amcSegWalk(seg, f, p, s);
+    amcSegWalk(seg, format, f, p, s);
     ShieldCover(arena, seg);
   }
 }

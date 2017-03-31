@@ -172,7 +172,7 @@ typedef void (*SegBlackenMethod)(Seg seg, TraceSet traceSet);
 typedef Res (*SegScanMethod)(Bool *totalReturn, Seg seg, ScanState ss);
 typedef Res (*SegFixMethod)(Seg seg, ScanState ss, Ref *refIO);
 typedef void (*SegReclaimMethod)(Seg seg, Trace trace);
-typedef void (*SegWalkMethod)(Seg seg, FormattedObjectsVisitor f,
+typedef void (*SegWalkMethod)(Seg seg, Format format, FormattedObjectsVisitor f,
                               void *v, size_t s);
 
 
