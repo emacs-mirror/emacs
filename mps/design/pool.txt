@@ -74,6 +74,15 @@ attributes. See design.mps.type.attr_.
 
 .. _design.mps.type.attr: type#attr
 
+_`.field.alignShift`: The ``alignShift`` field is the ``SizeLog2`` of
+the pool's alignment. It is computed and initialised when a pool is
+created. Mark-and-sweep pool classes use it to compute the number of
+grains in a segment, which is the number of bits need in the segment's
+mark and alloc bit tables.
+
+_`.field.format`: The ``format`` field is used to refer to the object
+format. The object format is passed to the pool during pool creation.
+
 
 Methods
 -------

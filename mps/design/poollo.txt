@@ -116,18 +116,10 @@ _`.poolstruct`: The class specific pool structure is::
 
     typedef struct LOStruct {
       PoolStruct poolStruct;        /* generic pool structure */
-      Format format;                /* format for allocated objects */
-      Shift alignShift;
-      Sig sig;                      /* impl.h.misc.sig */
+      PoolGenStruct pgenStruct;     /* pool generation */
+      PoolGen pgen;                 /* NULL or pointer to pgenStruct */
+      Sig sig;                      /* <code/misc.h#sig> */
     } LOStruct;
-
-_`.poolstruct.format`: This is the format of the objects that are
-allocated in the pool.
-
-_`.poolstruct.alignShift`: This is shift used in alignment
-computations. It is ``SizeLog2(pool->alignment).`` It can be used on
-the right of a shift operator (``<<`` or ``>>``) to convert between a
-number of bytes and a number of grains.
 
 _`.loseg`: Every segment is an instance of segment class ``LOSegClass``, a
 subclass of ``GCSegClass``, and is an object of type ``LOSegStruct``.
@@ -140,11 +132,13 @@ _`.loseg.decl`: The declaration of the structure is as follows::
 
     typedef struct LOSegStruct {
       GCSegStruct gcSegStruct;  /* superclass fields must come first */
-      LO lo;                    /* owning LO */
       BT mark;                  /* mark bit table */
       BT alloc;                 /* alloc bit table */
-      Count free;               /* number of free grains */
-      Sig sig;                  /* impl.h.misc.sig */
+      Count freeGrains;         /* free grains */
+      Count bufferedGrains;     /* grains in buffers */
+      Count newGrains;          /* grains allocated since last collection */
+      Count oldGrains;          /* grains allocated prior to last collection */
+      Sig sig;                  /* <code/misc.h#sig> */
     } LOSegStruct;
 
 _`.loseg.sig`: The signature for a loseg is 0x519705E9 (SIGLOSEG).

@@ -91,7 +91,7 @@ Bool PoolCheck(Pool pool)
   CHECKD_NOSIG(Ring, &pool->segRing);
   CHECKL(AlignCheck(pool->alignment));
   CHECKL(ShiftCheck(pool->alignShift));
-  CHECKL(pool->alignment == 1 << pool->alignShift);
+  CHECKL(pool->alignment == PoolGrainsSize(pool, (Align)1));
   if (pool->format != NULL)
     CHECKD(Format, pool->format);
   return TRUE;

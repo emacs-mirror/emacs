@@ -25,7 +25,7 @@ typedef struct LOStruct {
   PoolStruct poolStruct;        /* generic pool structure */
   PoolGenStruct pgenStruct;     /* generation representing the pool */
   PoolGen pgen;                 /* NULL or pointer to pgenStruct */
-  Sig sig;
+  Sig sig;                      /* <code/misc.h#sig> */
 } LOStruct;
 
 typedef LO LOPool;
