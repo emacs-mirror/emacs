@@ -45,6 +45,7 @@ Bool PoolClassCheck(PoolClass klass)
   CHECKL(FUNCHECK(klass->init));
   CHECKL(FUNCHECK(klass->alloc));
   CHECKL(FUNCHECK(klass->free));
+  CHECKL(FUNCHECK(klass->segPoolGen));
   CHECKL(FUNCHECK(klass->bufferFill));
   CHECKL(FUNCHECK(klass->bufferEmpty));
   CHECKL(FUNCHECK(klass->rampBegin));
@@ -256,6 +257,17 @@ void PoolFree(Pool pool, Addr old, Size size)
   Method(Pool, pool, free)(pool, old, size);
  
   EVENT3(PoolFree, pool, old, size);
+}
+
+
+/* PoolSegPoolGen -- get pool generation for a segment */
+
+PoolGen PoolSegPoolGen(Pool pool, Seg seg)
+{ 
+  AVERT(Pool, pool);
+  AVERT(Seg, seg);
+  AVER(pool == SegPool(seg));
+  return Method(Pool, pool, segPoolGen)(pool, seg);
 }
 
 

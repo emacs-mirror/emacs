@@ -288,7 +288,7 @@ static void loSegReclaim(Seg seg, Trace trace)
   Count reclaimedGrains = (Count)0;
   LOSeg loseg = MustBeA(LOSeg, seg);
   Pool pool = SegPool(seg);
-  LO lo = MustBeA(LOPool, pool);
+  PoolGen pgen = PoolSegPoolGen(pool, seg);
   Format format = NULL; /* supress "may be used uninitialized" warning */
   Count preservedInPlaceCount = (Count)0;
   Size preservedInPlaceSize = (Size)0;
@@ -354,16 +354,16 @@ static void loSegReclaim(Seg seg, Trace trace)
   AVER(loseg->oldGrains >= reclaimedGrains);
   loseg->oldGrains -= reclaimedGrains;
   loseg->freeGrains += reclaimedGrains;
-  PoolGenAccountForReclaim(lo->pgen, PoolGrainsSize(pool, reclaimedGrains), FALSE);
+  PoolGenAccountForReclaim(pgen, PoolGrainsSize(pool, reclaimedGrains), FALSE);
 
   STATISTIC(trace->reclaimSize += PoolGrainsSize(pool, reclaimedGrains));
   STATISTIC(trace->preservedInPlaceCount += preservedInPlaceCount);
-  GenDescSurvived(lo->pgen->gen, trace, 0, preservedInPlaceSize);
+  GenDescSurvived(pgen->gen, trace, 0, preservedInPlaceSize);
   SegSetWhite(seg, TraceSetDel(SegWhite(seg), trace));
 
   if (!marked) {
     AVER(loseg->bufferedGrains == 0);
-    PoolGenFree(lo->pgen, seg,
+    PoolGenFree(pgen, seg,
                 PoolGrainsSize(pool, loseg->freeGrains),
                 PoolGrainsSize(pool, loseg->oldGrains),
                 PoolGrainsSize(pool, loseg->newGrains),
@@ -639,13 +639,23 @@ static void LOBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
 }
 
 
+/* loSegPoolGen -- get pool generation for an LO segment */
+
+static PoolGen loSegPoolGen(Pool pool, Seg seg)
+{
+  LO lo = MustBeA(LOPool, pool);
+  AVERT(Seg, seg);
+  return lo->pgen;
+}
+
+
 /* loSegWhiten -- whiten a segment */
 
 static Res loSegWhiten(Seg seg, Trace trace)
 {
   LOSeg loseg = MustBeA(LOSeg, seg);
   Pool pool = SegPool(seg);
-  LO lo = MustBeA(LOPool, pool);
+  PoolGen pgen = PoolSegPoolGen(pool, seg);
   Buffer buffer;
   Count grains, agedGrains, uncondemnedGrains;
 
@@ -672,14 +682,14 @@ static Res loSegWhiten(Seg seg, Trace trace)
   /* The unused part of the buffer remains buffered: the rest becomes old. */
   AVER(loseg->bufferedGrains >= uncondemnedGrains);
   agedGrains = loseg->bufferedGrains - uncondemnedGrains;
-  PoolGenAccountForAge(lo->pgen, PoolGrainsSize(pool, agedGrains),
+  PoolGenAccountForAge(pgen, PoolGrainsSize(pool, agedGrains),
                        PoolGrainsSize(pool, loseg->newGrains), FALSE);
   loseg->oldGrains += agedGrains + loseg->newGrains;
   loseg->bufferedGrains = uncondemnedGrains;
   loseg->newGrains = 0;
 
   if (loseg->oldGrains > 0) {
-    GenDescCondemned(lo->pgen->gen, trace,
+    GenDescCondemned(pgen->gen, trace,
                      PoolGrainsSize(pool, loseg->oldGrains));
     SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace));
   }
@@ -774,6 +784,7 @@ DEFINE_CLASS(Pool, LOPool, klass)
   klass->init = LOInit;
   klass->bufferFill = LOBufferFill;
   klass->bufferEmpty = LOBufferEmpty;
+  klass->segPoolGen = loSegPoolGen;
   klass->totalSize = LOTotalSize;
   klass->freeSize = LOFreeSize;
   AVERT(PoolClass, klass);
