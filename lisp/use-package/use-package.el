@@ -964,12 +964,34 @@ If RECURSED is non-nil, recurse into sublists."
    ((use-package-is-pair arg key-pred val-pred)
     (list arg))
    ((and (not recursed) (listp arg) (listp (cdr arg)))
-    (mapcar #'(lambda (x)
-                (let ((ret (use-package-normalize-pairs
-                            key-pred val-pred name label x t)))
-                  (if (listp ret)
-                      (car ret)
-                    ret))) arg))
+    (let ((last-item nil))
+      (mapcar #'(lambda (x)
+                  (prog1
+                      (let ((ret (use-package-normalize-pairs
+                                  key-pred val-pred name label x t)))
+                        ;; Currently, the handling of keyword
+                        ;; arguments by `use-package' and `bind-key'
+                        ;; is non-uniform and undocumented. As a
+                        ;; result, `use-package-normalize-pairs' (as
+                        ;; it is currently implemented) does not
+                        ;; correctly handle the keyword-argument
+                        ;; syntax of `bind-keys'. A permanent solution
+                        ;; to this problem will require a careful
+                        ;; consideration of the desired
+                        ;; keyword-argument interface for
+                        ;; `use-package' and `bind-key'. However, in
+                        ;; the meantime, we have a quick patch to fix
+                        ;; a serious bug in the handling of keyword
+                        ;; arguments. Namely, the code below would
+                        ;; normally unwrap lists that were passed as
+                        ;; keyword arguments (for example, the
+                        ;; `:filter' argument in `:bind') without
+                        ;; the (not (keywordp last-item)) clause. See
+                        ;; #447 for further discussion.
+                        (if (and (listp ret) (not (keywordp last-item)))
+                            (car ret)
+                          ret))
+                    (setq last-item x))) arg)))
    (t arg)))
 
 (defun use-package-normalize-binder (name keyword args)
