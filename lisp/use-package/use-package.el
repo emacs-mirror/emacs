@@ -964,12 +964,15 @@ If RECURSED is non-nil, recurse into sublists."
    ((use-package-is-pair arg key-pred val-pred)
     (list arg))
    ((and (not recursed) (listp arg) (listp (cdr arg)))
-    (mapcar #'(lambda (x)
-                (let ((ret (use-package-normalize-pairs
-                            key-pred val-pred name label x t)))
-                  (if (listp ret)
-                      (car ret)
-                    ret))) arg))
+    (let ((last-item nil))
+      (mapcar #'(lambda (x)
+                  (prog1
+                      (let ((ret (use-package-normalize-pairs
+                                  key-pred val-pred name label x t)))
+                        (if (and (listp ret) (not (keywordp last-item)))
+                            (car ret)
+                          ret))
+                    (setq last-item x))) arg)))
    (t arg)))
 
 (defun use-package-normalize-binder (name keyword args)
