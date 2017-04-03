@@ -39,8 +39,8 @@
 (require 'url-parse)
 
 (cl-defun auth-source-pass-search (&rest spec
-                         &key backend type host user port
-                         &allow-other-keys)
+                                         &key backend type host user port
+                                         &allow-other-keys)
   "Given a property list SPEC, return search matches from the :backend.
 See `auth-source-search' for details on SPEC."
   (cl-assert (or (null type) (eq type (oref backend type)))
@@ -60,7 +60,7 @@ See `auth-source-search' for details on SPEC."
                      :user (or (auth-source-pass-get "user" entry) user)
                      :secret (lambda () (auth-source-pass-get 'secret entry)))))
         (auth-source-pass--do-debug "return %s as final result (plus hidden password)"
-                    (seq-subseq retval 0 -2)) ;; remove password
+                                    (seq-subseq retval 0 -2)) ;; remove password
         retval))))
 
 ;;;###autoload
@@ -159,11 +159,6 @@ CONTENTS is the contents of a password-store formatted file."
      (hostname hostname)
      (t host))))
 
-(defun auth-source-pass--remove-directory-name (name)
-  "Remove directories from NAME.
-E.g., if NAME is \"foo/bar\", return \"bar\"."
-  (replace-regexp-in-string ".*/" "" name))
-
 (defun auth-source-pass--do-debug (&rest msg)
   "Call `auth-source-do-debug` with MSG and a prefix."
   (apply #'auth-source-do-debug
@@ -216,7 +211,7 @@ Only return valid entries as of `auth-source-pass--entry-valid-p'."
                          (member entryname (split-string entry "/"))))
                     (and (= (length components-host-user) 2)
                          (string-equal user (cadr components-host-user))))
-                  (string-equal entryname (auth-source-pass--remove-directory-name entry)))
+                  (string-equal entryname (file-name-nondirectory entry)))
                  (auth-source-pass--entry-valid-p entry)))
               (auth-source-pass-entries)))
 
@@ -225,8 +220,8 @@ Only return valid entries as of `auth-source-pass--entry-valid-p'."
 If USER is non nil, give precedence to entries containing a user field
 matching USER."
   (auth-source-pass--do-debug "searching for '%s' in entry names (user: %s)"
-              entryname
-              user)
+                              entryname
+                              user)
   (let ((matching-entries (auth-source-pass--find-all-by-entry-name entryname user)))
     (pcase (length matching-entries)
       (0 (auth-source-pass--do-debug "no match found")
