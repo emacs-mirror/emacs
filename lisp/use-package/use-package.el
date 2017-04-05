@@ -778,7 +778,8 @@ If the package is installed, its entry is removed from
 
 (defsubst use-package-normalize-value (label arg)
   "Normalize a value."
-  (cond ((symbolp arg)
+  (cond ((null arg) nil)
+        ((symbolp arg)
          `(symbol-value ',arg))
         ((functionp arg)
          `(funcall #',arg))
