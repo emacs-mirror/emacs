@@ -183,8 +183,10 @@ Finally, you can multiple replacements to occur for a given key
 binding by setting `which-key-allow-multiple-replacements' to a
 non-nil value."
   :group 'which-key
-  :type '(alist :key-type (alist :key-type regexp :value-type regexp)
-                :value-type (alist :key-type regexp :value-type regexp)))
+  :type '(alist :key-type (cons (choice regexp nil)
+                                (choice regexp nil))
+                :value-type (cons (choice string nil)
+                                  (choice string nil))))
 
 (when (bound-and-true-p which-key-key-replacement-alist)
   (mapc
