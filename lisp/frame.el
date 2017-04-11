@@ -2469,7 +2469,7 @@ See also `toggle-frame-maximized'."
 ;; F5 then produces the correct effect, the variable doesn't need
 ;; to be in this list; otherwise, it does.
 (mapc (lambda (var)
-        (add-variable-watcher var (symbol-function 'set-buffer-redisplay)))
+        (add-variable-watcher var 'set-buffer-redisplay))
       '(line-spacing
         overline-margin
         line-prefix
