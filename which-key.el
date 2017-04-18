@@ -2023,11 +2023,10 @@ prefix) if `which-key-use-C-h-commands' is non nil."
 
 (defun which-key--any-match-p (regexps string)
   "Non-nil if any of REGEXPS match STRING."
-  (let (match)
+  (catch 'match
     (dolist (regexp regexps)
       (when (string-match-p regexp string)
-        (setq match t)))
-    match))
+        (throw 'match t)))))
 
 (defun which-key--try-2-side-windows (keys page-n loc1 loc2 &rest _ignore)
   "Try to show KEYS (PAGE-N) in LOC1 first. Only if no keys fit fallback to LOC2."
