@@ -158,6 +158,7 @@
 ;;; Setup:
 
 (eval-when-compile (require 'cl-lib))
+(require 'gnus)
 
 ;;; Internal Variables:
 
@@ -1324,6 +1325,7 @@ environment unless `not-global' is non-nil."
           ((and (not not-global) (boundp key)) (symbol-value key))
           (t nil))))
 
+(autoload 'gnus-request-list "gnus-int")
 
 (defun nnir-get-active (srv)
   (let ((method (gnus-server-to-method srv))

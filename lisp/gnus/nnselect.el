@@ -47,11 +47,14 @@
 ;;; Setup:
 
 
-(require 'nnoo)
-(require 'gnus-group)
-(require 'message)
-(require 'gnus-util)
-(require 'gnus-sum)
+(require 'gnus-art)
+
+
+;(require 'nnoo)
+;(require 'gnus-group)
+;(require 'message)
+;(require 'gnus-util)
+;(require 'gnus-sum)
 
 (eval-when-compile (require 'cl-lib))
 
@@ -366,7 +369,7 @@ If this variable is nil, or if the provided function returns nil,
    (nnselect-categorize
     (cl-mapcan
      (lambda (act)
-       (destructuring-bind (range action marks) act
+       (cl-destructuring-bind (range action marks) act
 	 (mapcar
 	  (lambda (artgroup)
 	    (list (car artgroup)
@@ -411,7 +414,7 @@ If this variable is nil, or if the provided function returns nil,
 			  (car art)))  artids))))))))
   (gnus-set-active group (cons 1 (nnselect-artlist-length nnselect-artlist))))
 
-
+(declare-function nnir-run-query "nnir" (specs))
 (deffoo nnselect-request-thread (header &optional group server)
   (let ((group (nnselect-possibly-change-group group server))
 	(artgroup (nnselect-article-group
@@ -463,7 +466,7 @@ If this variable is nil, or if the provided function returns nil,
 		   (push (1+ seq) old-arts)
 		 (setq nnselect-artlist
 		       (vconcat nnselect-artlist (vector article)))
-		 (incf last)))
+		 (cl-incf last)))
 	   new-nnselect-artlist)
 	  (setq headers
 		(gnus-fetch-headers
@@ -697,7 +700,7 @@ originating groups."
 	  (let ((i 5))
 	    (while (and (> i 2)
 			(not (nth i group-info)))
-	      (when (nthcdr (decf i) group-info)
+	      (when (nthcdr (cl-decf i) group-info)
 		(setcdr (nthcdr i group-info) nil))))
 
 	  ;; update read and unread
