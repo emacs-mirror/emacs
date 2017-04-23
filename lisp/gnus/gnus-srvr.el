@@ -34,7 +34,7 @@
 (require 'gnus-range)
 (require 'gnus-cloud)
 
-(autoload 'gnus-group-make-nnir-group "nnir")
+(autoload 'gnus-group-make-search-group "nnselect")
 
 (defcustom gnus-server-mode-hook nil
   "Hook run in `gnus-server-mode' buffers."
@@ -184,7 +184,7 @@ If nil, a faster, but more primitive, buffer is used instead."
 
     "g" gnus-server-regenerate-server
 
-    "G" gnus-group-make-nnir-group
+    "G" gnus-group-make-search-group
 
     "z" gnus-server-compact-server
 

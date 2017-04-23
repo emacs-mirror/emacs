@@ -1797,17 +1797,17 @@ If LIMIT, first try to limit the search to the N last articles."
   (setq nnimap-status-string "Read-only server")
   nil)
 
-(defvar gnus-refer-thread-use-nnir) ;; gnus-sum.el
+(defvar gnus-refer-thread-use-search) ;; gnus-sum.el
 (declare-function gnus-fetch-headers "gnus-sum"
 		  (articles &optional limit force-new dependencies))
 
-(autoload 'nnir-search-thread "nnir")
+(autoload 'nnselect-search-thread "nnselect")
 
 (deffoo nnimap-request-thread (header &optional group server)
   (when group
     (setq group (nnimap-decode-gnus-group group)))
-  (if gnus-refer-thread-use-nnir
-      (nnir-search-thread header)
+  (if gnus-refer-thread-use-search
+      (nnselect-search-thread header)
     (when (nnimap-change-group group server)
       (let* ((cmd (nnimap-make-thread-query header))
              (result (with-current-buffer (nnimap-buffer)
@@ -2219,11 +2219,11 @@ Return the server's response to the SELECT or EXAMINE command."
 		    "")))
 	 (value
 	  (format
-	   "(OR HEADER REFERENCES %S HEADER Message-Id %S)"
+	   "(OR HEADER References %S HEADER Message-Id %S)"
 	   id id)))
     (dolist (refid refs value)
       (setq value (format
-		   "(OR (OR HEADER Message-Id %S HEADER REFERENCES %S) %s)"
+		   "(OR (OR HEADER Message-Id %S HEADER References %S) %s)"
 		   refid refid value)))))
 
 
