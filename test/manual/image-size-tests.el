@@ -22,9 +22,9 @@
 
 ;;; Code:
 
-(defmacro im-should (form)
-  `(unless ,form
-     (error "%s didn't succeed" ',form)))
+(defmacro im-should (width height &rest props)
+  `(unless (im-compare (im-image ,@props) ,width ,height)
+     (error "%s didn't succeed" ',props)))
 
 (defun im-image (&rest props)
   (let ((image-scaling-factor 1))
@@ -42,23 +42,23 @@
   (unless (imagemagick-types)
     (error "This only makes sense if ImageMagick is installed"))
   ;; Default sizes.
-  (im-should (im-compare (im-image) 200 100))
+  (im-should 200 100)
   ;; Changing one dimension changes the other.
-  (im-should (im-compare (im-image :width 100) 100 50))
-  (im-should (im-compare (im-image :height 50) 100 50))
+  (im-should 100 50 :width 100)
+  (im-should 100 50 :height 50)
   ;; The same with :max-width etc.
-  (im-should (im-compare (im-image :max-width 100) 100 50))
-  (im-should (im-compare (im-image :max-height 50) 100 50))
+  (im-should 100 50 :max-width 100)
+  (im-should 100 50 :max-height 50)
   ;; :width wins over :max-width etc
-  (im-should (im-compare (im-image :width 300 :max-width 100) 300 150))
-  (im-should (im-compare (im-image :height 200 :max-height 100) 400 200))
+  (im-should 300 150 :width 300 :max-width 100)
+  (im-should 400 200 :height 200 :max-height 100)
   ;; Specifying both width and height is fine.
-  (im-should (im-compare (im-image :width 300 :height 50) 300 50))
+  (im-should 300 50 :width 300 :height 50)
   ;; A too-large :max-width (etc) has no effect.
-  (im-should (im-compare (im-image :max-width 300) 200 100))
-  (im-should (im-compare (im-image :max-height 300) 200 100))
+  (im-should 200 100 :max-width 300)
+  (im-should 200 100 :max-height 300)
   ;; Both max-width/height.
-  (im-should (im-compare (im-image :max-width 100 :max-height 75) 100 50))
-  (im-should (im-compare (im-image :max-width 100 :max-height 25) 50 25)))
+  (im-should 100 50 :max-width 100 :max-height 75)
+  (im-should 50 25 :max-width 100 :max-height 25))
 
 ;;; image-size-tests.el ends here
