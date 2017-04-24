@@ -78,8 +78,7 @@ and `gnutls-cli' (version 2.0.1) output."
 
 (defcustom tls-program
   '("gnutls-cli --x509cafile %t -p %p %h"
-    "gnutls-cli --x509cafile %t -p %p %h --protocols ssl3"
-    "openssl s_client -connect %h:%p -no_ssl2 -ign_eof")
+    "gnutls-cli --x509cafile %t -p %p %h --protocols ssl3")
   "List of strings containing commands to start TLS stream to a host.
 Each entry in the list is tried until a connection is successful.
 %h is replaced with the server hostname, %p with the port to
@@ -94,24 +93,21 @@ successful negotiation."
   '(choice
     (const :tag "Default list of commands"
 	   ("gnutls-cli --x509cafile %t -p %p %h"
-	    "gnutls-cli --x509cafile %t -p %p %h --protocols ssl3"
-	    "openssl s_client -CAfile %t -connect %h:%p -no_ssl2 -ign_eof"))
+	    "gnutls-cli --x509cafile %t -p %p %h --protocols ssl3"))
     (list :tag "Choose commands"
 	  :value
 	  ("gnutls-cli --x509cafile %t -p %p %h"
-	   "gnutls-cli --x509cafile %t -p %p %h --protocols ssl3"
-	   "openssl s_client -connect %h:%p -no_ssl2 -ign_eof")
+	   "gnutls-cli --x509cafile %t -p %p %h --protocols ssl3")
 	  (set :inline t
 	       ;; FIXME: add brief `:tag "..."' descriptions.
 	       ;; (repeat :inline t :tag "Other" (string))
 	       ;; No trust check:
 	       (const "gnutls-cli --insecure -p %p %h")
-	       (const "gnutls-cli --insecure -p %p %h --protocols ssl3")
-	       (const "openssl s_client -connect %h:%p -no_ssl2 -ign_eof"))
+	       (const "gnutls-cli --insecure -p %p %h --protocols ssl3"))
 	  (repeat :inline t :tag "Other" (string)))
     (list :tag "List of commands"
 	  (repeat :tag "Command" (string))))
-  :version "22.1"
+  :version "26.1"                       ; remove s_client
   :group 'tls)
 
 (defcustom tls-process-connection-type nil
@@ -138,8 +134,7 @@ consider trustworthy, e.g.:
 
 \(setq tls-program
       \\='(\"gnutls-cli --x509cafile /etc/ssl/certs/ca-certificates.crt -p %p %h\"
-	\"gnutls-cli --x509cafile /etc/ssl/certs/ca-certificates.crt -p %p %h --protocols ssl3\"
-	\"openssl s_client -connect %h:%p -CAfile /etc/ssl/certs/ca-certificates.crt -no_ssl2 -ign_eof\"))"
+	\"gnutls-cli --x509cafile /etc/ssl/certs/ca-certificates.crt -p %p %h --protocols ssl3\"))"
   :type '(choice (const :tag "Always" t)
 		 (const :tag "Never" nil)
 		 (const :tag "Ask" ask))
