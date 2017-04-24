@@ -414,10 +414,9 @@ Thank you for your help in stamping out bugs.
      (gnus-inews-make-draft-meta-information
       ,(gnus-group-decoded-name gnus-newsgroup-name) ',articles)))
 
-(autoload 'nnir-article-number "nnir" nil nil 'macro)
-(autoload 'nnir-article-group "nnir" nil nil 'macro)
-(autoload 'gnus-nnir-group-p "nnir")
-
+(autoload 'nnselect-article-number "nnselect" nil nil 'macro)
+(autoload 'nnselect-article-group "nnselect" nil nil 'macro)
+(autoload 'gnus-nnselect-group-p "nnselect")
 
 (defvar gnus-article-reply nil)
 (defmacro gnus-setup-message (config &rest forms)
@@ -425,21 +424,23 @@ Thank you for your help in stamping out bugs.
 	(winconf-name (make-symbol "gnus-setup-message-winconf-name"))
 	(buffer (make-symbol "gnus-setup-message-buffer"))
 	(article (make-symbol "gnus-setup-message-article"))
+	(oarticle (make-symbol "gnus-setup-message-oarticle"))
 	(yanked (make-symbol "gnus-setup-yanked-articles"))
 	(group (make-symbol "gnus-setup-message-group")))
     `(let ((,winconf (current-window-configuration))
 	   (,winconf-name gnus-current-window-configuration)
 	   (,buffer (buffer-name (current-buffer)))
-	   (,article (if (and (gnus-nnir-group-p gnus-newsgroup-name)
+	   (,article (if (and (gnus-nnselect-group-p gnus-newsgroup-name)
 			      gnus-article-reply)
-			 (nnir-article-number (or (car-safe gnus-article-reply)
-						  gnus-article-reply))
+			 (nnselect-article-number
+			  (or (car-safe gnus-article-reply) gnus-article-reply))
 		       gnus-article-reply))
+	   (,oarticle gnus-article-reply)
 	   (,yanked gnus-article-yanked-articles)
-	   (,group (if (and (gnus-nnir-group-p gnus-newsgroup-name)
+	   (,group (if (and (gnus-nnselect-group-p gnus-newsgroup-name)
 			    gnus-article-reply)
-		       (nnir-article-group (or (car-safe gnus-article-reply)
-					       gnus-article-reply))
+		       (nnselect-article-group
+			(or (car-safe gnus-article-reply) gnus-article-reply))
 		     gnus-newsgroup-name))
 	   (message-header-setup-hook
 	    (copy-sequence message-header-setup-hook))
@@ -481,7 +482,7 @@ Thank you for your help in stamping out bugs.
        (unwind-protect
 	   (progn
 	     ,@forms)
-	 (gnus-inews-add-send-actions ,winconf ,buffer ,article ,config
+	 (gnus-inews-add-send-actions ,winconf ,buffer ,oarticle ,config
 				      ,yanked ,winconf-name)
 	 (setq gnus-message-buffer (current-buffer))
 	 (set (make-local-variable 'gnus-message-group-art)

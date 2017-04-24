@@ -52,8 +52,8 @@
 (autoload 'gnus-article-outlook-unwrap-lines "deuglify" nil t)
 (autoload 'gnus-article-outlook-repair-attribution "deuglify" nil t)
 (autoload 'gnus-article-outlook-rearrange-citation "deuglify" nil t)
-(autoload 'nnir-article-rsv "nnir" nil nil 'macro)
-(autoload 'nnir-article-group "nnir" nil nil 'macro)
+(autoload 'nnselect-article-rsv "nnselect" nil nil 'macro)
+(autoload 'nnselect-article-group "nnselect" nil nil 'macro)
 
 (defcustom gnus-kill-summary-on-exit t
   "If non-nil, kill the summary buffer when you exit from it.
@@ -111,8 +111,8 @@ If t, fetch all the available old headers."
   :type '(choice number
 		 (sexp :menu-tag "other" t)))
 
-(defcustom gnus-refer-thread-use-nnir nil
-  "Use nnir to search an entire server when referring threads. A
+(defcustom gnus-refer-thread-use-search nil
+  "Search an entire server when referring threads. A
 nil value will only search for thread-related articles in the
 current group."
   :version "24.1"
@@ -1388,13 +1388,16 @@ the normal Gnus MIME machinery."
     (?c (or (mail-header-chars gnus-tmp-header) 0) ?d)
     (?k (gnus-summary-line-message-size gnus-tmp-header) ?s)
     (?L gnus-tmp-lines ?s)
-    (?Z (or (nnir-article-rsv (mail-header-number gnus-tmp-header))
-	    0) ?d)
-    (?G (or (nnir-article-group (mail-header-number gnus-tmp-header))
-	    "") ?s)
-    (?g (or (gnus-group-short-name
-	     (nnir-article-group (mail-header-number gnus-tmp-header)))
-	    "") ?s)
+    (?Z (if (gnus-nnselect-group-p gnus-newsgroup-name)
+	    (or (nnselect-article-rsv (mail-header-number gnus-tmp-header))
+	    0) 0) ?d)
+    (?G (if (gnus-nnselect-group-p gnus-newsgroup-name)
+	    (or (nnselect-article-group (mail-header-number gnus-tmp-header))
+	    "") "") ?s)
+    (?g (if (gnus-nnselect-group-p gnus-newsgroup-name)
+	    (or (gnus-group-short-name
+	     (nnselect-article-group (mail-header-number gnus-tmp-header)))
+	    "") "") ?s)
     (?O gnus-tmp-downloaded ?c)
     (?I gnus-tmp-indentation ?s)
     (?T (if (= gnus-tmp-level 0) "" (make-string (frame-width) ? )) ?s)
@@ -1568,6 +1571,8 @@ This list will always be a subset of gnus-newsgroup-undownloaded.")
 
 (defvar gnus-newsgroup-sparse nil)
 
+(defvar nnselect-artlist nil)
+
 (defvar gnus-current-article nil)
 (defvar gnus-article-current nil)
 (defvar gnus-current-headers nil)
@@ -1601,6 +1606,8 @@ This list will always be a subset of gnus-newsgroup-undownloaded.")
     gnus-newsgroup-downloadable
     gnus-newsgroup-undownloaded
     gnus-newsgroup-unsendable
+
+    nnselect-artlist
 
     gnus-newsgroup-begin gnus-newsgroup-end
     gnus-newsgroup-last-rmail gnus-newsgroup-last-mail
@@ -9007,9 +9014,9 @@ Return the number of articles fetched."
 (defun gnus-summary-refer-thread (&optional limit)
   "Fetch all articles in the current thread. For backends that
 know how to search for threads (currently only 'nnimap) a
-non-numeric prefix arg will use nnir to search the entire
+non-numeric prefix arg will search the entire
 server; without a prefix arg only the current group is
-searched. If the variable `gnus-refer-thread-use-nnir' is
+searched. If the variable `gnus-refer-thread-use-search' is
 non-nil the prefix arg has the reverse meaning. If no
 backend-specific 'request-thread function is available fetch
 LIMIT (the numerical prefix) old headers. If LIMIT is
@@ -9021,9 +9028,9 @@ non-numeric or nil fetch the number specified by the
 	 (gnus-inhibit-demon t)
 	 (gnus-summary-ignore-duplicates t)
 	 (gnus-read-all-available-headers t)
-	 (gnus-refer-thread-use-nnir
+	 (gnus-refer-thread-use-search
 	  (if (and (not (null limit)) (listp limit))
-	      (not gnus-refer-thread-use-nnir) gnus-refer-thread-use-nnir))
+	      (not gnus-refer-thread-use-search) gnus-refer-thread-use-search))
 	 (new-headers
 	  (if (gnus-check-backend-function
 	       'request-thread gnus-newsgroup-name)
@@ -9162,9 +9169,9 @@ non-numeric or nil fetch the number specified by the
       (dolist (method gnus-refer-article-method)
 	(push (if (eq 'current method)
 		  gnus-current-select-method
-		(if (eq 'nnir (car method))
+		(if (eq 'nnselect (car method))
 		    (list
-		     'nnir
+		     'nnselect
 		     (or (cadr method)
 			 (gnus-method-to-server gnus-current-select-method)))
 		  method))
