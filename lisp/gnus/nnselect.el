@@ -524,11 +524,10 @@ If this variable is nil, or if the provided function returns nil,
          (specs (assq 'nnselect-specs args))
          (function-spec
           (or  (alist-get 'nnselect-function specs)
-              (list
-	       (read-from-minibuffer "Function: " nil nil t))))
+	       (read-from-minibuffer "Function: " nil nil t)))
          (args-spec
           (or  (alist-get 'nnselect-args specs)
-               (read-from-minibuffer "Args: " nil nil t)))
+               (read-from-minibuffer "Args: " nil nil t nil "nil")))
          (nnselect-specs (list (cons 'nnselect-function function-spec)
 			       (cons 'nnselect-args args-spec))))
     (gnus-group-set-parameter group 'nnselect-specs nnselect-specs)
