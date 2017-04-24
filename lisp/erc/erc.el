@@ -2700,7 +2700,10 @@ See also `erc-format-message' and `erc-display-line'."
       (unless (erc-hide-current-message-p parsed)
         (erc-put-text-property 0 (length string) 'erc-parsed parsed string)
         (erc-put-text-property 0 (length string) 'rear-sticky t string)
-        (erc-display-line string buffer)))))
+	(when (erc-response.tags parsed)
+	  (erc-put-text-property 0 (length string) 'tags (erc-response.tags parsed)
+				 string))
+	(erc-display-line string buffer)))))
 
 (defun erc-message-type-member (position list)
   "Return non-nil if the erc-parsed text-property at POSITION is in LIST.

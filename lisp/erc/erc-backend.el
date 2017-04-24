@@ -53,6 +53,7 @@
 ;; CONTENTS --- `erc-response.contents'
 ;; SENDER --- `erc-response.sender'
 ;; LINE --- `erc-response.unparsed'
+;; TAGS --- `erc-response.tags'
 ;;
 ;; WARNING, WARNING!!
 ;; It's probably not a good idea to destructively modify the list
@@ -115,7 +116,8 @@
   (sender "" :type string)
   (command "" :type string)
   (command-args '() :type list)
-  (contents "" :type string))
+  (contents "" :type string)
+  (tags '() :type list))
 
 ;;; User data
 
@@ -955,16 +957,34 @@ See also `erc-server-send'."
 
 ;;;; Handling responses
 
+(defun erc-parse-tags (string)
+  "Parse IRCv3 tags list in STRING to a (tag . value) alist."
+  (let ((tags)
+        (tag-strings (split-string string ";")))
+    (dolist (tag-string tag-strings tags)
+      (let ((pair (split-string tag-string "=")))
+        (push (if (consp pair)
+                  pair
+                `(,pair))
+              tags)))))
+
 (defun erc-parse-server-response (proc string)
   "Parse and act upon a complete line from an IRC server.
 PROC is the process (connection) from which STRING was received.
 PROCs `process-buffer' is `current-buffer' when this function is called."
   (unless (string= string "") ;; Ignore empty strings
     (save-match-data
-      (let ((posn (if (eq (aref string 0) ?:)
-                      (string-match " " string)
-                    0))
-            (msg (make-erc-response :unparsed string)))
+      (let* ((tag-list (when (eq (aref string 0) ?@)
+                         (substring string 1 (string-match " " string))))
+             (msg (make-erc-response :unparsed string :tags (when tag-list
+                                                              (erc-parse-tags
+                                                               tag-list))))
+             (string (if tag-list
+                         (substring string (+ 1 (string-match " " string)))
+                       string))
+             (posn (if (eq (aref string 0) ?:)
+                       (string-match " " string)
+                     0)))
 
         (setf (erc-response.sender msg)
               (if (eq posn 0)
