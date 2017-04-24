@@ -302,7 +302,7 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
           planes[1][i] = gg;
           planes[2][i] = bb;
         }
-    xbm_fg = ((rr << 16) & 0xff) + ((gg << 8) & 0xff) + (bb & 0xff);
+    xbm_fg = ((rr << 16) & 0xff0000) + ((gg << 8) & 0xff00) + (bb & 0xff);
   }
 
   return self;
