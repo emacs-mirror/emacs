@@ -35,6 +35,7 @@
 (require 'gnus-cloud)
 
 (autoload 'gnus-group-make-search-group "nnselect")
+(autoload 'gnus-group-make-permanent-search-group "nnselect")
 
 (defcustom gnus-server-mode-hook nil
   "Hook run in `gnus-server-mode' buffers."
