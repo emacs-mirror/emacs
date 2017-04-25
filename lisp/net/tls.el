@@ -69,17 +69,15 @@
    "^\\*\\*\\* Starting TLS handshake\n\\)*"
    "\\)")
   "Regexp matching end of TLS client informational messages.
-Client data stream begins after the last character matched by
-this.  The default matches `openssl s_client' (version 0.9.8c)
-and `gnutls-cli' (version 2.0.1) output."
+Client data stream begins after the last character this matches.
+The default matches the output of \"gnutls-cli\" (version 2.0.1)."
   :version "22.2"
   :type 'regexp
   :group 'tls)
 
 (defcustom tls-program
   '("gnutls-cli --x509cafile %t -p %p %h"
-    "gnutls-cli --x509cafile %t -p %p %h --protocols ssl3"
-    "openssl s_client -connect %h:%p -no_ssl2 -ign_eof")
+    "gnutls-cli --x509cafile %t -p %p %h --protocols ssl3")
   "List of strings containing commands to start TLS stream to a host.
 Each entry in the list is tried until a connection is successful.
 %h is replaced with the server hostname, %p with the port to
@@ -94,24 +92,21 @@ successful negotiation."
   '(choice
     (const :tag "Default list of commands"
 	   ("gnutls-cli --x509cafile %t -p %p %h"
-	    "gnutls-cli --x509cafile %t -p %p %h --protocols ssl3"
-	    "openssl s_client -CAfile %t -connect %h:%p -no_ssl2 -ign_eof"))
+	    "gnutls-cli --x509cafile %t -p %p %h --protocols ssl3"))
     (list :tag "Choose commands"
 	  :value
 	  ("gnutls-cli --x509cafile %t -p %p %h"
-	   "gnutls-cli --x509cafile %t -p %p %h --protocols ssl3"
-	   "openssl s_client -connect %h:%p -no_ssl2 -ign_eof")
+	   "gnutls-cli --x509cafile %t -p %p %h --protocols ssl3")
 	  (set :inline t
 	       ;; FIXME: add brief `:tag "..."' descriptions.
 	       ;; (repeat :inline t :tag "Other" (string))
 	       ;; No trust check:
 	       (const "gnutls-cli --insecure -p %p %h")
-	       (const "gnutls-cli --insecure -p %p %h --protocols ssl3")
-	       (const "openssl s_client -connect %h:%p -no_ssl2 -ign_eof"))
+	       (const "gnutls-cli --insecure -p %p %h --protocols ssl3"))
 	  (repeat :inline t :tag "Other" (string)))
     (list :tag "List of commands"
 	  (repeat :tag "Command" (string))))
-  :version "22.1"
+  :version "26.1"                       ; remove s_client
   :group 'tls)
 
 (defcustom tls-process-connection-type nil
@@ -122,8 +117,8 @@ successful negotiation."
 
 (defcustom tls-success "- Handshake was completed\\|SSL handshake has read "
   "Regular expression indicating completed TLS handshakes.
-The default is what GnuTLS's \"gnutls-cli\" or OpenSSL's
-\"openssl s_client\" outputs."
+The default is what GnuTLS's \"gnutls-cli\" outputs."
+;; or OpenSSL's \"openssl s_client\"
   :version "22.1"
   :type 'regexp
   :group 'tls)
@@ -138,8 +133,7 @@ consider trustworthy, e.g.:
 
 \(setq tls-program
       \\='(\"gnutls-cli --x509cafile /etc/ssl/certs/ca-certificates.crt -p %p %h\"
-	\"gnutls-cli --x509cafile /etc/ssl/certs/ca-certificates.crt -p %p %h --protocols ssl3\"
-	\"openssl s_client -connect %h:%p -CAfile /etc/ssl/certs/ca-certificates.crt -no_ssl2 -ign_eof\"))"
+	\"gnutls-cli --x509cafile /etc/ssl/certs/ca-certificates.crt -p %p %h --protocols ssl3\"))"
   :type '(choice (const :tag "Always" t)
 		 (const :tag "Never" nil)
 		 (const :tag "Ask" ask))
@@ -149,9 +143,9 @@ consider trustworthy, e.g.:
 (defcustom tls-untrusted
   "- Peer's certificate is NOT trusted\\|Verify return code: \\([^0] \\|.[^ ]\\)"
   "Regular expression indicating failure of TLS certificate verification.
-The default is what GnuTLS's \"gnutls-cli\" or OpenSSL's
-\"openssl s_client\" return in the event of unsuccessful
-verification."
+The default is what GnuTLS's \"gnutls-cli\" returns in the event of
+unsuccessful verification."
+;; or OpenSSL's \"openssl s_client\"
   :type 'regexp
   :version "23.1" ;; No Gnus
   :group 'tls)
