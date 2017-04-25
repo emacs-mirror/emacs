@@ -71,7 +71,7 @@
 (defvar gnus-inhibit-demon)
 (defvar gnus-message-group-art)
 
-;; (defvoo nnselect-artlist nil
+;; (defvar nnselect-artlist nil
 ;;   "Internal: stores the list of articles.")
 
 
@@ -721,7 +721,14 @@ originating groups."
 (declare-function nnir-read-parms "nnir" (search-engine))
 (declare-function nnir-server-to-search-engine "nnir" (server))
 
-(defun gnus-group-make-search-group (nnir-extra-parms &optional specs)
+
+;; Temporary to make group creation easier
+
+(defun gnus-group-make-permanent-search-group (nnir-extra-parms &optional specs)
+  (interactive "P")
+  (gnus-group-make-search-group nnir-extra-parms specs t))
+
+(defun gnus-group-make-search-group (nnir-extra-parms &optional specs perm)
   "Create an nnselect group based on a search.  Prompt for a
 search query and determine the groups to search as follows: if
 called from the *Server* buffer search all groups belonging to
@@ -753,21 +760,34 @@ non-nil `specs' arg must be an alist with `nnir-query-spec' and
 		(lambda (x)
 		  (nnir-read-parms (nnir-server-to-search-engine (car x))))
 		group-spec))))))
-    (gnus-group-read-ephemeral-group
-     (concat "nnselect-" (message-unique-id))
-     (list 'nnselect "nnselect")
-     nil
-     (cons (current-buffer) gnus-current-window-configuration)
-;     nil
-     nil nil
-     (list
-      (cons 'nnselect-specs
-	    (list
-	     (cons 'nnselect-function 'nnir-run-query)
-	     (cons 'nnselect-args
-		   (list (cons 'nnir-query-spec query-spec)
-			 (cons 'nnir-group-spec group-spec)))))
-      (cons 'nnselect-artlist nil)))))
+    (if perm
+	(let ((name (read-string "Group name: " nil)))
+	  (gnus-group-make-group
+	   name
+	   (list 'nnselect "nnselect")
+	   nil
+	   (list
+	    (cons 'nnselect-specs
+		  (list
+		   (cons 'nnselect-function 'nnir-run-query)
+		   (cons 'nnselect-args
+			 (list (cons 'nnir-query-spec query-spec)
+			       (cons 'nnir-group-spec group-spec))))))))
+      (gnus-group-read-ephemeral-group
+       (concat "nnselect-" (message-unique-id))
+       (list 'nnselect "nnselect")
+       nil
+       (cons (current-buffer) gnus-current-window-configuration)
+					;     nil
+       nil nil
+       (list
+	(cons 'nnselect-specs
+	      (list
+	       (cons 'nnselect-function 'nnir-run-query)
+	       (cons 'nnselect-args
+		     (list (cons 'nnir-query-spec query-spec)
+			   (cons 'nnir-group-spec group-spec)))))
+	(cons 'nnselect-artlist nil))))))
 
 
 ;; The end.
