@@ -264,6 +264,7 @@ If this variable is nil, or if the provided function returns nil,
     (mapc 'nnheader-insert-nov headers)
     'nov)))
 
+(declare-function nnir-run-query "nnir" (specs))
 (deffoo nnselect-request-article (article &optional group server to-buffer)
   (nnselect-possibly-change-group group server)
   ;; We shoud only arrive here if we are in an nnselect group and we
