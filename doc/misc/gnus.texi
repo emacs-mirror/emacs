@@ -13871,6 +13871,7 @@ installed.  You then define a server as follows:
       (nntp-address "snews.bar.com"))
 @end lisp
 
+@c FIXME openssl s_client should be deprecated in favor of gnutls.
 @findex nntp-open-ssl-stream
 @item nntp-open-ssl-stream
 Opens a connection to a server over a @dfn{secure} channel.  To use

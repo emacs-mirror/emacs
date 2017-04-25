@@ -69,9 +69,8 @@
    "^\\*\\*\\* Starting TLS handshake\n\\)*"
    "\\)")
   "Regexp matching end of TLS client informational messages.
-Client data stream begins after the last character matched by
-this.  The default matches `openssl s_client' (version 0.9.8c)
-and `gnutls-cli' (version 2.0.1) output."
+Client data stream begins after the last character this matches.
+The default matches the output of \"gnutls-cli\" (version 2.0.1)."
   :version "22.2"
   :type 'regexp
   :group 'tls)
@@ -118,8 +117,8 @@ successful negotiation."
 
 (defcustom tls-success "- Handshake was completed\\|SSL handshake has read "
   "Regular expression indicating completed TLS handshakes.
-The default is what GnuTLS's \"gnutls-cli\" or OpenSSL's
-\"openssl s_client\" outputs."
+The default is what GnuTLS's \"gnutls-cli\" outputs."
+;; or OpenSSL's \"openssl s_client\"
   :version "22.1"
   :type 'regexp
   :group 'tls)
@@ -144,9 +143,9 @@ consider trustworthy, e.g.:
 (defcustom tls-untrusted
   "- Peer's certificate is NOT trusted\\|Verify return code: \\([^0] \\|.[^ ]\\)"
   "Regular expression indicating failure of TLS certificate verification.
-The default is what GnuTLS's \"gnutls-cli\" or OpenSSL's
-\"openssl s_client\" return in the event of unsuccessful
-verification."
+The default is what GnuTLS's \"gnutls-cli\" returns in the event of
+unsuccessful verification."
+;; or OpenSSL's \"openssl s_client\"
   :type 'regexp
   :version "23.1" ;; No Gnus
   :group 'tls)
