@@ -6993,10 +6993,10 @@ If given a prefix, show the hidden text instead."
 		   ((memq article gnus-newsgroup-sparse)
 		    ;; This is a sparse gap article.
 		    (setq do-update-line article)
-		    (setq article (mail-header-id header))
-		    (setq sparse-header (gnus-read-header article))
 		    (setq gnus-newsgroup-sparse
-			  (delq article gnus-newsgroup-sparse)))
+			  (delq article gnus-newsgroup-sparse))
+		    (setq article (mail-header-id header))
+		    (setq sparse-header (gnus-read-header article)))
 		   ((vectorp header)
 		    ;; It's a real article.
 		    (setq article (mail-header-id header)))
