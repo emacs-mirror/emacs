@@ -26,7 +26,7 @@
 ;;; Code:
 
 (require 'ert)
-(require 'nnir)
+(require 'gnus-search)
 
 (ert-deftest gnus-s-parse ()
   "Test basic structural parsing."
@@ -39,22 +39,22 @@
            ("here not there" . ("here" (not "there")))
            ("from:boss or not vacation" . ((or (from . "boss") (not "vacation")))))))
     (dolist (p pairs)
-      (should (equal (nnir-search-parse-query (car p)) (cdr p))))))
+      (should (equal (gnus-search-parse-query (car p)) (cdr p))))))
 
 (ert-deftest gnus-s-expand-keyword ()
   "Test expansion of keywords"
-  (let ((nnir-search-expandable-keys
-         (default-value 'nnir-search-expandable-keys))
+  (let ((gnus-search-expandable-keys
+         (default-value 'gnus-search-expandable-keys))
         (pairs
          '(("su" . "subject")
            ("f" . "from")
            ("co-f" . "contact-from"))))
     (dolist (p pairs)
-      (should (equal (nnir-query-expand-key (car p))
+      (should (equal (gnus-search-query-expand-key (car p))
                      (cdr p))))
-    (should-error (nnir-query-expand-key "s")
+    (should-error (gnus-search-query-expand-key "s")
                   :type 'gnus-search-parse-error)
-    (should-error (nnir-query-expand-key "c-f")
+    (should-error (gnus-search-query-expand-key "c-f")
                   :type 'gnus-search-parse-error)))
 
 (ert-deftest gnus-s-parse-date ()
@@ -69,7 +69,7 @@
            ("1d" . (14 4 2017))
            ("1w" . (8 4 2017)))))
     (dolist (p pairs)
-      (should (equal (nnir-query-parse-date (car p) rel-date)
+      (should (equal (gnus-search-query-parse-date (car p) rel-date)
                      (cdr p))))))
 
 

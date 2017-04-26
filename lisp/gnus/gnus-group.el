@@ -32,6 +32,7 @@
 (require 'gnus-start)
 (require 'nnmail)
 (require 'gnus-spec)
+(require 'gnus-search)
 (require 'gnus-int)
 (require 'gnus-range)
 (require 'gnus-win)
