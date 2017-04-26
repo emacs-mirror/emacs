@@ -36,10 +36,10 @@
 ;; sorting. Most functions will just chose a fixed number, such as
 ;; 100, for this score.
 
-;; For example the search function `nnir-run-query' applied to
-;; arguments specifying a search query (see "nnir.el") can be used to
-;; return a list of articles from a search. Or the function can be the
-;; identity and the args a vector of articles.
+;; For example the search function `gnus-search-run-query' applied to
+;; arguments specifying a search query (see "gnus-search.el") can be
+;; used to return a list of articles from a search. Or the function
+;; can be the identity and the args a vector of articles.
 
 
 ;;; Code:
@@ -292,7 +292,7 @@ If this variable is nil, or if the provided function returns nil,
     (mapc 'nnheader-insert-nov headers)
     'nov)))
 
-
+(declare-function gnus-search-run-query "gnus-search" (specs))
 (deffoo nnselect-request-article (article &optional _group server to-buffer)
   (let* ((gnus-override-method nil)
 	 servers group-art artlist)
@@ -319,12 +319,11 @@ If this variable is nil, or if the provided function returns nil,
 		 (gnus-articles-in-thread thread)))))
 	(setq servers (list (list server))))
       (setq artlist
-	    (nnir-run-query
+	    (gnus-search-run-query
 	     (list
-	      (cons 'nnir-query-spec
-		    (list (cons 'query  (format "HEADER Message-ID %s" article))
-		    (cons 'criteria "")  (cons 'shortcut t)))
-	      (cons 'nnir-group-spec servers))))
+	      (cons 'search-query-spec
+		    (list (cons 'query `((id . ,article)))))
+	      (cons 'search-group-spec servers))))
       (unless (zerop (nnselect-artlist-length artlist))
 	(setq
 	 group-art
@@ -481,6 +480,7 @@ If this variable is nil, or if the provided function returns nil,
     (gnus-set-active group (cons 1 (nnselect-artlist-length
 				    gnus-newsgroup-selection)))))
 
+(declare-function gnus-search-run-query "gnus-search" (specs))
 (deffoo nnselect-request-thread (header &optional group server)
   (let ((group (nnselect-possibly-change-group group server)) ;; necessary?
 	;; find the best group for the originating article. if its a
@@ -508,16 +508,15 @@ If this variable is nil, or if the provided function returns nil,
 		(list (delq nil (list
 				 (or server (gnus-group-server artgroup))
 				 (unless  gnus-refer-thread-use-search
-				    artgroup)))))
+				   artgroup)))))
 	       (query-spec
-		(list (cons 'query (nnimap-make-thread-query header))
-		      (cons 'criteria "")))
+		(list (cons 'query (nnimap-make-thread-query header))))
 	       (last (nnselect-artlist-length gnus-newsgroup-selection))
 	       (first (1+ last))
 	       (new-nnselect-artlist
-		(nnir-run-query
-		 (list (cons 'nnir-query-spec query-spec)
-		       (cons 'nnir-group-spec group-spec))))
+		(gnus-search-run-query
+		 (list (cons 'search-query-spec query-spec)
+		       (cons 'search-group-spec group-spec))))
 	       old-arts seq
 	       headers)
 	  (mapc
@@ -553,10 +552,10 @@ If this variable is nil, or if the provided function returns nil,
 					 (when (member (cdr art) marked)
 					   (car art)))
 				     artids)))
-		  (nconc
-		   (symbol-value (intern (format "gnus-newsgroup-%s"
-				   (car (rassq type gnus-article-mark-lists)))))
-		   new-marks)))))
+		    (nconc
+		     (symbol-value (intern (format "gnus-newsgroup-%s"
+						   (car (rassq type gnus-article-mark-lists)))))
+		     new-marks)))))
 	    (setq gnus-newsgroup-active
 		  (cons 1 (nnselect-artlist-length gnus-newsgroup-selection)))
 	    (gnus-set-active
@@ -657,6 +656,17 @@ If this variable is nil, or if the provided function returns nil,
     group))
 
 
+;; (defun nnselect-server-opened (&optional server)
+;;   "Open SERVER if not yet opened."
+;;   (let ((backend (car (gnus-server-to-method server))))
+;;     (nnoo-current-server-p (or backend 'nnselect) server)))
+
+(deffoo nnselect-server-opened (&optional _server)
+  t)
+
+
+(declare-function gnus-registry-get-id-key "gnus-registry"
+                  (id key))
 (defun nnselect-search-thread (header)
   "Make an nnselect group containing the thread with article HEADER.
 The current server will be searched.  If the registry is
@@ -667,7 +677,7 @@ article came from is also searched."
 		(cons 'criteria "")))
 	 (server
 	  (list (list (gnus-method-to-server
-	   (gnus-find-method-for-group gnus-newsgroup-name)))))
+		       (gnus-find-method-for-group gnus-newsgroup-name)))))
 	 (registry-group (and
 			  (bound-and-true-p gnus-registry-enabled)
 			  (car (gnus-registry-get-id-key
@@ -688,10 +698,10 @@ article came from is also searched."
      (list
       (cons 'nnselect-specs
 	    (list
-	     (cons 'nnselect-function 'nnir-run-query)
+	     (cons 'nnselect-function 'gnus-search-run-query)
 	     (cons 'nnselect-args
-		   (list (cons 'nnir-query-spec query)
-			 (cons 'nnir-group-spec server)))))
+		   (list (cons 'search-query-spec query)
+			 (cons 'search-group-spec server)))))
       (cons 'nnselect-artlist nil)))
     (gnus-summary-goto-subject (gnus-id-to-article (mail-header-id header)))))
 
@@ -791,7 +801,6 @@ originating groups."
 	     group-info (gnus-active artgroup) t)
 	    (gnus-group-update-group artgroup t)))))))
 
-
 (declare-function gnus-registry-get-id-key "gnus-registry" (id key))
 
 (defun gnus-summary-make-search-group (nnir-extra-parms)
@@ -805,7 +814,6 @@ originating groups."
 		       (gnus-group-server gnus-newsgroup-name)
 		       gnus-newsgroup-name))))))
     (gnus-group-make-search-group nnir-extra-parms spec)))
-
 
 ;; The end.
 (provide 'nnselect)
