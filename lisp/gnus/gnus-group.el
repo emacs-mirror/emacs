@@ -52,6 +52,7 @@
 
 (autoload 'gnus-cloud-upload-all-data "gnus-cloud")
 (autoload 'gnus-cloud-download-all-data "gnus-cloud")
+(autoload 'gnus-registry-get-id-key "gnus-registry")
 
 (defcustom gnus-no-groups-message "No news is good news"
   "Message displayed by Gnus when no groups are available."
@@ -2794,6 +2795,65 @@ server."
 	(error "Could not create group on server: %s"
 	       (nnheader-get-report backend))))
     t))
+
+(defun gnus-group-make-permanent-search-group (&optional arg specs)
+  (interactive "P")
+  (gnus-group-make-search-group arg t specs))
+
+(defun gnus-group-make-search-group (&optional arg perm specs)
+  "Create an nnselect group based on a search.  Prompt for a
+search query and determine the groups to search as follows: if
+called from the *Server* buffer search all groups belonging to
+the server on the current line; if called from the *Group* buffer
+search any marked groups, or the group on the current line, or
+all the groups under the current topic. Calling with a prefix-arg
+means the search query will be passed raw to the . A
+non-nil `specs' arg must be an alist with `search-query-spec' and
+`search-group-spec' keys, and skips all prompting."
+  (interactive "P")
+  (let* ((group-spec
+	  (or (cdr (assq 'search-group-spec specs))
+	    (if (gnus-server-server-name)
+		(list (list (gnus-server-server-name)))
+	      (nnselect-categorize
+	       (or gnus-group-marked
+		   (if (gnus-group-group-name)
+		       (list (gnus-group-group-name))
+		     (cdr (assoc (gnus-group-topic-name) gnus-topic-alist))))
+	       gnus-group-server))))
+	 (query-spec
+	  (or (cdr (assq 'search-query-spec specs))
+	    (list (cons 'query
+			(read-string "Query: " nil 'gnus-search-history))
+		  (cons 'no-parse arg)))))
+    (if perm
+	(let ((name (read-string "Group name: " nil)))
+	  (gnus-group-make-group
+	   name
+	   (list 'nnselect "nnselect")
+	   nil
+	   (list
+	    (cons 'nnselect-specs
+		  (list
+		   (cons 'nnselect-function 'gnus-search-run-query)
+		   (cons 'nnselect-args
+			 (list (cons 'search-query-spec query-spec)
+			       (cons 'search-group-spec group-spec))))))))
+      (gnus-group-read-ephemeral-group
+       (concat "nnselect-" (message-unique-id))
+       (list 'nnselect "nnselect")
+       nil
+       (cons (current-buffer) gnus-current-window-configuration)
+					;     nil
+       nil nil
+       (list
+	(cons 'nnselect-specs
+	      (list
+	       (cons 'nnselect-function 'gnus-search-run-query)
+	       (cons 'nnselect-args
+		     (list (cons 'search-query-spec query-spec)
+			   (cons 'search-group-spec group-spec)))))
+	(cons 'nnselect-artlist nil))))))
 
 (defun gnus-group-delete-groups (&optional arg)
   "Delete the current group.  Only meaningful with editable groups."
