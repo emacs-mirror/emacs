@@ -71,8 +71,8 @@
 (defvar gnus-inhibit-demon)
 (defvar gnus-message-group-art)
 
-;; (defvar nnselect-artlist nil
-;;   "Internal: stores the list of articles.")
+(defvar nnselect-artlist nil
+  "Internal: stores the list of articles.")
 
 
 ;; For future use
@@ -115,15 +115,18 @@
 
 (defmacro nnselect-article-group (article)
   "Return the group for ARTICLE."
-  `(nnselect-artitem-group (nnselect-artlist-article nnselect-artlist ,article)))
+  `(nnselect-artitem-group (nnselect-artlist-article
+  gnus-newsgroup-selection ,article)))
 
 (defmacro nnselect-article-number (article)
   "Return the number for ARTICLE."
-  `(nnselect-artitem-number (nnselect-artlist-article nnselect-artlist ,article)))
+  `(nnselect-artitem-number (nnselect-artlist-article
+  gnus-newsgroup-selection ,article)))
 
 (defmacro nnselect-article-rsv (article)
   "Return the rsv for ARTICLE."
-  `(nnselect-artitem-rsv (nnselect-artlist-article nnselect-artlist ,article)))
+  `(nnselect-artitem-rsv (nnselect-artlist-article
+  gnus-newsgroup-selection ,article)))
 
 (defmacro nnselect-article-id (article)
   "Return the pair `(nnselect id . real id)' of ARTICLE."
@@ -224,6 +227,7 @@ If this variable is nil, or if the provided function returns nil,
   nnselect-artlist)
 
 (deffoo nnselect-retrieve-headers (articles &optional _group _server fetch-old)
+  (setq gnus-newsgroup-selection nnselect-artlist)
   (let ((gnus-inhibit-demon t)
 	(gartids (ids-by-group articles))
 	headers)
@@ -266,27 +270,29 @@ If this variable is nil, or if the provided function returns nil,
 
 (declare-function nnir-run-query "nnir" (specs))
 (deffoo nnselect-request-article (article &optional group server to-buffer)
-  (nnselect-possibly-change-group group server)
   ;; We shoud only arrive here if we are in an nnselect group and we
   ;; are requesting a real article. Just find the originating
   ;; group for the article and pass the request on.
   (if (numberp article)
-      (unless (zerop (nnselect-artlist-length nnselect-artlist))
-	(let ((artgroup (nnselect-article-group article))
-	      (artnumber (nnselect-article-number article)))
-	  (message "Requesting article %d from group %s"
-		   artnumber artgroup)
-	  (if to-buffer
-	      (with-current-buffer to-buffer
-		(let ((gnus-article-decode-hook nil))
-		  (gnus-request-article-this-buffer artnumber artgroup)))
-	    (gnus-request-article artnumber artgroup))
-	  (cons artgroup artnumber)))
+      (with-current-buffer gnus-summary-buffer
+	(unless (zerop (nnselect-artlist-length
+			gnus-newsgroup-selection))
+	  (let ((artgroup (nnselect-article-group article))
+		(artnumber (nnselect-article-number article)))
+	    (message "Requesting article %d from group %s"
+		     artnumber artgroup)
+	    (if to-buffer
+		(with-current-buffer to-buffer
+		  (let ((gnus-article-decode-hook nil))
+		    (gnus-request-article-this-buffer artnumber artgroup)))
+	      (gnus-request-article artnumber artgroup))
+	    (cons artgroup artnumber))))
     (let (articleno)
       (save-excursion
         ;; if we are coming from an nnimap group we can search the
         ;; whole server. Its usually so fast we might as well. If we
         ;; want we could make this configurable.
+	;; (or (string-empty-p server (gnus-virtual-group-p server))
         (when (eq 'nnimap (car (gnus-server-to-method server)))
           (let ((article article)
 		(gnus-override-method (gnus-server-to-method server))
@@ -321,10 +327,6 @@ If this variable is nil, or if the provided function returns nil,
                ;; up a server or group method and retrieve the
                ;; original article id that way.
 
-	       ;; (gnus-command-method
-               ;; (gnus-find-method-for-group (when (not (zerop
-               ;; (nnir-artlist-length nnir-artlist)))
-               ;; (nnir-article-group (or articleno 1))))))
 	       (gnus-command-method
 		(if (zerop (nnselect-artlist-length nnselect-artlist))
 		    (or (gnus-server-to-method server)
@@ -433,13 +435,15 @@ If this variable is nil, or if the provided function returns nil,
     car cadr)))
 
 (deffoo nnselect-request-update-info (group info &optional server)
-  (let ((group  (nnselect-possibly-change-group group server)))
+  (let ((group  (nnselect-possibly-change-group group server))
+	(gnus-newsgroup-selection (or gnus-newsgroup-selection
+	nnselect-artlist)))
     (gnus-info-set-marks info nil)
     (gnus-info-set-read info nil)
     (pcase-dolist (`(,artgroup ,nartids)
 		   (ids-by-group
-		    (number-sequence
-		     1 (nnselect-artlist-length nnselect-artlist))))
+		    (number-sequence 1 (nnselect-artlist-length
+					gnus-newsgroup-selection))))
       (let* ((gnus-newsgroup-active nil)
 	     (artids (cl-sort nartids '< :key 'car))
 	     (group-info (gnus-get-info artgroup))
@@ -463,12 +467,16 @@ If this variable is nil, or if the provided function returns nil,
 		   (mapcar
 		    #'(lambda (art)
 			(when (member (cdr art) range)
-			  (car art)))  artids))))))))
-  (gnus-set-active group (cons 1 (nnselect-artlist-length nnselect-artlist))))
+			  (car art)))  artids)))))))
+    (gnus-set-active group (cons 1 (nnselect-artlist-length
+				    gnus-newsgroup-selection)))))
 
 (declare-function nnir-run-query "nnir" (specs))
 (deffoo nnselect-request-thread (header &optional group server)
   (let ((group (nnselect-possibly-change-group group server))
+	;; find the best group for the originating article. if its a
+	;; psuedo-article look for real articles in the same thread
+	;; and see where they come from.
 	(artgroup (nnselect-article-group
 		   (if (> (mail-header-number header) 0)
 		       (mail-header-number header)

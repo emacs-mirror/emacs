@@ -1571,7 +1571,7 @@ This list will always be a subset of gnus-newsgroup-undownloaded.")
 
 (defvar gnus-newsgroup-sparse nil)
 
-(defvar nnselect-artlist nil)
+(defvar gnus-newsgroup-selection nil)
 
 (defvar gnus-current-article nil)
 (defvar gnus-article-current nil)
@@ -1607,7 +1607,7 @@ This list will always be a subset of gnus-newsgroup-undownloaded.")
     gnus-newsgroup-undownloaded
     gnus-newsgroup-unsendable
 
-    nnselect-artlist
+    gnus-newsgroup-selection
 
     gnus-newsgroup-begin gnus-newsgroup-end
     gnus-newsgroup-last-rmail gnus-newsgroup-last-mail

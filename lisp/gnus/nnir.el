@@ -499,8 +499,8 @@ ready to be added to the list of search results."
     ;; and with all subsequent slashes replaced by dots
     (let ((group (replace-regexp-in-string
 		  "[/\\]" "."
-                 (replace-regexp-in-string "^[./\\]" "" dirnam nil t)
-                 nil t)))
+                  (replace-regexp-in-string "^[./\\]" "" dirnam nil t)
+                  nil t)))
 
     (vector (gnus-group-full-name group server)
 	    (if (string-match "\\`nnmaildir:" (gnus-group-server server))
