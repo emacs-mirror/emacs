@@ -430,18 +430,18 @@ Thank you for your help in stamping out bugs.
     `(let ((,winconf (current-window-configuration))
 	   (,winconf-name gnus-current-window-configuration)
 	   (,buffer (buffer-name (current-buffer)))
-	   (,article (if (and (gnus-nnselect-group-p gnus-newsgroup-name)
-			      gnus-article-reply)
-			 (nnselect-article-number
-			  (or (car-safe gnus-article-reply) gnus-article-reply))
-		       gnus-article-reply))
+	   (,article   (when gnus-article-reply
+			 (or (nnselect-article-number
+			      (or (car-safe gnus-article-reply)
+				  gnus-article-reply))
+			     gnus-article-reply)))
 	   (,oarticle gnus-article-reply)
 	   (,yanked gnus-article-yanked-articles)
-	   (,group (if (and (gnus-nnselect-group-p gnus-newsgroup-name)
-			    gnus-article-reply)
-		       (nnselect-article-group
-			(or (car-safe gnus-article-reply) gnus-article-reply))
-		     gnus-newsgroup-name))
+	   (,group (when gnus-article-reply
+		     (or (nnselect-article-group
+			  (or (car-safe gnus-article-reply)
+			      gnus-article-reply))
+			 gnus-newsgroup-name)))
 	   (message-header-setup-hook
 	    (copy-sequence message-header-setup-hook))
 	   (mbl mml-buffer-list)
