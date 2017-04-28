@@ -487,19 +487,18 @@ Thank you for your help in stamping out bugs.
 	 (setq gnus-message-buffer (current-buffer))
 	 (set (make-local-variable 'gnus-message-group-art)
 	      (cons ,group ,article))
-	 (set (make-local-variable 'gnus-newsgroup-name) ,group)
-	 ;; Enable highlighting of different citation levels
-	 (when gnus-message-highlight-citation
-	   (gnus-message-citation-mode 1))
-	 (gnus-run-hooks 'gnus-message-setup-hook)
-	 (if (eq major-mode 'message-mode)
-	     (let ((mbl1 mml-buffer-list))
-	       (setq mml-buffer-list mbl)  ;; Global value
-	       (set (make-local-variable 'mml-buffer-list) mbl1);; Local value
-	       (add-hook 'change-major-mode-hook 'mml-destroy-buffers nil t)
-	       (add-hook 'kill-buffer-hook 'mml-destroy-buffers t t))
-	   (mml-destroy-buffers)
-	   (setq mml-buffer-list mbl)))
+         ;; Enable highlighting of different citation levels
+         (when gnus-message-highlight-citation
+           (gnus-message-citation-mode 1))
+         (gnus-run-hooks 'gnus-message-setup-hook)
+         (if (eq major-mode 'message-mode)
+             (let ((mbl1 mml-buffer-list))
+               (setq mml-buffer-list mbl)  ;; Global value
+               (set (make-local-variable 'mml-buffer-list) mbl1);; Local value
+               (add-hook 'change-major-mode-hook 'mml-destroy-buffers nil t)
+               (add-hook 'kill-buffer-hook 'mml-destroy-buffers t t))
+           (mml-destroy-buffers)
+           (setq mml-buffer-list mbl)))
        (message-hide-headers)
        (gnus-add-buffer)
        (gnus-configure-windows ,config t)
@@ -543,12 +542,10 @@ instead."
 	  mail-buf)
       (unwind-protect
 	  (progn
-	    (setq gnus-newsgroup-name "")
+	    (let ((gnus-newsgroup-name ""))
 	    (gnus-setup-message 'message
 	      (message-mail to subject other-headers continue
-			    nil yank-action send-actions return-action)))
-	(with-current-buffer buf
-	  (setq gnus-newsgroup-name group-name)))
+			    nil yank-action send-actions return-action)))))
       (when switch-action
 	(setq mail-buf (current-buffer))
 	(switch-to-buffer buf)
@@ -639,18 +636,15 @@ If ARG is 1, prompt for a group name to find the posting style."
 	(buffer (current-buffer)))
     (unwind-protect
 	(progn
-	  (setq gnus-newsgroup-name
-		(if arg
-		    (if (= 1 (prefix-numeric-value arg))
-			(gnus-group-completing-read
-			 "Use posting style of group"
-			 nil (gnus-read-active-file-p))
-		      (gnus-group-group-name))
-		  ""))
-	  ;; #### see comment in gnus-setup-message -- drv
-	  (gnus-setup-message 'message (message-mail)))
-      (with-current-buffer buffer
-	(setq gnus-newsgroup-name group)))))
+	  (let ((gnus-newsgroup-name
+		 (if arg
+		     (if (= 1 (prefix-numeric-value arg))
+			 (gnus-group-completing-read
+			  "Use posting style of group"
+			  nil (gnus-read-active-file-p))
+		       (gnus-group-group-name))
+		   "")))
+	    (gnus-setup-message 'message (message-mail)))))))
 
 (defun gnus-group-news (&optional arg)
   "Start composing a news.
@@ -669,19 +663,16 @@ network.  The corresponding back end must have a 'request-post method."
 	(buffer (current-buffer)))
     (unwind-protect
 	(progn
-	  (setq gnus-newsgroup-name
+	  (let ((gnus-newsgroup-name
 		(if arg
 		    (if (= 1 (prefix-numeric-value arg))
 			(gnus-group-completing-read "Use group"
 						    nil
 						    (gnus-read-active-file-p))
 		      (gnus-group-group-name))
-		  ""))
-	  ;; #### see comment in gnus-setup-message -- drv
+		  "")))
 	  (gnus-setup-message 'message
-	    (message-news (gnus-group-real-name gnus-newsgroup-name))))
-      (with-current-buffer buffer
-	(setq gnus-newsgroup-name group)))))
+	    (message-news (gnus-group-real-name gnus-newsgroup-name))))))))
 
 (defun gnus-group-post-news (&optional arg)
   "Start composing a message (a news by default).
@@ -716,18 +707,15 @@ posting style."
 	(buffer (current-buffer)))
     (unwind-protect
 	(progn
-	  (setq gnus-newsgroup-name
+	  (let ((gnus-newsgroup-name
 		(if arg
 		    (if (= 1 (prefix-numeric-value arg))
 			(gnus-group-completing-read "Use group"
 						    nil
 						    (gnus-read-active-file-p))
 		      "")
-		  gnus-newsgroup-name))
-	  ;; #### see comment in gnus-setup-message -- drv
-	  (gnus-setup-message 'message (message-mail)))
-      (with-current-buffer buffer
-	(setq gnus-newsgroup-name group)))))
+		  gnus-newsgroup-name)))
+	  (gnus-setup-message 'message (message-mail)))))))
 
 (defun gnus-summary-news-other-window (&optional arg)
   "Start composing a news in another window.
@@ -746,24 +734,21 @@ network.  The corresponding back end must have a 'request-post method."
 	(buffer (current-buffer)))
     (unwind-protect
 	(progn
-	  (setq gnus-newsgroup-name
+	  (let ((gnus-newsgroup-name
 		(if arg
 		    (if (= 1 (prefix-numeric-value arg))
 			(gnus-group-completing-read "Use group"
 						    nil
 						    (gnus-read-active-file-p))
 		      "")
-		  gnus-newsgroup-name))
-	  ;; #### see comment in gnus-setup-message -- drv
+		  gnus-newsgroup-name)))
 	  (gnus-setup-message 'message
 	    (progn
 	      (message-news (gnus-group-real-name gnus-newsgroup-name))
 	      (set (make-local-variable 'gnus-discouraged-post-methods)
 		   (remove
 		    (car (gnus-find-method-for-group gnus-newsgroup-name))
-		    gnus-discouraged-post-methods)))))
-      (with-current-buffer buffer
-	(setq gnus-newsgroup-name group)))))
+		    gnus-discouraged-post-methods)))))))))
 
 (defun gnus-summary-post-news (&optional arg)
   "Start composing a message.  Post to the current group by default.
