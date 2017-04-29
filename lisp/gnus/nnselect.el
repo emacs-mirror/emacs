@@ -620,11 +620,11 @@ If this variable is nil, or if the provided function returns nil,
     (funcall func args)))
 
 
-(defun nnselect-possibly-change-group (group &optional server)
+(defun nnselect-possibly-change-group (group &optional _server)
   "If GROUP method for SERVER is `nnselect' install the
 `nnselect-artlist'. Return the fully prefixed group name."
-  (or (not server) (nnselect-server-opened server)
-      (nnselect-open-server server))
+  ;; (or (not server) (nnselect-server-opened server)
+  ;;     (nnselect-open-server server))
   (let ((group  (gnus-group-prefixed-name
 		 (gnus-group-short-name group) '(nnselect "nnselect"))))
     (when (gnus-nnselect-group-p group)
@@ -634,10 +634,13 @@ If this variable is nil, or if the provided function returns nil,
     group))
 
 
-(defun nnselect-server-opened (&optional server)
-  "Open SERVER if not yet opened."
-  (let ((backend (car (gnus-server-to-method server))))
-    (nnoo-current-server-p (or backend 'nnselect) server)))
+;; (defun nnselect-server-opened (&optional server)
+;;   "Open SERVER if not yet opened."
+;;   (let ((backend (car (gnus-server-to-method server))))
+;;     (nnoo-current-server-p (or backend 'nnselect) server)))
+
+(deffoo nnselect-server-opened (&optional _server)
+  t)
 
 (defun nnselect-search-thread (header)
   "Make an nnselect group containing the thread with article HEADER.
