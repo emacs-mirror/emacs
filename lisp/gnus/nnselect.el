@@ -64,7 +64,7 @@
 
 (nnoo-define-basics nnselect)
 
-(gnus-declare-backend "nnselect" 'mail 'virtual)
+(gnus-declare-backend "nnselect" 'post-mail 'virtual)
 
 ;;; Internal Variables:
 
@@ -269,73 +269,55 @@ If this variable is nil, or if the provided function returns nil,
     'nov)))
 
 (declare-function nnir-run-query "nnir" (specs))
-(deffoo nnselect-request-article (article &optional group server to-buffer)
-  ;; We shoud only arrive here if we are in an nnselect group and we
-  ;; are requesting a real article. Just find the originating
-  ;; group for the article and pass the request on.
-  (if (numberp article)
-      (with-current-buffer gnus-summary-buffer
-	(unless (zerop (nnselect-artlist-length
-			gnus-newsgroup-selection))
-	  (let ((artgroup (nnselect-article-group article))
-		(artnumber (nnselect-article-number article)))
-	    (message "Requesting article %d from group %s"
-		     artnumber artgroup)
-	    (if to-buffer
-		(with-current-buffer to-buffer
-		  (let ((gnus-article-decode-hook nil))
-		    (gnus-request-article-this-buffer artnumber artgroup)))
-	      (gnus-request-article artnumber artgroup))
-	    (cons artgroup artnumber))))
-    (let (articleno)
-      (save-excursion
-        ;; if we are coming from an nnimap group we can search the
-        ;; whole server. Its usually so fast we might as well. If we
-        ;; want we could make this configurable.
-	;; (or (string-empty-p server (gnus-virtual-group-p server))
-        (when (eq 'nnimap (car (gnus-server-to-method server)))
-          (let ((article article)
-		(gnus-override-method (gnus-server-to-method server))
-                query)
-            (setq query
-                  (list
-                   (cons 'query (format "HEADER Message-ID %s" article))
-                   (cons 'criteria "")
-                   (cons 'shortcut t)))
-            (setq nnselect-artlist (nnir-run-imap query server))
-            (setq articleno 1)))
-        (when to-buffer
-          (set-buffer to-buffer))
-        (let* ((gnus-override-method nil)
-               ;; We try the obvious---if we found the article above,
-               ;; or if its a real article we are done. Otherwise see
-               ;; where other articles in the thread come from.
-               (articleno
-                (or articleno
-                    (with-current-buffer gnus-summary-buffer
-                      (if (> (gnus-summary-article-number) 0)
-                          (gnus-summary-article-number)
-                        (let ((thread  (gnus-id-to-thread article)))
-                          (when thread
-                            (cl-some #'(lambda (x)
-                                         (when (and x (> x 0)) x))
-                                     (gnus-articles-in-thread thread))))))))
-	       ;; now we have to request the article. if we are coming
-               ;; from nnselect then we have an nnselect-artlist and we look
-               ;; up the originating group for whatever article we
-               ;; found in the previous section. if not we try to look
-               ;; up a server or group method and retrieve the
-               ;; original article id that way.
-
-	       (gnus-command-method
-		(if (zerop (nnselect-artlist-length nnselect-artlist))
-		    (or (gnus-server-to-method server)
-			(gnus-find-method-for-group group))
-		  (gnus-find-method-for-group
-		   (nnselect-article-group (or articleno 1))))))
-          (funcall (gnus-get-function gnus-command-method 'request-article)
-                   article nil (nth 1 gnus-command-method) to-buffer))))))
-
+(deffoo nnselect-request-article (article &optional _group server to-buffer)
+  (let* ((gnus-override-method nil)
+	 (nnselect (eq 'nnselect (car (gnus-server-to-method server))))
+	 (servers (unless nnselect
+		    (list (list server))))
+	group-art artlist)
+    (if (numberp article)
+	(with-current-buffer gnus-summary-buffer
+	  (unless (zerop (nnselect-artlist-length
+			  gnus-newsgroup-selection))
+	    (setq group-art (cons (nnselect-article-group article)
+				  (nnselect-article-number article)))))
+      ;; message-id
+      ;; find the servers
+      (when nnselect
+	(with-current-buffer gnus-summary-buffer
+	  (let ((thread  (gnus-id-to-thread article)))
+	    (when thread
+	      (mapc
+	       #'(lambda (x)
+		   (when (and x (> x 0))
+		   (cl-pushnew (list
+		    (gnus-method-to-server
+		     (gnus-find-method-for-group
+		      (nnselect-article-group x)))) servers :test 'equal)))
+		   (gnus-articles-in-thread thread))))))
+      (setq artlist
+	    (nnir-run-query
+	     (list
+	      (cons 'nnir-query-spec
+		    (list (cons 'query  (format "HEADER Message-ID %s" article))
+		    (cons 'criteria "")  (cons 'shortcut t)))
+	      (cons 'nnir-group-spec servers))))
+      (unless (zerop (nnselect-artlist-length artlist))
+	(setq
+	 group-art
+	 (cons
+	  (nnselect-artitem-group (nnselect-artlist-article  artlist 1))
+	  (nnselect-artitem-number (nnselect-artlist-article  artlist 1))))))
+    (when (numberp (cdr group-art))
+      (message "Requesting article %d from group %s"
+	       (cdr group-art) (car group-art))
+      (if to-buffer
+	  (with-current-buffer to-buffer
+	    (let ((gnus-article-decode-hook nil))
+	      (gnus-request-article-this-buffer
+	       (cdr group-art) (car group-art))))
+	(gnus-request-article (cdr group-art) (car group-art)))
+      group-art)))
 
 (deffoo nnselect-request-move-article (article group server accept-form
 					   &optional last _internal-move-group)
@@ -471,7 +453,6 @@ If this variable is nil, or if the provided function returns nil,
     (gnus-set-active group (cons 1 (nnselect-artlist-length
 				    gnus-newsgroup-selection)))))
 
-(declare-function nnir-run-query "nnir" (specs))
 (deffoo nnselect-request-thread (header &optional group server)
   (let ((group (nnselect-possibly-change-group group server))
 	;; find the best group for the originating article. if its a
