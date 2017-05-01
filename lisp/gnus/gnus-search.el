@@ -1852,31 +1852,70 @@ Returns a vector of [group name, file name, score] vectors."
   ;; search can be run in its own thread, allowing concurrent searches
   ;; of multiple backends.  At present this causes problems when
   ;; multiple IMAP servers are searched at the same time, apparently
-  ;; because the threads are somehow fighting for control, or the
-  ;; `nntp-server-buffer' variable is getting clobbered, or something
-  ;; else.
+  ;; because the `nntp-server-buffer' variable is getting clobbered,
+  ;; or something.  Anyway, that's the reason for the `mapc'.
   (let* ((results [])
 	 (q-spec (alist-get 'search-query-spec specs))
-	 (unparsed-query (alist-get 'query q-spec))
-	 (prepped-query (if (and gnus-search-use-parsed-queries
-				 (null (alist-get 'no-parse q-spec)))
-			    (gnus-search-parse-query unparsed-query)
-			  unparsed-query)))
+	 (query (alist-get 'query q-spec))
+	 ;; If the query is already a sexp, just leave it alone.
+	 (prepared-query (when (stringp query)
+			   (gnus-search-prepare-query q-spec))))
     (mapc
      (lambda (x)
        (let* ((server (car x))
 	      (search-engine (gnus-search-server-to-engine server))
-	      (groups (cadr x))
-	      (use-query (if (slot-value search-engine 'raw-queries-p)
-			     unparsed-query
-			   prepped-query)))
+	      (groups (cadr x)))
+	 ;; Give the search engine a chance to say it wants raw search
+	 ;; queries.  If SPECS was passed in with an already-parsed
+	 ;; query, that's tough luck for the engine.
+	 (setf (alist-get 'query prepared-query)
+	       (if (slot-value search-engine 'raw-queries-p)
+		   query
+		 (alist-get 'query prepared-query)))
 	 (setq results
 	       (vconcat
 		(gnus-search-run-search
-		 search-engine server use-query groups)
+		 search-engine server prepared-query groups)
 		results))))
      (alist-get 'search-group-spec specs))
     results))
+
+(defun gnus-search-prepare-query (query-spec)
+  "Accept a search query in raw format, and return a (possibly)
+  parsed version.
+
+QUERY-SPEC is an alist produced by functions such as
+`gnus-group-make-search-group', and contains at least a 'query
+key, and possibly some meta keys.  This function extracts any
+additional meta keys from the query, and optionally parses the
+string query into sexp form."
+  (let ((q-string (alist-get 'query query-spec))
+	key val)
+    ;; Look for these meta keys:
+    (while (string-match "\\(thread\\|limit\\|raw\\|no-parse\\|count\\):\\([^ ]+\\)" q-string)
+      ;; If they're found, push them into the query spec, and remove
+      ;; them from the query string.
+      (setq key (if (string= (match-string 1 q-string)
+			     "raw")
+		    ;; "raw" is a synonym for "no-parse".
+		    'no-parse
+		  (intern (match-string 1 q-string)))
+	    val (string-to-number (match-string 2 q-string)))
+      (push (cons key
+		  ;; A bit stupid, but right now the only possible
+		  ;; values are "t", or a number.
+		  (if (zerop val) t val))
+	    query-spec)
+      (setq q-string
+	    (string-trim (replace-match "" t t q-string 0))))
+    (setf (alist-get 'query query-spec) q-string)
+    ;; Decide whether to parse the query or not.
+    (setf (alist-get 'query query-spec)
+	  (if (and gnus-search-use-parsed-queries
+		   (null (alist-get 'no-parse query-spec)))
+	      (gnus-search-parse-query q-string)
+	    q-string))
+    query-spec))
 
 ;; This should be done once at Gnus startup time, when the servers are
 ;; first opened, and the resulting engine instance attached to the
