@@ -808,6 +808,25 @@ nnir
 Setting up nnir
 
 * Associating Engines::         How to associate engines.
+* The imap Engine::             Imap configuration and usage.
+* The gmane Engine::            Gmane configuration and usage.
+* The swish++ Engine::          Swish++ configuration and usage.
+* The swish-e Engine::          Swish-e configuration and usage.
+* The namazu Engine::           Namazu configuration and usage.
+* The notmuch Engine::          Notmuch configuration and usage.
+* Customizations::              User customizable settings.
+
+nnmairix
+
+* About mairix::                About the mairix mail search engine
+* nnmairix requirements::       What you will need for using nnmairix
+* What nnmairix does::          What does nnmairix actually do?
+* Setting up mairix::           Set up your mairix installation
+* Configuring nnmairix::        Set up the nnmairix back end
+* nnmairix keyboard shortcuts::  List of available keyboard shortcuts
+* Propagating marks::           How to propagate marks from nnmairix groups
+* nnmairix tips and tricks::    Some tips, tricks and examples
+* nnmairix caveats::            Some more stuff you might want to know
 
 Various
 
@@ -21229,10 +21248,17 @@ to search non-gmane @code{nntp} servers.)  But if you wanted to use
 @code{namazu} for all your servers with an @code{nnimap} backend you
 could change this to
 
-@lisp
-'((nnimap . namazu)
-  (nntp . gmane))
-@end lisp
+@node Supported Engines
+@subsection Supported Engines
+
+@menu
+* The imap Engine::             Imap configuration and usage.
+* The gmane Engine::            Gmane configuration and usage.
+* The swish++ Engine::          Swish++ configuration and usage.
+* The swish-e Engine::          Swish-e configuration and usage.
+* The namazu Engine::           Namazu configuration and usage.
+* The notmuch Engine::          Notmuch configuration and usage.
+@end menu
 
 @node The imap Engine
 @subsubsection The imap Engine

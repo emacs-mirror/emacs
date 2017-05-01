@@ -208,55 +208,6 @@ This variable can also be set per-server."
   :version "26.3"
   :group 'gnus-search)
 
-;; HyREX engine, see <URL:http://ls6-www.cs.uni-dortmund.de/>
-
-(defcustom gnus-search-hyrex-program ""
-  "Name of the hyrex search executable.
-
-This variable can also be set per-server."
-  :type 'string
-  :group 'gnus-search)
-
-(defcustom gnus-search-hyrex-additional-switches '()
-  "A list of strings, to be given as additional arguments for hyrex search.
-Note that this should be a list. I.e., do NOT use the following:
-    (setq gnus-search-hyrex-additional-switches \"-ddl ddl.xml -c gnus-search\") ; wrong !
-Instead, use this:
-    (setq gnus-search-hyrex-additional-switches \\='(\"-ddl\" \"ddl.xml\" \"-c\" \"gnus-search\"))
-
-This variable can also be set per-server."
-  :type '(repeat string)
-  :group 'gnus-search)
-
-(defcustom gnus-search-hyrex-index-directory (getenv "HOME")
-  "Index directory for HyREX.
-
-This variable can also be set per-server."
-  :type 'directory
-  :group 'gnus-search)
-
-(defcustom gnus-search-hyrex-remove-prefix (concat (getenv "HOME") "/Mail/")
-  "The prefix to remove from each file name returned by HyREX
-in order to get a group name (albeit with / instead of .).
-
-For example, suppose that HyREX returns file names such as
-\"/home/john/Mail/mail/misc/42\".  For this example, use the following
-setting:  (setq gnus-search-hyrex-remove-prefix \"/home/john/Mail/\")
-Note the trailing slash.  Removing this prefix gives \"mail/misc/42\".
-`gnus-search' knows to remove the \"/42\" and to replace \"/\" with \".\" to
-arrive at the correct group name, \"mail.misc\".
-
-This variable can also be set per-server."
-  :type 'directory
-  :group 'gnus-search)
-
-(defcustom gnus-search-hyrex-raw-queries-p nil
-  "If t, all Hyrex engines will only accept raw search query
-  strings."
-  :type 'boolean
-  :version "26.3"
-  :group 'gnus-search)
-
 ;; Namazu engine, see <URL:http://www.namazu.org/>
 
 (defcustom gnus-search-namazu-program "namazu"
@@ -964,26 +915,26 @@ quirks.")
 (eieio-oset-default 'gnus-search-swish++ 'raw-queries-p
 		    gnus-search-swish++-raw-queries-p)
 
-(defclass gnus-search-hyrex (gnus-search-indexed)
-  ((index-dir
-    :initarg :index
+(defclass gnus-search-mairix (gnus-search-indexed)
+  ((config-file
+    :initarg :config-file
     :type string
-    :custom directory)))
+    :custom file)))
 
-(eieio-oset-default 'gnus-search-hyrex 'program
-		    gnus-search-hyrex-program)
+(eieio-oset-default 'gnus-search-mairix 'program
+		    gnus-search-mairix-program)
 
-(eieio-oset-default 'gnus-search-hyrex 'index-dir
-		    gnus-search-hyrex-index-directory)
+(eieio-oset-default 'gnus-search-mairix 'switches
+		    gnus-search-mairix-additional-switches)
 
-(eieio-oset-default 'gnus-search-hyrex 'switches
-		    gnus-search-hyrex-additional-switches)
+(eieio-oset-default 'gnus-search-mairix 'prefix
+		    gnus-search-mairix-remove-prefix)
 
-(eieio-oset-default 'gnus-search-hyrex 'prefix
-		    gnus-search-hyrex-remove-prefix)
+(eieio-oset-default 'gnus-search-mairix 'config-file
+		    gnus-search-mairix-configuration-file)
 
-(eieio-oset-default 'gnus-search-hyrex 'raw-queries-p
-		    gnus-search-hyrex-raw-queries-p)
+(eieio-oset-default 'gnus-search-mairix 'raw-queries-p
+		    gnus-search-mairix-raw-queries-p)
 
 (defclass gnus-search-namazu (gnus-search-indexed)
   ((index-dir
@@ -1552,49 +1503,6 @@ absolute filepaths to standard out."
                           (string-to-number artno)
                           (string-to-number score))
                   artlist))))))
-
-;; HyREX interface
-
-;; I have no idea what the hyrex search language looks like, and
-;; suspect that the software isn't even supported anymore.
-
-(cl-defmethod gnus-search-indexed-search-command ((engine gnus-search-hyrex)
-						  (qstring string))
-  (with-slots (program index-dir switches) engine
-   `("-i" ,index-dir
-     ,@switches
-     ,qstring			   ; the query, in hyrex-search format
-     )))
-
-(cl-defmethod gnus-search-indexed-massage-output ((engine gnus-search-hyrex)
-						  server &optional groups)
-  (let ((groupspec (when groups
-		     (regexp-opt
-		      (mapcar
-		       (lambda (x) (gnus-group-real-name x))
-		       groups))))
-	(prefix (slot-value engine 'prefix))
-	dirnam artno score artlist)
-    (goto-char (point-min))
-    (keep-lines "^\\S + [0-9]+ [0-9]+$")
-    ;; HyREX doesn't search directly in groups -- so filter out here.
-    (when groupspec
-      (keep-lines groupspec))
-    ;; extract data from result lines
-    (goto-char (point-min))
-    (while (re-search-forward
-	    "\\(\\S +\\) \\([0-9]+\\) \\([0-9]+\\)" nil t)
-      (setq dirnam (match-string 1)
-	    artno (match-string 2)
-	    score (match-string 3))
-      (when (string-match prefix dirnam)
-	(setq dirnam (replace-match "" t t dirnam)))
-      (push (vector (gnus-group-full-name
-                     (replace-regexp-in-string "/" "." dirnam) server)
-		    (string-to-number artno)
-		    (string-to-number score))
-	    artlist))
-    artlist))
 
 ;; Namazu interface
 
