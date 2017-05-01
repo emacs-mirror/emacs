@@ -467,8 +467,10 @@ it."
   :type 'boolean)
 
 ;; Hooks
-(defvar which-key-init-buffer-hook '()
-  "Hook run when which-key buffer is initialized.")
+(defcustom which-key-init-buffer-hook '()
+  "Hook run when which-key buffer is initialized."
+  :group 'which-key
+  :type 'hook)
 
 ;;;; Faces
 
