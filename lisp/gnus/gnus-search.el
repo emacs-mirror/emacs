@@ -313,6 +313,60 @@ This variable can also be set per-server."
   :type 'boolean
   :group 'gnus-search)
 
+(defcustom gnus-search-mairix-program "mairix"
+  "Name of mairix search executable.
+
+This variable can also be set per-server."
+  :version "26.3"
+  :type 'string
+  :group 'gnus-search)
+
+(defcustom gnus-search-mairix-configuration-file
+  (expand-file-name "~/.mairixrc")
+  "Configuration file for mairix.
+
+This variable can also be set per-server."
+  :version "26.3"
+  :type 'file
+  :group 'gnus-search)
+
+(defcustom gnus-search-mairix-additional-switches '()
+  "A list of strings, to be given as additional arguments to mairix.
+
+Note that this should be a list.  I.e., do NOT use the following:
+    (setq gnus-search-mairix-additional-switches \"-i -w\") ; wrong
+Instead, use this:
+    (setq gnu-search-mairix-additional-switches \\='(\"-i\" \"-w\"))
+
+This variable can also be set per-server."
+  :version "26.3"
+  :type '(repeat string)
+  :group 'gnus-search)
+
+(defcustom gnus-search-mairix-remove-prefix (concat (getenv "HOME") "/Mail/")
+  "The prefix to remove from each file name returned by mairix
+in order to get a group name (albeit with / instead of .).  This is a
+regular expression.
+
+This variable can also be set per-server."
+  :version "26.3"
+  :type 'regexp
+  :group 'gnus-search)
+
+(defcustom gnus-search-mairix-raw-queries-p nil
+  "If t, all Mairix engines will only accept raw search query
+  strings."
+  :version "26.3"
+  :type 'boolean
+  :group 'gnus-search)
+
+(defcustom gnus-search-imap-raw-queries-p nil
+  "If t, all IMAP engines will only accept raw search query
+  strings."
+  :version "26.3"
+  :type 'boolean
+  :group 'gnus-search)
+
 ;; Options for search language parsing.
 
 (defcustom gnus-search-expandable-keys
@@ -1637,6 +1691,182 @@ absolute filepaths to standard out."
 		    (string-match-p group-regexp dirnam))
 	    (gnus-search-add-result dirnam artno "" prefix server artlist)))))
     artlist))
+
+;;; Mairix interface
+
+;; See the Gnus manual for why mairix searching is a bit weird.
+
+(cl-defmethod gnus-search-transform ((engine gnus-search-mairix)
+				     (query list))
+  "Transform QUERY for a Mairix engine.
+
+Because Mairix doesn't accept parenthesized expressions, nor
+\"or\" statements between different keys, results may differ from
+other engines.  We unpeel parenthesized expressions, and just
+cross our fingers for the rest of it."
+  (let (clauses)
+    (mapc
+     (lambda (item)
+       (when-let ((expr (if (consp (car-safe item))
+			    (gnus-search-transform engine item)
+			  (gnus-search-transform-expression engine item))))
+	 (push expr clauses)))
+     query)
+    (mapconcat #'identity (reverse clauses) " ")))
+
+(cl-defmethod gnus-search-transform-expression ((engine gnus-search-mairix)
+						(expr (head not)))
+  "Transform Mairix \"not\".
+
+Mairix negation requires a \"~\" preceding string search terms,
+and \"-\" before marks."
+  (let ((next (gnus-search-transform-expression engine (cadr expr))))
+    (replace-regexp-in-string
+     ":"
+     (if (eql (caadr expr) 'mark)
+	 ":-"
+       ":~")
+     next)))
+
+(cl-defmethod gnus-search-transform-expression ((engine gnus-search-mairix)
+						(expr (head or)))
+  "Handle Mairix \"or\" statement.
+
+Mairix only accepts \"or\" expressions on homogenous keys.  We
+cast \"or\" expressions on heterogenous keys as \"and\", which
+isn't quite right, but it's the best we can do.  For date keys,
+only keep one of the terms."
+  (let ((term1 (caadr expr))
+	(term2 (caaddr expr))
+	(val1 (gnus-search-transform-expression engine (nth 1 expr)))
+	(val2 (gnus-search-transform-expression engine (nth 2 expr))))
+    (cond
+     ((or (listp term1) (listp term2))
+      (concat val1 " " val2))
+     ((and (member (symbol-name term1) gnus-search-date-keys)
+	   (member (symbol-name term2) gnus-search-date-keys))
+      (or val1 val2))
+     ((eql term1 term2)
+      (if (and val1 val2)
+	  (format "%s/%s"
+		  val1
+		  (nth 1 (split-string val2 ":")))
+	(or val1 val2)))
+     (t (concat val1 " " val2)))))
+
+
+(cl-defmethod gnus-search-transform-expression ((_ gnus-search-mairix)
+						(expr (head mark)))
+  (gnus-search-mairix-handle-mark (cdr expr)))
+
+(cl-defmethod gnus-search-transform-expression ((engine gnus-search-mairix)
+						(expr list))
+  (let ((key (cl-case (car expr)
+	       (sender "f")
+	       (from "f")
+	       (to "t")
+	       (cc "c")
+	       (subject "s")
+	       (id "m")
+	       (body "b")
+	       (address "a")
+	       (recipient "tc")
+	       (text "bs")
+	       (attachment "n")
+	       (t nil))))
+    (cond
+     ((consp (car expr))
+      (gnus-search-transform engine expr))
+     ((member (symbol-name (car expr)) gnus-search-date-keys)
+      (gnus-search-mairix-handle-date expr))
+     ((memq (car expr) '(size smaller larger))
+      (gnus-search-mairix-handle-size expr))
+     ;; Drop regular expressions.
+     ((string-match-p "\\`/" (cdr expr))
+      nil)
+     ;; Turn parenthesized phrases into multiple word terms.  Again,
+     ;; this isn't quite what the user is asking for, but better to
+     ;; return false positives.
+     ((and key (string-match-p "[[:blank:]]" (cdr expr)))
+      (mapconcat
+       (lambda (s) (format "%s:%s" key s))
+       (split-string (gnus-search-mairix-treat-string
+		      (cdr expr)))
+       " "))
+     (key (format "%s:%s" key
+		  (gnus-search-mairix-treat-string
+		   (cdr expr))))
+     (t nil))))
+
+(defun gnus-search-mairix-treat-string (str)
+  "Treat string for wildcards.
+
+Mairix accepts trailing wildcards, but not leading.  Also remove
+double quotes."
+  (replace-regexp-in-string
+   "\\`\\*\\|\"" ""
+   (replace-regexp-in-string "\\*\\'" "=" str)))
+
+(defun gnus-search-mairix-handle-size (expr)
+  "Format a mairix size search.
+
+Assume \"size\" key is equal to \"larger\"."
+  (format
+   (if (eql (car expr) 'smaller)
+       "z:-%s"
+     "z:%s-")
+   (cdr expr)))
+
+(defun gnus-search-mairix-handle-mark (expr)
+  "Format a mairix mark search."
+  (let ((mark
+	 (pcase (cdr expr)
+	   ("flag" "f")
+	   ("read" "s")
+	   ("seen" "s")
+	   ("replied" "r")
+	   (_ nil))))
+    (when mark
+      (format "F:%s" mark))))
+
+(defun gnus-search-mairix-handle-date (expr)
+  (let ((str
+	 (pcase (cdr expr)
+	   (`(nil ,m nil)
+	    (substring
+	     (nth (1- m) gnus-english-month-names)
+	     0 3))
+	   (`(nil nil ,y)
+	    (number-to-string y))
+	   (`(,d ,m nil)
+	    (format "%s%02d"
+		    (substring
+		     (nth (1- m) gnus-english-month-names)
+		     0 3)
+		    d))
+	   (`(nil ,m ,y)
+	    (format "%d%s"
+		    y (substring
+		       (nth (1- m) gnus-english-month-names)
+		       0 3)))
+	   (`(,d ,m ,y)
+	    (format "%d%02d%02d" y m d)))))
+    (format
+     (pcase (car expr)
+       ('date "d:%s")
+       ('since "d:%s-")
+       ('after "d:%s-")
+       ('before "d:-%s"))
+     str)))
+
+(cl-defmethod gnus-search-indexed-search-command ((engine gnus-search-mairix)
+						  (qstring string)
+						  query &optional _groups)
+  (with-slots (switches config-file) engine
+    (nconc `("--rcfile" ,config-file "-r")
+	   switches
+	   (when (alist-get 'thread query) (list "-t"))
+	   (list qstring))))
 
 ;;; Find-grep interface
 
