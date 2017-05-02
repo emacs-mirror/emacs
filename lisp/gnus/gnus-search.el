@@ -1374,6 +1374,46 @@ Returns a vector of [group name, file name, score] vectors."
 	(when (> gnus-verbose 6)
 	  (display-buffer buffer))))))
 
+(cl-defmethod gnus-search-indexed-massage-output ((engine gnus-search-indexed)
+						  server &optional groups)
+  "Common method for massaging filenames returned by indexed
+search engines.
+
+This method assumes that the engine returns a plain list of
+absolute filepaths to standard out."
+  ;; This method was originally the namazu-specific method.  I'm
+  ;; almost certain that all the engines can use this same method
+  ;; (meaning some fairly significant code reduction), but I haven't
+  ;; gone and tested them all yet.
+
+  ;; What if the server backend is nnml, and/or uses mboxes?
+  (let ((article-pattern (if (string-match "\\'nnmaildir:"
+					   (gnus-group-server server))
+			     ":[0-9]+"
+			   "^[0-9]+$"))
+	(prefix (slot-value engine 'prefix))
+	(group-regexp (when groups
+			(regexp-opt
+			 (mapcar
+			  (lambda (x) (gnus-group-real-name x))
+			  groups))))
+	score group article artlist)
+    (goto-char (point-min))
+    (while (re-search-forward
+	    "^\\([0-9,]+\\.\\).*\\((score: \\([0-9]+\\)\\))\n\\([^ ]+\\)"
+	    nil t)
+      (setq score (match-string 3)
+	    group (file-name-directory (match-string 4))
+	    article (file-name-nondirectory (match-string 4)))
+
+      ;; make sure article and group is sane
+      (when (and (string-match article-pattern article)
+		 (not (null group))
+		 (or (null group-regexp)
+		     (string-match-p group-regexp group)))
+	(gnus-search-add-result group article score prefix server artlist)))
+    artlist))
+
 ;; Swish++
 
 (cl-defmethod gnus-search-transform-expression ((engine gnus-search-swish++)
@@ -1553,39 +1593,6 @@ Returns a vector of [group name, file name, score] vectors."
       ,qstring				; the query, in namazu format
       ,index-dir ; index directory
       )))
-
-(cl-defmethod gnus-search-indexed-massage-output ((engine gnus-search-namazu)
-						  server &optional groups)
-  ;; Namazu output looks something like this:
-  ;; 2. Re: Gnus agent expire broken (score: 55)
-  ;; /home/henrik/Mail/mail/sent/1310 (4,138 bytes)
-
-  (let ((article-pattern (if (string-match "\\'nnmaildir:"
-					   (gnus-group-server server))
-			     ":[0-9]+"
-			   "^[0-9]+$"))
-	(prefix (slot-value engine 'prefix))
-	(group-regexp (when groups
-			(regexp-opt
-			 (mapcar
-			  (lambda (x) (gnus-group-real-name x))
-			  groups))))
-	score group article artlist)
-    (goto-char (point-min))
-    (while (re-search-forward
-	    "^\\([0-9,]+\\.\\).*\\((score: \\([0-9]+\\)\\))\n\\([^ ]+\\)"
-	    nil t)
-      (setq score (match-string 3)
-	    group (file-name-directory (match-string 4))
-	    article (file-name-nondirectory (match-string 4)))
-
-      ;; make sure article and group is sane
-      (when (and (string-match article-pattern article)
-		 (not (null group))
-		 (or (null group-regexp)
-		     (string-match-p group-regexp group)))
-	(gnus-search-add-result group article score prefix server artlist)))
-    artlist))
 
 ;;; Notmuch interface
 
