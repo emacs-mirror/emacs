@@ -235,6 +235,11 @@ If this variable is nil, or if the provided function returns nil,
       (pcase-dolist (`(,artgroup ,artids) gartids)
 	(let ((artlist (sort (mapcar 'cdr artids) '<))
 	      (gnus-override-method (gnus-find-method-for-group artgroup))
+	      (fetch-old
+	       (or
+		(car-safe
+		 (gnus-group-find-parameter artgroup 'gnus-fetch-old-headers t))
+		fetch-old))
 	      parsefunc)
 	  (erase-buffer)
 	  (pcase (setq gnus-headers-retrieved-by
