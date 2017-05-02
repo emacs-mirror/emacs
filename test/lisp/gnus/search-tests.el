@@ -72,7 +72,28 @@
       (should (equal (gnus-search-query-parse-date (car p) rel-date)
                      (cdr p))))))
 
-
+(ert-deftest gnus-s-delimited-string ()
+  "Test proper functioning of `gnus-search-query-return-string'."
+  (with-temp-buffer
+    (insert "one\ntwo words\nthree \"words with quotes\"\n\"quotes at start\"\n/alternate \"quotes\"/\n(more bits)")
+    (goto-char (point-min))
+    (should (string= (gnus-search-query-return-string)
+                     "one"))
+    (forward-line)
+    (should (string= (gnus-search-query-return-string)
+                     "two"))
+    (forward-line)
+    (should (string= (gnus-search-query-return-string)
+                     "three"))
+    (forward-line)
+    (should (string= (gnus-search-query-return-string "\"")
+                     "\"quotes at start\""))
+    (forward-line)
+    (should (string= (gnus-search-query-return-string "/")
+                     "/alternate \"quotes\"/"))
+    (forward-line)
+    (should (string= (gnus-search-query-return-string ")" t)
+                     "more bits"))))
 
 (provide 'gnus-search-tests)
 ;;; search-tests.el ends here

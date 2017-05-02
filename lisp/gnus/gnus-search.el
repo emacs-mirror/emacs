@@ -548,7 +548,7 @@ returning the one at the supplied position."
        ((looking-at "-") (forward-char 1) 'not)
        ;; List expression -- we parse the content and return this as a list.
        ((looking-at "(")
-	(gnus-search-parse-query (gnus-search-query-return-string ")")))
+	(gnus-search-parse-query (gnus-search-query-return-string ")" t)))
        ;; Keyword input -- return a symbol version.
        ((looking-at "\\band\\b") (forward-char 3) 'and)
        ((looking-at "\\bor\\b")  (forward-char 2) 'or)
@@ -733,26 +733,36 @@ chunk of query syntax."
 ;;     key))
 
 
-(defun gnus-search-query-return-string (&optional delimiter)
+(defun gnus-search-query-return-string (&optional delimited trim)
   "Return a string from the current buffer.
 
-If DELIMITER is given, return everything between point and the
-next occurance of DELIMITER.  Otherwise, return one word."
-  (let ((start (point)) end)
+If DELIMITED is non-nil, assume the next character is a delimiter
+character, and return everything between point and the next
+occurance of the delimiter, including the delimiters themselves.
+If TRIM is non-nil, do not return the delimiters. Otherwise,
+return one word."
+  (let ((start (point))
+	(delimiter (if (stringp delimited)
+		       delimited
+		     (when delimited
+		       (char-to-string (char-after)))))
+	end)
     (if delimiter
 	(progn
-	  (forward-char 1)		; skip the first delimiter.
+	  (when trim
+	    ;; Skip past first delimiter if we're trimming.
+	    (forward-char 1))
 	  (while (not end)
-	    (unless (search-forward delimiter nil t)
+	    (unless (search-forward delimiter nil t (unless trim 2))
 	      (signal 'gnus-search-parse-error
 		      (list (format "Unmatched delimited input with %s in query" delimiter))))
 	    (let ((here (point)))
 	      (unless (equal (buffer-substring (- here 2) (- here 1)) "\\")
-		(setq end (1- (point))
-		      start (1+ start))))))
+		(setq end (if trim (1- (point)) (point))
+		      start (if trim (1+ start) start))))))
       (setq end (progn (re-search-forward "\\([[:blank:]]+\\|$\\)" (point-max) t)
 		       (match-beginning 0))))
-    (buffer-substring start end)))
+    (buffer-substring-no-properties start end)))
 
 (defun gnus-search-query-end-of-input ()
   "Are we at the end of input?"
@@ -848,7 +858,7 @@ ready to be added to the list of search results."
     set manually.  Only the LITERAL+ capability is handled.")
    (multisearch
     :initarg :multisearch
-    :iniformt nil
+    :initform nil
     :type boolean
     :documentation
     "Can this search engine handle the MULTISEARCH capability?
@@ -856,13 +866,13 @@ ready to be added to the list of search results."
     be set manually.  Currently unimplemented.")
    (fuzzy
     :initarg :fuzzy
-    :iniformt nil
+    :initform nil
     :type boolean
     :documentation
     "Can this search engine handle the FUZZY search capability?
     This slot is set automatically by the imap server, and cannot
-    be set manually.  Currently unimplemented."))
-  :documentation
+    be set manually.  Currently only partially implemented."))
+    :documentation
   "The base IMAP search engine, using an IMAP server's search capabilites.
 
 This backend may be subclassed to handle particular IMAP servers'
@@ -1057,13 +1067,6 @@ Responsible for handling and, or, and parenthetical expressions.")
     query)
    (mapconcat #'identity (reverse clauses) " ")))
 
-;; Most search engines want quoted string phrases.
-(cl-defmethod gnus-search-transform-expression ((_ gnus-search-engine)
-						(expr string))
-  (if (string-match-p " " expr)
-      (format "\"%s\"" expr)
-    expr))
-
 ;; Most search engines use implicit ANDs.
 (cl-defmethod gnus-search-transform-expression ((_ gnus-search-engine)
 						(_expr (eql and)))
@@ -1108,7 +1111,12 @@ Responsible for handling and, or, and parenthetical expressions.")
 	      (when (nnimap-capability "LITERAL+") t))
 	;; MULTISEARCH not yet implemented.
 	(setf (slot-value engine 'multisearch)
-	      (when (nnimap-capability "MULTISEARCH") t)))
+	      (when (nnimap-capability "MULTISEARCH") t))
+	;; FUZZY only partially supported: the command is sent to the
+	;; server (and presumably acted upon), but we don't yet
+	;; request a RELEVANCY score as part of the response.
+	(setf (slot-value engine 'fuzzy)
+	      (when (nnimap-capability "FUZZY") t)))
       (when (listp query)
        (setq query
 	     (gnus-search-transform
@@ -1142,7 +1150,7 @@ Responsible for handling and, or, and parenthetical expressions.")
 	groups)))))
 
 (cl-defmethod gnus-search-imap-search-command ((engine gnus-search-imap)
-					(query string))
+					       (query string))
   "Create the IMAP search command for QUERY.
 
 Currenly takes into account support for the LITERAL+ capability.
@@ -1171,7 +1179,7 @@ Other capabilities could be tested here."
 ;; TODO: Don't exclude booleans and date keys, just check for them
 ;; before checking for general keywords.
 (defvar gnus-search-imap-search-keys
-  '(body cc from header keyword larger smaller subject text to uid)
+  '(body cc bcc from header keyword larger smaller subject text to uid)
   "Known IMAP search keys, excluding booleans and date keys.")
 
 (cl-defmethod gnus-search-transform ((_ gnus-search-imap)
@@ -1180,7 +1188,11 @@ Other capabilities could be tested here."
 
 (cl-defmethod gnus-search-transform-expression ((engine gnus-search-imap)
 						(expr string))
-  (format "TEXT %s" (gnus-search-imap-handle-string engine expr)))
+  (unless (string-match-p "\\`/.+/\\'" expr)
+    ;; Also need to check for fuzzy here.  Or better, do some
+    ;; refactoring of this stuff.
+    (format "TEXT %s"
+	    (gnus-search-imap-handle-string engine expr))))
 
 (cl-defmethod gnus-search-transform-expression ((engine gnus-search-imap)
 						(expr (head or)))
@@ -1215,36 +1227,58 @@ boolean instead."
 
 (cl-defmethod gnus-search-transform-expression ((engine gnus-search-imap)
 						(expr list))
-  ;; Search keyword.  All IMAP search keywords that take a value are
-  ;; supported directly.  Keywords that are boolean are supported
-  ;; through other means (usually the "mark" keyword).
-  (cl-case (car expr)
-    (date (setcar expr 'on))
-    (tag (setcar expr 'keyword)))
-  (cond
-   ((consp (car expr))
-    (format "(%s)" (gnus-search-transform engine expr)))
-   ((eq (car expr) 'sender)
-    (format "FROM %s" (cdr expr)))
-   ((eq (car expr) 'recipient)
-    (format "OR (OR TO %s CC %s) BCC %s" (cdr expr) (cdr expr) (cdr expr)))
-   ((memq (car expr) gnus-search-imap-search-keys)
-    (format "%s %s"
-	    (upcase (symbol-name (car expr)))
-	    (gnus-search-imap-handle-string engine (cdr expr))))
-   ((memq (car expr) '(before since on sentbefore senton sentsince))
-    ;; Ignore dates given as strings.
-    (when (listp (cdr expr))
-      (format "%s %s"
-	      (upcase (symbol-name (car expr)))
-	      (gnus-search-imap-handle-date engine (cdr expr)))))
-   ((eq (car expr) 'id)
-    (format "HEADER Message-ID %s" (cdr expr)))
-   ;; Treat what can't be handled as a HEADER search.  Probably a bad
-   ;; idea.
-   (t (format "HEADER %s %s"
-	      (car expr)
-	      (gnus-search-imap-handle-string engine (cdr expr))))))
+  "Handle a search keyword for IMAP.
+
+   Search keyword.  All IMAP search keywords that take a value
+   are supported directly.  Keywords that are boolean are
+   supported through other means (usually the \"mark\" keyword)."
+  ;; At present, fuzzy is always nil.
+  (let ((fuzzy-supported (slot-value engine 'fuzzy))
+	(fuzzy ""))
+    (cl-case (car expr)
+      (date (setcar expr 'on))
+      (tag (setcar expr 'keyword))
+      (sender (setcar expr 'from)))
+    (cond
+     ((consp (car expr))
+      (format "(%s)" (gnus-search-transform engine expr)))
+     ((eq (car expr) 'recipient)
+      (gnus-search-transform
+       engine (gnus-search-parse-query
+	       (format
+	       "to:%s or (cc:%s or bcc:%s)"
+	       (cdr expr) (cdr expr) (cdr expr)))))
+     ((memq (car expr) '(before since on sentbefore senton sentsince))
+      ;; Ignore dates given as strings.
+      (when (listp (cdr expr))
+	(format "%s %s"
+		(upcase (symbol-name (car expr)))
+		(gnus-search-imap-handle-date engine (cdr expr)))))
+     ((stringp (cdr expr))
+      ;; If the search term starts or ends with "*", remove the
+      ;; asterisk.  If the engine supports FUZZY, then additionally make
+      ;; the search fuzzy.
+      (when (string-match "\\`\\*\\|\\*\\'" (cdr expr))
+	(setcdr expr (replace-regexp-in-string
+		      "\\`\\*\\|\\*\\'" "" (cdr expr)))
+	(when fuzzy-supported
+	  (setq fuzzy "FUZZY ")))
+      ;; If the search term is a regexp, drop the expression altogether.
+      (unless (string-match-p "\\`/.+/\\'" (cdr expr))
+	(cond
+	 ((memq (car expr) gnus-search-imap-search-keys)
+	  (format "%s%s %s"
+		  fuzzy
+		  (upcase (symbol-name (car expr)))
+		  (gnus-search-imap-handle-string engine (cdr expr))))
+	 ((eq (car expr) 'id)
+	  (format "HEADER Message-ID %s" (cdr expr)))
+	 ;; Treat what can't be handled as a HEADER search.  Probably a bad
+	 ;; idea.
+	 (t (format "%sHEADER %s %s"
+		    fuzzy
+		    (car expr)
+		    (gnus-search-imap-handle-string engine (cdr expr))))))))))
 
 (cl-defmethod gnus-search-imap-handle-date ((_engine gnus-search-imap)
 				     (date list))
@@ -1288,21 +1322,22 @@ of whichever date elements are present."
 						date))))
 
 (cl-defmethod gnus-search-imap-handle-string ((engine gnus-search-imap)
-				       (str string))
+					      (str string))
   (with-slots (literal-plus) engine
-    ;; STR is not ASCII.
+    ;; If string is non-ASCII...
     (if (null (= (length str)
 		 (string-bytes str)))
+	;; If LITERAL+ is available, use it and force UTF-8.
 	(if literal-plus
-	    ;; If LITERAL+ is available, use it and force UTF-8.
 	    (format "{%d+}\n%s"
 		    (string-bytes str)
 		    (encode-coding-string str 'utf-8))
-	  ;; Other servers might be able to parse it if quoted.
-	  (format "\"%s\"" str))
-      (if (string-match-p " " str)
-	  (format "\"%s\"" str)
-       str))))
+	  ;; Otherwise, if the user hasn't already quoted the string,
+	  ;; quote it for them.
+	  (if (string-prefix-p "\"" str)
+	      str
+	    (format "\"%s\"" str)))
+      str)))
 
 (defun gnus-search-imap-handle-flag (flag)
   "Make sure string FLAG is something IMAP will recognize."
@@ -1633,9 +1668,12 @@ absolute filepaths to standard out."
       (format "(%s)") (gnus-search-transform engine expr))
      ((memq (car expr) '(from to subject attachment mimetype tag id
 			      thread folder path lastmod query property))
-      (format "%s:%s" (car expr) (if (string-match-p " " (cdr expr))
-				     (format "\"%s\"" (cdr expr))
-				   (cdr expr))))
+      (format "%s:%s" (car expr)
+	      (if (string-match "\\`\\*" (cdr expr))
+		  ;; Notmuch can only handle trailing asterisk
+		  ;; wildcards, so strip leading asterisks.
+		  (replace-match "" nil nil (cdr expr))
+		(cdr expr))))
      ((eq (car expr) 'date)
       (format "date:%s" (notmuch-date (cdr expr))))
      ((eq (car expr) 'before)
