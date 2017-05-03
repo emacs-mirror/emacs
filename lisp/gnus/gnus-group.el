@@ -2825,7 +2825,7 @@ non-nil `specs' arg must be an alist with `search-query-spec' and
 	  (or (cdr (assq 'search-query-spec specs))
 	    (list (cons 'query
 			(read-string "Query: " nil 'gnus-search-history))
-		  (cons 'no-parse arg)))))
+		  (cons 'raw arg)))))
     (if perm
 	(let ((name (read-string "Group name: " nil)))
 	  (gnus-group-make-group

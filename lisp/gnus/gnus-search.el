@@ -2075,14 +2075,8 @@ string query into sexp form."
   (let ((q-string (alist-get 'query query-spec))
 	key val)
     ;; Look for these meta keys:
-    (while (string-match "\\(thread\\|limit\\|raw\\|no-parse\\|count\\):\\([^ ]+\\)" q-string)
-      ;; If they're found, push them into the query spec, and remove
-      ;; them from the query string.
-      (setq key (if (string= (match-string 1 q-string)
-			     "raw")
-		    ;; "raw" is a synonym for "no-parse".
-		    'no-parse
-		  (intern (match-string 1 q-string)))
+    (while (string-match "\\(thread\\|limit\\|raw\\|count\\):\\([^ ]+\\)" q-string)
+      (setq key (intern (match-string 1 q-string))
 	    val (string-to-number (match-string 2 q-string)))
       (push (cons key
 		  ;; A bit stupid, but right now the only possible
@@ -2095,7 +2089,7 @@ string query into sexp form."
     ;; Decide whether to parse the query or not.
     (setf (alist-get 'query query-spec)
 	  (if (and gnus-search-use-parsed-queries
-		   (null (alist-get 'no-parse query-spec)))
+		   (null (alist-get 'raw query-spec)))
 	      (gnus-search-parse-query q-string)
 	    q-string))
     query-spec))
