@@ -32,7 +32,6 @@
 (require 'gnus-start)
 (require 'nnmail)
 (require 'gnus-spec)
-(require 'gnus-search)
 (require 'gnus-int)
 (require 'gnus-range)
 (require 'gnus-win)
@@ -42,6 +41,7 @@
 
 (eval-when-compile
   (require 'mm-url)
+  (require 'nnselect)
   (let ((features (cons 'gnus-group features)))
     (require 'gnus-sum))
   (unless (boundp 'gnus-cache-active-hashtb)
@@ -53,6 +53,8 @@
 (autoload 'gnus-cloud-upload-all-data "gnus-cloud")
 (autoload 'gnus-cloud-download-all-data "gnus-cloud")
 (autoload 'gnus-registry-get-id-key "gnus-registry")
+
+(declare-function 'gnus-group-topic-name "gnus-topic")
 
 (defcustom gnus-no-groups-message "No news is good news"
   "Message displayed by Gnus when no groups are available."
@@ -2811,6 +2813,7 @@ means the search query will be passed raw to the . A
 non-nil `specs' arg must be an alist with `search-query-spec' and
 `search-group-spec' keys, and skips all prompting."
   (interactive "P")
+  (require 'gnus-search)
   (let* ((group-spec
 	  (or (cdr (assq 'search-group-spec specs))
 	    (if (gnus-server-server-name)
@@ -2819,7 +2822,8 @@ non-nil `specs' arg must be an alist with `search-query-spec' and
 	       (or gnus-group-marked
 		   (if (gnus-group-group-name)
 		       (list (gnus-group-group-name))
-		     (cdr (assoc (gnus-group-topic-name) gnus-topic-alist))))
+		     (when (gnus-topic-mode-p)
+		       (cdr (assoc (gnus-group-topic-name) gnus-topic-alist)))))
 	       gnus-group-server))))
 	 (query-spec
 	  (or (cdr (assq 'search-query-spec specs))

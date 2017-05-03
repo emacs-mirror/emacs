@@ -63,12 +63,14 @@
 
 (require 'gnus-group)
 (require 'gnus-sum)
-(require 'nnselect)
 (require 'message)
 (require 'gnus-util)
 (require 'eieio)
 (eval-when-compile (require 'cl-lib))
 (autoload 'eieio-build-class-alist "eieio-opt")
+
+(eval-when-compile
+  (require 'nnselect))
 
 (defvar gnus-inhibit-demon)
 (defvar gnus-english-month-names)
