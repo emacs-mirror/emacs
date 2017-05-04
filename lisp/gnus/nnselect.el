@@ -168,21 +168,6 @@ as `(keyfunc member)' and the corresponding element is just
   "Virtual groups in Gnus with arbitrary selection methods."
   :group 'gnus)
 
-(defcustom nnselect-summary-line-format nil
-  "The format specification of the lines in an nnselect summary buffer.
-
-All the items from `gnus-summary-line-format' are available, along
-with three items unique to nnselect summary buffers:
-
-%Z    Retrieval score value (integer)
-%G    Article original full group name (string)
-%g    Article original short group name (string)
-
-If nil this will use `gnus-summary-line-format'."
-  :version "24.1"
-  :type '(string)
-  :group 'nnselect)
-
 (defcustom nnselect-retrieve-headers-override-function nil
   "A function that retrieves article headers for ARTICLES from GROUP.
 The retrieved headers should populate the `nntp-server-buffer'.
