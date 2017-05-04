@@ -1062,7 +1062,19 @@ Responsible for handling and, or, and parenthetical expressions.")
 (cl-defgeneric gnus-search-transform-expression (backend expression)
   "Transform a basic EXPRESSION into a string usable by BACKEND.")
 
+(cl-defgeneric gnus-search-make-query-string (engine query-spec)
+  "Extract the actual query string to use from QUERY-SPEC.")
+
 ;; Methods that are likely to be the same for all engines.
+
+(cl-defmethod gnus-search-make-query-string ((engine gnus-search-engine)
+					     query-spec)
+  (if (and gnus-search-use-parsed-queries
+	   (null (alist-get 'raw query-spec))
+	   (null (slot-value engine 'raw-queries-p)))
+      (gnus-search-transform
+       engine (alist-get 'parsed-query query-spec))
+    (alist-get 'query query-spec)))
 
 (cl-defmethod gnus-search-transform ((engine gnus-search-engine)
 					       (query list))
@@ -1105,10 +1117,11 @@ Responsible for handling and, or, and parenthetical expressions.")
 
 ;; imap interface
 (cl-defmethod gnus-search-run-search ((engine gnus-search-imap)
-			       srv query groups)
+				      srv query groups)
   (save-excursion
     (let ((server (cadr (gnus-server-to-method srv)))
-          (gnus-inhibit-demon t))
+          (gnus-inhibit-demon t)
+	  q-string)
       (message "Opening server %s" server)
       ;; We should only be doing this once, in
       ;; `nnimap-open-connection', but it's too frustrating to try to
@@ -1123,11 +1136,11 @@ Responsible for handling and, or, and parenthetical expressions.")
 	;; server (and presumably acted upon), but we don't yet
 	;; request a RELEVANCY score as part of the response.
 	(setf (slot-value engine 'fuzzy)
-	      (when (nnimap-capability "FUZZY") t)))
-      (when (listp query)
-       (setq query
-	     (gnus-search-transform
-	      engine query)))
+	      (when (nnimap-capability "SEARCH=FUZZY") t)))
+
+      (setq q-string
+	    (gnus-search-make-query-string engine query))
+
       (apply
        'vconcat
        (mapcar
@@ -1140,7 +1153,7 @@ Responsible for handling and, or, and parenthetical expressions.")
 		    (message "Searching %s..." group)
 		    (let ((arts 0)
 			  (result
-			   (gnus-search-imap-search-command engine query)))
+			   (gnus-search-imap-search-command engine q-string)))
 		      (mapc
 		       (lambda (artnum)
 			 (let ((artn (string-to-number artnum)))
@@ -1239,7 +1252,6 @@ boolean instead."
    Search keyword.  All IMAP search keywords that take a value
    are supported directly.  Keywords that are boolean are
    supported through other means (usually the \"mark\" keyword)."
-  ;; At present, fuzzy is always nil.
   (let ((fuzzy-supported (slot-value engine 'fuzzy))
 	(fuzzy ""))
     (cl-case (car expr)
@@ -1370,7 +1382,7 @@ or something similar.  Turn those results into something Gnus
 understands.")
 
 (cl-defmethod gnus-search-run-search ((engine gnus-search-indexed)
-			       server query groups)
+				      server query groups)
   "Run QUERY against SERVER using ENGINE.
 
 This method is common to all indexed search engines.
@@ -1378,14 +1390,12 @@ This method is common to all indexed search engines.
 Returns a vector of [group name, file name, score] vectors."
 
   (save-excursion
-    (let* ((qstring (if (listp query)
-			(gnus-search-transform engine query)
-		      query))
+    (let* ((qstring (gnus-search-make-query-string engine query))
 	   (program (slot-value engine 'program))
 	   (buffer (slot-value engine 'proc-buffer))
 	   (cp-list (gnus-search-indexed-search-command
-		     engine qstring groups))
            proc exitstatus artlist)
+		     engine qstring query groups))
       (set-buffer buffer)
       (erase-buffer)
 
@@ -1478,7 +1488,8 @@ absolute filepaths to standard out."
    (t (format "%s = %s" (car expr) (cdr expr)))))
 
 (cl-defmethod gnus-search-indexed-search-command ((engine gnus-search-swish++)
-						  (qstring string))
+						  (qstring string)
+						  _query &optional _groups)
   (with-slots (config-file switches) engine
    `("--config-file" ,config-file
      ,@switches
@@ -1513,7 +1524,8 @@ absolute filepaths to standard out."
 	  ;; maybe limit results to matching groups.
 	  (when (or (not groupspec)
 		    (string-match groupspec dirnam))
-	    (gnus-search-add-result dirnam artno score prefix server artlist)))))))
+	    (gnus-search-add-result dirnam artno score prefix server artlist)))))
+    artlist))
 
 ;; Swish-e
 
@@ -1521,7 +1533,8 @@ absolute filepaths to standard out."
 ;; program seems no longer to exist.
 
 (cl-defmethod gnus-search-indexed-search-command ((engine gnus-search-swish-e)
-						  (qstring string))
+						  (qstring string)
+						  _query &optional _groups)
   (with-slots (index-files switches) engine
     `("-f" ,@index-files
       ,@switches
@@ -1558,7 +1571,8 @@ absolute filepaths to standard out."
             (push (vector (gnus-group-full-name group server)
                           (string-to-number artno)
                           (string-to-number score))
-                  artlist))))))
+                  artlist))))
+    artlist))
 
 ;; Namazu interface
 
@@ -1583,15 +1597,18 @@ absolute filepaths to standard out."
     (cl-call-next-method)))
 
 (cl-defmethod search-indexed-search-command ((engine gnus-search-namazu)
-					     (qstring string))
-  (with-slots (switches index-dir) engine
-   `("-q"				; don't be verbose
-      "-a"				; show all matches
-      "-s"				; use short format
-      ,@switches
-      ,qstring				; the query, in namazu format
-      ,index-dir ; index directory
-      )))
+					     (qstring string)
+					     query &optional _groups)
+  (let ((max (alist-get 'limit query)))
+    (with-slots (switches index-dir) engine
+      `("-q"				; don't be verbose
+	"-a"				; show all matches
+	"-s"				; use short format
+	,(if max (format "--max=%d" max) "")
+	,@switches
+	,qstring			; the query, in namazu format
+	,index-dir			; index directory
+	))))
 
 ;;; Notmuch interface
 
@@ -1648,18 +1665,20 @@ absolute filepaths to standard out."
 
 (cl-defmethod gnus-search-indexed-search-command ((engine gnus-search-notmuch)
 						  (qstring string)
-						  &optional _groups)
+						  query &optional _groups)
   ;; Theoretically we could use the GROUPS parameter to pass a
   ;; --folder switch to notmuch, but I'm not confident of getting the
   ;; format right.
-  (with-slots (switches config-file) engine
-    `(,(format "--config=%s" config-file)
-      "search"
-      "--format=text"
-      "--output=files"
-      ,@switches
-      ,qstring				; the query, in notmuch format
-      )))
+  (let ((limit (alist-get 'limit query)))
+   (with-slots (switches config-file) engine
+     `(,(format "--config=%s" config-file)
+       "search"
+       "--output=files"
+       "--duplicate=1" ; I have found this necessary, I don't know why.
+       ,@switches
+       ,(if limit (format "--limit=%d" limit) "")
+       ,qstring
+       ))))
 
 (cl-defmethod gnus-search-indexed-massage-output ((engine gnus-search-notmuch)
 						  server &optional groups)
@@ -1873,16 +1892,17 @@ Assume \"size\" key is equal to \"larger\"."
 ;;; Find-grep interface
 
 (cl-defmethod gnus-search-run-search ((engine gnus-search-find-grep)
-			       server query
-			       &optional groups)
+				      server query
+				      &optional groups)
   "Run find and grep to obtain matching articles."
   (let* ((method (gnus-server-to-method server))
 	 (sym (intern
 	       (concat (symbol-name (car method)) "-directory")))
 	 (directory (cadr (assoc sym (cddr method))))
-	 (regexp (cdr (assoc 'query query)))
-	 ;; `grep-options' will actually come out of the parsed query.
-	 (grep-options (cdr (assoc 'grep-options query)))
+	 (regexp (gnus-search-make-query-string engine query))
+	 ;; This is one place where the generalized search language
+	 ;; doesn't work out so well.
+	 (grep-options nil)
 	 (grouplist (or groups (gnus-search-get-active server)))
 	 (buffer (slot-value engine 'proc-buffer)))
     (unless directory
@@ -1963,10 +1983,9 @@ Assume \"size\" key is equal to \"larger\"."
 
 ;; gmane interface
 (cl-defmethod gnus-search-run-search ((engine gnus-search-gmane)
-			       srv query &optional groups)
+				      srv query &optional groups)
   "Run a search against a gmane back-end server."
   (let* ((case-fold-search t)
-	 (query (plist-get query :query))
 	 (groupspec (mapconcat
 		     (lambda (x)
 		       (if (string-match-p "gmane" x)
@@ -1974,10 +1993,8 @@ Assume \"size\" key is equal to \"larger\"."
 			 (error "Can't search non-gmane groups: %s" x)))
 		     groups " "))
 	 (buffer (slot-value engine 'proc-buffer))
-	 (search (format "%s %s"
-			 (if (listp query)
-			     (gnus-search-transform query)
-			   query)
+	 (search (concat (gnus-search-make-query-string engine query)
+			 " "
 			 groupspec))
 	 (gnus-inhibit-demon t)
 	 artlist)
@@ -2039,24 +2056,14 @@ Assume \"size\" key is equal to \"larger\"."
   ;; multiple IMAP servers are searched at the same time, apparently
   ;; because the `nntp-server-buffer' variable is getting clobbered,
   ;; or something.  Anyway, that's the reason for the `mapc'.
-  (let* ((results [])
-	 (q-spec (alist-get 'search-query-spec specs))
-	 (query (alist-get 'query q-spec))
-	 ;; If the query is already a sexp, just leave it alone.
-	 (prepared-query (when (stringp query)
-			   (gnus-search-prepare-query q-spec))))
+  (let ((results [])
+	(prepared-query (gnus-search-prepare-query
+			 (alist-get 'search-query-spec specs))))
     (mapc
      (lambda (x)
        (let* ((server (car x))
 	      (search-engine (gnus-search-server-to-engine server))
 	      (groups (cadr x)))
-	 ;; Give the search engine a chance to say it wants raw search
-	 ;; queries.  If SPECS was passed in with an already-parsed
-	 ;; query, that's tough luck for the engine.
-	 (setf (alist-get 'query prepared-query)
-	       (if (slot-value search-engine 'raw-queries-p)
-		   query
-		 (alist-get 'query prepared-query)))
 	 (setq results
 	       (vconcat
 		(gnus-search-run-search
@@ -2066,34 +2073,30 @@ Assume \"size\" key is equal to \"larger\"."
     results))
 
 (defun gnus-search-prepare-query (query-spec)
-  "Accept a search query in raw format, and return a (possibly)
-  parsed version.
+  "Accept a search query in raw format, and prepare it.
 
 QUERY-SPEC is an alist produced by functions such as
 `gnus-group-make-search-group', and contains at least a 'query
 key, and possibly some meta keys.  This function extracts any
-additional meta keys from the query, and optionally parses the
-string query into sexp form."
-  (let ((q-string (alist-get 'query query-spec))
-	key val)
-    ;; Look for these meta keys:
-    (while (string-match "\\(thread\\|limit\\|raw\\|count\\):\\([^ ]+\\)" q-string)
-      (setq key (intern (match-string 1 q-string))
-	    val (string-to-number (match-string 2 q-string)))
-      (push (cons key
-		  ;; A bit stupid, but right now the only possible
-		  ;; values are "t", or a number.
-		  (if (zerop val) t val))
-	    query-spec)
-      (setq q-string
-	    (string-trim (replace-match "" t t q-string 0))))
-    (setf (alist-get 'query query-spec) q-string)
-    ;; Decide whether to parse the query or not.
-    (setf (alist-get 'query query-spec)
-	  (if (and gnus-search-use-parsed-queries
-		   (null (alist-get 'raw query-spec)))
-	      (gnus-search-parse-query q-string)
-	    q-string))
+additional meta keys from the 'query string, and parses the
+remaining string, then adds all that to the top-level spec."
+  (let ((query (alist-get 'query query-spec))
+        val)
+    (when (stringp query)
+      ;; Look for these meta keys:
+      (while (string-match "\\(thread\\|limit\\|raw\\|count\\):\\([^ ]+\\)"
+			   query)
+	(setq val (string-to-number (match-string 2 query)))
+	(setf (alist-get (intern (match-string 1 query)) query-spec)
+	      ;; A bit stupid, but right now the only possible
+	      ;; values are t, or a number.
+	      (if (zerop val) t val))
+	(setq query
+	      (string-trim (replace-match "" t t query 0)))
+	(setf (alist-get 'query query-spec) query)))
+    (when gnus-search-use-parsed-queries
+	(setf (alist-get 'parsed-query query-spec)
+	      (gnus-search-parse-query query)))
     query-spec))
 
 ;; This should be done once at Gnus startup time, when the servers are
