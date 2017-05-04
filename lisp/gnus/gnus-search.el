@@ -1049,18 +1049,18 @@ quirks.")
 
 ;;; Transforming and running search queries.
 
-(cl-defgeneric gnus-search-run-search (backend server query groups)
-  "Run QUERY in GROUPS against SERVER, using search BACKEND.
+(cl-defgeneric gnus-search-run-search (engine server query groups)
+  "Run QUERY in GROUPS against SERVER, using search ENGINE.
 
 Should return results as a vector of vectors.")
 
-(cl-defgeneric gnus-search-transform (backend expression)
-  "Transform sexp EXPRESSION into a string search query usable by BACKEND.
+(cl-defgeneric gnus-search-transform (engine expression)
+  "Transform sexp EXPRESSION into a string search query usable by ENGINE.
 
 Responsible for handling and, or, and parenthetical expressions.")
 
-(cl-defgeneric gnus-search-transform-expression (backend expression)
-  "Transform a basic EXPRESSION into a string usable by BACKEND.")
+(cl-defgeneric gnus-search-transform-expression (engine expression)
+  "Transform a basic EXPRESSION into a string usable by ENGINE.")
 
 (cl-defgeneric gnus-search-make-query-string (engine query-spec)
   "Extract the actual query string to use from QUERY-SPEC.")
@@ -1077,14 +1077,14 @@ Responsible for handling and, or, and parenthetical expressions.")
     (alist-get 'query query-spec)))
 
 (cl-defmethod gnus-search-transform ((engine gnus-search-engine)
-					       (query list))
+				     (query list))
   (let (clauses)
-   (mapc
-    (lambda (item)
-      (when-let ((expr (gnus-search-transform-expression engine item)))
-	(push expr clauses)))
-    query)
-   (mapconcat #'identity (reverse clauses) " ")))
+    (mapc
+     (lambda (item)
+       (when-let ((expr (gnus-search-transform-expression engine item)))
+	 (push expr clauses)))
+     query)
+    (mapconcat #'identity (reverse clauses) " ")))
 
 ;; Most search engines just pass through plain strings.
 (cl-defmethod gnus-search-transform-expression ((_ gnus-search-engine)
@@ -1399,32 +1399,24 @@ Returns a vector of [group name, file name, score] vectors."
 	   (program (slot-value engine 'program))
 	   (buffer (slot-value engine 'proc-buffer))
 	   (cp-list (gnus-search-indexed-search-command
-           proc exitstatus artlist)
 		     engine qstring query groups))
+           proc exitstatus)
       (set-buffer buffer)
       (erase-buffer)
 
       (if groups
 	  (message "Doing %s query on %s..." program groups)
 	(message "Doing %s query..." program))
-      (setq proc (apply #'start-process "search" buffer program cp-list))
-
-      (accept-process-output proc)
+      (setq proc (apply #'start-process (format "search-%s" server)
+			buffer program cp-list))
+      (while (process-live-p proc)
+	(accept-process-output proc))
       (setq exitstatus (process-exit-status proc))
       (if (zerop exitstatus)
 	  ;; The search results have been put into the current buffer;
-	  ;; `massage-output' finds them there.
-	  (progn
-	    (setq artlist (gnus-search-indexed-massage-output
-			   engine server groups))
-
-	    ;; Sort by score
-
-	    (apply #'vector
-		   (sort artlist
-			 (function (lambda (x y)
-				     (> (nnselect-artitem-rsv x)
-					(nnselect-artitem-rsv y)))))))
+	  ;; `massage-output' finds them there and returns the article
+	  ;; list.
+	  (gnus-search-indexed-massage-output engine server groups)
 	(nnheader-report 'search "%s error: %s" program exitstatus)
 	;; Failure reason is in this buffer, show it if the user
 	;; wants it.
@@ -2075,7 +2067,12 @@ Assume \"size\" key is equal to \"larger\"."
 		 search-engine server prepared-query groups)
 		results))))
      (alist-get 'search-group-spec specs))
-    results))
+    ;; Sort by score.  Couldn't we also then sort by date or
+    ;; something?
+    (sort results
+	  (function (lambda (x y)
+		      (> (nnselect-artitem-rsv x)
+			 (nnselect-artitem-rsv y)))))))
 
 (defun gnus-search-prepare-query (query-spec)
   "Accept a search query in raw format, and prepare it.
