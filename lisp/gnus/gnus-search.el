@@ -1086,6 +1086,11 @@ Responsible for handling and, or, and parenthetical expressions.")
     query)
    (mapconcat #'identity (reverse clauses) " ")))
 
+;; Most search engines just pass through plain strings.
+(cl-defmethod gnus-search-transform-expression ((_ gnus-search-engine)
+						(expr string))
+  expr)
+
 ;; Most search engines use implicit ANDs.
 (cl-defmethod gnus-search-transform-expression ((_ gnus-search-engine)
 						(_expr (eql and)))
