@@ -1644,8 +1644,14 @@ absolute filepaths to standard out."
     (cond
      ((consp (car expr))
       (format "(%s)") (gnus-search-transform engine expr))
+     ((eql (car expr) 'body)
+      (cdr expr))
      ((memq (car expr) '(from to subject attachment mimetype tag id
 			      thread folder path lastmod query property))
+      ;; Notmuch requires message-id with no angle brackets.
+      (when (eql (car expr) 'id)
+	(setcdr
+	 expr (replace-regexp-in-string "\\`<\\|>\\'" "" (cdr expr))))
       (format "%s:%s" (car expr)
 	      (if (string-match "\\`\\*" (cdr expr))
 		  ;; Notmuch can only handle trailing asterisk
