@@ -562,9 +562,9 @@ returning the one at the supplied position."
        ((looking-at "\\bnot\\b") (forward-char 3) 'not)
        ((looking-at "\\bnear\\b") (forward-char 4) 'near)
        ;; Plain string, no keyword
-       ((looking-at "\"?\\b[^:]+\\([[:blank:]]\\|\\'\\)")
+       ((looking-at "[\"/]?\\b[^:]+\\([[:blank:]]\\|\\'\\)")
 	(gnus-search-query-return-string
-	 (when (looking-at "\"") "\"")))
+	 (when (looking-at-p "[\"/]") t)))
        ;; Assume a K:V expression.
        (t (let ((key (gnus-search-query-expand-key
 		      (buffer-substring
@@ -573,7 +573,7 @@ returning the one at the supplied position."
 			 (re-search-forward ":" (point-at-eol) t)
 			 (1- (point))))))
 		(value (gnus-search-query-return-string
-			(when (looking-at "\"") "\""))))
+			(when (looking-at-p "[\"/]") t))))
 	    (gnus-search-query-parse-kv key value)))))))
 
 (defun gnus-search-query-parse-kv (key value)
