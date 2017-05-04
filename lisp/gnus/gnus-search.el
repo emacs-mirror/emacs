@@ -1888,6 +1888,11 @@ Assume \"size\" key is equal to \"larger\"."
 
 ;;; Find-grep interface
 
+(cl-defmethod gnus-search-transform-expression ((_engine gnus-search-find-grep)
+						(_ list))
+  ;; Drop everything that isn't a plain string.
+  nil)
+
 (cl-defmethod gnus-search-run-search ((engine gnus-search-find-grep)
 				      server query
 				      &optional groups)
