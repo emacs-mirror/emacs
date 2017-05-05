@@ -1,0 +1,639 @@
+#+TITLE: The Emacs Introduction Tutorial
+#+AUTHOR: Phillip Lord
+
+* Introduction
+
+Welcome to Emacs!
+
+Emacs is a text-editor with many advanced features. Its original purpose was
+for programmers to edit source code, but it has now expanded beyond this. It
+can be used to write documents, web pages, send email, calendaring and,
+indeed, edit source code. Since it is possible to control most things that a
+computer can do with text, Emacs can also be used to interface and control
+anything that a computer can do.
+
+Emacs has a long history having been in continous development since 1985. In
+this sense, it is a very old piece of software. One significant advantage of
+this is that the core of Emacs is fairly stable; this means that knowledge
+learned today is likely to remain useful far into the future. Emacs is also highly
+extensible, coming with its own rich extension language. In this sense, it is
+also a very new piece of software. It can be and is continually extended and
+adapted, providing new tools, for new purposes.
+
+The purpose of this tutorial is to give a brief introduction to Emacs, enough
+to make sense of what you are seeing and to start the journey to Emacs
+mastery.
+
+* What you can see
+
+In this section, we introduce the basic elements that are visible on-screen
+and the terminology that it used to describe it. Emacs can run on many
+different operating systems and in many different ways. One advantage of Emacs
+is that it provides essentially the same experience in these different
+environments. However, for the majority of users it is generally used on a
+windowing system and we will assume that this is the case here. One slight
+disadvantage of Emacs long history is that some of its terminology predates
+windowing systems and in one case conflicts with it. We describe these
+differences here.
+
+** Frames
+
+If you have just started Emacs and this tutorial, you will be looking at a
+single window showing this tutorial. In Emacs terminology, this is not a
+described as a window but as a /frame/. As with many applications, a single
+running Emacs can create any number of frames. We can do this using the menu
+system (we will investigate other ways later); try this now, but remember,
+these are /frames/ and not /windows/. Do not use the /New Window/ menu item,
+but instead:
+
+#+begin_menu
+File
+New Frame
+#+end_menu
+
+The spare frame can be removed freely either using whatever close window
+facilities your desktop environment provides, or:
+
+#+begin_menu
+File
+Delete Frame
+#+end_menu
+
+Closing the last frame also closes Emacs. It will warn you if doing so is
+problematic in some way, such as in the case of having unsaved files.
+
+** Windows
+
+Often, you will want to edit two pieces of text at the same time. It is
+possible to use multiple frames to do this, and some Emacs users prefer this.
+Emacs also has a light-weight alternative which it calls a /window/. It is
+possible to have any number of windows visible in a single frame, to resize
+them and change their arrangement, not unlike frames.
+
+We can create a new frame with:
+
+#+begin_menu
+File
+New Window Below
+#+end_menu
+
+Doing so now will result in the frame splitting leaving the tutorial visible
+twice. We can return to a single window with:
+
+#+begin_menu
+File
+Remove other windows
+#+end_menu
+
+Frames and windows fulfil roughly similar purposes for the user perspective.
+So, which is best to use? Broadly, windows can be manipulated entirely within
+Emacs, and work where-ever Emacs works, while frames can also be manipulated
+using tools from the desktop environment. Later in the tutorial, we will
+demonstrate more rapid ways of manipulating windows than the menu bars we have
+used so far.
+
+** Buffers
+
+In each window, Emacs displays a /buffer/. In most cases, (including the
+buffer you reading now), a buffer contains the contents of a file, or what
+will become the contents of the file when it is saved. However, Emacs also
+uses buffers to contain anything that you might want to interact with: the
+contents of a directory, a process or even the configuration options of Emacs
+itself.
+
+At any point in time, a buffer may or may not be visible, but they can be
+displayed in a window when you choose. We try this now. First, we split our
+window:
+
+#+begin_menu
+File
+New Window Below
+#+end_menu
+
+You should now see this tutorial twice in two windows; although it appears
+twice, there is only one copy. This makes it possible to edit two parts of a
+file at the same time. Now we can change the buffer being displayed in one
+window.
+
+#+begin_menu
+Buffers
+*scratch*
+#+end_menu
+
+The `*scratch*` buffer is created automatically when Emacs starts and is just
+used as a temporary storage location for text, or code. Now we can hide this
+window again. Ensure that you select the window showing this tutorial by
+clicking into it first, or you will end up with just the `*scratch*` buffer.
+
+#+begin_menu
+File
+Remove Other Windows
+#+end_menu
+
+** Mode lines and Mini-buffers
+
+Emacs has two more unusual features: the mode line and the mini-buffer. The mode
+line appears immediately below each Emacs window. It probably looks something
+like this:
+
+#+begin_example
+ -:---  TUTORIAL      24% L138   (Fundamental)
+#+end_example
+
+For more experienced Emacs, this line can become very full, containing much
+essential information about Emacs and the current window. For now, it simply
+contains the name of this file, the location within the file (as a percentage,
+Top or Bottom), the line number and information about the current mode (more
+on which later).
+
+Each Frame also has a /minibuffer/, which appears at the bottom of the frame,
+under the bottom mode line. As with the mode-line, the minibuffer is heavily
+used by experienced Emacs users, but for now its use is limited to providing
+status messages. Swap into the `*scratch*` buffer and back again. You should
+see a rather cryptic message underneath the mode-line, at the bottom of the
+frame, like this:
+
+#+begin_todo
+ menu-bar buffer C-c
+#+end_todo
+
+** Menu, Toolbars and Scrollbars
+
+Finally, Emacs has menu bars, a toolbar and scrollbar. These work as you would
+expect for most applications, except that they are easy to control,
+configure and change in the running application, or even disable them
+entirely. Emacs really is extensible!
+
+** Away from a Windowing System
+
+Although it is less frequently used in this way, Emacs also works away from a
+windowing system in a terminal. In this environment, most of the features that
+have been described so far are still usable, in particular Emacs windows,
+although it is not possible to start a new frame.
+
+While this use of Emacs is less common these days, it does allow some nice
+tricks. For instance, combined with GNU Screen, Emacs can be opened
+persistently on a server, or even shared by several users at the same time for
+remote, collaborative working. It is also extremely useful for systems
+administration either when running over SSH or as a root user.
+
+* Text in Emacs
+
+In this section, we consider how Emacs allows you to view and to change text
+within Emacs. This is mostly straight-forward, but Emacs gives you a some
+extra options useful for changing text rapidly.
+
+** This is a copy!
+
+If you wish to practice on this tutorial, do not worry, you can change it
+freely as it is just a copy.
+
+** TODO Editing Text
+
+Changing text happens in Emacs as with most other applications. A blinking
+cursor shows the current location in the file. Text can be selected with a
+mouse, and deleted in bulk.
+
+Emacs has a specialised display feature for text with longlines. You can see
+this by changing the size of the frame and making it narrower than the width
+of the text. By default, Emacs shows all of the text by wrapping the text onto
+the next line, and placing a small arrow to the right of the text to show that
+this has been done.
+
+One feature that will not surprise you is that Emacs uses multiple keypresses
+for some punctuation --- to type the double quote, you press "shift" and "2"
+or "'" depending on your keyboard layout. What may surprise you is the extent
+to which Emacs expands on this idea of multiple keypresses, and it is this
+that we will consider in the next section.
+
+
+* Keyboard Control
+
+We said earlier, that as well as being modifiable, it is possible to disable
+the Emacs menu system entirely. In fact, many seasoned Emacs users prefer it
+that way, to maximise the editing area on screen. How, then, do they access
+the functionality in the menu system?
+
+With its long history, Emacs actually predates widespread use of mice, menus
+and windowing systems. As a result, it used a different way to allow complex
+interaction with the user, which it achieved by combining multiple keypresses,
+or /keychords/. This approach has a number of advantages over menus:
+
+- It is often very fast.
+- Hands can be left in place at the keyboard, reducing wrist strain
+- Combined with the modifier keys (Ctrl, Alt and Shift which we describe more
+  later), you can use a very large number of commands.
+
+It is for this reason that is has survived and is, in fact, commonly used by
+experienced Emacs users. Because of this, experienced users will often
+exchange advice and information using reference to these keypresses: you may
+see cryptic advice like "Use C-x C-f to open a file". This also demonstrates
+another advantage of keychords -- they are easy to describe: compare "go to
+the File menu, then Open File, then select the item, then click the "Open"
+button near the bottom right".
+
+In this section, we describe a few keychord commands, and introduce the basic
+background.
+
+** Modifiers
+
+The basic keys on the keyboard are, of course, used for inserting characters.
+So, Emacs must use "modifier keys" to access it's commands. Emacs uses four
+by default, which are:
+
+ - The /Ctrl/ or /control/ key, which is normally found on the bottom row
+   either side of the keyboard.
+ - The /Alt/ key, which is normally found next to space bar.
+ - The /Shift/ key, which is normally found above the Ctrl key.
+ - The /Esc/ key, which is normally found at the top left.
+
+By default, Emacs does not use most of the /function/ keys along the top of
+the keyboard, although, being highly customizable, it is possible to use
+those if you so wish.
+
+Of these, Ctrl is normally abbreviated to "C" while Alt is abbreviated to,
+confusingly, "M". The reason for this is historical, as keyboards used to have
+a key labelled "Meta". Shift is refered to using capital letters. Esc is
+rarely abbreviated, but is, instead a different way of accessing Alt.
+
+So, "C-x f" means "press the Ctrl key, and simultaneously the x, then release
+both, then press the f key".
+
+"C-x C-f" means "press the Ctrl key and x, then, still holding Ctrl,
+release x and press f".
+
+Or, "M-a" means "press the Alt key, and simultaneously the a key".
+
+Alternatively, for "M-a" you can use the Esc key, "press and release the Esc
+key and then the a key".
+
+** Keychords in action.
+
+Emacs has a wide variety of keychord controls. For example, if you prefer to
+keep your hands in one place, you can use keychords instead of the arrow keys
+to move the cursor around, as follows:
+
+#+begin_example
+			  Previous line, C-p
+				  :
+				  :
+   Backward, C-b .... Current cursor position .... Forward, C-f
+				  :
+				  :
+			    Next line, C-n
+#+end_example
+
+Similarly, C-a (<Ctrl> and <a> simultaneously) and C-e move to the start and end
+of the line, rather like the Home and End keys. Emacs also has "logical"
+variants of these cursor controls which cannot be accessed via other keys; for
+example, M-a (<Alt> and <a> simultaneously, or <Esc> followed by <a>) moves
+not to the start of the line, but the start of the *sentence*.
+
+The use of double press keys expands the keyboard significantly, but Emacs
+takes this considerably further, as we will describe after a brief excursion.
+
+** Ctrl-g saves the day
+
+The use of keyboard modifiers mean that, some times, Emacs will get stuck. For
+example, if you type Esc, Emacs is expecting another keypress as part of the
+keychord next. How do you get out of this, if you press Esc by mistake?
+
+The answer is with Ctrl-g (abbreviated as C-g). C-g is also more generally
+useful, as it can be used to stop any running command.
+
+What is a command? We will investigate this next.
+
+
+* Commands
+
+Users interact with Emacs by running /commands/. Everything that you do that
+changes Emacs happens via running one or more commands. Underneath, these
+commands are (mostly) implemented in Emacs' extension language (Emacs Lisp).
+Although it may not seem like it, you have already been interacting with Emacs
+via a stream of commands.
+
+The most commonly used command is ~self-insert-command~ (you may also see this
+written as `self-insert-command', a tradition which stems from its use in
+Emacs' source code). By default, most of the keys on the keyboard are /bound/
+to ~self-insert-command~: i.e. pressing the key calls this command. It does
+pretty much what its name suggests. It inserts into the buffer whichever key
+was pressed. Pressing the <a> key or the <e> key has the same effect but with
+different results.
+
+Keychords are also bound to commands. So, C-x C-f runs the command
+~find-file~. Commands can also be run from the menu bar. So:
+
+#+begin_menu
+File
+Open File
+#+end_menu
+
+runs a similar, related file ~menu-find-file-existing~.
+
+Sometimes, menu items and keys are bound to the same command. For example,
+try:
+
+#+begin_menu
+Help
+Describe
+Keyboard or Mouse Operation
+#+end_menu
+
+and then
+
+#+begin_menu
+File
+Remove Other Windows
+#+end_menu
+
+Instead of running the second command, we get the documentation instead, the
+beginning of which looks something like this:
+
+
+#+begin_example
+<menu-bar> <file> <one-window> runs the command delete-other-windows
+(found in global-map), which is an interactive compiled Lisp function
+in ‘window.el’.
+
+It is bound to C-x 1, <menu-bar> <file> <one-window>.
+#+end_example
+
+This tells you keychord or menu sequence that you called (~<menu-bar> <file>
+<one-window>~), the name of the command (~delete-other-windows~), and a link
+to the source code (~‘window.el’~). It also describes all the ways to run this
+command, which include, in this case C-x 1. We can now replicate the window
+management we performed earlier. Type C-x 2 to split the window and C-x 1 to
+get back again. Or, type C-h k followed by C-x 1 to get to the same help
+screen as the last menu.
+
+Finally, if this was not enough, it is also possible to run commands using the
+command name. Try M-x split-window-below to split the window, followed by M-x
+delete-other-windows to get back again. The ability to access commands
+directly in this way means that Emacs can provide any number of commands, not
+limited by restrictions of the keyboard or its graphical interface.
+
+Some commands are bound to many places, because of their utility. Try, for
+example, C-h k C-h k, which gets runs the command ~describe-key~ on itself.
+This produces:
+
+#+begin_example
+C-h k runs the command describe-key (found in global-map), which is an
+interactive compiled Lisp function in ‘help.el’.
+
+It is bound to C-h k, <f1> k, <help> k, <menu-bar> <help-menu>
+<describe> <describe-key-1>.
+#+end_example
+
+One command, with three different mechanisms of accessing it (four if
+your keyboard has a <help> key).
+
+
+* Clashing Keys
+
+Emacs' extensive use of keypresses sometimes clashes with keypresses from
+other environments. This can be a common cause of confusions for people new to
+Emacs. We will consider the two most common of these keypresses next.
+
+** Undo
+
+In many applications, the keypress Ctrl-z runs the undo system, which is,
+unfortunately, not true with Emacs. In fact, it minimizes Emacs; this can be
+rather disconcerting the first time it happens, when Emacs suddenly
+dissappears from the screen.
+
+Emacs actually has a quite powerful undo system. To find out how to
+access it, try C-h f undo which displays the help screen which prints
+this:
+
+#+begin_example
+undo is an interactive compiled Lisp function in ‘simple.el’.
+
+It is bound to C-_, <undo>, C-/, C-x u, <menu-bar> <edit> <undo>.
+
+(undo &optional ARG)
+
+Undo some previous changes.
+Repeat this command to undo more changes.
+A numeric ARG serves as a repeat count.
+#+end_example
+
+We show slightly more of the help screen than previously, as it allows us to
+introduce a new feature. ~undo~ accepts a /numeric argument/. You can supply
+this argument with the keypress C-u. So C-u 10 C-/ undoes the last ten
+actions.
+
+** Cut and Paste, Yank and Kill
+
+A second area that Emacs uses different keys from many environments is with
+Cut and Paste. The keyboard short-cuts for these are often Ctrl-c (short for
+"copy"), Ctrl-x (because "x" looks like a pair of scissors) and Ctrl-v (because
+it looks like the graphical sign people use to insert a word between
+two others).
+
+These keys all do something different in Emacs -- in fact, in most
+cases, two of them appear to do nothing at all, as they are the start
+of larger keychords. Emacs does, however, have a fully functional
+cut-and-paste system, although it behaves slightly differently.
+
+First, Emacs does not have a separate operation for cut or copy. While the
+simplest form of deletion (backspace) does really delete text, most other
+commands actually /kill/ the text; that is they delete it and save it at the
+same time; or alternatively, they cut the text. In fact, it is quite
+difficult to actually /delete/ text in Emacs in a totally irreversible
+way!
+
+We can try this now. Move to the beginning of a line (C-a), then run
+~kill-line~ (C-k). As normal, it is possible to reverse this using undo this
+(C-/). However, you can also /yank/ the text back with C-y. Why have these
+two mechanisms? Yank is actually operating like a paste operation; if you move
+the cursor to another line and run C-y again. The line you killed will be
+pasted once again.
+
+It is possible to kill text in many different ways, as well as a line
+or other unit at a time. Here are a few:
+
+ - M-k, which kills a sentence at a time.
+ - Select a region with the mouse, then C-w.
+ - Hit C-space, move the cursor to another point, then hit C-w.
+ - Type M-x mark-whole-buffer (or press C-x h), then C-w, which
+   deletes everything.
+
+It is even possible to kill text /without/ deleting it.  Try this:
+
+ - Select a region with the mouse, then M-w.
+ - Move the cursor to a different place, then yank (C-y).
+
+Emacs' kill-and-yank mechanism, although different, is actually very flexible,
+since it is completely integrated with text deletion. There is no necessity
+for having two different set of commands for deleting, cutting or copying.
+Also, it has some unique features, like the fact that consecutive
+kills are treated as one for yanking purposes, or the ability to
+easily recall not only the last one, but also previous kills.
+
+** Why is it like this, and how do I stop it?
+
+Of course, one valid question is why did Emacs choose keyboard commands which
+conflict with standard keypresses. The answer, as always, is that Emacs is a
+piece of software with a long heritage and it predates these standard
+keypresses. In addition, in some cases, these standard keypresses are,
+not that standard: for example, in command line terminal, Ctrl-z normally
+causes not an undo operation, but suspends the current process. If you are
+running Emacs in a terminal, in fact, this is what it does to Emacs also; from
+the perspective of the user, in a grapical environment, minimizing Emacs
+achieves about the same thing.
+
+Of course, Emacs could be updated to change this behaviour, but many users are
+happy with the defaults. However, Emacs can also be configured to use these
+standard defaults, which you can access with:
+
+#+begin_menu
+Options
+Use CUA keys
+#+end_menu
+
+or, alternatively, "M-x cua-mode". If you like this mode, you can use it all
+the time by running:
+
+#+begin_menu
+Options
+Save Options
+#+end_menu
+
+Later on, we will discuss /modes/ in more detail.
+
+
+* Files and Directories
+
+So far, we have looked at how to control Emacs. Of course, being a text
+editor, the most common use for Emacs is to open, change and save files.
+
+First, we should recap the difference between a /file/ and a /buffer/.
+Everything that you see on screen is a buffer. Buffers are often /associated/
+with a file: that is, they show the contents of a file, and will save changes
+to that file.
+
+Opening a file in Emacs is straight-forward. In the menu system use:
+
+#+begin_menu
+File
+Open File
+#+end_menu
+
+Or, alternatively, C-x C-f. The former will result in a file dialog, the
+latter will use the mini-buffer for interaction. Files can be saved in a
+similar way either with the menu:
+
+#+begin_menu
+File
+Save
+#+end_menu
+
+or the keys C-x C-s. Emacs also provides another, very useful, alternative
+command called ~save-some-buffers~ (C-x s) which saves any buffer that needs
+to be saved -- you can save all of your files together rather than one at a
+time.
+
+Emacs can also display directories. Unlike many editors, which only show
+directories in a dialog box, Emacs uses a buffer, and this persists until you
+delete it. You can change to a file buffer, and then back again, as you
+choose. We access this with the same command used to open a file. Try C-x C-f,
+then hit enter to accept the default value which will be a directory
+(probably, your home directory). Emacs provides extensive facilities for
+operating on and changing directories and the files that they contain in bulk,
+together called dired (for directory editor).
+
+Emacs was originally intended for programmers, who tend to open a lot of
+files, often spread widely around the file system. Although, we will not look
+at them in further detail, Emacs has been extended in a number of ways to make
+file navigation very quick, including, for example ~ido-mode~.
+
+* Working With Buffers
+
+We described buffers earlier when looking at windows. Nearly everything that
+you interact with in Emacs happens in a buffer. The can contain simple text,
+they can be associated with files, they can be connected to processes, or to
+network sockets. A single Emacs can have any number of tabs open at once. Any
+buffer can be displayed in no, one or many frames, and likewise, no, one or
+many windows.
+
+In many ways, Emacs buffers operate like "tabbed windows" in other systems,
+although, unlike tabs, they are not have a visible tab on screen the whole
+time. Which raises the obvious question, how do we select a buffer which is
+not visible? Emacs provides two main mechanisms for achieving this. First the
+menu called, logically enough, "Buffers". This menu also provides access to
+the second mechanism -- try:
+
+#+begin_menu
+Buffers
+List All Buffers
+#+end_menu
+
+This displays a buffer which contains a list of all the other buffers. From
+here it is possible to select, save or kill any buffers. The "Buffer-Menu"
+enables this and, of course, there are keychord shortcuts available.
+
+As with directories, "List All Buffers" works by creating and then displaying
+its own buffer.  When you have finished try C-x 1 to remove the window showing
+this buffer, or C-x C-b to kill the buffer.
+
+
+* Modal Editing or Why the Menu Bar Keeps changing
+
+You may have noticed while listing directories or buffers that the menu bar
+changes frequently. In fact, this is a symptom of a larger feature of Emacs --
+modal editing.
+
+Most operating systems have a form of modal editing. Different kinds of files
+open in different applications, each of which behave in a different way.
+Emacs allows editing of many different files but supports the same idea; it
+provides a different set of editing commands for different file types or, more
+accurately, different types of buffer.  Every buffer has a /major-mode/ and it
+this mode that determines the editing commands -- including the menu bar --
+available.  So, the ability to mark a buffer, then delete it is available when
+listing buffers, the ability to mark and delete a file when viewing
+directories, and the ability to fill a paragraph in text. Most modes support
+the same cursor movement commands: C-e to move to the end of the line, for
+instance, although even here there are special cases.
+
+Emacs has many, many different major-modes -- at a rough count, there are over
+300 in the standard Emacs. Of course, Emacs is extensible: it is possible to
+add write new major-modes or use other peoples.
+
+Modes help the process of editing enormously, but can some times be a source
+of confusion. If this are not behaving as you expect, mostly likely you are in
+a specialised mode.
+
+* Help!
+
+In the last section, we mentioned that some modes change even cursor
+movement. An example of this is Emacs' help system, called /info/. Emacs has
+an extensive manual describing every aspect of its functionality; actually, it
+has two manuals as it also has one describing its implementation language.
+
+The Info manual can be reached through:
+
+#+begin_menu
+Help
+Read the Emacs Manual
+#+end_menu
+
+or C-h r. Once you are reading the manual you can use the space bar to read
+through the manual from start to finish should you wish to!
+
+* Packages
+
+Through out the tutorial, we have said that Emacs is completely
+extensibile. Of course, extensions like Free Software in general is meant to
+be shared; Emacs also contains a package system which allows adding this new
+functionality. As always, Emacs provides a buffer and major mode for
+interacting and managing packages which can be accessed via:
+
+#+begin_menu
+Options
+Manage Emacs Packages
+#+end_menu
+
+Or M-x list-packages. Try this now, and scroll to (or search for)
+"tutorial-complete". Once there, type "i" (for install), then "x" (for
+execute). Finally, run M-x tutorial-next to run your newly installed
+tutorial functionality.

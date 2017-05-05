@@ -1,0 +1,30 @@
+
+
+This branch introduces a new tutorial in English, and written with
+org-mode. The tutorial is written, but the infrastructure for
+displaying it is not.
+
+tutorial.el has lots of functionality in it, that would be good to
+use. Lots of cleverness wrt to rebound functions and the like.
+
+It doesn't have org-mode support yet.
+
+An in use tutorial is saved at ~/.emacs.d/tutorial/English.tut
+and the position in stored in the first two lines (clearly this is
+going to cause org-mode breakage)
+
+The name of the source for the tutorial file is in the leim/mule files
+(so english.el) -- so we can reconfigure it for different languages.
+
+Functions like "tutorial--saved-file" assume that there is only one
+type of file. So, we have to do something vaguely clever hear based on
+the current file.
+
+All the tutorial modification functions are going to end badly, I fear
+(modified hooks, that sort of thing). Ironically, most of these insert
+English even into non-english language buffer. But do I care about
+this, given that it's all shite about keybindings?
+
+
+ - [ ] edit leim to add tutorial-org
+ - [ ] have help-with-tutorial check for this

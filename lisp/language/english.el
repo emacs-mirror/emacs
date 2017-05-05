@@ -36,6 +36,7 @@
 
 (set-language-info-alist
  "English" '((tutorial . "TUTORIAL")
+             (tutorial-org . "tutorial.org")
 	     (charset ascii)
 	     (sample-text . "Hello!, Hi!, How are you?")
 	     (documentation . "\
