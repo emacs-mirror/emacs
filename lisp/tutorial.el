@@ -627,13 +627,15 @@ with some explanatory links."
   "Directory to which tutorials are saved."
   (locate-user-emacs-file "tutorial/"))
 
-(defun tutorial--saved-file ()
+(defun tutorial--saved-file (type)
   "File name in which to save tutorials."
   (let ((file-name tutorial--lang)
         (ext (file-name-extension tutorial--lang)))
-    (when (or (not ext)
-              (string= ext ""))
-      (setq file-name (concat file-name ".tut")))
+    (if (eq type 'org)
+        (setq file-name (concat file-name ".org"))
+      (when (or (not ext)
+                (string= ext ""))
+        (setq file-name (concat file-name ".tut"))))
     (expand-file-name file-name (tutorial--saved-dir))))
 
 (defun tutorial--remove-remarks ()
@@ -769,7 +771,13 @@ Run the Viper tutorial? "))
                   ((get-language-info current-language-environment 'tutorial)
                    current-language-environment)
                   (t "English")))
-           (filename (get-language-info lang 'tutorial))
+           (tutorial-type
+            (if (get-language-info lang 'tutorial-org)
+                'org 'orig))
+           (filename
+            (or
+             (get-language-info lang 'tutorial-org)
+             (get-language-info lang 'tutorial)))
            (tut-buf-name filename)
            (old-tut-buf (get-buffer tut-buf-name))
            (old-tut-win (when old-tut-buf (get-buffer-window old-tut-buf t)))
@@ -805,10 +813,11 @@ Run the Viper tutorial? "))
         ;; (unless old-tut-buf (text-mode))
         (unless lang (error "Variable lang is nil"))
         (setq tutorial--lang lang)
-        (setq old-tut-file (file-exists-p (tutorial--saved-file)))
+        (setq old-tut-file (file-exists-p (tutorial--saved-file tutorial-type)))
         (let ((inhibit-read-only t))
           (erase-buffer))
-        (message "Preparing tutorial ...") (sit-for 0)
+        (message "Preparing tutorial ...")
+        (sit-for 0)
 
         ;; Do not associate the tutorial buffer with a file. Instead use
         ;; a hook to save it when the buffer is killed.
