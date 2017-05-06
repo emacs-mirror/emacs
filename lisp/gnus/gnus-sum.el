@@ -844,6 +844,7 @@ controls how articles are sorted."
                           (function-item gnus-article-sort-by-subject)
                           (function-item gnus-article-sort-by-date)
                           (function-item gnus-article-sort-by-score)
+                          (function-item gnus-article-sort-by-rsv)
                           (function-item gnus-article-sort-by-random)
                           (function :tag "other"))
                   (boolean :tag "Reverse order"))))
@@ -887,6 +888,7 @@ subthreads, customize `gnus-subthread-sort-functions'."
                    (function-item gnus-thread-sort-by-subject)
                    (function-item gnus-thread-sort-by-date)
                    (function-item gnus-thread-sort-by-score)
+                   (function-item gnus-thread-sort-by-rsv)
                    (function-item gnus-thread-sort-by-most-recent-number)
                    (function-item gnus-thread-sort-by-most-recent-date)
                    (function-item gnus-thread-sort-by-random)
@@ -5024,6 +5026,17 @@ using some other form will lead to serious barfage."
 (defun gnus-thread-sort-by-date (h1 h2)
   "Sort threads by root article date."
   (gnus-article-sort-by-date
+   (gnus-thread-header h1) (gnus-thread-header h2)))
+
+(defsubst gnus-article-sort-by-rsv (h1 h2)
+  "Sort articles by rsv."
+  (when gnus-newsgroup-selection
+    (< (nnselect-article-rsv (mail-header-number h1))
+       (nnselect-article-rsv (mail-header-number h2)))))
+
+(defun gnus-thread-sort-by-rsv (h1 h2)
+  "Sort threads by root article rsv."
+  (gnus-article-sort-by-rsv
    (gnus-thread-header h1) (gnus-thread-header h2)))
 
 (defsubst gnus-article-sort-by-score (h1 h2)
