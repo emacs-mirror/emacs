@@ -679,6 +679,7 @@ originating groups."
 	(select-reads (numbers-by-group
 		       (gnus-uncompress-range
 			(gnus-info-read (gnus-get-info group)))))
+	(select-unseen (numbers-by-group gnus-newsgroup-unseen))
 	(gnus-newsgroup-active nil)
 	mark-list type-list)
     (pcase-dolist (`(,mark . ,type) gnus-article-mark-lists)
@@ -705,18 +706,33 @@ originating groups."
 		     artlist)
 		    select-type)))
 
+	    (when list
+	      ;; Get rid of the entries of the articles that have the
+	      ;; default score.
+	      (when (and (eq type 'score)
+			 gnus-save-score
+			 list)
+		(let* ((arts list)
+		       (prev (cons nil list))
+		       (all prev))
+		  (while arts
+		    (if (or (not (consp (car arts)))
+			    (= (cdar arts) gnus-summary-default-score))
+			(setcdr prev (cdr arts))
+		      (setq prev arts))
+		    (setq arts (cdr arts)))
+		  (setq list (cdr all)))))
+
+	    (when  (or (eq (gnus-article-mark-to-type type) 'list)
+		       (eq (gnus-article-mark-to-type type) 'range))
+	      (setq list
+		    (gnus-compress-sequence  (sort list '<) t)))
+
 	    ;; When exiting the group, everything that's previously been
 	    ;; unseen is now seen.
 	    (when (eq  type 'seen)
-	      (setq list (gnus-range-add list gnus-newsgroup-unseen)))
-
-	    ;; (when (or (eq (gnus-article-mark-to-type  type) 'list)
-	    ;; 	      (eq (gnus-article-mark-to-type  type) 'range))
-	    ;;   (setq list (gnus-compress-sequence  (sort list '<) t)))
-
-	    (when (eq (gnus-article-mark-to-type type) 'list)
-	      (setq list
-		    (gnus-compress-sequence  (sort list '<) t)))
+	      (setq list (gnus-range-add
+			  list (cadr (assoc artgroup select-unseen)))))
 
 	    (when (or list (eq  type 'unexist))
 	      (push (cons  type list) newmarked))))
