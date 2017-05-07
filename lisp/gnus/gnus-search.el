@@ -69,9 +69,6 @@
 (eval-when-compile (require 'cl-lib))
 (autoload 'eieio-build-class-alist "eieio-opt")
 
-(eval-when-compile
-  (require 'nnselect))
-
 (defvar gnus-inhibit-demon)
 (defvar gnus-english-month-names)
 
@@ -2078,12 +2075,7 @@ Assume \"size\" key is equal to \"larger\"."
 		 search-engine server prepared-query groups)
 		results))))
      (alist-get 'search-group-spec specs))
-    ;; Sort by score.  Couldn't we also then sort by date or
-    ;; something?
-    (sort results
-	  (function (lambda (x y)
-		      (> (nnselect-artitem-rsv x)
-			 (nnselect-artitem-rsv y)))))))
+    results))
 
 (defun gnus-search-prepare-query (query-spec)
   "Accept a search query in raw format, and prepare it.
