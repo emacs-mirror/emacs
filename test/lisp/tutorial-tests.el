@@ -24,19 +24,27 @@
 
 (require 'ert)
 (require 'tutorial)
+(require 'assess)
 
 (ert-deftest tutorial--open-tutorial ()
   ;; We do not care about the return value (which happens to be nil),
   ;; but it should not error.
-  (should-not
-   (let ((current-language-environment "English"))
-     (help-with-tutorial)))
-  (should-not
-   (let ((current-language-environment "Russian"))
-     (help-with-tutorial)))
-  (should-error
-   (let ((current-language-environment "Elvish"))
-     (help-with-tutorial))))
+  (should
+   (assess-with-preserved-buffer-list
+    (let ((current-language-environment "Russian"))
+      (help-with-tutorial)
+      (remove-hook 'kill-buffer-hook 'tutorial--save-tutorial t)
+      t))))
+
+(ert-deftest tutorial--open-org-tutorial ()
+  :expected-result :failed
+  (should
+   (assess-with-preserved-buffer-list
+    (let ((current-language-environment "English"))
+      (help-with-tutorial)
+      (remove-hook 'kill-buffer-hook 'tutorial--save-tutorial t)
+      t))))
+
 
 
 (provide 'tutorial-tests)

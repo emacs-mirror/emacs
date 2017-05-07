@@ -434,6 +434,13 @@ Warning Warning!!!  Pure space overflow    !!!Warning Warning
   :type 'directory
   :initialize #'custom-initialize-delay)
 
+(defcustom tutorial-org-directory
+  (file-name-as-directory (expand-file-name "tutorials-org" data-directory))
+  "Directory containing the Emacs TUTORIAL files."
+  :group 'installation
+  :type 'directory
+  :initialize #'custom-initialize-delay)
+
 (defun normal-top-level-add-subdirs-to-load-path ()
   "Recursively add all subdirectories of `default-directory' to `load-path'.
 More precisely, this uses only the subdirectories whose names

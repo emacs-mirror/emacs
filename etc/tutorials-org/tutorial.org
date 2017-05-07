@@ -177,6 +177,7 @@ persistently on a server, or even shared by several users at the same time for
 remote, collaborative working. It is also extremely useful for systems
 administration either when running over SSH or as a root user.
 
+
 * Text in Emacs
 
 In this section, we consider how Emacs allows you to view and to change text
@@ -188,7 +189,7 @@ extra options useful for changing text rapidly.
 If you wish to practice on this tutorial, do not worry, you can change it
 freely as it is just a copy.
 
-** TODO Editing Text
+** Editing Text
 
 Changing text happens in Emacs as with most other applications. A blinking
 cursor shows the current location in the file. Text can be selected with a
@@ -205,7 +206,6 @@ for some punctuation --- to type the double quote, you press "shift" and "2"
 or "'" depending on your keyboard layout. What may surprise you is the extent
 to which Emacs expands on this idea of multiple keypresses, and it is this
 that we will consider in the next section.
-
 
 * Keyboard Control
 
