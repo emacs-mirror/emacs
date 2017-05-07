@@ -768,7 +768,7 @@ enabled Viper.")
             (if (get-language-info lang 'tutorial-org)
                 'org 'orig)))
       (if (get-language-info lang 'tutorial-org)
-          (tutorial--help-with-tutorial-org lang)
+          (tutorial-org--help-with-tutorial-org lang)
         (tutorial--help-with-tutorial-orig lang dont-ask-for-revert)))))
 
 (defun tutorial--help-with-tutorial-orig (lang dont-ask-for-revert)

@@ -26,10 +26,42 @@
 ;; Code for running the Emacs Tutorials written in org-mode.
 
 ;;; Code:
+(require 'subr-x)
 
+(define-derived-mode tutorial-org-mode org-mode "Tutor"
+  "A mode for displaying tutorials."
+  (show-all)
+  (setq-local org-hide-emphasis-markers t))
+
+(defun tutorial-org--display-buffer (tutorial-buffer-name)
+  (when-let ((tutorial-buffer
+            (get-buffer-window tutorial-buffer-name t)))
+    (raise-frame
+     (window-frame
+      (select-window tutorial-window))))
+  (switch-to-buffer tutorial-buffer)
+  ;; Use whole frame for tutorial
+  (delete-other-windows))
+
+(defun tutorial-org-display (org-file)
+  "Display the org-file as a tutorial"
+  (let* ((tutorial-buffer-name
+          (file-name-nondirectory
+           (file-name-sans-extension
+            org-file)))
+         (tutorial-buffer (get-buffer-create tutorial-buffer-name)))
+    ;; Display it
+    (tutorial-org--display-buffer tutorial-buffer)
+    ;; Fill it if needed
+    (when (= 0 (buffer-size tutorial-buffer))
+      (insert-file-contents org-file)
+      (tutorial-org-mode))))
 
 (defun tutorial-org--help-with-tutorial-org (lang)
-  (error "not implemented yet"))
+  (tutorial-org-display
+   (expand-file-name
+    (get-language-info lang 'tutorial-org)
+    tutorial-org-directory)))
 
 (provide 'tutorial-org)
 
