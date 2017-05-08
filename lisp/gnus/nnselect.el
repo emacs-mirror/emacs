@@ -182,10 +182,8 @@ If this variable is nil, or if the provided function returns nil,
 
 (deffoo nnselect-open-server (server &optional definitions)
   ;; Just set the server variables appropriately.
-  (let ((backend (car (gnus-server-to-method server))))
-    (if backend
-	(nnoo-change-server backend server definitions)
-      (nnoo-change-server 'nnselect server definitions))))
+  (let ((backend (or (car (gnus-server-to-method server)) 'nnselect)))
+    (nnoo-change-server backend server definitions)))
 
 (deffoo nnselect-request-group (group &optional server dont-check _info)
   (let ((group (nnselect-possibly-change-group group server))
@@ -212,7 +210,7 @@ If this variable is nil, or if the provided function returns nil,
   nnselect-artlist)
 
 (deffoo nnselect-retrieve-headers (articles &optional _group _server fetch-old)
-  (setq gnus-newsgroup-selection nnselect-artlist)
+  (setq gnus-newsgroup-selection (or gnus-newsgroup-selection nnselect-artlist))
   (let ((gnus-inhibit-demon t)
 	(gartids (ids-by-group articles))
 	headers)
@@ -309,9 +307,10 @@ If this variable is nil, or if the provided function returns nil,
 	(gnus-request-article (cdr group-art) (car group-art)))
       group-art)))
 
-(deffoo nnselect-request-move-article (article group server accept-form
-					   &optional last _internal-move-group)
-  (nnselect-possibly-change-group group server)
+(deffoo nnselect-request-move-article
+    (article _group _server accept-form &optional last _internal-move-group)
+  ;; is this necessary?
+  ;; (nnselect-possibly-change-group group server)
   (let* ((artgroup (nnselect-article-group article))
 	 (artnumber (nnselect-article-number article))
 	 (to-newsgroup (nth 1 accept-form))
@@ -332,8 +331,10 @@ If this variable is nil, or if the provided function returns nil,
 	  (gnus-group-real-name to-newsgroup)))))
 
 
-(deffoo nnselect-request-expire-articles (articles group &optional server force)
-  (nnselect-possibly-change-group group server)
+(deffoo nnselect-request-expire-articles
+    (articles _group &optional _server force)
+  ;; is this necessary?
+  ;; (nnselect-possibly-change-group group server)
   (if force
       (let (not-expired)
 	(pcase-dolist (`(,artgroup ,artids) (ids-by-group articles))
@@ -352,7 +353,8 @@ If this variable is nil, or if the provided function returns nil,
     articles))
 
 (deffoo nnselect-warp-to-article ()
-  (nnselect-possibly-change-group gnus-newsgroup-name)
+  ;; is this necessary?
+;;   (nnselect-possibly-change-group gnus-newsgroup-name)
   (let* ((cur (if (> (gnus-summary-article-number) 0)
 		  (gnus-summary-article-number)
 		(error "Can't warp to a pseudo-article")))
@@ -388,8 +390,9 @@ If this variable is nil, or if the provided function returns nil,
       (setq gmark gnus-expirable-mark))
     gmark))
 
-(deffoo nnselect-request-set-mark (group actions &optional server)
-  (nnselect-possibly-change-group group server)
+(deffoo nnselect-request-set-mark (_group actions &optional _server)
+  ;; is this necessary?
+;;  (nnselect-possibly-change-group group server)
   (mapc
    (lambda (request) (gnus-request-set-mark (car request) (cadr request)))
    (nnselect-categorize
@@ -444,7 +447,7 @@ If this variable is nil, or if the provided function returns nil,
 				    gnus-newsgroup-selection)))))
 
 (deffoo nnselect-request-thread (header &optional group server)
-  (let ((group (nnselect-possibly-change-group group server))
+  (let ((group (nnselect-possibly-change-group group server)) ;; necessary?
 	;; find the best group for the originating article. if its a
 	;; psuedo-article look for real articles in the same thread
 	;; and see where they come from.
@@ -474,7 +477,7 @@ If this variable is nil, or if the provided function returns nil,
 	       (query-spec
 		(list (cons 'query (nnimap-make-thread-query header))
 		      (cons 'criteria "")))
-	       (last (nnselect-artlist-length nnselect-artlist))
+	       (last (nnselect-artlist-length gnus-newsgroup-selection))
 	       (first (1+ last))
 	       (new-nnselect-artlist
 		(nnir-run-query
@@ -493,21 +496,21 @@ If this variable is nil, or if the provided function returns nil,
 	   #'(lambda (article)
 	       (if
 		   (setq seq
-			 (cl-position article  nnselect-artlist :test 'equal))
+			 (cl-position article
+				      gnus-newsgroup-selection :test 'equal))
 		   (push (1+ seq) old-arts)
-		 (setq nnselect-artlist
-		       (vconcat nnselect-artlist (vector article)))
+		 (setq gnus-newsgroup-selection
+		       (vconcat gnus-newsgroup-selection (vector article)))
 		 (cl-incf last)))
 	   new-nnselect-artlist)
 	  (setq headers
 		(gnus-fetch-headers
 		 (append (sort old-arts '<)
-			 (gnus-uncompress-range (cons first last))) nil t))
+			 (number-sequence first last)) nil t))
 	  (gnus-group-set-parameter
 	   group
 	   'nnselect-artlist
-	   nnselect-artlist)
-
+	   gnus-newsgroup-selection)
 	  (when (>= last first)
 	    (let (new-marks)
 	      (pcase-dolist (`(,artgroup ,artids)
@@ -527,10 +530,10 @@ If this variable is nil, or if the provided function returns nil,
 				   (car (rassq type gnus-article-mark-lists)))))
 		   new-marks)))))
 	    (setq gnus-newsgroup-active
-		  (cons 1 (nnselect-artlist-length nnselect-artlist)))
+		  (cons 1 (nnselect-artlist-length gnus-newsgroup-selection)))
 	    (gnus-set-active
 	     group
-	     (cons 1 (nnselect-artlist-length nnselect-artlist))))
+	     (cons 1 (nnselect-artlist-length gnus-newsgroup-selection))))
 	  headers)
       ;; If not an imap backend just warp to the original article
       ;; group and punt back to gnus-summary-refer-thread.
