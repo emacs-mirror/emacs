@@ -31,7 +31,8 @@
 (define-derived-mode tutorial-org-mode org-mode "Tutor"
   "A mode for displaying tutorials."
   (show-all)
-  (setq-local org-hide-emphasis-markers t))
+  (setq-local org-hide-emphasis-markers t)
+  (setq buffer-read-only t))
 
 (defun tutorial-org--display-buffer (tutorial-buffer-name)
   (when-let ((tutorial-buffer

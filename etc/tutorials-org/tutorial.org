@@ -184,11 +184,6 @@ In this section, we consider how Emacs allows you to view and to change text
 within Emacs. This is mostly straight-forward, but Emacs gives you a some
 extra options useful for changing text rapidly.
 
-** This is a copy!
-
-If you wish to practice on this tutorial, do not worry, you can change it
-freely as it is just a copy.
-
 ** Editing Text
 
 Changing text happens in Emacs as with most other applications. A blinking
