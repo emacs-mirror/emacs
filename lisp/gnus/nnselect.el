@@ -156,9 +156,9 @@ as `(keyfunc member)' and the corresponding element is just
 		   (,value  (,valuefunc member))
 		   (kr (assoc ,key ,result)))
 	      (if kr
-		  (push ,value (cadr kr))
-		(push (list ,key  (list ,value)) ,result))))
-	  ,sequence)
+		  (push ,value (cdr kr))
+		(push (list ,key ,value) ,result))))
+	  (reverse ,sequence))
 	 ,result))))
 
 
@@ -215,7 +215,7 @@ If this variable is nil, or if the provided function returns nil,
 	(gartids (ids-by-group articles))
 	headers)
     (with-current-buffer nntp-server-buffer
-      (pcase-dolist (`(,artgroup ,artids) gartids)
+      (pcase-dolist (`(,artgroup . ,artids) gartids)
 	(let ((artlist (sort (mapcar 'cdr artids) '<))
 	      (gnus-override-method (gnus-find-method-for-group artgroup))
 	      (fetch-old
@@ -337,7 +337,7 @@ If this variable is nil, or if the provided function returns nil,
   ;; (nnselect-possibly-change-group group server)
   (if force
       (let (not-expired)
-	(pcase-dolist (`(,artgroup ,artids) (ids-by-group articles))
+	(pcase-dolist (`(,artgroup . ,artids) (ids-by-group articles))
 	  (let ((artlist (sort (mapcar 'cdr artids) '<)))
 	    (unless (gnus-check-backend-function 'request-expire-articles
 						 artgroup)
@@ -394,7 +394,7 @@ If this variable is nil, or if the provided function returns nil,
   ;; is this necessary?
 ;;  (nnselect-possibly-change-group group server)
   (mapc
-   (lambda (request) (gnus-request-set-mark (car request) (cadr request)))
+   (lambda (request) (gnus-request-set-mark (car request) (cdr request)))
    (nnselect-categorize
     (cl-mapcan
      (lambda (act)
@@ -402,12 +402,12 @@ If this variable is nil, or if the provided function returns nil,
 	 (mapcar
 	  (lambda (artgroup)
 	    (list (car artgroup)
-		  (list (gnus-compress-sequence (sort (cadr artgroup) '<))
-			action marks)))
+		  (gnus-compress-sequence (sort (cdr artgroup) '<))
+		  action marks))
 	  (numbers-by-group
 	   (gnus-uncompress-range range)))))
      actions)
-    car cadr)))
+    car cdr)))
 
 (deffoo nnselect-request-update-info (group info &optional server)
   (let ((group  (nnselect-possibly-change-group group server))
@@ -415,7 +415,7 @@ If this variable is nil, or if the provided function returns nil,
 	nnselect-artlist)))
     (gnus-info-set-marks info nil)
     (gnus-info-set-read info nil)
-    (pcase-dolist (`(,artgroup ,nartids)
+    (pcase-dolist (`(,artgroup . ,nartids)
 		   (ids-by-group
 		    (number-sequence 1 (nnselect-artlist-length
 					gnus-newsgroup-selection))))
@@ -473,7 +473,7 @@ If this variable is nil, or if the provided function returns nil,
 		(list (delq nil (list
 				 (or server (gnus-group-server artgroup))
 				 (unless  gnus-refer-thread-use-search
-				   (list artgroup))))))
+				    artgroup)))))
 	       (query-spec
 		(list (cons 'query (nnimap-make-thread-query header))
 		      (cons 'criteria "")))
@@ -513,7 +513,7 @@ If this variable is nil, or if the provided function returns nil,
 	   gnus-newsgroup-selection)
 	  (when (>= last first)
 	    (let (new-marks)
-	      (pcase-dolist (`(,artgroup ,artids)
+	      (pcase-dolist (`(,artgroup . ,artids)
 			     (ids-by-group (number-sequence first last)))
 		(pcase-dolist (`(,type . ,marked)
 			       (gnus-info-marks (gnus-get-info artgroup)))
@@ -690,8 +690,8 @@ originating groups."
 		  (symbol-value (intern (format "gnus-newsgroup-%s" mark))))
 	(push (cons type
 		    (numbers-by-group
-		     (reverse (gnus-uncompress-range type-list)))) mark-list)))
-    (pcase-dolist (`(,artgroup ,artlist)
+		     (gnus-uncompress-range type-list))) mark-list)))
+    (pcase-dolist (`(,artgroup . ,artlist)
 		   (numbers-by-group gnus-newsgroup-articles))
       (let* ((group-info (gnus-get-info artgroup))
 	     (old-unread (gnus-list-of-unread-articles artgroup))
@@ -699,7 +699,7 @@ originating groups."
 	(pcase-dolist (`(,_mark . ,type) gnus-article-mark-lists)
 	  (let ((select-type
 		 (sort
-		  (cadr (assoc artgroup  (alist-get type mark-list)))
+		  (cdr (assoc artgroup  (alist-get type mark-list)))
 		  '<))  list)
 	    (setq list
 		  (gnus-uncompress-range
@@ -735,7 +735,7 @@ originating groups."
 	    ;; unseen is now seen.
 	    (when (eq  type 'seen)
 	      (setq list (gnus-range-add
-			  list (cadr (assoc artgroup select-unseen)))))
+			  list (cdr (assoc artgroup select-unseen)))))
 
 	    (when (or list (eq  type 'unexist))
 	      (push (cons  type list) newmarked))))
@@ -762,8 +762,8 @@ originating groups."
 	    (gnus-add-to-range
 	     (gnus-remove-from-range
 	      old-unread
-	      (cadr (assoc artgroup select-reads)))
-	     (sort (cadr (assoc artgroup select-unreads)) '<))))
+	      (cdr (assoc artgroup select-reads)))
+	     (sort (cdr (assoc artgroup select-unreads)) '<))))
 	  (gnus-get-unread-articles-in-group
 	   group-info (gnus-active artgroup) t)
 	  (gnus-group-update-group artgroup t))))))

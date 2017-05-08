@@ -1265,7 +1265,7 @@ construct path: search terms (see the variable
 		   (search-func (cadr (assoc search-engine nnir-engines))))
 	      (and search-func
 		   (funcall search-func (cdr (assq 'nnir-query-spec specs))
-			    server (cadr x)))))
+			    server (cdr x)))))
 	  (cdr (assq 'nnir-group-spec specs)))))
 
 (defun nnir-server-to-search-engine (server)
