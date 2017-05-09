@@ -843,6 +843,19 @@ non-nil `specs' arg must be an alist with `nnir-query-spec' and
 			   (cons 'nnir-group-spec group-spec)))))
 	(cons 'nnselect-artlist nil))))))
 
+(defun gnus-summary-make-search-group (nnir-extra-parms)
+  "Search a group from the summary buffer."
+  (interactive "P")
+  (gnus-warp-to-article)
+  (let ((spec
+	 (list
+	  (cons 'nnir-group-spec
+		(list (list
+		       (gnus-group-server gnus-newsgroup-name)
+		       gnus-newsgroup-name))))))
+    (gnus-group-make-search-group nnir-extra-parms spec)))
+
+
 
 ;; The end.
 (provide 'nnselect)
