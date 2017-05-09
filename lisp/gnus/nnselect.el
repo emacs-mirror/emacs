@@ -185,7 +185,7 @@ If this variable is nil, or if the provided function returns nil,
   (let ((backend (or (car (gnus-server-to-method server)) 'nnselect)))
     (nnoo-change-server backend server definitions)))
 
-(deffoo nnselect-request-group (group &optional server dont-check _info)
+(deffoo nnselect-request-group (group &optional server dont-check info)
   (let ((group (nnselect-possibly-change-group group server))
 	length)
     ;; Check for cached select result or run the selection and cache
@@ -196,7 +196,8 @@ If this variable is nil, or if the provided function returns nil,
        (setq nnselect-artlist
 	     (nnselect-run
 	      (gnus-group-get-parameter group 'nnselect-specs t))))
-      (nnselect-request-update-info group (gnus-get-info group)))
+      (nnselect-request-update-info
+       group (or info (gnus-get-info group))))
     (if (zerop (setq length (nnselect-artlist-length nnselect-artlist)))
 	(progn
 	  (nnselect-close-group group)
@@ -696,77 +697,78 @@ originating groups."
       (let* ((group-info (gnus-get-info artgroup))
 	     (old-unread (gnus-list-of-unread-articles artgroup))
 	     newmarked)
-	(pcase-dolist (`(,_mark . ,type) gnus-article-mark-lists)
-	  (let ((select-type
-		 (sort
-		  (cdr (assoc artgroup  (alist-get type mark-list)))
-		  '<))  list)
-	    (setq list
-		  (gnus-uncompress-range
-		   (gnus-add-to-range
-		    (gnus-remove-from-range
-		     (alist-get type (gnus-info-marks group-info))
-		     artlist)
-		    select-type)))
-
-	    (when list
-	      ;; Get rid of the entries of the articles that have the
-	      ;; default score.
-	      (when (and (eq type 'score)
-			 gnus-save-score
-			 list)
-		(let* ((arts list)
-		       (prev (cons nil list))
-		       (all prev))
-		  (while arts
-		    (if (or (not (consp (car arts)))
-			    (= (cdar arts) gnus-summary-default-score))
-			(setcdr prev (cdr arts))
-		      (setq prev arts))
-		    (setq arts (cdr arts)))
-		  (setq list (cdr all)))))
-
-	    (when  (or (eq (gnus-article-mark-to-type type) 'list)
-		       (eq (gnus-article-mark-to-type type) 'range))
+	(when group-info
+	  (pcase-dolist (`(,_mark . ,type) gnus-article-mark-lists)
+	    (let ((select-type
+		   (sort
+		    (cdr (assoc artgroup  (alist-get type mark-list)))
+		    '<))  list)
 	      (setq list
-		    (gnus-compress-sequence  (sort list '<) t)))
+		    (gnus-uncompress-range
+		     (gnus-add-to-range
+		      (gnus-remove-from-range
+		       (alist-get type (gnus-info-marks group-info))
+		       artlist)
+		      select-type)))
 
-	    ;; When exiting the group, everything that's previously been
-	    ;; unseen is now seen.
-	    (when (eq  type 'seen)
-	      (setq list (gnus-range-add
-			  list (cdr (assoc artgroup select-unseen)))))
+	      (when list
+		;; Get rid of the entries of the articles that have the
+		;; default score.
+		(when (and (eq type 'score)
+			   gnus-save-score
+			   list)
+		  (let* ((arts list)
+			 (prev (cons nil list))
+			 (all prev))
+		    (while arts
+		      (if (or (not (consp (car arts)))
+			      (= (cdar arts) gnus-summary-default-score))
+			  (setcdr prev (cdr arts))
+			(setq prev arts))
+		      (setq arts (cdr arts)))
+		    (setq list (cdr all)))))
 
-	    (when (or list (eq  type 'unexist))
-	      (push (cons  type list) newmarked))))
+	      (when  (or (eq (gnus-article-mark-to-type type) 'list)
+			 (eq (gnus-article-mark-to-type type) 'range))
+		(setq list
+		      (gnus-compress-sequence  (sort list '<) t)))
 
-	(gnus-atomic-progn
-	  ;; Enter these new marks into the info of the group.
-	  (if (nthcdr 3 group-info)
-	      (setcar (nthcdr 3 group-info) newmarked)
-	    ;; Add the marks lists to the end of the info.
-	    (when newmarked
-	      (setcdr (nthcdr 2 group-info) (list newmarked))))
+	      ;; When exiting the group, everything that's previously been
+	      ;; unseen is now seen.
+	      (when (eq  type 'seen)
+		(setq list (gnus-range-add
+			    list (cdr (assoc artgroup select-unseen)))))
 
-	  ;; Cut off the end of the info if there's nothing else there.
-	  (let ((i 5))
-	    (while (and (> i 2)
-			(not (nth i group-info)))
-	      (when (nthcdr (cl-decf i) group-info)
-		(setcdr (nthcdr i group-info) nil))))
+	      (when (or list (eq  type 'unexist))
+		(push (cons  type list) newmarked))))
 
-	  ;; update read and unread
-	  (gnus-update-read-articles
-	   artgroup
-	   (gnus-uncompress-range
-	    (gnus-add-to-range
-	     (gnus-remove-from-range
-	      old-unread
-	      (cdr (assoc artgroup select-reads)))
-	     (sort (cdr (assoc artgroup select-unreads)) '<))))
-	  (gnus-get-unread-articles-in-group
-	   group-info (gnus-active artgroup) t)
-	  (gnus-group-update-group artgroup t))))))
+	  (gnus-atomic-progn
+	    ;; Enter these new marks into the info of the group.
+	    (if (nthcdr 3 group-info)
+		(setcar (nthcdr 3 group-info) newmarked)
+	      ;; Add the marks lists to the end of the info.
+	      (when newmarked
+		(setcdr (nthcdr 2 group-info) (list newmarked))))
+
+	    ;; Cut off the end of the info if there's nothing else there.
+	    (let ((i 5))
+	      (while (and (> i 2)
+			  (not (nth i group-info)))
+		(when (nthcdr (cl-decf i) group-info)
+		  (setcdr (nthcdr i group-info) nil))))
+
+	    ;; update read and unread
+	    (gnus-update-read-articles
+	     artgroup
+	     (gnus-uncompress-range
+	      (gnus-add-to-range
+	       (gnus-remove-from-range
+		old-unread
+		(cdr (assoc artgroup select-reads)))
+	       (sort (cdr (assoc artgroup select-unreads)) '<))))
+	    (gnus-get-unread-articles-in-group
+	     group-info (gnus-active artgroup) t)
+	    (gnus-group-update-group artgroup t)))))))
 
 
 (declare-function gnus-registry-get-id-key "gnus-registry" (id key))
