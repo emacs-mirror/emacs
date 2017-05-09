@@ -1199,7 +1199,7 @@ deferred until the prefix key sequence is pressed."
        (if (bound-and-true-p use-package--recursive-autoload)
            (use-package-error
             (format "Autoloading failed to define function %S"
-                    command))
+                    ',command))
          (when (use-package-install-deferred-package
                 ',package-name :autoload)
            (require ',package-name)
