@@ -260,30 +260,29 @@ If this variable is nil, or if the provided function returns nil,
 (declare-function nnir-run-query "nnir" (specs))
 (deffoo nnselect-request-article (article &optional _group server to-buffer)
   (let* ((gnus-override-method nil)
-	 (nnselect (eq 'nnselect (car (gnus-server-to-method server))))
-	 (servers (unless nnselect
-		    (list (list server))))
-	group-art artlist)
+	 servers group-art artlist)
     (if (numberp article)
 	(with-current-buffer gnus-summary-buffer
 	  (unless (zerop (nnselect-artlist-length
 			  gnus-newsgroup-selection))
 	    (setq group-art (cons (nnselect-article-group article)
 				  (nnselect-article-number article)))))
-      ;; message-id
-      ;; find the servers
-      (when nnselect
-	(with-current-buffer gnus-summary-buffer
-	  (let ((thread  (gnus-id-to-thread article)))
-	    (when thread
-	      (mapc
-	       #'(lambda (x)
-		   (when (and x (> x 0))
-		   (cl-pushnew (list
-		    (gnus-method-to-server
-		     (gnus-find-method-for-group
-		      (nnselect-article-group x)))) servers :test 'equal)))
-		   (gnus-articles-in-thread thread))))))
+      ;; message-id: either coming from a referral or a pseudo-article
+      ;; find the servers for a pseudo-article
+      (if (eq 'nnselect (car (gnus-server-to-method server)))
+	  (with-current-buffer gnus-summary-buffer
+	    (let ((thread  (gnus-id-to-thread article)))
+	      (when thread
+		(mapc
+		 #'(lambda (x)
+		     (when (and x (> x 0))
+		       (cl-pushnew
+			(list
+			 (gnus-method-to-server
+			  (gnus-find-method-for-group
+			   (nnselect-article-group x)))) servers :test 'equal)))
+		 (gnus-articles-in-thread thread)))))
+	(setq servers (list (list server))))
       (setq artlist
 	    (nnir-run-query
 	     (list
@@ -450,7 +449,7 @@ If this variable is nil, or if the provided function returns nil,
 (deffoo nnselect-request-thread (header &optional group server)
   (let ((group (nnselect-possibly-change-group group server)) ;; necessary?
 	;; find the best group for the originating article. if its a
-	;; psuedo-article look for real articles in the same thread
+	;; pseudo-article look for real articles in the same thread
 	;; and see where they come from.
 	(artgroup (nnselect-article-group
 		   (if (> (mail-header-number header) 0)
