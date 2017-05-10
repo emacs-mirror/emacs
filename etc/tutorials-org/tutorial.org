@@ -38,15 +38,22 @@ that this is the case here. One slight disadvantage of Emacs long
 history is that some of its terminology predates windowing systems and
 in one case conflicts with it. We describe these differences here.
 
+
+
 ** Frames
 
 If you have just started Emacs and this tutorial, you will be looking
-at a single window showing this tutorial. In Emacs terminology, this
-is not a described as a window but as a /frame/. As with many
-applications, a single running Emacs can create any number of
-frames. We can do this using the menu system (we will investigate
-other ways later); try this now, but remember, these are /frames/ and
-not /windows/. Do not use the /New Window/ menu item, but instead:
+at a single window showing this tutorial.
+
+[[./images/frame-small.png]]
+
+
+In Emacs terminology, this is not a described as a window but as a
+/frame/. As with many applications, a single running Emacs can create
+any number of frames. We can do this using the menu system (we will
+investigate other ways later); try this now, but remember, these are
+/frames/ and not /windows/. Do not use the /New Window/ menu item, but
+instead:
 
 #+begin_menu
 File
