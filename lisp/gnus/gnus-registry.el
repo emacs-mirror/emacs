@@ -380,6 +380,8 @@ This is not required after changing `gnus-registry-cache-file'."
     (gnus-message 4 "Removed %d ignored entries from the Gnus registry"
                   (- old-size (registry-size db)))))
 
+(declare-function gnus-nnselect-group-p "nnselect" (group))
+(declare-function nnselect-article-group "nnselect" (article))
 ;; article move/copy/spool/delete actions
 (defun gnus-registry-action (action data-header from &optional to method)
   (let* ((id (mail-header-id data-header))
