@@ -185,6 +185,17 @@ If this variable is nil, or if the provided function returns nil,
   (let ((backend (or (car (gnus-server-to-method server)) 'nnselect)))
     (nnoo-change-server backend server definitions)))
 
+;; (deffoo nnselect-server-opened (&optional server)
+;;   "Is SERVER the current virtual server?"
+;;   (if (string-empty-p server)
+;;       t
+;;     (let ((backend (car (gnus-server-to-method server))))
+;; 	(nnoo-current-server-p (or backend 'nnselect) server))))
+
+(deffoo nnselect-server-opened (&optional _server)
+  t)
+
+
 (deffoo nnselect-request-group (group &optional server dont-check info)
   (let ((group (nnselect-possibly-change-group group server))
 	length)
@@ -626,14 +637,6 @@ If this variable is nil, or if the provided function returns nil,
 			      'nnselect-artlist t)))
     group))
 
-
-;; (defun nnselect-server-opened (&optional server)
-;;   "Open SERVER if not yet opened."
-;;   (let ((backend (car (gnus-server-to-method server))))
-;;     (nnoo-current-server-p (or backend 'nnselect) server)))
-
-(deffoo nnselect-server-opened (&optional _server)
-  t)
 
 (defun nnselect-search-thread (header)
   "Make an nnselect group containing the thread with article HEADER.
