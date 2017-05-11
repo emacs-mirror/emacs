@@ -597,6 +597,8 @@ If this variable is nil, or if the provided function returns nil,
      (gnus-find-method-for-group
       (nnselect-article-group (cdr gnus-message-group-art))))))
 
+(deffoo nnselect-request-rename-group (_group _new-name &optional _server)
+  t)
 
 (deffoo nnselect-request-scan (_group _method)
   t)
