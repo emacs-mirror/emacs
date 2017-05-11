@@ -52,8 +52,8 @@
 (autoload 'gnus-article-outlook-unwrap-lines "deuglify" nil t)
 (autoload 'gnus-article-outlook-repair-attribution "deuglify" nil t)
 (autoload 'gnus-article-outlook-rearrange-citation "deuglify" nil t)
-(autoload 'nnselect-article-rsv "nnselect" nil nil 'macro)
-(autoload 'nnselect-article-group "nnselect" nil nil 'macro)
+(autoload 'nnselect-article-rsv "nnselect" nil nil)
+(autoload 'nnselect-article-group "nnselect" nil nil)
 
 (defcustom gnus-kill-summary-on-exit t
   "If non-nil, kill the summary buffer when you exit from it.

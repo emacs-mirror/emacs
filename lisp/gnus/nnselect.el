@@ -48,13 +48,7 @@
 
 
 (require 'gnus-art)
-
-
-;(require 'nnoo)
-;(require 'gnus-group)
-;(require 'message)
-;(require 'gnus-util)
-;(require 'gnus-sum)
+(require 'nnir)
 
 (eval-when-compile (require 'cl-lib))
 
@@ -87,79 +81,109 @@
     (expand-file-name "nnselect-newsgroups" nnselect-directory)
   "nnselect groups description file.")
 
+;;; Helper routines.
 
-;;; Helper macros
+(defun nnselect-group-server (group)
+  (gnus-group-server group))
 
 ;; Data type article list.
 
-(defmacro nnselect-artlist-length (artlist)
-  "Return number of articles in ARTLIST."
-  `(length ,artlist))
+(define-inline nnselect-artlist-length (artlist)
+    (inline-quote (length ,artlist)))
 
-(defmacro nnselect-artlist-article (artlist n)
+(define-inline nnselect-artlist-article (artlist n)
   "Return from ARTLIST the Nth artitem (counting starting at 1)."
-  `(when (> ,n 0)
-     (elt ,artlist (1- ,n))))
+  (inline-quote (when (> ,n 0)
+		  (elt ,artlist (1- ,n)))))
 
-(defmacro nnselect-artitem-group (artitem)
+(define-inline nnselect-artitem-group (artitem)
   "Return the group from the ARTITEM."
-  `(elt ,artitem 0))
+  (inline-quote (elt ,artitem 0)))
 
-(defmacro nnselect-artitem-number (artitem)
+(define-inline nnselect-artitem-number (artitem)
   "Return the number from the ARTITEM."
-  `(elt ,artitem 1))
+  (inline-quote (elt ,artitem 1)))
 
-(defmacro nnselect-artitem-rsv (artitem)
+(define-inline nnselect-artitem-rsv (artitem)
   "Return the Retrieval Status Value (RSV, score) from the ARTITEM."
-  `(elt ,artitem 2))
+  (inline-quote (elt ,artitem 2)))
 
-(defmacro nnselect-article-group (article)
+(define-inline nnselect-article-group (article)
   "Return the group for ARTICLE."
-  `(nnselect-artitem-group (nnselect-artlist-article
-  gnus-newsgroup-selection ,article)))
+  (inline-quote
+   (nnselect-artitem-group  (nnselect-artlist-article
+			     gnus-newsgroup-selection ,article))))
 
-(defmacro nnselect-article-number (article)
+(define-inline nnselect-article-number (article)
   "Return the number for ARTICLE."
-  `(nnselect-artitem-number (nnselect-artlist-article
-  gnus-newsgroup-selection ,article)))
+  (inline-quote (nnselect-artitem-number
+		 (nnselect-artlist-article
+		  gnus-newsgroup-selection ,article))))
 
-(defmacro nnselect-article-rsv (article)
+(define-inline nnselect-article-rsv (article)
   "Return the rsv for ARTICLE."
-  `(nnselect-artitem-rsv (nnselect-artlist-article
-  gnus-newsgroup-selection ,article)))
+  (inline-quote (nnselect-artitem-rsv
+		 (nnselect-artlist-article
+		  gnus-newsgroup-selection ,article))))
 
-(defmacro nnselect-article-id (article)
+(define-inline nnselect-article-id (article)
   "Return the pair `(nnselect id . real id)' of ARTICLE."
-  `(cons ,article (nnselect-article-number ,article)))
+  (inline-quote (cons ,article (nnselect-article-number ,article))))
 
-(defmacro ids-by-group (articles)
-  `(nnselect-categorize ,articles nnselect-article-group nnselect-article-id))
-
-(defmacro numbers-by-group (articles)
-  `(nnselect-categorize ,articles nnselect-article-group nnselect-article-number))
-
-(defmacro nnselect-categorize (sequence keyfunc &optional valuefunc)
+(define-inline nnselect-categorize (sequence keyfunc &optional valuefunc)
   "Sorts a sequence into categories and returns a list of the form
 `((key1 (element11 element12)) (key2 (element21 element22))'.
 The category key for a member of the sequence is obtained
 as `(keyfunc member)' and the corresponding element is just
 `member' (or `(valuefunc member)' if `valuefunc' is non-nil)."
-  (let ((key (make-symbol "key"))
-	(value (make-symbol "value"))
-	(result (make-symbol "result"))
-	(valuefunc (or valuefunc 'identity)))
-    `(unless (null ,sequence)
-       (let (,result)
-	 (mapc
-	  (lambda (member)
-	    (let* ((,key (,keyfunc member))
-		   (,value  (,valuefunc member))
-		   (kr (assoc ,key ,result)))
-	      (if kr
-		  (push ,value (cdr kr))
-		(push (list ,key ,value) ,result))))
-	  (reverse ,sequence))
-	 ,result))))
+  (inline-letevals (sequence keyfunc valuefunc)
+    (inline-quote  (let ((valuefunc (or ,valuefunc 'identity))
+			 result)
+		     (unless (null ,sequence)
+		      (mapc
+		       (lambda (member)
+			 (let* ((key (funcall ,keyfunc member))
+				(value  (funcall valuefunc member))
+				(kr (assoc key result)))
+			   (if kr
+			       (push value (cdr kr))
+			     (push (list key value) result))))
+		       (reverse ,sequence))
+		      result)))))
+
+
+;; (defmacro nnselect-categorize (sequence keyfunc &optional valuefunc)
+;;   "Sorts a sequence into categories and returns a list of the form
+;; `((key1 (element11 element12)) (key2 (element21 element22))'.
+;; The category key for a member of the sequence is obtained
+;; as `(keyfunc member)' and the corresponding element is just
+;; `member' (or `(valuefunc member)' if `valuefunc' is non-nil)."
+;;   (let ((key (make-symbol "key"))
+;; 	(value (make-symbol "value"))
+;; 	(result (make-symbol "result"))
+;; 	(valuefunc (or valuefunc 'identity)))
+;;     `(unless (null ,sequence)
+;;        (let (,result)
+;; 	 (mapc
+;; 	  (lambda (member)
+;; 	    (let* ((,key (,keyfunc member))
+;; 		   (,value  (,valuefunc member))
+;; 		   (kr (assoc ,key ,result)))
+;; 	      (if kr
+;; 		  (push ,value (cdr kr))
+;; 		(push (list ,key ,value) ,result))))
+;; 	  (reverse ,sequence))
+;; 	 ,result))))
+
+(define-inline ids-by-group (articles)
+  (inline-quote
+   (nnselect-categorize ,articles 'nnselect-article-group
+			'nnselect-article-id)))
+
+(define-inline numbers-by-group (articles)
+  (inline-quote
+   (nnselect-categorize
+    ,articles 'nnselect-article-group 'nnselect-article-number)))
 
 
 ;;; User Customizable Variables:
@@ -268,7 +292,7 @@ If this variable is nil, or if the provided function returns nil,
     (mapc 'nnheader-insert-nov headers)
     'nov)))
 
-(declare-function nnir-run-query "nnir" (specs))
+
 (deffoo nnselect-request-article (article &optional _group server to-buffer)
   (let* ((gnus-override-method nil)
 	 servers group-art artlist)
@@ -418,7 +442,7 @@ If this variable is nil, or if the provided function returns nil,
 	  (numbers-by-group
 	   (gnus-uncompress-range range)))))
      actions)
-    car cdr)))
+    'car 'cdr)))
 
 (deffoo nnselect-request-update-info (group info &optional server)
   (let ((group  (nnselect-possibly-change-group group server))
@@ -496,13 +520,6 @@ If this variable is nil, or if the provided function returns nil,
 		       (cons 'nnir-group-spec group-spec))))
 	       old-arts seq
 	       headers)
-	  ;; The search will likely find articles that are already
-	  ;; present in the nnselect summary buffer. We remove these from
-	  ;; the search result. However even though these articles are
-	  ;; in the original article list their headers may not have
-	  ;; been retrieved, so we retrieve them just in case. We
-	  ;; could identify and skip the ones that have been retrieved
-	  ;; but its probably faster to just get them all.
 	  (mapc
 	   #'(lambda (article)
 	       (if
@@ -777,12 +794,8 @@ originating groups."
 
 (declare-function gnus-registry-get-id-key "gnus-registry" (id key))
 (declare-function gnus-group-topic-name "gnus-topic" ())
-(declare-function nnir-read-parms "nnir" (search-engine))
-(declare-function nnir-server-to-search-engine "nnir" (server))
-
 
 ;; Temporary to make group creation easier
-
 (defun gnus-group-make-permanent-search-group (nnir-extra-parms &optional specs)
   (interactive "P")
   (gnus-group-make-search-group nnir-extra-parms specs t))
@@ -807,7 +820,7 @@ non-nil `specs' arg must be an alist with `nnir-query-spec' and
 		   (if (gnus-group-group-name)
 		       (list (gnus-group-group-name))
 		     (cdr (assoc (gnus-group-topic-name) gnus-topic-alist))))
-	       gnus-group-server))))
+	       'nnselect-group-server))))
 	 (query-spec
 	  (or (cdr (assq 'nnir-query-spec specs))
 	    (apply
@@ -859,7 +872,6 @@ non-nil `specs' arg must be an alist with `nnir-query-spec' and
 		       (gnus-group-server gnus-newsgroup-name)
 		       gnus-newsgroup-name))))))
     (gnus-group-make-search-group nnir-extra-parms spec)))
-
 
 
 ;; The end.
