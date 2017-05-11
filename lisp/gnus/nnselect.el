@@ -211,8 +211,8 @@ If this variable is nil, or if the provided function returns nil,
        group (or info (gnus-get-info group))))
     (if (zerop (setq length (nnselect-artlist-length nnselect-artlist)))
 	(progn
-	  (nnselect-close-group group)
-	  (nnheader-report 'nnselect "Selection produced empty results."))
+	  (nnheader-report 'nnselect "Selection produced empty results.")
+	  (nnheader-insert ""))
       (with-current-buffer nntp-server-buffer
 	(nnheader-insert "211 %d %d %d %s\n"
                          length    ; total #
