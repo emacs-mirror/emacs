@@ -48,7 +48,7 @@
 
 
 (require 'gnus-art)
-(require 'nnir)
+(require 'gnus-search)
 
 (eval-when-compile (require 'cl-lib))
 
@@ -656,15 +656,6 @@ If this variable is nil, or if the provided function returns nil,
     group))
 
 
-;; (defun nnselect-server-opened (&optional server)
-;;   "Open SERVER if not yet opened."
-;;   (let ((backend (car (gnus-server-to-method server))))
-;;     (nnoo-current-server-p (or backend 'nnselect) server)))
-
-(deffoo nnselect-server-opened (&optional _server)
-  t)
-
-
 (declare-function gnus-registry-get-id-key "gnus-registry"
                   (id key))
 (defun nnselect-search-thread (header)
@@ -803,17 +794,17 @@ originating groups."
 
 (declare-function gnus-registry-get-id-key "gnus-registry" (id key))
 
-(defun gnus-summary-make-search-group (nnir-extra-parms)
+(defun gnus-summary-make-search-group (extra-parms)
   "Search a group from the summary buffer."
   (interactive "P")
   (gnus-warp-to-article)
   (let ((spec
 	 (list
-	  (cons 'nnir-group-spec
+	  (cons 'search-group-spec
 		(list (list
 		       (gnus-group-server gnus-newsgroup-name)
 		       gnus-newsgroup-name))))))
-    (gnus-group-make-search-group nnir-extra-parms spec)))
+    (gnus-group-make-search-group extra-parms spec)))
 
 ;; The end.
 (provide 'nnselect)

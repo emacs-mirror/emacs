@@ -2068,7 +2068,7 @@ Assume \"size\" key is equal to \"larger\"."
      (lambda (x)
        (let* ((server (car x))
 	      (search-engine (gnus-search-server-to-engine server))
-	      (groups (cadr x)))
+	      (groups (cdr x)))
 	 (setq results
 	       (vconcat
 		(gnus-search-run-search
