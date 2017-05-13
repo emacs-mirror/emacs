@@ -3200,17 +3200,18 @@ mail messages or news articles in files that have numeric names."
 ;; Temporary to make group creation easier
 (defun gnus-group-make-search-group (nnir-extra-parms &optional specs)
   (interactive "P")
-  (let ((name (read-string "Group name: " nil)))
-    (gnus-group-make-group
-     name
-     (list 'nnselect "nnselect")
-     nil
-     (list
-      (cons 'nnselect-specs
-	    (list
-	     (cons 'nnselect-function 'nnir-run-query)
-	     (cons 'nnselect-args
-		   (nnir-make-specs nnir-extra-parms specs))))))))
+  (let ((name (gnus-read-group "Group name: ")))
+    (with-current-buffer gnus-group-buffer
+      (gnus-group-make-group
+       name
+       (list 'nnselect "nnselect")
+       nil
+       (list
+	(cons 'nnselect-specs
+	      (list
+	       (cons 'nnselect-function 'nnir-run-query)
+	       (cons 'nnselect-args
+		     (nnir-make-specs nnir-extra-parms specs)))))))))
 
 (defun gnus-group-read-ephemeral-search-group (nnir-extra-parms	&optional specs)
   "Create an nnselect group based on a search.  Prompt for a
