@@ -20,14 +20,17 @@
 
 ;;; Commentary:
 
-;; This file defines a generalized search query language, and search
-;; engines that interface with various search programs.  It is
-;; responsible for parsing the user's input, querying the search
-;; engines, and collecting results.  It relies on the nnselect backend
-;; to create summary buffers displaying those results.
+;; This file defines a generalized search language, and search engines
+;; that interface with various search programs.  It is responsible for
+;; parsing the user's search input, sending that query to the search
+;; engines, and collecting results.  Results are in the form of a
+;; vector of vectors, each vector representing a found article.  The
+;; nnselect backend interprets that value to create a group containing
+;; the search results.
 
-;; This file was formerly known as nnir.  Later, nnir became nnselect,
-;; and only the search functionality was left here.
+;; This file was formerly known as nnir.  Later, the backend parts of
+;; nnir became nnselect, and only the search functionality was left
+;; here.
 
 ;; See the Gnus manual for details of the search language.  Tests are
 ;; in tests/gnus-search-test.el.
@@ -43,19 +46,20 @@
 
 ;; The general flow is:
 
-;; 1. The user calls one of `gnus-group-make-search-group',
-;; `gnus-group-make-permanent-search-group', or
-;; `gnus-group-make-preset-search-group'.  These functions prompt for
-;; a search query, then create an nnselect group where the function is
-;; `gnus-search-run-query', and the args are the unparsed search
-;; query, and the groups to search.
+;; 1. The user calls one of `gnus-group-make-search-group' or
+;; `gnus-group-make-permanent-search-group' (or a few other entry
+;; points).  These functions prompt for a search query, and collect
+;; the groups to search, then create an nnselect group, setting an
+;; 'nnselect-specs group parameter where 'nnselect-function is
+;; `gnus-search-run-query', and 'nnselect-args is the search query and
+;; groups to search.
 
-;; 2. `gnus-search-run-query' looks at the groups to search,
-;; categorizes them by server, and for each server finds the search
-;; engine to use.  Each engine is then called using the generic method
-;; `gnus-search-run-search', with the query and groups passed as
-;; arguments, and the results collected and handed off to the nnselect
-;; group.
+;; 2. `gnus-search-run-query' is called with 'nnselect-args.  It looks
+;; at the groups to search, categorizes them by server, and for each
+;; server finds the search engine to use.  It calls each engine's
+;; `gnus-search-run-search' method with the query and groups passed as
+;; arguments, and the results are collected and handed off to the
+;; nnselect group.
 
 ;; For information on writing new search engines, see the Gnus manual.
 
@@ -1575,6 +1579,8 @@ absolute filepaths to standard out."
   (cond
    ((listp (car expr))
     (format "(%s)" (gnus-search-transform engine expr)))
+   ((eql (car expr) 'body)
+    (cadr expr))
    ;; I have no idea which fields namazu can handle.  Just do these
    ;; for now.
    ((memq (car expr) '(subject from to))
@@ -2048,8 +2054,11 @@ Assume \"size\" key is equal to \"larger\"."
 (cl-defmethod gnus-search-transform-expression ((_e gnus-search-gmane)
 						(expr list))
   "The only keyword value gmane can handle is author, ie from."
-  (when (memq (car expr) '(from sender author address))
-    (format "author:%s" (cdr expr))))
+  (cond
+   ((memq (car expr) '(from sender author address))
+    (format "author:%s" (cdr expr)))
+   ((eql (car expr) 'body)
+    (cdr expr))))
 
 ;;; Util Code:
 
