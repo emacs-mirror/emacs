@@ -586,7 +586,7 @@ If this variable is nil, or if the provided function returns nil,
          (specs (assq 'nnselect-specs args))
          (function-spec
           (or  (alist-get 'nnselect-function specs)
-	       (read-from-minibuffer "Function: " nil nil t)))
+	       (intern (completing-read "Function: " obarray #'functionp))))
          (args-spec
           (or  (alist-get 'nnselect-args specs)
                (read-from-minibuffer "Args: " nil nil t nil "nil")))
