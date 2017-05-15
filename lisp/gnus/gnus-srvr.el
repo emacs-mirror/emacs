@@ -185,7 +185,7 @@ If nil, a faster, but more primitive, buffer is used instead."
 
     "g" gnus-server-regenerate-server
 
-    "G" gnus-group-make-search-group
+    "G" gnus-group-read-ephemeral-search-group
 
     "z" gnus-server-compact-server
 
