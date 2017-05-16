@@ -6,7 +6,7 @@
 ;; URL: https://github.com/justbur/emacs-which-key
 ;; Version: 2.0
 ;; Keywords:
-;; Package-Requires: ((emacs "24.3"))
+;; Package-Requires: ((emacs "24.4"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -1506,7 +1506,6 @@ alists. Returns a list (key separator description)."
      keymap)
     bindings))
 
-;; adapted from helm-descbinds
 (defun which-key--get-current-bindings ()
   "Generate a list of current active bindings."
   (let ((key-str-qt (regexp-quote (key-description which-key--current-prefix)))
@@ -1530,12 +1529,8 @@ alists. Returns a list (key separator description)."
             (setq header-p nil)
             (forward-line 3))
            ((= (char-after) ?\f)
-            ;; (push (cons header (nreverse section)) bindings)
-            ;; (setq section nil)
             (setq header-p t))
-           ((looking-at "^[ \t]*$")
-            ;; ignore
-            )
+           ((looking-at "^[ \t]*$"))
            ((or (not (string-match-p ignore-sections-regexp header))
                 which-key--current-prefix)
             (let ((binding-start (save-excursion
@@ -1543,10 +1538,7 @@ alists. Returns a list (key separator description)."
                                         (match-end 0))))
                   key binding)
               (when binding-start
-                (setq key (buffer-substring-no-properties (point) binding-start)
-                      ;; key (replace-regexp-in-string"^[ \t\n]+" "" key)
-                      ;; key (replace-regexp-in-string"[ \t\n]+$" "" key)
-                      )
+                (setq key (buffer-substring-no-properties (point) binding-start))
                 (setq binding (buffer-substring-no-properties
                                binding-start
                                (line-end-position)))
@@ -2185,11 +2177,6 @@ Finally, show the buffer."
   "Function run by timer to possibly trigger `which-key--create-buffer-and-show'."
   (let ((prefix-keys (this-single-command-keys))
         delay-time)
-    ;; (when (> (length prefix-keys) 0)
-    ;;  (message "key: %s" (key-description prefix-keys)))
-    ;; (when (> (length prefix-keys) 0)
-    ;;  (message "key binding: %s" (key-binding prefix-keys)))
-    ;; Taken from guide-key
     (when (and (equal prefix-keys [key-chord])
                (bound-and-true-p key-chord-mode))
       (setq prefix-keys
@@ -2294,25 +2281,6 @@ Finally, show the buffer."
                          which-key--on-last-page nil)
                    (cancel-timer which-key--paging-timer)
                    (which-key--start-timer))))))
-
-;;; backport some functions for 24.3
-
-;; found at https://github.com/Lindydancer/andersl-old-emacs-support/blob/master/andersl-old-emacs-support.el
-(unless (fboundp 'frame-fringe-width)
-  (defun frame-fringe-width (&optional frame)
-    "Return fringe width of FRAME in pixels."
-    (let ((left-pair (assq 'left-fringe (frame-parameters frame)))
-          (right-pair (assq 'right-fringe (frame-parameters frame))))
-      (+ (if left-pair (cdr left-pair) 0)
-         (if right-pair (cdr right-pair) 0)))))
-
-(unless (fboundp 'frame-scroll-bar-width)
-  (defun frame-scroll-bar-width (&optional frame)
-    "Return scroll bar width of FRAME in pixels."
-    (let ((pair (assq 'scroll-bar-width (frame-parameters frame))))
-      (if pair
-          (cdr pair)
-        0))))
 
 (provide 'which-key)
 ;;; which-key.el ends here
