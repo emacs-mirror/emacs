@@ -3764,8 +3764,13 @@ extern void r_alloc_inhibit_buffer_relocation (int);
 
 /* Defined in chartab.c.  */
 extern Lisp_Object copy_char_table (Lisp_Object);
+extern Lisp_Object sub_char_table_ref_and_range (Lisp_Object, int,
+                                                 int *, int *,
+                                                 Lisp_Object, bool);
 extern Lisp_Object char_table_ref_and_range (Lisp_Object, int,
                                              int *, int *);
+extern Lisp_Object char_table_ref_and_range_with_parents (Lisp_Object, int,
+                                                          int *, int *);
 extern void char_table_set_range (Lisp_Object, int, int, Lisp_Object);
 extern void map_char_table (void (*) (Lisp_Object, Lisp_Object,
                             Lisp_Object),

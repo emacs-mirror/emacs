@@ -139,8 +139,8 @@ a function, is called a @dfn{defun}.  The name comes from Lisp, but in
 Emacs we use it for all languages.
 
 @menu
-* Left Margin Paren::   An open-paren or similar opening delimiter
-                          starts a defun if it is at the left margin.
+* Left Margin Paren::   An open-paren or similar opening delimiter at
+                        the left Margin started a defun in older Emacsen.
 * Moving by Defuns::    Commands to move over or mark a major definition.
 * Imenu::               Making buffer indexes as menus.
 * Which Function::      Which Function mode shows which function you are in.
@@ -153,54 +153,54 @@ Emacs we use it for all languages.
 @cindex ( in leftmost column
   Many programming-language modes assume by default that any opening
 delimiter found at the left margin is the start of a top-level
-definition, or defun.  Therefore, @strong{don't put an opening
-delimiter at the left margin unless it should have that significance}.
-For instance, never put an open-parenthesis at the left margin in a
-Lisp file unless it is the start of a top-level list.
+definition, or defun.  Therefore, in these modes, don't put an opening
+delimiter at the left margin, except in a comment or string, unless it
+should have that significance.  For instance, don't put an
+open-parenthesis at the left margin in a Lisp file unless it is the
+start of a top-level list.
 
-  The convention speeds up many Emacs operations, which would
-otherwise have to scan back to the beginning of the buffer to analyze
-the syntax of the code.
+@c In earlier versions of Emacs (up until version 25.n), Emacs exploited
+@c this convention to speed up many low-level operations, which would
+@c otherwise have to scan back to the beginning of the buffer.
 
-  If you don't follow this convention, not only will you have trouble
-when you explicitly use the commands for motion by defuns; other
-features that use them will also give you trouble.  This includes the
-indentation commands (@pxref{Program Indent}) and Font Lock mode
-(@pxref{Font Lock}).
+@c   Unfortunately, this exploitation often caused confusion when an
+@c opening delimiter occurred at column 0 inside a comment.  This would
+@c cause mis-analysis of the buffer, leading to wrong indentation or
+@c wrong fontification, or could cause simple operations to take
+@c inordinately long to complete.  This problem even caught out the Emacs
+@c development team occasionally.  The convention could be overridden by
+@c setting the variable @code{open-paren-in-column-0-is-defun-start} to
+@c @code{nil}, but this could slow Emacs down, particularly when editing
+@c large buffers.
 
-  The most likely problem case is when you want an opening delimiter
-at the start of a line inside a string.  To avoid trouble, put an
-escape character (@samp{\}, in C and Emacs Lisp, @samp{/} in some
-other Lisp dialects) before the opening delimiter.  This will not
-affect the contents of the string, but will prevent that opening
-delimiter from starting a defun.  Here's an example:
+In earlier versions of Emacs (through version 25.n), Emacs exploited
+this convention to speed up many low-level operations, which would
+otherwise have to scan back to the beginning of the buffer.
+Unfortunately, this caused confusion when an opening delimiter
+occurred at column 0 inside a comment.  The resulting faulty analysis
+often caused wrong indentation or fontification, or even simple edits
+to take inordinately long to complete.  The convention could be
+overridden by setting the variable
+@code{open-paren-in-column-0-is-defun-start} to @code{nil}, but this
+tended to slow Emacs down, particularly when editing large buffers.
 
-@example
-  (insert "Foo:
-\(bar)
-")
-@end example
+  To eliminate these problems, the low level functionality which used
+to test for opening delimiters at column 0 no longer does so, having
+been completely redesigned.  Open delimiters may now be freely written
+at the left margin inside comments without triggering these problems.
+
+@vindex open-paren-in-column-0-is-defun-start
+  If you want to override the convention, which is still used by some
+higher level commands, you can do so by setting the variable
+@code{open-paren-in-column-0-is-defun-start} to @code{nil}.  If this
+user option is set to @code{t} (the default), these commands will stop
+at opening parentheses or braces at column zero when seeking the start
+of defuns.  When it is @code{nil}, defuns are found by searching for
+parens or braces at the outermost level.
 
   To help you catch violations of this convention, Font Lock mode
 highlights confusing opening delimiters (those that ought to be
 quoted) in bold red.
-
-@vindex open-paren-in-column-0-is-defun-start
-  If you need to override this convention, you can do so by setting
-the variable @code{open-paren-in-column-0-is-defun-start}.
-If this user option is set to @code{t} (the default), opening
-parentheses or braces at column zero always start defuns.  When it is
-@code{nil}, defuns are found by searching for parens or braces at the
-outermost level.
-
-  Usually, you should leave this option at its default value of
-@code{t}.  If your buffer contains parentheses or braces in column
-zero which don't start defuns, and it is somehow impractical to remove
-these parentheses or braces, it might be helpful to set the option to
-@code{nil}.  Be aware that this might make scrolling and display in
-large buffers quite sluggish.  Furthermore, the parentheses and braces
-must be correctly matched throughout the buffer for it to work
-properly.
 
 @node Moving by Defuns
 @subsection Moving by Defuns

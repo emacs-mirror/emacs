@@ -2200,6 +2200,8 @@ signal_after_change (ptrdiff_t charpos, ptrdiff_t lendel, ptrdiff_t lenins)
 
   specbind (Qinhibit_modification_hooks, Qt);
 
+  Ftrim_literal_cache (make_number (charpos));
+
   if (!NILP (Vafter_change_functions))
     {
       rvoe_arg.location = &Vafter_change_functions;

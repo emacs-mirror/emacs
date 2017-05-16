@@ -11811,7 +11811,7 @@ comment at the start of cc-engine.el for more info."
 	      (cond
 	       ((c-backward-over-enum-header)
 		(setq placeholder (c-point 'boi)))
-	       ((consp (setq placeholder 
+	       ((consp (setq placeholder
 			     (c-looking-at-or-maybe-in-bracelist
 			      containing-sexp lim)))
 		(setq tmpsymbol (and (cdr placeholder) 'topmost-intro-cont))

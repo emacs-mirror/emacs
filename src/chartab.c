@@ -99,7 +99,8 @@ set_char_table_parent (Lisp_Object table, Lisp_Object val)
 
 DEFUN ("make-char-table", Fmake_char_table, Smake_char_table, 1, 2, 0,
        doc: /* Return a newly created char-table, with purpose PURPOSE.
-Each element is initialized to INIT, which defaults to nil.
+Each element is initialized to INIT, which defaults to nil.  Any extra
+slots created will be initialized to nil.
 
 PURPOSE should be a symbol.  If it has a `char-table-extra-slots'
 property, the property's value should be an integer between 0 and 10
@@ -109,7 +110,7 @@ the char-table has no extra slot.  */)
 {
   Lisp_Object vector;
   Lisp_Object n;
-  int n_extras;
+  int n_extras, i;
   int size;
 
   CHECK_SYMBOL (purpose);
@@ -130,6 +131,8 @@ the char-table has no extra slot.  */)
   set_char_table_parent (vector, Qnil);
   set_char_table_purpose (vector, purpose);
   XSETCHAR_TABLE (vector, XCHAR_TABLE (vector));
+  for (i = 0; i < n_extras ; i++)
+    XCHAR_TABLE (vector)->extras[i] = Qnil;
   return vector;
 }
 
@@ -250,7 +253,7 @@ char_table_ref (Lisp_Object table, int c)
   return val;
 }
 
-static Lisp_Object
+Lisp_Object
 sub_char_table_ref_and_range (Lisp_Object table, int c, int *from, int *to,
 			      Lisp_Object defalt, bool is_uniprop)
 {
@@ -384,6 +387,60 @@ char_table_ref_and_range (Lisp_Object table, int c, int *from, int *to)
     }
 
   return val;
+}
+
+/* Return the value for C in char-table TABLE.  Shrink the range
+   *FROM and *TO to cover characters (containing C) that have the same
+   value as C.  Should the value for C in TABLE be nil, consult the
+   parent table of TABLE, recursively if necessary.  It is not
+   guaranteed that the values of (*FROM - 1) and (*TO + 1) are
+   different from that of C.  */
+Lisp_Object
+char_table_ref_and_range_with_parents (Lisp_Object table, int c,
+                                       int *from, int *to)
+{
+  Lisp_Object val;
+  Lisp_Object parent, defalt;
+  struct Lisp_Char_Table *tbl;
+
+  if (*to < 0)
+    *to = MAX_CHAR;
+  if (ASCII_CHAR_P (c)
+      && *from <= c
+      && *to >= c)
+    {
+      tbl = XCHAR_TABLE (table);
+      defalt = tbl->defalt;
+      val = NILP (tbl->ascii)
+        ? defalt /*Qnil*/
+        : sub_char_table_ref_and_range (tbl->ascii, c, from, to, defalt, false);
+      while (NILP (val) && !NILP (parent))
+        {
+          tbl = XCHAR_TABLE (parent);
+          parent = tbl->parent;
+          defalt = tbl->defalt;
+          val = NILP (tbl->ascii)
+            ? defalt /*Qnil*/
+            : sub_char_table_ref_and_range (tbl->ascii, c, from, to, defalt, false);
+        }
+      return val;
+    }
+  else if (!ASCII_CHAR_P (c))
+    {
+      val = char_table_ref_and_range (table, c, from, to);
+      tbl = XCHAR_TABLE (table);
+      while (NILP (val))
+        {
+          parent = tbl->parent;
+          if (NILP (parent))
+            break;
+          val = char_table_ref_and_range (parent, c, from, to);
+          tbl = XCHAR_TABLE (parent);
+        }
+      return val;
+    }
+  else
+    return Qnil;
 }
 
 
