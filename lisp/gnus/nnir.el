@@ -1375,30 +1375,29 @@ environment unless `not-global' is non-nil."
 (defvar gnus-topic-alist)
 
 (defun nnir-make-specs (nnir-extra-parms &optional specs)
-  (with-current-buffer gnus-group-buffer
-    (let* ((group-spec
-	    (or (cdr (assq 'nnir-group-spec specs))
-		(if (gnus-server-server-name)
-		    (list (list (gnus-server-server-name)))
-		  (nnselect-categorize
-		   (or gnus-group-marked
-		       (if (gnus-group-group-name)
-			   (list (gnus-group-group-name))
-			 (cdr (assoc (gnus-group-topic-name) gnus-topic-alist))))
-		   'nnselect-group-server))))
-	   (query-spec
-	    (or (cdr (assq 'nnir-query-spec specs))
-		(apply
-		 'append
-		 (list (cons 'query
-			     (read-string "Query: " nil 'nnir-search-history)))
-		 (when nnir-extra-parms
-		   (mapcar
-		    (lambda (x)
-		      (nnir-read-parms (nnir-server-to-search-engine (car x))))
-		    group-spec))))))
-      (list (cons 'nnir-query-spec query-spec)
-	    (cons 'nnir-group-spec group-spec)))))
+  (let* ((group-spec
+	  (or (cdr (assq 'nnir-group-spec specs))
+	      (if (gnus-server-server-name)
+		  (list (list (gnus-server-server-name)))
+		(nnselect-categorize
+		 (or gnus-group-marked
+		     (if (gnus-group-group-name)
+			 (list (gnus-group-group-name))
+		       (cdr (assoc (gnus-group-topic-name) gnus-topic-alist))))
+		 'nnselect-group-server))))
+	 (query-spec
+	  (or (cdr (assq 'nnir-query-spec specs))
+	      (apply
+	       'append
+	       (list (cons 'query
+			   (read-string "Query: " nil 'nnir-search-history)))
+	       (when nnir-extra-parms
+		 (mapcar
+		  (lambda (x)
+		    (nnir-read-parms (nnir-server-to-search-engine (car x))))
+		  group-spec))))))
+    (list (cons 'nnir-query-spec query-spec)
+	  (cons 'nnir-group-spec group-spec))))
 
 ;; The end.
 (provide 'nnir)
