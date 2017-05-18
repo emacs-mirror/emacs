@@ -72,6 +72,7 @@
 (require 'eieio)
 (eval-when-compile (require 'cl-lib))
 (autoload 'eieio-build-class-alist "eieio-opt")
+(autoload 'nnmaildir-base-name-to-article-number "nnmaildir")
 
 (defvar gnus-inhibit-demon)
 (defvar gnus-english-month-names)
@@ -777,46 +778,6 @@ return one word."
   (skip-chars-forward "[[:blank:]]")
   (looking-at "$"))
 
-(defmacro gnus-search-add-result (dirnam artno score prefix server artlist)
-  "Ask `gnus-search-compose-result' to construct a result vector,
-and if it is non-nil, add it to artlist."
-  `(let ((result (gnus-search-compose-result ,dirnam ,artno ,score ,prefix ,server) ))
-     (when (not (null result))
-       (push result ,artlist))))
-
-(autoload 'nnmaildir-base-name-to-article-number "nnmaildir")
-
-(defun gnus-search-compose-result (dirnam article score prefix server)
-  "Extract the group from dirnam, and create a result vector
-ready to be added to the list of search results."
-
-  ;; remove gnus-search-*-remove-prefix from beginning of dirnam filename
-  (when (string-match (concat "^"
-			      (file-name-as-directory prefix))
-		      dirnam)
-    (setq dirnam (replace-match "" t t dirnam)))
-
-  (when (file-readable-p (concat prefix dirnam article))
-    ;; remove trailing slash and, for nnmaildir, cur/new/tmp
-    (setq dirnam
-	  (replace-regexp-in-string
-	   "/?\\(cur\\|new\\|tmp\\)?/\\'" "" dirnam))
-
-    ;; Set group to dirnam without any leading dots or slashes,
-    ;; and with all subsequent slashes replaced by dots
-    (let ((group (replace-regexp-in-string
-		  "[/\\]" "."
-		  (replace-regexp-in-string "^[./\\]" "" dirnam nil t)
-		  nil t)))
-
-      (vector (gnus-group-full-name group server)
-	      (if (string-match-p "\\`[[:digit:]]+\\'" article)
-		  (string-to-number article)
-		(nnmaildir-base-name-to-article-number
-		 (substring article 0 (string-match ":" article))
-		 group nil))
-	      (string-to-number score)))))
-
 ;;; Search engines
 
 ;; Search engines are implemented as classes.  This is good for two
@@ -1380,12 +1341,19 @@ of whichever date elements are present."
 
 ;; First, some common methods.
 
-(cl-defgeneric gnus-search-indexed-massage-output (engine server &optional groups)
-  "Massage the results of ENGINE's query against SERVER in GROUPS.
+(cl-defgeneric gnus-search-indexed-parse-output (engine server &optional groups)
+  "Parse the results of ENGINE's query against SERVER in GROUPS.
 
-Most indexed search engines return results as a list of filenames
-or something similar.  Turn those results into something Gnus
-understands.")
+Locally-indexed search engines return results as a list of
+filenames, sometimes with additional information.  Returns a list
+of viable results, in the form of a list of [group article score]
+vectors.")
+
+(cl-defgeneric gnus-search-index-extract (engine)
+  "Extract a single article result from the current buffer.
+
+Returns a list of two values: a file name, and a relevancy score.
+Advances point to the beginning of the next result.")
 
 (cl-defmethod gnus-search-run-search ((engine gnus-search-indexed)
 				      server query groups)
@@ -1393,7 +1361,7 @@ understands.")
 
 This method is common to all indexed search engines.
 
-Returns a vector of [group name, file name, score] vectors."
+Returns a list of [group article score] vectors."
 
   (save-excursion
     (let* ((qstring (gnus-search-make-query-string engine query))
@@ -1415,50 +1383,74 @@ Returns a vector of [group name, file name, score] vectors."
       (setq exitstatus (process-exit-status proc))
       (if (zerop exitstatus)
 	  ;; The search results have been put into the current buffer;
-	  ;; `massage-output' finds them there and returns the article
+	  ;; `parse-output' finds them there and returns the article
 	  ;; list.
-	  (gnus-search-indexed-massage-output engine server groups)
+	  (gnus-search-indexed-parse-output engine server query groups)
 	(nnheader-report 'search "%s error: %s" program exitstatus)
 	;; Failure reason is in this buffer, show it if the user
 	;; wants it.
 	(when (> gnus-verbose 6)
 	  (display-buffer buffer))))))
 
-(cl-defmethod gnus-search-indexed-massage-output ((engine gnus-search-indexed)
-						  server &optional groups)
-  "Filter search results of a locally-indexed search engine.
-
-This base implementation works for any engine that returns its
-results as a simple list of absolute file names.  Engines that
-return more information have their own methods."
-  (let ((article-pattern (if (string-match "\\`nnmaildir:"
-					   (gnus-group-server server))
-			     ":[0-9]+"
-			   "^[0-9]+$"))
-	(prefix (slot-value engine 'prefix))
+(cl-defmethod gnus-search-indexed-parse-output ((engine gnus-search-indexed)
+						server query &optional groups)
+  (let ((prefix (slot-value engine 'prefix))
 	(group-regexp (when groups
 			(regexp-opt
 			 (mapcar
 			  (lambda (x) (gnus-group-real-name x))
 			  groups))))
-	artno dirnam filenam artlist)
+	artlist vectors article group)
     (goto-char (point-min))
     (while (not (eobp))
-      (setq filenam (buffer-substring-no-properties (line-beginning-position)
-                                                    (line-end-position))
-            artno (file-name-nondirectory filenam)
-            dirnam (file-name-directory filenam))
-      (forward-line 1)
+      (pcase-let ((`(,f-name ,score) (gnus-search-indexed-extract engine)))
+	(when (and (file-readable-p f-name)
+		   (null (file-directory-p f-name))
+		   (or (null groups)
+		       (string-match-p group-regexp f-name)))
+	  (push (list f-name score) artlist))))
+    (pcase-dolist (`(,f-name ,score) artlist)
+      (setq article (file-name-nondirectory f-name))
+      ;; Remove prefix.
+      (when (and prefix
+		 (file-name-absolute-p prefix)
+		 (string-match (concat "^"
+				       (file-name-as-directory prefix))
+			       f-name))
+	(setq group (replace-match "" t t (file-name-directory f-name))))
+      ;; Break the filename down until it's something that (probably)
+      ;; can be used as a group name.
+      (setq group
+	    (replace-regexp-in-string
+	     "[/\\]" "."
+	     (replace-regexp-in-string
+	      "/?\\(cur\\|new\\|tmp\\)?/\\'" ""
+	      (replace-regexp-in-string
+	       "^[./\\]" ""
+	       group nil t)
+	      nil t)
+	     nil t))
 
-      ;; don't match directories
-      (when (string-match article-pattern artno)
-	(when (not (null dirnam))
+      (push (vector (gnus-group-full-name group server)
+		    (if (string-match-p "\\`[[:digit:]]+\\'" article)
+			(string-to-number article)
+		      (nnmaildir-base-name-to-article-number
+		       (substring article 0 (string-match ":" article))
+		       group nil))
+		    (if (numberp score)
+			score
+		      (string-to-number score)))
+	    vectors))
+    vectors))
 
-	  ;; maybe limit results to matching groups.
-	  (when (or (not groups)
-		    (string-match-p group-regexp dirnam))
-	    (gnus-search-add-result dirnam artno "" prefix server artlist)))))
-    artlist))
+(cl-defmethod gnus-search-indexed-extract ((engine gnus-search-indexed))
+  "Base implementation treats the whole line as a filename, and
+fudges a relevancy score of 100."
+  (prog1
+      (list (buffer-substring-no-properties (line-beginning-position)
+					    (line-end-position))
+	    100)
+    (forward-line 1)))
 
 ;; Swish++
 
@@ -1490,36 +1482,11 @@ return more information have their own methods."
      ,qstring
      )))
 
-(cl-defmethod gnus-search-indexed-massage-output ((engine gnus-search-swish++)
-						  server &optional groups)
-  (let ((groupspec (when groups
-		     (regexp-opt
-		      (mapcar
-		       (lambda (x) (gnus-group-real-name x))
-		       groups))))
-	(prefix (slot-value engine 'prefix))
-	(article-pattern (if (string-match "\\`nnmaildir:"
-					   (gnus-group-server server))
-			     ":[0-9]+"
-			   "^[0-9]+\\(\\.[a-z0-9]+\\)?$"))
-	filenam dirnam artno score artlist)
-    (goto-char (point-min))
-    (while (re-search-forward
-            "\\(^[0-9]+\\) \\([^ ]+\\) [0-9]+ \\(.*\\)$" nil t)
-      (setq score (match-string 1)
-	    filenam (match-string 2)
-            artno (file-name-nondirectory filenam)
-            dirnam (file-name-directory filenam))
-
-      ;; don't match directories
-      (when (string-match article-pattern artno)
-	(when (not (null dirnam))
-
-	  ;; maybe limit results to matching groups.
-	  (when (or (not groupspec)
-		    (string-match groupspec dirnam))
-	    (gnus-search-add-result dirnam artno score prefix server artlist)))))
-    artlist))
+(cl-defmethod gnus-search-indexed-extract ((engine gnus-search-swish++))
+  (when (re-search-forward
+         "\\(^[0-9]+\\) \\([^ ]+\\) [0-9]+ \\(.*\\)$" nil t)
+    (list (match-string 2)
+	  (match-string 1)))
 
 ;; Swish-e
 
@@ -1536,37 +1503,11 @@ return more information have their own methods."
       ,qstring
       )))
 
-(cl-defmethod gnus-search-indexed-massage-output ((engine gnus-search-swish-e)
-						  server &optional _groups)
-  (let ((prefix (slot-value engine 'prefix))
-	group dirnam artno score artlist)
-    (goto-char (point-min))
-    (while (re-search-forward
-            "\\(^[0-9]+\\) \\([^ ]+\\) \"\\([^\"]+\\)\" [0-9]+$" nil t)
-      (setq score (match-string 1)
-            artno (match-string 3)
-            dirnam (file-name-directory (match-string 2)))
-      (when (string-match "^[0-9]+$" artno)
-          (when (not (null dirnam))
-
-	    ;; remove gnus-search-swish-e-remove-prefix from beginning of dirname
-            (when (string-match (concat "^" prefix) dirnam)
-              (setq dirnam (replace-match "" t t dirnam)))
-
-            (setq dirnam (substring dirnam 0 -1))
-	    ;; eliminate all ".", "/", "\" from beginning. Always matches.
-            (string-match "^[./\\]*\\(.*\\)$" dirnam)
-            ;; "/" -> "."
-            (setq group (replace-regexp-in-string
-			 "/" "." (match-string 1 dirnam)))
-            ;; Windows "\\" -> "."
-            (setq group (replace-regexp-in-string "\\\\" "." group))
-
-            (push (vector (gnus-group-full-name group server)
-                          (string-to-number artno)
-                          (string-to-number score))
-                  artlist))))
-    artlist))
+(cl-defmethod gnus-search-indexed-extract ((engine gnus-search-swish-e))
+  (when (re-search-forward
+         "\\(^[0-9]+\\) \\([^ ]+\\) \"\\([^\"]+\\)\" [0-9]+$" nil t)
+    (list (match-string 3)
+          (match-string 1))))
 
 ;; Namazu interface
 
@@ -1606,41 +1547,16 @@ return more information have their own methods."
 	,index-dir			; index directory
 	))))
 
-(cl-defmethod gnus-search-indexed-massage-output ((engine gnus-search-namazu)
-						  server &optional groups)
-  "Common method for massaging filenames returned by indexed
-search engines.
+(cl-defmethod gnus-search-indexed-extract ((engine gnus-search-namazu))
+  "Extract a single message result for Namazu.
 
-This method assumes that the engine returns a plain list of
-absolute filepaths to standard out."
+Namazu provides a little more information, for instance a score."
 
-  ;; What if the server backend is nnml, and/or uses mboxes?
-  (let ((article-pattern (if (string-match "\\'nnmaildir:"
-					   (gnus-group-server server))
-			     ":[0-9]+"
-			   "^[0-9]+$"))
-	(prefix (slot-value engine 'prefix))
-	(group-regexp (when groups
-			(regexp-opt
-			 (mapcar
-			  (lambda (x) (gnus-group-real-name x))
-			  groups))))
-	score group article artlist)
-    (goto-char (point-min))
-    (while (re-search-forward
-	    "^\\([0-9,]+\\.\\).*\\((score: \\([0-9]+\\)\\))\n\\([^ ]+\\)"
-	    nil t)
-      (setq score (match-string 3)
-	    group (file-name-directory (match-string 4))
-	    article (file-name-nondirectory (match-string 4)))
-
-      ;; make sure article and group is sane
-      (when (and (string-match article-pattern article)
-		 (not (null group))
-		 (or (null group-regexp)
-		     (string-match-p group-regexp group)))
-	(gnus-search-add-result group article score prefix server artlist)))
-    artlist))
+  (when (re-search-forward
+	 "^\\([0-9,]+\\.\\).*\\((score: \\([0-9]+\\)\\))\n\\([^ ]+\\)"
+	 nil t)
+    (list (match-string 4)
+	  (match-string 3))))
 
 ;;; Notmuch interface
 
