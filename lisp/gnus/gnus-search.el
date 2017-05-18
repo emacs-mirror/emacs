@@ -1426,18 +1426,12 @@ Returns a vector of [group name, file name, score] vectors."
 
 (cl-defmethod gnus-search-indexed-massage-output ((engine gnus-search-indexed)
 						  server &optional groups)
-  "Common method for massaging filenames returned by indexed
-search engines.
+  "Filter search results of a locally-indexed search engine.
 
-This method assumes that the engine returns a plain list of
-absolute filepaths to standard out."
-  ;; This method was originally the namazu-specific method.  I'm
-  ;; almost certain that all the engines can use this same method
-  ;; (meaning some fairly significant code reduction), but I haven't
-  ;; gone and tested them all yet.
-
-  ;; What if the server backend is nnml, and/or uses mboxes?
-  (let ((article-pattern (if (string-match "\\'nnmaildir:"
+This base implementation works for any engine that returns its
+results as a simple list of absolute file names.  Engines that
+return more information have their own methods."
+  (let ((article-pattern (if (string-match "\\`nnmaildir:"
 					   (gnus-group-server server))
 			     ":[0-9]+"
 			   "^[0-9]+$"))
@@ -1447,21 +1441,23 @@ absolute filepaths to standard out."
 			 (mapcar
 			  (lambda (x) (gnus-group-real-name x))
 			  groups))))
-	score group article artlist)
+	artno dirnam filenam artlist)
     (goto-char (point-min))
-    (while (re-search-forward
-	    "^\\([0-9,]+\\.\\).*\\((score: \\([0-9]+\\)\\))\n\\([^ ]+\\)"
-	    nil t)
-      (setq score (match-string 3)
-	    group (file-name-directory (match-string 4))
-	    article (file-name-nondirectory (match-string 4)))
+    (while (not (eobp))
+      (setq filenam (buffer-substring-no-properties (line-beginning-position)
+                                                    (line-end-position))
+            artno (file-name-nondirectory filenam)
+            dirnam (file-name-directory filenam))
+      (forward-line 1)
 
-      ;; make sure article and group is sane
-      (when (and (string-match article-pattern article)
-		 (not (null group))
-		 (or (null group-regexp)
-		     (string-match-p group-regexp group)))
-	(gnus-search-add-result group article score prefix server artlist)))
+      ;; don't match directories
+      (when (string-match article-pattern artno)
+	(when (not (null dirnam))
+
+	  ;; maybe limit results to matching groups.
+	  (when (or (not groups)
+		    (string-match-p group-regexp dirnam))
+	    (gnus-search-add-result dirnam artno "" prefix server artlist)))))
     artlist))
 
 ;; Swish++
@@ -1610,10 +1606,46 @@ absolute filepaths to standard out."
 	,index-dir			; index directory
 	))))
 
+(cl-defmethod gnus-search-indexed-massage-output ((engine gnus-search-namazu)
+						  server &optional groups)
+  "Common method for massaging filenames returned by indexed
+search engines.
+
+This method assumes that the engine returns a plain list of
+absolute filepaths to standard out."
+
+  ;; What if the server backend is nnml, and/or uses mboxes?
+  (let ((article-pattern (if (string-match "\\'nnmaildir:"
+					   (gnus-group-server server))
+			     ":[0-9]+"
+			   "^[0-9]+$"))
+	(prefix (slot-value engine 'prefix))
+	(group-regexp (when groups
+			(regexp-opt
+			 (mapcar
+			  (lambda (x) (gnus-group-real-name x))
+			  groups))))
+	score group article artlist)
+    (goto-char (point-min))
+    (while (re-search-forward
+	    "^\\([0-9,]+\\.\\).*\\((score: \\([0-9]+\\)\\))\n\\([^ ]+\\)"
+	    nil t)
+      (setq score (match-string 3)
+	    group (file-name-directory (match-string 4))
+	    article (file-name-nondirectory (match-string 4)))
+
+      ;; make sure article and group is sane
+      (when (and (string-match article-pattern article)
+		 (not (null group))
+		 (or (null group-regexp)
+		     (string-match-p group-regexp group)))
+	(gnus-search-add-result group article score prefix server artlist)))
+    artlist))
+
 ;;; Notmuch interface
 
 (cl-defmethod gnus-search-transform ((_engine gnus-search-notmuch)
-					       (_query null))
+				     (_query null))
   "*")
 
 (cl-defmethod gnus-search-transform-expression ((engine gnus-search-notmuch)
@@ -1685,39 +1717,6 @@ absolute filepaths to standard out."
        ,(if limit (format "--limit=%d" limit) "")
        ,qstring
        ))))
-
-(cl-defmethod gnus-search-indexed-massage-output ((engine gnus-search-notmuch)
-						  server &optional groups)
-  ;; The results are output in the format of:
-  ;; absolute-path-name
-  (let ((article-pattern (if (string-match "\\`nnmaildir:"
-					   (gnus-group-server server))
-			     ":[0-9]+"
-			   "^[0-9]+$"))
-	(prefix (slot-value engine 'prefix))
-	(group-regexp (when groups
-			(regexp-opt
-			 (mapcar
-			  (lambda (x) (gnus-group-real-name x))
-			  groups))))
-	artno dirnam filenam artlist)
-    (goto-char (point-min))
-    (while (not (eobp))
-      (setq filenam (buffer-substring-no-properties (line-beginning-position)
-                                                    (line-end-position))
-            artno (file-name-nondirectory filenam)
-            dirnam (file-name-directory filenam))
-      (forward-line 1)
-
-      ;; don't match directories
-      (when (string-match article-pattern artno)
-	(when (not (null dirnam))
-
-	  ;; maybe limit results to matching groups.
-	  (when (or (not groups)
-		    (string-match-p group-regexp dirnam))
-	    (gnus-search-add-result dirnam artno "" prefix server artlist)))))
-    artlist))
 
 ;;; Mairix interface
 
