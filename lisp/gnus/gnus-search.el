@@ -1533,19 +1533,18 @@ fudges a relevancy score of 100."
     (setenv "LC_MESSAGES" "C")
     (cl-call-next-method)))
 
-(cl-defmethod search-indexed-search-command ((engine gnus-search-namazu)
-					     (qstring string)
-					     query &optional _groups)
+(cl-defmethod gnus-search-indexed-search-command ((engine gnus-search-namazu)
+						  (qstring string)
+						  query &optional _groups)
   (let ((max (alist-get 'limit query)))
     (with-slots (switches index-dir) engine
-      `("-q"				; don't be verbose
-	"-a"				; show all matches
-	"-s"				; use short format
-	,(if max (format "--max=%d" max) "")
-	,@switches
-	,qstring			; the query, in namazu format
-	,index-dir			; index directory
-	))))
+      (nconc
+       (list "-q"			; don't be verbose
+	     "-a"			; show all matches
+	     "-s") 			; use short format
+       (when max (list (format "--max=%d" max)))
+       switches
+       (list qstring index-dir)))))
 
 (cl-defmethod gnus-search-indexed-extract ((engine gnus-search-namazu))
   "Extract a single message result for Namazu.
