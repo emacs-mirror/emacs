@@ -40,6 +40,7 @@
 
 (require 'cl-lib)
 (require 'button)
+(require 'regexp-opt)
 
 ;; For compiler
 (defvar evil-operator-shortcut-map)
@@ -1526,9 +1527,16 @@ Requires `which-key-compute-remaps' to be non-nil"
   "Generate a list of current active bindings."
   (let ((key-str-qt (regexp-quote (key-description which-key--current-prefix)))
         (buffer (current-buffer))
-        (ignore-bindings '("self-insert-command" "ignore" "ignore-event" "company-ignore"))
-        (ignore-keys-regexp "mouse-\\|wheel-\\|remap\\|drag-\\|scroll-bar\\|select-window\\|switch-frame\\|-state")
-        (ignore-sections-regexp "\\(Key translations\\|Function key map translations\\|Input decoding map translations\\)"))
+        (ignore-bindings '("self-insert-command" "ignore"
+                           "ignore-event" "company-ignore"))
+        (ignore-keys-regexp
+         (eval-when-compile
+           (regexp-opt '("mouse-" "wheel-" "remap" "drag-" "scroll-bar"
+                         "select-window" "switch-frame" "-state"))))
+        (ignore-sections-regexp
+         (eval-when-compile
+           (regexp-opt '("Key translations" "Function key map translations"
+                         "Input decoding map translations")))))
     (with-temp-buffer
       (setq-local indent-tabs-mode t)
       (setq-local tab-width 8)
