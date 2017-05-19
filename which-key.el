@@ -1519,7 +1519,7 @@ Requires `which-key-compute-remaps' to be non-nil"
   (let (remap)
     (if (and which-key-compute-remaps
              (setq remap (command-remapping (intern binding))))
-        (symbol-name remap)
+        (copy-sequence (symbol-name remap))
       binding)))
 
 (defun which-key--get-current-bindings ()
