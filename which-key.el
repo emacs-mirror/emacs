@@ -131,6 +131,12 @@ that represent a sub-map). Default is \"+\"."
   :group 'which-key
   :type 'string)
 
+(defcustom which-key-compute-remaps nil
+  "If non-nil, show remapped command if a command has been
+remapped given the currently active keymaps."
+  :group 'which-key
+  :type 'boolean)
+
 (defvar which-key-key-replacement-alist nil)
 (make-obsolete-variable 'which-key-key-replacement-alist
                         'which-key-replacement-alist "2016-11-21")
@@ -1506,6 +1512,16 @@ alists. Returns a list (key separator description)."
      keymap)
     bindings))
 
+(defun which-key--compute-binding (binding)
+  "Replace BINDING with remapped binding if it exists.
+
+Requires `which-key-compute-remaps' to be non-nil"
+  (let (remap)
+    (if (and which-key-compute-remaps
+             (setq remap (command-remapping (intern binding))))
+        (symbol-name remap)
+      binding)))
+
 (defun which-key--get-current-bindings ()
   "Generate a list of current active bindings."
   (let ((key-str-qt (regexp-quote (key-description which-key--current-prefix)))
@@ -1550,7 +1566,8 @@ alists. Returns a list (key separator description)."
                          (string-match (format "^%s[ \t]\\([^ \t]+\\)[ \t]+$"
                                                key-str-qt) key))
                     (unless (assoc-string (match-string 1 key) bindings)
-                      (push (cons (match-string 1 key) binding) bindings)))
+                      (push (cons (match-string 1 key)
+                                  (which-key--compute-binding binding)) bindings)))
                    ((and which-key--current-prefix
                          (string-match
                           (format
@@ -1559,10 +1576,12 @@ alists. Returns a list (key separator description)."
                     (let ((stripped-key
                            (concat (match-string 1 key) " \.\. " (match-string 2 key))))
                       (unless (assoc-string stripped-key bindings)
-                        (push (cons stripped-key binding) bindings))))
+                        (push (cons stripped-key
+                                    (which-key--compute-binding binding)) bindings))))
                    ((string-match "^\\([^ \t]+\\|[^ \t]+ \\.\\. [^ \t]+\\)[ \t]+$" key)
                     (unless (assoc-string (match-string 1 key) bindings)
-                      (push (cons (match-string 1 key) binding) bindings)))))))))
+                      (push (cons (match-string 1 key)
+                                  (which-key--compute-binding binding)) bindings)))))))))
           (forward-line))
         (nreverse bindings)))))
 
