@@ -796,6 +796,50 @@ return one word."
   :abstract t
   :documentation "Abstract base class for Gnus search engines.")
 
+(defclass gnus-search-grep ()
+  ((grep-program
+    :initarg :grep-program
+    :initform "grep"
+    :type string
+    :documentation "Grep executable to use for second-pass grep
+    searches.")
+   (grep-options
+    :initarg :grep-options
+    :initform nil
+    :type list
+    :documentation "Additional options, in the form of a list,
+    passed to the second-pass grep search, when present."))
+  :abstract t
+  :documentation "An abstract mixin class that can be added to
+  local-filesystem search engines, providing an additional grep:
+  search key.  After the base engine returns a list of search
+  results (as local filenames), an external grep process is used
+  to further filter the results.")
+
+(cl-defgeneric gnus-search-grep-search (engine artlist criteria)
+  "Run a secondary grep search over a list of preliminary results.
+
+ARTLIST is a list of (filename score) pairs, produced by one of
+the other search engines.  CRITERIA is a grep-specific search
+key.  This method uses an external grep program to further filter
+the files in ARTLIST by that search key.")
+
+(cl-defmethod gnus-search-grep-search ((engine gnus-search-grep)
+				       artlist criteria)
+  (with-slots (grep-program grep-options) engine
+    (if (executable-find grep-program)
+	;; Don't catch errors -- allow them to propagate.
+	(let ((matched-files
+	       (apply
+		#'process-lines
+		grep-program
+		`("-l" ,@grep-options
+		  "-e" ,(shell-quote-argument criteria)
+		  ,@(mapcar #'car artlist)))))
+	  (seq-filter (lambda (a) (member (car a) matched-files))
+		      artlist))
+      (nnheader-report 'search "invalid grep program: %s" grep-program))))
+
 (defclass gnus-search-process ()
   ((proc-buffer
     :initarg :proc-buffer
@@ -850,7 +894,9 @@ quirks.")
 (eieio-oset-default 'gnus-search-imap 'raw-queries-p
 		    gnus-search-imap-raw-queries-p)
 
-(defclass gnus-search-find-grep (gnus-search-engine gnus-search-process)
+(defclass gnus-search-find-grep (gnus-search-engine
+				 gnus-search-process
+				 gnus-search-grep)
   nil)
 
 (defclass gnus-search-gmane (gnus-search-engine gnus-search-process)
@@ -867,7 +913,9 @@ quirks.")
 ;;; indexes.  These slots can be set using a global default, or on a
 ;;; per-server basis.
 
-(defclass gnus-search-indexed (gnus-search-engine gnus-search-process)
+(defclass gnus-search-indexed (gnus-search-engine
+			       gnus-search-process
+			       gnus-search-grep)
   ((program
     :initarg :program
     :type string
@@ -885,7 +933,7 @@ quirks.")
     :documentation
     "Additional switches passed to the search engine command-line
     program."))
-    :abstract t
+  :abstract t
   :allow-nil-initform t
   :documentation "A base search engine class that assumes a local search index
   accessed by a command line program.")
@@ -1409,6 +1457,9 @@ Returns a list of [group article score] vectors."
 		   (or (null groups)
 		       (string-match-p group-regexp f-name)))
 	  (push (list f-name score) artlist))))
+    ;; Are we running an additional grep query?
+    (when-let ((grep-reg (alist-get 'grep query)))
+      (setq artlist (gnus-search-grep-search engine artlist grep-reg)))
     (pcase-dolist (`(,f-name ,score) artlist)
       (setq article (file-name-nondirectory f-name))
       ;; Remove prefix.
@@ -1418,8 +1469,8 @@ Returns a list of [group article score] vectors."
 				       (file-name-as-directory prefix))
 			       f-name))
 	(setq group (replace-match "" t t (file-name-directory f-name))))
-      ;; Break the filename down until it's something that (probably)
-      ;; can be used as a group name.
+      ;; Break the directory name down until it's something that
+      ;; (probably) can be used as a group name.
       (setq group
 	    (replace-regexp-in-string
 	     "[/\\]" "."
@@ -1486,7 +1537,7 @@ fudges a relevancy score of 100."
   (when (re-search-forward
          "\\(^[0-9]+\\) \\([^ ]+\\) [0-9]+ \\(.*\\)$" nil t)
     (list (match-string 2)
-	  (match-string 1)))
+	  (match-string 1))))
 
 ;; Swish-e
 
@@ -1824,10 +1875,8 @@ Assume \"size\" key is equal to \"larger\"."
 	 (sym (intern
 	       (concat (symbol-name (car method)) "-directory")))
 	 (directory (cadr (assoc sym (cddr method))))
-	 (regexp (gnus-search-make-query-string engine query))
-	 ;; This is one place where the generalized search language
-	 ;; doesn't work out so well.
-	 (grep-options nil)
+	 (regexp (alist-get 'grep query))
+	 (grep-options (slot-value engine 'grep-options))
 	 (grouplist (or groups (gnus-search-get-active server)))
 	 (buffer (slot-value engine 'proc-buffer)))
     (unless directory
@@ -1870,7 +1919,7 @@ Assume \"size\" key is equal to \"larger\"."
 			'call-process "find" nil t
 			"find" group "-maxdepth" "1" "-type" "f"
 			"-name" "[0-9]*" "-exec"
-			"grep"
+			(slot-value engine 'grep-program)
 			`("-l" ,@(and grep-options
 				      (split-string grep-options "\\s-" t))
 			  "-e" ,regexp "{}" "+"))))
@@ -1885,14 +1934,7 @@ Assume \"size\" key is equal to \"larger\"."
 		       (while (string= "." (car path))
 			 (setq path (cdr path)))
 		       (let ((group (mapconcat #'identity
-					       ;; Replace cl-func:
-					       ;; (subseq path 0 -1)
-					       (let ((end (1- (length path)))
-						     res)
-						 (while
-						     (>= (setq end (1- end)) 0)
-						   (push (pop path) res))
-						 (nreverse res))
+					       (cl-subseq path 0 -1)
 					       ".")))
 			 (push
 			  (vector (gnus-group-full-name group server) art 0)
@@ -2009,22 +2051,26 @@ key, and possibly some meta keys.  This function extracts any
 additional meta keys from the 'query string, and parses the
 remaining string, then adds all that to the top-level spec."
   (let ((query (alist-get 'query query-spec))
-        val)
+	val)
     (when (stringp query)
       ;; Look for these meta keys:
-      (while (string-match "\\(thread\\|limit\\|raw\\|count\\):\\([^ ]+\\)"
-			   query)
-	(setq val (string-to-number (match-string 2 query)))
+      (while (string-match
+	      "\\(thread\\|grep\\|limit\\|raw\\|count\\):\\([^ ]+\\)"
+	      query)
+	(setq val (match-string 2 query))
 	(setf (alist-get (intern (match-string 1 query)) query-spec)
-	      ;; A bit stupid, but right now the only possible
-	      ;; values are t, or a number.
-	      (if (zerop val) t val))
+	      ;; This is stupid.
+	      (cond
+	       ((eql val 't))
+	       ((null (zerop (string-to-number val)))
+		(string-to-number val))
+	       (t val)))
 	(setq query
 	      (string-trim (replace-match "" t t query 0)))
 	(setf (alist-get 'query query-spec) query)))
     (when gnus-search-use-parsed-queries
-	(setf (alist-get 'parsed-query query-spec)
-	      (gnus-search-parse-query query)))
+      (setf (alist-get 'parsed-query query-spec)
+	    (gnus-search-parse-query query)))
     query-spec))
 
 ;; This should be done once at Gnus startup time, when the servers are
