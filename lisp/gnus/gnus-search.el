@@ -1460,6 +1460,12 @@ Returns a list of [group article score] vectors."
     ;; Are we running an additional grep query?
     (when-let ((grep-reg (alist-get 'grep query)))
       (setq artlist (gnus-search-grep-search engine artlist grep-reg)))
+    ;; Some engines do result limiting on their own, some don't.  Just
+    ;; make sure.
+    (when-let ((limit (alist-get 'limit query)))
+      (setq artlist (cl-subseq artlist 0
+			       (min limit (length artlist)))))
+    ;; Turn (file-name score) into [group article score].
     (pcase-dolist (`(,f-name ,score) artlist)
       (setq article (file-name-nondirectory f-name))
       ;; Remove prefix.
