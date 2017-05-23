@@ -2182,7 +2182,7 @@ article came from is also searched."
 (defvar gnus-group-marked)
 (defvar gnus-topic-alist)
 
-(defun gnus-search-make-specs (nnir-extra-parms &optional specs)
+(defun gnus-search-make-specs (arg &optional specs)
   (let* ((group-spec
 	  (or (cdr (assq 'search-group-spec specs))
 	      (if (gnus-server-server-name)
@@ -2192,7 +2192,7 @@ article came from is also searched."
 		     (if (gnus-group-group-name)
 			 (list (gnus-group-group-name))
 		       (cdr (assoc (gnus-group-topic-name) gnus-topic-alist))))
-		 gnus-group-server))))
+		 'nnselect-group-server))))
 	 (query-spec
 	  (or (cdr (assq 'search-query-spec specs))
 	      (list (cons 'query
@@ -2200,72 +2200,6 @@ article came from is also searched."
 		    (cons 'no-parse arg)))))
     (list (cons 'search-query-spec query-spec)
 	  (cons 'search-group-spec group-spec))))
-
-;;; Interface with Gnus and nnselect
-
-(declare-function gnus-registry-get-id-key "gnus-registry" (id key))
-(declare-function gnus-group-topic-name "gnus-topic" ())
-
-;; Temporary to make group creation easier
-
-(defun gnus-group-make-permanent-search-group (&optional arg specs)
-  (interactive "P")
-  (gnus-group-make-search-group arg t specs))
-
-(defun gnus-group-make-search-group (&optional arg perm specs)
-  "Create an nnselect group based on a search.  Prompt for a
-search query and determine the groups to search as follows: if
-called from the *Server* buffer search all groups belonging to
-the server on the current line; if called from the *Group* buffer
-search any marked groups, or the group on the current line, or
-all the groups under the current topic. Calling with a prefix-arg
-means the search query will be passed raw to the . A
-non-nil `specs' arg must be an alist with `search-query-spec' and
-`search-group-spec' keys, and skips all prompting."
-  (interactive "P")
-  (let* ((group-spec
-	  (or (cdr (assq 'search-group-spec specs))
-	    (if (gnus-server-server-name)
-		(list (list (gnus-server-server-name)))
-	      (nnselect-categorize
-	       (or gnus-group-marked
-		   (if (gnus-group-group-name)
-		       (list (gnus-group-group-name))
-		     (cdr (assoc (gnus-group-topic-name) gnus-topic-alist))))
-	       gnus-group-server))))
-	 (query-spec
-	  (or (cdr (assq 'search-query-spec specs))
-	    (list (cons 'query
-			(read-string "Query: " nil 'gnus-search-history))
-		  (cons 'no-parse arg)))))
-    (if perm
-	(let ((name (read-string "Group name: " nil)))
-	  (gnus-group-make-group
-	   name
-	   (list 'nnselect "nnselect")
-	   nil
-	   (list
-	    (cons 'nnselect-specs
-		  (list
-		   (cons 'nnselect-function 'gnus-search-run-query)
-		   (cons 'nnselect-args
-			 (list (cons 'search-query-spec query-spec)
-			       (cons 'search-group-spec group-spec))))))))
-      (gnus-group-read-ephemeral-group
-       (concat "nnselect-" (message-unique-id))
-       (list 'nnselect "nnselect")
-       nil
-       (cons (current-buffer) gnus-current-window-configuration)
-					;     nil
-       nil nil
-       (list
-	(cons 'nnselect-specs
-	      (list
-	       (cons 'nnselect-function 'gnus-search-run-query)
-	       (cons 'nnselect-args
-		     (list (cons 'search-query-spec query-spec)
-			   (cons 'search-group-spec group-spec)))))
-	(cons 'nnselect-artlist nil))))))
 
 (provide 'gnus-search)
 ;;; gnus-search.el ends here

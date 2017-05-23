@@ -3213,7 +3213,7 @@ mail messages or news articles in files that have numeric names."
 	      (list
 	       (cons 'nnselect-function 'gnus-search-run-query)
 	       (cons 'nnselect-args
-		     (gnus-search-make-specs arg specs))))))))
+		     (gnus-search-make-specs arg specs)))))))))
 
 (defun gnus-group-read-ephemeral-search-group (arg &optional specs)
   "Create an nnselect group based on a search.  Prompt for a
