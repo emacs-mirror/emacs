@@ -726,7 +726,7 @@ If the package is installed, its entry is removed from
                 ;; bypassed.
                 (member context '(:byte-compile :ensure :config))
                 (y-or-n-p (format "Install package %S?" package))))
-          (progn
+          (with-demoted-errors (format "Cannot load %s: %%S" name)
             (when (assoc package (bound-and-true-p package-pinned-packages))
               (package-read-all-archive-contents))
             (if (assoc package package-archive-contents)
