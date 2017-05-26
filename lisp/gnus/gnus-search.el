@@ -1136,7 +1136,10 @@ Responsible for handling and, or, and parenthetical expressions.")
   (save-excursion
     (let ((server (cadr (gnus-server-to-method srv)))
           (gnus-inhibit-demon t)
-	  q-string)
+	  ;; We're using the message id to look for a single message.
+	  (single-search (and (= (length query) 1)
+			      (eql (caar query) 'id)))
+	  q-string artlist group)
       (message "Opening server %s" server)
       ;; We should only be doing this once, in
       ;; `nnimap-open-connection', but it's too frustrating to try to
@@ -1156,33 +1159,26 @@ Responsible for handling and, or, and parenthetical expressions.")
       (setq q-string
 	    (gnus-search-make-query-string engine query))
 
-      (apply
-       'vconcat
-       (mapcar
-	(lambda (group)
-	  (let (artlist)
-	    (condition-case ()
-		(when (nnimap-change-group
-		       (gnus-group-short-name group) server)
-		  (with-current-buffer (nnimap-buffer)
-		    (message "Searching %s..." group)
-		    (let ((arts 0)
-			  (result
-			   (gnus-search-imap-search-command engine q-string)))
-		      (mapc
-		       (lambda (artnum)
-			 (let ((artn (string-to-number artnum)))
-			   (when (> artn 0)
-			     (push (vector group artn 100)
-				   artlist)
-			     (setq arts (1+ arts)))))
-		       (and (car result)
-			    (cdr (assoc "SEARCH" (cdr result)))))
-		      (message "Searching %s... %d matches" group arts)))
-		  (message "Searching %s...done" group))
-	      (quit nil))
-	    (nreverse artlist)))
-	groups)))))
+      (while (and (setq group (pop groups))
+		  (or (null single-search) (null artlist)))
+	(when (nnimap-change-group
+	       (gnus-group-short-name group) server)
+	  (with-current-buffer (nnimap-buffer)
+	    (message "Searching %s..." group)
+	    (let ((result
+		   (gnus-search-imap-search-command engine q-string)))
+	      (when (car result)
+		(setq artlist
+		      (vconcat
+		       (mapcar
+			(lambda (artnum)
+			  (let ((artn (string-to-number artnum)))
+			    (when (> artn 0)
+			      (vector group artn 100))))
+			(cdr (assoc "SEARCH" (cdr result))))
+		       artlist))))
+	    (message "Searching %s...done" group))))
+      artlist)))
 
 (cl-defmethod gnus-search-imap-search-command ((engine gnus-search-imap)
 					       (query string))
