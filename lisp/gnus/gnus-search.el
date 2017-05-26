@@ -594,8 +594,6 @@ in as a string, goes out as a symbol."
       (setq value (gnus-search-query-parse-date value)))
      ((string-match-p "contact" key)
       (setq return (gnus-search-query-parse-contact key value)))
-     ((equal key "address")
-      (setq return `(or (sender . ,value) (recipient . ,value))))
      ((equal key "mark")
       (setq value (gnus-search-query-parse-mark value))))
     (or return
@@ -702,7 +700,7 @@ chunk of query syntax."
 	    ("contact-to"
 	     (list (cons 'recipient a)))
 	    ("contact"
-	     `(or (recipient . ,a) (sender . ,a)))))
+	     (list (cons 'address a)))))
 	addresses)))))
 
 (defun gnus-search-query-expand-key (key)
@@ -1278,6 +1276,12 @@ boolean instead."
 	       (format
 	       "to:%s or (cc:%s or bcc:%s)"
 	       (cdr expr) (cdr expr) (cdr expr)))))
+     ((eq (car expr) 'address)
+      (gnus-search-transform
+       engine (gnus-search-parse-query
+	       (format
+	       "from:%s or (to:%s or (cc:%s or bcc:%s))"
+	       (cdr expr) (cdr expr) (cdr expr) (cdr expr)))))
      ((memq (car expr) '(before since on sentbefore senton sentsince))
       ;; Ignore dates given as strings.
       (when (listp (cdr expr))
@@ -1575,6 +1579,9 @@ fudges a relevancy score of 100."
    ;; for now.
    ((memq (car expr) '(subject from to))
     (format "+%s:%s" (car expr) (cdr expr)))
+   ((eql (car expr) 'address)
+    (gnus-search-transform engine `((or (from . ,(cdr expr))
+					(to . ,(cdr expr))))))
    ((eq (car expr) 'id)
     (format "+message-id:%s" (cdr expr)))
    (t (ignore-errors (cl-call-next-method)))))
@@ -1627,6 +1634,7 @@ Namazu provides a little more information, for instance a score."
   ;; Swap keywords as necessary.
   (cl-case (car expr)
     (sender (setcar expr 'from))
+    ;; Notmuch's "to" is already equivalent to our "recipient".
     (recipient (setcar expr 'to))
     (mark (setcar expr 'tag)))
   ;; Then actually format the results.
@@ -1646,7 +1654,10 @@ Namazu provides a little more information, for instance a score."
 			       (format "%d/%d/%d" m d y))))))
     (cond
      ((consp (car expr))
-      (format "(%s)") (gnus-search-transform engine expr))
+       (format "(%s)" (gnus-search-transform engine expr)))
+     ((eql (car expr) 'address)
+      (gnus-search-transform engine `((or (from . ,(cdr expr))
+					  (to . ,(cdr expr))))))
      ((eql (car expr) 'body)
       (cdr expr))
      ((memq (car expr) '(from to subject attachment mimetype tag id
