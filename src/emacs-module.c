@@ -1194,7 +1194,10 @@ void
 syms_of_module (void)
 {
   if (!plain_values)
-    ltv_mark = Fcons (Qnil, Qnil);
+    {
+      ltv_mark = Fcons (Qnil, Qnil);
+      staticpro (&ltv_mark);
+    }
   eassert (NILP (value_to_lisp (module_nil)));
 
   DEFSYM (Qmodule_refs_hash, "module-refs-hash");

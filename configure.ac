@@ -311,6 +311,24 @@ this option's value should be 'yes', 'no', 'alsa', 'oss', or 'bsd-ossaudio'.])
   ],
   [with_sound=$with_features])
 
+OPTION_DEFAULT_ON([pdumper], [don't compile with portable dumper support])
+if test "$with_pdumper" = "yes"; then
+    AC_DEFINE(HAVE_PDUMPER, 1, [Define to build with portable dumper support])
+fi
+
+AC_ARG_WITH([dumping],[AS_HELP_STRING([--with-dumping=VALUE],
+    [kind of dumping to use for initial Emacs build
+(VALUE one of: pdumper, unexec, no; default pdumper)])],
+    [ case "${withval}" in
+        pdumper|unexec|no) val=$withval ;;
+        *) AC_MSG_ERROR(['--with-dumping=$withval is invalid;
+this option's value should be 'pdumper', 'unexec', or 'no'.])
+        ;;
+      esac
+      with_dumping=$val
+    ],
+    [with_dumping=pdumper])
+
 dnl FIXME currently it is not the last.
 dnl This should be the last --with option, because --with-x is
 dnl added later on when we find the file name of X, and it's best to
@@ -1208,6 +1226,31 @@ AC_PATH_PROG(GZIP_PROG, gzip)
 test $with_compress_install != yes && test -n "$GZIP_PROG" && \
    GZIP_PROG=" # $GZIP_PROG # (disabled by configure --without-compress-install)"
 
+if test -n "$CANNOT_DUMP" && test "$with_dumping" = "unexec"; then
+  with_dumping=no
+fi
+
+if test "$with_dumping" = "unexec" && test "$opsys" = "nacl"; then
+  AC_MSG_ERROR([nacl is not compatible with --with-dumping=unexec])
+fi
+
+if test "$with_dumping" != "unexec"; then
+  CANNOT_DUMP=yes
+fi
+
+if test -n "$CANNOT_DUMP"; then
+  if test "$with_dumping" = "unexec"; then
+    AC_MSG_ERROR([CANNOT_DUMP is incompatible with --with-dumping=unexec])
+  fi
+  CANNOT_DUMP=yes
+else
+  CANNOT_DUMP=no
+fi
+
+DUMPING=$with_dumping
+AC_SUBST(DUMPING)
+AC_SUBST(CANNOT_DUMP)
+
 AC_CACHE_CHECK([for 'find' args to delete a file],
   [emacs_cv_find_delete],
   [if touch conftest.tmp && find conftest.tmp -delete 2>/dev/null &&
@@ -1220,7 +1263,7 @@ AC_SUBST([FIND_DELETE])
 
 PAXCTL_dumped=
 PAXCTL_notdumped=
-if test $opsys = gnu-linux; then
+if test "$CANNOT_DUMP" = "no" && test $opsys = gnu-linux; then
   if test "${SETFATTR+set}" != set; then
     AC_CACHE_CHECK([for setfattr],
       [emacs_cv_prog_setfattr],
@@ -1375,21 +1418,11 @@ AC_CACHE_CHECK([whether addresses are sanitized],
      [emacs_cv_sanitize_address=yes],
      [emacs_cv_sanitize_address=no])])
 
-dnl The function dump-emacs will not be defined and temacs will do
-dnl (load "loadup") automatically unless told otherwise.
-test "x$CANNOT_DUMP" = "x" && CANNOT_DUMP=no
-case "$opsys" in
-  nacl) CANNOT_DUMP=yes ;;
-esac
-
 if test "$CANNOT_DUMP" = "yes"; then
   AC_DEFINE(CANNOT_DUMP, 1, [Define if Emacs cannot be dumped on your system.])
 elif test "$emacs_cv_sanitize_address" = yes; then
   AC_MSG_WARN([[Addresses are sanitized; suggest CANNOT_DUMP=yes]])
 fi
-
-AC_SUBST(CANNOT_DUMP)
-
 
 UNEXEC_OBJ=unexelf.o
 case "$opsys" in
@@ -1469,8 +1502,9 @@ case "$opsys" in
    LD_SWITCH_SYSTEM="\$(LD_SWITCH_X_SITE_RPATH) $LD_SWITCH_SYSTEM" ;;
 esac
 
-
 C_SWITCH_MACHINE=
+
+test "$CANNOT_DUMP" = yes ||
 case $canonical in
  alpha*)
   AC_CHECK_DECL([__ELF__])
@@ -5473,6 +5507,7 @@ AS_ECHO(["  Does Emacs use -lXaw3d?                                 ${HAVE_XAW3D
   Does Emacs use toolkit scroll bars?                     ${USE_TOOLKIT_SCROLL_BARS}
   Does Emacs support Xwidgets (requires gtk3)?            ${HAVE_XWIDGETS}
   Does Emacs have threading support in lisp?              ${threads_enabled}
+  Which dumping strategy does Emacs use?                  ${with_dumping}
 "])
 
 if test -n "${EMACSDATA}"; then

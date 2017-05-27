@@ -42,6 +42,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "systime.h"
 #include "termhooks.h"
 #include "blockinput.h"
+#include "pdumper.h"
 #include <c-ctype.h>
 
 #ifdef MSDOS
@@ -1951,7 +1952,7 @@ readevalloop (Lisp_Object readcharfun,
 	     ? Qnil : list1 (Qt)));
 
   /* Try to ensure sourcename is a truename, except whilst preloading.  */
-  if (NILP (Vpurify_flag)
+  if (!will_dump_p ()
       && !NILP (sourcename) && !NILP (Ffile_name_absolute_p (sourcename))
       && !NILP (Ffboundp (Qfile_truename)))
     sourcename = call1 (Qfile_truename, sourcename) ;
@@ -4334,7 +4335,7 @@ OBARRAY defaults to the value of `obarray'.  */)
 #define OBARRAY_SIZE 15121
 
 void
-init_obarray (void)
+init_obarray_once (void)
 {
   Vobarray = Fmake_vector (make_number (OBARRAY_SIZE), make_number (0));
   initial_obarray = Vobarray;
@@ -4355,12 +4356,15 @@ init_obarray (void)
   make_symbol_constant (Qt);
   XSYMBOL (Qt)->u.s.declared_special = true;
 
-  /* Qt is correct even if CANNOT_DUMP.  loadup.el will set to nil at end.  */
+  /* Qt is correct even if not dumping.  loadup.el will set to nil at end.  */
   Vpurify_flag = Qt;
 
   DEFSYM (Qvariable_documentation, "variable-documentation");
 }
+
 
+int ndefsubr;
+
 void
 defsubr (struct Lisp_Subr *sname)
 {
@@ -4369,6 +4373,7 @@ defsubr (struct Lisp_Subr *sname)
   XSETPVECTYPE (sname, PVEC_SUBR);
   XSETSUBR (tem, sname);
   set_symbol_function (sym, tem);
+  ++ndefsubr;
 }
 
 #ifdef NOTDEF /* Use fset in subr.el now!  */
@@ -4486,11 +4491,9 @@ load_path_check (Lisp_Object lpath)
    are running uninstalled.
 
    Uses the following logic:
-   If CANNOT_DUMP:
-     If Vinstallation_directory is not nil (ie, running uninstalled),
-     use PATH_DUMPLOADSEARCH (ie, build path).  Else use PATH_LOADSEARCH.
-   The remainder is what happens when dumping works:
-   If purify-flag (ie dumping) just use PATH_DUMPLOADSEARCH.
+   If !will_dump: Use PATH_LOADSEARCH.
+   The remainder is what happens when dumping is about to happen:
+   If dumping, just use PATH_DUMPLOADSEARCH.
    Otherwise use PATH_LOADSEARCH.
 
    If !initialized, then just return PATH_DUMPLOADSEARCH.
@@ -4513,131 +4516,109 @@ load_path_check (Lisp_Object lpath)
 static Lisp_Object
 load_path_default (void)
 {
+  if (will_dump_p ())
+    /* PATH_DUMPLOADSEARCH is the lisp dir in the source directory.
+       We used to add ../lisp (ie the lisp dir in the build
+       directory) at the front here, but that should not be
+       necessary, since in out of tree builds lisp/ is empty, save
+       for Makefile.  */
+    return decode_env_path (0, PATH_DUMPLOADSEARCH, 0);
+
   Lisp_Object lpath = Qnil;
-  const char *normal;
+  const char *normal = PATH_LOADSEARCH;
+  const char *loadpath = NULL;
 
-#ifdef CANNOT_DUMP
 #ifdef HAVE_NS
-  const char *loadpath = ns_load_path ();
+  loadpath = ns_load_path ();
 #endif
 
-  normal = PATH_LOADSEARCH;
-  if (!NILP (Vinstallation_directory)) normal = PATH_DUMPLOADSEARCH;
-
-#ifdef HAVE_NS
   lpath = decode_env_path (0, loadpath ? loadpath : normal, 0);
-#else
-  lpath = decode_env_path (0, normal, 0);
-#endif
 
-#else  /* !CANNOT_DUMP */
-
-  normal = NILP (Vpurify_flag) ? PATH_LOADSEARCH : PATH_DUMPLOADSEARCH;
-
-  if (initialized)
+  if (!NILP (Vinstallation_directory))
     {
-#ifdef HAVE_NS
-      const char *loadpath = ns_load_path ();
-      lpath = decode_env_path (0, loadpath ? loadpath : normal, 0);
-#else
-      lpath = decode_env_path (0, normal, 0);
-#endif
-      if (!NILP (Vinstallation_directory))
-        {
-          Lisp_Object tem, tem1;
+      Lisp_Object tem, tem1;
 
-          /* Add to the path the lisp subdir of the installation
-             dir, if it is accessible.  Note: in out-of-tree builds,
-             this directory is empty save for Makefile.  */
-          tem = Fexpand_file_name (build_string ("lisp"),
+      /* Add to the path the lisp subdir of the installation
+         dir, if it is accessible.  Note: in out-of-tree builds,
+         this directory is empty save for Makefile.  */
+      tem = Fexpand_file_name (build_string ("lisp"),
+                               Vinstallation_directory);
+      tem1 = Ffile_accessible_directory_p (tem);
+      if (!NILP (tem1))
+        {
+          if (NILP (Fmember (tem, lpath)))
+            {
+              /* We are running uninstalled.  The default load-path
+                 points to the eventual installed lisp directories.
+                 We should not use those now, even if they exist,
+                 so start over from a clean slate.  */
+              lpath = list1 (tem);
+            }
+        }
+      else
+        /* That dir doesn't exist, so add the build-time
+           Lisp dirs instead.  */
+        {
+          Lisp_Object dump_path =
+            decode_env_path (0, PATH_DUMPLOADSEARCH, 0);
+          lpath = nconc2 (lpath, dump_path);
+        }
+
+      /* Add site-lisp under the installation dir, if it exists.  */
+      if (!no_site_lisp)
+        {
+          tem = Fexpand_file_name (build_string ("site-lisp"),
                                    Vinstallation_directory);
           tem1 = Ffile_accessible_directory_p (tem);
           if (!NILP (tem1))
             {
               if (NILP (Fmember (tem, lpath)))
-                {
-                  /* We are running uninstalled.  The default load-path
-                     points to the eventual installed lisp directories.
-                     We should not use those now, even if they exist,
-                     so start over from a clean slate.  */
-                  lpath = list1 (tem);
-                }
+                lpath = Fcons (tem, lpath);
             }
-          else
-            /* That dir doesn't exist, so add the build-time
-               Lisp dirs instead.  */
-            {
-              Lisp_Object dump_path =
-                decode_env_path (0, PATH_DUMPLOADSEARCH, 0);
-              lpath = nconc2 (lpath, dump_path);
-            }
+        }
 
-          /* Add site-lisp under the installation dir, if it exists.  */
-          if (!no_site_lisp)
+      /* If Emacs was not built in the source directory,
+         and it is run from where it was built, add to load-path
+         the lisp and site-lisp dirs under that directory.  */
+
+      if (NILP (Fequal (Vinstallation_directory, Vsource_directory)))
+        {
+          Lisp_Object tem2;
+
+          tem = Fexpand_file_name (build_string ("src/Makefile"),
+                                   Vinstallation_directory);
+          tem1 = Ffile_exists_p (tem);
+
+          /* Don't be fooled if they moved the entire source tree
+             AFTER dumping Emacs.  If the build directory is indeed
+             different from the source dir, src/Makefile.in and
+             src/Makefile will not be found together.  */
+          tem = Fexpand_file_name (build_string ("src/Makefile.in"),
+                                   Vinstallation_directory);
+          tem2 = Ffile_exists_p (tem);
+          if (!NILP (tem1) && NILP (tem2))
             {
-              tem = Fexpand_file_name (build_string ("site-lisp"),
-                                       Vinstallation_directory);
-              tem1 = Ffile_accessible_directory_p (tem);
-              if (!NILP (tem1))
+              tem = Fexpand_file_name (build_string ("lisp"),
+                                       Vsource_directory);
+
+              if (NILP (Fmember (tem, lpath)))
+                lpath = Fcons (tem, lpath);
+
+              if (!no_site_lisp)
                 {
-                  if (NILP (Fmember (tem, lpath)))
-                    lpath = Fcons (tem, lpath);
-                }
-            }
-
-          /* If Emacs was not built in the source directory,
-             and it is run from where it was built, add to load-path
-             the lisp and site-lisp dirs under that directory.  */
-
-          if (NILP (Fequal (Vinstallation_directory, Vsource_directory)))
-            {
-              Lisp_Object tem2;
-
-              tem = Fexpand_file_name (build_string ("src/Makefile"),
-                                       Vinstallation_directory);
-              tem1 = Ffile_exists_p (tem);
-
-              /* Don't be fooled if they moved the entire source tree
-                 AFTER dumping Emacs.  If the build directory is indeed
-                 different from the source dir, src/Makefile.in and
-                 src/Makefile will not be found together.  */
-              tem = Fexpand_file_name (build_string ("src/Makefile.in"),
-                                       Vinstallation_directory);
-              tem2 = Ffile_exists_p (tem);
-              if (!NILP (tem1) && NILP (tem2))
-                {
-                  tem = Fexpand_file_name (build_string ("lisp"),
+                  tem = Fexpand_file_name (build_string ("site-lisp"),
                                            Vsource_directory);
-
-                  if (NILP (Fmember (tem, lpath)))
-                    lpath = Fcons (tem, lpath);
-
-                  if (!no_site_lisp)
+                  tem1 = Ffile_accessible_directory_p (tem);
+                  if (!NILP (tem1))
                     {
-                      tem = Fexpand_file_name (build_string ("site-lisp"),
-                                               Vsource_directory);
-                      tem1 = Ffile_accessible_directory_p (tem);
-                      if (!NILP (tem1))
-                        {
-                          if (NILP (Fmember (tem, lpath)))
-                            lpath = Fcons (tem, lpath);
-                        }
+                      if (NILP (Fmember (tem, lpath)))
+                        lpath = Fcons (tem, lpath);
                     }
                 }
-            } /* Vinstallation_directory != Vsource_directory */
+            }
+        } /* Vinstallation_directory != Vsource_directory */
 
-        } /* if Vinstallation_directory */
-    }
-  else                          /* !initialized */
-    {
-      /* NORMAL refers to PATH_DUMPLOADSEARCH, ie the lisp dir in the
-         source directory.  We used to add ../lisp (ie the lisp dir in
-         the build directory) at the front here, but that should not
-         be necessary, since in out of tree builds lisp/ is empty, save
-         for Makefile.  */
-      lpath = decode_env_path (0, normal, 0);
-    }
-#endif /* !CANNOT_DUMP */
+    } /* if Vinstallation_directory */
 
   return lpath;
 }
@@ -4651,11 +4632,7 @@ init_lread (void)
   /* First, set Vload_path.  */
 
   /* Ignore EMACSLOADPATH when dumping.  */
-#ifdef CANNOT_DUMP
-  bool use_loadpath = true;
-#else
-  bool use_loadpath = NILP (Vpurify_flag);
-#endif
+  bool use_loadpath = !will_dump_p ();
 
   if (use_loadpath && egetenv ("EMACSLOADPATH"))
     {
@@ -4706,7 +4683,7 @@ init_lread (void)
       load_path_check (Vload_path);
 
       /* Add the site-lisp directories at the front.  */
-      if (initialized && !no_site_lisp && PATH_SITELOADSEARCH[0] != '\0')
+      if (!will_dump_p () && !no_site_lisp && PATH_SITELOADSEARCH[0] != '\0')
         {
           Lisp_Object sitelisp;
           sitelisp = decode_env_path (0, PATH_SITELOADSEARCH, 0);

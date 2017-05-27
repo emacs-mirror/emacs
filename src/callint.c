@@ -836,7 +836,8 @@ syms_of_callint (void)
 			 intern_c_string ("region-beginning"),
 			 intern_c_string ("region-end"),
 			 intern_c_string ("point"),
-			 intern_c_string ("mark"));
+                         intern_c_string ("mark"));
+  staticpro (&preserved_fns);
 
   DEFSYM (Qlist, "list");
   DEFSYM (Qlet, "let");

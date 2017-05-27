@@ -1313,7 +1313,7 @@ Setup char-width-table appropriate for non-CJK language environment."
 
 
 ;; Setting char-script-table.
-(if purify-flag
+(if dump-mode
     ;; While dumping, we can't use require, and international is not
     ;; in load-path.
     (load "international/charscript")

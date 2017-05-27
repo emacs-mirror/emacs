@@ -25,6 +25,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "gnutls.h"
 #include "coding.h"
 #include "buffer.h"
+#include "pdumper.h"
 
 #if GNUTLS_VERSION_NUMBER >= 0x030014
 # define HAVE_GNUTLS_X509_SYSTEM_TRUST
@@ -2507,6 +2508,7 @@ syms_of_gnutls (void)
         );
 #ifdef HAVE_GNUTLS
   gnutls_global_initialized = 0;
+  PDUMPER_IGNORE (gnutls_global_initialized);
 
   DEFSYM (Qgnutls_code, "gnutls-code");
   DEFSYM (Qgnutls_anon, "gnutls-anon");

@@ -138,6 +138,10 @@ int _cdecl _spawnlp (int, const char *, const char *, ...);
 /* Declare here, including term.h is problematic on some systems.  */
 extern void tputs (const char *, int, int (*)(int));
 
+/* Set to true when we've arranged for SIGSEGV to get special
+   handling.  */
+bool sigsegv_handled_specially;
+
 static const int baud_convert[] =
   {
     0, 50, 75, 110, 135, 150, 200, 300, 600, 1200,
@@ -1869,9 +1873,12 @@ handle_sigsegv (int sig, siginfo_t *siginfo, void *arg)
 /* Return true if we have successfully set up SIGSEGV handler on alternate
    stack.  Otherwise we just treat SIGSEGV among the rest of fatal signals.  */
 
-static bool
+bool
 init_sigsegv (void)
 {
+  if (sigsegv_handled_specially)
+    return true;
+
   struct sigaction sa;
   stack_t ss;
 
@@ -1884,7 +1891,11 @@ init_sigsegv (void)
   sigfillset (&sa.sa_mask);
   sa.sa_sigaction = handle_sigsegv;
   sa.sa_flags = SA_SIGINFO | SA_ONSTACK | emacs_sigaction_flags ();
-  return sigaction (SIGSEGV, &sa, NULL) < 0 ? 0 : 1;
+  if (sigaction (SIGSEGV, &sa, NULL) < 0)
+    return 0;
+
+  sigsegv_handled_specially = true;
+  return 1;
 }
 
 #else /* not HAVE_STACK_OVERFLOW_HANDLING or WINDOWSNT */
@@ -1939,7 +1950,7 @@ maybe_fatal_sig (int sig)
 }
 
 void
-init_signals (bool dumping)
+init_signals (void)
 {
   struct sigaction thread_fatal_action;
   struct sigaction action;
@@ -2090,7 +2101,7 @@ init_signals (bool dumping)
   /* Don't alter signal handlers if dumping.  On some machines,
      changing signal handlers sets static data that would make signals
      fail to work right when the dumped Emacs is run.  */
-  if (dumping)
+  if (will_dump_p ())
     return;
 
   sigfillset (&process_fatal_action.sa_mask);
@@ -2138,7 +2149,7 @@ init_signals (bool dumping)
 #ifdef SIGUSR2
   add_user_signal (SIGUSR2, "sigusr2");
 #endif
-  sigaction (SIGABRT, &thread_fatal_action, 0);
+  //sigaction (SIGABRT, &thread_fatal_action, 0);
 #ifdef SIGPRE
   sigaction (SIGPRE, &thread_fatal_action, 0);
 #endif

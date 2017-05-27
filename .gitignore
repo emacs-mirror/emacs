@@ -170,6 +170,7 @@ lib-src/emacsclient
 lib-src/etags
 lib-src/hexl
 lib-src/make-docfile
+lib-src/make-fingerprint
 lib-src/movemail
 lib-src/profile
 lib-src/test-distrib
@@ -183,6 +184,9 @@ src/bootstrap-emacs
 src/emacs
 src/emacs-[0-9]*
 src/temacs
+src/temacs.in
+src/fingerprint.c
+src/*.pdmp
 
 # Character-set info.
 admin/charsets/jisx2131-filter

@@ -118,17 +118,15 @@ get_doc_string (Lisp_Object filepos, bool unibyte, bool definition)
   Lisp_Object docdir
     = NILP (tem) ? ENCODE_FILE (Vdoc_directory) : empty_unibyte_string;
   ptrdiff_t docdir_sizemax = SBYTES (docdir) + 1;
-#ifndef CANNOT_DUMP
-  docdir_sizemax = max (docdir_sizemax, sizeof sibling_etc);
-#endif
+  if (will_dump_p ())
+    docdir_sizemax = max (docdir_sizemax, sizeof sibling_etc);
   name = SAFE_ALLOCA (docdir_sizemax + SBYTES (file));
   lispstpcpy (lispstpcpy (name, docdir), file);
 
   fd = emacs_open (name, O_RDONLY, 0);
   if (fd < 0)
     {
-#ifndef CANNOT_DUMP
-      if (!NILP (Vpurify_flag))
+      if (will_dump_p ())
 	{
 	  /* Preparing to dump; DOC file is probably not installed.
 	     So check in ../etc.  */
@@ -136,7 +134,6 @@ get_doc_string (Lisp_Object filepos, bool unibyte, bool definition)
 
 	  fd = emacs_open (name, O_RDONLY, 0);
 	}
-#endif
       if (fd < 0)
 	{
 	  if (errno == EMFILE || errno == ENFILE)
@@ -548,12 +545,7 @@ the same file name is found in the `doc-directory'.  */)
 
   CHECK_STRING (filename);
 
-  if
-#ifndef CANNOT_DUMP
-    (!NILP (Vpurify_flag))
-#else /* CANNOT_DUMP */
-      (0)
-#endif /* CANNOT_DUMP */
+  if (will_dump_p ())
     {
       dirname = sibling_etc;
       dirlen = sizeof sibling_etc - 1;

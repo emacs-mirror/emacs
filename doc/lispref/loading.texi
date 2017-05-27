@@ -303,10 +303,7 @@ executable that has not been formally installed---Emacs instead
 initializes @code{load-path} using the @file{lisp}
 directory in the directory containing the sources from which it
 was built.
-@c Though there should be no *.el files in builddir/lisp, so it's pointless.
-If you built Emacs in a separate directory from the
-sources, it also adds the lisp directories from the build directory.
-(In all cases, elements are represented as absolute file names.)
+Elements are represented as absolute file names.
 
 @cindex site-lisp directories
 Unless you start Emacs with the @option{--no-site-lisp} option,
@@ -329,9 +326,9 @@ and
 The first one is for locally installed files for a specific Emacs
 version; the second is for locally installed files meant for use
 with all installed Emacs versions.  (If Emacs is running uninstalled,
-it also adds @file{site-lisp} directories from the source and build
-directories, if they exist.  Normally these directories do not contain
-@file{site-lisp} directories.)
+it also adds @file{site-lisp} directories from the source
+directory.  Normally this directory does not contain a
+@file{site-lisp} directory.)
 
 @cindex @env{EMACSLOADPATH} environment variable
 If the environment variable @env{EMACSLOADPATH} is set, it modifies

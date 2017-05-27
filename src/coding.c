@@ -298,6 +298,7 @@ encode_coding_XXX (struct coding_system *coding)
 #include "composite.h"
 #include "coding.h"
 #include "termhooks.h"
+#include "pdumper.h"
 
 Lisp_Object Vcoding_system_hash_table;
 
@@ -10784,6 +10785,9 @@ init_coding_once (void)
       coding_priorities[i] = i;
     }
 
+  PDUMPER_REMEMBER_SCALAR (coding_categories);
+  PDUMPER_REMEMBER_SCALAR (coding_priorities);
+
   /* ISO2022 specific initialize routine.  */
   for (i = 0; i < 0x20; i++)
     iso_code_class[i] = ISO_control_0;
@@ -10803,6 +10807,8 @@ init_coding_once (void)
   iso_code_class[ISO_CODE_SS3] = ISO_single_shift_3;
   iso_code_class[ISO_CODE_CSI] = ISO_control_sequence_introducer;
 
+  PDUMPER_REMEMBER_SCALAR (iso_code_class);
+
   for (i = 0; i < 256; i++)
     {
       emacs_mule_bytes[i] = 1;
@@ -10811,6 +10817,8 @@ init_coding_once (void)
   emacs_mule_bytes[EMACS_MULE_LEADING_CODE_PRIVATE_12] = 3;
   emacs_mule_bytes[EMACS_MULE_LEADING_CODE_PRIVATE_21] = 4;
   emacs_mule_bytes[EMACS_MULE_LEADING_CODE_PRIVATE_22] = 4;
+
+  PDUMPER_REMEMBER_SCALAR (emacs_mule_bytes);
 }
 
 #ifdef emacs
@@ -10834,6 +10842,7 @@ syms_of_coding (void)
   Vcode_conversion_workbuf_name = build_pure_c_string (" *code-conversion-work*");
 
   reused_workbuf_in_use = 0;
+  PDUMPER_REMEMBER_SCALAR (reused_workbuf_in_use);
 
   DEFSYM (Qcharset, "charset");
   DEFSYM (Qtarget_idx, "target-idx");

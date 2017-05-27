@@ -1405,10 +1405,11 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	       search as the jump table.  */
             Lisp_Object jmp_table = POP;
 	    if (BYTE_CODE_SAFE && !HASH_TABLE_P (jmp_table))
-	      emacs_abort ();
+              emacs_abort ();
             Lisp_Object v1 = POP;
             ptrdiff_t i;
             struct Lisp_Hash_Table *h = XHASH_TABLE (jmp_table);
+            hash_rehash_if_needed (h);
 
             /* h->count is a faster approximation for HASH_TABLE_SIZE (h)
                here. */

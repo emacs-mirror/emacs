@@ -343,7 +343,7 @@ Return t if file exists."
 	    ;; Have the original buffer current while we eval.
 	    (eval-buffer buffer nil
 			 ;; This is compatible with what `load' does.
-			 (if purify-flag file fullname)
+                         (if dump-mode file fullname)
 			 nil t))
 	(let (kill-buffer-hook kill-buffer-query-functions)
 	  (kill-buffer buffer)))

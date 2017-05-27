@@ -36,6 +36,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "composite.h"
 #include "font.h"
 #include "w32font.h"
+#include "pdumper.h"
 
 struct uniscribe_font_info
 {
@@ -1175,8 +1176,16 @@ struct font_driver uniscribe_font_driver =
    as it needs to test for the existence of the Uniscribe library.  */
 void syms_of_w32uniscribe (void);
 
+static void syms_of_w32uniscribe_for_pdumper (void);
+
 void
 syms_of_w32uniscribe (void)
+{
+  pdumper_do_now_and_after_load (syms_of_w32uniscribe_for_pdumper);
+}
+
+static void
+syms_of_w32uniscribe_for_pdumper (void)
 {
   HMODULE uniscribe;
 

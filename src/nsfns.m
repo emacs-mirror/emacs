@@ -49,7 +49,6 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 #include "macfont.h"
 #endif
 
-
 #ifdef HAVE_NS
 
 static EmacsTooltip *ns_tooltip = nil;
@@ -3197,6 +3196,11 @@ handlePanelKeys (NSSavePanel *panel, NSEvent *theEvent)
 
    ========================================================================== */
 
+static void
+syms_of_nsfns_1 (void)
+{
+
+}
 
 void
 syms_of_nsfns (void)
@@ -3287,5 +3291,6 @@ Default is t.  */);
 
   as_status = 0;
   as_script = Qnil;
+  staticpro (&as_script);
   as_result = 0;
 }

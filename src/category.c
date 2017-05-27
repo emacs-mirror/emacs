@@ -42,15 +42,6 @@ bset_category_table (struct buffer *b, Lisp_Object val)
   b->category_table_ = val;
 }
 
-/* The version number of the latest category table.  Each category
-   table has a unique version number.  It is assigned a new number
-   also when it is modified.  When a regular expression is compiled
-   into the struct re_pattern_buffer, the version number of the
-   category table (of the current buffer) at that moment is also
-   embedded in the structure.
-
-   For the moment, we are not using this feature.  */
-static int category_table_version;
 
 /* Category set staff.  */
 
@@ -513,6 +504,4 @@ See the documentation of the variable `word-combining-categories'.  */);
   defsubr (&Schar_category_set);
   defsubr (&Scategory_set_mnemonics);
   defsubr (&Smodify_category_entry);
-
-  category_table_version = 0;
 }

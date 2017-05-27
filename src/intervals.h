@@ -29,7 +29,6 @@ INLINE_HEADER_BEGIN
 struct interval
 {
   /* The first group of entries deal with the tree structure.  */
-
   ptrdiff_t total_length;       /* Length of myself and both children.  */
   ptrdiff_t position;	        /* Cache of interval's character position.  */
 				/* This field is usually updated

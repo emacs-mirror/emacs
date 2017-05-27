@@ -25,8 +25,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "process.h"
 #include "coding.h"
 #include "syssignal.h"
+#include "pdumper.h"
 
-static struct thread_state main_thread;
+struct thread_state main_thread;
 
 struct thread_state *current_thread = &main_thread;
 
@@ -1007,13 +1008,33 @@ init_main_thread (void)
   main_thread.header.size
     = PSEUDOVECSIZE (struct thread_state, m_stack_bottom);
   XSETPVECTYPE (&main_thread, PVEC_THREAD);
+  PDUMPER_REMEMBER_SCALAR (main_thread.header);
+
+  /* The staticpro here tells pdumper to record these fields.
+     The extra GC visitation doesn't hurt: the staticpro-root-ness of
+     these fields becomes a no-op after mark_threads(), or vice versa,
+     depending on which one gets called first.  */
+
   main_thread.m_last_thing_searched = Qnil;
+  staticpro (&main_thread.m_last_thing_searched);
+
   main_thread.m_saved_last_thing_searched = Qnil;
+  staticpro (&main_thread.m_saved_last_thing_searched);
+
   main_thread.name = Qnil;
+  staticpro (&main_thread.name);
+
   main_thread.function = Qnil;
+  staticpro (&main_thread.function);
+
   main_thread.error_symbol = Qnil;
+  staticpro (&main_thread.error_symbol);
+
   main_thread.error_data = Qnil;
+  staticpro (&main_thread.error_data);
+
   main_thread.event_object = Qnil;
+  staticpro (&main_thread.event_object);
 }
 
 bool
