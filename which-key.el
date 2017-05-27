@@ -2056,34 +2056,36 @@ after first page."
 `which-key-C-h-map'. This command is always accessible (from any
 prefix) if `which-key-use-C-h-commands' is non nil."
   (interactive)
-  (let* ((prefix-keys (key-description which-key--current-prefix))
-         (full-prefix (which-key--full-prefix prefix-keys current-prefix-arg t))
-         (prompt (concat (when (string-equal prefix-keys "")
+  (if (not (which-key--popup-showing-p))
+      (which-key-show-standard-help)
+    (let* ((prefix-keys (key-description which-key--current-prefix))
+           (full-prefix (which-key--full-prefix prefix-keys current-prefix-arg t))
+           (prompt (concat (when (string-equal prefix-keys "")
+                             (propertize
+                              (concat " "
+                                      (or which-key--current-show-keymap-name
+                                          "Top-level bindings"))
+                              'face 'which-key-note-face))
+                           full-prefix
                            (propertize
-                            (concat " "
-                                    (or which-key--current-show-keymap-name
-                                        "Top-level bindings"))
-                            'face 'which-key-note-face))
-                         full-prefix
-                         (propertize
-                          (substitute-command-keys
-                           (concat
-                            " \\<which-key-C-h-map>"
-                            " \\[which-key-show-next-page-cycle]"
-                            which-key-separator "next-page,"
-                            " \\[which-key-show-previous-page-cycle]"
-                            which-key-separator "previous-page,"
-                            " \\[which-key-undo-key]"
-                            which-key-separator "undo-key,"
-                            " \\[which-key-show-standard-help]"
-                            which-key-separator "help,"
-                            " \\[which-key-abort]"
-                            which-key-separator "abort"))
-                          'face 'which-key-note-face)))
-         (key (string (read-key prompt)))
-         (cmd (lookup-key which-key-C-h-map key))
-         (which-key-inhibit t))
-    (if cmd (funcall cmd) (which-key-turn-page 0))))
+                            (substitute-command-keys
+                             (concat
+                              " \\<which-key-C-h-map>"
+                              " \\[which-key-show-next-page-cycle]"
+                              which-key-separator "next-page,"
+                              " \\[which-key-show-previous-page-cycle]"
+                              which-key-separator "previous-page,"
+                              " \\[which-key-undo-key]"
+                              which-key-separator "undo-key,"
+                              " \\[which-key-show-standard-help]"
+                              which-key-separator "help,"
+                              " \\[which-key-abort]"
+                              which-key-separator "abort"))
+                            'face 'which-key-note-face)))
+           (key (string (read-key prompt)))
+           (cmd (lookup-key which-key-C-h-map key))
+           (which-key-inhibit t))
+      (if cmd (funcall cmd) (which-key-turn-page 0)))))
 
 ;;; Update
 
