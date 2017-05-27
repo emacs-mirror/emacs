@@ -654,6 +654,8 @@ Lisp_Object
 composition_gstring_put_cache (Lisp_Object gstring, ptrdiff_t len)
 {
   struct Lisp_Hash_Table *h = XHASH_TABLE (gstring_hash_table);
+  hash_rehash_if_needed (h);
+
   EMACS_UINT hash;
   Lisp_Object header, copy;
   ptrdiff_t i;

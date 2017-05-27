@@ -2777,7 +2777,7 @@ suppressed.  */)
 
       /* This is to make sure that loadup.el gives a clear picture
 	 of what files are preloaded and when.  */
-      if (! NILP (Vpurify_flag))
+      if (will_dump_p () && !will_bootstrap_p ())
 	error ("(require %s) while preparing to dump",
 	       SDATA (SYMBOL_NAME (feature)));
 
@@ -3477,10 +3477,6 @@ base64_decode_1 (const char *from, char *to, ptrdiff_t length,
    if a `:linear-search t' argument is given to make-hash-table.  */
 
 
-/* The list of all weak hash tables.  Don't staticpro this one.  */
-
-static struct Lisp_Hash_Table *weak_hash_tables;
-
 
 /***********************************************************************
 			       Utilities
@@ -3694,7 +3690,7 @@ hashfn_eq (struct hash_table_test *ht, Lisp_Object key)
    `equal' to compare keys.  The hash code returned is guaranteed to fit
    in a Lisp integer.  */
 
-static EMACS_UINT
+EMACS_UINT
 hashfn_equal (struct hash_table_test *ht, Lisp_Object key)
 {
   return sxhash (key, 0);
@@ -3704,7 +3700,7 @@ hashfn_equal (struct hash_table_test *ht, Lisp_Object key)
    `eql' to compare keys.  The hash code returned is guaranteed to fit
    in a Lisp integer.  */
 
-static EMACS_UINT
+EMACS_UINT
 hashfn_eql (struct hash_table_test *ht, Lisp_Object key)
 {
   return FLOATP (key) ? hashfn_equal (ht, key) : hashfn_eq (ht, key);
@@ -3810,6 +3806,7 @@ make_hash_table (struct hash_table_test test, EMACS_INT size,
   h->hash = Fmake_vector (make_number (size), Qnil);
   h->next = Fmake_vector (make_number (size), make_number (-1));
   h->index = Fmake_vector (make_number (index_size), make_number (-1));
+  h->next_weak = NULL;
   h->pure = pure;
 
   /* Set up the free list.  */
@@ -3820,13 +3817,6 @@ make_hash_table (struct hash_table_test test, EMACS_INT size,
   XSET_HASH_TABLE (table, h);
   eassert (HASH_TABLE_P (table));
   eassert (XHASH_TABLE (table) == h);
-
-  /* Maybe add this hash table to the list of all weak hash tables.  */
-  if (! NILP (weak))
-    {
-      h->next_weak = weak_hash_tables;
-      weak_hash_tables = h;
-    }
 
   return table;
 }
@@ -3848,13 +3838,6 @@ copy_hash_table (struct Lisp_Hash_Table *h1)
   h2->next = Fcopy_sequence (h1->next);
   h2->index = Fcopy_sequence (h1->index);
   XSET_HASH_TABLE (table, h2);
-
-  /* Maybe add this hash table to the list of all weak hash tables.  */
-  if (!NILP (h2->weak))
-    {
-      h2->next_weak = h1->next_weak;
-      h1->next_weak = h2;
-    }
 
   return table;
 }
@@ -3942,6 +3925,43 @@ maybe_resize_hash_table (struct Lisp_Hash_Table *h)
     }
 }
 
+void
+hash_table_rehash (struct Lisp_Hash_Table *h)
+{
+  ptrdiff_t size = HASH_TABLE_SIZE (h);
+
+  /* Recompute the actual hash codes for each entry in the table.
+     Order is still invalid.  */
+  for (ptrdiff_t i = 0; i < size; ++i)
+    if (!NILP (HASH_HASH (h, i)))
+      {
+        Lisp_Object key = HASH_KEY (h, i);
+        EMACS_UINT hash_code = h->test.hashfn (&h->test, key);
+        set_hash_hash_slot (h, i, make_number (hash_code));
+      }
+
+  /* Reset the index so that any slot we don't fill below is marked
+     invalid.  */
+  Ffillarray (h->index, make_number (-1));
+
+  /* Rebuild the collision chains.  */
+  for (ptrdiff_t i = 0; i < size; ++i)
+    if (!NILP (HASH_HASH (h, i)))
+      {
+        EMACS_UINT hash_code = XUINT (HASH_HASH (h, i));
+        ptrdiff_t start_of_bucket = hash_code % ASIZE (h->index);
+        set_hash_next_slot (h, i, HASH_INDEX (h, start_of_bucket));
+        set_hash_index_slot (h, start_of_bucket, i);
+        eassert (HASH_NEXT (h, i) != i); /* Stop loops.  */
+      }
+
+  /* Finally, mark the hash table as having a valid hash order.
+     Do this last so that if we're interrupted, we retry on next
+     access. */
+  eassert (h->count < 0);
+  h->count = -h->count;
+  eassert (!hash_rehash_needed_p (h));
+}
 
 /* Lookup KEY in hash table H.  If HASH is non-null, return in *HASH
    the hash code of KEY.  Value is the index of the entry in H
@@ -3952,6 +3972,8 @@ hash_lookup (struct Lisp_Hash_Table *h, Lisp_Object key, EMACS_UINT *hash)
 {
   EMACS_UINT hash_code;
   ptrdiff_t start_of_bucket, i;
+
+  hash_rehash_if_needed (h);
 
   hash_code = h->test.hashfn (&h->test, key);
   eassert ((hash_code & ~INTMASK) == 0);
@@ -3980,6 +4002,8 @@ hash_put (struct Lisp_Hash_Table *h, Lisp_Object key, Lisp_Object value,
 	  EMACS_UINT hash)
 {
   ptrdiff_t start_of_bucket, i;
+
+  hash_rehash_if_needed (h);
 
   eassert ((hash & ~INTMASK) == 0);
 
@@ -4013,6 +4037,8 @@ hash_remove_from_table (struct Lisp_Hash_Table *h, Lisp_Object key)
   eassert ((hash_code & ~INTMASK) == 0);
   ptrdiff_t start_of_bucket = hash_code % ASIZE (h->index);
   ptrdiff_t prev = -1;
+
+  hash_rehash_if_needed (h);
 
   for (ptrdiff_t i = HASH_INDEX (h, start_of_bucket);
        0 <= i;
@@ -4082,7 +4108,7 @@ hash_clear (struct Lisp_Hash_Table *h)
    !REMOVE_ENTRIES_P means mark entries that are in use.  Value is
    true if anything was marked.  */
 
-static bool
+bool
 sweep_weak_table (struct Lisp_Hash_Table *h, bool remove_entries_p)
 {
   ptrdiff_t n = gc_asize (h->index);
@@ -4090,12 +4116,14 @@ sweep_weak_table (struct Lisp_Hash_Table *h, bool remove_entries_p)
 
   for (ptrdiff_t bucket = 0; bucket < n; ++bucket)
     {
-      /* Follow collision chain, removing entries that
-	 don't survive this garbage collection.  */
+      /* Follow collision chain, removing entries that don't survive
+         this garbage collection.  It's okay if hash_rehash_needed_p
+         (h) is true, since we're operating entirely on the cached
+         hash values. */
       ptrdiff_t prev = -1;
       ptrdiff_t next;
       for (ptrdiff_t i = HASH_INDEX (h, bucket); 0 <= i; i = next)
-	{
+        {
 	  bool key_known_to_survive_p = survives_gc_p (HASH_KEY (h, i));
 	  bool value_known_to_survive_p = survives_gc_p (HASH_VALUE (h, i));
 	  bool remove_p;
@@ -4130,10 +4158,11 @@ sweep_weak_table (struct Lisp_Hash_Table *h, bool remove_entries_p)
 		  /* Clear key, value, and hash.  */
 		  set_hash_key_slot (h, i, Qnil);
 		  set_hash_value_slot (h, i, Qnil);
-		  set_hash_hash_slot (h, i, Qnil);
+                  set_hash_hash_slot (h, i, Qnil);
 
-		  h->count--;
-		}
+                  eassert (h->count != 0);
+                  h->count += h->count > 0 ? -1 : 1;
+                }
 	      else
 		{
 		  prev = i;
@@ -4147,13 +4176,13 @@ sweep_weak_table (struct Lisp_Hash_Table *h, bool remove_entries_p)
 		  if (!key_known_to_survive_p)
 		    {
 		      mark_object (HASH_KEY (h, i));
-		      marked = 1;
+                      marked = true;
 		    }
 
 		  if (!value_known_to_survive_p)
 		    {
 		      mark_object (HASH_VALUE (h, i));
-		      marked = 1;
+                      marked = true;
 		    }
 		}
 	    }
@@ -4162,55 +4191,6 @@ sweep_weak_table (struct Lisp_Hash_Table *h, bool remove_entries_p)
 
   return marked;
 }
-
-/* Remove elements from weak hash tables that don't survive the
-   current garbage collection.  Remove weak tables that don't survive
-   from Vweak_hash_tables.  Called from gc_sweep.  */
-
-NO_INLINE /* For better stack traces */
-void
-sweep_weak_hash_tables (void)
-{
-  struct Lisp_Hash_Table *h, *used, *next;
-  bool marked;
-
-  /* Mark all keys and values that are in use.  Keep on marking until
-     there is no more change.  This is necessary for cases like
-     value-weak table A containing an entry X -> Y, where Y is used in a
-     key-weak table B, Z -> Y.  If B comes after A in the list of weak
-     tables, X -> Y might be removed from A, although when looking at B
-     one finds that it shouldn't.  */
-  do
-    {
-      marked = 0;
-      for (h = weak_hash_tables; h; h = h->next_weak)
-	{
-	  if (h->header.size & ARRAY_MARK_FLAG)
-	    marked |= sweep_weak_table (h, 0);
-	}
-    }
-  while (marked);
-
-  /* Remove tables and entries that aren't used.  */
-  for (h = weak_hash_tables, used = NULL; h; h = next)
-    {
-      next = h->next_weak;
-
-      if (h->header.size & ARRAY_MARK_FLAG)
-	{
-	  /* TABLE is marked as used.  Sweep its contents.  */
-	  if (h->count > 0)
-	    sweep_weak_table (h, 1);
-
-	  /* Add table to the list of used weak hash tables.  */
-	  h->next_weak = used;
-	  used = h;
-	}
-    }
-
-  weak_hash_tables = used;
-}
-
 
 
 /***********************************************************************
@@ -5112,6 +5092,7 @@ disregarding any coding systems.  If nil, use the current buffer.  */ )
 }
 
 
+
 void
 syms_of_fns (void)
 {

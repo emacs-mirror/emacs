@@ -301,8 +301,10 @@ extern int emacs_setenv_TZ (char const *);
 
 #if 3 <= __GNUC__
 # define ATTRIBUTE_MALLOC __attribute__ ((__malloc__))
+# define ATTRIBUTE_SECTION(name) __attribute__((section (name)))
 #else
 # define ATTRIBUTE_MALLOC
+#define ATTRIBUTE_SECTION(name)
 #endif
 
 #if __has_attribute (alloc_size)

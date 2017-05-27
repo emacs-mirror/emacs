@@ -46,6 +46,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "coding.h"
 #include "termhooks.h"
 #include "font.h"
+#include "pdumper.h"
 
 #ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
@@ -9834,7 +9835,9 @@ void
 syms_of_image (void)
 {
   /* Initialize this only once; it will be reset before dumping.  */
+  /* The portable dumper will just leave it NULL, so no need to reset.  */
   image_types = NULL;
+  PDUMPER_IGNORE (image_types);
 
   /* Must be defined now because we're going to update it below, while
      defining the supported image types.  */

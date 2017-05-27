@@ -21,6 +21,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 #include "syssignal.h"
 #include "systime.h"
+#include "pdumper.h"
 
 /* Return A + B, but return the maximum fixnum if the result would overflow.
    Assume A and B are nonnegative and in fixnum range.  */
@@ -571,6 +572,8 @@ hashfn_profiler (struct hash_table_test *ht, Lisp_Object bt)
     return XHASH (bt);
 }
 
+static void syms_of_profiler_for_pdumper (void);
+
 void
 syms_of_profiler (void)
 {
@@ -609,4 +612,22 @@ to make room for new entries.  */);
   defsubr (&Sprofiler_memory_stop);
   defsubr (&Sprofiler_memory_running_p);
   defsubr (&Sprofiler_memory_log);
+
+  pdumper_do_now_and_after_load (syms_of_profiler_for_pdumper);
+}
+
+static void
+syms_of_profiler_for_pdumper (void)
+{
+  if (dumped_with_pdumper_p ())
+    {
+      cpu_log = Qnil;
+      memory_log = Qnil;
+    }
+  else
+    {
+      eassert (NILP (cpu_log));
+      eassert (NILP (memory_log));
+    }
+
 }

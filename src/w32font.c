@@ -32,6 +32,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "w32.h"
 #endif
 
+#include "pdumper.h"
+
 /* Cleartype available on Windows XP, cleartype_natural from XP SP1.
    The latter does not try to fit cleartype smoothed fonts into the
    same bounding box as the non-antialiased version of the font.
@@ -2623,6 +2625,9 @@ struct font_driver w32font_driver =
 
 /* Initialize state that does not change between invocations. This is only
    called when Emacs is dumped.  */
+
+static void syms_of_w32font_for_pdumper (void);
+
 void
 syms_of_w32font (void)
 {
@@ -2802,6 +2807,12 @@ versions of Windows) characters.  */);
 
   defsubr (&Sx_select_font);
 
+  pdumper_do_now_and_after_load (syms_of_w32font_for_pdumper);
+}
+
+static void
+syms_of_w32font_for_pdumper (void)
+{
   register_font_driver (&w32font_driver, NULL);
 }
 

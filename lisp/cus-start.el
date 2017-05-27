@@ -721,7 +721,7 @@ since it could result in memory overflow and make Emacs crash."
       ;; If this is NOT while dumping Emacs, set up the rest of the
       ;; customization info.  This is the stuff that is not needed
       ;; until someone does M-x customize etc.
-      (unless purify-flag
+      (unless dump-mode
 	;; Add it to the right group(s).
 	(if (listp group)
 	    (dolist (g group)
@@ -744,7 +744,7 @@ since it could result in memory overflow and make Emacs crash."
 ;; Record cus-start as loaded if we have set up all the info that we can.
 ;; Don't record it as loaded if we have only set up the standard values
 ;; and safe/risky properties.
-(unless purify-flag
+(unless dump-mode
   (provide 'cus-start))
 
 ;;; cus-start.el ends here

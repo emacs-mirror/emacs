@@ -585,6 +585,7 @@ init_atimer (void)
   sigaction (SIGALRM, &action, 0);
 
 #ifdef ENABLE_CHECKING
-  defsubr (&Sdebug_timer_check);
+  if (!initialized)
+    defsubr (&Sdebug_timer_check);
 #endif
 }

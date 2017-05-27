@@ -36,6 +36,7 @@ Author: Adrian Robert (arobert@cogsci.ucsd.edu)
 #include "character.h"
 #include "font.h"
 #include "termchar.h"
+#include "pdumper.h"
 
 /* TODO: Drop once we can assume gnustep-gui 0.17.1. */
 #ifdef NS_IMPL_GNUSTEP
@@ -1483,6 +1484,8 @@ ns_dump_glyphstring (struct glyph_string *s)
   fprintf (stderr, "\n");
 }
 
+static void syms_of_nsfont_for_pdumper (void);
+
 struct font_driver const nsfont_driver =
   {
   .type = LISPSYM_INITIALLY (Qns),
@@ -1502,13 +1505,17 @@ struct font_driver const nsfont_driver =
 void
 syms_of_nsfont (void)
 {
-  register_font_driver (&nsfont_driver, NULL);
   DEFSYM (Qcondensed, "condensed");
   DEFSYM (Qexpanded, "expanded");
   DEFSYM (Qapple, "apple");
   DEFSYM (Qmedium, "medium");
   DEFVAR_LISP ("ns-reg-to-script", Vns_reg_to_script,
                doc: /* Internal use: maps font registry to Unicode script. */);
+  pdumper_do_now_and_after_load (syms_of_nsfont_for_pdumper);
+}
 
-  ascii_printable = NULL;
+static void
+syms_of_nsfont_for_pdumper (void)
+{
+  register_font_driver (&nsfont_driver, NULL);
 }

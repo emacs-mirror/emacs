@@ -30,6 +30,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "buffer.h"
 #include "blockinput.h"
 #include "termhooks.h"
+#include "pdumper.h"
 
 /* Fringe bitmaps are represented in three different ways:
 
@@ -1741,12 +1742,18 @@ mark_fringe_data (void)
 
 /* Initialize this module when Emacs starts.  */
 
+static void init_fringe_once_for_pdumper (void);
+
 void
 init_fringe_once (void)
 {
-  int bt;
+  pdumper_do_now_and_after_load (init_fringe_once_for_pdumper);
+}
 
-  for (bt = NO_FRINGE_BITMAP + 1; bt < MAX_STANDARD_FRINGE_BITMAPS; bt++)
+static void
+init_fringe_once_for_pdumper (void)
+{
+  for (int bt = NO_FRINGE_BITMAP + 1; bt < MAX_STANDARD_FRINGE_BITMAPS; bt++)
     init_fringe_bitmap (bt, &standard_bitmaps[bt], 1);
 }
 

@@ -29,6 +29,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "region-cache.h"
 #include "blockinput.h"
 #include "intervals.h"
+#include "pdumper.h"
 
 #include "regex.h"
 
@@ -3357,25 +3358,18 @@ the buffer.  If the buffer doesn't have a cache, the value is nil.  */)
   return val;
 }
 
+
+static void syms_of_search_for_pdumper (void);
+
 void
 syms_of_search (void)
 {
-  register int i;
-
-  for (i = 0; i < REGEXP_CACHE_SIZE; ++i)
+  for (int i = 0; i < REGEXP_CACHE_SIZE; ++i)
     {
-      searchbufs[i].buf.allocated = 100;
-      searchbufs[i].buf.buffer = xmalloc (100);
-      searchbufs[i].buf.fastmap = searchbufs[i].fastmap;
-      searchbufs[i].regexp = Qnil;
-      searchbufs[i].f_whitespace_regexp = Qnil;
-      searchbufs[i].syntax_table = Qnil;
       staticpro (&searchbufs[i].regexp);
       staticpro (&searchbufs[i].f_whitespace_regexp);
       staticpro (&searchbufs[i].syntax_table);
-      searchbufs[i].next = (i == REGEXP_CACHE_SIZE-1 ? 0 : &searchbufs[i+1]);
     }
-  searchbuf_head = &searchbufs[0];
 
   /* Error condition used for failing searches.  */
   DEFSYM (Qsearch_failed, "search-failed");
@@ -3443,4 +3437,22 @@ is to bind it with `let' around a small expression.  */);
   defsubr (&Sset_match_data);
   defsubr (&Sregexp_quote);
   defsubr (&Snewline_cache_check);
+
+  pdumper_do_now_and_after_load (syms_of_search_for_pdumper);
+}
+
+static void
+syms_of_search_for_pdumper (void)
+{
+  for (int i = 0; i < REGEXP_CACHE_SIZE; ++i)
+    {
+      searchbufs[i].buf.allocated = 100;
+      searchbufs[i].buf.buffer = xmalloc (100);
+      searchbufs[i].buf.fastmap = searchbufs[i].fastmap;
+      searchbufs[i].regexp = Qnil;
+      searchbufs[i].f_whitespace_regexp = Qnil;
+      searchbufs[i].syntax_table = Qnil;
+      searchbufs[i].next = (i == REGEXP_CACHE_SIZE-1 ? 0 : &searchbufs[i+1]);
+    }
+  searchbuf_head = &searchbufs[0];
 }

@@ -35,6 +35,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "blockinput.h"
 #include "termhooks.h"
 #include "keyboard.h"
+#include "pdumper.h"
 
 #include <X11/Xproto.h>
 
@@ -2620,6 +2621,9 @@ x_send_client_event (Lisp_Object display, Lisp_Object dest, Lisp_Object from,
 }
 
 
+
+static void syms_of_xselect_for_pdumper (void);
+
 void
 syms_of_xselect (void)
 {
@@ -2635,16 +2639,8 @@ syms_of_xselect (void)
 
   reading_selection_reply = Fcons (Qnil, Qnil);
   staticpro (&reading_selection_reply);
-  reading_selection_window = 0;
-  reading_which_selection = 0;
 
-  property_change_wait_list = 0;
-  prop_location_identifier = 0;
-  property_change_reply = Fcons (Qnil, Qnil);
   staticpro (&property_change_reply);
-
-  converted_selections = NULL;
-  conversion_fail_tag = None;
 
   /* FIXME: Duplicate definition in nsselect.c.  */
   DEFVAR_LISP ("selection-converter-alist", Vselection_converter_alist,
@@ -2724,4 +2720,18 @@ A value of 0 means wait as long as necessary.  This is initialized from the
   DEFSYM (Qforeign_selection, "foreign-selection");
   DEFSYM (Qx_lost_selection_functions, "x-lost-selection-functions");
   DEFSYM (Qx_sent_selection_functions, "x-sent-selection-functions");
+
+  pdumper_do_now_and_after_load (syms_of_xselect_for_pdumper);
+}
+
+static void
+syms_of_xselect_for_pdumper (void)
+{
+  reading_selection_window = 0;
+  reading_which_selection = 0;
+  property_change_wait_list = 0;
+  prop_location_identifier = 0;
+  property_change_reply = Fcons (Qnil, Qnil);
+  converted_selections = NULL;
+  conversion_fail_tag = None;
 }

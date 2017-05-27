@@ -2340,11 +2340,10 @@ inherits it if NONSTICKINESS is nil.  The `front-sticky' and
   Vtext_property_default_nonsticky
     = list2 (Fcons (Qsyntax_table, Qt), Fcons (Qdisplay, Qt));
 
-  staticpro (&interval_insert_behind_hooks);
-  staticpro (&interval_insert_in_front_hooks);
   interval_insert_behind_hooks = Qnil;
   interval_insert_in_front_hooks = Qnil;
-
+  staticpro (&interval_insert_behind_hooks);
+  staticpro (&interval_insert_in_front_hooks);
 
   /* Common attributes one might give text.  */
 

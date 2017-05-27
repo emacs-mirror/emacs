@@ -37,6 +37,7 @@ Carbon version by Yamamoto Mitsuharu. */
 #include "termhooks.h"
 #include "keyboard.h"
 #include "menu.h"
+#include "pdumper.h"
 
 #define NSMENUPROFILE 0
 
@@ -1893,6 +1894,7 @@ syms_of_nsmenu (void)
   /* Don't know how to keep track of this in Next/Open/GNUstep.  Always
      update menus there.  */
   trackingMenu = 1;
+  PDUMPER_REMEMBER_SCALAR (trackingMenu);
 #endif
   defsubr (&Sns_reset_menu);
   defsubr (&Smenu_or_popup_active_p);

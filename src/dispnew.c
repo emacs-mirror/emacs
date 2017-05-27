@@ -42,6 +42,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "systime.h"
 #include "tparam.h"
 #include "xwidget.h"
+#include "pdumper.h"
 
 #ifdef HAVE_WINDOW_SYSTEM
 #include TERM_HEADER
@@ -6001,9 +6002,7 @@ init_display (void)
      with.  Otherwise newly opened tty frames will not resize
      automatically. */
 #ifdef SIGWINCH
-#ifndef CANNOT_DUMP
-  if (initialized)
-#endif /* CANNOT_DUMP */
+  if (!will_dump_p ())
     {
       struct sigaction action;
       emacs_sigaction_init (&action, deliver_window_change_signal);
@@ -6067,11 +6066,7 @@ init_display (void)
 #endif /* HAVE_NTGUI */
 
 #ifdef HAVE_NS
-  if (!inhibit_window_system
-#ifndef CANNOT_DUMP
-     && initialized
-#endif
-      )
+  if (!inhibit_window_system && !will_dump)
     {
       Vinitial_window_system = Qns;
       Vwindow_system_version = make_number (10);
@@ -6159,10 +6154,8 @@ init_display (void)
 
   calculate_costs (XFRAME (selected_frame));
 
-  /* Set up faces of the initial terminal frame of a dumped Emacs.  */
-  if (initialized
-      && !noninteractive
-      && NILP (Vinitial_window_system))
+  /* Set up faces of the initial terminal frame.  */
+  if (!noninteractive && NILP (Vinitial_window_system))
     {
       /* For the initial frame, we don't have any way of knowing what
 	 are the foreground and background colors of the terminal.  */
@@ -6208,6 +6201,8 @@ WINDOW nil or omitted means report on the selected window.  */)
 /***********************************************************************
 			    Initialization
  ***********************************************************************/
+
+static void syms_of_display_for_pdumper (void);
 
 void
 syms_of_display (void)
@@ -6316,11 +6311,12 @@ See `buffer-display-table' for more information.  */);
      beginning of the next redisplay).  */
   redisplay_dont_pause = true;
 
-#ifdef CANNOT_DUMP
-  if (noninteractive)
-#endif
-    {
-      Vinitial_window_system = Qnil;
-      Vwindow_system_version = Qnil;
-    }
+  pdumper_do_now_and_after_load (syms_of_display_for_pdumper);
+}
+
+static void
+syms_of_display_for_pdumper (void)
+{
+  Vinitial_window_system = Qnil;
+  Vwindow_system_version = Qnil;
 }

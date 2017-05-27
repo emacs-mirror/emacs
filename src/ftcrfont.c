@@ -26,6 +26,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "blockinput.h"
 #include "font.h"
 #include "ftfont.h"
+#include "pdumper.h"
 
 /* FTCR font driver.  */
 
@@ -278,6 +279,8 @@ ftcrfont_draw (struct glyph_string *s,
 
 
 
+static void syms_of_ftcrfont_for_pdumper (void);
+
 struct font_driver const ftcrfont_driver =
   {
   .type = LISPSYM_INITIALLY (Qftcr),
@@ -313,5 +316,11 @@ syms_of_ftcrfont (void)
     abort ();
 
   DEFSYM (Qftcr, "ftcr");
+  pdumper_do_now_and_after_load (syms_of_ftcrfont_for_pdumper);
+}
+
+static void
+syms_of_ftcrfont_for_pdumper (void)
+{
   register_font_driver (&ftcrfont_driver, NULL);
 }

@@ -1598,9 +1598,7 @@ init_callproc (void)
 	}
     }
 
-#ifndef CANNOT_DUMP
-  if (initialized)
-#endif
+  if (!will_dump_p ())
     {
       tempdir = Fdirectory_file_name (Vexec_directory);
       if (! file_accessible_directory_p (tempdir))

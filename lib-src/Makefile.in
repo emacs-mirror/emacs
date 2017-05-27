@@ -167,7 +167,7 @@ UTILITIES = profile${EXEEXT} hexl${EXEEXT} \
 	    $(if $(with_mailutils), , movemail${EXEEXT}) \
             $(and $(use_gamedir), update-game-score${EXEEXT})
 
-DONT_INSTALL= make-docfile${EXEEXT}
+DONT_INSTALL= make-docfile${EXEEXT} make-fingerprint${EXEEXT}
 
 # Like UTILITIES, but they're not system-dependent, and should not be
 #  deleted by the distclean target.
@@ -389,6 +389,9 @@ profile${EXEEXT}: ${srcdir}/profile.c $(NTLIB) $(config_h)
 	  $(NTLIB) $(LOADLIBES) $(LIB_CLOCK_GETTIME) -o $@
 
 make-docfile${EXEEXT}: ${srcdir}/make-docfile.c $(NTLIB) $(config_h)
+	$(AM_V_CCLD)$(CC) ${ALL_CFLAGS} $< $(NTLIB) $(LOADLIBES) -o $@
+
+make-fingerprint${EXEEXT}: ${srcdir}/make-fingerprint.c $(NTLIB) $(config_h)
 	$(AM_V_CCLD)$(CC) ${ALL_CFLAGS} $< $(NTLIB) $(LOADLIBES) -o $@
 
 movemail${EXEEXT}: ${srcdir}/movemail.c pop.o $(NTLIB) $(config_h)
