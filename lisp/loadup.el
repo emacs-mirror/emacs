@@ -381,7 +381,7 @@ lost after dumping")))
 (message "Finding pointers to doc strings...")
 (if (and (fboundp 'dump-emacs)
          (equal (last command-line-args) '("dump")))
-    (Snarf-documentation "DOC")
+    (Snarf-documentation "DOC" 'clear)
   (condition-case nil
       (Snarf-documentation "DOC")
     (error nil)))

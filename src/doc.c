@@ -305,7 +305,7 @@ static bool
 reread_doc_file (Lisp_Object file)
 {
   if (NILP (file))
-    Fsnarf_documentation (Vdoc_file_name);
+    Fsnarf_documentation (Vdoc_file_name, Qnil);
   else
     Fload (file, Qt, Qt, Qt, Qnil);
 
@@ -466,7 +466,7 @@ aren't strings.  */)
 /* Scanning the DOC files and placing docstring offsets into functions.  */
 
 static void
-store_function_docstring (Lisp_Object obj, EMACS_INT offset)
+store_function_docstring (Lisp_Object obj, EMACS_INT offset, bool clear)
 {
   /* Don't use indirect_function here, or defaliases will apply their
      docstrings to the base functions (Bug#2603).  */
@@ -486,10 +486,16 @@ store_function_docstring (Lisp_Object obj, EMACS_INT offset)
 	  || (EQ (tem, Qclosure) && (fun = XCDR (fun), 1)))
 	{
 	  tem = Fcdr (Fcdr (fun));
-	  if (CONSP (tem) && INTEGERP (XCAR (tem)))
-	    /* FIXME: This modifies typically pure hash-cons'd data, so its
-	       correctness is quite delicate.  */
-	    XSETCAR (tem, make_number (offset));
+	  if (CONSP (tem))
+	    {
+	      if (clear && STRINGP (XCAR (tem)))
+		/* Discard any string we may have loaded.
+		   Also, 0 is a shorter placeholder in the dumped
+		   environment file than the actual offset.  */
+		XSETCAR (tem, make_number (0));
+	      else if (INTEGERP (XCAR (tem)))
+		XSETCAR (tem, make_number (offset));
+	    }
 	}
     }
 
@@ -503,7 +509,7 @@ store_function_docstring (Lisp_Object obj, EMACS_INT offset)
       /* This bytecode object must have a slot for the
 	 docstring, since we've found a docstring for it.  */
       if (PVSIZE (fun) > COMPILED_DOC_STRING)
-	ASET (fun, COMPILED_DOC_STRING, make_number (offset));
+	ASET (fun, COMPILED_DOC_STRING, make_number (clear ? 0 : offset));
       else
 	{
 	  AUTO_STRING (format, "No docstring slot for %s");
@@ -517,15 +523,22 @@ store_function_docstring (Lisp_Object obj, EMACS_INT offset)
 
 
 DEFUN ("Snarf-documentation", Fsnarf_documentation, Ssnarf_documentation,
-       1, 1, 0,
+       1, 2, 0,
        doc: /* Used during Emacs initialization to scan the `etc/DOC...' file.
 This searches the `etc/DOC...' file for doc strings and
 records them in function and variable definitions.
-The function takes one argument, FILENAME, a string;
+The function takes one required argument, FILENAME, a string;
 it specifies the file name (without a directory) of the DOC file.
 That file is found in `../etc' now; later, when the dumped Emacs is run,
-the same file name is found in the `doc-directory'.  */)
-  (Lisp_Object filename)
+the same file name is found in the `doc-directory'.
+
+Optional second argument CLEAR, if set, causes the removal of
+variable-documentation properties and the replacement of function doc
+strings with dummy DOC file offsets when the documentation is found in
+the DOC file, to minimize storage use in preparation for dumping the
+Lisp environment state, with the expectation that Snarf-documentation
+will be called again after loading the dumped environment.  */)
+  (Lisp_Object filename, Lisp_Object clear)
 {
   int fd;
   char buf[1024 + 1];
@@ -644,16 +657,39 @@ the same file name is found in the `doc-directory'.  */)
 		     (doc starts with a `*').  */
                   if (!NILP (Fboundp (sym))
                       || !NILP (Fmemq (sym, delayed_init)))
-                    Fput (sym, Qvariable_documentation,
-                          make_number ((pos + end + 1 - buf)
-                                       * (end[1] == '*' ? -1 : 1)));
+		    {
+		      if (NILP (clear))
+			Fput (sym, Qvariable_documentation,
+			      make_number ((pos + end + 1 - buf)
+					   * (end[1] == '*' ? -1 : 1)));
+		      else
+			/* Remove the variable-documentation property,
+			   if present, even if it's nil (which makes
+			   Fget unhelpful).  */
+			{
+			  Lisp_Object plist = Fsymbol_plist (sym);
+			  Lisp_Object prev, prop;
+			  if (EQ (Fcar (plist), Qvariable_documentation))
+			    set_symbol_plist (sym, Fcdr (Fcdr (plist)));
+			  else
+			    for (prev = Fcdr (plist), prop = Fcdr (prev);
+				 !NILP (prop);
+				 prev = Fcdr (prop), prop = Fcdr (prev))
+			      if (EQ (Fcar (prop), Qvariable_documentation))
+				{
+				  Fsetcdr (prev, Fcdr (Fcdr (prop)));
+				  break;
+				}
+			}
+		    }
 		}
 
 	      /* Attach a docstring to a function?  */
 	      else if (p[1] == 'F')
                 {
                   if (!NILP (Ffboundp (sym)))
-                    store_function_docstring (sym, pos + end + 1 - buf);
+                    store_function_docstring (sym, pos + end + 1 - buf,
+					      !NILP (clear));
                 }
 	      else if (p[1] == 'S')
 		; /* Just a source file name boundary marker.  Ignore it.  */
