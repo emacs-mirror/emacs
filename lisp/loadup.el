@@ -514,6 +514,9 @@ lost after dumping")))
                    (push `(fset ',s (symbol-function ',(intern (subr-name (symbol-function s))))) cmds))
                (push `(fset ',s ,(macroexp-quote (symbol-function s)))
                      cmds)))
+           (if (not (eq (indirect-variable s) s))
+               (push `(defvaralias ',s ',(indirect-variable s))
+                     cmds))
            (when (and (default-boundp s)
                       (not (macroexp--const-symbol-p s 'any-value))
                       ;; I think we don't need/want these!
@@ -532,8 +535,8 @@ lost after dumping")))
                                      charsets charset-aliases unified-charsets
                                      abbrev-tables abbrev-counter
                                      abbrev-make-cmds abbrev-assign-cmds
-                                     cmds))))
-             ;; FIXME: Handle varaliases!
+                                     cmds)))
+                      (eq (indirect-variable s) s))
              (let ((v (default-value s)))
                (push `(set-default
                        ',s
