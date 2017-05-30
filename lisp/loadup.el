@@ -553,9 +553,17 @@ lost after dumping")))
                          ((and (markerp v) (null (marker-buffer v)))
                           '(make-marker))
                          ((and (overlayp v) (null (overlay-buffer v)))
-                          '(let ((ol (make-overlay (point-min) (point-min))))
-                             (delete-overlay ol)
-                             ol))
+                          (let (propsets
+                                (props (overlay-properties v)))
+                            (while props
+                              (let ((prop (car props))
+                                    (val (cadr props)))
+                                (push `(overlay-put ol ',prop ',val) propsets)
+                                (setq props (cddr props))))
+                            `(let ((ol (make-overlay (point-min) (point-min))))
+                               ,@propsets
+                               (delete-overlay ol)
+                               ol)))
                          ;; abbrev-table-p isn't very robust
                          ((condition-case nil
                               (abbrev-table-p v)
