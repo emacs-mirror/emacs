@@ -320,7 +320,6 @@
 
 (load "vc/vc-hooks")
 (load "vc/ediff-hook")
-(load "uniquify")
 (load "electric")
 (load "emacs-lisp/eldoc")
 (load "cus-start") ;Late to reduce customize-rogue (needs loaddefs.el anyway)
@@ -513,12 +512,8 @@ lost after dumping")))
                  ;; subr objects aren't readable!
                  (unless (equal (symbol-name s) (subr-name (symbol-function s)))
                    (push `(fset ',s (symbol-function ',(intern (subr-name (symbol-function s))))) cmds))
-               (if (memq s '(rename-buffer))
-                   ;; FIXME: We need these, but they contain
-                   ;; unprintable objects.
-                   nil
-                 (push `(fset ',s ,(macroexp-quote (symbol-function s)))
-                       cmds))))
+               (push `(fset ',s ,(macroexp-quote (symbol-function s)))
+                     cmds)))
            (when (and (default-boundp s)
                       (not (macroexp--const-symbol-p s 'any-value))
                       ;; I think we don't need/want these!
@@ -691,6 +686,8 @@ lost after dumping")))
                                      'face-defface-spec)))
             (terpri)
             (print '(load "international/characters" nil t))
+            ;; This sets advice on a subr, so cannot be preloaded.
+            (print '(load "uniquify"))
             (terpri)
             ;; Lisp functions have their DOC file offsets stored
             ;; already, but for a subr it's hidden away from Lisp.
@@ -724,6 +721,8 @@ lost after dumping")))
           ))
 
       (kill-emacs)))
+
+(load "uniquify")
 
 ;; For machines with CANNOT_DUMP defined in config.h,
 ;; this file must be loaded each time Emacs is run.
