@@ -1,0 +1,313 @@
+“Big elc file” startup approach  -*- mode: org; coding: utf-8 -*-
+
+These notes discuss the design and implementation status of the “big
+elc file” approach for saving and loading the Lisp environment.
+
+* Justification
+
+The original discussion in which the idea arose was on the possible
+elimination of the “unexec” mechanism, which is troublesome to
+maintain.
+
+The CANNOT_DUMP support, when it isn’t suffering bit-rot, does allow
+for loading all of the Lisp code from scratch at startup.  However,
+doing so is rather slow.
+
+Stefan Monnier suggested (and implemented) loading the Lisp
+environment via loadup.el, as we do now in the “unexec” world, and
+writing out a single Lisp file with all of the resulting function and
+variable settings in it.  Then a normal Emacs invocation can load this
+one Lisp file, instead of dozens, and complex data structures can
+simply be read, instead of constructed at run time.
+
+It turned out to be desirable for a couple of others to be loaded at
+run time as well, but the one big file loads most of the settings.
+
+* Implementation
+
+** Saving the Lisp environment
+
+In loadup.el, we iterate over the obarray, collecting names of faces
+and coding systems and such for later processing.  Each symbol’s
+function, variable, and property values get turned into the
+appropriate fset, set-default, or setplist calls.  Calls to defvar and
+make-variable-buffer-local may be generated as well.  The resulting
+forms are all emitted as part of one large “progn” form, so that the
+print-circle support can correctly cross-link references to objects in
+a way that the reader will reconstruct.
+
+A few variables are explicitly skipped because they’re in use during
+the read process, or they’re intended to be reinitialized when emacs
+starts up.  Some others are skipped for now because they’re not
+printable objects.
+
+Most of the support for the unexec path is present, but ignored or
+commented out.  This keeps diffs (and merging) simpler.
+
+*** charsets, coding systems, and faces
+
+Some changes to charset and coding system support were made so that
+when a definition is created for a new name, a property gets attached
+to the symbol with the relevant parameters so that we can write out
+enough information to reconstruct the definition after reading it
+back.
+
+After the main definitions are written out, we emit additional forms
+to fix up charset definitions, face specs, and so on.  These don’t
+have to worry about cross-linked data structures, so breaking them out
+into separate forms keeps things simpler.
+
+*** deferred loading
+
+The standard category table is huge if written out, so we load
+international/characters indirectly via dumped.elc instead.  We could
+perhaps suppress the variables and functions defined in
+international/characters from being output with the rest of the Lisp
+environment.  That information should be available via the load
+history.  We would be assuming that no other loaded Lisp code alters
+the variables’ values; any modified function values will be overridden
+by the defalias calls.
+
+Advice attached to a subr can’t be written out and read back in
+because of the “#<subr...>” syntax; uniquify attaches advice to
+rename-buffer, so loading of uniquify is deferred until loading
+dumped.elc, or until we’ve determined that we’re not dumping at all.
+
+*** efficient symbol reading
+
+The symbol parser is not terribly fast.  It reads one character at a
+time (which involves reading one or more bytes, and figuring out the
+possible encoding of a multibyte character) and figuring out where the
+end of the symbol is; then the obarray needs to be scanned to see if
+the symbol is already present.
+
+It turns out that the “#N#” processing is faster.  So now there’s a
+new option to the printer that will use this form for symbols that
+show up more than once.  Parsing “#24#” and doing the hash table
+lookup works out better than parsing “setplist” and scanning the
+obarray over and over, though it makes it much harder for a human to
+read.
+
+** Loading the Lisp environment
+
+The default action to invoke on startup is now to load
+“../src/dumped.elc”.  For experimentation that name works fine, but
+for installation it’ll probably be something like just “dumped.elc”,
+found via the load path.
+
+New primitives are needed to deal with Emacs data that is not purely
+Lisp data structures:
+
+  + internal--set-standard-syntax-table
+  + define-charset-internal
+  + define-coding-system-internal
+
+*** Speeding up the reader
+
+Reading a very large Lisp file (over a couple of megabytes) is still
+slow.
+
+While it seems unavoidable that loading a Lisp environment at run time
+will be at least slightly slower than having that environment be part
+of the executable image when the process is launched, we want to keep
+the process startup time acceptably fast.  (No, that’s not a precisely
+defined goal.)
+
+So, a few changes have been made to speed up reading the large Lisp
+file.  Some of them may be generally applicable, even if the
+big-elc-file approach isn’t adopted.  Others may be too specific to
+this use case to warrant the additional code.
+
+  + Avoiding substitution recursion for #N# forms when the new object
+    is a cons cell.
+  + Using hash tables instead of lists for forms to substitute.
+  + Avoiding circular object checks in some cases.
+  + Handle substituting into a list iteratively instead of
+    recursively.  (This one was more about making performance analysis
+    easier for certain tools than directly improving performance.)
+  + Special-case reading from a file.  Avoid repeated checks of the
+    type of input source and associated dispatching to appropriate
+    support routines, and hard-code the file-based calls.  Streamline
+    the input blocking and unblocking.
+  + Avoid string allocation when reading symbols already in the
+    obarray.
+
+* Open Issues
+
+** CANNOT_DUMP, purify-flag
+
+The branch has been rebased onto a recent enough “master” version that
+CANNOT_DUMP works fairly well on GNU/Linux systems.  The branch has
+now been updated to set CANNOT_DUMP unconditionally, to disable the
+unexec code.  As long as dumped.elc does all the proper initialization
+like the old loadup.el did, that should work well.
+
+The regular CANNOT_DUMP build does not work on mac OS, at least in the
+otherwise-normal Nextstep, self-contained-app mode; it seems to be a
+load-path problem.  See bug #27760.
+
+Some code still looks at purify-flag, including eval.c requiring that
+it be nil when autoloading.  So we still let the big progn set its
+value.
+
+** Building and bootstrapping
+
+The bootstrap process assumes it needs to build the emacs executable
+twice, with different environments based on whether stuff has been
+byte-compiled.
+
+In this branch, the executables should be the same, but the dumped
+Lisp files will be different.  Ideally we should build the executable
+only once, and dump out different environment files.  Possibly this
+means that instead of “bootstrap-emacs” we should invoke something
+like:
+
+  ../path/to/emacs --no-loadup -l ../path/to/bootstrap-dump.elc ...
+
+It might also make sense for bootstrap-dump.elc to include the byte
+compiler, and to byte-compile the byte compiler (and other
+COMPILE_FIRST stuff) in memory before dumping.
+
+Re-examine whether the use of build numbers makes sense, if we’re not
+rewriting the executable image.
+
+** installation
+
+Installing this version of Emacs hasn’t been tested much.
+
+** offset builds (srcdir=… or /path/to/configure …)
+
+Builds outside of the source tree (where srcdir is not the root of the
+build tree) have not been tested much, and don’t currently work.
+
+The first problem, at least while bootstrapping: “../src/dumped.elc”
+is relative to $lispdir which is in the source tree, so Emacs doesn’t
+find the dumped.elc file that’s in the build tree.
+
+Moving dumped.elc under $lispdir would be inappropriate since the
+directory is in the source tree and the file content is specific to
+the configuration being built.  We could create a “lisp” directory in
+the build tree and write dumped.elc there, but since we don’t
+currently have such a directory, that’ll mean some changes to the load
+path computation, which is already pretty messy.
+
+** Unhandled aspects of environment saving
+
+*** unprintable objects
+
+global-buffers-menu-map has cdr slot set to nil, but this seems to get
+fixed up at run time, so simply omitting it may be okay.
+
+advertised-signature-table has several subr entries.  Perhaps we could
+filter those out, dump the rest, and then emit additional code to
+fetch the subr values via their symbol names and insert them into the
+hash after its initial creation.
+
+Markers and overlays that aren’t associated with buffers are replaced
+with newly created ones.  This only works for variables with these
+objects as their values; markers or overlays contained within lists or
+elsewhere wouldn’t be fixed up, and any sharing of these objects would
+be lost, but there don’t appear to be any such cases.
+
+Any obarrays will be dumped in an incomplete form.  We can’t
+distinguish them from vectors that contain symbols and zeros.
+(Possible fix someday: Make obarrays their own type.)  As a special
+case of this, though, we do look for abbrev tables, and generate code
+to recreate them at load time.
+
+*** make-local-variable
+
+Different flavors of locally-bound variables are hard to distinguish
+and may not all be saved properly.
+
+*** defvaralias
+
+For variable aliases, we emit a defvaralias command and skip the
+default-value processing; we keep the property list processing and the
+rest.  Is there anything else that needs to be changed?
+
+*** documentation strings
+
+We call Snarf-documentation at load time, because it’s the only way to
+get documentation pointers for Lisp subrs loaded.  That may be
+addressable in other ways, but for the moment it’s outside the scope
+of this branch.
+
+Since we do call Snarf-documentation at load time, we can remove the
+doc strings in DOC from dumped.elc, but we have to be a little careful
+because not all of the pre-loaded Lisp doc strings wind up in DOC.
+The easy way to do that, of course, is to scan DOC and, for each doc
+entry we find, remove the documentation from the live Lisp data before
+dumping.  So, Snarf-documentation now takes an optional argument to
+tell it to do that; that cut about 22% of the size of dumped.elc at
+the time.
+
+There are still a bunch of doc strings winding up in dumped.elc from
+various sources; see bug #27748.  (Not mentioned in the bug report:
+Compiled lambda forms get “(fn N)” style doc strings in their bytecode
+representations too.  But because we key on function names, there’s no
+way to accomodate them in the DOC file.)
+
+*** locations of definitions
+
+C-h v shows variables as having been defined by dumped.elc, not by the
+original source file.
+
+** coding system definitions
+
+We repeatedly iterate over coding system names, trying to reload each
+definition, and postponing those that fail.  We should be able to work
+out the dependencies between them and construct an order that requires
+only one pass.  (Is it worth it?)
+
+Fix coding-system-list; it seems to have duplicates now.
+
+** error reporting
+
+If dumped.elc can’t be found, Emacs will quietly exit with exit
+code 42.  Unfortunately, when running in X mode, it’s difficult for
+Lisp code to print any messages to standard error when quitting.  But
+we need to quit, at least in tty mode (do we in X mode?), because
+interactive usage requires some definitions provided only by the Lisp
+environment.
+
+** garbage collection
+
+The dumped .elc file contains a very large Lisp form with most of the
+definitions in it.  Causing the garbage collector to always be invoked
+during startup guarantees some minimum additional delay before the
+user will be able to interact with Emacs.
+
+More clever heuristics for when to do GC are probably possible, but
+outside the scope of this branch.  For now, gc-cons-threshold has been
+raised, arbitrarily, to a value that seems to allow for loading
+“dumped.elc” on GNU/Linux without GC during or immediately after.
+
+** load path setting
+
+Environment variable support may be broken.
+
+** little niceties
+
+Maybe we should rename the file, so that we display “Loading
+lisp-environment...” during startup.
+
+** bugs?
+
+The default value of charset-map-path is set based on the build tree
+(or source tree?), so reverting via customize would probably result in
+a bogus value.  This bug exists in the master version as well when
+using unexec; in CANNOT_DUMP mode (when the Lisp code is only loaded
+from the installed tree) it doesn’t seem to be a problem.
+
+** other changes
+
+Dropped changes from previous revisions due to merge conflicts; may
+reinstate later:
+
+ + In lread.c, substitute in cons iteratively (on “cdr” slot) instead
+   of recursively.
+ + In lread.c, change “seen” list to hash table.
+ + In lread.c, add a separate read1 loop specialized for file reading,
+   with input blocking manipulated only when actually reading from the
+   file, not when just pulling the next byte from a buffer.
