@@ -590,8 +590,6 @@ Used when `which-key-popup-type' is frame.")
   "Internal: Backup the value of `prefix-help-command'.")
 (defvar which-key--pages-plist nil
   "Internal: Holds page objects")
-(defvar which-key--lighter-backup nil
-  "Internal: Holds lighter backup")
 (defvar which-key--current-prefix nil
   "Internal: Holds current prefix")
 (defvar which-key--current-page-n nil
@@ -979,6 +977,7 @@ total height."
     (when (and which-key-idle-secondary-delay
                which-key--secondary-timer-active)
       (which-key--start-timer))
+    (which-key--lighter-restore)
     (cl-case which-key-popup-type
       ;; Not necessary to hide minibuffer
       ;; (minibuffer (which-key--hide-buffer-minibuffer))
@@ -1764,8 +1763,6 @@ is the width of the live window."
   (when which-key-show-remaining-keys
     (let ((n-shown (nth page-n (plist-get which-key--pages-plist :keys/page)))
           (n-tot (plist-get which-key--pages-plist :tot-keys)))
-      (setq which-key--lighter-backup
-            (cadr (assq 'which-key-mode minor-mode-alist)))
       (setcar (cdr (assq 'which-key-mode minor-mode-alist))
               (format " WK: %s/%s keys" n-shown n-tot)))))
 
@@ -1773,7 +1770,7 @@ is the width of the live window."
   "Restore the lighter for which-key."
   (when which-key-show-remaining-keys
     (setcar (cdr (assq 'which-key-mode minor-mode-alist))
-            which-key--lighter-backup)))
+            which-key-lighter)))
 
 (defun which-key--echo (text)
   "Echo TEXT to minibuffer without logging."
