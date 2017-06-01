@@ -1087,6 +1087,13 @@ Responsible for handling and, or, and parenthetical expressions.")
        engine (alist-get 'parsed-query query-spec))
     (alist-get 'query query-spec)))
 
+(defsubst gnus-search-single-p (query)
+  "Return t if QUERY is a search for a single message."
+  (let ((q (alist-get 'parsed-query query)))
+    (and (= (length q ) 1)
+	 (consp (car-safe q))
+	 (eq (caar q) 'id))))
+
 (cl-defmethod gnus-search-transform ((engine gnus-search-engine)
 				     (query list))
   (let (clauses)
@@ -1138,8 +1145,7 @@ Responsible for handling and, or, and parenthetical expressions.")
     (let ((server (cadr (gnus-server-to-method srv)))
           (gnus-inhibit-demon t)
 	  ;; We're using the message id to look for a single message.
-	  (single-search (and (= (length query) 1)
-			      (eql (caar query) 'id)))
+	  (single-search (gnus-search-single-p query))
 	  q-string artlist group)
       (message "Opening server %s" server)
       ;; We should only be doing this once, in
@@ -1459,6 +1465,8 @@ Returns a list of [group article score] vectors."
 	(when (and (file-readable-p f-name)
 		   (null (file-directory-p f-name))
 		   (or (null groups)
+			(and (gnus-search-single-p query)
+			     (alist-get 'thread query))
 		       (string-match-p group-regexp f-name)))
 	  (push (list f-name score) artlist))))
     ;; Are we running an additional grep query?
