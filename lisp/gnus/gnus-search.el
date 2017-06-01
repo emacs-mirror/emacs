@@ -1441,7 +1441,8 @@ Returns a list of [group article score] vectors."
 	;; Failure reason is in this buffer, show it if the user
 	;; wants it.
 	(when (> gnus-verbose 6)
-	  (display-buffer buffer))))))
+	  (display-buffer buffer))
+	nil))))
 
 (cl-defmethod gnus-search-indexed-parse-output ((engine gnus-search-indexed)
 						server query &optional groups)
