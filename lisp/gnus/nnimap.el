@@ -1819,6 +1819,20 @@ If LIMIT, first try to limit the search to the N last articles."
 				  (cdr (assoc "SEARCH" (cdr result))))))
            nil t))))))
 
+(defun nnimap-make-thread-query (header)
+  (let* ((id  (mail-header-id header))
+	 (refs (split-string
+		(or (mail-header-references header)
+		    "")))
+	 (value
+	  (format
+	   "(OR HEADER REFERENCES %S HEADER Message-Id %S)"
+	   id id)))
+    (dolist (refid refs value)
+      (setq value (format
+		   "(OR (OR HEADER Message-Id %S HEADER REFERENCES %S) %s)"
+		   refid refid value)))))
+
 (defun nnimap-change-group (group &optional server no-reconnect read-only)
   "Change group to GROUP if non-nil.
 If SERVER is set, check that server is connected, otherwise retry
@@ -2211,21 +2225,6 @@ Return the server's response to the SELECT or EXAMINE command."
 		    (list (cons 'junk 1))
 		  group-art))
 	  nnimap-incoming-split-list)))
-
-(defun nnimap-make-thread-query (header)
-  (let* ((id  (mail-header-id header))
-	 (refs (split-string
-		(or (mail-header-references header)
-		    "")))
-	 (value
-	  (format
-	   "(OR HEADER References %S HEADER Message-Id %S)"
-	   id id)))
-    (dolist (refid refs value)
-      (setq value (format
-		   "(OR (OR HEADER Message-Id %S HEADER References %S) %s)"
-		   refid refid value)))))
-
 
 (provide 'nnimap)
 

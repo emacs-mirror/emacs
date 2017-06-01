@@ -1146,6 +1146,7 @@ Responsible for handling and, or, and parenthetical expressions.")
           (gnus-inhibit-demon t)
 	  ;; We're using the message id to look for a single message.
 	  (single-search (gnus-search-single-p query))
+	  (grouplist (or groups (gnus-search-get-active srv)))
 	  q-string artlist group)
       (message "Opening server %s" server)
       ;; We should only be doing this once, in
@@ -1166,7 +1167,16 @@ Responsible for handling and, or, and parenthetical expressions.")
       (setq q-string
 	    (gnus-search-make-query-string engine query))
 
-      (while (and (setq group (pop groups))
+      ;; If it's a thread query, make sure that all message-id
+      ;; searches are also references searches.
+      (when (alist-get 'thread query)
+	(setq q-string
+	      (replace-regexp-in-string
+	       "HEADER Message-Id \\([^ )]+\\)"
+	       "(OR HEADER Message-Id \\1 HEADER References \\1)"
+	       q-string)))
+
+      (while (and (setq group (pop grouplist))
 		  (or (null single-search) (null artlist)))
 	(when (nnimap-change-group
 	       (gnus-group-short-name group) server)
@@ -1237,7 +1247,10 @@ Other capabilities could be tested here."
   (let ((left (gnus-search-transform-expression engine (nth 1 expr)))
 	(right (gnus-search-transform-expression engine (nth 2 expr))))
     (if (and left right)
-	(format "OR %s %s" left right)
+	(format "(OR %s %s)"
+		left (format (if (eq 'or (car-safe (nth 2 expr)))
+				 "(%s)" "%s")
+			     right))
       (or left right))))
 
 (cl-defmethod gnus-search-transform-expression ((engine gnus-search-imap)
@@ -1315,7 +1328,7 @@ boolean instead."
 		  (upcase (symbol-name (car expr)))
 		  (gnus-search-imap-handle-string engine (cdr expr))))
 	 ((eq (car expr) 'id)
-	  (format "HEADER Message-ID %s" (cdr expr)))
+	  (format "HEADER Message-ID \"%s\"" (cdr expr)))
 	 ;; Treat what can't be handled as a HEADER search.  Probably a bad
 	 ;; idea.
 	 (t (format "%sHEADER %s %s"
@@ -1692,22 +1705,58 @@ Namazu provides a little more information, for instance a score."
       (format "date:%s.." (notmuch-date (cdr expr))))
      (t (ignore-errors (cl-call-next-method))))))
 
+(cl-defmethod gnus-search-run-search :around ((engine gnus-search-notmuch)
+					      server query groups)
+  "Handle notmuch's thread-search routine."
+  ;; Notmuch allows for searching threads, but only using its own
+  ;; thread ids.  That means a thread search is a \"double-bounce\":
+  ;; once to find the relevant thread ids, and again to find the
+  ;; actual messages.  This method performs the first \"bounce\".
+  (when (alist-get 'thread query)
+    (with-slots (program proc-buffer) engine
+      (let* ((qstring
+	      (gnus-search-make-query-string engine query))
+	     (cp-list (gnus-search-indexed-search-command
+		       engine qstring query groups))
+	     thread-ids proc)
+	(set-buffer proc-buffer)
+	(erase-buffer)
+	(setq proc (apply #'start-process (format "search-%s" server)
+			  proc-buffer program cp-list))
+	(while (process-live-p proc)
+	  (accept-process-output proc))
+	(while (re-search-forward "^thread:\\([^ ]+\\)" (point-max) t)
+	  (push (match-string 1) thread-ids))
+	;; All of the following is to make sure that the secondary
+	;; search ignores the original search query, and instead uses
+	;; our new thread query.
+	(setf (alist-get 'thread query) nil
+	      (alist-get 'raw query) t
+	      groups nil
+	      (alist-get 'query query)
+	      (mapconcat (lambda (thrd) (concat "thread:" thrd))
+			 thread-ids " or ")))))
+  (cl-call-next-method engine server query groups))
+
 (cl-defmethod gnus-search-indexed-search-command ((engine gnus-search-notmuch)
 						  (qstring string)
 						  query &optional _groups)
   ;; Theoretically we could use the GROUPS parameter to pass a
   ;; --folder switch to notmuch, but I'm not confident of getting the
   ;; format right.
-  (let ((limit (alist-get 'limit query)))
-   (with-slots (switches config-file) engine
-     `(,(format "--config=%s" config-file)
-       "search"
-       "--output=files"
-       "--duplicate=1" ; I have found this necessary, I don't know why.
-       ,@switches
-       ,(if limit (format "--limit=%d" limit) "")
-       ,qstring
-       ))))
+  (let ((limit (alist-get 'limit query))
+	(thread (alist-get 'thread query)))
+    (with-slots (switches config-file) engine
+      `(,(format "--config=%s" config-file)
+	"search"
+	(if thread
+	    "--output=threads"
+	  "--output=files")
+	"--duplicate=1" ; I have found this necessary, I don't know why.
+	,@switches
+	,(if limit (format "--limit=%d" limit) "")
+	,qstring
+	))))
 
 ;;; Mairix interface
 
@@ -2086,7 +2135,7 @@ remaining string, then adds all that to the top-level spec."
 	(setf (alist-get (intern (match-string 1 query)) query-spec)
 	      ;; This is stupid.
 	      (cond
-	       ((eql val 't))
+	       ((equal val "t"))
 	       ((null (zerop (string-to-number val)))
 		(string-to-number val))
 	       (t val)))
@@ -2134,7 +2183,6 @@ remaining string, then adds all that to the top-level spec."
       (nnheader-message 5 "No search engine defined for %s" srv))
     inst))
 
-(autoload 'nnimap-make-thread-query "nnimap")
 (declare-function gnus-registry-get-id-key "gnus-registry" (id key))
 
 (defun gnus-search-thread (header)
@@ -2142,11 +2190,18 @@ remaining string, then adds all that to the top-level spec."
 header. The current server will be searched. If the registry is
 installed, the server that the registry reports the current
 article came from is also searched."
-  (let* ((query
-	  (list (cons 'query (nnimap-make-thread-query header))))
+  (let* ((ids (cons (mail-header-id header)
+		    (split-string
+		     (or (mail-header-references header)
+			 ""))))
+	 (query
+	  (list (cons 'query (mapconcat (lambda (i)
+					  (format "id:%s" i))
+					ids " or "))
+		(cons 'thread t)))
 	 (server
 	  (list (list (gnus-method-to-server
-	   (gnus-find-method-for-group gnus-newsgroup-name)))))
+		       (gnus-find-method-for-group gnus-newsgroup-name)))))
 	 (registry-group (and
 			  (bound-and-true-p gnus-registry-enabled)
 			  (car (gnus-registry-get-id-key
@@ -2158,8 +2213,8 @@ article came from is also searched."
     (when registry-server
       (cl-pushnew (list registry-server) server :test #'equal))
     (gnus-group-make-search-group nil (list
-				     (cons 'gnus-search-query-spec query)
-				     (cons 'gnus-search-group-spec server)))
+				       (cons 'search-query-spec query)
+				       (cons 'search-group-spec server)))
     (gnus-summary-goto-subject (gnus-id-to-article (mail-header-id header)))))
 
 (defun gnus-search-get-active (srv)

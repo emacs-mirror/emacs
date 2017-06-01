@@ -498,19 +498,27 @@ If this variable is nil, or if the provided function returns nil,
 			     (cl-some #'(lambda (x)
 					  (when (and x (> x 0)) x))
 				      (gnus-articles-in-thread thread))))))))))
-    ;; Check if we are dealing with an imap backend.
-    (if (eq 'nnimap
-	    (car (gnus-find-method-for-group artgroup)))
+    ;; Check if search-based thread referral is permitted, and
+    ;; possible.
+    (if (and gnus-refer-thread-use-search
+	     (gnus-search-server-to-engine
+	      (gnus-method-to-server
+	       (gnus-find-method-for-group artgroup))))
 	;; If so we perform the query, massage the result, and return
 	;; the new headers back to the caller to incorporate into the
 	;; current summary buffer.
 	(let* ((group-spec
 		(list (delq nil (list
-				 (or server (gnus-group-server artgroup))
-				 (unless  gnus-refer-thread-use-search
-				   artgroup)))))
+				 (or server (gnus-group-server artgroup))))))
+	       (ids (cons (mail-header-id header)
+			  (split-string
+			   (or (mail-header-references header)
+			       ""))))
 	       (query-spec
-		(list (cons 'query (nnimap-make-thread-query header))))
+		(list (cons 'query (mapconcat (lambda (i)
+						(format "id:%s" i))
+					      ids " or "))
+		      (cons 'thread t)))
 	       (last (nnselect-artlist-length gnus-newsgroup-selection))
 	       (first (1+ last))
 	       (new-nnselect-artlist
@@ -562,8 +570,8 @@ If this variable is nil, or if the provided function returns nil,
 	     group
 	     (cons 1 (nnselect-artlist-length gnus-newsgroup-selection))))
 	  headers)
-      ;; If not an imap backend just warp to the original article
-      ;; group and punt back to gnus-summary-refer-thread.
+      ;; If we can't or won't use search, just warp to the original
+      ;; article group and punt back to gnus-summary-refer-thread.
       (and (gnus-warp-to-article) (gnus-summary-refer-thread)))))
 
 
@@ -663,9 +671,15 @@ If this variable is nil, or if the provided function returns nil,
 The current server will be searched.  If the registry is
 installed, the server that the registry reports the current
 article came from is also searched."
-  (let* ((query
-	  (list (cons 'query (nnimap-make-thread-query header))
-		(cons 'criteria "")))
+  (let* ((ids (cons (mail-header-id header)
+		    (split-string
+		     (or (mail-header-references header)
+			 ""))))
+	 (query
+	  (list (cons 'query (mapconcat (lambda (i)
+					  (format "id:%s" i))
+					ids " or "))
+		(cons 'thread t)))
 	 (server
 	  (list (list (gnus-method-to-server
 		       (gnus-find-method-for-group gnus-newsgroup-name)))))
