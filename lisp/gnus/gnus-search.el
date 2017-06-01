@@ -1601,7 +1601,7 @@ fudges a relevancy score of 100."
 						  query &optional _groups)
   (let ((max (alist-get 'limit query)))
     (with-slots (switches index-dir) engine
-      (nconc
+      (append
        (list "-q"			; don't be verbose
 	     "-a"			; show all matches
 	     "-s") 			; use short format
@@ -1871,7 +1871,7 @@ Assume \"size\" key is equal to \"larger\"."
 						  (qstring string)
 						  query &optional _groups)
   (with-slots (switches config-file) engine
-    (nconc `("--rcfile" ,config-file "-r")
+    (append `("--rcfile" ,config-file "-r")
 	   switches
 	   (when (alist-get 'thread query) (list "-t"))
 	   (list qstring))))
