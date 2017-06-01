@@ -1041,6 +1041,9 @@ quirks.")
 (eieio-oset-default 'gnus-search-notmuch 'raw-queries-p
 		    gnus-search-notmuch-raw-queries-p)
 
+(make-obsolete-variable 'nnir-method-default-engines
+  "see `gnus-search-default-engines'" "26.1")
+
 (defcustom gnus-search-default-engines '((nnimap gnus-search-imap)
 					 (nntp  gnus-search-gmane))
   "Alist of default search engines keyed by server method."
@@ -2089,30 +2092,38 @@ remaining string, then adds all that to the top-level spec."
 ;; This should be done once at Gnus startup time, when the servers are
 ;; first opened, and the resulting engine instance attached to the
 ;; server.
-(defun gnus-search-server-to-engine (server)
-  (let* ((server
-	  (or (assoc 'gnus-search-engine
-		     (cddr (gnus-server-to-method server)))
-	      (assoc (car (gnus-server-to-method server))
-		     gnus-search-default-engines)))
+(defun gnus-search-server-to-engine (srv)
+  (let* ((method (gnus-server-to-method srv))
+	 (server
+	  (or (assoc 'gnus-search-engine (cddr method))
+	      (assoc (car method) gnus-search-default-engines)
+	      (when-let ((old (assoc 'nnir-search-engine
+				     (cddr method))))
+		(nnheader-message
+		 8 "\"nnir-search-engine\" is no longer a valid parameter")
+		(pcase old
+		  ('notmuch 'gnus-search-notmuch)
+		  ('namazu 'gnus-search-notmuch)
+		  ('find-grep 'gnus-search-find-grep)))))
 	 (inst
 	  (cond
 	   ((null server) nil)
 	   ((eieio-object-p (cadr server))
-	    (car server))
+	    (cadr server))
 	   ((class-p (cadr server))
 	    (make-instance (cadr server)))
 	   (t nil))))
-    (when inst
-      (when (cddr server)
-	(pcase-dolist (`(,key ,value) (cddr server))
-	  (condition-case nil
-	      (setf (slot-value inst key) value)
-	    ((invalid-slot-name invalid-slot-type)
-	     (nnheader-message
-	      5 "Invalid search engine parameter: (%s %s)"
-	      key value)))))
-      inst)))
+    (if inst
+	(when (cddr server)
+	  (pcase-dolist (`(,key ,value) (cddr server))
+	    (condition-case nil
+		(setf (slot-value inst key) value)
+	      ((invalid-slot-name invalid-slot-type)
+	       (nnheader-message
+		5 "Invalid search engine parameter: (%s %s)"
+		key value)))))
+      (nnheader-message 5 "No search engine defined for %s" srv))
+    inst))
 
 (autoload 'nnimap-make-thread-query "nnimap")
 (declare-function gnus-registry-get-id-key "gnus-registry" (id key))
