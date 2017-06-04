@@ -748,6 +748,9 @@ character, and return everything between point and the next
 occurance of the delimiter, including the delimiters themselves.
 If TRIM is non-nil, do not return the delimiters. Otherwise,
 return one word."
+  ;; This function cannot handle nested delimiters, as it's not a
+  ;; proper parser.  Ie, you cannot parse "to:bob or (from:bob or
+  ;; (cc:bob or bcc:bob))".
   (let ((start (point))
 	(delimiter (if (stringp delimited)
 		       delimited
@@ -1296,13 +1299,13 @@ boolean instead."
       (gnus-search-transform
        engine (gnus-search-parse-query
 	       (format
-	       "to:%s or (cc:%s or bcc:%s)"
+	       "to:%s or cc:%s or bcc:%s"
 	       (cdr expr) (cdr expr) (cdr expr)))))
      ((eq (car expr) 'address)
       (gnus-search-transform
        engine (gnus-search-parse-query
 	       (format
-	       "from:%s or (to:%s or (cc:%s or bcc:%s))"
+	       "from:%s or to:%s or cc:%s or bcc:%s"
 	       (cdr expr) (cdr expr) (cdr expr) (cdr expr)))))
      ((memq (car expr) '(before since on sentbefore senton sentsince))
       ;; Ignore dates given as strings.
