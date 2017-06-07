@@ -922,6 +922,11 @@ quirks.")
     :type string
     :documentation
     "The executable used for indexing and searching.")
+   (config-file
+    :init-arg :config-file
+    :type string
+    :custom file
+    :documentation "Location of the config file, if any.")
    (prefix
     :initarg :prefix
     :type string
@@ -963,9 +968,7 @@ quirks.")
 		    gnus-search-swish-e-raw-queries-p)
 
 (defclass gnus-search-swish++ (gnus-search-indexed)
-  ((config-file
-    :init-arg :config-file
-    :type string)))
+  nil)
 
 (eieio-oset-default 'gnus-search-swish++ 'program
 		    gnus-search-swish++-program)
@@ -983,10 +986,7 @@ quirks.")
 		    gnus-search-swish++-raw-queries-p)
 
 (defclass gnus-search-mairix (gnus-search-indexed)
-  ((config-file
-    :initarg :config-file
-    :type string
-    :custom file)))
+  nil)
 
 (eieio-oset-default 'gnus-search-mairix 'program
 		    gnus-search-mairix-program)
@@ -1025,9 +1025,7 @@ quirks.")
 		    gnus-search-namazu-raw-queries-p)
 
 (defclass gnus-search-notmuch (gnus-search-indexed)
-  ((config-file
-    :init-arg :config-file
-    :type string)))
+  nil)
 
 (eieio-oset-default 'gnus-search-notmuch 'program
 		    gnus-search-notmuch-program)
