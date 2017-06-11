@@ -1918,6 +1918,16 @@ The newly created buffer will be displayed via 'display-buffer', which
 can be customized through the usual mechanism of 'display-buffer-alist'
 and friends.
 
+** Trace
+
++++
+*** New commands 'trace-package', 'trace-regexp', and 'trace-library'
+(and their counterparts 'untrace-package', 'untrace-regexp', and
+'untrace-library') allow for the bulk tracing of calls to functions
+with names matching a specified prefix or regexp, or functions defined
+by a specified file.  New command 'trace-currently-traced' lists the
+traced function symbols.
+
 ** Tramp
 
 ---

@@ -26,7 +26,9 @@ the tracing facilities provided by the @file{trace.el} package.  This
 package provides the functions @code{trace-function-foreground} and
 @code{trace-function-background} for tracing function calls, and
 @code{trace-values} for adding values of select variables to the
-trace.  For the details, see the documentation of these facilities in
+trace.  Bulk tracing of function calls is facilitated by functions
+@code{trace-package}, @code{trace-regexp}, and @code{trace-library}.
+For the details, see the documentation of these facilities in
 @file{trace.el}.
 
 @item

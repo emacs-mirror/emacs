@@ -52,14 +52,28 @@
 
 ;; Usage:
 ;; ======
-;; - To trace a function say `M-x trace-function', which will ask you for the
+;; - To trace a function use `M-x trace-function', which will ask you for the
 ;;   name of the function/subr/macro to trace.
 ;; - If you want to trace a function that switches buffers or does other
 ;;   display oriented stuff use `M-x trace-function-background', which will
 ;;   generate the trace output silently in the background without popping
 ;;   up windows and doing other irritating stuff.
-;; - To untrace a function say `M-x untrace-function'.
-;; - To untrace all currently traced functions say `M-x untrace-all'.
+;; - `M-x trace-package' will ask you for a function name prefix, and trace
+;;   (in the background) all matching functions.
+;; - `M-x trace-regexp' will ask you for a function name pattern (regexp),
+;;   and trace (in the background) all matching functions.
+;; - `M-x trace-library' will ask you for a library name, and trace (in the
+;;   background) all functions defined by that file.
+;; - Interactively in all cases, a prefix argument can be used to prompt
+;;   for the output buffer and context arguments and, for bulk tracing
+;;   commands, whether or not the traces should be automatically updated
+;;   after loading lisp files.
+;; - To untrace a function use `M-x untrace-function'.
+;; - To untrace multiple functions by prefix use `M-x untrace-package'.
+;; - To untrace multiple functions by regexp use `M-x untrace-regexp'.
+;; - To untrace multiple functions by file use `M-x untrace-library'.
+;; - To untrace all currently traced functions use `M-x untrace-all'.
+;; - To list all currently traced functions use `M-x trace-currently-traced'.
 
 ;; Examples:
 ;; =========
@@ -120,6 +134,22 @@
 
 ;;; Change Log:
 
+;; 2017-06-17  Phil Sainty
+;;	* New commands `trace-package', `untrace-package', `trace-regexp',
+;;	  `untrace-regexp', `trace-library', `untrace-library'.
+;;
+;; 2012-2014  Stefan Monnier, Glenn Morris
+;;	* Adapted for nadvice.el
+;;	* New `context' argument and display in trace buffer
+;;	* `trace-function' renamed to (and now an alias of)
+;;	  `trace-function-foreground'
+;;
+;; 2005-02-27  Stefan Monnier
+;;	* New `inhibit-trace' variable
+;;
+;; 1998-04-05  Stephen Eglen
+;;	* New customize group `trace'
+;;
 ;; Revision 2.0 1993/05/18 00:41:16 hans
 ;;	* Adapted for advice.el 2.0; it now also works
 ;;	  for GNU Emacs-19 and Lemacs
@@ -133,6 +163,8 @@
 
 
 ;;; Code:
+
+(eval-when-compile (require 'cl-macs))
 
 (defgroup trace nil
   "Tracing facility for Emacs Lisp functions."
@@ -259,37 +291,62 @@ be printed along with the arguments in the trace."
                       (or context (lambda () "")))
    `((name . ,trace-advice-name) (depth . -100))))
 
+(defun trace-is-traceable-p (sym)
+  "Whether the given symbol is a traceable function.
+Autoloaded functions are traceable."
+  (or (functionp sym) (macrop sym)))
+
 (defun trace-is-traced (function)
+  "Whether FUNCTION is currently traced."
   (advice-member-p trace-advice-name function))
 
-(defun trace--read-args (prompt)
-  "Read a function name, prompting with string PROMPT.
-If `current-prefix-arg' is non-nil, also read a buffer and a \"context\"
-\(Lisp expression).  Return (FUNCTION BUFFER FUNCTION-CONTEXT)."
-  (cons
-   (let ((default (function-called-at-point)))
-     (intern (completing-read (format-prompt prompt default)
-                              obarray 'fboundp t nil nil
-                              (if default (symbol-name default)))))
-   (when current-prefix-arg
-     (list
-      (read-buffer "Output to buffer" trace-buffer)
-      (let ((exp
-             (read-from-minibuffer "Context expression: "
-                                   nil read-expression-map t
-                                   'read-expression-history)))
-        (lambda ()
-          (let ((print-circle t)
-                (print-escape-newlines t))
-            (concat " [" (prin1-to-string (eval exp t)) "]"))))))))
+(defun trace-currently-traced (&optional display-message)
+  "Return the list of currently traced function symbols.
+Interactively, display the list as a message."
+  (interactive "p")
+  (let ((tracelist (cl-loop for sym being the symbols
+                            if (trace-is-traced sym)
+                            collect sym)))
+    (when display-message
+      (message "%S" tracelist))
+    tracelist))
+
+(defun trace--read-function (prompt)
+  "Read a function name, prompting with string PROMPT."
+  (let ((default (function-called-at-point)))
+    (intern (completing-read (format-prompt prompt default)
+                             obarray 'trace-is-traceable-p t nil nil
+                             (if default (symbol-name default))))))
+
+(defun trace--read-library (&optional prompt)
+  "Read a library name, prompting with string PROMPT."
+  (completing-read
+   (or prompt "Library: ")
+   (apply-partially 'locate-file-completion-table
+                    load-path (get-load-suffixes))))
+
+(defun trace--read-extra-args ()
+  "Read a buffer and a \"context\" (Lisp expression).
+Return (BUFFER CONTEXT)."
+  (list
+   (read-buffer "Output to buffer" trace-buffer)
+   (let ((exp
+          (read-from-minibuffer "Context expression: "
+                                nil read-expression-map t
+                                'read-expression-history "nil")))
+     (and exp
+          (lambda ()
+            (let ((print-circle t)
+                  (print-escape-newlines t))
+              (concat " [" (prin1-to-string (eval exp t)) "]")))))))
 
 ;;;###autoload
 (defun trace-function-foreground (function &optional buffer context)
   "Trace calls to function FUNCTION.
-With a prefix argument, also prompt for the trace buffer (default
-`trace-buffer'), and a Lisp expression CONTEXT.  When called from
-Lisp, CONTEXT should be a function of no arguments which returns
-a value to insert into BUFFER during the trace.
+With a prefix argument, also prompt for the trace output BUFFER
+\(default `trace-buffer'), and a Lisp expression CONTEXT.
+When called from Lisp, CONTEXT should be a function of no arguments
+which returns a value to insert into BUFFER during the trace.
 
 Tracing a function causes every call to that function to insert
 into BUFFER Lisp-style trace messages that display the function's
@@ -302,8 +359,14 @@ popup whenever FUNCTION is called.  Do not use this function to trace
 functions that switch buffers, or do any other display-oriented
 stuff - use `trace-function-background' instead.
 
+Calling `trace-function-foreground' again for the same FUNCTION
+will update the optional argument behaviours to respect the new
+values.
+
 To stop tracing a function, use `untrace-function' or `untrace-all'."
-  (interactive (trace--read-args "Trace function"))
+  (interactive
+   (cons (trace--read-function "Trace function")
+         (and current-prefix-arg (trace--read-extra-args))))
   (trace-function-internal function buffer nil context))
 
 ;;;###autoload
@@ -311,26 +374,290 @@ To stop tracing a function, use `untrace-function' or `untrace-all'."
   "Trace calls to function FUNCTION, quietly.
 This is like `trace-function-foreground', but without popping up
 the output buffer or changing the window configuration."
-  (interactive (trace--read-args "Trace function in background"))
+  (interactive
+   (cons (trace--read-function "Trace function in background")
+         (and current-prefix-arg (trace--read-extra-args))))
   (trace-function-internal function buffer t context))
 
 ;;;###autoload
 (defalias 'trace-function 'trace-function-foreground)
 
 (defun untrace-function (function)
-  "Untraces FUNCTION and possibly activates all remaining advice.
-Activation is performed with `ad-update', hence remaining advice will get
-activated only if the advice of FUNCTION is currently active.  If FUNCTION
-was not traced this is a noop."
+  "Remove trace from FUNCTION.  If FUNCTION was not traced this is a noop."
   (interactive
    (list (intern (completing-read "Untrace function: "
                                   obarray #'trace-is-traced t))))
   (advice-remove function trace-advice-name))
 
+;;;###autoload
+(defun trace-package (prefix &optional after-load buffer context)
+  "Trace all functions with names starting with PREFIX.
+For example, to trace all diff functions, do the following:
+
+\\[trace-package] RET diff- RET
+
+Background tracing is used.  Switch to the trace output buffer to
+view the results.  For any autoload declarations matching PREFIX,
+the associated function will be traced if and when it is defined.
+
+With a prefix argument, also prompt for the optional arguments.
+If AFTER-LOAD is non-nil then re-process PREFIX after loading any
+file.  See `trace-function-foreground' for details of BUFFER and
+CONTEXT, and of foreground vs background tracing.
+
+Calling `trace-package' again for the same PACKAGE will update the
+optional argument behaviours to respect the new values.
+
+See also `untrace-package'."
+  ;; Derived in part from `elp-instrument-package'.
+  (interactive
+   (cons (completing-read "Prefix of package to trace: "
+                          obarray #'trace-is-traceable-p)
+         (and current-prefix-arg
+              (cons (y-or-n-p "Update traces after loading files?")
+                    (trace--read-extra-args)))))
+  (when (zerop (length prefix))
+    (error "Tracing all Emacs functions would render Emacs unusable"))
+  (mapc (lambda (name)
+          (trace-function-background (intern name) buffer context))
+        (all-completions prefix obarray #'trace-is-traceable-p))
+  (message
+   "Tracing to %s.  Use %s to untrace a package, or %s to remove all traces."
+   (or buffer trace-buffer)
+   (substitute-command-keys "\\[untrace-package]")
+   (substitute-command-keys "\\[untrace-all]"))
+  ;; Handle `after-load' argument.
+  (when after-load
+    (trace--after-load 'prefix prefix buffer context)))
+
+(defun untrace-package (prefix)
+  "Remove all traces from functions with names starting with PREFIX.
+
+See also `trace-package'."
+  (interactive
+   (list (completing-read "Prefix of package to untrace: "
+                          obarray #'trace-is-traced)))
+  (if (and (zerop (length prefix))
+           (y-or-n-p "Remove all function traces?"))
+      (untrace-all)
+    (mapc (lambda (name)
+            (untrace-function (intern name)))
+          (all-completions prefix obarray #'trace-is-traced)))
+  ;; Remove any `after-load' behaviour.
+  (trace--remove-after-load 'prefix prefix))
+
+;;;###autoload
+(defun trace-regexp (regexp &optional after-load buffer context)
+  "Trace all functions with names matching REGEXP.
+For example, to trace indentation-related functions, you could try:
+
+\\[trace-regexp] RET indent\\|offset RET
+
+Warning: Do not attempt to trace all functions.  Tracing too many
+functions at one time will render Emacs unusable.
+
+Background tracing is used.  Switch to the trace output buffer to
+view the results.  For any autoload declarations matching REGEXP,
+the associated function will be traced if and when it is defined.
+
+With a prefix argument, also prompt for the optional arguments.
+If AFTER-LOAD is non-nil then re-process REGEXP after loading any
+file.  See `trace-function-foreground' for details of BUFFER and
+CONTEXT, and of foreground vs background tracing.
+
+Calling `trace-regexp' again for the same REGEXP will update the
+optional argument behaviours to respect the new values.
+
+See also `untrace-regexp'."
+  (interactive
+   (cons (read-regexp "Regexp matching functions to trace: ")
+         (and current-prefix-arg
+              (cons (y-or-n-p "Update traces after loading files?")
+                    (trace--read-extra-args)))))
+  (when (member regexp '("" "." ".+" ".*"))
+    ;; Not comprehensive, but it catches the most likely attempts.
+    (error "Tracing all Emacs functions would render Emacs unusable"))
+  (mapatoms
+   (lambda (sym)
+     (and (trace-is-traceable-p sym)
+          (string-match-p regexp (symbol-name sym))
+          (trace-function-background sym buffer context))))
+  (message
+   "Tracing to %s.  Use %s to untrace by regexp, or %s to remove all traces."
+   (or buffer trace-buffer)
+   (substitute-command-keys "\\[untrace-regexp]")
+   (substitute-command-keys "\\[untrace-all]"))
+  ;; Handle `after-load' argument.
+  (when after-load
+    (trace--after-load 'regexp regexp buffer context)))
+
+(defun untrace-regexp (regexp)
+  "Remove all traces from functions with names matching REGEXP.
+
+See also `trace-regexp'."
+  (interactive
+   (list (read-regexp "Regexp matching functions to untrace: ")))
+  (if (and (zerop (length regexp))
+           (y-or-n-p "Remove all function traces?"))
+      (untrace-all)
+    (mapatoms
+     (lambda (sym)
+       (and (trace-is-traced sym)
+            (string-match-p regexp (symbol-name sym))
+            (untrace-function sym)))))
+  ;; Remove any `after-load' behaviour.
+  (trace--remove-after-load 'regexp regexp))
+
+;;;###autoload
+(defun trace-library (library &optional after-load buffer context)
+  "Trace functions defined by LIBRARY.
+For example, to trace tramp.el functions, you could use:
+
+\\[trace-library] RET tramp RET
+
+Background tracing is used.  Switch to the trace output buffer to
+view the results.  For any autoload declarations with a file name
+matching LIBRARY, the associated function will be traced if and
+when it is defined.  (Autoload file names will not match if LIBRARY
+specifies a longer, more specific path.)
+
+With a prefix argument, also prompt for the optional arguments.
+If AFTER-LOAD is non-nil then re-process LIBRARY after loading it
+\(ensuring that all of its functions will be traced).  See
+`trace-function-foreground' for details of BUFFER and CONTEXT,
+and of foreground vs background tracing.
+
+Calling `trace-library' again for the same LIBRARY will update the
+optional argument behaviours to respect the new values.
+
+See also `untrace-library'."
+  (interactive
+   (cons (trace--read-library)
+         (and current-prefix-arg
+              (cons (y-or-n-p "Update traces after loading this library?")
+                    (trace--read-extra-args)))))
+  ;; Build list of library functions and autoloads.
+  (let ((defs (nconc (trace--library-defuns library)
+                     (trace--library-autoloads library))))
+    ;; Trace each of those definitions.
+    (mapc (lambda (func)
+            (trace-function-background func buffer context))
+          defs))
+  ;; Handle `after-load' argument.
+  (when after-load
+    (trace--after-load 'library library buffer context)))
+
+(defun trace--library-defuns (library)
+  "Returns a list of loaded function definitions associated with LIBRARY."
+  (delq nil (mapcar (lambda (x)
+                      (and (consp x)
+                           (eq (car x) 'defun)
+                           (cdr x)))
+                    (cdr (load-history-filename-element
+                          (load-history-regexp library))))))
+
+(defun trace--library-autoloads (library)
+  "Returns a list of all current autoloads associated with LIBRARY.
+
+Autoload file names will not match if LIBRARY specifies a longer,
+more specific path than that of the autoload declaration itself."
+  (let* ((functions nil)
+         (filepattern (load-history-regexp library))
+         (predicate (apply-partially 'trace--library-provides-autoload-p
+                                     filepattern)))
+    (mapatoms (lambda (sym)
+                (when (funcall predicate sym)
+                  (push sym functions))))
+    functions))
+
+(defun trace--library-provides-autoload-p (filepattern sym)
+  "Whether symbol SYM is an autoload associated with FILEPATTERN.
+
+FILEPATTERN should be the result of calling `load-history-regexp'."
+  (when (fboundp sym)
+    (let ((f (symbol-function sym)))
+      (and (autoloadp f)
+           (string-match filepattern (cadr f))))))
+
+(defun untrace-library (library)
+  "Remove all traces from functions defined by LIBRARY.
+
+See also `trace-library'."
+  (interactive (list (trace--read-library)))
+  ;; Remove traces from known LIBRARY defuns.
+  ;; (Also process autoloads, in case LIBRARY is unloaded.)
+  (let ((defs (nconc (trace--library-defuns library)
+                     (trace--library-autoloads library))))
+    (mapc (lambda (func)
+            (when (trace-is-traced func)
+              (untrace-function func)))
+          defs))
+  ;; Remove any `after-load' behaviour.
+  (trace--remove-after-load 'library library))
+
+(defvar trace--after-load-alist nil
+  "List of trace types to update after loading.
+
+Each list item has the form ((TYPE . VALUE) BUFFER CONTEXT),
+where TYPE is one of the symbols `prefix', `regexp', or `library';
+and VALUE is the respective first argument to `trace-package',
+`trace-regexp', or `trace-library'; with BUFFER and CONTEXT being
+the values of those arguments as they were passed to the same
+function.")
+
+(defun trace--after-load (type value &optional buffer context)
+  "Arrange to update traces after libraries are loaded.
+
+TYPE is one of the symbols `prefix', `regexp', or `library';
+VALUE is the respective first argument to `trace-package',
+`trace-regexp', or `trace-library'; and BUFFER and CONTEXT are
+the values of those arguments as they were passed to the same
+function.
+
+Adds `trace--after-load-function' to `after-load-functions'."
+  ;; Remove any existing spec for this (TYPE VALUE) key.
+  (trace--remove-after-load type value)
+  ;; Add the new spec.
+  (push (list (cons type value) buffer context)
+        trace--after-load-alist)
+  ;; Arrange to call `trace--after-load-function'.
+  (add-hook 'after-load-functions #'trace--after-load-function))
+
+(defun trace--after-load-function (file)
+  "React to FILE being loaded.  Callback for `after-load-functions'.
+
+See also `trace--after-load'."
+  (dolist (spec trace--after-load-alist)
+    (cl-destructuring-bind ((type . value) buffer context)
+        spec
+      (cl-case type
+        (prefix (trace-package value nil buffer context))
+        (regexp (trace-regexp value nil buffer context))
+        (library (when (string-match (load-history-regexp value) file)
+                   (trace-library value nil buffer context)))))))
+
+(defun trace--remove-after-load (type value)
+  "Remove any (TYPE . VALUE) entry from `trace--after-load-alist'.
+
+Remove `trace--after-load-function' from `after-load-functions'
+if it is no longer needed."
+  (setq trace--after-load-alist
+        (cl-delete (cons type value) trace--after-load-alist
+                   :key #'car :test #'equal))
+  (unless trace--after-load-alist
+    (remove-hook 'after-load-functions #'trace--after-load-function)))
+
+(defun trace--remove-after-load-all ()
+  "Reset `trace--after-load-alist'.
+Remove `trace--after-load-function' from `after-load-functions'"
+  (setq trace--after-load-alist nil)
+  (remove-hook 'after-load-functions #'trace--after-load-function))
+
 (defun untrace-all ()
-  "Untraces all currently traced functions."
+  "Remove traces from all currently traced functions."
   (interactive)
-  (mapatoms #'untrace-function))
+  (mapatoms #'untrace-function)
+  (trace--remove-after-load-all))
 
 (provide 'trace)
 
