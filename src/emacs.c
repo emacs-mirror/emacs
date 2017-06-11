@@ -1674,6 +1674,10 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
         /* Unless next switch is -nl, load "dumped.elc" first thing.
 	   If it fails, we won't be able to run.  */
 	{
+	  /* We could let the user see that we're (still) loading the
+	     Lisp environment, but the "done" message will hide the
+	     "For information about..." message that we want displayed
+	     when we're finished.  */
 	  Lisp_Object load = list4 (Qload,
 				    build_string ("../src/dumped.elc"),
 				    Qnil, Qt);
