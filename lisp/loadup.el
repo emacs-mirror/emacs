@@ -654,7 +654,6 @@ lost after dumping")))
             (print '(setq purify-flag nil))
             (print '(get-buffer-create "*Messages*"))
             (print `(progn . ,cmds))
-            (terpri)
             ;; Now that make-abbrev-table is defined, use it.
             (print `(let ((scratch-abbrev-tables (make-vector ,abbrev-counter 0)))
                       ,@(nreverse abbrev-make-cmds)
@@ -673,10 +672,8 @@ lost after dumping")))
                              ;; (message "Defining charset %S...postponed"
                              ;;          cs)
                              (push cs css)))))))
-            (terpri)
             (print `(dolist (cs ',charset-aliases)
                       (define-charset-alias (car cs) (cdr cs))))
-            (terpri)
             (print `(let ((css ',coding-systems))
                       (dotimes (i 3)
                         (dolist (cs (prog1 css (setq css nil)))
@@ -695,21 +692,20 @@ lost after dumping")))
             (print `(dolist (f ',faces)
                       (face-spec-set f (get f 'face-defface-spec)
                                      'face-defface-spec)))
-            (terpri)
+            ;; This creates some rather large data structures that are
+            ;; more quickly reconstructed than read from the dumped
+            ;; Lisp state.
             (print '(load "international/characters" nil t))
             ;; This sets advice on a subr, so cannot be preloaded.
-            (print '(load "uniquify"))
-            (terpri)
+            (print '(load "uniquify" nil t))
             ;; Lisp functions have their DOC file offsets stored
             ;; already, but for a subr it's hidden away from Lisp.
             (print '(condition-case nil
                         (Snarf-documentation "DOC")
                       (file-missing
                        (message "Couldn't load DOC file"))))
-            (terpri)
             (print `(dolist (cs ',coding-system-aliases)
                       (define-coding-system-alias (car cs) (cdr cs))))
-            (terpri)
             (print `(progn
                       ;; (message "Done preloading!")
                       ;; (message "custom-delayed-init-variables = %S"
@@ -719,8 +715,7 @@ lost after dumping")))
                       (use-global-map global-map)
                       (eval top-level)
                       ;; (message "top-level done!?")
-                      ))
-            (terpri))
+                      )))
           (goto-char (point-min))
           (while (re-search-forward " (\\(defvar\\|setplist\\|fset\\) " nil t)
             (goto-char (match-beginning 0))
