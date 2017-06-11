@@ -1347,10 +1347,9 @@ AC_CACHE_CHECK([whether addresses are sanitized],
 
 dnl The function dump-emacs will not be defined and temacs will do
 dnl (load "loadup") automatically unless told otherwise.
-test "x$CANNOT_DUMP" = "x" && CANNOT_DUMP=no
-case "$opsys" in
-  nacl) CANNOT_DUMP=yes ;;
-esac
+dnl
+dnl For the big-elc model, we never support dumping.
+CANNOT_DUMP=yes
 
 if test "$CANNOT_DUMP" = "yes"; then
   AC_DEFINE(CANNOT_DUMP, 1, [Define if Emacs cannot be dumped on your system.])
