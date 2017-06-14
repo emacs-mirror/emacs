@@ -1670,7 +1670,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #endif
 	  Vtop_level = list2 (Qload, build_unibyte_string (file));
 	}
-      else if (! no_loadup)
+      if (! no_loadup)
         /* Unless next switch is -nl, load "dumped.elc" first thing.
 	   If it fails, we won't be able to run.  */
 	{

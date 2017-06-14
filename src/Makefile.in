@@ -529,7 +529,7 @@ ${lispintdir}/characters.elc: ${charscript:.el=.elc}
 emacs$(EXEEXT): temacs$(EXEEXT) \
                 lisp.mk $(etc)/DOC $(lisp) \
                 $(lispsource)/international/charprop.el ${charsets}
-	LC_ALL=C $(RUN_TEMACS) -batch $(BUILD_DETAILS) -l loadup dump
+	LC_ALL=C $(RUN_TEMACS) --no-loadup -batch $(BUILD_DETAILS) -l loadup dump
 ifeq ($(CANNOT_DUMP),yes)
 	ln -f temacs$(EXEEXT) $@
 else
@@ -733,7 +733,7 @@ $(lispsource)/loaddefs.el: $(VCSWITNESS) | bootstrap-emacs$(EXEEXT)
 ## files from loadup.el in source form.
 bootstrap-emacs$(EXEEXT): temacs$(EXEEXT)
 	$(MAKE) -C ../lisp update-subdirs
-	$(RUN_TEMACS) --batch $(BUILD_DETAILS) --load loadup bootstrap
+	$(RUN_TEMACS) --no-loadup --batch $(BUILD_DETAILS) --load loadup bootstrap
 ifeq ($(CANNOT_DUMP),yes)
 	ln -f temacs$(EXEEXT) $@
 else
