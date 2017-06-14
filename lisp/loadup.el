@@ -528,6 +528,19 @@ lost after dumping")))
                                      internal--text-quoting-flag
                                      exec-path
                                      process-environment
+                                     initial-environment
+                                     exec-directory
+                                     data-directory
+                                     charset-map-path
+                                     source-directory
+                                     invocation-directory
+                                     load-file-name
+                                     doc-directory
+                                     load-path
+                                     user-full-name
+                                     user-login-name
+                                     user-real-login-name
+                                     system-name
                                      command-line-args noninteractive
                                      ;; Any let-bound variables during
                                      ;; dump process will be useless.
