@@ -72,6 +72,18 @@
 
   )
 
+(ert-deftest use-package-normalize-diminish ()
+  (should (equal (use-package-normalize-diminish 'foopkg :diminish nil)
+                 '(foopkg-mode)))
+  (should (equal (use-package-normalize-diminish 'foopkg :diminish 'bar)
+                 '(bar)))
+  (should (equal (use-package-normalize-diminish 'foopkg :diminish "bar")
+                 '((foopkg-mode . "bar"))))
+  (should (equal (use-package-normalize-diminish 'foopkg :diminish 'foo-mode)
+                 '(foo-mode)))
+  (should (equal (use-package-normalize-diminish 'foopkg :diminish '(foo . "bar"))
+                 '((foo . "bar")))))
+
 ;; Local Variables:
 ;; indent-tabs-mode: nil
 ;; no-byte-compile: t

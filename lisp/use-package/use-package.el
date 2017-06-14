@@ -1409,10 +1409,12 @@ deferred until the prefix key sequence is pressed."
      SYMBOL
      (SYMBOL . STRING)"
   (cond
+   ((not arg)
+    (list (use-package-as-mode name)))
    ((symbolp arg)
     (list arg))
    ((stringp arg)
-    (list (cons (intern (concat (use-package-as-string name) "-mode")) arg)))
+    (list (cons (use-package-as-mode name) arg)))
    ((and (consp arg) (stringp (cdr arg)))
     (list arg))
    ((and (not recursed) (listp arg) (listp (cdr arg)))
