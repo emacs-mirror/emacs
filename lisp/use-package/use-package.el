@@ -152,6 +152,8 @@ the user specified."
     :bind-keymap*
     :interpreter
     :mode
+    :magic
+    :magic-fallback
     :commands
     :defines
     :functions
@@ -1092,27 +1094,32 @@ deferred until the prefix key sequence is pressed."
 ;;
 
 (defun use-package-normalize-mode (name keyword args)
+  "Normalize arguments for keywords which add regexp/mode pairs to an alist."
   (use-package-as-one (symbol-name keyword) args
     (apply-partially #'use-package-normalize-pairs
                      #'use-package-regex-p
                      (lambda (m) (and (not (null m)) (symbolp m)))
                      name)))
 
-(defalias 'use-package-normalize/:interpreter 'use-package-normalize-mode)
-
-(defun use-package-handler/:interpreter (name keyword arg rest state)
+(defun use-package-handle-mode (name alist arg rest state)
+  "Handle keywords which add regexp/mode pairs to an alist."
   (let* (commands
-         (form (mapcar #'(lambda (interpreter)
-                           (push (cdr interpreter) commands)
-                           (setcar interpreter
-                                   (use-package-normalize-regex (car interpreter)))
-                           `(add-to-list 'interpreter-mode-alist ',interpreter)) arg)))
+         (form (mapcar #'(lambda (thing)
+                           (push (cdr thing) commands)
+                           (setcar thing
+                                   (use-package-normalize-regex (car thing)))
+                           `(add-to-list ',alist ',thing)) arg)))
     (use-package-concat
      (use-package-process-keywords name
        (use-package-sort-keywords
         (use-package-plist-maybe-put rest :defer t))
        (use-package-plist-append state :commands commands))
      `((ignore ,@form)))))
+
+(defalias 'use-package-normalize/:interpreter 'use-package-normalize-mode)
+
+(defun use-package-handler/:interpreter (name keyword arg rest state)
+  (use-package-handle-mode name 'interpreter-mode-alist arg rest state))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -1122,18 +1129,27 @@ deferred until the prefix key sequence is pressed."
 (defalias 'use-package-normalize/:mode 'use-package-normalize-mode)
 
 (defun use-package-handler/:mode (name keyword arg rest state)
-  (let* (commands
-         (form (mapcar #'(lambda (mode)
-                           (push (cdr mode) commands)
-                           (setcar mode
-                                   (use-package-normalize-regex (car mode)))
-                           `(add-to-list 'auto-mode-alist ',mode)) arg)))
-    (use-package-concat
-     (use-package-process-keywords name
-       (use-package-sort-keywords
-        (use-package-plist-maybe-put rest :defer t))
-       (use-package-plist-append state :commands commands))
-     `((ignore ,@form)))))
+  (use-package-handle-mode name 'auto-mode-alist arg rest state))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;;; :magic
+;;
+
+(defalias 'use-package-normalize/:magic 'use-package-normalize-mode)
+
+(defun use-package-handler/:magic (name keyword arg rest state)
+  (use-package-handle-mode name 'magic-mode-alist arg rest state))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;;; :magic-fallback
+;;
+
+(defalias 'use-package-normalize/:magic-fallback 'use-package-normalize-mode)
+
+(defun use-package-handler/:magic-fallback (name keyword arg rest state)
+  (use-package-handle-mode name 'magic-fallback-mode-alist arg rest state))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -1455,47 +1471,51 @@ this file.  Usage:
   (use-package package-name
      [:keyword [option]]...)
 
-:init          Code to run before PACKAGE-NAME has been loaded.
-:config        Code to run after PACKAGE-NAME has been loaded.  Note that if
-               loading is deferred for any reason, this code does not execute
-               until the lazy load has occurred.
-:preface       Code to be run before everything except `:disabled'; this can
-               be used to define functions for use in `:if', or that should be
-               seen by the byte-compiler.
+:init            Code to run before PACKAGE-NAME has been loaded.
+:config          Code to run after PACKAGE-NAME has been loaded.  Note that
+                 if loading is deferred for any reason, this code does not
+                 execute until the lazy load has occurred.
+:preface         Code to be run before everything except `:disabled'; this
+                 can be used to define functions for use in `:if', or that
+                 should be seen by the byte-compiler.
 
-:mode          Form to be added to `auto-mode-alist'.
-:interpreter   Form to be added to `interpreter-mode-alist'.
+:mode            Form to be added to `auto-mode-alist'.
+:magic           Form to be added to `magic-mode-alist'.
+:magic-fallback  Form to be added to `magic-fallback-mode-alist'.
+:mode            Form to be added to `auto-mode-alist'.
+:interpreter     Form to be added to `interpreter-mode-alist'.
 
-:commands      Define autoloads for commands that will be defined by the
-               package.  This is useful if the package is being lazily loaded,
-               and you wish to conditionally call functions in your `:init'
-               block that are defined in the package.
+:commands        Define autoloads for commands that will be defined by the
+                 package.  This is useful if the package is being lazily
+                 loaded, and you wish to conditionally call functions in your
+                 `:init' block that are defined in the package.
 
-:bind          Bind keys, and define autoloads for the bound commands.
-:bind*         Bind keys, and define autoloads for the bound commands,
-               *overriding all minor mode bindings*.
-:bind-keymap   Bind a key prefix to an auto-loaded keymap defined in the
-               package.  This is like `:bind', but for keymaps.
-:bind-keymap*  Like `:bind-keymap', but overrides all minor mode bindings
+:bind            Bind keys, and define autoloads for the bound commands.
+:bind*           Bind keys, and define autoloads for the bound commands,
+                 *overriding all minor mode bindings*.
+:bind-keymap     Bind a key prefix to an auto-loaded keymap defined in the
+                 package.  This is like `:bind', but for keymaps.
+:bind-keymap*    Like `:bind-keymap', but overrides all minor mode bindings
 
-:defer         Defer loading of a package -- this is implied when using
-               `:commands', `:bind', `:bind*', `:mode' or `:interpreter'.
-               This can be an integer, to force loading after N seconds of
-               idle time, if the package has not already been loaded.
+:defer           Defer loading of a package -- this is implied when using
+                 `:commands', `:bind', `:bind*', `:mode', `:magic',
+                 `:magic-fallback', or `:interpreter'.  This can be an integer,
+                 to force loading after N seconds of idle time, if the package
+                 has not already been loaded.
 
-:after         Defer loading of a package until after any of the named
-               features are loaded.
+:after           Defer loading of a package until after any of the named
+                 features are loaded.
 
-:demand        Prevent deferred loading in all cases.
+:demand          Prevent deferred loading in all cases.
 
-:if EXPR       Initialize and load only if EXPR evaluates to a non-nil value.
-:disabled      The package is ignored completely if this keyword is present.
-:defines       Declare certain variables to silence the byte-compiler.
-:functions     Declare certain functions to silence the byte-compiler.
-:load-path     Add to the `load-path' before attempting to load the package.
-:diminish      Support for diminish.el (if installed).
-:ensure        Loads the package using package.el if necessary.
-:pin           Pin the package to an archive."
+:if EXPR         Initialize and load only if EXPR evaluates to a non-nil value.
+:disabled        The package is ignored completely if this keyword is present.
+:defines         Declare certain variables to silence the byte-compiler.
+:functions       Declare certain functions to silence the byte-compiler.
+:load-path       Add to the `load-path' before attempting to load the package.
+:diminish        Support for diminish.el (if installed).
+:ensure          Loads the package using package.el if necessary.
+:pin             Pin the package to an archive."
   (declare (indent 1))
   (unless (member :disabled args)
     (let ((name-symbol (if (stringp name) (intern name) name))
